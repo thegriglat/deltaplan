@@ -106,6 +106,42 @@ static func slider_row(
 	return s
 
 
+## Колонка по центру экрана с полупрозрачной подложкой по размеру содержимого
+## (а не большой панелью на весь блок, как centered_panel).
+static func snug_panel(parent: Control) -> VBoxContainer:
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	panel.add_child(box)
+	return box
+
+
+## Заголовок поверх фона (без подложки), с тенью для читаемости на любой картинке.
+## Полоса во всю ширину (не завязана на анкер по центру — тот при создании даёт
+## нулевую ширину и рвёт текст по буквам), текст выравнивается по центру полосы.
+static func heading(parent: Control, text: String, top_offset: float) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.theme_type_variation = "TitleLabel"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	l.offset_top = top_offset
+	l.offset_bottom = top_offset + 56.0
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	l.add_theme_constant_override("shadow_offset_x", 0)
+	l.add_theme_constant_override("shadow_offset_y", 2)
+	l.add_theme_constant_override("shadow_outline_size", 6)
+	parent.add_child(l)
+	return l
+
+
 static func separator(parent: Control) -> void:
 	var sep := HSeparator.new()
 	sep.modulate.a = 0.4

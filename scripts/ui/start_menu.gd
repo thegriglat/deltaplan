@@ -44,9 +44,9 @@ func set_busy(on: bool) -> void:
 func _build() -> void:
 	var ui: Dictionary = Config.get_config("ui")
 	UiKit.full_screen_background(self, String(ui.get("menu_background", "")), Color(0.05, 0.06, 0.08))
-	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
-	UiKit.label(box, tr("Дельтаплан"), "TitleLabel")
-	UiKit.separator(box)
+	UiKit.heading(self, tr("Дельтаплан"), 56.0)
+	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
+	var box := UiKit.snug_panel(self)
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
 	_fly_btn = UiKit.menu_button(box, tr("Лететь"), _on_fly)

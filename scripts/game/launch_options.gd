@@ -12,6 +12,8 @@ extends RefCounted
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
 ##   --glance              держать клавишу «взгляд на прибор»
+##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
+##                         (чистый кадр мира — для фоновых картинок меню)
 
 var smoke := false
 var autostart := false
@@ -22,6 +24,7 @@ var camera := ""
 var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" или ""
 var look := Vector2.ZERO
 var glance := false  ## держать «взгляд на прибор» (скриншоты)
+var no_overlay := false  ## скрыть InstrumentOverlay перед скриншотом (чистый кадр мира)
 var overrides: Dictionary = {}
 
 
@@ -44,6 +47,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autopilot = true
 			"glance":
 				o.glance = true
+			"no-overlay":
+				o.no_overlay = true
 			"screenshot":
 				o.screenshot = val
 			"time":
