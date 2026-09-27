@@ -38,7 +38,8 @@ static func attempt(
 
 
 func test_headwind_launch() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for p in Config.list_configs("wings"):
+		var w := String(p).get_file()
 		var r := attempt(w, Vector3(0, 0, 4.0))
 		check(r.took_off, "%s: встречный 4 м/с — взлёт (срыв: %s)" % [w, r.failure])
 		var m: FlightModel = r.model
