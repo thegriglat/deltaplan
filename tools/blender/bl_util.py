@@ -86,6 +86,7 @@ class MeshBuilder:
         self.mats: list = []     # индекс материала на грань
         self.smooth: list = []
         self.mat_names: list = []
+        self.colors: dict = {}   # индекс вершины → (r, g, b, a); есть — пишется атрибут Col
 
     def _mat(self, name: str) -> int:
         if name not in self.mat_names:
@@ -103,12 +104,15 @@ class MeshBuilder:
         return len(self.verts) - 1
 
     def add_grid(self, pts, mat: str, uv=None, flip: bool = False, smooth: bool = True,
-                 wrap: bool = False, wrap_rows: bool = False) -> None:
-        """pts[i][j] — сетка точек; uv[i][j] — (u, v). wrap — замкнуть по j, wrap_rows — по i."""
+                 wrap: bool = False, wrap_rows: bool = False, colors=None) -> None:
+        """pts[i][j] — сетка точек; uv[i][j] — (u, v). wrap — замкнуть по j, wrap_rows — по i.
+        colors[i][j] — цвет вершины (r, g, b, a), например маска анимации паруса."""
         rows, cols = len(pts), len(pts[0])
         base = len(self.verts)
-        for row in pts:
-            for p in row:
+        for i, row in enumerate(pts):
+            for j, p in enumerate(row):
+                if colors is not None:
+                    self.colors[len(self.verts)] = tuple(colors[i][j])
                 self.verts.append(tuple(p))
         jmax = cols if wrap else cols - 1
         for i in range(rows if wrap_rows else rows - 1):
@@ -202,6 +206,11 @@ class MeshBuilder:
             for k in range(f.loop_total):
                 uvl.data[f.loop_start + k].uv = fuv[k]
             li += f.loop_total
+        if self.colors:
+            col = me.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
+            for i, c in self.colors.items():
+                col.data[i].color = c
+            me.color_attributes.active_color = col
         me.polygons.foreach_set("material_index", self.mats)
         me.polygons.foreach_set("use_smooth", self.smooth)
         for mn in self.mat_names:
@@ -256,6 +265,7 @@ def export(stem: str) -> None:
     bpy.ops.export_scene.gltf(filepath=os.path.join(MODELS, stem + ".glb"),
                               export_format="GLB", export_yup=True, use_selection=False,
                               export_apply=True, export_extras=False,
+                              export_vertex_color="ACTIVE",  # касательные Godot строит сам
                               export_cameras=False, export_lights=False)
     print("EXPORTED %s: %d tris" % (stem, tri_count()))
 

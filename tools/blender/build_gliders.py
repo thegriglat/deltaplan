@@ -17,6 +17,7 @@ from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
+import sail_maps  # noqa: E402
 import sail_texture  # noqa: E402
 
 SPAN_STATIONS = 44       # на полуразмах
@@ -98,17 +99,40 @@ def stations(n: int, cos_spacing: bool) -> list:
     return [i / n for i in range(n + 1)]
 
 
+def span_stations(n_batt: int) -> list:
+    """Станции по полуразмаху a ∈ [0, 1], совпадающие с латами (a_k = k/n·0.97): между
+    соседними латами — несколько станций, чтобы парус мог «дышать» между ними.
+    Возвращает [(a, вес_пролёта)]: вес 0 на лате, 1 — посередине между латами."""
+    seg = max(3, round(SPAN_STATIONS / n_batt))
+    out = []
+    for k in range(n_batt):
+        a0, a1 = k / n_batt * 0.97, (k + 1) / n_batt * 0.97
+        for q in range(seg):
+            f = q / seg
+            out.append((a0 + (a1 - a0) * f, math.sin(math.pi * f)))
+    out += [(0.97, 0.0), (0.985, 0.0), (1.0, 0.0)]
+    return out
+
+
 def build_sail(ws: WingShape, mats: dict):
+    """Парус. Цвет вершин (атрибут Col → COLOR в Godot) — маска для шейдера паруса
+    (assets/shaders/sail/): R — вес пролёта между латами (0 на лате), G — доля хорды t
+    (0 — передняя кромка, 1 — задняя), B — 1 у нижней обшивки."""
     mb = U.MeshBuilder()
-    us = [-1 + 2 * i / (2 * SPAN_STATIONS) for i in range(2 * SPAN_STATIONS + 1)]
+    half = span_stations(ws.p["battens_per_side"])
+    st = [(-a, w) for a, w in reversed(half)] + half[1:]
+    us = [u for u, _ in st]
     ts = stations(CHORD_STATIONS, True)
     top = [[ws.upper(u, t) for t in ts] for u in us]
     top_uv = [[((u + 1) / 2, t * 0.5) for t in ts] for u in us]
-    mb.add_grid(top, "Sail", top_uv, flip=True)
+    top_col = [[(w, t, 0.0, 1.0) for t in ts] for _, w in st]
+    mb.add_grid(top, "Sail", top_uv, flip=True, colors=top_col)
     tls = stations(14, True)
+    cov = ws.p["lower_cover"]
     bot = [[ws.lower(u, tl) for tl in tls] for u in us]
     bot_uv = [[((u + 1) / 2, 0.5 + tl * 0.5) for tl in tls] for u in us]
-    mb.add_grid(bot, "Sail", bot_uv, flip=False)
+    bot_col = [[(w, tl * cov, 1.0, 1.0) for tl in tls] for _, w in st]
+    mb.add_grid(bot, "Sail", bot_uv, flip=False, colors=bot_col)
     return mb.build("Sail", mats)
 
 
@@ -233,6 +257,7 @@ def build_wing(key: str, params: dict) -> None:
     U.reset_scene()
     ws = WingShape(p, cf, float(wcfg["span_m"]))
     tex = sail_texture.make(p, os.path.join(U.SOURCE, p["out"] + "_sail.png"))
+    sail_maps.make(p)  # карта нормалей и просвечивания для шейдера паруса
     mats = {
         "Sail": U.material("Sail_" + key, (1, 1, 1), rough=0.75, double=True, image=tex),
         "Tube": U.material("Tube_" + key, U.srgb(p["tube_color"]), rough=p["tube_rough"],

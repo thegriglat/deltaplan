@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/models_preview/sail_preview.gd" id="1"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.6
+tonemap_mode = 2
+
+[node name="SailPreview" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.342, 0.94, 0, -0.94, 0.342, 0, 10, 0)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="UI"]
+offset_left = 10.0
+offset_top = 10.0
+
+[node name="Box" type="VBoxContainer" parent="UI/Panel"]

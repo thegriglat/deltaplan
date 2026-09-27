@@ -61,6 +61,7 @@
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
 | `assets/models/glider_training.glb`, `glider_kingpost.glb`, `glider_sport.glb` (исходники `assets/source/glider_*.blend`, текстуры паруса `glider_*_sail.png` 1024²) | три крыла: парус, каркас, трапеция, тросы, маркеры (docs/models.md) | сгенерировано `tools/blender/build_gliders.py` (Blender 4.3) | — | визуал планера (`configs/wings/*.json → visual.visual_model`) |
+| `assets/shaders/sail/sail.gdshader`, `glider_*_normal.png`, `glider_*_trans.png` | шейдер паруса (просвечивание, анимация), карты нормалей и просвечивания 1024² | сгенерировано `tools/blender/sail_maps.py`, шейдер написан вручную | — | парус крыльев (`SailMaterial`) |
 | `assets/models/pilot.glb` (`assets/source/pilot.blend`) | манекен пилота в коконе, шлем отдельным мешем | сгенерировано `tools/blender/build_pilot.py` | — | пилот (`configs/pilot.json → visual.visual_model`) |
 | `assets/models/instrument.glb` (`assets/source/instrument.blend`) | планшет-полётный компьютер на кронштейне базовой штанги, без логотипов | сгенерировано `tools/blender/build_instrument.py` | — | прибор на `InstrumentMount` |
 | `assets/models/vario_90s.glb` (`assets/source/vario_90s.blend`) | обобщённый вариометр 1990-х со стрелочной шкалой, без брендов | сгенерировано `tools/blender/build_vario90s.py` | — | прибор на `VarioMount` (левая стойка) |
