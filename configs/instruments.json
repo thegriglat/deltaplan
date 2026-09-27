@@ -198,6 +198,23 @@
       "glide_window_s_doc": "Не показывается, нужно для Vario.",
       "sample_interval_s": 0.25,
       "sample_interval_s_doc": "Шаг истории, с."
+    },
+    "mount_3d": {
+      "_doc": "Корпус вариометра 90-х в 3D (на хомуте левой стойки трапеции, docs/models.md → VarioMount). Модель — agent models; если её нет — примитивы.",
+      "model_path": "res://assets/models/vario_90s.glb",
+      "model_path_doc": "Модель корпуса (.glb): меш «Screen» (круглый циферблат Ø66 мм, UV по описанному квадрату) — на него кладётся текстура. Экран в модели смотрит в −Z, как у instrument.glb.",
+      "screen_mesh_name": "Screen",
+      "screen_mesh_name_doc": "Имя меша экрана в модели.",
+      "body_size_m": [0.08, 0.09, 0.05],
+      "body_size_m_doc": "Примитивный корпус (если модели нет): ширина × высота × толщина, м (коробочка со стрелочной шкалой).",
+      "body_color": "#2a2a28",
+      "body_color_doc": "Цвет корпуса.",
+      "screen_diameter_m": 0.066,
+      "screen_diameter_m_doc": "Диаметр круглого экрана (примитив — квадрат вписан в этот диаметр), м.",
+      "screen_emission": 0.0,
+      "screen_emission_doc": "Собственное свечение экрана 0..1 (ЖК без подсветки — не светится).",
+      "screen_roughness": 0.5,
+      "screen_roughness_doc": "Шероховатость экрана (стекло циферблата)."
     }
   },
   "thermal_assistant": {
