@@ -199,5 +199,30 @@
       "sample_interval_s": 0.25,
       "sample_interval_s_doc": "Шаг истории, с."
     }
+  },
+  "thermal_assistant": {
+    "_doc": "Помощник центровки (страница 5, как у XCSoar/XCTrack). Только данные прибора: отфильтрованный вариометр и курс; атмосфера не читается. Замер вариометра относится к точке круга, где крыло было τ секунд назад (задержка датчика).",
+    "min_turn_rate_dps": 8.0,
+    "min_turn_rate_dps_doc": "Кружение: скорость изменения курса не меньше, °/с.",
+    "turn_rate_smoothing_s": 2.0,
+    "turn_rate_smoothing_s_doc": "Сглаживание скорости разворота, с.",
+    "circling_confirm_s": 4.0,
+    "circling_confirm_s_doc": "Столько секунд подряд кружить, чтобы включить помощник, с.",
+    "window_circles": 1.5,
+    "window_circles_doc": "Сколько последних кругов учитывать.",
+    "max_window_s": 60.0,
+    "max_window_s_doc": "Предел окна по времени, с.",
+    "sensor_lag_s": -1.0,
+    "sensor_lag_s_doc": "Задержка датчика, с; −1 — взять постоянную времени фильтра вариометра (vario.filter_time_constant_s).",
+    "sectors": 36,
+    "sectors_doc": "Число секторов круга (36 — по 10°).",
+    "sample_interval_s": 0.25,
+    "sample_interval_s_doc": "Шаг записи замеров, с.",
+    "plot_range_ms": 2.0,
+    "plot_range_ms_doc": "Разброс (м/с от среднего за круг), который занимает весь радиус диаграммы.",
+    "show_shift_arrow": true,
+    "show_shift_arrow_doc": "Показывать стрелку «сдвинь круг сюда» (в сторону сильного сектора).",
+    "shift_min_ms": 0.2,
+    "shift_min_ms_doc": "Стрелка появляется, если асимметрия подъёма больше, м/с."
   }
 }

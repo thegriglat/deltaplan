@@ -31,7 +31,7 @@ distance_from_takeoff_m, takeoff_position, track: PackedVector2Array (x, z)
 # FlightInstrument
 instrument.update(t: Telemetry, dt := -1)   # dt по умолчанию — шаг физики
 instrument.get_texture() -> ViewportTexture
-instrument.set_page(i) / next_page() / get_page() / page_count()   # 4 страницы, сигнал page_changed
+instrument.set_page(i) / next_page() / get_page() / page_count()   # 5 страниц, сигнал page_changed
 instrument.set_task([{name, position: Vector3, radius_m}], active := 0)   # set_turnpoints — синоним
 instrument.set_sound_settings(vario_audio.get_settings()); request_setting(k, v) → settings_requested
 instrument.get_wind() -> WindEstimator, get_task() -> InstrumentTask
@@ -77,7 +77,7 @@ overlay.visible = camera_mode != "cockpit"       # в кабине прибор 
 подпись слева сверху, единицы справа, значение крупно. Стиль сегментного LCD включается в конфиге
 (`digits_font` = DSEG7, `ghost_digits` = true).
 
-Страницы (клавиши 1–4 привязывает главная сцена → `set_page(0..3)`, сигнал `page_changed`):
+Страницы (клавиши 1–5 привязывает главная сцена → `set_page(0..4)`, сигнал `page_changed`):
 1. **ПОЛЁТ** — сегментная шкала вариометра ±5 м/с (среднее — треугольник), ВАРИО, СРЕДНЕЕ, КАЧ, ВЫСОТА,
    НАД ЗЕМЛ, ВРЕМЯ, ВОЗД, ПУТЕВ, КУРС, ПУТЬ (стрелка + румб).
 2. **КАРТА** — след, взлёт, цилиндры задания (активный жирно), дельтаплан, север, масштаб, автомасштаб
@@ -88,8 +88,22 @@ overlay.visible = camera_mode != "cockpit"       # в кабине прибор 
    вкл/выкл, громкость, пороги, звучание (пресет). Изменение — `request_setting(key, value)` → сигнал
    `settings_requested` наверх; применяет главная сцена.
 
-Классы: `InstrumentDisplay` (общие помощники рисования), `InstrumentPageFlight/Map/Wind/Task` (страницы),
-`WindEstimator`, `InstrumentTask`.
+5. **ЦЕНТРОВКА** — помощник центровки (как у XCSoar): крыло в центре носом вверх, вокруг — диаграмма подъёма
+   по сторонам круга относительно курса, стрелка «сдвинь круг сюда», среднее за круг, направление виража,
+   сторона сильного подъёма. На прямой — «нет кружения».
+
+### Помощник центровки (ThermalAssistant)
+Только данные прибора: отфильтрованный вариометр своего датчика и курс; атмосфера не читается.
+- Кружение: сглаженная скорость разворота ≥ `min_turn_rate_dps` (8°/с) не меньше `circling_confirm_s` (4 с).
+- В вираже (в системе воздуха) крыло находится относительно центра круга по пеленгу курс − 90° (вправо)
+  или курс + 90° (влево) — снос ветром не мешает, термик сносится вместе с воздухом.
+- Задержка датчика: замер относится к курсу τ секунд назад (τ = постоянная фильтра вариометра,
+  `sensor_lag_s` = −1). Без этого сильная сторона «уезжает» по кругу на τ·ω (тест: 25°/с → заметная ошибка).
+- Замеры за последние 1,5 круга по 36 секторам; первая гармоника даёт сторону и силу асимметрии.
+- Стрелка сдвига — `show_shift_arrow`, порог `shift_min_ms`. Масштаб диаграммы — `plot_range_ms`.
+
+Классы: `InstrumentDisplay` (общие помощники рисования), `InstrumentPageFlight/Map/Wind/Task/Thermal` (страницы),
+`WindEstimator`, `InstrumentTask`, `ThermalAssistant`.
 
 ### Оценка ветра (WindEstimator)
 Только из того, что есть у настоящего прибора, — истинный ветер из атмосферы не читается.

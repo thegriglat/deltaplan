@@ -1,13 +1,13 @@
 class_name FlightInstrument
 extends Node
-## Полётный компьютер-планшет на центре базовой штанги (FR-21, FR-23…FR-25), 4 страницы:
-## 0 — полёт, 1 — карта, 2 — ветер и глиссада, 3 — задание и настройки звука.
+## Полётный компьютер-планшет на центре базовой штанги (FR-21, FR-23…FR-25), 5 страниц:
+## 0 — полёт, 1 — карта, 2 — ветер и глиссада, 3 — задание и настройки звука, 4 — центровка.
 ## Держит Vario, WindEstimator, InstrumentTask и экран InstrumentDisplay в SubViewport.
 ## Текстура экрана идёт на 3D-корпус (instrument_3d.tscn) и в угол экрана (instrument_overlay.tscn).
 ##
 ## Использование (главная сцена):
 ##   glider.telemetry_updated.connect(instrument.update)
-##   клавиши 1–4 → instrument.set_page(0..3)
+##   клавиши 1–5 → instrument.set_page(0..4)
 ##   vario_audio.set_vario(instrument.get_vario().vario_ms)
 ##   instrument.set_sound_settings(vario_audio.get_settings())
 ##   instrument.settings_requested.connect(<меню/настройки>)
@@ -22,6 +22,7 @@ signal settings_requested(key: String, value: Variant)
 var vario := Vario.new()
 var wind := WindEstimator.new()
 var task := InstrumentTask.new()
+var thermal := ThermalAssistant.new()
 var _cfg: Dictionary = {}
 var _redraw_interval_s: float = 0.1
 var _since_redraw_s: float = 0.0
@@ -36,6 +37,7 @@ func _ready() -> void:
 	vario.setup(_cfg)
 	wind.setup(_cfg)
 	task.setup(_cfg)
+	thermal.setup(_cfg, vario.get_filter_time_constant_s())
 	var scr: Dictionary = _cfg.get("screen", {})
 	viewport.size = Vector2i(int(scr.get("width_px", 720)), int(scr.get("height_px", 960)))
 	viewport.transparent_bg = false
@@ -45,6 +47,7 @@ func _ready() -> void:
 	display.vario = vario
 	display.wind = wind
 	display.task = task
+	display.thermal = thermal
 	display.setup(_cfg)
 	_request_redraw()
 
@@ -56,6 +59,7 @@ func update(t: Telemetry, dt: float = -1.0) -> void:
 		dt = get_physics_process_delta_time()
 	vario.update(t, dt)
 	wind.update(t, dt)
+	thermal.update(t.heading_deg, vario.vario_ms, dt, t.on_ground)
 	_dirty = true
 
 
@@ -76,6 +80,10 @@ func get_task() -> InstrumentTask:
 	return task
 
 
+func get_thermal() -> ThermalAssistant:
+	return thermal
+
+
 func get_page() -> int:
 	return display.page
 
@@ -84,7 +92,7 @@ func page_count() -> int:
 	return InstrumentDisplay.PAGE_COUNT
 
 
-## Переключить страницу 0..3 (клавиши 1–4 привязывает главная сцена).
+## Переключить страницу 0..4 (клавиши 1–5 привязывает главная сцена).
 func set_page(i: int) -> void:
 	var p := posmod(i, page_count())
 	var changed := p != display.page
@@ -125,6 +133,7 @@ func request_setting(key: String, value: Variant) -> void:
 func reset() -> void:
 	vario.reset()
 	wind.reset()
+	thermal.reset()
 	_request_redraw()
 
 

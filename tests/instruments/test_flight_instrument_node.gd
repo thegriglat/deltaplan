@@ -14,15 +14,15 @@ func check(cond: bool, msg: String = "") -> void:
 func test_pages_and_signals() -> void:
 	var fi: FlightInstrument = load("res://scenes/instruments/flight_instrument.tscn").instantiate()
 	add_child(fi)
-	check(fi.page_count() == 4, "4 страницы")
+	check(fi.page_count() == 5, "5 страниц")
 	fi.page_changed.connect(func(p: int) -> void: _pages.append(p))
 	fi.settings_requested.connect(func(k: String, v: Variant) -> void: _settings.append([k, v]))
-	for i in 4:
+	for i in 5:
 		fi.set_page(i)
 	fi.set_page(1)
 	fi.set_page(1)
-	check(_pages == [1, 2, 3, 1], "page_changed только при смене: %s" % str(_pages))
-	fi.set_page(5)
+	check(_pages == [1, 2, 3, 4, 1], "page_changed только при смене: %s" % str(_pages))
+	fi.set_page(6)
 	check(fi.get_page() == 1, "номер по модулю числа страниц")
 	fi.request_setting("vario_volume_db", -3.0)
 	check(_settings.size() == 1 and _settings[0][0] == "vario_volume_db", "settings_requested")

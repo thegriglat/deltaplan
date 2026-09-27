@@ -9,12 +9,14 @@ const PAGE_FLIGHT := 0
 const PAGE_MAP := 1
 const PAGE_WIND := 2
 const PAGE_TASK := 3
-const PAGE_COUNT := 4
-const PAGE_TITLES: PackedStringArray = ["ПОЛЁТ", "КАРТА", "ВЕТЕР", "ЗАДАНИЕ"]
+const PAGE_THERMAL := 4
+const PAGE_COUNT := 5
+const PAGE_TITLES: PackedStringArray = ["ПОЛЁТ", "КАРТА", "ВЕТЕР", "ЗАДАНИЕ", "ЦЕНТРОВКА"]
 
 var vario: Vario
 var wind: WindEstimator
 var task: InstrumentTask
+var thermal: ThermalAssistant
 ## Настройки звука для показа на странице 4: {volume_db, climb_on_ms, sink_on_ms, enabled, preset}.
 var sound: Dictionary = {}
 var page: int = PAGE_FLIGHT
@@ -72,6 +74,8 @@ func _draw() -> void:
 			InstrumentPageWind.draw_page(self, area)
 		PAGE_TASK:
 			InstrumentPageTask.draw_page(self, area)
+		PAGE_THERMAL:
+			InstrumentPageThermal.draw_page(self, area)
 		_:
 			InstrumentPageFlight.draw_page(self, area)
 	_draw_shade()

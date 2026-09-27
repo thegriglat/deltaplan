@@ -1,12 +1,12 @@
 extends Node3D
 ## Стенд приборов: синтетическая телеметрия (кружение в термике с синусом вариометра),
 ## прибор на 3D-корпусе, картинка в углу, звук вариометра, крупный экран слева.
-## Клавиши: 1–4 — страница, Tab — следующая, ↑/↓ — вариометр вручную ±1 м/с, 0 — снова синус.
+## Клавиши: 1–5 — страница, Tab — следующая, ↑/↓ — вариометр вручную ±1 м/с, 0 — снова синус.
 ## Аргументы (после --): --screenshot=путь.png  --page=N
 ##   --warmup_s=С (прогнать телеметрию до кадра)
 ##   --quit_after_s=С  --skips_report (печатать пропуски звука)
 ##   --screenshot также сохраняет *_screen.png (планшет) и *_vario90s.png (вариометр 90-х)
-##   --pages_prefix=путь (сохранить экран всех 4 страниц в путь_p1.png … путь_p4.png).
+##   --pages_prefix=путь (сохранить экран всех страниц в путь_p1.png … путь_p5.png).
 ## Параметры синусоиды — не конфиг прибора, а сценарий стенда (только для предпросмотра).
 
 const SCENARIO := {
@@ -19,11 +19,16 @@ const SCENARIO := {
 	"start_alt_m": 1850.0,
 	"ground_m": 1100.0,
 	"glide_leg_s": 60.0,
+	"core_offset_m": Vector2(20.0, 30.0),
+	"core_lift_ms": 3.5,
+	"core_radius_m": 60.0,
 }
 
 var t := Telemetry.new()
 var _time := 0.0
 var _manual := NAN
+var _core := Vector2.ZERO
+var _core_set := false
 var _args := {}
 var _elapsed := 0.0
 var _shot_done := false
@@ -71,13 +76,21 @@ func _physics_process(delta: float) -> void:
 func _step(dt: float) -> void:
 	_time += dt
 	var v: float
-	if is_nan(_manual):
+	if not is_nan(_manual):
+		v = _manual
+	elif _time < SCENARIO.glide_leg_s:
 		v = (
 			SCENARIO.vario_mean_ms
 			+ SCENARIO.vario_amp_ms * sin(TAU * _time / SCENARIO.vario_period_s)
 		)
 	else:
-		v = _manual
+		# Кружение: термик сносится ветром, ядро смещено от центра круга (для страницы 5).
+		if not _core_set:
+			_core_set = true
+			_core = Vector2(t.position.x, t.position.z) + SCENARIO.core_offset_m
+		var core: Vector2 = _core + SCENARIO.wind_ms * (_time - SCENARIO.glide_leg_s)
+		var d2 := Vector2(t.position.x, t.position.z).distance_squared_to(core)
+		v = SCENARIO.core_lift_ms * exp(-d2 / pow(SCENARIO.core_radius_m, 2.0)) - 0.5
 	# Первую минуту — прямой полёт от старта (для следа), дальше кружение.
 	var hdg: float
 	if _time < SCENARIO.glide_leg_s:
@@ -157,5 +170,5 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_DOWN:
 				_manual = (0.0 if is_nan(_manual) else _manual) - 1.0
 			_:
-				if event.keycode >= KEY_1 and event.keycode <= KEY_4:
+				if event.keycode >= KEY_1 and event.keycode <= KEY_5:
 					instrument3d.set_page(event.keycode - KEY_1)
