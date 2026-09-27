@@ -53,4 +53,24 @@ func test_game_uses_forecast() -> void:
 	s.wind_from_deg = 225.0
 	await main.call("_fly", s)
 	check(is_equal_approx(float(air.weather.wind_from_deg), 225.0), "румб ЮЗ")
+	# Пилот: «вечером термиков мало» — в 19 ч в разы меньше, чем в 14 ч (прогрев, солнце низко).
+	var n14 := await _count_thermals(main, game, s, 14.0)
+	var n19 := await _count_thermals(main, game, s, 19.0)
+	print("         термиков в 5 км: 14 ч — %d, 19 ч — %d" % [n14, n19])
+	check(n14 >= 3 * maxi(n19, 1), "вечером термиков в 3+ раза меньше (%d и %d)" % [n14, n19])
 	main.queue_free()
+
+
+func _count_thermals(main: Node, game: Game, s: FlightSettings, hour: float) -> int:
+	s.start_hour = hour
+	await main.call("_fly", s)
+	game.set_physics_process(false)
+	var air: Atmosphere = game.air as Atmosphere
+	var p: Vector3 = game.get_start().position
+	air.set_focus(p)
+	var total := 0
+	for i in 40:
+		air.step(15.0)
+		if i >= 10:
+			total += air.thermals_near(p, 5000.0).size()
+	return total
