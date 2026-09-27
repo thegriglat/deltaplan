@@ -59,6 +59,8 @@ func _run() -> void:
 	var about_screen: AboutScreen = main.get_node("UI/AboutScreen")
 	var result_screen: ResultScreen = main.get_node("UI/ResultScreen")
 
+	await _shoot("menu")
+
 	start_menu.visible = false
 	pause_menu.visible = true
 	await _shoot("pause")

@@ -154,7 +154,12 @@ func start(s: FlightSettings) -> bool:
 	# Воздуху (тени облаков на источниках термиков) — пока статичное: термики от времени суток
 	# не зависят (решение пользователя, docs/game.md → «Время суток»).
 	sky.clock.start_flight(
-		terrain.center_lat, terrain.center_lon, settings.month, settings.day, settings.start_hour
+		terrain.center_lat,
+		terrain.center_lon,
+		settings.month,
+		settings.day,
+		settings.start_hour,
+		float(terrain.location.get("utc_offset_h", NAN))
 	)
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))

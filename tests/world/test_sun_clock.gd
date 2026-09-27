@@ -57,7 +57,7 @@ func test_clock_runs_and_signals() -> void:
 	check(got.size() == 2, "солнце сдвинулось — сигнал")
 	check(c.angles().x > az0 + 5.0, "солнце ушло к западу")
 	c.advance(3600.0 * 100.0)
-	approx(c.hour, 20.0, 1e-6, "после 20:00 время стоит")
+	approx(c.hour, 21.0, 1e-6, "после 21:00 время стоит")
 	check(c.to_sun().y > 0.0, "солнце для света не ниже горизонта")
 	c.reset()
 	approx(c.hour, 13.0, 1e-6, "reset — к времени старта")
@@ -96,3 +96,16 @@ func test_flight_settings_keep_time() -> void:
 	s.day = 3
 	var r := FlightSettings.from_dict(s.to_dict())
 	check(is_equal_approx(r.start_hour, 7.5) and r.month == 5 and r.day == 3, "время и дата в JSON")
+
+
+func test_zone_time_by_location() -> void:
+	# По умолчанию часы — поясное время места: Алтай UTC+7 → в 13:00 солнце ещё до полудня.
+	for id in ["altai", "ongudai", "askarovo", "aushkul"]:
+		var loc: Dictionary = Config.get_config("locations/" + id)
+		check(loc.has("utc_offset_h"), "%s: задан часовой пояс" % id)
+	var c := SunClock.new()
+	c.start_flight(51.87, 85.87, 7, 15, 13.0, 7.0)
+	check(c.angles().x < 180.0, "Алтай 13:00 UTC+7: солнце ещё на юго-востоке (%.0f°)" % c.angles().x)
+	c.start_flight(51.87, 85.87, 7, 15, 20.5, 7.0)
+	check(c.angles().y > 0.0, "Алтай 20:30 летом — солнце ещё над горизонтом")
+	c.free()

@@ -6,6 +6,8 @@
   "center_lat_doc": "Широта центра локации, градусы",
   "center_lon": 85.87,
   "center_lon_doc": "Долгота центра локации, градусы",
+  "utc_offset_h": 7,
+  "utc_offset_h_doc": "Часовой пояс места, UTC+N: часы полёта — поясное время (SunClock)",
   "data_dir": "res://data/terrain/altai",
   "data_dir_doc": "Папка с высотами (генерирует tools/terrain/fetch_dem.py)",
   "dem": {

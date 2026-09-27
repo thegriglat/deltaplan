@@ -1,8 +1,8 @@
 class_name SunClock
 extends Node
 ## Часы полёта и положение солнца (VR-5): единый источник направления солнца в рантайме.
-## Время — местное солнечное (12:00 — солнце на юге), если configs/world.json → time.utc_offset_h
-## не задан; иначе — поясное время (переводится в солнечное по долготе и уравнению времени).
+## Время — поясное время места (utc_offset_h локации; в солнечное — по долготе и уравнению времени).
+## configs/world.json → time.utc_offset_h: число — пояс для всех мест, "solar" — солнечное.
 ## Положение — склонение и часовой угол (формулы NOAA), по широте/долготе локации и дате.
 ##
 ## Живёт в SkyEnvironment (sky.clock). Пока не вызван start_flight — «статичное» солнце из
@@ -22,6 +22,8 @@ const EMIT_STEP_DEG := 0.05
 var active := false
 var latitude_deg: float = 51.0
 var longitude_deg: float = 85.0
+## Часовой пояс места, UTC+N (NAN — не задан: по долготе).
+var zone_utc_h: float = NAN
 var month: int = 7
 var day: int = 15
 ## Время старта полёта (reset возвращает к нему), часы.
@@ -45,11 +47,15 @@ func reload_config() -> void:
 	speed = float(Config.value("world", "time.speed", 1.0))
 
 
-## Солнце по часам: место (градусы), дата и время старта (часы, ограничиваются min..max_hour).
-func start_flight(lat: float, lon: float, p_month: int, p_day: int, p_hour: float) -> void:
+## Солнце по часам: место (градусы), дата и время старта (часы, ограничиваются min..max_hour),
+## часовой пояс места UTC+N (NAN — по долготе).
+func start_flight(
+	lat: float, lon: float, p_month: int, p_day: int, p_hour: float, p_zone_utc_h: float = NAN
+) -> void:
 	active = true
 	latitude_deg = lat
 	longitude_deg = lon
+	zone_utc_h = p_zone_utc_h
 	month = clampi(p_month, 1, 12)
 	day = clampi(p_day, 1, days_in_month(month))
 	start_hour = clamp_hour(p_hour)
@@ -107,9 +113,14 @@ func _recompute(force: bool) -> void:
 		sun_changed.emit(_to_sun)
 
 
+## Смещение часов от UTC для solar_position: NAN — солнечное время.
 func _utc_offset() -> float:
 	var v: Variant = Config.get_config("world").get("time", {}).get("utc_offset_h")
-	return float(v) if v != null else NAN
+	if v is String and v == "solar":
+		return NAN
+	if v != null:
+		return float(v)
+	return zone_utc_h if not is_nan(zone_utc_h) else roundf(longitude_deg / 15.0)
 
 
 static func clamp_hour(h: float) -> float:

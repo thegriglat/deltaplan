@@ -4,6 +4,10 @@
   "panel_width_px_doc": "Ширина панели меню, пикселей",
   "menu_background": "res://assets/ui/menu_background.jpg",
   "menu_background_doc": "Фон главного меню (статичная картинка на весь экран); пусто — сплошной тёмный фон",
+  "menu_logo": "res://assets/logo.png",
+  "menu_logo_doc": "Лого на главном меню вместо текста «Дельтаплан» (дельтаплан вписан в букву «А»); пусто — текстовый заголовок",
+  "menu_logo_width": 560.0,
+  "menu_logo_width_doc": "Ширина лого, px (при 1080p)",
   "mass_step_kg": 1.0,
   "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
   "vario_volume_range_db": [

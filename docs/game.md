@@ -193,9 +193,9 @@ osm_fence_spans: 2230` против 0 заборов и на порядок ме
 ## Время суток (VR-5)
 Единый источник солнца — `SunClock` (`scripts/world/sun_clock.gd`), узел `sky.clock` у `SkyEnvironment`.
 `Game.start` зовёт `sky.clock.start_flight(terrain.center_lat, center_lon, settings.month, settings.day,
-settings.start_hour)`, `Game.tick` — `sky.clock.advance(dt)` (время идёт только в полёте, пауза его держит),
+settings.start_hour, utc_offset_h локации)`, `Game.tick` — `sky.clock.advance(dt)` (время идёт только в полёте, пауза его держит),
 «Ещё раз» — `reset()` к времени старта. Скорость — `world.json → time.speed` (настройки: ×1, ×10, ×60, стоп),
-диапазон 6:00–20:00, время по умолчанию — местное солнечное (`time.utc_offset_h = null`).
+диапазон 6:00–21:00, часы — поясное время места (`utc_offset_h` в конфиге локации: Алтай UTC+7, Башкирия и Аушкуль UTC+5; нет — `round(lon/15)`); `world.json → time.utc_offset_h`: число — один пояс для всех, `"solar"` — местное солнечное.
 Положение: склонение и часовой угол (NOAA), `SunClock.solar_position(lat, lon, день_года, часы)`.
 Свет по высоте солнца (`time.light`): цвет и яркость солнца, неба, окружения и дымки — в `SkyEnvironment._apply_sun`.
 
