@@ -54,7 +54,7 @@ func _ready() -> void:
 				continue
 			_presets.append(k)
 			var p: Variant = presets[k]
-			var title := String(p.get("name", k)) if p is Dictionary else k
+			var title := String(p.get("title", k)) if p is Dictionary else k
 			_sound.add_item(tr(title))
 		UiKit.row(box, tr("Звук вариометра"), _sound)
 	_graphics = OptionButton.new()
