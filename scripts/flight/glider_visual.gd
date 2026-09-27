@@ -8,6 +8,9 @@ extends Node3D
 ## голова в −Z, пустышка Head — глаза. Пилот висит под нодой Pilot, которая сдвигается
 ## по крену и тангажу. Маркер PilotHead этой обёртки следует за Head (кабинная камера).
 ## Нет файла — заглушка из примитивов с теми же именами.
+## Руки пилота со скелетом держат трапецию (PilotArmIK, flight.json → visual.arms): в полёте —
+## базовую штангу, на земле и при выравнивании — стойки. Крыло с трапецией слегка трясётся
+## относительно пилота от перегрузки и болтанки (visual.buzz, поле buzz — для кабинной камеры).
 ## Нода стоит в начале координат Glider (ноги пилота), 1 ед. = 1 м, вперёд −Z, вверх +Y.
 
 const WING_MARKERS: Array[String] = [
@@ -30,6 +33,13 @@ var head_marker: Marker3D  ## PilotHead: следует за Head модели �
 ## пилота больше не сдвигается (маятник вокруг HangPoint), это поле — замена прежнего сдвига.
 var body_shift := Vector3.ZERO
 var sail_material: ShaderMaterial  ## шейдер паруса (SailMaterial), null — исходный материал
+## Тряска крыла относительно пилота сейчас (visual.buzz), м, оси визуала; 0 — в спокойном воздухе.
+var buzz := Vector3.ZERO
+## Руки пилота (null — у модели нет скелета с костями рук).
+var arm_ik: PilotArmIK
+## Доля «руки на штанге» (0 — на стойках, 1 — на базовой штанге) и «выравнивание» (руки выше).
+var arm_bar := 0.0
+var arm_flare := 0.0
 
 var _cfg: Dictionary = {}  ## flight.json → visual
 var _pcfg: Dictionary = {}  ## pilot.json → visual
@@ -38,6 +48,15 @@ var _head: Node3D
 var _pose := Transform3D.IDENTITY
 ## Модель сама встаёт анимацией stand (docs/models.md → «Пилот»); иначе (заглушка) — поворот.
 var _animated_stand := false
+var _anim: AnimationPlayer
+var _skeleton: Skeleton3D
+var _shoulders: Array[int] = []  ## кости UpperArm.L/R (высота хвата на стойках)
+var _wing_base := Vector3.ZERO  ## положение крыла без тряски
+var _turbulence := 0.0
+var _buzz_time := 0.0
+var _buzz_amp := 0.0
+var _buzz_kick := 0.0
+var _arms_snap := true
 
 
 ## wing_cfg — конфиг крыла, pilot_cfg — конфиг пилота, vis_cfg — flight.json → visual.
@@ -57,6 +76,10 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(wing)
 	var hp := wing.find_child("HangPoint", true, false) as Node3D
 	wing.position = _hang - (_relative_xform(wing, hp).origin if hp != null else Vector3.ZERO)
+	_wing_base = wing.position
+	buzz = Vector3.ZERO
+	_buzz_amp = 0.0
+	_buzz_kick = 0.0
 	sail_material = null
 	var sail := wing.find_child("Sail", true, false) as MeshInstance3D
 	if sail != null and wpath != "" and ResourceLoader.exists(wpath):
@@ -76,8 +99,11 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
 	_animated_stand = false
+	_anim = null
 	for ap: AnimationPlayer in pm.find_children("*", "AnimationPlayer", true, false):
 		_animated_stand = _animated_stand or ap.has_animation("stand")
+		_anim = ap
+	_build_arms(pm)
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
 	head_marker = Marker3D.new()
@@ -85,6 +111,37 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(head_marker)
 	_pose = _flight_pose(Vector3.ZERO)
 	set_pose(0.0, 0.0, true, 1.0e6)
+
+
+## Руки: модификатор PilotArmIK на скелете пилота (кости UpperArm/Forearm/Hand, пустышки хвата).
+func _build_arms(pm: Node3D) -> void:
+	arm_ik = null
+	_skeleton = null
+	_shoulders.clear()
+	_arms_snap = true
+	var arms: Dictionary = _cfg.get("arms", {})
+	if not bool(arms.get("enabled", true)):
+		return
+	var sks := pm.find_children("*", "Skeleton3D", true, false)
+	if sks.is_empty():
+		return
+	_skeleton = sks[0] as Skeleton3D
+	var ik := PilotArmIK.new()
+	ik.name = "ArmIK"
+	_skeleton.add_child(ik)
+	ik.frame_node = self
+	var grip_l := pm.find_child("HandL", true, false) as Node3D
+	var grip_r := pm.find_child("HandR", true, false) as Node3D
+	if not ik.setup(grip_l, grip_r):
+		push_warning("GliderVisual: у скелета пилота нет костей рук — без IK")
+		_skeleton.remove_child(ik)
+		ik.free()
+		_skeleton = null
+		return
+	ik.shoulder_reach = float(arms.get("shoulder_reach_m", 0.07))
+	arm_ik = ik
+	for n: String in ["UpperArm.L", "UpperArm.R"]:
+		_shoulders.append(_skeleton.find_bone(n))
 
 
 ## Маркер по имени: HangPoint, BaseBar, InstrumentMount, WingTipL, WingTipR (крыло), PilotHead.
@@ -101,6 +158,7 @@ func get_head_transform() -> Transform3D:
 
 ## Парус (шейдер): воздушная скорость, м/с; срыв 0..1; болтанка 0..1.
 func set_flight(airspeed_ms: float, stall_amount: float, turbulence: float) -> void:
+	_turbulence = turbulence
 	SailMaterial.set_flight(sail_material, airspeed_ms, stall_amount, turbulence)
 
 
@@ -113,6 +171,8 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 		0.0,
 		clampf(pitch, -1.0, 1.0) * float(_cfg.pilot_bar_m)
 	)
+	if flying:
+		shift *= lerpf(1.0, _reach_scale(shift), arm_bar)
 	var target := _flight_pose(shift) if flying else _ground_pose(shift)
 	var k := 1.0 - exp(-dt / float(_cfg.input_smoothing_s))
 	_pose = Transform3D(
@@ -126,6 +186,197 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 		head_marker.transform = _relative_xform(self, _head)
 	else:
 		head_marker.transform = _pose * Transform3D(Basis.IDENTITY, _head_local())
+	_update_buzz(flying, dt)
+	_update_arms(flying, dt)
+
+
+# ---------------------------------------------------------------- руки
+
+
+## Цели рук: точки хвата на штанге / стойках по текущей анимации (flight.json → visual.arms).
+func _update_arms(flying: bool, dt: float) -> void:
+	if arm_ik == null or wing == null:
+		return
+	var a: Dictionary = _cfg.get("arms", {})
+	var goal := _arm_goal(a, flying)
+	var bs := float(a.get("blend_s", 0.2))
+	var k := 1.0 if _arms_snap or bs <= 0.0 else 1.0 - exp(-dt / bs)
+	_arms_snap = false
+	arm_bar = lerpf(arm_bar, goal.x, k)
+	arm_flare = lerpf(arm_flare, goal.y, k)
+	var bar_l := bar_grip(-1)
+	var bar_r := bar_grip(1)
+	var up_l := upright_grip(-1)
+	var up_r := upright_grip(1)
+	var pole := _vec3(a.get("elbow_pole", [1.0, -1.0, 0.3]))
+	var bb := _relative_xform(self, get_marker("BaseBar"))
+	arm_ik.set_targets(
+		up_l.lerp(bar_l, arm_bar),
+		up_r.lerp(bar_r, arm_bar),
+		bb.basis * Vector3(-pole.x, pole.y, pole.z),
+		bb.basis * pole
+	)
+
+
+## Точка хвата на базовой штанге: маркер BaseBar ± полуширина хвата (side −1 — левая, +1 — правая),
+## оси визуала.
+func bar_grip(side: int) -> Vector3:
+	var a: Dictionary = _cfg.get("arms", {})
+	var bb := _relative_xform(self, get_marker("BaseBar"))
+	var off := _vec3(a.get("bar_grip_offset_m", [0.0, 0.0, 0.0]))
+	return bb * (Vector3(side * float(a.get("bar_grip_half_width_m", 0.33)), 0.0, 0.0) + off)
+
+
+## Точка хвата на стойке трапеции на уровне плеча (+ arms.upright_above_shoulder_m, при
+## выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
+func upright_grip(side: int) -> Vector3:
+	var a: Dictionary = _cfg.get("arms", {})
+	var bb := _relative_xform(self, get_marker("BaseBar"))
+	var hp := _relative_xform(self, get_marker("HangPoint"))
+	var top := _vec3(a.get("upright_top_m", [0.04, 0.0, -0.25]))
+	var apex := hp * Vector3(side * top.x, top.y, top.z)
+	var half := float(a.get("upright_bottom_half_width_m", 0.71))
+	var end := bb * Vector3(side * half, 0.0, 0.0)
+	var above := lerpf(
+		float(a.get("upright_above_shoulder_m", 0.1)),
+		float(a.get("flare_above_shoulder_m", 0.25)),
+		arm_flare
+	)
+	var y := shoulder(side).y + above
+	var t := (
+		clampf(inverse_lerp(apex.y, end.y, y), 0.05, 0.95) if absf(apex.y - end.y) > 1e-3 else 0.5
+	)
+	return apex.lerp(end, t)
+
+
+## Плечо (начало кости UpperArm) в осях визуала.
+func shoulder(side: int) -> Vector3:
+	return pilot.transform * _shoulder_local(side) if pilot != null else _hang
+
+
+## Плечо в осях ноды Pilot по текущей анимации (без правок IK: родитель Chest × покой UpperArm).
+func _shoulder_local(side: int) -> Vector3:
+	var i := _shoulders[0 if side < 0 else 1] if _shoulders.size() == 2 else -1
+	if _skeleton == null or i < 0:
+		return Vector3.ZERO
+	var parent := _skeleton.get_bone_parent(i)
+	var o := _skeleton.get_bone_rest(i).origin
+	if parent >= 0:
+		o = _skeleton.get_bone_global_pose(parent) * o
+	return _relative_xform(pilot, _skeleton) * o
+
+
+## Руки на штанге не дают телу уйти дальше вытянутых рук: во сколько раз уменьшить сдвиг тела
+## (1 — не надо), чтобы обе точки хвата остались в досягаемости (PilotArmIK.max_reach).
+func _reach_scale(shift: Vector3) -> float:
+	if arm_ik == null or not arm_ik.active or shift.is_zero_approx():
+		return 1.0
+	var limit := arm_ik.max_reach() - float(_cfg.get("arms", {}).get("reach_margin_m", 0.01))
+	var grips := [bar_grip(-1) - buzz, bar_grip(1) - buzz]
+	var sl := _shoulder_local(-1)
+	var sr := _shoulder_local(1)
+	var fits := func(k: float) -> bool:
+		var x := _flight_pose(shift * k)
+		return (x * sl).distance_to(grips[0]) <= limit and (x * sr).distance_to(grips[1]) <= limit
+	if fits.call(1.0):
+		return 1.0
+	var lo := 0.0
+	var hi := 1.0
+	for _i in 10:
+		var mid := (lo + hi) * 0.5
+		if fits.call(mid):
+			lo = mid
+		else:
+			hi = mid
+	return lo
+
+
+## (доля «на штанге», доля «выравнивание») по анимации: prone — штанга; climb_in/climb_out —
+## руки переходят со стоек на штангу и обратно в окне arms.climb_window; flare — стойки выше плеч;
+## stand/walk/run/run_air — стойки.
+func _arm_goal(a: Dictionary, flying: bool) -> Vector2:
+	var anim := String(_anim.assigned_animation) if _anim != null else ""
+	# без анимации модель в позе покоя (руки вниз) — руки не трогаем
+	arm_ik.active = anim != ""
+	if anim == "":
+		return Vector2(1.0 if flying else 0.0, 0.0)
+	var length := _anim.get_animation(anim).length
+	var p := _anim.current_animation_position / length if length > 0.0 else 1.0
+	var win: Array = a.get("climb_window", [0.2, 0.8])
+	var s := smoothstep(float(win[0]), float(win[1]), p)
+	if anim in a.get("bar_animations", ["prone"]):
+		return Vector2(1.0, 0.0)
+	if anim == "climb_in":
+		return Vector2(s, 0.0)
+	if anim == "climb_out":
+		return Vector2(1.0 - s, 0.0)
+	if anim == "flare":
+		return Vector2(0.0, 1.0)
+	return Vector2.ZERO
+
+
+# ---------------------------------------------------------------- тряска
+
+
+## Тряска крыла с трапецией относительно пилота (flight.json → visual.buzz): амплитуда от болтанки
+## (turbulence из set_flight) и отклонения перегрузки от 1 g, плюс толчок от мгновенной
+## перегрузки; сумма синусов 2–8 Гц. На прямой в спокойном воздухе — ноль.
+func _update_buzz(flying: bool, dt: float) -> void:
+	if wing == null:
+		return
+	var b: Dictionary = _cfg.get("buzz", {})
+	var want := 0.0
+	var kick := 0.0
+	var lm := _load_meter()
+	if flying and not b.is_empty():
+		want = float(b.turbulence_m) * clampf(_turbulence, 0.0, 1.0)
+		if lm != null:
+			var excess := absf(lm.load_factor - 1.0) - float(b.load_deadzone_g)
+			want += float(b.load_m_per_g) * maxf(excess, 0.0)
+			kick = float(b.kick_m_per_g) * (lm.load_raw - lm.load_factor)
+	var mx := float(b.get("max_m", 0.03))
+	var sm := float(b.get("smoothing_s", 0.3))
+	var dtc := minf(dt, 1.0)
+	var k := 1.0 if sm <= 0.0 or dt > 10.0 else 1.0 - exp(-dtc / sm)
+	_buzz_amp = lerpf(_buzz_amp, minf(want, mx), k)
+	var kt := float(b.get("kick_filter_s", 0.03))
+	var kk := 1.0 if kt <= 0.0 or dt > 10.0 else 1.0 - exp(-dtc / kt)
+	_buzz_kick = lerpf(_buzz_kick, clampf(kick, -mx, mx), kk)
+	_buzz_time = fmod(_buzz_time + dtc, 1000.0)
+	buzz = Vector3.ZERO
+	if _buzz_amp > 1e-5:
+		var w := _vec3(b.get("axis_weights", [0.4, 1.0, 0.3]))
+		var n := Vector3(_buzz_wave(b, 0.0), _buzz_wave(b, 1.7), _buzz_wave(b, 3.1))
+		buzz = n * w * _buzz_amp
+	buzz.y += _buzz_kick
+	buzz = buzz.limit_length(mx)
+	var rot := deg_to_rad(float(b.get("rotation_deg_per_cm", 0.1))) * 100.0
+	var basis := Basis(Vector3.BACK, buzz.x * rot) * Basis(Vector3.RIGHT, -buzz.z * rot)
+	wing.transform = Transform3D(basis, _wing_base + buzz)
+
+
+## Сумма синусов на частотах buzz.freqs_hz (фазы сдвинуты на phase), нормирована к ±1.
+func _buzz_wave(b: Dictionary, phase: float) -> float:
+	var freqs: Array = b.get("freqs_hz", [2.3, 3.7, 5.3, 7.4])
+	if freqs.is_empty():
+		return 0.0
+	var s := 0.0
+	var i := 0
+	for f: Variant in freqs:
+		s += sin(TAU * float(f) * _buzz_time + phase * (i + 1) + i * 1.3)
+		i += 1
+	return s / sqrt(float(freqs.size()) * 0.5)
+
+
+## Перегрузка планера (FlightModel.load), если визуал висит под Glider.
+func _load_meter() -> LoadMeter:
+	var g := get_parent() as Glider
+	return g.model.load if g != null and g.model != null else null
+
+
+static func _vec3(v: Variant) -> Vector3:
+	var arr: Array = v
+	return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))
 
 
 ## В полёте: карабин остаётся в точке подвески (маятник), тело поворачивается вокруг неё так,

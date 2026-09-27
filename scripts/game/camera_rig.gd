@@ -211,8 +211,13 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var k := 1.0 if lag <= 0.0 or _snap else 1.0 - exp(-delta / lag)
 	_head_basis = _head_basis.slerp(_level_head(t.basis, c), k).orthonormalized()
 	var eye: Vector3
+	var shake := Basis.IDENTITY
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
-		eye = head.global_position + t.basis * (_vec(c.offset_m) + _follow_body(delta, c))
+		var jolt := _shake(c)
+		eye = head.global_position + t.basis * (_vec(c.offset_m) + _follow_body(delta, c) + jolt)
+		var sk: Dictionary = c.get("shake", {})
+		var rot := deg_to_rad(float(sk.get("rotation_deg_per_cm", 0.0))) * 100.0
+		shake = Basis(Vector3.RIGHT, jolt.y * rot) * Basis(Vector3.BACK, -jolt.x * rot)
 	else:
 		eye = t.origin + t.basis * _vec(c.fallback_offset_m)
 	global_position = eye
@@ -231,9 +236,19 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		look = look.lerp(_angles_to(glance_target.global_position, eye, c), _glance)
 	global_basis = (
 		_head_basis
+		* shake
 		* Basis(Vector3.UP, look.x)
 		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,
+## flight.json → visual.buzz) — пилот висит на крыле, но подвеска её гасит; в осях планера, м.
+func _shake(c: Dictionary) -> Vector3:
+	var vis := head.get_parent() as GliderVisual
+	if vis == null:
+		return Vector3.ZERO
+	return vis.buzz * float(c.get("shake", {}).get("follow", 0.0))
 
 
 ## Поправка точки глаз в осях планера: маркер PilotHead едет вместе с телом целиком,
