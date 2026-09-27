@@ -6,6 +6,8 @@ extends Node3D
 ## Сцена: scenes/world/environment.tscn.
 ## Интегратор: set_inversion_height_msl(atmosphere.get_cloudbase_msl()) при смене погоды —
 ## верх дымки = эта высота + haze.top_margin_m.
+## Солнце — по часам clock (SunClock, VR-5): направление, цвет и яркость солнца, неба и дымки
+## меняются по сигналу clock.sun_changed. Другие потребители подписываются на тот же сигнал.
 
 const HAZE_SHADER := preload("res://scripts/world/haze.gdshader")
 
@@ -13,9 +15,14 @@ var world_env: WorldEnvironment
 var sun: DirectionalLight3D
 ## Полноэкранный квад дымки (null — дымка выключена в конфиге).
 var haze: MeshInstance3D
+## Часы и положение солнца — единый источник направления на солнце.
+var clock: SunClock
 
 var _haze_mat: ShaderMaterial
 var _inversion_msl: float = NAN
+var _sky_mat: ProceduralSkyMaterial
+var _env: Environment
+var _haze_base_color := Color.WHITE
 
 
 func _ready() -> void:
@@ -31,15 +38,15 @@ func apply_config() -> void:
 	var rend: Dictionary = cfg.get("rendering", {})
 	var fx: Dictionary = cfg.get("effects", {})
 
+	if clock == null:
+		clock = SunClock.new()
+		clock.name = "SunClock"
+		add_child(clock)
+		clock.sun_changed.connect(_apply_sun)
 	if sun == null:
 		sun = DirectionalLight3D.new()
 		sun.name = "Sun"
 		add_child(sun)
-	var dir := TerrainGeo.sun_direction(float(sun_cfg.azimuth_deg), float(sun_cfg.elevation_deg))
-	# Свет светит вдоль −Z узла: направляем −Z от солнца к земле.
-	sun.basis = Basis.looking_at(-dir, Vector3.UP if absf(dir.y) < 0.999 else Vector3.FORWARD)
-	sun.light_energy = float(sun_cfg.energy)
-	sun.light_color = _color(sun_cfg.color)
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_max_distance = float(sun_cfg.shadow_max_distance_m)
@@ -61,8 +68,10 @@ func apply_config() -> void:
 	sky_mat.energy_multiplier = float(sky_cfg.energy_multiplier)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
+	_sky_mat = sky_mat
 
 	var env := Environment.new()
+	_env = env
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -100,7 +109,36 @@ func apply_config() -> void:
 		world_env.name = "WorldEnvironment"
 		add_child(world_env)
 	world_env.environment = env
-	_apply_haze(cfg.get("haze", {}), dir, _color(sun_cfg.color))
+	_apply_haze(cfg.get("haze", {}))
+	_apply_sun(clock.to_sun())
+
+
+## Солнце на направлении to_sun (единичный вектор на солнце): поворот света, цвет и яркость
+## солнца, неба и дымки по высоте (world.json → time.light: утро и вечер теплее и мягче).
+func _apply_sun(to_sun: Vector3) -> void:
+	if sun == null or _env == null:
+		return
+	var cfg: Dictionary = Config.get_config("world")
+	var sun_cfg: Dictionary = cfg.get("sun", {})
+	var sky_cfg: Dictionary = cfg.get("sky", {})
+	var up := Vector3.UP if absf(to_sun.y) < 0.999 else Vector3.FORWARD
+	# Свет светит вдоль −Z узла: направляем −Z от солнца к земле.
+	sun.basis = Basis.looking_at(-to_sun, up)
+	var lt := SunClock.light_at(rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0))))
+	var sun_color: Color = _color(sun_cfg.color) * (lt.sun_color as Color)
+	sun.light_color = sun_color
+	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
+	var tint: Color = lt.horizon_tint
+	var sky_k := float(lt.sky_energy)
+	_sky_mat.sky_horizon_color = _color(sky_cfg.horizon_color) * tint
+	_sky_mat.ground_horizon_color = _color(sky_cfg.ground_horizon_color) * tint
+	# небо у горизонта на закате светлое — гасим его слабее, чем окружение
+	_sky_mat.energy_multiplier = float(sky_cfg.energy_multiplier) * lerpf(1.0, sky_k, 0.4)
+	_env.ambient_light_energy = float(sky_cfg.ambient_light_energy) * sky_k
+	if _haze_mat != null:
+		_haze_mat.set_shader_parameter("sun_dir", to_sun)
+		_haze_mat.set_shader_parameter("sun_color", sun_color)
+		_haze_mat.set_shader_parameter("haze_color", _haze_base_color * tint * sky_k)
 
 
 ## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков
@@ -124,7 +162,7 @@ func haze_material() -> ShaderMaterial:
 	return _haze_mat
 
 
-func _apply_haze(hz: Dictionary, to_sun: Vector3, sun_color: Color) -> void:
+func _apply_haze(hz: Dictionary) -> void:
 	if not bool(hz.get("enabled", false)):
 		if haze != null:
 			haze.queue_free()
@@ -160,9 +198,8 @@ func _apply_haze(hz: Dictionary, to_sun: Vector3, sun_color: Color) -> void:
 	)
 	var c_clear := _color(hz.get("clear_color", [0.56, 0.67, 0.84]))
 	var c_turbid := _color(hz.get("turbid_color", [0.66, 0.67, 0.68]))
-	_haze_mat.set_shader_parameter("haze_color", c_clear.lerp(c_turbid, grey))
-	_haze_mat.set_shader_parameter("sun_color", sun_color)
-	_haze_mat.set_shader_parameter("sun_dir", to_sun)
+	# haze_color, sun_color, sun_dir — в _apply_sun (зависят от высоты солнца)
+	_haze_base_color = c_clear.lerp(c_turbid, grey)
 	_haze_mat.set_shader_parameter("sun_scatter", float(hz.get("sun_scatter", 0.3)))
 	_haze_mat.set_shader_parameter("sun_scatter_power", float(hz.get("sun_scatter_power", 6.0)))
 	_haze_mat.set_shader_parameter("max_opacity", float(hz.get("max_opacity", 0.97)))

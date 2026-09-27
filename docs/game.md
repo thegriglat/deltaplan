@@ -190,6 +190,24 @@ osm_fence_spans: 2230` против 0 заборов и на порядок ме
 `set_sun_direction`, `load_static_thermals` (из `thermals` конфига локации), `place_thermals_near`, `mean_wind_at`.
 Ветер «в лоб старту» (`wind_mode = into_site`) — сила из пресета погоды, направление — курс старта.
 
+## Время суток (VR-5)
+Единый источник солнца — `SunClock` (`scripts/world/sun_clock.gd`), узел `sky.clock` у `SkyEnvironment`.
+`Game.start` зовёт `sky.clock.start_flight(terrain.center_lat, center_lon, settings.month, settings.day,
+settings.start_hour)`, `Game.tick` — `sky.clock.advance(dt)` (время идёт только в полёте, пауза его держит),
+«Ещё раз» — `reset()` к времени старта. Скорость — `world.json → time.speed` (настройки: ×1, ×10, ×60, стоп),
+диапазон 6:00–20:00, время по умолчанию — местное солнечное (`time.utc_offset_h = null`).
+Положение: склонение и часовой угол (NOAA), `SunClock.solar_position(lat, lon, день_года, часы)`.
+Свет по высоте солнца (`time.light`): цвет и яркость солнца, неба, окружения и дымки — в `SkyEnvironment._apply_sun`.
+
+Как подписаться (рельеф, свои шейдеры): взять `sky.clock.to_sun()` при старте и слушать
+`sky.clock.sun_changed(to_sun: Vector3)` — единичный вектор НА солнце (север −Z, восток +X), высота не ниже
+`time.min_light_elevation_deg`; сигнал — при сдвиге ≥ 0,05°. Облака и перистые берут направление с
+`DirectionalLight3D` сами. Воздух (`set_sun_direction` — тени облаков на источниках) и источники термиков
+(`Terrain.sun_exposure_at`) пока берут статичное `world.json → sun.azimuth_deg/elevation_deg`: термики от времени
+суток не зависят (решение пользователя; дневной ход термиков — TODO). Подключить позже — одной строкой в Game:
+`sky.clock.sun_changed.connect(air.set_sun_direction)`.
+Кадры: `tools/shots/tod_shot.tscn -- --out=<папка> [--hours=7,13,19]`. Тест — `tests/world/test_sun_clock.gd`.
+
 ## Приборы на трапеции
 `game.json → mounted_instruments`: сцена + имя маркера в модели крыла. Сцена с `use_instrument(FlightInstrument)`
 показывает общий экран (планшет); другой сцене (вариометр 90-х) зовётся `update(t, dt)`. `face_pilot` доворачивает

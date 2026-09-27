@@ -108,6 +108,7 @@ func tick(dt: float) -> void:
 		return
 	_dt = dt
 	sim_time_s += dt
+	sky.clock.advance(dt)  # время суток идёт (VR-5)
 	air.call("step", dt)
 	var phase := glider.phase()
 	if autopilot != null:
@@ -149,6 +150,12 @@ func start(s: FlightSettings) -> bool:
 	air.call("set_ground", terrain.height_at, src)
 	if air.has_method("set_sun_direction"):
 		air.call("set_sun_direction", terrain.sun_direction())
+	# Солнце по времени и дате старта над центром локации (sky.clock → небо, свет, облака).
+	# Воздуху (тени облаков на источниках термиков) — пока статичное: термики от времени суток
+	# не зависят (решение пользователя, docs/game.md → «Время суток»).
+	sky.clock.start_flight(
+		terrain.center_lat, terrain.center_lon, settings.month, settings.day, settings.start_hour
+	)
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
@@ -190,6 +197,7 @@ func restart() -> void:
 	_touchdown = {}
 	_prev_phase = ""
 	sim_time_s = 0.0
+	sky.clock.reset()
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
 	for n in mounted:
@@ -260,6 +268,7 @@ func apply_user_settings() -> void:
 			_terrain_dirty = true
 		_graphics = GraphicsPresets.current()
 	input_controller.reload_config()
+	sky.clock.reload_config()
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	vario_audio.set_volume_db(float(va.get("volume_db", -6.0)))
 	if va.has("preset") and vario_audio.has_method("set_preset"):

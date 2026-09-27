@@ -1,11 +1,27 @@
 class_name FlightSetupScreen
 extends Control
-## Экран «Полёт…» (FR-27, FR-34): крыло, масса пилота, погода, ветер, место старта
-## (площадка локации или точка на карте — MapPicker, FR-17), «Лететь» / «Назад».
+## Экран «Полёт…» (FR-27, FR-34, VR-5): крыло, масса пилота, погода, ветер, время и дата,
+## место старта (площадка локации или точка на карте — MapPicker, FR-17), «Лететь» / «Назад».
 ## Открывается из главного меню; ничего не запускает само — сигналы наверх.
 
 signal fly_requested(settings: FlightSettings)
 signal closed
+
+## Месяцы в родительном падеже («15 июля»).
+const MONTHS: PackedStringArray = [
+	"января",
+	"февраля",
+	"марта",
+	"апреля",
+	"мая",
+	"июня",
+	"июля",
+	"августа",
+	"сентября",
+	"октября",
+	"ноября",
+	"декабря",
+]
 
 var settings: FlightSettings
 
@@ -17,6 +33,9 @@ var _mass: HSlider
 var _weather_opt: OptionButton
 var _wind_opt: OptionButton
 var _site_opt: OptionButton
+var _hour: HSlider
+var _month_opt: OptionButton
+var _day: SpinBox
 var _pick_label: Label
 var _fly_btn: Button
 var _map_layer: Control
@@ -74,6 +93,7 @@ func _build() -> void:
 	UiKit.row(box, tr("Ветер"), _wind_opt)
 	_wind_opt.add_item(tr("В лоб старту"))
 	_wind_opt.add_item(tr("Направление из пресета"))
+	_build_time(box)
 
 	UiKit.separator(box)
 	_site_opt = OptionButton.new()
@@ -100,6 +120,11 @@ func _apply_settings() -> void:
 	_on_wing_selected(wi)
 	_weather_opt.select(maxi(_weathers.find(settings.weather), 0))
 	_wind_opt.select(0 if settings.wind_mode == "into_site" else 1)
+	_hour.value = SunClock.clamp_hour(settings.start_hour)
+	_hour.value_changed.emit(_hour.value)
+	_month_opt.select(clampi(settings.month, 1, 12) - 1)
+	_on_month_selected(_month_opt.selected)
+	_day.value = settings.day
 	_fill_sites()
 	_update_pick_label()
 
@@ -115,6 +140,39 @@ func _on_wing_selected(i: int) -> void:
 	_mass.max_value = hi
 	_mass.value = clampf(m, lo, hi)
 	_mass.value_changed.emit(_mass.value)
+
+
+## Время старта (шаг 15 мин, world.json → time.min_hour..max_hour) и дата (месяц, число).
+func _build_time(box: Control) -> void:
+	var t: Dictionary = Config.get_config("world").get("time", {})
+	_hour = UiKit.slider_row(
+		box,
+		tr("Время старта"),
+		float(t.get("min_hour", 6.0)),
+		float(t.get("max_hour", 20.0)),
+		0.25,
+		"%.2f"
+	)
+	# подпись «13:00» вместо числа (обработчик UiKit подключён раньше — этот перезаписывает)
+	var hour_label: Label = _hour.get_parent().get_child(1)
+	_hour.value_changed.connect(func(x: float) -> void: hour_label.text = SunClock.format_hour(x))
+	var date_row := HBoxContainer.new()
+	date_row.add_theme_constant_override("separation", 10)
+	_day = SpinBox.new()
+	_day.min_value = 1
+	_day.max_value = 31
+	date_row.add_child(_day)
+	_month_opt = OptionButton.new()
+	_month_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for m in MONTHS:
+		_month_opt.add_item(tr(m))
+	_month_opt.item_selected.connect(_on_month_selected)
+	date_row.add_child(_month_opt)
+	UiKit.row(box, tr("Дата"), date_row)
+
+
+func _on_month_selected(i: int) -> void:
+	_day.max_value = SunClock.days_in_month(i + 1)
 
 
 ## Все старты всех локаций (Config.list_configs("locations")), сгруппированы по локациям.
@@ -146,6 +204,9 @@ func _collect() -> FlightSettings:
 	s.pilot_mass_kg = _mass.value
 	s.weather = _weathers[_weather_opt.selected]
 	s.wind_mode = "into_site" if _wind_opt.selected == 0 else "preset"
+	s.start_hour = _hour.value
+	s.month = _month_opt.selected + 1
+	s.day = int(_day.value)
 	var k: Variant = null
 	if _site_opt.selected >= 0:
 		k = _site_opt.get_item_metadata(_site_opt.selected)

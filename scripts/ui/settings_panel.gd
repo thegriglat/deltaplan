@@ -1,8 +1,8 @@
 class_name SettingsPanel
 extends Control
 ## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
-## инверсия тангажа, режим мыши (обзор / трапеция). Пишутся в user://configs/*.json
-## (UserSettings), Config подхватывает их поверх res://configs.
+## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5).
+## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
 
@@ -18,6 +18,8 @@ var _sound: OptionButton
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
+var _time_speed: OptionButton
+var _speeds: Array = []
 
 
 func _ready() -> void:
@@ -68,6 +70,11 @@ func _ready() -> void:
 	for g in _graphics_names:
 		_graphics.add_item(tr(String(presets_cfg[g].get("name", g))))
 	UiKit.row(box, tr("Графика"), _graphics)
+	_time_speed = OptionButton.new()
+	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
+	for v: Variant in _speeds:
+		_time_speed.add_item(tr("стоп") if float(v) <= 0.0 else "×%d" % int(v))
+	UiKit.row(box, tr("Скорость времени"), _time_speed)
 	UiKit.label(box, tr("Настройки сохраняются в профиле пользователя."), "HintLabel")
 	var bar := UiKit.button_bar(box)
 	UiKit.button(bar, tr("Сохранить"), _on_save)
@@ -88,6 +95,12 @@ func load_values() -> void:
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
+	var sp := float(Config.value("world", "time.speed", 1.0))
+	var si := 0
+	for i in _speeds.size():
+		if is_equal_approx(float(_speeds[i]), sp):
+			si = i
+	_time_speed.select(si)
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -118,6 +131,9 @@ func save() -> bool:
 		)
 		and ok
 	)
+	if _time_speed.selected >= 0:
+		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
+		ok = UserSettings.save_patch("world", tp, config_dir) and ok
 	Config.reload()
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():
