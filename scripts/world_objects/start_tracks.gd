@@ -5,9 +5,12 @@ extends RefCounted
 ## стартом, — используется он (обрезанный до max_length_m); иначе — процедурная тропа по рельефу:
 ## простая трассировка с серпантином (обход участков круче max_slope_deg, обход воды по OSM
 ## rivers/lakes). Без OSM (рантайм-локация по координатам) — спуск в сторону падения рельефа
-## фиксированной длины. Рисуется как дороги (лента по рельефу), но уже, грунт с колеёй (доп. тёмные
-## полосы по бокам), видимость near..far короче, чем у дорог. Параметры — configs/world_objects.json
-## → start_tracks. Без нод — используется и WorldObjects (рендер), и WorldClearings (просека).
+## фиксированной длины. Рисуется как дороги (лента по рельефу), но уже и естественнее: ширина и
+## вытоптанность (подмес wear_color пятнами, не параллельными рельсами-колеями) гуляют вдоль пути по
+## плавному псевдошуму от длины дуги, край ленты мягкий и рваный (draped.gdshader), видимость
+## near..far короче, чем у дорог, и мягко угасает к дальней границе. Параметры —
+## configs/world_objects.json → start_tracks. Без нод — используется и WorldObjects (рендер), и
+## WorldClearings (просека).
 ##   var tracks := StartTracks.plan(terrain.get_start_sites(), osm, cfg.start_tracks,
 ##       terrain.height_at)
 ##   var tiles := StartTracks.build_meshes(tracks, cfg.start_tracks, terrain.height_at)
@@ -33,10 +36,12 @@ static func build_meshes(tracks: Array, cfg: Dictionary, height_fn: Callable) ->
 	var tile := float(cfg.tile_m)
 	var lift := float(cfg.lift_m)
 	var col := WorldTiles.linear_color(cfg.color)
-	var rut_col := WorldTiles.linear_color(cfg.rut_color)
-	var width := float(cfg.width_m)
-	var rut_w := float(cfg.rut_width_m)
-	var rut_off := float(cfg.rut_offset_m)
+	var wear_col := WorldTiles.linear_color(cfg.wear_color)
+	var width_min := float(cfg.width_min_m)
+	var width_max := float(cfg.width_max_m)
+	var width_wave := maxf(float(cfg.width_wave_m), 0.01)
+	var wear_strength := float(cfg.wear_strength)
+	var wear_wave := maxf(float(cfg.wear_wave_m), 0.01)
 	var step := float(cfg.step_m)
 	for raw in tracks:
 		var pts: PackedVector2Array = raw
@@ -45,9 +50,10 @@ static func build_meshes(tracks: Array, cfg: Dictionary, height_fn: Callable) ->
 		var rs := _resample(pts, step)
 		if rs.size() < 2:
 			continue
-		_add_strip(acc, rs, width, col, lift, tile, height_fn)
-		for side in [-1.0, 1.0]:
-			_add_strip(acc, _offset(rs, rut_off * side), rut_w, rut_col, lift + 0.01, tile, height_fn)
+		_add_strip(
+			acc, rs, width_min, width_max, width_wave, col, wear_col, wear_strength, wear_wave,
+			lift, tile, step, height_fn
+		)
 	var out := {}
 	for k in acc:
 		var a: Dictionary = acc[k]
@@ -413,30 +419,31 @@ static func _resample(pts: PackedVector2Array, step: float) -> PackedVector2Arra
 	return out
 
 
-## Ломаная, сдвинутая перпендикулярно на offset (для полос колеи).
-static func _offset(pts: PackedVector2Array, offset: float) -> PackedVector2Array:
-	var out := PackedVector2Array()
-	out.resize(pts.size())
-	for j in pts.size():
-		var prev := pts[maxi(j - 1, 0)]
-		var next := pts[mini(j + 1, pts.size() - 1)]
-		var dir := (next - prev).normalized()
-		var side := Vector2(-dir.y, dir.x)
-		out[j] = pts[j] + side * offset
-	return out
+## Псевдошум в [-1, 1] от длины дуги s (два незацикленных гармоники — без видимого повтора периода
+## на длине обычной тропы), fast/slow — доли периода wave медленной/быстрой гармоники.
+static func _wander(s: float, wave: float, phase: float, fast: float, slow: float) -> float:
+	return sin(s / wave * TAU + phase) * slow + sin(s / (wave * 0.41) * TAU + phase * 1.7) * fast
 
 
-## Лента шириной width вдоль pts, тайлы tile_m (как RoadMesher._add_strip, без деления на major).
+## Лента вдоль pts с гуляющей шириной (width_min..width_max) и вытоптанностью пятнами (col →
+## wear_col по wear_strength), тайлы tile_m (как RoadMesher._add_strip, без деления на major).
+## Альфа вершин — не сплошная лента, а разрывы/пятна вдоль пути (мягкий рваный край — в
+## draped.gdshader, по UV и миру). s — длина дуги от начала pts, растёт с шагом ~step.
 static func _add_strip(
 	acc: Dictionary,
 	pts: PackedVector2Array,
-	width: float,
+	width_min: float,
+	width_max: float,
+	width_wave: float,
 	col: Color,
+	wear_col: Color,
+	wear_strength: float,
+	wear_wave: float,
 	lift: float,
 	tile: float,
+	step: float,
 	height_fn: Callable
 ) -> void:
-	var half := width * 0.5
 	var start := 0
 	while start < pts.size() - 1:
 		var tk := WorldTiles.key(pts[start].x, pts[start].y, tile)
@@ -460,13 +467,19 @@ static func _add_strip(
 			var prev := pts[maxi(j - 1, 0)]
 			var next := pts[mini(j + 1, pts.size() - 1)]
 			var dir := (next - prev).normalized()
+			var s := float(j) * step
+			var width_t := clampf(0.5 + 0.5 * _wander(s, width_wave, 1.7, 0.3, 0.7), 0.0, 1.0)
+			var half := lerpf(width_min, width_max, width_t) * 0.5
+			var wear_t := clampf(0.5 + 0.5 * _wander(s, wear_wave, 2.3, 0.35, 0.65), 0.0, 1.0)
+			var vcol := col.lerp(wear_col, wear_t * wear_strength)
+			var alpha := clampf(0.55 + 0.45 * _wander(s, wear_wave * 1.6, 0.9, 0.3, 0.7), 0.0, 1.0)
 			var side := Vector2(-dir.y, dir.x) * half
-			for s in [-1.0, 1.0]:
-				var p: Vector2 = pts[j] + side * s
+			for sg in [-1.0, 1.0]:
+				var p: Vector2 = pts[j] + side * sg
 				a.v.append(Vector3(p.x - o.x, float(height_fn.call(p.x, p.y)) + lift, p.y - o.z))
 				a.n.append(Vector3.UP)
-				a.c.append(col)
-				a.uv.append(Vector2(0.5 + 0.5 * s, 0.0))
+				a.c.append(Color(vcol.r, vcol.g, vcol.b, alpha))
+				a.uv.append(Vector2(0.5 + 0.5 * sg, 0.0))
 		for j in end - start:
 			var q := base + 2 * j
 			a.i.append_array(PackedInt32Array([q, q + 2, q + 1, q + 1, q + 2, q + 3]))

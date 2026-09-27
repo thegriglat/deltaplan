@@ -365,8 +365,9 @@ static func _on_ground(p: Vector3, height_fn: Callable) -> Vector3:
 	return Vector3(p.x, float(height_fn.call(p.x, p.z)), p.z)
 
 
-## Меши троп к стартам (StartTracks): "Tracks" — как "Roads", но узкая грунтовая лента с колеёй
-## и короткой видимостью (near..far). Добавляется в дерево после планирования (start_tracks).
+## Меши троп к стартам (StartTracks): "Tracks" — как "Roads", но узкая естественная грунтовая
+## лента (вытоптанная трава, гуляющая ширина, мягкий рваный край) и короткой видимостью (near..far),
+## мягко угасающей к дальней границе. Добавляется в дерево после планирования (start_tracks).
 func _build_start_tracks(height_fn: Callable) -> void:
 	var tc: Dictionary = cfg.start_tracks
 	var tiles := StartTracks.build_meshes(start_tracks, tc, height_fn)
@@ -379,6 +380,11 @@ func _build_start_tracks(height_fn: Callable) -> void:
 	mat.shader = OsmLayer.DRAPED_SHADER
 	mat.set_shader_parameter(&"depth_pull", float(cfg.roads.depth_pull))
 	mat.set_shader_parameter(&"depth_bias_m", float(tc.lift_m) * 2.0)
+	mat.set_shader_parameter(&"edge_alpha_start", 0.25)
+	mat.set_shader_parameter(&"edge_noise_m", float(tc.edge_noise_m))
+	var far := float(tc.visibility_far_m)
+	mat.set_shader_parameter(&"fade_start_m", maxf(far - float(tc.fade_far_m), 0.0))
+	mat.set_shader_parameter(&"fade_end_m", far)
 	for k in tiles:
 		var t: Dictionary = tiles[k]
 		var mi := MeshInstance3D.new()
