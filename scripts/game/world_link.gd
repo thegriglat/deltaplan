@@ -27,7 +27,8 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 	if terrain.has_method("set_wind_sources"):
 		var mean := Callable(air, "mean_wind_at") if air.has_method("mean_wind_at") else Callable()
 		var th := Callable(air, "thermals_near") if air.has_method("thermals_near") else Callable()
-		terrain.set_wind_sources(mean, th)
+		var gusts := Callable(air, "air_velocity_at") if air.has_method("air_velocity_at") else Callable()
+		terrain.set_wind_sources(mean, th, gusts)
 	if terrain.has_method("set_pilot"):
 		terrain.set_pilot(pilot)
 	var loc := terrain.location_id
