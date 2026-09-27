@@ -55,6 +55,11 @@
 ## Модели и текстуры
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
+| `assets/models/glider_training.glb`, `glider_kingpost.glb`, `glider_sport.glb` (исходники `assets/source/glider_*.blend`, текстуры паруса `glider_*_sail.png` 1024²) | три крыла: парус, каркас, трапеция, тросы, маркеры (docs/models.md) | сгенерировано `tools/blender/build_gliders.py` (Blender 4.3) | — | визуал планера (`configs/wings/*.json → visual.visual_model`) |
+| `assets/models/pilot.glb` (`assets/source/pilot.blend`) | манекен пилота в коконе, шлем отдельным мешем | сгенерировано `tools/blender/build_pilot.py` | — | пилот (`configs/pilot.json → visual.visual_model`) |
+| `assets/models/instrument.glb` (`assets/source/instrument.blend`) | планшет-полётный компьютер на кронштейне базовой штанги, без логотипов | сгенерировано `tools/blender/build_instrument.py` | — | прибор на `InstrumentMount` |
+| `assets/models/vario_90s.glb` (`assets/source/vario_90s.blend`) | обобщённый вариометр 1990-х со стрелочной шкалой, без брендов | сгенерировано `tools/blender/build_vario90s.py` | — | прибор на `VarioMount` (левая стойка) |
+| `assets/models/trees/tree_{pine,cedar,larch,birch,spruce}.glb`, `tree_*_impostor.png`, `trees_impostor_atlas.png` (исходники `assets/source/trees/`) | деревья Алтая, LOD0/LOD1/импостор; текстуры хвои, листвы и коры процедурные | сгенерировано `tools/blender/build_trees.py` | — | пока не подключены (замена конусов — docs/models.md) |
 | `assets/models/bird.glb` (исходник `assets/source/bird.blend`) | низкополигональная парящая хищная птица, размах 1,6 м (57 вершин) | сгенерировано `tools/blender/bird.py` (Blender 4.3) | — | птицы в сильных термиках (`scripts/atmosphere/bird_flock.gd`, путь — `configs/atmosphere.json → birds.model_path`) |
 | `assets/textures/clouds/cloud_shape.png`, `cloud_detail.png` | бесшовный 3D-шум облаков: Perlin-Worley 128³ и Уорли 64³ (атласы срезов, импорт как Texture3D) | сгенерировано `tools/atmosphere/gen_cloud_noise.py` | — | объёмные облака (`configs/atmosphere.json → clouds.noise_*_texture`); без файла — процедурный Уорли в `cloud_layer.gd` |
 | — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
