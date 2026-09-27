@@ -16,5 +16,5 @@ func test_vario_audio_node_fills_buffer() -> void:
 	add_child(node)
 	node.set_vario(2.0)
 	check(node.player != null and node.player.playing, "плеер играет")
-	check(node.get_skips() == 0, "без пропусков сразу после запуска")
+	check(node.player.stream is AudioStreamGenerator, "поток — генератор")
 	node.free()

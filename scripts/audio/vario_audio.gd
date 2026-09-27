@@ -58,6 +58,13 @@ func get_skips() -> int:
 	return _playback.get_skips() if _playback else 0
 
 
+func _exit_tree() -> void:
+	# Отпустить playback генератора (иначе утечка при выходе).
+	if player:
+		player.stop()
+	_playback = null
+
+
 func _process(_delta: float) -> void:
 	_fill()
 

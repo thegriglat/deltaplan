@@ -119,3 +119,53 @@ xvfb-run -a godot --path . --rendering-method gl_compatibility res://scenes/inst
     -- --screenshot=/путь/instr.png --page=1 --warmup_s=240 --quit_after_s=2 --skips_report
 ```
 Стенд: Tab/Пробел — страница; 1…9 — подъём N м/с; «−» — −3 м/с; 0 — снова синус.
+
+# Звуки полёта (FR-28)
+
+Компонент `FlightAudio` (`scripts/audio/flight_audio.gd`, сцена `scenes/audio/flight_audio.tscn`).
+Логика — `FlightSoundMix` (RefCounted, тесты `tests/audio/`), нода только держит плееры и шины.
+Алгоритмы — `docs/research/sounds.md` §3; все числа и пути к файлам — `configs/audio.json → flight`.
+
+## API
+```gdscript
+flight_audio.update(t: Telemetry, extra := {})  # каждый шаг физики
+# extra (всё необязательно): phase "standing"/"walking"/"running"/"flying"/"landed",
+#   stall_amount 0..1, turbulence 0..1, sideslip_deg, load_factor (иначе 1/cos(крен)),
+#   ground_wind_ms (ветер у земли), surface "grass"/"gravel"
+flight_audio.play_landing(result)   # {grade: "soft"|"hard"|"crash", vertical_speed_ms} от планера
+flight_audio.play_step(surface := "")  # обычно шаги идут сами по темпу бега
+flight_audio.play_carabiner()
+flight_audio.set_enabled(on)
+```
+Подключение: `glider.telemetry_updated → flight_audio.update(t, {"phase": glider.phase(), ...})`,
+`glider.landed → flight_audio.play_landing`.
+
+## Слои
+| Слой | Шина | Громкость / тон |
+|---|---|---|
+| rush, rumble, wires (синтез) | Wind | ∝ V^n от v_ref 40 км/ч, с пределами; pitch ∝ V; тросы включаются 25→40 км/ч; бафтинг + болтанка + сваливание |
+| ears, fast (записи) | Wind | кроссфейд: уши 5→20 и уход 35→50 км/ч; скоростной поток 55→80 км/ч |
+| ФНЧ шины Wind | — | срез 800 + 60·V Гц (до 16 кГц) |
+| панорама шины Wind | — | скольжение/20° · 0,6 |
+| wing (гул паруса) | Effects | ∝ q·n_z |
+| luff + хлопки | Effects | малая скорость (26→33 км/ч) или сваливание; хлопки — пуассон λ = 3 Гц · s² |
+| скрипы каркаса | Effects | пуассон по перегрузке (1,15→1,8) и болтанке, только в полёте |
+| шаги, дыхание, одышка | Effects | шаг = длина шага / путевая скорость; дыхание нарастает за 4 с бега; одышка после остановки/посадки |
+| посадка | Effects | набор файлов по оценке, громкость ± по вертикальной скорости |
+| луг, птицы, трава, порывы, колокольчики | Ambient | затухание по AGL 20→150 м (колокольчики 50→400 м), трава/порывы ∝ ветер у земли |
+
+Громкость сглаживается (τ 0,2 с); луп ниже −60 дБ останавливается и потом стартует со случайного места.
+
+## Аудиошины
+`scenes/audio/bus_layout.tres`: Master ← Vario, Wind (ФНЧ → панорама → компрессор −6 дБ, 2:1), Effects, Ambient.
+Интегратору: в `project.godot` → `[audio] buses/default_bus_layout="res://scenes/audio/bus_layout.tres"`.
+Без этого `FlightAudio` сам создаёт недостающие шины при запуске (`create_missing_buses`).
+Вариометр — на шине Vario (`vario_audio.bus`), поверх потока.
+
+## Стенд
+`scenes/audio/flight_audio_preview.tscn`: карабин → шаг → разбег → взлёт → 30–80 км/ч, виражи, болтанка →
+сваливание → посадка → одышка (70 с). Запись в WAV:
+```
+godot --headless --audio-driver Dummy --path . res://scenes/audio/flight_audio_preview.tscn -- --record=/путь/flight.wav
+```
+Проверка записи: 80 км/ч громче 38 км/ч на ~10 дБ, пик −5,5 dBFS (запас для вариометра), без клиппинга.

@@ -1,0 +1,41 @@
+[gd_resource type="AudioBusLayout" format=3]
+
+[sub_resource type="AudioEffectLowPassFilter" id="AudioEffectLowPassFilter_gmaeb"]
+
+[sub_resource type="AudioEffectPanner" id="AudioEffectPanner_aqumr"]
+
+[sub_resource type="AudioEffectCompressor" id="AudioEffectCompressor_rbwbl"]
+threshold = -6.0
+ratio = 2.0
+
+[resource]
+bus/1/name = &"Vario"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/2/name = &"Wind"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = 0.0
+bus/2/send = &"Master"
+bus/2/effect/0/effect = SubResource("AudioEffectLowPassFilter_gmaeb")
+bus/2/effect/0/enabled = true
+bus/2/effect/1/effect = SubResource("AudioEffectPanner_aqumr")
+bus/2/effect/1/enabled = true
+bus/2/effect/2/effect = SubResource("AudioEffectCompressor_rbwbl")
+bus/2/effect/2/enabled = true
+bus/3/name = &"Effects"
+bus/3/solo = false
+bus/3/mute = false
+bus/3/bypass_fx = false
+bus/3/volume_db = 0.0
+bus/3/send = &"Master"
+bus/4/name = &"Ambient"
+bus/4/solo = false
+bus/4/mute = false
+bus/4/bypass_fx = false
+bus/4/volume_db = 0.0
+bus/4/send = &"Master"
