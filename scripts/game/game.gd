@@ -161,6 +161,11 @@ func start(s: FlightSettings) -> bool:
 		settings.start_hour,
 		float(terrain.location.get("utc_offset_h", NAN))
 	)
+	# Рельеф (тень склонов, освещённость) — за солнцем по часам.
+	if terrain.has_method("set_sun"):
+		if not sky.clock.sun_changed.is_connected(terrain.set_sun):
+			sky.clock.sun_changed.connect(terrain.set_sun)
+		terrain.set_sun(sky.clock.to_sun())
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
