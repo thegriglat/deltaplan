@@ -3,7 +3,8 @@ extends Node3D
 ##   godot --path . res://scenes/world_objects/world_objects_preview.tscn -- [аргументы]
 ## Аргументы (после --):
 ##   --location=<id>  локация (по умолчанию из сцены — altai)
-##   --view=start|landing|village|wires|sock   ракурс (по умолчанию start); sock — крупно конус
+##   --view=start|landing|village|wires|sock|track   ракурс (по умолчанию start); sock — крупно
+##                    конус; track — тропа к старту, вид на склон с 150–400 м (VR-9, тропы старта)
 ##   --wind=<км/ч> --from=<град>   ветер (по умолчанию из пресета погоды)
 ##   --weather=weak|medium|strong
 ##   --time=<с>      подождать, пока ветроуказатели «оживут» (по умолчанию preview.settle_s)
@@ -11,7 +12,7 @@ extends Node3D
 ##   --shot=<png>    снять кадр и выйти;  --bench — GPU-время кадра с объектами и без, выход
 ## Управление: WASD/QE — полёт, Shift — быстрее, ПКМ — обзор, 1–5 — ракурсы.
 
-const VIEWS: PackedStringArray = ["start", "landing", "village", "wires", "sock"]
+const VIEWS: PackedStringArray = ["start", "landing", "village", "wires", "sock", "track"]
 
 var _args := {}
 var _cfg: Dictionary
@@ -82,6 +83,14 @@ func _set_view(view: String) -> void:
 			var side := Vector3(-wind.z, 0.0, wind.x).normalized()
 			eye = target + side * float(_cfg.sock_distance_m)
 			eye.y = target.y
+		"track":
+			# Камера ниже по склону (по heading_deg — направлению разбега вниз), смотрит на старт:
+			# видно склон и тропу, сбегающую вниз к дороге/посёлку (VR-9, тропы старта).
+			target = start.position
+			var fwd := TerrainGeo.heading_vector(float(start.heading_deg))
+			var d := float(_cfg.track_distance_m)
+			eye = target + fwd * d + fwd.cross(Vector3.UP) * d * 0.3
+			eye.y = terrain.height_at(eye.x, eye.z) + float(_cfg.track_agl_m)
 		"landing":
 			target = landing.position
 			var ax := TerrainGeo.heading_vector(float(landing.axis_deg))

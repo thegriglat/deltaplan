@@ -17,6 +17,8 @@ var osm: OsmData
 var osm_layer: OsmLayer
 var landing_sites: Array[LandingSite] = []
 var indicators: Array[WindIndicator] = []
+## Тропы к стартам (StartTracks.plan) — по одной ломаной (мир x, z) на start_sites[i].
+var start_tracks: Array = []
 ## Время построения, с (NFR-2).
 var build_time_s: float = 0.0
 
@@ -84,16 +86,20 @@ func build(
 		for l in landing_sites:
 			centers.append(l.center)
 		osm_layer.build_fences_near(osm.fences, centers, cfg.landing, height_fn, obstacles)
+	if bool(cfg.start_tracks.get("enabled", true)):
+		start_tracks = StartTracks.plan(start_sites, osm, cfg.start_tracks, height_fn)
+		_build_start_tracks(height_fn)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
 		(
-			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, OSM %s"
+			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d, OSM %s"
 			% [
 				loc_id,
 				build_time_s,
 				indicators.size(),
 				landing_sites.size(),
+				start_tracks.size(),
 				osm_layer.stats if osm_layer != null else "нет"
 			]
 		)
@@ -106,6 +112,7 @@ func clear() -> void:
 		c.queue_free()
 	indicators.clear()
 	landing_sites.clear()
+	start_tracks.clear()
 	_active.clear()
 	osm_layer = null
 	osm = null
@@ -269,3 +276,29 @@ func _build_landing(site: Dictionary, height_fn: Callable, latlon_fn: Callable) 
 
 static func _on_ground(p: Vector3, height_fn: Callable) -> Vector3:
 	return Vector3(p.x, float(height_fn.call(p.x, p.z)), p.z)
+
+
+## Меши троп к стартам (StartTracks): "Tracks" — как "Roads", но узкая грунтовая лента с колеёй
+## и короткой видимостью (near..far). Добавляется в дерево после планирования (start_tracks).
+func _build_start_tracks(height_fn: Callable) -> void:
+	var tc: Dictionary = cfg.start_tracks
+	var tiles := StartTracks.build_meshes(start_tracks, tc, height_fn)
+	if tiles.is_empty():
+		return
+	var root := Node3D.new()
+	root.name = "Tracks"
+	add_child(root)
+	var mat := ShaderMaterial.new()
+	mat.shader = OsmLayer.DRAPED_SHADER
+	mat.set_shader_parameter(&"depth_pull", float(cfg.roads.depth_pull))
+	mat.set_shader_parameter(&"depth_bias_m", float(tc.lift_m) * 2.0)
+	for k in tiles:
+		var t: Dictionary = tiles[k]
+		var mi := MeshInstance3D.new()
+		mi.mesh = t.mesh
+		mi.material_override = mat
+		mi.position = t.origin
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.visibility_range_begin = float(tc.visibility_near_m)
+		mi.visibility_range_end = WorldTiles.tile_range(float(tc.visibility_far_m), float(tc.tile_m))
+		root.add_child(mi)

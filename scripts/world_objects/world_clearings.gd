@@ -36,13 +36,47 @@ static func build_for(location_id: String) -> WorldClearings:
 	for spec in WorldObjects.landing_specs(cfg.landing, location_id, loc.get("landing_sites", [])):
 		var p := TerrainGeo.latlon_to_local(float(spec.lat), float(spec.lon), lat0, lon0)
 		landings.append(spec.merged({"x": p.x, "z": p.y}, true))
+	var tracks: Array = []
+	if bool(cfg.start_tracks.get("enabled", true)):
+		var starts: Array = []
+		for s in loc.get("start_sites", []):
+			var p := TerrainGeo.latlon_to_local(float(s.lat), float(s.lon), lat0, lon0)
+			starts.append({"position": Vector3(p.x, 0.0, p.y)})
+		var dem_dir := String(loc.get("data_dir", "res://data/terrain/" + location_id))
+		var height_fn := _load_height_fn(dem_dir)
+		if height_fn.is_valid():
+			tracks = StartTracks.plan(starts, osm, cfg.start_tracks, height_fn)
 	var c := WorldClearings.new()
-	c.build(osm, landings, cfg, half)
+	c.build(osm, landings, cfg, half, tracks)
 	return c
 
 
+## Высота по данным рельефа локации (<data_dir>/meta.json), как Terrain.height_at, но без
+## живой ноды Terrain — только для процедурных троп (StartTracks). Невалидный Callable — нет данных.
+static func _load_height_fn(dir: String) -> Callable:
+	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
+	var meta: Variant = JSON.parse_string(meta_text)
+	if not meta is Dictionary or not (meta as Dictionary).has("layers"):
+		return Callable()
+	var layers: Array[HeightLayer] = []
+	for info in meta.layers:
+		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
+		if l != null:
+			layers.append(l)
+	if layers.is_empty():
+		return Callable()
+	return func(x: float, z: float) -> float:
+		for l in layers:
+			if l.contains(x, z):
+				return l.sample(x, z)
+		return layers[layers.size() - 1].sample(x, z)
+
+
 ## osm может быть null (только посадки). landings — спецификации посадок с x, z (мир).
-func build(osm: OsmData, landings: Array, cfg: Dictionary, half_size_m: float) -> void:
+## tracks — тропы к стартам (StartTracks.plan), мир (x, z) — не растут деревья.
+func build(
+	osm: OsmData, landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = []
+) -> void:
 	var t0 := Time.get_ticks_usec()
 	var cc: Dictionary = cfg.clearings
 	cell_m = float(cc.cell_m)
@@ -55,6 +89,10 @@ func build(osm: OsmData, landings: Array, cfg: Dictionary, half_size_m: float) -
 		_buildings(osm.buildings, float(cc.building_margin_m))
 	for l in landings:
 		_landing(l, float(cc.landing_margin_m))
+	var track_half := float(cfg.start_tracks.width_m) * 0.5 + float(cc.start_track_margin_m)
+	for pts in tracks:
+		if (pts as PackedVector2Array).size() >= 2:
+			stamp_line(pts, track_half)
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 
 

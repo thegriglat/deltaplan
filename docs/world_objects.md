@@ -13,10 +13,11 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Ветроуказател�
 | `osm_data.gd` (`OsmData`) | загрузка `data/osm/<id>.json`, пересчёт координат, если центр рельефа другой |
 | `osm_layer.gd` (`OsmLayer`) | отрисовка OSM: дороги, здания, опоры и провода, заборы у посадок (дороги и здания считаются в пуле потоков) |
 | `road_mesher.gd`, `building_placer.gd`, `power_line_planner.gd` | чистые построители: ленты дорог по тайлам, коробки зданий для MultiMesh, опоры и цепные линии |
+| `start_tracks.gd` (`StartTracks`) | тропы к стартам: OSM track рядом со стартом или процедурная тропа по рельефу (серпантин, обход воды); меш — узкая грунтовая лента с колеёй |
 | `obstacle_index.gd` (`ObstacleIndex`) | сетка препятствий: капсулы (провода), цилиндры (деревья, опоры), повёрнутые коробки (здания, заборы) |
 | `draped.gdshader` | дороги и покос: сдвиг к камере против утопания в грубом LOD рельефа, растушёвка края дизерингом |
 | `wire.gdshader` | провода: лента к камере не тоньше пикселя, прозрачность = доля покрытия пикселя → тают с расстоянием |
-| `world_clearings.gd` (`WorldClearings`) | маска просек для деревьев рельефа: дороги, ЛЭП, застройка, посадки |
+| `world_clearings.gd` (`WorldClearings`) | маска просек для деревьев рельефа: дороги, ЛЭП, застройка, посадки, тропы к стартам |
 | `world_tiles.gd` (`WorldTiles`) | тайлы, MultiMesh с дальностью видимости, загрузка меша из модели с заглушкой |
 | `scenes/world_objects/world_objects.tscn` | компонент для главной сцены |
 | `scenes/world_objects/{windsock,streamer}_visual.tscn` | обёртки визуала (маркер `Pivot`, меш `Sock`/`Ribbon`) |
@@ -89,6 +90,33 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 | ongudai | ongudai_fields (точка terrain2), 300×150 м, ось 20° | ровный луг (1,5°) в долине севернее Онгудая, по долине против южного ветра; ЛЭП 110/10 кВ в ~500 м и заборы — из OSM |
 | askarovo | idyash_west 300×160 м, ось 110°; biyagoda_east_field 250×140 м, ось 94° | точки terrain2 (уклон 0,6° и 2,5°), ось по ветру соответствующего старта, берёзовые колки |
 
+## Тропы к стартам (`start_tracks.gd`, `StartTracks`)
+Пешая грунтовая дорожка от ближайшей автомобильной дороги или посёлка вверх к каждой площадке старта
+(`Terrain.get_start_sites()`), в отличие от остальных дорог в игре (`roads` — только автомобильные, из
+OSM `highway`, не трогаем). Параметры — `configs/world_objects.json → start_tracks`.
+- **Источник**: если в OSM есть `track` (`osm_track_classes`), чей ближайший к старту участок —
+  ближе `osm_match_radius_m`, — используется он (обрезан до `max_length_m` в сторону дальнего конца,
+  к старту пристёгнута точная точка площадки). Иначе — процедурная тропа: цель — ближайшая точка
+  автомобильной дороги (`road_classes`) или посёлка (`osm.places`); простая трассировка серпантином
+  от старта к цели (`StartTracks._generate_from`) — прямой шаг, если уклон ≤ `max_slope_deg`, иначе
+  отклонение к локальному контуру (перпендикуляр к градиенту рельефа — направление нулевого уклона,
+  доля поворота — `contour_fractions`, по возрастанию, до подходящего по уклону); обходит воду (OSM
+  `rivers`/`lakes`, буфер `water_buffer_m`, отсев далёких — `water_search_margin_m`). Без OSM (рантайм-локация по координатам,
+  `load_location_latlon`) — тропа вниз по склону (направление наибольшего спуска у старта),
+  фиксированной длины `no_destination_length_m`.
+- **Отрисовка**: как дороги (лента по рельефу, `draped.gdshader`), но уже (`width_m` 1,5–3 м),
+  грунт (`color`, пыльный) с двумя полосами колеи потемнее (`rut_color`, `rut_width_m`,
+  `rut_offset_m`); видимость короче — `visibility_near_m`..`visibility_far_m` (50–800 м, а не
+  километры, как у дорог). Свои тайлы (`Tracks`, отдельно от `Roads`), не входит в `ObstacleIndex`.
+- **Просека**: `WorldClearings.build_for` тоже строит тропы (тем же `StartTracks.plan`, с высотами
+  рельефа локации — `<data_dir>/meta.json`, без живой ноды `Terrain`) и штампует их в маску
+  (`clearings.start_track_margin_m` — обочина сверх `width_m`) — деревья/кусты/камни рельефа на
+  тропу не ставятся.
+- Проверка: `godot --headless --path . res://tests/run_tests.tscn -- --filter=world_objects`
+  (`tests/world_objects/test_start_tracks.gd`) — тропа на каждый старт, уклон ≤ лимита, не в воде,
+  OSM-трек используется, если рядом, меши строятся; кадр —
+  `godot --path . res://scenes/world_objects/world_objects_preview.tscn -- --view=track`.
+
 ## Просеки для деревьев рельефа (terrain2 подключает сам)
 Где деревья рельефа ставить нельзя: дороги (ширина класса + `road_margin_m` с каждой стороны), коридоры ЛЭП
 (`power_corridor_high_m` 30 м для 35–220 кВ, `power_corridor_low_m` 12 м для столбов), здания
@@ -150,7 +178,7 @@ c.origin, c.cell_m           # мир (x, z) угла пикселя (0, 0); п�
 ## Превью, замеры, тесты
 ```
 godot --path . res://scenes/world_objects/world_objects_preview.tscn -- [--location=<id>]
-      [--view=start|landing|village|wires|sock] [--wind=км/ч] [--from=°] [--weather=…] [--time=с]
+      [--view=start|landing|village|wires|sock|track] [--wind=км/ч] [--from=°] [--weather=…] [--time=с]
       [--shot=file.png] [--bench]
 ```
 1–5 — ракурсы, WASD/QE — полёт, ПКМ — обзор. Скриншоты — Forward+ (`DISPLAY=:0`) и Compatibility
