@@ -1,0 +1,343 @@
+class_name TerrainRenderer
+extends Node3D
+## Меш рельефа: каждый слой высот режется на квадратные чанки, у чанка несколько уровней
+## детализации (LOD). Сетки LOD общие для всех чанков слоя (плоские), высоту вершинам даёт
+## шейдер из текстуры высот — поэтому построение мгновенное, а памяти нужно мало.
+## Щели между чанками разного LOD закрывает «юбка» (опущенный вниз край).
+## Грубый слой не рисуется там, где его полностью перекрывает более детальный.
+
+const SHADER := preload("res://scripts/terrain/terrain.gdshader")
+
+## Текстуры высот по слоям (для деревьев и др.).
+var height_textures: Array[Texture2D] = []
+## Камера, по которой считается LOD. Если не задана — активная камера вьюпорта.
+var lod_camera: Camera3D
+
+## Чанки: {mi, aabb: AABB (мир), meshes: Array[Mesh], lods: PackedFloat32Array, lod: int}
+var _chunks: Array[Dictionary] = []
+var _update_interval_s: float = 0.1
+var _timer: float = 0.0
+var _materials: Array[ShaderMaterial] = []
+
+
+## Построить чанки. layers — от детального к грубому. render_cfg — раздел "render" локации
+## (по id слоя), look — terrain_look, world_render — раздел "rendering" из world.json.
+func build(
+	layers: Array[HeightLayer], render_cfg: Dictionary, look: Dictionary, world_render: Dictionary
+) -> void:
+	clear()
+	_update_interval_s = float(world_render.get("lod_update_interval_s", 0.1))
+	for li in layers.size():
+		var layer: HeightLayer = layers[li]
+		var rc: Dictionary = render_cfg.get(layer.id, {})
+		if rc.is_empty():
+			push_error("TerrainRenderer: нет раздела render.%s в конфиге локации" % layer.id)
+			continue
+		var cells := int(rc.chunk_cells)
+		var lod_d := PackedFloat32Array(rc.lod_distances_m)
+		var n_lod := lod_d.size() + 1
+		var skirt := float(rc.skirt_depth_m)
+		if (layer.width - 1) % cells != 0 or cells % (1 << (n_lod - 1)) != 0:
+			push_error(
+				(
+					"TerrainRenderer: chunk_cells=%d не подходит слою %s (%d клеток, %d LOD)"
+					% [cells, layer.id, layer.width - 1, n_lod]
+				)
+			)
+			continue
+		var mat := _make_material(layer, skirt, look)
+		if li > 0:
+			var f: HeightLayer = layers[li - 1]
+			mat.set_shader_parameter("hole_min", Vector2(f.origin_x, f.origin_z))
+			mat.set_shader_parameter(
+				"hole_max", Vector2(f.origin_x + f.size_x(), f.origin_z + f.size_z())
+			)
+		_materials.append(mat)
+		var meshes: Array[Mesh] = []
+		for lod in n_lod:
+			var step := 1 << lod
+			meshes.append(_grid_mesh(cells / step, layer.spacing * step))
+		var chunk_m := cells * layer.spacing
+		var finer: Array[HeightLayer] = []
+		for k in li:
+			finer.append(layers[k])
+		var cast := li == 0
+		for cj in (layer.height - 1) / cells:
+			for ci in (layer.width - 1) / cells:
+				var x0 := layer.origin_x + ci * chunk_m
+				var z0 := layer.origin_z + cj * chunk_m
+				if _covered_by(finer, x0, z0, chunk_m):
+					continue
+				var hr := _chunk_height_range(layer, ci * cells, cj * cells, cells)
+				var mi := MeshInstance3D.new()
+				mi.name = "%s_%d_%d" % [layer.id, ci, cj]
+				mi.mesh = meshes[n_lod - 1]
+				mi.material_override = mat
+				mi.position = Vector3(x0, 0.0, z0)
+				mi.cast_shadow = (
+					GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+					if cast
+					else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				)
+				mi.custom_aabb = AABB(
+					Vector3(0.0, hr.x - skirt, 0.0), Vector3(chunk_m, hr.y - hr.x + skirt, chunk_m)
+				)
+				add_child(mi)
+				mi.set_instance_shader_parameter("lod_stride", float(1 << (n_lod - 1)))
+				(
+					_chunks
+					. append(
+						{
+							"mi": mi,
+							"aabb":
+							AABB(Vector3(x0, hr.x, z0), Vector3(chunk_m, hr.y - hr.x, chunk_m)),
+							"meshes": meshes,
+							"lods": lod_d,
+							"lod": n_lod - 1,
+						}
+					)
+				)
+	update_lods(true)
+
+
+func clear() -> void:
+	for c in _chunks:
+		(c.mi as Node).queue_free()
+	_chunks.clear()
+	_materials.clear()
+	height_textures.clear()
+
+
+func chunk_count() -> int:
+	return _chunks.size()
+
+
+## Обновить параметры вида (terrain_look) без перестройки.
+func apply_look(look: Dictionary) -> void:
+	for m in _materials:
+		_apply_look(m, look)
+
+
+func _process(delta: float) -> void:
+	_timer += delta
+	if _timer >= _update_interval_s:
+		_timer = 0.0
+		update_lods(false)
+
+
+## Выбрать LOD каждого чанка по расстоянию от камеры до его AABB.
+func update_lods(force: bool) -> void:
+	var cam := (
+		lod_camera
+		if lod_camera != null
+		else get_viewport().get_camera_3d() if is_inside_tree() else null
+	)
+	if cam == null:
+		return
+	var p := cam.global_position if cam.is_inside_tree() else cam.position
+	for c in _chunks:
+		var box: AABB = c.aabb
+		var q := Vector3(
+			clampf(p.x, box.position.x, box.end.x),
+			clampf(p.y, box.position.y, box.end.y),
+			clampf(p.z, box.position.z, box.end.z)
+		)
+		var d := p.distance_to(q)
+		var lods: PackedFloat32Array = c.lods
+		var lod := lods.size()
+		for k in lods.size():
+			if d < lods[k]:
+				lod = k
+				break
+		if lod != int(c.lod) or force:
+			c.lod = lod
+			var mi: MeshInstance3D = c.mi
+			mi.mesh = c.meshes[lod]
+			mi.set_instance_shader_parameter("lod_stride", float(1 << lod))
+
+
+## Сколько чанков сейчас на каждом LOD (для отладки/тестов).
+func lod_histogram() -> Dictionary:
+	var h := {}
+	for c in _chunks:
+		h[c.lod] = int(h.get(c.lod, 0)) + 1
+	return h
+
+
+func _covered_by(finer: Array[HeightLayer], x0: float, z0: float, size: float) -> bool:
+	for f in finer:
+		if (
+			x0 >= f.origin_x
+			and z0 >= f.origin_z
+			and x0 + size <= f.origin_x + f.size_x()
+			and z0 + size <= f.origin_z + f.size_z()
+		):
+			return true
+	return false
+
+
+## Мин/макс высоты чанка по прореженной выборке + запас на пропущенные узлы.
+func _chunk_height_range(layer: HeightLayer, i0: int, j0: int, cells: int) -> Vector2:
+	var stride := maxi(1, cells / 16)
+	var lo := INF
+	var hi := -INF
+	var j := j0
+	while j <= j0 + cells:
+		var i := i0
+		while i <= i0 + cells:
+			var v := layer.node(i, j)
+			lo = minf(lo, v)
+			hi = maxf(hi, v)
+			i += stride
+		j += stride
+	var margin := (hi - lo) * 0.1 + layer.spacing
+	return Vector2(lo - margin, hi + margin)
+
+
+func _make_material(layer: HeightLayer, skirt: float, look: Dictionary) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = SHADER
+	var tex := layer.make_texture()
+	height_textures.append(tex)
+	m.set_shader_parameter("height_tex", tex)
+	m.set_shader_parameter("layer_origin", Vector2(layer.origin_x, layer.origin_z))
+	m.set_shader_parameter("layer_spacing", layer.spacing)
+	m.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))
+	m.set_shader_parameter("skirt_depth", skirt)
+	set_water(m, layer)
+	_apply_look(m, look)
+	return m
+
+
+## Маска рек слоя → uniform'ы шейдера.
+static func set_water(m: ShaderMaterial, layer: HeightLayer) -> void:
+	m.set_shader_parameter("has_water", layer.water_texture != null)
+	if layer.water_texture != null:
+		m.set_shader_parameter("water_tex", layer.water_texture)
+
+
+func _apply_look(m: ShaderMaterial, look: Dictionary) -> void:
+	apply_look_params(m, look)
+
+
+## Передать параметры terrain_look в uniform'ы шейдера
+## (ключ = имя uniform; массивы → Color/Vector2).
+static func apply_look_params(m: ShaderMaterial, look: Dictionary) -> void:
+	for key in look:
+		if String(key).begins_with("_") or String(key).ends_with("_doc"):
+			continue
+		var v: Variant = look[key]
+		var uniform_name := String(key)
+		if uniform_name == "roughness" or uniform_name == "specular":
+			uniform_name += "_value"
+		if (
+			v is Array
+			and not (v as Array).is_empty()
+			and ((v as Array)[0] is float or (v as Array)[0] is int)
+		):
+			var a: Array = v
+			if a.size() == 3:
+				v = Color(float(a[0]), float(a[1]), float(a[2]))
+			elif a.size() == 2:
+				v = Vector2(float(a[0]), float(a[1]))
+		m.set_shader_parameter(uniform_name, v)
+
+
+## Подключить текстуры поверхностей из configs/world.json → terrain_textures:
+## {"grass": {"albedo": "res://…png", "tile_m": 4}, …}. Пустой путь — процедурная заглушка;
+## путь есть, а файла нет — предупреждение в лог и тоже заглушка.
+func apply_textures(tex_cfg: Dictionary) -> void:
+	for m in _materials:
+		m.set_shader_parameter("texture_strength", float(tex_cfg.get("strength", 1.0)))
+		m.set_shader_parameter("texture_color_mix", float(tex_cfg.get("color_mix", 0.3)))
+		m.set_shader_parameter("texture_contrast", float(tex_cfg.get("contrast", 1.0)))
+		for surf in ["grass", "forest", "rock", "snow"]:
+			var sc: Dictionary = tex_cfg.get(surf, {})
+			var tex := load_texture(String(sc.get("albedo", "")))
+			m.set_shader_parameter("use_%s_tex" % surf, tex != null)
+			if tex != null:
+				m.set_shader_parameter("%s_tex" % surf, tex)
+				m.set_shader_parameter("%s_tex_avg" % surf, _average_color(tex))
+				m.set_shader_parameter("%s_tex_tile_m" % surf, float(sc.get("tile_m", 4.0)))
+
+
+## Средний цвет текстуры (линейный, как видит шейдер с source_color).
+static func _average_color(tex: Texture2D) -> Color:
+	var img := tex.get_image()
+	if img == null:
+		return Color(0.5, 0.5, 0.5)
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.clear_mipmaps()
+	img.resize(1, 1, Image.INTERPOLATE_BILINEAR)
+	var c := img.get_pixel(0, 0).srgb_to_linear()
+	return Color(maxf(c.r, 0.01), maxf(c.g, 0.01), maxf(c.b, 0.01))
+
+
+## Текстура по пути: ресурс проекта (res://…) или картинка на диске (user://…, абсолютный путь).
+static func load_texture(path: String) -> Texture2D:
+	if path == "":
+		return null
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	if FileAccess.file_exists(path):
+		var img := Image.load_from_file(path)
+		if img != null:
+			img.generate_mipmaps()
+			return ImageTexture.create_from_image(img)
+	push_warning("Terrain: текстура не найдена: %s — используется процедурная раскраска" % path)
+	return null
+
+
+## Плоская сетка cells×cells клеток шагом step + «юбка» по краю (вершины с COLOR.r = 1).
+static func _grid_mesh(cells: int, step: float) -> ArrayMesh:
+	var n := cells + 1
+	var verts := PackedVector3Array()
+	var colors := PackedColorArray()
+	var idx := PackedInt32Array()
+	verts.resize(n * n)
+	colors.resize(n * n)
+	for j in n:
+		for i in n:
+			verts[j * n + i] = Vector3(i * step, 0.0, j * step)
+			colors[j * n + i] = Color(0, 0, 0)
+	for j in cells:
+		for i in cells:
+			var a := j * n + i
+			var b := a + 1
+			var c := a + n
+			var d := c + 1
+			# по часовой стрелке при взгляде сверху — лицевая сторона вверх
+			idx.append_array([a, b, c, b, d, c])
+	# контур по периметру
+	var ring: PackedInt32Array = []
+	for i in n:
+		ring.append(i)
+	for j in range(1, n):
+		ring.append(j * n + cells)
+	for i in range(cells - 1, -1, -1):
+		ring.append(cells * n + i)
+	for j in range(cells - 1, 0, -1):
+		ring.append(j * n)
+	var base := verts.size()
+	for k in ring.size():
+		verts.append(verts[ring[k]])
+		colors.append(Color(1, 0, 0))
+	var rn := ring.size()
+	for k in rn:
+		var t0 := ring[k]
+		var t1 := ring[(k + 1) % rn]
+		var s0 := base + k
+		var s1 := base + (k + 1) % rn
+		# юбка видна с обеих сторон
+		idx.append_array([t0, t1, s0, t1, s1, s0])
+		idx.append_array([t0, s0, t1, t1, s0, s1])
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh

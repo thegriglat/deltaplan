@@ -1,0 +1,171 @@
+extends Node3D
+## Тестовая сцена рельефа: камера на стартовой площадке смотрит вдоль склона.
+## Аргументы (после --):
+##   --site=<id>        площадка (по умолчанию первая)
+##   --agl=<м>          поднять камеру над стартом
+##   --yaw=<град>       добавка к курсу площадки
+##   --pitch=<град>     наклон взгляда
+##   --pos=x,y,z --look=x,y,z  произвольная камера
+##   --latlon=<lat>,<lon> [--size_km=N]  рантайм-загрузка рельефа вокруг точки (FR-17)
+##   --shot=<файл.png>  снять кадр и выйти
+##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
+##   --no-trees, --no-shadows  отключить деревья / тени (замер цены)
+## Управление: WASD, Q/E, Shift, правая кнопка мыши — обзор.
+
+var _args := {}
+var _frames := 0
+var _cfg: Dictionary
+var _yaw := 0.0
+var _pitch := 0.0
+var _bench_t := 0.0
+var _bench_frames := 0
+var _bench_worst_ms := 0.0
+var _bench_gpu_ms := 0.0
+
+@onready var terrain: Terrain = $Terrain
+@onready var cam: Camera3D = $Camera3D
+
+
+func _ready() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--"):
+			var kv := a.substr(2).split("=", true, 1)
+			_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	_cfg = Config.get_config("world").get("preview", {})
+	SkyEnvironment.setup_camera(cam)
+	cam.fov = float(_cfg.fov_deg)
+	if _args.has("latlon"):
+		var ll := String(_args.latlon).split(",")
+		_frames = -100000  # не снимать, пока грузится
+		await terrain.load_location_latlon(
+			float(ll[0]), float(ll[1]), float(_args.get("size_km", "-1"))
+		)
+		_frames = 0
+	terrain.renderer.lod_camera = cam
+	_place_camera()
+	if _args.has("no-trees") and terrain.trees != null:
+		terrain.trees.visible = false
+	if _args.has("no-shadows"):
+		($Environment as SkyEnvironment).sun.shadow_enabled = false
+	if _args.has("bench"):
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	print(
+		(
+			"Terrain preview: загрузка %.2f с, чанков %d"
+			% [terrain.last_load_time_s, terrain.renderer.chunk_count()]
+		)
+	)
+
+
+func _place_camera() -> void:
+	var sites := terrain.get_start_sites()
+	var site: Dictionary = sites[0]
+	for s in sites:
+		if s.id == _args.get("site", ""):
+			site = s
+	_yaw = float(site.heading_deg) + float(_args.get("yaw", "0"))
+	_pitch = float(_args.get("pitch", str(_cfg.pitch_deg)))
+	var p: Vector3 = (
+		site.position + Vector3.UP * (float(_cfg.eye_height_m) + float(_args.get("agl", "0")))
+	)
+	cam.global_position = p
+	_apply_rot()
+	if _args.has("pos"):
+		cam.global_position = _vec(_args.pos)
+	if _args.has("look"):
+		cam.look_at(_vec(_args.look))
+		_yaw = rad_to_deg(-cam.rotation.y)
+		_pitch = rad_to_deg(cam.rotation.x)
+	print(
+		(
+			"Камера: %s, земля %.0f м, курс %.0f°"
+			% [
+				cam.global_position,
+				terrain.height_at(cam.global_position.x, cam.global_position.z),
+				_yaw
+			]
+		)
+	)
+
+
+func _apply_rot() -> void:
+	cam.rotation = Vector3(deg_to_rad(_pitch), deg_to_rad(-_yaw), 0.0)
+
+
+func _vec(s: String) -> Vector3:
+	var p := s.split(",")
+	return Vector3(float(p[0]), float(p[1]), float(p[2]))
+
+
+func _process(delta: float) -> void:
+	_frames += 1
+	if _frames < 0:
+		return
+	if _args.has("bench"):
+		_bench(delta)
+		return
+	if _args.has("shot") and _frames == int(_cfg.shot_delay_frames):
+		var img := get_viewport().get_texture().get_image()
+		img.save_png(String(_args.shot))
+		print("Скриншот: ", _args.shot)
+		get_tree().quit()
+		return
+	var v := Vector3(
+		(
+			Input.get_axis(&"ui_left", &"ui_right")
+			+ float(Input.is_key_pressed(KEY_D))
+			- float(Input.is_key_pressed(KEY_A))
+		),
+		float(Input.is_key_pressed(KEY_E)) - float(Input.is_key_pressed(KEY_Q)),
+		float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W))
+	)
+	if v != Vector3.ZERO:
+		var speed := float(_cfg.fly_speed_ms) * (5.0 if Input.is_key_pressed(KEY_SHIFT) else 1.0)
+		cam.global_position += cam.global_basis * v.normalized() * speed * delta
+		var ground := terrain.height_at(cam.global_position.x, cam.global_position.z)
+		cam.global_position.y = maxf(cam.global_position.y, ground + 1.0)
+
+
+func _bench(delta: float) -> void:
+	if _frames < 10:
+		return
+	_bench_t += delta
+	_bench_frames += 1
+	_bench_worst_ms = maxf(_bench_worst_ms, delta * 1000.0)
+	_bench_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(
+		get_viewport().get_viewport_rid()
+	)
+	cam.global_position += -cam.global_basis.z * float(_cfg.bench_speed_ms) * delta
+	if _bench_t >= float(_cfg.bench_duration_s):
+		print(
+			(
+				(
+					"BENCH: средний FPS %.1f, GPU %.2f мс/кадр, худший кадр %.1f мс, LOD %s, "
+					+ "примитивов %d, draw calls %d"
+				)
+				% [
+					_bench_frames / _bench_t,
+					_bench_gpu_ms / _bench_frames,
+					_bench_worst_ms,
+					terrain.renderer.lod_histogram(),
+					RenderingServer.get_rendering_info(
+						RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME
+					),
+					RenderingServer.get_rendering_info(
+						RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
+					)
+				]
+			)
+		)
+		get_tree().quit()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		var k := float(_cfg.mouse_sensitivity_deg)
+		_yaw += event.relative.x * k
+		_pitch = clampf(_pitch - event.relative.y * k, -89.0, 89.0)
+		_apply_rot()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		get_tree().quit()
