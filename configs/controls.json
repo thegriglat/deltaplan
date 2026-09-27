@@ -1,0 +1,46 @@
+{
+  "_doc": "Управление (FR-30…FR-33). Клавиши — имена Godot (OS.find_keycode_from_string).",
+  "keys": {
+    "pitch_push_out": ["S", "Down"],
+    "pitch_push_out_doc": "От себя: нос вверх, торможение",
+    "pitch_pull_in": ["W", "Up"],
+    "pitch_pull_in_doc": "На себя: разгон",
+    "roll_left": ["A", "Left"],
+    "roll_right": ["D", "Right"],
+    "run": ["Space"],
+    "camera_next": ["C"],
+    "instrument_page": ["Tab"],
+    "pause": ["Escape"],
+    "restart": ["R"],
+    "mouse_capture": ["M"]
+  },
+  "invert_pitch": false,
+  "invert_pitch_doc": "true — поменять местами «от себя» и «на себя»",
+  "keyboard": {
+    "pitch_rate_per_s": 1.5,
+    "pitch_rate_per_s_doc": "Скорость хода трапеции при удержании клавиши, доля полного хода в секунду",
+    "pitch_return_per_s": 1.0,
+    "pitch_return_per_s_doc": "Скорость возврата в нейтраль (трим), когда клавиша отпущена",
+    "roll_rate_per_s": 2.0,
+    "roll_return_per_s": 1.5,
+    "sensitivity": 1.0
+  },
+  "mouse": {
+    "enabled": true,
+    "sensitivity": 1.0,
+    "sensitivity_doc": "Смещение мыши на 1/2 высоты экрана × чувствительность = полный ход",
+    "deadzone": 0.02,
+    "return_to_center_per_s": 0.0,
+    "return_to_center_per_s_doc": "0 — трапеция остаётся, где её оставили; >0 — плавно возвращается в нейтраль"
+  },
+  "gamepad": {
+    "enabled": true,
+    "pitch_axis": 1,
+    "roll_axis": 0,
+    "run_button": 0,
+    "deadzone": 0.08,
+    "sensitivity": 1.0,
+    "expo": 0.3,
+    "expo_doc": "0 — линейно, 1 — сильная экспонента (точнее у нейтрали)"
+  }
+}

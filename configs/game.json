@@ -1,0 +1,7 @@
+{
+  "_doc": "Настройки по умолчанию для нового полёта (меню их переопределяет)",
+  "default_location": "locations/altai",
+  "default_wing": "wings/sport",
+  "default_weather": "weather/medium",
+  "language": "ru"
+}
