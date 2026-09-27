@@ -10,7 +10,7 @@
 | `scenes/game/game.tscn` + `scripts/game/game.gd` (`Game`) | полётный мир: небо, рельеф, воздух, планер, ввод, камера, приборы, звук; `start()`, `restart()`, `tick()` |
 | `scripts/game/input_controller.gd` (`InputController`) | клавиатура / мышь / геймпад → `ControlInput` (FR-30…33) |
 | `scripts/game/camera_rig.gd` (`CameraRig`) | камеры cockpit / chase / free (FR-26), поворот головы мышью (FR-31) |
-| `scripts/game/flight_settings.gd` (`FlightSettings`) | выбор пилота: крыло, масса, погода, ветер, старт |
+| `scripts/game/flight_settings.gd` (`FlightSettings`) | выбор пилота: крыло, масса, прогноз (температура днём, ветер на старте, откуда, облачность), старт |
 | `scripts/game/start_placement.gd` (`StartPlacement`) | старт в точке с карты: ближайший склон, курс вниз по склону |
 | `scripts/game/flight_stats.gd` (`FlightStats`) | итоги полёта для экрана после посадки |
 | `scripts/game/calm_air.gd` (`CalmAir`) | запасная модель воздуха (ветер + статичные термики) |
@@ -200,7 +200,13 @@ osm_fence_spans: 2230` против 0 заборов и на порядок ме
 `CalmAir`, если основная не загрузилась. Интерфейс: `set_weather(имя)`, `set_wind(км/ч, откуда°)`,
 `set_ground(height_fn, sun_fn)`, `air_velocity_at(pos)`, `step(dt)`, `focus_node`; необязательные —
 `set_sun_direction`, `load_static_thermals` (из `thermals` конфига локации), `place_thermals_near`, `mean_wind_at`.
-Ветер «в лоб старту» (`wind_mode = into_site`) — сила из пресета погоды, направление — курс старта.
+**Погода из прогноза (FR-16).** Пилот задаёт на экране «Полёт…» то, что знает из прогноза: температуру днём
+(0…+40 °C), ветер на старте (м/с), откуда ветер (в лоб старту или румб) и облачность (ясно / переменная /
+облачно). `Game.start` после загрузки рельефа собирает место (`WeatherModel.ground_context`: долина и средняя
+высота вокруг, дата, широта, пояс) и зовёт `air.set_weather(WeatherModel.derive(прогноз, место, час старта))`;
+ветер — `air.set_wind(км/ч, курс старта | румб, высота старта)`: выше старта ветер сильнее. Ход дня: раз в
+`weather_model.json → diurnal.update_s` игрового времени `Game` мягко ведёт атмосферу к погоде нового часа
+(`set_weather(w, blend_s)`), дымку — `sky.set_haze_density`. Модель — docs/atmosphere.md → «Погода из прогноза».
 
 ## Время суток (VR-5)
 Единый источник солнца — `SunClock` (`scripts/world/sun_clock.gd`), узел `sky.clock` у `SkyEnvironment`.
@@ -215,9 +221,10 @@ settings.start_hour, utc_offset_h локации)`, `Game.tick` — `sky.clock.a
 `sky.clock.sun_changed(to_sun: Vector3)` — единичный вектор НА солнце (север −Z, восток +X), высота не ниже
 `time.min_light_elevation_deg`; сигнал — при сдвиге ≥ 0,05°. Облака и перистые берут направление с
 `DirectionalLight3D` сами. Воздух (`set_sun_direction` — тени облаков на источниках) и источники термиков
-(`Terrain.sun_exposure_at`) пока берут статичное `world.json → sun.azimuth_deg/elevation_deg`: термики от времени
-суток не зависят (решение пользователя; дневной ход термиков — TODO). Подключить позже — одной строкой в Game:
-`sky.clock.sun_changed.connect(air.set_sun_direction)`.
+идут за солнцем по часам: `Game._on_sun_changed` — тени облаков для воздуха и солнце по классам поверхности с
+запаздыванием прогрева (`SurfaceHeating` → `Terrain.set_class_sun`: камни и деревни греют и вечером). Сила и
+высота термиков по времени дня — `WeatherModel.derive(…, час)` (фаза 2 плана погоды, пилот: «утром мягкие,
+днём жёсткие, вечером мягкий воздух, термиков мало»).
 Кадры: `tools/shots/tod_shot.tscn -- --out=<папка> [--hours=7,13,19]`. Тест — `tests/world/test_sun_clock.gd`.
 
 ## Приборы на трапеции

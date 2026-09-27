@@ -9,7 +9,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 - Чтение: `Config.get_config("wings/sport")`, `Config.value("sim", "physics_hz")`, `Config.list_configs("wings")`.
 - Внутри симуляции всё в СИ: м, м/с, кг, с, радианы.
 - Физика — только в `_physics_process` (фиксированный шаг, `configs/sim.json → physics_hz`, NFR-3). Рендер интерполирует.
-- Интерфейс — русский и английский (NFR-4): весь текст для пилота — через `tr("ключ")`, ключи snake_case с префиксом области (`menu_fly`, `result_crash`, `tab_vario`) в `locale/ui.csv` (колонки ru, en; формат `%s` — в значениях). Русский текст ключом в `tr()` не пишем (проверяет `tests/ui/test_language.gd`). Названия из конфигов (крылья, погода, места, старты, пресеты, подсказки управления) — тоже ключи. Язык — `Language` (`scripts/ui/language.gd`), `game.json → language` (пусто — по системе); при смене экраны пересоздаются (`main.gd → _rebuild_ui`).
+- Интерфейс — русский и английский (NFR-4): весь текст для пилота — через `tr("ключ")`, ключи snake_case с префиксом области (`menu_fly`, `result_crash`, `tab_vario`) в `locale/ui.csv` (колонки ru, en; формат `%s` — в значениях). Русский текст ключом в `tr()` не пишем (проверяет `tests/ui/test_language.gd`). Названия из конфигов (крылья, места, старты, пресеты, подсказки управления) — тоже ключи. Язык — `Language` (`scripts/ui/language.gd`), `game.json → language` (пусто — по системе); при смене экраны пересоздаются (`main.gd → _rebuild_ui`).
 - Никакого HUD и никаких визуальных подсказок (FR-21, FR-22). Весь вывод данных — через приборы.
 
 ## Система координат
@@ -46,6 +46,9 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 
 **Атмосфера** (`scripts/atmosphere/atmosphere.gd`, нода `Atmosphere`, группа `"atmosphere"`):
 - `set_ground(height_fn: Callable, sun_fn: Callable)` — функции рельефа.
+- `set_weather(w: String | Dictionary, blend_s := -1.0)` — погода: имя эталона (`configs/weather/*`, тесты) или
+  словарь `WeatherModel.derive` (игра, FR-16); `blend_s ≥ 0` — мягкий переход без пересоздания термиков (ход дня).
+- `set_wind(км/ч, откуда_°, ref_msl := NAN)` — ветер прогноза на высоте `ref_msl` (старт); выше — сильнее.
 - `air_velocity_at(pos: Vector3) -> Vector3` — скорость воздуха (ветер + вертикальные потоки), м/с. Дёшево: зовётся несколько раз за шаг (центр и концы крыла).
 - `step(dt: float)` — продвинуть время атмосферы (жизнь термиков). Вызывается из `_physics_process` самой ноды.
 - Рисует облака сама (дочерние ноды).
