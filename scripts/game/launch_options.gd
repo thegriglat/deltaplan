@@ -8,7 +8,11 @@ extends RefCounted
 ##   --time=<с>            когда снимать: время симуляции полёта (в меню — реальное), с
 ##   --camera=<режим>      cockpit | chase | free
 ##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
-##   --wing=<id> --mass=<кг> --weather=<id> --location=<id> --site=<id> --wind=into_site|preset
+##   --wing=<id> --mass=<кг> --location=<id> --site=<id>
+##   --temp=<°C>           прогноз: температура днём (FR-16)
+##   --wind=<м/с>          прогноз: ветер у земли (старое into_site|preset — как --from)
+##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — в лоб старту
+##   --weather=<id>        бывший пресет → опорный прогноз (weather_model.json → legacy_presets)
 ##   --hour=<ч>            время старта по часам места (7.5 = 7:30), для кадров утро/вечер
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
@@ -101,7 +105,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.air_start_m = float(p[0]) if val != "" else 1000.0
 				if p.size() > 1:
 					o.air_start_agl_m = float(p[1])
-			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour":
+			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour", "temp", "from":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -116,7 +120,9 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 	if overrides.has("mass"):
 		r.pilot_mass_kg = float(overrides.mass)
 	if overrides.has("weather"):
-		r.weather = "weather/" + String(overrides.weather)
+		r.set_legacy_weather(String(overrides.weather))
+	if overrides.has("temp"):
+		r.temperature_c = float(overrides.temp)
 	if overrides.has("site"):
 		r.site_id = String(overrides.site)
 		r.pick_lat = NAN
@@ -126,7 +132,18 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		if not overrides.has("site"):
 			r.site_id = ""
 	if overrides.has("wind"):
-		r.wind_mode = String(overrides.wind)
+		var wv := String(overrides.wind)
+		if wv == "into_site" or wv == "preset":
+			r.wind_mode = wv
+			r.wind_into_launch = wv == "into_site"
+		else:
+			r.wind_speed_kmh = float(wv) * 3.6
+	if overrides.has("from"):
+		var fv := String(overrides.from)
+		r.wind_into_launch = fv == "launch"
+		r.wind_mode = "into_site" if r.wind_into_launch else "preset"
+		if not r.wind_into_launch:
+			r.wind_from_deg = fposmod(float(fv), 360.0)
 	if overrides.has("hour"):
 		r.start_hour = float(overrides.hour)
 	if overrides.has("latlon"):

@@ -103,6 +103,60 @@ func test_flight_settings_roundtrip() -> void:
 	check(d.wing_id() == s.wing.get_file(), "id крыла для Glider")
 
 
+func test_forecast_settings_migration() -> void:
+	# Старый last_flight.json (до прогноза): пресет → опорный прогноз.
+	var old := FlightSettings.from_dict({"weather": "weather/strong", "wind_mode": "preset"})
+	approx(old.temperature_c, 31.0, 1e-6, "strong → +31 °C")
+	approx(old.wind_speed_kmh, 18.0, 1e-6, "strong → 18 км/ч")
+	check(not old.wind_into_launch, "preset → направление не в лоб")
+	approx(old.wind_from_deg, 270.0, 1e-6, "направление из пресета")
+	var wave := FlightSettings.from_dict({"weather": "weather/wave"})
+	approx(wave.temperature_c, 18.0, 1e-6, "wave → +18 °C")
+	approx(wave.wind_speed_kmh, 36.0, 1e-6, "wave → 36 км/ч")
+	check(wave.wind_into_launch, "без wind_mode — в лоб старту")
+	var def := FlightSettings.defaults()
+	var unknown := FlightSettings.from_dict({"weather": "weather/tornado"})
+	approx(unknown.temperature_c, def.temperature_c, 1e-6, "неизвестный пресет — по умолчанию")
+	approx(unknown.wind_speed_kmh, def.wind_speed_kmh, 1e-6, "ветер по умолчанию")
+	# Мусор — в диапазон меню (UserSettings.load_last_flight).
+	var path := TMP_DIR.path_join("last_flight.json")
+	DirAccess.make_dir_recursive_absolute(TMP_DIR)
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"temperature_c": 99, "wind_speed_kmh": -5, "wind_from_deg": 725}))
+	f.close()
+	var loaded := UserSettings.load_last_flight(path)
+	approx(loaded.temperature_c, 40.0, 1e-6, "жара зажата")
+	approx(loaded.wind_speed_kmh, 0.0, 1e-6, "ветер не отрицательный")
+	approx(loaded.wind_from_deg, 5.0, 1e-6, "направление по кругу")
+	DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(TMP_DIR)
+	# Туда-обратно без потерь.
+	var s := FlightSettings.defaults()
+	s.temperature_c = -7.0
+	s.wind_speed_kmh = 25.2
+	s.wind_into_launch = false
+	s.wind_from_deg = 135.0
+	var r := FlightSettings.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())))
+	check(r.forecast() == s.forecast(), "прогноз туда-обратно")
+	check(not r.wind_into_launch, "направление туда-обратно")
+	# По умолчанию — обычный максимум для даты по умолчанию.
+	approx(def.temperature_c, roundf(WeatherModel.typical_max_c(def.month, def.day)), 1.0, "умолчание")
+
+
+func test_forecast_launch_options() -> void:
+	var o := LaunchOptions.parse(PackedStringArray(["--temp=31", "--wind=5", "--from=launch"]))
+	var s := o.apply_to(FlightSettings.defaults())
+	approx(s.temperature_c, 31.0, 1e-6, "--temp")
+	approx(s.wind_speed_kmh, 18.0, 1e-6, "--wind в м/с")
+	check(s.wind_into_launch, "--from=launch")
+	s = LaunchOptions.parse(PackedStringArray(["--from=225"])).apply_to(s)
+	check(not s.wind_into_launch, "--from=<град>")
+	approx(s.wind_from_deg, 225.0, 1e-6, "направление")
+	s = LaunchOptions.parse(PackedStringArray(["--weather=medium"])).apply_to(s)
+	approx(s.temperature_c, 26.0, 1e-6, "--weather=medium → +26")
+	approx(s.wind_speed_kmh, 11.0, 1e-6, "--weather=medium → 11 км/ч")
+
+
 func test_user_settings_merge() -> void:
 	var path := TMP_DIR.path_join("controls.json")
 	UserSettings.save_patch("controls", {"mouse": {"mode": "bar"}}, TMP_DIR)
