@@ -25,6 +25,10 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 | `scripts/terrain/`, `scripts/world/`, `tools/terrain/`, `data/terrain/`, `configs/locations/`, `configs/world.json`, `tests/terrain/` | рельеф, небо, туман, солнце | агент terrain |
 | `scripts/atmosphere/`, `configs/weather/`, `configs/atmosphere.json`, `tests/atmosphere/` | термики, ветер, облака | агент atmosphere |
 | `scripts/instruments/`, `scripts/audio/`, `configs/instruments.json`, `configs/audio.json`, `tests/instruments/` | вариометр, прибор, звук | агент instruments |
+| `scripts/world_objects/`, `scenes/world_objects/`, `configs/world_objects.json`, `data/osm/`, `tools/osm/`, `tests/world_objects/` | объекты мира: ветроуказатели, посадочные площадки, дороги/здания/ЛЭП из OSM, столкновения | агент world_objects |
+| `scripts/vegetation/` (плановая папка) — пока трава/деревья остаются в `scripts/terrain/` (`grass_field.gd`, `grass.gdshader`, `tree_placer.gd`, `terrain_tree_models.gd`, `forest_impostors.*`), `configs/vegetation.json` | растительность | агент vegetation (перенос файлов из terrain — после согласования) |
+| `scripts/tasks/`, `scenes/tasks/`, `configs/tasks/`, `tests/tasks/` | задания, тренировки, рекорды (FR-35…37); логика готова, в `Game.tick()` не подключена | агент tasks |
+| `scripts/ui/`, `scenes/ui/`, `locale/`, `configs/ui.json` | меню, пауза, настройки, «Об игре», экраны | агент ui |
 | `docs/research/` | исследования | агенты-исследователи |
 | `scenes/main.*`, `scripts/game/`, `configs/controls.json`, `configs/camera.json` | сборка, камеры, ввод, меню | интегратор |
 
@@ -55,6 +59,14 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 - `Vario` (RefCounted): фильтр, среднее за N с — из `Telemetry`.
 - `FlightInstrument` (сцена): экран прибора в SubViewport → текстура для модели на трапеции и для угла экрана. Метод `update(t: Telemetry)`.
 - `VarioAudio` (Node): процедурный звук вариометра через AudioStreamGenerator. `set_vario(ms: float)`.
+
+**Объекты мира** (`scripts/world_objects/world_objects.gd`, нода `WorldObjects`):
+- `setup(terrain, air)` — принимает рельеф и атмосферу для позиционирования и обдува ветроуказателей.
+- `wire_hit(a: Vector3, b: Vector3) -> bool`, `obstacle_hit(a: Vector3, b: Vector3) -> Dictionary {kind, point}` — проверка отрезка движения на столкновение с проводом ЛЭП/деревом/забором/зданием (см. `scripts/game/collision_check.gd`, интеграция — карточка G05).
+- `get_landing_sites() -> Array[Dictionary]`, `clearing_mask_for(id)`, `is_clear_at`, `WorldClearings.build_for(id)`, сигнал `built`.
+
+**Задания** (`scripts/tasks/`, без нод, тестируется headless):
+- `Task.load_config / list_available`, `TaskTracker` (`setup`, `update(t)`, `get_state`, `result`, сигналы `turnpoint_reached`, `start_taken`, `goal_reached`, `task_failed`), `TrainingMode`, `FlightRecords.add_flight`. Логика готова (FR-35…37), в `Game.tick()` пока не подключена.
 
 ## Тесты
 - **Скриншотные запуски** (не `--headless`, через xvfb или DISPLAY=:0) — всегда с таймаутом (`timeout 120 godot ...`), чтобы зависший процесс не висел. Звук в динамики пользователю не мешает (слышно, что игра работает); `--audio-driver Dummy` — по желанию.
