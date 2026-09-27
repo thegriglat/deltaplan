@@ -1,7 +1,7 @@
 {
   "_doc": "Параметры шейдера паруса (assets/shaders/sail/sail.gdshader), общие для всех крыльев; их ставит SailMaterial.apply(). Параметры полёта (airspeed_ms, stall_amount, turbulence) выставляет GliderVisual через SailMaterial.set_flight(). Перенесено из assets/shaders/sail/sail_params.json (NFR-7)",
-  "cast_shadows": false,
-  "cast_shadows_doc": "Отбрасывает ли парус тень. false — нижняя обшивка светится на солнце (тень верхней обшивки иначе гасит просвечивание), но пилот без тени паруса",
+  "cast_shadows": true,
+  "cast_shadows_doc": "Отбрасывает ли парус тень (на землю — оценка высоты, VR-6; на пилота). Сам парус тени не принимает (shadows_disabled в шейдере), поэтому нижняя обшивка светится на солнце и с тенью; цена — в тени рельефа парус не темнеет от солнца",
   "roughness": 0.72,
   "roughness_doc": "Шероховатость ткани",
   "normal_strength": 0.8,

@@ -34,10 +34,11 @@ static func apply(sail: MeshInstance3D, model: String) -> ShaderMaterial:
 			v = Vector3(float(v[0]), float(v[1]), float(v[2]))
 		if key != "cast_shadows":
 			mat.set_shader_parameter(key, v)
-	# Тень от паруса закрыла бы нижнюю обшивку от солнца (свет сквозь верхнюю обшивку не
-	# моделируется), поэтому по умолчанию парус тень не отбрасывает (configs/sail.json).
-	if not bool(params.get("cast_shadows", false)):
-		sail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Парус отбрасывает тень на землю и пилота (VR-6); сам тени не принимает (shadows_disabled
+	# в шейдере), поэтому своя тень не гасит просвечивание нижней обшивки.
+	sail.cast_shadow = (GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			if bool(params.get("cast_shadows", true))
+			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	sail.material_override = mat
 	return mat
 

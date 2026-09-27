@@ -2,8 +2,10 @@ extends Node3D
 ## Стенд шейдера паруса (docs/models.md → «Шейдер паруса»): крыло с пилотом, солнце за парусом,
 ## слайдеры скорости, сваливания и турбулентности. Аргументы (после --):
 ##   --wing=sport|kingpost|training --airspeed=10 --stall=0 --turb=0 --pose=prone
-##   --view=below|keel|te|cockpit|side  (below — снизу против солнца, keel — из-за пилота вверх
+##   --view=below|keel|te|cockpit|side|shadow  (shadow — сверху-сбоку на тень крыла на земле;
+##                                      below — снизу против солнца, keel — из-за пилота вверх
 ##                                      на нижнюю поверхность, te — задняя кромка крупно)
+##   --ground=20 — ровная земля на столько м ниже крыла; --sun=50 — высота солнца, °
 ##   --shot=/путь/кадр.png          снимок и выход; --frames=N --dt=0.04 — серия кадров
 ##                                   /путь/кадр_00.png… с шагом времени шейдера dt, с
 
@@ -36,6 +38,18 @@ func _ready() -> void:
 		anim.play(String(_args.get("pose", "prone")))
 	var mount := wing.find_child("InstrumentMount", true, false) as Node3D
 	mount.add_child((load("res://assets/models/instrument.glb") as PackedScene).instantiate())
+	if _args.has("sun"):
+		($Sun as Node3D).rotation_degrees = Vector3(-float(_args.sun), 150.0, 0.0)
+	if _args.has("ground"):
+		var ground := MeshInstance3D.new()
+		var plane := PlaneMesh.new()
+		plane.size = Vector2(300, 300)
+		ground.mesh = plane
+		var gm := StandardMaterial3D.new()
+		gm.albedo_color = Color(0.42, 0.5, 0.3)
+		ground.material_override = gm
+		ground.position.y = -float(_args.ground)
+		add_child(ground)
 	_mat = SailMaterial.apply(wing.find_child("Sail", true, false) as MeshInstance3D, model)
 	_place_camera(String(_args.get("view", "below")), pilot)
 	if _args.has("shot"):
@@ -81,6 +95,14 @@ func _place_camera(view: String, pilot: Node3D) -> void:
 			cam.position = Vector3(0.3, -1.1, 2.0)
 			cam.look_at(Vector3(0.0, 0.7, 0.0))
 			cam.fov = 85
+		"shadow":  # тень крыла на земле: камера над крылом, смотрит мимо него на тень
+			var sun := ($Sun as Node3D).global_basis.z  # к солнцу
+			var h := float(_args.get("ground", "20"))
+			var spot := -sun * (h / maxf(sun.y, 0.1))  # центр тени на земле
+			cam.position = Vector3(spot.x * 0.5 - 6.0, 8.0, spot.z * 0.5 + 22.0)
+			cam.look_at(Vector3(spot.x * 0.75, -h * 0.75, spot.z * 0.75))
+			cam.fov = 70
+			cam.far = 500
 		"side":
 			cam.position = Vector3(9, -1.5, 1.5)
 			cam.look_at(Vector3(0, -0.3, 0.3))

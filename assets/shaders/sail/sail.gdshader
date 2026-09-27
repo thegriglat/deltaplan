@@ -5,7 +5,9 @@
 //   1 — задняя), у нижней обшивки UV2.y + 2. Смещение — вдоль +Y модели (вверх по крылу), м.
 // Значения по умолчанию совпадают с assets/shaders/sail/sail_params.json (их ставит SailMaterial).
 shader_type spatial;
-render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
+// shadows_disabled — парус не принимает тени (свою тоже): тень верхней обшивки иначе гасит
+// просвечивание нижней. Отбрасывает тень как обычно (на землю и пилота, VR-6).
+render_mode cull_disabled, diffuse_burley, specular_schlick_ggx, shadows_disabled;
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic;
 uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic;
