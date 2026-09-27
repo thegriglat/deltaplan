@@ -63,5 +63,9 @@ func test_top_follows_inversion() -> void:
 	check(mat != null, "дымка включена")
 	if mat != null:
 		approx(float(mat.get_shader_parameter("top_msl")), top, 0.01, "top_msl в шейдере")
-		check(float(mat.get_shader_parameter("top_transition_m")) <= 100.0, "верх слоя резкий")
+		# верх слоя размыт по высоте: при 60 м у горизонта была резкая зубчатая «ступенька»
+		var w := float(mat.get_shader_parameter("top_transition_m"))
+		check(w >= 200.0 and w <= 1000.0, "верх слоя мягкий, но слой есть: переход %.0f м" % w)
+		# чистый воздух у горизонта и в небе — иначе край дальнего рельефа виден поверх неба
+		check(float(mat.get_shader_parameter("clear_sky_height_m")) > 0.0, "чистый воздух в небе")
 	sky.free()

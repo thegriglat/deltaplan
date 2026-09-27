@@ -23,6 +23,7 @@ var _inversion_msl: float = NAN
 var _sky_mat: ProceduralSkyMaterial
 var _env: Environment
 var _haze_base_color := Color.WHITE
+var _clear_air_color := Color.WHITE
 
 
 func _ready() -> void:
@@ -139,6 +140,11 @@ func _apply_sun(to_sun: Vector3) -> void:
 		_haze_mat.set_shader_parameter("sun_dir", to_sun)
 		_haze_mat.set_shader_parameter("sun_color", sun_color)
 		_haze_mat.set_shader_parameter("haze_color", _haze_base_color * tint * sky_k)
+		# чистый воздух — тот же свет, что небо у горизонта: утром и вечером в тон неба,
+		# иначе у горизонта небо и дальний рельеф расходятся по цвету
+		_haze_mat.set_shader_parameter(
+			"clear_color", _clear_air_color * tint * lerpf(1.0, sky_k, 0.4)
+		)
 
 
 ## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков
@@ -208,10 +214,12 @@ func _apply_haze(hz: Dictionary) -> void:
 	_haze_mat.set_shader_parameter(
 		"clear_extinction", 3.912 / (maxf(float(hz.get("clear_visibility_km", 1e6)), 0.1) * 1000.0)
 	)
-	_haze_mat.set_shader_parameter("clear_rgb", _vec3(hz.get("clear_rgb", [1, 1, 1])))
 	_haze_mat.set_shader_parameter(
-		"clear_color", _color(hz.get("clear_air_color", [0.66, 0.76, 0.88]))
+		"clear_sky_height_m", float(hz.get("clear_sky_height_m", 1500.0))
 	)
+	_haze_mat.set_shader_parameter("clear_rgb", _vec3(hz.get("clear_rgb", [1, 1, 1])))
+	# clear_color — в _apply_sun (тон по высоте солнца)
+	_clear_air_color = _color(hz.get("clear_air_color", [0.66, 0.76, 0.88]))
 
 
 ## Путь в дымке по лучу, приведённый к полной плотности, м — та же аналитика, что в haze.gdshader:

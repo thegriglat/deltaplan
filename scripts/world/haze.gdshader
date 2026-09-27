@@ -2,8 +2,10 @@
 // Полноэкранный квад: по глубине кадра восстанавливается точка сцены, оптическая толщина
 // считается аналитически вдоль луча камера → точка.
 // Два вещества, у каждого своё спектральное ослабление (R, G, B относительно 550 нм):
-//   чистый воздух (рэлеевское, синее сильнее) — по всей длине луча до рельефа, небо не трогает
-//     (в небе своё рассеяние уже нарисовано);
+//   чистый воздух (рэлеевское, синее сильнее) — по всей длине луча до рельефа; в небе — только
+//     у горизонта: путь как в экспоненциальной атмосфере с высотой clear_sky_height_m
+//     (min(длина, H/sin угла)), чтобы у горизонта небо по цвету сходилось с дальним рельефом
+//     (иначе край рельефа читался резкой зубчатой «ступенькой» поверх неба);
 //   мутный слой под инверсией (аэрозоль, почти серый) — плотность постоянна до top_msl
 //     и линейно спадает до нуля в переходе top_transition_m; небо — луч до max_distance.
 // Свет от дымки (in-scatter) = Σ τᵢ·цветᵢ / Σ τᵢ · (1 − e^(−τ)) по каналам: на коротком пути он
@@ -19,6 +21,7 @@ uniform float top_transition_m = 60.0;   // толщина перехода на
 uniform float extinction = 1.5e-4;       // ослабление слоя под границей на 550 нм, 1/м
 uniform vec3 extinction_rgb = vec3(0.85, 1.0, 1.2); // спектр ослабления слоя (R, G, B)
 uniform float clear_extinction = 0.0;    // ослабление чистого воздуха на 550 нм, 1/м
+uniform float clear_sky_height_m = 1500.0; // в небе чистый воздух: путь ≤ H / sin(угла над горизонтом)
 uniform vec3 clear_rgb = vec3(0.5, 1.0, 2.0); // спектр ослабления чистого воздуха
 uniform vec3 clear_color : source_color = vec3(0.66, 0.76, 0.88); // насыщенный свет чистого воздуха
 uniform float max_distance_m = 150000.0; // длина луча в небо
@@ -83,7 +86,11 @@ void fragment() {
 	}
 	float s = pow(max(dot(dir, normalize(sun_dir)), 0.0), sun_scatter_power);
 	vec3 tau_h = extinction * max(path, 0.0) * extinction_rgb;
-	vec3 tau_c = sky ? vec3(0.0) : clear_extinction * len * clear_rgb;
+	float clear_len = len;
+	if (sky) {
+		clear_len = min(len, clear_sky_height_m / max(dir.y, 1e-4));
+	}
+	vec3 tau_c = clear_extinction * clear_len * clear_rgb;
 	vec3 tau = tau_h + tau_c;
 	vec3 opacity = min(vec3(1.0) - exp(-tau), vec3(max_opacity));
 	vec3 col_h = haze_color + sun_color * sun_scatter * s;
