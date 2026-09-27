@@ -108,6 +108,25 @@ uniform float forest_edge_noise = 0.35;       // сдвиг порога шум�
 uniform float forest_edge_warp_m = 4.0;       // извилистость кромки (сдвиг выборки), м
 // высота крон в DSM (Copernicus): ступенька на опушке; вычитается из уклона на лугу у кромки
 uniform float canopy_dsm_height_m = 10.0;
+// --- поля рельефа (TerrainRelief, считаются из DEM при загрузке): R — влажность, G — AO,
+// B — сглаженная северность; горизонт к солнцу (R8, 0..60°) — тень рельефа при низком солнце ---
+uniform bool use_relief = false;
+uniform sampler2D relief_tex : filter_linear, repeat_disable;
+uniform sampler2D relief_shadow_tex : filter_linear, repeat_disable;
+uniform vec2 relief_origin;
+uniform float relief_cell_m = 50.0;
+uniform vec2 relief_texels = vec2(1.0);
+uniform float wet_dry_k = 0.35;          // сдвиг сухости луга влажностью (ложбины сочнее, гребни суше)
+uniform float wet_dark = 0.08;           // ложбины темнее, выпуклости светлее (доля яркости)
+uniform float wet_green = 0.45;          // ложбины зеленее (к grass_color)
+uniform float aspect_dry_k = 0.2;        // южные склоны степнее, северные зеленее (сглаженная экспозиция)
+uniform float forest_wet_dark = 0.12;    // лес в ложбинах и на северных склонах гуще (темнее)
+uniform float relief_ao_albedo = 0.25;   // AO ложбин в цвете
+uniform float relief_ao_ambient = 0.8;   // AO ложбин в рассеянном свете
+uniform float relief_shadow_strength = 0.85;
+uniform float relief_shadow_soft_deg = 2.0;   // полутень по углу горизонта, °
+uniform float relief_shadow_ambient = 0.35;   // рассеянный свет относительно прямого (тень не чёрная)
+uniform vec2 relief_shadow_near_m = vec2(2200.0, 3000.0); // ближе — тени Godot (sun.shadow_max_distance_m)
 uniform vec3 water_color : source_color;
 uniform float water_roughness = 0.1;
 uniform float roughness_value;
@@ -392,6 +411,16 @@ void fragment() {
 	vec4 wa;
 	vec4 wb;
 	surface_weights(wp.xz, wa, wb);
+	// поля рельефа: влажность (−1 сухо … +1 сыро), AO, сглаженная северность, горизонт к солнцу
+	vec4 rel = vec4(0.5, 1.0, 0.5, 0.0);
+	float hz_deg = 0.0;
+	if (use_relief) {
+		vec2 ruv = ((wp.xz - relief_origin) / relief_cell_m + 0.5) / relief_texels;
+		rel = textureLod(relief_tex, ruv, 0.0);
+		hz_deg = textureLod(relief_shadow_tex, ruv, 0.0).r * 60.0;
+	}
+	float wet = rel.r * 2.0 - 1.0;
+	float north_s = rel.b * 2.0 - 1.0;
 	// глубина внутри леса 0..1 (затемнение опушки — только внутри)
 	float forest_in = smoothstep(0.5, 0.95, wa.x);
 	// Лес — по маске 10 м: резкий порог 0,5 с узким шумом; вдали (клетка мельче пикселя) —
@@ -463,7 +492,13 @@ void fragment() {
 	}
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
-	vec3 gcol = meadow_color(wp.xz, north, patch2);
+	vec3 gcol = meadow_color_dry(wp.xz, north, patch2, -wet_dry_k * wet - aspect_dry_k * north_s);
+	{
+		// ложбины темнее и зеленее, гребни/выпуклости светлее и суше
+		const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
+		vec3 lush = grass_color * (dot(gcol, LW) / max(dot(grass_color, LW), 1e-3));
+		gcol = mix(gcol, lush, wet_green * max(wet, 0.0)) * (1.0 - wet_dark * wet);
+	}
 	float tex_w = fade * texture_strength;
 
 	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
@@ -587,6 +622,8 @@ void fragment() {
 		fcolor *= clamp(1.0 + sv * stands * 2.0, 0.25, 2.0);
 		// опушка темнее (тень стены леса, густой подрост) — только внутри леса, луг у кромки не трогаем
 		fcolor *= 1.0 - canopy_edge_dark * (1.0 - forest_in);
+		// гуще в сырых ложбинах и на северных склонах, реже на сухих южных
+		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
@@ -780,6 +817,20 @@ void fragment() {
 	col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
 	n = normalize(mix(n, vec3(0.03 * ripple, 1.0, 0.0), water));
 
+	// AO ложбин (цвет и рассеянный свет) и тень рельефа при низком солнце: вдали, где нет теней
+	// Godot; тень гасит только долю прямого света (ndl), рассеянный остаётся
+	if (use_relief) {
+		col *= mix(1.0, rel.g, relief_ao_albedo);
+		AO = mix(1.0, rel.g, relief_ao_ambient);
+		AO_LIGHT_AFFECT = 0.0;
+		vec3 sd = normalize(sun_dir);
+		float sun_el = degrees(asin(clamp(sd.y, -1.0, 1.0)));
+		float vis = smoothstep(hz_deg - relief_shadow_soft_deg, hz_deg + relief_shadow_soft_deg, sun_el);
+		float ndl = max(dot(n, sd), 0.0);
+		float sh = (relief_shadow_ambient + vis * ndl) / (relief_shadow_ambient + ndl);
+		float kfar = smoothstep(relief_shadow_near_m.x, relief_shadow_near_m.y, dist);
+		col *= mix(1.0, sh, relief_shadow_strength * kfar);
+	}
 	ALBEDO = clamp(col, 0.0, 1.0);
 	ROUGHNESS = mix(roughness_value, water_roughness, water);
 	SPECULAR = mix(specular_value * (1.0 - forest * 0.7), 0.5, water);

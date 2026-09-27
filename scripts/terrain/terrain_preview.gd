@@ -51,6 +51,7 @@ func _ready() -> void:
 			float(ll[0]), float(ll[1]), float(_args.get("size_km", "-1"))
 		)
 		_frames = 0
+	terrain.wait_relief()  # поля рельефа (влажность, AO, тень) считаются в фоне — для кадров ждём
 	terrain.renderer.lod_camera = cam
 	_place_camera()
 	for n: Node3D in [terrain.trees, terrain.impostors]:

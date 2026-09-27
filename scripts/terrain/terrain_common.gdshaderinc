@@ -177,13 +177,18 @@ float conifer_share(float patch2, float north) {
 
 // Цвет луга (та же палитра, что у рельефа и травинок): сухость по локации/сезону + пятна +
 // южные склоны суше. north — «северность» склона, patch2 — шум пятен (fbm, см. рельеф).
-vec3 meadow_color(vec2 xz, float north, float patch2) {
+// dry_add — добавка сухости (рельеф: ложбины влажнее, гребни и южные склоны суше; 0 — нет).
+vec3 meadow_color_dry(vec2 xz, float north, float patch2, float dry_add) {
 	float big = fbm(xz / patch_scale_m + vec2(4.7, 9.3), 3);
 	float dry = clamp(dryness + dry_noise * ((patch2 - 0.5) + 0.8 * (big - 0.5))
-			- dry_south_k * north, 0.0, 1.0);
+			- dry_south_k * north + dry_add, 0.0, 1.0);
 	vec3 c = dry < 0.5 ? mix(grass_color, dry_grass_color, dry * 2.0)
 			: mix(dry_grass_color, straw_color, dry * 2.0 - 1.0);
 	return mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, grass_saturation);
+}
+
+vec3 meadow_color(vec2 xz, float north, float patch2) {
+	return meadow_color_dry(xz, north, patch2, 0.0);
 }
 
 float meadow_patch(vec2 xz) {

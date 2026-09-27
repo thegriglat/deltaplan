@@ -20,17 +20,21 @@ var _chunks: Array[Dictionary] = []
 var _update_interval_s: float = 0.1
 var _timer: float = 0.0
 var _materials: Array[ShaderMaterial] = []
+## Материалы (все LOD) по слоям — для полей рельефа, пришедших после build.
+var _layer_mats: Array[Array] = []
 
 
 ## Построить чанки. layers — от детального к грубому, surfaces — карта поверхности каждого слоя
 ## (тот же порядок). render_cfg — раздел "render" локации (по id слоя), look — terrain_look,
-## world_render — раздел "rendering" из world.json.
+## world_render — раздел "rendering" из world.json; reliefs — поля рельефа слоёв (TerrainRelief,
+## влажность/AO/горизонт к солнцу), пусто — без них.
 func build(
 	layers: Array[HeightLayer],
 	surfaces: Array[SurfaceLayer],
 	render_cfg: Dictionary,
 	look: Dictionary,
-	world_render: Dictionary
+	world_render: Dictionary,
+	reliefs: Array[TerrainRelief] = []
 ) -> void:
 	clear()
 	_update_interval_s = float(world_render.get("lod_update_interval_s", 0.1))
@@ -53,6 +57,7 @@ func build(
 			)
 			continue
 		var mat := _make_material(layer, surfaces[li], skirt, look)
+		set_relief(mat, reliefs[li] if li < reliefs.size() else null)
 		if li > 0:
 			var f: HeightLayer = layers[li - 1]
 			mat.set_shader_parameter("hole_min", Vector2(f.origin_x, f.origin_z))
@@ -62,11 +67,14 @@ func build(
 		# материал на каждый LOD (шаг вершин — обычный uniform: instance uniform на сотнях чанков
 		# переполняет буфер в Compatibility)
 		var lod_mats: Array[ShaderMaterial] = []
+		while _layer_mats.size() <= li:
+			_layer_mats.append([])
 		for lod in n_lod:
 			var lm := mat if lod == 0 else mat.duplicate() as ShaderMaterial
 			lm.set_shader_parameter("lod_stride", float(1 << lod))
 			lod_mats.append(lm)
 			_materials.append(lm)
+			_layer_mats[li].append(lm)
 		var meshes: Array[Mesh] = []
 		for lod in n_lod:
 			var step := 1 << lod
@@ -119,6 +127,7 @@ func clear() -> void:
 		(c.mi as Node).queue_free()
 	_chunks.clear()
 	_materials.clear()
+	_layer_mats.clear()
 	height_textures.clear()
 	surface_textures.clear()
 
@@ -240,6 +249,25 @@ static func set_surface(m: ShaderMaterial, surface: SurfaceLayer, tex: Texture2D
 	m.set_shader_parameter("surface_origin", Vector2(surface.origin_x, surface.origin_z))
 	m.set_shader_parameter("surface_spacing", surface.spacing)
 	m.set_shader_parameter("surface_texels", Vector2(surface.width, surface.height))
+
+
+## Поля рельефа слоёв (посчитаны в фоне после build) → все материалы.
+func set_reliefs(reliefs: Array[TerrainRelief]) -> void:
+	for li in _layer_mats.size():
+		for m: ShaderMaterial in _layer_mats[li]:
+			set_relief(m, reliefs[li] if li < reliefs.size() else null)
+
+
+## Поля рельефа (TerrainRelief) → uniform'ы шейдера; null — без них (нейтрально).
+static func set_relief(m: ShaderMaterial, relief: TerrainRelief) -> void:
+	m.set_shader_parameter("use_relief", relief != null)
+	if relief == null:
+		return
+	m.set_shader_parameter("relief_tex", relief.texture)
+	m.set_shader_parameter("relief_shadow_tex", relief.shadow_texture)
+	m.set_shader_parameter("relief_origin", Vector2(relief.origin_x, relief.origin_z))
+	m.set_shader_parameter("relief_cell_m", relief.cell_m)
+	m.set_shader_parameter("relief_texels", Vector2(relief.width, relief.height))
 
 
 ## Маска «деталь 10 м» (T02) → uniform'ы шейдера; нет маски — лес из карты классов.

@@ -14,6 +14,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/rock_scatter.gd` + `.gdshader` (`RockScatter`) | 3D-камни вокруг камеры (≤ 300 м): глыбы курумника и выходы породы по той же логике, что пятна породы в шейдере, камни на скалах, редкие в траве; не на лесе/воде/полях/просеках/стартах; `configs/world.json → rocks`, подключение `RockScatter.attach(terrain, cam)` |
 | `scripts/terrain/grass_field.gd` + `grass.gdshader` (`GrassField`) | травинки вокруг камеры — см. [docs/vegetation.md](vegetation.md) |
 | `scripts/terrain/terrain_wind.gd` + `terrain_wind.gdshaderinc` (`TerrainWind`) | ветер и термики атмосферы → шейдеры рельефа, травы, деревьев (VR-17) |
+| `scripts/terrain/terrain_relief.gd` (`TerrainRelief`) | поля рельефа из DEM любой локации: влажность (сток D8 + вогнутость), сглаженная экспозиция, AO по горизонтам, горизонт к солнцу (тень рельефа) |
 | `scripts/terrain/height_layer.gd` (`HeightLayer`) | сетка высот, билинейная выборка (RefCounted, тестируется headless) |
 | `scripts/terrain/geo.gd` (`TerrainGeo`) | lat/lon ↔ мир, направление солнца, вектор курса |
 | `scripts/terrain/terrain_renderer.gd` (`TerrainRenderer`) | чанки + LOD, материалы, текстуры поверхностей |
@@ -147,6 +148,21 @@ CC0-текстуры травы и скал (их рисунок, цвет ос�
 в радиусе 30 м, по классу (луг, нива выше, кустарник реже), приминаются у ног пилота (`Terrain.set_pilot(node)`),
 на посадочных площадках скошены. **Просеки:** `Terrain.set_clearings(image, origin, cell_m)` (маска
 `WorldClearings.build_for(id)`) — деревья-модели и импостеры не стоят на дорогах, под ЛЭП, у зданий и на посадках.
+
+**Поля рельефа (влажность, AO, тень рельефа).** `TerrainRelief.compute` для каждого слоя при `setup` (т. е. и
+для `load_location_latlon`), в рабочих потоках: сетка — узлы слоя через шаг (`surface.relief.grid_max` 801/401 →
+50 м / 400 м), Онгудай 1,3–1,7 с + фон 0,3–0,4 с. **Влажность** 0..1 = `base` + `flow_weight` · сток (накопление D8
+по сортировке высот, лог площади водосбора `flow_area_m2`) + `concavity_weight` · вогнутость (лапласиан на 100 и 300 м),
+сглажена `blur_m`. **Экспозиция** — северность, сглаженная на 150 м. **AO** — 8 направлений до 1,2 км (через узел,
+`ao_stride`), угол горизонта над касательной плоскостью: плоский склон и гребень — 1, ложбина темнее. **Горизонт к
+солнцу** — угол в сторону азимута солнца до 8 км; высота солнца учитывается в шейдере бесплатно, смена азимута на
+`shadow_recompute_deg` → пересчёт в фоне (~0,5 с, `Terrain.set_sun(to_sun)`: подключить `sky.clock.sun_changed`).
+Шейдер: текстура RGBA8 (влажность, AO, северность) + R8 горизонт; луг в ложбинах сочнее/зеленее/темнее
+(`terrain_look.wet_dry_k`, `wet_green`, `wet_dark`), на южных склонах суше (`aspect_dry_k`), лес в сырых ложбинах
+и на северных склонах гуще (`forest_wet_dark`); AO — в цвет (`relief_ao_albedo`) и рассеянный свет
+(`relief_ao_ambient`); тень рельефа гасит только прямую долю (`relief_shadow_*`) и проявляется дальше
+`relief_shadow_near_m` (ближе — тени Godot). Термики: сырые ложбины слабее (`surface.thermal.wet_k`).
+`Terrain.moisture_at / relief_ao_at / relief_horizon_at`. GPU рельефа — в пределах шума замера (±0,1 мс).
 
 ## Использование
 ```gdscript

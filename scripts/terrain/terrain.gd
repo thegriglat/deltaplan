@@ -10,8 +10,11 @@ extends Node3D
 ##                           вода и лес — по маске «деталь 10 м», где она есть (как в шейдере;
 ##                           вода — реки/ручьи/озёра OSM, T03, VR-9)
 ##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
-##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость),
-##                           годится как sun_fn для Atmosphere.set_ground
+##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость
+##                           × сухость), годится как sun_fn для Atmosphere.set_ground
+##   moisture_at / relief_ao_at / relief_horizon_at — поля рельефа (TerrainRelief): влажность
+##                           ложбин, AO, горизонт к солнцу; set_sun(to_sun) — смена солнца
+##                           (SunClock.sun_changed), тень склонов пересчитывается в фоне
 ## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
 ## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near,
 ## atmo.air_velocity_at), set_pilot(node).
@@ -41,6 +44,8 @@ var grass: GrassField
 var impostors: ForestImpostors
 ## Передаёт ветер и термики атмосферы шейдерам земли, травы и деревьев.
 var wind: TerrainWind
+## Поля рельефа каждого слоя (влажность, AO, горизонт к солнцу) — тот же порядок, что layers.
+var reliefs: Array[TerrainRelief] = []
 
 var _sites: Array[Dictionary] = []
 var _landings: Array[Dictionary] = []
@@ -62,6 +67,16 @@ var _edge_max: float = 150.0
 var _edge_pair := PackedByteArray()
 ## С этого уклона луг/поле/кустарник считаются скалами (как в шейдере), радианы → cos.
 var _rock_cos: float = -1.0
+## Сырые ложбины — слабее источник термиков (surface.thermal.wet_k / wet_from).
+var _wet_k: float = 0.0
+var _wet_from: float = 0.7
+## world.json → surface.relief
+var _relief_cfg: Dictionary = {}
+## Фоновый пересчёт горизонта к солнцу при смене азимута.
+var _relief_thread: Thread
+var _relief_pending_az: float = NAN
+var _relief_full := false
+var _relief_t0 := 0
 
 
 func _init() -> void:
@@ -169,12 +184,15 @@ func setup(
 	_build_sites()
 	_look = look
 	set_surfaces(new_surfaces, world.get("surface", {}), look)
+	_compute_reliefs(world.get("surface", {}).get("relief", {}))
 	if renderer == null:
 		renderer = TerrainRenderer.new()
 		renderer.name = "Mesh"
 		add_child(renderer)
 	look["sun_dir"] = _sun_dir
-	renderer.build(layers, surfaces, cfg.get("render", {}), look, world.get("rendering", {}))
+	renderer.build(
+		layers, surfaces, cfg.get("render", {}), look, world.get("rendering", {}), reliefs
+	)
 	renderer.apply_textures(world.get("terrain_textures", {}))
 	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
 	if trees != null:
@@ -412,7 +430,10 @@ func thermal_source_strength_at(x: float, z: float) -> float:
 	var e := clampf(n.dot(_sun_dir), 0.0, 1.0)
 	var k := _thermal_k[c] if c < _thermal_k.size() else 1.0
 	var edge := 1.0 + _edge_boost * _edge_proximity(x, z)
-	return clampf(k * _thermal_gain * pow(e, _thermal_power) * edge, 0.0, 1.0)
+	var wet := 1.0
+	if _wet_k > 0.0:
+		wet -= _wet_k * smoothstep(_wet_from, 1.0, moisture_at(x, z))
+	return clampf(k * _thermal_gain * pow(e, _thermal_power) * edge * wet, 0.0, 1.0)
 
 
 ## Близость к границе классов-триггеров 0..1: 1 ближе edge_full_m, 0 дальше edge_max_m.
@@ -437,6 +458,141 @@ func _edge_proximity(x: float, z: float) -> float:
 
 
 # ---------------- дополнительно ----------------
+
+
+## Влажность рельефа 0..1 (ложбины, днища долин — выше; гребни — ниже), TerrainRelief.
+## Нет полей — 0,5.
+func moisture_at(x: float, z: float) -> float:
+	var r := _relief_at(x, z)
+	return r.moisture_at(x, z) if r != null else 0.5
+
+
+## Видимость неба (AO рельефа) 0..1: ложбины темнее; нет полей — 1.
+func relief_ao_at(x: float, z: float) -> float:
+	var r := _relief_at(x, z)
+	return r.ao_at(x, z) if r != null else 1.0
+
+
+## Угол горизонта рельефа в сторону солнца, градусы (солнце ниже — склон в тени рельефа).
+func relief_horizon_at(x: float, z: float) -> float:
+	var r := _relief_at(x, z)
+	return r.horizon_at(x, z) if r != null else 0.0
+
+
+## Новое направление НА солнце (единичный вектор) — от SunClock.sun_changed:
+##   sky.clock.sun_changed.connect(terrain.set_sun)
+## Обновляет освещение полога/камней в шейдере и источники термиков; горизонт к солнцу (тень
+## рельефа) пересчитывается в фоне, когда азимут ушёл дальше surface.relief.shadow_recompute_deg.
+func set_sun(to_sun: Vector3) -> void:
+	if to_sun.length_squared() < 1e-8:
+		return
+	_sun_dir = to_sun.normalized()
+	if renderer != null:
+		renderer.apply_look({"sun_dir": _sun_dir})
+	if reliefs.is_empty():
+		return
+	var az := _sun_azimuth_deg()
+	var old := reliefs[0].horizon_azimuth_deg
+	var step := float(_relief_cfg.get("shadow_recompute_deg", 2.0))
+	if is_nan(old) or absf(angle_difference(deg_to_rad(az), deg_to_rad(old))) >= deg_to_rad(step):
+		_start_horizon(az)
+
+
+## Дождаться фонового расчёта полей рельефа и тени (тесты, кадры превью).
+func wait_relief() -> void:
+	while _relief_thread != null:
+		_finish_relief(true)
+
+
+func _process(_delta: float) -> void:
+	if _relief_thread != null:
+		_finish_relief(false)
+
+
+func _exit_tree() -> void:
+	if _relief_thread != null:
+		_relief_thread.wait_to_finish()
+		_relief_thread = null
+
+
+## Поля рельефа всех слоёв — в фоне (поток + WorkerThreadPool, ≈ 1,5–2 с на локацию 40 км + фон):
+## загрузка не ждёт, шейдер получает поля по готовности (до того — нейтрально).
+func _compute_reliefs(cfg: Dictionary) -> void:
+	if _relief_thread != null:
+		_relief_thread.wait_to_finish()  # расчёт для прежних слоёв — не нужен
+		_relief_thread = null
+	_relief_pending_az = NAN
+	_relief_cfg = cfg
+	reliefs.clear()
+	if not bool(cfg.get("enabled", true)) or layers.is_empty():
+		return
+	var az := _sun_azimuth_deg()
+	var ls := layers.duplicate()
+	_relief_full = true
+	_relief_t0 = Time.get_ticks_usec()
+	_relief_thread = Thread.new()
+	_relief_thread.start(
+		func() -> Array:
+			var out: Array[TerrainRelief] = []
+			for k in ls.size():
+				out.append(TerrainRelief.compute(ls[k], cfg, az, k, false))
+			return out
+	)
+
+
+func _start_horizon(az: float) -> void:
+	if _relief_thread != null:
+		_relief_pending_az = az
+		return
+	var rs := reliefs.duplicate()
+	_relief_full = false
+	_relief_thread = Thread.new()
+	_relief_thread.start(
+		func() -> Array:
+			for r: TerrainRelief in rs:
+				r.recompute_horizon(az)
+			return rs
+	)
+
+
+func _finish_relief(block: bool) -> void:
+	if not block and _relief_thread.is_alive():
+		return
+	var res: Array = _relief_thread.wait_to_finish()
+	_relief_thread = null
+	if _relief_full:
+		reliefs.assign(res)
+		for r in reliefs:
+			r.make_textures()
+		if renderer != null:
+			renderer.set_reliefs(reliefs)
+		print("Terrain: поля рельефа за %.2f с" % ((Time.get_ticks_usec() - _relief_t0) / 1e6))
+	else:
+		for r in reliefs:
+			r.update_shadow_texture()
+	var az := _relief_pending_az
+	_relief_pending_az = NAN
+	if is_nan(az) and not reliefs.is_empty():
+		# солнце сдвинулось, пока считались поля
+		var cur := _sun_azimuth_deg()
+		var step := deg_to_rad(float(_relief_cfg.get("shadow_recompute_deg", 2.0)))
+		var old := deg_to_rad(reliefs[0].horizon_azimuth_deg)
+		if absf(angle_difference(deg_to_rad(cur), old)) >= step:
+			az = cur
+	if not is_nan(az):
+		_start_horizon(az)
+
+
+## Азимут солнца (0 — север, по часовой), градусы.
+func _sun_azimuth_deg() -> float:
+	return fposmod(rad_to_deg(atan2(_sun_dir.x, -_sun_dir.z)), 360.0)
+
+
+func _relief_at(x: float, z: float) -> TerrainRelief:
+	for r in reliefs:
+		if r.contains(x, z):
+			return r
+	return reliefs[reliefs.size() - 1] if not reliefs.is_empty() else null
 
 
 ## Перечитать направление солнца из configs/world.json → sun.
@@ -575,6 +731,8 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 	_edge_boost = float(th.get("edge_boost", 0.0))
 	_edge_full = float(th.get("edge_full_m", 50.0))
 	_edge_max = float(th.get("edge_max_m", 150.0))
+	_wet_k = float(th.get("wet_k", 0.0))
+	_wet_from = float(th.get("wet_from", 0.7))
 	var n := SurfaceLayer.CLASS_COUNT
 	_edge_pair = PackedByteArray()
 	_edge_pair.resize(n * n)
