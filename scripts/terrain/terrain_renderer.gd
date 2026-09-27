@@ -300,10 +300,10 @@ func apply_textures(tex_cfg: Dictionary) -> void:
 				m.set_shader_parameter("%s_tex_avg" % surf, _average_color(tex))
 				m.set_shader_parameter("%s_tex_tile_m" % surf, float(sc.get("tile_m", 4.0)))
 			var ntex := load_texture(String(sc.get("normal", "")))
-			if surf == "rock":
-				m.set_shader_parameter("use_rock_normal", ntex != null)
+			if surf == "rock" or surf == "grass":
+				m.set_shader_parameter("use_%s_normal" % surf, ntex != null)
 				if ntex != null:
-					m.set_shader_parameter("rock_normal_tex", ntex)
+					m.set_shader_parameter("%s_normal_tex" % surf, ntex)
 
 
 ## Средний цвет текстуры (линейный, как видит шейдер с source_color).

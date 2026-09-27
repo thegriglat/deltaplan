@@ -15,6 +15,8 @@ var camera: Camera3D
 ## Нода пилота (приминание травы у ног); null — не приминать.
 var pilot: Node3D
 var material: ShaderMaterial
+## Дальний слой пучков (grass.far), дочерний GrassField; null — нет.
+var far_layer: GrassField
 
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
@@ -77,6 +79,11 @@ func setup(
 	material.set_shader_parameter("thin_start_k", float(cfg.get("thin_start_k", 0.1)))
 	material.set_shader_parameter("thin_end_k", float(cfg.get("thin_end_k", 0.85)))
 	material.set_shader_parameter("far_width_k", float(cfg.get("far_width_k", 1.7)))
+	material.set_shader_parameter("inner_radius_m", float(cfg.get("inner_radius_m", -1.0)))
+	material.set_shader_parameter("inner_fade_m", maxf(float(cfg.get("inner_fade_m", 0.0)), 0.001))
+	material.set_shader_parameter("xfade_k", float(cfg.get("xfade_k", 1.0)))
+	material.set_shader_parameter("height_fade_k", float(cfg.get("height_fade_k", 0.6)))
+	material.set_shader_parameter("height_k", float(cfg.get("height_k", 1.0)))
 	material.set_shader_parameter("landing_count", 0)
 	var spots := mowed_spots.slice(0, MAX_MOWED)
 	while spots.size() < MAX_MOWED:
@@ -89,9 +96,31 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 10.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 20.0, layer.size_z())
 	)
+	# Дальний слой (configs/vegetation.json → grass.far): крупные редкие пучки кольцом за
+	# ближними травинками — те же параметры, переопределённые ключами far.
+	var far_cfg: Variant = cfg.get("far", null)
+	if far_cfg is Dictionary and bool(far_cfg.get("enabled", true)):
+		var fc := cfg.duplicate(true)
+		fc.erase("far")
+		fc.merge(far_cfg, true)
+		far_layer = GrassField.new()
+		far_layer.name = "GrassFar"
+		far_layer.camera = camera
+		add_child(far_layer)
+		far_layer.setup(layer, height_tex, surface, surface_tex, look, fc, mowed_spots)
+
+
+## Материалы травы (ближний и дальний слой) — для ветра.
+func materials() -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = [material]
+	if far_layer != null:
+		out.append_array(far_layer.materials())
+	return out
 
 
 func _process(_delta: float) -> void:
+	if far_layer != null:
+		far_layer.camera = camera
 	var cam := camera if camera != null else get_viewport().get_camera_3d()
 	if cam == null or material == null:
 		return
@@ -118,6 +147,8 @@ static func _v2(a: Variant) -> Vector2:
 func set_landing_sites(sites: Array[Dictionary]) -> void:
 	if material == null:
 		return
+	if far_layer != null:
+		far_layer.set_landing_sites(sites)
 	var pos: Array[Vector4] = []
 	var dir: Array[Vector4] = []
 	var hk := PackedFloat32Array()

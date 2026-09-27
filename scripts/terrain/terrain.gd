@@ -277,7 +277,7 @@ func _setup_wind(cfg: Dictionary) -> void:
 	if trees is TerrainTreeModels:
 		wind.add_materials((trees as TerrainTreeModels).materials)
 	if grass != null:
-		wind.add_materials([grass.material])
+		wind.add_materials(grass.materials())
 
 
 ## Деревья: модели пород, если есть файлы, иначе процедурные кроны.

@@ -21,6 +21,17 @@ uniform sampler2D forest_tex : source_color, filter_linear_mipmap_anisotropic, r
 uniform sampler2D rock_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D snow_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform bool use_grass_tex = false;
+// ближняя фактура луга (0…grass_near_m): карта нормалей (RG, OpenGL) + AO (B) той же текстуры,
+// стохастический тайлинг (без повтора), рисунок и цвет текстуры сильнее, чем вдали
+uniform sampler2D grass_normal_tex : filter_linear_mipmap_anisotropic, repeat_enable;
+uniform bool use_grass_normal = false;
+uniform vec2 grass_near_m = vec2(25.0, 70.0);   // полная сила / растворилась к, м
+uniform float grass_near_contrast = 1.0;        // контраст рисунка вблизи
+uniform float grass_near_color_mix = 0.6;       // доля цветовых пятен текстуры вблизи (оттенок — палитры)
+uniform float grass_normal_strength = 0.8;
+uniform float grass_ao_strength = 0.8;
+uniform float grass_macro_k = 6.0;               // крупный слой той же текстуры: тайл ×k
+uniform float grass_macro_strength = 0.7;
 uniform bool use_forest_tex = false;
 uniform bool use_rock_tex = false;
 // --- скалы, осыпи, снег в кулуарах ---
@@ -66,6 +77,16 @@ vec3 apply_tex(vec3 c, vec3 t, vec3 avg, float w) {
 	vec3 own = t / avg_l * dot(c, L);
 	return mix(c, mix(c * r, own, texture_color_mix), w);
 }
+// Стохастический тайлинг (IQ, «texture repetition» №3): два сдвига текстуры по индексу
+// из плавного шума, смешанные по нему же — рисунок не повторяется. uv — в тайлах.
+// Возвращает сдвиги (xy, zw) и вес смеси (через out) — те же для нормалей.
+vec4 notile_offsets(vec2 uv, out float blend) {
+	float k = vnoise(uv * 0.45) * 8.0;
+	float i = floor(k);
+	blend = smoothstep(0.2, 0.8, k - i);
+	return vec4(sin(vec2(3.0, 7.0) * i), sin(vec2(3.0, 7.0) * (i + 1.0)));
+}
+
 // --- полог леса с высоты (кроны-ячейки, их освещение и тени) ---
 uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);   // направление НА солнце (мир), задаёт Terrain
 uniform float canopy_cell_m = 6.0;            // шаг крон, м
@@ -287,10 +308,17 @@ vec3 meadow_detail(vec2 p, vec3 c, float foot, float h, vec3 nc, float slope_deg
 			v.x += 0.3 * sin(atan(v.y, v.x) * 3.0 + hs * 20.0) * length(v) * 0.3;
 			float dd = length(v);
 			float st = 1.0 - smoothstep(0.8, 1.0 + foot / r, dd);
+			// камень — низкий купол: освещённость по его нормали (солнце), тёмная щель у земли
+			// (AO) и бугристость; вокруг — тень/примятая трава
 			float top = sqrt(max(1.0 - dd * dd, 0.0));
-			vec3 sc = stone_color * (0.7 + 0.5 * hash12(g + 1.1)) * (0.75 + 0.35 * top);
-			float ring = smoothstep(1.0, 1.4, dd) * (1.0 - smoothstep(1.4, 1.8, dd));
-			c = mix(c * (1.0 - 0.35 * ring * ks), sc, st * ks);
+			vec3 dn3 = normalize(vec3(v.x, 1.2 * top + 0.05, v.y)
+					+ 0.35 * (vec3(vnoise(p * 3.0), 0.0, vnoise(p * 3.0 + 7.7)) - 0.5));
+			float lit = 0.35 + 0.8 * max(dot(dn3, sun_dir), 0.0);
+			float ao = mix(0.45, 1.0, smoothstep(0.0, 0.6, top));
+			vec3 sc = stone_color * (0.75 + 0.5 * hash12(g + 1.1)) * lit * ao
+					* (0.85 + 0.3 * vnoise(p * 6.0 + hs * 9.0));
+			float ring = smoothstep(0.9, 1.15, dd) * (1.0 - smoothstep(1.15, 1.6, dd));
+			c = mix(c * (1.0 - 0.45 * ring * ks), sc, st * ks);
 		}
 	}
 	return c;
@@ -450,9 +478,45 @@ void fragment() {
 	vec3 scol = mix(gcol, shrub_color, mix(0.6, 1.0, bush * fade + (1.0 - fade) * 0.5));
 
 	vec3 col = gcol * wa.y + fcol * crop + scol * shrub;
+	vec3 gn_add = vec3(0.0);
 	if (use_grass_tex) {
-		col = apply_tex(col, texture(grass_tex, wp.xz / grass_tex_tile_m).rgb, grass_tex_avg,
-				tex_w * (wa.y + crop + shrub));
+		float gw = tex_w * (wa.y + crop + shrub);
+		vec2 guv = wp.xz / grass_tex_tile_m;
+		vec2 gdx = dFdx(guv);
+		vec2 gdy = dFdy(guv);
+		float gnear = 1.0 - smoothstep(grass_near_m.x, grass_near_m.y, dist);
+		if (gw > 0.0) {
+			float gb;
+			vec4 go = notile_offsets(guv, gb);
+			vec3 ta = textureGrad(grass_tex, guv + go.xy, gdx, gdy).rgb;
+			vec3 tb = textureGrad(grass_tex, guv + go.zw, gdx, gdy).rgb;
+			vec3 t = mix(ta, tb, smoothstep(0.0, 1.0, gb - 0.1 * dot(ta - tb, vec3(1.0))));
+			// вдали — прежний рисунок (яркость); вблизи — контрастнее и с цветовыми пятнами
+			// текстуры в палитре локации (цвет/средний цвет × процедурный: сухость сохраняется)
+			const vec3 L = vec3(0.2126, 0.7152, 0.0722);
+			float avg_l = max(dot(grass_tex_avg, L), 1e-3);
+			float r = clamp(pow(dot(t, L) / avg_l, mix(texture_contrast, grass_near_contrast, gnear)),
+					mix(0.4, 0.3, gnear), mix(1.7, 2.0, gnear));
+			vec3 chroma = clamp(t / max(grass_tex_avg, vec3(1e-3)) / max(dot(t, L) / avg_l, 1e-3), 0.6, 1.6);
+			vec3 cn = col * r * mix(vec3(1.0), chroma, grass_near_color_mix * gnear);
+			col = mix(col, mix(cn, t / avg_l * dot(col, L), texture_color_mix * (1.0 - gnear)), gw);
+			// крупный масштаб той же текстуры (×grass_macro_k): пятна пучков и проплешин там,
+			// где мелкий рисунок уже усреднён мипами (10–150 м)
+			float mb;
+			vec2 muv = guv / grass_macro_k + 0.37;
+			vec4 mo = notile_offsets(muv, mb);
+			float ml = dot(mix(textureGrad(grass_tex, muv + mo.xy, gdx / grass_macro_k, gdy / grass_macro_k).rgb,
+					textureGrad(grass_tex, muv + mo.zw, gdx / grass_macro_k, gdy / grass_macro_k).rgb, mb), L) / avg_l;
+			col *= mix(1.0, clamp(pow(ml, 1.2), 0.5, 1.6), grass_macro_strength * gw);
+			if (use_grass_normal && gnear > 0.0) {
+				vec3 na = textureGrad(grass_normal_tex, guv + go.xy, gdx, gdy).rgb;
+				vec3 nb = textureGrad(grass_normal_tex, guv + go.zw, gdx, gdy).rgb;
+				vec3 nt = mix(na, nb, gb);
+				// касательная плоскость xz: u → x, v → z; B — AO травы
+				gn_add = vec3(nt.x * 2.0 - 1.0, 0.0, nt.y * 2.0 - 1.0) * grass_normal_strength * gnear * gw;
+				col *= mix(1.0, clamp(nt.z / 0.8, 0.2, 1.2), grass_ao_strength * gnear * gw);
+			}
+		}
 	}
 
 	// --- ветер (VR-17): волны порывов по траве и ниве, закрученный подсос над термиками ---
@@ -681,7 +745,7 @@ void fragment() {
 	col *= 1.0 + detail_strength * fade * ((d1 - 0.5) * 1.2 + (d2 - 0.5) * 0.8 * d2k)
 			+ detail_strength * near_fade * (d0 - 0.5) * 1.2;
 
-	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + rn_add * max(rock, outcrop * (1.0 - kurum)));
+	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum)));
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
 	// возмущение нормали шумом (кроны/кочки), чтобы вблизи поверхность не была «пластиковой»
