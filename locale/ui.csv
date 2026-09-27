@@ -22,7 +22,6 @@ result_hard_landing,Жёсткая посадка,Hard landing
 status_loading_terrain,Загрузка рельефа…,Loading terrain…
 pause_restart,Заново,Restart
 settings_invert_pitch,Инверсия тангажа,Invert pitch
-wing_kingpost,Мачтовое,Kingpost
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
 setup_wing,Крыло,Wing
 menu_fly,Лететь,Fly
@@ -60,12 +59,10 @@ about_intro,Симулятор дельтаплана. Некоммерческ�
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
 launch_fail_weak_run,Слабый разбег — крыло не набрало скорость,Run too weak — the wing never reached flying speed
 common_save,Сохранить,Save
-wing_sport,Спортивное безмачтовое,Topless (sport)
 setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 settings_mouse_bar,Трапеция,Control bar
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
-wing_training,Учебное,Training
 menu_controls,Управление,Controls
 settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
 map_hint,"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. The launch is placed on the nearest slope, facing downhill."
@@ -288,3 +285,21 @@ compass_w,З,W
 compass_nw,СЗ,NW
 menu_summary_forecast,%+d °C · ветер %s,%+d °C · wind %s
 menu_summary_wind,"%d м/с, %s","%d m/s, %s"
+wing_slavutich_ut,Славутич-УТ,Slavutich-UT
+wing_apogee,«Апогей» (Мысенко),Apogee (Mysenko)
+wing_atlas,«Атлас»,Atlas
+wing_aeros_target,Aeros Target 16,Aeros Target 16
+wing_ww_falcon,Wills Wing Falcon 170,Wills Wing Falcon 170
+wing_airwave_magic,Airwave Magic IV 166,Airwave Magic IV 166
+wing_ww_sport2,Wills Wing Sport 2 155,Wills Wing Sport 2 155
+wing_icaro_laminar,Icaro Laminar Easy 14,Icaro Laminar Easy 14
+wing_moyes_litespeed_rs,Moyes Litespeed RS 4,Moyes Litespeed RS 4
+wing_aeros_combat,Aeros Combat GT 13.2,Aeros Combat GT 13.2
+wing_group_soviet,Советские 1980-х,Soviet 1980s
+wing_group_soviet_hint,Устойчивые и прощающие крылья 1980-х,"Stable, forgiving wings of the 1980s"
+wing_group_trainer,Учебные однообшивочные,Single-surface trainers
+wing_group_trainer_hint,Мягкие и медленные — для первых полётов,Soft and slow — for first flights
+wing_group_kingpost,Мачтовые двухобшивочные,Double-surface kingpost
+wing_group_kingpost_hint,С мачтой и двойной обшивкой — быстрее и дальше,Kingpost and double surface — faster and farther
+wing_group_topless,Безмачтовые,Topless
+wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"

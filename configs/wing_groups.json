@@ -1,0 +1,10 @@
+{
+  "_doc": "Группы (классы) крыльев для меню «Полёт…»: сначала выбирается группа, потом модель в ней (docs/plan/wings_lineup.md §2, §6). Порядок групп — порядок в этом массиве: по возрастанию качества и ветра. Крыло относится к группе полем group в configs/wings/<id>.json; модели в группе упорядочены по reference.best_glide, при равенстве — по wind_max_ms (WingCatalog, scripts/game/wing_catalog.gd)",
+  "groups": [
+    {"id": "soviet", "name": "wing_group_soviet", "hint": "wing_group_soviet_hint"},
+    {"id": "trainer", "name": "wing_group_trainer", "hint": "wing_group_trainer_hint"},
+    {"id": "kingpost", "name": "wing_group_kingpost", "hint": "wing_group_kingpost_hint"},
+    {"id": "topless", "name": "wing_group_topless", "hint": "wing_group_topless_hint"}
+  ],
+  "groups_doc": "Группы по порядку: id — значение поля group крыла; name и hint — ключи перевода locale/ui.csv (название и короткая подсказка под названием)"
+}

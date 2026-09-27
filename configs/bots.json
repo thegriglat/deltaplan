@@ -6,8 +6,8 @@
   "count_max_doc": "Предел в настройках, штук",
   "seed": 1,
   "seed_doc": "Сид случайностей ботов (крыло, масса, расцветка, цели перелётов); смешивается с местом старта — полёт повторяется",
-  "wings": [],
-  "wings_doc": "Крылья ботов (имена configs/wings/<id>.json); пусто — все крылья из configs/wings",
+  "wings": ["training", "target", "kingpost", "laminar", "sport", "combat", "apogee"],
+  "wings_doc": "Крылья ботов (имена configs/wings/<id>.json), каждое равновероятно; пусто — все крылья из configs/wings. Советские в небе редкость — из них только «Апогей» (docs/plan/wings_lineup.md §6)",
   "mass_kg": [65.0, 95.0],
   "mass_kg_doc": "Масса пилота бота: случайно в этом диапазоне (и в допустимом диапазоне крыла), кг",
   "launch": {
@@ -131,7 +131,11 @@
     "wing_base_hue_deg": {
       "sport": 0.0,
       "training": 228.0,
-      "kingpost": 212.0
+      "kingpost": 212.0,
+      "target": 226.0,
+      "laminar": 0.0,
+      "combat": 48.0,
+      "apogee": 0.0
     },
     "wing_base_hue_deg_doc": "Тон основного цвета паруса крыла в текстуре (красный 0, синий ~220), °: от него считается поворот тона схемы",
     "sail_schemes": [
