@@ -1,0 +1,13 @@
+# Godot 4
+.godot/
+/android/
+*.translation
+
+# Сборки
+/build/
+*.tmp
+
+# ОС и редакторы
+.DS_Store
+.vscode/
+*.swp
