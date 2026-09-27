@@ -322,6 +322,25 @@ func _setup_glider() -> void:
 	glider.setup(settings.wing_id(), settings.pilot_mass_kg)
 	settings.pilot_mass_kg = glider.pilot_mass_kg
 	camera.set_head(glider.get_marker("PilotHead"))
+	# Смещение тела от подвески в полёте (крен/тангаж ручкой), оси планера: голова кабинной
+	# камеры повторяет его долей (camera.json → cockpit.head_follow_body). На земле — ноль;
+	# переход стоя → лёжа (не ручка) срезан пределами смещения из flight.json → visual.
+	var v := glider.visual
+	var hang := glider.get_marker("HangPoint")
+	var vis: Dictionary = Config.get_config("flight").get("visual", {})
+	var lim := Vector3(
+		float(vis.get("pilot_shift_m", 0.35)), 0.0, float(vis.get("pilot_bar_m", 0.3))
+	)
+	camera.body_shift_fn = func() -> Vector3:
+		if (
+			glider.phase() != "flying"
+			or not is_instance_valid(v)
+			or v.pilot == null
+			or hang == null
+		):
+			return Vector3.ZERO
+		var d := v.pilot.position - v.to_local(hang.global_position)
+		return Vector3(clampf(d.x, -lim.x, lim.x), 0.0, clampf(d.z, -lim.z, lim.z))
 	_hide_from_cockpit()
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
 		_mount_instrument(m)

@@ -20,6 +20,10 @@ var ground_fn: Callable = Callable()
 var look_enabled := true
 ## Куда смотреть по клавише «взгляд на прибор» (маркер прибора на трапеции).
 var glance_target: Node3D
+## Смещение тела пилота от центра (крен/тангаж ручкой) в осях планера, м: () -> Vector3.
+## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
+## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
+var body_shift_fn: Callable = Callable()
 
 var _cfg: Dictionary
 var _modes: Array
@@ -31,6 +35,8 @@ var _head := Vector2.ZERO  # поворот головы: x — рыскание
 var _recentering := false
 var _snap := true
 var _glance := 0.0  # 0 — свой взгляд, 1 — на прибор
+var _look_locked := false  # голова задана set_look (скриншоты) — мышь её не двигает
+var _head_follow := Vector3.ZERO  # сглаженная доля смещения тела, которую повторяет голова
 
 
 func _ready() -> void:
@@ -64,15 +70,18 @@ func set_head(n: Node3D) -> void:
 
 
 ## Повернуть голову в кабине: рыскание (+ влево) и тангаж (+ вверх), ° (скриншоты, отладка).
+## Голова фиксируется: мышь её не двигает до snap() (иначе захваченная мышь сбивает кадр).
 func set_look(yaw_deg: float, pitch_deg: float) -> void:
 	_head = Vector2(deg_to_rad(yaw_deg), deg_to_rad(pitch_deg))
 	_recentering = false
+	_look_locked = true
 
 
 ## Сбросить сглаживание (после телепорта планера).
 func snap() -> void:
 	_snap = true
 	_head = Vector2.ZERO
+	_look_locked = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -101,6 +110,8 @@ func _look(rel: Vector2) -> void:
 	var inv_y := -1.0 if bool(Config.value("controls", "mouse.invert_look_y")) else 1.0
 	var d := Vector2(-rel.x, -rel.y * inv_y) * k
 	if mode == "cockpit":
+		if _look_locked:
+			return
 		var h: Dictionary = _cfg.cockpit.head
 		_head += d
 		var yaw_lim := deg_to_rad(float(h.yaw_limit_deg))
@@ -151,7 +162,7 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	_head_basis = _head_basis.slerp(_level_head(t.basis, c), k).orthonormalized()
 	var eye: Vector3
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
-		eye = head.global_position + t.basis * _vec(c.offset_m)
+		eye = head.global_position + t.basis * (_vec(c.offset_m) + _follow_body(delta, c))
 	else:
 		eye = t.origin + t.basis * _vec(c.fallback_offset_m)
 	global_position = eye
@@ -173,6 +184,19 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		* Basis(Vector3.UP, look.x)
 		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Поправка точки глаз в осях планера: маркер PilotHead едет вместе с телом целиком,
+## а голова — только долей head_follow_body со своим сглаживанием head_follow_smoothing_s.
+func _follow_body(delta: float, c: Dictionary) -> Vector3:
+	if not body_shift_fn.is_valid():
+		return Vector3.ZERO
+	var shift: Vector3 = body_shift_fn.call()
+	var want := shift * float(c.get("head_follow_body", 1.0))
+	var s := float(c.get("head_follow_smoothing_s", 0.0))
+	var k := 1.0 if s <= 0.0 or _snap else 1.0 - exp(-delta / s)
+	_head_follow = _head_follow.lerp(want, k)
+	return _head_follow - shift
 
 
 ## Голова пилота: курс — вдоль крыла, тангаж — у горизонта, крен — доля крена крыла.
