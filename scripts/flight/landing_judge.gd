@@ -13,13 +13,13 @@ static func evaluate(
 	var b := absf(bank_deg)
 	var grade := "soft"
 	if (
-		vn > float(cfg.hard_vertical_ms)
-		or vt > float(cfg.hard_horizontal_ms)
+		vn > float(cfg.crash_vertical_ms)
+		or vt > float(cfg.crash_horizontal_ms)
 		or b > float(cfg.crash_bank_deg)
 	):
 		grade = "crash"
 	elif (
-		vn > float(cfg.soft_vertical_ms)
+		vn >= float(cfg.hard_vertical_ms)
 		or vt > float(cfg.soft_horizontal_ms)
 		or b > float(cfg.soft_bank_deg)
 	):

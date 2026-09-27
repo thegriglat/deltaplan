@@ -120,6 +120,12 @@ func _teleport() -> void:
 
 
 func _physics_process(dt: float) -> void:
+	step(dt)
+
+
+## Один шаг физики. Зовётся из _physics_process; если интегратор выключил его
+## (set_physics_process(false)), он может шагать планер сам.
+func step(dt: float) -> void:
 	if not _configured:
 		return
 	model.step(dt, control, air_fn, ground_fn)

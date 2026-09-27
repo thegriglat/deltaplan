@@ -25,7 +25,7 @@ func test_glider_scene_steps_and_lands() -> void:
 	var ci := ControlInput.new()
 	g.set_input(ci)
 	for i in 1200:
-		g._physics_process(1.0 / 120.0)
+		g.step(1.0 / 120.0)
 		if not landed.is_empty():
 			break
 	check(tel.size() > 10, "telemetry_updated шлётся каждый шаг")
