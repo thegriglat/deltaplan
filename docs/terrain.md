@@ -11,6 +11,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/cog_reader.gd` (`CogReader`), `worldcover_loader.gd` (`WorldCoverLoader`) | разбор COG GeoTIFF и рантайм-загрузка WorldCover HTTP range-запросами, кеш `user://terrain_cache/worldcover` |
 | `scripts/terrain/tree_placer.gd` (`TreePlacer`), `terrain_tree_models.gd` (`TerrainTreeModels`), `tree_model.gdshader` | деревья-модели 5 пород × 3 LOD (MultiMesh), расстановка в рабочем потоке, качание от ветра |
 | `scripts/terrain/forest_impostors.gd` + `.gdshader` (`ForestImpostors`) | средний план леса 0,35–3,5 км: билборды из атласа импостеров |
+| `scripts/terrain/rock_scatter.gd` + `.gdshader` (`RockScatter`) | 3D-камни вокруг камеры (≤ 300 м): глыбы курумника и выходы породы по той же логике, что пятна породы в шейдере, камни на скалах, редкие в траве; не на лесе/воде/полях/просеках/стартах; `configs/world.json → rocks`, подключение `RockScatter.attach(terrain, cam)` |
 | `scripts/terrain/grass_field.gd` + `grass.gdshader` (`GrassField`) | травинки вокруг камеры — см. [docs/vegetation.md](vegetation.md) |
 | `scripts/terrain/terrain_wind.gd` + `terrain_wind.gdshaderinc` (`TerrainWind`) | ветер и термики атмосферы → шейдеры рельефа, травы, деревьев (VR-17) |
 | `scripts/terrain/height_layer.gd` (`HeightLayer`) | сетка высот, билинейная выборка (RefCounted, тестируется headless) |

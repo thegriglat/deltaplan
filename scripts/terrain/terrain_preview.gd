@@ -63,6 +63,7 @@ func _ready() -> void:
 		var c := WorldClearings.build_for(terrain.location_id)
 		if c != null:
 			terrain.set_clearings(c.image, c.origin, c.cell_m)
+	RockScatter.attach(terrain, cam)
 	if _args.has("no-grass") and terrain.grass != null:
 		terrain.grass.process_mode = Node.PROCESS_MODE_DISABLED
 		terrain.grass.visible = false
