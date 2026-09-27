@@ -155,3 +155,52 @@ func test_no_wave_without_preset() -> void:
 	a.step(0.01)
 	check(not a.wave.enabled, "в обычный день волн нет")
 	a.free()
+
+
+func _young(a: Atmosphere, x: float) -> AtmoThermal:
+	var id := a.add_static_thermal(x, 0.0, 4.0, 120.0)
+	var th: AtmoThermal = a.field.thermals[id]
+	th.is_static = false
+	th.id = 1000 + int(x)
+	th.t_birth = a.time_s - 5.0
+	th.t_grow = 300.0
+	th.t_mature = 600.0
+	th.t_decay = 200.0
+	return th
+
+
+func test_dust_devils_from_young_thermals_over_dry_ground() -> void:
+	var a := _atmo({"thermal_mode": "static", "dust_devil_chance": 1.0}, "weather/strong")
+	a.set_ground(_flat, _sun)
+	var dm := DustModel.new()
+	dm.setup(a.cfg.dust, a.weather)
+	var crop := func(_x: float, _z: float) -> int: return 3
+	var forest := func(_x: float, _z: float) -> int: return 1
+	var th := _young(a, 0.0)
+	# Ищем момент, когда вихрь жив (он появляется в первой части роста термика).
+	var found := {}
+	for i in 400:
+		var d := dm.devil(th, th.t_birth + i * 1.0, crop, Vector2(2, 0))
+		if not d.is_empty():
+			found = d
+			break
+	check(not found.is_empty(), "у молодого термика над пашней есть пылевой вихрь")
+	if not found.is_empty():
+		var h: float = found.height
+		check(h >= 20.0 and h <= 200.0, "высота вихря 20–200 м: %.0f" % h)
+		var t_live: float = th.t_birth
+		for i in 400:
+			if not dm.devil(th, th.t_birth + i * 1.0, crop, Vector2.ZERO).is_empty():
+				t_live = th.t_birth + i * 1.0
+				break
+		check(dm.devil(th, t_live, forest, Vector2.ZERO).is_empty(), "над лесом пыли нет")
+		var p0: Vector3 = dm.devil(th, t_live, crop, Vector2(3, 0)).pos
+		var p1: Vector3 = dm.devil(th, t_live + 5.0, crop, Vector2(3, 0)).get("pos", p0)
+		check(p1.x > p0.x, "вихрь дрейфует с ветром")
+	check(dm.devil(th, th.t_birth + 800.0, crop, Vector2.ZERO).is_empty(), "у зрелого термика нет")
+	var weak := _atmo({"dust_devil_chance": 0.0}, "weather/weak")
+	var dw := DustModel.new()
+	dw.setup(weak.cfg.dust, weak.weather)
+	check(dw.devil(th, th.t_birth + 30.0, crop, Vector2.ZERO).is_empty(), "в слабый день нет")
+	weak.free()
+	a.free()

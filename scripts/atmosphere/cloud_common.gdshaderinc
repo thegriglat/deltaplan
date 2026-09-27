@@ -13,7 +13,7 @@
 // Облако задаётся записью из 5 vec4 (так же в CloudLayer/compute):
 //   r0: центр бокса xyz, полувысота бокса; r1: ось по ветру (x, z), полуширины бокса (по ветру, поперёк);
 //   r2: кромка, мощность, полуось по ветру, поперёк; r3: рост, распад, активность, зерно;
-//   r4: растекание верха, наковальня 0..1, осадки 0..1, вид (0 кучевое, 1 линза, 2 шапка).
+//   r4: растекание верха, наковальня 0..1, осадки 0..1, вид (0 кучевое, 1 линза, 2 шапка, 3 Cb).
 
 const int TOWERS = 8;
 const float CLOUD_PI = 3.14159265;
@@ -38,8 +38,9 @@ struct Cloud {
 	float spread;
 	float anvil;       // наковальня Cb 0..1
 	float rain;        // осадки (вирга) 0..1
-	int kind;          // 0 кучевое/Cb, 1 лентикулярное, 2 шапка на гребне
+	int kind;          // 0 кучевое, 1 лентикулярное, 2 шапка на гребне, 3 Cb
 	float fade_r;      // радиус (в uv), к которому плотность гаснет
+	float ns;          // масштаб шума: у Cb клубы крупнее (в меру размера облака)
 	vec4 tw[TOWERS];   // башни: центр (u, v), высота (доля), радиус (доля)
 	vec3 ro;           // камера
 	float pix;         // угловой размер пикселя, рад
@@ -92,6 +93,7 @@ Cloud cloud_make(vec3 c, vec3 ax, vec4 shape, vec4 state, vec4 extra, vec3 ro, f
 	cl.anvil = extra.y;
 	cl.rain = extra.z;
 	cl.kind = int(extra.w + 0.5);
+	cl.ns = cl.kind == 3 ? clamp(cl.height / 2500.0, 1.0, 3.5) : 1.0;
 	cl.fade_r = FADE_R1 + cl.spread * 0.8 + cl.anvil * (anvil_spread + anvil_shift);
 	cl.ro = ro;
 	cl.pix = pix;
@@ -137,7 +139,7 @@ float cloud_towers(Cloud cl, vec2 uv, float h) {
 
 // Верх облака над точкой (uv) в долях мощности — по башням (без шума).
 float cloud_top_at(Cloud cl, vec2 uv) {
-	if (cl.kind != 0) {
+	if (cl.kind == 1 || cl.kind == 2) {
 		float r2 = dot(uv, uv);
 		return r2 < 1.0 ? 0.5 + 0.5 * pow(1.0 - r2, 0.8) : 0.0;
 	}
@@ -164,7 +166,7 @@ float cloud_envelope(Cloud cl, vec3 p) {
 	float h = (p.y - cl.base) / cl.height;
 	vec3 d = p - cl.c;
 	vec2 uv = vec2(dot(d, cl.ax) / cl.rx, dot(d, cl.az) / cl.rz);
-	if (cl.kind != 0) {
+	if (cl.kind == 1 || cl.kind == 2) {
 		return 1.25 - length(vec2(length(uv), 2.0 * h - 1.0));
 	}
 	if (h < 0.0) {
@@ -187,8 +189,8 @@ float cloud_envelope(Cloud cl, vec3 p) {
 
 // Лентикулярное облако (вид 1) и шапка на гребне (вид 2): гладкая линза, у линзы — «стопка тарелок».
 float lens_density(Cloud cl, vec3 p, vec2 uv, float h, int quality) {
-	vec3 wp = p / top_period_m + cl.seed_off;
-	float lw = cloud_lod(cl, p, top_period_m / shape_tex_size);
+	vec3 wp = p / (top_period_m * cl.ns) + cl.seed_off;
+	float lw = cloud_lod(cl, p, top_period_m * cl.ns / shape_tex_size);
 	float w1 = textureLod(noise_shape, wp, lw).r;
 	float r = length(uv) + (w1 - 0.5) * (cl.kind == 2 ? 0.35 : 0.15);
 	if (r >= 1.0) {
@@ -238,7 +240,7 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	float h = (p.y - cl.base) / cl.height;
 	vec3 d = p - cl.c;
 	vec2 uv = vec2(dot(d, cl.ax) / cl.rx, dot(d, cl.az) / cl.rz);
-	if (cl.kind != 0) {
+	if (cl.kind == 1 || cl.kind == 2) {
 		return (h < 0.0 || h > 1.0) ? 0.0 : lens_density(cl, p, uv, h, quality);
 	}
 	// Ниже кромки — только вирга у Cb.
@@ -254,6 +256,10 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	}
 	float box_fade = (1.0 - smoothstep(cl.fade_r - 0.25, cl.fade_r, r_box)) * (1.0 - smoothstep(FADE_H0, FADE_H1, h));
 	float spread_k = 1.0 + cl.spread * smoothstep(0.55, 1.0, h);
+	if (cl.kind == 3) {
+		// Ствол Cb расширяется кверху и переходит в наковальню.
+		spread_k += cl.anvil * 0.8 * smoothstep(0.6, 0.95, h);
+	}
 	float shape;
 	if (quality == 0) {
 		shape = cloud_towers(cl, uv / spread_k, h);
@@ -262,8 +268,8 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 			return 0.0;
 		}
 		// Крупное искажение: башни неровные, контур не круглый.
-		vec3 wp = p / top_period_m + cl.seed_off;
-		float lw = cloud_lod(cl, p, top_period_m / shape_tex_size);
+		vec3 wp = p / (top_period_m * cl.ns) + cl.seed_off;
+		float lw = cloud_lod(cl, p, top_period_m * cl.ns / shape_tex_size);
 		float w1 = textureLod(noise_shape, wp, lw).r;
 		float w2 = textureLod(noise_shape, wp.zxy + vec3(0.37, 0.11, 0.73), lw).r;
 		uv += (vec2(w1, w2) - 0.5) * 0.3;
@@ -277,19 +283,25 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	// Наковальня Cb: плоский широкий слой под тропопаузой, сдвинут по ветру, гладкий, волокнистый.
 	float anvil_m = 0.0;
 	if (cl.anvil > 0.0 && h > 0.7) {
+		// Плоская плита под тропопаузой, растекается в основном ПО ВЕТРУ (эллипс).
 		vec2 ua = uv - vec2(anvil_shift * cl.anvil, 0.0);
 		float ra = 1.0 + anvil_spread * cl.anvil;
-		float av = smoothstep(0.74, 0.86, h) * (1.0 - smoothstep(0.97, 1.0, h));
-		float ah = 1.0 - smoothstep(ra * 0.75, ra, length(ua));
-		anvil_m = av * ah * cl.anvil;
-		shape = max(shape, anvil_m);
+		// Контур наковальни неровный (крупный шум), а не идеальный эллипс.
+		float an = textureLod(noise_shape, vec3(ua * 0.35, 0.3) + cl.seed_off, 0.0).r;
+		float rr = length(ua * vec2(1.0, 1.6)) / ra + (an - 0.5) * 0.35;
+		// Плита тоньше к краю (клин): у башни ~12 % мощности, у края — 3 %.
+		float thick = mix(0.12, 0.03, smoothstep(0.0, 1.0, rr));
+		float av = smoothstep(0.97 - thick, 0.97 - thick + 0.02, h) * (1.0 - smoothstep(0.97, 1.0, h));
+		float ah = 1.0 - smoothstep(0.7, 1.0, rr);
+		// Наковальня — ледяное облако: плотная у башни, к краям тонкая и полупрозрачная.
+		anvil_m = av * ah * cl.anvil * mix(1.0, 0.35, smoothstep(0.1, 0.8, rr));
 	}
-	if (shape <= 0.0) {
+	if (shape <= 0.0 && anvil_m <= 0.0) {
 		return 0.0;
 	}
 	// Клубы Уорли двух масштабов, переносятся ветром и «кипят».
-	vec3 sp = (p + wind_offset) / shape_period_m + cl.seed_off + vec3(0.0, boil, 0.0);
-	float ls = cloud_lod(cl, p, shape_period_m / shape_tex_size);
+	vec3 sp = (p + wind_offset) / (shape_period_m * cl.ns) + cl.seed_off + vec3(0.0, boil, 0.0);
+	float ls = cloud_lod(cl, p, shape_period_m * cl.ns / shape_tex_size);
 	float b1 = smoothstep(0.2, 0.85, 1.0 - textureLod(noise_shape, sp, ls).r);
 	float billow = b1;
 	if (quality > 0) {
@@ -301,20 +313,29 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	// Основание не идеально плоское: лёгкий рельеф клубов (у тающего — сильно рваное).
 	float base_lift = (base_relief_m / cl.height + cl.decay * 0.3) * (1.0 - billow);
 	float dns = shape * smoothstep(base_lift, base_lift + base_soft, h);
-	if (dns <= 0.0) {
+	if (dns <= 0.0 && anvil_m <= 0.0) {
 		return 0.0;
 	}
 	float erosion = (mix(0.75, 0.93, cl.decay) + (1.0 - cl.growth) * 0.15) * (1.0 - 0.6 * anvil_m);
+	// Cb — мощная плотная башня: клубы крупные, но тело сплошное.
+	if (cl.kind == 3) {
+		erosion *= 0.8;
+	}
 	dns = clamp(cloud_remap(dns, erosion * (1.0 - billow), 1.0, 0.0, 1.0), 0.0, 1.0);
-	if (quality == 2 && detail_enabled != 0 && dns > 0.0 && dns < 0.9) {
+	// Наковальня — гладкая ледяная плита с волокнистым краем, без клубов.
+	if (anvil_m > 0.0) {
+		float fib = textureLod(noise_detail, vec3(p.x / 4000.0, p.y / 600.0, p.z / 1500.0) + cl.seed_off, 0.0).r;
+		dns = max(dns, anvil_m * smoothstep(0.15, 0.6, fib + 0.3));
+	}
+	if (quality == 2 && detail_enabled != 0 && cl.kind != 3 && dns > 0.0 && dns < 0.9) {
 		// Мелкие края: искажение («завихрения») + две октавы мелкого шума.
-		vec3 dp = (p + wind_offset * 1.3) / detail_period_m + cl.seed_off * 3.0 + vec3(boil * 3.0);
-		float ld = cloud_lod(cl, p, detail_period_m / detail_tex_size);
+		vec3 dp = (p + wind_offset * 1.3) / (detail_period_m * cl.ns) + cl.seed_off * 3.0 + vec3(boil * 3.0);
+		float ld = cloud_lod(cl, p, detail_period_m * cl.ns / detail_tex_size);
 		vec3 cw = vec3(textureLod(noise_detail, dp * 0.37, ld).r,
 				textureLod(noise_detail, dp.yzx * 0.37 + vec3(0.3), ld).r,
 				textureLod(noise_detail, dp.zxy * 0.37 + vec3(0.6), ld).r) - 0.5;
 		vec3 pw = p + cw * curl_strength_m * (1.0 + cl.decay);
-		vec3 dq = (pw + wind_offset * 1.3) / detail_period_m + cl.seed_off * 3.0;
+		vec3 dq = (pw + wind_offset * 1.3) / (detail_period_m * cl.ns) + cl.seed_off * 3.0;
 		float dn = textureLod(noise_detail, dq, ld).r;
 		float lh = cloud_lod(cl, p, hf_period_m / detail_tex_size);
 		float hf = textureLod(noise_detail, (pw + wind_offset * 1.5) / hf_period_m + cl.seed_off, lh).r;
@@ -338,7 +359,9 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 	// Дальние облака мельче на экране — им хватает меньше грубых шагов.
 	float lod_k = clamp(tn / lod_distance_m, 0.0, 1.0);
 	float n_coarse = mix(float(coarse_steps), max(float(coarse_steps) * 0.25, 8.0), lod_k);
-	float dt_coarse = (tf - tn) / n_coarse;
+	// Грубый шаг не больше доли размера облака — иначе у Cb (бокс с наковальней ~40 км)
+	// лучи перепрыгивают башню.
+	float dt_coarse = min((tf - tn) / n_coarse, min(cl.rx, cl.rz) * 0.35);
 	float t = tn + dt_coarse * ign;
 	float dt_fine = clamp(tn * fine_step_per_m, fine_step_min_m, dt_coarse);
 	bool fine = false;
@@ -366,7 +389,10 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			continue;
 		}
 		// Мелкий шаг растёт с расстоянием; вне оболочки — снова грубые шаги.
-		dt_fine = clamp(t * fine_step_per_m, fine_step_min_m, dt_coarse);
+		// Бюджет выборок должен покрыть весь путь в боксе (у Cb это километры).
+		float path = min(tf - tn, 2.0 * max(max(cl.rx, cl.rz), cl.height));
+		float dt_budget = path / float(max_iterations) * 1.5;
+		dt_fine = clamp(max(t * fine_step_per_m, dt_budget), fine_step_min_m, dt_coarse);
 		cl.foot = dt_fine * 0.5;
 		float dns = cloud_density(cl, p, 2);
 		if (dns <= 0.003 && cloud_envelope(cl, p) <= 0.0) {
@@ -377,7 +403,11 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 		if (dns > 0.003) {
 			float sigma = dns * extinction;
 			float od = 0.0;
+			// Первый шаг к солнцу мелкий (клубы затеняют друг друга), дальше шаги растут так,
+			// чтобы дойти до ~половины мощности облака (у 8-км Cb тень тоже на километры).
 			float lstep = light_step_m;
+			float lgrow = max(light_step_growth,
+					pow(max(cl.height * 0.5 / light_step_m, 1.0), 1.0 / float(max(lsteps - 1, 1))));
 			vec3 lp = p;
 			for (int j = 0; j < 8; j++) {
 				if (j >= lsteps) {
@@ -385,7 +415,7 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 				}
 				lp += sun_dir * lstep;
 				od += cloud_density(cl, lp, 0) * lstep;
-				lstep *= light_step_growth;
+				lstep *= lgrow;
 			}
 			// Бир + пологий член многократного рассеяния, powder у краёв.
 			float beer = exp(-od * extinction * light_absorb) + ms_strength * exp(-od * extinction * light_absorb * 0.2);
@@ -398,6 +428,12 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			float above_m = max(cloud_top_at(cl, uvc) - hh, 0.0) * cl.height;
 			float core = cl.activity * (1.0 - smoothstep(0.0, 0.7, length(uvc)));
 			float sky = exp(-above_m / sky_occlusion_m) * mix(1.0, 0.6, core);
+			// Бока высоких облаков освещены небом сбоку — затенение сверху важно только у основания.
+			sky = mix(sky, 1.0, smoothstep(0.0, sky_occlusion_m * 1.5, p.y - cl.base));
+			// Нижняя сторона наковальни закрыта от неба самой плитой — тёмная.
+			if (cl.anvil > 0.0 && hh > 0.8) {
+				sky *= mix(0.35, 1.0, smoothstep(0.88, 0.99, hh));
+			}
 			// Снизу — отражённый землёй свет (основание серое, не чёрное), сверху — небо.
 			float up_w = smoothstep(0.0, 0.5, hh);
 			vec3 amb = (ambient_top * mix(sky, 1.0, up_w * 0.5) + ambient_bottom * base_darkness * (1.0 - up_w)) * ambient_energy;

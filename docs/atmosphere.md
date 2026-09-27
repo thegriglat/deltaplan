@@ -11,7 +11,7 @@ var atmo := Atmosphere.new()            # или узел в сцене со с�
 add_child(atmo)
 atmo.set_weather("weather/medium")      # FR-16: weak / medium / strong или свой словарь
 atmo.set_wind(15.0, 270.0)              # км/ч на 10 м, откуда дует (0 — с севера)
-atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
+atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
 atmo.set_sun_direction(sun_node.global_transform.basis.z)  # к солнцу (тени облаков → термики)
 atmo.focus_node = glider                # вокруг кого генерировать термики (иначе — камера)
 # MVP: несколько статичных термиков у старта
@@ -29,7 +29,7 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
 | `air_velocity_at(pos: Vector3) -> Vector3` | скорость воздуха (ветер + вертикальные потоки + пульсации), м/с, мир. Зовите для центра и концов крыла. |
 | `mean_wind_at(pos) -> Vector3` | средний ветер без пульсаций и вертикальных потоков (колдун на старте, взлёт). |
 | `step(dt)` | продвинуть время атмосферы (сама нода зовёт из `_physics_process`). |
-| `set_ground(height_fn, sun_fn)` | функции рельефа `(x, z) -> высота над уровнем моря` и `(x, z) -> 0..1`. |
+| `set_ground(height_fn, sun_fn, surface_fn = Callable())` | рельеф `(x, z) -> высота над уровнем моря`, сила источника термиков `(x, z) -> 0..1`, класс поверхности `(x, z) -> int` (для пылевых вихрей). |
 | `set_weather(name_or_dict)`, `configure(atmo_cfg, weather_cfg)` | пресет погоды / полная настройка (тесты). |
 | `set_wind(speed_kmh, from_deg)` | ветер (FR-16). |
 | `set_sun_direction(to_sun)` | солнце: тени облаков ослабляют новые термики (VR-2). |
@@ -57,6 +57,11 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
 | `cloud_volume.gdshader` | — | бокс на облако (Compatibility) |
 | `cloud_compositor_effect.gd`, `cloud_raymarch_cs.gdshaderinc`, `cloud_composite_cs.gdshaderinc` | `CloudCompositorEffect` | compute: буфер пониженного разрешения + апскейл |
 | `bird_flock.gd`, `bird.gdshader` | `BirdFlock` (Node3D) | птицы в MultiMesh |
+| `cloud_physics.gd` | `CloudPhysics` | подсос, бурление в облаке, `cloud_density_at` |
+| `storm_field.gd` | `StormField` | Cb: нисходящий поток, растекание, фронт порывов |
+| `wave_field.gd` | `WaveField` | подветренные волны, роторы, гребни для лентикуляров |
+| `cirrus_layer.gd`, `cirrus.gdshader` | `CirrusLayer` | перистая пелена |
+| `dust_model.gd`, `dust_devils.gd`, `dust_devil.gdshader` | `DustModel`, `DustDevils` | пылевые вихри |
 | `atmosphere_preview.gd` | — | тестовая сцена `scenes/atmosphere/atmosphere_preview.tscn` |
 
 ### Поле скоростей
@@ -144,6 +149,38 @@ API для интегратора и flight:
   `tools/atmosphere/gen_cloud_noise.py`. Пусто или нет файла — процедурный Уорли (`NoiseTexture3D`).
 - `birds.model_path` — модель птицы.
 
+### Опасная и особая погода (VR-26, VR-27, VR-28, VR-18)
+Всё видимое — из физической модели (VR-0).
+- **Перистая пелена** (`cirrus_layer.gd`, `cirrus.gdshader`): плоскость на `cirrus.altitude_msl_m`
+  за камерой, волокна по ветру верхнего яруса, гало 22° при плотной пелене. Покрытие
+  `weather.cirrus_cover` → `get_insolation()`: термики слабее и реже (`thermal.insolation_*`),
+  прямой свет на облаках слабее, тени кучевых бледнее (`cirrus.shadow_softening`).
+- **Cb / гроза** (`storm_field.gd`, пресет `weather/storm`): сильные зрелые термики с
+  `cb_chance` переразвиваются в Cb (вид 3 в записи облака): башня до `cb_top_above_base_m`,
+  наковальня — клин под тропопаузой, растекается по ветру (`storm.anvil_*`), тёмная снизу;
+  вирга под основанием (`storm.virga_*`). Физика: подсос до начала бури, затем ливневый
+  нисходящий поток (`storm.downdraft_ms`), растекание у земли и фронт порывов, уходящий на
+  километры (подъём над фронтом, сильная болтанка). Cb виден в `cb_range_factor` раз дальше.
+- **Волна** (`wave_field.gd`, пресет `weather/wave`): λ = 2πU/N; смещение линий тока — свёртка
+  уклона рельефа против ветра с cos(k·d)·exp(−d/L); в гребнях подъём до `wave.max_ms`, роторы у
+  земли под гребнями. Облака: лентикулярные линзы («стопка тарелок») в гребнях η
+  (`wave.lens_*`, несколько вдоль гребня), шапка на высшей точке рельефа, рваные роторные клочья.
+- **Пылевые вихри** (`dust_model.gd`, `dust_devils.gd`, `dust_devil.gdshader`): у основания
+  молодого (стадия роста) сильного термика над сухой поверхностью (`dust.dusty_surface_classes`,
+  классы `terrain.surface_at` — передать третьим аргументом `set_ground`), живут 10–60 с,
+  высота 20–200 м от силы термика, дрейфуют с приземным ветром; не больше `dust.max_visible`
+  рядом с камерой. Шанс — `weather.dust_devil_chance`.
+
+### Известные проблемы
+- **Compatibility (gl_compatibility):** на части сцен облака делятся вертикальной границей на
+  серую и светлую половины со «ступенчатым» краем (скрин агента world_objects). Сейчас не чиним
+  (решение пользователя: целевой рендер — Forward+). Яркость в Compatibility исправлена:
+  вывод облаков, пелены и пыли в этом рендере не переводился из линейного в sRGB — переводим в
+  шейдере (`#if CURRENT_RENDERER == RENDERER_COMPATIBILITY`).
+- Cb издалека похож на «гриб» (плоская наковальня над узкой башней): у настоящих Cb тело
+  массивнее и шире; наковальня пока без маммаусов.
+- Лентикуляры — гладкие линзы; слоистая «стопка тарелок» видна слабо.
+
 ## Конфиги
 - `configs/atmosphere.json` — модель (профиль, цикл, генерация, склон, подветренная зона,
   турбулентность, облака, птицы). Каждый параметр с `*_doc`.
@@ -178,6 +215,6 @@ API для интегратора и flight:
 
 ## Тестовая сцена
 `godot --path . res://scenes/atmosphere/atmosphere_preview.tscn -- --weather=strong --view=side`
-- `--view=horizon|side|near|under|sun|top|stages|birds`, `--time=<с>`, `--wind=<км/ч>`;
+- `--view=horizon|side|near|under|sun|top|stages|birds|cb|cbnear|cbfar|wave|dust`, `--cirrus=<0..1>`, `--ground=ridge`, `--time=<с>`, `--wind=<км/ч>`;
 - `--shot=<png>` — сохранить кадр и выйти; `--bench` — GPU-время кадра с облаками и без;
 - WASD/QE — полёт, ПКМ — обзор, Shift — быстрее, 1–5 — ракурсы, T — +60 с.

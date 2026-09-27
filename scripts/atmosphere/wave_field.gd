@@ -127,35 +127,39 @@ func sample(pos: Vector3, agl: float, u: float) -> Vector2:
 	return Vector2(w, rotor)
 
 
-## Гребни волн рядом с точкой (для лентикулярных облаков): локальные максимумы η на сетке.
+## Гребни волн рядом с точкой (для лентикулярных облаков): максимумы η вдоль ветра; вдоль гребня
+## — несколько линз на расстоянии не ближе spacing друг от друга.
 ## Возвращает [{pos: Vector2, eta: float, crest: float}], сильные первыми.
-func crests(center: Vector3, radius: float, min_eta: float) -> Array[Dictionary]:
+func crests(
+	center: Vector3, radius: float, min_eta: float, spacing: float = 5000.0
+) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if not enabled or not ground.has_ground:
 		return out
 	var step := _cell * 2.0
 	var n := int(radius / step)
-	var grid: Dictionary = {}
+	var cand: Array[Dictionary] = []
 	for j in range(-n, n + 1):
 		for i in range(-n, n + 1):
 			var p := Vector2(center.x + i * step, center.z + j * step)
-			grid[Vector2i(i, j)] = fields(p.x, p.y)
-	for j in range(-n + 1, n):
-		for i in range(-n + 1, n):
-			var f: Vector3 = grid[Vector2i(i, j)]
+			var f := fields(p.x, p.y)
 			if f.x < min_eta:
 				continue
-			var is_max := true
-			for dj in range(-1, 2):
-				for di in range(-1, 2):
-					if (di != 0 or dj != 0) and (grid[Vector2i(i + di, j + dj)] as Vector3).x > f.x:
-						is_max = false
-			if is_max:
-				out.append({
-					"pos": Vector2(center.x + i * step, center.z + j * step),
-					"eta": f.x, "crest": f.z,
-				})
-	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.eta > b.eta)
+			var fa := fields(p.x + _wind_dir.x * step, p.y + _wind_dir.y * step)
+			var fb := fields(p.x - _wind_dir.x * step, p.y - _wind_dir.y * step)
+			if f.x > fa.x and f.x >= fb.x:
+				cand.append({"pos": p, "eta": f.x, "crest": f.z})
+	cand.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.eta > b.eta)
+	var across := Vector2(-_wind_dir.y, _wind_dir.x)
+	for c: Dictionary in cand:
+		var ok := true
+		for o: Dictionary in out:
+			var d: Vector2 = c.pos - o.pos
+			if absf(d.dot(across)) < spacing and absf(d.dot(_wind_dir)) < _lambda * 0.4:
+				ok = false
+				break
+		if ok:
+			out.append(c)
 	return out
 
 

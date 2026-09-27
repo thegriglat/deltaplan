@@ -368,7 +368,8 @@ func _update_light() -> void:
 	_sun_energy = 1.3
 	if _sun != null:
 		_sun_dir = _sun.global_transform.basis.z.normalized()
-		color = _sun.light_color
+		# Цвета узлов и окружения — sRGB; в шейдере всё линейное (как у движка).
+		color = _sun.light_color.srgb_to_linear()
 		_sun_energy = _sun.light_energy
 	else:
 		var el := deg_to_rad(float(cfg.sun_elevation_deg))
@@ -381,12 +382,12 @@ func _update_light() -> void:
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
 	if env != null and env.fog_enabled:
-		var fc := env.fog_light_color * env.fog_light_energy
+		var fc := env.fog_light_color.srgb_to_linear() * env.fog_light_energy
 		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b))
 		_material.set_shader_parameter("fog_density", env.fog_density)
 		_material.set_shader_parameter("fog_sun_scatter", env.fog_sun_scatter)
 	else:
-		var fc2 := _color(cfg.fog_color_fallback)
+		var fc2 := _color(cfg.fog_color_fallback).srgb_to_linear()
 		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b))
 		_material.set_shader_parameter("fog_density", float(cfg.fog_density_fallback))
 
@@ -510,7 +511,7 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 	_rec[i] = make_record(
 		c, axes[0], base, sz4.z, sz4.x, sz4.y,
 		Vector4(st.x, st.y, st.z, float(th.noise_seed % 9973)),
-		Vector4(sz4.w, anvil, rain, 0.0), anvil_pad, below
+		Vector4(sz4.w, anvil, rain, 3.0 if th.is_cb else 0.0), anvil_pad, below
 	)
 	if i < _shadows.size():
 		_place_shadow(_shadows[i], c, base, sz4, st, axes, eye, anvil)
@@ -562,7 +563,9 @@ func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
 		return out
 	var w: Dictionary = atmo.cfg.wave
 	var ax: Vector3 = _basis_axes[0]
-	var crests := wf.crests(eye, float(w.lens_radius_m), float(w.lens_min_eta_m))
+	var crests := wf.crests(
+		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
+	)
 	var lam := wf.wavelength()
 	var above := float(atmo.weather.get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)

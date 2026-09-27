@@ -119,6 +119,15 @@ void fragment() {
 	float cos_t = dot(rd, sun_dir);
 	vec3 fc = fog_color * (1.0 + fog_sun_scatter * pow(max(cos_t, 0.0), 8.0));
 	col = col * (1.0 - fog) + fc * alpha * fog;
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	// Compatibility не переводит вывод этого материала (unshaded + premul alpha) из линейного
+	// пространства в sRGB — облака выходили темнее и контрастнее, чем в Forward+ (замер:
+	// GL(x^0,45) ≈ FP(x)). Переводим сами, на непремультиплицированном цвете.
+	vec3 lin = col / max(alpha, 1e-4);
+	vec3 srgb = mix(lin * 12.92, 1.055 * pow(max(lin, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055,
+			step(vec3(0.0031308), lin));
+	col = srgb * alpha;
+#endif
 	ALBEDO = col;
 	ALPHA = alpha;
 }

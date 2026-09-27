@@ -11,6 +11,8 @@ const _KEY_MUL := 1 << 21
 var has_ground: bool = false
 var height_fn: Callable
 var sun_fn: Callable
+## Класс поверхности (x, z) -> int (у terrain — surface_at); пусто — неизвестно.
+var surface_fn: Callable
 
 var _cell: float = 30.0
 var _inv_cell: float = 1.0 / 30.0

@@ -111,6 +111,7 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	ground.setup(cfg.ground, cfg.lee)
 	if old_ground != null and old_ground.has_ground:
 		ground.set_functions(old_ground.height_fn, old_ground.sun_fn)
+		ground.surface_fn = old_ground.surface_fn
 	ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
 	field = ThermalField.new()
 	field.setup(cfg.thermal, weather, seed_value, ground, wind)
@@ -188,10 +189,13 @@ static func _lenschow(xi: float) -> float:
 
 
 ## Функции рельефа: height_fn(x, z) -> высота над уровнем моря, sun_fn(x, z) -> 0..1.
-func set_ground(height_fn: Callable, sun_fn: Callable) -> void:
+## surface_fn(x, z) -> int — класс поверхности (terrain.surface_at), необязательно: для пылевых
+## вихрей над сухими полями (VR-18).
+func set_ground(height_fn: Callable, sun_fn: Callable, surface_fn := Callable()) -> void:
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	ground.set_functions(height_fn, sun_fn)
+	ground.surface_fn = surface_fn
 	ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
 	_update_cloudbase()
 	# Статичные термики — пересадить на новую землю.
@@ -443,6 +447,14 @@ func _create_visuals() -> void:
 			_clouds.name = "Clouds"
 			add_child(_clouds)
 			_clouds.call("setup", self)
+	var cirrus := CirrusLayer.new()
+	cirrus.name = "Cirrus"
+	add_child(cirrus)
+	cirrus.setup(self)
+	var dust := DustDevils.new()
+	dust.name = "DustDevils"
+	add_child(dust)
+	dust.setup(self)
 	if bool(cfg.birds.enabled):
 		var bird_script: Script = load("res://scripts/atmosphere/bird_flock.gd")
 		if bird_script != null:

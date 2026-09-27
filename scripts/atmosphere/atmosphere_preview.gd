@@ -32,6 +32,8 @@ func _ready() -> void:
 			var kv := a.substr(2).split("=", true, 1)
 			_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
+	if _args.has("cirrus"):
+		atmo.weather.cirrus_cover = float(_args.cirrus)
 	if _args.has("wind"):
 		atmo.set_wind(float(_args.wind), float(atmo.weather.wind_from_deg))
 	# Рельеф — чужой модуль: без статического типа, чтобы превью не зависело от его компиляции.
@@ -39,12 +41,20 @@ func _ready() -> void:
 	if terrain != null and terrain.has_method("height_at"):
 		# Реальный рельеф (сцена atmosphere_terrain_preview.tscn): термики от солнечных склонов.
 		atmo.set_ground(
-			Callable(terrain, "height_at"), Callable(terrain, "sun_exposure_at")
+			Callable(terrain, "height_at"),
+			Callable(terrain, "thermal_source_strength_at")
+			if terrain.has_method("thermal_source_strength_at")
+			else Callable(terrain, "sun_exposure_at"),
+			Callable(terrain, "surface_at") if terrain.has_method("surface_at") else Callable()
 		)
 		atmo.set_sun_direction(terrain.call("sun_direction"))
 		var sites: Array = terrain.call("get_start_sites")
 		if not sites.is_empty():
 			_site = sites[0]
+	elif String(_args.get("ground", "")) == "ridge":
+		# Хребет поперёк западного ветра (для волны): гребень вдоль Z на x = 0.
+		atmo.set_ground(_ridge_h, func(_x: float, _z: float) -> float: return 0.8)
+		_make_ridge_mesh()
 	else:
 		atmo.set_ground(
 			func(_x: float, _z: float) -> float: return 0.0,
@@ -57,7 +67,15 @@ func _ready() -> void:
 	_view = String(_args.get("view", "horizon"))
 	if _view == "stages":
 		_make_stages()
+	elif _view in ["cb", "cbnear", "cbfar"]:
+		_make_cb()
+	elif _view == "dust":
+		_make_dust()
 	_shot = String(_args.get("shot", ""))
+	if _shot != "":
+		# Одинаковый кадр для скриншотов (оконный менеджер может выдать любое окно).
+		get_window().mode = Window.MODE_WINDOWED
+		get_window().size = Vector2i(1280, 720)
 	_set_view(_view)
 	if _args.has("bench"):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -129,6 +147,77 @@ func _make_stages() -> void:
 
 
 ## Зрелое облако среднего размера из тех, что реально рисуются (после слияния наложившихся).
+static func _ridge_h(x: float, z: float) -> float:
+	var ridge := 1100.0 * exp(-pow(x / 2200.0, 2.0)) * (0.8 + 0.2 * cos(z / 5000.0))
+	return 300.0 + ridge
+
+
+## Сетка рельефа хребта (60 × 60 км) — только для превью волны.
+func _make_ridge_mesh() -> void:
+	var ground := get_node_or_null("Ground") as MeshInstance3D
+	if ground != null:
+		ground.visible = false
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 160
+	var size := 60000.0
+	var cell := size / n
+	for j in n:
+		for i in n:
+			var x0 := -size * 0.5 + i * cell
+			var z0 := -size * 0.5 + j * cell
+			var q := [Vector3(x0, 0, z0), Vector3(x0 + cell, 0, z0),
+				Vector3(x0 + cell, 0, z0 + cell), Vector3(x0, 0, z0 + cell)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				var v: Vector3 = q[k]
+				st.add_vertex(Vector3(v.x, _ridge_h(v.x, v.z), v.z))
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.35, 0.42, 0.28)
+	mat.roughness = 1.0
+	mi.material_override = mat
+	add_child(mi)
+
+
+## Молодой сильный термик с пылевым вихрем в 600 м от камеры.
+func _make_dust() -> void:
+	atmo.weather.dust_devil_chance = 1.0
+	var dd := atmo.get_node_or_null("DustDevils") as DustDevils
+	if dd != null:
+		dd.model.setup(atmo.cfg.dust, atmo.weather)
+	for k in 3:
+		var id := atmo.add_static_thermal(600.0 + k * 350.0, -600.0 - k * 500.0, 4.5 - k * 0.6, 120.0)
+		var th: AtmoThermal = atmo.field.thermals[id]
+		th.is_static = false
+		th.t_grow = 400.0
+		th.t_mature = 600.0
+		th.t_decay = 200.0
+		# Момент жизни вихря: перебираем рождение так, чтобы вихрь был в середине жизни.
+		for b in 400:
+			th.t_birth = atmo.time_s - b
+			var d := dd.model.devil(th, atmo.time_s, Callable(), Vector2.ZERO) if dd else {}
+			if not d.is_empty() and float(d.age) > 0.35 and float(d.age) < 0.6:
+				break
+	atmo.step(1.0)
+
+
+## Зрелый Cb в разгаре бури к северу — наковальня, вирга, фронт порывов.
+func _make_cb() -> void:
+	var id := atmo.add_static_thermal(14000.0, -9000.0, 4.5, 150.0)
+	var th: AtmoThermal = atmo.field.thermals[id]
+	th.is_cb = true
+	th.suck = 0.4
+	th.overdevelop = 1.0
+	th.cloud_depth = float(atmo.weather.get("cb_top_above_base_m", 8000.0))
+	th.t_birth = atmo.time_s - 3500.0
+	th.t_grow = 300.0
+	th.t_mature = 4000.0
+	th.t_decay = 600.0
+	atmo.step(1.0)
+
+
 func _strongest_cloud(max_dist: float) -> AtmoThermal:
 	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
 	if layer == null:
@@ -190,6 +279,20 @@ func _set_view(v: String) -> void:
 						" птиц ",
 						bf._mm.instance_count
 					)
+		"cb":
+			# Солнце сбоку-сзади (азимут 200°): объём башни виден по светотени.
+			_place(Vector3(0, 700, 0), Vector3(14000, 4500, -9000))
+		"cbfar":
+			_place(Vector3(-30000, 400, 24000), Vector3(14000, 4000, -9000))
+		"cbnear":
+			_place(Vector3(8000, 1500, -3000), Vector3(14000, 4000, -9000))
+		"dust":
+			_place(Vector3(250, 15, -150), Vector3(700, 70, -700))
+		"wave":
+			# С подветренной стороны хребта вдоль ветра — лентикуляры в гребнях волн.
+			_place(Vector3(26000, 1700, 10000), Vector3(6000, 3600, -2000))
+			for cr: Dictionary in atmo.wave.crests(Vector3(10000, 0, 0), 20000.0, 60.0):
+				print("гребень волны ", cr.pos, " η ", cr.eta)
 		"stages":
 			_place(Vector3(0, cb - 450, 0), Vector3(0, cb + 350, -4000))
 		"sun":
