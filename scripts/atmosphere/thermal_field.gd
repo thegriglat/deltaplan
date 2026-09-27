@@ -189,11 +189,14 @@ func rmax_extreme(r: float) -> float:
 	return maxf(r, float(_w.thermal_radius_m[1]))
 
 
-func _setup_cloud(th: AtmoThermal, strength_ms: float, rnd: float) -> void:
-	# Сухие («голубые») термики — без облака: их ищут только по вариометру.
+func _setup_cloud(
+	th: AtmoThermal, strength_ms: float, rnd: float, force_cloud: bool = false
+) -> void:
+	# Сухие («голубые») термики — без облака: их ищут только по вариометру. Термики «+8» —
+	# всегда с крупным облаком (пилот: «по облакам идут — под ними большая скороподъёмность»).
 	var dry := float(_w.get("dry_thermal_fraction", 0.0))
 	var rnd_dry := fposmod(rnd * 7.31 + 0.137, 1.0)
-	th.has_cloud = strength_ms >= float(_w.cloud_min_strength_ms) and rnd_dry >= dry
+	th.has_cloud = force_cloud or (strength_ms >= float(_w.cloud_min_strength_ms) and rnd_dry >= dry)
 	var smax := float(_w.thermal_strength_ms[1])
 	var k := clampf(strength_ms / maxf(smax, 0.01), 0.0, 1.0)
 	th.cloud_depth = float(_w.cloud_depth_m) * (0.35 + 0.65 * k)
@@ -323,14 +326,16 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 	th.strength = lerpf(smin, smax, u) * lerpf(1.0, sun_k, 0.5)
 	th.strength = maxf(th.strength, smin) * (1.0 - shade)
 	th.strength *= pow(insolation, float(_cfg.insolation_strength_exponent))
-	# Изредка — очень сильные термики (8–9 м/с): опасные, «по варику +8 уже надо валить».
-	var ext: Array = _w.get("thermal_extreme_ms", [])
-	if rng.randf() < float(_w.get("thermal_extreme_chance", 0.0)) and ext.size() == 2:
-		th.strength = rng.randf_range(float(ext[0]), float(ext[1])) * sun_k * insolation
-		th.radius = rmax_extreme(th.radius)
 	var rmin := float(_w.thermal_radius_m[0])
 	var rmax := float(_w.thermal_radius_m[1])
 	th.radius = lerpf(rmin, rmax, clampf(0.5 * rng.randf() + 0.5 * u, 0.0, 1.0))
+	# Изредка — очень сильные термики (8–9 м/с): опасные, «по варику +8 уже надо валить».
+	var ext: Array = _w.get("thermal_extreme_ms", [])
+	var is_extreme := false
+	if rng.randf() < float(_w.get("thermal_extreme_chance", 0.0)) and ext.size() == 2:
+		th.strength = rng.randf_range(float(ext[0]), float(ext[1])) * sun_k * insolation
+		th.radius = rmax_extreme(th.radius)
+		is_extreme = true
 	# Времена: пауза + рост + зрелость + распад = период клетки.
 	var gap := rng.randf_range(float(_cfg.gap_s[0]), float(_cfg.gap_s[1]))
 	var g := rng.randf_range(float(_cfg.grow_s[0]), float(_cfg.grow_s[1]))
@@ -342,7 +347,7 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 	th.t_grow = g * k
 	th.t_mature = m * k
 	th.t_decay = d * k
-	_setup_cloud(th, th.strength, rng.randf())
+	_setup_cloud(th, th.strength, rng.randf(), is_extreme)
 	_setup_cb(th, rng.randf())
 	_apply_wind(th)
 	return th
