@@ -151,7 +151,7 @@
   },
   "terrain_look": {
     "_doc": "Переопределение configs/world.json → terrain_look. Биягода летом: жёлто-зелёные степные склоны",
-    "dryness": 0.25,
+    "dryness": 0.15,
     "dry_south_k": 0.3
   }
 }

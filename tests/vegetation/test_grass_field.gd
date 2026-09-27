@@ -78,3 +78,23 @@ func test_landing_rect_inside_and_outside() -> void:
 		not GrassField.in_landing_rect(side_out, center, axis_deg, length_m, width_m),
 		"1 м за краем по ширине — снаружи"
 	)
+
+
+## Густота (grass.density_pct): пучков на площадь ∝ густоте, 0 — трава выключена;
+## 100 % в конфиге — вдвое чаще прежнего шага 0,3 м, травинки вдвое тоньше 0,05 м.
+func test_density_scales_clump_count() -> void:
+	var g: Dictionary = Config.get_config("vegetation").get("grass", {})
+	var base := float(g.clump_spacing_m)
+	check(absf(pow(0.3 / base, 2.0) - 2.0) < 0.1, "пучков вдвое больше прежнего: шаг %.3f" % base)
+	check(is_equal_approx(float(g.blade_width_m), 0.025), "травинка 0,025 м")
+	for pct in [50.0, 100.0, 150.0, 200.0]:
+		var s := GrassField.spacing_for_density(base, GrassField.density_k({"density_pct": pct}))
+		var ratio := pow(base / s, 2.0)
+		check(absf(ratio - pct / 100.0) < 1e-3, "%.0f%%: пучков ×%.3f" % [pct, ratio])
+	check(not GrassField.is_enabled({"enabled": true, "density_pct": 0}), "0 % — выключена")
+	check(GrassField.is_enabled({"enabled": true, "density_pct": 10}), "10 % — включена")
+	check(not GrassField.is_enabled({"enabled": false, "density_pct": 100}), "enabled=false")
+	var presets: Dictionary = Config.get_config("game").get("graphics_presets", {})
+	for p: String in {"low": 0, "medium": 100, "high": 150}:
+		var v: Variant = presets[p].configs.vegetation.grass.density_pct
+		check(int(v) == {"low": 0, "medium": 100, "high": 150}[p], "пресет %s: %s %%" % [p, v])

@@ -133,7 +133,7 @@
   "landing_sites_doc": "Посадочные площадки (информация для пилота и интегратора: {id, name, lat, lon}); Terrain.get_landing_sites() даёт их с позицией в мире",
   "terrain_look": {
     "_doc": "Переопределение configs/world.json → terrain_look. Аушкуль летом: соломенно-зелёные степные склоны, сосново-берёзовые колки",
-    "dryness": 0.4,
+    "dryness": 0.3,
     "dry_south_k": 0.3
   },
   "trees": {

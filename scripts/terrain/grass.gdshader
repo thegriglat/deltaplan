@@ -1,7 +1,8 @@
 // Травинки вокруг камеры (VR-17, VR-6): пучки на сетке, привязанной к миру (при движении не
 // «прыгают»), MultiMesh без трансформов — положение, высоту и цвет каждого пучка считает шейдер.
 // Где трава — решает карта поверхности (луг, пашня — выше, кустарник — реже; лес, скалы, вода,
-// застройка — нет); цвет — та же палитра, что у рельефа (meadow_color). Качание — тем же полем
+// застройка — нет); цвет — цвет земли луга в этой точке (meadow_look.gdshaderinc: палитра,
+// влажность, экспозиция, пятна с высоты — как рисует terrain.gdshader). Качание — тем же полем
 // ветра, что колышет рельеф (порывы, термики), приминание у ног пилота. Параметры задаёт
 // GrassField из configs/vegetation.json → grass.
 shader_type spatial;
@@ -9,6 +10,7 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
+#include "res://scripts/terrain/meadow_look.gdshaderinc"
 
 uniform vec2 grid_center_cell;
 uniform int grid_n;
@@ -18,7 +20,11 @@ uniform vec2 blade_height_m = vec2(0.25, 0.55);   // луг, мин/макс
 uniform vec2 crop_height_m = vec2(0.6, 0.9);      // посевы (нива)
 uniform float shrub_density = 0.5;
 uniform float color_variation = 0.15;
+uniform vec3 blade_tint = vec3(1.08, 1.0, 0.85);  // оттенок травинок поверх цвета луга
+uniform float dry_clump_share = 0.0;              // доля сухих соломенных пучков (редкие)
+uniform vec2 blade_shade = vec2(1.25, 1.75);      // яркость у корня / у кончика, × цвет земли
 uniform float sway_hz = 0.8;                      // частота собственного качания, Гц
+uniform float sway_hz_var = 0.0;                  // разброс частоты качания по пучкам (±доля)
 uniform float sway_amp = 0.12;                    // собственное качание (доля высоты) при полном ветре
 uniform float bend_amp = 0.7;                     // наклон по ветру/порыву (доля высоты)
 // скошенные места (посадочные площадки, круг — пока не подключены прямоугольники): xy — центр,
@@ -118,8 +124,10 @@ void vertex() {
 		float spd = length(wind_vec);
 		float amp = smoothstep(0.3, wind_full_ms, spd);
 		vec2 dir = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
+		// у каждого пучка своя фаза и немного своя частота — без синхронного «полотна»
 		float ph = hash12(cell + 4.4) * 6.2832;
-		vec2 lean = bend * bend_amp + dir * amp * (0.15 + sway_amp * sin(TIME * sway_hz * 6.2832 + ph));
+		float fk = 1.0 + sway_hz_var * (2.0 * hash12(cell + 4.9) - 1.0);
+		vec2 lean = bend * bend_amp + dir * amp * (0.15 + sway_amp * sin(TIME * sway_hz * fk * 6.2832 + ph));
 		// приминание: пилот стоит/бежит — трава клонится от него и ложится
 		vec2 pv = xz - press_pos.xz;
 		float pd = length(pv);
@@ -139,12 +147,22 @@ void vertex() {
 		}
 		v_n = normalize(n + vec3(lean.x, 0.0, lean.y) * 0.3);
 
-		vec3 base = meadow_color(xz, northness(n), meadow_patch(xz));
+		// цвет подложки: тот же луг, что рисует рельеф под травой (включая пятна с высоты)
+		vec4 rel = relief_at(xz);
+		float wet = rel.r * 2.0 - 1.0;
+		vec3 base = meadow_ground_color(xz, northness(n), meadow_patch(xz), wet, rel.b * 2.0 - 1.0);
+		base = meadow_macro(xz, base, 0.05, wet, d, 0.0);
 		if (c == 3) {
 			base = field_plot_color(xz, base);
 		}
+		// редкие сухие пучки — солома той же яркости (основной тон — из палитры луга: сухо там,
+		// где сухо по локации, южным склонам и пятнам)
+		const vec3 LB = vec3(0.2126, 0.7152, 0.0722);
+		if (hash12(cell + 17.9) < dry_clump_share) {
+			base = straw_color * (dot(base, LB) / max(dot(straw_color, LB), 1e-3)) * 1.15;
+		}
 		base *= 1.0 + color_variation * (hash12(cell + 13.3) - 0.5) * 2.0;
-		base *= vec3(1.08, 1.0, 0.85) * (1.0 + wind_shade * wshade);
+		base *= blade_tint * (1.0 + wind_shade * wshade);
 		v_col = base;
 		v_t = t;
 	}
@@ -152,7 +170,7 @@ void vertex() {
 
 void fragment() {
 	// у корня темнее (затенение в гуще), к кончику светлее
-	ALBEDO = v_col * mix(1.25, 1.75, v_t);
+	ALBEDO = v_col * mix(blade_shade.x, blade_shade.y, v_t);
 	// освещение как у земли под травой (обе стороны травинки): нормаль явная и одна и та же
 	// для лица и изнанки (render_mode cull_disabled, без FRONT_FACING-переворота — иначе
 	// изнанка темнеет); тонкий стебель просвечивает — BACKLIGHT держит изнанку не темнее

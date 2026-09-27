@@ -126,7 +126,7 @@
   },
   "terrain_look": {
     "_doc": "Переопределение configs/world.json → terrain_look. Онгудай летом: зелёная долина Урсула, степные южные склоны",
-    "dryness": 0.15,
-    "dry_south_k": 0.35
+    "dryness": 0.05,
+    "dry_south_k": 0.25
   }
 }

@@ -119,10 +119,11 @@
   "render_scale_step_pct": 5.0,
   "render_scale_range_pct_doc": "Диапазон и шаг слайдера «Масштаб рендера» в настройках, %",
   "graphics_presets": {
-    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D, scaling_mode — bilinear/fsr (FSR 1), fsr_sharpness — резкость FSR, по умолчанию Годо 0.2). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м",
+    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D, scaling_mode — bilinear/fsr (FSR 1), fsr_sharpness — резкость FSR, по умолчанию Годо 0.2). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м; configs.vegetation.grass.density_pct — густота травы, % (0 — выключена; слайдер «Густота травы» в настройках её переопределяет)",
     "low": {
       "name": "Низкое (лёгкое)",
       "configs": {
+        "vegetation": {"grass": {"density_pct": 0}},
         "atmosphere": {
           "clouds": {
             "quality": "low",
@@ -154,6 +155,7 @@
     "medium": {
       "name": "Среднее",
       "configs": {
+        "vegetation": {"grass": {"density_pct": 100}},
         "atmosphere": {
           "clouds": {
             "quality": "medium",
@@ -179,6 +181,7 @@
     "high": {
       "name": "Высокое (полное)",
       "configs": {
+        "vegetation": {"grass": {"density_pct": 150}},
         "atmosphere": {
           "clouds": {
             "quality": "high",

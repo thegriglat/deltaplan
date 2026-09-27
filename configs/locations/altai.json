@@ -116,7 +116,7 @@
   },
   "terrain_look": {
     "_doc": "Переопределение configs/world.json → terrain_look. Манжерок: сочные луга",
-    "dryness": 0.1,
+    "dryness": 0.05,
     "dry_south_k": 0.3
   }
 }

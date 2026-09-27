@@ -406,7 +406,7 @@ func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
 	if grass != null:
 		grass.queue_free()
 		grass = null
-	if not bool(cfg.get("enabled", false)) or renderer.height_textures.is_empty():
+	if not GrassField.is_enabled(cfg) or renderer.height_textures.is_empty():
 		return
 	var spots: Array[Vector4] = []
 	var r := float(cfg.get("landing_mow_radius_m", 0.0))
@@ -432,6 +432,8 @@ func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
 		cfg,
 		spots
 	)
+	if not reliefs.is_empty():
+		grass.set_relief(reliefs[0])
 
 
 func _setup_wind(cfg: Dictionary) -> void:
@@ -718,6 +720,8 @@ func _finish_relief(block: bool) -> void:
 			r.make_textures()
 		if renderer != null:
 			renderer.set_reliefs(reliefs)
+		if grass != null and not reliefs.is_empty():
+			grass.set_relief(reliefs[0])
 		print("Terrain: поля рельефа за %.2f с" % ((Time.get_ticks_usec() - _relief_t0) / 1e6))
 	else:
 		for r in reliefs:

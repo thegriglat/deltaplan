@@ -38,6 +38,8 @@ func setup(
 ) -> void:
 	_layer = layer
 	_spacing = float(cfg.clump_spacing_m)
+	if bool(cfg.get("density_scaled", true)):
+		_spacing = spacing_for_density(_spacing, density_k(cfg))
 	_max_agl = float(cfg.get("max_agl_m", 120.0))
 	_mowed_height_k = float(cfg.get("mowed_height_k", 0.3))
 	var radius := float(cfg.radius_m)
@@ -69,7 +71,13 @@ func setup(
 	material.set_shader_parameter("crop_height_m", _v2(cfg.crop_height_m))
 	material.set_shader_parameter("shrub_density", float(cfg.shrub_density))
 	material.set_shader_parameter("color_variation", float(cfg.color_variation))
+	var tint: Array = cfg.get("blade_tint", [1.08, 1.0, 0.85])
+	material.set_shader_parameter("blade_tint", Vector3(tint[0], tint[1], tint[2]))
+	material.set_shader_parameter("blade_shade", _v2(cfg.get("blade_shade", [1.25, 1.75])))
+	material.set_shader_parameter("macro_noise_tex", TerrainRenderer.macro_noise_texture())
+	material.set_shader_parameter("dry_clump_share", float(cfg.get("dry_clump_share", 0.0)))
 	material.set_shader_parameter("sway_hz", float(cfg.sway_hz))
+	material.set_shader_parameter("sway_hz_var", float(cfg.get("sway_hz_var", 0.0)))
 	material.set_shader_parameter("sway_amp", float(cfg.sway_amp))
 	material.set_shader_parameter("bend_amp", float(cfg.bend_amp))
 	material.set_shader_parameter("press_radius_m", float(cfg.press_radius_m))
@@ -136,8 +144,31 @@ func _process(_delta: float) -> void:
 		material.set_shader_parameter("press_pos", pilot.global_position)
 
 
+## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
+## доля: 1.0 — как задано clump_spacing_m; 0 — трава выключена.
+static func density_k(grass_cfg: Dictionary) -> float:
+	return maxf(float(grass_cfg.get("density_pct", 100.0)), 0.0) / 100.0
+
+
+## Шаг пучков при густоте k: число пучков на площадь ∝ k, шаг — как 1/√k.
+static func spacing_for_density(spacing: float, k: float) -> float:
+	return spacing / sqrt(maxf(k, 0.05))
+
+
+## Трава включена: enabled и густота больше нуля.
+static func is_enabled(grass_cfg: Dictionary) -> bool:
+	return bool(grass_cfg.get("enabled", false)) and density_k(grass_cfg) > 0.0
+
+
 static func _v2(a: Variant) -> Vector2:
 	return Vector2(float(a[0]), float(a[1]))
+
+
+## Поля рельефа (влажность, северность) → цвет травинок как у земли под ними; все слои.
+func set_relief(relief: TerrainRelief) -> void:
+	TerrainRenderer.set_relief(material, relief)
+	if far_layer != null:
+		far_layer.set_relief(relief)
 
 
 ## Посадки — прямоугольником, не кругом (рекомендация 4): sites — как

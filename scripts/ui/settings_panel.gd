@@ -3,7 +3,9 @@ extends Control
 ## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
 ## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
-## другие пилоты в небе (bots.json → count; со следующего полёта).
+## другие пилоты в небе (bots.json → count; со следующего полёта), густота травы
+## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
+## загрузки местности).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
@@ -28,6 +30,7 @@ var _fov: HSlider
 var _helmet: OptionButton
 var _helmet_modes: Array = []
 var _bots: HSlider
+var _grass: HSlider
 
 
 func _ready() -> void:
@@ -98,6 +101,17 @@ func _ready() -> void:
 	_render_scale.value_changed.connect(func(x: float) -> void: rs_value.text = "%.0f%%" % x)
 	_render_scale_auto.toggled.connect(func(on: bool) -> void: _render_scale.editable = not on)
 	UiKit.row(box, tr("Масштаб рендера"), rs_box)
+	var grass_cfg: Dictionary = Config.get_config("vegetation").get("grass", {})
+	var gr: Array = grass_cfg.get("density_range_pct", [0.0, 200.0])
+	_grass = UiKit.slider_row(
+		box,
+		tr("Густота травы"),
+		float(gr[0]),
+		float(gr[1]),
+		float(grass_cfg.get("density_step_pct", 10.0)),
+		"%.0f%%"
+	)
+	_graphics.item_selected.connect(_on_graphics_selected)
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
@@ -150,6 +164,8 @@ func load_values() -> void:
 	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
 	_render_scale.value_changed.emit(_render_scale.value)
 	_render_scale.editable = not _render_scale_auto.button_pressed
+	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
+	_grass.value_changed.emit(_grass.value)
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -215,7 +231,22 @@ func save() -> bool:
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():
 		ok = GraphicsPresets.select(g, config_dir) and ok
+	# густота травы — после пресета (он пишет свою; слайдер при выборе пресета уже показал её)
+	var gp := {"grass": {"density_pct": _grass.value}}
+	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
+	Config.reload()
 	return ok
+
+
+## Выбран другой пресет графики — слайдер «Густота травы» показывает густоту этого пресета.
+func _on_graphics_selected(i: int) -> void:
+	var all: Dictionary = Config.get_config("game").get("graphics_presets", {})
+	if i < 0 or i >= _graphics_names.size():
+		return
+	var p: Dictionary = all.get(_graphics_names[i], {})
+	var v: Variant = p.get("configs", {}).get("vegetation", {}).get("grass", {}).get("density_pct")
+	if v != null:
+		_grass.value = float(v)
 
 
 func _on_visibility_changed() -> void:
