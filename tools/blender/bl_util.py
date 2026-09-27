@@ -86,7 +86,7 @@ class MeshBuilder:
         self.mats: list = []     # индекс материала на грань
         self.smooth: list = []
         self.mat_names: list = []
-        self.colors: dict = {}   # индекс вершины → (r, g, b, a); есть — пишется атрибут Col
+        self.colors: dict = {}   # индекс вершины → (x, y) второй UV (UV2); есть — пишется слой
 
     def _mat(self, name: str) -> int:
         if name not in self.mat_names:
@@ -106,7 +106,7 @@ class MeshBuilder:
     def add_grid(self, pts, mat: str, uv=None, flip: bool = False, smooth: bool = True,
                  wrap: bool = False, wrap_rows: bool = False, colors=None) -> None:
         """pts[i][j] — сетка точек; uv[i][j] — (u, v). wrap — замкнуть по j, wrap_rows — по i.
-        colors[i][j] — цвет вершины (r, g, b, a), например маска анимации паруса."""
+        colors[i][j] — (x, y) второй UV вершины (UV2), например маска анимации паруса."""
         rows, cols = len(pts), len(pts[0])
         base = len(self.verts)
         for i, row in enumerate(pts):
@@ -207,10 +207,14 @@ class MeshBuilder:
                 uvl.data[f.loop_start + k].uv = fuv[k]
             li += f.loop_total
         if self.colors:
-            col = me.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
-            for i, c in self.colors.items():
-                col.data[i].color = c
-            me.color_attributes.active_color = col
+            # вторая UV (TEXCOORD_1 → UV2 в Godot): (r, g) из «цвета» вершины. Цвет вершин не
+            # используем — по glTF COLOR_0 умножается на цвет материала.
+            uv2 = me.uv_layers.new(name="UV2")
+            for f in me.polygons:
+                for k in range(f.loop_total):
+                    li = f.loop_start + k
+                    uv2.data[li].uv = self.colors.get(me.loops[li].vertex_index, (0, 0))[:2]
+            me.uv_layers.active_index = 0
         me.polygons.foreach_set("material_index", self.mats)
         me.polygons.foreach_set("use_smooth", self.smooth)
         for mn in self.mat_names:
@@ -265,7 +269,7 @@ def export(stem: str) -> None:
     bpy.ops.export_scene.gltf(filepath=os.path.join(MODELS, stem + ".glb"),
                               export_format="GLB", export_yup=True, use_selection=False,
                               export_apply=True, export_extras=False,
-                              export_vertex_color="ACTIVE",  # касательные Godot строит сам
+                              export_vertex_color="NONE",
                               export_cameras=False, export_lights=False)
     print("EXPORTED %s: %d tris" % (stem, tri_count()))
 

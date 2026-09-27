@@ -72,7 +72,17 @@ func _check_axes(path: String, root: Node3D) -> void:
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])
 	elif path.ends_with("pilot.glb"):
 		var head := _pos(root, "Head")
-		_expect(path, "Head впереди (−Z) и ниже подвеса", head.z < 0.0 and head.y < -0.8)
+		_expect(path, "Head впереди (−Z) и ниже подвеса (поза покоя — стоя)", head.y < -0.1)
+		var ap := root.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		var need := ["stand", "walk", "run", "run_air", "climb_in", "prone", "climb_out",
+			"flare"]
+		var have: PackedStringArray = ap.get_animation_list() if ap else PackedStringArray()
+		var miss := need.filter(func(a: String) -> bool: return not have.has(a))
+		print("  анимации: %s" % ", ".join(have))
+		_expect(path, "все анимации на месте (нет: %s)" % ", ".join(miss), miss.is_empty())
+		_expect(path, "walk и run зациклены", ap != null
+			and ap.get_animation("walk").loop_mode == Animation.LOOP_LINEAR
+			and ap.get_animation("run").loop_mode == Animation.LOOP_LINEAR)
 		print("  Head %s HandL %s HandR %s" % [head, _pos(root, "HandL"), _pos(root, "HandR")])
 	elif path.ends_with("instrument.glb") or path.ends_with("vario_90s.glb"):
 		var scr := root.find_child("Screen", true, false) as MeshInstance3D

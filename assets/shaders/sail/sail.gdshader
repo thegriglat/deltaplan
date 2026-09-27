@@ -1,8 +1,8 @@
 // Парус дельтаплана (docs/models.md → «Шейдер паруса»): просвечивание на солнце, карта нормалей
 // (латы, швы, ламинат), двусторонний; вершинная анимация по параметрам полёта.
-// Маска анимации — цвет вершин меша Sail (tools/blender/build_gliders.py):
-//   COLOR.r — вес пролёта между латами (0 на лате), COLOR.g — доля хорды (0 — передняя кромка,
-//   1 — задняя), COLOR.b — 1 у нижней обшивки. Смещение — вдоль +Y модели (вверх по крылу), м.
+// Маска анимации — вторая UV меша Sail (tools/blender/build_gliders.py):
+//   UV2.x — вес пролёта между латами (0 на лате), UV2.y — доля хорды (0 — передняя кромка,
+//   1 — задняя), у нижней обшивки UV2.y + 2. Смещение — вдоль +Y модели (вверх по крылу), м.
 // Значения по умолчанию совпадают с assets/shaders/sail/sail_params.json (их ставит SailMaterial).
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
@@ -44,9 +44,9 @@ uniform float lower_surface_factor = 0.35;
 const float TAU_ = 6.28318530718;
 
 void vertex() {
-	float bay = COLOR.r;
-	float t = COLOR.g;
-	float low = COLOR.b;
+	float bay = UV2.x;
+	float low = step(1.5, UV2.y);
+	float t = UV2.y - 2.0 * low;
 	float x = VERTEX.x;
 	float tm = time_override >= 0.0 ? time_override : TIME;
 	float body = bay * smoothstep(0.15, 0.75, t);

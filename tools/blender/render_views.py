@@ -38,6 +38,22 @@ def import_glb(name: str, parent_matrix: Matrix = None) -> list:
     return new
 
 
+def set_pose(name: str, frame: int = 1) -> None:
+    """Поза пилота из анимаций pilot.glb (stand, walk, run, prone, flare)."""
+    arm = next((o for o in bpy.data.objects if o.type == "ARMATURE"), None)
+    act = next((a for a in bpy.data.actions if a.name == name or a.name.startswith(name + "_")),
+               None)
+    if arm is None or act is None:
+        print("NO POSE", name)
+        return
+    arm.animation_data_create()
+    for tr in arm.animation_data.nla_tracks:
+        tr.mute = True
+    arm.animation_data.action = act
+    bpy.context.scene.frame_set(frame)
+    bpy.context.view_layer.update()
+
+
 def setup_scene() -> None:
     sc = bpy.context.scene
     sc.render.engine = "BLENDER_EEVEE_NEXT"
@@ -172,11 +188,15 @@ def main() -> None:
     U.reset_scene()
     setup_scene()
     objs = import_glb(kind)
+    pose = os.environ.get("POSE", "prone")
+    if kind == "pilot":
+        set_pose(pose, int(os.environ.get("POSE_FRAME", "1")))
     if is_wing and os.environ.get("WITH_PILOT"):  # для сравнения с фото: с пилотом и прибором
         import_glb("pilot", bpy.data.objects["HangPoint"].matrix_world.copy())
+        set_pose(pose, int(os.environ.get("POSE_FRAME", "1")))
         import_glb("instrument", bpy.data.objects["InstrumentMount"].matrix_world.copy())
         import_glb("vario_90s", bpy.data.objects["VarioMount"].matrix_world.copy())
-    cams = add_cameras(objs, [v for v in views if v != "cockpit"], kind)
+    cams = add_cameras(objs, [v for v in views if v not in ("cockpit", "pov_down")], kind)
     os.makedirs(out_dir, exist_ok=True)
     for name, cam in cams.items():
         render(cam, os.path.join(out_dir, name + ".png"))
@@ -184,12 +204,32 @@ def main() -> None:
         # кабинный вид: + пилот в точке подвеса, + прибор на стойке
         hang = bpy.data.objects["HangPoint"].matrix_world.copy()
         import_glb("pilot", hang)
+        set_pose("prone")
         mount = bpy.data.objects["InstrumentMount"].matrix_world.copy()
         vario = bpy.data.objects["VarioMount"].matrix_world.copy()
         import_glb("instrument", mount)
         import_glb("vario_90s", vario)
         cam = add_cameras(objs, ["cockpit"], kind)["cockpit"]
         render(cam, os.path.join(out_dir, "cockpit.png"))
+    if "pov_down" in views and is_wing:
+        # на старте: стоит с крылом на плечах, взгляд из глаз вниз на ноги (шлем скрыт)
+        if "cockpit" not in views:
+            import_glb("pilot", bpy.data.objects["HangPoint"].matrix_world.copy())
+            import_glb("instrument", bpy.data.objects["InstrumentMount"].matrix_world.copy())
+            import_glb("vario_90s", bpy.data.objects["VarioMount"].matrix_world.copy())
+        set_pose("stand")
+        bpy.data.objects["Helmet"].hide_render = True
+        m = bpy.data.objects["Head"].matrix_world
+        eye = m.translation
+        fwd = Vector((0, 1, 0))
+        down = math.radians(float(os.environ.get("POV_DOWN", "75")))
+        tgt = eye + fwd * math.cos(down) - Vector((0, 0, math.sin(down)))
+        cam = camera("pov_down", eye + Vector((0, 0.02, 0)), tgt, lens=12.0 / math.tan(
+            math.radians(47.5)))
+        cam.data.sensor_fit = "VERTICAL"
+        cam.data.sensor_height = 24.0
+        cam.data.clip_start = 0.01
+        render(cam, os.path.join(out_dir, "pov_down.png"))
 
 
 if __name__ == "__main__":

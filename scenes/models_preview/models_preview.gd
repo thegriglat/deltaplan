@@ -5,6 +5,7 @@ extends Node3D
 ##   xvfb-run -a godot --path . --rendering-method gl_compatibility \
 ##     res://scenes/models_preview/models_preview.tscn -- --view=iso --shot=/путь/кадр.png
 ## Виды: iso (все три крыла), below (снизу), cockpit (глаза пилота спортивного крыла), side.
+## --pose=prone|stand|walk|run|run_air|climb_in|climb_out|flare — анимация пилота.
 
 const WINGS := ["glider_training", "glider_kingpost", "glider_sport"]
 const SPACING := 13.0
@@ -24,6 +25,8 @@ func _ready() -> void:
 
 func _process(_dt: float) -> void:
 	_frames += 1
+	if _frames == 4:  # кости пилота (Head) встали в позу анимации
+		_place_camera(String(_args.get("view", "iso")))
 	if _args.has("shot") and _frames == 8:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(String(_args.shot))
@@ -39,6 +42,9 @@ func _add_glider(model: String, pos: Vector3) -> void:
 	var hang := wing.find_child("HangPoint", true, false) as Node3D
 	var pilot := _load("res://assets/models/pilot.glb")
 	hang.add_child(pilot)
+	var anim := pilot.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if anim != null:
+		anim.play(String(_args.get("pose", "prone")))
 	var mount := wing.find_child("InstrumentMount", true, false) as Node3D
 	mount.add_child(_load("res://assets/models/instrument.glb"))
 	var vario := wing.find_child("VarioMount", true, false) as Node3D
@@ -63,6 +69,14 @@ func _place_camera(view: String) -> void:
 		"side":
 			cam.position = Vector3(SPACING + 9, -0.5, 0)
 			cam.look_at(Vector3(SPACING, -0.6, 0))
+		"pov":  # на старте: из глаз (Head) вниз на ноги, --pose=stand
+			var w := get_node(WINGS[int(_args.get("wing", "2"))]) as Node3D
+			var h := w.find_child("Head", true, false) as Node3D
+			(w.find_child("Helmet", true, false) as Node3D).visible = false
+			cam.global_position = h.global_position
+			cam.global_basis = Basis.from_euler(Vector3(deg_to_rad(-75), 0, 0))
+			cam.fov = 95
+			cam.near = 0.01
 		"cockpit":
 			var wing := get_node(WINGS[2]) as Node3D
 			var head := wing.find_child("Head", true, false) as Node3D

@@ -1,7 +1,7 @@
 extends Node3D
 ## Стенд шейдера паруса (docs/models.md → «Шейдер паруса»): крыло с пилотом, солнце за парусом,
 ## слайдеры скорости, сваливания и турбулентности. Аргументы (после --):
-##   --wing=sport|kingpost|training --airspeed=10 --stall=0 --turb=0
+##   --wing=sport|kingpost|training --airspeed=10 --stall=0 --turb=0 --pose=prone
 ##   --view=below|keel|te|cockpit|side  (below — снизу против солнца, keel — из-за пилота вверх
 ##                                      на нижнюю поверхность, te — задняя кромка крупно)
 ##   --shot=/путь/кадр.png          снимок и выход; --frames=N --dt=0.04 — серия кадров
@@ -14,6 +14,7 @@ var _stall := 0.0
 var _turb := 0.0
 var _frame := 0
 var _shots := 0
+var _pilot: Node3D
 
 
 func _ready() -> void:
@@ -29,6 +30,10 @@ func _ready() -> void:
 	var hang := wing.find_child("HangPoint", true, false) as Node3D
 	var pilot := (load("res://assets/models/pilot.glb") as PackedScene).instantiate() as Node3D
 	hang.add_child(pilot)
+	_pilot = pilot
+	var anim := pilot.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if anim != null:
+		anim.play(String(_args.get("pose", "prone")))
 	var mount := wing.find_child("InstrumentMount", true, false) as Node3D
 	mount.add_child((load("res://assets/models/instrument.glb") as PackedScene).instantiate())
 	_mat = SailMaterial.apply(wing.find_child("Sail", true, false) as MeshInstance3D, model)
@@ -42,6 +47,8 @@ func _ready() -> void:
 
 func _process(_dt: float) -> void:
 	_frame += 1
+	if _frame == 3:  # кости пилота встали в позу анимации
+		_place_camera(String(_args.get("view", "below")), _pilot)
 	if not _args.has("shot"):
 		return
 	var n := int(_args.get("frames", "1"))

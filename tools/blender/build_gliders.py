@@ -115,9 +115,9 @@ def span_stations(n_batt: int) -> list:
 
 
 def build_sail(ws: WingShape, mats: dict):
-    """Парус. Цвет вершин (атрибут Col → COLOR в Godot) — маска для шейдера паруса
-    (assets/shaders/sail/): R — вес пролёта между латами (0 на лате), G — доля хорды t
-    (0 — передняя кромка, 1 — задняя), B — 1 у нижней обшивки."""
+    """Парус. Вторая UV (UV2 в Godot) — маска для шейдера паруса (assets/shaders/sail/):
+    UV2.x — вес пролёта между латами (0 на лате, 1 посередине), UV2.y — доля хорды t
+    (0 — передняя кромка, 1 — задняя); у нижней обшивки к UV2.y прибавлено 2."""
     mb = U.MeshBuilder()
     half = span_stations(ws.p["battens_per_side"])
     st = [(-a, w) for a, w in reversed(half)] + half[1:]
@@ -125,13 +125,13 @@ def build_sail(ws: WingShape, mats: dict):
     ts = stations(CHORD_STATIONS, True)
     top = [[ws.upper(u, t) for t in ts] for u in us]
     top_uv = [[((u + 1) / 2, t * 0.5) for t in ts] for u in us]
-    top_col = [[(w, t, 0.0, 1.0) for t in ts] for _, w in st]
+    top_col = [[(w, t) for t in ts] for _, w in st]
     mb.add_grid(top, "Sail", top_uv, flip=True, colors=top_col)
     tls = stations(14, True)
     cov = ws.p["lower_cover"]
     bot = [[ws.lower(u, tl) for tl in tls] for u in us]
     bot_uv = [[((u + 1) / 2, 0.5 + tl * 0.5) for tl in tls] for u in us]
-    bot_col = [[(w, tl * cov, 1.0, 1.0) for tl in tls] for _, w in st]
+    bot_col = [[(w, 2.0 + tl * cov) for tl in tls] for _, w in st]
     mb.add_grid(bot, "Sail", bot_uv, flip=False, colors=bot_col)
     return mb.build("Sail", mats)
 
