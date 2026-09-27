@@ -13,4 +13,6 @@ func _smoke_test() -> void:
 	print("smoke: physics_hz=%s dirs=%s" % [sim.get("physics_hz"), Config.search_dirs()])
 	print("smoke: wings=%s" % [Config.list_configs("wings")])
 	print("smoke: locations=%s" % [Config.list_configs("locations")])
-	get_tree().quit(0 if not sim.is_empty() else 1)
+	var terrain_ok := FileAccess.file_exists("res://data/terrain/altai/meta.json")
+	print("smoke: terrain data=%s" % terrain_ok)
+	get_tree().quit(0 if not sim.is_empty() and terrain_ok else 1)
