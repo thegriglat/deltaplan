@@ -33,3 +33,5 @@ func test_events_do_not_crash() -> void:
 	check(fa.get_loop_db("rush") > -80.0, "поток звучит на 54 км/ч")
 	check(AudioServer.get_bus_index("Wind") >= 0, "шина Wind есть")
 	fa.free()
+	# Аудиопоток удаляет остановленные playback асинхронно — дать ему пару циклов микширования.
+	OS.delay_msec(150)

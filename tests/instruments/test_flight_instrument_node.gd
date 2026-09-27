@@ -88,3 +88,5 @@ func test_vario_audio_presets() -> void:
 	va.set_thresholds(0.3, -2.0)
 	check(absf(float(va.get_settings().climb_on_ms) - 0.3) < 1e-6, "порог писка изменён")
 	va.free()
+	# Аудиопоток удаляет остановленные playback асинхронно — дать ему пару циклов микширования.
+	OS.delay_msec(150)

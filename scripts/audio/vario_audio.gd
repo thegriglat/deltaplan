@@ -103,10 +103,11 @@ func get_skips() -> int:
 
 
 func _exit_tree() -> void:
-	# Отпустить playback генератора (иначе утечка при выходе).
+	# Отпустить playback генератора: остановить, снять поток (иначе утечка при выходе).
+	_playback = null
 	if player:
 		player.stop()
-	_playback = null
+		player.stream = null
 
 
 func _process(_delta: float) -> void:

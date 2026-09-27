@@ -18,3 +18,6 @@ func test_vario_audio_node_fills_buffer() -> void:
 	check(node.player != null and node.player.playing, "плеер играет")
 	check(node.player.stream is AudioStreamGenerator, "поток — генератор")
 	node.free()
+	# Аудиопоток удаляет остановленный playback асинхронно — дать ему пару циклов микширования,
+	# иначе при немедленном выходе движок сообщает об утечке.
+	OS.delay_msec(150)

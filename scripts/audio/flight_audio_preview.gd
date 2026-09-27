@@ -101,6 +101,8 @@ func _finish() -> void:
 		audio.queue_free()
 		for i in 3:
 			await get_tree().process_frame
+		# Аудиопоток удаляет остановленные playback асинхронно.
+		OS.delay_msec(150)
 		get_tree().quit()
 
 
