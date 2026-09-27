@@ -25,6 +25,7 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 	UiKit.label(box, tr("Об игре"), "TitleLabel")
+	UiKit.label(box, BuildInfo.text(), "HintLabel")
 	UiKit.label(box, tr("В благодарность родителям."))
 	UiKit.label(
 		box, tr("«В этом безмолвном океане неба рождается истинное понимание свободы.»"), "HintLabel"

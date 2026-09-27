@@ -8,6 +8,11 @@ target="${1:-all}"
 mode="--export-debug"
 [[ "${2:-}" == "--release" ]] && mode="--export-release"
 
+# Коммит сборки для «Об игре» (BuildInfo): 6 символов, «+» — есть незакоммиченные правки.
+commit="$(git rev-parse --short=6 HEAD 2>/dev/null || echo "")"
+[[ -n "$commit" && -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]] && commit="$commit+"
+printf '{"commit": "%s"}\n' "$commit" > data/build_info.json
+
 godot --headless --path . --import >/dev/null 2>&1 || true
 
 build_one() {

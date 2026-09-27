@@ -5,6 +5,7 @@
 
 # Сборки
 /build/
+/data/build_info.json
 *.tmp
 
 # ОС и редакторы

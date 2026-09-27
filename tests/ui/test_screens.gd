@@ -173,3 +173,11 @@ func test_no_untranslated_strings() -> void:
 	var csv := FileAccess.get_file_as_string("res://locale/ui.csv")
 	for s: String in samples:
 		check(csv.contains(s.replace('"', "")), "ключ «%s» есть в locale/ui.csv" % s)
+
+
+func test_about_shows_version_and_build() -> void:
+	var v := BuildInfo.version()
+	check(v != "" and v != "0.0.0", "версия задана в project.godot")
+	var c := BuildInfo.commit()
+	check(c == "" or c.trim_suffix("+").length() == 6, "коммит — 6 символов: %s" % c)
+	check(BuildInfo.text().contains(BuildInfo.version()), "в тексте есть версия")
