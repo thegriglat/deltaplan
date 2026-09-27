@@ -32,6 +32,7 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 	if terrain.has_method("set_pilot"):
 		terrain.set_pilot(pilot)
 	RockScatter.attach(terrain)
+	ShrubScatter.attach(terrain)
 	var loc := terrain.location_id
 	if loc == _location and not terrain.layers.is_empty():
 		return  # та же локация — объекты и просеки уже стоят
