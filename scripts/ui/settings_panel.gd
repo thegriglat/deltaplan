@@ -52,8 +52,8 @@ func _ready() -> void:
 	_mouse_mode.add_item(tr("Трапеция"))
 	UiKit.row(box, tr("Мышь"), _mouse_mode)
 	_roll_mode = OptionButton.new()
-	_roll_mode.add_item(tr("Как раньше"))
-	_roll_mode.add_item(tr("Смещение веса (возврат в центр)"))
+	_roll_mode.add_item(tr("Простое (аркадное)"))
+	_roll_mode.add_item(tr("Смещение веса (как на настоящем крыле)"))
 	UiKit.row(box, tr("Управление креном"), _roll_mode)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})

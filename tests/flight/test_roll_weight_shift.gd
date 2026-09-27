@@ -246,18 +246,20 @@ func test_rate_mode_center_key_levels_wing() -> void:
 	ic.free()
 
 
-## По умолчанию — «как раньше»; настройки сохраняют выбор в user-конфиг.
+## По умолчанию — «смещение веса»; настройки сохраняют выбор в user-конфиг.
 func test_roll_mode_setting() -> void:
 	var txt := FileAccess.get_file_as_string("res://configs/controls.json")
 	var res: Variant = JSON.parse_string(txt)
-	check(String(res.get("roll_control_mode", "")) == "rate", "по умолчанию — «как раньше» (rate)")
+	check(
+		String(res.get("roll_control_mode", "")) == "weight_shift", "по умолчанию — смещение веса"
+	)
 	var sp: SettingsPanel = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	sp._ready()  # вне дерева: собрать панель без add_child (раннер занят детьми)
 	sp.config_dir = TMP_DIR
-	(sp.get("_roll_mode") as OptionButton).select(1)
+	(sp.get("_roll_mode") as OptionButton).select(0)
 	check(sp.save(), "записалось")
 	var c := UserSettings.read_json(TMP_DIR.path_join("controls.json"))
-	check(String(c.get("roll_control_mode", "")) == "weight_shift", "режим крена сохранён")
+	check(String(c.get("roll_control_mode", "")) == "rate", "режим крена сохранён")
 	for f in ["controls.json", "audio.json", "game.json", "atmosphere.json", "world.json"]:
 		DirAccess.remove_absolute(TMP_DIR.path_join(f))
 	DirAccess.remove_absolute(TMP_DIR)
