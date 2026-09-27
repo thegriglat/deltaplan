@@ -5,6 +5,7 @@ extends Control
 signal resume_requested
 signal restart_requested
 signal settings_requested
+signal controls_requested
 signal menu_requested
 signal quit_requested
 
@@ -20,6 +21,7 @@ func _ready() -> void:
 	UiKit.separator(box)
 	UiKit.button(box, tr("Продолжить"), func() -> void: resume_requested.emit())
 	UiKit.button(box, tr("Заново"), func() -> void: restart_requested.emit())
+	UiKit.button(box, tr("Управление"), func() -> void: controls_requested.emit())
 	UiKit.button(box, tr("Настройки"), func() -> void: settings_requested.emit())
 	UiKit.button(box, tr("В меню"), func() -> void: menu_requested.emit())
 	UiKit.button(box, tr("Выход"), func() -> void: quit_requested.emit())

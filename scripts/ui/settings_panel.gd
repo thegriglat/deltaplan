@@ -14,6 +14,8 @@ var _sens: HSlider
 var _invert: CheckBox
 var _mouse_mode: OptionButton
 var _sound: OptionButton
+var _graphics: OptionButton
+var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
 
 
@@ -55,6 +57,12 @@ func _ready() -> void:
 			var title := String(p.get("name", k)) if p is Dictionary else k
 			_sound.add_item(tr(title))
 		UiKit.row(box, tr("Звук вариометра"), _sound)
+	_graphics = OptionButton.new()
+	_graphics_names = GraphicsPresets.names()
+	var presets_cfg: Dictionary = Config.get_config("game").get("graphics_presets", {})
+	for g in _graphics_names:
+		_graphics.add_item(tr(String(presets_cfg[g].get("name", g))))
+	UiKit.row(box, tr("Графика"), _graphics)
 	UiKit.label(box, tr("Настройки сохраняются в профиле пользователя."), "HintLabel")
 	var bar := UiKit.button_bar(box)
 	UiKit.button(bar, tr("Сохранить"), _on_save)
@@ -72,6 +80,7 @@ func load_values() -> void:
 	_sens.value_changed.emit(_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	_mouse_mode.select(0 if String(Config.value("controls", "mouse.mode")) == "look" else 1)
+	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -102,6 +111,9 @@ func save() -> bool:
 		and ok
 	)
 	Config.reload()
+	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
+	if g != "" and g != GraphicsPresets.current():
+		ok = GraphicsPresets.select(g, config_dir) and ok
 	return ok
 
 

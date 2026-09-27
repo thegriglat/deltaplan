@@ -7,6 +7,7 @@ extends Node
 enum State { MENU, LOADING, FLYING, PAUSED, RESULT }
 
 const SMOKE_STEPS := 300
+const SMOKE_TIMEOUT_S := 90.0
 
 var state: State = State.MENU
 var opts: LaunchOptions
@@ -20,6 +21,8 @@ var _overlay_back: Control  ## экран, к которому вернутьс�
 @onready var settings_panel: SettingsPanel = $UI/SettingsPanel
 @onready var about_screen: AboutScreen = $UI/AboutScreen
 @onready var result_screen: ResultScreen = $UI/ResultScreen
+@onready var controls_screen: ControlsScreen = $UI/ControlsScreen
+@onready var flight_setup_screen: FlightSetupScreen = $UI/FlightSetupScreen
 
 
 func _ready() -> void:
@@ -27,12 +30,18 @@ func _ready() -> void:
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
 	_connect_ui()
-	for c: Control in [pause_menu, settings_panel, about_screen, result_screen]:
+	var overlays: Array[Control] = [
+		pause_menu, settings_panel, about_screen, result_screen, controls_screen, flight_setup_screen
+	]
+	for c: Control in overlays:
 		c.visible = false
 	# Меню помнит прошлый выбор; автостарт (smoke, скриншоты) — всегда с настроек по умолчанию.
 	var base := FlightSettings.defaults() if opts.autostart else UserSettings.load_last_flight()
 	flight = opts.apply_to(base)
 	start_menu.set_settings(flight)
+	if opts.smoke:
+		# Сторож: smoke не должен висеть, если что-то сломалось.
+		get_tree().create_timer(SMOKE_TIMEOUT_S).timeout.connect(_quit.bind(1))
 	if opts.autopilot:
 		game.autopilot = Autopilot.new()
 	if opts.autostart:
@@ -52,15 +61,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			State.FLYING:
 				_pause()
 			State.PAUSED:
-				if settings_panel.visible or about_screen.visible:
+				if _overlay_open():
 					_close_overlay()
 				else:
 					_resume()
 			State.MENU:
-				if settings_panel.visible or about_screen.visible:
+				if _overlay_open():
 					_close_overlay()
-	elif event.is_action_pressed("restart") and state == State.FLYING:
-		game.restart()
+	elif event.is_action_pressed("restart") and state in [State.FLYING, State.RESULT]:
+		get_viewport().set_input_as_handled()
+		_restart()
 
 
 # ---------------------------------------------------------------- переходы
@@ -86,13 +96,18 @@ func _fly(s: FlightSettings) -> void:
 		game.camera.set_mode(opts.camera)
 	if opts.look != Vector2.ZERO:
 		game.camera.set_look(opts.look.x, opts.look.y)
+	if opts.glance:
+		Input.action_press("look_instrument")
 	state = State.FLYING
 
 
 func _show_menu() -> void:
 	state = State.MENU
 	get_tree().paused = false
-	for c: Control in [pause_menu, settings_panel, about_screen, result_screen]:
+	var overlays: Array[Control] = [
+		pause_menu, settings_panel, about_screen, result_screen, controls_screen, flight_setup_screen
+	]
+	for c: Control in overlays:
 		c.visible = false
 	game.set_flying(false)
 	start_menu.visible = true
@@ -148,9 +163,20 @@ func _open_overlay(panel: Control, back: Control) -> void:
 	panel.visible = true
 
 
+func _overlay_open() -> bool:
+	return (
+		settings_panel.visible
+		or about_screen.visible
+		or controls_screen.visible
+		or flight_setup_screen.visible
+	)
+
+
 func _close_overlay() -> void:
 	settings_panel.visible = false
 	about_screen.visible = false
+	controls_screen.visible = false
+	flight_setup_screen.visible = false
 	if _overlay_back != null:
 		_overlay_back.visible = true
 
@@ -159,8 +185,14 @@ func _connect_ui() -> void:
 	game.flight_ended.connect(_on_flight_ended)
 	game.status_changed.connect(start_menu.set_status)
 	start_menu.fly_requested.connect(func(s: FlightSettings) -> void: _fly(s))
+	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.settings_requested.connect(_open_overlay.bind(settings_panel, start_menu))
 	start_menu.about_requested.connect(_open_overlay.bind(about_screen, start_menu))
+	start_menu.controls_requested.connect(_open_overlay.bind(controls_screen, start_menu))
+	pause_menu.controls_requested.connect(_open_overlay.bind(controls_screen, pause_menu))
+	controls_screen.closed.connect(_close_overlay)
+	flight_setup_screen.closed.connect(_close_overlay)
+	flight_setup_screen.fly_requested.connect(_on_flight_setup_fly)
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
@@ -178,6 +210,16 @@ func _on_settings_closed(changed: bool) -> void:
 	if changed:
 		game.apply_user_settings()
 	_close_overlay()
+
+
+func _open_flight_setup() -> void:
+	flight_setup_screen.set_settings(flight)
+	_open_overlay(flight_setup_screen, start_menu)
+
+
+func _on_flight_setup_fly(s: FlightSettings) -> void:
+	flight_setup_screen.visible = false
+	_fly(s)
 
 
 func _on_result_continue() -> void:
@@ -234,6 +276,10 @@ func _screenshot() -> void:
 			_open_overlay(settings_panel, start_menu if state == State.MENU else pause_menu)
 		"about":
 			_open_overlay(about_screen, start_menu if state == State.MENU else pause_menu)
+		"controls":
+			_open_overlay(controls_screen, start_menu if state == State.MENU else pause_menu)
+		"setup":
+			_open_flight_setup()
 	for i in 8:
 		await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -242,5 +288,12 @@ func _screenshot() -> void:
 	_quit(0 if err == OK else 1)
 
 
+## Выход: сначала убрать игровой мир и дать аудиосерверу отпустить генераторы звука
+## (quit в том же кадре, где удаляется сцена, оставляет их висеть).
 func _quit(code: int) -> void:
+	if is_instance_valid(game):
+		game.queue_free()
+	for i in 2:
+		await get_tree().process_frame
+	await get_tree().create_timer(0.1, true).timeout
 	get_tree().quit(code)

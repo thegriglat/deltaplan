@@ -37,6 +37,39 @@ static func button(parent: Control, text: String, on_pressed: Callable) -> Butto
 	return b
 
 
+## Крупная кнопка меню — одинаковой ширины, по центру колонки (для вертикального меню).
+static func menu_button(parent: Control, text: String, on_pressed: Callable) -> Button:
+	var b := button(parent, text, on_pressed)
+	b.custom_minimum_size = Vector2(280, 52)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return b
+
+
+## Фон на весь экран: картинка (обрезается по центру, без искажений) или сплошной цвет,
+## если картинки нет — Control добавляется первым ребёнком parent'а.
+static func full_screen_background(parent: Control, image_path: String, fallback: Color) -> void:
+	var tex: Texture2D = null
+	if image_path != "" and ResourceLoader.exists(image_path):
+		tex = load(image_path)
+	if tex != null:
+		var bg := TextureRect.new()
+		bg.texture = tex
+		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+		bg.clip_contents = true
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(bg)
+		parent.move_child(bg, 0)
+	else:
+		var color := ColorRect.new()
+		color.color = fallback
+		color.set_anchors_preset(Control.PRESET_FULL_RECT)
+		color.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(color)
+		parent.move_child(color, 0)
+
+
 ## Строка: подпись слева (фикс. ширина), элемент справа растягивается.
 static func row(parent: Control, caption: String, control: Control) -> HBoxContainer:
 	var h := HBoxContainer.new()

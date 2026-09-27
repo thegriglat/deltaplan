@@ -2,18 +2,96 @@
   "_doc": "Интерфейс: меню, пауза, настройки, итог полёта, «Об игре». Цвета и шрифты — в scenes/ui/theme.tres",
   "panel_width_px": 560,
   "panel_width_px_doc": "Ширина панели меню, пикселей",
+  "menu_background": "res://assets/ui/menu_background.jpg",
+  "menu_background_doc": "Фон главного меню (статичная картинка на весь экран); пусто — сплошной тёмный фон",
   "mass_step_kg": 1.0,
   "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
-  "vario_volume_range_db": [-40.0, 6.0],
+  "vario_volume_range_db": [
+    -40.0,
+    6.0
+  ],
   "vario_volume_range_db_doc": "Диапазон громкости вариометра в настройках, дБ",
-  "look_sensitivity_range": [0.02, 0.5],
+  "look_sensitivity_range": [
+    0.02,
+    0.5
+  ],
   "look_sensitivity_range_doc": "Диапазон чувствительности мыши, °/пиксель",
-  "about_sources": ["res://ASSETS.md"],
+  "about_sources": [
+    "res://ASSETS.md"
+  ],
   "about_sources_doc": "Откуда собирается список ассетов для «Об игре» (таблицы Markdown)",
   "license_files": [
     "res://assets/sounds/LICENSES.md",
     "res://assets/fonts/DSEG-LICENSE.txt",
     "res://assets/fonts/NotoSans-OFL.txt"
   ],
-  "license_files_doc": "Тексты лицензий, которые показываются в «Об игре» (кладутся в сборку, export_presets.cfg → include_filter)"
+  "license_files_doc": "Тексты лицензий, которые показываются в «Об игре» (кладутся в сборку, export_presets.cfg → include_filter)",
+  "controls_help": [
+    {
+      "section": "В полёте"
+    },
+    {
+      "action": "pitch_pull_in",
+      "text": "Подтянуть трапецию к себе — разогнаться"
+    },
+    {
+      "action": "pitch_push_out",
+      "text": "Отдать трапецию от себя — затормозить, нос вверх"
+    },
+    {
+      "action": "roll_left",
+      "text": "Сместить вес влево — поворот влево"
+    },
+    {
+      "action": "roll_right",
+      "text": "Сместить вес вправо — поворот вправо"
+    },
+    {
+      "action": "look_instrument",
+      "text": "Держать — посмотреть на прибор на трапеции"
+    },
+    {
+      "mouse": true,
+      "text": "Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд"
+    },
+    {
+      "section": "На старте"
+    },
+    {
+      "action": "run",
+      "text": "Держать — разбег; во время разбега W/S — поднять или опустить нос крыла"
+    },
+    {
+      "action": "pitch_pull_in",
+      "text": "Без разбега — шаг вперёд"
+    },
+    {
+      "action": "roll_left",
+      "text": "Без разбега — повернуться с крылом налево (D — направо)"
+    },
+    {
+      "section": "Прибор, камера, игра"
+    },
+    {
+      "action": "instrument_page",
+      "text": "Следующая страница прибора (1–5 — страница сразу)"
+    },
+    {
+      "action": "camera_next",
+      "text": "Вид: из кабины → сзади → свободная камера"
+    },
+    {
+      "action": "restart",
+      "text": "Начать полёт заново с того же старта"
+    },
+    {
+      "action": "pause",
+      "text": "Пауза и меню"
+    },
+    {
+      "action": "mouse_capture",
+      "text": "Отпустить или снова захватить мышь"
+    }
+  ],
+  "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши; text — объяснение простыми словами"
 }

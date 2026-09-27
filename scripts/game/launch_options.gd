@@ -7,10 +7,11 @@ extends RefCounted
 ##   --screenshot=<путь>   снять кадр и выйти
 ##   --time=<с>            когда снимать: время симуляции полёта (в меню — реальное), с
 ##   --camera=<режим>      cockpit | chase | free
-##   --pause | --settings | --about   открыть экран перед снимком
-##   --wing=<id> --mass=<кг> --weather=<id> --site=<id> --wind=into_site|preset
+##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
+##   --wing=<id> --mass=<кг> --weather=<id> --location=<id> --site=<id> --wind=into_site|preset
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
+##   --glance              держать клавишу «взгляд на прибор»
 
 var smoke := false
 var autostart := false
@@ -18,8 +19,9 @@ var autopilot := false
 var screenshot := ""
 var time_s := 0.0
 var camera := ""
-var open_screen := ""  ## "pause", "settings", "about" или ""
+var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" или ""
 var look := Vector2.ZERO
+var glance := false  ## держать «взгляд на прибор» (скриншоты)
 var overrides: Dictionary = {}
 
 
@@ -40,19 +42,21 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autostart = true
 			"autopilot":
 				o.autopilot = true
+			"glance":
+				o.glance = true
 			"screenshot":
 				o.screenshot = val
 			"time":
 				o.time_s = float(val)
 			"camera":
 				o.camera = val
-			"pause", "settings", "about":
+			"pause", "settings", "about", "controls", "setup":
 				o.open_screen = key
 			"look":
 				var p := val.split(",")
 				if p.size() == 2:
 					o.look = Vector2(float(p[0]), float(p[1]))
-			"wing", "mass", "weather", "site", "wind", "latlon":
+			"wing", "mass", "weather", "site", "wind", "latlon", "location":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -72,6 +76,10 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		r.site_id = String(overrides.site)
 		r.pick_lat = NAN
 		r.pick_lon = NAN
+	if overrides.has("location"):
+		r.location_id = String(overrides.location)
+		if not overrides.has("site"):
+			r.site_id = ""
 	if overrides.has("wind"):
 		r.wind_mode = String(overrides.wind)
 	if overrides.has("latlon"):

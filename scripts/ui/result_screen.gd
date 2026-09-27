@@ -19,7 +19,7 @@ func _ready() -> void:
 	UiKit.separator(box)
 	_lines = UiKit.label(box, "")
 	var bar := UiKit.button_bar(box)
-	UiKit.button(bar, tr("Ещё раз"), func() -> void: restart_requested.emit())
+	UiKit.button(bar, tr("Ещё раз (R)"), func() -> void: restart_requested.emit())
 	_continue = UiKit.button(bar, tr("Продолжить"), func() -> void: continue_requested.emit())
 	UiKit.button(bar, tr("В меню"), func() -> void: menu_requested.emit())
 
