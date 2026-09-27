@@ -1,0 +1,41 @@
+{
+  "_doc": "Слабый день: мелкие редкие кучевки, низкая кромка, слабые узкие термики, почти штиль.",
+  "name": "Слабый день",
+  "name_doc": "Название пресета в меню.",
+  "wind_speed_kmh": 6,
+  "wind_speed_kmh_doc": "Скорость ветра на опорной высоте (atmosphere.json → wind.reference_height_m), км/ч.",
+  "wind_from_deg": 270,
+  "wind_from_deg_doc": "Откуда дует ветер, градусы (0 — с севера, 90 — с востока).",
+  "cloudbase_agl_m": 1100,
+  "cloudbase_agl_m_doc": "Нижняя кромка облаков над средней высотой земли локации, м. Выше неё термики не поднимают.",
+  "thermal_strength_ms": [
+    0.5,
+    2.0
+  ],
+  "thermal_strength_ms_doc": "Сила ядра термика (мин, макс), м/с — до вычета фонового опускания.",
+  "thermal_radius_m": [
+    50,
+    90
+  ],
+  "thermal_radius_m_doc": "Радиус ядра у кромки (мин, макс), м. Ниже термик уже (Allen).",
+  "thermal_spacing_m": 2600,
+  "thermal_spacing_m_doc": "Среднее расстояние между источниками термиков, м.",
+  "thermal_duty": 0.6,
+  "thermal_duty_doc": "Доля циклов источника, в которых термик рождается (0..1).",
+  "background_sink_ms": -0.4,
+  "background_sink_ms_doc": "Фоновое опускание между термиками, м/с (отрицательное).",
+  "convective_turbulence_ms": 0.4,
+  "convective_turbulence_ms_doc": "σ конвективной болтанки в середине слоя, м/с (≈ 0,6·w*, профиль Lenschow).",
+  "cloud_min_strength_ms": 1.3,
+  "cloud_min_strength_ms_doc": "Облако только над термиками не слабее, м/с. Большое значение — «голубые» термики без облаков.",
+  "cloud_depth_m": 300,
+  "cloud_depth_m_doc": "Вертикальная мощность облака у самого сильного термика, м.",
+  "thermal_mode": "dynamic",
+  "thermal_mode_doc": "dynamic — генерация по рельефу; static — только статичные термики (MVP); both — оба.",
+  "static_thermals": [],
+  "static_thermals_doc": "Статичные термики: [{x_m, z_m, strength_ms, radius_m}] — координаты источника в мире (X — восток, Z — юг). Обычно ставит интегратор из конфига локации через add_static_thermal().",
+  "street_strength": 0.0,
+  "street_strength_doc": "Склонность термиков выстраиваться в облачные улицы вдоль ветра (0..1), включается при ветре (atmosphere.json → thermal.street_*).",
+  "overdevelopment_chance": 0.0,
+  "overdevelopment_chance_doc": "Доля сильных термиков, облака которых переразвиваются (мощные башни, растекаются)."
+}

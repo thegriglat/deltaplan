@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/atmosphere/atmosphere_preview.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/atmosphere/atmosphere.gd" id="2"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.23, 0.42, 0.75, 1)
+sky_horizon_color = Color(0.66, 0.76, 0.88, 1)
+sky_curve = 0.12
+ground_bottom_color = Color(0.25, 0.28, 0.24, 1)
+ground_horizon_color = Color(0.55, 0.6, 0.62, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.7
+tonemap_mode = 3
+fog_enabled = true
+fog_light_color = Color(0.66, 0.74, 0.86, 1)
+fog_density = 4e-05
+fog_sun_scatter = 0.15
+fog_aerial_perspective = 0.6
+fog_sky_affect = 0.1
+
+[sub_resource type="StandardMaterial3D" id="ground_mat"]
+albedo_color = Color(0.32, 0.42, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="ground_mesh"]
+material = SubResource("ground_mat")
+size = Vector2(200000, 200000)
+
+[node name="AtmospherePreview" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.939693, 0.269516, -0.210569, -0.000000, 0.615661, 0.788011, 0.342020, -0.740488, 0.578533, 0, 0, 0)
+light_color = Color(1, 0.96, 0.9, 1)
+light_energy = 1.3
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("ground_mesh")
+
+[node name="Atmosphere" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 900, 0)
+fov = 70.0
+near = 1.0
+far = 90000.0

@@ -55,7 +55,9 @@
 ## Модели и текстуры
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
-| — | пока нет: крыло, пилот и прибор собраны из примитивов в коде | | | |
+| `assets/models/bird.glb` (исходник `assets/source/bird.blend`) | низкополигональная парящая хищная птица, размах 1,6 м (57 вершин) | сгенерировано `tools/blender/bird.py` (Blender 4.3) | — | птицы в сильных термиках (`scripts/atmosphere/bird_flock.gd`, путь — `configs/atmosphere.json → birds.model_path`) |
+| — | 3D-шум облаков (Уорли, 96³ и 64³) | сгенерировано процедурно при старте: `NoiseTexture3D` + `FastNoiseLite` в `scripts/atmosphere/cloud_layer.gd`; можно заменить готовой текстурой (`clouds.noise_*_texture`) | — | объёмные облака |
+| — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
 | — | раскраска рельефа (трава, лес, поля, скалы, снег, реки) и деревья | сгенерировано процедурно: `scripts/terrain/terrain.gdshader`, `trees.gdshader` | — | рельеф |
 | `data/terrain/textures/grass_ambientcg_grass004.jpg` | рисунок травы вблизи (1K, цвет) | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `configs/world.json → terrain_textures.grass` |
 | `data/terrain/textures/rock_ambientcg_rock030.jpg` | рисунок скал вблизи (1K, цвет) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock` |
