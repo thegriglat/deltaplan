@@ -146,3 +146,13 @@ func test_walk_after_landing() -> void:
 	inp.walk = 1.0
 	Sim.run_for(m, 1.0, inp, Callable(), flat)
 	check(m.phase() == "walking", "после мягкой посадки можно идти: " + m.phase())
+
+
+func test_flare_amount() -> void:
+	var m := Sim.make("sport")
+	m.reset_in_air(Vector3(0, 110, 0), 0.0)
+	Sim.run_for(m, 0.5, Sim.input(1.0), Callable(), flat)
+	approx(m.flare_amount(), 0.0, 0.0, "высоко над землёй — не выравнивание")
+	m.reset_in_air(Vector3(0, 101.5, 0), 0.0)
+	Sim.run_for(m, 0.1, Sim.input(0.6), Callable(), flat)
+	approx(m.flare_amount(), 0.6, 0.001, "у земли — доля «от себя»")

@@ -37,3 +37,5 @@ static func fill(m: FlightModel, air_fn: Callable, ground_fn: Callable) -> void:
 	t.basis = Basis.from_euler(Vector3(m.theta, -m.heading, -m.bank))
 	if "load_factor" in t:
 		t.set("load_factor", m.load.load_factor)
+	if "flare_amount" in t:
+		t.set("flare_amount", m.flare_amount())

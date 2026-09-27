@@ -6,6 +6,8 @@ extends RefCounted
 
 ## Идёт выравнивание (ноги ниже flare.height_m и трапеция резко от себя).
 var active: bool = false
+## Насколько пилот выравнивает: трапеция «от себя» у земли (ниже flare.height_m), 0..1.
+var amount: float = 0.0
 ## Сколько секунд длится текущее выравнивание.
 var time: float = 0.0
 ## Сколько секунд крыло «висит» (с верхней точки подскока на выравнивании), −1 — ещё нет.
@@ -16,6 +18,7 @@ var apex_y: float = 0.0
 
 func reset() -> void:
 	active = false
+	amount = 0.0
 	time = 0.0
 	hang_time = -1.0
 
@@ -24,6 +27,7 @@ func reset() -> void:
 func update(m: FlightModel, input: ControlInput, agl: float, dt: float) -> void:
 	var fl: Dictionary = m.flight.flare
 	active = agl < float(fl.height_m) and input.pitch >= float(fl.push_threshold)
+	amount = clampf(input.pitch, 0.0, 1.0) if agl < float(fl.height_m) else 0.0
 	time = time + dt if active else 0.0
 	if not active:
 		hang_time = -1.0

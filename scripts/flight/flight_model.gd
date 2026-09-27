@@ -177,11 +177,6 @@ func air_density(altitude_m: float) -> float:
 	return float(ad.sea_level_kgm3) * exp(-altitude_m / float(ad.scale_height_m))
 
 
-## Коэффициент сопротивления при CL (присоединённый поток).
-func cd_at(cl: float) -> float:
-	return polar.cd_at(cl)
-
-
 ## Множитель скоростей √(M·ρ_эт / (M_эт·ρ)) для текущей массы и плотности.
 func speed_scale() -> float:
 	return sqrt(mass * _rho_ref / (mass_ref * rho))
@@ -207,6 +202,11 @@ func steady_glide(v: float) -> Vector2:
 		ld = cl / polar.cd_at(cl)
 		cos_g = cos(atan(1.0 / ld))
 	return Vector2(v, v * sin(atan(1.0 / ld)))
+
+
+## Выравнивание у земли 0..1 (для позы пилота): 0 — нет, 1 — трапеция от себя до упора.
+func flare_amount() -> float:
+	return _flare.amount if mode == Mode.AIR else 0.0
 
 
 ## Насколько сорван поток: 0 — обтекание, 1 — полный срыв (для паруса и звука).
