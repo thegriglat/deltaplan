@@ -49,6 +49,9 @@ func _build() -> void:
 		_add_logo(load(logo_path) as Texture2D, float(ui.get("menu_logo_width", 560.0)))
 	else:
 		UiKit.heading(self, tr("Дельтаплан"), 56.0)
+	_add_quote(
+		tr("«В этом безмолвном океане неба рождается истинное понимание свободы.»")
+	)
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
 	var box := UiKit.snug_panel(self)
 	_status = UiKit.label(box, "", "HintLabel")
@@ -75,6 +78,23 @@ func _add_logo(tex: Texture2D, width: float) -> void:
 	r.offset_top = 40.0
 	r.offset_bottom = 40.0 + h
 	add_child(r)
+
+
+## Цитата внизу экрана, по центру.
+func _add_quote(text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	l.offset_top = -90.0
+	l.offset_bottom = -40.0
+	l.add_theme_font_size_override("font_size", 22)
+	l.add_theme_color_override("font_color", Color(1, 1, 1, 0.92))
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	l.add_theme_constant_override("shadow_offset_y", 2)
+	l.add_theme_constant_override("shadow_outline_size", 6)
+	add_child(l)
 
 
 func _on_fly() -> void:

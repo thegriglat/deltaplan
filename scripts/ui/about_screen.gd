@@ -27,6 +27,9 @@ func _ready() -> void:
 	UiKit.label(box, tr("Об игре"), "TitleLabel")
 	UiKit.label(box, tr("В благодарность родителям."))
 	UiKit.label(
+		box, tr("«В этом безмолвном океане неба рождается истинное понимание свободы.»"), "HintLabel"
+	)
+	UiKit.label(
 		box,
 		tr("Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов."),
 		"HintLabel"
