@@ -26,6 +26,8 @@ const MONTHS: PackedStringArray = [
 ]
 
 var settings: FlightSettings
+## Путь к списку недавних мест (RecentPlaces) — переопределяется в тестах/скриншотах.
+var recent_places_path: String = RecentPlaces.PATH
 
 var _wings: PackedStringArray = []
 var _weathers: PackedStringArray = []
@@ -42,6 +44,9 @@ var _pick_label: Label
 var _done_btn: Button
 var _map_layer: Control
 var _map: MapPicker
+var _recent_section: VBoxContainer
+var _recent_list: VBoxContainer
+var _recent_edit_id: int = -1  ## запись, для которой сейчас открыт LineEdit переименования
 
 
 func _ready() -> void:
@@ -103,6 +108,7 @@ func _build() -> void:
 	_pick_label = UiKit.label(pick_row, "", "HintLabel")
 	_pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_build_recent(box)
 
 	UiKit.separator(box)
 	var bar := UiKit.button_bar(box)
@@ -124,6 +130,7 @@ func _apply_settings() -> void:
 	_day.value = settings.day
 	_fill_sites()
 	_update_pick_label()
+	_fill_recent()
 
 
 func _on_wing_selected(i: int) -> void:
@@ -215,6 +222,9 @@ func _collect() -> FlightSettings:
 
 func _on_done() -> void:
 	settings = _collect()
+	if settings.has_pick():
+		var name := RecentPlaces.resolve_osm_name(settings.pick_lat, settings.pick_lon)
+		RecentPlaces.add(settings.pick_lat, settings.pick_lon, name, recent_places_path)
 	done.emit(settings)
 
 
@@ -281,3 +291,84 @@ func _update_pick_label() -> void:
 		_pick_label.text = tr("точка на карте: %.4f, %.4f") % [settings.pick_lat, settings.pick_lon]
 	else:
 		_pick_label.text = ""
+
+
+# ------------------------------------------------------------ недавние места
+
+
+## Блок «Недавние места» под выбором старта: пусто — блок скрыт (_fill_recent прячет секцию).
+func _build_recent(box: Control) -> void:
+	_recent_section = VBoxContainer.new()
+	_recent_section.add_theme_constant_override("separation", 6)
+	box.add_child(_recent_section)
+	UiKit.label(_recent_section, tr("Недавние места"), "HeaderLabel")
+	_recent_list = VBoxContainer.new()
+	_recent_list.add_theme_constant_override("separation", 4)
+	_recent_section.add_child(_recent_list)
+
+
+func _fill_recent(reset_edit: bool = true) -> void:
+	RecentPlaces.refresh_missing_names(recent_places_path)
+	if reset_edit:
+		_recent_edit_id = -1
+	for c in _recent_list.get_children():
+		c.queue_free()
+	var places := RecentPlaces.list(recent_places_path)
+	_recent_section.visible = not places.is_empty()
+	for p: Dictionary in places:
+		_recent_list.add_child(_build_recent_row(p))
+
+
+func _build_recent_row(p: Dictionary) -> Control:
+	var id := int(p.get("id", -1))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var name_btn := Button.new()
+	var prefix := (tr("закреплено") + ": ") if bool(p.get("pinned", false)) else ""
+	name_btn.text = prefix + RecentPlaces.display_name(p)
+	name_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_btn.clip_text = true
+	name_btn.pressed.connect(_select_recent.bind(p))
+	row.add_child(name_btn)
+
+	if _recent_edit_id == id:
+		var edit := LineEdit.new()
+		edit.text = RecentPlaces.display_name(p)
+		edit.custom_minimum_size.x = 160
+		edit.text_submitted.connect(_on_recent_rename.bind(id))
+		row.add_child(edit)
+		edit.grab_focus()
+	else:
+		UiKit.button(row, tr("Переименовать"), _on_recent_rename_start.bind(id))
+
+	var pin_label := tr("Открепить") if bool(p.get("pinned", false)) else tr("Закрепить")
+	UiKit.button(row, pin_label, _on_recent_toggle_pin.bind(id, not bool(p.get("pinned", false))))
+	UiKit.button(row, tr("Убрать"), _on_recent_remove.bind(id))
+	return row
+
+
+func _select_recent(p: Dictionary) -> void:
+	settings.pick_lat = float(p.get("lat", 0.0))
+	settings.pick_lon = float(p.get("lon", 0.0))
+	_update_pick_label()
+
+
+func _on_recent_rename_start(id: int) -> void:
+	_recent_edit_id = id
+	_fill_recent(false)
+
+
+func _on_recent_rename(new_name: String, id: int) -> void:
+	RecentPlaces.rename(id, new_name, recent_places_path)
+	_fill_recent()
+
+
+func _on_recent_toggle_pin(id: int, pinned: bool) -> void:
+	RecentPlaces.set_pinned(id, pinned, recent_places_path)
+	_fill_recent()
+
+
+func _on_recent_remove(id: int) -> void:
+	RecentPlaces.remove(id, recent_places_path)
+	_fill_recent()
