@@ -237,6 +237,37 @@ func test_build_time() -> void:
 	check(w.osm_layer.stats.get("buildings", 0) > 10000, "здания в MultiMesh")
 
 
+## Заборы OSM у двух далёких площадок: MultiMesh по тайлам, дальность — от центра своего тайла
+## (раньше один MultiMesh с началом в первом пролёте — дальние заборы пропадали вблизи).
+func test_osm_fences_tiled() -> void:
+	var cfg: Dictionary = WorldObjects.load_config().landing
+	var layer := OsmLayer.new()
+	var idx := ObstacleIndex.new()
+	var flat := func(_x: float, _z: float) -> float: return 100.0
+	var fences := [
+		{"p": [0.0, 0.0, 90.0, 0.0]},
+		{"p": [5000.0, 0.0, 5000.0, 60.0]},
+		{"p": [20000.0, 0.0, 20030.0, 0.0]},  # далеко от площадок — нет
+	]
+	var centers: Array[Vector3] = [Vector3(0, 100, 0), Vector3(5000, 100, 0)]
+	layer.build_fences_near(fences, centers, cfg, flat, idx)
+	check(layer.stats.osm_fence_spans == 30 + 20, "пролётов %d" % layer.stats.osm_fence_spans)
+	var root := layer.get_node("OsmFences")
+	check(root.get_child_count() == layer.stats.osm_fence_tiles, "узел на тайл")
+	check(root.get_child_count() >= 2, "тайлов %d" % root.get_child_count())
+	var tile := float(cfg.fence_tile_m)
+	var r_max := WorldTiles.tile_range(float(cfg.fence_visibility_m), tile)
+	for n: MultiMeshInstance3D in root.get_children():
+		approx(n.visibility_range_end, r_max, 0.01, "дальность забора")
+		for i in n.multimesh.instance_count:
+			var o := n.multimesh.get_instance_transform(i).origin
+			check(absf(o.x) <= tile * 0.5 + 0.01 and absf(o.z) <= tile * 0.5 + 0.01, "в тайле")
+	check(
+		not idx.hit(Vector3(45, 100.5, -1), Vector3(45, 100.5, 1)).is_empty(), "забор — препятствие"
+	)
+	layer.free()
+
+
 static func _heading(m: WindClothModel) -> float:
 	var p := m.pointing()
 	return fposmod(rad_to_deg(atan2(p.x, -p.z)), 360.0)

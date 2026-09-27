@@ -65,7 +65,9 @@ func build_fences_near(
 	var radius := float(cfg.osm_fence_radius_m)
 	var span := float(cfg.fence_span_m)
 	var fh := float(cfg.fence_height_m)
-	var xf: Array[Transform3D] = []
+	var tile := float(cfg.fence_tile_m)
+	var tiles := {}  # Vector2i -> Array[Transform3D]
+	var n := 0
 	for f in fences:
 		var pts := OsmData.points(f.p)
 		for i in pts.size() - 1:
@@ -81,26 +83,39 @@ func build_fences_near(
 				if not _near(p, centers, radius):
 					continue
 				var g := float(height_fn.call(p.x, p.y))
-				xf.append(Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, g, p.y)))
+				var tk := WorldTiles.key(p.x, p.y, tile)
+				if not tiles.has(tk):
+					tiles[tk] = [] as Array[Transform3D]
+				(tiles[tk] as Array[Transform3D]).append(
+					Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, g, p.y))
+				)
+				n += 1
 				var m := p + dir * minf(span, seg_len - span * k) * 0.5
 				obstacles.add_box(
 					m.x, m.y, span * 0.5, 0.1, atan2(dir.y, dir.x), g - 1.0, g + fh, "fence"
 				)
-	stats["osm_fence_spans"] = xf.size()
-	if xf.is_empty():
+	stats["osm_fence_spans"] = n
+	stats["osm_fence_tiles"] = tiles.size()
+	if tiles.is_empty():
 		return
+	# Пролёт забора ~1,4 м вдали тоньше пикселя: MultiMesh по тайлам с короткой дальностью
+	# (дальность — от центра тайла, а не от первого пролёта: иначе дальние заборы пропадали).
 	var mesh := WorldTiles.load_mesh(String(cfg.fence_scene_path), BoxMesh.new())
-	var o := xf[0].origin
-	var node := WorldTiles.multimesh_node(
-		mesh,
-		xf,
-		PackedColorArray(),
-		o,
-		float(cfg.visibility_objects_m) + radius,
-		bool(cfg.cast_shadows)
-	)
-	node.name = "OsmFences"
-	add_child(node)
+	var r := WorldTiles.tile_range(float(cfg.fence_visibility_m), tile)
+	var root := Node3D.new()
+	root.name = "OsmFences"
+	add_child(root)
+	for tk: Vector2i in tiles:
+		root.add_child(
+			WorldTiles.multimesh_node(
+				mesh,
+				tiles[tk],
+				PackedColorArray(),
+				WorldTiles.center(tk, tile),
+				r,
+				bool(cfg.cast_shadows)
+			)
+		)
 
 
 static func _near(p: Vector2, centers: Array[Vector3], radius: float) -> bool:
