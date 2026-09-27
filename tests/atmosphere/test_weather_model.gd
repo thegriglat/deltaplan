@@ -136,7 +136,7 @@ func test_legacy_ids_and_typical() -> void:
 	approx(f.wind_speed_kmh, 18.0, 1.0e-6, "strong → 18 км/ч")
 	check(WeatherModel.legacy_forecast("nope").is_empty(), "неизвестный пресет — пусто")
 	approx(WeatherModel.typical_max_c(7, 15), 26.0, 1.0e-6, "обычно в июле +26")
-	check(WeatherModel.typical_max_c(1, 15) < 0.0, "зимой обычно мороз")
+	approx(WeatherModel.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
 
 
 func test_speed() -> void:
@@ -158,3 +158,66 @@ func test_speed() -> void:
 	check(ms < 20.0, "ground_context %.1f мс ≥ 20 мс" % ms)
 	check(gc.valley_msl_m < gc.mean_msl_m, "долина ниже средней")
 	approx(gc.mean_msl_m, 500.0, 5.0, "средняя высота наклонной плоскости")
+
+
+func _at(t: float, hour: float, wind_kmh := 11.0, sky := "clear") -> Dictionary:
+	var ctx := WeatherModel.reference_context()
+	return WeatherModel.derive(
+		{"temperature_c": t, "wind_speed_kmh": wind_kmh, "wind_from_deg": 270.0, "sky": sky},
+		ctx,
+		WeatherModel.config(),
+		hour
+	)
+
+
+func test_day_course() -> void:
+	# Утро мягче и ниже полудня, кромка растёт до пика, вечером термиков меньше и они мягче.
+	var m9 := _at(26.0, 9.0)
+	var m14 := _at(26.0, 14.0)
+	var m19 := _at(26.0, 19.0)
+	check(m9._derived.temperature_c < m14._derived.temperature_c - 2.0, "утром прохладнее")
+	check(m9.thermal_strength_ms[1] < m14.thermal_strength_ms[1] * 0.7, "утром слабее")
+	check(m9.cloudbase_agl_m < m14.cloudbase_agl_m - 500.0, "утром кромка ниже")
+	approx(m9.dry_thermal_fraction, 1.0, 0.05, "в 9 ч облаков почти нет")
+	var prev := -1.0
+	for h in [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]:
+		var cb: float = _at(26.0, h).cloudbase_agl_m
+		check(cb >= prev - 1.0, "кромка поднимается до пика (%.0f ч: %.0f)" % [h, cb])
+		prev = cb
+	check(_at(26.0, 12.0).dry_thermal_fraction < 0.5, "к полудню кучевые")
+	check(m19.thermal_duty < m14.thermal_duty * 0.6, "вечером термиков меньше")
+	check(m19.thermal_radius_m[1] > m14.thermal_radius_m[1], "вечером шире (мягче)")
+	check(m19.thermal_edge_k < m14.thermal_edge_k, "вечером край мягче")
+	check(_at(26.0, 20.0).mech_turbulence_k < 0.9, "к закату приземный слой спокойнее")
+	# Полдень ≈ фаза 1 (разгар дня).
+	var peak := _derive(26.0, 11.0)
+	check(
+		_rel(m14.thermal_strength_ms[1], peak.thermal_strength_ms[1]) < 0.1,
+		"14 ч ≈ разгар дня"
+	)
+	# Грозы — во второй половине дня.
+	check(_at(34.0, 10.0).cb_chance < 0.05, "утром гроз нет")
+	check(_at(34.0, 15.0).cb_chance > 0.2, "днём в жару грозы")
+
+
+func test_sky_cover() -> void:
+	var clear := _at(31.0, 14.0, 11.0, "clear")
+	var partly := _at(31.0, 14.0, 11.0, "partly")
+	var over := _at(31.0, 14.0, 11.0, "overcast")
+	check(partly.thermal_strength_ms[1] < clear.thermal_strength_ms[1], "переменная слабее ясно")
+	check(over.thermal_strength_ms[1] < partly.thermal_strength_ms[1], "облачно слабее")
+	check(over.thermal_duty < clear.thermal_duty * 0.6, "облачно — термиков мало")
+	approx(over.cb_chance, 0.0, 1.0e-6, "под облачностью гроз нет")
+	check(over.cirrus_cover >= 0.8, "пелена облачности")
+	check(over.thermal_radius_m[1] > clear.thermal_radius_m[1], "облачно — мягкие")
+	check(
+		_at(31.0, 14.0, 11.0, "nope").thermal_strength_ms == clear.thermal_strength_ms,
+		"неизвестная облачность — ясно"
+	)
+
+
+func test_spring_plus15_is_a_thermal_day() -> void:
+	# Пилот: «+15 весной — хорошие термики».
+	var w := _derive(15.0, 11.0, 4)
+	check(w.cloudbase_agl_m > 1200.0, "апрель +15: верх термиков %.0f" % w.cloudbase_agl_m)
+	check(w.thermal_strength_ms[1] > 2.5, "апрель +15: сила %.1f" % w.thermal_strength_ms[1])

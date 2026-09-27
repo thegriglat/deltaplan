@@ -12,6 +12,8 @@ extends Node3D
 ##   var v := atmo.air_velocity_at(pos)          # скорость воздуха, м/с (мир)
 
 signal weather_changed
+## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
+signal weather_updated
 
 ## Нода, вокруг которой живут термики и облака (обычно планер). Если не задана — активная камера.
 @export var focus_node: Node3D
@@ -72,6 +74,13 @@ var _in_cloud_turb: float = 1.5
 var _in_cloud_eject: float = 3.0
 var _in_cloud_scale_k: float = 3.0
 var _last_sigma: float = 0.0
+## Базовые коэффициенты болтанки (без поправок хода дня).
+var _mech_k_base: float = 0.14
+var _edge_factor_base: float = 0.35
+var _edge_width: float = 0.45
+## Мягкое обновление погоды (ход дня): к чему плавно ведём и за сколько, с.
+var _blend_tau: float = 0.0
+var _target: Dictionary = {}
 
 var _clouds: Node3D
 var _birds: Node3D
@@ -92,10 +101,14 @@ func _physics_process(delta: float) -> void:
 # ================================================================ настройка
 
 
-## Погодный пресет: имя конфига ("weather/strong") или словарь.
-func set_weather(preset: Variant) -> void:
+## Погодный пресет: имя конфига ("weather/strong") или словарь (WeatherModel.derive).
+## blend_s ≥ 0 — мягкое обновление (ход дня, _update_weather): поле не пересоздаётся.
+func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 	var w: Dictionary = Config.get_config(String(preset)) if preset is String else preset
-	configure(Config.get_config("atmosphere"), w)
+	if blend_s >= 0.0 and _configured:
+		_update_weather(w, blend_s)
+	else:
+		configure(Config.get_config("atmosphere"), w)
 
 
 ## Полная настройка (для тестов можно передать свои словари).
@@ -116,7 +129,11 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	field = ThermalField.new()
 	field.setup(cfg.thermal, weather, seed_value, ground, wind)
 	var tb: Dictionary = cfg.turbulence
-	field.set_turbulence_params(float(tb.edge_factor), float(tb.edge_width))
+	_edge_factor_base = float(tb.edge_factor)
+	_edge_width = float(tb.edge_width)
+	field.set_turbulence_params(
+		_edge_factor_base * float(weather.get("thermal_edge_k", 1.0)), _edge_width
+	)
 	var cc: Dictionary = cfg.clouds
 	field.cloud_linger_s = float(cc.linger_s)
 	field.cloud_width_per_ms = (
@@ -146,7 +163,54 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 		add_static_thermal(float(st.x_m), float(st.z_m), float(st.strength_ms), float(st.radius_m))
 	_configured = true
 	_refresh_acc = 1.0e9
+	_target.clear()
 	weather_changed.emit()
+
+
+## Мягко перейти к новой погоде (set_weather(w, blend_s); ход дня — WeatherModel.derive с часом):
+## новые термики рождаются с новыми числами, живые доживают со старыми; кромка, фон, болтанка
+## и прогрев плавно идут к новым значениям за ~blend_s. Сетка источников (thermal_spacing_m),
+## ветер и статичные термики не меняются — поле не пересоздаётся.
+func _update_weather(w: Dictionary, blend_s: float) -> void:
+	var nw := w.duplicate(true)
+	for k in ["wind_speed_kmh", "wind_from_deg", "thermal_spacing_m", "static_thermals"]:
+		if weather.has(k):
+			nw[k] = weather[k]
+	weather = nw
+	field.set_weather_soft(weather)
+	field.cloud_width_per_ms = (
+		float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
+	)
+	_target = {
+		"bg_sink": float(weather.background_sink_ms),
+		"conv_amp": float(weather.convective_turbulence_ms),
+		"cloudbase_agl": float(weather.cloudbase_agl_m),
+		"insolation": get_insolation(),
+		"edge": _edge_factor_base * float(weather.get("thermal_edge_k", 1.0)),
+		"mech": _mech_k_base * float(weather.get("mech_turbulence_k", 1.0)),
+	}
+	_blend_tau = maxf(blend_s, 0.0) / 3.0
+	if _blend_tau <= 0.0:
+		_blend(1.0)
+	weather_updated.emit()
+
+
+## Сдвинуть текущие коэффициенты к цели (доля k 0..1).
+func _blend(k: float) -> void:
+	if _target.is_empty():
+		return
+	_bg_sink = lerpf(_bg_sink, float(_target.bg_sink), k)
+	_conv_amp = lerpf(_conv_amp, float(_target.conv_amp), k)
+	field.insolation = lerpf(field.insolation, float(_target.insolation), k)
+	_mech_k = lerpf(_mech_k, float(_target.mech), k)
+	field.set_turbulence_params(lerpf(field.get_edge_factor(), float(_target.edge), k), _edge_width)
+	var old_cb := _cloudbase_agl
+	_cloudbase_agl = lerpf(_cloudbase_agl, float(_target.cloudbase_agl), k)
+	if not _cloudbase_override and absf(_cloudbase_agl - old_cb) > 0.01:
+		field.set_cloudbase_soft(_ground_ref + _cloudbase_agl)
+	if k >= 1.0 or absf(_cloudbase_agl - float(_target.cloudbase_agl)) < 0.5:
+		if absf(_bg_sink - float(_target.bg_sink)) < 1.0e-3:
+			_target.clear()
 
 
 func _cache_coefficients() -> void:
@@ -165,7 +229,8 @@ func _cache_coefficients() -> void:
 	_lee_turb = float(l.turbulence_per_wind)
 	_lee_wind_red = float(l.wind_reduction)
 	var t: Dictionary = cfg.turbulence
-	_mech_k = float(t.mech_per_wind)
+	_mech_k_base = float(t.mech_per_wind)
+	_mech_k = _mech_k_base * float(weather.get("mech_turbulence_k", 1.0))
 	_mech_boost = float(t.mech_ground_boost)
 	_mech_h = float(t.mech_ground_height_m)
 	_vert_ratio = float(t.vertical_ratio)
@@ -211,7 +276,10 @@ func set_ground(height_fn: Callable, sun_fn: Callable, surface_fn := Callable())
 
 
 ## Ветер: скорость на опорной высоте (км/ч) и направление «откуда» (0 — с севера), FR-16.
-func set_wind(speed_kmh: float, from_deg: float) -> void:
+## ref_msl — высота над морем, где задан ветер прогноза (старт): выше неё ветер сильнее, ниже —
+## слабее (atmosphere.json → wind.altitude_*); NAN — только профиль над рельефом.
+func set_wind(speed_kmh: float, from_deg: float, ref_msl: float = NAN) -> void:
+	wind.ref_msl = ref_msl
 	weather.wind_speed_kmh = speed_kmh
 	weather.wind_from_deg = from_deg
 	var old := wind.from_deg
@@ -294,6 +362,8 @@ func step(dt: float) -> void:
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	time_s += dt
+	if not _target.is_empty():
+		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
 	_refresh_acc += dt
 	if _refresh_acc >= _refresh_interval:
@@ -326,7 +396,7 @@ func _update_focus() -> void:
 func air_velocity_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
 	var agl := maxf(pos.y - gs.x, 0.0)
-	var u := wind.speed_at(agl)
+	var u := wind.speed_at_pos(agl, pos.y)
 	var wd := wind.dir
 	# Подветренная зона: ниже линии тени от гребня против ветра.
 	var lee := 0.0
@@ -426,7 +496,7 @@ func _update_wave_wind() -> void:
 ## Средний ветер без пульсаций и вертикальных потоков (для колдуна на старте и т. п.), м/с.
 func mean_wind_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
-	var s := wind.speed_at(maxf(pos.y - gs.x, 0.0))
+	var s := wind.speed_at_pos(maxf(pos.y - gs.x, 0.0), pos.y)
 	return Vector3(wind.dir.x * s, 0.0, wind.dir.z * s)
 
 

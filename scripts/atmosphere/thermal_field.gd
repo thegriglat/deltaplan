@@ -110,6 +110,34 @@ func set_turbulence_params(edge_factor: float, edge_width: float) -> void:
 	_edge_w = edge_width
 
 
+func get_edge_factor() -> float:
+	return _edge_k
+
+
+## Новая погода без пересоздания поля (ход дня): новые термики рождаются с её числами, живые
+## доживают со старыми. Шаг сетки клеток (thermal_spacing_m) и ветер не меняются.
+func set_weather_soft(weather: Dictionary) -> void:
+	_w = weather
+	var s_ms := wind.speed_at(float(_w.cloudbase_agl_m) * 0.5)
+	var street_min := float(_cfg.street_min_wind_ms)
+	var street_full := float(_cfg.street_full_wind_ms)
+	_street = (
+		float(_w.get("street_strength", 0.0))
+		* clampf((s_ms - street_min) / maxf(street_full - street_min, 0.01), 0.0, 1.0)
+	)
+
+
+## Кромка плавно сдвинулась (ход дня): новые термики — до новой кромки, живые динамические
+## доживают со своей; статичные — пересчитать верх.
+func set_cloudbase_soft(msl: float) -> void:
+	cloudbase_msl = msl
+	for id in thermals:
+		var th: AtmoThermal = thermals[id]
+		if th.is_static:
+			th.top = maxf(cloudbase_msl, th.src.y + float(_cfg.min_depth_m))
+			_apply_wind(th)
+
+
 ## Пересчитать систему клеток и наклоны под текущий ветер. Динамические термики рождаются заново.
 func update_wind_frame() -> void:
 	var d := Vector2(wind.dir.x, wind.dir.z)

@@ -12,7 +12,14 @@ var from_deg: float = 0.0
 ## Высота над рельефом, выше которой крупные вихри в полную силу (turbulence.large_fade_agl_m).
 var large_fade_agl: float = 150.0
 
+## Высота над морем, на которой задан ветер прогноза (старт), м; NAN — ветер от высоты над морем
+## не зависит (только профиль над рельефом). Задаёт Atmosphere.set_wind(…, ref_msl).
+var ref_msl: float = NAN
+
 var _ref_h: float = 10.0
+var _alt_gain: float = 0.0
+var _alt_min: float = 1.0
+var _alt_max: float = 1.0
 var _alpha: float = 0.14
 var _z0: float = 1.0
 var _max_f: float = 1.8
@@ -35,6 +42,9 @@ func setup(wind_cfg: Dictionary, turb_cfg: Dictionary, seed_value: int) -> void:
 	_alpha = float(wind_cfg.shear_exponent)
 	_z0 = float(wind_cfg.roughness_height_m)
 	_max_f = float(wind_cfg.max_profile_factor)
+	_alt_gain = float(wind_cfg.get("altitude_gain_per_km", 0.0))
+	_alt_min = float(wind_cfg.get("altitude_min_factor", 1.0))
+	_alt_max = float(wind_cfg.get("altitude_max_factor", 1.0))
 	var scale := float(turb_cfg.scale_m)
 	_inv_scale = 1.0 / scale
 	_evolve = float(turb_cfg.evolve_ms)
@@ -99,6 +109,19 @@ func profile(agl: float) -> float:
 
 func speed_at(agl: float) -> float:
 	return speed_ref * profile(agl)
+
+
+## Множитель ветра от высоты над стартом (ветер прогноза — на старте; в горах выше старта ветер
+## сильнее, в долине ниже — слабее). 1 — если опорная высота не задана.
+func altitude_factor(msl: float) -> float:
+	if is_nan(ref_msl):
+		return 1.0
+	return clampf(1.0 + _alt_gain * (msl - ref_msl) / 1000.0, _alt_min, _alt_max)
+
+
+## Скорость ветра на высоте agl над рельефом в точке с высотой msl над морем, м/с.
+func speed_at_pos(agl: float, msl: float) -> float:
+	return speed_ref * profile(agl) * altitude_factor(msl)
 
 
 ## Горизонтальный ветер (x, z) на высоте agl.

@@ -12,6 +12,7 @@ extends RefCounted
 ##   --temp=<°C>           прогноз: температура днём (FR-16)
 ##   --wind=<м/с>          прогноз: ветер у земли (старое into_site|preset — как --from)
 ##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — в лоб старту
+##   --sky=clear|partly|overcast  прогноз: облачность
 ##   --weather=<id>        бывший пресет → опорный прогноз (weather_model.json → legacy_presets)
 ##   --hour=<ч>            время старта по часам места (7.5 = 7:30), для кадров утро/вечер
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
@@ -105,7 +106,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.air_start_m = float(p[0]) if val != "" else 1000.0
 				if p.size() > 1:
 					o.air_start_agl_m = float(p[1])
-			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour", "temp", "from":
+			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -123,6 +124,8 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		r.set_legacy_weather(String(overrides.weather))
 	if overrides.has("temp"):
 		r.temperature_c = float(overrides.temp)
+	if overrides.has("sky"):
+		r.sky = String(overrides.sky)
 	if overrides.has("site"):
 		r.site_id = String(overrides.site)
 		r.pick_lat = NAN

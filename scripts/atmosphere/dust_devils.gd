@@ -18,6 +18,7 @@ func setup(atmosphere: Atmosphere) -> void:
 	cfg = atmo.cfg.dust
 	model.setup(cfg, atmo.weather)
 	atmo.weather_changed.connect(func() -> void: model.setup(cfg, atmo.weather))
+	atmo.weather_updated.connect(func() -> void: model.setup(cfg, atmo.weather))
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://scripts/atmosphere/dust_devil.gdshader")
 	var n := FastNoiseLite.new()

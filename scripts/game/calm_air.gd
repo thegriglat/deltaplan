@@ -23,14 +23,15 @@ var _top_agl: float = 1800.0
 func _ready() -> void:
 	add_to_group("atmosphere")
 	if weather.is_empty():
-		set_weather(String(Config.value("game", "default_weather")))
+		set_weather(String(Config.value("atmosphere", "default_weather")))
 
 
 func _physics_process(dt: float) -> void:
 	step(dt)
 
 
-func set_weather(preset: Variant) -> void:
+## blend_s — как у Atmosphere (мягкое обновление); здесь всегда сразу.
+func set_weather(preset: Variant, _blend_s: float = -1.0) -> void:
 	_cfg = Config.get_config("game").get("calm_air", {})
 	weather = (Config.get_config(String(preset)) if preset is String else preset).duplicate(true)
 	_top_agl = float(weather.get("cloudbase_agl_m", _cfg.get("thermal_top_agl_m", 1800.0)))
@@ -38,8 +39,9 @@ func set_weather(preset: Variant) -> void:
 	weather_changed.emit()
 
 
-## Ветер: скорость, км/ч, и направление «откуда», ° (0 — с севера).
-func set_wind(speed_kmh: float, from_deg: float) -> void:
+## Ветер: скорость, км/ч, и направление «откуда», ° (0 — с севера). ref_msl — как у Atmosphere
+## (здесь ветер от высоты не зависит).
+func set_wind(speed_kmh: float, from_deg: float, _ref_msl: float = NAN) -> void:
 	weather.wind_speed_kmh = speed_kmh
 	weather.wind_from_deg = from_deg
 	var a := deg_to_rad(from_deg)

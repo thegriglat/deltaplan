@@ -25,9 +25,11 @@ static func reference_context(cfg: Dictionary = {}) -> Dictionary:
 
 
 ## Обычный дневной максимум для месяца (и дня — между серединами месяцев линейно), °C.
+## Зажато в диапазон меню (ui.temperature_c).
 static func typical_max_c(month: int, day: int = 15, cfg: Dictionary = {}) -> float:
 	var c := cfg if not cfg.is_empty() else config()
-	return monthly(c.get("typical_max_c", [20.0]), month, day)
+	var r: Array = c.get("ui", {}).get("temperature_c", [-50, 60, 1])
+	return clampf(monthly(c.get("typical_max_c", [20.0]), month, day), float(r[0]), float(r[1]))
 
 
 ## Бывший пресет ("medium" или "weather/medium") → прогноз {temperature_c, wind_speed_kmh,
@@ -70,7 +72,7 @@ static func ground_context(
 	return {"valley_msl_m": float(hs[k]), "mean_msl_m": sum / hs.size()}
 
 
-## Прогноз {temperature_c, wind_speed_kmh, wind_from_deg} в месте ctx {month, day, lat,
+## Прогноз {temperature_c, wind_speed_kmh, wind_from_deg, sky} в месте ctx {month, day, lat,
 ## valley_msl_m, mean_msl_m} → словарь погоды. hour = NAN — «разгар дня» (температура = максимум);
 ## иначе — день в этот час (суточный ход, фаза 2). Детерминированно.
 static func derive(
@@ -86,7 +88,7 @@ static func derive(
 	var wind_kmh := maxf(float(forecast.get("wind_speed_kmh", 0.0)), 0.0)
 	var t := t_max
 	var diurnal := {}
-	if not is_nan(hour):
+	if not is_nan(hour) and bool(c.get("diurnal", {}).get("enabled", false)):
 		diurnal = diurnal_state(t_max, hour, ctx, c)
 		t = float(diurnal.temperature_c)
 
@@ -101,6 +103,9 @@ static func derive(
 	td = minf(td, t)
 	var excess := float(c.parcel_excess_k)
 	var z_dry := h_v + (t + excess - t_u - gam * (z_u - h_v)) / (dry - gam)
+	if not diurnal.is_empty() and is_finite(float(diurnal.cap_agl_m)):
+		var z_cap := minf(z_dry, h_v + float(diurnal.cap_agl_m) / 1000.0)
+		z_dry = lerpf(z_cap, z_dry, float(diurnal["break"]))
 	var z_lcl := h_v + float(c.lcl_m_per_k) / 1000.0 * (t - td)
 	var margin := (z_dry - z_lcl) * 1000.0
 	var z_top := minf(z_dry, z_lcl) * 1000.0
@@ -178,6 +183,8 @@ static func derive(
 		"cloud_size_factor": float(a.cloud_size_factor) + float(st.cloud_size_k) * cb,
 		"cirrus_cover": clampf(float(c.cirrus_base) + float(st.cirrus_k) * cb, 0.0, 1.0),
 		"cb_chance": cb,
+		"thermal_edge_k": 1.0,
+		"mech_turbulence_k": 1.0,
 		"cb_top_above_base_m": maxf(float(c.tropopause_msl_m) - z_lcl * 1000.0, 1000.0),
 		"wave_strength": wave_strength,
 		"stability_n_per_s": n_bv,
@@ -203,23 +210,133 @@ static func derive(
 			"sun_noon_deg": sun_el,
 			"sun_k": sun_k,
 			"wind_k": wind_k,
+			"sky": String(forecast.get("sky", "clear")),
 		},
 	}
-	if not diurnal.is_empty():
-		_apply_diurnal(w, diurnal, c)
+	_apply_heat(w, diurnal, sky_params(String(forecast.get("sky", "clear")), c), c)
 	return w
 
 
-## Суточный ход (фаза 2): температура в час hour по дневному максимуму и «сила прогрева».
-## Переопределяется ниже; в фазе 1 — пустой словарь не используется.
+## Поправки облачности ("clear" | "partly" | "overcast"; неизвестная — ясно).
+static func sky_params(sky: String, cfg: Dictionary = {}) -> Dictionary:
+	var c := cfg if not cfg.is_empty() else config()
+	var sc: Dictionary = c.get("sky", {})
+	return sc.get(sky, sc.get("clear", {}))
+
+
+## Суточный ход (фаза 2, docs/plan/weather_by_temperature.md §7): по дневному максимуму t_max
+## и часу hour (часы места: ctx.utc_offset_h — пояс, NAN — солнечное время) →
+## {temperature_c, cap_agl_m (верх утреннего слоя над долиной; INF — инверсия пробита),
+## break (0..1 — насколько прогрев пробил инверсию: верх термиков от cap к сухому),
+## heat (поток тепла / полуденный, 0..1), soft (мягкость 0..1), mech_k, sunrise_h, sunset_h,
+## peak_h}.
 static func diurnal_state(
-	_t_max: float, _hour: float, _ctx: Dictionary, _c: Dictionary
+	t_max: float, hour: float, ctx: Dictionary, c: Dictionary
 ) -> Dictionary:
-	return {"temperature_c": _t_max}
+	var d: Dictionary = c.get("diurnal", {})
+	var month := clampi(int(ctx.get("month", 7)), 1, 12)
+	var day := int(ctx.get("day", 15))
+	var lat := float(ctx.get("lat", 52.0))
+	var lon := float(ctx.get("lon", 0.0))
+	var utc := float(ctx.get("utc_offset_h", NAN))
+	var doy := SunClock.day_of_year(month, day)
+	# Истинный полдень по часам места и долгота дня (без уравнения времени — ±15 мин).
+	var noon := 12.0 if is_nan(utc) else 12.0 - (4.0 * lon - 60.0 * utc) / 60.0
+	var decl := deg_to_rad(23.44) * sin(TAU * (284.0 + doy) / 365.0)
+	var cos_h0 := clampf(-tan(deg_to_rad(lat)) * tan(decl), -1.0, 1.0)
+	var half := rad_to_deg(acos(cos_h0)) / 15.0
+	var sunrise := noon - half
+	var sunset := noon + half
+	var peak := minf(noon + float(d.get("peak_after_noon_h", 2.5)), sunset - 0.5)
+	# Parton–Logan: синус от восхода до пика, спад к закату, ночью — экспонента.
+	var fs := float(d.get("sunset_fraction", 0.65))
+	var f := 0.0
+	if hour <= sunrise:
+		f = 0.0
+	elif hour <= peak:
+		f = sin(PI * 0.5 * (hour - sunrise) / maxf(peak - sunrise, 0.1))
+	elif hour <= sunset:
+		f = fs + (1.0 - fs) * cos(PI * 0.5 * (hour - peak) / maxf(sunset - peak, 0.1))
+	else:
+		f = fs * exp(-(hour - sunset) / float(d.get("night_tau_h", 2.0)))
+	var amp := monthly(d.get("range_k", [10.0]), month, day)
+	var t := t_max - amp * (1.0 - f)
+	# Утренняя инверсия: пузырь поднимается только в ней, пока не прогреется выше остывшего
+	# за ночь остаточного слоя вчерашнего дня (T + δ ≥ T_max − R).
+	var excess := float(c.get("parcel_excess_k", 1.0))
+	var t_res := t_max - float(d.get("residual_cooling_k", 2.0))
+	var t_min := t_max - amp
+	var window := float(d.get("break_window_k", 3.0))
+	var cap := INF
+	var brk := 1.0
+	if hour < peak and t + excess < t_res:
+		var t_full := t_res - window
+		cap = (
+			float(d.get("inversion_depth_m", 500.0))
+			* clampf((t + excess - t_min) / maxf(t_full - t_min, 0.5), 0.0, 1.0)
+		)
+		brk = clampf((t + excess - t_full) / maxf(window, 0.1), 0.0, 1.0)
+	# Поток тепла над лугом — высота солнца с запаздыванием, относительно полудня.
+	var lag := float(d.get("heat_lag_h", 0.3))
+	var el := SunClock.solar_position(lat, lon, doy, hour - lag, utc).y
+	var el_noon := SunClock.solar_position(lat, lon, doy, noon, utc).y
+	var heat := maxf(sin(deg_to_rad(el)), 0.0) / maxf(sin(deg_to_rad(el_noon)), 0.05)
+	heat = clampf(heat, 0.0, 1.0)
+	var sd: Dictionary = d.get("soft", {})
+	var sharp_min := float(sd.get("sharp_min", 0.5))
+	var soft := clampf((1.0 - heat) / maxf(1.0 - sharp_min, 0.01), 0.0, 1.0)
+	var calm_h := float(d.get("evening_calm_h", 2.0))
+	var calm := clampf((hour - (sunset - calm_h)) / maxf(calm_h, 0.01), 0.0, 1.0)
+	var mech_k := lerpf(1.0, float(d.get("evening_mech_k", 0.6)), calm)
+	return {
+		"temperature_c": t,
+		"cap_agl_m": cap,
+		"break": brk,
+		"heat": heat,
+		"soft": soft,
+		"mech_k": mech_k,
+		"sunrise_h": sunrise,
+		"sunset_h": sunset,
+		"peak_h": peak,
+	}
 
 
-static func _apply_diurnal(_w: Dictionary, _d: Dictionary, _c: Dictionary) -> void:
-	pass
+## Прогрев: ход дня (st — diurnal_state или пусто) и облачность (sky): сила, частота, мягкость,
+## облака тают вечером, под облачностью нет гроз.
+static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dictionary) -> void:
+	var d: Dictionary = c.get("diurnal", {})
+	var sd: Dictionary = d.get("soft", {})
+	var heat_d := float(st.get("heat", 1.0))
+	var heat := heat_d * float(sky.get("heat", 1.0))
+	var soft := maxf(float(st.get("soft", 0.0)), float(sky.get("soft", 0.0)))
+	var s_k := pow(heat, float(d.get("heat_strength_exponent", 0.3333)))
+	s_k *= 1.0 - float(sd.get("core_k", 0.2)) * soft
+	w.thermal_strength_ms = _scale2(w.thermal_strength_ms, s_k)
+	w.thermal_radius_m = _scale2(w.thermal_radius_m, 1.0 + float(sd.get("radius_k", 0.3)) * soft)
+	w.thermal_duty = clampf(
+		(
+			float(w.thermal_duty)
+			* pow(heat_d, float(d.get("heat_duty_exponent", 1.0)))
+			* float(sky.get("duty_k", 1.0))
+		),
+		0.0,
+		1.0
+	)
+	w.convective_turbulence_ms = float(w.convective_turbulence_ms) * s_k
+	var cloudy := (1.0 - float(w.dry_thermal_fraction)) * pow(
+		heat_d, float(d.get("heat_cloud_exponent", 0.5))
+	)
+	w.dry_thermal_fraction = 1.0 - cloudy
+	var cb_k := float(sky.get("cb_k", 1.0))
+	w.cb_chance = float(w.cb_chance) * cb_k
+	w.overdevelopment_chance = float(w.overdevelopment_chance) * cb_k
+	w.cirrus_cover = maxf(float(w.cirrus_cover), float(sky.get("cover", 0.0)))
+	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft
+	w.mech_turbulence_k = float(st.get("mech_k", 1.0))
+	var dv: Dictionary = w._derived
+	dv.merge(st, true)
+	dv.heat = heat
+	dv.soft = soft
 
 
 ## Высота солнца в истинный полдень, градусы.

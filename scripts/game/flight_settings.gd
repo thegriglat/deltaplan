@@ -18,6 +18,8 @@ var wind_speed_kmh: float = 11.0
 var wind_into_launch: bool = true
 ## Откуда ветер, градусы (0 — с севера, 90 — с востока), если не «в лоб старту».
 var wind_from_deg: float = 270.0
+## Облачность: "clear" | "partly" | "overcast" (weather_model.json → sky).
+var sky: String = "clear"
 ## Устарело (до прогноза): имя пресета и режим ветра — только пока экран «Полёт…» и Game
 ## не перешли на прогноз.
 var weather: String = "weather/medium"
@@ -52,6 +54,7 @@ static func defaults() -> FlightSettings:
 	s.wind_speed_kmh = float(g.get("default_wind_speed_kmh", s.wind_speed_kmh))
 	s.wind_into_launch = bool(g.get("default_wind_into_launch", s.wind_into_launch))
 	s.wind_from_deg = float(g.get("default_wind_from_deg", s.wind_from_deg))
+	s.sky = String(g.get("default_sky", s.sky))
 	return s
 
 
@@ -62,6 +65,7 @@ func forecast() -> Dictionary:
 		"temperature_c": temperature_c,
 		"wind_speed_kmh": wind_speed_kmh,
 		"wind_from_deg": wind_from_deg,
+		"sky": sky,
 	}
 
 
@@ -86,6 +90,9 @@ func clamp_forecast() -> void:
 	wind_speed_kmh = _finite_or(wind_speed_kmh, 11.0)
 	wind_speed_kmh = clampf(wind_speed_kmh, float(wr[0]) * 3.6, float(wr[1]) * 3.6)
 	wind_from_deg = fposmod(_finite_or(wind_from_deg, 270.0), 360.0)
+	var skies: Array = WeatherModel.config().get("sky", {}).get("options", ["clear"])
+	if not skies.has(sky):
+		sky = String(skies[0])
 
 
 static func _finite_or(v: float, fallback: float) -> float:
@@ -113,6 +120,7 @@ func to_dict() -> Dictionary:
 		"wind_speed_kmh": wind_speed_kmh,
 		"wind_into_launch": wind_into_launch,
 		"wind_from_deg": wind_from_deg,
+		"sky": sky,
 		"weather": weather,
 		"wind_mode": wind_mode,
 		"location_id": location_id,
@@ -136,6 +144,7 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 		s.wind_speed_kmh = float(d.get("wind_speed_kmh", s.wind_speed_kmh))
 		s.wind_into_launch = bool(d.get("wind_into_launch", s.wind_into_launch))
 		s.wind_from_deg = float(d.get("wind_from_deg", s.wind_from_deg))
+		s.sky = String(d.get("sky", s.sky))
 	elif d.has("weather"):
 		# Старый файл (до прогноза): пресет → опорный прогноз (weather_model.json → legacy_presets).
 		s.set_legacy_weather(String(d.weather))
