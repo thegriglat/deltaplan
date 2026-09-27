@@ -5,11 +5,15 @@ extends Node
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/ui_shot.tscn -- --out=/tmp/ui
 ## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
+## --lang=ru|en — язык интерфейса (без записи в профиль); --only=setup — только «Полёт…»:
+## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 60.0
 
 var _out := ""
+var _lang := ""
+var _only := ""
 var _main: Node = null
 
 
@@ -17,6 +21,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
 			_out = a.substr(6)
+		elif a.begins_with("--lang="):
+			_lang = a.substr(7)
+		elif a.begins_with("--only="):
+			_only = a.substr(7)
 	if _out == "":
 		push_error("ui_shot: нужен --out=")
 		get_tree().quit(1)
@@ -53,6 +61,17 @@ func _run() -> void:
 		_fail("фон за меню не загрузился")
 		return
 
+	if _lang != "":
+		Language.apply(_lang)
+		main.call("_rebuild_ui")
+		for i in 4:
+			await get_tree().process_frame
+	if _only == "setup":
+		await _shoot_setup(main)
+		print("ui_shot: OK")
+		await _quit(0)
+		return
+
 	var start_menu: Control = main.get_node("UI/StartMenu")
 	var pause_menu: PauseMenu = main.get_node("UI/PauseMenu")
 	var settings_panel: SettingsPanel = main.get_node("UI/SettingsPanel")
@@ -87,6 +106,24 @@ func _run() -> void:
 
 	print("ui_shot: OK")
 	await _quit(0)
+
+
+## «Полёт…»: учебные (по умолчанию), мачтовые с Laminar, открытый список классов.
+func _shoot_setup(main: Node) -> void:
+	main.get_node("UI/StartMenu").visible = false
+	var setup: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
+	var s := FlightSettings.defaults()
+	s.wing = "wings/training"
+	setup.set_settings(s)
+	setup.visible = true
+	await _shoot("setup")
+	s.wing = "wings/laminar"
+	setup.set_settings(s)
+	await _shoot("setup_kingpost")
+	var class_opt: OptionButton = setup.get("_class_opt")
+	class_opt.show_popup()
+	await _shoot("setup_classes")
+	class_opt.get_popup().hide()
 
 
 func _soft_landing_info() -> Dictionary:

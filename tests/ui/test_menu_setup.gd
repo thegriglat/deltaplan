@@ -95,7 +95,8 @@ func test_flight_setup_forecast() -> void:
 		check(is_equal_approx(r.wind_speed_kmh, 18.0), "ветер 5 м/с = 18 км/ч")
 		check(not r.wind_into_launch and is_equal_approx(r.wind_from_deg, 225.0), "румб ЮЗ")
 		check(r.sky == "overcast", "облачность")
-	var blob := FileAccess.get_file_as_string("res://locale/ui.csv").to_lower()
+	# «Airwave» — марка крыла (Airwave Magic), не волна
+	var blob := FileAccess.get_file_as_string("res://locale/ui.csv").to_lower().replace("airwave", "")
 	check(not blob.contains("волн") and not blob.contains("wave"), "в интерфейсе нет «волны»")
 	m.queue_free()
 

@@ -23,7 +23,6 @@ status_loading_terrain,Загрузка рельефа…,Loading terrain…
 pause_restart,Заново,Restart
 settings_invert_pitch,Инверсия тангажа,Invert pitch
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
-setup_wing,Крыло,Wing
 menu_fly,Лететь,Fly
 menu_fly_from_here,Лететь отсюда,Fly from here
 result_best_thermal,Лучший термик: %.1f м/с,Best thermal: %.1f m/s
@@ -303,3 +302,16 @@ wing_group_kingpost,Мачтовые двухобшивочные,Double-surface
 wing_group_kingpost_hint,С мачтой и двойной обшивкой — быстрее и дальше,Kingpost and double surface — faster and farther
 wing_group_topless,Безмачтовые,Topless
 wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"
+setup_wing_class,Класс крыла,Wing class
+setup_wing_model,Модель,Model
+setup_wing_class_item,"%s — %s, %s","%s — %s, %s"
+setup_wing_glide,качество %s,glide %s
+setup_wing_wind_max,ветер до %s %s,wind up to %s %s
+setup_wing_area,%s м²,%s m²
+setup_wing_pilot,пилот %s–%s %s,pilot %s–%s %s
+setup_wing_decade_suffix,-е,s
+setup_wing_kingpost,мачтовое,kingpost
+setup_wing_topless,безмачтовое,topless
+setup_wing_single_surface,однообшивочное,single surface
+setup_wing_double_surface,двухобшивочное,double surface
+setup_decimal_point,",","."

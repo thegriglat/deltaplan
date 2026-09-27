@@ -1,7 +1,8 @@
 class_name FlightSetupScreen
 extends Control
-## Экран «Полёт…» (FR-27, FR-34, VR-5): крыло, масса пилота, прогноз погоды (FR-16: температура
-## днём, ветер на старте, откуда ветер, облачность), время и дата,
+## Экран «Полёт…» (FR-27, FR-34, VR-5): класс и модель крыла (строка описания), масса пилота,
+## прогноз погоды (FR-16: температура днём, ветер на старте, откуда ветер, облачность),
+## время и дата,
 ## место старта (площадка локации или точка на карте — MapPicker, FR-17), «Готово» / «Назад».
 ## Только выбор: в полёт — кнопкой «Лететь» главного меню. «Готово» — выбор наверх (done),
 ## «Назад» — без изменений. Открывается из главного меню; ничего не запускает само.
@@ -37,11 +38,17 @@ const COMPASS: PackedStringArray = [
 	"compass_nw",
 ]
 
+## Класс → модель (docs/plan/wings_lineup.md §6): модель, выбранная последней в группе за сеанс.
+static var _last_in_group: Dictionary = {}
+
 var settings: FlightSettings
 ## Путь к списку недавних мест (RecentPlaces) — переопределяется в тестах/скриншотах.
 var recent_places_path: String = RecentPlaces.PATH
 
-var _wings: PackedStringArray = []
+var _groups: Array[Dictionary] = []
+var _wings: PackedStringArray = []  ## модели выбранного класса ("wings/<id>")
+var _class_opt: OptionButton
+var _wing_info: Label
 var _skies: Array = []
 var _sites: Array[Dictionary] = []
 var _wing_opt: OptionButton
@@ -90,12 +97,7 @@ func _build() -> void:
 	UiKit.label(box, tr("setup_title"), "TitleLabel")
 	UiKit.separator(box)
 
-	_wing_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_wing"), _wing_opt)
-	_wings = Config.list_configs("wings")
-	for w in _wings:
-		_wing_opt.add_item(tr(String(Config.get_config(w).get("name", w.get_file()))))
-	_wing_opt.item_selected.connect(_on_wing_selected)
+	_build_wing(box)
 
 	_mass = UiKit.slider_row(
 		box, tr("setup_pilot_mass"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("unit_kg")
@@ -126,9 +128,7 @@ func _build() -> void:
 
 
 func _apply_settings() -> void:
-	var wi := maxi(_wings.find(settings.wing), 0)
-	_wing_opt.select(wi)
-	_on_wing_selected(wi)
+	_select_wing(settings.wing)
 	_temp.value = roundf(settings.temperature_c)
 	_temp.value_changed.emit(_temp.value)
 	_wind.value = roundf(settings.wind_speed_kmh / 3.6)
@@ -147,8 +147,64 @@ func _apply_settings() -> void:
 	_fill_recent()
 
 
+## Класс крыла (группы WingCatalog, с диапазоном качества и ветра), модель и строка описания.
+func _build_wing(box: Control) -> void:
+	_class_opt = OptionButton.new()
+	UiKit.row(box, tr("setup_wing_class"), _class_opt)
+	_groups = WingCatalog.groups()
+	for g in _groups:
+		var id := String(g.get("id", ""))
+		var glide := WingCatalog.glide_range(id)
+		var wind := WingCatalog.wind_range(id)
+		_class_opt.add_item(
+			tr("setup_wing_class_item")
+			% [
+				tr(String(g.get("name", id))),
+				tr("setup_wing_glide") % _num_range(glide),
+				tr("setup_wing_wind_max") % [_num_range(wind), tr("unit_ms")],
+			]
+		)
+	_class_opt.item_selected.connect(_on_class_selected)
+	_wing_opt = OptionButton.new()
+	UiKit.row(box, tr("setup_wing_model"), _wing_opt)
+	_wing_opt.item_selected.connect(_on_wing_selected)
+	_wing_info = UiKit.label(box, "", "HintLabel")
+	_wing_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
+## Класс и модель по пути крыла ("wings/<id>"); неизвестное крыло — первая модель первого класса.
+func _select_wing(wing: String) -> void:
+	var gi := 0
+	var group := WingCatalog.group_of(wing)
+	for i in _groups.size():
+		if String(_groups[i].get("id", "")) == group:
+			gi = i
+	_class_opt.select(gi)
+	_fill_models(gi, wing)
+
+
+func _on_class_selected(i: int) -> void:
+	_fill_models(i, String(_last_in_group.get(String(_groups[i].get("id", "")), "")))
+
+
+## Модели класса i (порядок WingCatalog); выбрана wing, если она в классе, иначе первая.
+func _fill_models(i: int, wing: String) -> void:
+	_wing_opt.clear()
+	_wings = WingCatalog.wings_in_group(String(_groups[i].get("id", ""))) if i >= 0 else []
+	for w in _wings:
+		_wing_opt.add_item(tr(String(Config.get_config(w).get("name", w.get_file()))))
+	if _wings.is_empty():
+		_wing_info.text = ""
+		return
+	var wi := maxi(_wings.find(wing), 0)
+	_wing_opt.select(wi)
+	_on_wing_selected(wi)
+
+
 func _on_wing_selected(i: int) -> void:
 	var w: Dictionary = Config.get_config(_wings[i])
+	_last_in_group[String(w.get("group", ""))] = _wings[i]
+	_wing_info.text = _wing_info_text(w)
 	var lo := float(w.get("pilot_mass_min_kg", 50.0))
 	var hi := float(w.get("pilot_mass_max_kg", 120.0))
 	var m := settings.pilot_mass_kg
@@ -158,6 +214,52 @@ func _on_wing_selected(i: int) -> void:
 	_mass.max_value = hi
 	_mass.value = clampf(m, lo, hi)
 	_mass.value_changed.emit(_mass.value)
+
+
+## «качество 13 · ветер до 10 м/с · 14,5 м² · пилот 65–95 кг · ≈ 2003 · мачтовое, двухобшивочное»
+func _wing_info_text(w: Dictionary) -> String:
+	var parts: PackedStringArray = [
+		tr("setup_wing_glide") % _num(WingCatalog.best_glide(w)),
+		tr("setup_wing_wind_max") % [_num(WingCatalog.wind_max(w)), tr("unit_ms")],
+		tr("setup_wing_area") % _num(float(w.get("area_m2", 0.0))),
+		(
+			tr("setup_wing_pilot")
+			% [
+				_num(float(w.get("pilot_mass_min_kg", 0.0))),
+				_num(float(w.get("pilot_mass_max_kg", 0.0))),
+				tr("unit_kg"),
+			]
+		),
+	]
+	var era := String(w.get("era", ""))
+	if era != "":
+		# «1980-е» в конфиге по-русски; суффикс десятилетия — из перевода («1980s»)
+		parts.append(era.replace("-е", tr("setup_wing_decade_suffix")))
+	parts.append(
+		"%s, %s"
+		% [
+			tr("setup_wing_kingpost" if bool(w.get("kingpost", true)) else "setup_wing_topless"),
+			tr(
+				"setup_wing_double_surface"
+				if float(w.get("double_surface_pct", 0.0)) > 0.0
+				else "setup_wing_single_surface"
+			),
+		]
+	)
+	return " · ".join(parts)
+
+
+## Число для подписи: без «.0», с десятичным знаком языка («14,5» / «14.5»).
+func _num(x: float) -> String:
+	var s := "%.1f" % x
+	if s.ends_with(".0"):
+		s = s.trim_suffix(".0")
+	return s.replace(".", tr("setup_decimal_point"))
+
+
+## Диапазон «7,3–9» (или одно число, если края совпадают).
+func _num_range(r: Vector2) -> String:
+	return _num(r.x) if is_equal_approx(r.x, r.y) else "%s–%s" % [_num(r.x), _num(r.y)]
 
 
 ## Время старта (шаг 15 мин, world.json → time.min_hour..max_hour) и дата (месяц, число).
