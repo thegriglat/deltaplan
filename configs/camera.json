@@ -7,6 +7,10 @@
   ],
   "default_mode": "cockpit",
   "fov_deg": 60.0,
+  "fov_range_deg": [45.0, 100.0],
+  "fov_range_deg_doc": "Поле зрения в настройках (слайдер «Поле зрения»): от / до, ° по вертикали; выбор пилота пишется в user://configs/camera.json → fov_deg и применяется сразу ко всем камерам",
+  "fov_step_deg": 5.0,
+  "fov_step_deg_doc": "Шаг слайдера поля зрения, °",
   "near_m": 0.3,
   "cockpit": {
     "offset_m": [

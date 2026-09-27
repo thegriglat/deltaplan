@@ -10,6 +10,7 @@ extends Node3D
 ## меняются по сигналу clock.sun_changed. Другие потребители подписываются на тот же сигнал.
 
 const HAZE_SHADER := preload("res://scripts/world/haze.gdshader")
+const SKY_SHADER := preload("res://scripts/world/sky.gdshader")
 
 var world_env: WorldEnvironment
 var sun: DirectionalLight3D
@@ -17,10 +18,13 @@ var sun: DirectionalLight3D
 var haze: MeshInstance3D
 ## Часы и положение солнца — единый источник направления на солнце.
 var clock: SunClock
+## Ослепление солнцем и каска поверх кадра (world.json → sun_glare, helmet.json);
+## null — выключено в конфиге.
+var glare: SunGlare
 
 var _haze_mat: ShaderMaterial
 var _inversion_msl: float = NAN
-var _sky_mat: ProceduralSkyMaterial
+var _sky_mat: ShaderMaterial
 var _env: Environment
 var _haze_base_color := Color.WHITE
 var _clear_air_color := Color.WHITE
@@ -58,15 +62,24 @@ func apply_config() -> void:
 	sun.light_angular_distance = float(sun_cfg.get("angular_distance_deg", 0.0))
 	sun.shadow_blur = float(sun_cfg.get("shadow_blur", 1.0))
 
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = _color(sky_cfg.top_color)
-	sky_mat.sky_horizon_color = _color(sky_cfg.horizon_color)
-	sky_mat.sky_curve = float(sky_cfg.curve)
-	sky_mat.ground_horizon_color = _color(sky_cfg.ground_horizon_color)
-	sky_mat.ground_bottom_color = _color(sky_cfg.ground_bottom_color)
-	sky_mat.sun_angle_max = float(sky_cfg.sun_angle_max_deg)
-	sky_mat.sun_curve = float(sky_cfg.sun_curve)
-	sky_mat.energy_multiplier = float(sky_cfg.energy_multiplier)
+	# Градиент — как у ProceduralSkyMaterial; диск солнца и корона — свои (sky.gdshader).
+	var sky_mat := ShaderMaterial.new()
+	sky_mat.shader = SKY_SHADER
+	sky_mat.set_shader_parameter("sky_top_color", _color(sky_cfg.top_color))
+	sky_mat.set_shader_parameter("sky_horizon_color", _color(sky_cfg.horizon_color))
+	sky_mat.set_shader_parameter("sky_curve", float(sky_cfg.curve))
+	sky_mat.set_shader_parameter("ground_horizon_color", _color(sky_cfg.ground_horizon_color))
+	sky_mat.set_shader_parameter("ground_bottom_color", _color(sky_cfg.ground_bottom_color))
+	sky_mat.set_shader_parameter("sun_angle_max", deg_to_rad(float(sky_cfg.sun_angle_max_deg)))
+	sky_mat.set_shader_parameter("sun_curve", float(sky_cfg.sun_curve))
+	sky_mat.set_shader_parameter("exposure", float(sky_cfg.energy_multiplier))
+	var disk: Dictionary = sky_cfg.get("sun_disk", {})
+	sky_mat.set_shader_parameter("disk_radius", deg_to_rad(float(disk.get("radius_deg", 0.3))))
+	sky_mat.set_shader_parameter("disk_edge", float(disk.get("edge", 0.3)))
+	sky_mat.set_shader_parameter("limb_darkening", float(disk.get("limb_darkening", 0.4)))
+	sky_mat.set_shader_parameter(
+		"corona_width", deg_to_rad(float(disk.get("corona_width_deg", 1.0)))
+	)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	_sky_mat = sky_mat
@@ -111,6 +124,7 @@ func apply_config() -> void:
 		add_child(world_env)
 	world_env.environment = env
 	_apply_haze(cfg.get("haze", {}))
+	_apply_glare(cfg.get("sun_glare", {}))
 	_apply_sun(clock.to_sun())
 
 
@@ -131,10 +145,23 @@ func _apply_sun(to_sun: Vector3) -> void:
 	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
 	var tint: Color = lt.horizon_tint
 	var sky_k := float(lt.sky_energy)
-	_sky_mat.sky_horizon_color = _color(sky_cfg.horizon_color) * tint
-	_sky_mat.ground_horizon_color = _color(sky_cfg.ground_horizon_color) * tint
+	_sky_mat.set_shader_parameter("sky_horizon_color", _color(sky_cfg.horizon_color) * tint)
+	_sky_mat.set_shader_parameter(
+		"ground_horizon_color", _color(sky_cfg.ground_horizon_color) * tint
+	)
 	# небо у горизонта на закате светлое — гасим его слабее, чем окружение
-	_sky_mat.energy_multiplier = float(sky_cfg.energy_multiplier) * lerpf(1.0, sky_k, 0.4)
+	_sky_mat.set_shader_parameter(
+		"exposure", float(sky_cfg.energy_multiplier) * lerpf(1.0, sky_k, 0.4)
+	)
+	_sky_mat.set_shader_parameter("sun_dir", to_sun)
+	_sky_mat.set_shader_parameter("sun_color", sun_color)
+	_sky_mat.set_shader_parameter("halo_energy", sun.light_energy)
+	var disk: Dictionary = sky_cfg.get("sun_disk", {})
+	var dk := float(lt.get("disk_energy", 1.0))
+	_sky_mat.set_shader_parameter("disk_energy", float(disk.get("energy", 40.0)) * dk)
+	_sky_mat.set_shader_parameter("corona_energy", float(disk.get("corona_energy", 3.0)) * dk)
+	if glare != null:
+		glare.set_sun(to_sun, sun_color, float(lt.get("glare", 1.0)))
 	_env.ambient_light_energy = float(sky_cfg.ambient_light_energy) * sky_k
 	if _haze_mat != null:
 		_haze_mat.set_shader_parameter("sun_dir", to_sun)
@@ -166,6 +193,24 @@ func get_haze_top_msl() -> float:
 ## Материал дымки (для тестов и отладки), null — выключена.
 func haze_material() -> ShaderMaterial:
 	return _haze_mat
+
+
+## Материал неба (sky.gdshader) — для тестов и отладки.
+func sky_material() -> ShaderMaterial:
+	return _sky_mat
+
+
+func _apply_glare(gc: Dictionary) -> void:
+	if not bool(gc.get("enabled", true)):
+		if glare != null:
+			glare.queue_free()
+			glare = null
+		return
+	if glare == null:
+		glare = SunGlare.new()
+		glare.name = "SunGlare"
+		add_child(glare)
+	glare.apply_config()
 
 
 func _apply_haze(hz: Dictionary) -> void:

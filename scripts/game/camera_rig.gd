@@ -55,6 +55,14 @@ func _ready() -> void:
 	fov = float(_cfg.fov_deg)
 	_free_speed = float(_cfg.free.speed_ms)
 	set_mode(String(_cfg.default_mode))
+	Config.reloaded.connect(reload_config)
+
+
+## Перечитать configs/camera.json (после сохранения настроек): поле зрения — сразу.
+func reload_config() -> void:
+	_cfg = Config.get_config("camera")
+	_modes = _cfg.modes
+	fov = float(_cfg.fov_deg)
 
 
 func set_mode(m: String) -> void:

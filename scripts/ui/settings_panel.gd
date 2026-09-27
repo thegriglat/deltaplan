@@ -1,7 +1,8 @@
 class_name SettingsPanel
 extends Control
 ## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
-## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5).
+## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
+## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
@@ -20,6 +21,9 @@ var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
 var _time_speed: OptionButton
 var _speeds: Array = []
+var _fov: HSlider
+var _helmet: OptionButton
+var _helmet_modes: Array = []
 
 
 func _ready() -> void:
@@ -75,6 +79,27 @@ func _ready() -> void:
 	for v: Variant in _speeds:
 		_time_speed.add_item(tr("стоп") if float(v) <= 0.0 else "×%d" % int(v))
 	UiKit.row(box, tr("Скорость времени"), _time_speed)
+	var cam: Dictionary = Config.get_config("camera")
+	var fr: Array = cam.get("fov_range_deg", [60.0, 110.0])
+	_fov = UiKit.slider_row(
+		box,
+		tr("Поле зрения (по вертикали)"),
+		float(fr[0]),
+		float(fr[1]),
+		float(cam.get("fov_step_deg", 5.0)),
+		"%.0f°"
+	)
+	_helmet = OptionButton.new()
+	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
+	var helmet_names := {
+		"none": tr("Без каски"),
+		"open": tr("Открытая"),
+		"visor": tr("С визором"),
+		"visor_dark": tr("С тёмным визором"),
+	}
+	for m: Variant in _helmet_modes:
+		_helmet.add_item(String(helmet_names.get(String(m), String(m))))
+	UiKit.row(box, tr("Каска (вид из кабины)"), _helmet)
 	UiKit.label(box, tr("Настройки сохраняются в профиле пользователя."), "HintLabel")
 	var bar := UiKit.button_bar(box)
 	UiKit.button(bar, tr("Сохранить"), _on_save)
@@ -101,6 +126,10 @@ func load_values() -> void:
 		if is_equal_approx(float(_speeds[i]), sp):
 			si = i
 	_time_speed.select(si)
+	_fov.value = float(Config.value("camera", "fov_deg", 60.0))
+	_fov.value_changed.emit(_fov.value)
+	var hm := String(Config.value("helmet", "mode", "none"))
+	_helmet.select(maxi(_helmet_modes.find(hm), 0))
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -134,6 +163,10 @@ func save() -> bool:
 	if _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
+	ok = UserSettings.save_patch("camera", {"fov_deg": _fov.value}, config_dir) and ok
+	if _helmet.selected >= 0:
+		var hp := {"mode": String(_helmet_modes[_helmet.selected])}
+		ok = UserSettings.save_patch("helmet", hp, config_dir) and ok
 	Config.reload()
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():

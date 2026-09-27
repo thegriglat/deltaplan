@@ -13,6 +13,8 @@ extends RefCounted
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
 ##   --glance              держать клавишу «взгляд на прибор»
+##   --helmet=<вид>        каска в кабине: none | open | visor | visor_dark (поверх настройки;
+##                         применяет SunGlare, configs/helmet.json)
 ##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
 ##                         (чистый кадр мира — для фоновых картинок меню)
 ##   --air-start[=<д>[,<h>]]  старт в воздухе: в <д> м от старта по его курсу, на <h> м над
@@ -30,6 +32,7 @@ var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" ил
 var look := Vector2.ZERO
 var glance := false  ## держать «взгляд на прибор» (скриншоты)
 var no_overlay := false  ## скрыть InstrumentOverlay перед скриншотом (чистый кадр мира)
+var helmet := ""  ## каска в кабине (--helmet=…), "" — из настроек (helmet.json → mode)
 var overrides: Dictionary = {}
 ## Старт в воздухе (--air-start): дальность от старта по его курсу, м; < 0 — обычный старт.
 var air_start_m := -1.0
@@ -64,6 +67,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.time_s = float(val)
 			"camera":
 				o.camera = val
+			"helmet":
+				o.helmet = val
 			"pause", "settings", "about", "controls", "setup":
 				o.open_screen = key
 			"look":

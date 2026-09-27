@@ -184,7 +184,8 @@ static func solar_position(
 
 
 ## Свет по высоте солнца (world.json → time.light, линейно между узлами):
-## {sun_color: Color (× sun.color), sun_energy, sky_energy (множители), horizon_tint: Color}.
+## {sun_color: Color (× sun.color), sun_energy, sky_energy (множители), horizon_tint: Color,
+## disk_energy (× яркость диска солнца), glare (× сила ослепления)}.
 static func light_at(elevation_deg: float) -> Dictionary:
 	var l: Dictionary = Config.get_config("world").get("time", {}).get("light", {})
 	var xs: Array = l.get("elevation_deg", [0.0])
@@ -193,6 +194,8 @@ static func light_at(elevation_deg: float) -> Dictionary:
 		"sun_energy": _lerp_f(xs, l.get("sun_energy", [1.0]), elevation_deg),
 		"sky_energy": _lerp_f(xs, l.get("sky_energy", [1.0]), elevation_deg),
 		"horizon_tint": _lerp_color(xs, l.get("horizon_tint", [[1, 1, 1]]), elevation_deg),
+		"disk_energy": _lerp_f(xs, l.get("disk_energy", [1.0]), elevation_deg),
+		"glare": _lerp_f(xs, l.get("glare", [1.0]), elevation_deg),
 	}
 
 
