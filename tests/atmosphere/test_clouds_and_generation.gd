@@ -187,3 +187,45 @@ func test_cloud_shadow_weakens_new_thermals() -> void:
 	a.set_sun_direction(Vector3(0.6, 0.8, 0))  # солнце на востоке — тень к западу
 	check(a.field._cloud_shade(Vector2(-1350, 0), 0.0) > 0.9, "тень смещена от солнца")
 	a.free()
+
+
+func test_dry_and_extreme_thermals() -> void:
+	# Слабый день — много сухих термиков; сильный — изредка 7–9 м/с.
+	var a := _atmo({}, "weather/weak")
+	a.set_ground(_flat, _sun)
+	a.step(0.01)
+	var dry := 0
+	var strong_cloudless := 0
+	for id in a.field.thermals:
+		var th: AtmoThermal = a.field.thermals[id]
+		if not th.has_cloud:
+			dry += 1
+			if th.strength >= float(a.weather.cloud_min_strength_ms):
+				strong_cloudless += 1
+	check(strong_cloudless > 0, "есть сухие термики, сильные для облака: %d" % strong_cloudless)
+	a.free()
+	var b := _atmo({"thermal_extreme_chance": 0.2}, "weather/strong")
+	b.set_ground(_flat, _sun)
+	b.step(0.01)
+	var ext := 0
+	for id in b.field.thermals:
+		if b.field.thermals[id].strength >= 7.0:
+			ext += 1
+	check(ext > 0, "бывают термики ≥ 7 м/с: %d" % ext)
+	b.free()
+
+
+func test_source_strength_controls_frequency() -> void:
+	# Сильный источник (камни, граница поле–лес) — термиков больше, чем от слабого.
+	var a := _atmo({}, "weather/strong")
+	a.set_ground(_flat, func(x: float, _z: float) -> float: return 1.0 if x > 0.0 else 0.5)
+	a.step(0.01)
+	var hot := 0
+	var cold := 0
+	for id in a.field.thermals:
+		if a.field.thermals[id].src.x > 0.0:
+			hot += 1
+		else:
+			cold += 1
+	check(hot > cold * 1.3, "от сильных источников термиков больше: %d > %d" % [hot, cold])
+	a.free()

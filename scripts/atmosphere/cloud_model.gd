@@ -22,6 +22,7 @@ var _overdev_k: float = 2.4
 var _overdev_spread: float = 0.7
 var _hw_min: float = 0.45
 var _hw_max: float = 0.9
+var _cb_w_max: float = 8000.0
 
 
 func setup(clouds_cfg: Dictionary, weather_size_factor: float = 1.0) -> void:
@@ -37,6 +38,7 @@ func setup(clouds_cfg: Dictionary, weather_size_factor: float = 1.0) -> void:
 	_overdev_spread = float(_cfg.overdev_spread)
 	_hw_min = float(_cfg.height_to_width[0])
 	_hw_max = float(_cfg.height_to_width[1])
+	_cb_w_max = float(_cfg.get("cb_width_max_m", 8000.0))
 
 
 ## Стадия облака над термиком в момент t: Vector3(рост 0..1, распад 0..1, активность 0..1).
@@ -66,11 +68,7 @@ func stage(th: AtmoThermal, t: float) -> Vector3:
 
 ## Центр основания облака (x, z): верх наклонённого столба + снос на распаде.
 func center(th: AtmoThermal, t: float) -> Vector2:
-	var span := th.top - th.src.y
-	var drift := Vector2.ZERO
-	if not th.is_static:
-		drift = th.drift_vel * maxf(0.0, t - th.t_decay_start())
-	return Vector2(th.src.x + th.lean.x * span + drift.x, th.src.z + th.lean.y * span + drift.y)
+	return th.cloud_center(t)
 
 
 ## Размеры: Vector4(полуось по ветру, полуось поперёк, мощность, растекание верха), м.
@@ -78,12 +76,16 @@ func size(th: AtmoThermal, st: Vector3) -> Vector4:
 	var g := st.x
 	var dcy := st.y
 	var width := clampf(_w_per_ms * th.strength * size_factor, _w_min, _w_max)
+	if th.is_cb:
+		width = clampf(width * 2.0, _w_max, _cb_w_max)
 	# Растёт вширь, на распаде расползается.
 	var rz := width * 0.5 * (0.55 + 0.45 * g) * (1.0 + 0.3 * dcy)
 	var rx := rz * th.cloud_stretch
 	var od := th.overdevelop * g
 	# Кучевые хорошей погоды шире, чем выше: мощность в пределах доли ширины.
 	var depth := clampf(th.cloud_depth, width * _hw_min, width * _hw_max)
+	if th.is_cb:
+		depth = th.cloud_depth
 	var h := (
 		depth
 		* (1.0 + od * (_overdev_k - 1.0))

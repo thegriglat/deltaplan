@@ -25,7 +25,8 @@ const FLOAT_PARAMS := [
 	"ms_strength", "fine_step_per_m", "fine_step_min_m", "light_step_m",
 	"lod_distance_m", "fog_sun_scatter", "base_darkness", "base_relief_m",
 	"sky_occlusion_m", "surface_sharpness",
-	"light_step_growth",
+	"light_step_growth", "anvil_spread", "anvil_shift", "virga_depth_m",
+	"virga_density",
 ]
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
 

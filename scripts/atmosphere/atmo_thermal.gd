@@ -32,6 +32,10 @@ var has_cloud: bool = false
 var cloud_depth: float = 0.0
 var cloud_stretch: float = 1.0
 var overdevelop: float = 0.0
+## Кучево-дождевое (Cb): мощная башня до тропопаузы, наковальня, ливневый нисходящий поток.
+var is_cb: bool = false
+## Усиление подъёма под основанием (облачный подсос) 0..; у Cb > 0.
+var suck: float = 0.0
 
 ## --- Состояние на текущий момент (update_time) ---
 var env: float = 0.0  ## огибающая силы 0..1
@@ -90,6 +94,16 @@ func update_time(t: float) -> void:
 	else:
 		cut_h = -1.0e9
 		drift = Vector2.ZERO
+
+
+## Центр облака над столбом в момент t (x, z): верх наклонённого столба + снос на распаде
+## (снос продолжается и после конца термика, пока облако тает).
+func cloud_center(t: float) -> Vector2:
+	var span := top - src.y
+	var d := Vector2.ZERO
+	if not is_static:
+		d = drift_vel * maxf(0.0, t - t_decay_start())
+	return Vector2(src.x + lean.x * span + d.x, src.z + lean.y * span + d.y)
 
 
 ## Ось столба на высоте y (x, z) с учётом наклона и сноса (на момент последнего update_time).

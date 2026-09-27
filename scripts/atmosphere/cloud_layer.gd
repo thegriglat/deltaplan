@@ -1,52 +1,60 @@
 class_name CloudLayer
 extends Node3D
-## Кучевые облака над термиками и их тени на земле (Decal). Два способа рисовать:
+## Облака и их тени на земле (Decal). Всё видимое — строго из физической модели (VR-0):
+## - кучевые над термиками: рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
+##   распад (рваное, тает, уплывает); Cb — башня до тропопаузы, наковальня, вирга (VR-26);
+## - лентикулярные в гребнях подветренных волн, шапка на гребне хребта, роторные клочья (VR-27).
+## Два способа рисовать (общий код — cloud_common.gdshaderinc):
 ## - compute (Forward+/Mobile): все облака одним raymarch-проходом в буфере пониженного
 ##   разрешения с апскейлом (CloudCompositorEffect на активной камере);
-## - boxes (Compatibility): бокс с raymarch-шейдером на каждое облако.
-## Стадия облака — из жизненного цикла его термика:
-## рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
-## распад (рваное, тает, уплывает).
+## - boxes (Compatibility): одна MultiMesh, бокс на облако, параметры — в float-текстуре.
 ## Никаких других визуальных признаков термиков (FR-22).
+
+const FLOATS_PER_CLOUD := 20
 
 var atmo: Atmosphere
 var cfg: Dictionary
-## Время последней пересборки облаков (CPU), мкс — для замеров.
+## Время последнего выбора облаков (CPU), мкс — для замеров.
 var last_rebuild_us: int = 0
-## Логика: стадии, размеры, выбор видимых облаков.
-var model: CloudModel = CloudModel.new()
+## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
+var model: CloudModel
 
 var _material: ShaderMaterial
 var _box: BoxMesh
-var _pool: Array[MeshInstance3D] = []
 var _shadows: Array[Decal] = []
 var _shadow_tex: Texture2D
-## Слоты пула: какой термик в слоте (null — свободен), id термика -> слот, свободные слоты.
+## Слоты облаков над термиками: термик в слоте (null — свободен), id -> слот, свободные слоты.
 var _slot_th: Array = []
 var _slot_of: Dictionary = {}
 var _free: Array[int] = []
+## Записи облаков по слотам (по FLOATS_PER_CLOUD чисел) и облаков волны (неподвижные).
+var _rec: Array[PackedFloat32Array] = []
+var _wave_rec: Array[PackedFloat32Array] = []
 ## Распадающиеся облака (слот -> термик) — их снос обновляется каждый кадр.
 var _drifting: Dictionary = {}
 var _next_slot: int = 0
 var _basis_axes: Array = [Vector3.RIGHT, Vector3.UP, Vector3.BACK]
 
-## Compute-путь: эффект на камере и данные облаков по слотам (по 20 чисел).
+## Compute-путь.
 var _effect: CloudCompositorEffect
-var _gpu: Array[PackedFloat32Array] = []
 var _cam_with_effect: Camera3D
+## Boxes-путь: MultiMesh и текстура с записями облаков.
+var _mm: MultiMesh
+var _mmi: MultiMeshInstance3D
+var _data_tex: ImageTexture
+var _data_rows: int = 0
 
 var _acc: float = 1.0e9
 var _light_acc: float = 1.0e9
 var _sun: DirectionalLight3D
 var _sun_dir: Vector3 = Vector3.UP
-var _wind_offset: Vector3 = Vector3.ZERO
-var _boil: float = 0.0
+var _sun_energy: float = 1.3
 
 
 func setup(atmosphere: Atmosphere) -> void:
 	atmo = atmosphere
 	cfg = atmo.cfg.clouds
-	model.setup(cfg, float(atmo.weather.get("cloud_size_factor", 1.0)))
+	model = atmo.cloud_phys.model
 	atmo.weather_changed.connect(_on_weather_changed)
 	_material = ShaderMaterial.new()
 	_material.shader = load("res://scripts/atmosphere/cloud_volume.gdshader")
@@ -96,7 +104,9 @@ func setup(atmosphere: Atmosphere) -> void:
 	}
 	for u in params:
 		_material.set_shader_parameter(u, float(cfg[params[u]]))
-	set_quality(String(cfg.quality))
+	var st: Dictionary = atmo.cfg.storm
+	for u in ["anvil_spread", "anvil_shift", "virga_depth_m", "virga_density"]:
+		_material.set_shader_parameter(u, float(st[u]))
 	_material.set_shader_parameter("shape_tex_size", float(cfg.noise_shape_size))
 	_material.set_shader_parameter("detail_tex_size", float(cfg.noise_detail_size))
 	_material.set_shader_parameter("ambient_top", _color(cfg.ambient_top))
@@ -108,7 +118,9 @@ func setup(atmosphere: Atmosphere) -> void:
 		_effect = CloudCompositorEffect.new()
 		_effect.noise_shape = _material.get_shader_parameter("noise_shape")
 		_effect.noise_detail = _material.get_shader_parameter("noise_detail")
-		set_quality(String(cfg.quality))
+	else:
+		_make_multimesh()
+	set_quality(String(cfg.quality))
 	if bool(cfg.shadows):
 		_shadow_tex = _make_shadow_texture(int(cfg.shadow_texture_size))
 	_update_light()
@@ -134,6 +146,16 @@ func textures_ready() -> bool:
 		if t == null or (t is NoiseTexture3D and t.get_data().is_empty()):
 			return false
 	return true
+
+
+## Записи всех облаков, которые сейчас рисуются (для тестов и отладки).
+func records() -> Array[PackedFloat32Array]:
+	var out: Array[PackedFloat32Array] = []
+	for i in _rec.size():
+		if _slot_th[i] != null and not _rec[i].is_empty():
+			out.append(_rec[i])
+	out.append_array(_wave_rec)
+	return out
 
 
 static func _color(a: Array) -> Color:
@@ -192,8 +214,23 @@ func _make_shadow_texture(size: int) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 
+func _make_multimesh() -> void:
+	_mm = MultiMesh.new()
+	_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_mm.mesh = _box
+	_mmi = MultiMeshInstance3D.new()
+	_mmi.multimesh = _mm
+	_mmi.material_override = _material
+	_mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	_mmi.custom_aabb = AABB(Vector3(-1.0e6, -1.0e4, -1.0e6), Vector3(2.0e6, 1.0e5, 2.0e6))
+	add_child(_mmi)
+
+
 func _on_weather_changed() -> void:
-	model.setup(cfg, float(atmo.weather.get("cloud_size_factor", 1.0)))
+	# Модель облаков — общая с физикой (подсос считается по тем же стадиям и размерам).
+	model = atmo.cloud_phys.model
+	_acc = 1.0e9
 
 
 func _process(delta: float) -> void:
@@ -203,10 +240,8 @@ func _process(delta: float) -> void:
 	# Шум облаков «течёт» с ветром на кромке: форма стоит над термиком, клубы плывут.
 	var cb_agl := maxf(atmo.field.cloudbase_msl - atmo._ground_ref, 100.0)
 	var w := atmo.wind.vec2_at(cb_agl) * float(cfg.noise_wind_factor)
-	_wind_offset = -Vector3(w.x, 0.0, w.y) * t
-	_boil = t * float(cfg.boil_speed)
-	_material.set_shader_parameter("wind_offset", _wind_offset)
-	_material.set_shader_parameter("boil", _boil)
+	_material.set_shader_parameter("wind_offset", -Vector3(w.x, 0.0, w.y) * t)
+	_material.set_shader_parameter("boil", t * float(cfg.boil_speed))
 	_light_acc += delta
 	if _light_acc > 1.0:
 		_light_acc = 0.0
@@ -221,13 +256,16 @@ func _process(delta: float) -> void:
 		_select(t, eye)
 	_update_some(t, eye)
 	_update_drift(t)
+	var visible_recs := _visible_records(cam)
 	if _effect != null:
-		_push_to_effect()
+		_push_to_effect(visible_recs)
+	else:
+		_push_to_multimesh(visible_recs, eye)
 
 
 ## Эффект вешается на активную камеру (к её Compositor, не трогая чужие эффекты).
 func _attach_effect(cam: Camera3D) -> void:
-	if cam == _cam_with_effect or cam == null:
+	if cam == _cam_with_effect:
 		return
 	if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
 		var old := _cam_with_effect.compositor
@@ -235,17 +273,38 @@ func _attach_effect(cam: Camera3D) -> void:
 			var effs := old.compositor_effects.duplicate()
 			effs.erase(_effect)
 			old.compositor_effects = effs
+	_cam_with_effect = cam
+	if cam == null:
+		return
 	if cam.compositor == null:
 		cam.compositor = Compositor.new()
 	var list := cam.compositor.compositor_effects.duplicate()
 	if not list.has(_effect):
 		list.append(_effect)
 		cam.compositor.compositor_effects = list
-	_cam_with_effect = cam
 
 
-## Параметры материала и облака слотов — в compute-эффект.
-func _push_to_effect() -> void:
+## Облака в пирамиде видимости камеры.
+func _visible_records(cam: Camera3D) -> Array[PackedFloat32Array]:
+	var planes: Array[Plane] = []
+	if cam != null:
+		planes = cam.get_frustum()
+	var out: Array[PackedFloat32Array] = []
+	for g in records():
+		var c := Vector3(g[0], g[1], g[2])
+		var r := Vector3(g[6], g[3], g[7]).length()
+		var inside := true
+		for pl in planes:
+			if pl.distance_to(c) > r:
+				inside = false
+				break
+		if inside:
+			out.append(g)
+	return out
+
+
+## Параметры материала и видимые облака — в compute-эффект.
+func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 	var names := CloudCompositorEffect.FLOAT_PARAMS + CloudCompositorEffect.INT_PARAMS
 	for pair in CloudCompositorEffect.VEC_PARAMS:
 		names = names + pair
@@ -256,58 +315,68 @@ func _push_to_effect() -> void:
 		if v != null:
 			_effect.params[n] = v
 	var data := PackedFloat32Array()
-	var count := 0
-	# Отсечение по пирамиде видимости: в compute-проход — только облака в кадре.
-	var planes: Array[Plane] = []
-	if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
-		planes = _cam_with_effect.get_frustum()
-	for i in _gpu.size():
-		if _slot_th[i] == null or _gpu[i].is_empty():
-			continue
-		var g := _gpu[i]
-		var c := Vector3(g[0], g[1], g[2])
-		var r := Vector3(g[6], g[3], g[7]).length()
-		var inside := true
-		for pl in planes:
-			if pl.distance_to(c) > r:
-				inside = false
-				break
-		if inside:
-			data.append_array(g)
-			count += 1
+	for g in recs:
+		data.append_array(g)
 	_effect.clouds_data = data
-	_effect.cloud_count = count
+	_effect.cloud_count = recs.size()
+
+
+## Compatibility: боксы от дальних к ближним (порядок смешивания), записи — в float-текстуру.
+func _push_to_multimesh(recs: Array[PackedFloat32Array], eye: Vector3) -> void:
+	var sorted := recs.duplicate()
+	sorted.sort_custom(
+		func(a: PackedFloat32Array, b: PackedFloat32Array) -> bool:
+			return (
+				eye.distance_squared_to(Vector3(a[0], a[1], a[2]))
+				> eye.distance_squared_to(Vector3(b[0], b[1], b[2]))
+			)
+	)
+	var n := sorted.size()
+	var rows := maxi(64, nearest_po2(maxi(n, 1)))
+	if _mm.instance_count < rows:
+		_mm.instance_count = rows
+	_mm.visible_instance_count = n
+	var data := PackedFloat32Array()
+	data.resize(rows * FLOATS_PER_CLOUD)
+	for i in n:
+		var g: PackedFloat32Array = sorted[i]
+		for k in FLOATS_PER_CLOUD:
+			data[i * FLOATS_PER_CLOUD + k] = g[k]
+		var ax := Vector3(g[4], 0.0, g[5])
+		var b := Basis(ax * g[6] * 2.0, Vector3.UP * g[3] * 2.0, ax.cross(Vector3.UP) * g[7] * 2.0)
+		_mm.set_instance_transform(i, Transform3D(b, Vector3(g[0], g[1], g[2])))
+	var img := Image.create_from_data(5, rows, false, Image.FORMAT_RGBAF, data.to_byte_array())
+	if _data_tex == null or _data_rows != rows:
+		_data_tex = ImageTexture.create_from_image(img)
+		_data_rows = rows
+		_material.set_shader_parameter("cloud_data", _data_tex)
+	else:
+		_data_tex.update(img)
 
 
 func _exit_tree() -> void:
 	if _effect != null:
 		_attach_effect(null)
-		if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
-			var comp := _cam_with_effect.compositor
-			if comp != null:
-				var effs := comp.compositor_effects.duplicate()
-				effs.erase(_effect)
-				comp.compositor_effects = effs
-		_cam_with_effect = null
 
 
 ## Солнце и дымка — из сцены (DirectionalLight3D, WorldEnvironment), иначе из конфига.
+## Перистая пелена ослабляет прямой свет на облаках.
 func _update_light() -> void:
 	if _sun == null or not is_instance_valid(_sun):
 		_sun = _find_light(get_tree().root) if is_inside_tree() else null
 	var color := Color(1, 0.97, 0.92)
-	var energy := 1.3
+	_sun_energy = 1.3
 	if _sun != null:
 		_sun_dir = _sun.global_transform.basis.z.normalized()
 		color = _sun.light_color
-		energy = _sun.light_energy
+		_sun_energy = _sun.light_energy
 	else:
 		var el := deg_to_rad(float(cfg.sun_elevation_deg))
 		var az := deg_to_rad(float(cfg.sun_azimuth_deg))
 		_sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_material.set_shader_parameter("sun_dir", _sun_dir)
 	_material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
-	_material.set_shader_parameter("sun_energy", energy)
+	_material.set_shader_parameter("sun_energy", _sun_energy * atmo.get_insolation())
 	var env: Environment = (
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
@@ -332,9 +401,14 @@ func _find_light(n: Node) -> DirectionalLight3D:
 	return null
 
 
-## Выбрать видимые облака и раздать им слоты (облако остаётся в своём слоте, пока видно).
+## Выбрать видимые облака над термиками (облако остаётся в своём слоте, пока видно)
+## и пересобрать неподвижные облака волны.
 func _select(t: float, eye: Vector3) -> void:
 	var t0 := Time.get_ticks_usec()
+	var wd := atmo.wind.dir
+	if wd.length_squared() < 1.0e-6:
+		wd = Vector3(1, 0, 0)
+	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
 	var list := model.select(atmo.field.thermals, t, eye)
 	var keep: Dictionary = {}
 	for e: Array in list:
@@ -349,10 +423,7 @@ func _select(t: float, eye: Vector3) -> void:
 		_slot_th[slot] = keep[id]
 		_slot_of[id] = slot
 		_place(slot, t, eye)
-	var wd := atmo.wind.dir
-	if wd.length_squared() < 1.0e-6:
-		wd = Vector3(1, 0, 0)
-	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
+	_wave_rec = _wave_clouds(eye)
 	last_rebuild_us = Time.get_ticks_usec() - t0
 
 
@@ -362,9 +433,7 @@ func _release(slot: int) -> void:
 		_slot_of.erase(th.id)
 	_slot_th[slot] = null
 	_drifting.erase(slot)
-	if slot < _pool.size():
-		_pool[slot].visible = false
-	_gpu[slot] = PackedFloat32Array()
+	_rec[slot] = PackedFloat32Array()
 	if slot < _shadows.size():
 		_shadows[slot].visible = false
 	_free.append(slot)
@@ -383,15 +452,7 @@ func _update_some(t: float, eye: Vector3) -> void:
 
 
 func _add_slot() -> int:
-	if _effect == null:
-		var mi := MeshInstance3D.new()
-		mi.mesh = _box
-		mi.material_override = _material
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-		add_child(mi)
-		_pool.append(mi)
-	_gpu.append(PackedFloat32Array())
+	_rec.append(PackedFloat32Array())
 	if _shadow_tex != null:
 		var dc := Decal.new()
 		dc.texture_albedo = _shadow_tex
@@ -407,6 +468,23 @@ func _add_slot() -> int:
 	return _slot_th.size() - 1
 
 
+## Запись облака: бокс с запасом (контур шумит, верх растекается, у Cb — наковальня и вирга).
+static func make_record(
+	c: Vector2, ax: Vector3, base: float, h: float, rx: float, rz: float,
+	state: Vector4, extra: Vector4, anvil_pad: float, below_m: float
+) -> PackedFloat32Array:
+	var pad := 1.65 + extra.x * 0.8 + extra.y * anvil_pad
+	var sy := h * 1.4 + 10.0 + below_m
+	var cy := base - below_m + sy * 0.5
+	return PackedFloat32Array([
+		c.x, cy, c.y, sy * 0.5,
+		ax.x, ax.z, rx * pad, rz * pad,
+		base, h, rx, rz,
+		state.x, state.y, state.z, state.w,
+		extra.x, extra.y, extra.z, extra.w,
+	])
+
+
 func _place(i: int, t: float, eye: Vector3) -> void:
 	var th: AtmoThermal = _slot_th[i]
 	var st := model.stage(th, t)
@@ -417,60 +495,52 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 	var axes := _basis_axes
 	if st.y > 0.0:
 		_drifting[i] = th
-	var g := st.x
-	var dcy := st.y
 	var sz4 := model.size(th, st)
-	var rx := sz4.x
-	var rz := sz4.y
-	var h := sz4.z
-	var spread := sz4.w
 	var base := th.top
-	# Бокс с запасом: контур шумит, верх переразвитого растекается.
-	# Плотность гаснет к 1,6 радиуса и 1,35 мощности (cloud_common: FADE_*) — бокс чуть больше.
-	var pad := 1.65 + spread * 0.8
-	var sy := h * 1.4 + 20.0
-	var sx := 2.0 * rx * pad
-	var sz := 2.0 * rz * pad
-	var center := Vector3(c.x, base - 10.0 + sy * 0.5, c.y)
-	var shape := Vector4(base, h, rx, rz)
-	var state := Vector4(g, dcy, st.z, float(th.noise_seed % 9973))
-	var extra := Vector4(spread, 0, 0, 0)
-	if _effect != null:
-		var ax: Vector3 = axes[0]
-		_gpu[i] = PackedFloat32Array([
-			center.x, center.y, center.z, sy * 0.5,
-			ax.x, ax.z, sx * 0.5, sz * 0.5,
-			shape.x, shape.y, shape.z, shape.w,
-			state.x, state.y, state.z, state.w,
-			extra.x, extra.y, extra.z, extra.w,
-		])
-	else:
-		var mi := _pool[i]
-		mi.visible = true
-		mi.transform = Transform3D(Basis(axes[0] * sx, axes[1] * sy, axes[2] * sz), center)
-		mi.set_instance_shader_parameter("cloud_shape", shape)
-		mi.set_instance_shader_parameter("cloud_state", state)
-		mi.set_instance_shader_parameter("cloud_extra", extra)
+	var anvil := 0.0
+	var rain := 0.0
+	var scfg: Dictionary = atmo.cfg.storm
+	if th.is_cb:
+		# Наковальня растёт к началу бури, осадки — во время бури.
+		var s0 := atmo.storm.storm_start(th)
+		anvil = smoothstep(s0 - 900.0, s0 + 600.0, t)
+		rain = atmo.storm.intensity(th, t)
+	var below := 10.0 + (float(scfg.virga_depth_m) if rain > 0.0 else 0.0)
+	var anvil_pad := float(scfg.anvil_spread) + float(scfg.anvil_shift)
+	_rec[i] = make_record(
+		c, axes[0], base, sz4.z, sz4.x, sz4.y,
+		Vector4(st.x, st.y, st.z, float(th.noise_seed % 9973)),
+		Vector4(sz4.w, anvil, rain, 0.0), anvil_pad, below
+	)
 	if i < _shadows.size():
-		var dc := _shadows[i]
-		var dist := Vector2(eye.x, eye.z).distance_to(c)
-		if dist > float(cfg.shadow_distance_m) or _sun_dir.y < 0.05:
-			dc.visible = false
-			return
-		dc.visible = true
-		# Тень смещена от облака против солнца на (высота над землёй / tg высоты солнца).
-		var gh := atmo.ground.height(c.x, c.y)
-		var k := (base - gh) / _sun_dir.y
-		var sp := Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
-		var gs := atmo.ground.height(sp.x, sp.y)
-		k = (base - gs) / _sun_dir.y
-		sp = Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
-		var depth := maxf(base - gs, 400.0)
-		dc.size = Vector3(2.0 * rx * 1.1, depth, 2.0 * rz * 1.1)
-		dc.transform = Transform3D(Basis(axes[0], axes[1], axes[2]), Vector3(sp.x, gs, sp.y))
-		dc.modulate = Color(
-			1, 1, 1, float(cfg.shadow_opacity) * g * (1.0 - dcy) * clampf(h / 300.0, 0.3, 1.0)
-		)
+		_place_shadow(_shadows[i], c, base, sz4, st, axes, eye, anvil)
+
+
+func _place_shadow(
+	dc: Decal, c: Vector2, base: float, sz4: Vector4, st: Vector3, axes: Array, eye: Vector3,
+	anvil: float
+) -> void:
+	var dist := Vector2(eye.x, eye.z).distance_to(c)
+	if dist > float(cfg.shadow_distance_m) or _sun_dir.y < 0.05:
+		dc.visible = false
+		return
+	dc.visible = true
+	# Тень смещена от облака против солнца на (высота над землёй / tg высоты солнца).
+	var gh := atmo.ground.height(c.x, c.y)
+	var k := (base - gh) / _sun_dir.y
+	var sp := Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
+	var gs := atmo.ground.height(sp.x, sp.y)
+	k = (base - gs) / _sun_dir.y
+	sp = Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
+	var depth := maxf(base - gs, 400.0)
+	var grow := 1.0 + anvil * float(atmo.cfg.storm.anvil_spread)
+	dc.size = Vector3(2.0 * sz4.x * 1.1 * grow, depth, 2.0 * sz4.y * 1.1 * grow)
+	dc.transform = Transform3D(Basis(axes[0], axes[1], axes[2]), Vector3(sp.x, gs, sp.y))
+	# Под перистой пеленой тени бледнее (рассеянный свет).
+	var cover := clampf(float(atmo.weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
+	var soft := 1.0 - float(atmo.cfg.cirrus.shadow_softening) * cover
+	var op := float(cfg.shadow_opacity) * st.x * (1.0 - st.y) * clampf(sz4.z / 300.0, 0.3, 1.0)
+	dc.modulate = Color(1, 1, 1, clampf(op * soft * (1.0 + anvil * 0.5), 0.0, 1.0))
 
 
 ## Распадающиеся облака уплывают по ветру — двигаем их каждый кадр, чтобы не дёргались.
@@ -478,10 +548,71 @@ func _update_drift(t: float) -> void:
 	for i in _drifting:
 		var th: AtmoThermal = _drifting[i]
 		var c := model.center(th, t)
-		if _effect != null:
-			if not _gpu[i].is_empty():
-				_gpu[i][0] = c.x
-				_gpu[i][2] = c.y
-		else:
-			var mi := _pool[i]
-			mi.position = Vector3(c.x, mi.position.y, c.y)
+		if not _rec[i].is_empty():
+			_rec[i][0] = c.x
+			_rec[i][2] = c.y
+
+
+## Облака волны (VR-27) — строго из поля смещения линий тока: лентикулярные в гребнях волн,
+## шапка на самой высокой точке рельефа против ветра, роторные клочья под первым гребнем.
+func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
+	var out: Array[PackedFloat32Array] = []
+	var wf := atmo.wave
+	if wf == null or not wf.enabled:
+		return out
+	var w: Dictionary = atmo.cfg.wave
+	var ax: Vector3 = _basis_axes[0]
+	var crests := wf.crests(eye, float(w.lens_radius_m), float(w.lens_min_eta_m))
+	var lam := wf.wavelength()
+	var above := float(atmo.weather.get("lens_level_above_crest_m", 2000.0))
+	var eta_ref := float(w.lens_eta_ref_m)
+	var n := 0
+	for cr: Dictionary in crests:
+		if n >= int(w.lens_max):
+			break
+		var f := clampf(float(cr.eta) / eta_ref, 0.25, 1.0)
+		var p: Vector2 = cr.pos
+		var seed_v := float(absi(hash(Vector2i(roundi(p.x / 100.0), roundi(p.y / 100.0)))) % 9973)
+		var length := lerpf(float(w.lens_length_m[0]), float(w.lens_length_m[1]), f)
+		var thick := lerpf(float(w.lens_thickness_m[0]), float(w.lens_thickness_m[1]), f)
+		var alt := float(cr.crest) + above + float(cr.eta) * 0.5
+		out.append(make_record(
+			p, ax, alt - thick * 0.5, thick, lam * float(w.lens_width_frac) * 0.5, length * 0.5,
+			Vector4(1, 0, 0, seed_v), Vector4(0, 0, 0, 1), 0.0, 10.0
+		))
+		n += 1
+	if crests.is_empty():
+		return out
+	var first: Dictionary = crests[0]
+	var crest_h := float(first.crest)
+	if bool(w.rotor_clouds):
+		# Роторные клочья — на уровне гребня хребта под первым гребнем волны: рваные кучевые.
+		var p1: Vector2 = first.pos
+		out.append(make_record(
+			p1, ax, crest_h + 150.0, 220.0, 450.0, 900.0,
+			Vector4(0.8, 0.6, 0.0, 311.0), Vector4(0, 0, 0, 0), 0.0, 10.0
+		))
+	if bool(w.cap_cloud):
+		var top := _highest_ground(eye, lam * 0.8)
+		if top.z > 0.0:
+			out.append(make_record(
+				Vector2(top.x, top.y) + Vector2(ax.x, ax.z) * 250.0, ax, top.z - 180.0, 420.0,
+				900.0, 2200.0, Vector4(1, 0.2, 0, 523.0), Vector4(0, 0, 0, 2), 0.0, 10.0
+			))
+	return out
+
+
+## Самая высокая точка рельефа рядом (для шапки): Vector3(x, z, высота) или z < 0.
+func _highest_ground(eye: Vector3, radius: float) -> Vector3:
+	if not atmo.ground.has_ground:
+		return Vector3(0, 0, -1)
+	var best := Vector3(0, 0, -1.0e9)
+	var step := radius / 10.0
+	for j in range(-10, 11):
+		for i in range(-10, 11):
+			var x := eye.x + i * step
+			var z := eye.z + j * step
+			var h := atmo.ground.height(x, z)
+			if h > best.z:
+				best = Vector3(x, z, h)
+	return best

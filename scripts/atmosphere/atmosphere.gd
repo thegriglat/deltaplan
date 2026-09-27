@@ -24,6 +24,12 @@ var cfg: Dictionary = {}
 var wind: WindModel
 var ground: GroundField
 var field: ThermalField
+## Облака в физике: подсос, поток в облаке, «в облаке ли» (FR-14b).
+var cloud_phys: CloudPhysics
+## Грозовые ячейки (Cb): нисходящий поток и фронт порывов (VR-26).
+var storm: StormField
+## Подветренные волны и роторы (VR-27).
+var wave: WaveField
 
 ## Время атмосферы, с. Термики — чистые функции времени и координат.
 var time_s: float = 0.0
@@ -61,6 +67,11 @@ var _conv_norm: float = 1.0
 var _vert_ratio: float = 0.7
 var _turb_max: float = 6.0
 var _advect: float = 0.0
+var _wave_ref_agl: float = 1000.0
+var _in_cloud_turb: float = 1.5
+var _in_cloud_eject: float = 3.0
+var _in_cloud_scale_k: float = 3.0
+var _last_sigma: float = 0.0
 
 var _clouds: Node3D
 var _birds: Node3D
@@ -115,6 +126,16 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	var el := deg_to_rad(float(cc.sun_elevation_deg))
 	var az := deg_to_rad(float(cc.sun_azimuth_deg))
 	field.sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
+	# Перистая пелена (VR-28) ослабляет прогрев земли — термики реже и слабее.
+	field.insolation = get_insolation()
+	cloud_phys = CloudPhysics.new()
+	cloud_phys.setup(cfg.clouds, cfg.thermal, float(weather.get("cloud_size_factor", 1.0)))
+	field.cloud_phys = cloud_phys
+	storm = StormField.new()
+	storm.setup(cfg.storm, field.cloud_width_per_ms)
+	wave = WaveField.new()
+	wave.setup(cfg.wave, weather, ground)
+	_update_wave_wind()
 	_refresh_interval = float(cfg.thermal.refresh_interval_s)
 	_state_interval = float(cfg.thermal.state_update_interval_s)
 	_cache_coefficients()
@@ -155,6 +176,10 @@ func _cache_coefficients() -> void:
 		peak = maxf(peak, _lenschow(i / 100.0))
 	_conv_norm = 1.0 / maxf(peak, 1.0e-4)
 	_advect = wind.speed_at(float(t.advection_height_m))
+	_wave_ref_agl = float(cfg.wave.wind_reference_agl_m)
+	_in_cloud_turb = float(t.in_cloud_ms)
+	_in_cloud_eject = float(t.in_cloud_eject_ms)
+	_in_cloud_scale_k = float(t.scale_m) / float(t.in_cloud_scale_m)
 
 
 static func _lenschow(xi: float) -> float:
@@ -192,6 +217,7 @@ func set_wind(speed_kmh: float, from_deg: float) -> void:
 	if absf(angle_difference(deg_to_rad(old), deg_to_rad(from_deg))) > deg_to_rad(tol):
 		ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
 	field.update_wind_frame()
+	_update_wave_wind()
 	_refresh_acc = 1.0e9
 
 
@@ -270,6 +296,8 @@ func step(dt: float) -> void:
 		_refresh_acc = 0.0
 		_state_acc = 0.0
 		field.refresh(time_s, _focus, _refresh_interval)
+		storm.refresh(field.thermals)
+		cloud_phys.refresh(field.thermals, time_s, _focus, float(cfg.thermal.physics_radius_m))
 	else:
 		_state_acc += dt
 		if _state_acc >= _state_interval:
@@ -319,6 +347,24 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge - _lee_sink * u * lee
 	var h := u * (1.0 - lee * _lee_wind_red)
 	var v := Vector3(wd.x * h, w, wd.z * h)
+	# Грозы: нисходящий поток, растекание и фронт порывов.
+	var storm_turb := 0.0
+	if not storm.cells.is_empty():
+		var sf := storm.sample(pos, agl, time_s)
+		v += Vector3(sf.x, sf.y, sf.z)
+		storm_turb = sf.w
+	# Подветренные волны и роторы.
+	var rotor_turb := 0.0
+	if wave.enabled:
+		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
+		v.y += wv.x
+		rotor_turb = wv.y
+	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
+	var cin := Vector3.ZERO
+	if cloud_phys.cloud_count() > 0:
+		cin = cloud_phys.sample(pos)
+		v += Vector3(cin.y, 0.0, cin.z) * _in_cloud_eject * cin.x
+	_last_sigma = 0.0
 	if not turbulence_enabled:
 		return v
 	# Турбулентность: механическая + конвективная (Lenschow) + край термика + ротор.
@@ -328,11 +374,47 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
 		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
 	var rot := _lee_turb * u * lee
-	var amp := minf(sqrt(mech * mech + conv * conv + th.z * th.z + rot * rot), _turb_max)
+	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
+	amp2 += storm_turb * storm_turb + rotor_turb * rotor_turb
+	var amp := minf(sqrt(amp2), _turb_max)
+	# В облаке — бурление: большие пульсации мелкого масштаба во всех направлениях.
+	var chaos := _in_cloud_turb * cin.x
+	_last_sigma = sqrt(amp * amp + chaos * chaos)
+	if chaos > 1.0e-3:
+		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect)
+		v += nc * chaos
 	if amp < 1.0e-3:
 		return v
 	var n := wind.gust_unit(pos, time_s, _advect)
 	return v + Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+
+
+## Интенсивность болтанки в точке — СКО пульсаций скорости воздуха, м/с (для оценки перегрузки,
+## FR-14c; саму перегрузку flight считает по air_velocity_at на крыле).
+func turbulence_intensity_at(pos: Vector3) -> float:
+	var was := turbulence_enabled
+	turbulence_enabled = true
+	air_velocity_at(pos)
+	turbulence_enabled = was
+	return _last_sigma
+
+
+## Плотность облака в точке 0..1 (0 — ясно): для «белой мглы» у камеры и оценки «в облаке».
+func cloud_density_at(pos: Vector3) -> float:
+	return cloud_phys.density_at(pos)
+
+
+## Доля солнечного прогрева земли под перистой пеленой 0..1 (1 — ясно). Интегратор может
+## ослабить по ней и солнце мира (VR-28).
+func get_insolation() -> float:
+	var cover := clampf(float(weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
+	return 1.0 - cover * float(cfg.cirrus.sun_block)
+
+
+func _update_wave_wind() -> void:
+	if wave != null:
+		var u := wind.speed_at(float(cfg.wave.wind_reference_agl_m))
+		wave.set_wind(u, Vector2(wind.dir.x, wind.dir.z))
 
 
 ## Средний ветер без пульсаций и вертикальных потоков (для колдуна на старте и т. п.), м/с.

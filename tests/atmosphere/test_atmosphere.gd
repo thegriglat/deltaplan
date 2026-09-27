@@ -166,13 +166,14 @@ func test_background_sink() -> void:
 	a.free()
 
 
-func test_cloudbase_limits_climb() -> void:
-	var a := _static_one(0.0, 4.0, 120.0)
+func test_cloudbase_limits_climb_without_cloud() -> void:
+	# Термик без облака (слабее порога облака): у кромки подъём гаснет, выше — не поднимает.
+	var a := _static_one(0.0, 0.8, 120.0)
 	var cb := a.get_cloudbase_msl()
 	var mid := a.air_velocity_at(Vector3(0, cb - 600, 0)).y
 	var near_base := a.air_velocity_at(Vector3(0, cb - 20, 0)).y
 	var above := a.air_velocity_at(Vector3(0, cb + 50, 0)).y
-	check(mid > 3.0, "в середине слоя сильный подъём %.2f" % mid)
+	check(mid > 0.3, "в середине слоя подъём %.2f" % mid)
 	check(near_base < mid * 0.5, "у кромки подъём гаснет %.2f" % near_base)
 	check(above <= 0.0, "выше кромки не поднимает %.2f" % above)
 	a.free()
@@ -301,21 +302,28 @@ func test_performance() -> void:
 	# Прогреть кеш рельефа в районе запросов.
 	for i in 200:
 		a.air_velocity_at(Vector3((i % 20) * 50.0, 1200.0, (i / 20) * 50.0))
-	var n := 10000
-	var t0 := Time.get_ticks_usec()
+	# Медиана 7 серий по 2000 вызовов: устойчиво к нагрузке соседних процессов
+	# (одна «плохая» серия не роняет тест), но заметное замедление кода ловится.
+	var n := 2000
+	var runs: Array[float] = []
 	var acc := Vector3.ZERO
-	for i in n:
-		acc += a.air_velocity_at(Vector3((i % 100) * 9.0, 900.0 + (i % 7) * 50.0, (i / 100) * 9.0))
-	var us := Time.get_ticks_usec() - t0
+	for r in 7:
+		var t0 := Time.get_ticks_usec()
+		for i in n:
+			var p := Vector3((i % 100) * 9.0, 900.0 + (i % 7) * 50.0, (i / 100) * 9.0 + r * 3.0)
+			acc += a.air_velocity_at(p)
+		runs.append(float(Time.get_ticks_usec() - t0) / n)
+	runs.sort()
+	var med := runs[runs.size() / 2]
 	print(
 		(
-			"         air_velocity_at: %d вызовов за %.1f мс (%.2f мкс/вызов), активных термиков %d"
-			% [n, us / 1000.0, float(us) / n, a.field.active_count()]
+			"         air_velocity_at: медиана %.2f мкс/вызов (серии %.1f…%.1f), термиков %d"
+			% [med, runs[0], runs[-1], a.field.active_count()]
 		)
 	)
-	# Бюджет: планер зовёт ~5 точек × 120 Гц = 600 вызовов/с;
-	# 20 мкс/вызов — это 12 мс в секунду (~0,2 мс на кадр).
-	check(us < 200000, "10000 вызовов быстрее 200 мс: %.1f мс" % (us / 1000.0))
+	# Бюджет: планер зовёт ~5 точек × 120 Гц = 600 вызовов/с; 40 мкс/вызов — это 24 мс
+	# в секунду (~0,4 мс на кадр). Сейчас ~10 мкс, порог с запасом ×4 на нагрузку и слабый CPU.
+	check(med < 40.0, "air_velocity_at медиана < 40 мкс: %.2f мкс" % med)
 	var t1 := Time.get_ticks_usec()
 	for i in 120:
 		a.step(1.0 / 120.0)

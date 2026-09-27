@@ -8,7 +8,12 @@
 //   wind_offset, boil, shape_period_m, detail_period_m, hf_period_m, top_period_m, shape_tex_size,
 //   detail_tex_size, curl_strength_m, extinction, light_absorb, powder_strength, phase_forward,
 //   phase_back, phase_mix, silver, ms_strength, coarse_steps, max_iterations, fine_step_per_m,
-//   fine_step_min_m, light_steps, light_step_m, lod_distance_m, detail_enabled (int).
+//   fine_step_min_m, light_steps, light_step_m, lod_distance_m, detail_enabled (int),
+//   anvil_spread, anvil_shift, virga_depth_m, virga_density.
+// Облако задаётся записью из 5 vec4 (так же в CloudLayer/compute):
+//   r0: центр бокса xyz, полувысота бокса; r1: ось по ветру (x, z), полуширины бокса (по ветру, поперёк);
+//   r2: кромка, мощность, полуось по ветру, поперёк; r3: рост, распад, активность, зерно;
+//   r4: растекание верха, наковальня 0..1, осадки 0..1, вид (0 кучевое, 1 линза, 2 шапка).
 
 const int TOWERS = 8;
 const float CLOUD_PI = 3.14159265;
@@ -31,6 +36,10 @@ struct Cloud {
 	float activity;
 	vec3 seed_off;
 	float spread;
+	float anvil;       // наковальня Cb 0..1
+	float rain;        // осадки (вирга) 0..1
+	int kind;          // 0 кучевое/Cb, 1 лентикулярное, 2 шапка на гребне
+	float fade_r;      // радиус (в uv), к которому плотность гаснет
 	vec4 tw[TOWERS];   // башни: центр (u, v), высота (доля), радиус (доля)
 	vec3 ro;           // камера
 	float pix;         // угловой размер пикселя, рад
@@ -80,11 +89,33 @@ Cloud cloud_make(vec3 c, vec3 ax, vec4 shape, vec4 state, vec4 extra, vec3 ro, f
 	float s = state.w;
 	cl.seed_off = fract(vec3(s * 0.1031, s * 0.1130, s * 0.0973)) * 7.0;
 	cl.spread = extra.x;
+	cl.anvil = extra.y;
+	cl.rain = extra.z;
+	cl.kind = int(extra.w + 0.5);
+	cl.fade_r = FADE_R1 + cl.spread * 0.8 + cl.anvil * (anvil_spread + anvil_shift);
 	cl.ro = ro;
 	cl.pix = pix;
 	cl.foot = 0.0;
 	cloud_init_towers(cl);
 	return cl;
+}
+
+// Пересечение луча с боксом облака (записи r0, r1): отрезок [tn, tf], false — мимо.
+bool cloud_box_hit(vec4 r0, vec4 r1, vec3 ro, vec3 rd, out float tn, out float tf) {
+	vec3 axv = vec3(r1.x, 0.0, r1.y);
+	vec3 azv = vec3(-r1.y, 0.0, r1.x);
+	vec3 dl = ro - r0.xyz;
+	vec3 lo = vec3(dot(dl, axv), dl.y, dot(dl, azv));
+	vec3 ld = vec3(dot(rd, axv), rd.y, dot(rd, azv));
+	vec3 he = vec3(r1.z, r0.w, r1.w);
+	vec3 inv = 1.0 / ld;
+	vec3 t0 = (-he - lo) * inv;
+	vec3 t1 = (he - lo) * inv;
+	vec3 tmin = min(t0, t1);
+	vec3 tmax = max(t0, t1);
+	tn = max(max(max(tmin.x, tmin.y), tmin.z), 0.0);
+	tf = min(min(tmax.x, tmax.y), tmax.z);
+	return tf > tn;
 }
 
 // Уровень мипа по размеру пикселя на расстоянии точки (в raymarch производные бессмысленны).
@@ -106,7 +137,17 @@ float cloud_towers(Cloud cl, vec2 uv, float h) {
 
 // Верх облака над точкой (uv) в долях мощности — по башням (без шума).
 float cloud_top_at(Cloud cl, vec2 uv) {
+	if (cl.kind != 0) {
+		float r2 = dot(uv, uv);
+		return r2 < 1.0 ? 0.5 + 0.5 * pow(1.0 - r2, 0.8) : 0.0;
+	}
 	float top = 0.0;
+	if (cl.anvil > 0.0) {
+		vec2 ua = uv - vec2(anvil_shift * cl.anvil, 0.0);
+		if (length(ua) < 1.0 + anvil_spread * cl.anvil) {
+			top = 1.0;
+		}
+	}
 	for (int k = 0; k < TOWERS; k++) {
 		vec4 t = cl.tw[k];
 		float q = length(uv - t.xy) / t.w;
@@ -121,37 +162,103 @@ float cloud_top_at(Cloud cl, vec2 uv) {
 // По ней ищем вход в облако — детерминированно, без «искр» от случайно пойманных клочьев.
 float cloud_envelope(Cloud cl, vec3 p) {
 	float h = (p.y - cl.base) / cl.height;
-	if (h < 0.0 || h > FADE_H1) {
-		return -1.0;
-	}
 	vec3 d = p - cl.c;
 	vec2 uv = vec2(dot(d, cl.ax) / cl.rx, dot(d, cl.az) / cl.rz);
+	if (cl.kind != 0) {
+		return 1.25 - length(vec2(length(uv), 2.0 * h - 1.0));
+	}
+	if (h < 0.0) {
+		// Вирга под основанием.
+		float vd = virga_depth_m / cl.height;
+		return (cl.rain > 0.0 && h > -vd) ? 0.8 - length(uv - vec2(0.25, 0.0)) : -1.0;
+	}
+	if (h > FADE_H1) {
+		return -1.0;
+	}
 	float spread_k = 1.0 + cl.spread * smoothstep(0.55, 1.0, h);
 	// Запас на искажение шумом (±0,15 по uv) и оседание при распаде.
-	return cloud_towers(cl, uv / spread_k, h) + 0.35;
+	float e = cloud_towers(cl, uv / spread_k, h) + 0.35;
+	if (cl.anvil > 0.0 && h > 0.7) {
+		vec2 ua = uv - vec2(anvil_shift * cl.anvil, 0.0);
+		e = max(e, 1.0 + anvil_spread * cl.anvil + 0.3 - length(ua));
+	}
+	return e;
+}
+
+// Лентикулярное облако (вид 1) и шапка на гребне (вид 2): гладкая линза, у линзы — «стопка тарелок».
+float lens_density(Cloud cl, vec3 p, vec2 uv, float h, int quality) {
+	vec3 wp = p / top_period_m + cl.seed_off;
+	float lw = cloud_lod(cl, p, top_period_m / shape_tex_size);
+	float w1 = textureLod(noise_shape, wp, lw).r;
+	float r = length(uv) + (w1 - 0.5) * (cl.kind == 2 ? 0.35 : 0.15);
+	if (r >= 1.0) {
+		return 0.0;
+	}
+	float thick = pow(1.0 - r * r, cl.kind == 2 ? 0.5 : 0.9);
+	float inside = thick - abs(2.0 * h - 1.0);
+	if (inside <= 0.0) {
+		return 0.0;
+	}
+	float dns = smoothstep(0.0, 0.1, inside);
+	if (cl.kind == 1) {
+		// Стопка тарелок: плотность колеблется по высоте.
+		float plates = 0.65 + 0.35 * cos(h * 6.2831853 * 3.0 + cl.seed_off.y);
+		dns *= mix(1.0, plates, 0.8);
+	} else if (quality > 0) {
+		// Шапка рваная с подветренной стороны — клубы.
+		vec3 sp = (p + wind_offset) / shape_period_m + cl.seed_off;
+		float b = 1.0 - textureLod(noise_shape, sp, cloud_lod(cl, p, shape_period_m / shape_tex_size)).r;
+		dns = clamp(cloud_remap(dns, 0.5 * (1.0 - b) * smoothstep(-0.2, 0.8, uv.x), 1.0, 0.0, 1.0), 0.0, 1.0);
+	}
+	return dns;
+}
+
+// Полосы осадков (вирга) под основанием Cb: не достают до земли, испаряясь.
+float cloud_virga(Cloud cl, vec3 p, vec2 uv, float h) {
+	float depth = -h * cl.height;
+	float fd = depth / virga_depth_m;
+	if (fd >= 1.0) {
+		return 0.0;
+	}
+	// Полосы чуть сносятся по ветру с глубиной.
+	vec2 ur = uv - vec2(0.25 + fd * 0.25, 0.0);
+	float r = length(ur) / 0.55;
+	if (r >= 1.0) {
+		return 0.0;
+	}
+	vec3 q = vec3(p.x / 350.0, p.y / 6000.0, p.z / 350.0) + cl.seed_off;
+	float streak = textureLod(noise_detail, q, 0.0).r;
+	float d = (1.0 - smoothstep(0.5, 1.0, r)) * pow(1.0 - fd, 1.5) * smoothstep(0.35, 0.75, 1.0 - streak);
+	return virga_density * cl.rain * d;
 }
 
 // Плотность 0..1 в точке p (мир).
 // quality: 0 — путь к солнцу (форма + крупные клубы), 1 — полная, 2 — + мелкая эрозия краёв.
 float cloud_density(Cloud cl, vec3 p, int quality) {
 	float h = (p.y - cl.base) / cl.height;
-	// Ниже кромки облака нет вовсе.
-	if (h < 0.0 || h > FADE_H1) {
-		return 0.0;
-	}
 	vec3 d = p - cl.c;
 	vec2 uv = vec2(dot(d, cl.ax) / cl.rx, dot(d, cl.az) / cl.rz);
-	float r_box = length(uv);
-	if (r_box > FADE_R1) {
+	if (cl.kind != 0) {
+		return (h < 0.0 || h > 1.0) ? 0.0 : lens_density(cl, p, uv, h, quality);
+	}
+	// Ниже кромки — только вирга у Cb.
+	if (h < 0.0) {
+		return cl.rain > 0.0 ? cloud_virga(cl, p, uv, h) : 0.0;
+	}
+	if (h > FADE_H1) {
 		return 0.0;
 	}
-	float box_fade = (1.0 - smoothstep(FADE_R0, FADE_R1, r_box)) * (1.0 - smoothstep(FADE_H0, FADE_H1, h));
+	float r_box = length(uv);
+	if (r_box > cl.fade_r) {
+		return 0.0;
+	}
+	float box_fade = (1.0 - smoothstep(cl.fade_r - 0.25, cl.fade_r, r_box)) * (1.0 - smoothstep(FADE_H0, FADE_H1, h));
 	float spread_k = 1.0 + cl.spread * smoothstep(0.55, 1.0, h);
 	float shape;
 	if (quality == 0) {
 		shape = cloud_towers(cl, uv / spread_k, h);
 	} else {
-		if (cloud_towers(cl, uv / spread_k, h) < -0.7) {
+		if (cloud_towers(cl, uv / spread_k, h) < -0.7 && cl.anvil <= 0.0) {
 			return 0.0;
 		}
 		// Крупное искажение: башни неровные, контур не круглый.
@@ -167,6 +274,16 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	// Распад: башни оседают и расползаются.
 	shape -= cl.decay * 0.15;
 	shape = clamp(shape / mix(0.55, 0.8, cl.decay), 0.0, 1.0);
+	// Наковальня Cb: плоский широкий слой под тропопаузой, сдвинут по ветру, гладкий, волокнистый.
+	float anvil_m = 0.0;
+	if (cl.anvil > 0.0 && h > 0.7) {
+		vec2 ua = uv - vec2(anvil_shift * cl.anvil, 0.0);
+		float ra = 1.0 + anvil_spread * cl.anvil;
+		float av = smoothstep(0.74, 0.86, h) * (1.0 - smoothstep(0.97, 1.0, h));
+		float ah = 1.0 - smoothstep(ra * 0.75, ra, length(ua));
+		anvil_m = av * ah * cl.anvil;
+		shape = max(shape, anvil_m);
+	}
 	if (shape <= 0.0) {
 		return 0.0;
 	}
@@ -187,7 +304,7 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	if (dns <= 0.0) {
 		return 0.0;
 	}
-	float erosion = mix(0.75, 0.93, cl.decay) + (1.0 - cl.growth) * 0.15;
+	float erosion = (mix(0.75, 0.93, cl.decay) + (1.0 - cl.growth) * 0.15) * (1.0 - 0.6 * anvil_m);
 	dns = clamp(cloud_remap(dns, erosion * (1.0 - billow), 1.0, 0.0, 1.0), 0.0, 1.0);
 	if (quality == 2 && detail_enabled != 0 && dns > 0.0 && dns < 0.9) {
 		// Мелкие края: искажение («завихрения») + две октавы мелкого шума.

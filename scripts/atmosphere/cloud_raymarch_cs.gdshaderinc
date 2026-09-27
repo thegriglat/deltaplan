@@ -41,21 +41,12 @@ void main() {
 	int h_id[MAX_HITS];
 	int nh = 0;
 	for (int i = 0; i < cloud_count; i++) {
-		vec4 a = clouds.d[i * 5];
-		vec4 b = clouds.d[i * 5 + 1];
-		vec3 axv = vec3(b.x, 0.0, b.y);
-		vec3 azv = vec3(-b.y, 0.0, b.x);
-		vec3 dl = ro - a.xyz;
-		vec3 lo = vec3(dot(dl, axv), dl.y, dot(dl, azv));
-		vec3 ld = vec3(dot(rd, axv), rd.y, dot(rd, azv));
-		vec3 he = vec3(b.z, a.w, b.w);
-		vec3 inv = 1.0 / ld;
-		vec3 t0 = (-he - lo) * inv;
-		vec3 t1 = (he - lo) * inv;
-		vec3 tmin = min(t0, t1);
-		vec3 tmax = max(t0, t1);
-		float tn = max(max(max(tmin.x, tmin.y), tmin.z), 0.0);
-		float tf = min(min(min(tmax.x, tmax.y), tmax.z), scene_t);
+		float tn;
+		float tf;
+		if (!cloud_box_hit(clouds.d[i * 5], clouds.d[i * 5 + 1], ro, rd, tn, tf)) {
+			continue;
+		}
+		tf = min(tf, scene_t);
 		if (tf <= tn) {
 			continue;
 		}

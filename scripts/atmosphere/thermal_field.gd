@@ -14,7 +14,7 @@ const _CUT_BLEND_M := 60.0
 const _THIRD := 1.0 / 3.0
 ## Allen: радиус ∝ ξ^(1/3)·(1 − 0,25ξ); при ξ = 1 это 0,75 — нормируем, чтобы у верха был R.
 const _ALLEN_NORM := 1.0 / 0.75
-const _P_STRIDE := 11
+const _P_STRIDE := 13
 const _KEY_MUL := 1 << 21
 
 var thermals: Dictionary = {}  ## id -> AtmoThermal (все живые, включая статичные)
@@ -26,6 +26,10 @@ var cloud_linger_s: float = 0.0
 var cloud_width_per_ms: float = 300.0
 var cloud_width_min: float = 350.0
 var cloud_width_max: float = 1800.0
+## Облака в физике (подсос, поток в облаке); задаёт Atmosphere.
+var cloud_phys: CloudPhysics
+## Доля солнечного прогрева земли (перистая пелена её снижает), 0..1.
+var insolation: float = 1.0
 ## Направление на солнце (для теней облаков).
 var sun_dir: Vector3 = Vector3(0.0, 1.0, 0.0)
 
@@ -55,6 +59,8 @@ var _ramp: float = 150.0
 var _taper: float = 120.0
 var _edge_k: float = 0.35
 var _edge_w: float = 0.45
+var _suck_depth: float = 250.0
+var _in_cloud_mean: float = 0.25
 
 # Ветер в системе клеток
 var _ax: Vector2 = Vector2(0, 1)  ## ось a (по ветру)
@@ -83,6 +89,8 @@ func setup(
 	_rmin = float(thermal_cfg.radius_min_factor)
 	_ramp = float(thermal_cfg.ground_ramp_m)
 	_taper = float(thermal_cfg.top_taper_m)
+	_suck_depth = float(thermal_cfg.suck_depth_m)
+	_in_cloud_mean = float(thermal_cfg.in_cloud_mean_frac)
 	mode = String(weather.get("thermal_mode", "dynamic"))
 	update_wind_frame()
 
@@ -147,6 +155,8 @@ func add_static(x: float, z: float, strength_ms: float, radius_m: float) -> Atmo
 	th.strength = strength_ms
 	th.radius = radius_m
 	_setup_cloud(th, strength_ms, 0.0)
+	# Статичные (MVP) — всегда с облаком, если достаточно сильные.
+	th.has_cloud = strength_ms >= float(_w.cloud_min_strength_ms)
 	_apply_wind(th)
 	th.update_time(0.0)
 	thermals[th.id] = th
@@ -174,8 +184,16 @@ func set_cloudbase(msl: float) -> void:
 	_empty_cycles.clear()
 
 
+## Очень сильный термик — широкий.
+func rmax_extreme(r: float) -> float:
+	return maxf(r, float(_w.thermal_radius_m[1]))
+
+
 func _setup_cloud(th: AtmoThermal, strength_ms: float, rnd: float) -> void:
-	th.has_cloud = strength_ms >= float(_w.cloud_min_strength_ms)
+	# Сухие («голубые») термики — без облака: их ищут только по вариометру.
+	var dry := float(_w.get("dry_thermal_fraction", 0.0))
+	var rnd_dry := fposmod(rnd * 7.31 + 0.137, 1.0)
+	th.has_cloud = strength_ms >= float(_w.cloud_min_strength_ms) and rnd_dry >= dry
 	var smax := float(_w.thermal_strength_ms[1])
 	var k := clampf(strength_ms / maxf(smax, 0.01), 0.0, 1.0)
 	th.cloud_depth = float(_w.cloud_depth_m) * (0.35 + 0.65 * k)
@@ -285,7 +303,12 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 	# В тени зрелого облака земля греется слабее (VR-2): меньше шанс и сила термика.
 	var shade := _cloud_shade(best, t_start) * float(_cfg.cloud_shade_factor)
 	best_sun *= 1.0 - shade
+	# Перистая пелена ослабляет солнце: источники реже и слабее (VR-28).
+	best_sun *= insolation
 	if best_sun < float(_cfg.sun_min):
+		return null
+	# Частота термиков — от силы источника (солнце, камни, границы поле–лес — sun_fn).
+	if rng.randf() > pow(best_sun, float(_cfg.source_frequency_exponent)):
 		return null
 	var th := AtmoThermal.new()
 	th.id = id
@@ -299,6 +322,12 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 	var sun_k := pow(best_sun, float(_cfg.sun_strength_exponent))
 	th.strength = lerpf(smin, smax, u) * lerpf(1.0, sun_k, 0.5)
 	th.strength = maxf(th.strength, smin) * (1.0 - shade)
+	th.strength *= pow(insolation, float(_cfg.insolation_strength_exponent))
+	# Изредка — очень сильные термики (8–9 м/с): опасные, «по варику +8 уже надо валить».
+	var ext: Array = _w.get("thermal_extreme_ms", [])
+	if rng.randf() < float(_w.get("thermal_extreme_chance", 0.0)) and ext.size() == 2:
+		th.strength = rng.randf_range(float(ext[0]), float(ext[1])) * sun_k * insolation
+		th.radius = rmax_extreme(th.radius)
 	var rmin := float(_w.thermal_radius_m[0])
 	var rmax := float(_w.thermal_radius_m[1])
 	th.radius = lerpf(rmin, rmax, clampf(0.5 * rng.randf() + 0.5 * u, 0.0, 1.0))
@@ -314,8 +343,24 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 	th.t_mature = m * k
 	th.t_decay = d * k
 	_setup_cloud(th, th.strength, rng.randf())
+	_setup_cb(th, rng.randf())
 	_apply_wind(th)
 	return th
+
+
+## Сильный зрелый термик в грозовой день может переразвиться в Cb (VR-26).
+func _setup_cb(th: AtmoThermal, rnd: float) -> void:
+	var smax := float(_w.thermal_strength_ms[1])
+	var chance := float(_w.get("cb_chance", 0.0))
+	if chance <= 0.0 or rnd >= chance or th.strength < smax * float(_cfg.cb_min_strength_frac):
+		return
+	th.is_cb = true
+	th.has_cloud = true
+	th.strength *= float(_cfg.cb_strength_factor)
+	th.suck = float(_cfg.cb_suck)
+	th.t_mature *= float(_cfg.cb_mature_factor)
+	th.cloud_depth = maxf(float(_w.get("cb_top_above_base_m", 6000.0)), th.cloud_depth)
+	th.overdevelop = 1.0
 
 
 ## Насколько точка p в тени облаков (0..1) в момент t. Облако — над верхом наклонённого столба
@@ -351,7 +396,8 @@ func _rebuild_buckets(t: float, focus: Vector3, margin_s: float) -> void:
 			continue
 		th.update_time(t)
 		var p0 := th.axis_at(th.src.y)
-		var p1 := th.axis_at(th.top)
+		# Поток продолжается внутрь облака (подсос) — столб до верха облака.
+		var p1 := th.axis_at(th.top + th.cloud_depth)
 		# Снос за интервал до следующего обновления — запас.
 		var pad := th.radius * cut + th.drift_vel.length() * margin_s
 		if not th.is_static and t + margin_s > th.t_decay_start():
@@ -364,7 +410,7 @@ func _rebuild_buckets(t: float, focus: Vector3, margin_s: float) -> void:
 		_active.append(th)
 		_insert_capsule(p0, p1, pad, off)
 	_tp.resize(_active.size() * _P_STRIDE)
-	_write_params()
+	_write_params(t)
 
 
 ## Вписать отрезок p0–p1 с запасом pad в ячейки поиска: по строкам z находим диапазон x.
@@ -397,7 +443,7 @@ func _insert_capsule(p0: Vector2, p1: Vector2, pad: float, off: int) -> void:
 
 
 ## Параметры активных термиков — в плоский массив (горячий путь sample() без обращений к объектам).
-func _write_params() -> void:
+func _write_params(t: float) -> void:
 	var o := 0
 	for th in _active:
 		_tp[o] = th.src.x + th.drift.x
@@ -411,6 +457,10 @@ func _write_params() -> void:
 		_tp[o + 8] = th.cut_h
 		_tp[o + 9] = th.env
 		_tp[o + 10] = 1.0 / maxf(th.top - th.src.y, 1.0)
+		# Облачный подсос: усиление у основания и высота потока в облаке (FR-14b).
+		var sk := cloud_phys.suck(th, t) if cloud_phys != null else Vector2(th.suck, 0.0)
+		_tp[o + 11] = sk.x
+		_tp[o + 12] = sk.y
 		o += _P_STRIDE
 
 
@@ -418,7 +468,7 @@ func _write_params() -> void:
 func update_time(t: float) -> void:
 	for th in _active:
 		th.update_time(t)
-	_write_params()
+	_write_params(t)
 
 
 func active_count() -> int:
@@ -441,7 +491,8 @@ func sample(pos: Vector3) -> Vector3:
 	for o: int in arr:
 		var dh := pos.y - tp[o + 1]
 		var top := tp[o + 3]
-		if dh <= 0.0 or pos.y >= top or tp[o + 9] <= 0.0:
+		var in_h := tp[o + 12]
+		if dh <= 0.0 or pos.y >= top + in_h or tp[o + 9] <= 0.0:
 			continue
 		# Быстрый отсев по максимальному радиусу (у верха), до дорогих pow/exp.
 		var cx := tp[o] + tp[o + 4] * dh - pos.x
@@ -457,7 +508,7 @@ func sample(pos: Vector3) -> Vector3:
 			cutk = (pos.y - cut_h) / _CUT_BLEND_M
 			if cutk <= 0.0:
 				continue
-		var xi := dh * tp[o + 10]
+		var xi := minf(dh * tp[o + 10], 1.0)
 		var rf := maxf(_rmin, pow(xi, _THIRD) * (1.0 - 0.25 * xi) * _ALLEN_NORM)
 		var r := r0 * rf
 		var x2 := d2 / (r * r)
@@ -465,7 +516,15 @@ func sample(pos: Vector3) -> Vector3:
 			continue
 		var vert := minf(1.0, pow(dh / _ramp, _THIRD))
 		var top_d := top - pos.y
-		if top_d < _taper:
+		var suck := tp[o + 11]
+		if top_d < 0.0:
+			# В облаке упорядоченного потока почти нет — бурлящий воздух (болтанку и «выкидывание»
+			# к краю добавляет Atmosphere); средний подъём слабый, к верхушке гаснет.
+			vert *= _in_cloud_mean * (1.0 + suck) * (1.0 - smoothstep(0.5, 1.0, -top_d / in_h))
+		elif suck > 0.0:
+			# Облачный подсос: в последних suck_depth м под основанием подъём растёт.
+			vert *= 1.0 + suck * (1.0 - smoothstep(0.0, _suck_depth, top_d))
+		elif top_d < _taper:
 			vert *= smoothstep(0.0, _taper, top_d)
 		var a := tp[o + 7] * vert * cutk
 		var ex := exp(-x2)
