@@ -57,7 +57,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 - `VarioAudio` (Node): процедурный звук вариометра через AudioStreamGenerator. `set_vario(ms: float)`.
 
 ## Тесты
-- **Без звука в динамики:** любой запуск Godot не в `--headless` (скриншоты через xvfb или DISPLAY=:0) — только с `--audio-driver Dummy`. Пользователь работает за этим компьютером. Скриншотные запуски — с таймаутом (`timeout 120 godot ...`), чтобы зависший процесс не пищал бесконечно.
+- **Скриншотные запуски** (не `--headless`, через xvfb или DISPLAY=:0) — всегда с таймаутом (`timeout 120 godot ...`), чтобы зависший процесс не висел. Звук в динамики пользователю не мешает (слышно, что игра работает); `--audio-driver Dummy` — по желанию.
 - `godot --headless --path . --import` — после добавления новых `class_name` (обновляет кеш классов).
 - `godot --headless --path . res://tests/run_tests.tscn -- --filter=flight` — тесты (`tests/**/test_*.gd`, наследуют `TestCase`).
 - Скриншоты: `xvfb-run -a godot --path . --rendering-method gl_compatibility <сцена>` + сохранение `get_viewport().get_texture().get_image().save_png(...)`.
