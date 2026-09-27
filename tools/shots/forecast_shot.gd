@@ -67,11 +67,11 @@ func _run() -> void:
 		if n is CanvasItem:
 			(n as CanvasItem).visible = false
 	_game.overlay.visible = false
-	# Планер не мешает: держим его на старте (физика идёт — облака живут).
-	_game.glider.set_physics_process(false)
-	var t0 := _game.sim_time_s
-	while _game.sim_time_s < t0 + _wait:
-		await get_tree().physics_frame
+	# Планер не мешает: не шагает (как после столкновения — Game.tick его пропускает), воздух и
+	# облака живут; в сильный ветер его иначе сдувает со старта и открывается итог полёта.
+	_game.set("_crashed", true)
+	# Реальное время (в сильный ветер пилота может сдуть — симуляция встанет, облака останутся).
+	await get_tree().create_timer(_wait, true, false, true).timeout
 	_log()
 	var cam := Camera3D.new()
 	add_child(cam)
