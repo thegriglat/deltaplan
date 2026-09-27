@@ -6,7 +6,8 @@ const Sim := preload("res://tests/flight/flight_sim.gd")
 
 
 func _ready() -> void:
-	for wname in ["training", "kingpost", "sport"]:
+	for path in Config.list_configs("wings"):
+		var wname := String(path).get_file()
 		var wing: Dictionary = Config.get_config("wings/" + wname)
 		var ref := float(wing.pilot_mass_ref_kg)
 		for pm in [float(wing.pilot_mass_min_kg), ref, float(wing.pilot_mass_max_kg)]:

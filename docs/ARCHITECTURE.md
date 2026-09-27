@@ -21,7 +21,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 | Папка | Что | Кто пишет |
 |---|---|---|
 | `scripts/core/` | Config, Units, ControlInput, Telemetry — общие типы | только интегратор |
-| `scripts/flight/`, `configs/wings/`, `configs/pilot.json`, `configs/flight.json`, `tests/flight/` | модель полёта, разбег, посадка | агент flight |
+| `scripts/flight/`, `configs/wings/`, `configs/wing_groups.json`, `configs/pilot.json`, `configs/flight.json`, `tests/flight/` | модель полёта, разбег, посадка | агент flight |
 | `scripts/terrain/`, `scripts/world/`, `tools/terrain/`, `data/terrain/`, `configs/locations/`, `configs/world.json`, `tests/terrain/` | рельеф, небо, туман, солнце | агент terrain |
 | `scripts/atmosphere/`, `configs/weather/`, `configs/atmosphere.json`, `tests/atmosphere/` | термики, ветер, облака | агент atmosphere |
 | `scripts/instruments/`, `scripts/audio/`, `configs/instruments.json`, `configs/audio.json`, `tests/instruments/` | вариометр, прибор, звук | агент instruments |

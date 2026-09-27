@@ -2,7 +2,21 @@ extends TestCase
 ## Установившееся планирование совпадает с полярой крыла (FR-1, FR-2).
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
-const WINGS := ["training", "kingpost", "sport"]
+## Качество крыльев группы по docs/plan/wings_lineup.md §2 (с запасом ±0,3).
+const GROUP_GLIDE := {
+	"soviet": Vector2(6.0, 8.5),
+	"trainer": Vector2(7.0, 9.0),
+	"kingpost": Vector2(10.5, 13.0),
+	"topless": Vector2(15.0, 16.0),
+}
+
+
+## Все крылья из configs/wings: id ("training" …).
+static func wings() -> Array[String]:
+	var out: Array[String] = []
+	for p in Config.list_configs("wings"):
+		out.append(String(p).get_file())
+	return out
 
 
 ## Снижение по точкам поляры из конфига (линейно по скорости), м/с.
@@ -32,7 +46,7 @@ static func sweep(m: FlightModel) -> Dictionary:
 
 
 func test_simulated_glide_matches_polar() -> void:
-	for w in WINGS:
+	for w in wings():
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var m := Sim.make(w)
 		for p in [0.25, 0.0, -0.2, -0.45, -0.8]:
@@ -54,14 +68,14 @@ func test_simulated_glide_matches_polar() -> void:
 
 
 func test_trim_speed() -> void:
-	for w in WINGS:
+	for w in wings():
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var r: Vector2 = Sim.settle(Sim.make(w), 0.0)
 		approx(Units.to_kmh(r.x), float(wing.trim_speed_kmh), 0.7, w + ": скорость трима, км/ч")
 
 
 func test_reference_points() -> void:
-	for w in WINGS:
+	for w in wings():
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var ref: Dictionary = wing.reference
 		var m := Sim.make(w)
@@ -100,9 +114,13 @@ func test_fr1_sport_anchors() -> void:
 
 
 func test_wing_classes_glide() -> void:
-	var expect := {"training": 9.0, "kingpost": 12.0, "sport": 15.0}
-	for w in WINGS:
-		approx(sweep(Sim.make(w)).best_ld, expect[w], 0.5, w + ": качество класса (FR-2)")
+	for w in wings():
+		var r: Vector2 = GROUP_GLIDE[Config.value("wings/" + w, "group")]
+		var ld: float = sweep(Sim.make(w)).best_ld
+		check(
+			ld >= r.x - 0.3 and ld <= r.y + 0.3,
+			"%s: качество класса (FR-2) %.1f в %.1f–%.1f" % [w, ld, r.x, r.y]
+		)
 
 
 func test_density_altitude() -> void:

@@ -124,6 +124,25 @@
 - `configs/flight.json` — плотность воздуха, инерция от массы, демпфирование фугоиды, опрос
   воздуха, разбег и ошибки, крен крыла на земле, оценка посадки, визуал.
 
+## Крылья
+Десять крыльев с реальными прототипами (план и источники — docs/plan/wings_lineup.md). Группы —
+`configs/wing_groups.json` (порядок в меню «Полёт…»), модели в группе — по `reference.best_glide`,
+затем `wind_max_ms` (`WingCatalog`, scripts/game/wing_catalog.gd):
+
+| Группа | id: прототип | Качество | Ветер до, м/с |
+|---|---|---|---|
+| soviet — Советские 1980-х | `slavutich_ut`: Славутич-УТ; `apogee`: «Апогей» (Мысенко); `atlas`: «Атлас» | 6,2 / 7 / 8,4 | 7 / 10 / 8 |
+| trainer — Учебные однообшивочные | `target`: Aeros Target 16; `training`: WW Falcon 170 | 7,3 / 9 | 8 / 8 |
+| kingpost — Мачтовые двухобшивочные | `magic`: Airwave Magic IV 166; `kingpost`: WW Sport 2 155; `laminar`: Icaro Laminar Easy 14 | 10,6 / 12,6 / 13,2 | 10 / 11 / 10 |
+| topless — Безмачтовые | `sport`: Moyes Litespeed RS 4; `combat`: Aeros Combat GT 13.2 | 15 / 16 | 12 / 12 |
+
+Поля крыла для меню (у каждого `_doc`): `group`, `wind_max_ms` (комфортный ветер на старте для
+опытного пилота — подсказка, не запрет), `prototype`, `era`, `kingpost`, `double_surface_pct`
+(0 — однообшивочное). Управляемость задаётся прежними параметрами: «Апогей» — самый устойчивый и
+лёгкий в крене, мягкое сваливание (слова мамы-пилота); Sport 2 — поляра по графику Wills Wing.
+Тесты: tests/flight/test_wings.gd, tests/game/test_wing_catalog.gd; поляра и сваливание —
+для всех крыльев из `Config.list_configs("wings")`.
+
 ## API
 
 ```gdscript

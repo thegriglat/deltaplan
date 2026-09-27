@@ -2,10 +2,11 @@ extends TestCase
 ## Сваливание (FR-6): на малой скорости нос опускается, высота теряется; в крене — на крыло.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
+const TP := preload("res://tests/flight/test_polar.gd")
 
 
 func test_full_push_stalls_and_drops_nose() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in TP.wings():
 		var m := Sim.make(w)
 		var trim: Vector2 = Sim.settle(m, 0.0, 20.0)
 		var y0 := m.position.y
@@ -34,7 +35,7 @@ func test_full_push_stalls_and_drops_nose() -> void:
 
 
 func test_stall_speed_on_slow_push() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in TP.wings():
 		var m := Sim.make(w)
 		Sim.settle(m, 0.0, 20.0)
 		var t := 0.0
