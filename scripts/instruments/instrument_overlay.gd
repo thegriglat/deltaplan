@@ -16,7 +16,7 @@ func _ready() -> void:
 	var cfg: Dictionary = Config.get_config("instruments")
 	_cfg = cfg.get("overlay", {})
 	var scr: Dictionary = cfg.get("screen", {})
-	_aspect = float(scr.get("width_px", 480)) / float(scr.get("height_px", 640))
+	_aspect = float(scr.get("width_px", 720)) / float(scr.get("height_px", 960))
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(String(_cfg.get("bezel_color", "#23262a")))
 	var bz := int(_cfg.get("bezel_px", 12))

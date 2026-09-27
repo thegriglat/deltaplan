@@ -3,8 +3,8 @@ extends TestCase
 ## Если задана переменная окружения VARIO_WAV_DIR — пишет примеры WAV в эту папку.
 
 
-func _cfg() -> Dictionary:
-	return Config.get_config("audio").vario_audio.duplicate(true)
+func _cfg(preset: String = "xctracer") -> Dictionary:
+	return VarioSynth.resolve_preset(Config.get_config("audio").vario_audio, preset)
 
 
 func _synth(cfg: Dictionary = {}) -> VarioSynth:
@@ -247,3 +247,82 @@ func _save_wav(sig: PackedFloat32Array, rate: float, path: String) -> void:
 	wav.data = data
 	var err := wav.save_to_wav(path)
 	check(err == OK, "запись %s" % path)
+
+
+func test_presets_exist_and_default_classic() -> void:
+	var raw: Dictionary = Config.get_config("audio").vario_audio
+	var names := VarioSynth.preset_names(raw)
+	check(names.has("classic_90s") and names.has("xctracer"), "пресеты: %s" % str(names))
+	check(String(raw.preset) == "classic_90s", "по умолчанию — классический")
+	var c := VarioSynth.resolve_preset(raw, "classic_90s")
+	check(float(c.climb_on_ms) == float(raw.climb_on_ms), "пороги общие для пресетов")
+	var bad := VarioSynth.resolve_preset(raw, "нет_такого")
+	check(bad.preset == raw.preset, "неизвестный пресет — пресет по умолчанию")
+
+
+func test_classic_beeps_faster_and_harsher() -> void:
+	var sc := _synth(_cfg("classic_90s"))
+	var rc := _analyze(_render(sc, 2.0, 6.0), sc.mix_rate_hz, sc.amplitude)
+	var sx := _synth(_cfg("xctracer"))
+	var rx := _analyze(_render(sx, 2.0, 6.0), sx.mix_rate_hz, sx.amplitude)
+	check(rc.beeps_per_s > rx.beeps_per_s * 1.5, "90-е пищат чаще: %.1f/с" % rc.beeps_per_s)
+	var sc5 := _synth(_cfg("classic_90s"))
+	var rc5 := _analyze(_render(sc5, 5.0, 4.0), sc5.mix_rate_hz, sc5.amplitude)
+	check(
+		rc5.beeps_per_s > rc.beeps_per_s * 1.4, "темп растёт с подъёмом: %.1f/с" % rc5.beeps_per_s
+	)
+	# «Жёсткость»: высокие нечётные гармоники (5, 7, 9) относительно основного тона.
+	var hc := _odd_harmonics(_synth(_cfg("classic_90s")), -3.0)
+	var hx := _odd_harmonics(_synth(_cfg("xctracer")), -3.0)
+	check(hc > 2.0 * hx, "тембр 90-х жёстче: %.2f против %.2f" % [hc, hx])
+
+
+func test_classic_chunk_invariant() -> void:
+	var a := _scenario(_synth(_cfg("classic_90s")), [100000])
+	var b := _scenario(_synth(_cfg("classic_90s")), [367, 12, 1024, 1, 555, 2048, 97])
+	var max_diff := 0.0
+	for i in a.size():
+		max_diff = maxf(max_diff, absf(a[i] - b[i]))
+	check(max_diff < 1e-5, "нарезка буфера не меняет звук 90-х (%.7f)" % max_diff)
+	var peak := 0.0
+	for x in a:
+		peak = maxf(peak, absf(x))
+	check(peak < 1.0, "без перегрузки: пик %.2f" % peak)
+
+
+## Сумма амплитуд 5-й, 7-й и 9-й гармоник к основной (метод Гёрцеля) на непрерывном гудке.
+func _odd_harmonics(s: VarioSynth, vario: float) -> float:
+	var f: float = s.tone_for(vario).freq_hz
+	var sig := _render(s, vario, 1.0)
+	var base := _goertzel(sig, s.mix_rate_hz, f)
+	var hi := 0.0
+	for k in [5, 7, 9]:
+		hi += _goertzel(sig, s.mix_rate_hz, f * k)
+	return hi / maxf(base, 1e-9)
+
+
+func _goertzel(sig: PackedFloat32Array, rate: float, f: float) -> float:
+	var w := TAU * f / rate
+	var re := 0.0
+	var im := 0.0
+	# Вторую половину — установившийся тон.
+	for i in range(sig.size() / 2, sig.size()):
+		re += sig[i] * cos(w * i)
+		im += sig[i] * sin(w * i)
+	return sqrt(re * re + im * im)
+
+
+func test_export_preset_wavs() -> void:
+	var dir := OS.get_environment("VARIO_WAV_DIR")
+	if dir == "":
+		return
+	for preset in ["classic_90s", "xctracer"]:
+		var s := _synth(_cfg(preset))
+		var out := PackedFloat32Array()
+		var block := 441
+		# Сценарий: тишина → +0,5 → +2 → +5 → 0 → −3 → −6 (по 3 с).
+		for v in [0.0, 0.5, 2.0, 5.0, 0.0, -3.0, -6.0]:
+			s.set_vario(v)
+			for k in int(3.0 * s.mix_rate_hz / block):
+				out.append_array(s.generate(block))
+		_save_wav(out, s.mix_rate_hz, dir.path_join("preset_%s.wav" % preset))

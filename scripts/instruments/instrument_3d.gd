@@ -1,8 +1,9 @@
 class_name Instrument3D
 extends Node3D
-## Корпус прибора в 3D для кабинного вида: коробка из пластика, экран — текстура SubViewport.
-## Экран смотрит в локальную +Z (к пилоту), верх прибора — +Y. Начало координат — центр корпуса.
-## Хомут крепления — на задней стенке снизу (к базовой штанге трапеции).
+## Корпус планшета в 3D для кабинного вида (центр базовой штанги), экран — текстура SubViewport.
+## Модель — mount_3d.model_path (.glb, делает агент models): в ней ищется меш «Screen»
+## с UV 0..1 на весь экран, на него кладётся текстура. Нет модели или меша — корпус из примитивов:
+## экран смотрит в локальную +Z (к пилоту), верх — +Y, начало — центр корпуса, хомут сзади снизу.
 ## Размеры и материалы — configs/instruments.json → mount_3d.
 
 var screen_mesh: MeshInstance3D
@@ -13,8 +14,70 @@ var _screen_mat: StandardMaterial3D
 
 func _ready() -> void:
 	var cfg: Dictionary = Config.get_config("instruments")
-	_build(cfg.get("mount_3d", {}), cfg.get("screen", {}))
+	var m: Dictionary = cfg.get("mount_3d", {})
+	_screen_mat = _make_screen_material(m)
+	if not _load_model(m):
+		_build(m, cfg.get("screen", {}))
 	use_instrument(instrument)
+
+
+## Модель ли загружена (иначе — примитивы).
+func has_model() -> bool:
+	return get_node_or_null("Model") != null
+
+
+## Загрузить .glb и найти меш экрана. false — модели нет или в ней нет меша экрана.
+func _load_model(m: Dictionary) -> bool:
+	var path := String(m.get("model_path", ""))
+	if path == "" or not ResourceLoader.exists(path):
+		return false
+	var ps := load(path) as PackedScene
+	if ps == null:
+		return false
+	var model := ps.instantiate()
+	var mesh_name := String(m.get("screen_mesh_name", "Screen"))
+	var screen := model.find_child(mesh_name, true, false) as MeshInstance3D
+	if screen == null:
+		push_warning("Instrument3D: в %s нет меша %s — корпус из примитивов" % [path, mesh_name])
+		model.free()
+		return false
+	model.name = "Model"
+	# Экран должен смотреть в +Z (к пилоту); если в модели он смотрит назад — разворачиваем.
+	if _screen_normal(screen, model).z < 0.0:
+		model.rotate_y(PI)
+	add_child(model)
+	screen.material_override = _screen_mat
+	screen_mesh = screen
+	return true
+
+
+## Средняя нормаль меша экрана в координатах модели.
+static func _screen_normal(screen: MeshInstance3D, model: Node) -> Vector3:
+	var n := Vector3.ZERO
+	if screen.mesh and screen.mesh.get_surface_count() > 0:
+		var arr := screen.mesh.surface_get_arrays(0)
+		var normals: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		for v in normals:
+			n += v
+	var xf := Transform3D.IDENTITY
+	var node: Node = screen
+	while node != null and node != model:
+		if node is Node3D:
+			xf = (node as Node3D).transform * xf
+		node = node.get_parent()
+	return (xf.basis * n).normalized()
+
+
+func _make_screen_material(m: Dictionary) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.roughness = float(m.get("screen_roughness", 0.55))
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	var emission := float(m.get("screen_emission", 0.05))
+	if emission > 0.0:
+		mat.emission_enabled = true
+		mat.emission = Color.WHITE
+		mat.emission_energy_multiplier = emission
+	return mat
 
 
 ## Проброс: данные полёта в прибор.
@@ -39,8 +102,8 @@ func use_instrument(fi: FlightInstrument) -> void:
 
 
 func _build(m: Dictionary, scr: Dictionary) -> void:
-	var body_size := _vec3(m.get("body_size_m", [0.105, 0.145, 0.028]))
-	var bezel := float(m.get("bezel_m", 0.009))
+	var body_size := _vec3(m.get("body_size_m", [0.118, 0.16, 0.012]))
+	var bezel := float(m.get("bezel_m", 0.01))
 	var body := MeshInstance3D.new()
 	body.name = "Body"
 	var box := BoxMesh.new()
@@ -52,7 +115,7 @@ func _build(m: Dictionary, scr: Dictionary) -> void:
 	body.mesh = box
 	add_child(body)
 	# Экран: вписываем в область внутри рамки с пропорциями текстуры.
-	var aspect := float(scr.get("width_px", 480)) / float(scr.get("height_px", 640))
+	var aspect := float(scr.get("width_px", 720)) / float(scr.get("height_px", 960))
 	var inner := Vector2(body_size.x - 2.0 * bezel, body_size.y - 2.0 * bezel)
 	var sw := minf(inner.x, inner.y * aspect)
 	var sh := sw / aspect
@@ -61,38 +124,9 @@ func _build(m: Dictionary, scr: Dictionary) -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2(sw, sh)
 	screen_mesh.mesh = quad
-	# Немного выше центра — снизу у реальных приборов кнопки.
-	var shift_y := (inner.y - sh) * 0.5
-	screen_mesh.position = Vector3(0.0, shift_y, body_size.z * 0.5 + 0.0005)
-	_screen_mat = StandardMaterial3D.new()
-	_screen_mat.roughness = float(m.get("screen_roughness", 0.35))
-	_screen_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
-	var emission := float(m.get("screen_emission", 0.08))
-	if emission > 0.0:
-		_screen_mat.emission_enabled = true
-		_screen_mat.emission = Color.WHITE
-		_screen_mat.emission_energy_multiplier = emission
+	screen_mesh.position = Vector3(0.0, 0.0, body_size.z * 0.5 + 0.0005)
 	quad.material = _screen_mat
 	add_child(screen_mesh)
-	# Кнопки под экраном (декор).
-	var btn_mat := StandardMaterial3D.new()
-	btn_mat.albedo_color = body_mat.albedo_color.lightened(0.25)
-	var btn_zone := inner.y - sh  # от низа экрана до низа рамки
-	for i in 3:
-		var b := MeshInstance3D.new()
-		var bm := CylinderMesh.new()
-		bm.top_radius = minf(bezel, btn_zone) * 0.35 + 0.002
-		bm.bottom_radius = bm.top_radius
-		bm.height = 0.003
-		bm.material = btn_mat
-		b.mesh = bm
-		b.rotation.x = PI * 0.5
-		b.position = Vector3(
-			(float(i) - 1.0) * sw * 0.3,
-			-inner.y * 0.5 + maxf(btn_zone, 0.0) * 0.5,
-			body_size.z * 0.5
-		)
-		add_child(b)
 	# Хомут на задней стенке снизу.
 	var clamp_size := _vec3(m.get("clamp_size_m", [0.05, 0.03, 0.03]))
 	var clamp := MeshInstance3D.new()

@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/instruments/instrument_preview.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/instruments/instrument_3d.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/instruments/instrument_overlay.tscn" id="3"]
 [ext_resource type="Script" path="res://scripts/audio/vario_audio.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/instruments/vario_90s.tscn" id="5"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 
@@ -25,7 +26,7 @@ environment = SubResource("env")
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 2, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0.05, 0.1, 0.34)
+transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0.0, 0.16, 0.5)
 fov = 50.0
 
 [node name="Instrument3D" parent="." instance=ExtResource("2")]
@@ -45,3 +46,13 @@ offset_right = 376.0
 offset_bottom = 496.0
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Vario90sView" type="TextureRect" parent="UI"]
+offset_left = 16.0
+offset_top = 510.0
+offset_right = 256.0
+offset_bottom = 690.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VarioDisplay90s" parent="." instance=ExtResource("5")]

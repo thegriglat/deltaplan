@@ -1,10 +1,12 @@
 extends Node3D
 ## Стенд приборов: синтетическая телеметрия (кружение в термике с синусом вариометра),
 ## прибор на 3D-корпусе, картинка в углу, звук вариометра, крупный экран слева.
-## Клавиши: Tab/Пробел — страница, 1..9 — вариометр вручную (0 — вернуть синус).
+## Клавиши: 1–4 — страница, Tab — следующая, ↑/↓ — вариометр вручную ±1 м/с, 0 — снова синус.
 ## Аргументы (после --): --screenshot=путь.png  --page=N
 ##   --warmup_s=С (прогнать телеметрию до кадра)
-##   --quit_after_s=С  --skips_report (печатать пропуски звука).
+##   --quit_after_s=С  --skips_report (печатать пропуски звука)
+##   --screenshot также сохраняет *_screen.png (планшет) и *_vario90s.png (вариометр 90-х)
+##   --pages_prefix=путь (сохранить экран всех 4 страниц в путь_p1.png … путь_p4.png).
 ## Параметры синусоиды — не конфиг прибора, а сценарий стенда (только для предпросмотра).
 
 const SCENARIO := {
@@ -31,6 +33,8 @@ var _skips_at_1s := -1
 @onready var overlay: InstrumentOverlay = $InstrumentOverlay
 @onready var audio: VarioAudio = $VarioAudio
 @onready var big_view: TextureRect = $UI/BigView
+@onready var vario90s: VarioDisplay90s = $VarioDisplay90s
+@onready var vario90s_view: TextureRect = $UI/Vario90sView
 
 
 func _ready() -> void:
@@ -41,16 +45,14 @@ func _ready() -> void:
 	# Один прибор на всё: оверлей и крупный вид показывают экран 3D-корпуса.
 	overlay.use_instrument(instrument3d.instrument)
 	big_view.texture = instrument3d.instrument.get_texture()
-	(
-		instrument3d
-		. instrument
-		. set_turnpoints(
-			[
-				{"name": "ТП1 Чуй", "position": Vector3(2500, 0, -1800), "radius_m": 400.0},
-				{"name": "ТП2", "position": Vector3(-1500, 0, -4000), "radius_m": 1000.0},
-			]
-		)
-	)
+	vario90s_view.texture = vario90s.get_texture()
+	var tps: Array = [
+		{"name": "ТП1 Чуй", "position": Vector3(2500, 1150, -1800), "radius_m": 400.0},
+		{"name": "ТП2 Белый", "position": Vector3(-1500, 1300, -4000), "radius_m": 1000.0},
+		{"name": "Гоул", "position": Vector3(-6000, 1000, -9000), "radius_m": 400.0},
+	]
+	instrument3d.instrument.set_task(tps, 0)
+	instrument3d.instrument.set_sound_settings(audio.get_settings())
 	t.position = Vector3(0, SCENARIO.start_alt_m, 0)
 	t.on_ground = false
 	var dt := 1.0 / float(Engine.physics_ticks_per_second)
@@ -98,6 +100,7 @@ func _step(dt: float) -> void:
 	t.track_deg = fposmod(rad_to_deg(atan2(ground.x, -ground.y)), 360.0)
 	t.bank_deg = 0.0 if _time < SCENARIO.glide_leg_s else 30.0
 	instrument3d.update(t, dt)
+	vario90s.update(t, dt)
 	audio.set_vario(instrument3d.instrument.get_vario().vario_ms)
 
 
@@ -112,7 +115,18 @@ func _process(delta: float) -> void:
 		instrument3d.instrument.get_texture().get_image().save_png(
 			path.get_basename() + "_screen.png"
 		)
+		vario90s.get_texture().get_image().save_png(path.get_basename() + "_vario90s.png")
 		print("скриншот: ", path)
+	if _args.has("pages_prefix") and not _shot_done and _elapsed > 0.6:
+		_shot_done = true
+		var fi := instrument3d.instrument
+		for i in fi.page_count():
+			fi.set_page(i)
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			var out := "%s_p%d.png" % [String(_args.pages_prefix), i + 1]
+			fi.get_texture().get_image().save_png(out)
+			print("страница ", i + 1, ": ", out)
 	if _skips_at_1s < 0 and _elapsed >= 1.0:
 		_skips_at_1s = audio.get_skips()
 	var q := float(_args.get("quit_after_s", "0"))
@@ -134,12 +148,14 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
-			KEY_TAB, KEY_SPACE:
+			KEY_TAB:
 				instrument3d.instrument.next_page()
 			KEY_0:
 				_manual = NAN
-			KEY_MINUS:
-				_manual = -3.0
+			KEY_UP:
+				_manual = (0.0 if is_nan(_manual) else _manual) + 1.0
+			KEY_DOWN:
+				_manual = (0.0 if is_nan(_manual) else _manual) - 1.0
 			_:
-				if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-					_manual = float(event.keycode - KEY_0)
+				if event.keycode >= KEY_1 and event.keycode <= KEY_4:
+					instrument3d.set_page(event.keycode - KEY_1)

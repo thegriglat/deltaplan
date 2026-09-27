@@ -1,62 +1,108 @@
 {
   "_doc": "Звук. Здесь — процедурный звук вариометра (FR-23, FR-28). Раздел flight — звуки полёта (FR-28): поток, парус, каркас, разбег, посадка, окружение.",
-
   "vario_audio": {
-    "_doc": "Синтез звука вариометра через AudioStreamGenerator. Кривые частоты/темпа — по умолчанию прибора XC Tracer (формат строк tone=варио,частота,период,скважность).",
+    "_doc": "Синтез звука вариометра через AudioStreamGenerator. Общие настройки пилота (громкость, пороги) — здесь; тембр и кривые — в presets. Исследование звука 1990-х — docs/research/vario_sounds.md.",
     "enabled": true,
     "enabled_doc": "Звук вариометра включён.",
+    "preset": "classic_90s",
+    "preset_doc": "Звучание по умолчанию: classic_90s (пьезопищалка вариометров 1990-х) или xctracer (современный). Пресет задаёт тембр и кривые частоты/темпа; пороги и громкость — общие (выше).",
     "volume_db": -6.0,
     "volume_db_doc": "Громкость вариометра, дБ (0 — полная, −80 — тишина).",
     "bus": "Vario",
     "bus_doc": "Аудиошина (scenes/audio/bus_layout.tres). Если шины с таким именем нет — Master.",
-    "mix_rate_hz": 22050,
-    "mix_rate_hz_doc": "Частота дискретизации синтеза, Гц. 22050 хватает для тонов до 2 кГц с гармониками и вдвое дешевле 44100.",
     "buffer_length_s": 0.12,
     "buffer_length_s_doc": "Длина буфера генератора, с. Буфер дозаполняется каждый кадр; 0,12 с переживает просадку до ~10 FPS без разрывов. Больше — надёжнее, но больше задержка звука.",
     "input_smoothing_s": 0.05,
     "input_smoothing_s_doc": "Дополнительное сглаживание входного значения внутри синтезатора, с (убирает ступеньки от шага физики). Инерция датчика — в instruments.json → vario.",
-
     "climb_on_ms": 0.1,
     "climb_on_ms_doc": "Порог звука подъёма, м/с: выше — пищит.",
     "sink_on_ms": -2.5,
     "sink_on_ms_doc": "Порог звука снижения, м/с: ниже — гудит.",
     "hysteresis_ms": 0.05,
     "hysteresis_ms_doc": "Гистерезис порогов, м/с: звук выключается, когда значение ушло за порог на эту величину (не «дребезжит» на пороге).",
-
-    "climb_tones": [
-      [0.1, 400, 600, 50],
-      [1.16, 550, 552, 52],
-      [2.67, 763, 483, 55],
-      [4.24, 985, 412, 58],
-      [6.0, 1234, 332, 62],
-      [8.0, 1517, 241, 66],
-      [10.0, 1800, 150, 70]
-    ],
-    "climb_tones_doc": "Тоны подъёма: [вариометр м/с, частота Гц, период писка мс, скважность %]. Между точками — линейная интерполяция, за краями — крайние значения. По умолчанию — таблица XC Tracer: 0,1 м/с ≈ 1,7 писка/с на 400 Гц, 2,7 м/с ≈ 2 писка/с на 760 Гц, 6 м/с ≈ 3 писка/с на 1230 Гц, 10 м/с ≈ 6,7 писка/с на 1800 Гц.",
-    "sink_tones": [
-      [-10.0, 220, 1000, 100],
-      [-6.0, 270, 1000, 100],
-      [-4.0, 330, 1000, 100],
-      [-2.5, 400, 1000, 100]
-    ],
-    "sink_tones_doc": "Тоны снижения, тот же формат. Скважность 100 % — непрерывное гудение, частота падает с силой снижения.",
-
-    "attack_ms": 6.0,
-    "attack_ms_doc": "Нарастание громкости в начале писка, мс (плавный фронт — без щелчка).",
-    "release_ms": 8.0,
-    "release_ms_doc": "Спад громкости в конце писка, мс.",
-    "frequency_glide_s": 0.03,
-    "frequency_glide_s_doc": "Плавность изменения частоты, с (фаза при этом непрерывна).",
-    "climb_chirp_pct": 4.0,
-    "climb_chirp_pct_doc": "Лёгкий подъём частоты внутри писка, % (у многих варио писк «вверх» — легче отличить подъём). 0 — ровный тон.",
-    "amplitude": 0.6,
-    "amplitude_doc": "Пиковая амплитуда сигнала 0..1 (до регулятора громкости).",
-    "harmonics": [1.0, 0.0, 0.28, 0.0, 0.12, 0.0, 0.05],
-    "harmonics_doc": "Амплитуды гармоник 1, 2, 3… Нечётные гармоники дают «зуммерный» тембр пьезопищалки; [1] — чистый синус.",
     "wavetable_size": 1024,
-    "wavetable_size_doc": "Размер таблицы одного периода волны, отсчётов."
+    "wavetable_size_doc": "Размер таблицы одного периода волны, отсчётов.",
+    "presets": {
+      "_doc": "Пресеты звучания. Выбор — ключ preset или VarioAudio.set_preset(имя).",
+      "classic_90s": {
+        "title": "Классический, 1990-е",
+        "_doc": "Обобщённый звук вариометров 1990-х с пьезопищалкой: частый короткий писк, частота и темп растут быстрее, чем у современных; жёсткий «квадратный» тембр с резонансом пьезоэлемента; снижение — непрерывный гудок ниже по тону. См. docs/research/vario_sounds.md.",
+        "mix_rate_hz": 44100,
+        "mix_rate_hz_doc": "44,1 кГц: у «квадрата» много гармоник, на 22 кГц они бы отражались (алиасинг).",
+        "climb_tones": [
+          [0.1, 700, 480, 50],
+          [1.0, 850, 330, 50],
+          [2.0, 1000, 250, 50],
+          [3.0, 1150, 200, 50],
+          [5.0, 1450, 140, 50],
+          [8.0, 1800, 100, 50],
+          [10.0, 2000, 90, 50]
+        ],
+        "climb_tones_doc": "[м/с, Гц, период мс, скважность %]: от ~2 писков/с на 700 Гц до ~10/с на 2 кГц, скважность 50 % («бип-бип-бип»).",
+        "sink_tones": [
+          [-10.0, 380, 1000, 100],
+          [-6.0, 480, 1000, 100],
+          [-4.0, 560, 1000, 100],
+          [-2.5, 650, 1000, 100]
+        ],
+        "sink_tones_doc": "Снижение — непрерывный гудок 650 → 380 Гц.",
+        "attack_ms": 2.0,
+        "attack_ms_doc": "Короткий фронт — «щелчковатый» пьезо, но без цифрового щелчка.",
+        "release_ms": 3.0,
+        "release_ms_doc": "Короткий спад, мс.",
+        "frequency_glide_s": 0.01,
+        "frequency_glide_s_doc": "Почти мгновенная смена частоты (аналоговый ГУН), с.",
+        "climb_chirp_pct": 0.0,
+        "climb_chirp_pct_doc": "Без подъёма тона внутри писка.",
+        "amplitude": 0.5,
+        "amplitude_doc": "Амплитуда 0..1 (квадрат громче синуса при той же амплитуде).",
+        "harmonics": [1.0, 0.0, 0.333, 0.0, 0.2, 0.0, 0.143, 0.0, 0.111, 0.0, 0.091],
+        "harmonics_doc": "Нечётные гармоники 1/n — меандр (пьезозуммер, питаемый прямоугольником), до 11-й.",
+        "resonance_hz": 3200.0,
+        "resonance_hz_doc": "Резонанс пьезоэлемента, Гц (пьезопищалки звучат громче всего около 2,5–4 кГц).",
+        "resonance_q": 4.0,
+        "resonance_q_doc": "Добротность резонанса.",
+        "resonance_gain_db": 9.0,
+        "resonance_gain_db_doc": "Подъём на резонансе, дБ (0 — без резонанса)."
+      },
+      "xctracer": {
+        "title": "XC Tracer (современный)",
+        "_doc": "Звук современного прибора XC Tracer: медленный длинный писк, чистый тон с лёгкими гармониками.",
+        "mix_rate_hz": 22050,
+        "mix_rate_hz_doc": "Частота дискретизации синтеза, Гц. 22050 хватает для тонов до 2 кГц с гармониками и вдвое дешевле 44100.",
+        "climb_tones": [
+          [0.1, 400, 600, 50],
+          [1.16, 550, 552, 52],
+          [2.67, 763, 483, 55],
+          [4.24, 985, 412, 58],
+          [6.0, 1234, 332, 62],
+          [8.0, 1517, 241, 66],
+          [10.0, 1800, 150, 70]
+        ],
+        "climb_tones_doc": "Тоны подъёма: [вариометр м/с, частота Гц, период писка мс, скважность %]. Между точками — линейная интерполяция, за краями — крайние значения. По умолчанию — таблица XC Tracer: 0,1 м/с ≈ 1,7 писка/с на 400 Гц, 2,7 м/с ≈ 2 писка/с на 760 Гц, 6 м/с ≈ 3 писка/с на 1230 Гц, 10 м/с ≈ 6,7 писка/с на 1800 Гц.",
+        "sink_tones": [
+          [-10.0, 220, 1000, 100],
+          [-6.0, 270, 1000, 100],
+          [-4.0, 330, 1000, 100],
+          [-2.5, 400, 1000, 100]
+        ],
+        "sink_tones_doc": "Тоны снижения, тот же формат. Скважность 100 % — непрерывное гудение, частота падает с силой снижения.",
+        "attack_ms": 6.0,
+        "attack_ms_doc": "Нарастание громкости в начале писка, мс (плавный фронт — без щелчка).",
+        "release_ms": 8.0,
+        "release_ms_doc": "Спад громкости в конце писка, мс.",
+        "frequency_glide_s": 0.03,
+        "frequency_glide_s_doc": "Плавность изменения частоты, с (фаза при этом непрерывна).",
+        "climb_chirp_pct": 4.0,
+        "climb_chirp_pct_doc": "Лёгкий подъём частоты внутри писка, % (у многих варио писк «вверх» — легче отличить подъём). 0 — ровный тон.",
+        "amplitude": 0.6,
+        "amplitude_doc": "Пиковая амплитуда сигнала 0..1 (до регулятора громкости).",
+        "harmonics": [1.0, 0.0, 0.28, 0.0, 0.12, 0.0, 0.05],
+        "harmonics_doc": "Амплитуды гармоник 1, 2, 3… Нечётные гармоники дают «зуммерный» тембр пьезопищалки; [1] — чистый синус.",
+        "resonance_gain_db": 0.0
+      }
+    }
   },
-
   "flight": {
     "_doc": "Звуки полёта (FR-28), компонент FlightAudio. Алгоритмы — docs/research/sounds.md §3. Громкости в дБ относительно полной (0 дБ), −80 — тишина. Пути к файлам можно заменить своими.",
     "smooth_s": 0.2,
@@ -84,7 +130,6 @@
       "wind_compressor_ratio": 2.0,
       "wind_compressor_ratio_doc": "Компрессор шины Wind: степень сжатия."
     },
-
     "airflow": {
       "_doc": "Поток воздуха: 3 синтезированных лупа + 2 записи. V — воздушная скорость, r = V / v_ref.",
       "v_ref_kmh": 40.0,
@@ -143,7 +188,6 @@
         "fast": "res://assets/sounds/airflow/air_rush_fast_loop.ogg"
       }
     },
-
     "sail": {
       "_doc": "Парус: гул крыла, трепетание и хлопки на малой скорости и у сваливания.",
       "wing_db": -22.0,
@@ -165,14 +209,9 @@
       "files": {
         "wing": "res://assets/sounds/sail/wing_under_wind_loop.ogg",
         "luff": "res://assets/sounds/sail/sail_luff_loop.ogg",
-        "snaps": [
-          "res://assets/sounds/sail/sail_snap_01.ogg", "res://assets/sounds/sail/sail_snap_02.ogg",
-          "res://assets/sounds/sail/sail_snap_03.ogg", "res://assets/sounds/sail/sail_snap_04.ogg",
-          "res://assets/sounds/sail/sail_snap_05.ogg", "res://assets/sounds/sail/sail_snap_06.ogg"
-        ]
+        "snaps": ["res://assets/sounds/sail/sail_snap_01.ogg", "res://assets/sounds/sail/sail_snap_02.ogg", "res://assets/sounds/sail/sail_snap_03.ogg", "res://assets/sounds/sail/sail_snap_04.ogg", "res://assets/sounds/sail/sail_snap_05.ogg", "res://assets/sounds/sail/sail_snap_06.ogg"]
       }
     },
-
     "frame": {
       "_doc": "Каркас и подвеска: скрипы при перегрузке и в болтанке, карабин.",
       "creak_rate_hz": 1.2,
@@ -188,15 +227,10 @@
       "carabiner_db": -6.0,
       "carabiner_db_doc": "Громкость щелчка карабина, дБ.",
       "files": {
-        "creaks": [
-          "res://assets/sounds/frame/creak_01.ogg", "res://assets/sounds/frame/creak_02.ogg",
-          "res://assets/sounds/frame/creak_03.ogg", "res://assets/sounds/frame/creak_04.ogg",
-          "res://assets/sounds/frame/creak_05.ogg", "res://assets/sounds/frame/creak_06.ogg"
-        ],
+        "creaks": ["res://assets/sounds/frame/creak_01.ogg", "res://assets/sounds/frame/creak_02.ogg", "res://assets/sounds/frame/creak_03.ogg", "res://assets/sounds/frame/creak_04.ogg", "res://assets/sounds/frame/creak_05.ogg", "res://assets/sounds/frame/creak_06.ogg"],
         "carabiner": "res://assets/sounds/frame/carabiner_clip.ogg"
       }
     },
-
     "run": {
       "_doc": "Разбег: шаги по темпу бега, дыхание.",
       "stride_run_m": 1.4,
@@ -230,23 +264,12 @@
       "pant_delay_s": 1.2,
       "pant_delay_s_doc": "Задержка одышки после посадки, с.",
       "files": {
-        "steps_grass": [
-          "res://assets/sounds/run/step_grass_01.ogg", "res://assets/sounds/run/step_grass_02.ogg",
-          "res://assets/sounds/run/step_grass_03.ogg", "res://assets/sounds/run/step_grass_04.ogg",
-          "res://assets/sounds/run/step_grass_05.ogg", "res://assets/sounds/run/step_grass_06.ogg",
-          "res://assets/sounds/run/step_grass_07.ogg", "res://assets/sounds/run/step_grass_08.ogg"
-        ],
-        "steps_gravel": [
-          "res://assets/sounds/run/step_gravel_01.ogg", "res://assets/sounds/run/step_gravel_02.ogg",
-          "res://assets/sounds/run/step_gravel_03.ogg", "res://assets/sounds/run/step_gravel_04.ogg",
-          "res://assets/sounds/run/step_gravel_05.ogg", "res://assets/sounds/run/step_gravel_06.ogg",
-          "res://assets/sounds/run/step_gravel_07.ogg", "res://assets/sounds/run/step_gravel_08.ogg"
-        ],
+        "steps_grass": ["res://assets/sounds/run/step_grass_01.ogg", "res://assets/sounds/run/step_grass_02.ogg", "res://assets/sounds/run/step_grass_03.ogg", "res://assets/sounds/run/step_grass_04.ogg", "res://assets/sounds/run/step_grass_05.ogg", "res://assets/sounds/run/step_grass_06.ogg", "res://assets/sounds/run/step_grass_07.ogg", "res://assets/sounds/run/step_grass_08.ogg"],
+        "steps_gravel": ["res://assets/sounds/run/step_gravel_01.ogg", "res://assets/sounds/run/step_gravel_02.ogg", "res://assets/sounds/run/step_gravel_03.ogg", "res://assets/sounds/run/step_gravel_04.ogg", "res://assets/sounds/run/step_gravel_05.ogg", "res://assets/sounds/run/step_gravel_06.ogg", "res://assets/sounds/run/step_gravel_07.ogg", "res://assets/sounds/run/step_gravel_08.ogg"],
         "breath": "res://assets/sounds/run/breath_run_loop.ogg",
         "pant": "res://assets/sounds/run/breath_pant_after.ogg"
       }
     },
-
     "landing": {
       "_doc": "Касание земли по оценке посадки (grade: soft / hard / crash).",
       "soft_db": -6.0,
@@ -266,7 +289,6 @@
       },
       "files_doc": "Для каждой оценки звучат все файлы списка одновременно (слои удара)."
     },
-
     "ambient": {
       "_doc": "Окружение у земли: луг, птицы, колокольчики, ветер на старте. Затухает с высотой над землёй: 1 − smoothstep(начало, конец, AGL).",
       "meadow_db": -18.0,

@@ -42,10 +42,55 @@ var _cycle_duty: float = 0.5
 var _env: float = 0.0  # огибающая 0..1 (до S-формы)
 var _counter: int = 0  # сквозной счётчик отсчётов (пересчёт тона раз в блок)
 var _tone: Dictionary = {}  # текущий тон (см. tone_for)
+# Резонанс пьезоэлемента: биквад «пик» (RBJ), состояние прямой формы I.
+var _res_on: bool = false
+var _res_norm: float = 1.0
+var _b0: float = 1.0
+var _b1: float = 0.0
+var _b2: float = 0.0
+var _a1: float = 0.0
+var _a2: float = 0.0
+var _x1: float = 0.0
+var _x2: float = 0.0
+var _y1: float = 0.0
+var _y2: float = 0.0
 
 
-## cfg — раздел vario_audio из configs/audio.json.
+## Настройки пресета поверх общих: общие ключи vario_audio + presets[name].
+## Нет такого пресета — берётся preset из cfg, затем первый попавшийся.
+static func resolve_preset(cfg: Dictionary, preset_name: String = "") -> Dictionary:
+	var presets: Dictionary = cfg.get("presets", {})
+	var out := cfg.duplicate(true)
+	out.erase("presets")
+	var chosen := preset_name if presets.has(preset_name) else String(cfg.get("preset", ""))
+	if not presets.has(chosen):
+		for k in presets:
+			if not String(k).begins_with("_"):
+				chosen = k
+				break
+	if presets.has(chosen):
+		var p: Dictionary = presets[chosen]
+		for k in p:
+			out[k] = p[k]
+		out["preset"] = chosen
+		out["preset_title"] = String(p.get("title", chosen))
+	return out
+
+
+## Имена пресетов из раздела vario_audio.
+static func preset_names(cfg: Dictionary) -> PackedStringArray:
+	var out := PackedStringArray()
+	for k in cfg.get("presets", {}):
+		if not String(k).begins_with("_"):
+			out.append(k)
+	return out
+
+
+## cfg — раздел vario_audio из configs/audio.json (с presets — берётся cfg.preset)
+## или уже собранный resolve_preset().
 func setup(cfg: Dictionary) -> void:
+	if cfg.has("presets"):
+		cfg = resolve_preset(cfg)
 	mix_rate_hz = float(cfg.get("mix_rate_hz", mix_rate_hz))
 	amplitude = float(cfg.get("amplitude", amplitude))
 	_climb_on = float(cfg.get("climb_on_ms", _climb_on))
@@ -64,6 +109,11 @@ func setup(cfg: Dictionary) -> void:
 	_chirp = float(cfg.get("climb_chirp_pct", 0.0)) * 0.01
 	_table_size = maxi(int(cfg.get("wavetable_size", 1024)), 16)
 	_build_table(cfg.get("harmonics", [1.0]))
+	_setup_resonance(
+		float(cfg.get("resonance_hz", 0.0)),
+		float(cfg.get("resonance_q", 1.0)),
+		float(cfg.get("resonance_gain_db", 0.0))
+	)
 	reset()
 
 
@@ -76,11 +126,19 @@ func reset() -> void:
 	_counter = 0
 	_vario = _target_vario
 	_tone = tone_for(_vario, _mode)
+	_x1 = 0.0
+	_x2 = 0.0
+	_y1 = 0.0
+	_y2 = 0.0
 
 
 ## Задать показание вариометра, м/с.
 func set_vario(ms: float) -> void:
 	_target_vario = ms
+
+
+func get_target_vario() -> float:
+	return _target_vario
 
 
 ## Сразу принять значение без сглаживания входа (для тестов и включения прибора).
@@ -162,16 +220,42 @@ func generate(frames: int) -> PackedFloat32Array:
 				_freq += (target_f - _freq) * _freq_k
 		_phase += _freq * inv_rate
 		_phase -= floorf(_phase)
-		if _env <= 0.0:
-			out[i] = 0.0
-			continue
-		var pos := _phase * size_f
-		var i0 := int(pos)
-		var frac := pos - float(i0)
-		var s := lerpf(_table[i0], _table[(i0 + 1) % _table_size], frac)
-		var e := _env * _env * (3.0 - 2.0 * _env)
-		out[i] = s * e * amplitude
+		var x := 0.0
+		if _env > 0.0:
+			var pos := _phase * size_f
+			var i0 := int(pos)
+			var frac := pos - float(i0)
+			var s := lerpf(_table[i0], _table[(i0 + 1) % _table_size], frac)
+			var e := _env * _env * (3.0 - 2.0 * _env)
+			x = s * e * amplitude
+		if _res_on:
+			# Резонанс пьезо: фильтр работает и в тишине — «хвост» звенит, стыков нет.
+			var y := _b0 * x + _b1 * _x1 + _b2 * _x2 - _a1 * _y1 - _a2 * _y2
+			_x2 = _x1
+			_x1 = x
+			_y2 = _y1
+			_y1 = y
+			x = y * _res_norm
+		out[i] = x
 	return out
+
+
+## Биквад «пик» (RBJ Audio EQ Cookbook) на частоте резонанса пьезоэлемента.
+func _setup_resonance(f0: float, q: float, gain_db: float) -> void:
+	_res_on = f0 > 0.0 and gain_db != 0.0 and f0 < mix_rate_hz * 0.45
+	if not _res_on:
+		return
+	var a := pow(10.0, gain_db / 40.0)
+	var w0 := TAU * f0 / mix_rate_hz
+	var alpha := sin(w0) / (2.0 * maxf(q, 0.1))
+	var a0 := 1.0 + alpha / a
+	_b0 = (1.0 + alpha * a) / a0
+	_b1 = -2.0 * cos(w0) / a0
+	_b2 = (1.0 - alpha * a) / a0
+	_a1 = -2.0 * cos(w0) / a0
+	_a2 = (1.0 - alpha / a) / a0
+	# Громкость примерно сохраняем: делим на корень из подъёма.
+	_res_norm = 1.0 / sqrt(pow(10.0, gain_db / 20.0))
 
 
 ## То же, стерео (для AudioStreamGeneratorPlayback.push_buffer).
