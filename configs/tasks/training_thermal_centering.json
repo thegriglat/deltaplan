@@ -1,0 +1,20 @@
+{
+  "_doc": "Тренировка «центровка в термике» (FR-36, scripts/tasks/training_thermal_centering.gd). Начинается со взлёта.",
+  "title": "Центровка в термике",
+  "title_doc": "Название в меню",
+  "description": "Найди термик и набери высоту, держась в подъёме.",
+  "time_limit_s": 600.0,
+  "time_limit_s_doc": "Время на попытку от взлёта, с",
+  "target_gain_m": 300.0,
+  "target_gain_m_doc": "Нужный набор высоты над точкой взлёта, м",
+  "required_lift_time_s": 120.0,
+  "required_lift_time_s_doc": "Сколько нужно продержаться в подъёме (усреднённый вариометр ≥ порога), с",
+  "lift_threshold_ms": 0.3,
+  "lift_threshold_ms_doc": "Порог «в подъёме» для усреднённого вариометра, м/с",
+  "vario_average_s": 5.0,
+  "vario_average_s_doc": "Постоянная времени усреднения вариометра, с",
+  "score_gain_weight": 0.7,
+  "score_gain_weight_doc": "Вес доли набора высоты в оценке",
+  "score_lift_weight": 0.3,
+  "score_lift_weight_doc": "Вес доли времени в подъёме в оценке"
+}

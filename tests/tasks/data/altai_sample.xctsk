@@ -1,0 +1,20 @@
+{
+  "taskType": "CLASSIC",
+  "version": 1,
+  "earthModel": "WGS84",
+  "turnpoints": [
+    {"type": "TAKEOFF", "radius": 400,
+     "waypoint": {"name": "SINYUKHA", "description": "Takeoff", "lat": 51.82121, "lon": 85.85361, "altSmoothed": 1107}},
+    {"type": "SSS", "radius": 3000,
+     "waypoint": {"name": "SINYUKHA", "description": "Start", "lat": 51.82121, "lon": 85.85361, "altSmoothed": 1107}},
+    {"radius": 1000,
+     "waypoint": {"name": "SOUZGA", "description": "", "lat": 51.88655, "lon": 85.8494, "altSmoothed": 296}},
+    {"type": "ESS", "radius": 1000,
+     "waypoint": {"name": "CHEREMSH", "description": "", "lat": 51.87003, "lon": 85.783, "altSmoothed": 298}},
+    {"radius": 200,
+     "waypoint": {"name": "MANZHEROK", "description": "Goal", "lat": 51.82961, "lon": 85.77923, "altSmoothed": 305}}
+  ],
+  "takeoff": {"timeOpen": "\"07:00:00Z\"", "timeClose": "\"09:00:00Z\""},
+  "sss": {"type": "RACE", "direction": "EXIT", "timeGates": ["\"08:00:00Z\"", "\"08:20:00Z\""]},
+  "goal": {"type": "LINE", "deadline": "\"12:00:00Z\""}
+}
