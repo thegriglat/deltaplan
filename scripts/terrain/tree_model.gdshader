@@ -17,8 +17,10 @@ uniform float sway_top_m = 0.6;        // отклонение макушки п
 uniform float sway_hz = 0.25;          // частота качания, Гц
 // смягчение вдали (отзыв пилота: деревья на земле слишком резкие) — та же логика, что у импостеров
 // forest_impostors.gdshader; модели видны примерно до inner_end_m (~300–500 м), дальше — билборды.
+// та же кривая, что у forest_impostors (300 → 1200 м): в полосе передачи 350–500 м модели и
+// билборды смягчены одинаково (при 500 м модели были уже «в полную силу» — бледнее билбордов)
 uniform float far_soft_start_m = 300.0;
-uniform float far_soft_full_m = 500.0;
+uniform float far_soft_full_m = 1200.0;
 uniform float far_desaturate = 0.4;
 uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
@@ -26,6 +28,7 @@ uniform float far_edge_soft_k = 3.0;
 
 varying vec3 v_color;
 varying float v_dist;
+varying float v_crown;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
@@ -46,6 +49,7 @@ void vertex() {
 	float s2 = max(dot(m[0], m[0]), 1e-6);
 	VERTEX += transpose(m) * disp / s2;
 	v_color = COLOR.rgb;
+	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
 }
 
@@ -60,6 +64,12 @@ void fragment() {
 	rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * ft);
 	ALBEDO = rgb;
 	if (alpha_clip) {
+		// нормали карточек кроны — «от центра кроны» (build_trees.py, crown_normals; метка UV2.x = 1).
+		// Godot у изнанки двусторонней грани переворачивает нормаль — возвращаем, чтобы обе стороны
+		// карточки светились одинаково (иначе крона пятнистая: половина карточек тёмная)
+		if (v_crown > 0.5) {
+			NORMAL = FRONT_FACING ? NORMAL : -NORMAL;
+		}
 		float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, ft);
 		ALPHA = smoothstep(alpha_threshold - edge, alpha_threshold + edge, c.a);
 		ALPHA_SCISSOR_THRESHOLD = mix(alpha_threshold, alpha_threshold * 0.05, ft);
@@ -67,5 +77,7 @@ void fragment() {
 		ALPHA = 1.0;
 	}
 	ROUGHNESS = roughness_value;
-	SPECULAR = 0.2;
+	// у крон нормали смотрят вверх/наружу — на скользящем взгляде издали блик неба (Френель)
+	// выбеливал лес в серые «призраки»; хвоя и листва матовые
+	SPECULAR = v_crown > 0.5 ? 0.0 : 0.2;
 }

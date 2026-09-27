@@ -28,6 +28,8 @@ import tree_textures as TT  # noqa: E402
 OUT = os.path.join(U.MODELS, "trees")
 SRC = os.path.join(U.SOURCE, "trees")
 ORDER = ["pine", "cedar", "larch", "birch", "spruce"]
+BAKE_WORLD = 0.5  # яркость белого неба при запекании импостора
+BAKE_SUN = 1.5    # солнце при запекании (светотень кроны)
 
 
 def crown_radius(sp: dict, zc: float) -> float:
@@ -60,30 +62,46 @@ def trunk_radius(sp: dict, t: float) -> float:
     return r0 * (1 - 0.88 * t) * (1 + 0.35 * max(0.0, 0.08 - t) / 0.08)
 
 
-def card(mb: U.MeshBuilder, base: Vector, d: Vector, n: Vector, size: float) -> None:
-    """Карточка: низ (v = 0) у ветки, вдоль d; нормаль n."""
-    side = d.cross(n).normalized() * size * 0.5
+def card(mb: U.MeshBuilder, base: Vector, d: Vector, n: Vector, size: float,
+         aspect: float = 1.0) -> None:
+    """Карточка: низ (v = 0) у ветки, вдоль d; нормаль n; ширина = size · aspect."""
+    side = d.cross(n).normalized() * size * 0.5 * aspect
     tip = base + d * size
     q = [base - side, base + side, tip + side, tip - side]
     idx = [mb.add_vert(p) for p in q]
-    mb.add_face(idx, "Leaf", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=False)
+    for i in idx:  # UV2.x = 1 — метка карточки кроны для tree_model.gdshader (нормали изнанки)
+        mb.colors[i] = (1.0, 0.0)
+    mb.add_face(idx, "Leaf", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=True)
 
 
-def clump(mb: U.MeshBuilder, p: Vector, d: Vector, size: float, rng: random.Random,
-          hanging: bool) -> None:
-    """Пучок из двух скрещённых карточек: одна «лежит» (видна сверху), вторая стоит."""
-    d = d.normalized()
-    if hanging:
-        d = (d * 0.5 + Vector((0, 0, -1))).normalized()
+def clump(mb: U.MeshBuilder, p: Vector, d0: Vector, size: float, rng: random.Random,
+          sp: dict, lod: int = 0) -> None:
+    """Пучок скрещённых карточек. d0 — направление ветки. Хвойные с clump_up > 0 (сосна, кедр)
+    ставят пучок концом вверх — побеги сосны торчат к небу, а не расходятся веером, как лист
+    пальмы; ель и лиственница — лапы вдоль ветки, берёза — свисающие пряди.
+    cards = 3 — ещё лежачая карточка (крона плотнее при взгляде сверху, с дельтаплана)."""
+    d0 = d0.normalized()
     up = Vector((0, 0, 1))
-    n1 = (up - d * d.dot(up))
-    n1 = n1.normalized() if n1.length > 1e-3 else Vector((1, 0, 0))
+    h = Vector((-d0.y, d0.x, 0))
+    h = h.normalized() if h.length > 1e-3 else Vector((0, 1, 0))
+    if sp["droop"] > 0.3:
+        d = (d0 * 0.5 + Vector((0, 0, -1))).normalized()
+    else:
+        k = sp.get("clump_up", 0.0)
+        d = (d0 * (1 - k) + up * k).normalized()
+    n1 = d.cross(h).normalized()  # ветка горизонтальна → карточка лежит; торчит вверх → «лицом» наружу
     rot = Matrix.Rotation(rng.uniform(-0.5, 0.5), 3, d)
     n1 = rot @ n1
     n2 = d.cross(n1).normalized()
-    base = p - d * size * 0.15
-    card(mb, base, d, n1, size)
-    card(mb, base, d, n2, size)
+    asp = sp.get("card_aspect", 1.0)
+    # кисти сосны/кедра — в верхних 2/3 карточки: центрируем кисть на точке пучка
+    base = p - d * size * (0.45 if sp.get("clump_up", 0.0) > 0 else 0.15)
+    card(mb, base, d, n1, size, asp)
+    card(mb, base, d, n2, size, asp)
+    if sp.get("cards", 2) >= 3 and lod == 0:
+        dh = Vector((d0.x, d0.y, 0))
+        dh = dh.normalized() if dh.length > 1e-3 else Vector((1, 0, 0))
+        card(mb, p - dh * size * 0.45 + up * size * 0.2, dh, up, size * 0.9, asp)
 
 
 def build_mesh(sp: dict, lod: int, seed: int, lod_cfg: dict) -> U.MeshBuilder:
@@ -93,39 +111,52 @@ def build_mesh(sp: dict, lod: int, seed: int, lod_cfg: dict) -> U.MeshBuilder:
     path = trunk_path(sp, rng)
     ts = [i / (len(path) - 1) for i in range(len(path))]
     sides = 8 if lod == 0 else 5
-    if lod == 1:
-        path, ts = path[::3], ts[::3]
+    if lod == 1:  # 4 узла, включая вершину (раньше [::3] терял верхушку — ствол «ломался»)
+        path, ts = [path[i] for i in (0, 3, 6, 10)], [ts[i] for i in (0, 3, 6, 10)]
     mb.add_tube(path, [trunk_radius(sp, t) for t in ts], "Bark", sides=sides,
                 uv_v=[t * sp["trunk_top"] for t in ts])
     clumps = []
     top_z = H * sp["trunk_top"]
     cb = sp["crown_base"] * H
     n_wh = sp["whorls"]
-    hanging = sp["droop"] > 0.3
+    rise = sp.get("branch_rise", 0.0)
+    c0 = sp.get("clump_from", 0.35)
+    # сухие сучья ниже кроны (сосна, лиственница в лесу): голый ствол не выглядит «пальмовым»
+    if lod == 0:
+        for i in range(sp.get("stubs", 0)):
+            tz = rng.uniform(0.12, 0.95) * cb / top_z
+            c = _on_path(path, tz)
+            az = rng.uniform(0, 2 * math.pi)
+            L = H * rng.uniform(0.03, 0.07)
+            el = math.radians(rng.uniform(-25, 10))
+            e = c + Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el),
+                            math.sin(el))) * L
+            mb.add_tube([c, e], [max(trunk_radius(sp, tz) * 0.25, 0.015), 0.006], "Bark",
+                        sides=3, cap=False, uv_v=[0.3, 0.32])
     for k in range(n_wh):
         zc = (k + rng.uniform(-0.3, 0.3)) / max(n_wh - 1, 1)
         zc = min(max(zc, 0.0), 1.0)
         z = cb + (top_z * 0.97 - cb) * zc
         tz = z / top_z
-        center = path[0].lerp(path[-1], tz) if lod == 1 else _on_path(path, tz)
+        center = _on_path(path, tz)
         R = crown_radius(sp, zc) * H
         for j in range(sp["per_whorl"]):
             az = 2 * math.pi * (j + rng.uniform(-0.3, 0.3)) / sp["per_whorl"] + k * 2.4
             L = R * rng.uniform(0.8, 1.1)
             el = math.radians(sp["branch_angle_deg"] + rng.uniform(-10, 10))
             d = Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)))
-            end = center + d * L - Vector((0, 0, sp["droop"] * L))
+            end = center + d * L - Vector((0, 0, (sp["droop"] - rise) * L))
             mid = center + d * L * 0.5 - Vector((0, 0, sp["droop"] * L * 0.2))
             if lod == 0 and L > 0.3:
                 br = max(trunk_radius(sp, tz) * 0.35, 0.012)
-                if sp["droop"] >= 0.2:  # изогнутая ветвь
+                if sp["droop"] >= 0.2:  # изогнутая (провисающая) ветвь
                     mb.add_tube([center, mid, end], [br, br * 0.6, br * 0.25], "Bark", sides=3,
                                 cap=False, uv_v=[0.3, 0.32, 0.34])
                 else:
                     mb.add_tube([center, end], [br, br * 0.25], "Bark", sides=3, cap=False,
                                 uv_v=[0.3, 0.34])
             for c in range(sp["clumps_per_branch"]):
-                t = 0.35 + 0.65 * (c + 1) / sp["clumps_per_branch"]
+                t = c0 + (1 - c0) * (c + 1) / sp["clumps_per_branch"]
                 p = (center.lerp(mid, t * 2) if t < 0.5 else mid.lerp(end, t * 2 - 1))
                 p += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.5, 0.5))) \
                     * 0.06 * L
@@ -141,11 +172,67 @@ def build_mesh(sp: dict, lod: int, seed: int, lod_cfg: dict) -> U.MeshBuilder:
                 -.2, .2), 1)), sp["clump_size"] * H * 0.7))
     if lod == 1:
         rng.shuffle(clumps)
-        keep = max(8, int(len(clumps) * lod_cfg["lod1_clump_fraction"]))
-        clumps = [(p, d, s * lod_cfg["lod1_clump_scale"]) for p, d, s in clumps[:keep]]
+        frac = sp.get("lod1_clump_fraction", lod_cfg["lod1_clump_fraction"])
+        scale = sp.get("lod1_clump_scale", lod_cfg["lod1_clump_scale"])
+        keep = max(8, int(len(clumps) * frac))
+        clumps = [(p, d, s * scale) for p, d, s in clumps[:keep]]
     for p, d, s in clumps:
-        clump(mb, p, d, s, rng, hanging)
+        clump(mb, p, d, s, rng, sp, lod)
     return mb
+
+
+def crown_normals(obj, sp: dict) -> None:
+    """Нормали карточек — от центра кроны наружу (+ немного вверх), а не плоские: крона
+    освещается как объём, без «перьев», где каждая карточка то светлая, то чёрная."""
+    me = obj.data
+    H = sp["height_m"]
+    cb, top = sp["crown_base"] * H, sp["trunk_top"] * H
+    cz, hh = (cb + top) * 0.5, max((top - cb) * 0.5, 1.0)
+    R = max(sp["crown_radius"] * H, 0.5)
+    leaf = [i for i, m in enumerate(me.materials) if m and m.name.startswith("Leaf")]
+    me.update()
+    cur = [Vector(n.vector) for n in me.corner_normals]
+    out = []
+    for poly in me.polygons:
+        for li in range(poly.loop_start, poly.loop_start + poly.loop_total):
+            if poly.material_index not in leaf:
+                out.append(cur[li])
+                continue
+            v = me.vertices[me.loops[li].vertex_index].co
+            o = Vector((v.x / R, v.y / R, (v.z - cz) / hh))
+            o = o.normalized() if o.length > 1e-3 else Vector((0, 0, 1))
+            fn = Vector(poly.normal)
+            if fn.dot(o) < 0:
+                fn = -fn
+            out.append((o * 0.6 + fn * 0.4 + Vector((0, 0, 0.1))).normalized())
+    me.normals_split_custom_set(out)
+
+
+def _backface_fix(mat, on: bool) -> None:
+    """Для запекания импостора: Eevee переворачивает нормаль у изнанки карточки; с нормалями
+    кроны (crown_normals) изнанка должна светиться так же — как в игре (tree_model.gdshader)."""
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    # без блика: белое небо запекания иначе «серит» хвою (в игре SPECULAR = 0.2 при шероховатой хвое)
+    bsdf.inputs["Specular IOR Level"].default_value = 0.0 if on else 0.5
+    if not on:
+        for n in [n for n in nt.nodes if n.name.startswith("BF_")]:
+            nt.nodes.remove(n)
+        return
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    geo.name = "BF_geo"
+    neg = nt.nodes.new("ShaderNodeVectorMath")
+    neg.name = "BF_neg"
+    neg.operation = "SCALE"
+    neg.inputs["Scale"].default_value = -1.0
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.name = "BF_mix"
+    mix.data_type = "VECTOR"
+    nt.links.new(geo.outputs["Normal"], neg.inputs[0])
+    nt.links.new(geo.outputs["Backfacing"], mix.inputs["Factor"])
+    nt.links.new(geo.outputs["Normal"], mix.inputs[4])
+    nt.links.new(neg.outputs["Vector"], mix.inputs[5])
+    nt.links.new(mix.outputs[1], bsdf.inputs["Normal"])
 
 
 def _on_path(path: list, t: float) -> Vector:
@@ -165,10 +252,14 @@ def bake_impostor(obj, sp: dict, px: tuple, path: str):
     sc.view_settings.view_transform = "Standard"
     world = bpy.data.worlds.new("W")
     world.use_nodes = True
-    world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.6, 0.65, 0.7, 1)
+    # свет запекания — нейтральный и неяркий: картинка ≈ альбедо кроны с мягкой светотенью;
+    # освещает её уже игра (нормали импостора вверх, как у кроны моделей), иначе импостор
+    # «освещён дважды» — светлее и серее моделей на смене LOD
+    world.node_tree.nodes["Background"].inputs["Color"].default_value = (1, 1, 1, 1)
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = BAKE_WORLD
     sc.world = world
     sun = bpy.data.objects.new("Sun", bpy.data.lights.new("Sun", "SUN"))
-    sun.data.energy = 3.0
+    sun.data.energy = BAKE_SUN
     sun.rotation_euler = (math.radians(50), 0, math.radians(20))
     sc.collection.objects.link(sun)
     bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
@@ -199,8 +290,24 @@ def impostor_mesh(width: float, height: float) -> U.MeshBuilder:
     for a, b in ((Vector((-w, 0, 0)), Vector((w, 0, 0))), (Vector((0, w, 0)), Vector((0, -w, 0)))):
         q = [a, b, b + Vector((0, 0, height)), a + Vector((0, 0, height))]
         idx = [mb.add_vert(p) for p in q]
-        mb.add_face(idx, "Impostor", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=False)
+        for i in idx:  # как у карточек кроны: нормаль своя, изнанку не переворачивать
+            mb.colors[i] = (1.0, 0.0)
+        mb.add_face(idx, "Impostor", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=True)
     return mb
+
+
+def impostor_normals(obj) -> None:
+    """Нормали креста-импостора — почти вверх (как у билбордов forest_impostors.gdshader и у
+    кроны моделей), а не горизонтальные: иначе импостор вдвое темнее модели и на смене LOD
+    заметна тёмная полоса леса."""
+    me = obj.data
+    me.update()
+    out = []
+    for poly in me.polygons:
+        fn = Vector(poly.normal)
+        for _ in range(poly.loop_total):
+            out.append((Vector((0, 0, 1)) * 0.8 + fn * 0.2).normalized())
+    me.normals_split_custom_set(out)
 
 
 def build(key: str, params: dict) -> None:
@@ -219,13 +326,19 @@ def build(key: str, params: dict) -> None:
     }
     lod0 = build_mesh(sp, 0, seed, lod_cfg).build("LOD0", mats)
     lod1 = build_mesh(sp, 1, seed, lod_cfg).build("LOD1", mats)
+    crown_normals(lod0, sp)
+    crown_normals(lod1, sp)
     lod1.hide_render = True
+    _backface_fix(mats["Leaf"], True)
+    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.0
     imp_path = os.path.join(OUT, "tree_%s_impostor.png" % key)
     img, w, h = bake_impostor(lod0, sp, tuple(lod_cfg["impostor_px"]), imp_path)
     lod1.hide_render = False
+    _backface_fix(mats["Leaf"], False)
+    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.5
     mats["Impostor"] = U.material("Impostor_" + key, (1, 1, 1), rough=0.9, double=True,
                                   image=img, alpha_clip=True)
-    impostor_mesh(w, h).build("LOD2", mats)
+    impostor_normals(impostor_mesh(w, h).build("LOD2", mats))
     lod1.location.x = 0  # все LOD в одной точке; видимость переключает игра
     tris = {o.name: sum(len(p.vertices) - 2 for p in o.data.polygons)
             for o in bpy.context.scene.objects if o.type == "MESH"}
