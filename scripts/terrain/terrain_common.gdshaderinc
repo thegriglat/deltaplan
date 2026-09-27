@@ -14,44 +14,31 @@ uniform vec3 birch_color : source_color;
 uniform vec3 rock_color : source_color;
 uniform vec3 snow_color : source_color;
 uniform vec3 field_color : source_color;
-uniform float forest_min_m;
-uniform float treeline_m;
-uniform float forest_cover;
-uniform float forest_north_bias;
-uniform float forest_max_slope_deg;
+uniform vec3 shrub_color : source_color;
+uniform vec3 bare_color : source_color;
+uniform vec3 built_color : source_color;
 uniform float rock_slope_deg;
 uniform float rock_blend_deg;
-uniform float snowline_m;
-uniform float snow_max_slope_deg;
-uniform float field_max_slope_deg;
-uniform float field_max_height_m;
 uniform vec2 field_size_m;       // размер участка поля (восток × юг), м
 uniform float patch_scale_m;
 uniform float detail_scale_m;
 uniform float detail_strength;
 uniform float detail_fade_m;
 uniform float canopy_bump;
+// --- карта поверхности (VR-4): классы земного покрова, та же, что у Terrain.surface_at ---
+// значение текстуры ×255 = класс: 1 лес, 2 луг, 3 пашня, 4 кустарник, 5 скалы/грунт, 6 вода,
+// 7 застройка, 8 снег; 0 — нет данных (рисуется как луг)
+uniform sampler2D surface_tex : filter_nearest, repeat_disable;
+uniform vec2 surface_origin;     // мировые X/Z узла (0,0), м
+uniform float surface_spacing = 25.0;
+uniform vec2 surface_texels = vec2(1.0);
+uniform float surface_edge_noise = 0.7;
+uniform float surface_edge_sharpness = 0.35;
 
 float h_node(ivec2 p) {
 	ivec2 m = ivec2(layer_texels) - ivec2(1);
 	return texelFetch(height_tex, clamp(p, ivec2(0), m), 0).r;
 }
-
-// Маска рек (0..1) на той же сетке, что и высоты; нет маски — has_water = false.
-uniform sampler2D water_tex : filter_linear, repeat_disable;
-uniform bool has_water = false;
-
-float water_at(vec2 xz) {
-	if (!has_water) {
-		return 0.0;
-	}
-	vec2 uv = ((xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
-	return texture(water_tex, uv).r;
-}
-
-// Поляны без леса вокруг стартовых площадок: xy — центр X/Z, z — радиус, м.
-uniform vec4 clearings[8];
-uniform int clearing_count = 0;
 
 // Высота в произвольной точке (билинейно, как Terrain.height_at).
 float h_bilinear(vec2 xz) {
@@ -95,32 +82,55 @@ float fbm(vec2 p, int octaves) {
 	return sum / norm;
 }
 
-// Классификация поверхности по высоте h, сглаженной нормали n и шуму.
-// Возвращает: x — лес (0..1), y — доля хвойных, z — поле (0..1), w — «северность» склона (−1..1);
-// patch2 — шум пятен второго масштаба (нужен раскраске).
-vec4 biome(vec2 xz, float h, vec3 n, out float patch2) {
+// Классы карты поверхности в узле сетки карты.
+int surface_node(ivec2 p) {
+	ivec2 m = ivec2(surface_texels) - ivec2(1);
+	return int(texelFetch(surface_tex, clamp(p, ivec2(0), m), 0).r * 255.0 + 0.5);
+}
+
+// Разложение класса по двум vec4: a = (лес, луг, пашня, кустарник), b = (скалы, вода, застройка, снег).
+// «Нет данных» (0) идёт в луг.
+void surface_onehot(int c, out vec4 a, out vec4 b) {
+	a = vec4(float(c == 1), float(c == 2 || c == 0 || c > 8), float(c == 3), float(c == 4));
+	b = vec4(float(c == 5), float(c == 6), float(c == 7), float(c == 8));
+}
+
+// Доли классов в точке: ближайший узел карты (как Terrain.surface_at). Доли четырёх соседних
+// узлов интерполируются билинейно и обрезаются по уровню 0.5 (изолиния — плавная кривая, а не
+// «лесенка» клеток); порог слегка сдвигается шумом — извилистые границы (surface_edge_noise).
+// surface_edge_sharpness — полуширина размытия границы (доля клетки).
+void surface_weights(vec2 xz, out vec4 wa, out vec4 wb) {
+	float sc = surface_spacing * 1.5;
+	vec2 warp = vec2(fbm(xz / sc, 3), fbm(xz / sc + vec2(7.3, 1.9), 3)) - 0.5;
+	vec2 f = (xz + warp * surface_edge_noise * surface_spacing - surface_origin) / surface_spacing;
+	vec2 i = floor(f);
+	vec2 t = f - i;
+	ivec2 ij = ivec2(i);
+	vec4 a00, b00, a10, b10, a01, b01, a11, b11;
+	surface_onehot(surface_node(ij), a00, b00);
+	surface_onehot(surface_node(ij + ivec2(1, 0)), a10, b10);
+	surface_onehot(surface_node(ij + ivec2(0, 1)), a01, b01);
+	surface_onehot(surface_node(ij + ivec2(1, 1)), a11, b11);
+	vec4 la = mix(mix(a00, a10, t.x), mix(a01, a11, t.x), t.y);
+	vec4 lb = mix(mix(b00, b10, t.x), mix(b01, b11, t.x), t.y);
+	float e = max(surface_edge_sharpness, 1e-3);
+	vec4 sa = smoothstep(vec4(0.5 - e), vec4(0.5 + e), la);
+	vec4 sb = smoothstep(vec4(0.5 - e), vec4(0.5 + e), lb);
+	float sum = dot(sa, vec4(1.0)) + dot(sb, vec4(1.0));
+	// там, где сходятся 3–4 класса и ни один не набрал половины, — мягкое смешивание
+	float k = smoothstep(0.05, 0.3, sum);
+	wa = mix(la, sa / max(sum, 1e-4), k);
+	wb = mix(lb, sb / max(sum, 1e-4), k);
+}
+
+// «Северность» склона −1..1 (нормаль к −Z), на пологом — 0.
+float northness(vec3 n) {
 	float slope_deg = degrees(acos(clamp(n.y, 0.0, 1.0)));
-	float patch = fbm(xz / patch_scale_m, 5);
-	patch2 = fbm(xz / (patch_scale_m * 0.37) + vec2(31.7, 11.2), 4);
-	// экспозиция: + на северных склонах (нормаль к −Z)
 	float horiz = length(n.xz);
-	float north = horiz > 1e-4 ? (-n.z / horiz) * smoothstep(3.0, 15.0, slope_deg) : 0.0;
-	float field_mask = (1.0 - smoothstep(field_max_slope_deg * 0.6, field_max_slope_deg, slope_deg))
-			* (1.0 - smoothstep(field_max_height_m - 60.0, field_max_height_m, h)) * step(0.35, patch);
-	float forest_prob = forest_cover + forest_north_bias * north;
-	float alt_w = smoothstep(forest_min_m - 80.0, forest_min_m + 80.0, h)
-			* (1.0 - smoothstep(treeline_m - 150.0, treeline_m + 50.0, h + 200.0 * (patch - 0.5)));
-	float slope_w = 1.0 - smoothstep(forest_max_slope_deg - 6.0, forest_max_slope_deg + 4.0, slope_deg);
-	float forest = smoothstep(1.0 - forest_prob - 0.04, 1.0 - forest_prob + 0.04, patch) * alt_w * slope_w;
-	forest *= 1.0 - field_mask;
-	// у воды — ни леса, ни пашни (пойма)
-	float wet = smoothstep(0.05, 0.4, water_at(xz));
-	forest *= 1.0 - wet;
-	field_mask *= 1.0 - wet;
-	for (int k = 0; k < clearing_count; k++) {
-		vec4 c = clearings[k];
-		forest *= smoothstep(c.z, c.z * 1.6, length(xz - c.xy) + 15.0 * (patch2 - 0.5));
-	}
-	float conifer = smoothstep(0.35, 0.65, patch2 + 0.3 * north);
-	return vec4(forest, conifer, field_mask, north);
+	return horiz > 1e-4 ? (-n.z / horiz) * smoothstep(3.0, 15.0, slope_deg) : 0.0;
+}
+
+// Доля хвойных в лесу (0..1): пятнами, больше на северных склонах. patch2 — шум пятен.
+float conifer_share(float patch2, float north) {
+	return smoothstep(0.35, 0.65, patch2 + 0.3 * north);
 }

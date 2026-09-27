@@ -1,10 +1,21 @@
 class_name SkyEnvironment
 extends Node3D
-## Небо, солнце с тенями, дымка до горизонта (FR-20). Все параметры — configs/world.json.
-## Создаёт дочерние WorldEnvironment и DirectionalLight3D. Сцена: scenes/world/environment.tscn.
+## Небо, солнце с тенями, дымка до горизонта (FR-20) и мутный слой перемешивания под инверсией
+## (VR-3, haze.gdshader). Все параметры — configs/world.json.
+## Создаёт дочерние WorldEnvironment, DirectionalLight3D и Haze (полноэкранный квад).
+## Сцена: scenes/world/environment.tscn.
+## Интегратор: set_inversion_height_msl(atmosphere.get_cloudbase_msl()) при смене погоды —
+## верх дымки = эта высота + haze.top_margin_m.
+
+const HAZE_SHADER := preload("res://scripts/world/haze.gdshader")
 
 var world_env: WorldEnvironment
 var sun: DirectionalLight3D
+## Полноэкранный квад дымки (null — дымка выключена в конфиге).
+var haze: MeshInstance3D
+
+var _haze_mat: ShaderMaterial
+var _inversion_msl: float = NAN
 
 
 func _ready() -> void:
@@ -88,6 +99,65 @@ func apply_config() -> void:
 		world_env.name = "WorldEnvironment"
 		add_child(world_env)
 	world_env.environment = env
+	_apply_haze(cfg.get("haze", {}), dir, _color(sun_cfg.color))
+
+
+## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков
+## Atmosphere.get_cloudbase_msl(); верх дымки = h + haze.top_margin_m.
+func set_inversion_height_msl(h: float) -> void:
+	_inversion_msl = h
+	if _haze_mat != null:
+		_haze_mat.set_shader_parameter("top_msl", get_haze_top_msl())
+
+
+## Верх дымки над уровнем моря, м.
+func get_haze_top_msl() -> float:
+	var hz: Dictionary = Config.get_config("world").get("haze", {})
+	if is_nan(_inversion_msl):
+		return float(hz.get("default_top_msl_m", 2000.0))
+	return _inversion_msl + float(hz.get("top_margin_m", 0.0))
+
+
+## Материал дымки (для тестов и отладки), null — выключена.
+func haze_material() -> ShaderMaterial:
+	return _haze_mat
+
+
+func _apply_haze(hz: Dictionary, to_sun: Vector3, sun_color: Color) -> void:
+	if not bool(hz.get("enabled", false)):
+		if haze != null:
+			haze.queue_free()
+			haze = null
+			_haze_mat = null
+		return
+	if haze == null:
+		haze = MeshInstance3D.new()
+		haze.name = "Haze"
+		var quad := QuadMesh.new()
+		haze.mesh = quad
+		haze.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# квад рисуется на весь экран из вершинного шейдера — не отсекать
+		haze.extra_cull_margin = 16384.0
+		haze.custom_aabb = AABB(Vector3(-1e6, -1e6, -1e6), Vector3(2e6, 2e6, 2e6))
+		_haze_mat = ShaderMaterial.new()
+		_haze_mat.shader = HAZE_SHADER
+		_haze_mat.render_priority = Material.RENDER_PRIORITY_MAX
+		haze.material_override = _haze_mat
+		add_child(haze)
+	var vis_m := maxf(float(hz.get("visibility_km", 30.0)), 0.1) * 1000.0
+	# Формула Кошмидера: видимость = 3.912 / коэффициент ослабления (контраст 2 %).
+	_haze_mat.set_shader_parameter("extinction", 3.912 / vis_m)
+	_haze_mat.set_shader_parameter("top_msl", get_haze_top_msl())
+	_haze_mat.set_shader_parameter("top_transition_m", float(hz.get("top_transition_m", 50.0)))
+	_haze_mat.set_shader_parameter(
+		"max_distance_m", float(hz.get("max_distance_km", 150.0)) * 1000.0
+	)
+	_haze_mat.set_shader_parameter("haze_color", _color(hz.get("color", [0.75, 0.75, 0.75])))
+	_haze_mat.set_shader_parameter("sun_color", sun_color)
+	_haze_mat.set_shader_parameter("sun_dir", to_sun)
+	_haze_mat.set_shader_parameter("sun_scatter", float(hz.get("sun_scatter", 0.3)))
+	_haze_mat.set_shader_parameter("sun_scatter_power", float(hz.get("sun_scatter_power", 6.0)))
+	_haze_mat.set_shader_parameter("max_opacity", float(hz.get("max_opacity", 0.97)))
 
 
 ## Рекомендуемые near/far для камер (configs/world.json → rendering).

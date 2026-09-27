@@ -1,6 +1,7 @@
-// Рельеф: высоты из текстуры (вершинный шейдер), процедурная раскраска по высоте,
-// уклону и экспозиции + шум детализации (FR-19). Все параметры задаёт terrain_renderer.gd
-// из configs/world.json → terrain_look (числа в шейдере — только технические: хеши, октавы).
+// Рельеф: высоты из текстуры (вершинный шейдер), раскраска по карте поверхности (VR-4: лес,
+// луг, пашня, кустарник, скалы/грунт, вода, застройка, снег — та же карта, что у источников
+// термиков), по уклону (скалы на крутом) + шум детализации (FR-19). Все параметры задаёт
+// terrain_renderer.gd из configs/world.json → terrain_look (числа в шейдере — только технические).
 shader_type spatial;
 render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 
@@ -112,41 +113,70 @@ void fragment() {
 	float h = wp.y;
 	float fade = 1.0 - smoothstep(detail_fade_m * 0.25, detail_fade_m, dist);
 
-	float patch2;
-	vec4 b = biome(wp.xz, h, n_class, patch2);
-	float forest = b.x;
-	float field_mask = b.z;
-	float north = b.w;
+	vec4 wa;
+	vec4 wb;
+	surface_weights(wp.xz, wa, wb);
+	float forest = wa.x;
+	float crop = wa.z;
+	float shrub = wa.w;
+	float bare = wb.x;
+	float built = wb.z;
+	float snow = wb.w;
+	float north = northness(n_class);
+	float patch2 = fbm(wp.xz / (patch_scale_m * 0.12) + vec2(31.7, 11.2), 4);
 
-	// --- трава / сухая трава ---
+	// --- луг: сухая трава на южных склонах и пятнами ---
 	float dry = clamp(0.5 + 0.8 * (patch2 - 0.5) - 0.35 * north, 0.0, 1.0);
-	vec3 col = mix(grass_color, dry_grass_color, dry * 0.55);
+	vec3 gcol = mix(grass_color, dry_grass_color, dry * 0.55);
 	float tex_w = fade * texture_strength;
-	if (use_grass_tex) {
-		col = apply_tex(col, texture(grass_tex, wp.xz / grass_tex_tile_m).rgb, grass_tex_avg, tex_w);
-	}
 
-	// --- поля в долинах: прямоугольные участки ---
+	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
 	vec2 cell = floor(wp.xz / field_size_m + vec2(floor(wp.z / (field_size_m.y * 6.0)) * 0.37, 0.0));
 	float fh = hash12(cell);
 	vec3 fcol = mix(field_color, mix(grass_color, dry_grass_color, fh), step(0.45, fh));
 	fcol *= 0.85 + 0.3 * hash12(cell + 7.0);
-	col = mix(col, fcol, field_mask);
+
+	// --- кустарник: пятнистая тёмная зелень на траве ---
+	float bush = smoothstep(0.35, 0.65, fbm(wp.xz / (detail_scale_m * 3.0), 3));
+	vec3 scol = mix(gcol, shrub_color, mix(0.6, 1.0, bush * fade + (1.0 - fade) * 0.5));
+
+	vec3 col = gcol * wa.y + fcol * crop + scol * shrub;
+	if (use_grass_tex) {
+		col = apply_tex(col, texture(grass_tex, wp.xz / grass_tex_tile_m).rgb, grass_tex_avg,
+				tex_w * (wa.y + crop + shrub));
+	}
+
+	// --- голый грунт / осыпи ---
+	vec3 bcol = bare_color * (0.8 + 0.4 * fbm(wp.xz / 25.0 + vec2(3.3, 8.1), 3));
+	// --- застройка: кварталы (крыши, дворы, дороги) ---
+	vec2 blk = floor(wp.xz / 18.0);
+	float bh = hash12(blk + 3.3);
+	vec3 ucol = built_color * (0.7 + 0.6 * bh);
+	ucol = mix(ucol, gcol * 0.9, step(0.72, bh));   // дворы, сады
+	// --- снег ---
+	vec3 wcol = snow_color;
+	if (use_snow_tex) {
+		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
+	}
+	col += bcol * bare + ucol * built + wcol * snow;
 
 	// --- лес ---
-	vec3 fcolor = mix(birch_color, forest_color, b.y);
+	vec3 fcolor = mix(birch_color, forest_color, conifer_share(patch2, north));
 	// кроны деревьев: мелкий шум, тёмные просветы
 	float crowns = fbm(wp.xz / (detail_scale_m * 1.6), 3);
 	fcolor *= mix(1.0, 0.55 + 0.9 * crowns, fade);
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
-	col = mix(col, fcolor, forest);
+	col += fcolor * forest;
+	// цвет суши без доли воды (вода смешивается ниже со своим блеском)
+	float land = max(1.0 - wb.y, 1e-3);
+	col /= land;
 
-	// --- скалы ---
+	// --- скалы: крутые склоны без леса (луг, кустарник, грунт на крутизне — выходы породы) ---
 	float rnoise = fbm(wp.xz / 40.0 + vec2(5.1, 2.3), 3);
 	float rock = smoothstep(rock_slope_deg - rock_blend_deg * 0.5, rock_slope_deg + rock_blend_deg * 0.5,
-			slope_deg + 10.0 * (rnoise - 0.5));
+			slope_deg + 10.0 * (rnoise - 0.5)) * (wa.y + crop + shrub + bare) / land;
 	vec3 rcol = rock_color * (0.75 + 0.5 * fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3));
 	if (use_rock_tex) {
 		// скалы крутые — текстура по двум вертикальным проекциям (упрощённый triplanar)
@@ -156,22 +186,13 @@ void fragment() {
 	}
 	col = mix(col, rcol, rock);
 
-	// --- снег ---
-	float snow = smoothstep(snowline_m - 50.0, snowline_m + 50.0, h + 150.0 * (patch2 - 0.5))
-			* (1.0 - smoothstep(snow_max_slope_deg - 5.0, snow_max_slope_deg + 5.0, slope_deg));
-	vec3 scol = snow_color;
-	if (use_snow_tex) {
-		scol = apply_tex(scol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
-	}
-	col = mix(col, scol, snow);
-
 	// --- мелкая детализация (кочки, пятна) ---
 	float d1 = fbm(wp.xz / detail_scale_m, 3);
 	float d2 = vnoise(wp.xz / (detail_scale_m * 8.0));
 	// самый мелкий масштаб (пучки травы, камни) — только совсем рядом
 	float near_fade = 1.0 - smoothstep(detail_fade_m * 0.02, detail_fade_m * 0.1, dist);
 	float d0 = vnoise(wp.xz / (detail_scale_m * 0.25)) * 0.6 + vnoise(wp.xz / (detail_scale_m * 0.05)) * 0.4;
-	float grassy = (1.0 - forest) * (1.0 - rock);
+	float grassy = (wa.y + crop + shrub) * (1.0 - rock);
 	// оттенок травы гуляет пятнами 10–30 м
 	col = mix(col, col * vec3(1.08, 1.0, 0.8), grassy * fade * smoothstep(0.4, 0.7, d2));
 	col *= 1.0 + detail_strength * fade * ((d1 - 0.5) * 1.2 + (d2 - 0.5) * 0.8)
@@ -190,7 +211,7 @@ void fragment() {
 	}
 
 	// --- вода (реки) ---
-	float water = smoothstep(0.3, 0.6, water_at(wp.xz));
+	float water = wb.y;
 	float ripple = vnoise(wp.xz / 6.0 + vec2(TIME * 0.3, 0.0)) - 0.5;
 	col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
 	n = normalize(mix(n, vec3(0.03 * ripple, 1.0, 0.0), water));

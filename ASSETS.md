@@ -50,6 +50,11 @@
 | `data/terrain/altai/far.f32.gz` | высоты 160×160 км, шаг 100 м (фон до горизонта) | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) (Terrarium z10: SRTM, GMTED2010, ETOPO1 и др.) | открытые данные; атрибуция источников по [списку Mapzen](https://github.com/tilezen/joerd/blob/master/docs/attribution.md) (SRTM — public domain) | локация «Алтай», дальний рельеф |
 | `data/terrain/altai/meta.json` | размеры сеток, атрибуция | сгенерировано `tools/terrain/fetch_dem.py` | — | загрузка локации |
 | `data/terrain/altai/*_water.png` | маски рек (Катунь, Майма и др.) | сгенерировано из высот `tools/terrain/rivers.py` (сток priority-flood) | как у высот | вода на рельефе |
+| `data/terrain/<локация>/*_surface.png`, `surface.json` | карта поверхности (классы: лес, луг, пашня, кустарник, скалы/грунт, вода, застройка, снег), 8 бит, шаг 25 м / 100 м; мода 3×3 подвыборок, `tools/terrain/fetch_landcover.py` | [ESA WorldCover 2021 v200, 10 м](https://registry.opendata.aws/esa-worldcover-vito/) (AWS, COG) | **CC-BY 4.0**: «© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium» (атрибуция в титрах) | цвет земли, деревья и источники термиков (VR-4) — все локации |
+| `user://terrain_cache/worldcover/…` (не в репо) | тайлы WorldCover, скачанные в игре для выбранной точки | ESA WorldCover (как выше) | CC-BY 4.0 (как выше) | рантайм-карта поверхности (`worldcover_loader.gd`) |
+| `data/terrain/ongudai/*` | высоты 40×40 км (Copernicus, 25 м) + 160 км (Terrarium, 100 м), реки, карта поверхности — Онгудай, перевал Каянча | Copernicus DEM GLO-30, AWS Terrain Tiles, ESA WorldCover | как у строк выше (Copernicus DEM licence, открытые данные, CC-BY 4.0) | локация «Алтай — Онгудай» |
+| `data/terrain/askarovo/*` | то же — хребет Биягода у Аскарово (Башкортостан) | то же | то же | локация «Башкирия — Аскарово» |
+| `data/terrain/ekaterinburg/*` | то же — Екатеринбург, Уктус, Шарташ | то же | то же | локация «Екатеринбург» |
 | `user://terrain_cache/terrarium/…` (не в репо) | тайлы высот, скачанные в игре по выбранной точке | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) | как выше | рантайм-загрузка рельефа (FR-17) |
 
 ## Модели и текстуры
@@ -63,6 +68,7 @@
 | `assets/models/bird.glb` (исходник `assets/source/bird.blend`) | низкополигональная парящая хищная птица, размах 1,6 м (57 вершин) | сгенерировано `tools/blender/bird.py` (Blender 4.3) | — | птицы в сильных термиках (`scripts/atmosphere/bird_flock.gd`, путь — `configs/atmosphere.json → birds.model_path`) |
 | `assets/textures/clouds/cloud_shape.png`, `cloud_detail.png` | бесшовный 3D-шум облаков: Perlin-Worley 128³ и Уорли 64³ (атласы срезов, импорт как Texture3D) | сгенерировано `tools/atmosphere/gen_cloud_noise.py` | — | объёмные облака (`configs/atmosphere.json → clouds.noise_*_texture`); без файла — процедурный Уорли в `cloud_layer.gd` |
 | — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
-| — | раскраска рельефа (трава, лес, поля, скалы, снег, реки) и деревья | сгенерировано процедурно: `scripts/terrain/terrain.gdshader`, `trees.gdshader` | — | рельеф |
+| — | раскраска рельефа по карте поверхности (рисунок полей, крон, застройки, скал), процедурные кроны-заглушки и запасная карта поверхности | сгенерировано процедурно: `scripts/terrain/terrain.gdshader`, `trees.gdshader`, `surface_classifier.gd` | — | рельеф |
+| — | дымка слоя перемешивания (VR-3) | сгенерировано процедурно: `scripts/world/haze.gdshader` | — | небо и дымка |
 | `data/terrain/textures/grass_ambientcg_grass004.jpg` | рисунок травы вблизи (1K, цвет) | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `configs/world.json → terrain_textures.grass` |
 | `data/terrain/textures/rock_ambientcg_rock030.jpg` | рисунок скал вблизи (1K, цвет) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock` |

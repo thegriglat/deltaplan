@@ -1,6 +1,6 @@
 // Деревья рядом с камерой (GPU-инстансинг, MultiMesh). Сетка экземпляров едет вместе с
 // камерой, каждое дерево привязано к мировой клетке → при движении деревья не «прыгают».
-// Есть ли дерево и какое — решает та же функция biome(), что красит рельеф.
+// Деревья стоят только на классе «лес» карты поверхности (та же surface_weights, что красит рельеф).
 // Высоты — из той же текстуры, что у детального слоя рельефа.
 shader_type spatial;
 render_mode cull_back, diffuse_burley, world_vertex_coords;
@@ -31,10 +31,12 @@ void vertex() {
 	float e = layer_spacing;
 	vec3 n = normalize(vec3(h_bilinear(xz - vec2(e, 0.0)) - h_bilinear(xz + vec2(e, 0.0)), 2.0 * e,
 			h_bilinear(xz - vec2(0.0, e)) - h_bilinear(xz + vec2(0.0, e))));
-	float patch2;
-	vec4 b = biome(xz, h, n, patch2);
-	bool present = hash12(cell + 5.7) < b.x * density && water_at(xz) < 0.05;
-	bool con = hash12(cell + 9.1) < b.y;
+	vec4 wa;
+	vec4 wb;
+	surface_weights(xz, wa, wb);
+	float patch2 = fbm(xz / (patch_scale_m * 0.12) + vec2(31.7, 11.2), 4);
+	bool present = hash12(cell + 5.7) < smoothstep(0.5, 0.9, wa.x) * density;
+	bool con = hash12(cell + 9.1) < conifer_share(patch2, northness(n));
 	float k = hash12(cell + 2.2);
 	float hh = con ? mix(conifer_height_m.x, conifer_height_m.y, k) : mix(birch_height_m.x, birch_height_m.y, k);
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);

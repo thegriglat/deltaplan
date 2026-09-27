@@ -2,7 +2,7 @@ class_name TerrainTrees
 extends MultiMeshInstance3D
 ## Деревья вокруг камеры (FR-19: чтобы у земли пилот видел масштаб и высоту).
 ## Всё считается в шейдере trees.gdshader; скрипт только двигает сетку за камерой.
-## Параметры — configs/world.json → trees.
+## Деревья стоят только на классе «лес» карты поверхности. Параметры — configs/world.json → trees.
 
 const SHADER := preload("res://scripts/terrain/trees.gdshader")
 
@@ -12,7 +12,14 @@ var _spacing: float = 8.0
 var _last_cell := Vector2(INF, INF)
 
 
-func setup(layer: HeightLayer, height_tex: Texture2D, look: Dictionary, cfg: Dictionary) -> void:
+func setup(
+	layer: HeightLayer,
+	height_tex: Texture2D,
+	surface: SurfaceLayer,
+	surface_tex: Texture2D,
+	look: Dictionary,
+	cfg: Dictionary
+) -> void:
 	_spacing = float(cfg.spacing_m)
 	var radius := float(cfg.radius_m)
 	var n := int(ceil(2.0 * radius / _spacing)) + 1
@@ -36,7 +43,7 @@ func setup(layer: HeightLayer, height_tex: Texture2D, look: Dictionary, cfg: Dic
 	_mat.set_shader_parameter("layer_spacing", layer.spacing)
 	_mat.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))
 	TerrainRenderer.apply_look_params(_mat, look)
-	TerrainRenderer.set_water(_mat, layer)
+	TerrainRenderer.set_surface(_mat, surface, surface_tex)
 	_mat.set_shader_parameter("grid_n", n)
 	_mat.set_shader_parameter("tree_spacing_m", _spacing)
 	_mat.set_shader_parameter("area_radius_m", radius)

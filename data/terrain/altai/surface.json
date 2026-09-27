@@ -1,0 +1,49 @@
+{
+  "_doc": "Сгенерировано tools/terrain/fetch_landcover.py — не править руками.",
+  "source": "ESA WorldCover 10 m 2021 v200",
+  "layers": [
+    {
+      "id": "detail",
+      "file": "detail_surface.png",
+      "width": 1601,
+      "height": 1601,
+      "spacing_m": 25.0,
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.5798,
+        "2": 0.3894,
+        "3": 0.0076,
+        "4": 0.0,
+        "5": 0.0013,
+        "6": 0.0103,
+        "7": 0.0117,
+        "8": 0.0
+      }
+    },
+    {
+      "id": "far",
+      "file": "far_surface.png",
+      "width": 1601,
+      "height": 1601,
+      "spacing_m": 100.0,
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.5758,
+        "2": 0.2961,
+        "3": 0.1157,
+        "4": 0.0,
+        "5": 0.0009,
+        "6": 0.0083,
+        "7": 0.0033,
+        "8": 0.0
+      }
+    }
+  ],
+  "attribution": [
+    "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; CC-BY 4.0"
+  ]
+}

@@ -1,6 +1,7 @@
 extends Node3D
 ## Тестовая сцена рельефа: камера на стартовой площадке смотрит вдоль склона.
 ## Аргументы (после --):
+##   --location=<id>    локация (configs/locations/<id>.json), по умолчанию из сцены
 ##   --site=<id>        площадка (по умолчанию первая)
 ##   --agl=<м>          поднять камеру над стартом
 ##   --yaw=<град>       добавка к курсу площадки
@@ -10,6 +11,7 @@ extends Node3D
 ##   --shot=<файл.png>  снять кадр и выйти
 ##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
 ##   --no-trees, --no-shadows  отключить деревья / тени (замер цены)
+##   --inversion=<м>    высота инверсии (верх дымки = она + haze.top_margin_m), --no-haze
 ## Управление: WASD, Q/E, Shift, правая кнопка мыши — обзор.
 
 var _args := {}
@@ -34,6 +36,8 @@ func _ready() -> void:
 	_cfg = Config.get_config("world").get("preview", {})
 	SkyEnvironment.setup_camera(cam)
 	cam.fov = float(_cfg.fov_deg)
+	if _args.has("location") and String(_args.location) != terrain.location_id:
+		terrain.load_location(String(_args.location))
 	if _args.has("latlon"):
 		var ll := String(_args.latlon).split(",")
 		_frames = -100000  # не снимать, пока грузится
@@ -44,9 +48,15 @@ func _ready() -> void:
 	terrain.renderer.lod_camera = cam
 	_place_camera()
 	if _args.has("no-trees") and terrain.trees != null:
+		terrain.trees.process_mode = Node.PROCESS_MODE_DISABLED
 		terrain.trees.visible = false
+	var env := $Environment as SkyEnvironment
 	if _args.has("no-shadows"):
-		($Environment as SkyEnvironment).sun.shadow_enabled = false
+		env.sun.shadow_enabled = false
+	if _args.has("inversion"):
+		env.set_inversion_height_msl(float(_args.inversion))
+	if _args.has("no-haze") and env.haze != null:
+		env.haze.visible = false
 	if _args.has("bench"):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)

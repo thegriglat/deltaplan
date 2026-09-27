@@ -10,6 +10,8 @@ const SHADER := preload("res://scripts/terrain/terrain.gdshader")
 
 ## Текстуры высот по слоям (для деревьев и др.).
 var height_textures: Array[Texture2D] = []
+## Текстуры карты поверхности по слоям (для деревьев).
+var surface_textures: Array[Texture2D] = []
 ## Камера, по которой считается LOD. Если не задана — активная камера вьюпорта.
 var lod_camera: Camera3D
 
@@ -20,10 +22,15 @@ var _timer: float = 0.0
 var _materials: Array[ShaderMaterial] = []
 
 
-## Построить чанки. layers — от детального к грубому. render_cfg — раздел "render" локации
-## (по id слоя), look — terrain_look, world_render — раздел "rendering" из world.json.
+## Построить чанки. layers — от детального к грубому, surfaces — карта поверхности каждого слоя
+## (тот же порядок). render_cfg — раздел "render" локации (по id слоя), look — terrain_look,
+## world_render — раздел "rendering" из world.json.
 func build(
-	layers: Array[HeightLayer], render_cfg: Dictionary, look: Dictionary, world_render: Dictionary
+	layers: Array[HeightLayer],
+	surfaces: Array[SurfaceLayer],
+	render_cfg: Dictionary,
+	look: Dictionary,
+	world_render: Dictionary
 ) -> void:
 	clear()
 	_update_interval_s = float(world_render.get("lod_update_interval_s", 0.1))
@@ -45,7 +52,7 @@ func build(
 				)
 			)
 			continue
-		var mat := _make_material(layer, skirt, look)
+		var mat := _make_material(layer, surfaces[li], skirt, look)
 		if li > 0:
 			var f: HeightLayer = layers[li - 1]
 			mat.set_shader_parameter("hole_min", Vector2(f.origin_x, f.origin_z))
@@ -106,6 +113,7 @@ func clear() -> void:
 	_chunks.clear()
 	_materials.clear()
 	height_textures.clear()
+	surface_textures.clear()
 
 
 func chunk_count() -> int:
@@ -194,7 +202,9 @@ func _chunk_height_range(layer: HeightLayer, i0: int, j0: int, cells: int) -> Ve
 	return Vector2(lo - margin, hi + margin)
 
 
-func _make_material(layer: HeightLayer, skirt: float, look: Dictionary) -> ShaderMaterial:
+func _make_material(
+	layer: HeightLayer, surface: SurfaceLayer, skirt: float, look: Dictionary
+) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = SHADER
 	var tex := layer.make_texture()
@@ -204,16 +214,19 @@ func _make_material(layer: HeightLayer, skirt: float, look: Dictionary) -> Shade
 	m.set_shader_parameter("layer_spacing", layer.spacing)
 	m.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))
 	m.set_shader_parameter("skirt_depth", skirt)
-	set_water(m, layer)
+	var stex := surface.make_texture()
+	surface_textures.append(stex)
+	set_surface(m, surface, stex)
 	_apply_look(m, look)
 	return m
 
 
-## Маска рек слоя → uniform'ы шейдера.
-static func set_water(m: ShaderMaterial, layer: HeightLayer) -> void:
-	m.set_shader_parameter("has_water", layer.water_texture != null)
-	if layer.water_texture != null:
-		m.set_shader_parameter("water_tex", layer.water_texture)
+## Карта поверхности → uniform'ы шейдера (рельеф и деревья).
+static func set_surface(m: ShaderMaterial, surface: SurfaceLayer, tex: Texture2D) -> void:
+	m.set_shader_parameter("surface_tex", tex)
+	m.set_shader_parameter("surface_origin", Vector2(surface.origin_x, surface.origin_z))
+	m.set_shader_parameter("surface_spacing", surface.spacing)
+	m.set_shader_parameter("surface_texels", Vector2(surface.width, surface.height))
 
 
 func _apply_look(m: ShaderMaterial, look: Dictionary) -> void:
