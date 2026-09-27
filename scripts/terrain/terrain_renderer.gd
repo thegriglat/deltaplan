@@ -13,6 +13,8 @@ const MACRO_NOISE_SIZE := 256
 const MACRO_NOISE_FEATURE := 16.0
 
 static var _macro_noise: ImageTexture
+## Средние цвета текстур: путь ресурса (или RID) → Color (_average_color).
+static var _avg_cache: Dictionary = {}
 
 ## Текстуры высот по слоям (для деревьев и др.).
 var height_textures: Array[Texture2D] = []
@@ -371,8 +373,18 @@ func apply_textures(tex_cfg: Dictionary) -> void:
 					m.set_shader_parameter("%s_normal_tex" % surf, ntex)
 
 
-## Средний цвет текстуры (линейный, как видит шейдер с source_color).
+## Средний цвет текстуры (линейный, как видит шейдер с source_color); считается раз на текстуру
+## (распаковка большой текстуры — десятки мс, а материалов у рельефа десяток).
 static func _average_color(tex: Texture2D) -> Color:
+	var key: Variant = tex.resource_path if tex.resource_path != "" else tex.get_rid()
+	if _avg_cache.has(key):
+		return _avg_cache[key]
+	var c := _compute_average_color(tex)
+	_avg_cache[key] = c
+	return c
+
+
+static func _compute_average_color(tex: Texture2D) -> Color:
 	var img := tex.get_image()
 	if img == null:
 		return Color(0.5, 0.5, 0.5)

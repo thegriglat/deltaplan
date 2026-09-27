@@ -15,12 +15,15 @@ var _lut := PackedByteArray()
 ## Разобранные заголовки: url → CogReader (null — файла нет).
 var _cogs: Dictionary = {}
 var _result: PackedByteArray
+var _cancelled := false
+var _requests: Array[HTTPRequest] = []
 
 
 ## Построить карту для слоя высот. center — lat/lon центра локации (как в Terrain).
 ## null — не удалось (нет сети, нет данных).
 func build_surface(layer: HeightLayer, center_lat: float, center_lon: float) -> SurfaceLayer:
 	_ensure_cfg()
+	_cancelled = false
 	if not bool(_rt.get("enabled", true)):
 		return null
 	var step := layer.spacing * maxf(1.0, float(_rt.get("cell_factor", 2)))
@@ -40,10 +43,10 @@ func build_surface(layer: HeightLayer, center_lat: float, center_lon: float) -> 
 				continue
 			var level := cog.level_for(step)
 			var tiles: Dictionary = await _fetch_tiles(url, cog, level, nw, se)
-			if tiles.is_empty():
+			if tiles.is_empty() or _cancelled:
 				return null
 			files.append({"cog": cog, "level": level, "tiles": tiles})
-	if files.is_empty():
+	if files.is_empty() or _cancelled:
 		return null
 	var args := [w, h, step, layer.origin_x, layer.origin_z, center_lat, center_lon, files]
 	var task := WorkerThreadPool.add_task(_sample.bindv(args))
@@ -63,6 +66,16 @@ static func tile_name(lat_i: int, lon_i: int) -> String:
 		"%s%02d%s%03d"
 		% ["N" if lat_i >= 0 else "S", absi(lat_i), "E" if lon_i >= 0 else "W", absi(lon_i)]
 	)
+
+
+## Прервать загрузку: запросы закрываются, build_surface вернёт null.
+func cancel() -> void:
+	_cancelled = true
+	for r in _requests:
+		if is_instance_valid(r):
+			r.cancel_request()
+			r.queue_free()
+	_requests.clear()
 
 
 func _ensure_cfg() -> void:
@@ -93,7 +106,8 @@ func _open(url: String) -> CogReader:
 		if not cog.is_valid():
 			push_warning("WorldCoverLoader: %s — %s" % [url.get_file(), cog.error])
 			cog = null
-	_cogs[url] = cog
+	if not _cancelled:
+		_cogs[url] = cog
 	return cog
 
 
@@ -114,9 +128,9 @@ func _fetch_tiles(url: String, cog: CogReader, level: int, nw: Vector2, se: Vect
 	var state := {"left": queue.size(), "failed": false}
 	for k in mini(int(_rt.get("max_parallel_requests", 4)), queue.size()):
 		_tile_worker(url, cog, level, queue, out, state)
-	while int(state.left) > 0 and not bool(state.failed):
+	while int(state.left) > 0 and not bool(state.failed) and not _cancelled:
 		await get_tree().process_frame
-	return {} if bool(state.failed) else out
+	return {} if bool(state.failed) or _cancelled else out
 
 
 func _tile_worker(
@@ -138,11 +152,7 @@ func _tile_worker(
 			if raw.is_empty():
 				state.failed = true
 				return
-		var data := cog.decode_tile(level, raw)
-		if data.is_empty():
-			state.failed = true
-			return
-		out[t] = data
+		out[t] = raw  # распаковка — в рабочем потоке (_sample)
 		state.left = int(state.left) - 1
 
 
@@ -153,15 +163,19 @@ func _get_cached(url: String, name: String, start: int, size: int) -> PackedByte
 		return FileAccess.get_file_as_bytes(path)
 	var req := HTTPRequest.new()
 	req.timeout = float(_rt.get("timeout_s", 30.0))
+	req.use_threads = true  # TLS и чтение ответа — не в главном потоке
 	add_child(req)
+	_requests.append(req)
 	var ua := String(Config.value("world", "runtime_terrain").get("user_agent", "deltaplan-sim"))
 	var headers := PackedStringArray(
 		["User-Agent: " + ua, "Range: bytes=%d-%d" % [start, start + size - 1]]
 	)
 	if req.request(url, headers) != OK:
+		_requests.erase(req)
 		req.queue_free()
 		return PackedByteArray()
 	var res: Array = await req.request_completed
+	_requests.erase(req)
 	req.queue_free()
 	var code := int(res[1])
 	if int(res[0]) != HTTPRequest.RESULT_SUCCESS or (code != 206 and code != 200):
@@ -189,6 +203,10 @@ func _sample(
 	lon0: float,
 	files: Array[Dictionary]
 ) -> void:
+	for f in files:
+		var tiles: Dictionary = f.tiles
+		for t: Vector2i in tiles:
+			tiles[t] = (f.cog as CogReader).decode_tile(int(f.level), tiles[t])
 	var out := PackedByteArray()
 	out.resize(w * h)
 	for j in h:

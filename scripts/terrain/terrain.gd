@@ -46,6 +46,8 @@ var impostors: ForestImpostors
 var wind: TerrainWind
 ## Поля рельефа каждого слоя (влажность, AO, горизонт к солнцу) — тот же порядок, что layers.
 var reliefs: Array[TerrainRelief] = []
+## Ход рантайм-загрузки (load_location_latlon): этап и доля — для экрана загрузки.
+var progress := LoadProgress.new()
 
 var _sites: Array[Dictionary] = []
 var _landings: Array[Dictionary] = []
@@ -77,6 +79,8 @@ var _relief_thread: Thread
 var _relief_pending_az: float = NAN
 var _relief_full := false
 var _relief_t0 := 0
+## Номер текущей рантайм-загрузки: сменился — загрузка отменена (cancel_load) или закончена.
+var _load_gen := 0
 
 
 func _init() -> void:
@@ -131,35 +135,115 @@ func load_location(id: String) -> bool:
 
 
 ## Рантайм-загрузка рельефа вокруг точки (FR-17): тайлы Terrarium с кешем в user://terrain_cache.
-## Асинхронно: по готовности — сигнал loaded (или load_failed).
+## Асинхронно: по готовности — сигнал loaded (или load_failed с понятным текстом для пилота).
+## Ход — progress (этапы и доля для экрана загрузки). Главный поток не стоит: сеть — HTTPRequest
+## в потоках, сборка слоёв и карты поверхности — в рабочих потоках, сборка сцены — порциями
+## между кадрами (setup_async). Сеть замолчала на runtime_terrain.stall_timeout_s — отмена.
 ## Параметры — configs/world.json → runtime_terrain.
 func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void:
+	cancel_load()
+	_load_gen += 1
+	var gen := _load_gen
 	if _loader == null:
 		_loader = TerrariumLoader.new()
 		_loader.name = "TerrariumLoader"
 		add_child(_loader)
+		_loader.progress.connect(func(done: int, total: int) -> void: progress.sub(done, total))
+	var rt: Dictionary = Config.get_config("world").get("runtime_terrain", {})
 	var t0 := Time.get_ticks_usec()
+	progress.begin()
+	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
+	progress.stage("dem", tr("Скачиваю рельеф…"))
 	var result: Dictionary = await _loader.build_location(lat, lon, size_km)
+	if gen != _load_gen:
+		return  # отменено (cancel_load) — load_failed уже отправлен
 	if result.has("error"):
 		push_error("Terrain: " + String(result.error))
-		load_failed.emit(String(result.error))
+		_fail(gen, _error_text(String(result.get("kind", ""))))
 		return
 	# Карта поверхности: WorldCover по сети (кеш), иначе — процедурная (в setup).
 	if _wc_loader == null:
 		_wc_loader = WorldCoverLoader.new()
 		_wc_loader.name = "WorldCoverLoader"
 		add_child(_wc_loader)
+	var new_layers: Array[HeightLayer] = result.layers
 	var new_surfaces: Array[SurfaceLayer] = []
-	for l: HeightLayer in result.layers:
+	progress.stage("landcover", tr("Карта леса и полей…"))
+	for k in new_layers.size():
+		var l := new_layers[k]
 		var s: SurfaceLayer = await _wc_loader.build_surface(l, lat, lon)
+		if gen != _load_gen:
+			return
 		if s == null:
 			push_warning("Terrain: нет карты WorldCover для слоя %s — процедурная" % l.id)
 		new_surfaces.append(s)
+		progress.sub(k + 1, new_layers.size())
+	if is_sea(new_layers[0], new_surfaces[0], float(rt.get("sea_depth_m", -450.0))):
+		_fail(gen, tr("Здесь море — выберите точку на суше."))
+		return
 	location_id = ""
-	setup(result.config, result.layers, lat, lon, new_surfaces)
+	await setup_async(result.config, new_layers, lat, lon, new_surfaces)
+	if gen != _load_gen:
+		return
+	_load_gen += 1  # загрузка закончена — сторож молчит
+	progress.finish()
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
 	print("Terrain: рельеф вокруг %.4f, %.4f загружен за %.2f с" % [lat, lon, last_load_time_s])
 	loaded.emit()
+
+
+## Прервать рантайм-загрузку (если идёт): сеть закрывается, сигналов не будет.
+func cancel_load() -> void:
+	_load_gen += 1
+	if _loader != null:
+		_loader.cancel()
+	if _wc_loader != null:
+		_wc_loader.cancel()
+
+
+## Точка — море: ниже sea_depth_m — всегда; не выше нуля (тайлы Terrarium крупного уровня дают
+## над океаном ровно 0) — если карта покрова говорит «вода» или её нет (у океана нет файлов
+## WorldCover). Выше нуля — суша.
+static func is_sea(detail: HeightLayer, surf: SurfaceLayer, sea_depth_m: float) -> bool:
+	var h := detail.sample(0.0, 0.0)
+	if h > 0.5:
+		return false
+	if h < sea_depth_m:
+		return true
+	return surf == null or surf.class_at(0.0, 0.0) == SurfaceLayer.WATER
+
+
+func _fail(gen: int, message: String) -> void:
+	if gen != _load_gen:
+		return
+	cancel_load()
+	progress.finish()
+	load_failed.emit(message)
+
+
+## Текст ошибки загрузки для пилота по виду ошибки загрузчика.
+func _error_text(kind: String) -> String:
+	match kind:
+		"nodata":
+			return tr("Для этого места нет данных рельефа.")
+		"network":
+			return tr("Нет связи с сервером рельефа. Проверьте интернет и попробуйте ещё раз.")
+	return tr("Не удалось загрузить рельеф.")
+
+
+## Сторож: пока идёт загрузка gen, ход не менялся дольше timeout_s — отмена и сообщение.
+func _watch_stall(gen: int, timeout_s: float) -> void:
+	var last := progress.fraction
+	var since := Time.get_ticks_msec()
+	while gen == _load_gen and is_inside_tree():
+		await get_tree().create_timer(1.0, true, false, true).timeout
+		if progress.fraction != last:
+			last = progress.fraction
+			since = Time.get_ticks_msec()
+		elif (Time.get_ticks_msec() - since) / 1000.0 > timeout_s:
+			push_warning("Terrain: загрузка стоит %.0f с — отмена" % timeout_s)
+			_fail(gen, tr("Сервер рельефа не отвечает. Проверьте интернет или попробуйте позже."))
+			return
 
 
 ## Собрать рельеф из готовых слоёв. cfg — словарь в формате configs/locations/<id>.json.
@@ -171,12 +255,42 @@ func setup(
 	lon0: float,
 	new_surfaces: Array[SurfaceLayer] = []
 ) -> void:
+	_setup_steps(cfg, new_layers, lat0, lon0, new_surfaces, false)
+
+
+## То же, но без долгих остановок главного потока: процедурная карта поверхности — в рабочем
+## потоке, меш, деревья и трава — в разных кадрах (окно отвечает, экран загрузки живой).
+## Пока идёт — рельеф и его дети не обрабатываются (_process), чтобы не видеть полусборку.
+func setup_async(
+	cfg: Dictionary,
+	new_layers: Array[HeightLayer],
+	lat0: float,
+	lon0: float,
+	new_surfaces: Array[SurfaceLayer] = []
+) -> void:
+	var mode := process_mode
+	process_mode = Node.PROCESS_MODE_DISABLED
+	await _setup_steps(cfg, new_layers, lat0, lon0, new_surfaces, true)
+	process_mode = mode
+
+
+func _setup_steps(
+	cfg: Dictionary,
+	new_layers: Array[HeightLayer],
+	lat0: float,
+	lon0: float,
+	new_surfaces: Array[SurfaceLayer],
+	async: bool
+) -> void:
+	var world: Dictionary = Config.get_config("world")
+	progress.stage("classify", tr("Лес и поля…"))
+	if async:
+		new_surfaces = await _classify_missing(new_layers, new_surfaces, world.get("surface", {}))
 	location = cfg
 	layers = new_layers
 	_clearings = []  # просеки — от прежней локации; интегратор задаст новые
 	center_lat = lat0
 	center_lon = lon0
-	var world: Dictionary = Config.get_config("world")
 	refresh_sun()
 	var look: Dictionary = Config._deep_merge(
 		world.get("terrain_look", {}), cfg.get("terrain_look", {})
@@ -185,6 +299,9 @@ func setup(
 	_look = look
 	set_surfaces(new_surfaces, world.get("surface", {}), look)
 	_compute_reliefs(world.get("surface", {}).get("relief", {}))
+	progress.stage("mesh", tr("Строю рельеф…"))
+	if async:
+		await get_tree().process_frame
 	if renderer == null:
 		renderer = TerrainRenderer.new()
 		renderer.name = "Mesh"
@@ -195,13 +312,48 @@ func setup(
 	)
 	renderer.apply_textures(world.get("terrain_textures", {}))
 	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
+	progress.stage("trees", tr("Сажаю лес…"))
+	if async:
+		await get_tree().process_frame
 	if trees != null:
 		trees.queue_free()
 		trees = null
 	if bool(trees_cfg.get("enabled", false)) and not renderer.height_textures.is_empty():
 		trees = _make_trees(trees_cfg, look)
+	progress.stage("grass", tr("Трава…"))
+	if async:
+		await get_tree().process_frame
 	_make_grass(Config.get_config("vegetation").get("grass", {}), look)
 	_setup_wind(world.get("wind_visual", {}))
+
+
+## Процедурные карты поверхности для слоёв без готовой (SurfaceClassifier) — в рабочем потоке.
+func _classify_missing(
+	new_layers: Array[HeightLayer], new_surfaces: Array[SurfaceLayer], scfg: Dictionary
+) -> Array[SurfaceLayer]:
+	var out: Array[SurfaceLayer] = []
+	out.resize(new_layers.size())
+	var fb: Dictionary = scfg.get("fallback", {})
+	var slots: Array = []
+	var tasks: Array[int] = []
+	for k in new_layers.size():
+		var s: SurfaceLayer = new_surfaces[k] if k < new_surfaces.size() else null
+		out[k] = s
+		if s != null:
+			continue
+		var slot := [null]
+		slots.append([k, slot])
+		var l := new_layers[k]
+		tasks.append(
+			WorkerThreadPool.add_task(func() -> void: slot[0] = SurfaceClassifier.classify(l, fb))
+		)
+	for t in tasks:
+		while not WorkerThreadPool.is_task_completed(t):
+			await get_tree().process_frame
+		WorkerThreadPool.wait_for_task_completion(t)
+	for ks: Array in slots:
+		out[int(ks[0])] = ks[1][0]
+	return out
 
 
 ## Источники ветра для визуала (VR-17): mean_wind_fn(pos) -> Vector3 (Atmosphere.mean_wind_at),

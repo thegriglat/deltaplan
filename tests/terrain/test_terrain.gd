@@ -220,3 +220,52 @@ func test_zz_cleanup() -> void:
 	if _terrain != null:
 		_terrain.free()
 		_terrain = null
+
+
+## Рантайм-рельеф (FR-17): на высоких широтах уровень тайлов понижается — сетка не разрастается
+## как 1/cos(широта) (Гренландия грузилась в разы дольше); на средних — как в конфиге.
+func test_runtime_zoom_by_latitude() -> void:
+	var rt: Dictionary = Config.get_config("world").runtime_terrain
+	var detail: Dictionary = rt.layers[0]
+	check(TerrariumLoader.layer_zoom(detail, 51.0) == int(detail.zoom), "Алтай — zoom из конфига")
+	for lat in [64.2, 72.0, 80.0]:
+		var z := TerrariumLoader.layer_zoom(detail, lat)
+		var step := (
+			TAU * TerrariumLoader.MERCATOR_R_M * cos(deg_to_rad(lat)) / float(TerrariumLoader.TILE_PX << z)
+		)
+		check(z < int(detail.zoom), "%.1f° — уровень понижен (%d)" % [lat, z])
+		check(step >= float(detail.min_spacing_m), "%.1f° — шаг %.1f м не мельче минимума" % [lat, step])
+
+
+## Море: над океаном тайлы дают 0 м, карты покрова нет → море; суша выше нуля; впадина — море.
+func test_runtime_sea_check() -> void:
+	var flat := func(h: float) -> HeightLayer:
+		var d := PackedFloat32Array()
+		d.resize(9)
+		d.fill(h)
+		return HeightLayer.from_heights("detail", 3, 3, 10.0, -10.0, -10.0, d)
+	var land := PackedByteArray()
+	land.resize(9)
+	land.fill(SurfaceLayer.GRASS)
+	var grass := SurfaceLayer.from_classes("detail", 3, 3, 10.0, -10.0, -10.0, land)
+	check(Terrain.is_sea(flat.call(0.0), null, -450.0), "0 м без карты покрова — море")
+	check(not Terrain.is_sea(flat.call(0.0), grass, -450.0), "0 м, карта — луг: суша (низина)")
+	check(not Terrain.is_sea(flat.call(300.0), null, -450.0), "300 м — суша")
+	check(Terrain.is_sea(flat.call(-2000.0), grass, -450.0), "−2000 м — море")
+
+
+## Ход загрузки: доля по весам этапов, внутри этапа — по sub, неизвестный этап долю не двигает.
+func test_load_progress_fractions() -> void:
+	var p := LoadProgress.new({"dem": 2.0, "mesh": 1.0, "glider": 1.0})
+	p.begin()
+	check(p.fraction == 0.0, "начало — 0")
+	p.stage("dem", "a")
+	p.sub(1, 2)
+	approx(p.fraction, 0.25, 1e-6, "половина первого этапа")
+	p.stage("other", "b")
+	approx(p.fraction, 0.25, 1e-6, "неизвестный этап — доля та же")
+	p.stage("glider", "c")
+	approx(p.fraction, 0.75, 1e-6, "начало последнего этапа")
+	p.finish()
+	check(p.fraction == 1.0 and p.text == "", "готово — 1")
+	check(p.timings.size() == 3, "длительности этапов записаны (%d)" % p.timings.size())

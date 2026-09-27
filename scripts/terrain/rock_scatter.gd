@@ -185,6 +185,13 @@ func _process(_delta: float) -> void:
 		_task = WorkerThreadPool.add_task(_build.bind(c), false, "rocks")
 
 
+## Выход из дерева (смена сцены, выход из игры): дождаться фоновой сборки — она читает рельеф.
+func _exit_tree() -> void:
+	if _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+
+
 ## Сменилась локация или просеки — сбросить кеш тайлов.
 func _check_key() -> void:
 	var cl: Array = terrain._clearings

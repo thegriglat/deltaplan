@@ -8,6 +8,20 @@
   "menu_logo_doc": "Лого на главном меню вместо текста «Дельтаплан» (дельтаплан вписан в букву «А»); пусто — текстовый заголовок",
   "menu_logo_width": 560.0,
   "menu_logo_width_doc": "Ширина лого, px (при 1080p)",
+  "loading": {
+    "_doc": "Экран загрузки полёта (scripts/ui/loading_screen.gd, LoadProgress): доля полосы на каждый этап. Ключи — этапы по порядку; этапа нет в загрузке (рельеф из кеша, встроенная локация) — полоса его просто проскакивает",
+    "stage_weights": {
+      "dem": 45,
+      "landcover": 25,
+      "classify": 3,
+      "mesh": 5,
+      "trees": 4,
+      "grass": 3,
+      "weather": 5,
+      "objects": 5,
+      "glider": 5
+    }
+  },
   "mass_step_kg": 1.0,
   "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
   "vario_volume_range_db": [
