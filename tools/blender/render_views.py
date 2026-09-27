@@ -1,7 +1,8 @@
 """Приёмочные рендеры моделей из готовых .glb (то, что получает игра).
 
     blender --background --python tools/blender/render_views.py -- <kind> <out_dir> [views]
-kind: glider_training | glider_kingpost | glider_sport | pilot | instrument | vario_90s
+kind: glider_<id> (training, kingpost, sport, slavutich_ut, apogee, atlas, target, magic, laminar,
+      combat) | pilot | instrument | vario_90s
 views (через запятую): bottom, front, side, iso45, cockpit (только крылья), rear, under34.
 По умолчанию — bottom,front,side,iso45 (+cockpit у крыльев). Для скриншотов в репозитории:
     docs/models/screenshots/<kind>/<view>.png

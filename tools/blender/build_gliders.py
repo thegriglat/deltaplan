@@ -3,7 +3,8 @@
 Запуск из корня проекта:
     blender --background --python tools/blender/build_gliders.py [-- training kingpost sport]
 
-Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json.
+Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
+(нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).
 Контракт имён (docs/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
 координат), BaseBar, InstrumentMount (центр базовой штанги, −Z Godot смотрит на глаза пилота),
 VarioMount (на базовой штанге слева от планшета), WingTipL, WingTipR. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
@@ -36,17 +37,18 @@ class WingShape:
         self.z0 = cf["keel_z_m"] + 0.035
         self.dih = math.tan(math.radians(p["dihedral_deg"]))
         self.wash = math.radians(p["washout_deg"])
+        self.tip_round = p.get("tip_round", True)   # False — «рубленая» законцовка 1980-х
 
     def chord(self, a: float) -> float:
         c = self.p["tip_chord_m"] + (self.p["root_chord_m"] - self.p["tip_chord_m"]) * (1 - a ** 0.85)
-        if a > 0.9:  # скруглённая законцовка
+        if a > 0.9 and self.tip_round:  # скруглённая законцовка
             c *= 1.0 - 0.35 * ((a - 0.9) / 0.1) ** 2
         return c
 
     def le(self, u: float) -> Vector:
         a = abs(u)
         y = self.y_nose - a * self.half / self.tan_ha
-        if a > 0.9:
+        if a > 0.9 and self.tip_round:
             y -= 0.35 * self.p["tip_chord_m"] * ((a - 0.9) / 0.1) ** 2 * 0.6
         z = self.z0 + a * self.half * self.dih - 0.05 * a ** 3
         return Vector((u * self.half, y, z))
@@ -133,7 +135,50 @@ def build_sail(ws: WingShape, mats: dict):
     bot_uv = [[((u + 1) / 2, 0.5 + tl * 0.5) for tl in tls] for u in us]
     bot_col = [[(w, 2.0 + tl * cov) for tl in tls] for _, w in st]
     mb.add_grid(bot, "Sail", bot_uv, flip=False, colors=bot_col)
+    if ws.p.get("keel_pocket_m", 0.0) > 0:
+        add_keel_pocket(ws, mb)
     return mb.build("Sail", mats)
+
+
+def root_underside_z(ws: WingShape, t: float) -> float:
+    """Высота нижней стороны паруса над килем (u = 0) на доле корневой хорды t."""
+    cov = ws.p["lower_cover"]
+    if t < cov:
+        return ws.lower(0.0, t / cov).z
+    return ws.upper(0.0, t).z
+
+
+def keel_pocket_depth(ws: WingShape, y: float, y_te: float) -> float:
+    """Глубина килевого кармана под килем, м: невысокий клин впереди, вырез у узла трапеции
+    и точки подвеса (y ∈ [−0,15; 0,5]), глубже всего (keel_pocket_m) у хвоста, срез к задней кромке."""
+    d = ws.p["keel_pocket_m"]
+    if y > 0.5:
+        return 0.3 * d * math.sin(math.pi * (ws.y_nose - y) / (ws.y_nose - 0.5))
+    if y > -0.15:
+        return 0.0
+    s = (-0.15 - y) / (-0.15 - y_te)
+    return d * min(1.0, s / 0.8) ** 0.7 * (1 - 0.65 * max(0.0, (s - 0.85) / 0.15))
+
+
+def add_keel_pocket(ws: WingShape, mb) -> None:
+    """Высокий килевой карман: «плавник» из паруса под килем (плоскость x = 0), от носа к
+    задней кромке корня. Текстура — корень верхней обшивки (чуть в стороне от центральной латы),
+    UV2: вес пролёта 0 (не колышется), верхний ряд идёт за парусом (доля хорды), нижний — 0."""
+    kz = ws.z0 - 0.035
+    root = ws.chord(0.0)
+    y_te = ws.y_nose - root
+    n = 40
+    pts, uv, col = [], [], []
+    for i in range(n + 1):
+        t = i / n
+        y = ws.y_nose - t * root
+        top = root_underside_z(ws, t)
+        dep = keel_pocket_depth(ws, y, y_te)
+        bot = min(top, kz) - dep
+        pts.append([Vector((0, y, top)), Vector((0, y, (top + bot) * 0.5)), Vector((0, y, bot))])
+        uv.append([(0.52, t * 0.5)] * 3)
+        col.append([(0.0, t), (0.0, 0.0), (0.0, 0.0)])
+    mb.add_grid(pts, "Sail", uv, flip=False, colors=col)
 
 
 def le_tube_point(ws: WingShape, u: float, r: float) -> Vector:
@@ -162,6 +207,7 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
     mb = U.MeshBuilder()
     kz = cf["keel_z_m"]
     r_le = 0.032
+    wire_r = p.get("wire_r_m", WIRE_R)
     # передние кромки
     for s in (-1, 1):
         pts = [le_tube_point(ws, s * a, r_le) for a in [i / 30 * 0.97 for i in range(31)]]
@@ -194,7 +240,7 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
             for a in p["luff_lines"]:
                 targets.append(ws.upper(s * a, 1.0))
         for tg in targets:
-            mb.add_tube([top, tg], WIRE_R, "Wire", sides=4, cap=False)
+            mb.add_tube([top, tg], wire_r, "Wire", sides=4, cap=False)
     return mb.build("Frame", mats), tail_y
 
 
@@ -236,7 +282,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         if faired:  # у бескилевых — сдвоенные боковые тросы
             ends.append(le_tube_point(ws, s * (p["crossbar_u"] - 0.04), 0.032))
         for e in ends:
-            mb.add_tube([c, e], WIRE_R, "Wire", sides=4, cap=False)
+            mb.add_tube([c, e], p.get("wire_r_m", WIRE_R), "Wire", sides=4, cap=False)
     obj = mb.build("ControlFrame", mats)
     U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
     eye = Vector(cf["_eye"])
@@ -260,13 +306,17 @@ def build_wing(key: str, params: dict) -> None:
     p = params["wings"][key]
     cf = dict(params["control_frame"])
     cf["_eye"] = params["pilot_eye"]
-    wcfg = U.load_json("configs/wings/%s.json" % p["config"])
+    cfg_path = "configs/wings/%s.json" % p["config"]
+    if os.path.exists(os.path.join(U.ROOT, cfg_path)):
+        span = float(U.load_json(cfg_path)["span_m"])
+    else:  # конфига крыла ещё нет — размах из glider_params
+        span = float(p["span_m"])
     U.reset_scene()
-    ws = WingShape(p, cf, float(wcfg["span_m"]))
-    tex = sail_texture.make(p, os.path.join(U.SOURCE, p["out"] + "_sail.png"))
+    ws = WingShape(p, cf, span)
+    tex = sail_texture.make(p, os.path.join(U.SOURCE, p["out"] + "_sail.png"), span)
     sail_maps.make(p)  # карта нормалей и просвечивания для шейдера паруса
     mats = {
-        "Sail": U.material("Sail_" + key, (1, 1, 1), rough=0.75, double=True, image=tex),
+        "Sail": U.material("Sail_" + key, (1, 1, 1), rough=p.get("sail_rough", 0.75), double=True, image=tex),
         "Tube": U.material("Tube_" + key, U.srgb(p["tube_color"]), rough=p["tube_rough"],
                            metal=p["tube_metal"]),
         "Dark": U.material("Fitting", U.srgb((0.1, 0.1, 0.11)), rough=0.5),

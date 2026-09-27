@@ -7,8 +7,15 @@
 | Файл | Что | Треугольников |
 |---|---|---|
 | `assets/models/glider_training.glb` | учебное однообшивочное крыло с кингпостом (в духе Wills Wing Falcon / Aeros Target) | 9 784 |
-| `assets/models/glider_kingpost.glb` | килевое двухобшивочное крыло с кингпостом (в духе Wills Wing Sport 2) | 9 088 |
-| `assets/models/glider_sport.glb` | спортивное бескилевое (topless) крыло, обтекатели стоек, спидбар (в духе T3 / Combat / Litespeed) | 8 660 |
+| `assets/models/glider_kingpost.glb` | мачтовое двухобшивочное крыло с мачтой (kingpost) (в духе Wills Wing Sport 2) | 9 088 |
+| `assets/models/glider_sport.glb` | спортивное безмачтовое (topless) крыло, обтекатели стоек, спидбар (в духе T3 / Combat / Litespeed) | 8 660 |
+| `assets/models/glider_slavutich_ut.glb` | советское учебное 1979 г. (в духе Славутич-УТ): однообшивочное, угол носа 118°, 7 лат, килевой карман 0,15 м, радиальные полотнища белый/красный/синий, серебристые трубы, рубленые законцовки | 8 944 |
+| `assets/models/glider_apogee.glb` | советское 1980-х (в духе «Апогея» Мысенко): мачтовое, двухобшивочное 80 %, 122°, 9 лат + промежуточные, высокий килевой карман 0,3 м, белый матовый лавсан | 9 392 |
+| `assets/models/glider_atlas.glb` | советский «Атлас» (копия La Mouette Atlas): однообшивочное, 120°, 8 лат, карман 0,2 м, радужные полотнища | 9 824 |
+| `assets/models/glider_target.glb` | учебное однообшивочное с колёсами (в духе Aeros Target 16), 120°, белый/синий/красный | 9 784 |
+| `assets/models/glider_magic.glb` | соревновательное мачтовое конца 1980-х (в духе Airwave Magic IV 166): двухобшивочное 60 %, 124°, 11 лат, карман 0,1 м, шеврон маджента/бирюза/жёлтый | 9 248 |
+| `assets/models/glider_laminar.glb` | мачтовое двухобшивочное 80 % (в духе Icaro Laminar Easy 14), 127°, 13 лат, круглые стойки, узор `laminar` | 8 368 |
+| `assets/models/glider_combat.glb` | безмачтовое (в духе Aeros Combat GT 13.2): 95 %, 130°, 16 лат, обтекатели, спидбар, тёмная кромка и жёлтый центр | 9 524 |
 | `assets/models/pilot.glb` | манекен пилота со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание) | 3 540 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 742 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 078 |
@@ -20,7 +27,7 @@
 ## Как перегенерировать
 
 ```bash
-blender --background --python tools/blender/build_gliders.py      # три крыла (или -- sport)
+blender --background --python tools/blender/build_gliders.py      # все крылья (или -- sport apogee …)
 blender --background --python tools/blender/build_pilot.py
 blender --background --python tools/blender/build_instrument.py   # планшет
 blender --background --python tools/blender/build_vario90s.py
@@ -35,12 +42,24 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 глаза пилота), `sail_texture.py` (раскраска паруса), `tree_params.json`, `tree_textures.py`,
 `render_views.py` (приёмочные рендеры из готовых .glb), `render_trees.py`, `compress_png.py`.
 
-**Параметры крыла** (`glider_params.json → wings.<id>`; размах и площадь берутся из `configs/wings/<id>.json`):
+**Параметры крыла** (`glider_params.json → wings.<id>`; размах и площадь берутся из `configs/wings/<id>.json`,
+а если конфига крыла ещё нет — из `span_m`/`area_m2` самой записи; `area_m2` справочная, площадь подгоняют
+`root_chord_m`/`tip_chord_m`):
 `nose_angle_deg` (угол носа, 122/126/132°), `root_chord_m`/`tip_chord_m`, `nose_forward_m` (нос впереди
 подвеса), `dihedral_deg` (у спортивного −4,5° — «чайка» в полёте), `washout_deg` (крутка), `camber`
 (серп профиля у корня/в середине/на конце), `double_surface`/`lower_cover` (доля хорды под нижней
-обшивкой), `battens_per_side`, `kingpost_m` (0 — бескилевое), `crossbar_u`, `luff_lines`,
+обшивкой), `battens_per_side`, `kingpost_m` (0 — безмачтовое), `crossbar_u`, `luff_lines`,
 `basebar_width_m`, `faired_uprights`, `wheels`, цвета труб и `design` (раскраска паруса).
+Необязательные (по умолчанию — прежний вид): `keel_pocket_m` (0 — нет; высокий килевой карман —
+«плавник» паруса под килем, часть меша `Sail`, вырез у узла трапеции, глубже всего у хвоста; UV2 — вес 0,
+не колышется), `short_battens` (промежуточные короткие латы от 0,6 хорды к задней кромке: линии на
+раскраске и швы в карте нормалей), `tip_round` (true; false — «рубленая» законцовка 1980-х),
+`sail_rough` (0,75; матовый лавсан — 0,92), `wire_r_m` (радиус тросов, 0,0045; у старых — толще).
+Узоры `design.pattern`: `center_v`, `chevron`, `sport`, а также `panels` (радиальные полотнища от носа:
+`design.panels` — цвета от киля к законцовке по кругу, `panel_count` — полотнищ на полукрыло, `seam` —
+цвет строчки; `design.bottom: "panels"` — те же полотнища на нижней обшивке), `laminar` (светлая кромка,
+крупные цветные поля сзади), `combat` (тёмная кромка, контрастный центр). `design.le_band` — ширина полосы
+кромки (доля хорды; по умолчанию 0,28 у `sport`, иначе 0,16). Надписей и логотипов нет.
 **Трапеция** (`control_frame`): верх стоек на 0,25 м впереди подвеса, базовая штанга на 0,9 м впереди и
 1,55 м ниже киля; `vario_bar_offset_m` (0,2) — вариометр на базовой штанге на столько левее центра. `pilot_eye` — глаза пилота
 (общие для пилота, маркеров приборов и кабинного рендера).

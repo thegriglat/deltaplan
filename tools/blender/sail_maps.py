@@ -12,6 +12,7 @@ import os
 import numpy as np
 
 import bl_util as U
+from sail_texture import le_band as _le_band
 
 SIZE = 1024
 OUT = os.path.join(U.ROOT, "assets", "shaders", "sail")
@@ -33,6 +34,10 @@ def _height_and_trans(p: dict, a, t, lower: bool):
     da = np.abs(a - k * step)
     bay = np.clip(da / (step * 0.5), 0, 1)           # 0 на лате, 1 посередине
     bat = _ridge(da, 0.004) * (t > 0.06) * (t < 0.985) * (a < 0.975)
+    if p.get("short_battens"):      # промежуточные короткие латы: от 0,6 хорды к задней кромке
+        ds_ = np.abs(a - (np.floor(a / step) + 0.5) * step)
+        tt = t if not lower else t * p["lower_cover"]
+        bat = np.maximum(bat, _ridge(ds_, 0.0035) * (tt > 0.6) * (tt < 0.985) * (a < 0.975))
     if not lower:
         h += 0.35 * np.sin(np.pi * 0.5 * bay) * (t > 0.2)   # парус чуть «пузырится» между латами
         h += 1.0 * bat
@@ -41,7 +46,7 @@ def _height_and_trans(p: dict, a, t, lower: bool):
             d = t - ts
             h += 0.25 * (d > 0) * _ridge(d, 0.02) + 0.2 * _ridge(d, 0.002)
             tr *= 1 - 0.3 * _ridge(d, 0.003)
-        le_band = (0.28 if p["design"]["pattern"] == "sport" else 0.16) * (1 - 0.35 * a)
+        le_band = _le_band(p["design"], a)
         h += 0.5 * _ridge(t - le_band, 0.003)
         tr = np.where(t < le_band, 0.22, tr)                 # майлар/дакрон + труба кромки
         te = t > 0.975
