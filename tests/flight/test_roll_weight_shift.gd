@@ -80,8 +80,8 @@ func test_center_levels_wing() -> void:
 		var t := level_time(Sim.make(w))
 		times[w] = t
 		check(t >= 1.5 and t < 5.0, "%s: в центре крыло выровнялось за %.1f с" % [w, t])
-	check(times.training < times.kingpost, "учебное выравнивается быстрее килевого")
-	check(times.kingpost < times.sport, "килевое выравнивается быстрее спортивного")
+	check(times.training < times.kingpost, "учебное выравнивается быстрее мачтового")
+	check(times.kingpost < times.sport, "мачтовое выравнивается быстрее спортивного")
 
 
 func test_center_flies_straight_in_new_direction() -> void:
