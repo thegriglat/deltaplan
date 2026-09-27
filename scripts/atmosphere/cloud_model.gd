@@ -24,6 +24,9 @@ var _hw_min: float = 0.45
 var _hw_max: float = 0.9
 var _cb_w_max: float = 8000.0
 var _cb_range_k: float = 2.0
+var _fade_in_s: float = 40.0
+var _fade_out_s: float = 60.0
+var _fade_band_m: float = 3000.0
 
 
 func setup(clouds_cfg: Dictionary, weather_size_factor: float = 1.0) -> void:
@@ -41,6 +44,9 @@ func setup(clouds_cfg: Dictionary, weather_size_factor: float = 1.0) -> void:
 	_hw_max = float(_cfg.height_to_width[1])
 	_cb_w_max = float(_cfg.get("cb_width_max_m", 8000.0))
 	_cb_range_k = float(_cfg.get("cb_range_factor", 2.0))
+	_fade_in_s = float(_cfg.get("fade_in_s", 40.0))
+	_fade_out_s = float(_cfg.get("fade_out_s", 60.0))
+	_fade_band_m = float(_cfg.get("fade_band_m", 3000.0))
 
 
 ## Стадия облака над термиком в момент t: Vector3(рост 0..1, распад 0..1, активность 0..1).
@@ -52,20 +58,59 @@ func stage(th: AtmoThermal, t: float) -> Vector3:
 		return stage_override[th.id]
 	if th.is_static:
 		return Vector3(1, 0, 1)
-	# Облако появляется, когда воздух дошёл до кромки, и растёт, пока термик жив.
-	var span := th.top - th.src.y
-	var delay := minf(span / maxf(th.strength, 0.5) * _delay_k, th.t_grow + th.t_mature * 0.5)
-	var c0 := th.t_birth + delay
+	var w := _life_window(th)
+	var c0 := w.x
 	if t <= c0:
 		return Vector3(-1, 0, 0)
 	var g := smoothstep(c0, c0 + _grow_s, t)
-	var ds := th.t_birth + th.t_grow + th.t_mature
-	var d0 := ds + delay * 0.3
-	var d1 := ds + th.t_decay + _linger_s
+	var d0 := w.y
+	var d1 := w.z
 	var dcy := clampf((t - d0) / maxf(d1 - d0, 1.0), 0.0, 1.0)
 	if g <= 0.0 or dcy >= 1.0:
 		return Vector3(-1, 0, 0)
 	return Vector3(g, dcy, th.envelope(t))
+
+
+## Окно жизни облака: Vector3(появление, начало распада облака, конец — облака нет), с.
+func _life_window(th: AtmoThermal) -> Vector3:
+	# Облако появляется, когда воздух дошёл до кромки, и растёт, пока термик жив.
+	var span := th.top - th.src.y
+	var delay := minf(span / maxf(th.strength, 0.5) * _delay_k, th.t_grow + th.t_mature * 0.5)
+	var ds := th.t_birth + th.t_grow + th.t_mature
+	return Vector3(th.t_birth + delay, ds + delay * 0.3, ds + th.t_decay + _linger_s)
+
+
+## Видимость облака по жизненному циклу 0..1: в начале проявляется, в конце linger тает до нуля
+## (без этого на распаде оставалась ~20 % плотности, и облако выключалось целиком за кадр).
+## Физика (подсос, стадия) от неё не зависит.
+func life_fade(th: AtmoThermal, t: float) -> float:
+	if not th.has_cloud:
+		return 0.0
+	if stage_override.has(th.id) or th.is_static:
+		return 1.0
+	var w := _life_window(th)
+	var fin := smoothstep(w.x, w.x + _fade_in_s, t)
+	var fout := 1.0 - smoothstep(w.z - _fade_out_s, w.z, t)
+	return fin * fout
+
+
+## Видимость по дальности 0..1: к границе far облако тает в полосе fade_band_m, а не срезается.
+func range_fade(d: float, far: float) -> float:
+	return 1.0 - smoothstep(far - _fade_band_m, far, d)
+
+
+## Дальность, до которой рисуется облако над термиком th, м (у Cb — больше).
+func far_m(th: AtmoThermal) -> float:
+	var max_d := float(_cfg.max_distance_m)
+	return max_d * _cb_range_k if th.is_cb else max_d
+
+
+## Шаг видимости облака к цели (1 — выбрано для отрисовки, 0 — выбыло) за dt: плавно,
+## проявление за fade_in_s, таяние за fade_out_s.
+func step_fade(cur: float, target: float, dt: float) -> float:
+	if target > cur:
+		return minf(cur + dt / maxf(_fade_in_s, 0.001), target)
+	return maxf(cur - dt / maxf(_fade_out_s, 0.001), target)
 
 
 ## Центр основания облака (x, z): верх наклонённого столба + снос на распаде.
@@ -104,9 +149,11 @@ func size(th: AtmoThermal, st: Vector3) -> Vector4:
 ## не больше max_clouds; наложившиеся сливаются в одно (остаётся зрелое и крупное).
 ## shown — id уже нарисованных облаков: при наложении они в приоритете (select_hysteresis),
 ## иначе при равных очках (у зрелых полуось упирается в максимум) из пары наложившихся
-## каждый выбор брал случайное — облака мерцали, подменяя друг друга.
+## каждый выбор брал случайное — облака мерцали, подменяя друг друга. При обрезке по
+## max_clouds нарисованные тоже в приоритете (их дальность делится на select_hysteresis).
+## Выбывшее облако CloudLayer не выключает, а растворяет (step_fade).
 func select(thermals: Dictionary, t: float, eye: Vector3, shown: Dictionary = {}) -> Array:
-	var max_d := float(_cfg.max_distance_m)
+	var hyst := float(_cfg.get("select_hysteresis", 1.25))
 	var cand: Array = []
 	for id in thermals:
 		var th: AtmoThermal = thermals[id]
@@ -118,19 +165,30 @@ func select(thermals: Dictionary, t: float, eye: Vector3, shown: Dictionary = {}
 		var c := center(th, t)
 		var d := Vector2(eye.x, eye.z).distance_to(c)
 		# Cb видно издалека (башня до тропопаузы) — у них дальность больше.
-		if d > (max_d * _cb_range_k if th.is_cb else max_d):
+		if d > far_m(th):
 			continue
 		var r := size(th, st).x
 		var score := r * st.x * (1.0 - st.y)
 		if shown.has(th.id):
-			score *= float(_cfg.get("select_hysteresis", 1.25))
+			score *= hyst
 		cand.append([d, th, st, c, r, score])
 	cand.sort_custom(_by_score)
 	var list := _drop_overlaps(cand)
+	var cap := int(_cfg.max_clouds)
+	if list.size() > cap:
+		# Обрезка по лимиту: нарисованные «ближе» в hyst раз — облако у границы не мигает.
+		list.sort_custom(
+			func(a: Array, b: Array) -> bool:
+				return _cap_key(a, shown, hyst) < _cap_key(b, shown, hyst)
+		)
+		list.resize(cap)
 	list.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
-	if list.size() > int(_cfg.max_clouds):
-		list.resize(int(_cfg.max_clouds))
 	return list
+
+
+static func _cap_key(e: Array, shown: Dictionary, hyst: float) -> float:
+	var d := float(e[0])
+	return d / hyst if shown.has((e[1] as AtmoThermal).id) else d
 
 
 ## Очки по убыванию, при равных — по id (порядок не зависит от словаря и сортировки).

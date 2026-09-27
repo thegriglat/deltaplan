@@ -18,6 +18,8 @@
 const int TOWERS = 8;
 const float CLOUD_PI = 3.14159265;
 // Облако внутри бокса гаснет к его краям (без швов на гранях): радиус и высота в долях.
+// Запись облака — CLOUD_VEC4S vec4 (CloudLayer.make_record).
+const int CLOUD_VEC4S = 6;
 const float FADE_R0 = 1.35;
 const float FADE_R1 = 1.6;
 const float FADE_H0 = 1.2;
@@ -39,6 +41,7 @@ struct Cloud {
 	float anvil;       // наковальня Cb 0..1
 	float rain;        // осадки (вирга) 0..1
 	int kind;          // 0 кучевое, 1 лентикулярное, 2 шапка на гребне, 3 Cb
+	float vis;         // видимость 0..1: облако уходит из отрисовки — тает, а не пропадает
 	float fade_r;      // радиус (в uv), к которому плотность гаснет
 	float ns;          // масштаб шума: у Cb клубы крупнее (в меру размера облака)
 	vec4 tw[TOWERS];   // башни: центр (u, v), высота (доля), радиус (доля)
@@ -80,7 +83,7 @@ void cloud_init_towers(inout Cloud cl) {
 	}
 }
 
-Cloud cloud_make(vec3 c, vec3 ax, vec4 shape, vec4 state, vec4 extra, vec3 ro, float pix) {
+Cloud cloud_make(vec3 c, vec3 ax, vec4 shape, vec4 state, vec4 extra, float vis, vec3 ro, float pix) {
 	Cloud cl;
 	cl.c = c;
 	cl.ax = ax;
@@ -98,6 +101,7 @@ Cloud cloud_make(vec3 c, vec3 ax, vec4 shape, vec4 state, vec4 extra, vec3 ro, f
 	cl.anvil = extra.y;
 	cl.rain = extra.z;
 	cl.kind = int(extra.w + 0.5);
+	cl.vis = clamp(vis, 0.0, 1.0);
 	cl.ns = cl.kind == 3 ? clamp(cl.height / 2500.0, 1.0, 3.5) : 1.0;
 	cl.fade_r = FADE_R1 + cl.spread * 0.8 + cl.anvil * (anvil_spread + anvil_shift);
 	cl.ro = ro;
@@ -263,9 +267,8 @@ float cloud_virga(Cloud cl, vec3 p, vec2 uv, float h) {
 	return virga_density * cl.rain * d;
 }
 
-// Плотность 0..1 в точке p (мир).
-// quality: 0 — путь к солнцу (форма + крупные клубы), 1 — полная, 2 — + мелкая эрозия краёв.
-float cloud_density(Cloud cl, vec3 p, int quality) {
+// Плотность без учёта видимости (см. cloud_density).
+float cloud_density_raw(Cloud cl, vec3 p, int quality) {
 	float h = (p.y - cl.base) / cl.height;
 	vec3 d = p - cl.c;
 	vec2 uv = vec2(dot(d, cl.ax) / cl.rx, dot(d, cl.az) / cl.rz);
@@ -306,8 +309,8 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 		spread_k = 1.0 + cl.spread * smoothstep(0.55, 1.0, hh);
 		shape = cloud_towers(cl, uv / spread_k, hh);
 	}
-	// Распад: башни оседают и расползаются.
-	shape -= cl.decay * 0.15;
+	// Распад: башни оседают и расползаются. Уходящее облако (cl.vis < 1) ещё и худеет с краёв.
+	shape -= cl.decay * 0.15 + (1.0 - cl.vis) * 0.35;
 	shape = clamp(shape / mix(0.55, 0.8, cl.decay), 0.0, 1.0);
 	// Наковальня Cb: плоский широкий слой под тропопаузой, сдвинут по ветру, гладкий, волокнистый.
 	float anvil_m = 0.0;
@@ -379,6 +382,15 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	// у тающего переход длинный — рваная дымка.
 	dns = smoothstep(0.0, mix(surface_sharpness, 1.0, cl.decay), dns);
 	return dns * box_fade * mix(0.3, 1.0, cl.growth) * mix(1.0, 0.2, cl.decay * cl.decay);
+}
+
+// Плотность 0..1 в точке p (мир).
+// quality: 0 — путь к солнцу (форма + крупные клубы), 1 — полная, 2 — + мелкая эрозия краёв.
+// Уходящее облако (слияние, лимит, дальность, конец жизни) тает целиком по cl.vis:
+// облако оптически толстое, линейное падение плотности заметно только у самого нуля
+// (оставалось плотным и «выключалось» в конце) — поэтому плотность × vis³, и худеет с краёв.
+float cloud_density(Cloud cl, vec3 p, int quality) {
+	return cloud_density_raw(cl, p, quality) * cl.vis * cl.vis * cl.vis;
 }
 
 // Грубый шаг луча по боксу облака [tn, tf].

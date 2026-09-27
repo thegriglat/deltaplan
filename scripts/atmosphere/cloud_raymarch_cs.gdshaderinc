@@ -22,10 +22,11 @@ const int MAX_PASSES = 160;
 // освободится несколько мест, нельзя: дальние облака тогда снова пропадали (проверено).
 
 Cloud cloud_at(int i, vec3 ro, float pix_a) {
-	vec4 a = clouds.d[i * 5];
-	vec4 b = clouds.d[i * 5 + 1];
-	return cloud_make(vec3(a.x, 0.0, a.z), vec3(b.x, 0.0, b.y), clouds.d[i * 5 + 2],
-			clouds.d[i * 5 + 3], clouds.d[i * 5 + 4], ro, pix_a);
+	vec4 a = clouds.d[i * CLOUD_VEC4S];
+	vec4 b = clouds.d[i * CLOUD_VEC4S + 1];
+	return cloud_make(vec3(a.x, 0.0, a.z), vec3(b.x, 0.0, b.y), clouds.d[i * CLOUD_VEC4S + 2],
+			clouds.d[i * CLOUD_VEC4S + 3], clouds.d[i * CLOUD_VEC4S + 4], clouds.d[i * CLOUD_VEC4S + 5].x,
+			ro, pix_a);
 }
 
 void main() {
@@ -64,7 +65,7 @@ void main() {
 	for (int i = 0; i < cloud_count; i++) {
 		float tn;
 		float tf;
-		if (!cloud_box_hit(clouds.d[i * 5], clouds.d[i * 5 + 1], ro, rd, tn, tf)) {
+		if (!cloud_box_hit(clouds.d[i * CLOUD_VEC4S], clouds.d[i * CLOUD_VEC4S + 1], ro, rd, tn, tf)) {
 			continue;
 		}
 		tf = min(tf, scene_t);
@@ -106,7 +107,7 @@ void main() {
 	vec4 st[MAX_HITS];
 	for (int k = 0; k < nh; k++) {
 		// Полуоси — как в cloud_make (без сборки облака).
-		vec4 sh = clouds.d[h_id[k] * 5 + 2];
+		vec4 sh = clouds.d[h_id[k] * CLOUD_VEC4S + 2];
 		st[k] = cloud_march_start(max(sh.z, 10.0), max(sh.w, 10.0), h_tn[k], h_tf[k], ign);
 	}
 	// Боксы, ещё не взятые в работу, и последний взятый (порядок — см. выше, у MAX_PASSES).
@@ -156,7 +157,7 @@ void main() {
 		for (int i = 0; i < cloud_count; i++) {
 			float tn;
 			float tf;
-			if (!cloud_box_hit(clouds.d[i * 5], clouds.d[i * 5 + 1], ro, rd, tn, tf)) {
+			if (!cloud_box_hit(clouds.d[i * CLOUD_VEC4S], clouds.d[i * CLOUD_VEC4S + 1], ro, rd, tn, tf)) {
 				continue;
 			}
 			tf = min(tf, scene_t);
@@ -187,7 +188,7 @@ void main() {
 			id_last = h_id[nh - 1];
 		}
 		for (int k = na; k < nh; k++) {
-			vec4 sh = clouds.d[h_id[k] * 5 + 2];
+			vec4 sh = clouds.d[h_id[k] * CLOUD_VEC4S + 2];
 			st[k] = cloud_march_start(max(sh.z, 10.0), max(sh.w, 10.0), h_tn[k], h_tf[k], ign);
 		}
 	}

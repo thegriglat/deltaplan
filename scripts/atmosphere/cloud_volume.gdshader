@@ -88,7 +88,8 @@ void fragment() {
 	}
 	Cloud cl = cloud_make(vec3(r0.x, 0.0, r0.z), vec3(r1.x, 0.0, r1.y),
 			texelFetch(cloud_data, ivec2(2, v_idx), 0), texelFetch(cloud_data, ivec2(3, v_idx), 0),
-			texelFetch(cloud_data, ivec2(4, v_idx), 0), ro, length(fwidth(rd)));
+			texelFetch(cloud_data, ivec2(4, v_idx), 0), texelFetch(cloud_data, ivec2(5, v_idx), 0).x,
+			ro, length(fwidth(rd)));
 
 	// Глубина сцены: рельеф перед облаком или внутри бокса обрезает луч.
 	float depth = texture(depth_tex, SCREEN_UV).r;

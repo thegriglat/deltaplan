@@ -10,7 +10,7 @@ const COMMON := "res://scripts/atmosphere/cloud_common.gdshaderinc"
 const MARCH := "res://scripts/atmosphere/cloud_raymarch_cs.gdshaderinc"
 const COMPOSITE := "res://scripts/atmosphere/cloud_composite_cs.gdshaderinc"
 const TEMPORAL := "res://scripts/atmosphere/cloud_temporal_cs.gdshaderinc"
-const FLOATS_PER_CLOUD := 20
+const FLOATS_PER_CLOUD := 24
 ## Порядок полей UBO (std140) — как в заголовке compute-шейдера ниже.
 const VEC_PARAMS := [
 	["sun_dir", "sun_energy"],
