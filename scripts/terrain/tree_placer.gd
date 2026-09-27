@@ -1,9 +1,11 @@
 class_name TreePlacer
 extends RefCounted
 ## Расстановка деревьев-моделей вокруг точки (без нод, тестируется headless).
-## Дерево стоит в клетке сетки spacing_m там, где доля леса по маске 10 м ≥ 0,5 (set_forest_mask,
-## V02; без маски — на классе «лес» карты поверхности 25 м, VR-0, VR-4); у кромки леса — гуще и
-## раскидистее (опушка — стена деревьев), утоплено меньше (edge_sink_fraction);
+## Дерево стоит в клетке сетки spacing_m там, где доля леса по маске 10 м ≥ 0,5 и доля воды
+## (канал G, реки/озёра OSM, T03) меньше water_max (set_forest_mask, V02; без маски — на классе
+## «лес» карты поверхности 25 м, VR-0, VR-4): WorldCover часто зовёт лесом прибрежные кроны
+## над руслом, а рельеф там рисует воду — вода для деревьев та же кромка, что луг; у кромки
+## леса — гуще и раскидистее (опушка — стена деревьев), утоплено меньше (edge_sink_fraction);
 ## порода выбирается по высоте над морем и экспозиции (веса — configs/world.json → trees.species,
 ## локация может переопределить), всё детерминировано хешем клетки: при пересчёте вокруг новой
 ## точки дерево остаётся тем же. Результат — буферы MultiMesh (порода × LOD).
@@ -51,6 +53,9 @@ var mask_h: int = 0
 var mask_bpp: int = 2
 var mask_node0 := Vector2.ZERO
 var mask_cell: float = 10.0
+## Доля воды маски 10 м (G), с которой дерево уже не ставится (0,5 — кромка воды в шейдере рельефа;
+## меньше — ствол не у самой воды, крона нависает над берегом).
+var water_max: float = 0.35
 ## Опушка (V02): в полосе edge_band_m от кромки доля клеток с деревом растёт до edge_density,
 ## крона шире до ×(1 + edge_scale_k), в клетке появляется второе дерево с долей edge_extra.
 var edge_band_m: float = 16.0
@@ -90,6 +95,7 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	edge_extra = float(cfg.get("edge_extra", 0.5))
 	color_variation = float(cfg.get("color_variation", 0.15))
 	band_blend_m = maxf(1.0, float(cfg.get("band_blend_m", 200.0)))
+	water_max = float(cfg.get("water_max", 0.35))
 	var ic: Dictionary = cfg.get("impostors", {})
 	fade_start_k = float(ic.get("fade_start_k", 0.0)) if bool(ic.get("enabled", false)) else 0.0
 	var sp: Dictionary = cfg.get("species", {})
@@ -258,22 +264,35 @@ func set_forest_mask(img: Image, origin: Vector2, cell_m: float) -> void:
 func forest_r(x: float, z: float) -> float:
 	if mask_w == 0:
 		return 1.0 if surface.class_at(x, z) == SurfaceLayer.FOREST else 0.0
+	return _mask_bilinear(x, z, 0)
+
+
+## Доля воды 0..1 (канал G маски 10 м, как в шейдере рельефа), билинейно; без маски или без
+## канала — 0 (класс «вода» карты 25 м и так не «лес»).
+func water_g(x: float, z: float) -> float:
+	if mask_w == 0 or mask_bpp < 2:
+		return 0.0
+	return _mask_bilinear(x, z, 1)
+
+
+func _mask_bilinear(x: float, z: float, ch: int) -> float:
 	var fx := clampf((x - mask_node0.x) / mask_cell, 0.0, mask_w - 1.001)
 	var fz := clampf((z - mask_node0.y) / mask_cell, 0.0, mask_h - 1.001)
 	var i := int(fx)
 	var j := int(fz)
 	var tx := fx - i
 	var tz := fz - j
-	var k := (j * mask_w + i) * mask_bpp
+	var k := (j * mask_w + i) * mask_bpp + ch
 	var row := mask_w * mask_bpp
 	var a := lerpf(mask_data[k], mask_data[k + mask_bpp], tx)
 	var b := lerpf(mask_data[k + row], mask_data[k + row + mask_bpp], tx)
 	return lerpf(a, b, tz) / 255.0
 
 
-## Лес ли в точке: доля леса ≥ 0,5 (та же кромка, что у полога и Terrain.forest_at).
+## Лес ли в точке: доля леса ≥ 0,5 (та же кромка, что у полога и Terrain.forest_at) и не вода
+## (доля воды < water_max).
 func is_forest(x: float, z: float) -> bool:
-	return forest_r(x, z) >= 0.5
+	return forest_r(x, z) >= 0.5 and water_g(x, z) < water_max
 
 
 ## Расстояние до кромки леса, м (грубо: кольца по 8 направлений), не больше edge_probe_m:
@@ -313,10 +332,13 @@ func _ring_forest(x: float, z: float, r: float) -> bool:
 	var ox := (x - mask_node0.x) * inv
 	var oz := (z - mask_node0.y) * inv
 	var rr := r * inv
+	# вода — тоже кромка (берег реки в лесу — опушка: деревья гуще, стволы видны)
+	var wmax := water_max * 255.0 if mask_bpp >= 2 else 256.0
 	for k in 8:
 		var i := clampi(roundi(ox + RING8[k].x * rr), 0, mask_w - 1)
 		var j := clampi(roundi(oz + RING8[k].y * rr), 0, mask_h - 1)
-		if mask_data[(j * mask_w + i) * mask_bpp] < 128:
+		var o := (j * mask_w + i) * mask_bpp
+		if mask_data[o] < 128 or (mask_bpp >= 2 and mask_data[o + 1] >= wmax):
 			return false
 	return true
 

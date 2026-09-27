@@ -1,6 +1,7 @@
 // Средний план леса (≈ 0,4–2 км): деревья-билборды из атласа импостеров (assets/models/trees/
 // trees_impostor_atlas.png). Сетка экземпляров едет за камерой, дерево привязано к мировой клетке;
-// есть ли дерево — доля леса по маске 10 м ≥ 0,5 (V02; без маски — класс «лес» карты 25 м) и маска просек,
+// есть ли дерево — доля леса по маске 10 м ≥ 0,5 и не вода (канал G < water_max; V02; без маски —
+// класс «лес» карты 25 м) и маска просек,
 // у опушки гуще и раскидистее; порода — по высотному поясу и
 // экспозиции (те же веса, что у моделей, configs/world.json → trees.species). Параметры задаёт
 // ForestImpostors (forest_impostors.gd). Дальше — полог в шейдере рельефа, ближе — 3D-модели.
@@ -42,6 +43,8 @@ uniform float sp_max[5];
 uniform float sp_aspect[5];
 uniform vec2 sp_height[5];
 uniform float band_blend_m = 200.0;
+// доля воды маски 10 м (канал G, реки/озёра OSM), с которой дерева нет (как TreePlacer.water_max)
+uniform float water_max = 0.35;
 // просеки (WorldClearings): 1 — расчищено
 uniform sampler2D clear_tex : filter_nearest, repeat_disable;
 uniform bool has_clearings = false;
@@ -55,7 +58,7 @@ varying float v_dist;
 
 bool is_forest(vec2 xz) {
 	if (use_forest_mask) {
-		return forest_mask_r(xz) >= 0.5;
+		return forest_mask_r(xz) >= 0.5 && forest_mask_g(xz) < water_max;
 	}
 	return surface_node(ivec2(round((xz - surface_origin) / surface_spacing))) == 1;
 }

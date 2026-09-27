@@ -3,7 +3,8 @@ extends MultiMeshInstance3D
 ## Средний план леса (≈ 0,4–2 км): билборды из атласа импостеров, всё считает
 ## forest_impostors.gdshader; скрипт двигает сетку за камерой. Ближе — 3D-модели
 ## (TerrainTreeModels), дальше — полог в шейдере рельефа. Билборд стоит там, где доля леса по маске
-## 10 м ≥ 0,5 (set_forest_mask, V02), у опушки гуще и шире; у outer_m растворяется по одному.
+## 10 м ≥ 0,5 и не на воде (канал G < water_max, как у TreePlacer; set_forest_mask, V02), у опушки
+## гуще и шире; у outer_m растворяется по одному.
 ## Параметры — configs/world.json → trees (impostors, species) + configs/vegetation.json → trees.
 
 const SHADER := preload("res://scripts/terrain/forest_impostors.gdshader")
@@ -34,6 +35,7 @@ func setup(
 		return false
 	_layer = layer
 	_mask.surface = surface
+	_mask.water_max = float(cfg.get("water_max", 0.35))
 	_spacing = float(ic.spacing_m)
 	_max_agl = float(ic.get("max_agl_m", 5000.0))
 	var outer := float(ic.outer_m)
@@ -76,6 +78,7 @@ func setup(
 	m.set_shader_parameter("edge_sink_fraction", float(cfg.get("edge_sink_fraction", 0.05)))
 	m.set_shader_parameter("edge_probe_m", float(cfg.get("edge_probe_m", 30.0)))
 	m.set_shader_parameter("band_blend_m", float(cfg.get("band_blend_m", 200.0)))
+	m.set_shader_parameter("water_max", _mask.water_max)
 	var sp: Dictionary = cfg.get("species", {})
 	var w := PackedFloat32Array()
 	var lo := PackedFloat32Array()
@@ -164,7 +167,8 @@ func _process(_delta: float) -> void:
 
 ## Где стоят билборды (центры X/Z) в кольце [r0, r1] вокруг center — повтор правил шейдера
 ## без случайного прореживания (density, растворение): сетка spacing_m со сдвигом хешем клетки,
-## доля леса по маске 10 м ≥ 0,5, не на просеке. Для тестов (шейдер считает то же на GPU).
+## доля леса по маске 10 м ≥ 0,5, не на воде (G < water_max), не на просеке. Для тестов
+## (шейдер считает то же на GPU).
 func present_positions(center: Vector2, r0: float, r1: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var c0 := Vector2i(floori((center.x - r1) / _spacing), floori((center.y - r1) / _spacing))

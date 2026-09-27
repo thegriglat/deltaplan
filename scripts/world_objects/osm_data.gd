@@ -62,12 +62,15 @@ func _reproject(lat0: float, lon0: float, lat1: float, lon1: float) -> void:
 		var ll := TerrainGeo.local_to_latlon(x, z, lat0, lon0)
 		return TerrainGeo.latlon_to_local(ll.x, ll.y, lat1, lon1)
 	for arr in [roads, power, rivers, lakes, fields, fences]:
-		for item in arr:
-			var p: Array = item.p
-			for i in range(0, p.size() - 1, 2):
-				var v: Vector2 = f.call(float(p[i]), float(p[i + 1]))
-				p[i] = v.x
-				p[i + 1] = v.y
+		for item: Dictionary in arr:
+			# у водоёмов ещё острова-дыры h: [[x, z…]…] (мультиполигоны OSM)
+			var rings: Array = [item.p]
+			rings.append_array(item.get("h", []))
+			for p: Array in rings:
+				for i in range(0, p.size() - 1, 2):
+					var v: Vector2 = f.call(float(p[i]), float(p[i + 1]))
+					p[i] = v.x
+					p[i + 1] = v.y
 	for b in buildings:
 		var v: Vector2 = f.call(float(b[0]), float(b[1]))
 		b[0] = v.x

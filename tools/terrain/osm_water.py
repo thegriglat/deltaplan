@@ -14,16 +14,13 @@ data/osm/<id>.json пока не пакуется fetch_osm.py — исполь�
 (навигационные ориентиры пилота — реки и озёра, а не ручьи, VR-9). Реки и каналы шире порога
 (25 м и 6 м) достаточно для surface_at = вода на оси русла.
 
-Озёра (`water.lakes[]`) — полигоны (внешний контур; данные `pack_water` не отдают внутренние
-кольца островов — считаем их дырами лишь там, где OSM отдаёт отдельный relation с role=inner,
-чего пока нет в data/osm/*.json, см. TODO ниже): заливка со супервыборкой края (4×4) —
-антиалиасинг контура без «лесенки».
+Водоёмы (`water.lakes[]`) — полигоны `p` (внешний контур, мультиполигоны OSM собраны в кольца
+tools/osm/fetch_osm.py → join_rings) с дырами-островами `h` (role=inner): заливка со
+супервыборкой края (4×4) — антиалиасинг контура без «лесенки»; острова вычитаются (там суша и
+лес WorldCover — иначе лес «в воде»).
 
 Запуск (после fetch_landcover.py --only=detail10, из корня проекта):
     uv run --with numpy --with pillow python tools/terrain/osm_water.py <id> [--preview=<папка>]
-
-TODO (группа 6, если понадобится точность озёр с островами): относительно data/osm/<id>.json —
-пакуются только role=outer как отдельные озёра; role=inner (острова) не вычитаются.
 """
 
 import json
@@ -101,9 +98,17 @@ def lake_coverage(mask: np.ndarray, info: dict, lakes: list) -> None:
         if i0 > i1 or j0 > j1:
             continue
         lw, lh = i1 - i0 + 1, j1 - j0 + 1
-        poly = [(((x - ox) / s - i0) * ss, ((z - oz) / s - j0) * ss) for x, z in zip(xs, zs)]
+        def to_px(ring: list) -> list:
+            return [(((x - ox) / s - i0) * ss, ((z - oz) / s - j0) * ss)
+                    for x, z in zip(ring[0::2], ring[1::2])]
+
         hi = Image.new("L", (lw * ss, lh * ss), 0)
-        ImageDraw.Draw(hi).polygon(poly, fill=255)
+        draw = ImageDraw.Draw(hi)
+        draw.polygon(to_px(p), fill=255)
+        # острова (role=inner) — дыры: на них суша (и лес WorldCover), а не вода
+        for hole in lake.get("h", []):
+            if len(hole) >= 6:
+                draw.polygon(to_px(hole), fill=0)
         lo = hi.resize((lw, lh), Image.BOX)
         cov = np.asarray(lo, dtype=np.float32) / 255.0
         sub = mask[j0:j1 + 1, i0:i1 + 1]

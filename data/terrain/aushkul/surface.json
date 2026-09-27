@@ -30,7 +30,7 @@
         "origin_z_m": -20000.0,
         "channels": "R — доля леса (0..255, T02), G — доля воды (0..255, T03: реки/ручьи/каналы/озёра OSM)",
         "forest_fraction": 0.5114,
-        "water_fraction": 0.0169
+        "water_fraction": 0.0137
       }
     },
     {

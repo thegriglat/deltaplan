@@ -1,7 +1,10 @@
 """Выгрузка объектов OpenStreetMap для локации (VR-9, VR-10) и упаковка в data/osm/<id>.json.
 
 Запуск (из корня проекта):
-    uv run python tools/osm/fetch_osm.py altai [--refresh]
+    uv run python tools/osm/fetch_osm.py altai [--refresh] [--only=water]
+
+--only=water — перепаковать только водоёмы в уже готовом data/osm/<id>.json (остальные слои
+не пересобираются). После — tools/terrain/osm_water.py <id> (канал G маски 10 м).
 
 Берёт центр локации из configs/locations/<id>.json (только чтение) и параметры выгрузки из
 configs/world_objects.json → osm (размер квадрата, классы дорог, высоты этажей).
@@ -201,7 +204,54 @@ def pack_power(proj: Proj, raw: dict) -> list:
     return out
 
 
+def join_rings(parts: list) -> list:
+    """Собрать замкнутые кольца мультиполигона из линий-участников (по совпадающим концам).
+
+    Русло реки в OSM (natural=water + water=river) — relation, где внешний контур разрезан на
+    десятки way: каждый way отдельно, замкнутый хордой, заливал бы пойму между концами — лес
+    «в воде» (кромка русла прямой линией через берег). Кольцо, не замкнувшееся стыковкой
+    (обрывок данных), замыкается хордой — как раньше, но только оно.
+    """
+    left = [list(p) for p in parts if len(p) >= 2]
+    rings = []
+    while left:
+        ring = left.pop(0)
+        while ring[0] != ring[-1]:
+            for k, p in enumerate(left):
+                if p[0] == ring[-1]:
+                    ring += p[1:]
+                elif p[-1] == ring[-1]:
+                    ring += p[-2::-1]
+                elif p[-1] == ring[0]:
+                    ring = p[:-1] + ring
+                elif p[0] == ring[0]:
+                    ring = p[:0:-1] + ring
+                else:
+                    continue
+                left.pop(k)
+                break
+            else:
+                break
+        if len(ring) >= 3:
+            rings.append(ring)
+    return rings
+
+
+def point_in_ring(pt: tuple, ring: list) -> bool:
+    x, z = pt
+    inside = False
+    for (x0, z0), (x1, z1) in zip(ring, ring[1:] + ring[:1]):
+        if (z0 > z) != (z1 > z) and x < (x1 - x0) * (z - z0) / (z1 - z0) + x0:
+            inside = not inside
+    return inside
+
+
 def pack_water(proj: Proj, raw: dict) -> dict:
+    """Реки — ломаные {t, n, p}; водоёмы — {n, p: внешний контур, h: [контуры островов]}.
+
+    Мультиполигоны (relation natural=water: русла рек с островами, озёра из нескольких way)
+    собираются в кольца (join_rings); острова (role=inner) — дыры своего внешнего кольца.
+    """
     rivers, lakes = [], []
     for el in raw["elements"]:
         tags = el.get("tags", {})
@@ -211,10 +261,24 @@ def pack_water(proj: Proj, raw: dict) -> dict:
         elif el["type"] == "way" and tags.get("natural") == "water":
             lakes.append({"n": tags.get("name", ""), "p": flat(way_xz(proj, el))})
         elif el["type"] == "relation":
+            roles: dict = {"outer": [], "inner": []}
             for m in el.get("members", []):
-                if m.get("role") == "outer" and m.get("geometry"):
-                    pts = [proj.xz(g["lat"], g["lon"]) for g in m["geometry"] if g]
-                    lakes.append({"n": tags.get("name", ""), "p": flat(pts)})
+                if m.get("role") in roles and m.get("geometry"):
+                    geom = [(g["lat"], g["lon"]) for g in m["geometry"] if g]
+                    roles[m["role"]].append(geom)
+            outers = [[proj.xz(*g) for g in r] for r in join_rings(roles["outer"])]
+            inners = [[proj.xz(*g) for g in r] for r in join_rings(roles["inner"])]
+            holes: list = [[] for _ in outers]
+            for inner in inners:
+                for k, outer in enumerate(outers):
+                    if point_in_ring(inner[0], outer):
+                        holes[k].append(flat(inner))
+                        break
+            for outer, h in zip(outers, holes):
+                lake = {"n": tags.get("name", ""), "p": flat(outer)}
+                if h:
+                    lake["h"] = h
+                lakes.append(lake)
     return {"rivers": rivers, "lakes": lakes}
 
 
@@ -253,6 +317,14 @@ def main() -> None:
     if layers:  # квадрат детального слоя рельефа локации
         half = float(layers[0]["size_km"]) * 500.0
     bbox = proj.bbox(half)
+    dst = ROOT / "data" / "osm" / f"{loc_id}.json"
+    only = next((a[7:] for a in sys.argv if a.startswith("--only=")), "")
+    if only == "water":  # перепаковать только водоёмы (кеш Overpass), остальное в файле не трогать
+        out = json.loads(dst.read_text())
+        out["water"] = pack_water(proj, fetch(loc_id, "water", cfg, bbox, refresh))
+        dst.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
+        print(f"{dst}: рек {len(out['water']['rivers'])}, водоёмов {len(out['water']['lakes'])}")
+        return
     raw = {k: fetch(loc_id, k, cfg, bbox, refresh) for k in QUERIES}
     out = {
         "_doc": "Сгенерировано tools/osm/fetch_osm.py — не править руками. Координаты мира, м.",
@@ -268,7 +340,6 @@ def main() -> None:
         "places": pack_places(proj, raw["places"]),
         "landuse": pack_landuse(proj, raw["landuse"]),
     }
-    dst = ROOT / "data" / "osm" / f"{loc_id}.json"
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     print(f"{dst}: {dst.stat().st_size / 1e6:.2f} МБ; дорог {len(out['roads'])}, "
