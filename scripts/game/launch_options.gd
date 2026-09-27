@@ -15,6 +15,10 @@ extends RefCounted
 ##   --glance              держать клавишу «взгляд на прибор»
 ##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
 ##                         (чистый кадр мира — для фоновых картинок меню)
+##   --air-start[=<д>[,<h>]]  старт в воздухе: в <д> м от старта по его курсу, на <h> м над
+##                         рельефом (по умолчанию 1000 и 300), на скорости трима, сразу в полёте;
+##                         взлёта нет — касание будет посадкой, не «взлёт сорван». «Ещё раз» (R)
+##                         — снова в воздухе. Для проверки полёта вдали от старта
 
 var smoke := false
 var autostart := false
@@ -27,6 +31,10 @@ var look := Vector2.ZERO
 var glance := false  ## держать «взгляд на прибор» (скриншоты)
 var no_overlay := false  ## скрыть InstrumentOverlay перед скриншотом (чистый кадр мира)
 var overrides: Dictionary = {}
+## Старт в воздухе (--air-start): дальность от старта по его курсу, м; < 0 — обычный старт.
+var air_start_m := -1.0
+## Старт в воздухе: высота над рельефом, м.
+var air_start_agl_m := 300.0
 
 
 static func parse(args: PackedStringArray) -> LaunchOptions:
@@ -62,6 +70,11 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				var p := val.split(",")
 				if p.size() == 2:
 					o.look = Vector2(float(p[0]), float(p[1]))
+			"air-start":
+				var p := val.split(",")
+				o.air_start_m = float(p[0]) if val != "" else 1000.0
+				if p.size() > 1:
+					o.air_start_agl_m = float(p[1])
 			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour":
 				o.overrides[key] = val
 	if o.open_screen == "pause":

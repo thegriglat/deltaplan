@@ -32,6 +32,10 @@ var collisions := CollisionCheck.new()
 var sim_time_s: float = 0.0
 ## Управление и приборы в полёте (в меню — выключены).
 var flying_enabled := false
+## Старт в воздухе (--air-start, docs/game.md): в air_start_m м от старта по его курсу, на
+## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
+var air_start_m := -1.0
+var air_start_agl_m := 300.0
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -198,7 +202,10 @@ func restart() -> void:
 		return
 	if autopilot != null:
 		autopilot.reset()
-	glider.reset_on_ground(_start_pos, _start_heading)
+	if air_start_m >= 0.0:
+		glider.reset_in_air(air_start_position(), _start_heading)
+	else:
+		glider.reset_on_ground(_start_pos, _start_heading)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	input_controller.reset()
 	collisions.reset()
@@ -214,6 +221,14 @@ func restart() -> void:
 		if not bool(n.get_meta("shares_tablet", false)) and n.get("vario90s") != null:
 			(n.get("vario90s") as VarioDisplay90s).reset()
 	camera.snap()
+
+
+## Точка старта в воздухе: air_start_m по курсу старта, air_start_agl_m над рельефом там.
+func air_start_position() -> Vector3:
+	var h := deg_to_rad(_start_heading)
+	var p := _start_pos + Vector3(sin(h), 0.0, -cos(h)) * air_start_m
+	p.y = terrain.height_at(p.x, p.z) + air_start_agl_m
+	return p
 
 
 ## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.

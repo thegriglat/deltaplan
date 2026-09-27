@@ -385,11 +385,13 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	var chaos := _in_cloud_turb * cin.x
 	_last_sigma = sqrt(amp * amp + chaos * chaos)
 	if chaos > 1.0e-3:
-		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect)
+		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
 	if amp < 1.0e-3:
 		return v
-	var n := wind.gust_unit(pos, time_s, _advect)
+	# Крупные вихри растут с высотой (у земли масштаб вихрей ~ высоты): на разбеге и посадке —
+	# мелкая болтанка, как раньше.
+	var n := wind.gust_unit(pos, time_s, _advect, agl / wind.large_fade_agl)
 	return v + Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
 
 

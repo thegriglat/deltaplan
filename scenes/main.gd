@@ -86,6 +86,8 @@ func _fly(s: FlightSettings) -> void:
 	flight = s
 	get_tree().paused = false
 	start_menu.set_busy(true)
+	game.air_start_m = opts.air_start_m
+	game.air_start_agl_m = opts.air_start_agl_m
 	var ok: bool = await game.start(s)
 	start_menu.set_busy(false)
 	if not ok:

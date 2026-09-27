@@ -124,6 +124,44 @@ func test_landing_shows_result_screen() -> void:
 	await _settle()
 
 
+## --air-start: сразу в полёте в 1000 м от старта по его курсу на ~300 м над рельефом,
+## на скорости трима; полёт «взведён» (не «взлёт сорван»), «Ещё раз» — снова в воздухе.
+func test_air_start() -> void:
+	var o := LaunchOptions.parse(PackedStringArray(["--air-start"]))
+	check(o.air_start_m == 1000.0 and o.air_start_agl_m == 300.0, "--air-start: 1000 м / 300 м")
+	o = LaunchOptions.parse(PackedStringArray(["--autostart", "--air-start=600,150"]))
+	check(o.air_start_m == 600.0 and o.air_start_agl_m == 150.0, "--air-start=600,150")
+	check(LaunchOptions.parse(PackedStringArray([])).air_start_m < 0.0, "без флага — с земли")
+	var main: Node = MAIN_SCENE.instantiate()
+	main.set("opts", o)
+	add_child(main)
+	var game: Game = main.get_node("Game")
+	for i in 600:
+		if main.get("state") == 2:
+			break
+		await get_tree().process_frame
+	check(main.get("state") == 2, "автостарт — в полёте")
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	for round_i in 2:
+		var tel := game.glider.get_telemetry()
+		var st := game.get_start()
+		var d := Vector2(tel.position.x - st.position.x, tel.position.z - st.position.z)
+		var h := deg_to_rad(float(st.heading_deg))
+		check(game.glider.phase() == "flying", "сразу в полёте")
+		check(absf(d.length() - 600.0) < 1.0, "в 600 м от старта: %.0f" % d.length())
+		check(d.normalized().dot(Vector2(sin(h), -cos(h))) > 0.999, "по курсу старта")
+		check(absf(tel.altitude_agl - 150.0) < 1.0, "150 м над рельефом: %.0f" % tel.altitude_agl)
+		var trim := game.glider.model.trim_speed()
+		check(absf(tel.airspeed - trim) < 1.0, "скорость трима %.1f / %.1f" % [tel.airspeed, trim])
+		for i in 120 * 3:
+			game.tick(DT)
+		check(game.glider.phase() == "flying", "летит 3 с")
+		check(game.stats.armed, "полёт взведён — касание будет посадкой")
+		game.restart()
+	main.queue_free()
+	await _settle()
+
+
 ## После удаления сцены: 2 кадра и ~100 мс — аудиосервер отпускает генераторы звука.
 func _settle() -> void:
 	for i in 2:

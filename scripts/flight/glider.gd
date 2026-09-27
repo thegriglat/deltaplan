@@ -92,6 +92,8 @@ func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
 func reset_in_air(pos: Vector3, heading_deg: float, airspeed_ms: float = 0.0) -> void:
 	var wind: Vector3 = air_fn.call(pos) if air_fn.is_valid() else Vector3.ZERO
 	model.reset_in_air(pos, heading_deg, airspeed_ms, Vector3(wind.x, 0.0, wind.z))
+	# телеметрия сразу с воздухом и рельефом: воздушная скорость и AGL верны до первого шага
+	FlightTelemetry.fill(model, air_fn, ground_fn)
 	_teleport()
 
 

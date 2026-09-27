@@ -9,6 +9,8 @@ var dir: Vector3 = Vector3(0, 0, 1)
 var speed_ref: float = 0.0
 ## Метеонаправление «откуда», градусы.
 var from_deg: float = 0.0
+## Высота над рельефом, выше которой крупные вихри в полную силу (turbulence.large_fade_agl_m).
+var large_fade_agl: float = 150.0
 
 var _ref_h: float = 10.0
 var _alpha: float = 0.14
@@ -22,6 +24,10 @@ var _evolve: float = 0.0
 ## Смещения координат шума для трёх компонент (чтобы они были независимы).
 var _off_v: Vector3
 var _off_z: Vector3
+## Крупные вихри (turbulence.large_scale_m): 1/масштаб и их доля СКО на высоте.
+var _inv_large: float = 0.0
+var _amp_large: float = 0.0
+var _off_l: Vector3
 
 
 func setup(wind_cfg: Dictionary, turb_cfg: Dictionary, seed_value: int) -> void:
@@ -47,7 +53,21 @@ func setup(wind_cfg: Dictionary, turb_cfg: Dictionary, seed_value: int) -> void:
 	_off_z = Vector3(
 		rng.randf_range(300, 400), rng.randf_range(300, 400), rng.randf_range(300, 400)
 	)
+	_off_l = Vector3(
+		rng.randf_range(500, 600), rng.randf_range(500, 600), rng.randf_range(500, 600)
+	)
 	_noise_norm = 1.0 / _measure_rms(rng)
+	# Два масштаба: основная энергия — в крупных вихрях, мелкие (scale_m, раскачивают крыло
+	# по крену) слабее по закону Колмогорова σ ∝ (l/L)^(1/3). Суммарное СКО — 1.
+	var large := float(turb_cfg.get("large_scale_m", 0.0))
+	large_fade_agl = maxf(float(turb_cfg.get("large_fade_agl_m", 150.0)), 1.0)
+	if large > scale:
+		_inv_large = 1.0 / large
+		var amp_small := pow(scale / large, 1.0 / 3.0)
+		_amp_large = sqrt(1.0 - amp_small * amp_small)
+	else:
+		_inv_large = 0.0
+		_amp_large = 0.0
 
 
 ## Шум нормируется на единичное СКО: амплитуда в конфиге — это σ пульсаций.
@@ -89,16 +109,23 @@ func vec2_at(agl: float) -> Vector2:
 
 ## Единичные пульсации (СКО ≈ 1 по каждой компоненте) в точке pos в момент t.
 ## advect — скорость переноса поля (м/с), обычно ветер над слоем трения.
-func gust_unit(pos: Vector3, t: float, advect: float) -> Vector3:
-	var q := (
-		Vector3(pos.x - dir.x * advect * t, pos.y + _evolve * t, pos.z - dir.z * advect * t)
-		* _inv_scale
-	)
-	return (
-		Vector3(
-			_noise.get_noise_3d(q.x, q.y, q.z),
-			_noise.get_noise_3d(q.x + _off_v.x, q.y + _off_v.y, q.z + _off_v.z),
-			_noise.get_noise_3d(q.x + _off_z.x, q.y + _off_z.y, q.z + _off_z.z)
-		)
-		* _noise_norm
+## large_k 0..1 — доля крупных вихрей от полной (0 — только мелкие с СКО 1: у земли, бурление в
+## облаке). Горизонталь: мелкие + крупные, СКО 1 при любом large_k. Вертикаль — только мелкие с той
+## же долей: крупные вертикальные движения — термики и опускания, они в модели отдельно.
+func gust_unit(pos: Vector3, t: float, advect: float, large_k: float = 1.0) -> Vector3:
+	var p := Vector3(pos.x - dir.x * advect * t, pos.y + _evolve * t, pos.z - dir.z * advect * t)
+	var n := _noise3(p * _inv_scale)
+	var a_l := _amp_large * clampf(large_k, 0.0, 1.0)
+	if a_l > 1.0e-4:
+		var a_s := sqrt(1.0 - a_l * a_l)
+		var nl := _noise3(p * _inv_large + _off_l)
+		n = Vector3(n.x * a_s + nl.x * a_l, n.y * a_s, n.z * a_s + nl.z * a_l)
+	return n * _noise_norm
+
+
+func _noise3(q: Vector3) -> Vector3:
+	return Vector3(
+		_noise.get_noise_3d(q.x, q.y, q.z),
+		_noise.get_noise_3d(q.x + _off_v.x, q.y + _off_v.y, q.z + _off_v.z),
+		_noise.get_noise_3d(q.x + _off_z.x, q.y + _off_z.y, q.z + _off_z.z)
 	)
