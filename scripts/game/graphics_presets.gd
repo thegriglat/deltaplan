@@ -56,17 +56,39 @@ static func select(preset: String, dir: String = UserSettings.DEFAULT_DIR) -> bo
 	return ok
 
 
-## Настройки окна текущего пресета: сглаживание и доля разрешения 3D.
+## Настройки окна текущего пресета: сглаживание и масштаб 3D (bilinear или FSR 1, configs/game.json
+## → graphics_presets.*.viewport.scaling_mode). Поверх пресета — «Масштаб рендера» из настроек
+## (render_scale_auto/render_scale_pct), независимая настройка, тоже через FSR 1.
 static func apply_viewport(vp: Viewport) -> void:
 	var all: Dictionary = Config.get_config("game").get("graphics_presets", {})
 	var p: Dictionary = all.get(current(), {})
 	var v: Dictionary = p.get("viewport", {})
-	if v.is_empty():
-		return
-	var msaa := int(v.get("msaa_3d", 2))
-	vp.msaa_3d = (
-		Viewport.MSAA_DISABLED
-		if msaa <= 0
-		else (Viewport.MSAA_2X if msaa <= 2 else Viewport.MSAA_4X)
+	var sharpness := float(v.get("fsr_sharpness", 0.2))
+	if not v.is_empty():
+		var msaa := int(v.get("msaa_3d", 2))
+		vp.msaa_3d = (
+			Viewport.MSAA_DISABLED
+			if msaa <= 0
+			else (Viewport.MSAA_2X if msaa <= 2 else Viewport.MSAA_4X)
+		)
+		_apply_scaling(
+			vp,
+			String(v.get("scaling_mode", "bilinear")),
+			clampf(float(v.get("scale_3d", 1.0)), 0.25, 1.0),
+			sharpness
+		)
+	if not bool(Config.value("game", "render_scale_auto", true)):
+		var pct := clampf(float(Config.value("game", "render_scale_pct", 100.0)), 50.0, 100.0)
+		if pct >= 100.0:
+			_apply_scaling(vp, "bilinear", 1.0, sharpness)
+		else:
+			_apply_scaling(vp, "fsr", pct / 100.0, sharpness)
+
+
+## Режим и масштаб 3D окна: "fsr" — FSR 1 (Viewport.SCALING_3D_MODE_FSR), иначе — bilinear.
+static func _apply_scaling(vp: Viewport, mode: String, scale: float, sharpness: float) -> void:
+	vp.scaling_3d_mode = (
+		Viewport.SCALING_3D_MODE_FSR if mode == "fsr" else Viewport.SCALING_3D_MODE_BILINEAR
 	)
-	vp.scaling_3d_scale = clampf(float(v.get("scale_3d", 1.0)), 0.25, 1.0)
+	vp.scaling_3d_scale = scale
+	vp.fsr_sharpness = sharpness

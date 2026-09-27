@@ -19,6 +19,8 @@ var _sound: OptionButton
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
+var _render_scale_auto: CheckBox
+var _render_scale: HSlider
 var _time_speed: OptionButton
 var _speeds: Array = []
 var _fov: HSlider
@@ -52,8 +54,8 @@ func _ready() -> void:
 	_mouse_mode.add_item(tr("Трапеция"))
 	UiKit.row(box, tr("Мышь"), _mouse_mode)
 	_roll_mode = OptionButton.new()
-	_roll_mode.add_item(tr("Простое (аркадное)"))
-	_roll_mode.add_item(tr("Смещение веса (как на настоящем крыле)"))
+	_roll_mode.add_item(tr("Как раньше"))
+	_roll_mode.add_item(tr("Смещение веса (возврат в центр)"))
 	UiKit.row(box, tr("Управление креном"), _roll_mode)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
@@ -74,6 +76,26 @@ func _ready() -> void:
 	for g in _graphics_names:
 		_graphics.add_item(tr(String(presets_cfg[g].get("name", g))))
 	UiKit.row(box, tr("Графика"), _graphics)
+	var rsr: Array = Config.get_config("game").get("render_scale_range_pct", [50.0, 100.0])
+	var rs_box := HBoxContainer.new()
+	rs_box.add_theme_constant_override("separation", 10)
+	_render_scale_auto = CheckBox.new()
+	_render_scale_auto.text = tr("Как в пресете")
+	rs_box.add_child(_render_scale_auto)
+	_render_scale = HSlider.new()
+	_render_scale.min_value = float(rsr[0])
+	_render_scale.max_value = float(rsr[1])
+	_render_scale.step = float(Config.value("game", "render_scale_step_pct", 5.0))
+	_render_scale.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_render_scale.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rs_box.add_child(_render_scale)
+	var rs_value := Label.new()
+	rs_value.custom_minimum_size.x = 60
+	rs_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rs_box.add_child(rs_value)
+	_render_scale.value_changed.connect(func(x: float) -> void: rs_value.text = "%.0f%%" % x)
+	_render_scale_auto.toggled.connect(func(on: bool) -> void: _render_scale.editable = not on)
+	UiKit.row(box, tr("Масштаб рендера"), rs_box)
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
@@ -120,6 +142,10 @@ func load_values() -> void:
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
+	_render_scale_auto.button_pressed = bool(Config.value("game", "render_scale_auto", true))
+	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
+	_render_scale.value_changed.emit(_render_scale.value)
+	_render_scale.editable = not _render_scale_auto.button_pressed
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -167,6 +193,17 @@ func save() -> bool:
 	if _helmet.selected >= 0:
 		var hp := {"mode": String(_helmet_modes[_helmet.selected])}
 		ok = UserSettings.save_patch("helmet", hp, config_dir) and ok
+	ok = (
+		UserSettings.save_patch(
+			"game",
+			{
+				"render_scale_auto": _render_scale_auto.button_pressed,
+				"render_scale_pct": _render_scale.value,
+			},
+			config_dir
+		)
+		and ok
+	)
 	Config.reload()
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():

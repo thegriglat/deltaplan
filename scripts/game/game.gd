@@ -299,13 +299,15 @@ func set_input_enabled(on: bool) -> void:
 ## Настройки пилота поменялись (user://configs): перечитать то, что закешировано в нодах.
 ## Графика: небо, облака и окно — сразу; деревья — при следующей загрузке рельефа.
 func apply_user_settings() -> void:
+	# Масштаб окна (пресет и/или «Масштаб рендера» из настроек) — сразу, вне зависимости от
+	# того, поменялся ли сам пресет.
+	GraphicsPresets.apply_viewport(get_viewport())
 	if GraphicsPresets.current() != _graphics:
 		if _graphics != "":
 			sky.apply_config()
 			var clouds := air.get_node_or_null("Clouds")
 			if clouds != null and clouds.has_method("set_quality"):
 				clouds.call("set_quality", String(Config.value("atmosphere", "clouds.quality")))
-			GraphicsPresets.apply_viewport(get_viewport())
 			_terrain_dirty = true
 		_graphics = GraphicsPresets.current()
 	input_controller.reload_config()
