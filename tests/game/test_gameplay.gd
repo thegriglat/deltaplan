@@ -84,8 +84,13 @@ func test_walk_run_and_turn_on_ground() -> void:
 	_ticks(game, 0.3)
 	check(game.glider.phase() == "running", "W+Shift — разбег (%s)" % game.glider.phase())
 	var ctl := game.input_controller.control
+	# Нос держится сам: нейтраль, в сильный ветер — ниже по углу атаки (G06, ground.auto_nose).
 	var nose := float(Config.value("controls", "ground.run_nose_neutral"))
-	check(ctl.run and absf(ctl.pitch - nose) < 0.05, "нос на разбеге держится сам: %.2f" % ctl.pitch)
+	var auto_rng := float(Config.value("controls", "ground.auto_nose.range", 0.3))
+	check(
+		ctl.run and ctl.pitch < nose + 0.05 and ctl.pitch > nose - auto_rng - 0.05,
+		"нос на разбеге держится сам: %.2f" % ctl.pitch
+	)
 	Input.action_release("run")
 	_ticks(game, 0.1)
 	check(

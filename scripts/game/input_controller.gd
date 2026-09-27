@@ -18,9 +18,14 @@ var enabled := true
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
 ## на земле стоим. Защёлка при отрыве продолжает отслеживаться.
 var hands_off := false
+## Телеметрия планера для автоматического носа на разбеге (LaunchNose): () -> Telemetry.
+## Не задана — берётся у соседнего узла Glider (сцена игры); нет и его — нос на нейтрали.
+var telemetry_fn: Callable
 
 var _cfg: Dictionary
 var _nose_trim := 0.0  # подстройка носа на разбеге стрелками
+var _auto_nose := 0.0  # автоматический нос по ветру (≤ 0 — ниже нейтрали)
+var _launch_nose := LaunchNose.new()
 var _was_on_ground := true
 var _latched := {}  # действие → true: зажато в момент отрыва, не отпущено
 var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
@@ -34,6 +39,7 @@ func _ready() -> void:
 func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
+	_launch_nose.configure(_cfg.get("ground", {}).get("auto_nose", {}))
 
 
 func mouse_mode() -> String:
@@ -77,6 +83,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func reset() -> void:
 	_latched.clear()
 	_nose_trim = 0.0
+	_auto_nose = 0.0
+	_launch_nose.reset()
 	_was_on_ground = true
 	on_ground = true
 	control = ControlInput.new()
@@ -115,7 +123,7 @@ func is_latched(action: String) -> bool:
 
 
 ## На земле (FR-30): W — идти, W+Shift — разбег, S — назад, A/D — поворот.
-## Нос крыла на разбеге держится сам (ground.run_nose_neutral), ↑/↓ — подстройка.
+## Нос крыла на разбеге держится сам (_run_nose), ↑/↓ — подстройка поверх.
 func _update_ground(dt: float) -> void:
 	var kb: Dictionary = _cfg.keyboard
 	var g: Dictionary = _cfg.ground
@@ -128,7 +136,8 @@ func _update_ground(dt: float) -> void:
 	_nose_trim = clampf(
 		_nose_trim + trim_dir * float(g.nose_pitch_rate_per_s) * sens * dt, -rng, rng
 	)
-	var nose := float(g.run_nose_neutral) + _nose_trim
+	_update_auto_nose(trim_dir, dt)
+	var nose := _run_nose()
 	control.run = run
 	if run:
 		control.walk = 0.0
@@ -156,6 +165,8 @@ func _update_air(dt: float) -> void:
 	control.run = false
 	control.walk = 0.0
 	_nose_trim = 0.0
+	_auto_nose = 0.0
+	_launch_nose.reset()
 	if mouse_captured and mouse_mode() == "bar":
 		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
 		if ret > 0.0:
@@ -192,7 +203,41 @@ func _apply_gamepad() -> void:
 	if on_ground and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
-		control.pitch = float(_cfg.ground.run_nose_neutral) + _nose_trim
+		control.pitch = _run_nose()
+
+
+## Нос на разбеге: нейтраль + автоматический нос по ветру + подстройка стрелками.
+func _run_nose() -> float:
+	return float(_cfg.ground.run_nose_neutral) + _auto_nose + _nose_trim
+
+
+## «Нос держится сам» (G06, ground.auto_nose): стоя пилот чувствует ветер в лицо; в сильный
+## ветер нос сам уходит вниз до угла атаки ~18° (как автопилот F01), в слабый — нейтраль.
+## Пока игрок подстраивает нос стрелками, автомат замирает — ошибка «нос высоко/низко» возможна.
+func _update_auto_nose(trim_dir: float, dt: float) -> void:
+	var an: Dictionary = _cfg.ground.get("auto_nose", {})
+	if not bool(an.get("enabled", true)):
+		_auto_nose = 0.0
+		return
+	var t := _telemetry()
+	if t == null:
+		return
+	_launch_nose.observe(t)
+	if trim_dir != 0.0 or absf(_nose_trim) > 1e-6:
+		return
+	var dir := _launch_nose.direction(t)
+	var rate := float(an.get("rate_per_s", 0.6))
+	var rng := float(an.get("range", 0.3))
+	_auto_nose = clampf(_auto_nose + dir * rate * dt, -rng, 0.0)
+
+
+func _telemetry() -> Telemetry:
+	if not telemetry_fn.is_valid():
+		var g := get_node_or_null("../Glider")
+		if g == null or not g.has_method("get_telemetry"):
+			return null
+		telemetry_fn = g.get_telemetry
+	return telemetry_fn.call() as Telemetry
 
 
 ## Сила действия с учётом защёлки.
