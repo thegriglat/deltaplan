@@ -14,6 +14,8 @@ extends Node3D
 ##   --clearings        построить и применить маску просек (WorldClearings.build_for) для location
 ##   --no-trees, --no-shadows, --no-grass  отключить деревья / тени / траву (замер цены)
 ##   --wind=<км/ч>,<откуда°>  ветер для колыхания травы; --thermal=x,z,радиус,м/с — термик
+##   --gusts[=<м/с>]    фейковая порывистость воздуха (air_fn, T05) — амплитуда пятен то растёт,
+##                      то стихает, чтобы проверить усиление колыхания при порывистости
 ##   --inversion=<м>    высота инверсии (верх дымки = она + haze.top_margin_m), --no-haze
 ## Управление: WASD, Q/E, Shift, правая кнопка мыши — обзор.
 
@@ -105,9 +107,19 @@ func _setup_wind() -> void:
 				}
 			)
 		)
+	var air_fn := Callable()
+	if _args.has("gusts"):
+		var gust_amp := float(_args.gusts) if String(_args.gusts) != "1" else 3.0
+		var cross := (
+			Vector3(-w.z, 0.0, w.x).normalized() if w != Vector3.ZERO else Vector3(1.0, 0.0, 0.0)
+		)
+		air_fn = func(_pos: Vector3) -> Vector3:
+			var s := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 0.4)
+			return w + cross * gust_amp * s
 	terrain.set_wind_sources(
 		func(_pos: Vector3) -> Vector3: return w,
-		func(_pos: Vector3, _r: float) -> Array[Dictionary]: return th
+		func(_pos: Vector3, _r: float) -> Array[Dictionary]: return th,
+		air_fn
 	)
 
 
@@ -239,9 +251,9 @@ func _bench_static() -> void:
 		mean /= arr.size()
 		var p95_i := clampi(ceili(0.95 * arr.size()) - 1, 0, arr.size() - 1)
 		print(
-			"BENCH_STATIC_JSON:"
-			+ JSON.stringify(
-				{"gpu_ms_mean": mean, "gpu_ms_p95": arr[p95_i], "n": arr.size()}
+			(
+				"BENCH_STATIC_JSON:"
+				+ JSON.stringify({"gpu_ms_mean": mean, "gpu_ms_p95": arr[p95_i], "n": arr.size()})
 			)
 		)
 		get_tree().quit()

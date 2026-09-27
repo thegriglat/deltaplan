@@ -3,6 +3,9 @@
 // и из Atmosphere (mean_wind_at у земли, thermals_near). Числа здесь — только технические (хеши).
 
 uniform vec2 wind_vec = vec2(0.0);         // средний ветер у земли (10 м AGL), м/с, X/Z мира
+// накопленное на CPU смещение рисунка порывов (offset += wind · dt, TerrainWind.advance, T05):
+// заменяет TIME · wind — смена направления ветра не сдвигает рисунок задним числом (нет скачка).
+uniform vec2 wind_offset = vec2(0.0);
 uniform float wind_gust_scale_m = 60.0;    // размер пятна порыва, м
 uniform float wind_gust_speed_k = 1.2;     // скорость бега порывов / скорость ветра
 uniform float wind_wave_len_m = 9.0;       // длина волны «ряби» по траве вдоль ветра, м
@@ -10,6 +13,11 @@ uniform float wind_full_ms = 8.0;          // при таком ветре ко�
 uniform float wind_shade = 0.16;           // сила изменения яркости травы (изнанка листьев), доля
 uniform float wind_bend = 0.35;            // наклон нормали травы по ветру
 uniform float wind_fade_m = 3000.0;        // дальше этого расстояния колыхания не видно, м
+// порывистость атмосферы (T05): |air_velocity_at − mean_wind_at| у земли, сглаженная TerrainWind
+// экспонентой (gust_tau_s) — усиливает амплитуду пятен, когда атмосфера реально порывиста.
+uniform float wind_gust_ms = 0.0;          // сглаженная порывистость, м/с
+uniform float gust_full_ms = 2.0;          // порывистость, при которой усиление насыщается, м/с
+uniform float gust_gain = 0.6;             // добавка к амплитуде пятен при полной порывистости, доля
 // термики у земли: xy — ось X/Z, z — радиус, м; w — сила 0..1 (огибающая × сила / норма)
 uniform vec4 wind_thermals[8];
 uniform int wind_thermal_count = 0;
@@ -46,8 +54,10 @@ void grass_wind(vec2 xz, float dist, float t, out float shade, out vec2 bend) {
 	float spd = length(wind_vec);
 	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
 	float amp = smoothstep(0.3, wind_full_ms, spd);
-	// порывы: пятна бегут по ветру
-	vec2 p = xz - d * t * spd * wind_gust_speed_k;
+	amp *= 1.0 + gust_gain * smoothstep(0.0, gust_full_ms, wind_gust_ms);
+	// порывы: пятна бегут по ветру — смещение накоплено на CPU (wind_offset), не TIME · wind,
+	// чтобы смена направления не двигала рисунок задним числом (нет скачка при повороте ветра).
+	vec2 p = xz - wind_offset * wind_gust_speed_k;
 	float g = wind_noise(p / wind_gust_scale_m) * 0.65 + wind_noise(p / (wind_gust_scale_m * 0.4)) * 0.35;
 	g = smoothstep(0.35, 0.8, g);
 	// рябь поперёк ветра (волны по ниве), гаснет, когда волна мельче пикселя

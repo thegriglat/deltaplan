@@ -13,7 +13,8 @@ extends Node3D
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость),
 ##                           годится как sun_fn для Atmosphere.set_ground
 ## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
-## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near), set_pilot(node).
+## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near,
+## atmo.air_velocity_at), set_pilot(node).
 ## Дополнительно: load_location(id), load_location_latlon(lat, lon, size_km) (рантайм, FR-17),
 ## latlon_to_local / local_to_latlon, сигнал loaded.
 ## Координаты: X — восток, −Z — север, Y — высота над уровнем моря; начало X/Z — центр локации.
@@ -186,12 +187,18 @@ func setup(
 
 
 ## Источники ветра для визуала (VR-17): mean_wind_fn(pos) -> Vector3 (Atmosphere.mean_wind_at),
-## thermals_fn(pos, radius) -> Array[Dictionary] (Atmosphere.thermals_near). Пустые — штиль.
-func set_wind_sources(mean_wind_fn: Callable, thermals_fn: Callable) -> void:
+## thermals_fn(pos, radius) -> Array[Dictionary] (Atmosphere.thermals_near).
+## air_fn(pos) -> Vector3 (Atmosphere.air_velocity_at) — необязательный (T05): порывистость
+## |air − mean_wind| у земли усиливает амплитуду пятен на траве. Без него — как раньше (штиль
+## порывов).
+func set_wind_sources(
+	mean_wind_fn: Callable, thermals_fn: Callable, air_fn: Callable = Callable()
+) -> void:
 	if wind == null:
 		_setup_wind(Config.get_config("world").get("wind_visual", {}))
 	wind.mean_wind_fn = mean_wind_fn
 	wind.thermals_fn = thermals_fn
+	wind.air_fn = air_fn
 
 
 ## Просеки для деревьев (дороги, коридоры ЛЭП, здания, посадки) — маска WorldClearings:
