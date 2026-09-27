@@ -1,7 +1,10 @@
 class_name CloudLayer
 extends Node3D
-## Кучевые облака над термиками: по одному объёмному боксу (raymarch-шейдер) на облако
-## и пятно тени на земле (Decal). Стадия облака — из жизненного цикла его термика:
+## Кучевые облака над термиками и их тени на земле (Decal). Два способа рисовать:
+## - compute (Forward+/Mobile): все облака одним raymarch-проходом в буфере пониженного
+##   разрешения с апскейлом (CloudCompositorEffect на активной камере);
+## - boxes (Compatibility): бокс с raymarch-шейдером на каждое облако.
+## Стадия облака — из жизненного цикла его термика:
 ## рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
 ## распад (рваное, тает, уплывает).
 ## Никаких других визуальных признаков термиков (FR-22).
@@ -27,6 +30,11 @@ var _drifting: Dictionary = {}
 var _next_slot: int = 0
 var _basis_axes: Array = [Vector3.RIGHT, Vector3.UP, Vector3.BACK]
 
+## Compute-путь: эффект на камере и данные облаков по слотам (по 20 чисел).
+var _effect: CloudCompositorEffect
+var _gpu: Array[PackedFloat32Array] = []
+var _cam_with_effect: Camera3D
+
 var _acc: float = 1.0e9
 var _light_acc: float = 1.0e9
 var _sun: DirectionalLight3D
@@ -38,7 +46,8 @@ var _boil: float = 0.0
 func setup(atmosphere: Atmosphere) -> void:
 	atmo = atmosphere
 	cfg = atmo.cfg.clouds
-	model.setup(cfg)
+	model.setup(cfg, float(atmo.weather.get("cloud_size_factor", 1.0)))
+	atmo.weather_changed.connect(_on_weather_changed)
 	_material = ShaderMaterial.new()
 	_material.shader = load("res://scripts/atmosphere/cloud_volume.gdshader")
 	var seed_value := int(atmo.cfg.seed)
@@ -75,6 +84,13 @@ func setup(atmosphere: Atmosphere) -> void:
 		"silver": "silver",
 		"ms_strength": "multi_scatter",
 		"light_step_m": "light_step_m",
+		"hf_period_m": "hf_period_m",
+		"curl_strength_m": "curl_strength_m",
+		"base_darkness": "base_darkness",
+		"base_relief_m": "base_relief_m",
+		"sky_occlusion_m": "sky_occlusion_m",
+		"surface_sharpness": "surface_sharpness",
+		"light_step_growth": "light_step_growth",
 		"lod_distance_m": "lod_distance_m",
 		"ambient_energy": "ambient_energy",
 	}
@@ -87,6 +103,12 @@ func setup(atmosphere: Atmosphere) -> void:
 	_material.set_shader_parameter("ambient_bottom", _color(cfg.ambient_bottom))
 	_box = BoxMesh.new()
 	_box.size = Vector3.ONE
+	var renderer := String(cfg.renderer)
+	if renderer != "boxes" and RenderingServer.get_rendering_device() != null:
+		_effect = CloudCompositorEffect.new()
+		_effect.noise_shape = _material.get_shader_parameter("noise_shape")
+		_effect.noise_detail = _material.get_shader_parameter("noise_detail")
+		set_quality(String(cfg.quality))
 	if bool(cfg.shadows):
 		_shadow_tex = _make_shadow_texture(int(cfg.shadow_texture_size))
 	_update_light()
@@ -100,7 +122,9 @@ func set_quality(q: String) -> void:
 		_material.set_shader_parameter(u, int(p[u]))
 	for u in ["fine_step_per_m", "fine_step_min_m"]:
 		_material.set_shader_parameter(u, float(p[u]))
-	_material.set_shader_parameter("detail_enabled", bool(p.detail))
+	_material.set_shader_parameter("detail_enabled", 1 if bool(p.detail) else 0)
+	if _effect != null:
+		_effect.resolution_scale = float(p.lowres_scale)
 
 
 ## Текстуры шума генерируются в фоне; до готовности облака гладкие.
@@ -168,6 +192,10 @@ func _make_shadow_texture(size: int) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 
+func _on_weather_changed() -> void:
+	model.setup(cfg, float(atmo.weather.get("cloud_size_factor", 1.0)))
+
+
 func _process(delta: float) -> void:
 	if atmo == null:
 		return
@@ -185,12 +213,82 @@ func _process(delta: float) -> void:
 		_update_light()
 	var cam := get_viewport().get_camera_3d()
 	var eye := cam.global_position if cam != null else atmo.get_focus()
+	if _effect != null:
+		_attach_effect(cam)
 	_acc += delta
 	if _acc >= float(cfg.update_interval_s):
 		_acc = 0.0
 		_select(t, eye)
 	_update_some(t, eye)
 	_update_drift(t)
+	if _effect != null:
+		_push_to_effect()
+
+
+## Эффект вешается на активную камеру (к её Compositor, не трогая чужие эффекты).
+func _attach_effect(cam: Camera3D) -> void:
+	if cam == _cam_with_effect or cam == null:
+		return
+	if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
+		var old := _cam_with_effect.compositor
+		if old != null:
+			var effs := old.compositor_effects.duplicate()
+			effs.erase(_effect)
+			old.compositor_effects = effs
+	if cam.compositor == null:
+		cam.compositor = Compositor.new()
+	var list := cam.compositor.compositor_effects.duplicate()
+	if not list.has(_effect):
+		list.append(_effect)
+		cam.compositor.compositor_effects = list
+	_cam_with_effect = cam
+
+
+## Параметры материала и облака слотов — в compute-эффект.
+func _push_to_effect() -> void:
+	var names := CloudCompositorEffect.FLOAT_PARAMS + CloudCompositorEffect.INT_PARAMS
+	for pair in CloudCompositorEffect.VEC_PARAMS:
+		names = names + pair
+	for n: String in names:
+		var v: Variant = _material.get_shader_parameter(n)
+		if v is Color:
+			v = Vector3(v.r, v.g, v.b)
+		if v != null:
+			_effect.params[n] = v
+	var data := PackedFloat32Array()
+	var count := 0
+	# Отсечение по пирамиде видимости: в compute-проход — только облака в кадре.
+	var planes: Array[Plane] = []
+	if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
+		planes = _cam_with_effect.get_frustum()
+	for i in _gpu.size():
+		if _slot_th[i] == null or _gpu[i].is_empty():
+			continue
+		var g := _gpu[i]
+		var c := Vector3(g[0], g[1], g[2])
+		var r := Vector3(g[6], g[3], g[7]).length()
+		var inside := true
+		for pl in planes:
+			if pl.distance_to(c) > r:
+				inside = false
+				break
+		if inside:
+			data.append_array(g)
+			count += 1
+	_effect.clouds_data = data
+	_effect.cloud_count = count
+
+
+func _exit_tree() -> void:
+	if _effect != null:
+		_attach_effect(null)
+		if _cam_with_effect != null and is_instance_valid(_cam_with_effect):
+			var comp := _cam_with_effect.compositor
+			if comp != null:
+				var effs := comp.compositor_effects.duplicate()
+				effs.erase(_effect)
+				comp.compositor_effects = effs
+		_cam_with_effect = null
 
 
 ## Солнце и дымка — из сцены (DirectionalLight3D, WorldEnvironment), иначе из конфига.
@@ -264,7 +362,9 @@ func _release(slot: int) -> void:
 		_slot_of.erase(th.id)
 	_slot_th[slot] = null
 	_drifting.erase(slot)
-	_pool[slot].visible = false
+	if slot < _pool.size():
+		_pool[slot].visible = false
+	_gpu[slot] = PackedFloat32Array()
 	if slot < _shadows.size():
 		_shadows[slot].visible = false
 	_free.append(slot)
@@ -272,7 +372,7 @@ func _release(slot: int) -> void:
 
 ## Обновить форму и стадию части облаков за кадр (по кругу) — без пиков нагрузки.
 func _update_some(t: float, eye: Vector3) -> void:
-	var n := _pool.size()
+	var n := _slot_th.size()
 	if n == 0:
 		return
 	var per_frame := ceili(float(n) / maxf(float(cfg.update_spread_frames), 1.0))
@@ -283,13 +383,15 @@ func _update_some(t: float, eye: Vector3) -> void:
 
 
 func _add_slot() -> int:
-	var mi := MeshInstance3D.new()
-	mi.mesh = _box
-	mi.material_override = _material
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-	add_child(mi)
-	_pool.append(mi)
+	if _effect == null:
+		var mi := MeshInstance3D.new()
+		mi.mesh = _box
+		mi.material_override = _material
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+		add_child(mi)
+		_pool.append(mi)
+	_gpu.append(PackedFloat32Array())
 	if _shadow_tex != null:
 		var dc := Decal.new()
 		dc.texture_albedo = _shadow_tex
@@ -302,7 +404,7 @@ func _add_slot() -> int:
 		add_child(dc)
 		_shadows.append(dc)
 	_slot_th.append(null)
-	return _pool.size() - 1
+	return _slot_th.size() - 1
 
 
 func _place(i: int, t: float, eye: Vector3) -> void:
@@ -323,20 +425,32 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 	var h := sz4.z
 	var spread := sz4.w
 	var base := th.top
-	var mi := _pool[i]
-	mi.visible = true
 	# Бокс с запасом: контур шумит, верх переразвитого растекается.
-	var pad := 1.45 + spread * 0.8
+	# Плотность гаснет к 1,6 радиуса и 1,35 мощности (cloud_common: FADE_*) — бокс чуть больше.
+	var pad := 1.65 + spread * 0.8
 	var sy := h * 1.4 + 20.0
 	var sx := 2.0 * rx * pad
 	var sz := 2.0 * rz * pad
-	var b := Basis(axes[0] * sx, axes[1] * sy, axes[2] * sz)
-	mi.transform = Transform3D(b, Vector3(c.x, base - 10.0 + sy * 0.5, c.y))
-	mi.set_instance_shader_parameter("cloud_shape", Vector4(base, h, rx, rz))
-	mi.set_instance_shader_parameter(
-		"cloud_state", Vector4(g, dcy, st.z, float(th.noise_seed % 9973))
-	)
-	mi.set_instance_shader_parameter("cloud_extra", Vector4(spread, 0, 0, 0))
+	var center := Vector3(c.x, base - 10.0 + sy * 0.5, c.y)
+	var shape := Vector4(base, h, rx, rz)
+	var state := Vector4(g, dcy, st.z, float(th.noise_seed % 9973))
+	var extra := Vector4(spread, 0, 0, 0)
+	if _effect != null:
+		var ax: Vector3 = axes[0]
+		_gpu[i] = PackedFloat32Array([
+			center.x, center.y, center.z, sy * 0.5,
+			ax.x, ax.z, sx * 0.5, sz * 0.5,
+			shape.x, shape.y, shape.z, shape.w,
+			state.x, state.y, state.z, state.w,
+			extra.x, extra.y, extra.z, extra.w,
+		])
+	else:
+		var mi := _pool[i]
+		mi.visible = true
+		mi.transform = Transform3D(Basis(axes[0] * sx, axes[1] * sy, axes[2] * sz), center)
+		mi.set_instance_shader_parameter("cloud_shape", shape)
+		mi.set_instance_shader_parameter("cloud_state", state)
+		mi.set_instance_shader_parameter("cloud_extra", extra)
 	if i < _shadows.size():
 		var dc := _shadows[i]
 		var dist := Vector2(eye.x, eye.z).distance_to(c)
@@ -364,5 +478,10 @@ func _update_drift(t: float) -> void:
 	for i in _drifting:
 		var th: AtmoThermal = _drifting[i]
 		var c := model.center(th, t)
-		var mi := _pool[i]
-		mi.position = Vector3(c.x, mi.position.y, c.y)
+		if _effect != null:
+			if not _gpu[i].is_empty():
+				_gpu[i][0] = c.x
+				_gpu[i][2] = c.y
+		else:
+			var mi := _pool[i]
+			mi.position = Vector3(c.x, mi.position.y, c.y)

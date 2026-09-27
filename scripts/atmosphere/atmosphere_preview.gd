@@ -34,12 +34,15 @@ func _ready() -> void:
 	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
 	if _args.has("wind"):
 		atmo.set_wind(float(_args.wind), float(atmo.weather.wind_from_deg))
-	var terrain := get_node_or_null("Terrain") as Terrain
-	if terrain != null:
+	# Рельеф — чужой модуль: без статического типа, чтобы превью не зависело от его компиляции.
+	var terrain := get_node_or_null("Terrain")
+	if terrain != null and terrain.has_method("height_at"):
 		# Реальный рельеф (сцена atmosphere_terrain_preview.tscn): термики от солнечных склонов.
-		atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
-		atmo.set_sun_direction(terrain.sun_direction())
-		var sites := terrain.get_start_sites()
+		atmo.set_ground(
+			Callable(terrain, "height_at"), Callable(terrain, "sun_exposure_at")
+		)
+		atmo.set_sun_direction(terrain.call("sun_direction"))
+		var sites: Array = terrain.call("get_start_sites")
 		if not sites.is_empty():
 			_site = sites[0]
 	else:
@@ -74,6 +77,8 @@ func _bench_frame(layer: CloudLayer) -> void:
 		_bench_on.append(gpu)
 	elif _frames == 140:
 		layer.visible = false
+		if layer._effect != null:
+			layer._effect.enabled = false
 	elif _frames > 150 and _frames < 270:
 		_bench_off.append(gpu)
 	elif _frames >= 270:
@@ -123,20 +128,23 @@ func _make_stages() -> void:
 	atmo.step(0.0)
 
 
+## Зрелое облако среднего размера из тех, что реально рисуются (после слияния наложившихся).
 func _strongest_cloud(max_dist: float) -> AtmoThermal:
-	var best: AtmoThermal = null
 	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
-	for id in atmo.field.thermals:
-		var th: AtmoThermal = atmo.field.thermals[id]
-		if layer == null:
-			break
-		var st := layer.model.stage(th, atmo.time_s)
-		if st.x < 0.8 or st.y > 0.1:
+	if layer == null:
+		return null
+	var best: AtmoThermal = null
+	var best_score := -1.0
+	for e: Array in layer.model.select(atmo.field.thermals, atmo.time_s, Vector3.ZERO):
+		var th: AtmoThermal = e[1]
+		var st: Vector3 = e[2]
+		var c: Vector2 = e[3]
+		if st.x < 0.8 or st.y > 0.1 or c.length() > max_dist:
 			continue
-		var c := layer.model.center(th, atmo.time_s)
-		if c.length() > max_dist:
-			continue
-		if best == null or th.strength > best.strength:
+		# Ближе к типичному размеру (~1,2 км) — лучше для показа.
+		var score := 1.0 / (1.0 + absf(float(e[4]) - 600.0))
+		if score > best_score:
+			best_score = score
 			best = th
 	return best
 

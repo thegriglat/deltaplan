@@ -107,7 +107,9 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	field.set_turbulence_params(float(tb.edge_factor), float(tb.edge_width))
 	var cc: Dictionary = cfg.clouds
 	field.cloud_linger_s = float(cc.linger_s)
-	field.cloud_width_per_ms = float(cc.width_per_ms_m)
+	field.cloud_width_per_ms = (
+		float(cc.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
+	)
 	field.cloud_width_min = float(cc.width_min_m)
 	field.cloud_width_max = float(cc.width_max_m)
 	var el := deg_to_rad(float(cc.sun_elevation_deg))

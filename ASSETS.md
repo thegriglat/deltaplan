@@ -56,7 +56,7 @@
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
 | `assets/models/bird.glb` (исходник `assets/source/bird.blend`) | низкополигональная парящая хищная птица, размах 1,6 м (57 вершин) | сгенерировано `tools/blender/bird.py` (Blender 4.3) | — | птицы в сильных термиках (`scripts/atmosphere/bird_flock.gd`, путь — `configs/atmosphere.json → birds.model_path`) |
-| — | 3D-шум облаков (Уорли, 96³ и 64³) | сгенерировано процедурно при старте: `NoiseTexture3D` + `FastNoiseLite` в `scripts/atmosphere/cloud_layer.gd`; можно заменить готовой текстурой (`clouds.noise_*_texture`) | — | объёмные облака |
+| `assets/textures/clouds/cloud_shape.png`, `cloud_detail.png` | бесшовный 3D-шум облаков: Perlin-Worley 128³ и Уорли 64³ (атласы срезов, импорт как Texture3D) | сгенерировано `tools/atmosphere/gen_cloud_noise.py` | — | объёмные облака (`configs/atmosphere.json → clouds.noise_*_texture`); без файла — процедурный Уорли в `cloud_layer.gd` |
 | — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
 | — | раскраска рельефа (трава, лес, поля, скалы, снег, реки) и деревья | сгенерировано процедурно: `scripts/terrain/terrain.gdshader`, `trees.gdshader` | — | рельеф |
 | `data/terrain/textures/grass_ambientcg_grass004.jpg` | рисунок травы вблизи (1K, цвет) | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `configs/world.json → terrain_textures.grass` |

@@ -7,6 +7,8 @@ extends RefCounted
 ## Принудительная стадия облака по id термика (для тестовой сцены):
 ## Vector3(рост, распад, активность).
 var stage_override: Dictionary = {}
+## Множитель размера облаков из пресета погоды (покрытие неба).
+var size_factor: float = 1.0
 
 var _cfg: Dictionary
 # Коэффициенты из конфига (словарь в горячем цикле медленный).
@@ -18,10 +20,13 @@ var _w_min: float = 350.0
 var _w_max: float = 1800.0
 var _overdev_k: float = 2.4
 var _overdev_spread: float = 0.7
+var _hw_min: float = 0.45
+var _hw_max: float = 0.9
 
 
-func setup(clouds_cfg: Dictionary) -> void:
+func setup(clouds_cfg: Dictionary, weather_size_factor: float = 1.0) -> void:
 	_cfg = clouds_cfg
+	size_factor = weather_size_factor
 	_delay_k = float(_cfg.delay_factor)
 	_grow_s = float(_cfg.grow_s)
 	_linger_s = float(_cfg.linger_s)
@@ -30,6 +35,8 @@ func setup(clouds_cfg: Dictionary) -> void:
 	_w_max = float(_cfg.width_max_m)
 	_overdev_k = float(_cfg.overdev_depth_factor)
 	_overdev_spread = float(_cfg.overdev_spread)
+	_hw_min = float(_cfg.height_to_width[0])
+	_hw_max = float(_cfg.height_to_width[1])
 
 
 ## Стадия облака над термиком в момент t: Vector3(рост 0..1, распад 0..1, активность 0..1).
@@ -70,13 +77,15 @@ func center(th: AtmoThermal, t: float) -> Vector2:
 func size(th: AtmoThermal, st: Vector3) -> Vector4:
 	var g := st.x
 	var dcy := st.y
-	var width := clampf(_w_per_ms * th.strength, _w_min, _w_max)
+	var width := clampf(_w_per_ms * th.strength * size_factor, _w_min, _w_max)
 	# Растёт вширь, на распаде расползается.
 	var rz := width * 0.5 * (0.55 + 0.45 * g) * (1.0 + 0.3 * dcy)
 	var rx := rz * th.cloud_stretch
 	var od := th.overdevelop * g
+	# Кучевые хорошей погоды шире, чем выше: мощность в пределах доли ширины.
+	var depth := clampf(th.cloud_depth, width * _hw_min, width * _hw_max)
 	var h := (
-		th.cloud_depth
+		depth
 		* (1.0 + od * (_overdev_k - 1.0))
 		* (0.3 + 0.7 * g)
 		* (1.0 - 0.35 * dcy)
