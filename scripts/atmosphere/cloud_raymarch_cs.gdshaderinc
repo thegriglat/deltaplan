@@ -2,6 +2,9 @@
 // cloud_compositor_effect.gd: заголовок + cloud_common.gdshaderinc + этот текст).
 // Для каждого пикселя: пересечения луча с боксами всех облаков, сортировка по дальности,
 // проход вперемешку по дальности (боксы соседей перекрываются) с общим пропусканием. Рельеф обрезает луч (буфер глубины).
+// Одновременно в работе до MAX_HITS ближних боксов; пройденный бокс уступает место следующему
+// по дальности (иначе на лучах через много боксов дальние облака пропадали — облако срезалось
+// вертикальной гранью бокса ближнего соседа).
 // Выход: цвет с премультипликацией + непрозрачность, расстояние до сцены (для апскейла)
 // и средняя глубина облака (для временного накопления).
 
@@ -11,7 +14,12 @@ const int MAX_HITS = 8;
 // Облака с перекрытыми по лучу боксами: длина среза (м и доля дальности), запас проходов.
 const float SLICE_M = 400.0;
 const float SLICE_K = 0.05;
-const int MAX_PASSES = 96;
+const int MAX_PASSES = 160;
+
+// Пройденное облако освобождает место: список уплотняется, и свободные места за один проход
+// по всем облакам занимают следующие по дальности боксы — после последнего взятого
+// (tn_last, id_last): порядок — по ближней границе, при равенстве — по номеру. Ждать, пока
+// освободится несколько мест, нельзя: дальние облака тогда снова пропадали (проверено).
 
 Cloud cloud_at(int i, vec3 ro, float pix_a) {
 	vec4 a = clouds.d[i * 5];
@@ -52,6 +60,7 @@ void main() {
 	float h_tf[MAX_HITS];
 	int h_id[MAX_HITS];
 	int nh = 0;
+	int n_all = 0;
 	for (int i = 0; i < cloud_count; i++) {
 		float tn;
 		float tf;
@@ -62,6 +71,7 @@ void main() {
 		if (tf <= tn) {
 			continue;
 		}
+		n_all++;
 		if (nh == MAX_HITS) {
 			if (tn >= h_tn[MAX_HITS - 1]) {
 				continue;
@@ -99,6 +109,10 @@ void main() {
 		vec4 sh = clouds.d[h_id[k] * 5 + 2];
 		st[k] = cloud_march_start(max(sh.z, 10.0), max(sh.w, 10.0), h_tn[k], h_tf[k], ign);
 	}
+	// Боксы, ещё не взятые в работу, и последний взятый (порядок — см. выше, у MAX_PASSES).
+	int pending = n_all - nh;
+	float tn_last = nh > 0 ? h_tn[nh - 1] : 0.0;
+	int id_last = nh > 0 ? h_id[nh - 1] : -1;
 	for (int pass = 0; pass < MAX_PASSES; pass++) {
 		if (trans < 0.01) {
 			break;
@@ -125,6 +139,57 @@ void main() {
 		cloud_march_part(cloud_at(h_id[kmin], ro, pix_a), ro, rd, h_tn[kmin], h_tf[kmin], ign,
 				stop, s, trans, col, t_acc, w_acc);
 		st[kmin] = s;
+		if (s.x < 1e30 || pending <= 0 || trans < 0.01) {
+			continue;
+		}
+		int na = 0;
+		for (int k = 0; k < nh; k++) {
+			if (st[k].x < 1e30) {
+				h_tn[na] = h_tn[k];
+				h_tf[na] = h_tf[k];
+				h_id[na] = h_id[k];
+				st[na] = st[k];
+				na++;
+			}
+		}
+		nh = na;
+		for (int i = 0; i < cloud_count; i++) {
+			float tn;
+			float tf;
+			if (!cloud_box_hit(clouds.d[i * 5], clouds.d[i * 5 + 1], ro, rd, tn, tf)) {
+				continue;
+			}
+			tf = min(tf, scene_t);
+			if (tf <= tn || tn < tn_last || (tn == tn_last && i <= id_last)) {
+				continue;
+			}
+			if (nh == MAX_HITS) {
+				if (tn >= h_tn[MAX_HITS - 1]) {
+					continue;
+				}
+				nh = MAX_HITS - 1;
+			}
+			int j = nh;
+			while (j > na && h_tn[j - 1] > tn) {
+				h_tn[j] = h_tn[j - 1];
+				h_tf[j] = h_tf[j - 1];
+				h_id[j] = h_id[j - 1];
+				j--;
+			}
+			h_tn[j] = tn;
+			h_tf[j] = tf;
+			h_id[j] = i;
+			nh++;
+		}
+		pending -= nh - na;
+		if (nh > na) {
+			tn_last = h_tn[nh - 1];
+			id_last = h_id[nh - 1];
+		}
+		for (int k = na; k < nh; k++) {
+			vec4 sh = clouds.d[h_id[k] * 5 + 2];
+			st[k] = cloud_march_start(max(sh.z, 10.0), max(sh.w, 10.0), h_tn[k], h_tf[k], ign);
+		}
 	}
 	float alpha = 1.0 - trans;
 	// Дымка по средней глубине облака.
