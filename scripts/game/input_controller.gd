@@ -15,6 +15,9 @@ var mouse_captured := false
 var on_ground := true
 ## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
 var enabled := true
+## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
+## на земле стоим. Защёлка при отрыве продолжает отслеживаться.
+var hands_off := false
 
 var _cfg: Dictionary
 var _nose_trim := 0.0  # подстройка носа на разбеге стрелками
@@ -81,7 +84,10 @@ func reset() -> void:
 
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
-	if not enabled:
+	if not enabled or hands_off:
+		if _was_on_ground and not on_ground:
+			_latch_pressed()
+		_was_on_ground = on_ground
 		control.pitch = 0.0
 		control.roll = 0.0
 		control.walk = 0.0

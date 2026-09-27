@@ -2,6 +2,9 @@ class_name CameraRig
 extends Camera3D
 ## Камеры (FR-26): из-под крыла (cockpit), сзади (chase), свободная (free).
 ## Цель — Node3D планера; ориентация берётся из его global_transform.
+## Свободная камера летает сама: WASD — вперёд/влево/назад/вправо по взгляду, E/Q — вверх/вниз,
+## Shift — быстрее, мышь (захват или правая кнопка) — поворот, колесо — скорость, V — навести
+## на планер. Крыло при этом летит без рук (Game ставит InputController.hands_off).
 ## Кабинная камера стоит в точке глаз пилота (маркер PilotHead визуала, set_head()).
 ## Параметры — configs/camera.json. Дальняя плоскость — от мира (SkyEnvironment.setup_camera).
 
@@ -24,13 +27,15 @@ var glance_target: Node3D
 ## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
 ## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
 var body_shift_fn: Callable = Callable()
+## Свободная камера слушает клавиши движения (false — автопилот жмёт те же W/A/S/D).
+var free_keys_enabled := true
 
 var _cfg: Dictionary
 var _modes: Array
 var _head_basis := Basis.IDENTITY
-var _orbit := Vector2(0.0, -0.3)  # рыскание, тангаж орбиты
-var _free_dist := 15.0
-var _orbiting := false
+var _free_rot := Vector2.ZERO  # свободная камера: рыскание (+ влево), тангаж (+ вверх), радианы
+var _free_speed := 10.0
+var _orbiting := false  # правая кнопка зажата — поворот свободной камеры без захвата мыши
 var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
 var _recentering := false
 var _snap := true
@@ -44,7 +49,7 @@ func _ready() -> void:
 	_cfg = Config.get_config("camera")
 	_modes = _cfg.modes
 	fov = float(_cfg.fov_deg)
-	_free_dist = float(_cfg.free.distance_m)
+	_free_speed = float(_cfg.free.speed_ms)
 	set_mode(String(_cfg.default_mode))
 
 
@@ -96,6 +101,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	)
 	if event.is_action_pressed("look_center") or middle_click:
 		_recentering = true
+		if mode == "free":
+			_aim_free_at_target()
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if event is InputEventMouseMotion and captured and _mouse_looks():
@@ -119,9 +126,9 @@ func _look(rel: Vector2) -> void:
 		var down_lim := deg_to_rad(float(h.pitch_down_limit_deg))
 		_head.y = clampf(_head.y, -down_lim, deg_to_rad(float(h.pitch_up_limit_deg)))
 		_recentering = false
-	else:
-		_orbit += d
-		_orbit.y = clampf(_orbit.y, -1.5, 1.5)
+	elif mode == "free":
+		_free_rot += d
+		_free_rot.y = clampf(_free_rot.y, -1.5, 1.5)
 
 
 func _free_input(event: InputEvent) -> void:
@@ -130,12 +137,16 @@ func _free_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_RIGHT:
 			_orbiting = event.pressed
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_free_dist = maxf(float(f.min_distance_m), _free_dist / float(f.zoom_step))
+			_free_speed = minf(float(f.max_speed_ms), _free_speed * float(f.speed_step))
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_free_dist = minf(float(f.max_distance_m), _free_dist * float(f.zoom_step))
+			_free_speed = maxf(float(f.min_speed_ms), _free_speed / float(f.speed_step))
 	elif event is InputEventMouseMotion and _orbiting:
-		_orbit += event.relative * float(f.orbit_sensitivity) * Vector2(-1, -1)
-		_orbit.y = clampf(_orbit.y, -1.5, 1.5)
+		_look(event.relative)
+
+
+## Свободная камера — скорость полёта, м/с (колесо мыши меняет).
+func free_speed() -> float:
+	return _free_speed
 
 
 func _process(delta: float) -> void:
@@ -148,11 +159,50 @@ func _process(delta: float) -> void:
 		"chase":
 			_update_chase(t, delta)
 		"free":
-			var dir := Basis(Vector3.UP, _orbit.x) * Basis(Vector3.RIGHT, _orbit.y) * Vector3.BACK
-			global_position = t.origin + dir * _free_dist
-			global_position.y = maxf(global_position.y, _ground_at(global_position) + 1.0)
-			look_at(t.origin, Vector3.UP)
+			_update_free(t, delta)
 	_snap = false
+
+
+## Свободная камера: при включении — за планером и смотрит на него, дальше летает сама.
+func _update_free(t: Transform3D, delta: float) -> void:
+	var f: Dictionary = _cfg.free
+	if _snap:
+		var fwd := -t.basis.z
+		fwd.y = 0.0
+		fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
+		var side := fwd.cross(Vector3.UP)
+		global_position = (
+			t.origin
+			- fwd * float(f.start_distance_m)
+			+ side * float(f.start_side_m)
+			+ Vector3.UP * float(f.start_height_m)
+		)
+		_aim_free_at_target()
+	var basis_now := Basis(Vector3.UP, _free_rot.x) * Basis(Vector3.RIGHT, _free_rot.y)
+	if look_enabled and free_keys_enabled:
+		var move := Vector3(
+			_key("roll_right") - _key("roll_left"),
+			_key("free_up") - _key("free_down"),
+			_key("walk_back") - _key("walk_forward")
+		)
+		var speed := _free_speed * (float(f.fast_factor) if _key("run") > 0.0 else 1.0)
+		global_position += basis_now * move.limit_length(1.0) * speed * delta
+	global_position.y = maxf(global_position.y, _ground_at(global_position) + float(f.min_agl_m))
+	global_basis = basis_now
+
+
+## Навести свободную камеру на планер.
+func _aim_free_at_target() -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	var d := target.global_position + Vector3.UP * 1.5 - global_position
+	if d.length() < 0.01:
+		return
+	_free_rot = Vector2(atan2(-d.x, -d.z), atan2(d.y, Vector2(d.x, d.z).length()))
+
+
+static func _key(action: String) -> float:
+	return Input.get_action_strength(action) if InputMap.has_action(action) else 0.0
 
 
 func _update_cockpit(t: Transform3D, delta: float) -> void:

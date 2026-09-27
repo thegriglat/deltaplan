@@ -9,7 +9,9 @@ extends Node3D
 ## Подробно — docs/game.md.
 
 ## Полёт закончился: kind — "landed" (info — оценка посадки + сводка FlightStats)
-## или "takeoff_failed" (info.reason, info.text).
+## или "takeoff_failed" (info.reason, info.text + сводка).
+## Формат info — docs/game.md → «Итог полёта».
+## Посадку засчитывает FlightStats (is_finished): короткие касания у старта полёт не завершают.
 signal flight_ended(kind: String, info: Dictionary)
 ## Текст о загрузке для меню ("" — готово).
 signal status_changed(text: String)
@@ -39,6 +41,10 @@ var _animator := PilotAnimator.new()
 var _graphics := ""
 var _terrain_dirty := false
 var _crashed := false  ## врезался в препятствие — планер стоит до «Ещё раз»
+var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
+var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
+var _prev_phase := ""
+var _paused := false
 
 @onready var sky: SkyEnvironment = $Environment
 @onready var terrain: Terrain = $Terrain
@@ -105,6 +111,10 @@ func tick(dt: float) -> void:
 	if autopilot != null:
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
+	# Свободная камера занимает WASD — крыло без рук (автопилот тестов жмёт те же клавиши).
+	var free_cam := camera.mode == "free" and autopilot == null
+	input_controller.hands_off = free_cam
+	camera.free_keys_enabled = autopilot == null
 	glider.set_input(input_controller.update(dt))
 	if _crashed:
 		return
@@ -112,6 +122,7 @@ func tick(dt: float) -> void:
 	var hit := world_link.check_hit(glider.get_telemetry().position)
 	if not hit.is_empty():
 		_on_collision(hit)
+	_check_finished()
 
 
 ## Новый полёт: загрузить рельеф (если нужно), настроить крыло, погоду и поставить на старт.
@@ -163,15 +174,41 @@ func restart() -> void:
 	input_controller.reset()
 	world_link.reset_path()
 	_crashed = false
+	_ended = false
+	_touchdown = {}
+	_prev_phase = ""
 	sim_time_s = 0.0
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
+	for n in mounted:
+		if not bool(n.get_meta("shares_tablet", false)) and n.get("vario90s") != null:
+			(n.get("vario90s") as VarioDisplay90s).reset()
 	camera.snap()
+
+
+## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.
+func continue_on_foot() -> void:
+	_ended = false
+	_touchdown = {}
+	stats.reset(glider.get_telemetry().position)
+
+
+## Пауза (Esc): физика стоит (дерево на паузе), ввод и звук выключены.
+func set_paused(on: bool) -> void:
+	_paused = on
+	set_input_enabled(not on)
+	vario_audio.set_enabled(flying_enabled and not on)
+	flight_audio.set_enabled(flying_enabled and not on)
+
+
+func is_paused() -> bool:
+	return _paused
 
 
 ## В полёте (true) — ввод, прибор в углу, звук; в меню (false) — только вид.
 func set_flying(on: bool) -> void:
 	flying_enabled = on
+	_paused = false
 	set_input_enabled(on)
 	camera.set_mode(
 		(
@@ -409,14 +446,45 @@ func _on_telemetry(t: Telemetry) -> void:
 		extra["ground_wind_ms"] = (air.call("mean_wind_at", t.position) as Vector3).length()
 	flight_audio.update(t, extra)
 	stats.update(t, _dt)
+	# Старт в воздухе (reset_in_air: тесты, «свободный полёт»): взлёта со склона не было —
+	# полёт сразу засчитан, касание будет посадкой, а не «взлёт сорван».
+	if t.phase == "flying" and not (_prev_phase in ["flying", "running", "walking"]):
+		stats.armed = true
+	_prev_phase = t.phase
 	_animator.update(t.phase, t.altitude_agl, t.vario, glider.model.flare_amount(), _dt)
 
 
+## Касание ногами: звук и оценка сейчас, итог — когда FlightStats засчитает посадку.
 func _on_landed(result: Dictionary) -> void:
 	flight_audio.play_landing(result)
-	var info := result.duplicate()
-	info.merge(stats.summary(glider.get_telemetry().position))
-	flight_ended.emit("landed", info)
+	_touchdown = result.duplicate()
+
+
+## Итог — только когда FlightStats считает полёт законченным (FR-27b): посадка удержана
+## LANDING_CONFIRM_S и полёт был «взведён»; касание до взведения — "takeoff_failed".
+## Авария на касании — всегда "landed" с grade "crash".
+func _check_finished() -> void:
+	if _ended or not stats.is_finished():
+		return
+	var t := glider.get_telemetry()
+	var kind := stats.finish_reason()
+	var info := _touchdown.duplicate()
+	if kind == "takeoff_failed" and String(info.get("grade", "")) == "crash":
+		kind = "landed"
+	if kind == "takeoff_failed":
+		info["reason"] = "short_flight"
+		info["text"] = tr("Касание сразу после старта — полёт не засчитан")
+	# Сводка — целиком из FlightStats (поверх flight_time_s касания: после reset_in_air
+	# время модели обнуляется и было бы занижено).
+	info.merge(stats.summary(t.position), true)
+	_emit_end(kind, info)
+
+
+func _emit_end(kind: String, info: Dictionary) -> void:
+	if _ended:
+		return
+	_ended = true
+	flight_ended.emit(kind, info)
 
 
 ## Вариометр, который пищит (game.json → vario_sound_from по пресету звука); иначе планшет.
@@ -447,9 +515,11 @@ func _on_collision(hit: Dictionary) -> void:
 		"bank_deg": t.bank_deg,
 	}
 	flight_audio.play_landing(info)
-	info.merge(stats.summary(t.position))
-	flight_ended.emit("landed", info)
+	info.merge(stats.summary(t.position), true)
+	_emit_end("landed", info)
 
 
 func _on_takeoff_failed(reason: String) -> void:
-	flight_ended.emit("takeoff_failed", {"reason": reason, "text": GroundRun.failure_text(reason)})
+	var info := {"reason": reason, "text": GroundRun.failure_text(reason)}
+	info.merge(stats.summary(glider.get_telemetry().position), true)
+	_emit_end("takeoff_failed", info)

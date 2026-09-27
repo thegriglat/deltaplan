@@ -1,0 +1,380 @@
+extends Node
+## 12-03. Геймплей свободного полёта: разбег (шаг/бег, поворот, защёлка), камеры
+## cockpit → chase → free и прибор в углу, страницы 1–5, вариометр 90-х = звук, пауза,
+## «Заново», итог (поля info, завершение через FlightStats, кнопки итога).
+## Физика — Game.tick() вручную (как tests/game/test_game_flight.gd); пауза — настоящим деревом.
+
+const DT := 1.0 / 120.0
+const MAIN_SCENE := preload("res://scenes/main.tscn")
+const KEYS: Array[String] = [
+	"run", "walk_forward", "walk_back", "pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"
+]
+
+var failures: PackedStringArray = []
+
+
+func check(cond: bool, msg: String = "") -> void:
+	if not cond:
+		failures.append("check failed: " + msg)
+
+
+## Главная сцена с автостартом, физику шагает тест. null — не загрузилась.
+func _open() -> Node:
+	var main: Node = MAIN_SCENE.instantiate()
+	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart"])))
+	add_child(main)
+	for i in 1200:
+		if main.get("state") == 2:
+			break
+		await get_tree().process_frame
+	check(main.get("state") == 2, "автостарт — в полёте")
+	if main.get("state") != 2:
+		await _close(main)
+		return null
+	var game: Game = main.get_node("Game")
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	game.camera.set_mode("cockpit")
+	game.restart()
+	return main
+
+
+func _close(main: Node) -> void:
+	_release()
+	get_tree().paused = false
+	main.queue_free()
+	for i in 2:
+		await get_tree().process_frame
+	await get_tree().create_timer(0.1).timeout
+
+
+func _release() -> void:
+	for a in KEYS:
+		if InputMap.has_action(a):
+			Input.action_release(a)
+
+
+func _press(actions: Array) -> void:
+	for a: String in actions:
+		Input.action_press(a)
+
+
+func _ticks(game: Game, seconds: float) -> void:
+	for i in int(seconds / DT):
+		game.tick(DT)
+
+
+static func _action(name: String) -> InputEventAction:
+	var ev := InputEventAction.new()
+	ev.action = name
+	ev.pressed = true
+	return ev
+
+
+## Шаг / бег (W / W+Shift), отпустил Shift — снова шаг, A/D на земле — поворот корпуса.
+func test_walk_run_and_turn_on_ground() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	_press(["walk_forward", "pitch_pull_in"])
+	_ticks(game, 0.3)
+	check(game.glider.phase() == "walking", "W — шаг (%s)" % game.glider.phase())
+	check(not game.input_controller.control.run, "без Shift не бежит")
+	_press(["run"])
+	_ticks(game, 0.3)
+	check(game.glider.phase() == "running", "W+Shift — разбег (%s)" % game.glider.phase())
+	var ctl := game.input_controller.control
+	var nose := float(Config.value("controls", "ground.run_nose_neutral"))
+	check(ctl.run and absf(ctl.pitch - nose) < 0.05, "нос на разбеге держится сам: %.2f" % ctl.pitch)
+	Input.action_release("run")
+	_ticks(game, 0.1)
+	check(
+		not game.input_controller.control.run and game.input_controller.control.walk > 0.9,
+		"отпустил Shift — снова шаг"
+	)
+	check(game.glider.phase() == "walking", "фаза — ходьба (%s)" % game.glider.phase())
+	_release()
+	_ticks(game, 0.2)
+	var h0 := game.glider.get_telemetry().heading_deg
+	_press(["roll_right"])
+	_ticks(game, 1.0)
+	var dh := wrapf(game.glider.get_telemetry().heading_deg - h0, -180.0, 180.0)
+	check(dh > 5.0, "D на земле — поворот направо (%.1f°)" % dh)
+	await _close(main)
+
+
+## Защёлка: W+Shift зажаты на отрыве — W не действует до отпускания.
+func test_takeoff_latch() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	_press(["walk_forward", "pitch_pull_in", "run"])
+	var flew := false
+	for i in int(15.0 / DT):
+		game.tick(DT)
+		if game.glider.phase() == "flying":
+			flew = true
+			break
+	check(flew, "взлетел разбегом W+Shift")
+	_ticks(game, 0.5)
+	check(game.input_controller.is_latched("pitch_pull_in"), "W защёлкнута после отрыва")
+	check(game.input_controller.control.pitch > -0.5, "зажатая W не тянет трапецию на себя")
+	_release()
+	game.tick(DT)
+	check(not game.input_controller.is_latched("pitch_pull_in"), "отпустил — защёлка снята")
+	await _close(main)
+
+
+## C: cockpit → chase → free → cockpit; прибор в углу только во внешних камерах.
+func test_camera_cycle_and_corner_instrument() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	check(game.camera.mode == "cockpit" and not game.overlay.visible, "кабина: угла нет")
+	var seen: Array[String] = []
+	var overlay: Array[bool] = []
+	for i in 3:
+		game.camera._unhandled_input(_action("camera_next"))
+		seen.append(game.camera.mode)
+		overlay.append(game.overlay.visible)
+	check(seen == ["chase", "free", "cockpit"], "порядок камер: %s" % [seen])
+	check(overlay == [true, true, false], "прибор в углу по камере: %s" % [overlay])
+	await _close(main)
+
+
+## Сзади — не в рельефе; свободная — WASD двигает камеру, а не крыло.
+func test_chase_above_ground_free_does_not_fly_wing() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var cam := game.camera
+	cam.set_mode("chase")
+	game.tick(DT)
+	for i in 30:
+		cam._process(1.0 / 60.0)
+	var p := cam.global_position
+	var min_agl := float(Config.value("camera", "chase.min_agl_m"))
+	check(
+		p.y >= game.terrain.height_at(p.x, p.z) + min_agl - 0.01,
+		"chase над рельефом (%.1f м)" % (p.y - game.terrain.height_at(p.x, p.z))
+	)
+	cam.set_mode("free")
+	cam._process(1.0 / 60.0)
+	var c0 := cam.global_position
+	var g0 := game.glider.get_telemetry().position
+	_press(["walk_forward", "pitch_pull_in"])
+	for i in 60:
+		game.tick(DT * 2.0)
+		cam._process(1.0 / 60.0)
+	var moved := c0.distance_to(cam.global_position)
+	check(moved > 3.0, "W двигает свободную камеру (%.1f м)" % moved)
+	var g1 := game.glider.get_telemetry().position
+	check(g0.distance_to(g1) < 0.05, "крыло стоит (%.2f м)" % g0.distance_to(g1))
+	check(game.input_controller.control.walk == 0.0, "управление крылом нейтрально")
+	await _close(main)
+
+
+## Клавиши 1–5 листают планшет в любой камере.
+func test_pages_1_to_5_any_camera() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	check(game.instrument.page_count() >= 5, "у планшета ≥ 5 страниц")
+	var ok := true
+	for m in ["cockpit", "chase", "free"]:
+		game.camera.set_mode(m)
+		for i in [3, 1, 5, 2, 4]:
+			game._unhandled_input(_action("instrument_page_%d" % i))
+			if game.instrument.get_page() != i - 1:
+				ok = false
+				failures.append("камера %s: клавиша %d → страница %d" % [m, i, game.instrument.get_page()])
+	check(ok, "страницы 1–5 во всех камерах")
+	await _close(main)
+
+
+## Вариометр 90-х на стойке и звук: одно и то же показание.
+func test_vario_90s_matches_sound() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var st := game.get_start()
+	var p: Vector3 = st.position
+	p.y = game.terrain.height_at(p.x, p.z) + 300.0
+	game.glider.reset_in_air(p, float(st.heading_deg))
+	var v90: Vario = null
+	for n in game.mounted:
+		var vd: Variant = n.get("vario90s")
+		if vd is VarioDisplay90s:
+			v90 = (vd as VarioDisplay90s).get_vario()
+	var diff := 0.0
+	var changed := false
+	for i in int(8.0 / DT):
+		game.tick(DT)
+		var snd := game.vario_audio.synth.get_target_vario()
+		if v90 != null and String(Config.value("audio", "vario_audio.preset")) == "classic_90s":
+			diff = maxf(diff, absf(snd - v90.vario_ms))
+		changed = changed or absf(snd) > 0.3
+	check(changed, "звук получает показание вариометра")
+	check(diff < 1e-4, "стрелка 90-х = звук (расхождение %.4f м/с)" % diff)
+	await _close(main)
+
+
+## Esc: дерево на паузе — Telemetry.time_s стоит, звук выключен; Esc ещё раз — идёт дальше.
+func test_pause_freezes_time_and_sound() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	game.process_mode = Node.PROCESS_MODE_PAUSABLE  # как в main.tscn: время идёт настоящей физикой
+	for i in 10:
+		await get_tree().physics_frame
+	main._unhandled_input(_action("pause"))
+	check(main.get("state") == 3, "Esc — пауза")
+	var t0 := game.glider.get_telemetry().time_s
+	var s0 := game.sim_time_s
+	for i in 20:
+		await get_tree().physics_frame
+	check(game.glider.get_telemetry().time_s == t0, "Telemetry.time_s стоит на паузе")
+	check(game.sim_time_s == s0, "время симуляции стоит")
+	check(not game.vario_audio.enabled and not game.flight_audio.enabled, "звук выключен")
+	main._unhandled_input(_action("pause"))
+	check(main.get("state") == 2, "Esc — снова полёт")
+	for i in 10:
+		await get_tree().physics_frame
+	check(game.glider.get_telemetry().time_s > t0, "после паузы время идёт")
+	check(game.vario_audio.enabled, "звук снова включён")
+	await _close(main)
+
+
+## «Заново» (R) — на тот же старт ±1 м.
+func test_restart_returns_to_start() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var st: Vector3 = game.get_start().position
+	var far := st + Vector3(400, 0, 300)
+	far.y = game.terrain.height_at(far.x, far.z) + 200.0
+	game.glider.reset_in_air(far, 90.0)
+	_ticks(game, 1.0)
+	main._unhandled_input(_action("restart"))
+	game.tick(DT)
+	var p := game.glider.get_telemetry().position
+	var dh := Vector2(p.x - st.x, p.z - st.z).length()
+	var dv := absf(p.y - game.terrain.height_at(st.x, st.z))
+	check(dh <= 1.0 and dv <= 1.0, "на старте: %.2f м по горизонтали, %.2f м по высоте" % [dh, dv])
+	check(game.glider.phase() == "standing", "стоит на старте")
+	check(game.sim_time_s < 0.1, "время полёта с нуля")
+	await _close(main)
+
+
+## Итог: все поля (время, дистанция, след, набор, макс. MSL, оценка посадки);
+## время — из FlightStats целиком (reset_in_air посреди полёта не занижает его).
+func test_result_info_fields() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var ended: Array = []
+	game.flight_ended.connect(func(k: String, i: Dictionary) -> void: ended.append([k, i]))
+	var st := game.get_start()
+	var p: Vector3 = st.position
+	p.y = game.terrain.height_at(p.x, p.z) + 150.0
+	game.glider.reset_in_air(p, float(st.heading_deg))
+	_ticks(game, 12.0)
+	# Как в test_e2e: подвинуть к земле, время модели обнуляется.
+	var q := game.glider.get_telemetry().position
+	q.y = game.terrain.height_at(q.x, q.z) + 3.0
+	game.glider.reset_in_air(q, float(st.heading_deg) + 180.0)
+	var t_touch := -1.0
+	for i in int(20.0 / DT):
+		game.tick(DT)
+		if t_touch < 0.0 and game.glider.phase() == "landed":
+			t_touch = game.sim_time_s
+		if not ended.is_empty():
+			break
+	check(ended.size() == 1 and ended[0][0] == "landed", "посадка: %s" % [ended])
+	if ended.is_empty():
+		await _close(main)
+		return
+	var info: Dictionary = ended[0][1]
+	for k in [
+		"flight_time_s",
+		"distance_m",
+		"track_length_m",
+		"height_gain_m",
+		"total_climb_m",
+		"max_altitude_msl_m",
+		"grade",
+		"vertical_speed_ms"
+	]:
+		check(info.has(k), "в info есть %s" % k)
+	check(String(info.get("grade", "")) in ["soft", "hard", "crash"], "оценка: %s" % info.get("grade"))
+	check(float(info.flight_time_s) >= 12.0, "время полёта целиком: %.1f с" % info.flight_time_s)
+	check(float(info.track_length_m) > 50.0, "след: %.0f м" % info.track_length_m)
+	check(
+		game.sim_time_s - t_touch >= FlightStats.LANDING_CONFIRM_S - 0.05,
+		"итог — после подтверждения посадки FlightStats"
+	)
+	await _close(main)
+
+
+## Короткое касание сразу после разбега — не посадка: итог не сразу и «взлёт сорван».
+func test_touch_near_start_is_not_landing() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var ended: Array = []
+	game.flight_ended.connect(func(k: String, i: Dictionary) -> void: ended.append([k, i]))
+	_press(["walk_forward", "pitch_pull_in", "run"])
+	for i in int(15.0 / DT):
+		game.tick(DT)
+		if game.glider.phase() == "flying":
+			break
+	_release()
+	check(game.glider.phase() == "flying", "взлетел")
+	_ticks(game, 1.0)
+	# «Чирк» по склону: низко, носом в гору.
+	var t := game.glider.get_telemetry()
+	var q := t.position
+	q.y = game.terrain.height_at(q.x, q.z) + 1.0
+	game.glider.reset_in_air(q, t.heading_deg + 180.0)
+	var touch_t := -1.0
+	for i in int(10.0 / DT):
+		game.tick(DT)
+		if touch_t < 0.0 and game.glider.get_telemetry().on_ground:
+			touch_t = game.sim_time_s
+			check(ended.is_empty(), "касание само по себе полёт не завершает")
+		if not ended.is_empty():
+			break
+	check(not ended.is_empty(), "после удержания на земле — итог")
+	if not ended.is_empty():
+		check(ended[0][0] == "takeoff_failed", "до взведения — «взлёт сорван» (%s)" % ended[0][0])
+		check((ended[0][1] as Dictionary).has("flight_time_s"), "и в нём сводка полёта")
+	await _close(main)
+
+
+## Экран итога: «В главное меню» → меню, «Ещё раз» → тот же старт.
+func test_result_buttons() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var rs: ResultScreen = main.get_node("UI/ResultScreen")
+	main.set("state", 4)
+	rs.show_result("landed", {"grade": "soft"})
+	rs.restart_requested.emit()
+	check(main.get("state") == 2 and not rs.visible, "«Ещё раз» — снова полёт")
+	check(game.glider.phase() == "standing", "на старте")
+	main.set("state", 4)
+	rs.show_result("landed", {"grade": "soft"})
+	rs.menu_requested.emit()
+	check(main.get("state") == 0, "«В главное меню» — меню")
+	check((main.get_node("UI/StartMenu") as Control).visible, "меню видно")
+	await _close(main)

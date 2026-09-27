@@ -132,17 +132,18 @@ func _show_menu() -> void:
 		game.restart()
 
 
+## Esc: физика стоит (дерево на паузе, Telemetry.time_s не растёт), звук молчит.
 func _pause() -> void:
 	state = State.PAUSED
 	get_tree().paused = true
-	game.set_input_enabled(false)
+	game.set_paused(true)
 	pause_menu.visible = true
 
 
 func _resume() -> void:
 	pause_menu.visible = false
 	get_tree().paused = false
-	game.set_input_enabled(true)
+	game.set_paused(false)
 	state = State.FLYING
 
 
@@ -151,7 +152,7 @@ func _restart() -> void:
 	pause_menu.visible = false
 	get_tree().paused = false
 	game.restart()
-	game.set_input_enabled(true)
+	game.set_paused(false)
 	state = State.FLYING
 
 
@@ -163,7 +164,7 @@ func _on_flight_ended(kind: String, info: Dictionary) -> void:
 		return
 	state = State.RESULT
 	get_tree().paused = true
-	game.set_input_enabled(false)
+	game.set_paused(true)
 	result_screen.show_result(kind, info)
 
 
@@ -232,10 +233,12 @@ func _on_flight_setup_fly(s: FlightSettings) -> void:
 	_fly(s)
 
 
+## «Продолжить» после посадки: ходьба по земле с места посадки, новый разбег — новый полёт.
 func _on_result_continue() -> void:
 	result_screen.visible = false
 	get_tree().paused = false
-	game.set_input_enabled(true)
+	game.continue_on_foot()
+	game.set_paused(false)
 	state = State.FLYING
 
 
@@ -295,7 +298,8 @@ func _screenshot() -> void:
 	for i in 8:
 		await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
-	var err := img.save_png(opts.screenshot)
+	var jpg := opts.screenshot.get_extension().to_lower() in ["jpg", "jpeg"]
+	var err := img.save_jpg(opts.screenshot, 0.9) if jpg else img.save_png(opts.screenshot)
 	print("screenshot: %s (%s), t=%.1f с" % [opts.screenshot, error_string(err), game.sim_time_s])
 	_quit(0 if err == OK else 1)
 

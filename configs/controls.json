@@ -83,7 +83,14 @@
     "nose_down": [
       "Down"
     ],
-    "nose_down_doc": "Разбег: чуть опустить нос крыла"
+    "nose_down_doc": "Разбег: чуть опустить нос крыла",
+    "free_up": [
+      "E"
+    ],
+    "free_down": [
+      "Q"
+    ],
+    "free_up_doc": "Свободная камера: вверх (E) / вниз (Q); WASD — движение, Shift — быстрее"
   },
   "invert_pitch": false,
   "invert_pitch_doc": "true — поменять местами «от себя» и «на себя»",
