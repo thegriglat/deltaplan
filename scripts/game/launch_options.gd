@@ -9,6 +9,7 @@ extends RefCounted
 ##   --camera=<режим>      cockpit | chase | free
 ##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
 ##   --wing=<id> --mass=<кг> --weather=<id> --location=<id> --site=<id> --wind=into_site|preset
+##   --hour=<ч>            время старта по часам места (7.5 = 7:30), для кадров утро/вечер
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
 ##   --glance              держать клавишу «взгляд на прибор»
@@ -61,7 +62,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				var p := val.split(",")
 				if p.size() == 2:
 					o.look = Vector2(float(p[0]), float(p[1]))
-			"wing", "mass", "weather", "site", "wind", "latlon", "location":
+			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -87,6 +88,8 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 			r.site_id = ""
 	if overrides.has("wind"):
 		r.wind_mode = String(overrides.wind)
+	if overrides.has("hour"):
+		r.start_hour = float(overrides.hour)
 	if overrides.has("latlon"):
 		var p := String(overrides.latlon).split(",")
 		if p.size() == 2:
