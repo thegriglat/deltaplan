@@ -1,0 +1,149 @@
+{
+  "_doc": "Погода из прогноза (FR-16): температура днём + ветер → словарь погоды (те же ключи, что у бывших пресетов configs/weather/*). Код — scripts/atmosphere/weather_model.gd, описание — docs/atmosphere.md → «Погода из прогноза», план — docs/plan/weather_by_temperature.md. Массивы по месяцам — январь…декабрь, значение относится к середине месяца (между месяцами — линейно по дню).",
+  "ui": {
+    "_doc": "Диапазоны ползунков экрана «Полёт…»: [мин, макс, шаг].",
+    "temperature_c": [-10, 40, 1],
+    "temperature_c_doc": "Температура днём, °C.",
+    "wind_ms": [0, 12, 1],
+    "wind_ms_doc": "Ветер по прогнозу у земли, м/с (хранится в км/ч).",
+    "compass_points": 8,
+    "compass_points_doc": "Сколько румбов в списке «Откуда ветер» (плюс «В лоб старту»)."
+  },
+  "typical_max_c": [-12, -10, -2, 9, 18, 23, 26, 23, 16, 7, -3, -9],
+  "typical_max_c_doc": "Обычный дневной максимум у земли по месяцам, °C — подсказка «обычно днём…» и значение по умолчанию.",
+  "upper_air": {
+    "_doc": "Климатический воздух наверху (≈ 700 гПа) для 50–56° с. ш. — Алтай и Башкирия одной таблицей.",
+    "z_msl_m": 3000,
+    "z_msl_m_doc": "Высота опорного уровня над морем, м.",
+    "temp_c": [-16.5, -15.5, -11.5, -6.5, -1.5, 1.5, 2.5, 1.5, -2.5, -7.5, -12.5, -15.5],
+    "temp_c_doc": "Температура воздуха на этом уровне по месяцам, °C. Жарче у земли при том же воздухе наверху — неустойчивее, выше и сильнее термики.",
+    "lapse_k_per_km": 4.0,
+    "lapse_k_per_km_doc": "Градиент окружающего воздуха выше перемешанного слоя, К/км (умеренно устойчивый воздух хорошей погоды)."
+  },
+  "dew_point_c": [-19, -18, -11, -3, 2, 7, 9, 8, 3, -2, -9, -16],
+  "dew_point_c_doc": "Обычная точка росы по месяцам, °C (постоянна в течение дня). Кромка ≈ lcl_m_per_k × (T − Td).",
+  "td_follow_heat": 0.0,
+  "td_follow_heat_doc": "На сколько °C растёт точка росы на каждый °C жары сверх typical_max_c (0 — не растёт; > 0 — грозы в жару с более низкой кромкой).",
+  "parcel_excess_k": 1.0,
+  "parcel_excess_k_doc": "Перегрев пузыря над окружающим воздухом у земли, К.",
+  "dry_adiabat_k_per_km": 9.8,
+  "dry_adiabat_k_per_km_doc": "Сухоадиабатический градиент, К/км.",
+  "lcl_m_per_k": 122,
+  "lcl_m_per_k_doc": "Подъём уровня конденсации на градус разницы T − Td, м.",
+  "valley_percentile": 0.1,
+  "valley_percentile_doc": "Высота долины (где измерена температура) — эта доля самых низких точек рельефа в радиусе отсчёта кромки (atmosphere.json → ground.reference_*).",
+  "cloudbase_agl_clamp_m": [300, 3800],
+  "cloudbase_agl_clamp_m_doc": "Пределы кромки (верха термиков) над средней высотой земли, м.",
+  "tropopause_msl_m": 11000,
+  "tropopause_msl_m_doc": "Потолок грозовых облаков над морем, м (cb_top_above_base_m = это − кромка).",
+  "sun": {
+    "_doc": "Сезон: сила термиков × (sin высоты солнца в полдень / sin опорной)^exponent; частота × корень из этого.",
+    "ref_elevation_deg": 59.5,
+    "ref_elevation_deg_doc": "Высота солнца в полдень, при которой калиброваны опоры (15 июля, 52° с. ш.), °.",
+    "exponent": 0.5,
+    "exponent_doc": "Показатель степени.",
+    "clamp": [0.5, 1.05],
+    "clamp_doc": "Пределы множителя."
+  },
+  "anchors_by_top_agl": [
+    {"top_agl_m": 300, "thermal_strength_ms": [0.4, 1.0], "thermal_radius_m": [40, 80], "thermal_spacing_m": 2200, "thermal_duty": 0.5, "background_sink_ms": -0.3, "convective_turbulence_ms": 0.25, "cloud_size_factor": 1.0},
+    {"top_agl_m": 1000, "thermal_strength_ms": [1.2, 2.5], "thermal_radius_m": [60, 110], "thermal_spacing_m": 1500, "thermal_duty": 0.7, "background_sink_ms": -0.4, "convective_turbulence_ms": 0.4, "cloud_size_factor": 1.0},
+    {"top_agl_m": 1700, "thermal_strength_ms": [2.4, 4.4], "thermal_radius_m": [90, 170], "thermal_spacing_m": 800, "thermal_duty": 0.85, "background_sink_ms": -0.5, "convective_turbulence_ms": 0.8, "cloud_size_factor": 0.8},
+    {"top_agl_m": 2300, "thermal_strength_ms": [2.5, 5.0], "thermal_radius_m": [110, 210], "thermal_spacing_m": 700, "thermal_duty": 0.9, "background_sink_ms": -0.7, "convective_turbulence_ms": 1.3, "cloud_size_factor": 0.9},
+    {"top_agl_m": 3200, "thermal_strength_ms": [3.0, 5.5], "thermal_radius_m": [120, 230], "thermal_spacing_m": 700, "thermal_duty": 0.9, "background_sink_ms": -0.8, "convective_turbulence_ms": 1.5, "cloud_size_factor": 1.0}
+  ],
+  "anchors_by_top_agl_doc": "Сила, размер и частота термиков по верху подъёма над средней землёй (кусочно-линейно). Строки 1000/1700/2300 — ровно бывшие пресеты weak/medium/strong (калибровка карточки 03).",
+  "extreme_by_top_agl": {
+    "_doc": "Доля экстремальных термиков (thermal_extreme_ms) по верху подъёма над средней землёй: в средний день их нет, в сильный — редкие.",
+    "top_agl_m": [2000, 2300, 3200],
+    "chance": [0, 0.04, 0.06]
+  },
+  "clouds_by_margin": [
+    {"margin_m": 0, "dry_thermal_fraction": 0.55, "cloud_depth_m": 300, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
+    {"margin_m": 150, "dry_thermal_fraction": 0.35, "cloud_depth_m": 500, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
+    {"margin_m": 300, "dry_thermal_fraction": 0.25, "cloud_depth_m": 700, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
+    {"margin_m": 450, "dry_thermal_fraction": 0.2, "cloud_depth_m": 1000, "overdevelopment_chance": 0.15, "cb_chance": 0.0},
+    {"margin_m": 550, "dry_thermal_fraction": 0.15, "cloud_depth_m": 1300, "overdevelopment_chance": 0.2, "cb_chance": 0.05},
+    {"margin_m": 750, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35}
+  ],
+  "clouds_by_margin_doc": "Облака по запасу m = верх сухих термиков − уровень конденсации, м (кусочно-линейно; ниже первой строки — как первая).",
+  "blue_margin_m": -100,
+  "blue_margin_m_doc": "Запас ниже этого — «голубой» день: облаков нет, все термики сухие.",
+  "blue_cloud_min_strength_ms": 99.0,
+  "blue_cloud_min_strength_ms_doc": "cloud_min_strength_ms в голубой день (облако не рисуется ни над каким термиком).",
+  "wind_factors": {
+    "_doc": "Ветер рвёт термики: множители по ветру у земли (км/ч, wind_kmh) — на силу и на долю рождений; пылевые вихри — по своей шкале dust_wind_kmh (ветер их сдувает).",
+    "wind_kmh": [0, 15, 25, 35, 45],
+    "strength": [1, 1, 0.85, 0.65, 0.5],
+    "duty": [1, 1, 0.9, 0.75, 0.6],
+    "dust_wind_kmh": [0, 15, 25, 30],
+    "dust": [1, 1, 0.3, 0]
+  },
+  "street_strength": {
+    "_doc": "Облачные улицы (включает ли их ветер — решает atmosphere.json → thermal.street_*).",
+    "cumulus": 0.7,
+    "cumulus_doc": "Сила улиц при кучевых.",
+    "blue": 0.4,
+    "blue_doc": "Сила улиц сухих термиков в голубой день."
+  },
+  "dust_by_top_agl": {
+    "_doc": "Доля пылевых вихрей по верху подъёма над средней землёй (× ветровой множитель).",
+    "top_agl_m": [1000, 1700, 2300],
+    "chance": [0, 0.15, 0.3]
+  },
+  "storm": {
+    "_doc": "Гроза делает день клеточным: поправки × cb_chance.",
+    "spacing_k": 1.3,
+    "spacing_k_doc": "thermal_spacing_m × (1 + это × cb_chance).",
+    "cloud_size_k": 1.0,
+    "cloud_size_k_doc": "cloud_size_factor + это × cb_chance.",
+    "sink_k": -0.3,
+    "sink_k_doc": "background_sink_ms + это × cb_chance, м/с.",
+    "cirrus_k": 0.5,
+    "cirrus_k_doc": "cirrus_cover = cirrus_base + это × cb_chance (остатки наковален).",
+    "extreme_k": 0.05,
+    "extreme_k_doc": "thermal_extreme_chance + это × cb_chance."
+  },
+  "cirrus_base": 0.1,
+  "cirrus_base_doc": "Постоянная перистая пелена (0..1).",
+  "wave": {
+    "_doc": "Подветренная волна — скрытый эффект, в интерфейсе нет. По умолчанию выключена.",
+    "enabled": false,
+    "enabled_doc": "true — включить волну при сильном ветре и слабой конвекции.",
+    "max_strength": 0.5,
+    "max_strength_doc": "wave_strength при полном ветре и устойчивом воздухе.",
+    "min_wind_kmh": 24,
+    "min_wind_kmh_doc": "Ветер у земли, с которого волна начинается, км/ч.",
+    "full_wind_kmh": 40,
+    "full_wind_kmh_doc": "Ветер у земли, при котором волна полная, км/ч.",
+    "max_top_agl_m": 1700,
+    "max_top_agl_m_doc": "Верх термиков над землёй, выше которого волны нет (сильные термики ломают волну), м.",
+    "fade_top_m": 700,
+    "fade_top_m_doc": "Ширина перехода по верху термиков, м."
+  },
+  "constants": {
+    "_doc": "Постоянные ключи словаря погоды.",
+    "thermal_extreme_ms": [7, 9],
+    "thermal_extreme_ms_doc": "Сила редких экстремальных термиков, м/с.",
+    "cloud_min_strength_ms": 1.0,
+    "cloud_min_strength_ms_doc": "Облако только над термиками не слабее, м/с (когда облака есть).",
+    "lens_level_above_crest_m": 2200,
+    "lens_level_above_crest_m_doc": "Высота линз над гребнем (если волна включена), м."
+  },
+  "reference_context": {
+    "_doc": "Опорное место для тестов и превью без рельефа: Алтай (Синюха), 15 июля. valley/mean — замер tools/weather/derive_table (altai: нижние 10 % рельефа 304 м, средняя 509 м). Таблицы upper_air и dew_point_c подогнаны так, чтобы опорные прогнозы (legacy_presets) здесь давали бывшие пресеты.",
+    "month": 7,
+    "day": 15,
+    "lat": 51.87,
+    "valley_msl_m": 304,
+    "mean_msl_m": 509
+  },
+  "legacy_presets": {
+    "_doc": "Бывшие пресеты → опорный прогноз: перенос старых настроек (last_flight.json → weather) и --weather=<id>.",
+    "weak": {"temperature_c": 20, "wind_speed_kmh": 7, "wind_from_deg": 270},
+    "medium": {"temperature_c": 26, "wind_speed_kmh": 11, "wind_from_deg": 270},
+    "strong": {"temperature_c": 31, "wind_speed_kmh": 18, "wind_from_deg": 270},
+    "storm": {"temperature_c": 34, "wind_speed_kmh": 14, "wind_from_deg": 270},
+    "wave": {"temperature_c": 18, "wind_speed_kmh": 36, "wind_from_deg": 270}
+  }
+}
