@@ -103,7 +103,16 @@ func test_luff_and_snaps_near_stall() -> void:
 		for ev in m.advance(1.0 / 120.0):
 			if ev.type == "snap":
 				snaps += 1
-	check(snaps >= 10 and snaps <= 60, "хлопки ~3 Гц за 10 с: %d" % snaps)
+	# Натянутый парус не хлопает (audio.json → snap_rate_hz = 0, слова мамы-пилота);
+	# при ненулевой частоте — ~rate хлопков в секунду.
+	var rate := float(Config.value("audio", "flight.sail.snap_rate_hz", 0.0))
+	if rate <= 0.0:
+		check(snaps == 0, "хлопков нет: %d" % snaps)
+	else:
+		check(
+			snaps >= rate * 3.0 and snaps <= rate * 20.0,
+			"хлопки ~%.0f Гц за 10 с: %d" % [rate, snaps]
+		)
 
 
 func test_steps_follow_running_pace() -> void:
