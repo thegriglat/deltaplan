@@ -7,6 +7,12 @@ extends Node3D
 ## Грубый слой не рисуется там, где его полностью перекрывает более детальный.
 
 const SHADER := preload("res://scripts/terrain/terrain.gdshader")
+## Текстура плавного шума для пятен лугов и волн ветра с высоты (macro_noise_tex): размер, пятно
+## шума в текселях (шейдер считает масштаб из них — MACRO_NOISE_FEATURE там же).
+const MACRO_NOISE_SIZE := 256
+const MACRO_NOISE_FEATURE := 16.0
+
+static var _macro_noise: ImageTexture
 
 ## Текстуры высот по слоям (для деревьев и др.).
 var height_textures: Array[Texture2D] = []
@@ -239,8 +245,39 @@ func _make_material(
 	surface_textures.append(stex)
 	set_surface(m, surface, stex)
 	set_forest_mask(m, surface)
+	m.set_shader_parameter("macro_noise_tex", macro_noise_texture())
 	_apply_look(m, look)
 	return m
+
+
+## Бесшовная текстура плавного шума RGBA (4 независимых канала, пятно ~MACRO_NOISE_FEATURE
+## текселей, мипмапы): пятна лугов и волны ветра с высоты берут шум из неё, а не считают хеши —
+## дешевле на GPU, мипмапы сами гасят пятна мельче пикселя. Строится один раз на игру.
+static func macro_noise_texture() -> ImageTexture:
+	if _macro_noise != null:
+		return _macro_noise
+	var n := MACRO_NOISE_SIZE
+	var chans: Array[PackedByteArray] = []
+	for k in 4:
+		var fn := FastNoiseLite.new()
+		fn.seed = 7919 * (k + 1)
+		fn.noise_type = FastNoiseLite.TYPE_VALUE_CUBIC
+		fn.fractal_type = FastNoiseLite.FRACTAL_NONE
+		fn.frequency = 1.0 / MACRO_NOISE_FEATURE
+		var img := fn.get_seamless_image(n, n)
+		img.convert(Image.FORMAT_L8)
+		chans.append(img.get_data())
+	var data := PackedByteArray()
+	data.resize(n * n * 4)
+	for i in n * n:
+		data[i * 4] = chans[0][i]
+		data[i * 4 + 1] = chans[1][i]
+		data[i * 4 + 2] = chans[2][i]
+		data[i * 4 + 3] = chans[3][i]
+	var out := Image.create_from_data(n, n, false, Image.FORMAT_RGBA8, data)
+	out.generate_mipmaps()
+	_macro_noise = ImageTexture.create_from_image(out)
+	return _macro_noise
 
 
 ## Карта поверхности → uniform'ы шейдера (рельеф и деревья).

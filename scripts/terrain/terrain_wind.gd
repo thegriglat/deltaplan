@@ -57,6 +57,12 @@ func add_materials(list: Array) -> void:
 			"thermal_gain",
 			"gust_full_ms",
 			"gust_gain",
+			"wind_far_gust_m",
+			"wind_far_wave_m",
+			"wind_far_shade",
+			"wind_far_silver",
+			"wind_far_fade_m",
+			"wind_far_morph_k",
 		]:
 			if _cfg.has(key):
 				m.set_shader_parameter(key, float(_cfg[key]))

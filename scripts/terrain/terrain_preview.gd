@@ -9,6 +9,8 @@ extends Node3D
 ##   --pos=x,y,z --look=x,y,z  произвольная камера
 ##   --latlon=<lat>,<lon> [--size_km=N]  рантайм-загрузка рельефа вокруг точки (FR-17)
 ##   --shot=<файл.png>  снять кадр и выйти
+##   --shot-series=N[,интервал_с]  с --shot: N кадров через интервал (по умолчанию 1 с),
+##                      файлы <файл>_0.png … (проверка бегущих волн ветра по траве)
 ##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
 ##   --bench-static=N   N кадров неподвижно, печать JSON {gpu_ms_mean, gpu_ms_p95, n} и выход (T01)
 ##   --clearings        построить и применить маску просек (WorldClearings.build_for) для location
@@ -29,6 +31,8 @@ var _bench_frames := 0
 var _bench_worst_ms := 0.0
 var _bench_gpu_ms := 0.0
 var _bench_static_samples: Array[float] = []
+var _series_i := 0
+var _series_t := 0.0
 
 @onready var terrain: Terrain = $Terrain
 @onready var cam: Camera3D = $Camera3D
@@ -182,6 +186,9 @@ func _process(delta: float) -> void:
 	if _args.has("bench-static"):
 		_bench_static()
 		return
+	if _args.has("shot") and _args.has("shot-series"):
+		_shot_series(delta)
+		return
 	if _args.has("shot") and _frames == int(_cfg.shot_delay_frames):
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(String(_args.shot))
@@ -202,6 +209,25 @@ func _process(delta: float) -> void:
 		cam.global_position += cam.global_basis * v.normalized() * speed * delta
 		var ground := terrain.height_at(cam.global_position.x, cam.global_position.z)
 		cam.global_position.y = maxf(cam.global_position.y, ground + 1.0)
+
+
+## Серия кадров через равные промежутки времени (--shot-series=N[,интервал_с]).
+func _shot_series(delta: float) -> void:
+	if _frames < int(_cfg.shot_delay_frames):
+		return
+	var p := String(_args["shot-series"]).split(",")
+	var n := int(p[0])
+	var interval := float(p[1]) if p.size() > 1 else 1.0
+	_series_t -= delta
+	if _series_t > 0.0:
+		return
+	_series_t += interval
+	var f := String(_args.shot).get_basename() + "_%d.png" % _series_i
+	get_viewport().get_texture().get_image().save_png(f)
+	print("Скриншот: ", f)
+	_series_i += 1
+	if _series_i >= n:
+		get_tree().quit()
 
 
 func _bench(delta: float) -> void:
@@ -253,12 +279,14 @@ func _bench_static() -> void:
 			mean += v
 		mean /= arr.size()
 		var p95_i := clampi(ceili(0.95 * arr.size()) - 1, 0, arr.size() - 1)
-		print(
-			(
-				"BENCH_STATIC_JSON:"
-				+ JSON.stringify({"gpu_ms_mean": mean, "gpu_ms_p95": arr[p95_i], "n": arr.size()})
-			)
-		)
+		var res := {
+			"gpu_ms_mean": mean,
+			"gpu_ms_p95": arr[p95_i],
+			"gpu_ms_p10": arr[int(0.1 * arr.size())],
+			"n": arr.size(),
+			"w": get_viewport().size.x,
+		}
+		print("BENCH_STATIC_JSON:" + JSON.stringify(res))
 		get_tree().quit()
 
 
