@@ -77,8 +77,8 @@
     "max_agl_m_doc": "Выше этой высоты над землёй трава не рисуется, м",
     "dryness_add_by_location": {
       "_doc": "Сухость травинок сверх палитры локации (Terrain.get_grass_palette → dryness), только для GrassField",
-      "ongudai": 0.35,
-      "askarovo": 0.25
+      "ongudai": 0.05,
+      "askarovo": 0.0
     }
   },
   "trees": {
