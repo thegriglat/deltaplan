@@ -1,13 +1,15 @@
 class_name CloudCompositorEffect
 extends CompositorEffect
 ## Облака в буфере пониженного разрешения (Forward+/Mobile): compute-raymarch всех облаков
-## за один проход и билатеральный апскейл поверх кадра до прозрачных объектов.
+## за один проход, временное накопление (история с перепроекцией) и билатеральный апскейл
+## поверх кадра до прозрачных объектов.
 ## Код формы и света — общий с боксовым шейдером (cloud_common.gdshaderinc).
 ## Данные (облака, параметры) выставляет CloudLayer с главного потока.
 
 const COMMON := "res://scripts/atmosphere/cloud_common.gdshaderinc"
 const MARCH := "res://scripts/atmosphere/cloud_raymarch_cs.gdshaderinc"
 const COMPOSITE := "res://scripts/atmosphere/cloud_composite_cs.gdshaderinc"
+const TEMPORAL := "res://scripts/atmosphere/cloud_temporal_cs.gdshaderinc"
 const FLOATS_PER_CLOUD := 20
 ## Порядок полей UBO (std140) — как в заголовке compute-шейдера ниже.
 const VEC_PARAMS := [
@@ -39,12 +41,24 @@ var noise_shape: Texture3D
 var noise_detail: Texture3D
 ## Доля разрешения буфера облаков (0,5 — половина по каждой оси).
 var resolution_scale: float = 0.5
+## Вес нового кадра во временном накоплении (1 — без истории; меньше — глаже, но дольше догоняет).
+var temporal_weight: float = 0.12
 
 var _rd: RenderingDevice
 var _march: RID
 var _march_pipe: RID
 var _comp: RID
 var _comp_pipe: RID
+var _temp: RID
+var _temp_pipe: RID
+var _temp_ubo: RID
+## История (ping-pong) и что было в прошлом кадре — для перепроекции.
+var _hist: Array[RID] = [RID(), RID()]
+var _hist_i: int = 0
+var _hist_valid: bool = false
+var _prev_proj: Projection = Projection.IDENTITY
+var _prev_cam: Transform3D = Transform3D.IDENTITY
+var _s_linear_clamp: RID
 var _ubo: RID
 var _ssbo: RID
 var _ssbo_bytes: int = 0
@@ -64,7 +78,9 @@ func _init() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE and _rd != null:
-		for rid in [_march, _comp, _ubo, _ssbo, _low_color, _low_depth, _s_linear_rep, _s_nearest]:
+		var rids := [_march, _comp, _temp, _ubo, _temp_ubo, _ssbo, _low_color, _low_depth]
+		rids.append_array([_hist[0], _hist[1], _s_linear_rep, _s_linear_clamp, _s_nearest])
+		for rid in rids:
 			if rid.is_valid():
 				_rd.free_rid(rid)
 
@@ -86,8 +102,10 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 		maxi(1, ceili(full.x * resolution_scale)), maxi(1, ceili(full.y * resolution_scale))
 	)
 	_ensure_targets(low)
-	var inv_proj := sd.get_view_projection(0).inverse()
-	_update_ubo(inv_proj, sd.get_cam_transform(), low, full)
+	var proj := sd.get_view_projection(0)
+	var inv_proj := proj.inverse()
+	var cam_t := sd.get_cam_transform()
+	_update_ubo(inv_proj, cam_t, low, full)
 	_update_ssbo()
 	_frame += 1
 	var depth := sb.get_depth_layer(0)
@@ -110,9 +128,10 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	_rd.compute_list_bind_uniform_set(cl, set0, 0)
 	_rd.compute_list_dispatch(cl, ceili(low.x / 8.0), ceili(low.y / 8.0), 1)
 	_rd.compute_list_end()
+	var resolved := _temporal(low, proj, inv_proj, cam_t)
 	var set1 := UniformSetCacheRD.get_cache(_comp, 0, [
 		_image_u(0, color),
-		_sampler_u(1, _s_nearest, _low_color),
+		_sampler_u(1, _s_nearest, resolved),
 		_sampler_u(2, _s_nearest, _low_depth),
 		_sampler_u(3, _s_nearest, depth),
 	])
@@ -128,6 +147,40 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	_rd.compute_list_set_push_constant(cl, pcb, pcb.size())
 	_rd.compute_list_dispatch(cl, ceili(full.x / 8.0), ceili(full.y / 8.0), 1)
 	_rd.compute_list_end()
+
+
+## Смешивает кадр с историей (cloud_temporal_cs); возвращает текстуру для апскейла.
+func _temporal(low: Vector2i, proj: Projection, inv_proj: Projection, cam: Transform3D) -> RID:
+	var src := _hist[_hist_i]
+	_hist_i = 1 - _hist_i
+	var dst := _hist[_hist_i]
+	var w: float = temporal_weight if _hist_valid else 1.0
+	# Вид текущего кадра → клип прошлого (в double на CPU: мировые координаты велики).
+	var reproj := _prev_proj * Projection(_prev_cam.affine_inverse() * cam)
+	var f := PackedFloat32Array()
+	for m in [inv_proj, reproj]:
+		for c in 4:
+			var v: Vector4 = m[c]
+			f.append_array([v.x, v.y, v.z, v.w])
+	f.append_array([low.x, low.y, w, 0.0])
+	var b := f.to_byte_array()
+	_rd.buffer_update(_temp_ubo, 0, b.size(), b)
+	var set2 := UniformSetCacheRD.get_cache(_temp, 0, [
+		_sampler_u(0, _s_nearest, _low_color),
+		_sampler_u(1, _s_nearest, _low_depth),
+		_sampler_u(2, _s_linear_clamp, src),
+		_image_u(3, dst),
+		_buffer_u(4, RenderingDevice.UNIFORM_TYPE_UNIFORM_BUFFER, _temp_ubo),
+	])
+	var cl := _rd.compute_list_begin()
+	_rd.compute_list_bind_compute_pipeline(cl, _temp_pipe)
+	_rd.compute_list_bind_uniform_set(cl, set2, 0)
+	_rd.compute_list_dispatch(cl, ceili(low.x / 8.0), ceili(low.y / 8.0), 1)
+	_rd.compute_list_end()
+	_hist_valid = true
+	_prev_proj = proj
+	_prev_cam = cam
+	return dst
 
 
 # ---------------------------------------------------------------- сборка
@@ -148,7 +201,7 @@ func _header() -> String:
 		h += "\tint %s;\n" % n
 	h += "\tint cloud_count;\n\tint frame;\n\tint pad_a;\n\tint pad_b;\n};\n"
 	h += "layout(set = 0, binding = 5, std430) readonly buffer Clouds { vec4 d[]; } clouds;\n"
-	h += "layout(r32f, set = 0, binding = 6) uniform writeonly image2D out_depth;\n"
+	h += "layout(rg32f, set = 0, binding = 6) uniform writeonly image2D out_depth;\n"
 	return h
 
 
@@ -171,10 +224,12 @@ static func _text(path: String) -> String:
 func _build() -> bool:
 	_march = _compile(_header() + _text(COMMON) + _text(MARCH))
 	_comp = _compile("#version 450\n" + _text(COMPOSITE))
-	if not _march.is_valid() or not _comp.is_valid():
+	_temp = _compile("#version 450\n" + _text(TEMPORAL))
+	if not _march.is_valid() or not _comp.is_valid() or not _temp.is_valid():
 		return false
 	_march_pipe = _rd.compute_pipeline_create(_march)
 	_comp_pipe = _rd.compute_pipeline_create(_comp)
+	_temp_pipe = _rd.compute_pipeline_create(_temp)
 	var s := RDSamplerState.new()
 	s.min_filter = RenderingDevice.SAMPLER_FILTER_LINEAR
 	s.mag_filter = RenderingDevice.SAMPLER_FILTER_LINEAR
@@ -183,19 +238,27 @@ func _build() -> bool:
 	s.repeat_v = RenderingDevice.SAMPLER_REPEAT_MODE_REPEAT
 	s.repeat_w = RenderingDevice.SAMPLER_REPEAT_MODE_REPEAT
 	_s_linear_rep = _rd.sampler_create(s)
+	var lc := RDSamplerState.new()
+	lc.min_filter = RenderingDevice.SAMPLER_FILTER_LINEAR
+	lc.mag_filter = RenderingDevice.SAMPLER_FILTER_LINEAR
+	lc.repeat_u = RenderingDevice.SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE
+	lc.repeat_v = RenderingDevice.SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE
+	_s_linear_clamp = _rd.sampler_create(lc)
 	var n := RDSamplerState.new()
 	_s_nearest = _rd.sampler_create(n)
 	_ubo = _rd.uniform_buffer_create(_ubo_bytes().size(), _ubo_bytes())
+	_temp_ubo = _rd.uniform_buffer_create(144)
 	return true
 
 
 func _ensure_targets(low: Vector2i) -> void:
 	if low == _low_size and _low_color.is_valid():
 		return
-	for rid in [_low_color, _low_depth]:
+	for rid in [_low_color, _low_depth, _hist[0], _hist[1]]:
 		if rid.is_valid():
 			_rd.free_rid(rid)
 	_low_size = low
+	_hist_valid = false
 	var f := RDTextureFormat.new()
 	f.width = low.x
 	f.height = low.y
@@ -204,7 +267,9 @@ func _ensure_targets(low: Vector2i) -> void:
 		RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT
 	)
 	_low_color = _rd.texture_create(f, RDTextureView.new())
-	f.format = RenderingDevice.DATA_FORMAT_R32_SFLOAT
+	_hist[0] = _rd.texture_create(f, RDTextureView.new())
+	_hist[1] = _rd.texture_create(f, RDTextureView.new())
+	f.format = RenderingDevice.DATA_FORMAT_R32G32_SFLOAT
 	_low_depth = _rd.texture_create(f, RDTextureView.new())
 
 
