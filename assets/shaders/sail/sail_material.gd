@@ -4,11 +4,10 @@ extends RefCounted
 ##   var mat := SailMaterial.apply(sail_mesh_instance, "glider_sport")   # один раз после загрузки
 ##   SailMaterial.set_flight(mat, airspeed_ms, stall_amount, turbulence)   # каждый кадр
 ## Раскраска берётся из исходного материала .glb, карты — assets/shaders/sail/<модель>_*.png,
-## параметры — assets/shaders/sail/sail_params.json. Нет файлов — остаётся исходный материал.
+## параметры — configs/sail.json (через Config). Нет файлов — остаётся исходный материал.
 
 const SHADER_PATH := "res://assets/shaders/sail/sail.gdshader"
 const DIR := "res://assets/shaders/sail/"
-const PARAMS_PATH := "res://assets/shaders/sail/sail_params.json"
 
 
 ## Поставить ShaderMaterial паруса на меш Sail. model — имя модели крыла без .glb.
@@ -36,7 +35,7 @@ static func apply(sail: MeshInstance3D, model: String) -> ShaderMaterial:
 		if key != "cast_shadows":
 			mat.set_shader_parameter(key, v)
 	# Тень от паруса закрыла бы нижнюю обшивку от солнца (свет сквозь верхнюю обшивку не
-	# моделируется), поэтому по умолчанию парус тень не отбрасывает (sail_params.json).
+	# моделируется), поэтому по умолчанию парус тень не отбрасывает (configs/sail.json).
 	if not bool(params.get("cast_shadows", false)):
 		sail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	sail.material_override = mat
@@ -55,12 +54,8 @@ static func set_flight(mat: ShaderMaterial, airspeed_ms: float, stall_amount: fl
 
 static func _params() -> Dictionary:
 	var out := {}
-	var f := FileAccess.open(PARAMS_PATH, FileAccess.READ)
-	if f == null:
-		return out
-	var data: Variant = JSON.parse_string(f.get_as_text())
-	if data is Dictionary:
-		for key: String in data:
-			if not key.begins_with("_") and not key.ends_with("_doc"):
-				out[key] = data[key]
+	var data: Dictionary = Config.get_config("sail")
+	for key: String in data:
+		if not key.begins_with("_") and not key.ends_with("_doc") and key != "turbulence_full_g":
+			out[key] = data[key]
 	return out

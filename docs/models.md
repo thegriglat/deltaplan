@@ -90,7 +90,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 
 ## Шейдер паруса
 
-Файлы: `assets/shaders/sail/sail.gdshader`, `sail_material.gd` (`SailMaterial`), `sail_params.json`
+Файлы: `assets/shaders/sail/sail.gdshader`, `sail_material.gd` (`SailMaterial`), `configs/sail.json`
 (значения по умолчанию, с `_doc`), карты `glider_<id>_normal.png` (латы, швы, кромка майлара, подгиб
 задней кромки, X-сетка ламината) и `glider_<id>_trans.png` (сколько света проходит: кромка, латы,
 швы, двойная обшивка темнее). Карты пишет `tools/blender/sail_maps.py` вместе с крыльями.

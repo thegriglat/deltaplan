@@ -17,6 +17,7 @@ const WING_MARKERS: Array[String] = [
 var wing: Node3D  ## модель крыла
 var pilot: Node3D  ## нода Pilot (сдвигается), внутри — модель пилота
 var head_marker: Marker3D  ## PilotHead: следует за Head модели пилота
+var sail_material: ShaderMaterial  ## шейдер паруса (SailMaterial), null — исходный материал
 
 var _cfg: Dictionary = {}  ## flight.json → visual
 var _pcfg: Dictionary = {}  ## pilot.json → visual
@@ -42,6 +43,10 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(wing)
 	var hp := wing.find_child("HangPoint", true, false) as Node3D
 	wing.position = _hang - (_relative_xform(wing, hp).origin if hp != null else Vector3.ZERO)
+	sail_material = null
+	var sail := wing.find_child("Sail", true, false) as MeshInstance3D
+	if sail != null and wpath != "" and ResourceLoader.exists(wpath):
+		sail_material = SailMaterial.apply(sail, wpath.get_file().get_basename())
 	for mname in WING_MARKERS:
 		if wing.find_child(mname, true, false) == null:
 			push_warning("GliderVisual: в модели %s нет ноды %s" % [wpath, mname])
@@ -75,6 +80,11 @@ func get_marker(marker_name: String) -> Node3D:
 ## Точка глаз пилота в координатах обёртки (для кабинной камеры).
 func get_head_transform() -> Transform3D:
 	return head_marker.transform if head_marker != null else Transform3D.IDENTITY
+
+
+## Парус (шейдер): воздушная скорость, м/с; срыв 0..1; болтанка 0..1.
+func set_flight(airspeed_ms: float, stall_amount: float, turbulence: float) -> void:
+	SailMaterial.set_flight(sail_material, airspeed_ms, stall_amount, turbulence)
 
 
 ## Поза пилота: сдвиг по крену (roll ±1) и тангажу (pitch ±1), лёжа в полёте / стоя на земле.

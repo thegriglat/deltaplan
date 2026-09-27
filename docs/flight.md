@@ -158,6 +158,12 @@ func get_marker(name: String) -> Node3D   # PilotHead, InstrumentMount, BaseBar,
 90° вокруг центра тела `pilot.json → visual.body_*`). Маркер `PilotHead` обёртки следует за `Head`
 (`get_marker("PilotHead")`, `GliderVisual.get_head_transform()`) — для кабинной камеры.
 
+**Парус** — после загрузки крыла `SailMaterial.apply(Sail, "<имя модели>")` (шейдер агента models,
+параметры — `configs/sail.json`), каждый кадр `GliderVisual.set_flight(airspeed, stall, turbulence)`:
+`stall` = `FlightModel.stall_amount()` (доля сорванного потока 0..1), `turbulence` = средний разброс
+мгновенной перегрузки `FlightModel.load.jitter` / `sail.json → turbulence_full_g` (0,5 g): в спокойном
+воздухе ~0, в термике ~0,1–0,3, в облачной болтанке — до 1.
+
 Нет файла модели — предупреждение в лог и заглушка из примитивов с теми же именами нод.
 
 ## Тесты

@@ -209,6 +209,11 @@ func steady_glide(v: float) -> Vector2:
 	return Vector2(v, v * sin(atan(1.0 / ld)))
 
 
+## Насколько сорван поток: 0 — обтекание, 1 — полный срыв (для паруса и звука).
+func stall_amount() -> float:
+	return 1.0 - _attached
+
+
 func heading_dir() -> Vector3:
 	return Vector3(sin(heading), 0.0, -cos(heading))
 
@@ -296,7 +301,8 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var c := aero_coefs(dt)
 	var force := lift_dir * (q * c.x) - u * (q * c.y) + UP * (-mass * Units.G)
 	force += _flare.hang_force(self)
-	load.update(q * c.x, mass * Units.G, float(flight.load_factor.filter_s), dt)
+	var lf: Dictionary = flight.load_factor
+	load.update(q * c.x, mass * Units.G, float(lf.filter_s), dt, float(lf.jitter_window_s))
 	_accel_t = force.dot(u) / mass
 	velocity += force / mass * dt
 	position += velocity * dt

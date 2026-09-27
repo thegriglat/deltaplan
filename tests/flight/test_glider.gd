@@ -1,9 +1,11 @@
 extends TestCase
+
+const GLIDER_SCENE := preload("res://scenes/glider/glider.tscn")
 ## Нода Glider: сцена грузится, шагает модель, сигналы доходят.
 
 
 func test_glider_scene_steps_and_lands() -> void:
-	var scene: PackedScene = load("res://scenes/glider/glider.tscn")
+	var scene: PackedScene = GLIDER_SCENE
 	var g: Glider = scene.instantiate()
 	g.auto_start = Glider.AutoStart.NONE
 	var root: Node = Engine.get_main_loop().current_scene
@@ -33,4 +35,26 @@ func test_glider_scene_steps_and_lands() -> void:
 	check(g.phase() == "landed", "фаза landed: " + g.phase())
 	approx(g.get_telemetry().heading_deg, 90.0, 1.0, "курс на восток")
 	check(g.get_telemetry().position.x > 5.0, "летел на восток (+X)")
+	g.free()
+
+
+func test_sail_shader_and_flight_params() -> void:
+	var g: Glider = GLIDER_SCENE.instantiate()
+	g.auto_start = Glider.AutoStart.NONE
+	Engine.get_main_loop().current_scene.add_child(g)
+	g.setup("sport")
+	g.reset_in_air(Vector3(0, 500, 0), 0.0)
+	check(g.visual.sail_material != null, "на парусе шейдер SailMaterial")
+	var ci := ControlInput.new()
+	ci.pitch = 1.0
+	g.set_input(ci)
+	for i in 600:
+		g.step(1.0 / 120.0)
+	g._process(1.0 / 60.0)
+	check(
+		g.model.stall_amount() > 0.5,
+		"у сваливания stall_amount растёт: %.2f" % g.model.stall_amount()
+	)
+	var st: float = g.visual.sail_material.get_shader_parameter("stall_amount")
+	check(st > 0.5, "stall_amount дошёл до шейдера: %.2f" % st)
 	g.free()

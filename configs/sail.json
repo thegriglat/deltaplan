@@ -1,5 +1,5 @@
 {
-  "_doc": "Параметры шейдера паруса (assets/shaders/sail/sail.gdshader), их ставит SailMaterial.apply(). Параметры полёта (airspeed_ms, stall_amount, turbulence) выставляет код полёта через SailMaterial.set_flight().",
+  "_doc": "Параметры шейдера паруса (assets/shaders/sail/sail.gdshader), общие для всех крыльев; их ставит SailMaterial.apply(). Параметры полёта (airspeed_ms, stall_amount, turbulence) выставляет GliderVisual через SailMaterial.set_flight(). Перенесено из assets/shaders/sail/sail_params.json (NFR-7)",
   "cast_shadows": false,
   "cast_shadows_doc": "Отбрасывает ли парус тень. false — нижняя обшивка светится на солнце (тень верхней обшивки иначе гасит просвечивание), но пилот без тени паруса",
   "roughness": 0.72,
@@ -8,7 +8,11 @@
   "normal_strength_doc": "Сила карты нормалей (латы, швы, ламинат)",
   "translucency": 0.8,
   "translucency_doc": "Сила просвечивания на солнце (0 — непрозрачный)",
-  "transmit_tint": [1.0, 0.97, 0.9],
+  "transmit_tint": [
+    1.0,
+    0.97,
+    0.9
+  ],
   "transmit_tint_doc": "Оттенок прошедшего света RGB 0..1",
   "billow_amp_m": 0.05,
   "billow_amp_m_doc": "Амплитуда колыхания паруса между латами на малой скорости, м",
@@ -37,5 +41,7 @@
   "flutter_wavelength_m": 0.45,
   "flutter_wavelength_m_doc": "Длина волны трепета вдоль задней кромки, м",
   "lower_surface_factor": 0.35,
-  "lower_surface_factor_doc": "Доля движения нижней обшивки от верхней"
+  "lower_surface_factor_doc": "Доля движения нижней обшивки от верхней",
+  "turbulence_full_g": 0.5,
+  "turbulence_full_g_doc": "turbulence = 1 (полная амплитуда волн паруса), когда средний разброс перегрузки (FlightModel.load.jitter, окно flight.json → load_factor.jitter_window_s) достигает этого значения, g"
 }

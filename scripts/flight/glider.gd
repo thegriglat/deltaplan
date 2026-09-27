@@ -161,3 +161,7 @@ func _update_pilot(dt: float) -> void:
 	if visual != null:
 		var flying := model.mode == FlightModel.Mode.AIR
 		visual.set_pose(control.roll, control.pitch, flying, dt)
+		# парус: болтанка — средний разброс перегрузки относительно configs/sail.json
+		var full_g := float(Config.value("sail", "turbulence_full_g"))
+		var turb := model.load.jitter / full_g
+		visual.set_flight(model.telemetry.airspeed, model.stall_amount(), turb)
