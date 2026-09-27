@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/flight/polar_table.gd" id="1"]
+
+[node name="PolarTable" type="Node"]
+script = ExtResource("1")

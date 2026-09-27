@@ -17,6 +17,8 @@ var track_deg: float = 0.0          ## путевой угол
 var bank_deg: float = 0.0           ## крен, + вправо
 var pitch_deg: float = 0.0          ## тангаж, + нос вверх
 var on_ground: bool = true
+## Фаза: "standing", "walking", "running", "flying", "landed", "failed" (срыв взлёта)
+var phase: String = "standing"
 var stalled: bool = false
 var glide_ratio: float = 0.0        ## текущее качество по земле (горизонт/снижение), 0 если набор
 var basis: Basis = Basis.IDENTITY   ## ориентация крыла для камер и модели
