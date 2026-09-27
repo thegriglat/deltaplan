@@ -72,7 +72,8 @@ func apply_config() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = float(rend.tonemap_exposure)
 	env.tonemap_white = float(rend.tonemap_white)
-	env.fog_enabled = true
+	# туман Godot — только если задан (голубая дымка чистого воздуха — в haze.gdshader)
+	env.fog_enabled = float(fog_cfg.density) > 0.0
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	env.fog_density = float(fog_cfg.density)
 	env.fog_light_color = _color(fog_cfg.color)
@@ -165,6 +166,61 @@ func _apply_haze(hz: Dictionary, to_sun: Vector3, sun_color: Color) -> void:
 	_haze_mat.set_shader_parameter("sun_scatter", float(hz.get("sun_scatter", 0.3)))
 	_haze_mat.set_shader_parameter("sun_scatter_power", float(hz.get("sun_scatter_power", 6.0)))
 	_haze_mat.set_shader_parameter("max_opacity", float(hz.get("max_opacity", 0.97)))
+	_haze_mat.set_shader_parameter("inscatter_power", float(hz.get("inscatter_power", 1.0)))
+	_haze_mat.set_shader_parameter("extinction_rgb", _vec3(hz.get("extinction_rgb", [1, 1, 1])))
+	_haze_mat.set_shader_parameter(
+		"clear_extinction", 3.912 / (maxf(float(hz.get("clear_visibility_km", 1e6)), 0.1) * 1000.0)
+	)
+	_haze_mat.set_shader_parameter("clear_rgb", _vec3(hz.get("clear_rgb", [1, 1, 1])))
+	_haze_mat.set_shader_parameter(
+		"clear_color", _color(hz.get("clear_air_color", [0.66, 0.76, 0.88]))
+	)
+
+
+## Путь в дымке по лучу, приведённый к полной плотности, м — та же аналитика, что в haze.gdshader:
+## плотность 1 до top_msl − w/2, линейно до 0 к top_msl + w/2. y0 — высота начала луча (MSL),
+## dir_y — вертикальная составляющая единичного направления, length_m — длина луча.
+static func haze_path_m(
+	y0: float, dir_y: float, length_m: float, top_msl: float, transition_m: float
+) -> float:
+	var y1 := y0 + dir_y * length_m
+	if absf(y1 - y0) > 0.01:
+		return (
+			length_m
+			* (
+				(
+					_haze_integral(y1, top_msl, transition_m)
+					- _haze_integral(y0, top_msl, transition_m)
+				)
+				/ (y1 - y0)
+			)
+		)
+	return (
+		length_m * clampf((top_msl + 0.5 * transition_m - y0) / maxf(transition_m, 1e-3), 0.0, 1.0)
+	)
+
+
+static func _haze_integral(y: float, top_msl: float, w: float) -> float:
+	var a := top_msl - 0.5 * w
+	var b := top_msl + 0.5 * w
+	if y <= a:
+		return y
+	if y >= b:
+		return top_msl
+	w = maxf(w, 1e-3)
+	return a + (w * w - (b - y) * (b - y)) / (2.0 * w)
+
+
+## Пропускание воздуха (туман Godot + чистый воздух + мутный слой, зелёный канал) на дальности
+## d_m по горизонтали внутри слоя — по configs/world.json. FR-20: на 20 км ≥ 20 %.
+static func transmission_in_layer(d_m: float) -> float:
+	var cfg: Dictionary = Config.get_config("world")
+	var hz: Dictionary = cfg.get("haze", {})
+	var k := float(cfg.get("fog", {}).get("density", 0.0))
+	if bool(hz.get("enabled", false)):
+		k += 3.912 / (maxf(float(hz.get("visibility_km", 30.0)), 0.1) * 1000.0)
+		k += 3.912 / (maxf(float(hz.get("clear_visibility_km", 1e6)), 0.1) * 1000.0)
+	return exp(-k * d_m)
 
 
 ## Рекомендуемые near/far для камер (configs/world.json → rendering).
@@ -172,6 +228,11 @@ static func setup_camera(cam: Camera3D) -> void:
 	var rend: Dictionary = Config.get_config("world").get("rendering", {})
 	cam.near = float(rend.get("camera_near_m", 0.3))
 	cam.far = float(rend.get("camera_far_m", 100000.0))
+
+
+static func _vec3(a: Variant) -> Vector3:
+	var arr: Array = a
+	return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))
 
 
 static func _color(a: Variant) -> Color:
