@@ -21,6 +21,7 @@ var indicators: Array[WindIndicator] = []
 var build_time_s: float = 0.0
 
 var _air_fn: Callable
+var _clearings: WorldClearings
 var _active: Array[WindIndicator] = []
 var _since_update: float = 0.0
 var _since_active: float = INF
@@ -61,6 +62,7 @@ func build(
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	clear()
+	_clearings = null
 	location_id = loc_id
 	cfg = WorldObjects.load_config()
 	_air_fn = air_fn
@@ -145,6 +147,20 @@ static func landing_specs(landing_cfg: Dictionary, loc_id: String, landings: Arr
 			s.merge({"id": l.id, "name": l.name, "lat": l.lat, "lon": l.lon}, true)
 			out.append(s)
 	return out
+
+
+## Маска просек локации для расстановки деревьев (L8, 255 — расчищено; пиксель — clearings.cell_m,
+## угол (0, 0) — мир (−half, −half)). Подробности и привязка — WorldClearings.build_for().
+static func clearing_mask_for(loc_id: String) -> Image:
+	var c := WorldClearings.build_for(loc_id)
+	return c.image if c != null else null
+
+
+## Расчищено ли место в текущей локации (дорога, ЛЭП, застройка, посадка) — деревьев не ставить.
+func is_clear_at(x: float, z: float) -> bool:
+	if _clearings == null and location_id != "":
+		_clearings = WorldClearings.build_for(location_id)
+	return _clearings != null and _clearings.is_clear_at(x, z)
 
 
 ## Путь a→b задел провод ЛЭП?

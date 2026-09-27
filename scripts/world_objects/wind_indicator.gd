@@ -116,6 +116,7 @@ func _cloth_material(src: Material) -> ShaderMaterial:
 	m.set_shader_parameter(&"droop_tip", deg_to_rad(float(_cfg.get("droop_tip_deg", 89.0))))
 	m.set_shader_parameter(&"collapse", float(_cfg.get("collapse", 0.5)))
 	m.set_shader_parameter(&"wave_count", float(_cfg.get("wave_count", 1.2)))
+	m.set_shader_parameter(&"bend_power", float(_cfg.get("bend_power", 2.5)))
 	materials.append(m)
 	return m
 

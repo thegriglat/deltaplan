@@ -237,6 +237,37 @@ func test_build_time() -> void:
 	check(w.osm_layer.stats.get("buildings", 0) > 10000, "здания в MultiMesh")
 
 
+static func _heading(m: WindClothModel) -> float:
+	var p := m.pointing()
+	return fposmod(rad_to_deg(atan2(p.x, -p.z)), 360.0)
+
+
+func test_clearings_mask() -> void:
+	var c := WorldClearings.build_for(LOCATION)
+	check(c != null and c.image != null, "маска построена")
+	if c == null:
+		return
+	check(c.build_time_s < 3.0, "маска за %.2f с" % c.build_time_s)
+	var d := OsmData.load_file(OSM_PATH)
+	var road := OsmData.points(d.roads[0].p)
+	check(c.is_clear_at(road[0].x, road[0].y), "на дороге деревьев нет")
+	var b: Array = d.buildings[0]
+	check(c.is_clear_at(float(b[0]), float(b[1])), "на здании деревьев нет")
+	var ln: Array = d.power[0].p
+	check(c.is_clear_at(float(ln[0]) + 5.0, float(ln[1])), "просека ЛЭП ±5 м")
+	var t := _altai()
+	var land := t.latlon_to_local(51.83476, 85.81696)
+	check(c.is_clear_at(land.x, land.y), "поле посадки")
+	check(not c.is_clear_at(30000.0, 0.0), "за краем маски — не расчищено")
+	var img := WorldObjects.clearing_mask_for(LOCATION)
+	var frac := 0.0
+	for k in 2000:
+		var x := (k * 7919) % img.get_width()
+		var y := (k * 104729) % img.get_height()
+		frac += img.get_pixel(x, y).r
+	check(frac / 2000.0 < 0.3, "расчищено меньше 30 %% площади (%.2f)" % (frac / 2000.0))
+
+
 func test_zz_cleanup() -> void:
 	if _world != null:
 		_world.free()
@@ -244,8 +275,3 @@ func test_zz_cleanup() -> void:
 	if _terrain != null:
 		_terrain.free()
 		_terrain = null
-
-
-static func _heading(m: WindClothModel) -> float:
-	var p := m.pointing()
-	return fposmod(rad_to_deg(atan2(p.x, -p.z)), 360.0)

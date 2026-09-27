@@ -32,6 +32,21 @@
   "threaded_build_doc": "Считать дороги и здания в пуле потоков параллельно с ЛЭП (загрузка быстрее); false — последовательно (отладка)",
   "update_interval_s": 0.25,
   "update_interval_s_doc": "Как часто пересчитывать, какие ветроуказатели рядом с камерой (активны), с",
+  "clearings": {
+    "_doc": "Маска просек для деревьев рельефа (WorldClearings, docs/world_objects.md → «Просеки»): где деревья не ставятся",
+    "cell_m": 10.0,
+    "cell_m_doc": "Размер пикселя маски, м (40 км / 10 м = 4000² пикселей, 16 МБ)",
+    "road_margin_m": 3.0,
+    "road_margin_m_doc": "Обочина без деревьев с каждой стороны дороги сверх её ширины, м",
+    "power_corridor_high_m": 30.0,
+    "power_corridor_high_m_doc": "Ширина просеки ЛЭП 35–220 кВ (решётчатые опоры), м",
+    "power_corridor_low_m": 12.0,
+    "power_corridor_low_m_doc": "Ширина просеки ЛЭП 0,4–10 кВ (столбы), м",
+    "building_margin_m": 4.0,
+    "building_margin_m_doc": "Отступ от здания (по описанной окружности пятна), м",
+    "landing_margin_m": 15.0,
+    "landing_margin_m_doc": "Поле посадки плюс этот край без леса, м (лесополосы посадки ставит WorldObjects сам)"
+  },
   "windsock": {
     "_doc": "Ветроуказатель-конус на мачте (VR-7). Анимация — по ЛОКАЛЬНОМУ ветру модели у мачты (Atmosphere.air_velocity_at): поворот по ветру, провисание в слабый ветер, болтание по порывам (вершинный шейдер windsock.gdshader).",
     "scene_path": "res://scenes/world_objects/windsock_visual.tscn",
@@ -41,13 +56,15 @@
     "root_offset_m": 0.32,
     "root_offset_m_doc": "Расстояние от оси вертлюга (Pivot) до обруча чулка вдоль −Z в модели, м",
     "droop_root_deg": 70.0,
-    "droop_root_deg_doc": "Провисание у обруча в штиль, град от горизонта (90 — вниз)",
+    "droop_root_deg_doc": "Провисание у обруча в штиль, град от горизонта (90 — вниз); при наполнении f — (1 − f)·droop_root_deg",
     "droop_tip_deg": 89.0,
     "droop_tip_deg_doc": "Провисание конца чулка в штиль, град",
     "collapse": 0.55,
     "collapse_doc": "Сужение хвоста пустого чулка в штиль, доля радиуса",
-    "wave_count": 1.2,
-    "wave_count_doc": "Волн болтания на длину чулка",
+    "wave_count": 0.7,
+    "wave_count_doc": "Волн болтания на длину чулка (< 1 — хлопает хвост, без S-изгиба посередине)",
+    "bend_power": 2.5,
+    "bend_power_doc": "Изгиб дугой ∝ (1 − наполнение)^bend_power: наполненный конус прямой и наклонён целиком, дугой висит только почти пустой",
     "full_wind_kmh": 28.0,
     "full_wind_kmh_doc": "Скорость ветра, при которой конус вытянут горизонтально, км/ч (лёгкий парапланерный конус ~25–30 км/ч; авиационный стандарт — 15 уз = 28 км/ч)",
     "lift_wind_kmh": 4.0,
@@ -104,6 +121,7 @@
     "droop_tip_deg": 90.0,
     "collapse": 0.0,
     "wave_count": 2.0,
+    "bend_power": 1.0,
     "placeholder_height_m": 1.8,
     "offsets": [
       [
@@ -291,6 +309,26 @@
               "side": "south",
               "count": 12,
               "offset_m": 18.0,
+              "kind": "birch"
+            }
+          ],
+          "fences": []
+        }
+      ],
+      "aushkul": [
+        {
+          "id": "aushkul_field",
+          "_source_doc": "Точка — configs/locations/aushkul.json → landing_sites (lat/lon оттуда). Быстрое правдоподобное допущение: ось восток–запад (старты под восточный и западный ветер), берёзовый колок с севера, степной цвет травы.",
+          "length_m": 280.0,
+          "width_m": 150.0,
+          "axis_deg": 90.0,
+          "grass_color": [0.60, 0.60, 0.36],
+          "windsock_at": [0.42, -0.56],
+          "trees": [
+            {
+              "side": "north",
+              "count": 14,
+              "offset_m": 20.0,
               "kind": "birch"
             }
           ],

@@ -16,6 +16,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Ветроуказател�
 | `obstacle_index.gd` (`ObstacleIndex`) | сетка препятствий: капсулы (провода), цилиндры (деревья, опоры), повёрнутые коробки (здания, заборы) |
 | `draped.gdshader` | дороги и покос: сдвиг к камере против утопания в грубом LOD рельефа, растушёвка края дизерингом |
 | `wire.gdshader` | провода: лента к камере не тоньше пикселя, прозрачность = доля покрытия пикселя → тают с расстоянием |
+| `world_clearings.gd` (`WorldClearings`) | маска просек для деревьев рельефа: дороги, ЛЭП, застройка, посадки |
 | `world_tiles.gd` (`WorldTiles`) | тайлы, MultiMesh с дальностью видимости, загрузка меша из модели с заглушкой |
 | `scenes/world_objects/world_objects.tscn` | компонент для главной сцены |
 | `scenes/world_objects/{windsock,streamer}_visual.tscn` | обёртки визуала (маркер `Pivot`, меш `Sock`/`Ribbon`) |
@@ -67,8 +68,9 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
    (CC BY 3.0) — сильный ветер: горизонтально, прямо.
 
 ✔ пропорции мачты и конуса, полосы, провис в слабый ветер, горизонталь в сильный.
-✘ в игре на средней скорости конус изогнут дугой, на фото — чаще прямой и наклонён целиком
-(ткань натянута давлением); подправить — меньше `droop_tip_deg` относительно `droop_root_deg`.
+✔ (исправлено) на средней скорости конус прямой и наклонён целиком, как на фото: изгиб дугой
+∝ (1 − наполнение)^`bend_power` (2,5) — ткань натянута давлением, дугой висит только почти пустой конус;
+болтание — хлопает хвост (`wave_count` 0,7), без S-изгиба посередине.
 ✘ у реального конуса обруч на вертлюге, в модели — рычаг без растяжек (видно только вблизи).
 
 ## Посадочные площадки (VR-12)
@@ -82,9 +84,34 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 
 | Локация | Площадка | Как выбрана |
 |---|---|---|
+| aushkul | aushkul_field (точка terrain2), 280×150 м, ось 90° | быстрое допущение: ось восток–запад под старты на В и З, берёзовый колок с севера |
 | altai | поле у Озёрного, 51.83476, 85.81696, 300×200 м, ось 98° | точных координат официальной посадки у Синюхи нет в открытых источниках; взято реальное поле OSM `landuse=farmland` (6 га, уклон ≤ 2°) в 3 км к ЗСЗ от западного старта; в ~120 м севернее — реальная ЛЭП 110 кВ |
 | ongudai | ongudai_fields (точка terrain2), 300×150 м, ось 20° | ровный луг (1,5°) в долине севернее Онгудая, по долине против южного ветра; ЛЭП 110/10 кВ в ~500 м и заборы — из OSM |
 | askarovo | idyash_west 300×160 м, ось 110°; biyagoda_east_field 250×140 м, ось 94° | точки terrain2 (уклон 0,6° и 2,5°), ось по ветру соответствующего старта, берёзовые колки |
+
+## Просеки для деревьев рельефа (terrain2 подключает сам)
+Где деревья рельефа ставить нельзя: дороги (ширина класса + `road_margin_m` с каждой стороны), коридоры ЛЭП
+(`power_corridor_high_m` 30 м для 35–220 кВ, `power_corridor_low_m` 12 м для столбов), здания
+(описанная окружность пятна + `building_margin_m`), поля посадок (+ `landing_margin_m`). Параметры —
+`configs/world_objects.json → clearings`.
+
+```gdscript
+# 1) без нод, по id локации (читает data/osm/<id>.json, configs/locations/<id>.json, посадки из world_objects.json):
+var c := WorldClearings.build_for(location_id)     # null — нет конфига локации; OSM нет — только посадки
+c.is_clear_at(x, z)          # true — расчищено, дерево не ставить
+c.image                      # Image L8, 255 — расчищено; 40 км / 10 м = 4000² (Алтай: 0,4 с)
+c.origin, c.cell_m           # мир (x, z) угла пикселя (0, 0); пиксель (i, j) ↔ origin + (i + 0.5, j + 0.5)·cell_m
+# 2) через компонент: WorldObjects.clearing_mask_for(id) -> Image; world_objects.is_clear_at(x, z)
+```
+Как подключить в `TerrainTrees` (предложение, делает terrain2):
+- при загрузке локации: `var mask := WorldClearings.build_for(id)`; `ImageTexture.create_from_image(mask.image)`
+  → uniform `clearing_mask` + `clearing_origin` (vec2) + `clearing_cell_m` в `trees.gdshader`;
+- в вершинном шейдере деревьев: `uv = (world.xz − clearing_origin) / (cell_m · size)`;
+  `if (texture(clearing_mask, uv).r > 0.5)` — масштаб экземпляра в 0 (как сейчас с полянами стартов);
+- в раскраске рельефа эту же маску можно использовать, чтобы под просекой ЛЭП был луг, а не лес;
+- на CPU (если деревья расставляются в коде) — `mask.is_clear_at(x, z)`.
+Для рантайм-точки (FR-17) OSM нет — маска содержит только посадки (или null без конфига).
+Проверка: `godot --headless --path . res://scenes/world_objects/world_objects_preview.tscn -- --location=<id> --mask=out.png`.
 
 ## OSM (VR-9, VR-10)
 **Данные** `data/osm/<id>.json` (© OpenStreetMap contributors, ODbL — строка в ASSETS.md и в файле):

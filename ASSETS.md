@@ -54,9 +54,9 @@
 | `user://terrain_cache/worldcover/…` (не в репо) | тайлы WorldCover, скачанные в игре для выбранной точки | ESA WorldCover (как выше) | CC-BY 4.0 (как выше) | рантайм-карта поверхности (`worldcover_loader.gd`) |
 | `data/terrain/ongudai/*` | высоты 40×40 км (Copernicus, 25 м) + 160 км (Terrarium, 100 м), реки, карта поверхности — Онгудай, перевал Каянча | Copernicus DEM GLO-30, AWS Terrain Tiles, ESA WorldCover | как у строк выше (Copernicus DEM licence, открытые данные, CC-BY 4.0) | локация «Алтай — Онгудай» |
 | `data/terrain/askarovo/*` | то же — хребет Биягода у Аскарово (Башкортостан) | то же | то же | локация «Башкирия — Аскарово» |
-| `data/terrain/ekaterinburg/*` | то же — Екатеринбург, Уктус, Шарташ | то же | то же | локация «Екатеринбург» |
+| `data/terrain/aushkul/*` | то же — озеро Аушкуль, гора Ауштау (Башкортостан) | то же | то же | локация «Башкирия — Аушкуль» |
 | `user://terrain_cache/terrarium/…` (не в репо) | тайлы высот, скачанные в игре по выбранной точке | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) | как выше | рантайм-загрузка рельефа (FR-17) |
-| `data/osm/altai.json`, `ongudai.json`, `askarovo.json` | дороги, здания (прямоугольники), ЛЭП и опоры, реки и водоёмы, населённые пункты, поля и заборы — квадрат детального слоя рельефа; упаковано `tools/osm/fetch_osm.py` (Overpass API) | [OpenStreetMap](https://www.openstreetmap.org/) | **ODbL 1.0**: «© OpenStreetMap contributors» (атрибуция в титрах; производная база — под ODbL) | объекты мира: дороги, здания, ЛЭП, заборы у посадок (`scripts/world_objects/`) |
+| `data/osm/altai.json`, `ongudai.json`, `askarovo.json`, `aushkul.json` | дороги, здания (прямоугольники), ЛЭП и опоры, реки и водоёмы, населённые пункты, поля и заборы — квадрат детального слоя рельефа; упаковано `tools/osm/fetch_osm.py` (Overpass API) | [OpenStreetMap](https://www.openstreetmap.org/) | **ODbL 1.0**: «© OpenStreetMap contributors» (атрибуция в титрах; производная база — под ODbL) | объекты мира: дороги, здания, ЛЭП, заборы у посадок (`scripts/world_objects/`) |
 
 ## Модели и текстуры
 | Файл | Что | Источник | Лицензия | Где используется |

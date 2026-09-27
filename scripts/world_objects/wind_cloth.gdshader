@@ -13,6 +13,9 @@ uniform float root_offset = 0.32;
 // Угол провисания у корня и на конце при fill = 0, рад (π/2 — строго вниз).
 uniform float droop_root = 1.2;
 uniform float droop_tip = 1.55;
+// Изгиб дугой пропорционален limp^bend_power: давление ветра натягивает ткань, наполненный
+// конус остаётся прямым и лишь наклонён целиком (как на фото); дугой висит только почти пустой.
+uniform float bend_power = 2.5;
 // Насколько сужается хвост пустого чулка (0 — не сужается).
 uniform float collapse = 0.55;
 // Волн болтания на длину.
@@ -38,7 +41,7 @@ void vertex() {
 	float s = clamp(along / cloth_length, 0.0, 1.0);
 	float limp = 1.0 - fill;
 	float a0 = limp * droop_root;
-	float k = limp * (droop_tip - droop_root);
+	float k = pow(limp, bend_power) * (droop_tip - droop_root);
 	float a = a0 + k * s;
 	// Осевая линия: интеграл (cos a, −sin a) по длине (вперёд, вверх).
 	vec2 axis;
@@ -47,7 +50,7 @@ void vertex() {
 	} else {
 		axis = cloth_length * s * vec2(cos(a0), -sin(a0));
 	}
-	float shrink = 1.0 - limp * collapse * s;
+	float shrink = 1.0 - limp * limp * collapse * s;
 	vec2 rad = bend(vec2(0.0, VERTEX.y * shrink), a);
 	float w = TAU * wave_count * s;
 	float amp = flutter_amp * cloth_length * s * s;

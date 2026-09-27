@@ -7,6 +7,7 @@ extends Node3D
 ##   --wind=<км/ч> --from=<град>   ветер (по умолчанию из пресета погоды)
 ##   --weather=weak|medium|strong
 ##   --time=<с>      подождать, пока ветроуказатели «оживут» (по умолчанию preview.settle_s)
+##   --mask=<png>    сохранить маску просек (WorldClearings) локации и выйти
 ##   --shot=<png>    снять кадр и выйти;  --bench — GPU-время кадра с объектами и без, выход
 ## Управление: WASD/QE — полёт, Shift — быстрее, ПКМ — обзор, 1–5 — ракурсы.
 
@@ -41,6 +42,12 @@ func _ready() -> void:
 	atmo.set_wind(float(_args.get("wind", str(atmo.weather.wind_speed_kmh))), from)
 	atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
 	atmo.set_sun_direction(terrain.sun_direction())
+	if _args.has("mask"):
+		var c := WorldClearings.build_for(terrain.location_id)
+		c.image.save_png(String(_args.mask))
+		print("Маска просек %s за %.2f с: %s" % [c.image.get_size(), c.build_time_s, _args.mask])
+		get_tree().quit()
+		return
 	world.setup(terrain, atmo)
 	terrain.renderer.lod_camera = cam
 	_set_view(String(_args.get("view", "start")))
