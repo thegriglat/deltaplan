@@ -39,6 +39,19 @@ uniform float surface_spacing = 25.0;
 uniform vec2 surface_texels = vec2(1.0);
 uniform float surface_edge_noise = 0.7;
 uniform float surface_edge_sharpness = 0.35;
+// --- маска «деталь 10 м» (T02): R — доля леса в клетке 10 м (WorldCover без моды), G — резерв ---
+// Есть только у детального слоя встроенных локаций; нет — лес берётся из карты классов.
+uniform bool use_forest_mask = false;
+uniform sampler2D forest_mask_tex : filter_linear, repeat_disable;
+uniform vec2 forest_mask_origin;       // мировые X/Z узла (0,0) маски, м
+uniform float forest_mask_spacing = 10.0;
+uniform vec2 forest_mask_texels = vec2(1.0);
+
+// Доля леса по маске 10 м в точке (билинейно между узлами, как Terrain.forest_at).
+float forest_mask_r(vec2 xz) {
+	vec2 uv = ((xz - forest_mask_origin) / forest_mask_spacing + 0.5) / forest_mask_texels;
+	return textureLod(forest_mask_tex, uv, 0.0).r;
+}
 
 float h_node(ivec2 p) {
 	ivec2 m = ivec2(layer_texels) - ivec2(1);

@@ -5,6 +5,7 @@ extends TestCase
 const LOCATION := "altai"
 
 static var _terrain: Terrain
+static var _ongudai: Terrain
 
 
 func _altai() -> Terrain:
@@ -16,6 +17,15 @@ func _altai() -> Terrain:
 
 
 ## Ровная (или наклонная) площадка 200×200 м с картой поверхности одного класса.
+## Онгудай — у него маска «деталь 10 м» и DSM с кронами (T02).
+func _ong() -> Terrain:
+	if _ongudai == null:
+		_ongudai = Terrain.new()
+		_ongudai.location_id = ""
+		_ongudai.load_location("ongudai")
+	return _ongudai
+
+
 func _plane(cls: int, ax: float = 0.0, az: float = 0.0) -> Terrain:
 	var n := 21
 	var data := PackedFloat32Array()
@@ -80,6 +90,9 @@ func test_surface_at_matches_data() -> void:
 		var got := t.surface_at(x, z)
 		if t.normal_at(x, z).y < rock_cos or _near_start(t, x, z):
 			continue  # скалы по уклону и поляны у стартов — ожидаемые отличия
+		var sl := t.surfaces[0]
+		if sl.has_forest_mask() and (c == SurfaceLayer.FOREST) != (sl.mask_r(x, z) >= 0.5):
+			continue  # лес на опушке — по маске 10 м (test_surface_at_forest_by_mask)
 		checked += 1
 		check(got == c, "узел (%d,%d): surface_at %d, в данных %d" % [i, j, got, c])
 	check(checked > 300, "проверено точек: %d" % checked)
@@ -339,7 +352,157 @@ func test_haze_params_applied() -> void:
 	env.free()
 
 
+## Точки кромки леса по маске 10 м: [Vector2 точка, Vector2 нормаль в лес] — маска ≈ 0,5, с обеих
+## сторон на depth_m чисто (≤ 0,1 снаружи, ≥ 0,9 внутри).
+func _forest_edges(t: Terrain, count: int, depth_m: PackedFloat32Array, seed_v: int) -> Array:
+	var sl := t.surfaces[0]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var out := []
+	var tries := 0
+	while out.size() < count and tries < 400000:
+		tries += 1
+		var x := rng.randf_range(-18000.0, 18000.0)
+		var z := rng.randf_range(-18000.0, 18000.0)
+		if absf(sl.mask_r(x, z) - 0.5) > 0.1:
+			continue
+		var g := Vector2(
+			sl.mask_r(x + 10.0, z) - sl.mask_r(x - 10.0, z),
+			sl.mask_r(x, z + 10.0) - sl.mask_r(x, z - 10.0)
+		)
+		if g.length() < 0.03:
+			continue
+		g = g.normalized()
+		var clean := true
+		for d in depth_m:
+			if (
+				sl.mask_r(x + g.x * d, z + g.y * d) < 0.9
+				or sl.mask_r(x - g.x * d, z - g.y * d) > 0.1
+			):
+				clean = false
+				break
+		if clean:
+			out.append([Vector2(x, z), g])
+	return out
+
+
+func test_forest_mask_loaded() -> void:
+	var t := _ong()
+	var fm := t.get_forest_mask()
+	check(fm.size() == 3, "маска леса 10 м есть: %s" % [fm.size()])
+	if fm.size() != 3:
+		return
+	var img: Image = fm[0]
+	check(img.get_format() == Image.FORMAT_RG8, "RG8")
+	check(img.get_width() == 4001 and img.get_height() == 4001, "4001×4001 на 40 км")
+	approx(float(fm[2]), 10.0, 1e-6, "клетка 10 м")
+	check((fm[1] as Vector2).distance_to(Vector2(-20005, -20005)) < 1e-3, "угол пикселя (0, 0)")
+	check(t.last_load_time_s <= 0.5, "загрузка Онгудая ≤ 0,5 с: %.2f с" % t.last_load_time_s)
+
+
+func test_forest_at_sharp_edge() -> void:
+	# Кромка по маске 10 м: forest_at 0,1 → 0,9 на ≤ 20 м (вдоль нормали) на 20 точках кромки.
+	var t := _ong()
+	var edges := _forest_edges(t, 20, PackedFloat32Array([30.0]), 7)
+	check(edges.size() == 20, "найдено точек кромки: %d" % edges.size())
+	var worst := 0.0
+	for e: Array in edges:
+		var p: Vector2 = e[0]
+		var g: Vector2 = e[1]
+		var d10 := NAN
+		var d90 := NAN
+		var d := -30.0
+		while d <= 30.0:
+			var q := p + g * d
+			var f := t.forest_at(q.x, q.y)
+			if is_nan(d90) and f >= 0.9:
+				d90 = d
+			if f <= 0.1:
+				d10 = d
+				d90 = NAN
+			d += 0.25
+		var w := d90 - d10
+		worst = maxf(worst, w)
+		check(not is_nan(w) and w <= 20.0, "кромка %s: 0,1→0,9 за %.1f м" % [p, w])
+	print("         кромка леса 0,1→0,9: худшая %.1f м (20 точек)" % worst)
+
+
+func test_surface_at_forest_by_mask() -> void:
+	# surface_at = лес там, где доля леса маски 10 м (данные PNG) ≥ 0,5 — не меньше 95 % точек.
+	var t := _ong()
+	var dir: String = Config.get_config("locations/ongudai").data_dir
+	var meta: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(dir.path_join("surface.json"))
+	)
+	var info: Dictionary = meta.layers[0].detail10
+	var img := Image.new()
+	img.load_png_from_buffer(FileAccess.get_file_as_bytes(dir.path_join(info.file)))
+	var w := int(info.width)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 21
+	var n := 0
+	var hit := 0
+	while n < 500:
+		var i := rng.randi_range(1, w - 2)
+		var j := rng.randi_range(1, int(info.height) - 2)
+		if img.get_pixel(i, j).r < 0.5:
+			continue
+		var x := float(info.origin_x_m) + i * float(info.spacing_m)
+		var z := float(info.origin_z_m) + j * float(info.spacing_m)
+		n += 1
+		hit += int(t.surface_at(x, z) == SurfaceLayer.FOREST)
+	check(hit >= 0.95 * n, "surface_at = лес в %d из %d узлов с R ≥ 0,5" % [hit, n])
+	# и наоборот: на лугу у кромки (R < 0,5, а клетка 25 м — «лес») — не лес
+	var edges := _forest_edges(t, 20, PackedFloat32Array([30.0]), 3)
+	for e: Array in edges:
+		var q: Vector2 = e[0] - e[1] * 12.0
+		check(t.surface_at(q.x, q.y) != SurfaceLayer.FOREST, "луг в 12 м от кромки %s" % q)
+
+
+func test_height_includes_crowns() -> void:
+	# VR-21: height_at над лесом — DSM с кронами (посадка в лес = удар о кроны). На чистых кромках
+	# прямые по высотам снаружи и внутри (50–150 м) расходятся на ступеньку крон.
+	var t := _ong()
+	var ds := PackedFloat32Array([50.0, 75.0, 100.0, 125.0, 150.0])
+	var clean := ds.duplicate()
+	clean.append(20.0)
+	var edges := _forest_edges(t, 40, clean, 5)
+	check(edges.size() >= 30, "чистых кромок: %d" % edges.size())
+	var sum := 0.0
+	for e: Array in edges:
+		var p: Vector2 = e[0]
+		var g: Vector2 = e[1]
+		var h_in := PackedFloat32Array()
+		var h_out := PackedFloat32Array()
+		for d in ds:
+			h_in.append(t.height_at(p.x + g.x * d, p.y + g.y * d))
+			h_out.append(t.height_at(p.x - g.x * d, p.y - g.y * d))
+		sum += _intercept(ds, h_in) - _intercept(ds, h_out)
+	var step := sum / maxf(edges.size(), 1)
+	check(step > 5.0, "ступенька крон в height_at на опушке %.1f м (> 5 м)" % step)
+	print("         ступенька крон DSM на опушке: %.1f м (%d кромок)" % [step, edges.size()])
+
+
+## Значение в 0 прямой МНК по точкам (d, h).
+func _intercept(ds: PackedFloat32Array, hs: PackedFloat32Array) -> float:
+	var n := ds.size()
+	var sd := 0.0
+	var sh := 0.0
+	var sdd := 0.0
+	var sdh := 0.0
+	for k in n:
+		sd += ds[k]
+		sh += hs[k]
+		sdd += ds[k] * ds[k]
+		sdh += ds[k] * hs[k]
+	var b := (n * sdh - sd * sh) / (n * sdd - sd * sd)
+	return (sh - b * sd) / n
+
+
 func test_zz_cleanup() -> void:
 	if _terrain != null:
 		_terrain.free()
 		_terrain = null
+	if _ongudai != null:
+		_ongudai.free()
+		_ongudai = null

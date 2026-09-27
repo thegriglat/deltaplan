@@ -20,6 +20,16 @@
         "6": 0.0103,
         "7": 0.0117,
         "8": 0.0
+      },
+      "detail10": {
+        "file": "detail_detail10.png",
+        "width": 4001,
+        "height": 4001,
+        "spacing_m": 10.0,
+        "origin_x_m": -20000.0,
+        "origin_z_m": -20000.0,
+        "channels": "R — доля леса (0..255), G — резерв (вода, T03)",
+        "forest_fraction": 0.5785
       }
     },
     {

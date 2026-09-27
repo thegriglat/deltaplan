@@ -229,6 +229,7 @@ func _make_material(
 	var stex := surface.make_texture()
 	surface_textures.append(stex)
 	set_surface(m, surface, stex)
+	set_forest_mask(m, surface)
 	_apply_look(m, look)
 	return m
 
@@ -239,6 +240,20 @@ static func set_surface(m: ShaderMaterial, surface: SurfaceLayer, tex: Texture2D
 	m.set_shader_parameter("surface_origin", Vector2(surface.origin_x, surface.origin_z))
 	m.set_shader_parameter("surface_spacing", surface.spacing)
 	m.set_shader_parameter("surface_texels", Vector2(surface.width, surface.height))
+
+
+## Маска «деталь 10 м» (T02) → uniform'ы шейдера; нет маски — лес из карты классов.
+static func set_forest_mask(m: ShaderMaterial, surface: SurfaceLayer) -> void:
+	var tex := surface.make_mask_texture() if surface != null else null
+	m.set_shader_parameter("use_forest_mask", tex != null)
+	if tex == null:
+		return
+	m.set_shader_parameter("forest_mask_tex", tex)
+	m.set_shader_parameter(
+		"forest_mask_origin", Vector2(surface.mask_origin_x, surface.mask_origin_z)
+	)
+	m.set_shader_parameter("forest_mask_spacing", surface.mask_spacing)
+	m.set_shader_parameter("forest_mask_texels", Vector2(surface.mask_width, surface.mask_height))
 
 
 func _apply_look(m: ShaderMaterial, look: Dictionary) -> void:

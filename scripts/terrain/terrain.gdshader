@@ -74,7 +74,19 @@ uniform float canopy_gap_dark = 0.35;         // яркость просвето
 uniform float canopy_tone_var = 0.22;         // разброс яркости крон
 uniform float canopy_shadow = 0.55;           // сила тени от соседних крон
 uniform float canopy_height_k = 1.6;          // вытянутость крон (форма нормали: 1 — полусфера)
-uniform float canopy_edge_dark = 0.2;         // опушка темнее (тень леса на краю)
+uniform float canopy_edge_dark = 0.2;         // опушка темнее (тень леса на краю) — только внутри леса
+uniform float canopy_edge_depth_m = 25.0;     // ширина тёмной полосы опушки внутрь леса, м
+uniform float canopy_far_shade = 0.62;        // средняя яркость полога, когда кроны мельче пикселя
+uniform float canopy_stand_var = 0.3;         // разброс яркости древостоев (пятна 50–200 м) вблизи
+uniform float canopy_far_var = 0.3;           // то же вдали (кроны мельче пикселя)
+uniform float canopy_far_big = 0.0;           // доля крупных пятен (массивы 300–800 м) в разбросе
+uniform float canopy_far_sat = 1.0;           // насыщенность среднего тона полога (1 — как цвет пород)
+// кромка леса по маске 10 м: порог 0,5 + узкий шум (переход ≤ 1,5 клетки)
+uniform float forest_edge_soft = 0.12;        // полуширина порога (доля маски)
+uniform float forest_edge_noise = 0.35;       // сдвиг порога шумом (доля маски)
+uniform float forest_edge_warp_m = 4.0;       // извилистость кромки (сдвиг выборки), м
+// высота крон в DSM (Copernicus): ступенька на опушке; вычитается из уклона на лугу у кромки
+uniform float canopy_dsm_height_m = 10.0;
 uniform vec3 water_color : source_color;
 uniform float water_roughness = 0.1;
 uniform float roughness_value;
@@ -230,13 +242,52 @@ void fragment() {
 			n = normalize(mix(n, bilinear_normal(wp.xz), fine_w));
 		}
 	}
-	float slope_deg = degrees(acos(clamp(n_class.y, 0.0, 1.0)));
 	float h = wp.y;
 	float fade = 1.0 - smoothstep(detail_fade_m * 0.25, detail_fade_m, dist);
+	vec2 fw_m = fwidth(wp.xz);
+	float foot_m = max(fw_m.x, fw_m.y);
 
 	vec4 wa;
 	vec4 wb;
 	surface_weights(wp.xz, wa, wb);
+	// глубина внутри леса 0..1 (затемнение опушки — только внутри)
+	float forest_in = smoothstep(0.5, 0.95, wa.x);
+	// Лес — по маске 10 м: резкий порог 0,5 с узким шумом; вдали (клетка мельче пикселя) —
+	// карта классов 25 м (и без выборок из большой маски — дёшево). Остальные классы делят долю
+	// «не лес» в прежней пропорции.
+	float k10 = use_forest_mask
+			? 1.0 - smoothstep(forest_mask_spacing, 2.5 * forest_mask_spacing, foot_m) : 0.0;
+	if (k10 > 0.0) {
+		vec2 q = wp.xz;
+		vec2 jit = vec2(vnoise(q / 9.0), vnoise(q / 9.0 + vec2(5.2, 1.3))) - 0.5;
+		float r0 = forest_mask_r(q + jit * forest_edge_warp_m);
+		float nz = vnoise(q / 3.0 + vec2(1.7, 9.2)) - 0.5;
+		float f10 = smoothstep(0.5 - forest_edge_soft, 0.5 + forest_edge_soft,
+				r0 + nz * forest_edge_noise);
+		// окрестность ±d (шаг нормали вершины): ступенька крон DSM и глубина в лесу
+		float d = max(layer_spacing * v_lod_stride, canopy_edge_depth_m);
+		float rx1 = forest_mask_r(q + vec2(d, 0.0));
+		float rx0 = forest_mask_r(q - vec2(d, 0.0));
+		float rz1 = forest_mask_r(q + vec2(0.0, d));
+		float rz0 = forest_mask_r(q - vec2(0.0, d));
+		float fnew = mix(wa.x, f10, k10);
+		float rest = 1.0 - wa.x;
+		float kr = (1.0 - fnew) / max(rest, 0.02);
+		wa.yzw *= kr;
+		wb *= kr;
+		wa.y += (1.0 - fnew) - rest * kr;   // под «не лес» в лесной клетке 25 м — луг
+		wa.x = fnew;
+		float r_min = min(min(rx0, rx1), min(rz0, rz1));
+		forest_in = mix(forest_in, smoothstep(0.3, 0.9, min(r_min, r0 + 0.3)), k10);
+		// Уклон земли у кромки — без ступеньки крон: градиент DSM минус H·градиент маски.
+		// Лес освещается по DSM (кроны), луг и классы по уклону — по «земле».
+		vec2 g = k10 * canopy_dsm_height_m * vec2(rx1 - rx0, rz1 - rz0) / (2.0 * d);
+		vec2 gc = n_class.xz / max(n_class.y, 0.05) + g;
+		n_class = normalize(vec3(gc.x, 1.0, gc.y));
+		vec2 gn = n.xz / max(n.y, 0.05) + g * (1.0 - wa.x);
+		n = normalize(vec3(gn.x, 1.0, gn.y));
+	}
+	float slope_deg = degrees(acos(clamp(n_class.y, 0.0, 1.0)));
 	float forest = wa.x;
 	float crop = wa.z;
 	float shrub = wa.w;
@@ -252,8 +303,6 @@ void fragment() {
 
 	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
 	vec3 fcol = field_plot_color(wp.xz, gcol);
-	vec2 fw_m = fwidth(wp.xz);
-	float foot_m = max(fw_m.x, fw_m.y);
 	if (crop > 0.01) {
 		fcol = field_detail(wp.xz, fcol, gcol, foot_m);
 	}
@@ -298,12 +347,13 @@ void fragment() {
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
 	float con_p = conifer_share(patch2, north);
 	vec3 fmean = mix(birch_color, forest_color, con_p);
-	vec2 fw_c = fwidth(wp.xz);
-	float foot = max(fw_c.x, fw_c.y);
+	float foot = foot_m;
 	float crown_k = 1.0 - smoothstep(0.2 * canopy_cell_m, 0.8 * canopy_cell_m, foot);
-	// средняя яркость полога (освещённые кроны + просветы + тени) — к ней сходится детальный вид
-	float mean_shade = 0.62;
-	vec3 fcolor = fmean * mean_shade;
+	// средний тон полога вдали: смесь крон и теней под ними приглушает цвет (по фото (a) стенда T01)
+	// (плавно по следу пикселя 1–4 шага крон — без кольца на границе детального полога)
+	float far_k = smoothstep(0.8 * canopy_cell_m, 2.5 * canopy_cell_m, foot_m);
+	vec3 fcolor = mix(fmean * 0.62, mix(vec3(dot(fmean, vec3(0.2126, 0.7152, 0.0722))), fmean,
+			canopy_far_sat) * canopy_far_shade, far_k);
 	vec3 crown_n = vec3(0.0, 1.0, 0.0);
 	// куртины (группы крон, ×3 шага) — видны до нескольких км, когда отдельные кроны уже мельче пикселя
 	float grp_cell = canopy_cell_m * 3.0;
@@ -325,9 +375,15 @@ void fragment() {
 		crown_n = normalize(mix(crown_n, cn, crown_k));
 	}
 	// древостои: светлее/темнее пятнами 50–200 м (возраст, состав, густота)
-	fcolor *= 1.0 + 0.3 * (fbm(wp.xz / 90.0 + vec2(8.1, 2.2), 3) - 0.5) * 2.0;
-	// опушка темнее: тень стены леса и густой подрост
-	fcolor *= 1.0 - canopy_edge_dark * (1.0 - smoothstep(0.5, 0.95, forest));
+	// + крупнее (массивы 300–800 м) — видны с 2 км, когда отдельные кроны и куртины уже мельче пикселя
+	if (forest > 0.01) {
+		float stands = fbm(wp.xz / 90.0 + vec2(8.1, 2.2), 3) - 0.5
+				+ canopy_far_big * (fbm(wp.xz / 450.0 + vec2(2.6, 7.4), 2) - 0.5) * (1.0 - crown_k);
+		float sv = mix(canopy_far_var, canopy_stand_var, crown_k);
+		fcolor *= clamp(1.0 + sv * stands * 2.0, 0.25, 2.0);
+		// опушка темнее (тень стены леса, густой подрост) — только внутри леса, луг у кромки не трогаем
+		fcolor *= 1.0 - canopy_edge_dark * (1.0 - forest_in);
+	}
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
@@ -371,7 +427,17 @@ void fragment() {
 	float slope_up = 0.0;
 	if (slope_deg > scree_min_deg - 4.0 && forest < 0.99) {
 		vec2 up_dir = length(n_class.xz) > 1e-3 ? -normalize(n_class.xz) : vec2(0.0);
-		vec3 n_up = bilinear_normal(wp.xz + up_dir * scree_probe_m);
+		vec2 pu = wp.xz + up_dir * scree_probe_m;
+		vec3 n_up = bilinear_normal(pu);
+		if (k10 > 0.0) {
+			// ступенька крон выше по склону — не обрыв
+			float e = layer_spacing * 0.5;
+			vec2 g = k10 * canopy_dsm_height_m / (2.0 * e) * vec2(
+					forest_mask_r(pu + vec2(e, 0.0)) - forest_mask_r(pu - vec2(e, 0.0)),
+					forest_mask_r(pu + vec2(0.0, e)) - forest_mask_r(pu - vec2(0.0, e)));
+			vec2 gu = n_up.xz / max(n_up.y, 0.05) + g;
+			n_up = normalize(vec3(gu.x, 1.0, gu.y));
+		}
 		slope_up = degrees(acos(clamp(n_up.y, 0.0, 1.0)));
 	}
 	float scree = smoothstep(rock_slope_deg - 2.0, rock_slope_deg + 8.0, slope_up)

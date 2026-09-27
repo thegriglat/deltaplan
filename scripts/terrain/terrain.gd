@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Terrain
 extends Node3D
 ## Рельеф локации (контракт — docs/ARCHITECTURE.md, группа "terrain").
@@ -5,7 +6,9 @@ extends Node3D
 ##   normal_at(x, z)       — нормаль к поверхности
 ##   get_start_sites()     — стартовые площадки {id, name, position, heading_deg, lat, lon}
 ##   sun_exposure_at(x, z) — освещённость склона солнцем 0..1
-##   surface_at(x, z)      — класс поверхности (SurfaceLayer.FOREST, GRASS, CROP…), VR-4
+##   surface_at(x, z)      — класс поверхности (SurfaceLayer.FOREST, GRASS, CROP…), VR-4;
+##                           лес — по маске «деталь 10 м», где она есть (кромка как в шейдере)
+##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость),
 ##                           годится как sun_fn для Atmosphere.set_ground
 ## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
@@ -83,6 +86,8 @@ func load_location(id: String) -> bool:
 		push_error("Terrain: нет %s/meta.json — запусти tools/terrain/fetch_dem.py %s" % [dir, id])
 		load_failed.emit("нет данных рельефа " + id)
 		return false
+	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
+	var masks := _start_mask_decode(dir)
 	var new_layers: Array[HeightLayer] = []
 	for info in meta.layers:
 		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
@@ -93,7 +98,9 @@ func load_location(id: String) -> bool:
 			l.water_texture = TerrainRenderer.load_texture(dir.path_join(String(info.water_file)))
 		new_layers.append(l)
 	location_id = id
-	var new_surfaces := _load_surfaces(dir, new_layers)
+	for task_id: int in masks.get("tasks", []):
+		WorkerThreadPool.wait_for_task_completion(task_id)
+	var new_surfaces := _load_surfaces(dir, new_layers, masks.get("images", {}))
 	setup(cfg, new_layers, float(meta.center_lat), float(meta.center_lon), new_surfaces)
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
 	print(
@@ -289,6 +296,7 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 			impostors = null
 		if _clearings.size() == 3:
 			set_clearings(_clearings[0], _clearings[1], _clearings[2])
+		_pass_forest_mask(models)
 		return models
 	models.free()
 	var cones := TerrainTrees.new()
@@ -303,6 +311,16 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 		trees_cfg
 	)
 	return cones
+
+
+## Маска леса 10 м — деревьям и импостерам, если они её принимают (метод делает V02).
+func _pass_forest_mask(models: Node) -> void:
+	var fm := get_forest_mask()
+	if fm.is_empty():
+		return
+	for n: Object in [models, impostors]:
+		if n != null and n.has_method("set_forest_mask"):
+			n.call("set_forest_mask", fm[0], fm[1], fm[2])
 
 
 # ---------------- контракт ----------------
@@ -347,6 +365,32 @@ func sun_exposure_at(x: float, z: float) -> float:
 ## луг/поле/кустарник на склоне круче terrain_look.rock_slope_deg — это скалы (BARE).
 func surface_at(x: float, z: float) -> int:
 	return _surface_class(x, z, normal_at(x, z))
+
+
+## Доля леса в точке 0..1 (VR-4, VR-21, для деревьев и травы) — как кромка в шейдере (без шума):
+## маска «деталь 10 м» билинейно + порог 0,5 (terrain_look.forest_edge_soft), переход 0,1→0,9
+## в пределах ~10 м; где маски нет — по классу карты поверхности (0 или 1).
+func forest_at(x: float, z: float) -> float:
+	var sl := _surface_layer_at(x, z)
+	if sl == null:
+		return 0.0
+	return sl.forest_at(x, z)
+
+
+## Маска леса 10 м детального слоя: [Image RG8 (R — доля леса 0..255, G — резерв),
+## origin: Vector2 — мир (x, z) угла пикселя (0, 0), cell_m] — как у set_clearings:
+## центр пикселя (i, j) = origin + (i + 0,5, j + 0,5)·cell_m. Пусто — маски нет (рантайм-локация).
+## Поляны у стартов в маске уже вырезаны.
+func get_forest_mask() -> Array:
+	for sl in surfaces:
+		if sl != null and sl.has_forest_mask():
+			var h := sl.mask_spacing * 0.5
+			return [
+				sl.forest_mask_image(),
+				Vector2(sl.mask_origin_x - h, sl.mask_origin_z - h),
+				sl.mask_spacing
+			]
+	return []
 
 
 ## Сила источника термиков 0..1 (VR-4, FR-11): класс поверхности × освещённость склона солнцем
@@ -427,6 +471,12 @@ func _surface_layer_at(x: float, z: float) -> SurfaceLayer:
 func _surface_class(x: float, z: float, n: Vector3) -> int:
 	var sl := _surface_layer_at(x, z)
 	var c := sl.class_at(x, z) if sl != null else SurfaceLayer.NONE
+	if sl != null and sl.mask_contains(x, z):
+		# лес — по маске 10 м (порог 0,5, как кромка в шейдере)
+		if sl.mask_r(x, z) >= 0.5:
+			return SurfaceLayer.FOREST
+		if c == SurfaceLayer.FOREST:
+			c = sl.open_class_near(x, z)
 	if (
 		n.y < _rock_cos
 		and (
@@ -440,8 +490,33 @@ func _surface_class(x: float, z: float, n: Vector3) -> int:
 	return c
 
 
+## Начать чтение масок 10 м (surface.json → layers[].detail10) в рабочих потоках:
+## {tasks: [id], images: {id слоя: [Image]}} — Image появляется по завершении задачи.
+func _start_mask_decode(dir: String) -> Dictionary:
+	var out := {"tasks": [], "images": {}}
+	var meta: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(dir.path_join("surface.json"))
+	)
+	if not meta is Dictionary:
+		return out
+	var images: Dictionary = out.images
+	for info: Dictionary in meta.get("layers", []):
+		if not info.has("detail10"):
+			continue
+		var path := dir.path_join(String(info.detail10.file))
+		var lid := String(info.id)
+		var slot := [null]  # у каждой задачи своя ячейка (без общей записи в словарь)
+		images[lid] = slot
+		var job := func() -> void: slot[0] = SurfaceLayer.decode_detail10(path)
+		(out.tasks as Array).append(WorkerThreadPool.add_task(job))
+	return out
+
+
 ## Карты поверхности из <data_dir>/surface.json (tools/terrain/fetch_landcover.py); по id слоя.
-func _load_surfaces(dir: String, new_layers: Array[HeightLayer]) -> Array[SurfaceLayer]:
+## mask_images — уже прочитанные маски 10 м: {id слоя: [Image]} (нет — читаются здесь).
+func _load_surfaces(
+	dir: String, new_layers: Array[HeightLayer], mask_images: Dictionary = {}
+) -> Array[SurfaceLayer]:
 	var out: Array[SurfaceLayer] = []
 	out.resize(new_layers.size())
 	var path := dir.path_join("surface.json")
@@ -454,6 +529,10 @@ func _load_surfaces(dir: String, new_layers: Array[HeightLayer]) -> Array[Surfac
 		for k in new_layers.size():
 			if new_layers[k].id == String(info.id):
 				out[k] = SurfaceLayer.load_png(dir.path_join(String(info.file)), info)
+				if out[k] != null and info.has("detail10"):
+					var d10: Dictionary = info.detail10
+					var slot: Array = mask_images.get(info.id, [null])
+					out[k].load_detail10(dir.path_join(String(d10.file)), d10, slot[0])
 	return out
 
 
@@ -495,6 +574,8 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 			_edge_pair[a * n + b] = 1
 			_edge_pair[b * n + a] = 1
 	_rock_cos = cos(deg_to_rad(float(look.get("rock_slope_deg", 90.0))))
+	for s in surfaces:
+		s.mask_edge_soft = float(look.get("forest_edge_soft", 0.12))
 
 
 func _spacing_at(x: float, z: float) -> float:
