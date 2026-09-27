@@ -21,8 +21,12 @@ var indicators: Array[WindIndicator] = []
 var start_tracks: Array = []
 ## Время построения, с (NFR-2).
 var build_time_s: float = 0.0
+## Лагерь пилотов у старта (place_camp, TentCamp.plan):
+## [{type, position, basis, yaw, color, radius}].
+var camp: Array[Dictionary] = []
 
 var _air_fn: Callable
+var _height_fn: Callable
 var _clearings: WorldClearings
 var _active: Array[WindIndicator] = []
 var _since_update: float = 0.0
@@ -68,6 +72,7 @@ func build(
 	location_id = loc_id
 	cfg = WorldObjects.load_config()
 	_air_fn = air_fn
+	_height_fn = height_fn
 	_update_dt = 1.0 / maxf(float(cfg.windsock.update_hz), 1.0)
 	obstacles = ObstacleIndex.new()
 	for s in start_sites:
@@ -113,6 +118,7 @@ func clear() -> void:
 	indicators.clear()
 	landing_sites.clear()
 	start_tracks.clear()
+	camp.clear()
 	_active.clear()
 	osm_layer = null
 	osm = null
@@ -161,6 +167,87 @@ static func landing_specs(landing_cfg: Dictionary, loc_id: String, landings: Arr
 static func clearing_mask_for(loc_id: String) -> Image:
 	var c := WorldClearings.build_for(loc_id)
 	return c.image if c != null else null
+
+
+## Палатки лагеря пилотов у старта игрока (TentCamp, configs/world_objects.json → tents): вызывать
+## после build/setup, когда старт выбран. count < 0 — 1 + боты из настроек. terrain (Terrain или
+## null) — лес, вода, застройка, камни и кусты; без него — только уклон, тропы и OSM.
+## Прошлый лагерь (другой старт той же локации) убирается вместе с препятствиями «tent».
+func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count: int = -1) -> void:
+	var old := get_node_or_null("Camp")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	camp.clear()
+	if obstacles != null:
+		obstacles.remove_kind("tent")
+	var tc: Dictionary = cfg.get("tents", {})
+	if tc.is_empty() or not bool(tc.get("enabled", true)):
+		return
+	if count < 0:
+		count = TentCamp.tent_count()
+	var t0 := Time.get_ticks_usec()
+	camp = TentCamp.plan(start, heading_deg, count, tc, _camp_env(start, tc, terrain))
+	if camp.is_empty():
+		print("WorldObjects: у старта нет ровного места для палаток")
+		return
+	add_child(TentCamp.build_node(camp, tc))
+	for t in camp:
+		var ty: Dictionary = tc.types[t.type]
+		var p: Vector3 = t.position
+		var half: Array = ty.half_size_m
+		obstacles.add_box(
+			p.x,
+			p.z,
+			float(half[0]),
+			float(half[1]),
+			-float(t.yaw),
+			p.y - 0.5,
+			p.y + float(ty.height_m),
+			"tent"
+		)
+	print(
+		(
+			"WorldObjects: палаток у старта %d из %d за %.0f мс"
+			% [camp.size(), count, (Time.get_ticks_usec() - t0) / 1000.0]
+		)
+	)
+
+
+## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы, дороги,
+## реки), точки (камни, кусты, здания).
+func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
+	var c := Vector2(start.x, start.z)
+	var reach := float(tc.distance_m[1]) + 60.0
+	var env := {"lines": [], "points": [], "zone": TentCamp.launch_zone(tc)}
+	var tw := float(tc.get("track_margin_m", 4.0))
+	for pts: PackedVector2Array in start_tracks:
+		env.lines.append([pts, tw + float(cfg.start_tracks.get("width_m", 2.0)) * 0.5])
+	if osm != null:
+		for arr: Array in [osm.roads, osm.rivers]:
+			for item: Dictionary in arr:
+				# только отрезки рядом со стартом — дороги бывают на десятки километров
+				var pts := OsmData.points(item.p)
+				for i in pts.size() - 1:
+					var seg := PackedVector2Array([pts[i], pts[i + 1]])
+					if TentCamp.dist_to_polyline(c, seg) < reach:
+						env.lines.append([seg, float(tc.get("road_margin_m", 8.0))])
+		for b: Array in osm.buildings:
+			var bp := Vector2(float(b[0]), float(b[1]))
+			if bp.distance_to(c) < reach:
+				env.points.append(Vector3(bp.x, bp.y, float(tc.get("building_margin_m", 15.0))))
+	if terrain != null:
+		env.height_fn = Callable(terrain, &"height_at")
+		if terrain.has_method(&"surface_at") and terrain.has_method(&"forest_at"):
+			env.blocked_fn = TentCamp.blocked_by_surface.bind(terrain)
+		var min_size := float(tc.get("scatter_min_size_m", 0.6))
+		var tiles := {}
+		env.points_fn = func(pc: Vector2, pr: float) -> Array: return TentCamp.scatter_near(
+			terrain, pc, pr, min_size, tiles
+		)
+	else:
+		env.height_fn = _height_fn
+	return env
 
 
 ## Расчищено ли место в текущей локации (дорога, ЛЭП, застройка, посадка) — деревьев не ставить.

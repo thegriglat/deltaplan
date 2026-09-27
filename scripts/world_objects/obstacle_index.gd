@@ -64,6 +64,42 @@ func add_box(
 	)
 
 
+## Убрать все препятствия вида kind (лагерь палаток на новом старте той же локации).
+func remove_kind(kind: String) -> void:
+	if not kind in _kinds:
+		return
+	var old := [_types, _kinds, _p0, _p1, _p2]
+	_grid.clear()
+	_types = PackedByteArray()
+	_kinds = PackedStringArray()
+	_p0 = PackedVector3Array()
+	_p1 = PackedVector3Array()
+	_p2 = PackedVector3Array()
+	var types: PackedByteArray = old[0]
+	var kinds: PackedStringArray = old[1]
+	var p0: PackedVector3Array = old[2]
+	var p1: PackedVector3Array = old[3]
+	var p2: PackedVector3Array = old[4]
+	for i in types.size():
+		if kinds[i] == kind:
+			continue
+		var lo: Vector2
+		var hi: Vector2
+		match types[i]:
+			0:
+				var r := p2[i].x
+				lo = Vector2(minf(p0[i].x, p1[i].x), minf(p0[i].z, p1[i].z)) - Vector2.ONE * r
+				hi = Vector2(maxf(p0[i].x, p1[i].x), maxf(p0[i].z, p1[i].z)) + Vector2.ONE * r
+			1:
+				lo = Vector2(p0[i].x, p0[i].z) - Vector2.ONE * p1[i].x
+				hi = Vector2(p0[i].x, p0[i].z) + Vector2.ONE * p1[i].x
+			_:
+				var r := Vector2(p1[i].x, p1[i].z).length()
+				lo = Vector2(p0[i].x, p0[i].z) - Vector2.ONE * r
+				hi = Vector2(p0[i].x, p0[i].z) + Vector2.ONE * r
+		_add(types[i], kinds[i], p0[i], p1[i], p2[i], lo, hi)
+
+
 ## Первое препятствие на отрезке a→b: {kind, point} или {}
 ## (point — ближайшая к препятствию точка пути).
 func hit(a: Vector3, b: Vector3, kind_filter: String = "") -> Dictionary:
