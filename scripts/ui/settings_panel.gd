@@ -13,6 +13,7 @@ var _volume: HSlider
 var _sens: HSlider
 var _invert: CheckBox
 var _mouse_mode: OptionButton
+var _roll_mode: OptionButton
 var _sound: OptionButton
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
@@ -44,6 +45,10 @@ func _ready() -> void:
 	_mouse_mode.add_item(tr("Обзор (поворот головы)"))
 	_mouse_mode.add_item(tr("Трапеция"))
 	UiKit.row(box, tr("Мышь"), _mouse_mode)
+	_roll_mode = OptionButton.new()
+	_roll_mode.add_item(tr("Как раньше"))
+	_roll_mode.add_item(tr("Смещение веса (возврат в центр)"))
+	UiKit.row(box, tr("Управление креном"), _roll_mode)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -80,6 +85,8 @@ func load_values() -> void:
 	_sens.value_changed.emit(_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	_mouse_mode.select(0 if String(Config.value("controls", "mouse.mode")) == "look" else 1)
+	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
+	_roll_mode.select(1 if rm == "weight_shift" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
@@ -99,6 +106,7 @@ func save() -> bool:
 				"controls",
 				{
 					"invert_pitch": _invert.button_pressed,
+					"roll_control_mode": "weight_shift" if _roll_mode.selected == 1 else "rate",
 					"mouse":
 					{
 						"look_sensitivity_deg_per_px": _sens.value,

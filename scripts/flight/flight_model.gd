@@ -15,6 +15,8 @@ signal takeoff_failed(reason: String)
 enum Mode { GROUND, AIR, LANDED, FAILED }
 
 const UP := Vector3.UP
+## За сколько градусов крена сверх roll_overbank_deg устойчивость по крену сходит на нет, °.
+const OVERBANK_FADE_DEG := 10.0
 
 var telemetry := Telemetry.new()
 var mode: Mode = Mode.GROUND
@@ -58,6 +60,12 @@ var _lift_slope: float = 0.0
 var _alpha0: float = 0.0
 var _tau_roll: float = 0.0
 var _roll_rate_max: float = 0.0
+var _ws: Dictionary = {}  ## режим «смещение веса»: wing.weight_shift
+var _tau_roll_ws: float = 0.0
+var _roll_rate_max_ws: float = 0.0
+var _roll_stability: float = 0.0  ## собственная устойчивость по крену, 1/с
+var _roll_stability_steep: float = 0.0  ## добавка устойчивости при крене 45°, 1/с
+var _roll_overbank: float = PI  ## крен, круче которого устойчивость пропадает, рад
 var _rho_ref: float = 1.225
 var _stall_time: float = 0.0
 var _attached: float = 1.0  ## доля присоединённого потока: 1 — обтекание, 0 — полный срыв
@@ -108,6 +116,12 @@ func setup(wing_cfg: Dictionary, pilot_cfg: Dictionary, flight_override: Diction
 	_tau_roll = float(wing.roll_time_constant_s) * pow(mf, tc_exp)
 	var rr_scale := pow(mf, float(inertia.roll_rate_mass_exponent))
 	_roll_rate_max = Units.deg(float(wing.roll_rate_max_dps)) * rr_scale
+	_ws = wing.weight_shift
+	_tau_roll_ws = float(_ws.roll_time_constant_s) * pow(mf, tc_exp)
+	_roll_rate_max_ws = Units.deg(float(_ws.roll_rate_max_dps)) * rr_scale
+	_roll_stability = float(_ws.roll_stability_per_s)
+	_roll_stability_steep = float(_ws.roll_stability_steep_per_s)
+	_roll_overbank = Units.deg(float(_ws.roll_overbank_deg))
 	telemetry = Telemetry.new()
 
 
@@ -359,25 +373,81 @@ func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float) -> vo
 
 
 ## Крен: смещение веса (FR-5) + разница вертикальных потоков на концах крыла (FR-8).
+## Два режима (ControlInput.weight_shift, настройка controls.roll_control_mode):
+## «как раньше» — input.roll задаёт угловую скорость крена, без управления крен держится;
+## «смещение веса» — input.roll = положение пилота в трапеции (_roll_weight_shift).
 func _update_roll(dt: float, input: ControlInput, v: float, dw_left_right: float) -> void:
 	var st: Dictionary = wing.stall
-	var sf := pow(
-		maxf(v, float(flight.min_airspeed_ms)) / trim_speed(), float(wing.roll_speed_exponent)
-	)
-	sf = clampf(sf, float(wing.roll_speed_factor_min), float(wing.roll_speed_factor_max))
-	var p_cmd := clampf(input.roll, -1.0, 1.0) * _roll_rate_max * sf
-	if stalled:
-		p_cmd *= float(st.roll_authority_factor)
-	# сваливание на крыло: в крене опущенная консоль срывается первой и продолжает падать
-	if stalled and absf(bank) > Units.deg(float(st.wing_drop_bank_deg)):
-		p_cmd += signf(bank) * Units.deg(float(st.wing_drop_roll_rate_dps))
 	var p_air := float(wing.air_roll_gain) * dw_left_right / span
-	roll_rate += (p_cmd + p_air - roll_rate) * (1.0 - exp(-dt / _tau_roll))
+	if input.weight_shift:
+		_roll_weight_shift(dt, input, v, p_air)
+	else:
+		var sf := pow(
+			maxf(v, float(flight.min_airspeed_ms)) / trim_speed(), float(wing.roll_speed_exponent)
+		)
+		sf = clampf(sf, float(wing.roll_speed_factor_min), float(wing.roll_speed_factor_max))
+		var p_cmd := clampf(input.roll, -1.0, 1.0) * _roll_rate_max * sf
+		if stalled:
+			p_cmd *= float(st.roll_authority_factor)
+		# сваливание на крыло: в крене опущенная консоль срывается первой и продолжает падать
+		if stalled and absf(bank) > Units.deg(float(st.wing_drop_bank_deg)):
+			p_cmd += signf(bank) * Units.deg(float(st.wing_drop_roll_rate_dps))
+		roll_rate += (p_cmd + p_air - roll_rate) * (1.0 - exp(-dt / _tau_roll))
 	bank += roll_rate * dt
 	var max_bank := Units.deg(float(wing.max_bank_deg))
 	if absf(bank) > max_bank:
 		bank = signf(bank) * max_bank
 		roll_rate = 0.0
+
+
+## «Смещение веса»: input.roll — положение пилота (−1..+1, 0 — центр). Смещение даёт кренящий
+## момент (угловая скорость weight_shift.roll_rate_max_dps · u на триме), собственная
+## устойчивость крыла возвращает его к горизонту (−roll_stability · крен). Держишь смещение —
+## установившийся крен ∝ смещению; вернулся в центр — крыло выравнивается и летит прямо.
+func _roll_weight_shift(dt: float, input: ControlInput, v: float, p_air: float) -> void:
+	var st: Dictionary = wing.stall
+	var p_cmd := clampf(input.roll, -1.0, 1.0) * _roll_rate_max_ws * roll_authority(v)
+	var p_stab := -roll_stability(bank) * bank
+	if stalled:
+		p_cmd *= float(st.roll_authority_factor)
+		p_stab *= float(st.roll_authority_factor)
+	if stalled and absf(bank) > Units.deg(float(st.wing_drop_bank_deg)):
+		p_cmd += signf(bank) * Units.deg(float(st.wing_drop_roll_rate_dps))
+		p_stab = 0.0
+	roll_rate += (p_cmd + p_stab + p_air - roll_rate) * (1.0 - exp(-dt / _tau_roll_ws))
+
+
+## «Смещение веса»: эффективность смещения на воздушной скорости v (1 — на триме): ниже трима
+## крыло вялое ((V/V_трим)^roll_speed_exponent), выше — тяжелеет ((V_трим/V)^roll_heavy_exponent).
+func roll_authority(v: float) -> float:
+	var vr := maxf(v, float(flight.min_airspeed_ms)) / trim_speed()
+	var sf := pow(vr, float(wing.roll_speed_exponent))
+	if vr > 1.0:
+		sf = pow(vr, -float(_ws.roll_heavy_exponent))
+	return clampf(sf, float(wing.roll_speed_factor_min), float(wing.roll_speed_factor_max))
+
+
+## «Смещение веса»: собственная устойчивость по крену при крене bank_rad, 1/с: база + добавка,
+## растущая как (крен/45°)² — на малом крене спортивное крыло почти нейтрально, круто завалить
+## труднее.
+## Круче roll_overbank_deg (смещением туда не попасть — только болтанкой или сваливанием)
+## возвращающий момент за OVERBANK_FADE_DEG сходит на нет: крыло в спирали, из центра само
+## не выходит — только смещением в обратную сторону.
+func roll_stability(bank_rad: float) -> float:
+	var a := absf(bank_rad)
+	var ob := minf(a, _roll_overbank)
+	var r := ob / (0.25 * PI)
+	var k := _roll_stability + _roll_stability_steep * r * r
+	if a > _roll_overbank:
+		k *= ob / a * maxf(0.0, 1.0 - (a - ob) / Units.deg(OVERBANK_FADE_DEG))
+	return k
+
+
+## «Смещение веса»: положение пилота, при котором на воздушной скорости v установившийся крен
+## равен bank_rad (без потоков) — упреждение к регулятору крена.
+func roll_input_for_bank(bank_rad: float, v: float) -> float:
+	var p := _roll_rate_max_ws * roll_authority(v)
+	return roll_stability(bank_rad) * bank_rad / maxf(p, 1.0e-3)
 
 
 func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
