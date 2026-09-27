@@ -8,8 +8,13 @@
   "default_weather": "weather/medium",
   "default_wind_mode": "into_site",
   "default_wind_mode_doc": "into_site — ветер из пресета по силе, но дует в лоб старту (удобно для первого полёта); preset — направление из пресета погоды",
-  "language": "ru",
-  "language_doc": "Язык интерфейса (locale/*.csv): ru, en",
+  "language": "",
+  "language_doc": "Язык интерфейса (locale/ui.csv): ru, en; пусто — по языку системы (ru… — русский, иначе английский). Меняется в главном меню и в настройках",
+  "languages": {
+    "ru": "Русский",
+    "en": "English"
+  },
+  "languages_doc": "Языки в переключателе: код → самоназвание, в порядке переключения",
   "air": {
     "_doc": "Модель воздуха. Заменяется одной строкой: скрипт должен давать set_weather(имя), set_wind(км/ч, откуда°), set_ground(height_fn, sun_fn), air_velocity_at(pos), step(dt), focus_node",
     "script": "res://scripts/atmosphere/atmosphere.gd",
@@ -121,7 +126,7 @@
   "graphics_presets": {
     "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D, scaling_mode — bilinear/fsr (FSR 1), fsr_sharpness — резкость FSR, по умолчанию Годо 0.2). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м; configs.vegetation.grass.density_pct — густота травы, % (0 — выключена; слайдер «Густота травы» в настройках её переопределяет)",
     "low": {
-      "name": "Низкое (лёгкое)",
+      "name": "gfx_low",
       "configs": {
         "vegetation": {"grass": {"density_pct": 0}},
         "atmosphere": {
@@ -153,7 +158,7 @@
       }
     },
     "medium": {
-      "name": "Среднее",
+      "name": "gfx_medium",
       "configs": {
         "vegetation": {"grass": {"density_pct": 100}},
         "atmosphere": {
@@ -179,7 +184,7 @@
       }
     },
     "high": {
-      "name": "Высокое (полное)",
+      "name": "gfx_high",
       "configs": {
         "vegetation": {"grass": {"density_pct": 150}},
         "atmosphere": {
@@ -267,11 +272,11 @@
   "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, ЛЭП, препятствия (docs/world_objects.md); пусто — без них",
   "collision_texts": {
     "_doc": "Итог полёта при столкновении с препятствием (WorldObjects.obstacle_hit → kind)",
-    "wire": "Столкновение с проводами ЛЭП",
-    "tower": "Столкновение с опорой ЛЭП",
-    "building": "Столкновение со зданием",
-    "tree": "Столкновение с деревом",
-    "fence": "Столкновение с забором"
+    "wire": "collision_wire",
+    "tower": "collision_tower",
+    "building": "collision_building",
+    "tree": "collision_tree",
+    "fence": "collision_fence"
   },
   "vario_sound_from": {
     "classic_90s": "VarioMount",

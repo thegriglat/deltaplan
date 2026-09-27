@@ -98,14 +98,14 @@ func load_location(id: String) -> bool:
 	var t0 := Time.get_ticks_usec()
 	var cfg: Dictionary = Config.get_config("locations/" + id)
 	if cfg.is_empty():
-		load_failed.emit("нет конфига локации " + id)
+		load_failed.emit(tr("err_no_location_config") % id)
 		return false
 	var dir := String(cfg.get("data_dir", "res://data/terrain/" + id))
 	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	var meta: Variant = JSON.parse_string(meta_text)
 	if not meta is Dictionary:
 		push_error("Terrain: нет %s/meta.json — запусти tools/terrain/fetch_dem.py %s" % [dir, id])
-		load_failed.emit("нет данных рельефа " + id)
+		load_failed.emit(tr("err_no_location_data") % id)
 		return false
 	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
 	var masks := _start_mask_decode(dir)
@@ -113,7 +113,7 @@ func load_location(id: String) -> bool:
 	for info in meta.layers:
 		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
 		if l == null:
-			load_failed.emit("ошибка чтения слоя " + String(info.id))
+			load_failed.emit(tr("err_layer_read") % String(info.id))
 			return false
 		if info.has("water_file"):
 			l.water_texture = TerrainRenderer.load_texture(dir.path_join(String(info.water_file)))
@@ -153,7 +153,7 @@ func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void
 	var t0 := Time.get_ticks_usec()
 	progress.begin()
 	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
-	progress.stage("dem", tr("Скачиваю рельеф…"))
+	progress.stage("dem", tr("loading_dem"))
 	var result: Dictionary = await _loader.build_location(lat, lon, size_km)
 	if gen != _load_gen:
 		return  # отменено (cancel_load) — load_failed уже отправлен
@@ -168,7 +168,7 @@ func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void
 		add_child(_wc_loader)
 	var new_layers: Array[HeightLayer] = result.layers
 	var new_surfaces: Array[SurfaceLayer] = []
-	progress.stage("landcover", tr("Карта леса и полей…"))
+	progress.stage("landcover", tr("loading_landcover"))
 	for k in new_layers.size():
 		var l := new_layers[k]
 		var s: SurfaceLayer = await _wc_loader.build_surface(l, lat, lon)
@@ -179,7 +179,7 @@ func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void
 		new_surfaces.append(s)
 		progress.sub(k + 1, new_layers.size())
 	if is_sea(new_layers[0], new_surfaces[0], float(rt.get("sea_depth_m", -450.0))):
-		_fail(gen, tr("Здесь море — выберите точку на суше."))
+		_fail(gen, tr("err_sea"))
 		return
 	location_id = ""
 	await setup_async(result.config, new_layers, lat, lon, new_surfaces)
@@ -225,10 +225,10 @@ func _fail(gen: int, message: String) -> void:
 func _error_text(kind: String) -> String:
 	match kind:
 		"nodata":
-			return tr("Для этого места нет данных рельефа.")
+			return tr("err_no_terrain_data")
 		"network":
-			return tr("Нет связи с сервером рельефа. Проверьте интернет и попробуйте ещё раз.")
-	return tr("Не удалось загрузить рельеф.")
+			return tr("err_network")
+	return tr("err_terrain_failed")
 
 
 ## Сторож: пока идёт загрузка gen, ход не менялся дольше timeout_s — отмена и сообщение.
@@ -242,7 +242,7 @@ func _watch_stall(gen: int, timeout_s: float) -> void:
 			since = Time.get_ticks_msec()
 		elif (Time.get_ticks_msec() - since) / 1000.0 > timeout_s:
 			push_warning("Terrain: загрузка стоит %.0f с — отмена" % timeout_s)
-			_fail(gen, tr("Сервер рельефа не отвечает. Проверьте интернет или попробуйте позже."))
+			_fail(gen, tr("err_server_timeout"))
 			return
 
 
@@ -283,7 +283,7 @@ func _setup_steps(
 	async: bool
 ) -> void:
 	var world: Dictionary = Config.get_config("world")
-	progress.stage("classify", tr("Лес и поля…"))
+	progress.stage("classify", tr("loading_classify"))
 	if async:
 		new_surfaces = await _classify_missing(new_layers, new_surfaces, world.get("surface", {}))
 	location = cfg
@@ -299,7 +299,7 @@ func _setup_steps(
 	_look = look
 	set_surfaces(new_surfaces, world.get("surface", {}), look)
 	_compute_reliefs(world.get("surface", {}).get("relief", {}))
-	progress.stage("mesh", tr("Строю рельеф…"))
+	progress.stage("mesh", tr("loading_mesh"))
 	if async:
 		await get_tree().process_frame
 	if renderer == null:
@@ -312,7 +312,7 @@ func _setup_steps(
 	)
 	renderer.apply_textures(world.get("terrain_textures", {}))
 	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
-	progress.stage("trees", tr("Сажаю лес…"))
+	progress.stage("trees", tr("loading_trees"))
 	if async:
 		await get_tree().process_frame
 	if trees != null:
@@ -320,7 +320,7 @@ func _setup_steps(
 		trees = null
 	if bool(trees_cfg.get("enabled", false)) and not renderer.height_textures.is_empty():
 		trees = _make_trees(trees_cfg, look)
-	progress.stage("grass", tr("Трава…"))
+	progress.stage("grass", tr("loading_grass"))
 	if async:
 		await get_tree().process_frame
 	_make_grass(Config.get_config("vegetation").get("grass", {}), look)

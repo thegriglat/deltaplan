@@ -11,6 +11,8 @@ signal settings_requested
 signal about_requested
 signal controls_requested
 signal quit_requested
+## Переключатель языка «◀ Русский ▶»: выбран язык code (главная сцена включает и перестраивает UI).
+signal language_requested(code: String)
 
 var settings: FlightSettings
 
@@ -18,6 +20,7 @@ var _status: Label
 var _fly_btn: Button
 var _setup_btn: Button
 var _summary: Label
+var _lang_prev: Button
 
 
 func _ready() -> void:
@@ -52,7 +55,7 @@ func set_busy(on: bool) -> void:
 static func summary_text(s: FlightSettings) -> String:
 	var parts: PackedStringArray = []
 	if s.has_pick():
-		parts.append(TranslationServer.translate("точка %.4f, %.4f") % [s.pick_lat, s.pick_lon])
+		parts.append(TranslationServer.translate("menu_point") % [s.pick_lat, s.pick_lon])
 	else:
 		var loc: Dictionary = Config.get_config("locations/" + s.location_id)
 		parts.append(TranslationServer.translate(String(loc.get("name", s.location_id))))
@@ -68,28 +71,64 @@ static func summary_text(s: FlightSettings) -> String:
 
 func _build() -> void:
 	var ui: Dictionary = Config.get_config("ui")
-	UiKit.full_screen_background(self, String(ui.get("menu_background", "")), Color(0.05, 0.06, 0.08))
+	UiKit.full_screen_background(
+		self, String(ui.get("menu_background", "")), Color(0.05, 0.06, 0.08)
+	)
 	var logo_path := String(ui.get("menu_logo", ""))
 	if logo_path != "" and ResourceLoader.exists(logo_path):
 		_add_logo(load(logo_path) as Texture2D, float(ui.get("menu_logo_width", 560.0)))
 	else:
-		UiKit.heading(self, tr("Дельтаплан"), 56.0)
-	_add_quote(
-		tr("«В этом безмолвном океане неба рождается истинное понимание свободы.»")
-	)
+		UiKit.heading(self, tr("app_title"), 56.0)
+	_add_quote(tr("menu_quote"))
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
 	var box := UiKit.snug_panel(self)
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
-	_fly_btn = UiKit.menu_button(box, tr("Лететь"), _on_fly)
+	_fly_btn = UiKit.menu_button(box, tr("menu_fly"), _on_fly)
 	_summary = UiKit.label(box, summary_text(settings), "HintLabel")
 	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_setup_btn = UiKit.menu_button(box, tr("Полёт…"), func() -> void: setup_requested.emit())
-	UiKit.menu_button(box, tr("Управление"), func() -> void: controls_requested.emit())
-	UiKit.menu_button(box, tr("Настройки"), func() -> void: settings_requested.emit())
-	UiKit.menu_button(box, tr("Об игре"), func() -> void: about_requested.emit())
-	UiKit.menu_button(box, tr("Выход"), func() -> void: quit_requested.emit())
+	_setup_btn = UiKit.menu_button(
+		box, tr("menu_flight_setup"), func() -> void: setup_requested.emit()
+	)
+	UiKit.menu_button(box, tr("menu_controls"), func() -> void: controls_requested.emit())
+	UiKit.menu_button(box, tr("menu_settings"), func() -> void: settings_requested.emit())
+	UiKit.menu_button(box, tr("menu_about"), func() -> void: about_requested.emit())
+	UiKit.menu_button(box, tr("menu_quit"), func() -> void: quit_requested.emit())
+	_add_language_selector(box)
+
+
+## Фокус на переключатель языка (после перестройки UI — чтобы клавиатура осталась на нём).
+func focus_language() -> void:
+	if _lang_prev != null:
+		_lang_prev.grab_focus()
+
+
+## Строка «◀ Русский ▶» под кнопками: самоназвание текущего языка, стрелки листают список
+## (game.json → languages). Нажатие на название — следующий язык.
+func _add_language_selector(box: Control) -> void:
+	var cur := Language.current()
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(280, 40)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.add_theme_constant_override("separation", 4)
+	box.add_child(row)
+	_lang_prev = _lang_button(row, "◀", Language.neighbour(cur, -1))
+	var name_btn := _lang_button(
+		row, String(Language.available().get(cur, cur)), Language.neighbour(cur, 1)
+	)
+	name_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lang_button(row, "▶", Language.neighbour(cur, 1))
+
+
+func _lang_button(row: Control, text: String, code: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.flat = true
+	b.tooltip_text = String(Language.available().get(code, code))
+	b.pressed.connect(func() -> void: language_requested.emit(code))
+	row.add_child(b)
+	return b
 
 
 ## Лого вместо заголовка: по центру сверху, ширина — ui.json → menu_logo_width (px при 1080p).

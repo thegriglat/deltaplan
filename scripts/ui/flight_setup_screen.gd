@@ -9,20 +9,20 @@ extends Control
 signal done(settings: FlightSettings)
 signal closed
 
-## Месяцы в родительном падеже («15 июля»).
+## Месяцы: ключи locale/ui.csv (по-русски — в родительном падеже, «15 июля»).
 const MONTHS: PackedStringArray = [
-	"января",
-	"февраля",
-	"марта",
-	"апреля",
-	"мая",
-	"июня",
-	"июля",
-	"августа",
-	"сентября",
-	"октября",
-	"ноября",
-	"декабря",
+	"month_1",
+	"month_2",
+	"month_3",
+	"month_4",
+	"month_5",
+	"month_6",
+	"month_7",
+	"month_8",
+	"month_9",
+	"month_10",
+	"month_11",
+	"month_12",
 ]
 
 var settings: FlightSettings
@@ -71,40 +71,40 @@ func _build() -> void:
 	add_child(dim)
 	var ui: Dictionary = Config.get_config("ui")
 	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
-	UiKit.label(box, tr("Полёт"), "TitleLabel")
+	UiKit.label(box, tr("setup_title"), "TitleLabel")
 	UiKit.separator(box)
 
 	_wing_opt = OptionButton.new()
-	UiKit.row(box, tr("Крыло"), _wing_opt)
+	UiKit.row(box, tr("setup_wing"), _wing_opt)
 	_wings = Config.list_configs("wings")
 	for w in _wings:
 		_wing_opt.add_item(tr(String(Config.get_config(w).get("name", w.get_file()))))
 	_wing_opt.item_selected.connect(_on_wing_selected)
 
 	_mass = UiKit.slider_row(
-		box, tr("Масса пилота"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("кг")
+		box, tr("setup_pilot_mass"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("unit_kg")
 	)
 
 	_weather_opt = OptionButton.new()
-	UiKit.row(box, tr("Погода"), _weather_opt)
+	UiKit.row(box, tr("setup_weather"), _weather_opt)
 	_weathers = Config.list_configs("weather")
 	for w in _weathers:
 		_weather_opt.add_item(tr(String(Config.get_config(w).get("name", w.get_file()))))
 
 	_wind_opt = OptionButton.new()
-	UiKit.row(box, tr("Ветер"), _wind_opt)
-	_wind_opt.add_item(tr("В лоб старту"))
-	_wind_opt.add_item(tr("Направление из пресета"))
+	UiKit.row(box, tr("setup_wind"), _wind_opt)
+	_wind_opt.add_item(tr("setup_wind_into_launch"))
+	_wind_opt.add_item(tr("setup_wind_from_preset"))
 	_build_time(box)
 
 	UiKit.separator(box)
 	_site_opt = OptionButton.new()
-	UiKit.row(box, tr("Старт"), _site_opt)
+	UiKit.row(box, tr("setup_launch"), _site_opt)
 	_site_opt.item_selected.connect(func(_i: int) -> void: _clear_pick())
 	var pick_row := HBoxContainer.new()
 	pick_row.add_theme_constant_override("separation", 12)
 	box.add_child(pick_row)
-	UiKit.button(pick_row, tr("Выбрать на карте…"), _open_map)
+	UiKit.button(pick_row, tr("setup_pick_on_map"), _open_map)
 	_pick_label = UiKit.label(pick_row, "", "HintLabel")
 	_pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -112,9 +112,9 @@ func _build() -> void:
 
 	UiKit.separator(box)
 	var bar := UiKit.button_bar(box)
-	_done_btn = UiKit.button(bar, tr("Готово"), _on_done)
+	_done_btn = UiKit.button(bar, tr("setup_done"), _on_done)
 	_done_btn.custom_minimum_size.x = 160
-	UiKit.button(bar, tr("Назад"), func() -> void: closed.emit())
+	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
 
 
 func _apply_settings() -> void:
@@ -151,7 +151,7 @@ func _build_time(box: Control) -> void:
 	var t: Dictionary = Config.get_config("world").get("time", {})
 	_hour = UiKit.slider_row(
 		box,
-		tr("Время старта"),
+		tr("setup_start_time"),
 		float(t.get("min_hour", 6.0)),
 		float(t.get("max_hour", 20.0)),
 		0.25,
@@ -172,7 +172,7 @@ func _build_time(box: Control) -> void:
 		_month_opt.add_item(tr(m))
 	_month_opt.item_selected.connect(_on_month_selected)
 	date_row.add_child(_month_opt)
-	UiKit.row(box, tr("Дата"), date_row)
+	UiKit.row(box, tr("setup_date"), date_row)
 
 
 func _on_month_selected(i: int) -> void:
@@ -256,7 +256,7 @@ func _build_map() -> void:
 	UiKit.label(
 		v,
 		tr(
-			"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону."
+			"map_hint"
 		),
 		"HintLabel"
 	)
@@ -264,10 +264,10 @@ func _build_map() -> void:
 	_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(_map)
 	var bar := UiKit.button_bar(v)
-	var ok := UiKit.button(bar, tr("Выбрать эту точку"), _on_map_ok)
+	var ok := UiKit.button(bar, tr("map_pick_this_point"), _on_map_ok)
 	ok.disabled = true
 	_map.point_picked.connect(func(_la: float, _lo: float) -> void: ok.disabled = false)
-	UiKit.button(bar, tr("Отмена"), func() -> void: _map_layer.visible = false)
+	UiKit.button(bar, tr("common_cancel"), func() -> void: _map_layer.visible = false)
 
 
 func _on_map_ok() -> void:
@@ -288,7 +288,7 @@ func _clear_pick() -> void:
 
 func _update_pick_label() -> void:
 	if settings.has_pick():
-		_pick_label.text = tr("точка на карте: %.4f, %.4f") % [settings.pick_lat, settings.pick_lon]
+		_pick_label.text = tr("setup_map_point") % [settings.pick_lat, settings.pick_lon]
 	else:
 		_pick_label.text = ""
 
@@ -301,7 +301,7 @@ func _build_recent(box: Control) -> void:
 	_recent_section = VBoxContainer.new()
 	_recent_section.add_theme_constant_override("separation", 6)
 	box.add_child(_recent_section)
-	UiKit.label(_recent_section, tr("Недавние места"), "HeaderLabel")
+	UiKit.label(_recent_section, tr("recent_title"), "HeaderLabel")
 	_recent_list = VBoxContainer.new()
 	_recent_list.add_theme_constant_override("separation", 4)
 	_recent_section.add_child(_recent_list)
@@ -325,7 +325,7 @@ func _build_recent_row(p: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 8)
 
 	var name_btn := Button.new()
-	var prefix := (tr("закреплено") + ": ") if bool(p.get("pinned", false)) else ""
+	var prefix := (tr("recent_pinned") + ": ") if bool(p.get("pinned", false)) else ""
 	name_btn.text = prefix + RecentPlaces.display_name(p)
 	name_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_btn.clip_text = true
@@ -340,11 +340,11 @@ func _build_recent_row(p: Dictionary) -> Control:
 		row.add_child(edit)
 		edit.grab_focus()
 	else:
-		UiKit.button(row, tr("Переименовать"), _on_recent_rename_start.bind(id))
+		UiKit.button(row, tr("recent_rename"), _on_recent_rename_start.bind(id))
 
-	var pin_label := tr("Открепить") if bool(p.get("pinned", false)) else tr("Закрепить")
+	var pin_label := tr("recent_unpin") if bool(p.get("pinned", false)) else tr("recent_pin")
 	UiKit.button(row, pin_label, _on_recent_toggle_pin.bind(id, not bool(p.get("pinned", false))))
-	UiKit.button(row, tr("Убрать"), _on_recent_remove.bind(id))
+	UiKit.button(row, tr("recent_remove"), _on_recent_remove.bind(id))
 	return row
 
 

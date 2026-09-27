@@ -11,7 +11,9 @@ const PAGE_WIND := 2
 const PAGE_TASK := 3
 const PAGE_THERMAL := 4
 const PAGE_COUNT := 5
-const PAGE_TITLES: PackedStringArray = ["ПОЛЁТ", "КАРТА", "ВЕТЕР", "ЗАДАНИЕ", "ЦЕНТРОВКА"]
+const PAGE_TITLES: PackedStringArray = [
+	"tab_page_flight", "tab_page_map", "tab_page_wind", "tab_page_task", "tab_page_thermal"
+]
 
 var vario: Vario
 var wind: WindEstimator

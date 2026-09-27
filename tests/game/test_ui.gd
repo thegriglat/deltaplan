@@ -66,7 +66,7 @@ func test_flight_setup_emits_choice() -> void:
 	var texts: Array = []
 	for b in m.find_children("*", "Button", true, false):
 		texts.append((b as Button).text)
-	check(not texts.has(tr("Лететь")), "в «Полёт…» нет запуска полёта: %s" % [texts])
+	check(not texts.has(tr("menu_fly")), "в «Полёт…» нет запуска полёта: %s" % [texts])
 	m.queue_free()
 
 

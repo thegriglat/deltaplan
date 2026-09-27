@@ -1,167 +1,276 @@
 keys,ru,en
-"W — от себя, S — на себя","W — от себя, S — на себя","W — push out, S — pull in"
-"W/S — трапеция, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — трапеция, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — control bar, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
-Авария,Авария,Crash
-Алтай — Манжерок,Алтай — Манжерок,Altai — Manzherok
-Боковой ветер завалил крыло,Боковой ветер завалил крыло,Crosswind dropped the wing
-В кружении: %.0f%% времени,В кружении: %.0f%% времени,Circling: %.0f%% of time
-В лоб старту,В лоб старту,Straight into the launch
-В меню,В меню,Main menu
-В главное меню,В главное меню,To main menu
-Ветер,Ветер,Wind
-Взлёт сорван,Взлёт сорван,Launch aborted
-Время полёта: %s,Время полёта: %s,Flight time: %s
-Выбрать,Выбрать,Pick
-Выбрать на карте…,Выбрать на карте…,Pick on map…
-Выход,Выход,Quit
-Громкость вариометра,Громкость вариометра,Vario volume
-Дельтаплан,Дельтаплан,Hang Glider
-Дистанция от старта по прямой: %.2f км,Дистанция от старта по прямой: %.2f км,Straight-line distance from launch: %.2f km
-Ещё раз,Ещё раз,Again
-Жёсткая посадка,Жёсткая посадка,Hard landing
-Загрузка рельефа…,Загрузка рельефа…,Loading terrain…
-Заново,Заново,Restart
-Инверсия тангажа,Инверсия тангажа,Invert pitch
-Килевое,Килевое,Kingpost
-Крен при касании: %.0f°,Крен при касании: %.0f°,Bank at touchdown: %.0f°
-Крыло,Крыло,Wing
-Лететь,Лететь,Fly
-Лететь отсюда,Лететь отсюда,Fly from here
-Лучший термик: %.1f м/с,Лучший термик: %.1f м/с,Best thermal: %.1f m/s
-"Малая Синюха — вершина, восточный склон","Малая Синюха — вершина, восточный склон","Malaya Sinyukha — summit, east slope"
-Малая Синюха — западный старт,Малая Синюха — западный старт,Malaya Sinyukha — west launch
-Макс. высота над морем: %.0f м,Макс. высота над морем: %.0f м,Max altitude MSL: %.0f m
-Макс. подъём: %.1f м/с,Макс. подъём: %.1f м/с,Max climb: %.1f m/s
-Макс. снижение: %.1f м/с,Макс. снижение: %.1f м/с,Max sink: %.1f m/s
-Масса пилота,Масса пилота,Pilot mass
-Мышь,Мышь,Mouse
-Мягкая посадка,Мягкая посадка,Soft landing
-Макс. высота над стартом: %.0f м,Макс. высота над стартом: %.0f м,Max height over launch: %.0f m
-Назад,Назад,Back
-Направление из пресета,Направление из пресета,Direction from preset
-Настройки,Настройки,Settings
-Настройки сохраняются в профиле пользователя.,Настройки сохраняются в профиле пользователя.,Settings are saved in the user profile.
-Не удалось загрузить рельеф: %s,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
-Нос слишком высоко — крыло сорвало поток,Нос слишком высоко — крыло сорвало поток,Nose too high — the wing stalled
-Нос слишком низко — крыло зарылось,Нос слишком низко — крыло зарылось,Nose too low — the wing dug in
-Об игре,Об игре,About
-Обзор (поворот головы),Обзор (поворот головы),Look around (head)
-Отмена,Отмена,Cancel
-Пауза,Пауза,Paused
-Погода,Погода,Weather
-Полёт,Полёт,Flight
-Полёт…,Полёт…,Flight…
-Попутный ветер — не набрать воздушную скорость,Попутный ветер — не набрать воздушную скорость,Tailwind — not enough airspeed
-Посадка,Посадка,Landing
-Продолжить,Продолжить,Continue
-Пройдено по следу: %.2f км,Пройдено по следу: %.2f км,Track length: %.2f km
-Свободный полёт,Свободный полёт,Free flight
-Среднее качество: %.1f,Среднее качество: %.1f,Average glide ratio: %.1f
-Средняя путевая скорость: %.0f км/ч,Средняя путевая скорость: %.0f км/ч,Average ground speed: %.0f km/h
-Сильный день,Сильный день,Strong day
-Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,Hang glider simulator. Non-commercial project. Authors and licenses of the materials are listed below.
-"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
-Слабый день,Слабый день,Weak day
-Слабый разбег — крыло не набрало скорость,Слабый разбег — крыло не набрало скорость,Weak run — the wing did not reach flying speed
-Сохранить,Сохранить,Save
-Спортивное бескилевое,Спортивное бескилевое,Topless (sport)
-Средний день,Средний день,Medium day
-Старт,Старт,Launch
-Суммарный набор высоты: %.0f м,Суммарный набор высоты: %.0f м,Total climb: %.0f m
-Трапеция,Трапеция,Control bar
-Тугая (Горно-Алтайск) — южный склон,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
-Учебное,Учебное,Training
-Управление,Управление,Controls
-Чувствительность мыши,Чувствительность мыши,Mouse sensitivity
-"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. Launch is on the nearest slope, facing downhill."
-дБ,дБ,dB
-кг,кг,kg
-"точка на карте: %.4f, %.4f","точка на карте: %.4f, %.4f","map point: %.4f, %.4f"
-"широта, долгота","широта, долгота","latitude, longitude"
-Звук вариометра,Звук вариометра,Vario sound
-В полёте,В полёте,In flight
-На земле,На земле,On the ground
-"Прибор, камера, игра","Прибор, камера, игра","Instrument, camera, game"
-Подтянуть трапецию к себе — разогнаться,Подтянуть трапецию к себе — разогнаться,Pull the control bar toward you — speed up
-"Отдать трапецию от себя — затормозить, нос вверх","Отдать трапецию от себя — затормозить, нос вверх","Push the control bar away — slow down, nose up"
-Сместить вес влево — поворот влево,Сместить вес влево — поворот влево,Shift weight left — turn left
-Сместить вес вправо — поворот вправо,Сместить вес вправо — поворот вправо,Shift weight right — turn right
-Встать в центр трапеции — крыло выровняется и полетит прямо,Встать в центр трапеции — крыло выровняется и полетит прямо,Centre yourself on the control bar — the wing levels and flies straight
-Управление креном,Управление креном,Roll control
-Простое (аркадное),Простое (аркадное),Simple (arcade)
-Смещение веса (как на настоящем крыле),Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-Держать — посмотреть на прибор на трапеции,Держать — посмотреть на прибор на трапеции,Hold — look at the instrument on the control bar
-"Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд","Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд","Mouse — turn head; middle button or V — look forward again"
-"Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд","Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд","Mouse — control bar; middle button or V — look forward again"
-"В режиме «мышь — трапеция»: держать правую кнопку — осмотреться","В режиме «мышь — трапеция»: держать правую кнопку — осмотреться","In ""mouse — control bar"" mode: hold the right button to look around"
-Идти вперёд,Идти вперёд,Walk forward
-Шаг назад,Шаг назад,Step back
-"Повернуться с крылом налево (D — направо)","Повернуться с крылом налево (D — направо)","Turn with the wing left (D — right)"
-Держать вместе с W — бежать (разбег),Держать вместе с W — бежать (разбег),Hold together with W — run (ground run)
-"Во время разбега нос держится сам; стрелки ↑/↓ — чуть подправить нос","Во время разбега нос держится сам; стрелки ↑/↓ — чуть подправить нос","During the run the nose holds itself; arrow keys ↑/↓ — nudge the nose slightly"
-"При отрыве от земли зажатые клавиши не действуют — отпустите и нажмите заново, чтобы взяться за трапецию","При отрыве от земли зажатые клавиши не действуют — отпустите и нажмите заново, чтобы взяться за трапецию","At liftoff, held keys have no effect — release and press again to take hold of the control bar"
-"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump straight to page)"
-Вид: из кабины → сзади → свободная камера,Вид: из кабины → сзади → свободная камера,View: cockpit → chase → free camera
-Начать полёт заново с того же старта,Начать полёт заново с того же старта,Restart the flight from the same launch
-Пауза и меню,Пауза и меню,Pause and menu
-Отпустить или снова захватить мышь,Отпустить или снова захватить мышь,Release or recapture the mouse
-В благодарность родителям.,В благодарность родителям.,With gratitude to my parents.
-Время старта,Время старта,Start time
-Дата,Дата,Date
-Скорость времени,Скорость времени,Time speed
-стоп,стоп,stopped
-января,января,January
-февраля,февраля,February
-марта,марта,March
-апреля,апреля,April
-мая,мая,May
-июня,июня,June
-июля,июля,July
-августа,августа,August
-сентября,сентября,September
-октября,октября,October
-ноября,ноября,November
-декабря,декабря,December
-"«В этом безмолвном океане неба рождается истинное понимание свободы.»","«В этом безмолвном океане неба рождается истинное понимание свободы.»","“In this silent ocean of the sky, a true understanding of freedom is born.”"
-Готовлюсь…,Готовлюсь…,Getting ready…
-Готовлюсь,Готовлюсь,Getting ready
-Скачиваю рельеф…,Скачиваю рельеф…,Downloading terrain…
-Карта леса и полей…,Карта леса и полей…,Forest and field map…
-Лес и поля…,Лес и поля…,Forests and fields…
-Строю рельеф…,Строю рельеф…,Building terrain…
-Сажаю лес…,Сажаю лес…,Planting trees…
-Трава…,Трава…,Grass…
-Погода и термики…,Погода и термики…,Weather and thermals…
-"Камни, кусты и дороги…","Камни, кусты и дороги…","Rocks, bushes and roads…"
-Почти готово…,Почти готово…,Almost ready…
-Здесь море — выберите точку на суше.,Здесь море — выберите точку на суше.,This is the sea — pick a point on land.
-Для этого места нет данных рельефа.,Для этого места нет данных рельефа.,There is no terrain data for this place.
-Нет связи с сервером рельефа. Проверьте интернет и попробуйте ещё раз.,Нет связи с сервером рельефа. Проверьте интернет и попробуйте ещё раз.,No connection to the terrain server. Check the internet and try again.
-Не удалось загрузить рельеф.,Не удалось загрузить рельеф.,Could not load the terrain.
-Сервер рельефа не отвечает. Проверьте интернет или попробуйте позже.,Сервер рельефа не отвечает. Проверьте интернет или попробуйте позже.,The terrain server does not respond. Check the internet or try later.
-Загрузка,Загрузка,Loading
-Новое место скачивается из интернета — это может занять минуту. Второй раз — из кеша.,Новое место скачивается из интернета — это может занять минуту. Второй раз — из кеша.,A new place is downloaded from the internet — this may take a minute. Next time it comes from the cache.
-"точка %.4f, %.4f","точка %.4f, %.4f","point %.4f, %.4f"
-Готово,Готово,Done
-Выбрать эту точку,Выбрать эту точку,Pick this point
-Версия %s,Версия %s,Version %s
-"Версия %s · сборка %s","Версия %s · сборка %s","Version %s · build %s"
-Поле зрения (по вертикали),Поле зрения (по вертикали),Field of view (vertical)
-Каска (вид из кабины),Каска (вид из кабины),Helmet (cockpit view)
-Без каски,Без каски,No helmet
-Открытая,Открытая,Open face
-С визором,С визором,With visor
-С тёмным визором,С тёмным визором,With dark visor
-Другие пилоты в небе,Другие пилоты в небе,Other pilots in the sky
-Низкое (лёгкое),Низкое (лёгкое),Low (light)
-Среднее,Среднее,Medium
-Высокое (полное),Высокое (полное),High (full)
-Масштаб рендера,Масштаб рендера,Render scale
-Густота травы,Густота травы,Grass density
-Как в пресете,Как в пресете,As in preset
-Недавние места,Недавние места,Recent places
-Переименовать,Переименовать,Rename
-Закрепить,Закрепить,Pin
-Открепить,Открепить,Unpin
-Убрать,Убрать,Remove
-закреплено,закреплено,pinned
+settings_invert_pitch_hint,"W — от себя, S — на себя","W — push out, S — pull in"
+controls_short_help,"W/S — трапеция, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — control bar, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
+result_crash,Авария,Crash
+loc_altai,Алтай — Манжерок,Altai — Manzherok
+launch_fail_crosswind,Боковой ветер завалил крыло,A crosswind dropped the wing
+result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
+setup_wind_into_launch,В лоб старту,Straight into the launch
+pause_to_menu,В меню,Main menu
+result_to_menu,В главное меню,Main menu
+setup_wind,Ветер,Wind
+result_launch_failed,Взлёт сорван,Launch failed
+result_flight_time,Время полёта: %s,Flight time: %s
+map_pick,Выбрать,Go
+setup_pick_on_map,Выбрать на карте…,Pick on map…
+menu_quit,Выход,Quit
+settings_vario_volume,Громкость вариометра,Vario volume
+app_title,Дельтаплан,Deltaplan
+result_distance,Дистанция от старта по прямой: %.2f км,Straight-line distance from launch: %.2f km
+result_again,Ещё раз,Again
+result_hard_landing,Жёсткая посадка,Hard landing
+status_loading_terrain,Загрузка рельефа…,Loading terrain…
+pause_restart,Заново,Restart
+settings_invert_pitch,Инверсия тангажа,Invert pitch
+wing_kingpost,Мачтовое,Kingpost
+result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
+setup_wing,Крыло,Wing
+menu_fly,Лететь,Fly
+menu_fly_from_here,Лететь отсюда,Fly from here
+result_best_thermal,Лучший термик: %.1f м/с,Best thermal: %.1f m/s
+site_altai_sinyukha_summit_east,"Малая Синюха — вершина, восточный склон","Malaya Sinyukha — summit, east slope"
+site_altai_sinyukha_west,Малая Синюха — западный старт,Malaya Sinyukha — west launch
+result_max_altitude_msl,Макс. высота над морем: %.0f м,Max altitude (MSL): %.0f m
+result_max_climb,Макс. подъём: %.1f м/с,Max climb: %.1f m/s
+result_max_sink,Макс. снижение: %.1f м/с,Max sink: %.1f m/s
+setup_pilot_mass,Масса пилота,Pilot weight
+settings_mouse,Мышь,Mouse
+result_soft_landing,Мягкая посадка,Soft landing
+result_max_height_over_launch,Макс. высота над стартом: %.0f м,Max height above launch: %.0f m
+common_back,Назад,Back
+setup_wind_from_preset,Направление из пресета,As in weather preset
+menu_settings,Настройки,Settings
+settings_saved_hint,Настройки сохраняются в профиле пользователя.,Settings are saved to your user profile.
+status_terrain_failed,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
+launch_fail_nose_high,Нос слишком высоко — крыло сорвало поток,Nose too high — the wing stalled
+launch_fail_nose_low,Нос слишком низко — крыло зарылось,Nose too low — the wing nosed in
+menu_about,Об игре,About
+settings_mouse_look,Обзор (поворот головы),Look around (head)
+common_cancel,Отмена,Cancel
+pause_title,Пауза,Paused
+setup_weather,Погода,Weather
+setup_title,Полёт,Flight
+menu_flight_setup,Полёт…,Flight setup…
+launch_fail_tailwind,Попутный ветер — не набрать воздушную скорость,Tailwind — could not reach flying speed
+result_landing,Посадка,Landing
+common_continue,Продолжить,Continue
+result_track_length,Пройдено по следу: %.2f км,Distance flown (track): %.2f km
+menu_free_flight,Свободный полёт,Free flight
+result_avg_glide,Среднее качество: %.1f,Average glide ratio: %.1f
+result_avg_ground_speed,Средняя путевая скорость: %.0f км/ч,Average ground speed: %.0f km/h
+weather_strong,Сильный день,Strong day
+about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of the materials are listed below.
+result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
+weather_weak,Слабый день,Weak day
+launch_fail_weak_run,Слабый разбег — крыло не набрало скорость,Run too weak — the wing never reached flying speed
+common_save,Сохранить,Save
+wing_sport,Спортивное безмачтовое,Topless (sport)
+weather_medium,Средний день,Medium day
+setup_launch,Старт,Launch
+result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
+settings_mouse_bar,Трапеция,Control bar
+site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
+wing_training,Учебное,Training
+menu_controls,Управление,Controls
+settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
+map_hint,"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. The launch is placed on the nearest slope, facing downhill."
+unit_db,дБ,dB
+unit_kg,кг,kg
+setup_map_point,"точка на карте: %.4f, %.4f","map point: %.4f, %.4f"
+map_coords_placeholder,"широта, долгота","latitude, longitude"
+settings_vario_sound,Звук вариометра,Vario sound
+controls_in_flight,В полёте,In flight
+controls_on_ground,На земле,On the ground
+controls_instrument_camera_game,"Прибор, камера, игра","Instrument, camera, game"
+controls_pull_in,Подтянуть трапецию к себе — разогнаться,Pull the bar in — speed up
+controls_push_out,"Отдать трапецию от себя — затормозить, нос вверх","Push the bar out — slow down, nose up"
+controls_shift_left,Сместить вес влево — поворот влево,Shift weight left — turn left
+controls_shift_right,Сместить вес вправо — поворот вправо,Shift weight right — turn right
+controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
+settings_roll_control,Управление креном,Roll control
+settings_roll_simple,Простое (аркадное),Simple (arcade)
+settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
+controls_glance,Держать — посмотреть на прибор на трапеции,Hold — look at the instrument on the control bar
+controls_mouse_look,Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд,Mouse — turn your head; middle button or V — look ahead
+controls_mouse_bar,Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar; middle button or V — look ahead
+controls_mouse_bar_look,В режиме «мышь — трапеция»: держать правую кнопку — осмотреться,In “mouse — control bar” mode: hold the right button to look around
+controls_walk,Идти вперёд,Walk forward
+controls_step_back,Шаг назад,Step back
+controls_turn_on_ground,Повернуться с крылом налево (D — направо),Turn with the wing to the left (D — right)
+controls_run,Держать вместе с W — бежать (разбег),Hold together with W — run (launch run)
+controls_run_nose,Во время разбега нос держится сам; стрелки ↑/↓ — чуть подправить нос,During the launch run the nose holds itself; ↑/↓ — fine-tune it
+controls_liftoff_keys,"При отрыве от земли зажатые клавиши не действуют — отпустите и нажмите заново, чтобы взяться за трапецию","At liftoff, held keys do nothing — release and press again to take the bar"
+controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
+controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
+controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
+controls_pause,Пауза и меню,Pause and menu
+controls_mouse_capture,Отпустить или снова захватить мышь,Release or recapture the mouse
+about_dedication,В благодарность родителям.,With gratitude to my parents.
+setup_start_time,Время старта,Start time
+setup_date,Дата,Date
+settings_time_speed,Скорость времени,Time speed
+settings_time_stopped,стоп,frozen
+month_1,января,January
+month_2,февраля,February
+month_3,марта,March
+month_4,апреля,April
+month_5,мая,May
+month_6,июня,June
+month_7,июля,July
+month_8,августа,August
+month_9,сентября,September
+month_10,октября,October
+month_11,ноября,November
+month_12,декабря,December
+menu_quote,«В этом безмолвном океане неба рождается истинное понимание свободы.»,"“In this silent ocean of sky, a true understanding of freedom is born.”"
+loading_getting_ready_dots,Готовлюсь…,Getting ready…
+loading_getting_ready,Готовлюсь,Getting ready
+loading_dem,Скачиваю рельеф…,Downloading terrain…
+loading_landcover,Карта леса и полей…,Forest and field map…
+loading_classify,Лес и поля…,Forests and fields…
+loading_mesh,Строю рельеф…,Building terrain…
+loading_trees,Сажаю лес…,Planting trees…
+loading_grass,Трава…,Grass…
+loading_weather,Погода и термики…,Weather and thermals…
+loading_objects,"Камни, кусты и дороги…","Rocks, bushes and roads…"
+loading_almost,Почти готово…,Almost ready…
+err_sea,Здесь море — выберите точку на суше.,That's the sea — pick a point on land.
+err_no_terrain_data,Для этого места нет данных рельефа.,There is no terrain data for this place.
+err_network,Нет связи с сервером рельефа. Проверьте интернет и попробуйте ещё раз.,Can't reach the terrain server. Check your internet connection and try again.
+err_terrain_failed,Не удалось загрузить рельеф.,Could not load the terrain.
+err_server_timeout,Сервер рельефа не отвечает. Проверьте интернет или попробуйте позже.,The terrain server isn't responding. Check your internet connection or try again later.
+loading_title,Загрузка,Loading
+loading_hint,Новое место скачивается из интернета — это может занять минуту. Второй раз — из кеша.,A new place is downloaded from the internet — this can take a minute. Next time it loads from the cache.
+menu_point,"точка %.4f, %.4f","point %.4f, %.4f"
+setup_done,Готово,Done
+map_pick_this_point,Выбрать эту точку,Pick this point
+about_version,Версия %s,Version %s
+about_version_build,Версия %s · сборка %s,Version %s · build %s
+settings_fov,Поле зрения (по вертикали),Field of view (vertical)
+settings_helmet,Каска (вид из кабины),Helmet (pilot's view)
+helmet_none,Без каски,No helmet
+helmet_open,Открытая,Open face
+helmet_visor,С визором,With visor
+helmet_visor_dark,С тёмным визором,With dark visor
+settings_bots,Другие пилоты в небе,Other pilots in the sky
+gfx_low,Низкое (лёгкое),Low (light)
+gfx_medium,Среднее,Medium
+gfx_high,Высокое (полное),High (full)
+settings_render_scale,Масштаб рендера,Render scale
+settings_grass_density,Густота травы,Grass density
+settings_as_in_preset,Как в пресете,From preset
+recent_title,Недавние места,Recent places
+recent_rename,Переименовать,Rename
+recent_pin,Закрепить,Pin
+recent_unpin,Открепить,Unpin
+recent_remove,Убрать,Remove
+recent_pinned,закреплено,pinned
+result_fly_again,Ещё раз (R),Fly again (R)
+settings_graphics,Графика,Graphics
+status_terrain_module_error,нет данных или ошибка в модуле рельефа,"no data, or an error in the terrain module"
+status_terrain_failed_detail,«%s» — %s (подробности — в журнале Godot),“%s” — %s (details in the Godot log)
+launch_fail_touchdown,Касание сразу после старта — полёт не засчитан,Touched down right after launch — flight not counted
+collision,Столкновение,Collision
+collision_wire,Столкновение с проводами ЛЭП,Hit power lines
+collision_tower,Столкновение с опорой ЛЭП,Hit a power line pylon
+collision_building,Столкновение со зданием,Hit a building
+collision_tree,Столкновение с деревом,Hit a tree
+collision_fence,Столкновение с забором,Hit a fence
+tab_page_flight,ПОЛЁТ,FLIGHT
+tab_page_map,КАРТА,MAP
+tab_page_wind,ВЕТЕР,WIND
+tab_page_task,ЗАДАНИЕ,TASK
+tab_page_thermal,ЦЕНТРОВКА,THERMAL
+tab_early_start,РАННИЙ СТАРТ — вернитесь,EARLY START — go back
+tab_start_open,Старт открыт,Start open
+tab_start_in,Старт через %s,Start in %s
+tab_race,Гонка %s,Race %s
+tab_ess_reached,"ESS пройден, %s","ESS reached, %s"
+tab_goal,ГОУЛ! %s,GOAL! %s
+tab_task_failed,Задание не выполнено,Task not completed
+tab_no_task,нет задания,no task
+tab_free_flight,свободный полёт,free flight
+tab_vario_sound,ЗВУК ВАРИОМЕТРА,VARIO SOUND
+tab_sound,Звук,Sound
+tab_on,вкл,on
+tab_off,выкл,off
+tab_volume,Громкость,Volume
+tab_climb_threshold,Порог писка,Climb threshold
+tab_sink_threshold,Порог гудения,Sink threshold
+tab_tone,Звучание,Tone
+tab_change_in_settings,изменение — в настройках (пауза),change it in Settings (pause)
+tab_vario,ВАРИО,VARIO
+tab_average,СРЕДНЕЕ,AVERAGE
+tab_glide,КАЧ,L/D
+tab_altitude,ВЫСОТА,ALTITUDE
+tab_agl,НАД ЗЕМЛ,AGL
+tab_time,ВРЕМЯ,TIME
+tab_airspeed,ВОЗД,AIRSPD
+tab_ground_speed,ПУТЕВ,GND SPD
+tab_heading,КУРС,HEADING
+tab_track,ПУТЬ,TRACK
+dir_n,С,N
+dir_ne,СВ,NE
+dir_e,В,E
+dir_se,ЮВ,SE
+dir_s,Ю,S
+dir_sw,ЮЗ,SW
+dir_w,З,W
+dir_nw,СЗ,NW
+tab_from_launch,ОТ СТАРТА,FROM LAUNCH
+unit_ms,м/с,m/s
+unit_m,м,m
+unit_km,км,km
+unit_kmh,км/ч,km/h
+tab_ahead,вперёд,ahead
+tab_not_circling,нет кружения,not circling
+tab_circle_avg,СРЕДНЕЕ КРУГ,CIRCLE AVG
+tab_turn_right,вправо,right
+tab_turn_left,влево,left
+tab_turn,ВИРАЖ,TURN
+tab_stronger,СИЛЬНЕЕ,STRONGER
+tab_even,ровно,even
+tab_side_front,впереди,front
+tab_side_front_right,впер-справа,front-right
+tab_side_right,справа,right
+tab_side_back_right,сзади-справа,back-right
+tab_side_back,сзади,back
+tab_side_back_left,сзади-слева,back-left
+tab_side_left,слева,left
+tab_side_front_left,впер-слева,front-left
+tab_wind_from,ВЕТЕР ОТКУДА,WIND FROM
+tab_wind,ВЕТЕР,WIND
+tab_headwind,ВСТРЕЧНЫЙ,HEADWIND
+tab_method,МЕТОД,METHOD
+tab_glide_now,КАЧ ТЕКУЩ,L/D NOW
+tab_glide_required,КАЧ ТРЕБ,L/D REQ
+tab_to_goal,ДО ГОУЛА,TO GOAL
+tab_to_target,ДО ЦЕЛИ,TO TARGET
+tab_arrival,ПРИБЫТИЕ,ARRIVAL
+tab_no_target,нет цели,no target
+tab_goal_short,гоул,goal
+tab_target,ЦЕЛЬ: %s,TARGET: %s
+tab_no_data,нет данных,no data
+tab_circles,круги,circles
+tab_straight,по курсу,straight
+tab_wind_no_data,ветер: нет данных,wind: no data
+vario_avg,СР,AVG
+weather_storm,Гроза,Thunderstorm
+weather_wave,Волна,Wave
+loc_askarovo,"Башкирия — Аскарово, хребет Биягода","Bashkiria — Askarovo, Biyagoda ridge"
+site_askarovo_west,Биягода — западный склон у верхнего лагеря,Biyagoda — west slope by the upper camp
+site_askarovo_east,Биягода — восточный склон,Biyagoda — east slope
+site_askarovo_south_west,"Биягода — южная вершина (300 м), запад","Biyagoda — south summit (300 m), west"
+loc_aushkul,Башкирия — Аушкуль,Bashkiria — Aushkul
+site_aushkul_east,Ауштау («пупырь») — восточный склон над озером,Aushtau (“the bump”) — east slope above the lake
+site_aushkul_south,Ауштау — южный склон,Aushtau — south slope
+site_aushkul_ridge_west,Хребет у Старобайрамгулово — западный склон,Ridge near Starobayramgulovo — west slope
+loc_ongudai,Алтай — Онгудай,Altai — Ongudai
+site_ongudai_south,Онгудайский ретранслятор — южный старт (перевал Каянча),Ongudai relay mast — south launch (Kayancha pass)
+vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
+vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
+map_attribution,"Высоты: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 и др.)","Elevation: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 et al.)"
+err_no_location_config,нет конфига локации %s,no location config %s
+err_no_location_data,нет данных рельефа %s,no terrain data %s
+err_layer_read,ошибка чтения слоя %s,error reading layer %s
+settings_language,Язык,Language

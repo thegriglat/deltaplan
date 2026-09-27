@@ -1,6 +1,6 @@
 {
   "_doc": "Слабый день: мелкие редкие кучевки, низкая кромка, слабые узкие термики, почти штиль.",
-  "name": "Слабый день",
+  "name": "weather_weak",
   "name_doc": "Название пресета в меню.",
   "wind_speed_kmh": 6,
   "wind_speed_kmh_doc": "Скорость ветра на опорной высоте (atmosphere.json → wind.reference_height_m), км/ч.",

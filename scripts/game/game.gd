@@ -149,14 +149,14 @@ func start(s: FlightSettings) -> bool:
 	# Пока грузится — шаг физики стоит: воздух и планер ещё не настроены на новое место
 	# (иначе каждый кадр загрузки догоняет пропущенные шаги — окно «не отвечает»).
 	set_physics_process(false)
-	status_changed.emit(tr("Загрузка рельефа…"))
+	status_changed.emit(tr("status_loading_terrain"))
 	if not await _load_terrain():
-		status_changed.emit(tr("Не удалось загрузить рельеф: %s") % _load_error)
+		status_changed.emit(tr("status_terrain_failed") % _load_error)
 		set_physics_process(true)
 		progress.finish()
 		return false
 	# Дальше — порциями между кадрами: экран загрузки живой (docs/game.md → «Загрузка»).
-	progress.stage("weather", tr("Погода и термики…"))
+	progress.stage("weather", tr("loading_weather"))
 	await get_tree().process_frame
 	air.call("set_weather", settings.weather)
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
@@ -192,7 +192,7 @@ func start(s: FlightSettings) -> bool:
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
 	glider.set_air_fn(air.air_velocity_at)
-	progress.stage("objects", tr("Камни, кусты и дороги…"))
+	progress.stage("objects", tr("loading_objects"))
 	await get_tree().process_frame
 	world_link.link(terrain, air, glider)
 	_choose_start()
@@ -204,7 +204,7 @@ func start(s: FlightSettings) -> bool:
 	# Верх дымки — на высоте инверсии (основание облаков).
 	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
 		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
-	progress.stage("glider", tr("Почти готово…"))
+	progress.stage("glider", tr("loading_almost"))
 	await get_tree().process_frame
 	_setup_glider()
 	collisions.setup(
@@ -396,11 +396,11 @@ func _load_terrain() -> bool:
 	if not ok:
 		# Рельеф не всегда говорит причину (например, скрипт не собрался) — объясняем сами.
 		var why := (
-			_load_error if _load_error != "" else tr("нет данных или ошибка в модуле рельефа")
+			_load_error if _load_error != "" else tr("status_terrain_module_error")
 		)
 		# точка с карты: рельеф уже объяснил простыми словами (море, нет сети, нет данных)
 		if not (settings.has_pick() and _load_error != ""):
-			_load_error = tr("«%s» — %s (подробности — в журнале Godot)") % [what, why]
+			_load_error = tr("status_terrain_failed_detail") % [what, why]
 		push_error("Game: рельеф не загружен: " + _load_error)
 	return ok
 
@@ -537,7 +537,7 @@ func _check_finished() -> void:
 		kind = "landed"
 	if kind == "takeoff_failed":
 		info["reason"] = "short_flight"
-		info["text"] = tr("Касание сразу после старта — полёт не засчитан")
+		info["text"] = tr("launch_fail_touchdown")
 	# Сводка — целиком из FlightStats (поверх flight_time_s касания: после reset_in_air
 	# время модели обнуляется и было бы занижено).
 	info.merge(stats.summary(t.position), true)
@@ -576,7 +576,7 @@ func _on_collision(hit: Dictionary) -> void:
 		"grade": "crash",
 		"collision": kind,
 		"finish_reason": String(hit.get("reason", "crash_obstacle")),
-		"text": tr(String(texts.get(kind, "Столкновение"))),
+		"text": tr(String(texts.get(kind, "collision"))),
 		"vertical_speed_ms": maxf(-t.vario, 0.0),
 		"horizontal_speed_ms": t.groundspeed,
 		"bank_deg": t.bank_deg,

@@ -16,16 +16,22 @@ func _scene(path: String) -> Control:
 	return c
 
 
-## 1. Главное меню: 6 кнопок по центру, в порядке FR-27.
+## 1. Главное меню: 6 кнопок по центру, в порядке FR-27 (плоские кнопки «◀ язык ▶» — отдельно).
 func test_start_menu_has_six_buttons_in_order() -> void:
 	var m: StartMenu = _scene("res://scenes/ui/start_menu.tscn")
 	var expected := [
-		tr("Лететь"), tr("Полёт…"), tr("Управление"), tr("Настройки"), tr("Об игре"), tr("Выход")
+		tr("menu_fly"),
+		tr("menu_flight_setup"),
+		tr("menu_controls"),
+		tr("menu_settings"),
+		tr("menu_about"),
+		tr("menu_quit"),
 	]
 	var buttons := m.find_children("*", "Button", true, false)
 	var texts: Array = []
 	for b in buttons:
-		texts.append((b as Button).text)
+		if not (b as Button).flat:
+			texts.append((b as Button).text)
 	check(texts.size() == 6, "ровно 6 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])
 	m.queue_free()
@@ -86,7 +92,7 @@ func test_start_menu_shows_choice_summary() -> void:
 	var text: String = m.get("_summary").text
 	var loc_name := tr(String(Config.value("locations/ongudai", "name")))
 	check(text.contains(loc_name), "в строке выбора — локация: %s" % text)
-	check(text.contains(tr("Средний день")) and text.contains("13:00"), "погода и время: %s" % text)
+	check(text.contains(tr("weather_medium")) and text.contains("13:00"), "погода и время: %s" % text)
 	s.pick_lat = 50.6
 	s.pick_lon = 86.4
 	m.set_settings(s)
@@ -164,13 +170,13 @@ func test_loading_screen_follows_progress() -> void:
 	p.begin()
 	l.open(p, "50.6000, 86.4000")
 	check(l.visible, "open показывает экран")
-	p.stage("b", tr("Скачиваю рельеф…"))
+	p.stage("b", tr("loading_dem"))
 	p.sub(1, 2)
 	check(is_equal_approx(p.fraction, 0.25 + 0.75 * 0.5), "доля внутри этапа (%.3f)" % p.fraction)
 	for i in 30:
 		await get_tree().process_frame
 	var stage: Label = l.get("_stage")
-	check(stage.text.begins_with(tr("Скачиваю рельеф…").trim_suffix("…")), "этап: %s" % stage.text)
+	check(stage.text.begins_with(tr("loading_dem").trim_suffix("…")), "этап: %s" % stage.text)
 	check((l.get("_bar") as ProgressBar).value > 0.0, "полоса двинулась")
 	l.close()
 	check(not l.visible, "close прячет экран")

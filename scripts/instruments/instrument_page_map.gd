@@ -46,11 +46,11 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	var sy := map_rect.end.y + d.gap
 	var fw := (area.size.x - 2.0 * d.gap) / 3.0
 	var r0 := Rect2(area.position.x, sy, fw, strip_h)
-	d.field(r0, d.tr("ВАРИО"), d.tr("м/с"), d.fmt_vario(v.vario_ms))
+	d.field(r0, d.tr("tab_vario"), d.tr("unit_ms"), d.fmt_vario(v.vario_ms))
 	var r1 := Rect2(area.position.x + fw + d.gap, sy, fw, strip_h)
-	d.field(r1, d.tr("ВЫСОТА"), d.tr("м"), d.fmt_int(v.altitude_msl_m))
+	d.field(r1, d.tr("tab_altitude"), d.tr("unit_m"), d.fmt_int(v.altitude_msl_m))
 	var r2 := Rect2(area.position.x + 2.0 * (fw + d.gap), sy, fw, strip_h)
-	d.field(r2, d.tr("ОТ СТАРТА"), d.tr("км"), d.fmt_km(v.distance_from_takeoff_m))
+	d.field(r2, d.tr("tab_from_launch"), d.tr("unit_km"), d.fmt_km(v.distance_from_takeoff_m))
 
 
 static func _draw_turnpoints(
@@ -80,7 +80,7 @@ static func _draw_north(d: InstrumentDisplay, map_rect: Rect2, rot: float) -> vo
 	var n_pos := map_rect.position + Vector2(34, 44)
 	var n_dir := Vector2(0, -1).rotated(rot)
 	d.arrow(n_pos - n_dir * 18.0, n_pos + n_dir * 22.0, 3.0, 14.0)
-	d.text(n_pos + Vector2(18, 10), d.tr("С"), d.label_px)
+	d.text(n_pos + Vector2(18, 10), d.tr("dir_n"), d.label_px)
 
 
 static func _draw_scale(
@@ -95,7 +95,9 @@ static func _draw_scale(
 	d.draw_line(Vector2(bx + bar_px, by - 8), Vector2(bx + bar_px, by), d.ink, 3.0)
 	var km := bar_m / 1000.0
 	var km_s := str(int(km)) if absf(km - roundf(km)) < 1e-6 else "%.1f" % km
-	var label := ("%d " % int(bar_m) + d.tr("м")) if bar_m < 1000.0 else (km_s + " " + d.tr("км"))
+	var label := (
+		("%d " % int(bar_m) + d.tr("unit_m")) if bar_m < 1000.0 else (km_s + " " + d.tr("unit_km"))
+	)
 	d.text(Vector2(bx, by - 12), label, d.label_px)
 
 

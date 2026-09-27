@@ -36,7 +36,7 @@ func begin() -> void:
 	_key = ""
 	_t0 = Time.get_ticks_usec()
 	_stage_t0 = _t0
-	_emit(tr("Готовлюсь…"), 0.0)
+	_emit(tr("loading_getting_ready_dots"), 0.0)
 
 
 ## Новый этап key (из loading.stage_weights) с текстом для экрана. Доля — начало этапа;

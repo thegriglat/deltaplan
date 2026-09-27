@@ -18,12 +18,12 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	# Кольца: среднее за круг (середина) и ± plot_range.
 	for k in [0.5, 1.0]:
 		d.draw_arc(center, r * k, 0.0, TAU, 96, d.ghost if k < 1.0 else d.ink, d.border, true)
-	d.text(center + Vector2(-40.0, -r - 8.0), d.tr("вперёд"), d.label_px, d.ink, 1, 80.0)
+	d.text(center + Vector2(-40.0, -r - 8.0), d.tr("tab_ahead"), d.label_px, d.ink, 1, 80.0)
 	d.glider_icon(center, Vector2(0, -1), 26.0)
 	var hdg := d.vario.heading_deg
 	if not ta.circling:
 		d.text(
-			center + Vector2(-200.0, r * 0.5), d.tr("нет кружения"), d.text_px + 8, d.ink, 1, 400.0
+			center + Vector2(-200.0, r * 0.5), d.tr("tab_not_circling"), d.text_px + 8, d.ink, 1, 400.0
 		)
 	else:
 		_draw_lift_polygon(d, ta, center, r, hdg, float(c.get("plot_range_ms", 2.0)))
@@ -40,18 +40,18 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	var avg_s := d.fmt_vario(ta.circle_average_ms) if ta.circling else "--"
 	d.field(
 		Rect2(area.position.x, y, half, rh),
-		d.tr("ВАРИО"),
-		d.tr("м/с"),
+		d.tr("tab_vario"),
+		d.tr("unit_ms"),
 		d.fmt_vario(d.vario.vario_ms)
 	)
-	d.field(Rect2(x1, y, half, rh), d.tr("СРЕДНЕЕ КРУГ"), d.tr("м/с"), avg_s)
+	d.field(Rect2(x1, y, half, rh), d.tr("tab_circle_avg"), d.tr("unit_ms"), avg_s)
 	y += rh + d.gap
 	var turn := "--"
 	if ta.circling:
-		turn = d.tr("вправо") if ta.turn_dir > 0 else d.tr("влево")
-	d.field(Rect2(area.position.x, y, half, rh), d.tr("ВИРАЖ"), "", turn, true)
+		turn = d.tr("tab_turn_right") if ta.turn_dir > 0 else d.tr("tab_turn_left")
+	d.field(Rect2(area.position.x, y, half, rh), d.tr("tab_turn"), "", turn, true)
 	var side := _side_name(d, ta, hdg) if ta.circling else "--"
-	d.field(Rect2(x1, y, half, rh), d.tr("СИЛЬНЕЕ"), "", side, true)
+	d.field(Rect2(x1, y, half, rh), d.tr("tab_stronger"), "", side, true)
 
 
 ## Многоугольник подъёма: радиус = середина + (сектор − среднее) / plot_range · половина радиуса.
@@ -77,16 +77,16 @@ static func _draw_lift_polygon(
 static func _side_name(d: InstrumentDisplay, ta: ThermalAssistant, hdg: float) -> String:
 	var c := d.section("thermal_assistant")
 	if ta.asymmetry_ms < float(c.get("shift_min_ms", 0.2)):
-		return d.tr("ровно")
+		return d.tr("tab_even")
 	var rel := ta.strong_relative_deg(hdg)
 	var names := [
-		d.tr("впереди"),
-		d.tr("впер-справа"),
-		d.tr("справа"),
-		d.tr("сзади-справа"),
-		d.tr("сзади"),
-		d.tr("сзади-слева"),
-		d.tr("слева"),
-		d.tr("впер-слева")
+		d.tr("tab_side_front"),
+		d.tr("tab_side_front_right"),
+		d.tr("tab_side_right"),
+		d.tr("tab_side_back_right"),
+		d.tr("tab_side_back"),
+		d.tr("tab_side_back_left"),
+		d.tr("tab_side_left"),
+		d.tr("tab_side_front_left")
 	]
 	return names[int(round(fposmod(rel, 360.0) / 45.0)) % 8]

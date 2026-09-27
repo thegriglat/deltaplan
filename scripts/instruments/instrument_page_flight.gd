@@ -17,26 +17,34 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	var hs := _row_heights(area.size.y, d.gap)
 	var v := d.vario
 	var y := area.position.y
-	d.field(Rect2(x0, y, w, hs[0]), d.tr("ВАРИО"), d.tr("м/с"), d.fmt_vario(v.vario_ms))
+	d.field(Rect2(x0, y, w, hs[0]), d.tr("tab_vario"), d.tr("unit_ms"), d.fmt_vario(v.vario_ms))
 	y += hs[0] + d.gap
-	d.field(Rect2(x0, y, half, hs[1]), d.tr("СРЕДНЕЕ"), d.tr("м/с"), d.fmt_vario(v.average_ms))
-	d.field(Rect2(x0 + half + d.gap, y, half, hs[1]), d.tr("КАЧ"), "", d.fmt_glide(v.glide_ratio))
+	d.field(
+		Rect2(x0, y, half, hs[1]), d.tr("tab_average"), d.tr("unit_ms"), d.fmt_vario(v.average_ms)
+	)
+	d.field(
+		Rect2(x0 + half + d.gap, y, half, hs[1]), d.tr("tab_glide"), "", d.fmt_glide(v.glide_ratio)
+	)
 	y += hs[1] + d.gap
-	d.field(Rect2(x0, y, w, hs[2]), d.tr("ВЫСОТА"), d.tr("м"), d.fmt_int(v.altitude_msl_m))
+	d.field(
+		Rect2(x0, y, w, hs[2]), d.tr("tab_altitude"), d.tr("unit_m"), d.fmt_int(v.altitude_msl_m)
+	)
 	y += hs[2] + d.gap
 	var agl := d.fmt_int(maxf(v.altitude_agl_m, 0.0))
-	d.field(Rect2(x0, y, half, hs[3]), d.tr("НАД ЗЕМЛ"), d.tr("м"), agl)
+	d.field(Rect2(x0, y, half, hs[3]), d.tr("tab_agl"), d.tr("unit_m"), agl)
 	d.field(
-		Rect2(x0 + half + d.gap, y, half, hs[3]), d.tr("ВРЕМЯ"), "", d.fmt_time(v.flight_time_s)
+		Rect2(x0 + half + d.gap, y, half, hs[3]), d.tr("tab_time"), "", d.fmt_time(v.flight_time_s)
 	)
 	y += hs[3] + d.gap
 	var air := d.fmt_int(d.kmh(v.airspeed_ms))
-	d.field(Rect2(x0, y, half, hs[4]), d.tr("ВОЗД"), d.tr("км/ч"), air)
+	d.field(Rect2(x0, y, half, hs[4]), d.tr("tab_airspeed"), d.tr("unit_kmh"), air)
 	var gnd := d.fmt_int(d.kmh(v.groundspeed_ms))
-	d.field(Rect2(x0 + half + d.gap, y, half, hs[4]), d.tr("ПУТЕВ"), d.tr("км/ч"), gnd)
+	d.field(
+		Rect2(x0 + half + d.gap, y, half, hs[4]), d.tr("tab_ground_speed"), d.tr("unit_kmh"), gnd
+	)
 	y += hs[4] + d.gap
 	var hdg := d.fmt_int(fposmod(roundf(v.heading_deg), 360.0))
-	d.field(Rect2(x0, y, half, hs[5]), d.tr("КУРС"), "°", hdg)
+	d.field(Rect2(x0, y, half, hs[5]), d.tr("tab_heading"), "°", hdg)
 	draw_track_box(d, Rect2(x0 + half + d.gap, y, half, hs[5]), v.track_deg)
 
 
@@ -96,7 +104,7 @@ static func draw_vario_bar(d: InstrumentDisplay, rect: Rect2, sc: Dictionary) ->
 ## Путевой угол: стрелка в круге и румб.
 static func draw_track_box(d: InstrumentDisplay, rect: Rect2, track: float) -> void:
 	d.draw_rect(rect, d.ink, false, d.border)
-	d.text(rect.position + Vector2(8, d.label_px + 2), d.tr("ПУТЬ"), d.label_px)
+	d.text(rect.position + Vector2(8, d.label_px + 2), d.tr("tab_track"), d.label_px)
 	var r := minf(rect.size.x * 0.28, (rect.size.y - d.label_px) * 0.4)
 	var c := Vector2(rect.end.x - r - 12.0, rect.position.y + d.label_px * 0.5 + rect.size.y * 0.5)
 	d.draw_arc(c, r, 0.0, TAU, 40, d.ink, d.border, true)
@@ -104,7 +112,14 @@ static func draw_track_box(d: InstrumentDisplay, rect: Rect2, track: float) -> v
 	var dir := Vector2(sin(a), -cos(a))
 	d.arrow(c - dir * r * 0.7, c + dir * r * 0.9, 4.0, r * 0.45)
 	var names := [
-		d.tr("С"), d.tr("СВ"), d.tr("В"), d.tr("ЮВ"), d.tr("Ю"), d.tr("ЮЗ"), d.tr("З"), d.tr("СЗ")
+		d.tr("dir_n"),
+		d.tr("dir_ne"),
+		d.tr("dir_e"),
+		d.tr("dir_se"),
+		d.tr("dir_s"),
+		d.tr("dir_sw"),
+		d.tr("dir_w"),
+		d.tr("dir_nw")
 	]
 	var idx := int(round(fposmod(track, 360.0) / 45.0)) % 8
 	var fs := int(rect.size.y * 0.4)

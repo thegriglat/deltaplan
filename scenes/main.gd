@@ -12,9 +12,12 @@ const SMOKE_TIMEOUT_S := 90.0
 var state: State = State.MENU
 var opts: LaunchOptions
 var flight: FlightSettings
+## Папка user-конфигов для выбора языка (тесты подменяют, чтобы не трогать профиль).
+var user_config_dir: String = UserSettings.DEFAULT_DIR
 
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
+var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -27,8 +30,13 @@ var _look_target: Node3D  ## --look-at: куда смотреть в кабин�
 @onready var loading_screen: LoadingScreen = $UI/LoadingScreen
 
 
+## Язык ставится до _ready экранов (они строят тексты в своих _ready).
+func _enter_tree() -> void:
+	Language.apply(Language.configured())
+	_ui_locale = TranslationServer.get_locale()
+
+
 func _ready() -> void:
-	TranslationServer.set_locale(String(Config.value("game", "language", "ru")))
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
 	_connect_ui()
@@ -211,7 +219,13 @@ func _close_overlay() -> void:
 
 func _connect_ui() -> void:
 	game.flight_ended.connect(_on_flight_ended)
-	game.status_changed.connect(start_menu.set_status)
+	game.status_changed.connect(func(text: String) -> void: start_menu.set_status(text))
+	_connect_screens()
+
+
+## Сигналы экранов (заново — после перестройки UI при смене языка).
+func _connect_screens() -> void:
+	start_menu.language_requested.connect(_on_language_requested)
 	start_menu.fly_requested.connect(func(s: FlightSettings) -> void: _fly(s))
 	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.settings_requested.connect(_open_overlay.bind(settings_panel, start_menu))
@@ -238,6 +252,60 @@ func _on_settings_closed(changed: bool) -> void:
 	if changed:
 		game.apply_user_settings()
 	_close_overlay()
+	if TranslationServer.get_locale() != _ui_locale:
+		_rebuild_ui.call_deferred()
+
+
+## Переключатель языка в главном меню: включить, запомнить, перестроить экраны.
+func _on_language_requested(code: String) -> void:
+	Language.select(code, user_config_dir)
+	if TranslationServer.get_locale() != _ui_locale:
+		_rebuild_ui.call_deferred(true)
+
+
+## Экраны строят тексты один раз в _ready — при смене языка они пересоздаются из своих сцен
+## (видимость и «куда вернуться» переносятся), сигналы подключаются заново.
+func _rebuild_ui(focus_language: bool = false) -> void:
+	_ui_locale = TranslationServer.get_locale()
+	var old: Array[Control] = [
+		start_menu,
+		pause_menu,
+		settings_panel,
+		about_screen,
+		result_screen,
+		controls_screen,
+		flight_setup_screen,
+		loading_screen
+	]
+	var ui := $UI
+	var fresh: Array[Control] = []
+	for c: Control in old:
+		var n: Control = load(c.scene_file_path).instantiate()
+		var idx := c.get_index()
+		var node_name := c.name
+		ui.remove_child(c)
+		n.name = node_name
+		ui.add_child(n)
+		n.visible = c.visible
+		ui.move_child(n, idx)
+		fresh.append(n)
+		if _overlay_back == c:
+			_overlay_back = n
+	start_menu = fresh[0]
+	pause_menu = fresh[1]
+	settings_panel = fresh[2]
+	about_screen = fresh[3]
+	result_screen = fresh[4]
+	controls_screen = fresh[5]
+	flight_setup_screen = fresh[6]
+	loading_screen = fresh[7]
+	for c: Control in old:
+		c.free()
+	_connect_screens()
+	start_menu.set_settings(flight)
+	start_menu.set_busy(state == State.LOADING)
+	if focus_language:
+		start_menu.focus_language()
 
 
 func _open_flight_setup() -> void:

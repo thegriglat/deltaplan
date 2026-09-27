@@ -46,93 +46,93 @@
   "license_files_doc": "Тексты лицензий, которые показываются в «Об игре» (кладутся в сборку, export_presets.cfg → include_filter)",
   "controls_help": [
     {
-      "section": "В полёте"
+      "section": "controls_in_flight"
     },
     {
       "action": "pitch_pull_in",
-      "text": "Подтянуть трапецию к себе — разогнаться"
+      "text": "controls_pull_in"
     },
     {
       "action": "pitch_push_out",
-      "text": "Отдать трапецию от себя — затормозить, нос вверх"
+      "text": "controls_push_out"
     },
     {
       "action": "roll_left",
-      "text": "Сместить вес влево — поворот влево"
+      "text": "controls_shift_left"
     },
     {
       "action": "roll_right",
-      "text": "Сместить вес вправо — поворот вправо"
+      "text": "controls_shift_right"
     },
     {
       "action": "center",
-      "text": "Встать в центр трапеции — крыло выровняется и полетит прямо"
+      "text": "controls_center"
     },
     {
       "action": "look_instrument",
-      "text": "Держать — посмотреть на прибор на трапеции"
+      "text": "controls_glance"
     },
     {
       "mouse": true,
       "mouse_mode": "look",
-      "text": "Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд"
+      "text": "controls_mouse_look"
     },
     {
       "mouse": true,
       "mouse_mode": "bar",
-      "text": "Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд"
+      "text": "controls_mouse_bar"
     },
     {
       "mouse_mode": "bar",
-      "text": "В режиме «мышь — трапеция»: держать правую кнопку — осмотреться"
+      "text": "controls_mouse_bar_look"
     },
     {
-      "section": "На земле"
+      "section": "controls_on_ground"
     },
     {
       "action": "pitch_pull_in",
-      "text": "Идти вперёд"
+      "text": "controls_walk"
     },
     {
       "action": "pitch_push_out",
-      "text": "Шаг назад"
+      "text": "controls_step_back"
     },
     {
       "action": "roll_left",
-      "text": "Повернуться с крылом налево (D — направо)"
+      "text": "controls_turn_on_ground"
     },
     {
       "action": "run",
-      "text": "Держать вместе с W — бежать (разбег)"
+      "text": "controls_run"
     },
     {
-      "text": "Во время разбега нос держится сам; стрелки ↑/↓ — чуть подправить нос"
+      "text": "controls_run_nose"
     },
     {
-      "text": "При отрыве от земли зажатые клавиши не действуют — отпустите и нажмите заново, чтобы взяться за трапецию"
+      "text": "controls_liftoff_keys"
     },
     {
-      "section": "Прибор, камера, игра"
+      "section": "controls_instrument_camera_game"
     },
     {
       "action": "instrument_page",
-      "text": "Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)"
+      "text": "controls_next_page"
     },
     {
       "action": "camera_next",
-      "text": "Вид: из кабины → сзади → свободная камера"
+      "text": "controls_camera"
     },
     {
       "action": "restart",
-      "text": "Начать полёт заново с того же старта"
+      "text": "controls_restart"
     },
     {
       "action": "pause",
-      "text": "Пауза и меню"
+      "text": "controls_pause"
     },
     {
       "action": "mouse_capture",
-      "text": "Отпустить или снова захватить мышь"
+      "text": "controls_mouse_capture"
     }
   ],
   "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши; mouse_mode — показывать только при этом controls.json → mouse.mode (look/bar); text — объяснение простыми словами"

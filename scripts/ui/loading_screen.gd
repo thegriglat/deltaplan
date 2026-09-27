@@ -53,7 +53,7 @@ func _build() -> void:
 	add_child(dim)
 	var ui: Dictionary = Config.get_config("ui")
 	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
-	UiKit.label(box, tr("Загрузка"), "TitleLabel")
+	UiKit.label(box, tr("loading_title"), "TitleLabel")
 	_place = UiKit.label(box, "", "HintLabel")
 	UiKit.separator(box)
 	_stage = UiKit.label(box, "", "HeaderLabel")
@@ -70,7 +70,7 @@ func _build() -> void:
 	_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiKit.label(
 		box,
-		tr("Новое место скачивается из интернета — это может занять минуту. Второй раз — из кеша."),
+		tr("loading_hint"),
 		"HintLabel"
 	)
 
@@ -96,7 +96,7 @@ func _process(dt: float) -> void:
 	_bar.value = _shown
 	var base := String(_stage.get_meta("base", ""))
 	if base == "":
-		base = tr("Готовлюсь")
+		base = tr("loading_getting_ready")
 	_stage.text = base + ".".repeat(1 + int(_anim * 2.5) % 3)
 	var s := (Time.get_ticks_msec() - _t0) / 1000
 	_time.text = "%d:%02d" % [s / 60, s % 60]

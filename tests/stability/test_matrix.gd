@@ -47,6 +47,7 @@ func test_matrix_all_combinations() -> void:
 			for weather in WEATHERS:
 				await _run_combo(main, game, loc_id, wing, weather)
 	main.queue_free()
+	get_tree().paused = false  # итог последнего полёта ставит дерево на паузу — не оставлять
 	_print_results()
 
 

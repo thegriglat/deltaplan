@@ -22,10 +22,10 @@ func _ready() -> void:
 	UiKit.separator(box)
 	_lines = UiKit.label(box, "")
 	var bar := UiKit.button_bar(box)
-	UiKit.button(bar, tr("Ещё раз (R)"), func() -> void: restart_requested.emit())
-	_continue = UiKit.button(bar, tr("Продолжить"), func() -> void: continue_requested.emit())
+	UiKit.button(bar, tr("result_fly_again"), func() -> void: restart_requested.emit())
+	_continue = UiKit.button(bar, tr("common_continue"), func() -> void: continue_requested.emit())
 	_continue.visible = false
-	UiKit.button(bar, tr("В главное меню"), func() -> void: menu_requested.emit())
+	UiKit.button(bar, tr("result_to_menu"), func() -> void: menu_requested.emit())
 
 
 ## kind/info — из сигнала Game.flight_ended.
@@ -37,15 +37,15 @@ func show_result(kind: String, info: Dictionary) -> void:
 
 static func title_for(kind: String, info: Dictionary) -> String:
 	if kind == "takeoff_failed":
-		return _t("Взлёт сорван")
+		return _t("result_launch_failed")
 	match String(info.get("grade", "")):
 		"soft":
-			return _t("Мягкая посадка")
+			return _t("result_soft_landing")
 		"hard":
-			return _t("Жёсткая посадка")
+			return _t("result_hard_landing")
 		"crash":
-			return _t("Авария")
-	return _t("Посадка")
+			return _t("result_crash")
+	return _t("result_landing")
 
 
 static func lines_for(kind: String, info: Dictionary) -> PackedStringArray:
@@ -55,31 +55,31 @@ static func lines_for(kind: String, info: Dictionary) -> PackedStringArray:
 		return out
 	var vs := float(info.get("vertical_speed_ms", 0.0))
 	var hs := float(info.get("horizontal_speed_ms", 0.0))
-	out.append(_t("Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с") % [vs, hs])
-	out.append(_t("Крен при касании: %.0f°") % absf(float(info.get("bank_deg", 0.0))))
-	out.append(_t("Время полёта: %s") % format_time(float(info.get("flight_time_s", 0.0))))
+	out.append(_t("result_touchdown_speed") % [vs, hs])
+	out.append(_t("result_touchdown_bank") % absf(float(info.get("bank_deg", 0.0))))
+	out.append(_t("result_flight_time") % format_time(float(info.get("flight_time_s", 0.0))))
 	var dist_km := float(info.get("distance_m", 0.0)) / 1000.0
-	out.append(_t("Дистанция от старта по прямой: %.2f км") % dist_km)
+	out.append(_t("result_distance") % dist_km)
 	var track_km := float(info.get("track_length_m", 0.0)) / 1000.0
-	out.append(_t("Пройдено по следу: %.2f км") % track_km)
+	out.append(_t("result_track_length") % track_km)
 	if info.has("max_altitude_msl_m"):
-		out.append(_t("Макс. высота над морем: %.0f м") % float(info.max_altitude_msl_m))
+		out.append(_t("result_max_altitude_msl") % float(info.max_altitude_msl_m))
 	var gain := maxf(float(info.get("height_gain_m", 0.0)), 0.0)
-	out.append(_t("Макс. высота над стартом: %.0f м") % gain)
+	out.append(_t("result_max_height_over_launch") % gain)
 	if info.has("avg_speed_ms"):
-		out.append(_t("Средняя путевая скорость: %.0f км/ч") % (float(info.avg_speed_ms) * 3.6))
+		out.append(_t("result_avg_ground_speed") % (float(info.avg_speed_ms) * 3.6))
 	if info.has("total_climb_m"):
-		out.append(_t("Суммарный набор высоты: %.0f м") % float(info.total_climb_m))
+		out.append(_t("result_total_climb") % float(info.total_climb_m))
 	if info.has("best_thermal_climb_ms") and float(info.best_thermal_climb_ms) > 0.0:
-		out.append(_t("Лучший термик: %.1f м/с") % float(info.best_thermal_climb_ms))
+		out.append(_t("result_best_thermal") % float(info.best_thermal_climb_ms))
 	if info.has("max_climb_ms"):
-		out.append(_t("Макс. подъём: %.1f м/с") % float(info.max_climb_ms))
+		out.append(_t("result_max_climb") % float(info.max_climb_ms))
 	if info.has("max_sink_ms"):
-		out.append(_t("Макс. снижение: %.1f м/с") % float(info.max_sink_ms))
+		out.append(_t("result_max_sink") % float(info.max_sink_ms))
 	if info.has("circling_fraction"):
-		out.append(_t("В кружении: %.0f%% времени") % (float(info.circling_fraction) * 100.0))
+		out.append(_t("result_circling_pct") % (float(info.circling_fraction) * 100.0))
 	if info.has("avg_glide_ratio") and float(info.avg_glide_ratio) > 0.0:
-		out.append(_t("Среднее качество: %.1f") % float(info.avg_glide_ratio))
+		out.append(_t("result_avg_glide") % float(info.avg_glide_ratio))
 	return out
 
 

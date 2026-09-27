@@ -31,6 +31,8 @@ var _helmet: OptionButton
 var _helmet_modes: Array = []
 var _bots: HSlider
 var _grass: HSlider
+var _language: OptionButton
+var _language_codes: Array = []
 
 
 func _ready() -> void:
@@ -41,27 +43,32 @@ func _ready() -> void:
 	add_child(dim)
 	var ui: Dictionary = Config.get_config("ui")
 	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
-	UiKit.label(box, tr("Настройки"), "TitleLabel")
+	UiKit.label(box, tr("menu_settings"), "TitleLabel")
 	UiKit.separator(box)
+	_language = OptionButton.new()
+	_language_codes = Language.available().keys()
+	for code: Variant in _language_codes:
+		_language.add_item(String(Language.available()[code]))
+	UiKit.row(box, tr("settings_language"), _language)
 	var vr: Array = ui.get("vario_volume_range_db", [-40.0, 6.0])
 	_volume = UiKit.slider_row(
-		box, tr("Громкость вариометра"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("дБ")
+		box, tr("settings_vario_volume"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("unit_db")
 	)
 	var sr: Array = ui.get("look_sensitivity_range", [0.02, 0.5])
 	_sens = UiKit.slider_row(
-		box, tr("Чувствительность мыши"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
+		box, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
 	)
 	_invert = CheckBox.new()
-	_invert.text = tr("W — от себя, S — на себя")
-	UiKit.row(box, tr("Инверсия тангажа"), _invert)
+	_invert.text = tr("settings_invert_pitch_hint")
+	UiKit.row(box, tr("settings_invert_pitch"), _invert)
 	_mouse_mode = OptionButton.new()
-	_mouse_mode.add_item(tr("Обзор (поворот головы)"))
-	_mouse_mode.add_item(tr("Трапеция"))
-	UiKit.row(box, tr("Мышь"), _mouse_mode)
+	_mouse_mode.add_item(tr("settings_mouse_look"))
+	_mouse_mode.add_item(tr("settings_mouse_bar"))
+	UiKit.row(box, tr("settings_mouse"), _mouse_mode)
 	_roll_mode = OptionButton.new()
-	_roll_mode.add_item(tr("Простое (аркадное)"))
-	_roll_mode.add_item(tr("Смещение веса (как на настоящем крыле)"))
-	UiKit.row(box, tr("Управление креном"), _roll_mode)
+	_roll_mode.add_item(tr("settings_roll_simple"))
+	_roll_mode.add_item(tr("settings_roll_weight_shift"))
+	UiKit.row(box, tr("settings_roll_control"), _roll_mode)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -74,18 +81,18 @@ func _ready() -> void:
 			var p: Variant = presets[k]
 			var title := String(p.get("title", k)) if p is Dictionary else k
 			_sound.add_item(tr(title))
-		UiKit.row(box, tr("Звук вариометра"), _sound)
+		UiKit.row(box, tr("settings_vario_sound"), _sound)
 	_graphics = OptionButton.new()
 	_graphics_names = GraphicsPresets.names()
 	var presets_cfg: Dictionary = Config.get_config("game").get("graphics_presets", {})
 	for g in _graphics_names:
 		_graphics.add_item(tr(String(presets_cfg[g].get("name", g))))
-	UiKit.row(box, tr("Графика"), _graphics)
+	UiKit.row(box, tr("settings_graphics"), _graphics)
 	var rsr: Array = Config.get_config("game").get("render_scale_range_pct", [50.0, 100.0])
 	var rs_box := HBoxContainer.new()
 	rs_box.add_theme_constant_override("separation", 10)
 	_render_scale_auto = CheckBox.new()
-	_render_scale_auto.text = tr("Как в пресете")
+	_render_scale_auto.text = tr("settings_as_in_preset")
 	rs_box.add_child(_render_scale_auto)
 	_render_scale = HSlider.new()
 	_render_scale.min_value = float(rsr[0])
@@ -100,12 +107,12 @@ func _ready() -> void:
 	rs_box.add_child(rs_value)
 	_render_scale.value_changed.connect(func(x: float) -> void: rs_value.text = "%.0f%%" % x)
 	_render_scale_auto.toggled.connect(func(on: bool) -> void: _render_scale.editable = not on)
-	UiKit.row(box, tr("Масштаб рендера"), rs_box)
+	UiKit.row(box, tr("settings_render_scale"), rs_box)
 	var grass_cfg: Dictionary = Config.get_config("vegetation").get("grass", {})
 	var gr: Array = grass_cfg.get("density_range_pct", [0.0, 200.0])
 	_grass = UiKit.slider_row(
 		box,
-		tr("Густота травы"),
+		tr("settings_grass_density"),
 		float(gr[0]),
 		float(gr[1]),
 		float(grass_cfg.get("density_step_pct", 10.0)),
@@ -115,13 +122,13 @@ func _ready() -> void:
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
-		_time_speed.add_item(tr("стоп") if float(v) <= 0.0 else "×%d" % int(v))
-	UiKit.row(box, tr("Скорость времени"), _time_speed)
+		_time_speed.add_item(tr("settings_time_stopped") if float(v) <= 0.0 else "×%d" % int(v))
+	UiKit.row(box, tr("settings_time_speed"), _time_speed)
 	var cam: Dictionary = Config.get_config("camera")
 	var fr: Array = cam.get("fov_range_deg", [60.0, 110.0])
 	_fov = UiKit.slider_row(
 		box,
-		tr("Поле зрения (по вертикали)"),
+		tr("settings_fov"),
 		float(fr[0]),
 		float(fr[1]),
 		float(cam.get("fov_step_deg", 5.0)),
@@ -130,26 +137,27 @@ func _ready() -> void:
 	_helmet = OptionButton.new()
 	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
 	var helmet_names := {
-		"none": tr("Без каски"),
-		"open": tr("Открытая"),
-		"visor": tr("С визором"),
-		"visor_dark": tr("С тёмным визором"),
+		"none": tr("helmet_none"),
+		"open": tr("helmet_open"),
+		"visor": tr("helmet_visor"),
+		"visor_dark": tr("helmet_visor_dark"),
 	}
 	for m: Variant in _helmet_modes:
 		_helmet.add_item(String(helmet_names.get(String(m), String(m))))
-	UiKit.row(box, tr("Каска (вид из кабины)"), _helmet)
+	UiKit.row(box, tr("settings_helmet"), _helmet)
 	var bots_max := float(Config.value("bots", "count_max", 20))
-	_bots = UiKit.slider_row(box, tr("Другие пилоты в небе"), 0.0, bots_max, 1.0, "%.0f")
-	UiKit.label(box, tr("Настройки сохраняются в профиле пользователя."), "HintLabel")
+	_bots = UiKit.slider_row(box, tr("settings_bots"), 0.0, bots_max, 1.0, "%.0f")
+	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(box)
-	UiKit.button(bar, tr("Сохранить"), _on_save)
-	UiKit.button(bar, tr("Отмена"), func() -> void: closed.emit(false))
+	UiKit.button(bar, tr("common_save"), _on_save)
+	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
 	visibility_changed.connect(_on_visibility_changed)
 	load_values()
 
 
 ## Показать текущие значения из Config.
 func load_values() -> void:
+	_language.select(maxi(_language_codes.find(Language.current()), 0))
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	_volume.value = float(va.get("volume_db", -6.0))
 	_volume.value_changed.emit(_volume.value)
@@ -227,6 +235,10 @@ func save() -> bool:
 		and ok
 	)
 	ok = UserSettings.save_patch("bots", {"count": int(_bots.value)}, config_dir) and ok
+	if _language.selected >= 0:
+		var code := String(_language_codes[_language.selected])
+		if code != Language.current():
+			ok = Language.select(code, config_dir) and ok
 	Config.reload()
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():

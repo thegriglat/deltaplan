@@ -25,15 +25,15 @@ var _fail_timers: Dictionary = {}
 static func failure_text(reason: String) -> String:
 	match reason:
 		"nose_high":
-			return TranslationServer.translate("Нос слишком высоко — крыло сорвало поток")
+			return TranslationServer.translate("launch_fail_nose_high")
 		"nose_low":
-			return TranslationServer.translate("Нос слишком низко — крыло зарылось")
+			return TranslationServer.translate("launch_fail_nose_low")
 		"tailwind":
-			return TranslationServer.translate("Попутный ветер — не набрать воздушную скорость")
+			return TranslationServer.translate("launch_fail_tailwind")
 		"crosswind":
-			return TranslationServer.translate("Боковой ветер завалил крыло")
+			return TranslationServer.translate("launch_fail_crosswind")
 		"weak_run":
-			return TranslationServer.translate("Слабый разбег — крыло не набрало скорость")
+			return TranslationServer.translate("launch_fail_weak_run")
 	return reason
 
 

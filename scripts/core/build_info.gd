@@ -24,8 +24,8 @@ static func commit() -> String:
 static func text() -> String:
 	var c := commit()
 	if c == "":
-		return TranslationServer.translate("Версия %s") % version()
-	return TranslationServer.translate("Версия %s · сборка %s") % [version(), c]
+		return TranslationServer.translate("about_version") % version()
+	return TranslationServer.translate("about_version_build") % [version(), c]
 
 
 static func _git_commit() -> String:

@@ -24,15 +24,15 @@ func _ready() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
-	UiKit.label(box, tr("Об игре"), "TitleLabel")
+	UiKit.label(box, tr("menu_about"), "TitleLabel")
 	UiKit.label(box, BuildInfo.text(), "HintLabel")
-	UiKit.label(box, tr("В благодарность родителям."))
+	UiKit.label(box, tr("about_dedication"))
 	UiKit.label(
-		box, tr("«В этом безмолвном океане неба рождается истинное понимание свободы.»"), "HintLabel"
+		box, tr("menu_quote"), "HintLabel"
 	)
 	UiKit.label(
 		box,
-		tr("Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов."),
+		tr("about_intro"),
 		"HintLabel"
 	)
 	_text = RichTextLabel.new()
@@ -41,7 +41,7 @@ func _ready() -> void:
 	_text.selection_enabled = true
 	box.add_child(_text)
 	var bar := UiKit.button_bar(box)
-	UiKit.button(bar, tr("Назад"), func() -> void: closed.emit())
+	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
 	var ui: Dictionary = Config.get_config("ui")
 	_text.text = AssetsCredits.build_text(
 		ui.get("about_sources", ["res://ASSETS.md"]), ui.get("license_files", [])

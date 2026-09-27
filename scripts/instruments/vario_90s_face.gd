@@ -40,21 +40,21 @@ func _draw() -> void:
 	var vs := _fmt_vario(vario.vario_ms)
 	var vpx := int(h * 0.2)
 	_seg_text(Vector2(center.x - r * 0.62, center.y + vpx * 0.2), vs, "8.8", vpx, r * 1.1, true)
-	_label(Vector2(center.x + r * 0.5, center.y + vpx * 0.2), "м/с")
+	_label(Vector2(center.x + r * 0.5, center.y + vpx * 0.2), "unit_ms")
 	# Низ: высота крупно, среднее и время.
 	var alt := "%d" % roundi(vario.altitude_msl_m)
 	var apx := int(h * 0.17)
 	var base_y := h - 16.0
 	_seg_text(Vector2(w * 0.3, base_y), alt, "8888", apx, w * 0.42, true)
-	_label(Vector2(w * 0.73, base_y), "м")
+	_label(Vector2(w * 0.73, base_y), "unit_m")
 	var avg := _fmt_vario(vario.average_ms)
 	var spx := int(h * 0.09)
 	var side_y := h * 0.72
-	_label(Vector2(14.0, side_y), "СР")
+	_label(Vector2(14.0, side_y), "vario_avg")
 	_seg_text(Vector2(8.0, side_y + spx + 6.0), avg, "8.8", spx, w * 0.2, true)
 	var t := int(vario.flight_time_s)
 	var tm := "%d:%02d" % [t / 3600, (t / 60) % 60]
-	_label(Vector2(w - 90.0, side_y), "ВРЕМЯ")
+	_label(Vector2(w - 90.0, side_y), "tab_time")
 	_seg_text(Vector2(w - 130.0, side_y + spx + 6.0), tm, "8:88", spx, 120.0, true)
 	_draw_shade()
 

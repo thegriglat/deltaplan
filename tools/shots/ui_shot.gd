@@ -4,7 +4,7 @@ extends Node
 ## полёта), экраны показаны напрямую (без полного полёта — устойчивее и быстрее). Запуск:
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/ui_shot.tscn -- --out=/tmp/ui
-## Пишет <out>/{pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
+## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 60.0
@@ -61,7 +61,12 @@ func _run() -> void:
 
 	await _shoot("menu")
 
+	var setup: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
 	start_menu.visible = false
+	setup.visible = true
+	await _shoot("setup")
+	setup.visible = false
+
 	pause_menu.visible = true
 	await _shoot("pause")
 
@@ -109,7 +114,7 @@ func _crash_info() -> Dictionary:
 	return {
 		"grade": "crash",
 		"collision": "wire",
-		"text": TranslationServer.translate("Столкновение"),
+		"text": TranslationServer.translate("collision"),
 		"vertical_speed_ms": 9.0,
 		"horizontal_speed_ms": 14.0,
 		"bank_deg": 38.0,

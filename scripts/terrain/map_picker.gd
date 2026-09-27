@@ -58,12 +58,12 @@ func _ready() -> void:
 	box.position = Vector2(8, 8)
 	add_child(box)
 	_edit = LineEdit.new()
-	_edit.placeholder_text = tr("широта, долгота")
+	_edit.placeholder_text = tr("map_coords_placeholder")
 	_edit.custom_minimum_size.x = 220
 	_edit.text_submitted.connect(func(_t: String) -> void: _submit_coords())
 	box.add_child(_edit)
 	var btn := Button.new()
-	btn.text = tr("Выбрать")
+	btn.text = tr("map_pick")
 	btn.pressed.connect(_submit_coords)
 	box.add_child(btn)
 
@@ -173,7 +173,7 @@ func _draw_overlay() -> void:
 	_overlay.draw_string(
 		font,
 		Vector2(8, size.y - 8),
-		String(_cfg.attribution),
+		tr(String(_cfg.attribution)),
 		HORIZONTAL_ALIGNMENT_LEFT,
 		-1,
 		12,

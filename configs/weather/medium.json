@@ -1,6 +1,6 @@
 {
   "_doc": "Средний день: хорошие кучевки, кромка ~1800 м над землёй, умеренный ветер.",
-  "name": "Средний день",
+  "name": "weather_medium",
   "name_doc": "Название пресета в меню.",
   "wind_speed_kmh": 12,
   "wind_speed_kmh_doc": "Скорость ветра на опорной высоте (atmosphere.json → wind.reference_height_m), км/ч.",

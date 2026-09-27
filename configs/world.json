@@ -928,7 +928,7 @@
     "max_tiles_in_memory_doc": "Сколько тайлов карты держать в памяти (≈ 0.2 МБ каждый)",
     "click_max_drag_px": 5,
     "click_max_drag_px_doc": "Если мышь сдвинулась больше — это перетаскивание, а не выбор точки",
-    "attribution": "Высоты: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 и др.)"
+    "attribution": "map_attribution"
   },
   "terrain_textures": {
     "_doc": "Необязательные текстуры поверхностей рельефа (заменяемые ассеты). albedo — путь (res://… или файл на диске); пусто — процедурная раскраска. Текстура видна вблизи и растворяется к terrain_look.detail_fade_m. Новые текстуры вносить в ASSETS.md.",
