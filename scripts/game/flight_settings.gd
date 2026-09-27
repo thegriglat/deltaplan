@@ -5,6 +5,10 @@ extends RefCounted
 ## Значения по умолчанию — configs/game.json; меню запоминает последний выбор
 ## в user://last_flight.json (to_dict/from_dict).
 
+## Крылья, убранные из игры: старое имя конфига → замена (сохранённый выбор, флаг --wing).
+## Wills Wing Sport 2 (kingpost) убран 28.09.2026 — ближайшее мачтовое двухобшивочное — Laminar.
+const WING_RENAMES := {"wings/kingpost": "wings/laminar"}
+
 ## Имя конфига крыла: "wings/sport".
 var wing: String = "wings/sport"
 ## Масса пилота, кг; 0 — из configs/pilot.json (ограничивается диапазоном крыла).
@@ -126,9 +130,14 @@ func to_dict() -> Dictionary:
 	}
 
 
+## Имя крыла из старого сохранения — на замену, если крыло убрано из игры.
+static func migrate_wing(path: String) -> String:
+	return String(WING_RENAMES.get(path, path))
+
+
 static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSettings:
 	var s := base.duplicate() if base != null else FlightSettings.defaults()
-	s.wing = String(d.get("wing", s.wing))
+	s.wing = migrate_wing(String(d.get("wing", s.wing)))
 	s.pilot_mass_kg = float(d.get("pilot_mass_kg", s.pilot_mass_kg))
 	if d.has("temperature_c"):
 		s.temperature_c = float(d.temperature_c)

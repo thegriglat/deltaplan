@@ -56,7 +56,7 @@ func value(config_name: String, key: String, default: Variant = null) -> Variant
 	return node
 
 
-## Имена конфигов в подпапке: list_configs("wings") -> ["kingpost", "sport", "training"].
+## Имена конфигов в подпапке: list_configs("wings") -> ["wings/laminar", "wings/sport", …].
 func list_configs(subdir: String) -> PackedStringArray:
 	var names := {}
 	for dir in search_dirs():

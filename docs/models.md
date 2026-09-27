@@ -7,7 +7,6 @@
 | Файл | Что | Треугольников |
 |---|---|---|
 | `assets/models/glider_training.glb` | учебное однообшивочное крыло с кингпостом (в духе Wills Wing Falcon / Aeros Target) | 9 784 |
-| `assets/models/glider_kingpost.glb` | мачтовое двухобшивочное крыло с мачтой (kingpost) (в духе Wills Wing Sport 2) | 9 088 |
 | `assets/models/glider_sport.glb` | спортивное безмачтовое (topless) крыло, обтекатели стоек, спидбар (в духе T3 / Combat / Litespeed) | 8 660 |
 | `assets/models/glider_slavutich_ut.glb` | советское учебное 1979 г. (в духе Славутич-УТ): однообшивочное, угол носа 118°, 7 лат, килевой карман 0,15 м, радиальные полотнища белый/красный/синий, серебристые трубы, рубленые законцовки | 8 944 |
 | `assets/models/glider_apogee.glb` | советское 1980-х (в духе «Апогея» Мысенко): мачтовое, двухобшивочное 80 %, 122°, 9 лат + промежуточные, высокий килевой карман 0,3 м, белый матовый лавсан | 9 392 |
@@ -235,7 +234,7 @@ gl_compatibility нет теней сквозь ткань.
 
 `docs/models/screenshots/<модель>/` — `bottom.png`, `front.png`, `side.png`, `iso45.png` (1280×720,
 одинаковый светлый фон и свет, Blender Eevee; у крыльев без пилота) и у крыльев `cockpit.png` — из `CockpitCamera`
-(крыло + pilot.glb без Helmet + instrument.glb + vario_90s.glb, вертикальный FOV 95°). Модели: `glider_training`, `glider_kingpost`, `glider_sport`, `pilot`, `instrument`,
+(крыло + pilot.glb без Helmet + instrument.glb + vario_90s.glb, вертикальный FOV 95°). Модели: `glider_training`, `glider_sport`, `glider_slavutich_ut`, `glider_apogee`, `glider_atlas`, `glider_target`, `glider_magic`, `glider_laminar`, `glider_combat`, `pilot`, `instrument`,
 `vario_90s`, `trees/` (`<вид>.png` — LOD0 | LOD1 | LOD2, `trees_iso45.png` — все виды сверху под 45°).
 Проверка в Godot: `scenes/models_preview/models_preview.tscn` (три крыла с пилотом и приборами),
 снимок: `xvfb-run -a godot --path . --rendering-method gl_compatibility res://scenes/models_preview/models_preview.tscn -- --view=iso|below|side|cockpit --shot=/путь.png`.
@@ -253,9 +252,7 @@ gl_compatibility нет теней сквозь ткань.
 линиями, видимая снизу поперечина, кингпост с верхними тросами, трапеция с колёсами, пилот под крылом.
 ✘ нет «пузыря» паруса между латами и прозрачности; колёса крупноваты.
 
-**glider_kingpost** — фото: [Sport 2 снизу, сбоку в полёте, спереди на земле](https://www.willswing.com/hang-gliders/sport-2/).
-✔ двухцветная нижняя обшивка до ~60 % хорды, белая задняя часть, кингпост и тросы, поперечина скрыта,
-лёгкий отрицательный V. ✘ на фото ламинат с X-сеткой прозрачнее; передняя кромка у прототипа толще.
+**glider_kingpost** (Wills Wing Sport 2) — убрана из игры 28.09.2026 вместе с крылом.
 
 **glider_sport** — фото: [Aeros Combat снизу](https://commons.wikimedia.org/wiki/File:Combat-aeros-aile-delta-competition.jpg),
 [T3 спереди и сбоку в полёте](https://www.willswing.com/hang-gliders/t3/).

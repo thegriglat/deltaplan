@@ -6,7 +6,7 @@ extends Node
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
-const WINGS: Array[String] = ["training", "sport", "kingpost"]
+const WINGS: Array[String] = ["training", "sport", "laminar"]
 const ASPECT := 16.0 / 9.0
 ## Через сколько секунд полёта снимать (пилот лёг в кокон — поза prone).
 const MIN_AIR_S := 12.0

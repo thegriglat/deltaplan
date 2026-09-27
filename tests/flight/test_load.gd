@@ -13,7 +13,7 @@ func test_straight_glide_about_one_g() -> void:
 
 func test_turn_load_factor() -> void:
 	for bank_deg in [30.0, 45.0, 60.0]:
-		var m := Sim.make("kingpost")
+		var m := Sim.make("laminar")
 		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
 		m.bank = deg_to_rad(bank_deg)
 		Sim.run_for(m, 25.0, Sim.input())

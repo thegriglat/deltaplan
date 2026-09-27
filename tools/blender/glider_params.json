@@ -47,46 +47,6 @@
         "pattern": "center_v"
       }
     },
-    "kingpost": {
-      "config": "kingpost",
-      "out": "glider_kingpost",
-      "nose_angle_deg": 126,
-      "root_chord_m": 2.4,
-      "tip_chord_m": 0.72,
-      "nose_forward_m": 1.4,
-      "keel_extra_m": 0.12,
-      "dihedral_deg": -1.0,
-      "washout_deg": 12,
-      "camber": [0.03, 0.1, 0.06],
-      "double_surface": true,
-      "lower_cover": 0.62,
-      "le_thickness": 0.12,
-      "battens_per_side": 11,
-      "kingpost_m": 1.2,
-      "crossbar_u": 0.57,
-      "luff_lines": [
-        0.4,
-        0.7
-      ],
-      "basebar_width_m": 1.42,
-      "faired_uprights": false,
-      "wheels": false,
-      "tube_color": [0.08, 0.08, 0.09],
-      "tube_rough": 0.4,
-      "tube_metal": 0.5,
-      "design": {
-        "base": [0.97, 0.97, 0.96],
-        "le": [0.05, 0.45, 0.85],
-        "center": [0.05, 0.45, 0.85],
-        "accent": [1.0, 0.45, 0.05],
-        "te": [0.15, 0.15, 0.2],
-        "batten": [0.3, 0.32, 0.38],
-        "bottom": [0.05, 0.45, 0.85],
-        "bottom_accent": [0.97, 0.97, 0.96],
-        "pattern": "chevron",
-        "scrim": true
-      }
-    },
     "sport": {
       "config": "sport",
       "out": "glider_sport",

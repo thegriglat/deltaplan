@@ -5,7 +5,7 @@ const Sim := preload("res://tests/flight/flight_sim.gd")
 
 
 func test_speeds_scale_with_sqrt_mass() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var light := Sim.make(w, float(wing.pilot_mass_min_kg))
 		var heavy := Sim.make(w, float(wing.pilot_mass_max_kg))

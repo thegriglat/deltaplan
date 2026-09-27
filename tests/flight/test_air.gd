@@ -39,7 +39,7 @@ func test_wind_drift() -> void:
 
 
 func test_headwind_groundspeed() -> void:
-	var m := Sim.make("kingpost")
+	var m := Sim.make("laminar")
 	m.reset_in_air(Vector3(0, 3000, 0), 0.0, 0.0, Vector3(0, 0, 4.0))
 	# встречный: воздух идёт на юг
 	var wind := func(_p: Vector3) -> Vector3: return Vector3(0, 0, 4.0)

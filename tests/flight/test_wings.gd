@@ -1,6 +1,6 @@
 extends TestCase
 ## Линейка крыльев (docs/plan/wings_lineup.md): новые поля у всех крыльев, ориентиры поляры,
-## Sport 2 по поляре WW, управляемость «Апогея».
+## управляемость «Апогея».
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
 const TP := preload("res://tests/flight/test_polar.gd")
@@ -13,7 +13,7 @@ func test_every_wing_has_new_fields() -> void:
 	for g: Dictionary in Config.get_config("wing_groups").groups:
 		group_ids.append(String(g.id))
 	var ws := TP.wings()
-	check(ws.size() >= 10, "крыльев в configs/wings: %d" % ws.size())
+	check(ws.size() >= 9, "крыльев в configs/wings: %d" % ws.size())
 	for w in ws:
 		var cfg := Config.get_config("wings/" + w)
 		for f: String in NEW_FIELDS:
@@ -35,13 +35,6 @@ func test_best_glide_matches_polar() -> void:
 	for w in TP.wings():
 		var ref := float(Config.value("wings/" + w, "reference.best_glide"))
 		approx(TP.sweep(Sim.make(w)).best_ld, ref, 0.3, w + ": reference.best_glide")
-
-
-func test_sport2_matches_ww_polar() -> void:
-	# официальная поляра Wills Wing Sport 2 (willswing.com): 0,91 @ 40, 1,07 @ 48, 2,26 @ 64
-	var m := Sim.make("kingpost")
-	for p: Array in [[40.0, 0.91], [48.0, 1.07], [64.0, 2.26]]:
-		approx(m.steady_glide(Units.kmh(p[0])).y, p[1], 0.05, "Sport 2: снижение на %.0f" % p[0])
 
 
 func test_apogee_levels_faster_than_training() -> void:

@@ -17,7 +17,7 @@ cd "$(dirname "$0")/../.."
 out="${1:-docs/screenshots/cockpit}"
 shift || true
 wings=("$@")
-[[ ${#wings[@]} -eq 0 ]] && wings=(training sport kingpost)
+[[ ${#wings[@]} -eq 0 ]] && wings=(training sport laminar)
 mkdir -p "$out"
 export DISPLAY="${DISPLAY:-:0}"
 

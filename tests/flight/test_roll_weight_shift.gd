@@ -5,7 +5,7 @@ extends TestCase
 ## Клавиша X «в центр» — в обоих режимах; режим «как раньше» — tests/flight/test_roll.gd.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
-const WINGS: Array[String] = ["training", "kingpost", "sport"]
+const WINGS: Array[String] = ["training", "laminar", "sport"]
 const TMP_DIR := "user://test_roll_mode_cfg"
 
 
@@ -80,8 +80,8 @@ func test_center_levels_wing() -> void:
 		var t := level_time(Sim.make(w))
 		times[w] = t
 		check(t >= 1.5 and t < 5.0, "%s: в центре крыло выровнялось за %.1f с" % [w, t])
-	check(times.training < times.kingpost, "учебное выравнивается быстрее мачтового")
-	check(times.kingpost < times.sport, "мачтовое выравнивается быстрее спортивного")
+	check(times.training < times.laminar, "учебное выравнивается быстрее мачтового")
+	check(times.laminar < times.sport, "мачтовое выравнивается быстрее спортивного")
 
 
 func test_center_flies_straight_in_new_direction() -> void:
@@ -116,7 +116,7 @@ func test_held_shift_gives_steady_bank() -> void:
 
 
 func test_heavier_at_speed() -> void:
-	var m := Sim.make("kingpost")
+	var m := Sim.make("laminar")
 	var slow := m.roll_authority(m.trim_speed())
 	var fast := m.roll_authority(m.trim_speed() * 1.5)
 	check(fast < slow * 0.75, "на 1,5·V_трим смещение слабее: %.2f против %.2f" % [fast, slow])
@@ -124,7 +124,7 @@ func test_heavier_at_speed() -> void:
 
 func test_turn_radius() -> void:
 	for bank_deg in [20.0, 30.0, 40.0]:
-		var m := Sim.make("kingpost")
+		var m := Sim.make("laminar")
 		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
 		m.bank = deg_to_rad(bank_deg)
 		run_holding(m, 15.0, bank_deg)

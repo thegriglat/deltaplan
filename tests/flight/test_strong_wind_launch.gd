@@ -8,11 +8,12 @@ const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const MAX_GROUND_S := 20.0
 const COMBOS := [
-	["altai", "wings/kingpost"],
+	["altai", "wings/laminar"],
 	["aushkul", "wings/sport"],
 	["ongudai", "wings/sport"],
 ]
-## 2415 — момент, на котором altai × kingpost срывался в матрице (nose_high), 4110 — askarovo.
+## 2415 — момент, на котором altai × мачтовое (прежде Sport 2) срывалось в матрице (nose_high),
+## 4110 — askarovo.
 const SEEDS := [0.0, 600.0, 1500.0, 2415.0, 4110.0]
 const Sim := preload("res://tests/flight/flight_sim.gd")
 
@@ -30,7 +31,7 @@ func check(cond: bool, msg: String = "") -> void:
 ## ~23°) почти на критическом (24°): крыло срывает, «нос высоко». Нос ниже — отрыв.
 func test_strong_wind_lull_needs_lower_nose() -> void:
 	var slope := func(_x: float, z: float) -> float: return 1000.0 + 0.3 * z
-	for wing in ["kingpost", "sport"]:
+	for wing in ["laminar", "sport"]:
 		for pitch: float in [0.3, 0.0]:
 			var clock := [0.0]
 			var lull := func(_p: Vector3) -> Vector3:

@@ -9,7 +9,7 @@ const MAIN_SCENE := preload("res://scenes/main.tscn")
 const MAX_GROUND_S := 20.0
 ## Сколько игрок стоит перед разбегом, с (чувствует ветер в лицо).
 const STAND_S := 0.5
-const WINGS := ["wings/training", "wings/sport", "wings/kingpost"]
+const WINGS := ["wings/training", "wings/sport", "wings/laminar"]
 const WEATHERS := ["weather/weak", "weather/medium", "weather/strong"]
 ## Моменты на часах атмосферы при старте (фаза порывов и термиков); 2415 и 4110 — из F01.
 const SEEDS := [0.0, 300.0, 600.0, 1100.0, 1500.0, 2000.0, 2415.0, 3000.0, 3600.0, 4110.0]
@@ -60,7 +60,7 @@ func test_nose_up_full_strong_wind_stalls() -> void:
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")
-	for wing: String in ["wings/sport", "wings/kingpost"]:
+	for wing: String in ["wings/sport", "wings/laminar"]:
 		await main.call("_fly", _settings("altai", wing, "weather/strong"))
 		var r := _launch(game, 0.0, true)
 		check(r == "nose_high", "%s: ↑ до упора в сильный ветер — %s (ждали nose_high)" % [wing, r])

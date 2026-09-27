@@ -143,6 +143,31 @@ func test_forecast_settings_migration() -> void:
 	approx(def.temperature_c, roundf(WeatherModel.typical_max_c(def.month, def.day)), 1.0, "умолчание")
 
 
+func test_removed_wing_migration() -> void:
+	# Wills Wing Sport 2 (wings/kingpost) убран: сохранённый выбор — на Laminar, не на умолчание.
+	check(not Config.list_configs("wings").has("wings/kingpost"), "Sport 2 убран")
+	check(Config.list_configs("wings").has("wings/laminar"), "замена существует")
+	var path := TMP_DIR.path_join("last_flight.json")
+	DirAccess.make_dir_recursive_absolute(TMP_DIR)
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"wing": "wings/kingpost", "pilot_mass_kg": 90}))
+	f.close()
+	var loaded := UserSettings.load_last_flight(path)
+	check(loaded.wing == "wings/laminar", "last_flight: kingpost → laminar (%s)" % loaded.wing)
+	approx(loaded.pilot_mass_kg, 90.0, 1e-6, "масса сохранилась")
+	DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(TMP_DIR)
+	var d := FlightSettings.from_dict({"wing": "wings/kingpost"})
+	check(d.wing == "wings/laminar", "from_dict: kingpost → laminar")
+	var other := FlightSettings.from_dict({"wing": "wings/sport"})
+	check(other.wing == "wings/sport", "прочие — как есть")
+	var o := LaunchOptions.parse(PackedStringArray(["--wing=kingpost"]))
+	check(o.apply_to(FlightSettings.defaults()).wing == "wings/laminar", "--wing=kingpost → laminar")
+	for old: String in FlightSettings.WING_RENAMES:
+		var to := String(FlightSettings.WING_RENAMES[old])
+		check(Config.list_configs("wings").has(to), "%s → %s есть" % [old, to])
+
+
 func test_forecast_launch_options() -> void:
 	var o := LaunchOptions.parse(PackedStringArray(["--temp=31", "--wind=5", "--from=launch"]))
 	var s := o.apply_to(FlightSettings.defaults())

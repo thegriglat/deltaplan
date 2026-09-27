@@ -6,8 +6,6 @@ extends SceneTree
 const CONTRACT := {
 	"res://assets/models/glider_training.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
 		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_kingpost.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
 	"res://assets/models/glider_sport.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
 		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
 	"res://assets/models/glider_slavutich_ut.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",

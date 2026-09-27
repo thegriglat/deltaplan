@@ -1,7 +1,7 @@
 """Модели трёх крыльев дельтаплана: assets/models/glider_<id>.glb (+ assets/source/*.blend).
 
 Запуск из корня проекта:
-    blender --background --python tools/blender/build_gliders.py [-- training kingpost sport]
+    blender --background --python tools/blender/build_gliders.py [-- training laminar sport]
 
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
 (нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).

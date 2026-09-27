@@ -19,7 +19,7 @@ static func reversal_time(m: FlightModel) -> float:
 
 
 func test_roll_reversal_time() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var t := reversal_time(Sim.make(w))
 		check(t >= 2.0 and t <= 3.0, "%s: переложение 45→45 за %.2f с" % [w, t])
 
@@ -34,7 +34,7 @@ func test_bank_holds_with_neutral_input() -> void:
 
 func test_turn_radius() -> void:
 	for bank_deg in [20.0, 30.0, 45.0]:
-		var m := Sim.make("kingpost")
+		var m := Sim.make("laminar")
 		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
 		m.bank = deg_to_rad(bank_deg)
 		Sim.run_for(m, 15.0, Sim.input())

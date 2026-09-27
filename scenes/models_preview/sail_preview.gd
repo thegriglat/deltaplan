@@ -1,7 +1,7 @@
 extends Node3D
 ## Стенд шейдера паруса (docs/models.md → «Шейдер паруса»): крыло с пилотом, солнце за парусом,
 ## слайдеры скорости, сваливания и турбулентности. Аргументы (после --):
-##   --wing=sport|kingpost|training --airspeed=10 --stall=0 --turb=0 --pose=prone
+##   --wing=sport|laminar|training --airspeed=10 --stall=0 --turb=0 --pose=prone
 ##   --view=below|keel|te|cockpit|side|shadow  (shadow — сверху-сбоку на тень крыла на земле;
 ##                                      below — снизу против солнца, keel — из-за пилота вверх
 ##                                      на нижнюю поверхность, te — задняя кромка крупно)

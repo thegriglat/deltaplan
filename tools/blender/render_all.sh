@@ -5,7 +5,7 @@ cd "$(dirname "$0")/../.."
 OUT=${1:-docs/models/screenshots}
 VIEWS=${2:-bottom,front,side,iso45,cockpit}
 R="xvfb-run -a blender --background --python tools/blender/render_views.py --"
-for k in glider_training glider_kingpost glider_sport glider_slavutich_ut glider_apogee glider_atlas \
+for k in glider_training glider_sport glider_slavutich_ut glider_apogee glider_atlas \
     glider_target glider_magic glider_laminar glider_combat pilot instrument vario_90s; do
   V=$VIEWS
   [[ $k == glider_* ]] || V=bottom,front,side,iso45

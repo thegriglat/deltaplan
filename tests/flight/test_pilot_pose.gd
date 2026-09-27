@@ -5,7 +5,7 @@ extends Node
 ## на земле; в полёте (prone) корпус «таз → шея» горизонтален (±20°), голова впереди, ноги сзади.
 ## GliderVisual больше не поворачивает модель на 90° поверх анимации stand.
 
-const WINGS: Array[String] = ["training", "sport", "kingpost"]
+const WINGS: Array[String] = ["training", "sport", "laminar"]
 const MAX_STAND_TILT_DEG := 20.0
 const MAX_TORSO_LEAN_DEG := 40.0
 const MAX_PRONE_TILT_DEG := 20.0

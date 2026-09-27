@@ -43,7 +43,8 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 	if d.is_empty():
 		return s
 	s = FlightSettings.from_dict(d, s)
-	# Файл мог остаться от старой версии: несуществующие конфиги — по умолчанию.
+	# Файл мог остаться от старой версии: убранные крылья from_dict уже заменил
+	# (FlightSettings.WING_RENAMES), прочие несуществующие конфиги — по умолчанию.
 	if not Config.list_configs("wings").has(s.wing):
 		s.wing = FlightSettings.defaults().wing
 	# Прогноз: мусор и числа вне меню — в диапазон (неизвестный старый пресет дал умолчание).

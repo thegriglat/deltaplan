@@ -9,7 +9,7 @@ const MAIN_SCENE := preload("res://scenes/main.tscn")
 const FLIGHT_S := 300.0
 const MAX_GROUND_S := 20.0
 const MAX_LOAD_FRAMES := 1200
-const WINGS := ["wings/training", "wings/sport", "wings/kingpost"]
+const WINGS := ["wings/training", "wings/sport", "wings/laminar"]
 const WEATHERS := ["weather/weak", "weather/medium", "weather/strong"]
 
 var failures: PackedStringArray = []

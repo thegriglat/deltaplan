@@ -7,7 +7,7 @@ extends Node3D
 ## Виды: iso (все три крыла), below (снизу), cockpit (глаза пилота спортивного крыла), side.
 ## --pose=prone|stand|walk|run|run_air|climb_in|climb_out|flare — анимация пилота.
 
-const WINGS := ["glider_training", "glider_kingpost", "glider_sport"]
+const WINGS := ["glider_training", "glider_laminar", "glider_sport"]
 const SPACING := 13.0
 
 var _args := {}

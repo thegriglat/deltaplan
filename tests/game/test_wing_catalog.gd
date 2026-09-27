@@ -39,7 +39,7 @@ func test_wings_sorted_by_glide_then_wind() -> void:
 	)
 	var kp := WingCatalog.wings_in_group("kingpost")
 	check(
-		kp == PackedStringArray(["wings/magic", "wings/kingpost", "wings/laminar"]),
+		kp == PackedStringArray(["wings/magic", "wings/laminar"]),
 		"мачтовые: %s" % [kp]
 	)
 

@@ -191,9 +191,14 @@ VG в игре нет, поэтому поляра — «средняя рабо
 | 3 | `wing_group_kingpost` | Мачтовые двухобшивочные / Double-surface kingpost | 10,5–13 | 10–11 |
 | 4 | `wing_group_topless` | Безмачтовые / Topless | 15–16 | 12 |
 
-## 3. Выбранный набор — 10 крыльев
+## 3. Выбранный набор — 9 крыльев
 
-Существующие id (`training`, `kingpost`, `sport`) **сохраняются** — на них завязаны тесты, настройки
+**28.09.2026: Wills Wing Sport 2 (`kingpost`) убрано из игры по решению пользователя** (конфиг,
+модель, ключ названия). Класс «мачтовые» — Airwave Magic IV и Icaro Laminar Easy; сохранённый выбор
+Sport 2 и `--wing=kingpost` переходят на Laminar (`FlightSettings.WING_RENAMES`); тесты с `kingpost`
+как образцом — на `laminar`. Исследование и параметры Sport 2 ниже оставлены как справка.
+
+Существующие id (`training`, `kingpost` — позже убрано, `sport`) **сохраняются** — на них завязаны тесты, настройки
 пилота и боты. Меняются прототип, `_doc` и поля, добавленные ниже.
 
 | Группа | id (файл) | Ключ названия | ru | en | Прототип / размер | Качество | Ветер до | Новое? |
@@ -204,7 +209,7 @@ VG в игре нет, поэтому поляра — «средняя рабо
 | trainer | `target` | `wing_aeros_target` | Aeros Target 16 | Aeros Target 16 | Target 16 | 7,2 | 8 [О] | новое |
 | trainer | `training` | `wing_training` → `wing_ww_falcon` | Wills Wing Falcon 170 | Wills Wing Falcon 170 | Falcon 3/4 170 | 9 | 8 [О] | есть |
 | kingpost | `magic` | `wing_airwave_magic` | Airwave Magic IV 166 | Airwave Magic IV 166 | Magic IV 166 (1980-е) | 10,6 [О] | 10 [О] | новое |
-| kingpost | `kingpost` | `wing_kingpost` → `wing_ww_sport2` | Wills Wing Sport 2 155 | Wills Wing Sport 2 155 | Sport 2 155 | 12,5 | 11 | есть |
+| ~~kingpost~~ | ~~`kingpost`~~ | ~~`wing_ww_sport2`~~ | Wills Wing Sport 2 155 | Wills Wing Sport 2 155 | Sport 2 155 | 12,5 | 11 | **убрано из игры по решению пользователя 28.09.2026** |
 | kingpost | `laminar` | `wing_icaro_laminar` | Icaro Laminar Easy 14 | Icaro Laminar Easy 14 | Laminar Easy 14 (мачтовый) | 13 [О] | 10 [О] | новое |
 | topless | `sport` | `wing_sport` → `wing_moyes_litespeed_rs` | Moyes Litespeed RS 4 | Moyes Litespeed RS 4 | Litespeed RS 4 (цифры конфига уже совпадают) | 15 | 12 | есть |
 | topless | `combat` | `wing_aeros_combat` | Aeros Combat GT 13.2 | Aeros Combat GT 13.2 | Combat GT 13.2 | 16 | 12 (плакард) | новое |

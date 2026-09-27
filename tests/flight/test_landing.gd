@@ -66,7 +66,7 @@ static func approach(
 
 
 func test_flare_vs_no_flare() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var plain: Dictionary = approach(w, -1.0).result
 		var flared: Dictionary = approach(w, 0.6).result
 		check(plain.grade == "hard", "%s: на триме без выравнивания — жёсткая: %s" % [w, plain])
@@ -78,7 +78,7 @@ func test_flare_vs_no_flare() -> void:
 
 
 func test_flare_slightly_off() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var r: Dictionary = approach(w, 1.6).result
 		check(
 			r.grade == "soft" and r.vertical_speed_ms <= 3.0,
@@ -97,7 +97,7 @@ func test_runout_stops_pilot() -> void:
 
 
 func test_flare_too_high() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var high: Dictionary = approach(w, 3.6).result
 		check(
 			high.grade == "hard" and high.vertical_speed_ms >= 5.0,
@@ -106,7 +106,7 @@ func test_flare_too_high() -> void:
 
 
 func test_flare_headwind() -> void:
-	for w in ["training", "kingpost", "sport"]:
+	for w in ["training", "laminar", "sport"]:
 		var r: Dictionary = approach(w, 0.6, 0.9, 4.0).result
 		check(r.grade == "soft", "%s: встречный 4 м/с — мягкая: %s" % [w, r])
 		var h: float = r.horizontal_speed_ms

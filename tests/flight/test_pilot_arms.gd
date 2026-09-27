@@ -4,7 +4,7 @@ extends Node
 ## на земле (stand) — на стойках; локоть смотрит наружу-вниз. Тряска крыла (visual.buzz): в
 ## спокойном воздухе нет, в болтанке — миллиметры–сантиметры на 2–8 Гц.
 
-const WINGS: Array[String] = ["training", "sport", "kingpost"]
+const WINGS: Array[String] = ["training", "sport", "laminar"]
 const MAX_GRIP_ERR_M := 0.03
 
 var failures: PackedStringArray = []

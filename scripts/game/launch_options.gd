@@ -117,7 +117,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 func apply_to(s: FlightSettings) -> FlightSettings:
 	var r := s.duplicate()
 	if overrides.has("wing"):
-		r.wing = "wings/" + String(overrides.wing)
+		r.wing = FlightSettings.migrate_wing("wings/" + String(overrides.wing))
 	if overrides.has("mass"):
 		r.pilot_mass_kg = float(overrides.mass)
 	if overrides.has("weather"):

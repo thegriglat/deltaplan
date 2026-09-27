@@ -23,7 +23,7 @@ if [[ ! -x "$BIN" ]]; then
 	exit 1
 fi
 
-wings=(training sport kingpost)
+wings=(training sport laminar)
 weathers=(weak medium strong)
 mapfile -t locations < <(cd configs/locations && ls ./*.json | xargs -n1 basename -s .json | sort)
 

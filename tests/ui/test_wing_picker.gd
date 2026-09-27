@@ -87,9 +87,9 @@ func test_change_class_changes_models_and_done() -> void:
 	class_opt.select(2)  # мачтовые двухобшивочные
 	class_opt.item_selected.emit(2)
 	check(_items(wing_opt) == _model_names("kingpost"), "модели мачтовых: %s" % [_items(wing_opt)])
-	wing_opt.select(2)
-	wing_opt.item_selected.emit(2)
-	var third := WingCatalog.wings_in_group("kingpost")[2]
+	wing_opt.select(1)
+	wing_opt.item_selected.emit(1)
+	var second := WingCatalog.wings_in_group("kingpost")[1]
 	var info: Label = m.get("_wing_info")
 	check(info.text.contains(tr("setup_wing_kingpost")), "описание: %s" % info.text)
 	# ушли в другой класс и вернулись — выбрана модель, выбранная там последней
@@ -98,11 +98,11 @@ func test_change_class_changes_models_and_done() -> void:
 	check(_items(wing_opt) == _model_names("topless"), "модели безмачтовых")
 	class_opt.select(2)
 	class_opt.item_selected.emit(2)
-	check(wing_opt.selected == 2, "возврат к классу — последняя модель (%d)" % wing_opt.selected)
+	check(wing_opt.selected == 1, "возврат к классу — последняя модель (%d)" % wing_opt.selected)
 	m.call("_on_done")
 	check(got.size() == 1, "«Готово» шлёт настройки")
 	if got.size() == 1:
-		check((got[0] as FlightSettings).wing == third, "крыло %s" % (got[0] as FlightSettings).wing)
+		check((got[0] as FlightSettings).wing == second, "крыло %s" % (got[0] as FlightSettings).wing)
 	m.queue_free()
 
 
