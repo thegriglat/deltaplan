@@ -6,7 +6,8 @@ extends Node
 ## "weight_shift" — смещение веса: A/D плавно смещают вес, отпустил — пружиной в центр,
 ## крыло само выравнивается. X — «в центр» в обоих режимах: трапеция в нейтраль и крыло
 ## плавно в горизонт. Автопилот (Game.autopilot) всегда управляет в режиме "rate".
-## Мышь по умолчанию крутит голову (это делает CameraRig); в режиме "bar" — управляет трапецией.
+## Мышь по умолчанию крутит голову (это делает CameraRig); в режиме "bar" — управляет трапецией,
+## а пока зажата правая кнопка — крутит голову (трапеция держит последнее положение).
 ## Клавиши регистрируются в InputMap из configs/controls.json.
 
 ## Действия, которые защёлкиваются при отрыве.
@@ -36,6 +37,7 @@ var _launch_nose := LaunchNose.new()
 var _was_on_ground := true
 var _latched := {}  # действие → true: зажато в момент отрыва, не отпущено
 var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
+var _bar_look_held := false  # режим bar: правая кнопка зажата — мышь крутит голову, не трапецию
 var _roll_pos := 0.0  # смещение веса: положение пилота поперёк трапеции (до плавной нейтрали)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
 var _prev_bank := 0.0  # «в центр» в режиме rate: крен прошлого шага, °
@@ -90,7 +92,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("mouse_capture"):
 		set_mouse_captured(not mouse_captured)
-	elif mouse_captured and mouse_mode() == "bar" and event is InputEventMouseMotion:
+		return
+	# Режим "bar": правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
+	# держит последнее положение, пока кнопка не отпущена.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
+		return
+	if (
+		mouse_captured
+		and mouse_mode() == "bar"
+		and event is InputEventMouseMotion
+		and not _bar_look_held
+	):
 		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
 		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
 		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя

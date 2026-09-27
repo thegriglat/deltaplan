@@ -6,6 +6,9 @@ extends Camera3D
 ## Shift — быстрее, мышь (захват или правая кнопка) — поворот, колесо — скорость, V — навести
 ## на планер. Крыло при этом летит без рук (Game ставит InputController.hands_off).
 ## Кабинная камера стоит в точке глаз пилота (маркер PilotHead визуала, set_head()).
+## Режим мыши "bar" (controls.json → mouse.mode): мышь обычно управляет трапецией
+## (InputController), но пока зажата правая кнопка — крутит голову, как в режиме "look"
+## (см. _mouse_looks()); трапеция в это время держит последнее положение.
 ## Параметры — configs/camera.json. Дальняя плоскость — от мира (SkyEnvironment.setup_camera).
 
 signal mode_changed(mode: String)
@@ -36,6 +39,7 @@ var _head_basis := Basis.IDENTITY
 var _free_rot := Vector2.ZERO  # свободная камера: рыскание (+ влево), тангаж (+ вверх), радианы
 var _free_speed := 10.0
 var _orbiting := false  # правая кнопка зажата — поворот свободной камеры без захвата мыши
+var _bar_look_held := false  # режим mouse.mode "bar", кабина: зажата правая — осмотреться
 var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
 var _recentering := false
 var _snap := true
@@ -103,6 +107,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_recentering = true
 		if mode == "free":
 			_aim_free_at_target()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if event is InputEventMouseMotion and captured and _mouse_looks():
@@ -301,7 +307,13 @@ func _update_chase(t: Transform3D, delta: float) -> void:
 
 
 func _mouse_looks() -> bool:
-	return String(Config.value("controls", "mouse.mode")) == "look" or mode != "cockpit"
+	if mode != "cockpit":
+		return true
+	var m := String(Config.value("controls", "mouse.mode"))
+	if m == "look":
+		return true
+	# Режим "bar": пока зажата правая кнопка — осмотреться, мышь крутит голову вместо трапеции.
+	return m == "bar" and _bar_look_held
 
 
 func _ground_at(p: Vector3) -> float:
