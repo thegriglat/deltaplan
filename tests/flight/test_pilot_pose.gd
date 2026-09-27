@@ -60,6 +60,60 @@ func test_standing_upright_and_flying_prone() -> void:
 		v.free()  # не в очереди: следующее крыло строится сразу
 
 
+## Пилот в полёте качается маятником вокруг HangPoint (карабин на месте), а не едет вбок/вперёд
+## по рельсе: при полном крене/тангаже центр масс смещается на pilot_shift_m/pilot_bar_m, угол
+## поворота тела = asin(смещение / L), L — расстояние HangPoint → центр масс пилота.
+func test_flight_pose_swings_around_hang_point() -> void:
+	var vis_cfg: Dictionary = Config.get_config("flight").visual
+	var pilot_cfg: Dictionary = Config.get_config("pilot")
+	var pv: Dictionary = pilot_cfg.visual
+	var c := Vector3(0, -float(pv.body_below_hang_m), float(pv.body_back_m))
+	var l := c.length()
+	var v := GliderVisual.new()
+	add_child(v)
+	v.build(Config.get_config("wings/" + WINGS[0]), pilot_cfg, vis_cfg)
+
+	v.set_pose(0.0, 0.0, true, 1.0e6)
+	var hang := v.pilot.transform.origin
+	var com0 := v.pilot.transform * c
+
+	v.set_pose(1.0, 0.0, true, 1.0e6)
+	check(
+		v.pilot.transform.origin.is_equal_approx(hang),
+		"крен: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform.origin, hang]
+	)
+	var x_axis := v.pilot.transform.basis * Vector3.RIGHT
+	var roll_ang := rad_to_deg(atan2(x_axis.y, x_axis.x))
+	var expect_roll := rad_to_deg(asin(clampf(float(vis_cfg.pilot_shift_m) / l, -1.0, 1.0)))
+	check(
+		absf(roll_ang - expect_roll) < 1.0,
+		"крен: угол тела %.2f° ≈ ожидаемый %.2f°" % [roll_ang, expect_roll]
+	)
+	var com1 := v.pilot.transform * c
+	var com_shift := com1 - com0
+	check(
+		absf(com_shift.x - float(vis_cfg.pilot_shift_m)) < 0.02,
+		"крен: центр масс смещён на pilot_shift_m (%.3f vs %.3f)" % [
+			com_shift.x, float(vis_cfg.pilot_shift_m)
+		]
+	)
+
+	v.set_pose(0.0, 1.0, true, 1.0e6)
+	check(
+		v.pilot.transform.origin.is_equal_approx(hang),
+		"тангаж: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform.origin, hang]
+	)
+	var com2 := v.pilot.transform * c
+	var pitch_shift := com2 - com0
+	check(
+		absf(pitch_shift.z - float(vis_cfg.pilot_bar_m)) < 0.02,
+		"тангаж: центр масс смещён на pilot_bar_m (%.3f vs %.3f)" % [
+			pitch_shift.z, float(vis_cfg.pilot_bar_m)
+		]
+	)
+	v.free()
+
+
 ## Угол вектора от вертикали, °.
 static func _tilt(d: Vector3) -> float:
 	return rad_to_deg(d.angle_to(Vector3.UP))

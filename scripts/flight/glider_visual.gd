@@ -23,8 +23,12 @@ const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
 const GROUND_FEET := Vector3(0.0, -1.905, 0.17)
 
 var wing: Node3D  ## модель крыла
-var pilot: Node3D  ## нода Pilot (сдвигается), внутри — модель пилота
+var pilot: Node3D  ## нода Pilot (качается маятником вокруг HangPoint), внутри — модель пилота
 var head_marker: Marker3D  ## PilotHead: следует за Head модели пилота
+## Смещение центра масс пилота от нейтрали (крен/тангаж ручкой), м, оси планера — для внешней
+## камеры (game.gd → camera.body_shift_fn, camera_rig.gd → cockpit.head_follow_body): карабин
+## пилота больше не сдвигается (маятник вокруг HangPoint), это поле — замена прежнего сдвига.
+var body_shift := Vector3.ZERO
 var sail_material: ShaderMaterial  ## шейдер паруса (SailMaterial), null — исходный материал
 
 var _cfg: Dictionary = {}  ## flight.json → visual
@@ -115,15 +119,26 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 		_pose.basis.slerp(target.basis, k).orthonormalized(), _pose.origin.lerp(target.origin, k)
 	)
 	pilot.transform = _pose
+	# Смещение центра масс (уже сглаженное вместе с поворотом) — для внешней камеры.
+	var c := _body_center()
+	body_shift = (_pose.basis * c - c) if flying else Vector3.ZERO
 	if _head != null:
 		head_marker.transform = _relative_xform(self, _head)
 	else:
 		head_marker.transform = _pose * Transform3D(Basis.IDENTITY, _head_local())
 
 
-## В полёте: карабин в точке подвески, тело лёжа.
+## В полёте: карабин остаётся в точке подвески (маятник), тело поворачивается вокруг неё так,
+## что центр масс пилота смещается на shift (крен — вокруг продольной оси Z, тангаж — вокруг
+## поперечной оси X); угол = asin(смещение / L), L — расстояние HangPoint → центр масс пилота.
 func _flight_pose(shift: Vector3) -> Transform3D:
-	return Transform3D(Basis.IDENTITY, _hang + shift)
+	var basis := Basis.IDENTITY
+	var l := _body_center().length()
+	if l > 0.0001:
+		var roll_ang := asin(clampf(shift.x / l, -1.0, 1.0))
+		var pitch_ang := -asin(clampf(shift.z / l, -1.0, 1.0))
+		basis = Basis(Vector3(0, 0, 1), roll_ang) * Basis(Vector3(1, 0, 0), pitch_ang)
+	return Transform3D(basis, _hang)
 
 
 ## На земле: стоит под крылом, ноги на земле. Модель со скелетом ставит тело вертикально сама
