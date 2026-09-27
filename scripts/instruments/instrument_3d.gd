@@ -5,10 +5,10 @@ extends Node3D
 ## Хомут крепления — на задней стенке снизу (к базовой штанге трапеции).
 ## Размеры и материалы — configs/instruments.json → mount_3d.
 
-@onready var instrument: FlightInstrument = $FlightInstrument
-
 var screen_mesh: MeshInstance3D
 var _screen_mat: StandardMaterial3D
+
+@onready var instrument: FlightInstrument = $FlightInstrument
 
 
 func _ready() -> void:
@@ -87,7 +87,11 @@ func _build(m: Dictionary, scr: Dictionary) -> void:
 		bm.material = btn_mat
 		b.mesh = bm
 		b.rotation.x = PI * 0.5
-		b.position = Vector3((float(i) - 1.0) * sw * 0.3, -inner.y * 0.5 + maxf(btn_zone, 0.0) * 0.5, body_size.z * 0.5)
+		b.position = Vector3(
+			(float(i) - 1.0) * sw * 0.3,
+			-inner.y * 0.5 + maxf(btn_zone, 0.0) * 0.5,
+			body_size.z * 0.5
+		)
 		add_child(b)
 	# Хомут на задней стенке снизу.
 	var clamp_size := _vec3(m.get("clamp_size_m", [0.05, 0.03, 0.03]))
@@ -97,7 +101,9 @@ func _build(m: Dictionary, scr: Dictionary) -> void:
 	cb.size = clamp_size
 	cb.material = body_mat
 	clamp.mesh = cb
-	clamp.position = Vector3(0.0, -body_size.y * 0.5 + clamp_size.y * 0.5, -body_size.z * 0.5 - clamp_size.z * 0.5)
+	clamp.position = Vector3(
+		0.0, -body_size.y * 0.5 + clamp_size.y * 0.5, -body_size.z * 0.5 - clamp_size.z * 0.5
+	)
 	add_child(clamp)
 
 

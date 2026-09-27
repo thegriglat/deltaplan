@@ -42,9 +42,9 @@ var _track_interval_s: float = 2.0
 var _track_max: int = 3000
 var _takeoff_airspeed_ms: float = 4.0
 
-var _time_s: float = 0.0            # внутреннее время прибора
-var _height_int_m: float = 0.0      # интеграл вариометра (высота «по датчику»)
-var _dist_int_m: float = 0.0        # пройденный путь по земле
+var _time_s: float = 0.0  # внутреннее время прибора
+var _height_int_m: float = 0.0  # интеграл вариометра (высота «по датчику»)
+var _dist_int_m: float = 0.0  # пройденный путь по земле
 var _has_prev_pos: bool = false
 var _prev_pos: Vector3 = Vector3.ZERO
 var _next_sample_s: float = 0.0
@@ -70,7 +70,9 @@ func setup(cfg: Dictionary = {}) -> void:
 	_glide_min_sink_ms = float(v.get("glide_min_sink_ms", _glide_min_sink_ms))
 	_track_interval_s = float(tr_cfg.get("sample_interval_s", _track_interval_s))
 	_track_max = int(tr_cfg.get("max_points", _track_max))
-	_takeoff_airspeed_ms = Units.kmh(float(tr_cfg.get("takeoff_min_airspeed_kmh", Units.to_kmh(_takeoff_airspeed_ms))))
+	_takeoff_airspeed_ms = Units.kmh(
+		float(tr_cfg.get("takeoff_min_airspeed_kmh", Units.to_kmh(_takeoff_airspeed_ms)))
+	)
 	reset()
 
 
@@ -124,7 +126,9 @@ func update(t: Telemetry, dt: float) -> void:
 	_prev_pos = t.position
 	_has_prev_pos = true
 	if in_flight:
-		distance_from_takeoff_m = Vector2(t.position.x - takeoff_position.x, t.position.z - takeoff_position.z).length()
+		distance_from_takeoff_m = (
+			Vector2(t.position.x - takeoff_position.x, t.position.z - takeoff_position.z).length()
+		)
 	_advance(t.vario, dt, step_m)
 	if in_flight:
 		if not t.on_ground:

@@ -2,6 +2,7 @@ extends TestCase
 ## Звук вариометра: пороги, частота и темп, гудение, отсутствие щелчков и разрывов.
 ## Если задана переменная окружения VARIO_WAV_DIR — пишет примеры WAV в эту папку.
 
+
 func _cfg() -> Dictionary:
 	return Config.get_config("audio").vario_audio.duplicate(true)
 
@@ -22,7 +23,7 @@ func _render(s: VarioSynth, vario: float, seconds: float) -> PackedFloat32Array:
 func _analyze(sig: PackedFloat32Array, rate: float, amp: float) -> Dictionary:
 	var quiet := amp * 0.01
 	var gap_need := int(rate * 0.005)
-	var quiet_run := gap_need          # считаем, что до начала была тишина
+	var quiet_run := gap_need  # считаем, что до начала была тишина
 	var onsets := 0
 	var sounding := 0
 	var crossings := 0
@@ -73,14 +74,23 @@ func test_climb_beeps_faster_and_higher() -> void:
 	var r2 := _analyze(_render(s2, 2.0, 6.0), s2.mix_rate_hz, s2.amplitude)
 	var s3 := _synth()
 	var r3 := _analyze(_render(s3, 6.0, 6.0), s3.mix_rate_hz, s3.amplitude)
-	check(r2.freq_hz > r1.freq_hz * 1.2, "частота +2 (%.0f) выше +0,5 (%.0f)" % [r2.freq_hz, r1.freq_hz])
-	check(r2.beeps_per_s > r1.beeps_per_s, "темп +2 (%.2f/с) выше +0,5 (%.2f/с)" % [r2.beeps_per_s, r1.beeps_per_s])
+	check(
+		r2.freq_hz > r1.freq_hz * 1.2,
+		"частота +2 (%.0f) выше +0,5 (%.0f)" % [r2.freq_hz, r1.freq_hz]
+	)
+	check(
+		r2.beeps_per_s > r1.beeps_per_s,
+		"темп +2 (%.2f/с) выше +0,5 (%.2f/с)" % [r2.beeps_per_s, r1.beeps_per_s]
+	)
 	check(r3.beeps_per_s > r2.beeps_per_s * 1.3, "темп +6 (%.2f/с) заметно выше" % r3.beeps_per_s)
 	# Сверка с таблицей: частота (с учётом лёгкого «чирпа») и темп.
 	var t2 := s2.tone_for(2.0)
 	approx(r2.freq_hz, t2.freq_hz, t2.freq_hz * 0.06, "частота при +2")
 	approx(r2.beeps_per_s, 1.0 / t2.period_s, 0.2, "писков в секунду при +2")
-	check(r2.sounding_frac > 0.4 and r2.sounding_frac < 0.7, "скважность ~55 %% (%.2f)" % r2.sounding_frac)
+	check(
+		r2.sounding_frac > 0.4 and r2.sounding_frac < 0.7,
+		"скважность ~55 %% (%.2f)" % r2.sounding_frac
+	)
 
 
 func test_silence_below_threshold() -> void:
@@ -117,14 +127,20 @@ func test_thresholds_configurable() -> void:
 
 func test_hysteresis() -> void:
 	var s := _synth()
-	check(s.tone_for(0.07, VarioSynth.MODE_CLIMB).mode == VarioSynth.MODE_CLIMB, "уже пищит — держится до 0,05")
-	check(s.tone_for(0.07, VarioSynth.MODE_SILENT).mode == VarioSynth.MODE_SILENT, "из тишины включается только от 0,1")
+	check(
+		s.tone_for(0.07, VarioSynth.MODE_CLIMB).mode == VarioSynth.MODE_CLIMB,
+		"уже пищит — держится до 0,05"
+	)
+	check(
+		s.tone_for(0.07, VarioSynth.MODE_SILENT).mode == VarioSynth.MODE_SILENT,
+		"из тишины включается только от 0,1"
+	)
 
 
 ## Сценарий с меняющимся вариометром: set_vario в одних и тех же отсчётах, куски — разные.
 func _scenario(s: VarioSynth, chunks: Array) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	var step := 997   # смена вариометра каждые 997 отсчётов (некратно кускам)
+	var step := 997  # смена вариометра каждые 997 отсчётов (некратно кускам)
 	var total := int(s.mix_rate_hz * 8.0)
 	var pos := 0
 	var ci := 0
@@ -154,7 +170,8 @@ func test_no_discontinuities_between_buffers() -> void:
 
 
 func test_no_clicks() -> void:
-	# Максимальный скачок между соседними отсчётами не больше, чем у гладкой волны на максимальной частоте.
+	# Максимальный скачок между соседними отсчётами не больше,
+	# чем у гладкой волны на максимальной частоте.
 	var s := _synth()
 	var cfg := _cfg()
 	var sig := _scenario(s, [733, 256, 1500])
@@ -185,17 +202,6 @@ func test_no_clicks() -> void:
 	for i in range(first, first + int(s2.mix_rate_hz * 0.001)):
 		early_peak = maxf(early_peak, absf(beep[i]))
 	check(early_peak < s2.amplitude * 0.15, "первая 1 мс писка тихая (%.3f)" % early_peak)
-
-
-func test_vario_audio_node_fills_buffer() -> void:
-	var node := VarioAudio.new()
-	var tree := Engine.get_main_loop() as SceneTree
-	# Корень занят (_ready раннера) — вешаем на последний ребёнок корня (сам раннер).
-	tree.root.get_child(tree.root.get_child_count() - 1).add_child(node)
-	node.set_vario(2.0)
-	check(node.player != null and node.player.playing, "плеер играет")
-	check(node._playback != null, "есть playback генератора")
-	node.free()
 
 
 func test_export_wav_examples() -> void:

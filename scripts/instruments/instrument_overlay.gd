@@ -3,13 +3,13 @@ extends CanvasLayer
 ## Изображение прибора в углу экрана для внешних камер (FR-21): не HUD, а картинка того же
 ## прибора в корпусе. Размер, угол, наклон — configs/instruments.json → overlay.
 
+var _cfg: Dictionary = {}
+var _aspect: float = 0.75
+
 @onready var instrument: FlightInstrument = $FlightInstrument
 @onready var root: Control = $Root
 @onready var frame: Panel = $Root/Frame
 @onready var picture: TextureRect = $Root/Frame/Picture
-
-var _cfg: Dictionary = {}
-var _aspect: float = 0.75
 
 
 func _ready() -> void:

@@ -11,14 +11,14 @@ extends Node
 
 signal page_changed(page: int)
 
-@onready var viewport: SubViewport = $Screen
-@onready var display: InstrumentDisplay = $Screen/Display
-
 var vario := Vario.new()
 var _cfg: Dictionary = {}
 var _redraw_interval_s: float = 1.0 / 15.0
 var _since_redraw_s: float = 0.0
 var _dirty: bool = true
+
+@onready var viewport: SubViewport = $Screen
+@onready var display: InstrumentDisplay = $Screen/Display
 
 
 func _ready() -> void:
@@ -35,10 +35,15 @@ func _ready() -> void:
 	_request_redraw()
 
 
-## Новые данные полёта. dt — шаг, с; по умолчанию — шаг физики (сигнал планера идёт из _physics_process).
+## Новые данные полёта. dt — шаг, с; по умолчанию — шаг физики
+## (сигнал планера идёт из _physics_process).
 func update(t: Telemetry, dt: float = -1.0) -> void:
 	if dt < 0.0:
-		dt = get_physics_process_delta_time() if is_inside_tree() else 1.0 / float(Engine.physics_ticks_per_second)
+		dt = (
+			get_physics_process_delta_time()
+			if is_inside_tree()
+			else 1.0 / float(Engine.physics_ticks_per_second)
+		)
 	vario.update(t, dt)
 	_dirty = true
 

@@ -10,7 +10,8 @@ const PAGE_MAP := 1
 
 var vario: Vario
 var page: int = PAGE_MAIN
-## Поворотные пункты: [{name: String, position: Vector3, radius_m: float}]. Термиков тут нет (FR-22).
+## Поворотные пункты: [{name: String, position: Vector3, radius_m: float}].
+## Термиков тут нет (FR-22).
 var turnpoints: Array = []
 
 var _cfg: Dictionary = {}
@@ -65,6 +66,7 @@ func _draw() -> void:
 
 # ---------- Общие элементы ----------
 
+
 ## Неравномерность подсветки: лёгкое затемнение к краям.
 func _draw_shade() -> void:
 	var a := float(_scr.get("lcd_shade_alpha", 0.1))
@@ -75,10 +77,22 @@ func _draw_shade() -> void:
 	var clear := Color(0, 0, 0, 0)
 	var w := size.x
 	var h := size.y
-	draw_polygon([Vector2(0, 0), Vector2(w, 0), Vector2(w, band), Vector2(0, band)], [dark, dark, clear, clear])
-	draw_polygon([Vector2(0, h - band), Vector2(w, h - band), Vector2(w, h), Vector2(0, h)], [clear, clear, dark, dark])
-	draw_polygon([Vector2(0, 0), Vector2(band, 0), Vector2(band, h), Vector2(0, h)], [dark, clear, clear, dark])
-	draw_polygon([Vector2(w - band, 0), Vector2(w, 0), Vector2(w, h), Vector2(w - band, h)], [clear, dark, dark, clear])
+	draw_polygon(
+		[Vector2(0, 0), Vector2(w, 0), Vector2(w, band), Vector2(0, band)],
+		[dark, dark, clear, clear]
+	)
+	draw_polygon(
+		[Vector2(0, h - band), Vector2(w, h - band), Vector2(w, h), Vector2(0, h)],
+		[clear, clear, dark, dark]
+	)
+	draw_polygon(
+		[Vector2(0, 0), Vector2(band, 0), Vector2(band, h), Vector2(0, h)],
+		[dark, clear, clear, dark]
+	)
+	draw_polygon(
+		[Vector2(w - band, 0), Vector2(w, 0), Vector2(w, h), Vector2(w - band, h)],
+		[clear, dark, dark, clear]
+	)
 
 
 ## Верхняя строка: имя страницы, индикатор страниц, время полёта. Возвращает y начала содержимого.
@@ -98,7 +112,15 @@ func _draw_status_bar() -> float:
 		else:
 			draw_arc(c, r, 0.0, TAU, 16, _ink, 1.5, true)
 	var t := vario.flight_time_s if vario else 0.0
-	draw_string(_text, Vector2(size.x - _margin - 200.0, y), _fmt_time(t), HORIZONTAL_ALIGNMENT_RIGHT, 200.0, _label_px, _ink)
+	draw_string(
+		_text,
+		Vector2(size.x - _margin - 200.0, y),
+		_fmt_time(t),
+		HORIZONTAL_ALIGNMENT_RIGHT,
+		200.0,
+		_label_px,
+		_ink
+	)
 	draw_line(Vector2(_margin * 0.5, h), Vector2(size.x - _margin * 0.5, h), _ink, 2.0)
 	return h + 6.0
 
@@ -107,9 +129,25 @@ func _draw_status_bar() -> float:
 func _draw_field(rect: Rect2, label: String, units: String, value: String, digits_px: int) -> void:
 	draw_rect(rect, _ink, false, 1.5)
 	var lp := _label_px
-	draw_string(_text, rect.position + Vector2(6, lp + 2), label, HORIZONTAL_ALIGNMENT_LEFT, rect.size.x * 0.7, lp, _ink)
+	draw_string(
+		_text,
+		rect.position + Vector2(6, lp + 2),
+		label,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		rect.size.x * 0.7,
+		lp,
+		_ink
+	)
 	if units != "":
-		draw_string(_text, rect.position + Vector2(0, lp + 2), units, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x - 6, lp, _ink)
+		draw_string(
+			_text,
+			rect.position + Vector2(0, lp + 2),
+			units,
+			HORIZONTAL_ALIGNMENT_RIGHT,
+			rect.size.x - 6,
+			lp,
+			_ink
+		)
 	var ghost := _ghost_of(value)
 	var base_y := rect.position.y + rect.size.y - (rect.size.y - lp - 4 - digits_px) * 0.5 - 4.0
 	var right_w := rect.size.x - 10.0
@@ -164,6 +202,7 @@ func _speed(v_ms: float) -> float:
 
 # ---------- Страница 1: вариометр ----------
 
+
 func _draw_main_page(top: float) -> void:
 	var m := _margin
 	var bar_w := float(_scale_cfg.get("width_px", 58))
@@ -188,7 +227,9 @@ func _draw_main_page(top: float) -> void:
 	_draw_field(Rect2(x0, y, w, hs[0]), tr("ВАРИО"), tr("м/с"), _fmt_vario(v.vario_ms, 3), big)
 	y += hs[0] + gap
 	# 2. Среднее | качество.
-	_draw_field(Rect2(x0, y, half, hs[1]), tr("СРЕДНЕЕ"), tr("м/с"), _fmt_vario(v.average_ms, 3), small)
+	_draw_field(
+		Rect2(x0, y, half, hs[1]), tr("СРЕДНЕЕ"), tr("м/с"), _fmt_vario(v.average_ms, 3), small
+	)
 	var ld := "--" if v.glide_ratio == INF or v.glide_ratio > 99.0 else ("%.0f" % v.glide_ratio)
 	_draw_field(Rect2(x0 + half + gap, y, half, hs[1]), tr("КАЧ"), "", _pad(ld, 2), small)
 	y += hs[1] + gap
@@ -196,12 +237,32 @@ func _draw_main_page(top: float) -> void:
 	_draw_field(Rect2(x0, y, w, hs[2]), tr("ВЫСОТА"), tr("м"), _fmt_int(v.altitude_msl_m, 5), mid)
 	y += hs[2] + gap
 	# 4. Над землёй | расстояние от взлёта.
-	_draw_field(Rect2(x0, y, half, hs[3]), tr("НАД ЗЕМЛ"), tr("м"), _fmt_int(maxf(v.altitude_agl_m, 0.0), 4), small)
-	_draw_field(Rect2(x0 + half + gap, y, half, hs[3]), tr("РАССТ"), tr("км"), _pad("%.1f" % (v.distance_from_takeoff_m / 1000.0), 4), small)
+	_draw_field(
+		Rect2(x0, y, half, hs[3]),
+		tr("НАД ЗЕМЛ"),
+		tr("м"),
+		_fmt_int(maxf(v.altitude_agl_m, 0.0), 4),
+		small
+	)
+	_draw_field(
+		Rect2(x0 + half + gap, y, half, hs[3]),
+		tr("РАССТ"),
+		tr("км"),
+		_pad("%.1f" % (v.distance_from_takeoff_m / 1000.0), 4),
+		small
+	)
 	y += hs[3] + gap
 	# 5. Воздушная | путевая.
-	_draw_field(Rect2(x0, y, half, hs[4]), tr("ВОЗД"), tr("км/ч"), _fmt_int(_speed(v.airspeed_ms), 3), small)
-	_draw_field(Rect2(x0 + half + gap, y, half, hs[4]), tr("ПУТЕВ"), tr("км/ч"), _fmt_int(_speed(v.groundspeed_ms), 3), small)
+	_draw_field(
+		Rect2(x0, y, half, hs[4]), tr("ВОЗД"), tr("км/ч"), _fmt_int(_speed(v.airspeed_ms), 3), small
+	)
+	_draw_field(
+		Rect2(x0 + half + gap, y, half, hs[4]),
+		tr("ПУТЕВ"),
+		tr("км/ч"),
+		_fmt_int(_speed(v.groundspeed_ms), 3),
+		small
+	)
 	y += hs[4] + gap
 	# 6. Курс | путевой угол (стрелка компаса).
 	var hdg := fposmod(roundf(v.heading_deg), 360.0)
@@ -213,7 +274,7 @@ func _draw_main_page(top: float) -> void:
 func _draw_vario_bar(rect: Rect2) -> void:
 	var rng := float(_scale_cfg.get("range_ms", 5.0))
 	var step := float(_scale_cfg.get("segment_step_ms", 0.25))
-	var n := maxi(int(round(rng / step)), 1)   # сегментов в каждую сторону
+	var n := maxi(int(round(rng / step)), 1)  # сегментов в каждую сторону
 	draw_rect(rect, _ink, false, 1.5)
 	var inner := rect.grow(-4.0)
 	var mid_y := inner.position.y + inner.size.y * 0.5
@@ -245,33 +306,73 @@ func _draw_vario_bar(rect: Rect2) -> void:
 		for side in [1, -1]:
 			var yy: float = mid_y - float(side * k) * seg_h
 			var tx := Vector2(inner.position.x + seg_w + 2.0, yy + lp * 0.35)
-			draw_string(_text, tx + Vector2(3, 0), str(int(round(k * step))), HORIZONTAL_ALIGNMENT_LEFT, -1, lp, _ink)
+			draw_string(
+				_text,
+				tx + Vector2(3, 0),
+				str(int(round(k * step))),
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				lp,
+				_ink
+			)
 	# Маркер среднего — треугольник справа.
 	if bool(_scale_cfg.get("average_marker", true)):
 		var ay := mid_y - clampf(vario.average_ms, -rng, rng) / step * seg_h
 		var ax := rect.end.x - 1.0
 		var s := 9.0
-		draw_colored_polygon(PackedVector2Array([Vector2(ax, ay - s), Vector2(ax, ay + s), Vector2(ax - s * 1.3, ay)]), _ink)
+		draw_colored_polygon(
+			PackedVector2Array(
+				[Vector2(ax, ay - s), Vector2(ax, ay + s), Vector2(ax - s * 1.3, ay)]
+			),
+			_ink
+		)
 
 
 ## Компас: путевой угол стрелкой и буквой ближайшего направления.
 func _draw_compass(rect: Rect2, track: float) -> void:
 	draw_rect(rect, _ink, false, 1.5)
-	draw_string(_text, rect.position + Vector2(6, _label_px + 2), tr("ПУТЬ"), HORIZONTAL_ALIGNMENT_LEFT, -1, _label_px, _ink)
+	draw_string(
+		_text,
+		rect.position + Vector2(6, _label_px + 2),
+		tr("ПУТЬ"),
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		_label_px,
+		_ink
+	)
 	var r := minf(rect.size.x * 0.3, rect.size.y * 0.36)
 	var c := Vector2(rect.end.x - r - 10.0, rect.position.y + rect.size.y * 0.55)
 	draw_arc(c, r, 0.0, TAU, 32, _ink, 1.5, true)
 	var a := deg_to_rad(track)
 	var dir := Vector2(sin(a), -cos(a))
 	var perp := Vector2(-dir.y, dir.x)
-	draw_colored_polygon(PackedVector2Array([c + dir * r * 0.9, c - dir * r * 0.5 + perp * r * 0.35, c - dir * r * 0.25, c - dir * r * 0.5 - perp * r * 0.35]), _ink)
+	draw_colored_polygon(
+		PackedVector2Array(
+			[
+				c + dir * r * 0.9,
+				c - dir * r * 0.5 + perp * r * 0.35,
+				c - dir * r * 0.25,
+				c - dir * r * 0.5 - perp * r * 0.35
+			]
+		),
+		_ink
+	)
 	var names := [tr("С"), tr("СВ"), tr("В"), tr("ЮВ"), tr("Ю"), tr("ЮЗ"), tr("З"), tr("СЗ")]
 	var idx := int(round(fposmod(track, 360.0) / 45.0)) % 8
 	var fs := int(rect.size.y * 0.36)
-	draw_string(_text, Vector2(rect.position.x + 8.0, rect.end.y - 10.0), names[idx], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, _ink)
+	draw_string(
+		_text,
+		Vector2(rect.position.x + 8.0, rect.end.y - 10.0),
+		names[idx],
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		fs,
+		_ink
+	)
 
 
 # ---------- Страница 2: карта ----------
+
 
 func _draw_map_page(top: float) -> void:
 	var m := _margin
@@ -309,7 +410,15 @@ func _draw_map_page(top: float) -> void:
 			if map_rect.grow(-4.0).has_point(sp):
 				draw_circle(sp, 3.0, _ink)
 				if bool(_map.get("turnpoint_label", true)):
-					draw_string(_text, sp + Vector2(6, -6), String(tp.get("name", "")), HORIZONTAL_ALIGNMENT_LEFT, -1, _label_px, _ink)
+					draw_string(
+						_text,
+						sp + Vector2(6, -6),
+						String(tp.get("name", "")),
+						HORIZONTAL_ALIGNMENT_LEFT,
+						-1,
+						_label_px,
+						_ink
+					)
 	# След.
 	if v.track.size() >= 1:
 		var pts := PackedVector2Array()
@@ -327,13 +436,34 @@ func _draw_map_page(top: float) -> void:
 	var ga := deg_to_rad(v.heading_deg) + rot
 	var fwd := Vector2(sin(ga), -cos(ga))
 	var right := Vector2(-fwd.y, fwd.x)
-	draw_colored_polygon(PackedVector2Array([c + fwd * gs * 0.6, c - fwd * gs * 0.4 + right * gs, c - fwd * gs * 0.15, c - fwd * gs * 0.4 - right * gs]), _ink)
+	draw_colored_polygon(
+		PackedVector2Array(
+			[
+				c + fwd * gs * 0.6,
+				c - fwd * gs * 0.4 + right * gs,
+				c - fwd * gs * 0.15,
+				c - fwd * gs * 0.4 - right * gs
+			]
+		),
+		_ink
+	)
 	# Стрелка севера.
 	var n_pos := map_rect.position + Vector2(24, 30)
 	var n_dir := Vector2(0, -1).rotated(rot)
 	draw_line(n_pos - n_dir * 12.0, n_pos + n_dir * 12.0, _ink, 2.0, true)
-	draw_colored_polygon(PackedVector2Array([n_pos + n_dir * 16.0, n_pos + n_dir * 6.0 + n_dir.orthogonal() * 5.0, n_pos + n_dir * 6.0 - n_dir.orthogonal() * 5.0]), _ink)
-	draw_string(_text, n_pos + Vector2(14, 6), tr("С"), HORIZONTAL_ALIGNMENT_LEFT, -1, _label_px, _ink)
+	draw_colored_polygon(
+		PackedVector2Array(
+			[
+				n_pos + n_dir * 16.0,
+				n_pos + n_dir * 6.0 + n_dir.orthogonal() * 5.0,
+				n_pos + n_dir * 6.0 - n_dir.orthogonal() * 5.0
+			]
+		),
+		_ink
+	)
+	draw_string(
+		_text, n_pos + Vector2(14, 6), tr("С"), HORIZONTAL_ALIGNMENT_LEFT, -1, _label_px, _ink
+	)
 	# Масштабная линейка.
 	var bar_m := _nice_length(range_m * 0.5)
 	var bar_px := bar_m * px_per_m
@@ -351,10 +481,18 @@ func _draw_map_page(top: float) -> void:
 	var fh := (strip_h - gap) * 0.5
 	var dp := int(fh * 0.5)
 	_draw_field(Rect2(m, sy, fw, fh), tr("ВАРИО"), tr("м/с"), _fmt_vario(v.vario_ms, 3), dp)
-	_draw_field(Rect2(m + fw + gap, sy, fw, fh), tr("ВЫСОТА"), tr("м"), _fmt_int(v.altitude_msl_m, 5), dp)
+	_draw_field(
+		Rect2(m + fw + gap, sy, fw, fh), tr("ВЫСОТА"), tr("м"), _fmt_int(v.altitude_msl_m, 5), dp
+	)
 	var ld := "--" if v.glide_ratio == INF or v.glide_ratio > 99.0 else ("%.0f" % v.glide_ratio)
 	_draw_field(Rect2(m, sy + fh + gap, fw, fh), tr("КАЧ"), "", _pad(ld, 2), dp)
-	_draw_field(Rect2(m + fw + gap, sy + fh + gap, fw, fh), tr("РАССТ"), tr("км"), _pad("%.1f" % (v.distance_from_takeoff_m / 1000.0), 4), dp)
+	_draw_field(
+		Rect2(m + fw + gap, sy + fh + gap, fw, fh),
+		tr("РАССТ"),
+		tr("км"),
+		_pad("%.1f" % (v.distance_from_takeoff_m / 1000.0), 4),
+		dp
+	)
 
 
 ## Нарисовать ломаную, обрезанную прямоугольником (Лианг — Барски по каждому отрезку).

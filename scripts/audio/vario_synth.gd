@@ -10,38 +10,38 @@ extends RefCounted
 ## Период/скважность фиксируются в начале каждого писка — писк не рвётся посреди.
 ## Результат не зависит от того, какими кусками запрашивать отсчёты.
 
+const MODE_SILENT := 0
+const MODE_CLIMB := 1
+const MODE_SINK := -1
+
 var mix_rate_hz: float = 22050.0
 var amplitude: float = 0.6
 
 var _climb_on: float = 0.1
 var _sink_on: float = -2.5
 var _hyst: float = 0.05
-var _climb_tones: Array = []     # [[v, f, period_ms, duty_pct], ...] по возрастанию v
+var _climb_tones: Array = []  # [[v, f, period_ms, duty_pct], ...] по возрастанию v
 var _sink_tones: Array = []
-var _attack_step: float = 1.0    # приращение огибающей за отсчёт
+var _attack_step: float = 1.0  # приращение огибающей за отсчёт
 var _release_step: float = 1.0
-var _freq_k: float = 1.0         # коэффициент сглаживания частоты за отсчёт
-var _input_k: float = 1.0        # коэффициент сглаживания входа за отсчёт
-var _chirp: float = 0.0          # относительный подъём частоты внутри писка
+var _freq_k: float = 1.0  # коэффициент сглаживания частоты за отсчёт
+var _input_k: float = 1.0  # коэффициент сглаживания входа за отсчёт
+var _chirp: float = 0.0  # относительный подъём частоты внутри писка
 var _table: PackedFloat32Array = PackedFloat32Array()
 var _table_size: int = 1024
 
 # Состояние (переживает границы буферов).
 var _target_vario: float = 0.0
-var _vario: float = 0.0          # сглаженный вход
-var _mode: int = 0               # 0 — тишина, 1 — подъём, −1 — снижение
-var _phase: float = 0.0          # фаза генератора, доли периода 0..1
-var _freq: float = 0.0           # текущая частота, Гц
-var _cycle_pos: float = 0.0      # позиция в цикле писка, доли 0..1
-var _cycle_period_s: float = 0.5 # период текущего цикла (зафиксирован в начале писка)
+var _vario: float = 0.0  # сглаженный вход
+var _mode: int = 0  # 0 — тишина, 1 — подъём, −1 — снижение
+var _phase: float = 0.0  # фаза генератора, доли периода 0..1
+var _freq: float = 0.0  # текущая частота, Гц
+var _cycle_pos: float = 0.0  # позиция в цикле писка, доли 0..1
+var _cycle_period_s: float = 0.5  # период текущего цикла (зафиксирован в начале писка)
 var _cycle_duty: float = 0.5
-var _env: float = 0.0            # огибающая 0..1 (до S-формы)
-var _counter: int = 0            # сквозной счётчик отсчётов (пересчёт тона раз в блок)
-var _tone: Dictionary = {}       # текущий тон (см. tone_for)
-
-const MODE_SILENT := 0
-const MODE_CLIMB := 1
-const MODE_SINK := -1
+var _env: float = 0.0  # огибающая 0..1 (до S-формы)
+var _counter: int = 0  # сквозной счётчик отсчётов (пересчёт тона раз в блок)
+var _tone: Dictionary = {}  # текущий тон (см. tone_for)
 
 
 ## cfg — раздел vario_audio из configs/audio.json.
@@ -51,8 +51,12 @@ func setup(cfg: Dictionary) -> void:
 	_climb_on = float(cfg.get("climb_on_ms", _climb_on))
 	_sink_on = float(cfg.get("sink_on_ms", _sink_on))
 	_hyst = float(cfg.get("hysteresis_ms", _hyst))
-	_climb_tones = _sorted_table(cfg.get("climb_tones", [[0.1, 400, 600, 50], [10.0, 1800, 150, 70]]))
-	_sink_tones = _sorted_table(cfg.get("sink_tones", [[-10.0, 220, 1000, 100], [-2.5, 400, 1000, 100]]))
+	_climb_tones = _sorted_table(
+		cfg.get("climb_tones", [[0.1, 400, 600, 50], [10.0, 1800, 150, 70]])
+	)
+	_sink_tones = _sorted_table(
+		cfg.get("sink_tones", [[-10.0, 220, 1000, 100], [-2.5, 400, 1000, 100]])
+	)
 	_attack_step = 1.0 / maxf(float(cfg.get("attack_ms", 6.0)) * 0.001 * mix_rate_hz, 1.0)
 	_release_step = 1.0 / maxf(float(cfg.get("release_ms", 8.0)) * 0.001 * mix_rate_hz, 1.0)
 	_freq_k = _smoothing_k(float(cfg.get("frequency_glide_s", 0.03)))

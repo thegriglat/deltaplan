@@ -1,6 +1,7 @@
 extends TestCase
 ## Вычислитель вариометра: инерция датчика, среднее, качество, след.
 
+
 func _cfg(tau: float, window: float) -> Dictionary:
 	var cfg: Dictionary = Config.get_config("instruments").duplicate(true)
 	cfg.vario.filter_time_constant_s = tau
@@ -98,7 +99,10 @@ func test_glide_ratio_and_track() -> void:
 	check(v.in_flight, "полёт начался")
 	approx(v.flight_time_s, 60.0, 0.05, "время полёта")
 	approx(v.distance_from_takeoff_m, 600.0, 1.0, "расстояние от взлёта")
-	check(v.track.size() >= 25 and v.track.size() <= 35, "след ~ каждые 2 с: %d точек" % v.track.size())
+	check(
+		v.track.size() >= 25 and v.track.size() <= 35,
+		"след ~ каждые 2 с: %d точек" % v.track.size()
+	)
 	# Набор — качество не считается.
 	t.vario = 1.0
 	for i in int(30.0 / dt):
