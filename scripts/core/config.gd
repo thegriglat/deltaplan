@@ -90,7 +90,8 @@ func _load_json(path: String) -> Variant:
 	var text := FileAccess.get_file_as_string(path)
 	var json := JSON.new()
 	if json.parse(text) != OK:
-		push_error("Config: ошибка в %s, строка %d: %s" % [path, json.get_error_line(), json.get_error_message()])
+		push_error("Config: ошибка в %s, строка %d: %s" % [
+			path, json.get_error_line(), json.get_error_message()])
 		return null
 	return json.data
 

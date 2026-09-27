@@ -40,18 +40,25 @@ func next_mode() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("camera_next"):
 		next_mode()
-	if event.is_action_pressed("look_center") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE):
+	var middle_click: bool = (
+		event is InputEventMouseButton and event.pressed
+		and event.button_index == MOUSE_BUTTON_MIDDLE
+	)
+	if event.is_action_pressed("look_center") or middle_click:
 		_recentering = true
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and _mouse_looks():
+	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if event is InputEventMouseMotion and captured and _mouse_looks():
 		var k := deg_to_rad(float(Config.value("controls", "mouse.look_sensitivity_deg_per_px")))
 		var inv_y := -1.0 if bool(Config.value("controls", "mouse.invert_look_y")) else 1.0
 		var d := Vector2(-event.relative.x, -event.relative.y * inv_y) * k
 		if mode == "cockpit":
 			var h: Dictionary = _cfg.cockpit.head
 			_head += d
-			_head.x = clampf(_head.x, -deg_to_rad(float(h.yaw_limit_deg)), deg_to_rad(float(h.yaw_limit_deg)))
-			_head.y = clampf(_head.y, -deg_to_rad(float(h.pitch_down_limit_deg)), deg_to_rad(float(h.pitch_up_limit_deg)))
+			var yaw_lim := deg_to_rad(float(h.yaw_limit_deg))
+			_head.x = clampf(_head.x, -yaw_lim, yaw_lim)
+			var down_lim := deg_to_rad(float(h.pitch_down_limit_deg))
+			_head.y = clampf(_head.y, -down_lim, deg_to_rad(float(h.pitch_up_limit_deg)))
 			_recentering = false
 		else:
 			_orbit += d

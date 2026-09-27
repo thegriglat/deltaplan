@@ -76,7 +76,8 @@ func update(dt: float) -> ControlInput:
 		roll = roll_dir
 	elif on_ground and run:
 		# Разбег: W/S — угол носа, A/D — выравнивание крыла.
-		pitch = _ramp(pitch, pitch_dir, float(_cfg.ground.nose_pitch_rate_per_s) * sens, 0.0, dt)
+		var nose_rate := float(_cfg.ground.nose_pitch_rate_per_s) * sens
+		pitch = _ramp(pitch, pitch_dir, nose_rate, 0.0, dt)
 		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
 	elif mouse_captured and mouse_mode() == "bar":
 		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
@@ -86,7 +87,8 @@ func update(dt: float) -> ControlInput:
 		roll = _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
 		pitch = -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
 	else:
-		pitch = _ramp(pitch, pitch_dir, float(kb.pitch_rate_per_s) * sens, float(kb.pitch_return_per_s), dt)
+		var pitch_rate := float(kb.pitch_rate_per_s) * sens
+		pitch = _ramp(pitch, pitch_dir, pitch_rate, float(kb.pitch_return_per_s), dt)
 		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
 
 	var gp: Dictionary = _cfg.gamepad
