@@ -71,6 +71,6 @@
    Если строго некоммерческая — можно брать NC-лицензии: AudioLDM2/AudioGen (генерация звука на GPU), BBC Sound Effects (отличные записи природы).
    → ✅ **Ответ: пока некоммерческая**, NC-лицензии можно. Всё записывается в ASSETS.md, NC помечается ⚠ NC; перед продажей — отдельный прогон по лицензиям.
 2. **Генерация звука на GPU (Stable Audio Open)** — модель закрыта на Hugging Face, нужен токен.
-   → ⏳ **ЖДЁТ ОТВЕТА**: прими лицензию на https://huggingface.co/stabilityai/stable-audio-open-1.0 и выполни `uvx --from huggingface_hub hf auth login`. После этого перезапущу агента звуков.
+   → ✅ **Сделано:** токен сохранён, доступ к модели проверен, агент звуков подключает Stable Audio Open.
 3. **Freesound (оригиналы WAV/FLAC вместо превью)** — нужен OAuth2.
    → ⏳ **ЖДЁТ ОТВЕТА** (не срочно): ключи с https://freesound.org/apiv2/apply в `~/.config/freesound/credentials` (CLIENT_ID=…, CLIENT_SECRET=…, chmod 600).
