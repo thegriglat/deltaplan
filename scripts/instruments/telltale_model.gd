@@ -35,7 +35,7 @@ var _phase2 := 0.0
 ## cfg — instruments.json → telltale.
 func setup(cfg: Dictionary) -> void:
 	var n := maxi(int(cfg.get("segments", 5)), 1)
-	segment_m = float(cfg.get("length_m", 0.32)) / n
+	segment_m = float(cfg.get("length_m", 0.13)) / n
 	_v45 = maxf(float(cfg.get("lift_45_ms", 1.0)), 0.05)
 	_follow = float(cfg.get("follow_k", 1.0))
 	_pendulum = float(cfg.get("pendulum_rate_per_s", 6.0))
