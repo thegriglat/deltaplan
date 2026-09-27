@@ -87,7 +87,9 @@ func size(th: AtmoThermal, st: Vector3) -> Vector4:
 	# Кучевые хорошей погоды шире, чем выше: мощность в пределах доли ширины.
 	var depth := clampf(th.cloud_depth, width * _hw_min, width * _hw_max)
 	if th.is_cb:
+		# Верх Cb — тропопауза: мощность задана, переразвитие её не умножает.
 		depth = th.cloud_depth
+		od = 0.0
 	var h := (
 		depth
 		* (1.0 + od * (_overdev_k - 1.0))

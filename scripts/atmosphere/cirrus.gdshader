@@ -32,14 +32,21 @@ void fragment() {
 	// Изгиб волокон крупным шумом: пряди, «крючья», а не ровный «гребень».
 	vec2 wq = vec2(texture(noise, p / (veil_period_m * 0.6) + 0.13).r,
 			texture(noise, p / (veil_period_m * 0.45) + 0.57).r) - 0.5;
-	q += wq * vec2(streak_period_m * 1.2, streak_period_m * 0.45);
+	q += wq * vec2(streak_period_m * 0.8, streak_period_m * 0.3);
 	// Волокна: вытянутый по ветру шум двух масштабов; пелена — крупный шум.
 	float n1 = texture(noise, vec2(q.x / (streak_period_m * streak_stretch), q.y / streak_period_m)).r;
 	float n2 = texture(noise, vec2(q.x / (streak_period_m * streak_stretch * 0.3), q.y / (streak_period_m * 0.25)) + 0.37).r;
 	float nv = texture(noise, p / veil_period_m + 0.71).r;
-	float field = nv * 0.5 + n1 * 0.35 + n2 * 0.15;
+	// Волокна-«когти»: гребни шума (1 − |2n − 1|) — тонкие яркие нити, загнутые изгибом координат.
+	float ridge1 = pow(1.0 - abs(2.0 * n1 - 1.0), 10.0);
+	float ridge2 = pow(1.0 - abs(2.0 * n2 - 1.0), 14.0);
+	// Нити тянутся по ветру, на концах — мягкий «хвост» (ослабление по второму шуму).
+	float fibers = max(ridge1 * smoothstep(0.2, 0.6, n2), ridge2 * 0.6);
+	// Где быть прядям — крупный шум (пятна), при большом покрытии — сплошная пелена.
 	float thr = 1.0 - cover;
-	float d = smoothstep(thr - 0.12, thr + 0.2, field) * mix(0.55, 1.0, n2);
+	float patch = smoothstep(thr, thr + 0.2, nv);
+	float veil = smoothstep(0.6, 1.0, cover) * (0.35 + 0.3 * n1);
+	float d = max(patch * fibers, veil);
 	// Край плоскости растворяется.
 	vec2 rel = v_world.xz - CAMERA_POSITION_WORLD.xz;
 	d *= 1.0 - smoothstep(0.55, 0.95, length(rel) / half_size_m);
@@ -50,7 +57,7 @@ void fragment() {
 	float halo = exp(-pow((ang - halo_rad) / 0.035, 2.0)) * (0.6 + 0.4 * n1) * halo_strength * smoothstep(0.5, 0.9, cover);
 	// Гало: красноватый внутренний край, голубоватый внешний.
 	vec3 halo_col = mix(vec3(1.0, 0.8, 0.6), vec3(0.8, 0.9, 1.0), smoothstep(-0.02, 0.02, ang - halo_rad));
-	vec3 col = color * sun_energy * (0.55 + fwd) + halo_col * halo;
+	vec3 col = color * sun_energy * (0.8 + fwd) + halo_col * halo;
 	float alpha = clamp(d * opacity + halo * d, 0.0, 1.0);
 #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
 	// Как у облаков: Compatibility не переводит этот вывод в sRGB.

@@ -283,14 +283,14 @@ func _set_view(v: String) -> void:
 			# Солнце сбоку-сзади (азимут 200°): объём башни виден по светотени.
 			_place(Vector3(0, 700, 0), Vector3(14000, 4500, -9000))
 		"cbfar":
-			_place(Vector3(-30000, 400, 24000), Vector3(14000, 4000, -9000))
+			_place(Vector3(-12000, 400, 12000), Vector3(16000, 4500, -9000))
 		"cbnear":
 			_place(Vector3(8000, 1500, -3000), Vector3(14000, 4000, -9000))
 		"dust":
 			_place(Vector3(250, 15, -150), Vector3(700, 70, -700))
 		"wave":
 			# С подветренной стороны хребта вдоль ветра — лентикуляры в гребнях волн.
-			_place(Vector3(26000, 1700, 10000), Vector3(6000, 3600, -2000))
+			_place(Vector3(30000, 900, 14000), Vector3(8000, 3800, -2000))
 			for cr: Dictionary in atmo.wave.crests(Vector3(10000, 0, 0), 20000.0, 60.0):
 				print("гребень волны ", cr.pos, " η ", cr.eta)
 		"stages":

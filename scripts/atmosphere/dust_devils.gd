@@ -8,6 +8,7 @@ var atmo: Atmosphere
 var cfg: Dictionary
 var model: DustModel = DustModel.new()
 var _pool: Array[MeshInstance3D] = []
+var _skirts: Array[MeshInstance3D] = []
 var _acc: float = 1.0e9
 var _active: Array[Dictionary] = []
 
@@ -41,6 +42,14 @@ func setup(atmosphere: Atmosphere) -> void:
 	cyl.cap_bottom = false
 	cyl.radial_segments = 24
 	cyl.rings = 8
+	# Юбка — пологий конус: широкий у земли, сходит на нет кверху.
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.35
+	cone.bottom_radius = 1.0
+	cone.height = 1.0
+	cone.cap_top = false
+	cone.cap_bottom = false
+	cone.radial_segments = 24
 	for i in int(cfg.max_visible):
 		var mi := MeshInstance3D.new()
 		mi.mesh = cyl
@@ -49,6 +58,14 @@ func setup(atmosphere: Atmosphere) -> void:
 		mi.visible = false
 		add_child(mi)
 		_pool.append(mi)
+		var sk := MeshInstance3D.new()
+		sk.mesh = cone
+		sk.material_override = mat
+		sk.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		sk.visible = false
+		sk.set_instance_shader_parameter("skirt", 1.0)
+		add_child(sk)
+		_skirts.append(sk)
 
 
 func _process(delta: float) -> void:
@@ -62,8 +79,10 @@ func _process(delta: float) -> void:
 		_active = find(eye)
 	for i in _pool.size():
 		var mi := _pool[i]
+		var sk := _skirts[i]
 		if i >= _active.size():
 			mi.visible = false
+			sk.visible = false
 			continue
 		# Положение пересчитываем каждый кадр — вихрь дрейфует.
 		var d: Dictionary = _active[i]
@@ -71,6 +90,7 @@ func _process(delta: float) -> void:
 		var cur := model.devil(th, atmo.time_s, atmo.ground.surface_fn, _surface_wind())
 		if cur.is_empty():
 			mi.visible = false
+			sk.visible = false
 			continue
 		mi.visible = true
 		var h: float = cur.height
@@ -81,6 +101,17 @@ func _process(delta: float) -> void:
 		mi.set_instance_shader_parameter("age", float(cur.age))
 		mi.set_instance_shader_parameter("spin", float(cur.spin))
 		mi.set_instance_shader_parameter("seed", float(cur.seed))
+		# Юбка: низкий широкий конус у земли.
+		var rb := r * float(cfg.base_radius_frac)
+		var skr := rb * float(cfg.skirt_radius_frac)
+		var skh := h * float(cfg.skirt_height_frac)
+		sk.visible = true
+		sk.transform = Transform3D(
+			Basis.from_scale(Vector3(skr, skh, skr)), p + Vector3(0, skh * 0.5, 0)
+		)
+		sk.set_instance_shader_parameter("age", float(cur.age))
+		sk.set_instance_shader_parameter("spin", float(cur.spin))
+		sk.set_instance_shader_parameter("seed", float(cur.seed) + 7.0)
 
 
 func _surface_wind() -> Vector2:

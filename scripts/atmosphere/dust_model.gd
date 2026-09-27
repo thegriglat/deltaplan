@@ -50,7 +50,7 @@ func devil(th: AtmoThermal, t: float, surface_fn: Callable, wind: Vector2) -> Di
 	return {
 		"pos": Vector3(th.src.x + drift.x, th.src.y, th.src.z + drift.y),
 		"height": h,
-		"radius": h * _top_radius_frac + 4.0,
+		"radius": h * _top_radius_frac + 8.0,
 		"age": age,
 		"spin": 1.0 if rng.randf() < 0.5 else -1.0,
 		"seed": float(th.id % 997),

@@ -71,6 +71,11 @@ void cloud_init_towers(inout Cloud cl) {
 		vec2 c = vec2(cos(ang), sin(ang)) * rr;
 		float th = main_t ? 1.0 : mix(0.45, 0.85, hs.z) * (1.0 - 0.45 * rr);
 		float rk = main_t ? 0.8 : mix(0.35, 0.55, fract(hs.z * 7.1 + hs.x)) * mix(0.75, 1.0, th);
+		if (cl.kind == 3) {
+			// Cb — массивное тело: боковые башни почти до верха, главная — широкая колонна.
+			th = main_t ? 1.0 : mix(0.6, 0.95, hs.z);
+			rk = main_t ? 0.9 : mix(0.45, 0.65, fract(hs.z * 7.1 + hs.x));
+		}
 		cl.tw[k] = vec4(c, th, rk);
 	}
 }
@@ -132,7 +137,13 @@ float cloud_towers(Cloud cl, vec2 uv, float h) {
 	for (int k = 0; k < TOWERS; k++) {
 		vec4 t = cl.tw[k];
 		vec2 q = vec2(length(uv - t.xy) / t.w, h / t.z);
-		best = max(best, 1.0 - length(q));
+		if (cl.kind == 3) {
+			// Cb — колонна, а не купол: суперэллипс, верх почти плоский (упирается в наковальню).
+			vec2 q2 = q * q;
+			best = max(best, 1.0 - sqrt(sqrt(q2.x * q2.x + q2.y * q2.y)));
+		} else {
+			best = max(best, 1.0 - length(q));
+		}
 	}
 	return best;
 }
@@ -196,17 +207,35 @@ float lens_density(Cloud cl, vec3 p, vec2 uv, float h, int quality) {
 	if (r >= 1.0) {
 		return 0.0;
 	}
-	float thick = pow(1.0 - r * r, cl.kind == 2 ? 0.5 : 0.9);
+	float dns = 0.0;
+	if (cl.kind == 1) {
+		// Стопка тарелок: 2–4 тонкие гладкие линзы друг над другом с зазорами;
+		// нижние и верхние чуть меньше средних.
+		int n = 2 + int(fract(cl.seed_off.y * 3.7) * 2.99);
+		float fn = float(n);
+		for (int i = 0; i < 4; i++) {
+			if (i >= n) {
+				break;
+			}
+			float hc = (float(i) + 0.5) / fn;
+			float mid = abs(float(i) - (fn - 1.0) * 0.5) / fn;
+			float ri = r / (1.0 - 0.35 * mid);
+			if (ri >= 1.0) {
+				continue;
+			}
+			float th = 0.5 / fn * pow(1.0 - ri * ri, 0.8);
+			float inside_i = th - abs(h - hc);
+			dns = max(dns, smoothstep(0.0, 0.25 / fn, inside_i));
+		}
+		return dns;
+	}
+	float thick = pow(1.0 - r * r, 0.5);
 	float inside = thick - abs(2.0 * h - 1.0);
 	if (inside <= 0.0) {
 		return 0.0;
 	}
-	float dns = smoothstep(0.0, 0.1, inside);
-	if (cl.kind == 1) {
-		// Стопка тарелок: плотность колеблется по высоте.
-		float plates = 0.65 + 0.35 * cos(h * 6.2831853 * 3.0 + cl.seed_off.y);
-		dns *= mix(1.0, plates, 0.8);
-	} else if (quality > 0) {
+	dns = smoothstep(0.0, 0.1, inside);
+	if (quality > 0) {
 		// Шапка рваная с подветренной стороны — клубы.
 		vec3 sp = (p + wind_offset) / shape_period_m + cl.seed_off;
 		float b = 1.0 - textureLod(noise_shape, sp, cloud_lod(cl, p, shape_period_m / shape_tex_size)).r;
@@ -427,6 +456,10 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			vec2 uvc = vec2(dot(dc, cl.ax) / cl.rx, dot(dc, cl.az) / cl.rz);
 			float above_m = max(cloud_top_at(cl, uvc) - hh, 0.0) * cl.height;
 			float core = cl.activity * (1.0 - smoothstep(0.0, 0.7, length(uvc)));
+			if (cl.kind == 3) {
+				// Мощное основание Cb — тёмное почти целиком.
+				core = max(core, 0.9 * (1.0 - smoothstep(0.6, 1.0, length(uvc))));
+			}
 			float sky = exp(-above_m / sky_occlusion_m) * mix(1.0, 0.6, core);
 			// Бока высоких облаков освещены небом сбоку — затенение сверху важно только у основания.
 			sky = mix(sky, 1.0, smoothstep(0.0, sky_occlusion_m * 1.5, p.y - cl.base));
