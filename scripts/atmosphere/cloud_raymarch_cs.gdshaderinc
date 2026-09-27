@@ -1,12 +1,23 @@
 // Compute-проход облаков в буфере пониженного разрешения (GLSL 450; собирается в
 // cloud_compositor_effect.gd: заголовок + cloud_common.gdshaderinc + этот текст).
 // Для каждого пикселя: пересечения луча с боксами всех облаков, сортировка по дальности,
-// проход через каждое по порядку с общим пропусканием. Рельеф обрезает луч (буфер глубины).
+// проход вперемешку по дальности (боксы соседей перекрываются) с общим пропусканием. Рельеф обрезает луч (буфер глубины).
 // Выход: цвет с премультипликацией + непрозрачность, и расстояние до сцены (для апскейла).
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 const int MAX_HITS = 8;
+// Облака с перекрытыми по лучу боксами: длина среза (м и доля дальности), запас проходов.
+const float SLICE_M = 400.0;
+const float SLICE_K = 0.05;
+const int MAX_PASSES = 96;
+
+Cloud cloud_at(int i, vec3 ro, float pix_a) {
+	vec4 a = clouds.d[i * 5];
+	vec4 b = clouds.d[i * 5 + 1];
+	return cloud_make(vec3(a.x, 0.0, a.z), vec3(b.x, 0.0, b.y), clouds.d[i * 5 + 2],
+			clouds.d[i * 5 + 3], clouds.d[i * 5 + 4], ro, pix_a);
+}
 
 void main() {
 	ivec2 px = ivec2(gl_GlobalInvocationID.xy);
@@ -75,16 +86,42 @@ void main() {
 	float w_acc = 0.0;
 	// Белый шум без структуры (IGN после апскейла даёт штриховку).
 	float ign = fract(sin(dot(vec2(px), vec2(12.9898, 78.233))) * 43758.5453);
+	// Боксы соседних облаков перекрываются по лучу: проходить облака целиком по ближней
+	// границе бокса нельзя — дальнее облако ложится поверх ближнего, и при смене порядка
+	// (облако выросло, камера сдвинулась) картинка скачет. Поэтому облака идут вперемешку:
+	// всегда шагает то, чья текущая точка ближе, до точки следующего + срез.
+	vec4 st[MAX_HITS];
 	for (int k = 0; k < nh; k++) {
+		// Полуоси — как в cloud_make (без сборки облака).
+		vec4 sh = clouds.d[h_id[k] * 5 + 2];
+		st[k] = cloud_march_start(max(sh.z, 10.0), max(sh.w, 10.0), h_tn[k], h_tf[k], ign);
+	}
+	for (int pass = 0; pass < MAX_PASSES; pass++) {
 		if (trans < 0.01) {
 			break;
 		}
-		int i = h_id[k];
-		vec4 a = clouds.d[i * 5];
-		vec4 b = clouds.d[i * 5 + 1];
-		Cloud cl = cloud_make(vec3(a.x, 0.0, a.z), vec3(b.x, 0.0, b.y), clouds.d[i * 5 + 2],
-				clouds.d[i * 5 + 3], clouds.d[i * 5 + 4], ro, pix_a);
-		cloud_march(cl, ro, rd, h_tn[k], h_tf[k], ign, trans, col, t_acc, w_acc);
+		int kmin = -1;
+		float t1 = 1e29;
+		float t2 = 1e30;
+		for (int k = 0; k < nh; k++) {
+			float tk = st[k].x;
+			if (tk < t1) {
+				t2 = t1;
+				t1 = tk;
+				kmin = k;
+			} else if (tk < t2) {
+				t2 = tk;
+			}
+		}
+		if (kmin < 0) {
+			break;
+		}
+		// Последний проход — до конца (запас по числу проходов исчерпан).
+		float stop = pass == MAX_PASSES - 1 ? 1e30 : t2 + max(SLICE_M, t1 * SLICE_K);
+		vec4 s = st[kmin];
+		cloud_march_part(cloud_at(h_id[kmin], ro, pix_a), ro, rd, h_tn[kmin], h_tf[kmin], ign,
+				stop, s, trans, col, t_acc, w_acc);
+		st[kmin] = s;
 	}
 	float alpha = 1.0 - trans;
 	// Дымка по средней глубине облака.

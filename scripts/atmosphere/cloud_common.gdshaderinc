@@ -381,28 +381,47 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	return dns * box_fade * mix(0.3, 1.0, cl.growth) * mix(1.0, 0.2, cl.decay * cl.decay);
 }
 
-// Проход луча через одно облако на отрезке [tn, tf]; накапливает цвет (с премультипликацией),
-// пропускание и взвешенную глубину (для дымки и апскейла).
-void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
-		inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
+// Грубый шаг луча по боксу облака [tn, tf].
+float cloud_dt_coarse(float rx, float rz, float tn, float tf) {
 	// Дальние облака мельче на экране — им хватает меньше грубых шагов.
 	float lod_k = clamp(tn / lod_distance_m, 0.0, 1.0);
 	float n_coarse = mix(float(coarse_steps), max(float(coarse_steps) * 0.25, 8.0), lod_k);
 	// Грубый шаг не больше доли размера облака — иначе у Cb (бокс с наковальней ~40 км)
 	// лучи перепрыгивают башню.
-	float dt_coarse = min((tf - tn) / n_coarse, min(cl.rx, cl.rz) * 0.35);
-	float t = tn + dt_coarse * ign;
+	return min((tf - tn) / n_coarse, min(rx, rz) * 0.35);
+}
+
+// Начальное состояние прохода (см. cloud_march_part); rx, rz — полуоси облака.
+vec4 cloud_march_start(float rx, float rz, float tn, float tf, float ign) {
+	return vec4(tn + cloud_dt_coarse(rx, rz, tn, tf) * ign, 0.0, 0.0, 0.0);
+}
+
+// Часть прохода луча через облако: шаги до точки t_stop, состояние — в st
+// (x — текущая точка луча, y — 1 внутри оболочки, z — 1 после первого входа, w — итерации;
+// x = 1e30 — облако пройдено). Так несколько облаков с пересекающимися по лучу боксами
+// проходятся вперемешку, по дальности (cloud_raymarch_cs).
+void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign, float t_stop,
+		inout vec4 st, inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
+	float dt_coarse = cloud_dt_coarse(cl.rx, cl.rz, tn, tf);
+	float t = st.x;
 	float dt_fine = clamp(tn * fine_step_per_m, fine_step_min_m, dt_coarse);
-	bool fine = false;
-	bool entered = false;
+	bool fine = st.y > 0.5;
+	bool entered = st.z > 0.5;
+	int it = int(st.w);
+	bool done = false;
 	float cos_t = dot(rd, sun_dir);
 	float phase = mix(cloud_hg(cos_t, phase_forward) * silver, cloud_hg(cos_t, phase_back), phase_mix) * 4.0 * CLOUD_PI;
 	vec3 sun_l = sun_color * sun_energy;
 	int lsteps = tn > lod_distance_m ? max(light_steps - 2, 1) : light_steps;
 	for (int i = 0; i < 512; i++) {
-		if (i >= max_iterations || t > tf || trans < 0.01) {
+		if (it >= max_iterations || t > tf || trans < 0.01) {
+			done = true;
 			break;
 		}
+		if (t > t_stop) {
+			break;
+		}
+		it++;
 		vec3 p = ro + rd * t;
 		if (!fine) {
 			if (cloud_envelope(cl, p) > 0.0) {
@@ -480,4 +499,12 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 		}
 		t += dt_fine;
 	}
+	st = done ? vec4(1e30, 0.0, 0.0, 0.0) : vec4(t, fine ? 1.0 : 0.0, entered ? 1.0 : 0.0, float(it));
+}
+// Проход луча через одно облако на отрезке [tn, tf]; накапливает цвет (с премультипликацией),
+// пропускание и взвешенную глубину (для дымки и апскейла).
+void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
+		inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
+	vec4 st = cloud_march_start(cl.rx, cl.rz, tn, tf, ign);
+	cloud_march_part(cl, ro, rd, tn, tf, ign, 1e30, st, trans, col, t_acc, w_acc);
 }

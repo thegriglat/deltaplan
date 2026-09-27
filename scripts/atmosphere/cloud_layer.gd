@@ -410,7 +410,7 @@ func _select(t: float, eye: Vector3) -> void:
 	if wd.length_squared() < 1.0e-6:
 		wd = Vector3(1, 0, 0)
 	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
-	var list := model.select(atmo.field.thermals, t, eye)
+	var list := model.select(atmo.field.thermals, t, eye, _slot_of)
 	var keep: Dictionary = {}
 	for e: Array in list:
 		keep[(e[1] as AtmoThermal).id] = e[1]

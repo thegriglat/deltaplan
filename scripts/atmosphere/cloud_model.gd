@@ -102,7 +102,10 @@ func size(th: AtmoThermal, st: Vector3) -> Vector4:
 
 ## Видимые облака вокруг eye: [расстояние, термик, стадия, центр, полуось] — ближние первыми,
 ## не больше max_clouds; наложившиеся сливаются в одно (остаётся зрелое и крупное).
-func select(thermals: Dictionary, t: float, eye: Vector3) -> Array:
+## shown — id уже нарисованных облаков: при наложении они в приоритете (select_hysteresis),
+## иначе при равных очках (у зрелых полуось упирается в максимум) из пары наложившихся
+## каждый выбор брал случайное — облака мерцали, подменяя друг друга.
+func select(thermals: Dictionary, t: float, eye: Vector3, shown: Dictionary = {}) -> Array:
 	var max_d := float(_cfg.max_distance_m)
 	var cand: Array = []
 	for id in thermals:
@@ -118,13 +121,23 @@ func select(thermals: Dictionary, t: float, eye: Vector3) -> Array:
 		if d > (max_d * _cb_range_k if th.is_cb else max_d):
 			continue
 		var r := size(th, st).x
-		cand.append([d, th, st, c, r, r * st.x * (1.0 - st.y)])
-	cand.sort_custom(func(a: Array, b: Array) -> bool: return a[5] > b[5])
+		var score := r * st.x * (1.0 - st.y)
+		if shown.has(th.id):
+			score *= float(_cfg.get("select_hysteresis", 1.25))
+		cand.append([d, th, st, c, r, score])
+	cand.sort_custom(_by_score)
 	var list := _drop_overlaps(cand)
 	list.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	if list.size() > int(_cfg.max_clouds):
 		list.resize(int(_cfg.max_clouds))
 	return list
+
+
+## Очки по убыванию, при равных — по id (порядок не зависит от словаря и сортировки).
+static func _by_score(a: Array, b: Array) -> bool:
+	if a[5] != b[5]:
+		return a[5] > b[5]
+	return (a[1] as AtmoThermal).id < (b[1] as AtmoThermal).id
 
 
 ## Два объёма в одном месте смешиваются в неверном порядке — рисуем одно, крупное.
