@@ -214,6 +214,8 @@ uniform float outcrop_patch_m = 45.0;         // размер пятен пор�
 uniform float outcrop_amount = 0.9;
 uniform float kurum_share = 0.5;              // доля курумника среди выходов (остальное — коренная порода)
 uniform float kurum_block_m = 2.2;            // шаг глыб курумника, м
+// вблизи камни — 3D (RockScatter): рисованные глыбы и камни гаснут в этом интервале дальности, м
+uniform vec2 painted_rocks_fade_m = vec2(220.0, 300.0);
 uniform vec3 kurum_color : source_color = vec3(0.3, 0.29, 0.27);
 
 // Анизотропный шум полос вдоль линии падения d (гориз. вектор вниз по склону): три фиксированных
@@ -470,7 +472,10 @@ void fragment() {
 		fcol = field_detail(wp.xz, fcol, gcol, foot_m);
 	}
 	if (wa.y + wa.w + crop > 0.01) {
-		gcol = meadow_detail(wp.xz, gcol, foot_m, h, n_class, slope_deg, 1.0 + 6.0 * outcrop);
+		float painted_k = smoothstep(painted_rocks_fade_m.x, painted_rocks_fade_m.y, dist);
+		gcol = meadow_detail(
+			wp.xz, gcol, foot_m, h, n_class, slope_deg, (1.0 + 6.0 * outcrop) * painted_k
+		);
 	}
 
 	// --- кустарник: пятнистая тёмная зелень на траве ---
@@ -677,6 +682,7 @@ void fragment() {
 		float onz = vnoise(wp.xz / 9.0 + vec2(1.9, 4.4));
 		vec3 kcol = kurum_color * (0.85 + 0.3 * onz);
 		float kb = 1.0 - smoothstep(0.12 * kurum_block_m, 0.4 * kurum_block_m, foot_m);
+		kb *= smoothstep(painted_rocks_fade_m.x, painted_rocks_fade_m.y, dist);
 		if (kb > 0.0 && kurum > 0.01) {
 			// одна глыба на клетку (без поиска соседей): центр чуть сдвинут, радиус 0.4–0.5 клетки
 			vec2 bid = floor(wp.xz / kurum_block_m);
