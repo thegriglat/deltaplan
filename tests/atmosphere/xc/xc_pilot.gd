@@ -8,9 +8,12 @@ extends RefCounted
 ## Режимы: CRUISE (переход по МакКриди) → ENTER (подъём сильнее порога — «пощупать» сторону) →
 ## CIRCLE (вираж 35–40°, центровка по Райхману, выход по набору за круг) → CRUISE.
 ## PROBE — проверка стороны после «кольца» опускания рядом с термиком.
+## RIDGE — «восьмёрка у склона» (карточка 05): галсы вдоль гребня, разворот в конце каждого
+## галса всегда от склона (к долине) — включается setup_ridge(), термики бот в этом режиме
+## не ищет (используется на голом склоне для проверки склоновой модели).
 ## Ниже save_agl_m — «спасение»: скорость минимального снижения, берёт любой подъём.
 
-enum Mode { CRUISE, ENTER, CIRCLE, PROBE, AVOID }
+enum Mode { CRUISE, ENTER, CIRCLE, PROBE, AVOID, RIDGE }
 
 const POLAR_STEP := 0.25
 ## Запаздывание отклика вариометра за подъёмом (для карты подъёма), с.
@@ -70,6 +73,16 @@ var probe_out_m: float = 120.0
 var use_clouds: bool = false
 ## Сектор выбора облака от курса на цель, °.
 var cloud_sector_deg: float = 30.0
+## «Восьмёрка у склона» (карточка 05): направление вдоль гребня и от склона (в долину), °;
+## диаметр витка, м; крен виража, °; целевая полоса высоты над склоном (AGL), м, — для отчёта
+## прогона (сам бот держит скорость мин. снижения, набор/спуск решает только склоновый поток).
+var ridge_active: bool = false
+var ridge_along_deg: float = 0.0
+var ridge_away_deg: float = 0.0
+var ridge_leg_m: float = 350.0
+var ridge_bank_deg: float = 30.0
+var ridge_band_lo_agl: float = 50.0
+var ridge_band_hi_agl: float = 100.0
 
 # --- маршрут и знания пилота ---
 var goal: Vector2 = Vector2.ZERO
@@ -187,6 +200,12 @@ var _has_cloud_target: bool = false
 var _cloud_timer: float = 0.0
 var _visited_clouds: Array[Vector2] = []
 
+# --- восьмёрка у склона (карточка 05, состояние) ---
+var _ridge_origin: Vector2 = Vector2.ZERO
+var _ridge_dir: float = 1.0
+var _ridge_turn_deg: float = 0.0
+var _ridge_prev_heading: float = 0.0
+
 
 ## wing_cfg/pilot_cfg — как у FlightModel.setup; goal_xz — поворотная точка (x, z).
 func setup(wing_cfg: Dictionary, pilot_cfg: Dictionary, goal_xz: Vector2) -> void:
@@ -214,7 +233,9 @@ func drive(t: Telemetry, dt: float) -> ControlInput:
 	mc_ms = 0.0 if save_mode else _mc_setting() * lerpf(0.3, 1.0, frac)
 	var pos := Vector2(t.position.x, t.position.z)
 	_update_lift_map(t, pos, dt)
-	if _check_terrain(t, pos, dt):
+	# «Восьмёрка» у склона сама уходит от рельефа (разворот в конце каждого галса, всегда от
+	# склона) — общий обход рельефа (для дальних переходов) тут не нужен и мешал бы развороту.
+	if mode != Mode.RIDGE and _check_terrain(t, pos, dt):
 		return _ctl
 	match mode:
 		Mode.CRUISE:
@@ -225,6 +246,8 @@ func drive(t: Telemetry, dt: float) -> ControlInput:
 			_circle(t, pos, dt)
 		Mode.PROBE:
 			_probe(t, pos, dt)
+		Mode.RIDGE:
+			_ridge_fly(t, pos, dt)
 	return _ctl
 
 
@@ -273,7 +296,7 @@ func _check_terrain(t: Telemetry, pos: Vector2, dt: float) -> bool:
 	_set_speed(_stf(0.0, t.altitude_msl), t)
 	_avoid_clear = 0.0 if _terrain_block else _avoid_clear + dt
 	if _avoid_clear > 5.0:
-		mode = Mode.CRUISE
+		mode = Mode.RIDGE if ridge_active else Mode.CRUISE
 	return true
 
 
@@ -309,6 +332,56 @@ func _lowest_heading(pos: Vector2, heading_deg: float) -> float:
 
 func is_circling() -> bool:
 	return mode == Mode.CIRCLE
+
+
+# ================================================================ восьмёрка у склона
+
+
+## Включить «восьмёрку у склона» (карточка 05): держится над рабочей точкой origin (50–100 м
+## AGL перед гребнем — band_lo/band_hi, м) витками радиуса leg_m/2, раз в виток меняя сторону
+## разворота — «восьмёрка» из двух смежных петель над одним местом (устойчиво к сносу ветром
+## поперёк склона, в отличие от прямых галсов с разворотом на краю). along_deg/away_deg —
+## направление вдоль гребня и от склона (в долину, для справки/отчёта). Бот держит скорость
+## минимального снижения — набор/снижение решает только склоновый поток.
+func setup_ridge(
+	origin: Vector2,
+	along_deg: float,
+	away_deg: float,
+	leg_m: float = 350.0,
+	band_lo_agl: float = 50.0,
+	band_hi_agl: float = 100.0
+) -> void:
+	ridge_active = true
+	_ridge_origin = origin
+	ridge_along_deg = fposmod(along_deg, 360.0)
+	ridge_away_deg = fposmod(away_deg, 360.0)
+	ridge_leg_m = leg_m
+	ridge_band_lo_agl = band_lo_agl
+	ridge_band_hi_agl = band_hi_agl
+	mode = Mode.RIDGE
+	_ridge_dir = 1.0
+	_ridge_turn_deg = 0.0
+	_ridge_prev_heading = 0.0
+
+
+## Ветер поперёк — прямой галс сносит непредсказуемо (у реального рельефа рабочая полоса
+## подъёма — часто просто пятно перед гребнем, не прямая линия). Вместо галсов с разворотами
+## держим постоянный радиус вокруг рабочей точки origin (как в _circle/_probe — та же поправка
+## курса на радиус, проверенная), но раз в круг меняем сторону виража на обратную — это и есть
+## «восьмёрка»: два смежных витка в разные стороны над одним и тем же местом у склона, без
+## сноса галса ветром. Разворот у витка всегда возможен в любую сторону от склона (центр — над
+## рабочей точкой перед гребнем, не над самим гребнем).
+func _ridge_fly(t: Telemetry, pos: Vector2, _dt: float) -> void:
+	_set_speed(_v_min_sink * 1.05 * _speed_scale(t.altitude_msl), t)
+	var v := maxf(t.groundspeed, 5.0)
+	var r := ridge_leg_m * 0.5
+	var base_bank := rad_to_deg(atan(v * v / (Units.G * r)))
+	_hold_bank(t, _orbit_bank(t, pos, _ridge_origin, r, _ridge_dir, base_bank, ridge_bank_deg))
+	_ridge_turn_deg += absf(wrapf(t.heading_deg - _ridge_prev_heading, -180.0, 180.0))
+	_ridge_prev_heading = t.heading_deg
+	if _ridge_turn_deg >= 360.0:
+		_ridge_turn_deg -= 360.0
+		_ridge_dir = -_ridge_dir
 
 
 # ================================================================ ощущения
