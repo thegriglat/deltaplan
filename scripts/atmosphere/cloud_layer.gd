@@ -120,7 +120,7 @@ func setup(atmosphere: Atmosphere) -> void:
 	for u in params:
 		_material.set_shader_parameter(u, float(cfg[params[u]]))
 	var st: Dictionary = atmo.cfg.storm
-	for u in ["anvil_spread", "anvil_shift", "virga_depth_m", "virga_density"]:
+	for u in ["anvil_spread", "anvil_shift", "virga_depth_m", "virga_density", "virga_period_m"]:
 		_material.set_shader_parameter(u, float(st[u]))
 	_material.set_shader_parameter("shape_tex_size", float(cfg.noise_shape_size))
 	_material.set_shader_parameter("detail_tex_size", float(cfg.noise_detail_size))

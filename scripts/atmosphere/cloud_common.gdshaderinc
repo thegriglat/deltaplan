@@ -9,7 +9,7 @@
 //   detail_tex_size, curl_strength_m, extinction, light_absorb, powder_strength, phase_forward,
 //   phase_back, phase_mix, silver, ms_strength, coarse_steps, max_iterations, fine_step_per_m,
 //   fine_step_min_m, light_steps, light_step_m, lod_distance_m, detail_enabled (int),
-//   anvil_spread, anvil_shift, virga_depth_m, virga_density.
+//   anvil_spread, anvil_shift, virga_depth_m, virga_density, virga_period_m.
 // Облако задаётся записью из 5 vec4 (так же в CloudLayer/compute):
 //   r0: центр бокса xyz, полувысота бокса; r1: ось по ветру (x, z), полуширины бокса (по ветру, поперёк);
 //   r2: кромка, мощность, полуось по ветру, поперёк; r3: рост, распад, активность, зерно;
@@ -248,7 +248,10 @@ float lens_density(Cloud cl, vec3 p, vec2 uv, float h, int quality) {
 	return dns;
 }
 
-// Полосы осадков (вирга) под основанием Cb: не достают до земли, испаряясь.
+// Осадки под основанием Cb: мягкие полупрозрачные полосы ливня, тают к земле.
+// Плотность в долях облака мала (ослабление = доля × extinction: ливень виден насквозь на
+// километры), форма — крупный гладкий шум, вытянутый по вертикали (без регулярной «решётки»
+// мелкого тайлящегося шума), край и низ гаснут плавно.
 float cloud_virga(Cloud cl, vec3 p, vec2 uv, float h) {
 	float depth = -h * cl.height;
 	float fd = depth / virga_depth_m;
@@ -257,13 +260,21 @@ float cloud_virga(Cloud cl, vec3 p, vec2 uv, float h) {
 	}
 	// Полосы чуть сносятся по ветру с глубиной.
 	vec2 ur = uv - vec2(0.25 + fd * 0.25, 0.0);
-	float r = length(ur) / 0.55;
+	float r = length(ur) / 0.6;
 	if (r >= 1.0) {
 		return 0.0;
 	}
-	vec3 q = vec3(p.x / 350.0, p.y / 6000.0, p.z / 350.0) + cl.seed_off;
-	float streak = textureLod(noise_detail, q, 0.0).r;
-	float d = (1.0 - smoothstep(0.5, 1.0, r)) * pow(1.0 - fd, 1.5) * smoothstep(0.35, 0.75, 1.0 - streak);
+	// Шум шахт: ~1,5 км по горизонтали, почти вертикальный (вытянут в 8 раз), слегка
+	// наклонён по ветру; уровень мипа по размеру пикселя — без ряби вдали.
+	vec3 q = vec3(p.x, p.y * 0.125 + dot(p.xz, cl.ax.xz) * 0.05, p.z) / virga_period_m + cl.seed_off;
+	float lq = cloud_lod(cl, p, virga_period_m / shape_tex_size);
+	float n1 = 1.0 - textureLod(noise_shape, q, lq).r;
+	float n2 = 1.0 - textureLod(noise_shape, q * 2.3 + vec3(0.41, 0.0, 0.17), lq + 1.2).r;
+	float shafts = smoothstep(0.3, 0.8, n1 * 0.7 + n2 * 0.3);
+	float edge = 1.0 - smoothstep(0.35, 1.0, r);
+	// У основания плотнее (выпадает из облака), к земле тает; верх сливается с основанием.
+	float fall = smoothstep(0.0, 0.08, fd) * 0.35 + 0.65;
+	float d = edge * mix(0.08, 1.0, shafts) * pow(1.0 - fd, 1.3) * fall;
 	return virga_density * cl.rain * d;
 }
 
@@ -418,6 +429,10 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 	float t = st.x;
 	float dt_fine = clamp(tn * fine_step_per_m, fine_step_min_m, dt_coarse);
 	bool fine = st.y > 0.5;
+	// Предыдущая мелкая выборка была пустой: вход в Cb уточняем делением шага пополам
+	// (у Cb мелкий шаг — сотни метров по бюджету выборок, плоское основание иначе рисовалось
+	// «террасами»; у обычных облаков шаг мелкий, уточнение не нужно и дорого).
+	bool was_empty = true;
 	bool entered = st.z > 0.5;
 	int it = int(st.w);
 	bool done = false;
@@ -455,22 +470,60 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 		dt_fine = clamp(max(t * fine_step_per_m, dt_budget), fine_step_min_m, dt_coarse);
 		cl.foot = dt_fine * 0.5;
 		float dns = cloud_density(cl, p, 2);
-		if (dns <= 0.003 && cloud_envelope(cl, p) <= 0.0) {
+		// Ливень под основанием разреженный: порог пустоты ниже (иначе его выборки пропускались).
+		float thr = p.y < cl.base ? 1e-5 : 0.003;
+		if (dns <= thr && cloud_envelope(cl, p) <= 0.0) {
 			fine = false;
+			was_empty = true;
 			t += dt_coarse;
 			continue;
 		}
-		if (dns > 0.003) {
+		float dt_first = 0.0;
+		if (cl.kind == 3 && dns > 0.003 && was_empty && dt_fine > 60.0) {
+			float ta = max(t - dt_fine, tn);
+			float tb = t;
+			for (int k = 0; k < 4; k++) {
+				float tm = 0.5 * (ta + tb);
+				if (cloud_density(cl, ro + rd * tm, 1) > 0.003) {
+					tb = tm;
+				} else {
+					ta = tm;
+				}
+			}
+			// Чуть вглубь: выборка не на самой кромке (там плотность скачет — муар «колец»).
+			t = min(tb + min(dt_fine * 0.1, 20.0), t);
+			p = ro + rd * t;
+			dns = max(cloud_density(cl, p, 2), 0.0031);
+			// Первый отрезок после кромки — случайной длины (IGN): решётка выборок за кромкой
+			// дрожит, как без уточнения (иначе второй шаг — всегда на той же глубине, «кольца»).
+			dt_first = dt_fine * mix(0.15, 1.0, ign);
+		}
+		was_empty = dns <= 0.003;
+		// Ливень гладкий и разреженный — шаг по нему крупнее (лучи сквозь него не дорожают).
+		float dt_s = p.y < cl.base ? max(dt_fine * 2.5, t * 0.03) : dt_fine;
+		if (dt_first > 0.0) {
+			dt_s = dt_first;
+		}
+		if (dns > thr) {
 			float sigma = dns * extinction;
 			float od = 0.0;
 			// Первый шаг к солнцу мелкий (клубы затеняют друг друга), дальше шаги растут так,
 			// чтобы дойти до ~половины мощности облака (у 8-км Cb тень тоже на километры).
 			float lstep = light_step_m;
+			// Ливень под основанием — в тени самого облака: к солнцу не идём (дешевле),
+			// светит рассеянным светом; у края полосы — немного солнца сбоку.
+			bool rain_pt = p.y < cl.base;
+			int ls = rain_pt ? 0 : lsteps;
+			if (rain_pt) {
+				vec3 dr = p - cl.c;
+				float rr = length(vec2(dot(dr, cl.ax) / cl.rx, dot(dr, cl.az) / cl.rz));
+				od = mix(400.0, 20.0, smoothstep(0.5, 1.2, rr));
+			}
 			float lgrow = max(light_step_growth,
-					pow(max(cl.height * 0.5 / light_step_m, 1.0), 1.0 / float(max(lsteps - 1, 1))));
+					pow(max(cl.height * 0.5 / light_step_m, 1.0), 1.0 / float(max(ls - 1, 1))));
 			vec3 lp = p;
 			for (int j = 0; j < 8; j++) {
-				if (j >= lsteps) {
+				if (j >= ls) {
 					break;
 				}
 				lp += sun_dir * lstep;
@@ -502,14 +555,14 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			float up_w = smoothstep(0.0, 0.5, hh);
 			vec3 amb = (ambient_top * mix(sky, 1.0, up_w * 0.5) + ambient_bottom * base_darkness * (1.0 - up_w)) * ambient_energy;
 			vec3 S = (sun_l * beer * phase * powder + amb) * sigma;
-			float tr = exp(-sigma * dt_fine);
+			float tr = exp(-sigma * dt_s);
 			col += trans * (S - S * tr) / max(sigma, 1e-6);
 			float wgt = trans * (1.0 - tr);
 			t_acc += t * wgt;
 			w_acc += wgt;
 			trans *= tr;
 		}
-		t += dt_fine;
+		t += dt_s;
 	}
 	st = done ? vec4(1e30, 0.0, 0.0, 0.0) : vec4(t, fine ? 1.0 : 0.0, entered ? 1.0 : 0.0, float(it));
 }

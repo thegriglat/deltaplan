@@ -50,7 +50,8 @@ uniform float ms_strength = 0.35;
 uniform float anvil_spread = 2.2;
 uniform float anvil_shift = 0.6;
 uniform float virga_depth_m = 1300.0;
-uniform float virga_density = 0.35;
+uniform float virga_density = 0.022;
+uniform float virga_period_m = 1500.0;
 
 // Качество.
 uniform int coarse_steps = 48;

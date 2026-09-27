@@ -22,6 +22,10 @@ var _hour := 14.0
 var _air_s := 2400.0
 var _views: PackedStringArray = ["far", "mid", "under", "rain", "high", "high_ns", "high2"]
 var _bench := false
+## --ab=<плотность> — в замере чередовать старую плотность ливня (например 0,35 — непрозрачная
+## стена) с текущей: одна и та же сцена и процесс, чужая нагрузка на GPU делится поровну.
+var _ab := 0.0
+var _layer: CloudLayer = null
 var _main: Node = null
 var _vp: SubViewport = null
 var _root_cam: Camera3D = null
@@ -47,6 +51,8 @@ func _ready() -> void:
 				_views = kv[1].split(",")
 			"bench":
 				_bench = kv[1] == "1"
+			"ab":
+				_ab = float(kv[1])
 	if _out == "":
 		push_error("storm_shot: нужен --out=")
 		get_tree().quit(1)
@@ -118,6 +124,7 @@ func _run() -> void:
 	_root_cam.make_current()
 	get_viewport().disable_3d = true
 	var layer := air.get_node_or_null("Clouds") as CloudLayer
+	_layer = layer
 	# Облака выбираются у камеры: сначала постоять над стартом.
 	_place(cam, sp + Vector3.UP * 1500.0, sp + Vector3(0, 1500, -1000))
 	_reselect(layer)
@@ -135,7 +142,10 @@ func _run() -> void:
 	var side := Vector3(-ax.z, 0.0, ax.x)
 	print(
 		(
-			"storm_shot: Cb центр (%.0f, %.0f), до старта %.0f м, кромка %.0f, мощность %.0f, rx %.0f, наковальня %.2f, ливень %.2f"
+			(
+				"storm_shot: Cb центр (%.0f, %.0f), до старта %.0f м, кромка %.0f, "
+				+ "мощность %.0f, rx %.0f, наковальня %.2f, ливень %.2f"
+			)
 			% [c.x, c.z, Vector2(c.x - sp.x, c.z - sp.z).length(), base, hgt, rx, cb.anvil, cb.rain]
 		)
 	)
@@ -213,13 +223,31 @@ func _pick_cb(layer: CloudLayer, sp: Vector3) -> Dictionary:
 func _measure(view: String) -> void:
 	var vp := _vp.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp, true)
+	if _ab <= 0.0:
+		print("storm_shot: BENCH %s — GPU кадр %.3f мс" % [view, await _avg_gpu(vp, 120)])
+		return
+	var mat: ShaderMaterial = _layer.get("_material")
+	var cur: float = mat.get_shader_parameter("virga_density")
+	var sums := [0.0, 0.0]
+	for r in 4:
+		for k in 2:
+			mat.set_shader_parameter("virga_density", _ab if k == 0 else cur)
+			sums[k] += await _avg_gpu(vp, 40)
+	mat.set_shader_parameter("virga_density", cur)
+	print(
+		"storm_shot: BENCH %s — GPU кадр: ливень %.3f — %.3f мс, ливень %.3f — %.3f мс"
+		% [view, _ab, sums[0] / 4.0, cur, sums[1] / 4.0]
+	)
+
+
+func _avg_gpu(vp: RID, n: int) -> float:
 	for i in 10:
 		await RenderingServer.frame_post_draw
 	var sum := 0.0
-	for i in 120:
+	for i in n:
 		await RenderingServer.frame_post_draw
 		sum += RenderingServer.viewport_get_measured_render_time_gpu(vp)
-	print("storm_shot: BENCH %s — GPU кадр %.3f мс" % [view, sum / 120.0])
+	return sum / n
 
 
 func _place(cam: Camera3D, p: Vector3, look: Vector3) -> void:
