@@ -1,0 +1,19 @@
+{
+  "_doc": "Интерфейс: меню, пауза, настройки, итог полёта, «Об игре». Цвета и шрифты — в scenes/ui/theme.tres",
+  "panel_width_px": 560,
+  "panel_width_px_doc": "Ширина панели меню, пикселей",
+  "mass_step_kg": 1.0,
+  "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
+  "vario_volume_range_db": [-40.0, 6.0],
+  "vario_volume_range_db_doc": "Диапазон громкости вариометра в настройках, дБ",
+  "look_sensitivity_range": [0.02, 0.5],
+  "look_sensitivity_range_doc": "Диапазон чувствительности мыши, °/пиксель",
+  "about_sources": ["res://ASSETS.md"],
+  "about_sources_doc": "Откуда собирается список ассетов для «Об игре» (таблицы Markdown)",
+  "license_files": [
+    "res://assets/sounds/LICENSES.md",
+    "res://assets/fonts/DSEG-LICENSE.txt",
+    "res://assets/fonts/NotoSans-OFL.txt"
+  ],
+  "license_files_doc": "Тексты лицензий, которые показываются в «Об игре» (кладутся в сборку, export_presets.cfg → include_filter)"
+}

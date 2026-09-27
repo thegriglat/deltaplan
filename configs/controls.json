@@ -43,7 +43,27 @@
     ],
     "look_center_doc": "Вернуть взгляд вперёд (также средняя кнопка мыши)",
     "mouse_capture_doc": "Захват мыши (обзор головой)",
-    "roll_left_doc": "Полёт: вес влево. Земля: поворот налево"
+    "roll_left_doc": "Полёт: вес влево. Земля: поворот налево",
+    "camera_next_doc": "Сменить камеру: кабина → сзади → свободная",
+    "instrument_page_doc": "Следующая страница прибора",
+    "pause_doc": "Пауза и меню",
+    "restart_doc": "Начать полёт заново с того же старта",
+    "instrument_page_1": [
+      "1"
+    ],
+    "instrument_page_2": [
+      "2"
+    ],
+    "instrument_page_3": [
+      "3"
+    ],
+    "instrument_page_4": [
+      "4"
+    ],
+    "instrument_page_1_doc": "Страницы прибора напрямую: 1…5 (instrument_page_1…5)",
+    "instrument_page_5": [
+      "5"
+    ]
   },
   "invert_pitch": false,
   "invert_pitch_doc": "true — поменять местами «от себя» и «на себя»",
@@ -66,7 +86,8 @@
     "bar_sensitivity_doc": "Режим bar: смещение мыши на 1/2 высоты экрана × чувствительность = полный ход",
     "bar_deadzone": 0.02,
     "bar_return_to_center_per_s": 0.0,
-    "bar_return_to_center_per_s_doc": "0 — трапеция остаётся, где её оставили; >0 — плавно возвращается в нейтраль"
+    "bar_return_to_center_per_s_doc": "0 — трапеция остаётся, где её оставили; >0 — плавно возвращается в нейтраль",
+    "capture_on_start_doc": "Захватывать мышь при старте полёта (в меню и на паузе мышь всегда свободна)"
   },
   "gamepad": {
     "enabled": true,

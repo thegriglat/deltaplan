@@ -1,7 +1,94 @@
 {
-  "_doc": "Настройки по умолчанию для нового полёта (меню их переопределяет)",
+  "_doc": "Сборка игры (scenes/main.tscn, scripts/game/game.gd). Значения по умолчанию для нового полёта — меню их переопределяет и запоминает в user://last_flight.json",
   "default_location": "locations/altai",
+  "default_location_doc": "Встроенная локация (имя конфига в configs/locations)",
+  "default_site": "",
+  "default_site_doc": "id стартовой площадки по умолчанию; пусто — первая в локации",
   "default_wing": "wings/sport",
   "default_weather": "weather/medium",
-  "language": "ru"
+  "default_wind_mode": "into_site",
+  "default_wind_mode_doc": "into_site — ветер из пресета по силе, но дует в лоб старту (удобно для первого полёта); preset — направление из пресета погоды",
+  "language": "ru",
+  "language_doc": "Язык интерфейса (locale/*.csv): ru, en",
+  "air": {
+    "_doc": "Модель воздуха. Заменяется одной строкой: скрипт должен давать set_weather(имя), set_wind(км/ч, откуда°), set_ground(height_fn, sun_fn), air_velocity_at(pos), step(dt), focus_node",
+    "script": "res://scripts/atmosphere/atmosphere.gd",
+    "script_doc": "Основная атмосфера (агент atmosphere)",
+    "fallback_script": "res://scripts/game/calm_air.gd",
+    "fallback_script_doc": "Запасная заглушка, если основной скрипт не найден или не загрузился"
+  },
+  "calm_air": {
+    "_doc": "Заглушка атмосферы (scripts/game/calm_air.gd): постоянный ветер + статичные термики. Работает, только если основная атмосфера не загрузилась",
+    "background_sink_ms": -0.5,
+    "background_sink_ms_doc": "Фоновое опускание воздуха между термиками, м/с",
+    "ground_fade_m": 60.0,
+    "ground_fade_m_doc": "Вертикальные потоки плавно гаснут к земле на этой высоте, м",
+    "thermal_top_agl_m": 1800.0,
+    "thermal_top_agl_m_doc": "Потолок термиков над землёй, м (если у погоды нет cloudbase_agl_m)",
+    "sink_ring_factor": 0.3,
+    "sink_ring_factor_doc": "Опускание в кольце вокруг ядра — доля силы термика",
+    "thermals_from_site": [
+      {
+        "forward_m": 800,
+        "right_m": 0,
+        "strength_ms": 2.5,
+        "radius_m": 100
+      },
+      {
+        "forward_m": 1600,
+        "right_m": -700,
+        "strength_ms": 3.0,
+        "radius_m": 120
+      },
+      {
+        "forward_m": 1200,
+        "right_m": 900,
+        "strength_ms": 1.8,
+        "radius_m": 80
+      },
+      {
+        "forward_m": 2600,
+        "right_m": 300,
+        "strength_ms": 3.5,
+        "radius_m": 130
+      }
+    ],
+    "thermals_from_site_doc": "Статичные термики относительно точки старта: вперёд по курсу разбега и вправо, м"
+  },
+  "start_search": {
+    "_doc": "Старт в точке с карты (FR-17): ищем склон рядом с выбранной точкой, курс — вниз по склону",
+    "radius_m": 600.0,
+    "radius_m_doc": "Радиус поиска склона вокруг выбранной точки, м",
+    "step_m": 30.0,
+    "step_m_doc": "Шаг сетки поиска, м",
+    "probe_m": 25.0,
+    "probe_m_doc": "База для оценки уклона, м",
+    "min_slope_deg": 12.0,
+    "best_slope_deg": 20.0,
+    "max_slope_deg": 32.0,
+    "slope_doc": "Уклон пригодного старта: не положе min и не круче max, лучший — best, °",
+    "runway_m": 40.0,
+    "runway_m_doc": "Длина разбега вниз по курсу, на которой склон не должен выполаживаться, м"
+  },
+  "result_delay_s": 2.0,
+  "result_delay_s_doc": "Через сколько секунд после посадки или срыва взлёта показать итог",
+  "menu_camera_mode": "chase",
+  "menu_camera_mode_doc": "Камера за меню (фон): cockpit, chase, free",
+  "picked_location_size_km": -1.0,
+  "picked_location_size_km_doc": "Размер рельефа при старте с карты, км; −1 — из world.json → runtime_terrain",
+  "mounted_instruments": [
+    {
+      "scene": "res://scenes/instruments/instrument_3d.tscn",
+      "marker": "InstrumentMount",
+      "face_pilot": true,
+      "optional": false
+    },
+    {
+      "scene": "res://scenes/instruments/vario_90s.tscn",
+      "marker": "VarioMount",
+      "face_pilot": false,
+      "optional": true
+    }
+  ],
+  "mounted_instruments_doc": "Приборы на трапеции (кабинный вид): сцена, маркер крепления в модели крыла (+Z маркера — экран к пилоту), face_pilot — довернуть экран к глазам пилота (поза полёта), optional — молча пропустить, если сцены или маркера нет. Сцена с use_instrument(FlightInstrument) показывает общий экран планшета; иначе ей зовётся update(t: Telemetry, dt)"
 }

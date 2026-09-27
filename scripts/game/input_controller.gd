@@ -8,16 +8,21 @@ var control := ControlInput.new()
 var mouse_captured := false
 ## Фазу сообщает главная сцена по телеметрии: на земле W/S — ходьба, в разбеге — угол носа.
 var on_ground := true
+## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
+var enabled := true
 
 var _cfg: Dictionary
 var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
 
 
 func _ready() -> void:
+	reload_config()
+
+
+## Перечитать configs/controls.json (после изменения настроек).
+func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
-	if bool(_cfg.mouse.capture_on_start):
-		set_mouse_captured.call_deferred(true)
 
 
 func mouse_mode() -> String:
@@ -46,6 +51,8 @@ func set_mouse_captured(on: bool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not enabled:
+		return
 	if event.is_action_pressed("mouse_capture"):
 		set_mouse_captured(not mouse_captured)
 	elif mouse_captured and mouse_mode() == "bar" and event is InputEventMouseMotion:
@@ -57,11 +64,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
+	if not enabled:
+		control.pitch = 0.0
+		control.roll = 0.0
+		control.walk = 0.0
+		control.run = false
+		return control
 	var kb: Dictionary = _cfg.keyboard
 	var sens := float(kb.sensitivity)
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
 
-	var fwd := Input.get_action_strength("pitch_pull_in") - Input.get_action_strength("pitch_push_out")
+	var fwd := (
+		Input.get_action_strength("pitch_pull_in") - Input.get_action_strength("pitch_push_out")
+	)
 	var pitch_dir := -fwd * inv
 	var roll_dir := Input.get_action_strength("roll_right") - Input.get_action_strength("roll_left")
 	var run := Input.is_action_pressed("run")
@@ -78,7 +93,9 @@ func update(dt: float) -> ControlInput:
 		# Разбег: W/S — угол носа, A/D — выравнивание крыла.
 		var nose_rate := float(_cfg.ground.nose_pitch_rate_per_s) * sens
 		pitch = _ramp(pitch, pitch_dir, nose_rate, 0.0, dt)
-		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
+		roll = _ramp(
+			roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt
+		)
 	elif mouse_captured and mouse_mode() == "bar":
 		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
 		if ret > 0.0:
@@ -89,7 +106,9 @@ func update(dt: float) -> ControlInput:
 	else:
 		var pitch_rate := float(kb.pitch_rate_per_s) * sens
 		pitch = _ramp(pitch, pitch_dir, pitch_rate, float(kb.pitch_return_per_s), dt)
-		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
+		roll = _ramp(
+			roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt
+		)
 
 	var gp: Dictionary = _cfg.gamepad
 	if bool(gp.enabled) and not Input.get_connected_joypads().is_empty():
