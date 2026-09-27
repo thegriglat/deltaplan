@@ -12,6 +12,7 @@
 | `landing_flare.gd` — `LandingFlare` | выравнивание, «подвешивание», касание, пробежка |
 | `landing_judge.gd` — `LandingJudge` | оценка посадки |
 | `flight_telemetry.gd` — `FlightTelemetry` | заполнение Telemetry |
+| `load_meter.gd` — `LoadMeter` | перегрузка n = L/W (`FlightModel.load`), сглаживание 0,15 с |
 | `glider.gd` — `Glider` (`scenes/glider/glider.tscn`) | нода: шаг физики, интерполяция, сигналы |
 | `glider_visual.gd` — `GliderVisual` (`scenes/glider/glider_visual.tscn`) | крыло + пилот, маркеры, заглушки |
 
@@ -76,6 +77,10 @@
   выравнивания ~10 м/с); авария — вертикальная > 7 м/с (вдвое больше энергии удара), горизонтальная
   > 12 м/с или крен > 35°. После мягкой/жёсткой посадки пилот добегает и может идти или снова
   разбегаться. Первые 1,5 с после отрыва касание склона не считается посадкой.
+
+- **Перегрузка.** `FlightModel.load.load_factor` — n = подъёмная сила / вес, сглаженная
+  (`flight.json → load_factor.filter_s`); есть `load_raw`, `load_max`, `load_min`. Если в Telemetry
+  есть поле `load_factor`, оно заполняется. Поломка крыла при превышении (FR-14c) отложена.
 
 ### Допущения
 - Нет скольжения и рыскания как отдельной степени свободы; нет момента от вращения по курсу.

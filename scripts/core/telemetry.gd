@@ -21,4 +21,5 @@ var on_ground: bool = true
 var phase: String = "standing"
 var stalled: bool = false
 var glide_ratio: float = 0.0        ## текущее качество по земле (горизонт/снижение), 0 если набор
+var load_factor: float = 1.0      ## перегрузка n = подъёмная сила / вес, сглаженная
 var basis: Basis = Basis.IDENTITY   ## ориентация крыла для камер и модели

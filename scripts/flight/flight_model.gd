@@ -20,6 +20,8 @@ var telemetry := Telemetry.new()
 var mode: Mode = Mode.GROUND
 ## Причина срыва взлёта: "nose_high", "nose_low", "tailwind", "crosswind", "weak_run" или "".
 var takeoff_failure: String = ""
+## Перегрузка n (load_factor, load_raw, load_max, load_min).
+var load := LoadMeter.new()
 ## Результат последней посадки (LandingJudge.evaluate + position, flight_time_s).
 var landing_result: Dictionary = {}
 
@@ -247,6 +249,7 @@ func _reset_common(pos: Vector3, heading_deg: float) -> void:
 	_stall_time = 0.0
 	_attached = 1.0
 	_flare.reset()
+	load.reset()
 	_air_time = 0.0
 	_accel_t = 0.0
 	_ground.reset()
@@ -293,6 +296,7 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var c := aero_coefs(dt)
 	var force := lift_dir * (q * c.x) - u * (q * c.y) + UP * (-mass * Units.G)
 	force += _flare.hang_force(self)
+	load.update(q * c.x, mass * Units.G, float(flight.load_factor.filter_s), dt)
 	_accel_t = force.dot(u) / mass
 	velocity += force / mass * dt
 	position += velocity * dt
