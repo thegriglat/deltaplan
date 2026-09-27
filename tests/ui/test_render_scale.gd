@@ -2,7 +2,10 @@ extends Node
 ## «Масштаб рендера» (настройки, независимо от пресета) и пресет «Низкое» — FSR 1:
 ## пишутся в user://configs/game.json, применяются к viewport (scaling_3d_mode/scaling_3d_scale)
 ## сразу через GraphicsPresets.apply_viewport (game.gd вызывает это при закрытии настроек).
-## Пишем в настоящий user://configs (Config читает только его) и восстанавливаем прежнее.
+## Пишем в настоящий user://configs (Config читает только его) — как test_helmet_fov.gd — но
+## КАЖДЫЙ раз полностью перезаписываем game.json (не патчим поверх старого), чтобы тест не зависел
+## от того, что там уже сохранил пилот (например render_scale_auto=false с прошлого раза), и
+## восстанавливаем исходное содержимое в конце.
 
 var failures: PackedStringArray = []
 
@@ -16,8 +19,9 @@ func test_low_preset_uses_fsr_0_75() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("game.json")
 	var backup := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 
-	# Только сам ключ пресета — без побочных правок atmosphere/world (как в GraphicsPresets.select).
-	UserSettings.save_patch("game", {"graphics": "low"}, UserSettings.DEFAULT_DIR)
+	# Полная перезапись (не патч): только сам пресет, render_scale_auto — по умолчанию (true),
+	# чтобы не зависеть от того, что уже могло быть сохранено в реальном user-конфиге.
+	_write(path, {"graphics": "low"})
 	Config.reload()
 
 	var vp := SubViewport.new()
@@ -38,8 +42,9 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("game.json")
 	var backup := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 
-	# Пресет без масштабирования — чтобы проверить именно независимый оверрайд.
-	UserSettings.save_patch("game", {"graphics": "medium"}, UserSettings.DEFAULT_DIR)
+	# Полная перезапись: пресет без масштабирования и render_scale_auto=true — чтобы проверить
+	# именно независимый оверрайд, без влияния прежних значений в реальном user-конфиге.
+	_write(path, {"graphics": "medium"})
 	Config.reload()
 
 	var sp: SettingsPanel = (
@@ -71,7 +76,7 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	vp.queue_free()
 
 	# 100% — без масштабирования (native), даже если пресет масштабирует.
-	UserSettings.save_patch("game", {"graphics": "low"}, UserSettings.DEFAULT_DIR)
+	_write(path, {"graphics": "low"})
 	Config.reload()
 	slider.value = 100.0
 	check(sp.save(), "сохранилось (100%)")
@@ -88,6 +93,15 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	sp.queue_free()
 	_restore(path, backup)
 	Config.reload()
+
+
+## Полностью перезаписать конфиг (не патч поверх старого — тест не зависит от того, что там было).
+func _write(path: String, data: Dictionary) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(data, "  "))
+		f.close()
 
 
 func _restore(path: String, content: String) -> void:
