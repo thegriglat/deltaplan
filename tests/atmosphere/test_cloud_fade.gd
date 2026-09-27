@@ -116,15 +116,13 @@ func test_cap_prefers_shown() -> void:
 	)
 
 
-## Полёт 20 мин атмосферы (medium и strong, прямо по ветру и поперёк — облака уходят за
-## дальность, тают, сливаются; лимит облаков урезан, чтобы работала обрезка): ни одно
-## видимое облако не пропадает скачком и не появляется сразу плотным.
+## Короткий полёт (3 мин атмосферы, medium; лимит облаков урезан, чтобы работала обрезка):
+## ни одно видимое облако не пропадает скачком и не появляется сразу плотным.
+## (Длинный 20-минутный прогон убран по просьбе пользователя — долго.)
 func test_no_instant_disappearance_in_flight() -> void:
-	for wx in ["weather/medium", "weather/strong"]:
-		var r := _fly(wx, 1200)
-		check(r.events.is_empty(), "%s: мгновенные исчезновения/появления: %s" % [wx, r.events])
-		check(int(r.faded) > 0, "%s: облака уходили (тая): %d" % [wx, r.faded])
-		check(int(r.max_vis) > 0, "%s: облака рисовались" % wx)
+	var r := _fly("weather/medium", 180)
+	check(r.events.is_empty(), "мгновенные исчезновения/появления: %s" % [r.events])
+	check(int(r.max_vis) > 0, "облака рисовались")
 
 
 func _fly(weather: String, seconds: int) -> Dictionary:
