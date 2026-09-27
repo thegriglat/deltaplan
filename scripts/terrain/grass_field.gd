@@ -3,11 +3,13 @@ extends MultiMeshInstance3D
 ## Травинки вокруг камеры (VR-17, VR-6): сетка пучков едет за камерой, пучок привязан к мировой
 ## клетке; всё остальное (есть ли трава, высота, цвет, качание) — в grass.gdshader.
 ## Видна на старте, при разбеге и посадке (выше max_agl_m — выключена).
-## Параметры — configs/world.json → grass.
+## Параметры — configs/vegetation.json → grass.
 
 const SHADER := preload("res://scripts/terrain/grass.gdshader")
 ## Скошенных мест в шейдере (размер массива mowed).
 const MAX_MOWED := 4
+## Посадочных площадок-прямоугольников (set_landing_sites) в шейдере.
+const MAX_LANDING := 4
 
 var camera: Camera3D
 ## Нода пилота (приминание травы у ног); null — не приминать.
@@ -18,6 +20,9 @@ var _spacing: float = 0.5
 var _max_agl: float = 120.0
 var _layer: HeightLayer
 var _last_cell := Vector2(INF, INF)
+## Высота скошенной травы по умолчанию (configs/vegetation.json → grass.mowed_height_k) —
+## для set_landing_sites, если площадка не задала свою.
+var _mowed_height_k: float = 0.3
 
 
 func setup(
@@ -32,6 +37,7 @@ func setup(
 	_layer = layer
 	_spacing = float(cfg.clump_spacing_m)
 	_max_agl = float(cfg.get("max_agl_m", 120.0))
+	_mowed_height_k = float(cfg.get("mowed_height_k", 0.3))
 	var radius := float(cfg.radius_m)
 	var n := int(ceil(2.0 * radius / _spacing)) + 1
 	var mm := MultiMesh.new()
@@ -65,6 +71,13 @@ func setup(
 	material.set_shader_parameter("sway_amp", float(cfg.sway_amp))
 	material.set_shader_parameter("bend_amp", float(cfg.bend_amp))
 	material.set_shader_parameter("press_radius_m", float(cfg.press_radius_m))
+	material.set_shader_parameter("press_agl_full_m", float(cfg.get("press_agl_full_m", 0.4)))
+	material.set_shader_parameter("press_agl_zero_m", float(cfg.get("press_agl_zero_m", 1.2)))
+	material.set_shader_parameter("far_density_min", float(cfg.get("far_density_min", 0.12)))
+	material.set_shader_parameter("thin_start_k", float(cfg.get("thin_start_k", 0.1)))
+	material.set_shader_parameter("thin_end_k", float(cfg.get("thin_end_k", 0.85)))
+	material.set_shader_parameter("far_width_k", float(cfg.get("far_width_k", 1.7)))
+	material.set_shader_parameter("landing_count", 0)
 	var spots := mowed_spots.slice(0, MAX_MOWED)
 	while spots.size() < MAX_MOWED:
 		spots.append(Vector4(1e9, 1e9, 0.0, 1.0))
@@ -96,6 +109,102 @@ func _process(_delta: float) -> void:
 
 static func _v2(a: Variant) -> Vector2:
 	return Vector2(float(a[0]), float(a[1]))
+
+
+## Посадки — прямоугольником, не кругом (рекомендация 4): sites — как
+## WorldObjects.get_landing_sites(), [{position: Vector3, axis_deg, length_m, width_m}].
+## Вызывает группа «Сцена игры»; до вызова действует круговое скашивание по
+## Terrain.get_landing_sites (configs/vegetation.json → grass.landing_mow_radius_m).
+func set_landing_sites(sites: Array[Dictionary]) -> void:
+	if material == null:
+		return
+	var pos: Array[Vector4] = []
+	var dir: Array[Vector4] = []
+	var hk := PackedFloat32Array()
+	for s in sites.slice(0, MAX_LANDING):
+		var p: Vector3 = s.position
+		var axis3 := TerrainGeo.heading_vector(float(s.get("axis_deg", 0.0)))
+		var right3 := axis3.cross(Vector3.UP)
+		pos.append(Vector4(p.x, p.z, float(s.length_m) * 0.5, float(s.width_m) * 0.5))
+		dir.append(Vector4(axis3.x, axis3.z, right3.x, right3.z))
+		hk.append(float(s.get("mowed_height_k", _mowed_height_k)))
+	while pos.size() < MAX_LANDING:
+		pos.append(Vector4(1e9, 1e9, 0.0, 0.0))
+		dir.append(Vector4(1.0, 0.0, 0.0, 1.0))
+		hk.append(1.0)
+	material.set_shader_parameter("landing_pos", pos)
+	material.set_shader_parameter("landing_dir", dir)
+	material.set_shader_parameter("landing_hk", hk)
+	material.set_shader_parameter("landing_count", mini(sites.size(), MAX_LANDING))
+	# Прямоугольник заменяет круговое скашивание (было до подключения группой «Сцена игры»).
+	material.set_shader_parameter("mowed_count", 0)
+
+
+## Точка (x, z) в прямоугольнике посадки (та же формула, что в grass.gdshader):
+## center — центр площадки, axis_deg — курс длинной оси, length_m/width_m — размеры.
+static func in_landing_rect(
+	xz: Vector2, center: Vector2, axis_deg: float, length_m: float, width_m: float
+) -> bool:
+	var axis3 := TerrainGeo.heading_vector(axis_deg)
+	var right3 := axis3.cross(Vector3.UP)
+	var d := xz - center
+	var along := d.dot(Vector2(axis3.x, axis3.z))
+	var across := d.dot(Vector2(right3.x, right3.z))
+	return absf(along) <= length_m * 0.5 and absf(across) <= width_m * 0.5
+
+
+## Прореживание пучков вдали (рекомендация 1): доля видимых пучков на расстоянии d
+## от камеры, 1.0 у камеры → far_density_min у границы area_radius_m (та же формула,
+## что uniform'ы far_density_min/thin_start_k/thin_end_k в grass.gdshader).
+static func far_density(
+	d: float, area_radius_m: float, far_density_min: float, thin_start_k: float, thin_end_k: float
+) -> float:
+	if area_radius_m <= 0.0:
+		return far_density_min
+	var t := clampf(d / area_radius_m, 0.0, 1.0)
+	return lerpf(1.0, far_density_min, smoothstep(thin_start_k, thin_end_k, t))
+
+
+## Ширина пучка вдали относительно ближней (та же смесь, что far_density, но к far_width_k).
+static func far_width_scale(
+	d: float, area_radius_m: float, far_width_k: float, thin_start_k: float, thin_end_k: float
+) -> float:
+	if area_radius_m <= 0.0:
+		return 1.0
+	var t := clampf(d / area_radius_m, 0.0, 1.0)
+	return lerpf(1.0, far_width_k, smoothstep(thin_start_k, thin_end_k, t))
+
+
+## Хеш пучка → rank 0..1 (совпадает с hash12 в terrain_common.gdshaderinc + offset 20.5
+## в grass.gdshader): пучок виден, если rank < far_density(d, ...).
+static func clump_rank(cell: Vector2) -> float:
+	return _hash12(cell + Vector2(20.5, 0.0))
+
+
+static func _hash12(p_in: Vector2) -> float:
+	var p := Vector2(fmod(p_in.x, 4096.0), fmod(p_in.y, 4096.0))
+	var fx := fposmod(p.x * 0.1031, 1.0)
+	var fy := fposmod(p.y * 0.1031, 1.0)
+	var p3 := Vector3(fx, fy, fx)  # vec3(p.xyx) в grass.gdshader/hash12
+	var dot_v := p3.dot(Vector3(p3.y + 33.33, p3.z + 33.33, p3.x + 33.33))
+	p3 += Vector3(dot_v, dot_v, dot_v)
+	return fposmod((p3.x + p3.y) * p3.z, 1.0)
+
+
+## Приминание по высоте ног пилота над землёй (рекомендация 3): 1.0 — полное (agl ≤ full_m),
+## 0.0 — нет (agl ≥ zero_m). Та же формула, что near_ground в grass.gdshader.
+static func near_ground_factor(agl_m: float, full_m: float, zero_m: float) -> float:
+	return 1.0 - smoothstep(full_m, zero_m, agl_m)
+
+
+## Приминание по расстоянию от пилота в плоскости XZ (доля press_radius_m), умноженное
+## на near_ground_factor — итоговый коэффициент 0..1, как press в grass.gdshader.
+static func press_factor(
+	dist_xz: float, press_radius_m: float, agl_m: float, full_m: float, zero_m: float
+) -> float:
+	var near_ground := near_ground_factor(agl_m, full_m, zero_m)
+	var radial := 1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, dist_xz)
+	return near_ground * radial
 
 
 ## Пучок травинок: blades штук в круге ~0,15 м, каждая — полоска из segments отрезков,

@@ -3,7 +3,7 @@
 // Где трава — решает карта поверхности (луг, пашня — выше, кустарник — реже; лес, скалы, вода,
 // застройка — нет); цвет — та же палитра, что у рельефа (meadow_color). Качание — тем же полем
 // ветра, что колышет рельеф (порывы, термики), приминание у ног пилота. Параметры задаёт
-// GrassField из configs/world.json → grass.
+// GrassField из configs/vegetation.json → grass.
 shader_type spatial;
 render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_disabled;
 
@@ -21,12 +21,27 @@ uniform float color_variation = 0.15;
 uniform float sway_hz = 0.8;                      // частота собственного качания, Гц
 uniform float sway_amp = 0.12;                    // собственное качание (доля высоты) при полном ветре
 uniform float bend_amp = 0.7;                     // наклон по ветру/порыву (доля высоты)
-// скошенные места (посадочные площадки): xy — центр, z — радиус, м; w — доля высоты
+// скошенные места (посадочные площадки, круг — пока не подключены прямоугольники): xy — центр,
+// z — радиус, м; w — доля высоты
 uniform vec4 mowed[4];
 uniform int mowed_count = 0;
+// посадки прямоугольником (рекомендация 4, GrassField.set_landing_sites): landing_pos —
+// xy центр, z half_len (по оси), w half_width (поперёк); landing_dir — xy ось (курс), zw
+// перпендикуляр; landing_hk — доля высоты скошенной травы.
+uniform vec4 landing_pos[4];
+uniform vec4 landing_dir[4];
+uniform float landing_hk[4];
+uniform int landing_count = 0;
 // приминание у ног пилота
 uniform vec3 press_pos = vec3(1e9);
 uniform float press_radius_m = 1.5;
+uniform float press_agl_full_m = 0.4;   // ноги ниже — приминание полное
+uniform float press_agl_zero_m = 1.2;   // ноги выше — приминания нет
+// прореживание вдали (рекомендация 1): rank пучка < far_density(d) — виден
+uniform float far_density_min = 0.12;
+uniform float thin_start_k = 0.1;
+uniform float thin_end_k = 0.85;
+uniform float far_width_k = 1.7;
 
 varying vec3 v_col;
 varying float v_t;
@@ -59,8 +74,28 @@ void vertex() {
 			hh *= mowed[k].w;
 		}
 	}
+	// посадки прямоугольником (рекомендация 4): вдоль оси / поперёк, не кругом
+	for (int k = 0; k < landing_count; k++) {
+		vec2 dv = xz - landing_pos[k].xy;
+		float along = dot(dv, landing_dir[k].xy);
+		float across = dot(dv, landing_dir[k].zw);
+		if (abs(along) <= landing_pos[k].z && abs(across) <= landing_pos[k].w) {
+			hh *= landing_hk[k];
+		}
+	}
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);
 	hh *= 1.0 - smoothstep(area_radius_m * 0.6, area_radius_m, d);
+
+	// прореживание вдали (рекомендация 1): пучок виден, если rank < density(d);
+	// дальние пучки шире — компенсируют разрежение (far_width_k, применяется к o ниже).
+	float thin_t = clamp(d / max(area_radius_m, 0.001), 0.0, 1.0);
+	float thin_s = smoothstep(thin_start_k, thin_end_k, thin_t);
+	float density = mix(1.0, far_density_min, thin_s);
+	float rank = hash12(cell + vec2(20.5, 0.0));
+	if (rank >= density) {
+		hh = 0.0;
+	}
+	float width_scale = mix(1.0, far_width_k, thin_s);
 
 	// ветер: наклон по полю порывов/термиков + собственное качание
 	float t = VERTEX.y;                 // 0 — корень, 1 — кончик
@@ -75,13 +110,14 @@ void vertex() {
 	// приминание: пилот стоит/бежит — трава клонится от него и ложится
 	vec2 pv = xz - press_pos.xz;
 	float pd = length(pv);
-	float near_ground = 1.0 - smoothstep(1.5, 3.0, press_pos.y - h);
+	float near_ground = 1.0 - smoothstep(press_agl_full_m, press_agl_zero_m, press_pos.y - h);
 	float press = near_ground * (1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, pd));
 	lean = mix(lean, (pd > 0.01 ? pv / pd : vec2(0.0)) * 1.5, press);
 	float l2 = min(dot(lean, lean), 2.0);
 	// поворот пучка
 	float a = hash12(cell + 6.6) * 6.2832;
-	vec2 o = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * VERTEX.xz;   // м
+	// дальние пучки шире (компенсация прореживания, рекомендация 1)
+	vec2 o = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * VERTEX.xz * width_scale;   // м
 	float y = t * hh * inversesqrt(1.0 + l2 * t * t);   // стебель не вытягивается при наклоне
 	vec2 off = lean * hh * t * t;
 	VERTEX = vec3(xz.x + o.x + off.x, h + y - 0.02, xz.y + o.y + off.y);
@@ -103,8 +139,11 @@ void vertex() {
 void fragment() {
 	// у корня темнее (затенение в гуще), к кончику светлее
 	ALBEDO = v_col * mix(1.25, 1.75, v_t);
-	// освещение как у земли под травой (обе стороны травинки)
+	// освещение как у земли под травой (обе стороны травинки): нормаль явная и одна и та же
+	// для лица и изнанки (render_mode cull_disabled, без FRONT_FACING-переворота — иначе
+	// изнанка темнеет); тонкий стебель просвечивает — BACKLIGHT держит изнанку не темнее
+	// лица против солнца (VR-6, S1 yaw+180).
 	NORMAL = normalize((VIEW_MATRIX * vec4(v_n, 0.0)).xyz);
 	ROUGHNESS = 0.9;
-	BACKLIGHT = vec3(0.25) * v_col;
+	BACKLIGHT = vec3(0.85) * v_col;
 }

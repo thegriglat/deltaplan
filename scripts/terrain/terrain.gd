@@ -173,7 +173,7 @@ func setup(
 		trees = null
 	if bool(trees_cfg.get("enabled", false)) and not renderer.height_textures.is_empty():
 		trees = _make_trees(trees_cfg, look)
-	_make_grass(world.get("grass", {}), look)
+	_make_grass(Config.get_config("vegetation").get("grass", {}), look)
 	_setup_wind(world.get("wind_visual", {}))
 
 
@@ -228,6 +228,13 @@ func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
 	for l in _landings:
 		var p: Vector3 = l.position
 		spots.append(Vector4(p.x, p.z, r, float(cfg.get("mowed_height_k", 0.3))))
+	# Сухость травинок сверх палитры локации (configs/vegetation.json →
+	# grass.dryness_add_by_location) — только для травы, не для рельефа/леса.
+	var dryness_add := float(cfg.get("dryness_add_by_location", {}).get(location_id, 0.0))
+	var grass_look := look
+	if dryness_add != 0.0:
+		grass_look = look.duplicate(true)
+		grass_look["dryness"] = float(look.get("dryness", 0.3)) + dryness_add
 	grass = GrassField.new()
 	grass.name = "Grass"
 	add_child(grass)
@@ -236,7 +243,7 @@ func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
 		renderer.height_textures[0],
 		surfaces[0],
 		renderer.surface_textures[0],
-		look,
+		grass_look,
 		cfg,
 		spots
 	)
