@@ -42,3 +42,33 @@ func test_xc_bot_synthetic_10km() -> void:
 	)
 	check(int(res.thermals) >= 3, "набирал в термиках: %d" % res.thermals)
 	check(float(res.glide_ratio_eff) > 8.0, "качество переходов %.1f" % res.glide_ratio_eff)
+
+
+## «Идеальный пилот» (карточка 07, знает оси термиков) в болтанке: техника виража сама по себе
+## набирает — набор ≥ 80 % от (ядро − снижение на вираже).
+func test_xc_ideal_pilot_turbulence() -> void:
+	var run: Node = XC_RUN.new()
+	var res: Dictionary = (
+		run
+		. simulate(
+			{
+				"synthetic": "1",
+				"seed": 1,
+				"km": 10,
+				"turbulence": 1,
+				"ideal": "1",
+				"start-agl": 700,
+				"cloudbase-agl": 1000,
+			}
+		)
+	)
+	run.free()
+	check(res.get("end_reason", "") == "goal", "долетел до цели: %s" % res.get("end_reason", "?"))
+	var syn: Dictionary = res.synthetic
+	check(
+		float(syn.climb_ratio) >= 0.8,
+		(
+			"набор %.2f м/с = %.0f %% от (ядро %.1f − вираж %.2f)"
+			% [res.avg_climb_ms, float(syn.climb_ratio) * 100.0, syn.core_ms, syn.turn_sink_ms]
+		)
+	)

@@ -17,10 +17,14 @@ OUT_DIR="${1:-tmp_xc_matrix}"
 JOBS="${2:-$(( $(nproc) / 2 > 0 ? $(nproc) / 2 : 1 ))}"
 mkdir -p "$OUT_DIR"
 
-LOCATIONS=(ongudai altai askarovo aushkul)
-WEATHERS=(weak medium strong)
-WINDS=(0 15)
-SEEDS=(1 2 3 4 5)
+# Подмножество матрицы и доп. флаги xc_run — через окружение (карточка 07), например
+#   XC_WEATHERS="medium strong" XC_CLOUDS="0" XC_EXTRA="--ideal" tools/atmosphere/xc_matrix.sh tmp_ideal
+read -r -a LOCATIONS <<<"${XC_LOCATIONS:-ongudai altai askarovo aushkul}"
+read -r -a WEATHERS <<<"${XC_WEATHERS:-weak medium strong}"
+read -r -a WINDS <<<"${XC_WINDS:-0 15}"
+read -r -a SEEDS <<<"${XC_SEEDS:-1 2 3 4 5}"
+read -r -a CLOUDS <<<"${XC_CLOUDS:-0 1}"
+EXTRA="${XC_EXTRA:-}"
 KM=40
 TIME_LIMIT=3600
 WIND_DEG=270
@@ -35,7 +39,7 @@ for loc in "${LOCATIONS[@]}"; do
 	for w in "${WEATHERS[@]}"; do
 		for wind in "${WINDS[@]}"; do
 			for seed in "${SEEDS[@]}"; do
-				for clouds in 0 1; do
+				for clouds in "${CLOUDS[@]}"; do
 					tag="${loc}_${w}_wind${wind}_seed${seed}"
 					flag=""
 					if [[ $clouds == 1 ]]; then
@@ -53,7 +57,7 @@ for loc in "${LOCATIONS[@]}"; do
 out="$out"
 log="$log"
 if ! timeout $WALL_TIMEOUT tools/atmosphere/xc_run.sh --location=$loc --weather=$w --seed=$seed \\
-		--wind=$wind,$WIND_DEG --km=$KM --time-limit=$TIME_LIMIT --out="\$out" $flag >"\$log" 2>&1; then
+		--wind=$wind,$WIND_DEG --km=$KM --time-limit=$TIME_LIMIT --out="\$out" $flag $EXTRA >"\$log" 2>&1; then
 	ec=\$?
 	if [[ \$ec -eq 124 ]]; then
 		printf '{"end_reason": "timeout"}\n' >"\$out"

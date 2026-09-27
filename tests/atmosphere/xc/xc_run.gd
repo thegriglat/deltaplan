@@ -7,7 +7,8 @@ extends Node
 ## Синтетика (--synthetic): плоская земля, статичные термики сеткой вдоль курса, без ветра.
 ## Прочие флаги: --course=<°> (по умолчанию по ветру), --start-agl=300, --time-limit=<с>,
 ## --wing=sport, --no-thermals, --bg=<м/с>, --start-alt=<м AGL>, --grid=<м>, --lateral=<м>,
-## --strength=<м/с>, --radius=<м>, --turbulence=0|1, --cloudbase-agl=<м>, --trace=<с>.
+## --strength=<м/с>, --radius=<м>, --turbulence=0|1, --cloudbase-agl=<м>, --trace=<с>,
+## --ideal (диагностика «идеальный пилот»: знает оси термиков, карточка 07), --ideal-min=<м/с>.
 
 const DT := 1.0 / 60.0
 const HIST_BIN := 0.5
@@ -137,7 +138,7 @@ func simulate(opts: Dictionary) -> Dictionary:
 	atmo.step(DT)
 	fm.reset_in_air(start, course, 0.0, atmo.mean_wind_at(start))
 
-	var bot := XcPilot.new()
+	var bot: XcPilot = XcIdealPilot.new() if opts.has("ideal") else XcPilot.new()
 	bot.setup(wing, pilot_cfg, goal)
 	bot.route_start = start2
 	bot.ground_fn = height_fn
@@ -145,6 +146,10 @@ func simulate(opts: Dictionary) -> Dictionary:
 	bot.use_clouds = opts.has("clouds")
 	if bot.use_clouds:
 		bot.clouds_fn = _visible_clouds.bind(atmo, fm)
+	if opts.has("ideal"):
+		var ideal := bot as XcIdealPilot
+		ideal.oracle_fn = _oracle.bind(atmo)
+		ideal.min_w = float(opts.get("ideal-min", 0.8))
 
 	var res := _fly(
 		fm,
@@ -238,6 +243,18 @@ func _visible_clouds(atmo: Atmosphere, fm: FlightModel) -> Array:
 	return out
 
 
+## Диагностика «идеальный пилот» (--ideal, карточка 07): живые термики в 2,5 км — ось на высоте p.
+static func _oracle(p: Vector3, atmo: Atmosphere) -> Array:
+	var out: Array = []
+	for th: AtmoThermal in atmo.field.near(p, 2500.0):
+		if th.env <= 0.05 or p.y < th.cut_h or p.y > th.top:
+			continue
+		out.append(
+			{"id": th.id, "center": th.axis_at(p.y), "w": th.strength * th.env, "top": th.top}
+		)
+	return out
+
+
 func _fly(
 	fm: FlightModel,
 	atmo: Atmosphere,
@@ -274,6 +291,10 @@ func _fly(
 	var prev := fm.position
 	var h0 := fm.position.y
 	var cloud_flags: Array[bool] = []
+	var lift_sum := 0.0
+	var air_sum := 0.0
+	var vario_sum := 0.0
+	var lift_n := 0
 	var inp := ControlInput.new()
 	var step_i := 0
 	while t < time_limit:
@@ -298,6 +319,13 @@ func _fly(
 				strong_t += DT
 		if bot.is_circling():
 			circling_t += DT
+			# Воздух в кружении (диагностика 07): подъём термика у пилота и полная вертикаль.
+			if step_i % 6 == 0:
+				var sm := atmo.field.sample(p)
+				lift_sum += sm.x
+				air_sum += atmo.air_velocity_at(p).y
+				vario_sum += tel.vario
+				lift_n += 1
 		else:
 			tr_time += DT
 			tr_vario += tel.vario
@@ -309,7 +337,7 @@ func _fly(
 		if trace > 0.0 and step_i % maxi(1, roundi(trace / DT)) == 0:
 			print(
 				(
-					"%7.1f x=%7.0f z=%6.0f h=%6.1f v=%5.2f n=%5.2f m=%d b=%5.1f as=%4.1f p=%5.2f %s"
+					"%7.1f x=%7.0f z=%6.0f h=%6.1f v=%5.2f n=%5.2f m=%d b=%5.1f as=%4.1f p=%5.2f th=%5.2f %s"
 					% [
 						t,
 						p.x,
@@ -321,6 +349,7 @@ func _fly(
 						tel.bank_deg,
 						tel.airspeed,
 						inp.pitch,
+						atmo.field.sample(p).x,
 						bot.debug_state()
 					]
 				)
@@ -376,6 +405,14 @@ func _fly(
 		"start_alt_msl_m": snappedf(h0, 0.1),
 		"end_alt_msl_m": snappedf(fm.position.y, 0.1),
 		"thermal_list": _thermal_list(bot.thermals),
+		# Средние за время кружения: подъём термика у пилота, вертикаль воздуха (с фоном и
+		# болтанкой), вариометр — разность «воздух − вариометр» = снижение на вираже.
+		"circling_air":
+		{
+			"thermal_lift_ms": snappedf(lift_sum / maxf(lift_n, 1), 0.001),
+			"air_w_ms": snappedf(air_sum / maxf(lift_n, 1), 0.001),
+			"vario_ms": snappedf(vario_sum / maxf(lift_n, 1), 0.001),
+		},
 	}
 	_last_fly_cpu_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	return res

@@ -31,10 +31,17 @@ var save_agl_m: float = 300.0
 ## Крен в термике, °.
 var circle_bank_deg: float = 38.0
 ## Пределы крена при центровке, °.
-var circle_bank_min_deg: float = 28.0
-var circle_bank_max_deg: float = 42.0
+var circle_bank_min_deg: float = 8.0
+var circle_bank_max_deg: float = 50.0
 ## Центровка: память карты подъёма (позиции с сильным вариометром), с.
 var centering_tau_s: float = 12.0
+## Сдвиг круга к цели: за сколько секунд центр виража подходит к центру подъёма, с.
+var center_shift_tau_s: float = 10.0
+## Предел выполаживания виража при сдвиге круга (доля tg крена) и докручивания.
+var center_flatten_max: float = 0.85
+var center_steepen_max: float = 0.5
+## Усреднение оценки ветра по сносу (GPS − воздушная скорость по курсу), с.
+var wind_tau_s: float = 20.0
 ## Орбита вокруг центра подъёма: поправка курса на 1 м ошибки радиуса, °; крен на 1° курса.
 var orbit_gain: float = 2.0
 var orbit_bank_per_deg: float = 0.5
@@ -139,6 +146,15 @@ var _prev_bank: float = 0.0
 var _bank_rate: float = 0.0
 var _v_cmd: float = 10.0
 var _v_exp: float = 10.0
+## Ветер по сносу (GPS минус воздушная скорость по курсу), м/с (x, z).
+var _wind_est: Vector2 = Vector2.ZERO
+## Центровка по первой гармонике подъёма за круг (карточка 07).
+var _fit := XcCircleFit.new()
+## Самый сильный недавний подъём (нетто, м/с) и где он был — для первого круга.
+var _peak_val: float = -INF
+var _peak_pos: Vector2 = Vector2.ZERO
+## Скорость центра подъёма (знает только диагностический пилот), м/с (x, z).
+var _lc_vel: Vector2 = Vector2.ZERO
 
 var _enter_t: float = 0.0
 var _enter_bank0: float = 0.0
@@ -237,6 +253,8 @@ func drive(t: Telemetry, dt: float) -> ControlInput:
 	# склона) — общий обход рельефа (для дальних переходов) тут не нужен и мешал бы развороту.
 	if mode != Mode.RIDGE and _check_terrain(t, pos, dt):
 		return _ctl
+	if _take_over(t, pos, dt):
+		return _ctl
 	match mode:
 		Mode.CRUISE:
 			_cruise(t, pos, dt)
@@ -258,10 +276,11 @@ func netto() -> float:
 
 ## Внутреннее состояние одной строкой (для трассировки).
 func debug_state() -> String:
-	return (
+	var s := (
 		"an=%d base=%.2f cool=%.0f srch=%d sig=%.2f"
 		% [_anomaly, _netto_slow, _probe_cooldown, int(_search_on), sqrt(_turb_var)]
 	)
+	return s + " W=(%.1f,%.1f)" % [_wind_est.x, _wind_est.y]
 
 
 func _base_agl(t: Telemetry) -> float:
@@ -414,6 +433,8 @@ func _update_senses(t: Telemetry, dt: float) -> void:
 		_pos_hist.resize(maxi(2, roundi(LAG_BOX_S / maxf(dt, 1.0e-3))))
 		_lag_fast = clampi(roundi(LAG_FAST_S / maxf(dt, 1.0e-3)), 1, _pos_hist.size() - 1)
 		_pos_hist.fill(Vector2(t.position.x, t.position.z))
+	var drift := t.velocity - t.air_velocity
+	_wind_est += (Vector2(drift.x, drift.z) - _wind_est) * (1.0 - exp(-dt / wind_tau_s))
 	_vario_s += (t.vario - _vario_s) * (1.0 - exp(-dt / 0.3))
 	_pos_i = (_pos_i + 1) % _pos_hist.size()
 	_pos_hist[_pos_i] = Vector2(t.position.x, t.position.z)
@@ -435,6 +456,12 @@ func _update_senses(t: Telemetry, dt: float) -> void:
 	# Болтанка (СКО вариометра вокруг среднего): в спокойном воздухе решаем по быстрым
 	# сигналам, в болтанке — по скользящему среднему (иначе кружим в каждом порыве).
 	# Оцениваем на прямой (в вираже вариометр «гуляет» от самого круга).
+	# Где был самый сильный подъём недавно (позиция — с запаздыванием отклика): туда и
+	# ставим первый круг (вход по усреднённому нетто в болтанке запаздывает на десятки метров).
+	_peak_val -= dt * 0.25
+	if mode != Mode.CIRCLE and _netto_fast > _peak_val:
+		_peak_val = _netto_fast
+		_peak_pos = _lagged_pos()
 	if mode == Mode.CRUISE:
 		var dv := _netto_fast - _netto_avg
 		_turb_var += (dv * dv - _turb_var) * (1.0 - exp(-dt / 30.0))
@@ -455,7 +482,9 @@ func _cruise(t: Telemetry, pos: Vector2, dt: float) -> void:
 		return
 	# Подъём сильнее порога — входим (не в только что брошенный термик).
 	var thr := save_enter_netto_ms if save_mode else enter_netto_ms
-	var far := pos.distance_to(_no_enter_pos) > _no_enter_r or save_mode
+	# Низко (спасение) — тоже не возвращаться в только что брошенное место (иначе кружит в
+	# порывах на одном месте до земли), но радиус запрета меньше.
+	var far := pos.distance_to(_no_enter_pos) > (_no_enter_r * 0.5 if save_mode else _no_enter_r)
 	var high := t.altitude_msl > cloudbase_msl - cloudbase_margin_m - 50.0
 	var much_better := _n_dec > mc_ms + 1.0
 	if _n_dec > thr and (far or much_better) and not high:
@@ -495,8 +524,17 @@ func _cruise(t: Telemetry, pos: Vector2, dt: float) -> void:
 			var strong := _anom_ext > _netto_slow + bump_rel_ms + 0.05
 			strong = strong or _anom_min < _netto_slow - ring_drop_ms - 0.05
 			var need := t.altitude_msl < cloudbase_msl - probe_below_base_m
-			# В болтанке кольца и «края» тонут в порывах — пробы только в спокойном воздухе.
-			if probe_out_m > 0.0 and _probe_cooldown <= 0.0 and strong and need and _calm:
+			# В болтанке кольца и «края» тонут в порывах — пробы только в спокойном воздухе или
+			# по явному кольцу опускания (скользящее среднее намного ниже фона; «края» подъёма
+			# в болтанке неотличимы от порывов), и не низко — там пробы только тратят высоту.
+			var clear := _anom_min < _netto_slow - ring_drop_ms - 0.4 and not save_mode
+			if (
+				probe_out_m > 0.0
+				and _probe_cooldown <= 0.0
+				and strong
+				and need
+				and (_calm or clear)
+			):
 				_start_probe(t, pos, kind)
 				return
 	# Фон переходов — медленное среднее нетто в режиме перехода (кольца короче, базу не сдвигают).
@@ -626,6 +664,23 @@ func _orbit_bank(
 	return dir * clampf(bank * dir, -lim, lim)
 
 
+## Крен виража, сдвигающий круг к target (dir: +1 — вправо). Круг — в воздухе: центр виража
+## (сбоку от носа на радиус по воздушной скорости) сносит ветром, поэтому желаемая скорость
+## центра = (target − центр)/τ − ветер. Сдвиг — выполаживанием, когда нос смотрит туда, куда
+## надо сдвинуть круг (и докручиванием, когда от него): за круг центр смещается на ≈ v·δ/2.
+func _center_bank(t: Telemetry, pos: Vector2, target: Vector2, dir: float, base: float) -> float:
+	var v := maxf(t.airspeed, 5.0)
+	var tb := tan(deg_to_rad(base))
+	var h := deg_to_rad(t.heading_deg)
+	var fwd := Vector2(sin(h), -cos(h))
+	var right := Vector2(cos(h), sin(h))
+	var c := pos + right * (v * v / (Units.G * tb) * dir)
+	var want := (target - c) / center_shift_tau_s - _wind_est + _lc_vel
+	var delta := clampf(2.0 * want.dot(fwd) / v, -center_steepen_max, center_flatten_max)
+	var bank := rad_to_deg(atan(tb * (1.0 - delta)))
+	return dir * clampf(bank, circle_bank_min_deg, circle_bank_max_deg)
+
+
 func _lagged_pos() -> Vector2:
 	return _pos_hist[(_pos_i + _pos_hist.size() - _lag_fast) % _pos_hist.size()]
 
@@ -683,21 +738,20 @@ func _start_circle(t: Telemetry) -> void:
 	_circle_best = -INF
 	_weak_circles = 0
 	_circle_c = _turn_center(t)
+	_lc_vel = Vector2.ZERO
+	# Первый круг — вокруг места самого сильного подъёма (если оно рядом).
+	_fit.reset(_peak_pos, _peak_pos.distance_to(Vector2(t.position.x, t.position.z)) < 120.0)
 
 
 func _circle(t: Telemetry, pos: Vector2, _dt: float) -> void:
-	# Центровка (Райхман по карте подъёма): кружим по окружности радиуса виража вокруг
-	# «центра тяжести» подъёма последнего круга — к сильной стороне круг сам смещается
-	# (положе, когда центр дальше радиуса, круче — когда ближе).
-	var lc := _lift_c if _lift_w > 0.05 else _circle_c
-	var v := maxf(t.groundspeed, 5.0)
-	var r := v * v / (Units.G * tan(deg_to_rad(circle_bank_deg)))
-	var bank := _orbit_bank(t, pos, lc, r, _dir, circle_bank_deg, circle_bank_max_deg)
-	bank = _dir * maxf(bank * _dir, circle_bank_min_deg)
-	_hold_bank(t, bank)
+	# Центровка: кружим, сдвигая круг к центру подъёма (_circle_target) — выполаживанием, когда
+	# нос смотрит туда, куда надо сдвинуться (_center_bank).
+	_hold_bank(t, _center_bank(t, pos, _circle_target(t), _dir, circle_bank_deg))
 	_set_speed(_v_min_sink * 1.02 * _speed_scale(t.altitude_msl), t)
-	_turned += absf(wrapf(t.heading_deg - _prev_heading, -180.0, 180.0))
+	var dh := absf(wrapf(t.heading_deg - _prev_heading, -180.0, 180.0))
+	_turned += dh
 	_prev_heading = t.heading_deg
+	_fit.add(_lagged_pos(), _netto_fast, dh)
 	_circle_pos += pos
 	_circle_n += 1
 	_circle_best = maxf(_circle_best, _netto_fast)
@@ -714,22 +768,49 @@ func _circle(t: Telemetry, pos: Vector2, _dt: float) -> void:
 		_circle_alt0 = t.altitude_msl
 		_circle_pos = Vector2.ZERO
 		_circle_n = 0
-		var weak := _last_climb < (0.05 if save_mode else mc_ms * 0.6)
-		# Слабый круг, но рядом был сильный подъём — круг ещё не отцентрован, не бросаем
-		# (не больше двух таких кругов подряд).
-		var promising := _circle_best > mc_ms + 0.7 and _weak_circles < 2
-		_weak_circles = _weak_circles + 1 if weak else 0
-		_circle_best = -INF
-		if weak and not promising:
+		if _circle_weak_exit():
 			_exit_thermal(t, pos)
 			return
-	# Первый круг провалился (потеряли подъём) — не ждём полного круга.
+	if _circle_lost(t) or near_base:
+		_exit_thermal(t, pos)
+
+
+## Взять управление вместо обычных режимов (переопределяет диагностический пилот).
+func _take_over(_t: Telemetry, _pos: Vector2, _dt: float) -> bool:
+	return false
+
+
+## Куда сдвигать круг: центр по первой гармонике, до первой оценки — карта подъёма.
+func _circle_target(_t: Telemetry) -> Vector2:
+	if _fit.ok:
+		return _fit.target
+	return _lift_c if _lift_w > 0.05 else _circle_c
+
+
+## После полного круга: бросить ли термик (слабый круг и не видно, что ядро рядом).
+func _circle_weak_exit() -> bool:
+	var thr_weak := 0.05 if save_mode else mc_ms * 0.6
+	var weak := _last_climb < thr_weak
+	# Слабый круг, но рядом был сильный подъём — круг ещё не отцентрован, не бросаем
+	# (не больше двух таких кругов подряд).
+	var promising := _circle_best > mc_ms + 0.7
+	if _fit.ok:
+		# В болтанке максимум вариометра — порыв; сильная сторона по гармонике честнее.
+		promising = _fit.peak - _own_sink > thr_weak + 0.3
+		# После первого круга (вход редко точный) — дать сдвинуть круг, если подъём был.
+		promising = promising or (_th_circles == 1 and _fit.peak > 0.5)
+		# Круг на склоне подъёма (большой перепад, сильная сторона лучше порога) — ядро рядом.
+		promising = promising or (_fit.amp > 0.5 and _fit.peak - _own_sink > thr_weak)
+	promising = promising and _weak_circles < 2
+	_weak_circles = _weak_circles + 1 if weak else 0
+	_circle_best = -INF
+	return weak and not promising
+
+
+## Первый круг провалился (потеряли подъём) — не ждём полного круга.
+func _circle_lost(t: Telemetry) -> bool:
 	var lost := _th_circles == 0 and _circle_best < mc_ms + 1.0
-	if lost and _t - _th_t0 > 25.0 and t.altitude_msl < _th_alt0 - 10.0:
-		_exit_thermal(t, pos)
-		return
-	if near_base:
-		_exit_thermal(t, pos)
+	return lost and _t - _th_t0 > 25.0 and t.altitude_msl < _th_alt0 - 10.0
 
 
 ## Карта подъёма в круге: центр круга (среднее позиций) и «центр тяжести» подъёма — позиции,
