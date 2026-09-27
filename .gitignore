@@ -11,3 +11,8 @@
 .DS_Store
 .vscode/
 *.swp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
