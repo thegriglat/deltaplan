@@ -171,12 +171,15 @@ def add_cameras(objs, views: list, kind: str) -> dict:
             helmet.hide_render = True
         cams["cockpit"] = cam
     for spec in os.environ.get("EXTRA_CAMS", "").split(";"):
-        # имя:азимут_от_носа:возвышение:дистанция_в_размерах:фокус — свободный ракурс под фото
+        # имя:азимут_от_носа:возвышение:дистанция_в_размерах:фокус[:x,y,z] — свободный ракурс
+        # под фото; необязательная точка x,y,z (м, оси Blender) — куда смотрит камера вместо центра
         if spec and spec.split(":")[0] in views:
-            name, az, el, k, lens2 = spec.split(":")
+            name, az, el, k, lens2 = spec.split(":")[:5]
+            tgt = Vector([float(v) for v in spec.split(":")[5].split(",")]) \
+                if len(spec.split(":")) > 5 else c
             az, el = math.radians(float(az)), math.radians(float(el))
             dirv = Vector((math.sin(az) * math.cos(el), math.cos(az) * math.cos(el), math.sin(el)))
-            cams[name] = camera(name, c + dirv * size * float(k), c, lens=float(lens2))
+            cams[name] = camera(name, tgt + dirv * size * float(k), tgt, lens=float(lens2))
     return cams
 
 

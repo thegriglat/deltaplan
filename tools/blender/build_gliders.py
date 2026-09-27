@@ -50,7 +50,8 @@ class WingShape:
         y = self.y_nose - a * self.half / self.tan_ha
         if a > 0.9 and self.tip_round:
             y -= 0.35 * self.p["tip_chord_m"] * ((a - 0.9) / 0.1) ** 2 * 0.6
-        z = self.z0 + a * self.half * self.dih - 0.05 * a ** 3
+        # dihedral_deg — поперечное V в полёте (кромки уже изогнуты нагрузкой); прямая линия
+        z = self.z0 + a * self.half * self.dih
         return Vector((u * self.half, y, z))
 
     def camber(self, a: float) -> float:
@@ -203,6 +204,33 @@ def inside_sail(ws: WingShape, p: Vector, margin: float = 0.04) -> Vector:
     return Vector((p.x, p.y, min(p.z, up - margin)))
 
 
+def sail_underside_z(ws: WingShape, u: float, t: float) -> float:
+    """Высота нижней стороны паруса в точке (u, t): нижняя обшивка, за ней — верхняя."""
+    cov = ws.p["lower_cover"]
+    if t < cov:
+        return ws.lower(u, t / cov).z
+    return ws.upper(u, t).z
+
+
+def add_antidive_tube(ws: WingShape, s: int, spec: dict, r_le: float, mb) -> None:
+    """Антипикирующая трубка «Апогея» (со слов пилота): от законцовки передней кромки (a0)
+    назад-внутрь под ~45° к задней кромке, пересекает последнюю полную лату и кончается на
+    доле хорды t1 у станции a1. Идёт под парусом, снизу его подпирает; крепится к кромке."""
+    r = spec.get("r_m", 0.01)
+    p0 = le_tube_point(ws, s * spec["a0"], r_le)
+    le1 = ws.le(s * spec["a1"])
+    p1 = Vector((le1.x, le1.y - spec["t1"] * ws.chord(spec["a1"]), 0.0))
+    pts = []
+    for i in range(9):
+        q = p0.lerp(p1, i / 8)
+        u = q.x / ws.half
+        t = max(0.0, min(1.0, (ws.le(u).y - q.y) / ws.chord(abs(u))))
+        q.z = sail_underside_z(ws, u, t) - r - 0.006
+        pts.append(q)
+    pts[0] = p0 - Vector((0, 0, r_le * 0.6))
+    mb.add_tube(pts, r, "Tube", sides=8)
+
+
 def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
     mb = U.MeshBuilder()
     kz = cf["keel_z_m"]
@@ -228,6 +256,9 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
     # законцовки
     for s in (-1, 1):
         mb.add_ellipsoid(le_tube_point(ws, s * 0.975, r_le), (0.03, 0.05, 0.03), "Dark", 8, 5)
+    if p.get("antidive_tube"):
+        for s in (-1, 1):
+            add_antidive_tube(ws, s, p["antidive_tube"], r_le, mb)
     top = None
     if p["kingpost_m"] > 0:
         apex_y = cf["apex_forward_m"]
