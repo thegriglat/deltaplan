@@ -30,8 +30,8 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
 | `mean_wind_at(pos) -> Vector3` | средний ветер без пульсаций и вертикальных потоков (колдун на старте, взлёт). |
 | `step(dt)` | продвинуть время атмосферы (сама нода зовёт из `_physics_process`). |
 | `set_ground(height_fn, sun_fn, surface_fn = Callable())` | рельеф `(x, z) -> высота над уровнем моря`, сила источника термиков `(x, z) -> 0..1`, класс поверхности `(x, z) -> int` (для пылевых вихрей). |
-| `set_weather(name_or_dict)`, `configure(atmo_cfg, weather_cfg)` | пресет погоды / полная настройка (тесты). |
-| `set_wind(speed_kmh, from_deg)` | ветер (FR-16). |
+| `set_weather(name_or_dict, blend_s = -1)`, `configure(atmo_cfg, weather_cfg)` | погода: словарь `WeatherModel.derive` (игра) или эталон `configs/weather/*` (тесты); `blend_s ≥ 0` — мягкий переход без пересоздания термиков (ход дня, сигнал `weather_updated`) / полная настройка (тесты). |
+| `set_wind(speed_kmh, from_deg, ref_msl = NAN)` | ветер прогноза (FR-16) на высоте `ref_msl` (старт): выше — сильнее (`wind.altitude_*`). |
 | `set_sun_direction(to_sun)` | солнце: тени облаков ослабляют новые термики (VR-2). |
 | `set_cloudbase_msl(m)`, `get_cloudbase_msl()` | нижняя кромка; по умолчанию средняя высота земли в радиусе 10 км + пресет. |
 | `set_thermal_mode("dynamic"｜"static"｜"both")` | генерация по рельефу / только статичные (MVP) / оба. |
@@ -40,7 +40,32 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
 | `thermals_near(pos, r) -> Array[Dictionary]` | для тестов и отладки. **Пилоту не показывать** (FR-22). |
 | `time_s`, `turbulence_enabled` | время атмосферы; выключатель пульсаций (тесты). |
 
-Сигнал `weather_changed` — после смены пресета.
+Сигнал `weather_changed` — после смены погоды (`configure`), `weather_updated` — после мягкого обновления.
+
+## Погода из прогноза (FR-16)
+Пилот задаёт прогноз: температуру днём `T` (дневной максимум у земли в долине), ветер на старте, откуда
+ветер, облачность. `WeatherModel` (`scripts/atmosphere/weather_model.gd`, чистые функции; параметры —
+`configs/weather_model.json`; план и ответы пилота — docs/plan/weather_by_temperature.md) собирает из него
+словарь с теми же ключами, что эталоны `configs/weather/*`:
+- **Место** (`ground_context`): долина `h_v` — нижние 10 % рельефа в радиусе отсчёта кромки, средняя `h_m`;
+  дата, широта, пояс. Алтай: 304 / 509 м.
+- **Верх термиков и кромка**: воздух наверху климатический (`upper_air.temp_c` на 3 км, градиент 4 К/км),
+  пузырь — сухая адиабата от `T + 1 К`: `z_dry = h_v + (T + δ − T_u − Γ(z_u − h_v)) / (9,8 − Γ)`; кромка
+  `z_lcl = h_v + 0,122 (T − Td)`, `Td` — обычная для месяца. Верх подъёма `min(z_dry, z_lcl)`; запас
+  `m = z_dry − z_lcl < −100 м` — голубой день (облаков нет). Кромка Cb — та же (разница T − Td и инверсия).
+- **Сила, радиус, шаг, доля, фон, σ** — по верху над средней землёй из таблицы опор (строки = бывшие
+  weak/medium/strong); × солнце сезона, × ветер рвёт термики; облака, переразвитие, Cb — по запасу `m`.
+- **Облачность** (`sky`): пелена `cirrus_cover` ослабляет прогрев (`cirrus.sun_block`), плюс мягкость, меньше
+  рождений, без гроз под облачностью.
+- **Ход дня** (`derive(…, час)`, `diurnal`): `T(t)` по Parton–Logan от максимума; утренняя инверсия держит
+  термики низко, пока прогрев её не пробьёт (кромка растёт всё утро); сила × (поток/пик)^⅓, доля × поток —
+  вечером термиков мало, они шире и мягче (край, σ); к закату спокойнее приземный слой и гуще дымка.
+  `Game` пересчитывает день раз в `diurnal.update_s` и зовёт `set_weather(w, blend_s)`. Инерция прогрева по
+  классам поверхности — `SurfaceHeating` → `Terrain.set_class_sun`.
+- **Волна** — скрыта, `wave.enabled: false`.
+
+Таблица «прогноз → день» по локациям и месяцам: `tools/weather/derive_table.tscn`. Тесты —
+`test_weather_model`, `test_weather_day`, `test_surface_heating`, `tests/game/test_forecast_game.gd`.
 
 ## Устройство
 
@@ -374,8 +399,9 @@ XC_EXTRA=--ideal tools/atmosphere/xc_matrix.sh` (4 локации × 3 сида;
 ## Конфиги
 - `configs/atmosphere.json` — модель (профиль, цикл, генерация, склон, подветренная зона,
   турбулентность, облака, птицы). Каждый параметр с `*_doc`.
-- `configs/weather/{weak,medium,strong}.json` — пресеты: ветер, кромка, сила/радиус/частота
-  термиков, фон, болтанка, облака, улицы, переразвитие, режим и статичные термики.
+- `configs/weather_model.json` — погода из прогноза (см. выше).
+- `configs/weather/*.json` — эталоны для тестов физики и калибровки (в игре не выбираются): ветер, кромка,
+  сила/радиус/частота термиков, фон, болтанка, облака, улицы, переразвитие, режим и статичные термики.
 - Качество облаков: `clouds.quality` = `low` | `medium` | `high` (`clouds.quality_presets`).
 
 ## Производительность
