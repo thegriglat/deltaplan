@@ -4,7 +4,7 @@
   "type": "race",
   "type_doc": "race — гонка к гоулу (время от стартового окна), elapsed — время от своего старта, open_distance — дальность",
   "location": "ongudai",
-  "start_site": "",
+  "start_site": "kayancha_south",
   "start_site_doc": "id стартовой площадки из configs/locations/ongudai.json; пусто — ставить пилота на пункт takeoff с курсом takeoff_heading_deg",
   "takeoff_heading_deg": 180,
   "takeoff_heading_deg_doc": "Курс разбега на взлёте, ° (старты горы Каянча — на юг)",

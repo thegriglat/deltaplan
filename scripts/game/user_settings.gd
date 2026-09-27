@@ -48,4 +48,7 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 		s.wing = FlightSettings.defaults().wing
 	if not Config.list_configs("weather").has(s.weather):
 		s.weather = FlightSettings.defaults().weather
+	if not Config.list_configs("locations").has("locations/" + s.location_id):
+		s.location_id = FlightSettings.defaults().location_id
+		s.site_id = FlightSettings.defaults().site_id
 	return s

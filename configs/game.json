@@ -1,10 +1,10 @@
 {
   "_doc": "Сборка игры (scenes/main.tscn, scripts/game/game.gd). Значения по умолчанию для нового полёта — меню их переопределяет и запоминает в user://last_flight.json",
-  "default_location": "locations/altai",
+  "default_location": "locations/ongudai",
   "default_location_doc": "Встроенная локация (имя конфига в configs/locations)",
-  "default_site": "",
+  "default_site": "kayancha_south",
   "default_site_doc": "id стартовой площадки по умолчанию; пусто — первая в локации",
-  "default_wing": "wings/sport",
+  "default_wing": "wings/training",
   "default_weather": "weather/medium",
   "default_wind_mode": "into_site",
   "default_wind_mode_doc": "into_site — ветер из пресета по силе, но дует в лоб старту (удобно для первого полёта); preset — направление из пресета погоды",
@@ -80,15 +80,190 @@
     {
       "scene": "res://scenes/instruments/instrument_3d.tscn",
       "marker": "InstrumentMount",
-      "face_pilot": true,
+      "rotate_y_deg": 180.0,
+      "shares_tablet": true,
       "optional": false
     },
     {
-      "scene": "res://scenes/instruments/vario_90s.tscn",
+      "scene": "res://scenes/instruments/vario_90s_3d.tscn",
       "marker": "VarioMount",
-      "face_pilot": false,
+      "rotate_y_deg": 180.0,
+      "shares_tablet": false,
       "optional": true
     }
   ],
-  "mounted_instruments_doc": "Приборы на трапеции (кабинный вид): сцена, маркер крепления в модели крыла (+Z маркера — экран к пилоту), face_pilot — довернуть экран к глазам пилота (поза полёта), optional — молча пропустить, если сцены или маркера нет. Сцена с use_instrument(FlightInstrument) показывает общий экран планшета; иначе ей зовётся update(t: Telemetry, dt)"
+  "mounted_instruments_doc": "Приборы на трапеции (кабинный вид): сцена, маркер крепления в модели крыла (−Z маркера смотрит на глаза пилота), rotate_y_deg — поворот сцены на маркере (экраны Instrument3D и Vario90s3D смотрят в +Z → 180°), shares_tablet — показывает общий экран планшета (use_instrument(FlightInstrument)), иначе прибор сам считает свой вариометр по update(t, dt); optional — молча пропустить, если нет сцены или маркера",
+  "cloud_whiteout": {
+    "_doc": "«Белая мгла» в облаке (docs/atmosphere.md): туман окружения сгущается по плотности облака у камеры, горизонт теряется — только приборы (FR-21)",
+    "density_gain": 1.5,
+    "density_gain_doc": "Сила мглы = clamp(плотность облака × gain, 0, 1)",
+    "rise_time_s": 0.3,
+    "rise_time_s_doc": "Постоянная времени нарастания и спада мглы, с",
+    "fog_density": 0.06,
+    "fog_density_doc": "Плотность тумана (Environment.fog_density) при полной мгле, 1/м: ~50 м видимости, прибор в 0,4 м читается",
+    "color": [
+      0.86,
+      0.88,
+      0.9
+    ],
+    "color_doc": "Цвет мглы RGB 0..1"
+  },
+  "default_wing_doc": "Крыло по умолчанию для первого запуска — учебное (прощает ошибки)",
+  "graphics": "medium",
+  "graphics_doc": "Пресет графики по умолчанию: low / medium / high (правки конфигов из graphics_presets пишутся в user://configs при выборе в настройках)",
+  "graphics_presets": {
+    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D)",
+    "low": {
+      "name": "Низкое",
+      "configs": {
+        "atmosphere": {
+          "clouds": {
+            "quality": "low",
+            "max_clouds": 90,
+            "shadows": false
+          }
+        },
+        "world": {
+          "trees": {
+            "radius_m": 250,
+            "cast_shadows": false
+          },
+          "sun": {
+            "shadow_max_distance_m": 1200
+          },
+          "effects": {
+            "ssao_enabled": false,
+            "glow_enabled": false
+          }
+        }
+      },
+      "viewport": {
+        "msaa_3d": 0,
+        "scale_3d": 0.8
+      }
+    },
+    "medium": {
+      "name": "Среднее",
+      "configs": {
+        "atmosphere": {
+          "clouds": {
+            "quality": "medium",
+            "max_clouds": 160,
+            "shadows": true
+          }
+        },
+        "world": {
+          "trees": {
+            "radius_m": 400,
+            "cast_shadows": true
+          },
+          "sun": {
+            "shadow_max_distance_m": 2000
+          }
+        }
+      },
+      "viewport": {
+        "msaa_3d": 2,
+        "scale_3d": 1.0
+      }
+    },
+    "high": {
+      "name": "Высокое",
+      "configs": {
+        "atmosphere": {
+          "clouds": {
+            "quality": "high",
+            "max_clouds": 220,
+            "shadows": true
+          }
+        },
+        "world": {
+          "trees": {
+            "radius_m": 500,
+            "cast_shadows": true
+          },
+          "sun": {
+            "shadow_max_distance_m": 3000
+          }
+        }
+      },
+      "viewport": {
+        "msaa_3d": 2,
+        "scale_3d": 1.0
+      }
+    }
+  },
+  "graphics_autodetect": {
+    "_doc": "Первый запуск: если имя видеокарты содержит одну из подстрок — «Низкое», иначе default",
+    "low_if_adapter_contains": [
+      "Intel",
+      "UHD",
+      "Iris",
+      "Vega",
+      "Radeon Graphics",
+      "Radeon(TM) Graphics",
+      "llvmpipe",
+      "SwiftShader",
+      "Mali",
+      "Adreno"
+    ],
+    "default": "high",
+    "enabled": false,
+    "enabled_doc": "Выбирать пресет по видеокарте при первом запуске (пока выключено: решено не оптимизировать под слабое железо)"
+  },
+  "pilot_animation": {
+    "_doc": "Анимации пилота (pilot.glb, docs/models.md → «Пилот»): stand ⇄ walk → run → отрыв → run_air → climb_in → prone → у земли climb_out → flare → касание → stand. Нет AnimationPlayer или анимации — пропускаем",
+    "by_phase": {
+      "standing": "stand",
+      "walking": "walk",
+      "running": "run",
+      "landed": "stand",
+      "failed": "stand"
+    },
+    "by_phase_doc": "Фаза Telemetry.phase на земле → анимация",
+    "takeoff_sequence": [
+      "run_air",
+      "climb_in",
+      "prone"
+    ],
+    "takeoff_sequence_doc": "После отрыва: по очереди (последняя — поза на весь полёт)",
+    "landing_sequence": [
+      "climb_out",
+      "flare"
+    ],
+    "landing_sequence_doc": "Перед посадкой: по очереди",
+    "climb_out_agl_m": 15.0,
+    "climb_out_agl_m_doc": "Ниже этой высоты над землёй при снижении — выход из кокона, м",
+    "climb_in_agl_m": 30.0,
+    "climb_in_agl_m_doc": "Если снова набрал выше этой высоты — обратно в кокон, м",
+    "min_air_time_s": 10.0,
+    "min_air_time_s_doc": "Раньше этого времени после отрыва из кокона по высоте не выходим (старт вдоль склона), с",
+    "flare_threshold": 0.3,
+    "flare_threshold_doc": "Выравнивание (FlightModel.flare_amount 0..1) сильнее — сразу посадочная последовательность",
+    "blend_s": 0.3,
+    "blend_s_doc": "Плавный переход между анимациями, с",
+    "looped": [
+      "stand",
+      "walk",
+      "run",
+      "prone",
+      "flare"
+    ],
+    "looped_doc": "Позы и циклы — зациклить (иначе однокадровая поза «доигрывает» раньше перехода и пилот остаётся в позе покоя)"
+  },
+  "world_objects_scene": "res://scenes/world_objects/world_objects.tscn",
+  "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, ЛЭП, препятствия (docs/world_objects.md); пусто — без них",
+  "collision_texts": {
+    "_doc": "Итог полёта при столкновении с препятствием (WorldObjects.obstacle_hit → kind)",
+    "wire": "Столкновение с проводами ЛЭП",
+    "tower": "Столкновение с опорой ЛЭП",
+    "building": "Столкновение со зданием",
+    "tree": "Столкновение с деревом",
+    "fence": "Столкновение с забором"
+  },
+  "vario_sound_from": {
+    "classic_90s": "VarioMount",
+    "xctracer": "InstrumentMount"
+  },
+  "vario_sound_from_doc": "Какой прибор пищит: пресет звука (audio.json → vario_audio.preset) → маркер прибора. Нет такого прибора — планшет"
 }

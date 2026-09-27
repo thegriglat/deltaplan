@@ -157,3 +157,55 @@ func test_result_texts() -> void:
 	var fail := {"reason": "tailwind", "text": GroundRun.failure_text("tailwind")}
 	check(ResultScreen.title_for("takeoff_failed", fail) == "Взлёт сорван", "срыв взлёта")
 	check(ResultScreen.lines_for("takeoff_failed", fail)[0].contains("Попутный"), "причина")
+
+
+func test_cloud_whiteout() -> void:
+	var w := CloudWhiteout.new()
+	w.setup({"density_gain": 1.5, "rise_time_s": 0.3, "fog_density": 0.06})
+	for i in 60:
+		w.update(1.0, 1.0 / 60.0)
+	check(w.amount > 0.95, "в плотном облаке — полная мгла (%.2f)" % w.amount)
+	var env := Environment.new()
+	env.fog_density = 5e-5
+	w.apply(env)
+	check(env.fog_density > 0.05 and env.fog_sky_affect > 0.95, "туман густой, небо тоже в мгле")
+	for i in 240:
+		w.update(0.0, 1.0 / 60.0)
+	w.apply(env)
+	check(w.amount == 0.0, "вышел из облака — мгла ушла")
+	approx(env.fog_density, 5e-5, 1e-9, "исходный туман вернулся")
+
+
+func test_pilot_animator_sequence() -> void:
+	var root := Node3D.new()
+	var ap := AnimationPlayer.new()
+	root.add_child(ap)
+	var lib := AnimationLibrary.new()
+	for a: String in ["stand", "walk", "run", "run_air", "climb_in", "prone", "climb_out", "flare"]:
+		var anim := Animation.new()
+		anim.length = 1.5 if a in ["run_air", "climb_in", "climb_out"] else 1.0
+		lib.add_animation(a, anim)
+	ap.add_animation_library("", lib)
+	var pa := PilotAnimator.new()
+	pa.bind(root, Config.get_config("game").pilot_animation)
+	check(pa.current() == "stand", "после загрузки — stand")
+	pa.update("running", 0.0, 0.0, 0.0, 0.1)
+	check(pa.current() == "run", "разбег — run")
+	var seen := {}
+	var t := 0.0
+	while t < 5.0:
+		pa.update("flying", 5.0, 1.0, 0.0, 0.05)
+		seen[pa.current()] = true
+		t += 0.05
+	check(seen.has("run_air") and seen.has("climb_in"), "после отрыва: run_air → climb_in")
+	check(pa.current() == "prone", "потом лёжа")
+	for i in 400:  # долго летит, потом снижается к земле
+		pa.update("flying", 200.0, -1.0, 0.0, 0.05)
+	pa.update("flying", 10.0, -1.0, 0.0, 0.05)
+	check(pa.current() == "climb_out", "у земли — выход из кокона")
+	for i in 40:
+		pa.update("flying", 5.0, -1.0, 0.0, 0.05)
+	check(pa.current() == "flare", "затем выравнивание")
+	pa.update("landed", 0.0, 0.0, 0.0, 0.05)
+	check(pa.current() == "stand", "после посадки — stand")
+	root.free()

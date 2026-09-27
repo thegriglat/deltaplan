@@ -22,3 +22,4 @@ build_one() {
 
 [[ "$target" == linux || "$target" == all ]] && build_one Linux linux deltaplan.x86_64
 [[ "$target" == windows || "$target" == all ]] && build_one Windows windows deltaplan.exe
+exit 0  # иначе «build.sh linux» возвращает 1 от последней проверки [[ windows ]]

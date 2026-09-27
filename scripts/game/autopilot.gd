@@ -3,9 +3,12 @@ extends RefCounted
 ## Синтетический пилот для тестов, smoke-режима и скриншотов (--autopilot):
 ## жмёт те же действия InputMap, что и клавиатура (Input.action_press), поэтому проверяет
 ## всю цепочку ввод → InputController → планер. Не для игрока.
-## Сценарий: стоит stand_s → разбег (Shift) → в полёте держит курс старта, крыло ровно.
+## Сценарий: стоит stand_s → разбег (W+Shift, как клавиатура: W = walk_forward + pitch_pull_in)
+## → после отрыва держит W+Shift ещё hold_after_takeoff_s (проверка защёлки) → держит курс.
 
-const ACTIONS: Array[String] = ["run", "pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"]
+const ACTIONS: Array[String] = [
+	"run", "walk_forward", "pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"
+]
 
 ## Сколько стоять перед разбегом, с.
 var stand_s: float = 0.5
@@ -20,7 +23,11 @@ var bank_tol_deg: float = 2.0
 ## Упреждение по скорости крена, с (крыло доворачивает с запаздыванием).
 var lead_s: float = 0.8
 
+## Сколько секунд после отрыва не отпускать W+Shift (проверка защёлки клавиш), с.
+var hold_after_takeoff_s: float = 0.0
+
 var _time: float = 0.0
+var _air_time: float = 0.0
 var _heading: float = -1.0
 var _prev_bank: float = 0.0
 var _bank_rate: float = 0.0
@@ -28,6 +35,7 @@ var _bank_rate: float = 0.0
 
 func reset() -> void:
 	_time = 0.0
+	_air_time = 0.0
 	_heading = hold_heading_deg
 	release_all()
 
@@ -38,14 +46,15 @@ func drive(t: Telemetry, dt: float) -> void:
 	if dt > 0.0:
 		_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)
 	_prev_bank = t.bank_deg
-	_press("run", false)
-	_press("pitch_pull_in", false)
 	_press("pitch_push_out", false)
+	var hold_w := false
 	match t.phase:
 		"standing", "walking", "running":
-			_press("run", _time >= stand_s)
+			hold_w = _time >= stand_s
 			_level_roll(t.bank_deg, 0.0)
 		"flying":
+			_air_time += dt
+			hold_w = _air_time < hold_after_takeoff_s
 			if _heading < 0.0:
 				_heading = t.heading_deg
 			var err := wrapf(_heading - t.heading_deg, -180.0, 180.0)
@@ -54,6 +63,9 @@ func drive(t: Telemetry, dt: float) -> void:
 		_:
 			_press("roll_left", false)
 			_press("roll_right", false)
+	_press("walk_forward", hold_w)
+	_press("pitch_pull_in", hold_w)
+	_press("run", hold_w)
 
 
 func release_all() -> void:

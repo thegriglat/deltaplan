@@ -31,7 +31,12 @@ func _ready() -> void:
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
 	_connect_ui()
 	var overlays: Array[Control] = [
-		pause_menu, settings_panel, about_screen, result_screen, controls_screen, flight_setup_screen
+		pause_menu,
+		settings_panel,
+		about_screen,
+		result_screen,
+		controls_screen,
+		flight_setup_screen
 	]
 	for c: Control in overlays:
 		c.visible = false
@@ -105,7 +110,12 @@ func _show_menu() -> void:
 	state = State.MENU
 	get_tree().paused = false
 	var overlays: Array[Control] = [
-		pause_menu, settings_panel, about_screen, result_screen, controls_screen, flight_setup_screen
+		pause_menu,
+		settings_panel,
+		about_screen,
+		result_screen,
+		controls_screen,
+		flight_setup_screen
 	]
 	for c: Control in overlays:
 		c.visible = false
@@ -280,6 +290,8 @@ func _screenshot() -> void:
 			_open_overlay(controls_screen, start_menu if state == State.MENU else pause_menu)
 		"setup":
 			_open_flight_setup()
+	if opts.no_overlay:
+		game.overlay.visible = false
 	for i in 8:
 		await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()

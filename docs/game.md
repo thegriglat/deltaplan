@@ -14,6 +14,10 @@
 | `scripts/game/start_placement.gd` (`StartPlacement`) | старт в точке с карты: ближайший склон, курс вниз по склону |
 | `scripts/game/flight_stats.gd` (`FlightStats`) | итоги полёта для экрана после посадки |
 | `scripts/game/calm_air.gd` (`CalmAir`) | запасная модель воздуха (ветер + статичные термики) |
+| `scripts/game/cloud_whiteout.gd` (`CloudWhiteout`) | «белая мгла» в облаке: туман окружения по плотности облака у камеры |
+| `scripts/game/pilot_animator.gd` (`PilotAnimator`) | анимации пилота по фазе: stand/walk/run → run_air → climb_in → prone → climb_out → flare |
+| `scripts/game/world_link.gd` (`WorldLink`) | объекты мира (WorldObjects), просеки для деревьев, ветер для травы, столкновения |
+| `scripts/game/graphics_presets.gd` (`GraphicsPresets`) | пресеты графики low/medium/high = правки конфигов в user://configs |
 | `scripts/game/autopilot.gd` (`Autopilot`) | синтетический пилот для тестов, smoke и скриншотов |
 | `scripts/game/user_settings.gd` (`UserSettings`) | запись настроек в `user://configs/*.json`, последний выбор меню |
 | `scripts/game/launch_options.gd` (`LaunchOptions`) | аргументы командной строки |
@@ -45,12 +49,47 @@ Main (Node, process ALWAYS)            scenes/main.gd
 1. `air.step(dt)` — время атмосферы;
 2. (тесты/скриншоты) `autopilot.drive()` — жмёт действия InputMap;
 3. ввод: `input_controller.on_ground = фаза != "flying"`, `glider.set_input(input_controller.update(dt))`;
-4. планер: `glider._physics_process(dt)` → сигнал `telemetry_updated`;
+4. планер: `glider.step(dt)` → сигнал `telemetry_updated`;
 5. по сигналу: `FlightInstrument.update(t)` → `VarioAudio.set_vario(Vario.vario_ms)` → `FlightAudio.update(t, extra)` → `FlightStats.update(t)`.
 
 Собственные `_physics_process` планера и атмосферы выключены, чтобы порядок был явным и одинаковым в игре и в
 тестах (тест зовёт `game.tick()` сам — 30 с полёта считаются за ~2 с). Рендер: планер интерполирует положение в
 `_process`, камера (`process_priority = 10`) ставится после него.
+
+## Кабина (FR-26, FR-31)
+Глаза — маркер `PilotHead` (пустышка `Head` пилота) + `camera.json → cockpit.offset_m` (голова чуть приподнята).
+Голова держит горизонт: курс — вдоль крыла, тангаж — `look_down_deg` от горизонта, крен — доля
+`head_roll_follow` крена крыла. FOV 60° по вертикали. В кадре — простор: горизонт, земля, облака; трапеция,
+руки и планшет — ниже кадра, парус — выше (как говорят пилоты: «в полёте крыло не видишь»).
+Мышь — поворот головы; **Q (держать)** — плавный взгляд на планшет (`cockpit.glance`), отпустил — назад.
+Шлем (`cockpit.hidden_nodes`) из кабины не рисуется (слой `hidden_layer`), тело пилота видно при взгляде вниз.
+Внутри облака — белая мгла (`game.json → cloud_whiteout`, плотность — `Atmosphere.cloud_density_at`).
+
+## Разбег (FR-9, FR-30)
+На земле: W — идти, **W+Shift — разбег**, S — назад, A/D — поворот. Нос крыла на разбеге держится сам
+(`controls.json → ground.run_nose_neutral` = 0,3 — отрыв у всех крыльев и масс в штиль и при встречном до
+6 м/с на склоне 17°), ↑/↓ — подстройка (`nose_trim_range`). **Защёлка при отрыве:** клавиши тангажа/крена,
+зажатые в момент отрыва, не действуют, пока их не отпустят; трапеция за `takeoff_latch.trim_time_s` уходит в
+трим — зажатая W не бросает крыло в пике. Автопилот тестов жмёт те же действия (W = walk_forward + pitch_pull_in).
+
+## Анимации пилота
+`PilotAnimator` (конфиг `game.json → pilot_animation`, контракт — docs/models.md → «Пилот»): фазы земли →
+stand/walk/run; отрыв → run_air → climb_in → prone (очередь по длине анимаций во времени симуляции);
+у земли при снижении (ниже `climb_out_agl_m`, не раньше `min_air_time_s`) или при выравнивании → climb_out →
+flare; посадка → stand. Нет AnimationPlayer — ничего не делает.
+
+## Объекты мира и столкновения
+`WorldLink` при загрузке локации: `WorldObjects.setup(terrain, air)` (ветроуказатели, посадки, OSM), просеки
+`WorldClearings.build_for(id)` → `terrain.set_clearings`, `terrain.set_wind_sources(mean_wind_at, thermals_near)`,
+`terrain.set_pilot(glider)`. Каждый шаг — `obstacle_hit(прошлое, текущее положение)`; попадание — авария
+(`flight_ended("landed", {grade: "crash", collision, text})`, тексты — `game.json → collision_texts`).
+Атмосфере источники термиков — `terrain.thermal_source_strength_at`; дымке — `sky.set_inversion_height_msl(
+air.get_cloudbase_msl())`.
+
+## Графика
+`game.json → graphics` (по умолчанию medium) и `graphics_presets`: каждый пресет — правки конфигов (облака,
+деревья, тени, эффекты) и окна (MSAA, доля разрешения 3D); выбор в настройках пишется в user://configs.
+Автовыбор по видеокарте (`graphics_autodetect`) есть, но выключен.
 
 ## Состояния главной сцены
 `MENU` (мир за меню живёт, ввод выключен, камера `menu_camera_mode`) → «Лететь» → `LOADING` (рельеф, для точки с карты —
@@ -74,10 +113,11 @@ Main (Node, process ALWAYS)            scenes/main.gd
 ## Управление
 | Клавиша | В полёте | На земле | В разбеге |
 |---|---|---|---|
-| W / ↑ | трапеция на себя (разгон) | шаг вперёд | нос вниз |
-| S / ↓ | трапеция от себя (торможение) | шаг назад | нос вверх |
+| W / ↑ | трапеция на себя (разгон) | W — шаг вперёд | ↑ — нос чуть выше |
+| S / ↓ | трапеция от себя (торможение) | S — шаг назад | ↓ — нос чуть ниже |
 | A / ← , D / → | смещение веса влево / вправо | поворот на месте | выравнивание крыла |
-| Shift (держать) | — | разбег | разбег |
+| W + Shift (держать) | — | разбег | разбег (нос держится сам) |
+| Q (держать) | взгляд на прибор | | |
 | Мышь | поворот головы (или трапеция — в настройках) | | |
 | V / средняя кнопка | взгляд вперёд | | |
 | C | камера: кабина → сзади → свободная | | |
@@ -127,5 +167,7 @@ res://scenes/main.tscn -- --autostart --autopilot --camera=chase --time=12 --scr
 
 ## Тесты
 `godot --headless --path . res://tests/run_tests.tscn -- --filter=game`:
-главная сцена грузится, автопилот стоит → разбег → взлёт → 30 с полёта без ошибок в логе (`ErrorCatcher` —
+главная сцена грузится, автопилот (W+Shift) стоит → разбег → взлёт → 30 с полёта без ошибок в логе,
+анимации stand → run → run_air → climb_in → prone; защёлка (W+Shift держат 3 с после отрыва — крыло не
+пикирует); 5 минут автополёта без ошибок (`ErrorCatcher` —
 `OS.add_logger`); посадка → экран итога → «Ещё раз»; старт на склоне; статистика; опции; настройки; атрибуция; UI.

@@ -18,6 +18,8 @@ var head: Node3D
 var ground_fn: Callable = Callable()
 ## Обзор мышью включён (выключается в меню и на паузе).
 var look_enabled := true
+## Куда смотреть по клавише «взгляд на прибор» (маркер прибора на трапеции).
+var glance_target: Node3D
 
 var _cfg: Dictionary
 var _modes: Array
@@ -28,6 +30,7 @@ var _orbiting := false
 var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
 var _recentering := false
 var _snap := true
+var _glance := 0.0  # 0 — свой взгляд, 1 — на прибор
 
 
 func _ready() -> void:
@@ -45,6 +48,9 @@ func set_mode(m: String) -> void:
 		return
 	mode = m
 	near = float(_cfg.cockpit.near_m) if mode == "cockpit" else float(_cfg.near_m)
+	# Шлем и т. п. вокруг глаз — не рисовать из кабины.
+	var hidden_bit := 1 << (int(_cfg.cockpit.get("hidden_layer", 20)) - 1)
+	cull_mask = (0xFFFFF & ~hidden_bit) if mode == "cockpit" else 0xFFFFF
 	_snap = true
 	mode_changed.emit(mode)
 
@@ -142,7 +148,7 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var c: Dictionary = _cfg.cockpit
 	var lag := float(c.head_lag_s)
 	var k := 1.0 if lag <= 0.0 or _snap else 1.0 - exp(-delta / lag)
-	_head_basis = _head_basis.slerp(t.basis.orthonormalized(), k).orthonormalized()
+	_head_basis = _head_basis.slerp(_level_head(t.basis, c), k).orthonormalized()
 	var eye: Vector3
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
 		eye = head.global_position + t.basis * _vec(c.offset_m)
@@ -155,11 +161,39 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		if _head.length() < 0.001:
 			_head = Vector2.ZERO
 			_recentering = false
+	var look := _head
+	var g: Dictionary = c.get("glance", {})
+	var want := 1.0 if look_enabled and Input.is_action_pressed("look_instrument") else 0.0
+	var gt := float(g.get("time_s", 0.25))
+	_glance = lerpf(_glance, want, 1.0 if gt <= 0.0 else 1.0 - exp(-delta / gt))
+	if _glance > 0.001 and glance_target != null and is_instance_valid(glance_target):
+		look = look.lerp(_angles_to(glance_target.global_position, eye, c), _glance)
 	global_basis = (
 		_head_basis
-		* Basis(Vector3.UP, _head.x)
-		* Basis(Vector3.RIGHT, _head.y - deg_to_rad(float(c.look_down_deg)))
+		* Basis(Vector3.UP, look.x)
+		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Голова пилота: курс — вдоль крыла, тангаж — у горизонта, крен — доля крена крыла.
+static func _level_head(b: Basis, c: Dictionary) -> Basis:
+	var f := -b.z
+	f.y = 0.0
+	if f.length() < 1e-3:
+		f = b.y  # крыло носом вертикально — берём «верх»
+		f.y = 0.0
+	var yaw := atan2(-f.x, -f.z)
+	var bank := -asin(clampf(b.x.normalized().y, -1.0, 1.0))
+	var roll := bank * float(c.get("head_roll_follow", 0.5))
+	return Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, -roll)
+
+
+## Поворот головы (рыскание + влево, тангаж + вверх, с учётом look_down), чтобы смотреть на p.
+func _angles_to(p: Vector3, eye: Vector3, c: Dictionary) -> Vector2:
+	var d := _head_basis.inverse() * (p - eye)
+	var yaw := atan2(-d.x, -d.z)
+	var pitch := atan2(d.y, Vector2(d.x, d.z).length())
+	return Vector2(yaw, pitch + deg_to_rad(float(c.look_down_deg)))
 
 
 func _update_chase(t: Transform3D, delta: float) -> void:

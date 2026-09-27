@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/game/game.tscn" id="2"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/about_screen.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/result_screen.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/controls_screen.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/flight_setup_screen.tscn" id="9"]
 
 [node name="Main" type="Node"]
 process_mode = 3
@@ -27,3 +29,7 @@ layer = 20
 [node name="AboutScreen" parent="UI" instance=ExtResource("6")]
 
 [node name="ResultScreen" parent="UI" instance=ExtResource("7")]
+
+[node name="ControlsScreen" parent="UI" instance=ExtResource("8")]
+
+[node name="FlightSetupScreen" parent="UI" instance=ExtResource("9")]
