@@ -40,10 +40,11 @@ func test_result_fields() -> void:
 
 ## Заход на посадку на ровное поле (100 м). flare_h < 0 — без выравнивания, на триме;
 ## иначе держим ноги на высоте flare_h, пока воздушная скорость не упадёт до push_k·V_св,
+## (выравнивание начинается у этой высоты)
 ## затем трапецию от себя до упора (выравнивание). wind — встречный ветер, м/с.
 ## Возвращает {result, model}.
 static func approach(
-	w: String, flare_h: float, push_k: float = 1.15, wind: float = 0.0
+	w: String, flare_h: float, push_k: float = 1.2, wind: float = 0.0
 ) -> Dictionary:
 	var m := Sim.make(w)
 	var air := func(_p: Vector3) -> Vector3: return Vector3(0, 0, wind)
@@ -55,7 +56,8 @@ static func approach(
 		var p := 0.0
 		if flare_h >= 0.0 and agl < flare_h + 3.0:
 			p = clampf(1.5 * (-0.8 * (agl - flare_h) - m.velocity.y), -1.0, 1.0)
-			pushing = pushing or m.telemetry.airspeed < m.stall_speed() * push_k
+			var slow := m.telemetry.airspeed < m.stall_speed() * push_k
+			pushing = pushing or (slow and agl < flare_h + 0.3)
 		if pushing:
 			p = 1.0
 		m.step(Sim.DT, Sim.input(p), air, flat)
@@ -70,8 +72,17 @@ func test_flare_vs_no_flare() -> void:
 		check(plain.grade == "hard", "%s: на триме без выравнивания — жёсткая: %s" % [w, plain])
 		check(flared.grade == "soft", "%s: с выравниванием — мягкая: %s" % [w, flared])
 		check(
-			flared.horizontal_speed_ms < 3.0,
-			"%s: выравнивание гасит путевую: %.1f" % [w, flared.horizontal_speed_ms]
+			flared.vertical_speed_ms <= 1.5 and flared.horizontal_speed_ms <= 1.5,
+			"%s: крыло «подвешивается», пилот встаёт на ноги: %s" % [w, flared]
+		)
+
+
+func test_flare_slightly_off() -> void:
+	for w in ["training", "kingpost", "sport"]:
+		var r: Dictionary = approach(w, 1.6).result
+		check(
+			r.grade == "soft" and r.vertical_speed_ms <= 3.0,
+			"%s: выровнял на 1 м выше — всё ещё мягкая: %s" % [w, r]
 		)
 
 
@@ -81,27 +92,25 @@ func test_runout_stops_pilot() -> void:
 	var p0 := m.position
 	Sim.run_for(m, 2.0, Sim.input(), Callable(), flat)
 	check(m.telemetry.groundspeed < 0.05, "пилот встал на ноги: %.2f" % m.telemetry.groundspeed)
-	check(
-		p0.distance_to(m.position) < 2.0, "пробежка 0–2 шага: %.1f м" % p0.distance_to(m.position)
-	)
+	var d := p0.distance_to(m.position)
+	check(d < 1.5, "пробежка 0–2 шага: %.1f м" % d)
 
 
 func test_flare_too_high() -> void:
 	for w in ["training", "kingpost", "sport"]:
-		var good: Dictionary = approach(w, 0.6).result
 		var high: Dictionary = approach(w, 3.6).result
-		check(high.grade == "hard", "%s: выровнял на 3 м выше — жёсткая: %s" % [w, high])
 		check(
-			high.vertical_speed_ms > good.vertical_speed_ms + 1.5,
-			"%s: «плюх» — вертикальная растёт: %.1f" % [w, high.vertical_speed_ms]
+			high.grade == "hard" and high.vertical_speed_ms >= 5.0,
+			"%s: выровнял на 3 м выше — «плюх», жёсткая: %s" % [w, high]
 		)
 
 
 func test_flare_headwind() -> void:
 	for w in ["training", "kingpost", "sport"]:
-		var r: Dictionary = approach(w, 0.6, 1.0, 4.0).result
+		var r: Dictionary = approach(w, 0.6, 0.9, 4.0).result
 		check(r.grade == "soft", "%s: встречный 4 м/с — мягкая: %s" % [w, r])
-		check(r.horizontal_speed_ms < 1.5, "%s: путевая почти 0: %.1f" % [w, r.horizontal_speed_ms])
+		var h: float = r.horizontal_speed_ms
+		check(h < 1.5, "%s: путевая почти 0: %.1f" % [w, h])
 
 
 func test_dive_into_ground_crashes() -> void:

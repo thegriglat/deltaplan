@@ -60,7 +60,7 @@ var _rho_ref: float = 1.225
 var _stall_time: float = 0.0
 var _attached: float = 1.0  ## доля присоединённого потока: 1 — обтекание, 0 — полный срыв
 var _air_time: float = 0.0
-var _flaring: bool = false  ## выравнивание у земли
+var _flare := LandingFlare.new()
 var _accel_t: float = 0.0  ## касательное ускорение по потоку с прошлого шага, м/с²
 
 
@@ -144,7 +144,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 		Mode.GROUND:
 			_step_ground(dt, input, air_fn, ground_fn)
 		Mode.LANDED:
-			_step_runout(dt, ground_fn)
+			_flare.runout(self, dt, ground_fn)
 			# после нормальной посадки можно уйти пешком или снова разбежаться
 			var moving := input.run or absf(input.walk) > 0.01
 			if landing_result.get("grade", "") != "crash" and moving:
@@ -222,20 +222,13 @@ func right_dir() -> Vector3:
 func aero_coefs(dt: float) -> Vector2:
 	var st: Dictionary = wing.stall
 	var target := 0.0 if stalled else 1.0
-	var loss_time := float(st.lift_loss_time_s)
-	var cl_cap := polar.cl_max
-	if _flaring:
-		# резкий подъём носа: динамический срыв — подъёмная сила кратко выше статической
-		var fl: Dictionary = flight.flare
-		loss_time = float(fl.lift_loss_time_s)
-		cl_cap *= float(fl.dynamic_cl_factor)
-	_attached = move_toward(_attached, target, dt / loss_time)
-	var cl_att := minf(_lift_slope * (alpha - _alpha0), cl_cap)
+	# на выравнивании: динамический срыв — CL кратко выше статической, парус давит сильнее
+	var f := _flare.aero_factors(self, float(st.lift_loss_time_s))
+	_attached = move_toward(_attached, target, dt / f.x)
+	var cl_att := minf(_lift_slope * (alpha - _alpha0), polar.cl_max * f.y)
 	var cd_att := polar.cd_at(minf(cl_att, polar.cl_max))
 	var a_e := wrapf(alpha - _alpha0, -PI, PI)  # пластина: формулы верны при любом угле
-	var cn := float(st.post_stall_cn)
-	if _flaring:
-		cn *= float(flight.flare.cn_factor)
+	var cn := float(st.post_stall_cn) * f.z
 	var cl_sep := cn * sin(a_e) * cos(a_e)
 	var cd_sep := maxf(cn * sin(a_e) * sin(a_e), cd_att)
 	return Vector2(lerpf(cl_sep, cl_att, _attached), lerpf(cd_sep, cd_att, _attached))
@@ -253,7 +246,7 @@ func _reset_common(pos: Vector3, heading_deg: float) -> void:
 	time_s = 0.0
 	_stall_time = 0.0
 	_attached = 1.0
-	_flaring = false
+	_flare.reset()
 	_air_time = 0.0
 	_accel_t = 0.0
 	_ground.reset()
@@ -295,9 +288,11 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var q := 0.5 * rho * v * v * area if v > min_v else 0.0
 
 	var agl := position.y - ground_height(ground_fn, position.x, position.z)
-	_update_pitch(dt, input, asin(clampf(u.y, -1.0, 1.0)), q, agl)
+	_flare.update(self, input, agl, dt)
+	_update_pitch(dt, input, asin(clampf(u.y, -1.0, 1.0)), q)
 	var c := aero_coefs(dt)
 	var force := lift_dir * (q * c.x) - u * (q * c.y) + UP * (-mass * Units.G)
+	force += _flare.hang_force(self)
 	_accel_t = force.dot(u) / mass
 	velocity += force / mass * dt
 	position += velocity * dt
@@ -316,18 +311,18 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 			position.y = gh
 			velocity.y = maxf(velocity.y, 0.0)
 		else:
-			_touchdown(ground_fn, gh)
+			landing_result = _flare.touchdown(self, ground_fn, gh)
+			mode = Mode.LANDED
+			landed.emit(landing_result)
 
 
 ## Тангаж: крыло с запаздыванием выходит на угол атаки от трапеции (FR-4); сваливание (FR-6).
-## agl — высота ног над землёй: у земли работает выравнивание (flight.json → flare).
-func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float, agl: float) -> void:
+## У земли работает выравнивание (LandingFlare).
+func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float) -> void:
 	var st: Dictionary = wing.stall
-	var fl: Dictionary = flight.flare
 	var alpha_target := _alpha_command(input.pitch)
 	var tau := tau_pitch
-	_flaring = agl < float(fl.height_m) and input.pitch > 0.0
-	if stalled and not _flaring and _stall_time > float(st.nose_drop_delay_s):
+	if stalled and not _flare.active and _stall_time > float(st.nose_drop_delay_s):
 		alpha_target -= Units.deg(float(st.nose_drop_deg))
 	# демпфирование фугоиды: при разгоне крыло чуть поднимает нос (устойчивость по скорости)
 	if q > 0.0:
@@ -336,12 +331,10 @@ func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float, agl: 
 		var lim := Units.deg(float(pd.max_alpha_deg))
 		alpha_target += clampf(d_alpha, -lim, lim)
 	var theta_target := gamma + alpha_target
-	if _flaring:
-		# пилот стоит вертикально и выталкивает трапецию до упора: киль встаёт на заданный
-		# тангаж к горизонту, парус поперёк потока тормозит и «подвешивает» крыло
-		var p := clampf(input.pitch, 0.0, 1.0)
-		theta_target = lerpf(gamma + _alpha_command(0.0), Units.deg(float(fl.pitch_deg)), p)
-		tau = float(fl.pitch_time_s)
+	if _flare.active:
+		# киль встаёт на заданный тангаж к горизонту, парус поперёк потока тормозит
+		theta_target = _flare.theta_target(self, gamma + _alpha_command(0.0), input.pitch)
+		tau = _flare.pitch_time(self)
 	theta += (theta_target - theta) * (1.0 - exp(-dt / tau))
 	alpha = theta - gamma
 
@@ -377,36 +370,6 @@ func _update_roll(dt: float, input: ControlInput, v: float, dw_left_right: float
 		roll_rate = 0.0
 
 
-func _touchdown(ground_fn: Callable, gh: float) -> void:
-	var lc: Dictionary = flight.landing
-	var n := LandingJudge.ground_normal(
-		ground_fn, position.x, position.z, float(lc.normal_sample_m)
-	)
-	landing_result = LandingJudge.evaluate(velocity, n, rad_to_deg(bank), lc)
-	landing_result["position"] = Vector3(position.x, gh, position.z)
-	landing_result["flight_time_s"] = time_s
-	position.y = gh
-	# пилот встаёт на ноги и добегает остаток скорости (после аварии — стоп)
-	velocity = Vector3(velocity.x, 0.0, velocity.z)
-	if landing_result.grade == "crash":
-		velocity = Vector3.ZERO
-	roll_rate = 0.0
-	stalled = false
-	_flaring = false
-	mode = Mode.LANDED
-	landed.emit(landing_result)
-
-
-## Пробежка после касания: горизонтальная скорость гасится ногами, пилот идёт по земле.
-func _step_runout(dt: float, ground_fn: Callable) -> void:
-	var decel := float(flight.landing.runout_decel_ms2)
-	velocity = velocity.move_toward(Vector3.ZERO, decel * dt)
-	position += velocity * dt
-	var gh := ground_height(ground_fn, position.x, position.z)
-	if gh > -INF:
-		position.y = gh
-
-
 func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
 	match _ground.step(self, dt, input, air_fn, ground_fn):
 		GroundRun.Result.TOOK_OFF:
@@ -422,30 +385,4 @@ func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: C
 
 
 func _update_telemetry(air_fn: Callable, ground_fn: Callable) -> void:
-	var t := telemetry
-	t.time_s = time_s
-	t.phase = phase()
-	t.position = position
-	t.velocity = velocity
-	var wind := Vector3.ZERO
-	if mode == Mode.AIR:
-		wind = sample_air(air_fn, position)
-	elif mode == Mode.GROUND:
-		wind = sample_air(air_fn, position + UP * float(flight.takeoff.wing_height_m))
-	t.air_velocity = velocity - wind
-	t.airspeed = t.air_velocity.length()
-	t.groundspeed = Vector2(velocity.x, velocity.z).length()
-	t.vario = velocity.y
-	t.altitude_msl = position.y
-	var gh := ground_height(ground_fn, position.x, position.z)
-	t.altitude_agl = position.y - gh if gh > -INF else position.y
-	t.heading_deg = fposmod(rad_to_deg(heading), 360.0)
-	t.track_deg = t.heading_deg
-	if t.groundspeed > 0.1:
-		t.track_deg = fposmod(rad_to_deg(atan2(velocity.x, -velocity.z)), 360.0)
-	t.bank_deg = rad_to_deg(bank)
-	t.pitch_deg = rad_to_deg(theta)
-	t.on_ground = mode != Mode.AIR
-	t.stalled = stalled
-	t.glide_ratio = t.groundspeed / -velocity.y if velocity.y < -0.05 else 0.0
-	t.basis = Basis.from_euler(Vector3(theta, -heading, -bank))
+	FlightTelemetry.fill(self, air_fn, ground_fn)
