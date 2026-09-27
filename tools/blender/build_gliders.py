@@ -6,7 +6,7 @@
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json.
 Контракт имён (docs/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
 координат), BaseBar, InstrumentMount (центр базовой штанги, −Z Godot смотрит на глаза пилота),
-VarioMount (на левой стойке), WingTipL, WingTipR. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
+VarioMount (на базовой штанге слева от планшета), WingTipL, WingTipR. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
 """
 import math
 import os
@@ -243,9 +243,16 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     # планшет — на оси базовой штанги в центре, −Z (Godot) маркера смотрит на глаза пилота
     bar_c = Vector((0, y_bb, z_bb - dip))
     U.empty("InstrumentMount", None, parent=obj, matrix=U.look_matrix(bar_c, eye))
-    # вариометр 90-х — на оси левой стойки, тоже экраном к глазам
-    pos = (apex + Vector((-0.04, 0, 0))).lerp(Vector((-w, y_bb, z_bb)), cf["vario_on_upright"])
-    U.empty("VarioMount", None, parent=obj, matrix=U.look_matrix(pos, eye))
+    # вариометр 90-х — на оси базовой штанги слева от планшета (между ним и левой рукой), тоже
+    # экраном к глазам: при взгляде вниз (0°, −60°) в кадре штанга только между кулаками
+    # (±0,35 м) — угол трапеции и стойки вне кадра при любой высоте на стойке
+    xv = -cf["vario_bar_offset_m"]
+    zv = z_bb - (dip if abs(xv) <= w * 0.45 else dip * (w - abs(xv)) / (w * 0.55))
+    # горизонталь циферблата — вдоль штанги (иначе в кадре сбоку от оси взгляда он «завален»)
+    pv = Vector((xv, y_bb, zv))
+    to_eye = (eye - pv).normalized()
+    side = (Vector((-1, 0, 0)) + to_eye * to_eye.x).normalized()
+    U.empty("VarioMount", None, parent=obj, matrix=U.look_matrix(pv, eye, up=side.cross(to_eye)))
     return obj
 
 

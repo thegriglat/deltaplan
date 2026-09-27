@@ -66,14 +66,10 @@ func test_cockpit_view_by_head_angle() -> void:
 		check(
 			_in_view(cam, tablet.global_position), "%s DF: планшет (InstrumentMount) в кадре" % wing
 		)
-		# VarioMount (стойка на уровне глаз, сбоку) при (0, −60) вне кадра — запрос группе 7
-		# (docs/screenshots/cockpit/README.md); виден, если повернуть голову влево.
+		# Вариометр 90-х — на штанге слева от планшета (карточка models/01): оба в кадре DF.
 		var vario := game.glider.get_marker("VarioMount")
 		if vario != null:
-			_look(game, 60.0, -15.0)
-			check(
-				_in_view(cam, vario.global_position), "%s: вариометр на стойке виден слева" % wing
-			)
+			check(_in_view(cam, vario.global_position), "%s DF: вариометр 90-х в кадре" % wing)
 
 		_look(game, 0.0, 55.0)
 		check(_count_in_view(cam, _meshes(v, ["Sail"])) > 0, "%s U: парус в кадре" % wing)

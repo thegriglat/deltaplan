@@ -64,7 +64,12 @@ func _check_axes(path: String, root: Node3D) -> void:
 		_expect(path, "InstrumentMount −Z смотрит назад-вверх на пилота",
 			(-im.basis.z).z > 0.3 and (-im.basis.z).y > 0.3)
 		var vm := _xform(root, "VarioMount")
-		_expect(path, "VarioMount на левой стойке", vm.origin.x < -0.3 and vm.origin.y < -0.8)
+		_expect(
+			path,
+			"VarioMount на базовой штанге слева от планшета (между ним и левой рукой)",
+			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - bar.y) < 0.05
+			and absf(vm.origin.z - bar.z) < 0.05
+		)
 		_expect(path, "VarioMount −Z смотрит на пилота (вправо-назад)",
 			(-vm.basis.z).x > 0.3 and (-vm.basis.z).z > 0.2)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])

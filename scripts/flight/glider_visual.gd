@@ -13,6 +13,14 @@ extends Node3D
 const WING_MARKERS: Array[String] = [
 	"HangPoint", "BaseBar", "InstrumentMount", "WingTipL", "WingTipR"
 ]
+## Стоя (stand/walk/run из pilot.glb) ступни на ~0,3 м позади таза, ноги наклонены ~19°, глаза
+## на ~0,7 м впереди ступней: взгляд вниз не достаёт до ног. Модель на земле чуть отклоняется
+## назад вокруг хвата рук на стойках (руки остаются на стойках, ступни выходят под корпус).
+const GROUND_LEAN_BACK_DEG := 15.0
+## Хват рук на стойках в позе stand относительно карабина, м (+Y вверх, −Z вперёд).
+const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
+## Середина ступней (кости Foot) в позе stand относительно карабина без наклона, м.
+const GROUND_FEET := Vector3(0.0, -1.905, 0.17)
 
 var wing: Node3D  ## модель крыла
 var pilot: Node3D  ## нода Pilot (сдвигается), внутри — модель пилота
@@ -24,6 +32,8 @@ var _pcfg: Dictionary = {}  ## pilot.json → visual
 var _hang := Vector3.ZERO  ## точка подвески в координатах обёртки
 var _head: Node3D
 var _pose := Transform3D.IDENTITY
+## Модель сама встаёт анимацией stand (docs/models.md → «Пилот»); иначе (заглушка) — поворот.
+var _animated_stand := false
 
 
 ## wing_cfg — конфиг крыла, pilot_cfg — конфиг пилота, vis_cfg — flight.json → visual.
@@ -61,6 +71,9 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	pm.name = "Model"
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
+	_animated_stand = false
+	for ap: AnimationPlayer in pm.find_children("*", "AnimationPlayer", true, false):
+		_animated_stand = _animated_stand or ap.has_animation("stand")
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
 	head_marker = Marker3D.new()
@@ -113,8 +126,16 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 	return Transform3D(Basis.IDENTITY, _hang + shift)
 
 
-## На земле: стоит под крылом, ноги на земле — поворот лежачей модели вокруг центра тела.
+## На земле: стоит под крылом, ноги на земле. Модель со скелетом ставит тело вертикально сама
+## (анимации stand/walk/run: подошвы на hang_height_m ниже карабина) — на 90° не поворачиваем,
+## только сдвиг по крену и небольшой наклон назад вокруг хвата (GROUND_LEAN_BACK_DEG), ступни
+## остаются на той же высоте. Заглушка без анимаций лежит — её поворачиваем вокруг центра тела.
 func _ground_pose(shift: Vector3) -> Transform3D:
+	if _animated_stand:
+		var lean := Basis(Vector3.RIGHT, deg_to_rad(GROUND_LEAN_BACK_DEG))
+		var o := GROUND_GRIP - lean * GROUND_GRIP  # хват на месте
+		o.y += GROUND_FEET.y - (lean * GROUND_FEET + o).y  # ступни на прежней высоте
+		return Transform3D(lean, _hang + o + Vector3(shift.x, 0.0, 0.0))
 	var c := _body_center()
 	var r := Basis(Vector3.RIGHT, PI * 0.5)
 	var g := Vector3(shift.x, float(_pcfg.height_m) * 0.5, 0.0)
