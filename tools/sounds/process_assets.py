@@ -55,6 +55,12 @@ SINGLES = [
 
 
 def src(cache, sid, stereo=True):
+    """Оригинал (<cache>/orig/<id>.*, fetch_originals.py), если скачан, иначе HQ-превью."""
+    odir = os.path.join(cache, "orig")
+    if os.path.isdir(odir):
+        for f in sorted(os.listdir(odir)):
+            if f.split(".")[0] == str(sid):
+                return load(os.path.join(odir, f), mono=not stereo)
     meta = json.load(open(os.path.join(cache, "meta.json")))
     cat = meta[str(sid)]["category"]
     return load(os.path.join(cache, cat, f"{sid}.ogg"), mono=not stereo)
