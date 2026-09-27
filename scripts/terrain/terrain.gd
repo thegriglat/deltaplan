@@ -185,8 +185,8 @@ func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void
 	await setup_async(result.config, new_layers, lat, lon, new_surfaces)
 	if gen != _load_gen:
 		return
-	_load_gen += 1  # загрузка закончена — сторож молчит
-	progress.finish()
+	_load_gen += 1  # загрузка закончена — сторож молчит (progress.finish — у вызывающего: дальше
+	# ещё этапы игры — погода, объекты)
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
 	print("Terrain: рельеф вокруг %.4f, %.4f загружен за %.2f с" % [lat, lon, last_load_time_s])
 	loaded.emit()

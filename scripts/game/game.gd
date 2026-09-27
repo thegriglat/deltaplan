@@ -136,10 +136,20 @@ func tick(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	settings = s.duplicate()
+	var progress := terrain.progress
+	progress.begin()
+	# Пока грузится — шаг физики стоит: воздух и планер ещё не настроены на новое место
+	# (иначе каждый кадр загрузки догоняет пропущенные шаги — окно «не отвечает»).
+	set_physics_process(false)
 	status_changed.emit(tr("Загрузка рельефа…"))
 	if not await _load_terrain():
 		status_changed.emit(tr("Не удалось загрузить рельеф: %s") % _load_error)
+		set_physics_process(true)
+		progress.finish()
 		return false
+	# Дальше — порциями между кадрами: экран загрузки живой (docs/game.md → «Загрузка»).
+	progress.stage("weather", tr("Погода и термики…"))
+	await get_tree().process_frame
 	air.call("set_weather", settings.weather)
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
 	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
@@ -174,6 +184,8 @@ func start(s: FlightSettings) -> bool:
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
 	glider.set_air_fn(air.air_velocity_at)
+	progress.stage("objects", tr("Камни, кусты и дороги…"))
+	await get_tree().process_frame
 	world_link.link(terrain, air, glider)
 	_choose_start()
 	var weather: Dictionary = Config.get_config(settings.weather)
@@ -184,6 +196,8 @@ func start(s: FlightSettings) -> bool:
 	# Верх дымки — на высоте инверсии (основание облаков).
 	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
 		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
+	progress.stage("glider", tr("Почти готово…"))
+	await get_tree().process_frame
 	_setup_glider()
 	collisions.setup(
 		world_link.objects,
@@ -192,6 +206,8 @@ func start(s: FlightSettings) -> bool:
 		float(Config.value("flight", "visual.hang_height_m", 2.0))
 	)
 	restart()
+	set_physics_process(true)
+	progress.finish()
 	status_changed.emit("")
 	return true
 
@@ -370,7 +386,9 @@ func _load_terrain() -> bool:
 		var why := (
 			_load_error if _load_error != "" else tr("нет данных или ошибка в модуле рельефа")
 		)
-		_load_error = tr("«%s» — %s (подробности — в журнале Godot)") % [what, why]
+		# точка с карты: рельеф уже объяснил простыми словами (море, нет сети, нет данных)
+		if not (settings.has_pick() and _load_error != ""):
+			_load_error = tr("«%s» — %s (подробности — в журнале Godot)") % [what, why]
 		push_error("Game: рельеф не загружен: " + _load_error)
 	return ok
 

@@ -81,6 +81,8 @@ func _run() -> void:
 		await get_tree().process_frame
 	var terrain: Terrain = game.terrain
 	terrain.progress.trace = true
+	# как автостарт: выбор пилота (user://last_flight.json) замер не перезаписывает
+	(_main.get("opts") as LaunchOptions).autostart = true
 	var s: FlightSettings = (_main.get("flight") as FlightSettings).duplicate()
 	s.pick_lat = _lat
 	s.pick_lon = _lon
@@ -113,6 +115,10 @@ func _run() -> void:
 	print("load_probe: макс. интервал %.0f мс; >100 мс: %s" % [_max_gap * 1000.0, top])
 	if code == 2:
 		print("load_probe: сообщение: %s" % _status_text(start_menu))
+		if _out != "":
+			for i in 5:
+				await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(_out.path_join("menu_error.png"))
 	for d in terrain.progress.timings:
 		print("load_probe: этап %-10s %6.2f с" % [d.key, d.s])
 	await _quit(code)

@@ -31,19 +31,19 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	m.queue_free()
 
 
-## 2. «Полёт…»: fly_requested с выбранными крылом/массой/местом.
-func test_flight_setup_fly_requested_carries_choice() -> void:
+## 2. «Полёт…» → «Готово»: done с выбранными крылом/массой/местом.
+func test_flight_setup_done_carries_choice() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
 	var got: Array = []
-	m.fly_requested.connect(func(s: FlightSettings) -> void: got.append(s))
+	m.done.connect(func(s: FlightSettings) -> void: got.append(s))
 	var s := FlightSettings.defaults()
 	s.wing = "wings/training"
 	s.location_id = "altai"
 	s.site_id = "tugaya_south"
 	m.set_settings(s)
 	m.get("_mass").value = m.get("_mass").min_value
-	m.call("_on_fly")
-	check(got.size() == 1, "«Лететь» шлёт настройки")
+	m.call("_on_done")
+	check(got.size() == 1, "«Готово» шлёт настройки")
 	if got.size() == 1:
 		var r: FlightSettings = got[0]
 		check(r.wing == "wings/training", "крыло выбрано")
@@ -52,18 +52,18 @@ func test_flight_setup_fly_requested_carries_choice() -> void:
 	m.queue_free()
 
 
-## 3. Выбор на карте: FlightSettings с pick_lat/lon доходит до fly_requested (site или latlon).
+## 3. Выбор на карте: FlightSettings с pick_lat/lon доходит до done (site или latlon).
 func test_flight_setup_carries_map_pick() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
 	var got: Array = []
-	m.fly_requested.connect(func(s: FlightSettings) -> void: got.append(s))
+	m.done.connect(func(s: FlightSettings) -> void: got.append(s))
 	var s := FlightSettings.defaults()
 	s.pick_lat = 51.83
 	s.pick_lon = 85.81
 	m.set_settings(s)
 	check(m.get("_pick_label").text != "", "подпись «точка на карте: …» показана")
-	m.call("_on_fly")
-	check(got.size() == 1, "«Лететь» шлёт настройки после выбора на карте")
+	m.call("_on_done")
+	check(got.size() == 1, "«Готово» шлёт настройки после выбора на карте")
 	if got.size() == 1:
 		var r: FlightSettings = got[0]
 		check(r.has_pick(), "точка карты (latlon) сохранена в настройках")
@@ -71,6 +71,27 @@ func test_flight_setup_carries_map_pick() -> void:
 			is_equal_approx(r.pick_lat, 51.83) and is_equal_approx(r.pick_lon, 85.81),
 			"координаты не потерялись"
 		)
+	m.queue_free()
+
+
+## 3б. Главное меню: под «Лететь» — строка с текущим выбором (место, старт, погода, время).
+func test_start_menu_shows_choice_summary() -> void:
+	var m: StartMenu = _scene("res://scenes/ui/start_menu.tscn")
+	var s := FlightSettings.defaults()
+	s.location_id = "ongudai"
+	s.site_id = ""
+	s.weather = "weather/medium"
+	s.start_hour = 13.0
+	m.set_settings(s)
+	var text: String = m.get("_summary").text
+	var loc_name := tr(String(Config.value("locations/ongudai", "name")))
+	check(text.contains(loc_name), "в строке выбора — локация: %s" % text)
+	check(text.contains(tr("Средний день")) and text.contains("13:00"), "погода и время: %s" % text)
+	s.pick_lat = 50.6
+	s.pick_lon = 86.4
+	m.set_settings(s)
+	text = m.get("_summary").text
+	check(text.contains("50.6000, 86.4000"), "точка на карте — координатами: %s" % text)
 	m.queue_free()
 
 
@@ -133,3 +154,24 @@ func test_no_raw_strings_in_ui_sources() -> void:
 		rx.compile('UiKit\\.(?:label|menu_button|button|row|heading)\\s*\\([^,]+,\\s*"[^"]')
 		var m := rx.search(text)
 		check(m == null, "строка без tr() в %s: %s" % [path, m.get_string() if m else ""])
+
+
+## 7. Экран загрузки: этап и полоса по LoadProgress, точки бегут, закрывается.
+func test_loading_screen_follows_progress() -> void:
+	var l: LoadingScreen = _scene("res://scenes/ui/loading_screen.tscn")
+	check(not l.visible, "экран загрузки скрыт до open")
+	var p := LoadProgress.new({"a": 1.0, "b": 3.0})
+	p.begin()
+	l.open(p, "50.6000, 86.4000")
+	check(l.visible, "open показывает экран")
+	p.stage("b", tr("Скачиваю рельеф…"))
+	p.sub(1, 2)
+	check(is_equal_approx(p.fraction, 0.25 + 0.75 * 0.5), "доля внутри этапа (%.3f)" % p.fraction)
+	for i in 30:
+		await get_tree().process_frame
+	var stage: Label = l.get("_stage")
+	check(stage.text.begins_with(tr("Скачиваю рельеф…").trim_suffix("…")), "этап: %s" % stage.text)
+	check((l.get("_bar") as ProgressBar).value > 0.0, "полоса двинулась")
+	l.close()
+	check(not l.visible, "close прячет экран")
+	l.queue_free()

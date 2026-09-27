@@ -1,9 +1,9 @@
 extends Node
 ## 12-02. Сквозной тест свободного полёта на всех локациях (configs/locations/*.json, список —
-## не хардкод): меню → «Полёт…» (FlightSetupScreen, выбор локации и первого старта) → «Лететь»
-## (эмит кнопки) → разбег W+Shift (Autopilot, защёлка после отрыва) → 60 с по курсу от склона →
-## снижение и посадка у точки посадки локации (landing_sites; если нет — у стартовой площадки,
-## она гарантированно ровная) → ResultScreen. Физика — Game.tick() вручную (быстро
+## не хардкод): меню → «Полёт…» (FlightSetupScreen, выбор локации и первого старта) → «Готово»
+## → «Лететь» (эмит кнопки) → разбег W+Shift (Autopilot, защёлка после отрыва) → 60 с по курсу
+## от склона → снижение и посадка у точки посадки локации (landing_sites; если нет — у стартовой
+## площадки, она гарантированно ровная) → ResultScreen. Физика — Game.tick() вручную (быстро
 ## и детерминированно, как в tests/game/test_game_flight.gd).
 
 const DT := 1.0 / 120.0
@@ -63,7 +63,11 @@ func _run_location(loc_id: String) -> void:
 		await _finish(main, catcher)
 		return
 	fss.get("_site_opt").select(site_idx)
-	(fss.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
+	# как щелчок пилота: выбор площадки снимает точку с карты (её мог помнить user://)
+	fss.get("_site_opt").item_selected.emit(site_idx)
+	(fss.get("_done_btn") as Button).emit_signal("pressed")  # «Готово» — выбор, назад в меню
+	check(not fss.visible and start_menu.visible, "%s: «Готово» вернула в меню" % loc_id)
+	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
 
 	var loaded := false
 	for i in MAX_LOAD_FRAMES:

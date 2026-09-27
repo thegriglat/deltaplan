@@ -178,11 +178,9 @@ func _process(_delta: float) -> void:
 		return
 	_last_center = c
 	_pending_center = c
-	if instance_count() == 0:
-		_build(c)  # первый раз — сразу (кадр загрузки), дальше — в рабочем потоке
-		_apply()
-	else:
-		_task = WorkerThreadPool.add_task(_build.bind(c), false, "rocks")
+	# всегда в рабочем потоке: синхронная первая сборка (радиус целиком) стоила кадр ~0,5–1 с
+	# на загрузке нового места — камни появляются на кадр-другой позже
+	_task = WorkerThreadPool.add_task(_build.bind(c), false, "rocks")
 
 
 ## Выход из дерева (смена сцены, выход из игры): дождаться фоновой сборки — она читает рельеф.

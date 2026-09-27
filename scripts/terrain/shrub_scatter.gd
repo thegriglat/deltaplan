@@ -199,10 +199,11 @@ func _process(_delta: float) -> void:
 		return
 	_pending_center = c
 	if not _first_done:
-		# первый раз — ближние тайлы сразу (кадр загрузки), полный радиус — следующим кадром в потоке
+		# первый раз — ближние тайлы (в потоке, без остановки кадра), полный радиус — следом
 		_first_done = true
-		_build(c, float(_cfg.get("first_radius_m", 250.0)))
-		_apply()
+		_task = WorkerThreadPool.add_task(
+			_build.bind(c, float(_cfg.get("first_radius_m", 250.0))), false, "shrubs"
+		)
 		return
 	_last_center = c
 	_task = WorkerThreadPool.add_task(_build.bind(c), false, "shrubs")

@@ -35,13 +35,16 @@ func test_start_menu_emits_signals() -> void:
 	check(setup_hits.size() == 1, "«Полёт…» шлёт setup_requested")
 	m.set_busy(true)
 	check(m.get("_fly_btn").disabled, "во время загрузки «Лететь» недоступна")
+	check(m.get("_setup_btn").disabled, "во время загрузки «Полёт…» недоступен")
+	m.set_busy(false)
+	check(not m.get("_fly_btn").disabled and not m.get("_setup_btn").disabled, "после — доступны")
 	m.queue_free()
 
 
 func test_flight_setup_emits_choice() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
 	var got: Array = []
-	m.fly_requested.connect(func(s: FlightSettings) -> void: got.append(s))
+	m.done.connect(func(s: FlightSettings) -> void: got.append(s))
 	var closed_hits: Array = []
 	m.closed.connect(func() -> void: closed_hits.append(true))
 	var s := FlightSettings.defaults()
@@ -50,8 +53,8 @@ func test_flight_setup_emits_choice() -> void:
 	s.location_id = "altai"
 	s.site_id = "tugaya_south"
 	m.set_settings(s)
-	m.call("_on_fly")
-	check(got.size() == 1, "«Лететь» шлёт выбор")
+	m.call("_on_done")
+	check(got.size() == 1, "«Готово» шлёт выбор")
 	if got.size() == 1:
 		var r: FlightSettings = got[0]
 		check(r.wing == "wings/training", "крыло")
@@ -60,8 +63,10 @@ func test_flight_setup_emits_choice() -> void:
 		check(r.site_id == "tugaya_south" and r.location_id == "altai", "локация и площадка")
 	m.closed.emit()
 	check(closed_hits.size() == 1, "«Назад» шлёт closed")
-	m.set_busy(true)
-	check(m.get("_fly_btn").disabled, "во время загрузки «Лететь» недоступна")
+	var texts: Array = []
+	for b in m.find_children("*", "Button", true, false):
+		texts.append((b as Button).text)
+	check(not texts.has(tr("Лететь")), "в «Полёт…» нет запуска полёта: %s" % [texts])
 	m.queue_free()
 
 

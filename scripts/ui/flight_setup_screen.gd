@@ -1,10 +1,12 @@
 class_name FlightSetupScreen
 extends Control
 ## Экран «Полёт…» (FR-27, FR-34, VR-5): крыло, масса пилота, погода, ветер, время и дата,
-## место старта (площадка локации или точка на карте — MapPicker, FR-17), «Лететь» / «Назад».
-## Открывается из главного меню; ничего не запускает само — сигналы наверх.
+## место старта (площадка локации или точка на карте — MapPicker, FR-17), «Готово» / «Назад».
+## Только выбор: в полёт — кнопкой «Лететь» главного меню. «Готово» — выбор наверх (done),
+## «Назад» — без изменений. Открывается из главного меню; ничего не запускает само.
 
-signal fly_requested(settings: FlightSettings)
+## «Готово»: выбранные настройки (главная сцена сохраняет их и возвращает в меню).
+signal done(settings: FlightSettings)
 signal closed
 
 ## Месяцы в родительном падеже («15 июля»).
@@ -37,7 +39,7 @@ var _hour: HSlider
 var _month_opt: OptionButton
 var _day: SpinBox
 var _pick_label: Label
-var _fly_btn: Button
+var _done_btn: Button
 var _map_layer: Control
 var _map: MapPicker
 
@@ -55,11 +57,6 @@ func set_settings(s: FlightSettings) -> void:
 	settings = s.duplicate()
 	if is_node_ready():
 		_apply_settings()
-
-
-## Идёт загрузка полёта: «Лететь» недоступна.
-func set_busy(on: bool) -> void:
-	_fly_btn.disabled = on
 
 
 func _build() -> void:
@@ -109,8 +106,8 @@ func _build() -> void:
 
 	UiKit.separator(box)
 	var bar := UiKit.button_bar(box)
-	_fly_btn = UiKit.button(bar, tr("Лететь"), _on_fly)
-	_fly_btn.custom_minimum_size.x = 160
+	_done_btn = UiKit.button(bar, tr("Готово"), _on_done)
+	_done_btn.custom_minimum_size.x = 160
 	UiKit.button(bar, tr("Назад"), func() -> void: closed.emit())
 
 
@@ -216,9 +213,9 @@ func _collect() -> FlightSettings:
 	return s
 
 
-func _on_fly() -> void:
+func _on_done() -> void:
 	settings = _collect()
-	fly_requested.emit(settings)
+	done.emit(settings)
 
 
 # ---------------------------------------------------------------- карта
@@ -257,7 +254,7 @@ func _build_map() -> void:
 	_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(_map)
 	var bar := UiKit.button_bar(v)
-	var ok := UiKit.button(bar, tr("Лететь отсюда"), _on_map_ok)
+	var ok := UiKit.button(bar, tr("Выбрать эту точку"), _on_map_ok)
 	ok.disabled = true
 	_map.point_picked.connect(func(_la: float, _lo: float) -> void: ok.disabled = false)
 	UiKit.button(bar, tr("Отмена"), func() -> void: _map_layer.visible = false)
@@ -271,7 +268,6 @@ func _on_map_ok() -> void:
 	settings.pick_lon = _map.picked.y
 	_map_layer.visible = false
 	_update_pick_label()
-	fly_requested.emit(settings)
 
 
 func _clear_pick() -> void:

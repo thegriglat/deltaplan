@@ -1,6 +1,6 @@
 extends Node
 ## Драйвер скриншотов карточки 12-02 (tools/shots/e2e.sh): та же цепочка, что в
-## tests/game/test_e2e.gd (меню → «Полёт…» → «Лететь» → разбег → полёт → посадка), но с
+## tests/game/test_e2e.gd (меню → «Полёт…» → «Готово» → «Лететь» → разбег → полёт → посадка), но с
 ## настоящим рендером (для кадров) вместо ручного Game.tick(). Запуск:
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/e2e_shot.tscn -- --location=altai --site=sinyukha_west --out=/tmp/e2e
@@ -75,7 +75,10 @@ func _run() -> void:
 		_fail("нет старта для локации %s" % _location)
 		return
 	fss.get("_site_opt").select(site_idx)
-	(fss.get("_fly_btn") as Button).emit_signal("pressed")
+	# как щелчок пилота: выбор площадки снимает точку с карты (её мог помнить user://)
+	fss.get("_site_opt").item_selected.emit(site_idx)
+	(fss.get("_done_btn") as Button).emit_signal("pressed")  # «Готово»
+	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
 
 	for i in 1200:
 		if int(main.get("state")) == 2:  # State.FLYING

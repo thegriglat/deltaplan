@@ -1,7 +1,8 @@
 class_name StartMenu
 extends Control
 ## Главное меню (FR-27): фон — фото на весь экран, по центру вертикально — название
-## и кнопки действий. Выбор крыла/погоды/старта — отдельный экран «Полёт…» (FlightSetupScreen).
+## и кнопки действий. Выбор крыла/погоды/старта — отдельный экран «Полёт…» (FlightSetupScreen);
+## в полёт — только «Лететь» (под ней — строка с текущим выбором, summary_text).
 ## Ничего не запускает само — сигналы наверх (главной сцене).
 
 signal fly_requested(settings: FlightSettings)
@@ -15,6 +16,8 @@ var settings: FlightSettings
 
 var _status: Label
 var _fly_btn: Button
+var _setup_btn: Button
+var _summary: Label
 
 
 func _ready() -> void:
@@ -28,6 +31,8 @@ func _ready() -> void:
 ## Выбор для «Лететь»: последний выбор или значения по умолчанию.
 func set_settings(s: FlightSettings) -> void:
 	settings = s.duplicate()
+	if _summary != null:
+		_summary.text = summary_text(settings)
 
 
 ## Текст о загрузке или ошибке ("" — спрятать).
@@ -36,9 +41,29 @@ func set_status(text: String) -> void:
 	_status.visible = text != ""
 
 
-## Идёт загрузка полёта: «Лететь» недоступна.
+## Идёт загрузка полёта: «Лететь» и «Полёт…» недоступны.
 func set_busy(on: bool) -> void:
 	_fly_btn.disabled = on
+	_setup_btn.disabled = on
+
+
+## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «Средний день · 13:00»;
+## точка на карте — координатами.
+static func summary_text(s: FlightSettings) -> String:
+	var parts: PackedStringArray = []
+	if s.has_pick():
+		parts.append(TranslationServer.translate("точка %.4f, %.4f") % [s.pick_lat, s.pick_lon])
+	else:
+		var loc: Dictionary = Config.get_config("locations/" + s.location_id)
+		parts.append(TranslationServer.translate(String(loc.get("name", s.location_id))))
+		var starts: Array = loc.get("start_sites", [])
+		for st: Dictionary in starts:
+			if String(st.get("id", "")) == s.site_id or (s.site_id == "" and st == starts[0]):
+				parts.append(TranslationServer.translate(String(st.get("name", st.get("id")))))
+				break
+	var w: Dictionary = Config.get_config(s.weather)
+	var when := TranslationServer.translate(String(w.get("name", s.weather.get_file())))
+	return " · ".join(parts) + "\n" + when + " · " + SunClock.format_hour(s.start_hour)
 
 
 func _build() -> void:
@@ -57,7 +82,10 @@ func _build() -> void:
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
 	_fly_btn = UiKit.menu_button(box, tr("Лететь"), _on_fly)
-	UiKit.menu_button(box, tr("Полёт…"), func() -> void: setup_requested.emit())
+	_summary = UiKit.label(box, summary_text(settings), "HintLabel")
+	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_setup_btn = UiKit.menu_button(box, tr("Полёт…"), func() -> void: setup_requested.emit())
 	UiKit.menu_button(box, tr("Управление"), func() -> void: controls_requested.emit())
 	UiKit.menu_button(box, tr("Настройки"), func() -> void: settings_requested.emit())
 	UiKit.menu_button(box, tr("Об игре"), func() -> void: about_requested.emit())

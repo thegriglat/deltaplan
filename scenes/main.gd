@@ -23,6 +23,7 @@ var _overlay_back: Control  ## экран, к которому вернутьс�
 @onready var result_screen: ResultScreen = $UI/ResultScreen
 @onready var controls_screen: ControlsScreen = $UI/ControlsScreen
 @onready var flight_setup_screen: FlightSetupScreen = $UI/FlightSetupScreen
+@onready var loading_screen: LoadingScreen = $UI/LoadingScreen
 
 
 func _ready() -> void:
@@ -86,9 +87,12 @@ func _fly(s: FlightSettings) -> void:
 	flight = s
 	get_tree().paused = false
 	start_menu.set_busy(true)
+	loading_screen.open(game.terrain.progress, StartMenu.summary_text(s).replace("\n", " · "))
+	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
 	game.air_start_m = opts.air_start_m
 	game.air_start_agl_m = opts.air_start_agl_m
 	var ok: bool = await game.start(s)
+	loading_screen.close()
 	start_menu.set_busy(false)
 	if not ok:
 		state = State.MENU
@@ -205,7 +209,7 @@ func _connect_ui() -> void:
 	pause_menu.controls_requested.connect(_open_overlay.bind(controls_screen, pause_menu))
 	controls_screen.closed.connect(_close_overlay)
 	flight_setup_screen.closed.connect(_close_overlay)
-	flight_setup_screen.fly_requested.connect(_on_flight_setup_fly)
+	flight_setup_screen.done.connect(_on_flight_setup_done)
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
@@ -230,9 +234,12 @@ func _open_flight_setup() -> void:
 	_open_overlay(flight_setup_screen, start_menu)
 
 
-func _on_flight_setup_fly(s: FlightSettings) -> void:
-	flight_setup_screen.visible = false
-	_fly(s)
+## «Готово» в «Полёт…»: выбор запомнить и вернуться в меню (в полёт — только «Лететь»).
+func _on_flight_setup_done(s: FlightSettings) -> void:
+	flight = s
+	UserSettings.save_last_flight(s)
+	start_menu.set_settings(s)
+	_close_overlay()
 
 
 ## «Продолжить» после посадки: ходьба по земле с места посадки, новый разбег — новый полёт.
