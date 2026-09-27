@@ -18,8 +18,11 @@ var strength: float = 0.0
 var radius: float = 100.0
 ## Наклон оси: горизонтальное смещение (x, z) на 1 м подъёма.
 var lean: Vector2 = Vector2.ZERO
-## Скорость сноса оторвавшегося термика (на распаде), м/с (x, z).
+## Скорость сноса термика ветром, м/с (x, z).
 var drift_vel: Vector2 = Vector2.ZERO
+## Через сколько секунд после рождения термик отрывается от источника и уходит с ветром целиком
+## (пузырь/колонна дрейфует с воздухом, VR-0). < 0 — сносится только на распаде.
+var drift_delay: float = -1.0
 
 ## Времена жизни, с (время атмосферы).
 var t_birth: float = 0.0
@@ -52,6 +55,20 @@ func t_decay_start() -> float:
 
 
 ## Доля распада 0..1 в момент t.
+## Момент, с которого термик (и облако над ним) сносится ветром.
+func drift_start() -> float:
+	if drift_delay >= 0.0:
+		return t_birth + drift_delay
+	return t_decay_start()
+
+
+## Смещение сносом в момент t (снос продолжается и после конца термика, пока облако тает).
+func drift_at(t: float) -> Vector2:
+	if is_static:
+		return Vector2.ZERO
+	return drift_vel * maxf(0.0, t - drift_start())
+
+
 func decay_progress(t: float) -> float:
 	if is_static:
 		return 0.0
@@ -90,19 +107,16 @@ func update_time(t: float) -> void:
 		var u := minf((a - ds) / maxf(t_decay, 0.001), 1.0)
 		env = 1.0 - smoothstep(0.0, 1.0, u)
 		cut_h = src.y + (top - src.y) * u
-		drift = drift_vel * (a - ds)
 	else:
 		cut_h = -1.0e9
-		drift = Vector2.ZERO
+	var a_d := a - (drift_delay if drift_delay >= 0.0 else ds)
+	drift = drift_vel * a_d if a_d > 0.0 else Vector2.ZERO
 
 
-## Центр облака над столбом в момент t (x, z): верх наклонённого столба + снос на распаде
-## (снос продолжается и после конца термика, пока облако тает).
+## Центр облака над столбом в момент t (x, z): верх наклонённого столба + снос ветром.
 func cloud_center(t: float) -> Vector2:
 	var span := top - src.y
-	var d := Vector2.ZERO
-	if not is_static:
-		d = drift_vel * maxf(0.0, t - t_decay_start())
+	var d := drift_at(t)
 	return Vector2(src.x + lean.x * span + d.x, src.z + lean.y * span + d.y)
 
 

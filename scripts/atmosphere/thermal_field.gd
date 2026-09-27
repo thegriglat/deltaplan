@@ -16,6 +16,10 @@ const _THIRD := 1.0 / 3.0
 const _ALLEN_NORM := 1.0 / 0.75
 const _P_STRIDE := 13
 const _KEY_MUL := 1 << 21
+## Ячейка индекса теней облаков, м.
+const _SHADE_CELL_M := 1000.0
+## Индекс теней пересобирается не чаще, с (облака меняются за минуты, сносятся на десятки метров).
+const _SHADE_REFRESH_S := 10.0
 
 var thermals: Dictionary = {}  ## id -> AtmoThermal (все живые, включая статичные)
 var cloudbase_msl: float = 1500.0
@@ -50,6 +54,11 @@ var _tp: PackedFloat64Array = PackedFloat64Array()  ## их параметры �
 var _empty_cycles: Dictionary = {}  ## id цикла без термика -> время конца цикла
 var _cells: Dictionary = {}  ## ключ клетки -> Vector2(период, фаза)
 var _static_next_id: int = -1
+## Тени облаков на время генерации: ячейка -> [x, z, радиус, огибающая, ...] (см. _build_shade_index).
+var _shade_cells: Dictionary = {}
+var _shade_ready: bool = false
+var _shade_t: float = NAN  ## на какой момент нужен индекс (строится при первом рождении)
+var _shade_built_t: float = -1.0e18  ## когда индекс построен
 
 # Профиль
 var _ring: float = 1.6
@@ -123,23 +132,32 @@ func update_wind_frame() -> void:
 			_apply_wind(th)
 			keep[id] = th
 	thermals = keep
+	_shade_built_t = -1.0e18
 	_empty_cycles.clear()
 	_cells.clear()
 	_buckets.clear()
 	_active.clear()
 
 
-## Наклон ствола и скорость сноса по ветру на середине столба.
+## Наклон ствола и снос ветром. Динамический термик отрывается от источника и дрейфует с воздухом
+## (доля drift_factor от ветра на середине столба) — пилот, кружа, уходит с ним; наклон — только от
+## остатка (1 − доля), привязанного к источнику. Статичный (MVP) стоит над источником, наклонён целиком.
 func _apply_wind(th: AtmoThermal) -> void:
 	var span := th.top - th.src.y
 	var wmid := wind.vec2_at(span * 0.5)
 	var rise := maxf(th.strength * float(_cfg.rise_factor), float(_cfg.rise_min_ms))
-	var lean := wmid / rise
+	var f := 0.0 if th.is_static else clampf(float(_cfg.get("drift_factor", 0.0)), 0.0, 1.0)
+	var lean := wmid * (1.0 - f) / rise
 	var max_lean := tan(deg_to_rad(float(_cfg.max_lean_deg)))
 	if lean.length() > max_lean:
 		lean = lean.normalized() * max_lean
 	th.lean = lean
-	th.drift_vel = wind.vec2_at(span)
+	if f > 0.0:
+		th.drift_vel = wmid * f
+		th.drift_delay = float(_cfg.get("drift_delay_s", 0.0))
+	else:
+		th.drift_vel = wind.vec2_at(span)
+		th.drift_delay = -1.0
 	th.cloud_stretch = 1.0 + float(_cfg.street_cloud_stretch) * _street
 
 
@@ -181,6 +199,7 @@ func set_cloudbase(msl: float) -> void:
 			_apply_wind(th)
 		else:
 			thermals.erase(id)
+	_shade_built_t = -1.0e18
 	_empty_cycles.clear()
 
 
@@ -256,6 +275,7 @@ func refresh(t: float, focus: Vector3, margin_s: float) -> void:
 
 
 func _generate(t: float, focus: Vector3) -> void:
+	_shade_t = t
 	var fa := Vector2(focus.x, focus.z).dot(_ax)
 	var fc := Vector2(focus.x, focus.z).dot(_cx)
 	var n := int(ceil(_gen_r / _spacing))
@@ -282,6 +302,7 @@ func _generate(t: float, focus: Vector3) -> void:
 				thermals[id] = th
 			else:
 				_empty_cycles[id] = t_start + pp.x
+	_shade_t = NAN
 
 
 func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThermal:
@@ -304,7 +325,11 @@ func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThe
 			best_sun = s
 			best = p
 	# В тени зрелого облака земля греется слабее (VR-2): меньше шанс и сила термика.
-	var shade := _cloud_shade(best, t_start) * float(_cfg.cloud_shade_factor)
+	if not is_nan(_shade_t) and absf(_shade_t - _shade_built_t) > _SHADE_REFRESH_S:
+		_build_shade_index(_shade_t)
+		_shade_t = NAN
+	var shade := _shade_at(best) if _shade_ready else _cloud_shade(best, t_start)
+	shade *= float(_cfg.cloud_shade_factor)
 	best_sun *= 1.0 - shade
 	# Перистая пелена ослабляет солнце: источники реже и слабее (VR-28).
 	best_sun *= insolation
@@ -382,12 +407,57 @@ func _cloud_shade(p: Vector2, t: float) -> float:
 		var e := th.envelope(t)
 		if e < 0.5:
 			continue
-		var span := th.top - th.src.y
-		var c := Vector2(th.src.x, th.src.z) + th.lean * span - sxz * (th.top - th.src.y)
+		var c := th.cloud_center(t) - sxz * (th.top - th.src.y)
 		var r := clampf(cloud_width_per_ms * th.strength, cloud_width_min, cloud_width_max) * 0.5
 		var d := c.distance_to(p)
 		if d < r:
 			shade = maxf(shade, e * (1.0 - smoothstep(r * 0.6, r, d)))
+	return shade
+
+
+## Индекс теней облаков на момент t для генерации: перебор всех термиков на каждое рождение
+## (_cloud_shade) при плотной сетке источников даёт пики в десятки мс. Тень нового термика —
+## по облакам на момент генерации (не на момент его рождения в прошлом цикле клетки).
+func _build_shade_index(t: float) -> void:
+	_shade_cells.clear()
+	_shade_built_t = t
+	_shade_ready = sun_dir.y >= 0.05
+	if not _shade_ready:
+		return
+	var sxz := Vector2(sun_dir.x, sun_dir.z) / sun_dir.y
+	var inv := 1.0 / _SHADE_CELL_M
+	for id in thermals:
+		var th: AtmoThermal = thermals[id]
+		if not th.has_cloud:
+			continue
+		var e := th.envelope(t)
+		if e < 0.5:
+			continue
+		var c := th.cloud_center(t) - sxz * (th.top - th.src.y)
+		var r := clampf(cloud_width_per_ms * th.strength, cloud_width_min, cloud_width_max) * 0.5
+		for gz in range(floori((c.y - r) * inv), floori((c.y + r) * inv) + 1):
+			for gx in range(floori((c.x - r) * inv), floori((c.x + r) * inv) + 1):
+				var key := Vector2i(gx, gz)
+				var arr: Variant = _shade_cells.get(key)
+				if arr == null:
+					arr = PackedFloat32Array()
+				arr.append_array(PackedFloat32Array([c.x, c.y, r, e]))
+				_shade_cells[key] = arr
+
+
+func _shade_at(p: Vector2) -> float:
+	var arr: Variant = _shade_cells.get(
+		Vector2i(floori(p.x / _SHADE_CELL_M), floori(p.y / _SHADE_CELL_M))
+	)
+	if arr == null:
+		return 0.0
+	var a: PackedFloat32Array = arr
+	var shade := 0.0
+	for i in range(0, a.size(), 4):
+		var r := a[i + 2]
+		var d := p.distance_to(Vector2(a[i], a[i + 1]))
+		if d < r:
+			shade = maxf(shade, a[i + 3] * (1.0 - smoothstep(r * 0.6, r, d)))
 	return shade
 
 
@@ -405,7 +475,7 @@ func _rebuild_buckets(t: float, focus: Vector3, margin_s: float) -> void:
 		var p1 := th.axis_at(th.top + th.cloud_depth)
 		# Снос за интервал до следующего обновления — запас.
 		var pad := th.radius * cut + th.drift_vel.length() * margin_s
-		if not th.is_static and t + margin_s > th.t_decay_start():
+		if not th.is_static and t + margin_s > th.drift_start():
 			p1 += th.drift_vel * margin_s
 		var mid := (p0 + p1) * 0.5
 		var near_d := Vector2(focus.x, focus.z).distance_to(mid) - p0.distance_to(p1) * 0.5 - pad

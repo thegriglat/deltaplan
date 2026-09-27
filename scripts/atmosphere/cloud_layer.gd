@@ -494,7 +494,7 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 		return
 	var c := model.center(th, t)
 	var axes := _basis_axes
-	if st.y > 0.0:
+	if st.y > 0.0 or (not th.is_static and t > th.drift_start()):
 		_drifting[i] = th
 	var sz4 := model.size(th, st)
 	var base := th.top
@@ -544,7 +544,7 @@ func _place_shadow(
 	dc.modulate = Color(1, 1, 1, clampf(op * soft * (1.0 + anvil * 0.5), 0.0, 1.0))
 
 
-## Распадающиеся облака уплывают по ветру — двигаем их каждый кадр, чтобы не дёргались.
+## Облака уплывают по ветру вместе с термиками — двигаем их каждый кадр, чтобы не дёргались.
 func _update_drift(t: float) -> void:
 	for i in _drifting:
 		var th: AtmoThermal = _drifting[i]
