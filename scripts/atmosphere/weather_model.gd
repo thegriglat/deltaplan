@@ -185,6 +185,7 @@ static func derive(
 		"cb_chance": cb,
 		"thermal_edge_k": 1.0,
 		"mech_turbulence_k": 1.0,
+		"haze_k": 1.0,
 		"cb_top_above_base_m": maxf(float(c.tropopause_msl_m) - z_lcl * 1000.0, 1000.0),
 		"wave_strength": wave_strength,
 		"stability_n_per_s": n_bv,
@@ -288,6 +289,12 @@ static func diurnal_state(
 	var calm_h := float(d.get("evening_calm_h", 2.0))
 	var calm := clampf((hour - (sunset - calm_h)) / maxf(calm_h, 0.01), 0.0, 1.0)
 	var mech_k := lerpf(1.0, float(d.get("evening_mech_k", 0.6)), calm)
+	# Дымка копится после пика прогрева к закату.
+	var haze_k := lerpf(
+		1.0,
+		float(d.get("evening_haze_k", 1.0)),
+		clampf((hour - peak) / maxf(sunset - peak, 0.1), 0.0, 1.0)
+	)
 	return {
 		"temperature_c": t,
 		"cap_agl_m": cap,
@@ -295,6 +302,7 @@ static func diurnal_state(
 		"heat": heat,
 		"soft": soft,
 		"mech_k": mech_k,
+		"haze_k": haze_k,
 		"sunrise_h": sunrise,
 		"sunset_h": sunset,
 		"peak_h": peak,
@@ -333,6 +341,7 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	w.cirrus_cover = maxf(float(w.cirrus_cover), float(sky.get("cover", 0.0)))
 	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft
 	w.mech_turbulence_k = float(st.get("mech_k", 1.0))
+	w.haze_k = float(st.get("haze_k", 1.0)) * float(sky.get("haze_k", 1.0))
 	var dv: Dictionary = w._derived
 	dv.merge(st, true)
 	dv.heat = heat

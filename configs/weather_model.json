@@ -59,8 +59,8 @@
     "options_doc": "Порядок пунктов в меню.",
     "clear": {"cover": 0.0, "heat": 1.0, "soft": 0.0, "duty_k": 1.0, "cb_k": 1.0},
     "partly": {"cover": 0.3, "heat": 0.8, "soft": 0.3, "duty_k": 0.85, "cb_k": 0.7},
-    "overcast": {"cover": 0.85, "heat": 0.3, "soft": 1.0, "duty_k": 0.5, "cb_k": 0.0},
-    "fields_doc": "cover — пелена 0..1 (не меньше cirrus_base); heat — доля прогрева (сила × heat^diurnal.heat_strength_exponent); soft — мягкость 0..1 (как diurnal.soft); duty_k — доля рождений; cb_k — множитель гроз и переразвития."
+    "overcast": {"cover": 0.85, "heat": 0.3, "soft": 1.0, "duty_k": 0.5, "cb_k": 0.0, "haze_k": 1.3},
+    "fields_doc": "cover — пелена 0..1 (не меньше cirrus_base); heat — доля прогрева (сила × heat^diurnal.heat_strength_exponent); soft — мягкость 0..1 (как diurnal.soft); duty_k — доля рождений; cb_k — множитель гроз и переразвития; haze_k — густота дымки (нет — 1)."
   },
   "extreme_by_top_agl": {
     "_doc": "Доля экстремальных термиков (thermal_extreme_ms) по верху подъёма над средней землёй: в средний день их нет, в сильный — редкие.",
@@ -180,6 +180,8 @@
     "evening_calm_h_doc": "За сколько часов до заката приземный слой успокаивается, ч.",
     "evening_mech_k": 0.6,
     "evening_mech_k_doc": "Механическая болтанка к закату × это (склон работает как днём).",
+    "evening_haze_k": 1.6,
+    "evening_haze_k_doc": "Во сколько раз гуще дымка к закату (после пика прогрева растёт линейно), SkyEnvironment.set_haze_density.",
     "update_s": 60,
     "update_s_doc": "Как часто (игровые секунды) Game пересчитывает день по часам.",
     "blend_s": 300,

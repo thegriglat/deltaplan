@@ -24,6 +24,8 @@ var glare: SunGlare
 
 var _haze_mat: ShaderMaterial
 var _inversion_msl: float = NAN
+## Густота дымки относительно world.json → haze.visibility_km (ход дня: к вечеру гуще).
+var _haze_density: float = 1.0
 var _sky_mat: ShaderMaterial
 var _env: Environment
 var _haze_base_color := Color.WHITE
@@ -182,6 +184,16 @@ func set_inversion_height_msl(h: float) -> void:
 		_haze_mat.set_shader_parameter("top_msl", get_haze_top_msl())
 
 
+## Густота дымки (1 — как в конфиге, 2 — видимость вдвое меньше): погода по ходу дня
+## (WeatherModel → haze_k: к вечеру дымка гуще).
+func set_haze_density(k: float) -> void:
+	_haze_density = maxf(k, 0.1)
+	if _haze_mat != null:
+		var hz: Dictionary = Config.get_config("world").get("haze", {})
+		var vis_m := maxf(float(hz.get("visibility_km", 30.0)), 0.1) * 1000.0
+		_haze_mat.set_shader_parameter("extinction", 3.912 / vis_m * _haze_density)
+
+
 ## Верх дымки над уровнем моря, м.
 func get_haze_top_msl() -> float:
 	var hz: Dictionary = Config.get_config("world").get("haze", {})
@@ -236,7 +248,7 @@ func _apply_haze(hz: Dictionary) -> void:
 		add_child(haze)
 	var vis_m := maxf(float(hz.get("visibility_km", 30.0)), 0.1) * 1000.0
 	# Формула Кошмидера: видимость = 3.912 / коэффициент ослабления (контраст 2 %).
-	_haze_mat.set_shader_parameter("extinction", 3.912 / vis_m)
+	_haze_mat.set_shader_parameter("extinction", 3.912 / vis_m * _haze_density)
 	_haze_mat.set_shader_parameter("top_msl", get_haze_top_msl())
 	_haze_mat.set_shader_parameter("top_transition_m", float(hz.get("top_transition_m", 50.0)))
 	_haze_mat.set_shader_parameter(
