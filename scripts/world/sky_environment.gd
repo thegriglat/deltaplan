@@ -240,6 +240,11 @@ func _apply_haze(hz: Dictionary) -> void:
 		haze.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		# квад рисуется на весь экран из вершинного шейдера — не отсекать
 		haze.extra_cull_margin = 16384.0
+		# Квад дымки — на своём слое: тени облаков (декали) на него не ложатся. Иначе декаль
+		# затемняла дымку во всех плитках кластеров, где она есть, — серые прямоугольники
+		# со ступенчатыми краями над дальним рельефом и небом.
+		var no_decal := int(Config.value("atmosphere", "clouds.shadow_exclude_layer", 19))
+		haze.layers = 1 << (no_decal - 1)
 		haze.custom_aabb = AABB(Vector3(-1e6, -1e6, -1e6), Vector3(2e6, 2e6, 2e6))
 		_haze_mat = ShaderMaterial.new()
 		_haze_mat.shader = HAZE_SHADER

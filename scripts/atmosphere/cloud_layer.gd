@@ -494,6 +494,8 @@ func _add_slot() -> int:
 		var dc := Decal.new()
 		dc.texture_albedo = _shadow_tex
 		dc.albedo_mix = 1.0
+		# Не на квад дымки (см. SkyEnvironment._apply_haze).
+		dc.cull_mask = 0xFFFFF & ~(1 << (int(cfg.shadow_exclude_layer) - 1))
 		dc.upper_fade = 0.05
 		dc.lower_fade = 0.05
 		dc.distance_fade_enabled = true
