@@ -2,7 +2,7 @@ extends Node3D
 ## Тестовая сцена рельефа: камера на стартовой площадке смотрит вдоль склона.
 ## Аргументы (после --):
 ##   --location=<id>    локация (configs/locations/<id>.json), по умолчанию из сцены
-##   --site=<id>        площадка (по умолчанию первая)
+##   --site=<id>        площадка (по умолчанию первая); --landing — камера над первой посадкой
 ##   --agl=<м>          поднять камеру над стартом
 ##   --yaw=<град>       добавка к курсу площадки
 ##   --pitch=<град>     наклон взгляда
@@ -10,7 +10,8 @@ extends Node3D
 ##   --latlon=<lat>,<lon> [--size_km=N]  рантайм-загрузка рельефа вокруг точки (FR-17)
 ##   --shot=<файл.png>  снять кадр и выйти
 ##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
-##   --no-trees, --no-shadows  отключить деревья / тени (замер цены)
+##   --no-trees, --no-shadows, --no-grass  отключить деревья / тени / траву (замер цены)
+##   --wind=<км/ч>,<откуда°>  ветер для колыхания травы; --thermal=x,z,радиус,м/с — термик
 ##   --inversion=<м>    высота инверсии (верх дымки = она + haze.top_margin_m), --no-haze
 ## Управление: WASD, Q/E, Shift, правая кнопка мыши — обзор.
 
@@ -47,9 +48,19 @@ func _ready() -> void:
 		_frames = 0
 	terrain.renderer.lod_camera = cam
 	_place_camera()
-	if _args.has("no-trees") and terrain.trees != null:
-		terrain.trees.process_mode = Node.PROCESS_MODE_DISABLED
-		terrain.trees.visible = false
+	for n: Node3D in [terrain.trees, terrain.impostors]:
+		if _args.has("no-trees") and n != null:
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+			n.visible = false
+	_setup_wind()
+	terrain.set_pilot(cam)
+	if terrain.location_id != "":
+		var c := WorldClearings.build_for(terrain.location_id)
+		if c != null:
+			terrain.set_clearings(c.image, c.origin, c.cell_m)
+	if _args.has("no-grass") and terrain.grass != null:
+		terrain.grass.process_mode = Node.PROCESS_MODE_DISABLED
+		terrain.grass.visible = false
 	var env := $Environment as SkyEnvironment
 	if _args.has("no-shadows"):
 		env.sun.shadow_enabled = false
@@ -68,6 +79,35 @@ func _ready() -> void:
 	)
 
 
+## Ветер и термик для проверки колыхания (в игре их даёт Atmosphere).
+func _setup_wind() -> void:
+	var w := Vector3.ZERO
+	if _args.has("wind"):
+		var p := String(_args.wind).split(",")
+		var from := TerrainGeo.heading_vector(float(p[1]))
+		w = -from * float(p[0]) / 3.6
+	var th: Array[Dictionary] = []
+	if _args.has("thermal"):
+		var q := String(_args.thermal).split(",")
+		var x := float(q[0])
+		var z := float(q[1])
+		(
+			th
+			. append(
+				{
+					"source": Vector3(x, terrain.height_at(x, z), z),
+					"radius_m": float(q[2]),
+					"strength_ms": float(q[3]),
+					"envelope": 1.0,
+				}
+			)
+		)
+	terrain.set_wind_sources(
+		func(_pos: Vector3) -> Vector3: return w,
+		func(_pos: Vector3, _r: float) -> Array[Dictionary]: return th
+	)
+
+
 func _place_camera() -> void:
 	var sites := terrain.get_start_sites()
 	var site: Dictionary = sites[0]
@@ -81,6 +121,12 @@ func _place_camera() -> void:
 	)
 	cam.global_position = p
 	_apply_rot()
+	var lands := terrain.get_landing_sites()
+	if _args.has("landing") and not lands.is_empty():
+		cam.global_position = (
+			(lands[0].position as Vector3)
+			+ Vector3.UP * (float(_cfg.eye_height_m) + float(_args.get("agl", "0")))
+		)
 	if _args.has("pos"):
 		cam.global_position = _vec(_args.pos)
 	if _args.has("look"):

@@ -80,3 +80,6 @@
 | — | дымка слоя перемешивания (VR-3) | сгенерировано процедурно: `scripts/world/haze.gdshader` | — | небо и дымка |
 | `data/terrain/textures/grass_ambientcg_grass004.jpg` | рисунок травы вблизи (1K, цвет) | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `configs/world.json → terrain_textures.grass` |
 | `data/terrain/textures/rock_ambientcg_rock030.jpg` | рисунок скал вблизи (1K, цвет) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock` |
+| `data/terrain/textures/rock_ambientcg_rock030_normal.jpg` | карта нормалей скал (NormalGL, уменьшена до 512²) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock.normal` |
+| `data/terrain/textures/scree_ambientcg_gravel022.jpg` | щебень осыпей (цвет, 512²) | [ambientCG Gravel022](https://ambientcg.com/view?id=Gravel022) | CC0 | рельеф, `terrain_textures.scree` |
+| — | полог леса с высоты, фактура лугов и полей, слои скал, колыхание травы, травинки | сгенерировано процедурно: `terrain.gdshader`, `terrain_wind.gdshaderinc`, `grass.gdshader` | — | рельеф |

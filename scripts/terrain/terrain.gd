@@ -9,6 +9,7 @@ extends Node3D
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость),
 ##                           годится как sun_fn для Atmosphere.set_ground
 ## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
+## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near), set_pilot(node).
 ## Дополнительно: load_location(id), load_location_latlon(lat, lon, size_km) (рантайм, FR-17),
 ## latlon_to_local / local_to_latlon, сигнал loaded.
 ## Координаты: X — восток, −Z — север, Y — высота над уровнем моря; начало X/Z — центр локации.
@@ -30,10 +31,19 @@ var surfaces: Array[SurfaceLayer] = []
 var last_load_time_s: float = 0.0
 var renderer: TerrainRenderer
 var trees: Node3D
+var grass: GrassField
+## Средний план леса (билборды), null — нет атласа.
+var impostors: ForestImpostors
+## Передаёт ветер и термики атмосферы шейдерам земли, травы и деревьев.
+var wind: TerrainWind
 
 var _sites: Array[Dictionary] = []
 var _landings: Array[Dictionary] = []
+## [Image, origin, cell_m] — просеки (set_clearings), переживают перезагрузку деревьев.
+var _clearings: Array = []
 var _sun_dir: Vector3 = Vector3.UP
+## terrain_look после переопределений локации (палитра — get_grass_palette).
+var _look: Dictionary = {}
 var _loader: TerrariumLoader
 var _wc_loader: WorldCoverLoader
 ## Коэффициенты источников термиков по классам (configs/world.json → surface.thermal).
@@ -139,6 +149,7 @@ func setup(
 ) -> void:
 	location = cfg
 	layers = new_layers
+	_clearings = []  # просеки — от прежней локации; интегратор задаст новые
 	center_lat = lat0
 	center_lon = lon0
 	var world: Dictionary = Config.get_config("world")
@@ -147,11 +158,13 @@ func setup(
 		world.get("terrain_look", {}), cfg.get("terrain_look", {})
 	)
 	_build_sites()
+	_look = look
 	set_surfaces(new_surfaces, world.get("surface", {}), look)
 	if renderer == null:
 		renderer = TerrainRenderer.new()
 		renderer.name = "Mesh"
 		add_child(renderer)
+	look["sun_dir"] = _sun_dir
 	renderer.build(layers, surfaces, cfg.get("render", {}), look, world.get("rendering", {}))
 	renderer.apply_textures(world.get("terrain_textures", {}))
 	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
@@ -160,14 +173,115 @@ func setup(
 		trees = null
 	if bool(trees_cfg.get("enabled", false)) and not renderer.height_textures.is_empty():
 		trees = _make_trees(trees_cfg, look)
+	_make_grass(world.get("grass", {}), look)
+	_setup_wind(world.get("wind_visual", {}))
+
+
+## Источники ветра для визуала (VR-17): mean_wind_fn(pos) -> Vector3 (Atmosphere.mean_wind_at),
+## thermals_fn(pos, radius) -> Array[Dictionary] (Atmosphere.thermals_near). Пустые — штиль.
+func set_wind_sources(mean_wind_fn: Callable, thermals_fn: Callable) -> void:
+	if wind == null:
+		_setup_wind(Config.get_config("world").get("wind_visual", {}))
+	wind.mean_wind_fn = mean_wind_fn
+	wind.thermals_fn = thermals_fn
+
+
+## Просеки для деревьев (дороги, коридоры ЛЭП, здания, посадки) — маска WorldClearings:
+## Image L8 (255 — расчищено), origin — мир (x, z) угла пикселя (0, 0), cell_m — размер пикселя.
+## Интегратор: var c := WorldClearings.build_for(id)
+## terrain.set_clearings(c.image, c.origin, c.cell_m)
+func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
+	_clearings = [mask, origin, cell_m]
+	if trees is TerrainTreeModels:
+		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
+	if impostors != null:
+		impostors.set_clearings(mask, origin, cell_m)
+
+
+## Палитра травы локации (та же, что у рельефа, meadow_color в terrain_common.gdshaderinc):
+## {grass_color, dry_grass_color, straw_color, field_color: Color (линейные), dryness, dry_noise,
+##  dry_south_k, grass_saturation, patch_scale_m: float}. Для травинок (агент vegetation).
+func get_grass_palette() -> Dictionary:
+	var out := {}
+	for k in ["grass_color", "dry_grass_color", "straw_color", "field_color"]:
+		var a: Array = _look.get(k, [0.3, 0.4, 0.15])
+		out[k] = Color(float(a[0]), float(a[1]), float(a[2]))
+	for k in ["dryness", "dry_noise", "dry_south_k", "grass_saturation", "patch_scale_m"]:
+		out[k] = float(_look.get(k, 0.0))
+	return out
+
+
+## Нода пилота: трава приминается у его ног.
+func set_pilot(node: Node3D) -> void:
+	if grass != null:
+		grass.pilot = node
+
+
+func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
+	if grass != null:
+		grass.queue_free()
+		grass = null
+	if not bool(cfg.get("enabled", false)) or renderer.height_textures.is_empty():
+		return
+	var spots: Array[Vector4] = []
+	var r := float(cfg.get("landing_mow_radius_m", 0.0))
+	for l in _landings:
+		var p: Vector3 = l.position
+		spots.append(Vector4(p.x, p.z, r, float(cfg.get("mowed_height_k", 0.3))))
+	grass = GrassField.new()
+	grass.name = "Grass"
+	add_child(grass)
+	grass.setup(
+		layers[0],
+		renderer.height_textures[0],
+		surfaces[0],
+		renderer.surface_textures[0],
+		look,
+		cfg,
+		spots
+	)
+
+
+func _setup_wind(cfg: Dictionary) -> void:
+	if wind == null:
+		wind = TerrainWind.new()
+		wind.name = "Wind"
+		add_child(wind)
+	wind.setup(cfg)
+	wind.ground_fn = height_at
+	wind.clear_materials()
+	if renderer != null:
+		wind.add_materials(renderer.materials())
+	if trees is TerrainTreeModels:
+		wind.add_materials((trees as TerrainTreeModels).materials)
+	if grass != null:
+		wind.add_materials([grass.material])
 
 
 ## Деревья: модели пород, если есть файлы, иначе процедурные кроны.
 func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 	var models := TerrainTreeModels.new()
 	models.name = "Trees"
+	if impostors != null:
+		impostors.queue_free()
+		impostors = null
 	if models.setup(layers[0], surfaces[0], trees_cfg):
 		add_child(models)
+		impostors = ForestImpostors.new()
+		impostors.name = "ForestImpostors"
+		if impostors.setup(
+			layers[0],
+			renderer.height_textures[0],
+			surfaces[0],
+			renderer.surface_textures[0],
+			trees_cfg
+		):
+			add_child(impostors)
+		else:
+			impostors.free()
+			impostors = null
+		if _clearings.size() == 3:
+			set_clearings(_clearings[0], _clearings[1], _clearings[2])
 		return models
 	models.free()
 	var cones := TerrainTrees.new()
@@ -238,16 +352,16 @@ func thermal_source_strength_at(x: float, z: float) -> float:
 	var c := _surface_class(x, z, n)
 	var e := clampf(n.dot(_sun_dir), 0.0, 1.0)
 	var k := _thermal_k[c] if c < _thermal_k.size() else 1.0
-	var edge := 1.0 + _edge_boost * edge_proximity(x, z)
+	var edge := 1.0 + _edge_boost * _edge_proximity(x, z)
 	return clampf(k * _thermal_gain * pow(e, _thermal_power) * edge, 0.0, 1.0)
 
 
 ## Близость к границе классов-триггеров 0..1: 1 ближе edge_full_m, 0 дальше edge_max_m.
 ## Ищется по 8 направлениям на нескольких расстояниях (класс — без учёта уклона).
-func edge_proximity(x: float, z: float) -> float:
+func _edge_proximity(x: float, z: float) -> float:
 	if _edge_boost <= 0.0 or _edge_pair.is_empty():
 		return 0.0
-	var sl := surface_layer_at(x, z)
+	var sl := _surface_layer_at(x, z)
 	if sl == null:
 		return 0.0
 	var c0 := sl.class_at(x, z)
@@ -296,7 +410,7 @@ func detail_bounds() -> Rect2:
 
 
 ## Карта поверхности, покрывающая точку (самая детальная), или null.
-func surface_layer_at(x: float, z: float) -> SurfaceLayer:
+func _surface_layer_at(x: float, z: float) -> SurfaceLayer:
 	for sl in surfaces:
 		if sl != null and sl.contains(x, z):
 			return sl
@@ -304,7 +418,7 @@ func surface_layer_at(x: float, z: float) -> SurfaceLayer:
 
 
 func _surface_class(x: float, z: float, n: Vector3) -> int:
-	var sl := surface_layer_at(x, z)
+	var sl := _surface_layer_at(x, z)
 	var c := sl.class_at(x, z) if sl != null else SurfaceLayer.NONE
 	if (
 		n.y < _rock_cos

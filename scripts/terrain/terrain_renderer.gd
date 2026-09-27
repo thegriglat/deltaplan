@@ -59,7 +59,14 @@ func build(
 			mat.set_shader_parameter(
 				"hole_max", Vector2(f.origin_x + f.size_x(), f.origin_z + f.size_z())
 			)
-		_materials.append(mat)
+		# материал на каждый LOD (шаг вершин — обычный uniform: instance uniform на сотнях чанков
+		# переполняет буфер в Compatibility)
+		var lod_mats: Array[ShaderMaterial] = []
+		for lod in n_lod:
+			var lm := mat if lod == 0 else mat.duplicate() as ShaderMaterial
+			lm.set_shader_parameter("lod_stride", float(1 << lod))
+			lod_mats.append(lm)
+			_materials.append(lm)
 		var meshes: Array[Mesh] = []
 		for lod in n_lod:
 			var step := 1 << lod
@@ -79,7 +86,7 @@ func build(
 				var mi := MeshInstance3D.new()
 				mi.name = "%s_%d_%d" % [layer.id, ci, cj]
 				mi.mesh = meshes[n_lod - 1]
-				mi.material_override = mat
+				mi.material_override = lod_mats[n_lod - 1]
 				mi.position = Vector3(x0, 0.0, z0)
 				mi.cast_shadow = (
 					GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -90,7 +97,6 @@ func build(
 					Vector3(0.0, hr.x - skirt, 0.0), Vector3(chunk_m, hr.y - hr.x + skirt, chunk_m)
 				)
 				add_child(mi)
-				mi.set_instance_shader_parameter("lod_stride", float(1 << (n_lod - 1)))
 				(
 					_chunks
 					. append(
@@ -101,6 +107,7 @@ func build(
 							"meshes": meshes,
 							"lods": lod_d,
 							"lod": n_lod - 1,
+							"mats": lod_mats,
 						}
 					)
 				)
@@ -114,6 +121,11 @@ func clear() -> void:
 	_materials.clear()
 	height_textures.clear()
 	surface_textures.clear()
+
+
+## Материалы рельефа (по слоям) — для передачи ветра (TerrainWind).
+func materials() -> Array[ShaderMaterial]:
+	return _materials
 
 
 func chunk_count() -> int:
@@ -161,7 +173,7 @@ func update_lods(force: bool) -> void:
 			c.lod = lod
 			var mi: MeshInstance3D = c.mi
 			mi.mesh = c.meshes[lod]
-			mi.set_instance_shader_parameter("lod_stride", float(1 << lod))
+			mi.material_override = c.mats[lod]
 
 
 ## Сколько чанков сейчас на каждом LOD (для отладки/тестов).
@@ -264,7 +276,7 @@ func apply_textures(tex_cfg: Dictionary) -> void:
 		m.set_shader_parameter("texture_strength", float(tex_cfg.get("strength", 1.0)))
 		m.set_shader_parameter("texture_color_mix", float(tex_cfg.get("color_mix", 0.3)))
 		m.set_shader_parameter("texture_contrast", float(tex_cfg.get("contrast", 1.0)))
-		for surf in ["grass", "forest", "rock", "snow"]:
+		for surf in ["grass", "forest", "rock", "snow", "scree"]:
 			var sc: Dictionary = tex_cfg.get(surf, {})
 			var tex := load_texture(String(sc.get("albedo", "")))
 			m.set_shader_parameter("use_%s_tex" % surf, tex != null)
@@ -272,6 +284,11 @@ func apply_textures(tex_cfg: Dictionary) -> void:
 				m.set_shader_parameter("%s_tex" % surf, tex)
 				m.set_shader_parameter("%s_tex_avg" % surf, _average_color(tex))
 				m.set_shader_parameter("%s_tex_tile_m" % surf, float(sc.get("tile_m", 4.0)))
+			var ntex := load_texture(String(sc.get("normal", "")))
+			if surf == "rock":
+				m.set_shader_parameter("use_rock_normal", ntex != null)
+				if ntex != null:
+					m.set_shader_parameter("rock_normal_tex", ntex)
 
 
 ## Средний цвет текстуры (линейный, как видит шейдер с source_color).

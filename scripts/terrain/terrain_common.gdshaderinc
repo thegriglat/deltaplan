@@ -17,6 +17,11 @@ uniform vec3 field_color : source_color;
 uniform vec3 shrub_color : source_color;
 uniform vec3 bare_color : source_color;
 uniform vec3 built_color : source_color;
+uniform vec3 straw_color : source_color = vec3(0.6, 0.52, 0.3);
+uniform float dryness = 0.3;         // сухость лугов по локации и сезону 0..1
+uniform float dry_noise = 0.6;       // разброс сухости пятнами
+uniform float dry_south_k = 0.3;     // насколько южные склоны суше
+uniform float grass_saturation = 1.0;
 uniform float rock_slope_deg;
 uniform float rock_blend_deg;
 uniform vec2 field_size_m;       // размер участка поля (восток × юг), м
@@ -133,4 +138,27 @@ float northness(vec3 n) {
 // Доля хвойных в лесу (0..1): пятнами, больше на северных склонах. patch2 — шум пятен.
 float conifer_share(float patch2, float north) {
 	return smoothstep(0.35, 0.65, patch2 + 0.3 * north);
+}
+
+// Цвет луга (та же палитра, что у рельефа и травинок): сухость по локации/сезону + пятна +
+// южные склоны суше. north — «северность» склона, patch2 — шум пятен (fbm, см. рельеф).
+vec3 meadow_color(vec2 xz, float north, float patch2) {
+	float big = fbm(xz / patch_scale_m + vec2(4.7, 9.3), 3);
+	float dry = clamp(dryness + dry_noise * ((patch2 - 0.5) + 0.8 * (big - 0.5))
+			- dry_south_k * north, 0.0, 1.0);
+	vec3 c = dry < 0.5 ? mix(grass_color, dry_grass_color, dry * 2.0)
+			: mix(dry_grass_color, straw_color, dry * 2.0 - 1.0);
+	return mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, grass_saturation);
+}
+
+float meadow_patch(vec2 xz) {
+	return fbm(xz / (patch_scale_m * 0.12) + vec2(31.7, 11.2), 4);
+}
+
+// Цвет участка поля (пашня, всходы, стерня) — прямоугольные участки field_size_m.
+vec3 field_plot_color(vec2 xz, vec3 meadow) {
+	vec2 cell = floor(xz / field_size_m + vec2(floor(xz.y / (field_size_m.y * 6.0)) * 0.37, 0.0));
+	float fh = hash12(cell);
+	vec3 c = mix(field_color, mix(meadow, dry_grass_color, fh), step(0.45, fh));
+	return c * (0.85 + 0.3 * hash12(cell + 7.0));
 }

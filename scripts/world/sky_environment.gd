@@ -152,7 +152,14 @@ func _apply_haze(hz: Dictionary, to_sun: Vector3, sun_color: Color) -> void:
 	_haze_mat.set_shader_parameter(
 		"max_distance_m", float(hz.get("max_distance_km", 150.0)) * 1000.0
 	)
-	_haze_mat.set_shader_parameter("haze_color", _color(hz.get("color", [0.75, 0.75, 0.75])))
+	# Хорошая видимость — голубая воздушная перспектива, сильная дымка — серо-белёсая.
+	var tv: Array = hz.get("turbid_visibility_km", [40.0, 10.0])
+	var grey := clampf(
+		(float(tv[0]) - vis_m / 1000.0) / maxf(float(tv[0]) - float(tv[1]), 0.1), 0.0, 1.0
+	)
+	var c_clear := _color(hz.get("clear_color", [0.56, 0.67, 0.84]))
+	var c_turbid := _color(hz.get("turbid_color", [0.66, 0.67, 0.68]))
+	_haze_mat.set_shader_parameter("haze_color", c_clear.lerp(c_turbid, grey))
 	_haze_mat.set_shader_parameter("sun_color", sun_color)
 	_haze_mat.set_shader_parameter("sun_dir", to_sun)
 	_haze_mat.set_shader_parameter("sun_scatter", float(hz.get("sun_scatter", 0.3)))

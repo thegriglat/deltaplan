@@ -1,7 +1,7 @@
 extends TestCase
 ## Все встроенные локации: данные на месте, старты на склоне вниз по курсу, посадки пологие.
 
-const LOCATIONS := ["altai", "ongudai", "askarovo", "ekaterinburg"]
+const LOCATIONS := ["altai", "ongudai", "askarovo", "aushkul"]
 
 
 func test_locations() -> void:

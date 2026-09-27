@@ -1,8 +1,8 @@
 {
   "_doc": "Сгенерировано tools/terrain/fetch_dem.py — не править руками.",
-  "location": "ekaterinburg",
-  "center_lat": 56.86,
-  "center_lon": 60.66,
+  "location": "aushkul",
+  "center_lat": 54.72,
+  "center_lon": 59.69,
   "earth_radius_m": 6371008.8,
   "layers": [
     {
@@ -13,8 +13,8 @@
       "spacing_m": 25.0,
       "origin_x_m": -20000.0,
       "origin_z_m": -20000.0,
-      "min_height_m": 179.0,
-      "max_height_m": 440.09375,
+      "min_height_m": 332.125,
+      "max_height_m": 998.40625,
       "source": "copernicus",
       "water_file": "detail_water.png"
     },
@@ -26,8 +26,8 @@
       "spacing_m": 100.0,
       "origin_x_m": -80000.0,
       "origin_z_m": -80000.0,
-      "min_height_m": -254.6875,
-      "max_height_m": 728.21875,
+      "min_height_m": 123.5625,
+      "max_height_m": 1556.0625,
       "source": "terrarium",
       "water_file": "far_water.png"
     }

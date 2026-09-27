@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dp8jttu1umi3f"
-path="res://.godot/imported/far_water.png-b384c714bd28feac221203b0dd327b31.ctex"
+uid="uid://buoyfjemtdhi8"
+path="res://.godot/imported/rock_ambientcg_rock030_normal.jpg-8c9a7bb34dd367bfdf9b658a1d61244d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://data/terrain/ekaterinburg/far_water.png"
-dest_files=["res://.godot/imported/far_water.png-b384c714bd28feac221203b0dd327b31.ctex"]
+source_file="res://data/terrain/textures/rock_ambientcg_rock030_normal.jpg"
+dest_files=["res://.godot/imported/rock_ambientcg_rock030_normal.jpg-8c9a7bb34dd367bfdf9b658a1d61244d.ctex"]
 
 [params]
 

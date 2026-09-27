@@ -19,6 +19,15 @@ var radius: float = 500.0
 var lod_distances := PackedFloat32Array([60.0, 180.0])
 var density: float = 0.8
 var sink_fraction: float = 0.5
+## У опушки DSM ещё не поднялся на высоту крон — дерево утоплено меньше.
+var edge_sink_fraction: float = 0.05
+var edge_probe_m: float = 30.0
+## Просеки (дороги, ЛЭП, здания, посадки): L8, 255 — расчищено; null — нет.
+var clear_image: Image
+var clear_origin: Vector2 = Vector2.ZERO
+var clear_cell: float = 10.0
+## С этой доли радиуса модели редеют, уступая импостерам (0 — не редеют).
+var fade_start_k: float = 0.0
 var color_variation: float = 0.15
 var band_blend_m: float = 200.0
 ## Высота модели каждой породы, м (из меша) — для масштаба.
@@ -44,8 +53,12 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	lod_distances = PackedFloat32Array(cfg.get("lod_distances_m", [60.0, 180.0]))
 	density = float(cfg.get("density", 0.8))
 	sink_fraction = float(cfg.get("sink_fraction", 0.5))
+	edge_sink_fraction = float(cfg.get("edge_sink_fraction", sink_fraction))
+	edge_probe_m = float(cfg.get("edge_probe_m", 30.0))
 	color_variation = float(cfg.get("color_variation", 0.15))
 	band_blend_m = maxf(1.0, float(cfg.get("band_blend_m", 200.0)))
+	var ic: Dictionary = cfg.get("impostors", {})
+	fade_start_k = float(ic.get("fade_start_k", 0.0)) if bool(ic.get("enabled", false)) else 0.0
 	var sp: Dictionary = cfg.get("species", {})
 	for arr in [_weight, _min_m, _max_m, _aspect, _h_min, _h_max]:
 		arr.resize(SPECIES.size())
@@ -114,7 +127,12 @@ func build(center: Vector2) -> void:
 			var d2 := dx * dx + dz * dz
 			if d2 > r2 or not layer.contains(x, z):
 				continue
-			if surface.class_at(x, z) != SurfaceLayer.FOREST:
+			# переход к импостерам среднего плана: модели редеют к краю радиуса
+			if fade_start_k > 0.0:
+				var fk := smoothstep(radius * fade_start_k, radius, sqrt(d2))
+				if hash01(i, j, 8) < fk:
+					continue
+			if surface.class_at(x, z) != SurfaceLayer.FOREST or is_cleared(x, z):
 				continue
 			var h := layer.sample(x, z)
 			var gx := (layer.sample(x + e, z) - h) / e
@@ -132,7 +150,7 @@ func build(center: Vector2) -> void:
 			var a := hash01(i, j, 6) * TAU
 			var c := cos(a) * s
 			var sn := sin(a) * s
-			var y := h - sink_fraction * hh
+			var y := h - sink_at(x, z) * hh
 			var v := 1.0 + color_variation * (hash01(i, j, 7) - 0.5) * 2.0
 			var lod := 0 if d2 < d0 * d0 else (1 if d2 < d1 * d1 else 2)
 			var b := sp * 3 + lod
@@ -143,6 +161,31 @@ func build(center: Vector2) -> void:
 	for b in n_buf:
 		buffers[b] = lists[b]
 		counts[b] = lists[b].size() / STRIDE
+
+
+## Расчищено ли место (маска просек WorldClearings).
+func is_cleared(x: float, z: float) -> bool:
+	if clear_image == null:
+		return false
+	var i := floori((x - clear_origin.x) / clear_cell)
+	var j := floori((z - clear_origin.y) / clear_cell)
+	if i < 0 or j < 0 or i >= clear_image.get_width() or j >= clear_image.get_height():
+		return false
+	return clear_image.get_pixel(i, j).r > 0.5
+
+
+## Доля высоты дерева ниже поверхности DEM: в глубине леса — sink_fraction (кроны уже в DSM),
+## у опушки — меньше (до edge_sink_fraction), чтобы стволы читались.
+func sink_at(x: float, z: float) -> float:
+	var n := 0
+	for k in 8:
+		var a := TAU * k / 8.0
+		if (
+			surface.class_at(x + cos(a) * edge_probe_m, z + sin(a) * edge_probe_m)
+			== SurfaceLayer.FOREST
+		):
+			n += 1
+	return lerpf(edge_sink_fraction, sink_fraction, n / 8.0)
 
 
 ## Детерминированное псевдослучайное 0..1 для клетки (i, j) и номера признака k.

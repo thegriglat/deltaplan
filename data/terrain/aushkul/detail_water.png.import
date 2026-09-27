@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckjk3ke75qh8q"
-path="res://.godot/imported/detail_water.png-41469de9a7a0cb7918dffd357e5bf69b.ctex"
+uid="uid://du35gfv3xj0mp"
+path="res://.godot/imported/detail_water.png-125f89d524bccf99b7fe94f04274cd80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://data/terrain/ekaterinburg/detail_water.png"
-dest_files=["res://.godot/imported/detail_water.png-41469de9a7a0cb7918dffd357e5bf69b.ctex"]
+source_file="res://data/terrain/aushkul/detail_water.png"
+dest_files=["res://.godot/imported/detail_water.png-125f89d524bccf99b7fe94f04274cd80.ctex"]
 
 [params]
 

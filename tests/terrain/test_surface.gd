@@ -205,9 +205,9 @@ func test_thermal_edge_boost() -> void:
 	)
 	check(field_edge > forest_mid, "граница %.3f > середина леса %.3f" % [field_edge, forest_mid])
 	check(forest_edge > forest_mid, "опушка %.3f > глубь леса %.3f" % [forest_edge, forest_mid])
-	approx(t.edge_proximity(-400.0, 0.0), 0.0, 1e-6, "далеко от границы усиления нет")
-	approx(t.edge_proximity(-30.0, 0.0), 1.0, 1e-6, "у границы — полное")
-	var mid := t.edge_proximity(-100.0, 0.0)
+	approx(t._edge_proximity(-400.0, 0.0), 0.0, 1e-6, "далеко от границы усиления нет")
+	approx(t._edge_proximity(-30.0, 0.0), 1.0, 1e-6, "у границы — полное")
+	var mid := t._edge_proximity(-100.0, 0.0)
 	check(mid > 0.0 and mid < 1.0, "в полосе 50–150 м — частичное: %.2f" % mid)
 	t.free()
 

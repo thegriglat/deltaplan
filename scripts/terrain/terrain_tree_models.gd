@@ -6,8 +6,12 @@ extends Node3D
 ## Деревья стоят только на классе «лес» карты поверхности. Нет файла модели — setup() вернёт
 ## false, и Terrain поставит процедурные деревья TerrainTrees (запасной вариант).
 
+const SHADER := preload("res://scripts/terrain/tree_model.gdshader")
+
 var camera: Camera3D
 var placer := TreePlacer.new()
+## Материалы деревьев (качание от ветра, tree_model.gdshader) — TerrainWind передаёт им ветер.
+var materials: Array[ShaderMaterial] = []
 
 ## _mmis[вид * 3 + lod]
 var _mmis: Array[MultiMeshInstance3D] = []
@@ -32,6 +36,9 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 	placer.setup(layer, surface, cfg)
 	for k in TreePlacer.SPECIES.size():
 		placer.model_height[k] = (meshes[k][0] as Mesh).get_aabb().end.y
+		var cache := {}
+		for lod in 3:
+			meshes[k][lod] = _with_sway(meshes[k][lod], placer.model_height[k], cfg, cache)
 	_rebuild_step = float(cfg.get("rebuild_step_m", 16.0))
 	_max_agl = float(cfg.get("max_agl_m", 900.0))
 	var shadows := bool(cfg.get("cast_shadows", true))
@@ -81,6 +88,17 @@ func _process(_delta: float) -> void:
 		_task = WorkerThreadPool.add_task(placer.build.bind(c))
 
 
+## Просеки (маска WorldClearings: 255 — расчищено): деревья там не ставятся.
+func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
+	if _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+	placer.clear_image = mask
+	placer.clear_origin = origin
+	placer.clear_cell = cell_m
+	_last_center = Vector2(INF, INF)
+
+
 ## Расставить сразу (без потока) — для тестов и скриншотов.
 func rebuild_now(center: Vector2) -> void:
 	if _task >= 0:
@@ -111,6 +129,33 @@ func _apply() -> void:
 		mm.instance_count = placer.counts[b]
 		if placer.counts[b] > 0:
 			mm.buffer = placer.buffers[b]
+
+
+## Копия меша, где материалы .glb заменены на tree_model.gdshader (те же текстуры + качание).
+## cache — материалы по имени исходного (общие для LOD одной породы).
+func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary) -> Mesh:
+	var mesh := src.duplicate() as Mesh
+	for s in mesh.get_surface_count():
+		var std := mesh.surface_get_material(s) as BaseMaterial3D
+		if std == null:
+			continue
+		if not cache.has(std.resource_name):
+			var m := ShaderMaterial.new()
+			m.shader = SHADER
+			m.set_shader_parameter("albedo_tex", std.albedo_texture)
+			m.set_shader_parameter("albedo_color", std.albedo_color)
+			m.set_shader_parameter(
+				"alpha_clip", std.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+			)
+			m.set_shader_parameter("alpha_threshold", std.alpha_scissor_threshold)
+			m.set_shader_parameter("roughness_value", std.roughness)
+			m.set_shader_parameter("model_height", height)
+			m.set_shader_parameter("sway_top_m", float(cfg.get("sway_top_m", 0.6)))
+			m.set_shader_parameter("sway_hz", float(cfg.get("sway_hz", 0.25)))
+			cache[std.resource_name] = m
+			materials.append(m)
+		mesh.surface_set_material(s, cache[std.resource_name])
+	return mesh
 
 
 ## Меши LOD0, LOD1, LOD2 из .glb (материалы — как в модели).

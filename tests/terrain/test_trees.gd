@@ -68,6 +68,41 @@ func _all_forest(t: Terrain, q: Vector2, r: float) -> bool:
 	return true
 
 
+func test_clearings_mask() -> void:
+	# Полоса-просека 40 м шириной через лес: на ней деревьев нет, рядом — есть.
+	var t := _altai()
+	var p := _placer(t)
+	var c := _forest_point(t)
+	var img := Image.create(100, 100, false, Image.FORMAT_L8)
+	img.fill(Color(0, 0, 0))
+	img.fill_rect(Rect2i(48, 0, 4, 100), Color(1, 1, 1))  # x ∈ [c.x − 20, c.x + 20)
+	p.clear_image = img
+	p.clear_origin = c - Vector2(500, 500)
+	p.clear_cell = 10.0
+	p.build(c)
+	var inside := 0
+	var near := 0
+	for b in p.buffers.size():
+		for k in p.counts[b]:
+			var x := p.buffers[b][k * TreePlacer.STRIDE + 3]
+			if absf(x - c.x) < 19.0:
+				inside += 1
+			elif absf(x - c.x) < 60.0:
+				near += 1
+	check(inside == 0, "на просеке деревьев нет: %d" % inside)
+	check(near > 0, "рядом с просекой лес есть: %d" % near)
+
+
+func test_edge_sink_smaller() -> void:
+	var t := _altai()
+	var p := _placer(t)
+	var c := _forest_point(t)
+	var site: Dictionary = t.get_start_sites()[0]
+	var s: Vector3 = site.position
+	approx(p.sink_at(c.x, c.y), p.sink_fraction, 1e-4, "в глубине леса — sink_fraction")
+	check(p.sink_at(s.x, s.z) < p.sink_fraction, "у поляны старта утоплены меньше")
+
+
 func test_placement_deterministic() -> void:
 	# Дерево привязано к клетке: при пересчёте вокруг соседней точки те же деревья там же.
 	var t := _altai()
@@ -139,3 +174,51 @@ func test_zz_cleanup() -> void:
 	if _terrain != null:
 		_terrain.free()
 		_terrain = null
+
+
+func test_wind_passed_to_shaders() -> void:
+	var w := TerrainWind.new()
+	w.setup(Config.get_config("world").wind_visual)
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://scripts/terrain/grass.gdshader")
+	w.add_materials([m])
+	w.ground_fn = func(_x: float, _z: float) -> float: return 500.0
+	w.mean_wind_fn = func(p: Vector3) -> Vector3:
+		return Vector3(3.0, 0.0, -4.0) * (p.y - 500.0) / 10.0
+	w.thermals_fn = func(_p: Vector3, _r: float) -> Array[Dictionary]:
+		return [
+			{"source": Vector3(900, 0, 0), "radius_m": 80.0, "strength_ms": 3.0, "envelope": 1.0},
+			{"source": Vector3(100, 0, 0), "radius_m": 60.0, "strength_ms": 1.5, "envelope": 0.5},
+			{"source": Vector3(50, 0, 0), "radius_m": 60.0, "strength_ms": 2.0, "envelope": 0.0},
+		]
+	w.update_at(Vector3(0, 800, 0))
+	check(w.wind.is_equal_approx(Vector2(3.0, -4.0)), "ветер у земли (10 м AGL): %s" % w.wind)
+	check(w.thermals.size() == 2, "угасший термик пропущен: %d" % w.thermals.size())
+	check(w.thermals[0].x == 100.0, "ближний первым")
+	var norm := float(Config.value("world", "wind_visual").thermal_norm_ms)
+	approx(w.thermals[0].w, 0.75 / norm, 1e-4, "сила = м/с × огибающая / норма")
+	check(Vector2(m.get_shader_parameter("wind_vec")).is_equal_approx(w.wind), "ветер в шейдере")
+	check(int(m.get_shader_parameter("wind_thermal_count")) == 2, "термики в шейдере")
+	w.free()
+
+
+func test_grass_and_wind_nodes() -> void:
+	var t := _altai()
+	check(t.grass != null, "трава создана")
+	check(
+		t.wind != null and t.wind.materials.size() >= 3,
+		"ветер знает материалы рельефа/деревьев/травы"
+	)
+	check(t.wind.materials.has(t.grass.material), "материал травы получает ветер")
+
+
+func test_grass_palette_by_location() -> void:
+	var t := _altai()
+	var p := t.get_grass_palette()
+	check(p.grass_color is Color, "цвет травы")
+	approx(
+		float(p.dryness),
+		float(Config.get_config("locations/altai").terrain_look.dryness),
+		1e-6,
+		"сухость — из локации"
+	)
