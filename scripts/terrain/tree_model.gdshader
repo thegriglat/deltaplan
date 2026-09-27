@@ -15,8 +15,17 @@ uniform float roughness_value = 0.9;
 uniform float model_height = 20.0;     // высота модели (меша), м
 uniform float sway_top_m = 0.6;        // отклонение макушки при ветре wind_full_ms, м
 uniform float sway_hz = 0.25;          // частота качания, Гц
+// смягчение вдали (отзыв пилота: деревья на земле слишком резкие) — та же логика, что у импостеров
+// forest_impostors.gdshader; модели видны примерно до inner_end_m (~300–500 м), дальше — билборды.
+uniform float far_soft_start_m = 300.0;
+uniform float far_soft_full_m = 500.0;
+uniform float far_desaturate = 0.4;
+uniform float far_contrast = 0.35;
+uniform float far_canopy_luma = 0.32;
+uniform float far_edge_soft_k = 3.0;
 
 varying vec3 v_color;
+varying float v_dist;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
@@ -37,13 +46,26 @@ void vertex() {
 	float s2 = max(dot(m[0], m[0]), 1e-6);
 	VERTEX += transpose(m) * disp / s2;
 	v_color = COLOR.rgb;
+	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
 }
 
 void fragment() {
 	vec4 c = texture(albedo_tex, UV) * albedo_color;
-	ALBEDO = c.rgb * v_color;
-	ALPHA = alpha_clip ? c.a : 1.0;
-	ALPHA_SCISSOR_THRESHOLD = alpha_threshold;
+	vec3 rgb = c.rgb * v_color;
+	// вдали мягче: та же логика, что у impostor-билбордов (forest_impostors.gdshader) —
+	// бледнее и меньше контраст кроны, мягкий (не бинарный) край альфа-отсечения
+	float ft = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
+	float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
+	rgb = mix(rgb, vec3(luma), far_desaturate * ft);
+	rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * ft);
+	ALBEDO = rgb;
+	if (alpha_clip) {
+		float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, ft);
+		ALPHA = smoothstep(alpha_threshold - edge, alpha_threshold + edge, c.a);
+		ALPHA_SCISSOR_THRESHOLD = mix(alpha_threshold, alpha_threshold * 0.05, ft);
+	} else {
+		ALPHA = 1.0;
+	}
 	ROUGHNESS = roughness_value;
 	SPECULAR = 0.2;
 }

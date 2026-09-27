@@ -27,6 +27,14 @@ uniform float brightness = 1.15;                  // импостер уже «�
 uniform float edge_band_m = 16.0;                 // опушка: ближе к кромке — гуще и шире
 uniform float edge_density = 1.0;
 uniform float edge_scale_k = 0.15;
+// смягчение вдали (отзыв пилота: билборды с расстояния читаются как резкие контрастные точки):
+// снижаем насыщенность/контраст кроны и отпускаем жёсткий альфа-скиссор на мягкий край.
+uniform float far_soft_start_m = 300.0;   // ближе — без изменений (стык с 3D-моделями)
+uniform float far_soft_full_m = 1200.0;   // дальше — смягчение в полную силу
+uniform float far_desaturate = 0.4;       // насколько бледнее крона вдали (0..1)
+uniform float far_contrast = 0.35;        // насколько мягче контраст вдали (0..1)
+uniform float far_canopy_luma = 0.32;     // характерная средняя яркость полога, к которой тянет контраст
+uniform float far_edge_soft_k = 3.0;      // во сколько раз шире сглаживание края альфы вдали
 // породы: pine, cedar, larch, birch, spruce
 uniform float sp_weight[5];
 uniform float sp_min[5];
@@ -43,6 +51,7 @@ uniform vec2 clear_size = vec2(1.0);
 
 varying vec2 v_uv;
 varying float v_tint;
+varying float v_dist;
 
 bool is_forest(vec2 xz) {
 	if (use_forest_mask) {
@@ -113,6 +122,7 @@ void vertex() {
 	vec3 v = vec3(0.0);
 	v_uv = vec2(0.0);
 	v_tint = 0.0;
+	v_dist = d;
 	if (present) {
 		float h = h_bilinear(xz);
 		float e = layer_spacing;
@@ -145,7 +155,16 @@ void vertex() {
 
 void fragment() {
 	vec4 c = texture(atlas, v_uv);
-	ALBEDO = c.rgb * v_tint;
-	ALPHA = c.a;
-	ALPHA_SCISSOR_THRESHOLD = 0.5;
+	vec3 rgb = c.rgb * v_tint;
+	// вдали крона бледнее и мягче контрастом (реальная дымка тут ещё не действует — расстояние
+	// в сотни метров, но собственная контрастность запечённого атласа читается как «резкие точки»)
+	float t = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
+	float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
+	rgb = mix(rgb, vec3(luma), far_desaturate * t);
+	rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * t);
+	ALBEDO = rgb;
+	// мягкий край силуэта вдали: шире антиалиасинг по производной альфы, скиссор почти отпущен
+	float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, t);
+	ALPHA = smoothstep(0.5 - edge, 0.5 + edge, c.a);
+	ALPHA_SCISSOR_THRESHOLD = mix(0.5, 0.02, t);
 }

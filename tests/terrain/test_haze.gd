@@ -45,8 +45,11 @@ func test_optical_depth_analytic_vs_numeric() -> void:
 
 
 func test_transmission_20km() -> void:
+	# Отзыв пилота: дальние хребты были видны слишком чётко — дымку сгустили (T04.1), суммарная
+	# видимость 58 → 35 км (visibility_km 100 → 60, clear_visibility_km 140 → 84), пропускание на
+	# 20 км упало пропорционально (26 % → ~11 %). FR-20 (видимость ≥ 20 км) по-прежнему выполняется.
 	var t := SkyEnvironment.transmission_in_layer(20000.0)
-	check(t >= 0.2, "пропускание на 20 км внутри слоя %.3f (≥ 0,20)" % t)
+	check(t >= 0.08, "пропускание на 20 км внутри слоя %.3f (≥ 0,08)" % t)
 
 
 func test_top_follows_inversion() -> void:
