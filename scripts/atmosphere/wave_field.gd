@@ -130,6 +130,9 @@ func sample(pos: Vector3, agl: float, u: float) -> Vector2:
 ## Гребни волн рядом с точкой (для лентикулярных облаков): максимумы η вдоль ветра; вдоль гребня
 ## — несколько линз на расстоянии не ближе spacing друг от друга.
 ## Возвращает [{pos: Vector2, eta: float, crest: float}], сильные первыми.
+## pos сдвинут против ветра на четверть длины волны от чистого максимума η: там, где реально
+## максимален подъём w = U·∂η/∂x (в самом максимуме η производная — и w — проходят через ноль).
+## Так лентикуляр и физика подъёма стоят в одном месте (один источник фазы — _lambda/_k).
 func crests(
 	center: Vector3, radius: float, min_eta: float, spacing: float = 5000.0
 ) -> Array[Dictionary]:
@@ -138,6 +141,7 @@ func crests(
 		return out
 	var step := _cell * 2.0
 	var n := int(radius / step)
+	var lift_shift := _wind_dir * _lambda * 0.25
 	var cand: Array[Dictionary] = []
 	for j in range(-n, n + 1):
 		for i in range(-n, n + 1):
@@ -148,7 +152,7 @@ func crests(
 			var fa := fields(p.x + _wind_dir.x * step, p.y + _wind_dir.y * step)
 			var fb := fields(p.x - _wind_dir.x * step, p.y - _wind_dir.y * step)
 			if f.x > fa.x and f.x >= fb.x:
-				cand.append({"pos": p, "eta": f.x, "crest": f.z})
+				cand.append({"pos": p - lift_shift, "eta": f.x, "crest": f.z})
 	cand.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.eta > b.eta)
 	var across := Vector2(-_wind_dir.y, _wind_dir.x)
 	for c: Dictionary in cand:
