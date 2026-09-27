@@ -3,7 +3,8 @@ extends Node3D
 ## Деревья-модели вокруг камеры (VR-6, FR-19): 5 пород × 3 LOD из assets/models/trees/*.glb
 ## (пути — configs/world.json → trees.models). Расстановку считает TreePlacer в рабочем потоке,
 ## когда камера сдвинулась на rebuild_step_m; здесь — только MultiMesh'и и материалы моделей.
-## Деревья стоят только на классе «лес» карты поверхности. Нет файла модели — setup() вернёт
+## Деревья стоят там, где доля леса по маске 10 м ≥ 0,5 (set_forest_mask, V02; без маски — на классе
+## «лес» карты поверхности 25 м), у опушки гуще и раскидистее. Нет файла модели — setup() вернёт
 ## false, и Terrain поставит процедурные деревья TerrainTrees (запасной вариант).
 
 const SHADER := preload("res://scripts/terrain/tree_model.gdshader")
@@ -24,6 +25,7 @@ var _pending_center := Vector2.ZERO
 
 ## Загрузить модели и подготовить MultiMesh'и. false — нет моделей (нужен запасной вариант).
 func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
+	cfg = TreePlacer.with_vegetation(cfg)
 	var models: Dictionary = cfg.get("models", {})
 	var meshes: Array[Array] = []
 	for k in TreePlacer.SPECIES.size():
@@ -96,6 +98,16 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	placer.clear_image = mask
 	placer.clear_origin = origin
 	placer.clear_cell = cell_m
+	_last_center = Vector2(INF, INF)
+
+
+## Маска леса 10 м (Terrain.get_forest_mask → [image, origin, cell_m]; вызывает Terrain после
+## создания деревьев): деревья стоят по кромке маски, а не по классу карты 25 м.
+func set_forest_mask(mask: Image, origin: Vector2, cell_m: float) -> void:
+	if _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+	placer.set_forest_mask(mask, origin, cell_m)
 	_last_center = Vector2(INF, INF)
 
 
