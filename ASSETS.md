@@ -83,3 +83,10 @@
 | `data/terrain/textures/rock_ambientcg_rock030_normal.jpg` | карта нормалей скал (NormalGL, уменьшена до 512²) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock.normal` |
 | `data/terrain/textures/scree_ambientcg_gravel022.jpg` | щебень осыпей (цвет, 512²) | [ambientCG Gravel022](https://ambientcg.com/view?id=Gravel022) | CC0 | рельеф, `terrain_textures.scree` |
 | — | полог леса с высоты, фактура лугов и полей, слои скал, колыхание травы, травинки | сгенерировано процедурно: `terrain.gdshader`, `terrain_wind.gdshaderinc`, `grass.gdshader` | — | рельеф |
+
+## Эталонные фото для сравнения рельефа (data/terrain/reference/, не входят в игру)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `data/terrain/reference/photos/photo_a_mountains.jpg` | Горы (хребет Пайн-Маунтин, Калифорния): лесистые склоны пятн | [Ken Lund (Flickr: Ken Lund, from Reno, Nevada, USA)](https://commons.wikimedia.org/wiki/File:Pine_Mountain_Ridge,_California_(20961815573).jpg) | CC BY-SA 2.0 | стенд T01, compare_ref.py |
+| `data/terrain/reference/photos/photo_b_forest_edge.jpg` | Опушка леса и луг (Врапач, Хорватия), дрон ~250-350 м: пряма | [Pan Domaci](https://commons.wikimedia.org/wiki/File:Aerial_view_of_Vrapa%C4%8D.jpg) | CC0 | стенд T01, compare_ref.py |
+| `data/terrain/reference/photos/photo_c_valley_haze.jpg` | Долина с дымкой и хребтами за 20+ км (Бозеполе, Польша, съём | [Andrzej Otrębski](https://commons.wikimedia.org/wiki/File:Bozepole_aerial.jpg) | CC BY-SA 4.0 | стенд T01, compare_ref.py |

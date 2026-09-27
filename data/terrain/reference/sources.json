@@ -1,0 +1,68 @@
+{
+  "_doc": "3 реальных фото для T01 (см. docs/plan/terrain/01-stend-kadry-zamery.md, шаг 4). Прямоугольники и полосы — доли ширины/высоты изображения [x0,y0,x1,y1], 0,0 — левый верхний угол. compare_ref.py читает этот файл.",
+  "photos": [
+    {
+      "id": "a",
+      "file": "photos/photo_a_mountains.jpg",
+      "desc": "Горы (хребет Пайн-Маунтин, Калифорния): лесистые склоны пятнами хвойного леса вперемешку со скальными/сухими прогалинами, дымка к горизонту",
+      "url": "https://commons.wikimedia.org/wiki/File:Pine_Mountain_Ridge,_California_(20961815573).jpg",
+      "author": "Ken Lund (Flickr: Ken Lund, from Reno, Nevada, USA)",
+      "license": "CC BY-SA 2.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+      "approx_agl_m": 1500,
+      "approx_agl_m_doc": "Съёмка из окна самолёта, дистанция до склонов на глаз 1-2 км",
+      "size_px": [4000, 3000],
+      "rects": {
+        "forest": [[0.55, 0.35, 0.78, 0.55]],
+        "meadow": [[0.32, 0.78, 0.55, 0.95]]
+      },
+      "strips": {
+        "near": [[0.0, 0.78, 1.0, 0.97]],
+        "mid": [[0.0, 0.42, 1.0, 0.62]],
+        "far": [[0.0, 0.02, 1.0, 0.14]]
+      }
+    },
+    {
+      "id": "b",
+      "file": "photos/photo_b_forest_edge.jpg",
+      "desc": "Опушка леса и луг (Врапач, Хорватия), дрон ~250-350 м: прямая кромка лиственного леса, свежий луг с ЛЭП",
+      "url": "https://commons.wikimedia.org/wiki/File:Aerial_view_of_Vrapa%C4%8D.jpg",
+      "author": "Pan Domaci",
+      "license": "CC0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "approx_agl_m": 300,
+      "approx_agl_m_doc": "Дрон, кромка леса и луга в среднем плане — оценка по масштабу деревьев",
+      "size_px": [4000, 3000],
+      "rects": {
+        "forest": [[0.03, 0.2, 0.4, 0.55]],
+        "meadow": [[0.6, 0.58, 0.92, 0.78]]
+      },
+      "strips": {
+        "near": [[0.0, 0.85, 1.0, 0.99]],
+        "mid": [[0.0, 0.55, 1.0, 0.75]],
+        "far": [[0.0, 0.05, 1.0, 0.22]]
+      }
+    },
+    {
+      "id": "c",
+      "file": "photos/photo_c_valley_haze.jpg",
+      "desc": "Долина с дымкой и хребтами за 20+ км (Бозеполе, Польша, съёмка из самолёта): лес на переднем плане, поля и городки в дымке у горизонта",
+      "url": "https://commons.wikimedia.org/wiki/File:Bozepole_aerial.jpg",
+      "author": "Andrzej Otrębski",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "approx_agl_m": 3000,
+      "approx_agl_m_doc": "Съёмка из самолёта, горизонт в дымке визуально за 20+ км",
+      "size_px": [6000, 4000],
+      "rects": {
+        "forest": [[0.3, 0.6, 0.6, 0.85]],
+        "meadow": [[0.02, 0.6, 0.22, 0.78]]
+      },
+      "strips": {
+        "near": [[0.0, 0.75, 1.0, 0.95]],
+        "mid": [[0.0, 0.4, 1.0, 0.6]],
+        "far": [[0.0, 0.04, 1.0, 0.18]]
+      }
+    }
+  ]
+}

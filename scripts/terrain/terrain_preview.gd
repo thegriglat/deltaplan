@@ -10,6 +10,8 @@ extends Node3D
 ##   --latlon=<lat>,<lon> [--size_km=N]  рантайм-загрузка рельефа вокруг точки (FR-17)
 ##   --shot=<файл.png>  снять кадр и выйти
 ##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
+##   --bench-static=N   N кадров неподвижно, печать JSON {gpu_ms_mean, gpu_ms_p95, n} и выход (T01)
+##   --clearings        построить и применить маску просек (WorldClearings.build_for) для location
 ##   --no-trees, --no-shadows, --no-grass  отключить деревья / тени / траву (замер цены)
 ##   --wind=<км/ч>,<откуда°>  ветер для колыхания травы; --thermal=x,z,радиус,м/с — термик
 ##   --inversion=<м>    высота инверсии (верх дымки = она + haze.top_margin_m), --no-haze
@@ -24,6 +26,7 @@ var _bench_t := 0.0
 var _bench_frames := 0
 var _bench_worst_ms := 0.0
 var _bench_gpu_ms := 0.0
+var _bench_static_samples: Array[float] = []
 
 @onready var terrain: Terrain = $Terrain
 @onready var cam: Camera3D = $Camera3D
@@ -54,7 +57,7 @@ func _ready() -> void:
 			n.visible = false
 	_setup_wind()
 	terrain.set_pilot(cam)
-	if terrain.location_id != "":
+	if _args.has("clearings") and terrain.location_id != "":
 		var c := WorldClearings.build_for(terrain.location_id)
 		if c != null:
 			terrain.set_clearings(c.image, c.origin, c.cell_m)
@@ -68,7 +71,7 @@ func _ready() -> void:
 		env.set_inversion_height_msl(float(_args.inversion))
 	if _args.has("no-haze") and env.haze != null:
 		env.haze.visible = false
-	if _args.has("bench"):
+	if _args.has("bench") or _args.has("bench-static"):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 	print(
@@ -161,6 +164,9 @@ func _process(delta: float) -> void:
 	if _args.has("bench"):
 		_bench(delta)
 		return
+	if _args.has("bench-static"):
+		_bench_static()
+		return
 	if _args.has("shot") and _frames == int(_cfg.shot_delay_frames):
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(String(_args.shot))
@@ -212,6 +218,30 @@ func _bench(delta: float) -> void:
 						RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
 					)
 				]
+			)
+		)
+		get_tree().quit()
+
+
+## Замер GPU на неподвижной камере (T01): N кадров после разгона, среднее и 95-й перцентиль.
+func _bench_static() -> void:
+	if _frames < 10:
+		return
+	_bench_static_samples.append(
+		RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
+	)
+	if _bench_static_samples.size() >= int(_args["bench-static"]):
+		var arr := _bench_static_samples.duplicate()
+		arr.sort()
+		var mean := 0.0
+		for v in arr:
+			mean += v
+		mean /= arr.size()
+		var p95_i := clampi(ceili(0.95 * arr.size()) - 1, 0, arr.size() - 1)
+		print(
+			"BENCH_STATIC_JSON:"
+			+ JSON.stringify(
+				{"gpu_ms_mean": mean, "gpu_ms_p95": arr[p95_i], "n": arr.size()}
 			)
 		)
 		get_tree().quit()
