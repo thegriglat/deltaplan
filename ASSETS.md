@@ -56,6 +56,7 @@
 | `data/terrain/askarovo/*` | то же — хребет Биягода у Аскарово (Башкортостан) | то же | то же | локация «Башкирия — Аскарово» |
 | `data/terrain/ekaterinburg/*` | то же — Екатеринбург, Уктус, Шарташ | то же | то же | локация «Екатеринбург» |
 | `user://terrain_cache/terrarium/…` (не в репо) | тайлы высот, скачанные в игре по выбранной точке | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) | как выше | рантайм-загрузка рельефа (FR-17) |
+| `data/osm/altai.json`, `ongudai.json`, `askarovo.json` | дороги, здания (прямоугольники), ЛЭП и опоры, реки и водоёмы, населённые пункты, поля и заборы — квадрат детального слоя рельефа; упаковано `tools/osm/fetch_osm.py` (Overpass API) | [OpenStreetMap](https://www.openstreetmap.org/) | **ODbL 1.0**: «© OpenStreetMap contributors» (атрибуция в титрах; производная база — под ODbL) | объекты мира: дороги, здания, ЛЭП, заборы у посадок (`scripts/world_objects/`) |
 
 ## Модели и текстуры
 | Файл | Что | Источник | Лицензия | Где используется |
@@ -67,6 +68,11 @@
 | `assets/models/vario_90s.glb` (`assets/source/vario_90s.blend`) | обобщённый вариометр 1990-х со стрелочной шкалой, без брендов | сгенерировано `tools/blender/build_vario90s.py` | — | прибор на `VarioMount` (левая стойка) |
 | `assets/models/trees/tree_{pine,cedar,larch,birch,spruce}.glb`, `tree_*_impostor.png`, `trees_impostor_atlas.png` (исходники `assets/source/trees/`) | деревья Алтая, LOD0/LOD1/импостор; текстуры хвои, листвы и коры процедурные | сгенерировано `tools/blender/build_trees.py` | — | пока не подключены (замена конусов — docs/models.md) |
 | `assets/models/bird.glb` (исходник `assets/source/bird.blend`) | низкополигональная парящая хищная птица, размах 1,6 м (57 вершин) | сгенерировано `tools/blender/bird.py` (Blender 4.3) | — | птицы в сильных термиках (`scripts/atmosphere/bird_flock.gd`, путь — `configs/atmosphere.json → birds.model_path`) |
+| `assets/models/world/windsock.glb` (`assets/source/world/windsock.blend`) | ветроуказатель: мачта 4 м, конус 2,4 м с 5 оранжево-белыми полосами (ткань гнёт шейдер), вертлюг | сгенерировано `tools/blender/world_objects/build_world_objects.py` (Blender 4.3) | — | ветроуказатели на стартах и посадках (`configs/world_objects.json → windsock.scene_path`) |
+| `assets/models/world/streamer.glb` (`assets/source/world/streamer.blend`) | вешка 1,8 м с красно-белой лентой 1,2 м | то же | — | ленточки на старте (`streamers.scene_path`) |
+| `assets/models/world/fence_segment.glb` (`…/fence_segment.blend`) | пролёт забора 3 м (столб + 2 жерди) | то же | — | заборы у посадок (`landing.fence_scene_path`) |
+| `assets/models/world/power_tower.glb`, `power_pole.glb` (`…/power_*.blend`) | решётчатая опора ЛЭП 110 кВ 28,5 м; ж/б столб 10 кВ 9 м с изоляторами | то же | — | ЛЭП из OSM (`power.tower_scene_path`, `pole_scene_path`) |
+| — | покос посадки, ленты дорог, провода | сгенерировано процедурно: `scripts/world_objects/draped.gdshader`, `wire.gdshader`, `wind_cloth.gdshader` | — | объекты мира |
 | `assets/textures/clouds/cloud_shape.png`, `cloud_detail.png` | бесшовный 3D-шум облаков: Perlin-Worley 128³ и Уорли 64³ (атласы срезов, импорт как Texture3D) | сгенерировано `tools/atmosphere/gen_cloud_noise.py` | — | объёмные облака (`configs/atmosphere.json → clouds.noise_*_texture`); без файла — процедурный Уорли в `cloud_layer.gd` |
 | — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
 | — | раскраска рельефа по карте поверхности (рисунок полей, крон, застройки, скал), процедурные кроны-заглушки и запасная карта поверхности | сгенерировано процедурно: `scripts/terrain/terrain.gdshader`, `trees.gdshader`, `surface_classifier.gd` | — | рельеф |

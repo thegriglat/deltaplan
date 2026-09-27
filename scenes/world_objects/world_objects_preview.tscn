@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_objects/world_objects_preview.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/terrain/terrain.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/atmosphere/atmosphere.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/world_objects/world_objects.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/world/environment.tscn" id="5"]
+
+[node name="WorldObjectsPreview" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Environment" parent="." instance=ExtResource("5")]
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="Atmosphere" type="Node3D" parent="."]
+script = ExtResource("3")
+
+[node name="WorldObjects" type="Node3D" parent="."]
+script = ExtResource("4")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 70.0
