@@ -40,6 +40,8 @@ var arm_ik: PilotArmIK
 ## Доля «руки на штанге» (0 — на стойках, 1 — на базовой штанге) и «выравнивание» (руки выше).
 var arm_bar := 0.0
 var arm_flare := 0.0
+## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
+var telltales: Array[Telltale] = []
 
 var _cfg: Dictionary = {}  ## flight.json → visual
 var _pcfg: Dictionary = {}  ## pilot.json → visual
@@ -87,6 +89,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	for mname in WING_MARKERS:
 		if wing.find_child(mname, true, false) == null:
 			push_warning("GliderVisual: в модели %s нет ноды %s" % [wpath, mname])
+	telltales = Telltale.build_on(wing)
 
 	pilot = Node3D.new()
 	pilot.name = "Pilot"
@@ -154,6 +157,15 @@ func get_marker(marker_name: String) -> Node3D:
 ## Точка глаз пилота в координатах обёртки (для кабинной камеры).
 func get_head_transform() -> Transform3D:
 	return head_marker.transform if head_marker != null else Transform3D.IDENTITY
+
+
+## Шаг физики ленточек: ориентация планера на прошлом шаге (prev) и сейчас (cur), скорость
+## начала планера, air_fn(pos) → ветер. Нода визуала — в начале координат Glider.
+func step_telltales(
+	dt: float, prev: Basis, cur: Transform3D, velocity: Vector3, air_fn: Callable
+) -> void:
+	for t in telltales:
+		t.step(dt, transform * _relative_xform(self, t).origin, prev, cur, velocity, air_fn)
 
 
 ## Парус (шейдер): воздушная скорость, м/с; срыв 0..1; болтанка 0..1.

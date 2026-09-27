@@ -133,6 +133,8 @@ func step(dt: float) -> void:
 	model.step(dt, control, air_fn, ground_fn)
 	_prev_xform = _cur_xform
 	_cur_xform = Transform3D(model.telemetry.basis, model.position)
+	if visual != null:
+		visual.step_telltales(dt, _prev_xform.basis, _cur_xform, model.velocity, air_fn)
 	telemetry_updated.emit(model.telemetry)
 
 
