@@ -13,6 +13,11 @@ uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic;
 uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic;
 uniform sampler2D trans_tex : hint_default_white, filter_linear_mipmap;
 uniform vec4 albedo_tint : source_color = vec4(1.0);
+// Перекраска (боты, configs/bots.json → sail_schemes): поворот цветового тона вокруг серой оси
+// (белое и серое не меняются), насыщенность и яркость. По умолчанию — исходная раскраска.
+uniform float hue_shift_rad = 0.0;
+uniform float sat_scale = 1.0;
+uniform float value_scale = 1.0;
 uniform float roughness : hint_range(0.0, 1.0) = 0.72;
 uniform float normal_strength = 0.8;
 uniform float translucency : hint_range(0.0, 3.0) = 0.8;  // сила света насквозь
@@ -70,6 +75,13 @@ void vertex() {
 
 void fragment() {
 	vec4 a = texture(albedo_tex, UV) * albedo_tint;
+	if (hue_shift_rad != 0.0 || sat_scale != 1.0 || value_scale != 1.0) {
+		float g = dot(a.rgb, vec3(1.0 / 3.0));
+		vec3 c = a.rgb - vec3(g);
+		vec3 k = vec3(0.57735027);
+		c = c * cos(hue_shift_rad) + cross(k, c) * sin(hue_shift_rad);
+		a.rgb = clamp((vec3(g) + c * sat_scale) * value_scale, 0.0, 1.0);
+	}
 	ALBEDO = a.rgb;
 	ROUGHNESS = roughness;
 	SPECULAR = 0.35;

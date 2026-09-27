@@ -1,7 +1,7 @@
 extends TestCase
 ## Карточка 05: набор у склона на каждом старте (FR-34a первый шаг маршрута, FR-12, FR-13).
 ## Ветер 20 км/ч точно в склон (heading_deg старта), термики выключены (static, пусто) — бот
-## летает «восьмёркой» вдоль гребня (XcPilot.setup_ridge) на 50–100 м AGL и должен набирать
+## летает «восьмёркой» вдоль гребня (BotPilot.setup_ridge) на 50–100 м AGL и должен набирать
 ## высоту на динамике. При 8 км/ч набора быть не должно. С обратной стороны (ветер с другой
 ## стороны хребта) — подветренная зона: опускание и болтанка сильнее наветренной на той же точке.
 ##
@@ -147,7 +147,7 @@ func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: fl
 	# Вдоль гребня — перпендикуляр к heading_deg (экспозиция/линия ската склона); разворот —
 	# всегда в сторону heading_deg (вниз по склону, в долину, откуда бот и взлетел).
 	var along := fposmod(heading + 90.0, 360.0)
-	var bot := XcPilot.new()
+	var bot := BotPilot.new()
 	bot.setup(wing, pilot_cfg, start2)
 	bot.route_start = start2
 	bot.ground_fn = terrain.height_at

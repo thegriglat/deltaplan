@@ -28,6 +28,10 @@ var autopilot: Autopilot
 var world_link: WorldLink
 ## Столкновения крыла с проводами, препятствиями и кронами (docs/game.md).
 var collisions := CollisionCheck.new()
+## Другие пилоты в небе (configs/bots.json, docs/game.md → «Другие пилоты»).
+var bots: BotPilots
+## Сколько ботов (--bots=N); < 0 — из настроек (bots.json → count).
+var bots_count := -1
 ## Время симуляции с начала полёта, с.
 var sim_time_s: float = 0.0
 ## Управление и приборы в полёте (в меню — выключены).
@@ -73,6 +77,9 @@ func _ready() -> void:
 	world_link = WorldLink.new()
 	world_link.name = "WorldLink"
 	add_child(world_link)
+	bots = BotPilots.new()
+	bots.name = "Bots"
+	add_child(bots)
 	air = _create_air()
 	air.name = "Air"
 	add_child(air)
@@ -123,6 +130,7 @@ func tick(dt: float) -> void:
 	input_controller.hands_off = free_cam
 	camera.free_keys_enabled = autopilot == null
 	glider.set_input(input_controller.update(dt))
+	bots.tick(dt, glider.get_telemetry())
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
@@ -205,6 +213,7 @@ func start(s: FlightSettings) -> bool:
 		glider.model.span,
 		float(Config.value("flight", "visual.hang_height_m", 2.0))
 	)
+	bots.setup_in_world(terrain, air, _start_pos, _start_heading, bots_count)
 	restart()
 	set_physics_process(true)
 	progress.finish()
@@ -225,6 +234,7 @@ func restart() -> void:
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	input_controller.reset()
 	collisions.reset()
+	bots.reset()
 	_crashed = false
 	_ended = false
 	_touchdown = {}

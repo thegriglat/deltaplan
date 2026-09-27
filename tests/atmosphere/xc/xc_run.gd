@@ -138,7 +138,7 @@ func simulate(opts: Dictionary) -> Dictionary:
 	atmo.step(DT)
 	fm.reset_in_air(start, course, 0.0, atmo.mean_wind_at(start))
 
-	var bot: XcPilot = XcIdealPilot.new() if opts.has("ideal") else XcPilot.new()
+	var bot: BotPilot = XcIdealPilot.new() if opts.has("ideal") else BotPilot.new()
 	bot.setup(wing, pilot_cfg, goal)
 	bot.route_start = start2
 	bot.ground_fn = height_fn
@@ -258,7 +258,7 @@ static func _oracle(p: Vector3, atmo: Atmosphere) -> Array:
 func _fly(
 	fm: FlightModel,
 	atmo: Atmosphere,
-	bot: XcPilot,
+	bot: BotPilot,
 	height_fn: Callable,
 	start: Vector2,
 	cdir: Vector2,
@@ -490,7 +490,7 @@ func _polar_info(fm: FlightModel) -> Dictionary:
 
 
 ## Снижение на вираже бота в штиль на высоте alt, м/с (среднее за 60 с после входа в вираж).
-func _turn_sink(wing: Dictionary, pilot_cfg: Dictionary, bot: XcPilot, alt: float) -> float:
+func _turn_sink(wing: Dictionary, pilot_cfg: Dictionary, bot: BotPilot, alt: float) -> float:
 	var m := FlightModel.new()
 	m.setup(wing, pilot_cfg)
 	m.reset_in_air(Vector3(0.0, alt, 0.0), 0.0)
@@ -513,7 +513,7 @@ func _turn_sink(wing: Dictionary, pilot_cfg: Dictionary, bot: XcPilot, alt: floa
 
 ## Найдены ли термики сетки: бот сделал хотя бы круг ближе found_r к оси.
 func _synthetic_report(
-	list: Array, bot: XcPilot, start: Vector2, cdir: Vector2, goal_m: float
+	list: Array, bot: BotPilot, start: Vector2, cdir: Vector2, goal_m: float
 ) -> Dictionary:
 	var side := Vector2(-cdir.y, cdir.x)
 	var near_n := 0

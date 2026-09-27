@@ -2,7 +2,8 @@ class_name SettingsPanel
 extends Control
 ## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
-## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode).
+## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
+## другие пилоты в небе (bots.json → count; со следующего полёта).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
@@ -26,6 +27,7 @@ var _speeds: Array = []
 var _fov: HSlider
 var _helmet: OptionButton
 var _helmet_modes: Array = []
+var _bots: HSlider
 
 
 func _ready() -> void:
@@ -122,6 +124,8 @@ func _ready() -> void:
 	for m: Variant in _helmet_modes:
 		_helmet.add_item(String(helmet_names.get(String(m), String(m))))
 	UiKit.row(box, tr("Каска (вид из кабины)"), _helmet)
+	var bots_max := float(Config.value("bots", "count_max", 20))
+	_bots = UiKit.slider_row(box, tr("Другие пилоты в небе"), 0.0, bots_max, 1.0, "%.0f")
 	UiKit.label(box, tr("Настройки сохраняются в профиле пользователя."), "HintLabel")
 	var bar := UiKit.button_bar(box)
 	UiKit.button(bar, tr("Сохранить"), _on_save)
@@ -156,6 +160,8 @@ func load_values() -> void:
 	_fov.value_changed.emit(_fov.value)
 	var hm := String(Config.value("helmet", "mode", "none"))
 	_helmet.select(maxi(_helmet_modes.find(hm), 0))
+	_bots.value = float(Config.value("bots", "count", 4))
+	_bots.value_changed.emit(_bots.value)
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -204,6 +210,7 @@ func save() -> bool:
 		)
 		and ok
 	)
+	ok = UserSettings.save_patch("bots", {"count": int(_bots.value)}, config_dir) and ok
 	Config.reload()
 	var g := _graphics_names[_graphics.selected] if _graphics.selected >= 0 else ""
 	if g != "" and g != GraphicsPresets.current():

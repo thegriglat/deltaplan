@@ -41,6 +41,11 @@ var strong_wind_ms: float = 3.5
 var strong_alpha_deg: float = 18.0
 ## Мёртвая зона по углу атаки, °.
 var alpha_tol_deg: float = 1.0
+## Через столько секунд после отрыва — кружить с креном circle_bank_deg (< 0 — держать курс):
+## кадры «оглянуться на старт» (--autopilot-circle), пилот остаётся недалеко от склона.
+var circle_after_s: float = -1.0
+## Крен кружения, ° (+ вправо).
+var circle_bank_deg: float = 15.0
 
 var _time: float = 0.0
 var _air_time: float = 0.0
@@ -83,6 +88,8 @@ func drive(t: Telemetry, dt: float) -> void:
 				_heading = t.heading_deg
 			var err := wrapf(_heading - t.heading_deg, -180.0, 180.0)
 			var want := clampf(err * bank_per_deg, -max_bank_deg, max_bank_deg)
+			if circle_after_s >= 0.0 and _air_time >= circle_after_s:
+				want = circle_bank_deg
 			_level_roll(t.bank_deg, want)
 		_:
 			_press("roll_left", false)

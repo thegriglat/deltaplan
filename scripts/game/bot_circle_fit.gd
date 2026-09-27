@@ -1,4 +1,4 @@
-class_name XcCircleFit
+class_name BotCircleFit
 extends RefCounted
 ## Центровка термика по первой гармонике (карточка 07, как ThermalAssistant): за последний полный
 ## круг подъём ≈ n̄ + g·(p − C), МНК даёт градиент g; перепад по кругу a = |g|·r. Для профиля

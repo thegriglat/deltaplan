@@ -17,6 +17,11 @@ extends RefCounted
 ##                         применяет SunGlare, configs/helmet.json)
 ##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
 ##                         (чистый кадр мира — для фоновых картинок меню)
+##   --autopilot-circle=<с>[,<крен>]  автопилот через <с> после отрыва кружит с креном (15°,
+##                         + вправо) — кадры «оглянуться на старт» недалеко от склона
+##   --look-at=<цель>      в кабине смотреть на цель (как «взгляд на прибор»): start — старт,
+##                         bots — боты (в воздухе, а если никто не взлетел — все), bot<N> — бот N
+##   --bots=<N>            другие пилоты в небе: сколько ботов (поверх настройки, 0 — никого)
 ##   --air-start[=<д>[,<h>]]  старт в воздухе: в <д> м от старта по его курсу, на <h> м над
 ##                         рельефом (по умолчанию 1000 и 300), на скорости трима, сразу в полёте;
 ##                         взлёта нет — касание будет посадкой, не «взлёт сорван». «Ещё раз» (R)
@@ -38,6 +43,13 @@ var overrides: Dictionary = {}
 var air_start_m := -1.0
 ## Старт в воздухе: высота над рельефом, м.
 var air_start_agl_m := 300.0
+## Другие пилоты в небе (--bots=N); < 0 — из настроек (bots.json → count).
+var bots := -1
+## Автопилот: кружить через столько секунд после отрыва (< 0 — держать курс) и с каким креном.
+## Куда смотреть в кабине (--look-at): "start", "bots", "bot<N>" или "".
+var look_at := ""
+var autopilot_circle_s := -1.0
+var autopilot_circle_bank := 15.0
 
 
 static func parse(args: PackedStringArray) -> LaunchOptions:
@@ -75,6 +87,15 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				var p := val.split(",")
 				if p.size() == 2:
 					o.look = Vector2(float(p[0]), float(p[1]))
+			"bots":
+				o.bots = int(val)
+			"look-at":
+				o.look_at = val
+			"autopilot-circle":
+				var c := val.split(",")
+				o.autopilot_circle_s = float(c[0])
+				if c.size() > 1:
+					o.autopilot_circle_bank = float(c[1])
 			"air-start":
 				var p := val.split(",")
 				o.air_start_m = float(p[0]) if val != "" else 1000.0

@@ -14,6 +14,7 @@ var opts: LaunchOptions
 var flight: FlightSettings
 
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
+var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -50,6 +51,8 @@ func _ready() -> void:
 		get_tree().create_timer(SMOKE_TIMEOUT_S).timeout.connect(_quit.bind(1))
 	if opts.autopilot:
 		game.autopilot = Autopilot.new()
+		game.autopilot.circle_after_s = opts.autopilot_circle_s
+		game.autopilot.circle_bank_deg = opts.autopilot_circle_bank
 	if opts.autostart:
 		await _fly(flight)
 	else:
@@ -91,6 +94,7 @@ func _fly(s: FlightSettings) -> void:
 	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
 	game.air_start_m = opts.air_start_m
 	game.air_start_agl_m = opts.air_start_agl_m
+	game.bots_count = opts.bots
 	var ok: bool = await game.start(s)
 	loading_screen.close()
 	start_menu.set_busy(false)
@@ -108,6 +112,13 @@ func _fly(s: FlightSettings) -> void:
 	if opts.look != Vector2.ZERO:
 		game.camera.set_look(opts.look.x, opts.look.y)
 	if opts.glance:
+		Input.action_press("look_instrument")
+	if opts.look_at != "":
+		_look_target = Node3D.new()
+		_look_target.name = "LookTarget"
+		game.add_child(_look_target)
+		_look_target.global_position = _look_point()
+		game.camera.glance_target = _look_target
 		Input.action_press("look_instrument")
 	state = State.FLYING
 
@@ -288,6 +299,8 @@ func _screenshot() -> void:
 	if state == State.FLYING and opts.time_s > 0.0:
 		while game.sim_time_s < opts.time_s and state == State.FLYING:
 			await get_tree().physics_frame
+			if _look_target != null:
+				_look_target.global_position = _look_point()
 	elif opts.time_s > 0.0:
 		await get_tree().create_timer(opts.time_s).timeout
 	match opts.open_screen:
@@ -311,6 +324,27 @@ func _screenshot() -> void:
 	var err := img.save_jpg(opts.screenshot, 0.9) if jpg else img.save_png(opts.screenshot)
 	print("screenshot: %s (%s), t=%.1f с" % [opts.screenshot, error_string(err), game.sim_time_s])
 	_quit(0 if err == OK else 1)
+
+
+## Точка для --look-at: старт, центр ботов (в воздухе, иначе всех) или бот N; +2 м (крыло).
+func _look_point() -> Vector3:
+	var up := Vector3.UP * 2.0
+	if opts.look_at == "start":
+		return game.get_start().position + up
+	var agents := game.bots.agents
+	if opts.look_at.begins_with("bot") and opts.look_at != "bots":
+		var i := int(opts.look_at.substr(3))
+		return agents[i].model.position + up if i < agents.size() else Vector3.ZERO
+	var sum := Vector3.ZERO
+	var n := 0
+	for pass_i in 2:
+		for a in agents:
+			if pass_i == 1 or a.is_airborne():
+				sum += a.model.position
+				n += 1
+		if n > 0:
+			break
+	return sum / n + up if n > 0 else game.get_start().position + up
 
 
 ## Выход: сначала убрать игровой мир и дать аудиосерверу отпустить генераторы звука
