@@ -1,12 +1,16 @@
 class_name GroundField
 extends RefCounted
-## Кеш рельефа для атмосферы: сетка узлов с (высота, dh/dx, dh/dz, линия тени против ветра).
+## Кеш рельефа для атмосферы: сетка узлов с (высота, dh/dx, dh/dz, линия тени против ветра,
+## превышение гребня против ветра над землёй).
 ## Считается кусками по запросу и заранее вокруг пилота. Между узлами — билинейная интерполяция,
 ## поэтому поля гладкие и консоли крыла получают плавно разный поток.
 ## Линия тени: s = max_i (h(p − ŵ·d_i) − d_i·tan θ) — если пилот ниже неё, он в подветренной зоне.
+## Превышение гребня: r = max(0, max_i h(p − ŵ·d_i) − h(p)) — высота препятствия над землёй.
 
 const _KEY_OFFSET := 1 << 20
 const _KEY_MUL := 1 << 21
+## Чисел на узел: высота, dh/dx, dh/dz, линия тени, превышение гребня.
+const _CH := 5
 
 var has_ground: bool = false
 var height_fn: Callable
@@ -78,27 +82,13 @@ func sample(x: float, z: float) -> Vector4:
 	var fz := z * _inv_cell
 	var ix := floori(fx)
 	var iz := floori(fz)
-	var cx := floori(float(ix) / _n)
-	var cz := floori(float(iz) / _n)
-	var key := (cx + _KEY_OFFSET) * _KEY_MUL + (cz + _KEY_OFFSET)
-	var d: PackedFloat32Array
-	if key == _last_key:
-		d = _last_data
-	else:
-		d = _chunks.get(key, PackedFloat32Array())
-		if d.is_empty():
-			d = _build_chunk(cx, cz)
-			_store(key, d)
-		_last_key = key
-		_last_data = d
-	var lx := ix - cx * _n
-	var lz := iz - cz * _n
+	var d := _chunk_at(ix, iz)
+	var i00 := _node_index(ix, iz)
+	var i10 := i00 + _CH
+	var i01 := i00 + _stride * _CH
+	var i11 := i01 + _CH
 	var tx := fx - ix
 	var tz := fz - iz
-	var i00 := (lz * _stride + lx) * 4
-	var i10 := i00 + 4
-	var i01 := i00 + _stride * 4
-	var i11 := i01 + 4
 	var w00 := (1.0 - tx) * (1.0 - tz)
 	var w10 := tx * (1.0 - tz)
 	var w01 := (1.0 - tx) * tz
@@ -109,6 +99,43 @@ func sample(x: float, z: float) -> Vector4:
 		d[i00 + 2] * w00 + d[i10 + 2] * w10 + d[i01 + 2] * w01 + d[i11 + 2] * w11,
 		d[i00 + 3] * w00 + d[i10 + 3] * w10 + d[i01 + 3] * w01 + d[i11 + 3] * w11
 	)
+
+
+## Превышение гребня против ветра над землёй в точке, м (0 — наветренный склон, равнина).
+func relief_at(x: float, z: float) -> float:
+	if not has_ground:
+		return 0.0
+	var fx := x * _inv_cell
+	var fz := z * _inv_cell
+	var ix := floori(fx)
+	var iz := floori(fz)
+	var d := _chunk_at(ix, iz)
+	var i00 := _node_index(ix, iz) + 4
+	var i01 := i00 + _stride * _CH
+	var tx := fx - ix
+	var tz := fz - iz
+	return lerpf(lerpf(d[i00], d[i00 + _CH], tx), lerpf(d[i01], d[i01 + _CH], tx), tz)
+
+
+func _chunk_at(ix: int, iz: int) -> PackedFloat32Array:
+	var cx := floori(float(ix) / _n)
+	var cz := floori(float(iz) / _n)
+	var key := (cx + _KEY_OFFSET) * _KEY_MUL + (cz + _KEY_OFFSET)
+	if key == _last_key:
+		return _last_data
+	var d: PackedFloat32Array = _chunks.get(key, PackedFloat32Array())
+	if d.is_empty():
+		d = _build_chunk(cx, cz)
+		_store(key, d)
+	_last_key = key
+	_last_data = d
+	return d
+
+
+func _node_index(ix: int, iz: int) -> int:
+	var lx := ix - floori(float(ix) / _n) * _n
+	var lz := iz - floori(float(iz) / _n) * _n
+	return (lz * _stride + lx) * _CH
 
 
 ## Досчитать один недостающий кусок рядом с точкой (вызывается из step, чтобы не было рывков).
@@ -155,7 +182,7 @@ func _build_chunk(cx: int, cz: int) -> PackedFloat32Array:
 		for i in m:
 			hs[j * m + i] = float(height_fn.call(x0 + i * _cell, z0 + j * _cell))
 	var out := PackedFloat32Array()
-	out.resize(_stride * _stride * 4)
+	out.resize(_stride * _stride * _CH)
 	var inv2c := 0.5 / _cell
 	for j in _stride:
 		for i in _stride:
@@ -164,17 +191,17 @@ func _build_chunk(cx: int, cz: int) -> PackedFloat32Array:
 			var wx := x0 + (i + 1) * _cell
 			var wz := z0 + (j + 1) * _cell
 			var shadow := -1.0e9
+			var crest := h
 			for dist in _dists:
-				var hu := (
-					float(height_fn.call(wx - _wind_dir.x * dist, wz - _wind_dir.y * dist))
-					- dist * _tan_shadow
-				)
-				shadow = maxf(shadow, hu)
-			var o := (j * _stride + i) * 4
+				var hc := float(height_fn.call(wx - _wind_dir.x * dist, wz - _wind_dir.y * dist))
+				shadow = maxf(shadow, hc - dist * _tan_shadow)
+				crest = maxf(crest, hc)
+			var o := (j * _stride + i) * _CH
 			out[o] = h
 			out[o + 1] = (hs[hi + 1] - hs[hi - 1]) * inv2c
 			out[o + 2] = (hs[hi + m] - hs[hi - m]) * inv2c
 			out[o + 3] = shadow
+			out[o + 4] = crest - h
 	return out
 
 

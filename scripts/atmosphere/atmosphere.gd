@@ -61,6 +61,18 @@ var _lee_relief: float = 150.0
 var _lee_sink: float = 0.25
 var _lee_turb: float = 0.5
 var _lee_wind_red: float = 0.6
+var _lee_shear: float = 40.0
+var _lee_danger_min: float = 2.0
+var _lee_danger_full: float = 5.0
+var _lee_danger_sink: float = 0.7
+var _lee_danger_turb: float = 0.8
+var _lee_burst: float = 1.0
+var _lee_burst_k: float = 0.375
+var _lee_burst_thr: float = 0.8
+var _lee_burst_width: float = 1.0
+var _lee_reverse: float = 0.9
+var _lee_rotor_h: float = 0.4
+var _lee_rotor_max: float = 7.0
 var _mech_k: float = 0.14
 var _mech_boost: float = 1.0
 var _mech_h: float = 150.0
@@ -228,6 +240,19 @@ func _cache_coefficients() -> void:
 	_lee_sink = float(l.sink_per_wind)
 	_lee_turb = float(l.turbulence_per_wind)
 	_lee_wind_red = float(l.wind_reduction)
+	# Новые ключи — через get: старые/пользовательские конфиги без них продолжают работать.
+	_lee_shear = float(l.get("shear_layer_m", 0.0))
+	_lee_danger_min = float(l.get("danger_min_wind_ms", 2.0))
+	_lee_danger_full = float(l.get("danger_full_wind_ms", 5.0))
+	_lee_danger_sink = float(l.get("danger_sink_per_wind", _lee_sink))
+	_lee_danger_turb = float(l.get("danger_turbulence_per_wind", _lee_turb))
+	_lee_burst = float(l.get("burst_per_wind", 0.0))
+	_lee_burst_k = float(cfg.turbulence.scale_m) / float(l.get("burst_scale_m", 120.0))
+	_lee_burst_thr = float(l.get("burst_threshold", 0.8))
+	_lee_burst_width = float(l.get("burst_width", 1.0))
+	_lee_reverse = float(l.get("rotor_reverse", 0.0))
+	_lee_rotor_h = float(l.get("rotor_height_fraction", 0.4))
+	_lee_rotor_max = float(l.get("rotor_max_amplitude_ms", 0.0))
 	var t: Dictionary = cfg.turbulence
 	_mech_k_base = float(t.mech_per_wind)
 	_mech_k = _mech_k_base * float(weather.get("mech_turbulence_k", 1.0))
@@ -398,11 +423,19 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	var agl := maxf(pos.y - gs.x, 0.0)
 	var u := wind.speed_at_pos(agl, pos.y)
 	var wd := wind.dir
-	# Подветренная зона: ниже линии тени от гребня против ветра.
+	# Подветренная зона: ниже линии тени от гребня против ветра (и в слое сдвига над ней).
 	var lee := 0.0
+	var danger := 0.0
+	var relief := 0.0
 	var depth := gs.w - pos.y
-	if depth > 0.0 and u > 0.0:
-		lee = clampf(depth / _lee_depth, 0.0, 1.0) * clampf((gs.w - gs.x) / _lee_relief, 0.0, 1.0)
+	if depth > -_lee_shear and u > 0.0:
+		relief = ground.relief_at(pos.x, pos.z)
+		lee = (
+			clampf((depth + _lee_shear) / (_lee_depth + _lee_shear), 0.0, 1.0)
+			* clampf(relief / _lee_relief, 0.0, 1.0)
+		)
+		if lee > 0.0:
+			danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
 	# Склоновый подъём: V·∇h впереди по ветру, затухает с высотой над склоном.
 	var w_ridge := 0.0
 	if u > 0.0 and ground.has_ground:
@@ -418,8 +451,12 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	var th := field.sample(pos)
 	var fade := minf(agl / _ground_fade, 1.0)
 	var above_base := pos.y >= field.cloudbase_msl
-	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge - _lee_sink * u * lee
+	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge
 	var h := u * (1.0 - lee * _lee_wind_red)
+	if lee > 0.0:
+		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
+		w += ld.y
+		h += ld.x
 	var v := Vector3(wd.x * h, w, wd.z * h)
 	# Грозы: нисходящий поток, растекание и фронт порывов.
 	var storm_turb := 0.0
@@ -447,10 +484,11 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	if not above_base:
 		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
 		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
-	var rot := _lee_turb * u * lee
+	var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee
 	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
 	amp2 += storm_turb * storm_turb + rotor_turb * rotor_turb
-	var amp := minf(sqrt(amp2), _turb_max)
+	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
+	var amp := minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
 	# В облаке — бурление: большие пульсации мелкого масштаба во всех направлениях.
 	var chaos := _in_cloud_turb * cin.x
 	_last_sigma = sqrt(amp * amp + chaos * chaos)
@@ -463,6 +501,27 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	# мелкая болтанка, как раньше.
 	var n := wind.gust_unit(pos, time_s, _advect, agl / wind.large_fade_agl)
 	return v + Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+
+
+## Опасность подветренной зоны 0..1 от ветра прогноза (нелинейно: слабый ветер — мягко).
+func _lee_danger(u_ref: float) -> float:
+	return smoothstep(_lee_danger_min, _lee_danger_full, u_ref)
+
+
+## Подветренный поток: (добавка к горизонтали вдоль ветра, вертикаль), м/с. Нисходящий поток,
+## рывки сверху (детерминированный шум, редкие сильные удары вниз) и ротор у склона — обратный
+## поток у земли в глубине зоны.
+func _lee_flow(
+	pos: Vector3, agl: float, u: float, lee: float, danger: float, relief: float
+) -> Vector2:
+	var w := -lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee
+	var hard := lee * danger
+	if hard < 1.0e-3:
+		return Vector2(0.0, w)
+	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
+	w -= _lee_burst * u * hard * clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
+	var core := hard * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+	return Vector2(-_lee_reverse * u * core, w)
 
 
 ## Интенсивность болтанки в точке — СКО пульсаций скорости воздуха, м/с (для оценки перегрузки,
