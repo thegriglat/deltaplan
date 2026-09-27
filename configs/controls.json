@@ -1,18 +1,49 @@
 {
   "_doc": "Управление (FR-30…FR-33). Клавиши — имена Godot (OS.find_keycode_from_string).",
   "keys": {
-    "pitch_push_out": ["S", "Down"],
-    "pitch_push_out_doc": "От себя: нос вверх, торможение",
-    "pitch_pull_in": ["W", "Up"],
-    "pitch_pull_in_doc": "На себя: разгон",
-    "roll_left": ["A", "Left"],
-    "roll_right": ["D", "Right"],
-    "run": ["Space"],
-    "camera_next": ["C"],
-    "instrument_page": ["Tab"],
-    "pause": ["Escape"],
-    "restart": ["R"],
-    "mouse_capture": ["M"]
+    "pitch_push_out": [
+      "S",
+      "Down"
+    ],
+    "pitch_push_out_doc": "Полёт: от себя (нос вверх, торможение). Земля: шаг назад. Разбег: нос вверх",
+    "pitch_pull_in": [
+      "W",
+      "Up"
+    ],
+    "pitch_pull_in_doc": "Полёт: на себя (разгон). Земля: шаг вперёд. Разбег: нос вниз",
+    "roll_left": [
+      "A",
+      "Left"
+    ],
+    "roll_right": [
+      "D",
+      "Right"
+    ],
+    "run": [
+      "Shift"
+    ],
+    "camera_next": [
+      "C"
+    ],
+    "instrument_page": [
+      "Tab"
+    ],
+    "pause": [
+      "Escape"
+    ],
+    "restart": [
+      "R"
+    ],
+    "mouse_capture": [
+      "M"
+    ],
+    "run_doc": "Зажать — разбег (на земле)",
+    "look_center": [
+      "V"
+    ],
+    "look_center_doc": "Вернуть взгляд вперёд (также средняя кнопка мыши)",
+    "mouse_capture_doc": "Захват мыши (обзор головой)",
+    "roll_left_doc": "Полёт: вес влево. Земля: поворот налево"
   },
   "invert_pitch": false,
   "invert_pitch_doc": "true — поменять местами «от себя» и «на себя»",
@@ -26,12 +57,16 @@
     "sensitivity": 1.0
   },
   "mouse": {
-    "enabled": true,
-    "sensitivity": 1.0,
-    "sensitivity_doc": "Смещение мыши на 1/2 высоты экрана × чувствительность = полный ход",
-    "deadzone": 0.02,
-    "return_to_center_per_s": 0.0,
-    "return_to_center_per_s_doc": "0 — трапеция остаётся, где её оставили; >0 — плавно возвращается в нейтраль"
+    "mode": "look",
+    "mode_doc": "look — мышь поворачивает голову (FR-31), bar — мышь управляет трапецией (запасной режим)",
+    "look_sensitivity_deg_per_px": 0.12,
+    "invert_look_y": false,
+    "capture_on_start": true,
+    "bar_sensitivity": 1.0,
+    "bar_sensitivity_doc": "Режим bar: смещение мыши на 1/2 высоты экрана × чувствительность = полный ход",
+    "bar_deadzone": 0.02,
+    "bar_return_to_center_per_s": 0.0,
+    "bar_return_to_center_per_s_doc": "0 — трапеция остаётся, где её оставили; >0 — плавно возвращается в нейтраль"
   },
   "gamepad": {
     "enabled": true,
@@ -42,5 +77,10 @@
     "sensitivity": 1.0,
     "expo": 0.3,
     "expo_doc": "0 — линейно, 1 — сильная экспонента (точнее у нейтрали)"
+  },
+  "ground": {
+    "_doc": "На земле без разбега: W/S — ходьба, A/D — поворот (сама скорость шага — в configs/pilot.json)",
+    "nose_pitch_rate_per_s": 1.0,
+    "nose_pitch_rate_per_s_doc": "В разбеге: скорость изменения угла носа клавишами"
   }
 }

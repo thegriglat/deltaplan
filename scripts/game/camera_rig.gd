@@ -14,6 +14,8 @@ var _head_basis := Basis.IDENTITY
 var _orbit := Vector2(0.0, -0.3)  # рыскание, тангаж орбиты
 var _free_dist := 15.0
 var _orbiting := false
+var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
+var _recentering := false
 
 
 func _ready() -> void:
@@ -38,6 +40,23 @@ func next_mode() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("camera_next"):
 		next_mode()
+	if event.is_action_pressed("look_center") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE):
+		_recentering = true
+	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and _mouse_looks():
+		var k := deg_to_rad(float(Config.value("controls", "mouse.look_sensitivity_deg_per_px")))
+		var inv_y := -1.0 if bool(Config.value("controls", "mouse.invert_look_y")) else 1.0
+		var d := Vector2(-event.relative.x, -event.relative.y * inv_y) * k
+		if mode == "cockpit":
+			var h: Dictionary = _cfg.cockpit.head
+			_head += d
+			_head.x = clampf(_head.x, -deg_to_rad(float(h.yaw_limit_deg)), deg_to_rad(float(h.yaw_limit_deg)))
+			_head.y = clampf(_head.y, -deg_to_rad(float(h.pitch_down_limit_deg)), deg_to_rad(float(h.pitch_up_limit_deg)))
+			_recentering = false
+		else:
+			_orbit += d
+			_orbit.y = clampf(_orbit.y, -1.5, 1.5)
+		return
 	if mode != "free":
 		return
 	var f: Dictionary = _cfg.free
@@ -65,7 +84,14 @@ func _process(delta: float) -> void:
 			_head_basis = _head_basis.slerp(t.basis.orthonormalized(), k).orthonormalized()
 			var off: Array = c.offset_m
 			global_position = t.origin + t.basis * Vector3(off[0], off[1], off[2])
-			global_basis = _head_basis * Basis(Vector3.RIGHT, -deg_to_rad(float(c.look_down_deg)))
+			if _recentering:
+				var rt := float(c.head.recenter_time_s)
+				_head = _head.lerp(Vector2.ZERO, 1.0 if rt <= 0.0 else 1.0 - exp(-delta / rt))
+				if _head.length() < 0.001:
+					_head = Vector2.ZERO
+					_recentering = false
+			global_basis = _head_basis * Basis(Vector3.UP, _head.x) \
+				* Basis(Vector3.RIGHT, _head.y - deg_to_rad(float(c.look_down_deg)))
 		"chase":
 			var ch: Dictionary = _cfg.chase
 			var fwd := -t.basis.z
@@ -84,6 +110,10 @@ func _process(delta: float) -> void:
 			var g := _ground_at(global_position)
 			global_position.y = maxf(global_position.y, g + 1.0)
 			look_at(t.origin, Vector3.UP)
+
+
+func _mouse_looks() -> bool:
+	return String(Config.value("controls", "mouse.mode")) == "look" or mode != "cockpit"
 
 
 func _ground_at(p: Vector3) -> float:

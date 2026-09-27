@@ -1,18 +1,27 @@
 class_name InputController
 extends Node
-## Собирает ControlInput из клавиатуры, мыши и геймпада (FR-30…FR-33).
+## Собирает ControlInput из клавиатуры и геймпада (FR-30…FR-33).
+## Мышь по умолчанию крутит голову (это делает CameraRig); в режиме "bar" — управляет трапецией.
 ## Клавиши регистрируются в InputMap из configs/controls.json.
 
 var control := ControlInput.new()
 var mouse_captured := false
+## Фазу сообщает главная сцена по телеметрии: на земле W/S — ходьба, в разбеге — угол носа.
+var on_ground := true
 
 var _cfg: Dictionary
-var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
+var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
 
 
 func _ready() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
+	if bool(_cfg.mouse.capture_on_start):
+		set_mouse_captured.call_deferred(true)
+
+
+func mouse_mode() -> String:
+	return String(_cfg.mouse.mode)
 
 
 static func register_actions(cfg: Dictionary) -> void:
@@ -31,19 +40,18 @@ static func register_actions(cfg: Dictionary) -> void:
 
 
 func set_mouse_captured(on: bool) -> void:
-	mouse_captured = on and bool(_cfg.mouse.enabled)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if mouse_captured else Input.MOUSE_MODE_VISIBLE
-	_mouse_offset = Vector2(control.roll, control.pitch)
+	mouse_captured = on
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if on else Input.MOUSE_MODE_VISIBLE
+	_mouse_offset = Vector2(control.roll, -control.pitch)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("mouse_capture"):
 		set_mouse_captured(not mouse_captured)
-	elif mouse_captured and event is InputEventMouseMotion:
+	elif mouse_captured and mouse_mode() == "bar" and event is InputEventMouseMotion:
 		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
-		var k := float(_cfg.mouse.sensitivity) / maxf(h, 1.0)
-		_mouse_offset.x += event.relative.x * k
-		_mouse_offset.y += event.relative.y * k  # мышь от себя (вверх по экрану) = трапеция от себя
+		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
+		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя
 		_mouse_offset = _mouse_offset.clamp(Vector2(-1, -1), Vector2(1, 1))
 
 
@@ -53,23 +61,33 @@ func update(dt: float) -> ControlInput:
 	var sens := float(kb.sensitivity)
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
 
-	var pitch_dir := (Input.get_action_strength("pitch_push_out") - Input.get_action_strength("pitch_pull_in")) * inv
+	var fwd := Input.get_action_strength("pitch_pull_in") - Input.get_action_strength("pitch_push_out")
+	var pitch_dir := -fwd * inv
 	var roll_dir := Input.get_action_strength("roll_right") - Input.get_action_strength("roll_left")
+	var run := Input.is_action_pressed("run")
 
 	var pitch := control.pitch
 	var roll := control.roll
-	if mouse_captured:
-		var ret := float(_cfg.mouse.return_to_center_per_s)
+	var walk := 0.0
+	if on_ground and not run:
+		# Ходьба с крылом на плечах: W/S — шаг, A/D — поворот, нос держим в нейтрали.
+		walk = fwd
+		pitch = move_toward(pitch, 0.0, float(kb.pitch_return_per_s) * dt)
+		roll = roll_dir
+	elif on_ground and run:
+		# Разбег: W/S — угол носа, A/D — выравнивание крыла.
+		pitch = _ramp(pitch, pitch_dir, float(_cfg.ground.nose_pitch_rate_per_s) * sens, 0.0, dt)
+		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
+	elif mouse_captured and mouse_mode() == "bar":
+		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
 		if ret > 0.0:
 			_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
-		var dz := float(_cfg.mouse.deadzone)
+		var dz := float(_cfg.mouse.bar_deadzone)
 		roll = _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
 		pitch = -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
 	else:
 		pitch = _ramp(pitch, pitch_dir, float(kb.pitch_rate_per_s) * sens, float(kb.pitch_return_per_s), dt)
 		roll = _ramp(roll, roll_dir, float(kb.roll_rate_per_s) * sens, float(kb.roll_return_per_s), dt)
-
-	var run := Input.is_action_pressed("run")
 
 	var gp: Dictionary = _cfg.gamepad
 	if bool(gp.enabled) and not Input.get_connected_joypads().is_empty():
@@ -78,11 +96,15 @@ func update(dt: float) -> ControlInput:
 		var gy := _stick(Input.get_joy_axis(dev, int(gp.pitch_axis)), gp)
 		if gx != 0.0 or gy != 0.0:
 			roll = gx
-			pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
+			if on_ground and not run:
+				walk = -gy
+			else:
+				pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
 		run = run or Input.is_joy_button_pressed(dev, int(gp.run_button))
 
 	control.pitch = clampf(pitch, -1.0, 1.0)
 	control.roll = clampf(roll, -1.0, 1.0)
+	control.walk = clampf(walk, -1.0, 1.0)
 	control.run = run
 	return control
 

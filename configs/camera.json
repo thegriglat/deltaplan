@@ -1,16 +1,31 @@
 {
   "_doc": "Камеры (FR-26). Порядок переключения — modes.",
-  "modes": ["cockpit", "chase", "free"],
+  "modes": [
+    "cockpit",
+    "chase",
+    "free"
+  ],
   "default_mode": "cockpit",
   "fov_deg": 75.0,
   "near_m": 0.05,
   "far_m": 40000.0,
   "cockpit": {
-    "offset_m": [0.0, -0.05, 0.35],
+    "offset_m": [
+      0.0,
+      -0.05,
+      0.35
+    ],
     "offset_m_doc": "Смещение от точки подвеса: x вправо, y вверх, z назад (голова пилота под крылом)",
     "look_down_deg": 8.0,
     "head_lag_s": 0.08,
-    "head_lag_s_doc": "Запаздывание головы по крену — ощущение инерции"
+    "head_lag_s_doc": "Запаздывание головы по крену — ощущение инерции",
+    "head": {
+      "_doc": "Поворот головы мышью (FR-31); углы от направления вперёд",
+      "yaw_limit_deg": 120.0,
+      "pitch_up_limit_deg": 60.0,
+      "pitch_down_limit_deg": 70.0,
+      "recenter_time_s": 0.25
+    }
   },
   "chase": {
     "distance_m": 12.0,
