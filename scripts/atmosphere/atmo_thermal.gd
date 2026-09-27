@@ -113,10 +113,12 @@ func axis_at(y: float) -> Vector2:
 
 
 func to_dict() -> Dictionary:
+	var ground := axis_at(src.y)
 	return {
 		"id": id,
 		"static": is_static,
 		"source": src,
+		"ground_axis": Vector3(ground.x, src.y, ground.y),  # ось у земли с учётом сноса
 		"top_m": top,
 		"strength_ms": strength,
 		"radius_m": radius,
