@@ -91,3 +91,42 @@ func test_required_glide() -> void:
 	approx(req, 10000.0 / (1000.0 - safety), 1e-3, "требуемое качество")
 	approx(task.arrival_height(Vector3(0, 2000, 0), 2000.0, 20.0), 500.0, 1e-3, "высота прибытия")
 	check(task.required_glide(Vector3.ZERO, 1100.0) == INF, "ниже цели с запасом — не долететь")
+
+
+func test_race_state() -> void:
+	var task := InstrumentTask.new()
+	task.setup()
+	var pts := [
+		{"name": "Старт", "position": Vector3(0, 1000, -3000), "radius_m": 3000.0},
+		{"name": "ТП1", "position": Vector3(5000, 1100, -3000), "radius_m": 400.0},
+		{"name": "Гоул", "position": Vector3(9000, 900, 0), "radius_m": 400.0},
+	]
+	task.set_points(pts, 0)
+	check(not task.is_race(), "без состояния — не гонка")
+	var state := {
+		"phase": "racing",
+		"instrument_active": 1,
+		"next_name": "ТП1",
+		"remaining_distance_m": 12000.0,
+		"required_glide": 9.5,
+	}
+	task.race = state
+	task.active = 1
+	check(task.is_race(), "гонка")
+	check(task.is_passed(0) and not task.is_passed(1), "пройденные — до активного")
+	approx(
+		task.distance_for_glide(Vector3.ZERO),
+		12000.0,
+		1e-3,
+		"дистанция — оптимизированная до гоула"
+	)
+	approx(task.glide_needed(Vector3.ZERO, 2000.0), 9.5, 1e-6, "требуемое качество от трекера")
+	approx(
+		task.arrival_for_glide(Vector3.ZERO, 2000.0, 10.0),
+		2000.0 - 900.0 - 1200.0,
+		1e-3,
+		"прибытие на гоул"
+	)
+	task.race = {"phase": "goal", "required_glide": NAN}
+	check(task.is_passed(2), "в гоуле пройдено всё")
+	check(task.glide_needed(Vector3.ZERO, 2000.0) == INF, "NAN от трекера — прочерк")

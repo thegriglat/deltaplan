@@ -31,18 +31,22 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	d.field(Rect2(x0, y, half, rh), d.tr("ВСТРЕЧНЫЙ"), d.tr("км/ч"), head_s)
 	d.field(Rect2(x1, y, half, rh), d.tr("МЕТОД"), "", _method_name(d, w), true)
 	y += rh + d.gap
-	var req := t.required_glide(v.position, v.altitude_msl_m)
-	var req_s := "--" if not t.has_target() else ("∞" if req == INF else d.fmt_glide(req))
+	var req := t.glide_needed(v.position, v.altitude_msl_m)
+	var has := t.has_target() or t.is_race()
+	var req_s := "--" if not has else ("∞" if req == INF else d.fmt_glide(req))
 	d.field(Rect2(x0, y, half, rh), d.tr("КАЧ ТЕКУЩ"), "", d.fmt_glide(v.glide_ratio))
 	d.field(Rect2(x1, y, half, rh), d.tr("КАЧ ТРЕБ"), "", req_s, req_s == "∞")
 	y += rh + d.gap
-	var dist := t.distance_to_target(v.position)
-	var arr := t.arrival_height(v.position, v.altitude_msl_m, v.glide_ratio)
+	var dist := t.distance_for_glide(v.position)
+	var arr := t.arrival_for_glide(v.position, v.altitude_msl_m, v.glide_ratio)
 	var arr_s := "--" if is_nan(arr) else "%+d" % roundi(arr)
-	d.field(Rect2(x0, y, half, rh), d.tr("ДО ЦЕЛИ"), d.tr("км"), d.fmt_km(dist))
+	var dist_label := d.tr("ДО ГОУЛА") if t.is_race() else d.tr("ДО ЦЕЛИ")
+	d.field(Rect2(x0, y, half, rh), dist_label, d.tr("км"), d.fmt_km(dist))
 	d.field(Rect2(x1, y, half, rh), d.tr("ПРИБЫТИЕ"), d.tr("м"), arr_s)
 	y += rh + d.gap + float(d.text_px)
 	var target := t.target_name() if t.has_target() else d.tr("нет цели")
+	if t.is_race():
+		target = String(t.race.get("next_name", target)) + " → " + d.tr("гоул")
 	d.text(Vector2(x0 + 4.0, y), d.tr("ЦЕЛЬ: ") + target, d.text_px, d.ink, 0, area.size.x)
 
 

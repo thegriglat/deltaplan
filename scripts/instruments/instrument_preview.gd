@@ -6,6 +6,7 @@ extends Node3D
 ##   --warmup_s=С (прогнать телеметрию до кадра)
 ##   --quit_after_s=С  --skips_report (печатать пропуски звука)
 ##   --screenshot также сохраняет *_screen.png (планшет) и *_vario90s.png (вариометр 90-х)
+##   --race (синтетическое состояние соревнования для страниц 3–4)
 ##   --pages_prefix=путь (сохранить экран всех страниц в путь_p1.png … путь_p5.png).
 ## Параметры синусоиды — не конфиг прибора, а сценарий стенда (только для предпросмотра).
 
@@ -57,6 +58,18 @@ func _ready() -> void:
 		{"name": "Гоул", "position": Vector3(-6000, 1000, -9000), "radius_m": 400.0},
 	]
 	instrument3d.instrument.set_task(tps, 0)
+	if _args.has("race"):
+		# Синтетическое состояние TaskTracker: идёт гонка, первый пункт взят.
+		instrument3d.instrument.set_task(tps, 1)
+		var race := {
+			"phase": "racing",
+			"instrument_active": 1,
+			"next_name": "ТП2 Белый",
+			"remaining_distance_m": 9800.0,
+			"required_glide": 11.2,
+			"elapsed_s": 1834.0,
+		}
+		instrument3d.instrument.set_task_state(race)
 	instrument3d.instrument.set_sound_settings(audio.get_settings())
 	t.position = Vector3(0, SCENARIO.start_alt_m, 0)
 	t.on_ground = false

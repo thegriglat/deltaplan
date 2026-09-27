@@ -112,6 +112,15 @@ func set_task(points: Array, active_index: int = 0) -> void:
 	_request_redraw()
 
 
+## Состояние соревнования от TaskTracker.get_state(): активный пункт, оставшаяся оптимизированная
+## дистанция, требуемое качество до гоула, старт/время до открытия, ESS/гоул. {} — гонки нет.
+func set_task_state(state: Dictionary) -> void:
+	task.race = state.duplicate()
+	if state.has("instrument_active"):
+		task.active = clampi(int(state.instrument_active), 0, maxi(task.points.size() - 1, 0))
+	_dirty = true
+
+
 ## Совместимость: поворотные пункты = задание с первым пунктом активным.
 func set_turnpoints(points: Array) -> void:
 	set_task(points, 0)

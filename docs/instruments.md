@@ -33,6 +33,7 @@ instrument.update(t: Telemetry, dt := -1)   # dt по умолчанию — ш�
 instrument.get_texture() -> ViewportTexture
 instrument.set_page(i) / next_page() / get_page() / page_count()   # 5 страниц, сигнал page_changed
 instrument.set_task([{name, position: Vector3, radius_m}], active := 0)   # set_turnpoints — синоним
+instrument.set_task_state(tracker.get_state())   # соревнование: стр. 3–4 по гоулу, {} — выкл
 instrument.set_sound_settings(vario_audio.get_settings()); request_setting(k, v) → settings_requested
 instrument.get_wind() -> WindEstimator, get_task() -> InstrumentTask
 instrument.get_vario() -> Vario
@@ -91,6 +92,15 @@ overlay.visible = camera_mode != "cockpit"       # в кабине прибор 
 5. **ЦЕНТРОВКА** — помощник центровки (как у XCSoar): крыло в центре носом вверх, вокруг — диаграмма подъёма
    по сторонам круга относительно курса, стрелка «сдвинь круг сюда», среднее за круг, направление виража,
    сторона сильного подъёма. На прямой — «нет кружения».
+
+### Соревнование (set_task_state)
+`instrument.set_task_state(tracker.get_state())` — состояние `TaskTracker` (scripts/tasks/). С ним:
+- стр. 3: «ДО ГОУЛА» — оставшаяся оптимизированная дистанция, «КАЧ ТРЕБ» — требуемое качество до гоула
+  от трекера, прибытие — на высоту гоула; «ЦЕЛЬ: <следующий пункт> → гоул»;
+- стр. 4: строка статуса (старт через мм:сс / старт открыт / ранний старт / гонка ч:мм:сс / ESS / ГОУЛ),
+  пройденные пункты отмечены «√», активный — «▶»;
+- стр. 2: активный пункт выделен (активный индекс — `instrument_active`).
+`set_task_state({})` — гонки нет, прибор считает по геометрии до активного пункта.
 
 ### Помощник центровки (ThermalAssistant)
 Только данные прибора: отфильтрованный вариометр своего датчика и курс; атмосфера не читается.

@@ -9,6 +9,8 @@ var points: Array[Dictionary] = []
 ## Индекс активного пункта (цели).
 var active: int = 0
 var safety_height_m: float = 150.0
+## Состояние соревнования от TaskTracker.get_state() (пусто — просто пункты, без гонки).
+var race: Dictionary = {}
 var default_radius_m: float = 400.0
 
 
@@ -26,6 +28,45 @@ func set_points(list: Array, active_index: int = 0) -> void:
 		var d: Dictionary = p
 		points.append(d)
 	active = clampi(active_index, 0, maxi(points.size() - 1, 0))
+
+
+## Идёт соревнование (есть состояние от TaskTracker).
+func is_race() -> bool:
+	return not race.is_empty()
+
+
+## Пункт пройден: до активного в гонке (в гоуле — все).
+func is_passed(i: int) -> bool:
+	if not is_race():
+		return false
+	if String(race.get("phase", "")) == "goal":
+		return true
+	return i < active
+
+
+## Расстояние «до цели» для страницы 3: в гонке — оптимизированное до гоула, иначе до пункта.
+func distance_for_glide(pos: Vector3) -> float:
+	if is_race():
+		return float(race.get("remaining_distance_m", INF))
+	return distance_to_target(pos)
+
+
+## Требуемое качество для страницы 3: в гонке — от TaskTracker (до гоула), иначе геометрия.
+func glide_needed(pos: Vector3, altitude_msl: float) -> float:
+	if is_race():
+		var g := float(race.get("required_glide", INF))
+		return INF if is_nan(g) or g <= 0.0 else g
+	return required_glide(pos, altitude_msl)
+
+
+## Высота прибытия (на гоул в гонке, на цель иначе) при качестве glide, м; NAN — нельзя оценить.
+func arrival_for_glide(pos: Vector3, altitude_msl: float, glide: float) -> float:
+	if not is_race():
+		return arrival_height(pos, altitude_msl, glide)
+	if points.is_empty() or glide == INF or glide <= 0.0:
+		return NAN
+	var goal: Vector3 = points[points.size() - 1].get("position", Vector3.ZERO)
+	return altitude_msl - goal.y - distance_for_glide(pos) / glide
 
 
 func has_target() -> bool:
