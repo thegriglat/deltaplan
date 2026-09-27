@@ -1,5 +1,6 @@
 {
   "_doc": "Общие параметры симуляции",
   "physics_hz": 120,
-  "max_physics_steps_per_frame": 16
+  "max_physics_steps_per_frame": 16,
+  "max_physics_steps_per_frame_doc": "Предел шагов физики за один кадр (защита от «спирали смерти» при просадке FPS), штук"
 }

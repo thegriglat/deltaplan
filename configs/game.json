@@ -112,7 +112,7 @@
   "graphics": "medium",
   "graphics_doc": "Пресет графики по умолчанию: low / medium / high (правки конфигов из graphics_presets пишутся в user://configs при выборе в настройках)",
   "graphics_presets": {
-    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D)",
+    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м",
     "low": {
       "name": "Низкое",
       "configs": {

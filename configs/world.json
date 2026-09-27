@@ -8,7 +8,11 @@
     "elevation_deg_doc": "Высота солнца над горизонтом, градусы",
     "energy": 1.2,
     "energy_doc": "Яркость солнца (DirectionalLight3D.light_energy), безразмерная",
-    "color": [1.0, 0.96, 0.9],
+    "color": [
+      1.0,
+      0.96,
+      0.9
+    ],
     "color_doc": "Цвет солнечного света, RGB 0..1",
     "shadow_max_distance_m": 3000,
     "shadow_max_distance_m_doc": "Дальность теней от солнца, м (дальше теней нет — экономия)",
@@ -23,19 +27,37 @@
   },
   "sky": {
     "_doc": "Небо (ProceduralSkyMaterial): градиент от зенита к горизонту + диск солнца. Цвета RGB 0..1.",
-    "top_color": [0.23, 0.42, 0.75],
+    "top_color": [
+      0.23,
+      0.42,
+      0.75
+    ],
     "top_color_doc": "Цвет неба в зените",
-    "horizon_color": [0.66, 0.76, 0.88],
+    "horizon_color": [
+      0.66,
+      0.76,
+      0.88
+    ],
     "horizon_color_doc": "Цвет неба у горизонта",
     "curve": 0.12,
     "curve_doc": "Как быстро цвет зенита переходит в цвет горизонта",
-    "ground_horizon_color": [0.66, 0.76, 0.88],
-    "ground_bottom_color": [0.25, 0.28, 0.24],
+    "ground_horizon_color": [
+      0.66,
+      0.76,
+      0.88
+    ],
+    "ground_bottom_color": [
+      0.25,
+      0.28,
+      0.24
+    ],
     "ground_doc": "Цвета ниже горизонта (видны только если рельеф не закрывает)",
     "sun_angle_max_deg": 20,
     "sun_angle_max_deg_doc": "Размер ореола вокруг солнца, градусы",
     "sun_curve": 0.1,
+    "sun_curve_doc": "Как быстро цвет ореола солнца спадает к цвету неба (аналог sky.curve), безразмерный",
     "energy_multiplier": 1.0,
+    "energy_multiplier_doc": "Множитель яркости неба (ProceduralSkyMaterial.sky_energy_multiplier), безразмерный",
     "ambient_light_energy": 0.7,
     "ambient_light_energy_doc": "Сила рассеянного света от неба",
     "ambient_sky_contribution": 0.8,
@@ -45,7 +67,11 @@
     "_doc": "Экспоненциальный туман Godot. С T04 выключен (density 0): голубая дымка чистого воздуха считается в haze.gdshader по каналам (haze.clear_*) — туман Godot складывался с мутным слоем и ослаблял даль дважды. >0 — включить поверх (облака берут отсюда свою дымку, иначе — atmosphere.json → fog_density_fallback).",
     "density": 0.0,
     "density_doc": "Плотность, 1/м; 0 — туман Godot выключен",
-    "color": [0.55, 0.67, 0.86],
+    "color": [
+      0.55,
+      0.67,
+      0.86
+    ],
     "color_doc": "Цвет дымки, RGB",
     "sun_scatter": 0.15,
     "sun_scatter_doc": "Подсветка дымки со стороны солнца",
@@ -65,17 +91,31 @@
     "camera_far_m": 110000,
     "camera_far_m_doc": "Дальняя плоскость отсечения камеры, м: весь дальний рельеф (160 км) виден",
     "tonemap_exposure": 1.0,
+    "tonemap_exposure_doc": "Экспозиция тонмаппинга (Environment.tonemap_exposure), безразмерный множитель",
     "tonemap_white": 6.0,
+    "tonemap_white_doc": "Точка «белого» тонмаппинга (Environment.tonemap_white), безразмерная",
     "lod_update_interval_s": 0.1,
     "lod_update_interval_s_doc": "Как часто пересчитывать LOD чанков рельефа, с"
   },
   "terrain_look": {
     "_doc": "Раскраска рельефа (FR-19, VR-4): цвет каждого класса карты поверхности (surface) + уклон, экспозиция, шум детализации. Локация может переопределить любой ключ в своём разделе terrain_look.",
-    "grass_color": [0.2, 0.28, 0.1],
+    "grass_color": [
+      0.2,
+      0.28,
+      0.1
+    ],
     "grass_color_doc": "Свежий луг, RGB (линейный)",
-    "dry_grass_color": [0.38, 0.37, 0.18],
+    "dry_grass_color": [
+      0.38,
+      0.37,
+      0.18
+    ],
     "dry_grass_color_doc": "Подсохшая трава (сухость 0.5), RGB",
-    "straw_color": [0.56, 0.48, 0.27],
+    "straw_color": [
+      0.56,
+      0.48,
+      0.27
+    ],
     "straw_color_doc": "Соломенная степь, выгоревшая трава (сухость > 0.5)",
     "dryness": 0.3,
     "dryness_doc": "Сухость лугов по локации и сезону 0..1: 0 — сочный луг, 0.5 — выгоревшая трава, 1 — солома. Локация переопределяет",
@@ -85,17 +125,37 @@
     "dry_south_k_doc": "Насколько южные склоны суше северных (± к dryness)",
     "grass_saturation": 0.8,
     "grass_saturation_doc": "Насыщенность цвета лугов (1 — как задано, меньше — приглушённее)",
-    "forest_color": [0.06, 0.12, 0.05],
+    "forest_color": [
+      0.06,
+      0.12,
+      0.05
+    ],
     "forest_color_doc": "Хвойный лес (кедр, пихта, сосна)",
-    "birch_color": [0.13, 0.2, 0.07],
+    "birch_color": [
+      0.13,
+      0.2,
+      0.07
+    ],
     "birch_color_doc": "Лиственный лес (берёза, осина)",
-    "rock_color": [0.34, 0.31, 0.27],
+    "rock_color": [
+      0.34,
+      0.31,
+      0.27
+    ],
     "rock_color_doc": "Скалы, осыпи",
-    "rock_color2": [0.33, 0.26, 0.19],
+    "rock_color2": [
+      0.33,
+      0.26,
+      0.19
+    ],
     "rock_color2_doc": "Второй тон породы (охристо-бурый), смешивается пятнами rock_tone_scale_m",
     "rock_tone_scale_m": 180,
     "rock_tone_scale_m_doc": "Размер пятен тона породы, м",
-    "lichen_color": [0.48, 0.4, 0.18],
+    "lichen_color": [
+      0.48,
+      0.4,
+      0.18
+    ],
     "lichen_color_doc": "Лишайник на камнях (рыжий/зеленоватый)",
     "lichen_amount": 0.35,
     "lichen_amount_doc": "Доля лишайника на верхних гранях",
@@ -103,7 +163,11 @@
     "strata_m_doc": "Шаг горизонтальных слоёв на обрывах, м",
     "strata_strength": 0.28,
     "strata_strength_doc": "Контраст слоёв",
-    "scree_color": [0.47, 0.44, 0.39],
+    "scree_color": [
+      0.47,
+      0.44,
+      0.39
+    ],
     "scree_color_doc": "Осыпь, светлая щебёнка",
     "scree_probe_m": 35,
     "scree_probe_m_doc": "Где выше по склону искать обрыв (для осыпи), м",
@@ -117,15 +181,35 @@
     "gully_k_doc": "Вогнутость (м/м), при которой ложбина вся в снегу",
     "gully_north_m": 250,
     "gully_north_m_doc": "На северных склонах снег ниже на столько, м",
-    "snow_color": [0.92, 0.94, 0.97],
+    "snow_color": [
+      0.92,
+      0.94,
+      0.97
+    ],
     "snow_color_doc": "Снег",
-    "field_color": [0.62, 0.58, 0.36],
+    "field_color": [
+      0.62,
+      0.58,
+      0.36
+    ],
     "field_color_doc": "Поля в долинах",
-    "shrub_color": [0.2, 0.28, 0.1],
+    "shrub_color": [
+      0.2,
+      0.28,
+      0.1
+    ],
     "shrub_color_doc": "Кустарник (класс «кустарник»)",
-    "bare_color": [0.52, 0.48, 0.42],
+    "bare_color": [
+      0.52,
+      0.48,
+      0.42
+    ],
     "bare_color_doc": "Голый грунт, осыпи, каменистые склоны (класс «скалы/голый грунт» на пологом месте)",
-    "built_color": [0.46, 0.44, 0.42],
+    "built_color": [
+      0.46,
+      0.44,
+      0.42
+    ],
     "built_color_doc": "Застройка: крыши, дороги, дворы (класс «застройка»)",
     "rock_slope_deg": 38,
     "rock_slope_deg_doc": "С этого уклона начинаются скалы, градусы",
@@ -135,7 +219,10 @@
     "surface_edge_noise_doc": "Извилистость границ классов карты (сдвиг шумом, доля клетки карты; 0 — ровные границы)",
     "surface_edge_sharpness": 0.12,
     "surface_edge_sharpness_doc": "Размытие границ классов (полуширина, доля клетки карты): 0.05 — резко, 0.5 — плавно",
-    "field_size_m": [260, 140],
+    "field_size_m": [
+      260,
+      140
+    ],
     "field_size_m_doc": "Размер участка поля (восток × юг), м",
     "patch_scale_m": 700,
     "patch_scale_m_doc": "Масштаб пятен внутри класса (хвойные/лиственные, оттенки травы), м",
@@ -149,7 +236,10 @@
     "canopy_bump_doc": "Рельефность крон в лесу (возмущение нормали), 0..1",
     "canopy_cell_m": 6.0,
     "canopy_cell_m_doc": "Шаг крон полога леса (вид с высоты), м",
-    "canopy_crown_k": [0.55, 0.85],
+    "canopy_crown_k": [
+      0.55,
+      0.85
+    ],
     "canopy_crown_k_doc": "Радиус кроны / шаг, мин/макс",
     "canopy_gap_dark": 0.35,
     "canopy_gap_dark_doc": "Яркость просветов между кронами (тень под пологом)",
@@ -181,12 +271,18 @@
     "forest_edge_warp_m_doc": "Извилистость кромки: сдвиг выборки маски шумом ~9 м, м",
     "canopy_dsm_height_m": 10,
     "canopy_dsm_height_m_doc": "Высота крон в DSM Copernicus (ступенька на опушке, оценка регрессией по Онгудаю 9–12 м): вычитается из уклона луга у кромки — без тени и скал на лугу",
-    "water_color": [0.28, 0.4, 0.41],
+    "water_color": [
+      0.28,
+      0.4,
+      0.41
+    ],
     "water_color_doc": "Реки (Катунь — мутно-бирюзовая), RGB",
     "water_roughness": 0.08,
     "water_roughness_doc": "Шероховатость воды (меньше — ярче блики и отражение неба)",
     "roughness": 0.95,
-    "specular": 0.2
+    "roughness_doc": "Шероховатость материала рельефа (PBR roughness), 0..1",
+    "specular": 0.2,
+    "specular_doc": "Блик материала рельефа (PBR specular), 0..1"
   },
   "surface": {
     "_doc": "Карта поверхности (VR-4, VR-0): классы земного покрова. Из неё же берутся цвет земли (шейдер рельефа), деревья (только на «лесе») и сила источников термиков (Terrain.thermal_source_strength_at). Классы: 1 лес, 2 луг/трава, 3 пашня/поля, 4 кустарник, 5 скалы/голый грунт, 6 вода, 7 застройка, 8 снег/лёд; 0 — нет данных.",
@@ -212,7 +308,9 @@
     },
     "detail10": {
       "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит tools/terrain/fetch_landcover.py <id> --only=detail10. Рантайм-локации (FR-17) — прежняя карта классов.",
-      "layers": ["detail"],
+      "layers": [
+        "detail"
+      ],
       "layers_doc": "Для каких слоёв строить маску",
       "cell_m": 10,
       "cell_m_doc": "Шаг маски, м",
@@ -228,7 +326,8 @@
       "cell_factor": 2,
       "cell_factor_doc": "Шаг карты = шаг сетки высот слоя × cell_factor (2 → ≈50 м у детального слоя)",
       "timeout_s": 30,
-      "max_parallel_requests": 6
+      "max_parallel_requests": 6,
+      "max_parallel_requests_doc": "Сколько тайлов COG грузить параллельно, штук"
     },
     "thermal": {
       "_doc": "Сила источника термиков 0..1 (Terrain.thermal_source_strength_at, передаётся атмосфере как sun_fn): clamp(class_strength[класс] · exposure_gain · освещённость^exposure_power · (1 + edge_boost · близость к границе), 0, 1). Освещённость — sun_exposure_at (косинус угла между нормалью склона и солнцем). Сухие поля, скалы, осыпи, застройка, солнечные склоны — сильные источники; лес, вода, снег — слабые. Границы поле–лес, луг–лес, пашня–луг — триггеры отрыва (усиление в полосе edge_full_m…edge_max_m).",
@@ -324,7 +423,12 @@
         "zoom_doc": "Уровень тайлов: z12 ≈ 38·cos(широта) м/пикс (≈ 24 м на 52°)",
         "chunk_cells": 128,
         "chunk_cells_doc": "Клеток в чанке (делится на 2^(число LOD − 1))",
-        "lod_distances_m": [1500, 3500, 7000, 14000],
+        "lod_distances_m": [
+          1500,
+          3500,
+          7000,
+          14000
+        ],
         "skirt_depth_m": 40
       },
       {
@@ -334,7 +438,12 @@
         "zoom": 9,
         "zoom_doc": "z9 ≈ 190 м/пикс на 52°",
         "chunk_cells": 64,
-        "lod_distances_m": [15000, 30000, 50000],
+        "chunk_cells_doc": "Клеток в чанке (делится на 2^(число LOD − 1))",
+        "lod_distances_m": [
+          15000,
+          30000,
+          50000
+        ],
         "skirt_depth_m": 150
       }
     ]
@@ -370,7 +479,10 @@
       "spruce": "res://assets/models/trees/tree_spruce.glb"
     },
     "models_doc": "Модели пород (.glb с мешами LOD0, LOD1, LOD2; основание ствола в 0). Нет файла — процедурные кроны",
-    "lod_distances_m": [60, 180],
+    "lod_distances_m": [
+      60,
+      180
+    ],
     "lod_distances_m_doc": "Модели: до первой дистанции LOD0, до второй LOD1, дальше до radius_m — LOD2 (крест-импостор), м",
     "rebuild_step_m": 16,
     "rebuild_step_m_doc": "Пересчитывать расстановку, когда камера сдвинулась на столько, м (в рабочем потоке)",
@@ -385,35 +497,50 @@
         "min_m": 0,
         "max_m": 1400,
         "aspect": 0.0,
-        "height_m": [12, 20]
+        "height_m": [
+          12,
+          20
+        ]
       },
       "larch": {
         "weight": 0.8,
         "min_m": 500,
         "max_m": 2300,
         "aspect": -0.2,
-        "height_m": [16, 28]
+        "height_m": [
+          16,
+          28
+        ]
       },
       "pine": {
         "weight": 0.7,
         "min_m": 0,
         "max_m": 1600,
         "aspect": -0.8,
-        "height_m": [15, 25]
+        "height_m": [
+          15,
+          25
+        ]
       },
       "cedar": {
         "weight": 0.8,
         "min_m": 1000,
         "max_m": 2400,
         "aspect": 0.3,
-        "height_m": [14, 24]
+        "height_m": [
+          14,
+          24
+        ]
       },
       "spruce": {
         "weight": 0.8,
         "min_m": 400,
         "max_m": 2200,
         "aspect": 0.7,
-        "height_m": [15, 26]
+        "height_m": [
+          15,
+          26
+        ]
       }
     },
     "radius_m": 500,
@@ -422,9 +549,15 @@
     "spacing_m_doc": "Шаг сетки деревьев, м (одно дерево на клетку максимум). Число экземпляров ≈ (2·radius/spacing)²",
     "density": 0.8,
     "density_doc": "Доля клеток леса, где стоит дерево (0..1)",
-    "conifer_height_m": [14, 26],
+    "conifer_height_m": [
+      14,
+      26
+    ],
     "conifer_height_m_doc": "Высота хвойных (кедр, пихта), мин/макс, м",
-    "birch_height_m": [10, 20],
+    "birch_height_m": [
+      10,
+      20
+    ],
     "birch_height_m_doc": "Высота лиственных (берёза, осина), мин/макс, м",
     "conifer_radius_ratio": 0.22,
     "conifer_radius_ratio_doc": "Радиус кроны у основания / высота дерева (хвойные)",
@@ -453,7 +586,11 @@
       "enabled": true,
       "atlas": "res://assets/models/trees/trees_impostor_atlas.png",
       "atlas_doc": "Атлас импостеров: ячейки 256×512, верхний ряд pine, cedar, larch, birch; нижний — spruce",
-      "atlas_cells": [4, 2],
+      "atlas_cells": [
+        4,
+        2
+      ],
+      "atlas_cells_doc": "Сетка атласа импостеров: [столбцов, строк]",
       "spacing_m": 12,
       "spacing_m_doc": "Шаг сетки билбордов, м",
       "outer_m": 3500,
@@ -473,7 +610,9 @@
     "start_zoom": 9,
     "start_zoom_doc": "Начальный масштаб (уровень тайлов web-mercator)",
     "min_zoom": 3,
+    "min_zoom_doc": "Минимальный масштаб карты (уровень тайлов web-mercator), безразмерный",
     "max_zoom": 13,
+    "max_zoom_doc": "Максимальный масштаб карты (уровень тайлов web-mercator), безразмерный",
     "zoom_step": 0.5,
     "zoom_step_doc": "Шаг масштаба на щелчок колеса",
     "light_azimuth_deg": 315,
@@ -481,18 +620,39 @@
     "light_elevation_deg": 40,
     "exaggeration": 2.0,
     "exaggeration_doc": "Во сколько раз усилить крутизну для отмывки",
-    "low_color": [0.55, 0.68, 0.45],
+    "low_color": [
+      0.55,
+      0.68,
+      0.45
+    ],
     "low_color_doc": "Цвет низин (гипсометрия)",
-    "high_color": [0.85, 0.78, 0.62],
+    "high_color": [
+      0.85,
+      0.78,
+      0.62
+    ],
     "high_color_doc": "Цвет на высоте high_height_m",
-    "snow_color": [0.97, 0.97, 0.97],
+    "snow_color": [
+      0.97,
+      0.97,
+      0.97
+    ],
     "snow_color_doc": "Цвет выше snow_height_m",
     "low_height_m": 0,
     "high_height_m": 2500,
     "snow_height_m": 3800,
-    "water_color": [0.62, 0.75, 0.88],
+    "water_color": [
+      0.62,
+      0.75,
+      0.88
+    ],
     "water_color_doc": "Цвет моря (высота ≤ 0)",
-    "marker_color": [0.9, 0.1, 0.1],
+    "marker_color": [
+      0.9,
+      0.1,
+      0.1
+    ],
+    "marker_color_doc": "Цвет маркера выбранной точки, sRGB 0..1",
     "marker_radius_px": 7,
     "max_tiles_in_memory": 300,
     "max_tiles_in_memory_doc": "Сколько тайлов карты держать в памяти (≈ 0.2 МБ каждый)",
@@ -537,16 +697,22 @@
     "glow_enabled": true,
     "glow_enabled_doc": "Мягкое свечение ярких мест (солнце, снег)",
     "glow_intensity": 0.4,
+    "glow_intensity_doc": "Сила свечения ярких мест, безразмерный множитель",
     "glow_bloom": 0.05,
+    "glow_bloom_doc": "Порог/примесь bloom в свечении, безразмерный",
     "glow_hdr_threshold": 1.2,
+    "glow_hdr_threshold_doc": "Порог яркости (HDR), с которого начинается свечение",
     "ssao_enabled": false,
     "ssao_enabled_doc": "Затенение в складках (SSAO): красивее вблизи, но дорого для встроенной графики",
     "ssao_radius_m": 3.0,
     "ssao_intensity": 1.5,
+    "ssao_intensity_doc": "Сила затенения SSAO, безразмерный множитель",
     "saturation": 1.08,
     "saturation_doc": "Насыщенность итоговой картинки",
     "contrast": 1.04,
-    "brightness": 1.0
+    "contrast_doc": "Контраст итоговой картинки, безразмерный множитель (1 — без изменений)",
+    "brightness": 1.0,
+    "brightness_doc": "Яркость итоговой картинки, безразмерный множитель (1 — без изменений)"
   },
   "haze": {
     "_doc": "Дымка слоя перемешивания (VR-3): под инверсией воздух мутный, над ней — чистый и синий; сверху у горизонта видна резкая верхняя граница дымки. Верх слоя — set_inversion_height_msl(h) (интегратор передаёт Atmosphere.get_cloudbase_msl()) + top_margin_m; до вызова — default_top_msl_m.",
@@ -557,23 +723,46 @@
     "top_margin_m_doc": "Верх дымки выше основания облаков на столько, м (облака сидят в верхней части слоя)",
     "visibility_km": 100.0,
     "visibility_km_doc": "Метеорологическая видимость внутри мутного слоя, км (ослабление 3.912/видимость на 550 нм). Вместе с чистым воздухом — 58 км, пропускание на 20 км 26 %. FR-20: ≥ 20 км",
-    "extinction_rgb": [0.85, 1.0, 1.2],
+    "extinction_rgb": [
+      0.85,
+      1.0,
+      1.2
+    ],
     "extinction_rgb_doc": "Спектр ослабления мутного слоя (R, G, B относительно зелёного): аэрозоль почти серый",
     "clear_visibility_km": 140.0,
     "clear_visibility_km_doc": "Видимость чистого воздуха, км: по всему лучу до рельефа (и над инверсией), небо не трогает — голубая воздушная перспектива, дальние хребты синеют (FR-20)",
-    "clear_rgb": [0.7, 1.0, 1.5],
+    "clear_rgb": [
+      0.7,
+      1.0,
+      1.5
+    ],
     "clear_rgb_doc": "Спектр ослабления чистого воздуха (R, G, B): синий насыщается раньше — вблизи дымка голубая, вдали светлая",
-    "clear_air_color": [0.7, 0.78, 0.9],
+    "clear_air_color": [
+      0.7,
+      0.78,
+      0.9
+    ],
     "clear_air_color_doc": "Свет чистого воздуха на длинном пути (к нему стремится даль), RGB линейный; чуть темнее неба у горизонта — хребет на 20+ км отделяется от неба",
     "inscatter_power": 1.75,
     "inscatter_power_doc": "Свет дымки ∝ (1 − пропускание)^p: 1 — однократное рассеяние; >1 — тонкая дымка (2–10 км) светит слабее и меньше «съедает» контраст, толстая (к горизонту) — почти как при 1",
     "top_transition_m": 60.0,
     "top_transition_m_doc": "Толщина верхней границы дымки, м (меньше — резче граница у горизонта)",
-    "clear_color": [0.56, 0.67, 0.84],
+    "clear_color": [
+      0.56,
+      0.67,
+      0.84
+    ],
     "clear_color_doc": "Цвет дымки при хорошей видимости — воздушная перспектива, голубая, RGB линейный",
-    "turbid_color": [0.66, 0.67, 0.68],
+    "turbid_color": [
+      0.66,
+      0.67,
+      0.68
+    ],
     "turbid_color_doc": "Цвет сильной (мутной) дымки — серо-белёсый, RGB",
-    "turbid_visibility_km": [40, 10],
+    "turbid_visibility_km": [
+      40,
+      10
+    ],
     "turbid_visibility_km_doc": "При видимости ≥ первого значения дымка голубая, ≤ второго — серая, между — плавно, км",
     "sun_scatter": 0.45,
     "sun_scatter_doc": "Подсветка дымки в сторону солнца (ореол)",

@@ -9,13 +9,20 @@
     "clump_spacing_m": 0.3,
     "clump_spacing_m_doc": "Шаг сетки пучков, м. Пучков ≈ (2·radius/spacing)²",
     "blades_per_clump": 6,
+    "blades_per_clump_doc": "Травинок в одном пучке, штук",
     "segments": 3,
     "segments_doc": "Травинок в пучке; отрезков в травинке",
     "blade_width_m": 0.05,
     "blade_width_m_doc": "Ширина травинки у корня, м",
-    "blade_height_m": [0.25, 0.55],
+    "blade_height_m": [
+      0.25,
+      0.55
+    ],
     "blade_height_m_doc": "Высота травы на лугу, мин/макс, м",
-    "crop_height_m": [0.6, 0.9],
+    "crop_height_m": [
+      0.6,
+      0.9
+    ],
     "crop_height_m_doc": "Высота посевов (нива), м",
     "shrub_density": 0.5,
     "shrub_density_doc": "Доля пучков на классе «кустарник»",
@@ -24,6 +31,7 @@
     "landing_mow_radius_m": 80,
     "landing_mow_radius_m_doc": "Радиус скошенного поля вокруг посадочной площадки, м (круг — пока GrassField.set_landing_sites не подключён группой «Сцена игры»; после — точный прямоугольник)",
     "color_variation": 0.15,
+    "color_variation_doc": "Случайный разброс цвета травинок, доля",
     "sway_hz": 0.8,
     "sway_hz_doc": "Частота собственного качания травинок, Гц",
     "sway_amp": 0.12,
