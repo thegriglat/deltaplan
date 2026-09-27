@@ -54,7 +54,8 @@ var _tp: PackedFloat64Array = PackedFloat64Array()  ## их параметры �
 var _empty_cycles: Dictionary = {}  ## id цикла без термика -> время конца цикла
 var _cells: Dictionary = {}  ## ключ клетки -> Vector2(период, фаза)
 var _static_next_id: int = -1
-## Тени облаков на время генерации: ячейка -> [x, z, радиус, огибающая, ...] (см. _build_shade_index).
+## Тени облаков на время генерации: ячейка -> [x, z, радиус, огибающая, ...]
+## (см. _build_shade_index).
 var _shade_cells: Dictionary = {}
 var _shade_ready: bool = false
 var _shade_t: float = NAN  ## на какой момент нужен индекс (строится при первом рождении)
@@ -139,9 +140,10 @@ func update_wind_frame() -> void:
 	_active.clear()
 
 
-## Наклон ствола и снос ветром. Динамический термик отрывается от источника и дрейфует с воздухом
-## (доля drift_factor от ветра на середине столба) — пилот, кружа, уходит с ним; наклон — только от
-## остатка (1 − доля), привязанного к источнику. Статичный (MVP) стоит над источником, наклонён целиком.
+## Наклон ствола и снос ветром. Динамический термик через drift_delay_s после рождения отрывается
+## от источника и дрейфует с воздухом (доля drift_factor от ветра на середине столба) — пилот,
+## кружа, уходит с ним; наклон — только от остатка (1 − доля). Источник в следующем цикле клетки
+## порождает новый пузырь. Статичный (MVP) стоит над источником, наклонён целиком.
 func _apply_wind(th: AtmoThermal) -> void:
 	var span := th.top - th.src.y
 	var wmid := wind.vec2_at(span * 0.5)
@@ -262,8 +264,9 @@ func refresh(t: float, focus: Vector3, margin_s: float) -> void:
 		var th: AtmoThermal = thermals[id]
 		if th.is_static:
 			continue
-		var dx := th.src.x - focus.x
-		var dz := th.src.z - focus.z
+		# Термик уносит ветром от источника — расстояние по текущему положению основания.
+		var dx := th.src.x + th.drift.x - focus.x
+		var dz := th.src.z + th.drift.y - focus.z
 		if t > th.t_end() + linger or dx * dx + dz * dz > gen_r2:
 			thermals.erase(id)
 	for id in _empty_cycles.keys():

@@ -54,8 +54,8 @@ func t_decay_start() -> float:
 	return t_birth + t_grow + t_mature
 
 
-## Доля распада 0..1 в момент t.
-## Момент, с которого термик (и облако над ним) сносится ветром.
+## Момент, с которого термик (и облако над ним) сносится ветром: отрыв пузыря от источника
+## (drift_delay после рождения) или, если drift_delay < 0, начало распада.
 func drift_start() -> float:
 	if drift_delay >= 0.0:
 		return t_birth + drift_delay
@@ -63,12 +63,14 @@ func drift_start() -> float:
 
 
 ## Смещение сносом в момент t (снос продолжается и после конца термика, пока облако тает).
+## Одна и та же позиция для подъёма, облака, тени, подсоса, птиц и пыли (VR-0).
 func drift_at(t: float) -> Vector2:
 	if is_static:
 		return Vector2.ZERO
 	return drift_vel * maxf(0.0, t - drift_start())
 
 
+## Доля распада 0..1 в момент t.
 func decay_progress(t: float) -> float:
 	if is_static:
 		return 0.0
@@ -109,8 +111,7 @@ func update_time(t: float) -> void:
 		cut_h = src.y + (top - src.y) * u
 	else:
 		cut_h = -1.0e9
-	var a_d := a - (drift_delay if drift_delay >= 0.0 else ds)
-	drift = drift_vel * a_d if a_d > 0.0 else Vector2.ZERO
+	drift = drift_at(t)
 
 
 ## Центр облака над столбом в момент t (x, z): верх наклонённого столба + снос ветром.
