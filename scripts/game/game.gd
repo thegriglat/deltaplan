@@ -26,6 +26,8 @@ var stats := FlightStats.new()
 var autopilot: Autopilot
 ## Объекты мира, просеки, столкновения.
 var world_link: WorldLink
+## Столкновения крыла с проводами, препятствиями и кронами (docs/game.md).
+var collisions := CollisionCheck.new()
 ## Время симуляции с начала полёта, с.
 var sim_time_s: float = 0.0
 ## Управление и приборы в полёте (в меню — выключены).
@@ -119,7 +121,7 @@ func tick(dt: float) -> void:
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
-	var hit := world_link.check_hit(glider.get_telemetry().position)
+	var hit := collisions.check(glider.get_telemetry())
 	if not hit.is_empty():
 		_on_collision(hit)
 	_check_finished()
@@ -134,6 +136,10 @@ func start(s: FlightSettings) -> bool:
 		status_changed.emit(tr("Не удалось загрузить рельеф: %s") % _load_error)
 		return false
 	air.call("set_weather", settings.weather)
+	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
+	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
+	if "time_s" in air:
+		air.set("time_s", 0.0)
 	# Источники термиков: покров × солнце (если рельеф умеет), иначе только солнце на склоне.
 	var src := (
 		terrain.thermal_source_strength_at
@@ -158,6 +164,12 @@ func start(s: FlightSettings) -> bool:
 	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
 		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
 	_setup_glider()
+	collisions.setup(
+		world_link.objects,
+		terrain.forest_at,
+		glider.model.span,
+		float(Config.value("flight", "visual.hang_height_m", 2.0))
+	)
 	restart()
 	status_changed.emit("")
 	return true
@@ -172,7 +184,7 @@ func restart() -> void:
 	glider.reset_on_ground(_start_pos, _start_heading)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	input_controller.reset()
-	world_link.reset_path()
+	collisions.reset()
 	_crashed = false
 	_ended = false
 	_touchdown = {}
@@ -483,6 +495,8 @@ func _check_finished() -> void:
 func _emit_end(kind: String, info: Dictionary) -> void:
 	if _ended:
 		return
+	if not info.has("finish_reason"):
+		info["finish_reason"] = kind
 	_ended = true
 	flight_ended.emit(kind, info)
 
@@ -509,6 +523,7 @@ func _on_collision(hit: Dictionary) -> void:
 	var info := {
 		"grade": "crash",
 		"collision": kind,
+		"finish_reason": String(hit.get("reason", "crash_obstacle")),
 		"text": tr(String(texts.get(kind, "Столкновение"))),
 		"vertical_speed_ms": maxf(-t.vario, 0.0),
 		"horizontal_speed_ms": t.groundspeed,

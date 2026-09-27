@@ -91,8 +91,22 @@ flare; посадка → stand. Нет AnimationPlayer — ничего не д
 ## Объекты мира и столкновения
 `WorldLink` при загрузке локации: `WorldObjects.setup(terrain, air)` (ветроуказатели, посадки, OSM), просеки
 `WorldClearings.build_for(id)` → `terrain.set_clearings`, `terrain.set_wind_sources(mean_wind_at, thermals_near)`,
-`terrain.set_pilot(glider)`. Каждый шаг — `obstacle_hit(прошлое, текущее положение)`; попадание — авария
-(`flight_ended("landed", {grade: "crash", collision, text})`, тексты — `game.json → collision_texts`).
+`terrain.set_pilot(glider)`.
+
+**Столкновения** (`scripts/game/collision_check.gd`, `CollisionCheck`, G05; VR-10, VR-12) — каждый шаг в `Game.tick`,
+только ниже 60 м над землёй и не стоя/пешком на земле. Точки крыла: пилот (0,5 м над ступнями), середина
+трапеции (1,25 м), килевая труба и концы консолей (высота подвески `flight.json → visual.hang_height_m`,
+± половина размаха) — отрезок движения каждой от прошлого шага против препятствий `WorldObjects`
+(провода, опоры, деревья и заборы посадок — `obstacles`, здания — `osm_layer.building_obstacles`; те же фигуры,
+что у `obstacle_hit`, но через свой кэш мелких клеток 8 м с AABB: в долинах с ЛЭП у клетки индекса 64 м сотни
+кандидатов, `obstacle_hit` там ~0,8 мс, кэш — ~15 мкс на шаг). Лес: `terrain.forest_at(пилот) ≥ 0,5` и высота над
+рельефом ниже крон — касание кроны; высота крон = самая низкая порода `world.json → trees.species.height_m` ×
+(1 − `trees.sink_fraction`) (рельеф — DSM, кроны в нём утоплены), сейчас 7,2 м. Скачок > 20 м за шаг — телепорт,
+не путь. Попадание — авария: `flight_ended("landed", {grade: "crash", collision, finish_reason, text})`,
+`finish_reason` — `crash_wire` (провод) / `crash_obstacle` (опора, здание, забор) / `crash_trees` (дерево,
+кроны); текст — `game.json → collision_texts` по `collision`; звук — `FlightAudio.play_landing` с оценкой crash;
+планер стоит до «Ещё раз». Тест — `tests/game/test_collisions.gd` (реальная ЛЭП Онгудая, 20 м выше неё, лес,
+поле посадки, время проверки).
 Атмосфере источники термиков — `terrain.thermal_source_strength_at`; дымке — `sky.set_inversion_height_msl(
 air.get_cloudbase_msl())`.
 
@@ -163,6 +177,7 @@ osm_fence_spans: 2230` против 0 заборов и на порядок ме
 | `grade` | посадка | `"soft"` / `"hard"` / `"crash"` (LandingJudge; столкновение — `"crash"`) |
 | `vertical_speed_ms`, `horizontal_speed_ms`, `bank_deg` | посадка | скорость касания и крен |
 | `position` | посадка | точка касания (Vector3) |
+| `finish_reason` | всегда | `landed` / `takeoff_failed` / `crash_wire` / `crash_obstacle` / `crash_trees` |
 | `collision`, `text` | столкновение | вид объекта (`game.json → collision_texts`) и текст |
 | `reason`, `text` | `takeoff_failed` | `nose_high` / `nose_low` / `tailwind` / `crosswind` / `weak_run` (разбег) или `short_flight` (касание до взведения); текст для экрана |
 
