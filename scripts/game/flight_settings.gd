@@ -13,17 +13,13 @@ var pilot_mass_kg: float = 0.0
 ## из прогноза, даты и места (WeatherModel, configs/weather_model.json).
 var temperature_c: float = 26.0
 ## Ветер по прогнозу у земли, км/ч (в меню — м/с).
-var wind_speed_kmh: float = 11.0
+var wind_speed_kmh: float = 10.8
 ## true — ветер в лоб выбранному старту, false — с направления wind_from_deg.
 var wind_into_launch: bool = true
 ## Откуда ветер, градусы (0 — с севера, 90 — с востока), если не «в лоб старту».
 var wind_from_deg: float = 270.0
 ## Облачность: "clear" | "partly" | "overcast" (weather_model.json → sky).
 var sky: String = "clear"
-## Устарело (до прогноза): имя пресета и режим ветра — только пока экран «Полёт…» и Game
-## не перешли на прогноз.
-var weather: String = "weather/medium"
-var wind_mode: String = "into_site"
 ## Встроенная локация: "altai" (configs/locations/<id>.json).
 var location_id: String = "altai"
 ## Стартовая площадка локации (id); пусто — первая.
@@ -76,7 +72,6 @@ func set_legacy_weather(preset_id: String) -> bool:
 		return false
 	temperature_c = float(f.temperature_c)
 	wind_speed_kmh = float(f.wind_speed_kmh)
-	weather = "weather/" + preset_id.get_file()
 	return true
 
 
@@ -121,8 +116,6 @@ func to_dict() -> Dictionary:
 		"wind_into_launch": wind_into_launch,
 		"wind_from_deg": wind_from_deg,
 		"sky": sky,
-		"weather": weather,
-		"wind_mode": wind_mode,
 		"location_id": location_id,
 		"site_id": site_id,
 		"pick_lat": null if is_nan(pick_lat) else pick_lat,
@@ -137,8 +130,6 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	var s := base.duplicate() if base != null else FlightSettings.defaults()
 	s.wing = String(d.get("wing", s.wing))
 	s.pilot_mass_kg = float(d.get("pilot_mass_kg", s.pilot_mass_kg))
-	s.weather = String(d.get("weather", s.weather))
-	s.wind_mode = String(d.get("wind_mode", s.wind_mode))
 	if d.has("temperature_c"):
 		s.temperature_c = float(d.temperature_c)
 		s.wind_speed_kmh = float(d.get("wind_speed_kmh", s.wind_speed_kmh))

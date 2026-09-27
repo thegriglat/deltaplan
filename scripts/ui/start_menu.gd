@@ -50,7 +50,7 @@ func set_busy(on: bool) -> void:
 	_setup_btn.disabled = on
 
 
-## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «Средний день · 13:00»;
+## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «+26 °C · ветер 3 м/с, в лоб старту · 13:00»;
 ## точка на карте — координатами.
 static func summary_text(s: FlightSettings) -> String:
 	var parts: PackedStringArray = []
@@ -64,9 +64,25 @@ static func summary_text(s: FlightSettings) -> String:
 			if String(st.get("id", "")) == s.site_id or (s.site_id == "" and st == starts[0]):
 				parts.append(TranslationServer.translate(String(st.get("name", st.get("id")))))
 				break
-	var w: Dictionary = Config.get_config(s.weather)
-	var when := TranslationServer.translate(String(w.get("name", s.weather.get_file())))
-	return " · ".join(parts) + "\n" + when + " · " + SunClock.format_hour(s.start_hour)
+	return " · ".join(parts) + "\n" + forecast_text(s) + " · " + SunClock.format_hour(s.start_hour)
+
+
+## «+26 °C · ветер 3 м/с, в лоб старту» (штиль — «ветер штиль»; облачность, если не ясно).
+static func forecast_text(s: FlightSettings) -> String:
+	var t := func(k: String) -> String: return TranslationServer.translate(k)
+	var ms := roundi(s.wind_speed_kmh / 3.6)
+	var wind: String = t.call("setup_wind_calm")
+	if ms > 0:
+		var dir: String = (
+			t.call("setup_wind_into_launch").to_lower()
+			if s.wind_into_launch
+			else t.call(FlightSetupScreen.COMPASS[posmod(roundi(s.wind_from_deg / 45.0), 8)])
+		)
+		wind = t.call("menu_summary_wind") % [ms, dir]
+	var text: String = t.call("menu_summary_forecast") % [roundi(s.temperature_c), wind]
+	if s.sky != "clear":
+		text += " · " + String(t.call("setup_sky_" + s.sky)).to_lower()
+	return text
 
 
 func _build() -> void:

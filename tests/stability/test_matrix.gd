@@ -59,8 +59,7 @@ func _run_combo(main: Node, game: Game, loc_id: String, wing: String, weather: S
 	var s := FlightSettings.new()
 	s.location_id = loc_id
 	s.wing = wing
-	s.weather = weather
-	s.wind_mode = "into_site"
+	s.set_legacy_weather(weather)
 	await main.call("_fly", s)  # game.start(s) уже вызывает restart()
 
 	var ok := int(main.get("state")) == 2  # State.FLYING

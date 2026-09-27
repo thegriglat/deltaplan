@@ -85,7 +85,7 @@ func _run() -> void:
 	var s := FlightSettings.defaults()
 	s.location_id = _location
 	s.site_id = ""
-	s.weather = _weather
+	s.set_legacy_weather(_weather)
 	s.start_hour = _hour
 	if not await game.start(s):
 		_fail("полёт не запустился")

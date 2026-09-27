@@ -38,7 +38,6 @@ settings_mouse,Мышь,Mouse
 result_soft_landing,Мягкая посадка,Soft landing
 result_max_height_over_launch,Макс. высота над стартом: %.0f м,Max height above launch: %.0f m
 common_back,Назад,Back
-setup_wind_from_preset,Направление из пресета,As in weather preset
 menu_settings,Настройки,Settings
 settings_saved_hint,Настройки сохраняются в профиле пользователя.,Settings are saved to your user profile.
 status_terrain_failed,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
@@ -48,7 +47,6 @@ menu_about,Об игре,About
 settings_mouse_look,Обзор (поворот головы),Look around (head)
 common_cancel,Отмена,Cancel
 pause_title,Пауза,Paused
-setup_weather,Погода,Weather
 setup_title,Полёт,Flight
 menu_flight_setup,Полёт…,Flight setup…
 launch_fail_tailwind,Попутный ветер — не набрать воздушную скорость,Tailwind — could not reach flying speed
@@ -58,14 +56,11 @@ result_track_length,Пройдено по следу: %.2f км,Distance flown (
 menu_free_flight,Свободный полёт,Free flight
 result_avg_glide,Среднее качество: %.1f,Average glide ratio: %.1f
 result_avg_ground_speed,Средняя путевая скорость: %.0f км/ч,Average ground speed: %.0f km/h
-weather_strong,Сильный день,Strong day
 about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of the materials are listed below.
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
-weather_weak,Слабый день,Weak day
 launch_fail_weak_run,Слабый разбег — крыло не набрало скорость,Run too weak — the wing never reached flying speed
 common_save,Сохранить,Save
 wing_sport,Спортивное безмачтовое,Topless (sport)
-weather_medium,Средний день,Medium day
 setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 settings_mouse_bar,Трапеция,Control bar
@@ -255,8 +250,6 @@ tab_circles,круги,circles
 tab_straight,по курсу,straight
 tab_wind_no_data,ветер: нет данных,wind: no data
 vario_avg,СР,AVG
-weather_storm,Гроза,Thunderstorm
-weather_wave,Волна,Wave
 loc_askarovo,"Башкирия — Аскарово, хребет Биягода","Bashkiria — Askarovo, Biyagoda ridge"
 site_askarovo_west,Биягода — западный склон у верхнего лагеря,Biyagoda — west slope by the upper camp
 site_askarovo_east,Биягода — восточный склон,Biyagoda — east slope
@@ -274,3 +267,24 @@ err_no_location_config,нет конфига локации %s,no location confi
 err_no_location_data,нет данных рельефа %s,no terrain data %s
 err_layer_read,ошибка чтения слоя %s,error reading layer %s
 settings_language,Язык,Language
+setup_temperature,Температура днём,Daytime high
+setup_temperature_value,%+d °C,%+d °C
+setup_temperature_typical,Обычно днём в этом месяце: %+d °C,Typical daytime high this month: %+d °C
+setup_wind_speed_value,%d м/с (%d км/ч),%d m/s (%d km/h)
+setup_wind_calm,штиль,calm
+setup_wind_from,Откуда ветер,Wind from
+setup_wind_launch_faces,в лоб этому старту — %s,into this launch: %s
+setup_sky,Облачность,Cloud cover
+setup_sky_clear,Ясно,Clear
+setup_sky_partly,Переменная,Partly cloudy
+setup_sky_overcast,Облачно,Overcast
+compass_n,С,N
+compass_ne,СВ,NE
+compass_e,В,E
+compass_se,ЮВ,SE
+compass_s,Ю,S
+compass_sw,ЮЗ,SW
+compass_w,З,W
+compass_nw,СЗ,NW
+menu_summary_forecast,%+d °C · ветер %s,%+d °C · wind %s
+menu_summary_wind,"%d м/с, %s","%d m/s, %s"

@@ -52,6 +52,12 @@ var _graphics := ""
 var _terrain_dirty := false
 var _crashed := false  ## врезался в препятствие — планер стоит до «Ещё раз»
 var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
+## Погода из прогноза (FR-16): место для WeatherModel.derive, час последнего пересчёта (ход дня),
+## шаг сетки источников (по разгару дня — весь полёт один), инерция прогрева по классам.
+var _weather_ctx := {}
+var _weather_hour := NAN
+var _peak_spacing := NAN
+var _heating := SurfaceHeating.new()
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
 var _paused := false
@@ -121,6 +127,7 @@ func tick(dt: float) -> void:
 	sim_time_s += dt
 	sky.clock.advance(dt)  # время суток идёт (VR-5)
 	air.call("step", dt)
+	_update_day_weather()
 	var phase := glider.phase()
 	if autopilot != null:
 		autopilot.drive(glider.get_telemetry(), dt)
@@ -158,7 +165,12 @@ func start(s: FlightSettings) -> bool:
 	# Дальше — порциями между кадрами: экран загрузки живой (docs/game.md → «Загрузка»).
 	progress.stage("weather", tr("loading_weather"))
 	await get_tree().process_frame
-	air.call("set_weather", settings.weather)
+	_weather_ctx = _weather_context()
+	_weather_hour = settings.start_hour
+	_peak_spacing = float(
+		WeatherModel.derive(settings.forecast(), _weather_ctx).thermal_spacing_m
+	)
+	air.call("set_weather", _derive_weather(_weather_hour))
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
 	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
 	if "time_s" in air:
@@ -170,11 +182,8 @@ func start(s: FlightSettings) -> bool:
 		else terrain.sun_exposure_at
 	)
 	air.call("set_ground", terrain.height_at, src)
-	if air.has_method("set_sun_direction"):
-		air.call("set_sun_direction", terrain.sun_direction())
-	# Солнце по времени и дате старта над центром локации (sky.clock → небо, свет, облака).
-	# Воздуху (тени облаков на источниках термиков) — пока статичное: термики от времени суток
-	# не зависят (решение пользователя, docs/game.md → «Время суток»).
+	# Солнце по времени и дате старта над центром локации (sky.clock → небо, свет, облака,
+	# тени облаков на источниках термиков, прогрев поверхности с инерцией по классам).
 	sky.clock.start_flight(
 		terrain.center_lat,
 		terrain.center_lon,
@@ -188,6 +197,16 @@ func start(s: FlightSettings) -> bool:
 		if not sky.clock.sun_changed.is_connected(terrain.set_sun):
 			sky.clock.sun_changed.connect(terrain.set_sun)
 		terrain.set_sun(sky.clock.to_sun())
+	_heating.setup(
+		float(_weather_ctx.lat),
+		float(_weather_ctx.lon),
+		settings.month,
+		settings.day,
+		float(_weather_ctx.utc_offset_h)
+	)
+	if not sky.clock.sun_changed.is_connected(_on_sun_changed):
+		sky.clock.sun_changed.connect(_on_sun_changed)
+	_on_sun_changed(sky.clock.to_sun())
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
@@ -196,14 +215,17 @@ func start(s: FlightSettings) -> bool:
 	await get_tree().process_frame
 	world_link.link(terrain, air, glider)
 	_choose_start()
-	var weather: Dictionary = Config.get_config(settings.weather)
-	if settings.wind_mode == "into_site":
-		air.call("set_wind", float(weather.get("wind_speed_kmh", 0.0)), _start_heading)
+	# Ветер прогноза — на старте (пилот): в лоб старту или с заданного румба; выше старта сильнее.
+	air.call(
+		"set_wind",
+		settings.wind_speed_kmh,
+		_start_heading if settings.wind_into_launch else settings.wind_from_deg,
+		_start_pos.y
+	)
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
 	# Верх дымки — на высоте инверсии (основание облаков).
-	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
-		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
+	_apply_haze()
 	progress.stage("glider", tr("loading_almost"))
 	await get_tree().process_frame
 	_setup_glider()
@@ -219,6 +241,76 @@ func start(s: FlightSettings) -> bool:
 	progress.finish()
 	status_changed.emit("")
 	return true
+
+
+## Место для погоды: дата, широта/долгота, пояс, высоты долины и средней земли вокруг (0, 0).
+func _weather_context() -> Dictionary:
+	var g: Dictionary = Config.get_config("atmosphere").ground
+	var wc := WeatherModel.config()
+	var ctx := WeatherModel.ground_context(
+		terrain.height_at,
+		float(g.reference_radius_m),
+		int(g.reference_samples),
+		float(wc.valley_percentile)
+	)
+	ctx.merge(
+		{
+			"month": settings.month,
+			"day": settings.day,
+			"lat": terrain.center_lat,
+			"lon": terrain.center_lon,
+			"utc_offset_h": _clock_utc_offset(),
+		}
+	)
+	return ctx
+
+
+## Пояс часов места так же, как у SunClock: world.json → time.utc_offset_h ("solar" — солнечное
+## время, NAN), иначе пояс локации, иначе по долготе.
+func _clock_utc_offset() -> float:
+	var v: Variant = Config.value("world", "time.utc_offset_h", null)
+	if v is String and v == "solar":
+		return NAN
+	if v != null:
+		return float(v)
+	var z := float(terrain.location.get("utc_offset_h", NAN))
+	return z if not is_nan(z) else roundf(terrain.center_lon / 15.0)
+
+
+## День в час hour из прогноза пилота (сетка источников — по разгару дня).
+func _derive_weather(hour: float) -> Dictionary:
+	var w := WeatherModel.derive(settings.forecast(), _weather_ctx, {}, hour)
+	w.thermal_spacing_m = _peak_spacing
+	return w
+
+
+## Ход дня: раз в diurnal.update_s игрового времени — мягко к погоде этого часа (Atmosphere
+## ведёт кромку, фон и болтанку плавно за blend_s игрового времени).
+func _update_day_weather() -> void:
+	if _weather_ctx.is_empty() or not air.has_method("thermals_near"):
+		return
+	var d: Dictionary = WeatherModel.config().get("diurnal", {})
+	if absf(sky.clock.hour - _weather_hour) * 3600.0 < float(d.get("update_s", 60.0)):
+		return
+	_weather_hour = sky.clock.hour
+	var blend := float(d.get("blend_s", 300.0)) / maxf(sky.clock.speed, 1.0)
+	air.call("set_weather", _derive_weather(_weather_hour), blend)
+	_apply_haze()
+
+
+## Дымка: верх — у кромки (инверсия), густота — по ходу дня.
+func _apply_haze() -> void:
+	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
+		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
+	if sky.has_method("set_haze_density"):
+		sky.set_haze_density(float(air.get("weather").get("haze_k", 1.0)))
+
+
+func _on_sun_changed(to_sun: Vector3) -> void:
+	if air.has_method("set_sun_direction"):
+		air.call("set_sun_direction", to_sun)
+	if terrain.has_method("set_class_sun"):
+		terrain.set_class_sun(_heating.directions(sky.clock.hour))
 
 
 ## Заново с того же старта (клавиша R, «Ещё раз»).

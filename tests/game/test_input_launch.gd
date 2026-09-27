@@ -90,8 +90,7 @@ func _settings(loc: String, wing: String, weather: String) -> FlightSettings:
 	var s := FlightSettings.new()
 	s.location_id = loc
 	s.wing = wing
-	s.weather = weather
-	s.wind_mode = "into_site"
+	s.set_legacy_weather(weather)
 	return s
 
 

@@ -69,16 +69,18 @@ func test_code_keys_exist_and_are_not_russian() -> void:
 		check(rows.has(key), "страница планшета: нет ключа %s" % key)
 	for key: String in FlightSetupScreen.MONTHS:
 		check(rows.has(key), "месяц: нет ключа %s" % key)
+	for key: String in FlightSetupScreen.COMPASS:
+		check(rows.has(key), "румб: нет ключа %s" % key)
+	for sky: String in WeatherModel.config().sky.options:
+		check(rows.has("setup_sky_" + sky), "облачность: нет ключа setup_sky_%s" % sky)
 
 
-## Названия, которые берутся из конфигов (крылья, погода, места, старты, пресеты, подсказки
+## Названия, которые берутся из конфигов (крылья, места, старты, пресеты, подсказки
 ## управления, тексты столкновений) — ключи ui.csv.
 func test_config_names_are_keys() -> void:
 	var rows := load_csv()
 	var names: PackedStringArray = []
 	for w in Config.list_configs("wings"):
-		names.append(String(Config.get_config(w).get("name", "")))
-	for w in Config.list_configs("weather"):
 		names.append(String(Config.get_config(w).get("name", "")))
 	for l in Config.list_configs("locations"):
 		var loc := Config.get_config(l)

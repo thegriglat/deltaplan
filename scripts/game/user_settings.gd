@@ -46,9 +46,7 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 	# Файл мог остаться от старой версии: несуществующие конфиги — по умолчанию.
 	if not Config.list_configs("wings").has(s.wing):
 		s.wing = FlightSettings.defaults().wing
-	if not Config.list_configs("weather").has(s.weather):
-		s.weather = FlightSettings.defaults().weather
-	# Прогноз: мусор и числа вне меню — в диапазон (неизвестный старый пресет уже дал умолчание).
+	# Прогноз: мусор и числа вне меню — в диапазон (неизвестный старый пресет дал умолчание).
 	s.clamp_forecast()
 	if not Config.list_configs("locations").has("locations/" + s.location_id):
 		s.location_id = FlightSettings.defaults().location_id

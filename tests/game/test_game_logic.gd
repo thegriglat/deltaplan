@@ -94,7 +94,7 @@ func test_launch_options() -> void:
 func test_flight_settings_roundtrip() -> void:
 	var s := FlightSettings.defaults()
 	check(Config.list_configs("wings").has(s.wing), "крыло по умолчанию существует")
-	check(Config.list_configs("weather").has(s.weather), "погода по умолчанию существует")
+	check(s.temperature_c >= 0.0 and s.temperature_c <= 40.0, "температура по умолчанию в диапазоне")
 	s.pilot_mass_kg = 77.0
 	s.site_id = "tugaya_south"
 	var d := FlightSettings.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())))

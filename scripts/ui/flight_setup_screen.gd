@@ -1,6 +1,7 @@
 class_name FlightSetupScreen
 extends Control
-## Экран «Полёт…» (FR-27, FR-34, VR-5): крыло, масса пилота, погода, ветер, время и дата,
+## Экран «Полёт…» (FR-27, FR-34, VR-5): крыло, масса пилота, прогноз погоды (FR-16: температура
+## днём, ветер на старте, откуда ветер, облачность), время и дата,
 ## место старта (площадка локации или точка на карте — MapPicker, FR-17), «Готово» / «Назад».
 ## Только выбор: в полёт — кнопкой «Лететь» главного меню. «Готово» — выбор наверх (done),
 ## «Назад» — без изменений. Открывается из главного меню; ничего не запускает само.
@@ -24,18 +25,33 @@ const MONTHS: PackedStringArray = [
 	"month_11",
 	"month_12",
 ]
+## Румбы «откуда ветер» (0°, 45°, …): ключи locale/ui.csv.
+const COMPASS: PackedStringArray = [
+	"compass_n",
+	"compass_ne",
+	"compass_e",
+	"compass_se",
+	"compass_s",
+	"compass_sw",
+	"compass_w",
+	"compass_nw",
+]
 
 var settings: FlightSettings
 ## Путь к списку недавних мест (RecentPlaces) — переопределяется в тестах/скриншотах.
 var recent_places_path: String = RecentPlaces.PATH
 
 var _wings: PackedStringArray = []
-var _weathers: PackedStringArray = []
+var _skies: Array = []
 var _sites: Array[Dictionary] = []
 var _wing_opt: OptionButton
 var _mass: HSlider
-var _weather_opt: OptionButton
-var _wind_opt: OptionButton
+var _temp: HSlider
+var _temp_hint: Label
+var _wind: HSlider
+var _dir_opt: OptionButton
+var _dir_hint: Label
+var _sky_opt: OptionButton
 var _site_opt: OptionButton
 var _hour: HSlider
 var _month_opt: OptionButton
@@ -85,22 +101,14 @@ func _build() -> void:
 		box, tr("setup_pilot_mass"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("unit_kg")
 	)
 
-	_weather_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_weather"), _weather_opt)
-	_weathers = Config.list_configs("weather")
-	for w in _weathers:
-		_weather_opt.add_item(tr(String(Config.get_config(w).get("name", w.get_file()))))
-
-	_wind_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_wind"), _wind_opt)
-	_wind_opt.add_item(tr("setup_wind_into_launch"))
-	_wind_opt.add_item(tr("setup_wind_from_preset"))
+	_build_forecast(box)
 	_build_time(box)
 
 	UiKit.separator(box)
 	_site_opt = OptionButton.new()
 	UiKit.row(box, tr("setup_launch"), _site_opt)
 	_site_opt.item_selected.connect(func(_i: int) -> void: _clear_pick())
+	_site_opt.item_selected.connect(func(_i: int) -> void: _update_dir_hint())
 	var pick_row := HBoxContainer.new()
 	pick_row.add_theme_constant_override("separation", 12)
 	box.add_child(pick_row)
@@ -121,8 +129,14 @@ func _apply_settings() -> void:
 	var wi := maxi(_wings.find(settings.wing), 0)
 	_wing_opt.select(wi)
 	_on_wing_selected(wi)
-	_weather_opt.select(maxi(_weathers.find(settings.weather), 0))
-	_wind_opt.select(0 if settings.wind_mode == "into_site" else 1)
+	_temp.value = roundf(settings.temperature_c)
+	_temp.value_changed.emit(_temp.value)
+	_wind.value = roundf(settings.wind_speed_kmh / 3.6)
+	_wind.value_changed.emit(_wind.value)
+	_dir_opt.select(
+		0 if settings.wind_into_launch else 1 + posmod(roundi(settings.wind_from_deg / 45.0), 8)
+	)
+	_sky_opt.select(maxi(_skies.find(settings.sky), 0))
 	_hour.value = SunClock.clamp_hour(settings.start_hour)
 	_hour.value_changed.emit(_hour.value)
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
@@ -177,6 +191,73 @@ func _build_time(box: Control) -> void:
 
 func _on_month_selected(i: int) -> void:
 	_day.max_value = SunClock.days_in_month(i + 1)
+	# Смена месяца не двигает ползунок (выбор пилота важнее) — только подсказку «обычно…».
+	if _temp_hint != null:
+		_temp_hint.text = (
+			tr("setup_temperature_typical") % roundi(WeatherModel.typical_max_c(i + 1))
+		)
+
+
+## Прогноз (FR-16): температура днём, ветер на старте (м/с), откуда ветер, облачность.
+func _build_forecast(box: Control) -> void:
+	var ui: Dictionary = WeatherModel.config().get("ui", {})
+	var t_range: Array = ui.get("temperature_c", [0, 40, 1])
+	_temp = UiKit.slider_row(
+		box,
+		tr("setup_temperature"),
+		float(t_range[0]),
+		float(t_range[1]),
+		float(t_range[2]),
+		tr("setup_temperature_value")
+	)
+	_temp_hint = UiKit.label(box, "", "HintLabel")
+	_temp_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var wr: Array = ui.get("wind_ms", [0, 12, 1])
+	_wind = UiKit.slider_row(
+		box, tr("setup_wind"), float(wr[0]), float(wr[1]), float(wr[2]), "%.0f"
+	)
+	var wind_label: Label = _wind.get_parent().get_child(1)
+	wind_label.custom_minimum_size.x = 150
+	_wind.value_changed.connect(
+		func(x: float) -> void:
+			wind_label.text = (
+				tr("setup_wind_calm")
+				if x < 0.5
+				else tr("setup_wind_speed_value") % [roundi(x), roundi(x * 3.6)]
+			)
+			_dir_opt.disabled = x < 0.5
+	)
+	_dir_opt = OptionButton.new()
+	_dir_opt.add_item(tr("setup_wind_into_launch"))
+	for k in COMPASS:
+		_dir_opt.add_item(tr(k))
+	UiKit.row(box, tr("setup_wind_from"), _dir_opt)
+	_dir_hint = UiKit.label(box, "", "HintLabel")
+	_dir_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_sky_opt = OptionButton.new()
+	_skies = WeatherModel.config().get("sky", {}).get("options", ["clear"])
+	for k: String in _skies:
+		var key := "setup_sky_" + k  # setup_sky_clear / _partly / _overcast
+		_sky_opt.add_item(tr(key))
+	UiKit.row(box, tr("setup_sky"), _sky_opt)
+
+
+## Подсказка «в лоб этому старту — З» для выбранной площадки (точка с карты — без неё).
+func _update_dir_hint() -> void:
+	if _dir_hint == null:
+		return
+	_dir_hint.text = ""
+	if settings.has_pick() or _site_opt.selected < 0:
+		return
+	var k: Variant = _site_opt.get_item_metadata(_site_opt.selected)
+	if k == null:
+		return
+	var e: Dictionary = _sites[int(k)]
+	var loc: Dictionary = Config.get_config("locations/" + String(e.location))
+	for st: Dictionary in loc.get("start_sites", []):
+		if String(st.get("id", "")) == String(e.site):
+			var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
+			_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
 
 
 ## Все старты всех локаций (Config.list_configs("locations")), сгруппированы по локациям.
@@ -200,14 +281,19 @@ func _fill_sites() -> void:
 		var e: Dictionary = _sites[int(k)]
 		if e.location == settings.location_id and e.site == settings.site_id:
 			_site_opt.select(i)
+	_update_dir_hint()
 
 
 func _collect() -> FlightSettings:
 	var s := settings.duplicate()
 	s.wing = _wings[_wing_opt.selected]
 	s.pilot_mass_kg = _mass.value
-	s.weather = _weathers[_weather_opt.selected]
-	s.wind_mode = "into_site" if _wind_opt.selected == 0 else "preset"
+	s.temperature_c = _temp.value
+	s.wind_speed_kmh = _wind.value * 3.6
+	s.wind_into_launch = _dir_opt.selected <= 0
+	if not s.wind_into_launch:
+		s.wind_from_deg = float(_dir_opt.selected - 1) * 45.0
+	s.sky = String(_skies[maxi(_sky_opt.selected, 0)])
 	s.start_hour = _hour.value
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
@@ -287,6 +373,7 @@ func _clear_pick() -> void:
 
 
 func _update_pick_label() -> void:
+	_update_dir_hint()
 	if settings.has_pick():
 		_pick_label.text = tr("setup_map_point") % [settings.pick_lat, settings.pick_lon]
 	else:

@@ -137,14 +137,12 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 	if overrides.has("wind"):
 		var wv := String(overrides.wind)
 		if wv == "into_site" or wv == "preset":
-			r.wind_mode = wv
 			r.wind_into_launch = wv == "into_site"
 		else:
 			r.wind_speed_kmh = float(wv) * 3.6
 	if overrides.has("from"):
 		var fv := String(overrides.from)
 		r.wind_into_launch = fv == "launch"
-		r.wind_mode = "into_site" if r.wind_into_launch else "preset"
 		if not r.wind_into_launch:
 			r.wind_from_deg = fposmod(float(fv), 360.0)
 	if overrides.has("hour"):

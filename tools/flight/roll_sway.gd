@@ -160,9 +160,8 @@ func _run_matrix() -> void:
 			s.location_id = String(_args.location)
 			s.site_id = String(_args.site)
 			s.wing = "wings/" + wing
-			s.weather = "weather/" + weather
+			s.set_legacy_weather("weather/" + weather)
 			s.pilot_mass_kg = float(_args.mass)
-			s.wind_mode = "into_site"
 			await main.call("_fly", s)
 			if int(main.get("state")) != 2:
 				push_error("roll_sway: не взлетели %s %s" % [weather, wing])

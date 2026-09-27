@@ -74,8 +74,7 @@ func test_strong_day_launch_5_of_5() -> void:
 		var s := FlightSettings.new()
 		s.location_id = c[0]
 		s.wing = c[1]
-		s.weather = "weather/strong"
-		s.wind_mode = "into_site"
+		s.set_legacy_weather("weather/strong")
 		await main.call("_fly", s)
 		var label := "%s × %s × strong" % [c[0], c[1]]
 		check(

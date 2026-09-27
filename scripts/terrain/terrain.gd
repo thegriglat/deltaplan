@@ -54,6 +54,8 @@ var _landings: Array[Dictionary] = []
 ## [Image, origin, cell_m] — просеки (set_clearings), переживают перезагрузку деревьев.
 var _clearings: Array = []
 var _sun_dir: Vector3 = Vector3.UP
+## Солнце по классам поверхности с запаздыванием прогрева (SurfaceHeating); пусто — _sun_dir.
+var _class_sun := PackedVector3Array()
 ## terrain_look после переопределений локации (палитра — get_grass_palette).
 var _look: Dictionary = {}
 var _loader: TerrariumLoader
@@ -581,7 +583,8 @@ func get_forest_mask() -> Array:
 func thermal_source_strength_at(x: float, z: float) -> float:
 	var n := normal_at(x, z)
 	var c := _surface_class(x, z, n)
-	var e := clampf(n.dot(_sun_dir), 0.0, 1.0)
+	var sd := _class_sun[c] if c < _class_sun.size() else _sun_dir
+	var e := clampf(n.dot(sd), 0.0, 1.0)
 	var k := _thermal_k[c] if c < _thermal_k.size() else 1.0
 	var edge := 1.0 + _edge_boost * _edge_proximity(x, z)
 	var wet := 1.0
@@ -637,6 +640,12 @@ func relief_horizon_at(x: float, z: float) -> float:
 ##   sky.clock.sun_changed.connect(terrain.set_sun)
 ## Обновляет освещение полога/камней в шейдере и источники термиков; горизонт к солнцу (тень
 ## рельефа) пересчитывается в фоне, когда азимут ушёл дальше surface.relief.shadow_recompute_deg.
+## Солнце для источников термиков по классам (инерция прогрева: камни и деревни греют и вечером,
+## SurfaceHeating.directions). Пустой массив — всем классам текущее солнце.
+func set_class_sun(dirs: PackedVector3Array) -> void:
+	_class_sun = dirs
+
+
 func set_sun(to_sun: Vector3) -> void:
 	if to_sun.length_squared() < 1e-8:
 		return
