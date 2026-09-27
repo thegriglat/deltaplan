@@ -1,0 +1,5 @@
+{
+  "_doc": "Общие параметры симуляции",
+  "physics_hz": 120,
+  "max_physics_steps_per_frame": 16
+}
