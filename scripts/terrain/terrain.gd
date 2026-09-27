@@ -7,7 +7,8 @@ extends Node3D
 ##   get_start_sites()     — стартовые площадки {id, name, position, heading_deg, lat, lon}
 ##   sun_exposure_at(x, z) — освещённость склона солнцем 0..1
 ##   surface_at(x, z)      — класс поверхности (SurfaceLayer.FOREST, GRASS, CROP…), VR-4;
-##                           лес — по маске «деталь 10 м», где она есть (кромка как в шейдере)
+##                           вода и лес — по маске «деталь 10 м», где она есть (как в шейдере;
+##                           вода — реки/ручьи/озёра OSM, T03, VR-9)
 ##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость),
 ##                           годится как sun_fn для Atmosphere.set_ground
@@ -377,7 +378,7 @@ func forest_at(x: float, z: float) -> float:
 	return sl.forest_at(x, z)
 
 
-## Маска леса 10 м детального слоя: [Image RG8 (R — доля леса 0..255, G — резерв),
+## Маска леса 10 м детального слоя: [Image RG8 (R — доля леса 0..255, G — доля воды, T03),
 ## origin: Vector2 — мир (x, z) угла пикселя (0, 0), cell_m] — как у set_clearings:
 ## центр пикселя (i, j) = origin + (i + 0,5, j + 0,5)·cell_m. Пусто — маски нет (рантайм-локация).
 ## Поляны у стартов в маске уже вырезаны.
@@ -472,6 +473,9 @@ func _surface_class(x: float, z: float, n: Vector3) -> int:
 	var sl := _surface_layer_at(x, z)
 	var c := sl.class_at(x, z) if sl != null else SurfaceLayer.NONE
 	if sl != null and sl.mask_contains(x, z):
+		# вода — по каналу G маски 10 м (T03: реки/ручьи/озёра OSM, точнее карты классов 25 м)
+		if sl.mask_g(x, z) >= 0.5:
+			return SurfaceLayer.WATER
 		# лес — по маске 10 м (порог 0,5, как кромка в шейдере)
 		if sl.mask_r(x, z) >= 0.5:
 			return SurfaceLayer.FOREST

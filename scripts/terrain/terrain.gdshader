@@ -493,8 +493,16 @@ void fragment() {
 		n = normalize(n + bump);
 	}
 
-	// --- вода (реки) ---
-	float water = wb.y;
+	// --- вода (реки, ручьи, озёра): класс «вода» WorldCover (карта 25 м) или маска 10 м (T03,
+	// OSM — точнее по форме и не мигает с шагом карты классов); максимум из двух ---
+	float water_g = use_forest_mask ? forest_mask_g_aa(wp.xz, foot_m) : 0.0;
+	float water = max(wb.y, water_g);
+	// берег: тонкая полоса мокрого грунта/гальки у кромки воды маски 10 м (не на самой воде)
+	float bank = use_forest_mask
+			? smoothstep(0.02, 0.22, water_g) * (1.0 - smoothstep(0.22, 0.4, water_g))
+			: 0.0;
+	vec3 bank_color = mix(bare_color, rock_color, 0.3) * 0.55;
+	col = mix(col, bank_color, bank * (1.0 - water));
 	float ripple = vnoise(wp.xz / 6.0 + vec2(TIME * 0.3, 0.0)) - 0.5;
 	col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
 	n = normalize(mix(n, vec3(0.03 * ripple, 1.0, 0.0), water));

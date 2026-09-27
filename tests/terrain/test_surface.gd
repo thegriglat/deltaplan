@@ -6,6 +6,7 @@ const LOCATION := "altai"
 
 static var _terrain: Terrain
 static var _ongudai: Terrain
+static var _aushkul: Terrain
 
 
 func _altai() -> Terrain:
@@ -24,6 +25,23 @@ func _ong() -> Terrain:
 		_ongudai.location_id = ""
 		_ongudai.load_location("ongudai")
 	return _ongudai
+
+
+## Аушкуль — озеро Аушкуль (U1), маска 10 м с водой из OSM (T03).
+func _aush() -> Terrain:
+	if _aushkul == null:
+		_aushkul = Terrain.new()
+		_aushkul.location_id = ""
+		_aushkul.load_location("aushkul")
+	return _aushkul
+
+
+## Слой карты поверхности с маской «деталь 10 м» (T02/T03), null — нет маски.
+func _mask_layer(t: Terrain) -> SurfaceLayer:
+	for sl in t.surfaces:
+		if sl != null and sl.has_forest_mask():
+			return sl
+	return null
 
 
 func _plane(cls: int, ax: float = 0.0, az: float = 0.0) -> Terrain:
@@ -93,6 +111,8 @@ func test_surface_at_matches_data() -> void:
 		var sl := t.surfaces[0]
 		if sl.has_forest_mask() and (c == SurfaceLayer.FOREST) != (sl.mask_r(x, z) >= 0.5):
 			continue  # лес на опушке — по маске 10 м (test_surface_at_forest_by_mask)
+		if sl.has_forest_mask() and (c == SurfaceLayer.WATER) != (sl.mask_g(x, z) >= 0.5):
+			continue  # вода — по маске 10 м OSM, точнее карты классов 25 м (T03)
 		checked += 1
 		check(got == c, "узел (%d,%d): surface_at %d, в данных %d" % [i, j, got, c])
 	check(checked > 300, "проверено точек: %d" % checked)
@@ -459,6 +479,117 @@ func test_surface_at_forest_by_mask() -> void:
 		check(t.surface_at(q.x, q.y) != SurfaceLayer.FOREST, "луг в 12 м от кромки %s" % q)
 
 
+func test_river_axis_is_water() -> void:
+	# T03/VR-9: 50 точек на осевых OSM-рек Онгудая (river/canal — шире клетки маски 10 м;
+	# ручьи (stream, 4 м) в клетке 10 м — только доля покрытия для затемнения берега в шейдере,
+	# не сплошная вода для surface_at/термиков) — surface_at = вода ≥ 90 %;
+	# те же точки, сдвинутые на 100 м поперёк русла, — не вода ≥ 95 %.
+	var t := _ong()
+	var osm_str := FileAccess.get_file_as_string("res://data/osm/ongudai.json")
+	var osm: Dictionary = JSON.parse_string(osm_str)
+	var rivers: Array = []
+	for river: Dictionary in osm.water.rivers:
+		if river.t == "river" or river.t == "canal":
+			rivers.append(river)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var on_axis := 0
+	var off_axis := 0
+	var n := 0
+	var guard := 0
+	while n < 50 and guard < 5000:
+		guard += 1
+		var river: Dictionary = rivers[rng.randi_range(0, rivers.size() - 1)]
+		var p: Array = river.p
+		if p.size() < 4:
+			continue
+		var seg := rng.randi_range(0, p.size() / 2 - 2)
+		var x0 := float(p[seg * 2])
+		var z0 := float(p[seg * 2 + 1])
+		var x1 := float(p[seg * 2 + 2])
+		var z1 := float(p[seg * 2 + 3])
+		var d := Vector2(x1 - x0, z1 - z0)
+		if d.length() < 1.0:
+			continue
+		var mid_t := rng.randf()
+		var x := lerpf(x0, x1, mid_t)
+		var z := lerpf(z0, z1, mid_t)
+		var perp := Vector2(-d.y, d.x).normalized()
+		n += 1
+		on_axis += int(t.surface_at(x, z) == SurfaceLayer.WATER)
+		# на изгибе русло может вернуться в пределы 100 м с одной стороны — берём сторону подальше
+		var off_a := Vector2(x, z) + perp * 100.0
+		var off_b := Vector2(x, z) - perp * 100.0
+		var not_water_a := t.surface_at(off_a.x, off_a.y) != SurfaceLayer.WATER
+		var not_water_b := t.surface_at(off_b.x, off_b.y) != SurfaceLayer.WATER
+		off_axis += int(not_water_a or not_water_b)
+	check(n == 50, "точек на осях рек: %d" % n)
+	check(on_axis >= 0.9 * n, "surface_at = вода на оси реки: %d/%d" % [on_axis, n])
+	check(off_axis >= 0.95 * n, "в 100 м от оси — не вода: %d/%d" % [off_axis, n])
+
+
+## Чётность пересечений луча (ray casting): точка внутри многоугольника (x, z), p — [x0,z0,x1,z1…].
+func _point_in_polygon(p: Array, x: float, z: float) -> bool:
+	var count := p.size() / 2
+	var inside := false
+	var j := count - 1
+	for i in count:
+		var xi: float = p[i * 2]
+		var zi: float = p[i * 2 + 1]
+		var xj: float = p[j * 2]
+		var zj: float = p[j * 2 + 1]
+		if (zi > z) != (zj > z) and x < (xj - xi) * (z - zi) / (zj - zi) + xi:
+			inside = not inside
+		j = i
+	return inside
+
+
+func test_lake_iou_aushkul() -> void:
+	# T03/VR-9 (U1): контур озера Аушкуль в маске 10 м (канал G) — IoU с полигоном OSM ≥ 0,85.
+	var t := _aush()
+	var sl := _mask_layer(t)
+	check(sl != null, "у Аушкуля есть маска 10 м")
+	if sl == null:
+		return
+	var osm_str := FileAccess.get_file_as_string("res://data/osm/aushkul.json")
+	var osm: Dictionary = JSON.parse_string(osm_str)
+	var poly: Array = []
+	for lake in osm.water.lakes:
+		if lake.n == "Аушкуль":
+			poly = lake.p
+			break
+	check(poly.size() >= 6, "полигон озера Аушкуль найден")
+	if poly.size() < 6:
+		return
+	var x0 := INF
+	var x1 := -INF
+	var z0 := INF
+	var z1 := -INF
+	for i in range(0, poly.size(), 2):
+		x0 = minf(x0, poly[i])
+		x1 = maxf(x1, poly[i])
+		z0 = minf(z0, poly[i + 1])
+		z1 = maxf(z1, poly[i + 1])
+	var step := 10.0
+	var inter := 0
+	var uni := 0
+	var z := z0
+	while z <= z1:
+		var x := x0
+		while x <= x1:
+			var a := _point_in_polygon(poly, x, z)
+			var b := sl.mask_g(x, z) >= 0.5
+			if a or b:
+				uni += 1
+			if a and b:
+				inter += 1
+			x += step
+		z += step
+	var iou := float(inter) / maxf(float(uni), 1.0)
+	check(iou >= 0.85, "IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
+	print("         IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
+
+
 func test_height_includes_crowns() -> void:
 	# VR-21: height_at над лесом — DSM с кронами (посадка в лес = удар о кроны). На чистых кромках
 	# прямые по высотам снаружи и внутри (50–150 м) расходятся на ступеньку крон.
@@ -506,3 +637,6 @@ func test_zz_cleanup() -> void:
 	if _ongudai != null:
 		_ongudai.free()
 		_ongudai = null
+	if _aushkul != null:
+		_aushkul.free()
+		_aushkul = null

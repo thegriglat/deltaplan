@@ -53,6 +53,28 @@ float forest_mask_r(vec2 xz) {
 	return textureLod(forest_mask_tex, uv, 0.0).r;
 }
 
+// Доля воды (реки/ручьи/озёра OSM, T03) по каналу G той же маски 10 м, билинейно.
+float forest_mask_g(vec2 xz) {
+	vec2 uv = ((xz - forest_mask_origin) / forest_mask_spacing + 0.5) / forest_mask_texels;
+	return textureLod(forest_mask_tex, uv, 0.0).g;
+}
+
+// Вода вдали (клетка маски мельче пикселя, foot_m — размер пикселя в мире, T03): максимум
+// по кресту в окрестности пикселя вместо одной точки — узкие реки/ручьи не пропадают и не
+// мерцают одним текселем при движении камеры (без этого — under-sampling тонкой полосы).
+float forest_mask_g_aa(vec2 xz, float foot_m) {
+	float w0 = forest_mask_g(xz);
+	if (foot_m > forest_mask_spacing) {
+		float d = min(foot_m, forest_mask_spacing * 6.0) * 0.5;
+		float w1 = forest_mask_g(xz + vec2(d, 0.0));
+		float w2 = forest_mask_g(xz - vec2(d, 0.0));
+		float w3 = forest_mask_g(xz + vec2(0.0, d));
+		float w4 = forest_mask_g(xz - vec2(0.0, d));
+		w0 = max(w0, max(max(w1, w2), max(w3, w4)));
+	}
+	return w0;
+}
+
 float h_node(ivec2 p) {
 	ivec2 m = ivec2(layer_texels) - ivec2(1);
 	return texelFetch(height_tex, clamp(p, ivec2(0), m), 0).r;

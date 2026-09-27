@@ -32,8 +32,9 @@ var classes: PackedByteArray = PackedByteArray()
 ## Откуда карта: "worldcover", "worldcover_runtime", "procedural".
 var source: String = ""
 
-## Маска «деталь 10 м» (T02, <слой>_detail10.png): RG8, R — доля леса в клетке (0..255),
-## G — резерв (вода). Узел (i, j): x = mask_origin_x + i·mask_spacing (как у карты классов).
+## Маска «деталь 10 м» (T02/T03, <слой>_detail10.png): RG8, R — доля леса в клетке (0..255, T02),
+## G — доля воды (0..255, T03: реки/ручьи/каналы/озёра OSM, tools/terrain/osm_water.py).
+## Узел (i, j): x = mask_origin_x + i·mask_spacing (как у карты классов).
 ## Пустая — маски нет (рантайм-локации, дальние слои). Снаружи — через forest_mask_image().
 var mask_image: Image
 var mask_width: int = 0
@@ -163,6 +164,15 @@ func forest_at(x: float, z: float) -> float:
 
 ## Значение маски 10 м (R, доля леса в клетке 0..1) билинейно между узлами; без маски — 0.
 func mask_r(x: float, z: float) -> float:
+	return _mask_channel(x, z, 0)
+
+
+## Значение маски 10 м (G, доля воды 0..1 — реки/ручьи/озёра OSM, T03) билинейно; без маски — 0.
+func mask_g(x: float, z: float) -> float:
+	return _mask_channel(x, z, 1)
+
+
+func _mask_channel(x: float, z: float, ch: int) -> float:
 	if mask_width == 0:
 		return 0.0
 	var fx := clampf((x - mask_origin_x) / mask_spacing, 0.0, mask_width - 1.0)
@@ -171,7 +181,7 @@ func mask_r(x: float, z: float) -> float:
 	var j := mini(int(fz), mask_height - 2)
 	var tx := fx - i
 	var tz := fz - j
-	var k := (j * mask_width + i) * 2
+	var k := (j * mask_width + i) * 2 + ch
 	var row := mask_width * 2
 	var a := lerpf(_mask_data[k], _mask_data[k + 2], tx)
 	var b := lerpf(_mask_data[k + row], _mask_data[k + row + 2], tx)
