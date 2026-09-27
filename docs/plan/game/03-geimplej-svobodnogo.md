@@ -18,3 +18,8 @@ scripts/game/camera_rig.gd, scripts/game/game.gd, configs/controls.json, docs/ga
 камере, страницы 1–5, пауза замораживает `Telemetry.time_s`, restart ставит на старт ±1 м, `info` содержит все поля п.5);
 старые tests/game зелёные; 3 скриншота с чек-листом; `tools/check.sh` зелёный.
 **Зависимости:** 12-01 (волна 2, те же файлы). **Модель:** opus. **Размер:** M.
+
+## Дополнения координатора (обязательно)
+- Подключить завершение полёта из FlightStats (ui/02, закоммичено 023456e): Game.tick() спрашивает `stats.is_finished()` / `finish_reason()` ("landed" / "takeoff_failed") и только тогда показывает итог; случайные касания у старта полёт не завершают (FR-27b).
+- Баг: scripts/game/game.gd:411 и 443 — `info.merge(stats.summary(...))` без overwrite → заниженное время полёта после reset_in_air (landing_flare.gd:88 кладёт свой flight_time_s). Исправить: `merge(..., true)` или итог целиком из FlightStats. Тест.
+- Итог: главная кнопка «В главное меню» → главное меню (сигнал menu), «Ещё раз» → рестарт с того же старта.
