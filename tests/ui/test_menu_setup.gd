@@ -171,7 +171,13 @@ func test_controls_screen_covers_all_input_actions() -> void:
 	for r in rows:
 		blob += String(r.get("keys", "")) + " " + String(r.get("text", r.get("section", ""))) + "\n"
 	var nice := {
-		"Up": "↑", "Down": "↓", "Left": "←", "Right": "→", "Escape": "Esc", "Shift": "Shift",
+		"Up": "↑",
+		"Down": "↓",
+		"Left": "←",
+		"Right": "→",
+		"Escape": "Esc",
+		"Shift": "Shift",
+		"Equal": "=",
 	}
 	var keys: Dictionary = Config.get_config("controls").get("keys", {})
 	for action in keys:

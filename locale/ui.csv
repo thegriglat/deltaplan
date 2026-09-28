@@ -217,6 +217,14 @@ unit_ms,м/с,m/s
 unit_m,м,m
 unit_km,км,km
 unit_kmh,км/ч,km/h
+catch_up_title,Догнать,Catch up
+catch_up_empty,В зоне больше никого,No one else in the zone
+catch_up_hint,↑↓ — выбор · Enter — догнать · Esc — закрыть,↑↓ select · Enter catch up · Esc close
+catch_up_at_launch,на старте,at launch
+catch_up_landed,на земле,landed
+catch_up_air,в воздухе,flying
+catch_up_bot,бот,bot
+controls_catch_up,"Сетевая игра: меню «Догнать» — выбрать пилота, и крыло само долетит к нему","Online: the «Catch up» menu — pick a pilot and the wing flies you to them"
 tab_ahead,вперёд,ahead
 tab_not_circling,нет кружения,not circling
 tab_circle_avg,СРЕДНЕЕ КРУГ,CIRCLE AVG

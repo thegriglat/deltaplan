@@ -133,6 +133,10 @@
     {
       "action": "mouse_capture",
       "text": "controls_mouse_capture"
+    },
+    {
+      "action": "catch_up",
+      "text": "controls_catch_up"
     }
   ],
   "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши; mouse_mode — показывать только при этом controls.json → mouse.mode (look/bar); text — объяснение простыми словами"

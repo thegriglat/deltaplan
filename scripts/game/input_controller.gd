@@ -79,6 +79,13 @@ static func register_actions(cfg: Dictionary) -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = OS.find_keycode_from_string(key_name)
 			InputMap.action_add_event(action, ev)
+	# Кнопки геймпада для действий (gamepad.action_buttons: действие → индекс кнопки).
+	var buttons: Dictionary = cfg.get("gamepad", {}).get("action_buttons", {})
+	for action in buttons:
+		if InputMap.has_action(action):
+			var jb := InputEventJoypadButton.new()
+			jb.button_index = int(buttons[action]) as JoyButton
+			InputMap.action_add_event(action, jb)
 
 
 func set_mouse_captured(on: bool) -> void:
