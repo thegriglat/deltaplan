@@ -85,6 +85,7 @@
 | — | дымка слоя перемешивания (VR-3) | сгенерировано процедурно: `scripts/world/haze.gdshader` | — | небо и дымка |
 | `assets/ui/menu_background.jpg` | фон главного меню | скриншот из самой игры (сгенерировано) | собственный | главное меню |
 | `assets/logo.png` | лого «DELTAPLAN» (дельтаплан вписан в букву «А») | от автора проекта | собственный | главное меню (ui.json → menu_logo) |
+| `assets/icon.png`, `assets/icon.ico` | иконка игры: дельтаплан из лого на светлом скруглённом квадрате (16–256 px, мелкие размеры утолщены) | вырезано из `assets/logo.png` (ImageMagick) | собственный | иконка окна и exe Windows (config/icon, export_presets → application/icon) |
 | `data/terrain/textures/grass_ambientcg_grass004.jpg` | рисунок травы вблизи (1K, цвет) | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `configs/world.json → terrain_textures.grass` |
 | `data/terrain/textures/grass_ambientcg_grass004_normal_ao.jpg` | нормали травы (NormalGL: R, G) + AO (B), 512², ближняя фактура луга | [ambientCG Grass004](https://ambientcg.com/view?id=Grass004) | CC0 | рельеф, `terrain_textures.grass.normal` |
 | `data/terrain/textures/rock_ambientcg_rock030.jpg` | рисунок скал вблизи (1K, цвет) | [ambientCG Rock030](https://ambientcg.com/view?id=Rock030) | CC0 | рельеф, `terrain_textures.rock` |
