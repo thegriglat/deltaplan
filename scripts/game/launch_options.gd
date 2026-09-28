@@ -37,7 +37,11 @@ extends RefCounted
 ##   --net-join=<код>      отладка сети: войти в зону по коду и сразу лететь
 ##   --net-server=<IP:порт>  куда подключаться для --net-join (по умолчанию 127.0.0.1:8080)
 ##   --net-name=<имя>      имя пилота в зоне (иначе — из настроек)
-##   --net-seed=<N>        сид мира зоны для --net-host (по умолчанию 4711)
+##   --seed=<N>            сид мира (термики, порывы): тот же день при тех же месте, дате, времени
+##                         и погоде (ключ мира, world_key). Без флага: «Лететь» из меню — каждый
+##                         раз новый случайный сид («Ещё раз» — тот же); --autostart (тесты, кадры,
+##                         замеры) — сид из configs/atmosphere.json → seed, раскладка не меняется
+##   --net-seed=<N>        сид мира зоны для --net-host (без флага — --seed, иначе случайный)
 ##   --net-code-file=<путь>  записать код зоны в файл (для второго экземпляра)
 ##   --net-hide-remote     не рисовать чужих пилотов (кадры неба «с одной точки» у двух машин)
 ##                         В сети --time — время зоны, с (кадры с двух машин в один момент)
@@ -71,7 +75,10 @@ var net_port := 8080
 var net_join := ""
 var net_server := "127.0.0.1:8080"
 var net_name := ""
-var net_seed := 4711
+var net_seed := 4711  ## tools/shots/net44_shot.gd — 4711, если флага нет
+var net_seed_set := false  ## --net-seed задан (иначе --net-host берёт --seed или случайный)
+## Сид мира (--seed=N); < 0 — не задан (меню — случайный, --autostart — из atmosphere.json).
+var seed := -1
 var net_code_file := ""
 var net_hide_remote := false
 
@@ -139,6 +146,9 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.net_name = val
 			"net-seed":
 				o.net_seed = int(val)
+				o.net_seed_set = true
+			"seed":
+				o.seed = int(val)
 			"net-code-file":
 				o.net_code_file = val
 			"net-hide-remote":

@@ -40,7 +40,8 @@ var flying_enabled := false
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
-## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Сеть: сид зоны — задать до start().
+## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
+## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
 var world_seed := -1
 ## Сетевой режим (NET-40): NetFlight, пока летим в зоне; null — одиночная игра.
 ## Задаётся enable_net() до start(). Правила режима — scripts/game/net_flight.gd.
@@ -516,6 +517,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		i += 1
+
+
+## Ключ мира текущего полёта (FlightSettings.world_key; сид < 0 — atmosphere.json → seed): по
+## нему день повторяется (--seed и те же место, дата, время и погода). "" — мир не загружен.
+func world_key() -> String:
+	if settings == null:
+		return ""
+	var sd := world_seed if world_seed >= 0 else int(Config.value("atmosphere", "seed", 0))
+	return settings.world_key(sd, bots.agents.size())
 
 
 # ---------------------------------------------------------------- сеть (NET-40)

@@ -74,6 +74,8 @@ func _ready() -> void:
 		game.autopilot = Autopilot.new()
 		game.autopilot.circle_after_s = opts.autopilot_circle_s
 		game.autopilot.circle_bank_deg = opts.autopilot_circle_bank
+	if opts.seed >= 0:
+		game.world_seed = opts.seed  # --seed: день задан (меню и --autostart)
 	if opts.net_host or opts.net_join != "":
 		await _debug_net()
 	elif opts.autostart:
@@ -108,6 +110,18 @@ func _unhandled_input(event: InputEvent) -> void:
 # ---------------------------------------------------------------- переходы
 
 
+## «Лететь» из меню: новый день — новый случайный сид мира (--seed — заданный). «Ещё раз» и
+## «Продолжить» сид не меняют; --autostart сюда не ходит (сид из atmosphere.json или --seed).
+func _on_menu_fly(s: FlightSettings) -> void:
+	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
+	await _fly(s)
+
+
+## Новый случайный сид мира (0..2^31−1), как у «Создать» на экране сети.
+static func _new_seed() -> int:
+	return randi() & 0x7fffffff
+
+
 func _fly(s: FlightSettings) -> void:
 	state = State.LOADING
 	flight = s
@@ -129,6 +143,7 @@ func _fly(s: FlightSettings) -> void:
 		start_menu.visible = true
 		return
 	flight.pilot_mass_kg = game.settings.pilot_mass_kg
+	print("Мир: %s" % game.world_key())  # повторить день: --seed и те же место/время/погода
 	if not opts.autostart and game.net == null:
 		UserSettings.save_last_flight(s)
 	start_menu.visible = false
@@ -296,7 +311,7 @@ func _connect_ui() -> void:
 ## Сигналы экранов (заново — после перестройки UI при смене языка).
 func _connect_screens() -> void:
 	start_menu.language_requested.connect(_on_language_requested)
-	start_menu.fly_requested.connect(func(s: FlightSettings) -> void: _fly(s))
+	start_menu.fly_requested.connect(_on_menu_fly)
 	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.net_requested.connect(_open_net_screen)
 	start_menu.settings_requested.connect(_open_settings.bind(start_menu))
@@ -434,7 +449,7 @@ func _end_net() -> void:
 	if game.net == null:
 		return
 	game.disable_net()
-	game.world_seed = -1
+	game.world_seed = opts.seed  # как до сети: --seed или «не задан» (новый — по «Лететь»)
 	if NetZone.in_zone:
 		NetZone.leave_zone()
 	if _flight_before_net != null:
@@ -481,7 +496,10 @@ func _debug_net() -> void:
 	NetZone.zone_entered.connect(on_enter)
 	NetZone.zone_error.connect(on_err)
 	if opts.net_host:
-		NetZone.host_local(flight, opts.net_seed, maxi(opts.bots, 0), pilot_name, opts.net_port)
+		var zone_seed := opts.net_seed if opts.net_seed_set else opts.seed
+		if zone_seed < 0:
+			zone_seed = _new_seed()  # как «Создать» на экране сети — новый день
+		NetZone.host_local(flight, zone_seed, maxi(opts.bots, 0), pilot_name, opts.net_port)
 	else:
 		# первые кадры (сборка шейдеров) бывают дольше таймаута подключения — переждать
 		for i in 60:
