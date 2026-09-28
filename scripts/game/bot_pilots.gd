@@ -48,6 +48,10 @@ var _p_prev_heading := NAN
 var _p_center := Vector2.ZERO
 var _p_center_ok := false
 var _spots: Array[Dictionary] = []
+## Сколько ботов стартовало сразу в воздухе (первые в agents).
+var _n_air := 0
+## Доля ботов в воздухе на старте полёта; < 0 — из bots.json → airborne.share (opts.airborne_share).
+var _air_share := -1.0
 var _names_seed := 0
 
 
@@ -71,6 +75,7 @@ func setup(opts: Dictionary) -> void:
 	_ground_fn = opts.get("ground_fn", Callable())
 	_start = opts.get("start", Vector3.ZERO)
 	_heading = float(opts.get("heading_deg", 0.0))
+	_air_share = float(opts.get("airborne_share", -1.0))
 	var count := int(opts.get("count", -1))
 	if count < 0:
 		count = int(_cfg.get("count", 4))
@@ -263,8 +268,39 @@ func reset() -> void:
 		a.follow_spot = _net_queue()
 		# Разнести шаги ботов по шагам игрока — нагрузка ровнее.
 		a.acc_s = near_dt * float(i) / maxf(agents.size(), 1.0)
+	_start_airborne()
 	for v in _visuals:
 		v.snap()
+
+
+## Часть ботов к приходу игрока уже в воздухе (день «в разгаре», первым лететь не скучно):
+## половина от числа ботов, но не меньше одного; остальные ждут в очереди за игроком.
+func _start_airborne() -> void:
+	var ac: Dictionary = _cfg.get("airborne", {})
+	_n_air = 0
+	if agents.is_empty():
+		return
+	var share := float(_air_share if _air_share >= 0.0 else ac.get("share", 0.5))
+	if share <= 0.0:
+		return
+	_n_air = mini(agents.size(), maxi(1, floori(agents.size() * share)))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([_names_seed, "air"])
+	var h := deg_to_rad(_heading)
+	var fwd := Vector3(sin(h), 0.0, -cos(h))
+	var side := Vector3(-fwd.z, 0.0, fwd.x)
+	var ahead: Array = ac.get("ahead_m", [250.0, 700.0])
+	var agl: Array = ac.get("agl_m", [200.0, 450.0])
+	var lat := float(ac.get("lateral_m", 300.0))
+	for i in _n_air:
+		var p := (
+			_start
+			+ fwd * rng.randf_range(float(ahead[0]), float(ahead[1]))
+			+ side * rng.randf_range(-lat, lat)
+		)
+		var ground: float = _ground_fn.call(p.x, p.z) if _ground_fn.is_valid() else _start.y
+		p.y = maxf(ground, _start.y) + rng.randf_range(float(agl[0]), float(agl[1]))
+		agents[i].start_in_air(p, _heading + rng.randf_range(-60.0, 60.0), sim_time_s)
 
 
 ## Шаг физики игрока dt; player — телеметрия игрока (null — игрока нет).
@@ -451,7 +487,7 @@ func _schedule() -> void:
 		if a.run_start_s >= 0.0:
 			prev_run = a.run_start_s
 			continue
-		var planned := player_liftoff_s + interval * (k + 1)
+		var planned := player_liftoff_s + interval * (k - _n_air + 1)
 		var prev_ran := k == 0 or agents[k - 1].run_start_s >= 0.0
 		# Игрок снова на земле (сел у старта, идёт на разбег) — новые не бегут, ждут его.
 		var flying := _player_flying or _others_flying()

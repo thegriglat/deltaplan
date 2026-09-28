@@ -45,6 +45,9 @@ extends RefCounted
 ##   --net-code-file=<путь>  записать код зоны в файл (для второго экземпляра)
 ##   --net-hide-remote     не рисовать чужих пилотов (кадры неба «с одной точки» у двух машин)
 ##                         В сети --time — время зоны, с (кадры с двух машин в один момент)
+##   --perf=<с>            замер старта (tools/bench/startup_bench.sh): меню → сам жмёт «Лететь» →
+##                         <с> с полёта, печатает PERF-строки (время до меню, «Лететь» → полёт,
+##                         рывки кадра > 50 мс, сборка шейдеров облаков) и выходит
 
 var smoke := false
 var autostart := false
@@ -81,6 +84,8 @@ var net_seed_set := false  ## --net-seed задан (иначе --net-host бе�
 var seed := -1
 var net_code_file := ""
 var net_hide_remote := false
+## Замер старта (--perf=<с>): сколько секунд полёта сэмплировать; 0 — выключено.
+var perf_s := 0.0
 
 
 static func parse(args: PackedStringArray) -> LaunchOptions:
@@ -127,6 +132,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autopilot_circle_s = float(c[0])
 				if c.size() > 1:
 					o.autopilot_circle_bank = float(c[1])
+			"perf":
+				o.perf_s = float(val) if val != "" else 60.0
 			"air-start":
 				var p := val.split(",")
 				o.air_start_m = float(p[0]) if val != "" else 1000.0

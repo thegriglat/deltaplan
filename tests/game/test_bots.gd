@@ -25,7 +25,7 @@ static func air(p: Vector3) -> Vector3:
 	return Vector3(0.0, w, 2.5)
 
 
-func make(count: int, seed_value: int = 0) -> BotPilots:
+func make(count: int, seed_value: int = 0, air_share: float = 0.0) -> BotPilots:
 	var b := BotPilots.new()
 	b.visuals_enabled = false
 	(
@@ -38,6 +38,7 @@ func make(count: int, seed_value: int = 0) -> BotPilots:
 				"heading_deg": 0.0,
 				"count": count,
 				"seed": seed_value,
+				"airborne_share": air_share,
 			}
 		)
 	)
@@ -94,6 +95,28 @@ func test_wait_on_ground_then_interval() -> void:
 		check(a.failed_runs == 0, "бот %d без срывов взлёта" % k)
 		check(a.state >= BotAgent.State.FLY, "бот %d взлетел: %s" % [k, a.state_name()])
 	b.free()
+
+
+## Половина ботов (не меньше одного) к началу полёта уже в воздухе, остальные — в очереди.
+func test_half_airborne() -> void:
+	for c in [[1, 1], [3, 1], [4, 2]]:
+		var b := make(c[0], 0, 0.5)
+		var counts := b.state_counts()
+		check(counts.get("fly", 0) == c[1], "%d ботов — в воздухе %d: %s" % [c[0], c[1], counts])
+		check(counts.get("wait", 0) == c[0] - c[1], "остальные ждут: %s" % counts)
+		for k in c[1]:
+			var a := b.agents[k]
+			var p := a.model.position
+			check(p.z < START.z - 200.0, "бот %d впереди старта: z=%.0f" % [k, p.z])
+			check(p.y > hill(p.x, p.z) + 150.0, "бот %d высоко над рельефом" % k)
+		var t0 := b.sim_time_s
+		run(b, 1.0, player("flying", Vector3(0, 600, -1500), Vector3(0, -1, -10)))
+		run(b, 30.0 * (c[0] - c[1]) + 20.0, player("flying", Vector3(0, 600, -1500), Vector3(0, -1, -10)))
+		for k in range(c[1], c[0]):
+			var a := b.agents[k]
+			approx(a.run_start_s - b.player_liftoff_s, 30.0 * (k - c[1] + 1), 0.1, "разбег бота %d" % k)
+		check(b.sim_time_s > t0, "время шло")
+		b.free()
 
 
 func test_deterministic() -> void:

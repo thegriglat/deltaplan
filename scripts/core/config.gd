@@ -14,6 +14,8 @@ var _cache: Dictionary = {}
 
 
 func _ready() -> void:
+	# До первого чтения user:// — перенести профиль из старой папки (godot/app_userdata/…).
+	UserDirMigration.run(UserDirMigration.legacy_dir(), OS.get_user_data_dir())
 	apply_engine_settings()
 
 
