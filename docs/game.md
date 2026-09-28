@@ -314,6 +314,12 @@ res://scenes/main.tscn -- --autostart --autopilot --camera=chase --time=12 --scr
 Посадки нет: коснулся земли — стоит минуту, затем снова встаёт в очередь на старт. Вид — `BotGlider`: та же
 модель (GliderVisual, PilotAnimator, руки), парус перекрашен (`sail.gdshader` → hue_shift_rad/sat_scale/value_scale,
 палитра `visual.sail_schemes`), шаги — объёмный звук; дальше 500 м — треугольник цвета паруса, дальше 7 км не видно.
+Над ботом — имя (`NameTag`, Label3D-билборд, `bots.json → names`): постоянный размер на экране (`font_px` при
+высоте 1080, с учётом FOV), пропадает к `fade_end_m` (на земле — к `ground_fade_end_m`); непрозрачный (ALPHA_CUT_DISCARD —
+пишет глубину, иначе дымка `haze.gdshader` рисуется поверх), с проверкой глубины — за
+горой не видно; во всех камерах. Имена — `configs/bot_names.json`, пул на язык интерфейса (ru, en): без повторов
+в полёте, порядок — от сида полёта; смена языка (NOTIFICATION_TRANSLATION_CHANGED) — имена из нового пула.
+Настройка «Имена пилотов» (`bots.names.show`) применяется сразу, и из паузы (`Config.reloaded`).
 
 ## Тесты
 `godot --headless --path . res://tests/run_tests.tscn -- --filter=game`:

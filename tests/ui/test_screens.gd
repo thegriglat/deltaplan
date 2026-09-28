@@ -64,6 +64,20 @@ func test_settings_persist_across_panel_reload() -> void:
 	Config.reload()
 
 
+func test_pilot_names_setting() -> void:
+	var path := UserSettings.DEFAULT_DIR.path_join("bots.json")
+	var backup := _read_raw(path)
+	var a: SettingsPanel = _scene("res://scenes/ui/settings_panel.tscn")
+	check((a.get("_names") as CheckBox).button_pressed, "имена пилотов по умолчанию включены")
+	(a.get("_names") as CheckBox).button_pressed = false
+	check(a.save(), "запись настроек")
+	check(not bool(Config.value("bots", "names.show", true)), "имена выключены в конфиге")
+	a.queue_free()
+	_restore_raw(path, backup)
+	Config.reload()
+	check(bool(Config.value("bots", "names.show", false)), "восстановлено")
+
+
 func _read_raw(path: String) -> String:
 	return FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 

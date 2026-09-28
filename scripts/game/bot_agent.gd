@@ -23,6 +23,8 @@ var brain := WanderPilot.new()
 var state: State = State.WAIT
 var wing_id: String = ""
 var mass_kg: float = 0.0
+## Имя над ботом (BotPilots из configs/bot_names.json по языку; на весь полёт).
+var pilot_name: String = ""
 ## Расцветка паруса: {name, hue_deg, sat, value} (bots.json → visual.sail_schemes).
 var scheme: Dictionary = {}
 ## Место ожидания и курс там.

@@ -3,7 +3,8 @@ extends Control
 ## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
 ## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
-## другие пилоты в небе (bots.json → count; со следующего полёта), густота травы
+## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
+## (bots.json → names.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
 ## загрузки местности).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
@@ -30,6 +31,7 @@ var _fov: HSlider
 var _helmet: OptionButton
 var _helmet_modes: Array = []
 var _bots: HSlider
+var _names: CheckBox
 var _grass: HSlider
 var _language: OptionButton
 var _language_codes: Array = []
@@ -147,6 +149,9 @@ func _ready() -> void:
 	UiKit.row(box, tr("settings_helmet"), _helmet)
 	var bots_max := float(Config.value("bots", "count_max", 20))
 	_bots = UiKit.slider_row(box, tr("settings_bots"), 0.0, bots_max, 1.0, "%.0f")
+	_names = CheckBox.new()
+	_names.text = tr("settings_pilot_names_hint")
+	UiKit.row(box, tr("settings_pilot_names"), _names)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(box)
 	UiKit.button(bar, tr("common_save"), _on_save)
@@ -186,6 +191,7 @@ func load_values() -> void:
 	_helmet.select(maxi(_helmet_modes.find(hm), 0))
 	_bots.value = float(Config.value("bots", "count", 4))
 	_bots.value_changed.emit(_bots.value)
+	_names.button_pressed = bool(Config.value("bots", "names.show", true))
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -234,7 +240,8 @@ func save() -> bool:
 		)
 		and ok
 	)
-	ok = UserSettings.save_patch("bots", {"count": int(_bots.value)}, config_dir) and ok
+	var bp := {"count": int(_bots.value), "names": {"show": _names.button_pressed}}
+	ok = UserSettings.save_patch("bots", bp, config_dir) and ok
 	if _language.selected >= 0:
 		var code := String(_language_codes[_language.selected])
 		if code != Language.current():

@@ -4,14 +4,19 @@ extends Node3D
 ## трапеции, PilotAnimator — стоит, идёт, бежит, в кокон, выравнивание), парус своей расцветки
 ## (configs/bots.json → visual.sail_schemes), шаги на земле — объёмный звук. Дальше visual.full_m —
 ## упрощённая модель (треугольник крыла цвета паруса), дальше visual.hide_m — не видно.
+## Над ботом — имя (NameTag, bots.json → names): постоянного размера на экране, гаснет вдали,
+## за рельефом не видно (проверка глубины).
 ## Сам не считает физику: BotPilots шагает BotAgent и зовёт on_step(); между шагами бота
 ## (они реже шагов игрока) положение интерполируется.
+
+const NAME_FONT := "res://assets/fonts/NotoSans-CondensedBold.ttf"
 
 var agent: BotAgent
 var visual: GliderVisual
 var animator := PilotAnimator.new()
 var impostor: MeshInstance3D
 var steps: AudioStreamPlayer3D
+var name_tag: Label3D
 ## Сейчас показана полная модель (false — дальняя или скрыт).
 var full := true
 
@@ -24,6 +29,8 @@ var _step_timer := 0.0
 var _streams: Array[AudioStream] = []
 var _rng := RandomNumberGenerator.new()
 var _run_cfg: Dictionary = {}
+var _names: Dictionary = {}
+var _hang_h := 2.0
 
 
 ## a — бот; vis_cfg — bots.json → visual.
@@ -42,8 +49,10 @@ func setup(a: BotAgent, vis_cfg: Dictionary) -> void:
 	visual.build(a.model.wing, a.model.pilot, fv)
 	_recolor()
 	animator.bind(visual, Config.get_config("game").get("pilot_animation", {}))
-	_build_impostor(float(fv.get("hang_height_m", 2.0)))
+	_hang_h = float(fv.get("hang_height_m", 2.0))
+	_build_impostor(_hang_h)
 	_build_steps()
+	_build_name_tag()
 	snap()
 
 
@@ -94,6 +103,7 @@ func _process(dt: float) -> void:
 			animator.update(t.phase, t.altitude_agl, t.vario, agent.model.flare_amount(), 0.0)
 	visual.visible = shown and full
 	impostor.visible = shown and not full
+	_update_name_tag(cam, d, shown)
 	if not (shown and full):
 		return
 	var c := agent.control
@@ -102,6 +112,70 @@ func _process(dt: float) -> void:
 	visual.set_flight(
 		agent.telemetry().airspeed, agent.model.stall_amount(), agent.model.load.jitter / full_g
 	)
+
+
+## Вид имени (bots.json → names; BotPilots зовёт при перечитывании настроек).
+func set_name_config(nc: Dictionary) -> void:
+	_names = nc
+	if name_tag == null:
+		return
+	var c: Array = nc.get("color", [1.0, 1.0, 1.0])
+	name_tag.modulate = Color(float(c[0]), float(c[1]), float(c[2]))
+	name_tag.outline_size = int(nc.get("outline_px", 6))
+	if not bool(nc.get("show", true)):
+		name_tag.visible = false
+
+
+func _build_name_tag() -> void:
+	name_tag = Label3D.new()
+	name_tag.name = "NameTag"
+	name_tag.top_level = true
+	name_tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	name_tag.fixed_size = true
+	name_tag.no_depth_test = false
+	name_tag.shaded = false
+	name_tag.double_sided = true
+	# Непрозрачное (отсечка по альфе) — пишет глубину: иначе дымка и облака (haze, cloud_volume
+	# — по буферу глубины) рисуются поверх имени, и его не видно.
+	name_tag.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+	name_tag.font_size = 48
+	name_tag.outline_modulate = Color(0.0, 0.0, 0.0, 0.8)
+	name_tag.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	name_tag.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if ResourceLoader.exists(NAME_FONT):
+		name_tag.font = load(NAME_FONT)
+	name_tag.visible = false
+	add_child(name_tag)
+	set_name_config(Config.get_config("bots").get("names", {}))
+
+
+## Имя: над ботом, размер на экране постоянный (с учётом поля зрения камеры), гаснет вдали
+## (на земле — раньше).
+func _update_name_tag(cam: Camera3D, d: float, shown: bool) -> void:
+	if name_tag == null:
+		return
+	if cam == null or not shown or not bool(_names.get("show", true)) or agent.pilot_name == "":
+		name_tag.visible = false
+		return
+	var end := float(_names.get("fade_end_m", 900.0))
+	var start := float(_names.get("fade_start_m", 250.0))
+	if agent.state != BotAgent.State.FLY:
+		end = minf(end, float(_names.get("ground_fade_end_m", 120.0)))
+		start = minf(start, end * 0.5)
+	var a := 1.0 - smoothstep(start, end, d)
+	if a <= 0.01:
+		name_tag.visible = false
+		return
+	name_tag.visible = true
+	if name_tag.text != agent.pilot_name:
+		name_tag.text = agent.pilot_name
+	var up := _hang_h + float(_names.get("height_m", 3.2))
+	name_tag.global_position = global_position + Vector3.UP * up
+	var frac := float(_names.get("font_px", 22.0)) / 1080.0
+	name_tag.pixel_size = frac * 2.0 * tan(deg_to_rad(cam.fov) * 0.5) / float(name_tag.font_size)
+	var k := float(_names.get("alpha", 0.85)) * a
+	name_tag.modulate.a = k
+	name_tag.outline_modulate.a = 0.8 * k
 
 
 func _xform() -> Transform3D:

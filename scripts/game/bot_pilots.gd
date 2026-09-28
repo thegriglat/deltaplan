@@ -4,7 +4,9 @@ extends Node3D
 ## старте позади игрока и ждут, пока он на земле; после его отрыва начинают разбег по одному
 ## через launch.interval_s; летают без цели (BotAgent + BotPilot), держат дистанцию друг от
 ## друга и от игрока, в одном термике кружат в одну сторону (задаёт первый вошедший, игрок тоже).
-## Столкновений с игроком нет. Физика ботов — реже, чем у игрока (physics.*), и ещё реже далеко.
+## Столкновений с игроком нет. Над ботами — имена (configs/bot_names.json по языку интерфейса,
+## bots.json → names; при смене языка — из пула нового языка). Физика ботов — реже, чем у
+## игрока (physics.*), и ещё реже далеко.
 ##
 ## Интегратор (Game): setup(...) на новый полёт, reset() на «Ещё раз», tick(dt, телеметрия
 ## игрока) каждый шаг физики. visuals_enabled = false — без узлов (тесты).
@@ -35,6 +37,16 @@ var _p_prev_heading := NAN
 var _p_center := Vector2.ZERO
 var _p_center_ok := false
 var _spots: Array[Dictionary] = []
+var _names_seed := 0
+
+
+func _ready() -> void:
+	Config.reloaded.connect(_on_config_reloaded)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		refresh_names()
 
 
 ## Новый полёт. opts: air_fn (pos) -> Vector3, ground_fn (x, z) -> высота, start: Vector3,
@@ -57,6 +69,7 @@ func setup(opts: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
 	var place_key := [snappedf(_start.x, 1.0), snappedf(_start.z, 1.0)]
 	rng.seed = hash([int(_cfg.get("seed", 1)), int(opts.get("seed", 0))] + place_key)
+	_names_seed = hash([int(_cfg.get("seed", 1)), int(opts.get("seed", 0)), "names"] + place_key)
 	_spots = find_spots(
 		_ground_fn, _start, _heading, count, _cfg.get("launch", {}), opts.get("obstacles", [])
 	)
@@ -90,6 +103,7 @@ func setup(opts: Dictionary) -> void:
 		if a.brain.use_clouds:
 			a.brain.clouds_fn = clouds_fn
 		agents.append(a)
+	refresh_names()
 	reset()
 	if visuals_enabled:
 		for a in agents:
@@ -98,6 +112,7 @@ func setup(opts: Dictionary) -> void:
 			add_child(v)
 			v.setup(a, _cfg.get("visual", {}))
 			_visuals.append(v)
+		_on_config_reloaded()
 
 
 ## Новый полёт в игре: воздух (Atmosphere или CalmAir), рельеф (Terrain), старт игрока;
@@ -160,6 +175,42 @@ static func _visible_clouds(atmo: Atmosphere) -> Array:
 		var st: Vector3 = e[2]
 		out.append({"center": e[3], "radius": float(e[4]), "growth": st.x, "decay": st.y})
 	return out
+
+
+## Имена ботам из пула текущего языка (на новый полёт и при смене языка).
+func refresh_names() -> void:
+	var names := pick_names(agents.size(), Language.current(), _names_seed)
+	for i in agents.size():
+		agents[i].pilot_name = names[i]
+
+
+## count имён из пула языка lang (configs/bot_names.json; нет пула — en): без повторов,
+## порядок — перетасовка по seed_value. Пул кончился — по кругу с номером («Саша 2»).
+static func pick_names(count: int, lang: String, seed_value: int) -> PackedStringArray:
+	var all: Dictionary = Config.get_config("bot_names")
+	var pool: Array = all.get(lang, all.get("en", []))
+	var out := PackedStringArray()
+	if pool.is_empty():
+		out.resize(count)
+		return out
+	var order := range(pool.size())
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	_shuffle(order, rng)
+	for i in count:
+		var n := String(pool[order[i % pool.size()]])
+		if i >= pool.size():
+			n += " %d" % (i / pool.size() + 1)
+		out.append(n)
+	return out
+
+
+## Настройки поменялись (в том числе из паузы): показ и вид имён — сразу.
+func _on_config_reloaded() -> void:
+	var nc: Dictionary = Config.get_config("bots").get("names", {})
+	for v in _visuals:
+		if is_instance_valid(v):
+			v.set_name_config(nc)
 
 
 ## Убрать всех ботов.
