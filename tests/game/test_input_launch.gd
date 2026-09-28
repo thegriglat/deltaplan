@@ -72,12 +72,13 @@ func _open_main() -> Node:
 	var main: Node = MAIN_SCENE.instantiate()
 	add_child(main)
 	var game: Game = main.get_node("Game")
+	var menu: StartMenu = main.get_node("UI/StartMenu")
 	for i in 1200:
-		if game.settings != null:
+		if menu.visible:
 			break
 		await get_tree().process_frame
-	check(game.settings != null, "мир за меню загружен")
-	if game.settings == null:
+	check(menu.visible, "меню открыто")
+	if not menu.visible:
 		main.queue_free()
 		return null
 	check(game.autopilot == null, "управляет игрок, не автопилот")

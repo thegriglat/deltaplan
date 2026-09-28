@@ -145,11 +145,11 @@ func test_main_menu_selector_rebuilds_ui() -> void:
 	Language.apply("ru")  # _enter_tree поставил язык по настройкам — тест начинает с русского
 	main.call("_rebuild_ui")
 	var game: Game = main.get_node("Game")
+	var old_menu: StartMenu = main.get_node("UI/StartMenu")
 	for i in MAX_MENU_FRAMES:
-		if game.settings != null:
+		if old_menu.visible:
 			break
 		await get_tree().process_frame
-	var old_menu: StartMenu = main.get_node("UI/StartMenu")
 	check(old_menu.get("_fly_btn").text == "Лететь", "меню по-русски")
 	var next: Button = null
 	for b in old_menu.find_children("*", "Button", true, false):

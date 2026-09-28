@@ -199,13 +199,10 @@ func _show_menu() -> void:
 	game.set_flying(false)
 	start_menu.visible = true
 	start_menu.set_settings(flight)
-	if game.settings == null:
-		# Мир за меню — на площадке локации (точку с карты грузим только по «Лететь»).
-		var bg := flight.duplicate()
-		bg.pick_lat = NAN
-		bg.pick_lon = NAN
-		await game.start(bg)
-	else:
+	# Мир за меню не грузим: он тяжёлый (рельеф, OSM, боты, фоновые поля рельефа) и тормозил
+	# меню, а под картинкой фона его не видно. Грузится по «Лететь» с экраном загрузки.
+	# После полёта мир уже есть — сброс на старт, как раньше.
+	if game.settings != null:
 		game.restart()
 
 

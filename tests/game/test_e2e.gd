@@ -41,12 +41,13 @@ func _run_location(loc_id: String) -> void:
 	add_child(main)
 	var game: Game = main.get_node("Game")
 
+	var menu: StartMenu = main.get_node("UI/StartMenu")
 	for i in MAX_MENU_FRAMES:
-		if game.settings != null:
+		if menu.visible:
 			break
 		await get_tree().process_frame
-	check(game.settings != null, "%s: мир за меню загружен" % loc_id)
-	if game.settings == null:
+	check(menu.visible, "%s: меню открыто (мир за меню не грузится)" % loc_id)
+	if not menu.visible:
 		await _finish(main, catcher)
 		return
 	game.autopilot = Autopilot.new()
