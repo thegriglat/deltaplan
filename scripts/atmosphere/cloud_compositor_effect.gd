@@ -11,6 +11,11 @@ const MARCH := "res://scripts/atmosphere/cloud_raymarch_cs.gdshaderinc"
 const COMPOSITE := "res://scripts/atmosphere/cloud_composite_cs.gdshaderinc"
 const TEMPORAL := "res://scripts/atmosphere/cloud_temporal_cs.gdshaderinc"
 const FLOATS_PER_CLOUD := 24
+## Кеш SPIR-V compute-шейдеров: компиляция GLSL (glslang) при каждом запуске — сотни мс рывка
+## на первом кадре с облаками. Ключ — sha256(версия кеша | версия движка | полный исходник);
+## файл — sha256 байткода + байткод (битый/чужой файл — компилируем заново и перезаписываем).
+const SPIRV_CACHE_DIR := "user://shader_cache/clouds"
+const SPIRV_CACHE_VERSION := 1
 ## Порядок полей UBO (std140) — как в заголовке compute-шейдера ниже.
 const VEC_PARAMS := [
 	["sun_dir", "sun_energy"],
@@ -31,6 +36,10 @@ const FLOAT_PARAMS := [
 	"virga_density", "virga_period_m",
 ]
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
+
+## Замер (--perf): сколько заняла последняя сборка шейдеров, мс, и откуда SPIR-V (compile|cache).
+static var build_ms: float = -1.0
+static var build_src: String = ""
 
 ## Облака: по FLOATS_PER_CLOUD чисел (см. CloudLayer._gpu_record).
 var clouds_data: PackedFloat32Array = PackedFloat32Array()
@@ -206,6 +215,13 @@ func _header() -> String:
 
 
 func _compile(code: String) -> RID:
+	var path := _cache_path(code)
+	var cached := _cache_read(path)
+	if cached != null:
+		var rid := _rd.shader_create_from_spirv(cached)
+		if rid.is_valid():
+			return rid
+	build_src = "compile"
 	var src := RDShaderSource.new()
 	src.language = RenderingDevice.SHADER_LANGUAGE_GLSL
 	src.source_compute = code
@@ -213,7 +229,52 @@ func _compile(code: String) -> RID:
 	if spirv.compile_error_compute != "":
 		push_error("CloudCompositorEffect: " + spirv.compile_error_compute)
 		return RID()
+	_cache_write(path, spirv.bytecode_compute)
 	return _rd.shader_create_from_spirv(spirv)
+
+
+static func _cache_path(code: String) -> String:
+	var ver: String = Engine.get_version_info().string
+	var key := ("%d|%s|%s" % [SPIRV_CACHE_VERSION, ver, code]).sha256_text()
+	return SPIRV_CACHE_DIR.path_join(key + ".spv")
+
+
+static func _sha256(data: PackedByteArray) -> PackedByteArray:
+	var h := HashingContext.new()
+	h.start(HashingContext.HASH_SHA256)
+	h.update(data)
+	return h.finish()
+
+
+## SPIR-V из кеша или null (нет файла, обрезан, не сошлась контрольная сумма).
+static func _cache_read(path: String) -> RDShaderSPIRV:
+	if not FileAccess.file_exists(path):
+		return null
+	var raw := FileAccess.get_file_as_bytes(path)
+	if raw.size() <= 36:
+		return null
+	var body := raw.slice(32)
+	if _sha256(body) != raw.slice(0, 32) or body.decode_u32(0) != 0x07230203:
+		return null
+	var spirv := RDShaderSPIRV.new()
+	spirv.bytecode_compute = body
+	return spirv
+
+
+## Записать в кеш через временный файл (без полузаписанных файлов); не вышло — не страшно.
+static func _cache_write(path: String, bytecode: PackedByteArray) -> void:
+	if bytecode.is_empty():
+		return
+	if DirAccess.make_dir_recursive_absolute(SPIRV_CACHE_DIR) != OK:
+		return
+	var tmp := path + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		return
+	f.store_buffer(_sha256(bytecode))
+	f.store_buffer(bytecode)
+	f.close()
+	DirAccess.rename_absolute(tmp, path)
 
 
 static func _text(path: String) -> String:
@@ -222,6 +283,8 @@ static func _text(path: String) -> String:
 
 
 func _build() -> bool:
+	var t0 := Time.get_ticks_usec()
+	build_src = "cache"
 	_march = _compile(_header() + _text(COMMON) + _text(MARCH))
 	_comp = _compile("#version 450\n" + _text(COMPOSITE))
 	_temp = _compile("#version 450\n" + _text(TEMPORAL))
@@ -230,6 +293,7 @@ func _build() -> bool:
 	_march_pipe = _rd.compute_pipeline_create(_march)
 	_comp_pipe = _rd.compute_pipeline_create(_comp)
 	_temp_pipe = _rd.compute_pipeline_create(_temp)
+	build_ms = (Time.get_ticks_usec() - t0) / 1000.0
 	var s := RDSamplerState.new()
 	s.min_filter = RenderingDevice.SAMPLER_FILTER_LINEAR
 	s.mag_filter = RenderingDevice.SAMPLER_FILTER_LINEAR

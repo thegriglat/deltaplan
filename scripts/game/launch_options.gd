@@ -31,6 +31,9 @@ extends RefCounted
 ##                         рельефом (по умолчанию 1000 и 300), на скорости трима, сразу в полёте;
 ##                         взлёта нет — касание будет посадкой, не «взлёт сорван». «Ещё раз» (R)
 ##                         — снова в воздухе. Для проверки полёта вдали от старта
+##   --perf=<с>            замер старта (tools/bench/startup_bench.sh): меню → сам жмёт «Лететь» →
+##                         <с> с полёта, печатает PERF-строки (время до меню, «Лететь» → полёт,
+##                         рывки кадра > 50 мс, сборка шейдеров облаков) и выходит
 
 var smoke := false
 var autostart := false
@@ -55,6 +58,8 @@ var bots := -1
 var look_at := ""
 var autopilot_circle_s := -1.0
 var autopilot_circle_bank := 15.0
+## Замер старта (--perf=<с>): сколько секунд полёта сэмплировать; 0 — выключено.
+var perf_s := 0.0
 
 
 static func parse(args: PackedStringArray) -> LaunchOptions:
@@ -101,6 +106,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autopilot_circle_s = float(c[0])
 				if c.size() > 1:
 					o.autopilot_circle_bank = float(c[1])
+			"perf":
+				o.perf_s = float(val) if val != "" else 60.0
 			"air-start":
 				var p := val.split(",")
 				o.air_start_m = float(p[0]) if val != "" else 1000.0

@@ -67,6 +67,8 @@ func _ready() -> void:
 		await _show_menu()
 	if opts.smoke:
 		_smoke_test()
+	elif opts.perf_s > 0.0:
+		_perf()
 	elif opts.screenshot != "":
 		_screenshot()
 
@@ -417,6 +419,56 @@ func _look_point() -> Vector3:
 
 ## Выход: сначала убрать игровой мир и дать аудиосерверу отпустить генераторы звука
 ## (quit в том же кадре, где удаляется сцена, оставляет их висеть).
+## --perf: время до меню, «Лететь» → первый кадр полёта, рывки кадра в первые perf_s с полёта.
+## Время — от старта движка (Time.get_ticks_msec) и настенное (unix, для внешнего замера).
+func _perf() -> void:
+	await RenderingServer.frame_post_draw
+	print("PERF menu_ms=%d unix=%.3f" % [Time.get_ticks_msec(), Time.get_unix_time_from_system()])
+	var t0 := Time.get_ticks_usec()
+	await _fly(flight)
+	await RenderingServer.frame_post_draw
+	print("PERF fly_ms=%d" % ((Time.get_ticks_usec() - t0) / 1000))
+	# Рывок — кадр > 50 мс и > 2,5 медианы последних 30 кадров (фон загрузки GPU не считается).
+	var hitches: Array[int] = []
+	var recent: Array[int] = []
+	var all_dt: Array[int] = []
+	var t_prev := Time.get_ticks_usec()
+	var t_end := t_prev + int(opts.perf_s * 1e6)
+	while t_prev < t_end:
+		await RenderingServer.frame_post_draw
+		var t := Time.get_ticks_usec()
+		var dt_ms := (t - t_prev) / 1000
+		t_prev = t
+		all_dt.append(dt_ms)
+		var sorted := recent.duplicate()
+		sorted.sort()
+		var med: int = sorted[sorted.size() / 2] if not sorted.is_empty() else 16
+		if dt_ms > 50 and dt_ms > med * 2.5:
+			hitches.append(dt_ms)
+		recent.append(dt_ms)
+		if recent.size() > 30:
+			recent.pop_front()
+	all_dt.sort()
+	var total := 0
+	var worst := 0
+	for h in hitches:
+		total += h
+		worst = maxi(worst, h)
+	print(
+		(
+			"PERF hitches=%d total_ms=%d worst_ms=%d frames=%d median_ms=%d list=%s"
+			% [hitches.size(), total, worst, all_dt.size(), all_dt[all_dt.size() / 2], hitches]
+		)
+	)
+	print(
+		(
+			"PERF cloud_build_ms=%.1f cloud_src=%s"
+			% [CloudCompositorEffect.build_ms, CloudCompositorEffect.build_src]
+		)
+	)
+	_quit(0)
+
+
 func _quit(code: int) -> void:
 	if is_instance_valid(game):
 		game.queue_free()
