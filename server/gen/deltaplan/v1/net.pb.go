@@ -1823,6 +1823,106 @@ func (x *ZoneState) GetQueue() []string {
 	return nil
 }
 
+// Объявление зоны в локальной сети. Шлёт игра со встроенным сервером (NET-22),
+// пока на нём есть зона: раз в секунду, одно объявление на зону, UDP broadcast
+// (255.255.255.255) на порт 8081 (LanDiscovery.PORT). Одна UDP-датаграмма —
+// proto3 JSON самого LanAnnounce, БЕЗ Envelope (это не кадр WebSocket).
+// Слушатели показывают список «Рядом»; зона пропадает из списка через 3 с без
+// объявлений. Незнакомые ключи пропускаются, как везде.
+type LanAnnounce struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Код зоны, 4 цифры строкой: "4721".
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	// Кто создал зону — для списка «Рядом: зона 4721 — Коля»: имя пилота или
+	// имя пользователя компьютера.
+	HostName string `protobuf:"bytes,2,opt,name=host_name,json=hostName,proto3" json:"host_name,omitempty"`
+	// IPv4 встроенного сервера в локальной сети ("192.168.1.5"), как его видит
+	// объявляющий. Получатель берёт адрес отправителя датаграммы, если он известен
+	// (он точно достижим), а это поле — только если адрес отправителя неизвестен.
+	Address string `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	// Порт WebSocket встроенного сервера (ws://address:port/v1/ws), обычно 8080.
+	Port uint32 `protobuf:"varint,4,opt,name=port,proto3" json:"port,omitempty"`
+	// Версия игры создателя (project.godot → config/version). Зона другой версии
+	// в списке помечена: войти в неё нельзя (VERSION_MISMATCH).
+	GameVersion string `protobuf:"bytes,5,opt,name=game_version,json=gameVersion,proto3" json:"game_version,omitempty"`
+	// Живых пилотов в зоне сейчас (боты не считаются).
+	PilotsCount   uint32 `protobuf:"varint,6,opt,name=pilots_count,json=pilotsCount,proto3" json:"pilots_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LanAnnounce) Reset() {
+	*x = LanAnnounce{}
+	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LanAnnounce) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LanAnnounce) ProtoMessage() {}
+
+func (x *LanAnnounce) ProtoReflect() protoreflect.Message {
+	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LanAnnounce.ProtoReflect.Descriptor instead.
+func (*LanAnnounce) Descriptor() ([]byte, []int) {
+	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *LanAnnounce) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *LanAnnounce) GetHostName() string {
+	if x != nil {
+		return x.HostName
+	}
+	return ""
+}
+
+func (x *LanAnnounce) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *LanAnnounce) GetPort() uint32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *LanAnnounce) GetGameVersion() string {
+	if x != nil {
+		return x.GameVersion
+	}
+	return ""
+}
+
+func (x *LanAnnounce) GetPilotsCount() uint32 {
+	if x != nil {
+		return x.PilotsCount
+	}
+	return 0
+}
+
 var File_deltaplan_v1_net_proto protoreflect.FileDescriptor
 
 const file_deltaplan_v1_net_proto_rawDesc = "" +
@@ -1951,7 +2051,14 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	" \x01(\v2\x18.deltaplan.v1.WingColorsR\x06colors\"7\n" +
 	"\tZoneState\x12\x14\n" +
 	"\x05clock\x18\x01 \x01(\x01R\x05clock\x12\x14\n" +
-	"\x05queue\x18\x02 \x03(\tR\x05queue*\x9d\x01\n" +
+	"\x05queue\x18\x02 \x03(\tR\x05queue\"\xb2\x01\n" +
+	"\vLanAnnounce\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1b\n" +
+	"\thost_name\x18\x02 \x01(\tR\bhostName\x12\x18\n" +
+	"\aaddress\x18\x03 \x01(\tR\aaddress\x12\x12\n" +
+	"\x04port\x18\x04 \x01(\rR\x04port\x12!\n" +
+	"\fgame_version\x18\x05 \x01(\tR\vgameVersion\x12!\n" +
+	"\fpilots_count\x18\x06 \x01(\rR\vpilotsCount*\x9d\x01\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19ERROR_CODE_ZONE_NOT_FOUND\x10\x01\x12\x1f\n" +
@@ -1982,7 +2089,7 @@ func file_deltaplan_v1_net_proto_rawDescGZIP() []byte {
 }
 
 var file_deltaplan_v1_net_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_deltaplan_v1_net_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_deltaplan_v1_net_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_deltaplan_v1_net_proto_goTypes = []any{
 	(ErrorCode)(0),        // 0: deltaplan.v1.ErrorCode
 	(PilotPhase)(0),       // 1: deltaplan.v1.PilotPhase
@@ -2008,6 +2115,7 @@ var file_deltaplan_v1_net_proto_goTypes = []any{
 	(*Pong)(nil),          // 21: deltaplan.v1.Pong
 	(*PilotState)(nil),    // 22: deltaplan.v1.PilotState
 	(*ZoneState)(nil),     // 23: deltaplan.v1.ZoneState
+	(*LanAnnounce)(nil),   // 24: deltaplan.v1.LanAnnounce
 }
 var file_deltaplan_v1_net_proto_depIdxs = []int32{
 	9,  // 0: deltaplan.v1.Envelope.hello:type_name -> deltaplan.v1.Hello
@@ -2072,7 +2180,7 @@ func file_deltaplan_v1_net_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_deltaplan_v1_net_proto_rawDesc), len(file_deltaplan_v1_net_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

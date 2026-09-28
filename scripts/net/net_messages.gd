@@ -119,6 +119,16 @@ const MESSAGES := {
 		"colors": "msg:WingColors",
 	},
 	"ZoneState": {"clock": "double", "queue": "[]string"},
+	# не вариант Envelope: UDP-объявление зоны в локальной сети (LanDiscovery), без конверта
+	"LanAnnounce":
+	{
+		"code": "string",
+		"hostName": "string",
+		"address": "string",
+		"port": "uint32",
+		"gameVersion": "string",
+		"pilotsCount": "uint32",
+	},
 }
 
 ## Вложенные сообщения, у которых «нет» — отдельный смысл: при разборе null вместо умолчаний.
@@ -181,6 +191,19 @@ static func decode(text: String) -> Dictionary:
 				"from_id": str(from_id) if from_id != null else "",
 			}
 	return {}
+
+
+## Сообщение msg_name без Envelope (LanAnnounce) → текст JSON.
+static func encode_bare(msg_name: String, data: Dictionary) -> String:
+	return JSON.stringify(encode_message(msg_name, data))
+
+
+## Текст JSON сообщения msg_name без Envelope → словарь полей с умолчаниями; {} — не JSON-объект.
+static func decode_bare(msg_name: String, text: String) -> Dictionary:
+	var json := JSON.new()
+	if json.parse(text) != OK or not json.data is Dictionary:
+		return {}
+	return decode_message(msg_name, json.data)
 
 
 ## Данные сообщения со всеми полями по умолчанию (удобно как заготовка для encode).

@@ -30,6 +30,19 @@ func test_doc_examples_round_trip() -> void:
 		check(seen.has(type), "в docs/net_protocol.md есть пример %s" % type)
 
 
+## Блоки ```json lan-announce — LanAnnounce без Envelope (UDP, LanDiscovery).
+func test_lan_announce_examples() -> void:
+	var examples := _doc_examples("```json lan-announce")
+	check(examples.size() >= 1, "есть пример LanAnnounce")
+	for ex: Dictionary in examples:
+		var d := NetMessages.decode_bare("LanAnnounce", ex.json)
+		check(d.code != "" and d.port is int and d.pilotsCount is int, "%s: разобран" % ex.header)
+		var back: Variant = JSON.parse_string(NetMessages.encode_bare("LanAnnounce", d))
+		check(_same(JSON.parse_string(ex.json), back), "%s: туда-обратно" % ex.header)
+	check(NetMessages.decode_bare("LanAnnounce", "мусор").is_empty(), "мусор → {}")
+	check(NetMessages.decode_bare("LanAnnounce", "{}").port == 0, "умолчания")
+
+
 func test_defaults_filled() -> void:
 	var m := NetMessages.decode('{"fromId": "3", "pilotState": {}}')
 	check(m.type == "pilotState" and m.from_id == "3", "тип и fromId")
@@ -142,7 +155,7 @@ func test_vec_quat_helpers() -> void:
 
 
 ## Блоки ```json из docs/net_protocol.md с заголовком #### над ними.
-func _doc_examples() -> Array:
+func _doc_examples(fence: String = "```json") -> Array:
 	var f := FileAccess.open(DOC_PATH, FileAccess.READ)
 	check(f != null, "открыт %s" % DOC_PATH)
 	if f == null:
@@ -160,7 +173,7 @@ func _doc_examples() -> Array:
 				buf += line + "\n"
 		elif line.begins_with("#### "):
 			header = line.substr(5).strip_edges()
-		elif line.strip_edges() == "```json":
+		elif line.strip_edges() == fence:
 			in_json = true
 			buf = ""
 	return out
