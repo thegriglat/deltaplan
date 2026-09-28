@@ -253,6 +253,12 @@ func _show_result(kind: String, info: Dictionary) -> void:
 	result_screen.show_result(kind, info)
 
 
+## Настройки: время суток настраивается только вне зоны (время держит ×1 — game.gd, К3).
+func _open_settings(back: Control) -> void:
+	settings_panel.set_net_mode(game.net != null)
+	_open_overlay(settings_panel, back)
+
+
 func _open_overlay(panel: Control, back: Control) -> void:
 	_overlay_back = back
 	back.visible = false
@@ -293,7 +299,7 @@ func _connect_screens() -> void:
 	start_menu.fly_requested.connect(func(s: FlightSettings) -> void: _fly(s))
 	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.net_requested.connect(_open_net_screen)
-	start_menu.settings_requested.connect(_open_overlay.bind(settings_panel, start_menu))
+	start_menu.settings_requested.connect(_open_settings.bind(start_menu))
 	start_menu.about_requested.connect(_open_overlay.bind(about_screen, start_menu))
 	start_menu.controls_requested.connect(_open_overlay.bind(controls_screen, start_menu))
 	pause_menu.controls_requested.connect(_open_overlay.bind(controls_screen, pause_menu))
@@ -303,7 +309,7 @@ func _connect_screens() -> void:
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
-	pause_menu.settings_requested.connect(_open_overlay.bind(settings_panel, pause_menu))
+	pause_menu.settings_requested.connect(_open_settings.bind(pause_menu))
 	pause_menu.menu_requested.connect(_show_menu)
 	pause_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.leave_zone_requested.connect(_on_leave_zone_requested)
@@ -413,13 +419,10 @@ func _on_net_fly(_zone_settings: FlightSettings = null) -> void:
 
 
 ## Экран «Сетевая игра» убрать, не выходя из зоны: он выходит из неё, когда его прячут.
-## TODO(К3): метод экрана «отпустить в полёт» вместо отключения его сигналов здесь.
 func _close_net_screen_keep_zone() -> void:
 	if net_screen == null:
 		return
-	for c: Dictionary in net_screen.visibility_changed.get_connections():
-		net_screen.visibility_changed.disconnect(c.callable)
-	net_screen.backend.stop_nearby()
+	net_screen.release_to_flight()
 	_overlay_back = null
 	net_screen.queue_free()
 	net_screen = null

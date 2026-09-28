@@ -31,6 +31,8 @@ var settings: FlightSettings
 var view: View = View.INPUT
 ## Вид последней ошибки ("" — нет).
 var error_kind := ""
+## Отдан в полёт (release_to_flight, NET-40/К3): прятать/убирать экран, не выходя из зоны.
+var _handed_over := false
 
 var _input_box: VBoxContainer
 var _connecting_box: VBoxContainer
@@ -438,12 +440,23 @@ func _on_fly() -> void:
 	fly_requested.emit(s)
 
 
+## «Лететь» в зоне (NET-40): экран уходит из дерева, но из зоны не выходит — полёт её держит.
+## Идемпотентен; вызывается вместо ручного отключения сигналов экрана в main.gd.
+func release_to_flight() -> void:
+	if _handed_over:
+		return
+	_handed_over = true
+	backend.stop_nearby()
+	hide()
+
+
 ## Экран показали/спрятали — слушать/не слушать «Рядом» (NET-23); спрятали в разгаре
-## подключения/в зоне — подключение и зону не держим.
+## подключения/в зоне — подключение и зону не держим. Отдан в полёт (release_to_flight) —
+## ничего не делаем: зону и подключение держит полёт, не экран.
 func _on_visibility_changed() -> void:
 	if visible:
 		backend.start_nearby()
-	else:
+	elif not _handed_over:
 		backend.stop_nearby()
 		if view != View.INPUT:
 			backend.leave()

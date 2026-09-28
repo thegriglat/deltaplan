@@ -291,6 +291,45 @@ func test_no_network_unreachable_and_back() -> void:
 	_restore(raw)
 
 
+## release_to_flight (NET-40/К3): «Лететь» — экран прячется, зону НЕ покидает (в отличие от
+## обычного скрытия/Esc/«Назад» в разгаре зоны, которое зону покидает). Идемпотентен.
+func test_release_to_flight_keeps_zone() -> void:
+	var raw: Variant = _backup()
+	var fake := NetUiFakeBackend.new()
+	var s := _screen(fake)
+	s.set_server("127.0.0.1:8765")
+	s.create_zone()
+	fake.resolve()
+	check(s.view == NetScreen.View.ZONE, "в зоне")
+	fake.stop_nearby_calls = 0
+	s.release_to_flight()
+	check(not s.visible, "экран спрятан")
+	check(fake.stop_nearby_calls == 1, "stop_nearby позвана")
+	check(fake.code() == "4721", "зону НЕ покинули")
+	# Идемпотентность: повторный вызов ничего не портит.
+	s.release_to_flight()
+	check(fake.stop_nearby_calls == 1, "повторный release_to_flight — без лишних stop_nearby")
+	check(fake.code() == "4721", "зона всё ещё держится")
+	s.queue_free()
+	fake.leave()
+	_restore(raw)
+
+
+## Обычное скрытие экрана в разгаре зоны — прежнее поведение: зону покидаем.
+func test_normal_hide_in_zone_still_leaves() -> void:
+	var raw: Variant = _backup()
+	var fake := NetUiFakeBackend.new()
+	var s := _screen(fake)
+	s.set_server("127.0.0.1:8765")
+	s.create_zone()
+	fake.resolve()
+	check(s.view == NetScreen.View.ZONE, "в зоне")
+	s.visible = false
+	check(fake.code() == "", "обычное скрытие — зону покинули")
+	s.queue_free()
+	_restore(raw)
+
+
 ## Главное меню: кнопка «Сетевая игра» шлёт net_requested.
 func test_start_menu_button() -> void:
 	var m: StartMenu = (load("res://scenes/ui/start_menu.tscn") as PackedScene).instantiate()

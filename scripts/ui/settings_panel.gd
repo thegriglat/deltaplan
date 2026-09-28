@@ -27,7 +27,11 @@ var _presets: PackedStringArray = []
 var _render_scale_auto: CheckBox
 var _render_scale: HSlider
 var _time_speed: OptionButton
+var _time_speed_row: HBoxContainer
 var _speeds: Array = []
+## Зона сети (main.gd: game.net != null) — время всегда ×1 (game.gd), строка скрыта и не
+## перезаписывается при сохранении.
+var _net_mode := false
 var _fov: HSlider
 var _helmet: OptionButton
 var _helmet_modes: Array = []
@@ -130,7 +134,7 @@ func _ready() -> void:
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
 		_time_speed.add_item(tr("settings_time_stopped") if float(v) <= 0.0 else "×%d" % int(v))
-	UiKit.row(box, tr("settings_time_speed"), _time_speed)
+	_time_speed_row = UiKit.row(box, tr("settings_time_speed"), _time_speed)
 	var cam: Dictionary = Config.get_config("camera")
 	var fr: Array = cam.get("fov_range_deg", [60.0, 110.0])
 	_fov = UiKit.slider_row(
@@ -163,6 +167,14 @@ func _ready() -> void:
 	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
 	visibility_changed.connect(_on_visibility_changed)
 	load_values()
+
+
+## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
+## скрыта, save() значение не трогает. Вызывать перед открытием панели (main.gd).
+func set_net_mode(on: bool) -> void:
+	_net_mode = on
+	if _time_speed_row != null:
+		_time_speed_row.visible = not on
 
 
 ## Показать текущие значения из Config.
@@ -231,7 +243,7 @@ func save() -> bool:
 		)
 		and ok
 	)
-	if _time_speed.selected >= 0:
+	if not _net_mode and _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
 	ok = UserSettings.save_patch("camera", {"fov_deg": _fov.value}, config_dir) and ok

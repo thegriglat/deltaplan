@@ -20,6 +20,9 @@ var last_name := ""
 var last_code := ""
 var created := false
 
+## Счётчик вызовов stop_nearby (тесты release_to_flight, NET-40/К3).
+var stop_nearby_calls := 0
+
 ## Зоны «рядом» (NET-53), подменяется тестами/скриншотами через set_nearby().
 var fake_nearby: Array = []
 
@@ -102,6 +105,10 @@ func nearby() -> Array:
 func set_nearby(list: Array) -> void:
 	fake_nearby = list
 	nearby_changed.emit()
+
+
+func stop_nearby() -> void:
+	stop_nearby_calls += 1
 
 
 func _start(address: String, name: String, zone_code: String) -> void:
