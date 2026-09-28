@@ -57,6 +57,44 @@ func test_zone_round_trip() -> void:
 	check(absf(r2.pick_lat - 50.123456) < 1e-9 and absf(r2.pick_lon - 86.654321) < 1e-9, "точка")
 
 
+func test_world_key_and_check() -> void:
+	var s := FlightSettings.new()
+	s.site_id = "north"
+	var key: String = NET_ZONE.world_key_for(s, 4711, 4)
+	check(key.begins_with("deltaplan://world?"), "ключ: %s" % key)
+	check(key == NET_ZONE.world_key_for(s, 4711, 4), "ключ детерминирован")
+	check(key != NET_ZONE.world_key_for(s, 4712, 4), "сид в ключе")
+	if not s.has_method("world_key"):
+		check(key.contains("v=0-stub") and key.contains("bots=4"), "заглушка: %s" % key)
+		s.pick_lat = 50.7512
+		s.pick_lon = 86.1203
+		var kp: String = NET_ZONE.stub_world_key(s, 1, 0)
+		check(kp.contains("lat=50.75120&lon=86.12030"), "точка с карты: %s" % kp)
+		var q := kp.get_slice("?", 1).split("&")
+		var sorted_q := Array(q)
+		sorted_q.sort()
+		check(Array(q) == sorted_q, "ключи по алфавиту: %s" % kp)
+	# хэш — первые 16 hex SHA-256
+	var h: String = NET_ZONE.world_hash_of("abc")
+	check(h == "ba7816bf8f01cfea", "sha256(abc)[:16]: %s" % h)
+	# сверка у вошедшего
+	var z: Node = NET_ZONE.new()
+	var got := []
+	z.world_mismatch.connect(func(e: String, a: String) -> void: got.append([e, a]))
+	z.zone = {"worldKey": key, "worldHash": NET_ZONE.world_hash_of(key)}
+	check(z.check_world(key), "тот же ключ → true")
+	check(got.is_empty(), "без сигнала при совпадении")
+	check(not z.check_world(key + "x"), "другой ключ → false")
+	check(
+		got == [[NET_ZONE.world_hash_of(key), NET_ZONE.world_hash_of(key + "x")]],
+		"world_mismatch(expected, actual): %s" % [got]
+	)
+	z.zone = {"worldKey": "", "worldHash": ""}
+	check(z.check_world("что угодно"), "старый создатель без хэша → проверки нет")
+	check(got.size() == 1, "пустой хэш — без сигнала")
+	z.free()
+
+
 func test_three_pilots_leader_leaves() -> void:
 	var srv := _server()
 	if srv == null:
@@ -90,6 +128,11 @@ func test_three_pilots_leader_leaves() -> void:
 		check(z.leader_id == ids[0], "ведущий A: %s" % z.leader_id)
 		check(z.world_seed == 777 and z.bots_count == 2, "сид и боты из зоны")
 		check(z.zone_settings.site_id == "north" and z.zone_settings.start_hour == 14.0, "мир")
+	# ключ мира от создателя дошёл до вошедших как есть; своя сверка
+	var key: String = NET_ZONE.world_key_for(settings, 777, 2)
+	check(key != "" and zb.zone.worldKey == key, "worldKey у B: %s" % zb.zone.worldKey)
+	check(zc.zone.worldHash == NET_ZONE.world_hash_of(key), "worldHash у C: %s" % zc.zone.worldHash)
+	check(zb.check_world(key), "свой мир совпал")
 	check(not zb.is_leader() and not zc.is_leader(), "B и C не ведущие")
 	check(za.queue == ids, "очередь у ведущего — живые по порядку: %s" % [za.queue])
 	# часы: ZoneState 1 Гц доходит, B и C идут вместе с A

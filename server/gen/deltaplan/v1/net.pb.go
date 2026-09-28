@@ -723,7 +723,20 @@ type Zone struct {
 	// Сид генератора мира (термики, облака). Выбирает создатель зоны.
 	Seed uint32 `protobuf:"varint,9,opt,name=seed,proto3" json:"seed,omitempty"`
 	// Число ботов (из настроек создателя). При смене ведущего не меняется.
-	BotsCount     int32 `protobuf:"varint,10,opt,name=bots_count,json=botsCount,proto3" json:"bots_count,omitempty"`
+	BotsCount int32 `protobuf:"varint,10,opt,name=bots_count,json=botsCount,proto3" json:"bots_count,omitempty"`
+	// Канонический «ключ мира»: все параметры, от которых зависит мир (координаты
+	// точки старта, дата, час старта, прогноз, сид, число ботов) плюс версия
+	// генератора мира v, одной строкой в URL-виде: ключи по алфавиту, формат
+	// чисел фиксирован (lat/lon — 5 знаков), все ключи всегда (hdg — по желанию):
+	// deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86.12030&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0
+	// Часы зоны сюда не входят. Заполняет клиент создателя
+	// (FlightSettings.world_key); сервер пересылает как есть и не разбирает.
+	// Пусто — создатель старой версии.
+	WorldKey string `protobuf:"bytes,11,opt,name=world_key,json=worldKey,proto3" json:"world_key,omitempty"`
+	// Первые 16 hex-символов (строчные) SHA-256 от world_key. Вошедший строит мир
+	// из полей Zone, считает свой ключ и сверяет хэш: не совпал — миры разные
+	// (разные версии генератора). Пусто — не проверять.
+	WorldHash     string `protobuf:"bytes,12,opt,name=world_hash,json=worldHash,proto3" json:"world_hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -826,6 +839,20 @@ func (x *Zone) GetBotsCount() int32 {
 		return x.BotsCount
 	}
 	return 0
+}
+
+func (x *Zone) GetWorldKey() string {
+	if x != nil {
+		return x.WorldKey
+	}
+	return ""
+}
+
+func (x *Zone) GetWorldHash() string {
+	if x != nil {
+		return x.WorldHash
+	}
+	return ""
 }
 
 // Живой пилот в зоне.
@@ -1840,7 +1867,7 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x0ewind_speed_kmh\x18\x02 \x01(\x02R\fwindSpeedKmh\x12(\n" +
 	"\x10wind_into_launch\x18\x03 \x01(\bR\x0ewindIntoLaunch\x12\"\n" +
 	"\rwind_from_deg\x18\x04 \x01(\x02R\vwindFromDeg\x12\x10\n" +
-	"\x03sky\x18\x05 \x01(\tR\x03sky\"\xc8\x02\n" +
+	"\x03sky\x18\x05 \x01(\tR\x03sky\"\x84\x03\n" +
 	"\x04Zone\x12\x1f\n" +
 	"\vlocation_id\x18\x01 \x01(\tR\n" +
 	"locationId\x12\x17\n" +
@@ -1855,7 +1882,10 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x04seed\x18\t \x01(\rR\x04seed\x12\x1d\n" +
 	"\n" +
 	"bots_count\x18\n" +
-	" \x01(\x05R\tbotsCountB\v\n" +
+	" \x01(\x05R\tbotsCount\x12\x1b\n" +
+	"\tworld_key\x18\v \x01(\tR\bworldKey\x12\x1d\n" +
+	"\n" +
+	"world_hash\x18\f \x01(\tR\tworldHashB\v\n" +
 	"\t_pick_latB\v\n" +
 	"\t_pick_lon\"I\n" +
 	"\x04Peer\x12\x0e\n" +

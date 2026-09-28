@@ -74,6 +74,15 @@
 - Ведущий **считает ботов**: их число — `Zone.botsCount`, их состояния он рассылает как `PilotState` с `isBot: true` (в `Envelope.fromId` при этом id ведущего, в `pilotId` — id бота). Новый ведущий продолжает ботов с последних полученных состояний; число и имена ботов не меняются.
 - `ZoneState` от не-ведущего сервер отбрасывает.
 
+## Ключ мира (проверка, что мир одинаковый)
+
+Мир каждый клиент строит сам по полям `Zone`. Чтобы заметить, что у двух клиентов миры разошлись (разные версии генератора мира, разное округление), создатель кладёт в `Zone` два поля:
+
+- `worldKey` — канонический «ключ мира»: все параметры, от которых зависит мир, плюс версия генератора `v`, одной строкой в URL-виде. Ключи по алфавиту, формат чисел фиксирован (`lat`/`lon` точки старта — 5 знаков после точки), все ключи всегда (`hdg` — по желанию). Часы зоны не входят. Пример: `deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86.12030&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0`. Точный формат задаёт игра (`FlightSettings.world_key(seed, botsCount)`).
+- `worldHash` — первые 16 hex-символов (строчные) SHA-256 от `worldKey`; в GDScript `world_key.sha256_text().substr(0, 16)`.
+
+Заполняет клиент создателя (`NetZone.create_zone`), сервер пересылает оба поля как есть и ничего с ними не делает. Вошедший строит мир по `Zone`, считает свой ключ и вызывает `NetZone.check_world(local_key)`: хэши не совпали — сигнал `world_mismatch(expected, actual)` и предупреждение в лог с обоими ключами. `worldHash` пуст (создатель старой версии) — проверка пропускается.
+
 ## Переподключение
 
 Соединение оборвалось — пилот для сервера ушёл: остальным `PeerLeft` (и, если он был ведущим, `LeaderChanged`). Переподключение — это новое соединение: новый `Hello`, новый `Welcome` с **новым id**; клиент сам входит обратно по коду зоны (`JoinZone`) и встаёт в конец порядка подключения. Если за время обрыва из зоны вышли все, зона закрыта и код свободен — придёт `ERROR_CODE_ZONE_NOT_FOUND`.
@@ -94,7 +103,7 @@
 #### CreateZone
 Точка с карты не задана (`pickLat`/`pickLon` отсутствуют), ветер в лоб старту.
 ```json
-{"createZone": {"zone": {"locationId": "altai", "siteId": "sinyukha_west", "month": 7, "day": 15, "startHour": 13.5, "forecast": {"temperatureC": 26, "windSpeedKmh": 10.8, "windIntoLaunch": true, "windFromDeg": 270, "sky": "partly"}, "seed": 918273, "botsCount": 4}}}
+{"createZone": {"zone": {"locationId": "altai", "siteId": "sinyukha_west", "month": 7, "day": 15, "startHour": 13.5, "forecast": {"temperatureC": 26, "windSpeedKmh": 10.8, "windIntoLaunch": true, "windFromDeg": 270, "sky": "partly"}, "seed": 918273, "botsCount": 4, "worldKey": "deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.50&lat=50.75120&lon=86.12030&seed=918273&sky=partly&temp=26.0&v=1&wind=3.0", "worldHash": "d46cfb35a9877d20"}}}
 ```
 
 #### JoinZone
@@ -127,7 +136,7 @@
 #### ZoneJoined
 Вход второго пилота в зону с точкой на карте; ведущий — создатель `"3"`.
 ```json
-{"zoneJoined": {"code": "4721", "zone": {"locationId": "altai", "pickLat": 50.8125, "pickLon": 86.25, "month": 7, "day": 15, "startHour": 13, "forecast": {"temperatureC": 24, "windSpeedKmh": 7.2, "windFromDeg": 225, "sky": "clear"}, "seed": 42, "botsCount": 2}, "peers": [{"id": "3", "name": "Папа", "joinOrder": 1}, {"id": "7", "name": "Мама", "joinOrder": 2}], "leaderId": "3"}}
+{"zoneJoined": {"code": "4721", "zone": {"locationId": "altai", "pickLat": 50.8125, "pickLon": 86.25, "month": 7, "day": 15, "startHour": 13, "forecast": {"temperatureC": 24, "windSpeedKmh": 7.2, "windFromDeg": 225, "sky": "clear"}, "seed": 42, "botsCount": 2, "worldKey": "deltaplan://world?bots=2&date=2026-07-15&from=225&hour=13.00&lat=50.81250&lon=86.25000&seed=42&sky=clear&temp=24.0&v=1&wind=2.0", "worldHash": "625460258ce20bd8"}, "peers": [{"id": "3", "name": "Папа", "joinOrder": 1}, {"id": "7", "name": "Мама", "joinOrder": 2}], "leaderId": "3"}}
 ```
 
 #### PeerJoined
@@ -230,7 +239,7 @@ sequenceDiagram
         S-->>A: PeerJoined{peer: B}
         A->>S: ZoneState{clock, queue: [.., "7", bots]}
         S-->>B: ZoneState (fromId "3")
-        Note over B: строит мир по zone с часами clock;<br/>ведущий на земле → в очередь,<br/>в воздухе → «догнать» (сценарий 4)
+        Note over B: строит мир по zone с часами clock,<br/>сверяет worldHash (check_world);<br/>ведущий на земле → в очередь,<br/>в воздухе → «догнать» (сценарий 4)
         A->>S: PilotState (свой и ботов)
         S-->>B: PilotState (fromId "3")
         B->>S: PilotState

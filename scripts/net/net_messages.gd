@@ -81,6 +81,8 @@ const MESSAGES := {
 		"forecast": "msg:Forecast",
 		"seed": "uint32",
 		"botsCount": "int32",
+		"worldKey": "string",
+		"worldHash": "string",
 	},
 	"Peer": {"id": "string", "name": "string", "joinOrder": "uint32"},
 	"WingColors": {"hueDeg": "float", "sat": "float", "value": "float"},

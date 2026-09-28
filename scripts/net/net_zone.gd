@@ -8,6 +8,7 @@ extends Node
 ## Методы:
 ##   create_zone(settings: FlightSettings, world_seed: int, bots_count: int) — CreateZone;
 ##       ответ — zone_entered(code) (создатель сразу ведущий) или zone_error.
+##       Кладёт в Zone ключ мира worldKey (world_key_for) и его хэш worldHash (world_hash_of).
 ##   join_zone(code: String) — JoinZone; ответ — zone_entered(code) или zone_error
 ##       ("ZONE_NOT_FOUND", "ZONE_FULL", "VERSION_MISMATCH").
 ##       Уже в зоне — сначала выходит из неё (zone_left).
@@ -19,6 +20,16 @@ extends Node
 ##       (has_clock = false).
 ##   set_queue(ids: Array) — только ведущий: заменить очередь на старт и сразу разослать.
 ##   peer_ids() -> Array[String] — id живых пилотов по порядку подключения.
+##   check_world(local_key: String) -> bool — вошедший вызывает после постройки мира со своим
+##       FlightSettings.world_key(world_seed, bots_count): хэш сверяется с zone.worldHash.
+##       Не совпал — world_mismatch и push_warning с обоими ключами, false. zone.worldHash
+##       пуст (создатель старой версии) — проверки нет, true.
+##   static world_key_for(settings, world_seed, bots_count) -> String — ключ мира:
+##       settings.world_key(world_seed, bots_count) из FlightSettings (К2; вариант без
+##       аргументов тоже понимаем), а пока его нет — stub_world_key (v=0-stub).
+##   static world_hash_of(key) -> String — первые 16 hex SHA-256 ключа (строчные).
+##   static stub_world_key(settings, world_seed, bots_count) -> String — заглушка ключа
+##       по полям to_zone в формате docs/net_protocol.md («Ключ мира»), v=0-stub.
 ##   send_pilot_state(data: Dictionary) -> bool — отправить PilotState (данные NetMessages)
 ##       в зону; false — не в зоне или нет связи. Хук для NET-32.
 ##
@@ -43,6 +54,8 @@ extends Node
 ##       после set_queue и изменений очереди;
 ##   zone_error(code, text) — ошибка входа/создания ("ZONE_NOT_FOUND", "ZONE_FULL",
 ##       "VERSION_MISMATCH", "BAD_MESSAGE", "CONNECT_FAILED");
+##   world_mismatch(expected_hash, actual_hash) — check_world: мир вошедшего не совпал с миром
+##       создателя (разные версии генератора мира);
 ##   pilot_state_received(from_id, data) — пришёл PilotState другого пилота или бота
 ##       (from_id — отправитель, data.pilotId — чьё состояние). Хук для NET-32/NET-44.
 ##
@@ -66,6 +79,7 @@ signal leader_changed(leader_id: String, is_me: bool)
 signal zone_state_changed
 signal zone_error(code: String, text: String)
 signal pilot_state_received(from_id: String, data: Dictionary)
+signal world_mismatch(expected_hash: String, actual_hash: String)
 
 ## Отставание часов, после которого не догоняем плавно, а прыгаем вперёд, с.
 const SNAP_S := 1.0
@@ -75,6 +89,9 @@ const MAX_SLEW := 0.2
 const SLEW_WINDOW_S := 2.0
 const BOT_PREFIX := "bot-"
 const ZONE_ERRORS := ["ZONE_NOT_FOUND", "ZONE_FULL", "VERSION_MISMATCH", "BAD_MESSAGE"]
+## Версия генератора мира в заглушке ключа (у настоящего FlightSettings.world_key — своя).
+const STUB_WORLD_VERSION := "0-stub"
+const WORLD_HASH_LEN := 16
 
 ## Период рассылки ZoneState ведущим, с (тесты меняют).
 var state_interval_s := 1.0
@@ -120,7 +137,10 @@ func _ready() -> void:
 func create_zone(settings: FlightSettings, p_world_seed: int, p_bots_count: int) -> void:
 	_leave_if_in_zone()
 	_pending = "create"
-	if not _client.send("createZone", {"zone": settings.to_zone(p_world_seed, p_bots_count)}):
+	var z: Dictionary = settings.to_zone(p_world_seed, p_bots_count)
+	z["worldKey"] = world_key_for(settings, p_world_seed, p_bots_count)
+	z["worldHash"] = world_hash_of(z["worldKey"])
+	if not _client.send("createZone", {"zone": z}):
 		_fail_pending("CONNECT_FAILED", "not connected")
 
 
@@ -161,6 +181,66 @@ func peer_ids() -> Array[String]:
 	var ids: Array[String] = []
 	ids.assign(peers.keys())
 	return ids
+
+
+func check_world(local_key: String) -> bool:
+	var expected := String(zone.get("worldHash", ""))
+	if expected == "":
+		return true
+	var actual := world_hash_of(local_key)
+	if actual == expected:
+		return true
+	push_warning(
+		(
+			"NetZone: мир не совпал с миром создателя: %s (%s) ≠ свой %s (%s)"
+			% [zone.get("worldKey", ""), expected, local_key, actual]
+		)
+	)
+	world_mismatch.emit(expected, actual)
+	return false
+
+
+static func world_key_for(settings: FlightSettings, p_world_seed: int, p_bots_count: int) -> String:
+	if settings.has_method("world_key"):
+		if settings.get_method_argument_count("world_key") == 0:
+			return String(settings.call("world_key"))
+		return String(settings.call("world_key", p_world_seed, p_bots_count))
+	return stub_world_key(settings, p_world_seed, p_bots_count)
+
+
+static func world_hash_of(key: String) -> String:
+	return key.sha256_text().substr(0, WORLD_HASH_LEN)
+
+
+static func stub_world_key(
+	settings: FlightSettings, p_world_seed: int, p_bots_count: int
+) -> String:
+	var z: Dictionary = settings.to_zone(p_world_seed, p_bots_count)
+	var f: Dictionary = z.forecast
+	var q := {
+		"v": STUB_WORLD_VERSION,
+		"date": "%02d-%02d" % [z.month, z.day],
+		"hour": "%.2f" % z.startHour,
+		"temp": "%.1f" % f.temperatureC,
+		"wind": "%.1f" % (f.windSpeedKmh / 3.6),
+		"from": "%d" % roundi(f.windFromDeg),
+		"into": "1" if f.windIntoLaunch else "0",
+		"sky": String(f.sky),
+		"seed": str(p_world_seed),
+		"bots": str(p_bots_count),
+	}
+	if is_nan(z.pickLat) or is_nan(z.pickLon):
+		q["loc"] = String(z.locationId)
+		q["site"] = String(z.siteId)
+	else:
+		q["lat"] = "%.5f" % z.pickLat
+		q["lon"] = "%.5f" % z.pickLon
+	var keys: Array = q.keys()
+	keys.sort()
+	var parts: PackedStringArray = []
+	for k: String in keys:
+		parts.append("%s=%s" % [k, String(q[k]).uri_encode()])
+	return "deltaplan://world?" + "&".join(parts)
 
 
 func send_pilot_state(data: Dictionary) -> bool:
