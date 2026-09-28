@@ -8,13 +8,14 @@ extends RefCounted
 const MARK := ".migrated_from_app_userdata"
 ## Кеши и логи движка — пересоздаются сами, копировать незачем.
 const SKIP := ["logs", "shader_cache", "vulkan", "d3d12"]
+## Имя проекта, под которым жил старый профиль (до 0.8 config/name был «Дельтаплан»).
+const LEGACY_APP_NAME := "Дельтаплан"
 
 
-## Старая папка профиля: <данные ОС>/godot|Godot/app_userdata/<имя проекта>.
+## Старая папка профиля: <данные ОС>/godot|Godot/app_userdata/Дельтаплан.
 static func legacy_dir() -> String:
 	var godot_dir := "Godot" if OS.get_name() in ["Windows", "macOS"] else "godot"
-	var app := String(ProjectSettings.get_setting("application/config/name", ""))
-	return OS.get_data_dir().path_join(godot_dir).path_join("app_userdata").path_join(app)
+	return OS.get_data_dir().path_join(godot_dir).path_join("app_userdata").path_join(LEGACY_APP_NAME)
 
 
 ## Скопировать old_dir → new_dir, если в new_dir ещё нет настроек пилота и не было переноса.
