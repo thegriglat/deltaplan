@@ -1,45 +1,77 @@
-"""Пилот-манекен со скелетом и позами: assets/models/pilot.glb (+ assets/source/pilot.blend).
+"""Пилот со скелетом и позами: assets/models/pilot.glb (+ assets/source/pilot.blend).
 
-    blender --background --python tools/blender/build_pilot.py
+    tools/blender/setup_mpfb.sh      # один раз: MPFB 2 в отдельный каталог Blender
+    BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user \\
+        blender --background --python tools/blender/build_pilot.py
 
 Контракт (docs/models.md → «Пилот»): начало координат = карабин (точка подвеса HangPoint крыла),
 вперёд +Y Blender = −Z Godot. Скелет `Pilot` (Armature → Skeleton3D), меши PilotBody (тело,
-подвеска, руки, ноги, ботинки, фал) и Helmet (голова в шлеме — отдельно, кабинная камера её прячет).
-Кости: Hips, Spine, Chest, Head, UpperArm.L/R, Forearm.L/R, Hand.L/R, Thigh.L/R, Shin.L/R,
-Foot.L/R, PodTail (кокон ног), Strap (подвесной фал). Пустышки на костях: Head (глаза), HandL/HandR
-(хват), CockpitCamera. Анимации: stand, walk, run, run_air, climb_in, prone, climb_out, flare
-(docs/models.md).
+подвеска, руки, ноги, ботинки, перчатки, кокон, фал) и Helmet (голова, шея и шлем — отдельно,
+кабинная камера её прячет). Кости: Hips, Spine, Chest, Head, UpperArm.L/R, Forearm.L/R, Hand.L/R,
+Thigh.L/R, Shin.L/R, Foot.L/R, PodTail (кокон ног), Strap (подвесной фал). Пустышки на костях: Head
+(глаза), HandL/HandR (хват), CockpitCamera. Анимации: stand, walk, run, run_air, climb_in, prone,
+climb_out, flare (docs/models.md).
+
+Тело — MakeHuman (MPFB 2, pilot_mpfb.py): мужчина ~30 лет, 1,78 м, с плавной привязкой к костям
+(веса рига game_engine, слитые в наши 17 костей). Кулаки — кисти MPFB с пальцами, согнутыми вокруг
+трубы, запечены в позу покоя (кисть — жёсткий кулак на кости Hand). Длины звеньев и суставы
+скелета берутся с меша MPFB. Подвеска, кокон, фал, краги перчаток, шлем и визор — процедурные.
 
 Позы задаются положением тела и углами суставов в пространстве модели; руки — двухзвенная IK к
 точкам хвата на стойках/базовой штанге (из glider_params.json: трапеция средняя для трёх крыльев).
-Геометрия — в позе покоя (стоя, руки вниз), каждая часть жёстко привязана к своей кости.
 """
 import math
 import os
 import sys
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
+import pilot_mpfb as M  # noqa: E402
 
 FPS = 24
-# длины сегментов (рост 1,75 м), м
-PELVIS, SPINE, CHEST, HEAD = 0.12, 0.30, 0.23, 0.25
-UPPER, FORE, HAND = 0.30, 0.27, 0.08
-THIGH, SHIN, FOOT = 0.44, 0.44, 0.19
-SHOULDER_X, SHOULDER_DOWN, HIP_X = 0.19, 0.06, 0.1
+SOLE_T = 0.015          # толщина подошвы ботинка, м (нижняя подошва стоя — 2,0 м ниже карабина)
 POD_LEN = 0.65          # кокон стоя (висит за ногами)
-POD_ON = 1.45
-EYE_FWD = 0.12          # глаза впереди оси шеи, м           # кокон лёжа (надет на ноги)
-HEAD_PRONE = 20          # наклон головы лёжа, °: пустышки Head/CockpitCamera заданы так,
-                         # что в позе prone взгляд горизонтален / на 10° вверх
+POD_ON = 1.45           # кокон лёжа (надет на ноги)
+HEAD_PRONE = 20         # наклон головы лёжа, °: пустышки Head/CockpitCamera заданы так,
+                        # что в позе prone взгляд горизонтален / на 10° вверх
+FORE_TWIST = 0.5        # доля поворота кисти вокруг предплечья, которую берёт предплечье
+PRONE_SPLAY = -0.6      # лёжа ноги сведены (в коконе), 1 — естественная стойка MPFB
+# бюджет треугольников после прореживания (тело без кистей и головы / кисти / голова с шеей)
+TRIS_BODY, TRIS_HANDS, TRIS_HEAD = 2700, 900, 420
 X = Vector((1, 0, 0))
+
+
+class D:
+    """Размеры скелета, м и ° — подгоняются под меш MPFB (fit_dims)."""
+    PELVIS, SPINE, CHEST, HEAD = 0.12, 0.16, 0.40, 0.26
+    UPPER, FORE, HAND = 0.25, 0.27, 0.11
+    THIGH, SHIN, FOOT = 0.43, 0.45, 0.15
+    SHOULDER_X, SHOULDER_DOWN, SHOULDER_FWD = 0.19, 0.1, 0.0
+    HIP_X, HIP_DOWN, HIP_FWD = 0.11, 0.0, 0.0
+    SPLAY_TH, SPLAY_SH = 6.0, 6.0      # ноги врозь (от вертикали во фронтальной плоскости), °
+    EYE_UP, EYE_FWD = 0.16, 0.09
+    ANKLE_H = 0.09                      # голеностоп над подошвой
+    BACK = 0.15                         # спина за осью позвоночника у крепления фала
+    POD_BACK = 0.25                     # кокон стоя: центр за тазом
 
 
 def rot_x(deg: float) -> Matrix:
     return Matrix.Rotation(math.radians(deg), 3, "X")
+
+
+def rot_y(deg: float) -> Matrix:
+    return Matrix.Rotation(math.radians(deg), 3, "Y")
+
+
+def signed_angle(a: Vector, b: Vector, axis: Vector) -> float:
+    """Угол от a к b вокруг axis (проекции на плоскость ⟂ axis), рад."""
+    a = a - axis * a.dot(axis)
+    b = b - axis * b.dot(axis)
+    return math.atan2(axis.dot(a.cross(b)), a.dot(b))
 
 
 class Pose:
@@ -47,9 +79,11 @@ class Pose:
     (90 — лёжа), head_lean — наклон головы от вертикали, °; ноги: (бедро вперёд, сгиб колена, стопа)
     для L и R; hands — точки хвата; elbow_pole — куда отводить локти (вектор); grips — оси труб в
     кулаках (от мизинца к большому пальцу) для L и R: по ним кисть поворачивается вокруг предплечья,
-    чтобы перчатка обхватила штангу или стойку."""
+    чтобы кулак обхватил штангу или стойку; splay — ноги врозь (1 — как стоит человек MPFB)."""
+    twist0 = [0.0, 0.0]     # поворот кисти вокруг предплечья в позе покоя (rest_pose)
 
-    def __init__(self, hips, lean, head_lean, legs, hands, elbow_pole, pod=0.0, grips=None):
+    def __init__(self, hips, lean, head_lean, legs, hands, elbow_pole, pod=0.0, grips=None,
+                 splay=1.0):
         self.head_lean = head_lean
         self.hips = Vector(hips)
         r = rot_x(-lean)
@@ -64,6 +98,9 @@ class Pose:
         self.pole = Vector(elbow_pole)
         self.pod = pod  # 0 — кокон висит за ногами (стоя), 1 — надет на ноги (лёжа)
         self.grips = [Vector(g).normalized() for g in (grips or [(0, 1, 0), (0, 1, 0)])]
+        self.splay = splay
+        self.twist = [0.0, 0.0]
+        self.reach_gap = [0.0, 0.0]
 
     @staticmethod
     def lerp(a: "Pose", b: "Pose", t: float, hand_t=None) -> "Pose":
@@ -75,48 +112,58 @@ class Pose:
                      for la, lb in zip(a.legs, b.legs)],
                     [a.hands[i].lerp(b.hands[i], ht[i]) for i in range(2)],
                     a.pole.lerp(b.pole, t), a.pod + (b.pod - a.pod) * t,
-                    [a.grips[i].lerp(b.grips[i], ht[i]) for i in range(2)])
+                    [a.grips[i].lerp(b.grips[i], ht[i]) for i in range(2)],
+                    a.splay + (b.splay - a.splay) * t)
 
     def bones(self) -> dict:
         """{кость: (голова, направление, опорная ось Z, длина)} в пространстве модели."""
         b = {}
         h, u, f = self.hips, self.u, self.f
-        chest = h + u * SPINE
-        neck = chest + u * CHEST
-        b["Hips"] = (h, u, f, PELVIS)
-        b["Spine"] = (h, u, f, SPINE)
-        b["Chest"] = (chest, u, f, CHEST)
-        b["Head"] = (neck, self.hu, self.hf, HEAD)
+        chest = h + u * D.SPINE
+        neck = chest + u * D.CHEST
+        b["Hips"] = (h, u, f, D.PELVIS)
+        b["Spine"] = (h, u, f, D.SPINE)
+        b["Chest"] = (chest, u, f, D.CHEST)
+        b["Head"] = (neck, self.hu, self.hf, D.HEAD)
         for i, (s, side) in enumerate((("L", -1), ("R", 1))):
-            sh = neck - u * SHOULDER_DOWN + X * side * SHOULDER_X
-            elbow, wrist, grip = two_bone(sh, self.hands[i], UPPER, FORE + HAND,
-                                          self.pole + X * side * 0.6)
+            sh = neck - u * D.SHOULDER_DOWN + f * D.SHOULDER_FWD + X * side * D.SHOULDER_X
+            elbow, grip, pn = two_bone(sh, self.hands[i], D.UPPER, D.FORE + D.HAND,
+                                       self.pole + X * side * 0.6)
+            self.reach_gap[i] = (self.hands[i] - grip).length
             d_up = (elbow - sh).normalized()
             d_fore = (grip - elbow).normalized()
-            b["UpperArm." + s] = (sh, d_up, f, UPPER)
-            b["Forearm." + s] = (elbow, d_fore, f, FORE)
-            # крен кисти: ось X кости — вдоль трубы в кулаке (см. glove)
-            b["Hand." + s] = (elbow + d_fore * FORE, d_fore, self.grips[i].cross(d_fore), HAND)
+            # крен плеча и предплечья — по плоскости сгиба локтя (локоть сгибается как у меша);
+            # крен кисти: ось X кости — вдоль трубы в кулаке; часть поворота кисти вокруг
+            # предплечья берёт предплечье (пронация), иначе запястье перекручивается
+            hz = self.grips[i].cross(d_fore)
+            self.twist[i] = signed_angle(-pn, hz, d_fore)
+            dt = (self.twist[i] - Pose.twist0[i] + math.pi) % (2 * math.pi) - math.pi
+            z_fore = Matrix.Rotation(dt * FORE_TWIST, 3, d_fore) @ -pn
+            b["UpperArm." + s] = (sh, d_up, -pn, D.UPPER)
+            b["Forearm." + s] = (elbow, d_fore, z_fore, D.FORE)
+            b["Hand." + s] = (elbow + d_fore * D.FORE, d_fore, hz, D.HAND)
             thigh, knee, foot = self.legs[i]
-            hip = h + X * side * HIP_X - u * 0.04
-            d_th = rot_x(-self.lean + thigh) @ Vector((0, 0, -1))
-            kn = hip + d_th * THIGH
-            d_sh = rot_x(-self.lean + thigh - knee) @ Vector((0, 0, -1))
-            an = kn + d_sh * SHIN
+            hip = h + X * side * D.HIP_X - u * D.HIP_DOWN + f * D.HIP_FWD
+            sp = -side * self.splay
+            d_th = rot_x(-self.lean + thigh) @ rot_y(sp * D.SPLAY_TH) @ Vector((0, 0, -1))
+            kn = hip + d_th * D.THIGH
+            d_sh = rot_x(-self.lean + thigh - knee) @ rot_y(sp * D.SPLAY_SH) @ Vector((0, 0, -1))
+            an = kn + d_sh * D.SHIN
             d_ft = rot_x(-self.lean + thigh - knee + foot) @ Vector((0, 0, -1))
-            b["Thigh." + s] = (hip, d_th, f, THIGH)
-            b["Shin." + s] = (kn, d_sh, f, SHIN)
-            b["Foot." + s] = (an, d_ft, -d_sh, FOOT)
+            b["Thigh." + s] = (hip, d_th, f, D.THIGH)
+            b["Shin." + s] = (kn, d_sh, f, D.SHIN)
+            b["Foot." + s] = (an, d_ft, -d_sh, D.FOOT)
         k = self.pod
-        b["PodTail"] = (h - f * 0.2 * (1 - k) - u * 0.02, -u, f, POD_LEN + (POD_ON - POD_LEN) * k)
-        attach = h + u * 0.28 - f * 0.15
+        b["PodTail"] = (h - f * D.POD_BACK * (1 - k) - u * 0.02, -u, f,
+                        POD_LEN + (POD_ON - POD_LEN) * k)
+        attach = h + u * 0.28 - f * D.BACK
         b["Strap"] = (Vector((0, 0, -0.03)), (attach - Vector((0, 0, -0.03))).normalized(), -f,
                       (attach - Vector((0, 0, -0.03))).length)
         return b
 
 
 def two_bone(a: Vector, target: Vector, l1: float, l2: float, pole: Vector):
-    """Двухзвенная IK: плечо a, цель target. Возвращает (локоть, запястье, хват)."""
+    """Двухзвенная IK: плечо a, цель target. Возвращает (локоть, хват, ось к локтю ⟂ a→target)."""
     d = target - a
     dist = min(max(d.length, abs(l1 - l2) + 1e-3), l1 + l2 - 1e-3)
     dn = d.normalized()
@@ -125,8 +172,7 @@ def two_bone(a: Vector, target: Vector, l1: float, l2: float, pole: Vector):
     pn = (pole - dn * pole.dot(dn)).normalized()
     elbow = a + dn * x + pn * hgt
     grip = a + dn * dist
-    wrist = elbow + (grip - elbow).normalized() * FORE
-    return elbow, wrist, grip
+    return elbow, grip, pn
 
 
 def bone_matrix(head: Vector, y: Vector, zref: Vector, length: float = 1.0) -> Matrix:
@@ -169,17 +215,17 @@ def poses(cf: dict, eye: Vector) -> dict:
     up, bar = g["upright"], g["bar"]
     ug, bg = g["up_axis"], g["bar_axis"]
     feet_z = -1.95
-    hip_z = feet_z + THIGH + SHIN + 0.07
+    hip_z = feet_z + D.THIGH + D.SHIN + 0.07
     pole_down = Vector((0, -0.3, -1))
     stand_hands = [up(-0.52, -1), up(-0.52, 1)]
 
     def grounded(hips_y: float, lean: float, head: float, legs: list) -> Pose:
-        """Поза на земле: стопы горизонтально, нижняя стопа — на земле (z ступни −1.99)."""
+        """Поза на земле: стопы горизонтально, нижняя подошва — на 2,0 м ниже карабина."""
         legs = [(th, kn, 90 + lean - th + kn + ft) for th, kn, ft in legs]
         p = Pose((0, hips_y, hip_z), lean, head, legs, stand_hands, pole_down, grips=ug)
         low = min(p.bones()["Foot." + s][0].z for s in ("L", "R"))
-        return Pose((0, hips_y, hip_z - 1.91 - low), lean, head, legs, stand_hands, pole_down,
-                    grips=ug)
+        return Pose((0, hips_y, hip_z - 2.0 + D.ANKLE_H - low), lean, head, legs, stand_hands,
+                    pole_down, grips=ug)
 
     def standing(t: float, kind: str) -> Pose:
         ph = 2 * math.pi * t
@@ -204,10 +250,10 @@ def poses(cf: dict, eye: Vector) -> dict:
     # лёжа: тело подгоняется так, чтобы глаза совпали с pilot_eye
     lean, hl, legs = 84, HEAD_PRONE, [(0, 0, 10), (0, 0, 10)]
     p = Pose((0, 0, -1.36), lean, hl, legs, [bar(-1), bar(1)], Vector((0, -0.2, -1)), pod=1.0,
-             grips=bg)
+             grips=bg, splay=PRONE_SPLAY)
     e = eye_of(p)
     p = Pose(Vector((0, 0, -1.36)) + (eye - e), lean, hl, legs, [bar(-1), bar(1)],
-             Vector((0, -0.2, -1)), pod=1.0, grips=bg)
+             Vector((0, -0.2, -1)), pod=1.0, grips=bg, splay=PRONE_SPLAY)
     out["prone"] = [p]
     prone = p
     flare = out["flare"][0]
@@ -236,7 +282,7 @@ def poses(cf: dict, eye: Vector) -> dict:
         q = Pose.lerp(a0, prone, s_t, (_ease(t, 0.3, 0.6), _ease(t, 0.5, 0.85)))
         q.legs = [(lg[0], lg[1] + 55 * math.sin(math.pi * t), lg[2]) for lg in q.legs]
         climb.append(Pose(q.hips, q.lean, q.head_lean, q.legs, q.hands, q.pole,
-                          _ease(t, 0.35, 1.0), q.grips))
+                          _ease(t, 0.35, 1.0), q.grips, q.splay))
     out["climb_in"] = climb
     # выход из кокона перед посадкой: ноги вниз, корпус вертикально, руки на стойки (1,5 с)
     out_ = []
@@ -246,7 +292,7 @@ def poses(cf: dict, eye: Vector) -> dict:
         q = Pose.lerp(prone, flare, s_t, (_ease(t, 0.1, 0.45), _ease(t, 0.3, 0.65)))
         q.legs = [(lg[0], lg[1] + 45 * math.sin(math.pi * t), lg[2]) for lg in q.legs]
         out_.append(Pose(q.hips, q.lean, q.head_lean, q.legs, q.hands, q.pole,
-                         1.0 - _ease(t, 0.0, 0.6), q.grips))
+                         1.0 - _ease(t, 0.0, 0.6), q.grips, q.splay))
     out["climb_out"] = out_
     return out
 
@@ -258,73 +304,320 @@ def _ease(t: float, t0: float, t1: float) -> float:
 
 def eye_of(p: Pose) -> Vector:
     head, hu, hf, _ = p.bones()["Head"]
-    return head + hu * 0.12 + hf * EYE_FWD
+    return head + hu * D.EYE_UP + hf * D.EYE_FWD
 
 
-# ------------------------------------------------------------------ геометрия (поза покоя)
+# ------------------------------------------------------------------ тело MPFB → наш скелет
 
-def rest_pose() -> Pose:
-    hip_z = -1.95 + THIGH + SHIN + 0.07
-    neck = Vector((0, 0.2, hip_z + SPINE + CHEST))
-    hands = [neck + Vector((s * 0.3, 0.02, -SHOULDER_DOWN - UPPER - FORE - HAND + 0.02))
-             for s in (-1, 1)]
-    return Pose((0, 0.2, hip_z), 0, 0, [(0, 0, 90), (0, 0, 90)], hands, Vector((0, -1, 0)))
+# кость MPFB (без _l/_r) → материал области: подвеска (таз, низ живота, бёдра), куртка, брюки...
+REGION = {"pelvis": "Pod", "spine_01": "Pod", "thigh": "Pod", "spine_02": "Jacket",
+          "spine_03": "Jacket", "clavicle": "Jacket", "upperarm": "Jacket", "lowerarm": "Jacket",
+          "neck_01": "Neck", "head": "Head", "calf": "Trousers", "foot": "Boot", "ball": "Boot",
+          "hand": "Glove"}
+# кость MPFB → {наша кость: доля}; шея гнётся пополам между грудью и головой
+MERGE = {"pelvis": {"Hips": 1}, "spine_01": {"Spine": 1}, "spine_02": {"Chest": 1},
+         "spine_03": {"Chest": 1}, "neck_01": {"Head": 0.6, "Chest": 0.4}, "head": {"Head": 1}}
+for _s, _S in (("l", "L"), ("r", "R")):
+    MERGE.update({"clavicle_" + _s: {"Chest": 1}, "upperarm_" + _s: {"UpperArm." + _S: 1},
+                  "lowerarm_" + _s: {"Forearm." + _S: 1}, "hand_" + _s: {"Hand." + _S: 1},
+                  "thigh_" + _s: {"Thigh." + _S: 1}, "calf_" + _s: {"Shin." + _S: 1},
+                  "foot_" + _s: {"Foot." + _S: 1}, "ball_" + _s: {"Foot." + _S: 1}})
+    for _f in M.FINGERS + ("thumb",):
+        for _i in (1, 2, 3):
+            MERGE["%s_0%d_%s" % (_f, _i, _s)] = {"Hand." + _S: 1}
 
 
-def body_parts(rest: dict) -> list:
-    """[(кость, MeshBuilder)] — части тела в позе покоя."""
-    parts = []
+def region(name: str) -> str:
+    base = name[:-2] if name.endswith(("_l", "_r")) else name
+    if base.split("_")[0] in M.FINGERS + ("thumb",):
+        return "Glove"
+    return REGION.get(base, "Jacket")
 
+
+def vregion(w: dict) -> str:
+    """Область вершины по весам MPFB (перчатка — если вес кисти и пальцев ≥ GLOVE_W)."""
+    if not w:
+        return "Pod"
+    if sum(x for k, x in w.items() if region(k) == "Glove") >= GLOVE_W:
+        return "Glove"
+    return region(max(w, key=w.get))
+
+
+def mpfb_body():
+    """Человек MPFB с кулаками → (объект-меш в наших осях, веса MPFB по вершинам, суставы, оси
+    трубы в кулаках, HAND)."""
+    h, rig = M.make_human()
+    fists = M.make_fists(h, rig, GRIP_R)
+    eye = M.eye_center(h)
+    pb = rig.pose.bones
+    joints = {n: pb[n].head.copy() for n in (
+        "pelvis", "spine_02", "neck_01", "upperarm_l", "lowerarm_l", "hand_l", "thigh_l",
+        "calf_l", "foot_l")}
+    me = M.evaluated_mesh(h)
+    names = {g.index: g.name for g in h.vertex_groups}
+    bones = {b.name for b in rig.data.bones}
+    wts = [{names[g.group]: g.weight for g in v.groups
+            if names.get(g.group) in bones and g.weight > 1e-4} for v in me.vertices]
+    for ob in (h, rig):
+        bpy.data.objects.remove(ob)
+    # MPFB лицом к −Y → к +Y; таз на y = 0,2, низ стоп — на SOLE_T выше −2,0 (подошва ботинка)
+    zmin = min(v.co.z for v in me.vertices)
+    rz = Matrix.Rotation(math.pi, 4, "Z")
+    p = rz @ joints["pelvis"]
+    mt = Matrix.Translation((-p.x, 0.2 - p.y, -2.0 + SOLE_T - zmin)) @ rz
+    me.transform(mt)
+    for k in joints:
+        joints[k] = mt @ joints[k]
+    joints["eye"] = mt @ eye
+    joints["sole"] = -2.0
+    axes = {s: (mt.to_3x3() @ a).normalized() for s, (a, _, _) in fists.items()}
+    hand = sum(hd for _, hd, _ in fists.values()) / 2
+    print("FIST clearance: %s" % {s: round(c, 4) for s, (_, _, c) in fists.items()})
+    for uv in me.uv_layers[1:]:
+        me.uv_layers.remove(uv)
+    if me.uv_layers:
+        me.uv_layers[0].name = "UVMap"
+    ob = bpy.data.objects.new("PilotBodySrc", me)
+    bpy.context.scene.collection.objects.link(ob)
+    return ob, wts, joints, axes, hand
+
+
+def smooth_feet(ob, wts) -> None:
+    """Ботинки: носок — гладкий эллипсоид вместо пальцев ног, стопа сглажена."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.verts.ensure_lookup_table()
+    feet = [v for v in bm.verts if region(max(wts[v.index], key=wts[v.index].get,
+                                                default="pelvis")) == "Boot"]
+    for side in (-1, 1):
+        toes = [(v, sum(w for k, w in wts[v.index].items() if k.startswith("ball")))
+                for v in feet if v.co.x * side > 0]
+        toes = [(v, wb) for v, wb in toes if wb > 0.05]
+        lo = Vector([min(v.co[i] for v, _ in toes) for i in range(3)])
+        hi = Vector([max(v.co[i] for v, _ in toes) for i in range(3)])
+        c = (lo + hi) / 2
+        c.z = lo.z + (hi.z - lo.z) * 0.35
+        r = Vector(((hi.x - lo.x) / 2 + 0.004, (hi.y - lo.y) / 2 + 0.004, hi.z - c.z + 0.004))
+        for v, wb in toes:
+            d = v.co - c
+            k = math.sqrt((d.x / r.x) ** 2 + (d.y / r.y) ** 2 + (d.z / r.z) ** 2) or 1.0
+            proj = c + d / k
+            if proj.z < v.co.z - 0.002 and d.z < 0:   # подошва остаётся плоской
+                proj.z = v.co.z
+            v.co = v.co.lerp(proj, min(1.0, wb * 1.6))
+    for _ in range(4):
+        bmesh.ops.smooth_vert(bm, verts=feet, factor=0.5, use_axis_x=True, use_axis_y=True,
+                              use_axis_z=True)
+    bm.to_mesh(ob.data)
+    bm.free()
+
+
+def fit_dims(j: dict, pts: list, reg: list, hand: float) -> tuple:
+    """Длины звеньев и смещения суставов по суставам MPFB (наши оси, поза покоя). Возвращает
+    параметры позы покоя (lean, ноги, точки хвата, полюс локтей)."""
+    p, s2, nk = j["pelvis"], j["spine_02"], j["neck_01"]
+    u = (nk - p).normalized()
+    lean = math.degrees(math.atan2(u.y, u.z))
+    f = rot_x(-lean) @ Vector((0, 1, 0))
+    D.SPINE = (s2 - p).dot(u)
+    D.CHEST = (nk - p).length - D.SPINE
+    top = max(v.z for v, r in zip(pts, reg) if r == "Head")
+    D.HEAD = top - nk.z
+    e = j["eye"] - nk
+    D.EYE_UP, D.EYE_FWD = e.z, e.y + 0.012          # перед глазного яблока
+    sh, el, wr = j["upperarm_l"], j["lowerarm_l"], j["hand_l"]
+    r = sh - nk
+    D.SHOULDER_X, D.SHOULDER_DOWN, D.SHOULDER_FWD = abs(r.x), -r.dot(u), r.dot(f)
+    D.UPPER = (el - sh).length
+    D.FORE = (wr - el).length
+    D.HAND = hand
+    hp, kn, an = j["thigh_l"], j["calf_l"], j["foot_l"]
+    r = hp - p
+    D.HIP_X, D.HIP_DOWN, D.HIP_FWD = abs(r.x), -r.dot(u), r.dot(f)
+    D.THIGH = (kn - hp).length
+    D.SHIN = (an - kn).length
+    D.ANKLE_H = an.z - j["sole"]
+    dth = (kn - hp).normalized()
+    dsh = (an - kn).normalized()
+    D.SPLAY_TH = math.degrees(math.asin(abs(dth.x)))
+    D.SPLAY_SH = math.degrees(math.asin(abs(dsh.x)))
+    a_th = math.degrees(math.atan2(dth.y, -dth.z))
+    a_sh = math.degrees(math.atan2(dsh.y, -dsh.z))
+    th = a_th + lean
+    legs = [(th, a_th - a_sh, 90 - a_sh)] * 2
+    # спина у крепления фала и таз сзади — по мешу
+    z_att = p.z + 0.28 * u.z
+    back = [v.y for v in pts if abs(v.z - z_att) < 0.02 and abs(v.x) < 0.06]
+    D.BACK = p.y + 0.28 * u.y - min(back) + 0.035
+    # точки хвата и полюс, при которых two_bone ставит локти в локти MPFB
+    fore = (wr - el).normalized()
+    g_l = wr + fore * hand
+    g_r = Vector((-g_l.x, g_l.y, g_l.z))
+    dn = (g_l - sh).normalized()
+    v = (el - sh) - dn * (el - sh).dot(dn)
+    k = -0.6 / v.x
+    pole = Vector((0, k * v.y, k * v.z))
+    print("DIMS " + ", ".join("%s %.3f" % (n, getattr(D, n)) for n in dir(D) if n.isupper()))
+    print("DIMS lean %.1f°, ноги %s" % (lean, legs[0]))
+    return lean, legs, [g_l, g_r], pole, el
+
+
+def rest_pose(rest_args) -> Pose:
+    lean, legs, hands, pole, grips = rest_args
+    return Pose(REST_HIPS, lean, 0, legs, hands, pole, grips=grips)
+
+
+# ------------------------------------------------------------------ перчатки, подвеска, шлем
+
+GLOVE_W = 0.3          # грань — перчатка, если средний вес кисти и пальцев не меньше
+GRIP_R = 0.0205        # внутренний радиус кулака, м: базовая штанга 0,017, стойка 0,019
+
+
+def glove_frame(bone: tuple, side: int):
+    """(запястье, a, w, b) — оси перчатки в позе покоя; side −1 — левая, +1 — правая."""
+    wr, d, zr, _ = bone
+    y = d.normalized()
+    x = y.cross(zr).normalized()         # = ось X кости (bone_matrix) = ось трубы
+    bk = y.cross(x) * side               # тыл кисти: у правой y×T, у левой T×y
+    return wr, y, x, bk
+
+
+def glove_pt(fr, a: float, w: float, b: float) -> Vector:
+    wr, y, x, bk = fr
+    return wr + y * a + x * w + bk * b
+
+
+def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: bool = True) -> None:
+    """Эллиптические кольца вдоль кисти: rings = [(a, b центра, полуширина по w, полутолщина)]."""
+    _, y, x, bk = fr
+    pts = []
+    for a, bc, hw, hb in rings:
+        c = glove_pt(fr, a, 0.0, bc)
+        pts.append([c + x * hw * math.cos(2 * math.pi * k / sides)
+                    + bk * hb * math.sin(2 * math.pi * k / sides) for k in range(sides)])
+    base = len(mb.verts)
+    for ring in pts:
+        for v in ring:
+            mb.add_vert(v)
+    # грани наружу при любой руке: нормаль первого четырёхугольника — от оси
+    q0 = [pts[0][0], pts[1][0], pts[1][1]]
+    c0 = glove_pt(fr, rings[0][0], 0.0, rings[0][1])
+    flip = (q0[1] - q0[0]).cross(q0[2] - q0[0]).dot(q0[0] - c0) < 0
+    for i in range(len(pts) - 1):
+        for k in range(sides):
+            k2 = (k + 1) % sides
+            q = [base + i * sides + k, base + (i + 1) * sides + k,
+                 base + (i + 1) * sides + k2, base + i * sides + k2]
+            mb.add_face(list(reversed(q)) if flip else q, mat)
+    for i, rev in ((0, not flip), (len(pts) - 1, flip)) if cap else ():
+        idx = [base + i * sides + k for k in range(sides)]
+        mb.add_face(list(reversed(idx)) if rev else idx, mat, smooth=False)
+
+
+def cuff(mb: U.MeshBuilder, bone: tuple, side: int, pts: list, glove: list) -> None:
+    """Краг-раструб перчатки поверх рукава (~7 см вверх от начала перчатки) и ремешок-липучка:
+    сечения обнимают меш руки с зазором, к локтю расширяются. Жёстко на кости Hand."""
+    fr = glove_frame(bone, side)
+    wr, y, x, bk = fr
+    a1 = min((p - wr).dot(y) for p in glove) + 0.014
+    st = [a1 - 0.082 + 0.082 * i / 5 for i in range(6)]
+    rings = []
+    for a in st:
+        near = [p - wr for p in pts if abs((p - wr).dot(y) - a) < 0.007]
+        hw = max(abs(q.dot(x)) for q in near) + 0.004
+        hb = max(abs(q.dot(bk)) for q in near) + 0.004
+        rings.append([a, 0.0, hw, hb])
+    for i in range(len(rings) - 2, -1, -1):    # раструб: к локтю не уже, чем ближе к кисти
+        rings[i][2] = max(rings[i][2], rings[i + 1][2] - 0.001)
+        rings[i][3] = max(rings[i][3], rings[i + 1][3] - 0.001)
+    rings[0][2] += 0.005
+    rings[0][3] += 0.005
+    loft(mb, fr, [tuple(r) for r in rings], "Glove", sides=12, cap=False)
+    r1, r2 = rings[1], rings[2]
+    loft(mb, fr, [(r1[0] + 0.004, 0.0, r1[2] + 0.0015, r1[3] + 0.0015),
+                  (r2[0] + 0.003, 0.0, r2[2] + 0.0015, r2[3] + 0.0015)], "GlovePanel", sides=12,
+         cap=False)
+    print("CUFF: краг от %.3f до %.3f м вдоль кисти" % (st[0], st[-1]))
+
+
+def cuff_clearance(pts: list, bone: tuple) -> float:
+    """Наименьшее расстояние от вершин кулака до оси трубы, м — для проверки."""
+    wr, d, zr, _ = bone
+    x = d.cross(zr).normalized()
+    c = wr + d * D.HAND
+    best = 1.0
+    for p in pts:
+        dv = p - c
+        best = min(best, (dv - x * dv.dot(x)).length)
+    return best
+
+
+def surf_y(pts: list, x: float, z: float, tol: float = 0.015) -> tuple:
+    """(зад, перед) поверхности тела по y в точке (x, z)."""
+    ys = [p.y for p in pts if abs(p.x - x) < tol and abs(p.z - z) < tol]
+    return min(ys), max(ys)
+
+
+def harness(rest: dict, pts: list, reg: list, parts: list, wts: list, waist_z: float) -> None:
+    """Подвеска: плечевые лямки, грудная перемычка, пояс, спинка с креплением фала, кокон, фал."""
     def part(bone):
         mb = U.MeshBuilder()
         parts.append((bone, mb))
         return mb
 
     h, u, f, _ = rest["Spine"]
-    m = part("Hips")
-    m.add_ellipsoid(h + u * 0.02, (0.17, 0.13, 0.12), "Pod", 14, 8)
-    m = part("Spine")
-    m.add_ellipsoid(h + u * 0.17, (0.16, 0.12, 0.15), "Pod", 14, 8)
     c, _, _, _ = rest["Chest"]
+    nk = rest["Head"][0]
     m = part("Chest")
-    m.add_ellipsoid(c + u * 0.1, (0.2, 0.12, 0.16), "Jacket", 16, 10)
-    m.add_ellipsoid(c + u * 0.02 + f * 0.01, (0.19, 0.12, 0.12), "Pod", 14, 8)   # подвеска
-    for s in (-1, 1):   # плечевые лямки
-        m.add_tube([c + u * 0.02 + X * s * 0.1 + f * 0.13, c + u * 0.21 + X * s * 0.1 + f * 0.1,
-                    c + u * 0.22 + X * s * 0.1 - f * 0.1], 0.02, "Strap", sides=6)
-    for s, side in (("L", -1), ("R", 1)):
-        a, d, _, _ = rest["UpperArm." + s]
-        m = part("UpperArm." + s)
-        m.add_ellipsoid(a, (0.07, 0.075, 0.07), "Jacket", 10, 6)
-        m.add_tube([a, a + d * UPPER], [0.052, 0.045], "Jacket", sides=10)
-        e, d, _, _ = rest["Forearm." + s]
-        m = part("Forearm." + s)
-        m.add_ellipsoid(e, (0.047, 0.047, 0.047), "Jacket", 8, 5)
-        m.add_tube([e, e + d * FORE], [0.045, 0.036], "Jacket", sides=10)
-        glove(part("Hand." + s), rest["Hand." + s], side)
-        hp, d, _, _ = rest["Thigh." + s]
-        m = part("Thigh." + s)
-        m.add_ellipsoid(hp, (0.085, 0.085, 0.085), "Pod", 8, 5)
-        m.add_tube([hp, hp + d * THIGH], [0.085, 0.062], "Pod", sides=10)
-        k, d, _, _ = rest["Shin." + s]
-        m = part("Shin." + s)
-        m.add_ellipsoid(k, (0.062, 0.062, 0.062), "Trousers", 8, 5)
-        m.add_tube([k, k + d * (SHIN - 0.04)], [0.058, 0.045], "Trousers", sides=10)
-        an, df, _, _ = rest["Foot." + s]
-        m = part("Foot." + s)   # ботинок: голенище + носок + подошва
-        m.add_tube([an + Vector((0, 0, 0.1)), an - Vector((0, 0, 0.02))], [0.05, 0.055], "Boot",
-                   sides=10)
-        m.add_ellipsoid(an + df * 0.08 - Vector((0, 0, 0.035)), (0.055, 0.13, 0.05), "Boot", 12, 7)
-        m.add_box(an + df * 0.07 - Vector((0, 0, 0.078)), (0.1, 0.27, 0.02), "Sole")
+    z1 = c.z + 0.04
+    z2 = nk.z - 0.05
+    straps = []
+    for s in (-1, 1):
+        xs = 0.095 * s
+        b1, f1 = surf_y(pts, xs, z1)
+        b2, f2 = surf_y(pts, xs, z2)
+        top = max(p.z for p in pts if abs(p.x - xs) < 0.012 and abs(p.y - nk.y) < 0.03
+                  and p.z < nk.z + 0.05)
+        straps.append(f1)
+        m.add_tube([Vector((xs, f1 + 0.012, z1 - 0.06)), Vector((xs, f1 + 0.012, z1)),
+                    Vector((xs, f2 + 0.016, z2)), Vector((xs, nk.y + 0.005, top + 0.022)),
+                    Vector((xs, b2 - 0.018, z2)), Vector((xs, b1 - 0.014, z1))],
+                   0.011, "Strap", sides=6, ellipse=(0.6, 2.0), up=(1, 0, 0))
+    _, fc = surf_y(pts, 0.0, z1 - 0.02)
+    m.add_tube([Vector((-0.095, straps[0] + 0.012, z1 - 0.02)),
+                Vector((0, fc + 0.012, z1 - 0.02)),
+                Vector((0.095, straps[1] + 0.012, z1 - 0.02))], 0.01, "Strap", sides=6,
+               ellipse=(0.6, 2.0), up=(0, 0, 1))
+    # пояс подвески по краю (закрывает переход подвеска → куртка)
+    m = part("Spine")
+    ring = [p for p, w in zip(pts, wts) if abs(p.z - waist_z) < 0.012 and w and not max(
+        w, key=w.get).startswith(("upperarm", "lowerarm", "hand", "clavicle"))
+        and region(max(w, key=w.get)) != "Glove"]
+    cy = (max(p.y for p in ring) + min(p.y for p in ring)) / 2
+    bx = max(abs(p.x) for p in ring) + 0.008
+    by = (max(p.y for p in ring) - min(p.y for p in ring)) / 2 + 0.008
+    m.add_tube([Vector((0, cy, waist_z - 0.022)), Vector((0, cy, waist_z + 0.022))], bx, "Strap",
+               sides=16, ellipse=(1.0, by / bx), cap=False, up=(0, 1, 0))
+    # спинка подвески (жёсткая, с креплением фала)
+    m = part("Spine")
+    zc = h.z + 0.2
+    bk, _ = surf_y(pts, 0.0, zc, 0.03)
+    wid = max(abs(p.x) for p in pts if abs(p.z - zc) < 0.02 and p.y < h.y)
+    m.add_ellipsoid(Vector((0, bk - 0.02, zc)), (wid * 0.85, 0.05, 0.22), "Pod", 12, 7)
+    # кокон ног: мешок, в полёте надет на ноги
+    hips = [p for p, r in zip(pts, reg) if abs(p.z - h.z) < 0.03 and r == "Pod"]
+    rx = max(abs(p.x) for p in hips) + 0.035
+    rzz = (max(p.y for p in hips) - min(p.y for p in hips)) / 2 + 0.03
     p, d, fz, _ = rest["PodTail"]
-    m = part("PodTail")   # кокон ног: мешок, в полёте надет на ноги
+    m = part("PodTail")
     rings = []
-    prof = [(0.0, 0.22, 0.16), (0.25, 0.22, 0.17), (0.55, 0.19, 0.15), (0.75, 0.17, 0.13),
-            (0.9, 0.11, 0.09), (1.0, 0.02, 0.02)]
+    prof = [(0.0, 1.0, 1.0), (0.25, 1.0, 1.06), (0.55, 0.86, 0.94), (0.75, 0.77, 0.81),
+            (0.9, 0.5, 0.56), (1.0, 0.09, 0.12)]
     side = d.cross(fz).normalized()
-    up = side.cross(d).normalized()
-    for t, rx, rz in prof:
-        rings.append([p + d * (POD_LEN * t) + side * rx * math.cos(a) + up * rz * math.sin(a)
+    upv = side.cross(d).normalized()
+    for t, kx, kz in prof:
+        rings.append([p + d * (POD_LEN * t) + side * rx * kx * math.cos(a)
+                      + upv * rzz * kz * math.sin(a)
                       for a in [2 * math.pi * k / 14 for k in range(14)]])
     for i in range(len(rings) - 1):
         for k in range(14):
@@ -339,127 +632,218 @@ def body_parts(rest: dict) -> list:
     m = part("Strap")
     m.add_tube([a, a + d * ln], 0.012, "Strap", sides=6, ellipse=(2.0, 0.6))
     m.add_ellipsoid(a, (0.012, 0.03, 0.04), "Visor", 8, 5)
-    return parts
+    # подошвы ботинок
+    for s in ("L", "R"):
+        m = part("Foot." + s)
+        side = -1 if s == "L" else 1
+        ft = [p for p, r in zip(pts, reg) if r == "Boot" and p.x * side > 0
+              and p.z < -2.0 + SOLE_T + 0.03]
+        lo = Vector((min(p.x for p in ft), min(p.y for p in ft), 0))
+        hi = Vector((max(p.x for p in ft), max(p.y for p in ft), 0))
+        m.add_box(Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, -2.0 + SOLE_T / 2 + 0.002)),
+                  (hi.x - lo.x + 0.012, hi.y - lo.y + 0.016, SOLE_T + 0.004), "Sole")
 
 
-# перчатка: кулак вокруг трубы. Оси кисти: a — вдоль кости (0 — запястье), w — вдоль трубы (ось X
-# кости, к большому пальцу), b — к тыльной стороне. Ось трубы — через точку хвата (a = HAND, b = 0,
-# пустышки HandL/HandR): туда IK ставит кисть на оси базовой штанги / стойки.
-GRIP_R = 0.0205        # внутренний радиус кулака, м: базовая штанга 0,017, стойка 0,019
-#       w,      радиус, конец дуги (°) — указательный, средний, безымянный, мизинец
-FINGERS = [(0.029, 0.0095, -105), (0.009, 0.0102, -115), (-0.011, 0.0096, -105),
-           (-0.031, 0.0083, -80)]
-
-
-def glove_frame(bone: tuple, side: int):
-    """(запястье, a, w, b) — оси перчатки в позе покоя; side −1 — левая, +1 — правая."""
-    wr, d, zr, _ = bone
-    y = d.normalized()
-    x = y.cross(zr).normalized()         # = ось X кости (bone_matrix)
-    bk = y.cross(x) * side               # тыл кисти: у правой y×T, у левой T×y
-    return wr, y, x, bk
-
-
-def glove_pt(fr, a: float, w: float, b: float) -> Vector:
-    wr, y, x, bk = fr
-    return wr + y * a + x * w + bk * b
-
-
-def arc_pt(fr, deg: float, r: float, w: float) -> Vector:
-    """Точка на окружности радиуса r вокруг оси трубы (угол от +a к +b)."""
-    t = math.radians(deg)
-    return glove_pt(fr, HAND + r * math.cos(t), w, r * math.sin(t))
-
-
-def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10) -> None:
-    """Эллиптические кольца вдоль кисти: rings = [(a, b центра, полуширина по w, полутолщина)]."""
-    _, y, x, bk = fr
-    pts = []
-    for a, bc, hw, hb in rings:
-        c = glove_pt(fr, a, 0.0, bc)
-        pts.append([c + x * hw * math.cos(2 * math.pi * k / sides)
-                    + bk * hb * math.sin(2 * math.pi * k / sides) for k in range(sides)])
-    base = len(mb.verts)
-    for ring in pts:
-        for v in ring:
-            mb.add_vert(v)
-    flip = x.cross(bk).dot(y) < 0       # грани наружу при любой руке
-    for i in range(len(pts) - 1):
-        for k in range(sides):
-            k2 = (k + 1) % sides
-            q = [base + i * sides + k, base + (i + 1) * sides + k,
-                 base + (i + 1) * sides + k2, base + i * sides + k2]
-            mb.add_face(list(reversed(q)) if flip else q, mat)
-    for i, rev in ((0, not flip), (len(pts) - 1, flip)):
-        idx = [base + i * sides + k for k in range(sides)]
-        mb.add_face(list(reversed(idx)) if rev else idx, mat, smooth=False)
-
-
-def glove(mb: U.MeshBuilder, bone: tuple, side: int) -> None:
-    """Перчатка (дельтапланерная, кожа): краг поверх рукава, тыл кисти, ладонь, четыре пальца
-    дугой вокруг трубы и большой палец снизу навстречу. Жёстко на кости Hand (кисть — прямое
-    продолжение предплечья, краг круглый — поворот кисти вокруг предплечья его не ломает)."""
-    fr = glove_frame(bone, side)
-    _, y, x, bk = fr
-    # краг-раструб: от запястья на 7 см вверх по рукаву (рукав у запястья r 0,036)
-    mb.add_tube([glove_pt(fr, -0.068, 0, 0), glove_pt(fr, -0.02, 0, 0), glove_pt(fr, 0.012, 0, 0)],
-                [0.047, 0.0435, 0.039], "Glove", sides=12, ellipse=(1.08, 0.95), up=bk)
-    # ремешок-липучка на краге
-    mb.add_tube([glove_pt(fr, -0.034, 0, 0), glove_pt(fr, -0.016, 0, 0)], [0.0462, 0.0442],
-                "GlovePanel", sides=12, ellipse=(1.08, 0.95), up=bk, cap=False)
-    # тыл кисти: от запястья к костяшкам (над трубой)
-    loft(mb, fr, [(-0.004, 0.0, 0.031, 0.019), (0.02, 0.006, 0.037, 0.018),
-                  (0.042, 0.014, 0.042, 0.016), (0.06, 0.021, 0.044, 0.013),
-                  (0.072, 0.028, 0.042, 0.0095)], "Glove", sides=10)
-    rot = Matrix((x, y, bk)).transposed()
-    # ладонь (возвышения у запястья) — позади трубы, прижата к ней
-    mb.add_ellipsoid(glove_pt(fr, 0.03, -0.002, -0.006), (0.036, 0.03, 0.016), "Glove", 10, 5, rot)
-    # накладка на тыле кисти
-    mb.add_ellipsoid(glove_pt(fr, 0.04, -0.002, 0.026), (0.031, 0.024, 0.0045), "GlovePanel", 8, 4,
-                     Matrix((x, y, bk)).transposed() @ Matrix.Rotation(-0.35, 3, "X"))
-    # пальцы: дуга вокруг трубы от костяшек (сверху-сзади) вперёд, вниз и назад к ладони
-    for w, r, end in FINGERS:
-        big = GRIP_R + r
-        n = 7
-        angs = [125 + (end - 125) * i / (n - 1) for i in range(n)]
-        mb.add_tube([arc_pt(fr, t, big, w) for t in angs],
-                    [r * (1.05 - 0.2 * i / (n - 1)) for i in range(n)], "Glove", sides=6)
-    # большой палец: от ладони под трубой вперёд, кончик на указательном
-    th = [glove_pt(fr, 0.022, 0.028, -0.014), arc_pt(fr, -155, 0.035, 0.04),
-          arc_pt(fr, -120, 0.034, 0.042), arc_pt(fr, -85, 0.035, 0.038),
-          arc_pt(fr, -60, 0.039, 0.031)]
-    mb.add_tube(th, [0.014, 0.0125, 0.0112, 0.0102, 0.009], "Glove", sides=6)
-
-
-def glove_clearance(parts: list, rest: dict) -> float:
-    """Наименьшее расстояние от вершин перчаток (кроме крага) до оси трубы, м — для проверки."""
-    best = 1.0
-    for bone, mb in parts:
-        if not bone.startswith("Hand."):
-            continue
-        side = -1 if bone.endswith("L") else 1
-        wr, y, x, _ = glove_frame(rest[bone], side)
-        c = wr + y * HAND
-        for v in mb.verts:
-            dv = Vector(v) - c
-            if dv.dot(y) < -0.01:   # краг
-                continue
-            best = min(best, (dv - x * dv.dot(x)).length)
-    return best
-
-
-def helmet(rest: dict, mb: U.MeshBuilder) -> None:
+def helmet(rest: dict, pts: list, reg: list, mb: U.MeshBuilder) -> None:
+    """Шлем по черепу MPFB (открытое лицо) и визор, закрывающий глазницы (глаз у меша нет)."""
     n, hu, hf, _ = rest["Head"]
-    hc = n + hu * 0.13
-    mb.add_tube([n - hu * 0.05, hc], 0.055, "Jacket", sides=10)   # шея (прячется со шлемом)
-    mb.add_ellipsoid(hc + hf * 0.01, (0.12, 0.14, 0.13), "Helmet", 14, 9)
-    mb.add_ellipsoid(hc + hf * 0.06 - hu * 0.07, (0.075, 0.07, 0.07), "Skin", 10, 6)
-    mb.add_ellipsoid(hc + hf * 0.11, (0.1, 0.035, 0.04), "Visor", 12, 6)
+    eye = n + hu * D.EYE_UP + hf * (D.EYE_FWD - 0.012)
+    head = [p for p, r in zip(pts, reg) if r == "Head"]
+    skull = [p for p in head if p.z > eye.z + 0.02 or p.y < eye.y - 0.07]
+    lo = Vector([min(p[i] for p in skull) for i in range(3)])
+    hi = Vector([max(p[i] for p in skull) for i in range(3)])
+    c = (lo + hi) / 2
+    r = (hi - lo) / 2
+    k = max(math.sqrt(sum(((p[i] - c[i]) / r[i]) ** 2 for i in range(3))) for p in skull)
+    rad = Vector((r.x * k + 0.02, r.y * k + 0.02, r.z * k + 0.02))
+
+    def on(rv: Vector, th: float, ph: float) -> Vector:
+        return c + Vector((rv.x * math.sin(th) * math.sin(ph), rv.y * math.sin(th) * math.cos(ph),
+                           rv.z * math.cos(th)))
+
+    def theta(rv: Vector, z: float) -> float:
+        return math.acos(min(max((z - c.z) / rv.z, -1.0), 1.0))
+
+    th_brow = theta(rad, eye.z + 0.028)
+    th_low = theta(rad, eye.z - 0.075)
+    face = math.radians(52)
+    nt, nph = 9, 20
+    grid = [[on(rad, th_low * i / nt, 2 * math.pi * j / nph) for j in range(nph)]
+            for i in range(nt + 1)]
+
+    def keep(i, j):
+        ph = 2 * math.pi * (j + 0.5) / nph
+        ph = ph - 2 * math.pi if ph > math.pi else ph
+        return not (abs(ph) < face and th_low * (i + 0.5) / nt > th_brow)
+
+    shell(mb, grid, keep, c, "Helmet", wrap=True)
+    # визор: полоса перед лицом от брови до кончика носа, с запасом над лицом
+    band = [p for p in head if eye.z - 0.05 < p.z < eye.z + 0.035 and p.y > eye.y - 0.04]
+    kv = max(math.sqrt(sum(((p[i] - c[i]) / rad[i]) ** 2 for i in range(3))) for p in band)
+    rv = rad * 1.0
+    rv.y = rad.y * max(kv, 1.0) + 0.008
+    rv.x = rad.x * max(kv, 1.0) * 1.03
+    t0, t1 = theta(rv, eye.z + 0.036), theta(rv, eye.z - 0.05)
+    grid = [[on(rv, t0 + (t1 - t0) * i / 3, -face - 0.25 + (2 * face + 0.5) * j / 10)
+             for j in range(11)] for i in range(4)]
+    shell(mb, grid, lambda i, j: True, c, "Visor", wrap=False)
+
+
+def shell(mb: U.MeshBuilder, grid: list, keep, c: Vector, mat: str, wrap: bool) -> None:
+    """Оболочка из сетки точек (общие вершины — гладкая), грани нормалью от точки c."""
+    idx = {}
+
+    def vi(i, j):
+        if (i, j) not in idx:
+            idx[(i, j)] = mb.add_vert(grid[i][j])
+        return idx[(i, j)]
+
+    ncol = len(grid[0])
+    for i in range(len(grid) - 1):
+        for j in range(ncol if wrap else ncol - 1):
+            if not keep(i, j):
+                continue
+            j2 = (j + 1) % ncol
+            q = [(i, j), (i, j2), (i + 1, j2), (i + 1, j)]
+            vs = [grid[a][b] for a, b in q]
+            nrm = (vs[1] - vs[0]).cross(vs[2] - vs[0]) + (vs[2] - vs[0]).cross(vs[3] - vs[0])
+            if nrm.dot(sum(vs, Vector()) / 4 - c) < 0:
+                q.reverse()
+            mb.add_face([vi(a, b) for a, b in q], mat)
 
 
 # ------------------------------------------------------------------ сборка
 
-def merge(parts: list) -> tuple:
+def split_parts(src, wts: list, groups: dict) -> dict:
+    """Меш MPFB → {часть: объект} (тело, кисти, голова с шеей) с нашими весами и материалами."""
+    mats = ["Pod", "Jacket", "Trousers", "Boot", "Glove", "Skin"]
+    me = src.data
+    me.materials.clear()
+    for mn in mats:
+        me.materials.append(groups["mats"][mn])
+    part_of = []
+    for poly in me.polygons:
+        acc = {}
+        for vi in poly.vertices:
+            for k, w in wts[vi].items():
+                acc[k] = acc.get(k, 0.0) + w
+        reg = region(max(acc, key=acc.get)) if acc else "Pod"
+        if sum(w for k, w in acc.items() if region(k) == "Glove") >= GLOVE_W * len(poly.vertices):
+            reg = "Glove"
+        elif reg in ("Pod", "Jacket", "Trousers") and not max(acc, key=acc.get).startswith(
+                ("upperarm", "lowerarm", "clavicle")):
+            # подвеска до пояса и до колен — ровный край (пояс закрывает шов)
+            z = poly.center.z
+            if max(acc, key=acc.get).startswith(("thigh", "calf")):
+                reg = "Pod" if z > groups["knee_z"] else "Trousers"
+            else:
+                reg = "Pod" if z < groups["waist_z"] else "Jacket"
+        mat = {"Head": "Skin", "Neck": "Jacket"}.get(reg, reg)
+        poly.material_index = mats.index(mat)
+        part_of.append("hands" if reg == "Glove" else "head" if reg in ("Head", "Neck")
+                       else "body")
+    # наши группы вершин
+    for vg in list(src.vertex_groups):
+        src.vertex_groups.remove(vg)
+    vgs = {b: src.vertex_groups.new(name=b) for b in groups["bones"]}
+    for vi, wd in enumerate(wts):
+        acc = {}
+        for k, w in wd.items():
+            for b, share in MERGE.get(k, {}).items():
+                acc[b] = acc.get(b, 0.0) + w * share
+        top = sorted(acc.items(), key=lambda kv: -kv[1])[:4]
+        tot = sum(w for _, w in top) or 1.0
+        for b, w in top:
+            vgs[b].add([vi], w / tot, "REPLACE")
+    out = {}
+    for name in ("body", "hands", "head"):
+        ob = src.copy()
+        ob.data = src.data.copy()
+        ob.name = "part_" + name
+        bpy.context.scene.collection.objects.link(ob)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.faces.ensure_lookup_table()
+        bmesh.ops.delete(bm, geom=[fc for fc in bm.faces if part_of[fc.index] != name],
+                         context="FACES")
+        bm.to_mesh(ob.data)
+        bm.free()
+        out[name] = ob
+    bpy.data.objects.remove(src)
+    return out
+
+
+def tris(ob) -> int:
+    return sum(len(p.vertices) - 2 for p in ob.data.polygons)
+
+
+def decimate(ob, target: int) -> None:
+    mod = ob.modifiers.new("Decimate", "DECIMATE")
+    mod.ratio = min(1.0, target / max(tris(ob), 1))
+    mod.use_symmetry = True
+    mod.symmetry_axis = "X"
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+
+
+def cap_neck(ob, nk: Vector, mb: U.MeshBuilder) -> None:
+    """Закрыть горловину тела (голова — отдельный меш Helmet, в кабине он скрыт) и надеть на
+    шов воротник куртки (по краю горловины, жёстко на Chest)."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    edges = [e for e in bm.edges if e.is_boundary and all(
+        v.co.z > nk.z - 0.12 and abs(v.co.x) < 0.15 for v in e.verts)]
+    ring = {v.index: v.co.copy() for e in edges for v in e.verts}.values()
+    # обход края горловины по порядку → одна n-угольная крышка
+    nxt = {}
+    for e in edges:
+        a, b = e.verts
+        nxt.setdefault(a, []).append(b)
+        nxt.setdefault(b, []).append(a)
+    start = max(nxt, key=lambda v: v.co.z)
+    loop, prev, cur = [start], None, start
+    while True:
+        cand = [v for v in nxt[cur] if v is not prev]
+        if not cand or cand[0] is start:
+            break
+        prev, cur = cur, cand[0]
+        loop.append(cur)
+    faces = []
+    if len(loop) == len(nxt):
+        fc = bm.faces.new(loop)
+        fc.normal_update()
+        if fc.normal.z < 0:
+            fc.normal_flip()
+        fc.material_index = ob.data.materials.find("Jacket")
+        fc.smooth = False
+        faces.append(fc)
+    bm.to_mesh(ob.data)
+    bm.free()
+    cx = (max(p.x for p in ring) + min(p.x for p in ring)) / 2
+    cy = (max(p.y for p in ring) + min(p.y for p in ring)) / 2
+    rx = (max(p.x for p in ring) - min(p.x for p in ring)) / 2 + 0.008
+    ry = (max(p.y for p in ring) - min(p.y for p in ring)) / 2 + 0.008
+    z0, z1 = min(p.z for p in ring), max(p.z for p in ring)
+    mb.add_tube([Vector((cx, cy, z0 - 0.015)), Vector((cx, cy, (z0 + z1) / 2)),
+                 Vector((cx, cy, z1 + 0.012))], [rx + 0.012, rx + 0.004, rx],
+                "Jacket", sides=14, ellipse=(1.0, ry / rx), cap=False, up=(0, 1, 0))
+    print("CAP край %d вершин, обход %d; горловина: %d граней, воротник %.3f×%.3f м, высота %.3f м"
+          % (len(nxt), len(loop), len(faces), rx, ry, z1 - z0 + 0.027))
+
+
+def join(objs: list, name: str):
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    bpy.ops.object.join()
+    ob = objs[0]
+    ob.name = ob.data.name = name
+    return ob
+
+
+def build_parts(parts: list, name: str, mats: dict):
+    """[(кость, MeshBuilder)] → объект с группами вершин по костям."""
     mb = U.MeshBuilder()
     groups = {}
     for bone, p in parts:
@@ -468,19 +852,23 @@ def merge(parts: list) -> tuple:
         for f, uv, mat, sm in zip(p.faces, p.uvs, p.mats, p.smooth):
             mb.add_face([i + base for i in f], p.mat_names[mat], uv, sm)
         groups.setdefault(bone, []).extend(range(base, len(mb.verts)))
-    return mb, groups
-
-
-def skin(ob, arm, groups: dict) -> None:
+    ob = mb.build(name, mats)
     for bone, idx in groups.items():
-        vg = ob.vertex_groups.new(name=bone)
-        vg.add(idx, 1.0, "REPLACE")
+        ob.vertex_groups.new(name=bone).add(idx, 1.0, "REPLACE")
+    return ob
+
+
+def skin(ob, arm) -> None:
     ob.parent = arm
     mod = ob.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
 
 
+REST_HIPS = Vector((0, 0.2, 0))
+
+
 def main() -> None:
+    global REST_HIPS
     params = U.load_json("tools/blender/glider_params.json")
     cf = params["control_frame"]
     eye = Vector(params["pilot_eye"])
@@ -500,7 +888,20 @@ def main() -> None:
         "GlovePanel": U.material("GlovePanel", U.srgb((0.2, 0.2, 0.21)), rough=0.6),
         "Strap": U.material("Strap", U.srgb((0.15, 0.15, 0.15)), rough=0.7),
     }
-    rest = rest_pose().bones()
+    # тело MPFB
+    src, wts, joints, axes, hand = mpfb_body()
+    smooth_feet(src, wts)
+    pts = [v.co.copy() for v in src.data.vertices]
+    reg = [vregion(w) for w in wts]
+    REST_HIPS = joints["pelvis"].copy()
+    lean, legs, hands, pole, elbow_l = fit_dims(joints, pts, reg, hand)
+    grips = [axes["l"], axes["r"]]
+    Pose.twist0 = [0.0, 0.0]
+    rp = rest_pose((lean, legs, hands, pole, grips))
+    rp.bones()
+    Pose.twist0 = list(rp.twist)
+    rest = rp.bones()
+    print("REST локоть L: ошибка %.4f м" % (rest["Forearm.L"][0] - elbow_l).length)
     # скелет
     ad = bpy.data.armatures.new("Pilot")
     arm = bpy.data.objects.new("Pilot", ad)
@@ -522,28 +923,54 @@ def main() -> None:
         ad.edit_bones[name].parent = ad.edit_bones[par]
     bpy.ops.object.mode_set(mode="OBJECT")
     rest_m = {b.name: b.matrix_local.copy() for b in ad.bones}
-    # меши
-    parts = body_parts(rest)
-    print("GLOVE clearance to tube axis: %.4f m (bar r 0.017, upright r 0.019)"
-          % glove_clearance(parts, rest))
-    mb, groups = merge(parts)
-    skin(mb.build("PilotBody", mats), arm, groups)
+    # меши: тело MPFB по частям, прореживание, процедурные детали
+    hand_pts = {s: [p for p, r in zip(pts, reg) if r in ("Glove",) and p.x * sd > 0]
+                for s, sd in (("L", -1), ("R", 1))}
+    arm_pts = {s: [p for p, r in zip(pts, reg) if r in ("Glove", "Jacket") and p.x * sd > 0.2]
+               for s, sd in (("L", -1), ("R", 1))}
+    for s in ("L", "R"):
+        print("GLOVE %s: зазор кулака до оси трубы %.4f м (штанга r 0,017, стойка r 0,019)"
+              % (s, cuff_clearance(hand_pts[s], rest["Hand." + s])))
+    waist_z = rest["Chest"][0].z - 0.03
+    parts = split_parts(src, wts, {"mats": mats, "bones": list(rest), "waist_z": waist_z,
+                                   "knee_z": rest["Shin.L"][0].z + 0.05})
+    for nm, tgt in (("body", TRIS_BODY), ("hands", TRIS_HANDS), ("head", TRIS_HEAD)):
+        before = tris(parts[nm])
+        decimate(parts[nm], tgt)
+        print("DECIMATE %s: %d → %d" % (nm, before, tris(parts[nm])))
+    extra = []
+    collar = U.MeshBuilder()
+    cap_neck(parts["body"], rest["Head"][0], collar)
+    extra.append(("Chest", collar))
+    harness(rest, pts, reg, extra, wts, waist_z)
+    for s, side in (("L", -1), ("R", 1)):
+        mb = U.MeshBuilder()
+        cuff(mb, rest["Hand." + s], side, arm_pts[s], hand_pts[s])
+        extra.append(("Hand." + s, mb))
+    proc = build_parts(extra, "PilotProc", mats)
+    counts = {"тело": tris(parts["body"]), "кисти": tris(parts["hands"]),
+              "подвеска/краги": tris(proc)}
+    body = join([parts["body"], parts["hands"], proc], "PilotBody")
+    skin(body, arm)
     hb = U.MeshBuilder()
-    helmet(rest, hb)
-    hob = hb.build("Helmet", mats)
-    skin(hob, arm, {"Head": list(range(len(hb.verts)))})
+    helmet(rest, pts, reg, hb)
+    hob = build_parts([("Head", hb)], "HelmetProc", mats)
+    counts["голова"] = tris(parts["head"])
+    counts["шлем/визор"] = tris(hob)
+    hob = join([parts["head"], hob], "Helmet")
+    skin(hob, arm)
     # пустышки на костях (в позе покоя)
     ad.pose_position = "REST"
     bpy.context.view_layer.update()
     n, hu, hf, _ = rest["Head"]
-    rest_eye = n + hu * 0.12 + hf * EYE_FWD
+    rest_eye = n + hu * D.EYE_UP + hf * D.EYE_FWD
     cam = rest_eye + rot_x(HEAD_PRONE) @ Vector((0, -0.25, 0.08))  # лёжа: 0,25 м сзади, 0,08 выше
     look = rot_x(HEAD_PRONE) @ hf
     marks = {"Head": ("Head", U.look_matrix(rest_eye, rest_eye + look)),
              "CockpitCamera": ("Head", U.look_matrix(cam, cam + rot_x(HEAD_PRONE + 10) @ hf))}
     for s, nm in (("L", "HandL"), ("R", "HandR")):
         w, d, _, _ = rest["Hand." + s]
-        marks[nm] = ("Hand." + s, Matrix.Translation(w + d * HAND))
+        marks[nm] = ("Hand." + s, Matrix.Translation(w + d * D.HAND))
     for nm, (bone, mw) in marks.items():
         e = U.empty(nm, (0, 0, 0))
         e.parent = arm
@@ -554,13 +981,17 @@ def main() -> None:
     ad.pose_position = "POSE"
     # анимации
     arm.animation_data_create()
-    for aname, frames in poses(cf, eye).items():
+    all_poses = poses(cf, eye)
+    for aname, frames in all_poses.items():
         act = bpy.data.actions.new(aname)
         act.use_fake_user = True
         arm.animation_data.action = act
+        gap, gap_f = 0.0, 0
         for fi, pose in enumerate(frames):
             pm = {n: bone_matrix(h, d, zr, ln / ((rest[n][3]) or 1.0))
                   for n, (h, d, zr, ln) in pose.bones().items()}
+            if max(pose.reach_gap) > gap:
+                gap, gap_f = max(pose.reach_gap), fi + 1
             for name, m in pm.items():
                 rm = rest_m[name]
                 rmn = bone_matrix(rest[name][0], rest[name][1], rest[name][2])
@@ -579,20 +1010,24 @@ def main() -> None:
                 pb.location, pb.rotation_quaternion, pb.scale = loc, rot, sc
                 for path in ("location", "rotation_quaternion", "scale"):
                     pb.keyframe_insert(path, frame=fi + 1)
+        print("POSE %-9s руки не дотягиваются до хвата на %.3f м (кадр %d)" % (aname, gap, gap_f))
         track = arm.animation_data.nla_tracks.new()
         track.name = aname
         track.strips.new(aname, 1, act)
         track.mute = True
     arm.animation_data.action = bpy.data.actions["prone"]
     os.makedirs(U.MODELS, exist_ok=True)
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(U.SOURCE, "pilot.blend"),
+    out_models = os.environ.get("PILOT_OUT") or U.MODELS
+    out_source = os.environ.get("PILOT_OUT") or U.SOURCE
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_source, "pilot.blend"),
                                 check_existing=False, compress=True)
-    bpy.ops.export_scene.gltf(filepath=os.path.join(U.MODELS, "pilot.glb"), export_format="GLB",
+    bpy.ops.export_scene.gltf(filepath=os.path.join(out_models, "pilot.glb"), export_format="GLB",
                               export_yup=True, export_animations=True,
                               export_animation_mode="ACTIONS", export_force_sampling=True,
                               export_skins=True, export_cameras=False, export_lights=False)
-    print("EXPORTED pilot: %d tris, eye(prone) %s" % (U.tri_count(),
-                                                      eye_of(poses(cf, eye)["prone"][0])))
+    print("TRIS " + ", ".join("%s %d" % kv for kv in counts.items()))
+    print("EXPORTED pilot: %d tris (PilotBody %d, Helmet %d), eye(prone) %s (pilot_eye %s)"
+          % (U.tri_count(), tris(body), tris(hob), eye_of(all_poses["prone"][0]), eye))
 
 
 if __name__ == "__main__":
