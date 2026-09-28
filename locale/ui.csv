@@ -316,3 +316,24 @@ setup_wing_topless,безмачтовое,topless
 setup_wing_single_surface,однообшивочное,single surface
 setup_wing_double_surface,двухобшивочное,double surface
 setup_decimal_point,",","."
+menu_net_game,Сетевая игра,Multiplayer
+net_server,Сервер,Server
+net_server_placeholder,IP:порт,IP:port
+net_create_title,Новая зона,New zone
+net_place,Место,Place
+net_create,Создать,Create
+net_join_title,Войти по коду,Join by code
+net_code,Код,Code
+net_join,Присоединиться,Join
+net_connecting,Подключение к %s…,Connecting to %s…
+net_zone_code,Код зоны,Zone code
+net_in_zone,В зоне,In the zone
+net_leader,ведущий,leader
+net_you,вы,you
+net_leave,Выйти из зоны,Leave zone
+net_err_unreachable,Сервер недоступен,Server unreachable
+net_err_zone_not_found,Нет такой зоны,No such zone
+net_err_version_mismatch,У вас другая версия игры,Different game version
+net_err_zone_full,Зона заполнена,The zone is full
+net_err_disconnected,Связь с сервером потеряна,Connection to the server lost
+net_err_bad_message,Ошибка связи с сервером,Server communication error

@@ -7,6 +7,8 @@ extends Control
 
 signal fly_requested(settings: FlightSettings)
 signal setup_requested
+## «Сетевая игра» (NET-50): открыть экран NetScreen.
+signal net_requested
 signal settings_requested
 signal about_requested
 signal controls_requested
@@ -107,6 +109,7 @@ func _build() -> void:
 	_setup_btn = UiKit.menu_button(
 		box, tr("menu_flight_setup"), func() -> void: setup_requested.emit()
 	)
+	UiKit.menu_button(box, tr("menu_net_game"), func() -> void: net_requested.emit())
 	UiKit.menu_button(box, tr("menu_controls"), func() -> void: controls_requested.emit())
 	UiKit.menu_button(box, tr("menu_settings"), func() -> void: settings_requested.emit())
 	UiKit.menu_button(box, tr("menu_about"), func() -> void: about_requested.emit())

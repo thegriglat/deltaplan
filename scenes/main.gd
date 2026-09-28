@@ -14,6 +14,8 @@ var opts: LaunchOptions
 var flight: FlightSettings
 ## Папка user-конфигов для выбора языка (тесты подменяют, чтобы не трогать профиль).
 var user_config_dir: String = UserSettings.DEFAULT_DIR
+## «Сетевая игра» (NET-50): создаётся при открытии, удаляется при закрытии.
+var net_screen: NetScreen = null
 
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
@@ -205,6 +207,7 @@ func _overlay_open() -> bool:
 		or about_screen.visible
 		or controls_screen.visible
 		or flight_setup_screen.visible
+		or (net_screen != null and net_screen.visible)
 	)
 
 
@@ -213,6 +216,9 @@ func _close_overlay() -> void:
 	about_screen.visible = false
 	controls_screen.visible = false
 	flight_setup_screen.visible = false
+	if net_screen != null:
+		net_screen.queue_free()
+		net_screen = null
 	if _overlay_back != null:
 		_overlay_back.visible = true
 
@@ -228,6 +234,7 @@ func _connect_screens() -> void:
 	start_menu.language_requested.connect(_on_language_requested)
 	start_menu.fly_requested.connect(func(s: FlightSettings) -> void: _fly(s))
 	start_menu.setup_requested.connect(_open_flight_setup)
+	start_menu.net_requested.connect(_open_net_screen)
 	start_menu.settings_requested.connect(_open_overlay.bind(settings_panel, start_menu))
 	start_menu.about_requested.connect(_open_overlay.bind(about_screen, start_menu))
 	start_menu.controls_requested.connect(_open_overlay.bind(controls_screen, start_menu))
@@ -311,6 +318,18 @@ func _rebuild_ui(focus_language: bool = false) -> void:
 func _open_flight_setup() -> void:
 	flight_setup_screen.set_settings(flight)
 	_open_overlay(flight_setup_screen, start_menu)
+
+
+## «Сетевая игра»: место — здесь, крыло/масса/время/погода — из последнего «Полёт…».
+## fly_requested экрана пока не подключён: сетевой полёт — NET-40 (scripts/game/).
+func _open_net_screen() -> void:
+	if net_screen == null:
+		net_screen = (load("res://scenes/ui/net_screen.tscn") as PackedScene).instantiate()
+		net_screen.settings = flight.duplicate()
+		net_screen.visible = false
+		$UI.add_child(net_screen)
+		net_screen.closed.connect(_close_overlay)
+	_open_overlay(net_screen, start_menu)
 
 
 ## «Готово» в «Полёт…»: выбор запомнить и вернуться в меню (в полёт — только «Лететь»).

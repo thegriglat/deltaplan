@@ -53,3 +53,14 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 		s.location_id = FlightSettings.defaults().location_id
 		s.site_id = FlightSettings.defaults().site_id
 	return s
+
+
+## Адрес сервера сетевой игры (NET-50): user-конфиг game.json → net.server_address
+## ("IP:порт" или имя; пусто — ещё не вводили).
+static func server_address() -> String:
+	return String(Config.value("game", "net.server_address", "")).strip_edges()
+
+
+static func save_server_address(addr: String, dir: String = DEFAULT_DIR) -> void:
+	if save_patch("game", {"net": {"server_address": addr.strip_edges()}}, dir):
+		Config.reload()
