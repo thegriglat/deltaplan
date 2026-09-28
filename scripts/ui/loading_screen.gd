@@ -7,6 +7,7 @@ extends Control
 
 var _progress: LoadProgress
 var _place: Label
+var _net_label: Label
 var _stage: Label
 var _bar: ProgressBar
 var _time: Label
@@ -31,11 +32,32 @@ func open(progress: LoadProgress, place: String) -> void:
 		progress.changed.connect(_on_changed)
 	_place.text = place
 	_place.visible = place != ""
+	set_net_info({})
 	_shown = 0.0
 	_bar.value = 0.0
 	_t0 = Time.get_ticks_msec()
 	_on_changed(progress.text if progress != null else "", 0.0)
 	visible = true
+
+
+## Зона сетевого полёта (NET-52, NetPauseInfo.build): код и кто в зоне; {} — не сетевой полёт
+## (строка скрыта).
+func set_net_info(info: Dictionary) -> void:
+	if info.is_empty():
+		_net_label.visible = false
+		return
+	var names: PackedStringArray = []
+	for p: Dictionary in info.get("pilots", []):
+		names.append(String(p.get("name", "")))
+	_net_label.text = (
+		"%s %s — %s" % [tr("net_zone_code"), String(info.get("code", "")), ", ".join(names)]
+	)
+	_net_label.visible = true
+
+
+## Строка «код зоны — кто в зоне», как показана ("" — не сетевой полёт); для тестов/скриншотов.
+func net_line_text() -> String:
+	return _net_label.text if _net_label.visible else ""
 
 
 func close() -> void:
@@ -55,6 +77,8 @@ func _build() -> void:
 	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
 	UiKit.label(box, tr("loading_title"), "TitleLabel")
 	_place = UiKit.label(box, "", "HintLabel")
+	_net_label = UiKit.label(box, "", "HintLabel")
+	_net_label.visible = false
 	UiKit.separator(box)
 	_stage = UiKit.label(box, "", "HeaderLabel")
 	_bar = ProgressBar.new()

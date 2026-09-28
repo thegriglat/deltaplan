@@ -20,6 +20,7 @@ var net_screen: NetScreen = null
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
+var _net_pause_timer: Timer  ## обновление списка пилотов зоны в паузе (NET-52), 2 Гц
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -41,6 +42,11 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
+	_net_pause_timer = Timer.new()
+	_net_pause_timer.process_mode = Node.PROCESS_MODE_ALWAYS  # пауза дерева его не должна стопорить
+	_net_pause_timer.wait_time = 0.5
+	_net_pause_timer.timeout.connect(_refresh_net_pause)
+	add_child(_net_pause_timer)
 	_connect_ui()
 	var overlays: Array[Control] = [
 		pause_menu,
@@ -101,6 +107,7 @@ func _fly(s: FlightSettings) -> void:
 	get_tree().paused = false
 	start_menu.set_busy(true)
 	loading_screen.open(game.terrain.progress, StartMenu.summary_text(s).replace("\n", " · "))
+	loading_screen.set_net_info(NetPauseInfo.build(NetZone, NetPilots))
 	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
 	game.air_start_m = opts.air_start_m
 	game.air_start_agl_m = opts.air_start_agl_m
@@ -134,6 +141,7 @@ func _fly(s: FlightSettings) -> void:
 
 
 func _show_menu() -> void:
+	_net_pause_timer.stop()
 	state = State.MENU
 	get_tree().paused = false
 	var overlays: Array[Control] = [
@@ -164,10 +172,13 @@ func _pause() -> void:
 	state = State.PAUSED
 	get_tree().paused = true
 	game.set_paused(true)
+	_refresh_net_pause()
+	_net_pause_timer.start()
 	pause_menu.visible = true
 
 
 func _resume() -> void:
+	_net_pause_timer.stop()
 	pause_menu.visible = false
 	get_tree().paused = false
 	game.set_paused(false)
@@ -175,12 +186,27 @@ func _resume() -> void:
 
 
 func _restart() -> void:
+	_net_pause_timer.stop()
 	result_screen.visible = false
 	pause_menu.visible = false
 	get_tree().paused = false
 	game.restart()
 	game.set_paused(false)
 	state = State.FLYING
+
+
+## Список пилотов зоны в паузе (NET-52) — не в зоне: NetPauseInfo.build вернёт {}, блок скрыт.
+func _refresh_net_pause() -> void:
+	var own_alt: Variant = null
+	if game.settings != null:
+		own_alt = game.glider.get_telemetry().altitude_msl
+	pause_menu.set_net_info(NetPauseInfo.build(NetZone, NetPilots, own_alt))
+
+
+## «Выйти из зоны» в паузе (NET-52): выйти и вернуться в меню, как «В меню».
+func _on_leave_zone_requested() -> void:
+	NetZone.leave_zone()
+	_show_menu()
 
 
 func _on_flight_ended(kind: String, info: Dictionary) -> void:
@@ -248,6 +274,7 @@ func _connect_screens() -> void:
 	pause_menu.settings_requested.connect(_open_overlay.bind(settings_panel, pause_menu))
 	pause_menu.menu_requested.connect(_show_menu)
 	pause_menu.quit_requested.connect(_quit.bind(0))
+	pause_menu.leave_zone_requested.connect(_on_leave_zone_requested)
 	settings_panel.closed.connect(_on_settings_closed)
 	about_screen.closed.connect(_close_overlay)
 	result_screen.restart_requested.connect(_restart)
