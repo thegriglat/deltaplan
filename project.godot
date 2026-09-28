@@ -18,6 +18,7 @@ buses/default_bus_layout="res://scenes/audio/bus_layout.tres"
 [autoload]
 
 Config="*res://scripts/core/config.gd"
+NetClient="*res://scripts/net/net_client.gd"
 
 [display]
 
