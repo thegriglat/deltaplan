@@ -20,6 +20,7 @@ var _side := "R"
 var _fov := 50.0
 var _own_eye := false
 var _wind := Vector2(-1, 0)
+var _target := Vector3(INF, 0, 0)  ## --target=x,y,z (оси планера): куда смотреть вместо ленточки
 var _fwd_pitch := NAN  ## --forward=<тангаж °>: из глаз пилота прямо вперёд, а не на ленточку
 
 
@@ -39,6 +40,9 @@ func _ready() -> void:
 			"--set-wind":
 				var w := v.split(",")
 				_wind = Vector2(float(w[0]), float(w[1]))
+			"--target":
+				var q := v.split(",")
+				_target = Vector3(float(q[0]), float(q[1]), float(q[2]))
 			"--forward":
 				_fwd_pitch = float(v)
 			"--eye":
@@ -95,8 +99,10 @@ func _run() -> void:
 	cam.position = _eye
 	cam.current = true
 	for i in 40:
-		var knot := game.glider.to_local(tt.global_position)
-		cam.look_at(game.glider.to_global(knot + Vector3(0, 0, 0.12)), game.glider.global_basis.y)
+		var knot := game.glider.to_local(tt.global_position) + Vector3(0, 0, 0.12)
+		if _target.x != INF:
+			knot = _target
+		cam.look_at(game.glider.to_global(knot), game.glider.global_basis.y)
 		await RenderingServer.frame_post_draw
 	_save()
 
