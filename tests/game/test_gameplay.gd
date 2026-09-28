@@ -22,6 +22,10 @@ func check(cond: bool, msg: String = "") -> void:
 func _open() -> Node:
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart"])))
+	# Сид мира закреплён: после NET-00 мир в t = 0 — уже идущий день, и в погоде по умолчанию
+	# (гроза возможна) у старта при большинстве сидов дует растекание от Cb (10–36 м/с, стоящего
+	# пилота поднимает). С сидом 42 у старта бури нет — проверки в спокойном воздухе.
+	(main.get_node("Game") as Game).world_seed = 42
 	add_child(main)
 	for i in 1200:
 		if main.get("state") == 2:

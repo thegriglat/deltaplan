@@ -258,7 +258,11 @@ func start(s: FlightSettings) -> bool:
 	bots.setup_in_world(terrain, air, _start_pos, _start_heading, bots_count)
 	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
+	# Поля доводит Terrain._process; у выключенного узла (тесты шагают сами) — ждать здесь.
 	while terrain.has_method("relief_busy") and terrain.relief_busy():
+		if not terrain.can_process() and terrain.has_method("wait_relief"):
+			terrain.wait_relief()
+			break
 		await get_tree().process_frame
 	restart()
 	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое).

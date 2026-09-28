@@ -23,6 +23,9 @@ func test_main_scene_autopilot_flight() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	add_child(main)
 	var game: Game = main.get_node("Game")
+	# Сид мира закреплён (как в test_gameplay.gd): после NET-00 в погоде по умолчанию у старта при
+	# большинстве сидов уже дует растекание от гроз; с сидом 42 — спокойно.
+	game.world_seed = 42
 	# Меню поднимает мир за собой асинхронно — дождаться.
 	for i in 600:
 		if game.settings != null:
@@ -134,8 +137,11 @@ func test_air_start() -> void:
 	check(LaunchOptions.parse(PackedStringArray([])).air_start_m < 0.0, "без флага — с земли")
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", o)
-	add_child(main)
 	var game: Game = main.get_node("Game")
+	# Сид мира закреплён (как в test_gameplay.gd): после NET-00 в погоде по умолчанию у старта при
+	# большинстве сидов уже дует растекание от гроз; с сидом 42 — спокойно.
+	game.world_seed = 42
+	add_child(main)
 	for i in 600:
 		if main.get("state") == 2:
 			break
