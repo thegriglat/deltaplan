@@ -120,7 +120,18 @@ uniform float relief_shadow_soft_deg = 2.0;   // полутень по углу 
 uniform float relief_shadow_ambient = 0.35;   // рассеянный свет относительно прямого (тень не чёрная)
 uniform vec2 relief_shadow_near_m = vec2(2200.0, 3000.0); // ближе — тени Godot (sun.shadow_max_distance_m)
 uniform vec3 water_color : source_color;
-uniform float water_roughness = 0.1;
+uniform float water_roughness = 0.08;    // гладь в штиль (зеркало)
+// --- вода от ветра (VR-16; configs/world.json → terrain_look: water_*) ---
+uniform float water_rough_wind = 0.32;   // шероховатость при ветре water_wind_full_ms (матовая рябь)
+uniform float water_wind_calm_ms = 0.7;  // до такого ветра — зеркало, м/с
+uniform float water_wind_full_ms = 5.0;  // при таком ветре рябь полная, м/с
+uniform float water_ripple_m = 4.0;      // длина мелкой ряби, м (вторая октава — ×3)
+uniform float water_ripple_tilt = 0.18;  // наклон нормали ряби при полном ветре
+uniform float water_gust_rough = 0.35;   // добавка шероховатости в пятне порыва («кошачья лапа»)
+uniform float water_gust_tilt = 0.2;     // добавка наклона нормали ряби в пятне порыва
+uniform float water_lee_m = 150.0;       // ветровая тень у наветренного берега: дальняя выборка, м
+uniform float water_lee_calm = 0.85;     // доля ветра, которую гасит суша вплотную с наветра
+uniform float water_specular = 0.4;      // блик воды (PBR specular; 0.5 — F0 4 %)
 uniform float roughness_value;
 uniform float specular_value;
 
@@ -368,6 +379,21 @@ uniform float wind_far_silver = 0.1;     // доля «серебра» (к се
 uniform float wind_far_fade_m = 3500.0;  // дальше этого волн не видно (мягко от 0,6 этой дальности), м
 uniform float wind_far_morph_k = 0.75;   // второй слой пятен бежит медленнее — пятна меняют форму
 
+// Поле крупных порывов (0..1): пятна вытянуты поперёк ветра (фронт порыва), бегут по ветру.
+// d — единичный вектор ветра; foot — размер пикселя в мире, м. Общее для травы и воды (VR-16).
+float wind_far_gusts(vec2 xz, vec2 d, float foot) {
+	vec2 dp = vec2(-d.y, d.x);
+	vec2 p1 = xz - wind_offset * wind_gust_speed_k;
+	vec2 p2 = xz - wind_offset * wind_gust_speed_k * wind_far_morph_k;
+	vec2 a1 = vec2(dot(p1, d) / wind_far_gust_m, dot(p1, dp) / (wind_far_gust_m * 1.6));
+	vec2 a2 = vec2(dot(p2, d) / (wind_far_gust_m * 0.55), dot(p2, dp) / (wind_far_gust_m * 0.8));
+	// шум — из текстуры macro_noise_tex (пятно = MACRO_NOISE_FEATURE текселей)
+	float lod = log2(max(foot * MACRO_NOISE_SIZE / (MACRO_NOISE_FEATURE * wind_far_gust_m), 1e-3)) + 1.0;
+	float g = textureLod(macro_noise_tex, (a1 + vec2(3.7, 1.1)) / MACRO_NOISE_FEATURE, lod).z * 0.6
+			+ textureLod(macro_noise_tex, (a2 + vec2(8.2, 5.5)) / MACRO_NOISE_FEATURE, lod - 0.8).w * 0.4;
+	return smoothstep(0.36, 0.76, g);
+}
+
 // Крупные порывы и серебристая волна (0..~1) — видны с сотен метров до wind_far_fade_m.
 // Рисунок сдвигается накопленным на CPU wind_offset (без TIME) — смена ветра не даёт скачка.
 float grass_wind_far(vec2 xz, float dist, float foot) {
@@ -384,15 +410,7 @@ float grass_wind_far(vec2 xz, float dist, float foot) {
 	vec2 d = wind_vec / spd;
 	vec2 dp = vec2(-d.y, d.x);
 	vec2 p1 = xz - wind_offset * wind_gust_speed_k;
-	vec2 p2 = xz - wind_offset * wind_gust_speed_k * wind_far_morph_k;
-	// пятна порывов вытянуты поперёк ветра (фронт порыва)
-	vec2 a1 = vec2(dot(p1, d) / wind_far_gust_m, dot(p1, dp) / (wind_far_gust_m * 1.6));
-	vec2 a2 = vec2(dot(p2, d) / (wind_far_gust_m * 0.55), dot(p2, dp) / (wind_far_gust_m * 0.8));
-	// шум — из текстуры macro_noise_tex (пятно = MACRO_NOISE_FEATURE текселей)
-	float lod = log2(max(foot * MACRO_NOISE_SIZE / (MACRO_NOISE_FEATURE * wind_far_gust_m), 1e-3)) + 1.0;
-	float g = textureLod(macro_noise_tex, (a1 + vec2(3.7, 1.1)) / MACRO_NOISE_FEATURE, lod).z * 0.6
-			+ textureLod(macro_noise_tex, (a2 + vec2(8.2, 5.5)) / MACRO_NOISE_FEATURE, lod - 0.8).w * 0.4;
-	g = smoothstep(0.36, 0.76, g);
+	float g = wind_far_gusts(xz, d, foot);
 	// серебристая волна: фронты поперёк ветра, изогнуты шумом, гаснут, когда мельче пикселя
 	float kw = 1.0 - smoothstep(0.12 * wind_far_wave_m, 0.35 * wind_far_wave_m, foot);
 	float wave = 0.0;
@@ -403,6 +421,53 @@ float grass_wind_far(vec2 xz, float dist, float foot) {
 		wave = (0.5 + 0.5 * sin(6.2832 * (along + 2.0 * bend))) * kw;
 	}
 	return amp * g * (0.4 + 0.6 * wave + 0.6 * (1.0 - kw) * 0.5);
+}
+
+// Вода от ветра (VR-16): штиль — зеркало; ветер — матовая рябь; в пятнах порывов рябь сильнее
+// («кошачьи лапы»: темнее — меньше отражения неба, против солнца — искрятся); у наветренного
+// берега — гладкая полоса ветровой тени. Цвет воды не трогаем — всё через нормаль и шероховатость.
+// rough — шероховатость; nw — нормаль воды (мир); rip — рябь −0,5..0,5 (лёгкий оттенок).
+void water_wind(vec2 xz, float dist, float foot, out float rough, out vec3 nw, out float rip) {
+	float spd = length(wind_vec);
+	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
+	// ветровая тень: суша с наветра (маска воды 10 м, 4 выборки ~0,13–1 × water_lee_m) — ближе
+	// берег, сильнее тень
+	float lee = 0.0;
+	if (use_forest_mask && water_lee_m > 0.0 && spd > water_wind_calm_ms) {
+		lee = max(lee, 1.0 - forest_mask_g(xz - d * water_lee_m * 0.13));
+		lee = max(lee, (1.0 - forest_mask_g(xz - d * water_lee_m * 0.33)) * 0.85);
+		lee = max(lee, (1.0 - forest_mask_g(xz - d * water_lee_m * 0.62)) * 0.6);
+		lee = max(lee, (1.0 - forest_mask_g(xz - d * water_lee_m)) * 0.35);
+	}
+	// порывы: то же поле, что у травы с высоты; порывистость атмосферы усиливает
+	float gust = 0.0;
+	if (spd > water_wind_calm_ms && dist < wind_far_fade_m) {
+		gust = wind_far_gusts(xz, d, foot) * (1.0 - smoothstep(wind_far_fade_m * 0.6, wind_far_fade_m, dist));
+		gust *= 1.0 + gust_gain * smoothstep(0.0, gust_full_ms, wind_gust_ms);
+	}
+	float w_eff = spd * (1.0 - water_lee_calm * lee) * (1.0 + 0.6 * gust);
+	float k = smoothstep(water_wind_calm_ms, water_wind_full_ms, w_eff);
+	float tilt = water_ripple_tilt * k + water_gust_tilt * gust * (1.0 - lee);
+	rough = mix(water_roughness, water_rough_wind, k) + water_gust_rough * gust * (1.0 - lee);
+	// мелкая рябь: гребни поперёк ветра, бегут по ветру; две октавы, градиент конечными разностями
+	vec2 dp = vec2(-d.y, d.x);
+	vec2 p = xz - wind_offset * 0.35 + vec2(TIME * 0.15, 0.0);
+	vec2 a = vec2(dot(p, d), dot(p, dp) * 0.5) / water_ripple_m;
+	float e = 0.25;
+	float r0 = vnoise(a);
+	float r1 = vnoise(a * 0.33 + 7.1);
+	rip = (r0 * 0.6 + r1 * 0.4) - 0.5;
+	// рябь мельче пикселя — не нормалью (мерцает), а шероховатостью
+	float kn = 1.0 - smoothstep(0.3 * water_ripple_m, 1.5 * water_ripple_m, foot);
+	nw = vec3(0.0, 1.0, 0.0);
+	if (kn > 0.0 && tilt > 0.0) {
+		float gx = (vnoise(a + vec2(e, 0.0)) - r0) * 0.6 + (vnoise(a * 0.33 + 7.1 + vec2(e * 0.33, 0.0)) - r1) * 0.4;
+		float gy = (vnoise(a + vec2(0.0, e)) - r0) * 0.6 + (vnoise(a * 0.33 + 7.1 + vec2(0.0, e * 0.33)) - r1) * 0.4;
+		vec2 g = (d * gx + dp * gy * 0.5) / e;
+		nw = normalize(vec3(-g.x * tilt * kn, 1.0, -g.y * tilt * kn));
+	}
+	rough += tilt * (1.0 - kn) * 0.8;
+	rough = clamp(rough, 0.0, 0.8);
 }
 
 // Нормаль по билинейной поверхности в точке (градиент внутри клетки сетки).
@@ -858,9 +923,14 @@ void fragment() {
 			: 0.0;
 	vec3 bank_color = mix(bare_color, rock_color, 0.3) * 0.55;
 	col = mix(col, bank_color, bank * (1.0 - water));
-	float ripple = vnoise(wp.xz / 6.0 + vec2(TIME * 0.3, 0.0)) - 0.5;
-	col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
-	n = normalize(mix(n, vec3(0.03 * ripple, 1.0, 0.0), water));
+	float water_rough = water_roughness;
+	if (water > 0.001) {
+		float ripple;
+		vec3 nw;
+		water_wind(wp.xz, dist, foot_m, water_rough, nw, ripple);
+		col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
+		n = normalize(mix(n, nw, water));
+	}
 
 	// AO ложбин (цвет и рассеянный свет) и тень рельефа при низком солнце: вдали, где нет теней
 	// Godot; тень гасит только долю прямого света (ndl), рассеянный остаётся
@@ -877,7 +947,7 @@ void fragment() {
 		col *= mix(1.0, sh, relief_shadow_strength * kfar);
 	}
 	ALBEDO = clamp(col, 0.0, 1.0);
-	ROUGHNESS = mix(roughness_value, water_roughness, water);
-	SPECULAR = mix(specular_value * (1.0 - forest * 0.7), 0.5, water);
+	ROUGHNESS = mix(roughness_value, water_rough, water);
+	SPECULAR = mix(specular_value * (1.0 - forest * 0.7), water_specular, water);
 	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
 }

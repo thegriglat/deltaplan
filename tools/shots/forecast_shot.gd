@@ -7,6 +7,7 @@ extends Node
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/forecast_shot.tscn -- --autostart --bots=0 --temp=26 --wind=3 \
 ##     --hour=13 --out=/tmp/fc --tag=p26_w3 [--wait=20]
+## --orbit=<°> — вид сверху повёрнут вокруг точки взгляда (например, против солнца — блик на воде).
 ## Пишет <out>/<tag>_launch.png, <out>/<tag>_above.png, <out>/<tag>.txt. Код выхода 0/1.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -15,6 +16,7 @@ const TIMEOUT_S := 200.0
 var _out := ""
 var _tag := "forecast"
 var _wait := 20.0
+var _orbit_deg := 0.0
 var _main: Node = null
 var _game: Game = null
 
@@ -30,6 +32,8 @@ func _ready() -> void:
 				_tag = v
 			"--wait":
 				_wait = float(v)
+			"--orbit":
+				_orbit_deg = float(v)
 	if _out == "":
 		push_error("forecast_shot: нужен --out=")
 		get_tree().quit(1)
@@ -86,7 +90,9 @@ func _run() -> void:
 	await _shoot("launch")
 	cam.fov = 75.0
 	eye = sp - fwd * 600.0 + Vector3.UP * 1000.0
-	cam.look_at_from_position(eye, eye + fwd * 3000.0 + Vector3.DOWN * 900.0, Vector3.UP)
+	var target := eye + fwd * 3000.0 + Vector3.DOWN * 900.0
+	eye = target + (eye - target).rotated(Vector3.UP, deg_to_rad(_orbit_deg))
+	cam.look_at_from_position(eye, target, Vector3.UP)
 	await _shoot("above")
 	print("forecast_shot: OK %s" % _tag)
 	await _quit(0)
