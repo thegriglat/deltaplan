@@ -20,6 +20,7 @@ static func _world(max_clouds: int) -> Atmosphere:
 
 static func _layer(a: Atmosphere) -> CloudLayer:
 	var layer := CloudLayer.new()
+	layer.history_free = true
 	layer.setup(a)
 	layer._select(a.time_s, EYE)
 	return layer

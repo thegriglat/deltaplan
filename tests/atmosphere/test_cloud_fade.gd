@@ -153,6 +153,7 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 		for i in layer._slot_th.size():
 			if layer._slot_th[i] != null:
 				layer._place(i, t, pos)
+		layer._update_fades(1.0)
 		var cur: Dictionary = {}
 		for i in layer._slot_th.size():
 			var th: AtmoThermal = layer._slot_th[i]
