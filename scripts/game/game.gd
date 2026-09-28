@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Game
 extends Node3D
 ## Полётный мир: небо, рельеф, воздух, планер, ввод, камеры, прибор, звук (scenes/game/game.tscn).
@@ -15,6 +16,16 @@ extends Node3D
 signal flight_ended(kind: String, info: Dictionary)
 ## Текст о загрузке для меню ("" — готово).
 signal status_changed(text: String)
+## «Догнать» (NET-42): буксир поехал / кончился (state — "done", "aborted", "lost" — как
+## CatchUpTow; управление и физика уже у пилота).
+signal catch_up_started
+signal catch_up_ended(state: String)
+
+## Буксир: ниже этой высоты над рельефом управление отдаётся «на земле» (отмена сразу после
+## отрыва), м.
+const TOW_GROUND_AGL_M := 8.0
+## Буксир: потолок воздушной скорости для звука потока, м/с (на 1000 км/ч звук не «ревёт»).
+const TOW_FLOW_CAP_MS := 28.0
 
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
@@ -46,6 +57,10 @@ var world_seed := -1
 ## Сетевой режим (NET-40): NetFlight, пока летим в зоне; null — одиночная игра.
 ## Задаётся enable_net() до start(). Правила режима — scripts/game/net_flight.gd.
 var net: NetFlight = null
+## «Догнать» (NET-42): буксир к другу, пока летим на нём; null — физика у пилота.
+var tow: CatchUpTow = null
+## Руки с трапеции снаружи (меню «Догнать» открыто): крыло летит само, как при свободной камере.
+var hands_off := false
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -147,10 +162,13 @@ func tick(dt: float) -> void:
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук (автопилот тестов жмёт те же клавиши).
 	var free_cam := camera.mode == "free" and autopilot == null
-	input_controller.hands_off = free_cam
+	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
 	glider.set_input(input_controller.update(dt))
 	bots.tick(dt, glider.get_telemetry())
+	if tow != null:
+		_tow_step(dt)  # без физики, столкновений и итога полёта
+		return
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
@@ -387,6 +405,8 @@ func restart() -> void:
 		return
 	if autopilot != null:
 		autopilot.reset()
+	tow = null  # «Ещё раз» / «На старт» посреди буксира
+	camera.tight = false
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
 	else:
@@ -560,11 +580,101 @@ func is_crashed() -> bool:
 	return _crashed or String(_touchdown.get("grade", "")) == "crash"
 
 
-## «Продолжить рядом» (итог полёта в сети): буксир к ближайшему другу в воздухе.
-## ХУК NET-42: пока только пишет в лог; вернёт true, когда буксир поехал.
+## «Продолжить рядом» (итог полёта в сети): один живой друг в воздухе — буксир к нему (true).
+## Нескольких — false: главная сцена открывает меню «Догнать»; никого — false.
 func catch_up_nearest() -> bool:
-	print("Game.catch_up_nearest: «догнать» ещё не сделано (NET-42)")
-	return false
+	if net == null:
+		return false
+	var list := net.catch_up_list()
+	if CatchUpMenu.airborne_count(list) != 1:
+		return false
+	var id := CatchUpMenu.pick_nearest_airborne_human(list, glider.model.position)
+	return start_catch_up(net.target_fn(id))
+
+
+## «Догнать» пилота id (меню `=`): в воздухе — буксир к нему ("tow"); на земле — на старт
+## ("launch", NET-43: в конец очереди); нет такого — ничего ("").
+func catch_up_to(id: String) -> String:
+	if net == null:
+		return ""
+	match net.target_state(id):
+		"air":
+			return "tow" if start_catch_up(net.target_fn(id)) else ""
+		"ground":
+			return_to_launch()  # ХУК NET-43: цель на земле — в конец очереди на старт
+			return "launch"
+	return ""
+
+
+## Буксир к цели target_fn() -> {position, velocity} ({} — цель ушла/села) — откуда угодно: из
+## воздуха, со старта, с посадки, после аварии (крыло поднимается с места). false — цели нет.
+func start_catch_up(target_fn: Callable) -> bool:
+	if settings == null:
+		return false
+	var m := glider.model
+	var vel := m.velocity if m.mode == FlightModel.Mode.AIR else Vector3.ZERO
+	var t := CatchUpTow.new({}, terrain.height_at)
+	t.start(m.position, vel, target_fn, m.heading)
+	if not t.is_active():
+		return false
+	tow = t
+	_crashed = false
+	_ended = true  # на буксире итога полёта нет
+	_leave_queue_for_tow()
+	catch_up_started.emit()
+	return true
+
+
+## Отмена буксира (Esc / `=`): физика возвращается на месте.
+func abort_catch_up() -> void:
+	if tow == null:
+		return
+	tow.abort()
+	_end_catch_up(tow.last)
+
+
+func is_towing() -> bool:
+	return tow != null
+
+
+## ХУК NET-43: игрок в очереди на старт уходит из неё, когда буксир поднимает его с земли.
+func _leave_queue_for_tow() -> void:
+	pass
+
+
+## Шаг буксира: крыло — куда скажет CatchUpTow, камера сзади — вплотную; кончился — пилоту.
+func _tow_step(dt: float) -> void:
+	var r := tow.step(dt)
+	if not bool(r.active):
+		_end_catch_up(r)
+		return
+	camera.tight = true
+	glider.set_kinematic(
+		r.position, r.velocity, r.heading, r.bank, r.basis, minf(float(r.speed), TOW_FLOW_CAP_MS)
+	)
+
+
+## Буксир кончился (прибыли, отмена, цель потеряна): крыло на месте на триммерной скорости
+## (у самой земли — стоит), физика и столкновения снова считаются, статистика — с этой точки.
+func _end_catch_up(r: Dictionary) -> void:
+	tow = null
+	camera.tight = false
+	var pos: Vector3 = r.position
+	var heading_deg := rad_to_deg(float(r.heading))
+	_prev_phase = ""
+	if pos.y - terrain.height_at(pos.x, pos.z) < TOW_GROUND_AGL_M:
+		glider.reset_on_ground(pos, heading_deg)
+	else:
+		glider.reset_in_air(pos, heading_deg)
+	input_controller.reset()
+	collisions.reset()
+	_crashed = false
+	_ended = false
+	_touchdown = {}
+	stats.reset(pos)
+	stats.armed = glider.phase() == "flying"
+	instrument.reset()
+	catch_up_ended.emit(String(r.get("state", "")))
 
 
 ## «На старт» (итог полёта в сети): снова на старт, мир не сбрасывается.
@@ -734,6 +844,11 @@ func _update_overlay() -> void:
 
 
 func _on_telemetry(t: Telemetry) -> void:
+	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
+		vario_audio.set_vario(0.0)
+		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
+		_animator.update(t.phase, t.altitude_agl, 0.0, 0.0, _dt)
+		return
 	instrument.update(t, _dt)
 	for n in mounted:
 		if not bool(n.get_meta("shares_tablet", false)) and n.has_method("update"):

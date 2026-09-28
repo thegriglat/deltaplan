@@ -16,6 +16,8 @@ var flight: FlightSettings
 var user_config_dir: String = UserSettings.DEFAULT_DIR
 ## «Сетевая игра» (NET-50): создаётся при открытии, удаляется при закрытии.
 var net_screen: NetScreen = null
+## «Догнать» (NET-42): меню `=` поверх полёта в сетевой зоне.
+var catch_up_menu: CatchUpMenu
 
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
@@ -52,6 +54,7 @@ func _ready() -> void:
 	_net_pause_timer.timeout.connect(_refresh_net_pause)
 	add_child(_net_pause_timer)
 	_connect_ui()
+	_setup_catch_up_menu()
 	NetZone.zone_left.connect(_on_zone_left)
 	var overlays: Array[Control] = [
 		pause_menu,
@@ -89,6 +92,16 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# «Догнать» (NET-42): Esc или `=` на буксире — отмена (физика на месте); `=` — меню.
+	if state == State.FLYING and game.is_towing():
+		if event.is_action_pressed("pause") or event.is_action_pressed(CatchUpMenu.ACTION):
+			get_viewport().set_input_as_handled()
+			game.abort_catch_up()
+			return
+	if event.is_action_pressed(CatchUpMenu.ACTION) and state == State.FLYING and game.net != null:
+		get_viewport().set_input_as_handled()
+		open_catch_up_menu()
+		return
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
 		match state:
@@ -165,6 +178,7 @@ func _fly(s: FlightSettings) -> void:
 
 
 func _show_menu() -> void:
+	catch_up_menu.close()
 	_net_pause_timer.stop()
 	_pending_result = []
 	_end_net()
@@ -196,6 +210,7 @@ func _show_menu() -> void:
 ## Esc: физика стоит (дерево на паузе, Telemetry.time_s не растёт), звук молчит.
 ## В сети (NET-40) мир не останавливается — только меню, ввод выключен (крыло летит само).
 func _pause() -> void:
+	catch_up_menu.close()
 	state = State.PAUSED
 	get_tree().paused = game.net == null
 	game.set_paused(true)
@@ -217,6 +232,7 @@ func _resume() -> void:
 
 
 func _restart() -> void:
+	catch_up_menu.close()
 	_net_pause_timer.stop()
 	_pending_result = []
 	result_screen.visible = false
@@ -261,6 +277,7 @@ func _keep_net_result(kind: String, info: Dictionary) -> void:
 
 
 func _show_result(kind: String, info: Dictionary) -> void:
+	catch_up_menu.close()
 	state = State.RESULT
 	get_tree().paused = game.net == null  # в сети мир идёт дальше (NET-40)
 	game.set_paused(true)
@@ -469,10 +486,45 @@ func _on_net_airborne_changed(any: bool) -> void:
 		result_screen.set_net_mode(true, any)
 
 
-## «Продолжить рядом»: дальше с места посадки, буксир к другу — NET-42 (game.catch_up_nearest).
+## «Продолжить рядом»: окно итога закрыть; один друг в воздухе — буксир к нему с места, где
+## стоим; несколько — меню «Догнать» (NET-42).
 func _on_result_continue_near() -> void:
 	_on_result_continue()
-	game.catch_up_nearest()
+	if game.catch_up_nearest() or game.net == null:
+		return
+	if CatchUpMenu.airborne_count(game.net.catch_up_list()) > 1:
+		open_catch_up_menu()
+
+
+# ---------------------------------------------------------------- «догнать» (NET-42)
+
+
+func _setup_catch_up_menu() -> void:
+	var ps := load("res://scenes/ui/catch_up_menu.tscn") as PackedScene
+	catch_up_menu = ps.instantiate()
+	catch_up_menu.name = "CatchUpMenu"
+	$UI.add_child(catch_up_menu)
+	catch_up_menu.catch_up_requested.connect(_on_catch_up_requested)
+	catch_up_menu.closed.connect(func() -> void: game.hands_off = false)
+
+
+## Меню «Догнать» поверх полёта (только в зоне): пока открыто — руки с трапеции.
+func open_catch_up_menu() -> void:
+	if game.net == null or state != State.FLYING:
+		return
+	var z: Object = game.net.zone
+	catch_up_menu.self_id = String(z.get("my_id")) if z != null and "my_id" in z else ""
+	var own_pos := func() -> Vector3: return game.glider.model.position
+	catch_up_menu.set_source(game.net.catch_up_list, own_pos)
+	catch_up_menu.open()
+	game.hands_off = true
+
+
+## Enter в меню: в воздухе — буксир к нему; на земле — на старт (NET-43: в конец очереди).
+func _on_catch_up_requested(id: String) -> void:
+	if game.net == null or state != State.FLYING:
+		return
+	game.catch_up_to(id)
 
 
 ## «На старт»: снова на старт, мир не сбрасывается (очередь — NET-43, game.return_to_launch).

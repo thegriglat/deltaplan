@@ -23,8 +23,13 @@ extends Node
 ## (sample → upsert при появлении/смене вида, set_pose — поза каждый кадр; pilot_lost → remove).
 ##
 ## Хуки для следующих задач: friends_airborne() — кнопка «Продолжить рядом» в итоге
-## (airborne_changed — сменилось); Game.catch_up_nearest() — NET-42 (кнопка итога), world_joined —
-## NET-42 (автоматический «догнать» при входе); Game.return_to_launch() — NET-43 (очередь).
+## (airborne_changed — сменилось); Game.return_to_launch() — NET-43 (очередь).
+##
+## «Догнать» (NET-42): catch_up_list() — пилоты зоны для меню `=` (чужие из RemotePilots и у
+## ведущего — свои боты), target_state(id) — "air"/"ground"/"", target_fn(id) — цель буксира
+## ({position, velocity}, {} — ушла или села). Пока буксир — фаза TOW. Вход в зону: если ведущий
+## в воздухе — буксир к нему от старта (ждём его состояния до AUTO_CATCH_UP_WAIT_S после
+## world_joined); на земле — ничего (очередь — NET-43).
 ##
 ## zone/pilots — NetZone/NetPilots или объекты с теми же полями и методами (тесты).
 
@@ -50,6 +55,11 @@ const DRIFT_SNAP_S := 30.0
 const MAX_STEP_S := 2.0
 ## Сколько ждать часов зоны у вошедшего (первый ZoneState), с.
 const CLOCK_WAIT_S := 5.0
+## Сколько ждать состояний ведущего после входа, чтобы решить «догнать» его или нет, с.
+const AUTO_CATCH_UP_WAIT_S := 4.0
+
+## Автоматический «догнать» ведущего при входе в зону (тесты могут выключить).
+var auto_catch_up := true
 
 var zone: Object
 var pilots: Object
@@ -85,10 +95,12 @@ func setup(p_game: Game, p_zone: Object = null, p_pilots: Object = null) -> void
 	bots.setup(zone, pilots, game)
 	if pilots != null and pilots.has_signal("pilot_lost"):
 		pilots.connect("pilot_lost", _on_pilot_lost)
+	world_joined.connect(_on_world_joined)
 
 
 ## Выключить: чужих убрать, своё не слать.
 func teardown() -> void:
+	_set_clouds_history_free(false)
 	if is_instance_valid(bots):
 		bots.teardown()
 	if pilots != null:
@@ -132,6 +144,7 @@ func join_world() -> bool:
 		return false
 	if not zone.has_clock:
 		push_warning("NetFlight: часов зоны нет %.0f с — мир с начала зоны" % CLOCK_WAIT_S)
+	_set_clouds_history_free(true)
 	game.set_world_time(zone.zone_time())
 	var key := game.settings.world_key(int(zone.world_seed), int(zone.bots_count))
 	world_mismatch = not bool(zone.check_world(key))
@@ -140,6 +153,15 @@ func join_world() -> bool:
 	bots.start_in_game(game)
 	world_joined.emit()
 	return true
+
+
+## Облака без памяти о кадрах (CloudLayer.history_free) — у всех клиентов зоны одни и те же;
+## в одиночной игре — выбор с гистерезисом и таянием.
+func _set_clouds_history_free(on: bool) -> void:
+	var air: Node = game.air if game != null and is_instance_valid(game) else null
+	var clouds := air.get_node_or_null("Clouds") if air != null else null
+	if clouds != null and "history_free" in clouds:
+		clouds.set("history_free", on)
 
 
 ## Шаг воздуха за этот тик физики: до часов зоны (dt — только без часов зоны).
@@ -176,7 +198,7 @@ func send_local() -> void:
 		return
 	var t := game.glider.get_telemetry()
 	var rot := Quaternion(t.basis.orthonormalized())
-	var ph := proto_phase(t.phase, game.is_crashed())
+	var ph := "TOW" if game.is_towing() else proto_phase(t.phase, game.is_crashed())
 	pilots.call("set_local_state", t.position, rot, t.velocity, ph, game.settings.wing, colors)
 
 
@@ -213,6 +235,81 @@ func feed_remote() -> void:
 ## Есть ли в воздухе кто-то из живых пилотов (не боты) — для «Продолжить рядом».
 func friends_airborne() -> bool:
 	return remote != null and count_airborne(remote.pilots()) > 0
+
+
+# ---------------------------------------------------------------- «догнать» (NET-42)
+
+
+## Пилоты зоны для меню «Догнать» (формат CatchUpMenu.set_source): чужие из RemotePilots и,
+## у ведущего, свои боты (их RemotePilots не рисует — считает NetBots).
+func catch_up_list() -> Array[Dictionary]:
+	var out: Array[Dictionary] = CatchUpMenu.remote_pilots_source(remote).call()
+	if bots == null or bots.sim == null:
+		return out
+	for id: String in bots.ids:
+		var a := bots.agent_for(id)
+		if a == null:
+			continue
+		var ph := NetBots.phase_of(a)
+		(
+			out
+			. append(
+				{
+					"id": id,
+					"name": a.pilot_name,
+					"is_bot": true,
+					"pos": a.telemetry().position,
+					"on_ground": not a.is_airborne(),
+					"landed": ph == "LANDED",
+				}
+			)
+		)
+	return out
+
+
+## Где пилот id: "air" — в воздухе (или сам на буксире), "ground" — на земле, "" — нет такого.
+func target_state(id: String) -> String:
+	var a := bots.agent_for(id) if bots != null else null
+	if a != null:
+		return "air" if a.is_airborne() else "ground"
+	var p := remote.get_pilot(id) if remote != null else null
+	if p == null:
+		return ""
+	return "ground" if RemotePilots.GROUND_PHASES.has(p.phase) else "air"
+
+
+## Цель буксира: () -> {position, velocity} пилота id сейчас; {} — ушёл из зоны или сел.
+func target_fn(id: String) -> Callable:
+	return func() -> Dictionary:
+		if target_state(id) != "air":
+			return {}
+		var a := bots.agent_for(id) if bots != null else null
+		if a != null:
+			var t := a.telemetry()
+			return {"position": t.position, "velocity": t.velocity}
+		var p := remote.get_pilot(id)
+		return {"position": p.position, "velocity": p.velocity}
+
+
+## Вход в зону: ведущий в воздухе — буксир к нему от старта. Его состояния приходят не сразу —
+## ждём до AUTO_CATCH_UP_WAIT_S; на земле или не пришли — ничего (очередь — NET-43).
+func _on_world_joined() -> void:
+	if not auto_catch_up or zone == null or not ("leader_id" in zone):
+		return
+	var leader := String(zone.get("leader_id"))
+	if leader == "" or leader == String(zone.my_id):
+		return
+	var t0 := Time.get_ticks_msec()
+	while is_inside_tree() and zone.in_zone and game != null:
+		var st := target_state(leader)
+		if st == "air":
+			if not game.is_towing():
+				print("net: вход в зону — ведущий в воздухе, догоняю")
+				game.start_catch_up(target_fn(leader))
+			return
+		if st == "ground" or Time.get_ticks_msec() - t0 > int(AUTO_CATCH_UP_WAIT_S * 1000.0):
+			return
+		await get_tree().process_frame
 
 
 ## Сколько живых пилотов в воздухе в списке RemotePilots.pilots().
