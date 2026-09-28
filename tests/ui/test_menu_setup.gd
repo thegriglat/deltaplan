@@ -22,6 +22,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	var expected := [
 		tr("menu_fly"),
 		tr("menu_flight_setup"),
+		tr("menu_net_game"),
 		tr("menu_controls"),
 		tr("menu_settings"),
 		tr("menu_about"),
@@ -32,7 +33,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	for b in buttons:
 		if not (b as Button).flat:
 			texts.append((b as Button).text)
-	check(texts.size() == 6, "ровно 6 кнопок, получили %d: %s" % [texts.size(), texts])
+	check(texts.size() == 7, "ровно 7 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])
 	m.queue_free()
 
@@ -170,7 +171,13 @@ func test_controls_screen_covers_all_input_actions() -> void:
 	for r in rows:
 		blob += String(r.get("keys", "")) + " " + String(r.get("text", r.get("section", ""))) + "\n"
 	var nice := {
-		"Up": "↑", "Down": "↓", "Left": "←", "Right": "→", "Escape": "Esc", "Shift": "Shift",
+		"Up": "↑",
+		"Down": "↓",
+		"Left": "←",
+		"Right": "→",
+		"Escape": "Esc",
+		"Shift": "Shift",
+		"Equal": "=",
 	}
 	var keys: Dictionary = Config.get_config("controls").get("keys", {})
 	for action in keys:

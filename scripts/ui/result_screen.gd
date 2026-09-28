@@ -9,10 +9,16 @@ signal restart_requested
 ## Оставлен для совместимости сигнатуры (FR-27b: сессия всегда завершена — не эмитится).
 signal continue_requested
 signal menu_requested
+## Сеть (NET-40): «Продолжить рядом» — к другу в воздухе; «На старт» — снова на старт.
+signal continue_near_requested
+signal to_start_requested
 
 var _title: Label
 var _lines: Label
 var _continue: Button
+var _again: Button
+var _near: Button
+var _to_start: Button
 
 
 func _ready() -> void:
@@ -22,7 +28,13 @@ func _ready() -> void:
 	UiKit.separator(box)
 	_lines = UiKit.label(box, "")
 	var bar := UiKit.button_bar(box)
-	UiKit.button(bar, tr("result_fly_again"), func() -> void: restart_requested.emit())
+	_near = UiKit.button(
+		bar, tr("result_continue_near"), func() -> void: continue_near_requested.emit()
+	)
+	_near.visible = false
+	_to_start = UiKit.button(bar, tr("result_to_start"), func() -> void: to_start_requested.emit())
+	_to_start.visible = false
+	_again = UiKit.button(bar, tr("result_fly_again"), func() -> void: restart_requested.emit())
 	_continue = UiKit.button(bar, tr("common_continue"), func() -> void: continue_requested.emit())
 	_continue.visible = false
 	UiKit.button(bar, tr("result_to_menu"), func() -> void: menu_requested.emit())
@@ -33,6 +45,26 @@ func show_result(kind: String, info: Dictionary) -> void:
 	_title.text = title_for(kind, info)
 	_lines.text = "\n".join(lines_for(kind, info))
 	visible = true
+	if _to_start.visible:
+		(_near if _near.visible else _to_start).grab_focus.call_deferred()
+
+
+## Сеть (NET-40): вместо «Ещё раз» — «Продолжить рядом» (главная, в фокусе; только если
+## кто-то из друзей в воздухе, near) и «На старт». on = false — как в одиночной игре.
+func set_net_mode(on: bool, near: bool) -> void:
+	var lost_focus := _near.has_focus() and not (on and near)
+	var appeared := on and near and not _near.visible
+	_near.visible = on and near
+	_to_start.visible = on
+	_again.visible = not on
+	if lost_focus:
+		_to_start.grab_focus.call_deferred()
+	elif appeared and visible:
+		_near.grab_focus.call_deferred()  # друг взлетел, пока окно открыто — главная кнопка
+
+
+func is_near_shown() -> bool:
+	return _near.visible
 
 
 static func title_for(kind: String, info: Dictionary) -> String:

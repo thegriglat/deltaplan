@@ -32,6 +32,9 @@ var glance_target: Node3D
 var body_shift_fn: Callable = Callable()
 ## Свободная камера слушает клавиши движения (false — автопилот жмёт те же W/A/S/D).
 var free_keys_enabled := true
+## Камера сзади — вплотную, без сглаживания (буксир «догнать», NET-42: на 1000 км/ч сглаженная
+## камера отстаёт на сотню метров).
+var tight := false
 
 var _cfg: Dictionary
 var _modes: Array
@@ -307,7 +310,7 @@ func _update_chase(t: Transform3D, delta: float) -> void:
 	var focus := t.origin + Vector3.UP * float(ch.get("look_height_m", 1.5))
 	var want := t.origin - fwd * float(ch.distance_m) + Vector3.UP * float(ch.height_m)
 	var s := float(ch.smoothing_s)
-	var k := 1.0 if s <= 0.0 or _snap else 1.0 - exp(-delta / s)
+	var k := 1.0 if s <= 0.0 or _snap or tight else 1.0 - exp(-delta / s)
 	global_position = global_position.lerp(want, k)
 	var ground := _ground_at(global_position)
 	global_position.y = maxf(global_position.y, ground + float(ch.min_agl_m))

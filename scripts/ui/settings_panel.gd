@@ -1,6 +1,7 @@
 class_name SettingsPanel
 extends Control
-## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
+## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): имя пилота (net.pilot_name; для сетевой игры,
+## NET-51), громкость вариометра, чувствительность мыши,
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
 ## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
@@ -26,7 +27,11 @@ var _presets: PackedStringArray = []
 var _render_scale_auto: CheckBox
 var _render_scale: HSlider
 var _time_speed: OptionButton
+var _time_speed_row: HBoxContainer
 var _speeds: Array = []
+## Зона сети (main.gd: game.net != null) — время всегда ×1 (game.gd), строка скрыта и не
+## перезаписывается при сохранении.
+var _net_mode := false
 var _fov: HSlider
 var _helmet: OptionButton
 var _helmet_modes: Array = []
@@ -35,6 +40,7 @@ var _names: CheckBox
 var _grass: HSlider
 var _language: OptionButton
 var _language_codes: Array = []
+var _pilot_name: LineEdit
 
 
 func _ready() -> void:
@@ -52,6 +58,9 @@ func _ready() -> void:
 	for code: Variant in _language_codes:
 		_language.add_item(String(Language.available()[code]))
 	UiKit.row(box, tr("settings_language"), _language)
+	_pilot_name = LineEdit.new()
+	_pilot_name.max_length = UserSettings.PILOT_NAME_MAX
+	UiKit.row(box, tr("settings_pilot_name"), _pilot_name)
 	var vr: Array = ui.get("vario_volume_range_db", [-40.0, 6.0])
 	_volume = UiKit.slider_row(
 		box, tr("settings_vario_volume"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("unit_db")
@@ -125,7 +134,7 @@ func _ready() -> void:
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
 		_time_speed.add_item(tr("settings_time_stopped") if float(v) <= 0.0 else "×%d" % int(v))
-	UiKit.row(box, tr("settings_time_speed"), _time_speed)
+	_time_speed_row = UiKit.row(box, tr("settings_time_speed"), _time_speed)
 	var cam: Dictionary = Config.get_config("camera")
 	var fr: Array = cam.get("fov_range_deg", [60.0, 110.0])
 	_fov = UiKit.slider_row(
@@ -160,9 +169,20 @@ func _ready() -> void:
 	load_values()
 
 
+## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
+## скрыта, save() значение не трогает. Вызывать перед открытием панели (main.gd).
+func set_net_mode(on: bool) -> void:
+	_net_mode = on
+	if _time_speed_row != null:
+		_time_speed_row.visible = not on
+
+
 ## Показать текущие значения из Config.
 func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
+	var saved_name := String(Config.value("game", "net.pilot_name", ""))
+	_pilot_name.text = UserSettings.sanitize_pilot_name(saved_name)
+	_pilot_name.placeholder_text = tr("net_pilot_name_default")
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	_volume.value = float(va.get("volume_db", -6.0))
 	_volume.value_changed.emit(_volume.value)
@@ -199,10 +219,11 @@ func load_values() -> void:
 
 ## Записать и применить. Возвращает true, если всё записалось.
 func save() -> bool:
+	var ok_name := UserSettings.save_pilot_name(_pilot_name.text, config_dir)
 	var va := {"volume_db": _volume.value}
 	if _sound != null and _sound.selected >= 0:
 		va["preset"] = _presets[_sound.selected]
-	var ok := UserSettings.save_patch("audio", {"vario_audio": va}, config_dir)
+	var ok := UserSettings.save_patch("audio", {"vario_audio": va}, config_dir) and ok_name
 	ok = (
 		(
 			UserSettings
@@ -222,7 +243,7 @@ func save() -> bool:
 		)
 		and ok
 	)
-	if _time_speed.selected >= 0:
+	if not _net_mode and _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
 	ok = UserSettings.save_patch("camera", {"fov_deg": _fov.value}, config_dir) and ok

@@ -64,8 +64,9 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
   классам поверхности — `SurfaceHeating` → `Terrain.set_class_sun`.
 - **Волна** — скрыта, `wave.enabled: false`.
 
-Таблица «прогноз → день» по локациям и месяцам: `tools/weather/derive_table.tscn`. Тесты —
-`test_weather_model`, `test_weather_day`, `test_surface_heating`, `tests/game/test_forecast_game.gd`.
+Таблица «прогноз → день» по локациям и месяцам: `tools/weather/derive_table.tscn`; как часто
+грозы у старта — `tools/weather/storm_rarity.tscn`. Тесты —
+`test_weather_model`, `test_weather_day`, `test_storm_rarity`, `test_surface_heating`, `tests/game/test_forecast_game.gd`.
 
 ## Устройство
 
@@ -249,8 +250,8 @@ Godot 4 (burley / lambert_wrap, schlick_ggx), солнце × `1 − shadow_stre
   за камерой, волокна по ветру верхнего яруса, гало 22° при плотной пелене. Покрытие
   `weather.cirrus_cover` → `get_insolation()`: термики слабее и реже (`thermal.insolation_*`),
   прямой свет на облаках слабее, тени кучевых бледнее (`cirrus.shadow_softening`).
-- **Cb / гроза** (`storm_field.gd`, пресет `weather/storm`): сильные зрелые термики с
-  `cb_chance` переразвиваются в Cb (вид 3 в записи облака): башня до `cb_top_above_base_m`,
+- **Cb / гроза** (`storm_field.gd`, пресет `weather/storm`): сильные зрелые термики с долей
+  `cb_thermal_chance` (у пресетов без него — `cb_chance`) переразвиваются в Cb (вид 3 в записи облака): башня до `cb_top_above_base_m`,
   наковальня — клин под тропопаузой, растекается по ветру (`storm.anvil_*`), тёмная снизу;
   ливень под основанием (`storm.virga_*`) — мягкие полупрозрачные полосы из крупного шума,
   вытянутого по вертикали, тают к земле (плотность ~2 % облачной: сквозь ливень видно рельеф);
@@ -260,6 +261,12 @@ Godot 4 (burley / lambert_wrap, schlick_ggx), солнце × `1 − shadow_stre
   `--bench=1`, `--ab=<старая плотность>`). Физика: подсос до начала бури, затем ливневый
   нисходящий поток (`storm.downdraft_ms`), растекание у земли и фронт порывов, уходящий на
   километры (подъём над фронтом, сильная болтанка). Cb виден в `cb_range_factor` раз дальше.
+  Потоки соседних ячеек не складываются: растекание у земли не сильнее `storm.outflow_ms`, по
+  вертикали — в пределах [−`downdraft_ms`, `front_updraft_ms`]. **Грозы редкие** (пилот,
+  29.09.2026): в модели погоды `cb_thermal_chance` — от сотых долей процента (запас ≥ 700 м, в
+  Онгудае ~+26) до 0,5 % (≥ 1100 м, ~+34); замер по сидам — `tools/weather/storm_rarity.tscn`
+  (Онгудай, 100 сидов: +26 — Cb ближе 15 км за первый час в ≤ 1 % полётов, буря у старта в
+  начале — 0 %; +30 — Cb в 20–40 %, у старта 0–4 %; +34 — Cb в 50–70 %, у старта в начале 3–6 %).
 - **Волна** (`wave_field.gd`, пресет `weather/wave`): λ = 2πU/N; смещение линий тока — свёртка
   уклона рельефа против ветра с cos(k·d)·exp(−d/L); в гребнях подъём до `wave.max_ms`, роторы у
   земли под гребнями. Облака: лентикулярные линзы («стопка тарелок») в гребнях η

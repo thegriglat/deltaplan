@@ -161,3 +161,64 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	s.month = int(d.get("month", s.month))
 	s.day = int(d.get("day", s.day))
 	return s
+
+
+## Ключ мира (WorldKey, канонический deltaplan://world?…): задаёт мир зоны целиком — место,
+## дату, время, прогноз, сид, ботов. Крыло и масса не входят.
+func world_key(world_seed: int, bots_count: int) -> String:
+	return WorldKey.make(self, world_seed, bots_count)
+
+
+## Хэш мира: world_key(…).sha256_text().substr(0, 16).
+func world_hash(world_seed: int, bots_count: int) -> String:
+	return WorldKey.hash_of(world_key(world_seed, bots_count))
+
+
+## Разобрать ключ мира: {settings: FlightSettings, seed: int, bots: int, v: int} (WorldKey.parse).
+## Крыло и масса — из base (свои), без base — по умолчанию.
+static func from_world_key(key: String, base: FlightSettings = null) -> Dictionary:
+	return WorldKey.parse(key, base)
+
+
+## Параметры мира сетевой зоны (net.proto → Zone, ключи как в NetMessages): всё, кроме крыла и
+## массы — они у каждого пилота свои. pick_lat/lon NAN — поля нет («не задано»).
+func to_zone(world_seed: int, bots_count: int) -> Dictionary:
+	return {
+		"locationId": location_id,
+		"siteId": site_id,
+		"pickLat": pick_lat,
+		"pickLon": pick_lon,
+		"month": month,
+		"day": day,
+		"startHour": start_hour,
+		"forecast":
+		{
+			"temperatureC": temperature_c,
+			"windSpeedKmh": wind_speed_kmh,
+			"windIntoLaunch": wind_into_launch,
+			"windFromDeg": wind_from_deg,
+			"sky": sky,
+		},
+		"seed": world_seed,
+		"botsCount": bots_count,
+	}
+
+
+## Настройки полёта из Zone (данные NetMessages.decode). Крыло и масса — из base (свои),
+## без base — по умолчанию. Сид и число ботов — в самой Zone (zone.seed, zone.botsCount).
+static func from_zone(zone: Dictionary, base: FlightSettings = null) -> FlightSettings:
+	var s := base.duplicate() if base != null else FlightSettings.defaults()
+	s.location_id = String(zone.get("locationId", s.location_id))
+	s.site_id = String(zone.get("siteId", ""))
+	s.pick_lat = float(zone.get("pickLat", NAN))
+	s.pick_lon = float(zone.get("pickLon", NAN))
+	s.month = int(zone.get("month", s.month))
+	s.day = int(zone.get("day", s.day))
+	s.start_hour = float(zone.get("startHour", s.start_hour))
+	var f: Dictionary = zone.get("forecast", {})
+	s.temperature_c = float(f.get("temperatureC", s.temperature_c))
+	s.wind_speed_kmh = float(f.get("windSpeedKmh", s.wind_speed_kmh))
+	s.wind_into_launch = bool(f.get("windIntoLaunch", s.wind_into_launch))
+	s.wind_from_deg = float(f.get("windFromDeg", s.wind_from_deg))
+	s.sky = String(f.get("sky", s.sky))
+	return s

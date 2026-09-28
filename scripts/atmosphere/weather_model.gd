@@ -137,11 +137,13 @@ static func derive(
 	var cloud_depth := float(cloud.cloud_depth_m)
 	var overdev := float(cloud.overdevelopment_chance)
 	var cb := float(cloud.cb_chance)
+	var cb_th := float(cloud.get("cb_thermal_chance", cb))
 	if blue:
 		dry_frac = 1.0
 		cloud_min = float(c.get("blue_cloud_min_strength_ms", 99.0))
 		overdev = 0.0
 		cb = 0.0
+		cb_th = 0.0
 	var st: Dictionary = c.storm
 	var ss: Dictionary = c.street_strength
 	var dd: Dictionary = c.dust_by_top_agl
@@ -183,6 +185,7 @@ static func derive(
 		"cloud_size_factor": float(a.cloud_size_factor) + float(st.cloud_size_k) * cb,
 		"cirrus_cover": clampf(float(c.cirrus_base) + float(st.cirrus_k) * cb, 0.0, 1.0),
 		"cb_chance": cb,
+		"cb_thermal_chance": cb_th,
 		"thermal_edge_k": 1.0,
 		"mech_turbulence_k": 1.0,
 		"haze_k": 1.0,
@@ -337,6 +340,7 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	w.dry_thermal_fraction = 1.0 - cloudy
 	var cb_k := float(sky.get("cb_k", 1.0))
 	w.cb_chance = float(w.cb_chance) * cb_k
+	w.cb_thermal_chance = float(w.cb_thermal_chance) * cb_k
 	w.overdevelopment_chance = float(w.overdevelopment_chance) * cb_k
 	w.cirrus_cover = maxf(float(w.cirrus_cover), float(sky.get("cover", 0.0)))
 	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft

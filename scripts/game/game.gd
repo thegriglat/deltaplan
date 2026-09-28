@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Game
 extends Node3D
 ## Полётный мир: небо, рельеф, воздух, планер, ввод, камеры, прибор, звук (scenes/game/game.tscn).
@@ -15,6 +16,16 @@ extends Node3D
 signal flight_ended(kind: String, info: Dictionary)
 ## Текст о загрузке для меню ("" — готово).
 signal status_changed(text: String)
+## «Догнать» (NET-42): буксир поехал / кончился (state — "done", "aborted", "lost" — как
+## CatchUpTow; управление и физика уже у пилота).
+signal catch_up_started
+signal catch_up_ended(state: String)
+
+## Буксир: ниже этой высоты над рельефом управление отдаётся «на земле» (отмена сразу после
+## отрыва), м.
+const TOW_GROUND_AGL_M := 8.0
+## Буксир: потолок воздушной скорости для звука потока, м/с (на 1000 км/ч звук не «ревёт»).
+const TOW_FLOW_CAP_MS := 28.0
 
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
@@ -40,6 +51,19 @@ var flying_enabled := false
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
+## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
+## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
+var world_seed := -1
+## Сетевой режим (NET-40): NetFlight, пока летим в зоне; null — одиночная игра.
+## Задаётся enable_net() до start(). Правила режима — scripts/game/net_flight.gd.
+var net: NetFlight = null
+## «Догнать» (NET-42): буксир к другу, пока летим на нём; null — физика у пилота.
+var tow: CatchUpTow = null
+## Руки с трапеции снаружи (меню «Догнать» открыто): крыло летит само, как при свободной камере.
+var hands_off := false
+## Очередь на старт (сеть, NET-43): идти к месту ожидания {position, heading_deg}; {} — нет.
+## Клавиши ходьбы и разбега пилота (или отрыв, буксир) отменяют ходьбу.
+var queue_walk: Dictionary = {}
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -58,6 +82,8 @@ var _weather_ctx := {}
 var _weather_hour := NAN
 var _peak_spacing := NAN
 var _heating := SurfaceHeating.new()
+## Ход дня для атмосферы (погода, солнце, источники — функции времени атмосферы, NET-00).
+var _day: AtmoDay
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
 var _paused := false
@@ -90,6 +116,8 @@ func _ready() -> void:
 	air.name = "Air"
 	add_child(air)
 	air.set_physics_process(false)
+	if air.has_signal("weather_updated"):
+		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
 	air.set("focus_node", glider)
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
@@ -125,19 +153,29 @@ func tick(dt: float) -> void:
 		return
 	_dt = dt
 	sim_time_s += dt
-	sky.clock.advance(dt)  # время суток идёт (VR-5)
-	air.call("step", dt)
+	if net != null:
+		_net_world_step(dt)
+	else:
+		sky.clock.advance(dt)  # время суток идёт (VR-5)
+		air.call("step", dt)
 	_update_day_weather()
 	var phase := glider.phase()
 	if autopilot != null:
+		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук (автопилот тестов жмёт те же клавиши).
 	var free_cam := camera.mode == "free" and autopilot == null
-	input_controller.hands_off = free_cam
+	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
-	glider.set_input(input_controller.update(dt))
+	var control := input_controller.update(dt)
+	if not queue_walk.is_empty():
+		_queue_walk_step(control, phase)
+	glider.set_input(control)
 	bots.tick(dt, glider.get_telemetry())
+	if tow != null:
+		_tow_step(dt)  # без физики, столкновений и итога полёта
+		return
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
@@ -151,6 +189,7 @@ func tick(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	settings = s.duplicate()
+	_lock_net_clock()
 	var progress := terrain.progress
 	progress.begin()
 	# Пока грузится — шаг физики стоит: воздух и планер ещё не настроены на новое место
@@ -170,6 +209,10 @@ func start(s: FlightSettings) -> bool:
 	_peak_spacing = float(
 		WeatherModel.derive(settings.forecast(), _weather_ctx).thermal_spacing_m
 	)
+	if "seed_value" in air:
+		air.set("seed_value", world_seed)
+	if air.has_method("set_day"):
+		air.call("set_day", null)
 	air.call("set_weather", _derive_weather(_weather_hour))
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
 	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
@@ -207,6 +250,9 @@ func start(s: FlightSettings) -> bool:
 	if not sky.clock.sun_changed.is_connected(_on_sun_changed):
 		sky.clock.sun_changed.connect(_on_sun_changed)
 	_on_sun_changed(sky.clock.to_sun())
+	if air.has_method("set_day"):
+		_day = _make_day()
+		air.call("set_day", _day)
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
@@ -236,7 +282,18 @@ func start(s: FlightSettings) -> bool:
 		float(Config.value("flight", "visual.hang_height_m", 2.0))
 	)
 	bots.setup_in_world(terrain, air, _start_pos, _start_heading, bots_count)
+	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
+	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
+	# Поля доводит Terrain._process; у выключенного узла (тесты шагают сами) — ждать здесь.
+	while terrain.has_method("relief_busy") and terrain.relief_busy():
+		if not terrain.can_process() and terrain.has_method("wait_relief"):
+			terrain.wait_relief()
+			break
+		await get_tree().process_frame
 	restart()
+	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое).
+	if air.has_method("refresh_now"):
+		air.call("refresh_now")
 	set_physics_process(true)
 	progress.finish()
 	status_changed.emit("")
@@ -284,10 +341,46 @@ func _derive_weather(hour: float) -> Dictionary:
 	return w
 
 
-## Ход дня: раз в diurnal.update_s игрового времени — мягко к погоде этого часа (Atmosphere
-## ведёт кромку, фон и болтанку плавно за blend_s игрового времени).
+## Ход дня для атмосферы: час места по времени атмосферы (часы старта — при её текущем времени),
+## погода по часу, солнце по дате и месту, источники термиков по солнцу с инерцией прогрева.
+func _make_day() -> AtmoDay:
+	var d := AtmoDay.new()
+	d.start_hour = sky.clock.hour
+	d.t0 = float(air.get("time_s"))
+	d.speed = sky.clock.speed
+	var diurnal: Dictionary = WeatherModel.config().get("diurnal", {})
+	d.quantum_h = float(diurnal.get("update_s", 60.0)) / 3600.0
+	d.weather_fn = _derive_weather
+	var c := sky.clock
+	var sun := AtmoDay.sun_direction.bind(
+		c.latitude_deg, c.longitude_deg, c.month, c.day, _clock_utc_offset()
+	)
+	d.sun_fn = sun
+	if terrain.has_method("thermal_source_strength_for"):
+		var heating := _heating
+		var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP}
+		d.source_fn = func(x: float, z: float, h: float) -> float:
+			if h != float(cache.h):
+				cache.h = h
+				cache.dirs = heating.directions(h)
+				cache.sun = sun.call(h)
+			return terrain.thermal_source_strength_for(x, z, cache.dirs, cache.sun)
+	return d
+
+
+## Сеть (NET-40): мир — на момент t зоны, с (от начала зоны = от старта часов start_hour):
+## атмосфера сразу в t (то же, что прогон от 0), часы — на час старта + t.
+func set_world_time(t: float) -> void:
+	if _day != null:
+		sky.clock.set_hour(_day.hour_at(t))
+	if air.has_method("start_at"):
+		air.call("start_at", t)
+
+
+## Ход дня без AtmoDay (запасной воздух): раз в diurnal.update_s игрового времени — мягко к
+## погоде этого часа (Atmosphere ведёт кромку, фон и болтанку плавно за blend_s).
 func _update_day_weather() -> void:
-	if _weather_ctx.is_empty() or not air.has_method("thermals_near"):
+	if _day != null or _weather_ctx.is_empty() or not air.has_method("thermals_near"):
 		return
 	var d: Dictionary = WeatherModel.config().get("diurnal", {})
 	if absf(sky.clock.hour - _weather_hour) * 3600.0 < float(d.get("update_s", 60.0)):
@@ -319,8 +412,14 @@ func restart() -> void:
 		return
 	if autopilot != null:
 		autopilot.reset()
+	tow = null  # «Ещё раз» / «На старт» посреди буксира
+	camera.tight = false
+	queue_walk = {}
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
+	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
+		var sp := net.queue_start_spot()
+		glider.reset_on_ground(sp.position, float(sp.heading_deg))
 	else:
 		glider.reset_on_ground(_start_pos, _start_heading)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
@@ -332,7 +431,10 @@ func restart() -> void:
 	_touchdown = {}
 	_prev_phase = ""
 	sim_time_s = 0.0
-	sky.clock.reset()
+	if net == null:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
+		sky.clock.reset()
+		if _day != null:
+			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
 	for n in mounted:
@@ -414,6 +516,9 @@ func apply_user_settings() -> void:
 		_graphics = GraphicsPresets.current()
 	input_controller.reload_config()
 	sky.clock.reload_config()
+	_lock_net_clock()
+	if _day != null:
+		_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	vario_audio.set_volume_db(float(va.get("volume_db", -6.0)))
 	if va.has("preset") and vario_audio.has_method("set_preset"):
@@ -443,6 +548,184 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		i += 1
+
+
+## Ключ мира текущего полёта (FlightSettings.world_key; сид < 0 — atmosphere.json → seed): по
+## нему день повторяется (--seed и те же место, дата, время и погода). "" — мир не загружен.
+func world_key() -> String:
+	if settings == null:
+		return ""
+	var sd := world_seed if world_seed >= 0 else int(Config.value("atmosphere", "seed", 0))
+	return settings.world_key(sd, bots.agents.size())
+
+
+# ---------------------------------------------------------------- сеть (NET-40)
+
+
+## Включить сетевой режим (до start()): NetFlight — в мир, часы ×1.
+func enable_net(n: NetFlight, zone: Object = null, pilots: Object = null) -> void:
+	disable_net()
+	net = n
+	add_child(n)
+	n.setup(self, zone, pilots)
+	_lock_net_clock()
+
+
+## Выключить сетевой режим (вышли из зоны): чужих убрать, часы — снова из настроек.
+func disable_net() -> void:
+	if net == null:
+		return
+	net.teardown()
+	net.queue_free()
+	net = null
+	sky.clock.reload_config()
+
+
+## Время мира (атмосферы), с — в сети идёт вровень с часами зоны.
+func world_time() -> float:
+	return float(air.get("time_s")) if "time_s" in air else sim_time_s
+
+
+## Разбился (препятствие или авария на касании) — для фазы CRASHED в сети.
+func is_crashed() -> bool:
+	return _crashed or String(_touchdown.get("grade", "")) == "crash"
+
+
+## «Продолжить рядом» (итог полёта в сети): один живой друг в воздухе — буксир к нему (true).
+## Нескольких — false: главная сцена открывает меню «Догнать»; никого — false.
+func catch_up_nearest() -> bool:
+	if net == null:
+		return false
+	var list := net.catch_up_list()
+	if CatchUpMenu.airborne_count(list) != 1:
+		return false
+	var id := CatchUpMenu.pick_nearest_airborne_human(list, glider.model.position)
+	return start_catch_up(net.target_fn(id))
+
+
+## «Догнать» пилота id (меню `=`): в воздухе — буксир к нему ("tow"); на земле — на старт
+## ("launch", NET-43: в конец очереди); нет такого — ничего ("").
+func catch_up_to(id: String) -> String:
+	if net == null:
+		return ""
+	match net.target_state(id):
+		"air":
+			return "tow" if start_catch_up(net.target_fn(id)) else ""
+		"ground":
+			return_to_launch()  # цель на земле — в конец очереди на старт (NET-43)
+			return "launch"
+	return ""
+
+
+## Буксир к цели target_fn() -> {position, velocity} ({} — цель ушла/села) — откуда угодно: из
+## воздуха, со старта, с посадки, после аварии (крыло поднимается с места). false — цели нет.
+func start_catch_up(target_fn: Callable) -> bool:
+	if settings == null:
+		return false
+	var m := glider.model
+	var vel := m.velocity if m.mode == FlightModel.Mode.AIR else Vector3.ZERO
+	var t := CatchUpTow.new({}, terrain.height_at)
+	t.start(m.position, vel, target_fn, m.heading)
+	if not t.is_active():
+		return false
+	tow = t
+	_crashed = false
+	_ended = true  # на буксире итога полёта нет
+	_leave_queue_for_tow()
+	catch_up_started.emit()
+	return true
+
+
+## Отмена буксира (Esc / `=`): физика возвращается на месте.
+func abort_catch_up() -> void:
+	if tow == null:
+		return
+	tow.abort()
+	_end_catch_up(tow.last)
+
+
+func is_towing() -> bool:
+	return tow != null
+
+
+## Игрок в очереди на старт уходит из неё, когда буксир поднимает его с земли (NET-43).
+func _leave_queue_for_tow() -> void:
+	queue_walk = {}
+	if net != null:
+		net.leave_queue()
+
+
+## Очередь на старт (сеть, NET-43): пойти к месту ожидания spot {position, heading_deg}.
+func queue_walk_to(spot: Dictionary) -> void:
+	queue_walk = spot
+
+
+## Шаг ходьбы к месту в очереди: управление — как у ботов (BotAgent.walk_control); пилот сам
+## пошёл или побежал, оторвался, буксир — ходьба отменяется.
+func _queue_walk_step(c: ControlInput, phase: String) -> void:
+	if tow != null or not phase in ["standing", "walking"] or c.run or c.walk != 0.0:
+		queue_walk = {}
+		return
+	var p: Vector3 = queue_walk.position
+	if BotAgent.walk_control(glider.get_telemetry(), p, float(queue_walk.heading_deg), c):
+		queue_walk = {}
+
+
+## Шаг буксира: крыло — куда скажет CatchUpTow, камера сзади — вплотную; кончился — пилоту.
+func _tow_step(dt: float) -> void:
+	var r := tow.step(dt)
+	if not bool(r.active):
+		_end_catch_up(r)
+		return
+	camera.tight = true
+	glider.set_kinematic(
+		r.position, r.velocity, r.heading, r.bank, r.basis, minf(float(r.speed), TOW_FLOW_CAP_MS)
+	)
+
+
+## Буксир кончился (прибыли, отмена, цель потеряна): крыло на месте на триммерной скорости
+## (у самой земли — стоит), физика и столкновения снова считаются, статистика — с этой точки.
+func _end_catch_up(r: Dictionary) -> void:
+	tow = null
+	camera.tight = false
+	var pos: Vector3 = r.position
+	var heading_deg := rad_to_deg(float(r.heading))
+	_prev_phase = ""
+	if pos.y - terrain.height_at(pos.x, pos.z) < TOW_GROUND_AGL_M:
+		glider.reset_on_ground(pos, heading_deg)
+	else:
+		glider.reset_in_air(pos, heading_deg)
+	input_controller.reset()
+	collisions.reset()
+	_crashed = false
+	_ended = false
+	_touchdown = {}
+	stats.reset(pos)
+	stats.armed = glider.phase() == "flying"
+	instrument.reset()
+	catch_up_ended.emit(String(r.get("state", "")))
+
+
+## «На старт» (итог полёта в сети): снова на старт, мир не сбрасывается; в сети — в конец
+## очереди на старт (restart ставит на место: не в очереди — конец живых пилотов, NET-43).
+func return_to_launch() -> void:
+	restart()
+
+
+## Шаг мира в сети: воздух — по часам зоны (NetFlight.world_dt), часы суток — от времени
+## атмосферы (AtmoDay.hour_at): после паузы и долгих кадров время не прыгает относительно зоны.
+func _net_world_step(dt: float) -> void:
+	air.call("step", net.world_dt(dt))
+	if _day != null:
+		sky.clock.set_hour(_day.hour_at(world_time()))
+	else:
+		sky.clock.advance(dt)
+
+
+## В сети время только ×1 (часы зоны идут ×1 у всех).
+func _lock_net_clock() -> void:
+	if net != null:
+		sky.clock.speed = 1.0
 
 
 # ---------------------------------------------------------------- сборка
@@ -590,6 +873,11 @@ func _update_overlay() -> void:
 
 
 func _on_telemetry(t: Telemetry) -> void:
+	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
+		vario_audio.set_vario(0.0)
+		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
+		_animator.update(t.phase, t.altitude_agl, 0.0, 0.0, _dt)
+		return
 	instrument.update(t, _dt)
 	for n in mounted:
 		if not bool(n.get_meta("shares_tablet", false)) and n.has_method("update"):

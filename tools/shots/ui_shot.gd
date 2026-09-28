@@ -7,6 +7,8 @@ extends Node
 ## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
 ## --lang=ru|en — язык интерфейса (без записи в профиль); --only=setup — только «Полёт…»:
 ## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
+## --net-settings (NET-40/К3) — только settings.png, но панель в сетевом режиме
+## (set_net_mode(true) — строка «Скорость времени» скрыта).
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 60.0
@@ -14,6 +16,7 @@ const TIMEOUT_S := 60.0
 var _out := ""
 var _lang := ""
 var _only := ""
+var _net_settings := false
 var _main: Node = null
 
 
@@ -25,6 +28,8 @@ func _ready() -> void:
 			_lang = a.substr(7)
 		elif a.begins_with("--only="):
 			_only = a.substr(7)
+		elif a == "--net-settings":
+			_net_settings = true
 	if _out == "":
 		push_error("ui_shot: нужен --out=")
 		get_tree().quit(1)
@@ -68,6 +73,15 @@ func _run() -> void:
 			await get_tree().process_frame
 	if _only == "setup":
 		await _shoot_setup(main)
+		print("ui_shot: OK")
+		await _quit(0)
+		return
+	if _net_settings:
+		var sp: SettingsPanel = main.get_node("UI/SettingsPanel")
+		main.get_node("UI/StartMenu").visible = false
+		sp.set_net_mode(true)
+		sp.visible = true
+		await _shoot("settings")
 		print("ui_shot: OK")
 		await _quit(0)
 		return

@@ -25,12 +25,27 @@ extends RefCounted
 ##   --autopilot-circle=<с>[,<крен>]  автопилот через <с> после отрыва кружит с креном (15°,
 ##                         + вправо) — кадры «оглянуться на старт» недалеко от склона
 ##   --look-at=<цель>      в кабине смотреть на цель (как «взгляд на прибор»): start — старт,
-##                         bots — боты (в воздухе, а если никто не взлетел — все), bot<N> — бот N
+##                         bots — боты (в воздухе, а если никто не взлетел — все), bot<N> — бот N,
+##                         remote — чужой пилот сетевой зоны (NET-40)
 ##   --bots=<N>            другие пилоты в небе: сколько ботов (поверх настройки, 0 — никого)
 ##   --air-start[=<д>[,<h>]]  старт в воздухе: в <д> м от старта по его курсу, на <h> м над
 ##                         рельефом (по умолчанию 1000 и 300), на скорости трима, сразу в полёте;
 ##                         взлёта нет — касание будет посадкой, не «взлёт сорван». «Ещё раз» (R)
 ##                         — снова в воздухе. Для проверки полёта вдали от старта
+##   --net-host[=<порт>]   отладка сети (NET-40): встроенный сервер, создать зону и сразу лететь
+##                         (порт по умолчанию 8080; мир — из настроек по умолчанию и флагов)
+##   --net-create          отладка сети: создать зону на --net-server и сразу лететь
+##   --net-join=<код>      отладка сети: войти в зону по коду и сразу лететь
+##   --net-server=<IP:порт>  куда подключаться для --net-join (по умолчанию 127.0.0.1:8080)
+##   --net-name=<имя>      имя пилота в зоне (иначе — из настроек)
+##   --seed=<N>            сид мира (термики, порывы): тот же день при тех же месте, дате, времени
+##                         и погоде (ключ мира, world_key). Без флага: «Лететь» из меню — каждый
+##                         раз новый случайный сид («Ещё раз» — тот же); --autostart (тесты, кадры,
+##                         замеры) — сид из configs/atmosphere.json → seed, раскладка не меняется
+##   --net-seed=<N>        сид мира зоны для --net-host (без флага — --seed, иначе случайный)
+##   --net-code-file=<путь>  записать код зоны в файл (для второго экземпляра)
+##   --net-hide-remote     не рисовать чужих пилотов (кадры неба «с одной точки» у двух машин)
+##                         В сети --time — время зоны, с (кадры с двух машин в один момент)
 ##   --perf=<с>            замер старта (tools/bench/startup_bench.sh): меню → сам жмёт «Лететь» →
 ##                         <с> с полёта, печатает PERF-строки (время до меню, «Лететь» → полёт,
 ##                         рывки кадра > 50 мс, сборка шейдеров облаков) и выходит
@@ -58,6 +73,19 @@ var bots := -1
 var look_at := ""
 var autopilot_circle_s := -1.0
 var autopilot_circle_bank := 15.0
+## Отладка сети (NET-40): создать зону на встроенном сервере / войти по коду и сразу лететь.
+var net_host := false
+var net_port := 8080
+var net_join := ""
+var net_server := "127.0.0.1:8080"
+var net_name := ""
+var net_seed := 4711  ## tools/shots/net44_shot.gd — 4711, если флага нет
+var net_create := false  ## --net-create: создать зону на --net-server (не встроенный сервер)
+var net_seed_set := false  ## --net-seed задан (иначе --net-host берёт --seed или случайный)
+## Сид мира (--seed=N); < 0 — не задан (меню — случайный, --autostart — из atmosphere.json).
+var seed := -1
+var net_code_file := ""
+var net_hide_remote := false
 ## Замер старта (--perf=<с>): сколько секунд полёта сэмплировать; 0 — выключено.
 var perf_s := 0.0
 
@@ -113,6 +141,30 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.air_start_m = float(p[0]) if val != "" else 1000.0
 				if p.size() > 1:
 					o.air_start_agl_m = float(p[1])
+			"net-host":
+				o.net_host = true
+				o.autostart = true
+				if val != "":
+					o.net_port = int(val)
+			"net-create":
+				o.net_create = true
+				o.autostart = true
+			"net-join":
+				o.net_join = val
+				o.autostart = true
+			"net-server":
+				o.net_server = val
+			"net-name":
+				o.net_name = val
+			"net-seed":
+				o.net_seed = int(val)
+				o.net_seed_set = true
+			"seed":
+				o.seed = int(val)
+			"net-code-file":
+				o.net_code_file = val
+			"net-hide-remote":
+				o.net_hide_remote = true
 			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
 				o.overrides[key] = val
 	if o.open_screen == "pause":

@@ -186,6 +186,34 @@ func select(thermals: Dictionary, t: float, eye: Vector3, shown: Dictionary = {}
 	return list
 
 
+## Облака, которые рисуются из наложившихся (NET-00): id -> true. Чистая функция набора
+## термиков и t — не зависит ни от камеры, ни от того, что рисовалось раньше, поэтому два
+## клиента в одно время зоны получают одно и то же (и только что вошедший — тоже).
+## Из наложившихся остаётся более крупное и зрелое, при равных очках — меньший id.
+## horizon_s: облако, которое кончится раньше t + horizon_s, в слиянии уже не участвует —
+## его термик к концу окна проявления уйдёт из поля (ThermalField.refresh), и клиент, считающий
+## это окно позже (вошёл в зону), его уже не знает; уступает соседу заранее и плавно.
+func merge_winners(thermals: Dictionary, t: float, horizon_s: float = 0.0) -> Dictionary:
+	var cand: Array = []
+	for id in thermals:
+		var th: AtmoThermal = thermals[id]
+		if not th.has_cloud:
+			continue
+		if horizon_s > 0.0 and not th.is_static and not stage_override.has(th.id):
+			if _life_window(th).z <= t + horizon_s:
+				continue
+		var st := stage(th, t)
+		if st.x < 0.0:
+			continue
+		var r := size(th, st).x
+		cand.append([0.0, th, st, center(th, t), r, r * st.x * (1.0 - st.y)])
+	cand.sort_custom(_by_score)
+	var out: Dictionary = {}
+	for e: Array in _drop_overlaps(cand):
+		out[(e[1] as AtmoThermal).id] = true
+	return out
+
+
 static func _cap_key(e: Array, shown: Dictionary, hyst: float) -> float:
 	var d := float(e[0])
 	return d / hyst if shown.has((e[1] as AtmoThermal).id) else d

@@ -97,6 +97,32 @@ func reset_in_air(pos: Vector3, heading_deg: float, airspeed_ms: float = 0.0) ->
 	_teleport()
 
 
+## Кинематика без физики («догнать», NET-42): крыло в pos с ориентацией basis, скорость vel
+## над землёй, курс и крен, рад; режим — «в воздухе» (поза полёта). flow_speed ≥ 0 — воздушная
+## скорость в телеметрии (звук потока: на буксире — с потолком). Физику зовущий не шагает;
+## вернуть — reset_in_air/reset_on_ground.
+func set_kinematic(
+	pos: Vector3, vel: Vector3, heading: float, bank: float, basis: Basis, flow_speed := -1.0
+) -> void:
+	model.mode = FlightModel.Mode.AIR
+	model.position = pos
+	model.velocity = vel
+	model.heading = heading
+	model.bank = bank
+	model.theta = 0.0
+	model.roll_rate = 0.0
+	model.stalled = false
+	FlightTelemetry.fill(model, air_fn, ground_fn)
+	var t := model.telemetry
+	t.basis = basis
+	if flow_speed >= 0.0:
+		t.airspeed = flow_speed
+	_placed = true
+	_prev_xform = _cur_xform
+	_cur_xform = Transform3D(basis, pos)
+	telemetry_updated.emit(t)
+
+
 func get_telemetry() -> Telemetry:
 	return model.telemetry
 

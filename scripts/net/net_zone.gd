@@ -1,0 +1,543 @@
+extends Node
+## NetZone (автозагрузка) — зона сетевой игры поверх NetClient: создать/войти/выйти, пилоты
+## зоны, ведущий, часы зоны и очередь на старт (NET-31).
+##
+## Протокол: docs/net_protocol.md («Роль ведущего», «Переподключение»); данные сообщений —
+## словари NetMessages (ключи lowerCamelCase, умолчания подставлены).
+##
+## Методы:
+##   create_zone(settings: FlightSettings, world_seed: int, bots_count: int) — CreateZone;
+##       ответ — zone_entered(code) (создатель сразу ведущий) или zone_error.
+##       Кладёт в Zone ключ мира worldKey (world_key_for) и его хэш worldHash (world_hash_of).
+##   join_zone(code: String) — JoinZone; ответ — zone_entered(code) или zone_error
+##       ("ZONE_NOT_FOUND", "ZONE_FULL", "VERSION_MISMATCH").
+##       Уже в зоне — сначала выходит из неё (zone_left).
+##   leave_zone() — LeaveZone и сброс состояния; zone_left, если был в зоне.
+##   is_leader() -> bool — этот клиент ведущий.
+##   zone_time() -> float — часы зоны, с от создания зоны (ZoneState.clock), сейчас.
+##       Идут ×1 по монотонным часам, пауза дерева их не останавливает. Время суток в зоне =
+##       zone_settings.start_hour + zone_time() / 3600. До первого ZoneState у вошедшего — 0
+##       (has_clock = false).
+##   set_queue(ids: Array) — только ведущий: заменить очередь на старт и сразу разослать.
+##   peer_ids() -> Array[String] — id живых пилотов по порядку подключения.
+##   check_world(local_key: String) -> bool — вошедший вызывает после постройки мира со своим
+##       FlightSettings.world_key(world_seed, bots_count): хэш сверяется с zone.worldHash.
+##       Не совпал — world_mismatch и push_warning с обоими ключами, false. zone.worldHash
+##       пуст (создатель старой версии) — проверки нет, true.
+##   static world_key_for(settings, world_seed, bots_count) -> String — ключ мира:
+##       settings.world_key(world_seed, bots_count) из FlightSettings (К2; вариант без
+##       аргументов тоже понимаем), а пока его нет — stub_world_key (v=0-stub).
+##   static world_hash_of(key) -> String — первые 16 hex SHA-256 ключа (строчные).
+##   static stub_world_key(settings, world_seed, bots_count) -> String — заглушка ключа
+##       по полям to_zone в формате docs/net_protocol.md («Ключ мира»), v=0-stub.
+##   host_local(settings, world_seed, bots_count, pilot_name, port := 8080) — «Создать» без
+##       адреса сервера (NET-22): запустить встроенный сервер LocalServer (дочерний узел,
+##       слушает все адреса на port), подключить NetClient к 127.0.0.1:port и создать зону.
+##       Ответ — zone_entered(code) или zone_error: "PORT_BUSY" (порт занят), "SERVER_FAILED"
+##       (сервер не запустился), "CONNECT_FAILED". Остальные подключаются по адресу этого
+##       компьютера в локальной сети ("192.168.1.5:8080") и входят по коду как обычно.
+##       Выход создателя (leave_zone, отключение NetClient, выход из игры) останавливает
+##       сервер и отключает свой NetClient; у остальных — обрыв: disconnected(true), 3 повтора,
+##       CONNECT_FAILED → zone_left. Смены ведущего со встроенным сервером нет.
+##       После выхода для новой зоны на другом сервере нужно заново подключить NetClient.
+##   local_server: LocalServer — встроенный сервер (null, пока host_local не вызывали);
+##       is_hosting() -> bool — он запущен. Его зоны объявляются в локальной сети через
+##       lan_discovery (NET-23): первая зона открылась — start_announcing(zones_info), зона
+##       открылась/закрылась — announce_now, зон не осталось — stop_announcing.
+##   lan_discovery: Node — чем объявлять; null — автозагрузка LanDiscovery, если она есть
+##       (тесты подставляют свой экземпляр).
+##   send_pilot_state(data: Dictionary) -> bool — отправить PilotState (данные NetMessages)
+##       в зону; false — не в зоне или нет связи. Хук для NET-32.
+##
+## Свойства (только чтение):
+##   in_zone — в зоне (после ZoneJoined, до выхода); code — код зоны ("4721"), "" вне зоны;
+##   zone — Zone как пришла от сервера (словарь NetMessages);
+##   zone_settings: FlightSettings — мир зоны (FlightSettings.from_zone; крыло и масса —
+##       по умолчанию, свои подставляет вызывающий); world_seed, bots_count — из Zone;
+##   peers — id → {"id", "name", "joinOrder"}, по порядку подключения (включая себя);
+##   leader_id; my_id (NetClient.my_id);
+##   queue: Array[String] — очередь на старт: сначала живые пилоты, потом боты ("bot-…");
+##       у ведущего — своя (он её ведёт), у остальных — из последнего ZoneState;
+##   has_clock — часы зоны известны (у ведущего всегда, у остальных — после ZoneState).
+##
+## Сигналы:
+##   zone_entered(code) — вошёл в зону (создал, вошёл по коду, вернулся после переподключения);
+##   zone_left() — вышел: leave_zone, связь потеряна окончательно, зона пропала при возврате;
+##   peer_joined(peer: Dictionary) — вошёл другой пилот ({"id", "name", "joinOrder"});
+##   peer_left(id) — пилот вышел;
+##   leader_changed(leader_id, is_me) — сменился ведущий (и при входе в зону);
+##   zone_state_changed() — у не-ведущего применён ZoneState (часы, очередь); у ведущего —
+##       после set_queue и изменений очереди;
+##   zone_error(code, text) — ошибка входа/создания ("ZONE_NOT_FOUND", "ZONE_FULL",
+##       "VERSION_MISMATCH", "BAD_MESSAGE", "CONNECT_FAILED");
+##   world_mismatch(expected_hash, actual_hash) — check_world: мир вошедшего не совпал с миром
+##       создателя (разные версии генератора мира);
+##   pilot_state_received(from_id, data) — пришёл PilotState другого пилота или бота
+##       (from_id — отправитель, data.pilotId — чьё состояние). Хук для NET-32/NET-44.
+##
+## Часы. Ведущий ведёт часы сам и раз в state_interval_s (1 с) шлёт ZoneState {clock, queue};
+## при входе нового пилота — сразу. Остальные берут clock + задержка/2 и идут дальше сами,
+## расхождение убирают плавно — скоростью хода часов 0,8…1,2 (назад часы не прыгают; вперёд
+## прыгают только при отставании > SNAP_S). Новый ведущий продолжает со своей оценки часов
+## (последний ZoneState + прошедшее время) без скачка и с сохранённой очередью (без ушедших).
+##
+## Переподключение: NetClient.connected(true) в зоне → JoinZone с тем же кодом (сервер даёт
+## новый id, встаём в конец порядка подключения). Зоны уже нет → zone_error + zone_left.
+##
+## Экземпляры для тестов: load("res://scripts/net/net_zone.gd").new(), setup(client),
+## add_child. Автозагрузка без setup берёт автозагрузку NetClient.
+
+signal zone_entered(code: String)
+signal zone_left
+signal peer_joined(peer: Dictionary)
+signal peer_left(id: String)
+signal leader_changed(leader_id: String, is_me: bool)
+signal zone_state_changed
+signal zone_error(code: String, text: String)
+signal pilot_state_received(from_id: String, data: Dictionary)
+signal world_mismatch(expected_hash: String, actual_hash: String)
+
+## Отставание часов, после которого не догоняем плавно, а прыгаем вперёд, с.
+const SNAP_S := 1.0
+## Предел поправки скорости хода часов (±).
+const MAX_SLEW := 0.2
+## За сколько секунд убирать расхождение часов.
+const SLEW_WINDOW_S := 2.0
+const BOT_PREFIX := "bot-"
+const ZONE_ERRORS := ["ZONE_NOT_FOUND", "ZONE_FULL", "VERSION_MISMATCH", "BAD_MESSAGE"]
+## Версия генератора мира в заглушке ключа (у настоящего FlightSettings.world_key — своя).
+const STUB_WORLD_VERSION := "0-stub"
+const WORLD_HASH_LEN := 16
+
+## Период рассылки ZoneState ведущим, с (тесты меняют).
+var state_interval_s := 1.0
+
+var in_zone := false
+var code := ""
+var zone: Dictionary = {}
+var zone_settings: FlightSettings
+var world_seed := 0
+var bots_count := 0
+var peers: Dictionary = {}
+var leader_id := ""
+var queue: Array[String] = []
+var has_clock := false
+var my_id: String:
+	get:
+		return _client.my_id if _client != null else ""
+## Встроенный сервер (host_local); null — не запускался.
+var local_server: LocalServer
+## Объявление зон встроенного сервера в локальной сети; null — автозагрузка LanDiscovery.
+var lan_discovery: Node
+
+var _client: Node
+## Что ждём от сервера: "" | "create" | "join" | "rejoin".
+var _pending := ""
+## Часы зоны: _clock_base в момент _clock_at (монотонные с), ход — _clock_rate.
+var _clock_base := 0.0
+var _clock_at := 0.0
+var _clock_rate := 1.0
+var _state_timer := 0.0
+## host_local ждёт подключения к своему серверу: {settings, seed, bots}; {} — не ждёт.
+var _host_pending: Dictionary = {}
+
+
+func setup(client: Node) -> void:
+	_client = client
+	_client.connected.connect(_on_connected)
+	_client.disconnected.connect(_on_disconnected)
+	_client.error.connect(_on_error)
+	_client.message.connect(_on_message)
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	if _client == null:
+		setup(get_node("/root/NetClient"))
+
+
+func create_zone(settings: FlightSettings, p_world_seed: int, p_bots_count: int) -> void:
+	_leave_if_in_zone()
+	_pending = "create"
+	var z: Dictionary = settings.to_zone(p_world_seed, p_bots_count)
+	z["worldKey"] = world_key_for(settings, p_world_seed, p_bots_count)
+	z["worldHash"] = world_hash_of(z["worldKey"])
+	if not _client.send("createZone", {"zone": z}):
+		_fail_pending("CONNECT_FAILED", "not connected")
+
+
+func host_local(
+	settings: FlightSettings,
+	p_world_seed: int,
+	p_bots_count: int,
+	pilot_name: String,
+	port: int = LocalServer.DEFAULT_PORT
+) -> void:
+	_leave_if_in_zone()
+	stop_hosting()
+	if local_server == null:
+		local_server = LocalServer.new()
+		local_server.zone_opened.connect(_on_local_zone_opened)
+		local_server.zone_closed.connect(_on_local_zone_closed)
+		add_child(local_server)
+	var err := local_server.start(port)
+	if err != OK:
+		var err_code := "PORT_BUSY" if err == ERR_ALREADY_IN_USE else "SERVER_FAILED"
+		_fail_pending(err_code, "cannot listen on port %d: %s" % [port, error_string(err)])
+		return
+	# старое соединение (если было) закрывается внутри connect_to_server — ждём после него
+	_client.connect_to_server("127.0.0.1:%d" % local_server.port, pilot_name)
+	_host_pending = {"settings": settings, "seed": p_world_seed, "bots": p_bots_count}
+	_pending = "host"
+
+
+func is_hosting() -> bool:
+	return local_server != null and local_server.is_running()
+
+
+## Остановить встроенный сервер (если запущен) и отключить от него свой NetClient.
+func stop_hosting() -> void:
+	_host_pending = {}
+	if not is_hosting():
+		return
+	local_server.stop()
+	_client.disconnect_from_server()
+
+
+func _on_local_zone_opened(_code: String) -> void:
+	var lan := _lan()
+	if lan == null:
+		return
+	if lan.is_announcing():
+		lan.announce_now()
+	else:
+		lan.start_announcing(local_server.zones_info)
+
+
+func _on_local_zone_closed(_code: String) -> void:
+	var lan := _lan()
+	if lan == null or not lan.is_announcing():
+		return
+	if local_server.zones_info().is_empty():
+		lan.stop_announcing()
+	else:
+		lan.announce_now()
+
+
+func _lan() -> Node:
+	if lan_discovery != null:
+		return lan_discovery
+	return get_node_or_null("/root/LanDiscovery")
+
+
+func join_zone(p_code: String) -> void:
+	_leave_if_in_zone()
+	_pending = "join"
+	if not _client.send("joinZone", {"code": p_code.strip_edges()}):
+		_fail_pending("CONNECT_FAILED", "not connected")
+
+
+func leave_zone() -> void:
+	_pending = ""
+	if not in_zone:
+		return
+	_client.send("leaveZone", {})
+	_reset()
+	zone_left.emit()
+	stop_hosting()
+
+
+func is_leader() -> bool:
+	return in_zone and leader_id != "" and leader_id == my_id
+
+
+func zone_time() -> float:
+	return _clock_now() if has_clock else 0.0
+
+
+func set_queue(ids: Array) -> void:
+	if not is_leader():
+		push_warning("NetZone.set_queue: не ведущий")
+		return
+	queue.assign(ids)
+	zone_state_changed.emit()
+	_broadcast_state()
+
+
+func peer_ids() -> Array[String]:
+	var ids: Array[String] = []
+	ids.assign(peers.keys())
+	return ids
+
+
+func check_world(local_key: String) -> bool:
+	var expected := String(zone.get("worldHash", ""))
+	if expected == "":
+		return true
+	var actual := world_hash_of(local_key)
+	if actual == expected:
+		return true
+	push_warning(
+		(
+			"NetZone: мир не совпал с миром создателя: %s (%s) ≠ свой %s (%s)"
+			% [zone.get("worldKey", ""), expected, local_key, actual]
+		)
+	)
+	world_mismatch.emit(expected, actual)
+	return false
+
+
+static func world_key_for(settings: FlightSettings, p_world_seed: int, p_bots_count: int) -> String:
+	if settings.has_method("world_key"):
+		if settings.get_method_argument_count("world_key") == 0:
+			return String(settings.call("world_key"))
+		return String(settings.call("world_key", p_world_seed, p_bots_count))
+	return stub_world_key(settings, p_world_seed, p_bots_count)
+
+
+static func world_hash_of(key: String) -> String:
+	return key.sha256_text().substr(0, WORLD_HASH_LEN)
+
+
+static func stub_world_key(
+	settings: FlightSettings, p_world_seed: int, p_bots_count: int
+) -> String:
+	var z: Dictionary = settings.to_zone(p_world_seed, p_bots_count)
+	var f: Dictionary = z.forecast
+	var q := {
+		"v": STUB_WORLD_VERSION,
+		"date": "%02d-%02d" % [z.month, z.day],
+		"hour": "%.2f" % z.startHour,
+		"temp": "%.1f" % f.temperatureC,
+		"wind": "%.1f" % (f.windSpeedKmh / 3.6),
+		"from": "%d" % roundi(f.windFromDeg),
+		"into": "1" if f.windIntoLaunch else "0",
+		"sky": String(f.sky),
+		"seed": str(p_world_seed),
+		"bots": str(p_bots_count),
+	}
+	if is_nan(z.pickLat) or is_nan(z.pickLon):
+		q["loc"] = String(z.locationId)
+		q["site"] = String(z.siteId)
+	else:
+		q["lat"] = "%.5f" % z.pickLat
+		q["lon"] = "%.5f" % z.pickLon
+	var keys: Array = q.keys()
+	keys.sort()
+	var parts: PackedStringArray = []
+	for k: String in keys:
+		parts.append("%s=%s" % [k, String(q[k]).uri_encode()])
+	return "deltaplan://world?" + "&".join(parts)
+
+
+func send_pilot_state(data: Dictionary) -> bool:
+	return in_zone and _client.send("pilotState", data)
+
+
+func _process(delta: float) -> void:
+	if not is_leader():
+		return
+	_state_timer -= delta
+	if _state_timer <= 0.0:
+		_broadcast_state()
+
+
+func _broadcast_state() -> void:
+	_state_timer = state_interval_s
+	_client.send("zoneState", {"clock": zone_time(), "queue": queue})
+
+
+func _on_message(type: String, data: Dictionary, from_id: String) -> void:
+	match type:
+		"zoneJoined":
+			_on_zone_joined(data)
+		"peerJoined":
+			_on_peer_joined(data.peer)
+		"peerLeft":
+			_on_peer_left(data.id)
+		"leaderChanged":
+			_on_leader_changed(data.leaderId)
+		"zoneState":
+			if in_zone and from_id == leader_id and not is_leader():
+				_apply_state(data)
+		"pilotState":
+			if in_zone:
+				pilot_state_received.emit(from_id, data)
+
+
+func _on_zone_joined(data: Dictionary) -> void:
+	var was := _pending
+	_pending = ""
+	var rejoin := was == "rejoin"
+	code = data.code
+	zone = data.zone
+	zone_settings = FlightSettings.from_zone(zone)
+	world_seed = int(zone.seed)
+	bots_count = int(zone.botsCount)
+	peers.clear()
+	for p: Dictionary in data.peers:
+		peers[p.id] = p
+	in_zone = true
+	leader_id = data.leaderId
+	if not rejoin:
+		queue.clear()
+		has_clock = false
+		_set_clock(0.0, 1.0)
+	else:
+		_drop_absent_from_queue()
+	if is_leader():
+		# создатель: часы с нуля; вернувшийся единственным — продолжает свои
+		has_clock = true
+		if queue.is_empty() or not queue.has(my_id):
+			_queue_add_live(my_id)
+		_set_clock(_clock_now(), 1.0)
+		_state_timer = 0.0
+	zone_entered.emit(code)
+	leader_changed.emit(leader_id, is_leader())
+
+
+func _on_peer_joined(p: Dictionary) -> void:
+	if not in_zone:
+		return
+	peers[p.id] = p
+	peer_joined.emit(p)
+	if is_leader():
+		_queue_add_live(p.id)
+		zone_state_changed.emit()
+		_broadcast_state()
+
+
+func _on_peer_left(id: String) -> void:
+	if not in_zone or not peers.has(id):
+		return
+	peers.erase(id)
+	queue.erase(id)
+	peer_left.emit(id)
+	if is_leader():
+		zone_state_changed.emit()
+		_broadcast_state()
+
+
+func _on_leader_changed(new_leader: String) -> void:
+	if not in_zone:
+		return
+	leader_id = new_leader
+	var me := is_leader()
+	if me:
+		# продолжаем со своей оценки часов, ход ровно ×1, очередь — последняя известная
+		_set_clock(_clock_now() if has_clock else 0.0, 1.0)
+		has_clock = true
+		_drop_absent_from_queue()
+		_broadcast_state()
+	leader_changed.emit(new_leader, me)
+
+
+func _apply_state(data: Dictionary) -> void:
+	var latency_s: float = maxf(_client.latency_ms, 0.0) / 2000.0
+	var target: float = data.clock + latency_s
+	var now_est := _clock_now()
+	var err := target - now_est
+	if not has_clock or err > SNAP_S:
+		_set_clock(target, 1.0)
+	else:
+		_set_clock(now_est, 1.0 + clampf(err / SLEW_WINDOW_S, -MAX_SLEW, MAX_SLEW))
+	has_clock = true
+	queue.assign(data.queue)
+	zone_state_changed.emit()
+
+
+func _set_clock(value: float, rate: float) -> void:
+	_clock_base = value
+	_clock_at = _now()
+	_clock_rate = rate
+
+
+## Живой пилот — в очередь после живых, перед ботами.
+func _queue_add_live(id: String) -> void:
+	if queue.has(id):
+		return
+	var at := queue.size()
+	for i in queue.size():
+		if queue[i].begins_with(BOT_PREFIX):
+			at = i
+			break
+	queue.insert(at, id)
+
+
+## Убрать из очереди живых, которых уже нет в зоне (боты остаются).
+func _drop_absent_from_queue() -> void:
+	var kept: Array[String] = []
+	for id in queue:
+		if id.begins_with(BOT_PREFIX) or peers.has(id):
+			kept.append(id)
+	queue = kept
+
+
+func _on_connected(reconnect: bool) -> void:
+	if not _host_pending.is_empty() and not reconnect:
+		var h := _host_pending
+		_host_pending = {}
+		create_zone(h.settings, h.seed, h.bots)
+		return
+	if reconnect and in_zone:
+		_pending = "rejoin"
+		_client.send("joinZone", {"code": code})
+
+
+func _on_disconnected(will_reconnect: bool) -> void:
+	if will_reconnect:
+		return
+	_host_pending = {}
+	if _pending != "" and not in_zone:
+		_fail_pending("CONNECT_FAILED", "connection closed")
+	elif in_zone:
+		_pending = ""
+		_reset()
+		zone_left.emit()
+	stop_hosting()
+
+
+func _exit_tree() -> void:
+	if is_hosting():
+		local_server.stop()
+
+
+func _on_error(err_code: String, text: String) -> void:
+	if _pending == "" or not ZONE_ERRORS.has(err_code):
+		return
+	if _pending == "rejoin":
+		_pending = ""
+		zone_error.emit(err_code, text)
+		_reset()
+		zone_left.emit()
+	else:
+		_fail_pending(err_code, text)
+
+
+func _fail_pending(err_code: String, text: String) -> void:
+	_pending = ""
+	zone_error.emit(err_code, text)
+
+
+func _leave_if_in_zone() -> void:
+	if in_zone:
+		leave_zone()
+
+
+func _reset() -> void:
+	in_zone = false
+	code = ""
+	zone = {}
+	peers.clear()
+	leader_id = ""
+	queue.clear()
+	has_clock = false
+	_set_clock(0.0, 1.0)
+
+
+func _clock_now() -> float:
+	return _clock_base + (_now() - _clock_at) * _clock_rate
+
+
+static func _now() -> float:
+	return Time.get_ticks_usec() / 1e6

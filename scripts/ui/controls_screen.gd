@@ -64,6 +64,7 @@ static func key_names(list: Array) -> String:
 		"Right": "→",
 		"Escape": "Esc",
 		"Shift": "Shift",
+		"Equal": "=",
 	}
 	var parts: PackedStringArray = []
 	for k: String in list:

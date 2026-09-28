@@ -146,6 +146,8 @@ helmet_visor_dark,С тёмным визором,With dark visor
 settings_bots,Другие пилоты в небе,Other pilots in the sky
 settings_pilot_names,Имена пилотов,Pilot names
 settings_pilot_names_hint,над другими пилотами,above other pilots
+settings_pilot_name,Имя пилота,Pilot name
+net_pilot_name_default,Пилот,Pilot
 gfx_low,Низкое (лёгкое),Low (light)
 gfx_medium,Среднее,Medium
 gfx_high,Высокое (полное),High (full)
@@ -215,6 +217,14 @@ unit_ms,м/с,m/s
 unit_m,м,m
 unit_km,км,km
 unit_kmh,км/ч,km/h
+catch_up_title,Догнать,Catch up
+catch_up_empty,В зоне больше никого,No one else in the zone
+catch_up_hint,↑↓ — выбор · Enter — догнать · Esc — закрыть,↑↓ select · Enter catch up · Esc close
+catch_up_at_launch,на старте,at launch
+catch_up_landed,на земле,landed
+catch_up_air,в воздухе,flying
+catch_up_bot,бот,bot
+controls_catch_up,"Сетевая игра: меню «Догнать» — выбрать пилота, и крыло само долетит к нему","Online: the «Catch up» menu — pick a pilot and the wing flies you to them"
 tab_ahead,вперёд,ahead
 tab_not_circling,нет кружения,not circling
 tab_circle_avg,СРЕДНЕЕ КРУГ,CIRCLE AVG
@@ -316,3 +326,35 @@ setup_wing_topless,безмачтовое,topless
 setup_wing_single_surface,однообшивочное,single surface
 setup_wing_double_surface,двухобшивочное,double surface
 setup_decimal_point,",","."
+menu_net_game,Сетевая игра,Multiplayer
+net_server,Сервер,Server
+net_server_placeholder,IP:порт,IP:port
+net_server_hint,"Пусто — играть по домашней сети (зона создаётся на этом компьютере). Адрес — для игры через интернет.","Leave empty to play on the home network (the zone runs on this computer). Enter an address to play over the internet."
+net_nearby_title,Рядом,Nearby
+net_nearby_hint,"Зоны, созданные на компьютерах в этой же сети (Wi-Fi дома), появляются здесь сами.","Zones created on computers in the same network (home Wi-Fi) appear here automatically."
+net_nearby_empty,"Пока никого. Если друг создал зону, а её нет — проверьте, что вы в одной сети, или введите его адрес.","Nobody yet. If a friend created a zone but it isn't listed, check you are on the same network, or enter their address."
+net_nearby_zone,зона %s — %s,zone %s — %s
+net_nearby_other_version,другая версия,other version
+net_embedded_server,этот компьютер,this computer
+net_create_title,Новая зона,New zone
+net_place,Место,Place
+net_create,Создать,Create
+net_join_title,Войти по коду,Join by code
+net_code,Код,Code
+net_join,Присоединиться,Join
+net_connecting,Подключение к %s…,Connecting to %s…
+net_zone_code,Код зоны,Zone code
+net_in_zone,В зоне,In the zone
+net_leader,ведущий,leader
+net_you,вы,you
+net_leave,Выйти из зоны,Leave zone
+net_err_unreachable,Сервер недоступен,Server unreachable
+net_err_zone_not_found,Нет такой зоны,No such zone
+net_err_version_mismatch,У вас другая версия игры,Different game version
+net_err_zone_full,Зона заполнена,The zone is full
+net_err_disconnected,Связь с сервером потеряна,Connection to the server lost
+net_err_bad_message,Ошибка связи с сервером,Server communication error
+net_err_port_busy,Порт занят,Port is busy
+net_err_server_failed,Не удалось запустить сервер,Couldn't start the server
+result_continue_near,Продолжить рядом,Continue nearby
+result_to_start,На старт,Back to launch

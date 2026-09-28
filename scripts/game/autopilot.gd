@@ -47,6 +47,10 @@ var circle_after_s: float = -1.0
 ## Крен кружения, ° (+ вправо).
 var circle_bank_deg: float = 15.0
 
+## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
+## отсчёт stand_s — заново, когда ожидание кончится.
+var hold := false
+
 var _time: float = 0.0
 var _air_time: float = 0.0
 var _heading: float = -1.0
@@ -67,6 +71,10 @@ func reset() -> void:
 
 ## Вызывать каждый шаг физики ДО InputController.update().
 func drive(t: Telemetry, dt: float) -> void:
+	if hold and t.phase in ["standing", "walking"]:
+		release_all()
+		_time = 0.0
+		return
 	_time += dt
 	if dt > 0.0:
 		_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)

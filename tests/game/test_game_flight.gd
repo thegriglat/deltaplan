@@ -134,8 +134,8 @@ func test_air_start() -> void:
 	check(LaunchOptions.parse(PackedStringArray([])).air_start_m < 0.0, "без флага — с земли")
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", o)
-	add_child(main)
 	var game: Game = main.get_node("Game")
+	add_child(main)
 	for i in 600:
 		if main.get("state") == 2:
 			break

@@ -18,6 +18,11 @@ var cfg: Dictionary
 var last_rebuild_us: int = 0
 ## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
 var model: CloudModel
+## Выбор без памяти о кадрах (только сетевая игра, ставит NetFlight): набор облаков и их
+## видимость — функция времени атмосферы, одинаковая у всех клиентов зоны (NET-00). В одиночной
+## игре — выбор с гистерезисом и накопленным проявлением/таянием: облако, чей термик ушёл из
+## поля, тает, а не пропадает за кадр (в режиме без памяти такие облака исчезали за кадр).
+var history_free := false
 
 var _material: ShaderMaterial
 var _box: BoxMesh
@@ -32,15 +37,25 @@ var _wave_rec: Array[PackedFloat32Array] = []
 ## Распадающиеся облака (слот -> термик) — их снос обновляется каждый кадр.
 var _drifting: Dictionary = {}
 ## Видимость по слотам (облако никогда не выключается за кадр, а тает):
-## _sel — доля выбора 0..1 (идёт к _want за fade_in_s / fade_out_s), _want — 1, если облако
-## выбрано для отрисовки, 0 — выбыло (слияние, лимит max_clouds, термик удалён из поля);
+## _sel — доля выбора 0..1. Одиночная игра: идёт к _want за fade_in_s / fade_out_s (_want — 1,
+## если облако выбрано, 0 — выбыло). history_free: доля последних _win_n интервалов выбора,
+## в которые облако победило при слиянии (CloudModel.merge_winners), × таяние у лимита
+## max_clouds — функция времени атмосферы (и камеры — только дальность и лимит): клиент,
+## только что вошедший в зону (Atmosphere.start_at), видит то же, что летающий давно.
 ## _base_vis — видимость по жизни и дальности (CloudModel.life_fade, range_fade).
 var _sel: PackedFloat32Array = []
 var _want: PackedByteArray = []
-var _base_vis: PackedFloat32Array = []
-## Первый выбор (старт, смена погоды): облака сразу видны, без проявления.
+## Одиночная игра: первый выбор (старт, смена погоды) — облака сразу видны, без проявления.
 var _instant: bool = true
 var _last_t: float = -1.0e18
+var _base_vis: PackedFloat32Array = []
+## Победители слияния по интервалам выбора: k -> {id: true}, k = floor(t / _interval).
+var _hist: Dictionary = {}
+## Сколько интервалов окна облако побеждало: id -> число (сумма по _hist).
+var _cnt: Dictionary = {}
+var _last_k: int = -(1 << 62)
+var _interval: float = 1.0
+var _win_n: int = 60
 ## Термики живут в этом радиусе вокруг пилота (ThermalField) — к нему облако тает.
 var _gen_r: float = 20000.0
 var _next_slot: int = 0
@@ -67,6 +82,8 @@ func setup(atmosphere: Atmosphere) -> void:
 	cfg = atmo.cfg.clouds
 	model = atmo.cloud_phys.model
 	_gen_r = float(atmo.cfg.thermal.generation_radius_m)
+	_interval = maxf(float(cfg.update_interval_s), 0.05)
+	_win_n = maxi(1, roundi(float(cfg.get("fade_out_s", 60.0)) / _interval))
 	atmo.weather_changed.connect(_on_weather_changed)
 	_material = ShaderMaterial.new()
 	_material.shader = load("res://scripts/atmosphere/cloud_volume.gdshader")
@@ -232,6 +249,8 @@ func _on_weather_changed() -> void:
 	model = atmo.cloud_phys.model
 	_acc = 1.0e9
 	_instant = true
+	_hist.clear()
+	_cnt.clear()
 
 
 func _process(delta: float) -> void:
@@ -254,11 +273,13 @@ func _process(delta: float) -> void:
 	if _effect != null:
 		_attach_effect(cam)
 	_acc += delta
-	if _acc >= float(cfg.update_interval_s):
+	# Выбор — на каждом интервале времени атмосферы (и при движении камеры на паузе).
+	if (history_free and floori(t / _interval) != _last_k) or _acc >= _interval:
 		_acc = 0.0
 		_select(t, eye)
 	_update_some(t, eye)
-	_update_fades(dt)
+	if not history_free:
+		_update_fades(dt)
 	_update_drift(t)
 	if _shadow_map != null:
 		_shadow_map.update(eye, _sun_dir, _material)
@@ -410,15 +431,67 @@ func _find_light(n: Node) -> DirectionalLight3D:
 	return null
 
 
-## Выбрать видимые облака над термиками (облако остаётся в своём слоте, пока видно)
-## и пересобрать неподвижные облака волны.
+## Выбрать видимые облака над термиками и пересобрать неподвижные облака волны.
+## Видимость выбора — доля последних _win_n интервалов, в которые облако побеждало при
+## слиянии (плавно проявляется и тает, без памяти о кадрах); у лимита max_clouds дальние
+## тают к дальности первого не вошедшего. Облако с нулевой видимостью освобождает слот.
 func _select(t: float, eye: Vector3) -> void:
 	var t0 := Time.get_ticks_usec()
 	var wd := atmo.wind.dir
 	if wd.length_squared() < 1.0e-6:
 		wd = Vector3(1, 0, 0)
 	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
-	# Нарисованные (не тающие) — в приоритете при наложении и обрезке по лимиту.
+	if not history_free:
+		_select_with_fades(t, eye)
+		_wave_rec = _wave_clouds(eye)
+		last_rebuild_us = Time.get_ticks_usec() - t0
+		return
+	_sync_history(floori(t / _interval))
+	var cnt := _cnt
+	var ths: Dictionary = atmo.field.thermals
+	var e2 := Vector2(eye.x, eye.z)
+	var cand: Array = []
+	for id in cnt:
+		var th: AtmoThermal = ths.get(id)
+		if th == null or model.stage(th, t).x < 0.0:
+			continue
+		var c := model.center(th, t)
+		var d := e2.distance_to(c)
+		if d > model.far_m(th):
+			continue
+		var f := float(cnt[id]) / float(_win_n)
+		cand.append([d, id, f, f * model.life_fade(th, t) * _range_vis(th, t, c, eye)])
+	var want: Dictionary = {}
+	var d_cap := _cap_distance(cand, float(cfg.max_clouds))
+	var band := float(cfg.get("fade_band_m", 3000.0))
+	for e: Array in cand:
+		want[e[1]] = float(e[2]) * (1.0 - smoothstep(d_cap - band, d_cap, float(e[0])))
+	for id in _slot_of.keys():
+		if float(want.get(id, 0.0)) <= 0.0:
+			_release(_slot_of[id])
+	for id in want:
+		var v := float(want[id])
+		if v <= 0.0:
+			continue
+		if _slot_of.has(id):
+			var s: int = _slot_of[id]
+			_slot_th[s] = ths[id]
+			_sel[s] = v
+			if not _rec[s].is_empty():
+				_rec[s][20] = _base_vis[s] * v
+			continue
+		var slot: int = _free.pop_back() if not _free.is_empty() else _add_slot()
+		_slot_th[slot] = ths[id]
+		_slot_of[id] = slot
+		_sel[slot] = v
+		_place(slot, t, eye)
+	_wave_rec = _wave_clouds(eye)
+	last_rebuild_us = Time.get_ticks_usec() - t0
+
+
+## Одиночная игра: нарисованные (не тающие) облака в приоритете при наложении и обрезке по
+## лимиту (гистерезис); выбывшее тает (_update_fades), слот освобождается при нуле.
+func _select_with_fades(t: float, eye: Vector3) -> void:
 	var shown: Dictionary = {}
 	for id in _slot_of:
 		if _want[_slot_of[id]] == 1:
@@ -429,7 +502,6 @@ func _select(t: float, eye: Vector3) -> void:
 		keep[(e[1] as AtmoThermal).id] = e[1]
 	for id in _slot_of.keys():
 		if not keep.has(id):
-			# Выбывшее облако тает (_update_fades), слот освобождается при нуле.
 			if _instant:
 				_release(_slot_of[id])
 			else:
@@ -445,8 +517,68 @@ func _select(t: float, eye: Vector3) -> void:
 		_sel[slot] = 1.0 if _instant else 0.0
 		_place(slot, t, eye)
 	_instant = false
-	_wave_rec = _wave_clouds(eye)
-	last_rebuild_us = Time.get_ticks_usec() - t0
+
+
+## Одиночная игра: выбранные облака проявляются, выбывшие тают (время атмосферы); растаявшее
+## освобождает слот.
+func _update_fades(dt: float) -> void:
+	for i in _slot_th.size():
+		if _slot_th[i] == null:
+			continue
+		var target := float(_want[i])
+		if _sel[i] == target:
+			continue
+		_sel[i] = model.step_fade(_sel[i], target, dt)
+		if _sel[i] <= 0.0 and target <= 0.0:
+			_release(i)
+			continue
+		if not _rec[i].is_empty():
+			_rec[i][20] = _base_vis[i] * _sel[i]
+
+
+## Лимит max_clouds — дальностью: до неё набирается cap облаков по их видимости (с долями),
+## дальше облака тают в полосе fade_band_m. Дальность непрерывна по видимостям и расстояниям
+## (внутри промежутка между соседними облаками — интерполяция), поэтому облако у лимита не
+## мигает и не зависит от того, что рисовалось раньше. Без обрезки — за последним облаком.
+static func _cap_distance(cand: Array, cap: float) -> float:
+	cand.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			return a[0] < b[0] if a[0] != b[0] else int(a[1]) < int(b[1])
+	)
+	var cum := 0.0
+	var prev_d := 0.0
+	for e: Array in cand:
+		var w := float(e[3])
+		var d := float(e[0])
+		if w > 0.0 and cum + w >= cap:
+			return prev_d + (d - prev_d) * (cap - cum) / w
+		cum += w
+		prev_d = d
+	return prev_d + (cap - cum) * 1.0e4
+
+
+## Победители слияния за последние _win_n интервалов до k (недостающие — досчитать:
+## при старте, смене погоды или скачке времени — сразу все, как у давно летящего).
+func _sync_history(k: int) -> void:
+	if k < _last_k or k - _last_k >= _win_n:
+		_hist.clear()
+		_cnt.clear()
+	for kk in _hist.keys():
+		if kk <= k - _win_n or kk > k:
+			for id in _hist[kk]:
+				var n := int(_cnt[id]) - 1
+				if n > 0:
+					_cnt[id] = n
+				else:
+					_cnt.erase(id)
+			_hist.erase(kk)
+	for kk in range(k - _win_n + 1, k + 1):
+		if not _hist.has(kk):
+			var won := model.merge_winners(atmo.field.thermals, kk * _interval, _win_n * _interval)
+			_hist[kk] = won
+			for id in won:
+				_cnt[id] = int(_cnt.get(id, 0)) + 1
+	_last_k = k
 
 
 func _release(slot: int) -> void:
@@ -542,22 +674,6 @@ func _range_vis(th: AtmoThermal, t: float, c: Vector2, eye: Vector3) -> float:
 		var src := Vector2(th.src.x + sd.x, th.src.z + sd.y)
 		v = minf(v, model.range_fade(Vector2(f.x, f.z).distance_to(src), _gen_r))
 	return v
-
-
-## Выбранные облака проявляются, выбывшие тают (время атмосферы); растаявшее освобождает слот.
-func _update_fades(dt: float) -> void:
-	for i in _slot_th.size():
-		if _slot_th[i] == null:
-			continue
-		var target := float(_want[i])
-		if _sel[i] == target:
-			continue
-		_sel[i] = model.step_fade(_sel[i], target, dt)
-		if _sel[i] <= 0.0 and target <= 0.0:
-			_release(i)
-			continue
-		if not _rec[i].is_empty():
-			_rec[i][20] = _base_vis[i] * _sel[i]
 
 
 ## Облака уплывают по ветру вместе с термиками — двигаем их каждый кадр, чтобы не дёргались.
