@@ -18,9 +18,9 @@ from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
+import frame_parts as F  # noqa: E402
 import sail_maps  # noqa: E402
 import sail_texture  # noqa: E402
-import frame_parts as F  # noqa: E402
 
 SPAN_STATIONS = 44       # на полуразмах
 CHORD_STATIONS = 22

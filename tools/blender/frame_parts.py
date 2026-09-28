@@ -8,14 +8,6 @@ import math
 from mathutils import Vector
 
 
-def frame_axes(d: Vector, ref: Vector = Vector((0, 0, 1))):
-    """Правая тройка (side, up) поперёк направления d."""
-    d = d.normalized()
-    ref = ref if abs(d.dot(ref)) < 0.95 else Vector((1, 0, 0))
-    side = d.cross(ref).normalized()
-    return side, side.cross(d).normalized()
-
-
 def add_prism(mb, pts2d, origin, ex, ey, thickness: float, mat: str) -> None:
     """Плоская пластина: контур pts2d (против часовой в осях ex, ey), толщина вдоль ex × ey."""
     o = Vector(origin)
