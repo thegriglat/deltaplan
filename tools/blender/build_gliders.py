@@ -2,6 +2,10 @@
 
 Запуск из корня проекта:
     blender --background --python tools/blender/build_gliders.py [-- training laminar sport]
+    blender --background --python tools/blender/build_gliders.py -- --skin-preview laminar
+
+--skin-preview: «обшивка на каркасе» (tools/blender/sail_skin.py, блок "skin" крыла) — только в
+assets/source/<out>_skin_preview.blend (текстура упакована), игровые .glb/.blend/.png не пишутся.
 
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
 (нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).
@@ -20,6 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
 import frame_parts as F  # noqa: E402
 import sail_maps  # noqa: E402
+import sail_skin as S  # noqa: E402
 import sail_texture  # noqa: E402
 
 SPAN_STATIONS = 44       # на полуразмах
@@ -103,11 +108,11 @@ def stations(n: int, cos_spacing: bool) -> list:
     return [i / n for i in range(n + 1)]
 
 
-def span_stations(n_batt: int) -> list:
+def span_stations(n_batt: int, seg: int = 0) -> list:
     """Станции по полуразмаху a ∈ [0, 1], совпадающие с латами (a_k = k/n·0.97): между
     соседними латами — несколько станций, чтобы парус мог «дышать» между ними.
     Возвращает [(a, вес_пролёта)]: вес 0 на лате, 1 — посередине между латами."""
-    seg = max(3, round(SPAN_STATIONS / n_batt))
+    seg = seg or max(3, round(SPAN_STATIONS / n_batt))
     out = []
     for k in range(n_batt):
         a0, a1 = k / n_batt * 0.97, (k + 1) / n_batt * 0.97
@@ -123,23 +128,49 @@ def build_sail(ws: WingShape, mats: dict):
     UV2.x — вес пролёта между латами (0 на лате, 1 посередине), UV2.y — доля хорды t
     (0 — передняя кромка, 1 — задняя); у нижней обшивки к UV2.y прибавлено 2."""
     mb = U.MeshBuilder()
-    half = span_stations(ws.p["battens_per_side"])
+    sk = ws.skin
+    n_batt = ws.p["battens_per_side"]
+    half = span_stations(n_batt, sk.get("bay_segments", 0))
     st = [(-a, w) for a, w in reversed(half)] + half[1:]
     us = [u for u, _ in st]
-    ts = stations(CHORD_STATIONS, True)
-    top = [[ws.upper(u, t) for t in ts] for u in us]
+    ts = stations(sk.get("chord_stations", CHORD_STATIONS), True)
+    if sk:
+        sk = dict(sk, _cb_joint={s: le_tube_point(ws, s * ws.p["crossbar_u"], 0.032)
+                                 for s in (-1, 1)})
+        top = [[S.upper(ws, sk, u, t, w) for t in ts] for u, w in st]
+    else:
+        top = [[ws.upper(u, t) for t in ts] for u in us]
+    top_base = len(mb.verts)
     top_uv = [[((u + 1) / 2, t * 0.5) for t in ts] for u in us]
     top_col = [[(w, t) for t in ts] for _, w in st]
     mb.add_grid(top, "Sail", top_uv, flip=True, colors=top_col)
     tls = stations(14, True)
     cov = ws.p["lower_cover"]
-    bot = [[ws.lower(u, tl) for tl in tls] for u in us]
+    if sk:
+        bot = [[S.lower(ws, sk, u, tl, w) for tl in tls] for u, w in st]
+    else:
+        bot = [[ws.lower(u, tl) for tl in tls] for u in us]
     bot_uv = [[((u + 1) / 2, 0.5 + tl * 0.5) for tl in tls] for u in us]
     bot_col = [[(w, 2.0 + tl * cov) for tl in tls] for _, w in st]
     mb.add_grid(bot, "Sail", bot_uv, flip=False, colors=bot_col)
     if ws.p.get("keel_pocket_m", 0.0) > 0:
         add_keel_pocket(ws, mb)
-    return mb.build("Sail", mats)
+    obj = mb.build("Sail", mats)
+    if sk:  # чёткая складка по латам: острые рёбра вдоль лат верхней обшивки (от t = 0,1)
+        cols = len(ts)
+        rows = [i for i, (u, w) in enumerate(st) if w == 0.0 and abs(u) <= 0.9701]
+        pairs = set()
+        for i in rows:
+            for j in range(cols - 1):
+                if ts[j] >= 0.1:
+                    a, b = top_base + i * cols + j, top_base + i * cols + j + 1
+                    pairs.add((a, b))
+        attr = obj.data.attributes.get("sharp_edge") or obj.data.attributes.new(
+            "sharp_edge", "BOOLEAN", "EDGE")
+        for e in obj.data.edges:
+            if tuple(sorted(e.vertices)) in pairs:
+                attr.data[e.index].value = True
+    return obj
 
 
 def root_underside_z(ws: WingShape, t: float) -> float:
@@ -270,7 +301,11 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
         for s in (-1, 1):
             targets.append(le_tube_point(ws, s * p["crossbar_u"], r_le))
             for a in p["luff_lines"]:
-                targets.append(ws.upper(s * a, 1.0))
+                if ws.skin:  # к фестону задней кромки
+                    w = S.span_weight(p["battens_per_side"], a)
+                    targets.append(S.upper(ws, ws.skin, s * a, 1.0, w))
+                else:
+                    targets.append(ws.upper(s * a, 1.0))
         for tg in targets:
             mb.add_tube([top, tg], wire_r, "Wire", sides=6, cap=False)
     return mb.build("Frame", mats), tail_y
@@ -450,7 +485,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     return obj
 
 
-def build_wing(key: str, params: dict) -> None:
+def build_wing(key: str, params: dict, preview: bool = False) -> None:
     p = params["wings"][key]
     cf = dict(params["control_frame"])
     cf["_eye"] = params["pilot_eye"]
@@ -461,8 +496,12 @@ def build_wing(key: str, params: dict) -> None:
         span = float(p["span_m"])
     U.reset_scene()
     ws = WingShape(p, cf, span)
-    tex = sail_texture.make(p, os.path.join(U.SOURCE, p["out"] + "_sail.png"), span)
-    sail_maps.make(p)  # карта нормалей и просвечивания для шейдера паруса
+    ws.skin = S.active(p, preview)
+    if preview:  # текстура только упаковывается в .blend, файлы игры не трогаем
+        tex = sail_texture.make(p, "", span)
+    else:
+        tex = sail_texture.make(p, os.path.join(U.SOURCE, p["out"] + "_sail.png"), span)
+        sail_maps.make(p)  # карта нормалей и просвечивания для шейдера паруса
     mats = {
         "Sail": U.material("Sail_" + key, (1, 1, 1), rough=p.get("sail_rough", 0.75), double=True, image=tex),
         "Tube": U.material("Tube_" + key, U.srgb(p["tube_color"]), rough=p["tube_rough"],
@@ -481,14 +520,31 @@ def build_wing(key: str, params: dict) -> None:
     U.empty("HangPoint", (0, 0, 0))
     U.empty("WingTipL", ws.le(-1.0))
     U.empty("WingTipR", ws.le(1.0))
-    U.export(p["out"])
+    if preview:
+        save_preview(p["out"] + "_skin_preview")
+    else:
+        U.export(p["out"])
+
+
+def save_preview(stem: str) -> None:
+    """Превью без экспорта: .blend с упакованной текстурой, вьюпорт — Material Preview."""
+    for scr in bpy.data.screens:
+        for area in scr.areas:
+            for sp in area.spaces:
+                if sp.type == "VIEW_3D":
+                    sp.shading.type = "MATERIAL"
+    path = os.path.join(U.SOURCE, stem + ".blend")
+    bpy.ops.wm.save_as_mainfile(filepath=path, check_existing=False, compress=True)
+    print(f"SAVED PREVIEW {path}: {U.tri_count()} tris")
 
 
 def main() -> None:
     params = U.load_json("tools/blender/glider_params.json")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    preview = "--skin-preview" in argv
+    argv = [a for a in argv if a != "--skin-preview"]
     for key in argv or list(params["wings"].keys()):
-        build_wing(key, params)
+        build_wing(key, params, preview)
 
 
 if __name__ == "__main__":
