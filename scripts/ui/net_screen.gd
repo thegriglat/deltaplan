@@ -194,19 +194,20 @@ func _build_input(box: VBoxContainer) -> void:
 	_server.text = UserSettings.server_address()
 	_server.text_changed.connect(func(_t: String) -> void: _update_buttons())
 	UiKit.row(box, tr("net_server"), _server)
+	UiKit.label(box, tr("net_server_hint"), "HintLabel")
 	var name_label := Label.new()
 	name_label.text = UserSettings.pilot_name()
 	UiKit.row(box, tr("settings_pilot_name"), name_label)
 
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_nearby_title"), "HeaderLabel")
+	UiKit.label(box, tr("net_nearby_hint"), "HintLabel")
 	_nearby_list = ItemList.new()
 	_nearby_list.custom_minimum_size.y = 96
 	_nearby_list.auto_height = false
 	_nearby_list.item_activated.connect(_on_nearby_activated)
 	box.add_child(_nearby_list)
 	_nearby_empty = UiKit.label(box, tr("net_nearby_empty"), "HintLabel")
-	_nearby_empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_create_title"), "HeaderLabel")
