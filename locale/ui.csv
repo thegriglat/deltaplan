@@ -321,8 +321,10 @@ setup_decimal_point,",","."
 menu_net_game,Сетевая игра,Multiplayer
 net_server,Сервер,Server
 net_server_placeholder,IP:порт,IP:port
+net_server_hint,"Пусто — играть по домашней сети (зона создаётся на этом компьютере). Адрес — для игры через интернет.","Leave empty to play on the home network (the zone runs on this computer). Enter an address to play over the internet."
 net_nearby_title,Рядом,Nearby
-net_nearby_empty,Никого рядом,No one nearby
+net_nearby_hint,"Зоны, созданные на компьютерах в этой же сети (Wi-Fi дома), появляются здесь сами.","Zones created on computers in the same network (home Wi-Fi) appear here automatically."
+net_nearby_empty,"Пока никого. Если друг создал зону, а её нет — проверьте, что вы в одной сети, или введите его адрес.","Nobody yet. If a friend created a zone but it isn't listed, check you are on the same network, or enter their address."
 net_nearby_zone,зона %s — %s,zone %s — %s
 net_nearby_other_version,другая версия,other version
 net_embedded_server,этот компьютер,this computer
