@@ -1,0 +1,36 @@
+Deltaplan 0.8.0 — flying together
+
+The big one: you can now fly with friends in the same sky. Everyone gets the same world — the same thermals, the same clouds, the same day — so "I'm under that big cloud over the ridge" actually means something.
+
+Network play:
+===
+- Network game in the main menu: Create picks a site and gives you a 4-digit code, friends Join with that code
+- Same room: leave the server field empty and the zone runs on your computer; friends on the same home network see it under Nearby and join with one key
+- Over the internet: run the small server yourself (Go, one Docker command) and enter its address
+- The first pilot leads the zone; if they leave, the next one takes over without anyone noticing
+- Catch up: press = to see the pilots in the zone, Enter to glide smoothly over the terrain to the chosen pilot in about ten seconds and take over control next to them
+- After landing or a crash: Continue nearby, or walk back to launch
+- Launch queue like on a real hill: pilots first, then bots; stall at the front for a minute and you go to the back, a failed launch sends you to the back too
+- Bots fly in network zones as well, the same bots for everyone
+- Your pilot name, shown above your wing
+===
+
+Flying and weather:
+===
+- Every new flight is a new day: same forecast, different thermals and clouds; Fly again replays the same day
+- Thunderstorms are rare now: almost never at +26 C, occasional on hot days
+- Half of the other pilots are already in the air when you arrive at launch, the rest launch after you
+===
+
+Other:
+===
+- New icon and startup screen
+- Smoother sky and haze gradients
+- Shaders are prepared in advance: faster first start and fewer hitches early in the flight
+===
+
+Known issues:
+===
+- Network play was tested on Linux; please report anything odd on Windows
+- In network play a far cloud at the edge of view can occasionally vanish at once
+===
