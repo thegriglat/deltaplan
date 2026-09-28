@@ -20,8 +20,8 @@
     "shadow_split_2": 0.2,
     "shadow_split_3": 0.5,
     "shadow_splits_doc": "Границы каскадов теней (доли от shadow_max_distance_m)",
-    "angular_distance_deg": 0.8,
-    "angular_distance_deg_doc": "Угловой размер солнца для мягких теней (полутень), градусы; 0 — резкие тени",
+    "angular_distance_deg": 0.25,
+    "angular_distance_deg_doc": "Угловой размер солнца для мягких теней (полутень), градусы; 0 — резкие тени. Больше ~0.3 — тень крыла на пилоте, трубах и приборе рассыпается в зернистую рябь (шумовая выборка PCSS без TAA)",
     "shadow_blur": 1.5,
     "shadow_blur_doc": "Размытие теней (множитель)"
   },
