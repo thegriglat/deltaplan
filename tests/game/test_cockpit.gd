@@ -133,9 +133,6 @@ func _fly(wing: String) -> Node:
 	var main: Node = MAIN_SCENE.instantiate()
 	var args := PackedStringArray(["--autostart", "--autopilot", "--wing=" + wing])
 	main.set("opts", LaunchOptions.parse(args))
-	# Сид мира закреплён: после NET-00 раскладка термиков — чистая функция сида; с сидом 12
-	# у старта нет сильного термика, и вид из кабины проверяется в ровном воздухе.
-	(main.get_node("Game") as Game).world_seed = 12
 	add_child(main)
 	var game: Game = main.get_node("Game")
 	for i in 600:
