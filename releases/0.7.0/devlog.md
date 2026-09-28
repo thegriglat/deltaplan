@@ -38,7 +38,7 @@ The red telltales now hang on the front wires.
 
 ## A new pilot
 
-The old mannequin is gone. The pilot is now a proper human figure in a jacket and trousers, with a harness and an open-face helmet with a visor. The gloves have real fingers that wrap around the base bar in flight and the uprights on the ground.
+The old mannequin is gone. The pilot is now a proper human figure in a jacket and trousers, with a harness, leather boots, and a helmet with a curved tinted visor that reflects the sky. The gloves have real fingers that wrap around the base bar in flight and the uprights on the ground.
 
 ## Names over other pilots
 
