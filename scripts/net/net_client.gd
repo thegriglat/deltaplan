@@ -46,7 +46,11 @@ extends Node
 ##
 ## Ping раз в ping_interval_s (2 с): RTT и смещение часов сервера, сглаживание EMA.
 ## Обрыв → повторы через reconnect_delays_s (1, 2, 4 с), затем error("CONNECT_FAILED") и
-## disconnected(false). Первое подключение не повторяется: не вышло — сразу CONNECT_FAILED.
+## disconnected(false). Первое подключение (до первого Welcome) тоже повторяется — сервер
+## ведущего может быть занят: отказ в соединении или нет Welcome за connect_timeout_s (15 с) →
+## reconnecting(1..N) по тем же паузам, но не дольше first_connect_budget_s с начала
+## (недоступный адрес не держит пилота минуту), затем CONNECT_FAILED. Без повторов: плохой
+## адрес (BAD_ADDRESS) и ошибка сервера до Welcome (VERSION_MISMATCH и т. п.).
 ## Работает и на паузе дерева (process_mode ALWAYS). Можно создавать отдельные экземпляры
 ## (load(...).new() + add_child) — тесты так поднимают несколько клиентов.
 
@@ -61,13 +65,17 @@ enum State { IDLE, CONNECTING, HANDSHAKE, ONLINE, WAIT_RETRY }
 const DEFAULT_PORT := 8080
 const WS_PATH := "/v1/ws"
 const NAME_MAX_LEN := 20
+## Pong дольше этого (RTT, с) не учитывается в задержке и часах сервера.
+const MAX_PONG_RTT_S := 3.0
 
 ## Настройки (тесты меняют их для скорости).
 var ping_interval_s := 2.0
 ## Паузы перед повторами после обрыва, с; число элементов — число повторов.
 var reconnect_delays_s: Array = [1.0, 2.0, 4.0]
-## Сколько ждать от начала подключения до Welcome.
-var connect_timeout_s := 5.0
+## Сколько ждать Welcome от начала одной попытки подключения.
+var connect_timeout_s := 15.0
+## Первое подключение: новую попытку не начинать позже этого срока от connect_to_server, с.
+var first_connect_budget_s := 30.0
 ## Вес нового замера в EMA задержки и смещения часов.
 var smoothing := 0.3
 
@@ -93,6 +101,8 @@ var _ping_timer := 0.0
 var _attempt := 0
 ## Был ли Welcome в этой сессии (connect_to_server) — следующий connected будет reconnect.
 var _had_welcome := false
+## Начало первого подключения (now()), для first_connect_budget_s.
+var _first_connect_at := 0.0
 
 
 func _ready() -> void:
@@ -111,6 +121,7 @@ func connect_to_server(p_address: String, p_pilot_name: String) -> bool:
 		return false
 	_attempt = 0
 	_had_welcome = false
+	_first_connect_at = now()
 	_open()
 	return true
 
@@ -257,7 +268,9 @@ func _on_pong(data: Dictionary) -> void:
 	var t_now := now()
 	var sent: float = data.clientTime
 	var rtt := t_now - sent
-	if rtt < 0.0 or rtt > 30.0:
+	# долгий ответ — чаще всего стоял свой главный поток (загрузка мира): замер испорчен
+	# (смещение часов ушло бы на половину простоя) — выбросить
+	if rtt < 0.0 or rtt > MAX_PONG_RTT_S:
 		return
 	var offset: float = data.serverTime - (sent + t_now) * 0.5
 	if latency_ms < 0.0:
@@ -302,7 +315,12 @@ func _on_socket_closed(reason: String) -> void:
 
 ## Попытка подключения (до Welcome) не удалась.
 func _on_attempt_failed(reason: String) -> void:
-	if _attempt == 0 or _attempt >= reconnect_delays_s.size():
+	if _attempt >= reconnect_delays_s.size():
+		_fail(reason)
+	elif (
+		not _had_welcome
+		and now() - _first_connect_at + reconnect_delays_s[_attempt] > first_connect_budget_s
+	):
 		_fail(reason)
 	else:
 		_attempt += 1

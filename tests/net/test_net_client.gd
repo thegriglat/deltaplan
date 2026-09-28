@@ -29,14 +29,46 @@ func test_make_url() -> void:
 
 func test_connect_failed_without_server() -> void:
 	var c := _client()
+	c.reconnect_delays_s = [0.1, 0.1, 0.1]
 	var log := _record(c)
-	# порт 1 на localhost никто не слушает; первое подключение не повторяется
+	# порт 1 на localhost никто не слушает; первое подключение тоже повторяется (сервер ведущего
+	# мог быть занят), затем CONNECT_FAILED
 	c.connect_to_server("127.0.0.1:1", "Пилот")
 	await _wait(func() -> bool: return c.state == c.State.IDLE, 5.0)
-	check(log.has("error:CONNECT_FAILED"), "CONNECT_FAILED: %s" % [log])
-	check(log.back() == "disconnected:false", "последним disconnected(false): %s" % [log])
-	check(not log.any(func(e: String) -> bool: return e.begins_with("reconnecting")), "без повторов")
+	var expect := ["reconnecting:1", "reconnecting:2", "reconnecting:3"]
+	expect.append_array(["error:CONNECT_FAILED", "disconnected:false"])
+	check(log == expect, "повторы, затем ошибка: %s" % [log])
+	# срок первого подключения вышел — без повторов
+	var c2 := _client()
+	c2.reconnect_delays_s = [0.1, 0.1, 0.1]
+	c2.first_connect_budget_s = 0.05
+	var log2 := _record(c2)
+	c2.connect_to_server("127.0.0.1:1", "Пилот")
+	await _wait(func() -> bool: return c2.state == c2.State.IDLE, 5.0)
+	check(log2 == ["error:CONNECT_FAILED", "disconnected:false"], "срок вышел: %s" % [log2])
+	# плохой адрес — сразу
+	var log3 := _record(c2)
+	check(not c2.connect_to_server("h:x", "Пилот"), "адрес не разобран")
+	check(log3.slice(-2) == ["error:BAD_ADDRESS", "disconnected:false"], "BAD_ADDRESS: %s" % [log3])
 	c.queue_free()
+	c2.queue_free()
+
+
+## Ошибка сервера до Welcome (другая версия игры) — без повторов.
+func test_version_mismatch_not_retried() -> void:
+	var srv: LocalServer = LocalServer.new()
+	srv.game_version = "другая"
+	add_child(srv)
+	check(srv.start(0, "127.0.0.1") == OK, "сервер запущен")
+	var c := _client()
+	c.reconnect_delays_s = [0.1, 0.1, 0.1]
+	var log := _record(c)
+	c.connect_to_server("127.0.0.1:%d" % srv.port, "Пилот")
+	await _wait(func() -> bool: return c.state == c.State.IDLE, 5.0)
+	check(log == ["error:VERSION_MISMATCH", "disconnected:false"], "без повторов: %s" % [log])
+	c.queue_free()
+	srv.stop()
+	srv.queue_free()
 
 
 func test_hello_ping() -> void:

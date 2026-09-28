@@ -5,8 +5,14 @@ extends Node
 ##
 ## Транспорт: TCPServer + серверный WebSocketPeer (accept_stream), путь /v1/ws, порт по
 ## умолчанию 8080 (как у NetClient.DEFAULT_PORT и Go -addr :8080). Кадры — proto3 JSON
-## Envelope, кодек — NetMessages. Работает на паузе дерева (process_mode ALWAYS); опрос
-## сокетов — в _process, раз в кадр.
+## Envelope, кодек — NetMessages.
+##
+## Потоки: по умолчанию (threaded = true) сеть и логика зон крутятся в своём потоке (опрос раз в
+## LOOP_SLEEP_MS) — сервер отвечает, даже пока главный поток занят (ведущий грузит мир
+## синхронными кусками по 10+ с). Всё состояние сервера трогает только этот поток под _mutex;
+## публичные методы берут тот же мьютекс; сигналы zone_opened/zone_closed доходят в главный
+## поток отложенно (call_deferred), в порядке событий. threaded = false (до start) — опрос в
+## _process, раз в кадр (работает и на паузе дерева: process_mode ALWAYS).
 ##
 ## Правила (как в Go):
 ##   - первым — Hello (до него всё, включая Ping, — Error BAD_MESSAGE; повторный Hello — тоже);
@@ -26,13 +32,16 @@ extends Node
 ##
 ## Отличия от Go-сервера: нет HTTP /healthz и /v1/status (только WebSocket); неверный путь
 ## (не /v1/ws) закрывает соединение после рукопожатия кодом 4404, а не HTTP 404; живость —
-## WebSocket heartbeat движка (HEARTBEAT_S); очередей с приоритетом нет: кадр, не влезший в
+## WebSocket heartbeat движка (HEARTBEAT_S = 60 с, а не 15 с, как у Go: свой NetClient
+## ведущего не отвечает на ping, пока главный поток занят загрузкой, — его не выкидываем;
+## закрытие TCP видно сразу); очередей с приоритетом нет: кадр, не влезший в
 ## исходящий буфер, отбрасывается; пересылаемое сообщение перекодируется NetMessages
 ## (незнакомые поля отбрасываются — как protojson DiscardUnknown у Go).
 ##
 ## API:
 ##   start(port := 8080, bind := "*") -> Error — слушать; занятый порт → ERR_ALREADY_IN_USE.
-##   stop() — закрыть все соединения (клиенты видят обрыв) и зоны (zone_closed на каждую).
+##   stop() — остановить поток, закрыть все соединения (клиенты видят обрыв) и зоны
+##       (zone_closed на каждую — сразу, вместе с ещё не доставленными событиями потока).
 ##   is_running() -> bool; port — порт, на котором слушает (0 — не запущен).
 ##   zones_info() -> Array — [{code, host_name, address, port, game_version, pilots_count}]
 ##       по коду — формат LanDiscovery.start_announcing (NET-23): host_name — имя создателя
@@ -51,8 +60,11 @@ const CODE_MIN := 1000
 const CODE_MAX := 9999
 ## Сколько ждать завершения WebSocket-рукопожатия, с.
 const HANDSHAKE_TIMEOUT_S := 5.0
-## Период WebSocket ping движка, с (как PingInterval у Go).
-const HEARTBEAT_S := 15.0
+## Период WebSocket ping движка, с. Не ответил за период — соединение закрывается (сработает
+## через 60–120 с): дольше любой загрузки мира у ведущего (его NetClient в главном потоке).
+const HEARTBEAT_S := 60.0
+## Пауза потока между опросами сокетов, мс.
+const LOOP_SLEEP_MS := 2
 const INBOUND_BUFFER := 64 * 1024
 const OUTBOUND_BUFFER := 256 * 1024
 const SERVER_VERSION := "embedded"
@@ -62,6 +74,8 @@ const CLOSE_BAD_PATH := 4404
 ## Версия игры, обязательная для Hello; "" — любая (проверяется только при входе в зону).
 var game_version := ""
 var port := 0
+## Сеть в своём потоке (иначе — в _process); менять до start().
+var threaded := true
 
 var _tcp: TCPServer
 ## Соединения по порядку подключения.
@@ -69,6 +83,13 @@ var _conns: Array[Conn] = []
 ## Зоны: код → {code, params, version, creator_name, members: Array[Conn], next_order}.
 var _zones: Dictionary = {}
 var _next_id := 0
+## Поток опроса (threaded) и мьютекс на всё состояние выше.
+var _thread: Thread
+var _mutex := Mutex.new()
+## Флаг остановки потока (под _mutex).
+var _quit := false
+## События зон для главного потока: [["opened" | "closed", код], …] (под _mutex).
+var _events: Array = []
 
 
 ## Одно соединение (после Hello — живой пилот).
@@ -98,16 +119,30 @@ func _exit_tree() -> void:
 
 func start(p_port: int = DEFAULT_PORT, bind: String = "*") -> Error:
 	stop()
-	_tcp = TCPServer.new()
-	var err := _tcp.listen(p_port, bind)
+	var tcp := TCPServer.new()
+	var err := tcp.listen(p_port, bind)
 	if err != OK:
-		_tcp = null
 		return err
-	port = _tcp.get_local_port()
+	_mutex.lock()
+	_tcp = tcp
+	port = tcp.get_local_port()
+	_quit = false
+	_mutex.unlock()
+	if threaded:
+		_thread = Thread.new()
+		_thread.start(_loop)
 	return OK
 
 
 func stop() -> void:
+	if _thread != null:
+		_mutex.lock()
+		_quit = true
+		_mutex.unlock()
+		_thread.wait_to_finish()
+		_thread = null
+	# поток стоит — дальше всё в вызывающем (главном) потоке
+	_mutex.lock()
 	for c in _conns:
 		var ws := c.ws
 		if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
@@ -119,18 +154,30 @@ func stop() -> void:
 	var codes := _zones.keys()
 	_zones.clear()
 	for c: String in codes:
-		zone_closed.emit(c)
+		_events.append(["closed", c])
 	if _tcp != null:
 		_tcp.stop()
 		_tcp = null
 	port = 0
+	_mutex.unlock()
+	_flush_events()
 
 
 func is_running() -> bool:
-	return _tcp != null and _tcp.is_listening()
+	_mutex.lock()
+	var running := _tcp != null and _tcp.is_listening()
+	_mutex.unlock()
+	return running
 
 
 func zones_info() -> Array:
+	_mutex.lock()
+	var out := _zones_info_locked()
+	_mutex.unlock()
+	return out
+
+
+func _zones_info_locked() -> Array:
 	var codes := _zones.keys()
 	codes.sort()
 	var out := []
@@ -150,8 +197,41 @@ func zones_info() -> Array:
 
 
 func _process(_delta: float) -> void:
-	if _tcp == null:
-		return
+	if _thread == null and _tcp != null:
+		_step()
+		_flush_events()
+
+
+## Поток сервера: опрос, пока не попросят остановиться.
+func _loop() -> void:
+	while true:
+		_mutex.lock()
+		if _quit:
+			_mutex.unlock()
+			return
+		_step()
+		var has_events := not _events.is_empty()
+		_mutex.unlock()
+		if has_events:
+			_flush_events.call_deferred()
+		OS.delay_msec(LOOP_SLEEP_MS)
+
+
+## Раздать накопленные события зон сигналами (главный поток).
+func _flush_events() -> void:
+	_mutex.lock()
+	var events := _events
+	_events = []
+	_mutex.unlock()
+	for e: Array in events:
+		if e[0] == "opened":
+			zone_opened.emit(e[1])
+		else:
+			zone_closed.emit(e[1])
+
+
+## Один опрос: новые соединения, кадры всех соединений (под _mutex, если есть поток).
+func _step() -> void:
 	while _tcp.is_connection_available():
 		var stream := _tcp.take_connection()
 		var ws := WebSocketPeer.new()
@@ -286,9 +366,10 @@ func _create(c: Conn, params: Dictionary) -> void:
 		"members": [],
 		"next_order": 0,
 	}
+	# событие — до ответа: главный поток узнает о зоне не позже, чем создатель войдёт в неё
+	_events.append(["opened", code])
 	_send(c, "zoneCreated", {"code": code})
 	_add(_zones[code], c)
-	zone_opened.emit(code)
 
 
 func _join(c: Conn, code: String) -> void:
@@ -342,7 +423,7 @@ func _leave(c: Conn) -> void:
 	c.join_order = 0
 	if z.members.is_empty():
 		_zones.erase(z.code)
-		zone_closed.emit(z.code)
+		_events.append(["closed", z.code])
 		return
 	var left := NetMessages.encode("peerLeft", {"id": c.id})
 	for p: Conn in z.members:
