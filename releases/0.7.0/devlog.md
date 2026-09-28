@@ -44,6 +44,10 @@ The old mannequin is gone. The pilot is now a proper human figure in a jacket an
 
 Every other pilot in the air now has a name label: Russian names in the Russian version, English names in the English one. The labels show from the cockpit too and are hidden behind terrain. You can turn them off in **Settings → Pilot names**.
 
+## Fixes
+
+- Removed the grainy speckle on the pilot, the control frame tubes and the instruments when they were in the wing's shadow.
+
 ## Known issues
 
 - On a few glider and site combinations in strong wind, the autopilot launch can still fail on a tailwind gust.
