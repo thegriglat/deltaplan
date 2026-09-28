@@ -26,7 +26,6 @@ Config="*res://scripts/core/config.gd"
 
 [debug]
 
-file_logging/enable_file_logging.pc=false
 
 [display]
 
