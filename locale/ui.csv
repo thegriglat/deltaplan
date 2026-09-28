@@ -146,6 +146,8 @@ helmet_visor_dark,С тёмным визором,With dark visor
 settings_bots,Другие пилоты в небе,Other pilots in the sky
 settings_pilot_names,Имена пилотов,Pilot names
 settings_pilot_names_hint,над другими пилотами,above other pilots
+settings_pilot_name,Имя пилота,Pilot name
+net_pilot_name_default,Пилот,Pilot
 gfx_low,Низкое (лёгкое),Low (light)
 gfx_medium,Среднее,Medium
 gfx_high,Высокое (полное),High (full)

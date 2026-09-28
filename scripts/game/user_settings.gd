@@ -6,6 +6,9 @@ extends RefCounted
 
 const DEFAULT_DIR := "user://configs"
 const LAST_FLIGHT := "user://last_flight.json"
+## Имя пилота (NET-51): user-конфиг game.json → net.pilot_name; пусто/нет — умолчание
+## по языку интерфейса (net_pilot_name_default).
+const PILOT_NAME_MAX := 20
 
 
 ## Дописать patch (вложенный словарь) в user-конфиг config_name и сбросить кеш Config.
@@ -21,6 +24,24 @@ static func save_patch(config_name: String, patch: Dictionary, dir: String = DEF
 	f.store_string(JSON.stringify(merged, "  "))
 	f.close()
 	return true
+
+
+## Обрезать по краям и до PILOT_NAME_MAX символов (не байт).
+static func sanitize_pilot_name(s: String) -> String:
+	var trimmed := s.strip_edges()
+	if trimmed.length() > PILOT_NAME_MAX:
+		trimmed = trimmed.substr(0, PILOT_NAME_MAX)
+	return trimmed
+
+
+static func pilot_name() -> String:
+	var raw := String(Config.value("game", "net.pilot_name", ""))
+	var name := sanitize_pilot_name(raw)
+	return name if name != "" else String(TranslationServer.translate("net_pilot_name_default"))
+
+
+static func save_pilot_name(name: String, dir: String = DEFAULT_DIR) -> bool:
+	return save_patch("game", {"net": {"pilot_name": sanitize_pilot_name(name)}}, dir)
 
 
 static func read_json(path: String) -> Dictionary:

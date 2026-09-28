@@ -1,6 +1,7 @@
 class_name SettingsPanel
 extends Control
-## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): громкость вариометра, чувствительность мыши,
+## Настройки пилота (FR-23, FR-31, FR-33, NFR-6): имя пилота (net.pilot_name; для сетевой игры,
+## NET-51), громкость вариометра, чувствительность мыши,
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
 ## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
@@ -35,6 +36,7 @@ var _names: CheckBox
 var _grass: HSlider
 var _language: OptionButton
 var _language_codes: Array = []
+var _pilot_name: LineEdit
 
 
 func _ready() -> void:
@@ -52,6 +54,9 @@ func _ready() -> void:
 	for code: Variant in _language_codes:
 		_language.add_item(String(Language.available()[code]))
 	UiKit.row(box, tr("settings_language"), _language)
+	_pilot_name = LineEdit.new()
+	_pilot_name.max_length = UserSettings.PILOT_NAME_MAX
+	UiKit.row(box, tr("settings_pilot_name"), _pilot_name)
 	var vr: Array = ui.get("vario_volume_range_db", [-40.0, 6.0])
 	_volume = UiKit.slider_row(
 		box, tr("settings_vario_volume"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("unit_db")
@@ -163,6 +168,9 @@ func _ready() -> void:
 ## Показать текущие значения из Config.
 func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
+	var saved_name := String(Config.value("game", "net.pilot_name", ""))
+	_pilot_name.text = UserSettings.sanitize_pilot_name(saved_name)
+	_pilot_name.placeholder_text = tr("net_pilot_name_default")
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	_volume.value = float(va.get("volume_db", -6.0))
 	_volume.value_changed.emit(_volume.value)
@@ -199,10 +207,11 @@ func load_values() -> void:
 
 ## Записать и применить. Возвращает true, если всё записалось.
 func save() -> bool:
+	var ok_name := UserSettings.save_pilot_name(_pilot_name.text, config_dir)
 	var va := {"volume_db": _volume.value}
 	if _sound != null and _sound.selected >= 0:
 		va["preset"] = _presets[_sound.selected]
-	var ok := UserSettings.save_patch("audio", {"vario_audio": va}, config_dir)
+	var ok := UserSettings.save_patch("audio", {"vario_audio": va}, config_dir) and ok_name
 	ok = (
 		(
 			UserSettings
