@@ -460,12 +460,7 @@ func _perf() -> void:
 			% [hitches.size(), total, worst, all_dt.size(), all_dt[all_dt.size() / 2], hitches]
 		)
 	)
-	print(
-		(
-			"PERF cloud_build_ms=%.1f cloud_src=%s"
-			% [CloudCompositorEffect.build_ms, CloudCompositorEffect.build_src]
-		)
-	)
+	print("PERF cloud_build_ms=%.1f" % CloudCompositorEffect.build_ms)
 	_quit(0)
 
 
