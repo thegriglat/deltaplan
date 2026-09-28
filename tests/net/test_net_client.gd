@@ -1,17 +1,19 @@
 extends Node
-## NET-30. NetClient против локального Go-сервера (NetTestServer): подключение, Hello → Welcome,
-## Ping/Pong (задержка, смещение часов сервера), обрыв → disconnected и 3 повтора → ошибка,
-## перезапуск сервера во время повторов → переподключение с новым id.
-## Нет go или исходников сервера — SKIP (тест проходит).
+## NET-30. NetClient против сервера (NetTestServer: Go-сервер и встроенный LocalServer, NET-22):
+## подключение, Hello → Welcome, Ping/Pong (задержка, смещение часов сервера), обрыв →
+## disconnected и 3 повтора → ошибка, перезапуск сервера во время повторов → переподключение
+## с новым id. Нет go или исходников сервера — вид "go" SKIP (тест проходит).
 
 const NET_CLIENT := preload("res://scripts/net/net_client.gd")
 
 var failures: PackedStringArray = []
+## Вид сервера текущего прогона ("go" | "local") — в сообщениях о падении.
+var _kind := ""
 
 
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
-		failures.append("check failed: " + msg)
+		failures.append("check failed: " + ("[%s] " % _kind if _kind != "" else "") + msg)
 
 
 func test_make_url() -> void:
@@ -38,9 +40,14 @@ func test_connect_failed_without_server() -> void:
 
 
 func test_hello_ping() -> void:
-	var srv := _server()
-	if srv == null:
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := _server(kind)
+		if srv != null:
+			await _hello_ping(srv)
+	_kind = ""
+
+
+func _hello_ping(srv: NetTestServer) -> void:
 	var c := _client()
 	c.ping_interval_s = 0.1
 	var log := _record(c)
@@ -73,9 +80,14 @@ func test_hello_ping() -> void:
 
 
 func test_drop_retries_then_error() -> void:
-	var srv := _server()
-	if srv == null:
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := _server(kind)
+		if srv != null:
+			await _drop_retries_then_error(srv)
+	_kind = ""
+
+
+func _drop_retries_then_error(srv: NetTestServer) -> void:
 	var c := _client()
 	c.reconnect_delays_s = [0.2, 0.2, 0.2]
 	var log := _record(c)
@@ -102,9 +114,14 @@ func test_drop_retries_then_error() -> void:
 
 
 func test_reconnect_after_restart() -> void:
-	var srv := _server()
-	if srv == null:
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := _server(kind)
+		if srv != null:
+			await _reconnect_after_restart(srv)
+	_kind = ""
+
+
+func _reconnect_after_restart(srv: NetTestServer) -> void:
 	var c := _client()
 	c.reconnect_delays_s = [0.5, 0.5, 0.5]
 	var log := _record(c)
@@ -126,13 +143,14 @@ func test_reconnect_after_restart() -> void:
 	srv.stop()
 
 
-func _server() -> NetTestServer:
-	if not NetTestServer.available():
+func _server(kind: String) -> NetTestServer:
+	_kind = kind
+	var srv := NetTestServer.new(kind, self)
+	if not srv.is_available():
 		check(NetTestServer.build_error == "", NetTestServer.build_error)
 		if NetTestServer.build_error == "":
-			print("  SKIP test_net_client: %s" % NetTestServer.skip_reason)
+			print("  SKIP test_net_client [%s]: %s" % [kind, NetTestServer.skip_reason])
 		return null
-	var srv := NetTestServer.new()
 	if not srv.start():
 		check(false, "сервер не запустился: %s" % srv.last_error)
 		return null

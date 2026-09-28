@@ -1,18 +1,21 @@
 extends Node
-## NET-31. NetZone: Zone ↔ FlightSettings; три клиента и локальный Go-сервер (NetTestServer):
+## NET-31. NetZone: Zone ↔ FlightSettings; три клиента и сервер (NetTestServer: Go-сервер и
+## встроенный LocalServer, NET-22):
 ## создание и вход по коду, единый список пилотов и ведущий, часы зоны у всех вместе, уход
 ## ведущего → ведущий второй, часы без скачка > 0,2 с, очередь сохранилась; неверный код →
-## ZONE_NOT_FOUND. Нет go или исходников сервера — SKIP (тест проходит).
+## ZONE_NOT_FOUND. Нет go или исходников сервера — вид "go" SKIP (тест проходит).
 
 const NET_CLIENT := preload("res://scripts/net/net_client.gd")
 const NET_ZONE := preload("res://scripts/net/net_zone.gd")
 
 var failures: PackedStringArray = []
+## Вид сервера текущего прогона ("go" | "local") — в сообщениях о падении.
+var _kind := ""
 
 
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
-		failures.append("check failed: " + msg)
+		failures.append("check failed: " + ("[%s] " % _kind if _kind != "" else "") + msg)
 
 
 func test_zone_round_trip() -> void:
@@ -96,9 +99,14 @@ func test_world_key_and_check() -> void:
 
 
 func test_three_pilots_leader_leaves() -> void:
-	var srv := _server()
-	if srv == null:
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := _server(kind)
+		if srv != null:
+			await _three_pilots_leader_leaves(srv)
+	_kind = ""
+
+
+func _three_pilots_leader_leaves(srv: NetTestServer) -> void:
 	var a := await _pilot(srv, "Папа")
 	var b := await _pilot(srv, "Мама")
 	var c := await _pilot(srv, "Друг")
@@ -182,9 +190,14 @@ func test_three_pilots_leader_leaves() -> void:
 
 
 func test_wrong_code_and_rejoin() -> void:
-	var srv := _server()
-	if srv == null:
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := _server(kind)
+		if srv != null:
+			await _wrong_code_and_rejoin(srv)
+	_kind = ""
+
+
+func _wrong_code_and_rejoin(srv: NetTestServer) -> void:
 	var a := await _pilot(srv, "Папа")
 	var za: Node = a.zone
 	var errors := []
@@ -214,13 +227,14 @@ func test_wrong_code_and_rejoin() -> void:
 	srv.stop()
 
 
-func _server() -> NetTestServer:
-	if not NetTestServer.available():
+func _server(kind: String) -> NetTestServer:
+	_kind = kind
+	var srv := NetTestServer.new(kind, self)
+	if not srv.is_available():
 		check(NetTestServer.build_error == "", NetTestServer.build_error)
 		if NetTestServer.build_error == "":
-			print("  SKIP test_zone: %s" % NetTestServer.skip_reason)
+			print("  SKIP test_zone [%s]: %s" % [kind, NetTestServer.skip_reason])
 		return null
-	var srv := NetTestServer.new()
 	if not srv.start():
 		check(false, "сервер не запустился: %s" % srv.last_error)
 		return null

@@ -1,7 +1,7 @@
 extends Node
 ## NET-32. Состояния пилотов: RemotePilotState (интерполяция, экстраполяция, «пропал»,
-## пакеты не по порядку), трафик своего PilotState (≤ 2 КБ/с), NetPilots с локальным
-## Go-сервером (NetTestServer; нет go — SKIP этой части).
+## пакеты не по порядку), трафик своего PilotState (≤ 2 КБ/с), NetPilots с сервером
+## (NetTestServer: Go-сервер и встроенный LocalServer; нет go — SKIP вида "go").
 ##
 ## Гладкость (приёмка «без рывков > 0,5 м между кадрами на 30 км/ч»): пилот 8,33 м/с на
 ## S-образных виражах (радиус до 20 м) и наборе 1 м/с; пакеты 10 Гц, задержка 50 мс ± 50 мс
@@ -26,6 +26,8 @@ const TRAFFIC_LIMIT := 2048.0
 const PATH_DT := 0.001
 
 var failures: PackedStringArray = []
+## Вид сервера текущего прогона ("go" | "local") — в сообщениях о падении.
+var _kind := ""
 
 ## Истинная траектория с шагом PATH_DT: позиции, скорости, курсы.
 var _path_pos: PackedVector3Array = []
@@ -61,7 +63,7 @@ class FakeZone:
 
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
-		failures.append("check failed: " + msg)
+		failures.append("check failed: " + ("[%s] " % _kind if _kind != "" else "") + msg)
 
 
 func test_smooth_with_jitter() -> void:
@@ -198,18 +200,25 @@ func test_traffic() -> void:
 	zone.queue_free()
 
 
-## Два клиента в зоне через локальный Go-сервер: A шлёт своё и бота, B видит обоих;
-## A уходит → pilot_lost(A) у B, бот остаётся (его продолжит новый ведущий).
+## Два клиента в зоне через сервер (Go и встроенный LocalServer): A шлёт своё и бота, B видит
+## обоих; A уходит → pilot_lost(A) у B, бот остаётся (его продолжит новый ведущий).
 func test_two_clients_server() -> void:
-	if not NetTestServer.available():
-		check(NetTestServer.build_error == "", NetTestServer.build_error)
-		if NetTestServer.build_error == "":
-			print("  SKIP test_two_clients_server: %s" % NetTestServer.skip_reason)
-		return
-	var srv := NetTestServer.new()
-	if not srv.start():
-		check(false, "сервер не запустился: %s" % srv.last_error)
-		return
+	for kind: String in NetTestServer.KINDS:
+		var srv := NetTestServer.new(kind, self)
+		if not srv.is_available():
+			check(NetTestServer.build_error == "", NetTestServer.build_error)
+			if NetTestServer.build_error == "":
+				print("  SKIP test_two_clients_server [go]: %s" % NetTestServer.skip_reason)
+			continue
+		if not srv.start():
+			check(false, "[%s] сервер не запустился: %s" % [kind, srv.last_error])
+			continue
+		_kind = kind
+		await _two_clients(srv)
+		_kind = ""
+
+
+func _two_clients(srv: NetTestServer) -> void:
 	var a := await _pilot(srv, "Папа")
 	var b := await _pilot(srv, "Мама")
 	if not (a.client.is_online and b.client.is_online):

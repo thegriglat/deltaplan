@@ -30,6 +30,22 @@ extends Node
 ##   static world_hash_of(key) -> String — первые 16 hex SHA-256 ключа (строчные).
 ##   static stub_world_key(settings, world_seed, bots_count) -> String — заглушка ключа
 ##       по полям to_zone в формате docs/net_protocol.md («Ключ мира»), v=0-stub.
+##   host_local(settings, world_seed, bots_count, pilot_name, port := 8080) — «Создать» без
+##       адреса сервера (NET-22): запустить встроенный сервер LocalServer (дочерний узел,
+##       слушает все адреса на port), подключить NetClient к 127.0.0.1:port и создать зону.
+##       Ответ — zone_entered(code) или zone_error: "PORT_BUSY" (порт занят), "SERVER_FAILED"
+##       (сервер не запустился), "CONNECT_FAILED". Остальные подключаются по адресу этого
+##       компьютера в локальной сети ("192.168.1.5:8080") и входят по коду как обычно.
+##       Выход создателя (leave_zone, отключение NetClient, выход из игры) останавливает
+##       сервер и отключает свой NetClient; у остальных — обрыв: disconnected(true), 3 повтора,
+##       CONNECT_FAILED → zone_left. Смены ведущего со встроенным сервером нет.
+##       После выхода для новой зоны на другом сервере нужно заново подключить NetClient.
+##   local_server: LocalServer — встроенный сервер (null, пока host_local не вызывали);
+##       is_hosting() -> bool — он запущен. Его зоны объявляются в локальной сети через
+##       lan_discovery (NET-23): первая зона открылась — start_announcing(zones_info), зона
+##       открылась/закрылась — announce_now, зон не осталось — stop_announcing.
+##   lan_discovery: Node — чем объявлять; null — автозагрузка LanDiscovery, если она есть
+##       (тесты подставляют свой экземпляр).
 ##   send_pilot_state(data: Dictionary) -> bool — отправить PilotState (данные NetMessages)
 ##       в зону; false — не в зоне или нет связи. Хук для NET-32.
 ##
@@ -109,6 +125,10 @@ var has_clock := false
 var my_id: String:
 	get:
 		return _client.my_id if _client != null else ""
+## Встроенный сервер (host_local); null — не запускался.
+var local_server: LocalServer
+## Объявление зон встроенного сервера в локальной сети; null — автозагрузка LanDiscovery.
+var lan_discovery: Node
 
 var _client: Node
 ## Что ждём от сервера: "" | "create" | "join" | "rejoin".
@@ -118,6 +138,8 @@ var _clock_base := 0.0
 var _clock_at := 0.0
 var _clock_rate := 1.0
 var _state_timer := 0.0
+## host_local ждёт подключения к своему серверу: {settings, seed, bots}; {} — не ждёт.
+var _host_pending: Dictionary = {}
 
 
 func setup(client: Node) -> void:
@@ -144,6 +166,70 @@ func create_zone(settings: FlightSettings, p_world_seed: int, p_bots_count: int)
 		_fail_pending("CONNECT_FAILED", "not connected")
 
 
+func host_local(
+	settings: FlightSettings,
+	p_world_seed: int,
+	p_bots_count: int,
+	pilot_name: String,
+	port: int = LocalServer.DEFAULT_PORT
+) -> void:
+	_leave_if_in_zone()
+	stop_hosting()
+	if local_server == null:
+		local_server = LocalServer.new()
+		local_server.zone_opened.connect(_on_local_zone_opened)
+		local_server.zone_closed.connect(_on_local_zone_closed)
+		add_child(local_server)
+	var err := local_server.start(port)
+	if err != OK:
+		var err_code := "PORT_BUSY" if err == ERR_ALREADY_IN_USE else "SERVER_FAILED"
+		_fail_pending(err_code, "cannot listen on port %d: %s" % [port, error_string(err)])
+		return
+	# старое соединение (если было) закрывается внутри connect_to_server — ждём после него
+	_client.connect_to_server("127.0.0.1:%d" % local_server.port, pilot_name)
+	_host_pending = {"settings": settings, "seed": p_world_seed, "bots": p_bots_count}
+	_pending = "host"
+
+
+func is_hosting() -> bool:
+	return local_server != null and local_server.is_running()
+
+
+## Остановить встроенный сервер (если запущен) и отключить от него свой NetClient.
+func stop_hosting() -> void:
+	_host_pending = {}
+	if not is_hosting():
+		return
+	local_server.stop()
+	_client.disconnect_from_server()
+
+
+func _on_local_zone_opened(_code: String) -> void:
+	var lan := _lan()
+	if lan == null:
+		return
+	if lan.is_announcing():
+		lan.announce_now()
+	else:
+		lan.start_announcing(local_server.zones_info)
+
+
+func _on_local_zone_closed(_code: String) -> void:
+	var lan := _lan()
+	if lan == null or not lan.is_announcing():
+		return
+	if local_server.zones_info().is_empty():
+		lan.stop_announcing()
+	else:
+		lan.announce_now()
+
+
+func _lan() -> Node:
+	if lan_discovery != null:
+		return lan_discovery
+	return get_node_or_null("/root/LanDiscovery")
+
+
 func join_zone(p_code: String) -> void:
 	_leave_if_in_zone()
 	_pending = "join"
@@ -158,6 +244,7 @@ func leave_zone() -> void:
 	_client.send("leaveZone", {})
 	_reset()
 	zone_left.emit()
+	stop_hosting()
 
 
 func is_leader() -> bool:
@@ -387,6 +474,11 @@ func _drop_absent_from_queue() -> void:
 
 
 func _on_connected(reconnect: bool) -> void:
+	if not _host_pending.is_empty() and not reconnect:
+		var h := _host_pending
+		_host_pending = {}
+		create_zone(h.settings, h.seed, h.bots)
+		return
 	if reconnect and in_zone:
 		_pending = "rejoin"
 		_client.send("joinZone", {"code": code})
@@ -395,12 +487,19 @@ func _on_connected(reconnect: bool) -> void:
 func _on_disconnected(will_reconnect: bool) -> void:
 	if will_reconnect:
 		return
+	_host_pending = {}
 	if _pending != "" and not in_zone:
 		_fail_pending("CONNECT_FAILED", "connection closed")
 	elif in_zone:
 		_pending = ""
 		_reset()
 		zone_left.emit()
+	stop_hosting()
+
+
+func _exit_tree() -> void:
+	if is_hosting():
+		local_server.stop()
 
 
 func _on_error(err_code: String, text: String) -> void:

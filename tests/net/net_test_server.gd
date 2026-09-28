@@ -1,7 +1,20 @@
 class_name NetTestServer
 extends RefCounted
-## Локальный Go-сервер сетевой игры для тестов (NET-30, NET-31, NET-32).
+## Сервер сетевой игры для интеграционных тестов (NET-30, NET-31, NET-32, NET-22): два вида
+## с одним контрактом — "go" (локальный Go-сервер, отдельный процесс) и "local" (встроенный
+## LocalServer, узел в этом же процессе). Интеграционные тесты гоняются против обоих:
 ##
+##   for kind in NetTestServer.KINDS:
+##       var srv := NetTestServer.new(kind, self)   # self — узел-родитель для "local"
+##       if not srv.is_available():                  # только "go" может быть недоступен
+##           print("SKIP: ", NetTestServer.skip_reason)
+##           continue
+##       srv.start() ...
+##
+## Вид "local": LocalServer добавляется ребёнком parent и слушает 127.0.0.1 на свободном
+## порту; stop() закрывает все соединения (клиенты видят обрыв), start(port) — снова.
+##
+## Вид "go":
 ##   if not NetTestServer.available():
 ##       check(NetTestServer.build_error == "", NetTestServer.build_error)  # сборка упала
 ##       print("SKIP: ", NetTestServer.skip_reason)
@@ -18,6 +31,8 @@ extends RefCounted
 ## синхронные (ждут /healthz / завершения процесса, до нескольких секунд).
 ## Нет go или исходников сервера → available() = false, тест печатает SKIP и проходит.
 
+## Виды сервера, против которых гоняются интеграционные тесты.
+const KINDS := ["go", "local"]
 const SERVER_DIR := "res://server"
 const PORT_MIN := 20000
 const PORT_MAX := 40000
@@ -31,10 +46,30 @@ static var build_error := ""
 static var _binary := ""
 static var _checked := false
 
+var kind := "go"
 var port := 0
 var address := ""
 var pid := -1
 var last_error := ""
+## Вид "local": встроенный сервер и узел, к которому он добавлен.
+var local: LocalServer
+var _parent: Node
+
+
+func _init(p_kind: String = "go", parent: Node = null) -> void:
+	kind = p_kind
+	_parent = parent
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and local != null and is_instance_valid(local):
+		local.stop()
+		local.queue_free()
+
+
+## Этот вид сервера можно запустить ("local" — всегда; "go" — см. available()).
+func is_available() -> bool:
+	return kind == "local" or available()
 
 
 ## Есть go и исходники; бинарник собран (сборка — при первом вызове за прогон).
@@ -47,6 +82,8 @@ static func available() -> bool:
 
 ## Запустить сервер. port_hint > 0 — именно этот порт (перезапуск), иначе случайный свободный.
 func start(port_hint: int = 0) -> bool:
+	if kind == "local":
+		return _start_local(port_hint)
 	if not available():
 		last_error = "server unavailable: " + skip_reason
 		return false
@@ -61,6 +98,10 @@ func start(port_hint: int = 0) -> bool:
 
 ## Убить процесс сервера (клиенты видят обрыв соединения).
 func stop() -> void:
+	if kind == "local":
+		if local != null:
+			local.stop()
+		return
 	if pid <= 0:
 		return
 	# OS.kill на Linux/macOS — SIGKILL и waitpid: по возврату процесса уже нет
@@ -69,7 +110,26 @@ func stop() -> void:
 
 
 func is_running() -> bool:
+	if kind == "local":
+		return local != null and local.is_running()
 	return pid > 0 and OS.is_process_running(pid)
+
+
+func _start_local(port_hint: int) -> bool:
+	if local == null:
+		if _parent == null:
+			last_error = "local server needs a parent node: NetTestServer.new(\"local\", self)"
+			return false
+		local = LocalServer.new()
+		_parent.add_child(local)
+	# порт 0 — свободный порт выбирает система
+	var err := local.start(port_hint, "127.0.0.1")
+	if err != OK:
+		last_error = "LocalServer.start(%d): %s" % [port_hint, error_string(err)]
+		return false
+	port = local.port
+	address = "127.0.0.1:%d" % port
+	return true
 
 
 func _start_on(p: int) -> bool:
