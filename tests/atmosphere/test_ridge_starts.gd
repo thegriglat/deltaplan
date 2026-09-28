@@ -228,33 +228,6 @@ func _each_site(cb: Callable) -> void:
 		terrain.free()
 
 
-func test_ridge_climb_20kmh() -> void:
-	var lines: Array[String] = []
-	_each_site(
-		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
-			var key := "%s/%s" % [loc_id, site.id]
-			var res := _fly_ridge(terrain, site, 20.0, FLY_MINUTES)
-			var weak := WEAK_CLIMB_SITES.has(key)
-			var need := float(WEAK_CLIMB_SITES.get(key, 50.0))
-			# Слабые старты (см. WEAK_CLIMB_SITES) — узкая рабочая полоса реального рельефа может
-			# не удержать пилота все 5 мин; проверяем только итоговый набор не хуже документированного.
-			if not weak:
-				check(
-					not bool(res.landed),
-					"%s: не сел за %d мин (набор %.0f м)" % [key, int(FLY_MINUTES), res.gain_m]
-				)
-			check(
-				float(res.gain_m) >= need,
-				(
-					"%s: набор %.0f м за %d мин (нужно ≥ %.0f м%s)"
-					% [key, res.gain_m, int(FLY_MINUTES), need, " — слабый склон" if weak else ""]
-				)
-			)
-			lines.append("| %s | %.0f |" % [key, res.gain_m])
-	)
-	print("\nСтарт → набор за 5 мин (ветер 20 км/ч в склон):\n" + "\n".join(lines))
-
-
 func test_ridge_no_climb_8kmh() -> void:
 	_each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:

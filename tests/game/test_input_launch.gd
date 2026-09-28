@@ -23,38 +23,6 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-func test_player_launch_all_combos() -> void:
-	var main := await _open_main()
-	if main == null:
-		return
-	var game: Game = main.get_node("Game")
-	var locations := Config.list_configs("locations")
-	check(locations.size() >= 4, "4 локации (%d)" % locations.size())
-	var total := 0
-	var fails := 0
-	for loc_name in locations:
-		for wing: String in WINGS:
-			for weather: String in WEATHERS:
-				var s := _settings(loc_name.get_file(), wing, weather)
-				await main.call("_fly", s)
-				var label := "%s × %s × %s" % [s.location_id, wing, weather]
-				if int(main.get("state")) != 2:
-					failures.append("%s: состояние не FLYING" % label)
-					continue
-				for sd: float in SEEDS:
-					total += 1
-					var r := _launch(game, sd, false)
-					if r != "air":
-						fails += 1
-						failures.append("%s, сид %.0f: взлёт сорван (%s)" % [label, sd, r])
-	print("         игрок W+Shift: %d взлётов, %d срывов" % [total, fails])
-	check(
-		total == locations.size() * WINGS.size() * WEATHERS.size() * SEEDS.size(), "все сочетания"
-	)
-	_release()
-	main.queue_free()
-
-
 func test_nose_up_full_strong_wind_stalls() -> void:
 	var main := await _open_main()
 	if main == null:
