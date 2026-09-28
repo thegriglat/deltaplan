@@ -10,6 +10,7 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform sampler2D atlas : source_color, filter_linear_mipmap, repeat_disable;
 uniform vec2 atlas_cells = vec2(4.0, 2.0);        // ячеек атласа (столбцы, строки)
@@ -55,6 +56,8 @@ uniform vec2 clear_size = vec2(1.0);
 varying vec2 v_uv;
 varying float v_tint;
 varying float v_dist;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 bool is_forest(vec2 xz) {
 	if (use_forest_mask) {
@@ -154,6 +157,7 @@ void vertex() {
 		}
 	}
 	VERTEX = v;
+	v_cs_sun = cloud_sun_at(v);
 }
 
 void fragment() {
@@ -170,4 +174,12 @@ void fragment() {
 	float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, t);
 	ALPHA = smoothstep(0.5 - edge, 0.5 + edge, c.a);
 	ALPHA_SCISSOR_THRESHOLD = mix(0.5, 0.02, t);
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.0, vec3(0.0), CS_LAMBERT_WRAP, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

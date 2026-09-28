@@ -6,6 +6,7 @@ shader_type spatial;
 render_mode cull_back, diffuse_burley, world_vertex_coords;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform vec2 grid_center_cell;      // мировая клетка под камерой
 uniform int grid_n;                 // экземпляров по стороне сетки
@@ -21,6 +22,8 @@ uniform float color_variation;      // разброс яркости крон
 
 varying vec3 v_col;
 varying float v_t;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 void vertex() {
 	int id = INSTANCE_ID;
@@ -52,10 +55,19 @@ void vertex() {
 	float v = 1.0 + color_variation * (hash12(cell + 13.3) - 0.5) * 2.0;
 	v_col = (con ? forest_color : birch_color) * v;
 	v_t = t;
+	v_cs_sun = cloud_sun_at(VERTEX);
 }
 
 void fragment() {
 	ALBEDO = v_col * mix(0.55, 1.1, v_t);
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.1;
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.1, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

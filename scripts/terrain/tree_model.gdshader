@@ -6,6 +6,7 @@ shader_type spatial;
 render_mode cull_disabled, diffuse_burley;
 
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec4 albedo_color : source_color = vec4(1.0);
@@ -29,6 +30,8 @@ uniform float far_edge_soft_k = 3.0;
 varying vec3 v_color;
 varying float v_dist;
 varying float v_crown;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
@@ -51,6 +54,7 @@ void vertex() {
 	v_color = COLOR.rgb;
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
+	v_cs_sun = cloud_sun_at(base);
 }
 
 void fragment() {
@@ -80,4 +84,12 @@ void fragment() {
 	// у крон нормали смотрят вверх/наружу — на скользящем взгляде издали блик неба (Френель)
 	// выбеливал лес в серые «призраки»; хвоя и листва матовые
 	SPECULAR = v_crown > 0.5 ? 0.0 : 0.2;
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, v_crown > 0.5 ? 0.0 : 0.2, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

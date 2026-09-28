@@ -5,6 +5,7 @@ shader_type spatial;
 render_mode cull_back, diffuse_burley;
 
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform float leaf_scale_m = 0.14;      // размер пучка листьев в рисунке, м
 uniform float leaf_contrast = 0.55;     // сила рисунка (тёмные просветы между пучками)
@@ -18,6 +19,8 @@ varying vec3 v_wp;
 varying vec3 v_tint;
 varying float v_h;
 varying vec3 v_wn;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 float h31(vec3 p) {
 	p = fract(p * 0.1031);
@@ -53,6 +56,7 @@ void vertex() {
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	v_wn = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_tint = COLOR.rgb;
+	v_cs_sun = cloud_sun_at(v_wp);
 }
 
 void fragment() {
@@ -72,4 +76,12 @@ void fragment() {
 	BACKLIGHT = col * backlight;
 	ROUGHNESS = 0.85;
 	SPECULAR = 0.25;
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.25, BACKLIGHT, CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

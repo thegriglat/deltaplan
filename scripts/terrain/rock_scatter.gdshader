@@ -3,6 +3,7 @@ shader_type spatial;
 // масштаба и поворота не тянут текстуру), оттенок экземпляра (цвет MultiMesh), лишайник
 // пятнами на верхних гранях, тёмный влажный низ у земли.
 render_mode cull_back, diffuse_burley, specular_schlick_ggx;
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform sampler2D rock_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap, repeat_enable;
@@ -18,12 +19,15 @@ varying vec3 v_wp;
 varying vec3 v_wn;
 varying float v_base;
 varying vec3 v_tint;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 void vertex() {
 	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	v_wn = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_base = VERTEX.y;  // модель: низ на −0,15·высоты, наибольший размер 1
 	v_tint = COLOR.rgb;
+	v_cs_sun = cloud_sun_at(v_wp);
 }
 
 void fragment() {
@@ -51,4 +55,12 @@ void fragment() {
 		NORMAL_MAP = texture(rock_normal, uv).rgb;
 		NORMAL_MAP_DEPTH = 0.8;
 	}
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.3, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

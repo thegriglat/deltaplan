@@ -140,7 +140,7 @@
           "clouds": {
             "quality": "low",
             "max_clouds": 90,
-            "shadows": false
+            "shadows": true
           }
         },
         "world": {

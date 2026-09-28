@@ -11,6 +11,7 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform vec2 grid_center_cell;
 uniform int grid_n;
@@ -61,6 +62,8 @@ uniform float height_k = 1.0;   // множитель высоты слоя
 varying vec3 v_col;
 varying float v_t;
 varying vec3 v_n;
+// тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
+varying float v_cs_sun;
 
 void vertex() {
 	int id = INSTANCE_ID;
@@ -166,6 +169,7 @@ void vertex() {
 		v_col = base;
 		v_t = t;
 	}
+	v_cs_sun = cloud_sun_at(VERTEX);
 }
 
 void fragment() {
@@ -178,4 +182,12 @@ void fragment() {
 	NORMAL = normalize((VIEW_MATRIX * vec4(v_n, 0.0)).xyz);
 	ROUGHNESS = 0.9;
 	BACKLIGHT = vec3(0.85) * v_col;
+	AO = cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.0, BACKLIGHT, CS_LAMBERT_WRAP, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

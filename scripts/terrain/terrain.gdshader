@@ -8,6 +8,7 @@ render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 // шаг между вершинами чанка в узлах сетки (1, 2, 4…) — для гладкой нормали вершины
 uniform float lod_stride = 1.0;  // свой материал на каждый LOD (instance uniform переполняет Compatibility)
@@ -138,6 +139,9 @@ uniform float specular_value;
 varying vec3 v_world;
 varying vec3 v_normal_world;
 varying flat float v_lod_stride;
+// тень облаков: множитель прямого солнца и SPECULAR — в light() (cloud_shadow.gdshaderinc)
+varying float v_cs_sun;
+varying float v_cs_spec;
 // выпуклость рельефа (−лапласиан, м/м) в масштабе outcrop_scale_m — в вершине, дёшево
 uniform float outcrop_scale_m = 35.0;         // масштаб кривизны (гребни, бугры), м
 varying float v_convex;
@@ -487,6 +491,7 @@ vec3 bilinear_normal(vec2 xz) {
 
 void fragment() {
 	vec3 wp = v_world;
+	v_cs_sun = cloud_sun_at(wp);
 	if (all(greaterThan(wp.xz, hole_min)) && all(lessThan(wp.xz, hole_max))) {
 		discard;
 	}
@@ -950,4 +955,13 @@ void fragment() {
 	ROUGHNESS = mix(roughness_value, water_rough, water);
 	SPECULAR = mix(specular_value * (1.0 - forest * 0.7), water_specular, water);
 	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
+	v_cs_spec = SPECULAR;
+	AO *= cloud_sky_ao(v_cs_sun);
+}
+
+// Встроенное освещение (burley + schlick_ggx), прямое солнце — в тени облаков слабее.
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, v_cs_spec, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

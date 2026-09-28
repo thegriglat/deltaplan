@@ -1,6 +1,6 @@
 class_name CloudLayer
 extends Node3D
-## Облака и их тени на земле (Decal). Всё видимое — строго из физической модели (VR-0):
+## Облака и их тени на земле (CloudShadowMap). Всё видимое — строго из физической модели (VR-0):
 ## - кучевые над термиками: рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
 ##   распад (рваное, тает, уплывает); Cb — башня до тропопаузы, наковальня, вирга (VR-26);
 ## - лентикулярные в гребнях подветренных волн, шапка на гребне хребта, роторные клочья (VR-27).
@@ -21,8 +21,7 @@ var model: CloudModel
 
 var _material: ShaderMaterial
 var _box: BoxMesh
-var _shadows: Array[Decal] = []
-var _shadow_tex: Texture2D
+var _shadow_map: CloudShadowMap
 ## Слоты облаков над термиками: термик в слоте (null — свободен), id -> слот, свободные слоты.
 var _slot_th: Array = []
 var _slot_of: Dictionary = {}
@@ -35,12 +34,10 @@ var _drifting: Dictionary = {}
 ## Видимость по слотам (облако никогда не выключается за кадр, а тает):
 ## _sel — доля выбора 0..1 (идёт к _want за fade_in_s / fade_out_s), _want — 1, если облако
 ## выбрано для отрисовки, 0 — выбыло (слияние, лимит max_clouds, термик удалён из поля);
-## _base_vis — видимость по жизни и дальности (CloudModel.life_fade, range_fade);
-## _shadow_a — непрозрачность тени без _sel.
+## _base_vis — видимость по жизни и дальности (CloudModel.life_fade, range_fade).
 var _sel: PackedFloat32Array = []
 var _want: PackedByteArray = []
 var _base_vis: PackedFloat32Array = []
-var _shadow_a: PackedFloat32Array = []
 ## Первый выбор (старт, смена погоды): облака сразу видны, без проявления.
 var _instant: bool = true
 var _last_t: float = -1.0e18
@@ -135,9 +132,12 @@ func setup(atmosphere: Atmosphere) -> void:
 		_effect.noise_detail = _material.get_shader_parameter("noise_detail")
 	else:
 		_make_multimesh()
-	set_quality(String(cfg.quality))
 	if bool(cfg.shadows):
-		_shadow_tex = _make_shadow_texture(int(cfg.shadow_texture_size))
+		_shadow_map = CloudShadowMap.new()
+		_shadow_map.name = "ShadowMap"
+		add_child(_shadow_map)
+		_shadow_map.setup(self, _material)
+	set_quality(String(cfg.quality))
 	_update_light()
 
 
@@ -152,6 +152,8 @@ func set_quality(q: String) -> void:
 	_material.set_shader_parameter("detail_enabled", 1 if bool(p.detail) else 0)
 	if _effect != null:
 		_effect.resolution_scale = float(p.lowres_scale)
+	if _shadow_map != null:
+		_shadow_map.set_quality(q)
 
 
 ## Текстуры шума генерируются в фоне; до готовности облака гладкие.
@@ -212,23 +214,6 @@ func _make_noise(size: int, cells: int, octaves: int, seed_value: int) -> NoiseT
 	return t
 
 
-## Пятно тени: мягкий край с рваной кромкой.
-func _make_shadow_texture(size: int) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var n := FastNoiseLite.new()
-	n.seed = int(atmo.cfg.seed) + 5
-	n.frequency = 4.0 / size
-	for y in size:
-		for x in size:
-			var u := (x + 0.5) / size * 2.0 - 1.0
-			var v := (y + 0.5) / size * 2.0 - 1.0
-			var r := sqrt(u * u + v * v) + n.get_noise_2d(x, y) * 0.25
-			var a := 1.0 - smoothstep(0.45, 0.95, r)
-			img.set_pixel(x, y, Color(0, 0, 0, a))
-	img.generate_mipmaps()
-	return ImageTexture.create_from_image(img)
-
-
 func _make_multimesh() -> void:
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -275,6 +260,8 @@ func _process(delta: float) -> void:
 	_update_some(t, eye)
 	_update_fades(dt)
 	_update_drift(t)
+	if _shadow_map != null:
+		_shadow_map.update(eye, _sun_dir, _material)
 	var visible_recs := _visible_records(cam)
 	if _effect != null:
 		_push_to_effect(visible_recs)
@@ -471,8 +458,6 @@ func _release(slot: int) -> void:
 	_sel[slot] = 0.0
 	_drifting.erase(slot)
 	_rec[slot] = PackedFloat32Array()
-	if slot < _shadows.size():
-		_shadows[slot].visible = false
 	_free.append(slot)
 
 
@@ -490,24 +475,10 @@ func _update_some(t: float, eye: Vector3) -> void:
 
 func _add_slot() -> int:
 	_rec.append(PackedFloat32Array())
-	if _shadow_tex != null:
-		var dc := Decal.new()
-		dc.texture_albedo = _shadow_tex
-		dc.albedo_mix = 1.0
-		# Не на квад дымки (см. SkyEnvironment._apply_haze).
-		dc.cull_mask = 0xFFFFF & ~(1 << (int(cfg.shadow_exclude_layer) - 1))
-		dc.upper_fade = 0.05
-		dc.lower_fade = 0.05
-		dc.distance_fade_enabled = true
-		dc.distance_fade_begin = float(cfg.shadow_distance_m) * 0.8
-		dc.distance_fade_length = float(cfg.shadow_distance_m) * 0.2
-		add_child(dc)
-		_shadows.append(dc)
 	_slot_th.append(null)
 	_sel.append(0.0)
 	_want.append(0)
 	_base_vis.append(0.0)
-	_shadow_a.append(0.0)
 	return _slot_th.size() - 1
 
 
@@ -559,11 +530,6 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 		Vector4(st.x, st.y, st.z, float(th.noise_seed % 9973)),
 		Vector4(sz4.w, anvil, rain, 3.0 if th.is_cb else 0.0), anvil_pad, below, vis * _sel[i]
 	)
-	if i < _shadows.size():
-		var dc := _shadows[i]
-		_place_shadow(dc, c, base, sz4, st, axes, eye, anvil)
-		_shadow_a[i] = dc.modulate.a * vis
-		dc.modulate.a = _shadow_a[i] * _sel[i]
 
 
 ## Видимость по дальности: облако тает к max_distance_m (от камеры) и к радиусу, где живут
@@ -592,35 +558,6 @@ func _update_fades(dt: float) -> void:
 			continue
 		if not _rec[i].is_empty():
 			_rec[i][20] = _base_vis[i] * _sel[i]
-		if i < _shadows.size():
-			_shadows[i].modulate.a = _shadow_a[i] * _sel[i]
-
-
-func _place_shadow(
-	dc: Decal, c: Vector2, base: float, sz4: Vector4, st: Vector3, axes: Array, eye: Vector3,
-	anvil: float
-) -> void:
-	var dist := Vector2(eye.x, eye.z).distance_to(c)
-	if dist > float(cfg.shadow_distance_m) or _sun_dir.y < 0.05:
-		dc.visible = false
-		return
-	dc.visible = true
-	# Тень смещена от облака против солнца на (высота над землёй / tg высоты солнца).
-	var gh := atmo.ground.height(c.x, c.y)
-	var k := (base - gh) / _sun_dir.y
-	var sp := Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
-	var gs := atmo.ground.height(sp.x, sp.y)
-	k = (base - gs) / _sun_dir.y
-	sp = Vector2(c.x - _sun_dir.x * k, c.y - _sun_dir.z * k)
-	var depth := maxf(base - gs, 400.0)
-	var grow := 1.0 + anvil * float(atmo.cfg.storm.anvil_spread)
-	dc.size = Vector3(2.0 * sz4.x * 1.1 * grow, depth, 2.0 * sz4.y * 1.1 * grow)
-	dc.transform = Transform3D(Basis(axes[0], axes[1], axes[2]), Vector3(sp.x, gs, sp.y))
-	# Под перистой пеленой тени бледнее (рассеянный свет).
-	var cover := clampf(float(atmo.weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
-	var soft := 1.0 - float(atmo.cfg.cirrus.shadow_softening) * cover
-	var op := float(cfg.shadow_opacity) * st.x * (1.0 - st.y) * clampf(sz4.z / 300.0, 0.3, 1.0)
-	dc.modulate = Color(1, 1, 1, clampf(op * soft * (1.0 + anvil * 0.5), 0.0, 1.0))
 
 
 ## Облака уплывают по ветру вместе с термиками — двигаем их каждый кадр, чтобы не дёргались.
