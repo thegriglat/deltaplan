@@ -356,3 +356,5 @@ net_err_disconnected,Связь с сервером потеряна,Connection 
 net_err_bad_message,Ошибка связи с сервером,Server communication error
 net_err_port_busy,Порт занят,Port is busy
 net_err_server_failed,Не удалось запустить сервер,Couldn't start the server
+result_continue_near,Продолжить рядом,Continue nearby
+result_to_start,На старт,Back to launch

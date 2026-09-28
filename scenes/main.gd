@@ -21,6 +21,10 @@ var _overlay_back: Control  ## экран, к которому вернутьс�
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
 var _net_pause_timer: Timer  ## обновление списка пилотов зоны в паузе (NET-52), 2 Гц
+## Выбор «Полёт…» до сетевого полёта (мир зоны его подменяет) — вернуть после выхода из зоны.
+var _flight_before_net: FlightSettings
+## Сеть: полёт кончился, пока открыта пауза (мир идёт) — итог покажем после «Продолжить».
+var _pending_result: Array = []
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -48,6 +52,7 @@ func _ready() -> void:
 	_net_pause_timer.timeout.connect(_refresh_net_pause)
 	add_child(_net_pause_timer)
 	_connect_ui()
+	NetZone.zone_left.connect(_on_zone_left)
 	var overlays: Array[Control] = [
 		pause_menu,
 		settings_panel,
@@ -69,7 +74,9 @@ func _ready() -> void:
 		game.autopilot = Autopilot.new()
 		game.autopilot.circle_after_s = opts.autopilot_circle_s
 		game.autopilot.circle_bank_deg = opts.autopilot_circle_bank
-	if opts.autostart:
+	if opts.net_host or opts.net_join != "":
+		await _debug_net()
+	elif opts.autostart:
 		await _fly(flight)
 	else:
 		await _show_menu()
@@ -111,8 +118,10 @@ func _fly(s: FlightSettings) -> void:
 	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
 	game.air_start_m = opts.air_start_m
 	game.air_start_agl_m = opts.air_start_agl_m
-	game.bots_count = opts.bots
+	game.bots_count = opts.bots if game.net == null else 0  # боты зоны — NET-44
 	var ok: bool = await game.start(s)
+	if ok and game.net != null:
+		ok = await game.net.join_world()  # мир — на время зоны, сверка ключа мира
 	loading_screen.close()
 	start_menu.set_busy(false)
 	if not ok:
@@ -120,7 +129,7 @@ func _fly(s: FlightSettings) -> void:
 		start_menu.visible = true
 		return
 	flight.pilot_mass_kg = game.settings.pilot_mass_kg
-	if not opts.autostart:
+	if not opts.autostart and game.net == null:
 		UserSettings.save_last_flight(s)
 	start_menu.visible = false
 	game.set_flying(true)
@@ -142,6 +151,8 @@ func _fly(s: FlightSettings) -> void:
 
 func _show_menu() -> void:
 	_net_pause_timer.stop()
+	_pending_result = []
+	_end_net()
 	state = State.MENU
 	get_tree().paused = false
 	var overlays: Array[Control] = [
@@ -168,9 +179,10 @@ func _show_menu() -> void:
 
 
 ## Esc: физика стоит (дерево на паузе, Telemetry.time_s не растёт), звук молчит.
+## В сети (NET-40) мир не останавливается — только меню, ввод выключен (крыло летит само).
 func _pause() -> void:
 	state = State.PAUSED
-	get_tree().paused = true
+	get_tree().paused = game.net == null
 	game.set_paused(true)
 	_refresh_net_pause()
 	_net_pause_timer.start()
@@ -183,10 +195,15 @@ func _resume() -> void:
 	get_tree().paused = false
 	game.set_paused(false)
 	state = State.FLYING
+	if not _pending_result.is_empty():
+		var r := _pending_result
+		_pending_result = []
+		_show_result(String(r[0]), r[1])
 
 
 func _restart() -> void:
 	_net_pause_timer.stop()
+	_pending_result = []
 	result_screen.visible = false
 	pause_menu.visible = false
 	get_tree().paused = false
@@ -197,27 +214,42 @@ func _restart() -> void:
 
 ## Список пилотов зоны в паузе (NET-52) — не в зоне: NetPauseInfo.build вернёт {}, блок скрыт.
 func _refresh_net_pause() -> void:
+	if not is_instance_valid(game):  # выход из игры: мир уже убран
+		return
 	var own_alt: Variant = null
 	if game.settings != null:
 		own_alt = game.glider.get_telemetry().altitude_msl
 	pause_menu.set_net_info(NetPauseInfo.build(NetZone, NetPilots, own_alt))
 
 
-## «Выйти из зоны» в паузе (NET-52): выйти и вернуться в меню, как «В меню».
+## «Выйти из зоны» в паузе (NET-52): выйти и вернуться в меню, как «В меню»
+## (_show_menu выходит из зоны сама).
 func _on_leave_zone_requested() -> void:
-	NetZone.leave_zone()
 	_show_menu()
 
 
 func _on_flight_ended(kind: String, info: Dictionary) -> void:
 	if state != State.FLYING:
+		_keep_net_result(kind, info)
 		return
 	await get_tree().create_timer(float(Config.value("game", "result_delay_s", 2.0)), false).timeout
 	if state != State.FLYING:
+		_keep_net_result(kind, info)
 		return
+	_show_result(kind, info)
+
+
+## Сеть: на паузе мир идёт, и полёт может кончиться под меню — итог после «Продолжить».
+func _keep_net_result(kind: String, info: Dictionary) -> void:
+	if state == State.PAUSED and game.net != null:
+		_pending_result = [kind, info]
+
+
+func _show_result(kind: String, info: Dictionary) -> void:
 	state = State.RESULT
-	get_tree().paused = true
+	get_tree().paused = game.net == null  # в сети мир идёт дальше (NET-40)
 	game.set_paused(true)
+	result_screen.set_net_mode(game.net != null, game.net != null and game.net.friends_airborne())
 	result_screen.show_result(kind, info)
 
 
@@ -280,6 +312,8 @@ func _connect_screens() -> void:
 	result_screen.restart_requested.connect(_restart)
 	result_screen.continue_requested.connect(_on_result_continue)
 	result_screen.menu_requested.connect(_show_menu)
+	result_screen.continue_near_requested.connect(_on_result_continue_near)
+	result_screen.to_start_requested.connect(_on_result_to_start)
 
 
 func _on_settings_closed(changed: bool) -> void:
@@ -348,7 +382,7 @@ func _open_flight_setup() -> void:
 
 
 ## «Сетевая игра»: место — здесь, крыло/масса/время/погода — из последнего «Полёт…».
-## fly_requested экрана пока не подключён: сетевой полёт — NET-40 (scripts/game/).
+## «Лететь» в зоне — _on_net_fly (NET-40).
 func _open_net_screen() -> void:
 	if net_screen == null:
 		net_screen = (load("res://scenes/ui/net_screen.tscn") as PackedScene).instantiate()
@@ -356,7 +390,123 @@ func _open_net_screen() -> void:
 		net_screen.visible = false
 		$UI.add_child(net_screen)
 		net_screen.closed.connect(_close_overlay)
+		net_screen.fly_requested.connect(_on_net_fly)
 	_open_overlay(net_screen, start_menu)
+
+
+# ---------------------------------------------------------------- сетевой полёт (NET-40)
+
+
+## «Лететь» в зоне: мир — из ключа зоны (у всех один), крыло и масса — свои из «Полёт…».
+func _on_net_fly(_zone_settings: FlightSettings = null) -> void:
+	if state != State.MENU or not NetZone.in_zone:
+		return
+	_close_net_screen_keep_zone()
+	_flight_before_net = flight
+	var ws := NetFlight.world_settings(NetZone, flight)
+	game.world_seed = NetZone.world_seed
+	game.enable_net(NetFlight.new())
+	game.net.airborne_changed.connect(_on_net_airborne_changed)
+	await _fly(ws)
+	if state != State.FLYING:  # не загрузилось или вышли из зоны во время загрузки
+		_end_net()
+
+
+## Экран «Сетевая игра» убрать, не выходя из зоны: он выходит из неё, когда его прячут.
+## TODO(К3): метод экрана «отпустить в полёт» вместо отключения его сигналов здесь.
+func _close_net_screen_keep_zone() -> void:
+	if net_screen == null:
+		return
+	for c: Dictionary in net_screen.visibility_changed.get_connections():
+		net_screen.visibility_changed.disconnect(c.callable)
+	net_screen.backend.stop_nearby()
+	_overlay_back = null
+	net_screen.queue_free()
+	net_screen = null
+
+
+## Выход из сетевого режима (меню, «Выйти из зоны», зона пропала): чужих убрать, из зоны выйти,
+## сид и выбор «Полёт…» — как до сети.
+func _end_net() -> void:
+	if game.net == null:
+		return
+	game.disable_net()
+	game.world_seed = -1
+	if NetZone.in_zone:
+		NetZone.leave_zone()
+	if _flight_before_net != null:
+		flight = _flight_before_net
+		_flight_before_net = null
+
+
+## Зона закрылась или связь пропала насовсем — в главное меню.
+func _on_zone_left() -> void:
+	if game.net != null and state != State.MENU and state != State.LOADING:
+		_show_menu()
+
+
+## Кто-то из друзей взлетел/сел — «Продолжить рядом» в открытом итоге появляется/пропадает.
+func _on_net_airborne_changed(any: bool) -> void:
+	if state == State.RESULT and game.net != null:
+		result_screen.set_net_mode(true, any)
+
+
+## «Продолжить рядом»: дальше с места посадки, буксир к другу — NET-42 (game.catch_up_nearest).
+func _on_result_continue_near() -> void:
+	_on_result_continue()
+	game.catch_up_nearest()
+
+
+## «На старт»: снова на старт, мир не сбрасывается (очередь — NET-43, game.return_to_launch).
+func _on_result_to_start() -> void:
+	_net_pause_timer.stop()
+	_pending_result = []
+	result_screen.visible = false
+	pause_menu.visible = false
+	get_tree().paused = false
+	game.return_to_launch()
+	game.set_paused(false)
+	state = State.FLYING
+
+
+## Отладка и скриншоты (--net-host / --net-join=КОД): войти в зону без экрана и сразу лететь.
+func _debug_net() -> void:
+	var pilot_name := opts.net_name if opts.net_name != "" else UserSettings.pilot_name()
+	var entered := [""]
+	var on_enter := func(c: String) -> void: entered[0] = c
+	var on_err := func(c: String, t: String) -> void: entered[0] = "error: %s %s" % [c, t]
+	NetZone.zone_entered.connect(on_enter)
+	NetZone.zone_error.connect(on_err)
+	if opts.net_host:
+		NetZone.host_local(flight, opts.net_seed, maxi(opts.bots, 0), pilot_name, opts.net_port)
+	else:
+		# первые кадры (сборка шейдеров) бывают дольше таймаута подключения — переждать
+		for i in 60:
+			await get_tree().process_frame
+		NetClient.connect_to_server(opts.net_server, pilot_name)
+		var t0 := Time.get_ticks_msec()
+		while not NetClient.is_online and Time.get_ticks_msec() - t0 < 15000:
+			await get_tree().process_frame
+		print("net: связь с %s — %s" % [opts.net_server, NetClient.is_online])
+		NetZone.join_zone(opts.net_join)
+	var t1 := Time.get_ticks_msec()
+	while entered[0] == "" and Time.get_ticks_msec() - t1 < 15000:
+		await get_tree().process_frame
+	NetZone.zone_entered.disconnect(on_enter)
+	NetZone.zone_error.disconnect(on_err)
+	print("net: зона %s (я %s, ведущий %s)" % [entered[0], NetZone.my_id, NetZone.leader_id])
+	if not NetZone.in_zone:
+		_quit(1)
+		return
+	if opts.net_code_file != "":
+		var f := FileAccess.open(opts.net_code_file, FileAccess.WRITE)
+		if f != null:
+			f.store_string(NetZone.code)
+			f.close()
+	await _on_net_fly()
+	if opts.net_hide_remote and game.net != null:
+		game.net.remote.visible = false
+		_fix_sky_camera()
 
 
 ## «Готово» в «Полёт…»: выбор запомнить и вернуться в меню (в полёт — только «Лететь»).
@@ -410,7 +560,11 @@ func _smoke_test() -> void:
 
 
 func _screenshot() -> void:
-	if state == State.FLYING and opts.time_s > 0.0:
+	if game.net != null and opts.time_s > 0.0:
+		# сеть: --time — время зоны (кадры с двух машин в один момент), и итог — если открылся
+		while NetZone.zone_time() < opts.time_s and state in [State.FLYING, State.RESULT]:
+			await get_tree().process_frame
+	elif state == State.FLYING and opts.time_s > 0.0:
 		while game.sim_time_s < opts.time_s and state == State.FLYING:
 			await get_tree().physics_frame
 			if _look_target != null:
@@ -421,6 +575,11 @@ func _screenshot() -> void:
 		"pause":
 			if state == State.FLYING:
 				_pause()
+				if game.net != null:  # сеть: мир под меню паузы идёт дальше (лог для проверки)
+					var at: Vector3 = game.get_start().position
+					print("net: пауза, мир %s" % game.net.world_summary(at, 0.0))
+					await get_tree().create_timer(3.0).timeout
+					print("net: пауза +3 с, мир %s" % game.net.world_summary(at, 0.0))
 		"settings":
 			_open_overlay(settings_panel, start_menu if state == State.MENU else pause_menu)
 		"about":
@@ -431,6 +590,10 @@ func _screenshot() -> void:
 			_open_flight_setup()
 	if opts.no_overlay:
 		game.overlay.visible = false
+	if game.net != null and opts.net_hide_remote:
+		_fix_sky_camera()
+	if game.net != null:
+		print("net: мир %s" % game.net.world_summary(game.get_start().position))
 	for i in 8:
 		await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -440,11 +603,34 @@ func _screenshot() -> void:
 	_quit(0 if err == OK else 1)
 
 
+## Кадр неба сети (--net-hide-remote): камера неподвижно в 30 м над стартом, поворот --look от
+## курса старта — у двух машин одна и та же точка и направление, что бы ни делали пилоты.
+func _fix_sky_camera() -> void:
+	var st := game.get_start()
+	game.camera.process_mode = Node.PROCESS_MODE_DISABLED
+	result_screen.visible = false
+	var yaw := -deg_to_rad(float(st.heading_deg) + opts.look.x)
+	var b := Basis.from_euler(Vector3(deg_to_rad(opts.look.y), yaw, 0.0), EULER_ORDER_YXZ)
+	game.camera.global_transform = Transform3D(b, (st.position as Vector3) + Vector3.UP * 30.0)
+	# Фокус атмосферы (круг, где рождаются термики) — тоже на старте, а не на своём пилоте:
+	# пилоты стоят «без рук» и могут съехать по-разному — дальний край неба был бы разный.
+	var focus := game.get_node_or_null("SkyShotFocus") as Node3D
+	if focus == null:
+		focus = Node3D.new()
+		focus.name = "SkyShotFocus"
+		game.add_child(focus)
+	focus.global_position = st.position
+	game.air.set("focus_node", focus)
+
+
 ## Точка для --look-at: старт, центр ботов (в воздухе, иначе всех) или бот N; +2 м (крыло).
 func _look_point() -> Vector3:
 	var up := Vector3.UP * 2.0
 	if opts.look_at == "start":
 		return game.get_start().position + up
+	if opts.look_at == "remote":  # сеть: первый чужой пилот (кадры NET-40/41)
+		var rp: Array = game.net.remote.pilots() if game.net != null else []
+		return (rp[0].position as Vector3) + up if not rp.is_empty() else game.get_start().position + up
 	var agents := game.bots.agents
 	if opts.look_at.begins_with("bot") and opts.look_at != "bots":
 		var i := int(opts.look_at.substr(3))

@@ -42,6 +42,9 @@ var air_start_m := -1.0
 var air_start_agl_m := 300.0
 ## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Сеть: сид зоны — задать до start().
 var world_seed := -1
+## Сетевой режим (NET-40): NetFlight, пока летим в зоне; null — одиночная игра.
+## Задаётся enable_net() до start(). Правила режима — scripts/game/net_flight.gd.
+var net: NetFlight = null
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -131,8 +134,11 @@ func tick(dt: float) -> void:
 		return
 	_dt = dt
 	sim_time_s += dt
-	sky.clock.advance(dt)  # время суток идёт (VR-5)
-	air.call("step", dt)
+	if net != null:
+		_net_world_step(dt)
+	else:
+		sky.clock.advance(dt)  # время суток идёт (VR-5)
+		air.call("step", dt)
 	_update_day_weather()
 	var phase := glider.phase()
 	if autopilot != null:
@@ -157,6 +163,7 @@ func tick(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	settings = s.duplicate()
+	_lock_net_clock()
 	var progress := terrain.progress
 	progress.begin()
 	# Пока грузится — шаг физики стоит: воздух и планер ещё не настроены на новое место
@@ -388,9 +395,10 @@ func restart() -> void:
 	_touchdown = {}
 	_prev_phase = ""
 	sim_time_s = 0.0
-	sky.clock.reset()
-	if _day != null:
-		_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
+	if net == null:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
+		sky.clock.reset()
+		if _day != null:
+			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
 	for n in mounted:
@@ -472,6 +480,7 @@ func apply_user_settings() -> void:
 		_graphics = GraphicsPresets.current()
 	input_controller.reload_config()
 	sky.clock.reload_config()
+	_lock_net_clock()
 	if _day != null:
 		_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
@@ -503,6 +512,67 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		i += 1
+
+
+# ---------------------------------------------------------------- сеть (NET-40)
+
+
+## Включить сетевой режим (до start()): NetFlight — в мир, часы ×1.
+func enable_net(n: NetFlight, zone: Object = null, pilots: Object = null) -> void:
+	disable_net()
+	net = n
+	add_child(n)
+	n.setup(self, zone, pilots)
+	_lock_net_clock()
+
+
+## Выключить сетевой режим (вышли из зоны): чужих убрать, часы — снова из настроек.
+func disable_net() -> void:
+	if net == null:
+		return
+	net.teardown()
+	net.queue_free()
+	net = null
+	sky.clock.reload_config()
+
+
+## Время мира (атмосферы), с — в сети идёт вровень с часами зоны.
+func world_time() -> float:
+	return float(air.get("time_s")) if "time_s" in air else sim_time_s
+
+
+## Разбился (препятствие или авария на касании) — для фазы CRASHED в сети.
+func is_crashed() -> bool:
+	return _crashed or String(_touchdown.get("grade", "")) == "crash"
+
+
+## «Продолжить рядом» (итог полёта в сети): буксир к ближайшему другу в воздухе.
+## ХУК NET-42: пока только пишет в лог; вернёт true, когда буксир поехал.
+func catch_up_nearest() -> bool:
+	print("Game.catch_up_nearest: «догнать» ещё не сделано (NET-42)")
+	return false
+
+
+## «На старт» (итог полёта в сети): снова на старт, мир не сбрасывается.
+## ХУК NET-43: очередь на старт (в конец текущей очереди).
+func return_to_launch() -> void:
+	restart()
+
+
+## Шаг мира в сети: воздух — по часам зоны (NetFlight.world_dt), часы суток — от времени
+## атмосферы (AtmoDay.hour_at): после паузы и долгих кадров время не прыгает относительно зоны.
+func _net_world_step(dt: float) -> void:
+	air.call("step", net.world_dt(dt))
+	if _day != null:
+		sky.clock.set_hour(_day.hour_at(world_time()))
+	else:
+		sky.clock.advance(dt)
+
+
+## В сети время только ×1 (часы зоны идут ×1 у всех).
+func _lock_net_clock() -> void:
+	if net != null:
+		sky.clock.speed = 1.0
 
 
 # ---------------------------------------------------------------- сборка
