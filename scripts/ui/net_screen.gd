@@ -22,7 +22,7 @@ const ERROR_KEYS := {
 	"bad_message": "net_err_bad_message",
 }
 
-## Клиент сети; не задан до add_child — «сети нет» (NetUiBackend: сервер недоступен).
+## Клиент сети; не задан до add_child — NetClient/NetZone (NetUiClientBackend).
 var backend: NetUiBackend
 ## Последний выбор «Полёт…» (крыло, масса, время, погода); место выбирается здесь.
 var settings: FlightSettings
@@ -52,7 +52,7 @@ func _ready() -> void:
 	if settings == null:
 		settings = UserSettings.load_last_flight()
 	if backend == null:
-		backend = NetUiBackend.new()
+		backend = NetUiClientBackend.new()
 	backend.state_changed.connect(_on_state_changed)
 	backend.failed.connect(_on_failed)
 	backend.zone_joined.connect(_on_zone_joined)

@@ -162,10 +162,10 @@ func test_join_errors_shown() -> void:
 	_restore(raw)
 
 
-## Без клиента сети (по умолчанию) — «Сервер недоступен»; «Назад» закрывает экран.
-func test_default_backend_unreachable_and_back() -> void:
+## «Сети нет» (NetUiBackend) — «Сервер недоступен»; «Назад» закрывает экран.
+func test_no_network_unreachable_and_back() -> void:
 	var raw: Variant = _backup()
-	var s := _screen(null)
+	var s := _screen(NetUiBackend.new())
 	s.set_server("127.0.0.1:1")
 	s.create_zone()
 	await _frames()
@@ -193,3 +193,71 @@ func test_start_menu_button() -> void:
 	check(found, "кнопка «Сетевая игра» есть")
 	check(got[0], "net_requested")
 	m.queue_free()
+
+
+## Экран по умолчанию — настоящий клиент (NetUiClientBackend на автозагрузках).
+## Неразборчивый адрес — «Сервер недоступен» сразу, без сети.
+func test_default_backend_is_client_bad_address() -> void:
+	var raw: Variant = _backup()
+	var s := _screen(null)
+	check(s.backend is NetUiClientBackend, "по умолчанию — NetUiClientBackend")
+	check((s.backend as NetUiClientBackend).client != null, "есть автозагрузка NetClient")
+	s.set_server("host:port")
+	s.create_zone()
+	await _frames()
+	check(s.view == NetScreen.View.INPUT, "назад к вводу")
+	check(s.error_text() == tr(NetScreen.ERROR_KEYS.unreachable), "«%s»" % s.error_text())
+	s.queue_free()
+	_restore(raw)
+
+
+## Переходник: ошибки NetClient/NetZone → виды ошибок экрана; вход в зону → код и пилоты
+## (ведущий, «вы», порядок подключения); зона потеряна → "disconnected".
+func test_client_backend_maps_signals() -> void:
+	var client: Node = load("res://scripts/net/net_client.gd").new()
+	add_child(client)
+	var zone: Node = load("res://scripts/net/net_zone.gd").new()
+	zone.setup(client)
+	add_child(zone)
+	var b := NetUiClientBackend.new(client, zone)
+	var got: Array = []
+	b.failed.connect(func(k: String) -> void: got.append(k))
+	for pair: Array in [
+		["ZONE_NOT_FOUND", "zone_not_found"],
+		["ZONE_FULL", "zone_full"],
+		["VERSION_MISMATCH", "version_mismatch"],
+		["CONNECT_FAILED", "unreachable"],
+		["BAD_MESSAGE", "bad_message"],
+	]:
+		got.clear()
+		b.connect_and_join("127.0.0.1:1", "Тест", "4721")
+		check(b.is_busy(), "%s: подключение" % pair[0])
+		zone.zone_error.emit(pair[0], "")
+		check(got == [pair[1]], "%s → %s: %s" % [pair[0], pair[1], got])
+		check(not b.is_busy(), "%s: не занят" % pair[0])
+	await _frames()
+	got.clear()
+	var joined: Array = []
+	b.zone_joined.connect(func(c: String) -> void: joined.append(c))
+	b.connect_and_join("127.0.0.1:1", "Alex", "4721")
+	zone.code = "4721"
+	zone.leader_id = "3"
+	client.my_id = "9"
+	zone.peers = {
+		"9": {"id": "9", "name": "Alex", "joinOrder": 3},
+		"3": {"id": "3", "name": "Папа", "joinOrder": 1},
+	}
+	zone.zone_entered.emit("4721")
+	check(joined == ["4721"] and b.code() == "4721", "вход: %s" % [joined])
+	var ps := b.peers()
+	check(ps.size() == 2, "два пилота")
+	if ps.size() == 2:
+		check(ps[0].name == "Папа" and ps[0].is_leader and not ps[0].is_me, "ведущий первым")
+		check(ps[1].name == "Alex" and ps[1].is_me and not ps[1].is_leader, "это вы")
+	zone.zone_left.emit()
+	check(got == ["disconnected"], "зона потеряна: %s" % [got])
+	check(b.code() == "" and b.peers().is_empty(), "вне зоны")
+	b.leave()
+	await _frames()
+	client.queue_free()
+	zone.queue_free()
