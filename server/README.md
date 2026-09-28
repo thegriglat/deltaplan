@@ -46,69 +46,33 @@ make test    # go test ./... -race
 make lint    # go vet + staticcheck
 ```
 
-## Развёртывание на чистом VPS (≤ 10 минут)
+## Развёртывание на VPS (Docker)
 
-Предполагается Linux с systemd и правами sudo по SSH (Debian/Ubuntu; для
-другого дистрибутива команды `ufw`/`apt` заменить на аналоги).
-
-1. **Собрать бинарник локально** (кросс-компиляция, Go на VPS не нужен):
-   ```bash
-   cd server
-   make build-linux
-   ```
-
-2. **Скопировать на сервер**:
-   ```bash
-   scp bin/deltaplan-server-linux-amd64 user@VPS_IP:/tmp/deltaplan-server
-   ssh user@VPS_IP sudo install -m 755 /tmp/deltaplan-server /usr/local/bin/deltaplan-server
-   ```
-
-3. **Файл окружения** (необязателен — без него используются значения по
-   умолчанию: `:8080`, версия не проверяется):
-   ```bash
-   scp deploy/deltaplan-server.env.example user@VPS_IP:/tmp/deltaplan-server.env
-   ssh user@VPS_IP sudo install -m 640 /tmp/deltaplan-server.env /etc/default/deltaplan-server
-   ssh user@VPS_IP sudo vi /etc/default/deltaplan-server   # при необходимости поправить
-   ```
-
-4. **Установить systemd-юнит**:
-   ```bash
-   scp deploy/deltaplan-server.service user@VPS_IP:/tmp/
-   ssh user@VPS_IP sudo install -m 644 /tmp/deltaplan-server.service /etc/systemd/system/
-   ssh user@VPS_IP sudo systemctl daemon-reload
-   ssh user@VPS_IP sudo systemctl enable --now deltaplan-server
-   ```
-   `WantedBy=multi-user.target` + `enable` — сервер поднимется сам после
-   перезагрузки VPS. `DynamicUser=yes` — отдельного системного пользователя
-   заводить не нужно, systemd создаёт временного на время работы сервиса.
-
-5. **Открыть порт в файрволе** (если используется ufw):
-   ```bash
-   ssh user@VPS_IP sudo ufw allow 8080/tcp
-   ```
-   (замените `8080` на порт из `DELTAPLAN_ADDR`, если меняли).
-
-6. **Проверить**:
-   ```bash
-   curl -i http://VPS_IP:8080/healthz          # ожидается 200
-   curl http://VPS_IP:8080/v1/status           # JSON: зоны и участники
-   ssh user@VPS_IP sudo journalctl -u deltaplan-server -f   # логи в реальном времени
-   ```
-
-Игроки вводят в игре (экран «Сетевая игра» → поле «Сервер»): `VPS_IP:8080`
-(или доменное имя, если оно есть, вместо IP).
-
-## Обновление версии на VPS
+На VPS нужен только Docker. Скопировать папку `server/` (или всю репу) и:
 
 ```bash
-cd server
-make build-linux
-scp bin/deltaplan-server-linux-amd64 user@VPS_IP:/tmp/deltaplan-server
-ssh user@VPS_IP sudo install -m 755 /tmp/deltaplan-server /usr/local/bin/deltaplan-server
-ssh user@VPS_IP sudo systemctl restart deltaplan-server
+docker build -t deltaplan-server server/
+docker run -d --name deltaplan-server --restart unless-stopped -p 8080:8080 deltaplan-server
 ```
-Активные зоны при перезапуске теряются (всё состояние в памяти) — предупредите
-игроков заранее либо обновляйте, когда никто не летает.
+
+`--restart unless-stopped` — сервер поднимается сам после перезагрузки VPS.
+Проверить: `curl -i http://VPS_IP:8080/healthz` (200), `curl http://VPS_IP:8080/v1/status`
+(зоны и участники), логи — `docker logs -f deltaplan-server`. Если включён файрвол —
+открыть порт 8080/tcp.
+
+Другой порт: `-p 9000:8080` (снаружи 9000). Проверка версии игры (в зоны пускать
+только эту версию): `-e DELTAPLAN_GAME_VERSION=0.8.0`.
+
+Игроки вводят в игре (экран «Сетевая игра» → поле «Сервер»): `VPS_IP:8080`.
+
+## Обновление
+
+```bash
+docker build -t deltaplan-server server/
+docker rm -f deltaplan-server
+docker run -d --name deltaplan-server --restart unless-stopped -p 8080:8080 deltaplan-server
+```
+Активные зоны при перезапуске теряются (всё в памяти) — обновлять, когда никто не летает.
 
 ## Регенерация кода из proto
 
@@ -129,5 +93,5 @@ cd server
 - `curl http://IP:порт/v1/status` — список активных зон и участников (для
   отладки, без авторизации — не публиковать порт `/v1/status` шире, чем нужно
   доверенным игрокам).
-- `journalctl -u deltaplan-server -f` — логи сервера (stdout сервиса).
-- `systemctl status deltaplan-server` — состояние сервиса.
+- `docker logs -f deltaplan-server` — логи сервера.
+- `docker ps` — работает ли контейнер.
