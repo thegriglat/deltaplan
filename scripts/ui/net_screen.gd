@@ -20,6 +20,8 @@ const ERROR_KEYS := {
 	"zone_full": "net_err_zone_full",
 	"disconnected": "net_err_disconnected",
 	"bad_message": "net_err_bad_message",
+	"port_busy": "net_err_port_busy",
+	"server_failed": "net_err_server_failed",
 }
 
 ## Клиент сети; не задан до add_child — NetClient/NetZone (NetUiClientBackend).
@@ -46,6 +48,11 @@ var _peers_box: VBoxContainer
 var _fly_btn: Button
 var _address := ""
 
+## «Рядом» (NET-23/NET-53): зоны в локальной сети, пока на экране ввода.
+var _nearby_list: ItemList
+var _nearby_empty: Label
+var _nearby: Array = []
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -57,6 +64,7 @@ func _ready() -> void:
 	backend.failed.connect(_on_failed)
 	backend.zone_joined.connect(_on_zone_joined)
 	backend.peers_changed.connect(_fill_peers)
+	backend.nearby_changed.connect(_fill_nearby)
 	_build()
 	_show_view(View.INPUT)
 	visibility_changed.connect(_on_visibility_changed)
@@ -144,9 +152,12 @@ func zone_params() -> FlightSettings:
 
 func _begin() -> void:
 	_address = server_text()
-	UserSettings.save_server_address(_address)
+	if _address != "":
+		UserSettings.save_server_address(_address)
 	error_kind = ""
-	_connecting_label.text = tr("net_connecting") % _address
+	_connecting_label.text = tr("net_connecting") % (
+		_address if _address != "" else tr("net_embedded_server")
+	)
 	_show_view(View.CONNECTING)
 
 
@@ -186,6 +197,16 @@ func _build_input(box: VBoxContainer) -> void:
 	var name_label := Label.new()
 	name_label.text = UserSettings.pilot_name()
 	UiKit.row(box, tr("settings_pilot_name"), name_label)
+
+	UiKit.separator(box)
+	UiKit.label(box, tr("net_nearby_title"), "HeaderLabel")
+	_nearby_list = ItemList.new()
+	_nearby_list.custom_minimum_size.y = 96
+	_nearby_list.auto_height = false
+	_nearby_list.item_activated.connect(_on_nearby_activated)
+	box.add_child(_nearby_list)
+	_nearby_empty = UiKit.label(box, tr("net_nearby_empty"), "HintLabel")
+	_nearby_empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_create_title"), "HeaderLabel")
@@ -300,6 +321,39 @@ func _fill_peers() -> void:
 			l.add_theme_color_override("font_color", Color(1.0, 0.86, 0.55))
 
 
+## Список «Рядом»: зоны в локальной сети (NET-23); другая версия игры — тускло и не войти.
+func _fill_nearby() -> void:
+	_nearby = backend.nearby()
+	_nearby_list.clear()
+	for z: Dictionary in _nearby:
+		var same := bool(z.get("same_version", true))
+		var text := tr("net_nearby_zone") % [String(z.get("code", "")), String(z.get("host_name", ""))]
+		if not same:
+			text += "  —  " + tr("net_nearby_other_version")
+		var idx := _nearby_list.add_item(text)
+		if not same:
+			_nearby_list.set_item_custom_fg_color(idx, Color(1, 1, 1, 0.45))
+	var is_empty := _nearby.is_empty()
+	_nearby_list.visible = not is_empty
+	_nearby_empty.visible = is_empty
+	if not is_empty:
+		_nearby_list.select(0)
+
+
+## Enter/двойной клик в «Рядом» — войти одним нажатием; другая версия — нельзя.
+func _on_nearby_activated(index: int) -> void:
+	if index < 0 or index >= _nearby.size():
+		return
+	var z: Dictionary = _nearby[index]
+	if not bool(z.get("same_version", true)):
+		return
+	var addr := "%s:%d" % [String(z.get("address", "")), int(z.get("port", 0))]
+	error_kind = ""
+	_connecting_label.text = tr("net_connecting") % addr
+	_show_view(View.CONNECTING)
+	backend.connect_and_join(addr, UserSettings.pilot_name(), String(z.get("code", "")))
+
+
 # ---------------------------------------------------------------- состояние
 
 
@@ -310,20 +364,26 @@ func _show_view(v: View) -> void:
 	_zone_box.visible = v == View.ZONE
 	_error.text = tr(ERROR_KEYS[error_kind]) if error_kind != "" else ""
 	_error.visible = v == View.INPUT and error_kind != ""
+	if v == View.INPUT:
+		_fill_nearby()
 	if v == View.ZONE:
 		_code_label.text = backend.code()
 		_fill_peers()
 	if is_inside_tree() and visible:
 		match v:
 			View.INPUT:
-				(_server if server_text() == "" else _create_btn).grab_focus.call_deferred()
+				# Список «Рядом» не пуст — в фокус первым: чаще всего сценарий «одна комната».
+				if not _nearby.is_empty():
+					_nearby_list.grab_focus.call_deferred()
+				else:
+					(_server if server_text() == "" else _create_btn).grab_focus.call_deferred()
 			View.ZONE:
 				_fly_btn.grab_focus.call_deferred()
 
 
 func _update_buttons() -> void:
+	# «Создать» без адреса — на встроенном сервере (NET-22); адрес нужен только для «Войти».
 	var has_server := server_text() != ""
-	_create_btn.disabled = not has_server
 	var c := _code_edit.text.strip_edges()
 	_join_btn.disabled = not has_server or c.length() != 4 or not c.is_valid_int()
 
@@ -377,9 +437,14 @@ func _on_fly() -> void:
 	fly_requested.emit(s)
 
 
-## Экран спрятали (Esc в главной сцене) — подключение и зону не держим.
+## Экран показали/спрятали — слушать/не слушать «Рядом» (NET-23); спрятали в разгаре
+## подключения/в зоне — подключение и зону не держим.
 func _on_visibility_changed() -> void:
-	if not visible and view != View.INPUT:
-		backend.leave()
-		error_kind = ""
-		_show_view(View.INPUT)
+	if visible:
+		backend.start_nearby()
+	else:
+		backend.stop_nearby()
+		if view != View.INPUT:
+			backend.leave()
+			error_kind = ""
+			_show_view(View.INPUT)

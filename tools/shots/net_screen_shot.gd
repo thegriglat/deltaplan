@@ -3,8 +3,10 @@ extends Node
 ## обычного мира за меню. Запуск (всегда с временным профилем):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/net_screen_shot.tscn -- --out=/tmp/net --lang=ru
-## Пишет <out>/<состояние>_<язык>.png: menu, input, connecting, zone, error_unreachable,
-## error_zone_not_found, error_version_mismatch, error_zone_full, error_disconnected.
+## Пишет <out>/<состояние>_<язык>.png: menu, input, nearby_empty, nearby_two,
+## nearby_other_version (NET-53), connecting, zone, error_unreachable, error_zone_not_found,
+## error_version_mismatch, error_zone_full, error_disconnected, error_port_busy,
+## error_server_failed.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const NET_SCENE := preload("res://scenes/ui/net_screen.tscn")
@@ -83,6 +85,57 @@ func _run() -> void:
 	net.set_server("192.168.1.10:8765")
 	await _shoot("input")
 
+	# NET-53: «Рядом» — пусто, затем зоны рядом (одна выбрана по умолчанию), затем чужая версия.
+	await _shoot("nearby_empty")
+	var my_version := str(ProjectSettings.get_setting("application/config/version", ""))
+	fake.set_nearby(
+		[
+			{
+				"code": "4721",
+				"host_name": "Коля",
+				"address": "192.168.1.5",
+				"port": 8765,
+				"game_version": my_version,
+				"pilots_count": 2,
+				"same_version": true,
+			},
+			{
+				"code": "1234",
+				"host_name": "Оля",
+				"address": "192.168.1.6",
+				"port": 8765,
+				"game_version": my_version,
+				"pilots_count": 1,
+				"same_version": true,
+			},
+		]
+	)
+	await _shoot("nearby_two")
+	fake.set_nearby(
+		[
+			{
+				"code": "4721",
+				"host_name": "Коля",
+				"address": "192.168.1.5",
+				"port": 8765,
+				"game_version": my_version,
+				"pilots_count": 2,
+				"same_version": true,
+			},
+			{
+				"code": "9999",
+				"host_name": "Стас",
+				"address": "192.168.1.7",
+				"port": 8765,
+				"game_version": "0.0.0",
+				"pilots_count": 1,
+				"same_version": false,
+			},
+		]
+	)
+	await _shoot("nearby_other_version")
+	fake.set_nearby([])
+
 	net.set_code("4721")
 	net.join_zone()
 	await _shoot("connecting")
@@ -97,7 +150,7 @@ func _run() -> void:
 	fake.resolve()
 	await _shoot("error_unreachable")
 
-	for kind in ["zone_not_found", "version_mismatch", "zone_full"]:
+	for kind in ["zone_not_found", "version_mismatch", "zone_full", "port_busy", "server_failed"]:
 		fake.outcome = kind
 		net.join_zone()
 		fake.resolve()

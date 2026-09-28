@@ -8,12 +8,15 @@ extends RefCounted
 ## Идёт подключение / в зоне / ничего — поменялось (экран перерисовывается по is_busy/in_zone).
 signal state_changed
 ## Ошибка: "unreachable", "zone_not_found", "version_mismatch", "zone_full",
-## "disconnected" (связь пропала уже в зоне), "bad_message".
+## "disconnected" (связь пропала уже в зоне), "bad_message", "port_busy" и "server_failed"
+## (NET-22: встроенный сервер — порт занят / не запустился).
 signal failed(kind: String)
 ## Вошли в зону (создали или присоединились): код зоны — строка.
 signal zone_joined(code: String)
 ## Изменился список пилотов в зоне (кто-то пришёл, ушёл, сменился ведущий).
 signal peers_changed
+## Изменился список зон рядом (NET-23: появилась/пропала/обновилась).
+signal nearby_changed
 
 const ERROR_KINDS: PackedStringArray = [
 	"unreachable",
@@ -22,6 +25,8 @@ const ERROR_KINDS: PackedStringArray = [
 	"zone_full",
 	"disconnected",
 	"bad_message",
+	"port_busy",
+	"server_failed",
 ]
 
 
@@ -58,6 +63,23 @@ func is_busy() -> bool:
 ## Параметры полёта зоны (место, время, погода; крыло и масса — свои); null — не в зоне.
 func zone_settings() -> FlightSettings:
 	return null
+
+
+## Зоны рядом в локальной сети (NET-23): {code, host_name, address, port, game_version,
+## pilots_count, same_version}. same_version = false — другая версия игры, войти нельзя.
+## Пропадают через ~3 с без объявлений (обновляет источник данных, не экран).
+func nearby() -> Array:
+	return []
+
+
+## Экран «Сетевая игра» открылся/закрылся — слушать/не слушать зоны рядом (NET-23).
+## Сам этот класс — «сети нет»: список рядом всегда пуст, слушать нечего.
+func start_nearby() -> void:
+	pass
+
+
+func stop_nearby() -> void:
+	pass
 
 
 func _fail_later(kind: String) -> void:

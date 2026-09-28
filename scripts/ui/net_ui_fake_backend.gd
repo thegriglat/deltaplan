@@ -20,6 +20,9 @@ var last_name := ""
 var last_code := ""
 var created := false
 
+## Зоны «рядом» (NET-53), подменяется тестами/скриншотами через set_nearby().
+var fake_nearby: Array = []
+
 var _busy := false
 var _in_zone := false
 var _params: FlightSettings
@@ -89,6 +92,16 @@ func is_busy() -> bool:
 
 func zone_settings() -> FlightSettings:
 	return _params if _in_zone else null
+
+
+func nearby() -> Array:
+	return fake_nearby
+
+
+## Подменить список зон рядом (появилась/пропала/сменился состав).
+func set_nearby(list: Array) -> void:
+	fake_nearby = list
+	nearby_changed.emit()
 
 
 func _start(address: String, name: String, zone_code: String) -> void:

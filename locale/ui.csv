@@ -321,6 +321,11 @@ setup_decimal_point,",","."
 menu_net_game,Сетевая игра,Multiplayer
 net_server,Сервер,Server
 net_server_placeholder,IP:порт,IP:port
+net_nearby_title,Рядом,Nearby
+net_nearby_empty,Никого рядом,No one nearby
+net_nearby_zone,зона %s — %s,zone %s — %s
+net_nearby_other_version,другая версия,other version
+net_embedded_server,этот компьютер,this computer
 net_create_title,Новая зона,New zone
 net_place,Место,Place
 net_create,Создать,Create
@@ -339,3 +344,5 @@ net_err_version_mismatch,У вас другая версия игры,Different 
 net_err_zone_full,Зона заполнена,The zone is full
 net_err_disconnected,Связь с сервером потеряна,Connection to the server lost
 net_err_bad_message,Ошибка связи с сервером,Server communication error
+net_err_port_busy,Порт занят,Port is busy
+net_err_server_failed,Не удалось запустить сервер,Couldn't start the server

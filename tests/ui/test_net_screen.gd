@@ -6,6 +6,8 @@ extends Node
 
 const TMP_DIR := "user://test_net_screen_tmp"
 const GAME_JSON := "user://configs/game.json"
+const NET_CLIENT_SCRIPT := preload("res://scripts/net/net_client.gd")
+const NET_ZONE_SCRIPT := preload("res://scripts/net/net_zone.gd")
 
 var failures: PackedStringArray = []
 
@@ -77,7 +79,10 @@ func test_create_success_shows_code_and_peers() -> void:
 	var s := _screen(fake)
 	check(s.view == NetScreen.View.INPUT, "начало — ввод")
 	s.set_server("")
-	check(s.get("_create_btn").disabled, "без адреса «Создать» недоступна")
+	check(
+		not s.get("_create_btn").disabled,
+		"без адреса «Создать» доступна (NET-22: встроенный сервер)"
+	)
 	s.set_server("127.0.0.1:8765")
 	s.create_zone()
 	check(s.view == NetScreen.View.CONNECTING, "подключение")
@@ -162,6 +167,113 @@ func test_join_errors_shown() -> void:
 	_restore(raw)
 
 
+## NET-53: «Создать» без адреса — на встроенном сервере (адрес "" уходит в backend);
+## с адресом — как раньше, на указанном сервере.
+func test_create_embedded_vs_remote_address() -> void:
+	var raw: Variant = _backup()
+	var fake := NetUiFakeBackend.new()
+	fake.auto_resolve = false
+	var s := _screen(fake)
+	s.set_server("")
+	check(not s.get("_create_btn").disabled, "без адреса «Создать» доступна")
+	s.create_zone()
+	check(fake.last_address == "", "создание без адреса — встроенный сервер (NET-22)")
+	fake.resolve()
+	s.call("_on_leave")
+	s.set_server("127.0.0.1:8765")
+	s.create_zone()
+	check(fake.last_address == "127.0.0.1:8765", "создание с адресом — указанный сервер")
+	fake.resolve()
+	s.call("_on_leave")
+	s.queue_free()
+	_restore(raw)
+
+
+## NET-53: «Рядом» — зоны в локальной сети (NET-23). Пусто → короткая строка; две зоны —
+## код и имя хоста; другая версия — с пометкой и без входа; ui_down + ui_accept — вход
+## ровно одним Enter в зону выбранной строки.
+func test_nearby_list() -> void:
+	var raw: Variant = _backup()
+	var fake := NetUiFakeBackend.new()
+	var s := _screen(fake)
+	check(s.view == NetScreen.View.INPUT, "начало — ввод")
+	var list: ItemList = s.get("_nearby_list")
+	var empty_label: Label = s.get("_nearby_empty")
+	check(not list.visible and empty_label.visible, "пусто — список скрыт, строка видна")
+	check(empty_label.text == tr("net_nearby_empty"), "«%s»" % empty_label.text)
+
+	fake.set_nearby(
+		[
+			{
+				"code": "4721",
+				"host_name": "Коля",
+				"address": "192.168.1.5",
+				"port": 8765,
+				"game_version": "0.7.1",
+				"pilots_count": 2,
+				"same_version": true,
+			},
+			{
+				"code": "1234",
+				"host_name": "Оля",
+				"address": "192.168.1.6",
+				"port": 8765,
+				"game_version": "0.6.0",
+				"pilots_count": 1,
+				"same_version": false,
+			},
+		]
+	)
+	check(list.visible and not empty_label.visible, "список виден, строка «пусто» скрыта")
+	check(list.item_count == 2, "две строки: %d" % list.item_count)
+	check(
+		list.get_item_text(0).contains("4721") and list.get_item_text(0).contains("Коля"), "код+хост"
+	)
+	check(
+		list.get_item_text(1).contains(tr("net_nearby_other_version")),
+		"другая версия помечена: %s" % list.get_item_text(1)
+	)
+
+	fake.auto_resolve = false
+	await _frames()  # дать разрешиться отложенному grab_focus из первого _show_view(INPUT)
+	list.grab_focus()
+	var down := InputEventAction.new()
+	down.action = "ui_down"
+	down.pressed = true
+	list.get_viewport().push_input(down)
+	await _frames()
+	check(
+		list.get_selected_items() == PackedInt32Array([1]),
+		"стрелка вниз — вторая строка: %s" % [list.get_selected_items()]
+	)
+	var accept := InputEventAction.new()
+	accept.action = "ui_accept"
+	accept.pressed = true
+	list.get_viewport().push_input(accept)
+	await _frames()
+	check(s.view == NetScreen.View.INPUT, "другая версия — Enter не входит")
+	check(not fake.is_busy(), "подключение не начато")
+
+	var up := InputEventAction.new()
+	up.action = "ui_up"
+	up.pressed = true
+	list.get_viewport().push_input(up)
+	await _frames()
+	check(list.get_selected_items() == PackedInt32Array([0]), "стрелка вверх — первая строка")
+	list.get_viewport().push_input(accept)
+	await _frames()
+	check(s.view == NetScreen.View.CONNECTING, "Enter — вход одним нажатием")
+	check(
+		fake.last_address == "192.168.1.5:8765" and fake.last_code == "4721" and not fake.created,
+		"адрес и код выбранной зоны: %s / %s" % [fake.last_address, fake.last_code]
+	)
+	fake.resolve()
+	check(s.view == NetScreen.View.ZONE, "в зоне")
+	s.call("_on_leave")
+	s.queue_free()
+	_restore(raw)
+
+
 ## «Сети нет» (NetUiBackend) — «Сервер недоступен»; «Назад» закрывает экран.
 func test_no_network_unreachable_and_back() -> void:
 	var raw: Variant = _backup()
@@ -214,9 +326,9 @@ func test_default_backend_is_client_bad_address() -> void:
 ## Переходник: ошибки NetClient/NetZone → виды ошибок экрана; вход в зону → код и пилоты
 ## (ведущий, «вы», порядок подключения); зона потеряна → "disconnected".
 func test_client_backend_maps_signals() -> void:
-	var client: Node = load("res://scripts/net/net_client.gd").new()
+	var client: Node = NET_CLIENT_SCRIPT.new()
 	add_child(client)
-	var zone: Node = load("res://scripts/net/net_zone.gd").new()
+	var zone: Node = NET_ZONE_SCRIPT.new()
 	zone.setup(client)
 	add_child(zone)
 	var b := NetUiClientBackend.new(client, zone)
@@ -228,6 +340,8 @@ func test_client_backend_maps_signals() -> void:
 		["VERSION_MISMATCH", "version_mismatch"],
 		["CONNECT_FAILED", "unreachable"],
 		["BAD_MESSAGE", "bad_message"],
+		["PORT_BUSY", "port_busy"],
+		["SERVER_FAILED", "server_failed"],
 	]:
 		got.clear()
 		b.connect_and_join("127.0.0.1:1", "Тест", "4721")
@@ -257,6 +371,43 @@ func test_client_backend_maps_signals() -> void:
 	zone.zone_left.emit()
 	check(got == ["disconnected"], "зона потеряна: %s" % [got])
 	check(b.code() == "" and b.peers().is_empty(), "вне зоны")
+	b.leave()
+	await _frames()
+	client.queue_free()
+	zone.queue_free()
+
+
+## NET-53/NET-22: «Создать» без адреса — на встроенном сервере в этой же игре (LocalServer):
+## сквозной путь без внешнего сервера — подключение и создание зоны проходят по-настоящему.
+## С адресом — обычное подключение (без встроенного сервера).
+func test_client_backend_create_embedded_vs_remote() -> void:
+	var client: Node = NET_CLIENT_SCRIPT.new()
+	add_child(client)
+	var zone: Node = NET_ZONE_SCRIPT.new()
+	zone.setup(client)
+	add_child(zone)
+	var b := NetUiClientBackend.new(client, zone)
+	var got: Array = []
+	b.failed.connect(func(k: String) -> void: got.append(k))
+	var joined: Array = []
+	b.zone_joined.connect(func(c: String) -> void: joined.append(c))
+	b.connect_and_create("", "Alex", FlightSettings.defaults())
+	for i in 60:
+		await get_tree().process_frame
+		if not joined.is_empty() or not got.is_empty():
+			break
+	check(
+		joined.size() == 1 and got.is_empty(),
+		"без адреса — зона на встроенном сервере: %s / %s" % [joined, got]
+	)
+	check(b.code() != "", "код зоны: %s" % b.code())
+	b.leave()
+	await _frames()
+	check(not b.is_busy(), "не занят после leave")
+	got.clear()
+	joined.clear()
+	b.connect_and_create("host.invalid:1", "Alex", FlightSettings.defaults())
+	check(b.is_busy(), "с адресом — обычное подключение начато (без встроенного сервера)")
 	b.leave()
 	await _frames()
 	client.queue_free()

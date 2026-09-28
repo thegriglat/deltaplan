@@ -13,27 +13,39 @@ const ERROR_MAP := {
 	"VERSION_MISMATCH": "version_mismatch",
 	"ZONE_FULL": "zone_full",
 	"BAD_MESSAGE": "bad_message",
+	"PORT_BUSY": "port_busy",
+	"SERVER_FAILED": "server_failed",
 }
 
 var client: Node
 var zone: Node
+var lan: Node  ## LanDiscovery (NET-23): автозагрузка или переданный экземпляр (тесты).
 
 var _mode := ""  ## "create" | "join" — что сделать после Welcome
 var _params: FlightSettings  ## создание: параметры зоны; вход: свои крыло и масса
 var _join_code := ""
 var _busy := false
 var _in_zone := false
+## «Создать» без адреса — зона на встроенном сервере (zone.host_local, NET-22): не звать
+## _send_request() по client.connected — host_local сам подключает и создаёт зону.
+var _using_embedded := false
 
 
-## client/zone — экземпляры для тестов; по умолчанию — автозагрузки NetClient/NetZone.
-func _init(p_client: Node = null, p_zone: Node = null) -> void:
+## client/zone/p_lan — экземпляры для тестов; по умолчанию — автозагрузки NetClient/NetZone/
+## LanDiscovery.
+func _init(p_client: Node = null, p_zone: Node = null, p_lan: Node = null) -> void:
 	client = p_client
 	zone = p_zone
+	lan = p_lan
 	var tree := Engine.get_main_loop() as SceneTree
 	if client == null and tree != null:
 		client = tree.root.get_node_or_null("NetClient")
 	if zone == null and tree != null:
 		zone = tree.root.get_node_or_null("NetZone")
+	if lan == null and tree != null:
+		lan = tree.root.get_node_or_null("LanDiscovery")
+	if lan != null:
+		lan.zones_changed.connect(func() -> void: nearby_changed.emit())
 	if client == null or zone == null:
 		return
 	client.connected.connect(_on_connected)
@@ -47,13 +59,26 @@ func _init(p_client: Node = null, p_zone: Node = null) -> void:
 	zone.leader_changed.connect(func(_id: String, _me: bool) -> void: peers_changed.emit())
 
 
+## address == "" (NET-22): без адреса сервера — зона на встроенном сервере (zone.host_local);
+## остальные подключаются по адресу этого компьютера в локальной сети. С адресом — как раньше.
 func connect_and_create(address: String, name: String, zone_params: FlightSettings) -> void:
 	if client == null or zone == null:
 		super.connect_and_create(address, name, zone_params)
 		return
 	_mode = "create"
 	_params = zone_params.duplicate() if zone_params != null else FlightSettings.defaults()
-	_start(address, name)
+	if address == "":
+		_using_embedded = true
+		_in_zone = false
+		if client.is_online or int(client.state) != 0:  # свежее подключение для host_local
+			client.disconnect_from_server()
+		_busy = true
+		state_changed.emit()
+		var bots := int(Config.value("bots", "count", 0))
+		zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name)
+	else:
+		_using_embedded = false
+		_start(address, name)
 
 
 func connect_and_join(address: String, name: String, zone_code: String) -> void:
@@ -63,6 +88,7 @@ func connect_and_join(address: String, name: String, zone_code: String) -> void:
 	_mode = "join"
 	_join_code = zone_code
 	_params = UserSettings.load_last_flight()
+	_using_embedded = false
 	_start(address, name)
 
 
@@ -71,8 +97,9 @@ func leave() -> void:
 	_busy = false
 	_in_zone = false
 	_mode = ""
+	_using_embedded = false
 	if zone != null:
-		zone.leave_zone()
+		zone.leave_zone()  # был встроенный сервер (host_local) — NetZone его тоже останавливает
 	if client != null:
 		client.disconnect_from_server()
 	if was:
@@ -139,7 +166,8 @@ func _send_request() -> void:
 
 
 func _on_connected(reconnect: bool) -> void:
-	if _busy and not reconnect:
+	# host_local (встроенный сервер) сам подключает и создаёт зону — не дублировать.
+	if _busy and not reconnect and not _using_embedded:
 		_send_request()
 
 
@@ -196,3 +224,25 @@ static func _drop_if_idle(c: Node, me: WeakRef) -> void:
 		return
 	if b == null or (not b._busy and not b._in_zone):
 		c.disconnect_from_server()
+
+
+# ---------------------------------------------------------------- NET-23: зоны рядом (LanDiscovery)
+
+
+## Зоны в локальной сети — LanDiscovery.zones (уже с полем same_version).
+func nearby() -> Array:
+	return lan.zones if lan != null else []
+
+
+## Экран «Сетевая игра» открылся — начать слушать объявления (NET-23). Одновременно на этой
+## машине слушать может только один процесс: start_listening() тогда вернёт false — список
+## остаётся пустым, без ошибки (не наша забота).
+func start_nearby() -> void:
+	if lan != null and lan.has_method("start_listening"):
+		lan.start_listening()
+
+
+## Экран закрылся — перестать слушать (список внутри LanDiscovery очищается сам).
+func stop_nearby() -> void:
+	if lan != null and lan.has_method("stop_listening"):
+		lan.stop_listening()
