@@ -20,7 +20,9 @@ extends Node
 ## Тесты: setup(zone, pilots, parent), start(setup_fn), tick(dt, телеметрия) вручную.
 ##
 ## Для очереди (NET-43): bot_ids() — id ботов зоны в порядке очереди ботов (у ведущего — свои,
-## у остальных — из NetPilots, по номеру); is_simulating(); agent_for(id).
+## у остальных — из NetPilots, по номеру); is_simulating(); agent_for(id). spot_fn задан
+## (NetFlight → NetQueue.spot) — боты ведущего стоят и бегут по очереди зоны (NetZone.queue):
+## BotPilots.spot_index_fn — место бота в ней (не в очереди — после неё).
 
 ## Сколько бывший ведущий ждёт пакетов нового, прежде чем убрать своих ботов, с.
 const HANDOVER_S := 2.0
@@ -37,6 +39,9 @@ var sim: BotPilots = null
 var visuals := true
 ## Id своих ботов по порядку sim.agents ("bot-0"…).
 var ids: Array[String] = []
+## Место ожидания k очереди зоны: (k) -> {position, heading_deg}; не задано — боты стоят и
+## бегут, как в одиночной игре (после отрыва живых пилотов).
+var spot_fn := Callable()
 
 var _parent: Node
 var _game: Game = null
@@ -203,6 +208,9 @@ func _take_over() -> void:
 	sim.fixed_names = true
 	sim.visuals_enabled = false
 	_parent.add_child(sim)
+	if spot_fn.is_valid():
+		sim.spot_fn = spot_fn
+		sim.spot_index_fn = _spot_index
 	_setup_fn.call(sim, count)
 	ids.clear()
 	for i in sim.agents.size():
@@ -270,6 +278,15 @@ func _known_states() -> Dictionary:
 		if not s.is_empty() and bool(s.get("is_bot", false)):
 			out[id] = s
 	return out
+
+
+## Место бота i в очереди зоны; не в очереди — после неё, по порядку ботов.
+func _spot_index(i: int) -> int:
+	var zq: Variant = zone.get("queue") if zone != null else null
+	var q: Array = zq if zq is Array else []
+	var id := ids[i] if i < ids.size() else ""
+	var k := q.find(id) if id != "" else -1
+	return k if k >= 0 else q.size() + i
 
 
 func _free_id(i: int) -> String:

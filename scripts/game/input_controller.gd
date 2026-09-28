@@ -29,6 +29,9 @@ var hands_off := false
 var telemetry_fn: Callable
 ## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса (из controls.json).
 var roll_mode := "rate"
+## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит,
+## W — просто шаг.
+var run_blocked := false
 
 var _cfg: Dictionary
 var _nose_trim := 0.0  # подстройка носа на разбеге стрелками
@@ -172,7 +175,7 @@ func _update_ground(dt: float) -> void:
 	var sens := float(kb.sensitivity)
 	var fwd := _strength("walk_forward") - _strength("walk_back")
 	var roll_dir := _strength("roll_right") - _strength("roll_left")
-	var run := Input.is_action_pressed("run") and fwd > 0.0
+	var run := Input.is_action_pressed("run") and fwd > 0.0 and not run_blocked
 	var trim_dir := _strength("nose_up") - _strength("nose_down")
 	var rng := float(g.nose_trim_range)
 	_nose_trim = clampf(
@@ -321,7 +324,7 @@ func _apply_gamepad() -> void:
 			control.walk = -gy
 		else:
 			control.pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
-	if on_ground and Input.is_joy_button_pressed(dev, int(gp.run_button)):
+	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
 		control.pitch = _run_nose()

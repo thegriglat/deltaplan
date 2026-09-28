@@ -61,6 +61,9 @@ var net: NetFlight = null
 var tow: CatchUpTow = null
 ## Руки с трапеции снаружи (меню «Догнать» открыто): крыло летит само, как при свободной камере.
 var hands_off := false
+## Очередь на старт (сеть, NET-43): идти к месту ожидания {position, heading_deg}; {} — нет.
+## Клавиши ходьбы и разбега пилота (или отрыв, буксир) отменяют ходьбу.
+var queue_walk: Dictionary = {}
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -158,13 +161,17 @@ func tick(dt: float) -> void:
 	_update_day_weather()
 	var phase := glider.phase()
 	if autopilot != null:
+		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук (автопилот тестов жмёт те же клавиши).
 	var free_cam := camera.mode == "free" and autopilot == null
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
-	glider.set_input(input_controller.update(dt))
+	var control := input_controller.update(dt)
+	if not queue_walk.is_empty():
+		_queue_walk_step(control, phase)
+	glider.set_input(control)
 	bots.tick(dt, glider.get_telemetry())
 	if tow != null:
 		_tow_step(dt)  # без физики, столкновений и итога полёта
@@ -407,8 +414,12 @@ func restart() -> void:
 		autopilot.reset()
 	tow = null  # «Ещё раз» / «На старт» посреди буксира
 	camera.tight = false
+	queue_walk = {}
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
+	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
+		var sp := net.queue_start_spot()
+		glider.reset_on_ground(sp.position, float(sp.heading_deg))
 	else:
 		glider.reset_on_ground(_start_pos, _start_heading)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
@@ -601,7 +612,7 @@ func catch_up_to(id: String) -> String:
 		"air":
 			return "tow" if start_catch_up(net.target_fn(id)) else ""
 		"ground":
-			return_to_launch()  # ХУК NET-43: цель на земле — в конец очереди на старт
+			return_to_launch()  # цель на земле — в конец очереди на старт (NET-43)
 			return "launch"
 	return ""
 
@@ -637,9 +648,27 @@ func is_towing() -> bool:
 	return tow != null
 
 
-## ХУК NET-43: игрок в очереди на старт уходит из неё, когда буксир поднимает его с земли.
+## Игрок в очереди на старт уходит из неё, когда буксир поднимает его с земли (NET-43).
 func _leave_queue_for_tow() -> void:
-	pass
+	queue_walk = {}
+	if net != null:
+		net.leave_queue()
+
+
+## Очередь на старт (сеть, NET-43): пойти к месту ожидания spot {position, heading_deg}.
+func queue_walk_to(spot: Dictionary) -> void:
+	queue_walk = spot
+
+
+## Шаг ходьбы к месту в очереди: управление — как у ботов (BotAgent.walk_control); пилот сам
+## пошёл или побежал, оторвался, буксир — ходьба отменяется.
+func _queue_walk_step(c: ControlInput, phase: String) -> void:
+	if tow != null or not phase in ["standing", "walking"] or c.run or c.walk != 0.0:
+		queue_walk = {}
+		return
+	var p: Vector3 = queue_walk.position
+	if BotAgent.walk_control(glider.get_telemetry(), p, float(queue_walk.heading_deg), c):
+		queue_walk = {}
 
 
 ## Шаг буксира: крыло — куда скажет CatchUpTow, камера сзади — вплотную; кончился — пилоту.
@@ -677,8 +706,8 @@ func _end_catch_up(r: Dictionary) -> void:
 	catch_up_ended.emit(String(r.get("state", "")))
 
 
-## «На старт» (итог полёта в сети): снова на старт, мир не сбрасывается.
-## ХУК NET-43: очередь на старт (в конец текущей очереди).
+## «На старт» (итог полёта в сети): снова на старт, мир не сбрасывается; в сети — в конец
+## очереди на старт (restart ставит на место: не в очереди — конец живых пилотов, NET-43).
 func return_to_launch() -> void:
 	restart()
 

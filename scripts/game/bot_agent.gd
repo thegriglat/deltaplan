@@ -15,6 +15,8 @@ extends RefCounted
 enum State { WAIT, WALK, READY, RUN, FLY, LANDED }
 
 const STATE_NAMES: Array[String] = ["wait", "walk", "ready", "run", "fly", "landed"]
+## follow_spot: дальше этого от места ожидания — идти к нему, м.
+const SPOT_TOL_M := 2.0
 
 var id: int = 0
 var model := FlightModel.new()
@@ -43,6 +45,8 @@ var acc_s: float = 0.0
 var landed_s: float = -1.0
 ## Предыдущий в очереди ещё не побежал — ждать в стороне от старта (BotPilots).
 var queue_hold: bool = true
+## Сеть (NET-43): место ожидания двигается с очередью зоны — в WAIT идти к spot, если далеко.
+var follow_spot: bool = false
 
 var _cfg: Dictionary = {}
 var _air_fn: Callable
@@ -147,7 +151,10 @@ func step(dt: float, now_s: float) -> void:
 	var t := model.telemetry
 	match state:
 		State.WAIT:
-			_stand(t, dt)
+			if follow_spot and _flat_dist(t.position, spot) > SPOT_TOL_M:
+				_walk_to(t, dt, spot, spot_heading)
+			else:
+				_stand(t, dt)
 		State.WALK:
 			_walk(t, dt)
 		State.READY:
@@ -244,20 +251,32 @@ func _stand(t: Telemetry, dt: float) -> void:
 ## там — развернуться по курсу разбега и стоять.
 func _walk(t: Telemetry, dt: float) -> void:
 	var rp := _queue_point() if queue_hold else _ready_point()
-	var to := Vector2(rp.x - t.position.x, rp.z - t.position.z)
+	if _walk_to(t, dt, rp, _launch_heading) and not queue_hold:
+		state = State.READY
+
+
+## Шаг к точке rp, там — развернуться на курс heading_deg; true — дошёл и развернулся.
+func _walk_to(t: Telemetry, dt: float, rp: Vector3, heading_deg: float) -> bool:
 	control.run = false
 	control.pitch = move_toward(control.pitch, _run_nose, dt)
+	return walk_control(t, rp, heading_deg, control)
+
+
+## Управление ходьбой к точке rp и разворотом на курс heading_deg (боты и очередь на старт
+## в сети): control.walk и control.roll. true — дошёл и стоит по курсу.
+static func walk_control(t: Telemetry, rp: Vector3, heading_deg: float, c: ControlInput) -> bool:
+	var to := Vector2(rp.x - t.position.x, rp.z - t.position.z)
+	c.run = false
 	if to.length() > 1.0:
 		var want := _bearing(Vector2.ZERO, to)
 		var err := wrapf(want - t.heading_deg, -180.0, 180.0)
-		control.roll = clampf(err / 15.0, -1.0, 1.0)
-		control.walk = 1.0 if absf(err) < 45.0 else 0.0
-		return
-	control.walk = 0.0
-	var err2 := wrapf(_launch_heading - t.heading_deg, -180.0, 180.0)
-	control.roll = clampf(err2 / 10.0, -1.0, 1.0) if absf(err2) >= 3.0 else 0.0
-	if absf(err2) < 3.0 and not queue_hold:
-		state = State.READY
+		c.roll = clampf(err / 15.0, -1.0, 1.0)
+		c.walk = 1.0 if absf(err) < 45.0 else 0.0
+		return false
+	c.walk = 0.0
+	var err2 := wrapf(heading_deg - t.heading_deg, -180.0, 180.0)
+	c.roll = clampf(err2 / 10.0, -1.0, 1.0) if absf(err2) >= 3.0 else 0.0
+	return absf(err2) < 3.0
 
 
 ## Разбег как у игрока (InputController на земле + LaunchNose): нос — нейтраль разбега

@@ -26,6 +26,12 @@ var claims: Array[Dictionary] = []
 var others: Array[Dictionary] = []
 ## Имена не менять при смене языка (сеть: имена ботов зоны — из пула языка первого ведущего).
 var fixed_names := false
+## Сеть (NET-43, NetQueue): очередь на старт — общая очередь зоны, а не «после отрыва игрока».
+## spot_index_fn(i) -> int — место бота i в очереди зоны (0 — первый: идёт к старту и бежит;
+## не в очереди — место после неё); spot_fn(k) -> {position, heading_deg} — место ожидания k
+## (у всех клиентов одинаковое). Не заданы — одиночная игра, как раньше.
+var spot_index_fn := Callable()
+var spot_fn := Callable()
 
 var _cfg: Dictionary = {}
 var _air_fn: Callable
@@ -252,8 +258,9 @@ func reset() -> void:
 	var near_dt := 1.0 / float(ph.get("near_hz", 30.0))
 	for i in agents.size():
 		var a := agents[i]
-		var s: Dictionary = _spots[i]
+		var s := _spot_for(i)
 		a.place(s.position, float(s.heading_deg))
+		a.follow_spot = _net_queue()
 		# Разнести шаги ботов по шагам игрока — нагрузка ровнее.
 		a.acc_s = near_dt * float(i) / maxf(agents.size(), 1.0)
 	for v in _visuals:
@@ -269,7 +276,10 @@ func tick(dt: float, player: Telemetry) -> void:
 	if _others_flying() and player_liftoff_s < 0.0:
 		player_liftoff_s = sim_time_s
 	_respawn()
-	_schedule()
+	if _net_queue():
+		_schedule_net()
+	else:
+		_schedule()
 	_sep_acc += dt
 	var ph: Dictionary = _cfg.get("physics", {})
 	var sep_period := 1.0 / float(_cfg.get("separation", {}).get("check_hz", 4.0))
@@ -453,6 +463,43 @@ func _schedule() -> void:
 			a.go_to_launch()
 
 
+## Сеть: очередь зоны. Первый (место 0) идёт к старту и через launch.queue_ready_s после
+## того, как встал на старте, бежит; остальные — на своих местах ожидания (двигаются с
+## очередью); кто уже шёл к старту, но больше не первый, — назад на место.
+func _schedule_net() -> void:
+	var ready_s := float(_cfg.get("launch", {}).get("queue_ready_s", 5.0))
+	for i in agents.size():
+		var a := agents[i]
+		if a.state in [BotAgent.State.RUN, BotAgent.State.FLY, BotAgent.State.LANDED]:
+			continue
+		var k := int(spot_index_fn.call(i))
+		if k == 0:
+			a.queue_hold = false
+			if a.state == BotAgent.State.WAIT:
+				a.go_to_launch()
+			elif a.state == BotAgent.State.READY and a.run_at_s == INF:
+				a.run_at_s = sim_time_s + ready_s
+			continue
+		if a.state != BotAgent.State.WAIT:
+			a.state = BotAgent.State.WAIT
+			a.run_at_s = INF
+		a.queue_hold = true
+		var s: Dictionary = spot_fn.call(k)
+		a.spot = s.position
+		a.spot_heading = float(s.heading_deg)
+
+
+func _net_queue() -> bool:
+	return spot_index_fn.is_valid() and spot_fn.is_valid()
+
+
+## Место ожидания бота i: своё (одиночная игра) или по очереди зоны (сеть).
+func _spot_for(i: int) -> Dictionary:
+	if _net_queue():
+		return spot_fn.call(int(spot_index_fn.call(i)))
+	return _spots[i]
+
+
 ## Коснулся земли (или сел в лес): постоял landed_stand_s («слез и пошёл домой») — убрать
 ## и снова в очередь на старт (новый бот — те же крыло и расцветка): в небе столько, сколько
 ## в настройке.
@@ -463,7 +510,9 @@ func _respawn() -> void:
 		if a.state != BotAgent.State.LANDED:
 			continue
 		if sim_time_s - a.landed_s >= stand:
-			a.place(_spots[i].position, float(_spots[i].heading_deg))
+			var s := _spot_for(i)
+			a.place(s.position, float(s.heading_deg))
+			a.follow_spot = _net_queue()
 			if i < _visuals.size():
 				_visuals[i].snap()
 

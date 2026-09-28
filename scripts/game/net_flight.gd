@@ -18,18 +18,26 @@ extends Node
 ##     дальше, облака и термики — по часам зоны;
 ##   - «Ещё раз»/«На старт» мир не сбрасывают (Game.restart в сети не трогает часы и день).
 ##
-## Каждый кадр (_process, и на паузе): своё состояние — NetPilots.set_local_state (фаза —
-## имя PilotPhase из net.proto, крыло, расцветка по имени пилота), чужие — в RemotePilots
+## Каждый кадр (_process, и на паузе): своё состояние (после join_world) —
+## NetPilots.set_local_state (фаза — имя PilotPhase из net.proto, крыло, расцветка по имени
+## пилота), чужие — в RemotePilots
 ## (sample → upsert при появлении/смене вида, set_pose — поза каждый кадр; pilot_lost → remove).
 ##
 ## Хуки для следующих задач: friends_airborne() — кнопка «Продолжить рядом» в итоге
-## (airborne_changed — сменилось); Game.return_to_launch() — NET-43 (очередь).
+## (airborne_changed — сменилось).
+##
+## Очередь на старт (NET-43, NetQueue): после join_world каждый кадр — у ведущего queue.lead
+## (порядок, простой первого, боты после живых), у всех — своё место: не первый — разбег
+## заблокирован (InputController.run_blocked, автопилот ждёт), место в очереди сменилось —
+## идём к нему (Game.queue_walk_to). Game.restart в сети ставит на своё место в очереди
+## (queue_start_spot: в очереди — своё, нет — в конец живых); буксир — leave_queue().
+## Боты ведущего (NetBots → BotPilots.spot_index_fn/spot_fn) стоят на тех же местах по очереди.
 ##
 ## «Догнать» (NET-42): catch_up_list() — пилоты зоны для меню `=` (чужие из RemotePilots и у
 ## ведущего — свои боты), target_state(id) — "air"/"ground"/"", target_fn(id) — цель буксира
 ## ({position, velocity}, {} — ушла или села). Пока буксир — фаза TOW. Вход в зону: если ведущий
 ## в воздухе — буксир к нему от старта (ждём его состояния до AUTO_CATCH_UP_WAIT_S после
-## world_joined); на земле — ничего (очередь — NET-43).
+## world_joined); на земле — ничего (стоим в очереди на старт).
 ##
 ## zone/pilots — NetZone/NetPilots или объекты с теми же полями и методами (тесты).
 
@@ -72,9 +80,14 @@ var bots: NetBots
 var colors: Variant = null
 ## Мир построен из ключа, отличного от ключа зоны (check_world).
 var world_mismatch := false
+## Очередь на старт (NET-43); создаётся в setup.
+var queue: NetQueue
 
 var _meta := {}  ## id → ключ вида (имя, крыло, расцветка, бот) — upsert только при смене
 var _airborne := false
+var _joined := false  ## мир на часах зоны, боты поставлены — очередь ведём
+var _queue_k := -1  ## место в очереди, к которому шли в последний раз (−1 — не на старте)
+var _my_status := ""
 
 
 ## p_zone/p_pilots — null: автозагрузки NetZone/NetPilots.
@@ -93,6 +106,12 @@ func setup(p_game: Game, p_zone: Object = null, p_pilots: Object = null) -> void
 	bots = NetBots.new()
 	add_child(bots)
 	bots.setup(zone, pilots, game)
+	queue = NetQueue.new()
+	queue.zone = zone
+	queue.status_fn = queue_status
+	queue.bot_ids_fn = bots.bot_ids
+	queue.spots_fn = _queue_spots
+	bots.spot_fn = queue.spot
 	if pilots != null and pilots.has_signal("pilot_lost"):
 		pilots.connect("pilot_lost", _on_pilot_lost)
 	world_joined.connect(_on_world_joined)
@@ -100,6 +119,7 @@ func setup(p_game: Game, p_zone: Object = null, p_pilots: Object = null) -> void
 
 ## Выключить: чужих убрать, своё не слать.
 func teardown() -> void:
+	_joined = false
 	_set_clouds_history_free(false)
 	if is_instance_valid(bots):
 		bots.teardown()
@@ -151,6 +171,7 @@ func join_world() -> bool:
 	if world_mismatch:
 		push_warning("NetFlight: мир отличается от мира зоны — летим в своём (%s)" % key)
 	bots.start_in_game(game)
+	_joined = true
 	world_joined.emit()
 	return true
 
@@ -184,8 +205,10 @@ static func step_for(lag: float) -> float:
 func _process(_dt: float) -> void:
 	if game == null or game.settings == null or zone == null or not zone.in_zone:
 		return
-	send_local()
+	if _joined:  # до постройки мира планер не на месте — не слать (очередь сочла бы «ушёл»)
+		send_local()
 	feed_remote()
+	update_queue()
 	var any := friends_airborne()
 	if any != _airborne:
 		_airborne = any
@@ -235,6 +258,74 @@ func feed_remote() -> void:
 ## Есть ли в воздухе кто-то из живых пилотов (не боты) — для «Продолжить рядом».
 func friends_airborne() -> bool:
 	return remote != null and count_airborne(remote.pilots()) > 0
+
+
+# ---------------------------------------------------------------- очередь на старт (NET-43)
+
+
+## Кадр очереди: ведущий ведёт, каждый — на своё место; разбег — только первому.
+func update_queue() -> void:
+	if not _joined or zone == null or not zone.in_zone:
+		return
+	queue.lead(Time.get_ticks_msec() / 1000.0)
+	var me := queue_status(String(zone.my_id))
+	if _my_status == "run" and me == "gone":
+		print("net-queue: взлёт (зона %.1f с)" % float(zone.zone_time()))
+	_my_status = me
+	var k := queue.my_index()
+	var at_launch := me != "gone" and not game.is_towing()
+	game.input_controller.run_blocked = at_launch and k != 0 and me != "run"
+	if not at_launch or me != "wait":
+		if not at_launch:
+			_queue_k = -1
+		return
+	var want := k if k >= 0 else queue.predicted_index()
+	if want != _queue_k:
+		_queue_k = want
+		game.queue_walk_to(queue.spot(want))
+
+
+## Где встать после «Ещё раз» / «На старт» / R: своё место в очереди, не в ней — конец живых.
+func queue_start_spot() -> Dictionary:
+	_queue_k = queue.predicted_index()
+	return queue.spot(_queue_k)
+
+
+## Буксир поднял с земли — из очереди (ведущий убирает сразу, остальных — по фазе TOW).
+func leave_queue() -> void:
+	_queue_k = -1
+	game.input_controller.run_blocked = false
+	if zone != null and zone.in_zone:
+		queue.leave(String(zone.my_id))
+
+
+## Статус пилота или бота для очереди (NetQueue): свой — по своему планеру, свои боты — по
+## BotAgent, чужие — по последнему PilotState.
+func queue_status(id: String) -> String:
+	var launch: Vector3 = game.get_start().position
+	if id == String(zone.my_id):
+		var t := game.glider.get_telemetry()
+		var ph := "TOW" if game.is_towing() else proto_phase(t.phase, game.is_crashed())
+		return NetQueue.status_of(ph, t.position, launch)
+	var a := bots.agent_for(id) if bots != null else null
+	if a != null:
+		return NetQueue.bot_status(a)
+	if pilots == null or not bool(pilots.call("has_pilot", id)):
+		return "unknown"
+	var s: Dictionary = pilots.call("sample", id)
+	if s.is_empty():
+		return "unknown"
+	return NetQueue.status_of(String(s.get("phase", "STAND")), s.get("pos", Vector3.ZERO), launch)
+
+
+## Места ожидания у старта этой игры (у всех клиентов одинаковые).
+func _queue_spots(count: int) -> Array[Dictionary]:
+	var st: Dictionary = game.get_start()
+	var p: Vector3 = st.position
+	var lc: Dictionary = Config.get_config("bots").get("launch", {})
+	var r := float(lc.get("behind_max_m", 70.0)) + float(lc.get("lateral_max_m", 40.0))
+	var obs := BotPilots.obstacles_near(game.terrain, Vector2(p.x, p.z), r)
+	return NetQueue.spots_for(game.terrain.height_at, p, float(st.heading_deg), count, obs)
 
 
 # ---------------------------------------------------------------- «догнать» (NET-42)
