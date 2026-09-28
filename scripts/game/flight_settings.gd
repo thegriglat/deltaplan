@@ -163,6 +163,23 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	return s
 
 
+## Ключ мира (WorldKey, канонический deltaplan://world?…): задаёт мир зоны целиком — место,
+## дату, время, прогноз, сид, ботов. Крыло и масса не входят.
+func world_key(world_seed: int, bots_count: int) -> String:
+	return WorldKey.make(self, world_seed, bots_count)
+
+
+## Хэш мира: world_key(…).sha256_text().substr(0, 16).
+func world_hash(world_seed: int, bots_count: int) -> String:
+	return WorldKey.hash_of(world_key(world_seed, bots_count))
+
+
+## Разобрать ключ мира: {settings: FlightSettings, seed: int, bots: int, v: int} (WorldKey.parse).
+## Крыло и масса — из base (свои), без base — по умолчанию.
+static func from_world_key(key: String, base: FlightSettings = null) -> Dictionary:
+	return WorldKey.parse(key, base)
+
+
 ## Параметры мира сетевой зоны (net.proto → Zone, ключи как в NetMessages): всё, кроме крыла и
 ## массы — они у каждого пилота свои. pick_lat/lon NAN — поля нет («не задано»).
 func to_zone(world_seed: int, bots_count: int) -> Dictionary:

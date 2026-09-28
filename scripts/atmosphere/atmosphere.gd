@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name Atmosphere
 extends Node3D
 ## Атмосфера: ветер с профилем и порывами, термики, фоновое опускание, склоновый подъём,
@@ -10,6 +11,11 @@ extends Node3D
 ##   atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
 ##   atmo.focus_node = glider                    # вокруг кого генерировать термики
 ##   var v := atmo.air_velocity_at(pos)          # скорость воздуха, м/с (мир)
+##
+## Детерминизм (сеть, NET-00): состояние — чистая функция (настройки, погода, day, сид, time_s).
+##   atmo.seed_value = zone_seed                 # до set_weather/configure
+##   atmo.set_weather(w); atmo.set_ground(…); atmo.set_wind(…); atmo.set_day(day)
+##   atmo.start_at(zone_t)                       # сразу в момент t — то же, что прогон от 0
 
 signal weather_changed
 ## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
@@ -37,12 +43,20 @@ var wave: WaveField
 var time_s: float = 0.0
 ## Пульсации (турбулентность) — можно выключить для тестов.
 var turbulence_enabled: bool = true
+## Сид мира (≥ 0) вместо atmosphere.json → seed — задать до configure/set_weather (сеть: сид зоны).
+var seed_value: int = -1
+## Ход дня (погода, солнце, источники — функции времени, AtmoDay); null — погода постоянна
+## (или мягкие обновления set_weather(w, blend_s)).
+var day: AtmoDay
 
 var _focus: Vector3 = Vector3.ZERO
 var _configured: bool = false
 var _refresh_acc: float = 1.0e9
 var _refresh_interval: float = 0.5
-var _state_acc: float = 0.0
+## Обновления — по сетке времени атмосферы (номер интервала), а не по накопленному dt: набор
+## термиков в момент t не зависит от шага и от того, с какого момента атмосферу начали.
+var _refresh_slot: int = -(1 << 62)
+var _state_slot: int = -(1 << 62)
 var _state_interval: float = 0.1
 var _cloudbase_agl: float = 1500.0
 var _ground_ref: float = 0.0
@@ -93,6 +107,7 @@ var _edge_width: float = 0.45
 ## Мягкое обновление погоды (ход дня): к чему плавно ведём и за сколько, с.
 var _blend_tau: float = 0.0
 var _target: Dictionary = {}
+var _day_w: Dictionary = {}  ## погода шага дня, выставленная в weather
 
 var _clouds: Node3D
 var _birds: Node3D
@@ -127,10 +142,10 @@ func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	cfg = atmo_cfg
 	weather = weather_cfg.duplicate(true)
-	var seed_value := int(cfg.seed)
+	var seed_used := seed_value if seed_value >= 0 else int(cfg.seed)
 	var old_ground := ground
 	wind = WindModel.new()
-	wind.setup(cfg.wind, cfg.turbulence, seed_value)
+	wind.setup(cfg.wind, cfg.turbulence, seed_used)
 	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
 	ground = GroundField.new()
 	ground.setup(cfg.ground, cfg.lee)
@@ -139,7 +154,10 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 		ground.surface_fn = old_ground.surface_fn
 	ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
 	field = ThermalField.new()
-	field.setup(cfg.thermal, weather, seed_value, ground, wind)
+	field.setup(cfg.thermal, weather, seed_used, ground, wind)
+	field.day = day
+	field.cirrus_block = float(cfg.cirrus.sun_block)
+	field.cloud_width_per_ms_base = float(cfg.clouds.width_per_ms_m)
 	var tb: Dictionary = cfg.turbulence
 	_edge_factor_base = float(tb.edge_factor)
 	_edge_width = float(tb.edge_width)
@@ -176,6 +194,9 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	_configured = true
 	_refresh_acc = 1.0e9
 	_target.clear()
+	_day_w = {}
+	if _day_active():
+		_apply_day(time_s)
 	weather_changed.emit()
 
 
@@ -223,6 +244,82 @@ func _blend(k: float) -> void:
 	if k >= 1.0 or absf(_cloudbase_agl - float(_target.cloudbase_agl)) < 0.5:
 		if absf(_bg_sink - float(_target.bg_sink)) < 1.0e-3:
 			_target.clear()
+
+
+## Ход дня: погода шага для рождения термиков и потребителей (weather), плавные величины —
+## линейно между шагами. Чистая функция времени t (вместо _blend по кадрам).
+func _apply_day(t: float) -> void:
+	var b := day.bracket(t)
+	var w0: Dictionary = b[0]
+	var w1: Dictionary = b[1]
+	var f: float = b[2]
+	if not is_same(w0, _day_w):
+		_day_w = w0
+		var nw := w0.duplicate(true)
+		for k in ["wind_speed_kmh", "wind_from_deg", "thermal_spacing_m", "static_thermals"]:
+			if weather.has(k):
+				nw[k] = weather[k]
+		weather = nw
+		field.set_weather_soft(weather)
+		field.cloud_width_per_ms = (
+			float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
+		)
+		weather_updated.emit()
+	_bg_sink = _lerp_key(w0, w1, f, "background_sink_ms", _bg_sink)
+	_conv_amp = _lerp_key(w0, w1, f, "convective_turbulence_ms", _conv_amp)
+	_mech_k = _mech_k_base * _lerp_key(w0, w1, f, "mech_turbulence_k", 1.0)
+	field.set_turbulence_params(
+		_edge_factor_base * _lerp_key(w0, w1, f, "thermal_edge_k", 1.0), _edge_width
+	)
+	var sb := float(cfg.cirrus.sun_block)
+	field.insolation = (
+		1.0 - clampf(_lerp_key(w0, w1, f, "cirrus_cover", 0.0), 0.0, 1.0) * sb
+	)
+	var cb := _lerp_key(w0, w1, f, "cloudbase_agl_m", _cloudbase_agl)
+	if absf(cb - _cloudbase_agl) > 1.0e-6:
+		_cloudbase_agl = cb
+		if not _cloudbase_override:
+			field.set_cloudbase_soft(_ground_ref + _cloudbase_agl)
+
+
+static func _lerp_key(w0: Dictionary, w1: Dictionary, f: float, key: String, def: float) -> float:
+	return lerpf(float(w0.get(key, def)), float(w1.get(key, def)), f)
+
+
+## Задать ход дня (AtmoDay): погода, солнце и источники термиков — функции времени атмосферы.
+func set_day(d: AtmoDay) -> void:
+	day = d
+	_day_w = {}
+	if field != null:
+		field.day = d
+		if d != null and d.has_weather():
+			_apply_day(time_s)
+		_refresh_acc = 1.0e9
+
+
+## Начать сразу с момента t (время атмосферы/зоны, с): то же состояние, что при прогоне от 0
+## до t с любым шагом (сеть: догнать время зоны, NET-40). Статичные термики остаются.
+func start_at(t: float) -> void:
+	if not _configured:
+		set_weather(String(Config.value("atmosphere", "default_weather")))
+	time_s = t
+	_target.clear()
+	field.reset_dynamic()
+	refresh_now()
+
+
+## Обновить набор термиков, облака и сетку поиска на текущий time_s сразу (не ждать интервала).
+func refresh_now() -> void:
+	_update_focus()
+	_refresh_slot = floori(time_s / _refresh_interval)
+	_state_slot = floori(time_s / _state_interval)
+	_refresh_acc = 0.0
+	# Ход дня — на начало интервала (чистая функция времени, не шага).
+	if _day_active():
+		_apply_day(_state_slot * _state_interval)
+	field.refresh(time_s, _focus, _refresh_interval)
+	storm.refresh(field.thermals)
+	cloud_phys.refresh(field.thermals, time_s, _focus, float(cfg.thermal.physics_radius_m))
 
 
 func _cache_coefficients() -> void:
@@ -327,6 +424,7 @@ func set_sun_direction(to_sun: Vector3) -> void:
 ## Нижняя кромка облаков над уровнем моря, м. По умолчанию — средняя высота земли + пресет.
 func set_cloudbase_msl(msl: float) -> void:
 	_cloudbase_override = true
+	field.cloudbase_fixed = true
 	field.set_cloudbase(msl)
 	_refresh_acc = 1.0e9
 
@@ -340,6 +438,7 @@ func _update_cloudbase() -> void:
 	_ground_ref = ground.mean_height(
 		0.0, 0.0, float(g.reference_radius_m), int(g.reference_samples)
 	)
+	field.cloudbase_ref = _ground_ref
 	if not _cloudbase_override:
 		field.set_cloudbase(_ground_ref + _cloudbase_agl)
 
@@ -387,22 +486,24 @@ func step(dt: float) -> void:
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	time_s += dt
-	if not _target.is_empty():
+	if not _day_active() and not _target.is_empty():
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
 	_refresh_acc += dt
-	if _refresh_acc >= _refresh_interval:
-		_refresh_acc = 0.0
-		_state_acc = 0.0
-		field.refresh(time_s, _focus, _refresh_interval)
-		storm.refresh(field.thermals)
-		cloud_phys.refresh(field.thermals, time_s, _focus, float(cfg.thermal.physics_radius_m))
+	if _refresh_acc >= 1.0e8 or floori(time_s / _refresh_interval) != _refresh_slot:
+		refresh_now()
 	else:
-		_state_acc += dt
-		if _state_acc >= _state_interval:
-			_state_acc = 0.0
+		var slot := floori(time_s / _state_interval)
+		if slot != _state_slot:
+			_state_slot = slot
+			if _day_active():
+				_apply_day(slot * _state_interval)
 			field.update_time(time_s)
 	ground.prefetch(_focus)
+
+
+func _day_active() -> bool:
+	return day != null and day.has_weather()
 
 
 func _update_focus() -> void:

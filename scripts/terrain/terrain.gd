@@ -581,9 +581,17 @@ func get_forest_mask() -> Array:
 ##       · (1 + edge_boost · edge_proximity), 0, 1)   (configs/world.json → surface.thermal).
 ## Сигнатура как у sun_fn в Atmosphere.set_ground.
 func thermal_source_strength_at(x: float, z: float) -> float:
+	return thermal_source_strength_for(x, z, _class_sun, _sun_dir)
+
+
+## То же при заданном солнце: class_sun — направления по классам (SurfaceHeating.directions),
+## to_sun — для классов без своего. Чистая функция (для атмосферы по времени, AtmoDay).
+func thermal_source_strength_for(
+	x: float, z: float, class_sun: PackedVector3Array, to_sun: Vector3
+) -> float:
 	var n := normal_at(x, z)
 	var c := _surface_class(x, z, n)
-	var sd := _class_sun[c] if c < _class_sun.size() else _sun_dir
+	var sd := class_sun[c] if c < class_sun.size() else to_sun
 	var e := clampf(n.dot(sd), 0.0, 1.0)
 	var k := _thermal_k[c] if c < _thermal_k.size() else 1.0
 	var edge := 1.0 + _edge_boost * _edge_proximity(x, z)
@@ -659,6 +667,11 @@ func set_sun(to_sun: Vector3) -> void:
 	var step := float(_relief_cfg.get("shadow_recompute_deg", 2.0))
 	if is_nan(old) or absf(angle_difference(deg_to_rad(az), deg_to_rad(old))) >= deg_to_rad(step):
 		_start_horizon(az)
+
+
+## Идёт ли фоновый расчёт полей рельефа (влажность ложбин — в силе источников термиков).
+func relief_busy() -> bool:
+	return _relief_thread != null
 
 
 ## Дождаться фонового расчёта полей рельефа и тени (тесты, кадры превью).

@@ -40,6 +40,11 @@ var is_cb: bool = false
 ## Усиление подъёма под основанием (облачный подсос) 0..; у Cb > 0.
 var suck: float = 0.0
 
+## Клетка источника (ThermalField: ось a — по ветру, c — поперёк).
+var cell: Vector2i = Vector2i.ZERO
+## До какого момента ThermalField помнит цикл этого термика (не рождает его заново), с.
+var cycle_forget: float = 0.0
+
 ## --- Состояние на текущий момент (update_time) ---
 var env: float = 0.0  ## огибающая силы 0..1
 var cut_h: float = -1.0e9  ## ниже этой высоты подъёма нет (оторвавшийся низ)

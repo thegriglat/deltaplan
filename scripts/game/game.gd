@@ -40,6 +40,8 @@ var flying_enabled := false
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
+## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Сеть: сид зоны — задать до start().
+var world_seed := -1
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -58,6 +60,8 @@ var _weather_ctx := {}
 var _weather_hour := NAN
 var _peak_spacing := NAN
 var _heating := SurfaceHeating.new()
+## Ход дня для атмосферы (погода, солнце, источники — функции времени атмосферы, NET-00).
+var _day: AtmoDay
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
 var _paused := false
@@ -90,6 +94,8 @@ func _ready() -> void:
 	air.name = "Air"
 	add_child(air)
 	air.set_physics_process(false)
+	if air.has_signal("weather_updated"):
+		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
 	air.set("focus_node", glider)
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
@@ -170,6 +176,10 @@ func start(s: FlightSettings) -> bool:
 	_peak_spacing = float(
 		WeatherModel.derive(settings.forecast(), _weather_ctx).thermal_spacing_m
 	)
+	if "seed_value" in air:
+		air.set("seed_value", world_seed)
+	if air.has_method("set_day"):
+		air.call("set_day", null)
 	air.call("set_weather", _derive_weather(_weather_hour))
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
 	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
@@ -207,6 +217,9 @@ func start(s: FlightSettings) -> bool:
 	if not sky.clock.sun_changed.is_connected(_on_sun_changed):
 		sky.clock.sun_changed.connect(_on_sun_changed)
 	_on_sun_changed(sky.clock.to_sun())
+	if air.has_method("set_day"):
+		_day = _make_day()
+		air.call("set_day", _day)
 	if air.has_method("load_static_thermals"):
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
@@ -236,7 +249,14 @@ func start(s: FlightSettings) -> bool:
 		float(Config.value("flight", "visual.hang_height_m", 2.0))
 	)
 	bots.setup_in_world(terrain, air, _start_pos, _start_heading, bots_count)
+	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
+	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
+	while terrain.has_method("relief_busy") and terrain.relief_busy():
+		await get_tree().process_frame
 	restart()
+	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое).
+	if air.has_method("refresh_now"):
+		air.call("refresh_now")
 	set_physics_process(true)
 	progress.finish()
 	status_changed.emit("")
@@ -284,10 +304,46 @@ func _derive_weather(hour: float) -> Dictionary:
 	return w
 
 
-## Ход дня: раз в diurnal.update_s игрового времени — мягко к погоде этого часа (Atmosphere
-## ведёт кромку, фон и болтанку плавно за blend_s игрового времени).
+## Ход дня для атмосферы: час места по времени атмосферы (часы старта — при её текущем времени),
+## погода по часу, солнце по дате и месту, источники термиков по солнцу с инерцией прогрева.
+func _make_day() -> AtmoDay:
+	var d := AtmoDay.new()
+	d.start_hour = sky.clock.hour
+	d.t0 = float(air.get("time_s"))
+	d.speed = sky.clock.speed
+	var diurnal: Dictionary = WeatherModel.config().get("diurnal", {})
+	d.quantum_h = float(diurnal.get("update_s", 60.0)) / 3600.0
+	d.weather_fn = _derive_weather
+	var c := sky.clock
+	var sun := AtmoDay.sun_direction.bind(
+		c.latitude_deg, c.longitude_deg, c.month, c.day, _clock_utc_offset()
+	)
+	d.sun_fn = sun
+	if terrain.has_method("thermal_source_strength_for"):
+		var heating := _heating
+		var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP}
+		d.source_fn = func(x: float, z: float, h: float) -> float:
+			if h != float(cache.h):
+				cache.h = h
+				cache.dirs = heating.directions(h)
+				cache.sun = sun.call(h)
+			return terrain.thermal_source_strength_for(x, z, cache.dirs, cache.sun)
+	return d
+
+
+## Сеть (NET-40): мир — на момент t зоны, с (от начала зоны = от старта часов start_hour):
+## атмосфера сразу в t (то же, что прогон от 0), часы — на час старта + t.
+func set_world_time(t: float) -> void:
+	if _day != null:
+		sky.clock.set_hour(_day.hour_at(t))
+	if air.has_method("start_at"):
+		air.call("start_at", t)
+
+
+## Ход дня без AtmoDay (запасной воздух): раз в diurnal.update_s игрового времени — мягко к
+## погоде этого часа (Atmosphere ведёт кромку, фон и болтанку плавно за blend_s).
 func _update_day_weather() -> void:
-	if _weather_ctx.is_empty() or not air.has_method("thermals_near"):
+	if _day != null or _weather_ctx.is_empty() or not air.has_method("thermals_near"):
 		return
 	var d: Dictionary = WeatherModel.config().get("diurnal", {})
 	if absf(sky.clock.hour - _weather_hour) * 3600.0 < float(d.get("update_s", 60.0)):
@@ -333,6 +389,8 @@ func restart() -> void:
 	_prev_phase = ""
 	sim_time_s = 0.0
 	sky.clock.reset()
+	if _day != null:
+		_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
 	for n in mounted:
@@ -414,6 +472,8 @@ func apply_user_settings() -> void:
 		_graphics = GraphicsPresets.current()
 	input_controller.reload_config()
 	sky.clock.reload_config()
+	if _day != null:
+		_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	vario_audio.set_volume_db(float(va.get("volume_db", -6.0)))
 	if va.has("preset") and vario_audio.has_method("set_preset"):
