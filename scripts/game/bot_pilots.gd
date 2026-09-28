@@ -21,6 +21,11 @@ var agents: Array[BotAgent] = []
 var player_liftoff_s := -1.0
 ## «Занятые» термики: {center: Vector2, dir: float, t: float, owner: int (−1 — игрок)}.
 var claims: Array[Dictionary] = []
+## Другие живые пилоты зоны, кроме игрока (сеть, NET-44; ставит NetBots перед tick):
+## [{pos: Vector3, vel: Vector3, flying: bool}]. Для очереди, расхождения и частоты физики.
+var others: Array[Dictionary] = []
+## Имена не менять при смене языка (сеть: имена ботов зоны — из пула языка первого ведущего).
+var fixed_names := false
 
 var _cfg: Dictionary = {}
 var _air_fn: Callable
@@ -45,7 +50,7 @@ func _ready() -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_TRANSLATION_CHANGED:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and not fixed_names:
 		refresh_names()
 
 
@@ -106,13 +111,22 @@ func setup(opts: Dictionary) -> void:
 	refresh_names()
 	reset()
 	if visuals_enabled:
-		for a in agents:
-			var v := BotGlider.new()
-			v.name = "Bot%d" % a.id
-			add_child(v)
-			v.setup(a, _cfg.get("visual", {}))
-			_visuals.append(v)
-		_on_config_reloaded()
+		build_visuals()
+
+
+## Вид ботов (BotGlider) заново — по текущим agents (сеть: после подмены состояний).
+func build_visuals() -> void:
+	for v in _visuals:
+		if is_instance_valid(v):
+			v.queue_free()
+	_visuals.clear()
+	for a in agents:
+		var v := BotGlider.new()
+		v.name = "Bot%d" % a.id
+		add_child(v)
+		v.setup(a, _cfg.get("visual", {}))
+		_visuals.append(v)
+	_on_config_reloaded()
 
 
 ## Новый полёт в игре: воздух (Atmosphere или CalmAir), рельеф (Terrain), старт игрока;
@@ -252,6 +266,8 @@ func tick(dt: float, player: Telemetry) -> void:
 		return
 	sim_time_s += dt
 	_observe_player(player, dt)
+	if _others_flying() and player_liftoff_s < 0.0:
+		player_liftoff_s = sim_time_s
 	_respawn()
 	_schedule()
 	_sep_acc += dt
@@ -400,6 +416,13 @@ func _observe_player(p: Telemetry, dt: float) -> void:
 	_p_center_ok = absf(_p_turn) > thr
 
 
+func _others_flying() -> bool:
+	for o in others:
+		if o.flying:
+			return true
+	return false
+
+
 ## Очередь на старт: разбег бота k — через interval·(k+1) после отрыва игрока (и не раньше,
 ## чем через interval после разбега предыдущего); к старту идёт заранее — сначала к месту
 ## в очереди в стороне, к самому старту — когда предыдущий побежал.
@@ -421,7 +444,8 @@ func _schedule() -> void:
 		var planned := player_liftoff_s + interval * (k + 1)
 		var prev_ran := k == 0 or agents[k - 1].run_start_s >= 0.0
 		# Игрок снова на земле (сел у старта, идёт на разбег) — новые не бегут, ждут его.
-		var ok := prev_ran and _player_flying and (a.state == BotAgent.State.READY or not busy)
+		var flying := _player_flying or _others_flying()
+		var ok := prev_ran and flying and (a.state == BotAgent.State.READY or not busy)
 		a.queue_hold = not ok
 		if ok and a.run_at_s == INF:
 			a.run_at_s = maxf(planned, maxf(prev_run, last_run) + interval)
@@ -448,6 +472,8 @@ func _hz_for(a: BotAgent, ph: Dictionary) -> float:
 	if not a.is_airborne():
 		return float(ph.get("near_hz", 30.0))
 	var d := a.model.position.distance_to(_player_pos)
+	for o in others:
+		d = minf(d, a.model.position.distance_to(o.pos))
 	if d < float(ph.get("near_m", 1500.0)):
 		return float(ph.get("near_hz", 30.0))
 	if d < float(ph.get("far_m", 4000.0)):
@@ -488,11 +514,17 @@ func _update_separation() -> void:
 			if r.x < best_t:
 				best_t = r.x
 				away = Vector2(r.y, r.z)
+		var humans: Array[Dictionary] = []
 		if _player_flying:
+			humans.append({"pos": _player_pos, "vel": _player_vel})
+		for o in others:
+			if o.flying:
+				humans.append(o)
+		for hp in humans:
 			var r := _conflict(
 				t,
-				_player_pos,
-				_player_vel,
+				hp.pos,
+				hp.vel,
 				float(sc.get("player_horizontal_m", 90.0)),
 				float(sc.get("player_vertical_m", 30.0)),
 				float(sc.get("player_lookahead_s", 20.0))

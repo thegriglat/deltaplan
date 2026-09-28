@@ -56,6 +56,8 @@ var pilots: Object
 var game: Game
 ## Чужие пилоты в мире (NET-41); создаётся в setup.
 var remote: RemotePilots
+## Боты зоны (NET-44): считает ведущий; создаётся в setup, ботов ставит join_world.
+var bots: NetBots
 ## Своя расцветка крыла для других ({hueDeg, sat, value}) — по имени пилота.
 var colors: Variant = null
 ## Мир построен из ключа, отличного от ключа зоны (check_world).
@@ -78,12 +80,17 @@ func setup(p_game: Game, p_zone: Object = null, p_pilots: Object = null) -> void
 	game.add_child(remote)
 	remote.setup_in_world(game.terrain)
 	colors = colors_for(_my_name())
+	bots = NetBots.new()
+	add_child(bots)
+	bots.setup(zone, pilots, game)
 	if pilots != null and pilots.has_signal("pilot_lost"):
 		pilots.connect("pilot_lost", _on_pilot_lost)
 
 
 ## Выключить: чужих убрать, своё не слать.
 func teardown() -> void:
+	if is_instance_valid(bots):
+		bots.teardown()
 	if pilots != null:
 		if pilots.has_method("clear_local_state"):
 			pilots.call("clear_local_state")
@@ -130,6 +137,7 @@ func join_world() -> bool:
 	world_mismatch = not bool(zone.check_world(key))
 	if world_mismatch:
 		push_warning("NetFlight: мир отличается от мира зоны — летим в своём (%s)" % key)
+	bots.start_in_game(game)
 	world_joined.emit()
 	return true
 
