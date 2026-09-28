@@ -34,6 +34,7 @@ extends RefCounted
 ##                         — снова в воздухе. Для проверки полёта вдали от старта
 ##   --net-host[=<порт>]   отладка сети (NET-40): встроенный сервер, создать зону и сразу лететь
 ##                         (порт по умолчанию 8080; мир — из настроек по умолчанию и флагов)
+##   --net-create          отладка сети: создать зону на --net-server и сразу лететь
 ##   --net-join=<код>      отладка сети: войти в зону по коду и сразу лететь
 ##   --net-server=<IP:порт>  куда подключаться для --net-join (по умолчанию 127.0.0.1:8080)
 ##   --net-name=<имя>      имя пилота в зоне (иначе — из настроек)
@@ -79,6 +80,7 @@ var net_join := ""
 var net_server := "127.0.0.1:8080"
 var net_name := ""
 var net_seed := 4711  ## tools/shots/net44_shot.gd — 4711, если флага нет
+var net_create := false  ## --net-create: создать зону на --net-server (не встроенный сервер)
 var net_seed_set := false  ## --net-seed задан (иначе --net-host берёт --seed или случайный)
 ## Сид мира (--seed=N); < 0 — не задан (меню — случайный, --autostart — из atmosphere.json).
 var seed := -1
@@ -144,6 +146,9 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autostart = true
 				if val != "":
 					o.net_port = int(val)
+			"net-create":
+				o.net_create = true
+				o.autostart = true
 			"net-join":
 				o.net_join = val
 				o.autostart = true

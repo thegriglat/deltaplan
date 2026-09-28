@@ -79,7 +79,7 @@ func _ready() -> void:
 		game.autopilot.circle_bank_deg = opts.autopilot_circle_bank
 	if opts.seed >= 0:
 		game.world_seed = opts.seed  # --seed: день задан (меню и --autostart)
-	if opts.net_host or opts.net_join != "":
+	if opts.net_host or opts.net_create or opts.net_join != "":
 		await _debug_net()
 	elif opts.autostart:
 		await _fly(flight)
@@ -563,7 +563,13 @@ func _debug_net() -> void:
 		while not NetClient.is_online and Time.get_ticks_msec() - t0 < 15000:
 			await get_tree().process_frame
 		print("net: связь с %s — %s" % [opts.net_server, NetClient.is_online])
-		NetZone.join_zone(opts.net_join)
+		if opts.net_create:
+			var zone_seed := opts.net_seed if opts.net_seed_set else opts.seed
+			if zone_seed < 0:
+				zone_seed = _new_seed()
+			NetZone.create_zone(flight, zone_seed, maxi(opts.bots, 0))
+		else:
+			NetZone.join_zone(opts.net_join)
 	var t1 := Time.get_ticks_msec()
 	while entered[0] == "" and Time.get_ticks_msec() - t1 < 15000:
 		await get_tree().process_frame
