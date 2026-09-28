@@ -24,6 +24,8 @@ var build_time_s: float = 0.0
 ## Лагерь пилотов у старта (place_camp, TentCamp.plan):
 ## [{type, position, basis, yaw, color, radius}].
 var camp: Array[Dictionary] = []
+## Костёр лагеря (Campfire) или null.
+var campfire: Campfire = null
 
 var _air_fn: Callable
 var _height_fn: Callable
@@ -31,6 +33,7 @@ var _clearings: WorldClearings
 var _active: Array[WindIndicator] = []
 var _since_update: float = 0.0
 var _since_active: float = INF
+var _since_fire: float = INF
 var _update_dt: float = 1.0 / 30.0
 
 
@@ -119,6 +122,7 @@ func clear() -> void:
 	landing_sites.clear()
 	start_tracks.clear()
 	camp.clear()
+	campfire = null
 	_active.clear()
 	osm_layer = null
 	osm = null
@@ -174,11 +178,13 @@ static func clearing_mask_for(loc_id: String) -> Image:
 ## null) — лес, вода, застройка, камни и кусты; без него — только уклон, тропы и OSM.
 ## Прошлый лагерь (другой старт той же локации) убирается вместе с препятствиями «tent».
 func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count: int = -1) -> void:
-	var old := get_node_or_null("Camp")
-	if old != null:
-		remove_child(old)
-		old.queue_free()
+	for old_name in ["Camp", "Campfire"]:
+		var old := get_node_or_null(old_name)
+		if old != null:
+			remove_child(old)
+			old.queue_free()
 	camp.clear()
+	campfire = null
 	if obstacles != null:
 		obstacles.remove_kind("tent")
 	var tc: Dictionary = cfg.get("tents", {})
@@ -187,11 +193,13 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 	if count < 0:
 		count = TentCamp.tent_count()
 	var t0 := Time.get_ticks_usec()
-	camp = TentCamp.plan(start, heading_deg, count, tc, _camp_env(start, tc, terrain))
+	var env := _camp_env(start, tc, terrain)
+	camp = TentCamp.plan(start, heading_deg, count, tc, env)
 	if camp.is_empty():
 		print("WorldObjects: у старта нет ровного места для палаток")
 		return
 	add_child(TentCamp.build_node(camp, tc))
+	_place_campfire(start, heading_deg, tc, env)
 	for t in camp:
 		var ty: Dictionary = tc.types[t.type]
 		var p: Vector3 = t.position
@@ -212,6 +220,28 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 			% [camp.size(), count, (Time.get_ticks_usec() - t0) / 1000.0]
 		)
 	)
+
+
+## Костёр у лагеря (Campfire, configs/world_objects.json → campfire).
+func _place_campfire(start: Vector3, heading_deg: float, tc: Dictionary, env: Dictionary) -> void:
+	var fc: Dictionary = cfg.get("campfire", {})
+	if fc.is_empty() or not bool(fc.get("enabled", true)):
+		return
+	var pos := Campfire.plan(camp, start, heading_deg, fc, tc, env)
+	if not pos.is_finite():
+		print("WorldObjects: у лагеря нет места для костра")
+		return
+	campfire = Campfire.new()
+	add_child(campfire)
+	campfire.position = pos
+	campfire.setup(fc)
+	_update_campfire()
+
+
+func _update_campfire() -> void:
+	var pts := campfire.sample_points()
+	campfire.update_wind(_air_at(pts[0]), _air_at(pts[1]))
+	_since_fire = 0.0
 
 
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы, дороги,
@@ -287,6 +317,10 @@ func get_landing_sites() -> Array[Dictionary]:
 
 
 func _physics_process(delta: float) -> void:
+	if campfire != null:
+		_since_fire += delta
+		if _since_fire >= float(cfg.campfire.get("update_s", 0.3)):
+			_update_campfire()
 	if indicators.is_empty():
 		return
 	_since_active += delta

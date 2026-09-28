@@ -77,6 +77,7 @@
 | `assets/models/world/fence_segment.glb` (`…/fence_segment.blend`) | пролёт забора 3 м (столб + 2 жерди) | то же | — | заборы у посадок (`landing.fence_scene_path`) |
 | `assets/models/world/power_tower.glb`, `power_pole.glb` (`…/power_*.blend`) | решётчатая опора ЛЭП 110 кВ 28,5 м; ж/б столб 10 кВ 9 м с изоляторами | то же | — | ЛЭП из OSM (`power.tower_scene_path`, `pole_scene_path`) |
 | — | покос посадки, ленты дорог, провода | сгенерировано процедурно: `scripts/world_objects/draped.gdshader`, `wire.gdshader`, `wind_cloth.gdshader` | — | объекты мира |
+| — | костёр: кольцо камней, поленья, угли, язычки пламени, клубы дыма | сгенерировано процедурно: `scripts/world_objects/campfire.gd` (меш из примитивов), `flame_puff.gdshader`, `smoke_puff.gdshader`, `smoke_particles.gdshader` (без текстур) | — | лагерь пилотов у старта |
 | `assets/textures/clouds/cloud_shape.png`, `cloud_detail.png` | бесшовный 3D-шум облаков: Perlin-Worley 128³ и Уорли 64³ (атласы срезов, импорт как Texture3D) | сгенерировано `tools/atmosphere/gen_cloud_noise.py` | — | объёмные облака (`configs/atmosphere.json → clouds.noise_*_texture`); без файла — процедурный Уорли в `cloud_layer.gd` |
 | — | пятно тени облака на земле | сгенерировано процедурно (`scripts/atmosphere/cloud_layer.gd`) | — | тени облаков (декали) |
 | — | перистая пелена, пылевые вихри: 2D-шум | сгенерировано процедурно (`NoiseTexture2D` в `scripts/atmosphere/cirrus_layer.gd`, `dust_devils.gd`) | — | перистые облака, пылевые вихри |
