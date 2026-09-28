@@ -88,6 +88,7 @@ static func setup_world(b: BotPilots, count: int) -> void:
 				"start": Vector3(0.0, 300.0, -1.0),
 				"heading_deg": 0.0,
 				"count": count,
+				"airborne_share": 0.0,  # все с земли, как в test_bots (main 0e07d62)
 			}
 		)
 	)
