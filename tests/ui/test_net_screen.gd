@@ -12,6 +12,56 @@ const NET_ZONE_SCRIPT := preload("res://scripts/net/net_zone.gd")
 var failures: PackedStringArray = []
 
 
+## Подставной NetClient для тестов повторов первого подключения (К1 edfe390): только сигналы и
+## свойства, которые трогает NetUiClientBackend — реальных попыток/таймеров нет, повторы и
+## исход эмитируются тестом вручную.
+class FakeRetryClient:
+	extends Node
+	signal connected(reconnect: bool)
+	signal disconnected(will_reconnect: bool)
+	signal reconnecting(attempt: int)
+	signal error(code: String, text: String)
+
+	var is_online := false
+	var state := 0  # NetClient.State.IDLE
+	var address := ""
+
+	func connect_to_server(addr: String, _name: String) -> bool:
+		address = addr
+		state = 1  # не IDLE — как реальный CONNECTING
+		return true
+
+	func disconnect_from_server() -> void:
+		state = 0
+		is_online = false
+
+
+## Подставная NetZone для тех же тестов — зона входится вручную через zone_entered.emit().
+class FakeRetryZone:
+	extends Node
+	signal zone_entered(code: String)
+	signal zone_left
+	signal zone_error(code: String, text: String)
+	signal peer_joined(peer: Dictionary)
+	signal peer_left(id: String)
+	signal leader_changed(id: String, is_me: bool)
+
+	var code := ""
+	var peers: Dictionary = {}
+	var leader_id := ""
+	var my_id := ""
+	var zone_settings: FlightSettings = null
+
+	func create_zone(_params: FlightSettings, _world_seed: int, _bots: int) -> void:
+		pass
+
+	func join_zone(_code: String) -> void:
+		pass
+
+	func leave_zone() -> void:
+		pass
+
+
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
 		failures.append("check failed: " + msg)
@@ -451,3 +501,87 @@ func test_client_backend_create_embedded_vs_remote() -> void:
 	await _frames()
 	client.queue_free()
 	zone.queue_free()
+
+
+## Повторы первого подключения (К1 edfe390): NetClient шлёт reconnecting(attempt) между
+## попытками и disconnected(true) он вообще не шлёт до Welcome — экран остаётся на
+## «Подключение…», ни одна из них не гасит его в ошибку. Успех — обычный connected(false).
+func test_client_backend_survives_first_connect_retries_then_zone() -> void:
+	var raw: Variant = _backup()
+	var fc := FakeRetryClient.new()
+	var fz := FakeRetryZone.new()
+	add_child(fc)
+	add_child(fz)
+	var b := NetUiClientBackend.new(fc, fz)
+	var s := _screen(b)
+	s.set_server("127.0.0.1:8765")
+	s.set_code("4721")
+	s.join_zone()
+	check(s.view == NetScreen.View.CONNECTING, "подключение начато")
+	fc.reconnecting.emit(1)
+	check(s.view == NetScreen.View.CONNECTING, "reconnecting(1) — экран не меняется")
+	fc.reconnecting.emit(2)
+	check(s.view == NetScreen.View.CONNECTING, "reconnecting(2) — экран не меняется")
+	fc.connected.emit(false)  # Welcome пришёл — первое подключение, не переподключение
+	fz.code = "4721"
+	fz.zone_entered.emit("4721")
+	check(s.view == NetScreen.View.ZONE, "в зоне после повторов: %s" % s.view)
+	check(s.code_text() == "4721", "код зоны: %s" % s.code_text())
+	s.queue_free()
+	fc.queue_free()
+	fz.queue_free()
+	_restore(raw)
+
+
+## Повторы кончились без успеха — только тогда CONNECT_FAILED/disconnected(false) → «Сервер
+## недоступен»; до этого экран держит «Подключение…».
+func test_client_backend_shows_unreachable_after_final_connect_failed() -> void:
+	var raw: Variant = _backup()
+	var fc := FakeRetryClient.new()
+	var fz := FakeRetryZone.new()
+	add_child(fc)
+	add_child(fz)
+	var b := NetUiClientBackend.new(fc, fz)
+	var s := _screen(b)
+	s.set_server("127.0.0.1:8765")
+	s.set_code("4721")
+	s.join_zone()
+	fc.reconnecting.emit(1)
+	fc.reconnecting.emit(2)
+	fc.reconnecting.emit(3)
+	check(s.view == NetScreen.View.CONNECTING, "всё ещё повторы — без ошибки")
+	fc.error.emit("CONNECT_FAILED", "cannot connect: timeout (after 3 retries)")
+	fc.disconnected.emit(false)
+	check(s.view == NetScreen.View.INPUT, "повторы кончились — назад к вводу")
+	check(s.error_text() == tr(NetScreen.ERROR_KEYS.unreachable), "«%s»" % s.error_text())
+	s.queue_free()
+	fc.queue_free()
+	fz.queue_free()
+	_restore(raw)
+
+
+## «Отмена» в разгаре повторов — подключение остановлено, ошибка после этого не всплывает
+## (leave() гасит _busy, следующие сигналы клиента уже ни на что не влияют).
+func test_client_backend_cancel_during_retries_shows_no_error() -> void:
+	var raw: Variant = _backup()
+	var fc := FakeRetryClient.new()
+	var fz := FakeRetryZone.new()
+	add_child(fc)
+	add_child(fz)
+	var b := NetUiClientBackend.new(fc, fz)
+	var s := _screen(b)
+	s.set_server("127.0.0.1:8765")
+	s.set_code("4721")
+	s.join_zone()
+	fc.reconnecting.emit(1)
+	s.call("_on_cancel")
+	check(s.view == NetScreen.View.INPUT and s.error_text() == "", "отмена без ошибки")
+	check(not b.is_busy(), "отмена остановила подключение")
+	# Запоздавший сигнал уже отменённого подключения — экран не трогает.
+	fc.error.emit("CONNECT_FAILED", "too late")
+	fc.disconnected.emit(false)
+	check(s.view == NetScreen.View.INPUT and s.error_text() == "", "запоздавшая ошибка — молча")
+	s.queue_free()
+	fc.queue_free()
+	fz.queue_free()
+	_restore(raw)

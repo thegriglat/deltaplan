@@ -171,11 +171,18 @@ func _on_connected(reconnect: bool) -> void:
 		_send_request()
 
 
+## NetClient повторяет и первое подключение (reconnect_delays_s): пока идут попытки, он шлёт
+## только reconnecting(attempt), на который мы не подписаны — экран остаётся на «Подключение…».
+## disconnected(true) NetClient шлёт только после Welcome (обрыв уже идущей сессии), не во время
+## первых попыток; сюда попадает только will_reconnect=false — обрыв окончательный.
 func _on_disconnected(will_reconnect: bool) -> void:
 	if _busy and not will_reconnect:
 		_fail("unreachable")
 
 
+## error("CONNECT_FAILED") NetClient шлёт один раз — когда повторы кончились (перед
+## disconnected(false)); _fail() сразу гасит _busy, так что следующий disconnected(false)
+## по тому же обрыву уже не позовёт _fail() второй раз.
 func _on_error(err_code: String, _text: String) -> void:
 	if _busy:
 		_fail(String(ERROR_MAP.get(err_code, "bad_message")))
