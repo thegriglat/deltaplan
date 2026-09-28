@@ -12,6 +12,9 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://assets/icon.png"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Deltaplan"
+boot_splash/bg_color=Color(0.306, 0.341, 0.41, 1)
+boot_splash/image="res://assets/ui/boot_splash.png"
+boot_splash/stretch_mode=4
 
 [audio]
 
