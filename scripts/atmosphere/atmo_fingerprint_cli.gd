@@ -2,7 +2,8 @@ extends Node
 ## Отпечаток эталонного мира в файл — сравнить Linux и Windows (NET-00, AtmoFingerprint).
 ## Из исходников:  godot --headless --path . res://scenes/atmosphere/atmo_fingerprint.tscn
 ##                     -- --out=<файл> [--key=<ключ мира>] [--times=0,600,3600] [--dt=0.5]
-## Из сборки:      deltaplan.exe --headless res://scenes/atmosphere/atmo_fingerprint.tscn -- --out=…
+## Из сборки (сцену в релизной сборке указать нельзя — через скрипт):
+##   deltaplan.exe --headless -s res://scripts/atmosphere/atmo_fingerprint_main.gd -- --out=…
 ## Для каждого момента — прыжок (start_at) и прогон от 0 шагом dt; в файл — оба отпечатка и
 ## строка «match»/«MISMATCH» (совпадают ли они между собой до 1e-3). Файлы двух ОС — сравнить diff.
 
