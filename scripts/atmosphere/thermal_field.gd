@@ -321,8 +321,14 @@ func _mix(a: int, b: int, c: int) -> int:
 ## обычный кончается до конца цикла, Cb (если в погоде его рождения грозы возможны) живёт дольше
 ## (зрелость × cb_mature_factor); облако тает ещё linger.
 func _reach_of(t_start: float, period: float) -> float:
-	var cb := float(_weather_at(t_start).get("cb_chance", 0.0)) > 0.0
+	var cb := cb_thermal_chance(_weather_at(t_start)) > 0.0
 	return period * (_cb_factor() if cb else 1.0) + cloud_linger_s
+
+
+## Доля сильных термиков, переразвивающихся в Cb, в погоде w: cb_thermal_chance (модель погоды:
+## грозы редкие), у старых пресетов без него — cb_chance.
+static func cb_thermal_chance(w: Dictionary) -> float:
+	return float(w.get("cb_thermal_chance", w.get("cb_chance", 0.0)))
 
 
 func _cb_factor() -> float:
@@ -547,7 +553,7 @@ func _spawn(
 ## Сильный зрелый термик в грозовой день может переразвиться в Cb (VR-26).
 func _setup_cb(th: AtmoThermal, rnd: float, w: Dictionary) -> void:
 	var smax := float(w.thermal_strength_ms[1])
-	var chance := float(w.get("cb_chance", 0.0))
+	var chance := cb_thermal_chance(w)
 	if chance <= 0.0 or rnd >= chance or th.strength < smax * float(_cfg.cb_min_strength_frac):
 		return
 	th.is_cb = true
@@ -612,7 +618,7 @@ func _shade_pure(p: Vector2, t: float, env: Dictionary) -> float:
 				if k > 1:
 					if t_start + pp.x * cbf < t:
 						break
-					if float(_weather_at(t_start).get("cb_chance", 0.0)) <= 0.0:
+					if cb_thermal_chance(_weather_at(t_start)) <= 0.0:
 						continue
 				var th := _bare_thermal(ia, ic, _mix(ia, ic, cy) | 1, t_start, pp.x)
 				if th != null:

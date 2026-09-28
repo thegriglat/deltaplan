@@ -68,14 +68,19 @@
     "chance": [0, 0.04, 0.06]
   },
   "clouds_by_margin": [
-    {"margin_m": 0, "dry_thermal_fraction": 0.55, "cloud_depth_m": 300, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
-    {"margin_m": 150, "dry_thermal_fraction": 0.35, "cloud_depth_m": 500, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
-    {"margin_m": 300, "dry_thermal_fraction": 0.25, "cloud_depth_m": 700, "overdevelopment_chance": 0.0, "cb_chance": 0.0},
-    {"margin_m": 450, "dry_thermal_fraction": 0.2, "cloud_depth_m": 1000, "overdevelopment_chance": 0.15, "cb_chance": 0.0},
-    {"margin_m": 550, "dry_thermal_fraction": 0.15, "cloud_depth_m": 1300, "overdevelopment_chance": 0.2, "cb_chance": 0.05},
-    {"margin_m": 750, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35}
+    {"margin_m": 0, "dry_thermal_fraction": 0.55, "cloud_depth_m": 300, "overdevelopment_chance": 0.0, "cb_chance": 0.0, "cb_thermal_chance": 0.0},
+    {"margin_m": 150, "dry_thermal_fraction": 0.35, "cloud_depth_m": 500, "overdevelopment_chance": 0.0, "cb_chance": 0.0, "cb_thermal_chance": 0.0},
+    {"margin_m": 300, "dry_thermal_fraction": 0.25, "cloud_depth_m": 700, "overdevelopment_chance": 0.0, "cb_chance": 0.0, "cb_thermal_chance": 0.0},
+    {"margin_m": 450, "dry_thermal_fraction": 0.2, "cloud_depth_m": 1000, "overdevelopment_chance": 0.15, "cb_chance": 0.0, "cb_thermal_chance": 0.0},
+    {"margin_m": 550, "dry_thermal_fraction": 0.15, "cloud_depth_m": 1300, "overdevelopment_chance": 0.2, "cb_chance": 0.05, "cb_thermal_chance": 0.0},
+    {"margin_m": 600, "dry_thermal_fraction": 0.1375, "cloud_depth_m": 1375, "overdevelopment_chance": 0.2625, "cb_chance": 0.125, "cb_thermal_chance": 0.0},
+    {"margin_m": 700, "dry_thermal_fraction": 0.1125, "cloud_depth_m": 1525, "overdevelopment_chance": 0.3875, "cb_chance": 0.275, "cb_thermal_chance": 0.0001},
+    {"margin_m": 750, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35, "cb_thermal_chance": 0.0004},
+    {"margin_m": 800, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35, "cb_thermal_chance": 0.001},
+    {"margin_m": 900, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35, "cb_thermal_chance": 0.0025},
+    {"margin_m": 1100, "dry_thermal_fraction": 0.1, "cloud_depth_m": 1600, "overdevelopment_chance": 0.45, "cb_chance": 0.35, "cb_thermal_chance": 0.005}
   ],
-  "clouds_by_margin_doc": "Облака по запасу m = верх сухих термиков − уровень конденсации, м (кусочно-линейно; ниже первой строки — как первая).",
+  "clouds_by_margin_doc": "Облака по запасу m = верх сухих термиков − уровень конденсации, м (кусочно-линейно; ниже первой строки — как первая, выше последней — как последняя). Запас растёт ~50 м на °C: в Онгудае днём +24 → ~550 м, +26 → ~650–690, +30 → ~850–890, +34 → ~1050–1090 (tools/weather/storm_rarity.gd --seeds=0). Строки 600 и 700 — середины между 550 и 750 по всем полям, кроме cb_thermal_chance (облака как прежде). cb_chance — грозовость дня (0..0,35): клеточный день, наковальни в перистых, шире шаг (storm); cb_thermal_chance — доля сильных термиков, которые правда переразвиваются в Cb (грозы редкие). Вокруг старта (15 км) за час рождается ~200–450 сильных термиков, так что 0,0001 ≈ 1 Cb на 20–50 полётов: +26 — почти никогда (≤ 1 из 20 полётов видит Cb ближе 15 км за первый час), +28 — изредка, с +30 — гроза где-то в округе в части полётов, +34 — в большинстве, но над стартом в начале — редко. Проверка — tests/atmosphere/test_storm_rarity.gd.",
   "blue_margin_m": -100,
   "blue_margin_m_doc": "Запас ниже этого — «голубой» день: облаков нет, все термики сухие.",
   "blue_cloud_min_strength_ms": 99.0,

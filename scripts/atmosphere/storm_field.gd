@@ -107,4 +107,12 @@ func sample(pos: Vector3, agl: float, t: float) -> Vector4:
 		var front := exp(-fr * fr)
 		out.y += _front_w * e * front * smoothstep(0.0, 150.0, agl) * exp(-agl / 1500.0)
 		out.w = maxf(out.w, _turb_k * _out_u * e * (front + 0.5 * radial) * prof)
+	# Холодные «языки» соседних ячеек сливаются, а не складываются: поток не сильнее одной ячейки
+	# (иначе 5–10 ячеек рядом давали у земли 30–60 м/с).
+	var h := Vector2(out.x, out.z)
+	if h.length_squared() > _out_u * _out_u:
+		h = h.normalized() * _out_u
+		out.x = h.x
+		out.z = h.y
+	out.y = clampf(out.y, -_dd_w, _front_w)
 	return out

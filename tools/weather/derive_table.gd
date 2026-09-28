@@ -61,12 +61,12 @@ func _ready() -> void:
 				month, WeatherModel.typical_max_c(month, 15, cfg)])
 			md.append("")
 			md.append(
-				"| °C | ветер м/с | кромка над землёй, м | термики, м/с | шаг, м | сухие | грозы"
+				"| °C | ветер м/с | кромка над землёй, м | термики, м/с | шаг, м | сухие | термиков в Cb"
 				+ " | пыль. вихри |"
 			)
 			md.append("|---|---|---|---|---|---|---|---|")
 			print("  месяц %d" % month)
-			print("    T   U  | z_dry z_lcl  m    | кромка сила        шаг  сухие  Cb    пыль")
+			print("    T   U  | z_dry z_lcl  m    | кромка сила        шаг  сухие  Cb‰   пыль")
 			for t in TEMPS:
 				for u in WINDS_MS:
 					var f := {"temperature_c": t, "wind_speed_kmh": u * 3.6, "wind_from_deg": 270.0}
@@ -76,7 +76,7 @@ func _ready() -> void:
 						"    %+3.0f %2.0f | %5.0f %5.0f %5.0f | %5.0f %.1f–%.1f %5.0f %.2f %.2f %.2f"
 						% [t, u, d.z_dry_msl_m, d.z_lcl_msl_m, d.margin_m, w.cloudbase_agl_m,
 							w.thermal_strength_ms[0], w.thermal_strength_ms[1],
-							w.thermal_spacing_m, w.dry_thermal_fraction, w.cb_chance,
+							w.thermal_spacing_m, w.dry_thermal_fraction, w.cb_thermal_chance * 1000.0,
 							w.dust_devil_chance]
 					)
 					if u == 0.0 or u == 5.0 or u == 10.0:
@@ -86,7 +86,11 @@ func _ready() -> void:
 							w.thermal_strength_ms[0], w.thermal_strength_ms[1],
 							w.thermal_spacing_m,
 							"все" if d.blue else "%.0f %%" % (w.dry_thermal_fraction * 100.0),
-							"—" if w.cb_chance <= 0.0 else "%.0f %%" % (w.cb_chance * 100.0),
+							(
+								"—"
+								if w.cb_thermal_chance <= 0.0
+								else "%.2f %%" % (w.cb_thermal_chance * 100.0)
+							),
 							"—" if w.dust_devil_chance <= 0.0 else "%.0f %%" % (
 								w.dust_devil_chance * 100.0),
 						])
@@ -96,9 +100,10 @@ func _ready() -> void:
 					var w := WeatherModel.derive(f, ctx, cfg, h)
 					var d: Dictionary = w._derived
 					print(
-						"    %02.0f ч %+3.0f°: T %.1f кромка %5.0f m %5.0f сила %.1f–%.1f Cb %.2f "
+						"    %02.0f ч %+3.0f°: T %.1f кромка %5.0f m %5.0f сила %.1f–%.1f Cb‰ %.2f "
 						% [h, t, d.temperature_c, w.cloudbase_agl_m, d.margin_m,
-							w.thermal_strength_ms[0], w.thermal_strength_ms[1], w.cb_chance]
+							w.thermal_strength_ms[0], w.thermal_strength_ms[1],
+							w.cb_thermal_chance * 1000.0]
 						+ str(d.get("heat_k", "-"))
 					)
 		terrain.free()
