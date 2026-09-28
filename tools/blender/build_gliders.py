@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
 import sail_maps  # noqa: E402
 import sail_texture  # noqa: E402
+import frame_parts as F  # noqa: E402
 
 SPAN_STATIONS = 44       # на полуразмах
 CHORD_STATIONS = 22
@@ -271,49 +272,165 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
             for a in p["luff_lines"]:
                 targets.append(ws.upper(s * a, 1.0))
         for tg in targets:
-            mb.add_tube([top, tg], wire_r, "Wire", sides=4, cap=False)
+            mb.add_tube([top, tg], wire_r, "Wire", sides=6, cap=False)
     return mb.build("Frame", mats), tail_y
+
+
+def convex_hull(pts) -> list:
+    """Выпуклая оболочка точек 2D (против часовой)."""
+    pts = sorted(set(pts))
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for q in pts:
+        while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0:
+            lo.pop()
+        lo.append(q)
+    for q in reversed(pts):
+        while len(hi) >= 2 and cross(hi[-2], hi[-1], q) <= 0:
+            hi.pop()
+        hi.append(q)
+    return lo[:-1] + hi[:-1]
+
+
+def add_apex(mb, kz: float, apex_y: float, top_x: float, top_z: float, r_up: float) -> None:
+    """Узел стоек под килем: две щеки по бокам киля на болту через киль, снизу — ось стоек
+    (болт поперёк) с наконечниками стоек снаружи щёк."""
+    ex, ey = Vector((0, 1, 0)), Vector((0, 0, 1))
+    cheek = F.rounded_outline([(-0.065, kz + 0.02), (0.065, kz + 0.02), (0.045, top_z - 0.022),
+                               (-0.045, top_z - 0.022)], 0.012, 3)
+    for s in (-1, 1):
+        F.add_prism(mb, cheek, Vector((s * 0.03, apex_y, 0)), ex, ey, 0.005, "Dark")
+    F.add_bolt(mb, (0, apex_y, kz), (1, 0, 0), 0.075, 0.004, "Steel")
+    F.add_bolt(mb, (0, apex_y, top_z), (1, 0, 0), 2 * top_x + 2 * r_up + 0.012, 0.005, "Steel")
+
+
+def add_hang(mb, kz: float) -> None:
+    """Подвеска на киле у HangPoint: основная стропа-петля вокруг киля, карабин (верх — в петле,
+    фал пилота — в начале координат внутри карабина) и страховочная петля подлиннее."""
+    xa = Vector((1, 0, 0))
+    F.add_webbing_loop(mb, F.stadium((0, 0.0, kz), 0.028, (0, 0.0, 0.016), 0.007, xa),
+                       0.025, "Webbing", (0, 1, 0))
+    F.add_webbing_loop(mb, F.stadium((0, -0.03, kz), 0.029, (0, -0.03, -0.055), 0.009, xa),
+                       0.02, "WebbingBackup", (0, 1, 0))
+    mb.add_tube([(0, -0.045, kz), (0, 0.02, kz)], 0.0275, "Webbing", sides=12)  # накладка на киле
+    F.add_carabiner(mb, (0, 0.0, 0.018), 0.105, 0.058, 0.0055, "Steel", "Dark")
+
+
+def add_corner(mb, c: Vector, top: Vector, s: int, r_up: float, r_bar: float) -> tuple:
+    """Угол трапеции: две пластины в плоскости «стойка — штанга», болты стойки, штанги и тросов.
+    Возвращает (точка болта тросов, ось болта)."""
+    u = (top - c).normalized()
+    e1 = Vector((s, 0, 0))
+    n = u.cross(e1).normalized()
+    e2 = n.cross(e1).normalized()
+    if e2.z < 0:
+        e2, n = -e2, -n
+    u2 = (u.dot(e1), u.dot(e2))
+    p2 = (-u2[1], u2[0])
+    pts = [(-0.08, -0.024), (-0.08, 0.024), (0.03, -0.03), (0.03, 0.02), (0.005, -0.045)]
+    for k in (0.1, 0.02):
+        for q in (-1, 1):
+            pts.append((u2[0] * k + p2[0] * q * 0.026, u2[1] * k + p2[1] * q * 0.026))
+    outline = F.rounded_outline(convex_hull([(round(x, 5), round(y, 5)) for x, y in pts]),
+                                0.01, 2)
+    off = max(r_up, r_bar) + 0.004
+    for q in (-1, 1):
+        F.add_prism(mb, outline, c + n * (q * off), e1, e2, 0.004, "Dark")
+    blen = 2 * off + 0.014
+    for x, y in ((-0.058, 0.0), (u2[0] * 0.075, u2[1] * 0.075)):
+        F.add_bolt(mb, c + e1 * x + e2 * y, n, blen, 0.004, "Steel")
+    wa = c + e1 * 0.012 - e2 * 0.028
+    F.add_bolt(mb, wa, n, blen, 0.0045, "Steel")
+    return wa, n
 
 
 def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: float):
     mb = U.MeshBuilder()
     kz = cf["keel_z_m"]
-    apex = Vector((0, cf["apex_forward_m"], kz - 0.05))
+    apex_y = cf["apex_forward_m"]
+    top_x, top_z = cf["upright_top_x_m"], cf["upright_top_z_m"]
     w = p["basebar_width_m"] * 0.5
     y_bb = cf["basebar_forward_m"]
     z_bb = kz - cf["basebar_drop_m"]
     faired = p["faired_uprights"]
-    mb.add_box(apex + Vector((0, 0, 0.02)), (0.12, 0.08, 0.07), "Dark")
-    corners = []
+    r_up, r_bar = cf["upright_r_m"], cf["basebar_r_m"]
+    wire_r = p.get("wire_r_m", WIRE_R)
+    add_apex(mb, kz, apex_y, top_x, top_z, r_up)
+    add_hang(mb, kz)
+    bend = p.get("upright_bend", {})
+    corners, anchors = [], []
     for s in (-1, 1):
-        top = apex + Vector((s * 0.04, 0, 0))
+        top = Vector((s * top_x, apex_y, top_z))
         c = Vector((s * w, y_bb, z_bb))
+        dn = (c - top).normalized()  # наконечник стойки (втулка-«вилка») на оси узла
+        mb.add_tube([top - dn * 0.016, top + dn * 0.055], r_up * 1.12, "Dark", sides=12)
         corners.append(c)
+        # ось стойки: прямая или с изгибом в нижней части (bend: t0 — доля длины от верха, где
+        # начинается изгиб, fwd_m — наибольший вынос вперёд, out_m — наружу)
+        d = c - top
+        fwd = Vector((0, 1, 0))
+        fwd_perp = (fwd - d.normalized() * fwd.dot(d.normalized())).normalized()
+
+        def point(t: float, top=top, d=d, fwd_perp=fwd_perp, s=s) -> Vector:
+            q = top + d * t
+            if bend and t > bend["t0"]:
+                k = math.sin(math.pi * (t - bend["t0"]) / (1 - bend["t0"])) ** 1.5
+                q += fwd_perp * (bend.get("fwd_m", 0.0) * k) + Vector((s, 0, 0)) * (bend.get("out_m", 0.0) * k)
+            return q
+        ts = [i / 10 for i in range(11)] if bend else [0.0, 1.0]
+        axis = [point(t) for t in ts]
         if faired:
-            mb.add_tube([top, c + Vector((0, 0, 0.03))], 0.016, "Tube", sides=12,
-                        ellipse=(0.9, 2.6), up=(0, 1, 0))
+            # обтекатель от наконечника до ~7 см над углом; концы — круглая труба
+            f0, f1 = 0.05 / d.length, 1 - 0.07 / d.length
+            fa = [point(f0)] + [point(t) for t in ts if f0 < t < f1] + [point(f1)]
+            prof = F.airfoil_ring(16, cf["fairing_chord_m"], cf["fairing_thick_m"], 0.3)
+            F.add_profile_tube(mb, fa, prof, (0, 1, 0), "Tube")
+            mb.add_tube([point(0.0), point(f0 + 0.01)], r_up * 0.95, "Tube", sides=12)
+            mb.add_tube([point(f1 - 0.01), point(0.97), c], r_up, "Tube", sides=12)
         else:
-            mb.add_tube([top, c], 0.019, "Tube", sides=10)
-        mb.add_box(c, (0.07, 0.07, 0.07), "Dark")
-    # базовая штанга (у спортивного — «спидбар» с изгибом вниз к центру)
-    dip = 0.03 if faired else 0.0
-    bar = [Vector((-w, y_bb, z_bb)), Vector((-w * 0.45, y_bb, z_bb - dip)),
-           Vector((w * 0.45, y_bb, z_bb - dip)), Vector((w, y_bb, z_bb))]
-    mb.add_tube(bar, 0.017, "Tube", sides=10)
+            mb.add_tube(axis, r_up, "Tube", sides=16)
+        wa, bax = add_corner(mb, c, point(0.9), s, r_up, r_bar)
+        anchors.append((wa, bax))
+    # базовая штанга (у безмачтовых — «спидбар»: ровная середина ниже, плавные изгибы к углам)
+    dip = cf["speedbar_dip_m"] if faired else 0.0
+    flat = cf["speedbar_flat_half_m"]
+    left = [-(w + 0.035)] + [-w + (w - flat) * i / 6 for i in range(7)]
+    xs = left + [-flat + 2 * flat * i / 4 for i in range(1, 4)] + [-x for x in reversed(left)]
+
+    def bar_z(x: float) -> float:
+        a = abs(x)
+        if a <= flat:
+            return z_bb - dip
+        k = min(1.0, (a - flat) / (w - flat))
+        return z_bb - dip * (1 - (3 * k * k - 2 * k ** 3))
+    bar = [Vector((x, y_bb, bar_z(x))) for x in xs]
+    mb.add_tube(bar, r_bar, "Tube", sides=14)
+    for s in (-1, 1):  # заглушки концов штанги
+        e = Vector((s * (w + 0.035), y_bb, z_bb))
+        mb.add_tube([e, e + Vector((s * 0.012, 0, 0))], r_bar * 1.08, "Dark", sides=12)
+    if p.get("bar_grips", True):  # резиновые накладки под руками
+        g0, g1 = cf["bar_grip_x_m"]
+        for s in (-1, 1):
+            mb.add_tube([Vector((s * g0, y_bb, bar_z(g0))), Vector((s * g1, y_bb, bar_z(g1)))],
+                        r_bar + 0.0025, "Grip", sides=16)
     if p["wheels"]:
         for s in (-1, 1):
             c = Vector((s * (w + 0.07), y_bb, z_bb))
             mb.add_tube([c - Vector((0.025, 0, 0)), c + Vector((0.025, 0, 0))], 0.1, "Wheel",
                         sides=16, up=(0, 1, 0))
-    # нижние тросы: передние к носу, задние к килю, боковые к узлам поперечины
+    # нижние тросы: передние к носу, задние к килю, боковые к узлам поперечины; у угла —
+    # наконечник (ушко + коуш + втулка), сам трос — материал Wire (по нему ленточка ищет трос)
     nose = Vector((0, ws.y_nose - 0.05, kz))
     tail = Vector((0, tail_y + 0.05, kz))
-    for s, c in zip((-1, 1), corners):
+    for s, (wa, bax) in zip((-1, 1), anchors):
         ends = [nose, tail, le_tube_point(ws, s * p["crossbar_u"], 0.032)]
         if faired:  # у бескилевых — сдвоенные боковые тросы
             ends.append(le_tube_point(ws, s * (p["crossbar_u"] - 0.04), 0.032))
         for e in ends:
-            mb.add_tube([c, e], p.get("wire_r_m", WIRE_R), "Wire", sides=4, cap=False)
+            w0 = F.add_wire_end(mb, wa, e, bax, wire_r, "Steel")
+            mb.add_tube([w0, e], wire_r, "Wire", sides=8, cap=False)
     obj = mb.build("ControlFrame", mats)
     U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
     eye = Vector(cf["_eye"])
@@ -324,7 +441,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     # экраном к глазам: при взгляде вниз (0°, −60°) в кадре штанга только между кулаками
     # (±0,35 м) — угол трапеции и стойки вне кадра при любой высоте на стойке
     xv = -cf["vario_bar_offset_m"]
-    zv = z_bb - (dip if abs(xv) <= w * 0.45 else dip * (w - abs(xv)) / (w * 0.55))
+    zv = bar_z(xv)
     # горизонталь циферблата — вдоль штанги (иначе в кадре сбоку от оси взгляда он «завален»)
     pv = Vector((xv, y_bb, zv))
     to_eye = (eye - pv).normalized()
@@ -353,6 +470,10 @@ def build_wing(key: str, params: dict) -> None:
         "Dark": U.material("Fitting", U.srgb((0.1, 0.1, 0.11)), rough=0.5),
         "Wire": U.material("Wire", U.srgb((0.55, 0.56, 0.6)), rough=0.4, metal=0.8),
         "Wheel": U.material("Wheel", U.srgb((0.12, 0.12, 0.12)), rough=0.9),
+        "Steel": U.material("Steel", U.srgb((0.62, 0.63, 0.66)), rough=0.3, metal=0.9),
+        "Grip": U.material("Grip", U.srgb((0.07, 0.07, 0.075)), rough=0.85),
+        "Webbing": U.material("Webbing", U.srgb(p.get("strap_color", (0.12, 0.16, 0.3))), rough=0.9),
+        "WebbingBackup": U.material("WebbingBackup", U.srgb((0.62, 0.1, 0.07)), rough=0.9),
     }
     build_sail(ws, mats)
     _, tail_y = build_frame(ws, p, cf, mats)

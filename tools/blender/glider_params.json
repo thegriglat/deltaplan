@@ -6,7 +6,21 @@
     "keel_z_m": 0.06,
     "basebar_forward_m": 0.9,
     "basebar_drop_m": 1.55,
-    "vario_bar_offset_m": 0.2
+    "vario_bar_offset_m": 0.2,
+    "upright_top_x_m": 0.055,
+    "upright_top_z_m": -0.02,
+    "upright_top_x_m_doc": "Ось стоек в узле под килем (болт поперёк): стойки снаружи щёк узла на ±x, z — высота оси над подвесом (под килем); = flight.json → visual.arms.upright_top_m",
+    "upright_r_m": 0.016,
+    "basebar_r_m": 0.015,
+    "upright_r_m_doc": "Радиусы круглых труб трапеции: стойки Ø32 мм, базовая штанга Ø30 мм (+2,5 мм резиновая накладка под руками); кулак пилота — внутренний радиус 20,5 мм",
+    "fairing_chord_m": 0.08,
+    "fairing_thick_m": 0.029,
+    "fairing_chord_m_doc": "Обтекатель стоек (faired_uprights): хорда и толщина каплевидного сечения, ось трубы на 0,3 хорды",
+    "speedbar_dip_m": 0.05,
+    "speedbar_flat_half_m": 0.42,
+    "speedbar_dip_m_doc": "Спидбар безмачтовых (faired_uprights): ровная середина |x| ≤ speedbar_flat_half_m ниже концов на speedbar_dip_m, плавные изгибы к углам (хват ±0,33 и вариометр — на ровной части)",
+    "bar_grip_x_m": [0.22, 0.43],
+    "bar_grip_x_m_doc": "Резиновые накладки на базовой штанге под руками, |x| от–до (у крыльев с bar_grips: false — голая труба)"
   },
   "pilot_eye": [0.0, 0.62, -1.2],
   "wings": {
@@ -66,6 +80,7 @@
       "crossbar_u": 0.6,
       "luff_lines": [],
       "basebar_width_m": 1.36,
+      "upright_bend": {"t0": 0.5, "fwd_m": 0.03},
       "faired_uprights": true,
       "wheels": false,
       "tube_color": [0.06, 0.06, 0.07],
@@ -115,6 +130,7 @@
       "tube_color": [0.78, 0.79, 0.81],
       "tube_rough": 0.4,
       "tube_metal": 0.85,
+      "bar_grips": false,
       "faired_uprights": false,
       "design": {
         "base": [0.96, 0.96, 0.94],
@@ -158,6 +174,7 @@
       "tube_color": [0.78, 0.79, 0.81],
       "tube_rough": 0.4,
       "tube_metal": 0.85,
+      "bar_grips": false,
       "faired_uprights": false,
       "design": {
         "base": [0.95, 0.95, 0.93],
@@ -202,6 +219,7 @@
       "tube_color": [0.78, 0.79, 0.81],
       "tube_rough": 0.4,
       "tube_metal": 0.85,
+      "bar_grips": false,
       "faired_uprights": false,
       "design": {
         "base": [0.96, 0.96, 0.94],
@@ -354,6 +372,7 @@
       "crossbar_u": 0.6,
       "luff_lines": [],
       "basebar_width_m": 1.36,
+      "upright_bend": {"t0": 0.5, "fwd_m": 0.03},
       "faired_uprights": true,
       "wheels": false,
       "tube_color": [0.06, 0.06, 0.07],
