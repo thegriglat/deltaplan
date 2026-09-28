@@ -22,6 +22,8 @@ var _t := 0.0
 
 
 func _ready() -> void:
+	# Окно без фокуса ставит игру на паузу — кадры и поддельные состояния идут всё равно.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
 			_out = a.substr(6)
@@ -54,6 +56,7 @@ func _quit(code: int) -> void:
 
 ## Поддельные состояния каждый кадр (как пакеты сети; позу продлевает сам RemotePilots).
 func _process(dt: float) -> void:
+	get_tree().paused = false
 	_t += dt
 	if _rp == null:
 		return
@@ -287,12 +290,6 @@ func _run_perf() -> void:
 				for i in 10:
 					var c := tc + Vector3.UP * i * 12.0
 					_add("p%d" % i, NAMES[i], i, "", _circler(c, 60.0, 12.0, i * 0.63))
-				for k in 5:
-					var tq := Time.get_ticks_usec()
-					await get_tree().process_frame
-					print(
-						"remote_pilots_shot: кадр %.1f мс" % ((Time.get_ticks_usec() - tq) / 1000.0)
-					)
 				await _wait(2.0)
 			var m := await _measure(150)
 			print("remote_pilots_shot: %d пилотов — %s" % [_rp.count(), str(m)])

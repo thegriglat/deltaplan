@@ -85,6 +85,8 @@ var _vis_cfg: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	# В сети пауза мир не останавливает: чужие пилоты летят и при открытом меню.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	Config.reloaded.connect(_on_config_reloaded)
 
 
