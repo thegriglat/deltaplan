@@ -33,7 +33,9 @@ import bl_util as U  # noqa: E402
 import pilot_mpfb as M  # noqa: E402
 
 FPS = 24
-SOLE_T = 0.015          # толщина подошвы ботинка, м (нижняя подошва стоя — 2,0 м ниже карабина)
+SOLE_T = 0.02           # толщина подошвы ботинка, м (нижняя подошва стоя — 2,0 м ниже карабина)
+FOOT_Z = 0.015          # низ стопы MPFB над землёй, м (внутри подошвы; задаёт скелет и позы)
+BOOT_TOP = 0.15         # верх голенища ботинка над землёй, м (ниже него стопы MPFB удаляются)
 POD_LEN = 0.65          # кокон стоя (висит за ногами)
 POD_ON = 1.45           # кокон лёжа (надет на ноги)
 HEAD_PRONE = 20         # наклон головы лёжа, °: пустышки Head/CockpitCamera заданы так,
@@ -360,11 +362,11 @@ def mpfb_body():
             if names.get(g.group) in bones and g.weight > 1e-4} for v in me.vertices]
     for ob in (h, rig):
         bpy.data.objects.remove(ob)
-    # MPFB лицом к −Y → к +Y; таз на y = 0,2, низ стоп — на SOLE_T выше −2,0 (подошва ботинка)
+    # MPFB лицом к −Y → к +Y; таз на y = 0,2, низ стоп — на FOOT_Z выше −2,0 (в подошве ботинка)
     zmin = min(v.co.z for v in me.vertices)
     rz = Matrix.Rotation(math.pi, 4, "Z")
     p = rz @ joints["pelvis"]
-    mt = Matrix.Translation((-p.x, 0.2 - p.y, -2.0 + SOLE_T - zmin)) @ rz
+    mt = Matrix.Translation((-p.x, 0.2 - p.y, -2.0 + FOOT_Z - zmin)) @ rz
     me.transform(mt)
     for k in joints:
         joints[k] = mt @ joints[k]
@@ -380,36 +382,6 @@ def mpfb_body():
     ob = bpy.data.objects.new("PilotBodySrc", me)
     bpy.context.scene.collection.objects.link(ob)
     return ob, wts, joints, axes, hand
-
-
-def smooth_feet(ob, wts) -> None:
-    """Ботинки: носок — гладкий эллипсоид вместо пальцев ног, стопа сглажена."""
-    bm = bmesh.new()
-    bm.from_mesh(ob.data)
-    bm.verts.ensure_lookup_table()
-    feet = [v for v in bm.verts if region(max(wts[v.index], key=wts[v.index].get,
-                                                default="pelvis")) == "Boot"]
-    for side in (-1, 1):
-        toes = [(v, sum(w for k, w in wts[v.index].items() if k.startswith("ball")))
-                for v in feet if v.co.x * side > 0]
-        toes = [(v, wb) for v, wb in toes if wb > 0.05]
-        lo = Vector([min(v.co[i] for v, _ in toes) for i in range(3)])
-        hi = Vector([max(v.co[i] for v, _ in toes) for i in range(3)])
-        c = (lo + hi) / 2
-        c.z = lo.z + (hi.z - lo.z) * 0.35
-        r = Vector(((hi.x - lo.x) / 2 + 0.004, (hi.y - lo.y) / 2 + 0.004, hi.z - c.z + 0.004))
-        for v, wb in toes:
-            d = v.co - c
-            k = math.sqrt((d.x / r.x) ** 2 + (d.y / r.y) ** 2 + (d.z / r.z) ** 2) or 1.0
-            proj = c + d / k
-            if proj.z < v.co.z - 0.002 and d.z < 0:   # подошва остаётся плоской
-                proj.z = v.co.z
-            v.co = v.co.lerp(proj, min(1.0, wb * 1.6))
-    for _ in range(4):
-        bmesh.ops.smooth_vert(bm, verts=feet, factor=0.5, use_axis_x=True, use_axis_y=True,
-                              use_axis_z=True)
-    bm.to_mesh(ob.data)
-    bm.free()
 
 
 def fit_dims(j: dict, pts: list, reg: list, hand: float) -> tuple:
@@ -632,16 +604,105 @@ def harness(rest: dict, pts: list, reg: list, parts: list, wts: list, waist_z: f
     m = part("Strap")
     m.add_tube([a, a + d * ln], 0.012, "Strap", sides=6, ellipse=(2.0, 0.6))
     m.add_ellipsoid(a, (0.012, 0.03, 0.04), "Visor", 8, 5)
-    # подошвы ботинок
-    for s in ("L", "R"):
-        m = part("Foot." + s)
-        side = -1 if s == "L" else 1
-        ft = [p for p, r in zip(pts, reg) if r == "Boot" and p.x * side > 0
-              and p.z < -2.0 + SOLE_T + 0.03]
-        lo = Vector((min(p.x for p in ft), min(p.y for p in ft), 0))
-        hi = Vector((max(p.x for p in ft), max(p.y for p in ft), 0))
-        m.add_box(Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, -2.0 + SOLE_T / 2 + 0.002)),
-                  (hi.x - lo.x + 0.012, hi.y - lo.y + 0.016, SOLE_T + 0.004), "Sole")
+
+
+# ------------------------------------------------------------------ ботинки
+
+def _hull(pts2: list) -> list:
+    """Выпуклая оболочка точек (x, y), против часовой стрелки."""
+    pts2 = sorted(set(pts2))
+
+    def half(seq):
+        out = []
+        for q in seq:
+            while len(out) > 1 and ((out[-1][0] - out[-2][0]) * (q[1] - out[-2][1])
+                                    - (out[-1][1] - out[-2][1]) * (q[0] - out[-2][0])) <= 0:
+                out.pop()
+            out.append(q)
+        return out[:-1]
+    return half(pts2) + half(reversed(pts2))
+
+
+def _contour(hull: list, margin: float, n: int) -> list:
+    """Оболочка, раздутая на margin, → n точек поровну по длине, с пятки (−Y), против ч. с."""
+    k = len(hull)
+    dense = []
+    for i in range(k):
+        a, b = Vector(hull[i]), Vector(hull[(i + 1) % k])
+        m = max(1, int((b - a).length / 0.004))
+        dense += [a.lerp(b, t / m) for t in range(m)]
+    k = len(dense)
+    out = []
+    for i in range(k):
+        t = dense[(i + 1) % k] - dense[i - 1]
+        out.append(dense[i] + Vector((t.y, -t.x)).normalized() * margin)
+    c = sum(out, Vector((0, 0))) / k
+    i0 = min(range(k), key=lambda i: (out[i] - c).normalized().dot(Vector((0, 1))))
+    out = out[i0:] + out[:i0] + [out[i0]]
+    cum = [0.0]
+    for i in range(1, len(out)):
+        cum.append(cum[-1] + (out[i] - out[i - 1]).length)
+    res, j = [], 0
+    for q in range(n):
+        d = cum[-1] * q / n
+        while cum[j + 1] < d:
+            j += 1
+        t = (d - cum[j]) / ((cum[j + 1] - cum[j]) or 1.0)
+        res.append(out[j].lerp(out[j + 1], t))
+    return res
+
+
+def boots(pts: list, rest: dict) -> list:
+    """Ботинки: голенище-оболочка вокруг стопы MPFB по контурам на высотах (носок закрыт, пальцев
+    нет) и резиновая подошва по контуру стопы (шире верха на 5 мм). Стопа MPFB ниже верха голенища
+    удаляется (delete_feet). → [(кость, MeshBuilder, веса вершин)]."""
+    g0 = -2.0
+    n = 14
+    # (высота кольца над землёй, полоса точек стопы для контура, запас)
+    rings = [(SOLE_T, (FOOT_Z, 0.045), 0.009), (SOLE_T + 0.008, (FOOT_Z, 0.045), 0.004),
+             (0.045, (0.035, 0.065), 0.005), (0.07, (0.06, 0.1), 0.005),
+             (0.105, (0.09, 0.13), 0.006), (BOOT_TOP, (BOOT_TOP - 0.02, BOOT_TOP + 0.02), 0.006),
+             (BOOT_TOP - 0.012, (BOOT_TOP - 0.02, BOOT_TOP + 0.02), 0.0)]
+    out = []
+    for s, side in (("L", -1), ("R", 1)):
+        ankle = rest["Foot." + s][0].z
+        mb = U.MeshBuilder()
+        wts = []
+        cont = []
+        for h, (b0, b1), mg in rings:
+            band = [(p.x, p.y) for p in pts if p.x * side > 0 and g0 + b0 <= p.z <= g0 + b1]
+            cont.append([Vector((q.x, q.y, g0 + h)) for q in _contour(_hull(band), mg, n)])
+        # подошва: борт (низ на 2 мм уже — скруглённое ребро) и низ; верх подошвы = первое кольцо
+        c0 = sum(cont[0], Vector()) / n
+        low = [Vector((q.x, q.y, g0)) - (q - c0).normalized() * 0.002 for q in cont[0]]
+        mb.add_grid([low, cont[0]], "Sole", wrap=True, flip=True)
+        wts += [{"Foot." + s: 1.0}] * (2 * n)
+        base = len(mb.verts)
+        for q in low:
+            mb.add_vert(q)
+        wts += [{"Foot." + s: 1.0}] * n
+        mb.add_face([base + k for k in reversed(range(n))], "Sole", smooth=False)
+        # верх: кольца от ранта до верха голенища и внутренний край
+        mb.add_grid(cont, "Boot", wrap=True, flip=True)
+        for r in cont:
+            for q in r:
+                t = min(max((q.z - ankle) / 0.05, 0.0), 1.0) * 0.85
+                wts.append({"Foot." + s: 1.0 - t, "Shin." + s: t} if t > 0 else
+                           {"Foot." + s: 1.0})
+        out.append(("Foot." + s, mb, wts))
+    return out
+
+
+def delete_feet(ob) -> None:
+    """Удалить стопы MPFB внутри ботинок (грани целиком ниже верха голенища − 2,5 см)."""
+    zc = -2.0 + BOOT_TOP - 0.025
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    dead = [f for f in bm.faces if all(v.co.z < zc for v in f.verts)]
+    bmesh.ops.delete(bm, geom=dead, context="FACES")
+    bm.to_mesh(ob.data)
+    bm.free()
+    print(f"BOOTS: удалено {len(dead)} граней стоп MPFB")
 
 
 def helmet(rest: dict, pts: list, reg: list, mb: U.MeshBuilder) -> None:
@@ -683,10 +744,24 @@ def helmet(rest: dict, pts: list, reg: list, mb: U.MeshBuilder) -> None:
     rv = rad * 1.0
     rv.y = rad.y * max(kv, 1.0) + 0.008
     rv.x = rad.x * max(kv, 1.0) * 1.03
-    t0, t1 = theta(rv, eye.z + 0.036), theta(rv, eye.z - 0.05)
-    grid = [[on(rv, t0 + (t1 - t0) * i / 3, -face - 0.25 + (2 * face + 0.5) * j / 10)
-             for j in range(11)] for i in range(4)]
+    # изогнутый щиток по сфере шлема: сверху заходит на край шлема, по центру ниже носа, к бокам
+    # сужается к шарнирам (кнопки на висках)
+    t0, t1 = theta(rv, eye.z + 0.05), theta(rv, eye.z - 0.068)
+    ph_max = face + 0.38
+    nr, nc = 4, 14
+    grid = []
+    for i in range(nr + 1):
+        row = []
+        for j in range(nc + 1):
+            ph = -ph_max + 2 * ph_max * j / nc
+            tb = t0 + (t1 - t0) * (0.42 + 0.58 * math.cos(abs(ph) / ph_max * math.pi / 2) ** 0.8)
+            row.append(on(rv, t0 + (tb - t0) * i / nr, ph))
+        grid.append(row)
     shell(mb, grid, lambda i, j: True, c, "Visor", wrap=False)
+    tm = t0 + (t1 - t0) * 0.21
+    for sd in (-1, 1):
+        mb.add_ellipsoid(c + (on(rv * 1.02, tm, sd * ph_max) - c), (0.006, 0.013, 0.013),
+                         "Strap", 6, 4)
 
 
 def shell(mb: U.MeshBuilder, grid: list, keep, c: Vector, mat: str, wrap: bool) -> None:
@@ -843,18 +918,23 @@ def join(objs: list, name: str):
 
 
 def build_parts(parts: list, name: str, mats: dict):
-    """[(кость, MeshBuilder)] → объект с группами вершин по костям."""
+    """[(кость, MeshBuilder[, веса вершин])] → объект с группами вершин по костям."""
     mb = U.MeshBuilder()
     groups = {}
-    for bone, p in parts:
+    for bone, p, *vw in parts:
         base = len(mb.verts)
         mb.verts += p.verts
         for f, uv, mat, sm in zip(p.faces, p.uvs, p.mats, p.smooth):
             mb.add_face([i + base for i in f], p.mat_names[mat], uv, sm)
-        groups.setdefault(bone, []).extend(range(base, len(mb.verts)))
+        wl = vw[0] if vw else [{bone: 1.0}] * len(p.verts)
+        for i, wd in enumerate(wl):
+            for b, w in wd.items():
+                groups.setdefault(b, []).append((base + i, w))
     ob = mb.build(name, mats)
-    for bone, idx in groups.items():
-        ob.vertex_groups.new(name=bone).add(idx, 1.0, "REPLACE")
+    for bone, lst in groups.items():
+        vg = ob.vertex_groups.new(name=bone)
+        for i, w in lst:
+            vg.add([i], w, "REPLACE")
     return ob
 
 
@@ -879,10 +959,10 @@ def main() -> None:
         "Stripe": U.material("PodStripe", U.srgb((0.95, 0.55, 0.05)), rough=0.6),
         "Jacket": U.material("Jacket", U.srgb((0.22, 0.24, 0.27)), rough=0.8),
         "Trousers": U.material("Trousers", U.srgb((0.16, 0.16, 0.17)), rough=0.85),
-        "Boot": U.material("Boot", U.srgb((0.3, 0.2, 0.12)), rough=0.7),
-        "Sole": U.material("Sole", U.srgb((0.08, 0.08, 0.08)), rough=0.9),
+        "Boot": U.material("Boot", U.srgb((0.11, 0.07, 0.045)), rough=0.55),
+        "Sole": U.material("Sole", U.srgb((0.03, 0.03, 0.03)), rough=0.9),
         "Helmet": U.material("Helmet", U.srgb((0.92, 0.92, 0.9)), rough=0.3),
-        "Visor": U.material("Visor", U.srgb((0.05, 0.05, 0.07)), rough=0.1, metal=0.3),
+        "Visor": U.material("Visor", U.srgb((0.45, 0.48, 0.54)), rough=0.07, metal=0.85),
         "Skin": U.material("Skin", U.srgb((0.85, 0.65, 0.52)), rough=0.6),
         "Glove": U.material("Glove", U.srgb((0.035, 0.035, 0.038)), rough=0.42),
         "GlovePanel": U.material("GlovePanel", U.srgb((0.2, 0.2, 0.21)), rough=0.6),
@@ -890,7 +970,6 @@ def main() -> None:
     }
     # тело MPFB
     src, wts, joints, axes, hand = mpfb_body()
-    smooth_feet(src, wts)
     pts = [v.co.copy() for v in src.data.vertices]
     reg = [vregion(w) for w in wts]
     REST_HIPS = joints["pelvis"].copy()
@@ -934,6 +1013,7 @@ def main() -> None:
     waist_z = rest["Chest"][0].z - 0.03
     parts = split_parts(src, wts, {"mats": mats, "bones": list(rest), "waist_z": waist_z,
                                    "knee_z": rest["Shin.L"][0].z + 0.05})
+    delete_feet(parts["body"])
     for nm, tgt in (("body", TRIS_BODY), ("hands", TRIS_HANDS), ("head", TRIS_HEAD)):
         before = tris(parts[nm])
         decimate(parts[nm], tgt)
@@ -943,6 +1023,7 @@ def main() -> None:
     cap_neck(parts["body"], rest["Head"][0], collar)
     extra.append(("Chest", collar))
     harness(rest, pts, reg, extra, wts, waist_z)
+    extra += boots(pts, rest)
     for s, side in (("L", -1), ("R", 1)):
         mb = U.MeshBuilder()
         cuff(mb, rest["Hand." + s], side, arm_pts[s], hand_pts[s])
