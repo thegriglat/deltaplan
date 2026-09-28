@@ -20,6 +20,7 @@ var _side := "R"
 var _fov := 50.0
 var _own_eye := false
 var _wind := Vector2(-1, 0)
+var _fwd_pitch := NAN  ## --forward=<тангаж °>: из глаз пилота прямо вперёд, а не на ленточку
 
 
 func _ready() -> void:
@@ -38,6 +39,8 @@ func _ready() -> void:
 			"--set-wind":
 				var w := v.split(",")
 				_wind = Vector2(float(w[0]), float(w[1]))
+			"--forward":
+				_fwd_pitch = float(v)
 			"--eye":
 				_own_eye = true
 				var p := v.split(",")
@@ -64,6 +67,20 @@ func _run() -> void:
 	if tt == null:
 		print("telltale_shot: FAIL нет ленточки")
 		_done(1)
+		return
+	if not is_nan(_fwd_pitch):
+		var gc := get_viewport().get_camera_3d()
+		var fc := Camera3D.new()
+		game.glider.add_child(fc)
+		SkyEnvironment.setup_camera(fc)
+		fc.fov = _fov
+		fc.near = 0.02
+		fc.global_position = gc.global_position
+		fc.rotation = Vector3(deg_to_rad(_fwd_pitch), 0, 0)
+		fc.current = true
+		for i in 40:
+			await RenderingServer.frame_post_draw
+		_save()
 		return
 	if not _own_eye:
 		for i in 40:

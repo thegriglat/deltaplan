@@ -95,8 +95,12 @@ static func find_anchor(wing: Node3D, sd: int, cfg: Dictionary) -> Dictionary:
 	var d := far - corner
 	if d.length() < 0.3:
 		return {}
+	var wire_len := d.length()
 	d = d.normalized()
-	return {"point": corner + d * float(cfg.get("along_wire_m", 0.35)), "wire_dir": d}
+	# Узел от верхнего конца троса (у носа), если задан; иначе — от угла трапеции.
+	var from_top := float(cfg.get("from_top_m", -1.0))
+	var along := wire_len - from_top if from_top >= 0.0 else float(cfg.get("along_wire_m", 0.35))
+	return {"point": corner + d * along, "wire_dir": d}
 
 
 static func _rel(root: Node, node: Node3D) -> Transform3D:
