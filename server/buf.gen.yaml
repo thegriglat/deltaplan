@@ -1,0 +1,6 @@
+# Генерация Go-кода из proto/ в gen/ (запуск — ./gen.sh).
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: gen
+    opt: paths=source_relative
