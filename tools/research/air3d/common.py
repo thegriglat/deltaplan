@@ -195,8 +195,10 @@ def key_numbers(A, fields=None):
 def save_fields(A, path, fp16=True):
     u, v, w, th = A.centers()
     dt = np.float16 if fp16 else np.float32
+    p = A.p.get()[1:-1, 1:-1, 1:-1] * A.fluid_np[1:-1, 1:-1, 1:-1]
     np.savez_compressed(path, u=np.nan_to_num(u).astype(dt), v=np.nan_to_num(v).astype(dt),
-                        w=np.nan_to_num(w).astype(dt), th=np.nan_to_num(th).astype(dt), hc=A.hc.astype(np.float32),
+                        w=np.nan_to_num(w).astype(dt), th=np.nan_to_num(th).astype(dt), p=p.astype(dt),
+                        hc=A.hc.astype(np.float32),
                         meta=json.dumps(dict(dx=A.g.dx, dz=A.g.dz, x0=A.g.x0, y0=A.g.y0, z_bot=A.g.z_bot,
                                              nx=A.g.nx, ny=A.g.ny, nz=A.g.nz, cond=A.cond.__dict__)))
 

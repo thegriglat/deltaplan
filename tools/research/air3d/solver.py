@@ -486,6 +486,9 @@ class Air3D:
         else:
             side = np.zeros((NY, NX))
             sc = np.zeros((NY, NX))
+        if nest is not None:
+            spz = spz * 0            # окно: потолок задан родителем, губки нет
+            spz_w = spz_w * 0
         sp_c = np.maximum(spz[:, None, None], side[None])
         sp_w = np.maximum(spz_w[:, None, None], side[None])
         spc = np.maximum(spz[:, None, None], sc[None])
