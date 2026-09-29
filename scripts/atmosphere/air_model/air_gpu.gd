@@ -98,15 +98,44 @@ func release() -> void:
 	rd = null
 
 
+## Отметка буферов: free_from(mark()) освобождает буферы, созданные после отметки, не трогая RD,
+## ядра и конвейеры (задачи подряд на одном устройстве — окна клипмапа AM-04: ядра собираются
+## один раз). Наборы привязок, ставшие недействительными, убираются из кэша.
+func mark() -> int:
+	return _owned.size()
+
+
+func free_from(m: int) -> void:
+	if rd == null:
+		return
+	_close_list()
+	var freed := {}
+	for q in range(_owned.size() - 1, m - 1, -1):
+		freed[_owned[q]] = true
+		rd.free_rid(_owned[q])
+	_owned.resize(mini(m, _owned.size()))
+	for key: String in _sets.keys():
+		if not rd.uniform_set_is_valid(_sets[key]):
+			_sets.erase(key)
+	for key: String in _scratch.keys():
+		if freed.has(_scratch[key]):
+			_scratch.erase(key)
+
+
 # ---------------------------------------------------------------- буферы
 
 
 ## Буфер из n float32 (данные — по желанию; без данных — нули).
 func buffer(n: int, data := PackedFloat32Array()) -> RID:
-	var bytes := data.to_byte_array() if data.size() == n else PackedByteArray()
-	if bytes.is_empty():
-		bytes.resize(n * 4)
-	var b := rd.storage_buffer_create(n * 4, bytes)
+	var b: RID
+	if data.size() == n and n > 0:
+		b = rd.storage_buffer_create(n * 4, data.to_byte_array())
+	else:
+		# нули — заливкой на GPU (без массива нулей на CPU: окна клипмапа заводят ~40 буферов
+		# по 1–2 МБ, с массивом — 30–50 мс главного потока)
+		b = rd.storage_buffer_create(n * 4)
+		_close_list()
+		rd.buffer_clear(b, 0, n * 4)
 	_owned.append(b)
 	return b
 

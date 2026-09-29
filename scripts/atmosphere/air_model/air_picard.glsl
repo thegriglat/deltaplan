@@ -38,6 +38,9 @@ layout(set = 0, binding = 0, std430) readonly buffer BPrm { float prm[]; };
 const int P_DX = 0, P_DZ = 1, P_IDTU = 2, P_CD = 3, P_ZBOT = 4, P_RELAX = 5, P_CSDX2 = 6;
 const int P_IDTTH = 7, P_ITAU = 8, P_UAX = 9, P_UAY = 10, P_Z0 = 11, P_ZSAT = 12, P_ALPHA = 13;
 const int P_USTAR = 14, P_KFA = 15, P_FSC = 16, P_WINDY = 17, P_KAPPA = 18;
+// 1 — окно клипмапа (AM-04): фон и граница ветра на гранях — от родителя (air_window.glsl:nest),
+// setup их не пишет.
+const int P_NEST = 19;
 // Столбцы (NY·NX на плоскость, с ореолом) и уровни (NZ на плоскость) — AirCase.
 const int C_HP = 0, C_KF = 1, C_HBL = 2, C_WST = 3, C_INVL = 4, C_UNST = 5, C_SIDE = 6;
 const int C_SCS = 7, C_QV = 8, C_QK0 = 9, C_QK1 = 10, C_LAM = 11;
@@ -68,8 +71,8 @@ void dims() {
 layout(set = 0, binding = 1, std430) readonly buffer BCol { float col[]; };
 layout(set = 0, binding = 2, std430) readonly buffer BLev { float lev[]; };
 layout(set = 0, binding = 3, std430) writeonly buffer BT { float tcode[]; };
-layout(set = 0, binding = 4, std430) writeonly buffer BUb { float ubu[]; };
-layout(set = 0, binding = 5, std430) writeonly buffer BVb { float ubv[]; };
+layout(set = 0, binding = 4, std430) buffer BUb { float ubu[]; };
+layout(set = 0, binding = 5, std430) buffer BVb { float ubv[]; };
 layout(set = 0, binding = 6, std430) writeonly buffer BSu { float spu[]; };
 layout(set = 0, binding = 7, std430) writeonly buffer BSw { float spw[]; };
 layout(set = 0, binding = 8, std430) writeonly buffer BSc { float spc[]; };
@@ -127,8 +130,10 @@ void main() {
 		float ub = tu != 0 ? prm[P_UAX] * prof(zc - hu) : 0.0;
 		float vb = tv != 0 ? prm[P_UAY] * prof(zc - hv) : 0.0;
 		float s = c == 1 ? -1.0 : 1.0;  // внешняя нормаль грани типа 2 (клетка c1 = эта)
-		ubu[t] = tu == 2 ? fixed_face(ub, s) : ub;
-		ubv[t] = tv == 2 ? fixed_face(vb, s) : vb;
+		if (prm[P_NEST] == 0.0) {
+			ubu[t] = tu == 2 ? fixed_face(ub, s) : ub;
+			ubv[t] = tv == 2 ? fixed_face(vb, s) : vb;
+		}
 		float spz = lev[L_SPZ * NZ + k];
 		float spzw = lev[L_SPZW * NZ + k];
 		spu[t] = max(spz, side);

@@ -76,6 +76,7 @@ var _t0 := 0
 var _dims := Vector3i.ZERO
 var _n := 0
 var _ni := 0
+var _cache := {}
 
 
 func _shaders() -> Array:
@@ -125,6 +126,10 @@ func _setup() -> bool:
 		"wmech"
 	]:
 		buf[nm] = gpu.buffer(n)
+	# решение без нагрева целиком (родитель окна без нагрева — AM-04, state(true))
+	if _cases.size() > 1:
+		for nm in ["um", "vm", "thm", "pm"]:
+			buf[nm] = gpu.buffer(n)
 	# шаблоны строкой на точку (C0..C6, b); шаблон тепла — в Cu
 	for nm in ["Cu", "Cv", "Cw"]:
 		buf[nm] = gpu.buffer(8 * n)
@@ -440,6 +445,10 @@ func _rec_reinit() -> void:
 
 func _rec_copy_wmech() -> void:
 	gpu.vec(AirGpu.Vec.COPY, buf.w, buf.wmech, _n)
+	gpu.vec(AirGpu.Vec.COPY, buf.u, buf.um, _n)
+	gpu.vec(AirGpu.Vec.COPY, buf.v, buf.vm, _n)
+	gpu.vec(AirGpu.Vec.COPY, buf.th, buf.thm, _n)
+	gpu.vec(AirGpu.Vec.COPY, buf.p, buf.pm, _n)
 
 
 func _program(key: String) -> Array:
@@ -587,12 +596,56 @@ func download(name: String) -> PackedFloat32Array:
 	return gpu.download(buf[name])
 
 
-## Состояние для тёплого старта: {u, v, w, th, p}.
-func state() -> Dictionary:
+## Буфер решения с GPU; после готовности — один раз (state, parent_data, поле читают одно и то
+## же — окна клипмапа берут всё сразу).
+func _read(name: String) -> PackedFloat32Array:
+	if not is_done():
+		return gpu.download(buf[name])
+	if not _cache.has(name):
+		_cache[name] = gpu.download(buf[name])
+	return _cache[name]
+
+
+## Состояние для тёплого старта: {u, v, w, th, p}; mech — решения без нагрева (при паре; иначе
+## то же, что с нагревом).
+func state(mech_state := false) -> Dictionary:
 	var out := {}
-	for nm in ["u", "v", "w", "th", "p"]:
-		out[nm] = gpu.download(buf[nm])
+	var names := ["u", "v", "w", "th", "p"]
+	if mech_state and _cases.size() > 1:
+		names = ["um", "vm", "wmech", "thm", "pm"]
+	for q in names.size():
+		out[["u", "v", "w", "th", "p"][q]] = _read(names[q])
 	return out
+
+
+## Поле уровня как родитель окна клипмапа (AM-04, AirWindowJob.parent): сетка, типы клеток и
+## граней, решения с нагревом и без — грани u, v, w и θ′ с ореолом (N). Читается с GPU на
+## вызывающем потоке (главный, после is_done()).
+func parent_data() -> Dictionary:
+	var heat := state(false)
+	var mech := state(true) if _cases.size() > 1 else heat
+	heat.erase("p")
+	mech.erase("p")
+	return {
+		grid = grid(),
+		tc = _read("tcode"),
+		heat = heat,
+		mech = mech,
+	}
+
+
+## Сетка решения: dx, dz, x0, y0, z_bot, nx, ny, nz.
+func grid() -> Dictionary:
+	return {
+		dx = case.dx,
+		dz = case.dz,
+		x0 = case.x0,
+		y0 = case.y0,
+		z_bot = case.z_bot,
+		nx = case.nx,
+		ny = case.ny,
+		nz = case.nz,
+	}
 
 
 ## Поле для игры (WindField): u, v, θ′ — решение с нагревом, w_mech — без нагрева (если mech);
@@ -634,15 +687,15 @@ func _field_task(inp: Dictionary, max_speed: float, max_w: float) -> void:
 
 
 func _field_inputs() -> Dictionary:
-	var w := gpu.download(buf.w)
+	var w := _read("w")
 	return {
 		meta = case.meta(),
-		u = gpu.download(buf.u),
-		v = gpu.download(buf.v),
+		u = _read("u"),
+		v = _read("v"),
 		w = w,
-		wm = gpu.download(buf.wmech) if _cases.size() > 1 else w.duplicate(),
-		th = gpu.download(buf.th),
-		tc = gpu.download(buf.tcode),
+		wm = _read("wmech") if _cases.size() > 1 else w.duplicate(),
+		th = _read("th"),
+		tc = _read("tcode"),
 		hc = case.hc,
 	}
 
