@@ -76,7 +76,7 @@ func _ready() -> void:
 	if extra_out != "":
 		DirAccess.make_dir_recursive_absolute(extra_out)
 		var prefix := String(_args.get("extra_prefix", "03"))
-		var suffixes := ["_gorizont_20m", "_vertikal_vdol_vetra", "_gorizont_200m"]
+		var suffixes := ["_gorizont_20m", "_gorizont_200m", "_vertikal_vdol_vetra"]
 		var n := int(prefix)
 		for i in paths.size():
 			var img := Image.load_from_file(paths[i])
