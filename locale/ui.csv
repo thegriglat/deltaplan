@@ -5,7 +5,7 @@ result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_crosswind,Боковой ветер завалил крыло,A crosswind dropped the wing
 result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
-setup_wind_into_launch,В лоб старту,Straight into the launch
+setup_wind_into_launch,Встречный на старте,Headwind at launch
 pause_to_menu,В меню,Main menu
 result_to_menu,В главное меню,Main menu
 setup_wind,Ветер,Wind
@@ -282,7 +282,7 @@ setup_temperature_typical,Обычно днём в этом месяце: %+d °
 setup_wind_speed_value,%d м/с (%d км/ч),%d m/s (%d km/h)
 setup_wind_calm,штиль,calm
 setup_wind_from,Откуда ветер,Wind from
-setup_wind_launch_faces,в лоб этому старту — %s,into this launch: %s
+setup_wind_launch_faces,встречный для этого старта — %s,headwind for this launch: %s
 setup_sky,Облачность,Cloud cover
 setup_sky_clear,Ясно,Clear
 setup_sky_partly,Переменная,Partly cloudy

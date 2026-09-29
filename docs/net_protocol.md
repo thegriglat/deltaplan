@@ -118,7 +118,7 @@
 ```
 
 #### CreateZone
-Точка с карты не задана (`pickLat`/`pickLon` отсутствуют), ветер в лоб старту.
+Точка с карты не задана (`pickLat`/`pickLon` отсутствуют), встречный ветер на старте.
 ```json
 {"createZone": {"zone": {"locationId": "altai", "siteId": "sinyukha_west", "month": 7, "day": 15, "startHour": 13.5, "forecast": {"temperatureC": 26, "windSpeedKmh": 10.8, "windIntoLaunch": true, "windFromDeg": 270, "sky": "partly"}, "seed": 918273, "botsCount": 4, "worldKey": "deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.50&lat=50.75120&lon=86.12030&seed=918273&sky=partly&temp=26.0&v=1&wind=3.0", "worldHash": "d46cfb35a9877d20"}}}
 ```
