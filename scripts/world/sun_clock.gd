@@ -128,6 +128,33 @@ static func clamp_hour(h: float) -> float:
 	return clampf(h, float(t.get("min_hour", 6.0)), float(t.get("max_hour", 20.0)))
 
 
+## Фиксированные часы старта (world.json → time.start_hours; AM-06 — старт только в них,
+## дальше время идёт само). Пустой список в конфиге — запасной [9, 12, 15, 20].
+static func start_hours() -> PackedFloat32Array:
+	var t: Dictionary = Config.get_config("world").get("time", {})
+	var arr: Array = t.get("start_hours", [9.0, 12.0, 15.0, 20.0])
+	var out := PackedFloat32Array()
+	for h in arr:
+		out.append(float(h))
+	if out.is_empty():
+		out.append(clamp_hour(12.0))
+	return out
+
+
+## Ближайший час старта из start_hours() к h (сохранённая настройка не из списка — не мигрируем,
+## просто берём ближайший).
+static func nearest_start_hour(h: float) -> float:
+	var hours := start_hours()
+	var best := hours[0]
+	var best_d := absf(h - best)
+	for x in hours:
+		var d := absf(h - x)
+		if d < best_d:
+			best_d = d
+			best = x
+	return best
+
+
 static func days_in_month(m: int) -> int:
 	return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][clampi(m, 1, 12) - 1]
 

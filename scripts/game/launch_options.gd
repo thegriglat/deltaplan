@@ -13,7 +13,8 @@ extends RefCounted
 ##   --wind=<м/с>          прогноз: ветер у земли
 ##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — в лоб старту
 ##   --sky=clear|partly|overcast  прогноз: облачность
-##   --hour=<ч>            время старта по часам места (7.5 = 7:30), для кадров утро/вечер
+##   --hour=<ч>            час старта (AM-06: ближайший из world.json → time.start_hours,
+##                         по умолчанию 9/12/15/20 — не произвольное время)
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
 ##   --glance              держать клавишу «взгляд на прибор»
@@ -198,7 +199,7 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		if not r.wind_into_launch:
 			r.wind_from_deg = fposmod(float(fv), 360.0)
 	if overrides.has("hour"):
-		r.start_hour = float(overrides.hour)
+		r.start_hour = SunClock.nearest_start_hour(float(overrides.hour))
 	if overrides.has("latlon"):
 		var p := String(overrides.latlon).split(",")
 		if p.size() == 2:
