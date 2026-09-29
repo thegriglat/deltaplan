@@ -100,6 +100,8 @@ var h_bl := PackedFloat64Array()
 var _wst := PackedFloat64Array()
 var _invl := PackedFloat64Array()
 var _unst: Array[bool] = []
+## Сглаженный рельеф (гаусс k_smooth_m) — общий у случая с нагревом и без (without_heat).
+var _hs := PackedFloat64Array()
 
 
 func set_grid(
@@ -166,6 +168,7 @@ func without_heat() -> AirCase:
 	c.u10 = u10
 	c.wdir = wdir
 	c.taper = taper
+	c._hs = _hs
 	c.label = label + " без нагрева"
 	return c
 
@@ -391,7 +394,9 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	var hs_heat := gauss2d(hk, nx, ny, sig) if any_heat else PackedFloat64Array()
 	if not any_heat:
 		hs_heat.resize(n)
-	var hs := gauss2d(hc, nx, ny, sig)
+	if _hs.size() != n:
+		_hs = gauss2d(hc, nx, ny, sig)
+	var hs := _hs
 	var h_mech := 0.3 * ustar / float(p.f_cor)
 	h_bl = PackedFloat64Array()
 	h_bl.resize(n)
@@ -463,6 +468,8 @@ static func _ramp(d: float, side_len: float, rate: float) -> float:
 
 
 ## Гауссово сглаживание (σ в клетках), края — отражение (как air.gauss2d / numpy «reflect»).
+## Свёртка с отражением по оси — умножение на матрицу n × n (веса ядра, сложенные по отражённым
+## индексам): при ядре длиннее оси (окна клипмапа: σ 15–30 клеток на 64) — n отводов вместо 2r + 1.
 static func gauss2d(a: PackedFloat64Array, w: int, h: int, sigma: float) -> PackedFloat64Array:
 	if sigma <= 0.3:
 		return a.duplicate()
@@ -476,22 +483,46 @@ static func gauss2d(a: PackedFloat64Array, w: int, h: int, sigma: float) -> Pack
 	for q in ker.size():
 		ker[q] /= ks
 	# по строкам (ось 1 = i), затем по столбцам (ось 0 = j)
-	var tmp := PackedFloat64Array()
-	tmp.resize(w * h)
-	for j in h:
-		for i in w:
-			var s := 0.0
-			for q in range(-r, r + 1):
-				s += ker[q + r] * a[j * w + _reflect(i + q, w)]
-			tmp[j * w + i] = s
+	var tmp := _conv_axis(a, w, h, ker, r, true)
+	return _conv_axis(tmp, w, h, ker, r, false)
+
+
+## Свёртка по оси (rows — вдоль i) с отражением: отводы, сложенные по отражённому индексу.
+static func _conv_axis(
+	a: PackedFloat64Array, w: int, h: int, ker: PackedFloat64Array, r: int, rows: bool
+) -> PackedFloat64Array:
+	var n := w if rows else h
+	var m := h if rows else w
+	var step := 1 if rows else w
+	var lane := w if rows else 1
+	# для каждого выходного индекса — список (источник, вес)
+	var src: Array[PackedInt32Array] = []
+	var wts: Array[PackedFloat64Array] = []
+	var acc := PackedFloat64Array()
+	acc.resize(n)
+	for i in n:
+		acc.fill(0.0)
+		for q in range(-r, r + 1):
+			acc[_reflect(i + q, n)] += ker[q + r]
+		var si := PackedInt32Array()
+		var wi := PackedFloat64Array()
+		for s in n:
+			if acc[s] != 0.0:
+				si.append(s)
+				wi.append(acc[s])
+		src.append(si)
+		wts.append(wi)
 	var out := PackedFloat64Array()
 	out.resize(w * h)
-	for j in h:
-		for i in w:
+	for l in m:
+		var base := l * lane
+		for i in n:
+			var si := src[i]
+			var wi := wts[i]
 			var s := 0.0
-			for q in range(-r, r + 1):
-				s += ker[q + r] * tmp[_reflect(j + q, h) * w + i]
-			out[j * w + i] = s
+			for t in si.size():
+				s += wi[t] * a[base + si[t] * step]
+			out[base + i * step] = s
 	return out
 
 

@@ -214,15 +214,55 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`,
   версия — `test_c6_field_version`.
 
-## C7 v0 (проект) — клипмапы AM-04 → `WindField` / `AirFieldSet`
-**Владелец:** AM-04. **Потребители:** C4.
+## C7 v1 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+**Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
+**Потребители:** C4 (выборка), AM-06Б (`AirRuntime`: загрузка, пересчёт, сдвиг), AM-07 (термики).
 
-Заложено AM-05: уровень = отдельный `WindField` со своими dx/dz/x0/y0; `AirFieldSet.levels` —
-**от мелкого к грубому**; выборка: мелкий с весом края w₁, остаток (1 − w₁) — следующему, …,
-непокрытое — аналитике; ширина края `edge_blend_cells` клеток **своего** уровня (окно 100 м —
-500 м, область 400 м — 2 км); сдвиг окна = `set_field([новые уровни], blend_s)`. Термики — по
-грубейшему уровню (подпись сетки для сети стабильна при сдвиге окон). Граница окна с грубого,
-порядок пересчёта, сдвиг фоном — проект AM-04. **Тест:** `test_c7_levels_fine_to_coarse`.
+**Уровни.** `AirFieldSet.levels` = `[окно 50 м, окно 100 м, область 400 м]` — **от мелкого к
+грубому**, каждый — свой `WindField` (C3) со своими dx/dz/x0/y0; у окон `meta.level = "window"`.
+Выборка (C4): мелкий с весом края w₁, остаток (1 − w₁) — следующему, …, непокрытое — аналитике;
+край — `edge_blend_cells` клеток **своего** уровня (окно 50 м — 250 м, 100 м — 500 м, область —
+2 км). `sample_turb` (C4 v3) усредняет уровни с теми же весами. **Термики (Р10, решение К0)** —
+по грубейшему уровню `levels[-1]` = область: подпись сетки (C5) при сдвиге окон не меняется.
+
+**Сетка окна** (как `real.grid_window` эталона): 64 × 64 столбца, dx из
+`air_model.window_levels_m` (100, 50), dz = dx/2; угол x0, y0 кратен 25 м (сдвиг — кратно dx);
+z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное. Вход погоды и солнца — как у области
+(C2). Граница — от родителя (область для окна 100 м, окно 100 м для окна 50 м): поле родителя в
+центрах клеток трилинейно во все граничные грани и θ′ ореола, поправка потока Σ = 0, зона
+релаксации 4 клетки у боков и 1000 м у потолка (reference.md → «Граничные условия области»);
+решение без нагрева (w_mech) — от решения родителя **без нагрева**.
+
+**API.**
+- `AirPicardJob.parent_data() -> {grid, tc, heat: {u, v, w, th}, mech: {…}}` (грани с ореолом),
+  `state(mech := false)`, `grid()`; решения с нагревом и без хранятся оба (пара).
+- `AirWindowCase.window_case(detail, water, loc, dx, cx, cy, hour, u10, wdir, t_max, sky, heat,
+  ctx, n = 64)` (центр в осях решателя), `window_at(…, x0, y0, …)`; `prepare_pair()` — оба
+  случая (можно в рабочем потоке); `P_NEST` = 19 в `prm`.
+- `AirWindowJob` (наследник `AirPicardJob`): `case: AirWindowCase`, `parent` (parent_data),
+  `prev` (`window_state()` прошлого окна той же клетки — тёплый старт, сдвиг на целое число
+  клеток), `shared_gpu` (общий `AirGpu`: `release()` освобождает только свои буферы),
+  `window_state() -> {grid, heat, mech}`, `nest_corr()`; остальное — как C3.
+- `AirClipmap`: `setup(detail, water, loc, hour, u10, wdir, t_max, sky)`, `set_conditions(…)`,
+  `set_domain(domain_job, domain_field)` (задача области ещё не освобождена; окна, если есть, —
+  пересчёт от новой области с тёплого старта), `start(center_xy)`, `update(pilot_pos)` (мир),
+  `poll()` (кадр) / `poll_slice(ms)` (экран загрузки), `levels() -> Array[WindField]`,
+  `is_ready()`, `is_busy()`, `window_center(q)`, `release()`, `history` (замеры по окнам);
+  сигналы `levels_changed(levels: Array[WindField])`, `failed(message)`.
+
+**Порядок и сдвиг.** При загрузке: область (вызывающий) → `set_domain` → `start(старт)` → окна
+по очереди 100 → 50 м (входы окон — сразу в рабочих потоках, GPU — одно устройство, порциями).
+В полёте: пилот ушёл от центра окна дальше `air_model.window_shift_frac` (0,25) стороны окна по x
+или y → это окно и все мельче пересчитываются фоном с новым центром у пилота (угол сдвигается
+на целое число клеток), тёплый старт — старое окно (перекрытие) + родитель. До готовности
+выборка — старые уровни; **новый набор отдаётся одним `levels_changed`**, когда пересчитаны все
+уровни очереди; вызывающий — `Atmosphere.set_air_field(levels, blend_s)` (C8; Р7: не подавать
+новый набор во время подмены — держать последний). Ошибка окна — `failed`, уровни прежние,
+повтор сдвига не раньше чем через 10 с.
+
+**Конфиг** `air_model`: `window_levels_m` ([100, 50]), `window_shift_frac` (0,25), у каждого `_doc`.
+- **Тесты:** `test_c7_levels_fine_to_coarse`, `test_c7_window_grid_and_api` (без GPU);
+  GPU — `test_air_window_gpu.gd` (сверка с эталоном, побитно, загрузка и сдвиг клипмапа).
 
 ## C8 v2 — фоновый пересчёт / подмена (AM-06Б) → `set_field`
 **Владелец:** AM-05 (подмена); вызывающий — AM-06Б (`AirRuntime`, C9), AM-04 (сдвиг окон).
@@ -240,18 +280,20 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
   главном. Пересчёт каждые `recompute_game_min` = 15 игровых минут и при смене ветра/погоды —
   `AirRuntime` (C9). **Тесты:** `test_c8_blend`, `test_c8_blend_during_blend`.
 
-## C9 v1 — жизненный цикл поля в игре `AirRuntime` (AM-06Б)
+## C9 v2 — жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04)
 **Владелец:** AM-06Б (`scripts/atmosphere/air_model/air_runtime.gd`). **Потребители:** `game.gd`
 (загрузка, полёт), AM-04 (окна 100/50 м — встраивает свои уровни сюда), AM-11 (замеры).
 
 `AirRuntime extends Node` (ребёнок `Game`; опрос решателя — **сам**, в `_process`: RD — только
-главный поток). Один уровень — область 400 м по всему месту (`AirPlace.domain_case`, `DX = 400`).
+главный поток). Область 400 м по всему месту (`AirPlace.domain_case`, `DX = 400`) и — при заданном
+`set_focus` — окна клипмапа 100/50 м вокруг старта/пилота (`AirClipmap`, C7).
 
 | API | Что |
 |---|---|
 | `setup(atmo, place, conditions_fn)` | `atmo` — объект с `set_air_field(поле, blend_s)`; `place = {detail: HeightLayer, water: Image\|null, loc: {id, center_lat, center_lon, utc_offset_h}}` (`AirRuntime.place_of(terrain, utc_offset_h)`); `conditions_fn() -> {hour, u10, wdir, t_max, sky}` (`AirRuntime.conditions_of(clock, atmo, settings)`: час `SunClock`, ветер атмосферы на 10 м, прогноз пилота). Новое место — сброс тёплого старта |
 | `await load_field() -> bool` | экран загрузки: точное поле для `conditions_fn()`, в атмосферу **без подмены** (`blend_s = 0`); те же место и условия — сразу true (поле уже в атмосфере); доля — сигнал `progress_changed` |
 | `recompute_enabled` | пересчёт в полёте: срок — смена номера `floor(hour·60 / recompute_game_min)` (игровое время, ускорение ×N учтено часами), внеочередной — смена ветра (> 0,05 м/с или > 1°) или погоды (`t_max`, `sky`); поле — на **начало срока**; тёплый старт от `state()` текущего поля; подмена `set_air_field(f, −1)` (C8) |
+| `set_focus(node: Node3D, start: Vector3)` / `focus_fn: Callable → Vector3` (v2, AM-04) | центр окон: при загрузке — `start`, в полёте — `node` (когда его родитель шагает физику); не задан — только область. Загрузка: область → окна 100 и 50 м с центром на старте (доля: 0,5 — область, 0,5 — окна), в атмосферу один раз `[окно 50, окно 100, область]`; пересчёт — область, затем окна на прежних местах с тёплого старта, подача одним набором; в покое (`busy()` = false) — сдвиг окон за пилотом (`window_shift_frac`), подача `set_air_field(levels, −1)`, счётчик `shift_count`; ошибка окон — только область. `last_info.windows` — замеры окон. Game: `air_runtime.set_focus(glider, _start_pos)` |
 | `request_recompute(reason)` | внеочередной пересчёт по текущим условиям (идёт расчёт — не копится) |
 | `stop()` | остановить расчёт, освободить буферы задачи (поле в атмосфере остаётся); RD — до `_exit_tree` |
 | `busy()`, `current_conditions()`, `unavailable_reason()`, `last_error`, `last_info` | состояние; `last_info` — `{hour, u10, wdir, t_max, sky, reason, wall_s, gpu_s, iters, warm, loading, start_ms, main_max_ms, poll_max_ms, chunk_max_ms}` |
@@ -270,9 +312,11 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
   последний срок.
 - **Сеть:** каждый клиент считает поле сам в `Game.start` (этап «Рассчитываем ветер»); час зоны
   после `join_world` — обычный срок пересчёта.
-- **AM-04:** уровни окон добавляются в тот же `set_air_field([окна…, область])`; сигнатуры выше
-  не меняются (новое — через К0, C9 v2).
-- **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`.
+- **AM-04 (v2):** уровни окон — в тот же `set_air_field([окна…, область])`; одно устройство
+  (`RuntimeGpu` собирает и ядра окон `AirWindowJob.WINDOW_SHADERS`), задачи области и окон — по
+  очереди (сдвиг — только в покое).
+- **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`,
+  с окнами — `test_air_window_gpu.gd::test_runtime_with_windows`.
 
 ---
 
@@ -288,7 +332,7 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 | Р7 | ~~Подмена во время подмены — скачок~~ **закрыто AM-06Б:** «старым» — снимок текущей смеси (C8 v2) | AM-05 ↔ AM-06Б, AM-04 | — |
 | Р8 | `AirThermals.has_inputs` истинно при любом `meta.arrays` (даже без `heat`) — ложное «есть вход», дальше `build` падает на размере | AM-07 | Проверять `arrays.has("heat")` (тривиально, AM-07) |
 | Р9 | Комментарий `TerrainWind._update_field_texture`: «RG = (u, v)», фактически (мир x, мир z) = (u, −v); шейдер читает как мир xz — работает верно | AM-10 | Поправить комментарий (тривиально, AM-10) |
-| Р10 | Термики по грубейшему уровню (`levels[-1]`): с клипмапами это область 400 м, а фикстуры и настройка AM-07 — по окну 100 м | AM-04 ↔ AM-07 | Решить до AM-04: источники по области 400 м (подпись сетки стабильна для сети) или по окну (подпись меняется при сдвиге окна → переотправка маски). Записать в C7 v1 |
+| Р10 | Термики по грубейшему уровню (`levels[-1]`): с клипмапами это область 400 м, а фикстуры и настройка AM-07 — по окну 100 м | AM-04 ↔ AM-07 | **Решено (К0):** источники — по области 400 м (подпись сетки стабильна при сдвиге окон); записано в C7 v1 |
 | Р11 | `dims` в JSON фикстур — [NX, NY, NZ], а раскладка — (NZ, NY, NX); у полей игры `dims` нет | документация | Принято соглашением («Общие соглашения»); не менять |
 | Р12 | Каждое новое поле → `ThermalField._update_air` → `AirThermals.build` на главном потоке: **~0,77 с** на области 400 м (замер AM-06Б, 4070 SUPER) — кадр в полёте раз в 15 игровых минут (при ×60 — раз в 15 с) | AM-07 ↔ AM-06Б, AM-11 | AM-11 (или AM-07): сборка источников в рабочем потоке, подача готового списка на главный |
 | Р13 | Тёплый старт пары: `AirPicardJob.warm` греет только первое решение (без нагрева — от состояния решения **с** нагревом), решение с нагревом — всегда холодное (`reinit`): итераций 70 + 90 против 100 + 90 (−16 %, а не −56 %) | AM-03 | AM-03: `warm_mech` — отдельное состояние решения без нагрева и тёплый старт второго решения от своего `warm`; `state()` → оба. Тогда `AirRuntime` хранит оба |
@@ -307,3 +351,5 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 | C8 | v2 | 29.09.2026 | AM-06Б (Р7): подмена во время подмены — от снимка текущей смеси (`AirFieldSet._old`), без скачка |
 | C9 | v1 | 29.09.2026 | AM-06Б: `AirRuntime` — поле при загрузке и пересчёт в полёте |
 | C6 | v1 | 29.09.2026 | AM-06Б (Р3, без смены версии): `WindField.FORMAT_VERSION`, `load_file` отвергает другую версию |
+| C7 | v1 | 29.09.2026 | AM-04: клипмапы — уровни [окно 50, окно 100, область], сетка окна, граница от родителя, `AirWindowJob`/`AirWindowCase`/`AirClipmap`, `AirPicardJob.parent_data/state(mech)/grid`, сдвиг одним `levels_changed`, конфиг `window_levels_m`, `window_shift_frac`; Р10 закрыт (термики — по области) |
+| C9 | v2 | 29.09.2026 | AM-04: окна клипмапа в `AirRuntime` — `set_focus`/`focus_fn`, `shift_count`, `last_info.windows`; загрузка и пересчёт — область + окна одним набором, сдвиг за пилотом в покое (предложено К0) |

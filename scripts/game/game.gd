@@ -313,6 +313,7 @@ func start(s: FlightSettings) -> bool:
 func _load_air_field(progress: LoadProgress) -> void:
 	var cond := AirRuntime.conditions_of.bind(sky.clock, air, settings)
 	air_runtime.setup(air, AirRuntime.place_of(terrain, _clock_utc_offset()), cond)
+	air_runtime.set_focus(glider, _start_pos)
 	if air_runtime.unavailable_reason() == "":
 		progress.stage("wind", tr("loading_wind"))
 		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
