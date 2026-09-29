@@ -1,10 +1,11 @@
+# gdlint: disable=max-public-methods
 extends TestCase
 ## Контрактные тесты модели воздуха (docs/air_model_contracts.md): форма данных и соглашения на
 ## стыках задач AM-xx. Без GPU. Ломаются, если владелец поменял формат/интерфейс без правки
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 0, C8 = 1}
+const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 0, C8 = 2, C9 = 1}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -644,6 +645,25 @@ func test_c5_net_schema() -> void:
 # ------------------------------------------------------------------ C6
 
 
+## Р3: файл поля другой версии формата — отказ load_file (понятная ошибка), не чтение.
+func test_c6_field_version() -> void:
+	var src := FIX + "field/kayancha_w100_h13_U3_d180"
+	var js := _json(src + ".json")
+	check(int(js.get("version", 0)) == WindField.FORMAT_VERSION, "фикстура — текущей версии")
+	js.version = WindField.FORMAT_VERSION + 1
+	var dst := "user://c6_version_test"
+	var fj := FileAccess.open(dst + ".json", FileAccess.WRITE)
+	fj.store_string(JSON.stringify(js))
+	fj.close()
+	var fb := FileAccess.open(dst + ".bin", FileAccess.WRITE)
+	fb.store_buffer(FileAccess.get_file_as_bytes(src + ".bin"))
+	fb.close()
+	check(WindField.load_file(dst) == null, "версия %d — отказ" % js.version)
+	check(WindField.load_file(src) != null, "версия 1 — читается")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dst + ".json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dst + ".bin"))
+
+
 func test_c6_start_hours() -> void:
 	check(
 		SunClock.start_hours() == PackedFloat32Array([9.0, 12.0, 15.0, 20.0]),
@@ -705,3 +725,85 @@ func test_c8_blend() -> void:
 	a.air_field.advance(float(Config.get_config("atmosphere").air_model.blend_s) * 0.5)
 	approx(a.air_field.blend_fraction(), 0.5, 1.0e-6, "по умолчанию — air_model.blend_s")
 	a.free()
+
+
+## C8 v2 (Р7): подмена во время подмены — «старым» становится снимок текущей смеси, без скачка.
+func test_c8_blend_during_blend() -> void:
+	var p := Vector3(0.0, 300.0, 0.0)
+	var s := AirFieldSet.new()
+	s.set_field(_const_field(2.0, 0.0, 0.0), 0.0)
+	s.set_field(_const_field(6.0, 0.0, 0.0), 10.0)
+	s.advance(3.0)
+	var before: Vector4 = s.sample(p, 0.0)
+	s.set_field(_const_field(10.0, 0.0, 0.0), 10.0)
+	var after: Vector4 = s.sample(p, 0.0)
+	approx(after.x, before.x, 1.0e-4, "новое поле посреди подмены — без скачка")
+	s.advance(4.0)
+	s.set_field(null, 10.0)  # и выключение посреди подмены
+	var v1: Vector4 = s.sample(p, 0.0)
+	s.advance(0.1)
+	var v2: Vector4 = s.sample(p, 0.0)
+	check(absf(v2.x - v1.x) < 0.05, "плавно к аналитике: %.3f → %.3f" % [v1.x, v2.x])
+	s.advance(10.0)
+	check(not s.is_active(), "после blend_s — без поля")
+
+
+# ------------------------------------------------------------------ C9
+
+
+class StubAtmo:
+	extends RefCounted
+	var fields: Array = []
+
+	func set_air_field(f: Variant, blend_s: float = -1.0) -> void:
+		fields.append([f, blend_s])
+
+
+## C9 v1: форма AirRuntime; без RD (headless) — аналитика сигналом, не падение; правило сроков.
+func test_c9_runtime_shape() -> void:
+	var rt := AirRuntime.new()
+	for sg in ["field_applied", "fallback", "progress_changed"]:
+		check(rt.has_signal(sg), "сигнал " + sg)
+	for m in [
+		"setup", "load_field", "request_recompute", "stop", "busy", "unavailable_reason",
+		"current_conditions", "needs_recompute", "place_of", "conditions_of"
+	]:
+		check(rt.has_method(m), "метод " + m)
+	check("recompute_enabled" in rt and "last_error" in rt, "recompute_enabled, last_error")
+	var tree := Engine.get_main_loop() as SceneTree
+	await tree.process_frame
+	tree.root.add_child(rt)
+	var atmo := StubAtmo.new()
+	var c := {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
+	var cond := func() -> Dictionary: return c
+	rt.setup(atmo, {detail = null, water = null, loc = {}}, cond)
+	var reasons: Array[String] = []
+	rt.fallback.connect(reasons.append)
+	var ok: bool = await rt.load_field()
+	check(not ok, "без RD/места поля нет")
+	check(reasons.size() == 1 and rt.last_error != "", "fallback с причиной: %s" % [reasons])
+	check(not rt.busy() and atmo.fields.is_empty(), "не считает, атмосферу не трогает")
+	rt.recompute_enabled = true
+	rt.request_recompute("тест")
+	await tree.process_frame
+	check(not rt.busy(), "пересчёт без RD не начинается")
+	rt.queue_free()
+	# сроки и условия
+	var nr := AirRuntime.needs_recompute
+	check(nr.call({}, c, 15.0) != "", "нет поля — считать")
+	check(nr.call(c, c, 15.0) == "", "те же условия — не считать")
+	var d := c.duplicate()
+	d.hour = 12.24
+	check(nr.call(c, d, 15.0) == "", "12:14 — тот же срок")
+	d.hour = 12.25
+	check(String(nr.call(c, d, 15.0)).begins_with("срок"), "12:15 — новый срок")
+	check(absf(AirRuntime.slot_hour(12.4, 15.0) - 12.25) < 1e-9, "начало срока 12:24 → 12:15")
+	d = c.duplicate()
+	d.wdir = 160.0
+	check(nr.call(c, d, 15.0) == "смена ветра", "смена направления")
+	d = c.duplicate()
+	d.u10 = 4.0
+	check(nr.call(c, d, 15.0) == "смена ветра", "смена скорости")
+	d = c.duplicate()
+	d.sky = "overcast"
+	check(nr.call(c, d, 15.0) == "смена погоды", "смена неба")
