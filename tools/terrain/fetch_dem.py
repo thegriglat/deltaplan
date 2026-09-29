@@ -10,9 +10,9 @@
 в локальных координатах игры (X — восток, Z — юг, начало — центр локации).
 
 Результат в data/terrain/<id>/:
-    <слой>.f32.gz — высоты float32 little-endian, построчно с севера на юг,
-                    каждая строка с запада на восток; gzip (Godot:
-                    PackedByteArray.decompress_dynamic(-1, COMPRESSION_GZIP));
+    <слой>.f32.br — высоты float32 little-endian, построчно с севера на юг,
+                    каждая строка с запада на восток; brotli (Godot:
+                    PackedByteArray.decompress_dynamic(-1, COMPRESSION_BROTLI));
     meta.json     — размеры сеток, шаг, источник, атрибуция.
 
 Проекция: локальная равнопромежуточная (equirectangular) вокруг центра:
@@ -21,7 +21,6 @@
 в scripts/terrain/geo.gd.
 """
 
-import gzip
 import io
 import json
 import math
@@ -29,6 +28,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
+import brotli
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -197,12 +197,12 @@ def build_layer(center_lat: float, center_lon: float, layer: dict) -> tuple[np.n
     if sigma > 0:
         h = gaussian_blur(np.nan_to_num(h, nan=0.0), sigma)
     # Квантуем до 1/32 м (3 см): младшие биты мантиссы становятся нулями,
-    # и gzip сжимает файл почти в 1.5 раза лучше. На точность не влияет.
+    # и сжатие даёт файл почти в 1.5 раза лучше. На точность не влияет.
     q = float(layer.get("quantize_per_m", 32))
     h = (np.round(np.nan_to_num(h, nan=0.0) * q) / q).astype("<f4")
     info = {
         "id": layer["id"],
-        "file": f"{layer['id']}.f32.gz",
+        "file": f"{layer['id']}.f32.br",
         "width": n,
         "height": n,
         "spacing_m": step,
@@ -255,7 +255,7 @@ def main():
             patch_from_finer(h, info, fine_h, fine)
         built.append((h, info))
         raw = h.tobytes()
-        (out_dir / info["file"]).write_bytes(gzip.compress(raw, compresslevel=9, mtime=0))
+        (out_dir / info["file"]).write_bytes(brotli.compress(raw, quality=11, lgwin=22))
         meta["layers"].append(info)
         if ATTRIBUTION[layer["source"]] not in meta["attribution"]:
             meta["attribution"].append(ATTRIBUTION[layer["source"]])

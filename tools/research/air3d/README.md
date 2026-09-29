@@ -10,7 +10,7 @@
 
 ## Файлы
 
-- `terrain.py` — чтение слоя detail (`data/terrain/ongudai/detail.f32.gz`, 25 м, 40×40 км),
+- `terrain.py` — чтение слоя detail (`data/terrain/ongudai/detail.f32.br`, 25 м, 40×40 км),
   блочное осреднение в клетки, старт Каянча из `configs/locations/ongudai.json`;
 - `solver.py` — решатель `Air3D` (CuPy + CUDA RawKernel): шаблоны импульса и тепла, прогонки
   по линиям (зебра), многосеточный Пуассон (полуогрубление по x, y, прогонки по вертикали),
