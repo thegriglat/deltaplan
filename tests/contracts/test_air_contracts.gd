@@ -1,10 +1,11 @@
+# gdlint: disable=max-public-methods
 extends TestCase
 ## Контрактные тесты модели воздуха (docs/air_model_contracts.md): форма данных и соглашения на
 ## стыках задач AM-xx. Без GPU. Ломаются, если владелец поменял формат/интерфейс без правки
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 0, C8 = 1}
+const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 1, C8 = 1}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -676,6 +677,46 @@ func test_c7_levels_fine_to_coarse() -> void:
 		fine.edge_cells == s.edge_cells,
 		"ширина края — клеток своего уровня (air_model.edge_blend_cells)"
 	)
+
+
+func test_c7_window_grid_and_api() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	check(lw.size() == 2, "слой detail Онгудая")
+	if lw.size() != 2:
+		return
+	var loc := TestAirPlace.load_loc("ongudai")
+	var ctx := AirPlace.context(lw[0], loc, WeatherModel.config())
+	var c := AirWindowCase.window_case(
+		lw[0], lw[1], loc, 100.0, 7230.0, -1330.0, 12.0, 3.0, 150.0, NAN, "clear", true, ctx
+	)
+	check(c != null, "окно построено")
+	if c == null:
+		return
+	check(c.nx == 64 and c.ny == 64 and c.dz == 50.0, "окно 64 × 64, dz = dx/2")
+	check(fmod(c.x0, 25.0) == 0.0 and fmod(c.y0, 25.0) == 0.0, "угол кратен 25 м")
+	var lo := INF
+	var hi := -INF
+	for v in c.hc:
+		lo = minf(lo, v)
+		hi = maxf(hi, v)
+	check(c.z_bot == floorf(lo / c.dz) * c.dz - c.dz, "z_bot = ⌊h_min/dz⌋·dz − dz")
+	check(c.nz % 2 == 0 and c.z_bot + c.nz * c.dz >= hi + 2000.0, "верх ≥ h_max + 2000, nz чётное")
+	check(c.meta().get("level", "") == "window", "meta.level = window")
+	var cm := AirClipmap.new()
+	for m in [
+		"setup", "set_conditions", "set_domain", "start", "update", "poll", "poll_slice",
+		"levels", "is_ready", "is_busy", "window_center", "release"
+	]:
+		check(cm.has_method(m), "AirClipmap." + m)
+	check(cm.has_signal("levels_changed") and cm.has_signal("failed"), "сигналы клипмапа")
+	var job := AirWindowJob.new()
+	for m in ["window_state", "parent_data", "nest_corr", "state", "grid", "field_async"]:
+		check(job.has_method(m), "AirWindowJob." + m)
+	check("parent" in job and "prev" in job and "shared_gpu" in job, "поля AirWindowJob")
+	var ac: Dictionary = Config.get_config("atmosphere").get("air_model", {})
+	for key in ["window_levels_m", "window_shift_frac"]:
+		check(ac.has(key) and ac.has(key + "_doc"), "air_model." + key)
+	check(Array(ac.get("window_levels_m", [])) == [100.0, 50.0], "окна 100 и 50 м")
 
 
 # ------------------------------------------------------------------ C8
