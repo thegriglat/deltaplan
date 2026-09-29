@@ -164,7 +164,14 @@ godot --path . -- --location=ongudai --wind=3 --from=180 --hour=12 \
   ```
   Точка среза по умолчанию — проба `*_agl10` из meta поля (обычно старт), иначе центр поля.
   На срезе Каянчи видны разгон и подъём над бровкой перевала (полоса подъёма/спада у земли) и
-  явная полоса ускорения над седловиной на 200 м AGL.
+  явная полоса ускорения над седловиной на 200 м AGL. Вертикальный срез рисует и `<имя>.json`
+  (полуширина, высота, шкала w, θ′-шаг, место/час/ветер) — `tools/wind_field/annotate_slice.py`
+  (PIL) накладывает по нему оси (км / м), шкалу цвета w (м/с) и заголовок: GDScript headless без
+  окна текст не рисует, PNG остаётся голой заливкой без подписей до этого шага.
+  ```bash
+  python3 tools/wind_field/annotate_slice.py \
+    tools/research/air3d/out/slices/kayancha_vertikal_vdol_vetra.png --out build/screenshots/04_....png
+  ```
 - **F3 в игре:** отдельный узел `WindFieldDebug` (`scripts/atmosphere/wind_field_debug.gd`),
   добавлен в `scenes/game/game.tscn` рядом с `Game` (без правок `game.gd`) — по нажатию F3 строит
   `MultiMesh` стрелок горизонтального ветра (`Atmosphere.air_velocity_at` — та же выборка, что у

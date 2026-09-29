@@ -68,7 +68,8 @@ func _ready() -> void:
 	paths.append(
 		_vertical_slice(
 			field, point, wind_dir, u_ref, thermals, thermals_note, out_dir,
-			"%s_vertikal_vdol_vetra" % name
+			"%s_vertikal_vdol_vetra" % name,
+			{"loc": loc if loc != "" else name, "hour": hour, "wdir": wdir}
 		)
 	)
 
@@ -174,6 +175,7 @@ func _horizontal_slice(
 ## Вертикальный срез вдоль wind_dir через point: ось s — расстояние по ветру (±half_len), ось h —
 ## высота над стартовой точкой; цвет — w/U₀, изолинии θ′ каждые theta_step К, серый — под землёй,
 ## треугольники — термики (текущая модель), подпись — режим термиков.
+## title — {loc, hour, wdir} для заголовка сайдкара (annotate_slice.py); {} — без подписи места.
 func _vertical_slice(
 	field: WindField,
 	point: Vector3,
@@ -182,7 +184,8 @@ func _vertical_slice(
 	thermals: Array,
 	note: String,
 	out_dir: String,
-	name: String
+	name: String,
+	title: Dictionary = {}
 ) -> String:
 	var half_len := field.size_x() * 0.5
 	var h_top := 900.0
@@ -254,6 +257,21 @@ func _vertical_slice(
 					img.set_pixel(xi, y0, Color(1.0, 0.85, 0.1))
 	var path := "%s/%s.png" % [out_dir, name]
 	img.save_png(path)
+	# сайдкар для tools/research/air3d/annotate_slice.py (оси/шкала/заголовок — средствами PIL,
+	# GDScript headless не рисует текст без окна).
+	var meta := {
+		"half_len_m": half_len,
+		"h_top_m": h_top,
+		"w_scale_ms": maxf(u_ref * 0.4, 0.2),
+		"theta_step_k": theta_step,
+		"location": String(title.get("loc", "")),
+		"hour": float(title.get("hour", -1.0)),
+		"wind_ms": u_ref,
+		"wind_from_deg": float(title.get("wdir", 0.0)),
+	}
+	var f := FileAccess.open("%s/%s.json" % [out_dir, name], FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(meta))
 	print("dump_slices: %s — %s" % [name, note])
 	return path
 
