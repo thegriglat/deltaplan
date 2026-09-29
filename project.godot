@@ -41,6 +41,13 @@ window/stretch/aspect="expand"
 
 theme/custom="res://scenes/ui/theme.tres"
 
+[input]
+
+cycle_debug_menu={
+"deadzone": 0.2,
+"events": []
+}
+
 [internationalization]
 
 locale/translations=PackedStringArray("res://locale/ui.ru.translation", "res://locale/ui.en.translation")
