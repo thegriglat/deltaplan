@@ -27,7 +27,9 @@ const KAPPA := 0.4
 const NCOL := 12
 const NLEV := 5
 
-## Параметры модели (air.py → Params; числа — физические или численные, см. там).
+## Параметры модели (air.py → Params; числа — физические или численные, см. там). lam_frac = λ/h —
+## калибровка AM-09 по Askervein (docs/air_model_tune.md): 0,25 (−0,02; верхняя граница физичного
+## диапазона — данные тянут выше), одинаково с air.py.
 var p := {
 	tau_cool = 7200.0,
 	z0 = 0.1,
@@ -51,7 +53,7 @@ var p := {
 	heat_taper_m = 2000.0,
 	local_k = true,
 	lam = 40.0,
-	lam_frac = 0.1,
+	lam_frac = 0.25,
 	k_relax = 0.5,
 	cs_h = 0.25,
 }

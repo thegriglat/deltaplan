@@ -587,6 +587,10 @@ static func case_ongudai(m: Dictionary, u10: float) -> AirCase:
 	c.u10 = u10
 	c.wdir = float(m.wdir)
 	c.label = "Онгудай %d м, %d м/с" % [int(m.dx), int(u10)]
+	# параметры, с которыми посчитан эталон (λ/h = 0,1 до калибровки AM-09)
+	var prm: Dictionary = m.get("params", {})
+	for key in prm:
+		c.p[key] = prm[key]
 	return c
 
 
