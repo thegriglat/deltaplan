@@ -174,7 +174,7 @@ func _collect_thermals(p: Vector3) -> Array[Vector4]:
 
 ## Пересобрать текстуру ветра поля вокруг центра cam_pos (WF-10): нет поля — выключить (сброс
 ## field_wind_size_m → 0, шейдер берёт только wind_vec, как раньше); есть — сетка field_tex_res ×
-## field_tex_res на field_tex_size_m метров, RG = (u, v) горизонтального ветра на sample_agl_m
+## field_tex_res на field_tex_size_m метров, RG = (u, −v) = мировые (x, z) горизонтального ветра на sample_agl_m
 ## над рельефом (тот же канал AirFieldSet.sample, что видит пилот). Центр округлён до половины
 ## клетки текстуры — сетка не «плавает» между пересборками.
 func _update_field_texture(cam_pos: Vector3) -> void:
