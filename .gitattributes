@@ -7,3 +7,6 @@
 *.exr binary
 *.tif binary
 *.hgt binary
+*.so binary
+*.dll binary
+*.dylib binary
