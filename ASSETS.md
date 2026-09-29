@@ -112,3 +112,8 @@
 |---|---|---|---|---|
 | `site/themes/hugo-book/` | тема Hugo Book (копия без exampleSite и .git), коммит `40749065b170062e1821ebc9199656c9acd6870d` (ветка main на 24.09.2026) | [alex-shpak/hugo-book](https://github.com/alex-shpak/hugo-book) | MIT (`site/themes/hugo-book/LICENSE`) | сайт на GitHub Pages (`site/hugo.toml`) |
 | KaTeX (стили, шрифты), MiniSearch, Mermaid в `site/themes/hugo-book/static/` | входят в тему | через Hugo Book: [KaTeX](https://github.com/KaTeX/KaTeX), [MiniSearch](https://github.com/lucaong/minisearch), [Mermaid](https://github.com/mermaid-js/mermaid) | MIT | формулы, поиск, диаграммы на сайте |
+
+## Данные исследований (tools/research/, не входят в игру)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `tools/research/osm_pack/results/*.jpg`, `*.json` | растры 10×10 км из векторного пакета OSM Словении и замеры размеров (рельеф, покров, OSM) | [Geofabrik](https://download.geofabrik.de/europe/slovenia.html) выгрузка 28.09.2026 (© OpenStreetMap contributors); [Copernicus DEM GLO-30](https://registry.opendata.aws/copernicus-dem/); [ESA WorldCover 2021](https://esa-worldcover.org/) | ODbL (OSM), лицензия Copernicus DEM с атрибуцией, CC BY 4.0 (WorldCover) | `docs/plan/osm_vector_pack.md` |
