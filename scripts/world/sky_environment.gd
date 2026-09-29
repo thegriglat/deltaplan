@@ -94,7 +94,11 @@ func apply_config() -> void:
 	env.ambient_light_energy = float(sky_cfg.ambient_light_energy)
 	env.ambient_light_sky_contribution = float(sky_cfg.ambient_sky_contribution)
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_mode = (
+		Environment.TONE_MAPPER_AGX
+		if String(rend.get("tonemap_mode", "filmic")) == "agx"
+		else Environment.TONE_MAPPER_FILMIC
+	)
 	env.tonemap_exposure = float(rend.tonemap_exposure)
 	env.tonemap_white = float(rend.tonemap_white)
 	# туман Godot — только если задан (голубая дымка чистого воздуха — в haze.gdshader)
