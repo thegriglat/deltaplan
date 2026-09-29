@@ -94,6 +94,49 @@ func sample_w_conv(pos: Vector3, ground_h: float) -> Vector2:
 	return _scalar(pos, ground_h, true)
 
 
+## Величины пограничного слоя для масштаба 3 (WindField.turb_at, AM-08), среднее по уровням с их
+## весами (не умножено на долю): массив WindField.T_SIZE + 1, последнее — доля поля 0..1.
+## N² = NAN, если хоть у одного участвующего уровня нет meta.gam. Нет поля — все нули.
+func sample_turb(pos: Vector3, ground_h: float) -> PackedFloat32Array:
+	var cur := _turb_levels(levels, pos, ground_h)
+	if _blend_total <= 0.0:
+		return cur
+	var old := _turb_levels(_prev, pos, ground_h)
+	var s := blend_fraction()
+	var wo := old[WindField.T_SIZE] * (1.0 - s)
+	var wn := cur[WindField.T_SIZE] * s
+	var tot := wo + wn
+	if tot <= 0.0:
+		return cur
+	for q in WindField.T_SIZE:
+		cur[q] = (old[q] * wo + cur[q] * wn) / tot
+	cur[WindField.T_SIZE] = tot
+	return cur
+
+
+static func _turb_levels(lv: Array[WindField], pos: Vector3, ground_h: float) -> PackedFloat32Array:
+	var acc := PackedFloat32Array()
+	acc.resize(WindField.T_SIZE + 1)
+	var rem := 1.0
+	for f in lv:
+		var wgt := f.edge_weight(pos)
+		if wgt <= 0.0:
+			continue
+		var t := f.turb_at(pos, ground_h)
+		var k := rem * wgt
+		for q in WindField.T_SIZE:
+			acc[q] += t[q] * k
+		rem *= 1.0 - wgt
+		if rem <= 0.0:
+			break
+	var share := 1.0 - rem
+	if share > 0.0:
+		for q in WindField.T_SIZE:
+			acc[q] /= share
+	acc[WindField.T_SIZE] = share
+	return acc
+
+
 static func _sample_levels(lv: Array[WindField], pos: Vector3, ground_h: float) -> Vector4:
 	var acc := Vector3.ZERO
 	var rem := 1.0

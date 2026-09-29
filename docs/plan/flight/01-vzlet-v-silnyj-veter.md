@@ -1,6 +1,6 @@
 # F01. Срывы взлёта в сильный день
 
-**Цель:** понять и устранить срывы взлёта в сильный день при ветре «в лоб старту»: реальная ошибка физики/автопилота или ожидаемое поведение (тогда — понятная причина игроку и корректный тест).
+**Цель:** понять и устранить срывы взлёта в сильный день при встречном ветре на старте: реальная ошибка физики/автопилота или ожидаемое поведение (тогда — понятная причина игроку и корректный тест).
 
 **Контекст:** отчёт матрицы стабильности (tests/stability/): altai × kingpost × strong × into_site — takeoff_failed стабильно; aushkul × sport × strong и ongudai × sport × strong — нестабильно (флейки). docs/flight.md (разбег, срывы: nose_high/nose_low/tailwind/crosswind/weak_run, «сильный ветер ≥ 8 м/с отрывает стоящего пилота — нужно опускать нос»), scripts/flight/flight_model.gd:390–394, scripts/flight/ground_run.gd, scripts/game/autopilot.gd, configs/weather/strong.json, configs/pilot.json → run.
 **Папки-владения:** scripts/flight/ (ground_run.gd, flight_model.gd — только разбег), scripts/game/autopilot.gd, configs/pilot.json → run, configs/flight.json → takeoff, tests/flight/.

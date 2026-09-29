@@ -29,7 +29,7 @@ OUT = SY.OUT
 FIELDS = SY.HERE / "fields"
 FIELDS.mkdir(exist_ok=True)
 LOC = "ongudai"
-WDIR = 150.0            # в лоб старту Каянчи (курс разбега 151°)
+WDIR = 150.0            # встречный на старте Каянча (курс разбега 151°)
 TOL = dict(tol_mom=2e-5, tol_th=5e-7, tol_div=1e-6)
 MAXIT = 3000
 

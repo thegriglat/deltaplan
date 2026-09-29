@@ -1,0 +1,54 @@
+{
+ "fmin": 0.1,
+ "fmax": 1.0,
+ "runs": {
+  "field_150": {
+   "u": {
+    "slope": -1.579,
+    "err2sigma": 0.128,
+    "sigma": 1.778
+   },
+   "w": {
+    "slope": -1.7,
+    "err2sigma": 0.184,
+    "sigma": 1.374
+   }
+  },
+  "field_400": {
+   "u": {
+    "slope": -2.005,
+    "err2sigma": 0.268,
+    "sigma": 1.796
+   },
+   "w": {
+    "slope": -1.684,
+    "err2sigma": 0.146,
+    "sigma": 1.43
+   }
+  },
+  "analytic_150": {
+   "u": {
+    "slope": -2.898,
+    "err2sigma": 0.241,
+    "sigma": 1.547
+   },
+   "w": {
+    "slope": -2.883,
+    "err2sigma": 0.121,
+    "sigma": 0.881
+   }
+  },
+  "analytic_400": {
+   "u": {
+    "slope": -2.961,
+    "err2sigma": 0.311,
+    "sigma": 1.546
+   },
+   "w": {
+    "slope": -2.739,
+    "err2sigma": 0.13,
+    "sigma": 0.604
+   }
+  }
+ }
+}

@@ -80,7 +80,7 @@ func test_flight_setup_forecast() -> void:
 	month.item_selected.emit(3)
 	check(hint.text != h_jul, "смена месяца меняет подсказку")
 	check(is_equal_approx(temp.value, 31.0), "смена месяца не двигает ползунок")
-	check(String(m.get("_dir_hint").text) != "", "подсказка «в лоб этому старту»")
+	check(String(m.get("_dir_hint").text) != "", "подсказка «встречный для этого старта»")
 	var wind: HSlider = m.get("_wind")
 	wind.value = 0.0
 	check((m.get("_dir_opt") as OptionButton).disabled, "штиль — направление неактивно")
