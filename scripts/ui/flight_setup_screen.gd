@@ -344,7 +344,7 @@ func _build_forecast(box: Control) -> void:
 	UiKit.row(box, tr("setup_sky"), _sky_opt)
 
 
-## Подсказка «в лоб этому старту — З» для выбранной площадки (точка с карты — без неё).
+## Подсказка «встречный для этого старта — З» для выбранной площадки (точка с карты — без неё).
 func _update_dir_hint() -> void:
 	if _dir_hint == null:
 		return
