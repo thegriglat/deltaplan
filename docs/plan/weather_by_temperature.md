@@ -82,6 +82,11 @@
 · 13:00» (или «… ветер 3 м/с, ЮЗ · 13:00»; при 0 — «штиль»).
 
 ### Сохранение и перенос старых настроек
+> **29.09.2026: перенос убран** — пользователей нет: `legacy_presets`, `WeatherModel.legacy_forecast`,
+> `FlightSettings.set_legacy_weather`, чтение `weather`/`wind_mode` из `last_flight.json`, флаги
+> `--weather=<id>` и `--wind=into_site|preset` удалены; тесты и инструменты задают прогноз числами
+> (`--temp/--wind/--from`). Эталоны `configs/weather/*` остались (калибровка, превью, xc_run).
+
 `FlightSettings`: поля `weather`, `wind_mode` → **`temperature_c: float`**, **`wind_speed_kmh: float`**,
 **`wind_into_launch: bool`**, **`wind_from_deg: float`**. `from_dict`: если в словаре нет `temperature_c`, но
 есть `weather` — взять прогноз из таблицы `legacy_presets` конфига (§3): weak → +20 °C / 2 м/с,

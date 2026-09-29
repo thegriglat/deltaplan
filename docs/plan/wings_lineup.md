@@ -195,7 +195,8 @@ VG в игре нет, поэтому поляра — «средняя рабо
 
 **28.09.2026: Wills Wing Sport 2 (`kingpost`) убрано из игры по решению пользователя** (конфиг,
 модель, ключ названия). Класс «мачтовые» — Airwave Magic IV и Icaro Laminar Easy; сохранённый выбор
-Sport 2 и `--wing=kingpost` переходят на Laminar (`FlightSettings.WING_RENAMES`); тесты с `kingpost`
+Sport 2 и `--wing=kingpost` переходили на Laminar (`FlightSettings.WING_RENAMES`; 29.09.2026 убрано —
+пользователей нет, несуществующее крыло → по умолчанию); тесты с `kingpost`
 как образцом — на `laminar`. Исследование и параметры Sport 2 ниже оставлены как справка.
 
 Существующие id (`training`, `kingpost` — позже убрано, `sport`) **сохраняются** — на них завязаны тесты, настройки

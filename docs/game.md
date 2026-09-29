@@ -281,14 +281,14 @@ settings.start_hour, utc_offset_h локации)`, `Game.tick` — `sky.clock.a
 ```
 godot --path . res://scenes/main.tscn -- [--autostart] [--autopilot] [--camera=cockpit|chase|free]
       [--screenshot=файл.png] [--time=с] [--pause|--settings|--about] [--look=рыскание,тангаж]
-      [--wing=sport] [--mass=80] [--weather=medium] [--site=sinyukha_west] [--wind=into_site|preset]
+      [--wing=sport] [--mass=80] [--temp=26] [--wind=3] [--from=launch|270] [--site=sinyukha_west]
       [--latlon=51.80,85.80] [--air-start[=1000[,300]]] [--smoke]
 ```
 `--air-start=<д>[,<h>]` — старт сразу в воздухе: в `<д>` м от старта по его курсу, `<h>` м над рельефом в этой
 точке (по умолчанию 1000 и 300), скорость трима, фаза `flying`; разбега нет, полёт сразу «взведён» — касание будет
 посадкой, не «взлёт сорван». «Ещё раз» (R) — снова в воздухе. `Game.air_start_m`/`air_start_agl_m`, для проверки
 полёта вдали от старта: `godot --path . res://scenes/main.tscn -- --autostart --location=ongudai
---site=kayancha_south --weather=strong --wing=training --mass=85 --air-start=1000,300`.
+--site=kayancha_south --temp=31 --wind=5 --wing=training --mass=85 --air-start=1000,300`.
 Скриншоты: `xvfb-run -a -s "-screen 0 1600x900x24" godot --path . --rendering-method gl_compatibility
 res://scenes/main.tscn -- --autostart --autopilot --camera=chase --time=12 --screenshot=/tmp/shot.png`.
 `--smoke` (проверка сборки, `tools/build.sh`): автостарт с настроек по умолчанию + автопилот, 300 шагов физики,

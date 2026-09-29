@@ -140,7 +140,7 @@
 опытного пилота — подсказка, не запрет), `prototype`, `era`, `kingpost`, `double_surface_pct`
 (0 — однообшивочное). Управляемость задаётся прежними параметрами: «Апогей» — самый устойчивый и
 лёгкий в крене, мягкое сваливание (слова мамы-пилота). Wills Wing Sport 2 (`kingpost`) убран
-28.09.2026; сохранённый выбор и `--wing=kingpost` переходят на Laminar (`FlightSettings.WING_RENAMES`).
+28.09.2026.
 Тесты: tests/flight/test_wings.gd, tests/game/test_wing_catalog.gd; поляра и сваливание —
 для всех крыльев из `Config.list_configs("wings")`.
 
