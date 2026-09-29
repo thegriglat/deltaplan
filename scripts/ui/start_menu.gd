@@ -52,7 +52,7 @@ func set_busy(on: bool) -> void:
 	_setup_btn.disabled = on
 
 
-## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «+26 °C · ветер 3 м/с, встречный на старте · 13:00»;
+## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «+26 °C · ветер 3 м/с, встречный · 13:00»;
 ## точка на карте — координатами.
 static func summary_text(s: FlightSettings) -> String:
 	var parts: PackedStringArray = []
@@ -69,7 +69,7 @@ static func summary_text(s: FlightSettings) -> String:
 	return " · ".join(parts) + "\n" + forecast_text(s) + " · " + SunClock.format_hour(s.start_hour)
 
 
-## «+26 °C · ветер 3 м/с, встречный на старте» (штиль — «ветер штиль»; облачность, если не ясно).
+## «+26 °C · ветер 3 м/с, встречный» (штиль — «ветер штиль»; облачность, если не ясно).
 static func forecast_text(s: FlightSettings) -> String:
 	var t := func(k: String) -> String: return TranslationServer.translate(k)
 	var ms := roundi(s.wind_speed_kmh / 3.6)

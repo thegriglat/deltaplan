@@ -75,7 +75,7 @@ func test_defaults_for_missing_keys() -> void:
 	var d := FlightSettings.defaults()
 	approx(s.temperature_c, 31.0, 1e-9, "заданное — из ключа")
 	check(s.sky == d.sky and s.month == d.month and s.day == d.day, "нет ключа — по умолчанию")
-	check(s.wind_into_launch, "нет from — встречный на старте")
+	check(s.wind_into_launch, "нет from — встречный")
 	check(int(p.seed) == int(Config.value("atmosphere", "seed")), "нет seed — atmosphere.json")
 	check(int(p.bots) == 0, "нет bots — 0")
 

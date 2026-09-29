@@ -11,7 +11,7 @@ extends RefCounted
 ##   --wing=<id> --mass=<кг> --location=<id> --site=<id>
 ##   --temp=<°C>           прогноз: температура днём (FR-16)
 ##   --wind=<м/с>          прогноз: ветер у земли
-##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — встречный на старте
+##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — встречный
 ##   --sky=clear|partly|overcast  прогноз: облачность
 ##   --hour=<ч>            час старта (AM-06: ближайший из world.json → time.start_hours,
 ##                         по умолчанию 9/12/15/20 — не произвольное время)
@@ -20,6 +20,7 @@ extends RefCounted
 ##   --glance              держать клавишу «взгляд на прибор»
 ##   --helmet=<вид>        каска в кабине: none | open | visor | visor_dark (поверх настройки;
 ##                         применяет SunGlare, configs/helmet.json)
+##   --debug=perf,wind,thermals  сразу включить отладочные слои F1/F5/F6 (DebugOverlays)
 ##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
 ##                         (чистый кадр мира — для фоновых картинок меню)
 ##   --autopilot-circle=<с>[,<крен>]  автопилот через <с> после отрыва кружит с креном (15°,
@@ -62,6 +63,8 @@ var camera := ""
 var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" или ""
 var look := Vector2.ZERO
 var glance := false  ## держать «взгляд на прибор» (скриншоты)
+## Отладочные слои (--debug=perf,wind,thermals) — включить сразу после старта.
+var debug_overlays: PackedStringArray = []
 var no_overlay := false  ## скрыть InstrumentOverlay перед скриншотом (чистый кадр мира)
 var helmet := ""  ## каска в кабине (--helmet=…), "" — из настроек (helmet.json → mode)
 var overrides: Dictionary = {}
@@ -114,6 +117,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.glance = true
 			"no-overlay":
 				o.no_overlay = true
+			"debug":
+				o.debug_overlays = val.split(",", false)
 			"screenshot":
 				o.screenshot = val
 			"time":

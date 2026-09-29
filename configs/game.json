@@ -12,7 +12,7 @@
   "default_wind_into_launch": true,
   "default_wind_into_launch_doc": "true — встречный ветер на старте (удобно для первого полёта); false — с направления default_wind_from_deg.",
   "default_wind_from_deg": 270,
-  "default_wind_from_deg_doc": "Откуда ветер по умолчанию, градусы (если не встречный на старте).",
+  "default_wind_from_deg_doc": "Откуда ветер по умолчанию, градусы (если не встречный).",
   "default_sky": "clear",
   "default_sky_doc": "Облачность по умолчанию: clear | partly | overcast (weather_model.json → sky).",
   "language": "",

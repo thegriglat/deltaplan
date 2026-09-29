@@ -169,6 +169,7 @@ func _fly(s: FlightSettings) -> void:
 		game.camera.set_look(opts.look.x, opts.look.y)
 	if opts.glance:
 		Input.action_press("look_instrument")
+	game.debug_overlays.enable(opts.debug_overlays)
 	if opts.look_at != "":
 		_look_target = Node3D.new()
 		_look_target.name = "LookTarget"

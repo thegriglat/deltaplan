@@ -93,6 +93,12 @@
 | `data/terrain/textures/scree_ambientcg_gravel022.jpg` | щебень осыпей (цвет, 512²) | [ambientCG Gravel022](https://ambientcg.com/view?id=Gravel022) | CC0 | рельеф, `terrain_textures.scree` |
 | — | полог леса с высоты, фактура лугов и полей, слои скал, колыхание травы, травинки | сгенерировано процедурно: `terrain.gdshader`, `terrain_wind.gdshaderinc`, `grass.gdshader` | — | рельеф |
 
+## Аддоны Godot (addons/)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `addons/debug_draw_3d/` | Debug Draw 3D 1.7.3 (Dmitriy Salnikov), GDExtension: отладочные стрелки и линии в 3D. Из релизного архива `debug-draw-3d_1.7.3.zip` взяты только библиотеки Linux x86_64, Windows x86_64 и macOS universal (редактор/debug, release-заглушка и release `.enabled` для `forced_dd3d`) | [DmitriySalnikov/godot_debug_draw_3d](https://github.com/DmitriySalnikov/godot_debug_draw_3d/releases/tag/1.7.3) | MIT (`addons/debug_draw_3d/LICENSE`) | отладочный слой F5 — ветер (`scripts/game/debug_overlays.gd`) |
+| `addons/debug_menu/` | Debug Menu (Hugo Locurcio / Calinou), коммит `ff124615a7da981722b3927343b9965a6a156718` (main на 19.11.2025): меню FPS и времени кадра с графиками | [godot-extended-libraries/godot-debug-menu](https://github.com/godot-extended-libraries/godot-debug-menu) | MIT (`addons/debug_menu/LICENSE.md`) | отладочная клавиша F2 (создаётся по нажатию; своя F3 аддона отключена) |
+
 ## Эталонные фото для сравнения рельефа (data/terrain/reference/, не входят в игру)
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
