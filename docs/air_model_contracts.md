@@ -186,21 +186,18 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
   сетка (`grid` ≠ своя подпись) — не применять. Не-ведущий: `ThermalField.set_air_forced(sig, mask)`.
 - **Тесты:** `test_c5_signature_and_mask`, `test_c5_net_schema`.
 
-## C6 v0 (проект) — библиотека полей `data/air`, `user://air` (AM-06б) + часы старта
-**Владелец:** AM-06б (часы — AM-06А, готово). **Потребители:** AM-06Б, AM-04, AM-11.
+## C6 v1 — часы старта и файл поля (библиотеки нет)
+**Владелец:** AM-06 (часы — часть А, готово; файл поля — AM-05). **Потребители:** AM-06Б, AM-04, AM-11, инструменты.
 
-- **Часы старта (готово):** `configs/world.json → time.start_hours` = [9, 12, 15, 20];
+- **Часы старта:** `configs/world.json → time.start_hours` = [9, 12, 15, 20];
   `SunClock.start_hours() -> PackedFloat32Array`, `SunClock.nearest_start_hour(h)`.
-- **Файл поля сегодня** (`WindField.load_file`, фикстуры `field/`, `thermals/`): `.json` —
+- **Файл поля** (`WindField.load_file`, отладка `--air-field=`, фикстуры `field/`, `thermals/`): `.json` —
   `format = "deltaplan-air-field"`, `version = 1`, `dx, dz, x0, y0, z_bot, nx, ny, nz, z0,
   layout, source, cond, arrays` (+ для термиков `z_i, gam (nz), u10, wdir`, массивы `heat`,
   `h_bl`); `.bin` — float32 LE; каналы `u, v, w_mech, w_conv, theta` (nx·ny·nz) и `hc` (nx·ny).
-- **Проект v0 (план):** `data/air/<место>/` (встроенные), `user://air/<id места>/` (с карты,
-  удаляется при вытеснении из `RecentPlaces`); поля 4 часа × (8 направлений × 2 силы (3, 6 м/с) +
-  штиль), уровни «область 400 м» + «окно 100 м у стартов»; хранение — квант 0,02 (м/с, К) + разность
-  по z + zstd; «без нагрева» не хранится (w_mech уже в поле). Метаданные библиотеки: **версия
-  модели** (смена → пересчёт), сетка, часы, направления, силы. Читатель отдаёт `WindField`
-  через `from_arrays` (C3). Формат файла библиотеки — v1 контракта, когда AM-06б его сделает.
+  Файл — только для отладки и тестов; в игре поле считается при загрузке (C3).
+- **Библиотеки полей нет** (решение пользователя на шлюзе AM-01): `data/air/`, `user://air/`
+  не создаются; AM-06б снята.
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`.
 
 ## C7 v0 (проект) — клипмапы AM-04 → `WindField` / `AirFieldSet`
@@ -249,5 +246,6 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 |---|---|---|---|
 | C1–C5, C8 | v1 | 29.09.2026 | первая фиксация по коду |
 | C6, C7 | v0 | 29.09.2026 | проект (часы старта C6 — готово) |
+| C6 | v1 | 29.09.2026 | К0: библиотеки полей нет (решение пользователя); C6 — часы старта и отладочный файл поля |
 | C4 | v2 | 29.09.2026 | AM-07: `WindField.raw_vel/raw_w_conv/raw_theta/raw_hc/raw_k1` и `heat_flux/z_i/gam/u10` (только чтение) вместо приватных массивов (Р5); `has_inputs` проверяет heat, z_i и gam |
 | C2 | v2 | 29.09.2026 | AM-03 (lint, snake_case): `AirCase.U10` → `u10`, `NX/NY/NZ` → `nx_h/ny_h/nz_h` (размеры с ореолом), `U_a` → `u_a`; аргумент `AirPlace.domain_case(…, u10, …)` — только имя; ключи `meta()` без изменений |
