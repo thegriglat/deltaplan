@@ -537,7 +537,8 @@ func test_c4_atmosphere_field_rule() -> void:
 	ref.free()
 
 
-## C4 v3 (AM-08): величины пограничного слоя для масштаба 3 — WindField.turb_at, AirFieldSet.sample_turb.
+## C4 v3 (AM-08): величины пограничного слоя для масштаба 3 — WindField.turb_at,
+## AirFieldSet.sample_turb.
 func test_c4_turb_at() -> void:
 	var g := _grid()
 	var f := _field(
@@ -557,7 +558,8 @@ func test_c4_turb_at() -> void:
 	check(is_nan(t[WindField.T_N2]), "нет meta.gam — N² = NAN")
 	check(t[WindField.T_WSTAR] == 0.0 and t[WindField.T_HMIX] == 0.0, "нет нагрева — w* = 0, h = 0")
 	var low := f.turb_at(Vector3(p.x, 10.0, p.z), 0.0)
-	approx(low[WindField.T_SHEAR], 5.0 / (10.0 * log(250.0)), 1.0e-4, "ниже 1-й клетки — сдвиг лог-профиля")
+	var s_log := 5.0 / (10.0 * log(250.0))
+	approx(low[WindField.T_SHEAR], s_log, 1.0e-4, "ниже 1-й клетки — сдвиг лог-профиля")
 	# устойчивость и нагрев из meta
 	var g2 := _grid()
 	var gam := []

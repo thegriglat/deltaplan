@@ -18,24 +18,6 @@ extends RefCounted
 ## agl = y − h): у земли — та же высота над землёй сетки, что у пилота над настоящей; выше
 ## подсеточные неровности рельефа гаснут на масштабе клетки, и выборка идёт по абсолютной высоте.
 
-## Шероховатость для лог-профиля у земли, м (как в решателе).
-var z0: float = 0.1
-var dx: float = 100.0
-var dz: float = 50.0
-## Западный и южный края сетки (x, y = −Z мира), низ сетки (над морем), м.
-var x0: float = 0.0
-var y0: float = 0.0
-var z_bot: float = 0.0
-var nx: int = 0
-var ny: int = 0
-var nz: int = 0
-## Ширина полосы края, клеток: у боковых граней и верха поле плавно уступает аналитике.
-var edge_cells: float = 5.0
-## Метаданные источника (json поля: cond, source, probes …).
-var meta: Dictionary = {}
-## Применённые ограничители (max_speed, max_w), м/с.
-var limits := Vector2(INF, INF)
-
 ## Масштаб 3 (AM-08, docs/air_model.md → «Масштаб 3: возмущения из поля»): величины пограничного
 ## слоя по столбцам и в точке — turb_at. Постоянные — как в решателе (air.py → Params, kloc).
 const KAPPA := 0.4
@@ -60,6 +42,24 @@ const T_DESC := 5
 const T_WSTAR := 6
 const T_HMIX := 7
 const T_SIZE := 8
+
+## Шероховатость для лог-профиля у земли, м (как в решателе).
+var z0: float = 0.1
+var dx: float = 100.0
+var dz: float = 50.0
+## Западный и южный края сетки (x, y = −Z мира), низ сетки (над морем), м.
+var x0: float = 0.0
+var y0: float = 0.0
+var z_bot: float = 0.0
+var nx: int = 0
+var ny: int = 0
+var nz: int = 0
+## Ширина полосы края, клеток: у боковых граней и верха поле плавно уступает аналитике.
+var edge_cells: float = 5.0
+## Метаданные источника (json поля: cond, source, probes …).
+var meta: Dictionary = {}
+## Применённые ограничители (max_speed, max_w), м/с.
+var limits := Vector2(INF, INF)
 
 ## u, v, w_mech подряд на клетку: ((k·ny + j)·nx + i)·3 + канал.
 var _vel := PackedFloat32Array()

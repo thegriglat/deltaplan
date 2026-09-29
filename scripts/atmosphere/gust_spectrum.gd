@@ -26,6 +26,11 @@ const L_STEPS := 64
 ## Коэффициент формы фон Кармана (MIL-HDBK-1797: 1,339).
 const VK_A := 1.339
 
+## Таблицы не зависят от сида — общие для всех (строятся один раз).
+static var _wu := PackedFloat32Array()
+static var _ww := PackedFloat32Array()
+static var _inv_dl: float = 1.0
+
 var _noise: FastNoiseLite
 var _norm: float = 1.0
 var _evolve: float = 0.0
@@ -33,10 +38,6 @@ var _evolve: float = 0.0
 var _off := PackedVector3Array()
 ## Веса октав (не нормированы на 1 — доля дисперсии спектра в полосе октавы), [шаг L][октава]:
 ## продольный (u, v) и поперечный (w).
-## Таблицы не зависят от сида — общие для всех (строятся один раз).
-static var _wu := PackedFloat32Array()
-static var _ww := PackedFloat32Array()
-static var _inv_dl: float = 1.0
 
 
 func setup(seed_value: int, evolve_ms: float) -> void:
@@ -82,7 +83,8 @@ static func _build_tables() -> void:
 
 
 ## ∫ E(k) dk по [k_lo, k_hi] для нормированного (∫₀^∞ E = 1) спектра фон Кармана, k — рад/м:
-## продольный E = (2L/π)/(1 + (aLk)²)^(5/6), поперечный E = (L/π)(1 + 8/3(aLk)²)/(1 + (aLk)²)^(11/6).
+## продольный E = (2L/π)/(1 + (aLk)²)^(5/6),
+## поперечный E = (L/π)(1 + 8/3(aLk)²)/(1 + (aLk)²)^(11/6).
 static func _band(el: float, k_lo: float, k_hi: float, transverse: bool) -> float:
 	var n := 24
 	var s := 0.0

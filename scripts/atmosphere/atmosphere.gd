@@ -48,6 +48,8 @@ var wave: WaveField
 ## Среднее поле воздуха (масштаб 1, docs/air_model.md → «Поле на CPU»): уровни и плавная подмена.
 ## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
 var air_field: AirFieldSet
+## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
+var field_turb: FieldTurbulence
 
 ## Время атмосферы, с. Термики — чистые функции времени и координат.
 var time_s: float = 0.0
@@ -110,25 +112,6 @@ var _in_cloud_turb: float = 1.5
 var _in_cloud_eject: float = 3.0
 var _in_cloud_scale_k: float = 3.0
 var _last_sigma: float = 0.0
-## Порывы со спектром фон Кармана (масштаб 3 с полем, AM-08).
-var gusts: GustSpectrum
-## Коэффициенты масштаба 3 с полем (turbulence.field_*, lee.field_*; AM-08).
-var _sw_per_ustar: float = 1.25
-var _mix_len: float = 40.0
-var _neutral_h_k: float = 2212.0
-var _conv_su: float = 0.6
-var _cbl_frac: float = 0.22
-var _lee_field_ex0: float = 0.3
-var _lee_field_ex1: float = 0.7
-var _lee_field_desc: float = 0.05
-var _lee_field_su: float = 0.18
-var _lee_field_sw: float = 0.14
-var _lee_field_reverse: float = 0.25
-var _lee_field_scale: float = 0.5
-var _field_z0: float = 0.1
-## Среднее рывка g = clamp((n − порог)/ширина) по распределению шума рывков: у поля рывки — с
-## нулевым средним (вычитается).
-var _burst_mean: float = NAN
 ## Промежуточные величины выборки (_extra_flow): σ гроз и роторов волн, облако в точке.
 var _storm_turb: float = 0.0
 var _rotor_turb: float = 0.0
@@ -184,8 +167,8 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	wind = WindModel.new()
 	wind.setup(cfg.wind, cfg.turbulence, seed_used)
 	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
-	gusts = GustSpectrum.new()
-	gusts.setup(seed_used, float(cfg.turbulence.evolve_ms))
+	field_turb = FieldTurbulence.new()
+	field_turb.setup(cfg.turbulence, cfg.lee, seed_used)
 	ground = GroundField.new()
 	ground.setup(cfg.ground, cfg.lee)
 	if old_ground != null and old_ground.has_ground:
@@ -390,14 +373,6 @@ func _cache_coefficients() -> void:
 	_lee_reverse = float(l.get("rotor_reverse", 0.0))
 	_lee_rotor_h = float(l.get("rotor_height_fraction", 0.4))
 	_lee_rotor_max = float(l.get("rotor_max_amplitude_ms", 0.0))
-	_lee_field_ex0 = float(l.field_deficit_attached)
-	_lee_field_ex1 = float(l.field_deficit_separated)
-	_lee_field_desc = float(l.field_descent_slope)
-	_lee_field_su = float(l.field_sigma_u_per_du)
-	_lee_field_sw = float(l.field_sigma_w_per_du)
-	_lee_field_reverse = float(l.field_reverse_per_wind)
-	_lee_field_scale = float(l.field_eddy_scale_per_relief)
-	_burst_mean = NAN  # считается при первом рывке с полем (_measure_burst_mean)
 	var t: Dictionary = cfg.turbulence
 	_mech_k_base = float(t.mech_per_wind)
 	_mech_k = _mech_k_base * float(weather.get("mech_turbulence_k", 1.0))
@@ -416,25 +391,6 @@ func _cache_coefficients() -> void:
 	_in_cloud_turb = float(t.in_cloud_ms)
 	_in_cloud_eject = float(t.in_cloud_eject_ms)
 	_in_cloud_scale_k = float(t.scale_m) / float(t.in_cloud_scale_m)
-	_sw_per_ustar = float(t.field_sigma_w_per_ustar)
-	_mix_len = float(t.field_mixing_length_m)
-	_neutral_h_k = float(t.field_neutral_bl_k) / float(t.field_coriolis_per_s)
-	_conv_su = float(t.field_conv_sigma_u_per_wstar)
-	_cbl_frac = float(t.field_cbl_scale_per_zi)
-
-
-## Среднее g рывка по распределению шума рывков (4096 точек; шум нормирован на СКО 1).
-func _measure_burst_mean() -> float:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 4242
-	var s := 0.0
-	for i in 2048:
-		var p := Vector3(
-			rng.randf_range(-3000, 3000), rng.randf_range(0, 3000), rng.randf_range(-3000, 3000)
-		)
-		var nb := wind.gust_unit(p * _lee_burst_k, 0.0, 0.0, 0.0).x
-		s += clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
-	return s / 2048.0
 
 
 static func _lenschow(xi: float) -> float:
@@ -491,8 +447,8 @@ func _update_air_mode() -> void:
 		if _air_mode == "on":
 			reason += "; требуется поле (enabled = on)"
 	_air_on = reason == ""
-	if not air_field.levels.is_empty():
-		_field_z0 = air_field.levels[0].z0
+	if not air_field.levels.is_empty() and field_turb != null:
+		field_turb.z0 = air_field.levels[0].z0
 	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
 	if field != null:
 		field.air = air_field if _air_on else null
@@ -821,7 +777,7 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU
 	var uf := Vector2(fw.x, fw.z).length() / a
 	var u_out := tb[WindField.T_UOUT]
-	var lee_f := _field_lee(uf, agl, tb)
+	var lee_f := field_turb.lee(uf, agl, tb)
 	var du := maxf(u_out - uf, 0.0) * lee_f
 	var danger := 0.0
 	if lee_f > 0.0 or lee_a > 0.0:
@@ -842,13 +798,12 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		# рывки вниз в пятнах шума; у поля — с нулевым средним (поток массы уже в w_mech поля)
 		var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
 		var g := clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
-		if is_nan(_burst_mean):
-			_burst_mean = _measure_burst_mean()
-		w -= _lee_burst * (hard_a * g + hard_f * (g - _burst_mean))
+		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		w -= _lee_burst * (hard_a * g + hard_f * (g - g_mean))
 		# обратный поток у земли в глубине зоны (пузырь отрыва полем не разрешён)
 		var core := danger * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
 		h -= (
-			((1.0 - a) * _lee_reverse * u * lee_a + a * _lee_field_reverse * u_out * lee_f)
+			((1.0 - a) * _lee_reverse * u * lee_a + a * field_turb.reverse * u_out * lee_f)
 			* core
 		)
 	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
@@ -857,10 +812,15 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	if not turbulence_enabled:
 		return v
 	# болтанка поля
-	var sg := _field_sigma(agl, u, tb, th, above_base, gs)
+	var conv_a := 0.0
+	if tb[WindField.T_HMIX] <= 0.0 and not above_base:
+		# в поле нет данных о нагреве — конвективная болтанка аналитики (погода)
+		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
+		conv_a = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio))
 	var s_u := sg.x
 	var s_w := sg.y
-	var s_sep := Vector2(_lee_field_su * du, _lee_field_sw * du)
+	var s_sep := field_turb.sep_sigma(du)
 	s_u = maxf(s_u, s_sep.x)
 	s_w = maxf(s_w, s_sep.y)
 	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
@@ -871,8 +831,10 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	)
 	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
 	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
-	var l_sep := _lee_field_scale * maxf(relief, 0.0) * lee_f
-	var n := gusts.sample(pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep))
+	var l_sep := field_turb.sep_scale * maxf(relief, 0.0) * lee_f
+	var n := field_turb.gusts.sample(
+		pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep)
+	)
 	var tv := Vector3(n.x * s_u, n.y * s_w, n.z * s_u)
 	var sig := s_u
 	if a < 1.0:
@@ -889,99 +851,6 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
 	return v + tv
-
-
-## Признак отрыва из поля 0..1: дефицит скорости в точке против лог-профиля под «внешним» ветром
-## столба, ex = 1 − (|U|/U_out)/(ln(z/z0)/ln(a_out/z0)) — у прилегающего потока ex ≲ 0,3 (на
-## подветренном склоне Askervein ΔS ≈ −0,3…−0,4), в следе и пузыре отрыва ex → 1; × опускание
-## столба (наклон s_d = −min w/U_out: за гребнем, не у наветренного подножия, где поток тоже
-## тормозится). Выше a_out (верх следа) — 0.
-func _field_lee(uf: float, agl: float, tb: PackedFloat32Array) -> float:
-	var u_out := tb[WindField.T_UOUT]
-	var a_out := tb[WindField.T_AOUT]
-	if u_out < 0.5 or agl >= a_out:
-		return 0.0
-	var z0 := _field_z0
-	var r := log(maxf(agl, 2.0 * z0) / z0) / log(maxf(a_out, 2.0 * z0) / z0)
-	var ex := 1.0 - uf / u_out / maxf(r, 1.0e-3)
-	var sep := smoothstep(_lee_field_ex0, _lee_field_ex1, ex)
-	if sep <= 0.0:
-		return 0.0
-	return sep * smoothstep(0.0, _lee_field_desc, tb[WindField.T_DESC])
-
-
-## σ болтанки поля: Vector4(σ_u, σ_w, L_u, L_w) — СКО горизонтали и вертикали (м/с) и интегральные
-## масштабы (м) для спектра. Законы и источники — docs/air_model.md → «Масштаб 3: возмущения».
-func _field_sigma(
-	agl: float, u: float, tb: PackedFloat32Array, th: Vector3, above_base: bool, gs: Vector4
-) -> Vector4:
-	var z := maxf(agl, 1.0)
-	var h_mix := tb[WindField.T_HMIX]
-	var ustar := tb[WindField.T_USTAR]
-	# механика: u* стенки (лог-закон поля) гаснет к верху слоя (1 − z/h)^(3/4) (Nieuwstadt 1984);
-	# местный сдвиг — длина перемешивания Прандтля–Блэкадара, как замыкание решателя
-	var h_bl := h_mix if h_mix > 0.0 else _neutral_h_k * ustar
-	var decay := pow(maxf(1.0 - z / maxf(h_bl, 1.0), 0.0), 0.75)
-	var shear := tb[WindField.T_SHEAR]
-	var l_mix := 1.0 / (1.0 / (WindField.KAPPA * z) + 1.0 / _mix_len)
-	var u_m := maxf(ustar * decay, l_mix * shear)
-	# устойчивость: градиентное число Ричардсона, u*_loc ∝ √F(Ri), F = 1/(1 + 5Ri)² — как решатель
-	var n2 := tb[WindField.T_N2]
-	var n_bv := 0.0
-	if is_finite(n2) and n2 > 0.0:
-		var ri := n2 / maxf(shear * shear, 1.0e-6)
-		u_m /= 1.0 + 5.0 * ri
-		n_bv = sqrt(n2)
-	var sw_m := _sw_per_ustar * u_m
-	var h_ft := z / 0.3048
-	var aniso := 1.0
-	if h_ft < 1000.0:
-		aniso = 1.0 / pow(0.177 + 0.000823 * h_ft, 0.4)
-	var su_m := sw_m * aniso
-	# конвекция: Lenschow et al. (1980) по w* поля (H ≤ 0 — нет); в поле нет данных о нагреве
-	# (meta heat/z_i) — аналитика (погода)
-	var su_c := 0.0
-	var sw_c := 0.0
-	var wstar := tb[WindField.T_WSTAR]
-	var l_w := _mil_lw(z)
-	var l_u := _mil_lu(z)
-	if h_mix > 0.0:
-		var xi := z / h_mix
-		if xi < 1.0:
-			su_c = _conv_su * wstar
-			# шум несёт только вертикаль мельче масштаба конвективных вихрей (крупнее — термики):
-			# доля по Колмогорову (L_w / L_cbl)^(1/3), L_cbl = 0,22 z_i (пик спектра 1,5 z_i)
-			var l_cbl := _cbl_frac * h_mix
-			sw_c = wstar * sqrt(1.8) * pow(xi, 1.0 / 3.0) * (1.0 - 0.8 * xi)
-			sw_c *= pow(minf(l_w / l_cbl, 1.0), 1.0 / 3.0)
-	elif not above_base:
-		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
-		su_c = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
-		sw_c = su_c * _vert_ratio
-	var s_u := sqrt(su_m * su_m + su_c * su_c)
-	var s_w := sqrt(sw_m * sw_m + sw_c * sw_c)
-	# масштабы: в устойчивом воздухе вихри не крупнее σ_w/N (Hunt, Kaimal & Gaynor 1985)
-	if n_bv > 0.0 and s_w > 1.0e-3:
-		var lb := s_w / n_bv
-		l_u = 1.0 / (1.0 / l_u + 1.0 / lb)
-		l_w = 1.0 / (1.0 / l_w + 1.0 / lb)
-	return Vector4(s_u, s_w, l_u, l_w)
-
-
-## Масштабы MIL-HDBK-1797 (фон Карман), м: ниже 1000 футов L_w = h, L_u = h/(0,177 + 0,000823h)^1,2
-## (h в футах); от 2000 футов — 2500 футов; между — линейно.
-static func _mil_lw(z: float) -> float:
-	var h := maxf(z / 0.3048, 10.0)
-	if h <= 1000.0:
-		return h * 0.3048
-	return lerpf(1000.0, 2500.0, minf((h - 1000.0) / 1000.0, 1.0)) * 0.3048
-
-
-static func _mil_lu(z: float) -> float:
-	var h := maxf(z / 0.3048, 10.0)
-	if h <= 1000.0:
-		return h / pow(0.177 + 0.000823 * h, 1.2) * 0.3048
-	return lerpf(1000.0, 2500.0, minf((h - 1000.0) / 1000.0, 1.0)) * 0.3048
 
 
 ## Опасность подветренной зоны 0..1 от ветра прогноза (нелинейно: слабый ветер — мягко).

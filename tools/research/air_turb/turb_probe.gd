@@ -178,7 +178,7 @@ func _lee_all() -> Array:
 				"a_out": tb[WindField.T_AOUT], "desc": tb[WindField.T_DESC],
 				"ustar": tb[WindField.T_USTAR], "shear": tb[WindField.T_SHEAR],
 				"n2": tb[WindField.T_N2], "wstar": tb[WindField.T_WSTAR],
-				"lee_f": a._field_lee(uf, agl, tb), "agl": agl, "share": fw.w,
+				"lee_f": a.field_turb.lee(uf, agl, tb), "agl": agl, "share": fw.w,
 			}
 			a.free()
 			# п. 4: без термиков — среднее w против w_mech поля + фон (у земли гаснет)
