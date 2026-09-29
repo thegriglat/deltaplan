@@ -9,6 +9,10 @@ extends TestCase
 const FIX_W := "res://tests/atmosphere/fixtures/air_model/window/"
 const FIX_ONG := TestAirPicard.FIX_ONG
 
+var _rt_gaps: Array[float] = []
+var _rt_t := 0
+var _rt_cond := {}
+
 
 func needs_gpu() -> bool:
 	return true
@@ -485,3 +489,147 @@ static func _max_step(prof: Array[Vector3], xs: PackedFloat64Array, a: float, b:
 		var sp := maxf(Vector2(prof[q].x, prof[q].z).length(), 0.5)
 		m = maxf(m, (prof[q + 5] - prof[q]).length() / sp)
 	return m
+
+
+# ---------------------------------------------------------------- AirRuntime с окнами (C9 + C7)
+
+func _rt_frame() -> void:
+	var now := Time.get_ticks_usec()
+	if _rt_t > 0:
+		_rt_gaps.append((now - _rt_t) / 1000.0)
+	_rt_t = now
+
+
+func _rt_watch(on: bool) -> float:
+	var tree := Engine.get_main_loop() as SceneTree
+	if on:
+		_rt_gaps.clear()
+		_rt_t = 0
+		tree.process_frame.connect(_rt_frame)
+		return 0.0
+	tree.process_frame.disconnect(_rt_frame)
+	var mx := 0.0
+	for g in _rt_gaps:
+		mx = maxf(mx, g)
+	return mx
+
+
+func _rt_conditions() -> Dictionary:
+	return _rt_cond
+
+
+func test_runtime_with_windows() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	var loc := TestAirPlace.load_loc("ongudai")
+	var detail: HeightLayer = lw[0]
+	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
+	w.wind_speed_kmh = Units.to_kmh(3.0)
+	w.wind_from_deg = 150.0
+	w.thermal_mode = "static"
+	w.static_thermals = []
+	var atmo := Atmosphere.new()
+	atmo.visuals_enabled = false
+	atmo.configure(Config.get_config("atmosphere"), w)
+	atmo.set_thermal_mode("static")
+	atmo.turbulence_enabled = false
+	atmo.step(0.01)
+	_rt_cond = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
+	var m100 := TestAirPicard.load_fix(FIX_W + "ongudai_w100_h12")
+	var start := Vector3(float(m100.site.x), 0.0, -float(m100.site.y))
+	start.y = detail.sample(start.x, start.z)
+	var tree := Engine.get_main_loop() as SceneTree
+	await tree.process_frame
+	var host := Node.new()  # «Game»: полёт — когда шагает физику
+	host.set_physics_process(false)
+	var pilot := Node3D.new()
+	host.add_child(pilot)
+	tree.root.add_child(host)
+	var rt := AirRuntime.new()
+	tree.root.add_child(rt)
+	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _rt_conditions)
+	rt.set_focus(pilot, start)
+	_rt_watch(true)
+	var ok: bool = await rt.load_field()
+	var fmax := _rt_watch(false)
+	check(ok, "поле с окнами при загрузке: %s" % rt.last_error)
+	var lv: Array[WindField] = atmo.air_field.levels
+	check(
+		lv.size() == 3 and lv[0].dx == 50.0 and lv[1].dx == 100.0 and lv[2].dx == 400.0,
+		"в атмосфере: окно 50, окно 100, область"
+	)
+	var li := rt.last_info
+	print(
+		(
+			"  AirRuntime, загрузка с окнами: %.2f с стены, кадр max %.0f мс, AirRuntime за кадр max %.0f мс"
+			% [float(li.get("wall_s", 0)), fmax, float(li.get("main_max_ms", 0))]
+		)
+	)
+	# атмосфера 3 с без сдвига: первая сборка источников термиков по полю (AM-07, ~0,4 с на
+	# главном потоке через ~1 с) — не относится к окнам, в замер сдвига не входит
+	var tc0 := Time.get_ticks_msec()
+	var atmo_first := 0.0
+	while Time.get_ticks_msec() - tc0 < 3000:
+		await tree.process_frame
+		var tb := Time.get_ticks_usec()
+		atmo.step(1.0 / 60.0)
+		atmo_first = maxf(atmo_first, (Time.get_ticks_usec() - tb) / 1000.0)
+	print("    без сдвига: шаг атмосферы max %.0f мс (термики по полю)" % atmo_first)
+	# полёт: пилот ушёл на 1 км к востоку → сдвиг окна 50 м
+	host.set_physics_process(true)
+	rt.recompute_enabled = true
+	pilot.global_position = start + Vector3(1000.0, 300.0, 0.0)
+	_rt_watch(true)
+	var t0 := Time.get_ticks_msec()
+	var atmo_ms := 0.0
+	while rt.shift_count < 1 and Time.get_ticks_msec() - t0 < 30000:
+		await tree.process_frame
+		var ta := Time.get_ticks_usec()
+		atmo.step(1.0 / 60.0)
+		atmo_ms = maxf(atmo_ms, (Time.get_ticks_usec() - ta) / 1000.0)
+	fmax = _rt_watch(false)
+	print(
+		(
+			"    шаг атмосферы max %.0f мс, AirRuntime за кадр max %.0f мс"
+			% [atmo_ms, rt.get("_main_ms")]
+		)
+	)
+	check(rt.shift_count == 1, "окно сдвинулось за пилотом")
+	lv = atmo.air_field.levels
+	check(
+		lv.size() == 3 and absf(lv[0].center_xz().x - pilot.global_position.x) <= 50.0,
+		"окно 50 м — у пилота"
+	)
+	print(
+		(
+			"  сдвиг за пилотом: %.2f с до подачи, кадр max %.0f мс"
+			% [(Time.get_ticks_msec() - t0) / 1000.0, fmax]
+		)
+	)
+	check(fmax <= 100.0, "сдвиг без кадра > 100 мс (%.0f)" % fmax)
+	# пересчёт по сроку: область + окна на прежних местах (тёплый старт)
+	_rt_cond.hour = 12.26
+	_rt_watch(true)
+	t0 = Time.get_ticks_msec()
+	while rt.applied_count < 2 and rt.failed_count == 0 and Time.get_ticks_msec() - t0 < 60000:
+		await tree.process_frame
+		atmo.step(1.0 / 60.0)
+	fmax = _rt_watch(false)
+	li = rt.last_info
+	check(rt.applied_count == 2 and li.has("windows"), "пересчёт по сроку — с окнами")
+	check(atmo.air_field.levels.size() == 3, "после пересчёта — три уровня")
+	print(
+		(
+			"  пересчёт 12:15 с окнами: %.2f с стены, итераций области %s, окна %s; кадр max %.0f мс"
+			% [
+				float(li.get("wall_s", 0)),
+				li.get("iters"),
+				(li.get("windows", []) as Array).map(AirRuntime._window_text),
+				fmax
+			]
+		)
+	)
+	check(fmax <= 100.0, "пересчёт без кадра > 100 мс (%.0f)" % fmax)
+	rt.stop()
+	rt.queue_free()
+	host.queue_free()
+	atmo.free()

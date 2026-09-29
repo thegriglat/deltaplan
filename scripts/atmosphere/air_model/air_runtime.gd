@@ -24,9 +24,9 @@ signal fallback(reason: String)
 ## Доля расчёта 0..1 (экран загрузки).
 signal progress_changed(fraction: float)
 
-enum Stage { IDLE, PREP, SOLVE, BUILD }
+enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT }
 
-## Клетка области, м (один уровень; окна 100/50 м вокруг пилота — AM-04).
+## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
 ## Экран загрузки: работа решателя за кадр, мс главного потока.
 const LOAD_SLICE_MS := 40.0
@@ -52,6 +52,11 @@ var last_error := ""
 ## Итог последнего расчёта (как info field_applied: + iters, gpu_s, wall_s, start_ms — запуск
 ## задачи на главном потоке, main_max_ms — наибольшая доля кадра, poll_max_ms) — для замеров.
 var last_info := {}
+## Точка, вокруг которой окна клипмапа 100/50 м (AM-04, C7): () -> Vector3 (мир) — при загрузке
+## старт, в полёте пилот. Пусто — только область 400 м.
+var focus_fn: Callable
+## Сдвигов окон за пилотом (замеры, тесты).
+var shift_count := 0
 ## Число поданных полей и неудач за жизнь узла (замеры, тесты).
 var applied_count := 0
 var failed_count := 0
@@ -79,6 +84,12 @@ var _t0 := 0
 var _ok := false
 ## Наибольшее время главного потока за кадр в расчёте, мс (опрос, запуск задачи, чтение буферов).
 var _main_ms := 0.0
+## Клипмап (окна вокруг focus_fn) и поле области, ждущее окон; parent_data() задачи области.
+var _clip: AirClipmap
+var _focus_node: Node3D
+var _focus_start := Vector3.ZERO
+var _dom_field: WindField
+var _pd := {}
 
 
 func _init() -> void:
@@ -96,7 +107,9 @@ func _device() -> RuntimeGpu:
 	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
-			if not _gpu.init(AirGpu.SHADERS + AirPicardJob.SHADER_NAMES):
+			if not _gpu.init(
+				AirGpu.SHADERS + AirPicardJob.SHADER_NAMES + AirWindowJob.WINDOW_SHADERS
+			):
 				last_error = _gpu.error
 	return _gpu
 
@@ -109,6 +122,7 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 	var key := _key_of(place)
 	if key != _place_key:
 		stop()
+		_clip = null
 		_warm = {}
 		_cur = {}
 		_cur_key = ""
@@ -208,6 +222,24 @@ func request_recompute(reason := "запрос") -> void:
 		_begin(conditions_fn.call(), reason, false)
 
 
+## Окна вокруг узла node (пилот) в полёте; при загрузке — вокруг start (старт: пилот ещё не на
+## месте). focus_fn = эта пара.
+func set_focus(node: Node3D, start: Vector3) -> void:
+	_focus_node = node
+	_focus_start = start
+	focus_fn = _focus_of_node
+
+
+## Полёт идёт, когда родитель узла (Game) шагает физику — до этого пилот ещё не на старте.
+func _focus_of_node() -> Vector3:
+	if _loading or _focus_node == null or not is_instance_valid(_focus_node):
+		return _focus_start
+	var host := _focus_node.get_parent()
+	if host != null and not host.is_physics_processing():
+		return _focus_start
+	return _focus_node.global_position
+
+
 ## Идёт расчёт.
 func busy() -> bool:
 	return _stage != Stage.IDLE
@@ -227,6 +259,8 @@ func stop() -> void:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
 	_build_id += 1  # собираемое поле больше не подаётся
+	if _clip != null and _clip.is_busy():
+		_clip.release()
 	_stage = Stage.IDLE
 
 
@@ -272,11 +306,20 @@ func _process(_dt: float) -> void:
 				var why := needs_recompute(_cur, c, _step_min())
 				if why != "" and unavailable_reason() == "":
 					_begin(c, why, false)
+				else:
+					_update_windows()
 		Stage.PREP:
 			_poll_prep()
 		Stage.SOLVE:
 			_poll_solve()
-	if _stage != Stage.IDLE and _timed_out():
+		Stage.WINDOWS, Stage.SHIFT:
+			if _loading:
+				_clip.poll_slice(LOAD_SLICE_MS)
+				progress_changed.emit(0.5 + 0.5 * _clip.progress())
+			else:
+				_clip.poll()
+	# сдвиг окон — свои пределы у задач окон (AirClipmap.timeout_s)
+	if _stage != Stage.IDLE and _stage != Stage.SHIFT and _timed_out():
 		_fail("таймаут расчёта (%.0f с)" % _timeout_s())
 	_main_ms = maxf(_main_ms, (Time.get_ticks_usec() - t_in) / 1000.0)
 
@@ -351,7 +394,7 @@ func _poll_prep() -> void:
 func _poll_solve() -> void:
 	var p := _job.poll_slice(LOAD_SLICE_MS) if _loading else _job.poll()
 	if _loading:
-		progress_changed.emit(p)
+		progress_changed.emit(p * (0.5 if _windows_wanted() else 1.0))
 	if _job.error != "":
 		_fail(_job.error)
 		return
@@ -366,6 +409,8 @@ func _poll_solve() -> void:
 		chunk_max_ms = _job.max_chunk_gpu_ms,
 	}
 	_req.merge(st, true)
+	# окна: поле области как родитель — до освобождения задачи (буферы с GPU)
+	_pd = _job.parent_data() if _windows_wanted() else {}
 	_build_id += 1
 	_building = _job
 	_job = null
@@ -376,6 +421,10 @@ func _poll_solve() -> void:
 	)
 	_building.release()
 	_stage = Stage.BUILD
+
+
+static func _window_text(h: Dictionary) -> String:
+	return "%d м %s" % [int(h.dx), str(h.iters)]
 
 
 static func _iters_of(r: Dictionary) -> int:
@@ -391,7 +440,91 @@ func _on_field(f: WindField, id: int) -> void:
 		return
 	f.meta.source = "gpu"
 	f.meta.cond = {wind = snappedf(float(_req.u10), 0.01), wdir = snappedf(float(_req.wdir), 0.1)}
-	atmosphere.call("set_air_field", f, 0.0 if _loading else -1.0)
+	if not _pd.is_empty():
+		_dom_field = f
+		_start_windows()
+		return
+	var one: Array[WindField] = [f]
+	_apply(one)
+
+
+## Окна клипмапа от новой области: при загрузке — заново с центром в focus_fn(), в полёте — на
+## прежних местах от новой области (тёплый старт). Готовый набор — _on_levels.
+func _start_windows() -> void:
+	var fresh := _loading or _clip == null or not _clip.is_ready()
+	if fresh:
+		_clip = AirClipmap.new()
+		_clip.use_gpu(_gpu)
+		_clip.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
+		_clip.setup(
+			_place.detail,
+			_place.get("water"),
+			_place.loc,
+			float(_req.hour),
+			float(_req.u10),
+			float(_req.wdir),
+			float(_req.get("t_max", NAN)),
+			String(_req.get("sky", "clear"))
+		)
+		_clip.levels_changed.connect(_on_levels)
+		_clip.failed.connect(_on_windows_failed)
+	else:
+		_clip.set_conditions(
+			float(_req.hour),
+			float(_req.u10),
+			float(_req.wdir),
+			float(_req.get("t_max", NAN)),
+			String(_req.get("sky", "clear"))
+		)
+	_clip.set_domain_data(_pd, _dom_field)
+	_pd = {}
+	if fresh:
+		var p: Vector3 = focus_fn.call()
+		_clip.start(Vector2(p.x, -p.z))
+	_stage = Stage.WINDOWS
+
+
+func _windows_wanted() -> bool:
+	return focus_fn.is_valid() and not Array(_cfg.get("window_levels_m", [100.0])).is_empty()
+
+
+## В полёте, без расчёта: сдвиг окон за пилотом (фоном; готовый набор — _on_levels).
+func _update_windows() -> void:
+	if _clip == null or not _clip.is_ready() or not focus_fn.is_valid():
+		return
+	_clip.update(focus_fn.call())
+	if _clip.is_busy():
+		_t0 = Time.get_ticks_usec()
+		_main_ms = 0.0
+		_loading = false
+		_stage = Stage.SHIFT
+
+
+func _on_levels(levels: Array[WindField]) -> void:
+	if _stage == Stage.SHIFT:
+		atmosphere.call("set_air_field", levels, -1.0)
+		shift_count += 1
+		_stage = Stage.IDLE
+		return
+	if _stage == Stage.WINDOWS:
+		_req.windows = _clip.history.slice(-levels.size() + 1)
+		_apply(levels)
+
+
+func _on_windows_failed(reason: String) -> void:
+	if _stage == Stage.SHIFT:
+		print("air_model: сдвиг окон не удался (%s) — прежние уровни" % reason)
+		_stage = Stage.IDLE
+	elif _stage == Stage.WINDOWS:
+		print("air_model: окна не посчитались (%s) — только область" % reason)
+		var one: Array[WindField] = [_dom_field]
+		_apply(one)
+
+
+## Подать уровни (от мелкого к грубому) в атмосферу: загрузка — сразу, полёт — подмена (C8).
+func _apply(levels: Array[WindField]) -> void:
+	atmosphere.call("set_air_field", levels, 0.0 if _loading else -1.0)
+	_dom_field = null
 	_cur = _req.duplicate()
 	_cur_key = _place_key
 	_warm = _warm_next
@@ -406,7 +539,7 @@ func _on_field(f: WindField, id: int) -> void:
 	_stage = Stage.IDLE
 	print(
 		(
-			"air_model: поле %s ч, %.1f м/с с %.0f° (%s): %.2f с, итераций %s%s"
+			"air_model: поле %s ч, %.1f м/с с %.0f° (%s): %.2f с, итераций %s%s%s"
 			% [
 				_hour_text(float(_req.hour)),
 				float(_req.u10),
@@ -414,12 +547,14 @@ func _on_field(f: WindField, id: int) -> void:
 				_req.reason,
 				float(_req.wall_s),
 				_req.iters,
-				", тёплый старт" if _req.warm else ""
+				", тёплый старт" if _req.warm else "",
+				", окна %s" % [_req.windows.map(_window_text)] if _req.has("windows") else ""
 			]
 		)
 	)
 	if _loading:
 		progress_changed.emit(1.0)
+	_loading = false
 	field_applied.emit(last_info)
 
 

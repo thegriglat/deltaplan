@@ -280,18 +280,20 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
   главном. Пересчёт каждые `recompute_game_min` = 15 игровых минут и при смене ветра/погоды —
   `AirRuntime` (C9). **Тесты:** `test_c8_blend`, `test_c8_blend_during_blend`.
 
-## C9 v1 — жизненный цикл поля в игре `AirRuntime` (AM-06Б)
+## C9 v2 — жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04)
 **Владелец:** AM-06Б (`scripts/atmosphere/air_model/air_runtime.gd`). **Потребители:** `game.gd`
 (загрузка, полёт), AM-04 (окна 100/50 м — встраивает свои уровни сюда), AM-11 (замеры).
 
 `AirRuntime extends Node` (ребёнок `Game`; опрос решателя — **сам**, в `_process`: RD — только
-главный поток). Один уровень — область 400 м по всему месту (`AirPlace.domain_case`, `DX = 400`).
+главный поток). Область 400 м по всему месту (`AirPlace.domain_case`, `DX = 400`) и — при заданном
+`set_focus` — окна клипмапа 100/50 м вокруг старта/пилота (`AirClipmap`, C7).
 
 | API | Что |
 |---|---|
 | `setup(atmo, place, conditions_fn)` | `atmo` — объект с `set_air_field(поле, blend_s)`; `place = {detail: HeightLayer, water: Image\|null, loc: {id, center_lat, center_lon, utc_offset_h}}` (`AirRuntime.place_of(terrain, utc_offset_h)`); `conditions_fn() -> {hour, u10, wdir, t_max, sky}` (`AirRuntime.conditions_of(clock, atmo, settings)`: час `SunClock`, ветер атмосферы на 10 м, прогноз пилота). Новое место — сброс тёплого старта |
 | `await load_field() -> bool` | экран загрузки: точное поле для `conditions_fn()`, в атмосферу **без подмены** (`blend_s = 0`); те же место и условия — сразу true (поле уже в атмосфере); доля — сигнал `progress_changed` |
 | `recompute_enabled` | пересчёт в полёте: срок — смена номера `floor(hour·60 / recompute_game_min)` (игровое время, ускорение ×N учтено часами), внеочередной — смена ветра (> 0,05 м/с или > 1°) или погоды (`t_max`, `sky`); поле — на **начало срока**; тёплый старт от `state()` текущего поля; подмена `set_air_field(f, −1)` (C8) |
+| `set_focus(node: Node3D, start: Vector3)` / `focus_fn: Callable → Vector3` (v2, AM-04) | центр окон: при загрузке — `start`, в полёте — `node` (когда его родитель шагает физику); не задан — только область. Загрузка: область → окна 100 и 50 м с центром на старте (доля: 0,5 — область, 0,5 — окна), в атмосферу один раз `[окно 50, окно 100, область]`; пересчёт — область, затем окна на прежних местах с тёплого старта, подача одним набором; в покое (`busy()` = false) — сдвиг окон за пилотом (`window_shift_frac`), подача `set_air_field(levels, −1)`, счётчик `shift_count`; ошибка окон — только область. `last_info.windows` — замеры окон. Game: `air_runtime.set_focus(glider, _start_pos)` |
 | `request_recompute(reason)` | внеочередной пересчёт по текущим условиям (идёт расчёт — не копится) |
 | `stop()` | остановить расчёт, освободить буферы задачи (поле в атмосфере остаётся); RD — до `_exit_tree` |
 | `busy()`, `current_conditions()`, `unavailable_reason()`, `last_error`, `last_info` | состояние; `last_info` — `{hour, u10, wdir, t_max, sky, reason, wall_s, gpu_s, iters, warm, loading, start_ms, main_max_ms, poll_max_ms, chunk_max_ms}` |
@@ -310,9 +312,11 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
   последний срок.
 - **Сеть:** каждый клиент считает поле сам в `Game.start` (этап «Рассчитываем ветер»); час зоны
   после `join_world` — обычный срок пересчёта.
-- **AM-04:** уровни окон добавляются в тот же `set_air_field([окна…, область])`; сигнатуры выше
-  не меняются (новое — через К0, C9 v2).
-- **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`.
+- **AM-04 (v2):** уровни окон — в тот же `set_air_field([окна…, область])`; одно устройство
+  (`RuntimeGpu` собирает и ядра окон `AirWindowJob.WINDOW_SHADERS`), задачи области и окон — по
+  очереди (сдвиг — только в покое).
+- **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`,
+  с окнами — `test_air_window_gpu.gd::test_runtime_with_windows`.
 
 ---
 
@@ -348,3 +352,4 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C9 | v1 | 29.09.2026 | AM-06Б: `AirRuntime` — поле при загрузке и пересчёт в полёте |
 | C6 | v1 | 29.09.2026 | AM-06Б (Р3, без смены версии): `WindField.FORMAT_VERSION`, `load_file` отвергает другую версию |
 | C7 | v1 | 29.09.2026 | AM-04: клипмапы — уровни [окно 50, окно 100, область], сетка окна, граница от родителя, `AirWindowJob`/`AirWindowCase`/`AirClipmap`, `AirPicardJob.parent_data/state(mech)/grid`, сдвиг одним `levels_changed`, конфиг `window_levels_m`, `window_shift_frac`; Р10 закрыт (термики — по области) |
+| C9 | v2 | 29.09.2026 | AM-04: окна клипмапа в `AirRuntime` — `set_focus`/`focus_fn`, `shift_count`, `last_info.windows`; загрузка и пересчёт — область + окна одним набором, сдвиг за пилотом в покое (предложено К0) |

@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 1, C8 = 2, C9 = 1}
+const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 1, C8 = 2, C9 = 2}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -806,10 +806,11 @@ func test_c9_runtime_shape() -> void:
 		check(rt.has_signal(sg), "сигнал " + sg)
 	for m in [
 		"setup", "load_field", "request_recompute", "stop", "busy", "unavailable_reason",
-		"current_conditions", "needs_recompute", "place_of", "conditions_of"
+		"current_conditions", "needs_recompute", "place_of", "conditions_of", "set_focus"
 	]:
 		check(rt.has_method(m), "метод " + m)
 	check("recompute_enabled" in rt and "last_error" in rt, "recompute_enabled, last_error")
+	check("focus_fn" in rt and "shift_count" in rt, "C9 v2: focus_fn, shift_count")
 	var tree := Engine.get_main_loop() as SceneTree
 	await tree.process_frame
 	tree.root.add_child(rt)

@@ -65,6 +65,8 @@ var _field_job: AirWindowJob = null
 ## Одно устройство на все окна: ядра собираются один раз (первое окно), дальше задачи только
 ## заводят и освобождают свои буферы.
 var _gpu: AirGpu = null
+## Устройство снаружи (AirRuntime: одно на игру; ядра окон — в его init) — не освобождается здесь.
+var _gpu_external := false
 ## Область сменилась во время расчёта — пересчитать окна после.
 var _domain_dirty := false
 ## После неудачи — не пробовать сдвиг до этого момента (мкс).
@@ -120,7 +122,12 @@ func set_conditions(hour: float, u10: float, wdir: float, t_max := NAN, sky := "
 ## Область решена (задача ещё не освобождена — берём поле родителя с GPU) и её WindField.
 ## Окна, если уже есть, пересчитываются от новой области на прежних местах.
 func set_domain(domain_job: AirPicardJob, domain_field: WindField) -> void:
-	_domain_pd = domain_job.parent_data()
+	set_domain_data(domain_job.parent_data(), domain_field)
+
+
+## То же с готовым parent_data() области (задача уже освобождена).
+func set_domain_data(pd: Dictionary, domain_field: WindField) -> void:
+	_domain_pd = pd
 	_domain_field = domain_field
 	if not _lv.is_empty():
 		if is_busy():
@@ -138,9 +145,29 @@ func start(center_xy: Vector2) -> void:
 	_enqueue(0, "загрузка")
 
 
+## Общее устройство (AirGpu с ядрами AirWindowJob): окна не заводят своё. Задачи на нём идут по
+## очереди — вызывающий не запускает свои, пока is_busy().
+func use_gpu(g: AirGpu) -> void:
+	_gpu = g
+	_gpu_external = g != null
+
+
 ## Идёт расчёт (очередь не пуста).
 func is_busy() -> bool:
 	return _cur >= 0 or not _queue.is_empty()
+
+
+## Доля очереди 0..1 (экран загрузки): готовые окна + доля текущей задачи.
+func progress() -> float:
+	if _pending.is_empty():
+		return 1.0
+	var done := 0.0
+	for row in _pending:
+		if row.field != null:
+			done += 1.0
+	if _job != null:
+		done += _job.progress()
+	return clampf(done / _pending.size(), 0.0, 1.0)
 
 
 ## Все окна посчитаны хотя бы раз.
@@ -202,9 +229,9 @@ func release() -> void:
 	_wait_tasks()
 	_queue.clear()
 	_cur = -1
-	if _gpu != null:
+	if _gpu != null and not _gpu_external:
 		_gpu.release()
-		_gpu = null
+	_gpu = null if not _gpu_external else _gpu
 
 
 # ---------------------------------------------------------------- внутреннее
