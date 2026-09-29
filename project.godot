@@ -52,6 +52,7 @@ common/physics_ticks_per_second=120
 common/max_physics_steps_per_frame=16
 
 [rendering]
+textures/vram_compression/import_etc2_astc=true
 
 renderer/rendering_method="forward_plus"
 lights_and_shadows/directional_shadow/size=4096
