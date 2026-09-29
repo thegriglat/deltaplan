@@ -23,8 +23,10 @@ const FIELDS := [
 ]
 const DT := 5.0
 const DAY_S := 4.0 * 3600.0
-## Статистика термиков — в круге этого радиуса у старта Каянча (внутри области поля), м.
+## Статистика термиков — в круге этого радиуса у старта Каянча (внутри области поля), м; для окна
+## 100 м (6,4 км) — STATS_R_WIN.
 const STATS_R := 6000.0
+const STATS_R_WIN := 2500.0
 
 var _quick := false
 var _terrain: Terrain
@@ -62,9 +64,14 @@ func _ready() -> void:
 	_save("flux.json", fl)
 	if not _quick:
 		var stats := {}
-		for name: String in ["ongudai_d400_h12", "ongudai_d400_h15", "ongudai_d400_h09"]:
+		for name: String in [
+			"ongudai_d400_h12", "ongudai_d400_h15", "ongudai_d400_h09", "kayancha_w100_h12"
+		]:
 			var f := WindField.load_file(ProjectSettings.globalize_path(DIR + "fields/" + name))
-			stats[name] = {"field": _day_stats(f, true), "analytic": _day_stats(f, false)}
+			var r := STATS_R_WIN if name.begins_with("kayancha") else STATS_R
+			stats[name] = {
+				"radius_m": r, "field": _day_stats(f, true, r), "analytic": _day_stats(f, false, r)
+			}
 		_save("stats.json", stats)
 	_terrain.free()
 	get_tree().quit(0)
@@ -106,6 +113,7 @@ func _dump_sources(name: String, f: WindField, s: AirThermals, build_ms: float) 
 					"z": p.z,
 					"y": p.y,
 					"w0": s.w0[k],
+					"radius": s.radius[k],
 					"wstar": s.wstar[k],
 					"top": s.top[k],
 					"drift": [s.drift[k].x, s.drift[k].y],
@@ -140,6 +148,8 @@ func _dump_sources(name: String, f: WindField, s: AirThermals, build_ms: float) 
 		"carried_flux": s.carried_flux,
 		"lost_flux": s.lost_flux,
 		"life_mean": s.life_mean,
+		"alive_frac": s.alive_frac,
+		"phi_ref": s.phi_ref,
 	}
 	_save("sources_%s.json" % name, out)
 	print(
@@ -165,7 +175,6 @@ func _net_noise(f: WindField, a: Atmosphere) -> Dictionary:
 	for amp: float in [1.0e-3 * u0, 1.0e-4 * u0]:
 		var g := _noisy(f, amp)
 		var cfg := a.field._cfg.duplicate()
-		cfg["radius_m"] = a.field._w.thermal_radius_m
 		cfg["duty"] = float(a.field._w.thermal_duty)
 		cfg["cloudbase_msl"] = a.field.cloudbase_msl
 		var s1 := AirThermals.new()
@@ -223,6 +232,9 @@ func _flux(f: WindField) -> Dictionary:
 	var want := {}
 	var tot := {}
 	var wc := {}
+	var b_dn := {}
+	var bt_up := {}
+	var bt_dn := {}
 	var per_got := {}
 	var per_want := {}
 	for xi: float in levels:
@@ -230,6 +242,9 @@ func _flux(f: WindField) -> Dictionary:
 		want[xi] = 0.0
 		tot[xi] = 0.0
 		wc[xi] = 0.0
+		b_dn[xi] = 0.0
+		bt_up[xi] = 0.0
+		bt_dn[xi] = 0.0
 	var n := 0
 	var step := 40.0 if not _quick else 80.0
 	var t := 0.0
@@ -257,6 +272,9 @@ func _flux(f: WindField) -> Dictionary:
 					var full := tf.sample(p)
 					var e := s.expected_up(p)
 					got[xi] += maxf(wb, 0.0)
+					b_dn[xi] += minf(wb, 0.0)
+					bt_up[xi] += maxf(full.x - wb, 0.0)
+					bt_dn[xi] += minf(full.x - wb, 0.0)
 					want[xi] += e
 					tot[xi] += full.x
 					wc[xi] += a.air_field.sample_w_conv(p, NAN).x
@@ -276,6 +294,9 @@ func _flux(f: WindField) -> Dictionary:
 					"ratio": got[xi] / maxf(want[xi], 1e-9),
 					"total_conv": tot[xi] / n,
 					"field_wconv": wc[xi] / n,
+					"bubbles_down": b_dn[xi] / n,
+					"between_up": bt_up[xi] / n,
+					"between_down": bt_dn[xi] / n,
 				}
 			)
 		)
@@ -318,7 +339,7 @@ func _flux(f: WindField) -> Dictionary:
 ## Термики за 4 ч (как база AM-00, probe.gd): сила, потолок над землёй, расстояние до ближайшего
 ## одновременно живого — термики с источником в круге STATS_R у Каянчи (фокус), с полем и без
 ## (та же погода medium, та же кромка).
-func _day_stats(f: WindField, use_field: bool) -> Dictionary:
+func _day_stats(f: WindField, use_field: bool, stats_r: float) -> Dictionary:
 	var a := _atmo(f)
 	if use_field:
 		a.set_air_field(f, 0.0)
@@ -336,11 +357,11 @@ func _day_stats(f: WindField, use_field: bool) -> Dictionary:
 		var alive := []
 		for id in a.field.thermals:
 			var th: AtmoThermal = a.field.thermals[id]
-			if Vector2(th.src.x - focus.x, th.src.z - focus.z).length() > STATS_R:
+			if Vector2(th.src.x - focus.x, th.src.z - focus.z).length() > stats_r:
 				continue
 			alive.append(th)
 			if not seen.has(id):
-				seen[id] = [th.strength, th.top - th.src.y, th.cell.x >= 1 << 19]
+				seen[id] = [th.strength, th.top - th.src.y, th.cell.x >= 1 << 19, th.radius]
 		if i % 12 == 0:
 			for p: AtmoThermal in alive:
 				var best := 1.0e18
@@ -356,10 +377,12 @@ func _day_stats(f: WindField, use_field: bool) -> Dictionary:
 		i += 1
 	var st := []
 	var ce := []
+	var ra := []
 	var n_air := 0
 	for v: Array in seen.values():
 		st.append(v[0])
 		ce.append(v[1])
+		ra.append(v[3])
 		n_air += 1 if v[2] else 0
 	a.free()
 	var r := {
@@ -367,6 +390,8 @@ func _day_stats(f: WindField, use_field: bool) -> Dictionary:
 		"from_field": n_air,
 		"strength": _stats(st),
 		"ceiling_agl": _stats(ce),
+		"radius_top": _stats(ra),
+		"alive_mean": float(nb_n) / maxf(ceil(dur / DT / 12.0), 1.0),
 		"neighbor_m": nb_sum / maxi(nb_n, 1),
 	}
 	print("  %s %s: %s" % [f.meta.cond.hour, "поле" if use_field else "аналитика", r])

@@ -733,7 +733,6 @@ func _update_air() -> void:
 	if key != "":
 		var src := AirThermals.new()
 		var cfg := _cfg.duplicate()
-		cfg["radius_m"] = _w.thermal_radius_m
 		cfg["duty"] = float(_w.thermal_duty)
 		cfg["cloudbase_msl"] = cloudbase_msl
 		cfg["height_fn"] = ground.height

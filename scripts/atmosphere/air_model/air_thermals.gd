@@ -6,13 +6,18 @@ extends RefCounted
 ## опускание), чтобы средний поток массы пилоту был тем же, что у поля.
 ##
 ## Законы (подробно — документ; H_kin = H/(ρc_p), ζ = z/h):
-##   w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, 300 м) — масштаб Дирдорфа;
+##   w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, 300 м) — масштаб Дирдорфа (deardorff_wstar);
 ##   w_m = (u*³ + 0,28 w*³)^(1/3), Δθ = b·H_kin/w_m, b = 6,5 — избыток частицы (Холтслаг–Бовилль);
 ##   F(ζ) = H_kin(1 − ζ)/Δθ = w_m(1 − ζ)/b — поток массы подсеточной конвекции замыкания поля;
-##   Φ = F̄ + max(W̄, 0) — поток вверх, который несут ядра: подсеточный + организованный (w_conv);
-##   w0 ≈ k·w*, k = e·max ζ^(1/3)(1 − 1,1ζ) ≈ 1,24 — пик Гедеона с потоком ядра Аллена (2006);
-##   плотность n = Φ/(k·w*·K̄); сила w0_i = M_i/K̄_i ≤ K_MAX·w*, M_i = Σ Φ·A водосбора;
-##   потолок — частица θ̄ + θ′ + Δθ теряет плавучесть по θ̄ + θ′ поля;
+##   Φ = F̄ + max(W̄, 0) — восходящий поток поля: подсеточный + организованный (w_conv);
+##   потолок — частица θ̄ + θ′ + Δθ теряет плавучесть по θ̄ + θ′ поля; её столб над землёй —
+##   местная толщина слоя z_l (не ниже 300 м);
+##   ядра — по Аллену (2006): радиус у верха R = r₂(1, z_l), r₂(ζ) = max(10, 0,102ζ^(1/3)(1 −
+##   0,25ζ)z_l); живых на площадь n_A = 0,6/(z_l·r₂(½)); сила w0 = k·w*, k = e·max ζ^(1/3)(1 −
+##   1,1ζ) ≈ 1,24 — пик Гедеона с потоком ядра среднего подъёма Аллена;
+##   плотность источников n = n_A·Φ/Φ̂/p_жизни (Φ̂ — средний Φ кандидатов с весом n_A), не больше
+##   Φ/(w0·K̄) — ядра не несут больше потока поля;
+##   остаток организованного потока (W̄⁺ сверх несомого ядрами) — широким подъёмом в «между»;
 ##   кольцо ρ = (1 − O/M)·e⁻¹/|кольцо|: подсеточная доля возвращается у пузыря, организованная O —
 ##   вверх; «между» = w_conv − ожидаемый чистый поток пузырей: среднее пилоту = w_conv поля.
 ##
@@ -34,10 +39,11 @@ const ZI_MIN := 300.0
 const K_ALLEN := 2.718281828 * 0.4575
 ## Доля ядра Гедеона в потоке (∫₀¹ e^(−u)(1 − u) du = e⁻¹).
 const CORE_FLUX := 0.36787944
-## Предел силы ядра, доли w*: сильнейшие ядра в самолётных замерах — порядка 2–2,5 w* (Lenschow &
-## Stephens 1980; Young 1988). Поток сверх w0 = K_MAX·w* (организованный подъём шире ядер: склон,
-## схождение) остаётся в «между» — пилоту широким подъёмом, масса сохраняется.
-const K_MAX := 2.5
+## Аллен (2006, AIAA 2006-1510, по замерам Lenschow & Stephens 1980): радиус восходящего потока
+## r₂ = max(R_MIN, 0,102·ζ^(1/3)(1 − 0,25ζ)·z_i), число потоков N = 0,6·A/(z_i·r₂(½)).
+const ALLEN_R2 := 0.102
+const ALLEN_R_MIN := 10.0
+const ALLEN_N := 0.6
 ## Случайная последовательная укладка кругов (насыщение 0,547): шаг исключения r = √(0,696/n).
 const RSA_K := 0.834
 const _NQ := 33
@@ -52,12 +58,13 @@ var level: WindField
 ## Подпись сетки (dx, x0, y0, nx, ny) — для сети: список ведущего применяется к той же сетке.
 var grid_sig: String = ""
 ## Источники: столбец (j·nx + i), точка источника (мир x, z; y — рельеф сетки), сила ядра на пике
-## w0 (м/с), w* водосбора (м/с), потолок частицы (над морем, м; без кромки), снос — средний ветер
-## столба (мир x, z), поток водосбора M (м³/с), из него несут ядра (м³/с), площадь водосбора (м²),
-## глубина столба D (м).
+## w0 (м/с), радиус ядра у верха (м, Аллен), w* водосбора (м/с), потолок частицы (над морем, м; без
+## кромки), снос — средний ветер столба (мир x, z), поток водосбора M (м³/с), из него несут ядра
+## (м³/с), площадь водосбора (м²), глубина столба D (м).
 var col := PackedInt32Array()
 var pos := PackedVector3Array()
 var w0 := PackedFloat32Array()
+var radius := PackedFloat32Array()
 var wstar := PackedFloat32Array()
 var top := PackedFloat32Array()
 var drift := PackedVector2Array()
@@ -80,6 +87,11 @@ var col_f := PackedFloat32Array()
 var shape_area: float = 0.0
 ## Средняя по времени доля (огибающая × доля циклов с термиком).
 var life_mean: float = 0.0
+## Доля времени, когда термик источника жив (доля циклов × жизнь / период): n_A живых ⇒ n_A/это
+## источников.
+var alive_frac: float = 1.0
+## Средний Φ кандидатов с весом n_A (нормировка плотности), м/с.
+var phi_ref: float = 0.0
 ## Поток, не доставшийся ни одному водосбору (нет источника в досягаемости), м³/с.
 var lost_flux: float = 0.0
 var total_flux: float = 0.0
@@ -109,12 +121,29 @@ static func has_inputs(f: WindField) -> bool:
 	return heat and not is_nan(f.z_i()) and f.gam().size() == f.nz
 
 
+## Масштаб скорости Дирдорфа w* = (g/θ0 · H/(ρc_p) · h)^(1/3), h = max(z_i − hc, 300 м); H ≤ 0 — 0.
+## Одна функция для термиков и возмущений (AM-08 переносит её в WindField).
+static func deardorff_wstar(heat_wm2: float, h: float) -> float:
+	var hk := heat_wm2 / RHO_CP
+	return pow(G / THETA0 * hk * maxf(h, ZI_MIN), 1.0 / 3.0) if hk > 0.0 else 0.0
+
+
+## Радиус восходящего потока Аллена (2006) на высоте ζ = z/z_i слоя толщины zi, м.
+static func allen_r2(zeta: float, zi: float) -> float:
+	return maxf(ALLEN_R_MIN, ALLEN_R2 * pow(zeta, 1.0 / 3.0) * (1.0 - 0.25 * zeta) * zi)
+
+
+## Живых потоков Аллена на м² в слое толщины zi: 0,6/(z_i·r₂(½)).
+static func allen_density(zi: float) -> float:
+	return ALLEN_N / (zi * allen_r2(0.5, zi))
+
+
 static func signature(f: WindField) -> String:
 	return "%.3f,%.3f,%.3f,%d,%d" % [f.dx, f.x0, f.y0, f.nx, f.ny]
 
 
 ## Построить источники. cfg — thermal-конфиг (atmosphere.json → thermal) + погода:
-##   radius_m [rmin, rmax] (у кромки), duty, grow_s/mature_s/decay_s/gap_s, ground_ramp_m,
+##   duty, grow_s/mature_s/decay_s/gap_s, ground_ramp_m,
 ##   top_taper_m, radius_min_factor, profile_cutoff_radii; cloudbase_msl — кромка из погоды;
 ##   height_fn(x, z) — настоящая высота земли (для точки источника; нет — рельеф сетки);
 ##   pick_fn(i, j) -> Vector2 — точка источника внутри столбца (мир x, z; нет — центр).
@@ -140,11 +169,9 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var ustar := KAPPA * u10 / log(10.0 / f.z0) if u10 > 0.0 else 0.0
 	var cb := float(cfg.get("cloudbase_msl", INF))
 	_setup_shape(cfg)
-	var r_bar := _mean_r2(cfg)
 	var cut := float(cfg.get("profile_cutoff_radii", 2.5))
 	# ∫ кольца Гедеона 1..cut² e^(−u)(1 − u) du = cut²·e^(−cut²) − e⁻¹ (< 0)
 	var ring_int := absf(cut * cut * exp(-cut * cut) - CORE_FLUX)
-	var r_min_ex := cut * sqrt(r_bar)
 	var wconv := f.raw_w_conv()
 	var theta := f.raw_theta()
 	var vel := f.raw_vel()
@@ -174,7 +201,14 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	## Радиус исключения по плотности столба (и досягаемость водосбора = 2 радиуса), м.
 	var cand_r := PackedFloat32Array()
 	cand_r.resize(n_col)
-	cand_r.fill(r_min_ex)
+	## По столбцам: местная толщина слоя z_l (м), живых потоков Аллена n_A (1/м²), K̄ ядра на 1 м/с.
+	var c_zl := PackedFloat32Array()
+	c_zl.resize(n_col)
+	c_zl.fill(ZI_MIN)
+	var c_na := PackedFloat32Array()
+	c_na.resize(n_col)
+	var c_k := PackedFloat32Array()
+	c_k.resize(n_col)
 	var cell_a := f.dx * f.dx
 	for j in f.ny:
 		for i in f.nx:
@@ -183,9 +217,9 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			if k1 >= f.nz or is_nan(z_i):
 				continue
 			var hc := hcs[c]
-			var h := maxf(z_i - hc, ZI_MIN)
 			var hk := heat[c] / RHO_CP
-			var ws := pow(G / THETA0 * hk * h, 1.0 / 3.0) if hk > 0.0 else 0.0
+			var h := maxf(z_i - hc, ZI_MIN)
+			var ws := deardorff_wstar(heat[c], h)
 			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
 			c_ws[c] = ws
 			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
@@ -220,12 +254,13 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 				t_top = hc
 			c_top[c] = t_top
 			var d_top := minf(t_top, cb) - hc
+			var zl := maxf(t_top - hc, ZI_MIN)
+			c_zl[c] = zl
+			var rc := allen_r2(1.0, zl)
+			cand_r[c] = cut * rc
 			if hk > 0.0 and phi[c] > 0.0:
-				var kbar := (
-					CORE_FLUX * PI * r_bar * _shape_mean(maxf(d_top, ZI_MIN), cfg) * life_mean
-				)
-				var dens := phi[c] / maxf(K_ALLEN * ws * kbar, 1.0e-6)
-				cand_r[c] = clampf(RSA_K / sqrt(maxf(dens, 1.0e-12)), r_min_ex, 4.0 * h)
+				c_na[c] = allen_density(zl)
+				c_k[c] = CORE_FLUX * PI * rc * rc * _shape_mean(maxf(d_top, ZI_MIN), cfg) * life_mean
 			# Кандидат: греется (H > 0), поток есть, столб частицы ≥ ZI_MIN, внутри поля
 			if hk <= 0.0 or phi[c] <= 0.0 or d_top < ZI_MIN:
 				continue
@@ -233,6 +268,22 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			if f.edge_weight(ctr) < 0.5:
 				continue
 			cand.append(c)
+	# --- плотность: живых n_A (Аллен) на площадь, распределённых по Φ (Φ/Φ̂, Φ̂ — средний Φ
+	# кандидатов с весом n_A: Σ n·A = Σ n_A·A), ÷ доля жизни; ядра не несут больше Φ столбца.
+	var s_na := 0.0
+	var s_naphi := 0.0
+	for c in cand:
+		s_na += c_na[c]
+		s_naphi += c_na[c] * phi[c]
+	phi_ref = s_naphi / s_na if s_na > 0.0 else 0.0
+	for c in n_col:
+		if c_na[c] <= 0.0 or phi_ref <= 0.0:
+			continue
+		var dens := c_na[c] * phi[c] / phi_ref / maxf(alive_frac, 1.0e-3)
+		var cap := phi[c] / maxf(K_ALLEN * c_ws[c] * c_k[c], 1.0e-9)
+		dens = minf(dens, cap)
+		var rc := cand_r[c]
+		cand_r[c] = clampf(RSA_K / sqrt(maxf(dens, 1.0e-12)), rc, maxf(4.0 * c_zl[c], rc))
 	# --- выбор источников: по убыванию Φ; кандидат берётся, если в радиусе его плотности нет
 	# уже взятого (или маска ведущего)
 	var nbx := (f.nx + _B - 1) / _B
@@ -355,6 +406,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	col = chosen
 	pos.resize(ns)
 	w0.resize(ns)
+	radius.resize(ns)
 	wstar.resize(ns)
 	top.resize(ns)
 	drift.resize(ns)
@@ -388,12 +440,12 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
 		depth[s] = d_top
 		var h := maxf(z_i - hc, ZI_MIN)
-		var hk := (hsum[s] / maxf(a_i[s], 1.0)) / RHO_CP
-		wstar[s] = pow(G / THETA0 * maxf(hk, 0.0) * h, 1.0 / 3.0)
+		wstar[s] = deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), h)
 		flux[s] = m_i[s]
 		area[s] = a_i[s]
-		var kbar := CORE_FLUX * PI * r_bar * _shape_mean(d_top, cfg) * life_mean
-		w0[s] = minf(m_i[s] / maxf(kbar, 1.0e-6), K_MAX * wstar[s])
+		radius[s] = allen_r2(1.0, c_zl[c])
+		var kbar := CORE_FLUX * PI * radius[s] * radius[s] * _shape_mean(d_top, cfg) * life_mean
+		w0[s] = K_ALLEN * wstar[s]
 		carried[s] = w0[s] * kbar
 		carried_flux += carried[s]
 		# Чистый поток пузыря — организованная доля того, что несут ядра; подсеточная доля
@@ -440,8 +492,8 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 
 
 ## Термик источника s (ThermalField): точка, потолок min(частица, кромка cb), сила, кольцо, радиус
-## (равномерно в пресете погоды w), редкий очень сильный — как у клетки. −1 — столб ниже ZI_MIN
-## (термика нет), 0 — обычный, 1 — очень сильный.
+## (Аллен по толщине слоя), редкий очень сильный — как у клетки (радиус не меньше пресета).
+## −1 — столб ниже ZI_MIN (термика нет), 0 — обычный, 1 — очень сильный.
 func fill(th: AtmoThermal, s: int, rng: RandomNumberGenerator, w: Dictionary, cb: float) -> int:
 	th.src = pos[s]
 	th.top = minf(top[s], cb)
@@ -450,7 +502,7 @@ func fill(th: AtmoThermal, s: int, rng: RandomNumberGenerator, w: Dictionary, cb
 	th.strength = w0[s]
 	th.ring = ring[s]
 	var rr: Array = w.thermal_radius_m
-	th.radius = lerpf(float(rr[0]), float(rr[1]), rng.randf())
+	th.radius = radius[s]
 	var ext: Array = w.get("thermal_extreme_ms", [])
 	if rng.randf() < float(w.get("thermal_extreme_chance", 0.0)) and ext.size() == 2:
 		th.strength = rng.randf_range(float(ext[0]), float(ext[1]))
@@ -585,6 +637,7 @@ func _setup_shape(cfg: Dictionary) -> void:
 	var d := _mid(cfg.decay_s)
 	var gap := _mid(cfg.gap_s)
 	life_mean = (0.5 * g + m + 0.5 * d) / (g + m + d + gap) * float(cfg.get("duty", 1.0))
+	alive_frac = (g + m + d) / (g + m + d + gap) * float(cfg.get("duty", 1.0))
 	_q.resize(_NQ)
 	var s := 0.0
 	var d0 := 1000.0
@@ -624,14 +677,6 @@ func _shape_mean_exact(d: float, cfg: Dictionary) -> float:
 		var xi := float(n) / (_NQ - 1)
 		s += _q_at(xi, d, cfg) * (0.5 if n == 0 or n == _NQ - 1 else 1.0)
 	return s / (_NQ - 1)
-
-
-## E[R²] для радиуса у кромки, равномерного в [rmin, rmax].
-static func _mean_r2(cfg: Dictionary) -> float:
-	var r: Array = cfg.get("radius_m", [90.0, 170.0])
-	var a := float(r[0])
-	var b := float(r[1])
-	return (a * a + a * b + b * b) / 3.0
 
 
 static func _mid(v: Variant) -> float:
