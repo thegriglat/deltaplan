@@ -83,7 +83,7 @@ disableKinds = ['taxonomy', 'term']
 [[cascade]]
   type = 'posts'
   [cascade.target]
-    path = '/diary/**'
+    path = '{/diary,/diary/**}'
 
 # Порядок и заголовки подключённых разделов/таблиц без шапки
 [[cascade]]
@@ -298,4 +298,4 @@ disableKinds = ['taxonomy', 'term']
   [[module.mounts]]
     source = '..'
     target = 'assets/repo'
-    files = ['! .git/**', '! .godot/**', '! .ruff_cache/**', '! build/**', '! site/**', '! **/__pycache__/**', '! **.import', '! **.npz', '! tools/research/air3d/fields/**', '! data/terrain/reference/**']
+    files = ['! .git/**', '! .godot/**', '! .ruff_cache/**', '! build/**', '! site/public/**', '! site/resources/**', '! site/themes/**', '! **/__pycache__/**', '! **.import', '! **.npz', '! tools/research/air3d/fields/**', '! data/terrain/reference/**']
