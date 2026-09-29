@@ -6,6 +6,8 @@ extends Node
 ##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/bench/air_velocity_bench.tscn \
 ##     -- [--out=<файл>] [--compare=<файл>] [--field=<путь .json поля>]
 ##   --out / --compare — записать / сравнить air_velocity_at и mean_wind_at (float64 подряд)
+##   --kayancha — способ базы AM-00: Онгудай, Каянча, 75 м, 100 000 вызовов в точке (с --field —
+##             ещё и с полем)
 ##   --field — подать поле (WindField.load_file) и выборку делать в его области (x, z точек
 ##             сдвигаются в центр поля, высоты — над рельефом поля); без него — аналитика
 ## Печатает: «air_velocity_at: X мкс/вызов (лучший из 5, N вызовов)».
@@ -22,6 +24,9 @@ func _ready() -> void:
 			cmp = a.substr(10)
 		elif a.begins_with("--field="):
 			field_path = a.substr(8)
+	if OS.get_cmdline_user_args().has("--kayancha"):
+		_kayancha(field_path)
+		return
 	var a := AtmoFingerprint.make_world()
 	a.start_at(600.0)
 	var pts: Array[Vector3] = []
@@ -85,3 +90,46 @@ func _bench(a: Atmosphere, pts: Array[Vector3]) -> float:
 				a.air_velocity_at(p)
 		best = minf(best, float(Time.get_ticks_usec() - t0) / (4.0 * pts.size()))
 	return best
+
+
+## Способ базы AM-00 (docs/plan/air_model_baseline.md → §3): Онгудай, старт Каянча, 75 м над
+## землёй, ветер 20 км/ч в склон, 100 000 вызовов в одной точке; без поля и с полем (--field).
+func _kayancha(field_path: String) -> void:
+	var terrain := Terrain.new()
+	terrain.location_id = ""
+	if not terrain.load_location("ongudai"):
+		print("air_velocity_bench: нет рельефа ongudai")
+		get_tree().quit(1)
+		return
+	var site: Dictionary = terrain.get_start_sites()[0]
+	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
+	w.wind_speed_kmh = 20.0
+	w.wind_from_deg = float(site.heading_deg)
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	a.seed_value = 4242
+	a.configure(Config.get_config("atmosphere").duplicate(true), w)
+	a.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
+	var pos0: Vector3 = site.position
+	a.set_focus(pos0)
+	a.step(1.0)
+	var p := Vector3(pos0.x, terrain.height_at(pos0.x, pos0.z) + 75.0, pos0.z)
+	var modes: Array[String] = ["off"]
+	if field_path != "":
+		a.set_air_field(WindField.load_file(field_path), 0.0)
+		modes.append("on")
+	for mode in modes:
+		a.set_air_mode(mode)
+		var best := 1.0e9
+		for r in 3:
+			var t0 := Time.get_ticks_usec()
+			for i in 100000:
+				a.air_velocity_at(p)
+			best = minf(best, float(Time.get_ticks_usec() - t0) / 100000.0)
+		print(
+			"air_velocity_at Каянча 75 м: %.2f мкс/вызов (%s, лучший из 3 × 100 000), v = %s"
+			% [best, "с полем" if mode == "on" else "без поля", a.air_velocity_at(p)]
+		)
+	a.free()
+	terrain.free()
+	get_tree().quit(0)
