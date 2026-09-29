@@ -39,6 +39,12 @@ extends Node
 ## в воздухе — буксир к нему от старта (ждём его состояния до AUTO_CATCH_UP_WAIT_S после
 ## world_joined); на земле — ничего (стоим в очереди на старт).
 ##
+## Термики из поля воздуха (AM-07, docs/air_model.md → «Масштаб 2: термики из поля»): поле у
+## каждого своё и чуть разное, а термики должны совпадать — раз в секунду (sync_thermal_sources)
+## ведущий отдаёт NetZone свои источники (столбцы поля, уходят с ZoneState), остальные ставят
+## их своей атмосфере (ThermalField.set_air_forced); сила, потолок и снос — по своему полю.
+## Новый ведущий переходит на свой выбор.
+##
 ## zone/pilots — NetZone/NetPilots или объекты с теми же полями и методами (тесты).
 
 ## Изменилось «есть ли в воздухе кто-то из живых пилотов» (кнопка «Продолжить рядом»).
@@ -65,6 +71,8 @@ const MAX_STEP_S := 2.0
 const CLOCK_WAIT_S := 5.0
 ## Сколько ждать состояний ведущего после входа, чтобы решить «догнать» его или нет, с.
 const AUTO_CATCH_UP_WAIT_S := 4.0
+## Как часто сверять источники термиков из поля с ведущим, с.
+const THERMAL_SYNC_S := 1.0
 
 ## Автоматический «догнать» ведущего при входе в зону (тесты могут выключить).
 var auto_catch_up := true
@@ -88,6 +96,8 @@ var _airborne := false
 var _joined := false  ## мир на часах зоны, боты поставлены — очередь ведём
 var _queue_k := -1  ## место в очереди, к которому шли в последний раз (−1 — не на старте)
 var _my_status := ""
+var _thermal_sync_t := 0.0
+var _was_leader := false
 
 
 ## p_zone/p_pilots — null: автозагрузки NetZone/NetPilots.
@@ -209,10 +219,35 @@ func _process(_dt: float) -> void:
 		send_local()
 	feed_remote()
 	update_queue()
+	_thermal_sync_t -= _dt
+	if _thermal_sync_t <= 0.0:
+		_thermal_sync_t = THERMAL_SYNC_S
+		sync_thermal_sources()
 	var any := friends_airborne()
 	if any != _airborne:
 		_airborne = any
 		airborne_changed.emit(any)
+
+
+## Источники термиков из поля: ведущий — свои в NetZone, остальные — от ведущего в атмосферу.
+func sync_thermal_sources() -> void:
+	var air: Atmosphere = game.air as Atmosphere if game != null and is_instance_valid(game) else null
+	if air == null or air.field == null or not zone.has_method("set_thermal_sources"):
+		return
+	var tf: ThermalField = air.field
+	if zone.is_leader():
+		if not _was_leader and tf.air_forced_sig != "":
+			tf.set_air_forced("", PackedByteArray())  # стал ведущим — свой выбор
+		_was_leader = true
+		var m := tf.air_sources_mask()
+		zone.call("set_thermal_sources", String(m.get("sig", "")), m.get("mask", PackedByteArray()))
+		return
+	_was_leader = false
+	var ts: Dictionary = zone.get("thermal_sources")
+	var sig := String(ts.get("grid", ""))
+	var mask := Marshalls.base64_to_raw(String(ts.get("mask", ""))) if sig != "" else PackedByteArray()
+	if sig != tf.air_forced_sig or mask != tf.air_forced:
+		tf.set_air_forced(sig, mask)
 
 
 ## Своё состояние — в NetPilots (уходит 10 Гц).

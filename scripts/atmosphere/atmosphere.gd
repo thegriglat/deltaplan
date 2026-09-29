@@ -439,6 +439,9 @@ func _update_air_mode() -> void:
 		if _air_mode == "on":
 			reason += "; требуется поле (enabled = on)"
 	_air_on = reason == ""
+	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
+	if field != null:
+		field.air = air_field if _air_on else null
 	var line := "air_model: analytic (%s)" % reason
 	if _air_on:
 		var src := "поле"
