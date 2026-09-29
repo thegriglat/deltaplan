@@ -4,26 +4,26 @@
  "runs": {
   "field_150": {
    "u": {
-    "slope": -1.579,
+    "slope": -1.578,
     "err2sigma": 0.128,
-    "sigma": 1.778
+    "sigma": 1.785
    },
    "w": {
-    "slope": -1.7,
-    "err2sigma": 0.184,
-    "sigma": 1.374
+    "slope": -1.701,
+    "err2sigma": 0.183,
+    "sigma": 1.39
    }
   },
   "field_400": {
    "u": {
-    "slope": -2.005,
+    "slope": -2.006,
     "err2sigma": 0.268,
-    "sigma": 1.796
+    "sigma": 1.833
    },
    "w": {
-    "slope": -1.684,
-    "err2sigma": 0.146,
-    "sigma": 1.43
+    "slope": -1.682,
+    "err2sigma": 0.144,
+    "sigma": 1.444
    }
   },
   "analytic_150": {
