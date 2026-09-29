@@ -247,6 +247,6 @@
 - **Maine IFW** — aerial insectivores: <https://www.maine.gov/ifw/blogs/mdifw-blog/art-and-science-aerial-insectivores-0>;
   **JEB 2018** — foraging flight of swifts: <https://journals.biologists.com/jeb/article/221/22/jeb186270/20748/Gliding-for-a-free-lunch-biomechanics-of-foraging>
 - **USHPA/BHPA практика** — общепринятая практика обучения (ленточки на старте, тень крыла
-  на посадке); отдельной ссылки не найдено — проверить с папой.
+  на посадке); отдельной ссылки не найдено — проверить с пилотом.
 - Книги Bradbury «Meteorology and Flight», Martens «Thermal Flying», Pagen «Performance Flying»
   онлайн недоступны; их содержание пересекается с источниками выше — сверить при наличии книг.

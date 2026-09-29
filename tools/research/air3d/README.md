@@ -48,5 +48,5 @@ $PY export3d.py                                          # out/3d/*.html
 - в git: `out/*.json` (все числа, история невязок), `out/*.log`, `out/*.png`, `out/tables.md`,
   `out/fields/W100_*.npz` (окна 100 м, fp16, u, v, w, θ′, p), `out/3d/*.html` (≤ 14 МБ);
 - вне git (`.gitignore`, ~1 ГБ): `fields/d400/*.npz`, `fields/d200/*.npz` — все 182 поля матрицы (fp16),
-  `fields/cells/` — окна 50 м и поля 200 м опыта cells. Локальный путь:
-  `/home/greg/deltaplan/tools/research/air3d/fields/`; пересчёт — `study.py matrix` и `study.py cells`.
+  `fields/cells/` — окна 50 м и поля 200 м опыта cells. Путь в репозитории:
+  `tools/research/air3d/fields/`; пересчёт — `study.py matrix` и `study.py cells`.

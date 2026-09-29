@@ -99,3 +99,9 @@
 | `data/terrain/reference/photos/photo_a_mountains.jpg` | Горы (хребет Пайн-Маунтин, Калифорния): лесистые склоны пятн | [Ken Lund (Flickr: Ken Lund, from Reno, Nevada, USA)](https://commons.wikimedia.org/wiki/File:Pine_Mountain_Ridge,_California_(20961815573).jpg) | CC BY-SA 2.0 | стенд T01, compare_ref.py |
 | `data/terrain/reference/photos/photo_b_forest_edge.jpg` | Опушка леса и луг (Врапач, Хорватия), дрон ~250-350 м: пряма | [Pan Domaci](https://commons.wikimedia.org/wiki/File:Aerial_view_of_Vrapa%C4%8D.jpg) | CC0 | стенд T01, compare_ref.py |
 | `data/terrain/reference/photos/photo_c_valley_haze.jpg` | Долина с дымкой и хребтами за 20+ км (Бозеполе, Польша, съём | [Andrzej Otrębski](https://commons.wikimedia.org/wiki/File:Bozepole_aerial.jpg) | CC BY-SA 4.0 | стенд T01, compare_ref.py |
+
+## Сайт проекта (site/, не входит в игру)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `site/themes/hugo-book/` | тема Hugo Book (копия без exampleSite и .git), коммит `40749065b170062e1821ebc9199656c9acd6870d` (ветка main на 24.09.2026) | [alex-shpak/hugo-book](https://github.com/alex-shpak/hugo-book) | MIT (`site/themes/hugo-book/LICENSE`) | сайт на GitHub Pages (`site/hugo.toml`) |
+| KaTeX (стили, шрифты), MiniSearch, Mermaid в `site/themes/hugo-book/static/` | входят в тему | через Hugo Book: [KaTeX](https://github.com/KaTeX/KaTeX), [MiniSearch](https://github.com/lucaong/minisearch), [Mermaid](https://github.com/mermaid-js/mermaid) | MIT | формулы, поиск, диаграммы на сайте |

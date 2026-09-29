@@ -1,0 +1,7 @@
+{{- /* Список дочерних страниц раздела с описанием: {{< children >}} */ -}}
+<dl class="children">
+{{- range .Page.Pages -}}
+<dt><a href="{{ .RelPermalink }}">{{ partial "docs/title" . }}</a></dt>
+{{- with .Description }}<dd>{{ . }}</dd>{{ end -}}
+{{- end -}}
+</dl>
