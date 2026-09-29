@@ -28,7 +28,9 @@ func setup(atmosphere: Atmosphere) -> void:
 	tex.noise = n
 	_mat.set_shader_parameter("noise", tex)
 	var params := {
-		"streak_period_m": "streak_period_m", "streak_stretch": "streak_stretch",
+		"flow_period_m": "flow_period_m", "flow_bend_m": "flow_bend_m",
+		"band_period_m": "band_period_m", "band_stretch": "band_stretch",
+		"fiber_period_m": "fiber_period_m", "fiber_stretch": "fiber_stretch",
 		"veil_period_m": "veil_period_m", "opacity": "opacity", "halo_strength": "halo_strength",
 		"tau_max": "tau_max",
 	}
