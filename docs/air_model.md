@@ -146,3 +146,54 @@ godot --path . -- --location=ongudai --wind=3 --from=180 --hour=12 \
 - Время `air_velocity_at` (способ базы AM-00: Каянча, 75 м, 100 000 вызовов в точке):
   без поля 14,8 мкс, с полем 20,4 мкс (×1,37; база AM-00 — 14,3 мкс). По сетке 6400 точек в
   окне поля: 16,8 → 25,4 мкс (×1,5). `tools/bench/air_velocity_bench.gd`.
+
+### Отладка: срезы и F3 (AM-10)
+- **Срезы (WF-09):** `tools/wind_field/dump_slices.gd` + `.tscn` — headless-инструмент, без окна.
+  Читает поле из файла (`WindField.load_file`, тот же формат, что `--air-field`) и рисует три PNG:
+  два горизонтальных среза (20 и 200 м AGL; цвет — разгон |Gₕ|/U₀ − 1, редкая сетка стрелок
+  направления) и один вертикальный вдоль ветра через точку (цвет — w/U₀, тонкие изолинии θ′
+  каждые 0,15 К, силуэт рельефа снизу). Термики поверх вертикального среза — по желанию
+  (`--location=<id>`): текущая модель термиков через `Atmosphere.thermals_near` (жёлтые
+  треугольники по силе) — **не термики из среднего поля 1** (AM-07 делает это параллельно;
+  подпись на срезе так и говорит). Запуск:
+  ```bash
+  godot --headless --path . res://tools/wind_field/dump_slices.tscn -- \
+    --field=tools/research/air3d/fields/game/kayancha_w100_h13_U3_d180.json \
+    --out=tools/research/air3d/out/slices --name=kayancha --wind=3 --from=180 --hour=13 \
+    [--point=x,y,z] [--location=ongudai] [--extra_out=build/screenshots --extra_prefix=03]
+  ```
+  Точка среза по умолчанию — проба `*_agl10` из meta поля (обычно старт), иначе центр поля.
+  На срезе Каянчи видны разгон и подъём над бровкой перевала (полоса подъёма/спада у земли) и
+  явная полоса ускорения над седловиной на 200 м AGL.
+- **F3 в игре:** отдельный узел `WindFieldDebug` (`scripts/atmosphere/wind_field_debug.gd`),
+  добавлен в `scenes/game/game.tscn` рядом с `Game` (без правок `game.gd`) — по нажатию F3 строит
+  `MultiMesh` стрелок горизонтального ветра (`Atmosphere.air_velocity_at` — та же выборка, что у
+  пилота) в сетке вокруг пилота (радиус/шаг/высоты — экспорты узла), цвет — вертикаль (подъём —
+  голубой, опускание — красный); подпись в углу экрана — «поле» или «аналитика»
+  (`is_air_field_on`). Повторное F3 — выключить: `_process` останавливается, `MultiMesh` и надпись
+  скрыты — без выборок и перестроений, ноль влияния на FPS. F3 раньше в проекте не использовался
+  (нет записи в `configs/controls.json`/input map — проверено, свободна).
+  Скриншот-инструмент (нужно окно): `tools/shots/wind_field_shot.gd` — как `cloud_shadow_shot.gd`
+  (автостарт полёта, ждёт FLYING), включает F3 через `WindFieldDebug._toggle()` и снимает кадр
+  (`--shot`), либо меряет среднее GPU-время кадра `RenderingServer` за `--gpu=N` кадров (общий
+  кадр окна — для сравнения с полем и без, не только трава/вода). Пример:
+  ```bash
+  XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
+    res://tools/shots/wind_field_shot.tscn -- --autostart --bots=0 --location=ongudai \
+    --site=kayancha_south --wind=3 --from=180 --hour=13 \
+    --air-field=tools/research/air3d/fields/game/kayancha_w100_h13_U3_d180.json \
+    --out=build/screenshots --tag=kayancha --shot --preset=high
+  ```
+- **Трава и рябь на воде по полю (WF-10):** `TerrainWind` (`scripts/terrain/terrain_wind.gd`)
+  раз в `field_tex_interval_s` (configs/world.json → wind_visual) строит 2D-текстуру RGF (u, v
+  горизонтали нижнего слоя поля, `AirFieldSet.sample`) вокруг камеры и передаёт всем материалам
+  (`field_wind_tex`/`field_wind_origin`/`field_wind_size_m`); источник поля — сам `Atmosphere`,
+  передан через `WorldLink.link` → `Terrain.set_wind_sources(…, field_src)` (duck typing:
+  `is_air_field_on()`/`air_field`, без правок `atmosphere.gd`). В шейдерах —
+  `scripts/terrain/terrain_wind.gdshaderinc` (`grass_wind`, per-blade трава) и
+  `scripts/terrain/terrain.gdshader` (`water_wind`, рябь) берут `field_wind_tex` по месту (xz)
+  вместо общего `wind_vec`, когда `field_wind_size_m > 0`; без поля или вне текстуры — как раньше.
+  Замер (Каянча, «Высокий», окно 1920×1080, среднее GPU-время кадра за 150 кадров,
+  `tools/shots/wind_field_shot.gd --gpu=150`, `flock /tmp/heat_ca_gpu.lock`): с полем 9,09 мс
+  (два прогона: 9,087 и 9,093), без поля 8,991 мс — Δ ≈ 0,10 мс (трава и рябь воды вместе, в
+  бюджете ≤ 0,2 мс; замер по всему кадру окна — трава и вода в нём лишь часть общей стоимости).
