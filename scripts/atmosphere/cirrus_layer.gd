@@ -30,6 +30,7 @@ func setup(atmosphere: Atmosphere) -> void:
 	var params := {
 		"streak_period_m": "streak_period_m", "streak_stretch": "streak_stretch",
 		"veil_period_m": "veil_period_m", "opacity": "opacity", "halo_strength": "halo_strength",
+		"tau_max": "tau_max",
 	}
 	for u in params:
 		_mat.set_shader_parameter(u, float(cfg[params[u]]))
