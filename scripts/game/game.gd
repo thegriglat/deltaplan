@@ -64,6 +64,8 @@ var hands_off := false
 ## Очередь на старт (сеть, NET-43): идти к месту ожидания {position, heading_deg}; {} — нет.
 ## Клавиши ходьбы и разбега пилота (или отрыв, буксир) отменяют ходьбу.
 var queue_walk: Dictionary = {}
+## Отладочные слои F1/F5/F6 (DebugOverlays).
+var debug_overlays: DebugOverlays
 
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
@@ -119,6 +121,10 @@ func _ready() -> void:
 	if air.has_signal("weather_updated"):
 		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
 	air.set("focus_node", glider)
+	debug_overlays = DebugOverlays.new()
+	debug_overlays.name = "DebugOverlays"
+	add_child(debug_overlays)
+	debug_overlays.setup(air, glider, terrain.height_at)
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
 	camera.set_mode(camera.mode)  # near по режиму
