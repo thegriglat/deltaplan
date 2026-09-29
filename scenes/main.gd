@@ -206,6 +206,17 @@ func _show_menu() -> void:
 		game.restart()
 
 
+## Загрузить мир «за меню» (как было до 0.8.0): на площадке локации, точку с карты — нет.
+## Меню само мир больше не грузит; нужно тестам, которым нужен готовый мир без «Лететь».
+func load_menu_world() -> void:
+	if game.settings != null:
+		return
+	var bg := flight.duplicate()
+	bg.pick_lat = NAN
+	bg.pick_lon = NAN
+	await game.start(bg)
+
+
 ## Esc: физика стоит (дерево на паузе, Telemetry.time_s не растёт), звук молчит.
 ## В сети (NET-40) мир не останавливается — только меню, ввод выключен (крыло летит само).
 func _pause() -> void:

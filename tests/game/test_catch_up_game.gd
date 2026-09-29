@@ -184,10 +184,7 @@ func _setup_main() -> bool:
 	main = MAIN_SCENE.instantiate()
 	add_child(main)
 	game = main.get_node("Game")
-	for i in 600:
-		if game.settings != null:
-			break
-		await get_tree().process_frame
+	await main.call("load_menu_world")
 	if game.settings == null:
 		return false
 	(main.get("opts") as LaunchOptions).autostart = true  # не запоминать выбор в user://

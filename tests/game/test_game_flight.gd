@@ -23,11 +23,8 @@ func test_main_scene_autopilot_flight() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	add_child(main)
 	var game: Game = main.get_node("Game")
-	# Меню поднимает мир за собой асинхронно — дождаться.
-	for i in 600:
-		if game.settings != null:
-			break
-		await get_tree().process_frame
+	# Меню мир больше не грузит — загрузить, как раньше за меню.
+	await main.call("load_menu_world")
 	check(game.settings != null, "мир за меню загружен")
 	check(main.get_node("UI/StartMenu").visible, "меню видно")
 	if game.settings == null:

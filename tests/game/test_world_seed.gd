@@ -15,16 +15,13 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Главная сцена в меню (мир за меню загружен); args — флаги запуска без --autostart.
+## Главная сцена в меню + мир (load_menu_world); args — флаги запуска без --autostart.
 func _open_menu(args: Array[String]) -> Node:
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(args)))
 	add_child(main)
 	var game: Game = main.get_node("Game")
-	for i in 900:
-		if game.settings != null and main.get("state") == 0:
-			break
-		await get_tree().process_frame
+	await main.call("load_menu_world")
 	check(game.settings != null, "мир за меню загружен")
 	# не запоминать выбор «Полёт…» в user:// (как test_game_flight)
 	(main.get("opts") as LaunchOptions).autostart = true

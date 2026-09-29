@@ -142,10 +142,7 @@ func test_net_flight_rules_in_main_scene() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	add_child(main)
 	var game: Game = main.get_node("Game")
-	for i in 600:
-		if game.settings != null:
-			break
-		await get_tree().process_frame
+	await main.call("load_menu_world")
 	check(game.settings != null, "мир за меню загружен")
 	if game.settings == null:
 		main.queue_free()
