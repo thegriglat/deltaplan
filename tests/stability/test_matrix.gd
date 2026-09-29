@@ -1,6 +1,6 @@
 extends Node
 ## 02. Стабильность: матрица крылья × локации × погода (все configs/locations/*),
-## ветер into_site — старт, автопилот, 5 мин симуляции через Game.tick() в headless-цикле
+## ветер в лоб старту — старт, автопилот, 5 мин симуляции через Game.tick() в headless-цикле
 ## (без реального времени). ErrorCatcher — 0 ошибок/предупреждений на сочетание.
 ## Загрузка мира — через main._fly(s) напрямую (как test_game_flight.gd), без клика по меню.
 
@@ -10,7 +10,8 @@ const FLIGHT_S := 300.0
 const MAX_GROUND_S := 20.0
 const MAX_LOAD_FRAMES := 1200
 const WINGS := ["wings/training", "wings/sport", "wings/laminar"]
-const WEATHERS := ["weather/weak", "weather/medium", "weather/strong"]
+## Прогноз [°C, км/ч] (ветер в лоб старту): слабый, средний, сильный день.
+const WEATHERS := {"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0]}
 
 var failures: PackedStringArray = []
 ## Таблица результатов «сочетание → ok/ошибка» — печатается в конце прогона.
@@ -49,14 +50,15 @@ func test_matrix_all_combinations() -> void:
 
 
 func _run_combo(main: Node, game: Game, loc_id: String, wing: String, weather: String) -> void:
-	var label := "%s × %s × %s × into_site" % [loc_id, wing, weather]
+	var label := "%s × %s × %s × в лоб" % [loc_id, wing, weather]
 	var catcher := ErrorCatcher.new()
 	OS.add_logger(catcher)
 
 	var s := FlightSettings.new()
 	s.location_id = loc_id
 	s.wing = wing
-	s.set_legacy_weather(weather)
+	s.temperature_c = float(WEATHERS[weather][0])
+	s.wind_speed_kmh = float(WEATHERS[weather][1])
 	await main.call("_fly", s)  # game.start(s) уже вызывает restart()
 
 	var ok := int(main.get("state")) == 2  # State.FLYING

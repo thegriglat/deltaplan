@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # tools/soak.sh — соак-прогон собранной Linux-сборки по матрице крылья × локации × погода
-# (into_site): для каждого сочетания --autostart --autopilot под xvfb, код выхода + лог на
+# (ветер в лоб старту): для каждого сочетания --autostart --autopilot под xvfb, код выхода + лог на
 # ERROR/SCRIPT ERROR. Требует tools/build.sh linux.
 #
 # Godot сам не завершает процесс по --time= (это работает только вместе со --screenshot),
@@ -25,6 +25,12 @@ fi
 
 wings=(training sport laminar)
 weathers=(weak medium strong)
+# Прогноз погоды: --temp=<°C> --wind=<м/с> (слабый +20 °C / 7 км/ч, средний +26 / 11, сильный +31 / 18).
+declare -A forecast=(
+	[weak]="--temp=20 --wind=1.9444"
+	[medium]="--temp=26 --wind=3.0556"
+	[strong]="--temp=31 --wind=5"
+)
 mapfile -t locations < <(cd configs/locations && ls ./*.json | xargs -n1 basename -s .json | sort)
 
 fail=0
@@ -33,11 +39,11 @@ rows=()
 for loc in "${locations[@]}"; do
 	for wing in "${wings[@]}"; do
 		for weather in "${weathers[@]}"; do
-			combo="$loc × wings/$wing × weather/$weather × into_site"
+			combo="$loc × wings/$wing × $weather × в лоб"
 			log="$LOG_DIR/${loc}_${wing}_${weather}.log"
 			xvfb-run -a timeout "$((TIME_S + BUFFER_S))" "$BIN" --headless -- \
-				--autostart --autopilot --location="$loc" --wing="$wing" --weather="$weather" \
-				--wind=into_site --time="$TIME_S" >"$log" 2>&1
+				--autostart --autopilot --location="$loc" --wing="$wing" ${forecast[$weather]} \
+				--from=launch --time="$TIME_S" >"$log" 2>&1
 			code=$?
 			bad=0
 			# 124/137 — соак сам оборвал процесс по таймауту после TIME_S с (норма).

@@ -5,7 +5,7 @@ extends Node
 ## Запуск:
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/cloud_cut_shot.tscn -- --out=/tmp/cc [--loc=ongudai] \
-##     [--wx=weather/strong] [--hour=13] [--agl=300,1500,2500] [--yaw=0] [--pitch=-3] \
+##     [--temp=31] [--wind=5] [--hour=13] [--agl=300,1500,2500] [--yaw=0] [--pitch=-3] \
 ##     [--air_s=600] [--series=8]
 ## --yaw — поворот от азимута солнца, град; --air_s — сколько секунд прокрутить атмосферу до
 ## заморозки (облака успевают вырасти); --series=N — ещё N кадров подряд с движением камеры
@@ -21,7 +21,9 @@ const OLD_MAX_HITS := 8
 
 var _out := ""
 var _location := "ongudai"
-var _weather := "weather/strong"
+## Прогноз: температура днём, °C, и ветер у земли, км/ч (--wind — в м/с, как у игры).
+var _temp_c := 31.0
+var _wind_kmh := 18.0
 var _hour := 13.0
 var _agl: PackedFloat64Array = [300.0, 1500.0, 2500.0]
 var _yaw := 0.0
@@ -46,8 +48,10 @@ func _ready() -> void:
 				_out = kv[1]
 			"loc":
 				_location = kv[1]
-			"wx":
-				_weather = kv[1]
+			"temp":
+				_temp_c = float(kv[1])
+			"wind":
+				_wind_kmh = float(kv[1]) * 3.6
 			"hour":
 				_hour = float(kv[1])
 			"agl":
@@ -102,7 +106,8 @@ func _run() -> void:
 	var s := FlightSettings.defaults()
 	s.location_id = _location
 	s.site_id = ""
-	s.set_legacy_weather(_weather)
+	s.temperature_c = _temp_c
+	s.wind_speed_kmh = _wind_kmh
 	s.start_hour = _hour
 	if not await game.start(s):
 		_fail("полёт не запустился")

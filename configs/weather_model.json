@@ -200,7 +200,7 @@
     "lag_h_doc": "Запаздывание по классам (SurfaceLayer.CLASS_NAMES), ч: луг/поле τ 0,5 ч, лес 1 ч, скалы/осыпи 1,5 ч, застройка 2 ч. Вода почти не греется (class_strength 0,05) — без запаздывания."
   },
   "reference_context": {
-    "_doc": "Опорное место для тестов и превью без рельефа: Алтай (Синюха), 15 июля. valley/mean — замер tools/weather/derive_table (altai: нижние 10 % рельефа 304 м, средняя 509 м). Таблицы upper_air и dew_point_c подогнаны так, чтобы опорные прогнозы (legacy_presets) здесь давали бывшие пресеты.",
+    "_doc": "Опорное место для тестов и превью без рельефа: Алтай (Синюха), 15 июля. valley/mean — замер tools/weather/derive_table (altai: нижние 10 % рельефа 304 м, средняя 509 м). Таблицы upper_air и dew_point_c подогнаны так, чтобы опорные прогнозы здесь давали эталоны configs/weather/* (опорный прогноз — в _doc эталона; проверка — tests/atmosphere/test_weather_model.gd).",
     "month": 7,
     "day": 15,
     "lat": 51.87,
@@ -208,13 +208,5 @@
     "utc_offset_h": 7,
     "valley_msl_m": 304,
     "mean_msl_m": 509
-  },
-  "legacy_presets": {
-    "_doc": "Бывшие пресеты → опорный прогноз: перенос старых настроек (last_flight.json → weather) и --weather=<id>.",
-    "weak": {"temperature_c": 20, "wind_speed_kmh": 7, "wind_from_deg": 270},
-    "medium": {"temperature_c": 26, "wind_speed_kmh": 11, "wind_from_deg": 270},
-    "strong": {"temperature_c": 31, "wind_speed_kmh": 18, "wind_from_deg": 270},
-    "storm": {"temperature_c": 34, "wind_speed_kmh": 14, "wind_from_deg": 270},
-    "wave": {"temperature_c": 18, "wind_speed_kmh": 36, "wind_from_deg": 270}
   }
 }

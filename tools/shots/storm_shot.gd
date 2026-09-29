@@ -4,7 +4,7 @@ extends Node
 ## и запусками), камера ставится относительно самого развитого Cb (ближнего к старту).
 ## Запуск:
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
-##     res://tools/shots/storm_shot.tscn -- --out=/tmp/st [--loc=altai] [--wx=weather/storm] \
+##     res://tools/shots/storm_shot.tscn -- --out=/tmp/st [--loc=altai] [--temp=34] [--wind=3.9] \
 ##     [--hour=14] [--air_s=2400] [--views=far,mid,under,rain,high] [--bench=1]
 ## Виды: far — Cb за ~25 км сбоку от ветра (башня, наковальня); mid — ~9 км; under — у края
 ## основания, взгляд на ливень; rain — под основанием у ливня, взгляд наружу; high — высоко
@@ -17,7 +17,9 @@ const TIMEOUT_S := 400.0
 
 var _out := ""
 var _location := "altai"
-var _weather := "weather/storm"
+## Прогноз: температура днём, °C, и ветер у земли, км/ч (--wind — в м/с, как у игры).
+var _temp_c := 34.0
+var _wind_kmh := 14.0
 var _hour := 14.0
 var _air_s := 2400.0
 var _views: PackedStringArray = ["far", "mid", "under", "rain", "high", "high_ns", "high2"]
@@ -41,8 +43,10 @@ func _ready() -> void:
 				_out = kv[1]
 			"loc":
 				_location = kv[1]
-			"wx":
-				_weather = kv[1]
+			"temp":
+				_temp_c = float(kv[1])
+			"wind":
+				_wind_kmh = float(kv[1]) * 3.6
 			"hour":
 				_hour = float(kv[1])
 			"air_s":
@@ -91,7 +95,8 @@ func _run() -> void:
 	var s := FlightSettings.defaults()
 	s.location_id = _location
 	s.site_id = ""
-	s.set_legacy_weather(_weather)
+	s.temperature_c = _temp_c
+	s.wind_speed_kmh = _wind_kmh
 	s.start_hour = _hour
 	if not await game.start(s):
 		_fail("полёт не запустился")

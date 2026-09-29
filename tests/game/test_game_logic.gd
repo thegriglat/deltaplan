@@ -103,21 +103,8 @@ func test_flight_settings_roundtrip() -> void:
 	check(d.wing_id() == s.wing.get_file(), "id крыла для Glider")
 
 
-func test_forecast_settings_migration() -> void:
-	# Старый last_flight.json (до прогноза): пресет → опорный прогноз.
-	var old := FlightSettings.from_dict({"weather": "weather/strong", "wind_mode": "preset"})
-	approx(old.temperature_c, 31.0, 1e-6, "strong → +31 °C")
-	approx(old.wind_speed_kmh, 18.0, 1e-6, "strong → 18 км/ч")
-	check(not old.wind_into_launch, "preset → направление не в лоб")
-	approx(old.wind_from_deg, 270.0, 1e-6, "направление из пресета")
-	var wave := FlightSettings.from_dict({"weather": "weather/wave"})
-	approx(wave.temperature_c, 18.0, 1e-6, "wave → +18 °C")
-	approx(wave.wind_speed_kmh, 36.0, 1e-6, "wave → 36 км/ч")
-	check(wave.wind_into_launch, "без wind_mode — в лоб старту")
+func test_forecast_settings() -> void:
 	var def := FlightSettings.defaults()
-	var unknown := FlightSettings.from_dict({"weather": "weather/tornado"})
-	approx(unknown.temperature_c, def.temperature_c, 1e-6, "неизвестный пресет — по умолчанию")
-	approx(unknown.wind_speed_kmh, def.wind_speed_kmh, 1e-6, "ветер по умолчанию")
 	# Мусор — в диапазон меню (UserSettings.load_last_flight).
 	var path := TMP_DIR.path_join("last_flight.json")
 	DirAccess.make_dir_recursive_absolute(TMP_DIR)
@@ -143,29 +130,19 @@ func test_forecast_settings_migration() -> void:
 	approx(def.temperature_c, roundf(WeatherModel.typical_max_c(def.month, def.day)), 1.0, "умолчание")
 
 
-func test_removed_wing_migration() -> void:
-	# Wills Wing Sport 2 (wings/kingpost) убран: сохранённый выбор — на Laminar, не на умолчание.
-	check(not Config.list_configs("wings").has("wings/kingpost"), "Sport 2 убран")
-	check(Config.list_configs("wings").has("wings/laminar"), "замена существует")
+func test_unknown_wing_default() -> void:
+	# Нет такого конфига крыла в last_flight.json — крыло по умолчанию, остальное как записано.
 	var path := TMP_DIR.path_join("last_flight.json")
 	DirAccess.make_dir_recursive_absolute(TMP_DIR)
 	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_string(JSON.stringify({"wing": "wings/kingpost", "pilot_mass_kg": 90}))
+	f.store_string(JSON.stringify({"wing": "wings/no_such_wing", "pilot_mass_kg": 90}))
 	f.close()
 	var loaded := UserSettings.load_last_flight(path)
-	check(loaded.wing == "wings/laminar", "last_flight: kingpost → laminar (%s)" % loaded.wing)
+	var def := FlightSettings.defaults().wing
+	check(loaded.wing == def, "last_flight: нет крыла → %s (%s)" % [def, loaded.wing])
 	approx(loaded.pilot_mass_kg, 90.0, 1e-6, "масса сохранилась")
 	DirAccess.remove_absolute(path)
 	DirAccess.remove_absolute(TMP_DIR)
-	var d := FlightSettings.from_dict({"wing": "wings/kingpost"})
-	check(d.wing == "wings/laminar", "from_dict: kingpost → laminar")
-	var other := FlightSettings.from_dict({"wing": "wings/sport"})
-	check(other.wing == "wings/sport", "прочие — как есть")
-	var o := LaunchOptions.parse(PackedStringArray(["--wing=kingpost"]))
-	check(o.apply_to(FlightSettings.defaults()).wing == "wings/laminar", "--wing=kingpost → laminar")
-	for old: String in FlightSettings.WING_RENAMES:
-		var to := String(FlightSettings.WING_RENAMES[old])
-		check(Config.list_configs("wings").has(to), "%s → %s есть" % [old, to])
 
 
 func test_forecast_launch_options() -> void:
@@ -177,9 +154,6 @@ func test_forecast_launch_options() -> void:
 	s = LaunchOptions.parse(PackedStringArray(["--from=225"])).apply_to(s)
 	check(not s.wind_into_launch, "--from=<град>")
 	approx(s.wind_from_deg, 225.0, 1e-6, "направление")
-	s = LaunchOptions.parse(PackedStringArray(["--weather=medium"])).apply_to(s)
-	approx(s.temperature_c, 26.0, 1e-6, "--weather=medium → +26")
-	approx(s.wind_speed_kmh, 11.0, 1e-6, "--weather=medium → 11 км/ч")
 
 
 func test_user_settings_merge() -> void:

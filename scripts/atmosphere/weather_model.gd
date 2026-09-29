@@ -1,7 +1,7 @@
 class_name WeatherModel
 extends RefCounted
 ## Погода из прогноза (FR-16): температура днём + ветер (+ дата и место) → словарь погоды с теми же
-## ключами, что у бывших пресетов configs/weather/* (Atmosphere.set_weather принимает словарь).
+## ключами, что у эталонов configs/weather/* (Atmosphere.set_weather принимает словарь).
 ## Только чистые статические функции. Параметры — configs/weather_model.json, описание —
 ## docs/atmosphere.md → «Погода из прогноза».
 ##
@@ -30,22 +30,6 @@ static func typical_max_c(month: int, day: int = 15, cfg: Dictionary = {}) -> fl
 	var c := cfg if not cfg.is_empty() else config()
 	var r: Array = c.get("ui", {}).get("temperature_c", [-50, 60, 1])
 	return clampf(monthly(c.get("typical_max_c", [20.0]), month, day), float(r[0]), float(r[1]))
-
-
-## Бывший пресет ("medium" или "weather/medium") → прогноз {temperature_c, wind_speed_kmh,
-## wind_from_deg}; неизвестный — пустой словарь.
-static func legacy_forecast(preset_id: String, cfg: Dictionary = {}) -> Dictionary:
-	var c := cfg if not cfg.is_empty() else config()
-	var lp: Dictionary = c.get("legacy_presets", {})
-	var id := preset_id.get_file()
-	if not lp.has(id) or id.begins_with("_"):
-		return {}
-	var f: Dictionary = lp[id]
-	return {
-		"temperature_c": float(f.temperature_c),
-		"wind_speed_kmh": float(f.wind_speed_kmh),
-		"wind_from_deg": float(f.wind_from_deg),
-	}
 
 
 ## Высоты рельефа вокруг (0, 0): долина (нижняя доля low_percentile) и средняя, м над морем.

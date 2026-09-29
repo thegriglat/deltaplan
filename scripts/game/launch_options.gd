@@ -10,10 +10,9 @@ extends RefCounted
 ##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
 ##   --wing=<id> --mass=<кг> --location=<id> --site=<id>
 ##   --temp=<°C>           прогноз: температура днём (FR-16)
-##   --wind=<м/с>          прогноз: ветер у земли (старое into_site|preset — как --from)
+##   --wind=<м/с>          прогноз: ветер у земли
 ##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — в лоб старту
 ##   --sky=clear|partly|overcast  прогноз: облачность
-##   --weather=<id>        бывший пресет → опорный прогноз (weather_model.json → legacy_presets)
 ##   --hour=<ч>            время старта по часам места (7.5 = 7:30), для кадров утро/вечер
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
@@ -165,7 +164,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.net_code_file = val
 			"net-hide-remote":
 				o.net_hide_remote = true
-			"wing", "mass", "weather", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
+			"wing", "mass", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -176,11 +175,9 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 func apply_to(s: FlightSettings) -> FlightSettings:
 	var r := s.duplicate()
 	if overrides.has("wing"):
-		r.wing = FlightSettings.migrate_wing("wings/" + String(overrides.wing))
+		r.wing = "wings/" + String(overrides.wing)
 	if overrides.has("mass"):
 		r.pilot_mass_kg = float(overrides.mass)
-	if overrides.has("weather"):
-		r.set_legacy_weather(String(overrides.weather))
 	if overrides.has("temp"):
 		r.temperature_c = float(overrides.temp)
 	if overrides.has("sky"):
@@ -194,11 +191,7 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		if not overrides.has("site"):
 			r.site_id = ""
 	if overrides.has("wind"):
-		var wv := String(overrides.wind)
-		if wv == "into_site" or wv == "preset":
-			r.wind_into_launch = wv == "into_site"
-		else:
-			r.wind_speed_kmh = float(wv) * 3.6
+		r.wind_speed_kmh = float(overrides.wind) * 3.6
 	if overrides.has("from"):
 		var fv := String(overrides.from)
 		r.wind_into_launch = fv == "launch"

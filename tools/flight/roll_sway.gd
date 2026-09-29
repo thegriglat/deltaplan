@@ -5,7 +5,7 @@ extends Node
 ## Запуск (без окна, ~2–4 мин):
 ##   godot --headless --path . res://tools/flight/roll_sway.tscn -- [--secs=90] [--dist=1000]
 ##       [--agl=300] [--location=ongudai] [--site=kayancha_south] [--mass=85]
-##       [--weathers=weak,medium,strong] [--wings=training,sport] [--csv=файл.csv]
+##       [--weathers=weak,medium,strong] (WEATHERS) [--wings=training,sport] [--csv=файл.csv]
 ##       [--dump=ряд.csv] [--dump_mode=weight_shift]   (по шагам: крен, курс, воздух —
 ##       прогон «hands» в этом режиме; при нескольких погодах/крыльях — последний)
 ##       [--large_scale=<м>]  подменить atmosphere.json → turbulence.large_scale_m (0 — один
@@ -33,6 +33,11 @@ const HUMAN_FULL_DEG := 30.0
 const HUMAN_DEADBAND_DEG := 1.0
 const MODES := ["rate", "weight_shift"]
 const PILOTS := ["hands", "human"]
+## Погоды для --weathers: прогноз [температура °C, ветер км/ч], ветер в лоб старту.
+const WEATHERS := {
+	"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0], "storm": [34.0, 14.0],
+	"wave": [18.0, 36.0],
+}
 ## Колонки таблицы: ключ метрики, заголовок, формат.
 const COLS := [
 	["bank_mean", "крен ср °", "%.1f"],
@@ -160,7 +165,9 @@ func _run_matrix() -> void:
 			s.location_id = String(_args.location)
 			s.site_id = String(_args.site)
 			s.wing = "wings/" + wing
-			s.set_legacy_weather("weather/" + weather)
+			var fc: Array = WEATHERS[weather]
+			s.temperature_c = float(fc[0])
+			s.wind_speed_kmh = float(fc[1])
 			s.pilot_mass_kg = float(_args.mass)
 			await main.call("_fly", s)
 			if int(main.get("state")) != 2:

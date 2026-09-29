@@ -5,10 +5,6 @@ extends RefCounted
 ## Значения по умолчанию — configs/game.json; меню запоминает последний выбор
 ## в user://last_flight.json (to_dict/from_dict).
 
-## Крылья, убранные из игры: старое имя конфига → замена (сохранённый выбор, флаг --wing).
-## Wills Wing Sport 2 (kingpost) убран 28.09.2026 — ближайшее мачтовое двухобшивочное — Laminar.
-const WING_RENAMES := {"wings/kingpost": "wings/laminar"}
-
 ## Имя конфига крыла: "wings/sport".
 var wing: String = "wings/sport"
 ## Масса пилота, кг; 0 — из configs/pilot.json (ограничивается диапазоном крыла).
@@ -69,16 +65,6 @@ func forecast() -> Dictionary:
 	}
 
 
-## Прогноз из бывшего пресета ("weather/strong" или "strong"); false — неизвестный.
-func set_legacy_weather(preset_id: String) -> bool:
-	var f := WeatherModel.legacy_forecast(preset_id)
-	if f.is_empty():
-		return false
-	temperature_c = float(f.temperature_c)
-	wind_speed_kmh = float(f.wind_speed_kmh)
-	return true
-
-
 ## Зажать прогноз в диапазоны меню (configs/weather_model.json → ui).
 func clamp_forecast() -> void:
 	var ui: Dictionary = WeatherModel.config().get("ui", {})
@@ -130,27 +116,15 @@ func to_dict() -> Dictionary:
 	}
 
 
-## Имя крыла из старого сохранения — на замену, если крыло убрано из игры.
-static func migrate_wing(path: String) -> String:
-	return String(WING_RENAMES.get(path, path))
-
-
 static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSettings:
 	var s := base.duplicate() if base != null else FlightSettings.defaults()
-	s.wing = migrate_wing(String(d.get("wing", s.wing)))
+	s.wing = String(d.get("wing", s.wing))
 	s.pilot_mass_kg = float(d.get("pilot_mass_kg", s.pilot_mass_kg))
-	if d.has("temperature_c"):
-		s.temperature_c = float(d.temperature_c)
-		s.wind_speed_kmh = float(d.get("wind_speed_kmh", s.wind_speed_kmh))
-		s.wind_into_launch = bool(d.get("wind_into_launch", s.wind_into_launch))
-		s.wind_from_deg = float(d.get("wind_from_deg", s.wind_from_deg))
-		s.sky = String(d.get("sky", s.sky))
-	elif d.has("weather"):
-		# Старый файл (до прогноза): пресет → опорный прогноз (weather_model.json → legacy_presets).
-		s.set_legacy_weather(String(d.weather))
-		s.wind_into_launch = String(d.get("wind_mode", "into_site")) != "preset"
-		if not s.wind_into_launch:
-			s.wind_from_deg = 270.0
+	s.temperature_c = float(d.get("temperature_c", s.temperature_c))
+	s.wind_speed_kmh = float(d.get("wind_speed_kmh", s.wind_speed_kmh))
+	s.wind_into_launch = bool(d.get("wind_into_launch", s.wind_into_launch))
+	s.wind_from_deg = float(d.get("wind_from_deg", s.wind_from_deg))
+	s.sky = String(d.get("sky", s.sky))
 	s.location_id = String(d.get("location_id", s.location_id))
 	s.site_id = String(d.get("site_id", s.site_id))
 	var lat: Variant = d.get("pick_lat")

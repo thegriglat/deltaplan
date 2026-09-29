@@ -1,7 +1,7 @@
 extends TestCase
 ## Погода из прогноза (WeatherModel, FR-16; docs/plan/weather_by_temperature.md, карточка 1):
-## опорные прогнозы дают бывшие пресеты, монотонность по температуре и ветру, голубой день,
-## весна, волна выключена, детерминизм и скорость.
+## опорные прогнозы дают эталоны configs/weather/*, монотонность по температуре и ветру,
+## голубой день, весна, волна выключена, детерминизм и скорость.
 
 const PRESET_KEYS: Array[String] = [
 	"wind_speed_kmh", "wind_from_deg", "cloudbase_agl_m", "thermal_strength_ms",
@@ -11,6 +11,10 @@ const PRESET_KEYS: Array[String] = [
 	"cb_top_above_base_m", "wave_strength", "stability_n_per_s", "lens_level_above_crest_m",
 	"dry_thermal_fraction", "thermal_extreme_chance", "thermal_extreme_ms", "dust_devil_chance",
 ]
+## Опорные прогнозы эталонов configs/weather/<id>: [температура °C, ветер км/ч], ветер с 270°.
+const REFERENCE_FORECASTS := {
+	"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0], "storm": [34.0, 14.0],
+}
 
 
 func _derive(t: float, wind_kmh: float, month := 7, cfg: Dictionary = {}) -> Dictionary:
@@ -26,13 +30,12 @@ func _rel(a: float, b: float) -> float:
 	return absf(a - b) / maxf(absf(b), 1.0e-6)
 
 
-func test_legacy_forecasts_match_presets() -> void:
-	for id in ["weak", "medium", "strong", "storm"]:
-		var f := WeatherModel.legacy_forecast(id)
-		check(not f.is_empty(), "нет опорного прогноза %s" % id)
-		var w := _derive(f.temperature_c, f.wind_speed_kmh)
+func test_reference_forecasts_match_presets() -> void:
+	for id: String in REFERENCE_FORECASTS:
+		var f: Array = REFERENCE_FORECASTS[id]
+		var w := _derive(f[0], f[1])
 		var p: Dictionary = Config.get_config("weather/" + id)
-		var tag := "%s (%+.0f °C): " % [id, f.temperature_c]
+		var tag := "%s (%+.0f °C): " % [id, f[0]]
 		check(
 			_rel(w.thermal_strength_ms[1], p.thermal_strength_ms[1]) <= 0.2,
 			tag + "сила макс %.2f против %.2f" % [w.thermal_strength_ms[1], p.thermal_strength_ms[1]]
@@ -130,11 +133,7 @@ func test_deterministic_and_complete() -> void:
 			check(v is float and is_finite(v), "%s — не число" % k)
 
 
-func test_legacy_ids_and_typical() -> void:
-	var f := WeatherModel.legacy_forecast("weather/strong")
-	approx(f.temperature_c, 31.0, 1.0e-6, "strong → +31")
-	approx(f.wind_speed_kmh, 18.0, 1.0e-6, "strong → 18 км/ч")
-	check(WeatherModel.legacy_forecast("nope").is_empty(), "неизвестный пресет — пусто")
+func test_typical_max() -> void:
 	approx(WeatherModel.typical_max_c(7, 15), 26.0, 1.0e-6, "обычно в июле +26")
 	approx(WeatherModel.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
 
