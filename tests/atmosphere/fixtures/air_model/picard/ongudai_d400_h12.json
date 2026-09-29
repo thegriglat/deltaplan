@@ -2,6 +2,9 @@
  "loc": "ongudai",
  "hour": 12.0,
  "wdir": 150.0,
+ "params": {
+  "lam_frac": 0.1
+ },
  "dtau_u": 120.0,
  "dx": 400,
  "dz": 105.0,

@@ -56,7 +56,7 @@ def matrices(rows, names):
 
 
 class Fit:
-    def __init__(self, runs, fine, deg=DEG, drop=(), mode="indep"):
+    def __init__(self, runs, fine, deg=DEG, drop=(), mode="indep", dom=()):
         """mode: indep — σ сетки точки = |поправка| ⊕ её разброс, независимо по точкам (основной вариант);
         scale — поправка × sg, sg — общий мешающий параметр с априорным N(1, 1) (полная корреляция, проверка)."""
         self.mode = mode
@@ -70,9 +70,19 @@ class Fit:
         self.sig_grid = d.std(axis=0)        # зависимость поправки от параметров
         if mode == "indep":
             self.sig_grid = np.sqrt(self.corr ** 2 + self.sig_grid ** 2)
+        # поправка на область: 25 м в области 8 км/потолок 1500 м (как AM-01) против 4 км/1000 м (прогоны);
+        # σ — половина поправки (8 км уже почти не стеснена: AM-01, reference.md → «4. Askervein» (3))
+        self.dom = np.zeros(len(self.names))
+        self.sig_dom = np.zeros(len(self.names))
+        if dom:
+            Xd, Yd = matrices(dom, self.names)
+            dd = Yd - self.sur(SPACE.to_u(Xd))
+            self.dom = dd.mean(axis=0)
+            self.sig_dom = np.sqrt((0.5 * self.dom) ** 2 + dd.std(axis=0) ** 2)
+        self.corr = self.corr + self.dom
         self.d = np.array([o["fsr"] for o in self.obs])
         self.sd = np.array([o["sig"] for o in self.obs])
-        self.sig = np.sqrt(self.sd ** 2 + self.sur.loo_rms ** 2 + self.sig_grid ** 2)
+        self.sig = np.sqrt(self.sd ** 2 + self.sur.loo_rms ** 2 + self.sig_grid ** 2 + self.sig_dom ** 2)
 
     def model(self, lf, z0, sg=1.0):
         return self.sur(SPACE.to_u([[lf, z0]]))[0] + sg * self.corr
@@ -110,7 +120,8 @@ class Fit:
 def main():
     runs = load(OUT / "runs_s1_25.jsonl") + load(OUT / "runs_ext_25.jsonl")
     fine = load(OUT / "runs_s1_12p5.jsonl")
-    F = Fit(runs, fine)
+    dom = load(OUT / "runs_dom_25.jsonl") if (OUT / "runs_dom_25.jsonl").exists() else []
+    F = Fit(runs, fine, dom=dom)
     m, mn = F.minimize()
     lf, z0, sg = (m.values[k] for k in ("lf", "z0", "sg"))
     cov = np.array(m.covariance)
@@ -138,7 +149,7 @@ def main():
         mp, _ = F.minimize(lf_lim=(x, x))
         prof.append(dict(lam_frac=float(x), chi2=mp.fval, z0=mp.values["z0"], sg=mp.values["sg"]))
     m_free, _ = F.minimize(lf_lim=(SPACE.lo[0], SPACE.hi[0]))
-    Fs = Fit(runs, fine, mode="scale")
+    Fs = Fit(runs, fine, mode="scale", dom=dom)
     m_nog, _ = Fs.minimize()
     # напряжение: подгонка по частям
     parts = {}
@@ -146,7 +157,7 @@ def main():
                         ("только подветренная сторона", lambda n: group(n) != "подветренная сторона"),
                         ("без вершины/гребня", lambda n: group(n) == "вершина/гребень"),
                         ("только наветренная сторона", lambda n: group(n) != "наветренная сторона")):
-        Fp = Fit(runs, fine, drop=[n for n in F.names if pred(n)])
+        Fp = Fit(runs, fine, drop=[n for n in F.names if pred(n)], dom=dom)
         mp, _ = Fp.minimize()
         parts[label] = dict(lam_frac=mp.values["lf"], lam_frac_err=mp.errors["lf"], z0=mp.values["z0"],
                             sg=mp.values["sg"], chi2=mp.fval, n=len(Fp.names))
@@ -161,7 +172,7 @@ def main():
             for _rep in range(8 if n < len(runs) else 1):
                 idx = rng.choice(len(runs), n, replace=False) if n < len(runs) else np.arange(n)
                 try:
-                    Fc = Fit([runs[i] for i in idx], fine, deg=deg)
+                    Fc = Fit([runs[i] for i in idx], fine, deg=deg, dom=dom)
                 except ValueError:
                     continue
                 mc, _ = Fc.minimize(lf_lim=(0.1, 0.1))
@@ -181,10 +192,11 @@ def main():
         scale_mode=dict(lam_frac=m_nog.values["lf"], err=m_nog.errors["lf"], sg=m_nog.values["sg"],
                         sg_err=m_nog.errors["sg"], z0=m_nog.values["z0"], chi2=m_nog.fval),
         corr=P.corr(cov).tolist(), chi2=chi2, ndf=ndf, prob=P.chi2_prob(chi2, ndf),
-        prior_z0=Z0_PRIOR, prior_sg_scale_mode=SG_PRIOR, n_obs=n_obs, deg=DEG, n_runs=len(runs), n_fine=len(fine),
+        prior_z0=Z0_PRIOR, prior_sg_scale_mode=SG_PRIOR, n_obs=n_obs, deg=DEG, n_runs=len(runs), n_fine=len(fine), n_dom=len(dom),
         groups={g: dict(n=len(t), chi2=float(sum(t))) for g, t in groups.items()},
         obs=[dict(name=n, grp=group(n), data=float(F.d[i]), sig_data=float(F.sd[i]), sig_loo=float(F.sur.loo_rms[i]),
-                  grid_corr=float(F.corr[i]), sig_grid=float(F.sig_grid[i]),
+                  grid_corr=float(F.corr[i] - F.dom[i]), sig_grid=float(F.sig_grid[i]), dom_corr=float(F.dom[i]),
+                  sig_dom=float(F.sig_dom[i]),
                   model=float(F.model(lf, z0, sg)[i]), model_nom=float(F.model(0.1, 0.03, 1.0)[i]),
                   model_25=float(F.model(lf, z0, 0.0)[i]), chi2=float(terms[i])) for i, n in enumerate(F.names)],
         eigen=dict(values=ev.tolist(), vectors=evec.tolist(), axes=["ln λ/h", "ln z0"], tunes=tunes),
@@ -210,6 +222,7 @@ def figs(res, F, lf, z0, sg):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.ticker  # noqa: F401
     plt.rcParams.update({"font.size": 9})
     # 1) данные против модели по точкам
     fig, ax = plt.subplots(figsize=(12, 4.2))
@@ -217,10 +230,10 @@ def figs(res, F, lf, z0, sg):
     x = np.arange(len(o))
     ax.errorbar(x, [p["data"] for p in o], yerr=[p["sig_data"] for p in o], fmt="ko", ms=3,
                 label="Askervein, 10 м (профиль HT — 15/24/34 м)")
-    ax.errorbar(x + 0.2, [p["model"] for p in o], yerr=[math.hypot(p["sig_loo"], p["sig_grid"]) for p in o],
+    ax.errorbar(x + 0.2, [p["model"] for p in o], yerr=[math.sqrt(p["sig_loo"] ** 2 + p["sig_grid"] ** 2 + p["sig_dom"] ** 2) for p in o],
                 fmt="s", color="#1f77b4", ms=3, label=f"модель (12,5 м): λ/h = {lf:.3f}, z0 = {z0:.3f}; σ — сетка ⊕ полином")
     ax.plot(x + 0.2, [p["model_nom"] for p in o], "x", color="#d62728", ms=4, label="номинал AM-01 (λ/h 0,1; 12,5 м)")
-    ax.plot(x + 0.2, [p["model_25"] for p in o], "+", color="0.5", ms=4, label="те же параметры, сетка 25 м")
+    ax.plot(x + 0.2, [p["model_25"] for p in o], "+", color="0.5", ms=4, label="те же параметры, сетка 25 м, область 4 км (без поправок)")
     ax.set_xticks(x)
     ax.set_xticklabels([p["name"] for p in o], rotation=90)
     ax.set_ylabel("ΔS = S/S_RS − 1 на той же высоте")
@@ -258,8 +271,11 @@ def figs(res, F, lf, z0, sg):
     ax.axvline(0.1, color="#d62728", ls=":", label="номинал AM-01")
     ax.axhline(1, color="0.6", lw=0.6)
     ax.set_xscale("log")
+    ax.set_xticks([0.03, 0.05, 0.1, 0.25, 0.6])
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%g"))
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.set_xlabel("λ/h (Params.lam_frac)")
-    ax.set_ylabel("χ² − χ²_мин (z0 и поправка сетки — в минимуме)")
+    ax.set_ylabel("χ² − χ²_мин (z0 — в минимуме)")
     ax.legend()
     ax.grid(alpha=0.3)
     fig.tight_layout()

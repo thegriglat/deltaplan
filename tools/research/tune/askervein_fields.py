@@ -23,10 +23,10 @@ TOP = 800.0
 def export(res, out):
     f = res["_field"]
     g, hc = f["g"], f["hc"]
-    i0 = int((BOX[0] - g.x0) // g.dx)
-    i1 = int((BOX[2] - g.x0) // g.dx) + 1
-    j0 = int((BOX[1] - g.y0) // g.dx)
-    j1 = int((BOX[3] - g.y0) // g.dx) + 1
+    i0 = max(int((BOX[0] - g.x0) // g.dx), 0)
+    i1 = min(int((BOX[2] - g.x0) // g.dx) + 1, g.nx)
+    j0 = max(int((BOX[1] - g.y0) // g.dx), 0)          # область 4 км: RS — у южного края (в губке притока)
+    j1 = min(int((BOX[3] - g.y0) // g.dx) + 1, g.ny)
     nzc = int(np.searchsorted(g.z, TOP)) + 1
     ch = dict(u=f["u"], v=f["v"], w_mech=f["w"], w_conv=np.zeros_like(f["w"]), theta=np.zeros_like(f["w"]))
     ch = {k: np.nan_to_num(a[:nzc, j0:j1, i0:i1]) for k, a in ch.items()}

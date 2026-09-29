@@ -62,7 +62,9 @@ def main():
         t = (y - d) ** 2 / (sd ** 2 + sg ** 2)
         table.append((float(t.sum()), key, t, y, sg))
     table.sort(key=lambda r: r[0])
-    chi2, kbest, tbest, ybest, sgbest = table[0]
+    chi2, kbest, *_ = table[0]
+    # пороги данными не определены (профиль ниже) — таблица точек и картинка при значениях AM-08
+    _, kshow, tbest, ybest, sgbest = next(r for r in table if r[1] == NOMINAL)
     # профиль по ex0
     prof = {}
     for c, key, *_ in table:
@@ -71,15 +73,16 @@ def main():
     groups = {}
     for n, t in zip(names, tbest):
         groups.setdefault(group(n), []).append(float(t))
+    res_show = dict(ex0=kshow[0], width=kshow[1], desc=kshow[2])
     lee_only = min(((float(r[2][[group(n) == "подветренная сторона" for n in names]].sum()), r[1]) for r in table))
     raw = {p: M["ask_12p5_best"][0]["pts"][p] for p in ["RS_10"] + names}
-    res = dict(best=dict(ex0=kbest[0], width=kbest[1], desc=kbest[2], chi2=chi2, ndf=len(names) - 3),
+    res = dict(best=dict(ex0=kbest[0], width=kbest[1], desc=kbest[2], chi2=chi2, ndf=len(names) - 3), shown=res_show,
                nominal=dict(key=NOMINAL, chi2=nom[0]),
                profile_ex0=sorted(prof.items()),
                groups={g: dict(n=len(v), chi2=sum(v)) for g, v in groups.items()},
                lee_only_best=dict(chi2=lee_only[0], key=lee_only[1]),
                obs=[dict(name=n, grp=group(n), data=float(d[i]), sig_data=float(sd[i]), model=float(ybest[i]),
-                         sig_grid=float(sgbest[i]), model_game50=float(game[kbest][i]), model_nom_field=float(nomf[kbest][i]),
+                         sig_grid=float(sgbest[i]), model_game50=float(game[kshow][i]), model_nom_field=float(nomf[kshow][i]),
                          chi2=float(tbest[i]), lee=raw[n]["lee"], su=raw[n]["su"], sw=raw[n]["sw"], ustar=raw[n]["ustar"],
                          u=raw[n]["u"]) for i, n in enumerate(names)],
                rs=raw["RS_10"], rs_data_tke=ref["tke"])
@@ -104,8 +107,8 @@ def fig(res):
     f, ax = plt.subplots(figsize=(8, 3.8))
     ax.errorbar(x, [p["data"] for p in o], yerr=[p["sig_data"] for p in o], fmt="ko", ms=4, label="Askervein (Gill UVW)")
     ax.errorbar(x + 0.15, [p["model"] for p in o], yerr=[p["sig_grid"] for p in o], fmt="s", color="#1f77b4", ms=4,
-                label=f"модель, поле 12,5 м (ex0 {res['best']['ex0']:.2f}, ширина {res['best']['width']:.1f}, "
-                      f"наклон {res['best']['desc']:.2f})")
+                label=f"модель, поле 12,5 м (пороги AM-08: {res['shown']['ex0']:.1f}/"
+                      f"{res['shown']['ex0'] + res['shown']['width']:.1f}/{res['shown']['desc']:.2f}); σ — сетка 12,5↔25 м")
     ax.plot(x + 0.3, [p["model_game50"] for p in o], "^", color="#ff7f0e", ms=4, label="то же, поле 50 м 1-й пор. (как в игре)")
     ax.set_xticks(x)
     ax.set_xticklabels([p["name"] for p in o], rotation=60)

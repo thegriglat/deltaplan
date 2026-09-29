@@ -20,7 +20,8 @@ func _init() -> void:
 		else:
 			fields.append(a)
 	var pts: Array = JSON.parse_string(FileAccess.get_file_as_string(pts_path))
-	var atm: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://configs/atmosphere.json"))
+	var cfg_text := FileAccess.get_file_as_string("res://configs/atmosphere.json")
+	var atm: Dictionary = JSON.parse_string(cfg_text)
 	var turb: Dictionary = atm.turbulence
 	var turb_max := float(turb.max_amplitude_ms)
 	var rotor_max := float(atm.lee.get("rotor_max_amplitude_ms", 0.0))
@@ -57,7 +58,9 @@ func _init() -> void:
 	quit(0)
 
 
-func _point(f: WindField, ft: FieldTurbulence, p: Dictionary, turb_max: float, rotor_max: float) -> Dictionary:
+func _point(
+	f: WindField, ft: FieldTurbulence, p: Dictionary, turb_max: float, rotor_max: float
+) -> Dictionary:
 	var ground := float(p.ground)
 	var agl := float(p.h)
 	var pos := Vector3(float(p.x), ground + agl, -float(p.y))
