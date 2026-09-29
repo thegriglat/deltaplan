@@ -501,6 +501,71 @@ func ground_height(x: float, z: float) -> float:
 	return lerpf(h0, lerpf(_hc[c + nx], _hc[c + nx + 1], fx), fy)
 
 
+# ------------------------------------------------ только чтение (масштаб 2, C4 v2)
+# Сырые массивы — те же, что у выборки (раскладка — заголовок класса); не менять.
+
+
+## u, v, w_mech подряд на клетку: ((k·ny + j)·nx + i)·3 + канал.
+func raw_vel() -> PackedFloat32Array:
+	return _vel
+
+
+## w_conv по клеткам ((k·ny + j)·nx + i), м/с.
+func raw_w_conv() -> PackedFloat32Array:
+	return _wconv
+
+
+## θ′ по клеткам, К.
+func raw_theta() -> PackedFloat32Array:
+	return _theta
+
+
+## Рельеф сетки по столбцам (j·nx + i), м над морем.
+func raw_hc() -> PackedFloat32Array:
+	return _hc
+
+
+## Первая воздушная клетка столбца (nz — столбец в земле).
+func raw_k1() -> PackedInt32Array:
+	return _k1
+
+
+## Поток тепла H решения (ny·nx), Вт/м²: meta.heat (или heat_array) либо массив heat в .bin файла
+## поля (load_file; читается один раз). Пусто — нет.
+func heat_flux() -> PackedFloat32Array:
+	for k in ["heat", "heat_array"]:
+		if meta.has(k):
+			var v: Variant = meta[k]
+			if v is PackedFloat32Array:
+				return v
+			if v is Array:
+				meta[k] = PackedFloat32Array(v)
+				return meta[k]
+	var arrs: Dictionary = meta.get("arrays", {})
+	if arrs.has("heat") and meta.has("path"):
+		var raw := FileAccess.get_file_as_bytes(String(meta.path) + ".bin")
+		if raw.size() > 0:
+			var ol: Array = arrs.heat
+			meta["heat"] = raw.to_float32_array().slice(int(ol[0]), int(ol[0]) + int(ol[1]))
+			return meta.heat
+	return PackedFloat32Array()
+
+
+## Верх слоя перемешивания решения, м над морем; NAN — нет (нет конвекции).
+func z_i() -> float:
+	return float(meta.z_i) if meta.has("z_i") and meta.z_i != null else NAN
+
+
+## dθ̄/dz фона в центрах уровней (nz), К/м; пусто — нет.
+func gam() -> PackedFloat32Array:
+	return PackedFloat32Array(meta.get("gam", []))
+
+
+## Ветер прогноза на 10 м решения, м/с (meta.u10, иначе cond.wind; 0 — нет).
+func u10() -> float:
+	return float(meta.get("u10", float(meta.get("cond", {}).get("wind", 0.0))))
+
+
 ## Центр поля (x, z мира) и размер по x, м.
 func center_xz() -> Vector2:
 	return Vector2(x0 + 0.5 * nx * dx, -(y0 + 0.5 * ny * dx))

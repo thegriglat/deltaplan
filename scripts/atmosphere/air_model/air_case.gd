@@ -29,7 +29,7 @@ const NLEV := 5
 ## Параметры модели (air.py → Params; числа — физические или численные, см. там).
 var p := {
 	tau_cool = 7200.0, z0 = 0.1, alpha = 0.14, max_profile = 1.8, f_cor = 1.13e-4, k_fa = 1.0,
-	k_smooth_m = 1500.0, zi_min = 300.0, heat_cbl = true, dtau_u = 600.0, dtau_th = 1200.0,
+	k_smooth_m = 1500.0, zi_min = 300.0, heat_cbl = true, dtau_u = NAN, dtau_per_m = 0.3, dtau_th = 1200.0,
 	couple = 1.0, mom_sweeps = 2, heat_sweeps = 4, vcycles = 1, sponge_top_m = 1000.0,
 	sponge_side_m = 2000.0, sponge_rate = 1.0 / 300.0, heat_taper_m = 2000.0, local_k = true,
 	lam = 40.0, lam_frac = 0.1, k_relax = 0.5, cs_h = 0.25,
@@ -71,6 +71,8 @@ var U_a := 0.0
 var ex := 0.0
 var ey := 0.0
 var closure_info := {}
+## Поток тепла, как его берёт решение (с гашением у края), ny·nx, Вт/м².
+var heat_used := PackedFloat64Array()
 ## Высота слоя перемешивания по внутренним столбцам (ny·nx), м.
 var h_bl := PackedFloat64Array()
 
@@ -88,6 +90,12 @@ func set_grid(
 	y0 = p_y0
 
 
+## Псевдошаг импульса, с: p.dtau_u или (NAN) dtau_per_m·Δx по уровню (эталон с cf64b7b).
+func dtau_u() -> float:
+	var v := float(p.dtau_u)
+	return v if not is_nan(v) else float(p.dtau_per_m) * dx
+
+
 ## Центр клетки k (с ореолом), м над морем.
 func zc(k: int) -> float:
 	return z_bot + (k - 0.5) * dz
@@ -97,12 +105,18 @@ func dims() -> Vector3i:
 	return Vector3i(nx + 2, ny + 2, nz + 2)
 
 
-## Метаданные поля для WindField (docs/air_model.md → «Поле на CPU»).
+## Метаданные поля для WindField (docs/air_model.md → «Поле на CPU») + вход термиков из поля
+## (AM-07, air_thermals.gd): heat — поток тепла по столбцам (ny·nx, Вт/м², как в решении, с
+## гашением у края), z_i (м над морем; нет — без ключа), gam — dθ̄/dz в центрах nz уровней, u10.
 func meta() -> Dictionary:
-	return {
+	var m := {
 		dx = dx, dz = dz, x0 = x0, y0 = y0, z_bot = z_bot, nx = nx, ny = ny, nz = nz,
-		z0 = float(p.z0), label = label,
+		z0 = float(p.z0), label = label, u10 = U10, wdir = wdir,
+		heat = to_f32(heat_used), gam = to_f32(gam.slice(1, nz + 1)),
 	}
+	if not is_nan(z_i):
+		m.z_i = z_i
+	return m
 
 
 ## Тот же случай без нагрева (H = 0) — решение для механической вертикали w_mech.
@@ -224,6 +238,10 @@ func prepare() -> bool:
 				hk[j * nx + i] = v / RHO_CP
 				any_heat = any_heat or hk[j * nx + i] != 0.0
 				any_pos = any_pos or hk[j * nx + i] > 0.0
+	heat_used = PackedFloat64Array()
+	heat_used.resize(nx * ny)
+	for q in hk.size():
+		heat_used[q] = hk[q] * RHO_CP
 	_closure(hk, any_heat)
 	# ---- столбцы (с ореолом: копия ближайшего внутреннего)
 	var lam := float(p.lam)
@@ -300,8 +318,9 @@ func prepare() -> bool:
 					fout += maxf(nn, 0.0)
 		fixed_scale = fin / fout if fout > 0.0 else 1.0
 	cd = pow(KAPPA / log(0.5 * dz / float(p.z0)), 2.0)
+	var dtu := dtau_u()
 	prm = PackedFloat32Array([
-		dx, dz, 1.0 / float(p.dtau_u), cd, z_bot, float(p.k_relax), pow(float(p.cs_h) * dx, 2.0),
+		dx, dz, 1.0 / dtu, cd, z_bot, float(p.k_relax), pow(float(p.cs_h) * dx, 2.0),
 		1.0 / dth, 1.0 / float(p.tau_cool), U_a * ex, U_a * ey, float(p.z0), z_sat, float(p.alpha),
 		ustar, float(p.k_fa), fixed_scale, 1.0 if windy else 0.0, KAPPA,
 	])
@@ -378,6 +397,14 @@ func _count_unknowns(kf: PackedInt32Array) -> void:
 
 func _prof(agl: float, z_sat: float) -> float:
 	return minf(pow(maxf(agl, float(p.z0)) / z_sat, float(p.alpha)), 1.0)
+
+
+static func to_f32(a: PackedFloat64Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(a.size())
+	for i in a.size():
+		out[i] = a[i]
+	return out
 
 
 static func _ramp(d: float, L: float, rate: float) -> float:

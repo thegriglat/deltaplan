@@ -1,3 +1,4 @@
+class_name TestAirGpuBlocks
 extends TestCase
 ## Строительные блоки модели воздуха на GPU (AM-02) против эталона float64
 ## (tools/research/air3d/gpu_block_refs.py → tests/atmosphere/fixtures/air_model/blocks/).

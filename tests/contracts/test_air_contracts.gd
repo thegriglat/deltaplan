@@ -4,7 +4,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 1, C2 = 1, C3 = 1, C4 = 1, C5 = 1, C6 = 0, C7 = 0, C8 = 1}
+const CONTRACTS := {C1 = 1, C2 = 1, C3 = 1, C4 = 2, C5 = 1, C6 = 0, C7 = 0, C8 = 1}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -255,8 +255,9 @@ func test_c1_ref_solution_div_free() -> void:
 						continue
 					var d := (u[h + 1] - u[h]) / dx + (v[h + sy] - v[h]) / dx + (w[h + sz] - w[h]) / dz
 					mx = maxf(mx, absf(d))
-		var U := maxf(float(js.case_params.U10), 1.0)
-		check(mx * dx / U < 1.0e-5, "%s: max|∇·u|·dx/U = %s < 1e-5" % [c, String.num_scientific(mx * dx / U)])
+		var u_ref := maxf(float(js.case_params.U10), 1.0)
+		var rel := mx * dx / u_ref
+		check(rel < 1.0e-5, "%s: max|∇·u|·dx/U = %s < 1e-5" % [c, String.num_scientific(rel)])
 
 
 # ------------------------------------------------------------------ C2
@@ -269,11 +270,45 @@ func test_c2_air_case_grid() -> void:
 	check(c.dims() == Vector3i(98, 82, 52), "dims = (nx+2, ny+2, nz+2)")
 	approx(c.zc(1), 420.0 + 52.5, 1.0e-9, "zc(1) — центр первой внутренней клетки")
 	approx(c.zc(0), 420.0 - 52.5, 1.0e-9, "zc(0) — ореол под низом")
-	# AirCase.meta() (ключи WindField + вход термиков) — проверить после коммита AM-03 (контракт,
-	# «Расхождения» Р4): в рабочем дереве meta() падает на PackedFloat32Array(PackedFloat64Array).
+	# AirCase.meta(): ключи WindField + вход термиков (C3/C4: heat ny·nx, z_i — ключа нет при NAN,
+	# gam nz без ореола, u10, wdir); поле с этой meta — вход термиков есть.
+	var m := _case_meta(c, 2000.0)
+	for k in ["dx", "dz", "x0", "y0", "z_bot", "nx", "ny", "nz", "z0", "u10", "wdir", "heat", "gam"]:
+		check(m.has(k), "AirCase.meta(): ключ " + k)
+	var mh: Variant = m.get("heat")
+	check(mh is PackedFloat32Array and (mh as PackedFloat32Array).size() == 96 * 80, "heat ny·nx")
+	check(m.get("gam") is PackedFloat32Array and (m.gam as PackedFloat32Array).size() == 50, "gam nz")
+	check(m.has("z_i") and is_equal_approx(float(m.z_i), 2000.0), "z_i")
+	check(not _case_meta(c, NAN).has("z_i"), "z_i = NAN — ключа нет")
+	var n := 96 * 80 * 50
+	var z := PackedFloat32Array()
+	z.resize(n)
+	var hc := PackedFloat32Array()
+	hc.resize(96 * 80)
+	var f := WindField.from_arrays(m, z, z, z, z, z, hc)
+	check(f != null and AirThermals.has_inputs(f), "поле с meta решателя — вход термиков есть")
+	check(f.heat_flux().size() == 96 * 80 and f.gam().size() == 50, "геттеры C4 v2: heat, gam")
+	check(f.z_i() == 2000.0 and f.u10() == 3.0, "геттеры C4 v2: z_i, u10")
 	var nh := c.without_heat()
 	check(nh.heat.is_empty(), "without_heat(): H = 0")
 	check(nh.dims() == c.dims(), "without_heat(): та же сетка")
+
+
+static func _case_meta(c: AirCase, z_i: float) -> Dictionary:
+	c.hc = PackedFloat64Array()
+	c.hc.resize(96 * 80)
+	c.hc.fill(500.0)
+	c.gam = PackedFloat64Array()
+	c.gam.resize(52)
+	c.gam.fill(0.003)
+	c.heat = PackedFloat64Array()
+	c.heat.resize(96 * 80)
+	c.heat.fill(250.0)
+	c.z_i = z_i
+	c.U10 = 3.0
+	c.wdir = 150.0
+	c.prepare()
+	return c.meta()
 
 
 # ------------------------------------------------------------------ C3
@@ -387,7 +422,10 @@ func test_c3_from_mac_ref() -> void:
 	)
 	var p := _world(m, i, j, k)
 	var s := f.sample(p)
-	check((s - want).length() < 1.0e-5, "центр = среднее двух граней, мир (u, w, −v): %s ≠ %s" % [s, want])
+	check(
+		(s - want).length() < 1.0e-5,
+		"центр = среднее двух граней, мир (u, w, −v): %s ≠ %s" % [s, want]
+	)
 	approx(f.sample_w_conv(p), 0.0, 1.0e-6, "w = w_mech → w_conv = 0")
 	check(absf(want.x) > 1.0, "проба в потоке (u = %.2f)" % want.x)
 
@@ -421,7 +459,7 @@ func test_c3_game_field_files() -> void:
 			check((js.gam as Array).size() == int(js.nz), name + ": gam — nz уровней без ореола")
 			check(int(arrays.heat[1]) == int(js.nx) * int(js.ny), name + ": heat nx·ny")
 			check(AirThermals.has_inputs(f), name + ": вход термиков есть")
-			check(AirThermals.heat_of(f).size() == int(js.nx) * int(js.ny), name + ": heat_of")
+			check(f.heat_flux().size() == int(js.nx) * int(js.ny), name + ": heat_flux")
 
 
 # ------------------------------------------------------------------ C4
@@ -501,9 +539,14 @@ func test_c4_atmosphere_field_rule() -> void:
 
 func test_c4_config_keys() -> void:
 	var ac: Dictionary = Config.get_config("atmosphere").get("air_model", {})
-	for key in ["enabled", "edge_blend_cells", "blend_s", "recompute_game_min", "max_speed_ms", "max_w_ms"]:
+	var keys := [
+		"enabled", "edge_blend_cells", "blend_s", "recompute_game_min", "max_speed_ms", "max_w_ms"
+	]
+	for key in keys:
 		check(ac.has(key), "air_model." + key)
-		check(ac.has(key + "_doc") or key == "enabled" and ac.has("enabled_doc"), "air_model.%s_doc" % key)
+		check(
+			ac.has(key + "_doc") or key == "enabled" and ac.has("enabled_doc"), "air_model.%s_doc" % key
+		)
 	check(String(ac.get("enabled", "")) in ["auto", "on", "off"], "enabled ∈ auto/on/off")
 
 
@@ -533,15 +576,23 @@ func test_c5_net_schema() -> void:
 	)
 	check(NetMessages.NULLABLE.has("ZoneState.thermalSources"), "thermalSources может отсутствовать")
 	var proto := FileAccess.get_file_as_string("res://server/proto/deltaplan/v1/net.proto")
-	check(proto.contains("ThermalSources thermal_sources = 3;"), "proto: ZoneState.thermal_sources = 3")
-	check(proto.contains("string grid = 1;") and proto.contains("bytes mask = 2;"), "proto: grid = 1, mask = 2")
+	check(
+		proto.contains("ThermalSources thermal_sources = 3;"), "proto: ZoneState.thermal_sources = 3"
+	)
+	check(
+		proto.contains("string grid = 1;") and proto.contains("bytes mask = 2;"),
+		"proto: grid = 1, mask = 2"
+	)
 
 
 # ------------------------------------------------------------------ C6
 
 
 func test_c6_start_hours() -> void:
-	check(SunClock.start_hours() == PackedFloat32Array([9.0, 12.0, 15.0, 20.0]), "часы старта [9, 12, 15, 20]")
+	check(
+		SunClock.start_hours() == PackedFloat32Array([9.0, 12.0, 15.0, 20.0]),
+		"часы старта [9, 12, 15, 20]"
+	)
 	approx(SunClock.nearest_start_hour(10.0), 9.0, 1.0e-6, "ближайший к 10:00")
 	approx(SunClock.nearest_start_hour(13.6), 15.0, 1.0e-6, "ближайший к 13:36")
 
@@ -565,7 +616,10 @@ func test_c7_levels_fine_to_coarse() -> void:
 	approx(v.w, 1.0, 1.0e-6, "доля 1")
 	v = s.sample(Vector3(1200.0, 300.0, 0.0), 0.0)
 	approx(v.x, 2.0, 1.0e-5, "вне мелкого — грубый")
-	check(fine.edge_cells == s.edge_cells, "ширина края — клеток своего уровня (air_model.edge_blend_cells)")
+	check(
+		fine.edge_cells == s.edge_cells,
+		"ширина края — клеток своего уровня (air_model.edge_blend_cells)"
+	)
 
 
 # ------------------------------------------------------------------ C8

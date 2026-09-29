@@ -29,6 +29,10 @@ coarse = "#define COARSE";
 layout(local_size_x = 256) in;
 
 layout(constant_id = 0) const int MODE = 0;
+// Раскладка шаблона MODE 0: 0 — 7 плоскостей по N + отдельный B; 1 — строка на точку подряд
+// (C0..C6, b — 8 чисел = один сектор 32 Б; B не читается): зебра по z/y читает линии через одну,
+// и в плоской раскладке сектор каждой из 8 плоскостей используется наполовину.
+layout(constant_id = 1) const int PACKED = 0;
 
 layout(set = 0, binding = 0, std430) readonly buffer BC { float cf[]; };
 // Зебра пишет в X на месте. Вариант coarse (MODE 3, всё в одной группе) читает то, что другие
@@ -94,20 +98,23 @@ void row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out
 	else { i = a1; j = a2; k = p; }
 	int sz = nx * ny;
 	int g = (k * ny + j) * nx + i;
-	float r = b[g];
+	// коэффициент o строки g: плоский (o·n + g) или строкой (g·8 + o)
+	int cs = PACKED == 1 ? 1 : n;
+	int c0 = PACKED == 1 ? 8 * g : g;
+	float r = PACKED == 1 ? cf[c0 + 7] : b[g];
 	// соседи — без ветвлений по коэффициенту (иначе цепочка зависимых чтений); за краем — 0
 	if (dir != 0) {
-		r -= (i > 0 ? cf[n + g] * x[g - 1] : 0.0) + (i < nx - 1 ? cf[2 * n + g] * x[g + 1] : 0.0);
+		r -= (i > 0 ? cf[c0 + cs] * x[g - 1] : 0.0) + (i < nx - 1 ? cf[c0 + 2 * cs] * x[g + 1] : 0.0);
 	}
 	if (dir != 1) {
-		r -= (j > 0 ? cf[3 * n + g] * x[g - nx] : 0.0) + (j < ny - 1 ? cf[4 * n + g] * x[g + nx] : 0.0);
+		r -= (j > 0 ? cf[c0 + 3 * cs] * x[g - nx] : 0.0) + (j < ny - 1 ? cf[c0 + 4 * cs] * x[g + nx] : 0.0);
 	}
 	if (dir != 2) {
-		r -= (k > 0 ? cf[5 * n + g] * x[g - sz] : 0.0) + (k < nz - 1 ? cf[6 * n + g] * x[g + sz] : 0.0);
+		r -= (k > 0 ? cf[c0 + 5 * cs] * x[g - sz] : 0.0) + (k < nz - 1 ? cf[c0 + 6 * cs] * x[g + sz] : 0.0);
 	}
-	ca = p > 0 ? cf[(1 + 2 * dir) * n + g] : 0.0;
-	cb = cf[g];
-	cc = p < g_n - 1 ? cf[(2 + 2 * dir) * n + g] : 0.0;
+	ca = p > 0 ? cf[c0 + (1 + 2 * dir) * cs] : 0.0;
+	cb = cf[c0];
+	cc = p < g_n - 1 ? cf[c0 + (2 + 2 * dir) * cs] : 0.0;
 	cd = r;
 }
 

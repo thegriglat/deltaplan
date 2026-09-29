@@ -23,6 +23,8 @@ const FIELDS := [
 ]
 const DT := 5.0
 const DAY_S := 4.0 * 3600.0
+## Статистика термиков — в круге этого радиуса у старта Каянча (внутри области поля), м.
+const STATS_R := 6000.0
 
 var _quick := false
 var _terrain: Terrain
@@ -127,7 +129,7 @@ func _dump_sources(name: String, f: WindField, s: AirThermals, build_ms: float) 
 		"z_i": f.meta.z_i,
 		"z_lcl": f.meta.z_lcl,
 		"hour": f.meta.cond.hour,
-		"hc": Array(f._hc),
+		"hc": Array(f.raw_hc()),
 		"heat": Array(s.col_heat),
 		"wbar": Array(s.col_w),
 		"fbar": Array(s.col_f),
@@ -197,14 +199,14 @@ static func _noisy(f: WindField, amp: float) -> WindField:
 		a.resize(n)
 		arr.append(a)
 	for c in n:
-		arr[0][c] = f._vel[c * 3] + rng.randf_range(-amp, amp)
-		arr[1][c] = f._vel[c * 3 + 1] + rng.randf_range(-amp, amp)
-		arr[2][c] = f._vel[c * 3 + 2] + rng.randf_range(-amp, amp)
-		arr[3][c] = f._wconv[c] + rng.randf_range(-amp, amp)
-		arr[4][c] = f._theta[c] + rng.randf_range(-amp, amp)
+		arr[0][c] = f.raw_vel()[c * 3] + rng.randf_range(-amp, amp)
+		arr[1][c] = f.raw_vel()[c * 3 + 1] + rng.randf_range(-amp, amp)
+		arr[2][c] = f.raw_vel()[c * 3 + 2] + rng.randf_range(-amp, amp)
+		arr[3][c] = f.raw_w_conv()[c] + rng.randf_range(-amp, amp)
+		arr[4][c] = f.raw_theta()[c] + rng.randf_range(-amp, amp)
 	var m := f.meta.duplicate()
-	m["heat"] = AirThermals.heat_of(f)
-	return WindField.from_arrays(m, arr[0], arr[1], arr[2], arr[3], arr[4], f._hc)
+	m["heat"] = f.heat_flux()
+	return WindField.from_arrays(m, arr[0], arr[1], arr[2], arr[3], arr[4], f.raw_hc())
 
 
 ## Поток массы: Монте-Карло 60 мин (шаг 30 с) на ξ = 0,25/0,5/0,75 — ядра пузырей (w > 0 без
@@ -245,7 +247,7 @@ func _flux(f: WindField) -> Dictionary:
 				var cj := int(floor((-z - f.y0) / f.dx))
 				var col := cj * f.nx + ci
 				var o := s.owner[col]
-				var hc := f._hc[col]
+				var hc := f.raw_hc()[col]
 				var d := s.depth[o] if o >= 0 else 1500.0
 				for xi: float in levels:
 					var p := Vector3(x, hc + xi * d, z)
@@ -313,9 +315,9 @@ func _flux(f: WindField) -> Dictionary:
 	return {"levels": rows, "catchments": catch, "samples": n}
 
 
-## Термики за 4 ч в области поля (как база AM-00, probe.gd): сила, потолок над землёй, расстояние
-## до ближайшего одновременно живого — только термики с источником в поле (вес ≥ 0,5), фокус —
-## Каянча; с полем и без (та же погода medium, та же кромка).
+## Термики за 4 ч (как база AM-00, probe.gd): сила, потолок над землёй, расстояние до ближайшего
+## одновременно живого — термики с источником в круге STATS_R у Каянчи (фокус), с полем и без
+## (та же погода medium, та же кромка).
 func _day_stats(f: WindField, use_field: bool) -> Dictionary:
 	var a := _atmo(f)
 	if use_field:
@@ -334,7 +336,7 @@ func _day_stats(f: WindField, use_field: bool) -> Dictionary:
 		var alive := []
 		for id in a.field.thermals:
 			var th: AtmoThermal = a.field.thermals[id]
-			if f.edge_weight(Vector3(th.src.x, th.src.y + 10.0, th.src.z)) < 0.5:
+			if Vector2(th.src.x - focus.x, th.src.z - focus.z).length() > STATS_R:
 				continue
 			alive.append(th)
 			if not seen.has(id):

@@ -2,6 +2,7 @@
  "loc": "ongudai",
  "hour": 12.0,
  "wdir": 150.0,
+ "dtau_u": 60.0,
  "dx": 200,
  "dz": 105.0,
  "nx": 192,
@@ -43,8 +44,8 @@
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 131,
-   "t_cupy": 8.781
+   "iters": 101,
+   "t_cupy": 5.207
   },
   {
    "U10": 0.0,
@@ -52,39 +53,39 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 11,
-   "t_cupy": 0.745
+   "t_cupy": 0.338
   },
   {
    "U10": 3.0,
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 171,
-   "t_cupy": 11.449
+   "iters": 131,
+   "t_cupy": 6.258
   },
   {
    "U10": 3.0,
    "heat": false,
    "dtype": "float32",
    "status": "ok",
-   "iters": 111,
-   "t_cupy": 7.253
+   "iters": 151,
+   "t_cupy": 5.651
   },
   {
    "U10": 6.0,
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 341,
-   "t_cupy": 11.213
+   "iters": 151,
+   "t_cupy": 9.364
   },
   {
    "U10": 6.0,
    "heat": false,
    "dtype": "float32",
    "status": "ok",
-   "iters": 341,
-   "t_cupy": 22.956
+   "iters": 151,
+   "t_cupy": 8.827
   }
  ],
  "arrays": {

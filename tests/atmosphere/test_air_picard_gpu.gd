@@ -64,7 +64,7 @@ static func case_from_fixture(m: Dictionary) -> AirCase:
 	var prm: Dictionary = m.params
 	for key in c.p:
 		if prm.has(key):
-			c.p[key] = prm[key]
+			c.p[key] = prm[key] if prm[key] != null else NAN
 	return c
 
 
@@ -205,22 +205,23 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 	_run(job)
 	for comp in 3:
 		var nm: String = ["u", "v", "w"][comp]
-		rows.append([name, "шаблон импульса C_" + nm, rel_err(g.download(b["C" + nm]), dat["Cm_" + nm])])
-		rows.append([name, "шаблон импульса b_" + nm, rel_err(g.download(b["b" + nm]), dat["bm_" + nm])])
+		var cb := unpack(g.download(b["C" + nm]))
+		rows.append([name, "шаблон импульса C_" + nm, rel_err(cb[0], dat["Cm_" + nm])])
+		rows.append([name, "шаблон импульса b_" + nm, rel_err(cb[1], dat["bm_" + nm])])
 	# ---- 4. прогонки импульса
 	var d := c.dims()
-	_put(job, {Cu = dat.Cm_u, bu = dat.bm_u, u = dat.bc_u})
-	g.zebra(b.Cu, b.u, b.bu, d)
+	_put(job, {Cu = pack(dat.Cm_u, dat.bm_u), u = dat.bc_u})
+	g.zebra(b.Cu, b.u, RID(), d, [2, 0, 1], true)
 	_run(job)
 	rows.append([name, "прогонка u (z, x, y) ×1", rel_err(g.download(b.u), dat.sweep1_u)])
 	_put(job, {
-		Cu = dat.Cm_u, bu = dat.bm_u, Cv = dat.Cm_v, bv = dat.bm_v, Cw = dat.Cm_w, bw = dat.bm_w,
+		Cu = pack(dat.Cm_u, dat.bm_u), Cv = pack(dat.Cm_v, dat.bm_v), Cw = pack(dat.Cm_w, dat.bm_w),
 		u = dat.bc_u, v = dat.bc_v, w = dat.in_w
 	})
 	for _s in int(c.p.mom_sweeps):
-		g.zebra(b.Cu, b.u, b.bu, d)
-		g.zebra(b.Cv, b.v, b.bv, d)
-		g.zebra(b.Cw, b.w, b.bw, d)
+		g.zebra(b.Cu, b.u, RID(), d, [2, 0, 1], true)
+		g.zebra(b.Cv, b.v, RID(), d, [2, 0, 1], true)
+		g.zebra(b.Cw, b.w, RID(), d, [2, 0, 1], true)
 	_run(job)
 	for nm in ["u", "v", "w"]:
 		rows.append([name, "шаг импульса " + nm, rel_err(g.download(b[nm]), dat["mom_" + nm])])
@@ -280,13 +281,40 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 	})
 	job._heat()
 	_run(job)
-	rows.append([name, "шаблон тепла C", rel_err(g.download(b.Cu), dat.Ch)])
-	rows.append([name, "шаблон тепла b", rel_err(g.download(b.bu), dat.bh)])
-	_put(job, {Cu = dat.Ch, bu = dat.bh, th = dat.in_th})
+	var ch := unpack(g.download(b.Cu))
+	rows.append([name, "шаблон тепла C", rel_err(ch[0], dat.Ch)])
+	rows.append([name, "шаблон тепла b", rel_err(ch[1], dat.bh)])
+	_put(job, {Cu = pack(dat.Ch, dat.bh), th = dat.in_th})
 	for _s in int(c.p.heat_sweeps):
-		g.zebra(b.Cu, b.th, b.bu, d)
+		g.zebra(b.Cu, b.th, RID(), d, [2, 0, 1], true)
 	_run(job)
 	rows.append([name, "шаг тепла θ′", rel_err(g.download(b.th), dat.heat_th)])
+
+
+## Шаблон 7 плоскостей + b → строкой на точку (C0..C6, b).
+static func pack(c: PackedFloat32Array, b: PackedFloat32Array) -> PackedFloat32Array:
+	var n := b.size()
+	var out := PackedFloat32Array()
+	out.resize(8 * n)
+	for i in n:
+		for o in 7:
+			out[8 * i + o] = c[o * n + i]
+		out[8 * i + 7] = b[i]
+	return out
+
+
+## Обратно: [C (7 плоскостей), b].
+static func unpack(p: PackedFloat32Array) -> Array:
+	var n := p.size() / 8
+	var c := PackedFloat32Array()
+	c.resize(7 * n)
+	var b := PackedFloat32Array()
+	b.resize(n)
+	for i in n:
+		for o in 7:
+			c[o * n + i] = p[8 * i + o]
+		b[i] = p[8 * i + 7]
+	return [c, b]
 
 
 func _put(job: AirPicardJob, arrays: Dictionary) -> void:
@@ -328,9 +356,24 @@ static func _div_cpu(
 
 
 ## Решить порциями (кадры), вернуть задачу (release — на вызывающем).
-func _solve(c: AirCase, mech := false, warm := {}) -> AirPicardJob:
+func _solve(c: AirCase, mech := false, warm := {}, loading := false) -> AirPicardJob:
 	var job := AirPicardJob.new()
 	job.case = c
+	if loading:
+		# экран загрузки: за кадр — порции подряд в пределах 40 мс главного потока
+		job.chunk_ms = 30.0
+		job.mech = mech
+		job.warm = warm
+		if not job.start():
+			failures.append("start: " + job.error)
+			return null
+		var fr := 0
+		while not job.is_done() and job.error == "" and fr < 100000:
+			await Engine.get_main_loop().process_frame
+			job.poll_slice(40.0)
+			fr += 1
+		check(job.is_done(), "%s: решено (%s)" % [c.label, job.error])
+		return job
 	job.mech = mech
 	job.warm = warm
 	if not job.start():
@@ -470,8 +513,15 @@ func test_ongudai_d400_vs_reference() -> void:
 			check(e <= 1e-3 * us, "%s у старта: %s > 1e-3·%.2f" % [nm, sci(e), us])
 	print("  поле у старта (16×16×%d), max|Δ|: %s; |u₀| = %.2f м/с" % [c.nz, ", ".join(row), us])
 	# выборка как в игре над стартом (WindField)
-	var f := job.field()
+	var t_f := Time.get_ticks_msec()
+	job.field_async()
+	var f: WindField = await job.field_ready
+	print("  WindField (field_async): %d мс до сигнала" % (Time.get_ticks_msec() - t_f))
 	check(f != null, "WindField построен")
+	if f != null:
+		check(f.meta.has("z_i") and (f.meta.heat as PackedFloat32Array).size() == c.nx * c.ny
+			and (f.meta.gam as PackedFloat32Array).size() == c.nz and f.meta.has("u10"),
+			"meta поля — вход термиков (heat, z_i, gam, u10)")
 	if f != null:
 		for p: Dictionary in m.probes:
 			var pos := Vector3(float(p.game[0]), float(p.game[1]), float(p.game[2]))
@@ -586,3 +636,150 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 	var res := q_in + bg - cool - spg - out
 	var scale := absf(q_in) + absf(bg) + absf(cool) + absf(spg) + absf(out)
 	return {q_in = q_in, bg = bg, cool = cool, sponge = spg, outflow = out, residual = res, rel = res / scale if scale > 0 else 0.0}
+
+
+# ---------------------------------------------------------------- замеры (AIR_PICARD_BENCH=1)
+
+
+static func _time_prog(g: AirGpu, prog: Array, reps: int) -> float:
+	return TestAirGpuBlocks._time_program(g, prog, reps)
+
+
+func test_bench_ongudai() -> void:
+	if OS.get_environment("AIR_PICARD_BENCH") != "1":
+		return
+	var only := OS.get_environment("AIR_PICARD_BENCH_DX")
+	for dx in [400, 200]:
+		if only != "" and only != str(dx):
+			continue
+		var m := load_fix(FIX_ONG + "ongudai_d%d_h12" % dx)
+		# ---- разбивка итерации по ядрам (3 м/с, состояние после 20 итераций)
+		var job := AirPicardJob.new()
+		job.case = case_ongudai(m, 3.0)
+		job.mech = false
+		if not job.start():
+			failures.append(job.error)
+			return
+		var g := job.gpu
+		var p := job.case.p
+		var d := job.case.dims()
+		g.run(job._program("init"))
+		var one := job._prog_iteration()
+		for _i in 20:
+			g.run(one)
+		g.submit()
+		g.sync()
+		var parts := [
+			["граничные условия", func() -> void: job._bc(0)],
+			["местное K (kloc)", func() -> void: job._kloc()],
+			["шаблоны импульса ×3", func() -> void:
+				job._mom(0)
+				job._mom(1)
+				job._mom(2)],
+			["прогонки импульса z (2×3 зебры)", func() -> void:
+				for _s in int(p.mom_sweeps):
+					for cx in [[job.buf.Cu, job.buf.u], [job.buf.Cv, job.buf.v], [job.buf.Cw, job.buf.w]]:
+						g.zebra(cx[0], cx[1], RID(), d, [2], true)],
+			["прогонки импульса x", func() -> void:
+				for _s in int(p.mom_sweeps):
+					for cx in [[job.buf.Cu, job.buf.u], [job.buf.Cv, job.buf.v], [job.buf.Cw, job.buf.w]]:
+						g.zebra(cx[0], cx[1], RID(), d, [0], true)],
+			["прогонки импульса y", func() -> void:
+				for _s in int(p.mom_sweeps):
+					for cx in [[job.buf.Cu, job.buf.u], [job.buf.Cv, job.buf.v], [job.buf.Cw, job.buf.w]]:
+						g.zebra(cx[0], cx[1], RID(), d, [1], true)],
+			["шаблон тепла", func() -> void: job._heat()],
+			["прогонки тепла z, x, y (4×)", func() -> void:
+				for _s in int(p.heat_sweeps):
+					g.zebra(job.buf.Cu, job.buf.th, RID(), d, [2, 0, 1], true)],
+		]
+		var rows := []
+		var total := 0.0
+		for pt in parts:
+			var prog := g.record(pt[1])
+			_time_prog(g, prog, 2)
+			var ms := _time_prog(g, prog, 10)
+			rows.append([pt[0], ms, prog.size()])
+			total += ms
+		var proj := job._prog_project(1, true)
+		_time_prog(g, proj, 2)
+		var vc := job.mg.program(job.buf.phi, job.buf.rhs)
+		var ms_vc := _time_prog(g, vc, 10)
+		var ms_pr := _time_prog(g, proj, 10)
+		rows.append(["проекция: V-цикл (%d уровней)" % job.mg.levels.size(), ms_vc, vc.size()])
+		rows.append(["проекция: ∇·u, центрирование, поправка", ms_pr - ms_vc, proj.size() - vc.size()])
+		total += ms_pr
+		var whole := _time_prog(g, one, 5)
+		var chk := job._prog_check()
+		var ms_chk := _time_prog(g, chk, 5)
+		print("  %d м (%dx%dx%d): ядро | мс на итерацию | доля | запусков" % [dx, d.x, d.y, d.z])
+		for r in rows:
+			print("  %s | %.3f | %.0f %% | %d" % [r[0], r[1], 100.0 * r[1] / total, r[2]])
+		print("  сумма частей %.2f мс; итерация целиком %.2f мс (%d запусков); проверка %.2f мс (раз в 10 итераций)" % [
+			total, whole, one.size(), ms_chk])
+		job.release()
+		# ---- решения целиком (порциями, окно тестов)
+		print("  %d м: ветер | нагрев | итераций (эталон f32) | стена, с | GPU, с | мс/итерацию GPU | порций | макс. порция GPU, мс | CPU в poll Σ/макс, мс" % dx)
+		var cases := [[0.0, false], [3.0, false], [6.0, false], [3.0, true], [3.0, false, true], [6.0, false, true], [3.0, true, true]]
+		if OS.get_environment("AIR_PICARD_BENCH_QUICK") == "1":
+			cases = [[3.0, false], [3.0, false, true]]
+		for cse in cases:
+			var c := case_ongudai(m, cse[0])
+			var loading: bool = cse.size() > 2
+			var jb: AirPicardJob = await _solve(c, cse[1], {}, loading)
+			if jb == null or not jb.is_done():
+				continue
+			var it := 0
+			var ref := []
+			for r: Dictionary in jb.results:
+				it += int(r.iters)
+				ref.append(str(_ref_iters(m, cse[0], r.heated, "float32")))
+			print("  %d м/с | %s | %d (%s) | %.2f | %.2f | %.2f | %d | %.1f | %.0f / %.1f" % [
+				int(cse[0]), ("пара (без + с)" if cse[1] else "с нагревом") + (", загрузка" if loading else ""), it, " + ".join(ref),
+				jb.wall_ms / 1000.0, jb.gpu_ms_total / 1000.0, jb.gpu_ms_total / maxf(it, 1),
+				jb.chunks, jb.max_chunk_gpu_ms, jb.poll_cpu_ms, jb.max_poll_cpu_ms])
+			var imax := 0
+			for q in jb.chunk_log.size():
+				if jb.chunk_log[q].y > jb.chunk_log[imax].y:
+					imax = q
+			print("    наибольшая порция — №%d из %d: %d запусков, %.1f мс; главный поток: запись %.0f мс, ожидание sync %.0f мс" % [imax, jb.chunks, int(jb.chunk_log[imax].x), jb.chunk_log[imax].y, jb.record_cpu_ms, jb.sync_wait_ms])
+			check(jb.max_chunk_gpu_ms <= 50.0, "%d м: порция ≤ 50 мс (%.1f)" % [dx, jb.max_chunk_gpu_ms])
+			jb.release()
+
+
+# ---------------------------------------------------------------- тёплый старт
+
+
+## Тёплый старт от поля с давлением (Air.init_from: u, v, w, θ′, p + 4 V-цикла без изменения p):
+## то же поле — остановка на первой проверке; соседнее время (12:00 → 12:30) — меньше итераций,
+## чем с холодного старта, решение то же (до критерия остановки).
+func test_warm_start() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	var loc := TestAirPlace.load_loc("ongudai")
+	var c12 := AirPlace.domain_case(lw[0], lw[1], loc, 400.0, 12.0, 3.0, 150.0)
+	var j12: AirPicardJob = await _solve(c12)
+	if j12 == null or not j12.is_done():
+		return
+	var st := j12.state()
+	var it12 := j12.iterations()
+	j12.release()
+	var same: AirPicardJob = await _solve(AirPlace.domain_case(lw[0], lw[1], loc, 400.0, 12.0, 3.0, 150.0), false, st)
+	var it_same := same.iterations() if same != null else -1
+	check(it_same == 10, "то же поле с тёплого старта: %d итераций (≤ 10)" % it_same)
+	if same != null:
+		same.release()
+	var c13 := func() -> AirCase: return AirPlace.domain_case(lw[0], lw[1], loc, 400.0, 12.5, 3.0, 150.0)
+	var cold: AirPicardJob = await _solve(c13.call())
+	var warm: AirPicardJob = await _solve(c13.call(), false, st)
+	if cold == null or warm == null:
+		return
+	var dv := 0.0
+	for nm in ["u", "v", "w"]:
+		dv = maxf(dv, max_abs_diff(cold.download(nm), warm.download(nm)))
+	var dth := max_abs_diff(cold.download("th"), warm.download("th"))
+	print("  Онгудай 400 м, 3 м/с: 12:00 холодный %d итераций; то же тёплым %d; 12:30 холодный %d, тёплый от 12:00 %d (−%.0f %%); max|Δu| холодный/тёплый %s м/с, max|Δθ′| %s К" % [
+		it12, it_same, cold.iterations(), warm.iterations(),
+		100.0 * (1.0 - float(warm.iterations()) / cold.iterations()), sci(dv), sci(dth)])
+	check(warm.iterations() < cold.iterations(), "тёплый старт экономит итерации")
+	cold.release()
+	warm.release()

@@ -313,12 +313,12 @@ static func _noisy(f: WindField, amp: float) -> WindField:
 	for a: PackedFloat32Array in [u, v, wm, wc, th]:
 		a.resize(n)
 	for c in n:
-		u[c] = f._vel[c * 3] + rng.randf_range(-amp, amp)
-		v[c] = f._vel[c * 3 + 1] + rng.randf_range(-amp, amp)
-		wm[c] = f._vel[c * 3 + 2] + rng.randf_range(-amp, amp)
-		wc[c] = f._wconv[c] + rng.randf_range(-amp, amp)
-		th[c] = f._theta[c] + rng.randf_range(-amp, amp) / 3.0
-	return WindField.from_arrays(f.meta.duplicate(), u, v, wm, wc, th, f._hc)
+		u[c] = f.raw_vel()[c * 3] + rng.randf_range(-amp, amp)
+		v[c] = f.raw_vel()[c * 3 + 1] + rng.randf_range(-amp, amp)
+		wm[c] = f.raw_vel()[c * 3 + 2] + rng.randf_range(-amp, amp)
+		wc[c] = f.raw_w_conv()[c] + rng.randf_range(-amp, amp)
+		th[c] = f.raw_theta()[c] + rng.randf_range(-amp, amp) / 3.0
+	return WindField.from_arrays(f.meta.duplicate(), u, v, wm, wc, th, f.raw_hc())
 
 
 func test_two_clients_same_thermals() -> void:
