@@ -131,6 +131,12 @@ static func make_world(key: String = DEFAULT_KEY, atmo_cfg: Dictionary = {}) -> 
 		# быстрее. Правила те же.
 		cfg = Config.get_config("atmosphere").duplicate(true)
 		cfg.thermal.generation_radius_m = GEN_RADIUS_M
+	# Поле воздуха (масштаб 1) — у каждого клиента своё и зависит от GPU: отпечаток мира — всегда
+	# на аналитике (docs/air_model.md → «Поле на CPU»).
+	cfg = cfg.duplicate(true)
+	var am: Dictionary = cfg.get("air_model", {})
+	am.enabled = "off"
+	cfg.air_model = am
 	a.configure(cfg, derive.call(fs.start_hour))
 	a.set_ground(height, source_static)
 	a.set_wind(fs.wind_speed_kmh, float(forecast.wind_from_deg), height(0, 0))

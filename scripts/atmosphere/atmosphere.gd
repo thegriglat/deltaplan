@@ -21,6 +21,13 @@ signal weather_changed
 ## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
 signal weather_updated
 
+## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
+static var _air_log_last := ""
+## Поле из командной строки (--air-field=<путь>, отладка до решателя на GPU): читается один раз.
+static var _cmd_field_checked := false
+static var _cmd_field: WindField
+static var _cmd_field_error := ""
+
 ## Нода, вокруг которой живут термики и облака (обычно планер). Если не задана — активная камера.
 @export var focus_node: Node3D
 ## Рисовать облака и птиц (в тестах без окна — выключено автоматически).
@@ -38,6 +45,9 @@ var cloud_phys: CloudPhysics
 var storm: StormField
 ## Подветренные волны и роторы (VR-27).
 var wave: WaveField
+## Среднее поле воздуха (масштаб 1, docs/air_model.md → «Поле на CPU»): уровни и плавная подмена.
+## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
+var air_field: AirFieldSet
 
 ## Время атмосферы, с. Термики — чистые функции времени и координат.
 var time_s: float = 0.0
@@ -108,6 +118,10 @@ var _edge_width: float = 0.45
 var _blend_tau: float = 0.0
 var _target: Dictionary = {}
 var _day_w: Dictionary = {}  ## погода шага дня, выставленная в weather
+## Поле воздуха используется (air_model.enabled ≠ off и поле есть).
+var _air_on: bool = false
+var _air_mode: String = "auto"
+var _air_blend_s: float = 60.0
 
 var _clouds: Node3D
 var _birds: Node3D
@@ -187,6 +201,7 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	_refresh_interval = float(cfg.thermal.refresh_interval_s)
 	_state_interval = float(cfg.thermal.state_update_interval_s)
 	_cache_coefficients()
+	_setup_air()
 	_cloudbase_agl = float(weather.cloudbase_agl_m)
 	_update_cloudbase()
 	for st: Dictionary in weather.get("static_thermals", []):
@@ -375,6 +390,84 @@ static func _lenschow(xi: float) -> float:
 	return sqrt(1.8 * pow(xi, 2.0 / 3.0) * a * a)
 
 
+## Поле воздуха по конфигу air_model: режим, край, ограничители; поле с --air-field=<путь>.
+func _setup_air() -> void:
+	var ac: Dictionary = cfg.get("air_model", {})
+	if air_field == null:
+		air_field = AirFieldSet.new()
+	air_field.edge_cells = float(ac.get("edge_blend_cells", 5.0))
+	air_field.max_speed = float(ac.get("max_speed_ms", 40.0))
+	air_field.max_w = float(ac.get("max_w_ms", 10.0))
+	for f in air_field.levels:
+		f.edge_cells = air_field.edge_cells
+	_air_blend_s = float(ac.get("blend_s", 60.0))
+	_air_mode = String(ac.get("enabled", "auto"))
+	if _air_mode != "off" and not air_field.is_active():
+		var f := _cmdline_field()
+		if f != null:
+			air_field.set_field(f, 0.0)
+	_update_air_mode()
+
+
+## Подать поле воздуха: WindField, массив уровней (от мелкого к грубому) или null — без поля.
+## blend_s — время плавной подмены старого поля (или аналитики) новым, с времени атмосферы;
+## < 0 — air_model.blend_s. При air_model.enabled = off поле хранится, но не используется.
+func set_air_field(new_field: Variant, blend_s: float = -1.0) -> void:
+	if air_field == null:
+		air_field = AirFieldSet.new()
+	air_field.set_field(new_field, _air_blend_s if blend_s < 0.0 else blend_s)
+	_update_air_mode()
+
+
+## Режим поля воздуха поверх конфига: "auto" | "on" | "off" (отладка «поле/аналитика», замеры).
+func set_air_mode(mode: String) -> void:
+	_air_mode = mode
+	_update_air_mode()
+
+
+## Используется ли сейчас поле воздуха (иначе — аналитика).
+func is_air_field_on() -> bool:
+	return _air_on
+
+
+func _update_air_mode() -> void:
+	var reason := ""
+	if _air_mode == "off":
+		reason = "air_model.enabled = off"
+	elif not air_field.is_active():
+		reason = "нет поля" if _cmd_field_error == "" else _cmd_field_error
+		if _air_mode == "on":
+			reason += "; требуется поле (enabled = on)"
+	_air_on = reason == ""
+	var line := "air_model: analytic (%s)" % reason
+	if _air_on:
+		var src := "поле"
+		if not air_field.levels.is_empty():
+			var m: Dictionary = air_field.levels[0].meta
+			src = String(m.get("path", "массивы"))
+			var cond: Dictionary = m.get("cond", {})
+			if cond.has("wind"):
+				src += ", ветер поля %s м/с с %s°" % [cond.wind, cond.get("wdir", "?")]
+		line = "air_model: field (%s; уровней %d)" % [src, air_field.levels.size()]
+	if line != _air_log_last:
+		_air_log_last = line
+		if _air_mode == "on" and not _air_on:
+			push_warning(line)
+		print(line)
+
+
+static func _cmdline_field() -> WindField:
+	if not _cmd_field_checked:
+		_cmd_field_checked = true
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--air-field="):
+				var path := a.substr(12)
+				_cmd_field = WindField.load_file(path)
+				if _cmd_field == null:
+					_cmd_field_error = "ошибка чтения поля %s" % path
+	return _cmd_field
+
+
 ## Функции рельефа: height_fn(x, z) -> высота над уровнем моря, sun_fn(x, z) -> 0..1.
 ## surface_fn(x, z) -> int — класс поверхности (terrain.surface_at), необязательно: для пылевых
 ## вихрей над сухими полями (VR-18).
@@ -486,6 +579,8 @@ func step(dt: float) -> void:
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	time_s += dt
+	if _air_on:
+		air_field.advance(dt)
 	if not _day_active() and not _target.is_empty():
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
@@ -537,28 +632,43 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 		)
 		if lee > 0.0:
 			danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
+	# Среднее поле (масштаб 1): горизонталь и механическая вертикаль с долей fw.w (край — плавно
+	# к аналитике). Нет поля — fw = 0, ниже всё как в аналитике.
+	var fw := Vector4.ZERO
+	if _air_on:
+		fw = air_field.sample(pos, gs.x)
 	# Склоновый подъём: V·∇h впереди по ветру, затухает с высотой над склоном.
 	var w_ridge := 0.0
-	if u > 0.0 and ground.has_ground:
+	if u > 0.0 and ground.has_ground and fw.w < 1.0:
 		var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
 		var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
 		var slope := wd.x * gr.y + wd.z * gr.z
 		var agl_s := maxf(pos.y - gr.x, 0.0)
-		w_ridge = (
-			clampf(_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max)
-			* (1.0 - lee)
+		w_ridge = clampf(
+			_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max
 		)
+	# Поле: w_mech вместо склонового подъёма (аналитика — в доле 1 − fw.w у края поля).
+	if fw.w > 0.0:
+		w_ridge = fw.y + (1.0 - fw.w) * w_ridge
+	w_ridge *= 1.0 - lee
 	# Термики и фоновое опускание (у земли плавно гаснут).
 	var th := field.sample(pos)
 	var fade := minf(agl / _ground_fade, 1.0)
 	var above_base := pos.y >= field.cloudbase_msl
 	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge
 	var h := u * (1.0 - lee * _lee_wind_red)
+	var h_lee := 0.0
 	if lee > 0.0:
 		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
 		w += ld.y
 		h += ld.x
+		h_lee = ld.x
 	var v := Vector3(wd.x * h, w, wd.z * h)
+	if fw.w > 0.0:
+		# горизонталь поля (с подветренным ослаблением и обратным потоком, как у аналитики)
+		var k_lee := 1.0 - lee * _lee_wind_red
+		var ha := u * (1.0 - fw.w) * k_lee + h_lee
+		v = Vector3(fw.x * k_lee + wd.x * ha, w, fw.z * k_lee + wd.z * ha)
 	# Грозы: нисходящий поток, растекание и фронт порывов.
 	var storm_turb := 0.0
 	if not storm.cells.is_empty():
@@ -654,9 +764,16 @@ func _update_wave_wind() -> void:
 
 
 ## Средний ветер без пульсаций и вертикальных потоков (для колдуна на старте и т. п.), м/с.
+## С полем воздуха — горизонталь и механическая вертикаль поля (тот же вес края, что в
+## air_velocity_at), без подветренной эвристики.
 func mean_wind_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
 	var s := wind.speed_at_pos(maxf(pos.y - gs.x, 0.0), pos.y)
+	if _air_on:
+		var fw := air_field.sample(pos, gs.x)
+		if fw.w > 0.0:
+			var a := s * (1.0 - fw.w)
+			return Vector3(fw.x + wind.dir.x * a, fw.y, fw.z + wind.dir.z * a)
 	return Vector3(wind.dir.x * s, 0.0, wind.dir.z * s)
 
 
