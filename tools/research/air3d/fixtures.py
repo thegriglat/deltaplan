@@ -94,13 +94,14 @@ def make_case(name, g, hc, case, prm):
     S.launch(20)                       # без графа (float64, мелко)
     st0 = {k: G(getattr(S, k)).copy() for k in ("u", "v", "w", "th", "p")}
     nu0 = G(S.nuf).copy()
+    nuh0 = G(S.nuh).copy()
     P = Pack()
     # ---- постоянные входы
     P.add("hc", hc)
     P.add("cell", S.cell_np); P.add("tu", S.tu_np); P.add("tv", S.tv_np); P.add("tw", S.tw_np)
     P.add("nu_bg", S.nu_np); P.add("Q", S.Q_np); P.add("gam", S.gam_np)
     P.add("cplz", S.cplz_np); P.add("sp_u", S.sp_np); P.add("sp_w", S.spw_np); P.add("spc", S.spc_np)
-    P.add("ubg", S.ubg_np); P.add("vbg", S.vbg_np)
+    P.add("ubg", S.ubg_np); P.add("vbg", S.vbg_np); P.add("lam", S.lam_np)
     P.add("Kx", S.Kx_np); P.add("Ky", S.Ky_np); P.add("Kz", S.Kz_np)
     P.add("fixed_u", G(S.fixed_u)); P.add("fixed_v", G(S.fixed_v))
     P.add("b_u", G(S.b_u)); P.add("b_v", G(S.b_v))           # индексы граничных граней (целые, точно в f32 до 2^24)
@@ -109,16 +110,16 @@ def make_case(name, g, hc, case, prm):
         P.add("in_" + k, a)
     set_state(S, st0)
     S.nuf[...] = S.cp.asarray(f32(nu0))
+    S.nuh[...] = S.cp.asarray(f32(nuh0))
     # 1. граничные условия
     S.apply_bc()
     P.add("bc_u", G(S.u)); P.add("bc_v", G(S.v))
     # 1б. местное K (длина перемешивания), от состояния после граничных условий
-    P.add("nu_in", G(S.nuf))
+    P.add("nu_in", G(S.nuf)); P.add("nuh_in", G(S.nuh))
     S.update_k()
-    P.add("kloc_nu", G(S.nuf))
+    P.add("kloc_nu", G(S.nuf)); P.add("kloc_nuh", G(S.nuh))
     # 2. поправка переноса импульса (в эталоне выключена — нули; ядро и массив оставлены для полноты)
     S.adv2_mom()
-    P.add("adv2_u", G(S.cu)); P.add("adv2_v", G(S.cv)); P.add("adv2_w", G(S.cw))
     # 3. шаблоны импульса
     S.build_mom()
     for n, C, b in (("u", S.Cu, S.bu), ("v", S.Cv, S.bv), ("w", S.Cw, S.bw)):
@@ -147,7 +148,6 @@ def make_case(name, g, hc, case, prm):
     P.add("div_after", G(S.divergence()))
     # 6. тепло
     S.adv2_heat()
-    P.add("adv2_th", G(S.ct))
     S.build_heat()
     P.add("Ch", G(S.Ct)); P.add("bh", G(S.bt))
     S.heat_step()
@@ -177,10 +177,10 @@ def make_case(name, g, hc, case, prm):
                               th_range=[float(np.nanmin(th)), float(np.nanmax(th))]),
                 history=[dict(it=h["it"], mom_rms=h["mom_rms"], th_rms=h["th_rms"], div_rms=h["div_rms"])
                          for h in S2.hist],
-                notes="in_* и nu_in — вход итерации (nu_bg — фоновое K_b, не меняется); bc_* → kloc_nu → adv2_* → Cm_*/bm_* → sweep1_u (одна прогонка u: z, x, y; "
+                notes="in_*, nu_in, nuh_in — вход итерации (nu_bg — фоновое K_b, не меняется); bc_* → kloc_nu/kloc_nuh → Cm_*/bm_* → sweep1_u (одна прогонка u: z, x, y; "
                       "зебра 0, 1) → mom_* (весь шаг импульса) → div_star → proj_rhs (минус среднее) → "
                       "vcycle_phi_raw (один V-цикл от нуля) → proj_phi (после вычитания среднего, с ореолом 0) → "
-                      "proj_u/v/w/p → div_after → adv2_th → Ch/bh → heat_th. sol_* — решение до критерия + "
+                      "proj_u/v/w/p → div_after → Ch/bh → heat_th. sol_* — решение до критерия + "
                       "finalize (10 V-циклов без изменения p). Целочисленные массивы (типы, индексы) — в float32.")
     OUT.mkdir(parents=True, exist_ok=True)
     P.write(OUT / name, meta)
