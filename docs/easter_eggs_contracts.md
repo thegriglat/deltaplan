@@ -1,0 +1,171 @@
+# Контракты модуля «Пасхалки: живой мир и небо»
+
+План — `docs/plan/world_easter_eggs.md`, журнал — `docs/plan/world_easter_eggs_progress.md`.
+Владелец каркаса — задача **E0**; потребители — E1–E11. Менять интерфейс — только через
+координатора модуля (версия +1, что изменилось, правка всех потребителей в том же шаге).
+
+**Версия: 1** (30.09.2026).
+
+Главный инвариант модуля: **пасхалки — только картинка (и звук)**. Физика полёта, атмосфера,
+боты, столкновения, счёт и итог полёта с пасхалками и без них совпадают **побитно** (К7).
+
+---
+
+## К1. Планировщик ↔ Game (владелец E0)
+
+- `class_name EasterEggs extends Node3D` — `scripts/world_objects/easter_eggs.gd`; узел
+  `Game/EasterEggs`, создаётся в `Game._ready()` (как `Bots`, `WorldLink`).
+- **Ход — только кадром**: `EasterEggs._process(dt)` → `update()`. Из `Game.tick()` (шаг
+  физики) планировщик не вызывается и сам ничего в шаге физики не делает. Тесты, отключившие
+  `process_mode`, зовут `update()` вручную.
+- **Активен только в полёте**: `game.settings != null and game.flying_enabled`. В меню, на
+  загрузке и на паузе (`game.is_paused()`) — не бросает кубик; в меню и на загрузке детей нет.
+- **Время** — `game.world_time()` (с, время атмосферы; в сети — часы зоны). Не `sim_time_s`,
+  не накопленный `dt`. Всё, что видно, — функция этого времени (скачок времени в сети —
+  пасхалка сразу в нужном месте своей траектории).
+- `reset()` — убрать всех детей и забыть расписание; зовётся из `Game.start()` и
+  `Game.restart()`. После него набор активных пасхалок восстанавливается из времени мира.
+- `force(id: String, delay_s := 0.0)` — вызвать пасхалку `id` (или `"all"` — все включённые)
+  через `delay_s` с времени мира: **без кубика и без условий** (`can_appear` не спрашивается).
+  Для кадров и тестов.
+- `active() -> Array[EasterEgg]` — живые пасхалки (для `--look-at=egg` и тестов).
+
+## К2. Контекст пасхалки — `EggContext` (владелец E0)
+
+`class_name EggContext extends RefCounted` — `scripts/world_objects/egg_context.gd`.
+Планировщик заполняет один раз за `update()` и отдаёт всем пасхалкам. **Только чтение.**
+
+| Поле | Тип | Смысл, единицы |
+|---|---|---|
+| `t` | float | время мира, с (К1) |
+| `hour` | float | час по часам места (`game.sky.clock.hour`), 0–24 |
+| `to_sun` | Vector3 | единичный вектор к солнцу, мир (Y вверх); `y < 0` — солнце под горизонтом |
+| `world_key` | String | ключ мира (`game.world_key()`): сид, место, дата, погода |
+| `camera` | Camera3D | текущая камера (может быть `null` headless) |
+| `pilot_pos` | Vector3 | положение крыла игрока, мир, м |
+| `weather` | Dictionary | погода атмосферы (`air.weather`) — не менять, не хранить ссылку дольше кадра |
+| `cloudbase_msl` | float | кромка облаков над уровнем моря, м (`air.get_cloudbase_msl()`, нет — NAN) |
+| `graphics` | String | пресет графики: `low` / `medium` / `high` |
+| `height_at` | Callable(x: float, z: float) -> float | высота рельефа, м |
+| `cloud_density_at` | Callable(p: Vector3) -> float | плотность облака в точке, 0–1 (нет — всегда 0) |
+| `terrain` | Terrain | рельеф и слои OSM — **только чтение** (E6, E7, E8, E10) |
+| `air` | Node3D | воздух — **только чтение**; `air_velocity_at` можно звать, только если К7 зелёный с этим вызовом (E9) |
+
+Координаты — мировые Godot (м, Y вверх, начало — центр локации), как во всём проекте.
+
+## К3. Пасхалка — `EasterEgg` (владелец E0; реализуют E1–E11)
+
+`class_name EasterEgg extends Node3D` — `scripts/world_objects/easter_egg.gd`. Каждая пасхалка —
+скрипт `scripts/world_objects/easter_eggs/<id>.gd` (при необходимости сцена
+`scenes/world_objects/easter_eggs/<id>.tscn`), ассеты — `assets/easter_eggs/<id>/`.
+
+- `static func can_appear(ctx: EggContext, cfg: Dictionary) -> bool` — условия (ночь, погода,
+  геометрия); дёшево; по умолчанию `true`.
+- `func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, t0: float) -> void`
+  — все случайные параметры (направление, высота, цвет…) — **только** из `rng` и только здесь;
+  `t0` — время мира появления.
+- `func update(ctx: EggContext) -> bool` — поставить себя в момент `ctx.t` (функция
+  `ctx.t - t0` и параметров); `false` — кончилась, планировщик удаляет (`queue_free`).
+- `cfg` — свой блок `configs/easter_eggs.json → eggs.<id>`.
+
+**Запрещено** в коде пасхалки и её поддереве:
+- `PhysicsBody3D`, `Area3D`, `CollisionShape3D`, `RayCast3D`; запись в `ObstacleIndex`,
+  `world_link.objects`, `collisions`;
+- глобальный генератор: `randf`, `randi`, `randf_range`, `randi_range`, `randfn`, `randomize`,
+  `seed`, `Array.shuffle`, `Array.pick_random` — только свой `rng`;
+- запись в чужие узлы и объекты (air, glider, terrain, bots, sky, stats, camera, Engine,
+  `Engine.time_scale`); вызов методов, меняющих их состояние;
+- тексты, подсказки, HUD, сигналы в игру;
+- тени у дальних мешей (дальше ~1 км — `cast_shadow = SHADOW_CASTING_SETTING_OFF`).
+
+Разрешено: свои меши, частицы, шейдеры, анимации; свой `AudioStreamPlayer3D` на шине
+`Ambient` (audio.json → buses.ambient); реакция на положение игрока/камеры **только анимацией
+самой пасхалки** (E6 разбегаются, E8 машут).
+
+## К4. Расписание и детерминизм (владелец E0)
+
+Режим пасхалки — `eggs.<id>.mode`:
+
+- `"interval"` — время мира делится на окна по `slot_s` с; окно `n = floor(t / slot_s)`:
+  `rng.seed = ("%s|%s|%d" % [world_key, id, n]).hash()`; появление, если
+  `rng.randf() < slot_s / mean_interval_s`, в момент `t0 = (n + rng.randf()) * slot_s`, если
+  в `t0` выполнено `can_appear`. Дальше тот же `rng` уходит в `begin`.
+- `"per_flight"` — один бросок на полёт: `rng.seed = ("%s|%s|flight" % [world_key, id]).hash()`;
+  появление с вероятностью `chance`, в момент `t0 = rng.randf_range(window_s[0], window_s[1])`
+  от начала мира полёта (если выполнено `can_appear`).
+- `"condition"` — без кубика: раз в `check_s` с `can_appear`; появилась — живёт, пока
+  `update` не вернёт `false` (E5 — пока условие держится). `rng.seed = ("%s|%s|%d" % [world_key,
+  id, floor(t0)]).hash()`.
+- `force` — `rng.seed = ("%s|%s|force" % [world_key, id]).hash()`.
+
+Инварианты: одно и то же `(world_key, id, окно)` → те же `t0` и параметры на любой машине и
+при любом шаге кадра; другой сид → другое расписание; прыжок во времени (сеть) даёт то же, что
+прогон подряд (пасхалка, чья жизнь ещё идёт, появляется посреди траектории). Траектории
+«через всё небо» (E1–E3, E9) — в мировых координатах от центра локации или от заданной точки
+мира, **не от пилота**, чтобы у двоих в зоне было одно и то же. Локальные по смыслу (E5 от
+камеры, реакции E6/E8) — от игрока, это только картинка.
+
+## К5. Конфиг `configs/easter_eggs.json` (владелец E0; блок `eggs.<id>` — задача пасхалки)
+
+```
+{
+  "_doc": "...",
+  "enabled": true,            "enabled_doc": "...",   // false — планировщик ничего не делает
+  "force": "",                "force_doc": "...",     // то же, что --egg (ниже)
+  "eggs": {
+    "_doc": "...",
+    "<id>": {
+      "_doc": "...",
+      "enabled": true,        "enabled_doc": "...",
+      "script": "res://scripts/world_objects/easter_eggs/<id>.gd",  "script_doc": "...",
+      "mode": "interval",     "mode_doc": "...",       // interval | per_flight | condition
+      "slot_s": 60,  "mean_interval_s": 300,           // interval
+      "chance": 0.3, "window_s": [60, 1800],           // per_flight
+      "check_s": 1.0,                                  // condition
+      "...свои поля": ...     // у каждого — "<поле>_doc" (смысл и единицы)
+    }
+  }
+}
+```
+У каждого поля — `<поле>_doc`, у каждого объекта — `_doc`. Блок каждой пасхалки добавляет её
+задача; остальное меняет только E0/координатор.
+
+## К6. Форс для кадров — ключ запуска (владелец E0)
+
+- `--egg=<id>[:<через_с>][,<id2>[:<с>]…]` (или `all`) — `EasterEggs.force(...)` в начале
+  полёта; то же — `configs/easter_eggs.json → force`.
+- `--look-at=egg` — камера кабины смотрит на первую живую пасхалку.
+- Скрипт кадров `tools/shots/easter_egg_shot.sh <id> <файл.jpg> [аргументы игры…]` — главный
+  сцены с `--autostart --autopilot --egg=<id> …`, окно 1920×1080, под
+  `flock -w 1800 /tmp/heat_ca_gpu.lock` (не мешать исследованиям на GPU); печатает среднее GPU мс
+  кадра за 2 с до снимка — строкой `EGG_GPU_MS <id> <мс>`; тот же запуск с `--egg=none` — база
+  для разницы. Кадры — `build/screenshots/easter_eggs/<№>.jpg` (не в git).
+
+## К7. Тест «не трогает физику» (владелец E0; каждая пасхалка обязана держать его зелёным)
+
+`tests/world_objects/test_easter_eggs.gd`:
+
+1. **Физика побитно.** Главная сцена `--autostart` (сид из atmosphere.json), автопилот,
+   `game.process_mode = DISABLED`, `Game.tick(1/120)` вручную 90 с, `EasterEggs.update()` каждый
+   4-й шаг. Прогон A — `enabled = false`; прогон B — `force("all")` в начале (каждая новая
+   пасхалка, добавленная в конфиг, попадает сюда сама). Раз в 1 с записать: положение, скорость
+   и ориентацию крыла игрока, положения ботов, `air.air_velocity_at` в 8 фиксированных точках
+   (у старта, 0–1500 м над рельефом). Сравнение — `==` (побитно), не допуск.
+   Сначала — база: два прогона A подряд совпадают побитно; если нет — это не допуск, а шлюз
+   координатору.
+2. **Жизнь**: у каждой пасхалки `force(id)` → появилась в дереве → `update` до конца →
+   удалена не позже `lifetime_s` (+1 с) из её блока; постоянные (`lifetime_s = 0`) —
+   удаляются `reset()`.
+3. **Запреты**: после `force("all")` и нескольких `update` в поддереве `EasterEggs` нет
+   `CollisionObject3D`, `CollisionShape3D`, `RayCast3D`; в исходниках
+   `scripts/world_objects/easter_eggs/*.gd` нет вызовов глобального генератора (К3, по
+   регулярному выражению: не через `rng.`).
+4. **Расписание**: один ключ мира → один и тот же список `(id, t0)` за 0–7200 с при шаге 1/30
+   и 5 с и при прыжке; другой сид → другой список.
+5. **Конфиг**: у каждого поля `_doc`; `mode` из трёх; `script` грузится и `extends EasterEgg`.
+6. **Меню**: пока не в полёте — детей нет, кубик не бросается.
+
+## Цена (не тест, приёмка каждой пасхалки)
+
+«Высокий» пресет: разница `EGG_GPU_MS` с пасхалкой и без — ≤ 0,2 мс (сумма всех живых
+одновременно); в покое — ноль узлов в дереве под `EasterEggs`.
