@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://l206wtpsvqm7"
+path="res://.godot/imported/air_vec.glsl-5fdb4a292c20fbb4fe851ef61a83fa8d.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_vec.glsl"
+dest_files=["res://.godot/imported/air_vec.glsl-5fdb4a292c20fbb4fe851ef61a83fa8d.res"]
+
+[params]
+
