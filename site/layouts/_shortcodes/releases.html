@@ -1,0 +1,8 @@
+{{- /* Список версий (новые сверху): {{< releases >}} */ -}}
+{{- with site.GetPage "/releases" -}}
+<ul class="releases">
+{{- range .Pages.ByDate.Reverse -}}
+<li><a href="{{ .RelPermalink }}"><strong>{{ .Title }}</strong></a> <span class="muted">— {{ .Date | time.Format "02.01.2006" }}</span>{{ with .Description }}<br>{{ . }}{{ end }}</li>
+{{- end -}}
+</ul>
+{{- end -}}

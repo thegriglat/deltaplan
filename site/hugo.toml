@@ -1,0 +1,301 @@
+# Сайт проекта Deltaplan (GitHub Pages). Сборка: `cd site && hugo --minify`, просмотр: `hugo server`.
+# Документы из docs/ и tools/research/ подключаются как есть через module mounts (не копируются),
+# картинки — через assets/repo/<путь в репозитории> (публикуются только те, на которые есть ссылки).
+baseURL = 'https://thegriglat.github.io/deltaplan/'
+locale = 'ru-RU'
+defaultContentLanguage = 'ru'
+title = 'Deltaplan'
+theme = 'hugo-book'
+buildFuture = true
+enableGitInfo = false
+disablePathToLower = true
+enableRobotsTXT = true
+refLinksErrorLevel = 'ERROR'
+disableKinds = ['taxonomy', 'term']
+
+[pagination]
+  pagerSize = 20
+
+# Дата записи дневника — из имени файла (2026-09-30.md или 2026-09-30-что-угодно.md)
+[frontmatter]
+  date = [':filename', ':default']
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+  [markup.goldmark.extensions.passthrough]
+    enable = true
+    [markup.goldmark.extensions.passthrough.delimiters]
+      block = [['$$', '$$'], ['\[', '\]']]
+      inline = [['\(', '\)']]
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+  [markup.highlight]
+    style = 'github'
+
+[params]
+  BookTheme = 'auto'
+  BookToC = true
+  BookSection = '/'
+  BookSearch = true
+  BookComments = false
+  BookDateFormat = '02.01.2006'
+  BookRepo = 'https://github.com/thegriglat/deltaplan'
+  BookBreadcrumbs = true
+  description = 'Deltaplan — некоммерческий симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
+  # Ссылки на файлы репозитория (код, данные) ведут сюда
+  repoBlob = 'https://github.com/thegriglat/deltaplan/blob/main/'
+  repoCommit = 'https://github.com/thegriglat/deltaplan/commit/'
+  itch = 'https://thegriglat.itch.io/deltaplan'
+
+  # Соответствие «путь в content/ ↔ путь в репозитории» для подключённых документов.
+  # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
+  # Порядок важен: сначала более длинные префиксы.
+  [[params.repoMap]]
+    content = 'research/plan/'
+    repo = 'docs/plan/'
+  [[params.repoMap]]
+    content = 'research/notes/'
+    repo = 'docs/research/'
+  [[params.repoMap]]
+    content = 'research/heat_ca/'
+    repo = 'tools/research/heat_ca/'
+  [[params.repoMap]]
+    content = 'research/air3d/'
+    repo = 'tools/research/air3d/'
+  [[params.repoMap]]
+    content = 'research/askervein/'
+    repo = 'tools/research/data/askervein/'
+  [[params.repoMap]]
+    content = 'docs/'
+    repo = 'docs/'
+  [[params.repoMap]]
+    content = ''
+    repo = 'site/content/'
+
+# Разделы без собственной шапки
+[[cascade]]
+  bookCollapseSection = true
+  [cascade.target]
+    path = '{/research/plan,/research/plan/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/notes,/docs}'
+    kind = 'section'
+[[cascade]]
+  type = 'posts'
+  [cascade.target]
+    path = '{/diary,/diary/**}'
+
+# Порядок и заголовки подключённых разделов/таблиц без шапки
+[[cascade]]
+  weight = 1
+  [cascade.target]
+    path = '/research/plan'
+[[cascade]]
+  weight = 2
+  title = 'Исследования и источники'
+  [cascade.target]
+    path = '/research/notes'
+[[cascade]]
+  weight = 3
+  [cascade.target]
+    path = '/research/heat_ca'
+[[cascade]]
+  weight = 4
+  [cascade.target]
+    path = '/research/air3d'
+[[cascade]]
+  weight = 5
+  [cascade.target]
+    path = '/research/askervein'
+[[cascade]]
+  weight = 1
+  title = 'Результаты базового прототипа'
+  [cascade.target]
+    path = '/research/heat_ca/out'
+[[cascade]]
+  weight = 1
+  [cascade.target]
+    path = '/research/heat_ca/out/summary'
+[[cascade]]
+  title = 'Сценарий 1: солнце на один склон'
+  [cascade.target]
+    path = '/research/heat_ca/out/s1_sun_one_slope'
+[[cascade]]
+  title = 'Сценарий 2: оба склона прогреты'
+  [cascade.target]
+    path = '/research/heat_ca/out/s2_both_slopes'
+[[cascade]]
+  title = 'Сценарий 2б: симметричный хребет'
+  [cascade.target]
+    path = '/research/heat_ca/out/s2_sym'
+[[cascade]]
+  title = 'Сценарий 3: фоновый ветер 3 м/с'
+  [cascade.target]
+    path = '/research/heat_ca/out/s3_wind'
+[[cascade]]
+  title = 'Сценарий 4: инверсия'
+  [cascade.target]
+    path = '/research/heat_ca/out/s4_inversion'
+[[cascade]]
+  title = 'Таблица: сходимость по клетке'
+  [cascade.target]
+    path = '/research/heat_ca/out/study_cells'
+[[cascade]]
+  title = 'Таблица: сходимость по клетке («медленный звук»)'
+  [cascade.target]
+    path = '/research/heat_ca/out/study_cells_acoustic'
+[[cascade]]
+  title = 'Таблица: итерации выравнивания массы'
+  [cascade.target]
+    path = '/research/heat_ca/out/study_solvers'
+[[cascade]]
+  title = 'Таблицы опытов 1, 3, 6'
+  [cascade.target]
+    path = '/research/heat_ca/exp1_3_6_kernels/out'
+[[cascade]]
+  title = 'Опыт 1: линейность'
+  [cascade.target]
+    path = '/research/heat_ca/exp1_3_6_kernels/out/exp1_linear'
+[[cascade]]
+  title = 'Опыт 3: ядра'
+  [cascade.target]
+    path = '/research/heat_ca/exp1_3_6_kernels/out/exp3_kernels'
+[[cascade]]
+  title = 'Опыт 6: сравнение с эталоном'
+  [cascade.target]
+    path = '/research/heat_ca/exp1_3_6_kernels/out/exp6_compare'
+[[cascade]]
+  title = 'Опыт 6: время на GPU'
+  [cascade.target]
+    path = '/research/heat_ca/exp1_3_6_kernels/out/exp6_time'
+[[cascade]]
+  title = 'Таблицы опыта 2'
+  [cascade.target]
+    path = '/research/heat_ca/exp2_picard/out'
+[[cascade]]
+  title = 'Опыт 2: время и точность'
+  [cascade.target]
+    path = '/research/heat_ca/exp2_picard/out/tables'
+[[cascade]]
+  title = 'Таблицы опыта 4'
+  [cascade.target]
+    path = '/research/heat_ca/exp4_transfer_sweeps/out'
+[[cascade]]
+  title = 'Опыт 4: точность и цена'
+  [cascade.target]
+    path = '/research/heat_ca/exp4_transfer_sweeps/out/tables'
+[[cascade]]
+  title = 'Таблицы опыта 5'
+  [cascade.target]
+    path = '/research/heat_ca/exp5_adi/out'
+[[cascade]]
+  title = 'Опыт 5: раунды прогонок'
+  [cascade.target]
+    path = '/research/heat_ca/exp5_adi/out/tables'
+[[cascade]]
+  title = 'Таблицы 3D-эталона'
+  [cascade.target]
+    path = '/research/air3d/out'
+[[cascade]]
+  title = '3D-эталон: время, сходимость, размер'
+  [cascade.target]
+    path = '/research/air3d/out/tables'
+
+[module]
+  [[module.mounts]]
+    source = 'content'
+    target = 'content'
+  [[module.mounts]]
+    source = 'assets'
+    target = 'assets'
+  [[module.mounts]]
+    source = 'static'
+    target = 'static'
+  [[module.mounts]]
+    source = 'layouts'
+    target = 'layouts'
+
+  # --- Документация модулей: docs/*.md (без подпапок) ---
+  [[module.mounts]]
+    source = '../docs'
+    target = 'content/docs'
+    files = ['/*.md']
+
+  # --- Планы: docs/plan/ (README.md → _index.md раздела) ---
+  [[module.mounts]]
+    source = '../docs/plan'
+    target = 'content/research/plan'
+    files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
+  [[module.mounts]]
+    source = '../docs/plan/README.md'
+    target = 'content/research/plan/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/atmosphere/README.md'
+    target = 'content/research/plan/atmosphere/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/build/README.md'
+    target = 'content/research/plan/build/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/game/README.md'
+    target = 'content/research/plan/game/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/tasks/README.md'
+    target = 'content/research/plan/tasks/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/terrain/README.md'
+    target = 'content/research/plan/terrain/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/ui/README.md'
+    target = 'content/research/plan/ui/_index.md'
+  [[module.mounts]]
+    source = '../docs/plan/vegetation/README.md'
+    target = 'content/research/plan/vegetation/_index.md'
+
+  # --- Исследования и источники: docs/research/ ---
+  [[module.mounts]]
+    source = '../docs/research'
+    target = 'content/research/notes'
+    files = ['*.md', '**/*.md']
+
+  # --- Прототип «нагрев → плавучесть → поток» (2D): tools/research/heat_ca/ ---
+  [[module.mounts]]
+    source = '../tools/research/heat_ca'
+    target = 'content/research/heat_ca'
+    files = ['! README.md', '! **/README.md', '! out/refs/**', '*.md', '**/*.md']
+  [[module.mounts]]
+    source = '../tools/research/heat_ca/README.md'
+    target = 'content/research/heat_ca/_index.md'
+  [[module.mounts]]
+    source = '../tools/research/heat_ca/exp1_3_6_kernels/README.md'
+    target = 'content/research/heat_ca/exp1_3_6_kernels/_index.md'
+  [[module.mounts]]
+    source = '../tools/research/heat_ca/exp2_picard/README.md'
+    target = 'content/research/heat_ca/exp2_picard/_index.md'
+  [[module.mounts]]
+    source = '../tools/research/heat_ca/exp4_transfer_sweeps/README.md'
+    target = 'content/research/heat_ca/exp4_transfer_sweeps/_index.md'
+  [[module.mounts]]
+    source = '../tools/research/heat_ca/exp5_adi/README.md'
+    target = 'content/research/heat_ca/exp5_adi/_index.md'
+
+  # --- 3D-эталон: tools/research/air3d/ ---
+  [[module.mounts]]
+    source = '../tools/research/air3d'
+    target = 'content/research/air3d'
+    files = ['! README.md', '! **/README.md', '! fields/**', '*.md', '**/*.md']
+  [[module.mounts]]
+    source = '../tools/research/air3d/README.md'
+    target = 'content/research/air3d/_index.md'
+
+  # --- Данные Askervein ---
+  [[module.mounts]]
+    source = '../tools/research/data/askervein/README.md'
+    target = 'content/research/askervein/_index.md'
+
+  # --- Весь репозиторий как assets/repo/<путь>: картинки и 3D-страницы публикуются
+  #     только если на них есть ссылка; для остальных файлов — проверка существования,
+  #     ссылка ведёт на GitHub. Тяжёлое и служебное исключено.
+  [[module.mounts]]
+    source = '..'
+    target = 'assets/repo'
+    files = ['! .git/**', '! .godot/**', '! .ruff_cache/**', '! build/**', '! site/public/**', '! site/resources/**', '! site/themes/**', '! **/__pycache__/**', '! **.import', '! **.npz', '! tools/research/air3d/fields/**', '! data/terrain/reference/**']

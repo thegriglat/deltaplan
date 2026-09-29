@@ -153,12 +153,12 @@
 #### ZoneJoined
 Вход второго пилота в зону с точкой на карте; ведущий — создатель `"3"`.
 ```json
-{"zoneJoined": {"code": "4721", "zone": {"locationId": "altai", "pickLat": 50.8125, "pickLon": 86.25, "month": 7, "day": 15, "startHour": 13, "forecast": {"temperatureC": 24, "windSpeedKmh": 7.2, "windFromDeg": 225, "sky": "clear"}, "seed": 42, "botsCount": 2, "worldKey": "deltaplan://world?bots=2&date=2026-07-15&from=225&hour=13.00&lat=50.81250&lon=86.25000&seed=42&sky=clear&temp=24.0&v=1&wind=2.0", "worldHash": "625460258ce20bd8"}, "peers": [{"id": "3", "name": "Папа", "joinOrder": 1}, {"id": "7", "name": "Мама", "joinOrder": 2}], "leaderId": "3"}}
+{"zoneJoined": {"code": "4721", "zone": {"locationId": "altai", "pickLat": 50.8125, "pickLon": 86.25, "month": 7, "day": 15, "startHour": 13, "forecast": {"temperatureC": 24, "windSpeedKmh": 7.2, "windFromDeg": 225, "sky": "clear"}, "seed": 42, "botsCount": 2, "worldKey": "deltaplan://world?bots=2&date=2026-07-15&from=225&hour=13.00&lat=50.81250&lon=86.25000&seed=42&sky=clear&temp=24.0&v=1&wind=2.0", "worldHash": "625460258ce20bd8"}, "peers": [{"id": "3", "name": "Пилот А", "joinOrder": 1}, {"id": "7", "name": "Пилот Б", "joinOrder": 2}], "leaderId": "3"}}
 ```
 
 #### PeerJoined
 ```json
-{"peerJoined": {"peer": {"id": "7", "name": "Мама", "joinOrder": 2}}}
+{"peerJoined": {"peer": {"id": "7", "name": "Пилот Б", "joinOrder": 2}}}
 ```
 
 #### PeerLeft
@@ -186,7 +186,7 @@
 #### PilotState
 Живой пилот в полёте, как его получают остальные (сервер добавил `fromId`). Крен/курс — в кватернионе; расцветка паруса задана.
 ```json
-{"fromId": "7", "pilotState": {"pilotId": "7", "name": "Мама", "t": 845.3, "pos": {"x": 120.5, "y": 1850.25, "z": -340.75}, "rot": {"y": 0.6, "w": 0.8}, "vel": {"x": 9.5, "y": -1.25, "z": -6}, "phase": "PILOT_PHASE_FLY", "wing": "wings/sport", "colors": {"hueDeg": 222, "sat": 1, "value": 1}}}
+{"fromId": "7", "pilotState": {"pilotId": "7", "name": "Пилот Б", "t": 845.3, "pos": {"x": 120.5, "y": 1850.25, "z": -340.75}, "rot": {"y": 0.6, "w": 0.8}, "vel": {"x": 9.5, "y": -1.25, "z": -6}, "phase": "PILOT_PHASE_FLY", "wing": "wings/sport", "colors": {"hueDeg": 222, "sat": 1, "value": 1}}}
 ```
 
 #### PilotState (бот)
@@ -225,7 +225,7 @@
 
 ```mermaid
 sequenceDiagram
-    participant A as Папа (клиент)
+    participant A as Пилот А (клиент)
     participant S as Сервер
     A->>S: Hello{gameVersion, name}
     S-->>A: Welcome{yourId: "3"}
@@ -247,9 +247,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant B as Мама (клиент)
+    participant B as Пилот Б (клиент)
     participant S as Сервер
-    participant A as Папа (ведущий)
+    participant A as Пилот А (ведущий)
     B->>S: Hello{gameVersion, name}
     S-->>B: Welcome{yourId: "7"}
     B->>S: JoinZone{code: "4721"}
@@ -272,9 +272,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant A as Папа (ведущий)
+    participant A as Пилот А (ведущий)
     participant S as Сервер
-    participant B as Мама
+    participant B as Пилот Б
     participant C as Друг
     A->>S: LeaveZone (или обрыв соединения)
     S-->>B: PeerLeft{id: "3"}
@@ -301,9 +301,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant B as Мама (догоняет)
+    participant B as Пилот Б (догоняет)
     participant S as Сервер
-    participant A as Папа (цель, в воздухе)
+    participant A as Пилот А (цель, в воздухе)
     loop 10 Гц
         A->>S: PilotState{phase: FLY, pos, vel}
         S-->>B: PilotState (fromId "3")

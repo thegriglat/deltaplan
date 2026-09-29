@@ -1,0 +1,6 @@
+{{- $r := partial "repo/resolve" (dict "Page" .Page "Destination" .Destination) -}}
+{{- if eq $r.kind "missing" -}}
+  {{- errorf "Битая ссылка %q на странице %s (путь в репозитории: %q)" .Destination .Page.File.Path $r.repo -}}
+{{- end -}}
+<a href="{{ $r.url | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if eq $r.kind "external" "github" }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- /**/ -}}
