@@ -48,6 +48,8 @@ var wave: WaveField
 ## Среднее поле воздуха (масштаб 1, docs/air_model.md → «Поле на CPU»): уровни и плавная подмена.
 ## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
 var air_field: AirFieldSet
+## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
+var field_turb: FieldTurbulence
 
 ## Время атмосферы, с. Термики — чистые функции времени и координат.
 var time_s: float = 0.0
@@ -110,6 +112,10 @@ var _in_cloud_turb: float = 1.5
 var _in_cloud_eject: float = 3.0
 var _in_cloud_scale_k: float = 3.0
 var _last_sigma: float = 0.0
+## Промежуточные величины выборки (_extra_flow): σ гроз и роторов волн, облако в точке.
+var _storm_turb: float = 0.0
+var _rotor_turb: float = 0.0
+var _cin := Vector3.ZERO
 ## Базовые коэффициенты болтанки (без поправок хода дня).
 var _mech_k_base: float = 0.14
 var _edge_factor_base: float = 0.35
@@ -161,6 +167,8 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	wind = WindModel.new()
 	wind.setup(cfg.wind, cfg.turbulence, seed_used)
 	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
+	field_turb = FieldTurbulence.new()
+	field_turb.setup(cfg.turbulence, cfg.lee, seed_used)
 	ground = GroundField.new()
 	ground.setup(cfg.ground, cfg.lee)
 	if old_ground != null and old_ground.has_ground:
@@ -439,6 +447,8 @@ func _update_air_mode() -> void:
 		if _air_mode == "on":
 			reason += "; требуется поле (enabled = on)"
 	_air_on = reason == ""
+	if not air_field.levels.is_empty() and field_turb != null:
+		field_turb.z0 = air_field.levels[0].z0
 	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
 	if field != null:
 		field.air = air_field if _air_on else null
@@ -617,10 +627,16 @@ func _update_focus() -> void:
 
 
 ## Скорость воздуха в точке (ветер + вертикальные потоки + пульсации), м/с, мир.
+## С полем воздуха (доля fw.w > 0) — _air_velocity_field (масштабы 1–3 из поля); без поля и вне
+## поля — аналитика ниже (побитно прежняя).
 func air_velocity_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
 	var agl := maxf(pos.y - gs.x, 0.0)
 	var u := wind.speed_at_pos(agl, pos.y)
+	if _air_on:
+		var fw := air_field.sample(pos, gs.x)
+		if fw.w > 0.0:
+			return _air_velocity_field(pos, gs, agl, u, fw)
 	var wd := wind.dir
 	# Подветренная зона: ниже линии тени от гребня против ветра (и в слое сдвига над ней).
 	var lee := 0.0
@@ -635,24 +651,10 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 		)
 		if lee > 0.0:
 			danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
-	# Среднее поле (масштаб 1): горизонталь и механическая вертикаль с долей fw.w (край — плавно
-	# к аналитике). Нет поля — fw = 0, ниже всё как в аналитике.
-	var fw := Vector4.ZERO
-	if _air_on:
-		fw = air_field.sample(pos, gs.x)
 	# Склоновый подъём: V·∇h впереди по ветру, затухает с высотой над склоном.
 	var w_ridge := 0.0
-	if u > 0.0 and ground.has_ground and fw.w < 1.0:
-		var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
-		var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
-		var slope := wd.x * gr.y + wd.z * gr.z
-		var agl_s := maxf(pos.y - gr.x, 0.0)
-		w_ridge = clampf(
-			_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max
-		)
-	# Поле: w_mech вместо склонового подъёма (аналитика — в доле 1 − fw.w у края поля).
-	if fw.w > 0.0:
-		w_ridge = fw.y + (1.0 - fw.w) * w_ridge
+	if u > 0.0 and ground.has_ground:
+		w_ridge = _ridge_lift(pos, agl, u)
 	w_ridge *= 1.0 - lee
 	# Термики и фоновое опускание (у земли плавно гаснут).
 	var th := field.sample(pos)
@@ -660,61 +662,195 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	var above_base := pos.y >= field.cloudbase_msl
 	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge
 	var h := u * (1.0 - lee * _lee_wind_red)
-	var h_lee := 0.0
 	if lee > 0.0:
 		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
 		w += ld.y
 		h += ld.x
-		h_lee = ld.x
-	var v := Vector3(wd.x * h, w, wd.z * h)
-	if fw.w > 0.0:
-		# горизонталь поля (с подветренным ослаблением и обратным потоком, как у аналитики)
-		var k_lee := 1.0 - lee * _lee_wind_red
-		var ha := u * (1.0 - fw.w) * k_lee + h_lee
-		v = Vector3(fw.x * k_lee + wd.x * ha, w, fw.z * k_lee + wd.z * ha)
-	# Грозы: нисходящий поток, растекание и фронт порывов.
-	var storm_turb := 0.0
-	if not storm.cells.is_empty():
-		var sf := storm.sample(pos, agl, time_s)
-		v += Vector3(sf.x, sf.y, sf.z)
-		storm_turb = sf.w
-	# Подветренные волны и роторы.
-	var rotor_turb := 0.0
-	if wave.enabled:
-		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
-		v.y += wv.x
-		rotor_turb = wv.y
-	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
-	var cin := Vector3.ZERO
-	if cloud_phys.cloud_count() > 0:
-		cin = cloud_phys.sample(pos)
-		v += Vector3(cin.y, 0.0, cin.z) * _in_cloud_eject * cin.x
+	var v := _extra_flow(Vector3(wd.x * h, w, wd.z * h), pos, agl)
 	_last_sigma = 0.0
 	if not turbulence_enabled:
 		return v
-	# Турбулентность: механическая + конвективная (Lenschow) + край термика + ротор.
-	var mech := _mech_k * u * (1.0 + _mech_boost * exp(-agl / _mech_h))
-	var conv := 0.0
-	if not above_base:
-		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
-		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
 	var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee
-	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
-	amp2 += storm_turb * storm_turb + rotor_turb * rotor_turb
-	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
-	var amp := minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
+	var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
+	var tv := _analytic_turb(pos, agl, amp, fade)
 	# В облаке — бурление: большие пульсации мелкого масштаба во всех направлениях.
-	var chaos := _in_cloud_turb * cin.x
+	var chaos := _in_cloud_turb * _cin.x
 	_last_sigma = sqrt(amp * amp + chaos * chaos)
 	if chaos > 1.0e-3:
 		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
 	if amp < 1.0e-3:
 		return v
+	return v + tv
+
+
+## Склоновый подъём аналитики: V·∇h впереди по ветру, затухает с высотой над склоном, м/с.
+func _ridge_lift(pos: Vector3, agl: float, u: float) -> float:
+	var wd := wind.dir
+	var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
+	var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
+	var slope := wd.x * gr.y + wd.z * gr.z
+	var agl_s := maxf(pos.y - gr.x, 0.0)
+	return clampf(_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max)
+
+
+## Грозы, подветренные волны, поток в облаке — добавить к скорости v; σ болтанки гроз и роторов
+## волн — в _storm_turb, _rotor_turb, облако в точке — в _cin (для бурления).
+func _extra_flow(v_in: Vector3, pos: Vector3, agl: float) -> Vector3:
+	var v := v_in
+	# Грозы: нисходящий поток, растекание и фронт порывов.
+	_storm_turb = 0.0
+	if not storm.cells.is_empty():
+		var sf := storm.sample(pos, agl, time_s)
+		v += Vector3(sf.x, sf.y, sf.z)
+		_storm_turb = sf.w
+	# Подветренные волны и роторы.
+	_rotor_turb = 0.0
+	if wave.enabled:
+		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
+		v.y += wv.x
+		_rotor_turb = wv.y
+	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
+	_cin = Vector3.ZERO
+	if cloud_phys.cloud_count() > 0:
+		_cin = cloud_phys.sample(pos)
+		v += Vector3(_cin.y, 0.0, _cin.z) * _in_cloud_eject * _cin.x
+	return v
+
+
+## σ болтанки аналитики (горизонталь), м/с: механическая + конвективная (Lenschow) + край термика
+## + ротор + грозы и роторы волн.
+func _analytic_amp(
+	_pos: Vector3, gs: Vector4, agl: float, u: float, th: Vector3, rot: float, above_base: bool
+) -> float:
+	var mech := _mech_k * u * (1.0 + _mech_boost * exp(-agl / _mech_h))
+	var conv := 0.0
+	if not above_base:
+		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
+		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
+	amp2 += _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
+	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
+	return minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
+
+
+## Пульсации аналитики: двухмасштабный шум WindModel.gust_unit × σ (вертикаль — доля
+## vertical_ratio и гаснет у земли).
+func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector3:
+	if amp < 1.0e-3:
+		return Vector3.ZERO
 	# Крупные вихри растут с высотой (у земли масштаб вихрей ~ высоты): на разбеге и посадке —
 	# мелкая болтанка, как раньше.
 	var n := wind.gust_unit(pos, time_s, _advect, agl / wind.large_fade_agl)
-	return v + Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+	return Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+
+
+## Скорость воздуха с полем (масштабы 1–3 из поля, docs/air_model.md → «Масштаб 3: возмущения
+## из поля»). fw — выборка поля (доля a = fw.w > 0); в полосе края (a < 1) остаток — аналитика с её
+## линией тени.
+## - Среднее: горизонталь и w_mech — поле; подветренного опускания и ослабления ветра поверх поля
+##   нет (они уже в поле); у аналитической доли — как в аналитике.
+## - Зона отрыва — признак из поля (_field_lee: дефицит скорости у земли против лог-профиля под
+##   «внешним» ветром столба и опускание); в ней эвристика даёт только рывки (с нулевым средним —
+##   поток массы уже в поле), обратный поток у земли и болтанку слоя смешения.
+## - Болтанка: механическая по u* поля и местному сдвигу (с поправкой на устойчивость Ri),
+##   конвективная по w* (Lenschow), слоя смешения за гребнем по ΔU; шум — спектр фон Кармана
+##   (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости.
+func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Vector4) -> Vector3:
+	var wd := wind.dir
+	var a := fw.w
+	var tb := air_field.sample_turb(pos, gs.x)
+	# аналитическая доля (полоса края поля): линия тени, склоновый подъём
+	var lee_a := 0.0
+	var relief := -1.0
+	var w_ridge := 0.0
+	if a < 1.0 and u > 0.0:
+		var depth := gs.w - pos.y
+		if depth > -_lee_shear:
+			relief = ground.relief_at(pos.x, pos.z)
+			lee_a = (
+				clampf((depth + _lee_shear) / (_lee_depth + _lee_shear), 0.0, 1.0)
+				* clampf(relief / _lee_relief, 0.0, 1.0)
+			)
+		if ground.has_ground:
+			w_ridge = _ridge_lift(pos, agl, u) * (1.0 - lee_a)
+	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU
+	var uf := Vector2(fw.x, fw.z).length() / a
+	var u_out := tb[WindField.T_UOUT]
+	var lee_f := field_turb.lee(uf, agl, tb)
+	var du := maxf(u_out - uf, 0.0) * lee_f
+	var danger := 0.0
+	if lee_f > 0.0 or lee_a > 0.0:
+		danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
+		if relief < 0.0:
+			relief = ground.relief_at(pos.x, pos.z)
+	# средняя вертикаль: w_mech поля + аналитика в доле края; термики и фон — как всегда
+	var th := field.sample(pos)
+	var fade := minf(agl / _ground_fade, 1.0)
+	var above_base := pos.y >= field.cloudbase_msl
+	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + fw.y + (1.0 - a) * w_ridge
+	var h := u * (1.0 - a) * (1.0 - lee_a * _lee_wind_red)
+	if lee_a > 0.0:
+		w -= (1.0 - a) * lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee_a
+	var hard_a := (1.0 - a) * u * lee_a * danger
+	var hard_f := a * du * danger
+	if hard_a + hard_f > 1.0e-3:
+		# рывки вниз в пятнах шума; у поля — с нулевым средним (поток массы уже в w_mech поля)
+		var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
+		var g := clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
+		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		w -= _lee_burst * (hard_a * g + hard_f * (g - g_mean))
+		# обратный поток у земли в глубине зоны (пузырь отрыва полем не разрешён)
+		var core := danger * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+		h -= (
+			((1.0 - a) * _lee_reverse * u * lee_a + a * field_turb.reverse * u_out * lee_f)
+			* core
+		)
+	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
+	v = _extra_flow(v, pos, agl)
+	_last_sigma = 0.0
+	if not turbulence_enabled:
+		return v
+	# болтанка поля
+	var conv_a := 0.0
+	if tb[WindField.T_HMIX] <= 0.0 and not above_base:
+		# в поле нет данных о нагреве — конвективная болтанка аналитики (погода)
+		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
+		conv_a = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio))
+	var s_u := sg.x
+	var s_w := sg.y
+	var s_sep := field_turb.sep_sigma(du)
+	s_u = maxf(s_u, s_sep.x)
+	s_w = maxf(s_w, s_sep.y)
+	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
+	s_u = minf(sqrt(s_u * s_u + ex2), maxf(_turb_max, minf(s_sep.x, _lee_rotor_max)))
+	s_w = minf(
+		sqrt(s_w * s_w + ex2 * _vert_ratio * _vert_ratio),
+		maxf(_turb_max, minf(s_sep.y, _lee_rotor_max))
+	)
+	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
+	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
+	var l_sep := field_turb.sep_scale * maxf(relief, 0.0) * lee_f
+	var n := field_turb.gusts.sample(
+		pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep)
+	)
+	var tv := Vector3(n.x * s_u, n.y * s_w, n.z * s_u)
+	var sig := s_u
+	if a < 1.0:
+		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
+		var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee_a
+		var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
+		var ta := _analytic_turb(pos, agl, amp, fade)
+		var k := 1.0 / sqrt(a * a + (1.0 - a) * (1.0 - a))
+		tv = (tv * a + ta * (1.0 - a)) * k
+		sig = sqrt(a * s_u * s_u + (1.0 - a) * amp * amp)
+	var chaos := _in_cloud_turb * _cin.x
+	_last_sigma = sqrt(sig * sig + chaos * chaos)
+	if chaos > 1.0e-3:
+		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
+		v += nc * chaos
+	return v + tv
 
 
 ## Опасность подветренной зоны 0..1 от ветра прогноза (нелинейно: слабый ветер — мягко).
