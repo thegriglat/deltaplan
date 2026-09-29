@@ -29,3 +29,18 @@ var cloud_density_at := func(_p: Vector3) -> float: return 0.0
 var terrain: Terrain
 ## Воздух — только чтение (air_velocity_at — лишь если тест К7 зелёный с этим вызовом).
 var air: Node3D
+## Дата полёта (sky.clock) — К8.
+var month := 7
+var day := 15
+## Высота солнца над горизонтом, градусы (из to_sun).
+var sun_elev_deg := 90.0
+## Облачность прогноза: clear / partly / overcast.
+var sky := "clear"
+## Ветер у земли по прогнозу, м/с.
+var wind_ms := 0.0
+## Откуда ветер, градусы (0 — с севера, 90 — с востока), как в прогнозе пилота.
+var wind_from_deg := 270.0
+## Температура днём по прогнозу, °C.
+var temp_c := 20.0
+## Место (EggPlace, только чтение); null — рельеф не загружен (тесты без мира).
+var place: EggPlace
