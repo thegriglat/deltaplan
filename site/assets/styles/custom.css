@@ -1,0 +1,13 @@
+/* Deltaplan: подписи к картинкам, галереи, мелочи */
+.markdown figure { margin: 1.25em 0; }
+.markdown figure img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+.markdown figcaption { font-size: .875em; opacity: .75; margin-top: .35em; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 1em 0; }
+.gallery figure { margin: 0; }
+.gallery img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 4px; }
+.latest-release img { max-width: 100%; border-radius: 4px; }
+.muted, .source-link { opacity: .7; font-size: .875em; }
+.source-link { margin-top: 2em; }
+.markdown table { display: block; overflow-x: auto; }
+.markdown math[display="block"] { overflow-x: auto; }
+a.commit code { font-size: .85em; }

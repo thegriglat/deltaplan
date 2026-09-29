@@ -1,0 +1,18 @@
+{{/*
+  Заголовок страницы: title из шапки → первый заголовок «# …» документа
+  (документы из docs/ и tools/research/ подключены как есть, без шапки) → имя файла/папки.
+*/}}
+{{ $title := "" }}
+{{ if .Params.linkTitle }}
+  {{ $title = .Params.linkTitle }}
+{{ else if .Params.title }}
+  {{ $title = .Params.title }}
+{{ else if and .File (findRE `(?m)^#[ \t]+.+$` .RawContent 1) }}
+  {{ $h := index (findRE `(?m)^#[ \t]+.+$` .RawContent 1) 0 }}
+  {{ $title = replaceRE `^#[ \t]+` "" $h | replaceRE `[ \t]+#*$` "" | .RenderString | plainify | htmlUnescape }}
+{{ else if .Title }}
+  {{ $title = .Title }}
+{{ else if .IsHome }}
+  {{ $title = .Site.Title }}
+{{ end }}
+{{ return $title }}
