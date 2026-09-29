@@ -28,7 +28,7 @@ const DEFAULT_KEY := (
 	"deltaplan://world?bots=0&date=2026-07-15&from=250&hour=11.00&lat=51.50000&lon=86.50000"
 	+ "&seed=4242&sky=clear&temp=29.0&v=1&wind=3.9"
 )
-## Курс «старта» эталонного мира (ветер «в лоб старту», from=-1), градусы.
+## Курс «старта» эталонного мира (встречный ветер на старте, from=-1), градусы.
 const LAUNCH_HEADING := 250.0
 
 static var _sun_h := NAN
