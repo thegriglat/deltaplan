@@ -23,6 +23,7 @@ var _last_t := 0.0
 var _scripts := {}  ## id → загруженный скрипт
 var _ctx := EggContext.new()
 var _serial := 0
+var _place: EggPlace  ## место: один раз на полёт, лениво
 
 
 func _ready() -> void:
@@ -60,6 +61,7 @@ func reset() -> void:
 	_forced.clear()
 	_last_check.clear()
 	spawn_log.clear()
+	_place = null
 
 
 ## Вызвать пасхалку id ("all" — все включённые) через delay_s с времени мира: без кубика и
@@ -265,3 +267,14 @@ func _fill_ctx(g: Game) -> void:
 		c.cloud_density_at = Callable(g.air, "cloud_density_at")
 	c.terrain = g.terrain
 	c.air = g.air
+	c.month = g.sky.clock.month
+	c.day = g.sky.clock.day
+	c.sun_elev_deg = rad_to_deg(asin(clampf(c.to_sun.y, -1.0, 1.0)))
+	c.sky = g.settings.sky
+	c.wind_ms = g.settings.wind_speed_kmh / 3.6
+	c.wind_from_deg = g.settings.wind_from_deg
+	c.temp_c = g.settings.temperature_c
+	if _place == null:
+		var objs: Node = g.world_link.objects if g.world_link != null else null
+		_place = EggPlace.build(g.terrain, objs, cfg.get("place", {}))
+	c.place = _place
