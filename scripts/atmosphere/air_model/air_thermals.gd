@@ -6,7 +6,8 @@ extends RefCounted
 ## опускание), чтобы средний поток массы пилоту был тем же, что у поля.
 ##
 ## Законы (подробно — документ; H_kin = H/(ρc_p), ζ = z/h):
-##   w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, 300 м) — масштаб Дирдорфа (deardorff_wstar);
+##   w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, 300 м) — масштаб Дирдорфа
+##   (WindField.deardorff_wstar; H — средний по водосбору источника);
 ##   w_m = (u*³ + 0,28 w*³)^(1/3), Δθ = b·H_kin/w_m, b = 6,5 — избыток частицы (Холтслаг–Бовилль);
 ##   F(ζ) = H_kin(1 − ζ)/Δθ = w_m(1 − ζ)/b — поток массы подсеточной конвекции замыкания поля;
 ##   Φ = F̄ + max(W̄, 0) — восходящий поток поля: подсеточный + организованный (w_conv);
@@ -121,13 +122,6 @@ static func has_inputs(f: WindField) -> bool:
 	return heat and not is_nan(f.z_i()) and f.gam().size() == f.nz
 
 
-## Масштаб скорости Дирдорфа w* = (g/θ0 · H/(ρc_p) · h)^(1/3), h = max(z_i − hc, 300 м); H ≤ 0 — 0.
-## Одна функция для термиков и возмущений (AM-08 переносит её в WindField).
-static func deardorff_wstar(heat_wm2: float, h: float) -> float:
-	var hk := heat_wm2 / RHO_CP
-	return pow(G / THETA0 * hk * maxf(h, ZI_MIN), 1.0 / 3.0) if hk > 0.0 else 0.0
-
-
 ## Радиус восходящего потока Аллена (2006) на высоте ζ = z/z_i слоя толщины zi, м.
 static func allen_r2(zeta: float, zi: float) -> float:
 	return maxf(ALLEN_R_MIN, ALLEN_R2 * pow(zeta, 1.0 / 3.0) * (1.0 - 0.25 * zeta) * zi)
@@ -219,7 +213,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			var hc := hcs[c]
 			var hk := heat[c] / RHO_CP
 			var h := maxf(z_i - hc, ZI_MIN)
-			var ws := deardorff_wstar(heat[c], h)
+			var ws := WindField.deardorff_wstar(heat[c], z_i, hc)
 			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
 			c_ws[c] = ws
 			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
@@ -439,8 +433,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		top[s] = c_top[c]
 		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
 		depth[s] = d_top
-		var h := maxf(z_i - hc, ZI_MIN)
-		wstar[s] = deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), h)
+		wstar[s] = WindField.deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), z_i, hc)
 		flux[s] = m_i[s]
 		area[s] = a_i[s]
 		radius[s] = allen_r2(1.0, c_zl[c])
