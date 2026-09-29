@@ -1,0 +1,23 @@
+{
+  "_doc": "Параметры кадра фона главного меню (tools/shots/menu_background.sh). flags — аргументы игры (scripts/game/launch_options.gd). Старт --hour=13 --temp=33: к нужному моменту в небе кучевые (в 20:15 по модели погоды облаков уже нет); clock_hour=20.25 после старта переводит только часы неба/солнца на 20:15 (свет вечера), атмосфера и облака остаются. sim_time_s — момент кадра по времени симуляции (после него сим замирает). camera — от планера в осях его курса: back_m назад, right_m вправо, up_m вверх, yaw_deg влево от курса, pitch_deg вверх, fov_deg по вертикали. warmup_frames — прогрев кадрами (облака, трава, тени) перед снимком. graphics — пресет high, масштаб рендера 100 % без FSR.",
+  "flags": [
+    "--autostart",
+    "--autopilot",
+    "--autopilot-circle=1,-12",
+    "--location=ongudai",
+    "--site=kayancha_south",
+    "--wing=training",
+    "--sky=clear",
+    "--temp=33",
+    "--hour=13",
+    "--seed=20260927",
+    "--bots=0",
+    "--air-start=1000,300"
+  ],
+  "clock_hour": 20.25,
+  "graphics": "high",
+  "sim_time_s": 8.0,
+  "warmup_frames": 30,
+  "camera": {"back_m": 12.0, "right_m": 0.0, "up_m": 3.5, "yaw_deg": 31.0, "pitch_deg": -6.0, "fov_deg": 60.0},
+  "jpeg_quality": 0.92
+}

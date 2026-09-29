@@ -291,6 +291,14 @@ godot --path . res://scenes/main.tscn -- [--autostart] [--autopilot] [--camera=c
 --site=kayancha_south --temp=31 --wind=5 --wing=training --mass=85 --air-start=1000,300`.
 Скриншоты: `xvfb-run -a -s "-screen 0 1600x900x24" godot --path . --rendering-method gl_compatibility
 res://scenes/main.tscn -- --autostart --autopilot --camera=chase --time=12 --screenshot=/tmp/shot.png`.
+Фон главного меню (`assets/ui/menu_background.jpg`, кадр из игры): `tools/shots/menu_background.sh
+[--size=3840x2160|2560x1440] [--out=файл.jpg]`. Все параметры кадра — `tools/shots/menu_background.json`: флаги игры
+(место, старт, крыло, ветер, погода, `--hour`, сид, `--air-start`, автопилот с креном), `clock_hour` (часы неба
+на момент кадра — 20:15; старт в 13:00 нужен ради кучевых: в 20:15 модель погоды облаков уже не строит),
+`sim_time_s` (кадр в момент симуляции, потом сим замирает), камера от планера в осях его курса (назад/вправо/вверх,
+рыскание/тангаж, FOV), пресет графики `high` и масштаб рендера 100 % (без FSR), прогрев кадрами. Окно — виртуальный
+дисплей xvfb нужного размера (Vulkan на видеокарте), профиль временный; ~1 мин. После замены jpg перезапустить импорт
+(`godot --headless --import`). Два запуска подряд отличаются мелочами (облака, трава).
 `--smoke` (проверка сборки, `tools/build.sh`): автостарт с настроек по умолчанию + автопилот, 300 шагов физики,
 проверка данных рельефа и атрибуции, код выхода 0/1.
 
