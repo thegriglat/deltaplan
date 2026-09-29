@@ -16,7 +16,7 @@ var temperature_c: float = 26.0
 var wind_speed_kmh: float = 10.8
 ## true — ветер в лоб выбранному старту, false — с направления wind_from_deg.
 var wind_into_launch: bool = true
-## Откуда ветер, градусы (0 — с севера, 90 — с востока), если не «встречный на старте».
+## Откуда ветер, градусы (0 — с севера, 90 — с востока), если не «встречный».
 var wind_from_deg: float = 270.0
 ## Облачность: "clear" | "partly" | "overcast" (weather_model.json → sky).
 var sky: String = "clear"
@@ -55,7 +55,7 @@ static func defaults() -> FlightSettings:
 
 
 ## Прогноз для WeatherModel.derive: {temperature_c, wind_speed_kmh, wind_from_deg}.
-## При «встречный на старте» направление подставляет Game после выбора старта.
+## При «встречный» направление подставляет Game после выбора старта.
 func forecast() -> Dictionary:
 	return {
 		"temperature_c": temperature_c,

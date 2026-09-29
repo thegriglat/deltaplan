@@ -267,7 +267,7 @@ func start(s: FlightSettings) -> bool:
 	await get_tree().process_frame
 	world_link.link(terrain, air, glider)
 	_choose_start()
-	# Ветер прогноза — на старте (пилот): встречный на старте или с заданного румба; выше старта сильнее.
+	# Ветер прогноза (пилот): встречный или с заданного румба; выше старта сильнее.
 	air.call(
 		"set_wind",
 		settings.wind_speed_kmh,

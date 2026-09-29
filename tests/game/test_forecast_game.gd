@@ -1,6 +1,6 @@
 extends Node
 ## Погода из прогноза в игре (docs/plan/weather_by_temperature.md, карточка 3): Game выводит день
-## из прогноза и рельефа места, ветер — встречный на старте или с румба, опора ветра — высота старта.
+## из прогноза и рельефа, ветер — встречный или с румба, опора ветра — высота старта.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 
@@ -38,7 +38,7 @@ func test_game_uses_forecast() -> void:
 	check(
 		absf(angle_difference(deg_to_rad(float(air.weather.wind_from_deg)),
 			deg_to_rad(float(start.heading_deg)))) < 0.01,
-		"встречный на старте: ветер с %.0f°, курс %.0f°" % [air.weather.wind_from_deg, start.heading_deg]
+		"встречный: ветер с %.0f°, курс %.0f°" % [air.weather.wind_from_deg, start.heading_deg]
 	)
 	check(is_equal_approx(air.wind.ref_msl, (start.position as Vector3).y), "опора ветра — старт")
 	var ctx := game._weather_context()

@@ -5,7 +5,7 @@ result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_crosswind,Боковой ветер завалил крыло,A crosswind dropped the wing
 result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
-setup_wind_into_launch,Встречный на старте,Headwind at launch
+setup_wind_into_launch,Встречный,Headwind
 pause_to_menu,В меню,Main menu
 result_to_menu,В главное меню,Main menu
 setup_wind,Ветер,Wind
