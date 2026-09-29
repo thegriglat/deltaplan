@@ -1,0 +1,6 @@
+# Прототип клеточного автомата тепла и массы (tools/research/heat_ca)
+# venv: uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt
+numpy>=2.0
+matplotlib>=3.9
+# GPU (NVIDIA, CUDA 12): только для прототипа; в игре — вычислительные шейдеры Vulkan
+cupy-cuda12x[ctk]>=13
