@@ -1117,7 +1117,7 @@ class Air:
         th = self.th * f
         q_in = float(cp.sum(self.Q * f, dtype=np.float64)) * V
         cool = float(cp.sum(th, dtype=np.float64)) * V / self.prm.tau_cool
-        spg = float(cp.sum(th * self.spc, dtype=np.float64)) * V
+        spg = float(cp.sum((th - self.thbg * f) * self.spc, dtype=np.float64)) * V   # губка тянет к θ_b
         wc = 0.5 * (self.w[:-1] + self.w[1:])
         bg = -float(cp.sum(self.gam[:-1, None, None] * wc * f[:-1], dtype=np.float64)) * V
         out = 0.0
