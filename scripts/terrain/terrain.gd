@@ -686,6 +686,18 @@ func _process(_delta: float) -> void:
 
 
 func _exit_tree() -> void:
+	_join_relief()
+
+
+## Terrain, освобождённый вне дерева (тесты: Terrain.new() … free()), _exit_tree не получает:
+## без ожидания Thread отцепляется, и расчёт полей дорабатывает в выгружаемом движке
+## (SCRIPT ERROR в terrain_relief.gd, падение 134/139 при выходе).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_join_relief()
+
+
+func _join_relief() -> void:
 	if _relief_thread != null:
 		_relief_thread.wait_to_finish()
 		_relief_thread = null
