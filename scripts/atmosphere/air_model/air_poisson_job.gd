@@ -2,7 +2,8 @@ class_name AirPoissonJob
 extends AirGpuJob
 ## Решение ∇·(K∇φ) = f V-циклами порциями (AM-02) — пример наследника AirGpuJob и проверка
 ## каркаса; в итерации Пикара (AM-03) давление — один V-цикл на итерацию, тем же AirMultigrid.
-## Шаг — один V-цикл. Невязка max|f − Cφ| / max|f| — в конце каждой порции (одно число с GPU).
+## Шаг — один V-цикл. Невязка max|f − Cφ| / max|f| — после порции, кончившейся на границе
+## шага (одно число с GPU).
 ## neumann: все грани закрыты → оператор вырожден: f и φ центрируются по активным клеткам.
 
 const S_RES := 0
@@ -51,11 +52,11 @@ func _center(x: RID, act: RID, n: int) -> void:
 	gpu.axpy(-1.0, act, x, n, S_SUM, S_CNT)
 
 
-func _record_step(_i: int) -> void:
-	mg.vcycle(phi, f)
+func _step_program(_i: int) -> Array:
+	return mg.program(phi, f)
 
 
-func _record_chunk_end() -> void:
+func _record_check() -> void:
 	var lev: Dictionary = mg.levels[0]
 	var n := dims.x * dims.y * dims.z
 	if neumann:
@@ -67,19 +68,12 @@ func _record_chunk_end() -> void:
 func _after_sync() -> bool:
 	var fm := gpu.read_scalar(S_F)
 	residual = gpu.read_scalar(S_RES) / maxf(fm, 1e-30)
-	if residual <= tol:
-		return true
-	if steps_done >= max_cycles:
-		error = "V-циклы не сошлись за %d (невязка %.2e)" % [max_cycles, residual]
-	return false
+	return residual <= tol
 
 
 func _total_steps() -> int:
 	return max_cycles
 
-
-func _first_step_ms() -> float:
-	return 2.0
 
 
 ## φ на CPU (после is_done()).

@@ -11,7 +11,9 @@ enum Vec { FILL, COPY, SCALE, AXPY, XPAY, AXPBY, MUL }
 enum Red { SUM, MAXABS, DOT }
 
 const DIR := "res://scripts/atmosphere/air_model/"
-const SHADERS := ["air_vec", "air_reduce", "air_stencil", "air_line", "air_line_mp", "air_mg"]
+const SHADERS := [
+	"air_vec", "air_reduce", "air_stencil", "air_line:line", "air_line:coarse", "air_line_mp", "air_mg"
+]
 const SCALARS := 64
 const RED_GROUPS := 1024
 const LINE_MAX := 1024
@@ -29,10 +31,13 @@ var _scratch := {}
 var _part := RID()
 var _dummy := RID()
 var _cl := -1
+var _capture: Variant = null  # Array при записи программы
+var _last_pipe := RID()
+var _last_set := RID()
 
 
 ## Создать локальный RD и собрать ядра. false — error объясняет (нет RD, ошибка компиляции).
-func init() -> bool:
+func init(shaders: Array = SHADERS) -> bool:
 	if DisplayServer.get_name() == "headless":
 		error = "нет RenderingDevice: headless"
 		return false
@@ -40,12 +45,15 @@ func init() -> bool:
 	if rd == null:
 		error = "нет RenderingDevice (драйвер без Vulkan/D3D12 или режим совместимости)"
 		return false
-	for s in SHADERS:
-		var file := load(DIR + s + ".glsl") as RDShaderFile
+	for s in shaders:
+		# «файл:вариант» — вариант #[versions] из RDShaderFile
+		var parts: PackedStringArray = String(s).split(":")
+		var path: String = DIR + parts[0] + ".glsl"
+		var file := load(path) as RDShaderFile if ResourceLoader.exists(path) else null
 		if file == null:
-			error = "нет ядра %s.glsl" % s
+			error = "нет ядра %s.glsl" % parts[0]
 			return false
-		var spirv := file.get_spirv()
+		var spirv := file.get_spirv(StringName(parts[1]) if parts.size() > 1 else &"")
 		if spirv == null or spirv.compile_error_compute != "":
 			error = "ошибка компиляции %s.glsl: %s" % [
 				s, spirv.compile_error_compute if spirv else "нет SPIR-V"
@@ -100,15 +108,6 @@ func buffer(n: int, data := PackedFloat32Array()) -> RID:
 	return b
 
 
-func free_buffer(b: RID) -> void:
-	for k in _sets.keys():
-		if String(k).contains("#%d," % b.get_id()):
-			rd.free_rid(_sets[k])
-			_sets.erase(k)
-	_owned.erase(b)
-	rd.free_rid(b)
-
-
 func upload(b: RID, data: PackedFloat32Array, offset := 0) -> void:
 	_close_list()
 	var bytes := data.to_byte_array()
@@ -145,6 +144,7 @@ func stamp(name: String) -> void:
 
 
 func _close_list() -> void:
+	assert(_capture == null, "AirGpu: нельзя исполнять при записи программы")
 	if _cl >= 0:
 		rd.compute_list_end()
 		_cl = -1
@@ -197,16 +197,50 @@ static func _pc(i0: Array, i1 := [], f := []) -> PackedByteArray:
 
 
 func _dispatch(shader: String, spec: Array, bufs: Array, pc: PackedByteArray, groups: int) -> void:
+	# > 65535 групп — сетка 2D (ядра прогонок считают плоский номер группы)
+	var gx := clampi(groups, 1, 65535)
+	var item := [_pipeline(shader, spec), _uniforms(shader, bufs), pc, gx, ceili(groups / float(gx))]
+	if _capture != null:
+		_capture.append(item)
+		return
+	_run_item(item)
+
+
+func _run_item(item: Array) -> void:
 	if _cl < 0:
 		_cl = rd.compute_list_begin()
-	rd.compute_list_bind_compute_pipeline(_cl, _pipeline(shader, spec))
-	rd.compute_list_bind_uniform_set(_cl, _uniforms(shader, bufs), 0)
+		_last_pipe = RID()
+		_last_set = RID()
+	if item[0] != _last_pipe:
+		rd.compute_list_bind_compute_pipeline(_cl, item[0])
+		_last_pipe = item[0]
+		_last_set = RID()
+	if item[1] != _last_set:
+		rd.compute_list_bind_uniform_set(_cl, item[1], 0)
+		_last_set = item[1]
+	var pc: PackedByteArray = item[2]
 	rd.compute_list_set_push_constant(_cl, pc, pc.size())
-	rd.compute_list_dispatch(_cl, clampi(groups, 1, 65535), 1, 1)
+	rd.compute_list_dispatch(_cl, item[3], item[4], 1)
 	rd.compute_list_add_barrier(_cl)
 	dispatches += 1
 
 
+## Программа: запуски ядер, записанные один раз (конвейер, набор, push-константы, группы),
+## и затем повторяемые run() без пересборки на GDScript. Внутри fn ничего не исполняется.
+func record(fn: Callable) -> Array:
+	_capture = []
+	fn.call()
+	var p: Array = _capture
+	_capture = null
+	return p
+
+
+func run(program: Array, from := 0, to := -1) -> void:
+	for i in range(from, program.size() if to < 0 else to):
+		_run_item(program[i])
+
+
+## Группы для ядер «по всей сетке с шагом» (air_vec, air_stencil, air_mg): не больше 65535.
 static func _groups(n: int) -> int:
 	return clampi(ceili(n / 256.0), 1, 65535)
 
@@ -224,10 +258,6 @@ func vec(op: Vec, x: RID, y: RID, n: int, a := 1.0, b := 0.0, sa := -1, sb := -1
 
 func fill(y: RID, n: int, value := 0.0) -> void:
 	vec(Vec.FILL, RID(), y, n, 1.0, value)
-
-
-func copy(x: RID, y: RID, n: int) -> void:
-	vec(Vec.COPY, x, y, n)
 
 
 func axpy(a: float, x: RID, y: RID, n: int, sa := -1, sb := -1) -> void:
@@ -261,7 +291,7 @@ func stencil(c: RID, x: RID, b: RID, r: RID, dims: Vector3i, apply := false) -> 
 
 
 ## Потоков на линию для длины n (степень 2, ≤ 256, отрезок ≥ 2 точек).
-static func line_tpl(n: int) -> int:
+static func _line_tpl(n: int) -> int:
 	var t := 1
 	while t * 2 <= mini(256, n / 2):
 		t *= 2
@@ -280,9 +310,9 @@ func line(c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := R
 	var nlines := n1 * n2 if parity < 0 else ((n1 + 1) / 2) * n2
 	var i0 := [dims.x, dims.y, dims.z, dir]
 	if n <= LINE_MAX:
-		var tpl := line_tpl(n)
+		var tpl := _line_tpl(n)
 		_dispatch(
-			"air_line", [0, tpl], [c, x, b, xo], _pc(i0, [parity, nlines, n]),
+			"air_line:line", [0], [c, x, b, xo], _pc(i0, [parity, nlines, n]),
 			ceili(nlines * tpl / 256.0)
 		)
 		return
@@ -294,9 +324,9 @@ func line(c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := R
 	var pc := _pc(i0, [parity, nlines, n, s])
 	var g := ceili(nlines * s / 64.0)
 	_dispatch("air_line_mp", [1], [c, x, b, xo, w, r], pc, g)
-	var tpl2 := line_tpl(2 * s)
+	var tpl2 := _line_tpl(2 * s)
 	_dispatch(
-		"air_line", [2, tpl2], [r, _dummy, _dummy, xr], _pc(i0, [0, nlines, 2 * s]),
+		"air_line:line", [2], [r, _dummy, _dummy, xr], _pc(i0, [0, nlines, 2 * s]),
 		ceili(nlines * tpl2 / 256.0)
 	)
 	_dispatch("air_line_mp", [3], [c, x, b, xo, w, xr], pc, g)
@@ -307,6 +337,13 @@ func zebra(c: RID, x: RID, b: RID, dims: Vector3i, dirs := [2, 0, 1]) -> void:
 	for d in dirs:
 		line(c, x, b, dims, d, 0)
 		line(c, x, b, dims, d, 1)
+
+
+## sweeps раз зебра по z, x, y одной группой (air_line.glsl MODE 3) — для самого грубого уровня:
+## один запуск вместо 6·sweeps. Все размеры 2..1024.
+func zebra_one_group(c: RID, x: RID, b: RID, dims: Vector3i, sweeps: int) -> void:
+	var pc := _pc([dims.x, dims.y, dims.z], [0, 0, 0, sweeps])
+	_dispatch("air_line:coarse", [3], [c, x, b, _dummy], pc, 1)
 
 
 func _scratch_buf(key: String, n: int) -> RID:

@@ -58,18 +58,14 @@ void row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out
 	int g = (k * ny + j) * nx + i;
 	int len = dir == 0 ? nx : (dir == 1 ? ny : nz);
 	float r = b[g];
-	float v;
 	if (dir != 0) {
-		v = cf[n + g];     if (v != 0.0 && i > 0)      r -= v * x[g - 1];
-		v = cf[2 * n + g]; if (v != 0.0 && i < nx - 1) r -= v * x[g + 1];
+		r -= (i > 0 ? cf[n + g] * x[g - 1] : 0.0) + (i < nx - 1 ? cf[2 * n + g] * x[g + 1] : 0.0);
 	}
 	if (dir != 1) {
-		v = cf[3 * n + g]; if (v != 0.0 && j > 0)      r -= v * x[g - nx];
-		v = cf[4 * n + g]; if (v != 0.0 && j < ny - 1) r -= v * x[g + nx];
+		r -= (j > 0 ? cf[3 * n + g] * x[g - nx] : 0.0) + (j < ny - 1 ? cf[4 * n + g] * x[g + nx] : 0.0);
 	}
 	if (dir != 2) {
-		v = cf[5 * n + g]; if (v != 0.0 && k > 0)      r -= v * x[g - sz];
-		v = cf[6 * n + g]; if (v != 0.0 && k < nz - 1) r -= v * x[g + sz];
+		r -= (k > 0 ? cf[5 * n + g] * x[g - sz] : 0.0) + (k < nz - 1 ? cf[6 * n + g] * x[g + sz] : 0.0);
 	}
 	ca = p > 0 ? cf[(1 + 2 * dir) * n + g] : 0.0;
 	cb = cf[g];
@@ -80,7 +76,7 @@ void row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out
 void main() {
 	int n = pc.i1.z;
 	int S = pc.i1.w;
-	int id = int(gl_GlobalInvocationID.x);
+	int id = int((gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x) * 64u + gl_LocalInvocationID.x);
 	int L = id / S;
 	int s = id % S;
 	if (L >= pc.i1.y) return;

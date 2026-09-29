@@ -1,11 +1,20 @@
+#[versions]
+
+line = "";
+coarse = "#define COARSE";
+
 #[compute]
 #version 450
+
+#VERSION_DEFINES
+
 // Прогонка по линиям в разделяемой памяти (AM-02).
 // Группа 256 потоков решает LPG = 256/TPL линий длины n ≤ 1024/LPG (n ≥ 2·TPL; вся линия — в
 // разделяемой памяти). Метод разбиения (как PaScaL_TDMA): каждый поток сводит свой отрезок линии
 // (≥ 2 точек) модифицированной прогонкой к двум строкам через крайние точки отрезка; сведённая
 // система (2·TPL строк на линию) решается параллельной циклической редукцией (PCR); затем
 // внутренние точки отрезков. Для диагонально преобладающих матриц устойчив, как прогонка.
+// TPL — наибольшая степень 2, не больше min(256, n/2).
 //
 // MODE 0 — линии 7-точечного шаблона на поле (NZ, NY, NX): уравнение строки
 //   C0·x + C_lo·x[−1] + C_hi·x[+1] = b − Σ(остальные 4 соседа·x) — соседи не на линии берутся из X
@@ -14,21 +23,27 @@
 //   в XO. Один буфер в двух привязках не ставим: граф RD тогда теряет запись и барьер.
 // MODE 2 — упакованные трёхдиагональные системы: C[(L·n + p)·4 + 0..3] = (a, b, c, d), выход XO[L·n + p]
 //   (сведённая система многопроходной прогонки, air_line_mp.glsl).
+// MODE 3 — самый грубый уровень V-цикла одной группой: i1.w раз зебра по z, x, y (чётные, затем
+//   нечётные линии) с барьером группы между проходами — вместо 6·i1.w запусков на крошечной сетке.
 
 layout(local_size_x = 256) in;
 
 layout(constant_id = 0) const int MODE = 0;
-layout(constant_id = 1) const int TPL = 256;  // потоков на линию, степень 2, ≤ 256
-const int LPG = 256 / TPL;
 
 layout(set = 0, binding = 0, std430) readonly buffer BC { float cf[]; };
-layout(set = 0, binding = 1, std430) buffer BX { float x[]; };  // зебра пишет сюда же
+// Зебра пишет в X на месте. Вариант coarse (MODE 3, всё в одной группе) читает то, что другие
+// потоки группы записали в прошлом проходе, — X там coherent; в остальных — нет (кэш L1).
+#ifdef COARSE
+layout(set = 0, binding = 1, std430) coherent buffer BX { float x[]; };
+#else
+layout(set = 0, binding = 1, std430) buffer BX { float x[]; };
+#endif
 layout(set = 0, binding = 2, std430) readonly buffer BB { float b[]; };
 layout(set = 0, binding = 3, std430) buffer BXO { float xo[]; };
 
 layout(push_constant, std430) uniform PC {
 	ivec4 i0;  // NX, NY, NZ, dir (0 x, 1 y, 2 z)
-	ivec4 i1;  // parity, число линий, n (длина линии), —
+	ivec4 i1;  // parity, число линий, n (длина линии), проходов (MODE 3)
 	vec4 f;
 } pc;
 
@@ -40,25 +55,38 @@ shared float ra[512];
 shared float rc[512];
 shared float rd[512];
 
+// Текущий проход (одинаков для всей группы).
+int g_nx, g_ny, g_nz, g_dir, g_par, g_nlines, g_n, g_tpl, g_lpg;
+
+int line_tpl(int n) {
+	int t = 1;
+	while (t * 2 <= min(256, n / 2)) t *= 2;
+	return t;
+}
+
 // Линия L → (a1, a2): a1 — быстрый из двух других индексов, a2 — медленный.
 bool line_of(int L, out int a1, out int a2) {
-	int dir = pc.i0.w;
-	int n1 = dir == 0 ? pc.i0.y : pc.i0.x;
-	int par = pc.i1.x;
-	if (par < 0) {
+	int n1 = g_dir == 0 ? g_ny : g_nx;
+	if (g_par < 0) {
 		a1 = L % n1;
 		a2 = L / n1;
 		return true;
 	}
 	int h = (n1 + 1) / 2;
 	a2 = L / h;
-	a1 = 2 * (L % h) + ((a2 + par) & 1);
+	a1 = 2 * (L % h) + ((a2 + g_par) & 1);
 	return a1 < n1;
 }
 
-// Индекс в поле и строка уравнения точки p линии (a1, a2).
-int row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out float cd) {
-	int nx = pc.i0.x, ny = pc.i0.y, nz = pc.i0.z, dir = pc.i0.w;
+int gidx(int p, int a1, int a2) {
+	if (g_dir == 0) return (a2 * g_ny + a1) * g_nx + p;
+	if (g_dir == 1) return (a2 * g_ny + p) * g_nx + a1;
+	return (p * g_ny + a2) * g_nx + a1;
+}
+
+// Строка уравнения точки p линии (a1, a2).
+void row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out float cd) {
+	int nx = g_nx, ny = g_ny, nz = g_nz, dir = g_dir;
 	int n = nx * ny * nz;
 	int i, j, k;
 	if (dir == 0) { i = p; j = a1; k = a2; }
@@ -66,34 +94,31 @@ int row_of(int p, int a1, int a2, out float ca, out float cb, out float cc, out 
 	else { i = a1; j = a2; k = p; }
 	int sz = nx * ny;
 	int g = (k * ny + j) * nx + i;
-	int len = dir == 0 ? nx : (dir == 1 ? ny : nz);
 	float r = b[g];
-	float v;
+	// соседи — без ветвлений по коэффициенту (иначе цепочка зависимых чтений); за краем — 0
 	if (dir != 0) {
-		v = cf[n + g];     if (v != 0.0 && i > 0)      r -= v * x[g - 1];
-		v = cf[2 * n + g]; if (v != 0.0 && i < nx - 1) r -= v * x[g + 1];
+		r -= (i > 0 ? cf[n + g] * x[g - 1] : 0.0) + (i < nx - 1 ? cf[2 * n + g] * x[g + 1] : 0.0);
 	}
 	if (dir != 1) {
-		v = cf[3 * n + g]; if (v != 0.0 && j > 0)      r -= v * x[g - nx];
-		v = cf[4 * n + g]; if (v != 0.0 && j < ny - 1) r -= v * x[g + nx];
+		r -= (j > 0 ? cf[3 * n + g] * x[g - nx] : 0.0) + (j < ny - 1 ? cf[4 * n + g] * x[g + nx] : 0.0);
 	}
 	if (dir != 2) {
-		v = cf[5 * n + g]; if (v != 0.0 && k > 0)      r -= v * x[g - sz];
-		v = cf[6 * n + g]; if (v != 0.0 && k < nz - 1) r -= v * x[g + sz];
+		r -= (k > 0 ? cf[5 * n + g] * x[g - sz] : 0.0) + (k < nz - 1 ? cf[6 * n + g] * x[g + sz] : 0.0);
 	}
 	ca = p > 0 ? cf[(1 + 2 * dir) * n + g] : 0.0;
 	cb = cf[g];
-	cc = p < len - 1 ? cf[(2 + 2 * dir) * n + g] : 0.0;
+	cc = p < g_n - 1 ? cf[(2 + 2 * dir) * n + g] : 0.0;
 	cd = r;
-	return g;
 }
 
-void main() {
+// Линии L0 .. L0+LPG−1 текущего прохода.
+void solve_batch(int L0) {
 	int tid = int(gl_LocalInvocationID.x);
-	int n = pc.i1.z;
-	int nlines = pc.i1.y;
-	int L0 = int(gl_WorkGroupID.x) * LPG;
-	bool xfast = MODE == 2 || pc.i0.w == 0;
+	int n = g_n;
+	int TPL = g_tpl;
+	int LPG = g_lpg;
+	bool xfast = MODE == 2 || g_dir == 0;
+	barrier();  // разделяемая память свободна (прошлый пакет записан)
 	// 1. Загрузка: вдоль x подряд идут точки линии, по y/z — соседние линии.
 	for (int t = tid; t < LPG * n; t += 256) {
 		int l = xfast ? t / n : t % LPG;
@@ -101,7 +126,7 @@ void main() {
 		int L = L0 + l;
 		int si = l * n + p;
 		int a1, a2;
-		if (L >= nlines || (MODE == 0 && !line_of(L, a1, a2))) {
+		if (L >= g_nlines || (MODE != 2 && !line_of(L, a1, a2))) {
 			sa[si] = 0.0; sb[si] = 1.0; sc[si] = 0.0; sd[si] = 0.0;
 			continue;
 		}
@@ -186,7 +211,7 @@ void main() {
 		int ll = xfast ? t / n : t % LPG;
 		int p = xfast ? t % n : t / LPG;
 		int L = L0 + ll;
-		if (L >= nlines) continue;
+		if (L >= g_nlines) continue;
 		int si = ll * n + p;
 		if (MODE == 2) {
 			xo[L * n + p] = sd[si];
@@ -194,13 +219,50 @@ void main() {
 		}
 		int a1, a2;
 		if (!line_of(L, a1, a2)) continue;
-		int dir = pc.i0.w;
-		int nx = pc.i0.x, ny = pc.i0.y;
-		int g;
-		if (dir == 0) g = (a2 * ny + a1) * nx + p;
-		else if (dir == 1) g = (a2 * ny + p) * nx + a1;
-		else g = (p * ny + a2) * nx + a1;
-		if (pc.i1.x >= 0) x[g] = sd[si];
-		else xo[g] = sd[si];
+		if (g_par >= 0) x[gidx(p, a1, a2)] = sd[si];
+		else xo[gidx(p, a1, a2)] = sd[si];
 	}
+}
+
+void set_pass(int dir, int par) {
+	g_dir = dir;
+	g_par = par;
+	g_n = dir == 0 ? g_nx : (dir == 1 ? g_ny : g_nz);
+	int n1 = dir == 0 ? g_ny : g_nx;
+	int n2 = dir == 2 ? g_ny : g_nz;
+	g_nlines = par < 0 ? n1 * n2 : ((n1 + 1) / 2) * n2;
+	g_tpl = line_tpl(g_n);
+	g_lpg = 256 / g_tpl;
+}
+
+void main() {
+	g_nx = pc.i0.x;
+	g_ny = pc.i0.y;
+	g_nz = pc.i0.z;
+	if (MODE == 3) {
+		const int dirs[3] = int[3](2, 0, 1);
+		for (int sw = 0; sw < pc.i1.w; ++sw) {
+			for (int di = 0; di < 3; ++di) {
+				for (int par = 0; par < 2; ++par) {
+					set_pass(dirs[di], par);
+					for (int L0 = 0; L0 < g_nlines; L0 += g_lpg) solve_batch(L0);
+					memoryBarrierBuffer();
+					barrier();
+				}
+			}
+		}
+		return;
+	}
+	if (MODE == 2) {
+		g_dir = 0;
+		g_par = 0;
+		g_n = pc.i1.z;
+		g_nlines = pc.i1.y;
+		g_tpl = line_tpl(g_n);
+		g_lpg = 256 / g_tpl;
+	} else {
+		set_pass(pc.i0.w, pc.i1.x);
+	}
+	int grp = int(gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x);
+	solve_batch(grp * g_lpg);
 }

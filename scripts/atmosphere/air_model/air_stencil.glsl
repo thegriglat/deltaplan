@@ -29,14 +29,11 @@ void main() {
 		int i = idx % nx;
 		int j = (idx / nx) % ny;
 		int k = idx / sz;
+		// без ветвлений по коэффициенту (иначе цепочка зависимых чтений); за краем — 0
 		float acc = c[idx] * x[idx];
-		float v;
-		v = c[n + idx];     if (v != 0.0 && i > 0)      acc += v * x[idx - 1];
-		v = c[2 * n + idx]; if (v != 0.0 && i < nx - 1) acc += v * x[idx + 1];
-		v = c[3 * n + idx]; if (v != 0.0 && j > 0)      acc += v * x[idx - nx];
-		v = c[4 * n + idx]; if (v != 0.0 && j < ny - 1) acc += v * x[idx + nx];
-		v = c[5 * n + idx]; if (v != 0.0 && k > 0)      acc += v * x[idx - sz];
-		v = c[6 * n + idx]; if (v != 0.0 && k < nz - 1) acc += v * x[idx + sz];
+		acc += (i > 0 ? c[n + idx] * x[idx - 1] : 0.0) + (i < nx - 1 ? c[2 * n + idx] * x[idx + 1] : 0.0);
+		acc += (j > 0 ? c[3 * n + idx] * x[idx - nx] : 0.0) + (j < ny - 1 ? c[4 * n + idx] * x[idx + nx] : 0.0);
+		acc += (k > 0 ? c[5 * n + idx] * x[idx - sz] : 0.0) + (k < nz - 1 ? c[6 * n + idx] * x[idx + sz] : 0.0);
 		r[idx] = OP == 0 ? b[idx] - acc : acc;
 	}
 }

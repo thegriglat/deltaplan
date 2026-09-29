@@ -17,6 +17,10 @@ var pre := 2
 var post := 2
 var coarse_sweeps := 20
 var corr := 1.0
+## Самый грубый уровень до стольких клеток — одной группой (air_line.glsl MODE 3), иначе запусками.
+var coarse_one_group_max := 32768
+
+var _programs := {}
 
 
 ## Построить уровни на GPU из граней мелкого уровня: cx (NZ, NY, NX+1), cy (NZ, NY+1, NX),
@@ -68,12 +72,28 @@ func _coarsen(d: Vector3i, cx: RID, cy: RID, cz: RID, act: RID) -> Array:
 
 
 ## Один V-цикл: x ← x + приближённое решение C·e = f − C·x (x, f — поля мелкого уровня).
-func vcycle(x: RID, f: RID, li := 0) -> void:
+## Запуски записываются один раз на пару (x, f) и потом повторяются (AirGpu.run).
+func vcycle(x: RID, f: RID) -> void:
+	gpu.run(program(x, f))
+
+
+## Записанная программа одного V-цикла для пары (x, f).
+func program(x: RID, f: RID) -> Array:
+	var key := "%d:%d" % [x.get_id(), f.get_id()]
+	if not _programs.has(key):
+		_programs[key] = gpu.record(_record.bind(x, f, 0))
+	return _programs[key]
+
+
+func _record(x: RID, f: RID, li: int) -> void:
 	var lev := levels[li]
 	var d: Vector3i = lev.dims
 	if li == levels.size() - 1:
-		for _i in coarse_sweeps:
-			gpu.zebra(lev.c, x, f, d, [2, 0, 1])
+		if d.x * d.y * d.z <= coarse_one_group_max and mini(d.x, mini(d.y, d.z)) >= 2:
+			gpu.zebra_one_group(lev.c, x, f, d, coarse_sweeps)
+		else:
+			for _i in coarse_sweeps:
+				gpu.zebra(lev.c, x, f, d, [2, 0, 1])
 		return
 	for _i in pre:
 		gpu.zebra(lev.c, x, f, d, [2])
@@ -83,7 +103,7 @@ func vcycle(x: RID, f: RID, li := 0) -> void:
 	var nc := cd.x * cd.y * cd.z
 	gpu.mg_op(5, [lev.r], cl.act, cl.f, d, nc)
 	gpu.fill(cl.x, nc)
-	vcycle(cl.x, cl.f, li + 1)
+	_record(cl.x, cl.f, li + 1)
 	gpu.mg_op(6, [cl.x], lev.act, x, d, d.x * d.y * d.z, corr)
 	for _i in post:
 		gpu.zebra(lev.c, x, f, d, [2])
