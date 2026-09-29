@@ -8,7 +8,7 @@
 
 Формат — как `fixtures.py` (float32 LE .bin + .json со смещениями).
 
-    PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+    PY=../heat_ca/.venv/bin/python
     $PY picard_gpu_refs.py     # → tests/atmosphere/fixtures/air_model/picard/ (~3 мин)
 """
 from __future__ import annotations
