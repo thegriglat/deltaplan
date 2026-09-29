@@ -95,37 +95,18 @@ var _u_scale := PackedFloat32Array()  ## по столбцам: поток яд�
 var _n_scale := PackedFloat32Array()  ## по столбцам: чистый поток пузыря / A_i (м/с)
 var _buckets: Dictionary = {}  ## ячейки поиска 1 км: Vector2i -> номера источников
 var _mask := PackedByteArray()
-var _src_depth := PackedFloat32Array()  ## по столбцам: глубина D источника-хозяина (м)
+var _src_depth := PackedFloat32Array()
+var _hcs := PackedFloat32Array()  ## по столбцам: глубина D источника-хозяина (м)
 
 
-## Есть ли в поле всё нужное (H, z_i).
+## Есть ли в поле всё нужное: H (meta.heat | heat_array или массив heat файла), z_i, gam.
 static func has_inputs(f: WindField) -> bool:
 	if f == null:
 		return false
 	var m := f.meta
-	return (m.has("heat") or m.has("heat_array") or m.has("arrays")) and m.has("z_i")
-
-
-## Поток тепла H (ny·nx) из метаданных уровня: heat (PackedFloat32Array/Array) или массив heat
-## в .bin файла поля (load_file кладёт путь в meta.path). Пусто — нет.
-static func heat_of(f: WindField) -> PackedFloat32Array:
-	var m := f.meta
-	for k in ["heat", "heat_array"]:
-		if m.has(k):
-			var v: Variant = m[k]
-			if v is PackedFloat32Array:
-				return v
-			if v is Array:
-				return PackedFloat32Array(v)
-	if m.has("arrays") and (m.arrays as Dictionary).has("heat") and m.has("path"):
-		var raw := FileAccess.get_file_as_bytes(String(m.path) + ".bin")
-		if raw.is_empty():
-			return PackedFloat32Array()
-		var ol: Array = m.arrays.heat
-		var h := raw.to_float32_array().slice(int(ol[0]), int(ol[0]) + int(ol[1]))
-		m["heat"] = h  # закешировать
-		return h
-	return PackedFloat32Array()
+	var arrs: Dictionary = m.get("arrays", {})
+	var heat: bool = m.has("heat") or m.has("heat_array") or arrs.has("heat")
+	return heat and not is_nan(f.z_i()) and f.gam().size() == f.nz
 
 
 static func signature(f: WindField) -> String:
@@ -142,17 +123,20 @@ static func signature(f: WindField) -> String:
 func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	level = f
 	_mask = PackedByteArray()
-	var heat := heat_of(f)
+	var heat := f.heat_flux()
+	var k1s := f.raw_k1()
+	var hcs := f.raw_hc()
 	var n_col := f.nx * f.ny
-	if heat.size() != n_col or not f.meta.has("z_i"):
+	if heat.size() != n_col or is_nan(f.z_i()):
 		return false
 	grid_sig = signature(f)
-	var z_i := float(f.meta.z_i)
-	var gam := PackedFloat32Array(f.meta.get("gam", []))
+	_hcs = hcs
+	var z_i := f.z_i()
+	var gam := f.gam()
 	if gam.size() != f.nz:
 		gam.resize(f.nz)
 		gam.fill(0.0)
-	var u10 := float(f.meta.get("u10", float(f.meta.get("cond", {}).get("wind", 0.0))))
+	var u10 := f.u10()
 	var ustar := KAPPA * u10 / log(10.0 / f.z0) if u10 > 0.0 else 0.0
 	var cb := float(cfg.get("cloudbase_msl", INF))
 	_setup_shape(cfg)
@@ -161,9 +145,9 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	# ∫ кольца Гедеона 1..cut² e^(−u)(1 − u) du = cut²·e^(−cut²) − e⁻¹ (< 0)
 	var ring_int := absf(cut * cut * exp(-cut * cut) - CORE_FLUX)
 	var r_min_ex := cut * sqrt(r_bar)
-	var wconv := f._wconv
-	var theta := f._theta
-	var vel := f._vel
+	var wconv := f.raw_w_conv()
+	var theta := f.raw_theta()
+	var vel := f.raw_vel()
 	var nxy := n_col
 	# θ̄ относительно низа сетки (интеграл dθ̄/dz по центрам уровней)
 	var tbar := PackedFloat32Array()
@@ -195,10 +179,10 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	for j in f.ny:
 		for i in f.nx:
 			var c := j * f.nx + i
-			var k1 := f._k1[c]
+			var k1 := k1s[c]
 			if k1 >= f.nz or is_nan(z_i):
 				continue
-			var hc := f._hc[c]
+			var hc := hcs[c]
 			var h := maxf(z_i - hc, ZI_MIN)
 			var hk := heat[c] / RHO_CP
 			var ws := pow(G / THETA0 * hk * h, 1.0 / 3.0) if hk > 0.0 else 0.0
@@ -256,7 +240,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var chosen := PackedInt32Array()
 	if not forced.is_empty():
 		for c in n_col:
-			if c >> 3 < forced.size() and (forced[c >> 3] >> (c & 7)) & 1 == 1 and f._k1[c] < f.nz:
+			if c >> 3 < forced.size() and (forced[c >> 3] >> (c & 7)) & 1 == 1 and k1s[c] < f.nz:
 				chosen.append(c)
 	else:
 		var order := Array(cand)
@@ -314,7 +298,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		sgrid[k].append(s)
 	var ring_max := int(ceil(max_reach / (_B * f.dx))) + 1
 	for c in n_col:
-		if f._k1[c] >= f.nz:
+		if k1s[c] >= f.nz:
 			continue
 		var ci := c % f.nx
 		var cj := c / f.nx
@@ -357,7 +341,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	total_flux = 0.0
 	lost_flux = 0.0
 	for c in n_col:
-		if f._k1[c] >= f.nz:
+		if k1s[c] >= f.nz:
 			continue
 		total_flux += phi[c] * cell_a
 		var o := owner[c]
@@ -392,7 +376,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		var c := chosen[s]
 		var i := c % f.nx
 		var j := c / f.nx
-		var hc := f._hc[c]
+		var hc := hcs[c]
 		var p := Vector2(f.x0 + (i + 0.5) * f.dx, -(f.y0 + (j + 0.5) * f.dx))
 		if pick_fn.is_valid():
 			p = pick_fn.call(i, j)
@@ -418,7 +402,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		net[s] = carried[s] * org
 		ring[s] = (1.0 - org) * CORE_FLUX / ring_int
 		# снос: средний ветер столба источника от земли до потолка
-		var k1 := f._k1[c]
+		var k1 := k1s[c]
 		var su := 0.0
 		var sv := 0.0
 		var n := 0
@@ -571,7 +555,7 @@ func _expected(p: Vector3, scale: PackedFloat32Array) -> float:
 	var u := scale[c]
 	if u == 0.0:
 		return 0.0
-	var xi := (p.y - f._hc[c]) / _src_depth[c]
+	var xi := (p.y - _hcs[c]) / _src_depth[c]
 	if xi <= 0.0 or xi >= 1.0:
 		return 0.0
 	var fq := xi * (_NQ - 1)

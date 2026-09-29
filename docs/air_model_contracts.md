@@ -115,7 +115,7 @@
 - **Тесты:** `test_c3_from_arrays_axes_units`, `test_c3_mask_log_profile`,
   `test_c3_sanitize_and_limits`, `test_c3_from_mac_ref`, `test_c3_game_field_files`.
 
-## C4 v1 — `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал
+## C4 v2 — `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал
 **Владелец:** AM-05 (`air_field_set.gd`, ветка поля в `atmosphere.gd`). **Потребители:** AM-07,
 AM-08, AM-10, физика крыла/боты/птицы (через атмосферу).
 
@@ -128,6 +128,9 @@ AM-08, AM-10, физика крыла/боты/птицы (через атмос
 | `contains(pos) -> bool`, `edge_weight(pos) -> float` | 1 внутри, smoothstep к 0 в полосе `edge_cells` у боков и под верхом, 0 снаружи |
 | `ground_height(x, z)`, `center_xz()`, `size_x()` | рельеф сетки, мир |
 | поля `dx, dz, x0, y0, z_bot, nx, ny, nz, z0, edge_cells, meta, limits` | только чтение для потребителей |
+| `raw_vel()`, `raw_w_conv()`, `raw_theta()` | сырые массивы клеток (раскладка без ореола; `raw_vel` — u, v, w_mech подряд по 3), только чтение |
+| `raw_hc()`, `raw_k1()` | рельеф сетки по столбцам (м), первая воздушная клетка столбца (nz — в земле) |
+| `heat_flux()`, `z_i()`, `gam()`, `u10()` | вход решения из `meta` (C3): H ny·nx Вт/м² (или массив `heat` файла; пусто — нет), z_i м над морем (NAN — нет), dθ̄/dz nz К/м, U10 м/с |
 
 Выборка у земли: столбец c читается на высоте `y + (hc_c − h)·exp(−agl/dx)` (h — настоящая
 земля, `ground_h`); ниже центра первой воздушной клетки — лог-профиль к 0 на z0.
@@ -148,8 +151,9 @@ Vector4` (xyz — Σ вклад уровней в мире, w — доля по�
 
 **Термики AM-07** (`ThermalField.air = AirFieldSet` при `is_air_field_on`, `AirThermals.build(f,
 cfg, forced)`): берут **грубейший** уровень `levels[-1]`; вход — `meta.heat | heat_array` или
-массив `heat` в `.bin`, `meta.z_i`, `meta.gam` (nz), `meta.u10`; нет heat/z_i — источников нет
-(термики — аналитика). Сейчас читают приватные `_vel, _wconv, _theta, _k1, _hc` (Р5).
+массив `heat` в `.bin`, `meta.z_i`, `meta.gam` (nz), `meta.u10` — через геттеры выше
+(`AirThermals.has_inputs`: heat, z_i и gam длиной nz); нет — источников нет (термики — аналитика).
+Каналы — через `raw_*()` (C4 v2, Р5 закрыт).
 
 **Возмущения AM-08 — проект:** понадобятся u* (из сдвига поля у земли: |u_h| первой воздушной
 клетки и её высота над hc + z0 → κ|u|/ln(a/z0)), сдвиг |∂u_h/∂z| по столбцу, признак отрыва/зоны
@@ -245,3 +249,4 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 |---|---|---|---|
 | C1–C5, C8 | v1 | 29.09.2026 | первая фиксация по коду |
 | C6, C7 | v0 | 29.09.2026 | проект (часы старта C6 — готово) |
+| C4 | v2 | 29.09.2026 | AM-07: `WindField.raw_vel/raw_w_conv/raw_theta/raw_hc/raw_k1` и `heat_flux/z_i/gam/u10` (только чтение) вместо приватных массивов (Р5); `has_inputs` проверяет heat, z_i и gam |
