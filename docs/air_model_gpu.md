@@ -246,7 +246,7 @@ act, rhs, φ — по внутренним клеткам. Итого ~46·N·4 
 итерация 15 → 11,2 мс. Плоская раскладка (V-цикл, блоки AM-02) не менялась.
 
 ### Сверка с эталоном AM-01
-`tests/atmosphere/test_air_picard_gpu.gd` (`tools/gpu_tests.sh --filter=test_air_picard`),
+`tests/atmosphere/test_air_picard_gpu.gd` (`tools/gpu_tests.sh --filter=test_air_picard`; замеры и тёплый старт — `test_air_picard_bench.gd`),
 `tests/atmosphere/test_air_place.gd` (без GPU).
 
 | Сверка | Результат |
@@ -266,7 +266,7 @@ act, rhs, φ — по внутренним клеткам. Итого ~46·N·4 
 на всех прогретых решениях Онгудая (λ 112–256 м, |λ − λᵀ| до 65 м).
 
 ### Замеры (RTX 4070 SUPER, под `flock /tmp/heat_ca_gpu.lock`)
-`AIR_PICARD_BENCH=1 tools/gpu_tests.sh --filter=test_air_picard_gpu.gd` (окно 320×240;
+`AIR_PICARD_BENCH=1 tools/gpu_tests.sh --filter=test_air_picard_bench` (окно 320×240;
 `AIR_PICARD_BENCH_DX=200`, `AIR_PICARD_BENCH_QUICK=1` — меньше случаев). Онгудай, 12:00, ветер с
 150°, Δτ_u = 0,3·Δx (эталон cf64b7b).
 
