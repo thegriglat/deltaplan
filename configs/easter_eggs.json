@@ -1,0 +1,33 @@
+{
+  "_doc": "Пасхалки мира и неба (docs/plan/world_easter_eggs.md, контракты — docs/easter_eggs_contracts.md): редкие чисто визуальные детали (метеор, лайнер, ...). Планировщик — scripts/world_objects/easter_eggs.gd; блок каждой пасхалки добавляет её задача",
+  "enabled": true,
+  "enabled_doc": "false — планировщик ничего не делает (ни случайных, ни принудительных пасхалок)",
+  "force": "",
+  "force_doc": "То же, что ключ запуска --egg: «id[:через_с][,id2[:с]…]» или all — вызвать пасхалки в начале полёта без кубика (кадры, отладка); пусто — нет. --egg=none отменяет",
+  "eggs": {
+    "_doc": "Пасхалки по id. Общие поля блока: enabled, script, mode (+ поля режима), lifetime_s; остальное — свои у каждой",
+    "probe": {
+      "_doc": "Проба каркаса (тесты и кадры): оранжевый шарик летит по прямой рядом с игроком. В игре выключена; форсится по имени --egg=probe",
+      "enabled": false,
+      "enabled_doc": "false — в игре не появляется; --egg=probe и тесты вызывают её принудительно",
+      "script": "res://scripts/world_objects/easter_eggs/probe.gd",
+      "script_doc": "Скрипт пасхалки (наследует EasterEgg)",
+      "mode": "interval",
+      "mode_doc": "Расписание: interval (окна slot_s с кубиком), per_flight (один бросок за полёт), condition (по условию раз в check_s)",
+      "slot_s": 60,
+      "slot_s_doc": "interval: длина окна времени мира, с",
+      "mean_interval_s": 300,
+      "mean_interval_s_doc": "interval: в среднем одно появление за столько секунд времени мира",
+      "lifetime_s": 20,
+      "lifetime_s_doc": "Сколько живёт, с (после — планировщик удаляет); 0 — постоянная до reset()",
+      "distance_m": 90,
+      "distance_m_doc": "Расстояние от игрока в момент появления по горизонтали, м",
+      "height_m": 25,
+      "height_m_doc": "Выше игрока в момент появления, м",
+      "speed_ms": 6,
+      "speed_ms_doc": "Скорость полёта по прямой, м/с",
+      "size_m": 3,
+      "size_m_doc": "Диаметр шарика, м"
+    }
+  }
+}

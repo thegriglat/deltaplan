@@ -26,7 +26,11 @@ extends RefCounted
 ##                         + вправо) — кадры «оглянуться на старт» недалеко от склона
 ##   --look-at=<цель>      в кабине смотреть на цель (как «взгляд на прибор»): start — старт,
 ##                         bots — боты (в воздухе, а если никто не взлетел — все), bot<N> — бот N,
-##                         remote — чужой пилот сетевой зоны (NET-40)
+##                         remote — чужой пилот сетевой зоны (NET-40), egg — первая живая пасхалка
+##   --egg=<id>[:<с>][,<id2>[:<с>]…]|all|none
+##                         вызвать пасхалки без кубика через <с> с времени мира (по умолчанию 0);
+##                         none — никаких (перекрывает configs/easter_eggs.json → force)
+##   --gpu-report=<метка>  за 2 с до кадра меряет среднее GPU кадра: EGG_GPU_MS <метка> <мс>
 ##   --bots=<N>            другие пилоты в небе: сколько ботов (поверх настройки, 0 — никого)
 ##   --air-start[=<д>[,<h>]]  старт в воздухе: в <д> м от старта по его курсу, на <h> м над
 ##                         рельефом (по умолчанию 1000 и 300), на скорости трима, сразу в полёте;
@@ -73,6 +77,9 @@ var bots := -1
 ## Автопилот: кружить через столько секунд после отрыва (< 0 — держать курс) и с каким креном.
 ## Куда смотреть в кабине (--look-at): "start", "bots", "bot<N>" или "".
 var look_at := ""
+## Пасхалки: ключ --egg ("" — из configs/easter_eggs.json → force) и метка --gpu-report.
+var egg := ""
+var gpu_report := ""
 var autopilot_circle_s := -1.0
 var autopilot_circle_bank := 15.0
 ## Отладка сети (NET-40): создать зону на встроенном сервере / войти по коду и сразу лететь.
@@ -133,6 +140,10 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.bots = int(val)
 			"look-at":
 				o.look_at = val
+			"egg":
+				o.egg = val
+			"gpu-report":
+				o.gpu_report = val
 			"autopilot-circle":
 				var c := val.split(",")
 				o.autopilot_circle_s = float(c[0])
