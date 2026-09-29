@@ -645,6 +645,25 @@ func test_c5_net_schema() -> void:
 # ------------------------------------------------------------------ C6
 
 
+## Р3: файл поля другой версии формата — отказ load_file (понятная ошибка), не чтение.
+func test_c6_field_version() -> void:
+	var src := FIX + "field/kayancha_w100_h13_U3_d180"
+	var js := _json(src + ".json")
+	check(int(js.get("version", 0)) == WindField.FORMAT_VERSION, "фикстура — текущей версии")
+	js.version = WindField.FORMAT_VERSION + 1
+	var dst := "user://c6_version_test"
+	var fj := FileAccess.open(dst + ".json", FileAccess.WRITE)
+	fj.store_string(JSON.stringify(js))
+	fj.close()
+	var fb := FileAccess.open(dst + ".bin", FileAccess.WRITE)
+	fb.store_buffer(FileAccess.get_file_as_bytes(src + ".bin"))
+	fb.close()
+	check(WindField.load_file(dst) == null, "версия %d — отказ" % js.version)
+	check(WindField.load_file(src) != null, "версия 1 — читается")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dst + ".json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dst + ".bin"))
+
+
 func test_c6_start_hours() -> void:
 	check(
 		SunClock.start_hours() == PackedFloat32Array([9.0, 12.0, 15.0, 20.0]),

@@ -5,6 +5,8 @@ extends Node
 ## и итог. Запуск:
 ##   godot --path . --audio-driver Dummy --resolution 1280x720 res://tools/loading/load_probe.tscn \
 ##     -- --latlon=50.60,86.40 [--cache=<папка>] [--out=<папка> --shots=0.5,3,8] [--timeout=120]
+## Встроенное место вместо точки: --location=<id> [--hour=12]; --stage-shot=<этап> — кадр экрана
+## загрузки в начале этапа (например wind) и через 0,5 с; --lang=ru|en — язык.
 ## --cache — свой кеш рельефа (пустая папка — «холодная» загрузка из сети); --url=<шаблон> —
 ## другой адрес тайлов (проверка ошибок сети).
 ## Код выхода: 0 — полёт начался, 2 — вернулись в меню (ошибка показана), 1 — таймаут.
@@ -23,6 +25,12 @@ var _measuring := false
 var _gaps: Array[Vector2] = []  ## (t от старта, длительность), с
 var _frames := 0
 var _max_gap := 0.0
+var _location := ""
+var _hour := NAN
+var _stage_shot := ""
+var _lang := ""
+var _stage_max_gap := 0.0
+var _in_stage := false
 
 
 func _ready() -> void:
@@ -47,8 +55,16 @@ func _ready() -> void:
 					_shots.append(float(s))
 			"timeout":
 				_timeout = float(v)
-	if is_nan(_lat):
-		push_error("load_probe: нужен --latlon=<lat>,<lon>")
+			"location":
+				_location = v
+			"hour":
+				_hour = float(v)
+			"stage-shot":
+				_stage_shot = v
+			"lang":
+				_lang = v
+	if is_nan(_lat) and _location == "":
+		push_error("load_probe: нужен --latlon=<lat>,<lon> или --location=<id>")
 		get_tree().quit(1)
 		return
 	if _out != "":
@@ -62,6 +78,8 @@ func _process(_dt: float) -> void:
 		_frames += 1
 		var gap := (now - _last) / 1e6
 		_max_gap = maxf(_max_gap, gap)
+		if _in_stage:
+			_stage_max_gap = maxf(_stage_max_gap, gap)
 		if gap > 0.1:
 			_gaps.append(Vector2((_last - _t0) / 1e6, gap))
 			print("[gap] %.2f с: %.0f мс" % [(_last - _t0) / 1e6, gap * 1000.0])
@@ -86,13 +104,22 @@ func _run() -> void:
 	var s: FlightSettings = (_main.get("flight") as FlightSettings).duplicate()
 	s.pick_lat = _lat
 	s.pick_lon = _lon
-	print("load_probe: старт с %.4f, %.4f" % [_lat, _lon])
+	if _location != "":
+		s.location_id = _location
+		s.site_id = ""
+	if not is_nan(_hour):
+		s.start_hour = _hour
+	print("load_probe: старт с %.4f, %.4f / %s" % [_lat, _lon, _location])
+	if _stage_shot != "":
+		terrain.progress.changed.connect(_on_progress.bind(terrain.progress))
 	_t0 = Time.get_ticks_usec()
 	_last = _t0
 	_measuring = true
 	for t in _shots:
 		get_tree().create_timer(t, true, false, true).timeout.connect(_shot.bind(t))
 	var start_menu: StartMenu = _main.get_node("UI/StartMenu")
+	if _lang != "":
+		TranslationServer.set_locale(_lang)
 	start_menu.fly_requested.emit(s)
 	var code := 1
 	while (Time.get_ticks_usec() - _t0) / 1e6 < _timeout:
@@ -121,7 +148,31 @@ func _run() -> void:
 			get_viewport().get_texture().get_image().save_png(_out.path_join("menu_error.png"))
 	for d in terrain.progress.timings:
 		print("load_probe: этап %-10s %6.2f с" % [d.key, d.s])
+	if _stage_shot != "":
+		print("load_probe: этап %s — макс. интервал %.0f мс" % [_stage_shot, _stage_max_gap * 1000.0])
 	await _quit(code)
+
+
+## Кадр в начале этапа _stage_shot и через 0,5 с; интервалы кадров этапа — отдельно.
+func _on_progress(_text: String, _f: float, progress: LoadProgress) -> void:
+	var key := String(progress.get("_key"))
+	if key == _stage_shot and not _in_stage:
+		_in_stage = true
+		_shot_named("stage_%s_a" % key)
+		get_tree().create_timer(0.5, true, false, true).timeout.connect(
+			_shot_named.bind("stage_%s_b" % key)
+		)
+	elif key != _stage_shot and _in_stage:
+		_in_stage = false
+
+
+func _shot_named(stem: String) -> void:
+	if _out == "":
+		return
+	await RenderingServer.frame_post_draw
+	var path := _out.path_join(stem + ".png")
+	get_viewport().get_texture().get_image().save_png(path)
+	print("load_probe: кадр %s" % path)
 
 
 func _status_text(menu: StartMenu) -> String:

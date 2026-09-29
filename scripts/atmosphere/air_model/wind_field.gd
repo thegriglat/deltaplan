@@ -20,6 +20,9 @@ extends RefCounted
 
 ## Масштаб 3 (AM-08, docs/air_model.md → «Масштаб 3: возмущения из поля»): величины пограничного
 ## слоя по столбцам и в точке — turb_at. Постоянные — как в решателе (air.py → Params, kloc).
+
+## Версия формата файла поля (C6: `.json → version`); другая — отказ load_file.
+const FORMAT_VERSION := 1
 const KAPPA := 0.4
 const G := 9.81
 const THETA0 := 300.0
@@ -214,6 +217,9 @@ static func load_file(path: String) -> WindField:
 		push_error("WindField: нет или не читается %s.json" % base)
 		return null
 	var m: Dictionary = js
+	if int(m.get("version", FORMAT_VERSION)) != FORMAT_VERSION:
+		push_error("WindField: %s — версия формата %s, читается %d" % [base, m.version, FORMAT_VERSION])
+		return null
 	var raw := FileAccess.get_file_as_bytes(base + ".bin")
 	if raw.is_empty():
 		push_error("WindField: нет %s.bin" % base)
