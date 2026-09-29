@@ -33,6 +33,8 @@ var nz: int = 0
 var edge_cells: float = 5.0
 ## Метаданные источника (json поля: cond, source, probes …).
 var meta: Dictionary = {}
+## Применённые ограничители (max_speed, max_w), м/с.
+var limits := Vector2(INF, INF)
 
 ## u, v, w_mech подряд на клетку: ((k·ny + j)·nx + i)·3 + канал.
 var _vel := PackedFloat32Array()
@@ -52,7 +54,9 @@ var _z_top: float = 0.0
 
 ## Поле из массивов в центрах клеток (API решателя AM-03 и библиотеки полей AM-06б).
 ## m: {dx, dz, x0, y0, z_bot, nx, ny, nz, z0?}; массивы — nz·ny·nx (раскладка выше), hc — ny·nx.
-## Нечисловые значения (NaN, ∞) → 0. Возвращает null при несовпадении размеров.
+## Нечисловые значения (NaN, ∞) → 0; ограничители (clamp_values) — сразу, за тот же проход.
+## Стоит O(n) в GDScript (~0,2–0,4 с на 64 × 64 × 62) — строить в рабочем потоке (класс не трогает
+## сцену), в главном — только AirFieldSet.set_field. null — размеры не сходятся.
 static func from_arrays(
 	m: Dictionary,
 	u: PackedFloat32Array,
@@ -60,7 +64,9 @@ static func from_arrays(
 	w_mech: PackedFloat32Array,
 	w_conv: PackedFloat32Array,
 	theta: PackedFloat32Array,
-	hc: PackedFloat32Array
+	hc: PackedFloat32Array,
+	max_speed: float = 40.0,
+	max_w: float = 10.0
 ) -> WindField:
 	var f := WindField.new()
 	f.meta = m
@@ -81,18 +87,33 @@ static func from_arrays(
 		if a.size() != n:
 			push_error("WindField: размер массива %d ≠ %d" % [a.size(), n])
 			return null
-	f._vel.resize(n * 3)
+	var vel := PackedFloat32Array()
+	vel.resize(n * 3)
+	var wc := w_conv.duplicate()
+	var th := theta.duplicate()
 	for c in n:
-		f._vel[c * 3] = _finite(u[c])
-		f._vel[c * 3 + 1] = _finite(v[c])
-		f._vel[c * 3 + 2] = _finite(w_mech[c])
-	f._wconv = w_conv.duplicate()
-	f._theta = theta.duplicate()
-	for c in n:
-		f._wconv[c] = _finite(f._wconv[c])
-		f._theta[c] = _finite(f._theta[c])
+		var a := u[c]
+		var b := v[c]
+		var w := w_mech[c]
+		var q := wc[c]
+		if not (
+			is_finite(a) and is_finite(b) and is_finite(w) and is_finite(q) and is_finite(th[c])
+		):
+			a = _finite(a)
+			b = _finite(b)
+			w = _finite(w)
+			wc[c] = _finite(q)
+			th[c] = _finite(th[c])
+		var i := c * 3
+		vel[i] = a
+		vel[i + 1] = b
+		vel[i + 2] = w
+	f._vel = vel
+	f._wconv = wc
+	f._theta = th
 	f._hc = hc.duplicate()
 	f._build_columns()
+	f.clamp_values(max_speed, max_w)
 	return f
 
 
@@ -193,17 +214,28 @@ func _build_columns() -> void:
 
 
 ## Ограничители (на всякий случай — решение без срыва на обрыве может дать лишнее): модуль
-## горизонтали ≤ max_speed, |w_mech|, |w_conv| ≤ max_w, м/с.
+## горизонтали ≤ max_speed, |w_mech|, |w_conv| ≤ max_w, м/с. Повтор с теми же — без прохода.
 func clamp_values(max_speed: float, max_w: float) -> void:
-	var n := _nxy * nz
-	for c in n:
+	var lim := Vector2(max_speed, max_w)
+	if limits == lim:
+		return
+	limits = lim
+	var s2 := max_speed * max_speed
+	for c in _nxy * nz:
 		var i := c * 3
-		var s := Vector2(_vel[i], _vel[i + 1]).length()
-		if s > max_speed:
-			_vel[i] *= max_speed / s
-			_vel[i + 1] *= max_speed / s
-		_vel[i + 2] = clampf(_vel[i + 2], -max_w, max_w)
-		_wconv[c] = clampf(_wconv[c], -max_w, max_w)
+		var a := _vel[i]
+		var b := _vel[i + 1]
+		var ss := a * a + b * b
+		if ss > s2:
+			var k := max_speed / sqrt(ss)
+			_vel[i] = a * k
+			_vel[i + 1] = b * k
+		var w := _vel[i + 2]
+		if absf(w) > max_w:
+			_vel[i + 2] = clampf(w, -max_w, max_w)
+		var q := _wconv[c]
+		if absf(q) > max_w:
+			_wconv[c] = clampf(q, -max_w, max_w)
 
 
 ## Точка внутри поля (по горизонтали и между низом и верхом сетки).

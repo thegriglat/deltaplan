@@ -3,8 +3,9 @@ extends Node
 ## побитное сравнение с сохранённым эталоном (поле выключено — аналитика не изменилась). Не игровой
 ## код. Мир — AtmoFingerprint.make_world (аналитический рельеф), t = 600 с, 6400 точек (сетка
 ## 40 × 40 × 4 высоты над рельефом), турбулентность включена.
-##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/bench/air_velocity_bench.tscn \
-##     -- [--out=<файл>] [--compare=<файл>] [--field=<путь .json поля>]
+##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . \
+##     res://tools/bench/air_velocity_bench.tscn -- [--kayancha] [--out=<файл>] \
+##     [--compare=<файл>] [--field=<путь .json поля>]
 ##   --out / --compare — записать / сравнить air_velocity_at и mean_wind_at (float64 подряд)
 ##   --kayancha — способ базы AM-00: Онгудай, Каянча, 75 м, 100 000 вызовов в точке (с --field —
 ##             ещё и с полем)
@@ -34,7 +35,10 @@ func _ready() -> void:
 	var step_m := 300.0
 	var wf: WindField = null
 	if field_path != "":
+		var t_load := Time.get_ticks_usec()
 		wf = WindField.load_file(field_path)
+		t_load = Time.get_ticks_usec() - t_load
+		print("WindField.load_file: %.0f мс (чтение, проверка, ограничители)" % (t_load / 1000.0))
 		if wf == null:
 			print("air_velocity_bench: поле не прочитано: " + field_path)
 			get_tree().quit(1)
@@ -127,8 +131,10 @@ func _kayancha(field_path: String) -> void:
 				a.air_velocity_at(p)
 			best = minf(best, float(Time.get_ticks_usec() - t0) / 100000.0)
 		print(
-			"air_velocity_at Каянча 75 м: %.2f мкс/вызов (%s, лучший из 3 × 100 000), v = %s"
-			% [best, "с полем" if mode == "on" else "без поля", a.air_velocity_at(p)]
+			(
+				"air_velocity_at Каянча 75 м: %.2f мкс/вызов (%s, лучший из 3 × 100 000), v = %s"
+				% [best, "с полем" if mode == "on" else "без поля", a.air_velocity_at(p)]
+			)
 		)
 	a.free()
 	terrain.free()
