@@ -18,6 +18,31 @@ extends RefCounted
 ## agl = y − h): у земли — та же высота над землёй сетки, что у пилота над настоящей; выше
 ## подсеточные неровности рельефа гаснут на масштабе клетки, и выборка идёт по абсолютной высоте.
 
+## Масштаб 3 (AM-08, docs/air_model.md → «Масштаб 3: возмущения из поля»): величины пограничного
+## слоя по столбцам и в точке — turb_at. Постоянные — как в решателе (air.py → Params, kloc).
+const KAPPA := 0.4
+const G := 9.81
+const THETA0 := 300.0
+const RHO_CP := 1.2 * 1005.0
+## Слой, в котором ищется «внешний» ветер над следом за гребнем и опускание, м над hc: след и зона
+## отрыва за холмом высотой H тянутся до ~1–2 H над землёй (Kaimal & Finnigan 1994, гл. 5), у
+## наших стартов H ≈ 100–400 м.
+const A_OUT := 600.0
+## Сглаживание потока тепла для w* (площадь конвективной ячейки ~ z_i) — как Params.k_smooth_m.
+const HEAT_SMOOTH_M := 1500.0
+## Мин. толщина слоя перемешивания, м — как Params.zi_min.
+const ZI_MIN := 300.0
+## Индексы turb_at.
+const T_SHEAR := 0
+const T_N2 := 1
+const T_USTAR := 2
+const T_UOUT := 3
+const T_AOUT := 4
+const T_DESC := 5
+const T_WSTAR := 6
+const T_HMIX := 7
+const T_SIZE := 8
+
 ## Шероховатость для лог-профиля у земли, м (как в решателе).
 var z0: float = 0.1
 var dx: float = 100.0
@@ -46,6 +71,17 @@ var _hc := PackedFloat32Array()
 var _k1 := PackedInt32Array()
 ## 1 / ln(a1 / z0), a1 — высота центра первой воздушной клетки над hc столбца.
 var _inv_log1 := PackedFloat32Array()
+## По столбцам (AM-08): u* по лог-закону (м/с); «внешний» ветер над следом U_out (м/с) и его высота
+## над hc (м); наклон опускания s_d = max(0, −min w_mech)/U_out в слое A_OUT; w* (м/с) и толщина
+## слоя перемешивания z_i − hc (м; 0 — нет данных о нагреве).
+var _ustar := PackedFloat32Array()
+var _uout := PackedFloat32Array()
+var _aout := PackedFloat32Array()
+var _desc := PackedFloat32Array()
+var _wstar := PackedFloat32Array()
+var _hmix := PackedFloat32Array()
+## dθ̄/dz по уровням (meta.gam, К/м); пусто — устойчивость не известна.
+var _gam := PackedFloat32Array()
 var _nxy: int = 0
 var _inv_dx: float = 0.01
 var _inv_dz: float = 0.02
@@ -114,6 +150,8 @@ static func from_arrays(
 	f._hc = hc.duplicate()
 	f._build_columns()
 	f.clamp_values(max_speed, max_w)
+	f._build_boundary_layer()
+	f._build_convective()
 	return f
 
 
@@ -191,6 +229,9 @@ static func load_file(path: String) -> WindField:
 	var f := from_arrays(m, arr.u, arr.v, arr.w_mech, arr.w_conv, arr.theta, arr.hc)
 	if f != null:
 		f.meta["path"] = base
+		# поток тепла из .bin (heat_flux читает по meta.path) — для w* масштаба 3
+		if f.heat_flux().size() == f.nx * f.ny:
+			f._build_convective()
 	return f
 
 
@@ -236,6 +277,164 @@ func clamp_values(max_speed: float, max_w: float) -> void:
 		var q := _wconv[c]
 		if absf(q) > max_w:
 			_wconv[c] = clampf(q, -max_w, max_w)
+	if not _ustar.is_empty():
+		_build_boundary_layer()
+
+
+## Столбцы для масштаба 3 (AM-08): u* по лог-закону, «внешний» ветер над следом, опускание.
+## u* = κ|U_r|/ln(a_r/z0) по первой воздушной клетке, центр которой не ниже dz/2 над hc (клетка
+## ниже сидит в «углу» ступеньки маски и тормозится её лобовым сопротивлением — лог-закон по ней
+## занижает u* вдвое, видно на стартах AM-08); U_out — наибольшая |U_h| столбца в слое A_OUT над hc.
+func _build_boundary_layer() -> void:
+	_ustar.resize(_nxy)
+	_uout.resize(_nxy)
+	_aout.resize(_nxy)
+	_desc.resize(_nxy)
+	var gam: Variant = meta.get("gam")
+	_gam = PackedFloat32Array()
+	if (gam is Array or gam is PackedFloat32Array or gam is PackedFloat64Array) and gam.size() == nz:
+		_gam = PackedFloat32Array(gam)
+	for c in _nxy:
+		var k1 := _k1[c]
+		if k1 >= nz:
+			_ustar[c] = 0.0
+			_uout[c] = 0.0
+			_aout[c] = A_OUT
+			_desc[c] = 0.0
+			continue
+		var kr := k1
+		var ar := z_bot + (k1 + 0.5) * dz - _hc[c]
+		if ar < 0.5 * dz and k1 + 1 < nz:
+			kr = k1 + 1
+			ar += dz
+		var i := (kr * _nxy + c) * 3
+		_ustar[c] = KAPPA * Vector2(_vel[i], _vel[i + 1]).length() / log(maxf(ar, 2.0 * z0) / z0)
+		var u_max := 0.0
+		var a_max := ar
+		var w_min := 0.0
+		for k in range(k1, nz):
+			var a := z_bot + (k + 0.5) * dz - _hc[c]
+			if a > A_OUT:
+				break
+			var j := (k * _nxy + c) * 3
+			var s := Vector2(_vel[j], _vel[j + 1]).length()
+			if s > u_max:
+				u_max = s
+				a_max = a
+			w_min = minf(w_min, _vel[j + 2])
+		_uout[c] = u_max
+		_aout[c] = maxf(a_max, 2.0 * z0)
+		_desc[c] = -w_min / maxf(u_max, 0.5)
+
+
+## w* и толщина слоя перемешивания по столбцам (AM-08), если в meta есть поток тепла (heat |
+## heat_array, Вт/м², ny·nx) и z_i: w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, ZI_MIN) —
+## масштаб Дирдорфа, как в замыкании решателя; H сглажен квадратом HEAT_SMOOTH_M (конвективная
+## ячейка ~ z_i, как Params.k_smooth_m). Нет данных — w* = 0 (конвективная болтанка — аналитика).
+func _build_convective() -> void:
+	_wstar.resize(_nxy)
+	_hmix.resize(_nxy)
+	_wstar.fill(0.0)
+	_hmix.fill(0.0)
+	var heat := heat_flux()
+	var zi := z_i()
+	if heat.size() != _nxy or not is_finite(zi):
+		return
+	# сглаживание: скользящее среднее по квадрату (2r + 1)² столбцов — по строкам, затем по столбцам
+	var r := maxi(int(round(0.5 * HEAT_SMOOTH_M / dx)), 0)
+	var tmp := PackedFloat32Array()
+	tmp.resize(_nxy)
+	for j in ny:
+		for i in nx:
+			var s := 0.0
+			var n := 0
+			for q in range(maxi(i - r, 0), mini(i + r, nx - 1) + 1):
+				s += heat[j * nx + q]
+				n += 1
+			tmp[j * nx + i] = s / n
+	for j in ny:
+		for i in nx:
+			var s := 0.0
+			var n := 0
+			for q in range(maxi(j - r, 0), mini(j + r, ny - 1) + 1):
+				s += tmp[q * nx + i]
+				n += 1
+			var c := j * nx + i
+			_hmix[c] = maxf(zi - _hc[c], ZI_MIN)
+			_wstar[c] = deardorff_wstar(s / n, zi, _hc[c])
+
+
+## Масштаб Дирдорфа w* = (g/θ0 · H/(ρc_p) · h)^(1/3), h = max(z_i − hc, ZI_MIN), м/с; H ≤ 0 — 0.
+## Одна формула для масштабов 2 и 3 (H — поток тепла, Вт/м²; z_i, hc — м над морем).
+static func deardorff_wstar(heat_wm2: float, z_i: float, hc: float) -> float:
+	if heat_wm2 <= 0.0 or not is_finite(z_i):
+		return 0.0
+	return pow(G / THETA0 * heat_wm2 / RHO_CP * maxf(z_i - hc, ZI_MIN), 1.0 / 3.0)
+
+
+## Величины пограничного слоя в точке для масштаба 3 (AM-08): массив T_SIZE чисел (индексы T_*):
+## сдвиг |∂U_h/∂z| (1/с) и N² = g/θ0·(dθ̄/dz + ∂θ′/∂z) (1/с²; NAN — нет meta.gam) на высоте точки
+## (та же выборка у земли, что sample: ниже центра первой клетки — производная лог-профиля); по
+## столбцам — u*, U_out, его высота над землёй, наклон опускания, w*, толщина слоя перемешивания
+## (0 — нет нагрева в meta). Билинейно по 4 столбцам; вне поля — ближайший край.
+func turb_at(pos: Vector3, ground_h: float = NAN) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(T_SIZE)
+	var gx := clampf((pos.x - x0) * _inv_dx - 0.5, 0.0, nx - 1.0)
+	var gy := clampf((-pos.z - y0) * _inv_dx - 0.5, 0.0, ny - 1.0)
+	var i0 := mini(int(gx), nx - 2)
+	var j0 := mini(int(gy), ny - 2)
+	var fx := gx - i0
+	var fy := gy - j0
+	var c := j0 * nx + i0
+	var sh := _shift(pos, ground_h, c, fx, fy)
+	var n2_known := not _gam.is_empty()
+	_turb_col(out, c, pos.y, sh, (1.0 - fx) * (1.0 - fy))
+	_turb_col(out, c + 1, pos.y, sh, fx * (1.0 - fy))
+	_turb_col(out, c + nx, pos.y, sh, (1.0 - fx) * fy)
+	_turb_col(out, c + nx + 1, pos.y, sh, fx * fy)
+	if not n2_known:
+		out[T_N2] = NAN
+	return out
+
+
+## Добавить к out вклад столбца cc с весом wq (turb_at).
+func _turb_col(out: PackedFloat32Array, cc: int, y: float, sh: Vector2, wq: float) -> void:
+	var d := _col_grad(cc, y, sh)
+	out[T_SHEAR] += d.x * wq
+	out[T_N2] += d.y * wq
+	out[T_USTAR] += _ustar[cc] * wq
+	out[T_UOUT] += _uout[cc] * wq
+	out[T_AOUT] += _aout[cc] * wq
+	out[T_DESC] += _desc[cc] * wq
+	out[T_WSTAR] += _wstar[cc] * wq
+	out[T_HMIX] += _hmix[cc] * wq
+
+
+## (|∂U_h/∂z|, N²) столбца c на высоте y: между центрами — разность пары клеток (производная
+## линейной интерполяции); ниже центра первой воздушной — производная лог-профиля
+## |U₁|/(a·ln(a₁/z0)) и N² первой пары.
+func _col_grad(c: int, y: float, sh: Vector2) -> Vector2:
+	var k1 := _k1[c]
+	if k1 >= nz - 1:
+		return Vector2.ZERO
+	var hcol := _hc[c]
+	var z := y + (hcol - sh.y) * sh.x
+	var kf := (z - z_bot) * _inv_dz - 0.5
+	var k := clampi(int(kf), k1, nz - 2)
+	var i := (k * _nxy + c) * 3
+	var i2 := i + _nxy * 3
+	var n2 := 0.0
+	if not _gam.is_empty():
+		var t := clampf(kf - k, 0.0, 1.0)
+		var dth := (_theta[k * _nxy + _nxy + c] - _theta[k * _nxy + c]) * _inv_dz
+		n2 = G / THETA0 * (lerpf(_gam[k], _gam[k + 1], t) + dth)
+	if kf >= k1:
+		var du := Vector2(_vel[i2] - _vel[i], _vel[i2 + 1] - _vel[i + 1]).length() * _inv_dz
+		return Vector2(du, n2)
+	var a := maxf(z - hcol, z0)
+	var u1 := Vector2(_vel[i], _vel[i + 1]).length()
+	return Vector2(u1 * _inv_log1[c] / a, n2)
 
 
 ## Точка внутри поля (по горизонтали и между низом и верхом сетки).

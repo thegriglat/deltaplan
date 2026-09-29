@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 2, C5 = 1, C6 = 1, C7 = 0, C8 = 2, C9 = 1}
+const CONTRACTS := {C1 = 1, C2 = 2, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 0, C8 = 2, C9 = 1}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -536,6 +536,62 @@ func test_c4_atmosphere_field_rule() -> void:
 	)
 	a.free()
 	ref.free()
+
+
+## C4 v3 (AM-08): величины пограничного слоя для масштаба 3 — WindField.turb_at,
+## AirFieldSet.sample_turb.
+func test_c4_turb_at() -> void:
+	var g := _grid()
+	var f := _field(
+		g, func(_i, _j, _k): return 3.0, func(_i, _j, _k): return 4.0,
+		func(_i, _j, _k): return -0.5, func(_i, _j, _k): return 0.0,
+		func(_i, _j, _k): return 0.0, func(_i, _j): return 0.0
+	)
+	check(WindField.T_SIZE == 8, "T_SIZE = 8")
+	var p := _world(g, 10.0, 10.0, 3.0)
+	var t := f.turb_at(p, 0.0)
+	check(t.size() == WindField.T_SIZE, "turb_at → T_SIZE чисел")
+	# первая клетка: центр 25 м над hc = 0 (≥ dz/2) → u* = κ·5/ln(25/0,1)
+	approx(t[WindField.T_USTAR], 0.4 * 5.0 / log(250.0), 1.0e-4, "u* по лог-закону")
+	approx(t[WindField.T_UOUT], 5.0, 1.0e-4, "U_out — наибольшая |U_h| в слое A_OUT")
+	approx(t[WindField.T_DESC], 0.1, 1.0e-4, "наклон опускания −min w / U_out")
+	approx(t[WindField.T_SHEAR], 0.0, 1.0e-5, "постоянный ветер — сдвиг 0")
+	check(is_nan(t[WindField.T_N2]), "нет meta.gam — N² = NAN")
+	check(t[WindField.T_WSTAR] == 0.0 and t[WindField.T_HMIX] == 0.0, "нет нагрева — w* = 0, h = 0")
+	var low := f.turb_at(Vector3(p.x, 10.0, p.z), 0.0)
+	var s_log := 5.0 / (10.0 * log(250.0))
+	approx(low[WindField.T_SHEAR], s_log, 1.0e-4, "ниже 1-й клетки — сдвиг лог-профиля")
+	# устойчивость и нагрев из meta
+	var g2 := _grid()
+	var gam := []
+	for k in int(g2.nz):
+		gam.append(0.01)
+	var heat := []
+	for c in int(g2.nx) * int(g2.ny):
+		heat.append(300.0)
+	g2["gam"] = gam
+	g2["heat"] = heat
+	g2["z_i"] = 1500.0
+	var f2 := _field(
+		g2, func(_i, _j, _k): return 3.0, func(_i, _j, _k): return 4.0,
+		func(_i, _j, _k): return 0.0, func(_i, _j, _k): return 0.0,
+		func(_i, _j, _k): return 0.0, func(_i, _j): return 0.0
+	)
+	var t2 := f2.turb_at(p, 0.0)
+	approx(t2[WindField.T_N2], 9.81 / 300.0 * 0.01, 1.0e-7, "N² = g/θ0·(gam + ∂θ′/∂z)")
+	approx(t2[WindField.T_WSTAR], WindField.deardorff_wstar(300.0, 1500.0, 0.0), 1.0e-4, "w* Дирдорфа")
+	approx(t2[WindField.T_HMIX], 1500.0, 1.0e-3, "толщина слоя z_i − hc")
+	# AirFieldSet: среднее по уровням + доля
+	var s := AirFieldSet.new()
+	s.set_field(f, 0.0)
+	var st := s.sample_turb(p, 0.0)
+	check(st.size() == WindField.T_SIZE + 1, "sample_turb → T_SIZE + 1")
+	approx(st[WindField.T_SIZE], 1.0, 1.0e-6, "внутри — доля 1")
+	approx(st[WindField.T_USTAR], t[WindField.T_USTAR], 1.0e-6, "один уровень — как turb_at")
+	var out := s.sample_turb(Vector3(1.0e5, 300.0, 0.0), 0.0)
+	check(out[WindField.T_SIZE] == 0.0, "вне поля — доля 0")
+	for fn in ["sample_turb"]:
+		check(s.has_method(fn), "AirFieldSet." + fn)
 
 
 func test_c4_config_keys() -> void:
