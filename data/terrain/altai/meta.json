@@ -7,7 +7,7 @@
   "layers": [
     {
       "id": "detail",
-      "file": "detail.f32.gz",
+      "file": "detail.f32.br",
       "width": 1601,
       "height": 1601,
       "spacing_m": 25.0,
@@ -20,7 +20,7 @@
     },
     {
       "id": "far",
-      "file": "far.f32.gz",
+      "file": "far.f32.br",
       "width": 1601,
       "height": 1601,
       "spacing_m": 100.0,

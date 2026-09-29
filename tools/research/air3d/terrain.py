@@ -1,13 +1,13 @@
 """Рельеф Онгудая для 3D-Пикара: чтение слоя detail (25 м), осреднение в клетки, места.
 
 Координаты мира игры: X — восток, Z — юг (−Z — север), высота над морем. Узел (i, j) слоя:
-x = origin_x + i·spacing, z = origin_z + j·spacing, строка j (row-major, float32 LE, gzip).
+x = origin_x + i·spacing, z = origin_z + j·spacing, строка j (row-major, float32 LE, brotli).
 В решателе оси: i — X (восток), j — Y = −Z (север), k — высота. Поэтому при чтении строки
 переворачиваются (j решателя растёт на север).
 """
 from __future__ import annotations
 
-import gzip
+import brotli
 import json
 import math
 from pathlib import Path
@@ -23,7 +23,7 @@ R_EARTH = 6371008.8
 def load_detail():
     meta = json.loads((DATA / "meta.json").read_text())
     lay = next(l for l in meta["layers"] if l["id"] == "detail")
-    raw = gzip.decompress((DATA / lay["file"]).read_bytes())
+    raw = brotli.decompress((DATA / lay["file"]).read_bytes())
     h = np.frombuffer(raw, "<f4").reshape(lay["height"], lay["width"]).astype(np.float64)
     # строка j растёт на юг (Z); решатель хочет север → переворот
     h = h[::-1].copy()
