@@ -23,4 +23,6 @@ cd tools/research/air_thermals && $PY figs.py
 - `out/stats.json` — термики за 4 ч в круге 6 км у Каянчи, с полем и аналитикой (как база AM-00);
 - `out/flux.json` — поток массы: по площади на ξ 0,25/0,5/0,75, по 12 водосборам, по термикам;
 - `out/net.json` — сколько столбцов-источников расходится без ведущего при шуме поля 1e-3/1e-4·|u₀|;
-- `fields/probe_full.log` — лог последнего полного прогона.
+- `fields/probe_full.log` — лог полного прогона (вне git).
+- `out/fig_before_after_<поле>.png` — было/стало (AM-07 → AM-07б): `$PY figs.py --compare OLD NEW OUT`,
+  OLD — `sources_*.json` до AM-07б (`git show <коммит>:tools/research/air_thermals/out/sources_kayancha_w100_h12.json`).

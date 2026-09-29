@@ -72,7 +72,6 @@ static func _flat(
 static func _cfg(cb: float = 1.0e9) -> Dictionary:
 	var c: Dictionary = Config.get_config("atmosphere").thermal.duplicate()
 	var w: Dictionary = Config.get_config("weather/medium")
-	c["radius_m"] = w.thermal_radius_m
 	c["duty"] = float(w.thermal_duty)
 	c["cloudbase_msl"] = cb
 	return c
@@ -106,49 +105,67 @@ func test_sources_sunny_convergence_not_shade() -> void:
 	var n_shade := 0
 	var n_line := 0
 	var n_sun := 0
-	var q_line := 0.0
-	var q_sun := 0.0
 	var near_line := false
 	for k in s.count():
 		var p := s.pos[k]
 		if p.x >= 0.0:
 			n_shade += 1
-		elif absf(p.x + 1200.0) < 300.0:
+		elif _is_line(p.x):
 			n_line += 1
-			q_line += s.carried[k]
 			near_line = near_line or absf(p.x + 1200.0) <= 150.0
-		elif p.x < -300.0 and absf(p.x + 1200.0) > 600.0:
+		elif _is_sun(p.x):
 			n_sun += 1
-			q_sun += s.carried[k]
+	# площади классов — столбцы внутри поля (вес ≥ ½)
+	var a_line := 0.0
+	var a_sun := 0.0
+	for j in N:
+		for i in N:
+			var x := f.x0 + (i + 0.5) * DX
+			var ctr := Vector3(x, GROUND + 10.0, -(f.y0 + (j + 0.5) * DX))
+			if f.edge_weight(ctr) < 0.5:
+				continue
+			a_line += DX * DX * 1.0e-6 if _is_line(x) else 0.0
+			a_sun += DX * DX * 1.0e-6 if _is_sun(x) else 0.0
+	var d_line := n_line / maxf(a_line, 1e-6)
+	var d_sun := n_sun / maxf(a_sun, 1e-6)
 	print(
 		(
-			"    источников %d: в тени %d, в схождении %d (ядра %.0f м³/с), на солнце %d (%.0f)"
-			% [s.count(), n_shade, n_line, q_line / maxi(n_line, 1), n_sun, q_sun / maxi(n_sun, 1)]
+			"    источников %d: в тени %d, в схождении %d (%.1f/км²), на солнце %d (%.1f/км²)"
+			% [s.count(), n_shade, n_line, d_line, n_sun, d_sun]
 		)
 	)
 	check(n_shade == 0, "в тени (H < 0) источников нет")
 	check(n_sun > 0, "на прогретой равнине источники есть")
 	check(near_line, "источник на оси схождения (±150 м)")
-	check(q_line / n_line > 1.2 * q_sun / n_sun, "в схождении пузыри несут больше (сильнее)")
-	# сила ≈ k·w* (Аллен): на равнине
+	check(d_line > 1.5 * d_sun, "в схождении источники гуще (Φ больше)")
+	# сила = k·w* (Аллен), радиус — Аллен по толщине слоя
 	var ws := s.wstar[0]
 	var k_min := INF
 	var k_max := 0.0
 	for k in s.count():
-		if s.pos[k].x < -300.0 and absf(s.pos[k].x + 1200.0) > 600.0:
-			k_min = minf(k_min, s.w0[k] / s.wstar[k])
-			k_max = maxf(k_max, s.w0[k] / s.wstar[k])
+		k_min = minf(k_min, s.w0[k] / s.wstar[k])
+		k_max = maxf(k_max, s.w0[k] / s.wstar[k])
 	print(
 		(
-			"    w* %.2f м/с, w0/w* на равнине %.2f…%.2f (k Аллена %.2f)"
-			% [ws, k_min, k_max, AirThermals.K_ALLEN]
+			"    w* %.2f м/с, w0/w* %.2f…%.2f (k Аллена %.2f), R %.0f м, живых n_A·(Φ/Φ̂) → %.1f/км²"
+			% [ws, k_min, k_max, AirThermals.K_ALLEN, s.radius[0], d_sun * s.alive_frac]
 		)
 	)
 	check(ws > 1.5 and ws < 3.0, "w* в разумных пределах (%.2f)" % ws)
 	check(
-		k_min > 0.5 and k_max <= AirThermals.K_MAX + 1e-3,
-		"сила пузыря ~ w* (%.2f…%.2f)" % [k_min, k_max]
+		absf(k_min - AirThermals.K_ALLEN) < 1e-3 and absf(k_max - AirThermals.K_ALLEN) < 1e-3,
+		"сила пузыря = k·w* (%.2f…%.2f)" % [k_min, k_max]
 	)
+	var r_allen := AirThermals.allen_r2(1.0, s.top[0] - GROUND)
+	check(absf(s.radius[0] - r_allen) < 1.0, "радиус ядра — Аллен (%.0f м)" % s.radius[0])
+
+
+static func _is_line(x: float) -> bool:
+	return absf(x + 1200.0) < 300.0
+
+
+static func _is_sun(x: float) -> bool:
+	return x < -300.0 and absf(x + 1200.0) > 600.0
 
 
 func test_ceiling_inversion_and_cloudbase() -> void:
@@ -436,7 +453,7 @@ func test_real_kayancha_fixture() -> void:
 		)
 	)
 	check(n > 0, "источники есть")
-	check(kmin > 0.3 and kmax <= AirThermals.K_MAX + 1e-3, "сила ~ w*")
+	check(absf(kmin - AirThermals.K_ALLEN) < 1e-3 and kmax < AirThermals.K_ALLEN + 1e-3, "сила = k·w*")
 	print(
 		(
 			"    поток: поля %.0f, несут ядра %.0f (%.0f %%)"
