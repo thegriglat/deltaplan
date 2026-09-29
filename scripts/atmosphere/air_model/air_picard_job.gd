@@ -19,14 +19,22 @@ extends AirGpuJob
 ## изменения p). Порция — не больше одного шага (проверка читается до следующего шага), шаг
 ## дороже бюджета режется между кадрами.
 
-const SHADER_NAMES := [
-	"air_picard:setup", "air_picard:mgfaces", "air_picard:bc", "air_picard:kloc", "air_picard:mom",
-	"air_picard:heat", "air_picard:div", "air_picard:proj", "air_picard:resid"
-]
-enum Phase { INIT, ITER, FINAL, DONE }
-
 ## Готово поле field_async() (null — размеры не сошлись).
 signal field_ready(f: WindField)
+
+enum Phase { INIT, ITER, FINAL, DONE }
+
+const SHADER_NAMES := [
+	"air_picard:setup",
+	"air_picard:mgfaces",
+	"air_picard:bc",
+	"air_picard:kloc",
+	"air_picard:mom",
+	"air_picard:heat",
+	"air_picard:div",
+	"air_picard:proj",
+	"air_picard:resid"
+]
 
 # скаляры (AirGpu.scalars)
 const S_RSUM := 0
@@ -53,6 +61,9 @@ var results: Array[Dictionary] = []
 ## GPU-время всех порций, мс; стена от start() до готовности, мс.
 var gpu_ms_total := 0.0
 var wall_ms := 0.0
+## V-цикл давления и буферы по именам (для замеров и тестов блоков).
+var mg := AirMultigrid.new()
+var buf := {}
 
 var _cases: Array[AirCase] = []
 var _ci := 0
@@ -65,8 +76,6 @@ var _t0 := 0
 var _dims := Vector3i.ZERO
 var _n := 0
 var _ni := 0
-var mg := AirMultigrid.new()
-var buf := {}
 
 
 func _shaders() -> Array:
@@ -91,8 +100,30 @@ func _setup() -> bool:
 	_n = _dims.x * _dims.y * _dims.z
 	_ni = case.nx * case.ny * case.nz
 	var n := _n
-	for nm in ["tcode", "ubu", "ubv", "ubw", "thb", "spu", "spw", "spc", "kbg", "Q", "Kx", "Ky", "Kz",
-			"u", "v", "w", "th", "p", "nu", "nuh", "r", "wmech"]:
+	for nm in [
+		"tcode",
+		"ubu",
+		"ubv",
+		"ubw",
+		"thb",
+		"spu",
+		"spw",
+		"spc",
+		"kbg",
+		"Q",
+		"Kx",
+		"Ky",
+		"Kz",
+		"u",
+		"v",
+		"w",
+		"th",
+		"p",
+		"nu",
+		"nuh",
+		"r",
+		"wmech"
+	]:
 		buf[nm] = gpu.buffer(n)
 	# шаблоны строкой на точку (C0..C6, b); шаблон тепла — в Cu
 	for nm in ["Cu", "Cv", "Cw"]:
@@ -117,7 +148,9 @@ func _setup() -> bool:
 	for which in 4:
 		var out: RID = [buf.cx, buf.cy, buf.cz, buf.act][which]
 		gpu.kernel(
-			"air_picard:mgfaces", [buf.prm, buf.tcode, buf.Kx, buf.Ky, buf.Kz, out], _n,
+			"air_picard:mgfaces",
+			[buf.prm, buf.tcode, buf.Kx, buf.Ky, buf.Kz, out],
+			_n,
 			[d[0], d[1], d[2], which]
 		)
 	mg.build(gpu, buf.cx, buf.cy, buf.cz, buf.act, Vector3i(nx, ny, nz))
@@ -149,9 +182,27 @@ func _record_setup() -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:setup",
-		[buf.prm, buf.col, buf.lev, buf.tcode, buf.ubu, buf.ubv, buf.spu, buf.spw, buf.spc,
-			buf.kbg, buf.Q, buf.Kx, buf.Ky, buf.Kz],
-		_n, [d[0], d[1], d[2], 0], [], [], 4.0
+		[
+			buf.prm,
+			buf.col,
+			buf.lev,
+			buf.tcode,
+			buf.ubu,
+			buf.ubv,
+			buf.spu,
+			buf.spw,
+			buf.spc,
+			buf.kbg,
+			buf.Q,
+			buf.Kx,
+			buf.Ky,
+			buf.Kz
+		],
+		_n,
+		[d[0], d[1], d[2], 0],
+		[],
+		[],
+		4.0
 	)
 	gpu.vec(AirGpu.Vec.COPY, buf.kbg, buf.nu, _n)
 	gpu.vec(AirGpu.Vec.COPY, buf.kbg, buf.nuh, _n)
@@ -164,8 +215,24 @@ func _bc(mode: int) -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:bc",
-		[buf.prm, buf.tcode, buf.ubu, buf.ubv, buf.ubw, buf.thb, buf.u, buf.v, buf.w, buf.th, buf.p],
-		_n, [d[0], d[1], d[2], mode], [], [], 2.0
+		[
+			buf.prm,
+			buf.tcode,
+			buf.ubu,
+			buf.ubv,
+			buf.ubw,
+			buf.thb,
+			buf.u,
+			buf.v,
+			buf.w,
+			buf.th,
+			buf.p
+		],
+		_n,
+		[d[0], d[1], d[2], mode],
+		[],
+		[],
+		2.0
 	)
 
 
@@ -173,8 +240,24 @@ func _kloc() -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:kloc",
-		[buf.prm, buf.tcode, buf.lev, buf.col, buf.kbg, buf.u, buf.v, buf.w, buf.th, buf.nu, buf.nuh],
-		_n, [d[0], d[1], d[2], 0], [], [], 6.0
+		[
+			buf.prm,
+			buf.tcode,
+			buf.lev,
+			buf.col,
+			buf.kbg,
+			buf.u,
+			buf.v,
+			buf.w,
+			buf.th,
+			buf.nu,
+			buf.nuh
+		],
+		_n,
+		[d[0], d[1], d[2], 0],
+		[],
+		[],
+		6.0
 	)
 
 
@@ -185,8 +268,26 @@ func _mom(comp: int) -> void:
 	var c: RID = [buf.Cu, buf.Cv, buf.Cw][comp]
 	gpu.kernel(
 		"air_picard:mom",
-		[buf.prm, buf.tcode, buf.lev, buf.u, buf.v, buf.w, buf.p, buf.th, sp, bg, buf.nu, buf.nuh, c],
-		_n, [d[0], d[1], d[2], comp], [], [], 5.0
+		[
+			buf.prm,
+			buf.tcode,
+			buf.lev,
+			buf.u,
+			buf.v,
+			buf.w,
+			buf.p,
+			buf.th,
+			sp,
+			bg,
+			buf.nu,
+			buf.nuh,
+			c
+		],
+		_n,
+		[d[0], d[1], d[2], comp],
+		[],
+		[],
+		5.0
 	)
 
 
@@ -194,17 +295,39 @@ func _heat() -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:heat",
-		[buf.prm, buf.tcode, buf.lev, buf.u, buf.v, buf.w, buf.th, buf.Q, buf.spc, buf.thb, buf.nu,
-			buf.nuh, buf.Cu],
-		_n, [d[0], d[1], d[2], 0], [], [], 5.0
+		[
+			buf.prm,
+			buf.tcode,
+			buf.lev,
+			buf.u,
+			buf.v,
+			buf.w,
+			buf.th,
+			buf.Q,
+			buf.spc,
+			buf.thb,
+			buf.nu,
+			buf.nuh,
+			buf.Cu
+		],
+		_n,
+		[d[0], d[1], d[2], 0],
+		[],
+		[],
+		5.0
 	)
 
 
 func _div() -> void:
 	var d := _pc0()
 	gpu.kernel(
-		"air_picard:div", [buf.prm, buf.tcode, buf.u, buf.v, buf.w, buf.rhs], _ni,
-		[d[0], d[1], d[2], 0], [], [], 2.0
+		"air_picard:div",
+		[buf.prm, buf.tcode, buf.u, buf.v, buf.w, buf.rhs],
+		_ni,
+		[d[0], d[1], d[2], 0],
+		[],
+		[],
+		2.0
 	)
 
 
@@ -212,16 +335,25 @@ func _proj(update_p: bool) -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:proj",
-		[buf.prm, buf.Kx, buf.Ky, buf.Kz, buf.phi, buf.u, buf.v, buf.w, buf.p], _n,
-		[d[0], d[1], d[2], 1 if update_p else 0], [], [], 3.0
+		[buf.prm, buf.Kx, buf.Ky, buf.Kz, buf.phi, buf.u, buf.v, buf.w, buf.p],
+		_n,
+		[d[0], d[1], d[2], 1 if update_p else 0],
+		[],
+		[],
+		3.0
 	)
 
 
 func _resid(c: RID, x: RID, which: int) -> void:
 	var d := _pc0()
 	gpu.kernel(
-		"air_picard:resid", [buf.prm, buf.tcode, c, x, buf.r], _n, [d[0], d[1], d[2], which],
-		[], [], 3.0
+		"air_picard:resid",
+		[buf.prm, buf.tcode, c, x, buf.r],
+		_n,
+		[d[0], d[1], d[2], which],
+		[],
+		[],
+		3.0
 	)
 	gpu.reduce(AirGpu.Red.DOT, buf.r, _n, S_R2 + which, buf.r)
 	gpu.reduce(AirGpu.Red.MAXABS, buf.r, _n, S_RMAX + which)
@@ -229,64 +361,85 @@ func _resid(c: RID, x: RID, which: int) -> void:
 
 ## Проекция: ∇·u → минус среднее → cycles V-циклов от φ = 0 → φ минус среднее → u −= K∇φ (p += φ).
 func _prog_project(cycles: int, update_p: bool) -> Array:
-	var nf := float(case.n_fluid)
-	var a := gpu.record(func() -> void:
-		_div()
-		gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
-		gpu.axpy(-1.0 / nf, buf.act, buf.rhs, _ni, S_RSUM)
-		gpu.fill(buf.phi, _ni)
-	)
+	var a := gpu.record(_rec_project_head)
 	for _c in cycles:
 		a.append_array(mg.program(buf.phi, buf.rhs))
-	a.append_array(gpu.record(func() -> void:
-		gpu.reduce(AirGpu.Red.DOT, buf.phi, _ni, S_PHI, buf.act)
-		gpu.axpy(-1.0 / nf, buf.act, buf.phi, _ni, S_PHI)
-		_proj(update_p)
-	))
+	a.append_array(gpu.record(_rec_project_tail.bind(update_p)))
 	return a
+
+
+func _rec_project_head() -> void:
+	_div()
+	gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
+	gpu.axpy(-1.0 / float(case.n_fluid), buf.act, buf.rhs, _ni, S_RSUM)
+	gpu.fill(buf.phi, _ni)
+
+
+func _rec_project_tail(update_p: bool) -> void:
+	gpu.reduce(AirGpu.Red.DOT, buf.phi, _ni, S_PHI, buf.act)
+	gpu.axpy(-1.0 / float(case.n_fluid), buf.act, buf.phi, _ni, S_PHI)
+	_proj(update_p)
 
 
 ## Одна итерация Пикара (reference.md → «Итерация Пикара»).
 func _prog_iteration() -> Array:
-	var p := case.p
-	var d := case.dims()
-	var a := gpu.record(func() -> void:
-		_bc(0)
-		if bool(p.local_k):
-			_kloc()
-		_mom(0)
-		_mom(1)
-		_mom(2)
-		for _s in int(p.mom_sweeps):
-			gpu.zebra(buf.Cu, buf.u, RID(), d, [2, 0, 1], true)
-			gpu.zebra(buf.Cv, buf.v, RID(), d, [2, 0, 1], true)
-			gpu.zebra(buf.Cw, buf.w, RID(), d, [2, 0, 1], true)
-	)
-	a.append_array(_prog_project(int(p.vcycles), true))
-	a.append_array(gpu.record(func() -> void:
-		_heat()
-		for _s in int(p.heat_sweeps):
-			gpu.zebra(buf.Cu, buf.th, RID(), d, [2, 0, 1], true)
-	))
+	var a := gpu.record(_rec_momentum)
+	a.append_array(_prog_project(int(case.p.vcycles), true))
+	a.append_array(gpu.record(_rec_heat_step))
 	return a
+
+
+func _rec_momentum() -> void:
+	var d := case.dims()
+	_bc(0)
+	if bool(case.p.local_k):
+		_kloc()
+	_mom(0)
+	_mom(1)
+	_mom(2)
+	for _s in int(case.p.mom_sweeps):
+		gpu.zebra(buf.Cu, buf.u, RID(), d, [2, 0, 1], true)
+		gpu.zebra(buf.Cv, buf.v, RID(), d, [2, 0, 1], true)
+		gpu.zebra(buf.Cw, buf.w, RID(), d, [2, 0, 1], true)
+
+
+func _rec_heat_step() -> void:
+	_heat()
+	for _s in int(case.p.heat_sweeps):
+		gpu.zebra(buf.Cu, buf.th, RID(), case.dims(), [2, 0, 1], true)
 
 
 ## Невязка установившихся уравнений от текущего состояния (Air.residuals) → скаляры.
 func _prog_check() -> Array:
-	return gpu.record(func() -> void:
-		_bc(0)
-		_mom(0)
-		_mom(1)
-		_mom(2)
-		_resid(buf.Cu, buf.u, 0)
-		_resid(buf.Cv, buf.v, 1)
-		_resid(buf.Cw, buf.w, 2)
-		_heat()
-		_resid(buf.Cu, buf.th, 3)
-		_div()
-		gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
-		gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
-	)
+	return gpu.record(_rec_check)
+
+
+func _rec_check() -> void:
+	_bc(0)
+	_mom(0)
+	_mom(1)
+	_mom(2)
+	_resid(buf.Cu, buf.u, 0)
+	_resid(buf.Cv, buf.v, 1)
+	_resid(buf.Cw, buf.w, 2)
+	_heat()
+	_resid(buf.Cu, buf.th, 3)
+	_rec_div_stats()
+
+
+func _rec_div_stats() -> void:
+	_div()
+	gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
+	gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
+
+
+func _rec_reinit() -> void:
+	_record_setup()
+	_bc(1)
+
+
+func _rec_copy_wmech() -> void:
+	gpu.vec(AirGpu.Vec.COPY, buf.w, buf.wmech, _n)
 
 
 func _program(key: String) -> Array:
@@ -295,16 +448,13 @@ func _program(key: String) -> Array:
 	var a := []
 	match key:
 		"init":
-			a = gpu.record(func() -> void: _bc(1))
+			a = gpu.record(_bc.bind(1))
 			a.append_array(_prog_project(30, false))
 		"warm":
-			a = gpu.record(func() -> void: _bc(0))
+			a = gpu.record(_bc.bind(0))
 			a.append_array(_prog_project(4, false))
 		"reinit":
-			a = gpu.record(func() -> void:
-				_record_setup()
-				_bc(1)
-			)
+			a = gpu.record(_rec_reinit)
 			a.append_array(_prog_project(30, false))
 		"iters":
 			var one := _prog_iteration()
@@ -312,15 +462,11 @@ func _program(key: String) -> Array:
 				a.append_array(one)
 			a.append_array(_prog_check())
 		"final":
-			a = gpu.record(func() -> void: _bc(0))
+			a = gpu.record(_bc.bind(0))
 			a.append_array(_prog_project(10, false))
-			a.append_array(gpu.record(func() -> void:
-				_div()
-				gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
-				gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
-			))
+			a.append_array(gpu.record(_rec_div_stats))
 		"mech_done":
-			a = gpu.record(func() -> void: gpu.vec(AirGpu.Vec.COPY, buf.w, buf.wmech, _n))
+			a = gpu.record(_rec_copy_wmech)
 	_progs[key] = a
 	return a
 
@@ -384,8 +530,12 @@ func _finish_result() -> void:
 	var c := _cases[_ci]
 	var nf := float(c.n_fluid)
 	var res := {
-		label = c.label, status = _status, iters = _iters, hist = _hist,
-		div_rms = sqrt(gpu.read_scalar(S_DIV2) / nf), div_max = gpu.read_scalar(S_DIVMAX),
+		label = c.label,
+		status = _status,
+		iters = _iters,
+		hist = _hist,
+		div_rms = sqrt(gpu.read_scalar(S_DIV2) / nf),
+		div_max = gpu.read_scalar(S_DIVMAX),
 		heated = not c.heat.is_empty(),
 	}
 	results.append(res)
@@ -400,8 +550,10 @@ func _read_residuals() -> Dictionary:
 	return {
 		mom_rms = sqrt((rms[0] * rms[0] + rms[1] * rms[1] + rms[2] * rms[2]) / 3.0),
 		mom_max = maxf(s[S_RMAX], maxf(s[S_RMAX + 1], s[S_RMAX + 2])),
-		th_rms = rms[3], th_max = s[S_RMAX + 3],
-		div_rms = sqrt(s[S_DIV2] / maxf(float(c.n_fluid), 1.0)), div_max = s[S_DIVMAX],
+		th_rms = rms[3],
+		th_max = s[S_RMAX + 3],
+		div_rms = sqrt(s[S_DIV2] / maxf(float(c.n_fluid), 1.0)),
+		div_max = s[S_DIVMAX],
 	}
 
 
@@ -457,7 +609,12 @@ func field(max_speed := 40.0, max_w := 10.0) -> WindField:
 func _mech_ok() -> bool:
 	if _cases.size() > 1 or case.heat.is_empty():
 		return true
-	push_error("AirPicardJob.field: случай с нагревом решён без mech — w_mech нет (mech = false только для замеров)")
+	push_error(
+		(
+			"AirPicardJob.field: случай с нагревом решён без mech — w_mech нет "
+			+ "(mech = false только для замеров)"
+		)
+	)
 	return false
 
 
@@ -468,18 +625,25 @@ func field_async(max_speed := 40.0, max_w := 10.0) -> void:
 		field_ready.emit.call_deferred(null)
 		return
 	var inp := _field_inputs()
-	WorkerThreadPool.add_task(func() -> void:
-		var f := _build_field(inp, max_speed, max_w)
-		field_ready.emit.call_deferred(f)
-	)
+	WorkerThreadPool.add_task(_field_task.bind(inp, max_speed, max_w))
+
+
+func _field_task(inp: Dictionary, max_speed: float, max_w: float) -> void:
+	var f := _build_field(inp, max_speed, max_w)
+	field_ready.emit.call_deferred(f)
 
 
 func _field_inputs() -> Dictionary:
 	var w := gpu.download(buf.w)
 	return {
-		meta = case.meta(), u = gpu.download(buf.u), v = gpu.download(buf.v), w = w,
-		wm = gpu.download(buf.wmech) if _cases.size() > 1 else w.duplicate(), th = gpu.download(buf.th),
-		tc = gpu.download(buf.tcode), hc = case.hc,
+		meta = case.meta(),
+		u = gpu.download(buf.u),
+		v = gpu.download(buf.v),
+		w = w,
+		wm = gpu.download(buf.wmech) if _cases.size() > 1 else w.duplicate(),
+		th = gpu.download(buf.th),
+		tc = gpu.download(buf.tcode),
+		hc = case.hc,
 	}
 
 

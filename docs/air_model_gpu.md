@@ -195,7 +195,7 @@ poll() зовёт sync() только когда с submit() прошло не �
 
 ```
 var c := AirPlace.domain_case(detail, water_img, loc_cfg, 400.0, 12.0, 3.0, 150.0)  # место, час, ветер
-# или вручную: AirCase.new(); set_grid(...); hc, gam, z_i, heat, U10, wdir
+# или вручную: AirCase.new(); set_grid(...); hc, gam, z_i, heat, u10, wdir
 var job := AirPicardJob.new()
 job.case = c
 job.mech = true            # сначала то же без нагрева (H = 0) → w_mech (Стык 1↔2)
@@ -211,7 +211,7 @@ job.release()
 
 Вход `AirCase`: `set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)`, `hc` (ny·nx), `gam` (NZ = nz + 2,
 в центрах уровней с ореолом), `z_i` (м над морем, NAN — нет конвекции), `heat` (ny·nx, Вт/м²;
-пусто — без нагрева), `U10`, `wdir` (откуда), `taper` (гасить нагрев у края), `p` (параметры
+пусто — без нагрева), `u10`, `wdir` (откуда), `taper` (гасить нагрев у края), `p` (параметры
 эталона `Params`).
 
 ### Порядок программы
