@@ -1,0 +1,4 @@
+__pycache__/
+.venv/
+fields/
+out/3d/*.glb
