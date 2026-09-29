@@ -6,7 +6,8 @@ extends Node
 ##   godot --path . --audio-driver Dummy --resolution 1280x720 res://tools/loading/load_probe.tscn \
 ##     -- --latlon=50.60,86.40 [--cache=<папка>] [--out=<папка> --shots=0.5,3,8] [--timeout=120]
 ## Встроенное место вместо точки: --location=<id> [--hour=12]; --stage-shot=<этап> — кадр экрана
-## загрузки в начале этапа (например wind) и через 0,5 с; --lang=ru|en — язык.
+## загрузки в начале этапа (например wind) и через 0,5 с (--no-shots — только интервалы кадров
+## этапа: чтение кадра само даёт интервал ~0,3 с); --lang=ru|en — язык.
 ## --cache — свой кеш рельефа (пустая папка — «холодная» загрузка из сети); --url=<шаблон> —
 ## другой адрес тайлов (проверка ошибок сети).
 ## Код выхода: 0 — полёт начался, 2 — вернулись в меню (ошибка показана), 1 — таймаут.
@@ -31,6 +32,9 @@ var _stage_shot := ""
 var _lang := ""
 var _stage_max_gap := 0.0
 var _in_stage := false
+var _stage_t0 := 0
+## Кадры экрана этапа не снимать (только замер интервалов этапа).
+var _no_shots := false
 
 
 func _ready() -> void:
@@ -63,6 +67,9 @@ func _ready() -> void:
 				_stage_shot = v
 			"lang":
 				_lang = v
+				Config.get_config("game").language = v  # главная сцена включит его сама
+			"no-shots":
+				_no_shots = true
 	if is_nan(_lat) and _location == "":
 		push_error("load_probe: нужен --latlon=<lat>,<lon> или --location=<id>")
 		get_tree().quit(1)
@@ -78,7 +85,7 @@ func _process(_dt: float) -> void:
 		_frames += 1
 		var gap := (now - _last) / 1e6
 		_max_gap = maxf(_max_gap, gap)
-		if _in_stage:
+		if _in_stage and _last >= _stage_t0:
 			_stage_max_gap = maxf(_stage_max_gap, gap)
 		if gap > 0.1:
 			_gaps.append(Vector2((_last - _t0) / 1e6, gap))
@@ -158,6 +165,9 @@ func _on_progress(_text: String, _f: float, progress: LoadProgress) -> void:
 	var key := String(progress.get("_key"))
 	if key == _stage_shot and not _in_stage:
 		_in_stage = true
+		_stage_t0 = Time.get_ticks_usec()
+		if _no_shots:
+			return
 		_shot_named("stage_%s_a" % key)
 		get_tree().create_timer(0.5, true, false, true).timeout.connect(
 			_shot_named.bind("stage_%s_b" % key)
