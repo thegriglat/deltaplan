@@ -703,6 +703,8 @@ func _report_gpu(label: String) -> void:
 	for i in 10:
 		await RenderingServer.frame_post_draw
 	var sum := 0.0
+	var draws := 0
+	var prims := 0
 	var n := 0
 	var t_end := Time.get_ticks_msec() + 2000
 	while Time.get_ticks_msec() < t_end:
@@ -710,8 +712,16 @@ func _report_gpu(label: String) -> void:
 		if _look_target != null:
 			_look_target.global_position = _look_point()
 		sum += RenderingServer.viewport_get_measured_render_time_gpu(vp)
+		draws += RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
+		)
+		prims += RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME
+		)
 		n += 1
-	print("EGG_GPU_MS %s %.3f" % [label, sum / maxi(n, 1)])
+	n = maxi(n, 1)
+	# Время GPU шумит сильнее цены лёгкой пасхалки — рядом вызовы отрисовки и примитивы кадра.
+	print("EGG_GPU_MS %s %.3f draws %d prims %d" % [label, sum / n, draws / n, prims / n])
 
 
 ## Кадр неба сети (--net-hide-remote): камера неподвижно в 30 м над стартом, поворот --look от
