@@ -76,8 +76,10 @@ func test_placement_on_locations() -> void:
 				e.update(ctx)
 				found += 1
 				lines.append(
-					"%s:%d×%s деревня %.0f м, старт %.0f м"
-					% [sd, inf.count, inf.species, inf.village_m, inf.start_m]
+					(
+						"%s:%d×%s деревня %.0f м, старт %.0f м"
+						% [sd, inf.count, inf.species, inf.village_m, inf.start_m]
+					)
 				)
 				var s := pl.surface_at(c.x, c.z)
 				check(
@@ -112,7 +114,10 @@ func test_deterministic_from_rng() -> void:
 	var b := _spawn(ctx, 3)
 	check(a.info.size() == b.info.size(), "один сид — то же число стайк")
 	for i in mini(a.info.size(), b.info.size()):
-		check(a.info[i].center == b.info[i].center and a.info[i].count == b.info[i].count, "то же место")
+		check(
+			a.info[i].center == b.info[i].center and a.info[i].count == b.info[i].count,
+			"то же место"
+		)
 	a.free()
 	b.free()
 
@@ -191,7 +196,9 @@ func test_flee_when_low() -> void:
 	_run(e, ctx, 5.0, pil)
 	var after := _mean_dist(e, 0, Vector2(pil.x, pil.z))
 	print("         разбегание: среднее расстояние до игрока %.1f → %.1f м" % [before, after])
-	check(after > before + 8.0, "низко: животные удаляются от игрока (%.1f → %.1f)" % [before, after])
+	check(
+		after > before + 8.0, "низко: животные удаляются от игрока (%.1f → %.1f)" % [before, after]
+	)
 	# успокоились: смещение остаётся, плавно затухает, скачков нет
 	var rest := ctx.pilot_pos
 	rest.y += 1500.0
@@ -267,7 +274,44 @@ func test_one_multimesh_per_herd() -> void:
 	var e := _spawn(ctx, 1)
 	check(e.get_child_count() == e.herd_count(), "по одному узлу на стайку")
 	for c in e.get_children():
-		check(c is MultiMeshInstance3D and (c as MultiMeshInstance3D).multimesh.instance_count >= 6, "MultiMesh")
+		check(
+			c is MultiMeshInstance3D and (c as MultiMeshInstance3D).multimesh.instance_count >= 6,
+			"MultiMesh"
+		)
+	e.free()
+
+
+func test_cpu_cost() -> void:
+	var ctx := _ctx("aushkul")
+	var e := _spawn(ctx, 2)
+	if e.herd_count() == 0:
+		return
+	var c: Vector3 = e.info[0].center
+	ctx.pilot_pos = c + Vector3(0.0, 300.0, 0.0)
+	var animals := 0
+	for h in e._herds:
+		animals += int(h.n)
+	var us := 0
+	var ticks := 200
+	for k in ticks:
+		ctx.t += 0.1
+		var t0 := Time.get_ticks_usec()
+		e.update(ctx)
+		us += Time.get_ticks_usec() - t0
+	# между тиками (кадр чаще 10 Гц) update почти бесплатен
+	var us_skip := 0
+	for k in ticks:
+		ctx.t = e._last_tick + 0.01
+		var t0 := Time.get_ticks_usec()
+		e.update(ctx)
+		us_skip += Time.get_ticks_usec() - t0
+	print(
+		(
+			"         CPU update: %d стайки, %d жив.: %.0f мкс на тик 10 Гц, %.1f мкс на пропуск"
+			% [e.herd_count(), animals, float(us) / ticks, float(us_skip) / ticks]
+		)
+	)
+	check(float(us) / ticks < 2000.0, "тик стайки < 2 мс")
 	e.free()
 
 

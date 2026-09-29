@@ -230,14 +230,17 @@ func _make_herd(
 	h["mm"] = mm
 	_herds.append(h)
 	var vil := ctx.place.nearest_place(c.x, c.z) if ctx.place != null else {}
-	info.append(
-		{
-			"species": kind,
-			"count": n,
-			"center": c,
-			"village_m": float(vil.get("dist_m", INF)),
-			"start_m": Vector2(c.x - start.x, c.z - start.y).length(),
-		}
+	(
+		info
+		. append(
+			{
+				"species": kind,
+				"count": n,
+				"center": c,
+				"village_m": float(vil.get("dist_m", INF)),
+				"start_m": Vector2(c.x - start.x, c.z - start.y).length(),
+			}
+		)
 	)
 
 
@@ -256,12 +259,12 @@ func _material() -> StandardMaterial3D:
 func _mesh_for(kind: String, sp: Dictionary) -> ArrayMesh:
 	if _meshes.has(kind):
 		return _meshes[kind]
-	var L := float(sp.length_m)
-	var H := float(sp.height_m)
-	var W := float(sp.width_m)
-	var hy := float(sp.head_y_frac) * H
-	var leg_h := H * 0.45
-	var legw := L * 0.055
+	var ln := float(sp.length_m)
+	var ht := float(sp.height_m)
+	var wd := float(sp.width_m)
+	var hy := float(sp.head_y_frac) * ht
+	var leg_h := ht * 0.45
+	var legw := ln * 0.055
 	var v := PackedVector3Array()
 	var n := PackedVector3Array()
 	var c := PackedColorArray()
@@ -270,21 +273,35 @@ func _mesh_for(kind: String, sp: Dictionary) -> ArrayMesh:
 	var head_c := Color(0.3, 0.3, 0.3) if kind == SHEEP else Color(0.8, 0.8, 0.8)
 	var leg_c := Color(0.4, 0.4, 0.4)
 	# туловище, шея, голова, четыре ноги; голова смотрит в −Z
-	_box(v, n, c, idx, Vector3(0, (leg_h + H) * 0.5, L * 0.12), Vector3(W, H - leg_h, L * 0.68), body)
-	var neck_lo := H * 0.72
-	var neck_hi := maxf(hy + H * 0.1, H * 0.95)
 	_box(
-		v, n, c, idx,
-		Vector3(0, (neck_lo + neck_hi) * 0.5, -L * 0.22),
-		Vector3(W * 0.45, neck_hi - neck_lo, L * 0.14),
+		v,
+		n,
+		c,
+		idx,
+		Vector3(0, (leg_h + ht) * 0.5, ln * 0.12),
+		Vector3(wd, ht - leg_h, ln * 0.68),
 		body
 	)
-	_box(v, n, c, idx, Vector3(0, hy, -L * 0.37), Vector3(W * 0.55, H * 0.2, L * 0.26), head_c)
+	var neck_lo := ht * 0.72
+	var neck_hi := maxf(hy + ht * 0.1, ht * 0.95)
+	_box(
+		v,
+		n,
+		c,
+		idx,
+		Vector3(0, (neck_lo + neck_hi) * 0.5, -ln * 0.22),
+		Vector3(wd * 0.45, neck_hi - neck_lo, ln * 0.14),
+		body
+	)
+	_box(v, n, c, idx, Vector3(0, hy, -ln * 0.37), Vector3(wd * 0.55, ht * 0.2, ln * 0.26), head_c)
 	for sx in [-1.0, 1.0]:
 		for z in [-0.14, 0.4]:
 			_box(
-				v, n, c, idx,
-				Vector3(sx * W * 0.36, leg_h * 0.5, L * z),
+				v,
+				n,
+				c,
+				idx,
+				Vector3(sx * wd * 0.36, leg_h * 0.5, ln * z),
 				Vector3(legw, leg_h, legw),
 				leg_c
 			)
@@ -310,7 +327,9 @@ static func _box(
 	color: Color
 ) -> void:
 	var h := size * 0.5
-	for nrm in [Vector3.RIGHT, Vector3.LEFT, Vector3.UP, Vector3.DOWN, Vector3.BACK, Vector3.FORWARD]:
+	for nrm in [
+		Vector3.RIGHT, Vector3.LEFT, Vector3.UP, Vector3.DOWN, Vector3.BACK, Vector3.FORWARD
+	]:
 		var n3: Vector3 = nrm
 		var u := n3.cross(Vector3.UP) if absf(n3.y) < 0.9 else Vector3.RIGHT
 		var w := n3.cross(u)
@@ -403,14 +422,18 @@ func _update_herd(h: Dictionary, ctx: EggContext, cam: Vector3) -> void:
 		var ph: Vector4 = h.w_ph[i]
 		var ww: Vector2 = h.w_w[i]
 		var push: Vector2 = h.push[i]
-		var p: Vector2 = cen + h.off[i] + Vector2(sin(ww.x * t + ph.x), cos(ww.y * t + ph.y)) * wander + push
+		var p: Vector2 = (
+			cen + h.off[i] + Vector2(sin(ww.x * t + ph.x), cos(ww.y * t + ph.y)) * wander + push
+		)
 		var g: float = ctx.height_at.call(p.x, p.y)
 		# испуг: игрок низко над этим животным и близко по горизонтали
 		var flee: float = h.flee[i]
 		if dt > 0.0:
 			var away: Vector2 = p - pil
 			if away.length() < scare_r and ctx.pilot_pos.y - g < scare_h:
-				var dirv := away.normalized() if away.length() > 0.5 else Vector2.RIGHT.rotated(h.yaw0[i])
+				var dirv := (
+					away.normalized() if away.length() > 0.5 else Vector2.RIGHT.rotated(h.yaw0[i])
+				)
 				h.fdir[i] = dirv
 				h.fspd[i] = h.flee_v[i].x
 				flee = h.flee_dur[i]
@@ -423,7 +446,9 @@ func _update_herd(h: Dictionary, ctx: EggContext, cam: Vector3) -> void:
 				push = push.normalized() * max_push
 		h.flee[i] = flee
 		h.push[i] = push
-		var np: Vector2 = cen + h.off[i] + Vector2(sin(ww.x * t + ph.x), cos(ww.y * t + ph.y)) * wander + push
+		var np: Vector2 = (
+			cen + h.off[i] + Vector2(sin(ww.x * t + ph.x), cos(ww.y * t + ph.y)) * wander + push
+		)
 		# курс: по движению, если идёт заметно, иначе пасётся
 		var yaw: float = h.yaw[i]
 		var mv: Vector2 = np - h.prev[i]
@@ -442,4 +467,6 @@ func _update_herd(h: Dictionary, ctx: EggContext, cam: Vector3) -> void:
 			bob = 0.12 * absf(sin(t * 9.0 + ph.y))
 		var s: float = h.size[i]
 		var b := Basis(Vector3.UP, yaw).scaled(Vector3(s, s, s))
-		mm.set_instance_transform(i, Transform3D(b, Vector3(np.x - cen.x, gy - base_y + bob, np.y - cen.y)))
+		mm.set_instance_transform(
+			i, Transform3D(b, Vector3(np.x - cen.x, gy - base_y + bob, np.y - cen.y))
+		)
