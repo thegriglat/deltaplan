@@ -98,7 +98,7 @@ func _scan_lee_point(terrain: Terrain, site: Dictionary) -> Vector3:
 
 
 ## Ряд в неподвижной точке: СКО w, рывки/мин (|dw/dt| > 3σ, как база), среднее w, СКО u.
-func _series(atmo: Atmosphere, pos: Vector3, dur: float = DUR) -> Dictionary:
+func _series(atmo: Atmosphere, pos: Vector3, dur: float = DUR, thr_abs: float = NAN) -> Dictionary:
 	var dt := 1.0 / HZ
 	var n := int(dur * HZ)
 	var ws := PackedFloat32Array()
@@ -121,12 +121,16 @@ func _series(atmo: Atmosphere, pos: Vector3, dur: float = DUR) -> Dictionary:
 		dd[i] = (ws[i + 1] - ws[i]) / dt
 	var sd := _stats(dd)
 	var jerks := 0
+	var jerks_abs := 0
 	for x in dd:
 		if absf(x - sd.x) > 3.0 * sd.y:
 			jerks += 1
+		if absf(x - sd.x) > thr_abs:
+			jerks_abs += 1
 	return {
 		"sigma_w": sw.y, "mean_w": sw.x, "sigma_u": su.y, "mean_u": su.x,
 		"jerks_per_min": jerks / (dur / 60.0), "jerk_threshold": 3.0 * sd.y,
+		"jerks_per_min_abs_thr": jerks_abs / (dur / 60.0) if is_finite(thr_abs) else -1.0,
 		"mean_wind_w": m.y, "mean_wind_h": Vector2(m.x, m.z).length(),
 	}
 
@@ -164,7 +168,7 @@ func _lee_all() -> Array:
 		if wf != null:
 			a = _make_atmo(terrain, WIND_KMH, from)
 			a.set_air_field(wf, 0.0)
-			row["field"] = _series(a, p)
+			row["field"] = _series(a, p, DUR, float(row.analytic.jerk_threshold))
 			var tb := a.air_field.sample_turb(p, terrain.height_at(p.x, p.z))
 			var fw := a.air_field.sample(p, terrain.height_at(p.x, p.z))
 			var uf := Vector2(fw.x, fw.z).length() / maxf(fw.w, 1.0e-6)
@@ -183,7 +187,7 @@ func _lee_all() -> Array:
 				a.set_thermal_mode("static")
 				if mode == "field":
 					a.set_air_field(WindField.load_file(_field_path(e.loc, e.site)), 0.0)
-				var st := _series(a, p)
+				var st := _series(a, p, 1800.0)
 				var fade := minf(agl / float(a.cfg.ground_fade_m), 1.0)
 				row["no_thermals_" + mode] = {
 					"mean_w": st.mean_w, "sigma_w": st.sigma_w,
@@ -197,7 +201,7 @@ func _lee_all() -> Array:
 
 
 ## Синтетическое поле: ровная земля hc = 0, лог-профиль U(z) = U10·ln(z/z0)/ln(10/z0) по x,
-## θ′ = 0; gam — устойчивость (К/м); heat/z_i — конвекция.
+## θ′ = 0; gam — устойчивость (К/м); heat/z_i — конвекция (heat = 0 — без конвекции).
 func _synthetic(u10: float, gam: float, heat: float, z_i: float) -> WindField:
 	var nx := 16
 	var nz := 40
@@ -210,12 +214,11 @@ func _synthetic(u10: float, gam: float, heat: float, z_i: float) -> WindField:
 	for k in nz:
 		g.append(gam)
 	m["gam"] = g
-	if heat > 0.0:
-		var h := []
-		for c in nx * nx:
-			h.append(heat)
-		m["heat"] = h
-		m["z_i"] = z_i
+	var h := []
+	for c in nx * nx:
+		h.append(heat)
+	m["heat"] = h
+	m["z_i"] = z_i
 	var n := nx * nx * nz
 	var u := PackedFloat32Array()
 	var z0a := PackedFloat32Array()

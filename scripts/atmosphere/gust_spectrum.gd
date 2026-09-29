@@ -10,8 +10,9 @@ extends RefCounted
 ## Одна октава симплекс-шума с «масштабом» s — полосовой сигнал: пик k·S(k) на длине волны
 ## ≈ 1,75 s, короче s — спад круче k⁻⁹, длиннее — ровный хвост (замер
 ## tools/research/air_turb/noise_line.gd). Октавы s = S0·2^i — смежные полосы шириной в октаву
-## вокруг 1,75 s. Масштабы длиннее верхней полосы (λ > √2·1,75·S0·2^(N−1) ≈ 2,5 км) шум не несёт
-## — это медленная смена ветра за минуты, не порыв; их дисперсия не перераспределяется.
+## вокруг 1,75 s. Масштабы длиннее верхней полосы (λ > √2·1,75·S0·2^(N−1) ≈ 2,5 км) октав нет —
+## их доля дисперсии отдаётся октавам пропорционально (СКО шума = 1 при любом L): σ из физики
+## пограничного слоя пилот получает целиком, спектр в инерционном интервале не меняется.
 
 ## Наименьший масштаб октавы, м, и число октав: полосы 14 м … 2,5 км.
 const S0 := 8.0
@@ -64,8 +65,8 @@ func setup(seed_value: int, evolve_ms: float) -> void:
 
 
 ## Доля дисперсии (из 1) каждой октавы для спектров фон Кармана с масштабом L: интеграл по
-## полосе [k_p/√2, k_p·√2] (k_p = 2π/(PEAK·s)), нижняя октава забирает и всё мельче, верхняя —
-## только свою полосу (крупнее — не несём).
+## полосе [k_p/√2, k_p·√2] (k_p = 2π/(PEAK·s)); мельче нижней и крупнее верхней полосы — не несём
+## (шум нормируется на СКО 1 в sample).
 static func _build_tables() -> void:
 	_wu.resize(L_STEPS * OCTAVES)
 	_ww.resize(L_STEPS * OCTAVES)
@@ -74,7 +75,7 @@ static func _build_tables() -> void:
 		var el := L_MIN * exp(li / _inv_dl)
 		for o in OCTAVES:
 			var kp := TAU / (PEAK * S0 * pow(2.0, o))
-			var k_hi := 1.0e3 if o == 0 else kp * sqrt(2.0)
+			var k_hi := kp * sqrt(2.0)
 			var k_lo := kp / sqrt(2.0)
 			_wu[li * OCTAVES + o] = _band(el, k_lo, k_hi, false)
 			_ww[li * OCTAVES + o] = _band(el, k_lo, k_hi, true)
@@ -99,8 +100,8 @@ static func _band(el: float, k_lo: float, k_hi: float, transverse: bool) -> floa
 	return s * r / n
 
 
-## Пульсации (u_x, w, u_z) мира в точке pos в момент t: горизонталь — со спектром L_u (СКО по
-## каждой компоненте — доля дисперсии, которую несут октавы, ≤ 1), вертикаль — L_w. advect —
+## Пульсации (u_x, w, u_z) мира в точке pos в момент t, СКО каждой компоненты 1: горизонталь —
+## со спектром L_u, вертикаль — L_w. advect —
 ## скорость переноса поля (м/с) вдоль dir. Умножать на σ_u, σ_w.
 func sample(pos: Vector3, t: float, advect: float, dir: Vector3, l_u: float, l_w: float) -> Vector3:
 	var p := Vector3(pos.x - dir.x * advect * t, pos.y + _evolve * t, pos.z - dir.z * advect * t)
@@ -112,9 +113,16 @@ func sample(pos: Vector3, t: float, advect: float, dir: Vector3, l_u: float, l_w
 	var iw := int(bw) * OCTAVES
 	var out := Vector3.ZERO
 	var s := S0
+	var su := 0.0
+	var sw := 0.0
 	for o in OCTAVES:
-		var au := sqrt(lerpf(_wu[iu + o], _wu[iu + OCTAVES + o], fu))
-		var aw := sqrt(lerpf(_ww[iw + o], _ww[iw + OCTAVES + o], fw))
+		su += lerpf(_wu[iu + o], _wu[iu + OCTAVES + o], fu)
+		sw += lerpf(_ww[iw + o], _ww[iw + OCTAVES + o], fw)
+	var ku := 1.0 / sqrt(maxf(su, 1.0e-6))
+	var kw := 1.0 / sqrt(maxf(sw, 1.0e-6))
+	for o in OCTAVES:
+		var au := sqrt(lerpf(_wu[iu + o], _wu[iu + OCTAVES + o], fu)) * ku
+		var aw := sqrt(lerpf(_ww[iw + o], _ww[iw + OCTAVES + o], fw)) * kw
 		var q := p / s
 		var j := o * 3
 		var a := q + _off[j]

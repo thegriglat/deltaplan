@@ -229,10 +229,8 @@ static func load_file(path: String) -> WindField:
 	var f := from_arrays(m, arr.u, arr.v, arr.w_mech, arr.w_conv, arr.theta, arr.hc)
 	if f != null:
 		f.meta["path"] = base
-		# поток тепла (вход решателя) — для w* масштабов 2–3; AirThermals.heat_of берёт отсюда же
-		var hol: Variant = (m.arrays as Dictionary).get("heat")
-		if hol is Array and not m.has("heat") and int(hol[1]) == f.nx * f.ny:
-			f.meta["heat"] = all.slice(int(hol[0]), int(hol[0]) + int(hol[1]))
+		# поток тепла из .bin (heat_flux читает по meta.path) — для w* масштаба 3
+		if f.heat_flux().size() == f.nx * f.ny:
 			f._build_convective()
 	return f
 
@@ -338,16 +336,9 @@ func _build_convective() -> void:
 	_hmix.resize(_nxy)
 	_wstar.fill(0.0)
 	_hmix.fill(0.0)
-	var heat := PackedFloat32Array()
-	for key in ["heat", "heat_array"]:
-		var hv: Variant = meta.get(key)
-		if hv is PackedFloat32Array or hv is Array or hv is PackedFloat64Array:
-			heat = PackedFloat32Array(hv)
-			break
-	if heat.size() != _nxy or not meta.has("z_i"):
-		return
-	var z_i := float(meta.z_i)
-	if not is_finite(z_i):
+	var heat := heat_flux()
+	var zi := z_i()
+	if heat.size() != _nxy or not is_finite(zi):
 		return
 	# сглаживание: скользящее среднее по квадрату (2r + 1)² столбцов — по строкам, затем по столбцам
 	var r := maxi(int(round(0.5 * HEAT_SMOOTH_M / dx)), 0)
@@ -369,10 +360,16 @@ func _build_convective() -> void:
 				s += tmp[q * nx + i]
 				n += 1
 			var c := j * nx + i
-			var h := maxf(z_i - _hc[c], ZI_MIN)
-			var hk := maxf(s / n, 0.0) / RHO_CP
-			_hmix[c] = h
-			_wstar[c] = pow(G / THETA0 * hk * h, 1.0 / 3.0)
+			_hmix[c] = maxf(zi - _hc[c], ZI_MIN)
+			_wstar[c] = deardorff_wstar(s / n, zi, _hc[c])
+
+
+## Масштаб Дирдорфа w* = (g/θ0 · H/(ρc_p) · h)^(1/3), h = max(z_i − hc, ZI_MIN), м/с; H ≤ 0 — 0.
+## Одна формула для масштабов 2 и 3 (H — поток тепла, Вт/м²; z_i, hc — м над морем).
+static func deardorff_wstar(heat_wm2: float, z_i: float, hc: float) -> float:
+	if heat_wm2 <= 0.0 or not is_finite(z_i):
+		return 0.0
+	return pow(G / THETA0 * heat_wm2 / RHO_CP * maxf(z_i - hc, ZI_MIN), 1.0 / 3.0)
 
 
 ## Величины пограничного слоя в точке для масштаба 3 (AM-08): массив T_SIZE чисел (индексы T_*):
@@ -391,24 +388,27 @@ func turb_at(pos: Vector3, ground_h: float = NAN) -> PackedFloat32Array:
 	var fy := gy - j0
 	var c := j0 * nx + i0
 	var sh := _shift(pos, ground_h, c, fx, fy)
-	var cols := [c, c + 1, c + nx, c + nx + 1]
-	var wts := [(1.0 - fx) * (1.0 - fy), fx * (1.0 - fy), (1.0 - fx) * fy, fx * fy]
 	var n2_known := not _gam.is_empty()
-	for q in 4:
-		var cc: int = cols[q]
-		var wq: float = wts[q]
-		var d := _col_grad(cc, pos.y, sh)
-		out[T_SHEAR] += d.x * wq
-		out[T_N2] += d.y * wq
-		out[T_USTAR] += _ustar[cc] * wq
-		out[T_UOUT] += _uout[cc] * wq
-		out[T_AOUT] += _aout[cc] * wq
-		out[T_DESC] += _desc[cc] * wq
-		out[T_WSTAR] += _wstar[cc] * wq
-		out[T_HMIX] += _hmix[cc] * wq
+	_turb_col(out, c, pos.y, sh, (1.0 - fx) * (1.0 - fy))
+	_turb_col(out, c + 1, pos.y, sh, fx * (1.0 - fy))
+	_turb_col(out, c + nx, pos.y, sh, (1.0 - fx) * fy)
+	_turb_col(out, c + nx + 1, pos.y, sh, fx * fy)
 	if not n2_known:
 		out[T_N2] = NAN
 	return out
+
+
+## Добавить к out вклад столбца cc с весом wq (turb_at).
+func _turb_col(out: PackedFloat32Array, cc: int, y: float, sh: Vector2, wq: float) -> void:
+	var d := _col_grad(cc, y, sh)
+	out[T_SHEAR] += d.x * wq
+	out[T_N2] += d.y * wq
+	out[T_USTAR] += _ustar[cc] * wq
+	out[T_UOUT] += _uout[cc] * wq
+	out[T_AOUT] += _aout[cc] * wq
+	out[T_DESC] += _desc[cc] * wq
+	out[T_WSTAR] += _wstar[cc] * wq
+	out[T_HMIX] += _hmix[cc] * wq
 
 
 ## (|∂U_h/∂z|, N²) столбца c на высоте y: между центрами — разность пары клеток (производная

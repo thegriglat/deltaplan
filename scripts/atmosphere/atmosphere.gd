@@ -124,6 +124,7 @@ var _lee_field_desc: float = 0.05
 var _lee_field_su: float = 0.18
 var _lee_field_sw: float = 0.14
 var _lee_field_reverse: float = 0.25
+var _lee_field_scale: float = 0.5
 var _field_z0: float = 0.1
 ## Среднее рывка g = clamp((n − порог)/ширина) по распределению шума рывков: у поля рывки — с
 ## нулевым средним (вычитается).
@@ -395,6 +396,7 @@ func _cache_coefficients() -> void:
 	_lee_field_su = float(l.field_sigma_u_per_du)
 	_lee_field_sw = float(l.field_sigma_w_per_du)
 	_lee_field_reverse = float(l.field_reverse_per_wind)
+	_lee_field_scale = float(l.field_eddy_scale_per_relief)
 	_burst_mean = NAN  # считается при первом рывке с полем (_measure_burst_mean)
 	var t: Dictionary = cfg.turbulence
 	_mech_k_base = float(t.mech_per_wind)
@@ -867,7 +869,10 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		sqrt(s_w * s_w + ex2 * _vert_ratio * _vert_ratio),
 		maxf(_turb_max, minf(s_sep.y, _lee_rotor_max))
 	)
-	var n := gusts.sample(pos, time_s, _advect, wd, sg.z, sg.w)
+	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
+	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
+	var l_sep := _lee_field_scale * maxf(relief, 0.0) * lee_f
+	var n := gusts.sample(pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep))
 	var tv := Vector3(n.x * s_u, n.y * s_w, n.z * s_u)
 	var sig := s_u
 	if a < 1.0:
@@ -933,13 +938,14 @@ func _field_sigma(
 	if h_ft < 1000.0:
 		aniso = 1.0 / pow(0.177 + 0.000823 * h_ft, 0.4)
 	var su_m := sw_m * aniso
-	# конвекция: Lenschow et al. (1980) по w* поля; нет нагрева в поле — аналитика (погода)
+	# конвекция: Lenschow et al. (1980) по w* поля (H ≤ 0 — нет); в поле нет данных о нагреве
+	# (meta heat/z_i) — аналитика (погода)
 	var su_c := 0.0
 	var sw_c := 0.0
 	var wstar := tb[WindField.T_WSTAR]
 	var l_w := _mil_lw(z)
 	var l_u := _mil_lu(z)
-	if wstar > 0.0 and h_mix > 0.0:
+	if h_mix > 0.0:
 		var xi := z / h_mix
 		if xi < 1.0:
 			su_c = _conv_su * wstar
