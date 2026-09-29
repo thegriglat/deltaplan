@@ -49,19 +49,20 @@ Known issues:
 `git commit -m "Версия X.Y.Z; CHANGELOG и releases/X.Y.Z" -- project.godot CHANGELOG.md releases/X.Y.Z` (и `git add releases/X.Y.Z` перед этим).
 
 ## 5. Сборка
-- `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…».
+- `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
 - Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все 9 крыльев, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
-- Архивы: `unzip -l build/deltaplan-windows.zip | grep -v configs/` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для Linux.
+- Архивы: `unzip -l build/deltaplan-windows.zip | grep -v configs/` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для Linux. macOS: `unzip -l build/deltaplan-macos.zip | grep -E "MacOS/|\.pck"` — бинарник и pck внутри `Deltaplan.app` (запустить негде — проверяет друг с Mac).
 
 ## 6. Тег
 `git tag -a vX.Y.Z <коммит сборки> -m "Deltaplan X.Y.Z"` — на коммит из шага 4 (тот, из которого собрано). Пушить (`git push`, `--tags`) — только если пользователь попросит.
 
 ## 7. itch.io (butler)
-- Цель: `thegriglat/deltaplan`, каналы `linux`, `windows`; заливать **каталоги**, не zip (сохраняется бит исполнимости):
+- Цель: `thegriglat/deltaplan`, каналы `linux`, `windows`, `mac`; заливать **каталоги**, не zip (сохраняется бит исполнимости):
   ```
   butler push build/linux thegriglat/deltaplan:linux --userversion X.Y.Z
   butler push build/windows thegriglat/deltaplan:windows --userversion X.Y.Z
+  butler push build/macos thegriglat/deltaplan:mac --userversion X.Y.Z
   ```
 - Дождаться обработки: `butler status thegriglat/deltaplan` — у обоих каналов `✓` и версия `X.Y.Z` (ожидать циклом с `sleep 10`, пока есть `•`).
 - Это публикация — выполнять только по явной просьбе выпустить версию (вызов скилла ею и является).
