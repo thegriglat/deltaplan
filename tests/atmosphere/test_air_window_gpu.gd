@@ -39,6 +39,10 @@ static func window_from_fixture(m: Dictionary, u10: float) -> AirWindowCase:
 	c.u10 = u10
 	c.wdir = float(m.wdir)
 	c.label = "окно %d м, %d м/с" % [int(m.dx), int(u10)]
+	# параметры, с которыми посчитан эталон (λ/h = 0,1 до калибровки AM-09)
+	var prm: Dictionary = m.get("params", {})
+	for key in prm:
+		c.p[key] = prm[key]
 	return c
 
 
