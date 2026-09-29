@@ -1,6 +1,7 @@
 class_name TerrainTreeModels
 extends Node3D
-## Деревья-модели вокруг камеры (VR-6, FR-19): 5 пород × 3 LOD из assets/models/trees/*.glb
+## Деревья-модели вокруг камеры (VR-6, FR-19): 5 пород × variants вариантов × 3 LOD из
+## assets/models/trees/*.glb (ноды V{n}_LOD{k}; вариант — хеш места, TreePlacer)
 ## (пути — configs/world.json → trees.models). Расстановку считает TreePlacer в рабочем потоке,
 ## когда камера сдвинулась на rebuild_step_m; здесь — только MultiMesh'и и материалы моделей.
 ## Деревья стоят там, где доля леса по маске 10 м ≥ 0,5 (set_forest_mask, V02; без маски — на классе
@@ -14,7 +15,7 @@ var placer := TreePlacer.new()
 ## Материалы деревьев (качание от ветра, tree_model.gdshader) — TerrainWind передаёт им ветер.
 var materials: Array[ShaderMaterial] = []
 
-## _mmis[вид * 3 + lod]
+## _mmis[(вид * variants + вариант) * 3 + lod]
 var _mmis: Array[MultiMeshInstance3D] = []
 var _rebuild_step: float = 16.0
 var _max_agl: float = 900.0
@@ -27,20 +28,23 @@ var _pending_center := Vector2.ZERO
 func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 	cfg = TreePlacer.with_vegetation(cfg)
 	var models: Dictionary = cfg.get("models", {})
+	placer.setup(layer, surface, cfg)
+	var nv := placer.variants
+	# meshes[вид * nv + вариант] — [LOD0, LOD1, LOD2]; материалы общие на породу (кэш по имени)
 	var meshes: Array[Array] = []
 	for k in TreePlacer.SPECIES.size():
 		var sp := TreePlacer.SPECIES[k]
-		var lods := _load_lods(String(models.get(sp, "")))
-		if lods.is_empty():
-			push_warning("TerrainTreeModels: нет модели %s — процедурные деревья" % sp)
-			return false
-		meshes.append(lods)
-	placer.setup(layer, surface, cfg)
-	for k in TreePlacer.SPECIES.size():
-		placer.model_height[k] = (meshes[k][0] as Mesh).get_aabb().end.y
 		var cache := {}
-		for lod in 3:
-			meshes[k][lod] = _with_sway(meshes[k][lod], placer.model_height[k], cfg, cache)
+		for v in nv:
+			var lods := _load_lods(String(models.get(sp, "")), v)
+			if lods.is_empty():
+				push_warning("TerrainTreeModels: нет модели %s — процедурные деревья" % sp)
+				return false
+			var mh := lods[0].get_aabb().end.y
+			placer.model_height[k * nv + v] = mh
+			for lod in 3:
+				lods[lod] = _with_sway(lods[lod], mh, cfg, cache)
+			meshes.append(lods)
 	_rebuild_step = float(cfg.get("rebuild_step_m", 16.0))
 	_max_agl = float(cfg.get("max_agl_m", 900.0))
 	var shadows := bool(cfg.get("cast_shadows", true))
@@ -48,14 +52,15 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
 	)
-	for k in TreePlacer.SPECIES.size():
+	for kv in meshes.size():
 		for lod in 3:
 			var mm := MultiMesh.new()
 			mm.transform_format = MultiMesh.TRANSFORM_3D
 			mm.use_colors = true
-			mm.mesh = meshes[k][lod]
+			mm.mesh = meshes[kv][lod]
 			var mmi := MultiMeshInstance3D.new()
-			mmi.name = "%s_LOD%d" % [TreePlacer.SPECIES[k], lod]
+			mmi.name = "%s_v%d_LOD%d" % [TreePlacer.SPECIES[kv / nv], kv % nv, lod]
+			mmi.visible = false
 			mmi.multimesh = mm
 			mmi.custom_aabb = aabb
 			mmi.cast_shadow = (
@@ -139,6 +144,7 @@ func _apply() -> void:
 	for b in _mmis.size():
 		var mm := _mmis[b].multimesh
 		mm.instance_count = placer.counts[b]
+		_mmis[b].visible = placer.counts[b] > 0
 		if placer.counts[b] > 0:
 			mm.buffer = placer.buffers[b]
 
@@ -164,14 +170,18 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary) ->
 			m.set_shader_parameter("model_height", height)
 			m.set_shader_parameter("sway_top_m", float(cfg.get("sway_top_m", 0.6)))
 			m.set_shader_parameter("sway_hz", float(cfg.get("sway_hz", 0.25)))
+			var ld: Array = cfg.get("lod_distances_m", [60.0, 180.0])
+			m.set_shader_parameter("lod_d", Vector2(float(ld[0]), float(ld[1])))
+			m.set_shader_parameter("lod_fade_m", maxf(float(cfg.get("lod_fade_m", 10.0)), 0.01))
 			cache[std.resource_name] = m
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])
 	return mesh
 
 
-## Меши LOD0, LOD1, LOD2 из .glb (материалы — как в модели).
-static func _load_lods(path: String) -> Array[Mesh]:
+## Меши LOD0, LOD1, LOD2 варианта variant из .glb (ноды V{n}_LOD{k}; материалы — как в модели).
+## Нет такого варианта — вариант по модулю числа имеющихся (V0 есть всегда).
+static func _load_lods(path: String, variant: int = 0) -> Array[Mesh]:
 	var out: Array[Mesh] = []
 	if path == "" or not ResourceLoader.exists(path):
 		return out
@@ -179,8 +189,12 @@ static func _load_lods(path: String) -> Array[Mesh]:
 	if ps == null:
 		return out
 	var root := ps.instantiate()
+	var n := 0
+	while root.find_child("V%d_LOD0" % n, true, false) != null:
+		n += 1
+	var pre := "V%d_" % (variant % maxi(n, 1))
 	for lod_name in ["LOD0", "LOD1", "LOD2"]:
-		var mi := root.find_child(lod_name, true, false) as MeshInstance3D
+		var mi := root.find_child(pre + lod_name, true, false) as MeshInstance3D
 		if mi == null or mi.mesh == null:
 			out.clear()
 			break

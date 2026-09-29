@@ -770,12 +770,16 @@
       "birch": "res://assets/models/trees/tree_birch.glb",
       "spruce": "res://assets/models/trees/tree_spruce.glb"
     },
-    "models_doc": "Модели пород (.glb с мешами LOD0, LOD1, LOD2; основание ствола в 0). Нет файла — процедурные кроны",
+    "models_doc": "Модели пород (.glb: variants вариантов, у варианта n меши V{n}_LOD0, V{n}_LOD1, V{n}_LOD2; основание ствола в 0; tools/blender/build_trees.py). Нет файла — процедурные кроны",
+    "variants": 8,
+    "variants_doc": "Вариантов модели на породу (как lod.variants в tools/blender/tree_params.json): вариант — хеш места, одно место — всегда то же дерево",
     "lod_distances_m": [
       60,
       180
     ],
     "lod_distances_m_doc": "Модели: до первой дистанции LOD0, до второй LOD1, дальше до radius_m — LOD2 (крест-импостор), м",
+    "lod_fade_m": 10,
+    "lod_fade_m_doc": "Ширина мягкой смены LOD у каждой границы, м: дерево в обоих LOD, один растворяется дизерингом, другой проявляется (0 — жёсткая смена)",
     "rebuild_step_m": 16,
     "rebuild_step_m_doc": "Пересчитывать расстановку, когда камера сдвинулась на столько, м (в рабочем потоке)",
     "max_agl_m": 900,
