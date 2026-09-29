@@ -34,24 +34,24 @@ def cases():
     out = {}
     # 1. ровно с ветром (профиль, трение, устойчивость N = 0,01)
     g = A.Grid(200.0, 24, 24, 50.0, -50.0, 12, -2400.0, -2400.0)
-    out["flat_wind"] = (g, np.full((24, 24), 5.0), A.Case(U10=5.0, wdir=250.0, gam=SY.const_gam(SY.GAM_N)), A.Params())
+    out["flat_wind"] = (g, np.full((24, 24), 5.0), A.Case(U10=5.0, wdir=250.0, gam=SY.const_gam(SY.GAM_N)), A.Params(dtau_u=600.0))
     # 2. хребет Аньези H = 300 м, L = 400 м, ветер поперёк (с запада), нейтрально
     g = A.Grid(100.0, 32, 24, 50.0, -50.0, 16, -1600.0, -1200.0)
     X, Y = np.meshgrid(g.x, g.y)
     hc = SY.ridge3d(X, Y, 300.0, 300.0, 600.0)
-    out["agnesi"] = (g, hc, A.Case(U10=5.0, wdir=270.0, gam=SY.const_gam(0.0)), A.Params())
+    out["agnesi"] = (g, hc, A.Case(U10=5.0, wdir=270.0, gam=SY.const_gam(0.0)), A.Params(dtau_u=600.0))
     # 3. прогретый склон без ветра: хребет, солнце на восточный склон, слой перемешивания до 1500 м
     g = A.Grid(100.0, 24, 24, 100.0, -100.0, 16, -1200.0, -1200.0)
     X, Y = np.meshgrid(g.x, g.y)
     hc = SY.ridge3d(X, Y, 400.0, 400.0, 600.0)
     H = SY.sun_flux(hc, g.dx, az=100.0, el=45.0)
     gam = SY.cbl_gam(1500.0, 5.8e-3)
-    out["heated_slope"] = (g, hc, A.Case(U10=0.0, gam=gam, z_i=1500.0, H=H), A.Params())
+    out["heated_slope"] = (g, hc, A.Case(U10=0.0, gam=gam, z_i=1500.0, H=H), A.Params(dtau_u=600.0))
     # 4. седловина: хребет 500 м с седловиной 250 м, ветер под 15° к оси, N = 0,01
     g = A.Grid(150.0, 24, 24, 100.0, -100.0, 16, -1800.0, -1800.0)
     X, Y = np.meshgrid(g.x, g.y)
     hc = SY.saddle3d(X, Y, L=400.0, s=300.0, half_len=900.0)
-    out["saddle"] = (g, hc, A.Case(U10=5.0, wdir=255.0, gam=SY.const_gam(SY.GAM_N)), A.Params())
+    out["saddle"] = (g, hc, A.Case(U10=5.0, wdir=255.0, gam=SY.const_gam(SY.GAM_N)), A.Params(dtau_u=600.0))
     return out
 
 

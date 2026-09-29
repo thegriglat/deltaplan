@@ -98,17 +98,26 @@ def window(parent, dx, hour, U10, wdir=WDIR, heat=True, t_max=None, sky="clear",
 
 def free(*objs):
     import cupy as cp
+    import gc
     for o in objs:
-        del o
+        if hasattr(o, "release"):
+            o.release()
+            for k in list(vars(o)):
+                if k not in ("g", "case", "prm", "loc", "hc"):
+                    setattr(o, k, None)
+    gc.collect()
     cp.get_default_memory_pool().free_all_blocks()
 
 
 # ============================================================================== cells
 def cmd_cells(hour=12.0):
-    res = dict(hour=hour, wdir=WDIR, rows=[])
     path = OUT / "cells.json"
+    res = json.loads(path.read_text()) if path.exists() else dict(hour=hour, wdir=WDIR, rows=[])
+    done = {(r["U10"], r["heat"]) for r in res["rows"]}
     for U in (0.0, 3.0, 6.0, 8.0):
         for heat in ((True, False) if U in (3.0, 6.0) else (True,)):
+            if (U, heat) in done:
+                continue
             row = dict(U10=U, heat=heat)
             D4 = domain(400, hour, U, heat=heat)
             row["d400"] = solve(D4) | dict(key=R.key_numbers(D4), closure=D4.closure_info)
@@ -193,7 +202,7 @@ def cmd_windows(hour=12.0, U=3.0):
         S5 = R.make(LOC, g, hc, c, prm=A.Params(sponge_side_m=0.15 * 64 * dx))
         add(f"box{dx} rigid+sponge", S5, solve(S5))
         # псевдошаг импульса: больше Δτ (быстрее для штиля) / меньше
-        for dt in (300.0, 1200.0):
+        for dt in (600.0, 2 * 0.3 * dx, 0.5 * 0.3 * dx):
             S6 = window(W1 if dx == 50 else D4, dx, hour, U, prm=A.Params(dtau_u=dt))
             add(f"w{dx} dtau_u={dt:g}", S6, solve(S6))
     free(D4, W1)

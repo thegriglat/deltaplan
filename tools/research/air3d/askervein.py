@@ -84,20 +84,20 @@ def read_obs():
     return obs
 
 
-def run(dx):
+def run(dx, adv2=False):
     x0, y0, n, hc = terrain(dx)
     dz = dx / 2
     top = 1500.0
     nz = int(math.ceil(top / dz)) + 1; nz += nz % 2
     g = A.Grid(dx, n, n, dz, -dz, nz, x0, y0)
-    prm = A.Params(z0=0.03, alpha=0.17, max_profile=2.0, f_cor=1.22e-4, sponge_side_m=1000.0)
+    prm = A.Params(z0=0.03, alpha=0.17, max_profile=2.0, f_cor=1.22e-4, sponge_side_m=1000.0, adv2=adv2)
     case = A.Case(U10=8.9, wdir=210.0, gam=SY.const_gam(0.0))
     S = SY.run(g, hc, case, prm, max_outer=4000)
     u, v, w, th = S.centers()
     sp = np.sqrt(u ** 2 + v ** 2 + w ** 2)
     obs = read_obs()
     from real import bil
-    res = dict(dx=dx, info=SY.info(S), points=[])
+    res = dict(dx=dx, adv2=adv2, info=SY.info(S), points=[])
     for o in obs:
         s = bil(g, SY.agl(S, sp, o["h"]), o["x"], o["y"])
         s_ref = bil(g, SY.agl(S, sp, o["h"]), *RS)
@@ -108,7 +108,7 @@ def run(dx):
     res["RS_U10_model"] = bil(g, SY.agl(S, sp, 10.0), *RS)
     res["hc_max"] = float(hc.max())
     res["fields"] = dict(g=g, hc=hc, sp=sp, S=S)
-    print(f"Askervein dx {dx}: {S.status} {S.outer} it, HT 10 м FSR модель {res['HT10_model']:.3f} против "
+    print(f"Askervein dx {dx} adv2 {adv2}: {S.status} {S.outer} it, HT 10 м FSR модель {res['HT10_model']:.3f} против "
           f"{res['HT10_obs']}, max h {hc.max():.1f}", flush=True)
     return res
 
@@ -123,7 +123,7 @@ def fig(results):
         pts = [p for p in r["points"] if p["h"] == 10 and (p["name"].startswith("A") and not p["name"].startswith("AA"))]
         d = [math.copysign(math.hypot(p["x"] - HT[0], p["y"] - HT[1]), p["x"] - HT[0]) for p in pts]
         o = np.argsort(d)
-        axs[0].plot(np.array(d)[o], np.array([p["model"] for p in pts])[o], "-", label=f"модель {r['dx']:g} м")
+        axs[0].plot(np.array(d)[o], np.array([p["model"] for p in pts])[o], "-", label=f"модель {r['dx']:g} м" + (", 2-й пор." if r.get("adv2") else ""))
     pts = [p for p in results[0]["points"] if p["h"] == 10 and (p["name"].startswith("A") and not p["name"].startswith("AA"))]
     d = [math.copysign(math.hypot(p["x"] - HT[0], p["y"] - HT[1]), p["x"] - HT[0]) for p in pts]
     axs[0].plot(d, [p["fsr"] for p in pts], "ko", label="измерения")
@@ -135,7 +135,7 @@ def fig(results):
         from real import bil
         hs = np.array([2, 3, 5, 8, 10, 15, 24, 34, 50, 80, 120])
         m = [bil(g, SY.agl(S, sp, h), *HT) / bil(g, SY.agl(S, sp, h), *RS) - 1 for h in hs]
-        axs[1].plot(m, hs, "-", label=f"модель {r['dx']:g} м")
+        axs[1].plot(m, hs, "-", label=f"модель {r['dx']:g} м" + (", 2-й пор." if r.get("adv2") else ""))
     ht = [p for p in results[0]["points"] if p["name"].startswith("HT")]
     axs[1].plot([p["fsr"] for p in ht], [p["h"] for p in ht], "ko", label="измерения HT")
     axs[1].set_yscale("log"); axs[1].set_xlabel("ΔS/S_RS"); axs[1].set_ylabel("м над землёй")
@@ -154,8 +154,11 @@ def fig(results):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dx", default="50,25")
+    ap.add_argument("--adv2", action="store_true", help="ещё и с поправкой 2-го порядка")
     a = ap.parse_args()
     results = [run(float(d)) for d in a.dx.split(",")]
+    if a.adv2:
+        results += [run(float(d), adv2=True) for d in a.dx.split(",")]
     fig(results)
     out = [{k: v for k, v in r.items() if k != "fields"} for r in results]
     SY.jdump(out, OUT / "askervein.json")

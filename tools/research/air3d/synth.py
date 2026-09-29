@@ -104,9 +104,9 @@ def sun_flux(hc, dx, az, el, H0=330.0, diffuse=0.10, lw=40.0, sky_heat=1.0):
     return H0 * sky_heat * (np.clip(cos_inc, 0, None) + diffuse * max(sz, 0)) - lw
 
 
-def run(g, hc, case, prm=None, dtype=np.float32, max_outer=3000, verbose=False, finalize=True):
+def run(g, hc, case, prm=None, dtype=np.float32, max_outer=3000, verbose=False, finalize=True, taper=True):
     prm = prm or A.Params()
-    S = A.Air(g, hc, case, prm, dtype=dtype)
+    S = A.Air(g, hc, case, prm, dtype=dtype, taper=taper)
     t0 = time.perf_counter()
     S.init_background()
     st = S.solve(max_outer=max_outer, verbose=verbose)
@@ -391,7 +391,9 @@ def cmd_heat():
     g, hc = heat_ridge()
     for name in ("one_slope", "both", "wind", "inversion"):
         case = heat_case(name, g, hc)
-        S = run(g, hc, case)
+        # нагрев до самых стенок (без гашения у края): иначе остывший край области сам
+        # задаёт циркуляцию масштаба области (опускание у стенок, подъём над всей долиной)
+        S = run(g, hc, case, taper=False)
         u, v, w, th = S.centers()
         hb = S.heat_budget()
         mid = np.abs(g.y) < 1000

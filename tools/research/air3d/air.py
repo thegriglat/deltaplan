@@ -510,7 +510,8 @@ class Params:
     pr_t: float = 1.0                 # турбулентное число Прандтля
     heat_mode: str = "cbl"            # cbl — нагрев по толщине слоя перемешивания (нелокальный перенос), surface — в первую клетку
     # численные
-    dtau_u: float = 600.0             # псевдошаг импульса, с
+    dtau_u: float | None = None       # псевдошаг импульса, с; None — dtau_per_m·Δx (по уровню клипмапа)
+    dtau_per_m: float = 0.3           # 0,3 с/м: 400 м → 120 с, 100 м → 30 с, 50 м → 15 с (замер ref_study)
     dtau_th: float = 1200.0           # псевдошаг тепла, с
     couple: float = 1.0               # полунеявная плавучесть (1 — полностью, правка 2 прикидки)
     mom_sweeps: int = 2
@@ -561,6 +562,7 @@ class Air:
         self.shape = shape
         dx, dz = grid.dx, grid.dz
         self.dx, self.dz = dx, dz
+        self.dtau_u = prm.dtau_u if prm.dtau_u is not None else prm.dtau_per_m * dx
         self.hc = np.asarray(hc, float)
         hp = np.pad(self.hc, 1, mode="edge")
         self.hp = hp
@@ -704,7 +706,7 @@ class Air:
         self.lines = Lines(shape, dt)
         self.k = kernels(dt, prm.limiter)
         # --- проекция: K_x,y = 1/(1/Δτ + sp), K_z = 1/(1/Δτ + sp_w + cpl) на гранях
-        idt = 1.0 / prm.dtau_u
+        idt = 1.0 / self.dtau_u
         Kc = 1.0 / (idt + sp_c)
         Kx = np.zeros(shape); Kx[:, :, 1:] = 0.5 * (Kc[:, :, 1:] + Kc[:, :, :-1])
         Ky = np.zeros(shape); Ky[:, 1:, :] = 0.5 * (Kc[:, 1:, :] + Kc[:, :-1, :])
@@ -943,7 +945,7 @@ class Air:
             self.k["build_mom"](gr, bl, (np.int32(comp), self.u, self.v, self.w, self.tu, self.tv, self.tw,
                                          self.p, self.th, sp, bg, self.cplz, self.nuf, self.nuh, corr, C, b,
                                          np.int32(self.NZ), np.int32(self.NY), np.int32(self.NX),
-                                         R(self.dx), R(self.dz), R(1.0 / prm.dtau_u), R(self.cd)))
+                                         R(self.dx), R(self.dz), R(1.0 / self.dtau_u), R(self.cd)))
 
     def adv2_heat(self):
         gr, bl = self._grid1()
@@ -1143,6 +1145,13 @@ class Air:
         scale = abs(q_in) + abs(bg) + abs(cool) + abs(spg) + abs(out)
         return dict(q_in=q_in, bg=bg, cool=cool, sponge=spg, outflow=out, residual=res,
                     rel=res / scale if scale > 0 else None)
+
+    def release(self):
+        """Освободить граф и его пул памяти (для серий решений в одном процессе)."""
+        self.graph = None
+        if getattr(self, "_pool", None) is not None:
+            self._pool.free_all_blocks()
+            self._pool = None
 
     def mem_mb(self):
         cp = self.cp
