@@ -79,7 +79,8 @@ $PY weather.py                           # θ̄, z_i, прогрев по час
 $PY fixtures.py                          # эталоны GPU (~1 мин, без замеров времени)
 $LOCK $PY synth.py pilot 34567           # проверки пилота → out/ref/pilot.json (~40 мин)
 $LOCK $PY synth.py heat                  # тепловые сценарии → out/ref/heat.json, fields/heat_*.npz (~10 мин)
-$LOCK $PY askervein.py --dx 50,25        # → out/ref/askervein.json, fig_askervein.png (~10 мин)
+$LOCK $PY askervein.py --adv2            # → out/ref/askervein.json, fig_askervein.png (50/25 м, 1-й и 2-й порядок, ~3 мин)
+$LOCK $PY askervein.py --dx 25,12.5 --L 4000 --top 1000 --tag 4km --adv2   # → askervein_4km.json, fig_askervein_4km.png (~6 мин)
 for c in cells windows hours library weather aushkul adv precision; do $LOCK $PY ref_study.py $c; done
 $PY ref_figs.py                          # out/ref/fig_*.png
 ```
