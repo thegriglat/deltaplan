@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://3ldq88tow5yj"
+path="res://.godot/imported/air_picard.glsl-b8421cb1565d4f4f19c283dabb8326ba.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_picard.glsl"
+dest_files=["res://.godot/imported/air_picard.glsl-b8421cb1565d4f4f19c283dabb8326ba.res"]
+
+[params]
+

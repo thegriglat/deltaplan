@@ -6,9 +6,10 @@ extends RefCounted
 ## просто возвращается), так что sync не ждёт; проверка на границе шага
 ## (_after_sync), затем запись и submit() следующей порции. Главный поток не ждёт GPU.
 ## Шаг — программа запусков ядер (AirGpu.record, записывается один раз); порция — сколько
-## запусков влезает в бюджет по GPU-цене шага из прошлых порций (метки времени): на быстрой
-## карте — целые шаги (порция кончается на границе шага), на медленной шаг режется между кадрами
-## (доля запусков ≈ доля бюджета). Первая порция — один шаг.
+## запусков влезает в бюджет по GPU-цене из прошлых порций (метки времени). Цена запуска —
+## вес (AirGpu.LAUNCH_WEIGHT + группы × вес ядра), по порциям уточняется «мс на единицу веса».
+## На быстрой карте — целые шаги (порция кончается на границе шага), на медленной шаг режется
+## между кадрами. Первая порция — first_chunk_weight.
 ## Бюджет — min(0,8 · chunk_ms, 0,8 · промежуток от конца poll до следующего poll).
 ## Ошибки (нет RD, компиляция, таймаут, наследник) — signal failed и error, не падение.
 ## Наследник задаёт: _setup() -> bool; _step_program(i) -> Array (программа шага i);
@@ -23,6 +24,11 @@ signal finished
 var chunk_ms := 30.0
 ## Предел времени всего расчёта, с (стена).
 var timeout_s := 60.0
+## Не больше стольких шагов в порции (0 — сколько влезет): 1 — проверка после каждого шага
+## читается до следующего (решатель останавливается ровно на шаге проверки).
+var max_steps_per_chunk := 0
+## Вес первой порции (цена запусков ещё не измерена), единицы AirGpu.LAUNCH_WEIGHT·…
+var first_chunk_weight := 150000.0
 var gpu: AirGpu
 var error := ""
 var steps_done := 0
@@ -39,8 +45,9 @@ var _cursor := 0
 var _chunk_items := 0
 var _chunk_steps := 0
 var _chunk_boundary := false
-var _ms_per_step := -1.0
-var _chunk_whole := false
+var _chunk_w := 1.0
+var _ms_per_w := -1.0
+var _prog_w := PackedFloat64Array([0.0])
 var _t_submit := 0
 var _expected_ms := 0.0
 var _t_start := 0
@@ -51,7 +58,7 @@ var _gap_ms := -1.0
 ## Запуск: RD, ядра, данные. false — error/failed (расчёт не начат).
 func start(g: AirGpu = null) -> bool:
 	gpu = g if g != null else AirGpu.new()
-	if gpu.rd == null and not gpu.init():
+	if gpu.rd == null and not gpu.init(_shaders()):
 		return _fail(gpu.error)
 	if not _setup():
 		return _fail(error if error != "" else "не удалось подготовить расчёт")
@@ -91,9 +98,9 @@ func _finish_chunk() -> bool:
 	max_sync_wait_ms = maxf(max_sync_wait_ms, wait)
 	chunk_log.append(Vector3(_chunk_items, gpu_ms, wait))
 	if gpu_ms > 0.0:
-		# цена шага: по целым шагам или по доле программы шага (при разрезанном шаге)
-		var per := gpu_ms / _chunk_steps if _chunk_whole else gpu_ms * _prog.size() / _chunk_items
-		_ms_per_step = per if _ms_per_step < 0.0 else maxf(per, 0.7 * _ms_per_step + 0.3 * per)
+		# цена единицы веса запусков (с запасом вверх: рост — сразу, спад — плавно)
+		var per := gpu_ms / _chunk_w
+		_ms_per_w = per if _ms_per_w < 0.0 else maxf(per, 0.7 * _ms_per_w + 0.3 * per)
 	steps_done += _chunk_steps
 	if _chunk_boundary and _after_sync():
 		_done = true
@@ -138,40 +145,48 @@ func budget_ms() -> float:
 
 func _record_chunk() -> void:
 	var total := _total_steps()
-	var start_cursor := _cursor
 	if _cursor >= _prog.size():
 		if total > 0 and steps_done >= total:
 			_fail("не сошлось за %d шагов" % steps_done)
 			return
-		_prog = _step_program(steps_done)
-		_cursor = 0
-		start_cursor = 0
-	# первая порция — один шаг; дальше — по цене шага (шаг дороже бюджета — режем по запускам)
-	var cap := _prog.size()
-	if _ms_per_step > 0.0:
-		var steps_fit := budget_ms() / _ms_per_step
-		cap = maxi(1, floori(steps_fit * _prog.size()))
-		if steps_fit >= 1.0:
-			cap = maxi(_prog.size() - _cursor, cap)
+		_set_prog(_step_program(steps_done))
+	# цена — в весах запусков (AirGpu.LAUNCH_WEIGHT): бюджет / (мс на единицу веса); пока цена
+	# не измерена — first_chunk_weight
+	var cap := first_chunk_weight
+	if _ms_per_w > 0.0:
+		cap = budget_ms() / _ms_per_w
 	var items := 0
 	var steps := 0
+	var wsum := 0.0
 	gpu.stamp("air_chunk_begin")
-	while items < cap:
+	while true:
 		if _cursor >= _prog.size():
 			if total > 0 and steps_done + steps >= total:
 				break
-			var next := _step_program(steps_done + steps)
-			# целый шаг не влезает, а порция уже не пуста — закончить на границе шага
-			if next.is_empty() or (steps > 0 and items + next.size() > cap):
+			if max_steps_per_chunk > 0 and steps >= max_steps_per_chunk:
 				break
-			_prog = next
-			_cursor = 0
-		var take := mini(cap - items, _prog.size() - _cursor)
+			var next := _step_program(steps_done + steps)
+			# следующий шаг целиком не влезает, а порция не пуста — закончить на границе шага
+			if next.is_empty() or wsum + AirGpu.program_weight(next) > cap:
+				break
+			_set_prog(next)
+		var take := 0
+		var wt := 0.0
+		while _cursor + take < _prog.size():
+			var w := _prog_w[_cursor + take + 1] - _prog_w[_cursor + take]
+			if items + take > 0 and wsum + wt + w > cap:
+				break
+			wt += w
+			take += 1
+		if take == 0:
+			break
 		gpu.run(_prog, _cursor, _cursor + take)
+		wsum += wt
 		_cursor += take
 		items += take
-		if _cursor >= _prog.size():
-			steps += 1
+		if _cursor < _prog.size():
+			break
+		steps += 1
 	_chunk_boundary = _cursor >= _prog.size() and steps > 0
 	if _chunk_boundary:
 		_record_check()
@@ -179,10 +194,22 @@ func _record_chunk() -> void:
 	gpu.submit()
 	_t_submit = Time.get_ticks_usec()
 	_submitted = true
-	_expected_ms = _ms_per_step * items / _prog.size() if _ms_per_step > 0.0 else 0.0
+	_expected_ms = _ms_per_w * wsum if _ms_per_w > 0.0 else 0.0
 	_chunk_items = maxi(items, 1)
+	_chunk_w = maxf(wsum, 1.0)
 	_chunk_steps = steps
-	_chunk_whole = start_cursor == 0 and _chunk_boundary
+
+
+func _set_prog(prog: Array) -> void:
+	_prog = prog
+	_cursor = 0
+	_prog_w = PackedFloat64Array()
+	_prog_w.resize(prog.size() + 1)
+	var s := 0.0
+	for i in prog.size():
+		_prog_w[i] = s
+		s += float(prog[i][5]) if prog[i].size() > 5 else 1.0
+	_prog_w[prog.size()] = s
 
 
 ## GPU-время последней порции по меткам (мс); −1 — метки недоступны.
@@ -214,6 +241,11 @@ func _fail(msg: String) -> bool:
 
 func _setup() -> bool:
 	return true
+
+
+## Ядра, которые нужны наследнику (AirGpu.init).
+func _shaders() -> Array:
+	return AirGpu.SHADERS
 
 
 ## Программа шага i (AirGpu.record; обычно одна и та же, записанная заранее).
