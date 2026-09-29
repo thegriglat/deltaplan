@@ -1,6 +1,6 @@
 extends Node
 ## 02. Стабильность: матрица крылья × локации × погода (все configs/locations/*),
-## ветер в лоб старту — старт, автопилот, 5 мин симуляции через Game.tick() в headless-цикле
+## встречный ветер на старте — старт, автопилот, 5 мин симуляции через Game.tick() в headless-цикле
 ## (без реального времени). ErrorCatcher — 0 ошибок/предупреждений на сочетание.
 ## Загрузка мира — через main._fly(s) напрямую (как test_game_flight.gd), без клика по меню.
 
@@ -10,7 +10,7 @@ const FLIGHT_S := 300.0
 const MAX_GROUND_S := 20.0
 const MAX_LOAD_FRAMES := 1200
 const WINGS := ["wings/training", "wings/sport", "wings/laminar"]
-## Прогноз [°C, км/ч] (ветер в лоб старту): слабый, средний, сильный день.
+## Прогноз [°C, км/ч] (встречный ветер на старте): слабый, средний, сильный день.
 const WEATHERS := {"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0]}
 
 var failures: PackedStringArray = []

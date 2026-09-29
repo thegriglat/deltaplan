@@ -33,7 +33,7 @@ const HUMAN_FULL_DEG := 30.0
 const HUMAN_DEADBAND_DEG := 1.0
 const MODES := ["rate", "weight_shift"]
 const PILOTS := ["hands", "human"]
-## Погоды для --weathers: прогноз [температура °C, ветер км/ч], ветер в лоб старту.
+## Погоды для --weathers: прогноз [температура °C, ветер км/ч], встречный ветер на старте.
 const WEATHERS := {
 	"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0], "storm": [34.0, 14.0],
 	"wave": [18.0, 36.0],
