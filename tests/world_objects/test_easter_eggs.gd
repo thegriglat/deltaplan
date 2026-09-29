@@ -129,10 +129,12 @@ func test_lifecycle() -> void:
 	var e := _eggs()
 	var ids: Array = e._egg_ids()
 	check(ids.has("probe"), "проба в конфиге")
+	# случайные появления (interval, per_flight) не должны подменять проверяемую force-пасхалку:
+	# все выключены, а force по имени работает и для выключенных (К6)
+	for k in ids:
+		(e.cfg.eggs[k] as Dictionary)["enabled"] = false
 	for id in ids:
 		e.reset()
-		# случайные появления (interval) не должны подменять проверяемую force-пасхалку
-		(e.cfg.eggs[id] as Dictionary)["mean_interval_s"] = 1.0e12
 		var t := 100.0
 		e.step(_ctx(t))
 		e.force(id)
