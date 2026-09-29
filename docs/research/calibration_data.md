@@ -571,3 +571,7 @@ Stull R. *Practical Meteorology* (2017, CC BY-NC-SA 4.0), §3.6, https://geo.lib
 - Young G.S. (1988) Turbulence structure of the convective boundary layer. Part II: Phoenix 78
   aircraft observations of thermals and their environment. J. Atmos. Sci. 45:727–735 (доля площади
   восходящих ≈ 0,4 — И², сверить).
+
+
+## Дополнение (29.09): исходные данные Askervein скачаны
+`tools/research/data/askervein/` — измерения по мачтам с относительным разгоном FSR (Zenodo 4095052, CC BY 4.0, оцифровано из Taylor & Teunissen 1983/85), рельеф и шероховатость, набегающий профиль; исходный отчёт MSRB-84-6 (PDF, 36 МБ) — локально, ссылка в README. Пробел «точные ряды Askervein» закрыт.
