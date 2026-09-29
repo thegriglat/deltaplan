@@ -671,7 +671,7 @@ class Air:
         self.cplz_np = cplz
         # --- на устройство
         dt = self.dt
-        A = lambda a: cp.asarray(a, dt)
+        A = lambda a: cp.asarray(np.ascontiguousarray(a), dt)   # C-порядок: ядра читают [k][j][i]
         self.cell = cp.asarray(cell)
         self.tu, self.tv, self.tw = cp.asarray(tu), cp.asarray(tv), cp.asarray(tw)
         self.fluid = A(self.fluid_np)
@@ -688,6 +688,9 @@ class Air:
             else np.full(hp.shape, prm.lam)
         self.lam_np = lamc
         self.lamc = A(lamc)
+        for name_, arr_ in vars(self).items():
+            if hasattr(arr_, "flags") and hasattr(arr_, "device") and not arr_.flags.c_contiguous:
+                raise AssertionError(f"массив {name_} не C-непрерывен")
         self.khf = self.nuf                      # Pr_t = 1
         self.nuh = A(self.nu_np)                 # горизонтальное K_h
         self.thbg = cp.zeros(shape, dt)          # к чему губка тянет θ′ (0; в окне — родитель)
