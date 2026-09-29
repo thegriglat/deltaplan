@@ -1,0 +1,26 @@
+{
+ "per_round": {
+  "lines_mg|50": {
+   "points_per_cell": 34.8359375,
+   "calls": 184
+  },
+  "lines_mg|25": {
+   "points_per_cell": 42.744140625,
+   "calls": 208
+  },
+  "lines_adi|50": {
+   "points_per_cell": 40.140625,
+   "calls": 40
+  },
+  "lines_adi|25": {
+   "points_per_cell": 48.0703125,
+   "calls": 48
+  }
+ },
+ "ns_per_point": {
+  "32x160000|axis0": 0.055108759795530204,
+  "32x160000|axis1": 15.074186376935474,
+  "12800x400|axis0": 1.9181848438165614,
+  "12800x400|axis1": 0.1926656737794019
+ }
+}
