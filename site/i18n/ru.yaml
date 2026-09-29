@@ -1,0 +1,20 @@
+- id: Search
+  translation: Поиск
+- id: Edit this page
+  translation: Исходник на GitHub
+- id: Last modified by
+  translation: Последнее изменение
+- id: Breadcrumbs
+  translation: Навигация
+- id: Link
+  translation: Ссылка
+- id: Logo
+  translation: Логотип
+- id: Menu
+  translation: Меню
+- id: Table of Contents
+  translation: Содержание
+- id: Thumbnail
+  translation: Миниатюра
+- id: bookSearchConfig
+  translation: '{}'

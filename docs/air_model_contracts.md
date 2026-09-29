@@ -62,7 +62,7 @@
   `hc, H, gam`, пробы и обрезка поля) — формат файлов тот же, наборы массивов — свои у задачи.
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`.
 
-## C2 v1 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
+## C2 v2 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт), AM-06б (библиотека), AM-04.
 
 | Вход | Откуда в игре | Формат |
@@ -71,14 +71,14 @@
 | вода | маска слоя (светлое — вода), `AirPlace.water_fraction` → H = 0 над водой | (ny, nx) доля |
 | погода на час | `WeatherModel.diurnal_state`, `reference_context`, типовой t_max (`typical_max_c`), `sky` | → `z_i` (м над морем, NAN — нет конвекции), `gam` (NZ = nz + 2, К/м, в центрах с ореолом) |
 | солнце | `SunClock` / `AirPlace.solar_flux` (запаздывание прогрева, косинус к склону, рассеянная 0,10, выхолаживание) | `heat` (ny, nx) Вт/м²; пусто — без нагрева |
-| ветер прогноза | игра (`--wind`, `--from`, погода) | `U10` (м/с на 10 м), `wdir` (откуда, °) |
+| ветер прогноза | игра (`--wind`, `--from`, погода) | `u10` (м/с на 10 м), `wdir` (откуда, °) |
 | место | `configs/locations/<место>.json` | `center_lat, center_lon, utc_offset_h, id` |
 
-- `AirPlace.domain_case(detail, water, loc, dx, hour, U10, wdir, t_max = NAN, sky = "clear",
+- `AirPlace.domain_case(detail, water, loc, dx, hour, u10, wdir, t_max = NAN, sky = "clear",
   heat = true) -> AirCase` — квадрат `DOMAIN_L` = 38 400 м вокруг центра мира (x0 = y0 = −19 200),
   dz = 105 м (dx ≥ 200) или dx/2, верх — 3000 м над максимумом рельефа, nz чётное; null — область
   вне слоя.
-- `AirCase`: `set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)`, `hc, gam, z_i, heat, U10, wdir, taper,
+- `AirCase`: `set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)`, `hc, gam, z_i, heat, u10, wdir, taper,
   p` (Params эталона; `p.dtau_u = NAN` → `dtau_per_m·dx` — рабочее дерево AM-03, Р1), `prepare()`,
   `zc(k) = z_bot + (k − ½)dz` (с ореолом), `dims() = (nx+2, ny+2, nz+2)`, `without_heat()`,
   `meta()` (→ C3).
@@ -264,3 +264,4 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 | C6, C7 | v0 | 29.09.2026 | проект (часы старта C6 — готово) |
 | C4 | v3 | 29.09.2026 | AM-08: `WindField.turb_at` (T_*), `deardorff_wstar`, `AirFieldSet.sample_turb`; `load_file` → `meta.heat`; стык в `air_velocity_at`: с полем подветренное опускание и ослабление ветра только из поля, эвристика — рывки с нулевым средним, ротор и болтанка по ΔU; болтанка по u*, w*, Ri, спектр фон Кармана; конфиг `turbulence.field_*`, `lee.field_*` |
 | C4 | v2 | 29.09.2026 | AM-07: `WindField.raw_vel/raw_w_conv/raw_theta/raw_hc/raw_k1` и `heat_flux/z_i/gam/u10` (только чтение) вместо приватных массивов (Р5); `has_inputs` проверяет heat, z_i и gam |
+| C2 | v2 | 29.09.2026 | AM-03 (lint, snake_case): `AirCase.U10` → `u10`, `NX/NY/NZ` → `nx_h/ny_h/nz_h` (размеры с ореолом), `U_a` → `u_a`; аргумент `AirPlace.domain_case(…, u10, …)` — только имя; ключи `meta()` без изменений |

@@ -17,13 +17,21 @@ const H_LW_WM2 := 40.0
 const LW_CLOUD_K := 0.7
 
 
-## Область места (квадрат DOMAIN_L вокруг центра) с клеткой dx на час hour: ветер U10 (на 10 м,
+## Область места (квадрат DOMAIN_L вокруг центра) с клеткой dx на час hour: ветер u10 (на 10 м,
 ## м/с) откуда wdir (°); t_max — дневной максимум (NAN — обычный для даты), sky — облачность;
 ## heat = false — без нагрева (H = 0). detail — слой рельефа 25 м, water — маска воды (или null),
 ## loc — configs/locations/<место>.json (center_lat, center_lon, utc_offset_h).
 static func domain_case(
-	detail: HeightLayer, water: Image, loc: Dictionary, dx: float, hour: float, U10: float,
-	wdir: float, t_max := NAN, sky := "clear", heat := true
+	detail: HeightLayer,
+	water: Image,
+	loc: Dictionary,
+	dx: float,
+	hour: float,
+	u10: float,
+	wdir: float,
+	t_max := NAN,
+	sky := "clear",
+	heat := true
 ) -> AirCase:
 	var n := roundi(DOMAIN_L / dx)
 	var x0 := -DOMAIN_L / 2.0
@@ -43,7 +51,7 @@ static func domain_case(
 	var c := AirCase.new()
 	c.set_grid(dx, n, n, dz, zb, nz, x0, y0)
 	c.hc = hc
-	c.U10 = U10
+	c.u10 = u10
 	c.wdir = wdir
 	var cfg := WeatherModel.config()
 	var ctx := context(detail, loc, cfg)
@@ -55,10 +63,13 @@ static func domain_case(
 	for k in nz + 2:
 		c.gam[k] = gamma(d, c.zc(k))
 	if heat:
-		c.heat = solar_flux(hc, dx, n, n, d, ctx, cfg, water_fraction(water, detail, x0, y0, dx, n, n))
-	c.label = "%s %sм %sч U%s %s°%s" % [
-		String(loc.get("id", "")), dx, hour, U10, wdir, "" if heat else " без нагрева"
-	]
+		c.heat = solar_flux(
+			hc, dx, n, n, d, ctx, cfg, water_fraction(water, detail, x0, y0, dx, n, n)
+		)
+	c.label = (
+		"%s %sм %sч U%s %s°%s"
+		% [String(loc.get("id", "")), dx, hour, u10, wdir, "" if heat else " без нагрева"]
+	)
 	return c
 
 
@@ -68,7 +79,10 @@ static func context(detail: HeightLayer, loc: Dictionary, cfg: Dictionary) -> Di
 	var lat := float(loc.get("center_lat", rc.get("lat", 52.0)))
 	var lon := float(loc.get("center_lon", rc.get("lon", 0.0)))
 	var ctx := {
-		month = int(rc.get("month", 7)), day = int(rc.get("day", 15)), lat = lat, lon = lon,
+		month = int(rc.get("month", 7)),
+		day = int(rc.get("day", 15)),
+		lat = lat,
+		lon = lon,
 		utc_offset_h = float(loc.get("utc_offset_h", roundf(lon / 15.0))),
 	}
 	ctx.merge(WeatherModel.ground_context(detail.sample, 10000.0, 15, 0.1))
@@ -144,7 +158,9 @@ static func water_fraction(
 
 
 ## Погода дня в час для поля (weather.py → Day): z_i (м над морем) и профиль θ̄.
-static func day(ctx: Dictionary, hour: float, t_max: float, sky: String, cfg: Dictionary) -> Dictionary:
+static func day(
+	ctx: Dictionary, hour: float, t_max: float, sky: String, cfg: Dictionary
+) -> Dictionary:
 	var st := WeatherModel.diurnal_state(t_max, hour, ctx, cfg)
 	var dd: Dictionary = cfg.get("diurnal", {})
 	var m := int(ctx.month)
@@ -154,12 +170,19 @@ static func day(ctx: Dictionary, hour: float, t_max: float, sky: String, cfg: Di
 	var ua: Dictionary = cfg.get("upper_air", {})
 	var skyp := WeatherModel.sky_params(sky, cfg)
 	var d := {
-		hour = hour, t = float(st.temperature_c), cap = float(st.cap_agl_m), h_v = float(ctx.valley_msl_m) / 1000.0,
+		hour = hour,
+		t = float(st.temperature_c),
+		cap = float(st.cap_agl_m),
+		h_v = float(ctx.valley_msl_m) / 1000.0,
 		t_u = WeatherModel.monthly(ua.get("temp_c", [0.0]), m, dday),
-		z_u = float(ua.get("z_msl_m", 3000.0)) / 1000.0, gam = float(ua.get("lapse_k_per_km", 4.0)),
-		t_min = t_max - amp, t_res = t_res, t_full = t_res - float(dd.get("break_window_k", 3.0)),
+		z_u = float(ua.get("z_msl_m", 3000.0)) / 1000.0,
+		gam = float(ua.get("lapse_k_per_km", 4.0)),
+		t_min = t_max - amp,
+		t_res = t_res,
+		t_full = t_res - float(dd.get("break_window_k", 3.0)),
 		dep = float(dd.get("inversion_depth_m", 500.0)) / 1000.0,
-		sky_heat = float(skyp.get("heat", 1.0)), cover = float(skyp.get("cover", 0.0)),
+		sky_heat = float(skyp.get("heat", 1.0)),
+		cover = float(skyp.get("cover", 0.0)),
 		heat = float(st.heat) * float(skyp.get("heat", 1.0)),
 	}
 	d.theta_s = d.t + float(cfg.get("parcel_excess_k", 1.0)) + GAMMA_D * d.h_v
@@ -201,8 +224,14 @@ static func gamma(d: Dictionary, z_m: float) -> float:
 ## Поток тепла (Вт/м² на горизонтальную площадь) по клеткам: солнце с запаздыванием прогрева
 ## луга, косинус угла к склону, рассеянная доля, выхолаживание; вода — 0 (air.solar_flux).
 static func solar_flux(
-	hc: PackedFloat64Array, dx: float, nx: int, ny: int, d: Dictionary, ctx: Dictionary,
-	cfg: Dictionary, water: PackedFloat64Array
+	hc: PackedFloat64Array,
+	dx: float,
+	nx: int,
+	ny: int,
+	d: Dictionary,
+	ctx: Dictionary,
+	cfg: Dictionary,
+	water: PackedFloat64Array
 ) -> PackedFloat64Array:
 	var lag := float(cfg.get("heating", {}).get("lag_h", {}).get("none", 0.3))
 	var doy := SunClock.day_of_year(int(ctx.month), int(ctx.day))
@@ -243,9 +272,10 @@ static func solar_flux(
 				else:
 					gy = (hc[q + nx] - hc[q - nx]) / (2.0 * dx)
 				cos_inc = -gx * sx - gy * sy + sz
-			var h := H0_WM2 * float(d.sky_heat) * (maxf(cos_inc, 0.0) + DIFFUSE * maxf(sz, 0.0)) - lw
+			var h := (
+				H0_WM2 * float(d.sky_heat) * (maxf(cos_inc, 0.0) + DIFFUSE * maxf(sz, 0.0)) - lw
+			)
 			if not water.is_empty():
 				h *= 1.0 - water[q]
 			out[q] = h
 	return out
-

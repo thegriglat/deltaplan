@@ -227,7 +227,7 @@ func _record_chunk_inner() -> void:
 				break
 			var next := _step_program(steps_done + steps)
 			# следующий шаг целиком не влезает, а порция не пуста — закончить на границе шага
-			if next.is_empty() or wsum + AirGpu.program_weight(next) > cap:
+			if next.is_empty() or wsum + _program_weight(next) > cap:
 				break
 			_set_prog(next)
 		var take := 0
@@ -259,6 +259,14 @@ func _record_chunk_inner() -> void:
 	_chunk_w = maxf(wsum, 1.0)
 	_w_max = maxf(_w_max, wsum)
 	_chunk_steps = steps
+
+
+## Цена программы (сумма весов запусков, AirGpu.LAUNCH_WEIGHT).
+static func _program_weight(program: Array) -> float:
+	var s := 0.0
+	for it: Array in program:
+		s += float(it[5]) if it.size() > 5 else 1.0
+	return s
 
 
 func _set_prog(prog: Array) -> void:

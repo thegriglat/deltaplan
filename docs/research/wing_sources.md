@@ -18,4 +18,4 @@
 ## «Апогей» (В. Мысенко, Мелеуз) — паспорта в сети нет
 - [Регулировка дельтаплана Апогей — nebo-forum.kiev.ua](https://www.nebo-forum.kiev.ua/viewtopic.php?t=6543)
 - [учусь летать — deltaplanerizm.ru](https://www.deltaplanerizm.ru/forum/viewtopic.php?f=4&t=3786)
-- Основное — со слов мамы-пилота (docs/plan/wings_lineup.md §9).
+- Основное — со слов пилота-консультанта (docs/plan/wings_lineup.md §9).

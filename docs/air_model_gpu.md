@@ -195,7 +195,7 @@ poll() зовёт sync() только когда с submit() прошло не �
 
 ```
 var c := AirPlace.domain_case(detail, water_img, loc_cfg, 400.0, 12.0, 3.0, 150.0)  # место, час, ветер
-# или вручную: AirCase.new(); set_grid(...); hc, gam, z_i, heat, U10, wdir
+# или вручную: AirCase.new(); set_grid(...); hc, gam, z_i, heat, u10, wdir
 var job := AirPicardJob.new()
 job.case = c
 job.mech = true            # сначала то же без нагрева (H = 0) → w_mech (Стык 1↔2)
@@ -211,7 +211,7 @@ job.release()
 
 Вход `AirCase`: `set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)`, `hc` (ny·nx), `gam` (NZ = nz + 2,
 в центрах уровней с ореолом), `z_i` (м над морем, NAN — нет конвекции), `heat` (ny·nx, Вт/м²;
-пусто — без нагрева), `U10`, `wdir` (откуда), `taper` (гасить нагрев у края), `p` (параметры
+пусто — без нагрева), `u10`, `wdir` (откуда), `taper` (гасить нагрев у края), `p` (параметры
 эталона `Params`).
 
 ### Порядок программы
@@ -246,7 +246,7 @@ act, rhs, φ — по внутренним клеткам. Итого ~46·N·4 
 итерация 15 → 11,2 мс. Плоская раскладка (V-цикл, блоки AM-02) не менялась.
 
 ### Сверка с эталоном AM-01
-`tests/atmosphere/test_air_picard_gpu.gd` (`tools/gpu_tests.sh --filter=test_air_picard`),
+`tests/atmosphere/test_air_picard_gpu.gd` (`tools/gpu_tests.sh --filter=test_air_picard`; замеры и тёплый старт — `test_air_picard_bench.gd`),
 `tests/atmosphere/test_air_place.gd` (без GPU).
 
 | Сверка | Результат |
@@ -266,7 +266,7 @@ act, rhs, φ — по внутренним клеткам. Итого ~46·N·4 
 на всех прогретых решениях Онгудая (λ 112–256 м, |λ − λᵀ| до 65 м).
 
 ### Замеры (RTX 4070 SUPER, под `flock /tmp/heat_ca_gpu.lock`)
-`AIR_PICARD_BENCH=1 tools/gpu_tests.sh --filter=test_air_picard_gpu.gd` (окно 320×240;
+`AIR_PICARD_BENCH=1 tools/gpu_tests.sh --filter=test_air_picard_bench` (окно 320×240;
 `AIR_PICARD_BENCH_DX=200`, `AIR_PICARD_BENCH_QUICK=1` — меньше случаев). Онгудай, 12:00, ветер с
 150°, Δτ_u = 0,3·Δx (эталон cf64b7b).
 

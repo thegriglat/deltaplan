@@ -1,0 +1,13 @@
+{{- /*
+  Галерея картинок бандла: {{< gallery >}} — все screenshots/*; {{< gallery "screenshots/0[1-3]*" >}} — по маске.
+  Подпись — из имени файла: «01_сетевая_игра_рядом.jpg» → «сетевая игра рядом».
+*/ -}}
+{{- $glob := .Get 0 | default "screenshots/*" -}}
+<div class="gallery">
+{{- range .Page.Resources.Match $glob -}}
+{{- if eq .ResourceType "image" -}}
+{{- $cap := path.BaseName .Name | replaceRE `^\d+_` "" | replaceRE `_` " " -}}
+<figure><a href="{{ .RelPermalink }}"><img src="{{ .RelPermalink }}" alt="{{ $cap }}" loading="lazy"></a><figcaption>{{ $cap }}</figcaption></figure>
+{{- end -}}
+{{- end -}}
+</div>

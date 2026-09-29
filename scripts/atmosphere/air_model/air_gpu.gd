@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name AirGpu
 extends RefCounted
 ## Строительные блоки модели воздуха на локальном RenderingDevice (AM-02, docs/air_model_gpu.md).
@@ -17,6 +18,8 @@ const SHADERS := [
 const SCALARS := 64
 const RED_GROUPS := 1024
 const LINE_MAX := 1024
+## Цена запуска для нарезки порций (AirGpuJob): группы × вес ядра + постоянная часть запуска.
+const LAUNCH_WEIGHT := 600.0
 
 var rd: RenderingDevice
 var error := ""
@@ -196,10 +199,6 @@ static func _pc(i0: Array, i1 := [], f := []) -> PackedByteArray:
 	return b
 
 
-## Цена запуска для нарезки порций (AirGpuJob): группы × вес ядра + постоянная часть запуска.
-const LAUNCH_WEIGHT := 600.0
-
-
 func _dispatch(
 	shader: String, spec: Array, bufs: Array, pc: PackedByteArray, groups: int, wf := 1.0
 ) -> void:
@@ -238,14 +237,6 @@ func _run_item(item: Array) -> void:
 ## буферы по привязкам 0, 1, …, push-константы (i0, i1, f), n — элементов (для числа групп).
 func kernel(shader: String, bufs: Array, n: int, i0: Array, i1 := [], f := [], wf := 1.0) -> void:
 	_dispatch(shader, [], bufs, _pc(i0, i1, f), _groups(n), wf)
-
-
-## Цена программы (сумма весов запусков, см. LAUNCH_WEIGHT).
-static func program_weight(program: Array, from := 0, to := -1) -> float:
-	var s := 0.0
-	for i in range(from, program.size() if to < 0 else to):
-		s += float(program[i][5])
-	return s
 
 
 ## Программа: запуски ядер, записанные один раз (конвейер, набор, push-константы, группы),

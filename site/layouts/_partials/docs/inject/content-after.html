@@ -1,0 +1,17 @@
+{{- /* «Исходник на GitHub» — файл страницы в репозитории (по params.repoMap) */ -}}
+{{- with .File -}}
+  {{- $cpath := .Path | replaceRE `\\` "/" -}}
+  {{- $repo := "" -}}
+  {{- $done := false -}}
+  {{- range site.Params.repoMap -}}
+    {{- if and (not $done) (strings.HasPrefix $cpath .content) -}}
+      {{- $rest := strings.TrimPrefix .content $cpath -}}
+      {{- if and (eq (path.Base $rest) "_index.md") (ne .repo "site/content/") -}}{{- $rest = path.Join (path.Dir $rest) "README.md" -}}{{- end -}}
+      {{- $repo = printf "%s%s" .repo $rest -}}
+      {{- $done = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with $repo -}}
+<p class="source-link">Исходник страницы: <a href="{{ site.Params.repoBlob }}{{ . }}" rel="noopener"><code>{{ . }}</code></a></p>
+  {{- end -}}
+{{- end -}}

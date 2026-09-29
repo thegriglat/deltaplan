@@ -1,0 +1,12 @@
+{{- $r := partial "repo/resolve" (dict "Page" .Page "Destination" .Destination "Image" true) -}}
+{{- if eq $r.kind "missing" "github" -}}
+  {{- errorf "Картинка %q не найдена на странице %s (путь в репозитории: %q)" .Destination .Page.File.Path $r.repo -}}
+{{- end -}}
+{{- if .IsBlock -}}
+<figure>
+<a href="{{ $r.url | safeURL }}"><img src="{{ $r.url | safeURL }}" alt="{{ .PlainText }}" loading="lazy"{{ with .Title }} title="{{ . }}"{{ end }}></a>
+{{- with or .Title .PlainText }}<figcaption>{{ . }}</figcaption>{{ end }}
+</figure>
+{{- else -}}
+<img src="{{ $r.url | safeURL }}" alt="{{ .PlainText }}" loading="lazy"{{ with .Title }} title="{{ . }}"{{ end }}>
+{{- end -}}
