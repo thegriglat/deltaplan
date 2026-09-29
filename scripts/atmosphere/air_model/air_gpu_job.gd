@@ -37,6 +37,9 @@ var chunks := 0
 var max_chunk_gpu_ms := 0.0
 var max_sync_wait_ms := 0.0
 var chunk_log: Array[Vector3] = []  # (запусков, GPU мс, ожидание sync мс)
+## Время главного потока в poll() (запись порций, sync, проверки), мс — сумма и наибольшее.
+var poll_cpu_ms := 0.0
+var max_poll_cpu_ms := 0.0
 
 var _done := false
 var _submitted := false
@@ -70,6 +73,15 @@ func start(g: AirGpu = null) -> bool:
 func poll() -> float:
 	if _done or error != "":
 		return progress()
+	var t_in := Time.get_ticks_usec()
+	var p := _poll()
+	var dt := (Time.get_ticks_usec() - t_in) / 1000.0
+	poll_cpu_ms += dt
+	max_poll_cpu_ms = maxf(max_poll_cpu_ms, dt)
+	return p
+
+
+func _poll() -> float:
 	var now := Time.get_ticks_usec()
 	if _t_poll_end > 0:
 		var dt := (now - _t_poll_end) / 1000.0

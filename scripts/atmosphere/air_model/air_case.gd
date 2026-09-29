@@ -53,9 +53,6 @@ var wdir := 270.0
 var taper := true
 ## Подпись (для отчётов).
 var label := ""
-## Только для сверки с эталоном AM-01 до исправления: air.py читает λ (lamc, F-порядок в памяти)
-## транспонированным — λ(i, j) вместо λ(j, i). true — повторить это (нужна квадратная сетка).
-var ref_lam_transposed := false
 
 # ---- итог prepare()
 var NX := 0
@@ -120,7 +117,6 @@ func without_heat() -> AirCase:
 	c.wdir = wdir
 	c.taper = taper
 	c.label = label + " без нагрева"
-	c.ref_lam_transposed = ref_lam_transposed
 	return c
 
 
@@ -248,8 +244,6 @@ func prepare() -> bool:
 			col[6 * nyx + q] = side[q]
 			col[7 * nyx + q] = scs[q]
 			col[11 * nyx + q] = maxf(lam, lam_frac * h_bl[c])
-			if ref_lam_transposed:
-				col[11 * nyx + q] = maxf(lam, lam_frac * h_bl[clampi(i - 1, 0, ny - 1) * nx + clampi(j - 1, 0, nx - 1)])
 			# нагрев: Q = значение на уровнях [k0, k1] столбца (ореол — нет)
 			var qv := 0.0
 			var k0 := 1.0

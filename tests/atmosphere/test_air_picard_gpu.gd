@@ -1,3 +1,4 @@
+class_name TestAirPicard
 extends TestCase
 ## Пикар на GPU (AM-03) против эталона AM-01 (tools/research/air3d/air.py, float64):
 ## tests/atmosphere/fixtures/air_model/ref/ — вход итерации и выход каждого блока + решение до
@@ -192,25 +193,8 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 	_run(job)
 	var e_nu := rel_err(g.download(b.nu), dat.kloc_nu)
 	var e_nuh := rel_err(g.download(b.nuh), dat.kloc_nuh)
-	if not _lam_symmetric(c):
-		# эталон читает λ транспонированным (ошибка air.py, см. AirCase.ref_lam_transposed):
-		# по спецификации — справка, проверка — с λ так, как её читает эталон
-		rows.append([name, "местное K по спецификации (справка: λ эталона транспонирована)", maxf(e_nu, e_nuh), 0])
-		c.ref_lam_transposed = true
-		c.prepare()
-		g.upload(b.col, c.col)
-		_put(job, {u = dat.bc_u, v = dat.bc_v, w = dat.in_w, th = dat.in_th, nu = dat.nu_in, nuh = dat.nuh_in})
-		job._kloc()
-		_run(job)
-		e_nu = rel_err(g.download(b.nu), dat.kloc_nu)
-		e_nuh = rel_err(g.download(b.nuh), dat.kloc_nuh)
-		c.ref_lam_transposed = false
-		c.prepare()
-		g.upload(b.col, c.col)
-		name += " (λᵀ)"
 	rows.append([name, "местное K (kloc) K", e_nu])
 	rows.append([name, "местное K (kloc) K_h", e_nuh])
-	name = String(m.case)
 	# ---- 3. шаблоны импульса
 	_put(job, {
 		u = dat.bc_u, v = dat.bc_v, w = dat.in_w, th = dat.in_th, p = dat.in_p, nu = dat.kloc_nu,
@@ -305,21 +289,6 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 	rows.append([name, "шаг тепла θ′", rel_err(g.download(b.th), dat.heat_th)])
 
 
-static func _lam_symmetric(c: AirCase) -> bool:
-	var uniform := true
-	for q in c.h_bl.size():
-		uniform = uniform and c.h_bl[q] == c.h_bl[0]
-	if uniform:
-		return true
-	if c.nx != c.ny:
-		return false
-	for j in c.ny:
-		for i in c.nx:
-			if absf(c.h_bl[j * c.nx + i] - c.h_bl[i * c.nx + j]) > 1e-9 * c.h_bl[j * c.nx + i]:
-				return false
-	return true
-
-
 func _put(job: AirPicardJob, arrays: Dictionary) -> void:
 	for k in arrays:
 		job.gpu.upload(job.buf[k], arrays[k])
@@ -381,9 +350,6 @@ func test_solutions_vs_reference() -> void:
 	for name in CASES:
 		var m := load_fix(FIX + name)
 		var c := case_from_fixture(m)
-		c.prepare()
-		var tr := not _lam_symmetric(c)
-		c.ref_lam_transposed = tr
 		var job: AirPicardJob = await _solve(c)
 		if job == null or not job.is_done():
 			if job:
@@ -398,8 +364,8 @@ func test_solutions_vs_reference() -> void:
 		var dth := max_abs_diff(job.download("th"), dat.sol_th)
 		var r: Dictionary = job.results[-1]
 		var fr: Dictionary = sol.final_residuals
-		print("  %s%s | %d / %d | %s | %s | %s / %s | %.0f | %.1f | %.2f" % [
-			name, " (λᵀ как эталон)" if tr else "", r.iters, int(sol.iters), sci(dv / u0), sci(dth),
+		print("  %s | %d / %d | %s | %s | %s / %s | %.0f | %.1f | %.2f" % [
+			name, r.iters, int(sol.iters), sci(dv / u0), sci(dth),
 			sci(r.div_rms), sci(_div_rms_ref(c, dat)), job.wall_ms, job.gpu_ms_total, job.max_chunk_gpu_ms
 		])
 		check(r.status == "ok", "%s: статус %s" % [name, r.status])
@@ -447,3 +413,176 @@ func test_two_runs_bitwise_equal() -> void:
 		job.release()
 	check(out[0][0] == out[1][0], "два прогона побитно одинаковы (%d байт)" % out[0][0].size())
 	check(out[0][1] == out[1][1], "итераций одинаково")
+
+
+# ---------------------------------------------------------------- Онгудай 400 м (реальный рельеф)
+
+
+## Случай из эталона Онгудая (вход — ровно тот, что у air.py; AirPlace даёт его же, test_air_place).
+static func case_ongudai(m: Dictionary, U10: float) -> AirCase:
+	var c := AirCase.new()
+	c.set_grid(float(m.dx), int(m.nx), int(m.ny), float(m.dz), float(m.z_bot), int(m.nz), float(m.x0), float(m.y0))
+	var dat: Dictionary = m.data
+	c.hc = PackedFloat64Array(Array(dat.hc))
+	c.heat = PackedFloat64Array(Array(dat.H))
+	c.gam = PackedFloat64Array(Array(dat.gam))
+	c.z_i = float(m.z_i)
+	c.U10 = U10
+	c.wdir = float(m.wdir)
+	c.label = "Онгудай %d м, %d м/с" % [int(m.dx), int(U10)]
+	return c
+
+
+static func _ref_iters(m: Dictionary, U10: float, heat: bool, dtype: String) -> int:
+	for r: Dictionary in m.runs:
+		if float(r.U10) == U10 and bool(r.heat) == heat and String(r.dtype) == dtype:
+			return int(r.iters)
+	return -1
+
+
+func test_ongudai_d400_vs_reference() -> void:
+	var m := load_fix(FIX_ONG + "ongudai_d400_h12")
+	var job: AirPicardJob = await _solve(case_ongudai(m, 3.0), true)
+	if job == null or not job.is_done():
+		return
+	var c := job.case
+	var dat: Dictionary = m.data
+	var us := float(m.u_scale)
+	# итерации: без нагрева, с нагревом — против эталона float64 и float32
+	for q in 2:
+		var r: Dictionary = job.results[q]
+		var heat := q == 1
+		print("  %s: %s, итераций %d (эталон f64 %d, f32 %d), ∇·u СКО %s (эталон %s)" % [
+			r.label, r.status, r.iters, _ref_iters(m, 3.0, heat, "float64"),
+			_ref_iters(m, 3.0, heat, "float32"), sci(r.div_rms), sci(float(m.div_rms[1 - q]))])
+		check(r.status == "ok", "%s сошлось" % r.label)
+		check(absi(int(r.iters) - _ref_iters(m, 3.0, heat, "float64")) <= 20, "%s: итераций как в эталоне" % r.label)
+	# поле в центрах у старта Каянча (16 × 16 столбцов)
+	var cr: Dictionary = m.crop
+	var cen := _centers(job, int(cr.i0), int(cr.j0), int(cr.n))
+	var row := []
+	for nm in ["u", "v", "w_mech", "w_conv", "theta"]:
+		var e := max_abs_diff(cen[nm], dat["crop_" + nm])
+		row.append("%s %s" % [nm, sci(e)])
+		if nm == "theta":
+			check(e <= 0.05, "θ′ у старта: %s К" % sci(e))
+		else:
+			check(e <= 1e-3 * us, "%s у старта: %s > 1e-3·%.2f" % [nm, sci(e), us])
+	print("  поле у старта (16×16×%d), max|Δ|: %s; |u₀| = %.2f м/с" % [c.nz, ", ".join(row), us])
+	# выборка как в игре над стартом (WindField)
+	var f := job.field()
+	check(f != null, "WindField построен")
+	if f != null:
+		for p: Dictionary in m.probes:
+			var pos := Vector3(float(p.game[0]), float(p.game[1]), float(p.game[2]))
+			var s := f.sample(pos)
+			var got := {u = s.x, v = -s.z, w_mech = s.y, w_conv = f.sample_w_conv(pos), theta = f.sample_theta(pos)}
+			var fr: Dictionary = p.field
+			var parts := []
+			for k in got:
+				parts.append("%s %.4f/%.4f" % [k, got[k], float(fr[k])])
+				var tol := 0.05 if k == "theta" else 1e-3 * us
+				check(absf(got[k] - float(fr[k])) <= tol, "Каянча %d м: %s %.5f против %.5f" % [int(p.agl), k, got[k], float(fr[k])])
+			print("  Каянча, %d м над землёй (GPU/эталон): %s" % [int(p.agl), ", ".join(parts)])
+	var hb := heat_budget(job)
+	var rb: Dictionary = m.heat_budget
+	print("  баланс тепла GPU: нагрев %s, фон %s, выхолаживание %s, губка %s, вынос %s, невязка отн. %s (эталон %s)" % [
+		sci(hb.q_in), sci(hb.bg), sci(hb.cool), sci(hb.sponge), sci(hb.outflow), sci(hb.rel), sci(float(rb.rel))])
+	check(absf(hb.rel) <= 2.0 * absf(float(rb.rel)) + 1e-4, "баланс тепла как в эталоне")
+	print("  стена %.0f мс, GPU %.1f мс, порций %d, макс. порция %.2f мс" % [job.wall_ms, job.gpu_ms_total, job.chunks, job.max_chunk_gpu_ms])
+	job.release()
+
+
+## Центры клеток (как Air.centers / WindField.from_mac) в столбцах [i0, i0+n) × [j0, j0+n), все уровни.
+static func _centers(job: AirPicardJob, i0: int, j0: int, n: int) -> Dictionary:
+	var c := job.case
+	var u := job.download("u")
+	var v := job.download("v")
+	var w := job.download("w")
+	var wm := job.download("wmech")
+	var th := job.download("th")
+	var tc := job.download("tcode")
+	var out := {}
+	for nm in ["u", "v", "w_mech", "w_conv", "theta"]:
+		var a := PackedFloat32Array()
+		a.resize(c.nz * n * n)
+		out[nm] = a
+	var sy := c.NX
+	var sz := c.NX * c.NY
+	for k in c.nz:
+		for j in n:
+			for i in n:
+				var h := ((k + 1) * c.NY + j0 + j + 1) * c.NX + i0 + i + 1
+				var q := (k * n + j) * n + i
+				if int(tc[h]) & 3 != 1:
+					continue
+				out.u[q] = 0.5 * (u[h] + u[h + 1])
+				out.v[q] = 0.5 * (v[h] + v[h + sy])
+				var wmc := 0.5 * (wm[h] + wm[h + sz])
+				out.w_mech[q] = wmc
+				out.w_conv[q] = 0.5 * (w[h] + w[h + sz]) - wmc
+				out.theta[q] = th[h]
+	return out
+
+
+## Баланс θ′ (К·м³/с) как Air.heat_budget эталона: нагрев + фон = выхолаживание + губка + вынос.
+static func heat_budget(job: AirPicardJob) -> Dictionary:
+	var c := job.case
+	var th := job.download("th")
+	var w := job.download("w")
+	var u := job.download("u")
+	var v := job.download("v")
+	var q := job.download("Q")
+	var spc := job.download("spc")
+	var nu := job.download("nu")
+	var tc := job.download("tcode")
+	var NX := c.NX
+	var NY := c.NY
+	var NZ := c.NZ
+	var sz := NX * NY
+	var V := c.dx * c.dx * c.dz
+	var q_in := 0.0
+	var cool := 0.0
+	var spg := 0.0
+	var bg := 0.0
+	var out := 0.0
+	var dif := 0.0
+	var a_side := c.dx * c.dz
+	var a_top := c.dx * c.dx
+	for idx in th.size():
+		var t := int(tc[idx])
+		var cell := t & 3
+		var k := idx / sz
+		if cell == 1:
+			q_in += q[idx] * V
+			cool += th[idx] * V / float(c.p.tau_cool)
+			spg += th[idx] * spc[idx] * V
+			if k < NZ - 1:
+				bg -= c.gam[k] * 0.5 * (w[idx] + w[idx + sz]) * V
+			# диффузия через границу области (сосед — ореол), K — как в эталоне
+			var i := idx % NX
+			var j := (idx / NX) % NY
+			for sh in [[1, i < NX - 1, c.dx, a_side], [-1, i > 0, c.dx, a_side], [NX, j < NY - 1, c.dx, a_side],
+					[-NX, j > 0, c.dx, a_side], [sz, k < NZ - 1, c.dz, a_top], [-sz, k > 0, c.dz, a_top]]:
+				if not sh[1]:
+					continue
+				var nb: int = idx + int(sh[0])
+				if int(tc[nb]) & 3 == 2:
+					dif += 0.5 * (nu[idx] + nu[nb]) * (th[idx] - th[nb]) / float(sh[2]) * float(sh[3])
+		# грани типа 2: перенос θ′ через границу (против потока)
+		for ax in 3:
+			var ty := (t >> (2 + 2 * ax)) & 3
+			if ty != 2:
+				continue
+			var st: int = [1, NX, sz][ax]
+			var fld: PackedFloat32Array = [u, v, w][ax]
+			var s := -1.0 if cell == 1 else 1.0
+			var un := fld[idx] * s
+			var inner := idx if s < 0 else idx - st
+			var outer := idx - st if s < 0 else idx
+			var thb := th[inner] if un > 0 else th[outer]
+			out += un * thb * (a_top if ax == 2 else a_side)
+	out += dif
+	var res := q_in + bg - cool - spg - out
+	var scale := absf(q_in) + absf(bg) + absf(cool) + absf(spg) + absf(out)
+	return {q_in = q_in, bg = bg, cool = cool, sponge = spg, outflow = out, residual = res, rel = res / scale if scale > 0 else 0.0}
