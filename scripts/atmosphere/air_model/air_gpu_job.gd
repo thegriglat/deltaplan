@@ -27,6 +27,10 @@ var timeout_s := 60.0
 ## Не больше стольких шагов в порции (0 — сколько влезет): 1 — проверка после каждого шага
 ## читается до следующего (решатель останавливается ровно на шаге проверки).
 var max_steps_per_chunk := 0
+## Бюджет порции ограничен промежутком между кадрами (игра идёт: GPU делится с отрисовкой).
+## false — только chunk_ms (экран загрузки / меню: порция может идти несколько кадров, poll
+## просто ждёт её готовности, главный поток всё равно не ждёт в sync).
+var frame_gap_limit := true
 ## Вес первой порции (цена запусков ещё не измерена), единицы AirGpu.LAUNCH_WEIGHT·…
 var first_chunk_weight := 150000.0
 var gpu: AirGpu
@@ -39,6 +43,9 @@ var max_sync_wait_ms := 0.0
 var chunk_log: Array[Vector3] = []  # (запусков, GPU мс, ожидание sync мс)
 ## Время главного потока в poll() (запись порций, sync, проверки), мс — сумма и наибольшее.
 var poll_cpu_ms := 0.0
+## Из них: запись порций (run программ + submit) и ожидание в sync, мс.
+var record_cpu_ms := 0.0
+var sync_wait_ms := 0.0
 var max_poll_cpu_ms := 0.0
 
 var _done := false
@@ -49,6 +56,7 @@ var _chunk_items := 0
 var _chunk_steps := 0
 var _chunk_boundary := false
 var _chunk_w := 1.0
+var _w_max := 0.0
 var _ms_per_w := -1.0
 var _prog_w := PackedFloat64Array([0.0])
 var _t_submit := 0
@@ -103,6 +111,7 @@ func _finish_chunk() -> bool:
 	var t0 := Time.get_ticks_usec()
 	gpu.sync()
 	var wait := (Time.get_ticks_usec() - t0) / 1000.0
+	sync_wait_ms += wait
 	_submitted = false
 	var gpu_ms := _chunk_gpu_ms()
 	chunks += 1
@@ -124,6 +133,37 @@ func _finish_chunk() -> bool:
 		_fail(error)
 		return false
 	return true
+
+
+## Экран загрузки / меню: за кадр — несколько порций подряд (sync + следующая) в пределах
+## slice_ms главного потока; последняя порция идёт на GPU, пока рисуется кадр. GPU почти не
+## простаивает, интерфейс обновляется раз в ~slice_ms. RD локального устройства в Godot 4.7 —
+## только из потока отрисовки (из рабочего потока нельзя), поэтому так, а не в потоке.
+func poll_slice(slice_ms: float) -> float:
+	if _done or error != "":
+		return progress()
+	frame_gap_limit = false
+	var t_in := Time.get_ticks_usec()
+	while not _done and error == "":
+		if _submitted and not _finish_chunk():
+			break
+		if (Time.get_ticks_usec() - _t_start) / 1e6 > timeout_s:
+			_fail("таймаут расчёта (%.0f с)" % timeout_s)
+			break
+		_record_chunk()
+		if (Time.get_ticks_usec() - t_in) / 1000.0 + 0.5 * _expected_ms >= slice_ms:
+			break
+	var dt := (Time.get_ticks_usec() - t_in) / 1000.0
+	poll_cpu_ms += dt
+	max_poll_cpu_ms = maxf(max_poll_cpu_ms, dt)
+	return progress()
+
+
+## Весь расчёт подряд (инструменты без кадров). true — готово.
+func run_blocking() -> bool:
+	while not _done and error == "":
+		poll_slice(1e9)
+	return _done
 
 
 func is_done() -> bool:
@@ -151,11 +191,18 @@ func release() -> void:
 func budget_ms() -> float:
 	var b := 0.8 * chunk_ms
 	# промежуток между кадрами ещё не измерен — осторожно, 8 мс
-	b = minf(b, 0.8 * _gap_ms if _gap_ms > 0.0 else 8.0)
+	if frame_gap_limit or _ms_per_w < 0.0:
+		b = minf(b, 0.8 * _gap_ms if _gap_ms > 0.0 else 8.0)
 	return maxf(b, 1.0)
 
 
 func _record_chunk() -> void:
+	var t_rec := Time.get_ticks_usec()
+	_record_chunk_inner()
+	record_cpu_ms += (Time.get_ticks_usec() - t_rec) / 1000.0
+
+
+func _record_chunk_inner() -> void:
 	var total := _total_steps()
 	if _cursor >= _prog.size():
 		if total > 0 and steps_done >= total:
@@ -166,7 +213,8 @@ func _record_chunk() -> void:
 	# не измерена — first_chunk_weight
 	var cap := first_chunk_weight
 	if _ms_per_w > 0.0:
-		cap = budget_ms() / _ms_per_w
+		# цена ещё уточняется по первым порциям — рост не больше чем вдвое за порцию
+		cap = minf(budget_ms() / _ms_per_w, 2.0 * _w_max)
 	var items := 0
 	var steps := 0
 	var wsum := 0.0
@@ -209,6 +257,7 @@ func _record_chunk() -> void:
 	_expected_ms = _ms_per_w * wsum if _ms_per_w > 0.0 else 0.0
 	_chunk_items = maxi(items, 1)
 	_chunk_w = maxf(wsum, 1.0)
+	_w_max = maxf(_w_max, wsum)
 	_chunk_steps = steps
 
 

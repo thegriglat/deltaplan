@@ -21,7 +21,8 @@ resid = "#define K_RESID";
 // грани MAC: u[k,j,i] — между клетками (i−1, i), v — (j−1, j), w — (k−1, k).
 // Типы (tcode, одно число на клетку): cell + 4·tu + 16·tv + 64·tw; cell: 0 земля, 1 воздух,
 // 2 ореол; грань: 0 закрыта землёй, 1 неизвестная, 2 воздух–ореол, 3 ореол–ореол.
-// Шаблон C — 7 плоскостей по N: 0 центр, 1 −x, 2 +x, 3 −y, 4 +y, 5 −z, 6 +z; Σ C·x = b.
+// Шаблон — строкой на точку: C[8·idx + o], o = 0 центр, 1 −x, 2 +x, 3 −y, 4 +y, 5 −z, 6 +z,
+// C[8·idx + 7] = b; Σ C·x = b (air_line.glsl, PACKED = 1: один сектор 32 Б на строку).
 // Цикл «по всей сетке с шагом» (число групп ≤ 65535 не влияет на результат).
 
 layout(local_size_x = 256) in;
@@ -303,7 +304,6 @@ layout(set = 0, binding = 9, std430) readonly buffer BBg { float bg[]; };
 layout(set = 0, binding = 10, std430) readonly buffer BNu { float nu[]; };
 layout(set = 0, binding = 11, std430) readonly buffer BNuh { float nuh[]; };
 layout(set = 0, binding = 12, std430) writeonly buffer BC { float C[]; };
-layout(set = 0, binding = 13, std430) writeonly buffer BB { float b[]; };
 
 float F(int a, int q) { return a == 0 ? u[q] : (a == 1 ? v[q] : w[q]); }
 int TT(int comp, float tc) { return comp == 0 ? tu_of(tc) : (comp == 1 ? tv_of(tc) : tw_of(tc)); }
@@ -320,9 +320,9 @@ void main() {
 		int k = idx / NYX;
 		float fi = F(comp, idx);
 		if (TT(comp, tcode[idx]) != 1) {
-			C[idx] = 1.0;
-			for (int o = 1; o < 7; ++o) C[o * N + idx] = 0.0;
-			b[idx] = fi;
+			C[8 * idx] = 1.0;
+			for (int o = 1; o < 7; ++o) C[8 * idx + o] = 0.0;
+			C[8 * idx + 7] = fi;
 			continue;
 		}
 		int sc = st[comp];
@@ -376,9 +376,9 @@ void main() {
 			diag += cpl;
 			rhs += cpl * w[idx];
 		}
-		C[idx] = diag;
-		for (int o = 1; o < 7; ++o) C[o * N + idx] = cc[o];
-		b[idx] = rhs;
+		C[8 * idx] = diag;
+		for (int o = 1; o < 7; ++o) C[8 * idx + o] = cc[o];
+		C[8 * idx + 7] = rhs;
 	}
 }
 #endif
@@ -397,7 +397,6 @@ layout(set = 0, binding = 9, std430) readonly buffer BThb { float thb[]; };
 layout(set = 0, binding = 10, std430) readonly buffer BNu { float nu[]; };
 layout(set = 0, binding = 11, std430) readonly buffer BNuh { float nuh[]; };
 layout(set = 0, binding = 12, std430) writeonly buffer BC { float C[]; };
-layout(set = 0, binding = 13, std430) writeonly buffer BB { float b[]; };
 
 void main() {
 	dims();
@@ -407,9 +406,9 @@ void main() {
 		int idx = t;
 		int k = idx / NYX;
 		if (cell_of(tcode[idx]) != 1) {
-			C[idx] = 1.0;
-			for (int o = 1; o < 7; ++o) C[o * N + idx] = 0.0;
-			b[idx] = th[idx];
+			C[8 * idx] = 1.0;
+			for (int o = 1; o < 7; ++o) C[8 * idx + o] = 0.0;
+			C[8 * idx + 7] = th[idx];
 			continue;
 		}
 		float fm[3] = float[3](u[idx], v[idx], w[idx]);
@@ -435,9 +434,9 @@ void main() {
 				cc[1 + 2 * d + s] = cn;
 			}
 		}
-		C[idx] = diag;
-		for (int o = 1; o < 7; ++o) C[o * N + idx] = cc[o];
-		b[idx] = rhs;
+		C[8 * idx] = diag;
+		for (int o = 1; o < 7; ++o) C[8 * idx + o] = cc[o];
+		C[8 * idx + 7] = rhs;
 	}
 }
 #endif
@@ -504,8 +503,7 @@ void main() {
 layout(set = 0, binding = 1, std430) readonly buffer BT { float tcode[]; };
 layout(set = 0, binding = 2, std430) readonly buffer BC { float c[]; };
 layout(set = 0, binding = 3, std430) readonly buffer BX { float x[]; };
-layout(set = 0, binding = 4, std430) readonly buffer BB { float b[]; };
-layout(set = 0, binding = 5, std430) writeonly buffer BR { float r[]; };
+layout(set = 0, binding = 4, std430) writeonly buffer BR { float r[]; };
 
 void main() {
 	dims();
@@ -516,11 +514,12 @@ void main() {
 		int ty = which == 0 ? tu_of(tc) : (which == 1 ? tv_of(tc) : (which == 2 ? tw_of(tc) : cell_of(tc)));
 		if (ty != 1) { r[idx] = 0.0; continue; }
 		int i = idx % NX, j = (idx / NX) % NY, k = idx / NYX;
-		float acc = c[idx] * x[idx];
-		acc += (i > 0 ? c[N + idx] * x[idx - 1] : 0.0) + (i < NX - 1 ? c[2 * N + idx] * x[idx + 1] : 0.0);
-		acc += (j > 0 ? c[3 * N + idx] * x[idx - NX] : 0.0) + (j < NY - 1 ? c[4 * N + idx] * x[idx + NX] : 0.0);
-		acc += (k > 0 ? c[5 * N + idx] * x[idx - NYX] : 0.0) + (k < NZ - 1 ? c[6 * N + idx] * x[idx + NYX] : 0.0);
-		r[idx] = b[idx] - acc;
+		int q = 8 * idx;
+		float acc = c[q] * x[idx];
+		acc += (i > 0 ? c[q + 1] * x[idx - 1] : 0.0) + (i < NX - 1 ? c[q + 2] * x[idx + 1] : 0.0);
+		acc += (j > 0 ? c[q + 3] * x[idx - NX] : 0.0) + (j < NY - 1 ? c[q + 4] * x[idx + NX] : 0.0);
+		acc += (k > 0 ? c[q + 5] * x[idx - NYX] : 0.0) + (k < NZ - 1 ? c[q + 6] * x[idx + NYX] : 0.0);
+		r[idx] = c[q + 7] - acc;
 	}
 }
 #endif

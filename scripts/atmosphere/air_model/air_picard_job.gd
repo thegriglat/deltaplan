@@ -25,6 +25,9 @@ const SHADER_NAMES := [
 ]
 enum Phase { INIT, ITER, FINAL, DONE }
 
+## Готово поле field_async() (null — размеры не сошлись).
+signal field_ready(f: WindField)
+
 # скаляры (AirGpu.scalars)
 const S_RSUM := 0
 const S_PHI := 1
@@ -89,10 +92,11 @@ func _setup() -> bool:
 	_ni = case.nx * case.ny * case.nz
 	var n := _n
 	for nm in ["tcode", "ubu", "ubv", "ubw", "thb", "spu", "spw", "spc", "kbg", "Q", "Kx", "Ky", "Kz",
-			"u", "v", "w", "th", "p", "nu", "nuh", "bu", "bv", "bw", "r", "wmech"]:
+			"u", "v", "w", "th", "p", "nu", "nuh", "r", "wmech"]:
 		buf[nm] = gpu.buffer(n)
+	# шаблоны строкой на точку (C0..C6, b); шаблон тепла — в Cu
 	for nm in ["Cu", "Cv", "Cw"]:
-		buf[nm] = gpu.buffer(7 * n)
+		buf[nm] = gpu.buffer(8 * n)
 	buf.prm = gpu.buffer(32)
 	buf.col = gpu.buffer(AirCase.NCOL * _dims.x * _dims.y)
 	buf.lev = gpu.buffer(AirCase.NLEV * _dims.z)
@@ -179,11 +183,10 @@ func _mom(comp: int) -> void:
 	var sp: RID = buf.spw if comp == 2 else buf.spu
 	var bg: RID = [buf.ubu, buf.ubv, buf.ubw][comp]
 	var c: RID = [buf.Cu, buf.Cv, buf.Cw][comp]
-	var b: RID = [buf.bu, buf.bv, buf.bw][comp]
 	gpu.kernel(
 		"air_picard:mom",
-		[buf.prm, buf.tcode, buf.lev, buf.u, buf.v, buf.w, buf.p, buf.th, sp, bg, buf.nu, buf.nuh, c, b],
-		_n, [d[0], d[1], d[2], comp], [], [], 8.0
+		[buf.prm, buf.tcode, buf.lev, buf.u, buf.v, buf.w, buf.p, buf.th, sp, bg, buf.nu, buf.nuh, c],
+		_n, [d[0], d[1], d[2], comp], [], [], 5.0
 	)
 
 
@@ -192,8 +195,8 @@ func _heat() -> void:
 	gpu.kernel(
 		"air_picard:heat",
 		[buf.prm, buf.tcode, buf.lev, buf.u, buf.v, buf.w, buf.th, buf.Q, buf.spc, buf.thb, buf.nu,
-			buf.nuh, buf.Cu, buf.bu],
-		_n, [d[0], d[1], d[2], 0], [], [], 6.0
+			buf.nuh, buf.Cu],
+		_n, [d[0], d[1], d[2], 0], [], [], 5.0
 	)
 
 
@@ -214,10 +217,10 @@ func _proj(update_p: bool) -> void:
 	)
 
 
-func _resid(c: RID, x: RID, b: RID, which: int) -> void:
+func _resid(c: RID, x: RID, which: int) -> void:
 	var d := _pc0()
 	gpu.kernel(
-		"air_picard:resid", [buf.prm, buf.tcode, c, x, b, buf.r], _n, [d[0], d[1], d[2], which],
+		"air_picard:resid", [buf.prm, buf.tcode, c, x, buf.r], _n, [d[0], d[1], d[2], which],
 		[], [], 3.0
 	)
 	gpu.reduce(AirGpu.Red.DOT, buf.r, _n, S_R2 + which, buf.r)
@@ -255,15 +258,15 @@ func _prog_iteration() -> Array:
 		_mom(1)
 		_mom(2)
 		for _s in int(p.mom_sweeps):
-			gpu.zebra(buf.Cu, buf.u, buf.bu, d)
-			gpu.zebra(buf.Cv, buf.v, buf.bv, d)
-			gpu.zebra(buf.Cw, buf.w, buf.bw, d)
+			gpu.zebra(buf.Cu, buf.u, RID(), d, [2, 0, 1], true)
+			gpu.zebra(buf.Cv, buf.v, RID(), d, [2, 0, 1], true)
+			gpu.zebra(buf.Cw, buf.w, RID(), d, [2, 0, 1], true)
 	)
 	a.append_array(_prog_project(int(p.vcycles), true))
 	a.append_array(gpu.record(func() -> void:
 		_heat()
 		for _s in int(p.heat_sweeps):
-			gpu.zebra(buf.Cu, buf.th, buf.bu, d)
+			gpu.zebra(buf.Cu, buf.th, RID(), d, [2, 0, 1], true)
 	))
 	return a
 
@@ -275,11 +278,11 @@ func _prog_check() -> Array:
 		_mom(0)
 		_mom(1)
 		_mom(2)
-		_resid(buf.Cu, buf.u, buf.bu, 0)
-		_resid(buf.Cv, buf.v, buf.bv, 1)
-		_resid(buf.Cw, buf.w, buf.bw, 2)
+		_resid(buf.Cu, buf.u, 0)
+		_resid(buf.Cv, buf.v, 1)
+		_resid(buf.Cw, buf.w, 2)
 		_heat()
-		_resid(buf.Cu, buf.th, buf.bu, 3)
+		_resid(buf.Cu, buf.th, 3)
 		_div()
 		gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
 		gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
@@ -440,22 +443,58 @@ func state() -> Dictionary:
 	return out
 
 
-## Поле для игры (WindField): u, v, θ′ — решение с нагревом, w_mech — без нагрева (если mech).
+## Поле для игры (WindField): u, v, θ′ — решение с нагревом, w_mech — без нагрева (если mech);
+## meta — AirCase.meta() (с входом термиков AM-07). Сразу, на вызывающем потоке (~0,2–1 с CPU на
+## 400 м — для игры field_async()).
 func field(max_speed := 40.0, max_w := 10.0) -> WindField:
-	var tc := gpu.download(buf.tcode)
+	if not _mech_ok():
+		return null
+	return _build_field(_field_inputs(), max_speed, max_w)
+
+
+## Поле для игры — только с решением без нагрева (mech = true): иначе w_mech = w — двойной счёт
+## с пузырями (контракт C3). Без нагрева w и есть механическая вертикаль.
+func _mech_ok() -> bool:
+	if _cases.size() > 1 or case.heat.is_empty():
+		return true
+	push_error("AirPicardJob.field: случай с нагревом решён без mech — w_mech нет (mech = false только для замеров)")
+	return false
+
+
+## То же без остановки кадра: буферы читаются здесь (главный поток, RD), сборка WindField —
+## в WorkerThreadPool; готовое поле — сигналом field_ready (на главном потоке, отложенно).
+func field_async(max_speed := 40.0, max_w := 10.0) -> void:
+	if not _mech_ok():
+		field_ready.emit.call_deferred(null)
+		return
+	var inp := _field_inputs()
+	WorkerThreadPool.add_task(func() -> void:
+		var f := _build_field(inp, max_speed, max_w)
+		field_ready.emit.call_deferred(f)
+	)
+
+
+func _field_inputs() -> Dictionary:
+	var w := gpu.download(buf.w)
+	return {
+		meta = case.meta(), u = gpu.download(buf.u), v = gpu.download(buf.v), w = w,
+		wm = gpu.download(buf.wmech) if _cases.size() > 1 else w.duplicate(), th = gpu.download(buf.th),
+		tc = gpu.download(buf.tcode), hc = case.hc,
+	}
+
+
+static func _build_field(a: Dictionary, max_speed: float, max_w: float) -> WindField:
+	var tc: PackedFloat32Array = a.tc
 	var cell := PackedFloat32Array()
 	cell.resize(tc.size())
 	for q in tc.size():
 		cell[q] = float(int(tc[q]) & 3)
+	var hc: PackedFloat64Array = a.hc
 	var hc32 := PackedFloat32Array()
-	hc32.resize(case.hc.size())
+	hc32.resize(hc.size())
 	for q in hc32.size():
-		hc32[q] = case.hc[q]
-	var w := gpu.download(buf.w)
-	var wm := gpu.download(buf.wmech) if _cases.size() > 1 else w
-	var f := WindField.from_mac(
-		case.meta(), gpu.download(buf.u), gpu.download(buf.v), w, wm, gpu.download(buf.th), cell, hc32
-	)
+		hc32[q] = hc[q]
+	var f := WindField.from_mac(a.meta, a.u, a.v, a.w, a.wm, a.th, cell, hc32)
 	if f != null:
 		f.clamp_values(max_speed, max_w)
 	return f

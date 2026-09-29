@@ -324,9 +324,14 @@ static func _line_tpl(n: int) -> int:
 ## Прогонки по линиям направления dir (0 x, 1 y, 2 z) шаблона C: parity 0/1 — зебра (на месте
 ## в x), −1 — все линии «по Якоби» (выход в xo ≠ x). Линии > 1024 — многопроходная.
 ## Один буфер не привязывается дважды: граф RD тогда теряет запись и не ставит барьер.
-func line(c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := RID()) -> void:
+## packed — шаблон строкой на точку (C0..C6, b; b не нужен): только линии ≤ 1024.
+func line(
+	c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := RID(), packed := false
+) -> void:
 	if parity >= 0 or not xo.is_valid():
 		xo = _dummy
+	if packed:
+		b = _dummy
 	var n := dims[dir]
 	var n1 := dims.y if dir == 0 else dims.x
 	var n2 := dims.y if dir == 2 else dims.z
@@ -335,10 +340,11 @@ func line(c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := R
 	if n <= LINE_MAX:
 		var tpl := _line_tpl(n)
 		_dispatch(
-			"air_line:line", [0], [c, x, b, xo], _pc(i0, [parity, nlines, n]),
-			ceili(nlines * tpl / 256.0), 4.0 * n / tpl
+			"air_line:line", [0, 1 if packed else 0], [c, x, b, xo], _pc(i0, [parity, nlines, n]),
+			ceili(nlines * tpl / 256.0), 4.0 * n / tpl * (1.3 if dir == 1 else 1.0)
 		)
 		return
+	assert(not packed, "AirGpu.line: шаблон строкой — только линии ≤ %d" % LINE_MAX)
 	# Многопроходная: S отрезков на линию, сведённая система 2S ≤ 1024 строк.
 	var s := mini(LINE_MAX / 2, n / 2)
 	var w := _scratch_buf("w%d" % dir, nlines * n * 3)
@@ -356,10 +362,10 @@ func line(c: RID, x: RID, b: RID, dims: Vector3i, dir: int, parity: int, xo := R
 
 
 ## Зебра по направлениям dirs: для каждого — чётные, затем нечётные линии (как прикидка).
-func zebra(c: RID, x: RID, b: RID, dims: Vector3i, dirs := [2, 0, 1]) -> void:
+func zebra(c: RID, x: RID, b: RID, dims: Vector3i, dirs := [2, 0, 1], packed := false) -> void:
 	for d in dirs:
-		line(c, x, b, dims, d, 0)
-		line(c, x, b, dims, d, 1)
+		line(c, x, b, dims, d, 0, RID(), packed)
+		line(c, x, b, dims, d, 1, RID(), packed)
 
 
 ## sweeps раз зебра по z, x, y одной группой (air_line.glsl MODE 3) — для самого грубого уровня:
