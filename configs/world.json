@@ -200,11 +200,11 @@
     "camera_near_m_doc": "Ближняя плоскость отсечения камеры, м (рекомендация для камер интегратора)",
     "camera_far_m": 110000,
     "camera_far_m_doc": "Дальняя плоскость отсечения камеры, м: весь дальний рельеф (160 км) виден",
-    "tonemap_exposure": 1.0,
+    "tonemap_exposure": 1.1,
     "tonemap_exposure_doc": "Экспозиция тонмаппинга (Environment.tonemap_exposure), безразмерный множитель",
     "tonemap_white": 6.0,
     "tonemap_white_doc": "Точка «белого» тонмаппинга (Environment.tonemap_white), безразмерная",
-    "tonemap_mode": "filmic",
+    "tonemap_mode": "agx",
     "tonemap_mode_doc": "Тонмаппер: \"filmic\" (Environment.TONE_MAPPER_FILMIC) или \"agx\" (Environment.TONE_MAPPER_AGX); переключение — решение пользователя, по умолчанию filmic",
     "lod_update_interval_s": 0.1,
     "lod_update_interval_s_doc": "Как часто пересчитывать LOD чанков рельефа, с"
