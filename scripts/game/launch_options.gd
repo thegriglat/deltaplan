@@ -27,6 +27,8 @@ extends RefCounted
 ##   --look-at=<цель>      в кабине смотреть на цель (как «взгляд на прибор»): start — старт,
 ##                         bots — боты (в воздухе, а если никто не взлетел — все), bot<N> — бот N,
 ##                         remote — чужой пилот сетевой зоны (NET-40), egg — первая живая пасхалка
+##   --fov=<°>             вертикальный угол зрения камеры поверх настройки (2–100°), только для
+##                         кадров, в профиль не пишется (телеобъектив для далёких пасхалок)
 ##   --egg=<id>[:<с>][,<id2>[:<с>]…]|all|none
 ##                         вызвать пасхалки без кубика через <с> с времени мира (по умолчанию 0);
 ##                         none — никаких (перекрывает configs/easter_eggs.json → force)
@@ -77,6 +79,8 @@ var bots := -1
 ## Автопилот: кружить через столько секунд после отрыва (< 0 — держать курс) и с каким креном.
 ## Куда смотреть в кабине (--look-at): "start", "bots", "bot<N>" или "".
 var look_at := ""
+## Угол зрения камеры, ° (--fov); 0 — по настройке.
+var fov_deg := 0.0
 ## Пасхалки: ключ --egg ("" — из configs/easter_eggs.json → force) и метка --gpu-report.
 var egg := ""
 var gpu_report := ""
@@ -140,6 +144,8 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.bots = int(val)
 			"look-at":
 				o.look_at = val
+			"fov":
+				o.fov_deg = clampf(float(val), 2.0, 100.0)
 			"egg":
 				o.egg = val
 			"gpu-report":
