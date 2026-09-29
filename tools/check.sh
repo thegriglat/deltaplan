@@ -20,6 +20,12 @@ done
 
 XDG_DATA_HOME=$(mktemp -d)
 export XDG_DATA_HOME
+# шаблоны экспорта — из настоящего профиля симлинком (только чтение), иначе сборка их не найдёт
+real_templates="$HOME/.local/share/godot/export_templates"
+if [[ -d "$real_templates" ]]; then
+	mkdir -p "$XDG_DATA_HOME/godot"
+	ln -s "$real_templates" "$XDG_DATA_HOME/godot/export_templates"
+fi
 project_clean=0
 git diff --quiet -- project.godot && project_clean=1
 cleanup() {
