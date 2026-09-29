@@ -6,8 +6,6 @@ extends Control
 ## Не HUD: показывается после окончания полёта, игра на паузе.
 
 signal restart_requested
-## Оставлен для совместимости сигнатуры (FR-27b: сессия всегда завершена — не эмитится).
-signal continue_requested
 signal menu_requested
 ## Сеть (NET-40): «Продолжить рядом» — к другу в воздухе; «На старт» — снова на старт.
 signal continue_near_requested
@@ -15,7 +13,6 @@ signal to_start_requested
 
 var _title: Label
 var _lines: Label
-var _continue: Button
 var _again: Button
 var _near: Button
 var _to_start: Button
@@ -35,8 +32,6 @@ func _ready() -> void:
 	_to_start = UiKit.button(bar, tr("result_to_start"), func() -> void: to_start_requested.emit())
 	_to_start.visible = false
 	_again = UiKit.button(bar, tr("result_fly_again"), func() -> void: restart_requested.emit())
-	_continue = UiKit.button(bar, tr("common_continue"), func() -> void: continue_requested.emit())
-	_continue.visible = false
 	UiKit.button(bar, tr("result_to_menu"), func() -> void: menu_requested.emit())
 
 

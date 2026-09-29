@@ -142,22 +142,18 @@ func test_lines_for_missing_fields_does_not_crash() -> void:
 	check(lines2.size() == 1, "срыв взлёта без текста — одна (пустая) строка, не падает")
 
 
-## 5) Кнопки итога эмитят restart/menu (continue доступен по API, но скрыт — сессия окончена).
+## 5) Кнопки итога эмитят restart/menu.
 func test_result_screen_buttons_emit_signals() -> void:
 	var r: ResultScreen = _scene("res://scenes/ui/result_screen.tscn")
 	var hits: Array = []
 	r.restart_requested.connect(func() -> void: hits.append("restart"))
-	r.continue_requested.connect(func() -> void: hits.append("continue"))
 	r.menu_requested.connect(func() -> void: hits.append("menu"))
 	r.show_result("landed", {"grade": "soft"})
-	check(
-		not (r.get("_continue") as Button).visible, "«Продолжить» скрыта — сессия всегда завершена"
-	)
 	for b in r.find_children("*", "Button", true, false):
 		(b as Button).pressed.emit()
 	check(hits.has("restart"), "«Ещё раз» шлёт restart_requested")
 	check(hits.has("menu"), "«В главное меню» шлёт menu_requested")
-	check(hits.size() == 3, "все три сигнала кнопок эмитированы: %s" % [hits])
+	check(hits.size() == 2, "оба сигнала кнопок эмитированы: %s" % [hits])
 	r.queue_free()
 
 

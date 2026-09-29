@@ -121,11 +121,6 @@ func set_task_state(state: Dictionary) -> void:
 	_dirty = true
 
 
-## Совместимость: поворотные пункты = задание с первым пунктом активным.
-func set_turnpoints(points: Array) -> void:
-	set_task(points, 0)
-
-
 ## Показать настройки звука на странице 4:
 ## {enabled, volume_db, climb_on_ms, sink_on_ms, preset, preset_title}.
 func set_sound_settings(settings: Dictionary) -> void:

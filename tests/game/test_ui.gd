@@ -81,7 +81,7 @@ func test_pause_and_result_buttons() -> void:
 	p.queue_free()
 	var r: ResultScreen = _scene("res://scenes/ui/result_screen.tscn")
 	r.show_result("landed", {"grade": "crash"})
-	check(r.visible and not r.get("_continue").visible, "после аварии — только заново / меню")
+	check(r.visible and (r.get("_again") as Button).visible, "после аварии — заново / меню")
 	r.queue_free()
 
 

@@ -358,7 +358,6 @@ func _connect_screens() -> void:
 	settings_panel.closed.connect(_on_settings_closed)
 	about_screen.closed.connect(_close_overlay)
 	result_screen.restart_requested.connect(_restart)
-	result_screen.continue_requested.connect(_on_result_continue)
 	result_screen.menu_requested.connect(_show_menu)
 	result_screen.continue_near_requested.connect(_on_result_continue_near)
 	result_screen.to_start_requested.connect(_on_result_to_start)
