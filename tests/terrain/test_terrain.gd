@@ -23,7 +23,7 @@ func _raw_layer(info: Dictionary) -> PackedFloat32Array:
 	var bytes := FileAccess.get_file_as_bytes(dir.path_join(info.file))
 	return (
 		bytes
-		. decompress(int(info.width) * int(info.height) * 4, FileAccess.COMPRESSION_GZIP)
+		. decompress(int(info.width) * int(info.height) * 4, FileAccess.COMPRESSION_BROTLI)
 		. to_float32_array()
 	)
 

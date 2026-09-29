@@ -1,0 +1,69 @@
+file Russia_altay_asia_2.obf: 121.8 MB
+  field 1 2
+  field 18 1788220800000
+  section map            78.3 MB
+  section routing        31.8 MB
+  section address         1.1 MB
+  section poi            10.3 MB
+  section transport       0.0 MB
+  section hh_routing      0.2 MB
+  section hh_routing      0.2 MB
+  field 32 2
+  map index name: Russia_altay_asia
+  rules: 1090
+  rule tags (count of values): {'highway': 36, 'waterway': 11, 'natural': 29, 'power': 9, 'building': 32, 'landuse': 24, 'place': 16, 'barrier': 17, 'leisure': 26}
+    power: ['generator', 'line', 'minor_line', 'plant', 'pole', 'portal', 'substation', 'tower', 'transformer']
+    natural: ['bare_rock', 'bay', 'beach', 'cape', 'cave_entrance', 'cliff', 'earth_bank', 'fell', 'glacier', 'grassland', 'heath', 'peak', 'plateau', 'reef', 'ridge', 'rock', 'saddle', 'sand', 'scree', 'scrub', 'shingle', 'shrub', 'spring', 'stone', 'tree', 'tree_row', 'water', 'wetland', 'wood']
+    landuse: ['allotments', 'brownfield', 'cemetery', 'commercial', 'construction', 'education', 'farmland', 'farmyard', 'forest', 'garages', 'grass', 'greenfield', 'industrial', 'landfill', 'logging', 'meadow', 'military', 'orchard', 'quarry', 'recreation_ground', 'religious', 'reservoir', 'residential', 'retail']
+    waterway: ['canal', 'dam', 'ditch', 'drain', 'drystream', 'lock_gate', 'rapids', 'river', 'stream', 'waterfall', 'weir']
+    place: ['allotments', 'city', 'farm', 'hamlet', 'island', 'islet', 'isolated_dwelling', 'locality', 'neighbourhood', 'plot', 'quarter', 'square', 'state', 'suburb', 'town', 'village']
+  level zoom 15..22, top boxes 1
+  level zoom 13..14, top boxes 1
+  level zoom 11..12, top boxes 1
+  level zoom 9..10, top boxes 1
+  bbox 20.0 km around 50.79,86.13: blocks 579, objects 22951
+    barrier=fence: 5232
+    building=detached: 2966
+    power=pole: 2965
+    building=: 2110
+    natural=wood: 1683
+    natural=ridge: 1659
+    landuse=residential: 1020
+    natural=peak: 639
+    highway=track: 588
+    natural=scrub: 394
+    building=house: 372
+    highway=service: 324
+    power=tower: 308
+    landuse=farmyard: 296
+    waterway=stream: 294
+    highway=residential: 275
+    highway=path: 222
+    barrier=gate: 191
+    landuse=meadow: 148
+    power=transformer: 142
+    power=minor_line: 127
+    landuse=greenfield: 119
+    building=shed: 108
+    landuse=farmland: 86
+    natural=scree: 81
+    landuse=allotments: 80
+    building=retail: 80
+    natural=bare_rock: 65
+    waterway=river: 63
+    power=generator: 59
+    natural=water: 54
+    building=collapsed: 53
+    natural=cliff: 42
+    barrier=wall: 42
+    building=industrial: 39
+    highway=footway: 38
+    landuse=industrial: 37
+    natural=wetland: 36
+    landuse=commercial: 34
+    highway=trunk: 33
+    building=construction: 32
+    highway=crossing: 31
+    highway=unclassified: 30
+    building=office: 27
+    building=public: 26
