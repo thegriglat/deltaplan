@@ -170,12 +170,6 @@ func _hist(p: TreePlacer, h: float, north: float, n: int) -> PackedInt32Array:
 	return out
 
 
-func test_zz_cleanup() -> void:
-	if _terrain != null:
-		_terrain.free()
-		_terrain = null
-
-
 func test_wind_passed_to_shaders() -> void:
 	var w := TerrainWind.new()
 	w.setup(Config.get_config("world").wind_visual)
@@ -222,3 +216,11 @@ func test_grass_palette_by_location() -> void:
 		1e-6,
 		"сухость — из локации"
 	)
+
+
+## Последним (порядок — по объявлению): общий Terrain в static var иначе переживает тесты и
+## освобождается при выгрузке скриптов — падение 139 при выходе.
+func test_zz_cleanup() -> void:
+	if _terrain != null:
+		_terrain.free()
+		_terrain = null
