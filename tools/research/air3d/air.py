@@ -689,7 +689,7 @@ class Air:
         self.lam_np = lamc
         self.lamc = A(lamc)
         for name_, arr_ in vars(self).items():
-            if hasattr(arr_, "flags") and hasattr(arr_, "device") and not arr_.flags.c_contiguous:
+            if isinstance(arr_, cp.ndarray) and not arr_.flags.c_contiguous:
                 raise AssertionError(f"массив {name_} не C-непрерывен")
         self.khf = self.nuf                      # Pr_t = 1
         self.nuh = A(self.nu_np)                 # горизонтальное K_h
