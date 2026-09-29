@@ -168,7 +168,7 @@ def build(path_npz, title, out_name, region=None, terrain_step=25.0, nseed=14, i
             lab = f"w = {lv:+.2f} м/с" + ("" if reach else f" (поле не доходит до {lev:+.1f})")
             notes.append(lab)
             traces.append(dict(type="isosurface", x=r1(X3.ravel(), 0), y=r1(Y3.ravel(), 0), z=r1(Z3.ravel(), 0),
-                               value=r1(W3.ravel(), 3), isomin=lv if sgn > 0 else -50, isomax=50 if sgn > 0 else lv,
+                               value=r1(W3.ravel(), 3), isomin=lv - 0.005, isomax=lv + 0.005,
                                surface=dict(count=1, fill=1.0), caps=dict(x=dict(show=False), y=dict(show=False),
                                                                            z=dict(show=False)),
                                colorscale=[[0, col], [1, col]], showscale=False, opacity=0.35, name=lab,

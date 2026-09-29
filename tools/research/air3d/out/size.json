@@ -1,0 +1,374 @@
+{
+ "fields": [
+  {
+   "level": "D400",
+   "file": "h13_U0_d0.npz",
+   "shape": [
+    48,
+    96,
+    96
+   ],
+   "cells": 442368,
+   "fluid": 361162,
+   "raw_fp16": 3538944,
+   "fluid_fp16": 2889296,
+   "zlib_fp16": 2409722,
+   "zstd_fp16": 2399676,
+   "zstd_fluid": 2296963,
+   "zstd_fluid_shuffle": 1844043,
+   "zstd_q002_dz": 236945
+  },
+  {
+   "level": "D400",
+   "file": "h13_U3_d180.npz",
+   "shape": [
+    48,
+    96,
+    96
+   ],
+   "cells": 442368,
+   "fluid": 361162,
+   "raw_fp16": 3538944,
+   "fluid_fp16": 2889296,
+   "zlib_fp16": 2247058,
+   "zstd_fp16": 2183535,
+   "zstd_fluid": 2109045,
+   "zstd_fluid_shuffle": 1712771,
+   "zstd_q002_dz": 364349
+  },
+  {
+   "level": "D400",
+   "file": "h13_U6_d90.npz",
+   "shape": [
+    48,
+    96,
+    96
+   ],
+   "cells": 442368,
+   "fluid": 361162,
+   "raw_fp16": 3538944,
+   "fluid_fp16": 2889296,
+   "zlib_fp16": 2442382,
+   "zstd_fp16": 2403522,
+   "zstd_fluid": 2325698,
+   "zstd_fluid_shuffle": 1890926,
+   "zstd_q002_dz": 508461
+  },
+  {
+   "level": "D400",
+   "file": "noheat_U3_d180.npz",
+   "shape": [
+    48,
+    96,
+    96
+   ],
+   "cells": 442368,
+   "fluid": 361162,
+   "raw_fp16": 3538944,
+   "fluid_fp16": 2889296,
+   "zlib_fp16": 2245657,
+   "zstd_fp16": 2198464,
+   "zstd_fluid": 2116368,
+   "zstd_fluid_shuffle": 1711184,
+   "zstd_q002_dz": 344827
+  },
+  {
+   "level": "D400",
+   "file": "h9_U3_d270.npz",
+   "shape": [
+    48,
+    96,
+    96
+   ],
+   "cells": 442368,
+   "fluid": 361162,
+   "raw_fp16": 3538944,
+   "fluid_fp16": 2889296,
+   "zlib_fp16": 2358345,
+   "zstd_fp16": 2334416,
+   "zstd_fluid": 2250283,
+   "zstd_fluid_shuffle": 1842334,
+   "zstd_q002_dz": 386376
+  },
+  {
+   "level": "D200",
+   "file": "h13_U0_d0.npz",
+   "shape": [
+    48,
+    192,
+    192
+   ],
+   "cells": 1769472,
+   "fluid": 1444806,
+   "raw_fp16": 14155776,
+   "fluid_fp16": 11558448,
+   "zlib_fp16": 9166283,
+   "zstd_fp16": 8619724,
+   "zstd_fluid": 8494462,
+   "zstd_fluid_shuffle": 6488169,
+   "zstd_q002_dz": 774382
+  },
+  {
+   "level": "D200",
+   "file": "h13_U3_d180.npz",
+   "shape": [
+    48,
+    192,
+    192
+   ],
+   "cells": 1769472,
+   "fluid": 1444806,
+   "raw_fp16": 14155776,
+   "fluid_fp16": 11558448,
+   "zlib_fp16": 8629005,
+   "zstd_fp16": 7948009,
+   "zstd_fluid": 7819289,
+   "zstd_fluid_shuffle": 6095498,
+   "zstd_q002_dz": 1218582
+  },
+  {
+   "level": "D200",
+   "file": "h13_U6_d90.npz",
+   "shape": [
+    48,
+    192,
+    192
+   ],
+   "cells": 1769472,
+   "fluid": 1444806,
+   "raw_fp16": 14155776,
+   "fluid_fp16": 11558448,
+   "zlib_fp16": 9528906,
+   "zstd_fp16": 8860290,
+   "zstd_fluid": 8720131,
+   "zstd_fluid_shuffle": 6753637,
+   "zstd_q002_dz": 1752763
+  },
+  {
+   "level": "D200",
+   "file": "noheat_U3_d180.npz",
+   "shape": [
+    48,
+    192,
+    192
+   ],
+   "cells": 1769472,
+   "fluid": 1444806,
+   "raw_fp16": 14155776,
+   "fluid_fp16": 11558448,
+   "zlib_fp16": 8763364,
+   "zstd_fp16": 8139183,
+   "zstd_fluid": 8006945,
+   "zstd_fluid_shuffle": 6291006,
+   "zstd_q002_dz": 1207994
+  },
+  {
+   "level": "D200",
+   "file": "h9_U3_d270.npz",
+   "shape": [
+    48,
+    192,
+    192
+   ],
+   "cells": 1769472,
+   "fluid": 1444806,
+   "raw_fp16": 14155776,
+   "fluid_fp16": 11558448,
+   "zlib_fp16": 9244590,
+   "zstd_fp16": 8724698,
+   "zstd_fluid": 8593730,
+   "zstd_fluid_shuffle": 6750772,
+   "zstd_q002_dz": 1323073
+  },
+  {
+   "level": "W100",
+   "file": "W100_h13_U0_d0.npz",
+   "shape": [
+    62,
+    64,
+    64
+   ],
+   "cells": 253952,
+   "fluid": 207561,
+   "raw_fp16": 2031616,
+   "fluid_fp16": 1660488,
+   "zlib_fp16": 1253258,
+   "zstd_fp16": 1213792,
+   "zstd_fluid": 1175367,
+   "zstd_fluid_shuffle": 923268,
+   "zstd_q002_dz": 105459,
+   "p_zstd_fluid_shuffle": 93518
+  },
+  {
+   "level": "W100",
+   "file": "W100_h13_U3_d135.npz",
+   "shape": [
+    62,
+    64,
+    64
+   ],
+   "cells": 253952,
+   "fluid": 207561,
+   "raw_fp16": 2031616,
+   "fluid_fp16": 1660488,
+   "zlib_fp16": 1114360,
+   "zstd_fp16": 1058632,
+   "zstd_fluid": 1030461,
+   "zstd_fluid_shuffle": 821329,
+   "zstd_q002_dz": 179083,
+   "p_zstd_fluid_shuffle": 216397
+  },
+  {
+   "level": "W100",
+   "file": "W100_h13_U3_d180.npz",
+   "shape": [
+    62,
+    64,
+    64
+   ],
+   "cells": 253952,
+   "fluid": 207561,
+   "raw_fp16": 2031616,
+   "fluid_fp16": 1660488,
+   "zlib_fp16": 1148622,
+   "zstd_fp16": 1093477,
+   "zstd_fluid": 1058850,
+   "zstd_fluid_shuffle": 834629,
+   "zstd_q002_dz": 163507,
+   "p_zstd_fluid_shuffle": 163587
+  },
+  {
+   "level": "W100",
+   "file": "W100_h13_U3_d270.npz",
+   "shape": [
+    62,
+    64,
+    64
+   ],
+   "cells": 253952,
+   "fluid": 207561,
+   "raw_fp16": 2031616,
+   "fluid_fp16": 1660488,
+   "zlib_fp16": 1281671,
+   "zstd_fp16": 1218628,
+   "zstd_fluid": 1193401,
+   "zstd_fluid_shuffle": 934023,
+   "zstd_q002_dz": 190369,
+   "p_zstd_fluid_shuffle": 194754
+  },
+  {
+   "level": "W100",
+   "file": "W100_h13_U6_d180.npz",
+   "shape": [
+    62,
+    64,
+    64
+   ],
+   "cells": 253952,
+   "fluid": 207561,
+   "raw_fp16": 2031616,
+   "fluid_fp16": 1660488,
+   "zlib_fp16": 1215648,
+   "zstd_fp16": 1157430,
+   "zstd_fluid": 1123157,
+   "zstd_fluid_shuffle": 877791,
+   "zstd_q002_dz": 192126,
+   "p_zstd_fluid_shuffle": 229803
+  },
+  {
+   "level": "W50",
+   "file": "W50_h13_U0_d0.npz",
+   "shape": [
+    112,
+    64,
+    64
+   ],
+   "cells": 458752,
+   "fluid": 378020,
+   "raw_fp16": 3670016,
+   "fluid_fp16": 3024160,
+   "zlib_fp16": 2107370,
+   "zstd_fp16": 1985735,
+   "zstd_fluid": 1938052,
+   "zstd_fluid_shuffle": 1480102,
+   "zstd_q002_dz": 121758,
+   "p_zstd_fluid_shuffle": 134450
+  },
+  {
+   "level": "W50",
+   "file": "W50_h13_U3_d135.npz",
+   "shape": [
+    112,
+    64,
+    64
+   ],
+   "cells": 458752,
+   "fluid": 378020,
+   "raw_fp16": 3670016,
+   "fluid_fp16": 3024160,
+   "zlib_fp16": 1791462,
+   "zstd_fp16": 1662589,
+   "zstd_fluid": 1626095,
+   "zstd_fluid_shuffle": 1260543,
+   "zstd_q002_dz": 228483,
+   "p_zstd_fluid_shuffle": 354416
+  },
+  {
+   "level": "W50",
+   "file": "W50_h13_U3_d180.npz",
+   "shape": [
+    112,
+    64,
+    64
+   ],
+   "cells": 458752,
+   "fluid": 378020,
+   "raw_fp16": 3670016,
+   "fluid_fp16": 3024160,
+   "zlib_fp16": 1828429,
+   "zstd_fp16": 1678893,
+   "zstd_fluid": 1642929,
+   "zstd_fluid_shuffle": 1254452,
+   "zstd_q002_dz": 204100,
+   "p_zstd_fluid_shuffle": 231735
+  },
+  {
+   "level": "W50",
+   "file": "W50_h13_U3_d270.npz",
+   "shape": [
+    112,
+    64,
+    64
+   ],
+   "cells": 458752,
+   "fluid": 378020,
+   "raw_fp16": 3670016,
+   "fluid_fp16": 3024160,
+   "zlib_fp16": 2085492,
+   "zstd_fp16": 1930113,
+   "zstd_fluid": 1891212,
+   "zstd_fluid_shuffle": 1432390,
+   "zstd_q002_dz": 238901,
+   "p_zstd_fluid_shuffle": 295107
+  },
+  {
+   "level": "W50",
+   "file": "W50_h13_U6_d180.npz",
+   "shape": [
+    112,
+    64,
+    64
+   ],
+   "cells": 458752,
+   "fluid": 378020,
+   "raw_fp16": 3670016,
+   "fluid_fp16": 3024160,
+   "zlib_fp16": 1941041,
+   "zstd_fp16": 1784633,
+   "zstd_fluid": 1754205,
+   "zstd_fluid_shuffle": 1303482,
+   "zstd_q002_dz": 243272,
+   "p_zstd_fluid_shuffle": 366808
+  }
+ ]
+}

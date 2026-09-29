@@ -39,12 +39,14 @@ $LOCK $PY study.py cells                                 # 400/200 м, окна 
 $PY study.py size                                        # размер полей → out/size.json (CPU)
 $PY report.py interp                                     # интерполяция по часам → out/interp.json (CPU)
 $PY report.py figs                                       # out/fig_*.png
+$PY report.py tables                                     # out/tables.md, out/library.json
 $PY export3d.py                                          # out/3d/*.html
 ```
 
 ## Данные
 
-- в git: `out/*.json` (все числа, история невязок), `out/*.png`, `out/fields/W*.npz`, `out/fields/D200_*.npz`
-  (окна и несколько полей 200 м, fp16), `out/3d/*.html`;
-- вне git (`.gitignore`): `fields/d400/*.npz`, `fields/d200/*.npz` — все поля матрицы, fp16,
-  ~0,5 ГБ; пересчитываются `study.py matrix`. Локальный путь: `tools/research/air3d/fields/`.
+- в git: `out/*.json` (все числа, история невязок), `out/*.log`, `out/*.png`, `out/tables.md`,
+  `out/fields/W100_*.npz` (окна 100 м, fp16, u, v, w, θ′, p), `out/3d/*.html` (≤ 14 МБ);
+- вне git (`.gitignore`, ~1 ГБ): `fields/d400/*.npz`, `fields/d200/*.npz` — все 182 поля матрицы (fp16),
+  `fields/cells/` — окна 50 м и поля 200 м опыта cells. Локальный путь:
+  `/home/greg/deltaplan/tools/research/air3d/fields/`; пересчёт — `study.py matrix` и `study.py cells`.

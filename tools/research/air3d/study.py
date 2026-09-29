@@ -256,8 +256,11 @@ def cmd_cells(args):
                   f"{r['t_solve']:.2f} с  подъём у старта {k['start_w200_max']:.2f}  ветер у старта "
                   f"{k['start_speed50']:.2f}  в седловине {k['saddle_speed50']:.2f}", flush=True)
             res["runs"].append(rec)
-            if name in ("W100", "W50") or (name == "D200" and cond.hour == 13 and cond.wind in (0, 3)):
-                C.save_fields(A, sdir / f"{name}_{cond.key()}.npz")
+            if name == "W100":
+                C.save_fields(A, sdir / f"{name}_{cond.key()}.npz")          # в git
+            elif name in ("W50", "D200"):
+                (C.FIELDS / "cells").mkdir(exist_ok=True)
+                C.save_fields(A, C.FIELDS / "cells" / f"{name}_{cond.key()}.npz")   # локально
             if name.startswith("W") or name == "D200" and False:
                 pass
             chain[name] = A
@@ -307,7 +310,7 @@ def cmd_size(args):
     for dx in (400, 200):
         for key in ("h13_U0_d0", "h13_U3_d180", "h13_U6_d90", "noheat_U3_d180", "h9_U3_d270"):
             samples.append((f"D{dx}", C.FIELDS / f"d{dx}" / f"{key}.npz"))
-    for p in sorted(glob.glob(str(OUT / "fields" / "W*_h13_*.npz"))):
+    for p in sorted(glob.glob(str(OUT / "fields" / "W*_h13_*.npz")) + glob.glob(str(C.FIELDS / "cells" / "W50_h13_*.npz"))):
         samples.append((p.split("/")[-1].split("_")[0], p))
     for level, path in samples:
         try:

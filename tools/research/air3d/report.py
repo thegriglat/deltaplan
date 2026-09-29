@@ -25,6 +25,12 @@ OUT = C.OUT
 NAMES = ("u", "v", "w", "th")
 
 
+def fpath(name):
+    """Поле опыта cells: окна 100 м — out/fields (в git), остальное — fields/cells (локально)."""
+    p = OUT / "fields" / name
+    return p if p.exists() else C.FIELDS / "cells" / name
+
+
 def load(dx, key):
     d = np.load(C.FIELDS / f"d{dx}" / f"{key}.npz")
     return [d[k].astype(np.float32) for k in NAMES], json.loads(str(d["meta"]))
@@ -241,7 +247,7 @@ def fig_windows():
              ("W50", "h13_U0_d0", "штиль"), ("W50", "h13_U3_d180", "южный 3 м/с")]
     fig, axs = plt.subplots(len(cases), 3, figsize=(18, 5.4 * len(cases)))
     for row, (lev, key, title) in zip(axs, cases):
-        p = OUT / "fields" / f"{lev}_{key}.npz"
+        p = fpath(f"{lev}_{key}.npz")
         if not p.exists():
             continue
         f = Field(p)
@@ -270,6 +276,9 @@ def section(fld, F, x0, y0, x1, y1, n=300):
          + b[0] * ((1 - a[0]) * fld.hc[j0 + 1, i0] + a[0] * fld.hc[j0 + 1, i0 + 1]))
     s = np.hypot(xs - x0, ys - y0)
     V = np.where(fld.z[:, None] < H[None], np.nan, V)
+    inside = (fi >= 0) & (fi <= fld.nx - 1) & (fj >= 0) & (fj <= fld.ny - 1)
+    V[:, ~inside] = np.nan
+    H = np.where(inside, H, np.nan)
     return s, V, H
 
 
@@ -281,9 +290,9 @@ def fig_section():
     L0, L1 = 3000.0, 2500.0
     x0, y0 = sx + L0 * math.sin(hd), sy + L0 * math.cos(hd)
     x1, y1 = sx - L1 * math.sin(hd), sy - L1 * math.cos(hd)
-    cases = [(OUT / "fields" / "W100_h13_U0_d0.npz", "окно 100 м, штиль 13:00"),
-             (OUT / "fields" / "W100_h13_U3_d180.npz", "окно 100 м, южный 3 м/с 13:00"),
-             (OUT / "fields" / "W50_h13_U3_d180.npz", "окно 50 м, южный 3 м/с 13:00"),
+    cases = [(fpath("W100_h13_U0_d0.npz"), "окно 100 м, штиль 13:00"),
+             (fpath("W100_h13_U3_d180.npz"), "окно 100 м, южный 3 м/с 13:00"),
+             (fpath("W50_h13_U3_d180.npz"), "окно 50 м, южный 3 м/с 13:00"),
              (C.FIELDS / "d200" / "h13_U3_d180.npz", "область 200 м, южный 3 м/с 13:00")]
     fig, axs = plt.subplots(len(cases), 2, figsize=(18, 4.2 * len(cases)))
     for row, (p, title) in zip(axs, cases):
@@ -308,7 +317,7 @@ def fig_section():
             ax.quiver(s[::st], f.z[::kz], np.nan_to_num(Ua[::kz, ::st]), np.nan_to_num(W[::kz, ::st]),
                       scale=60, width=0.002, alpha=0.8)
             ax.axvline(ds, color="lime", lw=1)
-            ax.set_ylim(H.min() - 50, H.max() + 1500)
+            ax.set_ylim(np.nanmin(H) - 50, np.nanmax(H) + 1500)
             ax.set_title(f"{title}: разрез ЮЮВ→ССЗ через старт (зелёная линия)", fontsize=10)
             ax.set_xlabel("м вдоль разреза")
             ax.set_ylabel("м над морем")
@@ -445,6 +454,116 @@ def cmd_figs():
             import traceback
             traceback.print_exc()
             print("не вышло", f.__name__, ex)
+
+
+
+
+# ---------------------------------------------------------------------------- tables / library
+def cmd_tables():
+    import statistics as st
+    L = []
+    mx = json.loads((OUT / "matrix.json").read_text())
+    # время на итерацию и решение по сеткам
+    L.append("## Время решения (матрица: 6 часов + без нагрева × 13 ветров, холодный старт)\n")
+    L.append("| Сетка | Клеток (с ореолом) / воздух | Случай | Итераций | Время, с | мс/итер. | Память пула, МБ |")
+    L.append("|---|---|---|---|---|---|---|")
+    per = {}
+    for r in mx["runs"]:
+        cat = ("штиль" if r["wind"] == 0 else f"{r['wind']:g} м/с") + (", без нагрева" if r["hour"] is None else ", с нагревом")
+        per.setdefault((r["dx"], cat), []).append(r)
+    for (dx, cat), rs in sorted(per.items(), key=lambda x: (-x[0][0], x[0][1])):
+        it = [r["iters"] for r in rs]
+        t = [r["t_solve"] for r in rs]
+        ms = st.median([r["t_solve"] / r["iters"] * 1e3 for r in rs])
+        L.append(f"| {dx:.0f} м | {rs[0]['cells'] / 1e6:.2f} M / {rs[0]['fluid'] / 1e6:.2f} M | {cat} ({len(rs)}) | "
+                 f"{min(it)}–{max(it)} | {min(t):.2f}–{max(t):.2f} | {ms:.1f} | {max(r['mem_mb'] for r in rs):.0f} |")
+    per_iter = {dx: st.median([r["t_solve"] / r["iters"] for r in mx["runs"] if r["dx"] == dx]) for dx in (400.0, 200.0)}
+    ok = sum(r["status"] == "ok" for r in mx["runs"])
+    L.append(f"\nСошлись {ok} из {len(mx['runs'])}. Баланс тепла (невязка / нагрев): "
+             f"с ветром ≤ {max(abs(r['budget']['rel']) for r in mx['runs'] if r['wind'] > 0 and r['budget']['rel']):.1e}, "
+             f"в штиль ≤ {max(abs(r['budget']['rel']) for r in mx['runs'] if r['wind'] == 0 and r['budget']['rel']):.1e}; "
+             f"∇·u (СКО) ≤ {max(r['last']['div_rms'] for r in mx['runs']):.1e} 1/с.\n")
+    # окна
+    ce = json.loads((OUT / "cells.json").read_text())
+    L.append("## Сходимость по клетке и окна\n")
+    L.append("| Условия | Уровень | Сетка | Итераций | Время, с | Подъём у старта (макс. w на 200 м в 1,5 км), м/с | Ветер 50 м над стартом, м/с | Ветер 50 м в седловине, м/с | w макс / мин, м/с |")
+    L.append("|---|---|---|---|---|---|---|---|---|")
+    for r in ce["runs"]:
+        k = r["keys"]
+        L.append(f"| {r['key']} | {r['level']} | {r['nx']}×{r['ny']}×{r['nz']} ({r['dx']:.0f}/{r['dz']:.0f} м) | {r['iters']} | "
+                 f"{r['t_solve']:.2f} | {k['start_w200_max']:.2f} | {k['start_speed50']:.2f} | {k['saddle_speed50']:.2f} | "
+                 f"{k['w_max']:.2f} / {k['w_min']:.2f} |")
+    # тёплый старт
+    wm = json.loads((OUT / "warm.json").read_text())
+    L.append("\n## Тёплый старт (итераций до критерия; проверка раз в 10 итераций)\n")
+    L.append("| Сетка | Что меняется | Цель ← опора | Холодный | Тёплый (с p) | Тёплый без p | Опора «как есть»: ошибка w |")
+    L.append("|---|---|---|---|---|---|---|")
+    for r in wm["pairs"]:
+        L.append(f"| {r['dx']:.0f} м | {r['group']} | {r['desc']} | {r['cold_iters']} | {r['warm_p_iters']} | "
+                 f"{r['warm_nop_iters']} | {r['src_as_is_err']['w']:.2f} |")
+    # размер
+    sz = json.loads((OUT / "size.json").read_text())
+    L.append("\n## Размер одного поля (u, v, w, θ′), МБ\n")
+    L.append("| Уровень | Сетка (клетки) | fp16 целиком | fp16 только воздух | zlib (npz) fp16 | zstd-19 fp16 воздух, байты по плоскостям | квант 0,02 + разность по z + zstd | p (fp16, zstd) |")
+    L.append("|---|---|---|---|---|---|---|---|")
+    agg = {}
+    for r in sz["fields"]:
+        agg.setdefault(r["level"], []).append(r)
+    M = lambda v: v / 2 ** 20
+    sizes = {}
+    for lev, rs in agg.items():
+        f = lambda k: f"{M(min(r[k] for r in rs)):.2f}–{M(max(r[k] for r in rs)):.2f}"
+        sizes[lev] = dict(fp16=st.mean(M(r["zstd_fluid_shuffle"]) for r in rs), q=st.mean(M(r["zstd_q002_dz"]) for r in rs))
+        pz = [M(r["p_zstd_fluid_shuffle"]) for r in rs if "p_zstd_fluid_shuffle" in r]
+        L.append(f"| {lev} | {'×'.join(map(str, rs[0]['shape'][::-1]))} | {f('raw_fp16')} | {f('fluid_fp16')} | {f('zlib_fp16')} | "
+                 f"{f('zstd_fluid_shuffle')} | {f('zstd_q002_dz')} | {('%.2f' % st.mean(pz)) if pz else '—'} |")
+    # библиотеки
+    t_d = {400: st.median([r["t_solve"] + r["t_init"] for r in mx["runs"] if r["dx"] == 400 and r["wind"] > 0]),
+           200: st.median([r["t_solve"] + r["t_init"] for r in mx["runs"] if r["dx"] == 200 and r["wind"] > 0])}
+    t_w = st.median([r["t_solve"] + r["t_init"] for r in ce["runs"] if r["level"] == "W100" and r["cond"]["wind"] > 0])
+    t_w50 = st.median([r["t_solve"] + r["t_init"] for r in ce["runs"] if r["level"] == "W50" and r["cond"]["wind"] > 0])
+    hour_warm = st.median([r["warm_p_iters"] / r["cold_iters"] for r in wm["pairs"] if r["group"] == "час"])
+    libs = [
+        ("а) опоры: 8 напр. × 2 силы × {без нагрева, 13 ч}", 32, 16),
+        ("б1) все часы через 2 ч (9, 11, 13, 15, 17) × (8 × 2 + штиль)", 85, 17),
+        ("б2) все часы через 3 ч (10, 13, 16) × (8 × 2 + штиль)", 51, 17),
+        ("в) 3 часа старта (11, 13, 15) × (8 × 2 + штиль)", 51, 17),
+        ("г) 16 напр. × 4 силы × 5 часов (через 2 ч) + штиль", 16 * 4 * 5 + 5, 16 * 4 + 1),
+    ]
+    L.append("\n## Библиотека на место (одно окно 100 м у старта; время — 4070 SUPER, холодные решения; "
+             f"в скобках — с тёплым стартом по часам, ×{hour_warm:.2f} итераций)\n")
+    L.append("| Вариант | Полей | Область 400 м + окно 100 м: МБ fp16-zstd / МБ квант | время | Область 200 м + окно 100 м: МБ fp16-zstd / МБ квант | время |")
+    L.append("|---|---|---|---|---|---|")
+    lib = []
+    for name, n, chains in libs:
+        row = dict(name=name, n=n)
+        cells_ = []
+        for dx in (400, 200):
+            mb16 = n * (sizes[f"D{dx}"]["fp16"] + sizes["W100"]["fp16"])
+            mbq = n * (sizes[f"D{dx}"]["q"] + sizes["W100"]["q"])
+            t = n * (t_d[dx] + t_w)
+            tw = chains * (t_d[dx] + t_w) + (n - chains) * hour_warm * (t_d[dx] + t_w)
+            row[f"d{dx}"] = dict(mb_fp16=mb16, mb_q=mbq, t_cold=t, t_warm=tw)
+            cells_.append(f"{mb16:.0f} / {mbq:.0f} | {t:.0f} с ({tw:.0f} с)")
+        lib.append(row)
+        L.append(f"| {name} | {n} | " + " | ".join(cells_) + " |")
+    L.append(f"\nНа поле: область 400 м {t_d[400]:.2f} с, 200 м {t_d[200]:.2f} с, окно 100 м {t_w:.2f} с, окно 50 м {t_w50:.2f} с "
+             f"(медианы с ветром). Размер: 400 м {sizes['D400']['fp16']:.2f}/{sizes['D400']['q']:.2f} МБ, "
+             f"200 м {sizes['D200']['fp16']:.2f}/{sizes['D200']['q']:.2f}, окно 100 м {sizes['W100']['fp16']:.2f}/{sizes['W100']['q']:.2f}, "
+             f"окно 50 м {sizes['W50']['fp16']:.2f}/{sizes['W50']['q']:.2f} (fp16-zstd / квант).")
+    # Vulkan / AMD
+    L.append("\n## Перенос на Vulkan / AMD (грубо: время ∝ 1 / пропускная способность памяти, та же доля от пика)\n")
+    L.append("| Карта | ПСП, ГБ/с | ×к 4070 SUPER | Итерация 400 м / 200 м, мс | Решение 400 м / 200 м (ветер), с | Окно 100 м, с |")
+    L.append("|---|---|---|---|---|---|")
+    for name, bw in (("RTX 4070 SUPER (замер, CUDA)", 504), ("RX 7800 XT", 624), ("RX 6700 XT", 384), ("RX 7600", 288),
+                     ("RX 6600", 224), ("RX 580", 256), ("Radeon 780M (встроенная, DDR5)", 90), ("Vega 8 (встроенная, DDR4)", 45)):
+        k = 504 / bw
+        L.append(f"| {name} | {bw} | {k:.1f} | {per_iter[400.0] * 1e3 * k:.0f} / {per_iter[200.0] * 1e3 * k:.0f} | "
+                 f"{t_d[400] * k:.1f} / {t_d[200] * k:.1f} | {t_w * k:.1f} |")
+    (OUT / "tables.md").write_text("\n".join(L) + "\n")
+    C.jdump(dict(libraries=lib, sizes=sizes, t_domain=t_d, t_w100=t_w, t_w50=t_w50, per_iter=per_iter,
+                 hour_warm_ratio=hour_warm), OUT / "library.json")
+    print("\n".join(L))
 
 
 if __name__ == "__main__":
