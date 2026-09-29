@@ -3,6 +3,7 @@ languageCode = "ru"
 title = "Дневник разработки Deltaplan"
 defaultContentLanguage = "ru"
 enableRobotsTXT = false
+buildFuture = true
 
 [params]
 description = "Что делали, какие решения принимали и почему. Роли: пользователь — глобальный координатор (идеи, решения, границы модели); Claude и агенты — код, поиск источников, расчёты."
