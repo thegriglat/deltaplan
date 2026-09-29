@@ -31,6 +31,8 @@ func setup(atmosphere: Atmosphere) -> void:
 		"flow_period_m": "flow_period_m", "flow_bend_m": "flow_bend_m",
 		"band_period_m": "band_period_m", "band_stretch": "band_stretch",
 		"fiber_period_m": "fiber_period_m", "fiber_stretch": "fiber_stretch",
+		"strand_angle_deg": "strand_angle_deg", "strand_length_m": "strand_length_m",
+		"end_soft": "end_soft",
 		"veil_period_m": "veil_period_m", "opacity": "opacity", "halo_strength": "halo_strength",
 		"tau_max": "tau_max",
 	}
