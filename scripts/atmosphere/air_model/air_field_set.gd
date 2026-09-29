@@ -6,7 +6,11 @@ extends RefCounted
 ## (1 − w₁) — следующему, …; что не покрыто ни одним уровнем — аналитике (вес поля < 1).
 ## Подмена (set_field): новое поле за blend_s секунд времени атмосферы смешивается со старым
 ## (доля нового — smoothstep по времени, монотонно); старое — набор уровней или «нет поля»
-## (аналитика), так же плавно и выключение (set_field([], blend_s)).
+## (аналитика), так же плавно и выключение (set_field([], blend_s)). Подмена во время подмены:
+## «старым» становится снимок текущей смеси (C8 v2) — выборка не скачет.
+
+const MAX_OLD := 3
+const OLD_MIN_W := 1.0e-3
 
 var levels: Array[WindField] = []
 ## Ограничители, применяются к каждому новому полю (air_model.max_speed_ms, max_w_ms).
@@ -15,7 +19,9 @@ var max_w: float = 10.0
 ## Ширина полосы края, клеток (air_model.edge_blend_cells) — ставится каждому уровню.
 var edge_cells: float = 5.0
 
-var _prev: Array[WindField] = []
+## «Старое» поле подмены — смесь наборов уровней: [[уровни, вес], …], Σ весов = 1 (снимок смеси
+## на момент set_field; наборов не больше MAX_OLD, доли < OLD_MIN_W отбрасываются).
+var _old: Array = []
 var _blend_total: float = 0.0
 var _blend_t: float = 0.0
 
@@ -33,15 +39,44 @@ func set_field(new_field: Variant, blend_s: float = 0.0) -> void:
 	for f in lv:
 		f.clamp_values(max_speed, max_w)
 		f.edge_cells = edge_cells
-	if blend_s > 0.0 and (not levels.is_empty() or not lv.is_empty()):
-		# подмена во время подмены: «старым» становится текущее смешение — берём то, что ближе
-		_prev = levels if blend_fraction() >= 0.5 or _blend_total <= 0.0 else _prev
+	if blend_s > 0.0 and (not levels.is_empty() or not lv.is_empty() or _blend_total > 0.0):
+		_old = _snapshot()
 		_blend_total = blend_s
 		_blend_t = 0.0
 	else:
-		_prev = []
+		_old = []
 		_blend_total = 0.0
 	levels = lv
+
+
+## Снимок текущей смеси (старое × (1 − s) + текущие уровни × s) — «старое» новой подмены.
+func _snapshot() -> Array:
+	var s := blend_fraction()
+	var out: Array = []
+	if _blend_total > 0.0:
+		for part: Array in _old:
+			out.append([part[0], float(part[1]) * (1.0 - s)])
+		out.append([levels, s])
+	else:
+		out.append([levels, 1.0])
+	out = out.filter(_heavy)
+	# не больше MAX_OLD наборов: самые лёгкие отбросить (остаток ≤ их доли)
+	out.sort_custom(_heavier)
+	out.resize(mini(out.size(), MAX_OLD))
+	var total := 0.0
+	for part: Array in out:
+		total += float(part[1])
+	for part: Array in out:
+		part[1] = float(part[1]) / maxf(total, 1.0e-9)
+	return out
+
+
+static func _heavy(part: Array) -> bool:
+	return float(part[1]) >= OLD_MIN_W
+
+
+static func _heavier(a: Array, b: Array) -> bool:
+	return float(a[1]) > float(b[1])
 
 
 ## Продвинуть подмену на dt секунд.
@@ -51,7 +86,7 @@ func advance(dt: float) -> void:
 	_blend_t += dt
 	if _blend_t >= _blend_total:
 		_blend_total = 0.0
-		_prev = []
+		_old = []
 
 
 ## Доля нового поля в подмене 0..1 (1 — подмены нет).
@@ -80,8 +115,10 @@ func sample(pos: Vector3, ground_h: float) -> Vector4:
 	var cur := _sample_levels(levels, pos, ground_h)
 	if _blend_total <= 0.0:
 		return cur
-	var s := blend_fraction()
-	return _sample_levels(_prev, pos, ground_h).lerp(cur, s)
+	var old := Vector4.ZERO
+	for part: Array in _old:
+		old += _sample_levels(part[0], pos, ground_h) * float(part[1])
+	return old.lerp(cur, blend_fraction())
 
 
 ## θ′ (К), взвешенная долей поля: Vector2(Σ вклад, доля).
@@ -112,7 +149,10 @@ func _scalar(pos: Vector3, ground_h: float, conv: bool) -> Vector2:
 	var cur := _scalar_levels(levels, pos, ground_h, conv)
 	if _blend_total <= 0.0:
 		return cur
-	return _scalar_levels(_prev, pos, ground_h, conv).lerp(cur, blend_fraction())
+	var old := Vector2.ZERO
+	for part: Array in _old:
+		old += _scalar_levels(part[0], pos, ground_h, conv) * float(part[1])
+	return old.lerp(cur, blend_fraction())
 
 
 static func _scalar_levels(
