@@ -78,7 +78,7 @@ disableKinds = ['taxonomy', 'term']
 [[cascade]]
   bookCollapseSection = true
   [cascade.target]
-    path = '{/research/plan/*,/research/heat_ca/*,/research/air3d/*,/research/notes}'
+    path = '{/research/plan,/research/plan/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/notes,/docs}'
     kind = 'section'
 [[cascade]]
   type = 'posts'
