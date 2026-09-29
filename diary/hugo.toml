@@ -9,3 +9,7 @@ description = "Что делали, какие решения принимали
 
 [markup.goldmark.renderer]
 unsafe = true
+
+# Дата — из имени файла (2026-09-30.md или 2026-09-30-что-угодно.md); front matter не обязателен
+[frontmatter]
+date = [":filename", ":default"]

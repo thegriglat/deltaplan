@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} — {{ site.Title }}{{ end }}</title>
+<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title | default (.Date.Format "02.01.2006") }} — {{ site.Title }}{{ end }}</title>
 <style>
 :root { --bg:#fbfaf7; --fg:#1d1f22; --muted:#6b6f76; --accent:#1f5fa8; --rule:#e3e1dc; }
 @media (prefers-color-scheme: dark) { :root { --bg:#16181b; --fg:#e6e6e3; --muted:#9aa0a8; --accent:#7fb2ee; --rule:#2c3035; } }
