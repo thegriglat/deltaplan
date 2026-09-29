@@ -27,15 +27,27 @@ const KAPPA := 0.4
 const NCOL := 12
 const NLEV := 5
 
-## Параметры модели (air.py → Params; числа — физические или численные, см. там). lam_frac = λ/h —
+## λ/h — асимптотическая длина перемешивания как доля толщины слоя, λ = max(p.lam, LAM_FRAC·h):
 ## калибровка AM-09 по Askervein (docs/air_model_tune.md): 0,25 (−0,02; верхняя граница физичного
-## диапазона — данные тянут выше), одинаково с air.py.
+## диапазона — данные тянут выше), одинаково с air.py (Params.lam_frac). Один источник для решателя
+## (p.lam_frac) и масштаба 3 (FieldTurbulence).
+const LAM_FRAC := 0.25
+## Толщина нейтрального слоя h = NEUTRAL_BL_K·u*/f, как air.py (_closure). Литература: 0,2–0,25
+## (Blackadar & Tennekes 1968; Tennekes 1973), 0,07–0,5 у разных авторов, ≈ 0,6 для «истинно
+## нейтрального» слоя (Zilitinkevich et al. 2007); λ/h подогнан при 0,3 — данные Askervein задают
+## произведение LAM_FRAC·NEUTRAL_BL_K (docs/air_model_tune.md → AM-09б). Один источник для
+## решателя и масштаба 3.
+const NEUTRAL_BL_K := 0.3
+## Параметр Кориолиса 51° с. ш., 1/с (air.py Params.f_cor) — только для толщины слоя h.
+const F_COR := 1.13e-4
+
+## Параметры модели (air.py → Params; числа — физические или численные, см. там).
 var p := {
 	tau_cool = 7200.0,
 	z0 = 0.1,
 	alpha = 0.14,
 	max_profile = 1.8,
-	f_cor = 1.13e-4,
+	f_cor = F_COR,
 	k_fa = 1.0,
 	k_smooth_m = 1500.0,
 	zi_min = 300.0,
@@ -53,7 +65,7 @@ var p := {
 	heat_taper_m = 2000.0,
 	local_k = true,
 	lam = 40.0,
-	lam_frac = 0.25,
+	lam_frac = LAM_FRAC,
 	k_relax = 0.5,
 	cs_h = 0.25,
 }
@@ -399,7 +411,7 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	if _hs.size() != n:
 		_hs = gauss2d(hc, nx, ny, sig)
 	var hs := _hs
-	var h_mech := 0.3 * ustar / float(p.f_cor)
+	var h_mech := NEUTRAL_BL_K * ustar / float(p.f_cor)
 	h_bl = PackedFloat64Array()
 	h_bl.resize(n)
 	_wst.resize(n)

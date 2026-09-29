@@ -4,7 +4,8 @@ extends RefCounted
 ## признак отрыва за гребнем, σ болтанки по u*, сдвигу, устойчивости и w* поля, болтанка слоя
 ## смешения, спектр порывов (GustSpectrum). Использует Atmosphere._air_velocity_field; величины
 ## поля — AirFieldSet.sample_turb (WindField.turb_at, контракт C4 v3).
-## Коэффициенты — configs/atmosphere.json → turbulence.field_*, lee.field_* (источники в _doc).
+## Коэффициенты — configs/atmosphere.json → turbulence.field_*, lee.field_* (источники в _doc);
+## λ/h и толщина нейтрального слоя — AirCase.LAM_FRAC, NEUTRAL_BL_K (одни с решателем, AM-09б).
 
 ## Порывы со спектром фон Кармана.
 var gusts: GustSpectrum
@@ -17,7 +18,7 @@ var sep_scale: float = 0.5
 
 var _sw_per_ustar: float = 1.25
 var _mix_len: float = 40.0
-var _neutral_h_k: float = 2212.0
+var _neutral_h_k: float = AirCase.NEUTRAL_BL_K / AirCase.F_COR
 var _conv_su: float = 0.6
 var _cbl_frac: float = 0.22
 var _ex0: float = 0.3
@@ -34,7 +35,6 @@ func setup(turb_cfg: Dictionary, lee_cfg: Dictionary, seed_value: int) -> void:
 	gusts.setup(seed_value, float(turb_cfg.evolve_ms))
 	_sw_per_ustar = float(turb_cfg.field_sigma_w_per_ustar)
 	_mix_len = float(turb_cfg.field_mixing_length_m)
-	_neutral_h_k = float(turb_cfg.field_neutral_bl_k) / float(turb_cfg.field_coriolis_per_s)
 	_conv_su = float(turb_cfg.field_conv_sigma_u_per_wstar)
 	_cbl_frac = float(turb_cfg.field_cbl_scale_per_zi)
 	_ex0 = float(lee_cfg.field_deficit_attached)
@@ -88,11 +88,14 @@ func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2) -> Vector
 	var h_mix := tb[WindField.T_HMIX]
 	var ustar := tb[WindField.T_USTAR]
 	# механика: u* стенки (лог-закон поля) гаснет к верху слоя (1 − z/h)^(3/4) (Nieuwstadt 1984);
-	# местный сдвиг — длина перемешивания Прандтля–Блэкадара, как замыкание решателя
+	# местный сдвиг — длина перемешивания Прандтля–Блэкадара, как замыкание решателя:
+	# λ = max(λ₀, λ/h·h) (AirCase.LAM_FRAC — одно значение с решателем, AM-09б); h без данных о
+	# нагреве — нейтральный слой NEUTRAL_BL_K·u*/f, как у решателя
 	var h_bl := h_mix if h_mix > 0.0 else _neutral_h_k * ustar
+	var lam := maxf(_mix_len, AirCase.LAM_FRAC * h_bl)
 	var decay := pow(maxf(1.0 - z / maxf(h_bl, 1.0), 0.0), 0.75)
 	var shear := tb[WindField.T_SHEAR]
-	var l_mix := 1.0 / (1.0 / (WindField.KAPPA * z) + 1.0 / _mix_len)
+	var l_mix := 1.0 / (1.0 / (WindField.KAPPA * z) + 1.0 / lam)
 	var u_m := maxf(ustar * decay, l_mix * shear)
 	# устойчивость: градиентное число Ричардсона, u*_loc ∝ √F(Ri), F = 1/(1 + 5Ri)² — как решатель
 	var n2 := tb[WindField.T_N2]
