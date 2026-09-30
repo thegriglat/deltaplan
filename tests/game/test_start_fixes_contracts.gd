@@ -36,6 +36,24 @@ func test_k3_ground_run_shape() -> void:
 	check("bank" in m and "roll_rate" in m and "heading" in m, "К3: bank/roll_rate/heading")
 	var gb: Dictionary = Config.get_config("flight").ground_bank
 	check(gb.has("fail_bank_deg"), "К3: ground_bank.fail_bank_deg")
+	# v2: рука пилота, инерция, скольжение
+	for k in [
+		"pilot_moment_max_nm",
+		"pilot_response_s",
+		"wing_cg_above_axis_m",
+		"span_mass_fraction",
+		"slip_roll_per_cl"
+	]:
+		check(gb.has(k), "К3 v2: ground_bank." + k)
+	for k in ["crosswind_roll_dps_per_ms", "pilot_roll_rate_dps", "level_time_s"]:
+		check(not gb.has(k), "К3 v2: убран ground_bank." + k)
+	var run: Dictionary = Config.get_config("pilot").run
+	check(run.has("turn_accel_max_ms2"), "К3 v2: pilot.run.turn_accel_max_ms2")
+	check(not run.has("ground_turn_rate_dps"), "К3 v2: убран pilot.run.ground_turn_rate_dps")
+	check("feet_load" in gr and gr.feet_load == 1.0, "К3 v2: GroundRun.feet_load, стоя 1")
+	check("wind_moment_nm" in gr and "hold_limit_nm" in gr, "К3 v2: wind_moment_nm, hold_limit_nm")
+	check(_has_method_args(GroundRun, "roll_inertia", 1), "К3 v2: GroundRun.roll_inertia(m)")
+	check(_has_method_args(GroundRun, "pilot_moment", 5), "К3 v2: GroundRun.pilot_moment(...)")
 
 
 func test_k4_basis_convention() -> void:

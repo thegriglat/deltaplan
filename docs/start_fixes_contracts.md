@@ -19,14 +19,20 @@
 Что есть: `GrassField.setup(...)` передаёт в материал `shrub_density` (доля пучков на классе SHRUB); пучки на FOREST, BARE, WATER, BUILT, SNOW — не рисуются; высота: луг `blade_height_m`, нива `crop_height_m`.
 Новое (SF-2): ключ(и) плотности/высоты травы на классе FOREST в `vegetation.json → grass` → uniform материала; по умолчанию плотность > 0. Имена ключей и uniform владелец вписывает сюда (версия 2). SF-1 от этого не зависит (поляна — класс GRASS).
 
-## К3. Крен на земле и переход в полёт — v1
+## К3. Крен на земле и переход в полёт — v2
 Владелец: SF-3 (`scripts/flight/ground_run.gd`: `_ground_bank`, `_turn`; стык GROUND→AIR в `flight_model.gd`). Потребители: `FlightTelemetry` (bank_deg, basis), `GliderVisual`, камеры, боты (`bot_pilot.gd` — управляют через `ControlInput`), сеть (`net_flight.gd` передаёт bank), SF-4.
-Что есть (фиксируем, не меняется):
+Не меняется (v1):
 - `FlightModel.bank: float` — рад, + вправо, **относительно горизонта** (не склона); `FlightModel.roll_rate: float` — рад/с; `FlightModel.heading` — рад, 0 — север, по часовой; `FlightModel.position` на земле — точка ступней на рельефе.
 - `GroundRun.step(m: FlightModel, dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> Result` (`NONE, TOOK_OFF, FAILED`); `GroundRun.phase ∈ {"standing","walking","running"}`; `GroundRun.failure` — причины `nose_high, nose_low, tailwind, crosswind, weak_run`.
-- `ControlInput.roll ∈ [−1, 1]` — на земле A/D (после SF-3 — только курс, не крен), `input.run`, `input.walk`, `input.pitch`.
+- `ControlInput.roll ∈ [−1, 1]` — на земле A/D: **только курс**, крыло не кренит (стоя/шагом — поворот на месте, на бегу — по дуге); `input.run`, `input.walk`, `input.pitch`.
 - Опрокидывание — `failure == "crosswind"` (порог `flight.json → ground_bank.fail_bank_deg`, `takeoff.fail_time_s`).
-Новое (SF-3): `configs/flight.json → ground_bank` — новые ключи с физическим смыслом и единицами (момент руки пилота Н·м, инерция кг·м², производная момента по скольжению и т. п.); старые `crosswind_roll_dps_per_ms`, `pilot_roll_rate_dps`, `level_time_s` убираются. Доля веса на ногах `N/W ∈ [0,1]` — публичное поле `GroundRun` (рабочее имя `feet_load`) для тестов и визуала. Имена владелец вписывает сюда (версия 2).
+Изменилось в v2 (SF-3):
+- Крен на земле — динамика крыла на плечах (`docs/flight.md` → «Крен на земле»): на земле `GroundRun` пишет и `bank`, и `roll_rate`; на отрыве оба непрерывны, дальше — модель крена в воздухе.
+- Срыв `crosswind` проверяется и стоя/шагом (раньше — только после начала разбега); остальные причины — как раньше, после разбега.
+- `configs/flight.json → ground_bank`: `pilot_moment_max_nm` (Н·м), `pilot_response_s` (с), `wing_cg_above_axis_m` (м), `span_mass_fraction` (доля), `slip_roll_per_cl` (|C_lβ|/C_L, 1/рад), `fail_bank_deg` (°). Убраны `crosswind_roll_dps_per_ms`, `pilot_roll_rate_dps`, `level_time_s`.
+- `configs/pilot.json → run.turn_accel_max_ms2` (м/с², предельное боковое ускорение на дуге) вместо `run.ground_turn_rate_dps`.
+- Публичные поля `GroundRun` (читать, не писать): `feet_load: float` — доля веса на ногах N/W ∈ [0, 1] (1 — стоит, 0 — отрыв); `wind_moment_nm: float` — кренящий момент ветра, Н·м, + вправо; `hold_limit_nm: float` — предел руки пилота сейчас, `pilot_moment_max_nm · feet_load`, Н·м.
+- Статические `GroundRun.roll_inertia(m: FlightModel) -> float` (кг·м²) и `GroundRun.pilot_moment(m, bank, rate, load_frac, inertia) -> float` (Н·м) — для тестов.
 
 ## К4. Поза крыла на земле — v1
 Владелец: SF-4 (`glider_visual.gd` `_ground_pose`, `flight_telemetry.gd` basis на земле, тангаж стоя в `ground_run.gd::_aero_force`). Потребители: камеры, `CollisionCheck` (точки крыла над ступнями: `BODY_POINTS_M`, концы консолей по `span_m`, `hang_m`), сеть, SF-3 (крен).
