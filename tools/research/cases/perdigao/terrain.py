@@ -51,8 +51,9 @@ def ll_to_xy(lat, lon, lat0, lon0):
     return (lon - lon0) * m_lon, (lat - lat0) * M_LAT
 
 
-def build():
+def build(size_m=SIZE_M):
     lat0, lon0 = frame()
+    SIZE_M = size_m
     # DSM: build_layer игры (узлы через 10 м, размер на 10 м меньше → узлы в центрах подклеток 10 м)
     size_km = (SIZE_M - FINE) / 1000.0
     layer = dict(id="perdigao", size_km=size_km, spacing_m=FINE, source="copernicus",
@@ -80,7 +81,8 @@ def build():
             shrub += code == 20
     tree = cnt / (k * k)
     shrub /= k * k
-    np.savez_compressed(OUT / "terrain10.npz", dsm=dsm, tree=tree.astype(np.float32), shrub=shrub.astype(np.float32),
+    name = "terrain10.npz" if size_m == 6000.0 else f"terrain10_{int(size_m) // 1000}km.npz"
+    np.savez_compressed(OUT / name, dsm=dsm, tree=tree.astype(np.float32), shrub=shrub.astype(np.float32),
                         x=xs, y=ys, lat0=lat0, lon0=lon0, center_tm=np.array(CENTER_TM), fine=FINE)
     return dsm, tree, xs, ys, lat0, lon0
 
@@ -139,4 +141,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 2 and sys.argv[1] == "--size":          # контроль области (Б1): только рельеф, без мачт
+        d, t, xs, ys, *_ = build(float(sys.argv[2]))
+        print("size", sys.argv[2], "dsm", float(d.min()), float(d.max()), "лес", float(t.mean()))
+    else:
+        main()
