@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 2, C2 = 3, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 2, C8 = 2, C9 = 2}
+const CONTRACTS := {C1 = 2, C2 = 3, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 2, C8 = 2, C9 = 2, C10 = 1}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -329,6 +329,45 @@ func test_c2_air_case_grid() -> void:
 	var nh := c.without_heat()
 	check(nh.heat.is_empty(), "without_heat(): H = 0")
 	check(nh.dims() == c.dims(), "without_heat(): та же сетка")
+
+
+## C2 v3 (инвариант, 01.10.2026): `AirCase.p` игры = `Params()` эталона air.py по всем общим
+## ключам (числа и флаги; None эталона ↔ NAN игры не сверяются); α и max_profile решателя = профиль
+## WindModel (`configs/atmosphere.json → wind`). Ломается, если параметр поменяли в одном месте.
+func test_c2_params_match_reference() -> void:
+	var src := FileAccess.get_file_as_string("res://tools/research/air3d/air.py")
+	check(src != "", "есть air.py")
+	var a := src.find("class Params:")
+	var b := src.find("\n\n\n", a)
+	check(a >= 0 and b > a, "air.py: class Params")
+	var body := src.substr(a, b - a)
+	var pat := "(?m)^    (\\w+): (?:float|int|bool)(?: \\| None)? = ([^#\\n]+)"
+	var re := RegEx.create_from_string(pat)
+	var p: Dictionary = AirCase.new().p
+	var seen := 0
+	for m in re.search_all(body):
+		var key := m.get_string(1)
+		var lit := m.get_string(2).strip_edges()
+		if not p.has(key) or lit == "None":
+			continue
+		var e := Expression.new()
+		var ok := e.parse(lit.replace("True", "true").replace("False", "false")) == OK
+		var ref: Variant = e.execute() if ok else null
+		check(ok and not e.has_execute_failed(), "air.py Params.%s = %s разбирается" % [key, lit])
+		if ref is bool:
+			check(bool(p[key]) == ref, "AirCase.p.%s = %s, air.py %s" % [key, p[key], ref])
+		else:
+			var r := float(ref)
+			var g := float(p[key])
+			var same := absf(g - r) <= 1.0e-9 * maxf(absf(r), 1.0)
+			check(same, "AirCase.p.%s = %s, air.py Params = %s" % [key, g, r])
+		seen += 1
+	check(seen >= 20, "сверено общих ключей: %d" % seen)
+	var wind: Dictionary = _json("res://configs/atmosphere.json").get("wind", {})
+	var sh := float(wind.get("shear_exponent", NAN))
+	approx(sh, float(p.alpha), 1.0e-9, "α решателя = wind.shear_exponent")
+	var mp := float(wind.get("max_profile_factor", NAN))
+	approx(mp, float(p.max_profile), 1.0e-9, "max_profile решателя = wind.max_profile_factor")
 
 
 static func _case_meta(c: AirCase, z_i: float) -> Dictionary:

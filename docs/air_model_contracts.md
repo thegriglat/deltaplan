@@ -67,6 +67,13 @@
   выхолаживание в балансе тепла — Σ θ′_d/τ. Полное θ′ — основное поле (плавучесть, N² в kloc, ореол,
   канал `theta`). Фикстуры `ref/` — новые массивы `in_thd`, `heat_thd`, `sol_thd`, `bh_d` (N) и шаблон
   `Ch_d` (7·N), `params.pr_t` в JSON; `heated_slope` — с pr_t ≠ 1; `picard/`, `window/` — пересчёт.
+- **Границы А2 (сходимость, 01.10.2026, К2):** без смены версии — значения численных параметров
+  (`k_relax`, `heat_sweeps`, `mom_sweeps`, `dtau_*`, …) одновременно в `air.py → Params` и `AirCase.p`
+  (инвариант C2 ниже), пересчёт фикстур `picard/`, `window/`, `ref/` тем же генератором с `params` в JSON;
+  пропуск второго прохода тепла в решении без нагрева (там θ′_d ≡ 0 — результат тот же). **Через
+  координатора, версия +1:** граничное условие θ′ на выходной грани или иная правка схемы — C1 v3
+  (сначала reference.md); потолок окна (`TOP_ABOVE`, «верх — h_max + 2000 м») или зона релаксации — C7 v3.
+  Параметры модели игры λ/h, α, z0, max_profile А2 не меняет (волна Б, п. 2).
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
   (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
@@ -96,7 +103,11 @@
   пользователя 30.09.2026); τ (`tau_cool`) — время релаксации только диабатической θ′_d. `closure`, `nu_const`, `adv2`,
   `limiter` — исследовательские параметры `Params` air.py, в `AirCase.p` их нет (GPU: hb, 1-й порядок).
   Тёплый старт `AirPicardJob.warm` и `state()` — `{u, v, w, th, thd, p}` (нет `thd` — нули). `meta()` без изменений.
-- **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); ключи `meta()` — после коммита AM-03 (Р4).
+- **Инвариант (01.10.2026, К2):** `AirCase.p` = `Params()` эталона `air.py` по всем общим ключам (числа и
+  флаги; `dtau_u` None ↔ NAN не сверяется); α и max_profile решателя = `configs/atmosphere.json → wind.shear_exponent`,
+  `wind.max_profile_factor` (одно α у решателя и `WindModel`). Менять параметр — во всех трёх местах одним коммитом.
+  Устройство α «из местного z0 и устойчивости» (решение К1, волна Б) — это новая версия C2 через координатора.
+- **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант выше).
 
 ## C3 v1 — выход решателя → `WindField` (AM-05)
 **Владелец:** AM-05 (`scripts/atmosphere/air_model/wind_field.gd`). **Поставщики:** AM-03
@@ -333,6 +344,29 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 - **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`,
   с окнами — `test_air_window_gpu.gd::test_runtime_with_windows`.
 
+## C10 v1 — случай калибровки (обёртка прогона air.py) → совместная калибровка
+**Владелец:** А4 (Perdigão, `tools/research/cases/perdigao.py`); Askervein — адаптер к той же форме
+делает волна Б п. 1 (`tools/research/cases/askervein.py` поверх `recal/run_grid.py`, `tune/out/fit_s1.json`).
+**Потребители:** волна Б п. 1 (совместная калибровка λ/h, λ, `local_k` — общие; α, z0 — свои у случая),
+повтор Морриса (по условию). Уровень — исследовательский Python (CuPy), в игру не идёт.
+
+Модуль `tools/research/cases/<NAME>.py`:
+| Что | Интерфейс |
+|---|---|
+| `NAME: str` | короткое имя случая (`pd`, `ask`); префикс всех наблюдаемых `<NAME>_` |
+| `SUBCASES: list[str]` | подслучаи (для Perdigão — `ne`, `sw`) |
+| `observations() -> list[dict]` | `{name, grp, data, sig, sig_grid, grid_corr, unit, subcase, src}`: `data` — наблюдаемое (лучше безразмерное: отношение к опорной скорости, длина к H/расстоянию между грядами), `sig` > 0 — полная 1σ измерения и представительности (разброс по окну, по случаям), `sig_grid` ≥ 0 — оценка систематики сетки (0 — не оценена), `grid_corr` — аддитивная поправка к модели (0 — нет), `src` — источник (статья/таблица/файл) |
+| `run_one(over: dict, subcase: str, dx: float = <номинал случая>) -> dict` | `over` — переопределения полей `air.Params` (прочее — `Params()` + постоянные случая: сетка, губки, f_cor, профиль притока); строка `{case, subcase, dx, params, status, iters, t, obs}`: `params` — **все** поля Params как применены, `status` ∈ ok/max/diverged/error, `iters` — внешних итераций, `t` — с решателя, `obs` — `{name: float}` ⊇ имена `observations()` этого подслучая (не определено — NaN/null) |
+
+- **Инварианты:** решатель не меняется (`air.py`, `solver.py`, GPU); нужно в решатель (z0 по карте,
+  высота смещения d под пологом) — через координатора. Рельеф и входы — детерминированно (файлы в git или
+  скрипт + путь вне git в README). Pr_t = 0,85 (`Params()`), не подгоняется. Замок GPU — на один прогон
+  (`morris/model.GpuLock`, `/tmp/heat_ca_gpu.lock`), float32, критерий сходимости air.py, `max_outer` ≤ 4000.
+- **χ² потребителя:** Σ ((obs + grid_corr − data) / √(sig² + sig_grid²))²; строки со `status` ≠ ok в χ²
+  не входят (учитываются отдельно).
+- **Тест:** `tools/research/cases/check_c10.py <модуль> [runs.jsonl …]` — форма `observations()` и строк
+  прогонов (без GPU, venv калибровки).
+
 ---
 
 ## Расхождения (на 29.09.2026) и предложения
@@ -372,3 +406,5 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C3 | v1 | 30.09.2026 | К1 (без смены версии): `theta` — полное θ′ (записано явно) |
 | C7 | v2 | 30.09.2026 | К1 по плану А1: `parent_data`/`window_state` с `thd`; θ′_d ореола окна из родителя; сдвиг переносит `thd` |
 | C9 | v2 | 29.09.2026 | AM-04: окна клипмапа в `AirRuntime` — `set_focus`/`focus_fn`, `shift_count`, `last_info.windows`; загрузка и пересчёт — область + окна одним набором, сдвиг за пилотом в покое (предложено К0) |
+| C2 | v3 | 01.10.2026 | К2 (без смены версии): инвариант `AirCase.p` = `Params()` air.py, α/max_profile = `wind.*` игры; тест `test_c2_params_match_reference`. C1 — границы А2 (что без версии, что через К2) |
+| C10 | v1 | 01.10.2026 | К2 до А4: модуль случая калибровки (`NAME`, `SUBCASES`, `observations()`, `run_one`) для совместной калибровки волны Б; тест `tools/research/cases/check_c10.py` |
