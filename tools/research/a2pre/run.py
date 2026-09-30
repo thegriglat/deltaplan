@@ -8,6 +8,9 @@
   $PY run.py morris [N]        # несошедшиеся точки Морриса heat0 (подвыборка N), old и new → out/morris_rerun.jsonl
   $PY run.py trial             # 2 пробные точки Морриса (оценка времени) → out/trial.jsonl
   $PY run.py all [N]           # matrix + morris
+  $PY run.py a2 [варианты]     # А2: old/new × {kr25, hs8, kr25hs8, top3000} → out/matrix_a2.jsonl
+  $PY run.py scan [варианты]   # А2, отбор: SCAN на двух трудных cbl-случаях → out/scan_a2.jsonl
+  $PY run.py a2trial           # А2: одна цепочка (оценка времени) в тот же файл
 
 Наборы параметров (прочее — Params() = AirCase.p игры: 1-й порядок, hb, local_k, Pr_t 0,85, k_relax 0,5,
 heat_sweeps 4):
@@ -46,11 +49,12 @@ HOUR = 12.0
 TOL = RS.TOL
 MAXIT = RS.MAXIT
 
+# k_relax 0,5 — значение до А2 (разведка и база матрицы А2 считались с ним; после А2 в Params — 0,1)
 PSETS = {
-    "old": dict(lam_frac=0.25, alpha=0.14, z0=0.1, max_profile=1.8),
-    "new": dict(lam_frac=0.031, alpha=0.235, z0=0.09, max_profile=2.0),
-    "lam": dict(lam_frac=0.031, alpha=0.14, z0=0.1, max_profile=1.8),
-    "new_z003": dict(lam_frac=0.031, alpha=0.235, z0=0.03, max_profile=2.0),
+    "old": dict(lam_frac=0.25, alpha=0.14, z0=0.1, max_profile=1.8, k_relax=0.5),
+    "new": dict(lam_frac=0.031, alpha=0.235, z0=0.09, max_profile=2.0, k_relax=0.5),
+    "lam": dict(lam_frac=0.031, alpha=0.14, z0=0.1, max_profile=1.8, k_relax=0.5),
+    "new_z003": dict(lam_frac=0.031, alpha=0.235, z0=0.03, max_profile=2.0, k_relax=0.5),
 }
 
 
@@ -170,8 +174,17 @@ def one(S, name, key, res, maps, warm_parent=False):
     return d
 
 
-def chain(prm, U, heat, dom, maps, key):
-    """dom = 400: область 400 → окно 100 → окно 50; dom = 200: только область 200 (эталон picard/)."""
+def chain(prm, U, heat, dom, maps, key, top_above=None):
+    """dom = 400: область 400 → окно 100 → окно 50; dom = 200: только область 200 (эталон picard/).
+    top_above — потолок окон над максимумом рельефа окна, м (None — как в игре, 2000; диагностика А2)."""
+    if top_above is not None:
+        import functools
+        g0 = R.grid_window
+        R.grid_window = functools.partial(g0, top_above=float(top_above))
+        try:
+            return chain(prm, U, heat, dom, maps, key)
+        finally:
+            R.grid_window = g0
     res = {}
     D = RS.domain(float(dom), HOUR, U, heat=heat, prm=prm)
     one(D, f"d{dom}", key, res, maps)
@@ -207,7 +220,7 @@ def run_list(items, fname, maps_name=None):
         with GpuLock() as L:
             t1 = time.perf_counter()
             try:
-                res = chain(prm, it["U"], it["heat"], it["dom"], maps, it["key"])
+                res = chain(prm, it["U"], it["heat"], it["dom"], maps, it["key"], it.get("top_above"))
                 st = "ok"
             except Exception as e:                    # noqa: BLE001
                 import traceback
@@ -238,6 +251,65 @@ def plan_matrix():
                     key = f"{ps}|d{dom}|U{U:g}|{'heat' if heat else 'noheat'}|{hm}"
                     items.append(dict(key=key, pset=ps, dom=dom, U=U, heat=heat, heat_mode=hm,
                                       params=dict(pv, heat_mode=hm)))
+    return items
+
+
+# А2: численные правки сходимости поверх old и new (порядок пачки — как в задании А2: k_relax 0,25, затем
+# heat_sweeps 8, затем их сочетание; «потолок окна выше z_i» — только диагностика гипотезы, в игру не вносится)
+A2_VARIANTS = (
+    ("kr25", dict(k_relax=0.25), None),
+    ("hs8", dict(heat_sweeps=8), None),
+    ("kr25hs8", dict(k_relax=0.25, heat_sweeps=8), None),
+    ("kr10", dict(k_relax=0.1), None),                # после отбора (scan): k_relax 0,1 сводит оба трудных случая
+    ("kr15", dict(k_relax=0.15), None),
+    ("top3000", dict(), 3000.0),
+)
+
+
+def plan_a2(only=None):
+    items = []
+    for vn, vp, top in A2_VARIANTS:
+        if only and vn not in only:
+            continue
+        part = []
+        for ps in ("old", "new"):
+            pv = dict(PSETS[ps], **vp)
+            for dom in (400, 200):
+                if top is not None and dom == 200:
+                    continue                           # потолок окна — только цепочка с окнами
+                for U, heat, modes in ((0.0, True, ("cbl", "surface")), (3.0, True, ("cbl", "surface")),
+                                       (3.0, False, ("cbl",)), (0.0, False, ("cbl",))):
+                    for hm in modes:
+                        key = f"{ps}+{vn}|d{dom}|U{U:g}|{'heat' if heat else 'noheat'}|{hm}"
+                        part.append(dict(key=key, pset=f"{ps}+{vn}", base=ps, variant=vn, dom=dom, U=U, heat=heat,
+                                         heat_mode=hm, top_above=top, params=dict(pv, heat_mode=hm)))
+        part.sort(key=lambda r: r["heat_mode"] != "cbl")   # в варианте сначала cbl (приёмка), потом surface
+        items += part
+    return items
+
+
+# А2, отбор: ещё дешёвые численные параметры (C1 «Границы А2»), только на двух трудных cbl-случаях — new, штиль,
+# нагрев, цепочка 400→100→50 (не сходится w50) и old, область 200 м, 3 м/с, нагрев; прошедшие — в полную матрицу
+SCAN = (
+    ("kr10", dict(k_relax=0.1)),
+    ("dth600", dict(dtau_th=600.0)),
+    ("dth300", dict(dtau_th=300.0)),
+    ("dtm02", dict(dtau_per_m=0.2)),
+    ("dtm015", dict(dtau_per_m=0.15)),
+    ("ms4", dict(mom_sweeps=4)),
+    ("vc2", dict(vcycles=2)),
+)
+
+
+def plan_scan(only=None):
+    items = []
+    for vn, vp in SCAN:
+        if only and vn not in only:
+            continue
+        for ps, dom, U in (("new", 400, 0.0), ("old", 200, 3.0)):
+            key = f"{ps}+{vn}|d{dom}|U{U:g}|heat|cbl"
+            items.append(dict(key=key, pset=f"{ps}+{vn}", base=ps, variant=vn, dom=dom, U=U, heat=True,
+                              heat_mode="cbl", top_above=None, params=dict(PSETS[ps], **vp, heat_mode="cbl")))
     return items
 
 
@@ -317,13 +389,22 @@ def plan_morris(n):
 
 def main():
     what = sys.argv[1] if len(sys.argv) > 1 else "matrix"
-    n = int(sys.argv[2]) if len(sys.argv) > 2 else 40
+    n = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 40
     if what in ("matrix", "all"):
         run_list(plan_matrix(), "matrix.jsonl", maps_name="matrix_maps.npz")
     if what in ("morris", "all"):
         items, nb = plan_morris(n)
         print(f"Моррис heat0: несошедшихся уникальных конфигураций {nb}, берём {len(items) // 2}", flush=True)
         run_list(items, "morris_rerun.jsonl", maps_name="morris_maps.npz")
+    if what == "a2":
+        only = sys.argv[2].split(",") if len(sys.argv) > 2 else None
+        run_list(plan_a2(only), "matrix_a2.jsonl", maps_name="matrix_a2_maps.npz")
+    if what == "scan":
+        only = sys.argv[2].split(",") if len(sys.argv) > 2 else None
+        run_list(plan_scan(only), "scan_a2.jsonl")
+    if what == "a2trial":                              # оценка времени: самый долгий cbl случай (new, штиль, цепочка)
+        run_list([r for r in plan_a2(["kr25"]) if r["key"] == "new+kr25|d400|U0|heat|cbl"], "matrix_a2.jsonl",
+                 maps_name="matrix_a2_maps.npz")
     if what == "trial":
         items, nb = plan_morris(200)
         # самые тяжёлые исходно (max во всех трёх) — первая попавшаяся, и лёгкая (max только в w50)
