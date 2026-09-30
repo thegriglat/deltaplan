@@ -3,14 +3,17 @@
     xvfb-run -a blender --background --python tools/blender/build_trees.py [-- pine birch ...]
 
 Виды и параметры — tools/blender/tree_params.json: pine (сосна), cedar (кедр), larch
-(лиственница), birch (берёза), spruce (ель). В каждом .glb три меша-ноды:
+(лиственница), birch (берёза), spruce (ель). В каждом .glb — lod.variants вариантов дерева
+(сиды от базового породы; игра выбирает вариант по хешу места), у варианта v три меша-ноды
+V{v}_LOD0, V{v}_LOD1, V{v}_LOD2; текстуры коры и хвои/листвы общие на породу:
   LOD0 — ствол, ветви, карточки хвои/листвы с альфой (≤ ~2k треугольников), вблизи;
-  LOD1 — ствол + ~10 % укрупнённых карточек (~150 треугольников), средняя дальность;
+  LOD1 — тот же каркас (skeleton), упрощённый: ствол 5 граней, без ветвей, пучки каждой ветки
+         слиты в 1 крупный (~150–400 треугольников), средняя дальность;
   LOD2 — импостор: две скрещённые плоскости с запечённой в Blender картинкой (4 треугольника).
 Начало координат — основание ствола, вверх +Y (Godot), высота — реальная (height_m), 1 ед. = 1 м.
-Ещё пишутся картинки-импосторы assets/models/trees/tree_<вид>_impostor.png и общий атлас
-trees_impostor_atlas.png (ячейки 256×512: pine, cedar, larch, birch / spruce) — для шейдера
-дальних деревьев. Нужен xvfb-run (Eevee запекает импостор).
+Ещё пишутся картинки-импосторы assets/models/trees/tree_<вид>_v<v>_impostor.png и общий атлас
+trees_impostor_atlas.png (вариант 0; ячейки 256×512: pine, cedar, larch, birch / spruce) — для
+шейдера дальних деревьев. Нужен xvfb-run (Eevee запекает импостор).
 """
 import math
 import os
@@ -74,65 +77,57 @@ def card(mb: U.MeshBuilder, base: Vector, d: Vector, n: Vector, size: float,
     mb.add_face(idx, "Leaf", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=True)
 
 
-def clump(mb: U.MeshBuilder, p: Vector, d0: Vector, size: float, rng: random.Random,
-          sp: dict, lod: int = 0) -> None:
+def card_dir(d0: Vector, sp: dict) -> Vector:
+    """Направление карточек пучка по направлению ветки d0 (свисание / «кисть вверх»)."""
+    d0 = d0.normalized()
+    if sp["droop"] > 0.3:
+        return (d0 * 0.5 + Vector((0, 0, -1))).normalized()
+    k = sp.get("clump_up", 0.0)
+    return (d0 * (1 - k) + Vector((0, 0, 1)) * k).normalized()
+
+
+def base_k(sp: dict) -> float:
+    """На сколько (доля размера) низ карточки отстоит от точки пучка назад вдоль карточки."""
+    return 0.45 if sp.get("clump_up", 0.0) > 0 else 0.15
+
+
+def clump(mb: U.MeshBuilder, p: Vector, d0: Vector, size: float, rot_a: float,
+          sp: dict, cards: int, bk: float) -> None:
     """Пучок скрещённых карточек. d0 — направление ветки. Хвойные с clump_up > 0 (сосна, кедр)
     ставят пучок концом вверх — побеги сосны торчат к небу, а не расходятся веером, как лист
     пальмы; ель и лиственница — лапы вдоль ветки, берёза — свисающие пряди.
-    cards = 3 — ещё лежачая карточка (крона плотнее при взгляде сверху, с дельтаплана)."""
+    cards = 3 — ещё лежачая карточка (крона плотнее при взгляде сверху, с дельтаплана).
+    bk — низ карточки на bk·size позади p (0,5 — карточка по центру на p)."""
     d0 = d0.normalized()
     up = Vector((0, 0, 1))
     h = Vector((-d0.y, d0.x, 0))
     h = h.normalized() if h.length > 1e-3 else Vector((0, 1, 0))
-    if sp["droop"] > 0.3:
-        d = (d0 * 0.5 + Vector((0, 0, -1))).normalized()
-    else:
-        k = sp.get("clump_up", 0.0)
-        d = (d0 * (1 - k) + up * k).normalized()
+    d = card_dir(d0, sp)
     n1 = d.cross(h).normalized()  # ветка горизонтальна → карточка лежит; торчит вверх → «лицом» наружу
-    rot = Matrix.Rotation(rng.uniform(-0.5, 0.5), 3, d)
-    n1 = rot @ n1
+    n1 = Matrix.Rotation(rot_a, 3, d) @ n1
     n2 = d.cross(n1).normalized()
     asp = sp.get("card_aspect", 1.0)
-    # кисти сосны/кедра — в верхних 2/3 карточки: центрируем кисть на точке пучка
-    base = p - d * size * (0.45 if sp.get("clump_up", 0.0) > 0 else 0.15)
+    base = p - d * size * bk
     card(mb, base, d, n1, size, asp)
     card(mb, base, d, n2, size, asp)
-    if sp.get("cards", 2) >= 3 and lod == 0:
+    if cards >= 3:
         dh = Vector((d0.x, d0.y, 0))
         dh = dh.normalized() if dh.length > 1e-3 else Vector((1, 0, 0))
         card(mb, p - dh * size * 0.45 + up * size * 0.2, dh, up, size * 0.9, asp)
 
 
-def build_mesh(sp: dict, lod: int, seed: int, lod_cfg: dict) -> U.MeshBuilder:
+def skeleton(sp: dict, seed: int) -> dict:
+    """Общий каркас LOD0 и LOD1: ствол, ветви мутовок, точки пучков, верхушка — один поток rng.
+    Сухие сучья — своим потоком (seed + 1): они есть только в LOD0 и не сдвигают остальное."""
     rng = random.Random(seed)
-    mb = U.MeshBuilder()
     H = sp["height_m"]
     path = trunk_path(sp, rng)
-    ts = [i / (len(path) - 1) for i in range(len(path))]
-    sides = 8 if lod == 0 else 5
-    if lod == 1:  # 4 узла, включая вершину (раньше [::3] терял верхушку — ствол «ломался»)
-        path, ts = [path[i] for i in (0, 3, 6, 10)], [ts[i] for i in (0, 3, 6, 10)]
-    mb.add_tube(path, [trunk_radius(sp, t) for t in ts], "Bark", sides=sides,
-                uv_v=[t * sp["trunk_top"] for t in ts])
-    clumps = []
     top_z = H * sp["trunk_top"]
     cb = sp["crown_base"] * H
     n_wh = sp["whorls"]
     rise = sp.get("branch_rise", 0.0)
     c0 = sp.get("clump_from", 0.35)
-    # сухие сучья ниже кроны (сосна, лиственница в лесу): голый ствол не выглядит «пальмовым»
-    if lod == 0:
-        for i in range(sp.get("stubs", 0)):
-            tz = rng.uniform(0.12, 0.95) * cb / top_z
-            c = _on_path(path, tz)
-            az = rng.uniform(0, 2 * math.pi)
-            L = H * rng.uniform(0.03, 0.07)
-            el = math.radians(rng.uniform(-25, 10))
-            e = c + Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el),
-                            math.sin(el))) * L
-            mb.add_tube([c, e], [max(trunk_radius(sp, tz) * 0.25, 0.015), 0.006], "Bark",
-                        sides=3, cap=False, uv_v=[0.3, 0.32])
+    branches = []
     for k in range(n_wh):
         zc = (k + rng.uniform(-0.3, 0.3)) / max(n_wh - 1, 1)
         zc = min(max(zc, 0.0), 1.0)
@@ -147,37 +142,95 @@ def build_mesh(sp: dict, lod: int, seed: int, lod_cfg: dict) -> U.MeshBuilder:
             d = Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)))
             end = center + d * L - Vector((0, 0, (sp["droop"] - rise) * L))
             mid = center + d * L * 0.5 - Vector((0, 0, sp["droop"] * L * 0.2))
-            if lod == 0 and L > 0.3:
-                br = max(trunk_radius(sp, tz) * 0.35, 0.012)
-                if sp["droop"] >= 0.2:  # изогнутая (провисающая) ветвь
-                    mb.add_tube([center, mid, end], [br, br * 0.6, br * 0.25], "Bark", sides=3,
-                                cap=False, uv_v=[0.3, 0.32, 0.34])
-                else:
-                    mb.add_tube([center, end], [br, br * 0.25], "Bark", sides=3, cap=False,
-                                uv_v=[0.3, 0.34])
+            dd = (end - center).normalized() if (end - center).length > 1e-3 else d
+            cl = []
             for c in range(sp["clumps_per_branch"]):
                 t = c0 + (1 - c0) * (c + 1) / sp["clumps_per_branch"]
                 p = (center.lerp(mid, t * 2) if t < 0.5 else mid.lerp(end, t * 2 - 1))
                 p += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.5, 0.5))) \
                     * 0.06 * L
-                dd = (end - center).normalized() if (end - center).length > 1e-3 else d
                 size = sp["clump_size"] * H * rng.uniform(0.75, 1.25) * (0.55 + 0.45 * R / (
                     sp["crown_radius"] * H))
-                clumps.append((p, dd, size))
-    # вершина: у хвойных — пучки вдоль верхушки ствола
+                cl.append((p, dd, size, rng.uniform(-0.5, 0.5)))
+            branches.append({"center": center, "mid": mid, "end": end, "L": L, "tz": tz,
+                             "clumps": cl})
+    tops = []  # вершина: у хвойных — пучки вдоль верхушки ствола
     if sp["crown"] in ("cone", "ovoid", "umbrella"):
         for i in range(3):
             z = top_z * (0.93 + 0.025 * i)
-            clumps.append((_on_path(path, z / top_z), Vector((rng.uniform(-.2, .2), rng.uniform(
-                -.2, .2), 1)), sp["clump_size"] * H * 0.7))
-    if lod == 1:
-        rng.shuffle(clumps)
-        frac = sp.get("lod1_clump_fraction", lod_cfg["lod1_clump_fraction"])
-        scale = sp.get("lod1_clump_scale", lod_cfg["lod1_clump_scale"])
-        keep = max(8, int(len(clumps) * frac))
-        clumps = [(p, d, s * scale) for p, d, s in clumps[:keep]]
-    for p, d, s in clumps:
-        clump(mb, p, d, s, rng, sp, lod)
+            tops.append((_on_path(path, z / top_z), Vector((rng.uniform(-.2, .2), rng.uniform(
+                -.2, .2), 1)), sp["clump_size"] * H * 0.7, rng.uniform(-0.5, 0.5)))
+    srng = random.Random(seed + 1)
+    stubs = []  # сухие сучья ниже кроны (сосна, лиственница в лесу): голый ствол не «пальмовый»
+    for i in range(sp.get("stubs", 0)):
+        tz = srng.uniform(0.12, 0.95) * cb / top_z
+        az = srng.uniform(0, 2 * math.pi)
+        L = H * srng.uniform(0.03, 0.07)
+        el = math.radians(srng.uniform(-25, 10))
+        stubs.append((tz, Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el),
+                                  math.sin(el))) * L))
+    return {"path": path, "branches": branches, "tops": tops, "stubs": stubs}
+
+
+def merge_clumps(cl: list, sp: dict, groups: int, size_k: float) -> list:
+    """LOD1: пучки ветки → groups крупных (по порядку вдоль ветки). Центр — центр масс карточек
+    группы (с учётом их смещения вдоль карточки), размер — площадь та же (√Σs²) × size_k."""
+    bk = base_k(sp)
+    n = len(cl)
+    out = []
+    for g in range(groups):
+        part = cl[g * n // groups:(g + 1) * n // groups]
+        if not part:
+            continue
+        m = Vector((0, 0, 0))
+        dsum = Vector((0, 0, 0))
+        for p, dd, s, _ in part:
+            m += p + card_dir(dd, sp) * s * (0.5 - bk)
+            dsum += dd
+        m /= len(part)
+        size = math.sqrt(sum(s * s for _, _, s, _ in part)) * size_k
+        out.append((m, dsum.normalized(), size, part[0][3]))
+    return out
+
+
+def build_mesh(sp: dict, lod: int, sk: dict, lod_cfg: dict) -> U.MeshBuilder:
+    """LOD0 — каркас целиком; LOD1 — тот же каркас упрощённо: ствол 5 граней, без ветвей и
+    сучьев, пучки каждой ветки слиты в lod1_groups крупных, верхушка та же."""
+    mb = U.MeshBuilder()
+    path = sk["path"]
+    ts = [i / (len(path) - 1) for i in range(len(path))]
+    if lod == 1:  # 4 узла, включая вершину
+        path, ts = [path[i] for i in (0, 3, 6, 10)], [ts[i] for i in (0, 3, 6, 10)]
+    mb.add_tube(path, [trunk_radius(sp, t) for t in ts], "Bark", sides=8 if lod == 0 else 5,
+                uv_v=[t * sp["trunk_top"] for t in ts])
+    bk = base_k(sp)
+    if lod == 0:
+        full = sk["path"]
+        for tz, v in sk["stubs"]:
+            c = _on_path(full, tz)
+            mb.add_tube([c, c + v], [max(trunk_radius(sp, tz) * 0.25, 0.015), 0.006], "Bark",
+                        sides=3, cap=False, uv_v=[0.3, 0.32])
+        for b in sk["branches"]:
+            if b["L"] > 0.3:
+                br = max(trunk_radius(sp, b["tz"]) * 0.35, 0.012)
+                if sp["droop"] >= 0.2:  # изогнутая (провисающая) ветвь
+                    mb.add_tube([b["center"], b["mid"], b["end"]], [br, br * 0.6, br * 0.25],
+                                "Bark", sides=3, cap=False, uv_v=[0.3, 0.32, 0.34])
+                else:
+                    mb.add_tube([b["center"], b["end"]], [br, br * 0.25], "Bark", sides=3,
+                                cap=False, uv_v=[0.3, 0.34])
+            for p, dd, s, ra in b["clumps"]:
+                clump(mb, p, dd, s, ra, sp, sp.get("cards", 2), bk)
+        for p, dd, s, ra in sk["tops"]:
+            clump(mb, p, dd, s, ra, sp, 2, bk)
+        return mb
+    groups = sp.get("lod1_groups", lod_cfg["lod1_groups"])
+    size_k = sp.get("lod1_size_k", lod_cfg["lod1_size_k"])
+    for b in sk["branches"]:
+        for p, dd, s, ra in merge_clumps(b["clumps"], sp, groups, size_k):
+            clump(mb, p, dd, s, ra, sp, 2, 0.5)
+    for p, dd, s, ra in sk["tops"]:
+        clump(mb, p, dd, s, ra, sp, 2, bk)
     return mb
 
 
@@ -324,24 +377,10 @@ def build(key: str, params: dict) -> None:
         "Leaf": U.material("Leaf_" + key, (1, 1, 1), rough=0.8, double=True, image=leaf_img,
                            alpha_clip=True),
     }
-    lod0 = build_mesh(sp, 0, seed, lod_cfg).build("LOD0", mats)
-    lod1 = build_mesh(sp, 1, seed, lod_cfg).build("LOD1", mats)
-    crown_normals(lod0, sp)
-    crown_normals(lod1, sp)
-    lod1.hide_render = True
-    _backface_fix(mats["Leaf"], True)
-    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.0
-    imp_path = os.path.join(OUT, "tree_%s_impostor.png" % key)
-    img, w, h = bake_impostor(lod0, sp, tuple(lod_cfg["impostor_px"]), imp_path)
-    lod1.hide_render = False
-    _backface_fix(mats["Leaf"], False)
-    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.5
-    mats["Impostor"] = U.material("Impostor_" + key, (1, 1, 1), rough=0.9, double=True,
-                                  image=img, alpha_clip=True)
-    impostor_normals(impostor_mesh(w, h).build("LOD2", mats))
-    lod1.location.x = 0  # все LOD в одной точке; видимость переключает игра
-    tris = {o.name: sum(len(p.vertices) - 2 for p in o.data.polygons)
-            for o in bpy.context.scene.objects if o.type == "MESH"}
+    n_var = int(params["lod"].get("variants", 8))
+    tris = {}
+    for v in range(n_var):
+        _variant(key, sp, lod_cfg, mats, seed + 1009 * v, v, tris)
     print("TREE %s: %s" % (key, tris))
     os.makedirs(SRC, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC, "tree_%s.blend" % key),
@@ -351,12 +390,43 @@ def build(key: str, params: dict) -> None:
                               export_cameras=False, export_lights=False)
 
 
+def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
+             tris: dict) -> None:
+    """Вариант v породы: V{v}_LOD0, V{v}_LOD1 из одного каркаса, V{v}_LOD2 — импостор,
+    запечённый с V{v}_LOD0 (картинка tree_<вид>_v<v>_impostor.png). Все LOD в начале координат."""
+    sk = skeleton(sp, seed)
+    pre = "V%d_" % v
+    lod0 = build_mesh(sp, 0, sk, lod_cfg).build(pre + "LOD0", mats)
+    lod1 = build_mesh(sp, 1, sk, lod_cfg).build(pre + "LOD1", mats)
+    crown_normals(lod0, sp)
+    crown_normals(lod1, sp)
+    hidden = [o for o in bpy.context.scene.objects if o.type == "MESH" and o != lod0]
+    for o in hidden:
+        o.hide_render = True
+    _backface_fix(mats["Leaf"], True)
+    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.0
+    imp_path = os.path.join(OUT, "tree_%s_v%d_impostor.png" % (key, v))
+    img, w, h = bake_impostor(lod0, sp, tuple(lod_cfg["impostor_px"]), imp_path)
+    for o in hidden:
+        o.hide_render = False
+    _backface_fix(mats["Leaf"], False)
+    mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.5
+    imats = dict(mats)
+    imats["Impostor"] = U.material("Impostor_%s_v%d" % (key, v), (1, 1, 1), rough=0.9,
+                                   double=True, image=img, alpha_clip=True)
+    lod2 = impostor_mesh(w, h).build(pre + "LOD2", imats)
+    impostor_normals(lod2)
+    for o in (lod0, lod1, lod2):
+        tris[o.name] = sum(len(p.vertices) - 2 for p in o.data.polygons)
+
+
 def atlas(keys: list, px: tuple) -> None:
-    """Общий атлас импосторов 1024×1024: 4 ячейки 256×512 в ряд, два ряда."""
+    """Общий атлас импосторов 1024×1024: 4 ячейки 256×512 в ряд, два ряда — вариант 0 каждой
+    породы (дальние билборды ForestImpostors; от 350 м разница вариантов не видна)."""
     cw, ch = px
     out = np.zeros((1024, 1024, 4), dtype=np.float32)
     for i, key in enumerate(keys):
-        img = bpy.data.images.load(os.path.join(OUT, "tree_%s_impostor.png" % key))
+        img = bpy.data.images.load(os.path.join(OUT, "tree_%s_v0_impostor.png" % key))
         a = np.array(img.pixels[:], dtype=np.float32).reshape(ch, cw, 4)
         col, row = i % 4, 1 - i // 4  # ряд 0 — верхний в картинке
         out[row * ch:(row + 1) * ch, col * cw:(col + 1) * cw] = a

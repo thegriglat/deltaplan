@@ -408,16 +408,33 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 ## (анимации stand/walk/run: подошвы на hang_height_m ниже карабина) — на 90° не поворачиваем,
 ## только сдвиг по крену и небольшой наклон назад вокруг хвата (GROUND_LEAN_BACK_DEG), ступни
 ## остаются на той же высоте. Заглушка без анимаций лежит — её поворачиваем вокруг центра тела.
+## Тело стоит вертикально к горизонту, а не к крылу: тангаж крыла (киль задран на угол атаки,
+## 16–37°) снимается поворотом вокруг ступней — иначе пилот «сидит», отклонившись назад вместе с
+## крылом. Руки остаются тянуться к стойкам (IK). Telemetry.basis и точка поворота не меняются (К4).
 func _ground_pose(shift: Vector3) -> Transform3D:
+	var pose: Transform3D
+	var feet: Vector3
 	if _animated_stand:
 		var lean := Basis(Vector3.RIGHT, deg_to_rad(GROUND_LEAN_BACK_DEG))
 		var o := GROUND_GRIP - lean * GROUND_GRIP  # хват на месте
 		o.y += GROUND_FEET.y - (lean * GROUND_FEET + o).y  # ступни на прежней высоте
-		return Transform3D(lean, _hang + o + Vector3(shift.x, 0.0, 0.0))
-	var c := _body_center()
-	var r := Basis(Vector3.RIGHT, PI * 0.5)
-	var g := Vector3(shift.x, float(_pcfg.height_m) * 0.5, 0.0)
-	return Transform3D(r, g - r * c)
+		pose = Transform3D(lean, _hang + o + Vector3(shift.x, 0.0, 0.0))
+		feet = pose * GROUND_FEET
+	else:
+		var c := _body_center()
+		var r := Basis(Vector3.RIGHT, PI * 0.5)
+		var g := Vector3(shift.x, float(_pcfg.height_m) * 0.5, 0.0)
+		pose = Transform3D(r, g - r * c)
+		feet = Vector3(shift.x, 0.0, 0.0)
+	var level := Basis(Vector3.RIGHT, -_frame_pitch())
+	return Transform3D(level, feet - level * feet) * pose
+
+
+## Тангаж обёртки (крыла) к горизонту, рад: + нос вверх (Telemetry.basis = from_euler(θ, …)).
+func _frame_pitch() -> float:
+	var b := global_transform.basis if is_inside_tree() else transform.basis
+	var fwd := b.orthonormalized() * Vector3.FORWARD
+	return asin(clampf(fwd.y, -1.0, 1.0))
 
 
 ## Центр тела относительно карабина.

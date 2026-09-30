@@ -63,27 +63,27 @@ func test_tailwind_fails() -> void:
 
 
 func test_crosswind_fails() -> void:
-	var r := attempt("sport", Vector3(6.0, 0, 1.0))
-	check(
-		r.failure == "crosswind", "сильный боковой ветер без выравнивания валит крыло: " + r.failure
-	)
-
-
-func test_crosswind_corrected() -> void:
-	# ветер слева (воздух на восток) поднимает левую консоль → крен вправо;
-	# пилот выравнивает влево
+	# сильный ветер под 45° к курсу, пилот стоит лицом не в ветер: момент от скольжения
+	# (∝ встречная × боковая) больше предела «руки пилота» — крыло опрокидывает и стоя
 	var m := Sim.make("sport")
 	m.reset_on_ground(Vector3.ZERO, 0.0)
-	var af := wind_fn(Vector3(2.5, 0, 4.0))
-	var t := 0.0
-	while t < 10.0 and m.mode == FlightModel.Mode.GROUND:
-		var corr := clampf(-m.telemetry.bank_deg / 5.0, -1.0, 1.0)
-		m.step(Sim.DT, Sim.input(0.0, corr, true), af, slope)
-		t += Sim.DT
+	Sim.run_for(m, 10.0, Sim.input(), wind_fn(Vector3(4.24, 0, 4.24)), slope)
 	check(
-		m.mode == FlightModel.Mode.AIR,
-		"умеренный боковой ветер парируется креном: " + m.takeoff_failure
+		m.mode == FlightModel.Mode.FAILED and m.takeoff_failure == "crosswind",
+		"сильный ветер под 45° валит крыло: " + m.takeoff_failure
 	)
+	check(m.bank > 0.0, "ветер слева поднимает левую консоль — крен вправо")
+
+
+func test_crosswind_light_all_wings() -> void:
+	# слабый боковой ветер (2,5 м/с при встречном 4) рука пилота держит без ввода крена;
+	# крыло, которое и во встречный 4 м/с срывается по носу (atlas, nose_high), — не про крен
+	for p in Config.list_configs("wings"):
+		var w := String(p).get_file()
+		var r := attempt(w, Vector3(2.5, 0, 4.0))
+		check(r.failure != "crosswind", "%s: слабый боковой ветер не валит крыло" % w)
+		if attempt(w, Vector3(0, 0, 4.0)).took_off:
+			check(r.took_off, "%s: слабый боковой ветер — взлёт (срыв: %s)" % [w, r.failure])
 
 
 func test_nose_high_fails() -> void:

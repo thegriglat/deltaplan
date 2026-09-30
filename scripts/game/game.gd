@@ -821,6 +821,9 @@ func _choose_start() -> void:
 			push_warning("Game: у выбранной точки нет склона для разбега — старт на месте")
 		_start_pos = launch.position
 		_start_heading = float(launch.heading_deg)
+		# Пустырь вокруг старта (≥ 2 длины разбега): в лесу иначе не разбежаться и не набрать
+		# высоту до крон (docs/game.md → «Старт с карты»).
+		terrain.add_start_clearing(_start_pos.x, _start_pos.z, float(cfg.clearing_radius_m))
 		return
 	var sites := terrain.get_start_sites()
 	if sites.is_empty():
