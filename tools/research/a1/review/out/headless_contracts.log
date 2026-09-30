@@ -1,0 +1,69 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_air_contracts.gd::test_contract_versions
+  ok   test_air_contracts.gd::test_c1_ref_fixture_format
+  ok   test_air_contracts.gd::test_c1_ref_mask_rule
+  ok   test_air_contracts.gd::test_c1_ref_solution_div_free
+  ok   test_air_contracts.gd::test_c2_air_case_grid
+  ok   test_air_contracts.gd::test_c3_from_arrays_axes_units
+  ok   test_air_contracts.gd::test_c3_mask_log_profile
+ERROR: WindField: неверные размеры сетки
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] from_arrays (res://scripts/atmosphere/air_model/wind_field.gd:123)
+       [1] test_c3_sanitize_and_limits (res://tests/contracts/test_air_contracts.gd:394)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c3_sanitize_and_limits
+  ok   test_air_contracts.gd::test_c3_from_mac_ref
+  ok   test_air_contracts.gd::test_c3_game_field_files
+  ok   test_air_contracts.gd::test_c4_field_set_vector4
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_contracts.gd::test_c4_atmosphere_api_and_analytic
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c4_atmosphere_field_rule
+  ok   test_air_contracts.gd::test_c4_turb_at
+  ok   test_air_contracts.gd::test_c4_config_keys
+  ok   test_air_contracts.gd::test_c5_signature_and_mask
+  ok   test_air_contracts.gd::test_c5_net_schema
+ERROR: WindField: user://c6_version_test — версия формата 2.0, читается 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] load_file (res://scripts/atmosphere/air_model/wind_field.gd:221)
+       [1] test_c6_field_version (res://tests/contracts/test_air_contracts.gd:665)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c6_field_version
+  ok   test_air_contracts.gd::test_c6_start_hours
+  ok   test_air_contracts.gd::test_c7_levels_fine_to_coarse
+ERROR: Unable to open file: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:45)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://data/terrain/ongudai/detail_water.png.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c7_window_grid_and_api
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c8_blend
+  ok   test_air_contracts.gd::test_c8_blend_during_blend
+air_model: analytic (нет RenderingDevice: headless)
+  ok   test_air_contracts.gd::test_c9_runtime_shape
+
+24 тестов, 0 упало, 0 пропущено
+exit 0
