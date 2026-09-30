@@ -40,10 +40,16 @@ const LAM_FRAC := 0.25
 const NEUTRAL_BL_K := 0.3
 ## Параметр Кориолиса 51° с. ш., 1/с (air.py Params.f_cor) — только для толщины слоя h.
 const F_COR := 1.13e-4
+## Слоты prm (air_picard.glsl): 1 — окно клипмапа (AirWindowCase), 1/Pr_t шаблона тепла.
+const P_NEST := 19
+const P_IPRT := 20
 
 ## Параметры модели (air.py → Params; числа — физические или численные, см. там).
 var p := {
 	tau_cool = 7200.0,
+	# турбулентное число Прандтля, K_θ = K/Pr_t (все три оси). Временно, до решения пользователя
+	# (Kays 1994; варианты 1,0/0,74/0,95 — docs/plan/air_model_a1.md §1)
+	pr_t = 0.85,
 	z0 = 0.1,
 	alpha = 0.14,
 	max_profile = 1.8,
@@ -265,7 +271,8 @@ func prepare() -> bool:
 		lev[3 * nz_h + k] = _ramp(ztop - z, float(p.sponge_top_m), rate)
 		lev[4 * nz_h + k] = _ramp(ztop - (z - 0.5 * dz), float(p.sponge_top_m), rate)
 	var dth := float(p.dtau_th)
-	var s_th := dth / (1.0 + dth / float(p.tau_cool))
+	# у полного θ′ нет 1/τ в диагонали (τ — только θ′_d, C1 v2): постоянная времени — Δτ_θ
+	var s_th := dth
 	for k in nz_h:
 		var gw := 0.5 * (gam[k] + gam[k - 1]) if k > 0 else 0.0
 		lev[2 * nz_h + k] = float(p.couple) * G / THETA0 * maxf(gw, 0.0) * s_th
@@ -396,6 +403,7 @@ func prepare() -> bool:
 		]
 	)
 	prm.resize(32)
+	prm[P_IPRT] = 1.0 / float(p.pr_t)
 	return true
 
 

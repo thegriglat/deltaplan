@@ -8,7 +8,7 @@ extends AirGpuJob
 ##   var job := AirPicardJob.new()
 ##   job.case = c                       # AirCase (prepare() — внутри start)
 ##   job.mech = true                    # сначала решение без нагрева → w_mech (Стык 1↔2)
-##   job.warm = prev.state()            # по желанию: тёплый старт (u, v, w, θ′, p)
+##   job.warm = prev.state()            # по желанию: тёплый старт (u, v, w, θ′, θ′_d, p)
 ##   job.finished.connect(...); job.failed.connect(...)
 ##   job.start(); …раз в кадр: job.poll() …
 ##   var f := job.field()               # WindField (docs/air_model.md → «Поле на CPU»)
@@ -43,11 +43,16 @@ const S_R2 := 10  # 10..13 Σr² (u, v, w, θ′)
 const S_RMAX := 14  # 14..17 max|r|
 const S_DIV2 := 18
 const S_DIVMAX := 19
+# 20, 21 — окно (AirWindowJob.S_NET); невязка θ′_d (диабатическая часть)
+const S_R2D := 22
+const S_RMAXD := 23
+const N_SCALARS := 24
 
 ## Вход: случай (с нагревом). mech — сначала решить его же без нагрева (w_mech для игры).
 var case: AirCase
 var mech := true
-## Тёплый старт: {u, v, w, th, p} — массивы N с ореолом (state() прошлого решения той же сетки).
+## Тёплый старт: {u, v, w, th, thd, p} — массивы N с ореолом (state() прошлого решения той же
+## сетки); нет thd — θ′_d с нуля.
 var warm := {}
 ## Критерий (эталон: Air.solve).
 var tol_mom := 2e-5
@@ -119,6 +124,8 @@ func _setup() -> bool:
 		"v",
 		"w",
 		"th",
+		"thd",
+		"thbd",
 		"p",
 		"nu",
 		"nuh",
@@ -128,7 +135,7 @@ func _setup() -> bool:
 		buf[nm] = gpu.buffer(n)
 	# решение без нагрева целиком (родитель окна без нагрева — AM-04, state(true))
 	if _cases.size() > 1:
-		for nm in ["um", "vm", "thm", "pm"]:
+		for nm in ["um", "vm", "thm", "thdm", "pm"]:
 			buf[nm] = gpu.buffer(n)
 	# шаблоны строкой на точку (C0..C6, b); шаблон тепла — в Cu
 	for nm in ["Cu", "Cv", "Cw"]:
@@ -160,7 +167,9 @@ func _setup() -> bool:
 		)
 	mg.build(gpu, buf.cx, buf.cy, buf.cz, buf.act, Vector3i(nx, ny, nz))
 	if not warm.is_empty():
-		for nm in ["u", "v", "w", "th", "p"]:
+		for nm in ["u", "v", "w", "th", "thd", "p"]:
+			if nm == "thd" and not warm.has(nm):
+				continue  # θ′_d с нуля (буфер новый — нули)
 			var a: PackedFloat32Array = warm.get(nm, PackedFloat32Array())
 			if a.size() != n:
 				error = "AirPicardJob: тёплый старт другого размера"
@@ -231,7 +240,9 @@ func _bc(mode: int) -> void:
 			buf.v,
 			buf.w,
 			buf.th,
-			buf.p
+			buf.p,
+			buf.thbd,
+			buf.thd
 		],
 		_n,
 		[d[0], d[1], d[2], mode],
@@ -296,7 +307,8 @@ func _mom(comp: int) -> void:
 	)
 
 
-func _heat() -> void:
+## Шаблон тепла в Cu: mode 0 — θ′_d, 1 — полное θ′ (air_picard.glsl:heat).
+func _heat(mode: int) -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:heat",
@@ -313,10 +325,12 @@ func _heat() -> void:
 			buf.thb,
 			buf.nu,
 			buf.nuh,
-			buf.Cu
+			buf.Cu,
+			buf.thd,
+			buf.thbd
 		],
 		_n,
-		[d[0], d[1], d[2], 0],
+		[d[0], d[1], d[2], mode],
 		[],
 		[],
 		5.0
@@ -349,7 +363,9 @@ func _proj(update_p: bool) -> void:
 	)
 
 
-func _resid(c: RID, x: RID, which: int) -> void:
+## Невязка по неизвестным типа which → Σr² и max|r| в слоты S_R2 + which, S_RMAX + which (или
+## r2_slot, rmax_slot).
+func _resid(c: RID, x: RID, which: int, r2_slot := -1, rmax_slot := -1) -> void:
 	var d := _pc0()
 	gpu.kernel(
 		"air_picard:resid",
@@ -360,8 +376,8 @@ func _resid(c: RID, x: RID, which: int) -> void:
 		[],
 		3.0
 	)
-	gpu.reduce(AirGpu.Red.DOT, buf.r, _n, S_R2 + which, buf.r)
-	gpu.reduce(AirGpu.Red.MAXABS, buf.r, _n, S_RMAX + which)
+	gpu.reduce(AirGpu.Red.DOT, buf.r, _n, S_R2 + which if r2_slot < 0 else r2_slot, buf.r)
+	gpu.reduce(AirGpu.Red.MAXABS, buf.r, _n, S_RMAX + which if rmax_slot < 0 else rmax_slot)
 
 
 ## Проекция: ∇·u → минус среднее → cycles V-циклов от φ = 0 → φ минус среднее → u −= K∇φ (p += φ).
@@ -408,8 +424,12 @@ func _rec_momentum() -> void:
 		gpu.zebra(buf.Cw, buf.w, RID(), d, [2, 0, 1], true)
 
 
+## Шаг тепла (Air.heat_step): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки.
 func _rec_heat_step() -> void:
-	_heat()
+	_heat(0)
+	for _s in int(case.p.heat_sweeps):
+		gpu.zebra(buf.Cu, buf.thd, RID(), case.dims(), [2, 0, 1], true)
+	_heat(1)
 	for _s in int(case.p.heat_sweeps):
 		gpu.zebra(buf.Cu, buf.th, RID(), case.dims(), [2, 0, 1], true)
 
@@ -427,7 +447,9 @@ func _rec_check() -> void:
 	_resid(buf.Cu, buf.u, 0)
 	_resid(buf.Cv, buf.v, 1)
 	_resid(buf.Cw, buf.w, 2)
-	_heat()
+	_heat(0)
+	_resid(buf.Cu, buf.thd, 3, S_R2D, S_RMAXD)
+	_heat(1)
 	_resid(buf.Cu, buf.th, 3)
 	_rec_div_stats()
 
@@ -448,6 +470,7 @@ func _rec_copy_wmech() -> void:
 	gpu.vec(AirGpu.Vec.COPY, buf.u, buf.um, _n)
 	gpu.vec(AirGpu.Vec.COPY, buf.v, buf.vm, _n)
 	gpu.vec(AirGpu.Vec.COPY, buf.th, buf.thm, _n)
+	gpu.vec(AirGpu.Vec.COPY, buf.thd, buf.thdm, _n)
 	gpu.vec(AirGpu.Vec.COPY, buf.p, buf.pm, _n)
 
 
@@ -551,16 +574,20 @@ func _finish_result() -> void:
 
 
 func _read_residuals() -> Dictionary:
-	var s := gpu.download(gpu.scalars, 20)
+	var s := gpu.download(gpu.scalars, N_SCALARS)
 	var c := _cases[_ci]
 	var rms := []
 	for q in 4:
 		rms.append(sqrt(s[S_R2 + q] / maxf(float(c.n_unk[q]), 1.0)))
+	var rms_d := sqrt(s[S_R2D] / maxf(float(c.n_unk[3]), 1.0))
+	# критерий тепла — по обоим скалярам (θ′ и θ′_d), как Air.residuals
 	return {
 		mom_rms = sqrt((rms[0] * rms[0] + rms[1] * rms[1] + rms[2] * rms[2]) / 3.0),
 		mom_max = maxf(s[S_RMAX], maxf(s[S_RMAX + 1], s[S_RMAX + 2])),
-		th_rms = rms[3],
-		th_max = s[S_RMAX + 3],
+		th_rms = maxf(rms[3], rms_d),
+		th_max = maxf(s[S_RMAX + 3], s[S_RMAXD]),
+		thd_rms = rms_d,
+		thd_max = s[S_RMAXD],
 		div_rms = sqrt(s[S_DIV2] / maxf(float(c.n_fluid), 1.0)),
 		div_max = s[S_DIVMAX],
 	}
@@ -606,20 +633,21 @@ func _read(name: String) -> PackedFloat32Array:
 	return _cache[name]
 
 
-## Состояние для тёплого старта: {u, v, w, th, p}; mech — решения без нагрева (при паре; иначе
-## то же, что с нагревом).
+## Состояние для тёплого старта: {u, v, w, th, thd, p}; mech — решения без нагрева (при паре;
+## иначе то же, что с нагревом).
 func state(mech_state := false) -> Dictionary:
 	var out := {}
-	var names := ["u", "v", "w", "th", "p"]
+	var keys := ["u", "v", "w", "th", "thd", "p"]
+	var names := keys
 	if mech_state and _cases.size() > 1:
-		names = ["um", "vm", "wmech", "thm", "pm"]
+		names = ["um", "vm", "wmech", "thm", "thdm", "pm"]
 	for q in names.size():
-		out[["u", "v", "w", "th", "p"][q]] = _read(names[q])
+		out[keys[q]] = _read(names[q])
 	return out
 
 
 ## Поле уровня как родитель окна клипмапа (AM-04, AirWindowJob.parent): сетка, типы клеток и
-## граней, решения с нагревом и без — грани u, v, w и θ′ с ореолом (N). Читается с GPU на
+## граней, решения с нагревом и без — грани u, v, w, θ′ и θ′_d с ореолом (N). Читается с GPU на
 ## вызывающем потоке (главный, после is_done()).
 func parent_data() -> Dictionary:
 	var heat := state(false)

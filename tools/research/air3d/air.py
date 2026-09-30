@@ -9,7 +9,9 @@
 
   (u·∇)u = −∇p + ∇·(K_m ∇u) − [земля] C_d |u_h| u_h / Δz + ẑ g θ′/θ0 − s(x)(u − U_b)
   ∇·u = 0
-  ∇·(u θ′) + w dθ̄/dz = ∇·(K_h ∇θ′) + [земля] H/(ρ c_p Δz) − θ′/τ − s_θ(x) θ′
+  ∇·(u θ′) + w dθ̄/dz = ∇·(K_θ ∇θ′) + Q − θ′_d/τ − s_θ(x) (θ′ − θ_b),   K_θ = K_m/Pr_t
+  ∇·(u θ′_d)         = ∇·(K_θ ∇θ′_d) + Q − θ′_d/τ − s_θ(x) (θ′_d − θ_b,d)
+  (θ′_d — диабатическая часть θ′ от нагрева Q; выхолаживание τ — только её; θ′ − θ′_d — адиабатическая)
 
 Отличия от прикидки (все — ради физики, не подгонки):
   * вязкость — на полную скорость u (не на отклонение от фона), турбулентное напряжение у земли —
@@ -231,7 +233,8 @@ extern "C" __global__ void adv2_mom(int comp, const real* u, const real* v, cons
 // ------------------------------------------------ шаблон тепла
 extern "C" __global__ void build_heat(const real* u, const real* v, const real* w, const unsigned char* cell,
         const real* th, const real* Q, const real* spc, const real* thbg, const real* gam, const real* kf, const real* kh,
-        const real* corr, real* C, real* b, int NZ, int NY, int NX, real dx, real dz, real inv_dtau, real inv_tau) {
+        const real* corr, real* C, real* b, int NZ, int NY, int NX, real dx, real dz, real inv_dtau, real inv_tau,
+        real inv_prt) {
     long N = (long)NZ * NY * NX;
     long idx = (long)blockDim.x * blockIdx.x + threadIdx.x;
     if (idx >= N) return;
@@ -256,7 +259,7 @@ extern "C" __global__ void build_heat(const real* u, const real* v, const real* 
             real cn = 0;
             if (vo > 0) diag += vo * ih; else cn += vo * ih;
             const real* KK = d == 2 ? kf : kh;
-            if (cell[q] != 0) { real dif = (real)0.5 * (KK[idx] + KK[q]) * ih * ih; diag += dif; cn -= dif; }
+            if (cell[q] != 0) { real dif = (real)0.5 * (KK[idx] + KK[q]) * ih * ih * inv_prt; diag += dif; cn -= dif; }
             cc[1 + 2 * d + s] = cn;
         }
     }
@@ -507,7 +510,9 @@ class Params:
     k_fa: float = 1.0                 # K свободной атмосферы (выше h), м²/с (0,1–1 — порядок в тропосфере)
     k_smooth_m: float = 1500.0        # сглаживание потока тепла для w* (площадь конвективной ячейки ~ z_i)
     zi_min: float = 300.0             # мин. толщина слоя перемешивания над прогретым склоном, м
-    pr_t: float = 1.0                 # турбулентное число Прандтля
+    pr_t: float = 0.85                # турбулентное число Прандтля, K_θ = K/Pr_t на всех трёх осях (Kays 1994: 0,85).
+                                      # Временно, до решения пользователя (Kays 1994; варианты 1,0/0,74/0,95 —
+                                      # docs/plan/air_model_a1.md §1)
     heat_mode: str = "cbl"            # cbl — нагрев по толщине слоя перемешивания (нелокальный перенос), surface — в первую клетку
     # численные
     dtau_u: float | None = None       # псевдошаг импульса, с; None — dtau_per_m·Δx (по уровню клипмапа)
@@ -672,7 +677,7 @@ class Air:
             Q[:, 1:-1, 1:-1] = np.where(pos, Qc, Qi)
         self.Q_np = Q
         self.cd = (KAPPA / math.log(0.5 * dz / prm.z0)) ** 2
-        s_th = prm.dtau_th / (1 + prm.dtau_th / prm.tau_cool)
+        s_th = prm.dtau_th                       # у полного θ′ нет 1/τ в диагонали (τ — только θ′_d)
         gam_w = np.zeros(NZ); gam_w[1:] = 0.5 * (gam_c[1:] + gam_c[:-1])
         cplz = prm.couple * G / THETA0 * np.maximum(gam_w, 0) * s_th
         self.cplz_np = cplz
@@ -691,19 +696,28 @@ class Air:
         self.nuf = A(self.nu_np)
         self.kbg = A(self.nu_np)
         self.hcp = A(hp)
-        lamc = np.maximum(prm.lam, prm.lam_frac * np.pad(self.h_bl, 1, mode="edge")) if hasattr(self, "h_bl") \
-            else np.full(hp.shape, prm.lam)
+        lamc = np.maximum(prm.lam, prm.lam_frac * np.pad(self.h_bl, 1, mode="edge"))
         self.lam_np = lamc
         self.lamc = A(lamc)
         for name_, arr_ in vars(self).items():
             if isinstance(arr_, cp.ndarray) and not arr_.flags.c_contiguous:
                 raise AssertionError(f"массив {name_} не C-непрерывен")
-        self.khf = self.nuf                      # Pr_t = 1
+        self.inv_prt = 1.0 / prm.pr_t           # K_θ = K/Pr_t (шаблон тепла, баланс)
         self.nuh = A(self.nu_np)                 # горизонтальное K_h
         self.thbg = cp.zeros(shape, dt)          # к чему губка тянет θ′ (0; в окне — родитель)
         self.cplz = A(cplz)
         self.u = cp.zeros(shape, dt); self.v = cp.zeros(shape, dt); self.w = cp.zeros(shape, dt)
         self.th = cp.zeros(shape, dt); self.p = cp.zeros(shape, dt)
+        # θ′_d — диабатическая часть θ′ (второй переносимый скаляр): поле, цель губки/ореол, шаблон,
+        # поправка 2-го порядка; Q_eff = Q − θ′_d/τ — источник полного θ′
+        self.thd = cp.zeros(shape, dt)
+        self.thbd = cp.zeros(shape, dt)
+        self.Ctd = cp.zeros((7,) + shape, dt)
+        self.btd = cp.zeros(shape, dt)
+        self.ctd = cp.zeros(shape, dt)
+        self.Qeff = cp.zeros(shape, dt)
+        self.gam0 = cp.zeros(NZ, dt)
+        self.inv_tau = 1.0 / prm.tau_cool
         self.Cu, self.Cv, self.Cw, self.Ct = (cp.zeros((7,) + shape, dt) for _ in range(4))
         self.bu, self.bv, self.bw, self.bt = (cp.zeros(shape, dt) for _ in range(4))
         self.cu, self.cv, self.cw, self.ct = (cp.zeros(shape, dt) for _ in range(4))   # поправки 2-го порядка
@@ -730,31 +744,22 @@ class Air:
         self.hist = []
         self.status = None
 
-    # ------------------------------------------------------------------ замыкание K(z)
-    def _closure(self):
-        """K_m в клетках (с ореолом). Троен–Март (1986) / Холтслаг–Бовилль (1993), первый порядок
-        с профилем: K = κ w_m z (1 − z/h)² при z < h, выше — k_fa.
+    # ------------------------------------------------------------------ толщина слоя
+    def _bl_depth(self):
+        """Толщина слоя h, w*, L (Троен–Март 1986 / Холтслаг–Бовилль 1993) — свойство слоя, не
+        замыкания: считается всегда (и при closure = "const" — для нагрева cbl и λ).
           u* = κ U10 / ln(10/z0) — по фону (без ускорения над рельефом);
           H — поток тепла, сглаженный гауссом σ = k_smooth_m (конвективная ячейка ~ z_i);
           L = −u*³ θ0 / (κ g H_kin);  w* = (g/θ0 · H_kin · h)^(1/3) при H > 0;
           h: неустойчиво — max(z_i − h_s, zi_min) (h_s — сглаженный рельеф), и не ниже
-             механической 0,3 u*/f; нейтрально/устойчиво — 0,3 u*/f и 0,4 √(u* L / f) (Зилитинкевич);
-          w_m: неустойчиво — u*·(1 − 7 z_s/L)^(1/3) = (u*³ + 7κ (z_s/h) w*³)^(1/3), z_s = min(z, 0,1 h)
-               устойчиво — u* / (1 + 5 z/L); нейтрально — u*.
-        Постоянная (прикидка) — closure = "const"."""
+             механической 0,3 u*/f; нейтрально/устойчиво — 0,3 u*/f и 0,4 √(u* L / f) (Зилитинкевич).
+        Пишет self.ustar, h_mech, wstar, h_bl, Lmo, unst (по внутренним столбцам)."""
         prm, case, g = self.prm, self.case, self.g
-        NZ, NY, NX = self.shape
-        info = {}
-        if prm.closure == "const":
-            return np.full(self.shape, prm.nu_const), dict(kind="const")
         ny, nx = self.hc.shape
         ustar = KAPPA * case.U10 / math.log(10.0 / prm.z0) if case.U10 > 0 else 0.0
         Hs = gauss2d(self.Hk, prm.k_smooth_m / g.dx) if np.any(self.Hk != 0) else np.zeros((ny, nx))
         hs = gauss2d(self.hc, prm.k_smooth_m / g.dx)
         h_mech = 0.3 * ustar / prm.f_cor
-        K = np.full((NZ, ny, nx), prm.k_fa)
-        zagl = self.zc[:, None, None] - self.hc[None]
-        z = np.clip(zagl, 0, None)
         unst = Hs > 1e-6
         # неустойчиво
         if case.z_i is not None:
@@ -769,6 +774,25 @@ class Air:
         h_s = np.where(np.isfinite(Lmo), np.minimum(h_mech, 0.4 * np.sqrt(ustar * np.where(np.isfinite(Lmo), Lmo, 0) / prm.f_cor)), h_mech)
         h = np.where(unst, h_u, h_s)
         h = np.maximum(h, 1.0)
+        self.ustar, self.h_mech, self.wstar, self.h_bl, self.Lmo, self.unst = ustar, h_mech, wstar, h, Lmo, unst
+
+    # ------------------------------------------------------------------ замыкание K(z)
+    def _closure(self):
+        """K_m в клетках (с ореолом). Троен–Март (1986) / Холтслаг–Бовилль (1993), первый порядок
+        с профилем: K = κ w_m z (1 − z/h)² при z < h, выше — k_fa; h, w*, L — _bl_depth().
+          w_m: неустойчиво — u*·(1 − 7 z_s/L)^(1/3) = (u*³ + 7κ (z_s/h) w*³)^(1/3), z_s = min(z, 0,1 h)
+               устойчиво — u* / (1 + 5 z/L); нейтрально — u*.
+        Постоянная (прикидка) — closure = "const": K = nu_const, h слоя — как в hb."""
+        prm = self.prm
+        NZ, NY, NX = self.shape
+        self._bl_depth()
+        if prm.closure == "const":
+            return np.full(self.shape, prm.nu_const), dict(kind="const", nu=prm.nu_const, h_max=float(self.h_bl.max()))
+        ny, nx = self.hc.shape
+        ustar, wstar, h, Lmo, unst = self.ustar, self.wstar, self.h_bl, self.Lmo, self.unst
+        K = np.full((NZ, ny, nx), prm.k_fa)
+        zagl = self.zc[:, None, None] - self.hc[None]
+        z = np.clip(zagl, 0, None)
         zs = np.minimum(z, 0.1 * h[None])
         wm_u = (ustar ** 3 + 7 * KAPPA * (zs / h[None]) * wstar[None] ** 3) ** (1 / 3)
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -780,11 +804,9 @@ class Air:
         Kp[:, 1:-1, 1:-1] = K
         Kp[:, 0, :] = Kp[:, 1, :]; Kp[:, -1, :] = Kp[:, -2, :]
         Kp[:, :, 0] = Kp[:, :, 1]; Kp[:, :, -1] = Kp[:, :, -2]
-        info = dict(kind="hb", ustar=ustar, h_mech=h_mech, wstar_max=float(wstar.max()),
+        info = dict(kind="hb", ustar=ustar, h_mech=self.h_mech, wstar_max=float(wstar.max()),
                     h_max=float(h.max()), K_max=float(K[self.fluid_np[:, 1:-1, 1:-1]].max()),
                     K_p50=float(np.median(K[self.fluid_np[:, 1:-1, 1:-1]])))
-        self.wstar = wstar
-        self.h_bl = h
         return Kp, info
 
     # ------------------------------------------------------------------ границы
@@ -814,6 +836,7 @@ class Air:
         self.v[...] = cp.where(self.tv == 3, self.vbg, self.v); self.v[...] = cp.where(self.tv == 0, 0, self.v)
         self.w[...] = cp.where(self.tw == 1, self.w, 0)
         self.th[...] = cp.where(self.cell == 1, self.th, 0)
+        self.thd[...] = cp.where(self.cell == 1, self.thd, 0)
         self.apply_bc()
 
     def apply_bc(self):
@@ -831,7 +854,7 @@ class Air:
         cp = self.cp
         self.u[...] = cp.where(self.tu == 1, self.ubg, 0)
         self.v[...] = cp.where(self.tv == 1, self.vbg, 0)
-        self.w[...] = 0; self.th[...] = 0; self.p[...] = 0
+        self.w[...] = 0; self.th[...] = 0; self.thd[...] = 0; self.p[...] = 0
         self.set_ghosts_background()
         self.project(cycles=30)
         self.p[...] = 0
@@ -839,6 +862,7 @@ class Air:
     def init_from(self, st, with_p=True, cycles=4):
         for a in ("u", "v", "w", "th"):
             getattr(self, a)[...] = self.cp.asarray(st[a], self.dt)
+        self.thd[...] = self.cp.asarray(st["thd"], self.dt) if "thd" in st else 0   # нет — θ′_d с нуля
         self.p[...] = self.cp.asarray(st["p"], self.dt) if with_p else 0
         if self.nest is None:
             self.set_ghosts_background()
@@ -847,7 +871,7 @@ class Air:
         self.project(cycles=cycles, update_p=False)
 
     def state(self):
-        return {k: getattr(self, k).copy() for k in ("u", "v", "w", "th", "p")}
+        return {k: getattr(self, k).copy() for k in ("u", "v", "w", "th", "thd", "p")}
 
     # ------------------------------------------------------------------ окно: границы от родителя
     def set_nest_bc(self, init=False):
@@ -867,6 +891,8 @@ class Air:
         Zc, Yv, Xc = np.meshgrid(zc, yf, xc, indexing="ij"); vv = sample(V, Xc, Yv, Zc)
         Zw, Yc2, Xc2 = np.meshgrid(zf, yc, xc, indexing="ij"); ww = sample(W, Xc2, Yc2, Zw)
         Zc, Yc, Xc = np.meshgrid(zc, yc, xc, indexing="ij"); tt = sample(T, Xc, Yc, Zc)
+        Td = (P.thd * (P.cell != 0).astype(P.dt)).get().astype(np.float64)   # θ′_d родителя в центрах
+        td = np.where(self.cell_np == 0, 0, sample(Td, Xc, Yc, Zc))
         tu, tv, tw = self.tu_np, self.tv_np, self.tw_np
         uu = np.where(tu == 0, 0, uu); vv = np.where(tv == 0, 0, vv); ww = np.where(tw == 0, 0, ww)
         b = self.b_np
@@ -882,14 +908,17 @@ class Air:
         # к чему тянут губки окна — поле родителя
         self.ubg[...] = A(uu); self.vbg[...] = A(vv); self.wbg[...] = A(ww)
         self.thbg[...] = A(np.where(self.cell_np == 0, 0, tt))
+        self.thbd[...] = A(td)
         if init:
             self.u[...] = A(uu); self.v[...] = A(vv); self.w[...] = A(ww)
             self.th[...] = A(np.where(self.cell_np == 0, 0, tt))
+            self.thd[...] = A(td)
         else:
             self.u[...] = cp.where(fix(tu), A(uu), self.u)
             self.v[...] = cp.where(fix(tv), A(vv), self.v)
             self.w[...] = cp.where(fix(tw), A(ww), self.w)
             self.th[...] = cp.where(self.cell == 2, A(tt), self.th)
+            self.thd[...] = cp.where(self.cell == 2, A(td), self.thd)
         # фон для губок/профиля в окне не используется
 
     def init_nest(self):
@@ -955,20 +984,36 @@ class Air:
     def adv2_heat(self):
         gr, bl = self._grid1()
         R = self.dt.type
-        if self.prm.adv2:
-            self.k["adv2_heat"](gr, bl, (self.u, self.v, self.w, self.cell, self.th, self.ct,
-                                         np.int32(self.NZ), np.int32(self.NY), np.int32(self.NX), R(self.dx), R(self.dz)))
-        else:
-            self.ct[...] = 0
+        for x, c in ((self.th, self.ct), (self.thd, self.ctd)):
+            if self.prm.adv2:
+                self.k["adv2_heat"](gr, bl, (self.u, self.v, self.w, self.cell, x, c,
+                                             np.int32(self.NZ), np.int32(self.NY), np.int32(self.NX), R(self.dx), R(self.dz)))
+            else:
+                c[...] = 0
 
-    def build_heat(self):
+    def _heat_kernel(self, x, Q, xb, gam, corr, C, b, inv_tau):
         gr, bl = self._grid1()
         R = self.dt.type
-        prm = self.prm
-        self.k["build_heat"](gr, bl, (self.u, self.v, self.w, self.cell, self.th, self.Q, self.spc, self.thbg, self.gam,
-                                      self.khf, self.nuh, self.ct, self.Ct, self.bt, np.int32(self.NZ), np.int32(self.NY),
-                                      np.int32(self.NX), R(self.dx), R(self.dz), R(1.0 / prm.dtau_th),
-                                      R(1.0 / prm.tau_cool)))
+        self.k["build_heat"](gr, bl, (self.u, self.v, self.w, self.cell, x, Q, self.spc, xb, gam,
+                                      self.nuf, self.nuh, corr, C, b, np.int32(self.NZ), np.int32(self.NY),
+                                      np.int32(self.NX), R(self.dx), R(self.dz), R(1.0 / self.prm.dtau_th),
+                                      R(inv_tau), R(self.inv_prt)))
+
+    def build_heat_d(self):
+        """Шаблон θ′_d: L θ′_d = Q − θ′_d/τ − s_θ (θ′_d − θ_b,d) (без фона dθ̄/dz)."""
+        self._heat_kernel(self.thd, self.Q, self.thbd, self.gam0, self.ctd, self.Ctd, self.btd, self.inv_tau)
+
+    def build_heat_t(self):
+        """Шаблон полного θ′: L θ′ = Q − θ′_d/τ − w dθ̄/dz − s_θ (θ′ − θ_b); τ — явный источник от θ′_d."""
+        R = self.dt.type
+        self.cp.multiply(self.thd, R(self.inv_tau), out=self.Qeff)
+        self.cp.subtract(self.Q, self.Qeff, out=self.Qeff)
+        self._heat_kernel(self.th, self.Qeff, self.thbg, self.gam, self.ct, self.Ct, self.bt, 0.0)
+
+    def build_heat(self):
+        """Оба шаблона от текущего состояния (невязка, фикстуры)."""
+        self.build_heat_d()
+        self.build_heat_t()
 
     def mom_step(self):
         for _ in range(self.prm.mom_sweeps):
@@ -977,6 +1022,11 @@ class Air:
             self.lines.sweep(self.Cw, self.w, self.bw)
 
     def heat_step(self):
+        """Шаг тепла (после adv2_heat): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки θ′."""
+        self.build_heat_d()
+        for _ in range(self.prm.heat_sweeps):
+            self.lines.sweep(self.Ctd, self.thd, self.btd)
+        self.build_heat_t()
         for _ in range(self.prm.heat_sweeps):
             self.lines.sweep(self.Ct, self.th, self.bt)
 
@@ -998,7 +1048,6 @@ class Air:
         self.mom_step()
         self.project(cycles=self.prm.vcycles)
         self.adv2_heat()
-        self.build_heat()
         self.heat_step()
 
     def capture(self):
@@ -1043,12 +1092,18 @@ class Air:
         self.lines.resid(self.Ct, self.th, self.bt, self.rr)
         r = cp.abs(self.rr) * self.fluid
         out["th"] = (r.max(), cp.sqrt(cp.sum(r * r) / self.n_fluid))
+        self.lines.resid(self.Ctd, self.thd, self.btd, self.rr)
+        r = cp.abs(self.rr) * self.fluid
+        out["thd"] = (r.max(), cp.sqrt(cp.sum(r * r) / self.n_fluid))
         d = cp.abs(self.divergence())
         out["div"] = (d.max(), cp.sqrt(cp.sum(d * d) / self.n_fluid))
         vals = {k: (float(a), float(b)) for k, (a, b) in out.items()}
         return dict(mom_max=max(vals["u"][0], vals["v"][0], vals["w"][0]),
                     mom_rms=math.sqrt((vals["u"][1] ** 2 + vals["v"][1] ** 2 + vals["w"][1] ** 2) / 3),
-                    th_max=vals["th"][0], th_rms=vals["th"][1], div_max=vals["div"][0], div_rms=vals["div"][1])
+                    # критерий тепла — по обоим скалярам (θ′ и θ′_d)
+                    th_max=max(vals["th"][0], vals["thd"][0]), th_rms=max(vals["th"][1], vals["thd"][1]),
+                    thd_max=vals["thd"][0], thd_rms=vals["thd"][1],
+                    div_max=vals["div"][0], div_rms=vals["div"][1])
 
     def solve(self, tol_mom=2e-5, tol_th=5e-7, tol_div=1e-6, max_outer=2000, check_every=10, verbose=False,
               graph=True, cb=None):
@@ -1115,13 +1170,13 @@ class Air:
         return res
 
     def heat_budget(self):
-        """Баланс θ′ (К·м³/с): нагрев = выхолаживание + губка + (−w dθ̄/dz) + вынос через границы."""
+        """Баланс полного θ′ (К·м³/с): нагрев + (−w dθ̄/dz) = выхолаживание (Σ θ′_d/τ) + губка + вынос."""
         cp = self.cp
         V = self.dx * self.dx * self.dz
         f = self.fluid
         th = self.th * f
         q_in = float(cp.sum(self.Q * f, dtype=np.float64)) * V
-        cool = float(cp.sum(th, dtype=np.float64)) * V / self.prm.tau_cool
+        cool = float(cp.sum(self.thd * f, dtype=np.float64)) * V / self.prm.tau_cool
         spg = float(cp.sum((th - self.thbg * f) * self.spc, dtype=np.float64)) * V   # губка тянет к θ_b
         wc = 0.5 * (self.w[:-1] + self.w[1:])
         bg = -float(cp.sum(self.gam[:-1, None, None] * wc * f[:-1], dtype=np.float64)) * V
@@ -1138,7 +1193,7 @@ class Air:
             out += float(cp.sum(un * thb, dtype=np.float64)) * area
         cell = self.cell_np
         T = self.th.get().astype(np.float64)
-        K = self.khf.get().astype(np.float64)
+        K = self.nuf.get().astype(np.float64) * self.inv_prt
         dif = 0.0
         for ax, hh, A in ((2, self.dx, self.dx * self.dz), (1, self.dx, self.dx * self.dz), (0, self.dz, self.dx * self.dx)):
             for sh in (1, -1):

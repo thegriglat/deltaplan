@@ -12,6 +12,10 @@
   flock /tmp/heat_ca_gpu.lock $PY probe.py heat     # heated_slope: до/после разделения, баланс тепла
   flock /tmp/heat_ca_gpu.lock $PY probe.py prt      # (1): Онгудай 12:00, штиль и 3 м/с, Pr_t 1 / 0,85 / 0,74
 Выход — out/<проба>.json.
+
+После А1.2 правки — в самом air.py: подклассы PrtAir/SplitAir/HAir работали только на air.py до правок
+(30bb2b9; числа «до» — out/<проба>.json, воспроизводить на том коммите). На нынешнем air.py — режим after:
+  flock /tmp/heat_ca_gpu.lock $PY probe.py <проба> after   # всё на A.Air → out/<проба>_after.json
 """
 from __future__ import annotations
 
@@ -28,6 +32,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "air3d"))
 OUT = HERE / "out"
 OUT.mkdir(exist_ok=True)
+AFTER = False          # «after» вторым аргументом: правки уже в air.py — всё на A.Air, выход out/<проба>_after.json
 
 import air as A          # noqa: E402
 import synth as SY       # noqa: E402
@@ -220,7 +225,13 @@ def run(cls, g, hc, case, prm, max_outer=3000, taper=True):
     return S
 
 
+def pairs():
+    """(метка, класс): до правок — «now» (air.py) и «split» (прототип SplitAir); after — только «split» = A.Air."""
+    return (("split", A.Air),) if AFTER else (("now", A.Air), ("split", SplitAir))
+
+
 def dump(name, obj):
+    name = name + ("_after" if AFTER else "")
     (OUT / f"{name}.json").write_text(json.dumps(obj, ensure_ascii=False, indent=1, default=lambda o: float(o)))
     print(json.dumps(obj, ensure_ascii=False, indent=1, default=lambda o: float(o)))
 
@@ -249,7 +260,7 @@ def probe_saddle():
     hc = SY.saddle3d(X, Y)
     case = A.Case(U10=5.0, wdir=270.0, gam=SY.const_gam(SY.GAM_N))
     res = dict(x=[float(x) for x in g.x], h_axis=[float(x) for x in hc[int(np.argmin(np.abs(g.y)))]], runs={})
-    for label, cls in (("now", A.Air), ("split", SplitAir)):
+    for label, cls in pairs():
         for tau in (1800.0, 7200.0, 21600.0):
             S = run(cls, g, hc, case, A.Params(tau_cool=tau))
             r = dict(info=info(S), **saddle_obs(S, g))
@@ -259,7 +270,7 @@ def probe_saddle():
             res["runs"][f"{label}_tau{int(tau)}"] = r
             print(label, tau, {k: v for k, v in r.items() if k in ("info", "ratio20", "ratio50", "lee50", "th_min", "th_max")}, flush=True)
             free(S)
-    for label in ("now", "split"):
+    for label, _ in pairs():
         a, b = res["runs"][f"{label}_tau1800"], res["runs"][f"{label}_tau21600"]
         res[f"{label}_delta_ratio20"] = a["ratio20"] - b["ratio20"]
         res[f"{label}_delta_ratio50"] = a["ratio50"] - b["ratio50"]
@@ -293,7 +304,7 @@ def probe_const():
     S = run(A.Air, g, hc, case, A.Params(closure="const", nu_const=30.0, heat_mode="surface"), taper=False)
     res["now_const_surface"] = dict(info=info(S), closure=S.closure_info)
     free(S)
-    S = run(HAir, g, hc, case, prm, taper=False)
+    S = run(A.Air if AFTER else HAir, g, hc, case, prm, taper=False)
     u, v, w, th = S.centers()
     res["fixed_const_cbl"] = dict(info=info(S), closure=S.closure_info, w_max=float(np.nanmax(w)), th_max=float(np.nanmax(th)),
                                   lam_max=float(S.lam_np.max()))
@@ -308,7 +319,7 @@ def probe_const():
 def probe_heat():
     g, hc, case = heated_slope()
     res = {}
-    for label, cls in (("now", A.Air), ("split", SplitAir)):
+    for label, cls in pairs():
         S = run(cls, g, hc, case, A.Params(), taper=False)
         u, v, w, th = S.centers()
         r = dict(info=info(S), w_max=float(np.nanmax(w)), w_min=float(np.nanmin(w)), th_max=float(np.nanmax(th)),
@@ -328,7 +339,8 @@ def probe_prt():
     import ref_study as RS
     res = {}
     orig = A.Air
-    A.Air = PrtAir                               # real.make берёт A.Air в момент вызова
+    if not AFTER:
+        A.Air = PrtAir                           # real.make берёт A.Air в момент вызова
     for U in (0.0, 3.0):
         for prt in (1.0, 0.85, 0.74):
             prm = A.Params(pr_t=prt)
@@ -341,7 +353,7 @@ def probe_prt():
             W2 = RS.window(W1, 50.0, 12.0, U, prm=prm)
             r2 = RS.solve(W2)
             k2 = R.key_numbers(W2)
-            kmax = float(D.cp.max(D.khf * D.fluid))
+            kmax = float(D.cp.max((D.khf if not AFTER else D.nuf * D.inv_prt) * D.fluid))
             res[f"U{int(U)}_prt{prt}"] = dict(
                 iters=dict(d400=rd["iters"], w100=r1["iters"], w50=r2["iters"]),
                 status=dict(d400=rd["status"], w100=r1["status"], w50=r2["status"]),
@@ -363,7 +375,7 @@ def probe_ongudai():
     res = {}
     orig = A.Air
     try:
-        for label, cls in (("now", A.Air), ("split", SplitAir)):
+        for label, cls in pairs():
             A.Air = cls
             for U in (0.0, 3.0):
                 prm = A.Params()
@@ -401,4 +413,5 @@ def probe_ongudai():
 
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "saddle"
+    AFTER = len(sys.argv) > 2 and sys.argv[2] == "after"
     dict(saddle=probe_saddle, const=probe_const, heat=probe_heat, prt=probe_prt, ongudai=probe_ongudai)[what]()

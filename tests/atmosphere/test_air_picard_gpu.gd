@@ -202,7 +202,10 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 	rows.append([name, "подготовка: λ", rel_err(c.col.slice(11 * nyx, 12 * nyx), dat.lam)])
 	rows.append([name, "подготовка: c_pl", rel_err(c.lev.slice(2 * c.nz_h, 3 * c.nz_h), dat.cplz)])
 	# ---- 1. граничные условия
-	_put(job, {u = dat.in_u, v = dat.in_v, w = dat.in_w, th = dat.in_th, p = dat.in_p})
+	_put(
+		job,
+		{u = dat.in_u, v = dat.in_v, w = dat.in_w, th = dat.in_th, thd = dat.in_thd, p = dat.in_p}
+	)
 	job._bc(0)
 	_run(job)
 	rows.append([name, "граничные условия u", rel_err(g.download(b.u), dat.bc_u)])
@@ -341,7 +344,7 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 			0
 		]
 	)
-	# ---- 6. тепло
+	# ---- 6. тепло: шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки θ′
 	_put(
 		job,
 		{
@@ -349,15 +352,27 @@ func _blocks(job: AirPicardJob, m: Dictionary, rows: Array) -> void:
 			v = dat.proj_v,
 			w = dat.proj_w,
 			th = dat.in_th,
+			thd = dat.in_thd,
 			nu = dat.kloc_nu,
 			nuh = dat.kloc_nuh
 		}
 	)
-	job._heat()
+	job._heat(0)
+	_run(job)
+	var chd := unpack(g.download(b.Cu))
+	rows.append([name, "шаблон тепла θ′_d C", rel_err(chd[0], dat.Ch_d)])
+	rows.append([name, "шаблон тепла θ′_d b", rel_err(chd[1], dat.bh_d)])
+	_put(job, {Cu = pack(dat.Ch_d, dat.bh_d), thd = dat.in_thd})
+	for _s in int(c.p.heat_sweeps):
+		g.zebra(b.Cu, b.thd, RID(), d, [2, 0, 1], true)
+	_run(job)
+	rows.append([name, "шаг тепла θ′_d", rel_err(g.download(b.thd), dat.heat_thd)])
+	_put(job, {th = dat.in_th, thd = dat.heat_thd})
+	job._heat(1)
 	_run(job)
 	var ch := unpack(g.download(b.Cu))
-	rows.append([name, "шаблон тепла C", rel_err(ch[0], dat.Ch)])
-	rows.append([name, "шаблон тепла b", rel_err(ch[1], dat.bh)])
+	rows.append([name, "шаблон тепла θ′ C", rel_err(ch[0], dat.Ch)])
+	rows.append([name, "шаблон тепла θ′ b", rel_err(ch[1], dat.bh)])
 	_put(job, {Cu = pack(dat.Ch, dat.bh), th = dat.in_th})
 	for _s in int(c.p.heat_sweeps):
 		g.zebra(b.Cu, b.th, RID(), d, [2, 0, 1], true)
@@ -487,6 +502,7 @@ func test_solutions_vs_reference() -> void:
 		for nm in ["u", "v", "w"]:
 			dv = maxf(dv, max_abs_diff(job.download(nm), dat["sol_" + nm]))
 		var dth := max_abs_diff(job.download("th"), dat.sol_th)
+		dth = maxf(dth, max_abs_diff(job.download("thd"), dat.sol_thd))
 		var r: Dictionary = job.results[-1]
 		var fr: Dictionary = sol.final_residuals
 		print(
@@ -555,7 +571,7 @@ func test_two_runs_bitwise_equal() -> void:
 		if job == null:
 			return
 		var b := PackedByteArray()
-		for nm in ["u", "v", "w", "th", "p"]:
+		for nm in ["u", "v", "w", "th", "thd", "p"]:
 			b.append_array(job.download(nm).to_byte_array())
 		out.append([b, job.iterations()])
 		job.release()
@@ -743,10 +759,12 @@ static func _centers(job: AirPicardJob, i0: int, j0: int, n: int) -> Dictionary:
 	return out
 
 
-## Баланс θ′ (К·м³/с) как Air.heat_budget эталона: нагрев + фон = выхолаживание + губка + вынос.
+## Баланс полного θ′ (К·м³/с) как Air.heat_budget эталона: нагрев + фон = выхолаживание (Σ θ′_d/τ)
+## + губка + вынос.
 static func heat_budget(job: AirPicardJob) -> Dictionary:
 	var c := job.case
 	var th := job.download("th")
+	var thd := job.download("thd")
 	var w := job.download("w")
 	var u := job.download("u")
 	var v := job.download("v")
@@ -767,13 +785,14 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 	var dif := 0.0
 	var a_side := c.dx * c.dz
 	var a_top := c.dx * c.dx
+	var inv_prt := 1.0 / float(c.p.pr_t)
 	for idx in th.size():
 		var t := int(tc[idx])
 		var cell := t & 3
 		var k := idx / sz
 		if cell == 1:
 			q_in += q[idx] * vol
-			cool += th[idx] * vol / float(c.p.tau_cool)
+			cool += thd[idx] * vol / float(c.p.tau_cool)
 			spg += th[idx] * spc[idx] * vol
 			if k < nz_h - 1:
 				bg -= c.gam[k] * 0.5 * (w[idx] + w[idx + sz]) * vol
@@ -792,9 +811,8 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 					continue
 				var nb: int = idx + int(sh[0])
 				if int(tc[nb]) & 3 == 2:
-					dif += (
-						0.5 * (nu[idx] + nu[nb]) * (th[idx] - th[nb]) / float(sh[2]) * float(sh[3])
-					)
+					var kth := 0.5 * (nu[idx] + nu[nb]) * inv_prt
+					dif += kth * (th[idx] - th[nb]) / float(sh[2]) * float(sh[3])
 		# грани типа 2: перенос θ′ через границу (против потока)
 		for ax in 3:
 			var ty := (t >> (2 + 2 * ax)) & 3

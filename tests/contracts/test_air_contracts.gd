@@ -15,11 +15,12 @@ const GAME_FIELDS := [
 const CHANNELS := ["u", "v", "w_mech", "w_conv", "theta"]
 ## Массивы ref/ с ореолом (N), без ореола (n), шаблоны (7·N), по уровням (NZ).
 const REF_N := [
-	"cell", "tu", "tv", "tw", "in_u", "in_v", "in_w", "in_th", "in_p", "mom_u", "mom_v", "mom_w",
-	"proj_u", "proj_v", "proj_w", "proj_p", "sol_u", "sol_v", "sol_w", "sol_th", "sol_p"
+	"cell", "tu", "tv", "tw", "in_u", "in_v", "in_w", "in_th", "in_thd", "in_p", "mom_u", "mom_v",
+	"mom_w", "proj_u", "proj_v", "proj_w", "proj_p", "bh_d", "heat_thd", "bh", "heat_th", "sol_u",
+	"sol_v", "sol_w", "sol_th", "sol_thd", "sol_p"
 ]
 const REF_INNER := ["div_star", "proj_rhs", "vcycle_phi_raw", "div_after"]
-const REF_STENCIL := ["Cm_u", "Cm_v", "Cm_w", "Ch"]
+const REF_STENCIL := ["Cm_u", "Cm_v", "Cm_w", "Ch_d", "Ch"]
 const REF_LEVEL := ["gam"]
 
 
@@ -163,6 +164,9 @@ func test_c1_ref_fixture_format() -> void:
 		)
 		var params: Dictionary = js.params
 		check(params.has("dtau_u") and float(params.dtau_u) > 0.0, c + ": params.dtau_u в JSON (Р1)")
+		check(params.has("pr_t") and float(params.pr_t) > 0.0, c + ": params.pr_t в JSON (C1 v2)")
+		if c == "heated_slope":
+			check(float(params.pr_t) != 1.0, c + ": pr_t ≠ 1 (шаблон тепла чувствителен к Pr_t)")
 		for key in ["tol_mom_rms", "tol_th_rms", "tol_div_rms", "check_every"]:
 			check((js.criterion as Dictionary).has(key), "%s: criterion.%s" % [c, key])
 		check(String(js.solution.status) == "ok", c + ": решение сошлось")
