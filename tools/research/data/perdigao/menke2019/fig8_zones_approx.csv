@@ -1,0 +1,7 @@
+source,transect,direction,x_start_m,x_end_m,length_m,note
+Fig.8,1,SW,100,780,680,"mean-field zero contour of all recirc periods; x from WindScanner 105 origin; +-50 m"
+Fig.8,1,NE,550,1120,570,"+-50 m"
+Fig.8,2,SW,110,780,670,"+-50 m; top ~480 m asl at start falling to ~340 asl"
+Fig.8,2,NE,640,1130,490,"+-50 m"
+Fig.8,3,SW,100,600,500,"+-50 m"
+Fig.8,3,NE,770,1190,420,"+-60 m"
