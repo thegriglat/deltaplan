@@ -13,7 +13,7 @@
 - **Двойная поверхность.** `double_surface_pct` из DHV/страниц — процент; в модели: `double_surface` = true при ≥ 50 %, `lower_cover` ≈ процент/100 (допуск ±0,1 по фото производителя).
 - **Угол носа.** Часто диапазон по положению VG (например 127–132°): берётся середина диапазона.
 - **Надёжность данных.** Числа разобраны моделью Haiku из страниц/PDF/карточек DHV; у каждого значения есть цитата и файл (`wings_merged.json`). При расхождении источников (> 3 %) приоритет: DHV > PDF производителя > страница производителя > архив. DHV «Vne» (испытанная) обычно ниже заявленной производителем; «Startgewicht» DHV — испытательный диапазон, не рекомендованный диапазон пилота. Записи вне физического диапазона (размах вне 8–12,5 м, площадь вне 8–22 м²) помечены в разделе и для размеров не используются без перепроверки.
-- **Тип конструкции** (мачтовое/безмачтовое) брался из выборки по открытым страницам (`tools/research/data/wing_passports/out/construction/batch_*.json`, Haiku); принимается только при цитате, прямо называющей мачту/безмачтовость, иначе — предположение координатора с пометкой. Неверные отметки выборки (например T2/T2C/T3 названы «kingpost» без подтверждающей цитаты) отброшены.
+- **Тип конструкции** (мачтовое/безмачтовое): по цитате из выборки по открытым страницам (`tools/research/data/wing_passports/out/construction/batch_*.json`, Haiku), где она прямо называет мачту/безмачтовость; иначе — по году выпуска и классу (до эры топлесс — мачтовое; T2/T2C/T3 и топлесс-семейства — безмачтовое), при неизвестном годе — мачтовое по умолчанию. Такие места помечены «по году/классу» или «по умолчанию»: поправим по отзывам пилотов (не блокирует работу). Неверные отметки выборки (T2/T2C/T3 названы «kingpost» без цитаты) отброшены.
 - **Физика не в этом ТЗ.** Поляры, скорости, сваливание — отдельная задача (`docs/research/wings_config_sources.md`): числа L/D из заявок производителей для конфигов не использовать.
 
 ## Сводка разделов
@@ -31,12 +31,12 @@
 | E9 | «Апогей» (В. В. Мысенко) | `apogee` | советское мачтовое двухобшивочное 80 % | мачтовое | — | существующая |
 | N1 | Icaro Piuma | `icaro_piuma` | рекреационное/учебное (DHV 1) | мачтовое | `training` | P1 |
 | N2 | Moyes Malibu 2 | `moyes_malibu2` | рекреационное/учебное (DHV 1) | мачтовое | `training` | P1 |
-| N3 | Airborne F2 | `air_f2` | учебное (HGMA/USHPA II Novice) | мачтовое (предп.) | `training` | P1 |
+| N3 | Airborne F2 | `air_f2` | учебное (HGMA/USHPA II Novice) | мачтовое (по году) | `training` | P1 |
 | N4 | Aeros Fox | `aeros_fox` | учебное (DHV 1) | мачтовое | `target` | P1 |
-| N5 | Delta Flugschule Condor Crex 3 | `condor_crex3` | учебное (DHV 1) | мачтовое (предп.) | `training` | P2 |
-| N6 | Delta Flugschule Condor FLEX / Lifter | `condor_flex` | учебное (DHV 1) | мачтовое (предп.) | `training` | P2 |
+| N5 | Delta Flugschule Condor Crex 3 | `condor_crex3` | учебное (DHV 1) | мачтовое (по году) | `training` | P2 |
+| N6 | Delta Flugschule Condor FLEX / Lifter | `condor_flex` | учебное (DHV 1) | мачтовое (по году) | `training` | P2 |
 | N7 | Flugsport Skypoint Funky | `fs_funky` | учебное (DHV 1) | мачтовое | `training` | P2 |
-| N8 | Flugsport Skypoint Space | `fs_space` | учебное/начальное (DHV 1-2) | мачтовое (предп.) | `training` | P2 |
+| N8 | Flugsport Skypoint Space | `fs_space` | учебное/начальное (DHV 1-2) | мачтовое (по году) | `training` | P2 |
 | N9 | Wills Wing Eagle | `ww_eagle` | начальное–среднее (USHPA II Novice) | мачтовое | `magic` | P2 |
 | N10 | Wills Wing Sport 3 | `ww_sport3` | среднее (USHPA III Intermediate; DHV 3 по сертификату 2025) | мачтовое | `laminar` | P1 |
 | N11 | Wills Wing U2 | `ww_u2` | среднее–спортивное (USHPA III; DHV 2-3) | мачтовое | `laminar` | P1 |
@@ -45,30 +45,29 @@
 | N14 | Icaro Alto | `icaro_alto` | среднее (DHV 2-3) | мачтовое | `laminar` | P1 |
 | N15 | Icaro MastR | `icaro_mastr` | спортивное (DHV 3) | безмачтовое | `combat` | P1 |
 | N16 | Bautek Kite | `bautek_kite` | среднее (DHV 2) | мачтовое | `laminar` | P2 |
-| N17 | Bautek Astir | `bautek_astir` | среднее (DHV 2) | ? | `laminar` | P2 |
-| N18 | Flugsport Skypoint Crossover | `fs_crossover` | среднее (DHV 2) | мачтовое (предп.) | `laminar` | P2 |
+| N17 | Bautek Astir | `bautek_astir` | среднее (DHV 2) | мачтовое (по году) | `laminar` | P2 |
+| N18 | Flugsport Skypoint Crossover | `fs_crossover` | среднее (DHV 2) | мачтовое (по году) | `laminar` | P2 |
 | N19 | Seedwings Spyder | `seed_spyder` | среднее (DHV 2) | безмачтовое | `sport` | P2 |
 | N20 | Moyes Gecko | `moyes_gecko` | среднее/спортивное (DHV 3 по сертификату 2016) | мачтовое | `laminar` | P1 |
-| N21 | Wills Wing Sport 2 | `ww_sport2` | среднее (USHPA III; DHV 2) | мачтовое | `laminar` | P2 |
-| N22 | Wills Wing Super Sport | `ww_super_sport` | среднее (USHPA III) | ? | `magic` | P2 |
-| N23 | Wills Wing Ultra Sport | `ww_ultra_sport` | среднее (USHPA III) | мачтовое | `magic` | P2 |
-| N24 | Wills Wing Spectrum | `ww_spectrum` | начальное (USHPA II Novice) | ? | `training` | P2 |
-| N25 | Wills Wing T2 / T2C | `ww_t2c` | соревновательное безмачтовое (DHV 3; USHPA IV Advanced) | безмачтовое (предп.) | `sport` | P1 |
-| N26 | Wills Wing T3 | `ww_t3` | соревновательное безмачтовое (USHPA IV Advanced) | безмачтовое (предп.) | `sport` | P1 |
-| N27 | Moyes Litespeed RX | `moyes_litespeed_rx` | соревновательное безмачтовое (DHV 3) | безмачтовое | `sport` | P1 |
-| N28 | Moyes Litespeed S | `moyes_litespeed_s` | спортивное безмачтовое (DHV 3) | безмачтовое | `sport` | P2 |
-| N29 | Moyes Litesport | `moyes_litesport` | средне-спортивное (класс на странице не указан) | мачтовое | `laminar` | P1 |
-| N30 | Aeros Combat C (и DesignProducts Combat C AC) | `aeros_combat_c` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P1 |
-| N31 | Aeros Combat L | `aeros_combat_l` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
-| N32 | Icaro Laminar (Zero 9 / Zero 7 / Z8) | `icaro_laminar_z9` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P1 |
-| N33 | Bautek Fizz | `bautek_fizz` | среднее/спортивное (DHV 3) | мачтовое | `laminar` | P1 |
-| N34 | Airborne C4 | `air_c4` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
-| N35 | Airborne REV | `air_rev` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
-| N36 | DesignProducts SHE 1 | `dp_she1` | соревновательное безмачтовое (DHV 3) | безмачтовое (предп.) | `combat` | P2 |
-| N37 | Seedwings Skyrunner XR | `seed_skyrunner_xr` | среднее (DHV 2-3) | мачтовое | `laminar` | P2 |
-| N38 | Wills Wing Fusion | `ww_fusion` | продвинутое (USHPA IV Advanced) | безмачтовое | `sport` | P2 |
-| N39 | Wills Wing Talon | `ww_talon` | продвинутое (USHPA IV Advanced) | безмачтовое | `sport` | P2 |
-| N40 | Wills Wing Cross Country | `ww_cross_country` | продвинутое (USHPA IV Advanced) | ? | `magic` | P2 |
+| N21 | Wills Wing Super Sport | `ww_super_sport` | среднее (USHPA III) | мачтовое (по году) | `magic` | P2 |
+| N22 | Wills Wing Ultra Sport | `ww_ultra_sport` | среднее (USHPA III) | мачтовое | `magic` | P2 |
+| N23 | Wills Wing Spectrum | `ww_spectrum` | начальное (USHPA II Novice) | мачтовое (по году) | `training` | P2 |
+| N24 | Wills Wing T2 / T2C | `ww_t2c` | соревновательное безмачтовое (DHV 3; USHPA IV Advanced) | безмачтовое (по году) | `sport` | P1 |
+| N25 | Wills Wing T3 | `ww_t3` | соревновательное безмачтовое (USHPA IV Advanced) | безмачтовое (по году) | `sport` | P1 |
+| N26 | Moyes Litespeed RX | `moyes_litespeed_rx` | соревновательное безмачтовое (DHV 3) | безмачтовое | `sport` | P1 |
+| N27 | Moyes Litespeed S | `moyes_litespeed_s` | спортивное безмачтовое (DHV 3) | безмачтовое | `sport` | P2 |
+| N28 | Moyes Litesport | `moyes_litesport` | средне-спортивное (класс на странице не указан) | мачтовое | `laminar` | P1 |
+| N29 | Aeros Combat C (и DesignProducts Combat C AC) | `aeros_combat_c` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P1 |
+| N30 | Aeros Combat L | `aeros_combat_l` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
+| N31 | Icaro Laminar (Zero 9 / Zero 7 / Z8) | `icaro_laminar_z9` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P1 |
+| N32 | Bautek Fizz | `bautek_fizz` | среднее/спортивное (DHV 3) | мачтовое | `laminar` | P1 |
+| N33 | Airborne C4 | `air_c4` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
+| N34 | Airborne REV | `air_rev` | соревновательное безмачтовое (DHV 3) | безмачтовое | `combat` | P2 |
+| N35 | DesignProducts SHE 1 | `dp_she1` | соревновательное безмачтовое (DHV 3) | безмачтовое (по году) | `combat` | P2 |
+| N36 | Seedwings Skyrunner XR | `seed_skyrunner_xr` | среднее (DHV 2-3) | мачтовое | `laminar` | P2 |
+| N37 | Wills Wing Fusion | `ww_fusion` | продвинутое (USHPA IV Advanced) | безмачтовое | `sport` | P2 |
+| N38 | Wills Wing Talon | `ww_talon` | продвинутое (USHPA IV Advanced) | безмачтовое | `sport` | P2 |
+| N39 | Wills Wing Cross Country | `ww_cross_country` | продвинутое (USHPA IV Advanced) | мачтовое (по году) | `magic` | P2 |
 
 
 ## Не включены в ТЗ
@@ -79,6 +78,7 @@
 | Icaro Biplace, Icaro PiBi, Icaro RX 2 BIP, Aeros Target 21, Wills Wing Condor (225/330), Bautek BiCo | тандемы/учебные двухместные (нагрузка 120–240 кг) — в игре один пилот |
 | Icaro Piuma Trike, Airborne XT | тележечные (trike/мотор) — не свободный полёт |
 | Ellipse Sol'R | сверхлёгкий (Vne 55 км/ч), данных для 3D нет |
+| Wills Wing Sport 2 | убран из игры решением пользователя 28.09.2026 |
 | Icaro Easy 2 / Orbiter | используются как аналог существующего `laminar` (раздел E5), отдельной модели не делаем |
 | Wills Wing Falcon, Falcon 2, Falcon 3, Skyhawk, Duck, Attack Duck, Harrier, Harrier II, Raven, HP, HP II, HP AT, Sport, Sport AT, Sportster, RamAir | архивные WW: в паспорте только площадь и плакат (без размаха, угла носа, лат), не отличаются от уже имеющихся баз; Falcon 2/3 — предыдущие поколения существующего `training` |
 
@@ -593,7 +593,7 @@
 
 - **Модель:** Airborne F2; будущий файл `assets/models/glider_air_f2.glb`, запись `tools/blender/glider_params.json` → `wings.air_f2` (новая), конфиг `configs/wings/air_f2.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** учебное (HGMA/USHPA II Novice), мачтовое, двойная поверхность 30 %. Предлагаемая группа игры: `trainer` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Lightweight novice/recreational glider; Hinged battens as standard; Round down tube knuckle for optional speed bars; Nose angle: 118 degrees.
 - **Что есть сейчас:** 3D-модели и конфига нет.
 - **База:** копия записи `wings.training` из `glider_params.json` (модель `glider_training.glb`: 8 лат на сторону, угол носа 122°, мачтовое); правится только то, что в таблице ниже.
@@ -649,7 +649,7 @@
 
 ### Открытые вопросы
 
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
+- нет
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -718,7 +718,7 @@
 
 - **Модель:** Delta Flugschule Condor Crex 3; будущий файл `assets/models/glider_condor_crex3.glb`, запись `tools/blender/glider_params.json` → `wings.condor_crex3` (новая), конфиг `configs/wings/condor_crex3.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** учебное (DHV 1), мачтовое, двойная поверхность 60 %. Предлагаемая группа игры: `trainer` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** с 2015.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Wing span 9.60 m; Aspect ratio 6.4; Weight 23 kg; Maximum pilot weight 100 kg.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -768,7 +768,6 @@
 
 - Угол носа и высота кингпоста неизвестны — по базе.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -778,7 +777,7 @@
 
 - **Модель:** Delta Flugschule Condor FLEX / Lifter; будущий файл `assets/models/glider_condor_flex.glb`, запись `tools/blender/glider_params.json` → `wings.condor_flex` (новая), конфиг `configs/wings/condor_flex.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** учебное (DHV 1), лёгкое однообшивочное (двойная поверхность 20 %). Предлагаемая группа игры: `trainer` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** с 2019.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Wing span 9.15 m; Aspect ratio 5.2; Weight 17 kg; Pilot weight range 50–98 kg.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -827,7 +826,6 @@
 ### Открытые вопросы
 
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -893,7 +891,7 @@
 
 - **Модель:** Flugsport Skypoint Space; будущий файл `assets/models/glider_fs_space.glb`, запись `tools/blender/glider_params.json` → `wings.fs_space` (новая), конфиг `configs/wings/fs_space.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** учебное/начальное (DHV 1-2), двойная поверхность 72 %, историческое. Предлагаемая группа игры: `trainer` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Что есть сейчас:** 3D-модели и конфига нет.
 - **База:** копия записи `wings.training` из `glider_params.json` (модель `glider_training.glb`: 8 лат на сторону, угол носа 122°, мачтовое); правится только то, что в таблице ниже.
 
@@ -940,7 +938,6 @@
 
 - Угол носа неизвестен.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -1266,7 +1263,7 @@
 
 ### Открытые вопросы
 
-- Версия Race безмачтовая (по данным производителя — проверить в batch_a).
+- Версия Race безмачтовая, Sport — мачтовая; делаем мачтовую (Sport), Race — отдельной задачей при необходимости.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -1338,7 +1335,7 @@
 
 ### Открытые вопросы
 
-- Тип (мачтовый/безмачтовый) — по `out/construction/batch_c.json`.
+- Тип принят по выборке; поправим по отзывам пилотов.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -1467,7 +1464,7 @@
 
 - **Модель:** Bautek Astir; будущий файл `assets/models/glider_bautek_astir.glb`, запись `tools/blender/glider_params.json` → `wings.bautek_astir` (новая), конфиг `configs/wings/bautek_astir.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее (DHV 2), двойная поверхность 85 %. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
-- **Конструкция:** неизвестен — определить по фото производителя до начала работы.
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Заметки по виду (из выборки, проверять по первоисточнику):** 34.6 ft wingspan; Pack lengths offered: long 20.2 ft; short 15.4 ft; extra short 9.8 ft; DHV 2 (intermediate) rating; 64 lbs glider weight.
 - **Что есть сейчас:** 3D-модели и конфига нет.
 - **База:** копия записи `wings.laminar` из `glider_params.json` (модель `glider_laminar.glb`: 13 лат на сторону, угол носа 127°, мачтовое); правится только то, что в таблице ниже.
@@ -1484,6 +1481,7 @@
 | `nose_forward_m` | 1,32 | 0,568·хорда у корня (как у всех существующих моделей; паспорта нет) |
 | `battens_per_side` | 13 | паспорта нет — как у базы |
 | `double_surface / lower_cover` | true / 0,85 | паспорт: двойная поверхность 85 %; `lower_cover` = процент/100 (допуск ±0,1 по фото производителя) |
+| `kingpost_m` | 1,15 | высоты в паспортах нет — как у базы (мачтовая) |
 | `crossbar_u` | 0,58 | данных нет — как у базы |
 | `dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend` | как у базы | в источниках чисел нет — не выдумывать |
 
@@ -1509,7 +1507,6 @@
 ### Открытые вопросы
 
 - Число латов не найдено.
-- Тип конструкции (мачтовая/безмачтовая) не установлен — определить по фото/описанию производителя и выбрать базу соответственно.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -1519,7 +1516,7 @@
 
 - **Модель:** Flugsport Skypoint Crossover; будущий файл `assets/models/glider_fs_crossover.glb`, запись `tools/blender/glider_params.json` → `wings.fs_crossover` (новая), конфиг `configs/wings/fs_crossover.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее (DHV 2), двойная поверхность 82 %, историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Что есть сейчас:** 3D-модели и конфига нет.
 - **База:** копия записи `wings.laminar` из `glider_params.json` (модель `glider_laminar.glb`: 13 лат на сторону, угол носа 127°, мачтовое); правится только то, что в таблице ниже.
 
@@ -1565,7 +1562,6 @@
 
 - Угол носа неизвестен.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
@@ -1620,7 +1616,6 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — по batch_c.
 - Угол носа в паспорте не найден — значение базы.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
@@ -1688,78 +1683,17 @@
 
 ### Открытые вопросы
 
-- Тип (мачтовый/безмачтовый) — batch_b.
+- нет
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N21. Wills Wing Sport 2 (`ww_sport2`) — новая модель, приоритет P2
-
-- **Модель:** Wills Wing Sport 2; будущий файл `assets/models/glider_ww_sport2.glb`, запись `tools/blender/glider_params.json` → `wings.ww_sport2` (новая), конфиг `configs/wings/ww_sport2.json` (новый; физику и поляру ведёт отдельная задача).
-- **Класс:** среднее (USHPA III; DHV 2), мачтовое двухобшивочное 74 %, историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
-- **Конструкция:** мачтовое — по цитате: «Kingposted design with internal sprogs for stability and a single reflex bridle per wing» (https://www.willswing.com/hang-gliders/sport-2/).
-- **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes.
-- **Заметки по виду (из выборки, проверять по первоисточнику):** Designed for intermediate level pilots; Combination Bridle and Internal Stability System; Compatible with Litestream performance control bar; Light weight and good static balance.
-- **Что есть сейчас:** 3D-модели и конфига нет.
-- **База:** копия записи `wings.laminar` из `glider_params.json` (модель `glider_laminar.glb`: 13 лат на сторону, угол носа 127°, мачтовое); правится только то, что в таблице ниже.
-
-### Что задать
-
-| Параметр | Значение | Откуда |
-|---|---|---|
-| `config` | ww_sport2 | id модели; `out` = `glider_ww_sport2` |
-| `span_m` | 9,6 | паспорт (опорный размер 155) |
-| `area_m2` | 14,4 | паспорт, опорный размер 155 |
-| `nose_angle_deg` | 127 | паспорта нет — как у базы; если появится, ставить паспортный |
-| `root_chord_m / tip_chord_m` | 2,50 / 0,66 | форма базы (отношение хорд 0,264) пересчитана под паспортные размах и площадь; площадь в плане при этом 14,37 м² |
-| `nose_forward_m` | 1,42 | 0,568·хорда у корня (как у всех существующих моделей; паспорта нет) |
-| `battens_per_side` | 7 | паспорт: верхних лат всего 15 ⇒ на сторону 7 (нечётное число: одна центральная лата у киля не считается) |
-| `double_surface / lower_cover` | true / 0,74 | паспорт: двойная поверхность 74 %; `lower_cover` = процент/100 (допуск ±0,1 по фото производителя) |
-| `kingpost_m` | 1,15 | высоты в паспортах нет — как у базы (мачтовая) |
-| `crossbar_u` | 0,58 | данных нет — как у базы |
-| `dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend` | как у базы | в источниках чисел нет — не выдумывать |
-
-Формула хорд: `root = (S/b)/(k_r + k_t·ρ)`, ρ = tip/root базы, `k_r = 0,4592`, `k_t = 0,5291` (интеграл профиля хорды `build_gliders.py`; с учётом скругления законцовки).
-
-- Точки поляры WW есть (185 fpm @ 22 mph и 445 fpm @ 40 mph); удалён из игры пользователем 28.09.2026 (wings_lineup §3) — вернуть только по новому решению.
-
-### Паспортные данные по размерам
-
-| Размер | Площадь, м² | Размах, м | Удлинение | Масса крыла, кг | Пилот (hook-in), кг | Двойная пов., % | Vne, км/ч | Угол носа, ° | Лат (верх., всего) |
-|---|---|---|---|---|---|---|---|---|---|
-| Sport 2 155 | 14,4 | 9,6 | — | 27 | — | 74 | 90 | — | 15 |
-| Sport 2 135 | 12,5 | 8,9 | — | 25,3 | — | 74 | 85 | — | 13 |
-| Sport 2 175 | — | — | — | — | — | — | 85 | — | — |
-
-Размеры каркаса/прочее опорного размера (из `wings_geometry.json`):
-
-- `battens` = 15  — «15 / 5»
-
-### Источники
-
-- https://www.willswing.com/hang-glider-placard-specifications/
-- DHV Geräteportal (service.dhv.de/db1; файл разбора dhv_06)
-- DHV Geräteportal (service.dhv.de/db1; файл разбора dhv_13)
-- DHV Geräteportal (service.dhv.de/db1; файл разбора dhv_01)
-- DHV Geräteportal (service.dhv.de/db1; файл разбора dhv_09)
-- Номера DHV-сертификатов: DHV 01-0440-08, DHV 01-0478-13
-- Сводная таблица и цитаты: `tools/research/data/wing_passports/wings_merged.json` (ключи `Wills Wing|Sport 2||155`, `Wills Wing|Sport 2||135`, `Wills Wing|Sport 2||175`).
-
-### Открытые вопросы
-
-- Была убрана из игры по решению пользователя (28.09.2026) — сверить, нужна ли вообще.
-- Угол носа в паспорте не найден — значение базы.
-
-**Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
-
----
-
-## Раздел N22. Wills Wing Super Sport (`ww_super_sport`) — новая модель, приоритет P2
+## Раздел N21. Wills Wing Super Sport (`ww_super_sport`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Super Sport; будущий файл `assets/models/glider_ww_super_sport.glb`, запись `tools/blender/glider_params.json` → `wings.ww_super_sport` (новая), конфиг `configs/wings/ww_super_sport.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее (USHPA III), историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
-- **Конструкция:** неизвестен — определить по фото производителя до начала работы.
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** с 1991 по 1997; преемственность: Replaced by Ultra Sport.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** HP AT airfoil and airframe technology; Seamless drawn aircraft quality 7075 airframe; Faired wingtips and nosecone; Premium sailcloth options with pilot-selectable colors.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -1777,6 +1711,7 @@
 | `nose_forward_m` | 1,29 | 0,568·хорда у корня (как у всех существующих моделей; паспорта нет) |
 | `battens_per_side` | 11 | паспорта нет — как у базы |
 | `double_surface / lower_cover` | true / 0,6 | паспорта нет — как у базы |
+| `kingpost_m` | 1,2 | высоты в паспортах нет — как у базы (мачтовая) |
 | `crossbar_u` | 0,57 | данных нет — как у базы |
 | `dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend` | как у базы | в источниках чисел нет — не выдумывать |
 
@@ -1800,15 +1735,14 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции (мачтовая/безмачтовая) не установлен — определить по фото/описанию производителя и выбрать базу соответственно.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N23. Wills Wing Ultra Sport (`ww_ultra_sport`) — новая модель, приоритет P2
+## Раздел N22. Wills Wing Ultra Sport (`ww_ultra_sport`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Ultra Sport; будущий файл `assets/models/glider_ww_ultra_sport.glb`, запись `tools/blender/glider_params.json` → `wings.ww_ultra_sport` (новая), конфиг `configs/wings/ww_ultra_sport.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее (USHPA III), историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
@@ -1854,18 +1788,18 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 - Угол носа в паспорте не найден — значение базы.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N24. Wills Wing Spectrum (`ww_spectrum`) — новая модель, приоритет P2
+## Раздел N23. Wills Wing Spectrum (`ww_spectrum`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Spectrum; будущий файл `assets/models/glider_ww_spectrum.glb`, запись `tools/blender/glider_params.json` → `wings.ww_spectrum` (новая), конфиг `configs/wings/ww_spectrum.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** начальное (USHPA II Novice), историческое. Предлагаемая группа игры: `trainer` (`configs/wing_groups.json`).
-- **Конструкция:** неизвестен — определить по фото производителя до начала работы.
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** с 1990 по 2000; преемственность: Replaced by Falcon, Eagle, and Ultra Sport.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** High-performance entry-level glider; 7075 aluminum alloy airframe and battens; Faired wingtips for drag reduction; Optional streamline downtubes and speedbar.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -1883,6 +1817,7 @@
 | `nose_forward_m` | 1,3 | 0,568·хорда у корня (как у всех существующих моделей; паспорта нет) |
 | `battens_per_side` | 8 | паспорта нет — как у базы |
 | `double_surface / lower_cover` | false / 0,14 | паспорта нет — как у базы |
+| `kingpost_m` | 1,25 | высоты в паспортах нет — как у базы (мачтовая) |
 | `crossbar_u` | 0,55 | данных нет — как у базы |
 | `dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend` | как у базы | в источниках чисел нет — не выдумывать |
 
@@ -1909,18 +1844,17 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
-- Тип конструкции (мачтовая/безмачтовая) не установлен — определить по фото/описанию производителя и выбрать базу соответственно.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N25. Wills Wing T2 / T2C (`ww_t2c`) — новая модель, приоритет P1
+## Раздел N24. Wills Wing T2 / T2C (`ww_t2c`) — новая модель, приоритет P1
 
 - **Модель:** Wills Wing T2 / T2C; будущий файл `assets/models/glider_ww_t2c.glb`, запись `tools/blender/glider_params.json` → `wings.ww_t2c` (новая), конфиг `configs/wings/ww_t2c.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3; USHPA IV Advanced), VG. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
-- **Конструкция:** безмачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** безмачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; с 2013; преемственность: Full competition version of T2.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** All mylar top surface sail with special UV-film laminate sail material; Carbon-kevlar leading edge pocket inserts; Ergonomically-designed carbon streamlined basetube.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -1993,17 +1927,16 @@
 ### Открытые вопросы
 
 - Ориентир качества: класс T2C по LK8000 (13,6 на 47,5 км/ч) — для конфига, не для 3D.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N26. Wills Wing T3 (`ww_t3`) — новая модель, приоритет P1
+## Раздел N25. Wills Wing T3 (`ww_t3`) — новая модель, приоритет P1
 
 - **Модель:** Wills Wing T3; будущий файл `assets/models/glider_ww_t3.glb`, запись `tools/blender/glider_params.json` → `wings.ww_t3` (новая), конфиг `configs/wings/ww_t3.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (USHPA IV Advanced), VG, двойная поверхность 92 %. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
-- **Конструкция:** безмачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** безмачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; с 2020.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Bearing tips system for extraordinary improvement in handling and control authority; UV-film laminate top surface with Technora laminates on Race and Team editions; ACLER (Advanced Composite Leading Edge Reinforcement) - Kevlar and carbon fiber molded inserts; Carbon fiber over-molded battens on longest 4 battens.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -2050,13 +1983,12 @@
 ### Открытые вопросы
 
 - Число латов на странице T3 не извлечено — по базе.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N27. Moyes Litespeed RX (`moyes_litespeed_rx`) — новая модель, приоритет P1
+## Раздел N26. Moyes Litespeed RX (`moyes_litespeed_rx`) — новая модель, приоритет P1
 
 - **Модель:** Moyes Litespeed RX; будущий файл `assets/models/glider_moyes_litespeed_rx.glb`, запись `tools/blender/glider_params.json` → `wings.moyes_litespeed_rx` (новая), конфиг `configs/wings/moyes_litespeed_rx.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), VG. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2121,7 +2053,7 @@
 
 ---
 
-## Раздел N28. Moyes Litespeed S (`moyes_litespeed_s`) — новая модель, приоритет P2
+## Раздел N27. Moyes Litespeed S (`moyes_litespeed_s`) — новая модель, приоритет P2
 
 - **Модель:** Moyes Litespeed S; будущий файл `assets/models/glider_moyes_litespeed_s.glb`, запись `tools/blender/glider_params.json` → `wings.moyes_litespeed_s` (новая), конфиг `configs/wings/moyes_litespeed_s.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** спортивное безмачтовое (DHV 3), 2005, историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2187,7 +2119,7 @@
 
 ---
 
-## Раздел N29. Moyes Litesport (`moyes_litesport`) — новая модель, приоритет P1
+## Раздел N28. Moyes Litesport (`moyes_litesport`) — новая модель, приоритет P1
 
 - **Модель:** Moyes Litesport; будущий файл `assets/models/glider_moyes_litesport.glb`, запись `tools/blender/glider_params.json` → `wings.moyes_litesport` (новая), конфиг `configs/wings/moyes_litesport.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** средне-спортивное (класс на странице не указан). Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2237,13 +2169,13 @@
 
 ### Открытые вопросы
 
-- Тип (мачта/топлесс) — batch_b; если мачтовое — основа `laminar`.
+- Тип принят по выборке; поправим по отзывам пилотов.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N30. Aeros Combat C (и DesignProducts Combat C AC) (`aeros_combat_c`) — новая модель, приоритет P1
+## Раздел N29. Aeros Combat C (и DesignProducts Combat C AC) (`aeros_combat_c`) — новая модель, приоритет P1
 
 - **Модель:** Aeros Combat C (и DesignProducts Combat C AC); будущий файл `assets/models/glider_aeros_combat_c.glb`, запись `tools/blender/glider_params.json` → `wings.aeros_combat_c` (новая), конфиг `configs/wings/aeros_combat_c.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), 2016–. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2307,7 +2239,7 @@
 
 ---
 
-## Раздел N31. Aeros Combat L (`aeros_combat_l`) — новая модель, приоритет P2
+## Раздел N30. Aeros Combat L (`aeros_combat_l`) — новая модель, приоритет P2
 
 - **Модель:** Aeros Combat L; будущий файл `assets/models/glider_aeros_combat_l.glb`, запись `tools/blender/glider_params.json` → `wings.aeros_combat_l` (новая), конфиг `configs/wings/aeros_combat_l.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), 2005–2008, историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2370,7 +2302,7 @@
 
 ---
 
-## Раздел N32. Icaro Laminar (Zero 9 / Zero 7 / Z8) (`icaro_laminar_z9`) — новая модель, приоритет P1
+## Раздел N31. Icaro Laminar (Zero 9 / Zero 7 / Z8) (`icaro_laminar_z9`) — новая модель, приоритет P1
 
 - **Модель:** Icaro Laminar (Zero 9 / Zero 7 / Z8); будущий файл `assets/models/glider_icaro_laminar_z9.glb`, запись `tools/blender/glider_params.json` → `wings.icaro_laminar_z9` (новая), конфиг `configs/wings/icaro_laminar_z9.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), VG, 94–96 %. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2456,7 +2388,7 @@
 
 ---
 
-## Раздел N33. Bautek Fizz (`bautek_fizz`) — новая модель, приоритет P1
+## Раздел N32. Bautek Fizz (`bautek_fizz`) — новая модель, приоритет P1
 
 - **Модель:** Bautek Fizz; будущий файл `assets/models/glider_bautek_fizz.glb`, запись `tools/blender/glider_params.json` → `wings.bautek_fizz` (новая), конфиг `configs/wings/bautek_fizz.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее/спортивное (DHV 3), мачтовое («classic and time tested kingpost construction», точка подвеса на кингпосте), двойная поверхность 90 %, VG. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
@@ -2534,7 +2466,7 @@
 
 ---
 
-## Раздел N34. Airborne C4 (`air_c4`) — новая модель, приоритет P2
+## Раздел N33. Airborne C4 (`air_c4`) — новая модель, приоритет P2
 
 - **Модель:** Airborne C4; будущий файл `assets/models/glider_air_c4.glb`, запись `tools/blender/glider_params.json` → `wings.air_c4` (новая), конфиг `configs/wings/air_c4.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), 2008, историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2590,7 +2522,7 @@
 
 ---
 
-## Раздел N35. Airborne REV (`air_rev`) — новая модель, приоритет P2
+## Раздел N34. Airborne REV (`air_rev`) — новая модель, приоритет P2
 
 - **Модель:** Airborne REV; будущий файл `assets/models/glider_air_rev.glb`, запись `tools/blender/glider_params.json` → `wings.air_rev` (новая), конфиг `configs/wings/air_rev.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2647,11 +2579,11 @@
 
 ---
 
-## Раздел N36. DesignProducts SHE 1 (`dp_she1`) — новая модель, приоритет P2
+## Раздел N35. DesignProducts SHE 1 (`dp_she1`) — новая модель, приоритет P2
 
 - **Модель:** DesignProducts SHE 1; будущий файл `assets/models/glider_dp_she1.glb`, запись `tools/blender/glider_params.json` → `wings.dp_she1` (новая), конфиг `configs/wings/dp_she1.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** соревновательное безмачтовое (DHV 3), 2023. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
-- **Конструкция:** безмачтовое — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя).
+- **Конструкция:** безмачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; преемственность: Related to Combat C (both have new AC sails).
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Designed by Markus Egimann of Design Products; Co-designed, developed and produced CF frames; Same planform and airfoil as Combat; New lighter cross-bar.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -2698,13 +2630,12 @@
 
 - Связь с Combat C — batch_c.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции принят по предположению — подтвердить по фото производителя.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N37. Seedwings Skyrunner XR (`seed_skyrunner_xr`) — новая модель, приоритет P2
+## Раздел N36. Seedwings Skyrunner XR (`seed_skyrunner_xr`) — новая модель, приоритет P2
 
 - **Модель:** Seedwings Skyrunner XR; будущий файл `assets/models/glider_seed_skyrunner_xr.glb`, запись `tools/blender/glider_params.json` → `wings.seed_skyrunner_xr` (новая), конфиг `configs/wings/seed_skyrunner_xr.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** среднее (DHV 2-3), двойная поверхность 90 %. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
@@ -2752,14 +2683,14 @@
 
 ### Открытые вопросы
 
-- Тип — batch_c.
+- Тип принят по году выпуска; поправим по отзывам пилотов.
 - Угол носа в паспорте не найден — значение базы.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N38. Wills Wing Fusion (`ww_fusion`) — новая модель, приоритет P2
+## Раздел N37. Wills Wing Fusion (`ww_fusion`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Fusion; будущий файл `assets/models/glider_ww_fusion.glb`, запись `tools/blender/glider_params.json` → `wings.ww_fusion` (новая), конфиг `configs/wings/ww_fusion.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** продвинутое (USHPA IV Advanced), 2-поверхностное 88 %, историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2808,13 +2739,13 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.
 
 ---
 
-## Раздел N39. Wills Wing Talon (`ww_talon`) — новая модель, приоритет P2
+## Раздел N38. Wills Wing Talon (`ww_talon`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Talon; будущий файл `assets/models/glider_ww_talon.glb`, запись `tools/blender/glider_params.json` → `wings.ww_talon` (новая), конфиг `configs/wings/ww_talon.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** продвинутое (USHPA IV Advanced), историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
@@ -2860,7 +2791,7 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 - Размаха и удлинения в паспорте нет — размах оценён по удлинению базы, уточнить по первоисточнику.
 - Угол носа в паспорте не найден — значение базы.
 
@@ -2868,11 +2799,11 @@
 
 ---
 
-## Раздел N40. Wills Wing Cross Country (`ww_cross_country`) — новая модель, приоритет P2
+## Раздел N39. Wills Wing Cross Country (`ww_cross_country`) — новая модель, приоритет P2
 
 - **Модель:** Wills Wing Cross Country; будущий файл `assets/models/glider_ww_cross_country.glb`, запись `tools/blender/glider_params.json` → `wings.ww_cross_country` (новая), конфиг `configs/wings/ww_cross_country.json` (новый; физику и поляру ведёт отдельная задача).
 - **Класс:** продвинутое (USHPA IV Advanced), историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
-- **Конструкция:** неизвестен — определить по фото производителя до начала работы.
+- **Конструкция:** мачтовое — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; с 1995 по 2000; преемственность: Succeeded by Ultra Sport and Fusion.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Four internal ribs per side (outboard); Three bottom surface battens (inboard); Optional winglets for enhanced performance and stability; Seamless 7075-T6 airframe tubing.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -2890,6 +2821,7 @@
 | `nose_forward_m` | 1,26 | 0,568·хорда у корня (как у всех существующих моделей; паспорта нет) |
 | `battens_per_side` | 11 | паспорта нет — как у базы |
 | `double_surface / lower_cover` | true / 0,6 | паспорта нет — как у базы |
+| `kingpost_m` | 1,2 | высоты в паспортах нет — как у базы (мачтовая) |
 | `crossbar_u` | 0,57 | данных нет — как у базы |
 | `dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend` | как у базы | в источниках чисел нет — не выдумывать |
 
@@ -2913,8 +2845,7 @@
 
 ### Открытые вопросы
 
-- Тип конструкции — batch_a.
+- Тип (мачтовое) принят по году выпуска; поправим по отзывам пилотов.
 - Угол носа в паспорте не найден — значение базы.
-- Тип конструкции (мачтовая/безмачтовая) не установлен — определить по фото/описанию производителя и выбрать базу соответственно.
 
 **Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — `assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и `godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и в раскраске нет; цвета — на усмотрение исполнителя (любая палитра в духе класса). Все числа — паспортные, если иное не сказано; закрутку, кривизну профиля, форму паруса, высоту кингпоста в источниках числами не найдено — оставлять значения базы.

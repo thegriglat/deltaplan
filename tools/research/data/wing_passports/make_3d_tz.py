@@ -103,8 +103,8 @@ def construction(entry):
     hint = entry.get("cons")
     if hint:
         txt = {"kingpost": "мачтовое", "topless": "безмачтовое"}[hint]
-        return hint, "%s — предположение координатора (прямого подтверждения в найденных источниках нет; проверить по фото производителя)" % txt
-    return "", "неизвестен — определить по фото производителя до начала работы"
+        return hint, "%s — по году выпуска/классу (подтверждающей цитаты нет; поправим по отзывам пилотов)" % txt
+    return "kingpost", "мачтовое — по умолчанию (год/тип неизвестны; поправим по отзывам пилотов)"
 
 
 def extra_cons(entry):
@@ -683,10 +683,7 @@ def section_new(n, e):
         qs.append("Размаха и удлинения в паспорте нет — размах оценён по удлинению базы, уточнить по первоисточнику.")
     if not na:
         qs.append("Угол носа в паспорте не найден — значение базы.")
-    if not ctype:
-        qs.append("Тип конструкции (мачтовая/безмачтовая) не установлен — определить по фото/описанию производителя и выбрать базу соответственно.")
-    if ctype and "предположение" in cnote:
-        qs.append("Тип конструкции принят по предположению — подтвердить по фото производителя.")
+
     for q in qs or ["нет"]:
         L.append("- " + q)
     L.append("")
@@ -710,7 +707,7 @@ def main():
     for i, e in enumerate(new, 1):
         ct, _ = construction(e)
         summary.append("| N%d | %s | `%s` | %s | %s | `%s` | %s |" % (i, e["title"], e["id"], e["cls"].split(",")[0],
-                                                                      {"kingpost": "мачтовое", "topless": "безмачтовое", "": "?"}[ct] + ("" if ct and "предположение" not in _ else (" (предп.)" if ct else "")),
+                                                                      {"kingpost": "мачтовое", "topless": "безмачтовое", "": "?"}[ct] + (" (по году)" if "по году" in _ or "по умолчанию" in _ else ""),
                                                                       pick_base(e, ct), e.get("prio", "P2")))
         body.append(section_new(i, e))
     head = open(os.path.join(HERE, "tz_head.md"), encoding="utf-8").read()
