@@ -12,6 +12,10 @@
   flock /tmp/heat_ca_gpu.lock $PY probe.py heat     # heated_slope: до/после разделения, баланс тепла
   flock /tmp/heat_ca_gpu.lock $PY probe.py prt      # (1): Онгудай 12:00, штиль и 3 м/с, Pr_t 1 / 0,85 / 0,74
 Выход — out/<проба>.json.
+
+После А1.2 правки — в самом air.py: подклассы PrtAir/SplitAir/HAir работали только на air.py до правок
+(30bb2b9; числа «до» — out/<проба>.json, воспроизводить на том коммите). На нынешнем air.py — режим after:
+  flock /tmp/heat_ca_gpu.lock $PY probe.py <проба> after   # всё на A.Air → out/<проба>_after.json
 """
 from __future__ import annotations
 

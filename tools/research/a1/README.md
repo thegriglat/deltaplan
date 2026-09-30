@@ -30,5 +30,11 @@ $PY askervein_chi2.py ../recal/out/runs_check25.jsonl   # χ² 68,06 (опорн
 (cbl); разделение θ′ в штиль Онгудай 12:00 снижает подъём у старта в окне 50 м 0,52 → 0,44 м/с, при 3 м/с
 без изменений.
 
+## После А1.2 (правки в air.py)
+Подклассы работают только на air.py до правок (30bb2b9) — числа «до» в `out/<проба>.json`. На нынешнем
+air.py — режим `after` (всё на `A.Air`, Pr_t = 0,85, θ′_d): `probe.py <проба> after` → `out/<проба>_after.json`
+(`prt_step1_after.json` — только Pr_t, после шага 1; `const_step3_after.json` — после шага 3). Askervein
+check25 после А1 — `../recal/out/runs_check25_a1.jsonl` (опорный до — `runs_check25.jsonl`).
+
 Данные: рельеф Онгудая — `data/terrain/` (ASSETS.md); Askervein — Zenodo 4095052 (CC BY 4.0), только
 через файлы `recal/out`.

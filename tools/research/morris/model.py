@@ -1,12 +1,9 @@
 """Отбор по чувствительности (Моррис) модели воздуха: факторы, случаи и наблюдаемые.
 
-Эталон масштаба 1 — tools/research/air3d/air.py (код не меняется). Два дополнения — в подклассе MAir
-(только для этого исследования, в игре и в air.py их нет):
-  * Pr_t: в air.py параметр объявлен, но не используется (khf = nuf, Pr_t = 1). Здесь K_θ = K_m / Pr_t
-    (после каждого обновления K), иначе фактор был бы пустым по построению;
-  * closure = const: в air.py при постоянной вязкости не считается толщина слоя h, а нагрев cbl и
-    λ = λ/h·h её требуют (cbl с const падает). Здесь h диагностируется как в hb (Троэн–Марта), а
-    постоянной становится только вязкость K = nu_const.
+Эталон масштаба 1 — tools/research/air3d/air.py. Отбор 30.09.2026 считался с подклассом MAir (Pr_t
+только по вертикали: K_θ = K_m/Pr_t, K_θ,h = K_h; h слоя при closure = const — как в hb); после А1
+(docs/plan/air_model_a1.md) оба дополнения — в самом air.py (Pr_t — общий множитель на все три оси,
+θ′_d — τ только для диабатической части), MAir удалён: повтор отбора — на A.Air как есть.
 Случаи (все — air.py на GPU, float32, критерий сходимости как в калибровке AM-09):
   askervein — Askervein 210°, нейтрально, 25 м, область 4 км/потолок 1 км (как askervein_runs.py);
   ridge     — хребет Аньези H = L = 500 м, квази-2D, 50 м (synth.check4) + провал за гребнем;
@@ -16,7 +13,6 @@
 """
 from __future__ import annotations
 
-import dataclasses
 import fcntl
 import math
 import sys
@@ -82,37 +78,6 @@ def params(fx, z0_nom, alpha_nom, **kw):
              limiter=int(fx["limiter"]) if fx["adv2"] else 0)
     p.update(kw)
     return A.Params(**p)
-
-
-# ------------------------------------------------------------------------------------------- решатель
-_Air = A.Air
-
-
-class MAir(_Air):
-    def _closure(self):
-        if self.prm.closure != "const":
-            return super()._closure()
-        p = self.prm
-        self.prm = dataclasses.replace(p, closure="hb")
-        try:
-            super()._closure()           # только h_bl, w* (диагностика толщины слоя)
-        finally:
-            self.prm = p
-        return np.full(self.shape, p.nu_const), dict(kind="const", nu=p.nu_const)
-
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
-        self._inv_prt = float(1.0 / self.prm.pr_t)
-        if abs(self._inv_prt - 1.0) > 1e-9:
-            self.khf = self.nuf * self._inv_prt
-
-    def update_k(self):
-        super().update_k()
-        if abs(self._inv_prt - 1.0) > 1e-9:
-            self.cp.multiply(self.nuf, self.dt.type(self._inv_prt), out=self.khf)
-
-
-A.Air = MAir          # real.make и synth.run берут A.Air в момент вызова
 
 
 class GpuLock:
