@@ -1,0 +1,58 @@
+{
+ "now_const_cbl": {
+  "status": "error",
+  "err": "AttributeError(\"'Air' object has no attribute 'h_bl'\")"
+ },
+ "now_const_surface": {
+  "info": {
+   "status": "ok",
+   "iters": 81,
+   "t_solve": 0.21,
+   "th_rms": 7.573482463385517e-08,
+   "thd_rms": null,
+   "mom_rms": 1.952349662134313e-05
+  },
+  "closure": {
+   "kind": "const"
+  }
+ },
+ "fixed_const_cbl": {
+  "info": {
+   "status": "ok",
+   "iters": 51,
+   "t_solve": 0.13,
+   "th_rms": 5.2643155612486225e-08,
+   "thd_rms": null,
+   "mom_rms": 1.1932541337481557e-05
+  },
+  "closure": {
+   "kind": "const",
+   "nu": 30.0,
+   "h_max": 1348.372686904947
+  },
+  "w_max": 0.6918951272964478,
+  "th_max": 0.3330759108066559,
+  "lam_max": 337.09317172623673
+ },
+ "hb_cbl_reference": {
+  "info": {
+   "status": "ok",
+   "iters": 41,
+   "t_solve": 0.1,
+   "th_rms": 7.210641683741414e-08,
+   "thd_rms": null,
+   "mom_rms": 1.4754620610203735e-05
+  },
+  "closure": {
+   "kind": "hb",
+   "ustar": 0.0,
+   "h_mech": 0.0,
+   "wstar_max": 2.0189504054362,
+   "h_max": 1348.372686904947,
+   "K_max": 105.4086059136595,
+   "K_p50": 64.69996618648588
+  },
+  "w_max": 0.6015843152999878,
+  "th_max": 0.3032221496105194
+ }
+}
