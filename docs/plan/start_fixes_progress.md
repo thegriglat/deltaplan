@@ -12,6 +12,6 @@
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа / решения |
 |---|---|---|---|---|---|
 | SF-1 Пустырь | в работе (30.09) | dp-engineer | `~/deltaplan-start-sf1` / `start/sf1` | | |
-| SF-2 Трава в лесу | в работе (30.09) | dp-engineer | `~/deltaplan-start-sf2` / `start/sf2` | | |
+| SF-2 Трава в лесу | **принята** (30.09) | dp-engineer | копия удалена | 8e97c1a, c7910e9; слияние 0f7b4b7 | К2 v2: `forest_density`=0,4, `forest_height_m`=[0,12; 0,35], `forest_shade`=0,8 (тень полога); GPU кадра в лесу 5,46→5,63 мс (+3,0 %, p10 +4,6 %); тесты grass 8/8, vegetation 21/21, контракты 4/4 (перепроверено); `test_surface::test_forest_mask_loaded` падает по порогу времени и до правок — не регрессия |
 | SF-3 Рука пилота | в работе (30.09) | dp-engineer | `~/deltaplan-start-sf3` / `start/sf3` | | |
 | SF-4 Касание крылом | в работе (30.09) | dp-engineer | `~/deltaplan-start-sf4` / `start/sf4` | | |
