@@ -139,6 +139,38 @@ func test_contract_versions() -> void:
 	check(found.size() == CONTRACTS.size(), "лишние разделы в контракте: %s" % [found.keys()])
 
 
+# ------------------------------------------------------------------ thd (C2 v3, C7 v2)
+
+const JOB_DIR := "res://scripts/atmosphere/air_model/"
+
+
+## Тело функции (от «func name» до следующей «func» / конца файла) по тексту скрипта — проверка
+## без GPU: задачи создаются только на GPU, поэтому ключи словарей ловим статически.
+static func _func_body(path: String, fname: String) -> String:
+	var text := FileAccess.get_file_as_string(path)
+	var a := text.find("func %s(" % fname)
+	if a < 0:
+		return ""
+	var b := text.find("\nfunc ", a + 1)
+	return text.substr(a, (b if b >= 0 else text.length()) - a)
+
+
+func test_thd_in_state_keys() -> void:
+	var job := JOB_DIR + "air_picard_job.gd"
+	var st := _func_body(job, "state")
+	check(st != "", "AirPicardJob.state найден")
+	check('"thd"' in st, "C2 v3: state() отдаёт ключ thd")
+	check('"thdm"' in st, "C2 v3: state(mech) читает thdm (без нагрева)")
+	var pd := _func_body(job, "parent_data")
+	check("heat" in pd and "mech" in pd, "C7 v2: parent_data() отдаёт heat и mech")
+	check("state(" in pd, "C7 v2: parent_data().heat/mech строятся из state() (с thd)")
+	var ws := _func_body(JOB_DIR + "air_window_job.gd", "window_state")
+	check(ws != "", "AirWindowJob.window_state найден")
+	check("heat = state(false)" in ws and "mech = state(true)" in ws, "C7 v2: window_state() с thd")
+	var warm := FileAccess.get_file_as_string(job)
+	check("warm" in warm and "thd" in warm, "C2 v3: warm принимает thd")
+
+
 # ------------------------------------------------------------------ C1
 
 
