@@ -99,7 +99,7 @@ def write_window(name, S, runs, extra, P):
     # params — параметры, отличные от умолчаний AirCase, с которыми посчитан эталон (тест берёт их
     # отсюда, как у picard_gpu_refs.py)
     meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx,
-                params=dict(lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t), dx=g.dx, dz=g.dz,
+                params=dict(lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t, k_relax=A.Params().k_relax), dx=g.dx, dz=g.dz,
                 nx=g.nx, ny=g.ny, nz=g.nz, z_bot=g.z_bot, x0=g.x0, y0=g.y0, z_i=c.z_i,
                 site=dict(x=site["x"], y=site["y"]), runs=runs, **extra)
     P.add("hc", S.hc)

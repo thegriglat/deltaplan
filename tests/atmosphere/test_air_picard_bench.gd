@@ -145,6 +145,16 @@ func test_bench_ongudai() -> void:
 				% [total, whole, one.size(), ms_chk]
 			)
 		)
+		# без прохода θ′_d (решение без нагрева, А2): то же состояние, другой шаг тепла
+		var one_nh := job._prog_iteration(true)
+		_time_prog(g, one_nh, 2)
+		var whole_nh := _time_prog(g, one_nh, 5)
+		print(
+			(
+				"  итерация без θ′_d (решение без нагрева) %.2f мс (%d запусков), %.0f %% от полной"
+				% [whole_nh, one_nh.size(), 100.0 * whole_nh / whole]
+			)
+		)
 		job.release()
 		# ---- решения целиком (порциями, окно тестов)
 		print(
@@ -168,12 +178,6 @@ func test_bench_ongudai() -> void:
 		]
 		if OS.get_environment("AIR_PICARD_BENCH_QUICK") == "1":
 			cases = [[3.0, false], [3.0, false, true]]
-		# до А2: эталон picard/ 200 м с нагревом не сходится (предельный цикл K(Ri)–θ′ у выходной
-		# границы), см. tools/research/a1/review/README.md; здесь случай пропущен (статус max,
-		# 3000 итераций, таймаут 60 с)
-		if dx == 200:
-			cases = cases.filter(func(q: Array) -> bool: return q[0] != 3.0)
-			print("  200 м, 3 м/с (с нагревом, в т.ч. пара и загрузка): пропущено до А2")
 		for cse in cases:
 			var c := TestAirPicard.case_ongudai(m, cse[0])
 			var loading: bool = cse.size() > 2
@@ -255,7 +259,9 @@ func test_warm_start() -> void:
 		AirPlace.domain_case(lw[0], lw[1], loc, 400.0, 12.0, 3.0, 150.0), false, st
 	)
 	var it_same := same.iterations() if same != null else -1
-	check(it_same == 10, "то же поле с тёплого старта: %d итераций (≤ 10)" % it_same)
+	# K не входит в состояние: тёплый старт начинает с K_b, и при k_relax 0,1 (А2) местное K
+	# доходит до K(Ri) за ~20 итераций (0,9²⁰ ≈ 0,12) — остановка на второй проверке
+	check(it_same <= 20, "то же поле с тёплого старта: %d итераций (≤ 20)" % it_same)
 	if same != null:
 		same.release()
 	var cold: AirPicardJob = await _solve(

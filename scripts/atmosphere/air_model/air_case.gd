@@ -72,7 +72,7 @@ var p := {
 	local_k = true,
 	lam = 40.0,
 	lam_frac = LAM_FRAC,
-	k_relax = 0.5,
+	k_relax = 0.1,  # А2: 0,5 → 0,1 (docs/plan/air_model_a2.md)
 	cs_h = 0.25,
 }
 
