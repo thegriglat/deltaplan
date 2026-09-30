@@ -41,6 +41,8 @@ const int P_USTAR = 14, P_KFA = 15, P_FSC = 16, P_WINDY = 17, P_KAPPA = 18;
 // 1 — окно клипмапа (AM-04): фон и граница ветра на гранях — от родителя (air_window.glsl:nest),
 // setup их не пишет.
 const int P_NEST = 19;
+// 1/Pr_t — K_θ = K/Pr_t в шаблоне тепла (один множитель на все три оси; AirCase.p.pr_t).
+const int P_IPRT = 20;
 // Столбцы (NY·NX на плоскость, с ореолом) и уровни (NZ на плоскость) — AirCase.
 const int C_HP = 0, C_KF = 1, C_HBL = 2, C_WST = 3, C_INVL = 4, C_UNST = 5, C_SIDE = 6;
 const int C_SCS = 7, C_QV = 8, C_QK0 = 9, C_QK1 = 10, C_LAM = 11;
@@ -431,7 +433,7 @@ void main() {
 				if (vo > 0.0) diag += vo * ih;
 				else cn += vo * ih;
 				if (cell_of(tcode[q]) != 0) {
-					float kd = d == 2 ? nu[idx] + nu[q] : nuh[idx] + nuh[q];
+					float kd = (d == 2 ? nu[idx] + nu[q] : nuh[idx] + nuh[q]) * prm[P_IPRT];
 					float dif = 0.5 * kd * ih * ih;
 					diag += dif;
 					cn -= dif;

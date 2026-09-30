@@ -767,6 +767,7 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 	var dif := 0.0
 	var a_side := c.dx * c.dz
 	var a_top := c.dx * c.dx
+	var inv_prt := 1.0 / float(c.p.pr_t)
 	for idx in th.size():
 		var t := int(tc[idx])
 		var cell := t & 3
@@ -792,9 +793,8 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 					continue
 				var nb: int = idx + int(sh[0])
 				if int(tc[nb]) & 3 == 2:
-					dif += (
-						0.5 * (nu[idx] + nu[nb]) * (th[idx] - th[nb]) / float(sh[2]) * float(sh[3])
-					)
+					var kth := 0.5 * (nu[idx] + nu[nb]) * inv_prt
+					dif += kth * (th[idx] - th[nb]) / float(sh[2]) * float(sh[3])
 		# грани типа 2: перенос θ′ через границу (против потока)
 		for ax in 3:
 			var ty := (t >> (2 + 2 * ax)) & 3

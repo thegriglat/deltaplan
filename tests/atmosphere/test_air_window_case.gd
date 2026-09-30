@@ -73,7 +73,7 @@ func test_window_input_vs_reference() -> void:
 		approx(c.col[6 * nyx + mid + 1], rate * pow(1.0 - 0.5 / 4.0, 2.0), 1e-9, "губка у края")
 		approx(c.col[6 * nyx + mid + 5], 0.0, 1e-12, "за 4 клетками губки нет")
 		check(c.col[7 * nyx + mid + 1] == c.col[6 * nyx + mid + 1], "θ′ — та же зона, все бока")
-		check(c.prm[AirWindowCase.P_NEST] == 1.0, "флаг окна в prm")
+		check(c.prm[AirCase.P_NEST] == 1.0, "флаг окна в prm")
 		check(c.without_heat() is AirWindowCase, "без нагрева — тоже окно")
 
 

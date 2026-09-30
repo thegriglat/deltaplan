@@ -46,7 +46,8 @@ def cases():
     hc = SY.ridge3d(X, Y, 400.0, 400.0, 600.0)
     H = SY.sun_flux(hc, g.dx, az=100.0, el=45.0)
     gam = SY.cbl_gam(1500.0, 5.8e-3)
-    out["heated_slope"] = (g, hc, A.Case(U10=0.0, gam=gam, z_i=1500.0, H=H), A.Params(dtau_u=600.0))
+    # pr_t явно ≠ 1 (не по умолчанию): шаблон тепла чувствителен к 1/Pr_t при любом значении по умолчанию
+    out["heated_slope"] = (g, hc, A.Case(U10=0.0, gam=gam, z_i=1500.0, H=H), A.Params(dtau_u=600.0, pr_t=0.85))
     # 4. седловина: хребет 500 м с седловиной 250 м, ветер под 15° к оси, N = 0,01
     g = A.Grid(150.0, 24, 24, 100.0, -100.0, 16, -1800.0, -1800.0)
     X, Y = np.meshgrid(g.x, g.y)

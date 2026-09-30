@@ -12,7 +12,6 @@ extends AirCase
 
 const N_WINDOW := 64
 const TOP_ABOVE := 2000.0  # потолок окна над максимумом его рельефа, м (real.grid_window)
-const P_NEST := 19  # air_picard.glsl
 
 var _prepared := false
 var _mech_case: AirWindowCase = null
