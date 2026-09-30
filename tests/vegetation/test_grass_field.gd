@@ -98,3 +98,50 @@ func test_density_scales_clump_count() -> void:
 	for p: String in {"low": 0, "medium": 100, "high": 150}:
 		var v: Variant = presets[p].configs.vegetation.grass.density_pct
 		check(int(v) == {"low": 0, "medium": 100, "high": 150}[p], "пресет %s: %s %%" % [p, v])
+
+
+## Трава под пологом (К2 v2): grass.forest_density/forest_height_m/forest_shade доходят до
+## материала ближнего и дальнего слоя; по умолчанию плотность > 0; при 0 — на FOREST травы нет,
+## как до SF-2.
+func test_forest_grass_reaches_material() -> void:
+	var g: Dictionary = Config.get_config("vegetation").grass
+	var fd := float(g.forest_density)
+	check(fd > 0.0 and fd < 1.0, "forest_density по умолчанию в (0; 1): %.2f" % fd)
+	var fh := GrassField._v2(g.forest_height_m)
+	var bh := GrassField._v2(g.blade_height_m)
+	check(fh.y < bh.y and fh.x < bh.x, "под пологом ниже луга: %s < %s" % [fh, bh])
+	check(float(g.forest_shade) > 0.0 and float(g.forest_shade) <= 1.0, "forest_shade ≤ 1")
+	for density in [fd, 0.0]:
+		var cfg := g.duplicate(true)
+		cfg.forest_density = density
+		var gf := _make_field(cfg)
+		for m in gf.materials():
+			var v := float(m.get_shader_parameter("forest_density"))
+			check(is_equal_approx(v, density), "uniform forest_density = %.2f (%.2f)" % [v, density])
+			var h: Vector2 = m.get_shader_parameter("forest_height_m")
+			check(h.is_equal_approx(fh), "uniform forest_height_m = %s" % h)
+			check(
+				is_equal_approx(float(m.get_shader_parameter("forest_shade")), float(g.forest_shade)),
+				"uniform forest_shade"
+			)
+		check(gf.materials().size() == 2, "ближний и дальний слой")
+		gf.free()
+	var sd := float(g.shrub_density)
+	check(GrassField.class_share(SurfaceLayer.FOREST, sd, fd) == fd, "FOREST — forest_density")
+	check(GrassField.class_share(SurfaceLayer.FOREST, sd, 0.0) == 0.0, "0 — травы в лесу нет")
+	check(GrassField.class_share(SurfaceLayer.GRASS, sd, 0.0) == 1.0, "луг — все пучки")
+	check(GrassField.class_share(SurfaceLayer.SHRUB, sd, fd) == sd, "кустарник — shrub_density")
+	check(GrassField.class_share(SurfaceLayer.WATER, sd, fd) == 0.0, "вода — нет")
+
+
+func _make_field(cfg: Dictionary) -> GrassField:
+	var hl := HeightLayer.from_heights("t", 4, 4, 10.0, 0.0, 0.0, PackedFloat32Array([
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+	var cls := PackedByteArray()
+	cls.resize(16)
+	cls.fill(SurfaceLayer.FOREST)
+	var sl := SurfaceLayer.from_classes("t", 4, 4, 10.0, 0.0, 0.0, cls)
+	var gf := GrassField.new()
+	var spots: Array[Vector4] = []
+	gf.setup(hl, hl.make_texture(), sl, sl.make_texture(), {}, cfg, spots)
+	return gf

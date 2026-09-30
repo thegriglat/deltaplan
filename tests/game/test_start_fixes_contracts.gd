@@ -44,6 +44,15 @@ func test_k2_grass_config() -> void:
 	var g: Dictionary = Config.get_config("vegetation").grass
 	check(g.has("shrub_density"), "К2: grass.shrub_density")
 	check(g.has("blade_height_m"), "К2: grass.blade_height_m")
+	for k in ["forest_density", "forest_height_m", "forest_shade"]:
+		check(g.has(k) and g.has(k + "_doc"), "К2 v2: grass.%s (+_doc)" % k)
+	check(float(g.forest_density) > 0.0, "К2 v2: forest_density > 0 по умолчанию")
+	var sh := load("res://scripts/terrain/grass.gdshader") as Shader
+	var names := []
+	for u in sh.get_shader_uniform_list():
+		names.append(String(u.name))
+	for k in ["shrub_density", "forest_density", "forest_height_m", "forest_shade"]:
+		check(k in names, "К2 v2: uniform %s в grass.gdshader" % k)
 
 
 func test_k3_ground_run_shape() -> void:

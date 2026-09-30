@@ -18,10 +18,14 @@
 - Инварианты после вызова: для всех точек круга `surface_at != FOREST`, `forest_at == 0`; `SHRUB` — где был; ни одного дерева (модели, импостеры, одиночные деревья `ShrubScatter`) в круге; за кругом карта не меняется. Класс, в который переходит лес, — `GRASS` (трава SF-2 растёт там как на лугу).
 - R `≥ 2·L_run` — проверяет `tests/game/test_start_clearing.gd` живым прогоном `GroundRun` по всем крыльям.
 
-## К2. Трава по классам поверхности — v1
+## К2. Трава по классам поверхности — v2
 Владелец: SF-2 (`grass.gdshader`, `grass_field.gd`, `configs/vegetation.json → grass`). Потребители: нет (визуал).
-Что есть: `GrassField.setup(...)` передаёт в материал `shrub_density` (доля пучков на классе SHRUB); пучки на FOREST, BARE, WATER, BUILT, SNOW — не рисуются; высота: луг `blade_height_m`, нива `crop_height_m`.
-Новое (SF-2): ключ(и) плотности/высоты травы на классе FOREST в `vegetation.json → grass` → uniform материала; по умолчанию плотность > 0. Имена ключей и uniform владелец вписывает сюда (версия 2). SF-1 от этого не зависит (поляна — класс GRASS).
+v1: `GrassField.setup(...)` передаёт в материал `shrub_density` (доля пучков на классе SHRUB); пучки на FOREST, BARE, WATER, BUILT, SNOW — не рисуются; высота: луг `blade_height_m`, нива `crop_height_m`.
+v2 (SF-2): трава и на FOREST. Ключи `configs/vegetation.json → grass` (каждый с `_doc`) → uniform `grass.gdshader` с теми же именами, ближний и дальний (`far`) слой:
+- `forest_density` (float, 0,4) — доля пучков на FOREST; 0 — травы в лесу нет (как v1);
+- `forest_height_m` ([мин, макс], м; 0,12–0,35) — высота травы под пологом;
+- `forest_shade` (float, 0,8) — множитель цвета (× цвет луга в этой точке).
+Формула доли по классу в GDScript — `GrassField.class_share(c, shrub_density, forest_density)`. Проверка — `test_k2_grass_config`, `test_forest_grass_reaches_material`. SF-1 от этого не зависит (поляна — класс GRASS).
 
 ## К3. Крен на земле и переход в полёт — v1
 Владелец: SF-3 (`scripts/flight/ground_run.gd`: `_ground_bank`, `_turn`; стык GROUND→AIR в `flight_model.gd`). Потребители: `FlightTelemetry` (bank_deg, basis), `GliderVisual`, камеры, боты (`bot_pilot.gd` — управляют через `ControlInput`), сеть (`net_flight.gd` передаёт bank), SF-4.
