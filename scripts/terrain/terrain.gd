@@ -1,4 +1,4 @@
-# gdlint: disable=max-public-methods
+# gdlint: disable=max-public-methods, max-file-lines
 class_name Terrain
 extends Node3D
 ## Рельеф локации (контракт — docs/ARCHITECTURE.md, группа "terrain").
@@ -10,6 +10,7 @@ extends Node3D
 ##                           вода и лес — по маске «деталь 10 м», где она есть (как в шейдере;
 ##                           вода — реки/ручьи/озёра OSM, T03, VR-9)
 ##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
+##   add_start_clearing(x, z, r), get_start_clearings() — пустыри у стартов (К1 v2, SF-1)
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость
 ##                           × сухость), годится как sun_fn для Atmosphere.set_ground
 ##   moisture_at / relief_ao_at / relief_horizon_at — поля рельефа (TerrainRelief): влажность
@@ -48,11 +49,15 @@ var wind: TerrainWind
 var reliefs: Array[TerrainRelief] = []
 ## Ход рантайм-загрузки (load_location_latlon): этап и доля — для экрана загрузки.
 var progress := LoadProgress.new()
+## Растёт при правке карты поверхности после сборки (add_start_clearing): сброс кеша кустов/камней.
+var surface_revision: int = 0
 
 var _sites: Array[Dictionary] = []
 var _landings: Array[Dictionary] = []
 ## [Image, origin, cell_m] — просеки (set_clearings), переживают перезагрузку деревьев.
 var _clearings: Array = []
+## Пустыри у стартов: Vector3(x, z, радиус), м — встроенные (set_surfaces) и add_start_clearing.
+var _start_clearings: Array[Vector3] = []
 var _sun_dir: Vector3 = Vector3.UP
 ## Солнце по классам поверхности с запаздыванием прогрева (SurfaceHeating); пусто — _sun_dir.
 var _class_sun := PackedVector3Array()
@@ -903,14 +908,16 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 		if s == null:
 			s = SurfaceClassifier.classify(layers[k], scfg.get("fallback", {}))
 		surfaces.append(s)
-	# Старты — открытые склоны: лес и кустарник вокруг площадки → луг (и в цвете, и в термиках).
-	var clear_r := float(location.get("start_clearing_radius_m", 0.0))
-	if clear_r > 0.0:
-		for site in _sites:
-			var p: Vector3 = site.position
-			for s in surfaces:
-				s.replace_in_circle(p.x, p.z, clear_r, SurfaceLayer.FOREST, SurfaceLayer.GRASS)
-				s.replace_in_circle(p.x, p.z, clear_r, SurfaceLayer.SHRUB, SurfaceLayer.GRASS)
+	# Старты — открытые склоны: лес и кустарник вокруг площадки → луг (и в цвете, и в термиках);
+	# дальше, до пустыря старта с карты (≥ 2 длины разбега, game.json → start_search), — только лес.
+	_start_clearings.clear()
+	var site_r := float(location.get("start_clearing_radius_m", 0.0))
+	var clear_r := maxf(site_r, start_clearing_radius_m())
+	for site in _sites:
+		var p: Vector3 = site.position
+		for s in surfaces:
+			s.replace_in_circle(p.x, p.z, site_r, SurfaceLayer.SHRUB, SurfaceLayer.GRASS)
+		_clear_forest(p.x, p.z, clear_r)
 	var th: Dictionary = scfg.get("thermal", {})
 	var ks: Dictionary = th.get("class_strength", {})
 	_thermal_k.resize(SurfaceLayer.CLASS_COUNT)
@@ -935,6 +942,42 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 	_rock_cos = cos(deg_to_rad(float(look.get("rock_slope_deg", 90.0))))
 	for s in surfaces:
 		s.mask_edge_soft = float(look.get("forest_edge_soft", 0.12))
+
+
+## Лес в круге → луг во всех картах поверхности (и маска леса 10 м); кустарник остаётся.
+func _clear_forest(x: float, z: float, r: float) -> void:
+	if r <= 0.0:
+		return
+	for s in surfaces:
+		s.replace_in_circle(x, z, r, SurfaceLayer.FOREST, SurfaceLayer.GRASS)
+	_start_clearings.append(Vector3(x, z, r))
+
+
+## Радиус пустыря вокруг старта, м: configs/game.json → start_search.clearing_radius_m
+## (≥ 2 длины разбега, решение пользователя; обоснование — там же в _doc).
+static func start_clearing_radius_m() -> float:
+	return float(Config.value("game", "start_search.clearing_radius_m", 0.0))
+
+
+## Пустырь вокруг произвольного старта после загрузки (К1 v2): лес в круге → луг (кустарник,
+## трава, камни — как были), маска леса — ноль; синхронно — карта, текстуры рельефа (их же читают
+## трава, импостеры), маска деревьев; деревья и кусты — со следующего кадра (docs/terrain.md).
+func add_start_clearing(x: float, z: float, radius_m: float) -> void:
+	if radius_m <= 0.0 or surfaces.is_empty():
+		return
+	_clear_forest(x, z, radius_m)
+	surface_revision += 1
+	if renderer != null:
+		for k in surfaces.size():
+			renderer.refresh_surface(k, surfaces[k])
+	if trees is TerrainTreeModels:
+		_pass_forest_mask(trees)
+		(trees as TerrainTreeModels).invalidate()
+
+
+## Пустыри у стартов: Vector3(x, z, радиус), м — встроенные площадки и add_start_clearing.
+func get_start_clearings() -> Array[Vector3]:
+	return _start_clearings.duplicate()
 
 
 func _spacing_at(x: float, z: float) -> float:

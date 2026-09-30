@@ -70,6 +70,9 @@ func setup(
 	material.set_shader_parameter("blade_height_m", _v2(cfg.blade_height_m))
 	material.set_shader_parameter("crop_height_m", _v2(cfg.crop_height_m))
 	material.set_shader_parameter("shrub_density", float(cfg.shrub_density))
+	material.set_shader_parameter("forest_density", float(cfg.get("forest_density", 0.0)))
+	material.set_shader_parameter("forest_height_m", _v2(cfg.get("forest_height_m", [0.12, 0.3])))
+	material.set_shader_parameter("forest_shade", float(cfg.get("forest_shade", 1.0)))
 	material.set_shader_parameter("color_variation", float(cfg.color_variation))
 	var tint: Array = cfg.get("blade_tint", [1.08, 1.0, 0.85])
 	material.set_shader_parameter("blade_tint", Vector3(tint[0], tint[1], tint[2]))
@@ -158,6 +161,19 @@ static func spacing_for_density(spacing: float, k: float) -> float:
 ## Трава включена: enabled и густота больше нуля.
 static func is_enabled(grass_cfg: Dictionary) -> bool:
 	return bool(grass_cfg.get("enabled", false)) and density_k(grass_cfg) > 0.0
+
+
+## Доля пучков на классе поверхности (та же ветка, что в grass.gdshader: луг/пашня/класс 0 — все,
+## кустарник — shrub_density, лес — forest_density (трава под пологом, К2 v2), прочие — нет).
+static func class_share(c: int, shrub_density: float, forest_density: float) -> float:
+	match c:
+		SurfaceLayer.NONE, SurfaceLayer.GRASS, SurfaceLayer.CROP:
+			return 1.0
+		SurfaceLayer.SHRUB:
+			return shrub_density
+		SurfaceLayer.FOREST:
+			return forest_density
+	return 0.0
 
 
 static func _v2(a: Variant) -> Vector2:
