@@ -221,6 +221,11 @@ def run(cls, g, hc, case, prm, max_outer=3000, taper=True):
     return S
 
 
+def pairs():
+    """(метка, класс): до правок — «now» (air.py) и «split» (прототип SplitAir); after — только «split» = A.Air."""
+    return (("split", A.Air),) if AFTER else (("now", A.Air), ("split", SplitAir))
+
+
 def dump(name, obj):
     name = name + ("_after" if AFTER else "")
     (OUT / f"{name}.json").write_text(json.dumps(obj, ensure_ascii=False, indent=1, default=lambda o: float(o)))
@@ -251,7 +256,7 @@ def probe_saddle():
     hc = SY.saddle3d(X, Y)
     case = A.Case(U10=5.0, wdir=270.0, gam=SY.const_gam(SY.GAM_N))
     res = dict(x=[float(x) for x in g.x], h_axis=[float(x) for x in hc[int(np.argmin(np.abs(g.y)))]], runs={})
-    for label, cls in (("now", A.Air), ("split", SplitAir)):
+    for label, cls in pairs():
         for tau in (1800.0, 7200.0, 21600.0):
             S = run(cls, g, hc, case, A.Params(tau_cool=tau))
             r = dict(info=info(S), **saddle_obs(S, g))
@@ -261,7 +266,7 @@ def probe_saddle():
             res["runs"][f"{label}_tau{int(tau)}"] = r
             print(label, tau, {k: v for k, v in r.items() if k in ("info", "ratio20", "ratio50", "lee50", "th_min", "th_max")}, flush=True)
             free(S)
-    for label in ("now", "split"):
+    for label, _ in pairs():
         a, b = res["runs"][f"{label}_tau1800"], res["runs"][f"{label}_tau21600"]
         res[f"{label}_delta_ratio20"] = a["ratio20"] - b["ratio20"]
         res[f"{label}_delta_ratio50"] = a["ratio50"] - b["ratio50"]
@@ -295,7 +300,7 @@ def probe_const():
     S = run(A.Air, g, hc, case, A.Params(closure="const", nu_const=30.0, heat_mode="surface"), taper=False)
     res["now_const_surface"] = dict(info=info(S), closure=S.closure_info)
     free(S)
-    S = run(HAir, g, hc, case, prm, taper=False)
+    S = run(A.Air if AFTER else HAir, g, hc, case, prm, taper=False)
     u, v, w, th = S.centers()
     res["fixed_const_cbl"] = dict(info=info(S), closure=S.closure_info, w_max=float(np.nanmax(w)), th_max=float(np.nanmax(th)),
                                   lam_max=float(S.lam_np.max()))
@@ -310,7 +315,7 @@ def probe_const():
 def probe_heat():
     g, hc, case = heated_slope()
     res = {}
-    for label, cls in (("now", A.Air), ("split", SplitAir)):
+    for label, cls in pairs():
         S = run(cls, g, hc, case, A.Params(), taper=False)
         u, v, w, th = S.centers()
         r = dict(info=info(S), w_max=float(np.nanmax(w)), w_min=float(np.nanmin(w)), th_max=float(np.nanmax(th)),
@@ -366,7 +371,7 @@ def probe_ongudai():
     res = {}
     orig = A.Air
     try:
-        for label, cls in (("now", A.Air), ("split", SplitAir)):
+        for label, cls in pairs():
             A.Air = cls
             for U in (0.0, 3.0):
                 prm = A.Params()

@@ -694,8 +694,7 @@ class Air:
         self.nuf = A(self.nu_np)
         self.kbg = A(self.nu_np)
         self.hcp = A(hp)
-        lamc = np.maximum(prm.lam, prm.lam_frac * np.pad(self.h_bl, 1, mode="edge")) if hasattr(self, "h_bl") \
-            else np.full(hp.shape, prm.lam)
+        lamc = np.maximum(prm.lam, prm.lam_frac * np.pad(self.h_bl, 1, mode="edge"))
         self.lam_np = lamc
         self.lamc = A(lamc)
         for name_, arr_ in vars(self).items():
@@ -733,31 +732,22 @@ class Air:
         self.hist = []
         self.status = None
 
-    # ------------------------------------------------------------------ замыкание K(z)
-    def _closure(self):
-        """K_m в клетках (с ореолом). Троен–Март (1986) / Холтслаг–Бовилль (1993), первый порядок
-        с профилем: K = κ w_m z (1 − z/h)² при z < h, выше — k_fa.
+    # ------------------------------------------------------------------ толщина слоя
+    def _bl_depth(self):
+        """Толщина слоя h, w*, L (Троен–Март 1986 / Холтслаг–Бовилль 1993) — свойство слоя, не
+        замыкания: считается всегда (и при closure = "const" — для нагрева cbl и λ).
           u* = κ U10 / ln(10/z0) — по фону (без ускорения над рельефом);
           H — поток тепла, сглаженный гауссом σ = k_smooth_m (конвективная ячейка ~ z_i);
           L = −u*³ θ0 / (κ g H_kin);  w* = (g/θ0 · H_kin · h)^(1/3) при H > 0;
           h: неустойчиво — max(z_i − h_s, zi_min) (h_s — сглаженный рельеф), и не ниже
-             механической 0,3 u*/f; нейтрально/устойчиво — 0,3 u*/f и 0,4 √(u* L / f) (Зилитинкевич);
-          w_m: неустойчиво — u*·(1 − 7 z_s/L)^(1/3) = (u*³ + 7κ (z_s/h) w*³)^(1/3), z_s = min(z, 0,1 h)
-               устойчиво — u* / (1 + 5 z/L); нейтрально — u*.
-        Постоянная (прикидка) — closure = "const"."""
+             механической 0,3 u*/f; нейтрально/устойчиво — 0,3 u*/f и 0,4 √(u* L / f) (Зилитинкевич).
+        Пишет self.ustar, h_mech, wstar, h_bl, Lmo, unst (по внутренним столбцам)."""
         prm, case, g = self.prm, self.case, self.g
-        NZ, NY, NX = self.shape
-        info = {}
-        if prm.closure == "const":
-            return np.full(self.shape, prm.nu_const), dict(kind="const")
         ny, nx = self.hc.shape
         ustar = KAPPA * case.U10 / math.log(10.0 / prm.z0) if case.U10 > 0 else 0.0
         Hs = gauss2d(self.Hk, prm.k_smooth_m / g.dx) if np.any(self.Hk != 0) else np.zeros((ny, nx))
         hs = gauss2d(self.hc, prm.k_smooth_m / g.dx)
         h_mech = 0.3 * ustar / prm.f_cor
-        K = np.full((NZ, ny, nx), prm.k_fa)
-        zagl = self.zc[:, None, None] - self.hc[None]
-        z = np.clip(zagl, 0, None)
         unst = Hs > 1e-6
         # неустойчиво
         if case.z_i is not None:
@@ -772,6 +762,25 @@ class Air:
         h_s = np.where(np.isfinite(Lmo), np.minimum(h_mech, 0.4 * np.sqrt(ustar * np.where(np.isfinite(Lmo), Lmo, 0) / prm.f_cor)), h_mech)
         h = np.where(unst, h_u, h_s)
         h = np.maximum(h, 1.0)
+        self.ustar, self.h_mech, self.wstar, self.h_bl, self.Lmo, self.unst = ustar, h_mech, wstar, h, Lmo, unst
+
+    # ------------------------------------------------------------------ замыкание K(z)
+    def _closure(self):
+        """K_m в клетках (с ореолом). Троен–Март (1986) / Холтслаг–Бовилль (1993), первый порядок
+        с профилем: K = κ w_m z (1 − z/h)² при z < h, выше — k_fa; h, w*, L — _bl_depth().
+          w_m: неустойчиво — u*·(1 − 7 z_s/L)^(1/3) = (u*³ + 7κ (z_s/h) w*³)^(1/3), z_s = min(z, 0,1 h)
+               устойчиво — u* / (1 + 5 z/L); нейтрально — u*.
+        Постоянная (прикидка) — closure = "const": K = nu_const, h слоя — как в hb."""
+        prm = self.prm
+        NZ, NY, NX = self.shape
+        self._bl_depth()
+        if prm.closure == "const":
+            return np.full(self.shape, prm.nu_const), dict(kind="const", nu=prm.nu_const, h_max=float(self.h_bl.max()))
+        ny, nx = self.hc.shape
+        ustar, wstar, h, Lmo, unst = self.ustar, self.wstar, self.h_bl, self.Lmo, self.unst
+        K = np.full((NZ, ny, nx), prm.k_fa)
+        zagl = self.zc[:, None, None] - self.hc[None]
+        z = np.clip(zagl, 0, None)
         zs = np.minimum(z, 0.1 * h[None])
         wm_u = (ustar ** 3 + 7 * KAPPA * (zs / h[None]) * wstar[None] ** 3) ** (1 / 3)
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -783,11 +792,9 @@ class Air:
         Kp[:, 1:-1, 1:-1] = K
         Kp[:, 0, :] = Kp[:, 1, :]; Kp[:, -1, :] = Kp[:, -2, :]
         Kp[:, :, 0] = Kp[:, :, 1]; Kp[:, :, -1] = Kp[:, :, -2]
-        info = dict(kind="hb", ustar=ustar, h_mech=h_mech, wstar_max=float(wstar.max()),
+        info = dict(kind="hb", ustar=ustar, h_mech=self.h_mech, wstar_max=float(wstar.max()),
                     h_max=float(h.max()), K_max=float(K[self.fluid_np[:, 1:-1, 1:-1]].max()),
                     K_p50=float(np.median(K[self.fluid_np[:, 1:-1, 1:-1]])))
-        self.wstar = wstar
-        self.h_bl = h
         return Kp, info
 
     # ------------------------------------------------------------------ границы
