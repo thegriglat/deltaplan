@@ -4,8 +4,10 @@
   nom      — общая схема (2-й порядок), dx номинала            (калибровочная постановка; строка C10 без scheme_ctl)
   adv1     — 1-й порядок переноса (схема игры), dx номинала      (scheme_ctl)
   fine     — 2-й порядок, dx·2/3 (Askervein 13,33 м, Perdigão 20 м) (scheme_ctl)
-  half     — 2-й порядок, dx/2 (Askervein 10 м, Perdigão 15 м)    (scheme_ctl)
+  half     — 2-й порядок, dx/2 (Askervein 10 м, Perdigão 15 м)    (scheme_ctl; 32–37 млн клеток — не помещается в 12 ГБ,
+             строки status = error с OutOfMemoryError; поэтому мелкая сетка правила — dx·2/3)
   dom      — область ×1,5 и запас над рельефом ×1,5              (scheme_ctl)
+  side/top — по отдельности: только сторона области ×1,5 / только запас над рельефом ×1,5 (scheme_ctl)
   stab     — Perdigão: поток тепла по z/L данных (NE +20 Вт/м², SW −18 Вт/м²) (scheme_ctl)
   lamlo/lamhi — λ = 15 / 150 м (время и сходимость на краях сетки калибровки; строки C10)
 Строка на прогон → out/ctl_runs.jsonl, продолжение с места (готовые tag пропускаются). Поля номинала и 1-го порядка
@@ -47,6 +49,8 @@ def plan(which):
             out.append((f"{case}_{sub}_lamhi", case, sub, {"lam_frac": 0.0, "lam": 150.0}, m.DX_NOM, None))
             out.append((f"{case}_{sub}_fine", case, sub, {}, FINE[case], {"adv2": True}))
             out.append((f"{case}_{sub}_dom", case, sub, {}, m.DX_NOM, {"dom_mul": 1.5, "top_mul": 1.5}))
+            out.append((f"{case}_{sub}_side", case, sub, {}, m.DX_NOM, {"dom_mul": 1.5}))
+            out.append((f"{case}_{sub}_top", case, sub, {}, m.DX_NOM, {"top_mul": 1.5}))
             if case == "pd":
                 out.append((f"{case}_{sub}_stab", case, sub, {}, m.DX_NOM, {"heat_wm2": STAB[sub]}))
     if which == "ctl":

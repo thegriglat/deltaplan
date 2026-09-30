@@ -28,9 +28,9 @@ def logspace(a, b, n):
 
 
 GRID = {
-    "ask": dict(subs=["tu03b"], lam=logspace(12.0, 240.0, 9), alpha=list(np.linspace(0.19, 0.28, 7)),
+    "ask": dict(subs=["tu03b"], lam=logspace(10.0, 400.0, 9), alpha=list(np.linspace(0.19, 0.28, 7)),
                 z0=logspace(0.01, 0.3, 5)),
-    "pd": dict(subs=["ne", "sw"], lam=logspace(12.0, 240.0, 9), alpha=list(np.linspace(0.15, 0.33, 5)),
+    "pd": dict(subs=["ne", "sw"], lam=logspace(10.0, 400.0, 9), alpha=list(np.linspace(0.15, 0.33, 5)),
                z0=logspace(0.1, 1.0, 5)),
 }
 

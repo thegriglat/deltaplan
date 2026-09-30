@@ -2,8 +2,9 @@
 
   * сеточная поправка и σ сетки — ОДНИМ способом для обоих случаев (→ out/grid.json, его читают askervein.py/perdigao.py):
       Δ_сетки = y(dx/2) − y(dx)  (2-й порядок; если dx/2 не сошёлся — dx·2/3),   Δ_обл = y(обл. ×1,5) − y(номинал);
-      grid_corr = Δ_сетки + Δ_обл,   sig_grid = |Δ_сетки| ⊕ |Δ_обл|/2   (как AM-09: остаток мелкой сетки ~ последний шаг,
-      поправка области — половина как σ);
+      grid_corr = Δ_сетки,   sig_grid = |Δ_сетки| ⊕ |Δ_обл|/2   (как AM-09: остаток мелкой сетки ~ последний шаг;
+      область — половина как σ, без сдвига; у Askervein Δ_обл — к потоку притока, см. код);
+      Δ_уст = y(stab) − y(номинал) (Perdigão) — в σ данных (perdigao.observations);
   * систематика схемы игры: 1-й порядок против 2-го на dx — по наблюдаемым и группам (в χ² не идёт);
   * отклик на λ (15 / 46 / 150 м), устойчивость (Perdigão), SW: направление и компонента вдоль ветра на мачтах;
   * χ² на номинале по группам (формула C10) для всех вариантов.
@@ -31,7 +32,7 @@ import perdigao as PD      # noqa: E402
 OUT = HERE / "out"
 C = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
 SUBS = [("ask", "tu03b", AK), ("pd", "ne", PD), ("pd", "sw", PD)]
-VARS = ["nom", "adv1", "fine", "half", "dom", "stab", "lamlo", "lamhi"]
+VARS = ["nom", "adv1", "fine", "half", "dom", "side", "top", "stab", "lamlo", "lamhi"]
 
 
 def load():
@@ -44,8 +45,15 @@ def load():
 
 
 def get(R, case, sub, var):
+    """Строка прогона; для Perdigão obs мачт — в виде PD.MAST_OBS (u_∥ или S — из поля mast строки)."""
     r = R.get(f"{case}_{sub}_{var}")
-    return r if r and r["status"] == "ok" else None
+    if not (r and r["status"] == "ok"):
+        return None
+    if case == "pd" and "mast" in r:
+        r = dict(r, obs=dict(r["obs"]))
+        for k, m in r["mast"].items():
+            r["obs"][k] = m["upar"] if PD.MAST_OBS == "upar" else m.get("S", r["obs"].get(k))
+    return r
 
 
 def chi2(obs, vals, corr=None, sgrid=True):
@@ -68,7 +76,7 @@ def main():
     all_obs = {"ask": AK.observations(), "pd": PD.observations()}
     # ---------------------------------------------------------------- сеточная поправка (одним способом)
     for case, sub, M in SUBS:
-        nom, half, fine, dom = (get(R, case, sub, v) for v in ("nom", "half", "fine", "dom"))
+        nom, half, fine, dom, stab = (get(R, case, sub, v) for v in ("nom", "half", "fine", "dom", "stab"))
         fine_used = half or fine
         summ[f"{case}_{sub}"] = dict(fine_level=("half" if half else "fine" if fine else None))
         for o in all_obs[case]:
@@ -79,10 +87,24 @@ def main():
             if y is None:
                 continue
             dg = (fine_used["obs"].get(n) - y) if fine_used and fine_used["obs"].get(n) is not None else float("nan")
-            dd = (dom["obs"].get(n) - y) if dom and dom["obs"].get(n) is not None else 0.0
+            if case == "ask":
+                # опорная RS в номинале — в губке притока (= профиль притока по данным); в большой области она выходит
+                # из губки, и её профиль сползает к равновесию модели (+5 % на 10 м) — это смена опоры, а не потока над
+                # холмом. Δ_обл считается к неизменному потоку притока (фон U10·(z/10)^α на 10 м): разгоны на 10 м —
+                # из «dom» с пересчётом к фону; профили HT и RS (нет абсолютной опоры в строке) — из «top».
+                top = get(R, case, sub, "top")
+                if dom and not ("prof" in n or "_RS_" in n):
+                    u0 = M.U10_IN
+                    dd = ((1 + dom["obs"][n]) * dom["inputs"]["rs10_model"] - (1 + y) * nom["inputs"]["rs10_model"]) / u0
+                else:
+                    dd = (top["obs"].get(n) - y) if top and top["obs"].get(n) is not None else 0.0
+            else:
+                dd = (dom["obs"].get(n) - y) if dom and dom["obs"].get(n) is not None else 0.0
             if not math.isfinite(dg):
                 dg = 0.0
-            grid[n] = dict(grid_corr=dg + dd, sig_grid=math.hypot(dg, 0.5 * dd), d_grid=dg, d_dom=dd)
+            ds = (stab["obs"].get(n) - y) if stab and stab["obs"].get(n) is not None else 0.0
+            # поправка — только сетка; область — половиной в σ (как AM-09), без сдвига: опора случая — по данным
+            grid[n] = dict(grid_corr=dg, sig_grid=math.hypot(dg, 0.5 * dd), d_grid=dg, d_dom=dd, d_stab=ds)
     (OUT / "grid.json").write_text(json.dumps(grid, indent=1, sort_keys=True))
 
     # ---------------------------------------------------------------- таблица и χ²

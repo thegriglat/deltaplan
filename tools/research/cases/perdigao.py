@@ -83,6 +83,11 @@ PROFILE_MASTS = dict(ne=["tse13", "tse04", "rsw03", "tse09", "tse11", "tse06", "
                      sw=["tse04", "tse13", "tse09", "tse11", "tse06", "tse10", "tse12", "tse01", "tse02"])
 SIG_REP = 0.10                   # представительность: DEM 30 м (σ высот мачт 2,9 м), лес, положение мачты (отн.)
 SIG_FLOOR = 0.03                 # абсолютный член на S/S_ref (общий с Askervein: калибровка/перебег чашек, положение)
+# Наблюдаемое на мачтах (предложение Б1, оба подслучая одним правилом): "upar" — компонента вдоль ветра притока u_∥/S_ref
+# (как у зоны Menke); "S" — модуль скорости S/S_ref (А4). Довод — b1/out/ctl_table.md, «Мачты Perdigão»: в долине данные
+# повёрнуты вдоль долины (SW 118–177° при 216°), модель — нет; u_∥ модели и данных сходятся, S — нет.
+MAST_OBS = "upar"
+SIG_DIR_DEG = 5.0                # неопределённость направления притока для u_∥: ориентация соника ±2° ⊕ разброс по окну
 
 
 # ---------------------------------------------------------------------------------------- данные
@@ -312,20 +317,38 @@ def _grid():
     return json.loads(GRID_FILE.read_text()) if GRID_FILE.exists() else {}
 
 
-def _ratio_sigma(sub, site, z):
-    """Разброс S(site, z)/S(ref, 100) по 5-мин окнам (время в окне случая), σ_t."""
+@lru_cache(maxsize=None)
+def _series(sub):
+    """5-мин ряды окна случая: {(время, мачта, z): (spd, u_∥)}; u_∥ — по направлению притока (case_inputs)."""
     c = CASES[sub]
     t0, t1 = c["window"]
-    rows = _csv(DATA / f"cases/{c['file']}_5min.csv")
+    ang = math.radians(case_inputs(sub)["wdir"])
+    ex, ey = -math.sin(ang), -math.cos(ang)
     ser = {}
-    for r in rows:
-        hhmm = r["time_utc"][11:16]
-        if not (t0 <= hhmm < t1) or r["spd"] == "":
+    for r in _csv(DATA / f"cases/{c['file']}_5min.csv"):
+        if not (t0 <= r["time_utc"][11:16] < t1) or r["spd"] == "" or r["u_east"] == "":
             continue
-        ser[(r["time_utc"], r["site"], int(float(r["z_agl_m"])))] = float(r["spd"])
+        ser[(r["time_utc"], r["site"], int(float(r["z_agl_m"])))] = (float(r["spd"]), float(r["u_east"]) * ex + float(r["v_north"]) * ey)
+    return ser
+
+
+def _ratio_sigma(sub, site, z, kind="S"):
+    """Разброс S(site, z)/S(ref, 100) (или u_∥/S_ref) по 5-мин окнам (время в окне случая), σ_t."""
+    c = CASES[sub]
+    ser = _series(sub)
     times = sorted({k[0] for k in ser})
-    q = [ser[(t, site, z)] / ser[(t, c["ref"], 100)] for t in times if (t, site, z) in ser and (t, c["ref"], 100) in ser]
+    i = 0 if kind == "S" else 1
+    q = [ser[(t, site, z)][i] / ser[(t, c["ref"], 100)][0] for t in times if (t, site, z) in ser and (t, c["ref"], 100) in ser]
     return (float(np.std(q, ddof=1)) if len(q) > 3 else float("nan")), len(q)
+
+
+def upar_data(sub, site, z):
+    """u_∥ данных: среднее 5-мин компонент вдоль притока / S_ref окна; направление «откуда» среднего вектора."""
+    c = CASES[sub]
+    ser = _series(sub)
+    q = [v for k, v in ser.items() if k[1] == site and k[2] == z]
+    ref = [v[0] for k, v in ser.items() if k[1] == c["ref"] and k[2] == 100]
+    return float(np.mean([v[1] for v in q])) / float(np.mean(ref))
 
 
 @lru_cache(maxsize=None)
@@ -343,16 +366,28 @@ def _observations():
                 if int(wm[(site, z)]["n_5min"]) < 6:
                     continue
                 r = float(wm[(site, z)]["spd"]) / ref
-                st, nq = _ratio_sigma(sub, site, z)
-                st = 0.0 if math.isnan(st) else st
-                sig = math.sqrt(st ** 2 + (SIG_REP * r) ** 2 + SIG_FLOOR ** 2)
                 name = f"pd_{sub}_{site}_{z}"
                 g = gr.get(name, {})
-                out.append(dict(name=name, grp=f"pd_{sub}_{site}", data=round(r, 4), sig=round(sig, 4),
+                sst = abs(float(g.get("d_stab", 0.0)))     # модель-нейтраль против почти нейтральных данных (b1)
+                if MAST_OBS == "S":
+                    st, nq = _ratio_sigma(sub, site, z)
+                    st = 0.0 if math.isnan(st) else st
+                    data, sig, unit = r, math.sqrt(st ** 2 + (SIG_REP * r) ** 2 + SIG_FLOOR ** 2 + sst ** 2), "S/S_ref"
+                    how = f"S({site},{z} м)/S({c['ref']},100 м); σ = √(σ_5мин {st:.3f}² ⊕ (0,10·r)² ⊕ 0,03² ⊕ σ_уст {sst:.3f}²)"
+                else:
+                    st, nq = _ratio_sigma(sub, site, z, "upar")
+                    st = 0.0 if math.isnan(st) else st
+                    data = upar_data(sub, site, z)
+                    ddir = math.degrees(math.acos(max(-1.0, min(1.0, data / r)))) if r > 0 else 0.0
+                    sdir = r * math.sin(math.radians(ddir)) * math.radians(SIG_DIR_DEG)
+                    sig = math.sqrt(st ** 2 + (SIG_REP * r) ** 2 + SIG_FLOOR ** 2 + sdir ** 2 + sst ** 2)
+                    unit = "u_∥/S_ref"
+                    how = (f"u_∥({site},{z} м) вдоль притока {case_inputs(sub)['wdir']:.0f}° / S({c['ref']},100 м); σ = √(σ_5мин {st:.3f}² ⊕ "
+                           f"(0,10·S/S_ref)² ⊕ 0,03² ⊕ σ_напр {sdir:.3f}² ⊕ σ_уст {sst:.3f}²)")
+                out.append(dict(name=name, grp=f"pd_{sub}_{site}", data=round(data, 4), sig=round(sig, 4),
                                 sig_grid=round(float(g.get("sig_grid", 0.0)), 4), grid_corr=round(float(g.get("grid_corr", 0.0)), 4),
-                                unit="S/S_ref", subcase=sub,
-                                src=f"ISFS 5-мин NCAR/EOL, cases/{c['file']}_windowmean.csv: S({site},{z} м)/S({c['ref']},100 м); "
-                                    f"σ = √(σ_5мин {st:.3f}² ⊕ (0,10·r)² ⊕ 0,03²), n = {nq}"))
+                                unit=unit, subcase=sub,
+                                src=f"ISFS 5-мин NCAR/EOL, cases/{c['file']}_5min.csv, окно {c['window'][0]}–{c['window'][1]} UTC: {how}, n = {nq}"))
         # ---- зона рециркуляции (Menke 2019, статистика по многим периодам → одна группа на оба подслучая)
         zones = [
             ("zoneL", 700.0 / D_MENKE, math.hypot(100.0, 100.0) / D_MENKE, "L/D",
@@ -365,6 +400,7 @@ def _observations():
         for key, data, sig, unit, src in zones:
             name = f"pd_{sub}_{key}"
             g = gr.get(name, {})
+            sig = math.hypot(sig, float(g.get("d_stab", 0.0)))
             out.append(dict(name=name, grp="pd_menke", data=round(data, 4), sig=round(sig, 4),
                             sig_grid=round(float(g.get("sig_grid", 0.0)), 4), grid_corr=round(float(g.get("grid_corr", 0.0)), 4),
                             unit=unit, subcase=sub,
@@ -395,9 +431,10 @@ def model_obs(S, sub):
             continue
         site, z = p[2], float(p[3])
         s = mast_speed(S, sp, site, z)
-        obs[o["name"]] = s / sref
         uu, vv = mast_speed(S, u, site, z), mast_speed(S, v, site, z)
-        mast[o["name"]] = dict(upar=(uu * ex + vv * ey) / sref, dir=math.degrees(math.atan2(-uu, -vv)) % 360.0)
+        upar = (uu * ex + vv * ey) / sref
+        obs[o["name"]] = upar if MAST_OBS == "upar" else s / sref
+        mast[o["name"]] = dict(S=s / sref, upar=upar, dir=math.degrees(math.atan2(-uu, -vv)) % 360.0)
     zm = zone_metrics(S, u, v, inp["wdir"], sref)
     obs[f"pd_{sub}_zoneL"] = zm["L_D"]
     obs[f"pd_{sub}_zoneDepth"] = zm["depth_H"]
