@@ -83,9 +83,12 @@ def G(a):
     return a.get() if hasattr(a, "get") else np.asarray(a)
 
 
+STATE = ("u", "v", "w", "th", "thd", "p")
+
+
 def set_state(S, st):
     cp = S.cp
-    for k in ("u", "v", "w", "th", "p"):
+    for k in STATE:
         getattr(S, k)[...] = cp.asarray(f32(st[k]), np.float64)
 
 
@@ -93,7 +96,7 @@ def make_case(name, g, hc, case, prm):
     S = A.Air(g, hc, case, prm, dtype=F64, taper=False)
     S.init_background()
     S.launch(20)                       # без графа (float64, мелко)
-    st0 = {k: G(getattr(S, k)).copy() for k in ("u", "v", "w", "th", "p")}
+    st0 = {k: G(getattr(S, k)).copy() for k in STATE}
     nu0 = G(S.nuf).copy()
     nuh0 = G(S.nuh).copy()
     P = Pack()
@@ -147,20 +150,25 @@ def make_case(name, g, hc, case, prm):
     P.add("proj_phi", G(Pp))
     P.add("proj_u", G(S.u)); P.add("proj_v", G(S.v)); P.add("proj_w", G(S.w)); P.add("proj_p", G(S.p))
     P.add("div_after", G(S.divergence()))
-    # 6. тепло
+    # 6. тепло (Air.heat_step по шагам): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки θ′
     S.adv2_heat()
-    S.build_heat()
+    S.build_heat_d()
+    P.add("Ch_d", G(S.Ctd)); P.add("bh_d", G(S.btd))
+    for _ in range(prm.heat_sweeps):
+        S.lines.sweep(S.Ctd, S.thd, S.btd)
+    P.add("heat_thd", G(S.thd))
+    S.build_heat_t()
     P.add("Ch", G(S.Ct)); P.add("bh", G(S.bt))
-    S.heat_step()
+    for _ in range(prm.heat_sweeps):
+        S.lines.sweep(S.Ct, S.th, S.bt)
     P.add("heat_th", G(S.th))
-    iter1 = {k: G(getattr(S, k)).copy() for k in ("u", "v", "w", "th", "p")}
     # ---- решение до конца (float64)
     S2 = A.Air(g, hc, case, prm, dtype=F64, taper=False)
     S2.init_background()
     status = S2.solve(max_outer=4000, graph=False)
     res_final = S2.hist[-1]
     S2.finalize()
-    for k in ("u", "v", "w", "th", "p"):
+    for k in STATE:
         P.add("sol_" + k, G(getattr(S2, k)))
     u, v, w, th = S2.centers()
     NZ, NY, NX = S.shape
@@ -176,12 +184,14 @@ def make_case(name, g, hc, case, prm):
                               max_speed=float(np.nanmax(np.sqrt(u ** 2 + v ** 2 + w ** 2))),
                               w_range=[float(np.nanmin(w)), float(np.nanmax(w))],
                               th_range=[float(np.nanmin(th)), float(np.nanmax(th))]),
-                history=[dict(it=h["it"], mom_rms=h["mom_rms"], th_rms=h["th_rms"], div_rms=h["div_rms"])
+                history=[dict(it=h["it"], mom_rms=h["mom_rms"], th_rms=h["th_rms"], thd_rms=h["thd_rms"],
+                              div_rms=h["div_rms"])
                          for h in S2.hist],
                 notes="in_*, nu_in, nuh_in — вход итерации (nu_bg — фоновое K_b, не меняется); bc_* → kloc_nu/kloc_nuh → Cm_*/bm_* → sweep1_u (одна прогонка u: z, x, y; "
                       "зебра 0, 1) → mom_* (весь шаг импульса) → div_star → proj_rhs (минус среднее) → "
                       "vcycle_phi_raw (один V-цикл от нуля) → proj_phi (после вычитания среднего, с ореолом 0) → "
-                      "proj_u/v/w/p → div_after → Ch/bh → heat_th. sol_* — решение до критерия + "
+                      "proj_u/v/w/p → div_after → Ch_d/bh_d (шаблон θ′_d от in_*) → heat_thd (прогонки θ′_d) → "
+                      "Ch/bh (шаблон полного θ′ от in_th и heat_thd) → heat_th. sol_* — решение до критерия + "
                       "finalize (10 V-циклов без изменения p). Целочисленные массивы (типы, индексы) — в float32.")
     OUT.mkdir(parents=True, exist_ok=True)
     P.write(OUT / name, meta)

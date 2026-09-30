@@ -3,6 +3,10 @@
  "hour": 12.0,
  "wdir": 150.0,
  "dtau_u": 60.0,
+ "params": {
+  "lam_frac": 0.25,
+  "pr_t": 0.85
+ },
  "dx": 200,
  "dz": 105.0,
  "nx": 192,
@@ -44,8 +48,8 @@
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 101,
-   "t_cupy": 5.207
+   "iters": 261,
+   "t_cupy": 10.563
   },
   {
    "U10": 0.0,
@@ -53,39 +57,39 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 11,
-   "t_cupy": 0.338
+   "t_cupy": 0.461
   },
   {
    "U10": 3.0,
    "heat": true,
    "dtype": "float32",
-   "status": "ok",
-   "iters": 131,
-   "t_cupy": 6.258
+   "status": "max",
+   "iters": 3001,
+   "t_cupy": 120.86
   },
   {
    "U10": 3.0,
    "heat": false,
    "dtype": "float32",
    "status": "ok",
-   "iters": 151,
-   "t_cupy": 5.651
+   "iters": 191,
+   "t_cupy": 8.008
   },
   {
    "U10": 6.0,
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 151,
-   "t_cupy": 9.364
+   "iters": 181,
+   "t_cupy": 7.324
   },
   {
    "U10": 6.0,
    "heat": false,
    "dtype": "float32",
    "status": "ok",
-   "iters": 151,
-   "t_cupy": 8.827
+   "iters": 181,
+   "t_cupy": 7.249
   }
  ],
  "arrays": {

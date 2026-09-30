@@ -63,9 +63,14 @@ static func _part_zebra(job: AirPicardJob, dir: int) -> void:
 			job.gpu.zebra(cx[0], cx[1], RID(), job.case.dims(), [dir], true)
 
 
-static func _part_heat(job: AirPicardJob) -> void:
+## Шаблон тепла mode (0 — θ′_d, 1 — θ′).
+static func _part_heat_tpl(job: AirPicardJob, mode: int) -> void:
+	job._heat(mode)
+
+
+static func _part_heat(job: AirPicardJob, x: RID) -> void:
 	for _s in int(job.case.p.heat_sweeps):
-		job.gpu.zebra(job.buf.Cu, job.buf.th, RID(), job.case.dims(), [2, 0, 1], true)
+		job.gpu.zebra(job.buf.Cu, x, RID(), job.case.dims(), [2, 0, 1], true)
 
 
 func test_bench_ongudai() -> void:
@@ -97,8 +102,10 @@ func test_bench_ongudai() -> void:
 			["прогонки импульса z (2×3 зебры)", _part_zebra.bind(job, 2)],
 			["прогонки импульса x", _part_zebra.bind(job, 0)],
 			["прогонки импульса y", _part_zebra.bind(job, 1)],
-			["шаблон тепла", job._heat],
-			["прогонки тепла z, x, y (4×)", _part_heat.bind(job)],
+			["шаблон тепла θ′_d", _part_heat_tpl.bind(job, 0)],
+			["прогонки тепла θ′_d z, x, y (4×)", _part_heat.bind(job, job.buf.thd)],
+			["шаблон тепла θ′", _part_heat_tpl.bind(job, 1)],
+			["прогонки тепла θ′ z, x, y (4×)", _part_heat.bind(job, job.buf.th)],
 		]
 		var rows := []
 		var total := 0.0

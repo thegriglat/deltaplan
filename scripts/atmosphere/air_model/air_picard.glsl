@@ -199,7 +199,8 @@ void main() {
 
 // ================================================================ граничные условия
 // i0.w = 0 — обычные (apply_bc + ореол как set_ghosts_background): грани не-неизвестные ←
-// заданные значения; 1 — старт от фона (init_background: и неизвестные ← фон, θ′ = 0, p = 0).
+// заданные значения; 1 — старт от фона (init_background: и неизвестные ← фон, θ′ = θ′_d = 0, p = 0).
+// θ′ и θ′_d не-неизвестных клеток ← ореол thb / thbd (0 в области, родитель в окне).
 #ifdef K_BC
 layout(set = 0, binding = 1, std430) readonly buffer BT { float tcode[]; };
 layout(set = 0, binding = 2, std430) readonly buffer BUb { float ubu[]; };
@@ -211,6 +212,8 @@ layout(set = 0, binding = 7, std430) buffer BV { float v[]; };
 layout(set = 0, binding = 8, std430) buffer BW { float w[]; };
 layout(set = 0, binding = 9, std430) buffer BTh { float th[]; };
 layout(set = 0, binding = 10, std430) buffer BP { float p[]; };
+layout(set = 0, binding = 11, std430) readonly buffer BThbd { float thbd[]; };
+layout(set = 0, binding = 12, std430) buffer BThd { float thd[]; };
 
 void main() {
 	dims();
@@ -222,6 +225,7 @@ void main() {
 		if (tv != 1 || init) v[t] = tv == 0 ? 0.0 : ubv[t];
 		if (tw != 1 || init) w[t] = tw == 0 ? 0.0 : ubw[t];
 		if (c != 1 || init) th[t] = c == 0 ? 0.0 : thb[t];
+		if (c != 1 || init) thd[t] = c == 0 ? 0.0 : thbd[t];
 		if (init) p[t] = 0.0;
 	}
 }
@@ -391,6 +395,9 @@ void main() {
 #endif
 
 // ================================================================ шаблон тепла
+// i0.w: 0 — θ′_d (диабатическая часть): L θ′_d = Q − θ′_d/τ − s_θ (θ′_d − θ_b,d);
+//       1 — полное θ′: L θ′ = Q − θ′_d/τ − w dθ̄/dz − s_θ (θ′ − θ_b) (τ — явный источник от θ′_d).
+// K_θ = K/Pr_t (prm[P_IPRT]) на всех осях.
 #ifdef K_HEAT
 layout(set = 0, binding = 1, std430) readonly buffer BT { float tcode[]; };
 layout(set = 0, binding = 2, std430) readonly buffer BLev { float lev[]; };
@@ -404,25 +411,35 @@ layout(set = 0, binding = 9, std430) readonly buffer BThb { float thb[]; };
 layout(set = 0, binding = 10, std430) readonly buffer BNu { float nu[]; };
 layout(set = 0, binding = 11, std430) readonly buffer BNuh { float nuh[]; };
 layout(set = 0, binding = 12, std430) writeonly buffer BC { float C[]; };
+layout(set = 0, binding = 13, std430) readonly buffer BThd { float thd[]; };
+layout(set = 0, binding = 14, std430) readonly buffer BThbd { float thbd[]; };
 
 void main() {
 	dims();
+	bool full = pc.i0.w == 1;
 	int st[3] = int[3](1, NX, NYX);
 	float hh[3] = float[3](prm[P_DX], prm[P_DX], prm[P_DZ]);
+	float itau = prm[P_ITAU];
 	GRID_LOOP(N) {
 		int idx = t;
 		int k = idx / NYX;
+		float x = full ? th[idx] : thd[idx];
 		if (cell_of(tcode[idx]) != 1) {
 			C[8 * idx] = 1.0;
 			for (int o = 1; o < 7; ++o) C[8 * idx + o] = 0.0;
-			C[8 * idx + 7] = th[idx];
+			C[8 * idx + 7] = x;
 			continue;
 		}
 		float fm[3] = float[3](u[idx], v[idx], w[idx]);
 		float fp[3] = float[3](u[idx + 1], v[idx + NX], w[idx + NYX]);
-		float diag = prm[P_IDTTH] + prm[P_ITAU] + spc[idx];
-		float rhs = th[idx] * prm[P_IDTTH] + qsrc[idx] + spc[idx] * thb[idx]
-			- lev[L_GAM * NZ + k] * 0.5 * (w[idx] + w[idx + NYX]);
+		float diag = prm[P_IDTTH] + (full ? 0.0 : itau) + spc[idx];
+		float rhs;
+		if (full) {
+			rhs = x * prm[P_IDTTH] + (qsrc[idx] - thd[idx] * itau) + spc[idx] * thb[idx]
+				- lev[L_GAM * NZ + k] * 0.5 * (w[idx] + w[idx + NYX]);
+		} else {
+			rhs = x * prm[P_IDTTH] + qsrc[idx] + spc[idx] * thbd[idx];
+		}
 		float cc[7] = float[7](0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 		for (int d = 0; d < 3; ++d) {
 			float ih = 1.0 / hh[d];

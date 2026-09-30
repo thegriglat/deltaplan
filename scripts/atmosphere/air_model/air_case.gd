@@ -271,7 +271,8 @@ func prepare() -> bool:
 		lev[3 * nz_h + k] = _ramp(ztop - z, float(p.sponge_top_m), rate)
 		lev[4 * nz_h + k] = _ramp(ztop - (z - 0.5 * dz), float(p.sponge_top_m), rate)
 	var dth := float(p.dtau_th)
-	var s_th := dth / (1.0 + dth / float(p.tau_cool))
+	# у полного θ′ нет 1/τ в диагонали (τ — только θ′_d, C1 v2): постоянная времени — Δτ_θ
+	var s_th := dth
 	for k in nz_h:
 		var gw := 0.5 * (gam[k] + gam[k - 1]) if k > 0 else 0.0
 		lev[2 * nz_h + k] = float(p.couple) * G / THETA0 * maxf(gw, 0.0) * s_th

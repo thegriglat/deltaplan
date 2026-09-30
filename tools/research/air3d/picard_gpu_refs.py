@@ -82,7 +82,7 @@ def main():
                                  t_cupy=round(S.wall - S.t_check, 3)))
                 print(dx, U, heat, st, S.outer, round(time.perf_counter() - t0, 1), flush=True)
                 del S
-        meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx, params=dict(lam_frac=A.Params().lam_frac), dx=g.dx, dz=g.dz, nx=g.nx, ny=g.ny, nz=g.nz,
+        meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx, params=dict(lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t), dx=g.dx, dz=g.dz, nx=g.nx, ny=g.ny, nz=g.nz,
                     z_bot=g.z_bot, x0=g.x0, y0=g.y0, z_i=c.z_i, ctx=R.context(LOC),
                     day={k: (None if isinstance(v, float) and not np.isfinite(v) else v) for k, v in c.day.summary().items()}, site=dict(x=sx, y=sy), runs=runs)
         if dx == 400:
