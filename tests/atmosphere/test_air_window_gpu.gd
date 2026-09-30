@@ -270,7 +270,7 @@ func test_window_two_runs_bitwise_equal() -> void:
 		if job == null:
 			return
 		var b := PackedByteArray()
-		for nm in ["u", "v", "w", "th", "p", "wmech"]:
+		for nm in ["u", "v", "w", "th", "thd", "p", "wmech"]:
 			b.append_array(job.download(nm).to_byte_array())
 		out.append([b, job.results[0].iters, job.results[1].iters])
 		job.release()

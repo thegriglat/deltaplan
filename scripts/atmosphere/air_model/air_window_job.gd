@@ -3,8 +3,8 @@ extends AirPicardJob
 ## Окно клипмапа на GPU (AM-04): Пикар AirPicardJob на сетке окна (AirWindowCase) с граничными
 ## условиями от родителя по эталону AM-01 (air.py → Air.set_nest_bc, init_nest; reference.md →
 ## «Граничные условия области»): поле родителя в центрах его клеток трилинейно во все грани
-## и клетки окна (air_window.glsl:nest) → граничные грани (типы 2/3), θ′ ореола и цель зоны
-## релаксации (губки окна тянут u, v, w, θ′ к родителю); поправка потока Σ = 0 по площади
+## и клетки окна (air_window.glsl:nest) → граничные грани (типы 2/3), θ′ и θ′_d ореола и цель зоны
+## релаксации (губки окна тянут u, v, w, θ′, θ′_d к родителю); поправка потока Σ = 0 по площади
 ## граничных граней (flux → две редукции → corr). Старт — поле родителя + 30 V-циклов (p = 0);
 ## тёплый старт (prev) — старое окно той же клетки со сдвигом на целое число клеток (shift),
 ## остальное — родитель, + 4 V-цикла. Решение без нагрева (w_mech) — от родителя без нагрева.
@@ -22,9 +22,10 @@ const WINDOW_SHADERS := [
 ]
 const S_NET := 20  # 20 — поток через границу, 21 — площадь граничных граней
 
-## Родитель: AirPicardJob.parent_data() — {grid, tc, heat: {u, v, w, th}, mech: {…}} (N родителя).
+## Родитель: AirPicardJob.parent_data() — {grid, tc, heat: {u, v, w, th, thd}, mech: {…}} (N
+## родителя; нет thd — нули).
 var parent := {}
-## Тёплый старт от прошлого окна той же клетки: window_state() — {grid, heat: {u, v, w, th, p},
+## Тёплый старт от прошлого окна той же клетки: window_state() — {grid, heat: {u, v, w, th, thd, p},
 ## mech: {…}}; сдвиг — целое число клеток по x, y, z (иначе не используется).
 var prev := {}
 
@@ -81,7 +82,7 @@ func _upload_case(c: AirCase) -> void:
 	var pg: Dictionary = parent.grid
 	var pn := (int(pg.nx) + 2) * (int(pg.ny) + 2) * (int(pg.nz) + 2)
 	if not buf.has("par_u"):
-		for nm in ["par_u", "par_v", "par_w", "par_th", "par_tc"]:
+		for nm in ["par_u", "par_v", "par_w", "par_th", "par_thd", "par_tc"]:
 			buf[nm] = gpu.buffer(pn)
 		buf.nprm = gpu.buffer(8)
 		buf.nar = gpu.buffer(_n)
@@ -109,11 +110,12 @@ func _upload_case(c: AirCase) -> void:
 	gpu.upload(buf.par_v, src.v)
 	gpu.upload(buf.par_w, src.w)
 	gpu.upload(buf.par_th, src.th)
+	_upload_or_zero(buf.par_thd, src.get("thd", PackedFloat32Array()), pn)
 	if _use_prev:
 		var og: Dictionary = prev.grid
 		var on := (int(og.nx) + 2) * (int(og.ny) + 2) * (int(og.nz) + 2)
 		if not buf.has("old_u"):
-			for nm in ["old_u", "old_v", "old_w", "old_th", "old_p"]:
+			for nm in ["old_u", "old_v", "old_w", "old_th", "old_thd", "old_p"]:
 				buf[nm] = gpu.buffer(on)
 			buf.sprm = gpu.buffer(4)
 			gpu.upload(
@@ -122,6 +124,16 @@ func _upload_case(c: AirCase) -> void:
 		var ps: Dictionary = prev.get(set_name, prev.get("heat", {}))
 		for nm in ["u", "v", "w", "th", "p"]:
 			gpu.upload(buf["old_" + nm], ps[nm])
+		_upload_or_zero(buf.old_thd, ps.get("thd", PackedFloat32Array()), on)
+
+
+## a — в буфер b из n чисел; нет массива (родитель или прошлое окно без θ′_d) — нули (редкий
+## путь: parent_data/window_state несут thd всегда).
+func _upload_or_zero(b: RID, a: PackedFloat32Array, n: int) -> void:
+	if a.size() != n:
+		a = PackedFloat32Array()
+		a.resize(n)
+	gpu.upload(b, a)
 
 
 ## Подготовка случая (база) + граница от родителя.
@@ -148,7 +160,9 @@ func _rec_nest() -> void:
 			buf.ubu,
 			buf.ubv,
 			buf.ubw,
-			buf.thb
+			buf.thb,
+			buf.par_thd,
+			buf.thbd
 		],
 		_n,
 		[d[0], d[1], d[2], 0],
@@ -191,7 +205,9 @@ func _rec_shift() -> void:
 			buf.v,
 			buf.w,
 			buf.th,
-			buf.p
+			buf.p,
+			buf.old_thd,
+			buf.thd
 		],
 		_n,
 		[d[0], d[1], d[2], 0],

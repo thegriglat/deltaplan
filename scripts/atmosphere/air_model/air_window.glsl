@@ -13,7 +13,8 @@ shift = "#define K_SHIFT";
 // Окно клипмапа (AM-04): граничные условия от родителя по эталону AM-01
 // (tools/research/air3d/air.py → Air.set_nest_bc, reference.md → «Граничные условия области»).
 // nest  — поле родителя в центрах его клеток (среднее двух граней, 0 в земле), трилинейно в грани
-//         и клетки окна → ubu/ubv/ubw/thb (цель зоны релаксации и значения на граничных гранях);
+//         и клетки окна → ubu/ubv/ubw/thb/thbd (цель зоны релаксации и значения на граничных гранях;
+//         θ′ и θ′_d — оба скаляра тепла, C7 v2);
 // flux  — поток через граничные грани (тип 2) и их площадь по точкам → две редукции;
 // corr  — поправка потока Σ = 0: грани типа 2 −= (поток/площадь)·s (s — внешняя нормаль);
 // shift — тёплый старт сдвинутого окна: неизвестные — из старого окна той же клетки, где оно
@@ -65,6 +66,8 @@ layout(set = 0, binding = 8, std430) writeonly buffer BUb { float ubu[]; };
 layout(set = 0, binding = 9, std430) writeonly buffer BVb { float ubv[]; };
 layout(set = 0, binding = 10, std430) writeonly buffer BWb { float ubw[]; };
 layout(set = 0, binding = 11, std430) writeonly buffer BThb { float thb[]; };
+layout(set = 0, binding = 12, std430) readonly buffer BPThd { float pthd[]; };
+layout(set = 0, binding = 13, std430) writeonly buffer BThbd { float thbd[]; };
 
 int PNX, PNY, PNZ;
 
@@ -76,6 +79,7 @@ float pcen(int comp, int k, int j, int i) {
 	if (comp == 0) return i < PNX - 1 ? 0.5 * (pu[q] + pu[q + 1]) : 0.0;
 	if (comp == 1) return j < PNY - 1 ? 0.5 * (pv[q] + pv[q + PNX]) : 0.0;
 	if (comp == 2) return k < PNZ - 1 ? 0.5 * (pw[q] + pw[q + PNX * PNY]) : 0.0;
+	if (comp == 4) return pthd[q];
 	return pth[q];
 }
 
@@ -115,6 +119,7 @@ void main() {
 		ubv[t] = tv_of(tc) == 0 ? 0.0 : tri(1, fkc, fjf, fic);
 		ubw[t] = tw_of(tc) == 0 ? 0.0 : tri(2, fkf, fjc, fic);
 		thb[t] = cell_of(tc) == 0 ? 0.0 : tri(3, fkc, fjc, fic);
+		thbd[t] = cell_of(tc) == 0 ? 0.0 : tri(4, fkc, fjc, fic);
 	}
 }
 #endif
@@ -182,6 +187,8 @@ layout(set = 0, binding = 9, std430) buffer BV { float v[]; };
 layout(set = 0, binding = 10, std430) buffer BW { float w[]; };
 layout(set = 0, binding = 11, std430) buffer BTh { float th[]; };
 layout(set = 0, binding = 12, std430) buffer BP { float p[]; };
+layout(set = 0, binding = 13, std430) readonly buffer BOThd { float othd[]; };
+layout(set = 0, binding = 14, std430) buffer BThd { float thd[]; };
 
 void main() {
 	dims();
@@ -199,6 +206,7 @@ void main() {
 			if (tv_of(tc) == 1) v[t] = ov[q];
 			if (tw_of(tc) == 1) w[t] = ow[q];
 			if (cell_of(tc) == 1) th[t] = oth[q];
+			if (cell_of(tc) == 1) thd[t] = othd[q];
 		}
 		if (cell_of(tc) == 1) {
 			int ic = clamp(io, 1, ONX - 2), jc = clamp(jo, 1, ONY - 2), kc = clamp(ko, 1, ONZ - 2);
