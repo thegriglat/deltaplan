@@ -27,6 +27,7 @@ var _run_time: float = 0.0
 var _ever_ran: bool = false
 var _fail_timers: Dictionary = {}
 var _yaw_rate: float = 0.0  ## рад/с, + вправо (по часовой)
+var _fresh: bool = true  ## первый шаг после reset: тангаж сразу установившийся (склон известен)
 
 
 ## Текст причины срыва взлёта для интерфейса.
@@ -53,6 +54,7 @@ func reset() -> void:
 	_ever_ran = false
 	_fail_timers.clear()
 	_yaw_rate = 0.0
+	_fresh = true
 	feet_load = 1.0
 	wind_moment_nm = 0.0
 	hold_limit_nm = 0.0
@@ -133,7 +135,13 @@ func _aero_force(
 	var nose := (
 		float(la.alpha_neutral_deg) + clampf(input.pitch, -1.0, 1.0) * float(la.alpha_range_deg)
 	)
-	m.theta += (gamma + Units.deg(nose) - m.theta) * (1.0 - exp(-dt / m.tau_pitch))
+	var theta_target := gamma + Units.deg(nose)
+	if _fresh:
+		# FlightModel.reset_on_ground не знает склона — на первом шаге сразу поза стоя,
+		# без переходного наклона от горизонта
+		m.theta = theta_target
+		_fresh = false
+	m.theta += (theta_target - m.theta) * (1.0 - exp(-dt / m.tau_pitch))
 	m.alpha = m.theta - gamma
 	m.stalled = m.alpha > m.alpha_stall
 	var c := m.aero_coefs(dt)

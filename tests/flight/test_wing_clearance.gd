@@ -34,9 +34,10 @@ static func _ground(kind: String) -> Callable:
 	return func(_x: float, _z: float) -> float: return 100.0
 
 
-static func _ctl(pitch: float, run: bool, walk: float) -> ControlInput:
+static func _ctl(pitch: float, run: bool, walk: float, roll: float = 0.0) -> ControlInput:
 	var c := ControlInput.new()
 	c.pitch = pitch
+	c.roll = roll
 	c.run = run
 	c.walk = walk
 	return c
@@ -72,6 +73,10 @@ func test_wing_above_ground_on_launch() -> void:
 		"стоит, нос вниз до упора": [_ctl(-1, false, 0), 3.0],
 		"шагом": [_ctl(0, false, 1), 4.0],
 		"разбег": [_ctl(0, true, 0), 12.0],
+		# SF-3: A/D на земле — только курс, крыло не кренит
+		"стоит, A": [_ctl(0, false, 0, -1), 3.0],
+		"стоит, D": [_ctl(0, false, 0, 1), 3.0],
+		"разбег, A": [_ctl(0, true, 0, -1), 12.0],
 	}
 	for p in Config.list_configs("wings"):
 		var w := String(p).get_file()
@@ -84,7 +89,10 @@ func test_wing_above_ground_on_launch() -> void:
 			for ph: String in phases:
 				var r := _phase(g, pts, gf, phases[ph][0], phases[ph][1])
 				check(r.bank_deg < 0.5, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])
-				if kind != "косой 15°":
+				# стоя с A/D на склоне пилот разворачивается поперёк склона — это уже косой склон
+				# (верхняя консоль у земли — правда жизни), зазор только фиксируем
+				var across := kind == "склон 20°" and ph.contains(",") and not ph.contains("нос")
+				if kind != "косой 15°" and not across:
 					check(
 						r.min >= MIN_CLEARANCE_M,
 						(
@@ -92,7 +100,9 @@ func test_wing_above_ground_on_launch() -> void:
 							% [w, kind, ph, r.min, r.part, r.theta_deg, MIN_CLEARANCE_M]
 						)
 					)
-				if r.min < worst.min:
+				if across:
+					print("         %s %s %s: зазор %.2f м (%s)" % [w, kind, ph, r.min, r.part])
+				if r.min < worst.min and not across:
 					worst = r
 					worst.phase = ph
 			print(
