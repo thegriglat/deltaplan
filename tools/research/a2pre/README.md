@@ -42,7 +42,7 @@ $PY analyze.py        # только матрица → out/tables.md, out/summa
 
 | Файл | Что |
 |---|---|
-| `run.py a2 [варианты]` | матрица А2: old и new × варианты `A2_VARIANTS` (kr25, hs8, kr25hs8, kr10, kr15, top3000 — потолок окна 3000 м над рельефом, только диагностика) → `out/matrix_a2.jsonl`; карты невязки `out/matrix_a2_maps.npz` (17 МБ) — не в git, локально в `~/deltaplan-wf-a2/tools/research/a2pre/out/` |
+| `run.py a2 [варианты]` | матрица А2: old и new × варианты `A2_VARIANTS` (kr25, hs8, kr25hs8, kr10, kr15, top3000 — потолок окна 3000 м над рельефом, только диагностика) → `out/matrix_a2.jsonl`; карты невязки `out/matrix_a2_maps.npz` (17 МБ) — не в git, локально в `~/deltaplan-wf/tools/research/a2pre/out/` (копия модуля) |
 | `run.py scan` | отбор ещё дешёвых численных параметров (`SCAN`: k_relax 0,1, dtau_th 600/300, dtau_per_m 0,2/0,15, mom_sweeps 4, vcycles 2) на двух трудных cbl-случаях → `out/scan_a2.jsonl` |
 | `run.py a2trial` | одна цепочка (оценка времени) |
 | `analyze_a2.py` | одна обработка: `out/a2_tables.md`, `out/a2_summary.json`, `out/fig_a2_hist.png`, `out/fig_a2_cost.png` |
