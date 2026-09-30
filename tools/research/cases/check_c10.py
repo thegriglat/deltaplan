@@ -1,4 +1,4 @@
-"""Контрактный тест C10 (docs/air_model_contracts.md): модуль случая калибровки → совместная калибровка.
+"""Контрактный тест C10 v2 (docs/air_model_contracts.md): модуль случая калибровки → совместная калибровка.
 
 Проверяет форму на стыке без GPU: observations() модуля и строки прогонов run_one из файла(ов) jsonl.
 Сам решатель не запускает (import модуля может тянуть CuPy — запускать venv калибровки).
@@ -18,6 +18,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import scheme as SC  # noqa: E402
+
 OBS_FIELDS = {"name": str, "grp": str, "data": float, "sig": float, "sig_grid": float, "grid_corr": float,
               "unit": str, "subcase": str, "src": str}
 ROW_FIELDS = {"case": str, "subcase": str, "dx": float, "params": dict, "status": str, "iters": int, "t": float,
@@ -31,7 +33,7 @@ def _num(x):
 
 def check_module(mod):
     err = []
-    for attr in ("NAME", "SUBCASES", "observations", "run_one"):
+    for attr in ("NAME", "SUBCASES", "SETUP", "observations", "run_one"):
         if not hasattr(mod, attr):
             err.append(f"нет атрибута {attr}")
     if err:
@@ -41,6 +43,12 @@ def check_module(mod):
     subs = list(mod.SUBCASES)
     if not subs or not all(isinstance(s, str) and s for s in subs):
         err.append("SUBCASES — непустой список строк")
+    setup = mod.SETUP
+    for sub in subs:
+        s = setup.get(sub, setup) if isinstance(setup, dict) else {}
+        miss = [k for k in SC.SETUP_KEYS if k not in s]
+        if miss:
+            err.append(f"SETUP[{sub}]: нет {miss}")
     obs = mod.observations()
     if not isinstance(obs, list) or not obs:
         return err + ["observations() — непустой список"], []
@@ -90,6 +98,10 @@ def check_row(row, obs, name, where):
     for key in ("lam_frac", "lam", "alpha", "z0", "pr_t", "local_k", "closure", "heat_mode"):
         if key not in row["params"]:
             err.append(f"{where}: params без {key} (нужны все поля Params как применены)")
+    if not row.get("scheme_ctl", False):
+        for k, v in SC.SCHEME.items():
+            if row["params"].get(k) != v:
+                err.append(f"{where}: params.{k} = {row['params'].get(k)!r} ≠ общей схеме {v!r} (scheme.py; контроль — scheme_ctl)")
     if row["status"] == "ok":
         want = {o["name"] for o in obs if o["subcase"] == row["subcase"]}
         miss = want - set(row["obs"])
