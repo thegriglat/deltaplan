@@ -116,6 +116,14 @@ func set_forest_mask(mask: Image, origin: Vector2, cell_m: float) -> void:
 	_last_center = Vector2(INF, INF)
 
 
+## Карта поверхности поменялась (Terrain.add_start_clearing) — расставить заново в следующем кадре.
+func invalidate() -> void:
+	if _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+	_last_center = Vector2(INF, INF)
+
+
 ## Расставить сразу (без потока) — для тестов и скриншотов.
 func rebuild_now(center: Vector2) -> void:
 	if _task >= 0:
