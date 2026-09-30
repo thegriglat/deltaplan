@@ -1,0 +1,194 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  skip test_air_gpu_blocks.gd::test_blocks_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_job_chunks (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_errors_are_reported (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_bench_blocks (нужен GPU — tools/gpu_tests.sh)
+WARNING: AirGpuJob: нет RenderingDevice: headless
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _fail (res://scripts/atmosphere/air_model/air_gpu_job.gd:303)
+         [1] start (res://scripts/atmosphere/air_model/air_gpu_job.gd:73)
+         [2] test_no_rd_is_clear_error (res://tests/atmosphere/test_air_gpu_headless.gd:16)
+         [3] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_gpu_headless.gd::test_no_rd_is_clear_error
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    kayancha_start_agl10: air (-0.423, 0.070, -1.898), поле (-0.423, 0.070, -1.898), w_conv 0.047 (не пилоту)
+    kayancha_start_agl50: air (-0.563, 0.076, -2.455), поле (-0.563, 0.076, -2.455), w_conv 0.103 (не пилоту)
+    kayancha_start_agl150: air (-0.716, -0.079, -2.815), поле (-0.716, -0.079, -2.815), w_conv 0.193 (не пилоту)
+    kayancha_start_agl400: air (-0.661, -0.205, -3.198), поле (-0.661, -0.205, -3.198), w_conv 0.071 (не пилоту)
+  ok   test_air_model_atmo.gd::test_kayancha_probes
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+air_model: analytic (air_model.enabled = off)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+  ok   test_air_model_atmo.gd::test_off_and_outside_bitwise_analytic
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    край поля: макс. изменение 0.0296 м/с на 5 м
+  ok   test_air_model_atmo.gd::test_edge_smooth_in_atmosphere
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_model_atmo.gd::test_fingerprint_world_without_field
+  ok   test_air_model_atmo.gd::test_config_documented
+  skip test_air_picard_bench.gd::test_bench_ongudai (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_bench.gd::test_warm_start (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_blocks_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_solutions_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_ongudai_d400_vs_reference (нужен GPU — tools/gpu_tests.sh)
+ERROR: Unable to open file: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:45)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_domain_input_vs_reference (res://tests/atmosphere/test_air_place.gd:35)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_domain_input_vs_reference (res://tests/atmosphere/test_air_place.gd:35)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://data/terrain/ongudai/detail_water.png.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_domain_input_vs_reference (res://tests/atmosphere/test_air_place.gd:35)
+       [2] _ready (res://tests/run_tests.gd:36)
+  400 м: подготовка 136 мс; max|Δhc| 1.22e-04 м, max|ΔH| 1.53e+02 Вт/м², max|Δγ| 7.38e-11 К/м, z_i 3362.33 / 3362.33 м
+SCRIPT ERROR: Out of bounds get index '8236' (on base: 'PackedFloat64Array')
+          at: TestAirPlace.test_domain_input_vs_reference (res://tests/atmosphere/test_air_place.gd:70)
+          GDScript backtrace (most recent call first):
+              [0] test_domain_input_vs_reference (res://tests/atmosphere/test_air_place.gd:70)
+              [1] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_place.gd::test_domain_input_vs_reference
+  skip test_air_runtime_gpu.gd::test_ongudai_runtime (нужен GPU — tools/gpu_tests.sh)
+    источников 44: в тени 0, в схождении 23 (8.7/км²), на солнце 11 (3.6/км²)
+    w* 2.30 м/с, w0/w* 1.24…1.24 (k Аллена 1.24), R 129 м, живых n_A·(Φ/Φ̂) → 2.5/км²
+  ok   test_air_thermals.gd::test_sources_sunny_convergence_not_shade
+    инверсия 20 К/км на 2000 м: потолок частицы 2061 м
+    свободная атмосфера 5,8 К/км над 2000 м: потолок 2212 м
+    тёплый слой θ′ +2 К с 800 м: потолок 1808 м
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_ceiling_inversion_and_cloudbase
+    поток: поля 3482097 м³/с, водосборам 3482097, несут ядра 1985718, без хозяина 0; жизнь 0.55
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    Монте-Карло (ξ = 0,5, 30000 точек): ядра 0.112 м/с, ожидание поля 0.118 — 0.95
+  ok   test_air_thermals.gd::test_mass_flux_matches_field
+    без ведущего: источников 44 / 36, других столбцов 27
+    с маской: |Δw0| ≤ 0.00000 отн., |Δпотолок| ≤ 0.305 м, |Δснос| ≤ 0.00073 м/с
+    (без ведущего одинаковы: false)
+  ok   test_air_thermals.gd::test_host_mask_same_sources_with_noise
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    два клиента (шум поля 3e-3): термиков 1223, |Δось| ≤ 0.39 м, |Δсила| ≤ 0.000 м/с
+  ok   test_air_thermals.gd::test_two_clients_same_thermals
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    термики: поля 95, сетки в поле 0, сетки вне поля 1166
+air_model: analytic (air_model.enabled = off)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_atmosphere_field_region_and_off
+    Каянча 12:00 (32×32): ист. 64, w* 2.56, w0/w* 1.24…1.24, столб 1120, снос (-3.12, -3.50)
+    поток: поля 2879601, несут ядра 816135 (28 %)
+  ok   test_air_thermals.gd::test_real_kayancha_fixture
+ERROR: Unable to open file: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:45)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_window_input_vs_reference (res://tests/atmosphere/test_air_window_case.gd:9)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_window_input_vs_reference (res://tests/atmosphere/test_air_window_case.gd:9)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://data/terrain/ongudai/detail_water.png.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_window_input_vs_reference (res://tests/atmosphere/test_air_window_case.gd:9)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ongudai_w100_h12: вход 15 мс, подготовка пары 278 мс; max|Δhc| 0.0 м, max|ΔH| 2.42e-05 Вт/м², max|Δγ| 7.38e-11 К/м
+  ongudai_w50_h12: вход 8 мс, подготовка пары 355 мс; max|Δhc| 0.0 м, max|ΔH| 2.64e-05 Вт/м², max|Δγ| 2.33e-08 К/м
+  ok   test_air_window_case.gd::test_window_input_vs_reference
+  ok   test_air_window_case.gd::test_gauss_folded_equals_direct
+  skip test_air_window_gpu.gd::test_window_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_window_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_clipmap_load_and_shift (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_runtime_with_windows (нужен GPU — tools/gpu_tests.sh)
+  ok   test_air_contracts.gd::test_contract_versions
+  ok   test_air_contracts.gd::test_c1_ref_fixture_format
+  ok   test_air_contracts.gd::test_c1_ref_mask_rule
+  ok   test_air_contracts.gd::test_c1_ref_solution_div_free
+  ok   test_air_contracts.gd::test_c2_air_case_grid
+  ok   test_air_contracts.gd::test_c3_from_arrays_axes_units
+  ok   test_air_contracts.gd::test_c3_mask_log_profile
+ERROR: WindField: неверные размеры сетки
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] from_arrays (res://scripts/atmosphere/air_model/wind_field.gd:123)
+       [1] test_c3_sanitize_and_limits (res://tests/contracts/test_air_contracts.gd:394)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c3_sanitize_and_limits
+  ok   test_air_contracts.gd::test_c3_from_mac_ref
+  ok   test_air_contracts.gd::test_c3_game_field_files
+  ok   test_air_contracts.gd::test_c4_field_set_vector4
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_contracts.gd::test_c4_atmosphere_api_and_analytic
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c4_atmosphere_field_rule
+  ok   test_air_contracts.gd::test_c4_turb_at
+  ok   test_air_contracts.gd::test_c4_config_keys
+  ok   test_air_contracts.gd::test_c5_signature_and_mask
+  ok   test_air_contracts.gd::test_c5_net_schema
+ERROR: WindField: user://c6_version_test — версия формата 2.0, читается 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] load_file (res://scripts/atmosphere/air_model/wind_field.gd:221)
+       [1] test_c6_field_version (res://tests/contracts/test_air_contracts.gd:665)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c6_field_version
+  ok   test_air_contracts.gd::test_c6_start_hours
+  ok   test_air_contracts.gd::test_c7_levels_fine_to_coarse
+ERROR: Unable to open file: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:45)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://.godot/imported/detail_water.png-322463da21d116af8e63834848db180c.ctex.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+ERROR: Failed loading resource: res://data/terrain/ongudai/detail_water.png.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] load_detail (res://tests/atmosphere/test_air_place.gd:20)
+       [1] test_c7_window_grid_and_api (res://tests/contracts/test_air_contracts.gd:706)
+       [2] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_contracts.gd::test_c7_window_grid_and_api
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c8_blend
+  ok   test_air_contracts.gd::test_c8_blend_during_blend
+air_model: analytic (нет RenderingDevice: headless)
+  ok   test_air_contracts.gd::test_c9_runtime_shape
+
+40 тестов, 0 упало, 16 пропущено
+exit 0
