@@ -9,7 +9,7 @@
 
   (u·∇)u = −∇p + ∇·(K_m ∇u) − [земля] C_d |u_h| u_h / Δz + ẑ g θ′/θ0 − s(x)(u − U_b)
   ∇·u = 0
-  ∇·(u θ′) + w dθ̄/dz = ∇·(K_h ∇θ′) + [земля] H/(ρ c_p Δz) − θ′/τ − s_θ(x) θ′
+  ∇·(u θ′) + w dθ̄/dz = ∇·(K_θ ∇θ′) + [земля] H/(ρ c_p Δz) − θ′/τ − s_θ(x) θ′,   K_θ = K_m/Pr_t
 
 Отличия от прикидки (все — ради физики, не подгонки):
   * вязкость — на полную скорость u (не на отклонение от фона), турбулентное напряжение у земли —
@@ -231,7 +231,8 @@ extern "C" __global__ void adv2_mom(int comp, const real* u, const real* v, cons
 // ------------------------------------------------ шаблон тепла
 extern "C" __global__ void build_heat(const real* u, const real* v, const real* w, const unsigned char* cell,
         const real* th, const real* Q, const real* spc, const real* thbg, const real* gam, const real* kf, const real* kh,
-        const real* corr, real* C, real* b, int NZ, int NY, int NX, real dx, real dz, real inv_dtau, real inv_tau) {
+        const real* corr, real* C, real* b, int NZ, int NY, int NX, real dx, real dz, real inv_dtau, real inv_tau,
+        real inv_prt) {
     long N = (long)NZ * NY * NX;
     long idx = (long)blockDim.x * blockIdx.x + threadIdx.x;
     if (idx >= N) return;
@@ -256,7 +257,7 @@ extern "C" __global__ void build_heat(const real* u, const real* v, const real* 
             real cn = 0;
             if (vo > 0) diag += vo * ih; else cn += vo * ih;
             const real* KK = d == 2 ? kf : kh;
-            if (cell[q] != 0) { real dif = (real)0.5 * (KK[idx] + KK[q]) * ih * ih; diag += dif; cn -= dif; }
+            if (cell[q] != 0) { real dif = (real)0.5 * (KK[idx] + KK[q]) * ih * ih * inv_prt; diag += dif; cn -= dif; }
             cc[1 + 2 * d + s] = cn;
         }
     }
@@ -507,7 +508,9 @@ class Params:
     k_fa: float = 1.0                 # K свободной атмосферы (выше h), м²/с (0,1–1 — порядок в тропосфере)
     k_smooth_m: float = 1500.0        # сглаживание потока тепла для w* (площадь конвективной ячейки ~ z_i)
     zi_min: float = 300.0             # мин. толщина слоя перемешивания над прогретым склоном, м
-    pr_t: float = 1.0                 # турбулентное число Прандтля
+    pr_t: float = 0.85                # турбулентное число Прандтля, K_θ = K/Pr_t на всех трёх осях (Kays 1994: 0,85).
+                                      # Временно, до решения пользователя (Kays 1994; варианты 1,0/0,74/0,95 —
+                                      # docs/plan/air_model_a1.md §1)
     heat_mode: str = "cbl"            # cbl — нагрев по толщине слоя перемешивания (нелокальный перенос), surface — в первую клетку
     # численные
     dtau_u: float | None = None       # псевдошаг импульса, с; None — dtau_per_m·Δx (по уровню клипмапа)
@@ -698,7 +701,7 @@ class Air:
         for name_, arr_ in vars(self).items():
             if isinstance(arr_, cp.ndarray) and not arr_.flags.c_contiguous:
                 raise AssertionError(f"массив {name_} не C-непрерывен")
-        self.khf = self.nuf                      # Pr_t = 1
+        self.inv_prt = 1.0 / prm.pr_t           # K_θ = K/Pr_t (шаблон тепла, баланс)
         self.nuh = A(self.nu_np)                 # горизонтальное K_h
         self.thbg = cp.zeros(shape, dt)          # к чему губка тянет θ′ (0; в окне — родитель)
         self.cplz = A(cplz)
@@ -966,9 +969,9 @@ class Air:
         R = self.dt.type
         prm = self.prm
         self.k["build_heat"](gr, bl, (self.u, self.v, self.w, self.cell, self.th, self.Q, self.spc, self.thbg, self.gam,
-                                      self.khf, self.nuh, self.ct, self.Ct, self.bt, np.int32(self.NZ), np.int32(self.NY),
+                                      self.nuf, self.nuh, self.ct, self.Ct, self.bt, np.int32(self.NZ), np.int32(self.NY),
                                       np.int32(self.NX), R(self.dx), R(self.dz), R(1.0 / prm.dtau_th),
-                                      R(1.0 / prm.tau_cool)))
+                                      R(1.0 / prm.tau_cool), R(self.inv_prt)))
 
     def mom_step(self):
         for _ in range(self.prm.mom_sweeps):
@@ -1138,7 +1141,7 @@ class Air:
             out += float(cp.sum(un * thb, dtype=np.float64)) * area
         cell = self.cell_np
         T = self.th.get().astype(np.float64)
-        K = self.khf.get().astype(np.float64)
+        K = self.nuf.get().astype(np.float64) * self.inv_prt
         dif = 0.0
         for ax, hh, A in ((2, self.dx, self.dx * self.dz), (1, self.dx, self.dx * self.dz), (0, self.dz, self.dx * self.dx)):
             for sh in (1, -1):

@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "air3d"))
 OUT = HERE / "out"
 OUT.mkdir(exist_ok=True)
+AFTER = False          # «after» вторым аргументом: правки уже в air.py — всё на A.Air, выход out/<проба>_after.json
 
 import air as A          # noqa: E402
 import synth as SY       # noqa: E402
@@ -221,6 +222,7 @@ def run(cls, g, hc, case, prm, max_outer=3000, taper=True):
 
 
 def dump(name, obj):
+    name = name + ("_after" if AFTER else "")
     (OUT / f"{name}.json").write_text(json.dumps(obj, ensure_ascii=False, indent=1, default=lambda o: float(o)))
     print(json.dumps(obj, ensure_ascii=False, indent=1, default=lambda o: float(o)))
 
@@ -328,7 +330,8 @@ def probe_prt():
     import ref_study as RS
     res = {}
     orig = A.Air
-    A.Air = PrtAir                               # real.make берёт A.Air в момент вызова
+    if not AFTER:
+        A.Air = PrtAir                           # real.make берёт A.Air в момент вызова
     for U in (0.0, 3.0):
         for prt in (1.0, 0.85, 0.74):
             prm = A.Params(pr_t=prt)
@@ -341,7 +344,7 @@ def probe_prt():
             W2 = RS.window(W1, 50.0, 12.0, U, prm=prm)
             r2 = RS.solve(W2)
             k2 = R.key_numbers(W2)
-            kmax = float(D.cp.max(D.khf * D.fluid))
+            kmax = float(D.cp.max((D.khf if not AFTER else D.nuf * D.inv_prt) * D.fluid))
             res[f"U{int(U)}_prt{prt}"] = dict(
                 iters=dict(d400=rd["iters"], w100=r1["iters"], w50=r2["iters"]),
                 status=dict(d400=rd["status"], w100=r1["status"], w50=r2["status"]),
@@ -401,4 +404,5 @@ def probe_ongudai():
 
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "saddle"
+    AFTER = len(sys.argv) > 2 and sys.argv[2] == "after"
     dict(saddle=probe_saddle, const=probe_const, heat=probe_heat, prt=probe_prt, ongudai=probe_ongudai)[what]()
