@@ -1,0 +1,63 @@
+{
+  "src": "moyes__malibu2_spec.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Moyes",
+      "model": "Malibu 2",
+      "size": "166",
+      "cert_class": "DHV",
+      "cert_standard": "01-0486-16",
+      "facts": [
+        {"field": "area", "value": 15.4, "unit": "sq.m", "quote": "15.4 sq.m (166 sq.ft.)"},
+        {"field": "span", "value": 9.2, "unit": "m", "quote": "9.2 m (30 ft)"},
+        {"field": "aspect_ratio", "value": 5.5, "unit": "", "quote": "Aspect Ratio 5.5"},
+        {"field": "wing_mass", "value": 23, "unit": "kgs", "quote": "23 kgs (51 lbs)"},
+        {"field": "pilot_mass_min", "value": 60, "unit": "kgs", "quote": "60-110 kgs (132-242 lbs)"},
+        {"field": "pilot_mass_max", "value": 110, "unit": "kgs", "quote": "60-110 kgs (132-242 lbs)"},
+        {"field": "vne", "value": 85, "unit": "kph", "quote": "85 kph (53 mph)"},
+        {"field": "va", "value": 55, "unit": "kph", "quote": "55 kph (34 mph)"},
+        {"field": "stall_speed", "value": 22, "unit": "kph", "quote": "22 kph (14 mph)"},
+        {"field": "trim_speed", "value": 32, "unit": "kph", "quote": "32 kph (20 mph)"},
+        {"field": "vmax_vg0", "value": 70, "unit": "kph", "quote": "70 kph (43 mph)"},
+        {"field": "best_glide", "value": 9.5, "unit": "", "quote": "9.5:1"},
+        {"field": "nose_angle", "value": 120.5, "unit": "deg", "quote": "120.5 degrees"},
+        {"field": "battens", "value": 15, "unit": "", "quote": "Number of Battens Top 15"}
+      ],
+      "geometry": [
+        {"name": "packed_length", "value": 5310, "unit": "mm", "quote": "5310 mm (17.4 ft)"},
+        {"name": "packed_length_short", "value": 3510, "unit": "mm", "quote": "3510 mm (11.5 ft)"},
+        {"name": "centre_of_gravity_front_keel", "value": 1658, "unit": "mm", "quote": "1658 mm (65.3 inches)"},
+        {"name": "battens_bottom", "value": 0, "unit": "", "quote": "Number of Battens Bottom 0"}
+      ]
+    },
+    {
+      "manufacturer": "Moyes",
+      "model": "Malibu 2",
+      "size": "188",
+      "cert_class": "DHV",
+      "cert_standard": "01-0442-09",
+      "facts": [
+        {"field": "area", "value": 17.5, "unit": "sq.m", "quote": "17.5 sq.m (188 sq.ft.)"},
+        {"field": "span", "value": 10.1, "unit": "m", "quote": "10.1 m (33.1 ft)"},
+        {"field": "aspect_ratio", "value": 5.8, "unit": "", "quote": "Aspect Ratio 5.8"},
+        {"field": "wing_mass", "value": 26, "unit": "kgs", "quote": "26 kgs (57 lbs)"},
+        {"field": "pilot_mass_min", "value": 80, "unit": "kgs", "quote": "80-126 kgs (176-277 lbs)"},
+        {"field": "pilot_mass_max", "value": 126, "unit": "kgs", "quote": "80-126 kgs (176-277 lbs)"},
+        {"field": "vne", "value": 74, "unit": "kph", "quote": "74 kph (46 mph)"},
+        {"field": "va", "value": 55, "unit": "kph", "quote": "55 kph (34 mph)"},
+        {"field": "stall_speed", "value": 22, "unit": "kph", "quote": "22 kph (14 mph)"},
+        {"field": "trim_speed", "value": 32, "unit": "kph", "quote": "32 kph (20 mph)"},
+        {"field": "vmax_vg0", "value": 65, "unit": "kph", "quote": "65 kph (40 mph)"},
+        {"field": "best_glide", "value": 9.5, "unit": "", "quote": "9.5:1"},
+        {"field": "nose_angle", "value": 120.5, "unit": "deg", "quote": "120.5 degrees"},
+        {"field": "battens", "value": 15, "unit": "", "quote": "Number of Battens Top 15"}
+      ],
+      "geometry": [
+        {"name": "packed_length", "value": 5950, "unit": "mm", "quote": "5950 mm (19.5 ft)"},
+        {"name": "packed_length_short", "value": 4000, "unit": "mm", "quote": "4000 mm (13.1 ft)"},
+        {"name": "centre_of_gravity_front_keel", "value": 1750, "unit": "mm", "quote": "1750 mm (68.9 inches)"},
+        {"name": "battens_bottom", "value": 0, "unit": "", "quote": "Number of Battens Bottom 0"}
+      ]
+    }
+  ]
+}

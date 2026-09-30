@@ -1,0 +1,145 @@
+{
+  "src": "pdf__Piuma_Spec_metric.pdf.txt",
+  "wings": [
+    {
+      "manufacturer": "ICARO",
+      "model": "Piuma",
+      "size": "S",
+      "cert_class": "DHV",
+      "cert_standard": "01-0402-04",
+      "facts": [
+        {"field": "area", "value": 13.76, "unit": "sq m", "quote": "Wing Surface ... S ... 13.76 sq m"},
+        {"field": "span", "value": 9.08, "unit": "m", "quote": "Wing Span ... S ... 9.08 m"},
+        {"field": "aspect_ratio", "value": 6.0, "unit": "", "quote": "Aspect Ratio with/without wingtips ... S ... 6.0 / 6.2"},
+        {"field": "double_surface_pct", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"field": "wing_mass", "value": 19, "unit": "kg", "quote": "Weight (without glider bag) ... S ... 19 kg"},
+        {"field": "pilot_mass_min", "value": 55, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... S ... 55 / 75 kg"},
+        {"field": "pilot_mass_max", "value": 75, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... S ... 55 / 75 kg"},
+        {"field": "takeoff_mass_min", "value": 65, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... S ... 65 / 100 kg"},
+        {"field": "takeoff_mass_max", "value": 100, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... S ... 65 / 100 kg"},
+        {"field": "vne", "value": 60, "unit": "Km/h", "quote": "VNE ... S ... 60 Km/h"},
+        {"field": "stall_speed", "value": 29, "unit": "Km/h", "quote": "Stall Speed ... S ... 29 Km/h"},
+        {"field": "nose_angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"field": "battens", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... S ... 12 + 2"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 13.76, "unit": "sq m", "quote": "Wing Surface ... S ... 13.76 sq m"},
+        {"name": "Wing Surface with wingtips", "value": 13.85, "unit": "sq m", "quote": "Wing Surface with wingtips ... S ... 13.85 sq m"},
+        {"name": "Wing Span", "value": 9.08, "unit": "m", "quote": "Wing Span ... S ... 9.08 m"},
+        {"name": "Wing Span with wingtips", "value": 9.27, "unit": "m", "quote": "Wing Span with wingtips ... S ... 9.27 m"},
+        {"name": "Aspect Ratio", "value": 6.0, "unit": "", "quote": "Aspect Ratio with/without wingtips ... S ... 6.0 / 6.2"},
+        {"name": "Nose Angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"name": "Battens upper", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... S ... 12 + 2"},
+        {"name": "Battens lower", "value": 2, "unit": "n", "quote": "Battens (upper + lower) ... S ... 12 + 2"},
+        {"name": "Double Surface", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"name": "Packed Length", "value": 4.70, "unit": "m", "quote": "Packed Length ... S ... 4.70 m"},
+        {"name": "Short Packed Length", "value": 3.45, "unit": "m", "quote": "Short Packed Length ... S ... 3.45 m"}
+      ]
+    },
+    {
+      "manufacturer": "ICARO",
+      "model": "Piuma",
+      "size": "M",
+      "cert_class": "DHV",
+      "cert_standard": "01-0382-02",
+      "facts": [
+        {"field": "area", "value": 15.98, "unit": "sq m", "quote": "Wing Surface ... M ... 15.98 sq m"},
+        {"field": "span", "value": 9.80, "unit": "m", "quote": "Wing Span ... M ... 9.80 m"},
+        {"field": "aspect_ratio", "value": 6.0, "unit": "", "quote": "Aspect Ratio with/without wingtips ... M ... 6.0 / 6.2"},
+        {"field": "double_surface_pct", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"field": "wing_mass", "value": 22, "unit": "kg", "quote": "Weight (without glider bag) ... M ... 22 kg"},
+        {"field": "pilot_mass_min", "value": 70, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... M ... 70 / 90 kg"},
+        {"field": "pilot_mass_max", "value": 90, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... M ... 70 / 90 kg"},
+        {"field": "takeoff_mass_min", "value": 83, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... M ... 83 / 115 kg"},
+        {"field": "takeoff_mass_max", "value": 115, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... M ... 83 / 115 kg"},
+        {"field": "vne", "value": 60, "unit": "Km/h", "quote": "VNE ... M ... 60 Km/h"},
+        {"field": "stall_speed", "value": 28, "unit": "Km/h", "quote": "Stall Speed ... M ... 28 Km/h"},
+        {"field": "nose_angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"field": "battens", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... M ... 12 + 2"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 15.98, "unit": "sq m", "quote": "Wing Surface ... M ... 15.98 sq m"},
+        {"name": "Wing Surface with wingtips", "value": 16.03, "unit": "sq m", "quote": "Wing Surface with wingtips ... M ... 16.03 sq m"},
+        {"name": "Wing Span", "value": 9.80, "unit": "m", "quote": "Wing Span ... M ... 9.80 m"},
+        {"name": "Wing Span with wingtips", "value": 9.94, "unit": "m", "quote": "Wing Span with wingtips ... M ... 9.94 m"},
+        {"name": "Aspect Ratio", "value": 6.0, "unit": "", "quote": "Aspect Ratio with/without wingtips ... M ... 6.0 / 6.2"},
+        {"name": "Nose Angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"name": "Battens upper", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... M ... 12 + 2"},
+        {"name": "Battens lower", "value": 2, "unit": "n", "quote": "Battens (upper + lower) ... M ... 12 + 2"},
+        {"name": "Double Surface", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"name": "Packed Length", "value": 5.10, "unit": "m", "quote": "Packed Length ... M ... 5.10 m"},
+        {"name": "Short Packed Length", "value": 3.70, "unit": "m", "quote": "Short Packed Length ... M ... 3.70 m"}
+      ]
+    },
+    {
+      "manufacturer": "ICARO",
+      "model": "Piuma",
+      "size": "L",
+      "cert_class": "DHV",
+      "cert_standard": "01-0401-04",
+      "facts": [
+        {"field": "area", "value": 17.33, "unit": "sq m", "quote": "Wing Surface ... L ... 17.33 sq m"},
+        {"field": "span", "value": 9.96, "unit": "m", "quote": "Wing Span ... L ... 9.96 m"},
+        {"field": "aspect_ratio", "value": 5.7, "unit": "", "quote": "Aspect Ratio with/without wingtips ... L ... 5.7 / 5.9"},
+        {"field": "double_surface_pct", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"field": "wing_mass", "value": 23.5, "unit": "kg", "quote": "Weight (without glider bag) ... L ... 23.5 kg"},
+        {"field": "pilot_mass_min", "value": 85, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... L ... 85 / 120 kg"},
+        {"field": "pilot_mass_max", "value": 120, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... L ... 85 / 120 kg"},
+        {"field": "takeoff_mass_min", "value": 95, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... L ... 95 / 142 kg"},
+        {"field": "takeoff_mass_max", "value": 142, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... L ... 95 / 142 kg"},
+        {"field": "vne", "value": 70, "unit": "Km/h", "quote": "VNE ... L ... 70 Km/h"},
+        {"field": "stall_speed", "value": 26, "unit": "Km/h", "quote": "Stall Speed ... L ... 26 Km/h"},
+        {"field": "nose_angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"field": "battens", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... L ... 12 + 2"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 17.33, "unit": "sq m", "quote": "Wing Surface ... L ... 17.33 sq m"},
+        {"name": "Wing Surface with wingtips", "value": 17.37, "unit": "sq m", "quote": "Wing Surface with wingtips ... L ... 17.37 sq m"},
+        {"name": "Wing Span", "value": 9.96, "unit": "m", "quote": "Wing Span ... L ... 9.96 m"},
+        {"name": "Wing Span with wingtips", "value": 10.09, "unit": "m", "quote": "Wing Span with wingtips ... L ... 10.09 m"},
+        {"name": "Aspect Ratio", "value": 5.7, "unit": "", "quote": "Aspect Ratio with/without wingtips ... L ... 5.7 / 5.9"},
+        {"name": "Nose Angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"name": "Battens upper", "value": 12, "unit": "n", "quote": "Battens (upper + lower) ... L ... 12 + 2"},
+        {"name": "Battens lower", "value": 2, "unit": "n", "quote": "Battens (upper + lower) ... L ... 12 + 2"},
+        {"name": "Double Surface", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"name": "Packed Length", "value": 5.30, "unit": "m", "quote": "Packed Length ... L ... 5.30 m"},
+        {"name": "Short Packed Length", "value": 3.75, "unit": "m", "quote": "Short Packed Length ... L ... 3.75 m"}
+      ]
+    },
+    {
+      "manufacturer": "ICARO",
+      "model": "Piuma",
+      "size": "XL",
+      "cert_class": "DHV",
+      "cert_standard": "01-0461-11",
+      "facts": [
+        {"field": "area", "value": 20.37, "unit": "sq m", "quote": "Wing Surface ... XL ... 20.37 sq m"},
+        {"field": "span", "value": 10.73, "unit": "m", "quote": "Wing Span ... XL ... 10.73 m"},
+        {"field": "aspect_ratio", "value": 5.6, "unit": "", "quote": "Aspect Ratio with/without wingtips ... XL ... 5.6"},
+        {"field": "double_surface_pct", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"field": "wing_mass", "value": 33.0, "unit": "kg", "quote": "Weight (without glider bag) ... XL ... 33.0 kg"},
+        {"field": "pilot_mass_min", "value": 110, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... XL ... 110 / 180 kg"},
+        {"field": "pilot_mass_max", "value": 180, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) ... XL ... 110 / 180 kg"},
+        {"field": "takeoff_mass_min", "value": 153, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... XL ... 153 / 217 kg"},
+        {"field": "takeoff_mass_max", "value": 217, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) ... XL ... 153 / 217 kg"},
+        {"field": "vne", "value": 70, "unit": "Km/h", "quote": "VNE ... XL ... 70 Km/h"},
+        {"field": "stall_speed", "value": 24, "unit": "Km/h", "quote": "Stall Speed ... XL ... 24 Km/h"},
+        {"field": "nose_angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"field": "battens", "value": 14, "unit": "n", "quote": "Battens (upper + lower) ... XL ... 14 + 2"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 20.37, "unit": "sq m", "quote": "Wing Surface ... XL ... 20.37 sq m"},
+        {"name": "Wing Surface with wingtips", "value": 20.74, "unit": "sq m", "quote": "Wing Surface with wingtips ... XL ... 20.74 sq m"},
+        {"name": "Wing Span", "value": 10.73, "unit": "m", "quote": "Wing Span ... XL ... 10.73 m"},
+        {"name": "Wing Span with wingtips", "value": 11.11, "unit": "m", "quote": "Wing Span with wingtips ... XL ... 11.11 m"},
+        {"name": "Aspect Ratio", "value": 5.6, "unit": "", "quote": "Aspect Ratio with/without wingtips ... XL ... 5.6"},
+        {"name": "Nose Angle", "value": 120, "unit": "deg", "quote": "Nose Angle ... 120 deg"},
+        {"name": "Battens upper", "value": 14, "unit": "n", "quote": "Battens (upper + lower) ... XL ... 14 + 2"},
+        {"name": "Battens lower", "value": 2, "unit": "n", "quote": "Battens (upper + lower) ... XL ... 14 + 2"},
+        {"name": "Double Surface", "value": 30, "unit": "%", "quote": "Double Surface ... 30%"},
+        {"name": "Packed Length", "value": 5.65, "unit": "m", "quote": "Packed Length ... XL ... 5.65 m"},
+        {"name": "Short Packed Length", "value": 4.15, "unit": "m", "quote": "Short Packed Length ... XL ... 4.15 m"}
+      ]
+    }
+  ]
+}

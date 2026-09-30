@@ -1,0 +1,98 @@
+{
+  "src": "bautek__astir.html.txt",
+  "wings": [
+    {
+      "manufacturer": "bautek",
+      "model": "Astir",
+      "size": "",
+      "cert_class": "DHV 2 (intermediate)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 158,
+          "unit": "sqft",
+          "quote": "Sail area: 158 sqft."
+        },
+        {
+          "field": "span",
+          "value": 34.6,
+          "unit": "ft",
+          "quote": "Span: 34.6 ft"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.6,
+          "unit": "",
+          "quote": "Aspect ratio: 7.6"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85,
+          "unit": "%",
+          "quote": "Double surface: 85%"
+        },
+        {
+          "field": "nose_angle",
+          "value": 130,
+          "unit": "deg",
+          "quote": "Nose angle: 130 degr."
+        },
+        {
+          "field": "stall_speed",
+          "value": 15.5,
+          "unit": "mph",
+          "quote": "Stall speed: ca. 15.5 mph"
+        },
+        {
+          "field": "vne",
+          "value": 50,
+          "unit": "mph",
+          "quote": "V ne (speed never to exceed): 50 mph"
+        },
+        {
+          "field": "vms",
+          "value": 19,
+          "unit": "mph",
+          "quote": "V min sink: ca 19 mph"
+        },
+        {
+          "field": "best_glide",
+          "value": 23,
+          "unit": "mph",
+          "quote": "V best glide: ca 23 mph"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 132,
+          "unit": "Lbs",
+          "quote": "Pilot weight: min 132 Lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 253,
+          "unit": "Lbs",
+          "quote": "Pilot weight: max 253 Lbs"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 132,
+          "unit": "Lbs",
+          "quote": "Hook-in weight: min 132 Lbs"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 260,
+          "unit": "Lbs",
+          "quote": "Hook-in weight: max 260 Lbs"
+        },
+        {
+          "field": "wing_mass",
+          "value": 64,
+          "unit": "Lbs",
+          "quote": "Glider weight: 64 Lbs, without cover"
+        }
+      ]
+    }
+  ]
+}
