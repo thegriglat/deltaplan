@@ -35,7 +35,7 @@
 
 ---
 
-## C1 v1 — эталон AM-01 → GPU AM-03
+## C1 v2 — эталон AM-01 → GPU AM-03
 **Владелец:** AM-01. **Потребители:** AM-02 (блоки), AM-03 (Пикар), AM-09.
 
 - **Дискретизация** — `tools/research/air3d/reference.md` → «Дискретизация (спецификация для
@@ -60,9 +60,17 @@
   ≤ 0,05 К (план, AM-03 «Приёмка»); критерий остановки — reference.md → «Критерий остановки».
 - Прочие фикстуры: `blocks/` (AM-02, `gpu_block_refs.py`), `picard/` (AM-03, вход Онгудая 400/200 м:
   `hc, H, gam`, пробы и обрезка поля) — формат файлов тот же, наборы массивов — свои у задачи.
-- **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`.
+- **v2 (А1, план `docs/plan/air_model_a1.md`):** уравнение тепла — два переносимых скаляра: θ′_d
+  (диабатическая часть: L θ′_d = Q − θ′_d/τ) и полное θ′ (L θ′ = Q − w·dθ̄/dz − θ′_d/τ; τ — явный источник,
+  не в диагонали); K_θ = K/Pr_t (один множитель 1/Pr_t на все три оси); `cplz`: s_th = Δτ_θ; порядок
+  итерации: шаблон θ′_d → прогонки → шаблон θ′ → прогонки; критерий остановки — по max невязок θ′ и θ′_d;
+  выхолаживание в балансе тепла — Σ θ′_d/τ. Полное θ′ — основное поле (плавучесть, N² в kloc, ореол,
+  канал `theta`). Фикстуры `ref/` — новые массивы `in_thd`, `heat_thd`, `sol_thd`, `bh_d` (N) и шаблон
+  `Ch_d` (7·N), `params.pr_t` в JSON; `heated_slope` — с pr_t ≠ 1; `picard/`, `window/` — пересчёт.
+- **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
+  (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
-## C2 v2 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
+## C2 v3 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
 
 | Вход | Откуда в игре | Формат |
@@ -84,6 +92,10 @@
   `meta()` (→ C3).
 - `hour` — местное солнечное время игры (часы, как `SunClock`); часы старта — из
   `SunClock.start_hours()` (C6).
+- **v3 (А1):** `AirCase.p.pr_t` — турбулентное число Прандтля (K_θ = K/Pr_t; 0,85 — временно, до решения
+  пользователя); τ (`tau_cool`) — время релаксации только диабатической θ′_d. `closure`, `nu_const`, `adv2`,
+  `limiter` — исследовательские параметры `Params` air.py, в `AirCase.p` их нет (GPU: hb, 1-й порядок).
+  Тёплый старт `AirPicardJob.warm` и `state()` — `{u, v, w, th, thd, p}` (нет `thd` — нули). `meta()` без изменений.
 - **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); ключи `meta()` — после коммита AM-03 (Р4).
 
 ## C3 v1 — выход решателя → `WindField` (AM-05)
@@ -94,7 +106,8 @@
 - Каналы (в центрах клеток, раскладка без ореола, float32):
   `u, v` (восток, север, м/с) — решение **с нагревом**; `w_mech` (м/с) — w решения **того же
   случая без нагрева** (H = 0); `w_conv = w − w_mech` (м/с); `theta` = θ′ решения с нагревом (К);
-  `hc` (ny·nx, м над морем) — рельеф сетки.
+  `hc` (ny·nx, м над морем) — рельеф сетки. `theta` — **полное** θ′ = адиабатическая + диабатическая
+  части (C1 v2); диабатическая θ′_d в поле не отдаётся.
 - Построение:
   - `WindField.from_arrays(meta, u, v, w_mech, w_conv, theta, hc, max_speed = 40, max_w = 10)`;
   - `WindField.from_mac(meta, u, v, w, w_mech_faces, theta, cell, hc)` — грани с ореолом (как
@@ -214,7 +227,7 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`,
   версия — `test_c6_field_version`.
 
-## C7 v1 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+## C7 v2 — клипмапы AM-04 → `WindField` / `AirFieldSet`
 **Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
 **Потребители:** C4 (выборка), AM-06Б (`AirRuntime`: загрузка, пересчёт, сдвиг), AM-07 (термики).
 
@@ -234,7 +247,8 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 решение без нагрева (w_mech) — от решения родителя **без нагрева**.
 
 **API.**
-- `AirPicardJob.parent_data() -> {grid, tc, heat: {u, v, w, th}, mech: {…}}` (грани с ореолом),
+- `AirPicardJob.parent_data() -> {grid, tc, heat: {u, v, w, th, thd}, mech: {…}}` (грани с ореолом; v2: `thd` —
+  θ′_d, у решения без нагрева нули; нет ключа — нули),
   `state(mech := false)`, `grid()`; решения с нагревом и без хранятся оба (пара).
 - `AirWindowCase.window_case(detail, water, loc, dx, cx, cy, hour, u10, wdir, t_max, sky, heat,
   ctx, n = 64)` (центр в осях решателя), `window_at(…, x0, y0, …)`; `prepare_pair()` — оба
@@ -242,7 +256,8 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 - `AirWindowJob` (наследник `AirPicardJob`): `case: AirWindowCase`, `parent` (parent_data),
   `prev` (`window_state()` прошлого окна той же клетки — тёплый старт, сдвиг на целое число
   клеток), `shared_gpu` (общий `AirGpu`: `release()` освобождает только свои буферы),
-  `window_state() -> {grid, heat, mech}`, `nest_corr()`; остальное — как C3.
+  `window_state() -> {grid, heat, mech}` (v2: с `thd`; сдвиг переносит `thd` как `th`), `nest_corr()`;
+  остальное — как C3. Ореол и цель зоны релаксации окна — θ′ **и** θ′_d трилинейно из родителя (v2).
 - `AirClipmap`: `setup(detail, water, loc, hour, u10, wdir, t_max, sky)`, `set_conditions(…)`,
   `set_domain(domain_job, domain_field)` (задача области ещё не освобождена; окна, если есть, —
   пересчёт от новой области с тёплого старта), `start(center_xy)`, `update(pilot_pos)` (мир),
@@ -352,4 +367,8 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C9 | v1 | 29.09.2026 | AM-06Б: `AirRuntime` — поле при загрузке и пересчёт в полёте |
 | C6 | v1 | 29.09.2026 | AM-06Б (Р3, без смены версии): `WindField.FORMAT_VERSION`, `load_file` отвергает другую версию |
 | C7 | v1 | 29.09.2026 | AM-04: клипмапы — уровни [окно 50, окно 100, область], сетка окна, граница от родителя, `AirWindowJob`/`AirWindowCase`/`AirClipmap`, `AirPicardJob.parent_data/state(mech)/grid`, сдвиг одним `levels_changed`, конфиг `window_levels_m`, `window_shift_frac`; Р10 закрыт (термики — по области) |
+| C1 | v2 | 30.09.2026 | К1 по плану А1: θ′_d (диабатическая часть) вторым скаляром, τ только для неё; K_θ = K/Pr_t; s_th = Δτ_θ; порядок итерации и критерий; новые массивы фикстур `ref/`, пересчёт `picard/`, `window/` |
+| C2 | v3 | 30.09.2026 | К1 по плану А1: `AirCase.p.pr_t`; смысл τ; исследовательские Params не в `AirCase.p`; `warm`/`state()` с `thd` |
+| C3 | v1 | 30.09.2026 | К1 (без смены версии): `theta` — полное θ′ (записано явно) |
+| C7 | v2 | 30.09.2026 | К1 по плану А1: `parent_data`/`window_state` с `thd`; θ′_d ореола окна из родителя; сдвиг переносит `thd` |
 | C9 | v2 | 29.09.2026 | AM-04: окна клипмапа в `AirRuntime` — `set_focus`/`focus_fn`, `shift_count`, `last_info.windows`; загрузка и пересчёт — область + окна одним набором, сдвиг за пилотом в покое (предложено К0) |
