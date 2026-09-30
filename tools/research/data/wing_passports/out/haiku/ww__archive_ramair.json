@@ -1,0 +1,39 @@
+{
+  "src_files": ["ww__archive_ramair.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "146",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 146, "unit": "ft²", "quote": "Area (ft²) 146"},
+        {"field": "pilot_mass_min", "value": 145, "unit": "lbs", "quote": "Hook-In Weight (lbs) 145-260"},
+        {"field": "pilot_mass_max", "value": 260, "unit": "lbs", "quote": "Hook-In Weight (lbs) 145-260"},
+        {"field": "va", "value": 52, "unit": "mph", "quote": "Va (mph) 52"},
+        {"field": "vne", "value": 60, "unit": "mph", "quote": "Vne (mph) 60"},
+        {"field": "stall_speed", "value": 25, "unit": "mph", "quote": "Vs max (mph) <25"},
+        {"field": "vd", "value": 46, "unit": "mph", "quote": "Vd min (mph) >46"},
+        {"field": "battens", "value": 2, "unit": "", "quote": "two nose battens"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "154",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 154, "unit": "ft²", "quote": "Area (ft²) 154"},
+        {"field": "pilot_mass_min", "value": 160, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-270"},
+        {"field": "pilot_mass_max", "value": 270, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-270"},
+        {"field": "va", "value": 52, "unit": "mph", "quote": "Va (mph) 52"},
+        {"field": "vne", "value": 60, "unit": "mph", "quote": "Vne (mph) 60"},
+        {"field": "stall_speed", "value": 25, "unit": "mph", "quote": "Vs max (mph) <25"},
+        {"field": "vd", "value": 46, "unit": "mph", "quote": "Vd min (mph) >46"},
+        {"field": "battens", "value": 2, "unit": "", "quote": "two nose battens"}
+      ]
+    }
+  ]
+}

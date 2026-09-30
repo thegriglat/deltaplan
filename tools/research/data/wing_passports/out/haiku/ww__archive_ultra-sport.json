@@ -1,0 +1,230 @@
+{
+  "src_files": ["ww__archive_ultra-sport.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "135",
+      "cert_class": "Intermediate",
+      "cert_standard": "7/15/98",
+      "facts": [
+        {
+          "field": "area",
+          "value": 135,
+          "unit": "ft²",
+          "quote": "Area (ft²) 135"
+        },
+        {
+          "field": "span",
+          "value": 30.5,
+          "unit": "ft",
+          "quote": "Span 30' 6\""
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.9,
+          "unit": "",
+          "quote": "Aspect Ratio 6.9"
+        },
+        {
+          "field": "wing_mass",
+          "value": 60,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 60"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 125,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 125-210"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 125-210"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 40,
+          "unit": "mph",
+          "quote": "Vd min (mph) >40"
+        },
+        {
+          "field": "year",
+          "value": 1998,
+          "unit": "",
+          "quote": "HGMA Certified 7/15/98"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "147",
+      "cert_class": "Intermediate",
+      "cert_standard": "12/4/96",
+      "facts": [
+        {
+          "field": "area",
+          "value": 147,
+          "unit": "ft²",
+          "quote": "Area (ft²) 147"
+        },
+        {
+          "field": "span",
+          "value": 32.67,
+          "unit": "ft",
+          "quote": "Span 32' 8\""
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.25,
+          "unit": "",
+          "quote": "Aspect Ratio 7.25"
+        },
+        {
+          "field": "wing_mass",
+          "value": 65,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 65"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-250"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 250,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-250"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 40,
+          "unit": "mph",
+          "quote": "Vd min (mph) >40"
+        },
+        {
+          "field": "year",
+          "value": 1996,
+          "unit": "",
+          "quote": "HGMA Certified 12/4/96"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "166",
+      "cert_class": "Intermediate",
+      "cert_standard": "11/11/97",
+      "facts": [
+        {
+          "field": "area",
+          "value": 166,
+          "unit": "ft²",
+          "quote": "Area (ft²) 166"
+        },
+        {
+          "field": "span",
+          "value": 34.17,
+          "unit": "ft",
+          "quote": "Span 34' 2\""
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.0,
+          "unit": "",
+          "quote": "Aspect Ratio 7.0"
+        },
+        {
+          "field": "wing_mass",
+          "value": 70,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 70"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 175,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 175-285"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 285,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 175-285"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 40,
+          "unit": "mph",
+          "quote": "Vd min (mph) >40"
+        },
+        {
+          "field": "year",
+          "value": 1997,
+          "unit": "",
+          "quote": "HGMA Certified 11/11/97"
+        }
+      ]
+    }
+  ]
+}

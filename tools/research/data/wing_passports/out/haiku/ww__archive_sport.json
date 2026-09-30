@@ -1,0 +1,157 @@
+{
+  "src_files": [
+    "ww__archive_sport.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport",
+      "size": "150",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 150,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n150"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 125,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n125-210"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n125-210"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph)\n46"
+        },
+        {
+          "field": "vne",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vne (mph)\n46"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph)\n<25"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport",
+      "size": "167",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 167,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n167"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 140,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n140-240"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 240,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n140-240"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph)\n46"
+        },
+        {
+          "field": "vne",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vne (mph)\n46"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph)\n<25"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport",
+      "size": "180",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 180,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n180"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 200,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n200-300"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 300,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs)\n200-300"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph)\n46"
+        },
+        {
+          "field": "vne",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vne (mph)\n46"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph)\n<25"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sportster",
+      "size": "148",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 148,
+          "unit": "sq ft",
+          "quote": "A variant called the Sportster (148 sq ft)"
+        }
+      ]
+    }
+  ]
+}

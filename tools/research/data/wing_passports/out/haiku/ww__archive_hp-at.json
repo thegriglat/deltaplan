@@ -1,0 +1,119 @@
+{
+  "src_files": ["ww__archive_hp-at.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "145",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "2/27/90",
+      "facts": [
+        {
+          "field": "area",
+          "value": 145,
+          "unit": "ft²",
+          "quote": "Area (ft²) 145"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 135,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 135-235"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 235,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 135-235"
+        },
+        {
+          "field": "va",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Va (mph) 50"
+        },
+        {
+          "field": "vne",
+          "value": 55,
+          "unit": "mph",
+          "quote": "Vne (mph) 55"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vd min (mph) >46"
+        },
+        {
+          "field": "year",
+          "value": 1990,
+          "unit": "year",
+          "quote": "HGMA Certified 2/27/90"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "158",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "6/13/89",
+      "facts": [
+        {
+          "field": "area",
+          "value": 158,
+          "unit": "ft²",
+          "quote": "Area (ft²) 158"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-250"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 250,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-250"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Vne (mph) 50"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vd min (mph) >46"
+        },
+        {
+          "field": "year",
+          "value": 1989,
+          "unit": "year",
+          "quote": "HGMA Certified 6/13/89"
+        }
+      ]
+    }
+  ]
+}

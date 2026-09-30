@@ -1,0 +1,83 @@
+{
+  "src_files": ["ww__archive_eagle.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "164",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "HGMA 11/06/00",
+      "facts": [
+        {"field": "area", "value": 164, "unit": "ft²", "quote": "Area (ft²) 164"},
+        {"field": "span", "value": 32, "unit": "ft", "quote": "Span (ft) 32"},
+        {"field": "aspect_ratio", "value": 6.2, "unit": "", "quote": "Aspect Ratio 6.2"},
+        {"field": "wing_mass", "value": 58.5, "unit": "lbs", "quote": "Glider Weight (lbs) 58.5"},
+        {"field": "pilot_mass_min", "value": 150, "unit": "lbs", "quote": "Hook-In Weight (lbs) 150-250"},
+        {"field": "pilot_mass_max", "value": 250, "unit": "lbs", "quote": "Hook-In Weight (lbs) 150-250"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "year", "value": 2000, "unit": "", "quote": "HGMA Certified 11/06/00"}
+      ],
+      "geometry": [
+        {"name": "double_surface", "value": "yes", "unit": "", "quote": "Double surface sail with enclosed crossbar"},
+        {"name": "leading_edge_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "keel_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "kingpost_design", "value": "streamlined", "unit": "", "quote": "Streamlined kingpost"},
+        {"name": "vertical_stabilizer", "value": "quick-mount removable", "unit": "", "quote": "Quick-mount vertical stabilizer (can be flown with or without)"},
+        {"name": "batten_type", "value": "pre-formed 7075-T6", "unit": "", "quote": "Pre-formed 7075-T6 battens"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "145",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "HGMA 3/12/01",
+      "facts": [
+        {"field": "area", "value": 145, "unit": "ft²", "quote": "Area (ft²) 145"},
+        {"field": "span", "value": 30, "unit": "ft", "quote": "Span (ft) 30"},
+        {"field": "aspect_ratio", "value": 6.2, "unit": "", "quote": "Aspect Ratio 6.2"},
+        {"field": "wing_mass", "value": 52.5, "unit": "lbs", "quote": "Glider Weight (lbs) 52.5"},
+        {"field": "pilot_mass_min", "value": 130, "unit": "lbs", "quote": "Hook-In Weight (lbs) 130-200"},
+        {"field": "pilot_mass_max", "value": 200, "unit": "lbs", "quote": "Hook-In Weight (lbs) 130-200"},
+        {"field": "va", "value": 42, "unit": "mph", "quote": "Va (mph) 42"},
+        {"field": "vne", "value": 48, "unit": "mph", "quote": "Vne (mph) 48"},
+        {"field": "year", "value": 2001, "unit": "", "quote": "HGMA Certified 3/12/01"}
+      ],
+      "geometry": [
+        {"name": "double_surface", "value": "yes", "unit": "", "quote": "Double surface sail with enclosed crossbar"},
+        {"name": "leading_edge_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "keel_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "kingpost_design", "value": "streamlined", "unit": "", "quote": "Streamlined kingpost"},
+        {"name": "vertical_stabilizer", "value": "quick-mount removable", "unit": "", "quote": "Quick-mount vertical stabilizer (can be flown with or without)"},
+        {"name": "batten_type", "value": "pre-formed 7075-T6", "unit": "", "quote": "Pre-formed 7075-T6 battens"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "180",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "HGMA 3/12/01",
+      "facts": [
+        {"field": "area", "value": 180, "unit": "ft²", "quote": "Area (ft²) 180"},
+        {"field": "span", "value": 33.3, "unit": "ft", "quote": "Span (ft) 33.3"},
+        {"field": "aspect_ratio", "value": 6.2, "unit": "", "quote": "Aspect Ratio 6.2"},
+        {"field": "wing_mass", "value": 62.5, "unit": "lbs", "quote": "Glider Weight (lbs) 62.5"},
+        {"field": "pilot_mass_min", "value": 175, "unit": "lbs", "quote": "Hook-In Weight (lbs) 175-275"},
+        {"field": "pilot_mass_max", "value": 275, "unit": "lbs", "quote": "Hook-In Weight (lbs) 175-275"},
+        {"field": "va", "value": 42, "unit": "mph", "quote": "Va (mph) 42"},
+        {"field": "vne", "value": 48, "unit": "mph", "quote": "Vne (mph) 48"},
+        {"field": "year", "value": 2001, "unit": "", "quote": "HGMA Certified 3/12/01"}
+      ],
+      "geometry": [
+        {"name": "double_surface", "value": "yes", "unit": "", "quote": "Double surface sail with enclosed crossbar"},
+        {"name": "leading_edge_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "keel_material", "value": "7075-T6", "unit": "", "quote": "7075-T6 leading edges and keel"},
+        {"name": "kingpost_design", "value": "streamlined", "unit": "", "quote": "Streamlined kingpost"},
+        {"name": "vertical_stabilizer", "value": "quick-mount removable", "unit": "", "quote": "Quick-mount vertical stabilizer (can be flown with or without)"},
+        {"name": "batten_type", "value": "pre-formed 7075-T6", "unit": "", "quote": "Pre-formed 7075-T6 battens"}
+      ]
+    }
+  ]
+}

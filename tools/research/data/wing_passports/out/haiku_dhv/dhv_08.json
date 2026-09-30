@@ -1,0 +1,651 @@
+{
+  "src_files": [
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_1882_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2014_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2229_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2248_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2249_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2250_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2251_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2252_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2342_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2512_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2573_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2577_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2602_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2603_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2604_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Airborne",
+      "model": "REV 14.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0463-12",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "Startgewicht  121 Kg - 158 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 158.0,
+          "unit": "kg",
+          "quote": "Startgewicht  121 Kg - 158 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 87.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  87  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  87  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_1882_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Bautek FluggerÃ¤te GmbH",
+      "model": "Fizz",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0462-12",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 92.0,
+          "unit": "kg",
+          "quote": "Startgewicht  92 Kg - 146 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 146.0,
+          "unit": "kg",
+          "quote": "Startgewicht  92 Kg - 146 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  90  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  90  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2014_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus 14 C",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0465-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 133 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 133.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 133 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  30  29"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  30  29"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >80"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >80"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2229_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 4",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0468-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "kg",
+          "quote": "Startgewicht  125 Kg - 150 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "kg",
+          "quote": "Startgewicht  125 Kg - 150 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  32  30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  32  30"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  75  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  75  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2248_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 3",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0469-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "Startgewicht  90 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht  90 Kg - 120 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 34.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  34  32"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  34  32"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2249_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 3.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0467-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 110.0,
+          "unit": "kg",
+          "quote": "Startgewicht  110 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "Startgewicht  110 Kg - 140 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  33  31"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  33  31"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  75  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  75  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2250_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VR190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0464-12",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 228 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 228.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 228 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 38.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  38  33"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  38  33"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2251_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "T2C 144",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0471-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 104.0,
+          "unit": "kg",
+          "quote": "Startgewicht  104 Kg - 139 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 139.0,
+          "unit": "kg",
+          "quote": "Startgewicht  104 Kg - 139 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  32  31"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  32  31"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  85  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  85  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2252_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VRS 135",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0470-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 87.0,
+          "unit": "kg",
+          "quote": "Startgewicht  87 Kg - 172 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 172.0,
+          "unit": "kg",
+          "quote": "Startgewicht  87 Kg - 172 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 37.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  37  32"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  37  32"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2342_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "U2 145",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0477-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 93.0,
+          "unit": "kg",
+          "quote": "Startgewicht  93 Kg - 128 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 128.0,
+          "unit": "kg",
+          "quote": "Startgewicht  93 Kg - 128 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  85  >85"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  85  >85"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2512_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "ATOS-VQ 190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0473-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 228 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 228.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 228 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 38.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  38  33"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  38  33"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2573_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Seedwings Airsports GmbH",
+      "model": "Skyrunner XR",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0475-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 150 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "kg",
+          "quote": "Startgewicht  100 Kg - 150 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  31"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  31"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  90  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  90  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2577_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "T2C 136",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0472-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 99.0,
+          "unit": "kg",
+          "quote": "Startgewicht  99 Kg - 126 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 126.0,
+          "unit": "kg",
+          "quote": "Startgewicht  99 Kg - 126 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  33  32"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  33  32"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2602_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "ATOS-VRS 190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0474-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 98.0,
+          "unit": "kg",
+          "quote": "Startgewicht  98 Kg - 226 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 226.0,
+          "unit": "kg",
+          "quote": "Startgewicht  98 Kg - 226 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 39.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  39  34"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 34.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  39  34"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2603_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Laminar 14.1",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0476-13",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "kg",
+          "quote": "Startgewicht  125 Kg - 143 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 143.0,
+          "unit": "kg",
+          "quote": "Startgewicht  125 Kg - 143 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h)  31  30"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h)  80  >90"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2604_nopr_.html.txt"
+    }
+  ]
+}

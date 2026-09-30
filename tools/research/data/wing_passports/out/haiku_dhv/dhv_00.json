@@ -1,0 +1,801 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1521_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1613_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1614_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1615_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1616_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1617_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1618_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1619_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1645_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1646_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1697_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1709_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1856_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1882_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2014_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Airborne",
+      "model": "REV 13.5",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0449-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 104.0,
+          "unit": "kg",
+          "quote": "104 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "104 Kg - 140 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 96.0,
+          "unit": "%",
+          "quote": "96.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.4,
+          "unit": "kg",
+          "quote": "34.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.04,
+          "unit": "m",
+          "quote": "10.04 m"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "24 / 8"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1521_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L12 07 LW",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0450-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 95.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.6,
+          "unit": "kg",
+          "quote": "36.6 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "m2",
+          "quote": "12.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "10.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1613_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L13 07 LW",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0451-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 141.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 37.5,
+          "unit": "kg",
+          "quote": "37.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "10.35 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1614_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L14 07 LW",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0452-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 123.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 146.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 39.5,
+          "unit": "kg",
+          "quote": "39.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "10.7 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1615_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 12,8 09 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0453-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 95.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.7,
+          "unit": "kg",
+          "quote": "35.7 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "m2",
+          "quote": "12.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "10.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1616_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 13,2 09 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0454-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 141.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.3,
+          "unit": "kg",
+          "quote": "36.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.2,
+          "unit": "m2",
+          "quote": "13.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "10.35 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1617_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 13,7 09 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0455-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 141.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 39.7,
+          "unit": "kg",
+          "quote": "39.7 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "10.35 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1618_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 14,2 09 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0456-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 123.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 146.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 37.8,
+          "unit": "kg",
+          "quote": "37.8 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "10.7 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1619_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Crossover 15",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "DHV 01-0460-11",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "100 Kg - 151 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 151.0,
+          "unit": "kg",
+          "quote": "100 Kg - 151 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 82.0,
+          "unit": "%",
+          "quote": "82.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 29.3,
+          "unit": "kg",
+          "quote": "29.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 15.0,
+          "unit": "m2",
+          "quote": "15.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "10.1 m"
+        },
+        {
+          "field": "battens",
+          "value": 20.0,
+          "unit": "",
+          "quote": "20 / 4"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1645_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Crossover 14",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "DHV 01-0459-11",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 138 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 138.0,
+          "unit": "kg",
+          "quote": "90 Kg - 138 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 82.0,
+          "unit": "%",
+          "quote": "82.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.2,
+          "unit": "kg",
+          "quote": "28.2 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.0,
+          "unit": "m2",
+          "quote": "14.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.9,
+          "unit": "m",
+          "quote": "9.9 m"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "18 / 4"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1646_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Fox",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "DHV 01-0457-10",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "85 Kg - 139 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 139.0,
+          "unit": "kg",
+          "quote": "85 Kg - 139 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 25.0,
+          "unit": "%",
+          "quote": "25.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25.2,
+          "unit": "kg",
+          "quote": "25.2 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 16.2,
+          "unit": "m2",
+          "quote": "16.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "9.6 m"
+        },
+        {
+          "field": "battens",
+          "value": 15.0,
+          "unit": "",
+          "quote": "15 / 0"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1697_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 13,5 09 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0458-11",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 123.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 146.0,
+          "unit": "kg",
+          "quote": "123 Kg - 146 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 38.2,
+          "unit": "kg",
+          "quote": "38.2 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "10.7 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1709_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "RX 2 BIP",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "DHV 01-0461-11",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 153.0,
+          "unit": "kg",
+          "quote": "153 Kg - 217 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 217.0,
+          "unit": "kg",
+          "quote": "153 Kg - 217 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "30.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.5,
+          "unit": "kg",
+          "quote": "33.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 21.0,
+          "unit": "m2",
+          "quote": "21.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "10.7 m"
+        },
+        {
+          "field": "battens",
+          "value": 16.0,
+          "unit": "",
+          "quote": "16 / 0"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1856_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Airborne",
+      "model": "REV 14.5",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0463-12",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "121 Kg - 158 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 158.0,
+          "unit": "kg",
+          "quote": "121 Kg - 158 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 95.0,
+          "unit": "%",
+          "quote": "95.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.0,
+          "unit": "kg",
+          "quote": "36.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.45,
+          "unit": "m2",
+          "quote": "14.45 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.64,
+          "unit": "m",
+          "quote": "10.64 m"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "24 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_1882_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Bautek FluggerÃ¤te GmbH",
+      "model": "Fizz",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0462-12",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 92.0,
+          "unit": "kg",
+          "quote": "92 Kg - 146 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 146.0,
+          "unit": "kg",
+          "quote": "92 Kg - 146 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.5,
+          "unit": "kg",
+          "quote": "31.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.1,
+          "unit": "m2",
+          "quote": "14.1 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.41,
+          "unit": "m",
+          "quote": "10.41 m"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "24 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2014_nopr_.html.txt"
+    }
+  ]
+}

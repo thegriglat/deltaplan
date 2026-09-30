@@ -1,0 +1,594 @@
+{
+  "src_files": [
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2953_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_2954_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3081_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3275_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3277_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3363_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3364_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3416_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3624_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3625_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3626_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3799_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3835_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_3999_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4000_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat C",
+      "size": "12,7",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "111 Kg - 131 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 32 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 30 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 90 km/h"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 115.0,
+          "unit": "km/h",
+          "quote": "V max VG 100%: 115 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2953_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 12,7 GT",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "115 Kg - 135 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 135.0,
+          "unit": "kg",
+          "quote": "115 Kg - 135 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 32 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 30 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 85 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_2954_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Ellipse Deltaplane",
+      "model": "Sol`R",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "80 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "80 Kg - 140 Kg"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3081_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma L",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 95.0,
+          "unit": "kg",
+          "quote": "95 Kg - 142 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 142.0,
+          "unit": "kg",
+          "quote": "95 Kg - 142 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 25.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 25 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 70 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3275_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Delta Flugschule Condor",
+      "model": "FLEX",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 67.0,
+          "unit": "kg",
+          "quote": "67 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "67 Kg - 115 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 29 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 65.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 65 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3277_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma M",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 83.0,
+          "unit": "kg",
+          "quote": "83 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "83 Kg - 115 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 31 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 80 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3363_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma S",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 65.0,
+          "unit": "kg",
+          "quote": "65 Kg - 100 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "65 Kg - 100 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 31 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 75 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3364_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat C",
+      "size": "12.4",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "100 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "100 Kg - 120 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 39.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 39 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 37.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 37 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3416_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto S",
+      "size": "",
+      "cert_class": "DHV 2-3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 75.0,
+          "unit": "kg",
+          "quote": "75 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "75 Kg - 115 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 29 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 28 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 80 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3624_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto M",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "80 Kg - 121 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "80 Kg - 121 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 32 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 31 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3625_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto L",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 154 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 154.0,
+          "unit": "kg",
+          "quote": "90 Kg - 154 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 35.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 35 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 31 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 88.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 88 km/h"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 108.0,
+          "unit": "km/h",
+          "quote": "V max VG 100%: 108 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3626_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "SHE 1",
+      "size": "12.7",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 98.0,
+          "unit": "kg",
+          "quote": "98 Kg - 129 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 129.0,
+          "unit": "kg",
+          "quote": "98 Kg - 129 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 38.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 38 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 42.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 42 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3799_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "Combat C AC",
+      "size": "12,7",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "111 Kg - 131 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 32 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 30 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 90 km/h"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 115.0,
+          "unit": "km/h",
+          "quote": "V max VG 100%: 115 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3835_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S",
+      "size": "4",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 107.0,
+          "unit": "kg",
+          "quote": "107 Kg - 132 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 132.0,
+          "unit": "kg",
+          "quote": "107 Kg - 132 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 30 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 28 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 80 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_3999_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S",
+      "size": "3.5",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 99.0,
+          "unit": "kg",
+          "quote": "99 Kg - 124 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 124.0,
+          "unit": "kg",
+          "quote": "99 Kg - 124 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min VG 0%: 30 km/h"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min VG 100%: 28 km/h"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 77.0,
+          "unit": "km/h",
+          "quote": "V max VG 0%: 77 km/h"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4000_nopr_.html.txt"
+    }
+  ]
+}

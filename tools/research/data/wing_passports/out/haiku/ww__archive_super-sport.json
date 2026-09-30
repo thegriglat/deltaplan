@@ -1,0 +1,197 @@
+{
+  "src": "ww__archive_super-sport.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "143",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 143,
+          "unit": "ft²",
+          "quote": "Area (ft²) / 143"
+        },
+        {
+          "field": "span",
+          "value": 31,
+          "unit": "ft",
+          "quote": "Span / 31'"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.7,
+          "unit": "",
+          "quote": "Aspect Ratio / 6.7"
+        },
+        {
+          "field": "wing_mass",
+          "value": 57,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) / 57"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 125,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 125-210"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 125-210"
+        },
+        {
+          "field": "vne",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Vne (mph) / 50"
+        },
+        {
+          "field": "va",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Va (mph) / 50"
+        },
+        {
+          "field": "year",
+          "value": 1991,
+          "unit": "",
+          "quote": "HGMA Certified / June 11, 1991"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "153",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 153,
+          "unit": "ft²",
+          "quote": "Area (ft²) / 153"
+        },
+        {
+          "field": "span",
+          "value": 32.67,
+          "unit": "ft",
+          "quote": "Span / 32' 8\""
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.0,
+          "unit": "",
+          "quote": "Aspect Ratio / 7.0"
+        },
+        {
+          "field": "wing_mass",
+          "value": 62,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) / 62"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 154,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 154-250"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 250,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 154-250"
+        },
+        {
+          "field": "vne",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Vne (mph) / 50"
+        },
+        {
+          "field": "va",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Va (mph) / 50"
+        },
+        {
+          "field": "year",
+          "value": 1991,
+          "unit": "",
+          "quote": "HGMA Certified / June 11, 1991"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "163",
+      "cert_class": "USHPA Intermediate (III)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 163,
+          "unit": "ft²",
+          "quote": "Area (ft²) / 163"
+        },
+        {
+          "field": "span",
+          "value": 34.33,
+          "unit": "ft",
+          "quote": "Span / 34' 4\""
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.3,
+          "unit": "",
+          "quote": "Aspect Ratio / 7.3"
+        },
+        {
+          "field": "wing_mass",
+          "value": 66,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) / 66"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 175,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 175-275"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 275,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) / 175-275"
+        },
+        {
+          "field": "vne",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Vne (mph) / 50"
+        },
+        {
+          "field": "va",
+          "value": 50,
+          "unit": "mph",
+          "quote": "Va (mph) / 50"
+        },
+        {
+          "field": "year",
+          "value": 1991,
+          "unit": "",
+          "quote": "HGMA Certified / June 11, 1991"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

@@ -1,0 +1,981 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2741_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2743_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2744_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2745_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2746_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2760_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2845_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2864_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2865_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2904_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2932_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2934_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2936_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2953_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2954_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VRS Light",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0485-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "Startgewicht 85.0 Kg - 130.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 130.0,
+          "unit": "kg",
+          "quote": "Startgewicht 85.0 Kg - 130.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 12.2,
+          "unit": "m2",
+          "quote": "Fläche 12.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 12.0,
+          "unit": "m",
+          "quote": "Spannweite 12.0 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "Doppelsegel 100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 34.5 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 14,
+          "unit": "",
+          "quote": "Anzahl Latten 14"
+        },
+        {
+          "field": "vne",
+          "value": 100.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 100.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2741_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed RX TECHNORA-5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0482-15",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "kg",
+          "quote": "Startgewicht 125.0 Kg - 155.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 155.0,
+          "unit": "kg",
+          "quote": "Startgewicht 125.0 Kg - 155.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 14.8,
+          "unit": "m2",
+          "quote": "Fläche 14.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.4,
+          "unit": "m",
+          "quote": "Spannweite 10.4 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.3,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 34.3 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2015,
+          "unit": "",
+          "quote": "Musterprüfdatum 2015"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2743_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed RX TECHNORA-4",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0481-15",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "kg",
+          "quote": "Startgewicht 125.0 Kg - 150.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "kg",
+          "quote": "Startgewicht 125.0 Kg - 150.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 13.9,
+          "unit": "m2",
+          "quote": "Fläche 13.9 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.27,
+          "unit": "m",
+          "quote": "Spannweite 10.27 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.2,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 34.2 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2015,
+          "unit": "",
+          "quote": "Musterprüfdatum 2015"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2744_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed RX TECHNORA-3.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0480-15",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 110.0,
+          "unit": "kg",
+          "quote": "Startgewicht 110.0 Kg - 140.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "Startgewicht 110.0 Kg - 140.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "Fläche 13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.07,
+          "unit": "m",
+          "quote": "Spannweite 10.07 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.3,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 33.3 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2015,
+          "unit": "",
+          "quote": "Musterprüfdatum 2015"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2745_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed RX TECHNORA-3",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0479-15",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "Startgewicht 90.0 Kg - 120.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht 90.0 Kg - 120.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "m2",
+          "quote": "Fläche 12.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.77,
+          "unit": "m",
+          "quote": "Spannweite 9.77 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.9,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 31.9 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 21,
+          "unit": "",
+          "quote": "Anzahl Latten 21"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2015,
+          "unit": "",
+          "quote": "Musterprüfdatum 2015"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2746_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 13,5 C",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0492-17",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 122.0,
+          "unit": "kg",
+          "quote": "Startgewicht 122.0 Kg - 140.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "Startgewicht 122.0 Kg - 140.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "Fläche 13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "Spannweite 10.7 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 32.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 32.5 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Anzahl Latten 24"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2017,
+          "unit": "",
+          "quote": "Musterprüfdatum 2017"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2760_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Delta Flugschule Condor",
+      "model": "Crex 14,5",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0483-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 72.0,
+          "unit": "kg",
+          "quote": "Startgewicht 72.0 Kg - 121.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "Startgewicht 72.0 Kg - 121.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 14.5,
+          "unit": "m2",
+          "quote": "Fläche 14.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Spannweite 9.6 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 60.0,
+          "unit": "%",
+          "quote": "Doppelsegel 60.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 23.7,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 23.7 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 15,
+          "unit": "",
+          "quote": "Anzahl Latten 15"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 70.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2845_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Fox 13",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0484-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 75.0,
+          "unit": "kg",
+          "quote": "Startgewicht 75.0 Kg - 102.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 102.0,
+          "unit": "kg",
+          "quote": "Startgewicht 75.0 Kg - 102.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 13.4,
+          "unit": "m2",
+          "quote": "Fläche 13.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 8.6,
+          "unit": "m",
+          "quote": "Spannweite 8.6 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel 30.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 20.6,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 20.6 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 13,
+          "unit": "",
+          "quote": "Anzahl Latten 13"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 70.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2864_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Target 21",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0494-17",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht 120.0 Kg - 236.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 236.0,
+          "unit": "kg",
+          "quote": "Startgewicht 120.0 Kg - 236.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 20.5,
+          "unit": "m2",
+          "quote": "Fläche 20.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.8,
+          "unit": "m",
+          "quote": "Spannweite 10.8 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 20.0,
+          "unit": "%",
+          "quote": "Doppelsegel 20.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 36.5 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 17,
+          "unit": "",
+          "quote": "Anzahl Latten 17"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 80.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2017,
+          "unit": "",
+          "quote": "Musterprüfdatum 2017"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2865_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Malibu 2 166",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0486-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 88.0,
+          "unit": "kg",
+          "quote": "Startgewicht 88.0 Kg - 128.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 128.0,
+          "unit": "kg",
+          "quote": "Startgewicht 88.0 Kg - 128.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 15.4,
+          "unit": "m2",
+          "quote": "Fläche 15.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.1,
+          "unit": "m",
+          "quote": "Spannweite 9.1 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 20.0,
+          "unit": "%",
+          "quote": "Doppelsegel 20.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 24.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 24.0 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 15,
+          "unit": "",
+          "quote": "Anzahl Latten 15"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 70.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2904_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VQ race",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0487-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "Startgewicht 85.0 Kg - 179.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 179.0,
+          "unit": "kg",
+          "quote": "Startgewicht 85.0 Kg - 179.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 14.0,
+          "unit": "m2",
+          "quote": "Fläche 14.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.6,
+          "unit": "m",
+          "quote": "Spannweite 13.6 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "Doppelsegel 100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 42.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 42.0 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "Anzahl Latten 18"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2932_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Malibu 2 188",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0488-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100.0 Kg - 152.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 152.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100.0 Kg - 152.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 17.5,
+          "unit": "m2",
+          "quote": "Fläche 17.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "Spannweite 10.1 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 20.0,
+          "unit": "%",
+          "quote": "Doppelsegel 20.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 25.0 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 15,
+          "unit": "",
+          "quote": "Anzahl Latten 15"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 70.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2934_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Gecko 155",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0490-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100.0 Kg - 133.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 133.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100.0 Kg - 133.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 14.5,
+          "unit": "m2",
+          "quote": "Fläche 14.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.7,
+          "unit": "m",
+          "quote": "Spannweite 9.7 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel 85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 29.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 29.5 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 17,
+          "unit": "",
+          "quote": "Anzahl Latten 17"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2936_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 12,7 C",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0489-16",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "Startgewicht 111.0 Kg - 131.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "Startgewicht 111.0 Kg - 131.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 12.7,
+          "unit": "m2",
+          "quote": "Fläche 12.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "Spannweite 10.3 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.3,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 31.3 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Anzahl Latten 24"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2016,
+          "unit": "",
+          "quote": "Musterprüfdatum 2016"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2953_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 12,7 GT",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0493-17",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht 115.0 Kg - 135.0 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 135.0,
+          "unit": "kg",
+          "quote": "Startgewicht 115.0 Kg - 135.0 Kg"
+        },
+        {
+          "field": "area",
+          "value": 12.7,
+          "unit": "m2",
+          "quote": "Fläche 12.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "Spannweite 10.3 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 36.0 Kg"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Anzahl Latten 24"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "Höchstzulässige Fluggeschwindigkeit 90.0 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2017,
+          "unit": "",
+          "quote": "Musterprüfdatum 2017"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2954_nopr_.html.txt"
+    }
+  ]
+}

@@ -1,0 +1,996 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2229_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2248_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2249_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2250_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2251_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2252_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2342_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2512_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2573_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2577_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2602_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2603_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2604_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2608_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2740_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus 14 C",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0465-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-02-07"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 133 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 133.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 133 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.0,
+          "unit": "Kg",
+          "quote": "31.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "10.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "18 / 4"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2229_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 4",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0468-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-03-28"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "Kg",
+          "quote": "125 Kg - 150 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "Kg",
+          "quote": "125 Kg - 150 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.3,
+          "unit": "Kg",
+          "quote": "34.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.9,
+          "unit": "m2",
+          "quote": "13.9 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.27,
+          "unit": "m",
+          "quote": "10.27 m"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "23 / 6"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2248_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 3",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0469-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-03-28"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "Kg",
+          "quote": "90 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "Kg",
+          "quote": "90 Kg - 120 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 32.9,
+          "unit": "Kg",
+          "quote": "32.9 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "m2",
+          "quote": "12.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.77,
+          "unit": "m",
+          "quote": "9.77 m"
+        },
+        {
+          "field": "battens",
+          "value": 21,
+          "unit": "",
+          "quote": "21 / 6"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2249_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Moyes Litespeed RX 3.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0467-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-03-28"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 110.0,
+          "unit": "Kg",
+          "quote": "110 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "Kg",
+          "quote": "110 Kg - 140 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.9,
+          "unit": "Kg",
+          "quote": "33.9 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.07,
+          "unit": "m",
+          "quote": "10.07 m"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "23 / 6"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2250_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VR190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0464-12",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2012,
+          "unit": "",
+          "quote": "2012-11-14"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 228 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 228.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 228 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 45.0,
+          "unit": "Kg",
+          "quote": "45.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.3,
+          "unit": "m2",
+          "quote": "14.3 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.8,
+          "unit": "m",
+          "quote": "13.8 m"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "18"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2251_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "T2C 144",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0471-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-10-11"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 104.0,
+          "unit": "Kg",
+          "quote": "104 Kg - 139 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 139.0,
+          "unit": "Kg",
+          "quote": "104 Kg - 139 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "85 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.4,
+          "unit": "Kg",
+          "quote": "33.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.4,
+          "unit": "m2",
+          "quote": "13.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.8,
+          "unit": "m",
+          "quote": "9.8 m"
+        },
+        {
+          "field": "battens",
+          "value": 23,
+          "unit": "",
+          "quote": "23 / 6"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2252_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VRS 135",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0470-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-06-05"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 87.0,
+          "unit": "Kg",
+          "quote": "87 Kg - 172 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 172.0,
+          "unit": "Kg",
+          "quote": "87 Kg - 172 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 100.0,
+          "unit": "km/h",
+          "quote": "100 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 37.6,
+          "unit": "Kg",
+          "quote": "37.6 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.2,
+          "unit": "m2",
+          "quote": "12.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 12.0,
+          "unit": "m",
+          "quote": "12.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 14,
+          "unit": "",
+          "quote": "14"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2342_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "U2 145",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0477-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-30"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 93.0,
+          "unit": "Kg",
+          "quote": "93 Kg - 128 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 128.0,
+          "unit": "Kg",
+          "quote": "93 Kg - 128 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "85 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 84.0,
+          "unit": "%",
+          "quote": "84.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 27.6,
+          "unit": "Kg",
+          "quote": "27.6 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.5,
+          "unit": "m",
+          "quote": "9.5 m"
+        },
+        {
+          "field": "battens",
+          "value": 17,
+          "unit": "",
+          "quote": "17 / 4"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2512_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "ATOS-VQ 190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0473-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-12"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 228 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 228.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 228 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 45.0,
+          "unit": "Kg",
+          "quote": "45.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.4,
+          "unit": "m",
+          "quote": "13.4 m"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "18"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2573_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Seedwings Airsports GmbH",
+      "model": "Skyrunner XR",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0475-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-18"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 150 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "Kg",
+          "quote": "100 Kg - 150 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 32.8,
+          "unit": "Kg",
+          "quote": "32.8 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.2,
+          "unit": "m",
+          "quote": "10.2 m"
+        },
+        {
+          "field": "battens",
+          "value": 20,
+          "unit": "",
+          "quote": "20 / 4"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2577_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "T2C 136",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0472-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-12"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 99.0,
+          "unit": "Kg",
+          "quote": "99 Kg - 126 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 126.0,
+          "unit": "Kg",
+          "quote": "99 Kg - 126 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "85 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 32.3,
+          "unit": "Kg",
+          "quote": "32.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.6,
+          "unit": "m2",
+          "quote": "12.6 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "9.6 m"
+        },
+        {
+          "field": "battens",
+          "value": 21,
+          "unit": "",
+          "quote": "21 / 4"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2602_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "ATOS-VRS 190",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0474-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-12"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 98.0,
+          "unit": "Kg",
+          "quote": "98 Kg - 226 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 226.0,
+          "unit": "Kg",
+          "quote": "98 Kg - 226 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 100.0,
+          "unit": "km/h",
+          "quote": "100 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 43.0,
+          "unit": "Kg",
+          "quote": "43.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.2,
+          "unit": "m2",
+          "quote": "12.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 12.0,
+          "unit": "m",
+          "quote": "12.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 14,
+          "unit": "",
+          "quote": "14"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2603_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Laminar 14.1",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0476-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-30"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 125.0,
+          "unit": "Kg",
+          "quote": "125 Kg - 143 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 143.0,
+          "unit": "Kg",
+          "quote": "125 Kg - 143 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 96.0,
+          "unit": "%",
+          "quote": "96.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.6,
+          "unit": "Kg",
+          "quote": "33.6 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.1,
+          "unit": "m2",
+          "quote": "14.1 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "10.7 m"
+        },
+        {
+          "field": "battens",
+          "value": 26,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2604_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "Sport 2 135",
+      "size": "",
+      "cert_class": "1-2",
+      "cert_standard": "DHV 01-0478-13",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2013,
+          "unit": "",
+          "quote": "2013-12-30"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "Kg",
+          "quote": "85 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "Kg",
+          "quote": "85 Kg - 115 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "85 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 74.0,
+          "unit": "%",
+          "quote": "74.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25.3,
+          "unit": "Kg",
+          "quote": "25.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.5,
+          "unit": "m2",
+          "quote": "12.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 8.9,
+          "unit": "m",
+          "quote": "8.9 m"
+        },
+        {
+          "field": "battens",
+          "value": 13,
+          "unit": "",
+          "quote": "13 / 4"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2608_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VR Plus",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0491-17",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2017,
+          "unit": "",
+          "quote": "2017-03-01"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 110.0,
+          "unit": "Kg",
+          "quote": "110 Kg - 177 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 177.0,
+          "unit": "Kg",
+          "quote": "110 Kg - 177 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "90 km/h"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 46.8,
+          "unit": "Kg",
+          "quote": "46.8 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.9,
+          "unit": "m2",
+          "quote": "14.9 m2"
+        },
+        {
+          "field": "span",
+          "value": 14.5,
+          "unit": "m",
+          "quote": "14.5 m"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "18 / 18"
+        }
+      ],
+      "geometry": [],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_2740_nopr_.html.txt"
+    }
+  ]
+}
