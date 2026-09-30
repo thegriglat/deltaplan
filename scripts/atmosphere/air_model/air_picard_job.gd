@@ -403,10 +403,11 @@ func _rec_project_tail(update_p: bool) -> void:
 
 
 ## Одна итерация Пикара (reference.md → «Итерация Пикара»).
-func _prog_iteration() -> Array:
+## no_thd — без прохода θ′_d (решение без нагрева, _no_thd()).
+func _prog_iteration(no_thd := false) -> Array:
 	var a := gpu.record(_rec_momentum)
 	a.append_array(_prog_project(int(case.p.vcycles), true))
-	a.append_array(gpu.record(_rec_heat_step))
+	a.append_array(gpu.record(_rec_heat_step.bind(no_thd)))
 	return a
 
 
@@ -425,10 +426,12 @@ func _rec_momentum() -> void:
 
 
 ## Шаг тепла (Air.heat_step): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки.
-func _rec_heat_step() -> void:
-	_heat(0)
-	for _s in int(case.p.heat_sweeps):
-		gpu.zebra(buf.Cu, buf.thd, RID(), case.dims(), [2, 0, 1], true)
+## no_thd: θ′_d ≡ 0 точно (нет нагрева и θ′_d родителя) — его проход пропускается (А2).
+func _rec_heat_step(no_thd := false) -> void:
+	if not no_thd:
+		_heat(0)
+		for _s in int(case.p.heat_sweeps):
+			gpu.zebra(buf.Cu, buf.thd, RID(), case.dims(), [2, 0, 1], true)
 	_heat(1)
 	for _s in int(case.p.heat_sweeps):
 		gpu.zebra(buf.Cu, buf.th, RID(), case.dims(), [2, 0, 1], true)
@@ -488,8 +491,11 @@ func _program(key: String) -> Array:
 		"reinit":
 			a = gpu.record(_rec_reinit)
 			a.append_array(_prog_project(30, false))
-		"iters":
-			var one := _prog_iteration()
+		"iters", "iters_nh":
+			var nh := key == "iters_nh"
+			if nh:  # тёплое θ′_d без нагрева — к точному решению 0 (заодно и после init)
+				a = gpu.record(func() -> void: gpu.fill(buf.thd, _n))
+			var one := _prog_iteration(nh)
 			for _i in check_every:
 				a.append_array(one)
 			a.append_array(_prog_check())
@@ -510,12 +516,18 @@ func _step_program(_i: int) -> Array:
 				return _program("reinit")
 			return _program("warm" if not warm.is_empty() else "init")
 		Phase.ITER:
-			return _program("iters")
+			return _program("iters_nh" if _no_thd() else "iters")
 		Phase.FINAL:
 			if _ci < _cases.size() - 1:
 				return _program("final") + _program("mech_done")
 			return _program("final")
 	return []
+
+
+## Решение без θ′_d: нет нагрева (Q ≡ 0) и θ′_d на границах ≡ 0 — тогда уравнение θ′_d однородно,
+## его решение 0 точно (Air.solve: no_thd). Окно добавляет условие «θ′_d родителя ≡ 0».
+func _no_thd() -> bool:
+	return _cases[_ci].heat.is_empty()
 
 
 func _after_sync() -> bool:

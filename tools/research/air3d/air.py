@@ -535,7 +535,9 @@ class Params:
     lam_frac: float = 0.25            # λ = max(lam, lam_frac·h) (0 — выкл.). AM-09 (docs/air_model_tune.md): 0,25 −0,02 по
                                       # Askervein (12,5 м, 2-й пор.) — верхняя граница физичного диапазона 0,03–0,25; данные
                                       # тянут выше (χ² падает ещё на 7 до 0,6). AM-01: 0,1 («масштаб вихрей ~ 0,1 слоя»)
-    k_relax: float = 0.5              # нижняя релаксация обновления K (численная)
+    k_relax: float = 0.1              # нижняя релаксация обновления K (численная). А2 (docs/plan/air_model_a2.md): 0,5 → 0,1 —
+                                      # гасит предельный цикл K(Ri) ↔ θ′ ↔ w у верха слоя перемешивания при λ/h 0,031;
+                                      # неподвижная точка та же (подъём у старта ±0,01 м/с), итераций цепочки столько же
     cs_h: float = 0.25                # Смагоринский по горизонтали: K_h ≥ (c_s Δx)² |D_h| (WRF km_opt 4: 0,25); 0 — выкл.
                                       # AM-09: фиксирован, не подгоняется — мезомасштабная горизонтальная подсеточная
                                       # диффузия (Δx 50–400 м ≫ l), не LES (Лилли 0,17 — для Δx в инерционном интервале);
@@ -741,6 +743,7 @@ class Air:
         self._setup_boundary()
         self.outer = 0
         self.graph = None
+        self.no_thd = False                         # шаг θ′_d пропускается (нет нагрева, решает solve)
         self.hist = []
         self.status = None
 
@@ -985,7 +988,7 @@ class Air:
         gr, bl = self._grid1()
         R = self.dt.type
         for x, c in ((self.th, self.ct), (self.thd, self.ctd)):
-            if self.prm.adv2:
+            if self.prm.adv2 and not (self.no_thd and x is self.thd):
                 self.k["adv2_heat"](gr, bl, (self.u, self.v, self.w, self.cell, x, c,
                                              np.int32(self.NZ), np.int32(self.NY), np.int32(self.NX), R(self.dx), R(self.dz)))
             else:
@@ -1022,10 +1025,12 @@ class Air:
             self.lines.sweep(self.Cw, self.w, self.bw)
 
     def heat_step(self):
-        """Шаг тепла (после adv2_heat): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки θ′."""
-        self.build_heat_d()
-        for _ in range(self.prm.heat_sweeps):
-            self.lines.sweep(self.Ctd, self.thd, self.btd)
+        """Шаг тепла (после adv2_heat): шаблон θ′_d → прогонки θ′_d → шаблон θ′ (от нового θ′_d) → прогонки θ′.
+        Без нагрева (Q ≡ 0 и θ_b,d ≡ 0, флаг no_thd — solve) θ′_d ≡ 0 точно: его проход пропускается (А2)."""
+        if not self.no_thd:
+            self.build_heat_d()
+            for _ in range(self.prm.heat_sweeps):
+                self.lines.sweep(self.Ctd, self.thd, self.btd)
         self.build_heat_t()
         for _ in range(self.prm.heat_sweeps):
             self.lines.sweep(self.Ct, self.th, self.bt)
@@ -1111,6 +1116,13 @@ class Air:
         cp.cuda.Device().synchronize()
         t0 = time.perf_counter()
         self.t_check = 0.0
+        # без нагрева и без θ′_d у родителя уравнение θ′_d однородно: решение θ′_d ≡ 0 (тёплое θ′_d — обнулить)
+        no_thd = not bool(cp.any(self.Q != 0)) and not bool(cp.any(self.thbd != 0))
+        if no_thd:
+            self.thd[...] = 0
+        if no_thd != self.no_thd:
+            self.no_thd = no_thd
+            self.graph = None                       # граф записан с другим шагом тепла
         if graph and self.graph is None:
             self.capture()
         status = "max"

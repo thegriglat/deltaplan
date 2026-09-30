@@ -36,6 +36,7 @@ var shared_gpu := false
 var _prev_shift := Vector3i.ZERO
 var _use_prev := false
 var _mark := 0
+var _par_thd_zero := false
 
 
 func _shaders() -> Array:
@@ -111,6 +112,8 @@ func _upload_case(c: AirCase) -> void:
 	gpu.upload(buf.par_w, src.w)
 	gpu.upload(buf.par_th, src.th)
 	_upload_or_zero(buf.par_thd, src.get("thd", PackedFloat32Array()), pn)
+	var ptd: PackedFloat32Array = src.get("thd", PackedFloat32Array())
+	_par_thd_zero = ptd.count(0.0) == ptd.size()
 	if _use_prev:
 		var og: Dictionary = prev.grid
 		var on := (int(og.nx) + 2) * (int(og.ny) + 2) * (int(og.nz) + 2)
@@ -243,6 +246,10 @@ func _program(key: String) -> Array:
 			return super._program(key)
 	_progs[key] = a
 	return a
+
+
+func _no_thd() -> bool:
+	return super._no_thd() and _par_thd_zero
 
 
 func _step_program(i: int) -> Array:
