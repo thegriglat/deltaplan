@@ -252,6 +252,22 @@ func _make_material(
 	return m
 
 
+## Карта поверхности слоя li поменялась (Terrain.add_start_clearing): обновить на месте текстуру
+## классов (её же читают трава, импостеры, процедурные кроны) и маску леса 10 м в материалах слоя.
+func refresh_surface(li: int, surface: SurfaceLayer) -> void:
+	if li < surface_textures.size():
+		var img := Image.create_from_data(
+			surface.width, surface.height, false, Image.FORMAT_R8, surface.classes
+		)
+		(surface_textures[li] as ImageTexture).update(img)
+	if li >= _layer_mats.size() or _layer_mats[li].is_empty() or not surface.has_forest_mask():
+		return
+	var m := _layer_mats[li][0] as ShaderMaterial
+	var tex := m.get_shader_parameter("forest_mask_tex") as ImageTexture
+	if tex != null:
+		tex.update(surface.forest_mask_image())
+
+
 ## Бесшовная текстура плавного шума RGBA (4 независимых канала, пятно ~MACRO_NOISE_FEATURE
 ## текселей, мипмапы): пятна лугов и волны ветра с высоты берут шум из неё, а не считают хеши —
 ## дешевле на GPU, мипмапы сами гасят пятна мельче пикселя. Строится один раз на игру.

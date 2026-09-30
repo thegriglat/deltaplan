@@ -20,6 +20,24 @@ func test_k1_surface_classes() -> void:
 	var terrain := load("res://scripts/terrain/terrain.gd") as Script
 	check(_has_method_args(terrain, "surface_at", 2), "К1: Terrain.surface_at(x, z)")
 	check(_has_method_args(terrain, "forest_at", 2), "К1: Terrain.forest_at(x, z)")
+	# v2 (SF-1): пустырь вокруг произвольного старта после загрузки
+	check(
+		_has_method_args(terrain, "add_start_clearing", 3),
+		"К1 v2: Terrain.add_start_clearing(x, z, radius_m)"
+	)
+	check(_has_method_args(terrain, "get_start_clearings", 0), "К1 v2: get_start_clearings()")
+	var t := Terrain.new()
+	check("surface_revision" in t and t.surface_revision is int, "К1 v2: surface_revision: int")
+	t.free()
+	check(
+		_has_method_args(TerrainRenderer, "refresh_surface", 2),
+		"К1 v2: TerrainRenderer.refresh_surface(li, surface)"
+	)
+	var ss: Dictionary = Config.get_config("game").start_search
+	check(
+		ss.has("clearing_radius_m") and ss.has("clearing_radius_m_doc"), "К1 v2: радиус в конфиге"
+	)
+	approx(Terrain.start_clearing_radius_m(), float(ss.clearing_radius_m), 1e-6, "К1 v2: радиус")
 
 
 func test_k2_grass_config() -> void:
