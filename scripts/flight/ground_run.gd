@@ -82,7 +82,7 @@ func step(
 	var wind := FlightModel.sample_air(air_fn, m.position + UP * float(to.wing_height_m))
 
 	var v_air := dir3 * _speed - wind
-	var aero := _aero_force(m, dt, input, v_air)
+	var aero := _aero_force(m, dt, input, v_air, dir3)
 	var weight := m.mass * Units.G
 	feet_load = clampf(1.0 - aero.y / weight, 0.0, 1.0)
 	_ground_bank(m, dt, v_air, air_fn)
@@ -112,11 +112,19 @@ func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> voi
 	m.heading += _yaw_rate * dt
 
 
-## Аэродинамическая сила на крыло в руках пилота.
-func _aero_force(m: FlightModel, dt: float, input: ControlInput, v_air: Vector3) -> Vector3:
+## Аэродинамическая сила на крыло в руках пилота. dir3 — направление бега вдоль склона по курсу.
+## Трапеция задаёт угол атаки — угол киля к набегающему потоку; пока потока нет (штиль, стоит),
+## опорное направление — вдоль склона по курсу (поток, который встретит крыло на разбеге), а не
+## горизонт: иначе стоя на склоне 20° нос задран на 20° выше, чем на первом шаге, и задние концы
+## консолей уходят в склон (docs/flight.md → «Поза крыла на земле»).
+func _aero_force(
+	m: FlightModel, dt: float, input: ControlInput, v_air: Vector3, dir3: Vector3
+) -> Vector3:
 	var v := v_air.length()
 	var min_v := float(m.flight.min_airspeed_ms)
-	var u := v_air / v if v > min_v else m.heading_dir()
+	# ниже min_v поток плавно подменяется направлением бега (без скачка тангажа на min_v)
+	var u := v_air + dir3 * maxf(min_v - v, 0.0)
+	u = u.normalized() if u.length() > 1.0e-3 else dir3
 	var side := u.cross(UP)
 	side = side.normalized() if side.length() > 1.0e-3 else m.right_dir()
 	var up0 := side.cross(u)
