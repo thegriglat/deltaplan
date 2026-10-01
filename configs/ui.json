@@ -88,6 +88,11 @@
       "text": "controls_mouse_bar_look"
     },
     {
+      "mouse": true,
+      "mouse_mode": "bar",
+      "text": "controls_mouse_bar_wasd"
+    },
+    {
       "section": "controls_on_ground"
     },
     {
