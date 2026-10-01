@@ -46,6 +46,8 @@ var _u10 := 0.0
 var _wdir := 270.0
 var _t_max := NAN
 var _sky := "clear"
+## Множитель притока окон (C2 v6, C7 v3) — тот же, что у области.
+var _inflow_k := 1.0
 
 var _domain_field: WindField
 var _domain_pd := {}
@@ -74,7 +76,7 @@ var _retry_at := 0
 
 
 ## Вход места — как AirPlace.domain_case (detail — слой 25 м, water — маска или null, loc —
-## configs/locations/<место>.json).
+## configs/locations/<место>.json; u10 — ветер меню, inflow_k — множитель притока, как у области).
 func setup(
 	detail: HeightLayer,
 	water: Image,
@@ -83,9 +85,11 @@ func setup(
 	u10: float,
 	wdir: float,
 	t_max := NAN,
-	sky := "clear"
+	sky := "clear",
+	inflow_k := 1.0
 ) -> void:
 	_detail = detail
+	_inflow_k = inflow_k
 	_loc = loc
 	_hour = hour
 	_u10 = u10
@@ -111,7 +115,10 @@ func setup(
 
 ## Смена часа / ветра / погоды (фоновый пересчёт по игровому времени): затем set_domain(…) —
 ## окна пересчитаются с тёплого старта от своих прошлых полей.
-func set_conditions(hour: float, u10: float, wdir: float, t_max := NAN, sky := "clear") -> void:
+func set_conditions(
+	hour: float, u10: float, wdir: float, t_max := NAN, sky := "clear", inflow_k := 1.0
+) -> void:
+	_inflow_k = inflow_k
 	_hour = hour
 	_u10 = u10
 	_wdir = wdir
@@ -281,7 +288,9 @@ func _next() -> void:
 func _start_tasks() -> void:
 	for row in _pending:
 		row.t_enq = Time.get_ticks_usec()
-		var args := [float(row.dx), float(row.x0), float(row.y0), _hour, _u10, _wdir, _t_max, _sky]
+		var args := [
+			float(row.dx), float(row.x0), float(row.y0), _hour, _u10, _wdir, _t_max, _sky, _inflow_k
+		]
 		row.case = null
 		row.task = WorkerThreadPool.add_task(_prepare_case.bind(args, row))
 
@@ -296,7 +305,7 @@ func _wait_tasks() -> void:
 ## Рабочий поток: вход окна (рельеф, погода, солнце) и подготовка обоих случаев (K_b, губки).
 func _prepare_case(a: Array, row: Dictionary) -> void:
 	var c := AirWindowCase.window_at(
-		_detail, _water, _loc, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], true, _ctx, cells
+		_detail, _water, _loc, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], true, _ctx, cells, a[8]
 	)
 	if c != null and not c.prepare_pair():
 		c = null

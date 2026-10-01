@@ -27,6 +27,7 @@ func _init() -> void:
 ## как real.grid_window — угол окна кратен 25 м, dz = dx/2, z_bot = ⌊h_min/dz⌋·dz − dz, верх —
 ## TOP_ABOVE над максимумом, nz чётное; вход погоды и солнца — как AirPlace.domain_case.
 ## ctx — AirPlace.context (дорогой; передать готовый, если есть). null — окно вне слоя.
+## u10 — ветер меню, inflow_k — множитель притока, как AirPlace.domain_case (C2 v6).
 static func window_case(
 	detail: HeightLayer,
 	water: Image,
@@ -41,12 +42,15 @@ static func window_case(
 	sky := "clear",
 	heat := true,
 	ctx := {},
-	n := N_WINDOW
+	n := N_WINDOW,
+	inflow_k := 1.0
 ) -> AirWindowCase:
 	var half := 0.5 * n * dx
 	var x0 := roundf((cx - half) / 25.0) * 25.0
 	var y0 := roundf((cy - half) / 25.0) * 25.0
-	return window_at(detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n)
+	return window_at(
+		detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n, inflow_k
+	)
 
 
 ## То же с углом окна (x0, y0) — сдвиг окна кратно клетке.
@@ -64,7 +68,8 @@ static func window_at(
 	sky := "clear",
 	heat := true,
 	ctx := {},
-	n := N_WINDOW
+	n := N_WINDOW,
+	inflow_k := 1.0
 ) -> AirWindowCase:
 	var hc := AirPlace.block_mean(detail, x0, y0, dx, n, n)
 	if hc.is_empty():
@@ -81,7 +86,6 @@ static func window_at(
 	var c := AirWindowCase.new()
 	c.set_grid(dx, n, n, dz, zb, nz, x0, y0)
 	c.hc = hc
-	c.u10 = u10
 	c.wdir = wdir
 	var cfg := WeatherModel.config()
 	if ctx.is_empty():
@@ -90,7 +94,7 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
-	WindProfile.apply_to_case(c, ctx, hour, float(d.cover))
+	c.set_inflow(u10, inflow_k, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = AirPlace.gamma(d, c.zc(k))
@@ -99,8 +103,18 @@ static func window_at(
 			hc, dx, n, n, d, ctx, cfg, AirPlace.water_fraction(water, detail, x0, y0, dx, n, n)
 		)
 	c.label = (
-		"%s окно %sм (%s, %s) %sч U%s %s°%s"
-		% [String(loc.get("id", "")), dx, x0, y0, hour, u10, wdir, "" if heat else " без нагрева"]
+		"%s окно %sм (%s, %s) %sч U%s%s %s°%s"
+		% [
+			String(loc.get("id", "")),
+			dx,
+			x0,
+			y0,
+			hour,
+			u10,
+			"" if inflow_k == 1.0 else " k%.3f" % inflow_k,
+			wdir,
+			"" if heat else " без нагрева"
+		]
 	)
 	return c
 
@@ -148,6 +162,8 @@ func without_heat() -> AirCase:
 	c.gam = gam
 	c.z_i = z_i
 	c.u10 = u10
+	c.u10_menu = u10_menu
+	c.inflow_k = inflow_k
 	c.wdir = wdir
 	c.label = label + " без нагрева"
 	_mech_case = c
