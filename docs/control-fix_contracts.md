@@ -1,20 +1,40 @@
 # Контракты модуля «control-fix»
 
-Внутренний документ. План — `docs/plan/control-fix.md`, журнал — `docs/plan/control-fix_progress.md`. Контрактный тест — `tests/game/test_control_fix_contracts.gd` (форма стыков; ломается при смене формата без правки контракта). Зафиксировано то, что есть в коде на v1.0.0 (3820bda). Менять интерфейс — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге.
+Внутренний документ. План — `docs/plan/control-fix.md`, журнал — `docs/plan/control-fix_progress.md`. Контрактный тест — `tests/game/test_control_fix_contracts.gd` (форма стыков; ломается при смене формата без правки контракта). v1 — то, что есть в коде на v1.0.0 (3820bda). Менять интерфейс — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге.
 
-## С1. ControlInput — управление пилота за шаг — v1
-Владелец: `scripts/core/control_input.gd`. Источники: `InputController` (CF-2), `Autopilot`, `BotPilot`, сеть. Потребители: `FlightModel.step`, `GroundRun.step` (CF-1), `Glider`, визуал.
-- `pitch: float ∈ [−1, 1]` — +1 трапеция от себя (нос вверх), −1 на себя; на земле/в разбеге — угол носа крыла (+ нос вверх).
-- `roll: float ∈ [−1, 1]` — +1 вправо. В полёте — крен (режим по `weight_shift`); **на земле — только курс** (стоя/шагом — поворот на месте, на бегу — дуга; крыло не кренит) — по start-fixes К3 v2.
-- `weight_shift: bool` — смысл `roll` в полёте; `run: bool` — разбег (только на земле); `walk: float ∈ [−1, 1]` — шаг вперёд/назад.
-- Расхождение (записано 01.10): doc-комментарий `roll` в `control_input.gd` («в разбеге — выравнивание крыла») устарел после SF-3; правильный смысл — выше. Исправить комментарий может CF-1 без смены версии.
+## С1. ControlInput — управление пилота за шаг — v2
+Владелец: `scripts/core/control_input.gd`. Источники: `InputController`, `Autopilot`, `BotPilot`, сеть. Потребители: `FlightModel.step`, `GroundRun.step`, `Glider`, визуал.
 
-## С2. InputController → ControlInput — v1
-Владелец: `scripts/game/input_controller.gd` (CF-2). Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
-- `update(dt: float) -> ControlInput` — раз за шаг физики; `enabled=false` или `hands_off=true` — нейтральное управление.
-- `on_ground: bool` (задаёт `Game` по фазе) — выбор `_update_ground` / `_update_air`.
-- Мышь: `set_mouse_captured(on: bool)`, `mouse_captured: bool`, `mouse_mode() -> String ∈ {"look","bar"}` из `configs/controls.json → mouse.mode` (поверх — `user://configs/controls.json`); в `bar` смещение мыши (`InputEventMouseMotion.relative` в `_unhandled_input`) → `roll` (+ вправо) и `pitch` (мышь вверх = от себя), только в воздухе; правая кнопка — временно голова. На земле мышь не используется (v1).
-- Изменение: мышь начинает управлять на земле, режим по умолчанию меняется или события берутся не из `_unhandled_input` — версия 2 через координатора.
+v1 (до CF-3):
+- `pitch: float ∈ [−1, 1]` — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх).
+- `roll: float ∈ [−1, 1]` — +1 вправо. В полёте — крен (режим по `weight_shift`); на земле — только курс (крыло не кренит), К3 v2.
+- `weight_shift: bool`; `run: bool` — разбег; `walk: float ∈ [−1, 1]` — шаг.
 
-## С3. Пилот на земле — ссылка
-`GroundRun` (стоя/ходьба/разбег, крен на плечах, отрыв, срывы) — контракты модуля start-fixes: `docs/start_fixes_contracts.md` → **К3 v2** (крен на земле, переход в полёт) и **К4 v1** (поза крыла на земле); их тест — `tests/game/test_start_fixes_contracts.gd`. Владелец в этом модуле — CF-1. Смена смысла полей/результатов `GroundRun.step` или ключей `flight.json → ground_bank`/`takeoff` — версия К3 v3 в обоих документах, через координатора.
+**v2 (CF-3, решение пользователя 01.10, вариант В):**
+- Новое поле `turn: float ∈ [−1, 1]`, по умолчанию 0 — поворот курса на земле **стоя и шагом** (+ вправо, по часовой); в полёте и на бегу не используется.
+- `pitch` на земле (стоя, шагом, на бегу) — нос крыла, тот же смысл и знак, что в полёте (+ от себя = нос вверх), полный ход [−1, 1].
+- `roll` на земле (стоя, шагом, на бегу) — **заданный крен крыла** «рукой пилота», + вправо; полный ход = предельный крен руки (`flight.json → ground_bank`, ключ с физическим обоснованием — CF-3). Курс roll на земле больше не задаёт.
+- `run`, `walk`, `weight_shift` — без изменений.
+
+## С2. InputController → ControlInput — v2
+Владелец: `scripts/game/input_controller.gd`. Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
+Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`, `mouse_mode() -> String ∈ {"look","bar"}`; правая кнопка в `bar` — осмотреться (трапеция держит положение).
+
+v1: мышь (`bar`) — только в воздухе; на земле W/S — шаг, Shift+W — разбег, A/D — поворот, ↑/↓ — подстройка носа ±0,3 поверх `run_nose_neutral` + `auto_nose`; защёлка клавиш при отрыве (`controls.json → takeoff_latch`, `is_latched`). Мышь по умолчанию `look`. CF-2 (без смены версии): в `bar` смещение мыши на земле не копится.
+
+**v2 (CF-3, решение пользователя 01.10):**
+- `controls.json → mouse.mode` по умолчанию **`bar`**.
+- Стоя и шагом (Shift не зажат): W/S → `walk`, A/D → `turn`; нос и крен крыла (`pitch`, `roll`) — стрелки ↑/↓, ←/→ (смысл как в полёте: ↑ — на себя, нос вниз; ← — влево), мышь в `bar`, стик геймпада.
+- Разбег: зажат Shift → `run = true` (W не нужен; блокировка `run_blocked` — как была); W/S, A/D, стрелки, мышь, стик → `pitch`, `roll` как в полёте; `walk = 0`, `turn = 0`.
+- Мышь в `bar` на земле управляет `pitch`/`roll` и стоя, и на бегу; смещение мыши на отрыве непрерывно (правка CF-2 «на земле не копится» заменяется этим).
+- Защёлки при отрыве нет (`takeoff_latch`, `is_latched` убраны): на отрыве `pitch`/`roll` непрерывны.
+- Базовый нос без ввода (сейчас `run_nose_neutral` + `auto_nose`) — CF-3 решает и обосновывает; фиксируется здесь по итогам CF-3.
+
+## С3. Пилот на земле — `GroundRun` (start-fixes К3) — К3 v3
+Базовые контракты — `docs/start_fixes_contracts.md` → К3 v2 (крен на земле, переход в полёт), К4 v1 (поза крыла); их тест — `tests/game/test_start_fixes_contracts.gd`. Владелец в этом модуле — CF-1 (до CF-3), затем CF-3.
+
+**К3 v3 (CF-3):**
+- Стоя/шагом курс — от `input.turn` (`pilot.walk.turn_rate_dps`), крыло этим не кренится; на бегу курс — от крена крыла (дуга: боковое ускорение от боковой составляющей силы крыла, |a| ≤ `pilot.run.turn_accel_max_ms2`), `input.turn` не используется.
+- `input.roll` на земле — заданный крен `φ_зад` регулятора «руки пилота»: момент руки `−I/τ²·(φ − φ_зад) − 2I/τ·φ̇`, предел `pilot_moment_max_nm · feet_load` — как в v2. Без ввода `φ_зад = 0` (поведение v2).
+- `input.pitch` на земле — нос крыла на полный ход (смысл как в v2).
+- `GroundRun.step(...)`, `Result`, `phase`, `failure`, `feet_load`, `wind_moment_nm`, `hold_limit_nm`, `roll_inertia` — без изменений; `pilot_moment` может получить заданный крен — тогда новая сигнатура записывается сюда.
