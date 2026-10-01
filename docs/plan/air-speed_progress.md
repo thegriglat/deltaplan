@@ -13,7 +13,9 @@ a554502).
   `tests/contracts/test_air_speed_contracts.gd` — `test_s2_blocking_api` до SP-2 падает намеренно.
 - 01.10 — стык с air-start (C2 v6, C7 v3, C9 v3 в его ветке): наши изменения C7/C9 держим в `air_speed_contracts.md`,
   номера версий в `air_model_contracts.md` — при слиянии после air-start. Файлы пересекаются (`air_runtime.gd`,
-  `air_clipmap.gd`, `air_place.gd`, `air_case.gd`) — сообщено главной сессии.
+  `air_clipmap.gd`, `air_place.gd`, `air_case.gd`) — сообщить главной сессии в отчёте.
+- 01.10 — сбой сети (API недоступен) прервал исполнителей SP-1/SP-2/SP-3; копии целы (SP-2 bb0689b, SP-3 869af6e, SP-1 без
+  коммитов), своих процессов нет — исполнители возобновлены со своего контекста.
 
 ## Задачи
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа / решения |
