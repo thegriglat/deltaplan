@@ -139,6 +139,7 @@ func _ready() -> void:
 	camera.set_mode(camera.mode)  # near по режиму
 	camera.target = glider
 	camera.ground_fn = terrain.height_at
+	camera.keys_look_fn = input_controller.keys_look  # У2: W/S/A/D — обзор при мыши-трапеции
 	camera.mode_changed.connect(func(_m: String) -> void: _update_overlay())
 	overlay.use_instrument(instrument)
 	glider.telemetry_updated.connect(_on_telemetry)

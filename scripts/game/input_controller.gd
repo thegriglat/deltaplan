@@ -13,9 +13,14 @@ extends Node
 ## крыла — те же действия «трапеции», что в полёте (стрелки), мышь, стик; клавиши, занятые шагом
 ## и поворотом, трапецию стоя не двигают. С зажатым Shift (разбег) все органы — нос и крен, как
 ## в полёте. Трапеция на отрыве непрерывна: одни и те же положения клавиш, мыши и стика.
+## Обзор с клавиш (У2 v1): мышь — трапеция (bar) и захвачена, в полёте или на разбеге —
+## keys_look() = true: клавиши look_* (W/S/A/D) крутят голову в кабине (CameraRig), а в трапецию
+## не вносят ничего; трапеция с клавиш — на других клавишах тех же действий (стрелки).
 
 ## Действия шага и поворота на земле: их клавиши стоя не двигают трапецию.
 const GROUND_MOVE_ACTIONS: Array[String] = ["walk_forward", "walk_back", "turn_left", "turn_right"]
+## Действия обзора головой (У2): их клавиши при keys_look() не двигают трапецию.
+const LOOK_ACTIONS: Array[String] = ["look_up", "look_down", "look_left", "look_right"]
 
 var control := ControlInput.new()
 var mouse_captured := false
@@ -56,6 +61,16 @@ func reload_config() -> void:
 
 func mouse_mode() -> String:
 	return String(_cfg.mouse.mode)
+
+
+## Клавиши look_* сейчас крутят голову, а не трапецию (У2 v1): мышь — трапеция (bar) и
+## захвачена, ввод включён, руки на трапеции, и в полёте или на разбеге (зажат run, не заблокирован).
+func keys_look() -> bool:
+	if not enabled or hands_off or not mouse_captured or mouse_mode() != "bar":
+		return false
+	if not on_ground:
+		return true
+	return InputMap.has_action("run") and Input.is_action_pressed("run") and not run_blocked
 
 
 ## Крен в полёте — смещение веса (иначе — скорость крена, как раньше). Автопилот — всегда rate.
@@ -329,12 +344,14 @@ func _strength(action: String) -> float:
 	return Input.get_action_strength(action) if InputMap.has_action(action) else 0.0
 
 
-## Сила действия трапеции. only_bar (стоя на земле): если действие зажато только клавишами,
-## которые заняты шагом или поворотом (GROUND_MOVE_ACTIONS), — 0. Нажатие без физической
-## клавиши (Input.action_press — автопилот, тесты) считается.
+## Сила действия трапеции. Если действие зажато только клавишами, которые сейчас заняты
+## другим, — 0: стоя на земле (only_bar) — шагом и поворотом (GROUND_MOVE_ACTIONS), при
+## keys_look() — обзором (LOOK_ACTIONS). Нажатие без физической клавиши (Input.action_press —
+## автопилот, тесты) считается.
 func _bar_strength(action: String, only_bar: bool) -> float:
 	var s := _strength(action)
-	if s <= 0.0 or not only_bar:
+	var look := keys_look()
+	if s <= 0.0 or not (only_bar or look):
 		return s
 	var any_key := false
 	for ev in InputMap.action_get_events(action):
@@ -342,13 +359,17 @@ func _bar_strength(action: String, only_bar: bool) -> float:
 		if k == null or not Input.is_physical_key_pressed(k.physical_keycode):
 			continue
 		any_key = true
-		if not _is_move_key(k.physical_keycode):
+		var busy := (only_bar and _key_in(k.physical_keycode, GROUND_MOVE_ACTIONS)) or (
+			look and _key_in(k.physical_keycode, LOOK_ACTIONS)
+		)
+		if not busy:
 			return s
 	return 0.0 if any_key else s
 
 
-static func _is_move_key(code: Key) -> bool:
-	for a in GROUND_MOVE_ACTIONS:
+## Назначена ли физическая клавиша на одно из действий.
+static func _key_in(code: Key, actions: Array[String]) -> bool:
+	for a in actions:
 		if not InputMap.has_action(a):
 			continue
 		for ev in InputMap.action_get_events(a):

@@ -9,6 +9,9 @@ extends Camera3D
 ## Режим мыши "bar" (controls.json → mouse.mode): мышь обычно управляет трапецией
 ## (InputController), но пока зажата правая кнопка — крутит голову, как в режиме "look"
 ## (см. _mouse_looks()); трапеция в это время держит последнее положение.
+## Обзор с клавиш (У2 v1): пока keys_look_fn() = true (мышь — трапеция и захвачена, в полёте или
+## на разбеге), в кабине look_* (W/S/A/D) поворачивают голову со скоростью cockpit.head.key_rate_deg_s
+## в тех же пределах, что мышь; отпустил — голова остаётся, V — вперёд.
 ## Параметры — configs/camera.json. Дальняя плоскость — от мира (SkyEnvironment.setup_camera).
 
 signal mode_changed(mode: String)
@@ -35,6 +38,9 @@ var free_keys_enabled := true
 ## Камера сзади — вплотную, без сглаживания (буксир «догнать», NET-42: на 1000 км/ч сглаженная
 ## камера отстаёт на сотню метров).
 var tight := false
+## Клавиши look_* сейчас крутят голову в кабине: () -> bool (InputController.keys_look).
+## Не задано — false.
+var keys_look_fn: Callable = Callable()
 
 var _cfg: Dictionary
 var _modes: Array
@@ -136,16 +142,40 @@ func _look(rel: Vector2) -> void:
 	if mode == "cockpit":
 		if _look_locked:
 			return
-		var h: Dictionary = _cfg.cockpit.head
-		_head += d
-		var yaw_lim := deg_to_rad(float(h.yaw_limit_deg))
-		_head.x = clampf(_head.x, -yaw_lim, yaw_lim)
-		var down_lim := deg_to_rad(float(h.pitch_down_limit_deg))
-		_head.y = clampf(_head.y, -down_lim, deg_to_rad(float(h.pitch_up_limit_deg)))
-		_recentering = false
+		_turn_head(d)
 	elif mode == "free":
 		_free_rot += d
 		_free_rot.y = clampf(_free_rot.y, -1.5, 1.5)
+
+
+## Повернуть голову в кабине на d (рыскание + влево, тангаж + вверх), рад, в пределах cockpit.head
+## (мышь и клавиши); отменяет плавный возврат вперёд.
+func _turn_head(d: Vector2) -> void:
+	var h: Dictionary = _cfg.cockpit.head
+	_head += d
+	var yaw_lim := deg_to_rad(float(h.yaw_limit_deg))
+	_head.x = clampf(_head.x, -yaw_lim, yaw_lim)
+	var down_lim := deg_to_rad(float(h.pitch_down_limit_deg))
+	_head.y = clampf(_head.y, -down_lim, deg_to_rad(float(h.pitch_up_limit_deg)))
+	_recentering = false
+
+
+## Поворот головы клавишами look_* (У2): только при обзоре с клавиш, не заданной set_look голове.
+func _keys_head(delta: float, c: Dictionary) -> void:
+	if not look_enabled or _look_locked or not keys_look_fn.is_valid():
+		return
+	if not bool(keys_look_fn.call()):
+		return
+	var dir := Vector2(_key("look_left") - _key("look_right"), _key("look_up") - _key("look_down"))
+	if dir == Vector2.ZERO:
+		return
+	_turn_head(dir * deg_to_rad(float(c.head.get("key_rate_deg_s", 90.0))) * delta)
+
+
+## Текущий поворот головы в кабине, °: x — рыскание (+ влево), y — тангаж (+ вверх); без взгляда
+## на прибор и без cockpit.look_down_deg.
+func head_look_deg() -> Vector2:
+	return Vector2(rad_to_deg(_head.x), rad_to_deg(_head.y))
 
 
 func _free_input(event: InputEvent) -> void:
@@ -238,6 +268,7 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	else:
 		eye = t.origin + t.basis * _vec(c.fallback_offset_m)
 	global_position = eye
+	_keys_head(delta, c)
 	if _recentering:
 		var rt := float(c.head.recenter_time_s)
 		_head = _head.lerp(Vector2.ZERO, 1.0 if rt <= 0.0 else 1.0 - exp(-delta / rt))
