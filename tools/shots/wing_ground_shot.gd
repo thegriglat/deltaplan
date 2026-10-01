@@ -9,12 +9,15 @@ extends Node3D
 
 const WC := preload("res://tools/flight/wing_clearance.gd")
 const DT := 1.0 / 120.0
-## случай: [склон «flat» / «down20» / «cross15», pitch, roll, секунд, камера (оси планера), взгляд]
+## случай: [склон «flat» / «down20» / «cross15», pitch, turn (поворот стоя), секунд, камера (оси планера),
+## взгляд, roll (заданный крен руки, необязательно)]
 const CASES := {
 	"ровно_A": ["flat", 0.0, -1.0, 3.0, Vector3(-3.0, 1.2, 9.0), Vector3(-2.5, 1.2, 0.0)],
 	"склон20_стоит": ["down20", 0.0, 0.0, 3.0, Vector3(-9.0, 1.5, 1.5), Vector3(0.0, 1.2, 0.0)],
 	"склон20_нос_вверх": ["down20", 1.0, 0.0, 3.0, Vector3(-9.0, 1.5, 1.5), Vector3(0, 1.2, 0)],
 	"косой15_стоит": ["cross15", 0.0, 0.0, 3.0, Vector3(1.0, 2.5, 9.0), Vector3(2.5, 1.2, 0.0)],
+	"ровно_крен_влево": ["flat", 0.0, 0.0, 3.0, Vector3(0.0, 1.6, 9.0), Vector3(0.0, 1.4, 0.0), -1.0],
+	"ровно_нос_вниз": ["flat", -1.0, 0.0, 3.0, Vector3(-9.0, 1.5, 1.5), Vector3(0.0, 1.2, 0.0)],
 }
 
 var _out := ""
@@ -114,7 +117,8 @@ func _run() -> void:
 		m.reset_on_ground(Vector3(0, 100, 0), 0.0)
 		var inp := ControlInput.new()
 		inp.pitch = float(c[1])
-		inp.roll = float(c[2])
+		inp.turn = float(c[2])  # поворот на месте (A/D стоя)
+		inp.roll = float(c[6]) if c.size() > 6 else 0.0  # заданный крен руки (К3 v3)
 		var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
 		for i in int(float(c[3]) / DT):
 			m.step(DT, inp, zero, gf)

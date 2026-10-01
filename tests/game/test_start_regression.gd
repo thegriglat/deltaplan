@@ -2,13 +2,16 @@ extends Node
 ## CF-1: старт с земли по умолчанию в сцене игры (main.tscn → _fly, FlightSettings.defaults():
 ## локация, старт, крыло, ветер «встречный», прогноз, час), ввод — через InputMap, как у игрока.
 ## 1. Без ввода 10 с: стоит — нет отрыва и срыва, |крен| < 3°, смещение < 1 м.
-## 2. Разбег (W+Shift) с нейтральной трапецией — отрыв; ↓ (нос ниже) — меньше угол атаки на
-##    разбеге и отрыв; ↑ до упора — срыв nose_high; крен на разбеге < 3°.
+## 2. Разбег (Shift, С2 v2) с нейтральной трапецией — отрыв; «на себя» (нос ниже нейтрали на
+##    ≈ 6°, как прежняя подстройка ↓ на 0,3 хода) — меньше угол атаки на разбеге и отрыв; «от себя»
+##    до упора — нос за срывом, отрыва нет (срыва по носу нет, К3 v3); крен на разбеге < 3°. Клавиши — действия трапеции, знак — карта.
 ## Поле воздуха: headless — аналитическое; test_start_regression_gpu.gd — то же с полем GPU.
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
-const KEYS := ["walk_forward", "run", "nose_up", "nose_down"]
+const KEYS := ["run", "pitch_pull_in", "pitch_push_out"]
+## «На себя»: держать нос на столько ниже угла разбега крыла (launch.alpha_neutral_deg), °.
+const PULL_BELOW_DEG := 6.0
 ## Сколько стоит перед разбегом, с.
 const STAND_S := 1.0
 const RUN_MAX_S := 12.0
@@ -22,7 +25,7 @@ func needs_gpu() -> bool:
 	return false
 
 
-## Проверять разбег строго (крен < 3°, ↓ ниже нейтрали, ↑ — nose_high) — пока только в
+## Проверять разбег строго (крен < 3°, ↓ ниже нейтрали, «от себя» — не взлетел) — пока только в
 ## аналитическом поле. В поле GPU 1.0.0 болтанка у старта (σw ≈ 0,4–1 м/с на 1,5 м, разворот ветра —
 ## бисект CF-1, 4e71747) это ломает; поле чинит модуль air-start — после него вернуть true.
 func strict_run(game: Game) -> bool:
@@ -50,13 +53,13 @@ func test_default_start() -> void:
 	for r: Dictionary in [neutral, pull, push]:
 		print("  [%s] разбег %s" % [_tag(), r])
 	check(neutral.result == "air", "нейтральная трапеция — отрыв (%s)" % neutral)
-	check(pull.result == "air", "↓ — отрыв (%s)" % pull)
+	check(pull.result == "air", "«на себя» — отрыв (%s)" % pull)
 	if not strict_run(game):
 		_finish(main)
 		return
 	check(neutral.max_bank < 3.0, "крен на разбеге < 3° (%s)" % neutral)
-	check(pull.alpha_run < neutral.alpha_run, "↓ — угол атаки на разбеге ниже нейтрали")
-	check(push.result == "nose_high", "↑ до упора — срыв nose_high (%s)" % push)
+	check(pull.alpha_run < neutral.alpha_run, "«на себя» — угол атаки на разбеге ниже нейтрали")
+	check(push.result == "none", "«от себя» до упора — нос за срывом, отрыва нет (%s)" % push)
 	_finish(main)
 
 
@@ -111,7 +114,8 @@ func _stand(game: Game, t_s: float) -> Dictionary:
 	return out
 
 
-## Разбег после STAND_S стоя; nose: 0 — нейтрально, −1 — ↓ (нос ниже), +1 — ↑ (нос выше).
+## Разбег после STAND_S стоя; nose: 0 — нейтрально, −1 — «на себя» (нос на PULL_BELOW_DEG ниже
+## угла разбега: клавиша зажата, пока нос выше), +1 — «от себя» до упора.
 func _run(game: Game, nose: int) -> Dictionary:
 	game.restart()
 	_release()
@@ -126,10 +130,10 @@ func _run(game: Game, nose: int) -> Dictionary:
 	var a_n := 0
 	while t < STAND_S + RUN_MAX_S:
 		var running := t >= STAND_S
-		_press("walk_forward", running)
+		var a_pull := float(m.wing.launch.alpha_neutral_deg) - PULL_BELOW_DEG
 		_press("run", running)
-		_press("nose_down", running and nose < 0)
-		_press("nose_up", running and nose > 0)
+		_press("pitch_pull_in", running and nose < 0 and rad_to_deg(m.alpha) > a_pull)
+		_press("pitch_push_out", running and nose > 0)
 		game.tick(DT)
 		t += DT
 		if m.mode == FlightModel.Mode.GROUND:
@@ -160,3 +164,4 @@ func _press(action: String, on: bool) -> void:
 func _release() -> void:
 	for a: String in KEYS:
 		Input.action_release(a)
+

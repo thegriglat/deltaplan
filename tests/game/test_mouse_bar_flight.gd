@@ -4,7 +4,7 @@ extends Node
 ## а не прямым вызовом _unhandled_input — так видно, если их съест Control интерфейса полёта
 ## (отладочные слои F1/F5/F6, Debug Menu F2, пасхалки, меню). Шаги физики — Game.tick() вручную.
 ## Знаки — контракт С1 (docs/control-fix_contracts.md): roll + вправо (мышь вправо),
-## pitch + от себя / нос вверх (мышь вверх по экрану). На земле мышь не используется (С2 v1).
+## pitch + от себя / нос вверх (мышь вверх по экрану). На земле мышь — тоже трапеция (С2 v2).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -176,9 +176,9 @@ func test_debug_menu_does_not_catch_mouse() -> void:
 		check(InputMap.action_get_events("cycle_debug_menu").is_empty(), "cycle_debug_menu без клавиш")
 
 
-## На земле мышь не используется (С2 v1): движение мыши стоя не копится и после отрыва не
-## дёргает трапецию.
-func test_mouse_on_ground_does_not_carry_into_air() -> void:
+## На земле мышь — трапеция (С2 v2): стоя мышь меняет нос и заданный крен крыла, модель следует;
+## на отрыве трапеция непрерывна (смещение мыши то же).
+func test_mouse_on_ground_controls_wing() -> void:
 	var main := await _open(false)
 	if main == null:
 		return
@@ -188,14 +188,32 @@ func test_mouse_on_ground_does_not_carry_into_air() -> void:
 	for i in 12:
 		game.tick(DT)
 	check(game.glider.phase() != "flying", "на земле")
-	var px := get_viewport().get_visible_rect().size.y * 0.5
-	_push_motion(Vector2(px, -px), _center())  # полный ход вправо и от себя
-	game.tick(DT)
-	check(game.glider.phase() != "flying", "на земле после мыши")
-	print("CF2 земля: смещение мыши после движения стоя %s" % ic._mouse_offset)
-	check(ic._mouse_offset == Vector2.ZERO, "стоя мышь не копит смещение: %s" % ic._mouse_offset)
-	# Отрыв (фазу задаёт Game по телеметрии — здесь напрямую): трапеция в нейтрали.
+	var a0 := game.glider.model.alpha
+	var b0 := game.glider.get_telemetry().bank_deg
+	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.5
+	_push_motion(Vector2(px, px), _center())  # полхода вправо и на себя
+	for i in int(2.0 / DT):
+		game.tick(DT)
+	var c := ic.control
+	var t := game.glider.get_telemetry()
+	var a1 := game.glider.model.alpha
+	print(
+		(
+			"CF3 земля: мышь вправо+на себя — pitch %.2f roll %.2f; α %.1f° → %.1f°, крен %.1f° → %.1f°, %s"
+			% [c.pitch, c.roll, rad_to_deg(a0), rad_to_deg(a1), b0, t.bank_deg, t.phase]
+		)
+	)
+	check(t.phase != "flying" and t.phase != "failed", "стоит: %s" % t.phase)
+	check(c.roll > 0.4 and c.pitch < -0.4, "стоя мышь — трапеция: %.2f / %.2f" % [c.pitch, c.roll])
+	check(t.bank_deg > b0 + 3.0, "мышь вправо — крыло кренится вправо: %.1f°" % t.bank_deg)
+	check(a1 < a0 - deg_to_rad(5.0), "мышь на себя — нос ниже: %.1f°" % rad_to_deg(a1))
+	# Отрыв (фазу задаёт Game по телеметрии — здесь напрямую): трапеция та же.
+	var p_before := c.pitch
+	var r_before := c.roll
 	ic.on_ground = false
-	var c := ic.update(DT)
-	check(absf(c.roll) < 0.01 and absf(c.pitch) < 0.01, "после отрыва трапеция в нейтрали: %.2f / %.2f" % [c.pitch, c.roll])
+	c = ic.update(DT)
+	check(
+		absf(c.roll - r_before) < 0.01 and absf(c.pitch - p_before) < 0.01,
+		"на отрыве трапеция без скачка: %.2f→%.2f / %.2f→%.2f" % [p_before, c.pitch, r_before, c.roll]
+	)
 	await _close(main)

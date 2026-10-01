@@ -2,7 +2,7 @@ class_name BotAgent
 extends RefCounted
 ## Один бот «других пилотов в небе» (BotPilots): своя FlightModel (та же точечная масса по поляре
 ## и тот же воздух), управление — как у пилота: на земле ходьба и разбег (ControlInput walk/run,
-## нос крыла — как у игрока: run_nose_neutral + LaunchNose по ветру), в полёте — WanderPilot
+## нос крыла — bots.json → launch.run_nose + LaunchNose по ветру), в полёте — WanderPilot
 ## (BotPilot без маршрута).
 ## Узлов не держит: визуал (BotGlider) только повторяет состояние — поэтому тестируется headless.
 ##
@@ -90,9 +90,9 @@ func setup(
 	var leg: Array = wd.get("leg_m", [800.0, 2500.0])
 	brain.wander_leg_min_m = float(leg[0])
 	brain.wander_leg_max_m = float(leg[1])
-	var ctl: Dictionary = Config.get_config("controls").get("ground", {})
-	_run_nose = float(ctl.get("run_nose_neutral", 0.3))
-	_nose.configure(ctl.get("auto_nose", {}))
+	var la: Dictionary = cfg.get("launch", {})
+	_run_nose = float(la.get("run_nose", 0.3))
+	_nose.configure(la.get("auto_nose", {}))
 
 
 ## Старт игрока (куда подходить и куда бежать).
@@ -192,7 +192,12 @@ func walk_time_s() -> float:
 func _after_step(now_s: float) -> void:
 	match model.mode:
 		FlightModel.Mode.AIR:
-			if state == State.RUN:
+			# в полёт — когда ступни выше takeoff.upright_clear_m (до этого бот ещё бежит: касание —
+			# снова разбег, FlightModel); без таймера
+			var agl := (
+				model.position.y - FlightModel.ground_height(_ground_fn, model.position.x, model.position.z)
+			)
+			if state == State.RUN and agl > float(model.flight.takeoff.upright_clear_m):
 				state = State.FLY
 				liftoff_s = now_s
 				_start_flight()
@@ -243,6 +248,7 @@ func _stand(t: Telemetry, dt: float) -> void:
 	_nose.observe(t)
 	control.run = false
 	control.walk = 0.0
+	control.turn = 0.0
 	control.roll = 0.0
 	control.pitch = move_toward(control.pitch, _run_nose, dt)
 
@@ -263,36 +269,37 @@ func _walk_to(t: Telemetry, dt: float, rp: Vector3, heading_deg: float) -> bool:
 
 
 ## Управление ходьбой к точке rp и разворотом на курс heading_deg (боты и очередь на старт
-## в сети): control.walk и control.roll. true — дошёл и стоит по курсу.
+## в сети): control.walk и control.turn (крыло ровно, roll = 0). true — дошёл и стоит по курсу.
 static func walk_control(t: Telemetry, rp: Vector3, heading_deg: float, c: ControlInput) -> bool:
 	var to := Vector2(rp.x - t.position.x, rp.z - t.position.z)
 	c.run = false
+	c.roll = 0.0
 	if to.length() > 1.0:
 		var want := _bearing(Vector2.ZERO, to)
 		var err := wrapf(want - t.heading_deg, -180.0, 180.0)
-		c.roll = clampf(err / 15.0, -1.0, 1.0)
+		c.turn = clampf(err / 15.0, -1.0, 1.0)
 		c.walk = 1.0 if absf(err) < 45.0 else 0.0
 		return false
 	c.walk = 0.0
 	var err2 := wrapf(heading_deg - t.heading_deg, -180.0, 180.0)
-	c.roll = clampf(err2 / 10.0, -1.0, 1.0) if absf(err2) >= 3.0 else 0.0
+	c.turn = clampf(err2 / 10.0, -1.0, 1.0) if absf(err2) >= 3.0 else 0.0
 	return absf(err2) < 3.0
 
 
-## Разбег как у игрока (InputController на земле + LaunchNose): нос — нейтраль разбега
-## плюс автомат по ветру, крен — выравнивание крыла.
+## Разбег: нос — run_nose плюс LaunchNose по ветру; крыло ровно (заданный крен 0 — рука
+## пилота держит горизонт, курс на бегу от крена — прямо).
 func _run(t: Telemetry, dt: float) -> void:
 	_nose.observe(t)
 	control.run = true
 	control.walk = 0.0
-	var an: Dictionary = Config.get_config("controls").get("ground", {}).get("auto_nose", {})
+	control.turn = 0.0
+	var an: Dictionary = _cfg.get("launch", {}).get("auto_nose", {})
 	var rng := float(an.get("range", 0.3))
 	_auto_nose = clampf(
 		_auto_nose + _nose.direction(t) * float(an.get("rate_per_s", 0.6)) * dt, -rng, 0.0
 	)
 	control.pitch = _run_nose + _auto_nose
-	var err := wrapf(_launch_heading - t.heading_deg, -180.0, 180.0)
-	control.roll = clampf(-t.bank_deg / 8.0 + err / 20.0, -1.0, 1.0)
+	control.roll = 0.0
 
 
 # ---------------------------------------------------------------- в полёте

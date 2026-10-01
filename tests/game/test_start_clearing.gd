@@ -7,19 +7,23 @@ extends TestCase
 const Sim := preload("res://tests/flight/flight_sim.gd")
 
 static var _terrain: Terrain
+## Предел разбега в самом тесте, с: в игре срыва по времени нет (К3 v3), пилот бежит, сколько
+## нужно; для L_run пустыря 10 с бега с места — заведомо дальше любого разумного разбега.
+const RUN_MAX_S := 10.0
+
 static var _spot: Dictionary = {}
 
 
 ## Длина разбега, м: горизонтальная дистанция от старта с места до отрыва в штиль на склоне
 ## slope_deg (курс — вниз по склону, трапеция нейтрально) при эталонной массе крыла. Не взлетел
-## (срыв или дольше takeoff.max_run_time_s) — дистанция к этому моменту. {dist, time, took_off}.
+## (срыв или дольше RUN_MAX_S) — дистанция к этому моменту. {dist, time, took_off}.
 static func run_length(wing: String, slope_deg: float) -> Dictionary:
 	var k := tan(deg_to_rad(slope_deg))
 	var ground := func(_x: float, z: float) -> float: return 1000.0 + k * z  # вниз на север
 	var calm := func(_p: Vector3) -> Vector3: return Vector3.ZERO
 	var m := Sim.make(wing)
 	m.reset_on_ground(Vector3(0, 1000.0, 0), 0.0)
-	var t_max := float(Config.value("flight", "takeoff.max_run_time_s", 10.0))
+	var t_max := RUN_MAX_S
 	var inp := Sim.input(0.0, 0.0, true)
 	var t := 0.0
 	while t < t_max and m.mode == FlightModel.Mode.GROUND:

@@ -1,8 +1,7 @@
 extends Node
-## G06. «Нос держится сам» на разбеге учитывает ветер (FR-30, docs/flight.md → «Старт в сильный
-## ветер»). Игрок (синтетический ввод: только W+Shift через InputMap, без стрелок, без
-## автопилота) взлетает на всех локациях × крыльях × погоде weak/medium/strong на 10 сидах часов
-## атмосферы — 0 срывов. Стрелка «нос вверх» до упора в сильный ветер — срыв nose_high.
+## Разбег игрока через InputMap (С2 v2, docs/flight.md → «Старт в сильный ветер»): Shift — разбег,
+## трапеция «от себя» до упора в сильный ветер — нос за срывом, отрыва нет (отдельного срыва
+## по носу нет, К3 v3).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -14,7 +13,7 @@ const WINGS := ["wings/training", "wings/sport", "wings/laminar"]
 const WEATHERS := {"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0]}
 ## Моменты на часах атмосферы при старте (фаза порывов и термиков); 2415 и 4110 — из F01.
 const SEEDS := [0.0, 300.0, 600.0, 1100.0, 1500.0, 2000.0, 2415.0, 3000.0, 3600.0, 4110.0]
-const RUN_KEYS := ["walk_forward", "pitch_pull_in", "run"]
+const RUN_KEYS := ["run"]
 
 var failures: PackedStringArray = []
 
@@ -32,7 +31,8 @@ func test_nose_up_full_strong_wind_stalls() -> void:
 	for wing: String in ["wings/sport", "wings/laminar"]:
 		await main.call("_fly", _settings("altai", wing, "strong"))
 		var r := _launch(game, 0.0, true)
-		check(r == "nose_high", "%s: ↑ до упора в сильный ветер — %s (ждали nose_high)" % [wing, r])
+		# сорванное крыло не несёт; в порывах его может и опрокинуть на консоль (wingtip) — тоже не взлёт
+		check(r != "air", "%s: от себя до упора в сильный ветер — %s (ждали: не взлетел)" % [wing, r])
 	_release()
 	main.queue_free()
 
@@ -66,7 +66,7 @@ func _settings(loc: String, wing: String, weather: String) -> FlightSettings:
 
 
 ## Разбег игрока с того же старта при часах атмосферы sd: "air" | причина срыва | "none".
-## nose_up — всё время держать ↑ (подстройка носа вверх до упора).
+## nose_up — на бегу всё время держать «от себя» (pitch_push_out: нос вверх до упора).
 func _launch(game: Game, sd: float, nose_up: bool) -> String:
 	game.restart()
 	game.air.set("time_s", sd)
@@ -78,7 +78,7 @@ func _launch(game: Game, sd: float, nose_up: bool) -> String:
 		var run := t >= STAND_S
 		for a: String in RUN_KEYS:
 			_press(a, run)
-		_press("nose_up", nose_up)
+		_press("pitch_push_out", nose_up and run)
 		game.tick(DT)
 		t += DT
 		if m.mode == FlightModel.Mode.AIR:
@@ -99,5 +99,5 @@ func _press(action: String, on: bool) -> void:
 
 
 func _release() -> void:
-	for a: String in RUN_KEYS + ["nose_up", "nose_down"]:
+	for a: String in RUN_KEYS + ["pitch_push_out", "pitch_pull_in"]:
 		Input.action_release(a)
