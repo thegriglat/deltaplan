@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 2, C2 = 5, C3 = 1, C4 = 3, C5 = 1, C6 = 1, C7 = 2, C8 = 2, C9 = 2, C10 = 3}
+const CONTRACTS := {C1 = 2, C2 = 5, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 2, C8 = 2, C9 = 2, C10 = 3}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -739,6 +739,42 @@ func test_c4_turb_at() -> void:
 	check(out[WindField.T_SIZE] == 0.0, "вне поля — доля 0")
 	for fn in ["sample_turb"]:
 		check(s.has_method(fn), "AirFieldSet." + fn)
+
+
+## C4 v4 (AM-08в): размер клетки уровней в точке — для «разрешён ли пузырь отрыва решателем».
+func test_c4_sample_dx() -> void:
+	var s := AirFieldSet.new()
+	check(s.has_method("sample_dx"), "AirFieldSet.sample_dx")
+	approx(s.sample_dx(Vector3(0.0, 300.0, 0.0), 0.0), 0.0, 1.0e-9, "нет поля — 0")
+	var fine := _field(
+		{dx = 50.0, dz = 25.0, x0 = -500.0, y0 = -500.0, z_bot = 0.0, nx = 20, ny = 20, nz = 40},
+		func(_i, _j, _k): return 1.0, func(_i, _j, _k): return 0.0,
+		func(_i, _j, _k): return 0.0, func(_i, _j, _k): return 0.0,
+		func(_i, _j, _k): return 0.0, func(_i, _j): return 0.0
+	)
+	var coarse := _const_field(2.0, 0.0, 0.0)
+	s.set_field(coarse, 0.0)
+	approx(s.sample_dx(Vector3(0.0, 300.0, 0.0), 0.0), 100.0, 1.0e-4, "один уровень — его dx")
+	s.set_field([fine, coarse], 0.0)
+	approx(s.sample_dx(Vector3(0.0, 300.0, 0.0), 0.0), 50.0, 1.0e-4, "внутри мелкого — его dx")
+	approx(s.sample_dx(Vector3(1200.0, 300.0, 0.0), 0.0), 100.0, 1.0e-4, "вне мелкого — грубый")
+	var e := s.sample_dx(Vector3(450.0, 300.0, 0.0), 0.0)
+	check(e > 50.0 and e < 100.0, "в полосе края мелкого — между: %.1f" % e)
+	approx(s.sample_dx(Vector3(1.0e5, 300.0, 0.0), 0.0), 0.0, 1.0e-9, "вне поля — 0")
+
+
+## C4 v4: ключи подветренной эвристики поверх поля (у каждого _doc).
+func test_c4_lee_keys() -> void:
+	var l: Dictionary = Config.get_config("atmosphere").get("lee", {})
+	for key in [
+		"field_burst_per_du", "field_reverse_per_uh", "field_bubble_length_per_relief",
+		"field_resolved_cells", "field_sigma_u_per_du", "field_sigma_w_per_du"
+	]:
+		check(l.has(key), "lee." + key)
+		check(l.has(key + "_doc"), "lee.%s_doc" % key)
+	check(not l.has("field_reverse_per_wind"), "field_reverse_per_wind заменён field_reverse_per_uh")
+	var rc: Variant = l.get("field_resolved_cells", [])
+	check(rc is Array and (rc as Array).size() == 2 and float(rc[0]) < float(rc[1]), "n0 < n1")
 
 
 func test_c4_config_keys() -> void:

@@ -164,7 +164,7 @@
 - **Тесты:** `test_c3_from_arrays_axes_units`, `test_c3_mask_log_profile`,
   `test_c3_sanitize_and_limits`, `test_c3_from_mac_ref`, `test_c3_game_field_files`.
 
-## C4 v3 — `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал
+## C4 v4 — `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал
 **Владелец:** AM-05 (`air_field_set.gd`, ветка поля в `atmosphere.gd`). **Потребители:** AM-07,
 AM-08, AM-10, физика крыла/боты/птицы (через атмосферу).
 
@@ -190,6 +190,9 @@ AM-08, AM-10, физика крыла/боты/птицы (через атмос
 Vector4` (xyz — Σ вклад уровней в мире, w — доля поля 0..1; итог = xyz + (1 − w)·аналитика);
 `sample_theta`, `sample_w_conv -> Vector2(вклад, доля)`; `contains`, `is_active`,
 `blend_fraction`, `advance(dt)`, `set_field` (C8). Нет уровней — `Vector4.ZERO`.
+`sample_dx(pos, ground_h) -> float` (C4 v4, AM-08в) — размер клетки уровней в точке, м: среднее `dx`
+уровней с теми же весами, что в `sample` (по текущему набору, без снимка подмены), нормированное на
+долю; вне поля / нет уровней — 0.
 
 **`Atmosphere`:** `set_air_field(поле | [уровни] | null, blend_s = −1)`, `set_air_mode("auto" |
 "on" | "off")`, `is_air_field_on()`, `air_field: AirFieldSet` (есть после `configure`).
@@ -215,9 +218,16 @@ cfg, forced)`): берут **грубейший** уровень `levels[-1]`; �
 - горизонталь поля — **без** подветренного ослабления, w_mech — **без** множителя (1 − lee) и без
   эвристического опускания за гребнем; линия тени 12° и её опускание/ослабление — только в
   аналитической доле (1 − a);
-- зона отрыва — признак из поля (дефицит скорости против лог-профиля под U_out × опускание
-  столба, `lee.field_*`); в ней эвристика даёт только рывки вниз **с нулевым средним**, обратный
-  поток у земли (0,25·U_out) и болтанку слоя смешения по ΔU = U_out − \|U\|;
+- зона отрыва — признак из поля lee_f (дефицит скорости против лог-профиля под U_out × опускание
+  столба, `lee.field_*`, без изменений). **C4 v4 (AM-08в):** скачок слоя смешения
+  ΔU = max(U_H − \|U\|, 0)·lee_f, U_H — \|U_h\| поля в той же вертикали на высоте гребня
+  h + max(r, agl) (r — `GroundField.relief_at`, превышение гребня против ветра); в зоне эвристика даёт:
+  болтанку слоя смешения σ_u = 0,18·ΔU, σ_w = 0,14·ΔU; рывки вниз `lee.field_burst_per_du`·ΔU·опасность
+  **с нулевым средним** и **только при `turbulence_enabled`** (это часть пульсаций: с выключенной
+  болтанкой в зоне отрыва w = w поля); обратный поток у земли
+  `lee.field_reverse_per_uh`·U_H·lee_f·опасность·e^(−agl/(0,4r))·(1 − res), где
+  res = smoothstep(n0, n1, `lee.field_bubble_length_per_relief`·r / `sample_dx`) (n0, n1 —
+  `lee.field_resolved_cells`) — эвристика только там, где пузырь решателем не разрешён;
 - болтанка: σ по u* и местному сдвигу (Ri — как замыкание решателя), по w* (Lenschow), шум —
   `GustSpectrum` (фон Карман, масштабы MIL-HDBK-1797 от высоты, σ_w/N, высоты гребня);
   конфиг `turbulence.field_*`, `lee.field_*` (с `_doc`);
@@ -231,7 +241,11 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 **Конфиг** `configs/atmosphere.json → air_model`: `enabled` (auto/on/off), `edge_blend_cells` (5),
 `blend_s` (60), `recompute_game_min` (15), `max_speed_ms` (40), `max_w_ms` (10), у каждого `_doc`.
 - **Тесты:** `test_c4_field_set_vector4`, `test_c4_atmosphere_api_and_analytic`,
-  `test_c4_atmosphere_field_rule`, `test_c4_config_keys`.
+  `test_c4_atmosphere_field_rule`, `test_c4_config_keys`, `test_c4_turb_at`, `test_c4_sample_dx`,
+  `test_c4_lee_keys` (v4).
+- **Ключи `lee` (v4):** `field_burst_per_du` (0,42 = 3·σ_w/ΔU), `field_reverse_per_uh` (0,22, Menke 2019;
+  заменяет `field_reverse_per_wind`), `field_bubble_length_per_relief` (2,8, Menke 2019 L/H),
+  `field_resolved_cells` ([4, 8]), у каждого `_doc`. Аналитические ключи `lee` не меняются.
 
 ## C5 v1 — источники термиков → сеть (AM-07)
 **Владелец:** AM-07. **Потребители:** сеть (`net_zone.gd`, `net_flight.gd`, сервер Go), AM-11.
@@ -449,6 +463,7 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C1–C5, C8 | v1 | 29.09.2026 | первая фиксация по коду |
 | C6, C7 | v0 | 29.09.2026 | проект (часы старта C6 — готово) |
 | C6 | v1 | 29.09.2026 | К0: библиотеки полей нет (решение пользователя); C6 — часы старта и отладочный файл поля |
+| C4 | v4 | 01.10.2026 | К2 до AM-08в (решение пользователя по шлюзу, В2 + Р1): `AirFieldSet.sample_dx`; в зоне отрыва ΔU от ветра на уровне гребня U_H (не U_out), рывки `field_burst_per_du`·ΔU только при болтанке, обратный поток `field_reverse_per_uh`·U_H × (1 − разрешённость пузыря); ключи `lee.field_*`; аналитика без изменений. Потребители: атмосфера (AM-08в), F3/выгрузки через `air_velocity_at` (без болтанки рывков больше нет) |
 | C4 | v3 | 29.09.2026 | AM-08: `WindField.turb_at` (T_*), `deardorff_wstar`, `AirFieldSet.sample_turb`; `load_file` → `meta.heat`; стык в `air_velocity_at`: с полем подветренное опускание и ослабление ветра только из поля, эвристика — рывки с нулевым средним, ротор и болтанка по ΔU; болтанка по u*, w*, Ri, спектр фон Кармана; конфиг `turbulence.field_*`, `lee.field_*` |
 | C4 | v2 | 29.09.2026 | AM-07: `WindField.raw_vel/raw_w_conv/raw_theta/raw_hc/raw_k1` и `heat_flux/z_i/gam/u10` (только чтение) вместо приватных массивов (Р5); `has_inputs` проверяет heat, z_i и gam |
 | C2 | v2 | 29.09.2026 | AM-03 (lint, snake_case): `AirCase.U10` → `u10`, `NX/NY/NZ` → `nx_h/ny_h/nz_h` (размеры с ореолом), `U_a` → `u_a`; аргумент `AirPlace.domain_case(…, u10, …)` — только имя; ключи `meta()` без изменений |

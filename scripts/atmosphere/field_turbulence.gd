@@ -11,8 +11,15 @@ extends RefCounted
 var gusts: GustSpectrum
 ## Шероховатость поля (z0 уровня), м.
 var z0: float = 0.1
-## Обратный поток в пузыре отрыва, доли U_out (lee.field_reverse_per_wind).
-var reverse: float = 0.25
+## Обратный поток в пузыре отрыва, доли U_H — ветра на уровне гребня (lee.field_reverse_per_uh).
+var reverse: float = 0.22
+## Рывки вниз в зоне отрыва, доли ΔU (lee.field_burst_per_du).
+var burst_per_du: float = 0.42
+## Длина пузыря отрыва, доли превышения гребня (lee.field_bubble_length_per_relief).
+var bubble_len: float = 2.8
+## Разрешённость пузыря решателем: smoothstep(n0, n1, L/dx) (lee.field_resolved_cells).
+var resolved_n0: float = 4.0
+var resolved_n1: float = 8.0
 ## Масштаб вихрей зоны отрыва, доли превышения гребня (lee.field_eddy_scale_per_relief).
 var sep_scale: float = 0.5
 
@@ -26,8 +33,9 @@ var _ex1: float = 0.7
 var _desc: float = 0.05
 var _sep_su: float = 0.18
 var _sep_sw: float = 0.14
-## Среднее g рывка по распределению шума рывков (NAN — ещё не считали).
+## Среднее и СКО g рывка по распределению шума рывков (NAN — ещё не считали).
 var _burst_mean: float = NAN
+var _burst_std: float = NAN
 
 
 func setup(turb_cfg: Dictionary, lee_cfg: Dictionary, seed_value: int) -> void:
@@ -42,13 +50,20 @@ func setup(turb_cfg: Dictionary, lee_cfg: Dictionary, seed_value: int) -> void:
 	_desc = float(lee_cfg.field_descent_slope)
 	_sep_su = float(lee_cfg.field_sigma_u_per_du)
 	_sep_sw = float(lee_cfg.field_sigma_w_per_du)
-	reverse = float(lee_cfg.field_reverse_per_wind)
+	reverse = float(lee_cfg.field_reverse_per_uh)
+	burst_per_du = float(lee_cfg.field_burst_per_du)
+	bubble_len = float(lee_cfg.field_bubble_length_per_relief)
+	var rc: Array = lee_cfg.field_resolved_cells
+	resolved_n0 = float(rc[0])
+	resolved_n1 = float(rc[1])
 	sep_scale = float(lee_cfg.field_eddy_scale_per_relief)
 	_burst_mean = NAN
+	_burst_std = NAN
 
 
 ## Болтанка слоя смешения за гребнем (σ_u, σ_w) по скачку скорости ΔU (уже × признак отрыва):
-## u′/ΔU ≈ 0,18, v′/ΔU ≈ 0,14 (Bell & Mehta 1990; Pope 2000, §5.4).
+## u′/ΔU ≈ 0,18, v′/ΔU ≈ 0,14 (Bell & Mehta 1990; Pope 2000, §5.4). ΔU = max(U_H − |U|, 0)·lee,
+## U_H — ветер поля на уровне гребня (C4 v4).
 func sep_sigma(du: float) -> Vector2:
 	return Vector2(_sep_su * du, _sep_sw * du)
 
@@ -57,8 +72,24 @@ func sep_sigma(du: float) -> Vector2:
 ## нулевым средним (опускание в среднем — только из поля). Считается один раз.
 func burst_mean(wind: WindModel, k: float, thr: float, width: float) -> float:
 	if is_nan(_burst_mean):
-		_burst_mean = _measure_burst_mean(wind, k, thr, width)
+		_measure_burst(wind, k, thr, width)
 	return _burst_mean
+
+
+## СКО g рывка по тому же распределению (для доли рывков в σ_w слоя смешения).
+func burst_std(wind: WindModel, k: float, thr: float, width: float) -> float:
+	if is_nan(_burst_std):
+		_measure_burst(wind, k, thr, width)
+	return _burst_std
+
+
+## Доля эвристики обратного потока 0..1 (C4 v4): 1 − smoothstep(n0, n1, L/dx), L = bubble_len·r —
+## длина пузыря отрыва (Menke 2019: L/H ≈ 2,8), dx — клетка поля в точке (AirFieldSet.sample_dx).
+## Пузырь, разрешённый решателем (≥ n1 клеток), эвристика не повторяет.
+func reverse_unresolved(relief: float, dx: float) -> float:
+	if dx <= 0.0:
+		return 1.0
+	return 1.0 - smoothstep(resolved_n0, resolved_n1, bubble_len * maxf(relief, 0.0) / dx)
 
 
 ## Признак отрыва из поля 0..1: дефицит скорости в точке против лог-профиля под «внешним» ветром
@@ -154,15 +185,19 @@ static func mil_lu(z: float) -> float:
 	return lerpf(1000.0, 2500.0, minf((h - 1000.0) / 1000.0, 1.0)) * 0.3048
 
 
-## Среднее g рывка по распределению шума рывков (4096 точек; шум нормирован на СКО 1).
-func _measure_burst_mean(wind: WindModel, k: float, thr: float, width: float) -> float:
+## Среднее и СКО g рывка по распределению шума рывков (2048 точек; шум нормирован на СКО 1).
+func _measure_burst(wind: WindModel, k: float, thr: float, width: float) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
 	var s := 0.0
+	var s2 := 0.0
 	for i in 2048:
 		var p := Vector3(
 			rng.randf_range(-3000, 3000), rng.randf_range(0, 3000), rng.randf_range(-3000, 3000)
 		)
 		var nb := wind.gust_unit(p * k, 0.0, 0.0, 0.0).x
-		s += clampf((nb - thr) / width, 0.0, 1.0)
-	return s / 2048.0
+		var g := clampf((nb - thr) / width, 0.0, 1.0)
+		s += g
+		s2 += g * g
+	_burst_mean = s / 2048.0
+	_burst_std = sqrt(maxf(s2 / 2048.0 - _burst_mean * _burst_mean, 0.0))

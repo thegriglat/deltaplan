@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/*TITLE*/</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1d2330;--mut:#5b6577;--card:#ffffffee;--line:#d5d9e1;--acc:#1f5fbf}
+@media (prefers-color-scheme: dark){:root{--bg:#161a22;--fg:#e6e9ef;--mut:#9aa3b5;--card:#1e2430ee;--line:#364055;--acc:#6ea8ff}}
+html,body{margin:0;height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
+#bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line)}
+#bar label{white-space:nowrap}
+#bar .g{display:flex;gap:10px;align-items:center}
+#bar b{color:var(--mut);font-weight:600}
+#wrap{position:relative;flex:1;min-height:420px}
+#plot{position:absolute;inset:0}
+#sum{position:absolute;right:10px;top:10px;max-width:560px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;max-height:calc(100% - 20px);overflow:auto}
+#sum table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+#sum th,#sum td{padding:2px 5px;text-align:right;border-bottom:1px solid var(--line)}
+#sum th:first-child,#sum td:first-child{text-align:left}
+#sum h4{margin:0 0 4px;font-size:13px}
+#cond{padding:4px 14px 6px;color:var(--mut);font-size:12.5px}
+.hl{color:var(--acc);font-weight:600}
+@media (max-width:760px){#sum{position:static;max-width:none;margin:6px}#wrap{height:auto}#plot{position:relative;height:70vh}}
+</style>
+</head>
+<body>
+<div id="bar">
+ <div class="g"><b>Версия</b>
+  <label><input type="radio" name="ver" value="main"> main</label>
+  <label><input type="radio" name="ver" value="air" checked> air-model</label>
+  <label><input type="radio" name="ver" value="diff"> разница (air-model − main)</label></div>
+ <div class="g"><b>Цвет</b>
+  <label><input type="radio" name="col" value="spd" checked> модуль горизонтальной скорости</label>
+  <label><input type="radio" name="col" value="w"> вертикальная скорость w</label></div>
+ <div class="g"><b>Уровни над рельефом, м</b><span id="lv"></span></div>
+ <div class="g"><label>шаг стрелок <select id="dens"></select></label>
+  <label>размер <input id="siz" type="range" min="1" max="12" value="4"></label>
+  <label><input type="checkbox" id="wx"> w ×4 в направлении</label></div>
+</div>
+<div id="cond"></div>
+<div id="wrap"><div id="plot"></div><div id="sum"></div></div>
+<script>/*PLOTLY*/</script>
+<script>
+const D=/*DATA*/;
+const LV=Object.keys(D.main).map(Number).sort((a,b)=>a-b);
+const N=D.grid.n,H=D.grid.half,ST=D.grid.step,GN=D.grid.gn,GS=D.grid.gstep;
+
+const M=D.meta;const c=D.cond;
+document.getElementById('cond').innerHTML=M.cond_html;
+// выборка
+const get=(ver,L,i,j)=>{const a=D[ver][L][j*N+i];return a;};
+function vec(ver,L,i,j){
+  if(ver==='diff'){const a=get('air',L,i,j),b=get('main',L,i,j);return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+  return get(ver,L,i,j);
+}
+const hz=(v)=>Math.hypot(v[0],v[1]);
+// общие шкалы
+let spdMax=0,wMax=0,dSpdMax=0,dWMax=0;
+for(const L of LV)for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+  for(const k of ['main','air']){const v=get(k,L,i,j);spdMax=Math.max(spdMax,hz(v));wMax=Math.max(wMax,Math.abs(v[2]));}
+  const a=get('air',L,i,j),b=get('main',L,i,j);
+  dSpdMax=Math.max(dSpdMax,Math.abs(hz(a)-hz(b)));dWMax=Math.max(dWMax,Math.abs(a[2]-b[2]));
+}
+spdMax=Math.ceil(spdMax);wMax=Math.ceil(wMax*2)/2;dSpdMax=Math.ceil(dSpdMax*2)/2;dWMax=Math.ceil(dWMax*2)/2;
+// выбор уровней
+const lvBox=document.getElementById('lv');
+const defLv=M.deflv;
+for(const L of LV){const l=document.createElement('label');l.innerHTML=`<input type="checkbox" value="${L}" ${defLv.includes(L)?'checked':''}> ${L}`;lvBox.appendChild(l);}
+const selLv=()=>[...lvBox.querySelectorAll('input:checked')].map(e=>+e.value);
+const val=(n)=>document.querySelector(`input[name=${n}]:checked`).value;
+if(location.hash==="#diffw"){document.querySelector("input[value=diff]").checked=true;document.querySelector("input[value=w]").checked=true;}
+// рельеф
+const gx=[],gy=[];for(let i=0;i<GN;i++){gx.push(-H+i*GS);}for(let j=0;j<GN;j++){gy.push(-H+j*GS);}
+const gz=[];for(let j=0;j<GN;j++){gz.push(D.ground.slice(j*GN,(j+1)*GN));}
+const gAt=(i,j)=>D.ground[(j*(ST/GS))*GN+(i*(ST/GS))];
+function buildCones(){
+  const ver=val('ver'),col=val('col'),dens=+document.getElementById('dens').value;
+  const wk=document.getElementById('wx').checked?4:1;
+  const X=[],Y=[],Z=[],U=[],V=[],W=[],C=[];
+  for(const L of selLv())for(let j=0;j<N;j+=dens)for(let i=0;i<N;i+=dens){
+    const v=vec(ver,L,i,j);
+    X.push(-H+i*ST);Y.push(-H+j*ST);Z.push(gAt(i,j)+L);
+    U.push(v[0]);V.push(v[1]);W.push(v[2]*wk);
+    C.push(col==='w'?v[2]:(ver==='diff'?hz(get('air',L,i,j))-hz(get('main',L,i,j)):hz(v)));
+  }
+  return {X,Y,Z,U,V,W,C};
+}
+function scale(){
+  const ver=val('ver'),col=val('col');
+  const diff=ver==='diff';
+  if(col==='w')return diff?{lo:-dWMax,hi:dWMax,div:true,t:'Δw, м/с'}:{lo:-wMax,hi:wMax,div:true,t:'w, м/с'};
+  return diff?{lo:-dSpdMax,hi:dSpdMax,div:true,t:'Δ|u_гориз|, м/с'}:{lo:0,hi:spdMax,div:false,t:'|u_гориз|, м/с'};
+}
+
+function draw(){
+  const k=buildCones(),s=scale();
+  const sz=+document.getElementById('siz').value,dens=+document.getElementById('dens').value;
+  const cs=s.div?[[0,'#2b6cb0'],[0.5,'#eeeeee'],[1,'#c53030']]:'Viridis';
+  const ter={type:'surface',x:gx,y:gy,z:gz,showscale:false,opacity:0.75,
+    colorscale:[[0,'#6b6a5a'],[0.5,'#a29c86'],[1,'#e9e6dc']],lighting:{ambient:0.6,diffuse:0.8,specular:0.05},
+    hovertemplate:'восток %{x} м, север %{y} м<br>высота над стартом %{z:.0f} м<extra>рельеф</extra>',name:'рельеф',showlegend:true};
+  const cone={type:'cone',x:k.X,y:k.Y,z:k.Z,u:k.U,v:k.V,w:k.W,anchor:'tail',sizemode:'absolute',
+    sizeref:sz*0.7*(ST*dens/200)*(c.wind_ms_10m/3), colorscale:cs,cmin:s.lo,cmax:s.hi,customdata:k.C,
+    colorbar:{title:{text:s.t},len:0.55,y:0.3,x:0.0,xanchor:'left'},name:'ветер (стрелки)',showlegend:true,
+    hovertemplate:'восток %{x} м, север %{y} м, высота %{z:.0f} м<br>u=%{u:.2f} v=%{v:.2f} w=%{w:.2f} м/с<extra></extra>'};
+  const mk=M.markers;
+  const start={type:'scatter3d',mode:'markers+text',x:mk.map(m=>m[0]),y:mk.map(m=>m[1]),z:mk.map(m=>m[2]),text:mk.map(m=>m[3]),textposition:'top center',
+    marker:{size:5,color:'#d62728'},name:'отметки',hoverinfo:'text'};
+  const dark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const fg=dark?'#e6e9ef':'#1d2330';
+  const ax=(t)=>({title:{text:t},color:fg,gridcolor:dark?'#364055':'#d5d9e1',backgroundcolor:'rgba(0,0,0,0)'});
+  const lay={margin:{l:0,r:0,t:0,b:0},paper_bgcolor:'rgba(0,0,0,0)',font:{color:fg},legend:{x:0.01,y:0.99},showlegend:true,
+    scene:{xaxis:ax('восток от центра области, м'),yaxis:ax('север от центра области, м'),zaxis:ax('над стартом, м'),aspectmode:'data',
+      camera:{eye:{x:-1.5,y:-1.6,z:0.9}}},uirevision:'keep'};
+  Plotly.react('plot',[ter,cone,start],lay,{responsive:true,displaylogo:false});
+  summary();
+}
+function summary(){
+  let rows='',mx=0,mxl='',mxp='';
+  for(const L of LV){
+    let sm=0,sa=0,wm=0,wa=0,dm=0,dmax=0,dwmax=0,rm=0,ra=0,wnm=1e9,wna=1e9;const wdx=-Math.sin(c.wind_from*Math.PI/180),wdz=-Math.cos(c.wind_from*Math.PI/180);
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+      const m=get('main',L,i,j),a=get('air',L,i,j);
+      sm+=hz(m);sa+=hz(a);wm+=m[2];wa+=a[2];if(m[0]*wdx+m[1]*wdz<0)rm++;if(a[0]*wdx+a[1]*wdz<0)ra++;wnm=Math.min(wnm,m[2]);wna=Math.min(wna,a[2]);
+      const d=Math.hypot(a[0]-m[0],a[1]-m[1],a[2]-m[2]);dm+=d;
+      if(d>dmax)dmax=d;
+      if(d>mx){mx=d;mxl=L;mxp=`(${-H+i*ST}, ${-H+j*ST})`;}
+    }
+    const n=N*N;
+    rows+=`<tr><td>${L}</td><td>${(sm/n).toFixed(2)}</td><td>${(sa/n).toFixed(2)}</td><td>${(wm/n).toFixed(2)}</td><td>${(wa/n).toFixed(2)}</td><td>${(100*rm/n).toFixed(1)}</td><td>${(100*ra/n).toFixed(1)}</td><td>${wnm.toFixed(1)}</td><td>${wna.toFixed(1)}</td><td>${(dm/n).toFixed(2)}</td><td>${dmax.toFixed(2)}</td></tr>`;
+  }
+  document.getElementById('sum').innerHTML=
+   `<h4>Сводка по области ${2*H/1000}×${2*H/1000} км (${N}×${N} точек на уровень)</h4>`+
+   `<table><tr><th>AGL, м</th><th>|u| main</th><th>|u| air</th><th>w main</th><th>w air</th><th>обр. main %</th><th>обр. air %</th><th>w min main</th><th>w min air</th><th>ср.|Δu|</th><th>max|Δu|</th></tr>${rows}</table>`+
+   `<div style="margin-top:6px;color:var(--mut)">Скорости, м/с; |u| — горизонтальный модуль, осреднение по точкам уровня; |Δu| — модуль вектора разности (u,v,w); «обр.» — доля точек, где составляющая вдоль ветра отрицательна (возвратное течение).<br>`+
+   `Наибольшее изменение: <span class="hl">${mx.toFixed(2)} м/с</span> на ${mxl} м AGL в точке ${mxp} м от центра области (восток, север).<br>`+
+   M.sum_note+
+   `<br>Шкала цвета общая для main и air-model.</div>`;
+}
+document.getElementById('siz').value=M.size;
+(function(){const d=document.getElementById('dens');for(const k of [1,2,4]){const o=document.createElement('option');o.value=k;o.textContent=(ST*k)+' м';if(k===M.dens)o.selected=true;d.appendChild(o);}})();
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',draw));
+draw();
+</script>
+</body>
+</html>
