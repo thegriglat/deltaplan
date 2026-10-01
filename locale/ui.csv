@@ -3,7 +3,7 @@ settings_invert_pitch_hint,"W — от себя, S — на себя","W — pus
 controls_short_help,"W/S — трапеция, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — control bar, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
-launch_fail_crosswind,Боковой ветер завалил крыло,A crosswind dropped the wing
+launch_fail_wingtip,Консоль коснулась земли — крыло опрокинуто,A wingtip hit the ground — the wing tipped over
 result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
 setup_wind_into_launch,Встречный,Headwind
 pause_to_menu,В меню,Main menu
@@ -39,15 +39,12 @@ common_back,Назад,Back
 menu_settings,Настройки,Settings
 settings_saved_hint,Настройки сохраняются в профиле пользователя.,Settings are saved to your user profile.
 status_terrain_failed,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
-launch_fail_nose_high,Нос слишком высоко — крыло сорвало поток,Nose too high — the wing stalled
-launch_fail_nose_low,Нос слишком низко — крыло зарылось,Nose too low — the wing nosed in
 menu_about,Об игре,About
 settings_mouse_look,Обзор (поворот головы),Look around (head)
 common_cancel,Отмена,Cancel
 pause_title,Пауза,Paused
 setup_title,Полёт,Flight
 menu_flight_setup,Полёт…,Flight setup…
-launch_fail_tailwind,Попутный ветер — не набрать воздушную скорость,Tailwind — could not reach flying speed
 result_landing,Посадка,Landing
 common_continue,Продолжить,Continue
 result_track_length,Пройдено по следу: %.2f км,Distance flown (track): %.2f km
@@ -57,7 +54,6 @@ result_avg_ground_speed,Средняя путевая скорость: %.0f к�
 about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of the materials are listed below.
 about_thanks_dhv,"Спасибо DHV (Deutscher Hängegleiterverband, www.dhv.de) за открытые данные паспортов и типовых испытаний крыльев: паспорта, геометрия и характеристики.","Thanks to the DHV (Deutscher Hängegleiterverband, www.dhv.de) for the open data on wing datasheets and type tests: datasheets, geometry and characteristics."
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
-launch_fail_weak_run,Слабый разбег — крыло не набрало скорость,Run too weak — the wing never reached flying speed
 common_save,Сохранить,Save
 setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m

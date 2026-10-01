@@ -1,6 +1,7 @@
 extends Node
 ## Разбег игрока через InputMap (С2 v2, docs/flight.md → «Старт в сильный ветер»): Shift — разбег,
-## трапеция «от себя» до упора в сильный ветер — нос за срывом, срыв nose_high.
+## трапеция «от себя» до упора в сильный ветер — нос за срывом, отрыва нет (отдельного срыва
+## по носу нет, К3 v3).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -30,7 +31,7 @@ func test_nose_up_full_strong_wind_stalls() -> void:
 	for wing: String in ["wings/sport", "wings/laminar"]:
 		await main.call("_fly", _settings("altai", wing, "strong"))
 		var r := _launch(game, 0.0, true)
-		check(r == "nose_high", "%s: от себя до упора в сильный ветер — %s (ждали nose_high)" % [wing, r])
+		check(r == "none", "%s: от себя до упора в сильный ветер — %s (ждали: не взлетел)" % [wing, r])
 	_release()
 	main.queue_free()
 

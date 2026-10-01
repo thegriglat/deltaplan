@@ -4,7 +4,8 @@ extends RefCounted
 ##
 ## Шагает состояние FlightModel, пока тот в режиме GROUND. Трапеция задаёт угол носа
 ## относительно набегающего потока, подъёмная сила разгружает ноги; отрыв — когда
-## вертикальная составляющая подъёмной силы ≥ веса. Ошибки разбега срывают взлёт.
+## вертикальная составляющая подъёмной силы ≥ веса. Порогов по времени нет (К3 v3): отрыв и
+## срыв — только физические условия (силы, скорость, контакт с землёй).
 
 enum Result { NONE, TOOK_OFF, FAILED }
 
@@ -12,7 +13,9 @@ const UP := Vector3.UP
 
 ## "standing", "walking", "running".
 var phase: String = "standing"
-## Причина срыва: "nose_high", "nose_low", "tailwind", "crosswind", "weak_run" или "".
+## Причина срыва: "wingtip" (консоль коснулась земли — крыло опрокинуто) или "". Нос высоко
+## (срыв потока), нос низко, попутный ветер — отдельными срывами не считаются: такое крыло не
+## набирает подъёмную силу, отрыва просто нет; бросил бежать — снова стоит.
 var failure: String = ""
 ## Доля веса (пилот + крыло) на ногах N/W = clamp(1 − L_верт/W, 0, 1): 1 — стоит, крыло
 ## ничего не несёт; 0 — крыло несёт всё (отрыв). Предел «руки пилота» ∝ этой доле.
@@ -23,9 +26,6 @@ var wind_moment_nm: float = 0.0
 var hold_limit_nm: float = 0.0
 
 var _speed: float = 0.0  ## скорость вдоль склона по курсу, м/с
-var _run_time: float = 0.0
-var _ever_ran: bool = false
-var _fail_timers: Dictionary = {}
 var _yaw_rate: float = 0.0  ## рад/с, + вправо (по часовой)
 var _bank_cmd: float = 0.0  ## заданный крен руки пилота на этом шаге, рад (из input.roll в _turn)
 var _fresh: bool = true  ## первый шаг после reset: тангаж сразу установившийся (склон известен)
@@ -34,16 +34,8 @@ var _fresh: bool = true  ## первый шаг после reset: тангаж �
 ## Текст причины срыва взлёта для интерфейса.
 static func failure_text(reason: String) -> String:
 	match reason:
-		"nose_high":
-			return TranslationServer.translate("launch_fail_nose_high")
-		"nose_low":
-			return TranslationServer.translate("launch_fail_nose_low")
-		"tailwind":
-			return TranslationServer.translate("launch_fail_tailwind")
-		"crosswind":
-			return TranslationServer.translate("launch_fail_crosswind")
-		"weak_run":
-			return TranslationServer.translate("launch_fail_weak_run")
+		"wingtip":
+			return TranslationServer.translate("launch_fail_wingtip")
 	return reason
 
 
@@ -51,9 +43,6 @@ func reset() -> void:
 	phase = "standing"
 	failure = ""
 	_speed = 0.0
-	_run_time = 0.0
-	_ever_ran = false
-	_fail_timers.clear()
 	_yaw_rate = 0.0
 	_fresh = true
 	feet_load = 1.0
@@ -95,7 +84,7 @@ func step(
 
 	if aero.y >= weight * float(to.liftoff_lift_fraction) and not m.stalled:
 		return Result.TOOK_OFF
-	if _check_failures(m, dt, running, v_air.length(), wind):
+	if _check_failures(m, ground_fn):
 		return Result.FAILED
 	return Result.NONE
 
@@ -252,8 +241,6 @@ func _move(
 	var walk_cfg: Dictionary = m.pilot.walk
 	var weight := m.mass * Units.G
 	if running:
-		_ever_ran = true
-		_run_time += dt
 		var unload := clampf(aero.y / weight, 0.0, 1.0)
 		var bonus := float(run_cfg.unload_speed_bonus) * unload
 		var v_cap := float(run_cfg.speed_max_ms) * (1.0 + bonus)
@@ -279,36 +266,23 @@ func _move(
 	m.position += m.velocity * dt
 
 
-## Ошибки разбега; true — взлёт сорван (failure заполнен).
-func _check_failures(
-	m: FlightModel, dt: float, running: bool, airspeed: float, wind: Vector3
-) -> bool:
-	var to: Dictionary = m.flight.takeoff
-	var gb: Dictionary = m.flight.ground_bank
-	var tailwind := wind.dot(m.heading_dir())
-	var check_alpha := _ever_ran and running and airspeed > float(to.check_min_airspeed_ms)
-	var high := m.alpha > m.alpha_stall + Units.deg(float(to.nose_high_margin_deg))
-	var low := m.alpha < Units.deg(float(to.nose_low_alpha_deg))
-	var fail_time := float(to.fail_time_s)
-	if _timer("nose_high", check_alpha and high, dt) > fail_time:
-		failure = "nose_high"
-	elif _timer("nose_low", check_alpha and low, dt) > fail_time:
-		failure = "nose_low"
-	elif _timer("tailwind", running and tailwind > float(to.tailwind_max_ms), dt) > fail_time:
-		failure = "tailwind"
-	elif _timer("crosswind", absf(m.bank) > Units.deg(float(gb.fail_bank_deg)), dt) > fail_time:
-		failure = "crosswind"
-	elif _ever_ran and not running and _run_time > float(to.weak_run_min_time_s):
-		failure = "weak_run"
-	elif _run_time > float(to.max_run_time_s):
-		failure = "weak_run"
-	if failure != "":
+## Срыв взлёта — только контакт: конец консоли (полуразмах от киля на высоте
+## takeoff.wing_height_m над ступнями, крен φ относительно горизонта), опущенной креном, на земле
+## или ниже — крыло опрокинуто. Консоль, которая не опущена креном (ровное крыло поперёк склона:
+## верхняя консоль лежит на склоне), — касание без опрокидывания, не срыв.
+## true — взлёт сорван (failure заполнен).
+func _check_failures(m: FlightModel, ground_fn: Callable) -> bool:
+	if not ground_fn.is_valid() or m.bank == 0.0:
+		return false
+	var side := signf(m.bank)  # + крен вправо: опущена правая консоль
+	var half := 0.5 * m.span
+	var tip := (
+		m.position
+		+ UP * (float(m.flight.takeoff.wing_height_m) - half * absf(sin(m.bank)))
+		+ m.right_dir() * (side * half * cos(m.bank))
+	)
+	if tip.y <= FlightModel.ground_height(ground_fn, tip.x, tip.z):
+		failure = "wingtip"
 		_speed = 0.0
 		return true
 	return false
-
-
-func _timer(reason: String, cond: bool, dt: float) -> float:
-	var t: float = (_fail_timers.get(reason, 0.0) + dt) if cond else 0.0
-	_fail_timers[reason] = t
-	return t

@@ -27,7 +27,7 @@ func test_bounce_after_liftoff_does_not_finish() -> void:
 		_tick(st, "flying", Vector3(0, 1000.0 + 2.0, -float(i)), false, 0.5, dt)
 	_tick(st, "flying", Vector3(0, 1000.0, -5.0), true, -0.5, dt)
 	check(st.took_off, "взлёт засчитан")
-	check(not st.armed, "полёт ещё не взведён — высоты/времени не хватило")
+	check(not st.armed, "полёт ещё не взведён — высоты/удаления не хватило")
 	check(not st.is_finished(), "короткое касание после подскока не завершает полёт")
 	# Оторвался снова и полетел дальше — flight_time_s продолжает расти.
 	_tick(st, "flying", Vector3(0, 1001.0, -6.0), false, 1.0, dt)
@@ -48,7 +48,7 @@ func test_settles_back_before_arming_is_takeoff_failed() -> void:
 	check(st.finish_reason() == "takeoff_failed", "не взвёлся — это срыв взлёта, не посадка")
 
 
-## Нормальный полёт: взвёлся (время + высота), затем сел и остался на земле — посадка.
+## Нормальный полёт: взвёлся (высота/удаление), затем сел и остался на земле — посадка.
 func test_normal_flight_then_landing() -> void:
 	var st := FlightStats.new()
 	st.reset(Vector3(0, 1000, 0))
@@ -56,7 +56,7 @@ func test_normal_flight_then_landing() -> void:
 	# 20 c ровного набора высоты и удаления от старта — взводит полёт.
 	for i in 40:
 		_tick(st, "flying", Vector3(0, 1000.0 + i * 1.0, -float(i) * 3.0), false, 2.0, dt)
-	check(st.armed, "полёт взведён (время и высота/удаление превышены)")
+	check(st.armed, "полёт взведён (высота/удаление превышены)")
 	check(not st.is_finished(), "в воздухе — не закончен")
 	# Короткое касание после взведения (чиркнул колесом) — не конец, но отмечено.
 	_tick(st, "flying", Vector3(0, 1000.0, -120.0), true, -0.2, dt)

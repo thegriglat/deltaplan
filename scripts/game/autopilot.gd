@@ -3,7 +3,7 @@ extends RefCounted
 ## Синтетический пилот для тестов, smoke-режима и скриншотов (--autopilot):
 ## жмёт те же действия InputMap, что и клавиатура (Input.action_press), поэтому проверяет
 ## всю цепочку ввод → InputController → планер. Не для игрока.
-## Сценарий: стоит stand_s → разбег (Shift) → после отрыва держит Shift ещё hold_after_takeoff_s
+## Сценарий: стоит, пока не замерит ветер в лицо (шаг телеметрии стоя), → разбег (Shift) → после отрыва держит Shift ещё hold_after_takeoff_s
 ## → держит курс.
 ## Техника разбега (docs/flight.md): трапеция — те же действия, что в полёте (С2 v2): нос крыла
 ## держит по углу атаки киля — в слабый ветер calm_alpha_deg, в сильный (≥ strong_wind_ms, замер
@@ -18,8 +18,6 @@ const ACTIONS: Array[String] = [
 	"roll_right",
 ]
 
-## Сколько стоять перед разбегом, с.
-var stand_s: float = 0.5
 ## Курс, который держать в полёте (−1 — курс в момент отрыва).
 var hold_heading_deg: float = -1.0
 ## Предельный крен при доворотах, °.
@@ -49,7 +47,7 @@ var circle_after_s: float = -1.0
 var circle_bank_deg: float = 15.0
 
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
-## отсчёт stand_s — заново, когда ожидание кончится.
+## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
 
 var _time: float = 0.0
@@ -58,12 +56,14 @@ var _heading: float = -1.0
 var _prev_bank: float = 0.0
 var _bank_rate: float = 0.0
 var _wind_ms: float = 0.0
+var _wind_seen := false  ## стоя уже замерил ветер в лицо — можно бежать
 
 
 func reset() -> void:
 	_time = 0.0
 	_air_time = 0.0
 	_wind_ms = 0.0
+	_wind_seen = false
 	_prev_bank = 0.0
 	_bank_rate = 0.0
 	_heading = hold_heading_deg
@@ -75,6 +75,7 @@ func drive(t: Telemetry, dt: float) -> void:
 	if hold and t.phase in ["standing", "walking"]:
 		release_all()
 		_time = 0.0
+		_wind_seen = false
 		return
 	_time += dt
 	if dt > 0.0:
@@ -84,9 +85,10 @@ func drive(t: Telemetry, dt: float) -> void:
 	var nose := 0
 	match t.phase:
 		"standing", "walking", "running":
-			hold_w = _time >= stand_s
+			hold_w = _wind_seen
 			if t.phase == "standing":
 				_wind_ms = maxf(_wind_ms, t.airspeed)
+				_wind_seen = true
 			nose = _nose_dir(t)
 			_level_roll(t.bank_deg, 0.0)
 		"flying":

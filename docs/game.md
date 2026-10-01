@@ -91,7 +91,7 @@ WASD — по взгляду, E/Q — вверх/вниз, Shift — ×`fast_fac
 трава, кусты и камни остаются. R = `game.json → start_search.clearing_radius_m` = 160 м; у встроенных стартов — не меньше. Правило (решение
 пользователя): **R ≥ 2 · L_run**, иначе сразу за разбегом деревья и набрать высоту до них нельзя. L_run — разбег с места
 до отрыва в штиль на самом пологом пригодном склоне (`min_slope_deg` = 12°) при эталонной массе, по всем крыльям линейки;
-не взлетел — дистанция за `takeoff.max_run_time_s`. Замер (`tests/game/test_start_clearing.gd`, живой `GroundRun`,
+не взлетел — дистанция за 10 с (предел самого теста; в игре срыва по времени нет). Замер (`tests/game/test_start_clearing.gd`, живой `GroundRun`,
 30.09.2026): sport 71,9 м и combat 69,9 м — в штиль на 12° не отрываются за 10 с; остальные 13–18 м (atlas — срыв
 nose_high на 1,2 с). 2 · 71,9 = 144 м, запас ≈ 10 % → 160 м. Тест пересчитывает L_run каждый раз.
 
@@ -204,7 +204,7 @@ osm_fence_spans: 2230` против 0 заборов и на порядок ме
 | `position` | посадка | точка касания (Vector3) |
 | `finish_reason` | всегда | `landed` / `takeoff_failed` / `crash_wire` / `crash_obstacle` / `crash_trees` |
 | `collision`, `text` | столкновение | вид объекта (`game.json → collision_texts`) и текст |
-| `reason`, `text` | `takeoff_failed` | `nose_high` / `nose_low` / `tailwind` / `crosswind` / `weak_run` (разбег) или `short_flight` (касание до взведения); текст для экрана |
+| `reason`, `text` | `takeoff_failed` | `wingtip` (консоль коснулась земли на старте) или `short_flight` (касание до взведения); текст для экрана |
 
 Рекордов и заданий нет (отложено). Тест — `tests/game/test_gameplay.gd`.
 

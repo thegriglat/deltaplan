@@ -97,9 +97,9 @@ func test_side_gust_threshold() -> void:
 				]
 			)
 		)
-		check(hi.failure == "crosswind", "порыв выше порога опрокидывает: '%s'" % hi.failure)
+		check(hi.failure == "wingtip", "порыв выше порога опрокидывает: '%s'" % hi.failure)
 		check(hi.t < GUST_FAIL_S, "опрокидывает за %.2f с" % hi.t)
-		check(hi2.failure == "crosswind" and hi2.t < hi.t, "сильнее порыв — быстрее")
+		check(hi2.failure == "wingtip" and hi2.t < hi.t, "сильнее порыв — быстрее")
 		check(lo.failure == "", "порыв на 20 %% ниже порога — держит: '%s'" % lo.failure)
 		check(lo.max_bank < 5.0, "держит почти ровно: %.2f°" % lo.max_bank)
 
