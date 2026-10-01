@@ -53,7 +53,7 @@ func test_probe() -> void:
 				var name := scen if cs == "default" and sd == "-1" else "%s-%s-%s" % [cs.replace(":", "-"), sd, scen]
 				var f := FileAccess.open("%s/%s_%s.csv" % [out_dir, tag, name], FileAccess.WRITE)
 				f.store_line(
-					"t,mode,phase,speed,dx,feet_load,wind_moment,hold_limit,bank_deg,alpha_deg,theta_deg,wu,wv,ww,fail,loc,wing,mass,heading,agl,roll_rate,airspeed,land"
+					"t,mode,phase,speed,dx,feet_load,wind_moment,hold_limit,bank_deg,alpha_deg,theta_deg,wu,wv,ww,fail,loc,wing,mass,heading,agl,roll_rate,airspeed,land,pitch_cmd,auto_nose"
 				)
 				_run(game, scen, f, s, float(sd))
 				f.close()
@@ -101,7 +101,7 @@ func _run(game: Game, scen: String, f: FileAccess, s: FlightSettings, sd: float)
 			var d := m.position - p0
 			f.store_line(
 				(
-					"%.2f,%d,%s,%.3f,%.3f,%s,%s,%s,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%s,%s,%s,%.1f,%.1f,%.2f,%.1f,%.2f,%s"
+					"%.2f,%d,%s,%.3f,%.3f,%s,%s,%s,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%s,%s,%s,%.1f,%.1f,%.2f,%.1f,%.2f,%s,%.3f,%s"
 					% [
 						t,
 						m.mode,
@@ -126,6 +126,8 @@ func _run(game: Game, scen: String, f: FileAccess, s: FlightSettings, sd: float)
 						rad_to_deg(m.roll_rate),
 						(m.velocity - w).length(),
 						str(m.landing_result.get("grade", "")) + ("/hit" if bool(game.get("_crashed")) else ""),
+						float(game.input_controller.control.pitch),
+						str(game.input_controller.get("_auto_nose")),
 					]
 				)
 			)
