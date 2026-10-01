@@ -30,12 +30,12 @@ Vmax VG 0, иначе VG 100; явные ошибки разбора исклю�
 reference.* — замер той же модели (steady_glide FlightModel: CL→CD как WingPolar), как test_polar.
 launch.alpha_neutral_deg (К1 v2: ≤ α_срыва − 3°, α_срыва = CL_max/lift_slope + zero_lift_alpha): при новом CL_max
 нейтраль разбега ставится на ту же долю CL_max, что была (подъёмная сила на разбеге относительно сваливания — как
-раньше; отрыв при нейтрали на той же доле Vmin), вниз до 0,5°, не выше α_срыва − 3°; только вниз. Упор «нос вниз»
+раньше; отрыв при нейтрали на той же доле Vmin), с округлением до 0,5°, не выше α_срыва − 3°; только вниз. Упор «нос вниз»
 (нейтраль − alpha_range_deg) остаётся на прежнем угле — это геометрия (концы крыла над землёй), поэтому ход
 alpha_range_deg уменьшается на столько же, на сколько опущена нейтраль. lift_slope/zero_lift_alpha
 у всех крыльев одни (4,5/рад, −6°): данных о геометрии срыва по крыльям нет, угол срыва следует из CL_max.
-Atlas: прежняя нейтраль 16° была выше срыва 12,5° (CL > CL_max) — доля CL_max берётся у близких крыльев
-(«Апогей», «Славутич-УТ»: та же группа и геометрия).
+Atlas: прежняя нейтраль 16° была выше срыва 12,5° (CL > CL_max) — доля CL_max = медиана у остальных крыльев
+(0,759 по конфигам до WPC-4: 0,74–0,82) → 8,0°.
 
 Выход:
   configs/wings/<id>.json — для крыльев с паспортными числами (без них — не трогаются);
@@ -176,32 +176,26 @@ def cl_frac(cfg, cl_max):
     return cfg["lift_slope_per_rad"] * math.radians(cfg["launch"]["alpha_neutral_deg"] - cfg["zero_lift_alpha_deg"]) / cl_max
 
 
-# Atlas: нейтраль разбега была выше угла срыва (CL > CL_max) — доля берётся у близких крыльев той же группы
-# («Апогей», «Славутич-УТ»: soviet, та же геометрия срыва и нейтраль 16°).
-FRAC_FROM = {"atlas": ("apogee", "slavutich_ut")}
+# Медиана доли CL_max при нейтрали разбега у крыльев, где К1 v2 выполнен (исходные конфиги; ставится в main):
+# для крыла, у которого прежняя доля сама нарушала К1 v2 (atlas: нейтраль 16° выше срыва 12,5°).
+FRAC_MEDIAN = {"value": None, "n": 0}
 
 
 def launch_neutral(cfg, cl_old, cl_new):
     """Новая нейтраль разбега (°, доля, откуда доля) или None — не меняется.
     Та же доля CL_max, что была (подъёмная сила на разбеге относительно сваливания — как раньше), не выше
-    α_срыва − 3° (К1 v2); если прежняя доля сама нарушала К1 v2 — доля близких крыльев (FRAC_FROM)."""
+    α_срыва − 3° (К1 v2); если прежняя доля сама нарушала К1 v2 — медиана доли у остальных крыльев."""
     a = cfg["lift_slope_per_rad"]
     lim_frac = 1 - a * math.radians(ALPHA_MARGIN_DEG) / cl_old
     frac = cl_frac(cfg, cl_old)
     why = "была у этого крыла"
     wid = cfg["name"].replace("wing_", "", 1)
     if frac > lim_frac + 1e-9:
-        fs = []
-        for o in FRAC_FROM.get(wid, ()):
-            oc = json.loads((CFG_DIR / (o + ".json")).read_text())
-            fs.append(cl_frac(oc, metrics(oc)[0]["cl_max"]))
-        if not fs:
-            raise SystemExit("%s: нейтраль разбега выше α_срыва − 3°, доли для замены нет" % wid)
-        frac = sum(fs) / len(fs)
-        why = "у близких крыльев (%s)" % ", ".join(FRAC_FROM[wid])
+        frac = FRAC_MEDIAN["value"]
+        why = "медиана у остальных %d крыльев" % FRAC_MEDIAN["n"]
     elif abs(cl_new / cl_old - 1) < 0.005:
         return None
-    val = math.floor((cfg["zero_lift_alpha_deg"] + math.degrees(frac * cl_new / a)) * 2) / 2
+    val = round((cfg["zero_lift_alpha_deg"] + math.degrees(frac * cl_new / a)) * 2) / 2
     val = min(val, math.floor((math.degrees(cl_new / a) + cfg["zero_lift_alpha_deg"] - ALPHA_MARGIN_DEG) * 2) / 2)
     if val >= cfg["launch"]["alpha_neutral_deg"]:
         return None  # только опускаем: выше прежней нейтраль не поднимаем (К1 v2 и так выполнен)
@@ -350,11 +344,11 @@ def apply(wid, cfg, tg, src):
                 fm(2 * val - down, 1)))
         la["alpha_neutral_deg_doc"] = (
             "Угол атаки киля при нейтральной трапеции на разбеге, °. WPC-4: %s — нейтраль "
-            "ставится на ту же долю CL_max, что %s: CL = %s·CL_max → α = α0 + CL/lift_slope = %s° (вниз до 0,5°); "
+            "ставится на ту же долю CL_max, что %s: CL = %s·CL_max → α = α0 + CL/lift_slope = %s° (до 0,5°); "
             "К1 v2: не выше α_срыва − 3° = %s/%s рад + (%s°) − 3° = %s°" % (
                 ("прежняя нейтраль %s° была выше угла срыва %s° (CL > CL_max: крыло на разбеге сорвано)" % (
                     fm(cfg["launch"]["alpha_neutral_deg"], 1), fm(alpha_stall_deg(cfg, m_old["cl_max"]), 1)))
-                if why.startswith("у близких") else
+                if why.startswith("медиана") else
                 "CL_max сменился (%s → %s)" % (fm(m_old["cl_max"], 2), fm(m["cl_max"], 2)),
                 why, fm(frac, 3), fm(val, 1),
                 fm(m["cl_max"], 2), fm(new["lift_slope_per_rad"], 1), fm(new["zero_lift_alpha_deg"], 0),
@@ -392,6 +386,15 @@ def main(argv):
         "цели вне допуска с причиной. Генерирует tools/research/data/wing_passports/fit_passports.py")),
         ("tolerance_pct", TOL), ("wings", OrderedDict())])
     rows = []
+    fr = []
+    for path in sorted(CFG_DIR.glob("*.json")):
+        c = load_cfg_rev(path.stem, rev) or json.loads(path.read_text())
+        cm = metrics(c)[0]["cl_max"]
+        if c["launch"]["alpha_neutral_deg"] <= alpha_stall_deg(c, cm) - ALPHA_MARGIN_DEG:
+            fr.append(cl_frac(c, cm))
+    fr.sort()
+    FRAC_MEDIAN["value"] = 0.5 * (fr[(len(fr) - 1) // 2] + fr[len(fr) // 2])
+    FRAC_MEDIAN["n"] = len(fr)
     for path in sorted(CFG_DIR.glob("*.json")):
         wid = path.stem
         cfg = load_cfg_rev(wid, rev) or json.loads(path.read_text(), object_pairs_hook=OrderedDict)
