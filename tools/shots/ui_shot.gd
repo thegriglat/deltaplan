@@ -6,10 +6,11 @@ extends Node
 ##     res://tools/shots/ui_shot.tscn -- --out=/tmp/ui
 ## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
 ## --lang=ru|en — язык интерфейса (без записи в профиль); --only=setup — только «Полёт…»:
-## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт);
-## --only=wings — список моделей самого многочисленного класса открыт (вместимость меню): setup_wings.
+## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
 ## --net-settings (NET-40/К3) — только settings.png, но панель в сетевом режиме
 ## (set_net_mode(true) — строка «Скорость времени» скрыта).
+## --only=wings — без мира за меню: «Полёт…» с самым многочисленным классом крыльев, список моделей
+## открыт (вместимость меню): setup_wings_closed, setup_wings.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 60.0
@@ -37,6 +38,9 @@ func _ready() -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(_out)
 	get_tree().create_timer(TIMEOUT_S).timeout.connect(_fail.bind("таймаут"))
+	if _only == "wings":
+		_run_wings()
+		return
 	_run()
 
 
@@ -59,11 +63,6 @@ func _run() -> void:
 	_main = main
 	add_child(main)
 	var game: Game = main.get_node("Game")
-	if _only == "wings":  # мир за меню не нужен (и меню его больше не грузит)
-		await _shoot_wings(main)
-		print("ui_shot: OK")
-		await _quit(0)
-		return
 	for i in 600:
 		if game.settings != null:
 			break
@@ -146,8 +145,13 @@ func _shoot_setup(main: Node) -> void:
 	class_opt.get_popup().hide()
 
 
-## Класс с наибольшим числом моделей, список моделей открыт.
-func _shoot_wings(main: Node) -> void:
+## Класс с наибольшим числом моделей, список моделей открыт (мир за меню не нужен).
+func _run_wings() -> void:
+	var main: Node = MAIN_SCENE.instantiate()
+	_main = main
+	add_child(main)
+	for i in 4:
+		await get_tree().process_frame
 	main.get_node("UI/StartMenu").visible = false
 	var setup: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
 	var best := PackedStringArray()
@@ -165,6 +169,8 @@ func _shoot_wings(main: Node) -> void:
 	wing_opt.show_popup()
 	await _shoot("setup_wings")
 	wing_opt.get_popup().hide()
+	print("ui_shot: OK")
+	await _quit(0)
 
 
 func _soft_landing_info() -> Dictionary:
