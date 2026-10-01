@@ -756,9 +756,13 @@ func _look_point() -> Vector3:
 	var up := Vector3.UP * 2.0
 	if opts.look_at == "start":
 		return game.get_start().position + up
-	if opts.look_at == "egg":  # первая живая пасхалка (кадры пасхалок)
-		var eg := game.eggs.active()
-		return eg[0].global_position if not eg.is_empty() else game.get_start().position + up
+	if opts.look_at == "egg" or opts.look_at.begins_with("egg:"):
+		# первая живая пасхалка; «egg:<id>» — первая с этим id (кадры пасхалок)
+		var want := opts.look_at.substr(4)
+		for e in game.eggs.active():
+			if want == "" or e.id == want:
+				return e.global_position
+		return game.get_start().position + up
 	if opts.look_at == "remote":  # сеть: первый чужой пилот (кадры NET-40/41)
 		var rp: Array = game.net.remote.pilots() if game.net != null else []
 		return (rp[0].position as Vector3) + up if not rp.is_empty() else game.get_start().position + up

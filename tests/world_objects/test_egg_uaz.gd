@@ -91,7 +91,7 @@ func test_trajectory_deterministic_and_moves() -> void:
 	for t in [20.0, 77.0, 500.0]:
 		check(a.car_position(0, t).is_equal_approx(b.car_position(0, t)), "один rng — один путь")
 	var moved := a.car_position(0, 20.0).distance_to(a.car_position(0, 30.0))
-	check(moved > 60.0 and moved < 150.0, "за 10 с проехала %.1f м (30–50 км/ч)" % moved)
+	check(moved > 100.0 and moved < 190.0, "за 10 с проехала %.1f м (55–65 км/ч)" % moved)
 	var same := true
 	for t in [20.0, 77.0, 500.0]:
 		if not a.car_position(0, t).is_equal_approx(c.car_position(0, t)):

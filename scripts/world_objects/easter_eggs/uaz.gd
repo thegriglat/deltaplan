@@ -7,7 +7,7 @@ extends EasterEgg
 ## Порядок бросков rng в begin: число машин; на каждую — поиск места (find_point), затем
 ## скорость, фаза пути, длина отрезка, сторона отрезка относительно точки.
 
-const PUFF_SHADER := preload("res://scripts/world_objects/smoke_puff.gdshader")
+const PUFF_SHADER := preload("res://scripts/world_objects/easter_eggs/uaz_dust.gdshader")
 const KHAKI := Color(0.30, 0.34, 0.19)
 const KHAKI_LIGHT := Color(0.38, 0.41, 0.26)
 const DARK := Color(0.08, 0.08, 0.08)
