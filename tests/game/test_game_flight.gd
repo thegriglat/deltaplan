@@ -166,9 +166,9 @@ func _settle() -> void:
 	await get_tree().create_timer(0.1).timeout
 
 
-## W+Shift зажаты весь разбег и ещё 3 с после отрыва: защёлка не даёт W разогнать крыло
-## в пике — высота над землёй не падает, полёт продолжается.
-func test_takeoff_with_held_keys_latch() -> void:
+## Shift зажат весь разбег и ещё 3 с после отрыва (защёлки нет, С2 v2): трапеция на отрыве
+## непрерывна, крыло не пикирует — высота над землёй не падает, полёт продолжается.
+func test_takeoff_with_held_shift() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart", "--autopilot"])))
 	add_child(main)
@@ -183,29 +183,32 @@ func test_takeoff_with_held_keys_latch() -> void:
 	var agl0 := -1.0
 	var min_agl := INF
 	var air_t := 0.0
-	var latched_seen := false
+	var max_dp := 0.0
+	var prev_p := 0.0
 	for i in 120 * 20:
 		game.tick(DT)
 		var t := game.glider.get_telemetry()
+		var p := game.input_controller.control.pitch
 		if t.phase == "flying":
 			if agl0 < 0.0:
 				agl0 = t.altitude_agl
+				max_dp = absf(p - prev_p)
 			air_t += DT
-			latched_seen = latched_seen or game.input_controller.is_latched("pitch_pull_in")
 			if air_t > 0.5:
 				min_agl = minf(min_agl, t.altitude_agl)
 			if air_t >= 3.0:
 				break
+		prev_p = p
 	var agl3 := game.glider.get_telemetry().altitude_agl
 	var pitch3 := game.input_controller.control.pitch
 	print(
 		(
-			"         защёлка: AGL при отрыве %.1f, мин. 0,5–3 с %.1f, через 3 с %.1f м; трапеция %.2f"
-			% [agl0, min_agl, agl3, pitch3]
+			"         Shift после отрыва: AGL при отрыве %.1f, мин. 0,5–3 с %.1f, через 3 с %.1f м; трапеция %.2f, Δ на отрыве %.4f"
+			% [agl0, min_agl, agl3, pitch3, max_dp]
 		)
 	)
-	check(agl0 >= 0.0, "взлетел с зажатыми W+Shift")
-	check(latched_seen, "W после отрыва защёлкнута")
+	check(agl0 >= 0.0, "взлетел с зажатым Shift")
+	check(max_dp < 0.02, "трапеция на отрыве без скачка: %.4f" % max_dp)
 	check(air_t >= 3.0, "летит 3 с после отрыва")
 	check(min_agl >= agl0 - 0.2, "не пикирует: высота над землёй не падает")
 	check(agl3 > 2.0, "через 3 с набрал высоту над склоном (%.1f м)" % agl3)

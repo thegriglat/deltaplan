@@ -99,18 +99,18 @@
       "text": "controls_step_back"
     },
     {
-      "action": "roll_left",
+      "action": "turn_left",
       "text": "controls_turn_on_ground"
+    },
+    {
+      "text": "controls_ground_wing"
     },
     {
       "action": "run",
       "text": "controls_run"
     },
     {
-      "text": "controls_run_nose"
-    },
-    {
-      "text": "controls_liftoff_keys"
+      "text": "controls_run_wing"
     },
     {
       "section": "controls_instrument_camera_game"

@@ -1,7 +1,7 @@
 extends Node
 ## Таблица зазора крыла над рельефом на земле (SF-4): штиль, синтетические склоны и
 ## встроенные старты локаций, все крылья линейки; фазы — стоит / трапеция до упора /
-## A (поворот на месте) / разбег с A (дуга) / шагом / разбег до отрыва / первые 1,5 с после
+## A (поворот на месте) / разбег с креном влево (дуга от крена, К3 v3) / шагом / разбег до отрыва / первые 1,5 с после
 ## отрыва. Модель — tools/flight/wing_clearance.gd.
 ##
 ## Запуск (без окна, несколько минут):
@@ -103,8 +103,8 @@ func _scene(
 		"стоит": [_inp(0, 0, false, 0), 3.0],
 		"стоит, трапеция от себя (нос вверх)": [_inp(1, 0, false, 0), 3.0],
 		"стоит, трапеция на себя (нос вниз)": [_inp(-1, 0, false, 0), 3.0],
-		"стоит, A (поворот на месте)": [_inp(0, -1, false, 0), 3.0],
-		"разбег, A (дуга)": [_inp(0, -1, true, 0), 12.0],
+		"стоит, A (поворот на месте)": [_inp(0, 0, false, 0, -1), 3.0],
+		"разбег, крен влево (дуга)": [_inp(0, -1, true, 0), 12.0],
 		"шагом": [_inp(0, 0, false, 1), 4.0],
 		"разбег": [_inp(0, 0, true, 0), 12.0],
 	}
@@ -138,7 +138,7 @@ func _scene(
 				worst = row
 		_write(name, w, ph, worst)
 		if not after.is_empty():
-			var tag := " (A зажата — крен ввода в воздухе)" if inp.roll != 0.0 else ""
+			var tag := " (крен влево зажат — крен ввода в воздухе)" if inp.roll != 0.0 else ""
 			_write(name, w, "после отрыва ≤1,5 с" + tag, after)
 	g.free()
 
@@ -188,10 +188,11 @@ func _write(name: String, w: String, ph: String, r: Dictionary) -> void:
 	print(",".join(vals))
 
 
-static func _inp(pitch: float, roll: float, run: bool, walk: float) -> ControlInput:
+static func _inp(pitch: float, roll: float, run: bool, walk: float, turn: float = 0.0) -> ControlInput:
 	var c := ControlInput.new()
 	c.pitch = pitch
 	c.roll = roll
+	c.turn = turn
 	c.run = run
 	c.walk = walk
 	return c

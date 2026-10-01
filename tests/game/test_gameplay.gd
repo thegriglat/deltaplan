@@ -1,5 +1,5 @@
 extends Node
-## 12-03. Геймплей свободного полёта: разбег (шаг/бег, поворот, защёлка), камеры
+## 12-03. Геймплей свободного полёта: разбег (шаг/бег, поворот, трапеция на земле, отрыв без защёлки), камеры
 ## cockpit → chase → free и прибор в углу, страницы 1–5, вариометр 90-х = звук, пауза,
 ## «Заново», итог (поля info, завершение через FlightStats, кнопки итога).
 ## Физика — Game.tick() вручную (как tests/game/test_game_flight.gd); пауза — настоящим деревом.
@@ -7,7 +7,15 @@ extends Node
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const KEYS: Array[String] = [
-	"run", "walk_forward", "walk_back", "pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"
+	"run",
+	"walk_forward",
+	"walk_back",
+	"turn_left",
+	"turn_right",
+	"pitch_pull_in",
+	"pitch_push_out",
+	"roll_left",
+	"roll_right"
 ]
 
 var failures: PackedStringArray = []
@@ -70,28 +78,43 @@ static func _action(name: String) -> InputEventAction:
 	return ev
 
 
-## Шаг / бег (W / W+Shift), отпустил Shift — снова шаг, A/D на земле — поворот корпуса.
+## Нажать/отпустить физическую клавишу (как с клавиатуры: действия InputMap и состояние клавиши).
+func _key(code: Key, pressed: bool) -> void:
+	var ev := InputEventKey.new()
+	ev.physical_keycode = code
+	ev.keycode = code
+	ev.pressed = pressed
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+
+
+## Первая клавиша действия в карте controls.json → keys (раскладка не закладывается в тест).
+static func _first_key(action: String, skip: Array = []) -> Key:
+	for ev in InputMap.action_get_events(action):
+		var k := ev as InputEventKey
+		if k != null and not k.physical_keycode in skip:
+			return k.physical_keycode
+	return KEY_NONE
+
+
+## С2 v2: шаг (walk_forward) без Shift, Shift — разбег без W, отпустил Shift — снова шаг;
+## поворот на месте (turn_*) — курс без крена крыла.
 func test_walk_run_and_turn_on_ground() -> void:
 	var main: Node = await _open()
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")
-	_press(["walk_forward", "pitch_pull_in"])
+	_press(["walk_forward"])
 	_ticks(game, 0.3)
-	check(game.glider.phase() == "walking", "W — шаг (%s)" % game.glider.phase())
+	check(game.glider.phase() == "walking", "шаг (%s)" % game.glider.phase())
 	check(not game.input_controller.control.run, "без Shift не бежит")
+	_release()
 	_press(["run"])
 	_ticks(game, 0.3)
-	check(game.glider.phase() == "running", "W+Shift — разбег (%s)" % game.glider.phase())
-	var ctl := game.input_controller.control
-	# Нос держится сам: нейтраль, в сильный ветер — ниже по углу атаки (G06, ground.auto_nose).
-	var nose := float(Config.value("controls", "ground.run_nose_neutral"))
-	var auto_rng := float(Config.value("controls", "ground.auto_nose.range", 0.3))
-	check(
-		ctl.run and ctl.pitch < nose + 0.05 and ctl.pitch > nose - auto_rng - 0.05,
-		"нос на разбеге держится сам: %.2f" % ctl.pitch
-	)
+	check(game.glider.phase() == "running", "Shift без W — разбег (%s)" % game.glider.phase())
+	check(game.input_controller.control.walk == 0.0, "на бегу walk = 0")
 	Input.action_release("run")
+	_press(["walk_forward"])
 	_ticks(game, 0.1)
 	check(
 		not game.input_controller.control.run and game.input_controller.control.walk > 0.9,
@@ -101,33 +124,107 @@ func test_walk_run_and_turn_on_ground() -> void:
 	_release()
 	_ticks(game, 0.2)
 	var h0 := game.glider.get_telemetry().heading_deg
-	_press(["roll_right"])
+	_press(["turn_right"])
 	_ticks(game, 1.0)
-	var dh := wrapf(game.glider.get_telemetry().heading_deg - h0, -180.0, 180.0)
-	check(dh > 5.0, "D на земле — поворот направо (%.1f°)" % dh)
+	var t := game.glider.get_telemetry()
+	var dh := wrapf(t.heading_deg - h0, -180.0, 180.0)
+	check(dh > 5.0, "turn_right на земле — поворот направо (%.1f°)" % dh)
+	check(absf(game.input_controller.control.roll) < 1e-6, "поворот на месте — roll 0")
 	await _close(main)
 
 
-## Защёлка: W+Shift зажаты на отрыве — W не действует до отпускания.
-func test_takeoff_latch() -> void:
+## С2 v2: стоя клавиши шага и поворота трапецию не двигают, остальные клавиши действий трапеции
+## (стрелки) — двигают; на бегу (Shift) — все. Клавиши — из карты, знак — по действию.
+func test_ground_bar_keys() -> void:
 	var main: Node = await _open()
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")
-	_press(["walk_forward", "pitch_pull_in", "run"])
+	var ic := game.input_controller
+	var inv := -1.0 if bool(Config.value("controls", "invert_pitch")) else 1.0
+	var move := []
+	for a in InputController.GROUND_MOVE_ACTIONS:
+		for ev in InputMap.action_get_events(a):
+			if ev is InputEventKey:
+				move.append((ev as InputEventKey).physical_keycode)
+	# клавиша шага, которая заодно — действие трапеции (в раскладке по умолчанию W/S, A/D)
+	var shared := KEY_NONE
+	var shared_action := ""
+	for a in ["pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"]:
+		for ev in InputMap.action_get_events(a):
+			var k := ev as InputEventKey
+			if k != null and k.physical_keycode in move:
+				shared = k.physical_keycode
+				shared_action = a
+				break
+		if shared != KEY_NONE:
+			break
+	var bar_key := _first_key("pitch_push_out", move)
+	check(bar_key != KEY_NONE, "у «от себя» есть клавиша вне шага/поворота")
+	_key(bar_key, true)
+	_ticks(game, 1.0)
+	var p_stand := ic.control.pitch
+	_key(bar_key, false)
+	_ticks(game, 1.5)
+	print("    стоя «от себя» (%s) 1 с: pitch %.2f" % [OS.get_keycode_string(bar_key), p_stand])
+	check(p_stand * inv > 0.9, "стоя клавиша трапеции — нос на полный ход: %.2f" % p_stand)
+	check(game.glider.phase() == "standing", "стоит (%s)" % game.glider.phase())
+	if shared != KEY_NONE:
+		_key(shared, true)
+		_ticks(game, 0.5)
+		var c := ic.control
+		print(
+			"    стоя %s (%s): pitch %.2f roll %.2f walk %.2f turn %.2f"
+			% [OS.get_keycode_string(shared), shared_action, c.pitch, c.roll, c.walk, c.turn]
+		)
+		check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "стоя клавиша шага трапецию не двигает")
+		check(absf(c.walk) > 0.9 or absf(c.turn) > 0.9, "стоя она — шаг или поворот")
+		_press(["run"])
+		_ticks(game, 0.5)
+		c = ic.control
+		var v := c.pitch if shared_action.begins_with("pitch") else c.roll
+		print("    на бегу %s: pitch %.2f roll %.2f" % [OS.get_keycode_string(shared), c.pitch, c.roll])
+		check(absf(v) > 0.5, "на бегу та же клавиша — трапеция: %.2f" % v)
+		check(c.walk == 0.0 and c.turn == 0.0, "на бегу walk/turn = 0")
+		_key(shared, false)
+	await _close(main)
+
+
+## С2 v2: защёлки нет — зажатая на отрыве клавиша трапеции продолжает действовать, pitch/roll
+## на отрыве непрерывны.
+func test_no_latch_on_liftoff() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var ic := game.input_controller
+	# крен рукой на малую долю хода (≈ 1,5°): с большим креном бег уходит дугой поперёк склона и
+	# опущенная консоль касается склона (срыв wingtip, на старте по умолчанию уже при ≈ 10°) — это
+	# физика; здесь проверяется только непрерывность трапеции на отрыве
+	_press(["run"])
+	Input.action_press("roll_right", 0.1)
 	var flew := false
+	var prev_p := 0.0
+	var prev_r := 0.0
+	var dp := 0.0
+	var dr := 0.0
 	for i in int(15.0 / DT):
 		game.tick(DT)
-		if game.glider.phase() == "flying":
+		var ph := game.glider.phase()
+		if ph == "flying":
+			dp = absf(ic.control.pitch - prev_p)
+			dr = absf(ic.control.roll - prev_r)
 			flew = true
 			break
-	check(flew, "взлетел разбегом W+Shift")
-	_ticks(game, 0.5)
-	check(game.input_controller.is_latched("pitch_pull_in"), "«на себя» (pitch_pull_in) защёлкнута после отрыва")
-	check(game.input_controller.control.pitch > -0.5, "зажатая «на себя» не тянет трапецию на себя")
-	_release()
+		prev_p = ic.control.pitch
+		prev_r = ic.control.roll
 	game.tick(DT)
-	check(not game.input_controller.is_latched("pitch_pull_in"), "отпустил — защёлка снята")
+	var tt := game.glider.get_telemetry()
+	print("    отрыв: Δpitch %.4f, Δroll %.4f за шаг; roll после %.2f; фаза %s %s, крен %.1f°" % [dp, dr, ic.control.roll, tt.phase, game.glider.model.takeoff_failure, tt.bank_deg])
+	check(flew, "взлетел разбегом Shift")
+	check(dp < 0.02 and dr < 0.02, "на отрыве трапеция без скачка: %.4f / %.4f" % [dp, dr])
+	check(ic.control.roll > 0.05, "зажатая клавиша крена действует и после отрыва: %.2f" % ic.control.roll)
+	check(not ic.has_method("is_latched"), "защёлки нет")
 	await _close(main)
 
 
@@ -337,7 +434,7 @@ func test_touch_near_start_is_not_landing() -> void:
 	var game: Game = main.get_node("Game")
 	var ended: Array = []
 	game.flight_ended.connect(func(k: String, i: Dictionary) -> void: ended.append([k, i]))
-	_press(["walk_forward", "pitch_pull_in", "run"])
+	_press(["run"])
 	for i in int(15.0 / DT):
 		game.tick(DT)
 		if game.glider.phase() == "flying":
