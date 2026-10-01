@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+air_model: analytic (нет поля)
+Terrain: локация 'ongudai' загружена за 3.43 с, чанков 160
+Terrain: поля рельефа за 3.33 с
+WorldObjects: 'ongudai' за 1.65 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.997769, "wait_threads_s": 0.000004, "nodes_s": 0.023062, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: field (массивы; уровней 3)
+air_model: поле 12:00 ч, 3.0 м/с с 150° (загрузка): 7.58 с, итераций [230, 190], окна ["100 м [40, 40]", "50 м [50, 50]"]
+WorldObjects: палаток у старта 5 из 5 за 566 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=150&hour=12.00&lat=50.78708&lon=86.23278&seed=1776491080&sky=clear&temp=26.0&v=1&wind=3.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:96)
+       [1] set_input_enabled (res://scripts/game/game.gd:539)
+       [2] set_flying (res://scripts/game/game.gd:516)
+       [3] _fly (res://scenes/main.gd:165)
+       [4] start (res://scripts/game/game.gd:318)
+flight_probe: полёт, загрузка 20.5 с; { &"hour": 12.0, &"u10": 3.0, &"wdir": 150.0, &"t_max": 26.0, &"sky": "clear", &"reason": "загрузка", &"start_ms": 10.548, &"iters": [230, 190], &"gpu_s": 2.11189881247282, &"warm": false, &"poll_max_ms": 48.284, &"chunk_max_ms": 28.86144, &"windows": [{ &"dx": 100.0, &"x0": 4025.0, &"y0": -3525.0, &"reason": "загрузка", &"iters": [40, 40], &"status": "ok", &"warm": false, &"wall_ms": 518.339, &"total_ms": 872.726, &"prep_ms": 338.486, &"gpu_ms": 369.501987218857, &"max_chunk_ms": 31.52384, &"chunks": 26, &"poll_max_ms": 44.788, &"finish_ms": 22.307, &"start_ms": 7.602 }, { &"dx": 50.0, &"x0": 5625.0, &"y0": -1925.0, &"reason": "загрузка", &"iters": [50, 50], &"status": "ok", &"warm": false, &"wall_ms": 818.421, &"total_ms": 2109.986, &"prep_ms": 424.304, &"gpu_ms": 629.36940972507, &"max_chunk_ms": 31.305152, &"chunks": 40, &"poll_max_ms": 57.396, &"finish_ms": 39.849, &"start_ms": 11.121 }], &"wall_s": 7.579393, &"loading": true, &"main_max_ms": 85.393 }
+flight_probe: поток GPU, прогон 0: подготовка 1205 мс, решатель 6655 мс, [120, 190]
+flight_probe: поток GPU, прогон 1: подготовка 1131 мс, решатель 6275 мс, [110, 180]
+flight_probe: поток GPU, прогон 2: подготовка 963 мс, решатель 5512 мс, [120, 180]
+flight_probe: термики { &"main_build_ms": [1223.995, 1231.174, 1221.01], &"update_air_ms": [1354.553, 1665.58], &"thread": [{ &"wall_ms": 1685.871, &"frames": 68, &"frame_max_ms": 65.657, &"same_as_main": true }, { &"wall_ms": 1404.28, &"frames": 73, &"frame_max_ms": 52.802, &"same_as_main": true }, { &"wall_ms": 1453.54, &"frames": 79, &"frame_max_ms": 90.922, &"same_as_main": true }], &"sources": 3137, &"grid": [96, 96, 50] }
+flight_probe: tools/research/air_speed/out/w_thread8_320.json
+WARNING: 120 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 80 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketLargeE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

@@ -142,6 +142,40 @@ def fig(name, run, path):
     plt.close(f)
 
 
+def fig_tradeoff(rows, trows, path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    f, ax = plt.subplots(figsize=(8, 5))
+    marks = {"base": ("o", "#1b9e77"), "slice8": ("s", "#7570b3"), "slice16": ("D", "#d95f02"),
+             "gapoff": ("^", "#666666"), "thread8": ("v", "#e7298a"), "thread24": ("P", "#a6761d")}
+    done = set()
+    for r in rows:
+        v = r["variant"]
+        m, c = marks.get(v, ("x", "k"))
+        ax.scatter(r["solve_frame_ms"], r["stage_ms"].get("SOLVE", 0) / 1000, marker=m, color=c, zorder=3,
+                   label=f"{v}: область в кадрах (poll)" if v not in done else None)
+        done.add(v)
+    for r in trows:
+        v = r["variant"]
+        m, c = marks.get(v, ("x", "k"))
+        ax.scatter(r["solve_frame_ms"], r["solve_wall_ms"] / 1000, marker=m, color=c, zorder=3,
+                   label=f"{v}: область в своём потоке" if v not in done else None)
+        done.add(v)
+    idle = [r["idle_frame_ms"] for r in rows + trows]
+    ax.axvspan(min(idle), max(idle), color="#eeeeee", zorder=0, label="кадр без расчёта (разброс прогонов)")
+    ax.set_xlabel("средний кадр во время решения области, мс")
+    ax.set_ylabel("стена решения области (пара, тёплый старт), с")
+    ax.set_title("Пересчёт в полёте, RTX 4070 SUPER, игра: стена против кадра")
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=8)
+    f.tight_layout()
+    f.savefig(path, dpi=110)
+    plt.close(f)
+
+
 def main():
     rows, trows, therm = [], [], {}
     for p in sorted(glob.glob(os.path.join(OUT, "flight_*.json")) + glob.glob(os.path.join(OUT, "w_*.json"))):
@@ -157,6 +191,7 @@ def main():
                     fig(name, run, os.path.join(OUT, f"fig_timeline_{name}.png"))
         if "thermals" in d:
             therm[name] = d["thermals"]
+    fig_tradeoff(rows, trows, os.path.join(OUT, "fig_tradeoff.png"))
     json.dump({"recompute": rows, "thread": trows, "thermals": therm}, open(os.path.join(OUT, "breakdown.json"), "w"),
               ensure_ascii=False, indent=1)
     L = ["# Пересчёт в полёте — разбивка (RTX 4070 SUPER; analyze.py)", "",
