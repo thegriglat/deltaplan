@@ -1,0 +1,99 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_catch_up_menu.gd::test_self_not_in_list_and_humans_above_bots
+  ok   test_catch_up_menu.gd::test_default_selection_is_nearest_airborne_human
+  ok   test_catch_up_menu.gd::test_up_down_enter_emits_selected_id
+  ok   test_catch_up_menu.gd::test_escape_and_equal_close_without_action
+  ok   test_catch_up_menu.gd::test_pilot_leaving_updates_list_and_selection
+  ok   test_catch_up_menu.gd::test_live_refresh_by_timer
+  ok   test_catch_up_menu.gd::test_pick_nearest_airborne_human_and_count
+  ok   test_catch_up_menu.gd::test_distance_format
+  ok   test_catch_up_menu.gd::test_remote_pilots_source_adapter
+  ok   test_grass_density.gd::test_grass_density_saved_and_applied
+  ok   test_helmet_fov.gd::test_helmet_and_fov_saved_and_applied
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+  ok   test_language.gd::test_every_csv_key_has_ru_and_en
+  ok   test_language.gd::test_code_keys_exist_and_are_not_russian
+  ok   test_language.gd::test_config_names_are_keys
+  ok   test_language.gd::test_resolve_default_by_os_locale
+  ok   test_language.gd::test_switch_locale_translates_and_persists
+air_model: analytic (нет поля)
+  ok   test_language.gd::test_main_menu_selector_rebuilds_ui
+  ok   test_menu_setup.gd::test_start_menu_has_six_buttons_in_order
+  ok   test_menu_setup.gd::test_flight_setup_done_carries_choice
+  ok   test_menu_setup.gd::test_flight_setup_forecast
+  ok   test_menu_setup.gd::test_flight_setup_fixed_start_hours
+  ok   test_menu_setup.gd::test_flight_setup_carries_map_pick
+  ok   test_menu_setup.gd::test_start_menu_shows_choice_summary
+  ok   test_menu_setup.gd::test_flight_setup_lists_all_locations
+  ok   test_menu_setup.gd::test_controls_screen_covers_all_input_actions
+  ok   test_menu_setup.gd::test_no_raw_strings_in_ui_sources
+  ok   test_menu_setup.gd::test_loading_screen_follows_progress
+  ok   test_net_pause.gd::test_build_returns_empty_outside_zone
+  ok   test_net_pause.gd::test_build_orders_rows_marks_leader_me_and_unknown_altitude
+  ok   test_net_pause.gd::test_pause_menu_shows_zone_block_with_leader_and_me
+  ok   test_net_pause.gd::test_pause_menu_unchanged_outside_zone
+  ok   test_net_pause.gd::test_leave_zone_button_emits_signal
+  ok   test_net_pause.gd::test_loading_screen_shows_zone_code_and_names
+  ok   test_net_screen.gd::test_server_address_persists
+  ok   test_net_screen.gd::test_create_success_shows_code_and_peers
+  ok   test_net_screen.gd::test_join_errors_shown
+  ok   test_net_screen.gd::test_create_embedded_vs_remote_address
+  ok   test_net_screen.gd::test_nearby_list
+  ok   test_net_screen.gd::test_no_network_unreachable_and_back
+  ok   test_net_screen.gd::test_release_to_flight_keeps_zone
+  ok   test_net_screen.gd::test_normal_hide_in_zone_still_leaves
+  ok   test_net_screen.gd::test_start_menu_button
+  ok   test_net_screen.gd::test_default_backend_is_client_bad_address
+  ok   test_net_screen.gd::test_client_backend_maps_signals
+  FAIL test_net_screen.gd::test_client_backend_create_embedded_vs_remote
+         check failed: без адреса — зона на встроенном сервере: [] / ["port_busy"]
+         check failed: код зоны: 
+  ok   test_net_screen.gd::test_client_backend_survives_first_connect_retries_then_zone
+  ok   test_net_screen.gd::test_client_backend_shows_unreachable_after_final_connect_failed
+  ok   test_net_screen.gd::test_client_backend_cancel_during_retries_shows_no_error
+  ok   test_pilot_name.gd::test_sanitize_trims_and_cuts_by_characters
+  ok   test_pilot_name.gd::test_pilot_name_round_trips_and_defaults
+  ok   test_pilot_name.gd::test_settings_panel_saves_and_loads_pilot_name
+  ok   test_recent_places.gd::test_add_creates_entry_with_coord_label
+  ok   test_recent_places.gd::test_near_point_merges_as_duplicate
+  ok   test_recent_places.gd::test_far_point_is_separate_entry
+  ok   test_recent_places.gd::test_limit_8_unpinned_drops_oldest
+  ok   test_recent_places.gd::test_pinned_not_evicted
+  ok   test_recent_places.gd::test_pinned_listed_first
+  ok   test_recent_places.gd::test_rename_persists
+  ok   test_recent_places.gd::test_custom_name_not_overwritten_by_osm_name
+  ok   test_recent_places.gd::test_remove
+  ok   test_recent_places.gd::test_resolve_osm_name_from_cached_data
+  ok   test_recent_places.gd::test_select_recent_sets_pick_lat_lon
+  ok   test_recent_places.gd::test_empty_recent_hides_section
+  ok   test_render_scale.gd::test_low_preset_uses_fsr_0_75
+  ok   test_render_scale.gd::test_render_scale_saved_and_applied_over_preset
+  ok   test_screens.gd::test_settings_persist_across_panel_reload
+  ok   test_screens.gd::test_pilot_names_setting
+  ok   test_screens.gd::test_classic_90s_choice_writes_key
+  ok   test_screens.gd::test_about_contains_assets_md_authors
+  ok   test_screens.gd::test_lines_for_missing_fields_does_not_crash
+  ok   test_screens.gd::test_result_screen_buttons_emit_signals
+  ok   test_screens.gd::test_no_untranslated_strings
+  ok   test_screens.gd::test_about_shows_version_and_build
+  ok   test_settings_net_mode.gd::test_net_mode_hides_time_speed_row_and_keeps_stored_speed_on_save
+  ok   test_wing_picker.gd::test_class_and_model_order
+  ok   test_wing_picker.gd::test_restore_saved_wing
+  ok   test_wing_picker.gd::test_change_class_changes_models_and_done
+  ok   test_wing_picker.gd::test_both_languages_give_text
+
+78 тестов, 1 упало, 0 пропущено
+WARNING: 259 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 161 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 3 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketLargeE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

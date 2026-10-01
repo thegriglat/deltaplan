@@ -368,14 +368,20 @@ func _classify_missing(
 ## air_fn(pos) -> Vector3 (Atmosphere.air_velocity_at) — необязательный (T05): порывистость
 ## |air − mean_wind| у земли усиливает амплитуду пятен на траве. Без него — как раньше (штиль
 ## порывов).
+## field_src — необязательный (AM-10, WF-10): сам Atmosphere (is_air_field_on(), air_field) — для
+## текстуры ветра поля травы на бровке/в долине. Без него (или без поля) — как раньше.
 func set_wind_sources(
-	mean_wind_fn: Callable, thermals_fn: Callable, air_fn: Callable = Callable()
+	mean_wind_fn: Callable,
+	thermals_fn: Callable,
+	air_fn: Callable = Callable(),
+	field_src: Object = null
 ) -> void:
 	if wind == null:
 		_setup_wind(Config.get_config("world").get("wind_visual", {}))
 	wind.mean_wind_fn = mean_wind_fn
 	wind.thermals_fn = thermals_fn
 	wind.air_fn = air_fn
+	wind.field_src = field_src
 
 
 ## Просеки для деревьев (дороги, коридоры ЛЭП, здания, посадки) — маска WorldClearings:

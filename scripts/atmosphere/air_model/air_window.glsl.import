@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dsbrfcyw5bsb"
+path="res://.godot/imported/air_window.glsl-473057f1bdc86630cff2c1c1a6e83981.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_window.glsl"
+dest_files=["res://.godot/imported/air_window.glsl-473057f1bdc86630cff2c1c1a6e83981.res"]
+
+[params]
+

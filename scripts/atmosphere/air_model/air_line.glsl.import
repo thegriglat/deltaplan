@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bmhg7h6kbiada"
+path="res://.godot/imported/air_line.glsl-cc9451a3adf1c272a11645ee8235d4ba.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_line.glsl"
+dest_files=["res://.godot/imported/air_line.glsl-cc9451a3adf1c272a11645ee8235d4ba.res"]
+
+[params]
+

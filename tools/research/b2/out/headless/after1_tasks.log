@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_records.gd::test_first_flight_sets_all_records
+  ok   test_records.gd::test_only_improvements_count
+  ok   test_records.gd::test_saved_and_loaded
+  ok   test_records.gd::test_short_flight_ignored
+  ok   test_records.gd::test_task_records
+  ok   test_route_optimizer.gd::test_collinear
+  ok   test_route_optimizer.gd::test_symmetric_dogleg
+  ok   test_route_optimizer.gd::test_asymmetric_brute_force
+  ok   test_route_optimizer.gd::test_two_turnpoints_brute_force
+  ok   test_route_optimizer.gd::test_goal_line
+  ok   test_route_optimizer.gd::test_task_distance
+  ok   test_task_model.gd::test_altai_demo_inside_detail_area
+  ok   test_task_model.gd::test_ongudai_demo_inside_detail_area
+  ok   test_task_model.gd::test_altai_demo_start_matches_site
+  ok   test_task_model.gd::test_xctsk_import
+  ok   test_task_model.gd::test_xctsk_time_parse
+  ok   test_task_model.gd::test_xctsk_elapsed_enter
+  ok   test_task_model.gd::test_bad_task_reports_errors
+  ok   test_task_model.gd::test_list_available
+  ok   test_task_tracker.gd::test_start_before_open_not_counted
+  ok   test_task_tracker.gd::test_elapsed_start_uses_own_time
+  ok   test_task_tracker.gd::test_cylinder_tolerance
+  ok   test_task_tracker.gd::test_min_tolerance_band
+  ok   test_task_tracker.gd::test_exit_tolerance
+  ok   test_task_tracker.gd::test_full_task_to_goal
+  ok   test_task_tracker.gd::test_landing_fails_with_distance
+  ok   test_task_tracker.gd::test_required_glide
+  ok   test_task_tracker.gd::test_goal_line_direction
+  ok   test_task_tracker.gd::test_restart_updates_start
+  ok   test_task_tracker.gd::test_instrument_points
+  ok   test_training.gd::test_thermal_success
+  ok   test_training.gd::test_thermal_time_limit
+  ok   test_training.gd::test_ridge_success_and_band
+  ok   test_training.gd::test_ridge_landing_fails
+  ok   test_training.gd::test_spot_landing_scores
+  ok   test_training.gd::test_spot_landing_target_from_latlon
+  ok   test_training.gd::test_spot_landing_fallback_grade
+
+37 тестов, 0 упало, 0 пропущено

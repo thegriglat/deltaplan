@@ -76,10 +76,7 @@ func _run() -> void:
 		await _quit(0)
 		return
 	var game: Game = main.get_node("Game")
-	for i in 600:
-		if game.settings != null:
-			break
-		await get_tree().process_frame
+	await main.call("load_menu_world")  # меню больше не грузит мир само (0.8.0) — просим явно
 	if game.settings == null:
 		_fail("фон за меню не загрузился")
 		return

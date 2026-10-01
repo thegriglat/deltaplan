@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_flight_instrument_node.gd::test_pages_and_signals
+  ok   test_flight_instrument_node.gd::test_instrument_3d_screen
+  ok   test_flight_instrument_node.gd::test_vario_90s_display
+  ok   test_flight_instrument_node.gd::test_vario_audio_presets
+  ok   test_telltale.gd::test_headwind_at_rest
+  ok   test_telltale.gd::test_crosswind_at_rest
+  ok   test_telltale.gd::test_weak_wind_droops
+  ok   test_telltale.gd::test_no_airflow_hangs_down
+  ok   test_telltale.gd::test_sideslip_in_flight
+  ok   test_telltale.gd::test_rotation_adds_point_velocity
+  ok   test_telltale.gd::test_anchor_on_every_wing
+  ok   test_telltale.gd::test_glider_crosswind_on_launch
+  ok   test_thermal_assistant.gd::test_points_to_core_right_turn
+  ok   test_thermal_assistant.gd::test_points_to_core_left_turn
+  ok   test_thermal_assistant.gd::test_sensor_lag_compensated
+  ok   test_thermal_assistant.gd::test_straight_no_circling
+  ok   test_thermal_assistant.gd::test_relative_direction
+  ok   test_vario.gd::test_config_has_realistic_filter
+  ok   test_vario.gd::test_step_response_time_constant
+  ok   test_vario.gd::test_filter_follows_sine_with_lag
+  ok   test_vario.gd::test_average_over_window
+  ok   test_vario.gd::test_average_window_configurable
+  ok   test_vario.gd::test_average_before_window_filled
+  ok   test_vario.gd::test_glide_ratio_and_track
+  ok   test_vario.gd::test_on_ground_no_flight
+  ok   test_vario_90s_3d.gd::test_vario_90s_3d_screen
+  ok   test_vario_audio.gd::test_tone_table_monotonic
+  ok   test_vario_audio.gd::test_climb_beeps_faster_and_higher
+  ok   test_vario_audio.gd::test_silence_below_threshold
+  ok   test_vario_audio.gd::test_sink_tone_continuous
+  ok   test_vario_audio.gd::test_thresholds_configurable
+  ok   test_vario_audio.gd::test_hysteresis
+  ok   test_vario_audio.gd::test_no_discontinuities_between_buffers
+  ok   test_vario_audio.gd::test_no_clicks
+  ok   test_vario_audio.gd::test_export_wav_examples
+  ok   test_vario_audio.gd::test_presets_exist_and_default_classic
+  ok   test_vario_audio.gd::test_classic_beeps_faster_and_harsher
+  ok   test_vario_audio.gd::test_classic_chunk_invariant
+  ok   test_vario_audio.gd::test_export_preset_wavs
+  ok   test_vario_audio_node.gd::test_vario_audio_node_fills_buffer
+  ok   test_wind_task.gd::test_fit_circle_exact
+  ok   test_wind_task.gd::test_circling_wind
+  ok   test_wind_task.gd::test_heading_wind_on_straight
+  ok   test_wind_task.gd::test_direction_and_headwind
+  ok   test_wind_task.gd::test_no_estimate_on_ground
+  ok   test_wind_task.gd::test_required_glide
+  ok   test_wind_task.gd::test_race_state
+
+47 тестов, 0 упало, 0 пропущено

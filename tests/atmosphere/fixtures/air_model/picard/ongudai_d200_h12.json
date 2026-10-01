@@ -1,0 +1,131 @@
+{
+ "loc": "ongudai",
+ "hour": 12.0,
+ "wdir": 150.0,
+ "dtau_u": 60.0,
+ "params": {
+  "lam": 40.0,
+  "lam_frac": 0.0158,
+  "pr_t": 0.85,
+  "k_relax": 0.1
+ },
+ "profiles": {
+  "0": {
+   "alpha": 0.11200000000000002,
+   "max_profile": 1.1491116250982372,
+   "cls": "A",
+   "sun_elev": 56.82523091641602
+  },
+  "3": {
+   "alpha": 0.11200000000000002,
+   "max_profile": 1.4044787036158113,
+   "cls": "B",
+   "sun_elev": 56.82523091641602
+  },
+  "6": {
+   "alpha": 0.24,
+   "max_profile": 2.4454067665987473,
+   "cls": "D",
+   "sun_elev": 56.82523091641602
+  }
+ },
+ "dx": 200,
+ "dz": 105.0,
+ "nx": 192,
+ "ny": 192,
+ "nz": 50,
+ "z_bot": 315.0,
+ "x0": -19200.0,
+ "y0": -19200.0,
+ "z_i": 3362.3291929070538,
+ "ctx": {
+  "month": 7,
+  "day": 15,
+  "lat": 50.79,
+  "lon": 86.13,
+  "utc_offset_h": 7,
+  "valley_msl_m": 889.5235969387754,
+  "mean_msl_m": 1235.7693038624843
+ },
+ "day": {
+  "hour": 12.0,
+  "t_max": 26.0,
+  "sky": "clear",
+  "t": 24.28,
+  "z_i_msl": 3362,
+  "z_dry_game_msl": 3362,
+  "z_lcl_msl": 2754,
+  "valley_msl": 890,
+  "heat": 0.938,
+  "cap_agl": null,
+  "brk": 1.0
+ },
+ "site": {
+  "x": 7224.774918522232,
+  "y": -324.68963428147543
+ },
+ "runs": [
+  {
+   "U10": 0.0,
+   "heat": true,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 1101,
+   "t_cupy": 41.836
+  },
+  {
+   "U10": 0.0,
+   "heat": false,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 11,
+   "t_cupy": 0.328
+  },
+  {
+   "U10": 3.0,
+   "heat": true,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 201,
+   "t_cupy": 7.662
+  },
+  {
+   "U10": 3.0,
+   "heat": false,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 221,
+   "t_cupy": 6.436
+  },
+  {
+   "U10": 6.0,
+   "heat": true,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 191,
+   "t_cupy": 7.268
+  },
+  {
+   "U10": 6.0,
+   "heat": false,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 181,
+   "t_cupy": 5.287
+  }
+ ],
+ "arrays": {
+  "hc": [
+   0,
+   36864
+  ],
+  "H": [
+   36864,
+   36864
+  ],
+  "gam": [
+   73728,
+   52
+  ]
+ }
+}

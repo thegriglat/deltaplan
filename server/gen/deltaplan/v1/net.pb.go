@@ -14,7 +14,8 @@
 //     варианты Envelope.
 //
 // Мир (термики, облака, ветер) по сети не передаётся: каждый клиент считает его
-// сам по параметрам зоны (Zone) и часам зоны (ZoneState.clock).
+// сам по параметрам зоны (Zone) и часам зоны (ZoneState.clock). Исключение —
+// источники термиков из поля воздуха (ZoneState.thermal_sources): их выбирает ведущий.
 //
 // Система координат (pos, vel, rot): мир Godot, метры. X — восток, Y — вверх,
 // −Z — север (+Z — юг). Начало координат — то же, что у локального мира,
@@ -1774,9 +1775,14 @@ type ZoneState struct {
 	Clock float64 `protobuf:"fixed64,1,opt,name=clock,proto3" json:"clock,omitempty"`
 	// Очередь на старт: id пилотов, первый — тот, кто может разбегаться.
 	// Сначала живые пилоты, затем боты.
-	Queue         []string `protobuf:"bytes,2,rep,name=queue,proto3" json:"queue,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Queue []string `protobuf:"bytes,2,rep,name=queue,proto3" json:"queue,omitempty"`
+	// Источники термиков из поля воздуха (docs/air_model.md → «Масштаб 2: термики из поля»):
+	// поле у клиентов чуть разное (своя видеокарта), а термики должны совпадать — где они,
+	// выбирает ведущий на своём поле; силу, потолок и снос каждый считает сам по своему полю.
+	// Нет — поля у ведущего нет, каждый выбирает сам (без поля — аналитика, как раньше).
+	ThermalSources *ThermalSources `protobuf:"bytes,3,opt,name=thermal_sources,json=thermalSources,proto3" json:"thermal_sources,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ZoneState) Reset() {
@@ -1823,6 +1829,70 @@ func (x *ZoneState) GetQueue() []string {
 	return nil
 }
 
+func (x *ZoneState) GetThermalSources() *ThermalSources {
+	if x != nil {
+		return x.ThermalSources
+	}
+	return nil
+}
+
+// Источники термиков на час: какие столбцы сетки поля — источники (AM-07).
+type ThermalSources struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Подпись сетки уровня поля "dx,x0,y0,nx,ny" (м, м, м, столбцов; AirThermals.signature).
+	// Клиент с другой сеткой список не применяет и выбирает сам.
+	Grid string `protobuf:"bytes,1,opt,name=grid,proto3" json:"grid,omitempty"`
+	// Биты столбцов-источников: бит номер j·nx + i (i — на восток, j — на север от x0, y0),
+	// младший бит байта — первый. В JSON — base64.
+	Mask          []byte `protobuf:"bytes,2,opt,name=mask,proto3" json:"mask,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ThermalSources) Reset() {
+	*x = ThermalSources{}
+	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ThermalSources) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ThermalSources) ProtoMessage() {}
+
+func (x *ThermalSources) ProtoReflect() protoreflect.Message {
+	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ThermalSources.ProtoReflect.Descriptor instead.
+func (*ThermalSources) Descriptor() ([]byte, []int) {
+	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ThermalSources) GetGrid() string {
+	if x != nil {
+		return x.Grid
+	}
+	return ""
+}
+
+func (x *ThermalSources) GetMask() []byte {
+	if x != nil {
+		return x.Mask
+	}
+	return nil
+}
+
 // Объявление зоны в локальной сети. Шлёт игра со встроенным сервером (NET-22),
 // пока на нём есть зона: раз в секунду, одно объявление на зону, UDP broadcast
 // (255.255.255.255) на порт 8081 (LanDiscovery.PORT). Одна UDP-датаграмма —
@@ -1853,7 +1923,7 @@ type LanAnnounce struct {
 
 func (x *LanAnnounce) Reset() {
 	*x = LanAnnounce{}
-	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	mi := &file_deltaplan_v1_net_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1865,7 +1935,7 @@ func (x *LanAnnounce) String() string {
 func (*LanAnnounce) ProtoMessage() {}
 
 func (x *LanAnnounce) ProtoReflect() protoreflect.Message {
-	mi := &file_deltaplan_v1_net_proto_msgTypes[22]
+	mi := &file_deltaplan_v1_net_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1878,7 +1948,7 @@ func (x *LanAnnounce) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LanAnnounce.ProtoReflect.Descriptor instead.
 func (*LanAnnounce) Descriptor() ([]byte, []int) {
-	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{22}
+	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LanAnnounce) GetCode() string {
@@ -2048,10 +2118,14 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x05phase\x18\b \x01(\x0e2\x18.deltaplan.v1.PilotPhaseR\x05phase\x12\x12\n" +
 	"\x04wing\x18\t \x01(\tR\x04wing\x120\n" +
 	"\x06colors\x18\n" +
-	" \x01(\v2\x18.deltaplan.v1.WingColorsR\x06colors\"7\n" +
+	" \x01(\v2\x18.deltaplan.v1.WingColorsR\x06colors\"~\n" +
 	"\tZoneState\x12\x14\n" +
 	"\x05clock\x18\x01 \x01(\x01R\x05clock\x12\x14\n" +
-	"\x05queue\x18\x02 \x03(\tR\x05queue\"\xb2\x01\n" +
+	"\x05queue\x18\x02 \x03(\tR\x05queue\x12E\n" +
+	"\x0fthermal_sources\x18\x03 \x01(\v2\x1c.deltaplan.v1.ThermalSourcesR\x0ethermalSources\"8\n" +
+	"\x0eThermalSources\x12\x12\n" +
+	"\x04grid\x18\x01 \x01(\tR\x04grid\x12\x12\n" +
+	"\x04mask\x18\x02 \x01(\fR\x04mask\"\xb2\x01\n" +
 	"\vLanAnnounce\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1b\n" +
 	"\thost_name\x18\x02 \x01(\tR\bhostName\x12\x18\n" +
@@ -2089,33 +2163,34 @@ func file_deltaplan_v1_net_proto_rawDescGZIP() []byte {
 }
 
 var file_deltaplan_v1_net_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_deltaplan_v1_net_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_deltaplan_v1_net_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_deltaplan_v1_net_proto_goTypes = []any{
-	(ErrorCode)(0),        // 0: deltaplan.v1.ErrorCode
-	(PilotPhase)(0),       // 1: deltaplan.v1.PilotPhase
-	(*Envelope)(nil),      // 2: deltaplan.v1.Envelope
-	(*Vec3)(nil),          // 3: deltaplan.v1.Vec3
-	(*Quat)(nil),          // 4: deltaplan.v1.Quat
-	(*Forecast)(nil),      // 5: deltaplan.v1.Forecast
-	(*Zone)(nil),          // 6: deltaplan.v1.Zone
-	(*Peer)(nil),          // 7: deltaplan.v1.Peer
-	(*WingColors)(nil),    // 8: deltaplan.v1.WingColors
-	(*Hello)(nil),         // 9: deltaplan.v1.Hello
-	(*CreateZone)(nil),    // 10: deltaplan.v1.CreateZone
-	(*JoinZone)(nil),      // 11: deltaplan.v1.JoinZone
-	(*LeaveZone)(nil),     // 12: deltaplan.v1.LeaveZone
-	(*Ping)(nil),          // 13: deltaplan.v1.Ping
-	(*Welcome)(nil),       // 14: deltaplan.v1.Welcome
-	(*ZoneCreated)(nil),   // 15: deltaplan.v1.ZoneCreated
-	(*ZoneJoined)(nil),    // 16: deltaplan.v1.ZoneJoined
-	(*PeerJoined)(nil),    // 17: deltaplan.v1.PeerJoined
-	(*PeerLeft)(nil),      // 18: deltaplan.v1.PeerLeft
-	(*LeaderChanged)(nil), // 19: deltaplan.v1.LeaderChanged
-	(*Error)(nil),         // 20: deltaplan.v1.Error
-	(*Pong)(nil),          // 21: deltaplan.v1.Pong
-	(*PilotState)(nil),    // 22: deltaplan.v1.PilotState
-	(*ZoneState)(nil),     // 23: deltaplan.v1.ZoneState
-	(*LanAnnounce)(nil),   // 24: deltaplan.v1.LanAnnounce
+	(ErrorCode)(0),         // 0: deltaplan.v1.ErrorCode
+	(PilotPhase)(0),        // 1: deltaplan.v1.PilotPhase
+	(*Envelope)(nil),       // 2: deltaplan.v1.Envelope
+	(*Vec3)(nil),           // 3: deltaplan.v1.Vec3
+	(*Quat)(nil),           // 4: deltaplan.v1.Quat
+	(*Forecast)(nil),       // 5: deltaplan.v1.Forecast
+	(*Zone)(nil),           // 6: deltaplan.v1.Zone
+	(*Peer)(nil),           // 7: deltaplan.v1.Peer
+	(*WingColors)(nil),     // 8: deltaplan.v1.WingColors
+	(*Hello)(nil),          // 9: deltaplan.v1.Hello
+	(*CreateZone)(nil),     // 10: deltaplan.v1.CreateZone
+	(*JoinZone)(nil),       // 11: deltaplan.v1.JoinZone
+	(*LeaveZone)(nil),      // 12: deltaplan.v1.LeaveZone
+	(*Ping)(nil),           // 13: deltaplan.v1.Ping
+	(*Welcome)(nil),        // 14: deltaplan.v1.Welcome
+	(*ZoneCreated)(nil),    // 15: deltaplan.v1.ZoneCreated
+	(*ZoneJoined)(nil),     // 16: deltaplan.v1.ZoneJoined
+	(*PeerJoined)(nil),     // 17: deltaplan.v1.PeerJoined
+	(*PeerLeft)(nil),       // 18: deltaplan.v1.PeerLeft
+	(*LeaderChanged)(nil),  // 19: deltaplan.v1.LeaderChanged
+	(*Error)(nil),          // 20: deltaplan.v1.Error
+	(*Pong)(nil),           // 21: deltaplan.v1.Pong
+	(*PilotState)(nil),     // 22: deltaplan.v1.PilotState
+	(*ZoneState)(nil),      // 23: deltaplan.v1.ZoneState
+	(*ThermalSources)(nil), // 24: deltaplan.v1.ThermalSources
+	(*LanAnnounce)(nil),    // 25: deltaplan.v1.LanAnnounce
 }
 var file_deltaplan_v1_net_proto_depIdxs = []int32{
 	9,  // 0: deltaplan.v1.Envelope.hello:type_name -> deltaplan.v1.Hello
@@ -2144,11 +2219,12 @@ var file_deltaplan_v1_net_proto_depIdxs = []int32{
 	3,  // 23: deltaplan.v1.PilotState.vel:type_name -> deltaplan.v1.Vec3
 	1,  // 24: deltaplan.v1.PilotState.phase:type_name -> deltaplan.v1.PilotPhase
 	8,  // 25: deltaplan.v1.PilotState.colors:type_name -> deltaplan.v1.WingColors
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	24, // 26: deltaplan.v1.ZoneState.thermal_sources:type_name -> deltaplan.v1.ThermalSources
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_deltaplan_v1_net_proto_init() }
@@ -2180,7 +2256,7 @@ func file_deltaplan_v1_net_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_deltaplan_v1_net_proto_rawDesc), len(file_deltaplan_v1_net_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   23,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

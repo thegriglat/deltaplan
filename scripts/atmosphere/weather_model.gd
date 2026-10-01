@@ -196,6 +196,7 @@ static func derive(
 			"top_agl_m": top_agl,
 			"blue": blue,
 			"sun_noon_deg": sun_el,
+			"sun_elev_deg": _sun_elevation(ctx, month, day, hour, sun_el),
 			"sun_k": sun_k,
 			"wind_k": wind_k,
 			"sky": String(forecast.get("sky", "clear")),
@@ -203,6 +204,23 @@ static func derive(
 	}
 	_apply_heat(w, diurnal, sky_params(String(forecast.get("sky", "clear")), c), c)
 	return w
+
+
+## Высота солнца в час hour (SunClock; профиль ветра — класс устойчивости, WindProfile);
+## hour = NAN — полуденная noon_deg.
+static func _sun_elevation(
+	ctx: Dictionary, month: int, day: int, hour: float, noon_deg: float
+) -> float:
+	if is_nan(hour):
+		return noon_deg
+	var sp := SunClock.solar_position(
+		float(ctx.get("lat", 52.0)),
+		float(ctx.get("lon", 0.0)),
+		SunClock.day_of_year(month, day),
+		hour,
+		float(ctx.get("utc_offset_h", NAN))
+	)
+	return sp.y
 
 
 ## Поправки облачности ("clear" | "partly" | "overcast"; неизвестная — ясно).

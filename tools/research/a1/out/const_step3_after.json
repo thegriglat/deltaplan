@@ -1,0 +1,67 @@
+{
+ "now_const_cbl": {
+  "status": "ok?",
+  "info": {
+   "status": "ok",
+   "iters": 51,
+   "t_solve": 0.14,
+   "th_rms": 5.249981427368766e-08,
+   "thd_rms": null,
+   "mom_rms": 1.1668032899756615e-05
+  }
+ },
+ "now_const_surface": {
+  "info": {
+   "status": "ok",
+   "iters": 51,
+   "t_solve": 0.13,
+   "th_rms": 2.752642558334628e-07,
+   "thd_rms": null,
+   "mom_rms": 1.930260825642858e-05
+  },
+  "closure": {
+   "kind": "const",
+   "nu": 30.0,
+   "h_max": 1348.372686904947
+  }
+ },
+ "fixed_const_cbl": {
+  "info": {
+   "status": "ok",
+   "iters": 51,
+   "t_solve": 0.13,
+   "th_rms": 5.249981427368766e-08,
+   "thd_rms": null,
+   "mom_rms": 1.1668032899756615e-05
+  },
+  "closure": {
+   "kind": "const",
+   "nu": 30.0,
+   "h_max": 1348.372686904947
+  },
+  "w_max": 0.6483285427093506,
+  "th_max": 0.31256723403930664,
+  "lam_max": 337.09317172623673
+ },
+ "hb_cbl_reference": {
+  "info": {
+   "status": "ok",
+   "iters": 41,
+   "t_solve": 0.11,
+   "th_rms": 7.090214637628378e-08,
+   "thd_rms": null,
+   "mom_rms": 1.4636176056475686e-05
+  },
+  "closure": {
+   "kind": "hb",
+   "ustar": 0.0,
+   "h_mech": 0.0,
+   "wstar_max": 2.0189504054362,
+   "h_max": 1348.372686904947,
+   "K_max": 105.4086059136595,
+   "K_p50": 64.69996618648588
+  },
+  "w_max": 0.5631345510482788,
+  "th_max": 0.28079792857170105
+ }
+}

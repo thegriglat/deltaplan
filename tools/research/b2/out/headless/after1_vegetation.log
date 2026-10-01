@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_grass_field.gd::test_far_thinning_ratio
+  ok   test_grass_field.gd::test_press_full_at_low_agl
+  ok   test_grass_field.gd::test_press_zero_above_1_2m
+  ok   test_grass_field.gd::test_press_zero_far_from_pilot
+  ok   test_grass_field.gd::test_landing_rect_inside_and_outside
+  ok   test_grass_field.gd::test_density_scales_clump_count
+  ok   test_grass_field.gd::test_forest_grass_reaches_material
+  ok   test_shrubs.gd::test_models
+Terrain: локация 'ongudai' загружена за 3.06 с, чанков 160
+    кустов в 400 м от старта: 7108 (на кустарнике 0)
+  ok   test_shrubs.gd::test_deterministic_and_allowed
+    одиночных деревьев в 1,5 км от старта: 617
+  ok   test_shrubs.gd::test_trees
+  ok   test_shrubs.gd::test_clearings
+  ok   test_shrubs.gd::test_zz_cleanup
+Terrain: локация 'ongudai' загружена за 2.15 с, чанков 160
+  ok   test_trees_mask.gd::test_mask_passed
+V02: деревьев 38272 (моделей 5481), на лесе 100.00 %, дальше всех в луг 0 м
+  ok   test_trees_mask.gd::test_trees_on_mask_forest
+  ok   test_trees_mask.gd::test_clearings_respected
+  ok   test_trees_mask.gd::test_edge_denser_and_wider
+V02: у кромки гуще ×2.16
+  ok   test_trees_mask.gd::test_edge_trees_denser_per_area
+  ok   test_trees_mask.gd::test_impostor_hash_matches_shader_formula
+  ok   test_trees_mask.gd::test_zz_cleanup
+Terrain: локация 'altai' загружена за 2.29 с, чанков 160
+лес/вода altai: точек 6, деревьев 16854, в воде 0 (макс. G 0.35), у берега ×1.04 плотности
+Terrain: поля рельефа за 6.43 с
+Terrain: локация 'askarovo' загружена за 2.62 с, чанков 160
+лес/вода askarovo: точек 6, деревьев 10617, в воде 0 (макс. G 0.35), у берега ×1.10 плотности
+Terrain: поля рельефа за 5.08 с
+Terrain: локация 'aushkul' загружена за 1.38 с, чанков 160
+лес/вода aushkul: точек 6, деревьев 27095, в воде 0 (макс. G 0.35), у берега ×1.19 плотности
+Terrain: поля рельефа за 5.54 с
+Terrain: локация 'ongudai' загружена за 1.64 с, чанков 160
+лес/вода ongudai: точек 6, деревьев 21339, в воде 0 (макс. G 0.35), у берега ×1.09 плотности
+Terrain: поля рельефа за 5.29 с
+  ok   test_trees_water.gd::test_no_trees_in_water_all_locations
+  ok   test_trees_water.gd::test_osm_water_rings_closed_islands_cut
+
+21 тестов, 0 упало, 0 пропущено
