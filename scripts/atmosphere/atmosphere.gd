@@ -754,9 +754,11 @@ func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector
 ## линией тени.
 ## - Среднее: горизонталь и w_mech — поле; подветренного опускания и ослабления ветра поверх поля
 ##   нет (они уже в поле); у аналитической доли — как в аналитике.
-## - Зона отрыва — признак из поля (_field_lee: дефицит скорости у земли против лог-профиля под
-##   «внешним» ветром столба и опускание); в ней эвристика даёт только рывки (с нулевым средним —
-##   поток массы уже в поле), обратный поток у земли и болтанку слоя смешения.
+## - Зона отрыва — признак из поля (FieldTurbulence.lee: дефицит скорости у земли против
+##   лог-профиля под «внешним» ветром столба и опускание); в ней эвристика (C4 v4) даёт болтанку
+##   слоя смешения по ΔU от ветра поля на уровне гребня U_H, рывки (часть этой болтанки, с нулевым
+##   средним, только при turbulence_enabled) и обратный поток у земли 0,22·U_H — только там, где
+##   пузырь отрыва решателем не разрешён (грубая сетка).
 ## - Болтанка: механическая по u* поля и местному сдвигу (с поправкой на устойчивость Ri),
 ##   конвективная по w* (Lenschow), слоя смешения за гребнем по ΔU; шум — спектр фон Кармана
 ##   (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости.
@@ -778,16 +780,21 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 			)
 		if ground.has_ground:
 			w_ridge = _ridge_lift(pos, agl, u) * (1.0 - lee_a)
-	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU
+	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU от ветра поля
+	# на уровне гребня U_H (та же вертикаль, высота h + max(r, agl); C4 v4)
 	var uf := Vector2(fw.x, fw.z).length() / a
-	var u_out := tb[WindField.T_UOUT]
 	var lee_f := field_turb.lee(uf, agl, tb)
-	var du := maxf(u_out - uf, 0.0) * lee_f
 	var danger := 0.0
 	if lee_f > 0.0 or lee_a > 0.0:
 		danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
 		if relief < 0.0:
 			relief = ground.relief_at(pos.x, pos.z)
+	var u_h := uf
+	if lee_f > 0.0 and relief > agl:
+		var fh := air_field.sample(Vector3(pos.x, gs.x + relief, pos.z), gs.x)
+		if fh.w > 0.0:
+			u_h = Vector2(fh.x, fh.z).length() / fh.w
+	var du := maxf(u_h - uf, 0.0) * lee_f
 	# средняя вертикаль: w_mech поля + аналитика в доле края; термики и фон — как всегда
 	var th := field.sample(pos)
 	var fade := minf(agl / _ground_fade, 1.0)
@@ -797,19 +804,20 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	if lee_a > 0.0:
 		w -= (1.0 - a) * lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee_a
 	var hard_a := (1.0 - a) * u * lee_a * danger
-	var hard_f := a * du * danger
-	if hard_a + hard_f > 1.0e-3:
-		# рывки вниз в пятнах шума; у поля — с нулевым средним (поток массы уже в w_mech поля)
-		var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
-		var g := clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
-		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
-		w -= _lee_burst * (hard_a * g + hard_f * (g - g_mean))
-		# обратный поток у земли в глубине зоны (пузырь отрыва полем не разрешён)
-		var core := danger * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
-		h -= (
-			((1.0 - a) * _lee_reverse * u * lee_a + a * field_turb.reverse * u_out * lee_f)
-			* core
-		)
+	if hard_a > 0.0:
+		# аналитическая доля: рывки вниз в пятнах шума и ротор у земли — как в аналитике
+		if hard_a > 1.0e-3:
+			w -= _lee_burst * hard_a * _lee_burst_g(pos, u)
+		h -= _lee_reverse * hard_a * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+	if lee_f > 0.0 and danger > 0.0:
+		# обратный поток у земли — только там, где пузырь отрыва (L ≈ 2,8 r) решателем не разрешён
+		# (меньше n1 клеток на длину): в окнах 50/100 м возвратное течение даёт само поле
+		var unres := field_turb.reverse_unresolved(relief, air_field.sample_dx(pos, gs.x))
+		if unres > 0.0:
+			h -= (
+				a * field_turb.reverse * u_h * lee_f * danger * unres
+				* exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+			)
 	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
 	v = _extra_flow(v, pos, agl)
 	_last_sigma = 0.0
@@ -825,6 +833,17 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	var s_u := sg.x
 	var s_w := sg.y
 	var s_sep := field_turb.sep_sigma(du)
+	# рывки вниз слоя смешения (с нулевым средним — поток массы уже в w_mech поля): часть
+	# пульсаций, их доля в σ_w вычитается из гауссовой, σ_w в зоне = 0,14·ΔU (Bell & Mehta 1990)
+	var hard_f := du * danger
+	var w_burst := 0.0
+	if hard_f > 1.0e-3:
+		var amp_b := field_turb.burst_per_du * hard_f
+		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		var g_std := field_turb.burst_std(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		w_burst = -amp_b * (_lee_burst_g(pos, u) - g_mean)
+		var s_b := amp_b * g_std
+		s_sep.y = sqrt(maxf(s_sep.y * s_sep.y - s_b * s_b, 0.0))
 	s_u = maxf(s_u, s_sep.x)
 	s_w = maxf(s_w, s_sep.y)
 	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
@@ -839,7 +858,7 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	var n := field_turb.gusts.sample(
 		pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep)
 	)
-	var tv := Vector3(n.x * s_u, n.y * s_w, n.z * s_u)
+	var tv := Vector3(n.x * s_u, n.y * s_w + a * w_burst, n.z * s_u)
 	var sig := s_u
 	if a < 1.0:
 		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
@@ -865,6 +884,13 @@ func _lee_danger(u_ref: float) -> float:
 ## Подветренный поток: (добавка к горизонтали вдоль ветра, вертикаль), м/с. Нисходящий поток,
 ## рывки сверху (детерминированный шум, редкие сильные удары вниз) и ротор у склона — обратный
 ## поток у земли в глубине зоны.
+## Пятно рывка 0..1: clamp((n − порог)/ширина) детерминированного шума (burst_*), переносится
+## ветром u.
+func _lee_burst_g(pos: Vector3, u: float) -> float:
+	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
+	return clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
+
+
 func _lee_flow(
 	pos: Vector3, agl: float, u: float, lee: float, danger: float, relief: float
 ) -> Vector2:

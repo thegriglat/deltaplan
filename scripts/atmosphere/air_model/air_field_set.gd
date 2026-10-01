@@ -158,6 +158,23 @@ func sample_turb(pos: Vector3, ground_h: float) -> PackedFloat32Array:
 	return cur
 
 
+## Размер клетки уровней в точке, м (C4 v4, AM-08в): среднее dx уровней с весами, как в sample
+## (текущий набор, без снимка подмены), нормированное на долю; вне поля / нет уровней — 0.
+func sample_dx(pos: Vector3, _ground_h: float) -> float:
+	var acc := 0.0
+	var rem := 1.0
+	for f in levels:
+		var wgt := f.edge_weight(pos)
+		if wgt <= 0.0:
+			continue
+		acc += f.dx * rem * wgt
+		rem *= 1.0 - wgt
+		if rem <= 0.0:
+			break
+	var share := 1.0 - rem
+	return acc / share if share > 0.0 else 0.0
+
+
 static func _turb_levels(lv: Array[WindField], pos: Vector3, ground_h: float) -> PackedFloat32Array:
 	var acc := PackedFloat32Array()
 	acc.resize(WindField.T_SIZE + 1)
