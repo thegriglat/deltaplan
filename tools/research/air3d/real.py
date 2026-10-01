@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from functools import lru_cache
 
 import numpy as np
@@ -13,6 +14,7 @@ import numpy as np
 import air as A
 import terrain as T
 import weather as W
+import wind_prof as WP
 
 DOMAIN_L = 38400.0       # сторона области, м (слой detail — 40 км; 38,4 = 96·400 = 192·200)
 TOP_ABOVE = 3000.0       # потолок над максимумом рельефа области, м (губка — верхний 1 км)
@@ -76,7 +78,9 @@ def day(loc, hour, t_max=None, sky="clear"):
 
 
 def case(loc, g, hc, hour, U10, wdir, t_max=None, sky="clear", heat=True):
-    """Условия на час: θ̄(z), z_i и поток тепла из погоды игры; heat=False — H = 0 (механика)."""
+    """Условия на час: θ̄(z), z_i и поток тепла из погоды игры; heat=False — H = 0 (механика).
+    Профиль притока случая (c.alpha, c.max_profile) — по устойчивости на час (wind_prof, C2 v4, как
+    WindProfile.apply_to_case игры); make() ставит их в Params."""
     ctx = context(loc)
     D = day(loc, hour, t_max, sky)
     doy = W.day_of_year(ctx["month"], ctx["day"])
@@ -86,6 +90,8 @@ def case(loc, g, hc, hour, U10, wdir, t_max=None, sky="clear", heat=True):
                label=f"{loc} {hour:g}h U{U10:g} {wdir:g}° t{D.t_max:g} {sky}{'' if heat else ' noheat'}")
     c.day = D
     c.sun = sun
+    P0 = A.Params()
+    c.alpha, c.max_profile, c.stab_class, c.sun_elev = WP.for_hour(ctx, hour, sky, U10, P0.z0, P0.f_cor)
     return c
 
 
@@ -129,6 +135,10 @@ def bil(g, M, x, y):
 
 
 def make(loc, g, hc, cond, parent=None, prm=None, dtype=np.float32):
-    S = A.Air(g, hc, cond, prm or A.Params(), nest=None if parent is None else dict(parent=parent), dtype=dtype)
+    """Решатель случая; α и max_profile — профиль притока случая (case(): по устойчивости на час), если он есть."""
+    prm = prm or A.Params()
+    if getattr(cond, "alpha", None) is not None:
+        prm = replace(prm, alpha=cond.alpha, max_profile=cond.max_profile)
+    S = A.Air(g, hc, cond, prm, nest=None if parent is None else dict(parent=parent), dtype=dtype)
     S.loc = loc
     return S

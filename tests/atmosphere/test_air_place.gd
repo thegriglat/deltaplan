@@ -76,6 +76,23 @@ func test_domain_input_vs_reference() -> void:
 		check(e_q < 1e-2, "поток тепла: %s Вт/м²" % fmt.call(e_q))
 		check(e_g < 1e-7, "dθ̄/dz: %s К/м" % fmt.call(e_g))
 		check(absf(c.z_i - float(m.z_i)) < 0.5, "z_i: %.2f против %.2f" % [c.z_i, float(m.z_i)])
+		# профиль притока (C2 v4): α и max_profile случая игры = эталона на тот же час и ветер
+		for u in [0.0, 3.0, 6.0]:
+			var cu := c if u == 3.0 else AirPlace.domain_case(lw[0], lw[1], loc, dx, 12.0, u, 150.0)
+			var pr: Dictionary = m.profiles["%d" % int(u)]
+			print(
+				(
+					"    %d м/с: α %.6f / %.6f, max_profile %.6f / %.6f (игра / эталон, класс %s)"
+					% [int(u), cu.p.alpha, pr.alpha, cu.p.max_profile, pr.max_profile, pr.cls]
+				)
+			)
+			approx(float(cu.p.alpha), float(pr.alpha), 1e-9, "α %d м/с как в эталоне" % int(u))
+			approx(
+				float(cu.p.max_profile),
+				float(pr.max_profile),
+				1e-9 * float(pr.max_profile),
+				"max_profile %d м/с как в эталоне" % int(u)
+			)
 
 
 static func _max_diff(a: PackedFloat64Array, b: PackedFloat32Array) -> float:

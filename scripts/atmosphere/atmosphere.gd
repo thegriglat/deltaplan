@@ -166,6 +166,8 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	var old_ground := ground
 	wind = WindModel.new()
 	wind.setup(cfg.wind, cfg.turbulence, seed_used)
+	var wc := _wind_conditions()
+	wind.set_conditions(wc.x, wc.y)
 	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
 	field_turb = FieldTurbulence.new()
 	field_turb.setup(cfg.turbulence, cfg.lee, seed_used)
@@ -237,6 +239,7 @@ func _update_weather(w: Dictionary, blend_s: float) -> void:
 	field.cloud_width_per_ms = (
 		float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
 	)
+	_update_wind_conditions()
 	_target = {
 		"bg_sink": float(weather.background_sink_ms),
 		"conv_amp": float(weather.convective_turbulence_ms),
@@ -287,6 +290,7 @@ func _apply_day(t: float) -> void:
 		field.cloud_width_per_ms = (
 			float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
 		)
+		_update_wind_conditions()
 		weather_updated.emit()
 	_bg_sink = _lerp_key(w0, w1, f, "background_sink_ms", _bg_sink)
 	_conv_amp = _lerp_key(w0, w1, f, "convective_turbulence_ms", _conv_amp)
@@ -894,6 +898,28 @@ func cloud_density_at(pos: Vector3) -> float:
 func get_insolation() -> float:
 	var cover := clampf(float(weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
 	return 1.0 - cover * float(cfg.cirrus.sun_block)
+
+
+## Условия устойчивости профиля ветра (WindProfile, C2 v4) из погоды: (высота солнца часа, °;
+## облачность 0..1). Час — WeatherModel.derive → _derived.sun_elev_deg (пресет без часа —
+## clouds.sun_elevation_deg), облачность — прогноз (sky_params(sky).cover; пресет — ясно).
+func _wind_conditions() -> Vector2:
+	var dv: Dictionary = weather.get("_derived", {})
+	var sun := float(dv.get("sun_elev_deg", float(cfg.clouds.sun_elevation_deg)))
+	var cover := 0.0
+	if dv.has("sky"):
+		cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
+	return Vector2(sun, cover)
+
+
+## Погода сменилась (шаг хода дня, мягкое обновление): профиль ветра по новым условиям.
+func _update_wind_conditions() -> void:
+	var wc := _wind_conditions()
+	if wc.x == wind.sun_elev_deg and wc.y == wind.cover:
+		return
+	wind.set_conditions(wc.x, wc.y)
+	_advect = wind.speed_at(float(cfg.turbulence.advection_height_m))
+	_update_wave_wind()
 
 
 func _update_wave_wind() -> void:

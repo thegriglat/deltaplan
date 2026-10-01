@@ -90,6 +90,7 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	WindProfile.apply_to_case(c, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = AirPlace.gamma(d, c.zc(k))

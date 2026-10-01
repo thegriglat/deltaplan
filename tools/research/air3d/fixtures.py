@@ -175,7 +175,7 @@ def make_case(name, g, hc, case, prm):
     levels = [list(L["shape"])[::-1] for L in S.mg.levels]
     meta = dict(case=name, dims=[NX, NY, NZ], halo=1, dx=g.dx, dz=g.dz, z_bot=g.z_bot, x0=g.x0, y0=g.y0,
                 nx=g.nx, ny=g.ny, nz=g.nz,
-                params={k: getattr(prm, k) for k in prm.__dataclass_fields__},
+                params={k: getattr(S.prm, k) for k in S.prm.__dataclass_fields__},
                 case_params=dict(U10=case.U10, wdir=case.wdir, z_i=case.z_i, U_aloft=S.U_a, label=case.label),
                 cd=S.cd, fixed_scale=S.fixed_scale, n_fluid=S.n_fluid, closure=S.closure_info,
                 mg_levels_xyz=levels,

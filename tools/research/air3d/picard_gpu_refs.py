@@ -74,15 +74,18 @@ def main():
         P.add("H", c.H)
         P.add("gam", c.gam(zc))
         runs = []
+        profiles = {}   # профиль притока по ветру (C2 v4: α по устойчивости на час) — тест ставит его в AirCase.p
         for U in WINDS:
             for heat in (True, False):
                 t0 = time.perf_counter()
-                S, _, st = solve(g, hc, U, heat, np.float32)
+                S, cu, st = solve(g, hc, U, heat, np.float32)
                 runs.append(dict(U10=U, heat=heat, dtype="float32", status=st, iters=S.outer,
                                  t_cupy=round(S.wall - S.t_check, 3)))
+                profiles[f"{U:g}"] = dict(alpha=cu.alpha, max_profile=cu.max_profile, cls=cu.stab_class,
+                                          sun_elev=cu.sun_elev)
                 print(dx, U, heat, st, S.outer, round(time.perf_counter() - t0, 1), flush=True)
                 del S
-        meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx, params=dict(lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t, k_relax=A.Params().k_relax), dx=g.dx, dz=g.dz, nx=g.nx, ny=g.ny, nz=g.nz,
+        meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx, params=dict(lam=A.Params().lam, lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t, k_relax=A.Params().k_relax), profiles=profiles, dx=g.dx, dz=g.dz, nx=g.nx, ny=g.ny, nz=g.nz,
                     z_bot=g.z_bot, x0=g.x0, y0=g.y0, z_i=c.z_i, ctx=R.context(LOC),
                     day={k: (None if isinstance(v, float) and not np.isfinite(v) else v) for k, v in c.day.summary().items()}, site=dict(x=sx, y=sy), runs=runs)
         if dx == 400:

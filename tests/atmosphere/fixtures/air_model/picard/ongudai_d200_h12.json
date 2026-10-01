@@ -4,9 +4,30 @@
  "wdir": 150.0,
  "dtau_u": 60.0,
  "params": {
-  "lam_frac": 0.25,
+  "lam": 40.0,
+  "lam_frac": 0.0158,
   "pr_t": 0.85,
   "k_relax": 0.1
+ },
+ "profiles": {
+  "0": {
+   "alpha": 0.11200000000000002,
+   "max_profile": 1.1491116250982372,
+   "cls": "A",
+   "sun_elev": 56.82523091641602
+  },
+  "3": {
+   "alpha": 0.11200000000000002,
+   "max_profile": 1.4044787036158113,
+   "cls": "B",
+   "sun_elev": 56.82523091641602
+  },
+  "6": {
+   "alpha": 0.24,
+   "max_profile": 2.4454067665987473,
+   "cls": "D",
+   "sun_elev": 56.82523091641602
+  }
  },
  "dx": 200,
  "dz": 105.0,
@@ -49,8 +70,8 @@
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 251,
-   "t_cupy": 11.03
+   "iters": 1101,
+   "t_cupy": 41.836
   },
   {
    "U10": 0.0,
@@ -58,31 +79,31 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 11,
-   "t_cupy": 0.384
+   "t_cupy": 0.328
   },
   {
    "U10": 3.0,
    "heat": true,
    "dtype": "float32",
    "status": "ok",
-   "iters": 171,
-   "t_cupy": 7.238
+   "iters": 201,
+   "t_cupy": 7.662
   },
   {
    "U10": 3.0,
    "heat": false,
+   "dtype": "float32",
+   "status": "ok",
+   "iters": 221,
+   "t_cupy": 6.436
+  },
+  {
+   "U10": 6.0,
+   "heat": true,
    "dtype": "float32",
    "status": "ok",
    "iters": 191,
-   "t_cupy": 5.884
-  },
-  {
-   "U10": 6.0,
-   "heat": true,
-   "dtype": "float32",
-   "status": "ok",
-   "iters": 181,
-   "t_cupy": 7.13
+   "t_cupy": 7.268
   },
   {
    "U10": 6.0,
@@ -90,7 +111,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 181,
-   "t_cupy": 5.445
+   "t_cupy": 5.287
   }
  ],
  "arrays": {
