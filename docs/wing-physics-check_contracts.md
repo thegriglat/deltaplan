@@ -2,13 +2,13 @@
 
 План — `docs/plan/wing-physics-check.md`. Контракты К1–К3 фиксируют то, что уже есть в коде (main 3820bda); К4–К6 — новые форматы данных модуля. Менять — только через координатора (версия +1, уведомить потребителей). Контрактный тест — `tests/contracts/test_wing_physics_contracts.gd`.
 
-## К1. Конфиг крыла → модель полёта (v1)
+## К1. Конфиг крыла → модель полёта (v2)
 Владелец: данные крыльев (`configs/wings/<id>.json`, генераторы `tools/research/data/wing_passports/`). Потребители: `FlightModel.setup` (`scripts/flight/flight_model.gd:94`), `WingPolar`, `WingCatalog`, тесты `tests/flight/*`, задачи WPC-1, WPC-3.
 - `area_m2` (м²), `span_m` (м), `wing_mass_kg`, `pilot_mass_min_kg`, `pilot_mass_max_kg`, `pilot_mass_ref_kg` (кг, пилот с подвеской).
 - `polar.points_kmh_ms`: массив пар [воздушная скорость км/ч, снижение м/с] при эталонной полной массе (`pilot_mass_ref_kg + wing_mass_kg`) и плотности `flight.air_density.polar_ref_kgm3` (1,225); первая точка — сваливание в прямолинейном полёте; скорости строго растут.
 - `trim_speed_kmh`, `full_pull_speed_kmh`, `full_push_speed_kmh` — скорости при трапеции 0 / −1 (на себя) / +1 (от себя) при эталонной массе и плотности; трапеция задаёт угол атаки (`_alpha_command`, flight_model.gd:285), поэтому при другой массе/плотности скорость × √(M·ρ_эт/(M_эт·ρ)).
 - `reference.{stall_speed_kmh, min_sink_ms, min_sink_speed_kmh, best_glide, best_glide_speed_kmh}` (+ `sink_at_80_kmh_ms`, если крыло летает 80 км/ч) — ориентиры для тестов (при эталонной массе, уровень моря).
-- Инварианты: stall_speed < trim < full_pull; full_push < trim (full_push может быть ниже сваливания — полное выжимание сваливает).
+- Инварианты: stall_speed < trim < full_pull; (v2) `launch.alpha_neutral_deg ≤ α_срыва − 3°`, α_срыва = CL_max/`lift_slope_per_rad` + `zero_lift_alpha_deg` (CL_max — по первой точке поляры при эталонной массе, `WingPolar.cl_max`): с нейтральной трапецией крыло на разбеге не сорвано; full_push < trim (full_push может быть ниже сваливания — полное выжимание сваливает).
 
 ## К2. Скорость воздуха → модель полёта (v1)
 Владелец: `Atmosphere.air_velocity_at(pos: Vector3) -> Vector3` (`scripts/atmosphere/atmosphere.gd:636`; `CalmAir` — то же). Потребители: `FlightModel.step(dt, input, air_fn, ground_fn)` (через `Glider.set_air_fn`), WPC-2, WPC-3.
@@ -39,4 +39,5 @@
 - `series`: `penetration` (прямо в ветер) | `ridge` (восьмёрка у гребня); `gs_into_wind_ms` — средняя за последние 30 с путевая скорость вдоль направления «в ветер» (+ — вперёд, против ветра; − — сносит назад); `airspeed_ms`, `vz_ms` (+ вверх), `wind_h_ms`, `wind_w_ms` — средние за то же окно в точке аппарата; `climb_m` — набор за полёт; `note` — касание земли и т. п.
 
 ## История
+- К1 v2 (01.10): инвариант угла разбега против угла срыва (atlas: 16° при срыве 12,6°). Владелец правки — WPC-4 (конфиги + контрактный тест: CONTRACTS К1 = 2 и проверка инварианта). Потребители: FlightModel/GroundRun (control-fix уведомляется через главную сессию).
 - К4 v2 (01.10): добавлены значения `quantity` для проверки отрыва на старте (данные пилота о старте при 0/3/6/10 м/с); колонки те же. Потребитель WPC-1 уведомлён.
