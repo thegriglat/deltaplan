@@ -1,6 +1,6 @@
 keys,ru,en
-settings_invert_pitch_hint,"W — от себя, S — на себя","W — push out, S — pull in"
-controls_short_help,"W/S — трапеция, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — control bar, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
+settings_invert_pitch_hint,"Как ручка самолёта: W — на себя, S — от себя","Like an aircraft stick: W — pull in, S — push out"
+controls_short_help,"W/S — трапеция от себя/на себя, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — bar out/in, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_crosswind,Боковой ветер завалил крыло,A crosswind dropped the wing

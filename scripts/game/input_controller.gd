@@ -323,7 +323,8 @@ func _apply_gamepad() -> void:
 		if on_ground:
 			control.walk = -gy
 		else:
-			control.pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
+			# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v2)
+			control.pitch = -gy * inv
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
