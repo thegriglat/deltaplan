@@ -71,3 +71,27 @@ func test_soft_update_keeps_thermals() -> void:
 	approx(float(a.weather.thermal_spacing_m), spacing, 1.0e-6, "сетка источников не меняется")
 	approx(float(a.weather.wind_speed_kmh), 11.0, 1.0e-6, "ветер не меняется")
 	a.free()
+
+
+## Профиль ветра по устойчивости (C2 v4): α и предел WindModel — WindProfile по высоте солнца часа
+## и облачности прогноза; ход дня (мягкое обновление погоды) меняет класс.
+func test_wind_profile_follows_hour() -> void:
+	var a := _atmo(_day(12.0))
+	a.set_wind(10.8, 270.0)  # 3 м/с
+	var w12: Dictionary = a.weather._derived
+	var cover := float(WeatherModel.sky_params(String(w12.sky)).cover)
+	var a12 := WindProfile.alpha(3.0, float(w12.sun_elev_deg), cover)
+	approx(a.wind.profile_params().x, a12, 1.0e-6, "12:00: α = WindProfile")
+	approx(
+		a.wind.profile_params().y,
+		WindProfile.max_profile(a12, 3.0, AirCase.Z0, AirCase.F_COR),
+		1.0e-6,
+		"12:00: предел = WindProfile"
+	)
+	a.set_weather(_day(20.0), 0.0)
+	var w20: Dictionary = a.weather._derived
+	check(float(w20.sun_elev_deg) < float(w12.sun_elev_deg), "вечером солнце ниже")
+	var a20 := WindProfile.alpha(3.0, float(w20.sun_elev_deg), cover)
+	approx(a.wind.profile_params().x, a20, 1.0e-6, "20:00: α = WindProfile")
+	check(a20 > a12, "вечером сдвиг больше, чем в полдень: %.3f > %.3f" % [a20, a12])
+	a.free()

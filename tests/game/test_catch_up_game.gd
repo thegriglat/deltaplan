@@ -198,7 +198,8 @@ func _enter_zone(z: FakeZone, auto := false) -> void:
 	game.process_mode = Node.PROCESS_MODE_INHERIT
 	var s := FlightSettings.defaults()
 	s.wind_speed_kmh = 5.0
-	s.start_hour = 10.0  # утро: термики слабые — «без рук» после буксира не болтает до сваливания
+	# утро (AM-06: ближайший фиксированный час старта) — термики слабые, «без рук» не болтает
+	s.start_hour = 9.0
 	game.enable_net(NetFlight.new(), z, pilots)
 	game.net.auto_catch_up = auto
 	await main.call("_fly", s)

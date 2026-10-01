@@ -262,12 +262,13 @@ func replace_in_circle(cx: float, cz: float, r_in: float, from_class: int, to_cl
 			if dx * dx + dz * dz <= r * r and classes[j * width + i] == from_class:
 				classes[j * width + i] = to_class
 	if from_class == FOREST and mask_width > 0:
-		_clear_mask_circle(cx, cz, r)
+		_clear_mask_circle(cx, cz, r_in)
 
 
-## Обнулить долю леса маски 10 м в круге (поляны у стартов).
+## Обнулить долю леса маски 10 м в круге (поляны у стартов): узлы до r + диагональ клетки —
+## билинейная доля леса (mask_r, forest_at, деревья) внутри r гарантированно ноль.
 func _clear_mask_circle(cx: float, cz: float, r_in: float) -> void:
-	var r := r_in + mask_spacing * 0.71
+	var r := r_in + mask_spacing * 1.42
 	var inv := 1.0 / mask_spacing
 	var i0 := maxi(0, floori((cx - r - mask_origin_x) * inv))
 	var i1 := mini(mask_width - 1, ceili((cx + r - mask_origin_x) * inv))

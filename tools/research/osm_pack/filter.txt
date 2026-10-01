@@ -1,0 +1,17 @@
+# osmium tags-filter: слои векторного пакета (без building=*, без barrier=*)
+w/highway
+w/railway=rail,narrow_gauge
+w/waterway=river,stream,canal,ditch,drain
+wr/natural=water,wetland,glacier,wood,scrub,heath,grassland,bare_rock,scree,shingle,sand
+wr/water
+wr/landuse=forest,meadow,farmland,orchard,vineyard,grass,residential,industrial,quarry,allotments,reservoir,basin
+w/natural=cliff
+nwr/place
+nw/power=line,minor_line,tower,pole
+nw/aerialway
+nwr/aeroway=aerodrome,airstrip,runway,helipad
+nwr/sport=free_flying
+nwr/free_flying:*
+n/generator:source=wind
+nw/man_made=mast,tower,communications_tower,chimney
+n/natural=peak,saddle

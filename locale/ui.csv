@@ -55,6 +55,7 @@ menu_free_flight,Свободный полёт,Free flight
 result_avg_glide,Среднее качество: %.1f,Average glide ratio: %.1f
 result_avg_ground_speed,Средняя путевая скорость: %.0f км/ч,Average ground speed: %.0f km/h
 about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of the materials are listed below.
+about_thanks_dhv,"Спасибо DHV (Deutscher Hängegleiterverband, www.dhv.de) за открытые данные паспортов и типовых испытаний крыльев: паспорта, геометрия и характеристики.","Thanks to the DHV (Deutscher Hängegleiterverband, www.dhv.de) for the open data on wing datasheets and type tests: datasheets, geometry and characteristics."
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
 launch_fail_weak_run,Слабый разбег — крыло не набрало скорость,Run too weak — the wing never reached flying speed
 common_save,Сохранить,Save
@@ -124,6 +125,7 @@ loading_trees,Сажаю лес…,Planting trees…
 loading_grass,Трава…,Grass…
 loading_weather,Погода и термики…,Weather and thermals…
 loading_objects,"Камни, кусты и дороги…","Rocks, bushes and roads…"
+loading_wind,Рассчитываем ветер…,Computing wind…
 loading_almost,Почти готово…,Almost ready…
 err_sea,Здесь море — выберите точку на суше.,That's the sea — pick a point on land.
 err_no_terrain_data,Для этого места нет данных рельефа.,There is no terrain data for this place.
@@ -305,6 +307,45 @@ wing_airwave_magic,Airwave Magic IV 166,Airwave Magic IV 166
 wing_icaro_laminar,Icaro Laminar Easy 14,Icaro Laminar Easy 14
 wing_moyes_litespeed_rs,Moyes Litespeed RS 4,Moyes Litespeed RS 4
 wing_aeros_combat,Aeros Combat GT 13.2,Aeros Combat GT 13.2
+wing_icaro_piuma,Icaro Piuma M,Icaro Piuma M
+wing_moyes_malibu2,Moyes Malibu 2 166,Moyes Malibu 2 166
+wing_air_f2,Airborne F2 190,Airborne F2 190
+wing_aeros_fox,Aeros Fox,Aeros Fox
+wing_condor_crex3,Delta Flugschule Condor Crex 3,Delta Flugschule Condor Crex 3
+wing_condor_flex,Delta Flugschule Condor FLEX,Delta Flugschule Condor FLEX
+wing_fs_funky,Flugsport Skypoint Funky 15,Flugsport Skypoint Funky 15
+wing_fs_space,Flugsport Skypoint Space 14,Flugsport Skypoint Space 14
+wing_ww_eagle,Wills Wing Eagle 164,Wills Wing Eagle 164
+wing_ww_sport3,Wills Wing Sport 3 155,Wills Wing Sport 3 155
+wing_ww_u2,Wills Wing U2 145,Wills Wing U2 145
+wing_aeros_discus,Aeros Discus 14,Aeros Discus 14
+wing_air_sting3,Airborne Sting 3 154,Airborne Sting 3 154
+wing_icaro_alto,Icaro Alto M,Icaro Alto M
+wing_icaro_mastr,Icaro MastR L,Icaro MastR L
+wing_bautek_kite,Bautek Kite,Bautek Kite
+wing_bautek_astir,Bautek Astir,Bautek Astir
+wing_fs_crossover,Flugsport Skypoint Crossover 14,Flugsport Skypoint Crossover 14
+wing_seed_spyder,Seedwings Spyder 12.5,Seedwings Spyder 12.5
+wing_moyes_gecko,Moyes Gecko 155,Moyes Gecko 155
+wing_ww_super_sport,Wills Wing Super Sport 153,Wills Wing Super Sport 153
+wing_ww_ultra_sport,Wills Wing Ultra Sport 147,Wills Wing Ultra Sport 147
+wing_ww_spectrum,Wills Wing Spectrum 165,Wills Wing Spectrum 165
+wing_ww_t2c,Wills Wing T2C 144,Wills Wing T2C 144
+wing_ww_t3,Wills Wing T3 144,Wills Wing T3 144
+wing_moyes_litespeed_rx,Moyes Litespeed RX 4,Moyes Litespeed RX 4
+wing_moyes_litespeed_s,Moyes Litespeed S 4,Moyes Litespeed S 4
+wing_moyes_litesport,Moyes Litesport 4,Moyes Litesport 4
+wing_aeros_combat_c,Aeros Combat C 12.7,Aeros Combat C 12.7
+wing_aeros_combat_l,Aeros Combat L 13,Aeros Combat L 13
+wing_icaro_laminar_z9,Icaro Laminar 13.7,Icaro Laminar 13.7
+wing_bautek_fizz,Bautek Fizz,Bautek Fizz
+wing_air_c4,Airborne C4 13.5,Airborne C4 13.5
+wing_air_rev,Airborne REV 13.5,Airborne REV 13.5
+wing_dp_she1,DesignProducts SHE 1 12.7,DesignProducts SHE 1 12.7
+wing_seed_skyrunner_xr,Seedwings Skyrunner XR,Seedwings Skyrunner XR
+wing_ww_fusion,Wills Wing Fusion 150,Wills Wing Fusion 150
+wing_ww_talon,Wills Wing Talon 150,Wills Wing Talon 150
+wing_ww_cross_country,Wills Wing Cross Country 155,Wills Wing Cross Country 155
 wing_group_soviet,Советские 1980-х,Soviet 1980s
 wing_group_soviet_hint,Устойчивые и прощающие крылья 1980-х,"Stable, forgiving wings of the 1980s"
 wing_group_trainer,Учебные однообшивочные,Single-surface trainers

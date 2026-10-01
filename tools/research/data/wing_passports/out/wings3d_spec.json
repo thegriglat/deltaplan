@@ -1,0 +1,1752 @@
+{
+  "icaro_piuma": {
+    "section": "N1",
+    "title": "Icaro Piuma",
+    "size": "M",
+    "priority": "P1",
+    "base": "training",
+    "params": {
+      "config": "icaro_piuma",
+      "nose_angle_deg": 120,
+      "root_chord_m": 2.45,
+      "tip_chord_m": 0.96,
+      "nose_forward_m": 1.39,
+      "battens_per_side": 7,
+      "double_surface": false,
+      "lower_cover": 0.3,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_icaro_piuma"
+    },
+    "config": {
+      "span_m": 9.8,
+      "area_m2": 16.04,
+      "wing_mass_kg": 24.0,
+      "pilot_mass_min_kg": 70,
+      "pilot_mass_max_kg": 90,
+      "double_surface_pct": 30,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2019–",
+      "prototype": "Icaro Piuma M",
+      "dhv": {
+        "vmin_vg0_kmh": 31.0,
+        "vmax_vg0_kmh": 80.0,
+        "takeoff_mass_min_kg": 83.0,
+        "takeoff_mass_max_kg": 115.0,
+        "vne_kmh": 80.0,
+        "cert": "DHV 01-0498-19"
+      }
+    },
+    "sources": [
+      "Icaro|Piuma||M",
+      "Icaro|Piuma||S",
+      "Icaro|Piuma||L",
+      "Icaro|Piuma||XL"
+    ]
+  },
+  "moyes_malibu2": {
+    "section": "N2",
+    "title": "Moyes Malibu 2",
+    "size": "166",
+    "priority": "P1",
+    "base": "training",
+    "params": {
+      "config": "moyes_malibu2",
+      "nose_angle_deg": 120.5,
+      "root_chord_m": 2.54,
+      "tip_chord_m": 1,
+      "nose_forward_m": 1.66,
+      "battens_per_side": 7,
+      "double_surface": false,
+      "lower_cover": 0.2,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_moyes_malibu2"
+    },
+    "config": {
+      "span_m": 9.1,
+      "area_m2": 15.4,
+      "wing_mass_kg": 24.0,
+      "pilot_mass_min_kg": 60,
+      "pilot_mass_max_kg": 110,
+      "double_surface_pct": 20,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2016–",
+      "prototype": "Moyes Malibu 2 166",
+      "dhv": {
+        "vmin_vg0_kmh": 28.0,
+        "vmax_vg0_kmh": 70.0,
+        "takeoff_mass_min_kg": 88.0,
+        "takeoff_mass_max_kg": 128.0,
+        "vne_kmh": 70.0,
+        "cert": "DHV 01-0486-16"
+      }
+    },
+    "sources": [
+      "Moyes|Malibu|2|166",
+      "Moyes|Malibu|2|188",
+      "Moyes|Malibu||188"
+    ]
+  },
+  "air_f2": {
+    "section": "N3",
+    "title": "Airborne F2",
+    "size": "190",
+    "priority": "P1",
+    "base": "training",
+    "params": {
+      "config": "air_f2",
+      "nose_angle_deg": 118,
+      "root_chord_m": 2.63,
+      "tip_chord_m": 1.03,
+      "nose_forward_m": 1.65,
+      "battens_per_side": 7,
+      "double_surface": false,
+      "lower_cover": 0.3,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.6,
+      "out": "glider_air_f2"
+    },
+    "config": {
+      "span_m": 10.1,
+      "area_m2": 17.7,
+      "wing_mass_kg": 23.0,
+      "pilot_mass_min_kg": 70,
+      "pilot_mass_max_kg": 120,
+      "double_surface_pct": 30,
+      "kingpost": true,
+      "group": "trainer",
+      "era": null,
+      "prototype": "Airborne F2 190",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Airborne|F2||190"
+    ]
+  },
+  "aeros_fox": {
+    "section": "N4",
+    "title": "Aeros Fox",
+    "size": null,
+    "priority": "P1",
+    "base": "target",
+    "params": {
+      "config": "aeros_fox",
+      "nose_angle_deg": 120,
+      "root_chord_m": 2.6,
+      "tip_chord_m": 0.93,
+      "nose_forward_m": 1.48,
+      "battens_per_side": 7,
+      "double_surface": false,
+      "lower_cover": 0.25,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_aeros_fox"
+    },
+    "config": {
+      "span_m": 9.6,
+      "area_m2": 16.2,
+      "wing_mass_kg": 25.2,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 25,
+      "kingpost": true,
+      "group": "trainer",
+      "era": null,
+      "prototype": "Aeros Fox",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 85.0,
+        "takeoff_mass_max_kg": 139.0,
+        "vne_kmh": 75.0,
+        "cert": "DHV 01-0457-10"
+      }
+    },
+    "sources": [
+      "Aeros|Fox||",
+      "Aeros|Fox||13"
+    ]
+  },
+  "condor_crex3": {
+    "section": "N5",
+    "title": "Delta Flugschule Condor Crex 3",
+    "size": null,
+    "priority": "P2",
+    "base": "training",
+    "params": {
+      "config": "condor_crex3",
+      "nose_angle_deg": 122,
+      "root_chord_m": 2.27,
+      "tip_chord_m": 0.89,
+      "nose_forward_m": 1.29,
+      "battens_per_side": 7,
+      "double_surface": true,
+      "lower_cover": 0.6,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_condor_crex3"
+    },
+    "config": {
+      "span_m": 9.6,
+      "area_m2": 14.5,
+      "wing_mass_kg": 23.0,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 60,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2015–",
+      "prototype": "Delta Flugschule Condor Crex 3",
+      "dhv": {
+        "vmin_vg0_kmh": 35.0,
+        "vmax_vg0_kmh": 80.0,
+        "takeoff_mass_min_kg": 72.0,
+        "takeoff_mass_max_kg": 121.0,
+        "vne_kmh": 80.0,
+        "cert": "DHV 01-0505-24"
+      }
+    },
+    "sources": [
+      "Delta Flugschule Condor|Crex|3|",
+      "Delta Flugschule Condor|Crex||14.5"
+    ]
+  },
+  "condor_flex": {
+    "section": "N6",
+    "title": "Delta Flugschule Condor FLEX / Lifter",
+    "size": null,
+    "priority": "P2",
+    "base": "training",
+    "params": {
+      "config": "condor_flex",
+      "nose_angle_deg": 122,
+      "root_chord_m": 2.61,
+      "tip_chord_m": 1.02,
+      "nose_forward_m": 1.48,
+      "battens_per_side": 5,
+      "double_surface": false,
+      "lower_cover": 0.2,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_condor_flex"
+    },
+    "config": {
+      "span_m": 9.2,
+      "area_m2": 16.0,
+      "wing_mass_kg": 17.6,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 20,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2019–",
+      "prototype": "Delta Flugschule Condor FLEX",
+      "dhv": {
+        "vmin_vg0_kmh": 29.0,
+        "vmax_vg0_kmh": 65.0,
+        "takeoff_mass_min_kg": 67.0,
+        "takeoff_mass_max_kg": 115.0,
+        "vne_kmh": 80.0,
+        "cert": "DHV 01-0496-19"
+      }
+    },
+    "sources": [
+      "Delta Flugschule Condor|FLEX||",
+      "Delta Flugschule Condor|Lifter||"
+    ]
+  },
+  "fs_funky": {
+    "section": "N7",
+    "title": "Flugsport Skypoint Funky",
+    "size": "15",
+    "priority": "P2",
+    "base": "training",
+    "params": {
+      "config": "fs_funky",
+      "nose_angle_deg": 122,
+      "root_chord_m": 2.42,
+      "tip_chord_m": 0.95,
+      "nose_forward_m": 1.37,
+      "battens_per_side": 7,
+      "double_surface": false,
+      "lower_cover": 0.3,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_fs_funky"
+    },
+    "config": {
+      "span_m": 9.5,
+      "area_m2": 15.3,
+      "wing_mass_kg": 23.0,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 30,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2006",
+      "prototype": "Flugsport Skypoint Funky 15",
+      "dhv": {
+        "vmin_vg0_kmh": 28.0,
+        "vmax_vg0_kmh": 70.0,
+        "takeoff_mass_min_kg": 90.0,
+        "takeoff_mass_max_kg": 130.0,
+        "vne_kmh": 70.0,
+        "cert": "DHV 01-0416-06"
+      }
+    },
+    "sources": [
+      "Flugsport Skypoint|Funky||15",
+      "Flugsport Skypoint|Funky||17"
+    ]
+  },
+  "fs_space": {
+    "section": "N8",
+    "title": "Flugsport Skypoint Space",
+    "size": "14",
+    "priority": "P2",
+    "base": "training",
+    "params": {
+      "config": "fs_space",
+      "nose_angle_deg": 122,
+      "root_chord_m": 2.24,
+      "tip_chord_m": 0.88,
+      "nose_forward_m": 1.27,
+      "battens_per_side": 7,
+      "double_surface": true,
+      "lower_cover": 0.72,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_fs_space"
+    },
+    "config": {
+      "span_m": 9.5,
+      "area_m2": 14.2,
+      "wing_mass_kg": 25.5,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 72,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "2008",
+      "prototype": "Flugsport Skypoint Space 14",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": 69.0,
+        "takeoff_mass_min_kg": 90.0,
+        "takeoff_mass_max_kg": 135.0,
+        "vne_kmh": 80.0,
+        "cert": "DHV 01-0436-08"
+      }
+    },
+    "sources": [
+      "Flugsport Skypoint|Space||14",
+      "Flugsport Skypoint|Space||16"
+    ]
+  },
+  "ww_eagle": {
+    "section": "N9",
+    "title": "Wills Wing Eagle",
+    "size": "164",
+    "priority": "P2",
+    "base": "magic",
+    "params": {
+      "config": "ww_eagle",
+      "nose_angle_deg": 124,
+      "root_chord_m": 2.48,
+      "tip_chord_m": 0.78,
+      "nose_forward_m": 1.41,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.6,
+      "kingpost_m": 1.2,
+      "crossbar_u": 0.57,
+      "out": "glider_ww_eagle"
+    },
+    "config": {
+      "span_m": 9.75,
+      "area_m2": 15.24,
+      "wing_mass_kg": 26.5,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 113,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2000–2005",
+      "prototype": "Wills Wing Eagle 164",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Eagle||164",
+      "Wills Wing|Eagle||145",
+      "Wills Wing|Eagle||180"
+    ]
+  },
+  "ww_sport3": {
+    "section": "N10",
+    "title": "Wills Wing Sport 3",
+    "size": "155",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "ww_sport3",
+      "nose_angle_deg": 127,
+      "root_chord_m": 2.5,
+      "tip_chord_m": 0.66,
+      "nose_forward_m": 1.42,
+      "battens_per_side": 7,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_ww_sport3"
+    },
+    "config": {
+      "span_m": 9.6,
+      "area_m2": 14.4,
+      "wing_mass_kg": 28.6,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 113,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2019–",
+      "prototype": "Wills Wing Sport 3 155",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 96.0,
+        "takeoff_mass_max_kg": 141.0,
+        "vne_kmh": null,
+        "cert": "DHV 01-0508-25"
+      }
+    },
+    "sources": [
+      "Wills Wing|Sport 3||155",
+      "Wills Wing|Sport 3||135",
+      "Wills Wing|Sport 3||170"
+    ]
+  },
+  "ww_u2": {
+    "section": "N11",
+    "title": "Wills Wing U2",
+    "size": "145",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "ww_u2",
+      "nose_angle_deg": 126.5,
+      "root_chord_m": 2.37,
+      "tip_chord_m": 0.63,
+      "nose_forward_m": 1.35,
+      "battens_per_side": 8,
+      "double_surface": true,
+      "lower_cover": 0.84,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_ww_u2"
+    },
+    "config": {
+      "span_m": 9.5,
+      "area_m2": 13.5,
+      "wing_mass_kg": 27.6,
+      "pilot_mass_min_kg": 64,
+      "pilot_mass_max_kg": 100,
+      "double_surface_pct": 84,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2003–",
+      "prototype": "Wills Wing U2 145",
+      "dhv": {
+        "vmin_vg0_kmh": 31.0,
+        "vmax_vg0_kmh": 85.0,
+        "takeoff_mass_min_kg": 93.0,
+        "takeoff_mass_max_kg": 128.0,
+        "vne_kmh": 85.0,
+        "cert": "DHV 01-0477-13"
+      }
+    },
+    "sources": [
+      "Wills Wing|U2||145",
+      "Wills Wing|U2||160"
+    ]
+  },
+  "aeros_discus": {
+    "section": "N12",
+    "title": "Aeros Discus",
+    "size": "14",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "aeros_discus",
+      "nose_angle_deg": 125,
+      "root_chord_m": 2.29,
+      "tip_chord_m": 0.6,
+      "nose_forward_m": 1.3,
+      "battens_per_side": 9,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_aeros_discus"
+    },
+    "config": {
+      "span_m": 10.0,
+      "area_m2": 13.7,
+      "wing_mass_kg": 31.0,
+      "pilot_mass_min_kg": 75,
+      "pilot_mass_max_kg": 115,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2002",
+      "prototype": "Aeros Discus 14",
+      "dhv": {
+        "vmin_vg0_kmh": 30.0,
+        "vmax_vg0_kmh": 80.0,
+        "takeoff_mass_min_kg": 100.0,
+        "takeoff_mass_max_kg": 133.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0465-13"
+      }
+    },
+    "sources": [
+      "Aeros|Discus||14",
+      "Aeros|Discus||12",
+      "Aeros|Discus||13",
+      "Aeros|Discus||15"
+    ]
+  },
+  "air_sting3": {
+    "section": "N13",
+    "title": "Airborne Sting 3",
+    "size": "154",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "air_sting3",
+      "nose_angle_deg": 121,
+      "root_chord_m": 2.63,
+      "tip_chord_m": 0.69,
+      "nose_forward_m": 1.61,
+      "battens_per_side": 8,
+      "double_surface": true,
+      "lower_cover": 0.75,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.59,
+      "out": "glider_air_sting3"
+    },
+    "config": {
+      "span_m": 9.1,
+      "area_m2": 14.33,
+      "wing_mass_kg": 26.3,
+      "pilot_mass_min_kg": 50,
+      "pilot_mass_max_kg": 100,
+      "double_surface_pct": 75,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2008",
+      "prototype": "Airborne Sting 3 154",
+      "dhv": {
+        "vmin_vg0_kmh": 29.0,
+        "vmax_vg0_kmh": 85.0,
+        "takeoff_mass_min_kg": 76.0,
+        "takeoff_mass_max_kg": 126.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0438-08"
+      }
+    },
+    "sources": [
+      "Airborne|Sting 3||154",
+      "Airborne|Sting 3||168"
+    ]
+  },
+  "icaro_alto": {
+    "section": "N14",
+    "title": "Icaro Alto",
+    "size": "M",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "icaro_alto",
+      "nose_angle_deg": 127.5,
+      "root_chord_m": 2.44,
+      "tip_chord_m": 0.64,
+      "nose_forward_m": 1.39,
+      "battens_per_side": 9,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_icaro_alto"
+    },
+    "config": {
+      "span_m": 9.98,
+      "area_m2": 14.6,
+      "wing_mass_kg": 28.5,
+      "pilot_mass_min_kg": 70,
+      "pilot_mass_max_kg": 93,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2022–",
+      "prototype": "Icaro Alto M",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 80.0,
+        "takeoff_mass_max_kg": 121.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0501-22"
+      }
+    },
+    "sources": [
+      "Icaro|Alto||M",
+      "Icaro|Alto||S",
+      "Icaro|Alto||L"
+    ]
+  },
+  "icaro_mastr": {
+    "section": "N15",
+    "title": "Icaro MastR",
+    "size": "L",
+    "priority": "P1",
+    "base": "combat",
+    "params": {
+      "config": "icaro_mastr",
+      "nose_angle_deg": 131,
+      "root_chord_m": 2.46,
+      "tip_chord_m": 0.56,
+      "nose_forward_m": 1.4,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.94,
+      "crossbar_u": 0.6,
+      "out": "glider_icaro_mastr"
+    },
+    "config": {
+      "span_m": 10.4,
+      "area_m2": 14.8,
+      "wing_mass_kg": 31.5,
+      "pilot_mass_min_kg": 85,
+      "pilot_mass_max_kg": 110,
+      "double_surface_pct": 94,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2007–",
+      "prototype": "Icaro MastR L",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": 74.0,
+        "takeoff_mass_min_kg": 95.0,
+        "takeoff_mass_max_kg": 146.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0443-09"
+      }
+    },
+    "sources": [
+      "Icaro|MastR||L",
+      "Icaro|MastR||S",
+      "Icaro|MastR||M"
+    ],
+    "manual": [
+      {
+        "param": "kingpost_m",
+        "value": "небольшой, наклонён вперёд",
+        "note": "цитата: «profiled kingpost canted slightly forward»; высоты числом в паспорте нет — взять по фото производителя"
+      },
+      {
+        "param": "luff_lines",
+        "value": "две линии (положение — по фото)",
+        "note": "цитата: «Two luff-lines extend from the kingpost to the trailing edge»; доли по размаху в паспорте нет"
+      }
+    ]
+  },
+  "bautek_kite": {
+    "section": "N16",
+    "title": "Bautek Kite",
+    "size": null,
+    "priority": "P2",
+    "base": "laminar",
+    "params": {
+      "config": "bautek_kite",
+      "nose_angle_deg": 128,
+      "root_chord_m": 2.27,
+      "tip_chord_m": 0.6,
+      "nose_forward_m": 1.29,
+      "battens_per_side": 10,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_bautek_kite"
+    },
+    "config": {
+      "span_m": 10.15,
+      "area_m2": 13.8,
+      "wing_mass_kg": 30.4,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": 120,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2006–",
+      "prototype": "Bautek Kite",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 90.0,
+        "takeoff_mass_max_kg": 149.0,
+        "vne_kmh": null,
+        "cert": "DHV 01-0421-06"
+      }
+    },
+    "sources": [
+      "Bautek|Kite||"
+    ]
+  },
+  "bautek_astir": {
+    "section": "N17",
+    "title": "Bautek Astir",
+    "size": null,
+    "priority": "P2",
+    "base": "laminar",
+    "params": {
+      "config": "bautek_astir",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.32,
+      "tip_chord_m": 0.61,
+      "nose_forward_m": 1.32,
+      "battens_per_side": 9,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_bautek_astir"
+    },
+    "config": {
+      "span_m": 10.55,
+      "area_m2": 14.68,
+      "wing_mass_kg": 29.0,
+      "pilot_mass_min_kg": 60,
+      "pilot_mass_max_kg": 115,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": null,
+      "prototype": "Bautek Astir",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Bautek|Astir||"
+    ]
+  },
+  "fs_crossover": {
+    "section": "N18",
+    "title": "Flugsport Skypoint Crossover",
+    "size": "14",
+    "priority": "P2",
+    "base": "laminar",
+    "params": {
+      "config": "fs_crossover",
+      "nose_angle_deg": 127,
+      "root_chord_m": 2.36,
+      "tip_chord_m": 0.62,
+      "nose_forward_m": 1.34,
+      "battens_per_side": 9,
+      "double_surface": true,
+      "lower_cover": 0.82,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_fs_crossover"
+    },
+    "config": {
+      "span_m": 9.9,
+      "area_m2": 14.0,
+      "wing_mass_kg": 28.2,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 82,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": null,
+      "prototype": "Flugsport Skypoint Crossover 14",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 90.0,
+        "takeoff_mass_max_kg": 138.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0459-11"
+      }
+    },
+    "sources": [
+      "Flugsport Skypoint|Crossover||14",
+      "Flugsport Skypoint|Crossover||15"
+    ]
+  },
+  "seed_spyder": {
+    "section": "N19",
+    "title": "Seedwings Spyder",
+    "size": "12.5",
+    "priority": "P2",
+    "base": "sport",
+    "params": {
+      "config": "seed_spyder",
+      "nose_angle_deg": 128,
+      "root_chord_m": 2.18,
+      "tip_chord_m": 0.52,
+      "nose_forward_m": 1.24,
+      "battens_per_side": 8,
+      "double_surface": true,
+      "lower_cover": 0.82,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_seed_spyder"
+    },
+    "config": {
+      "span_m": 9.8,
+      "area_m2": 12.5,
+      "wing_mass_kg": 28.5,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 82,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2004",
+      "prototype": "Seedwings Spyder 12.5",
+      "dhv": {
+        "vmin_vg0_kmh": 33.0,
+        "vmax_vg0_kmh": 90.0,
+        "takeoff_mass_min_kg": 84.0,
+        "takeoff_mass_max_kg": 110.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0410-05"
+      }
+    },
+    "sources": [
+      "Seedwings|Spyder||12.5"
+    ]
+  },
+  "moyes_gecko": {
+    "section": "N20",
+    "title": "Moyes Gecko",
+    "size": "155",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "moyes_gecko",
+      "nose_angle_deg": 124,
+      "root_chord_m": 2.5,
+      "tip_chord_m": 0.66,
+      "nose_forward_m": 1.42,
+      "battens_per_side": 8,
+      "double_surface": true,
+      "lower_cover": 0.85,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_moyes_gecko"
+    },
+    "config": {
+      "span_m": 9.7,
+      "area_m2": 14.5,
+      "wing_mass_kg": 29.5,
+      "pilot_mass_min_kg": 55,
+      "pilot_mass_max_kg": 86,
+      "double_surface_pct": 85,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2016–",
+      "prototype": "Moyes Gecko 155",
+      "dhv": {
+        "vmin_vg0_kmh": 28.0,
+        "vmax_vg0_kmh": 80.0,
+        "takeoff_mass_min_kg": 100.0,
+        "takeoff_mass_max_kg": 133.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0490-16"
+      }
+    },
+    "sources": [
+      "Moyes|Gecko||155",
+      "Moyes|Gecko||170"
+    ]
+  },
+  "ww_super_sport": {
+    "section": "N21",
+    "title": "Wills Wing Super Sport",
+    "size": "153",
+    "priority": "P2",
+    "base": "magic",
+    "params": {
+      "config": "ww_super_sport",
+      "nose_angle_deg": 124,
+      "root_chord_m": 2.27,
+      "tip_chord_m": 0.71,
+      "nose_forward_m": 1.29,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.6,
+      "kingpost_m": 1.2,
+      "crossbar_u": 0.57,
+      "out": "glider_ww_super_sport"
+    },
+    "config": {
+      "span_m": 9.96,
+      "area_m2": 14.21,
+      "wing_mass_kg": 28.1,
+      "pilot_mass_min_kg": 70,
+      "pilot_mass_max_kg": 113,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "1991–1997",
+      "prototype": "Wills Wing Super Sport 153",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Super Sport||153",
+      "Wills Wing|Super Sport||143",
+      "Wills Wing|Super Sport||163"
+    ]
+  },
+  "ww_ultra_sport": {
+    "section": "N22",
+    "title": "Wills Wing Ultra Sport",
+    "size": "147",
+    "priority": "P2",
+    "base": "magic",
+    "params": {
+      "config": "ww_ultra_sport",
+      "nose_angle_deg": 124,
+      "root_chord_m": 2.18,
+      "tip_chord_m": 0.68,
+      "nose_forward_m": 1.24,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.6,
+      "kingpost_m": 1.2,
+      "crossbar_u": 0.57,
+      "out": "glider_ww_ultra_sport"
+    },
+    "config": {
+      "span_m": 9.96,
+      "area_m2": 13.66,
+      "wing_mass_kg": 29.5,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 113,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "1996–2003",
+      "prototype": "Wills Wing Ultra Sport 147",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Ultra Sport||147",
+      "Wills Wing|Ultra Sport||135",
+      "Wills Wing|Ultra Sport||166"
+    ]
+  },
+  "ww_spectrum": {
+    "section": "N23",
+    "title": "Wills Wing Spectrum",
+    "size": "165",
+    "priority": "P2",
+    "base": "training",
+    "params": {
+      "config": "ww_spectrum",
+      "nose_angle_deg": 121,
+      "root_chord_m": 2.22,
+      "tip_chord_m": 0.87,
+      "nose_forward_m": 1.26,
+      "battens_per_side": 8,
+      "double_surface": false,
+      "lower_cover": 0.14,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "out": "glider_ww_spectrum"
+    },
+    "config": {
+      "span_m": 10.36,
+      "area_m2": 15.33,
+      "wing_mass_kg": 27.2,
+      "pilot_mass_min_kg": 64,
+      "pilot_mass_max_kg": 109,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "trainer",
+      "era": "1990–2000",
+      "prototype": "Wills Wing Spectrum 165",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Spectrum||165",
+      "Wills Wing|Spectrum||144"
+    ]
+  },
+  "ww_t2c": {
+    "section": "N24",
+    "title": "Wills Wing T2 / T2C",
+    "size": "144",
+    "priority": "P1",
+    "base": "sport",
+    "params": {
+      "config": "ww_t2c",
+      "nose_angle_deg": 129.5,
+      "root_chord_m": 2.33,
+      "tip_chord_m": 0.56,
+      "nose_forward_m": 1.28,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.92,
+      "kingpost_m": 0,
+      "crossbar_u": 0.59,
+      "out": "glider_ww_t2c"
+    },
+    "config": {
+      "span_m": 9.8,
+      "area_m2": 13.4,
+      "wing_mass_kg": 33.4,
+      "pilot_mass_min_kg": 73,
+      "pilot_mass_max_kg": 107,
+      "double_surface_pct": 92,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2013–",
+      "prototype": "Wills Wing T2C 144",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": 85.0,
+        "takeoff_mass_min_kg": 104.0,
+        "takeoff_mass_max_kg": 139.0,
+        "vne_kmh": 85.0,
+        "cert": "DHV 01-0471-13"
+      }
+    },
+    "sources": [
+      "Wills Wing|T2C||144",
+      "Wills Wing|T2C||136",
+      "Wills Wing|T2C||154",
+      "Wills Wing|T2||144",
+      "Wills Wing|T2||154"
+    ]
+  },
+  "ww_t3": {
+    "section": "N25",
+    "title": "Wills Wing T3",
+    "size": "144",
+    "priority": "P1",
+    "base": "sport",
+    "params": {
+      "config": "ww_t3",
+      "nose_angle_deg": 127,
+      "root_chord_m": 2.27,
+      "tip_chord_m": 0.54,
+      "nose_forward_m": 1.29,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.92,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_ww_t3"
+    },
+    "config": {
+      "span_m": 10.06,
+      "area_m2": 13.38,
+      "wing_mass_kg": 32.2,
+      "pilot_mass_min_kg": 73,
+      "pilot_mass_max_kg": 107,
+      "double_surface_pct": 92,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2020–",
+      "prototype": "Wills Wing T3 144",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|T3||144",
+      "Wills Wing|T3||136",
+      "Wills Wing|T3||154"
+    ]
+  },
+  "moyes_litespeed_rx": {
+    "section": "N26",
+    "title": "Moyes Litespeed RX",
+    "size": "4",
+    "priority": "P1",
+    "base": "sport",
+    "params": {
+      "config": "moyes_litespeed_rx",
+      "nose_angle_deg": 127.5,
+      "root_chord_m": 2.31,
+      "tip_chord_m": 0.55,
+      "nose_forward_m": 1.35,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.92,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_moyes_litespeed_rx"
+    },
+    "config": {
+      "span_m": 10.27,
+      "area_m2": 13.9,
+      "wing_mass_kg": 34.2,
+      "pilot_mass_min_kg": 75,
+      "pilot_mass_max_kg": 115,
+      "double_surface_pct": 92,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2014–",
+      "prototype": "Moyes Litespeed RX 4",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": 75.0,
+        "takeoff_mass_min_kg": 125.0,
+        "takeoff_mass_max_kg": 150.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0468-13, DHV 01-0481-15"
+      }
+    },
+    "sources": [
+      "Moyes|Litespeed RX||4",
+      "Moyes|Litespeed RX||3",
+      "Moyes|Litespeed RX||3.5",
+      "Moyes|Litespeed RX||5"
+    ]
+  },
+  "moyes_litespeed_s": {
+    "section": "N27",
+    "title": "Moyes Litespeed S",
+    "size": "4",
+    "priority": "P2",
+    "base": "sport",
+    "params": {
+      "config": "moyes_litespeed_s",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.34,
+      "tip_chord_m": 0.56,
+      "nose_forward_m": 1.35,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.92,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_moyes_litespeed_s"
+    },
+    "config": {
+      "span_m": 10.0,
+      "area_m2": 13.7,
+      "wing_mass_kg": 36.0,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 109,
+      "double_surface_pct": 92,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2005",
+      "prototype": "Moyes Litespeed S 4",
+      "dhv": {
+        "vmin_vg0_kmh": 30.0,
+        "vmax_vg0_kmh": 80.0,
+        "takeoff_mass_min_kg": 107.0,
+        "takeoff_mass_max_kg": 132.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0403-05"
+      }
+    },
+    "sources": [
+      "Moyes|Litespeed S||4",
+      "Moyes|Litespeed S||3.5",
+      "Moyes|Litespeed S||4.5",
+      "Moyes|Litespeed S||5"
+    ]
+  },
+  "moyes_litesport": {
+    "section": "N28",
+    "title": "Moyes Litesport",
+    "size": "4",
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "moyes_litesport",
+      "nose_angle_deg": 127,
+      "root_chord_m": 2.4,
+      "tip_chord_m": 0.63,
+      "nose_forward_m": 1.39,
+      "battens_per_side": 13,
+      "double_surface": true,
+      "lower_cover": 0.8,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_moyes_litesport"
+    },
+    "config": {
+      "span_m": 9.6,
+      "area_m2": 13.8,
+      "wing_mass_kg": 31.8,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 109,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": null,
+      "prototype": "Moyes Litesport 4",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Moyes|Litesport||4",
+      "Moyes|Litesport||3"
+    ]
+  },
+  "aeros_combat_c": {
+    "section": "N29",
+    "title": "Aeros Combat C (и DesignProducts Combat C AC)",
+    "size": "12.7",
+    "priority": "P1",
+    "base": "combat",
+    "params": {
+      "config": "aeros_combat_c",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.13,
+      "tip_chord_m": 0.48,
+      "nose_forward_m": 1.21,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_aeros_combat_c"
+    },
+    "config": {
+      "span_m": 10.3,
+      "area_m2": 12.7,
+      "wing_mass_kg": 31.3,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 90,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2012–",
+      "prototype": "Aeros Combat C 12.7",
+      "dhv": {
+        "vmin_vg0_kmh": 32.0,
+        "vmax_vg0_kmh": 90.0,
+        "takeoff_mass_min_kg": 111.0,
+        "takeoff_mass_max_kg": 131.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0489-16"
+      }
+    },
+    "sources": [
+      "Aeros|Combat C||12.7",
+      "Aeros|Combat C||12.4",
+      "Aeros|Combat C||13.5",
+      "DesignProducts|Combat C AC||12.7",
+      "DesignProducts|Combat C AC||13"
+    ]
+  },
+  "aeros_combat_l": {
+    "section": "N30",
+    "title": "Aeros Combat L",
+    "size": "13",
+    "priority": "P2",
+    "base": "combat",
+    "params": {
+      "config": "aeros_combat_l",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.28,
+      "tip_chord_m": 0.52,
+      "nose_forward_m": 1.3,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_aeros_combat_l"
+    },
+    "config": {
+      "span_m": 10.35,
+      "area_m2": 13.7,
+      "wing_mass_kg": 36.3,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 90,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2003",
+      "prototype": "Aeros Combat L 13",
+      "dhv": {
+        "vmin_vg0_kmh": 31.0,
+        "vmax_vg0_kmh": 90.0,
+        "takeoff_mass_min_kg": 111.0,
+        "takeoff_mass_max_kg": 141.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0413-05, DHV 01-0431-08, DHV 01-0451-10"
+      }
+    },
+    "sources": [
+      "Aeros|Combat L||13",
+      "Aeros|Combat L||12",
+      "Aeros|Combat L||14"
+    ]
+  },
+  "icaro_laminar_z9": {
+    "section": "N31",
+    "title": "Icaro Laminar (Zero 9 / Zero 7 / Z8)",
+    "size": "13.7",
+    "priority": "P1",
+    "base": "combat",
+    "params": {
+      "config": "icaro_laminar_z9",
+      "nose_angle_deg": 132,
+      "root_chord_m": 2.38,
+      "tip_chord_m": 0.54,
+      "nose_forward_m": 1.35,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.94,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_icaro_laminar_z9"
+    },
+    "config": {
+      "span_m": 10.02,
+      "area_m2": 13.83,
+      "wing_mass_kg": 30.9,
+      "pilot_mass_min_kg": 80,
+      "pilot_mass_max_kg": 95,
+      "double_surface_pct": 94,
+      "kingpost": false,
+      "group": "topless",
+      "era": "1994–",
+      "prototype": "Icaro Laminar 13.7",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 90.0,
+        "takeoff_mass_max_kg": 125.2,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Icaro|Laminar||13.7",
+      "Icaro|Laminar||12.6",
+      "Icaro|Laminar||13.2",
+      "Icaro|Laminar||14.1",
+      "Icaro|Laminar||14.8",
+      "Icaro|Laminar|Zero 9|13.7",
+      "Icaro|Laminar|Zero 7|14.2"
+    ]
+  },
+  "bautek_fizz": {
+    "section": "N32",
+    "title": "Bautek Fizz",
+    "size": null,
+    "priority": "P1",
+    "base": "laminar",
+    "params": {
+      "config": "bautek_fizz",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.26,
+      "tip_chord_m": 0.6,
+      "nose_forward_m": 1.28,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_bautek_fizz"
+    },
+    "config": {
+      "span_m": 10.41,
+      "area_m2": 14.1,
+      "wing_mass_kg": 31.5,
+      "pilot_mass_min_kg": 60,
+      "pilot_mass_max_kg": 118,
+      "double_surface_pct": 90,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2006–",
+      "prototype": "Bautek Fizz",
+      "dhv": {
+        "vmin_vg0_kmh": 31.0,
+        "vmax_vg0_kmh": 90.0,
+        "takeoff_mass_min_kg": 92.0,
+        "takeoff_mass_max_kg": 146.0,
+        "vne_kmh": null,
+        "cert": "DHV 01-0462-12"
+      }
+    },
+    "sources": [
+      "Bautek|Fizz||"
+    ]
+  },
+  "air_c4": {
+    "section": "N33",
+    "title": "Airborne C4",
+    "size": "13.5",
+    "priority": "P2",
+    "base": "combat",
+    "params": {
+      "config": "air_c4",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.33,
+      "tip_chord_m": 0.53,
+      "nose_forward_m": 1.32,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.93,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_air_c4"
+    },
+    "config": {
+      "span_m": 10.0,
+      "area_m2": 13.5,
+      "wing_mass_kg": 35.0,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 93,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2008",
+      "prototype": "Airborne C4 13.5",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 104.0,
+        "takeoff_mass_max_kg": 144.0,
+        "vne_kmh": null,
+        "cert": "DHV 01-0428-08"
+      }
+    },
+    "sources": [
+      "Airborne|C4||13.5",
+      "Airborne|C4||14"
+    ]
+  },
+  "air_rev": {
+    "section": "N34",
+    "title": "Airborne REV",
+    "size": "13.5",
+    "priority": "P2",
+    "base": "combat",
+    "params": {
+      "config": "air_rev",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.32,
+      "tip_chord_m": 0.53,
+      "nose_forward_m": 1.32,
+      "battens_per_side": 12,
+      "double_surface": true,
+      "lower_cover": 0.96,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_air_rev"
+    },
+    "config": {
+      "span_m": 10.04,
+      "area_m2": 13.5,
+      "wing_mass_kg": 34.4,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 96,
+      "kingpost": false,
+      "group": "topless",
+      "era": null,
+      "prototype": "Airborne REV 13.5",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 104.0,
+        "takeoff_mass_max_kg": 140.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0449-10"
+      }
+    },
+    "sources": [
+      "Airborne|REV||13.5",
+      "Airborne|REV||14.5"
+    ]
+  },
+  "dp_she1": {
+    "section": "N35",
+    "title": "DesignProducts SHE 1",
+    "size": "12.7",
+    "priority": "P2",
+    "base": "combat",
+    "params": {
+      "config": "dp_she1",
+      "nose_angle_deg": 130,
+      "root_chord_m": 2.12,
+      "tip_chord_m": 0.48,
+      "nose_forward_m": 1.2,
+      "battens_per_side": 13,
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_dp_she1"
+    },
+    "config": {
+      "span_m": 10.35,
+      "area_m2": 12.7,
+      "wing_mass_kg": 28.4,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 90,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2023–",
+      "prototype": "DesignProducts SHE 1 12.7",
+      "dhv": {
+        "vmin_vg0_kmh": 38.0,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": 98.0,
+        "takeoff_mass_max_kg": 129.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0504-23"
+      }
+    },
+    "sources": [
+      "DesignProducts|SHE 1||12.7"
+    ]
+  },
+  "seed_skyrunner_xr": {
+    "section": "N36",
+    "title": "Seedwings Skyrunner XR",
+    "size": null,
+    "priority": "P2",
+    "base": "laminar",
+    "params": {
+      "config": "seed_skyrunner_xr",
+      "nose_angle_deg": 127,
+      "root_chord_m": 2.32,
+      "tip_chord_m": 0.61,
+      "nose_forward_m": 1.32,
+      "battens_per_side": 10,
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "kingpost_m": 1.15,
+      "crossbar_u": 0.58,
+      "out": "glider_seed_skyrunner_xr"
+    },
+    "config": {
+      "span_m": 10.2,
+      "area_m2": 14.2,
+      "wing_mass_kg": 32.8,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": 90,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "2013",
+      "prototype": "Seedwings Skyrunner XR",
+      "dhv": {
+        "vmin_vg0_kmh": 31.0,
+        "vmax_vg0_kmh": 90.0,
+        "takeoff_mass_min_kg": 100.0,
+        "takeoff_mass_max_kg": 150.0,
+        "vne_kmh": 90.0,
+        "cert": "DHV 01-0475-13"
+      }
+    },
+    "sources": [
+      "Seedwings|Skyrunner XR||"
+    ]
+  },
+  "ww_fusion": {
+    "section": "N37",
+    "title": "Wills Wing Fusion",
+    "size": "150",
+    "priority": "P2",
+    "base": "sport",
+    "params": {
+      "config": "ww_fusion",
+      "nose_angle_deg": 128,
+      "root_chord_m": 2.29,
+      "tip_chord_m": 0.55,
+      "nose_forward_m": 1.3,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.88,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_ww_fusion"
+    },
+    "config": {
+      "span_m": 10.39,
+      "area_m2": 13.94,
+      "wing_mass_kg": 34.5,
+      "pilot_mass_min_kg": 68,
+      "pilot_mass_max_kg": 122,
+      "double_surface_pct": 88,
+      "kingpost": false,
+      "group": "topless",
+      "era": "1997–2001",
+      "prototype": "Wills Wing Fusion 150",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Fusion||150",
+      "Wills Wing|Fusion||141"
+    ]
+  },
+  "ww_talon": {
+    "section": "N38",
+    "title": "Wills Wing Talon",
+    "size": "150",
+    "priority": "P2",
+    "base": "sport",
+    "params": {
+      "config": "ww_talon",
+      "nose_angle_deg": 128,
+      "root_chord_m": 2.3,
+      "tip_chord_m": 0.55,
+      "nose_forward_m": 1.31,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.88,
+      "kingpost_m": 0,
+      "crossbar_u": 0.6,
+      "out": "glider_ww_talon"
+    },
+    "config": {
+      "span_m": 10.34,
+      "area_m2": 13.94,
+      "wing_mass_kg": null,
+      "pilot_mass_min_kg": null,
+      "pilot_mass_max_kg": null,
+      "double_surface_pct": null,
+      "kingpost": false,
+      "group": "topless",
+      "era": "2001–2005",
+      "prototype": "Wills Wing Talon 150",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Talon||150",
+      "Wills Wing|Talon||140",
+      "Wills Wing|Talon||160"
+    ]
+  },
+  "ww_cross_country": {
+    "section": "N39",
+    "title": "Wills Wing Cross Country",
+    "size": "155",
+    "priority": "P2",
+    "base": "magic",
+    "params": {
+      "config": "ww_cross_country",
+      "nose_angle_deg": 124,
+      "root_chord_m": 2.21,
+      "tip_chord_m": 0.69,
+      "nose_forward_m": 1.26,
+      "battens_per_side": 11,
+      "double_surface": true,
+      "lower_cover": 0.6,
+      "kingpost_m": 1.2,
+      "crossbar_u": 0.57,
+      "out": "glider_ww_cross_country"
+    },
+    "config": {
+      "span_m": 10.36,
+      "area_m2": 14.4,
+      "wing_mass_kg": 31.8,
+      "pilot_mass_min_kg": 77,
+      "pilot_mass_max_kg": 127,
+      "double_surface_pct": null,
+      "kingpost": true,
+      "group": "kingpost",
+      "era": "1995–2000",
+      "prototype": "Wills Wing Cross Country 155",
+      "dhv": {
+        "vmin_vg0_kmh": null,
+        "vmax_vg0_kmh": null,
+        "takeoff_mass_min_kg": null,
+        "takeoff_mass_max_kg": null,
+        "vne_kmh": null,
+        "cert": null
+      }
+    },
+    "sources": [
+      "Wills Wing|Cross Country||155",
+      "Wills Wing|Cross Country||132",
+      "Wills Wing|Cross Country||142"
+    ]
+  }
+}

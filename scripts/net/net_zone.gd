@@ -58,7 +58,10 @@ extends Node
 ##   leader_id; my_id (NetClient.my_id);
 ##   queue: Array[String] — очередь на старт: сначала живые пилоты, потом боты ("bot-…");
 ##       у ведущего — своя (он её ведёт), у остальных — из последнего ZoneState;
-##   has_clock — часы зоны известны (у ведущего всегда, у остальных — после ZoneState).
+##   has_clock — часы зоны известны (у ведущего всегда, у остальных — после ZoneState);
+##   thermal_sources — источники термиков из поля воздуха (AM-07): {"grid", "mask"} (mask —
+##       base64 битов столбцов, ZoneState.thermalSources) или {} — нет. У ведущего — свои
+##       (set_thermal_sources, уходят с каждым ZoneState), у остальных — из последнего ZoneState.
 ##
 ## Сигналы:
 ##   zone_entered(code) — вошёл в зону (создал, вошёл по коду, вернулся после переподключения);
@@ -68,6 +71,7 @@ extends Node
 ##   leader_changed(leader_id, is_me) — сменился ведущий (и при входе в зону);
 ##   zone_state_changed() — у не-ведущего применён ZoneState (часы, очередь); у ведущего —
 ##       после set_queue и изменений очереди;
+##   thermal_sources_changed() — у не-ведущего пришли другие источники термиков (или пропали);
 ##   zone_error(code, text) — ошибка входа/создания ("ZONE_NOT_FOUND", "ZONE_FULL",
 ##       "VERSION_MISMATCH", "BAD_MESSAGE", "CONNECT_FAILED");
 ##   world_mismatch(expected_hash, actual_hash) — check_world: мир вошедшего не совпал с миром
@@ -96,6 +100,7 @@ signal zone_state_changed
 signal zone_error(code: String, text: String)
 signal pilot_state_received(from_id: String, data: Dictionary)
 signal world_mismatch(expected_hash: String, actual_hash: String)
+signal thermal_sources_changed
 
 ## Отставание часов, после которого не догоняем плавно, а прыгаем вперёд, с.
 const SNAP_S := 1.0
@@ -122,6 +127,7 @@ var peers: Dictionary = {}
 var leader_id := ""
 var queue: Array[String] = []
 var has_clock := false
+var thermal_sources: Dictionary = {}
 var my_id: String:
 	get:
 		return _client.my_id if _client != null else ""
@@ -255,6 +261,17 @@ func zone_time() -> float:
 	return _clock_now() if has_clock else 0.0
 
 
+## Только ведущий: источники термиков из своего поля (AM-07) — grid (AirThermals.signature) и
+## биты столбцов; уходят с каждым ZoneState. Пустая маска — источников нет (поле пропало).
+func set_thermal_sources(grid: String, mask: PackedByteArray) -> void:
+	if not is_leader():
+		return
+	var ts := {} if mask.is_empty() else {"grid": grid, "mask": Marshalls.raw_to_base64(mask)}
+	if ts != thermal_sources:
+		thermal_sources = ts
+		_broadcast_state()
+
+
 func set_queue(ids: Array) -> void:
 	if not is_leader():
 		push_warning("NetZone.set_queue: не ведущий")
@@ -344,7 +361,10 @@ func _process(delta: float) -> void:
 
 func _broadcast_state() -> void:
 	_state_timer = state_interval_s
-	_client.send("zoneState", {"clock": zone_time(), "queue": queue})
+	var st := {"clock": zone_time(), "queue": queue}
+	if not thermal_sources.is_empty():
+		st["thermalSources"] = thermal_sources
+	_client.send("zoneState", st)
 
 
 func _on_message(type: String, data: Dictionary, from_id: String) -> void:
@@ -443,6 +463,12 @@ func _apply_state(data: Dictionary) -> void:
 		_set_clock(now_est, 1.0 + clampf(err / SLEW_WINDOW_S, -MAX_SLEW, MAX_SLEW))
 	has_clock = true
 	queue.assign(data.queue)
+	var ts: Dictionary = data.get("thermalSources") if data.get("thermalSources") is Dictionary else {}
+	if ts.is_empty() or String(ts.get("mask", "")) == "":
+		ts = {}
+	if ts != thermal_sources:
+		thermal_sources = ts
+		thermal_sources_changed.emit()
 	zone_state_changed.emit()
 
 
@@ -532,6 +558,7 @@ func _reset() -> void:
 	leader_id = ""
 	queue.clear()
 	has_clock = false
+	thermal_sources = {}
 	_set_clock(0.0, 1.0)
 
 

@@ -1,0 +1,6 @@
+[{},
+ {"lam": 15.0, "lam_frac": 0.0}, {"lam": 40.0, "lam_frac": 0.0}, {"lam": 100.0, "lam_frac": 0.0}, {"lam": 300.0, "lam_frac": 0.0},
+ {"lam_frac": 0.05}, {"lam_frac": 0.2},
+ {"cs_h": 0.0}, {"cs_h": 0.17},
+ {"local_k": false}
+]

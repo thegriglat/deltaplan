@@ -1,0 +1,266 @@
+{
+ "hour": 12.0,
+ "U10": 3.0,
+ "rows": [
+  {
+   "name": "w100 base",
+   "status": "ok",
+   "iters": 41,
+   "t": 0.712,
+   "rate": 0.9222356907244299,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 cold-inside",
+   "status": "ok",
+   "iters": 61,
+   "t": 0.8582736419921275,
+   "rate": 0.918954318751728,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 vcycles=2",
+   "status": "ok",
+   "iters": 41,
+   "t": 1.049,
+   "rate": 0.9221613387344987,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 vcycles=4",
+   "status": "ok",
+   "iters": 41,
+   "t": 1.527,
+   "rate": 0.9221639359434909,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 n=96",
+   "status": "ok",
+   "iters": 41,
+   "t": 1.007,
+   "rate": 0.946517835239515,
+   "mg_levels": 6,
+   "shape": [
+    66,
+    98,
+    98
+   ]
+  },
+  {
+   "name": "w100 n=128",
+   "status": "ok",
+   "iters": 61,
+   "t": 2.222,
+   "rate": 0.9660802440317052,
+   "mg_levels": 6,
+   "shape": [
+    68,
+    130,
+    130
+   ]
+  },
+  {
+   "name": "w50 base",
+   "status": "ok",
+   "iters": 51,
+   "t": 1.459,
+   "rate": 0.9426695037388215,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 cold-inside",
+   "status": "ok",
+   "iters": 81,
+   "t": 1.2964684019971173,
+   "rate": 0.9183596655221696,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 vcycles=2",
+   "status": "ok",
+   "iters": 51,
+   "t": 1.43,
+   "rate": 0.9426591000933169,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 vcycles=4",
+   "status": "ok",
+   "iters": 51,
+   "t": 3.727,
+   "rate": 0.9426593094008728,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 n=96",
+   "status": "ok",
+   "iters": 61,
+   "t": 2.612,
+   "rate": 0.9613151895228088,
+   "mg_levels": 6,
+   "shape": [
+    120,
+    98,
+    98
+   ]
+  },
+  {
+   "name": "w50 n=128",
+   "status": "ok",
+   "iters": 211,
+   "t": 14.322,
+   "rate": 0.9757565328741077,
+   "mg_levels": 6,
+   "shape": [
+    124,
+    130,
+    130
+   ]
+  },
+  {
+   "name": "box100 rigid+sponge",
+   "status": "ok",
+   "iters": 51,
+   "t": 0.9,
+   "rate": 0.9022934215314954,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 dtau_u=600",
+   "status": "ok",
+   "iters": 501,
+   "t": 6.262,
+   "rate": 0.9946726924942252,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 dtau_u=60",
+   "status": "ok",
+   "iters": 51,
+   "t": 0.409,
+   "rate": 0.9453154747880014,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w100 dtau_u=15",
+   "status": "ok",
+   "iters": 61,
+   "t": 0.49,
+   "rate": 0.9509889623911761,
+   "mg_levels": 5,
+   "shape": [
+    64,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "box50 rigid+sponge",
+   "status": "ok",
+   "iters": 71,
+   "t": 0.92,
+   "rate": 0.8946813652883409,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 dtau_u=600",
+   "status": "ok",
+   "iters": 1621,
+   "t": 20.929,
+   "rate": 0.9986300083159233,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 dtau_u=30",
+   "status": "ok",
+   "iters": 81,
+   "t": 1.058,
+   "rate": 0.9735151034400353,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  },
+  {
+   "name": "w50 dtau_u=7.5",
+   "status": "ok",
+   "iters": 71,
+   "t": 0.976,
+   "rate": 0.9612858612801749,
+   "mg_levels": 5,
+   "shape": [
+    114,
+    66,
+    66
+   ]
+  }
+ ]
+}

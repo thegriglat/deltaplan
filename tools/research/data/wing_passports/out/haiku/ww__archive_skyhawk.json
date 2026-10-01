@@ -1,0 +1,47 @@
+{
+  "src_files": ["ww__archive_skyhawk.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "168",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 168,
+          "unit": "ft²",
+          "quote": "Area (ft²) 168"
+        },
+        {
+          "field": "year",
+          "value": 1984,
+          "unit": "",
+          "quote": "The Skyhawk entered production in March 1984"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "188",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 188,
+          "unit": "ft²",
+          "quote": "Area (ft²) 188"
+        },
+        {
+          "field": "year",
+          "value": 1984,
+          "unit": "",
+          "quote": "The Skyhawk entered production in March 1984"
+        }
+      ]
+    }
+  ]
+}

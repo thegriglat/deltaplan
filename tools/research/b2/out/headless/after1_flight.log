@@ -1,0 +1,163 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_air.gd::test_updraft_vario
+  ok   test_air.gd::test_wind_drift
+  ok   test_air.gd::test_headwind_groundspeed
+  ok   test_air.gd::test_sudden_crosswind_weathervanes
+  ok   test_air.gd::test_asymmetric_lift_rolls_wing
+  ok   test_air.gd::test_vertical_gust_bumps
+  ok   test_glider.gd::test_glider_scene_steps_and_lands
+  ok   test_glider.gd::test_sail_shader_and_flight_params
+    стоит, roll=-1 10 с: max|крен| 0.000°, повернул -450°, фаза standing
+    стоит, roll=+1 10 с: max|крен| 0.000°, повернул 450°, фаза standing
+  ok   test_ground_bank.gd::test_standing_turn_stays_level
+    sport боковой 2,5+встречный 4: крен N/W>0,5 0.64°, разбег 8.16°, отрыв 8.25°, true 1.2 с 
+    apogee боковой 2,5+встречный 4: крен N/W>0,5 0.20°, разбег 6.43°, отрыв 6.52°, true 1.0 с 
+    combat боковой 2,5+встречный 4: крен N/W>0,5 0.94°, разбег 9.87°, отрыв 9.95°, true 1.4 с 
+  ok   test_ground_bank.gd::test_light_crosswind_holds
+    порог бокового порыва стоя, sport, встречный 4 м/с: 1.90 м/с
+    порыв ×1,2 (+2.27 м/с): 'crosswind' за 10.15 с; ×2: 'crosswind' за 3.55 с; ×0,8: '', max|крен| 1.56°
+    порыв ×1,2 (-2.27 м/с): 'crosswind' за 10.15 с; ×2: 'crosswind' за 3.55 с; ×0,8: '', max|крен| 1.56°
+  ok   test_ground_bank.gd::test_side_gust_threshold
+    разбег с D: 174°, крен 0.18°, R/R_min 1.000, на 7.7 м/с R 29.6 м (v²/a 29.6), running
+  ok   test_ground_bank.gd::test_run_arc
+    ветер (0.0, 0.0, 0.0): отрыв Δкрен 0.0000°, Δp 0.000°/с (0.000 → 0.000 °/с), N/W до отрыва 0.001
+    ветер (2.5, 0.0, 4.0): отрыв Δкрен 0.0019°, Δp 0.247°/с (10.363 → 10.139 °/с), N/W до отрыва 0.001
+  ok   test_ground_bank.gd::test_liftoff_continuity
+    I = 396 кг·м²; предел: N/W=1 → -200, 0,5 → -100, 0 → -0 Н·м
+  ok   test_ground_bank.gd::test_hold_scales_with_feet_load
+    косой склон 15°: max|крен| 0.0000°, итог running
+  ok   test_ground_bank.gd::test_cross_slope_level
+  ok   test_landing.gd::test_grades
+  ok   test_landing.gd::test_result_fields
+  ok   test_landing.gd::test_flare_vs_no_flare
+  ok   test_landing.gd::test_flare_slightly_off
+  ok   test_landing.gd::test_runout_stops_pilot
+  ok   test_landing.gd::test_flare_too_high
+  ok   test_landing.gd::test_flare_headwind
+  ok   test_landing.gd::test_dive_into_ground_crashes
+  ok   test_landing.gd::test_slope_landing_uses_normal
+  ok   test_landing.gd::test_walk_after_landing
+  ok   test_landing.gd::test_flare_amount
+  ok   test_load.gd::test_straight_glide_about_one_g
+  ok   test_load.gd::test_turn_load_factor
+  ok   test_load.gd::test_pullout_from_dive
+  ok   test_load.gd::test_filter_smooths_spike
+  ok   test_mass.gd::test_speeds_scale_with_sqrt_mass
+  ok   test_mass.gd::test_best_glide_unchanged_by_mass
+  ok   test_mass.gd::test_heavier_pilot_rolls_slower
+  ok   test_mass.gd::test_clamp_to_wing_range
+         training лёжа: худшее кисть↔штанга 0.0000 м
+         sport лёжа: худшее кисть↔штанга 0.0000 м
+         laminar лёжа: худшее кисть↔штанга 0.0000 м
+  ok   test_pilot_arms.gd::test_hands_on_base_bar_in_flight
+  ok   test_pilot_arms.gd::test_hands_on_uprights_standing
+         болтанка: тряска до 21.3 мм, ~5.4 Гц
+  ok   test_pilot_arms.gd::test_trapeze_buzz
+         training стоя: от вертикали ноги 4.6°, корпус 17.0°, ступни→глаза 15.2°; подошвы y=0.09
+         training лёжа: корпус от горизонта 6.0°
+         sport стоя: от вертикали ноги 4.6°, корпус 17.0°, ступни→глаза 15.2°; подошвы y=0.09
+         sport лёжа: корпус от горизонта 6.0°
+         laminar стоя: от вертикали ноги 4.6°, корпус 17.0°, ступни→глаза 15.2°; подошвы y=0.09
+         laminar лёжа: корпус от горизонта 6.0°
+  ok   test_pilot_pose.gd::test_standing_upright_and_flying_prone
+  ok   test_pilot_pose.gd::test_flight_pose_swings_around_hang_point
+  ok   test_polar.gd::test_simulated_glide_matches_polar
+  ok   test_polar.gd::test_trim_speed
+  ok   test_polar.gd::test_reference_points
+  ok   test_polar.gd::test_fr1_sport_anchors
+  ok   test_polar.gd::test_wing_classes_glide
+  ok   test_polar.gd::test_density_altitude
+  ok   test_roll.gd::test_roll_reversal_time
+  ok   test_roll.gd::test_bank_holds_with_neutral_input
+  ok   test_roll.gd::test_turn_radius
+  ok   test_roll.gd::test_turn_increases_speed_and_sink
+  ok   test_roll_weight_shift.gd::test_roll_reversal_time
+  ok   test_roll_weight_shift.gd::test_shift_rolls_wing_in
+  ok   test_roll_weight_shift.gd::test_center_levels_wing
+  ok   test_roll_weight_shift.gd::test_center_flies_straight_in_new_direction
+  ok   test_roll_weight_shift.gd::test_held_shift_gives_steady_bank
+  ok   test_roll_weight_shift.gd::test_heavier_at_speed
+  ok   test_roll_weight_shift.gd::test_turn_radius
+  ok   test_roll_weight_shift.gd::test_turn_increases_speed_and_sink
+  ok   test_roll_weight_shift.gd::test_keyboard_shift_and_center_key
+  ok   test_roll_weight_shift.gd::test_rate_mode_center_key_levels_wing
+  ok   test_roll_weight_shift.gd::test_roll_mode_setting
+  ok   test_sail_shadow.gd::test_sail_casts_shadow_but_keeps_glow
+  ok   test_stall.gd::test_full_push_stalls_and_drops_nose
+  ok   test_stall.gd::test_stall_speed_on_slow_push
+  ok   test_stall.gd::test_stall_in_bank_drops_wing
+  ok   test_stall.gd::test_recovers_after_releasing_bar
+  FAIL test_takeoff.gd::test_headwind_launch
+         check failed: atlas: встречный 4 м/с — взлёт (срыв: nose_high)
+         check failed: фаза после отрыва — flying
+  ok   test_takeoff.gd::test_headwind_helps
+  ok   test_takeoff.gd::test_tailwind_fails
+  ok   test_takeoff.gd::test_crosswind_fails
+  ok   test_takeoff.gd::test_crosswind_light_all_wings
+  ok   test_takeoff.gd::test_nose_high_fails
+  ok   test_takeoff.gd::test_nose_low_fails
+  ok   test_takeoff.gd::test_weak_run_fails
+  ok   test_takeoff.gd::test_failure_signal
+  ok   test_takeoff.gd::test_walking
+         apogee ровно: наименьший зазор 0.40 м (frame, стоит, нос вниз до упора, тангаж -4.0°)
+         apogee склон 20° стоит, A: зазор 0.22 м (tips)
+         apogee склон 20° стоит, D: зазор 0.22 м (tips)
+         apogee склон 20° разбег, A: зазор -0.11 м (tips)
+         apogee склон 20°: наименьший зазор 0.42 м (frame, стоит, нос вниз до упора, тангаж -24.0°)
+         apogee косой 15°: наименьший зазор -0.38 м (tips, стоит, нос вверх до упора, тангаж 36.0°)
+         atlas ровно: наименьший зазор 0.40 м (frame, стоит, нос вниз до упора, тангаж -4.0°)
+         atlas склон 20° стоит, A: зазор 0.18 м (tips)
+         atlas склон 20° стоит, D: зазор 0.18 м (tips)
+         atlas склон 20° разбег, A: зазор 0.54 м (frame)
+         atlas склон 20°: наименьший зазор 0.42 м (frame, стоит, нос вниз до упора, тангаж -24.0°)
+         atlas косой 15°: наименьший зазор -0.46 м (tips, стоит, нос вверх до упора, тангаж 36.0°)
+         combat ровно: наименьший зазор 0.39 м (frame, стоит, нос вниз до упора, тангаж -3.0°)
+         combat склон 20° стоит, A: зазор -0.29 м (tips)
+         combat склон 20° стоит, D: зазор -0.29 м (tips)
+         combat склон 20° разбег, A: зазор -0.56 м (tips)
+         combat склон 20°: наименьший зазор 0.42 м (frame, стоит, нос вниз до упора, тангаж -23.0°)
+         combat косой 15°: наименьший зазор -0.77 м (tips, стоит, нос вверх до упора, тангаж 37.0°)
+         laminar ровно: наименьший зазор 0.41 м (frame, стоит, нос вниз до упора, тангаж -3.0°)
+         laminar склон 20° стоит, A: зазор -0.20 м (tips)
+         laminar склон 20° стоит, D: зазор -0.20 м (tips)
+         laminar склон 20° разбег, A: зазор -0.51 м (tips)
+         laminar склон 20°: наименьший зазор 0.44 м (frame, стоит, нос вниз до упора, тангаж -23.0°)
+         laminar косой 15°: наименьший зазор -0.77 м (tips, стоит, нос вверх до упора, тангаж 37.0°)
+         magic ровно: наименьший зазор 0.41 м (frame, стоит, нос вниз до упора, тангаж -3.0°)
+         magic склон 20° стоит, A: зазор -0.10 м (tips)
+         magic склон 20° стоит, D: зазор -0.10 м (tips)
+         magic склон 20° разбег, A: зазор -0.53 м (tips)
+         magic склон 20°: наименьший зазор 0.44 м (frame, стоит, нос вниз до упора, тангаж -23.0°)
+         magic косой 15°: наименьший зазор -0.83 м (tips, стоит, нос вверх до упора, тангаж 37.0°)
+         slavutich_ut ровно: наименьший зазор 0.40 м (frame, стоит, нос вниз до упора, тангаж -4.0°)
+         slavutich_ut склон 20° стоит, A: зазор 0.35 м (frame)
+         slavutich_ut склон 20° стоит, D: зазор 0.35 м (frame)
+         slavutich_ut склон 20° разбег, A: зазор 0.11 м (tips)
+         slavutich_ut склон 20°: наименьший зазор 0.42 м (frame, стоит, нос вниз до упора, тангаж -24.0°)
+         slavutich_ut косой 15°: наименьший зазор -0.28 м (tips, стоит, нос вверх до упора, тангаж 36.0°)
+         sport ровно: наименьший зазор 0.39 м (frame, стоит, нос вниз до упора, тангаж -3.0°)
+         sport склон 20° стоит, A: зазор -0.26 м (tips)
+         sport склон 20° стоит, D: зазор -0.26 м (tips)
+         sport склон 20° разбег, A: зазор -0.47 м (tips)
+         sport склон 20°: наименьший зазор 0.42 м (frame, стоит, нос вниз до упора, тангаж -23.0°)
+         sport косой 15°: наименьший зазор -0.71 м (tips, стоит, нос вверх до упора, тангаж 37.0°)
+         target ровно: наименьший зазор 0.35 м (frame, стоит, нос вниз до упора, тангаж -4.0°)
+         target склон 20° стоит, A: зазор 0.14 м (tips)
+         target склон 20° стоит, D: зазор 0.14 м (tips)
+         target склон 20° разбег, A: зазор -0.27 м (tips)
+         target склон 20°: наименьший зазор 0.37 м (frame, стоит, нос вниз до упора, тангаж -24.0°)
+         target косой 15°: наименьший зазор -0.60 м (tips, стоит, нос вверх до упора, тангаж 36.0°)
+         training ровно: наименьший зазор 0.35 м (frame, стоит, нос вниз до упора, тангаж -4.0°)
+         training склон 20° стоит, A: зазор 0.22 м (tips)
+         training склон 20° стоит, D: зазор 0.22 м (tips)
+         training склон 20° разбег, A: зазор -0.03 м (tips)
+         training склон 20°: наименьший зазор 0.37 м (frame, стоит, нос вниз до упора, тангаж -24.0°)
+         training косой 15°: наименьший зазор -0.45 м (tips, стоит, нос вверх до упора, тангаж 36.0°)
+  ok   test_wing_clearance.gd::test_wing_above_ground_on_launch
+  ok   test_wings.gd::test_every_wing_has_new_fields
+  ok   test_wings.gd::test_best_glide_matches_polar
+  ok   test_wings.gd::test_apogee_levels_faster_than_training
+  ok   test_wings.gd::test_apogee_stall_in_bank_no_spiral
+
+80 тестов, 1 упало, 0 пропущено

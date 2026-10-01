@@ -19,6 +19,7 @@
       "grass": 3,
       "weather": 5,
       "objects": 5,
+      "wind": 10,
       "glider": 5
     }
   },

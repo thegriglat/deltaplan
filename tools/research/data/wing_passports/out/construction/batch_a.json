@@ -1,0 +1,878 @@
+{
+  "batch": "a",
+  "date": "2026-10-01",
+  "families": [
+    {
+      "family": "Sport 3",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Sport 3 is a kingposted glider... maintains this kingpost configuration",
+          "url": "https://www.willswing.com/hang-gliders/sport-3/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 85,
+        "evidence": {
+          "quote": "85 percent double surface across all sizes",
+          "url": "https://www.willswing.com/hang-gliders/sport-3/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Redesigned VG that is more effective and easier to pull",
+          "url": "https://www.willswing.com/hang-gliders/sport-3/"
+        }
+      },
+      "production": {
+        "first_year": 2019,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Certification dates show 2/7/2019 for the 135 and 2/1/2019 for the 155",
+          "url": "https://www.willswing.com/hang-gliders/sport-3/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["135", "155", "170"],
+      "design_notes": [
+        "Kickstand Stinger for easier setup/breakdown",
+        "Optional carbon fiber raked tips to increase effective aspect ratio",
+        "Redesigned sail with lower twist for improved high-speed performance"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/sport-3/"]
+    },
+    {
+      "family": "U2",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Kingpost design with internal stability system (no reflex bridles)",
+          "url": "https://www.willswing.com/hang-gliders/u2/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 84,
+        "evidence": {
+          "quote": "84% double surface",
+          "url": "https://www.willswing.com/hang-gliders/u2/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Conventional VG system - weight and cost-saving with effective, easy-to-pull operation",
+          "url": "https://www.willswing.com/hang-gliders/u2/"
+        }
+      },
+      "production": {
+        "first_year": 2003,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "HGMA certification dates: 11/12/2003 for U2 145; 3/20/2003 for U2 160",
+          "url": "https://www.willswing.com/hang-gliders/u2/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["145", "160"],
+      "design_notes": [
+        "Lightweight intermediate-level glider",
+        "Litestream control bar with streamlined aluminum components",
+        "Uncoated 3/32 1×19 lower cables for drag reduction",
+        "Curved tip planform with premium sailcloth (205MT standard)"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/u2/"]
+    },
+    {
+      "family": "T2",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Highly rigid sprog stability system with compensating inboard sprogs",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": 92,
+        "evidence": {
+          "quote": "Very high percentage of double surface and extremely low twist",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Wide-range VG system with 24:1 reduction",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "production": {
+        "first_year": 2006,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "T2 certified 5/22/2006",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["144", "154"],
+      "design_notes": [
+        "Robust yet light-weight carbon fiber crossbar",
+        "Internal four-sprog stability system",
+        "12mm ultra-stiff 7075 aluminum battens",
+        "Curved tip planform (winglets)",
+        "Optional wheel kit on streamlined basetube"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/t2c/"]
+    },
+    {
+      "family": "T2C",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Full competition version with carbon rear leading edges and carbon sprogs",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": 92,
+        "evidence": {
+          "quote": "Very high percentage of double surface and extremely low twist",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Wide-range VG system with 24:1 reduction",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "production": {
+        "first_year": 2013,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "T2C certified 2/26/2013",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Full competition version of T2"],
+        "evidence": {
+          "quote": "T2C is the full competition version of the T2",
+          "url": "https://www.willswing.com/hang-gliders/t2c/"
+        }
+      },
+      "sizes": ["136", "144", "154"],
+      "design_notes": [
+        "All mylar top surface sail with special UV-film laminate sail material",
+        "Carbon-kevlar leading edge pocket inserts",
+        "Ergonomically-designed carbon streamlined basetube"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/t2c/"]
+    },
+    {
+      "family": "T3",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Carbon fiber components including raked tips and bearing tip system integrated into wingtip receptacles",
+          "url": "https://www.willswing.com/hang-gliders/t3/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": 92,
+        "evidence": {
+          "quote": "92% double surface coverage",
+          "url": "https://www.willswing.com/hang-gliders/t3/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Variable geometry system with bearing tips system for precise control",
+          "url": "https://www.willswing.com/hang-gliders/t3/"
+        }
+      },
+      "production": {
+        "first_year": 2020,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "HGMA Certified: March 2, 2020",
+          "url": "https://www.willswing.com/hang-gliders/t3/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["136", "144", "154"],
+      "design_notes": [
+        "Bearing tips system for extraordinary improvement in handling and control authority",
+        "UV-film laminate top surface with Technora laminates on Race and Team editions",
+        "ACLER (Advanced Composite Leading Edge Reinforcement) - Kevlar and carbon fiber molded inserts",
+        "Carbon fiber over-molded battens on longest 4 battens",
+        "Carbon fiber downtubes and raked tips"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/t3/"]
+    },
+    {
+      "family": "Eagle",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Double surface sail with enclosed crossbar",
+          "url": "https://www.willswing.com/hang-gliders/archive/eagle/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Double surface sail design",
+          "url": "https://www.willswing.com/hang-gliders/archive/eagle/"
+        }
+      },
+      "vg": {
+        "present": "no",
+        "evidence": {
+          "quote": "Speedbar basetube included as standard feature (no VG mentioned)",
+          "url": "https://www.willswing.com/hang-gliders/archive/eagle/"
+        }
+      },
+      "production": {
+        "first_year": 2000,
+        "last_year": 2005,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Approximately 2000–2005",
+          "url": "https://www.willswing.com/hang-gliders/archive/eagle/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["145", "164", "180"],
+      "design_notes": [
+        "Developed to bridge the performance gap between Falcon and Ultra Sport models",
+        "Quick-mount vertical stabilizer that pilots could install/remove",
+        "7075-T6 aluminum leading edges and keel",
+        "Full Mylar pocket construction",
+        "Pre-formed battens",
+        "Ideal step-up glider for intermediate pilots"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/eagle/"]
+    },
+    {
+      "family": "Sport 2",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Kingposted design with internal sprogs for stability and a single reflex bridle per wing",
+          "url": "https://www.willswing.com/hang-gliders/sport-2/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 74,
+        "evidence": {
+          "quote": "74% double surface across all sizes",
+          "url": "https://www.willswing.com/hang-gliders/sport-2/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Easy to Pull, Effective VG System as standard equipment",
+          "url": "https://www.willswing.com/hang-gliders/sport-2/"
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Currently in production",
+          "url": "https://www.willswing.com/hang-gliders/sport-2/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["135", "155", "175"],
+      "design_notes": [
+        "Designed for intermediate level pilots",
+        "Combination Bridle and Internal Stability System",
+        "Compatible with Litestream performance control bar",
+        "Light weight and good static balance"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/sport-2/"]
+    },
+    {
+      "family": "Super Sport",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "Seamless drawn aircraft quality 7075 airframe",
+          "url": "https://www.willswing.com/hang-gliders/archive/super-sport/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "From archive table: double surface indicated",
+          "url": "https://www.willswing.com/hang-gliders/archive/"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "No VG information found in available sources",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": 1991,
+        "last_year": 1997,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Approximately 1991–1997",
+          "url": "https://www.willswing.com/hang-gliders/archive/super-sport/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Replaced by Ultra Sport"],
+        "evidence": {
+          "quote": "Eventually replaced by the Ultra Sport",
+          "url": "https://www.willswing.com/hang-gliders/archive/super-sport/"
+        }
+      },
+      "sizes": ["143", "153", "163"],
+      "design_notes": [
+        "HP AT airfoil and airframe technology",
+        "Seamless drawn aircraft quality 7075 airframe",
+        "Faired wingtips and nosecone",
+        "Premium sailcloth options with pilot-selectable colors",
+        "Speedbar control bar options"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/super-sport/"]
+    },
+    {
+      "family": "Ultra Sport",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Kingpost design",
+          "url": "https://www.willswing.com/hang-gliders/archive/ultra-sport/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "From archive table: double surface indicated",
+          "url": "https://www.willswing.com/hang-gliders/archive/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Cam VG system with 14:1 ratio",
+          "url": "https://www.willswing.com/hang-gliders/archive/ultra-sport/"
+        }
+      },
+      "production": {
+        "first_year": 1996,
+        "last_year": 2003,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "1996–2003",
+          "url": "https://www.willswing.com/hang-gliders/archive/ultra-sport/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Succeeded by T2/T2C for competition and Sport 2 line for recreational use"],
+        "evidence": {
+          "quote": "No longer in production; succeeded by the T2/T2C for competition and Sport 2 line for recreational use",
+          "url": "https://www.willswing.com/hang-gliders/archive/ultra-sport/"
+        }
+      },
+      "sizes": ["135", "147", "166"],
+      "design_notes": [
+        "Complete redesign from Super Sport predecessor",
+        "Incorporated technology from Cross Country (hardware) and Fusion (airfoil) models",
+        "Intermediate-advanced move-up model",
+        "Notable low stall speed and exceptional climb characteristics"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/ultra-sport/"]
+    },
+    {
+      "family": "Talon",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "Topless (kingpostless) competition gliders, second generation of topless design",
+          "url": "https://www.willswing.com/hang-gliders/archive/talon/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Double surface hang glider with composite materials",
+          "url": "https://www.willswing.com/hang-gliders/archive/talon/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Cam VG system featuring extended range, light activation, and no anhedral change",
+          "url": "https://www.willswing.com/hang-gliders/archive/talon/"
+        }
+      },
+      "production": {
+        "first_year": 2001,
+        "last_year": 2005,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Approximately 2001 to 2005",
+          "url": "https://www.willswing.com/hang-gliders/archive/talon/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Succeeded by T2/T2C"],
+        "evidence": {
+          "quote": "Eventually succeeded by the T2/T2C competition line",
+          "url": "https://www.willswing.com/hang-gliders/archive/talon/"
+        }
+      },
+      "sizes": ["140", "150", "160"],
+      "design_notes": [
+        "Second generation topless design building on Fusion",
+        "Complete redesign with 42 incremental design improvements",
+        "7075-T6 aluminum tubing for keel and leading edges",
+        "Composite carbon fiber crossbar",
+        "Curved tip planform",
+        "Internal four-sprog stability system"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/talon/"]
+    },
+    {
+      "family": "Fusion",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "Topless (no kingpost) with fully internal composite stability systems",
+          "url": "https://www.willswing.com/hang-gliders/archive/fusion/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": 88,
+        "evidence": {
+          "quote": "88% double surface configuration",
+          "url": "https://www.willswing.com/hang-gliders/archive/fusion/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Cam VG system providing extended range with light activation and no anhedral change",
+          "url": "https://www.willswing.com/hang-gliders/archive/fusion/"
+        }
+      },
+      "production": {
+        "first_year": 1997,
+        "last_year": 2001,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Approximately 1997–2001",
+          "url": "https://www.willswing.com/hang-gliders/archive/fusion/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Succeeded by Talon and later T2/T2C"],
+        "evidence": {
+          "quote": "No longer in production; succeeded by the Talon and later T2/T2C models",
+          "url": "https://www.willswing.com/hang-gliders/archive/fusion/"
+        }
+      },
+      "sizes": ["141", "150"],
+      "design_notes": [
+        "Wills Wing's inaugural topless competition glider",
+        "Carbon fiber composite spar technology",
+        "Computer-optimized aerodynamics",
+        "Perfectly clean aerodynamic top surface without kingpost",
+        "Reduced stall speed and improved climb capability"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/fusion/"]
+    },
+    {
+      "family": "Cross Country",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Double surface with internal rib system for airfoil profile control",
+          "url": "https://www.willswing.com/hang-gliders/archive/cross-country/"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "From archive table: double surface indicated",
+          "url": "https://www.willswing.com/hang-gliders/archive/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "14:1 VG reduction for effortless in-flight adjustment",
+          "url": "https://www.willswing.com/hang-gliders/archive/cross-country/"
+        }
+      },
+      "production": {
+        "first_year": 1995,
+        "last_year": 2000,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Approximately 1995 to 2000",
+          "url": "https://www.willswing.com/hang-gliders/archive/cross-country/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Succeeded by Ultra Sport and Fusion"],
+        "evidence": {
+          "quote": "The model was succeeded by the Ultra Sport (intermediate-advanced) and Fusion (competition)",
+          "url": "https://www.willswing.com/hang-gliders/archive/cross-country/"
+        }
+      },
+      "sizes": ["132", "142", "155"],
+      "design_notes": [
+        "Four internal ribs per side (outboard)",
+        "Three bottom surface battens (inboard)",
+        "Optional winglets for enhanced performance and stability",
+        "Seamless 7075-T6 airframe tubing",
+        "Short keel track for easy assembly",
+        "Computer-optimized control bar design",
+        "XC 132 designed for smaller pilots (120–220 lb range)"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/cross-country/"]
+    },
+    {
+      "family": "Spectrum",
+      "manufacturer": "Wills Wing",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "Entirely 7075 aluminum alloy airframe and battens",
+          "url": "https://www.willswing.com/hang-gliders/archive/spectrum/"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Custom fabric sail designed for aerodynamic efficiency",
+          "url": "https://www.willswing.com/hang-gliders/archive/spectrum/"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "No VG information found in available sources",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": 1990,
+        "last_year": 2000,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "No longer in production (1990–2000)",
+          "url": "https://www.willswing.com/hang-gliders/archive/spectrum/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Replaced by Falcon, Eagle, and Ultra Sport"],
+        "evidence": {
+          "quote": "Eventually replaced by three models: the Falcon (novice), Eagle (step-up), and Ultra Sport (intermediate-advanced)",
+          "url": "https://www.willswing.com/hang-gliders/archive/spectrum/"
+        }
+      },
+      "sizes": ["144", "165"],
+      "design_notes": [
+        "High-performance entry-level glider",
+        "7075 aluminum alloy airframe and battens",
+        "Faired wingtips for drag reduction",
+        "Optional streamline downtubes and speedbar",
+        "HGMA and DHV certified",
+        "Noted for surprisingly competitive thermaling performance"
+      ],
+      "urls_checked": ["https://www.willswing.com/hang-gliders/archive/spectrum/"]
+    },
+    {
+      "family": "F2",
+      "manufacturer": "Airborne",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Hinged Battens are now standard on the F2; new round down tube knuckle for optional speed bars",
+          "url": "http://www.airborne.com.au/pages/hang_gliders_fun2_specs.php"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 28,
+        "evidence": {
+          "quote": "26% double surface (F190) and 30% (F160) model",
+          "url": "http://www.airborne.com.au/pages/hang_gliders_fun2_specs.php"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "No explicit VG system mentioned in specifications",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Currently available from Airborne",
+          "url": "http://www.airborne.com.au/pages/hang_gliders_fun2_specs.php"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": ["160", "190"],
+      "design_notes": [
+        "Lightweight novice/recreational glider",
+        "Hinged battens as standard",
+        "Round down tube knuckle for optional speed bars",
+        "Nose angle: 118 degrees",
+        "Quick assembly time: 6 minutes",
+        "Maximum rough-air maneuvering speed: 69 km/h (43 mph)"
+      ],
+      "urls_checked": ["http://www.airborne.com.au/pages/hang_gliders_fun2_specs.php"]
+    },
+    {
+      "family": "Sting 3",
+      "manufacturer": "Airborne",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Constructed using 7075 airframe, fitted with faired king post, downtubes and speed bar as standard",
+          "url": "https://www.airborne.com.au/images/manuals/Sting-3-Rev1-Manual.pdf"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "New under surface with increased double surface area for long XC glides; increased amount of undersurface, particularly at the tips",
+          "url": "https://www.airborne.com.au/pages/hang_gliders_sting-3-race.php"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "VG (variable geometry) system included as standard",
+          "url": "https://www.airborne.com.au/pages/hang_gliders_sting-3-race.php"
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Current model available for order",
+          "url": "https://www.airborne.com.au/pages/hang_gliders_sting-3-race.php"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Available in Sport and Race versions"],
+        "evidence": {
+          "quote": "Sting 3 is available in different configurations including Sport and Race",
+          "url": "https://www.airborne.com.au/pages/hang_gliders_sting-3-race.php"
+        }
+      },
+      "sizes": ["154", "168"],
+      "design_notes": [
+        "Recreational/XC design with excellent climbing characteristics",
+        "Faired king post as standard",
+        "Speed bar included as standard",
+        "Easy launch and landing properties",
+        "Stall speed less than 25 mph (40 km/h)"
+      ],
+      "urls_checked": ["https://www.airborne.com.au/pages/hang_gliders_sting-3-race.php", "https://www.airborne.com.au/images/manuals/Sting-3-Rev1-Manual.pdf"]
+    },
+    {
+      "family": "C4",
+      "manufacturer": "Airborne",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "Advanced high performance topless hang glider with 7075 main airframe and tubular carbon cross bars",
+          "url": "https://www.airborne.com.au/pages/hg_c4.php"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "More double surface compared to earlier models",
+          "url": "https://www.airborne.com.au/pages/hg_c4.php"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Cam VG System that allows constant anhedral with increased travel",
+          "url": "https://www.airborne.com.au/pages/hg_c4.php"
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Current model available from Airborne",
+          "url": "https://www.airborne.com.au/pages/hg_c4.php"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Preceded C4, succeeded by REV"],
+        "evidence": {
+          "quote": "Refinements to the Climax design",
+          "url": "https://www.airborne.com.au/pages/hg_c4.php"
+        }
+      },
+      "sizes": ["unknown"],
+      "design_notes": [
+        "Advanced high performance topless design",
+        "7075 main airframe and tubular carbon cross bars",
+        "Keel and leading edges made from 7075 aluminium",
+        "Crossbar wedge made from solid 7075 aluminium (CNC manufactured)",
+        "New airfoil profiles",
+        "PX 20 leading edge and Matrix Polyester laminate",
+        "Internal Stability Compensation",
+        "Optional streamline or microdrag control frame",
+        "Optional carbon leading edge inserts"
+      ],
+      "urls_checked": ["https://www.airborne.com.au/pages/hg_c4.php"]
+    },
+    {
+      "family": "REV",
+      "manufacturer": "Airborne",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "Topless hang glider design with cleaner airfoil and Camber Control System (CCS)",
+          "url": "http://www.airborne.com.au/pages/hg_rev.php"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Greater percentage of double surface compared to C4",
+          "url": "http://www.airborne.com.au/pages/hg_rev.php"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "VG system changed to traditional moving crossbar system resulting in significant simplification",
+          "url": "http://www.airborne.com.au/pages/hg_rev.php"
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "produced",
+        "evidence": {
+          "quote": "Current model available",
+          "url": "http://www.airborne.com.au/pages/hg_rev.php"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": ["Successor to C4"],
+        "evidence": {
+          "quote": "New planform features compared to C4; designed with Wingtech (sailmaker)",
+          "url": "http://www.airborne.com.au/pages/hg_rev.php"
+        }
+      },
+      "sizes": ["unknown"],
+      "design_notes": [
+        "Topless design with Camber Control System (CCS) for maintaining precise airfoil shape",
+        "Reduced weight compared to C4",
+        "Improved pitch characteristics",
+        "New airfoil uprights: 55mm × 26mm",
+        "Optional Microdrag Downtubes available",
+        "Enhanced handling compared to earlier models",
+        "Deeper mid span chord and more tangential tip wand sweep than C4"
+      ],
+      "urls_checked": ["http://www.airborne.com.au/pages/hg_rev.php"]
+    }
+  ]
+}

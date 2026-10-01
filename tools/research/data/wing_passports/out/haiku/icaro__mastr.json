@@ -1,0 +1,176 @@
+{
+  "src": "icaro__icaro2000_com_Products_Hanggliders_MastR_MastR_htm.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Icaro",
+      "model": "MastR",
+      "size": "S",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.60,
+          "unit": "m2",
+          "quote": "Area m2 12.60"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose angle deg 128"
+        },
+        {
+          "field": "span",
+          "value": 9.40,
+          "unit": "ml",
+          "quote": "Wingspan ml 9.40"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.01,
+          "unit": "",
+          "quote": "Aspect ratio 7.01"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 96,
+          "unit": "%",
+          "quote": "Double surface % 96"
+        },
+        {
+          "field": "wing_mass",
+          "value": 27,
+          "unit": "Kg",
+          "quote": "Weight (without bag) Kg 27"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 50,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 50/75"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 75,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 50/75"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Icaro",
+      "model": "MastR",
+      "size": "M",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.77,
+          "unit": "m2",
+          "quote": "Area m2 13.77"
+        },
+        {
+          "field": "nose_angle",
+          "value": 131,
+          "unit": "deg",
+          "quote": "Nose angle deg 131"
+        },
+        {
+          "field": "span",
+          "value": 10.06,
+          "unit": "ml",
+          "quote": "Wingspan ml 10.06"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.35,
+          "unit": "",
+          "quote": "Aspect ratio 7.35"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 94,
+          "unit": "%",
+          "quote": "Double surface % 94"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30,
+          "unit": "Kg",
+          "quote": "Weight (without bag) Kg 30"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 70,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 70/90"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 90,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 70/90"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Icaro",
+      "model": "MastR",
+      "size": "L",
+      "cert_class": "DHV 3",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.88,
+          "unit": "m2",
+          "quote": "Area m2 14.88"
+        },
+        {
+          "field": "nose_angle",
+          "value": 131,
+          "unit": "deg",
+          "quote": "Nose angle deg 131"
+        },
+        {
+          "field": "span",
+          "value": 10.48,
+          "unit": "ml",
+          "quote": "Wingspan ml 10.48"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.38,
+          "unit": "",
+          "quote": "Aspect ratio 7.38"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 94,
+          "unit": "%",
+          "quote": "Double surface % 94"
+        },
+        {
+          "field": "wing_mass",
+          "value": 32,
+          "unit": "Kg",
+          "quote": "Weight (without bag) Kg 32"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 85,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 85/110"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 110,
+          "unit": "kg",
+          "quote": "Pilot hook-in weight (min / max) kg 85/110"
+        }
+      ]
+    }
+  ]
+}

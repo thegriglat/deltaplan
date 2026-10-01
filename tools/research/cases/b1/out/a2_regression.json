@@ -1,0 +1,382 @@
+{
+ "info": {
+  "lam_fit": 27.096417821990958,
+  "lf": 0.01582260590139451,
+  "h_ask": 1638.0881889183845,
+  "h_pd": 1786.9377506587166
+ },
+ "summary": {
+  "old": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 251,
+    "t": 9.896
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.337
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 171,
+    "t": 6.752
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 191,
+    "t": 5.747
+   },
+   "d400|U0|heat|cbl": {
+    "ok": true,
+    "iters": 383,
+    "t": 5.117
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.382
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.968
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 243,
+    "t": 2.543
+   },
+   "d200|U0|heat|surface": {
+    "ok": true,
+    "iters": 471,
+    "t": 18.569
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 161,
+    "t": 6.32
+   },
+   "d400|U0|heat|surface": {
+    "ok": true,
+    "iters": 653,
+    "t": 8.144
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 253,
+    "t": 3.246
+   }
+  },
+  "new": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 261,
+    "t": 10.28
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.345
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 181,
+    "t": 7.148
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 201,
+    "t": 6.064
+   },
+   "d400|U0|heat|cbl": {
+    "ok": true,
+    "iters": 433,
+    "t": 5.825
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.371
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 223,
+    "t": 2.855
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.427
+   },
+   "d200|U0|heat|surface": {
+    "ok": false,
+    "iters": 3001,
+    "t": 124.335
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 181,
+    "t": 7.972
+   },
+   "d400|U0|heat|surface": {
+    "ok": false,
+    "iters": 5513,
+    "t": 63.988
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 253,
+    "t": 3.152
+   }
+  },
+  "b1a_game": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 1111,
+    "t": 42.192
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.327
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.881
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 211,
+    "t": 6.138
+   },
+   "d400|U0|heat|cbl": {
+    "ok": false,
+    "iters": 3453,
+    "t": 34.538
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.352
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.823
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 253,
+    "t": 2.537
+   },
+   "d200|U0|heat|surface": {
+    "ok": false,
+    "iters": 3001,
+    "t": 113.997
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 201,
+    "t": 7.643
+   },
+   "d400|U0|heat|surface": {
+    "ok": false,
+    "iters": 4113,
+    "t": 48.101000000000006
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 273,
+    "t": 3.255
+   }
+  },
+  "b1a_recal": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 1111,
+    "t": 42.2
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.327
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.879
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 201,
+    "t": 5.845
+   },
+   "d400|U0|heat|cbl": {
+    "ok": false,
+    "iters": 3453,
+    "t": 34.481
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.351
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 223,
+    "t": 2.702
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.345
+   },
+   "d200|U0|heat|surface": {
+    "ok": false,
+    "iters": 3001,
+    "t": 113.973
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.884
+   },
+   "d400|U0|heat|surface": {
+    "ok": false,
+    "iters": 3863,
+    "t": 45.370999999999995
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 253,
+    "t": 3.042
+   }
+  },
+  "b1b_game": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 1101,
+    "t": 41.821
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.326
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.882
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 201,
+    "t": 5.847
+   },
+   "d400|U0|heat|cbl": {
+    "ok": true,
+    "iters": 493,
+    "t": 6.376
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.352
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.821
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 253,
+    "t": 2.537
+   },
+   "d200|U0|heat|surface": {
+    "ok": false,
+    "iters": 3001,
+    "t": 113.98
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 191,
+    "t": 7.263
+   },
+   "d400|U0|heat|surface": {
+    "ok": false,
+    "iters": 3733,
+    "t": 43.763000000000005
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 273,
+    "t": 3.2560000000000002
+   }
+  },
+  "b1b_recal": {
+   "d200|U0|heat|cbl": {
+    "ok": true,
+    "iters": 1101,
+    "t": 41.828
+   },
+   "d200|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 11,
+    "t": 0.326
+   },
+   "d200|U3|heat|cbl": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.881
+   },
+   "d200|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 201,
+    "t": 5.848
+   },
+   "d400|U0|heat|cbl": {
+    "ok": true,
+    "iters": 493,
+    "t": 6.378
+   },
+   "d400|U0|noheat|cbl": {
+    "ok": true,
+    "iters": 33,
+    "t": 0.351
+   },
+   "d400|U3|heat|cbl": {
+    "ok": true,
+    "iters": 223,
+    "t": 2.704
+   },
+   "d400|U3|noheat|cbl": {
+    "ok": true,
+    "iters": 233,
+    "t": 2.346
+   },
+   "d200|U0|heat|surface": {
+    "ok": false,
+    "iters": 3001,
+    "t": 113.989
+   },
+   "d200|U3|heat|surface": {
+    "ok": true,
+    "iters": 181,
+    "t": 6.884
+   },
+   "d400|U0|heat|surface": {
+    "ok": false,
+    "iters": 3993,
+    "t": 46.398
+   },
+   "d400|U3|heat|surface": {
+    "ok": true,
+    "iters": 253,
+    "t": 3.043
+   }
+  }
+ }
+}

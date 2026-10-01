@@ -2,6 +2,8 @@ class_name WindModel
 extends RefCounted
 ## Средний ветер (степенной профиль по высоте) и детерминированная турбулентность
 ## («замороженное» поле когерентного шума, переносимое ветром — гипотеза Тейлора).
+## Профиль — WindProfile (C2 v4, одна функция с решателем): α по устойчивости из ветра, высоты
+## солнца и облачности (set_conditions), насыщение на z_sat; пересчёт при смене ветра и условий.
 
 ## Направление, куда дует ветер (горизонтальный единичный вектор, мир).
 var dir: Vector3 = Vector3(0, 0, 1)
@@ -15,14 +17,17 @@ var large_fade_agl: float = 150.0
 ## Высота над морем, на которой задан ветер прогноза (старт), м; NAN — ветер от высоты над морем
 ## не зависит (только профиль над рельефом). Задаёт Atmosphere.set_wind(…, ref_msl).
 var ref_msl: float = NAN
+## Условия устойчивости (Atmosphere: погода и час): высота солнца, °, облачность 0..1.
+var sun_elev_deg: float = 52.0
+var cover: float = 0.0
 
 var _ref_h: float = 10.0
 var _alt_gain: float = 0.0
 var _alt_min: float = 1.0
 var _alt_max: float = 1.0
-var _alpha: float = 0.14
+var _alpha: float = 0.24
 var _z0: float = 1.0
-var _max_f: float = 1.8
+var _max_f: float = 1.0
 
 var _noise: FastNoiseLite
 var _noise_norm: float = 1.0
@@ -39,9 +44,7 @@ var _off_l: Vector3
 
 func setup(wind_cfg: Dictionary, turb_cfg: Dictionary, seed_value: int) -> void:
 	_ref_h = float(wind_cfg.reference_height_m)
-	_alpha = float(wind_cfg.shear_exponent)
 	_z0 = float(wind_cfg.roughness_height_m)
-	_max_f = float(wind_cfg.max_profile_factor)
 	_alt_gain = float(wind_cfg.get("altitude_gain_per_km", 0.0))
 	_alt_min = float(wind_cfg.get("altitude_min_factor", 1.0))
 	_alt_max = float(wind_cfg.get("altitude_max_factor", 1.0))
@@ -100,6 +103,26 @@ func set_wind(speed_ms: float, wind_from_deg: float) -> void:
 	var d := deg_to_rad(wind_from_deg)
 	# X — восток, −Z — север; ветер с севера дует на юг (+Z).
 	dir = Vector3(-sin(d), 0.0, cos(d))
+	_update_profile()
+
+
+## Условия устойчивости для профиля: высота солнца (°) и облачность 0..1 (класс Тёрнера).
+func set_conditions(sun_elev: float, cover_frac: float) -> void:
+	sun_elev_deg = sun_elev
+	cover = clampf(cover_frac, 0.0, 1.0)
+	_update_profile()
+
+
+## α и предел профиля из WindProfile (z0 и f — как у решателя: AirCase.Z0, F_COR).
+func _update_profile() -> void:
+	var k := WindProfile.stability_class(speed_ref, sun_elev_deg, cover)
+	_alpha = WindProfile.alpha(speed_ref, sun_elev_deg, cover)
+	_max_f = WindProfile.max_profile(_alpha, speed_ref, AirCase.Z0, AirCase.F_COR, k)
+
+
+## Показатель профиля и ветер на высоте / U10 (для отладки и тестов).
+func profile_params() -> Vector2:
+	return Vector2(_alpha, _max_f)
 
 
 ## Множитель профиля на высоте agl над землёй.

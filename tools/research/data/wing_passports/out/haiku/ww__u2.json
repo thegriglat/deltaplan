@@ -1,0 +1,277 @@
+{
+  "src_files": [
+    "ww__u2.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "145",
+      "cert_class": "USHPA Rating 3",
+      "cert_standard": "HGMA, 11/12/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m^2",
+          "quote": "Area (m^2) 13.5"
+        },
+        {
+          "field": "area",
+          "value": 145,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 145"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Span (m) 9.6"
+        },
+        {
+          "field": "span",
+          "value": 31.3,
+          "unit": "ft",
+          "quote": "Span (ft) 31.3"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.8,
+          "unit": "",
+          "quote": "Aspect Ratio 6.8"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.6,
+          "unit": "kg",
+          "quote": "Glider Weight (kg) 28.6"
+        },
+        {
+          "field": "wing_mass",
+          "value": 63,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 63"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 64,
+          "unit": "kg",
+          "quote": "Hook-In Weight (kg) 64-100"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 100,
+          "unit": "kg",
+          "quote": "Hook-In Weight (kg) 64-100"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 140,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-220"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 220,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-220"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 125 – 128"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 125 – 128"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 84,
+          "unit": "%",
+          "quote": "Double Surface (%) 84"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "Vne (kph) 85"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "Va (kph) 74"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vms",
+          "value": 32,
+          "unit": "kph",
+          "quote": "Vms (kph) 32"
+        },
+        {
+          "field": "vms",
+          "value": 20,
+          "unit": "mph",
+          "quote": "Vms (mph) 20"
+        },
+        {
+          "field": "year",
+          "value": 2003,
+          "unit": "",
+          "quote": "HGMA Cert. 11/12/2003"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "160",
+      "cert_class": "USHPA Rating 3",
+      "cert_standard": "HGMA, 3/20/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.9,
+          "unit": "m^2",
+          "quote": "Area (m^2) 14.9"
+        },
+        {
+          "field": "area",
+          "value": 160,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 160"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "Span (m) 10.1"
+        },
+        {
+          "field": "span",
+          "value": 33.1,
+          "unit": "ft",
+          "quote": "Span (ft) 33.1"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.8,
+          "unit": "",
+          "quote": "Aspect Ratio 6.8"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.8,
+          "unit": "kg",
+          "quote": "Glider Weight (kg) 30.8"
+        },
+        {
+          "field": "wing_mass",
+          "value": 68,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 68"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 73,
+          "unit": "kg",
+          "quote": "Hook-In Weight (kg) 73-118"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 118,
+          "unit": "kg",
+          "quote": "Hook-In Weight (kg) 73-118"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 160,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 160-260"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 260,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 160-260"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 125 – 128"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 125 – 128"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 84,
+          "unit": "%",
+          "quote": "Double Surface (%) 84"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "Vne (kph) 85"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "Va (kph) 74"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vms",
+          "value": 32,
+          "unit": "kph",
+          "quote": "Vms (kph) 32"
+        },
+        {
+          "field": "vms",
+          "value": 20,
+          "unit": "mph",
+          "quote": "Vms (mph) 20"
+        },
+        {
+          "field": "year",
+          "value": 2003,
+          "unit": "",
+          "quote": "HGMA Cert. 3/20/2003"
+        }
+      ]
+    }
+  ]
+}

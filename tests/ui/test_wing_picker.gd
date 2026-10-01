@@ -49,7 +49,11 @@ func test_class_and_model_order() -> void:
 	check(classes[1].contains(tr("unit_ms")), "ветер в м/с: %s" % classes[1])
 	var models := _items(m.get("_wing_opt"))
 	check(models == _model_names("trainer"), "модели учебных по WingCatalog: %s" % [models])
-	check(models.size() == 2, "Target и Falcon: %s" % [models])
+	var trainers := WingCatalog.wings_in_group("trainer")
+	check(
+		trainers.has("wings/target") and trainers.has("wings/training"),
+		"Target и Falcon среди учебных: %s" % [models]
+	)
 	m.queue_free()
 
 

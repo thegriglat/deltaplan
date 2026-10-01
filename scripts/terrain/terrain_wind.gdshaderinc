@@ -26,6 +26,12 @@ uniform float thermal_ring_m = 14.0;       // шаг «колец» сходящ
 uniform float thermal_arms = 3.0;          // число рукавов закрутки
 uniform float thermal_inflow_hz = 0.35;    // частота бега волны к центру, Гц
 uniform float thermal_gain = 1.6;          // усиление колыхания над термиком
+// поле ветра (AM-10, WF-10): 2D-текстура нижнего слоя поля (RG — u, v горизонтали) вокруг
+// камеры — трава на бровке гнётся сильнее, чем в долине, в одном кадре; field_wind_size_m = 0 —
+// поля нет, только wind_vec (как раньше).
+uniform sampler2D field_wind_tex : hint_default_black, filter_linear, repeat_disable;
+uniform vec2 field_wind_origin = vec2(0.0);   // мир (x, z) угла текстуры
+uniform float field_wind_size_m = 0.0;        // сторона текстуры, м
 
 float wind_hash(vec2 p) {
 	p = mod(p, 4096.0);
@@ -51,8 +57,15 @@ void grass_wind(vec2 xz, float dist, float t, out float shade, out vec2 bend) {
 	if (dist > wind_fade_m) {
 		return;
 	}
-	float spd = length(wind_vec);
-	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
+	vec2 local_wind = wind_vec;
+	if (field_wind_size_m > 0.0) {
+		vec2 uv = (xz - field_wind_origin) / field_wind_size_m;
+		if (uv.x > 0.0 && uv.x < 1.0 && uv.y > 0.0 && uv.y < 1.0) {
+			local_wind = texture(field_wind_tex, uv).rg;
+		}
+	}
+	float spd = length(local_wind);
+	vec2 d = spd > 0.05 ? local_wind / spd : vec2(1.0, 0.0);
 	float amp = smoothstep(0.3, wind_full_ms, spd);
 	amp *= 1.0 + gust_gain * smoothstep(0.0, gust_full_ms, wind_gust_ms);
 	// порывы: пятна бегут по ветру — смещение накоплено на CPU (wind_offset), не TIME · wind,

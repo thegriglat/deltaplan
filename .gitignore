@@ -22,3 +22,7 @@ __pycache__/
 tmp_*/
 
 # Прототип тепла и массы: выходы храним в git все (материал для статьи); сырые поля — только сжатыми
+tools/research/data/wing_passports/raw/
+tools/research/data/wing_passports/out/text/
+tools/research/data/wing_passports/out/*.jsonl
+tools/research/data/wing_passports/out/*.log

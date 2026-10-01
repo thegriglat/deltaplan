@@ -1,0 +1,92 @@
+{
+  "src": "bautek__kite.html.txt",
+  "wings": [
+    {
+      "manufacturer": "bautek",
+      "model": "Kite",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 149,
+          "unit": "sft",
+          "quote": "Sail-area: 149 sft, [13.8 sm]"
+        },
+        {
+          "field": "span",
+          "value": 33,
+          "unit": "ft",
+          "quote": "Span: 33 ft, [10.15 m]"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose angle: 128 deg"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.5,
+          "unit": "",
+          "quote": "Aspect ratio: 7.5"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85,
+          "unit": "%",
+          "quote": "Double surface: ca. 85 %"
+        },
+        {
+          "field": "battens",
+          "value": 29,
+          "unit": "",
+          "quote": "Battens: 29 top; 8 bottom"
+        },
+        {
+          "field": "stall_speed",
+          "value": 15.5,
+          "unit": "mph",
+          "quote": "Stall speed: ca. 15.5 mph, [25km/h]"
+        },
+        {
+          "field": "vne",
+          "value": 56,
+          "unit": "mph",
+          "quote": "V ne [speed never to exceed]: 56mph, [90km/h]"
+        },
+        {
+          "field": "vms",
+          "value": 19,
+          "unit": "mph",
+          "quote": "V min sink: ca. 19 mph, [30km/h]"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 198,
+          "unit": "Lbs",
+          "quote": "Take-off weight: min 198 Lbs, [90kg]; max 330 Lbs, [150kg]"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 330,
+          "unit": "Lbs",
+          "quote": "Take-off weight: min 198 Lbs, [90kg]; max 330 Lbs, [150kg]"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 265,
+          "unit": "Lbs",
+          "quote": "Hook-in weight: max 265 Lbs, [120kg]"
+        },
+        {
+          "field": "wing_mass",
+          "value": 65,
+          "unit": "Lbs",
+          "quote": "Glider weight: ca. 65 Lbs, [29.7kg]"
+        }
+      ]
+    }
+  ]
+}

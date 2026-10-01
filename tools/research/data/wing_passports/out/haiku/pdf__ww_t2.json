@@ -1,0 +1,516 @@
+{
+  "src": "pdf__ww_t2_2012_manual.pdf",
+  "wings": [
+    {
+      "manufacturer": "Wills Wing, Inc.",
+      "model": "T2",
+      "size": "144",
+      "cert_class": "HGMA",
+      "cert_standard": "May 22, 2006",
+      "facts": [
+        {
+          "field": "pilot_mass_min",
+          "value": 160,
+          "unit": "lb",
+          "quote": "T2 and T2C 144: 160 - 235 lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "T2 and T2C 144: 160 - 235 lbs"
+        },
+        {
+          "field": "wing_mass",
+          "value": 69.5,
+          "unit": "lb",
+          "quote": "Weight of glider with all essential parts: 69.5 - 73, depending on options"
+        },
+        {
+          "field": "wing_mass",
+          "value": 73,
+          "unit": "lb",
+          "quote": "Weight of glider with all essential parts: 69.5 - 73, depending on options"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "The placarded speed never to exceed for the T2 is 53 m.p.h."
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "The placarded maximum speed for maneuvering flight or flight in rough air is 46 m.p.h."
+        },
+        {
+          "field": "stall_speed",
+          "value": 22,
+          "unit": "mph",
+          "quote": "The stall speed of the T2 at maximum recommended wing loading is 22 m.p.h. or less"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 40,
+          "unit": "mph",
+          "quote": "The top (steady state) speed at minimum recommended wing loading for a prone pilot with a properly designed and adjusted harness is at least 40 m.p.h."
+        }
+      ],
+      "geometry": [
+        {
+          "name": "front_leading_edge_diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "The front leading edge is 60mm (2.36\") over sleeved"
+        },
+        {
+          "name": "front_leading_edge_diameter_at_crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "sleeved with 62mm (2.44\") at the crossbar junction"
+        },
+        {
+          "name": "rear_leading_edge_diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "The rear leading edge is 50mm (1.97\") over sleeved"
+        },
+        {
+          "name": "rear_leading_edge_diameter_at_sprogs",
+          "value": 52,
+          "unit": "mm",
+          "quote": "with 52mm (2.05\") at the outer sprog attachment point"
+        },
+        {
+          "name": "crossbar_overall_length",
+          "value": 116.1,
+          "unit": "in",
+          "quote": "Overall pin to pin length from hole at leading edge bracket attachment to center of load bearing in at center plate 116.1"
+        },
+        {
+          "name": "crossbar_largest_diameter",
+          "value": 3.25,
+          "unit": "in",
+          "quote": "Largest outside dimension 3.25"
+        },
+        {
+          "name": "keel_to_crossbar_center",
+          "value": 31.75,
+          "unit": "in",
+          "quote": "distance from the line joining the leading edge nose bolts to: The center of the xbar load bearing pin at the center plate 31.75 - 36.25"
+        },
+        {
+          "name": "keel_to_hang_loop",
+          "value": 49.75,
+          "unit": "in",
+          "quote": "distance to: The pilot hang loop 49.75 - 51.25"
+        },
+        {
+          "name": "sail_chord_3ft_outboard",
+          "value": 65,
+          "unit": "in",
+          "quote": "Chord lengths at 3 ft outboard of centerline 65"
+        },
+        {
+          "name": "sail_chord_3ft_inboard_tip",
+          "value": 45,
+          "unit": "in",
+          "quote": "3 ft inboard of tip 45"
+        },
+        {
+          "name": "span_vgt",
+          "value": 389.5,
+          "unit": "in",
+          "quote": "Span (extreme tip to tip) 389.5 (VGT)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing, Inc.",
+      "model": "T2",
+      "size": "154",
+      "cert_class": "HGMA",
+      "cert_standard": "October 6, 2006",
+      "facts": [
+        {
+          "field": "pilot_mass_min",
+          "value": 185,
+          "unit": "lb",
+          "quote": "T2 and T2C 154: 185 - 285 lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 285,
+          "unit": "lb",
+          "quote": "T2 and T2C 154: 185 - 285 lbs"
+        },
+        {
+          "field": "wing_mass",
+          "value": 72,
+          "unit": "lb",
+          "quote": "Weight of glider with all essential parts and without coverbags: 72 - 75.5, depending on options"
+        },
+        {
+          "field": "wing_mass",
+          "value": 75.5,
+          "unit": "lb",
+          "quote": "Weight of glider with all essential parts and without coverbags: 72 - 75.5, depending on options"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "The placarded speed never to exceed for the T2 is 53 m.p.h."
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "The placarded maximum speed for maneuvering flight or flight in rough air is 46 m.p.h."
+        },
+        {
+          "field": "stall_speed",
+          "value": 22,
+          "unit": "mph",
+          "quote": "The stall speed of the T2 at maximum recommended wing loading is 22 m.p.h. or less"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 40,
+          "unit": "mph",
+          "quote": "The top (steady state) speed at minimum recommended wing loading for a prone pilot with a properly designed and adjusted harness is at least 40 m.p.h."
+        }
+      ],
+      "geometry": [
+        {
+          "name": "front_leading_edge_diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "The front leading edge is 60mm (2.36\") over sleeved"
+        },
+        {
+          "name": "front_leading_edge_diameter_at_crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "sleeved with 62mm (2.44\") at the crossbar junction"
+        },
+        {
+          "name": "rear_leading_edge_diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "The rear leading edge is 50mm (1.97\") over sleeved"
+        },
+        {
+          "name": "rear_leading_edge_diameter_at_sprogs",
+          "value": 52,
+          "unit": "mm",
+          "quote": "with 52mm (2.05\") at the outer sprog attachment point"
+        },
+        {
+          "name": "crossbar_overall_length",
+          "value": 120.1,
+          "unit": "in",
+          "quote": "Overall pin to pin length from hole at leading edge bracket attachment to center of load bearing in at center plate 120.1"
+        },
+        {
+          "name": "crossbar_largest_diameter",
+          "value": 3.25,
+          "unit": "in",
+          "quote": "Largest outside dimension 3.25"
+        },
+        {
+          "name": "keel_to_crossbar_center",
+          "value": 33.0,
+          "unit": "in",
+          "quote": "distance from the line joining the leading edge nose bolts to: The center of the xbar load bearing pin at the center plate 33.0 - 37.3"
+        },
+        {
+          "name": "keel_to_hang_loop",
+          "value": 50.75,
+          "unit": "in",
+          "quote": "distance to: The pilot hang loop 50.75 - 52.25"
+        },
+        {
+          "name": "sail_chord_3ft_outboard",
+          "value": 66,
+          "unit": "in",
+          "quote": "Chord lengths at 3 ft outboard of centerline 66"
+        },
+        {
+          "name": "sail_chord_3ft_inboard_tip",
+          "value": 46,
+          "unit": "in",
+          "quote": "3 ft inboard of tip 46"
+        },
+        {
+          "name": "span_vgt",
+          "value": 403,
+          "unit": "in",
+          "quote": "Span (extreme tip to tip) 403 (VGT)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing, Inc.",
+      "model": "T2C",
+      "size": "136",
+      "cert_class": "HGMA",
+      "cert_standard": "Not submitted for review as of September 10, 2012",
+      "facts": [
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "T2C 136: 150 - 210 lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "T2C 136: 150 - 210 lbs"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "The placarded speed never to exceed for the T2 is 53 m.p.h."
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "The placarded maximum speed for maneuvering flight or flight in rough air is 46 m.p.h."
+        },
+        {
+          "field": "stall_speed",
+          "value": 22,
+          "unit": "mph",
+          "quote": "The stall speed of the T2 at maximum recommended wing loading is 22 m.p.h. or less"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "front_leading_edge_diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "The front leading edge is 60mm (2.36\") over sleeved"
+        },
+        {
+          "name": "front_leading_edge_diameter_at_crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "sleeved with 62mm (2.44\") at the crossbar junction"
+        },
+        {
+          "name": "rear_leading_edge_diameter_at_sprogs",
+          "value": 52,
+          "unit": "mm",
+          "quote": "with 52mm (2.05\") at the outer sprog attachment point (T2C)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing, Inc.",
+      "model": "T2C",
+      "size": "144",
+      "cert_class": "HGMA",
+      "cert_standard": "May 19, 2009",
+      "facts": [
+        {
+          "field": "pilot_mass_min",
+          "value": 160,
+          "unit": "lb",
+          "quote": "T2 and T2C 144: 160 - 235 lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "T2 and T2C 144: 160 - 235 lbs"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "The placarded speed never to exceed for the T2 is 53 m.p.h."
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "The placarded maximum speed for maneuvering flight or flight in rough air is 46 m.p.h."
+        },
+        {
+          "field": "stall_speed",
+          "value": 22,
+          "unit": "mph",
+          "quote": "The stall speed of the T2 at maximum recommended wing loading is 22 m.p.h. or less"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "front_leading_edge_diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "The front leading edge is 60mm (2.36\") over sleeved"
+        },
+        {
+          "name": "front_leading_edge_diameter_at_crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "sleeved with 62mm (2.44\") at the crossbar junction"
+        },
+        {
+          "name": "rear_leading_edge_diameter_at_sprogs",
+          "value": 52,
+          "unit": "mm",
+          "quote": "with 52mm (2.05\") at the outer sprog attachment point (T2C)"
+        },
+        {
+          "name": "crossbar_overall_length",
+          "value": 116.1,
+          "unit": "in",
+          "quote": "Overall pin to pin length from hole at leading edge bracket attachment to center of load bearing in at center plate 116.1"
+        },
+        {
+          "name": "crossbar_largest_diameter",
+          "value": 3.25,
+          "unit": "in",
+          "quote": "Largest outside dimension 3.25"
+        },
+        {
+          "name": "keel_to_crossbar_center",
+          "value": 31.75,
+          "unit": "in",
+          "quote": "distance from the line joining the leading edge nose bolts to: The center of the xbar load bearing pin at the center plate 31.75 - 36.25"
+        },
+        {
+          "name": "keel_to_hang_loop",
+          "value": 49.75,
+          "unit": "in",
+          "quote": "distance to: The pilot hang loop 49.75 - 51.25"
+        },
+        {
+          "name": "sail_chord_3ft_outboard",
+          "value": 65,
+          "unit": "in",
+          "quote": "Chord lengths at 3 ft outboard of centerline 65"
+        },
+        {
+          "name": "sail_chord_3ft_inboard_tip",
+          "value": 45,
+          "unit": "in",
+          "quote": "3 ft inboard of tip 45"
+        },
+        {
+          "name": "sail_span_vgt",
+          "value": 389.5,
+          "unit": "in",
+          "quote": "Span (extreme tip to tip) 389.5 (VGT)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing, Inc.",
+      "model": "T2C",
+      "size": "154",
+      "cert_class": "HGMA / DHV / LTF",
+      "cert_standard": "June 16, 2009 (HGMA); December 22, 2008 (DHV/LTF)",
+      "facts": [
+        {
+          "field": "pilot_mass_min",
+          "value": 185,
+          "unit": "lb",
+          "quote": "T2 and T2C 154: 185 - 285 lbs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 285,
+          "unit": "lb",
+          "quote": "T2 and T2C 154: 185 - 285 lbs"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "The placarded speed never to exceed for the T2 is 53 m.p.h."
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "The placarded maximum speed for maneuvering flight or flight in rough air is 46 m.p.h."
+        },
+        {
+          "field": "stall_speed",
+          "value": 22,
+          "unit": "mph",
+          "quote": "The stall speed of the T2 at maximum recommended wing loading is 22 m.p.h. or less"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "front_leading_edge_diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "The front leading edge is 60mm (2.36\") over sleeved"
+        },
+        {
+          "name": "front_leading_edge_diameter_at_crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "sleeved with 62mm (2.44\") at the crossbar junction"
+        },
+        {
+          "name": "rear_leading_edge_diameter_at_sprogs",
+          "value": 52,
+          "unit": "mm",
+          "quote": "with 52mm (2.05\") at the outer sprog attachment point (T2C)"
+        },
+        {
+          "name": "crossbar_overall_length",
+          "value": 120.1,
+          "unit": "in",
+          "quote": "Overall pin to pin length from hole at leading edge bracket attachment to center of load bearing in at center plate 120.1"
+        },
+        {
+          "name": "crossbar_largest_diameter",
+          "value": 3.25,
+          "unit": "in",
+          "quote": "Largest outside dimension 3.25"
+        },
+        {
+          "name": "keel_to_crossbar_center",
+          "value": 33.0,
+          "unit": "in",
+          "quote": "distance from the line joining the leading edge nose bolts to: The center of the xbar load bearing pin at the center plate 33.0 - 37.3"
+        },
+        {
+          "name": "keel_to_hang_loop",
+          "value": 50.75,
+          "unit": "in",
+          "quote": "distance to: The pilot hang loop 50.75 - 52.25"
+        },
+        {
+          "name": "sail_chord_3ft_outboard",
+          "value": 66,
+          "unit": "in",
+          "quote": "Chord lengths at 3 ft outboard of centerline 66"
+        },
+        {
+          "name": "sail_chord_3ft_inboard_tip",
+          "value": 46,
+          "unit": "in",
+          "quote": "3 ft inboard of tip 46"
+        },
+        {
+          "name": "sail_span_vgt",
+          "value": 403,
+          "unit": "in",
+          "quote": "Span (extreme tip to tip) 403 (VGT)"
+        }
+      ]
+    }
+  ]
+}

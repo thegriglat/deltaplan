@@ -2,6 +2,10 @@
 // Повторяет StandardMaterial3D из .glb (текстура, альфа-отсечение) + смещение вершин по ветру:
 // чем выше над основанием, тем сильнее (квадратично), порывы — тем же полем, что колышет траву.
 // Параметры задают TerrainTreeModels (материал) и TerrainWind (ветер).
+// Мягкая смена LOD: у границы экземпляр стоит в обоих LOD (TreePlacer), код в альфе цвета экземпляра
+// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; 0,3/0,4 — у lod_d.y). Доля t по живому
+// расстоянию до камеры; пиксель виден у уходящего при шум ≥ t, у проявляющегося при шум < t —
+// с одним шумом экрана оба LOD дополняют друг друга, без прозрачности (discard).
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley;
 
@@ -26,15 +30,26 @@ uniform float far_desaturate = 0.4;
 uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
 uniform float far_edge_soft_k = 3.0;
+uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world.json → trees.lod_distances_m)
+uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
 
 varying vec3 v_color;
 varying float v_dist;
 varying float v_crown;
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
+// окно шума, в котором пиксель виден: [v_fade.x, v_fade.y) (растворение на смене LOD)
+varying vec2 v_fade;
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
+	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
+	v_fade = vec2(0.0, 2.0);
+	int code = int(COLOR.a * 10.0 + 0.5);
+	if (code >= 1 && code <= 4) {
+		float t = clamp((v_dist - (code <= 2 ? lod_d.x : lod_d.y)) / lod_fade_m + 0.5, 0.0, 1.0);
+		v_fade = (code % 2 == 1) ? vec2(t, 2.0) : vec2(0.0, t);
+	}
 	float spd = length(wind_vec);
 	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
 	float amp = smoothstep(0.3, wind_full_ms, spd);
@@ -53,11 +68,19 @@ void vertex() {
 	VERTEX += transpose(m) * disp / s2;
 	v_color = COLOR.rgb;
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
-	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
 	v_cs_sun = cloud_sun_at(base);
+	// целиком растворённый экземпляр — вырожденные треугольники (не растеризуется)
+	if (v_fade.x >= 1.0 || v_fade.y <= 0.0) {
+		VERTEX = vec3(0.0);
+	}
 }
 
 void fragment() {
+	// шум экрана (interleaved gradient noise) — порог растворения
+	float n = fract(52.9829189 * fract(dot(FRAGCOORD.xy, vec2(0.06711056, 0.00583715))));
+	if (n < v_fade.x || n >= v_fade.y) {
+		discard;
+	}
 	vec4 c = texture(albedo_tex, UV) * albedo_color;
 	vec3 rgb = c.rgb * v_color;
 	// вдали мягче: та же логика, что у impostor-билбордов (forest_impostors.gdshader) —

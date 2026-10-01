@@ -120,6 +120,70 @@ func test_placement_deterministic() -> void:
 	check(common > a.size() * 0.8, "совпадают %d из %d" % [common, a.size()])
 
 
+func test_lod_fade_pairs() -> void:
+	# У границы LOD экземпляр в обоих соседних LOD (уходит/проявляется), в стороне — в одном.
+	var t := _altai()
+	var p := _placer(t)
+	var c := _forest_point(t)
+	p.build(c)
+	var band := p.lod_fade_m * 0.5 + p.fade_margin_m
+	var codes := {}  # позиция → [код по LOD0, LOD1, LOD2]
+	for b in p.buffers.size():
+		var buf := p.buffers[b]
+		for k in p.counts[b]:
+			var o := k * TreePlacer.STRIDE
+			var key := Vector2i(roundi(buf[o + 3] * 10), roundi(buf[o + 11] * 10))
+			if not codes.has(key):
+				codes[key] = [0.0, 0.0, 0.0]
+			codes[key][b % 3] = buf[o + 15]
+			var d := Vector2(buf[o + 3], buf[o + 11]).distance_to(c)
+			var a := buf[o + 15]
+			if a < 0.99:
+				var db := p.lod_distances[0] if a < 0.25 else p.lod_distances[1]
+				check(absf(d - db) < band + 0.01, "растворение только у границы: %.1f м" % d)
+	var pairs := 0
+	for key in codes:
+		var cs: Array = codes[key]
+		if is_equal_approx(cs[0], TreePlacer.FADE_OUT0):
+			check(is_equal_approx(cs[1], TreePlacer.FADE_IN0), "пара LOD0→LOD1")
+			pairs += 1
+		if is_equal_approx(cs[1], TreePlacer.FADE_OUT1):
+			check(is_equal_approx(cs[2], TreePlacer.FADE_IN1), "пара LOD1→LOD2")
+			pairs += 1
+	check(pairs > 20, "пар растворения: %d" % pairs)
+
+
+func test_variant_by_place() -> void:
+	# Вариант модели — хеш клетки: при пересчёте вокруг другой точки то же место — тот же буфер
+	# (порода × вариант), и вариантов в ходу больше одного.
+	var t := _altai()
+	var p := _placer(t)
+	var c := _forest_point(t)
+	p.build(c)
+	var a := _variants(p)
+	p.build(c + Vector2(30.0, 25.0))
+	var b := _variants(p)
+	var same := 0
+	var common := 0
+	var used := {}
+	for key in a:
+		used[a[key]] = true
+		if b.has(key):
+			common += 1
+			same += int(a[key] == b[key])
+	check(common > 100 and same == common, "тот же вариант: %d из %d" % [same, common])
+	check(used.size() > TreePlacer.SPECIES.size(), "вариантов в ходу: %d" % used.size())
+
+
+func _variants(p: TreePlacer) -> Dictionary:
+	var out := {}
+	for b in p.buffers.size():
+		for k in p.counts[b]:
+			var buf := p.buffers[b]
+			out[Vector2i(roundi(buf[k * 16 + 3] * 10), roundi(buf[k * 16 + 11] * 10))] = b / 3
+	return out
+
+
 func _positions(p: TreePlacer) -> Dictionary:
 	var out := {}
 	for b in p.buffers.size():

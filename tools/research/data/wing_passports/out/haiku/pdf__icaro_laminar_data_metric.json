@@ -1,0 +1,155 @@
+{"src": "pdf__Laminar_2022_Metric_data.pdf.txt", "wings": [
+  {
+    "manufacturer": "Laminar",
+    "model": "L12.6",
+    "size": "S",
+    "cert_class": "DHV",
+    "cert_standard": "01-0446-09",
+    "facts": [
+      {"field": "area", "value": 12.40, "unit": "m^2", "quote": "Wing Surface m^2 12.40"},
+      {"field": "span", "value": 9.55, "unit": "m", "quote": "Wing Span m 9.55"},
+      {"field": "aspect_ratio", "value": 7.36, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.36 - 7.70"},
+      {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+      {"field": "wing_mass", "value": 28.5, "unit": "kg", "quote": "Weight (without glider bag) kg 28.5"},
+      {"field": "pilot_mass_min", "value": 55, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 55 / 75"},
+      {"field": "pilot_mass_max", "value": 75, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 55 / 75"},
+      {"field": "takeoff_mass_min", "value": 80, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 80 / 115"},
+      {"field": "takeoff_mass_max", "value": 115, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 80 / 115"},
+      {"field": "vne", "value": 90, "unit": "Km/h", "quote": "VNE Km/h 90"},
+      {"field": "stall_speed", "value": 30, "unit": "Km/h", "quote": "Stall Speed Km/h 30"},
+      {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"field": "battens", "value": 26, "unit": "n", "quote": "Battens (upper + lower) n 22+4"}
+    ],
+    "geometry": [
+      {"name": "Wing Surface", "value": 12.40, "unit": "m^2", "quote": "Wing Surface m^2 12.40"},
+      {"name": "Wing Surface with wingtips", "value": 12.57, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 12.57"},
+      {"name": "Wing Span", "value": 9.55, "unit": "m", "quote": "Wing Span m 9.55"},
+      {"name": "Wing Span with wingtips", "value": 9.84, "unit": "m", "quote": "Wing Span with wingtips m 9.84"},
+      {"name": "Nose Angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"name": "Packed Length", "value": 4.75, "unit": "m", "quote": "Packed Length m 4.75"},
+      {"name": "Short Packed Length", "value": 3.60, "unit": "m", "quote": "Short Packed Length m 3.60"}
+    ]
+  },
+  {
+    "manufacturer": "Laminar",
+    "model": "L13.2",
+    "size": "M",
+    "cert_class": "DHV",
+    "cert_standard": "01-0441-09",
+    "facts": [
+      {"field": "area", "value": 13.19, "unit": "m^2", "quote": "Wing Surface m^2 13.19"},
+      {"field": "span", "value": 9.99, "unit": "m", "quote": "Wing Span m 9.99"},
+      {"field": "aspect_ratio", "value": 7.57, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.57 – 7.91"},
+      {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+      {"field": "wing_mass", "value": 31, "unit": "kg", "quote": "Weight (without glider bag) kg 31"},
+      {"field": "pilot_mass_min", "value": 75, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 75 / 90"},
+      {"field": "pilot_mass_max", "value": 90, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 75 / 90"},
+      {"field": "takeoff_mass_min", "value": 80, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 80 / 120"},
+      {"field": "takeoff_mass_max", "value": 120, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 80 / 120"},
+      {"field": "vne", "value": 90, "unit": "Km/h", "quote": "VNE Km/h 90"},
+      {"field": "stall_speed", "value": 30, "unit": "Km/h", "quote": "Stall Speed Km/h 30"},
+      {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"field": "battens", "value": 30, "unit": "n", "quote": "Battens (upper + lower) n 24+6"}
+    ],
+    "geometry": [
+      {"name": "Wing Surface", "value": 13.19, "unit": "m^2", "quote": "Wing Surface m^2 13.19"},
+      {"name": "Wing Surface with wingtips", "value": 13.36, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 13.36"},
+      {"name": "Wing Span", "value": 9.99, "unit": "m", "quote": "Wing Span m 9.99"},
+      {"name": "Wing Span with wingtips", "value": 10.28, "unit": "m", "quote": "Wing Span with wingtips m 10.28"},
+      {"name": "Nose Angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"name": "Packed Length", "value": 4.98, "unit": "m", "quote": "Packed Length m 4.98"},
+      {"name": "Short Packed Length", "value": 3.90, "unit": "m", "quote": "Short Packed Length m 3.90"}
+    ]
+  },
+  {
+    "manufacturer": "Laminar",
+    "model": "L13.7",
+    "size": "M/L",
+    "cert_class": "DHV",
+    "cert_standard": "01-0437-08",
+    "facts": [
+      {"field": "area", "value": 13.79, "unit": "m^2", "quote": "Wing Surface m^2 13.79"},
+      {"field": "span", "value": 9.99, "unit": "m", "quote": "Wing Span m 9.99"},
+      {"field": "aspect_ratio", "value": 7.24, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.24 – 7.56"},
+      {"field": "double_surface_pct", "value": 94, "unit": "%", "quote": "Double Surface % 94%"},
+      {"field": "wing_mass", "value": 31, "unit": "kg", "quote": "Weight (without glider bag) kg 31"},
+      {"field": "pilot_mass_min", "value": 80, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 80 / 95"},
+      {"field": "pilot_mass_max", "value": 95, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 80 / 95"},
+      {"field": "takeoff_mass_min", "value": 90, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 90 / 125"},
+      {"field": "takeoff_mass_max", "value": 125, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 90 / 125"},
+      {"field": "vne", "value": 90, "unit": "Km/h", "quote": "VNE Km/h 90"},
+      {"field": "stall_speed", "value": 29, "unit": "Km/h", "quote": "Stall Speed Km/h 29"},
+      {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"field": "battens", "value": 30, "unit": "n", "quote": "Battens (upper + lower) n 24+6"}
+    ],
+    "geometry": [
+      {"name": "Wing Surface", "value": 13.79, "unit": "m^2", "quote": "Wing Surface m^2 13.79"},
+      {"name": "Wing Surface with wingtips", "value": 13.97, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 13.97"},
+      {"name": "Wing Span", "value": 9.99, "unit": "m", "quote": "Wing Span m 9.99"},
+      {"name": "Wing Span with wingtips", "value": 10.28, "unit": "m", "quote": "Wing Span with wingtips m 10.28"},
+      {"name": "Nose Angle", "value": 132, "unit": "deg", "quote": "Nose Angle ° 132"},
+      {"name": "Packed Length", "value": 4.98, "unit": "m", "quote": "Packed Length m 4.98"},
+      {"name": "Short Packed Length", "value": 3.90, "unit": "m", "quote": "Short Packed Length m 3.90"}
+    ]
+  },
+  {
+    "manufacturer": "Laminar",
+    "model": "L14.1",
+    "size": "L",
+    "cert_class": "DHV",
+    "cert_standard": "01-0476-13",
+    "facts": [
+      {"field": "area", "value": 14.09, "unit": "m^2", "quote": "Wing Surface m^2 14.09"},
+      {"field": "span", "value": 10.43, "unit": "m", "quote": "Wing Span m 10.43"},
+      {"field": "aspect_ratio", "value": 7.72, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.72 – 8.13"},
+      {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+      {"field": "wing_mass", "value": 32.5, "unit": "kg", "quote": "Weight (without glider bag) kg 32.5"},
+      {"field": "pilot_mass_min", "value": 95, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 95 / 105"},
+      {"field": "pilot_mass_max", "value": 105, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 95 / 105"},
+      {"field": "takeoff_mass_min", "value": 105, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 105 / 134"},
+      {"field": "takeoff_mass_max", "value": 134, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg 105 / 134"},
+      {"field": "vne", "value": 90, "unit": "Km/h", "quote": "VNE Km/h 90"},
+      {"field": "stall_speed", "value": 30, "unit": "Km/h", "quote": "Stall Speed Km/h 30"},
+      {"field": "nose_angle", "value": 134, "unit": "deg", "quote": "Nose Angle ° 134"},
+      {"field": "battens", "value": 32, "unit": "n", "quote": "Battens (upper + lower) n 26+6"}
+    ],
+    "geometry": [
+      {"name": "Wing Surface", "value": 14.09, "unit": "m^2", "quote": "Wing Surface m^2 14.09"},
+      {"name": "Wing Surface with wingtips", "value": 14.26, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 14.26"},
+      {"name": "Wing Span", "value": 10.43, "unit": "m", "quote": "Wing Span m 10.43"},
+      {"name": "Wing Span with wingtips", "value": 10.77, "unit": "m", "quote": "Wing Span with wingtips m 10.77"},
+      {"name": "Nose Angle", "value": 134, "unit": "deg", "quote": "Nose Angle ° 134"},
+      {"name": "Packed Length", "value": 5.20, "unit": "m", "quote": "Packed Length m 5.20"},
+      {"name": "Short Packed Length", "value": 4.10, "unit": "m", "quote": "Short Packed Length m 4.10"}
+    ]
+  },
+  {
+    "manufacturer": "Laminar",
+    "model": "L14.8",
+    "size": "XL",
+    "cert_class": "DHV",
+    "cert_standard": "",
+    "facts": [
+      {"field": "area", "value": 14.74, "unit": "m^2", "quote": "Wing Surface m^2 14.74"},
+      {"field": "span", "value": 10.43, "unit": "m", "quote": "Wing Span m 10.43"},
+      {"field": "aspect_ratio", "value": 7.38, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.38 – 7.78"},
+      {"field": "double_surface_pct", "value": 94, "unit": "%", "quote": "Double Surface % 94%"},
+      {"field": "wing_mass", "value": 33, "unit": "kg", "quote": "Weight (without glider bag) kg 33"},
+      {"field": "pilot_mass_min", "value": 100, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 100 / 110"},
+      {"field": "pilot_mass_max", "value": 110, "unit": "kg", "quote": "Suggested hook-in Pilot Weight (Min/Max) kg 100 / 110"},
+      {"field": "vne", "value": 90, "unit": "Km/h", "quote": "VNE Km/h 90"},
+      {"field": "stall_speed", "value": 29, "unit": "Km/h", "quote": "Stall Speed Km/h 29"},
+      {"field": "nose_angle", "value": 134, "unit": "deg", "quote": "Nose Angle ° 134"},
+      {"field": "battens", "value": 32, "unit": "n", "quote": "Battens (upper + lower) n 26+6"}
+    ],
+    "geometry": [
+      {"name": "Wing Surface", "value": 14.74, "unit": "m^2", "quote": "Wing Surface m^2 14.74"},
+      {"name": "Wing Surface with wingtips", "value": 14.91, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 14.91"},
+      {"name": "Wing Span", "value": 10.43, "unit": "m", "quote": "Wing Span m 10.43"},
+      {"name": "Wing Span with wingtips", "value": 10.77, "unit": "m", "quote": "Wing Span with wingtips m 10.77"},
+      {"name": "Nose Angle", "value": 134, "unit": "deg", "quote": "Nose Angle ° 134"},
+      {"name": "Packed Length", "value": 5.20, "unit": "m", "quote": "Packed Length m 5.20"},
+      {"name": "Short Packed Length", "value": 4.10, "unit": "m", "quote": "Short Packed Length m 4.10"}
+    ]
+  }
+]}

@@ -1,0 +1,86 @@
+{
+  "src_files": ["ww__archive_talon.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "140",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 11/24/02",
+      "facts": [
+        {
+          "field": "area",
+          "value": 140,
+          "unit": "ft²",
+          "quote": "Area (ft²) 140"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "150",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 11/24/02",
+      "facts": [
+        {
+          "field": "area",
+          "value": 150,
+          "unit": "ft²",
+          "quote": "Area (ft²) 150"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "160",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 160,
+          "unit": "ft²",
+          "quote": "Area (ft²) 160"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "src": "ww__archive_cross-country.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Cross Country",
+      "size": "132",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 4/12/95",
+      "facts": [
+        {
+          "field": "area",
+          "value": 132,
+          "unit": "ft²",
+          "quote": "Area (ft²) 132"
+        },
+        {
+          "field": "span",
+          "value": 30.75,
+          "unit": "ft",
+          "quote": "Span (ft) 30.75"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.2,
+          "unit": "",
+          "quote": "Aspect Ratio 7.2"
+        },
+        {
+          "field": "wing_mass",
+          "value": 62,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 62"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 120,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 120-220"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 220,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 120-220"
+        },
+        {
+          "field": "va",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Va (mph) 48"
+        },
+        {
+          "field": "vne",
+          "value": 55,
+          "unit": "mph",
+          "quote": "Vne (mph) 55"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vd min (mph) >46"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Cross Country",
+      "size": "142",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 2/6/96",
+      "facts": [
+        {
+          "field": "area",
+          "value": 142,
+          "unit": "ft²",
+          "quote": "Area (ft²) 142"
+        },
+        {
+          "field": "span",
+          "value": 32.5,
+          "unit": "ft",
+          "quote": "Span (ft) 32.5"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.4,
+          "unit": "",
+          "quote": "Aspect Ratio 7.4"
+        },
+        {
+          "field": "wing_mass",
+          "value": 66,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 66"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 140,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-240"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 240,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-240"
+        },
+        {
+          "field": "va",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Va (mph) 48"
+        },
+        {
+          "field": "vne",
+          "value": 55,
+          "unit": "mph",
+          "quote": "Vne (mph) 55"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vd min (mph) >46"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Cross Country",
+      "size": "155",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 5/24/96",
+      "facts": [
+        {
+          "field": "area",
+          "value": 155,
+          "unit": "ft²",
+          "quote": "Area (ft²) 155"
+        },
+        {
+          "field": "span",
+          "value": 34,
+          "unit": "ft",
+          "quote": "Span (ft) 34"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.5,
+          "unit": "",
+          "quote": "Aspect Ratio 7.5"
+        },
+        {
+          "field": "wing_mass",
+          "value": 70,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 70"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 170,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 170-280"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 280,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 170-280"
+        },
+        {
+          "field": "va",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Va (mph) 48"
+        },
+        {
+          "field": "vne",
+          "value": 55,
+          "unit": "mph",
+          "quote": "Vne (mph) 55"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vd min (mph) >46"
+        }
+      ]
+    }
+  ]
+}
