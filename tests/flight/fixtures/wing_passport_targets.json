@@ -52,9 +52,9 @@
      "src": "Aeros|Discus||14: DHV vmin_vg0_kmh 30 при 116 кг; «V min (km/h)  30  29»"
     },
     "trim": {
-     "value": 33.391,
+     "value": 34.402,
      "tol_pct": 7.0,
-     "src": "Aeros|Discus||14: trim_speed_kmh 33 при 126 кг; «range of trim speed for the Discus with VG off is 33 - 35 km/h»"
+     "src": "Aeros|Discus||14: trim_speed_kmh 33 при 126 кг; «range of trim speed for the Discus with VG off is 33 - 35 km/h»; середина диапазона 33–35 (решение пользователя 01.10)"
     },
     "full_pull": {
      "value": 84.183,

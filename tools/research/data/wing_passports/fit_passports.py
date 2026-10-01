@@ -78,6 +78,10 @@ TOL = {"stall": 7.0, "trim": 7.0, "full_pull": 7.0, "min_sink": 10.0, "min_sink_
        "best_glide": 10.0, "best_glide_speed": 10.0}
 SHAPE = ("min_sink", "min_sink_speed", "best_glide_speed", "best_glide")
 QS = ("stall", "trim", "full_pull", "min_sink", "min_sink_speed", "best_glide", "best_glide_speed")
+# Паспорт даёт диапазон, а разбор WPC-1 берёт его нижний край — здесь середина диапазона (решение
+# пользователя 01.10, шлюз 2 модуля wing-physics-check): (крыло, величина) → (нижний, верхний край), та
+# же масса паспорта, что у разобранного значения.
+PASSPORT_RANGE_MID = {("aeros_discus", "trim"): (33.0, 35.0)}
 MARK = " Паспорт (WPC-4):"
 # Исключения: паспортные числа, которые противоречат другим числам того же паспорта сильнее допуска.
 # Заполняется по итогам прогона (причина — в отчёте и в тесте).
@@ -404,6 +408,10 @@ def main(argv):
         for q in QS:
             if q in pp:
                 val, msrc, txt = pp[q]
+                if (wid, q) in PASSPORT_RANGE_MID:
+                    lo, hi = PASSPORT_RANGE_MID[(wid, q)]
+                    val = 0.5 * (lo + hi)
+                    txt += "; середина диапазона %s–%s (решение пользователя 01.10)" % (fm(lo, 0), fm(hi, 0))
                 tg[q] = scaled(val, msrc, mass, q)
                 src[q] = txt
         before = cfg
