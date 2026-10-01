@@ -101,14 +101,14 @@ func step(
 
 
 ## Поворот курса (К3 v3). Стоя и шагом — на месте от input.turn с pilot.walk.turn_rate_dps
-## (крыло не кренит). На бегу — дугой от крена крыла: центростремительную силу дают боковая
-## составляющая подъёмной силы крыла L·sinφ (L ≈ (1 − N/W)·W, φ — крен крыла) и трение ног:
-## пилот наклоняется в поворот вместе с крылом на плечах — на заданный рукой крен φ_зад, и в
-## равновесии на опоре трение даёт N·tgφ_зад. a = g·((1 − N/W)·sinφ + N/W·tgφ_зад),
-## |a| ≤ pilot.run.turn_accel_max_ms2, ω = a/v. Без ввода (φ_зад = 0) дугу даёт только крен от
-## ветра и только по мере разгрузки ног; на отрыве (N → 0) — g·sinφ/v, как вираж в воздухе.
-## На малой скорости угловая скорость не больше, чем при повороте на месте. input.turn на
-## бегу не используется.
+## (крыло не кренит). На бегу — дугой от крена крыла. Пилот бежит по дуге заданного рукой крена
+## φ_зад: a_зад = g·tgφ_зад (наклон в поворот вместе с крылом). Боковая сила крыла при крене φ
+## тянет вбок: a_кр = (1 − N/W)·g·sinφ (L ≈ L_верт = (1 − N/W)·W); остальное дают ноги трением,
+## но не больше, чем позволяет равновесие наклонённого бегуна с весом N на ногах: N/W·a_max
+## (a_max = pilot.run.turn_accel_max_ms2 — предельный наклон тела). a = a_кр + clamp(a_зад − a_кр,
+## ±N/W·a_max), |a| ≤ a_max, ω = a/v. Пока ноги нагружены, курс — от φ_зад, крен от ветра ноги
+## перебарывают; к отрыву (N → 0) — от крена крыла, g·sinφ/v, как вираж в воздухе. На малой
+## скорости угловая скорость не больше, чем при повороте на месте. input.turn на бегу не нужен.
 func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> void:
 	_bank_cmd = bank_command(m, input)  # для _ground_bank этого же шага
 	var w_walk := Units.deg(float(m.pilot.walk.turn_rate_dps))
@@ -116,9 +116,11 @@ func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> voi
 		_yaw_rate = clampf(input.turn, -1.0, 1.0) * w_walk
 	else:
 		var f := clampf(feet_load, 0.0, 1.0)
-		var a := Units.G * ((1.0 - f) * sin(m.bank) + f * tan(_bank_cmd))
 		var a_max := float(m.pilot.run.turn_accel_max_ms2)
-		a = clampf(a, -a_max, a_max)
+		var a_cmd := clampf(Units.G * tan(_bank_cmd), -a_max, a_max)
+		var a_wing := (1.0 - f) * Units.G * sin(m.bank)
+		var legs := f * a_max
+		var a := clampf(a_wing + clampf(a_cmd - a_wing, -legs, legs), -a_max, a_max)
 		var v := absf(_speed)
 		_yaw_rate = clampf(a / v, -w_walk, w_walk) if v > 1.0e-3 else 0.0
 	m.heading += _yaw_rate * dt
