@@ -11,6 +11,7 @@
 - 01.10 — главная сессия: стик по варианту А — правка `_apply_gamepad` (`-gy * inv`) отдельным коммитом ui-controls (7e65293), конфликт с CF-3 разрешаю при подтягивании `feature/control-fix`.
 - 01.10 — CHANGELOG «В работе» (6d554c2). Открытый вопрос для CF-3: автопилот и `test_takeoff_latch` изображают «W» на земле как `walk_forward`+`pitch_pull_in`, реальная W теперь `pitch_push_out`; защёлку CF-3 всё равно убирает — там и привести.
 - 01.10 — финальный шлюз: control-fix не готов (CF-1, CF-3 в работе), подтягивание `feature/control-fix` — после его готовности, перед слиянием в main.
+- 02.10 — пользователь одобрил слияние в main (выпуск 1.0.1). Подтянут main dcf039e (control-fix CF-1/CF-3, wing-physics-check) — слияние acf1752. Конфликты: `controls.json` (клавиши — У1 v2, описания — объединены, `run_doc` — control-fix), `_apply_gamepad` (код control-fix без ветвления по земле + `-gy * inv`), `autopilot.gd` и `test_gameplay.gd` — версия control-fix (жмут действия по имени, знак верный), `docs/game.md` (текст control-fix + знак У1, таблица клавиш объединена), CHANGELOG (одна секция «Управление»). `ui.json`, `locale/ui.csv` слились сами (раздел «На земле» — control-fix, строки полёта и инверсия — наши). Тесты: ui_controls_contracts 5/5, contracts 45/45, game 134/0 (1 пропуск GPU), start_ 14/0 (1 пропуск GPU), liftoff_physics 5/5, flight 129/129. Стоя ↑ → pitch +1,00 (нос вверх), на бегу S → −0,75.
 
 ## Задачи
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа / решения |
