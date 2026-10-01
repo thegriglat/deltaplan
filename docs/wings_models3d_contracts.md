@@ -17,7 +17,9 @@
 - Модель: контракт имён и осей — `docs/models.md` (`Sail`, `Frame`, `ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; ≤ 14 тыс. треугольников), проверка — `scenes/models_preview/check_models.gd`.
 - Контрактный тест: `tests/game/test_wing_models_contract.gd` (К1-инварианты + К2) — для **всех** `configs/wings/*.json`, без списка id.
 
-## К3. Машиночитаемая спецификация новых крыльев `tools/research/data/wing_passports/out/wings3d_spec.json` — версия 1 (вводит W3-02)
+## К3. Машиночитаемая спецификация новых крыльев `tools/research/data/wing_passports/out/wings3d_spec.json` — версия 2 (ввела W3-02)
+
+v2 (2026-10-01, по итогам W3-02; потребитель — только `make_new_wings.py`, правки в том же шаге): `span_m`/`area_m2` — только в `config`, в `params` их нет (К1: при наличии конфига лишние); необязательное поле `manual` — строки «Что задать» без числа (например, «небольшой» кингпост у N15) — решает исполнитель волны с пометкой; блок `dhv` — только из карточек DHV или цитат с «DHV» (плакаты HGMA не дают «Startgewicht»); массы пилота округляются до 1 кг. Правки вида крыла сверх спецификации — `tools/research/data/wing_passports/wings3d_overrides/<id>.json` (по файлу на крыло, скрипт применяет их при каждом запуске).
 
 - Владелец: `make_3d_tz.py` (тот же расчёт, что пишет таблицы «Что задать» ТЗ — числа в ТЗ и в спецификации обязаны совпадать). Потребители: применяющий скрипт (W3-02), исполнители волн N.
 - Форма (по id, ключи — id из сводки ТЗ):
