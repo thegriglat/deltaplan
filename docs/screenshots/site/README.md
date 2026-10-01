@@ -15,4 +15,4 @@
 
 Не вошли: `itch_shot --kind=launch` (крыльев на склоне в кадре не видно), `--kind=chase` с `--wing=` (камера не на крыле игрока — снято через main.tscn, как `tools/shots/gameplay.sh`).
 
-Кадры `docs/screenshots/gameplay/*.jpg` пересняты `tools/shots/gameplay.sh`. Кадры `docs/screenshots/e2e/` не пересняты: `tools/shots/e2e.sh` на всех местах падает с «e2e_shot: FAIL (мир за меню не загрузился)» (01.10.2026).
+Кадры `docs/screenshots/gameplay/*.jpg` пересняты `tools/shots/gameplay.sh`. Кадры `docs/screenshots/e2e/` пересняты `tools/shots/e2e.sh` после починки драйвера (fix/e2e-shots, 32e5cc7, 01.10.2026).
