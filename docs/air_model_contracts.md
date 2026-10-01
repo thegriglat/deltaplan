@@ -77,7 +77,7 @@
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
   (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
-## C2 v3 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
+## C2 v4 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
 
 | Вход | Откуда в игре | Формат |
@@ -107,7 +107,26 @@
   флаги; `dtau_u` None ↔ NAN не сверяется); α и max_profile решателя = `configs/atmosphere.json → wind.shear_exponent`,
   `wind.max_profile_factor` (одно α у решателя и `WindModel`). Менять параметр — во всех трёх местах одним коммитом.
   Устройство α «из местного z0 и устойчивости» (решение К1, волна Б) — это новая версия C2 через координатора.
-- **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант выше).
+- **v4 (01.10.2026, К2, волна Б п. 2 — решение по α):** профиль притока решателя и аналитический профиль
+  `WindModel` — **одна функция** (один GDScript-класс, напр. `WindProfile`, static): 
+  - `alpha(u10, sun_elev_deg, cover) -> float` — показатель по устойчивости: класс Паскуилла–Тернера по скорости
+    на 10 м и инсоляции (высота солнца, облачность; ночь — по облачности), α = α_N · r(класс), r — отношения
+    показателей Irwin (1979, «сельская местность») к классу D; α_N = `wind.shear_exponent_neutral` = **0,24**
+    (совместная калибровка Б1: Askervein α_A 0,242 ± 0,004; Perdigão упирается в край сетки ≥ 0,29 — лес);
+  - `max_profile(alpha, u10, z0, f_cor) -> float` = (z_sat/10)^α, z_sat = `wind.z_sat_frac` (0,3) · 0,3 u*/f,
+    u* = κ u10/ln(10/z0) — то же правило, что `tools/research/cases/rules.py` (C10 v3); u10 → 0 — нижний предел
+    u10 (без деления на ноль; в штиль профиль притока решателю не нужен);
+  - `AirPlace.domain_case` / `AirWindowCase` ставят `p.alpha`, `p.max_profile` случая по этой функции (час, солнце,
+    облачность, ветер случая); `WindModel` берёт α и max_profile из неё же при смене ветра/погоды/часа
+    (`Atmosphere`), а не из констант конфига. `wind.shear_exponent` и `wind.max_profile_factor` удаляются из
+    конфига (совместимость не нужна).
+  - Решатель: **λ = max(lam, lam_frac·h)** с `lam` 40 м, `lam_frac` 0,0158 (Б1, перевод (б): все cbl-случаи
+    матрицы А2 сходятся); z0 игры 0,1 м — без изменений.
+  - Инвариант (заменяет v3): `Params()` air.py = `AirCase.p` по общим ключам, кроме `alpha`/`max_profile` — они
+    у случая из функции; `Params().alpha` = α_N; GDScript-функция и `rules.py` на контрольных входах дают одно
+    z_sat/max_profile (тест сверяет с числами, записанными в тесте из rules.py).
+- **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант
+  выше; в v4 — исполнитель Б2 переписывает по новому инварианту в том же коммите, что функцию).
 
 ## C3 v1 — выход решателя → `WindField` (AM-05)
 **Владелец:** AM-05 (`scripts/atmosphere/air_model/wind_field.gd`). **Поставщики:** AM-03
@@ -440,3 +459,4 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C10 | v1 | 01.10.2026 | К2 до А4: модуль случая калибровки (`NAME`, `SUBCASES`, `observations()`, `run_one`) для совместной калибровки волны Б; тест `tools/research/cases/check_c10.py` |
 | C10 | v2 | 01.10.2026 | К2 до волны Б: общая схема `cases/scheme.py` (2-й порядок, hb, local_k, cbl, Pr_t 0,85, k_relax 0,1, нейтраль), `SETUP` случая (геометрия и профиль притока — одним правилом), `scheme_ctl` для контрольных прогонов схемы; `check_c10.py` проверяет |
 | C10 | v3 | 01.10.2026 | К2 по этапу 1 Б1: общие правила постановки `cases/rules.py` (H/dx 5,8, область 200 клеток, губка 35, потолок 7,5 H, z_sat = 0,3·h, U10 по опорной точке, нижняя граница 1·dz), сеточная поправка одним способом (dx·2/3), мачты Perdigão — u_∥ |
+| C2 | v4 | 01.10.2026 | К2, волна Б п. 2: α по устойчивости (Паскуилл–Тёрнер, отношения Irwin 1979 к D) с α_N 0,24 (Б1), max_profile — правило z_sat = 0,3·0,3u*/f (как rules.py) — одна функция для решателя и WindModel; λ: lam 40, lam_frac 0,0158 (Б1); конфиг `wind.shear_exponent_neutral`, `wind.z_sat_frac` вместо `shear_exponent`/`max_profile_factor` |
