@@ -43,6 +43,18 @@
 | `assets/models/glider_bautek_astir.glb` | N17  Bautek Astir (по паспорту): мачтовое  двухобшивочное 85 %  130°  9 лат на сторону; форма — подобие базы  размах/площадь по конфигу | 12 560 |
 | `assets/models/glider_fs_crossover.glb` | N18  Flugsport Skypoint Crossover (по паспорту): мачтовое  двухобшивочное 82 %  127°  9 лат на сторону; форма — подобие базы  размах/площадь по конфигу | 12 560 |
 | `assets/models/glider_seed_spyder.glb` | N19  Seedwings Spyder (по паспорту): безмачтовое  двухобшивочное 82 %  128°  8 лат на сторону; форма — подобие базы  размах/площадь по конфигу | 13 844 |
+| `assets/models/glider_ww_super_sport.glb` | мачтовое среднее (в духе Wills Wing Super Sport 153): магик-база, двухобшивочное 60 %, 124°, 11 лат | 12 576 |
+| `assets/models/glider_ww_ultra_sport.glb` | мачтовое среднее (в духе Wills Wing Ultra Sport 147): база magic, 124°, 11 лат | 12 576 |
+| `assets/models/glider_ww_spectrum.glb` | начальное мачтовое (в духе Wills Wing Spectrum 165): база training, 121° | 13 112 |
+| `assets/models/glider_moyes_litespeed_s.glb` | спортивное безмачтовое (в духе Moyes Litespeed S 4): база sport, 130° | 13 268 |
+| `assets/models/glider_aeros_combat_l.glb` | соревновательное безмачтовое (в духе Aeros Combat L): база combat, 130° | 13 844 |
+| `assets/models/glider_air_c4.glb` | соревновательное безмачтовое (в духе Airborne C4 13.5): база combat, 130°, 12 лат | 13 844 |
+| `assets/models/glider_air_rev.glb` | соревновательное безмачтовое (в духе Airborne REV): база combat, 130°, профильные стойки | 13 844 |
+| `assets/models/glider_dp_she1.glb` | соревновательное безмачтовое (в духе DesignProducts SHE 1): база combat, 130° | 12 548 |
+| `assets/models/glider_seed_skyrunner_xr.glb` | среднее мачтовое (в духе Seedwings Skyrunner XR): база laminar, 127° | 11 840 |
+| `assets/models/glider_ww_fusion.glb` | безмачтовое продвинутое (в духе Wills Wing Fusion 150): база sport, 128° | 13 268 |
+| `assets/models/glider_ww_talon.glb` | безмачтовое продвинутое (в духе Wills Wing Talon): база sport, 128° | 13 268 |
+| `assets/models/glider_ww_cross_country.glb` | мачтовое продвинутое (в духе Wills Wing Cross Country 155): база magic, 124° | 12 576 |
 | `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 5 433 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 742 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 078 |
