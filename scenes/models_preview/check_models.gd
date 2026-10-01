@@ -3,38 +3,25 @@ extends SceneTree
 ## godot --headless --path . --script res://scenes/models_preview/check_models.gd
 ## Печатает найденные/отсутствующие ноды, число треугольников; код выхода 1 при ошибке.
 
-const CONTRACT := {
-	"res://assets/models/glider_training.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_sport.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_slavutich_ut.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_apogee.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_atlas.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_target.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_magic.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_laminar.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
-	"res://assets/models/glider_combat.glb": ["Sail", "Frame", "ControlFrame", "HangPoint",
-		"BaseBar", "InstrumentMount", "VarioMount", "WingTipL", "WingTipR"],
+const WING_NODES: Array[String] = ["Sail", "Frame", "ControlFrame", "HangPoint", "BaseBar",
+	"InstrumentMount", "VarioMount", "WingTipL", "WingTipR"]
+## Модели не крыльев; крылья — по одному glider_<id>.glb на каждый configs/wings/<id>.json.
+const OTHER := {
 	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR",
 		"CockpitCamera"],
 	"res://assets/models/instrument.glb": ["Body", "Screen"],
 	"res://assets/models/vario_90s.glb": ["Body", "Screen"],
 }
-const TRI_BUDGET := {"glider": 30000, "instrument": 3000}
+const TRI_BUDGET := {"glider": 30000, "wing": 14000, "instrument": 3000}
 
 var _errors := 0
 
 
 func _init() -> void:
 	var pilot_tris := 0
-	for path: String in CONTRACT:
+	var contract := _wing_contract()
+	contract.merge(OTHER)
+	for path: String in contract:
 		var ps := load(path) as PackedScene
 		if ps == null:
 			_fail("%s: не загружается" % path)
@@ -42,7 +29,7 @@ func _init() -> void:
 		var root := ps.instantiate() as Node3D
 		var found: Array[String] = []
 		var missing: Array[String] = []
-		for n: String in CONTRACT[path]:
+		for n: String in contract[path]:
 			if root.find_child(n, true, false) != null:
 				found.append(n)
 			else:
@@ -54,11 +41,26 @@ func _init() -> void:
 			_fail("%s: нет нод %s" % [path, missing])
 		if path.ends_with("pilot.glb"):
 			pilot_tris = tris
+		if path.contains("glider_"):
+			_expect(path, "треугольников ≤ %d" % TRI_BUDGET.wing, tris <= TRI_BUDGET.wing)
 		_check_axes(path, root)
 		root.free()
 	print("крыло + пилот: бюджет %d треугольников (пилот %d)" % [TRI_BUDGET.glider, pilot_tris])
 	print("ИТОГ: %s" % ("OK" if _errors == 0 else "ОШИБОК: %d" % _errors))
 	quit(1 if _errors else 0)
+
+
+## Крылья из configs/wings/*.json: каждое → res://assets/models/glider_<id>.glb.
+func _wing_contract() -> Dictionary:
+	var out := {}
+	var ids := Array(DirAccess.get_files_at("res://configs/wings"))
+	ids.sort()
+	for f: String in ids:
+		if f.get_extension() == "json":
+			out["res://assets/models/glider_%s.glb" % f.get_basename()] = WING_NODES
+	if out.is_empty():
+		_fail("configs/wings: нет конфигов крыльев")
+	return out
 
 
 func _check_axes(path: String, root: Node3D) -> void:
