@@ -35,14 +35,10 @@ func _ready() -> void:
 
 
 ## Строки экрана: {section} или {keys, text} — уже переведённые, клавиши по-русски.
-## Строка с "mouse_mode" показывается только при этом режиме mouse.mode (controls.json).
 static func rows() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var keys: Dictionary = Config.get_config("controls").get("keys", {})
-	var mouse_mode := String(Config.value("controls", "mouse.mode"))
 	for r: Dictionary in Config.get_config("ui").get("controls_help", []):
-		if r.has("mouse_mode") and String(r.mouse_mode) != mouse_mode:
-			continue
 		if r.has("section"):
 			out.append({"section": TranslationServer.translate(String(r.section))})
 			continue

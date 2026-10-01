@@ -92,7 +92,7 @@ func test_controls_screen_lists_keys() -> void:
 	for r in rows:
 		text += String(r.get("keys", "")) + " " + String(r.get("text", r.get("section", ""))) + "\n"
 	check(text.contains("Shift") and text.contains("разбег"), "разбег на Shift")
-	check(text.contains("W / ↑"), "клавиши из controls.json")
+	check(text.contains("↑") and text.contains("Shift"), "клавиши из controls.json")
 	check(ControlsScreen.key_names(["Escape"]) == "Esc", "имена клавиш по-человечески")
 	c.queue_free()
 
@@ -116,7 +116,8 @@ func test_settings_saved_to_user_config() -> void:
 	var au := UserSettings.read_json(TMP_DIR.path_join("audio.json"))
 	check(c.get("invert_pitch") == true, "инверсия тангажа")
 	check(float(au.get("vario_audio", {}).get("volume_db", 0.0)) == -12.0, "громкость вариометра")
-	check(String(c.get("mouse", {}).get("mode", "")) in ["look", "bar"], "режим мыши")
+	check(not c.get("mouse", {}).has("mode"), "режима мыши нет (У1 v3)")
+	check(c.get("mouse", {}).has("look_sensitivity_deg_per_px"), "чувствительность обзора мышью")
 	for f in ["controls.json", "audio.json", "game.json", "atmosphere.json", "world.json"]:
 		DirAccess.remove_absolute(TMP_DIR.path_join(f))
 	DirAccess.remove_absolute(TMP_DIR)
