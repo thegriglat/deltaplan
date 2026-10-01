@@ -20,11 +20,11 @@
 - Аналитика: `speed_kmh` — скорость U на `wind.reference_height_m` (10 м) над рельефом; на высоте agl над местной землёй U = U10·min((max(agl, z0)/10)^α, max_profile)·altitude_factor(msl); altitude_factor = clamp(1 + 0,6·(msl − ref_msl)/1000, 0,5, 2).
 - Поле (GPU): как U10 меню задаёт приток решателя и сколько поле даёт на старте — **устанавливает WPC-2** (вносится сюда v2 без смены интерфейса).
 
-## К4. Таблица «паспорт против модели» (v1, новый)
+## К4. Таблица «паспорт против модели» (v2, новый)
 Владелец: WPC-1. Потребители: координатор, задачи волны 2, регрессионные тесты.
 Файл `tools/research/wing_physics_check/out/wings_audit.csv`, UTF-8, разделитель `,`, точка — десятичный знак, по строке на (крыло, масса):
 `wing,group,mass_case,pilot_mass_kg,total_mass_kg,src_key,quantity,unit,model,config,passport,passport_src,diff_pct`
-- `mass_case`: `ref` | `pilot85`; `quantity`: `stall` | `trim` | `full_pull` | `min_sink` | `min_sink_speed` | `best_glide` | `best_glide_speed` | `sink_at_80`; скорости — км/ч, снижение — м/с, качество — безразмерное; `model` — из установившегося полёта FlightModel (ρ = 1,225), `config` — из конфига, `passport` — пусто, если в паспорте нет; `diff_pct` = (model − passport)/passport·100, пусто без паспорта.
+- `mass_case`: `ref` | `pilot85`; `quantity`: `stall` | `trim` | `full_pull` | `min_sink` | `min_sink_speed` | `best_glide` | `best_glide_speed` | `sink_at_80` | `stall_start_alt` (v2: сваливание на высоте старта) | `takeoff_gs_w0` | `takeoff_gs_w3` | `takeoff_gs_w6` | `takeoff_gs_w10` (v2: путевая скорость отрыва ≈ Vmin на высоте старта − встречный ветер 0/3/6/10 м/с, км/ч); скорости — км/ч, снижение — м/с, качество — безразмерное; `model` — из установившегося полёта FlightModel (ρ = 1,225), `config` — из конфига, `passport` — пусто, если в паспорте нет; `diff_pct` = (model − passport)/passport·100, пусто без паспорта.
 
 ## К5. Профили ветра у стартов (v1, новый)
 Владелец: WPC-2. Потребители: координатор, WPC-3 (выбор точек), волна 2.
@@ -37,3 +37,6 @@
 Файл `tools/research/wing_physics_check/out/penetration.csv`, по строке на запуск (повторный запуск пропускает готовые ключи):
 `key,series,location,start,mode,wing,pilot_mass_kg,wind_set_ms,pitch,agl0_m,duration_s,gs_into_wind_ms,airspeed_ms,vz_ms,wind_h_ms,wind_w_ms,agl_end_m,climb_m,note`
 - `series`: `penetration` (прямо в ветер) | `ridge` (восьмёрка у гребня); `gs_into_wind_ms` — средняя за последние 30 с путевая скорость вдоль направления «в ветер» (+ — вперёд, против ветра; − — сносит назад); `airspeed_ms`, `vz_ms` (+ вверх), `wind_h_ms`, `wind_w_ms` — средние за то же окно в точке аппарата; `climb_m` — набор за полёт; `note` — касание земли и т. п.
+
+## История
+- К4 v2 (01.10): добавлены значения `quantity` для проверки отрыва на старте (данные пилота о старте при 0/3/6/10 м/с); колонки те же. Потребитель WPC-1 уведомлён.
