@@ -642,17 +642,25 @@ def wing_page(wid, g, weight):
     return "\n".join(L)
 
 
-def summary_table(ids, groups_by_id, with_group):
+def summary_table(ids, mast_column):
+    """Таблица крыльев. mast_column=False (группа): без столбца «Мачта» — тип у исключений из типа группы
+    (большинства) приписан к прототипу."""
     d = data()
-    L = ["| Модель | Прототип, годы | Мачта | Площадь, м² | Размах, м | Масса, кг | Пилот, кг | Класс |",
-         "|---|---|---|---|---|---|---|---|"]
+    kp = [bool(d["cfgs"][w]["kingpost"]) for w in ids]
+    major = kp.count(True) >= kp.count(False)
+    head = "| Модель | Прототип, годы |%s Площадь, м² | Размах, м | Масса, кг | Пилот, кг | Класс |" % (" Мачта |" if mast_column else "")
+    L = [head, "|---" * (8 if mast_column else 7) + "|"]
     for wid in ids:
         c = d["cfgs"][wid]
         g = c["group"]
         era = c.get("era") or "?"
-        L.append("| %s | %s, %s | %s | %s | %s | %s | %s–%s | %s |" % (
-            link(wing_title(wid), "/wings/%s/%s/" % (g, wid)), cell(prototype(wid)), "годы ?" if era == "?" else era,
-            "есть" if c["kingpost"] else "нет", fm(c["area_m2"]), fm(c["span_m"]), fm(c["wing_mass_kg"]),
+        proto = cell(prototype(wid))
+        if not mast_column and bool(c["kingpost"]) != major:
+            proto += " (мачтовое)" if c["kingpost"] else " (безмачтовое)"
+        mast = (" %s |" % ("есть" if c["kingpost"] else "нет")) if mast_column else ""
+        L.append("| %s | %s, %s |%s %s | %s | %s | %s–%s | %s |" % (
+            link(wing_title(wid), "/wings/%s/%s/" % (g, wid)), proto, "годы ?" if era == "?" else era,
+            mast, fm(c["area_m2"]), fm(c["span_m"]), fm(c["wing_mass_kg"]),
             fm(c["pilot_mass_min_kg"]), fm(c["pilot_mass_max_kg"]), cell(short_class(wid))))
     return L
 
@@ -680,14 +688,14 @@ def section_block():
         ids = order_in_group(g["id"])
         L.append("## [%s](/wings/%s/)" % (group_title(g), g["id"]))
         L.append("")
-        L += summary_table(ids, None, False)
+        L += summary_table(ids, True)
         L.append("")
     L += LEGEND
     return "\n".join(L)
 
 
 def group_block(g):
-    L = summary_table(order_in_group(g["id"]), None, False)
+    L = summary_table(order_in_group(g["id"]), False)
     L.append("")
     L.append("Порядок — как в меню игры: по качеству, при равенстве — по ветру. Отметки происхождения чисел — "
              "[в разделе](/wings/#отметки-происхождения).")
