@@ -21,6 +21,9 @@ const LW_CLOUD_K := 0.7
 ## м/с) откуда wdir (°); t_max — дневной максимум (NAN — обычный для даты), sky — облачность;
 ## heat = false — без нагрева (H = 0). detail — слой рельефа 25 м, water — маска воды (или null),
 ## loc — configs/locations/<место>.json (center_lat, center_lon, utc_offset_h).
+## u10 — ветер меню (на 10 м над стартом, C2 v6); inflow_k — множитель притока: α, класс
+## устойчивости и max_profile — по u10 меню, приток на краю области AirCase.u10 = inflow_k·u10
+## (AirRuntime подбирает k так, чтобы над стартом на 10 м было u10 меню).
 static func domain_case(
 	detail: HeightLayer,
 	water: Image,
@@ -31,7 +34,8 @@ static func domain_case(
 	wdir: float,
 	t_max := NAN,
 	sky := "clear",
-	heat := true
+	heat := true,
+	inflow_k := 1.0
 ) -> AirCase:
 	var n := roundi(DOMAIN_L / dx)
 	var x0 := -DOMAIN_L / 2.0
@@ -51,7 +55,6 @@ static func domain_case(
 	var c := AirCase.new()
 	c.set_grid(dx, n, n, dz, zb, nz, x0, y0)
 	c.hc = hc
-	c.u10 = u10
 	c.wdir = wdir
 	var cfg := WeatherModel.config()
 	var ctx := context(detail, loc, cfg)
@@ -59,7 +62,7 @@ static func domain_case(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
-	WindProfile.apply_to_case(c, ctx, hour, float(d.cover))
+	c.set_inflow(u10, inflow_k, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = gamma(d, c.zc(k))
@@ -68,8 +71,16 @@ static func domain_case(
 			hc, dx, n, n, d, ctx, cfg, water_fraction(water, detail, x0, y0, dx, n, n)
 		)
 	c.label = (
-		"%s %sм %sч U%s %s°%s"
-		% [String(loc.get("id", "")), dx, hour, u10, wdir, "" if heat else " без нагрева"]
+		"%s %sм %sч U%s%s %s°%s"
+		% [
+			String(loc.get("id", "")),
+			dx,
+			hour,
+			u10,
+			"" if inflow_k == 1.0 else " k%.3f" % inflow_k,
+			wdir,
+			"" if heat else " без нагрева"
+		]
 	)
 	return c
 

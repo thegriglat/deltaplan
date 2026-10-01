@@ -1,0 +1,199 @@
+extends Node
+## AS-2 зонд: ветер у старта на 1,5 м (и профиль 1,5…50 м) в сцене игры с полем GPU, разбор σ по
+## членам болтанки поля. Копировать в tests/game/test_as2probe.gd, запуск (окно, GPU-замок):
+##   AS2_OUT=<каталог> AS2_TAG=<метка> AS2_CASES="ongudai/kayancha_south:21.6,..." AS2_SEEDS=0,1500,3000 \
+##   flock /tmp/heat_ca_gpu.lock tools/gpu_tests.sh --filter=as2probe
+## Выход: <tag>_<case>-<seed>_fixed.csv (точка неподвижна, время атмосферы шагом 0,1 с — 20 с),
+## <tag>_<case>-<seed>_idle.csv (как зонд CF-1: крыло стоит 20 с, game.tick), <tag>_decomp.jsonl.
+
+const DT := 1.0 / 120.0
+const MAIN_SCENE := preload("res://scenes/main.tscn")
+const T_MAX := 20.0
+const LOG_EVERY := 12
+
+var failures: PackedStringArray = []
+
+
+func needs_gpu() -> bool:
+	return true
+
+
+func test_probe() -> void:
+	var out_dir := OS.get_environment("AS2_OUT")
+	var tag := OS.get_environment("AS2_TAG")
+	var main: Node = MAIN_SCENE.instantiate()
+	add_child(main)
+	var game: Game = main.get_node("Game")
+	var menu: Node = main.get_node("UI/StartMenu")
+	for i in 1200:
+		if menu.visible:
+			break
+		await get_tree().process_frame
+	(main.get("opts") as Object).set("autostart", true)
+	(main.get("opts") as Object).set("bots", 0)
+	var cases := OS.get_environment("AS2_CASES")
+	if cases == "":
+		cases = "ongudai/kayancha_south:21.6"
+	var seeds := OS.get_environment("AS2_SEEDS")
+	if seeds == "":
+		seeds = "0"
+	var jf := FileAccess.open("%s/%s_decomp.jsonl" % [out_dir, tag], FileAccess.WRITE)
+	for cs: String in cases.split(","):
+		var parts := cs.split(":")
+		var s := FlightSettings.defaults()
+		var loc := parts[0].split("/")
+		s.location_id = loc[0]
+		s.site_id = loc[1]
+		s.wind_speed_kmh = float(parts[1])
+		var t0 := Time.get_ticks_msec()
+		await main.call("_fly", s)
+		var wall := (Time.get_ticks_msec() - t0) / 1000.0
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		var air: Atmosphere = game.air
+		print("AS2 fly %s %.1f s air_on=%s" % [cs, wall, air.is_air_field_on()])
+		for sd: String in seeds.split(","):
+			var name := "%s-%s-%s" % [s.location_id, s.site_id, parts[1]] + "-" + sd
+			game.restart()
+			air.time_s = float(sd)
+			var m: FlightModel = game.glider.model
+			var p := m.position + Vector3.UP * 1.5
+			var d := _decomp(game, air, p)
+			d["case"] = cs
+			d["seed"] = int(sd)
+			d["tag"] = tag
+			d["wall_s"] = wall
+			d["runtime_info"] = _rt_info(game)
+			jf.store_line(JSON.stringify(d))
+			jf.flush()
+			# неподвижная точка
+			var f := FileAccess.open("%s/%s_%s_fixed.csv" % [out_dir, tag, name], FileAccess.WRITE)
+			f.store_line("t,wu,wv,ww")
+			for i in 201:
+				air.time_s = float(sd) + i * 0.1
+				var w := air.air_velocity_at(p)
+				f.store_line("%.2f,%.4f,%.4f,%.4f" % [i * 0.1, w.x, w.z, w.y])
+			f.close()
+			# как CF-1: крыло стоит 20 с
+			game.restart()
+			air.time_s = float(sd)
+			f = FileAccess.open("%s/%s_%s_idle.csv" % [out_dir, tag, name], FileAccess.WRITE)
+			f.store_line("t,wu,wv,ww,agl,mode")
+			var t := 0.0
+			var n := 0
+			while t < T_MAX:
+				game.tick(DT)
+				t += DT
+				n += 1
+				if n % LOG_EVERY == 0:
+					var q := m.position + Vector3.UP * 1.5
+					var w: Vector3 = game.glider.air_fn.call(q)
+					f.store_line(
+						"%.2f,%.4f,%.4f,%.4f,%.2f,%d"
+						% [t, w.x, w.z, w.y, m.position.y - game.terrain.height_at(m.position.x, m.position.z), m.mode]
+					)
+			f.close()
+		game.process_mode = Node.PROCESS_MODE_INHERIT
+	jf.close()
+	main.queue_free()
+
+
+func _rt_info(game: Game) -> Dictionary:
+	var ar: Object = game.get("air_runtime")
+	if ar == null:
+		return {}
+	var li: Variant = ar.get("last_info")
+	return li if li is Dictionary else {}
+
+
+## Разбор ветра и болтанки поля в точке p (повтор шагов Atmosphere._air_velocity_field).
+func _decomp(game: Game, air: Atmosphere, p: Vector3) -> Dictionary:
+	var ft := air.field_turb
+	var gs := air.ground.sample(p.x, p.z)
+	var agl := p.y - gs.x
+	var out := {"pos": [p.x, p.y, p.z], "agl": agl, "terrain_h": game.terrain.height_at(p.x, p.z), "gs_h": gs.x}
+	var fw := air.air_field.sample(p, gs.x)
+	out["a"] = fw.w
+	if fw.w <= 0.0:
+		return out
+	var tb := air.air_field.sample_turb(p, gs.x)
+	var tbl := {}
+	var names := ["T_SHEAR", "T_N2", "T_USTAR", "T_UOUT", "T_AOUT", "T_DESC", "T_WSTAR", "T_HMIX"]
+	for k in names.size():
+		tbl[names[k]] = tb[k]
+	out["tb"] = tbl
+	out["dx"] = air.air_field.sample_dx(p, gs.x)
+	out["z0"] = ft.z0
+	var uf := Vector2(fw.x, fw.z).length() / fw.w
+	out["uf"] = uf
+	out["fw"] = [fw.x, fw.y, fw.z]
+	var lee_f := ft.lee(uf, agl, tb)
+	out["lee_f"] = lee_f
+	var relief := air.ground.relief_at(p.x, p.z)
+	out["relief"] = relief
+	out["danger"] = air._lee_danger(air.wind.speed_ref * air.wind.altitude_factor(p.y))
+	var u_h := uf
+	if lee_f > 0.0 and relief > agl:
+		var fh := air.air_field.sample(Vector3(p.x, gs.x + relief, p.z), gs.x)
+		if fh.w > 0.0:
+			u_h = Vector2(fh.x, fh.z).length() / fh.w
+	out["u_h"] = u_h
+	var du := maxf(u_h - uf, 0.0) * lee_f
+	out["du"] = du
+	var unres := ft.reverse_unresolved(relief, air.air_field.sample_dx(p, gs.x))
+	out["unres"] = unres
+	out["reverse_ms"] = (
+		fw.w * ft.reverse * u_h * lee_f * float(out.danger) * unres
+		* exp(-agl / maxf(air._lee_rotor_h * relief, 1.0))
+	)
+	var conv_a := 0.0
+	if tb[WindField.T_HMIX] <= 0.0:
+		var cb_agl := maxf(air.field.cloudbase_msl - gs.x, 1.0)
+		conv_a = air._conv_amp * air._conv_norm * air._lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var cv := Vector2(conv_a, conv_a * air._vert_ratio)
+	var sg: Vector4
+	if ft.has_method("taylor_stretch"):
+		sg = ft.sigma(agl, tb, cv, uf)
+		out["sigma_v"] = ft.get("last_sv")
+		out["fu_c"] = ft.get("last_fu_c")
+		out["fv_c"] = ft.get("last_fv_c")
+		out["l_c"] = ft.get("last_l_c")
+		var mv := air.mean_wind_at(p)
+		out["stretch"] = FieldTurbulence.taylor_stretch(air._advect, Vector2(mv.x, mv.z).length(), agl)
+	else:
+		sg = ft.sigma(agl, tb, cv)
+	out["sigma"] = [sg.x, sg.y, sg.z, sg.w]
+	var tb2 := tb.duplicate()
+	tb2[WindField.T_WSTAR] = 0.0
+	var sm := ft.sigma(agl, tb2, Vector2.ZERO, uf) if ft.has_method("taylor_stretch") else ft.sigma(agl, tb2, Vector2.ZERO)
+	out["sigma_mech"] = [sm.x, sm.y]
+	out["sigma_conv"] = [sqrt(maxf(sg.x * sg.x - sm.x * sm.x, 0.0)), sqrt(maxf(sg.y * sg.y - sm.y * sm.y, 0.0))]
+	out["sigma_sep"] = [ft.sep_sigma(du).x, ft.sep_sigma(du).y]
+	# члены механики
+	var z := maxf(agl, 1.0)
+	out["lmix_shear"] = 1.0 / (1.0 / (WindField.KAPPA * z) + 1.0 / 40.0) * tb[WindField.T_SHEAR]
+	out["turb_on"] = air.turbulence_enabled
+	out["advect"] = air._advect
+	# среднее без болтанки по высотам
+	var was := air.turbulence_enabled
+	air.turbulence_enabled = false
+	var prof := {}
+	for hz in [1.5, 3.0, 5.0, 10.0, 20.0, 50.0, 100.0]:
+		var q := Vector3(p.x, gs.x + hz, p.z)
+		var v := air.air_velocity_at(q)
+		var fq := air.air_field.sample(q, gs.x)
+		prof[str(hz)] = [v.x, v.y, v.z, fq.w]
+	out["mean_prof"] = prof
+	air.turbulence_enabled = was
+	# уклон рельефа: ∇h (x, z мира) по конечным разностям ±2 м
+	var e := 2.0
+	var gx := (game.terrain.height_at(p.x + e, p.z) - game.terrain.height_at(p.x - e, p.z)) / (2 * e)
+	var gz := (game.terrain.height_at(p.x, p.z + e) - game.terrain.height_at(p.x, p.z - e)) / (2 * e)
+	var gx2 := (gs_h(air, p.x + 25, p.z) - gs_h(air, p.x - 25, p.z)) / 50.0
+	var gz2 := (gs_h(air, p.x, p.z + 25) - gs_h(air, p.x, p.z - 25)) / 50.0
+	out["grad_h"] = [gx, gz]
+	out["grad_h_25m"] = [gx2, gz2]
+	return out
+
+
+func gs_h(air: Atmosphere, x: float, z: float) -> float:
+	return air.ground.sample(x, z).x

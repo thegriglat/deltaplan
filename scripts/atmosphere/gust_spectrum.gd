@@ -36,8 +36,6 @@ var _norm: float = 1.0
 var _evolve: float = 0.0
 ## Смещения координат: октава × компонента (u, w, v).
 var _off := PackedVector3Array()
-## Веса октав (не нормированы на 1 — доля дисперсии спектра в полосе октавы), [шаг L][октава]:
-## продольный (u, v) и поперечный (w).
 
 
 func setup(seed_value: int, evolve_ms: float) -> void:
@@ -102,41 +100,58 @@ static func _band(el: float, k_lo: float, k_hi: float, transverse: bool) -> floa
 	return s * r / n
 
 
-## Пульсации (u_x, w, u_z) мира в точке pos в момент t, СКО каждой компоненты 1: горизонталь —
-## со спектром L_u, вертикаль — L_w. advect —
-## скорость переноса поля (м/с) вдоль dir. Умножать на σ_u, σ_w.
-func sample(pos: Vector3, t: float, advect: float, dir: Vector3, l_u: float, l_w: float) -> Vector3:
+## Пульсации в точке pos в момент t, СКО каждой компоненты 1: Vector3(a, w, c) — a, c — две
+## независимые горизонтальные компоненты (потребитель кладёт их вдоль и поперёк ветра), w —
+## вертикаль. Горизонталь — спектр фон Кармана с масштабом l_u; доля дисперсии f_a (у a) и f_c
+## (у c) — со вторым масштабом l_2 (конвективные вихри ~z_i, AS-2): веса октав — смесь
+## (1 − f)·W(l_u) + f·W(l_2), каждая нормирована на 1. Вертикаль — поперечный спектр с l_w.
+## advect — скорость переноса поля (м/с) вдоль dir. Умножать на σ.
+func sample(
+	pos: Vector3, t: float, advect: float, dir: Vector3, l_u: float, l_w: float,
+	l_2: float = 0.0, f_a: float = 0.0, f_c: float = 0.0
+) -> Vector3:
 	var p := Vector3(pos.x - dir.x * advect * t, pos.y + _evolve * t, pos.z - dir.z * advect * t)
-	var bu := _row(l_u)
-	var bw := _row(l_w)
-	var fu := bu - floorf(bu)
-	var fw := bw - floorf(bw)
-	var iu := int(bu) * OCTAVES
-	var iw := int(bw) * OCTAVES
+	var wu := _weights(_wu, l_u)
+	var ww := _weights(_ww, l_w)
+	var w2 := wu
+	if l_2 > 0.0 and (f_a > 0.0 or f_c > 0.0):
+		w2 = _weights(_wu, l_2)
 	var out := Vector3.ZERO
 	var s := S0
-	var su := 0.0
-	var sw := 0.0
 	for o in OCTAVES:
-		su += lerpf(_wu[iu + o], _wu[iu + OCTAVES + o], fu)
-		sw += lerpf(_ww[iw + o], _ww[iw + OCTAVES + o], fw)
-	var ku := 1.0 / sqrt(maxf(su, 1.0e-6))
-	var kw := 1.0 / sqrt(maxf(sw, 1.0e-6))
-	for o in OCTAVES:
-		var au := sqrt(lerpf(_wu[iu + o], _wu[iu + OCTAVES + o], fu)) * ku
-		var aw := sqrt(lerpf(_ww[iw + o], _ww[iw + OCTAVES + o], fw)) * kw
+		var aa := sqrt(lerpf(wu[o], w2[o], f_a))
+		var ac := sqrt(lerpf(wu[o], w2[o], f_c))
+		var aw := sqrt(ww[o])
 		var q := p / s
 		var j := o * 3
-		var a := q + _off[j]
-		var b := q + _off[j + 1]
-		var c := q + _off[j + 2]
-		if au > 1.0e-3:
-			out.x += au * _noise.get_noise_3d(a.x, a.y, a.z)
-			out.z += au * _noise.get_noise_3d(c.x, c.y, c.z)
+		if aa > 1.0e-3:
+			var a := q + _off[j]
+			out.x += aa * _noise.get_noise_3d(a.x, a.y, a.z)
+		if ac > 1.0e-3:
+			var c := q + _off[j + 2]
+			out.z += ac * _noise.get_noise_3d(c.x, c.y, c.z)
 		if aw > 1.0e-3:
+			var b := q + _off[j + 1]
 			out.y += aw * _noise.get_noise_3d(b.x, b.y, b.z)
 		s *= 2.0
 	return out * _norm
+
+
+## Доли дисперсии октав для масштаба el (таблица tab — _wu или _ww), нормированные на сумму 1.
+func _weights(tab: PackedFloat32Array, el: float) -> PackedFloat32Array:
+	var b := _row(el)
+	var f := b - floorf(b)
+	var i := int(b) * OCTAVES
+	var out := PackedFloat32Array()
+	out.resize(OCTAVES)
+	var sum := 0.0
+	for o in OCTAVES:
+		out[o] = lerpf(tab[i + o], tab[i + OCTAVES + o], f)
+		sum += out[o]
+	var k := 1.0 / maxf(sum, 1.0e-6)
+	for o in OCTAVES:
+		out[o] *= k
+	return out
 
 
 ## Дробный номер строки таблицы для L (зажат в таблицу; последняя строка — только как пара).

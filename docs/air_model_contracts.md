@@ -77,7 +77,7 @@
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
   (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
-## C2 v5 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
+## C2 v6 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
 
 | Вход | Откуда в игре | Формат |
@@ -131,7 +131,18 @@
   C −0,002/0,018, D 0/0, E 0,004/−0,018, F 0,035/−0,036; Myrup & Ranzieri 1976, Seinfeld & Pandis). Сигнатура:
   `max_profile(alpha, u10, z0, f_cor, cls)` (класс — из `stability_class`); в нейтрали совпадает с `rules.py` (C10 v3).
   Причина: при v4 класс F давал на 300 м 14·U10. Прочее v4 — без изменений.
-- **Тесты:** `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант
+- **v6 (01.10.2026, модуль air-start, решение пользователя «подстроить поле под старт»):** ветер меню задан
+  **на 10 м над стартом**, приток решателя на краю области — подстроенный. Сигнатуры с хвостовым аргументом
+  `inflow_k := 1.0` (множитель притока): `AirPlace.domain_case(…, heat = true, inflow_k = 1.0)`,
+  `AirWindowCase.window_case(…, ctx, n = 64, inflow_k = 1.0)`, `window_at(…, ctx, n, inflow_k = 1.0)`.
+  Аргумент `u10` — ветер меню; α, класс устойчивости и `max_profile` (z_sat) случая — **по `u10` меню**
+  (`WindProfile.apply_to_case` от ветра меню); `AirCase.u10 = inflow_k·u10` — ветер притока на 10 м (амплитуда
+  профиля u_a = `AirCase.u10`·max_profile, u* замыкания и `meta.u10` — от него же: весь профиль притока
+  умножен на k). Новые поля `AirCase.u10_menu` (= `u10` аргумента), `AirCase.inflow_k`; `meta()` + ключи
+  `u10_menu`, `inflow_k`; `without_heat()` их сохраняет. `inflow_k = 1` — побитно прежний случай (тесты,
+  эталоны, калибровка Б1 не меняются). Решатель, `Params`, калибровка — без изменений.
+- **Тесты:** `test_c2_inflow_scale` (v6: α/max_profile по меню, u10 случая = k·меню, meta);
+  `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант
   выше; в v4 — исполнитель Б2 переписывает по новому инварианту в том же коммите, что функцию).
 
 ## C3 v1 — выход решателя → `WindField` (AM-05)
@@ -277,7 +288,7 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`,
   версия — `test_c6_field_version`.
 
-## C7 v2 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+## C7 v3 — клипмапы AM-04 → `WindField` / `AirFieldSet`
 **Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
 **Потребители:** C4 (выборка), AM-06Б (`AirRuntime`: загрузка, пересчёт, сдвиг), AM-07 (термики).
 
@@ -325,6 +336,10 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 новый набор во время подмены — держать последний). Ошибка окна — `failed`, уровни прежние,
 повтор сдвига не раньше чем через 10 с.
 
+**v3 (01.10.2026, air-start):** `AirClipmap.setup(…, sky, inflow_k = 1.0)`, `set_conditions(…, sky,
+inflow_k = 1.0)` — окна строятся с тем же множителем притока, что область (C2 v6); граница окна — от родителя,
+как прежде.
+
 **Конфиг** `air_model`: `window_levels_m` ([100, 50]), `window_shift_frac` (0,25), у каждого `_doc`.
 - **Тесты:** `test_c7_levels_fine_to_coarse`, `test_c7_window_grid_and_api` (без GPU);
   GPU — `test_air_window_gpu.gd` (сверка с эталоном, побитно, загрузка и сдвиг клипмапа).
@@ -345,7 +360,7 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
   главном. Пересчёт каждые `recompute_game_min` = 15 игровых минут и при смене ветра/погоды —
   `AirRuntime` (C9). **Тесты:** `test_c8_blend`, `test_c8_blend_during_blend`.
 
-## C9 v2 — жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04)
+## C9 v3 — жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04)
 **Владелец:** AM-06Б (`scripts/atmosphere/air_model/air_runtime.gd`). **Потребители:** `game.gd`
 (загрузка, полёт), AM-04 (окна 100/50 м — встраивает свои уровни сюда), AM-11 (замеры).
 
@@ -380,7 +395,19 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 - **AM-04 (v2):** уровни окон — в тот же `set_air_field([окна…, область])`; одно устройство
   (`RuntimeGpu` собирает и ядра окон `AirWindowJob.WINDOW_SHADERS`), задачи области и окон — по
   очереди (сдвиг — только в покое).
-- **Тесты:** `test_c9_runtime_shape` (без GPU); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`,
+- **v3 (01.10.2026, air-start, решение пользователя):** `conditions_fn().u10` — ветер меню **на 10 м над
+  стартом**. Загрузка с заданным `set_focus` и u10 > 0: проход 1 — область + окна с `inflow_k` = k₀ (1,0 или k
+  прошлой загрузки того же места и направления), замер U₁ — горизонталь среднего поля (без болтанки, как
+  `Atmosphere.mean_wind_at`) на 10 м над землёй старта (`focus_start`); k₁ = k₀·(u10/U₁)^(1/p), p по ветру меню 0,57 / 0,75 / 0,90 при 3 / 6 / 10 м/с (линейно, за краями — край; замер
+  отклика поля на приток, `tools/research/air_start/out/passes.csv`), k в 0,3…3; проход 2 — с k₁, в
+  атмосферу подаётся **только** поле прохода 2 (одним набором, `blend_s = 0`); доля загрузки: проход 1 — 0…0,5,
+  проход 2 — 0,5…1. Без focus или в штиль (u10 < 0,5 м/с, `WindProfile.U10_MIN`) — один проход с k = 1; проход 1 упёрся в предел
+  итераций (любое решение области или окна) — второго прохода нет, подаётся поле прохода 1 (без подстройки); неудача
+  прохода 2 — поле прохода 1; `air_model.timeout_s` — на проход. В полёте пересчёт (срок, смена ветра/погоды) —
+  один проход с k последней загрузки (граница модели: k не уточняется в полёте). Новое: свойство `inflow_k`
+  (k поданного поля); `last_info` + `inflow_k`, `passes`, `u_start10_first` (U₁, м/с), `u_start10` (U на 10 м над
+  стартом у поданного поля, м/с); строка журнала `air_model: поле …` с k и U над стартом. Остальное — v2.
+- **Тесты:** `test_c9_runtime_shape` (без GPU; v3 — `inflow_k`); GPU — `tests/atmosphere/test_air_runtime_gpu.gd`,
   с окнами — `test_air_window_gpu.gd::test_runtime_with_windows`.
 
 ## C10 v3 — случай калибровки (обёртка прогона air.py) → совместная калибровка
@@ -481,4 +508,7 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 | C10 | v2 | 01.10.2026 | К2 до волны Б: общая схема `cases/scheme.py` (2-й порядок, hb, local_k, cbl, Pr_t 0,85, k_relax 0,1, нейтраль), `SETUP` случая (геометрия и профиль притока — одним правилом), `scheme_ctl` для контрольных прогонов схемы; `check_c10.py` проверяет |
 | C10 | v3 | 01.10.2026 | К2 по этапу 1 Б1: общие правила постановки `cases/rules.py` (H/dx 5,8, область 200 клеток, губка 35, потолок 7,5 H, z_sat = 0,3·h, U10 по опорной точке, нижняя граница 1·dz), сеточная поправка одним способом (dx·2/3), мачты Perdigão — u_∥ |
 | C2 | v4 | 01.10.2026 | К2, волна Б п. 2: α по устойчивости (Паскуилл–Тёрнер, отношения Irwin 1979 к D) с α_N 0,24 (Б1), max_profile — правило z_sat = 0,3·0,3u*/f (как rules.py) — одна функция для решателя и WindModel; λ: lam 40, lam_frac 0,0158 (Б1); конфиг `wind.shear_exponent_neutral`, `wind.z_sat_frac` вместо `shear_exponent`/`max_profile_factor` |
+| C2 | v6 | 01.10.2026 | air-start (решение пользователя): ветер меню — на 10 м над стартом; `inflow_k` в `domain_case`/`window_case`/`window_at`; α, класс, z_sat — по меню, приток `AirCase.u10` = k·меню; `u10_menu`, `inflow_k` в `AirCase` и `meta()`. Потребители: AirRuntime (C9), клипмап (C7), термики (`meta.u10` — приток) |
+| C7 | v3 | 01.10.2026 | air-start: `AirClipmap.setup/set_conditions(…, inflow_k)` — окна с тем же множителем притока |
+| C9 | v3 | 01.10.2026 | air-start: загрузка в два прохода (k₁ = k₀·(U_меню/U₁)^(1/p), p по ветру; упор в предел итераций или штиль — один проход; неудача прохода 2 — поле прохода 1; timeout_s на проход), `inflow_k`, `last_info.inflow_k/passes/u_start10_first/u_start10`; в полёте — k загрузки |
 | C2 | v5 | 01.10.2026 | К2 по Б2: z_sat по толщине слоя с устойчивостью (h_s = 0,4√(u*L/f), L по Golder 1972 по классу и z0) — `max_profile(…, cls)`; класс F больше не даёт 14·U10 на 300 м |
