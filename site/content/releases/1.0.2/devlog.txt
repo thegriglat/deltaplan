@@ -1,0 +1,20 @@
+Deltaplan 1.0.2 — mouse flies the wing, wind over the start
+
+This update reworks the controls and fixes the wind you set in the menu. The mouse now always moves the wing, and W/S/A/D no longer touch it: on the ground they walk and turn the pilot, in flight they turn the head in the cockpit. The menu wind is now the wind 10 m above the start.
+
+Controls:
+- Mouse always moves the wing (push - nose up, pull - nose down, sideways - roll); M captures the mouse
+- W/S/A/D: pilot on the ground, head look in flight; V - look forward
+- Pitch like a hang glider, not an aircraft: push out - nose up, pull in - nose down
+- Takeoff is purely physical: the wing lifts off once it has enough speed, no time limits; it fails only if a wingtip touches the ground
+- Ground handling: nose and roll by mouse, arrows or stick; hold Shift to run on your own, in an arc toward the roll
+
+Air model:
+- Menu wind is the wind 10 m above the start (was 1.2-2 times stronger there); the wind loading step takes a few seconds longer
+- Near-ground turbulence follows surface-layer physics: no more sudden wind direction jumps at the wing on the start
+
+Gliders:
+- Wings fly by their DHV and manufacturer data: stall, trim, top speed and minimum sink match the datasheets
+
+Known issues:
+- Mac build is untested
