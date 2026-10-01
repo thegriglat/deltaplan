@@ -15,6 +15,12 @@ extends Node
 ## «air_model: analytic (<причина>)», в полёте — остаётся прежнее поле, следующая попытка — на
 ## следующем сроке. Очереди нет: пересчёт, не успевший до следующего срока, по окончании сразу
 ## сменяется новым — на последний срок.
+##
+## Ветер меню (conditions_fn().u10) — на 10 м над стартом (C9 v3). Загрузка с центром окон и
+## ветром — в два прохода: проход 1 с множителем притока k₀ (1 или k прошлой загрузки того же
+## места и направления), замер U₁ — горизонталь среднего поля на 10 м над землёй старта;
+## k₁ = k₀·u10/U₁ (в пределах INFLOW_K_MIN…MAX); проход 2 с k₁ — его поле и подаётся. В полёте
+## пересчёт — один проход с k последней загрузки.
 
 ## Поле подано в атмосферу. info: {hour, u10, wdir, t_max, sky, reason, wall_s, gpu_s, iters,
 ## warm, loading}.
@@ -37,6 +43,15 @@ const WIND_TOL_MS := 0.05
 const DIR_TOL_DEG := 1.0
 const TMAX_TOL_C := 0.25
 const CMD_FIELD := "поле из файла (--air-field)"
+## Пределы множителя притока k (C9 v3). Над стартами мест игры поле при k = 1 даёт на 10 м
+## 1,0–2,1 × ветра притока (WPC-2) → k 0,5–1; разгон над холмом в потенциальном обтекании —
+## не больше ≈ 2–2,5 (Jackson & Hunt 1975; Taylor & Lee 1984: ΔS ≤ 1,6), отсюда нижний предел
+## 0,3. Верхний 3: старт в тени/отрыве (U₁ → 0) не должен раздувать приток до бури — U над
+## стартом тогда остаётся ниже меню (граница модели), приток — не больше 3 × меню.
+const INFLOW_K_MIN := 0.3
+const INFLOW_K_MAX := 3.0
+## Высота замера U над землёй старта, м (ветер меню — на 10 м).
+const START_AGL_M := 10.0
 
 ## Атмосфера: set_air_field(поле, blend_s) (Atmosphere или заглушка с тем же методом).
 var atmosphere: Object
@@ -60,6 +75,16 @@ var shift_count := 0
 ## Число поданных полей и неудач за жизнь узла (замеры, тесты).
 var applied_count := 0
 var failed_count := 0
+## Множитель притока поля в атмосфере (C2 v6, C9 v3): U меню / U поля на 10 м над стартом после
+## прохода 1 загрузки; пересчёт в полёте — с ним же. 1 — без подстройки (штиль, без старта).
+var inflow_k := 1.0
+## Проход 2 загрузки — с тёплого старта от прохода 1 (область и окна).
+var warm_second_pass := true
+## Проходов загрузки (C9 v3: 2; 1 — без подстройки, k = 1: тесты против эталонов). Сверх двух — секущая, пока |U/u10 − 1| > pass_tol (исследование
+## шлюза air-start: tools/research/air_start/passes_probe.gd).
+var max_passes := 2
+## Остаток |U/u10 − 1| над стартом, при котором проходы сверх второго не нужны.
+var pass_tol := 0.03
 
 var _place := {}
 var _place_key := ""
@@ -90,6 +115,22 @@ var _focus_node: Node3D
 var _focus_start := Vector3.ZERO
 var _dom_field: WindField
 var _pd := {}
+## Проход загрузки (1, 2), число проходов этого расчёта и k притока текущего прохода.
+var _pass := 1
+var _passes := 1
+var _k := 1.0
+## U на 10 м над стартом после прохода 1, м/с; точка старта (мир; x NAN — нет).
+var _u_first := NAN
+var _start_pt := Vector3(NAN, NAN, NAN)
+## Состояние области прохода 1 — тёплый старт прохода 2.
+var _warm_pass := {}
+## k прошлых загрузок этого места по направлению ветра (ключ — румб, °).
+var _k_mem := {}
+## Проходы этого расчёта: {k, u, wall_s (от начала), iters, warm}.
+var _pass_log: Array[Dictionary] = []
+## Начало прохода и готовность поля области в нём (мкс) — для замеров по проходам.
+var _t_pass := 0
+var _t_dom := 0
 
 
 func _init() -> void:
@@ -126,6 +167,8 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 		_warm = {}
 		_cur = {}
 		_cur_key = ""
+		_k_mem = {}
+		inflow_k = 1.0
 	_place = place
 	_place_key = key
 
@@ -315,7 +358,7 @@ func _process(_dt: float) -> void:
 		Stage.WINDOWS, Stage.SHIFT:
 			if _loading:
 				_clip.poll_slice(LOAD_SLICE_MS)
-				progress_changed.emit(0.5 + 0.5 * _clip.progress())
+				_progress(0.5 + 0.5 * _clip.progress())
 			else:
 				_clip.poll()
 	# сдвиг окон — свои пределы у задач окон (AirClipmap.timeout_s)
@@ -329,7 +372,8 @@ func _timeout_s() -> float:
 
 
 func _timed_out() -> bool:
-	return (Time.get_ticks_usec() - _t0) / 1e6 > _timeout_s()
+	# предел — на проход (расчёт одного поля); wall_s загрузки — от _t0, по всем проходам
+	return (Time.get_ticks_usec() - _t_pass) / 1e6 > _timeout_s()
 
 
 func _begin(c: Dictionary, reason: String, loading: bool) -> void:
@@ -340,16 +384,51 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 	_ok = false
 	_t0 = Time.get_ticks_usec()
 	_main_ms = 0.0
-	_prep = {}
-	_stage = Stage.PREP
-	var r := _req
-	_task = WorkerThreadPool.add_task(_prep_task.bind(_place, r, _prep), false, "AirRuntime")
+	_pass = 1
+	_warm_pass = {}
+	_u_first = NAN
+	_pass_log.clear()
+	var u10 := float(c.u10)
+	if loading:
+		_start_pt = Vector3(NAN, NAN, NAN)
+		if _windows_wanted():
+			_start_pt = focus_fn.call()
+		var two := _windows_wanted() and u10 > 0.0 and max_passes >= 2
+		_passes = max_passes if two else 1
+		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
+	else:
+		_passes = 1
+		_k = inflow_k
+	_start_prep()
 	if loading:
 		progress_changed.emit(0.0)
 
 
-## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м).
-static func _prep_task(place: Dictionary, c: Dictionary, out: Dictionary) -> void:
+## Вход решателя прохода (_k) — в рабочем потоке.
+func _start_prep() -> void:
+	_t_pass = Time.get_ticks_usec()
+	_t_dom = 0
+	_prep = {}
+	_stage = Stage.PREP
+	var r := _req
+	_task = WorkerThreadPool.add_task(
+		_prep_task.bind(_place, r, _k, _prep), false, "AirRuntime"
+	)
+
+
+static func _dir_key(wdir: float) -> int:
+	return posmod(roundi(wdir), 360)
+
+
+## Доля загрузки: при двух проходах проход 1 — 0…0,5, проход 2 — 0,5…1.
+func _progress(x: float) -> void:
+	if _passes > 1:
+		x = (_pass - 1 + x) / _passes
+	progress_changed.emit(x)
+
+
+## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока.
+static func _prep_task(place: Dictionary, c: Dictionary, k: float, out: Dictionary) -> void:
 	var base := AirPlace.domain_case(
 		place.detail,
 		place.get("water"),
@@ -359,7 +438,9 @@ static func _prep_task(place: Dictionary, c: Dictionary, out: Dictionary) -> voi
 		float(c.u10),
 		float(c.wdir),
 		float(c.get("t_max", NAN)),
-		String(c.get("sky", "clear"))
+		String(c.get("sky", "clear")),
+		true,
+		k
 	)
 	if base != null:
 		out.case = PreparedCase.from_case(base)
@@ -378,11 +459,15 @@ func _poll_prep() -> void:
 	_job.case = c
 	_job.mech = true
 	_job.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
-	_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t0) / 1e6, 1.0)
+	_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t_pass) / 1e6, 1.0)
 	var n := c.dims().x * c.dims().y * c.dims().z
-	var warm_ok := warm_start and not _loading and not _warm.is_empty()
-	if warm_ok and PackedFloat32Array(_warm.get("u", PackedFloat32Array())).size() == n:
-		_job.warm = _warm
+	var warm := {}
+	if warm_start and not _loading:
+		warm = _warm
+	elif _loading and _pass > 1 and warm_second_pass:
+		warm = _warm_pass
+	if not warm.is_empty() and PackedFloat32Array(warm.get("u", PackedFloat32Array())).size() == n:
+		_job.warm = warm
 	var t_start := Time.get_ticks_usec()
 	if not _job.start(_gpu):
 		_fail(_job.error)
@@ -394,7 +479,7 @@ func _poll_prep() -> void:
 func _poll_solve() -> void:
 	var p := _job.poll_slice(LOAD_SLICE_MS) if _loading else _job.poll()
 	if _loading:
-		progress_changed.emit(p * (0.5 if _windows_wanted() else 1.0))
+		_progress(p * (0.5 if _windows_wanted() else 1.0))
 	if _job.error != "":
 		_fail(_job.error)
 		return
@@ -423,6 +508,13 @@ func _poll_solve() -> void:
 	_stage = Stage.BUILD
 
 
+## Проход для журнала: «k → U м/с за с (область с, GPU с)».
+static func _pass_text(e: Dictionary) -> String:
+	return "%.3f → %.2f м/с за %.1f с (область %.1f, GPU %.2f)" % [
+		float(e.k), float(e.u), float(e.pass_s), float(e.domain_s), float(e.gpu_s)
+	]
+
+
 static func _window_text(h: Dictionary) -> String:
 	return "%d м %s" % [int(h.dx), str(h.iters)]
 
@@ -440,18 +532,21 @@ func _on_field(f: WindField, id: int) -> void:
 		return
 	f.meta.source = "gpu"
 	f.meta.cond = {wind = snappedf(float(_req.u10), 0.01), wdir = snappedf(float(_req.wdir), 0.1)}
+	_t_dom = Time.get_ticks_usec()
 	if not _pd.is_empty():
 		_dom_field = f
 		_start_windows()
 		return
 	var one: Array[WindField] = [f]
-	_apply(one)
+	_levels_done(one)
 
 
 ## Окна клипмапа от новой области: при загрузке — заново с центром в focus_fn(), в полёте — на
 ## прежних местах от новой области (тёплый старт). Готовый набор — _on_levels.
 func _start_windows() -> void:
-	var fresh := _loading or _clip == null or not _clip.is_ready()
+	# проход 2 загрузки с тёплого старта — окна прохода 1 на тех же местах (как пересчёт в полёте)
+	var reuse := not _loading or (_pass > 1 and warm_second_pass)
+	var fresh := not reuse or _clip == null or not _clip.is_ready()
 	if fresh:
 		_clip = AirClipmap.new()
 		_clip.use_gpu(_gpu)
@@ -464,7 +559,8 @@ func _start_windows() -> void:
 			float(_req.u10),
 			float(_req.wdir),
 			float(_req.get("t_max", NAN)),
-			String(_req.get("sky", "clear"))
+			String(_req.get("sky", "clear")),
+			_k
 		)
 		_clip.levels_changed.connect(_on_levels)
 		_clip.failed.connect(_on_windows_failed)
@@ -474,7 +570,8 @@ func _start_windows() -> void:
 			float(_req.u10),
 			float(_req.wdir),
 			float(_req.get("t_max", NAN)),
-			String(_req.get("sky", "clear"))
+			String(_req.get("sky", "clear")),
+			_k
 		)
 	_clip.set_domain_data(_pd, _dom_field)
 	_pd = {}
@@ -495,6 +592,7 @@ func _update_windows() -> void:
 	_clip.update(focus_fn.call())
 	if _clip.is_busy():
 		_t0 = Time.get_ticks_usec()
+		_t_pass = _t0
 		_main_ms = 0.0
 		_loading = false
 		_stage = Stage.SHIFT
@@ -508,7 +606,7 @@ func _on_levels(levels: Array[WindField]) -> void:
 		return
 	if _stage == Stage.WINDOWS:
 		_req.windows = _clip.history.slice(-levels.size() + 1)
-		_apply(levels)
+		_levels_done(levels)
 
 
 func _on_windows_failed(reason: String) -> void:
@@ -518,7 +616,92 @@ func _on_windows_failed(reason: String) -> void:
 	elif _stage == Stage.WINDOWS:
 		print("air_model: окна не посчитались (%s) — только область" % reason)
 		var one: Array[WindField] = [_dom_field]
-		_apply(one)
+		_levels_done(one)
+
+
+## Уровни прохода готовы: замер U на 10 м над стартом; после прохода 1 из двух — k₁ = k₀·u10/U₁
+## и проход 2 (поле прохода 1 в атмосферу не подаётся), иначе — подача.
+func _levels_done(levels: Array[WindField]) -> void:
+	var u := start_speed(levels, _start_pt, float(_req.u10), float(_req.wdir))
+	var u10 := float(_req.u10)
+	_pass_log.append(
+		{
+			k = _k,
+			u = u,
+			wall_s = (Time.get_ticks_usec() - _t0) / 1e6,
+			pass_s = (Time.get_ticks_usec() - _t_pass) / 1e6,
+			domain_s = (_t_dom - _t_pass) / 1e6 if _t_dom > 0 else NAN,
+			gpu_s = float(_req.get("gpu_s", 0.0)),
+			iters = _req.get("iters", []),
+			warm = bool(_req.get("warm", false)),
+		}
+	)
+	if _pass == 1:
+		_u_first = u
+	var more := _pass < _passes
+	if more and _pass >= 2:
+		# сверх контрактных двух — только если остаток больше pass_tol
+		more = not is_nan(u) and absf(u / u10 - 1.0) > pass_tol
+	if more:
+		var k1 := _next_k(u10)
+		_warm_pass = _warm_next
+		_warm_next = {}
+		_dom_field = null
+		_req.erase("windows")
+		_pass += 1
+		_k = k1
+		_start_prep()
+		return
+	_req.inflow_k = _k
+	_req.passes = _pass
+	_req.u_start10_first = _u_first
+	_req.u_start10 = u
+	_req.pass_log = _pass_log.duplicate()
+	_apply(levels)
+
+
+## k следующего прохода: после первого — k·u10/U (поле ∝ притоку); дальше — секущая по двум
+## последним проходам (U = a + b·k: нагрев склонов даёт часть ветра, не растущую с притоком).
+func _next_k(u10: float) -> float:
+	var last: Dictionary = _pass_log[-1]
+	var k := float(last.k)
+	var u := float(last.u)
+	if is_nan(u) or u <= 1.0e-3:
+		return INFLOW_K_MAX
+	var k1 := k * u10 / u
+	if _pass_log.size() >= 2:
+		var prev: Dictionary = _pass_log[-2]
+		var dk := k - float(prev.k)
+		var du := u - float(prev.u)
+		if absf(dk) > 1.0e-4 and du / dk > 1.0e-3:
+			k1 = k + (u10 - u) * dk / du
+	return clampf(k1, INFLOW_K_MIN, INFLOW_K_MAX)
+
+
+## Горизонталь среднего поля (без болтанки, как Atmosphere.mean_wind_at) на START_AGL_M над
+## землёй точки p (мир; земля — слой detail места, = Terrain.height_at) по набору уровней с весами
+## края (как AirFieldSet в атмосфере); непокрытая доля — аналитика, на 10 м над стартом она = u10
+## меню по направлению ветра. Земля для выборки поля (сдвиг по рельефу) — как у атмосферы:
+## GroundField (сетка 30 м, у гребня старта на 0,3–2 м ниже рельефа), нет её — рельеф.
+## NAN — нет точки или слоя.
+func start_speed(levels: Array[WindField], p: Vector3, u10: float, wdir: float) -> float:
+	var detail: HeightLayer = _place.get("detail")
+	if is_nan(p.x) or detail == null or levels.is_empty():
+		return NAN
+	var h := detail.sample(p.x, p.z)
+	var gh := h
+	var gf: Variant = atmosphere.get("ground") if atmosphere != null else null
+	if gf is GroundField and (gf as GroundField).has_ground:
+		gh = (gf as GroundField).sample(p.x, p.z).x
+	var fs := AirFieldSet.new()
+	fs.edge_cells = float(_cfg.get("edge_blend_cells", 5.0))
+	fs.max_speed = float(_cfg.get("max_speed_ms", 40.0))
+	fs.max_w = float(_cfg.get("max_w_ms", 10.0))
+	fs.set_field(levels, 0.0)
+	var fw := fs.sample(Vector3(p.x, h + START_AGL_M, p.z), gh)
+	var a := deg_to_rad(wdir)
+	var rest := u10 * (1.0 - fw.w)
+	return Vector2(fw.x - sin(a) * rest, fw.z + cos(a) * rest).length()
 
 
 ## Подать уровни (от мелкого к грубому) в атмосферу: загрузка — сразу, полёт — подмена (C8).
@@ -529,6 +712,10 @@ func _apply(levels: Array[WindField]) -> void:
 	_cur_key = _place_key
 	_warm = _warm_next
 	_warm_next = {}
+	_warm_pass = {}
+	inflow_k = _k
+	if _loading and _passes > 1:
+		_k_mem[_dir_key(float(_req.wdir))] = _k
 	_req.wall_s = (Time.get_ticks_usec() - _t0) / 1e6
 	_req.loading = _loading
 	_req.main_max_ms = _main_ms
@@ -539,7 +726,10 @@ func _apply(levels: Array[WindField]) -> void:
 	_stage = Stage.IDLE
 	print(
 		(
-			"air_model: поле %s ч, %.1f м/с с %.0f° (%s): %.2f с, итераций %s%s%s"
+			(
+				"air_model: поле %s ч, %.1f м/с с %.0f° (%s): %.2f с, итераций %s%s%s; "
+				+ "k притока %.3f, U над стартом на 10 м %.2f м/с (проход 1: %.2f), проходов %d %s"
+			)
 			% [
 				_hour_text(float(_req.hour)),
 				float(_req.u10),
@@ -548,7 +738,12 @@ func _apply(levels: Array[WindField]) -> void:
 				float(_req.wall_s),
 				_req.iters,
 				", тёплый старт" if _req.warm else "",
-				", окна %s" % [_req.windows.map(_window_text)] if _req.has("windows") else ""
+				", окна %s" % [_req.windows.map(_window_text)] if _req.has("windows") else "",
+				_k,
+				float(_req.u_start10),
+				float(_req.u_start10_first),
+				_pass,
+				_pass_log.map(_pass_text),
 			]
 		)
 	)
@@ -562,6 +757,7 @@ func _fail(reason: String) -> void:
 	var loading := _loading
 	stop()
 	_warm_next = {}
+	_warm_pass = {}
 	failed_count += 1
 	last_error = reason
 	_ok = false
@@ -583,6 +779,7 @@ func _analytic(reason: String) -> void:
 	_cur = {}
 	_cur_key = ""
 	_warm = {}
+	inflow_k = 1.0
 	print("air_model: analytic (%s)" % reason)
 
 
