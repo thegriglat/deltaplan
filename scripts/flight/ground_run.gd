@@ -237,9 +237,15 @@ func _move(
 		var unload := clampf(aero.y / weight, 0.0, 1.0)
 		var bonus := float(run_cfg.unload_speed_bonus) * unload
 		var v_cap := float(run_cfg.speed_max_ms) * (1.0 + bonus)
+		# v_cap — предел ног (частота и длина шага), а не всей системы: быстрее него ноги не
+		# толкают и тормозят (та же линейная сила–скорость), но только опираясь на землю — через
+		# долю веса на ногах. Склон и тяга крыла разгоняют и выше: под крутую горку разгружённое
+		# крылом тело «несёт», пилот только перебирает ногами.
 		var f_run := float(run_cfg.force_n) * (1.0 - _speed / v_cap)
+		if f_run < 0.0:
+			f_run *= feet_load
 		var f_along := aero.dot(dir3) - weight * dir3.y
-		_speed = clampf(_speed + (f_run + f_along) / m.mass * dt, 0.0, v_cap)
+		_speed = maxf(_speed + (f_run + f_along) / m.mass * dt, 0.0)
 	else:
 		var slope_factor := clampf(
 			1.0 - absf(slope_tan) / float(walk_cfg.max_slope_tan),
