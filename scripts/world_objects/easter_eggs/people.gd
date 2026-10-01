@@ -62,7 +62,7 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 			edge = lerpf(float(er[0]), float(er[1]), rng.randf())
 			var tp: Vector3 = camp[ti].position
 			home = Vector2(tp.x, tp.z) + Vector2(cos(ang), sin(ang)) * (float(camp[ti].radius) + edge)
-			if _spot_ok(home, camp, ti, gap, homes):
+			if _spot_ok(home, camp, gap, homes):
 				break
 		homes.append(home)
 		var tp2: Vector3 = camp[ti].position
@@ -73,9 +73,13 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 			"yaw0": rng.randf() * TAU,
 			"ph": Vector4(rng.randf() * TAU, rng.randf() * TAU, rng.randf() * TAU, rng.randf()),
 			"h": lerpf(1.68, 1.82, rng.randf()),
-			"shirt": Color.from_hsv(rng.randf(), lerpf(0.4, 0.85, rng.randf()), lerpf(0.5, 0.95, rng.randf())),
-			"pants": Color.from_hsv(lerpf(0.55, 0.7, rng.randf()), lerpf(0.2, 0.6, rng.randf()), lerpf(0.2, 0.5, rng.randf())),
-			"skin": Color(lerpf(0.75, 0.95, rng.randf()), lerpf(0.55, 0.72, rng.randf()), lerpf(0.42, 0.6, rng.randf())),
+			"shirt": _rand_color(rng, 0.0, 1.0, 0.4, 0.85, 0.5, 0.95),
+			"pants": _rand_color(rng, 0.55, 0.7, 0.2, 0.6, 0.2, 0.5),
+			"skin": Color(
+				lerpf(0.75, 0.95, rng.randf()),
+				lerpf(0.55, 0.72, rng.randf()),
+				lerpf(0.42, 0.6, rng.randf())
+			),
 			"walk_dir": rng.randf() * TAU,
 			"react": 0.0,
 			"yaw": 0.0,
@@ -115,8 +119,16 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 	add_child(_mmi)
 
 
+func _rand_color(
+	rng: RandomNumberGenerator, h0: float, h1: float, s0: float, s1: float, v0: float, v1: float
+) -> Color:
+	return Color.from_hsv(
+		lerpf(h0, h1, rng.randf()), lerpf(s0, s1, rng.randf()), lerpf(v0, v1, rng.randf())
+	)
+
+
 func _spot_ok(
-	h: Vector2, camp: Array[Dictionary], own: int, gap: float, others: Array[Vector2]
+	h: Vector2, camp: Array[Dictionary], gap: float, others: Array[Vector2]
 ) -> bool:
 	for j in camp.size():
 		var tp: Vector3 = camp[j].position
@@ -144,7 +156,7 @@ func arm_angle(i: int) -> float:
 
 func update(ctx: EggContext) -> bool:
 	if _people.is_empty():
-		return false
+		return true  # force без лагеря: пасхалка жива, но показывать нечего
 	var t := ctx.t
 	var tick := float(_cfg.get("tick_s", 0.05))
 	if t >= _last_tick and t - _last_tick < tick:
@@ -210,9 +222,9 @@ func update(ctx: EggContext) -> bool:
 		var sb := b.scaled(Vector3(s, s, s))
 		var o := i * PARTS
 		# ноги, торс, голова
-		_set(o, sb, origin, Vector3(0, 0.43, 0), Vector3(0.3, 0.43, 0.26), Basis.IDENTITY)
-		_set(o + 1, sb, origin, Vector3(0, 1.12, 0), Vector3(0.4, 0.33, 0.25), Basis.IDENTITY)
-		_set(o + 2, sb, origin, Vector3(0, 1.62, 0), Vector3(0.22, 0.13, 0.22), Basis.IDENTITY)
+		_set_part(o, sb, origin, Vector3(0, 0.43, 0), Vector3(0.3, 0.43, 0.26), Basis.IDENTITY)
+		_set_part(o + 1, sb, origin, Vector3(0, 1.12, 0), Vector3(0.4, 0.33, 0.25), Basis.IDENTITY)
+		_set_part(o + 2, sb, origin, Vector3(0, 1.62, 0), Vector3(0.22, 0.13, 0.22), Basis.IDENTITY)
 		# руки: r — поднять и махать; в покое чуть покачиваются
 		var wave := 0.35 * sin(t * 7.0 + ph.w * TAU)
 		var a_r := lerpf(0.12 + 0.05 * sin(0.5 * t + ph.x), up + wave, r)
@@ -223,7 +235,8 @@ func update(ctx: EggContext) -> bool:
 			var a := a_r if side == 0 else a_l
 			var dir := Vector3(sx * sin(a), -cos(a), 0.0)
 			var c := Vector3(sx * 0.22, SHOULDER_Y, 0.0) + dir * 0.3
-			_set(o + 3 + side, sb, origin, c, Vector3(0.1, 0.3, 0.1), Basis(Vector3.BACK, -sx * a))
+			_set_part(o + 3 + side, sb, origin, c, Vector3(0.1, 0.3, 0.1), Basis(Vector3.BACK, -sx * a))
+	return true
 
 
 ## Часть людей машет двумя руками, часть — одной (вторая опускается неполно).
@@ -231,6 +244,6 @@ func step_on(x: float) -> float:
 	return 1.0 if x > 0.4 else 0.35
 
 
-func _set(idx: int, sb: Basis, origin: Vector3, c: Vector3, sc: Vector3, rot: Basis) -> void:
+func _set_part(idx: int, sb: Basis, origin: Vector3, c: Vector3, sc: Vector3, rot: Basis) -> void:
 	var bb := sb * rot.scaled(sc)
 	_mm.set_instance_transform(idx, Transform3D(bb, origin + sb * c))
