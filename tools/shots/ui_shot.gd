@@ -9,6 +9,8 @@ extends Node
 ## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
 ## --net-settings (NET-40/К3) — только settings.png, но панель в сетевом режиме
 ## (set_net_mode(true) — строка «Скорость времени» скрыта).
+## --only=wings — без мира за меню: «Полёт…» с самым многочисленным классом крыльев, список моделей
+## открыт (вместимость меню): setup_wings_closed, setup_wings.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 60.0
@@ -36,6 +38,9 @@ func _ready() -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(_out)
 	get_tree().create_timer(TIMEOUT_S).timeout.connect(_fail.bind("таймаут"))
+	if _only == "wings":
+		_run_wings()
+		return
 	_run()
 
 
@@ -151,6 +156,34 @@ func _shoot_setup(main: Node) -> void:
 	class_opt.show_popup()
 	await _shoot("setup_classes")
 	class_opt.get_popup().hide()
+
+
+## Класс с наибольшим числом моделей, список моделей открыт (мир за меню не нужен).
+func _run_wings() -> void:
+	var main: Node = MAIN_SCENE.instantiate()
+	_main = main
+	add_child(main)
+	for i in 4:
+		await get_tree().process_frame
+	main.get_node("UI/StartMenu").visible = false
+	var setup: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
+	var best := PackedStringArray()
+	for g in WingCatalog.groups():
+		var ws := WingCatalog.wings_in_group(String(g.id))
+		if ws.size() > best.size():
+			best = ws
+	var s := FlightSettings.defaults()
+	s.wing = best[0]
+	setup.set_settings(s)
+	setup.visible = true
+	await _shoot("setup_wings_closed")
+	var wing_opt: OptionButton = setup.get("_wing_opt")
+	print("ui_shot: класс %s, моделей %d" % [WingCatalog.group_of(best[0]), best.size()])
+	wing_opt.show_popup()
+	await _shoot("setup_wings")
+	wing_opt.get_popup().hide()
+	print("ui_shot: OK")
+	await _quit(0)
 
 
 func _soft_landing_info() -> Dictionary:

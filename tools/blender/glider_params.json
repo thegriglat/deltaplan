@@ -392,6 +392,82 @@
         "le_band": 0.3,
         "scrim": true
       }
+    },
+    "icaro_piuma": {
+      "config": "icaro_piuma",
+      "out": "glider_icaro_piuma",
+      "nose_angle_deg": 120,
+      "root_chord_m": 2.53,
+      "tip_chord_m": 0.89,
+      "nose_forward_m": 1.44,
+      "keel_extra_m": 0.1,
+      "dihedral_deg": 1.5,
+      "washout_deg": 14,
+      "camber": [0.03, 0.12, 0.07],
+      "double_surface": false,
+      "lower_cover": 0.3,
+      "le_thickness": 0.1,
+      "battens_per_side": 7,
+      "kingpost_m": 1.25,
+      "crossbar_u": 0.55,
+      "luff_lines": [0.35, 0.62],
+      "basebar_width_m": 1.5,
+      "faired_uprights": true,
+      "wheels": true,
+      "tube_color": [0.72, 0.73, 0.76],
+      "tube_rough": 0.35,
+      "tube_metal": 0.8,
+      "design": {
+        "base": [0.96, 0.96, 0.95],
+        "le": [0.65, 0.72, 0.16],
+        "center": [0.25, 0.15, 0.86],
+        "accent": [0.65, 0.72, 0.16],
+        "te": [0.2, 0.2, 0.25],
+        "batten": [0.25, 0.22, 0.15],
+        "pattern": "chevron"
+      }
+    },
+    "ww_t2c": {
+      "config": "ww_t2c",
+      "out": "glider_ww_t2c",
+      "nose_angle_deg": 129.5,
+      "root_chord_m": 2.33,
+      "tip_chord_m": 0.56,
+      "nose_forward_m": 1.28,
+      "keel_extra_m": 0.05,
+      "dihedral_deg": -2.0,
+      "washout_deg": 10,
+      "camber": [0.03, 0.09, 0.05],
+      "double_surface": true,
+      "lower_cover": 0.92,
+      "le_thickness": 0.13,
+      "battens_per_side": 11,
+      "kingpost_m": 0,
+      "crossbar_u": 0.59,
+      "luff_lines": [],
+      "basebar_width_m": 1.36,
+      "upright_bend": {
+        "t0": 0.5,
+        "fwd_m": 0.03
+      },
+      "faired_uprights": true,
+      "wheels": false,
+      "tube_color": [0.06, 0.06, 0.07],
+      "tube_rough": 0.3,
+      "tube_metal": 0.2,
+      "design": {
+        "base": [0.96, 0.96, 0.95],
+        "le": [0.34, 0.4, 0.34],
+        "center": [0.86, 0.15, 0.57],
+        "accent": [0.19, 0.72, 0.16],
+        "te": [0.1, 0.1, 0.12],
+        "batten": [0.27, 0.27, 0.3],
+        "bottom": [0.86, 0.15, 0.57],
+        "bottom_accent": [0.96, 0.96, 0.95],
+        "bottom_tip": [0.1, 0.1, 0.12],
+        "pattern": "sport",
+        "scrim": true
+      }
     }
   }
 }

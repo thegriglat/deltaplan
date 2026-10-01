@@ -4,7 +4,10 @@
 Вход: tz_curated.py (ручная часть), wings_merged.json, wings_geometry.json,
 out/construction/batch_*.json (тип конструкции — выборка из открытых источников),
 tools/blender/glider_params.json, configs/wings/*.json, wings3d_geometry.py.
-Выход: docs/research/glider_3d_tz.md.  Запуск: python3 make_3d_tz.py (только стандартная библиотека).
+Выход: docs/research/glider_3d_tz.md и out/wings3d_spec.json — машиночитаемая спецификация новых крыльев
+(docs/wings_models3d_contracts.md, К3; те же числа, что в таблицах «Что задать» — генератор сверяет их сам).
+Запуск: python3 make_3d_tz.py (только стандартная библиотека); python3 make_3d_tz.py --check — только сверка
+(ТЗ и спецификация на диске = сгенерированным, таблицы ТЗ = спецификации), без записи.
 """
 import glob
 import json
@@ -543,7 +546,8 @@ def pick_base(e, ctype):
     return b or ("sport" if ctype == "topless" else ("laminar" if e["group"] == "kingpost" else "training"))
 
 
-def section_new(n, e):
+def section_new(n, e, spec=None):
+    """Раздел ТЗ новой модели. spec (dict) — сюда кладётся запись машиночитаемой спецификации (К3)."""
     wid = e["id"]
     r = rec(e["mfr"], e["family"], e["version"], e["size"])
     if not r:
@@ -596,57 +600,71 @@ def section_new(n, e):
     L.append("### Что задать")
     L.append("")
     rows = []
-    rows.append(("config", wid, "id модели; `out` = `glider_%s`" % wid))
+    V = {}  # машинные значения строк таблицы (имя строки → значение или кортеж) — для спецификации К3
+
+    def row(name, disp, note, val):
+        rows.append((name, disp, note))
+        V[name] = val
+
+    row("config", wid, "id модели; `out` = `glider_%s`" % wid, wid)
     if b:
-        rows.append(("span_m", fm(b), span_note + ((" (опорный размер %s)" % r["size"]) if r["size"] else " (размер в паспорте не указан)")))
+        row("span_m", fm(b), span_note + ((" (опорный размер %s)" % r["size"]) if r["size"] else " (размер в паспорте не указан)"), b)
     else:
-        rows.append(("span_m", fm(round(bp["span_m"] if "span_m" in bp else 10.0, 2)), "паспорта нет — по базе; уточнить"))
+        sb = round(bp["span_m"] if "span_m" in bp else 10.0, 2)
+        row("span_m", fm(sb), "паспорта нет — по базе; уточнить", sb)
     if A:
-        rows.append(("area_m2", fm(A), "паспорт" + ((", опорный размер %s" % r["size"]) if r["size"] else " (размер в паспорте не указан)")))
+        row("area_m2", fm(A), "паспорт" + ((", опорный размер %s" % r["size"]) if r["size"] else " (размер в паспорте не указан)"), A)
     na = nose_angle(r)
     if na:
         ang = round((na[0] + na[1]) / 2.0, 1)
-        rows.append(("nose_angle_deg", fm(ang, 1), "паспорт%s" % ("" if na[0] == na[1] else ": диапазон %s–%s° (VG), берём середину" % (fm(na[0], 1), fm(na[1], 1)))))
+        row("nose_angle_deg", fm(ang, 1), "паспорт%s" % ("" if na[0] == na[1] else ": диапазон %s–%s° (VG), берём середину" % (fm(na[0], 1), fm(na[1], 1))), ang)
     else:
         ang = bp["nose_angle_deg"]
-        rows.append(("nose_angle_deg", fm(ang, 0), "паспорта нет — как у базы; если появится, ставить паспортный"))
+        row("nose_angle_deg", fm(ang, 0), "паспорта нет — как у базы; если появится, ставить паспортный", ang)
     if A and b:
         root, tip = chords_for(base, A, b, bp.get("tip_round", True))
-        rows.append(("root_chord_m / tip_chord_m", "%s / %s" % (fc(root), fc(tip)),
-                     "форма базы (отношение хорд %s) пересчитана под паспортные размах и площадь; площадь в плане при этом %s м²" % (fm(bp["tip_chord_m"] / bp["root_chord_m"], 3),
-                                                                                                                        fm(G.implied_area(root, tip, b, bp.get("tip_round", True)), 2))))
+        row("root_chord_m / tip_chord_m", "%s / %s" % (fc(root), fc(tip)),
+            "форма базы (отношение хорд %s) пересчитана под паспортные размах и площадь; площадь в плане при этом %s м²" % (fm(bp["tip_chord_m"] / bp["root_chord_m"], 3),
+                                                                                                               fm(G.implied_area(root, tip, b, bp.get("tip_round", True)), 2)),
+            (root, tip))
         hf = hang_fwd(r)
         if hf:
-            rows.append(("nose_forward_m", fm(round(hf[0], 2)), hf[1]))
+            row("nose_forward_m", fm(round(hf[0], 2)), hf[1], round(hf[0], 2))
         else:
-            rows.append(("nose_forward_m", fm(round(0.568 * root, 2)), "0,568·хорда у корня (как у всех существующих моделей; паспорта нет)"))
+            row("nose_forward_m", fm(round(0.568 * root, 2)), "0,568·хорда у корня (как у всех существующих моделей; паспорта нет)", round(0.568 * root, 2))
     bs = battens_per_side(r)
     if bs:
         want = int(math.floor((bs[0] + bs[1]) / 4.0))
-        rows.append(("battens_per_side", fm(want, 0), "паспорт: верхних лат всего %s%s ⇒ на сторону %d%s" % (
+        row("battens_per_side", fm(want, 0), "паспорт: верхних лат всего %s%s ⇒ на сторону %d%s" % (
             fm(bs[0], 0), "" if bs[0] == bs[1] else "–%s" % fm(bs[1], 0), want,
-            " (нечётное число: одна центральная лата у киля не считается)" if int(bs[0]) % 2 or int(bs[1]) % 2 else "")))
+            " (нечётное число: одна центральная лата у киля не считается)" if int(bs[0]) % 2 or int(bs[1]) % 2 else ""), want)
     else:
-        rows.append(("battens_per_side", str(bp["battens_per_side"]), "паспорта нет — как у базы"))
+        row("battens_per_side", str(bp["battens_per_side"]), "паспорта нет — как у базы", bp["battens_per_side"])
     ds = fv(r, "double_surface_pct")
     if ds is not None:
         if ds >= 50:
-            rows.append(("double_surface / lower_cover", "true / %s" % fm(ds / 100.0), "паспорт: двойная поверхность %s %%; `lower_cover` = процент/100 (допуск ±0,1 по фото производителя)" % fm(ds, 0)))
+            row("double_surface / lower_cover", "true / %s" % fm(ds / 100.0), "паспорт: двойная поверхность %s %%; `lower_cover` = процент/100 (допуск ±0,1 по фото производителя)" % fm(ds, 0),
+                (True, round(ds / 100.0, 2)))
         else:
-            rows.append(("double_surface / lower_cover", "false / %s" % fm(max(0.14, ds / 100.0)), "паспорт: нижняя обшивка %s %% — однообшивочное с частичной нижней обшивкой" % fm(ds, 0)))
+            row("double_surface / lower_cover", "false / %s" % fm(max(0.14, ds / 100.0)), "паспорт: нижняя обшивка %s %% — однообшивочное с частичной нижней обшивкой" % fm(ds, 0),
+                (False, round(max(0.14, ds / 100.0), 2)))
     else:
-        rows.append(("double_surface / lower_cover", "%s / %s" % ("true" if bp["double_surface"] else "false", fm(bp["lower_cover"])), "паспорта нет — как у базы"))
+        row("double_surface / lower_cover", "%s / %s" % ("true" if bp["double_surface"] else "false", fm(bp["lower_cover"])), "паспорта нет — как у базы",
+            (bool(bp["double_surface"]), bp["lower_cover"]))
     if ctype == "kingpost":
-        rows.append(("kingpost_m", fm(bp["kingpost_m"]) if bp["kingpost_m"] else "1,2", "высоты в паспортах нет — как у базы (мачтовая)"))
+        row("kingpost_m", fm(bp["kingpost_m"]) if bp["kingpost_m"] else "1,2", "высоты в паспортах нет — как у базы (мачтовая)", bp["kingpost_m"] or 1.2)
     elif ctype == "topless":
-        rows.append(("kingpost_m", "0", "безмачтовое"))
+        row("kingpost_m", "0", "безмачтовое", 0)
     cu = crossbar_u_from(r, b, ang)
     if cu:
-        rows.append(("crossbar_u", fm(round(cu[0], 2)), cu[1]))
+        row("crossbar_u", fm(round(cu[0], 2)), cu[1], round(cu[0], 2))
     else:
-        rows.append(("crossbar_u", fm(bp["crossbar_u"]), "данных нет — как у базы"))
+        row("crossbar_u", fm(bp["crossbar_u"]), "данных нет — как у базы", bp["crossbar_u"])
+    manual = []
     for x in e.get("rows", []):
         rows = [y for y in rows if y[0] != x[0]] + [x]
+        V.pop(x[0], None)
+        manual.append({"param": x[0], "value": x[1], "note": x[2]})
     rows.append(("dihedral_deg, washout_deg, camber, le_thickness, basebar_width_m, luff_lines, faired_uprights, wheels, upright_bend", "как у базы", "в источниках чисел нет — не выдумывать"))
     L.append("| Параметр | Значение | Откуда |")
     L.append("|---|---|---|")
@@ -689,7 +707,171 @@ def section_new(n, e):
     L.append("")
     L.append(BOILER)
     L.append("")
+    if spec is not None:
+        spec.update(spec_entry(n, e, r, recs, base, ctype, V, manual))
     return "\n".join(L)
+
+
+# ------------------------------------------------------------------ машиночитаемая спецификация (К3)
+SPEC_OUT = os.path.join(HERE, "out", "wings3d_spec.json")
+# строка таблицы «Что задать» → поля params (К1); span_m/area_m2 идут в config
+ROW_PARAMS = {
+    "config": ("config",),
+    "nose_angle_deg": ("nose_angle_deg",),
+    "root_chord_m / tip_chord_m": ("root_chord_m", "tip_chord_m"),
+    "nose_forward_m": ("nose_forward_m",),
+    "battens_per_side": ("battens_per_side",),
+    "double_surface / lower_cover": ("double_surface", "lower_cover"),
+    "kingpost_m": ("kingpost_m",),
+    "crossbar_u": ("crossbar_u",),
+}
+
+
+def _r(x, nd):
+    return None if x is None else (int(round(float(x))) if nd == 0 else round(float(x), nd))
+
+
+def _int_or(x):
+    return int(x) if isinstance(x, float) and x.is_integer() else x
+
+
+def dhv_value(r, name):
+    """Значение поля только из карточки DHV (или из документа производителя с прямой ссылкой на DHV)."""
+    f = r["fields"].get(name) if r else None
+    if not f:
+        return None
+    vals = [s["value"] for s in f["sources"] if isinstance(s.get("value"), (int, float))
+            and (s.get("kind") == "dhv" or "DHV" in str(s.get("quote", "")))]
+    if not vals:
+        return None
+    vals.sort()
+    return vals[len(vals) // 2]
+
+
+def era_of(e, r):
+    ex = _find(e) or {}
+    fy, ly = ex.get("fy"), ex.get("ly")
+    fy = None if fy in (None, "unknown") else int(fy)
+    ly = None if ly in (None, "unknown") else int(ly)
+    if fy is None:
+        ys = [int(y) for y in (r.get("model_years") or []) if str(y).isdigit()]
+        y = fv(r, "year")
+        if ys:
+            fy = min(ys)
+        elif isinstance(y, (int, float)):
+            fy = int(y)
+    if fy is None:
+        return None
+    if ly:
+        return "%d–%d" % (fy, ly)
+    return "%d–" % fy if r.get("status") == "current" else str(fy)
+
+
+def model_name(e, r):
+    """«Производитель Модель Размер» опорного размера (как названия существующих крыльев в меню)."""
+    parts = [r["manufacturer"], r["family"], r.get("version") or "", r.get("size") or ""]
+    return " ".join(x for x in parts if x).strip()
+
+
+def spec_entry(n, e, r, recs, base, ctype, V, manual):
+    params = {}
+    for row_name, fields in ROW_PARAMS.items():
+        if row_name not in V:
+            continue
+        v = V[row_name]
+        vals = v if isinstance(v, tuple) else (v,)
+        for f, x in zip(fields, vals):
+            params[f] = _int_or(x) if isinstance(x, float) else x
+    if "config" in params:
+        params["out"] = "glider_" + params["config"]
+    pmin, pmax = fv(r, "pilot_mass_min_kg"), fv(r, "pilot_mass_max_kg")
+    certs = [c for c in r.get("cert_standards", []) if c.startswith("DHV ")]
+    ds = fv(r, "double_surface_pct")
+    config = {
+        "span_m": _r(V.get("span_m"), 2),
+        "area_m2": _r(V.get("area_m2"), 2),
+        "wing_mass_kg": _r(fv(r, "wing_mass_kg"), 1),
+        "pilot_mass_min_kg": _r(pmin, 0),
+        "pilot_mass_max_kg": _r(pmax, 0),
+        "double_surface_pct": _r(ds, 0),
+        "kingpost": ctype == "kingpost",
+        "group": e["group"],
+        "era": era_of(e, r),
+        "prototype": model_name(e, r),
+        "dhv": {
+            "vmin_vg0_kmh": _r(dhv_value(r, "vmin_vg0_kmh"), 1),
+            "vmax_vg0_kmh": _r(dhv_value(r, "vmax_vg0_kmh"), 1),
+            "takeoff_mass_min_kg": _r(dhv_value(r, "takeoff_mass_min_kg"), 1),
+            "takeoff_mass_max_kg": _r(dhv_value(r, "takeoff_mass_max_kg"), 1),
+            "vne_kmh": _r(dhv_value(r, "vne_kmh"), 1),
+            "cert": ", ".join(certs) or None,
+        },
+    }
+    out = {"section": "N%d" % n, "title": e["title"], "size": r.get("size") or None, "priority": e.get("prio", "P2"),
+           "base": base, "params": params, "config": config, "sources": [x["key"] for x in recs]}
+    if manual:
+        out["manual"] = manual  # строки «Что задать» без числа (текстом) — исполнитель решает по фото/цитате
+    return {e["id"]: out}
+
+
+# ------------------------------------------------------------------ сверка спецификации с таблицами ТЗ
+def _parse_cell(txt):
+    out = []
+    for t in txt.split(" / "):
+        t = t.strip()
+        if t in ("true", "false"):
+            out.append(t == "true")
+        else:
+            try:
+                out.append(float(t.replace(",", ".")))
+            except ValueError:
+                out.append(t)
+    return out
+
+
+def check_spec(text, spec):
+    """Читает таблицы «Что задать» из текста ТЗ и сверяет каждое значение со спецификацией. Возвращает список расхождений."""
+    errs = []
+    sections = re.split(r"^## Раздел (N\d+)\. .*?\(`([a-z0-9_]+)`\)", text, flags=re.M)
+    seen = set()
+    for i in range(1, len(sections), 3):
+        sec, wid, body = sections[i], sections[i + 1], sections[i + 2]
+        seen.add(wid)
+        s = spec.get(wid)
+        if not s:
+            errs.append("%s: нет в спецификации" % wid)
+            continue
+        if s["section"] != sec:
+            errs.append("%s: раздел %s в ТЗ, %s в спецификации" % (wid, sec, s["section"]))
+        tbl = body.split("### Что задать", 1)[1].split("\n\n", 2)[1]
+        for line in tbl.splitlines()[2:]:
+            m = re.match(r"\| `([^`]+)` \| (.*?) \| .* \|$", line)
+            if not m:
+                continue
+            name, cell = m.group(1), m.group(2)
+            vals = _parse_cell(cell)
+            if name in ("span_m", "area_m2"):
+                got = [s["config"][name]]
+            elif name in ROW_PARAMS:
+                if any(isinstance(v, str) for v in vals) and name != "config":
+                    got = [x["value"] for x in s.get("manual", []) if x["param"] == name]
+                    vals = [cell]
+                else:
+                    got = [s["params"].get(f) for f in ROW_PARAMS[name]]
+            elif name.startswith("dihedral_deg"):
+                continue
+            else:
+                got = [x["value"] for x in s.get("manual", []) if x["param"] == name]
+                vals = [cell]
+            for a, b in zip(vals, got):
+                ok = (abs(a - b) < 0.0051) if isinstance(a, float) and isinstance(b, (int, float)) and not isinstance(b, bool) else a == b
+                if not ok or len(vals) != len(got):
+                    errs.append("%s %s: ТЗ %r, спецификация %r" % (wid, name, cell, got))
+                    break
+    for wid in spec:
+        if wid not in seen:
+            errs.append("%s: есть в спецификации, нет в ТЗ" % wid)
+    return errs
 
 
 def main():
@@ -700,6 +882,7 @@ def main():
     # сводная таблица
     summary = ["| Раздел | Модель | id | Класс (кратко) | Конструкция | База | Приоритет |", "|---|---|---|---|---|---|---|"]
     body = []
+    spec = {}
     for i, e in enumerate(exist, 1):
         ct, _ = construction(e)
         summary.append("| E%d | %s | `%s` | %s | %s | — | существующая |" % (i, e["title"], e["id"], e["cls"].split(",")[0], "мачтовое" if PARAMS[e["id"]]["kingpost_m"] else "безмачтовое"))
@@ -709,12 +892,27 @@ def main():
         summary.append("| N%d | %s | `%s` | %s | %s | `%s` | %s |" % (i, e["title"], e["id"], e["cls"].split(",")[0],
                                                                       {"kingpost": "мачтовое", "topless": "безмачтовое", "": "?"}[ct] + (" (по году)" if "по году" in _ or "по умолчанию" in _ else ""),
                                                                       pick_base(e, ct), e.get("prio", "P2")))
-        body.append(section_new(i, e))
+        body.append(section_new(i, e, spec))
     head = open(os.path.join(HERE, "tz_head.md"), encoding="utf-8").read()
     excl = ["", "## Не включены в ТЗ", "", "| Семейства | Почему |", "|---|---|"] + ["| %s | %s |" % x for x in C.EXCLUDED]
     text = head.rstrip() + "\n\n" + "\n".join(summary) + "\n\n" + "\n".join(excl) + "\n\n---\n\n" + "\n---\n\n".join(body)
+    errs = check_spec(text, spec)
+    if errs:
+        raise SystemExit("спецификация не совпадает с таблицами «Что задать»:\n" + "\n".join(errs))
+    if "--check" in sys.argv:
+        old = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+        olds = json.load(open(SPEC_OUT, encoding="utf-8")) if os.path.exists(SPEC_OUT) else None
+        errs = check_spec(old, olds or {}) if olds is not None else ["нет %s" % SPEC_OUT]
+        print("ТЗ на диске и сгенерированное: %s; спецификация на диске и сгенерированная: %s; таблицы ТЗ на диске и спецификация на диске: %s" % (
+            "совпадают" if old == text else "РАЗЛИЧАЮТСЯ", "совпадают" if olds == spec else "РАЗЛИЧАЮТСЯ",
+            "OK" if not errs else "\n" + "\n".join(errs)))
+        sys.exit(0 if (old == text and olds == spec and not errs) else 1)
     open(OUT, "w", encoding="utf-8").write(text)
+    with open(SPEC_OUT, "w", encoding="utf-8") as f:
+        json.dump(spec, f, ensure_ascii=False, indent=2)
+        f.write("\n")
     print("записано", OUT, len(text), "символов;", len(exist), "существующих,", len(new), "новых")
+    print("записано", SPEC_OUT, len(spec), "крыльев; сверка с таблицами «Что задать»: OK")
 
 
 if __name__ == "__main__":
