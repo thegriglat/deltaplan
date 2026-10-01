@@ -93,7 +93,9 @@ func drive(t: Telemetry, dt: float) -> void:
 			_level_roll(t.bank_deg, 0.0)
 		"flying":
 			_air_time += dt
-			hold_w = _air_time < hold_after_takeoff_s
+			# пока ступни не выше takeoff.upright_clear_m, пилот ещё на ногах — бежит дальше
+			var clear := float(Config.value("flight", "takeoff.upright_clear_m", 1.0))
+			hold_w = t.altitude_agl < clear or _air_time < hold_after_takeoff_s
 			if _heading < 0.0:
 				_heading = t.heading_deg
 			var err := wrapf(_heading - t.heading_deg, -180.0, 180.0)

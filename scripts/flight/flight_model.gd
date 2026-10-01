@@ -70,6 +70,8 @@ var _rho_ref: float = 1.225
 var _stall_time: float = 0.0
 var _attached: float = 1.0  ## доля присоединённого потока: 1 — обтекание, 0 — полный срыв
 var _flare := LandingFlare.new()
+## Пилот после отрыва ещё на ногах (не в подвеске): касание — снова разбег (К3 v3, без таймера).
+var _upright := false
 var _accel_t: float = 0.0  ## касательное ускорение по потоку с прошлого шага, м/с²
 
 
@@ -269,6 +271,7 @@ func _reset_common(pos: Vector3, heading_deg: float) -> void:
 	load.reset()
 	_accel_t = 0.0
 	_ground.reset()
+	_upright = false
 	takeoff_failure = ""
 	landing_result = {}
 
@@ -306,11 +309,12 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var q := 0.5 * rho * v * v * area if v > min_v else 0.0
 
 	var agl := position.y - ground_height(ground_fn, position.x, position.z)
+	if agl > float(flight.takeoff.upright_clear_m):
+		_upright = false  # ступни высоко — пилот в подвеске, касание дальше — посадка
 	_flare.update(self, input, agl, dt)
 	_update_pitch(dt, input, asin(clampf(u.y, -1.0, 1.0)), q)
 	var c := aero_coefs(dt)
-	var lift := lift_dir * (q * c.x)
-	var force := lift - u * (q * c.y) + UP * (-mass * Units.G)
+	var force := lift_dir * (q * c.x) - u * (q * c.y) + UP * (-mass * Units.G)
 	force += _flare.hang_force(self)
 	var lf: Dictionary = flight.load_factor
 	load.update(q * c.x, mass * Units.G, float(lf.filter_s), dt, float(lf.jitter_window_s))
@@ -327,11 +331,12 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	# касание земли (FR-10)
 	var gh := ground_height(ground_fn, position.x, position.z)
 	if position.y <= gh:
-		if lift.y >= mass * Units.G:
-			# крыло несёт весь вес — ступни лишь чиркнули по склону (сразу после отрыва, низкий
-			# проход): это не посадка, держим на поверхности; посадка — когда крыло уже не несёт
+		if _upright:
+			# пилот ещё на ногах (после отрыва ступни не поднялись выше takeoff.upright_clear_m):
+			# касание — это снова шаги разбега, а не посадка; дальше — GroundRun (отрыв, когда L ≥ W)
 			position.y = gh
-			velocity.y = maxf(velocity.y, 0.0)
+			mode = Mode.GROUND
+			_ground.resume(self)
 		else:
 			landing_result = _flare.touchdown(self, ground_fn, gh)
 			mode = Mode.LANDED
@@ -343,6 +348,13 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float) -> void:
 	var st: Dictionary = wing.stall
 	var alpha_target := _alpha_command(input.pitch)
+	if _upright:
+		# пилот ещё на ногах и держит крыло за стойки, как на разбеге (GroundRun._aero_force):
+		# угол атаки — launch.alpha_neutral_deg + pitch·alpha_range_deg, не трим подвески
+		var la: Dictionary = wing.launch
+		alpha_target = Units.deg(
+			float(la.alpha_neutral_deg) + clampf(input.pitch, -1.0, 1.0) * float(la.alpha_range_deg)
+		)
 	var tau := tau_pitch
 	if stalled and not _flare.active and _stall_time > float(st.nose_drop_delay_s):
 		alpha_target -= Units.deg(float(st.nose_drop_deg))
@@ -452,6 +464,7 @@ func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: C
 	match _ground.step(self, dt, input, air_fn, ground_fn):
 		GroundRun.Result.TOOK_OFF:
 			mode = Mode.AIR
+			_upright = true
 			_accel_t = 0.0
 			took_off.emit()
 		GroundRun.Result.FAILED:

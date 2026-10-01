@@ -192,7 +192,12 @@ func walk_time_s() -> float:
 func _after_step(now_s: float) -> void:
 	match model.mode:
 		FlightModel.Mode.AIR:
-			if state == State.RUN:
+			# в полёт — когда ступни выше takeoff.upright_clear_m (до этого бот ещё бежит: касание —
+			# снова разбег, FlightModel); без таймера
+			var agl := (
+				model.position.y - FlightModel.ground_height(_ground_fn, model.position.x, model.position.z)
+			)
+			if state == State.RUN and agl > float(model.flight.takeoff.upright_clear_m):
 				state = State.FLY
 				liftoff_s = now_s
 				_start_flight()

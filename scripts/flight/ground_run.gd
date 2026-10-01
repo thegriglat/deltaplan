@@ -50,6 +50,14 @@ func reset() -> void:
 	hold_limit_nm = 0.0
 
 
+## Пилот снова на ногах после отрыва (касание, пока не перешёл в подвеску — FlightModel):
+## разбег продолжается со скоростью вдоль склона по курсу, без сброса состояния.
+func resume(m: FlightModel) -> void:
+	_speed = maxf(m.velocity.dot(m.heading_dir()), 0.0)
+	m.velocity = m.heading_dir() * _speed
+	phase = "running"
+
+
 ## Один шаг на земле; меняет положение, курс, крен и тангаж модели m.
 func step(
 	m: FlightModel, dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable
