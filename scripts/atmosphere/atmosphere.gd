@@ -759,9 +759,11 @@ func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector
 ##   слоя смешения по ΔU от ветра поля на уровне гребня U_H, рывки (часть этой болтанки, с нулевым
 ##   средним, только при turbulence_enabled) и обратный поток у земли 0,22·U_H — только там, где
 ##   пузырь отрыва решателем не разрешён (грубая сетка).
-## - Болтанка: механическая по u* поля и местному сдвигу (с поправкой на устойчивость Ri),
-##   конвективная по w* (Lenschow), слоя смешения за гребнем по ΔU; шум — спектр фон Кармана
-##   (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости.
+## - Болтанка: механическая по u* поля (в приземном слое — по ветру в точке) и местному сдвигу (с
+##   поправкой на устойчивость Ri), конвективная по w* (Lenschow; сложение σ³ — Panofsky 1977),
+##   слоя смешения за гребнем по ΔU; горизонталь вдоль и поперёк среднего ветра (σ_u ≠ σ_v); шум —
+##   спектр фон Кармана (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости, у земли
+##   растянутыми под местный перенос, конвективная горизонталь — с масштабом 0,22 z_i (AS-2).
 func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Vector4) -> Vector3:
 	var wd := wind.dir
 	var a := fw.w
@@ -829,8 +831,11 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		# в поле нет данных о нагреве — конвективная болтанка аналитики (погода)
 		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
 		conv_a = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
-	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio))
+	# средний ветер в точке (поле + доля аналитики) — u* приземного слоя и перенос вихрей у земли
+	var mh := Vector2(v.x, v.z)
+	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio), uf)
 	var s_u := sg.x
+	var s_v := field_turb.last_sv
 	var s_w := sg.y
 	var s_sep := field_turb.sep_sigma(du)
 	# рывки вниз слоя смешения (с нулевым средним — поток массы уже в w_mech поля): часть
@@ -845,9 +850,12 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		var s_b := amp_b * g_std
 		s_sep.y = sqrt(maxf(s_sep.y * s_sep.y - s_b * s_b, 0.0))
 	s_u = maxf(s_u, s_sep.x)
+	s_v = maxf(s_v, s_sep.x)
 	s_w = maxf(s_w, s_sep.y)
 	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
-	s_u = minf(sqrt(s_u * s_u + ex2), maxf(_turb_max, minf(s_sep.x, _lee_rotor_max)))
+	var cap_h := maxf(_turb_max, minf(s_sep.x, _lee_rotor_max))
+	s_u = minf(sqrt(s_u * s_u + ex2), cap_h)
+	s_v = minf(sqrt(s_v * s_v + ex2), cap_h)
 	s_w = minf(
 		sqrt(s_w * s_w + ex2 * _vert_ratio * _vert_ratio),
 		maxf(_turb_max, minf(s_sep.y, _lee_rotor_max))
@@ -855,10 +863,17 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
 	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
 	var l_sep := field_turb.sep_scale * maxf(relief, 0.0) * lee_f
+	# у земли вихри несёт местный ветер, а не перенос шума (FieldTurbulence.taylor_stretch)
+	var stretch := FieldTurbulence.taylor_stretch(_advect, mh.length(), agl)
 	var n := field_turb.gusts.sample(
-		pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep)
+		pos, time_s, _advect, wd, maxf(sg.z * stretch, l_sep), maxf(sg.w * stretch, l_sep),
+		field_turb.last_l_c, field_turb.last_fu_c, field_turb.last_fv_c
 	)
-	var tv := Vector3(n.x * s_u, n.y * s_w + a * w_burst, n.z * s_u)
+	# горизонталь — вдоль и поперёк среднего ветра в точке (σ_u ≠ σ_v)
+	var e := mh / mh.length() if mh.length() > 0.3 else Vector2(wd.x, wd.z).normalized()
+	var tv := Vector3(
+		e.x * n.x * s_u - e.y * n.z * s_v, n.y * s_w + a * w_burst, e.y * n.x * s_u + e.x * n.z * s_v
+	)
 	var sig := s_u
 	if a < 1.0:
 		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
