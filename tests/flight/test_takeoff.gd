@@ -14,8 +14,10 @@ static func wind_fn(v: Vector3) -> Callable:
 
 
 ## Разбег с трапецией pitch при ветре wind; возвращает {took_off, failure, time}.
+## level_k > 0 — пилот выравнивает крыло рукой: roll = −крен/level_k° (К3 v3: на бегу курс от
+## крена, крен от ветра без поправки уводит в дугу по ветру).
 static func attempt(
-	w: String, wind: Vector3, pitch: float = 0.0, run_s: float = 12.0
+	w: String, wind: Vector3, pitch: float = 0.0, run_s: float = 12.0, level_k: float = 0.0
 ) -> Dictionary:
 	var m := Sim.make(w)
 	m.reset_on_ground(Vector3(0, 0, 0), 0.0)
@@ -24,6 +26,8 @@ static func attempt(
 	var inp := Sim.input(pitch, 0.0, true)
 	var af := wind_fn(wind)
 	while t < run_s:
+		if level_k > 0.0:
+			inp.roll = clampf(-m.telemetry.bank_deg / level_k, -1.0, 1.0)
 		m.step(Sim.DT, inp, af, slope)
 		t += Sim.DT
 		if m.mode == FlightModel.Mode.AIR:
@@ -76,11 +80,14 @@ func test_crosswind_fails() -> void:
 
 
 func test_crosswind_light_all_wings() -> void:
-	# слабый боковой ветер (2,5 м/с при встречном 4) рука пилота держит без ввода крена;
+	# слабый боковой ветер (2,5 м/с при встречном 4): рука пилота держит, пилот выравнивает крыло
+	# креном руки (К3 v3: без поправки крен от ветра к отрыву уводит бег в дугу по ветру, и у
+	# крупных крыльев, долго бегущих почти разгруженными, — ww_cross_country, ww_ultra_sport —
+	# крен растёт за 20°; без ввода крена — test_ground_bank::test_light_crosswind_holds);
 	# крыло, которое и во встречный 4 м/с срывается по носу (atlas, nose_high), — не про крен
 	for p in Config.list_configs("wings"):
 		var w := String(p).get_file()
-		var r := attempt(w, Vector3(2.5, 0, 4.0))
+		var r := attempt(w, Vector3(2.5, 0, 4.0), 0.0, 12.0, 10.0)
 		check(r.failure != "crosswind", "%s: слабый боковой ветер не валит крыло" % w)
 		if attempt(w, Vector3(0, 0, 4.0)).took_off:
 			check(r.took_off, "%s: слабый боковой ветер — взлёт (срыв: %s)" % [w, r.failure])
@@ -139,7 +146,7 @@ func test_walking() -> void:
 	approx(m2.position.y, steep.call(m2.position.x, m2.position.z), 0.001, "не уходит под землю")
 	# поворот на месте
 	inp.walk = 0.0
-	inp.roll = 1.0
+	inp.turn = 1.0
 	var h0 := m.telemetry.heading_deg
 	Sim.run_for(m, 1.0, inp, Callable(), flat)
 	approx(
