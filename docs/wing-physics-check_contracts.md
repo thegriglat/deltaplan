@@ -17,7 +17,7 @@
 
 ## К3. Ветер меню → атмосфера (v1)
 Владелец: `Atmosphere.set_wind(speed_kmh, from_deg, ref_msl)` (atmosphere.gd:513), `WindModel` (`scripts/atmosphere/wind_model.gd`). Вызывающий: `Game` (`scripts/game/game.gd:281`) — скорость из настроек, направление «в старт» или румб, `ref_msl` = высота старта.
-- Аналитика: `speed_kmh` — скорость U на `wind.reference_height_m` (10 м) над рельефом; на высоте agl над местной землёй U = U10·min((max(agl, z0)/10)^α, max_profile)·altitude_factor(msl); altitude_factor = clamp(1 + 0,6·(msl − ref_msl)/1000, 0,5, 2).
+- Аналитика: `speed_kmh` — скорость U на `wind.reference_height_m` (10 м) над рельефом; на высоте agl над местной землёй U = U10·min((max(agl, z0)/10)^α, max_profile)·altitude_factor(msl); altitude_factor = clamp(1 + 0,6·(msl − ref_msl)/1000, 0,5, 2). α — не константа: `WindProfile.alpha(U10, высота солнца, облачность)` = 0,24 × r(класс Паскуилла–Тёрнера) (днём ясно: ≈ 0,11 при 3 м/с, 0,24 при 6 м/с — замер WPC-3); max_profile = (z_sat/10)^α (уточнение формулировки, интерфейс не менялся).
 - Поле (GPU): как U10 меню задаёт приток решателя и сколько поле даёт на старте — **устанавливает WPC-2** (вносится сюда v2 без смены интерфейса).
 
 ## К4. Таблица «паспорт против модели» (v2, новый)
