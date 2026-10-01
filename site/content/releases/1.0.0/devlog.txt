@@ -5,44 +5,34 @@ The air is now computed from the terrain for every flight. While the flight load
 And there are 48 gliders now: 39 new ones built from DHV and manufacturer data — trainers, kingposted and topless wings.
 
 Air model:
-===
 - Wind field over the terrain for every flight, refreshed every 15 game minutes and when the wind changes
 - Thermals from the field: more over sunny slopes and convergence lines, none in shade, capped by the morning inversion
 - Turbulence from the field: stronger with wind and at the edge, almost gone in stable morning air
 - Lee side and rotor follow the field and field measurements instead of a fixed rule; no more -18 m/s sink behind ridges
 - Wind gradient depends on time of day and cloud cover
 - Grass and water ripples react more at the edge than in the valley
-===
 
 Gliders:
-===
 - 39 new gliders, 48 in total: Wills Wing, Moyes, Aeros, Icaro, Airborne, Seedwings and more
 - Span, area, nose angle, battens, kingpost, glider weight and pilot range from DHV and manufacturer data; the polar comes from a glider of the same class scaled to wing loading
 - Falcon, Litespeed, Combat and Laminar corrected to their data sheets
 - On the ground the pilot holds the wing level; a strong side gust can lift a tip and flip it
 - Every glider with its data and sources on the website. Thanks to DHV for the open type test data
-===
 
 World:
-===
 - Launching from a map point in the forest works: trees are cleared around the launch
 - Grass under the trees, smoother tree detail changes, 8 different trees of each kind
 - Cirrus clouds as long bands of thin streaks
 - A few small surprises in the world for those who look around
-===
 
 Menu and graphics:
-===
 - Main menu opens instantly, the world loads after Fly
 - Start time: 9:00, 12:00, 15:00 or 20:00
 - Softer, more natural colors; 4K menu background
 - Debug overlays for flight reviews: F1/F2 performance, F3/F5 wind arrows, F6 thermals
 - About 17 MB smaller download thanks to better terrain compression
-===
 
 Known issues:
-===
 - The wind field needs a GPU with compute support; without it the game uses the older simpler wind
 - Turbulence above the wake behind a ridge in strong wind is still too strong (about 3x)
 - Small hills can show a lee bubble where real air would not separate
-===
