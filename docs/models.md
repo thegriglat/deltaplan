@@ -329,6 +329,8 @@ gl_compatibility нет теней сквозь ткань.
 Проверка в Godot: `scenes/models_preview/models_preview.tscn` (три крыла с пилотом и приборами),
 снимок: `xvfb-run -a godot --path . --rendering-method gl_compatibility res://scenes/models_preview/models_preview.tscn -- --view=iso|below|side|cockpit --shot=/путь.png`.
 
+**Для сайта.** `docs/models/screenshots/glider_<id>/iso45.jpg` (все 48 крыльев) — JPEG качество 85, 1280×720, крыло обрезано по содержимому и центрировано с полем ~3,5%, заливка фона. Генерация: `tools/blender/render_wings_site.sh` → рендер PNG через `render_views.py` и преобразование `wings_site_jpg.py`.
+
 ## Приёмка: сравнение с фото
 
 Для каждой модели 3 фото реального прототипа (в репозиторий не кладём) → рендер модели в близком
