@@ -184,43 +184,86 @@ func _liftoff() -> void:
 			)
 
 
-## П. 4: разбег 0/3/6/10 м/с × крыло — «разумный ввод»: Shift, нос по углу атаки киля (как
-## автопилот: штиль — 19,5°, ветер ≥ 3,5 м/с — 18°, срыв — нос вниз), и без ввода носа.
+## П. 4: разбег 0/3/6/10 м/с × крыло — «без ввода» (только Shift) и «нос по α» (разумный нос:
+## в штиль и слабый ветер — на min(3°, запас до срыва − 1,5°) выше нейтрали разбега, в ветер
+## ≥ 3,5 м/с — на 2° ниже; срыв — нос вниз). Shift держится, пока ступни не выше
+## takeoff.upright_clear_m (пилот в подвеске). Отдельно — штиль на высоком старте (ρ по высоте).
+## Ветер — вдоль склона (вверх по склону, как обтекание рельефа). Порогов по времени нет:
+## предел прогона 30 с — только у самого замера.
+const LAUNCH_WINGS := [
+	"slavutich_ut", "training", "sport", "condor_crex3", "dp_she1", "icaro_piuma", "atlas"
+]
+const HIGH_START_M := 1869.0
+
+
 func _launch_table() -> void:
-	print("\n== 4. Разбег: исход, длина, время ==")
-	print("крыло | ветер | ввод | исход | длина, м | время, с | α отрыва")
-	for w in ["slavutich_ut", "training", "sport"]:
+	print("\n== 4. Разбег: исход, отрыв (длина, время), ступни выше 1 м (длина, время) ==")
+	print("крыло | старт | ветер | ввод | исход | отрыв: м / с | в подвеске: м / с | α отрыва | α срыва")
+	for w: String in LAUNCH_WINGS:
+		var cases := []
 		for wind in [0.0, 3.0, 6.0, 10.0]:
-			for policy in ["нос по α", "без ввода"]:
-				var m := _model(w)
-				_reset(m)
-				var af := func(_p: Vector3) -> Vector3: return Vector3(0, 0, wind)
-				var target := 18.0 if wind >= 3.5 else 19.5
-				var t := 0.0
-				var out := "нет"
-				var x0 := m.position
-				Input.action_press("run")
-				while t < 15.0:
-					if policy == "нос по α" and m.telemetry.airspeed > 1.0:
-						var a := rad_to_deg(m.alpha)
-						var dn := -1 if (m.stalled or a > target + 1.0) else (1 if a < target - 1.0 else 0)
-						_press("pitch_pull_in", dn < 0)
-						_press("pitch_push_out", dn > 0)
-					ic.on_ground = true
-					m.step(DT, ic.update(DT), af, slope)
-					t += DT
-					if m.mode == FlightModel.Mode.AIR:
-						out = "взлёт"
-						break
-					if m.mode == FlightModel.Mode.FAILED:
-						out = "срыв: " + m.takeoff_failure
-						break
-				_release_all()
-				var run_len := Vector2(m.position.x - x0.x, m.position.z - x0.z).length()
+			cases.append([1000.0, wind])
+		cases.append([HIGH_START_M, 0.0])
+		for cs: Array in cases:
+			for policy in ["без ввода", "нос по α"]:
+				var r := _launch(w, float(cs[0]), float(cs[1]), policy)
 				print(
-					"%s | %.0f | %s | %s | %.1f | %.2f | %.1f°"
-					% [w, wind, policy, out, run_len, t, rad_to_deg(m.alpha)]
+					"%s | %s | %.0f | %s | %s | %s | %s | %.1f° | %.1f°"
+					% [w, "%.0f м" % cs[0], cs[1], policy, r.out, r.lift, r.clear, r.alpha, r.stall]
 				)
+
+
+func _launch(w: String, base_m: float, wind: float, policy: String) -> Dictionary:
+	var wing: Dictionary = Config.get_config("wings/" + w)
+	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
+	pilot.mass_kg = float(wing.pilot_mass_ref_kg)
+	var m := FlightModel.new()
+	var high := base_m > 1000.0
+	m.setup(wing, pilot, {"air_density": {"altitude_dependent": high}})
+	var gf := func(_x: float, z: float) -> float: return base_m + SLOPE * z
+	# ветер вдоль склона (обтекание рельефа): встречный по горизонтали w·cosθ и вверх по склону
+	# w·sinθ — у горизонтального ветра над склоном нет склонового подъёма
+	var th := atan(SLOPE)
+	var af := func(_p: Vector3) -> Vector3: return Vector3(0, wind * sin(th), wind * cos(th))
+	_release_all()
+	ic.reset()
+	m.reset_on_ground(Vector3(0, base_m, 0), 0.0)
+	var neutral := float(wing.launch.alpha_neutral_deg)
+	var margin := rad_to_deg(m.alpha_stall) - neutral
+	var target := neutral - 2.0 if wind >= 3.5 else neutral + minf(3.0, margin - 1.5)
+	var clear_h := float(m.flight.takeoff.upright_clear_m)
+	var res := {"out": "не взлетел", "lift": "—", "clear": "—", "alpha": 0.0, "stall": rad_to_deg(m.alpha_stall)}
+	var t := 0.0
+	var x0 := m.position
+	var lifted := false
+	while t < 30.0:
+		var agl: float = m.position.y - gf.call(m.position.x, m.position.z)
+		_press("run", agl <= clear_h)
+		if policy == "нос по α" and m.telemetry.airspeed > 1.0 and m.mode == FlightModel.Mode.GROUND:
+			var a := rad_to_deg(m.alpha)
+			var dn := -1 if (m.stalled or a > target + 1.0) else (1 if a < target - 1.0 else 0)
+			_press("pitch_pull_in", dn < 0)
+			_press("pitch_push_out", dn > 0)
+		ic.on_ground = m.mode != FlightModel.Mode.AIR
+		m.step(DT, ic.update(DT), af, gf)
+		t += DT
+		var d := Vector2(m.position.x - x0.x, m.position.z - x0.z).length()
+		if m.mode == FlightModel.Mode.AIR and not lifted:
+			lifted = true
+			res.lift = "%.1f / %.2f" % [d, t]
+			res.alpha = rad_to_deg(m.alpha)
+		if m.mode == FlightModel.Mode.AIR and agl > clear_h:
+			res.clear = "%.1f / %.2f" % [d, t]
+			res.out = "взлёт"
+			break
+		if m.mode == FlightModel.Mode.FAILED:
+			res.out = "срыв: " + m.takeoff_failure
+			break
+		if m.mode == FlightModel.Mode.LANDED:
+			res.out = "сел обратно"
+			break
+	_release_all()
+	return res
 
 
 func _press(a: String, on: bool) -> void:

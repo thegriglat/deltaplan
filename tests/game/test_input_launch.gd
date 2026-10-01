@@ -31,7 +31,8 @@ func test_nose_up_full_strong_wind_stalls() -> void:
 	for wing: String in ["wings/sport", "wings/laminar"]:
 		await main.call("_fly", _settings("altai", wing, "strong"))
 		var r := _launch(game, 0.0, true)
-		check(r == "none", "%s: от себя до упора в сильный ветер — %s (ждали: не взлетел)" % [wing, r])
+		# сорванное крыло не несёт; в порывах его может и опрокинуть на консоль (wingtip) — тоже не взлёт
+		check(r != "air", "%s: от себя до упора в сильный ветер — %s (ждали: не взлетел)" % [wing, r])
 	_release()
 	main.queue_free()
 
