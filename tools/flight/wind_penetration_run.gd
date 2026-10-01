@@ -23,7 +23,8 @@ extends Node
 ##       --wings=slavutich_ut,training,laminar,combat
 ## Ключи: --csv=файл (по умолчанию tools/research/wing_physics_check/out/penetration.csv; готовые
 ## ключи пропускаются), --wings=a,b, --sites=loc/start,…, --winds=3,6, --pitches=0,-0.5,-1,
-## --agls=30,100,200, --series=penetration,ridge, --fields-dir=build/wpc3/fields, --dt=0.008333.
+## --agls=30,100,200, --series=penetration,ridge, --fields-dir=build/wpc3/fields, --dt=0.008333,
+## --stats=файл (СКО путевой, воздушной, вертикальной скорости и w воздуха за окно — не К6).
 
 const SITES := [
 	"altai/sinyukha_west",
@@ -51,6 +52,7 @@ var _fields_dir := "build/wpc3/fields"
 var _out: FileAccess
 var _done := {}
 var _n_new := 0
+var _stats: FileAccess
 
 
 func _ready() -> void:
@@ -73,6 +75,9 @@ func _ready() -> void:
 				wings.append(String(p).get_file())
 		wings.sort()
 		_open_csv(String(args.get("csv", "tools/research/wing_physics_check/out/penetration.csv")))
+		if args.has("stats"):
+			_stats = FileAccess.open(String(args.stats), FileAccess.WRITE)
+			_stats.store_line("key,n_s,gs_sd_ms,airspeed_sd_ms,vz_sd_ms,wind_w_sd_ms")
 		var plan := {
 			pitches = _floats(args, "pitches", "0,-0.5,-1"),
 			agls = _floats(args, "agls", "30,100,200"),
@@ -410,6 +415,15 @@ func _write(r: Dictionary) -> void:
 	_out.flush()
 	_done[r.key] = true
 	_n_new += 1
+	if _stats != null and r.has("sd"):
+		var sd: PackedFloat32Array = r.sd
+		_stats.store_line(
+			(
+				"%s,%.1f,%.3f,%.3f,%.3f,%.3f"
+				% [r.key, minf(r.duration_s, WINDOW_S), sd[0], sd[1], sd[2], sd[3]]
+			)
+		)
+		_stats.flush()
 	print(line)
 
 
@@ -579,6 +593,15 @@ func _fly(
 			m += 1
 	for k in 6:
 		acc[k] /= maxf(m, 1)
+	# разброс за окно (болтанка): СКО путевой, воздушной, вертикальной скорости и w воздуха
+	var sd := PackedFloat32Array([0, 0, 0, 0])
+	for s in samples:
+		if s[0] >= t - WINDOW_S:
+			for j in 4:
+				var k: int = [0, 1, 2, 5][j]
+				sd[j] += (s[k + 1] - acc[k]) ** 2
+	for j in 4:
+		sd[j] = sqrt(sd[j] / maxf(m - 1, 1))
 	if t < WINDOW_S:
 		note += "; окно %.0f с" % t
 	return {
@@ -591,4 +614,5 @@ func _fly(
 		agl_end_m = fm.telemetry.altitude_agl,
 		climb_m = fm.position.y - y0,
 		note = note.trim_prefix("; "),
+		sd = sd,
 	}

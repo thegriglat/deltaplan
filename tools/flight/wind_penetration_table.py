@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Сводка пачки WPC-3 (контракт К6): tools/research/wing_physics_check/out/penetration.csv.
 
-python3 tools/flight/wind_penetration_table.py [--merge части.csv ...] [--csv penetration.csv]
-  --merge — сначала собрать части (build/wpc3/parts/*.csv) в penetration.csv (ключ — key).
+python3 tools/flight/wind_penetration_table.py [--merge части.csv ...] [--spread ск.csv ...]
+    [--csv penetration.csv]
+  --merge — сначала собрать части (build/wpc3/parts/*.csv) в penetration.csv (ключ — key);
+  --spread — собрать СКО за окно (wind_penetration_run --stats, не К6) в penetration_spread.csv.
 Пишет рядом с csv penetration_summary.md (таблицы) и penetration_by_wing.csv (крыло × ветер × трапеция
 × старт → путевая против ветра на 30/100/200 м; − — сносит назад).
 """
@@ -24,19 +26,21 @@ def args():
     a = sys.argv[1:]
     csv_path = OUT / "penetration.csv"
     merge = []
+    spread = []
     i = 0
     while i < len(a):
         if a[i] == "--csv":
             csv_path = Path(a[i + 1])
             i += 2
-        elif a[i] == "--merge":
+        elif a[i] in ("--merge", "--spread"):
+            dst = merge if a[i] == "--merge" else spread
             i += 1
             while i < len(a) and not a[i].startswith("--"):
-                merge.append(Path(a[i]))
+                dst.append(Path(a[i]))
                 i += 1
         else:
             sys.exit("неизвестный ключ " + a[i])
-    return csv_path, merge
+    return csv_path, merge, spread
 
 
 def read(path):
@@ -84,10 +88,21 @@ def num(r, k):
 
 
 def main():
-    csv_path, parts = args()
+    csv_path, parts, spread = args()
     if parts:
         do_merge(csv_path, parts)
     rows = read(csv_path)
+    sp_path = csv_path.parent / "penetration_spread.csv"
+    if spread:
+        sp = {}
+        for p in spread:
+            with open(p, newline="") as fi:
+                for r in csv.DictReader(fi):
+                    sp[r["key"]] = r
+        with open(sp_path, "w", newline="") as fo:
+            w = csv.DictWriter(fo, list(next(iter(sp.values())).keys()), lineterminator="\n")
+            w.writeheader()
+            w.writerows(sorted(sp.values(), key=lambda r: r["key"]))
     grp = groups()
     md = [f"# Пачка WPC-3: путевая против ветра и динамик\n",
           f"Данные: `{csv_path.resolve().relative_to(ROOT)}` ({len(rows)} строк, контракт К6). "
@@ -177,6 +192,8 @@ def main():
         md.append(f"| {k[0]} | {k[1]} | {k[2]:g} | {k[3]} | {len(v)} | {st.mean(vs):+.2f} "
                   f"({min(vs):+.2f}…{max(vs):+.2f}) | {st.mean(cl):+.0f} ({min(cl):+.0f}…"
                   f"{max(cl):+.0f}) | {land} |")
+    if sp_path.exists():
+        md += spread_section(sp_path, {r["key"]: r for r in rows})
     (csv_path.parent / "penetration_summary.md").write_text("\n".join(md) + "\n")
 
     # 4. крыло × ветер × трапеция × старт → путевая на высотах (csv)
@@ -192,6 +209,34 @@ def main():
         for k in sorted(by):
             w.writerow(list(k) + [by[k].get(a, "") for a in agls])
     print("\n".join(md))
+
+
+def spread_section(sp_path, k6):
+    """СКО за окно (болтанка) по режиму × серии × ветру × трапеции: среднее по крыльям, стартам,
+    высотам; рядом — средняя |путевая|, чтобы видеть долю шума в среднем."""
+    md = ["\n## Разброс за окно (СКО, болтанка): 4 крыла (slavutich_ut, training, laminar, "
+          "combat)\n",
+          "СКО отсчётов 10 Гц за окно усреднения (до 30 с); турбулентность включена в обоих "
+          "режимах. «σ среднего» ≈ СКО·√(τ/T) — оценка ошибки среднего при времени корреляции "
+          "τ ≈ 3 с и окне T = 30 с (≈ 0,32·СКО).\n",
+          "| режим | серия | ветер, м/с | трапеция | строк | путевая, м/с (ср.) | СКО путевой | "
+          "СКО воздушной | СКО vz | СКО w воздуха |",
+          "|" + "---|" * 10]
+    agg = defaultdict(list)
+    with open(sp_path, newline="") as fi:
+        for r in csv.DictReader(fi):
+            b = k6.get(r["key"])
+            if b is None:
+                continue
+            agg[(b["mode"], b["series"], float(b["wind_set_ms"]), float(b["pitch"]))].append(
+                (num(b, "gs_into_wind_ms"), float(r["gs_sd_ms"]), float(r["airspeed_sd_ms"]),
+                 float(r["vz_sd_ms"]), float(r["wind_w_sd_ms"])))
+    for k in sorted(agg, key=lambda k: (k[0] != "analytic", k[1], k[2], -k[3])):
+        v = agg[k]
+        md.append(f"| {k[0]} | {k[1]} | {k[2]:g} | {k[3]:g} | {len(v)} | "
+                  f"{mean([x[0] for x in v]):+.1f} | "
+                  + " | ".join(f"{mean([x[j] for x in v]):.2f}" for j in range(1, 5)) + " |")
+    return md
 
 
 if __name__ == "__main__":
