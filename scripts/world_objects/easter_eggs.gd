@@ -273,6 +273,8 @@ func _fill_ctx(g: Game) -> void:
 	c.sky = g.settings.sky
 	c.wind_ms = g.settings.wind_speed_kmh / 3.6
 	c.wind_from_deg = g.settings.wind_from_deg
+	if g.settings.wind_into_launch:  # «ветер в старт»: дует в курс выбранного старта (К2)
+		c.wind_from_deg = float(g.get_start().heading_deg)
 	c.temp_c = g.settings.temperature_c
 	if _place == null:
 		var objs: Node = g.world_link.objects if g.world_link != null else null
