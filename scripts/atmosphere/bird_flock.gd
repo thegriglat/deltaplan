@@ -92,25 +92,42 @@ func _choose_flocks() -> void:
 	var have: Dictionary = {}
 	for entry in _flocks:
 		have[int(entry[2])] = true
-	var cands: Array = []
-	var r2 := float(cfg.radius_m) * float(cfg.radius_m)
-	for id in atmo.field.thermals:
-		if have.has(id):
-			continue
-		var th: AtmoThermal = atmo.field.thermals[id]
-		if th.strength < float(cfg.min_strength_ms) or th.envelope(atmo.time_s) < 0.5:
-			continue
-		var a := th.axis_at(clampf(eye.y, th.src.y, th.top))
-		var d := Vector2(a.x - eye.x, a.y - eye.z).length_squared()
-		if d < r2:
-			cands.append([d, id, th])
-	cands.sort_custom(func(x, y): return x[0] < y[0])
+	var cands := near_thermals(
+		atmo.field.thermals, atmo.time_s, eye, float(cfg.radius_m), float(cfg.min_strength_ms), have
+	)
 	var slots := int(cfg.max_flocks) - _flocks.size()
 	for i in mini(cands.size(), maxi(slots, 0)):
 		_spawn_flock(cands[i][2], cands[i][1])
 	for i in range(_flocks.size() - 1, -1, -1):
 		if (_flocks[i][1] as Array).is_empty():
 			_flocks.remove_at(i)
+
+
+## Достаточно сильные (≥ min_strength_ms) и зрелые (огибающая ≥ 0,5) термики, чья ось на высоте
+## eye ближе radius_m по горизонтали, кроме id из skip: [квадрат расстояния, id, термик] от
+## ближнего к дальнему. Только чтение (птицы и орёл-пасхалка E11).
+static func near_thermals(
+	thermals: Dictionary,
+	time_s: float,
+	eye: Vector3,
+	radius_m: float,
+	min_strength_ms: float,
+	skip: Dictionary = {}
+) -> Array:
+	var cands: Array = []
+	var r2 := radius_m * radius_m
+	for id in thermals:
+		if skip.has(id):
+			continue
+		var th: AtmoThermal = thermals[id]
+		if th.strength < min_strength_ms or th.envelope(time_s) < 0.5:
+			continue
+		var a := th.axis_at(clampf(eye.y, th.src.y, th.top))
+		var d := Vector2(a.x - eye.x, a.y - eye.z).length_squared()
+		if d < r2:
+			cands.append([d, id, th])
+	cands.sort_custom(func(x, y): return x[0] < y[0])
+	return cands
 
 
 ## Новая стая птиц над термиком th (детерминированно от его noise_seed).
