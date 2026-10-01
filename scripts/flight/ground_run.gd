@@ -27,6 +27,7 @@ var _run_time: float = 0.0
 var _ever_ran: bool = false
 var _fail_timers: Dictionary = {}
 var _yaw_rate: float = 0.0  ## рад/с, + вправо (по часовой)
+var _bank_cmd: float = 0.0  ## заданный крен руки пилота на этом шаге, рад (из input.roll в _turn)
 var _fresh: bool = true  ## первый шаг после reset: тангаж сразу установившийся (склон известен)
 
 
@@ -99,18 +100,27 @@ func step(
 	return Result.NONE
 
 
-## Поворот курса (A/D = input.roll; крыло не кренит). Стоя и шагом — на месте с
-## pilot.walk.turn_rate_dps; на бегу — по дуге: боковое ускорение v·ω не больше
-## pilot.run.turn_accel_max_ms2, т. е. радиус R = v/ω ≥ v²/a_max; на малой скорости
-## угловая скорость не больше, чем при повороте на месте.
+## Поворот курса (К3 v3). Стоя и шагом — на месте от input.turn с pilot.walk.turn_rate_dps
+## (крыло не кренит). На бегу — дугой от крена крыла: центростремительную силу дают боковая
+## составляющая подъёмной силы крыла L·sinφ (L ≈ (1 − N/W)·W, φ — крен крыла) и трение ног:
+## пилот наклоняется в поворот вместе с крылом на плечах — на заданный рукой крен φ_зад, и в
+## равновесии на опоре трение даёт N·tgφ_зад. a = g·((1 − N/W)·sinφ + N/W·tgφ_зад),
+## |a| ≤ pilot.run.turn_accel_max_ms2, ω = a/v. Без ввода (φ_зад = 0) дугу даёт только крен от
+## ветра и только по мере разгрузки ног; на отрыве (N → 0) — g·sinφ/v, как вираж в воздухе.
+## На малой скорости угловая скорость не больше, чем при повороте на месте. input.turn на
+## бегу не используется.
 func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> void:
+	_bank_cmd = bank_command(m, input)  # для _ground_bank этого же шага
 	var w_walk := Units.deg(float(m.pilot.walk.turn_rate_dps))
-	var w_max := w_walk
-	if running:
+	if not running:
+		_yaw_rate = clampf(input.turn, -1.0, 1.0) * w_walk
+	else:
+		var f := clampf(feet_load, 0.0, 1.0)
+		var a := Units.G * ((1.0 - f) * sin(m.bank) + f * tan(_bank_cmd))
+		var a_max := float(m.pilot.run.turn_accel_max_ms2)
+		a = clampf(a, -a_max, a_max)
 		var v := absf(_speed)
-		if v > 1.0e-3:
-			w_max = minf(w_walk, float(m.pilot.run.turn_accel_max_ms2) / v)
-	_yaw_rate = clampf(input.roll, -1.0, 1.0) * w_max
+		_yaw_rate = clampf(a / v, -w_walk, w_walk) if v > 1.0e-3 else 0.0
 	m.heading += _yaw_rate * dt
 
 
@@ -161,9 +171,10 @@ static func roll_inertia(m: FlightModel) -> float:
 	return i_struct + PI / 48.0 * m.rho * c * c * b * b * b
 
 
-## Момент «руки пилота», Н·м: регулятор «пропорционально крену + демпфирование» к горизонту
-## (жёсткость I/τ², демпфирование 2I/τ — критическое, τ = ground_bank.pilot_response_s),
-## ограниченный pilot_moment_max_nm · доля веса на ногах.
+## Момент «руки пилота», Н·м: регулятор «пропорционально крену + демпфирование» к заданному
+## крену (жёсткость I/τ², демпфирование 2I/τ — критическое, τ = ground_bank.pilot_response_s),
+## ограниченный pilot_moment_max_nm · доля веса на ногах. bank — отклонение крена от заданного
+## φ − φ_зад (К3 v3: φ_зад = input.roll · ground_bank.command_max_deg; без ввода — горизонт).
 static func pilot_moment(
 	m: FlightModel, bank: float, rate: float, load_frac: float, inertia: float
 ) -> float:
@@ -174,8 +185,15 @@ static func pilot_moment(
 	return clampf(want, -lim, lim)
 
 
+## Заданный крен руки пилота, рад: input.roll · ground_bank.command_max_deg.
+static func bank_command(m: FlightModel, input: ControlInput) -> float:
+	var gb: Dictionary = m.flight.ground_bank
+	return clampf(input.roll, -1.0, 1.0) * Units.deg(float(gb.command_max_deg))
+
+
 ## Крен крыла на плечах: I·φ̈ = M_скольж + M_несимм + M_веса + M_инерц + M_пилота − D·φ̇.
-## Крен — относительно горизонта (склон не влияет). Подробно — docs/flight.md.
+## Крен — относительно горизонта (склон не влияет); рука пилота ведёт его к заданному
+## bank_command (input.roll). Подробно — docs/flight.md.
 func _ground_bank(m: FlightModel, dt: float, v_air: Vector3, air_fn: Callable) -> void:
 	var gb: Dictionary = m.flight.ground_bank
 	var inertia := roll_inertia(m)
@@ -212,7 +230,7 @@ func _ground_bank(m: FlightModel, dt: float, v_air: Vector3, air_fn: Callable) -
 	var m_grav := m_w * Units.G * h * sin(m.bank)
 	var m_turn := -m_w * _speed * _yaw_rate * h * cos(m.bank)
 	hold_limit_nm = float(gb.pilot_moment_max_nm) * feet_load
-	var m_pilot := pilot_moment(m, m.bank, m.roll_rate, feet_load, inertia)
+	var m_pilot := pilot_moment(m, m.bank - _bank_cmd, m.roll_rate, feet_load, inertia)
 	var total := wind_moment_nm + m_grav + m_turn + m_pilot - damp * m.roll_rate
 	m.roll_rate += total / inertia * dt
 	m.bank += m.roll_rate * dt
