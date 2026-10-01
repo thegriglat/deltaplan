@@ -5,6 +5,10 @@
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты, числа, заметки |
 |---|---|---|---|---|
 | Контракты C1–C3 v1 | готово | координатор | — | `docs/plan/site_update.md`, тест `tools/site/check_contracts.py` (до работ: C1, C3 красные — файлов ещё нет) |
+| SU-1 скриншоты | в работе (01.10) | dp-mechanic (Haiku) | `~/deltaplan-site-su1`, `site/su1` | |
+| SU-2 модель воздуха | в работе (01.10) | dp-writer (Sonnet) | `~/deltaplan-site-su2`, `site/su2` | |
+| SU-3 рендеры крыльев | в работе (01.10) | dp-mechanic (Haiku) | `~/deltaplan-site-su3`, `site/su3` | |
+| SU-4 генератор страниц | в работе (01.10) | dp-engineer (Opus) | `~/deltaplan-site-su4`, `site/su4` | |
 
 ## Развилки (развилка → решение → почему)
 
