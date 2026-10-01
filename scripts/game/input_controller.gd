@@ -1,26 +1,20 @@
 class_name InputController
 extends Node
-## Собирает ControlInput из клавиатуры и геймпада (FR-30…FR-33).
-## Крен — два режима (controls.roll_control_mode, пункт в настройках):
-## "rate" — «как раньше» (по умолчанию): A/D задают скорость крена, отпустил — крен держится;
-## "weight_shift" — смещение веса: A/D плавно смещают вес, отпустил — пружиной в центр,
+## Собирает ControlInput из клавиатуры, мыши и геймпада (FR-30…FR-33).
+## Трапеция (крыло) — стрелки (действия pitch_*/roll_*, У1 v3), мышь, стик; W/S/A/D на трапецию
+## не назначены. Крен — два режима (controls.roll_control_mode, пункт в настройках):
+## "rate" — «как раньше»: ←/→ задают скорость крена, отпустил — крен держится;
+## "weight_shift" — смещение веса: ←/→ плавно смещают вес, отпустил — пружиной в центр,
 ## крыло само выравнивается. X — «в центр» в обоих режимах: трапеция в нейтраль и крыло
 ## плавно в горизонт. Автопилот (Game.autopilot) всегда управляет в режиме "rate".
-## Мышь по умолчанию ("bar") управляет трапецией и в полёте, и на земле, а пока зажата правая
-## кнопка — крутит голову (трапеция держит последнее положение); в режиме "look" мышь только
-## крутит голову (это делает CameraRig). Клавиши регистрируются в InputMap из configs/controls.json.
-## На земле (С2 v2): стоя и шагом W/S — шаг, A/D — поворот на месте (ControlInput.turn), нос и крен
-## крыла — те же действия «трапеции», что в полёте (стрелки), мышь, стик; клавиши, занятые шагом
-## и поворотом, трапецию стоя не двигают. С зажатым Shift (разбег) все органы — нос и крен, как
-## в полёте. Трапеция на отрыве непрерывна: одни и те же положения клавиш, мыши и стика.
-## Обзор с клавиш (У2 v1): мышь — трапеция (bar) и захвачена, в полёте или на разбеге —
-## keys_look() = true: клавиши look_* (W/S/A/D) крутят голову в кабине (CameraRig), а в трапецию
-## не вносят ничего; трапеция с клавиш — на других клавишах тех же действий (стрелки).
-
-## Действия шага и поворота на земле: их клавиши стоя не двигают трапецию.
-const GROUND_MOVE_ACTIONS: Array[String] = ["walk_forward", "walk_back", "turn_left", "turn_right"]
-## Действия обзора головой (У2): их клавиши при keys_look() не двигают трапецию.
-const LOOK_ACTIONS: Array[String] = ["look_up", "look_down", "look_left", "look_right"]
+## Мышь — всегда трапеция (и в полёте, и на земле), пока она захвачена (M); не захвачена —
+## трапецию не двигает, трапеция держит последнее положение мыши. Пока зажата правая кнопка —
+## мышь крутит голову (это делает CameraRig), трапеция держит положение.
+## Клавиши регистрируются в InputMap из configs/controls.json.
+## На земле (С2 v3, У2 v2): стоя и шагом W/S — шаг, A/D — поворот на месте (ControlInput.turn);
+## с зажатым Shift (разбег) W/S/A/D ничего не делают. Нос и крен крыла на земле — стрелки, мышь,
+## стик, как в полёте; трапеция на отрыве непрерывна.
+## В полёте (У2 v2) keys_look() = true: клавиши look_* (W/S/A/D) крутят голову в кабине (CameraRig).
 
 var control := ControlInput.new()
 var mouse_captured := false
@@ -41,8 +35,8 @@ var run_blocked := false
 
 var _cfg: Dictionary
 var _key_pitch := 0.0  # трапеция по тангажу от клавиш, доля хода (мышь и стик — отдельно)
-var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
-var _bar_look_held := false  # режим bar: правая кнопка зажата — мышь крутит голову, не трапецию
+var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
+var _bar_look_held := false  # правая кнопка зажата — мышь крутит голову, не трапецию
 var _roll_pos := 0.0  # крен от клавиш: смещение веса (до плавной нейтрали) или ручка крена (rate)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
 var _prev_bank := 0.0  # «в центр» в режиме rate: крен прошлого шага, °
@@ -59,18 +53,10 @@ func reload_config() -> void:
 	roll_mode = String(_cfg.get("roll_control_mode", "rate"))
 
 
-func mouse_mode() -> String:
-	return String(_cfg.mouse.mode)
-
-
-## Клавиши look_* сейчас крутят голову, а не трапецию (У2 v1): мышь — трапеция (bar) и
-## захвачена, ввод включён, руки на трапеции, и в полёте или на разбеге (зажат run, не заблокирован).
+## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
+## (не свободная камера), в полёте. От мыши не зависит; на земле — шаг и поворот.
 func keys_look() -> bool:
-	if not enabled or hands_off or not mouse_captured or mouse_mode() != "bar":
-		return false
-	if not on_ground:
-		return true
-	return InputMap.has_action("run") and Input.is_action_pressed("run") and not run_blocked
+	return enabled and not hands_off and not on_ground
 
 
 ## Крен в полёте — смещение веса (иначе — скорость крена, как раньше). Автопилот — всегда rate.
@@ -102,7 +88,7 @@ static func register_actions(cfg: Dictionary) -> void:
 			InputMap.action_add_event(action, jb)
 
 
-## Захват курсора. Смещение мыши (bar) при этом не меняется: трапеция держит положение.
+## Захват курсора. Смещение мыши при этом не меняется: трапеция держит положение.
 func set_mouse_captured(on: bool) -> void:
 	mouse_captured = on
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if on else Input.MOUSE_MODE_VISIBLE
@@ -114,19 +100,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("mouse_capture"):
 		set_mouse_captured(not mouse_captured)
 		return
-	# Режим "bar": правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
+	# Правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
 	# держит последнее положение, пока кнопка не отпущена.
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_bar_look_held = event.pressed
 		return
-	# Мышь — трапеция и на земле, и в полёте (С2 v2): смещение копится всегда, поэтому на
-	# отрыве трапеция непрерывна.
-	if (
-		mouse_captured
-		and mouse_mode() == "bar"
-		and event is InputEventMouseMotion
-		and not _bar_look_held
-	):
+	# Мышь — трапеция и на земле, и в полёте (У1 v3): смещение копится всегда (при захвате),
+	# поэтому на отрыве трапеция непрерывна. Свободная камера (hands_off) — мышь крутит её, трапеция
+	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
+	if mouse_captured and event is InputEventMouseMotion and not _bar_look_held and not hands_off:
 		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
 		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
 		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя
@@ -167,9 +149,9 @@ func update(dt: float) -> ControlInput:
 	return control
 
 
-## На земле (С2 v2). Стоя и шагом: W/S — шаг (walk), A/D — поворот на месте (turn); трапеция —
-## действия pitch_*/roll_* без клавиш шага и поворота (стрелки), мышь, стик. Разбег (зажат Shift,
-## W не нужен): все клавиши действий трапеции, мышь, стик — нос и крен крыла, как в полёте.
+## На земле (С2 v3). Стоя и шагом: W/S — шаг (walk), A/D — поворот на месте (turn). Разбег (зажат
+## Shift, W не нужен): walk = turn = 0. Трапеция и стоя, и на бегу — действия pitch_*/roll_*
+## (стрелки), мышь, стик — нос и крен крыла, как в полёте.
 ## Трапеция на земле: pitch — нос крыла (0 — угол разбега крыла launch.alpha_neutral_deg),
 ## roll — заданный крен руки пилота; клавиши ведут её так же, как в полёте (тот же ход и возврат),
 ## поэтому на отрыве скачка нет.
@@ -182,32 +164,27 @@ func _update_ground(dt: float) -> void:
 	else:
 		control.walk = _strength("walk_forward") - _strength("walk_back")
 		control.turn = _strength("turn_right") - _strength("turn_left")
-	var only_bar := not run
-	_update_bar(dt, _bar_pitch_dir(only_bar), _bar_roll_dir(only_bar), false)
+	_update_bar(dt, _bar_pitch_dir(), _bar_roll_dir(), false)
 
 
 func _update_air(dt: float) -> void:
 	control.run = false
 	control.walk = 0.0
 	control.turn = 0.0
-	_update_bar(dt, _bar_pitch_dir(false), _bar_roll_dir(false), true)
+	_update_bar(dt, _bar_pitch_dir(), _bar_roll_dir(), true)
 
 
 ## Направление трапеции по тангажу с клавиш: +1 — от себя (нос вверх), −1 — на себя.
-## only_bar — стоя на земле: клавиши шага и поворота не считаются.
-func _bar_pitch_dir(only_bar: bool) -> float:
+func _bar_pitch_dir() -> float:
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
-	return (
-		-(_bar_strength("pitch_pull_in", only_bar) - _bar_strength("pitch_push_out", only_bar))
-		* inv
-	)
+	return (_strength("pitch_push_out") - _strength("pitch_pull_in")) * inv
 
 
-func _bar_roll_dir(only_bar: bool) -> float:
-	return _bar_strength("roll_right", only_bar) - _bar_strength("roll_left", only_bar)
+func _bar_roll_dir() -> float:
+	return _strength("roll_right") - _strength("roll_left")
 
 
-## Трапеция (нос и крен): клавиши + мышь (bar), сумма до упора. Одна и та же на земле и в полёте;
+## Трапеция (нос и крен): клавиши + мышь, сумма до упора. Одна и та же на земле и в полёте;
 ## «в центр» (X) — только в полёте (allow_center).
 func _update_bar(dt: float, pitch_dir: float, roll_dir: float, allow_center: bool) -> void:
 	var kb: Dictionary = _cfg.keyboard
@@ -218,16 +195,14 @@ func _update_bar(dt: float, pitch_dir: float, roll_dir: float, allow_center: boo
 	else:
 		_centering = false
 	var c_tau := maxf(float(kb.center_time_s), 0.01)
-	var bar := mouse_mode() == "bar"
-	if bar:
-		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
-		if _centering:
-			_mouse_offset *= exp(-dt / c_tau)
-		elif ret > 0.0:
-			_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
+	var ret := float(_cfg.mouse.bar_return_to_center_per_s)
+	if _centering:
+		_mouse_offset *= exp(-dt / c_tau)
+	elif ret > 0.0:
+		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
-	var m_roll := _mouse_offset.x if bar and absf(_mouse_offset.x) > dz else 0.0
-	var m_pitch := -_mouse_offset.y * inv if bar and absf(_mouse_offset.y) > dz else 0.0
+	var m_roll := _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
+	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
 	if _centering:
 		_key_pitch *= exp(-dt / c_tau)
 		_roll_pos *= exp(-dt / c_tau)
@@ -321,9 +296,9 @@ func _apply_gamepad() -> void:
 	var gx := _stick(Input.get_joy_axis(dev, int(gp.roll_axis)), gp)
 	var gy := _stick(Input.get_joy_axis(dev, int(gp.pitch_axis)), gp)
 	if gx != 0.0 or gy != 0.0:
-		# стик — трапеция и в полёте, и на земле (С2 v2): на земле нос и заданный крен крыла
+		# стик — трапеция и в полёте, и на земле (С2 v3): на земле нос и заданный крен крыла
 		control.roll = gx  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
-		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v2)
+		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v3)
 		control.pitch = -gy * inv
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
@@ -342,41 +317,6 @@ func _telemetry() -> Telemetry:
 
 func _strength(action: String) -> float:
 	return Input.get_action_strength(action) if InputMap.has_action(action) else 0.0
-
-
-## Сила действия трапеции. Если действие зажато только клавишами, которые сейчас заняты
-## другим, — 0: стоя на земле (only_bar) — шагом и поворотом (GROUND_MOVE_ACTIONS), при
-## keys_look() — обзором (LOOK_ACTIONS). Нажатие без физической клавиши (Input.action_press —
-## автопилот, тесты) считается.
-func _bar_strength(action: String, only_bar: bool) -> float:
-	var s := _strength(action)
-	var look := keys_look()
-	if s <= 0.0 or not (only_bar or look):
-		return s
-	var any_key := false
-	for ev in InputMap.action_get_events(action):
-		var k := ev as InputEventKey
-		if k == null or not Input.is_physical_key_pressed(k.physical_keycode):
-			continue
-		any_key = true
-		var busy := (only_bar and _key_in(k.physical_keycode, GROUND_MOVE_ACTIONS)) or (
-			look and _key_in(k.physical_keycode, LOOK_ACTIONS)
-		)
-		if not busy:
-			return s
-	return 0.0 if any_key else s
-
-
-## Назначена ли физическая клавиша на одно из действий.
-static func _key_in(code: Key, actions: Array[String]) -> bool:
-	for a in actions:
-		if not InputMap.has_action(a):
-			continue
-		for ev in InputMap.action_get_events(a):
-			var k := ev as InputEventKey
-			if k != null and k.physical_keycode == code:
-				return true
-	return false
 
 
 static func _ramp(v: float, dir: float, rate: float, ret: float, dt: float) -> float:

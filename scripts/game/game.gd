@@ -139,7 +139,7 @@ func _ready() -> void:
 	camera.set_mode(camera.mode)  # near по режиму
 	camera.target = glider
 	camera.ground_fn = terrain.height_at
-	camera.keys_look_fn = input_controller.keys_look  # У2: W/S/A/D — обзор при мыши-трапеции
+	camera.keys_look_fn = input_controller.keys_look  # У2 v2: W/S/A/D в полёте — обзор головой
 	camera.mode_changed.connect(func(_m: String) -> void: _update_overlay())
 	overlay.use_instrument(instrument)
 	glider.telemetry_updated.connect(_on_telemetry)
@@ -180,7 +180,8 @@ func tick(dt: float) -> void:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
-	# Свободная камера занимает WASD — крыло без рук (автопилот тестов жмёт те же клавиши).
+	# Свободная камера занимает WASD — крыло без рук; при автопилоте крыло ведёт он, а камера
+	# клавиш не слушает (он жмёт run = Shift).
 	var free_cam := camera.mode == "free" and autopilot == null
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null

@@ -6,12 +6,11 @@ extends Camera3D
 ## Shift — быстрее, мышь (захват или правая кнопка) — поворот, колесо — скорость, V — навести
 ## на планер. Крыло при этом летит без рук (Game ставит InputController.hands_off).
 ## Кабинная камера стоит в точке глаз пилота (маркер PilotHead визуала, set_head()).
-## Режим мыши "bar" (controls.json → mouse.mode): мышь обычно управляет трапецией
-## (InputController), но пока зажата правая кнопка — крутит голову, как в режиме "look"
-## (см. _mouse_looks()); трапеция в это время держит последнее положение.
-## Обзор с клавиш (У2 v1): пока keys_look_fn() = true (мышь — трапеция и захвачена, в полёте или
-## на разбеге), в кабине look_* (W/S/A/D) поворачивают голову со скоростью cockpit.head.key_rate_deg_s
-## в тех же пределах, что мышь; отпустил — голова остаётся, V — вперёд.
+## Мышь в кабине — всегда трапеция (InputController, У1 v3), но пока зажата правая кнопка —
+## крутит голову (см. _mouse_looks()); трапеция в это время держит последнее положение.
+## Обзор с клавиш (У2 v2): пока keys_look_fn() = true (в полёте, руки на трапеции), в кабине
+## look_* (W/S/A/D) поворачивают голову со скоростью cockpit.head.key_rate_deg_s в тех же пределах,
+## что мышь; отпустил — голова остаётся, V — вперёд.
 ## Параметры — configs/camera.json. Дальняя плоскость — от мира (SkyEnvironment.setup_camera).
 
 signal mode_changed(mode: String)
@@ -33,7 +32,7 @@ var glance_target: Node3D
 ## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
 ## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
 var body_shift_fn: Callable = Callable()
-## Свободная камера слушает клавиши движения (false — автопилот жмёт те же W/A/S/D).
+## Свободная камера слушает клавиши движения (false — автопилот жмёт run — Shift, «быстрее»).
 var free_keys_enabled := true
 ## Камера сзади — вплотную, без сглаживания (буксир «догнать», NET-42: на 1000 км/ч сглаженная
 ## камера отстаёт на сотню метров).
@@ -48,7 +47,7 @@ var _head_basis := Basis.IDENTITY
 var _free_rot := Vector2.ZERO  # свободная камера: рыскание (+ влево), тангаж (+ вверх), радианы
 var _free_speed := 10.0
 var _orbiting := false  # правая кнопка зажата — поворот свободной камеры без захвата мыши
-var _bar_look_held := false  # режим mouse.mode "bar", кабина: зажата правая — осмотреться
+var _bar_look_held := false  # кабина: зажата правая — осмотреться (мышь крутит голову)
 var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
 var _recentering := false
 var _snap := true
@@ -228,7 +227,7 @@ func _update_free(t: Transform3D, delta: float) -> void:
 	var basis_now := Basis(Vector3.UP, _free_rot.x) * Basis(Vector3.RIGHT, _free_rot.y)
 	if look_enabled and free_keys_enabled:
 		var move := Vector3(
-			_key("roll_right") - _key("roll_left"),
+			_key("turn_right") - _key("turn_left"),  # A/D (трапеция — стрелки, У1 v3)
 			_key("free_up") - _key("free_down"),
 			_key("walk_back") - _key("walk_forward")
 		)
@@ -351,11 +350,8 @@ func _update_chase(t: Transform3D, delta: float) -> void:
 func _mouse_looks() -> bool:
 	if mode != "cockpit":
 		return true
-	var m := String(Config.value("controls", "mouse.mode"))
-	if m == "look":
-		return true
-	# Режим "bar": пока зажата правая кнопка — осмотреться, мышь крутит голову вместо трапеции.
-	return m == "bar" and _bar_look_held
+	# Кабина: мышь — трапеция; пока зажата правая кнопка — осмотреться, мышь крутит голову.
+	return _bar_look_held
 
 
 func _ground_at(p: Vector3) -> float:

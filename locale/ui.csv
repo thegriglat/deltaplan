@@ -1,6 +1,6 @@
 keys,ru,en
-settings_invert_pitch_hint,"Как ручка самолёта: W — на себя, S — от себя","Like an aircraft stick: W — pull in, S — push out"
-controls_short_help,"W/S — трапеция от себя/на себя, A/D — крен, Shift — разбег, C — камера, Tab — прибор, Esc — пауза","W/S — bar out/in, A/D — weight shift, Shift — run, C — camera, Tab — instrument, Esc — pause"
+settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь от себя — на себя, ↓ — от себя","Like an aircraft stick: ↑ and mouse forward — pull in, ↓ — push out"
+controls_short_help,"Мышь, ↑/↓, ←/→ — трапеция; на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse, ↑/↓, ←/→ — control bar; on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_wingtip,Консоль коснулась земли — крыло опрокинуто,A wingtip hit the ground — the wing tipped over
@@ -40,7 +40,6 @@ menu_settings,Настройки,Settings
 settings_saved_hint,Настройки сохраняются в профиле пользователя.,Settings are saved to your user profile.
 status_terrain_failed,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
 menu_about,Об игре,About
-settings_mouse_look,Обзор (поворот головы),Look around (head)
 common_cancel,Отмена,Cancel
 pause_title,Пауза,Paused
 setup_title,Полёт,Flight
@@ -57,7 +56,6 @@ result_touchdown_speed,"Скорость касания: вертикальна�
 common_save,Сохранить,Save
 setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
-settings_mouse_bar,Трапеция,Control bar
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
 settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
@@ -79,21 +77,20 @@ settings_roll_control,Управление креном,Roll control
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
 controls_glance,Держать — посмотреть на прибор на трапеции,Hold — look at the instrument on the control bar
-controls_mouse_look,Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд,Mouse — turn your head; middle button or V — look ahead
-controls_mouse_bar,Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar; middle button or V — look ahead
-controls_mouse_bar_wasd,"Мышь захвачена: в полёте и на разбеге W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз), трапеция — мышью и стрелками; V — снова вперёд. Отпустил мышь (M) — W/A/S/D снова трапеция","Mouse captured: in flight and while running W/A/S/D turn your head in the cockpit (A/D — left/right, W/S — up/down) and the bar is moved with the mouse and arrow keys; V — look ahead again. Release the mouse (M) — W/A/S/D move the bar again"
-controls_mouse_bar_look,В режиме «мышь — трапеция»: держать правую кнопку — осмотреться,In “mouse — control bar” mode: hold the right button to look around
+controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
+controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
+controls_mouse_bar_look,"Держать правую кнопку мыши — осмотреться мышью, трапеция стоит на месте","Hold the right mouse button — look around with the mouse, the bar stays put"
 controls_walk,Шаг вперёд (без Shift),Step forward (without Shift)
 controls_step_back,Шаг назад,Step back
 controls_turn_on_ground,Повернуться на месте налево (D — направо); крыло не кренится,Turn in place to the left (D — right); the wing does not bank
-controls_run,Держать — бежать (разбег); W не нужен,Hold — run (launch run); no W needed
+controls_run,"Держать — бежать (разбег); W не нужен, на бегу W/S/A/D не действуют","Hold — run (launch run); no W needed, W/S/A/D do nothing while running"
 controls_ground_wing,"Стоя и шагом: нос и крен крыла — стрелки, мышь или стик","Standing and walking: wing nose and bank — arrow keys, mouse or stick"
-controls_run_wing,"На бегу: стрелки, мышь (и W/S, A/D, если мышь не захвачена или в режиме «Обзор») — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: arrows, mouse (and W/S, A/D if the mouse is released or in “Look around” mode) — wing nose and bank, as in flight; a banked wing turns the run into an arc"
+controls_run_wing,"На бегу: стрелки, мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: arrows, mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
 controls_pause,Пауза и меню,Pause and menu
-controls_mouse_capture,Отпустить или снова захватить мышь,Release or recapture the mouse
+controls_mouse_capture,Отпустить или снова захватить мышь; отпущенная мышь крыло не двигает,Release or recapture the mouse; a released mouse does not move the wing
 about_dedication,В благодарность родителям.,With gratitude to my parents.
 setup_start_time,Время старта,Start time
 setup_date,Дата,Date

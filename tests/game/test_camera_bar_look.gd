@@ -1,7 +1,6 @@
 extends Node
-## Режим мыши "bar" (configs/controls.json → mouse.mode): мышь обычно управляет трапецией
-## (InputController._mouse_offset), но пока зажата правая кнопка — крутит голову в кабине
-## (CameraRig._head), как в режиме "look" (FR-31). Отпустил — трапеция снова от мыши, голова
+## Мышь — всегда трапеция (У1 v3, InputController._mouse_offset), но пока зажата правая кнопка —
+## крутит голову в кабине (CameraRig._head, FR-31). Отпустил — трапеция снова от мыши, голова
 ## остаётся там, куда повернул. Камеры "сзади"/"свободная" здесь не участвуют — правая кнопка
 ## там уже орбита (см. tests/game/test_gameplay.gd).
 
@@ -15,7 +14,7 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Заводит игру в bar-режиме, мышь захвачена, камера — кабина.
+## Заводит игру, мышь захвачена, камера — кабина.
 func _open_bar() -> Node:
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart"])))
@@ -32,21 +31,13 @@ func _open_bar() -> Node:
 	game.process_mode = Node.PROCESS_MODE_DISABLED
 	game.camera.set_mode("cockpit")
 	var ic := game.input_controller
-	# CameraRig и InputController оба читают controls.json → mouse.mode из общего кеша Config —
-	# подменяем его на "bar" (восстанавливаем в _close, кеш общий на весь прогон тестов).
-	var controls_cfg: Dictionary = Config.get_config("controls")
-	main.set_meta("_orig_mouse_mode", String(controls_cfg.mouse.mode))
-	controls_cfg.mouse.mode = "bar"
-	# Трапеция от мыши — только в воздухе (С2 v1; на земле смещение не копится, CF-2). Game
-	# выключен и tick не идёт — фазу задаём сами.
+	# Game выключен и tick не идёт — фазу задаём сами (в воздухе).
 	ic.on_ground = false
 	ic.set_mouse_captured(true)
 	return main
 
 
 func _close(main: Node) -> void:
-	if main.has_meta("_orig_mouse_mode"):
-		Config.get_config("controls").mouse.mode = main.get_meta("_orig_mouse_mode")
 	main.queue_free()
 	for i in 2:
 		await get_tree().process_frame
