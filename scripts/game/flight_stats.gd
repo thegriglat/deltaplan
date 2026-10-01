@@ -10,9 +10,8 @@ const CIRCLING_TURN_RATE_DEG_S := 8.0
 const MIN_THERMAL_S := 3.0
 
 ## «Взведение» полёта (FR-27b): случайный подскок/чирк по склону сразу после отрыва —
-## не конец полёта. Полёт взведён, когда суммарно был в воздухе ≥ ARM_MIN_AIR_S с
-## И (поднялся ≥ ARM_MIN_HEIGHT_AGL_M над землёй ИЛИ отошёл ≥ ARM_MIN_HORIZ_M от отрыва).
-const ARM_MIN_AIR_S := 10.0
+## не конец полёта. Полёт взведён, когда поднялся ≥ ARM_MIN_HEIGHT_AGL_M над землёй ИЛИ отошёл
+## ≥ ARM_MIN_HORIZ_M от отрыва (только геометрия, без порога по времени — К3 v3).
 const ARM_MIN_HEIGHT_AGL_M := 10.0
 const ARM_MIN_HORIZ_M := 50.0
 ## Касание земли засчитывается как конец полёта, только если пилот остался на земле
@@ -145,7 +144,7 @@ func _update_finish(t: Telemetry, dt: float) -> void:
 		_was_on_ground = true
 		if armed:
 			touched = true
-	if not armed and _air_time_total_s >= ARM_MIN_AIR_S:
+	if not armed and not t.on_ground:
 		var far_enough := distance_from_takeoff(t.position) >= ARM_MIN_HORIZ_M
 		if t.altitude_agl >= ARM_MIN_HEIGHT_AGL_M or far_enough:
 			armed = true

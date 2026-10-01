@@ -1,6 +1,6 @@
 class_name LaunchNose
 extends RefCounted
-## Нос крыла на разбеге по ветру (F01, G06) — общая логика автопилота и InputController.
+## Нос крыла бота на разбеге по ветру (F01, G06) — техника BotAgent (игрок ведёт нос сам).
 ## Техника (docs/flight.md → «Старт в сильный ветер»): стоя, пилот чувствует ветер в лицо;
 ## в сильный ветер (≥ strong_wind_ms) разбегается с носом ниже — держит угол атаки киля около
 ## target_alpha_deg (нейтраль носа ~23° — у самого срыва 24°). Крыло «обмякло» (срыв) — нос вниз.
@@ -16,7 +16,7 @@ var alpha_tol_deg: float = 1.0
 var wind_ms: float = 0.0
 
 
-## Параметры из словаря (configs/controls.json → ground.auto_nose); отсутствующие — как есть.
+## Параметры из словаря (configs/bots.json → launch.auto_nose); отсутствующие — как есть.
 func configure(cfg: Dictionary) -> void:
 	strong_wind_ms = float(cfg.get("strong_wind_ms", strong_wind_ms))
 	target_alpha_deg = float(cfg.get("target_alpha_deg", target_alpha_deg))

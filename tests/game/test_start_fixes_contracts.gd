@@ -62,7 +62,11 @@ func test_k3_ground_run_shape() -> void:
 	var m := FlightModel.new()
 	check("bank" in m and "roll_rate" in m and "heading" in m, "К3: bank/roll_rate/heading")
 	var gb: Dictionary = Config.get_config("flight").ground_bank
-	check(gb.has("fail_bank_deg"), "К3: ground_bank.fail_bank_deg")
+	# К3 v3 (control-fix): срыв по крену — контакт консоли с землёй, не порог крена/времени
+	check(not gb.has("fail_bank_deg"), "К3 v3: убран ground_bank.fail_bank_deg")
+	var to: Dictionary = Config.get_config("flight").takeoff
+	for k in ["fail_time_s", "grace_s", "weak_run_min_time_s", "max_run_time_s"]:
+		check(not to.has(k), "К3 v3: нет порога по времени takeoff." + k)
 	# v2: рука пилота, инерция, скольжение
 	for k in [
 		"pilot_moment_max_nm",

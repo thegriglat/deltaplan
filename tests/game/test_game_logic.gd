@@ -207,9 +207,9 @@ func test_result_texts() -> void:
 	var info := {"grade": "soft", "vertical_speed_ms": 1.2, "horizontal_speed_ms": 5.0}
 	check(ResultScreen.title_for("landed", info) == "Мягкая посадка", "заголовок посадки")
 	check(ResultScreen.lines_for("landed", info).size() >= 4, "строки итога")
-	var fail := {"reason": "tailwind", "text": GroundRun.failure_text("tailwind")}
+	var fail := {"reason": "wingtip", "text": GroundRun.failure_text("wingtip")}
 	check(ResultScreen.title_for("takeoff_failed", fail) == "Взлёт сорван", "срыв взлёта")
-	check(ResultScreen.lines_for("takeoff_failed", fail)[0].contains("Попутный"), "причина")
+	check(ResultScreen.lines_for("takeoff_failed", fail)[0].contains("Консоль"), "причина")
 
 
 func test_cloud_whiteout() -> void:
