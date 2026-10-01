@@ -108,11 +108,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_bar_look_held = event.pressed
 		return
+	# На земле мышь не используется (С2 v1) и смещение не копит: иначе движение мыши стоя
+	# или на разбеге (ничего не делает) после отрыва разом отклоняло трапецию.
 	if (
 		mouse_captured
 		and mouse_mode() == "bar"
 		and event is InputEventMouseMotion
 		and not _bar_look_held
+		and not on_ground
 	):
 		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
 		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
@@ -130,6 +133,7 @@ func reset() -> void:
 	on_ground = true
 	_roll_pos = 0.0
 	_centering = false
+	_mouse_offset = Vector2.ZERO
 	control = ControlInput.new()
 
 
@@ -183,6 +187,7 @@ func _update_ground(dt: float) -> void:
 	)
 	_update_auto_nose(trim_dir, dt)
 	var nose := _run_nose()
+	_mouse_offset = Vector2.ZERO  # режим bar: после отрыва трапеция от нейтрали (трим)
 	control.run = run
 	if run:
 		control.walk = 0.0
