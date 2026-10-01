@@ -538,6 +538,8 @@ def section_existing(n, e):
 
 # ------------------------------------------------------------------ раздел новой модели
 def pick_base(e, ctype):
+    if e.get("base_force"):  # база задана явно вопреки типу конструкции (MastR: мачта, но физика безмачтового класса)
+        return e["base_force"]
     b = e.get("base")
     if ctype == "topless" and b in ("training", "target", "laminar", "magic"):
         return "sport"

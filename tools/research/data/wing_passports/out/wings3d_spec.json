@@ -647,8 +647,8 @@
       "pilot_mass_min_kg": 85,
       "pilot_mass_max_kg": 110,
       "double_surface_pct": 94,
-      "kingpost": false,
-      "group": "topless",
+      "kingpost": true,
+      "group": "kingpost",
       "era": "2007–",
       "prototype": "Icaro MastR L",
       "dhv": {
@@ -835,7 +835,7 @@
       "pilot_mass_max_kg": null,
       "double_surface_pct": 82,
       "kingpost": false,
-      "group": "kingpost",
+      "group": "topless",
       "era": "2004",
       "prototype": "Seedwings Spyder 12.5",
       "dhv": {
@@ -1240,7 +1240,7 @@
       "pilot_mass_max_kg": 109,
       "double_surface_pct": null,
       "kingpost": true,
-      "group": "topless",
+      "group": "kingpost",
       "era": null,
       "prototype": "Moyes Litesport 4",
       "dhv": {

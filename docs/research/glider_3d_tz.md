@@ -43,7 +43,7 @@
 | N12 | Aeros Discus | `aeros_discus` | среднее (DHV 2; 2-3 у размера 15) | мачтовое | `laminar` | P1 |
 | N13 | Airborne Sting 3 | `air_sting3` | среднее (DHV 2) | мачтовое | `laminar` | P1 |
 | N14 | Icaro Alto | `icaro_alto` | среднее (DHV 2-3) | мачтовое | `laminar` | P1 |
-| N15 | Icaro MastR | `icaro_mastr` | спортивное (DHV 3) | безмачтовое | `combat` | P1 |
+| N15 | Icaro MastR | `icaro_mastr` | спортивное (DHV 3) | мачтовое | `combat` | P1 |
 | N16 | Bautek Kite | `bautek_kite` | среднее (DHV 2) | мачтовое | `laminar` | P2 |
 | N17 | Bautek Astir | `bautek_astir` | среднее (DHV 2) | мачтовое (по году) | `laminar` | P2 |
 | N18 | Flugsport Skypoint Crossover | `fs_crossover` | среднее (DHV 2) | мачтовое (по году) | `laminar` | P2 |
@@ -1342,8 +1342,8 @@
 ## Раздел N15. Icaro MastR (`icaro_mastr`) — новая модель, приоритет P1
 
 - **Модель:** Icaro MastR; будущий файл `assets/models/glider_icaro_mastr.glb`, запись `tools/blender/glider_params.json` → `wings.icaro_mastr` (новая), конфиг `configs/wings/icaro_mastr.json` (новый; физику и поляру ведёт отдельная задача).
-- **Класс:** спортивное (DHV 3), двойная поверхность 94–96 %, VG. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
-- **Конструкция:** безмачтовое (топлесс) — по цитате: «The MastR is a topless glider with a king post, and is essentially the Laminar with a kingpost» — безмачтовое по своему типу, но с небольшим кингпостом и двумя luff-линиями к задней кромке (страница Icaro); верхних тросов нет.
+- **Класс:** спортивное (DHV 3), двойная поверхность 94–96 %, VG. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
+- **Конструкция:** мачтовое — по цитате: «The MastR is a topless glider with a king post, and is essentially the Laminar with a kingpost» — по типу безмачтовое, но с небольшим кингпостом и двумя luff-линиями к задней кромке (страница Icaro); верхних тросов нет. В игре — мачтовое (решение пользователя на шлюзе 1, 2026-10-01): группа `kingpost`, высота мачты — оценка.
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; с 2007; преемственность: Essentially the Laminar with a kingpost.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Profiled kingpost canted slightly forward reducing parasitic drag; Two luff-lines extend from the kingpost to the trailing edge of the wing; RSQ Polykote sail (rectangular box double-ripstop pattern); Optional technora sail available.
 - **Что есть сейчас:** 3D-модели и конфига нет.
@@ -1568,7 +1568,7 @@
 ## Раздел N19. Seedwings Spyder (`seed_spyder`) — новая модель, приоритет P2
 
 - **Модель:** Seedwings Spyder; будущий файл `assets/models/glider_seed_spyder.glb`, запись `tools/blender/glider_params.json` → `wings.seed_spyder` (новая), конфиг `configs/wings/seed_spyder.json` (новый; физику и поляру ведёт отдельная задача).
-- **Класс:** среднее (DHV 2), двойная поверхность 82 %, историческое. Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
+- **Класс:** среднее (DHV 2), двойная поверхность 82 %, историческое. Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
 - **Конструкция:** безмачтовое (топлесс) — по цитате: «The Austrian maker's topless is the Spyder» (https://www.delta-club-82.com/bible/494-hang-glider-spyder.htm).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes; с 2004.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Made with 7075 aluminum; Sail made by Pause Segel; Battens: 1 nose batten, 9 top battens with clip ends per side, 2 lower batten per side, 2 sprogs per side; No luff lines.
@@ -2120,7 +2120,7 @@
 ## Раздел N28. Moyes Litesport (`moyes_litesport`) — новая модель, приоритет P1
 
 - **Модель:** Moyes Litesport; будущий файл `assets/models/glider_moyes_litesport.glb`, запись `tools/blender/glider_params.json` → `wings.moyes_litesport` (новая), конфиг `configs/wings/moyes_litesport.json` (новый; физику и поляру ведёт отдельная задача).
-- **Класс:** средне-спортивное (класс на странице не указан). Предлагаемая группа игры: `topless` (`configs/wing_groups.json`).
+- **Класс:** средне-спортивное (класс на странице не указан). Предлагаемая группа игры: `kingpost` (`configs/wing_groups.json`).
 - **Конструкция:** мачтовое — по цитате: «The company builds a derivative aircraft with a kingpost, the Litesport.» (http://moyesusa.com/products/litesportspecs.html).
 - **Из открытых страниц производителя (выборка Haiku, `out/construction/`, цитаты проверены не все):** VG: yes.
 - **Заметки по виду (из выборки, проверять по первоисточнику):** Kingpost with VG system, 7075 aluminum tubing, double-surface wing.
