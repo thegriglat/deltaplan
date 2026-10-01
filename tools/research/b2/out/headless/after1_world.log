@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_sun_clock.gd::test_midsummer_51n_positions
+  ok   test_sun_clock.gd::test_solstice_and_zone_time
+  ok   test_sun_clock.gd::test_clock_runs_and_signals
+  ok   test_sun_clock.gd::test_sky_follows_clock
+  ok   test_sun_clock.gd::test_flight_settings_keep_time
+  ok   test_sun_clock.gd::test_start_hours_fixed_list
+  ok   test_sun_clock.gd::test_zone_time_by_location
+  ok   test_sun_glare.gd::test_trace_sun_clear_terrain_and_cloud
+  ok   test_sun_glare.gd::test_ray_ring_directions
+  ok   test_sun_glare.gd::test_evening_sun_weaker
+  ok   test_sun_glare.gd::test_sky_shader_and_glare_created
+
+11 тестов, 0 упало, 0 пропущено
