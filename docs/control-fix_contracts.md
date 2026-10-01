@@ -16,9 +16,9 @@ v1 (до CF-3):
 - `roll` на земле (стоя, шагом, на бегу) — **заданный крен крыла** «рукой пилота», + вправо; полный ход = предельный крен руки (`flight.json → ground_bank`, ключ с физическим обоснованием — CF-3). Курс roll на земле больше не задаёт.
 - `run`, `walk`, `weight_shift` — без изменений.
 
-## С2. InputController → ControlInput — v2
+## С2. InputController → ControlInput — v3
 Владелец: `scripts/game/input_controller.gd`. Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
-Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`, `mouse_mode() -> String ∈ {"look","bar"}`; правая кнопка в `bar` — осмотреться (трапеция держит положение).
+Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`; правая кнопка — осмотреться (`mouse_mode()` — до v3) (трапеция держит положение).
 
 v1: мышь (`bar`) — только в воздухе; на земле W/S — шаг, Shift+W — разбег, A/D — поворот, ↑/↓ — подстройка носа ±0,3 поверх `run_nose_neutral` + `auto_nose`; защёлка клавиш при отрыве (`controls.json → takeoff_latch`, `is_latched`). Мышь по умолчанию `look`. CF-2 (без смены версии): в `bar` смещение мыши на земле не копится.
 
@@ -30,6 +30,11 @@ v1: мышь (`bar`) — только в воздухе; на земле W/S —
 - Мышь в `bar` на земле управляет `pitch`/`roll` и стоя, и на бегу; смещение мыши на отрыве непрерывно (правка CF-2 «на земле не копится» заменяется этим).
 - Защёлки при отрыве нет (`takeoff_latch`, `is_latched` убраны): на отрыве `pitch`/`roll` непрерывны.
 - Базовый нос без ввода (CF-3): `pitch = 0` — угол разбега самого крыла (`wing.launch.alpha_neutral_deg`, 16–17°), тот же ноль, что трим в полёте; ввод — полный ход ±1 (≈ ±20° α). `ground.run_nose_neutral`, `ground.auto_nose`, подстройка ↑/↓ игрока убраны (автоматика носа у ботов — `configs/bots.json → launch.run_nose`/`launch.auto_nose`). Трапеция одна на земле и в полёте (клавиши + мышь, затем стик); «в центр» (X) — только в полёте.
+
+**v3 (02.10, правка модуля ui-controls — У1 v3 / У2 v2 в `docs/ui-controls_contracts.md`, решение пользователя «крыло через WASD не нужно, настройку режима мыши убрать»):**
+- `mouse_mode()` и `controls.json → mouse.mode` убраны: мышь всегда крыло (бывший `bar`; захват — как был; правая кнопка — осмотреться).
+- W/S/A/D сняты с действий трапеции (`pitch_*`/`roll_*` — только стрелки): на земле W/S → `walk`, A/D → `turn` (стоя и шагом); на разбеге (Shift) W/S/A/D ничего не делают (`walk = turn = 0`, крыло — мышь, стрелки, стик); в полёте — обзор головой (`look_*`). Исключение клавиш шага из трапеции (`GROUND_MOVE_ACTIONS`) больше не нужно.
+- Остальное v2 — без изменений.
 
 ## С3. Пилот на земле — `GroundRun` (start-fixes К3) — К3 v3
 Базовые контракты — `docs/start_fixes_contracts.md` → К3 v2 (крен на земле, переход в полёт), К4 v1 (поза крыла); их тест — `tests/game/test_start_fixes_contracts.gd`. Владелец в этом модуле — CF-1 (до CF-3), затем CF-3.

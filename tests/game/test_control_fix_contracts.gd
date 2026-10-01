@@ -24,14 +24,13 @@ func test_c2_input_controller_shape() -> void:
 	var s := load("res://scripts/game/input_controller.gd") as Script
 	check(_has_method_args(s, "update", 1), "С2: update(dt) -> ControlInput")
 	check(_has_method_args(s, "set_mouse_captured", 1), "С2: set_mouse_captured(on)")
-	check(_has_method_args(s, "mouse_mode", 0), "С2: mouse_mode()")
+	check(not _has_method_args(s, "mouse_mode", 0), "С2 v3: mouse_mode() убран — мышь всегда крыло")
 	var ic := InputController.new()
 	check("on_ground" in ic and "enabled" in ic and "hands_off" in ic, "С2: on_ground/enabled/hands_off")
 	check("mouse_captured" in ic, "С2: mouse_captured")
 	ic.free()
 	var mouse: Dictionary = Config.get_config("controls").mouse
-	check(mouse.has("mode") and String(mouse.mode) in ["look", "bar"], "С2: mouse.mode ∈ look|bar")
-	check(String(mouse.mode) == "bar", "С2 v2: мышь по умолчанию — трапеция (bar)")
+	check(not mouse.has("mode"), "С2 v3: mouse.mode убран — мышь всегда крыло")
 	check(not Config.get_config("controls").has("takeoff_latch"), "С2 v2: защёлки при отрыве нет")
 	check(not _has_method_args(s, "is_latched", 1), "С2 v2: is_latched убран")
 	for k in ["bar_sensitivity", "bar_deadzone", "capture_on_start"]:

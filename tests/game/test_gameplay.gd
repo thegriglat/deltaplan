@@ -133,8 +133,9 @@ func test_walk_run_and_turn_on_ground() -> void:
 	await _close(main)
 
 
-## С2 v2: стоя клавиши шага и поворота трапецию не двигают, остальные клавиши действий трапеции
-## (стрелки) — двигают; на бегу (Shift) — все. Клавиши — из карты, знак — по действию.
+## У1 v3 / У2 v2 (ui-controls): на земле W/S — шаг, A/D — поворот; крыло — стрелки (и мышь, стик),
+## стоя и на бегу (Shift); W/S/A/D крыло не двигают ни стоя, ни на бегу (мышь захвачена или нет).
+## Клавиши — из карты, знак — по действию.
 func test_ground_bar_keys() -> void:
 	var main: Node = await _open()
 	if main == null:
@@ -143,22 +144,10 @@ func test_ground_bar_keys() -> void:
 	var ic := game.input_controller
 	var inv := -1.0 if bool(Config.value("controls", "invert_pitch")) else 1.0
 	var move := []
-	for a in InputController.GROUND_MOVE_ACTIONS:
+	for a in ["walk_forward", "walk_back", "turn_left", "turn_right"]:
 		for ev in InputMap.action_get_events(a):
 			if ev is InputEventKey:
 				move.append((ev as InputEventKey).physical_keycode)
-	# клавиша шага, которая заодно — действие трапеции (в раскладке по умолчанию W/S, A/D)
-	var shared := KEY_NONE
-	var shared_action := ""
-	for a in ["pitch_pull_in", "pitch_push_out", "roll_left", "roll_right"]:
-		for ev in InputMap.action_get_events(a):
-			var k := ev as InputEventKey
-			if k != null and k.physical_keycode in move:
-				shared = k.physical_keycode
-				shared_action = a
-				break
-		if shared != KEY_NONE:
-			break
 	var bar_key := _first_key("pitch_push_out", move)
 	check(bar_key != KEY_NONE, "у «от себя» есть клавиша вне шага/поворота")
 	_key(bar_key, true)
@@ -169,32 +158,38 @@ func test_ground_bar_keys() -> void:
 	print("    стоя «от себя» (%s) 1 с: pitch %.2f" % [OS.get_keycode_string(bar_key), p_stand])
 	check(p_stand * inv > 0.9, "стоя клавиша трапеции — нос на полный ход: %.2f" % p_stand)
 	check(game.glider.phase() == "standing", "стоит (%s)" % game.glider.phase())
-	if shared != KEY_NONE:
-		_key(shared, true)
-		_ticks(game, 0.5)
-		var c := ic.control
-		print(
-			"    стоя %s (%s): pitch %.2f roll %.2f walk %.2f turn %.2f"
-			% [OS.get_keycode_string(shared), shared_action, c.pitch, c.roll, c.walk, c.turn]
-		)
-		check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "стоя клавиша шага трапецию не двигает")
-		check(absf(c.walk) > 0.9 or absf(c.turn) > 0.9, "стоя она — шаг или поворот")
-		_press(["run"])
-		_ticks(game, 0.5)
-		c = ic.control
-		var v := c.pitch if shared_action.begins_with("pitch") else c.roll
-		print("    на бегу %s: pitch %.2f roll %.2f" % [OS.get_keycode_string(shared), c.pitch, c.roll])
-		if ic.keys_look():
-			# У2 v1: мышь — трапеция и захвачена — на разбеге W/S/A/D крутят голову, не трапецию
-			check(absf(v) < 1e-6, "У2: на бегу при мыши-трапеции с захватом — не трапеция: %.2f" % v)
-			ic.mouse_captured = false  # без захвата — как в С2 v2
+	for captured in [true, false]:
+		ic.set_mouse_captured(captured)
+		for code in move:
+			_key(code, true)
+			_ticks(game, 0.5)
+			var c := ic.control
+			print(
+				"    стоя %s (захват %s): pitch %.2f roll %.2f walk %.2f turn %.2f"
+				% [OS.get_keycode_string(code), captured, c.pitch, c.roll, c.walk, c.turn]
+			)
+			check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "стоя %s — не крыло" % OS.get_keycode_string(code))
+			check(absf(c.walk) > 0.9 or absf(c.turn) > 0.9, "стоя %s — шаг или поворот" % OS.get_keycode_string(code))
+			_press(["run"])
 			_ticks(game, 0.5)
 			c = ic.control
-			v = c.pitch if shared_action.begins_with("pitch") else c.roll
-			print("    на бегу без захвата мыши %s: %.2f" % [OS.get_keycode_string(shared), v])
-		check(absf(v) > 0.5, "на бегу та же клавиша — трапеция: %.2f" % v)
-		check(c.walk == 0.0 and c.turn == 0.0, "на бегу walk/turn = 0")
-		_key(shared, false)
+			print("    на бегу %s: pitch %.2f roll %.2f" % [OS.get_keycode_string(code), c.pitch, c.roll])
+			check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "на бегу %s — не крыло" % OS.get_keycode_string(code))
+			check(c.walk == 0.0 and c.turn == 0.0, "на бегу walk/turn = 0")
+			check(not ic.keys_look(), "на земле W/S/A/D — не обзор")
+			_key(code, false)
+			Input.action_release("run")
+			# вернуться к старту: новый полёт с того же места
+			game.restart()
+			_ticks(game, 0.5)
+	_key(bar_key, true)
+	_press(["run"])
+	_ticks(game, 0.5)
+	var p_run := ic.control.pitch
+	_key(bar_key, false)
+	Input.action_release("run")
+	print("    на бегу «от себя» (%s): pitch %.2f" % [OS.get_keycode_string(bar_key), p_run])
+	check(p_run * inv > 0.5, "на бегу клавиша трапеции — нос: %.2f" % p_run)
 	await _close(main)
 
 
