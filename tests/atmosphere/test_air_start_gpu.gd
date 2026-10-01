@@ -114,3 +114,48 @@ func test_start_wind_matches_menu() -> void:
 		await tree.process_frame
 	print("  в допуске ±%d %%: %d из %d стартов" % [roundi(TOL * 100.0), n_ok, n_all])
 	check(n_all == 10, "все 10 стартов (%d)" % n_all)
+
+
+## Проход 2 не удался (таймаут — крошечный предел только для проходов ≥ 2) — в атмосфере поле
+## прохода 1 (его k = 1 и U₁), не аналитика; строка «проход 2 не удался … — поле прохода 1».
+func test_failed_second_pass_keeps_first() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	var detail: HeightLayer = lw[0]
+	var loc := TestAirPlace.load_loc("ongudai")
+	var site: Dictionary = loc.start_sites[0]
+	var st := TerrainGeo.latlon_to_local(
+		float(site.lat), float(site.lon), float(loc.center_lat), float(loc.center_lon)
+	)
+	var gh := detail.sample(st.x, st.y)
+	var sp := Vector3(st.x, gh, st.y)
+	var heading := float(site.heading_deg)
+	var atmo := _atmo(detail, WIND_MS * 3.6, heading, gh)
+	var settings := FlightSettings.defaults()
+	_c = {
+		hour = settings.start_hour,
+		u10 = WIND_MS,
+		wdir = heading,
+		t_max = settings.temperature_c,
+		sky = settings.sky,
+	}
+	var tree := Engine.get_main_loop() as SceneTree
+	await tree.process_frame
+	var rt := AirRuntime.new()
+	tree.root.add_child(rt)
+	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
+	rt.focus_fn = func() -> Vector3: return sp
+	rt.timeout_later_pass_s = 0.05
+	var ok: bool = await rt.load_field()
+	var li := rt.last_info
+	print("  проход 2 с пределом 0,05 с: ok %s, %s, k %s, U %s" % [ok, li.get("pass_failed"), li.get("inflow_k"), li.get("u_start10")])
+	check(ok, "загрузка не провалилась: %s" % rt.last_error)
+	check(atmo.is_air_field_on(), "в атмосфере поле, не аналитика")
+	check(atmo.air_field.levels.size() == 3, "уровни прохода 1: окна и область")
+	check(int(li.get("passes", 0)) == 1, "подано поле прохода 1")
+	check(String(li.get("pass_failed", "")).begins_with("проход 2"), "причина отката записана")
+	approx(rt.inflow_k, 1.0, 1e-9, "k поданного поля — прохода 1")
+	var v := atmo.mean_wind_at(Vector3(st.x, gh + 10.0, st.y))
+	approx(Vector2(v.x, v.z).length(), float(li.get("u_start10_first", NAN)), 0.05, "U над стартом = U₁")
+	rt.stop()
+	rt.queue_free()
+	atmo.free()

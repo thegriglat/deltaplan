@@ -85,6 +85,9 @@ var warm_second_pass := true
 var max_passes := 2
 ## Остаток |U/u10 − 1| над стартом, при котором проходы сверх второго не нужны.
 var pass_tol := 0.03
+## Только тесты: предел времени проходов ≥ 2, с (NAN — air_model.timeout_s) — вызвать неудачу
+## прохода 2 и проверить откат к полю прохода 1.
+var timeout_later_pass_s := NAN
 
 var _place := {}
 var _place_key := ""
@@ -128,6 +131,8 @@ var _warm_pass := {}
 var _k_mem := {}
 ## Проходы этого расчёта: {k, u, wall_s (от начала), iters, warm}.
 var _pass_log: Array[Dictionary] = []
+## Уровни прошлого прохода загрузки (не поданы): подаются, если следующий проход не удался.
+var _prev_levels: Array[WindField] = []
 ## Начало прохода и готовность поля области в нём (мкс) — для замеров по проходам.
 var _t_pass := 0
 var _t_dom := 0
@@ -368,6 +373,8 @@ func _process(_dt: float) -> void:
 
 
 func _timeout_s() -> float:
+	if _pass > 1 and not is_nan(timeout_later_pass_s):
+		return timeout_later_pass_s
 	return float(_cfg.get("timeout_s", 60.0))
 
 
@@ -388,12 +395,14 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 	_warm_pass = {}
 	_u_first = NAN
 	_pass_log.clear()
+	_prev_levels = []
 	var u10 := float(c.u10)
 	if loading:
 		_start_pt = Vector3(NAN, NAN, NAN)
 		if _windows_wanted():
 			_start_pt = focus_fn.call()
-		var two := _windows_wanted() and u10 > 0.0 and max_passes >= 2
+		# штиль (ниже порога трогания анемометра, WindProfile.U10_MIN) — один проход, k = 1
+		var two := _windows_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
 		_passes = max_passes if two else 1
 		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
 	else:
@@ -633,6 +642,7 @@ func _levels_done(levels: Array[WindField]) -> void:
 			domain_s = (_t_dom - _t_pass) / 1e6 if _t_dom > 0 else NAN,
 			gpu_s = float(_req.get("gpu_s", 0.0)),
 			iters = _req.get("iters", []),
+			windows = _req.get("windows", []).map(_window_text),
 			warm = bool(_req.get("warm", false)),
 		}
 	)
@@ -646,6 +656,8 @@ func _levels_done(levels: Array[WindField]) -> void:
 		var k1 := _next_k(u10)
 		_warm_pass = _warm_next
 		_warm_next = {}
+		_prev_levels = levels
+		_req.prev_windows = _req.get("windows", [])
 		_dom_field = null
 		_req.erase("windows")
 		_pass += 1
@@ -755,6 +767,9 @@ func _apply(levels: Array[WindField]) -> void:
 
 func _fail(reason: String) -> void:
 	var loading := _loading
+	if loading and _pass > 1 and not _prev_levels.is_empty():
+		_use_previous_pass(reason)
+		return
 	stop()
 	_warm_next = {}
 	_warm_pass = {}
@@ -769,6 +784,33 @@ func _fail(reason: String) -> void:
 		for k in ["hour", "u10", "wdir", "t_max", "sky"]:
 			_cur[k] = _req.get(k, _cur.get(k))
 	fallback.emit(reason)
+
+
+## Загрузка: проход ≥ 2 не удался (таймаут, расхождение, нет окна) — подать поле прошлого прохода
+## (его k и U над стартом), а не аналитику.
+func _use_previous_pass(reason: String) -> void:
+	var lv := _prev_levels
+	_prev_levels = []
+	var failed_pass := _pass
+	stop()
+	failed_count += 1
+	var e: Dictionary = _pass_log[-1]
+	_pass = failed_pass - 1
+	_k = float(e.k)
+	_warm_next = _warm_pass
+	_warm_pass = {}
+	_req.windows = _req.get("prev_windows", [])
+	_req.inflow_k = _k
+	_req.passes = _pass
+	_req.u_start10_first = _u_first
+	_req.u_start10 = float(e.u)
+	_req.pass_failed = "проход %d: %s" % [failed_pass, reason]
+	_req.pass_log = _pass_log.duplicate()
+	print(
+		"air_model: проход %d не удался (%s) — поле прохода %d" % [failed_pass, reason, _pass]
+	)
+	_apply(lv)
+	last_error = reason
 
 
 ## Аналитика: поле прошлого места/полёта из атмосферы убрать (сразу), строка в журнал.
