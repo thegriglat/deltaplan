@@ -43,6 +43,8 @@ var world_link: WorldLink
 var collisions := CollisionCheck.new()
 ## Другие пилоты в небе (configs/bots.json, docs/game.md → «Другие пилоты»).
 var bots: BotPilots
+## Пасхалки мира и неба (чисто визуально, docs/easter_eggs_contracts.md).
+var eggs: EasterEggs
 ## Сколько ботов (--bots=N); < 0 — из настроек (bots.json → count).
 var bots_count := -1
 ## Время симуляции с начала полёта, с.
@@ -116,6 +118,9 @@ func _ready() -> void:
 	bots = BotPilots.new()
 	bots.name = "Bots"
 	add_child(bots)
+	eggs = EasterEggs.new()
+	eggs.name = "EasterEggs"
+	add_child(eggs)
 	air = _create_air()
 	air.name = "Air"
 	add_child(air)
@@ -199,6 +204,7 @@ func tick(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	settings = s.duplicate()
+	eggs.reset()
 	_lock_net_clock()
 	var progress := terrain.progress
 	progress.begin()
@@ -458,6 +464,7 @@ func restart() -> void:
 	input_controller.reset()
 	collisions.reset()
 	bots.reset()
+	eggs.reset()
 	_crashed = false
 	_ended = false
 	_touchdown = {}

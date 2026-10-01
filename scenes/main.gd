@@ -165,11 +165,14 @@ func _fly(s: FlightSettings) -> void:
 	game.set_flying(true)
 	if opts.camera != "":
 		game.camera.set_mode(opts.camera)
+	if opts.fov_deg > 0.0:
+		game.camera.fov = opts.fov_deg
 	if opts.look != Vector2.ZERO:
 		game.camera.set_look(opts.look.x, opts.look.y)
 	if opts.glance:
 		Input.action_press("look_instrument")
 	game.debug_overlays.enable(opts.debug_overlays)
+	_force_eggs()
 	if opts.look_at != "":
 		_look_target = Node3D.new()
 		_look_target.name = "LookTarget"
@@ -251,6 +254,7 @@ func _restart() -> void:
 	get_tree().paused = false
 	game.restart()
 	game.set_paused(false)
+	_force_eggs()
 	state = State.FLYING
 
 
@@ -683,6 +687,8 @@ func _screenshot() -> void:
 		_fix_sky_camera()
 	if game.net != null:
 		print("net: мир %s" % game.net.world_summary(game.get_start().position))
+	if opts.gpu_report != "":
+		await _report_gpu(opts.gpu_report)
 	for i in 8:
 		await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -690,6 +696,34 @@ func _screenshot() -> void:
 	var err := img.save_jpg(opts.screenshot, 0.9) if jpg else img.save_png(opts.screenshot)
 	print("screenshot: %s (%s), t=%.1f с" % [opts.screenshot, error_string(err), game.sim_time_s])
 	_quit(0 if err == OK else 1)
+
+
+## --gpu-report: среднее GPU-время кадра за 2 с (реальное время), строка EGG_GPU_MS <метка> <мс>.
+func _report_gpu(label: String) -> void:
+	var vp := get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(vp, true)
+	for i in 10:
+		await RenderingServer.frame_post_draw
+	var sum := 0.0
+	var draws := 0
+	var prims := 0
+	var n := 0
+	var t_end := Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < t_end:
+		await RenderingServer.frame_post_draw
+		if _look_target != null:
+			_look_target.global_position = _look_point()
+		sum += RenderingServer.viewport_get_measured_render_time_gpu(vp)
+		draws += RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
+		)
+		prims += RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME
+		)
+		n += 1
+	n = maxi(n, 1)
+	# Время GPU шумит сильнее цены лёгкой пасхалки — рядом вызовы отрисовки и примитивы кадра.
+	print("EGG_GPU_MS %s %.3f draws %d prims %d" % [label, sum / n, draws / n, prims / n])
 
 
 ## Кадр неба сети (--net-hide-remote): камера неподвижно в 30 м над стартом, поворот --look от
@@ -712,10 +746,22 @@ func _fix_sky_camera() -> void:
 	game.air.set("focus_node", focus)
 
 
+## Пасхалки по ключу --egg (или configs/easter_eggs.json → force): вызвать без кубика.
+func _force_eggs() -> void:
+	game.eggs.force_spec(opts.egg if opts.egg != "" else String(game.eggs.cfg.get("force", "")))
+
+
 ## Точка для --look-at: старт, центр ботов (в воздухе, иначе всех) или бот N; +2 м (крыло).
 func _look_point() -> Vector3:
 	var up := Vector3.UP * 2.0
 	if opts.look_at == "start":
+		return game.get_start().position + up
+	if opts.look_at == "egg" or opts.look_at.begins_with("egg:"):
+		# первая живая пасхалка; «egg:<id>» — первая с этим id (кадры пасхалок)
+		var want := opts.look_at.substr(4)
+		for e in game.eggs.active():
+			if want == "" or e.id == want:
+				return e.global_position
 		return game.get_start().position + up
 	if opts.look_at == "remote":  # сеть: первый чужой пилот (кадры NET-40/41)
 		var rp: Array = game.net.remote.pilots() if game.net != null else []
