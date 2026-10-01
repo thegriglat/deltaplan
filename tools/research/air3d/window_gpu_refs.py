@@ -25,6 +25,7 @@ import numpy as np
 import air as A
 import real as R
 import to_game_field as TG
+import wind_prof as WP
 from picard_gpu_refs import Pack
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -98,8 +99,15 @@ def write_window(name, S, runs, extra, P):
     site = R.location(LOC).sites[R.START[LOC]]
     # params — параметры, отличные от умолчаний AirCase, с которыми посчитан эталон (тест берёт их
     # отсюда, как у picard_gpu_refs.py)
+    # profiles — профиль притока по ветру (C2 v4: α по устойчивости на час, как real.case) — тест ставит его в AirCase.p
+    P0 = A.Params()
+    profiles = {}
+    for U in sorted({float(r["U10"]) for r in runs}):
+        a, mp, cls, el = WP.for_hour(R.context(LOC), HOUR, "clear", U, P0.z0, P0.f_cor)
+        profiles[f"{U:g}"] = dict(alpha=a, max_profile=mp, cls=cls, sun_elev=el)
     meta = dict(loc=LOC, hour=HOUR, wdir=WDIR, dtau_u=A.Params().dtau_per_m * g.dx,
-                params=dict(lam_frac=A.Params().lam_frac, pr_t=A.Params().pr_t, k_relax=A.Params().k_relax), dx=g.dx, dz=g.dz,
+                params=dict(lam=P0.lam, lam_frac=P0.lam_frac, pr_t=P0.pr_t, k_relax=P0.k_relax), profiles=profiles,
+                dx=g.dx, dz=g.dz,
                 nx=g.nx, ny=g.ny, nz=g.nz, z_bot=g.z_bot, x0=g.x0, y0=g.y0, z_i=c.z_i,
                 site=dict(x=site["x"], y=site["y"]), runs=runs, **extra)
     P.add("hc", S.hc)

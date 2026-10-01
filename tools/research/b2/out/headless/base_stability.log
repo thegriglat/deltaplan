@@ -1,0 +1,181 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+air_model: analytic (нет поля)
+Terrain: локация 'ongudai' загружена за 1.42 с, чанков 160
+WorldObjects: 'ongudai' за 1.28 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.89737, "wait_threads_s": 0.000005, "nodes_s": 0.008809, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.16 с
+WorldObjects: палаток у старта 5 из 5 за 273 мс
+Terrain: локация 'altai' загружена за 0.55 с, чанков 160
+WorldObjects: 'altai' за 1.66 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.488835, "wait_threads_s": 0.637995, "nodes_s": 0.020179, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.68 с
+WorldObjects: палаток у старта 5 из 5 за 292 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 288 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 289 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 288 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 286 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 288 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 285 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 286 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 295 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+Terrain: локация 'askarovo' загружена за 0.52 с, чанков 160
+WorldObjects: 'askarovo' за 9.57 с — ветроуказателей 17, посадок 2, троп к стартам 3, OSM { "wire_tiles": 219, "supports": 455, "wires": 1561, "road_tiles": 562, "buildings": 11006, "building_tiles": 223, "power_s": 0.140835, "wait_threads_s": 0.80683, "nodes_s": 0.012625, "osm_fence_spans": 0, "osm_fence_tiles": 0 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 20.17 с
+WorldObjects: палаток у старта 5 из 5 за 780 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 772 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 772 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 774 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 777 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 774 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 771 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 772 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 776 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=53.25865&lon=58.52609&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+Terrain: локация 'aushkul' загружена за 0.50 с, чанков 160
+WorldObjects: 'aushkul' за 1.80 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 266, "supports": 529, "wires": 1761, "road_tiles": 613, "buildings": 3881, "building_tiles": 137, "power_s": 0.183283, "wait_threads_s": 1.276759, "nodes_s": 0.008586, "osm_fence_spans": 0, "osm_fence_tiles": 0 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 4.35 с
+WorldObjects: палаток у старта 5 из 5 за 435 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 436 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 441 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 434 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 432 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 437 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 426 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 427 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 433 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=54.72585&lon=59.68922&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+Terrain: локация 'ongudai' загружена за 0.53 с, чанков 160
+WorldObjects: 'ongudai' за 1.46 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.958732, "wait_threads_s": 0.000005, "nodes_s": 0.009229, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.25 с
+WorldObjects: палаток у старта 5 из 5 за 271 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 266 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 268 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 270 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 268 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 271 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 265 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=20.0&v=1&wind=1.9
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 266 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.1
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 273 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+
+== матрица стабильности: 36 сочетаний ==
+  altai × wings/training × weak × в лоб                        ok
+  altai × wings/training × medium × в лоб                      ok
+  altai × wings/training × strong × в лоб                      ok
+  altai × wings/sport × weak × в лоб                           ok
+  altai × wings/sport × medium × в лоб                         ok
+  altai × wings/sport × strong × в лоб                         ok
+  altai × wings/laminar × weak × в лоб                         ok
+  altai × wings/laminar × medium × в лоб                       ok
+  altai × wings/laminar × strong × в лоб                       ok
+  askarovo × wings/training × weak × в лоб                     ok
+  askarovo × wings/training × medium × в лоб                   ok
+  askarovo × wings/training × strong × в лоб                   ok
+  askarovo × wings/sport × weak × в лоб                        ok
+  askarovo × wings/sport × medium × в лоб                      ok
+  askarovo × wings/sport × strong × в лоб                      ok
+  askarovo × wings/laminar × weak × в лоб                      ok
+  askarovo × wings/laminar × medium × в лоб                    ok
+  askarovo × wings/laminar × strong × в лоб                    ok
+  aushkul × wings/training × weak × в лоб                      ok
+  aushkul × wings/training × medium × в лоб                    ok
+  aushkul × wings/training × strong × в лоб                    ошибка
+  aushkul × wings/sport × weak × в лоб                         ok
+  aushkul × wings/sport × medium × в лоб                       ok
+  aushkul × wings/sport × strong × в лоб                       ok
+  aushkul × wings/laminar × weak × в лоб                       ok
+  aushkul × wings/laminar × medium × в лоб                     ok
+  aushkul × wings/laminar × strong × в лоб                     ok
+  ongudai × wings/training × weak × в лоб                      ok
+  ongudai × wings/training × medium × в лоб                    ok
+  ongudai × wings/training × strong × в лоб                    ok
+  ongudai × wings/sport × weak × в лоб                         ok
+  ongudai × wings/sport × medium × в лоб                       ok
+  ongudai × wings/sport × strong × в лоб                       ok
+  ongudai × wings/laminar × weak × в лоб                       ok
+  ongudai × wings/laminar × medium × в лоб                     ok
+  ongudai × wings/laminar × strong × в лоб                     ok
+  FAIL test_matrix.gd::test_matrix_all_combinations
+         check failed: aushkul × wings/training × strong × в лоб: взлёт не провален
+
+1 тестов, 1 упало, 0 пропущено
+WARNING: 116 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 76 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketLargeE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

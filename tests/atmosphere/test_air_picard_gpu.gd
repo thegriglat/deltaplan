@@ -582,6 +582,17 @@ func test_two_runs_bitwise_equal() -> void:
 # ---------------------------------------------------------------- Онгудай 400 м (реальный рельеф)
 
 
+## Профиль притока эталона для ветра u10 (фикстура → profiles: {"3": {alpha, max_profile}, …}).
+static func set_profile(c: AirCase, m: Dictionary, u10: float) -> void:
+	var pr: Dictionary = m.get("profiles", {})
+	for key: String in pr:
+		if absf(float(key) - u10) < 1.0e-6:
+			c.p.alpha = float(pr[key].alpha)
+			c.p.max_profile = float(pr[key].max_profile)
+			return
+	push_error("фикстура без профиля для %s м/с" % u10)
+
+
 ## Случай из эталона Онгудая (вход — ровно тот, что у air.py; AirPlace даёт его же, test_air_place).
 static func case_ongudai(m: Dictionary, u10: float) -> AirCase:
 	var c := AirCase.new()
@@ -603,10 +614,11 @@ static func case_ongudai(m: Dictionary, u10: float) -> AirCase:
 	c.u10 = u10
 	c.wdir = float(m.wdir)
 	c.label = "Онгудай %d м, %d м/с" % [int(m.dx), int(u10)]
-	# параметры, с которыми посчитан эталон (λ/h = 0,1 до калибровки AM-09)
+	# параметры, с которыми посчитан эталон, и профиль притока его ветра (C2 v4: α по устойчивости)
 	var prm: Dictionary = m.get("params", {})
 	for key in prm:
 		c.p[key] = prm[key]
+	TestAirPicard.set_profile(c, m, u10)
 	return c
 
 

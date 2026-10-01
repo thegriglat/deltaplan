@@ -28,10 +28,11 @@ const NCOL := 12
 const NLEV := 5
 
 ## λ/h — асимптотическая длина перемешивания как доля толщины слоя, λ = max(p.lam, LAM_FRAC·h):
-## калибровка AM-09 по Askervein (docs/air_model_tune.md): 0,25 (−0,02; верхняя граница физичного
-## диапазона — данные тянут выше), одинаково с air.py (Params.lam_frac). Один источник для решателя
-## (p.lam_frac) и масштаба 3 (FieldTurbulence).
-const LAM_FRAC := 0.25
+## совместная калибровка Б1 (Askervein + Perdigão, docs/plan/air_model_b1.md), перевод (б)
+## решения К2: общий λ ≈ 27 м при h_нейтр 1713 м → 0,0158, пол lam 40 м; одинаково с air.py
+## (Params.lam_frac).
+## Один источник для решателя (p.lam_frac) и масштаба 3 (FieldTurbulence).
+const LAM_FRAC := 0.0158
 ## Толщина нейтрального слоя h = NEUTRAL_BL_K·u*/f, как air.py (_closure). Литература: 0,2–0,25
 ## (Blackadar & Tennekes 1968; Tennekes 1973), 0,07–0,5 у разных авторов, ≈ 0,6 для «истинно
 ## нейтрального» слоя (Zilitinkevich et al. 2007); λ/h подогнан при 0,3 — данные Askervein задают
@@ -40,6 +41,8 @@ const LAM_FRAC := 0.25
 const NEUTRAL_BL_K := 0.3
 ## Параметр Кориолиса 51° с. ш., 1/с (air.py Params.f_cor) — только для толщины слоя h.
 const F_COR := 1.13e-4
+## Шероховатость игры, м (air.py Params.z0; луг/кустарник) — решатель и профиль WindModel.
+const Z0 := 0.1
 ## Слоты prm (air_picard.glsl): 1 — окно клипмапа (AirWindowCase), 1/Pr_t шаблона тепла.
 const P_NEST := 19
 const P_IPRT := 20
@@ -50,9 +53,11 @@ var p := {
 	# турбулентное число Прандтля, K_θ = K/Pr_t (все три оси); 0,85 — Kays 1994, решение пользователя
 	# 30.09.2026 (варианты 1,0/0,74/0,95 — docs/plan/air_model_a1.md §1)
 	pr_t = 0.85,
-	z0 = 0.1,
-	alpha = 0.14,
-	max_profile = 1.8,
+	z0 = Z0,
+	# профиль притока (C2 v4): у случая — WindProfile.apply_to_case (α по устойчивости на час);
+	# по умолчанию α_N (нейтраль), max_profile NAN — по правилу z_sat при prepare()
+	alpha = 0.24,
+	max_profile = NAN,
 	f_cor = F_COR,
 	k_fa = 1.0,
 	k_smooth_m = 1500.0,
@@ -228,11 +233,12 @@ func prepare() -> bool:
 	_count_unknowns(kf)
 	# ---- фон: ветер
 	var windy := u10 > 0.0
-	u_a = u10 * float(p.max_profile)
+	var mp := max_profile_used()
+	u_a = u10 * mp
 	var ang := deg_to_rad(wdir)
 	ex = -sin(ang) if windy else 0.0
 	ey = -cos(ang) if windy else 0.0
-	var z_sat := 10.0 * pow(float(p.max_profile), 1.0 / float(p.alpha))
+	var z_sat := 10.0 * pow(mp, 1.0 / float(p.alpha))
 	# ---- губки
 	var ztop := z_bot + nz * dz
 	var rate := float(p.sponge_rate)
@@ -405,6 +411,15 @@ func prepare() -> bool:
 	prm.resize(32)
 	prm[P_IPRT] = 1.0 / float(p.pr_t)
 	return true
+
+
+## Предел профиля притока: p.max_profile, а если не задан (NAN) — правило z_sat WindProfile при α
+## случая (как air.py: Params.max_profile None).
+func max_profile_used() -> float:
+	var mp := float(p.max_profile)
+	if is_nan(mp):
+		mp = WindProfile.max_profile(float(p.alpha), u10, float(p.z0), float(p.f_cor))
+	return mp
 
 
 ## K_b по столбцам (Троен–Март / Холтслаг–Бовилль, air.py → _closure): h, w*, 1/L (Обухов),

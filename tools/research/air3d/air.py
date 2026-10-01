@@ -29,9 +29,11 @@ from __future__ import annotations
 
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
+
+import wind_prof as WP
 
 G = 9.81
 THETA0 = 300.0
@@ -494,7 +496,7 @@ def gauss2d(a, sigma):
 
 def wind_profile(agl, prm):
     """Доля ветра на высоте над землёй: степенной профиль WindModel, нормирован на ветер на высоте:
-    min((agl/z_sat)^α, 1), z_sat = 10·max_f^(1/α) (664 м) — там профиль игры упирается в 1,8·U10."""
+    min((agl/z_sat)^α, 1), z_sat = 10·max_f^(1/α) — выше профиль постоянный (WindProfile, C2 v4)."""
     z_sat = 10.0 * prm.max_profile ** (1.0 / prm.alpha)
     return np.minimum((np.maximum(agl, prm.z0) / z_sat) ** prm.alpha, 1.0)
 
@@ -504,8 +506,10 @@ class Params:
     """Параметры модели. Числа — физические (источник в комментарии) или численные (помечены)."""
     tau_cool: float = 7200.0          # выхолаживание θ′ к фону (излучение, перемешивание с фоном), с
     z0: float = 0.1                   # шероховатость, м (луг/кустарник; лес не учтён)
-    alpha: float = 0.14               # показатель профиля (atmosphere.json → wind.shear_exponent)
-    max_profile: float = 1.8          # ветер на высоте / U10 (wind.max_profile_factor)
+    alpha: float = 0.24               # показатель профиля притока; по умолчанию α_N (нейтраль, atmosphere.json →
+                                      # wind.shear_exponent_neutral, Б1); у случая игры — по устойчивости на час
+                                      # (wind_prof.for_hour, real.case; C2 v4)
+    max_profile: float | None = None  # ветер на высоте / U10 = (z_sat/10)^α; None — по правилу z_sat (wind_prof, C10 v3)
     f_cor: float = 1.13e-4            # параметр Кориолиса 51° с. ш., 1/с — только для высоты слоя h
     k_fa: float = 1.0                 # K свободной атмосферы (выше h), м²/с (0,1–1 — порядок в тропосфере)
     k_smooth_m: float = 1500.0        # сглаживание потока тепла для w* (площадь конвективной ячейки ~ z_i)
@@ -532,9 +536,9 @@ class Params:
     closure: str = "hb"               # hb | const
     local_k: bool = True              # добавка длины перемешивания по местному сдвигу (Прандтль–Блэкадар)
     lam: float = 40.0                 # асимптотическая длина перемешивания λ, м (Блэкадар; HB93 — 30 м)
-    lam_frac: float = 0.25            # λ = max(lam, lam_frac·h) (0 — выкл.). AM-09 (docs/air_model_tune.md): 0,25 −0,02 по
-                                      # Askervein (12,5 м, 2-й пор.) — верхняя граница физичного диапазона 0,03–0,25; данные
-                                      # тянут выше (χ² падает ещё на 7 до 0,6). AM-01: 0,1 («масштаб вихрей ~ 0,1 слоя»)
+    lam_frac: float = 0.0158          # λ = max(lam, lam_frac·h) (0 — выкл.). Б1 (docs/plan/air_model_b1.md, совместная
+                                      # калибровка Askervein + Perdigão): общий λ ≈ 27 м, перевод (б) К2 — lam 40 м (пол),
+                                      # λ/h = 27/1713 (h_нейтр); до Б1 — 0,25 (AM-09, один Askervein с α 0,17)
     k_relax: float = 0.1              # нижняя релаксация обновления K (численная). А2 (docs/plan/air_model_a2.md): 0,5 → 0,1 —
                                       # гасит предельный цикл K(Ri) ↔ θ′ ↔ w у верха слоя перемешивания при λ/h 0,031;
                                       # неподвижная точка та же (подъём у старта ±0,01 м/с), итераций цепочки столько же
@@ -574,6 +578,9 @@ class Air:
         self.shape = shape
         dx, dz = grid.dx, grid.dz
         self.dx, self.dz = dx, dz
+        if prm.max_profile is None:   # правило z_sat при α случая (как WindProfile / AirCase.max_profile_used)
+            prm = replace(prm, max_profile=WP.max_profile(prm.alpha, case.U10, prm.z0, prm.f_cor))
+            self.prm = prm
         self.dtau_u = prm.dtau_u if prm.dtau_u is not None else prm.dtau_per_m * dx
         self.hc = np.asarray(hc, float)
         hp = np.pad(self.hc, 1, mode="edge")

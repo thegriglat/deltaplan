@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_flight_audio_node.gd::test_events_do_not_crash
+  ok   test_flight_sound_mix.gd::test_airflow_layers_monotonic_in_speed
+  ok   test_flight_sound_mix.gd::test_total_airflow_energy_monotonic
+  ok   test_flight_sound_mix.gd::test_caps_respected
+  ok   test_flight_sound_mix.gd::test_ambient_fades_with_altitude
+  ok   test_flight_sound_mix.gd::test_ground_wind_louder_gusts
+  ok   test_flight_sound_mix.gd::test_sideslip_pan
+  ok   test_flight_sound_mix.gd::test_luff_and_snaps_near_stall
+  ok   test_flight_sound_mix.gd::test_steps_follow_running_pace
+  ok   test_flight_sound_mix.gd::test_breath_and_pant
+  ok   test_flight_sound_mix.gd::test_creaks_under_load
+  ok   test_flight_sound_mix.gd::test_landing_gain_by_grade
+
+12 тестов, 0 упало, 0 пропущено

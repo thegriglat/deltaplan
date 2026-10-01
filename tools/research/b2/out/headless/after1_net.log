@@ -1,0 +1,60 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+    за 10.0 с блокировки второй процесс: ["connected 1790821212.221", "joined 1790821212.231 2"]
+  ok   test_host_busy.gd::test_join_while_host_blocked
+  NET-32 джиттер ±50 мс: рывок max 0.0083 м, отставание max 0.0108 м, extrap 436 кадров
+  ok   test_interpolation.gd::test_smooth_with_jitter
+  NET-32 потери 20 %: рывок max 0.1477 м, отставание max 0.1485 м, extrap 984, потеряно 121
+  ok   test_interpolation.gd::test_smooth_with_loss
+  ok   test_interpolation.gd::test_extrapolate_hold_lost
+  ok   test_interpolation.gd::test_out_of_order_and_meta
+  NET-32 трафик: 99 пакетов за 10 с, 1895 Б/с с кадрами WS, полезных 1815 Б/с, 165–294 Б
+    полный: {"pilotState":{"colors":{"hueDeg":213.7,"sat":0.93,"value":1.1},"name":"Григорий","phase":"PILOT_PHASE_RUN","pilotId":"7","pos":{"x":-3436.72,"y":1987.4,"z":5124.23},"rot":{"w":0.985,"x":-0.004,"y":-0.021,"z":0.174},"t":1234.6,"vel":{"x":-0.35,"y":1.0,"z":8.33},"wing":"wings/sport"}}
+    обычный: {"pilotState":{"pilotId":"7","pos":{"x":-3437.32,"y":1987.9,"z":5128.35},"rot":{"w":0.977,"x":-0.022,"y":-0.123,"z":0.173},"t":1235.1,"vel":{"x":-2.06,"y":1.0,"z":8.07}}}
+  ok   test_interpolation.gd::test_traffic
+  ok   test_interpolation.gd::test_two_clients_server
+WARNING: LanDiscovery: не слушать UDP 47074 (Unavailable)
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] start_listening (res://scripts/net/lan_discovery.gd:154)
+         [1] test_announce_listen_expire (res://tests/net/test_lan_discovery.gd:67)
+         [2] _wait (res://tests/net/test_lan_discovery.gd:138)
+    второй слушатель на том же порту: false
+  ok   test_lan_discovery.gd::test_announce_listen_expire
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+announcing
+    второй процесс: зона видна через 0.51 с после запуска
+  ok   test_lan_discovery.gd::test_two_processes
+  ok   test_local_server.gd::test_three_clients_host_local
+  ok   test_local_server.gd::test_protocol_rules
+  ok   test_messages.gd::test_doc_examples_round_trip
+  ok   test_messages.gd::test_lan_announce_examples
+  ok   test_messages.gd::test_defaults_filled
+  ok   test_messages.gd::test_garbage_and_unknown
+  ok   test_messages.gd::test_encode_omits_defaults
+  ok   test_messages.gd::test_int64_and_special_floats
+  ok   test_messages.gd::test_vec_quat_helpers
+  ok   test_net_client.gd::test_make_url
+  ok   test_net_client.gd::test_connect_failed_without_server
+  ok   test_net_client.gd::test_version_mismatch_not_retried
+  ok   test_net_client.gd::test_hello_ping
+  ok   test_net_client.gd::test_drop_retries_then_error
+  ok   test_net_client.gd::test_reconnect_after_restart
+  ok   test_zone.gd::test_zone_round_trip
+WARNING: NetZone: мир не совпал с миром создателя: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0 (d350ac5b8f7e9a15) ≠ свой deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0x (9b46703f133975d5)
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] check_world (res://scripts/net/net_zone.gd:297)
+         [1] test_world_key_and_check (res://tests/net/test_zone.gd:91)
+         [2] _ready (res://tests/run_tests.gd:36)
+         [3] test_reconnect_after_restart (res://tests/net/test_net_client.gd:153)
+         [4] _reconnect_after_restart (res://tests/net/test_net_client.gd:175)
+         [5] _wait (res://tests/net/test_net_client.gd:216)
+  ok   test_zone.gd::test_world_key_and_check
+  ok   test_zone.gd::test_three_pilots_leader_leaves
+  ok   test_zone.gd::test_wrong_code_and_rejoin
+
+28 тестов, 0 упало, 0 пропущено

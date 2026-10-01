@@ -1,0 +1,91 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_haze.gd::test_optical_depth_analytic_vs_numeric
+  ok   test_haze.gd::test_transmission_20km
+  ok   test_haze.gd::test_top_follows_inversion
+Terrain: локация 'altai' загружена за 3.46 с, чанков 160
+Terrain: локация 'ongudai' загружена за 1.98 с, чанков 160
+Terrain: локация 'askarovo' загружена за 1.50 с, чанков 160
+Terrain: локация 'aushkul' загружена за 2.15 с, чанков 160
+  ok   test_locations.gd::test_locations
+  ok   test_relief.gd::test_valley_wetter_than_ridge
+  ok   test_relief.gd::test_ao_darker_in_valley
+  ok   test_relief.gd::test_horizon_toward_sun
+Terrain: поля рельефа за 0.06 с
+  ok   test_relief.gd::test_terrain_set_sun_recomputes_shadow
+         поля detail (801²): 1.32 с { "resample": 0.006534, "terrain_pass": 0.269093, "flow": 0.172985, "moisture": 0.01724, "ao": 0.438967, "horizon": 0.37507, "textures": 0.039066 }
+         поля far (401²): 0.33 с { "resample": 0.001788, "terrain_pass": 0.065006, "flow": 0.061133, "moisture": 0.004491, "ao": 0.097721, "horizon": 0.089217, "textures": 0.010294 }
+  ok   test_relief.gd::test_compute_time_40km
+  ok   test_rocks.gd::test_models
+Terrain: локация 'ongudai' загружена за 2.49 с, чанков 160
+  ok   test_rocks.gd::test_deterministic_and_allowed
+  ok   test_rocks.gd::test_clearings
+  ok   test_rocks.gd::test_zz_cleanup
+Terrain: локация 'altai' загружена за 1.43 с, чанков 160
+  ok   test_surface.gd::test_surface_loaded_from_worldcover
+  ok   test_surface.gd::test_surface_at_matches_data
+  ok   test_surface.gd::test_real_places
+  ok   test_surface.gd::test_start_clearings_have_no_forest
+  ok   test_surface.gd::test_thermal_strength_by_class
+  ok   test_surface.gd::test_thermal_strength_by_exposure
+  ok   test_surface.gd::test_thermal_edge_boost
+  ok   test_surface.gd::test_thermal_fn_fits_atmosphere
+  ok   test_surface.gd::test_fallback_classifier
+  ok   test_surface.gd::test_cog_reader_synthetic
+  ok   test_surface.gd::test_haze_params_applied
+Terrain: локация 'ongudai' загружена за 0.61 с, чанков 160
+  FAIL test_surface.gd::test_forest_mask_loaded
+         check failed: загрузка Онгудая ≤ 0,5 с: 0.61 с
+         кромка леса 0,1→0,9: худшая 3.2 м (20 точек)
+  ok   test_surface.gd::test_forest_at_sharp_edge
+  ok   test_surface.gd::test_surface_at_forest_by_mask
+  ok   test_surface.gd::test_river_axis_is_water
+Terrain: локация 'aushkul' загружена за 0.83 с, чанков 160
+         IoU озера Аушкуль (OSM vs маска 10 м): 0.958
+  ok   test_surface.gd::test_lake_iou_aushkul
+         ступенька крон DSM на опушке: 12.0 м (40 кромок)
+  ok   test_surface.gd::test_height_includes_crowns
+  ok   test_surface.gd::test_zz_cleanup
+Terrain: локация 'altai' загружена за 1.87 с, чанков 160
+         загрузка локации: 1.87 с, чанков 160
+  ok   test_terrain.gd::test_load_time
+  ok   test_terrain.gd::test_height_matches_source_nodes
+  ok   test_terrain.gd::test_bilinear_between_nodes
+  ok   test_terrain.gd::test_layers_match_at_boundary
+  ok   test_terrain.gd::test_normal_on_plane
+  ok   test_terrain.gd::test_normal_real_terrain_unit_and_up
+  ok   test_terrain.gd::test_sun_exposure
+  ok   test_terrain.gd::test_start_sites
+  ok   test_terrain.gd::test_geo_roundtrip
+         10000 × height_at: 40.0 мс
+  ok   test_terrain.gd::test_height_at_speed
+  ok   test_terrain.gd::test_lod_selection
+  ok   test_terrain.gd::test_zz_cleanup
+  ok   test_terrain.gd::test_runtime_zoom_by_latitude
+  ok   test_terrain.gd::test_runtime_sea_check
+  ok   test_terrain.gd::test_load_progress_fractions
+Terrain: локация 'altai' загружена за 1.34 с, чанков 160
+  ok   test_trees.gd::test_models_loaded
+  ok   test_trees.gd::test_trees_only_on_forest
+  ok   test_trees.gd::test_clearings_mask
+  ok   test_trees.gd::test_edge_sink_smaller
+  ok   test_trees.gd::test_placement_deterministic
+  ok   test_trees.gd::test_lod_fade_pairs
+  ok   test_trees.gd::test_variant_by_place
+  ok   test_trees.gd::test_species_rules
+  ok   test_trees.gd::test_location_override_larch_ongudai
+  ok   test_trees.gd::test_wind_passed_to_shaders
+  ok   test_trees.gd::test_grass_and_wind_nodes
+  ok   test_trees.gd::test_grass_palette_by_location
+  ok   test_trees.gd::test_zz_cleanup
+  ok   test_wind.gd::test_offset_no_jump_on_wind_turn
+  ok   test_wind.gd::test_offset_matches_wind_times_dt
+  ok   test_wind.gd::test_gustiness_increases_gust_amplitude
+  ok   test_wind.gd::test_no_air_fn_matches_previous_behavior
+
+63 тестов, 1 упало, 0 пропущено
+WARNING: 18 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.

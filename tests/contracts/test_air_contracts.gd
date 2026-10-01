@@ -331,9 +331,11 @@ func test_c2_air_case_grid() -> void:
 	check(nh.dims() == c.dims(), "without_heat(): та же сетка")
 
 
-## C2 v3 (инвариант, 01.10.2026): `AirCase.p` игры = `Params()` эталона air.py по всем общим
-## ключам (числа и флаги; None эталона ↔ NAN игры не сверяются); α и max_profile решателя = профиль
-## WindModel (`configs/atmosphere.json → wind`). Ломается, если параметр поменяли в одном месте.
+## C2 v4 (инвариант, 01.10.2026): `AirCase.p` игры = `Params()` эталона air.py по всем общим
+## ключам, кроме профиля притока alpha/max_profile (у случая — из WindProfile; None эталона ↔ NAN
+## игры не сверяются); `Params().alpha` = α_N = `wind.shear_exponent_neutral`; WindProfile и
+## rules.py (C10 v3) на контрольных входах дают одно z_sat/max_profile; WindModel берёт α и предел
+## из той же функции. Ломается, если параметр поменяли в одном месте.
 func test_c2_params_match_reference() -> void:
 	var src := FileAccess.get_file_as_string("res://tools/research/air3d/air.py")
 	check(src != "", "есть air.py")
@@ -345,6 +347,7 @@ func test_c2_params_match_reference() -> void:
 	var re := RegEx.create_from_string(pat)
 	var p: Dictionary = AirCase.new().p
 	var seen := 0
+	var ref_alpha := NAN
 	for m in re.search_all(body):
 		var key := m.get_string(1)
 		var lit := m.get_string(2).strip_edges()
@@ -354,6 +357,8 @@ func test_c2_params_match_reference() -> void:
 		var ok := e.parse(lit.replace("True", "true").replace("False", "false")) == OK
 		var ref: Variant = e.execute() if ok else null
 		check(ok and not e.has_execute_failed(), "air.py Params.%s = %s разбирается" % [key, lit])
+		if key == "alpha":
+			ref_alpha = float(ref)
 		if ref is bool:
 			check(bool(p[key]) == ref, "AirCase.p.%s = %s, air.py %s" % [key, p[key], ref])
 		else:
@@ -363,11 +368,78 @@ func test_c2_params_match_reference() -> void:
 			check(same, "AirCase.p.%s = %s, air.py Params = %s" % [key, g, r])
 		seen += 1
 	check(seen >= 20, "сверено общих ключей: %d" % seen)
+	check(is_nan(float(p.max_profile)), "AirCase.p.max_profile по умолчанию — правило z_sat (NAN)")
+	# α_N: конфиг = Params().alpha = AirCase.p.alpha = WindProfile.alpha_n()
 	var wind: Dictionary = _json("res://configs/atmosphere.json").get("wind", {})
-	var sh := float(wind.get("shear_exponent", NAN))
-	approx(sh, float(p.alpha), 1.0e-9, "α решателя = wind.shear_exponent")
-	var mp := float(wind.get("max_profile_factor", NAN))
-	approx(mp, float(p.max_profile), 1.0e-9, "max_profile решателя = wind.max_profile_factor")
+	check(
+		not wind.has("shear_exponent") and not wind.has("max_profile_factor"), "старые ключи удалены"
+	)
+	var an := float(wind.get("shear_exponent_neutral", NAN))
+	approx(an, 0.24, 1.0e-12, "wind.shear_exponent_neutral = 0,24 (Б1)")
+	approx(ref_alpha, an, 1.0e-12, "air.py Params().alpha = α_N")
+	approx(WindProfile.alpha_n(), an, 1.0e-12, "WindProfile.alpha_n() = конфиг")
+	approx(float(wind.get("z_sat_frac", NAN)), 0.3, 1.0e-12, "wind.z_sat_frac = 0,3 (rules.py)")
+	# z_sat и max_profile = rules.py (C10 v3): (α, U10, z0, f) → (z_sat, max_profile), числа rules.py
+	var ctl := [
+		[0.24, 3.0, 0.1, 1.13e-4, 207.53895595376636, 2.0706367164370936],
+		[0.112, 6.0, 0.1, 1.13e-4, 415.0779119075327, 1.5178558116209047],
+		[0.56, 3.0, 0.1, 1.13e-4, 207.53895595376636, 5.464819115772987],
+		[0.235, 8.8, 0.03, 1.23e-4, 443.37172632728226, 2.437757373849812],
+	]
+	for r: Array in ctl:
+		var tag := "α %s U10 %s z0 %s f %s" % [r[0], r[1], r[2], r[3]]
+		approx(WindProfile.z_sat(r[1], r[2], r[3]), r[4], 1.0e-9 * r[4], "z_sat = rules.py: " + tag)
+		approx(
+			WindProfile.max_profile(r[0], r[1], r[2], r[3]),
+			r[5],
+			1.0e-9 * r[5],
+			"max_profile = rules.py: " + tag
+		)
+	# C2 v5: устойчивые E, F — h = min(0,3u*/f, 0,4√(u*L/f)), L по Golder 1972 (числа wind_prof.py:
+	# E при z0 0,1 м — L 45,5 м, F — 14,1 м); (α, U10, z0, f, класс) → (z_sat, max_profile)
+	var ctl_s := [
+		[0.56, 3.0, 0.1, 1.13e-4, 4, 38.85066569723485, 2.1382729414369037],
+		[0.88, 3.0, 0.1, 1.13e-4, 5, 21.626220702370595, 1.9714372357973053],
+		[0.88, 5.0, 0.1, 1.13e-4, 5, 27.91933087389579, 2.4682912571816895],
+	]
+	for r: Array in ctl_s:
+		var mp := WindProfile.max_profile(r[0], r[1], r[2], r[3], r[4])
+		approx(WindProfile.z_sat(r[1], r[2], r[3], r[4]), r[5], 1.0e-9 * r[5], "z_sat E/F %s" % r)
+		approx(mp, r[6], 1.0e-9 * r[6], "max_profile E/F %s" % r)
+	approx(WindProfile.z_sat(3.0, 0.1, 1.13e-4, 3), ctl[0][4], 1.0e-6, "D — как rules.py")
+	# класс Тёрнера → α (Irwin 1979 к D): полдень ясно — A (штиль), B (3 м/с), D (6 м/с);
+	# облачно 3 м/с — D; ночь ясно 3 м/с — F, облачно — E
+	var cls := [
+		[0.0, 56.8, 0.0, 0], [3.0, 56.8, 0.0, 1], [6.0, 56.8, 0.0, 3], [3.0, 56.8, 0.85, 3],
+		[3.0, 32.1, 0.0, 2], [3.0, 4.7, 0.0, 5], [3.0, 4.7, 0.85, 4], [3.0, 10.8, 0.0, 3],
+	]
+	for r: Array in cls:
+		var k := WindProfile.stability_class(r[0], r[1], r[2])
+		check(
+			k == r[3],
+			"класс U10 %s, солнце %s°, облачность %s: %s (ждали %s)"
+			% [r[0], r[1], r[2], WindProfile.CLASSES[k], WindProfile.CLASSES[r[3]]]
+		)
+	approx(WindProfile.alpha(6.0, 56.8, 0.0), an, 1.0e-12, "класс D: α = α_N")
+	approx(WindProfile.alpha(3.0, 56.8, 0.0), an * 0.07 / 0.15, 1.0e-12, "класс B: α = α_N·0,07/0,15")
+	# одна функция у решателя и WindModel: тот же час и ветер → те же α и предел
+	var ctx := {month = 7, day = 15, lat = 50.79, lon = 86.13, utc_offset_h = 7.0}
+	var c := AirCase.new()
+	c.u10 = 3.0
+	WindProfile.apply_to_case(c, ctx, 12.0, 0.0)
+	var sun := WindProfile.sun_elevation(ctx, 12.0)
+	var wm := WindModel.new()
+	var cfg := _json("res://configs/atmosphere.json")
+	wm.setup(cfg.wind, cfg.turbulence, 1)
+	wm.set_conditions(sun, 0.0)
+	wm.set_wind(3.0, 150.0)
+	var pp := wm.profile_params()
+	approx(pp.x, float(c.p.alpha), 1.0e-6, "WindModel α = α случая решателя (12:00, 3 м/с)")
+	approx(pp.y, float(c.p.max_profile), 1.0e-6, "WindModel предел = max_profile случая")
+	approx(wm.profile(1.0e4), float(c.p.max_profile), 1.0e-6, "WindModel выше z_sat = max_profile")
+	# вечер, ясно, 3 м/с — класс F: на 300 м ≈ 2·U10, а не 14·U10 (v4)
+	wm.set_conditions(6.4, 0.0)
+	approx(wm.profile(300.0), 1.9714372357973053, 1.0e-6, "F: WindModel на 300 м = max_profile F")
 
 
 static func _case_meta(c: AirCase, z_i: float) -> Dictionary:
