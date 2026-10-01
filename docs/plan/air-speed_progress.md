@@ -18,3 +18,6 @@ a554502).
 ## Задачи
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа / решения |
 |---|---|---|---|---|---|
+| SP-3 Подготовка без циклов GDScript | в работе (01.10) | dp-engineer | `~/deltaplan-air-speed-sp3` / `air-speed/sp3` | — | — |
+| SP-2 Загрузка одним проходом | в работе (01.10) | dp-engineer | `~/deltaplan-air-speed-sp2` / `air-speed/sp2` | — | — |
+| SP-1 Пересчёт в полёте: исследование | в работе (01.10) | dp-researcher | `~/deltaplan-air-speed-sp1` / `air-speed/sp1` | — | — |
