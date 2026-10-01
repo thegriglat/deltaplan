@@ -1,0 +1,165 @@
+{
+ "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+ "rows": [
+  {
+   "case": "tiny_bar",
+   "gpu_ms": 0.00256,
+   "k": 1,
+   "n": 64,
+   "us_per_launch": 2.56,
+   "wall_ms": 0.054
+  },
+  {
+   "case": "tiny_bar",
+   "gpu_ms": 0.015872,
+   "k": 10,
+   "n": 64,
+   "us_per_launch": 1.5872,
+   "wall_ms": 0.085
+  },
+  {
+   "case": "tiny_bar",
+   "gpu_ms": 0.139776,
+   "k": 100,
+   "n": 64,
+   "us_per_launch": 1.39776,
+   "wall_ms": 0.389
+  },
+  {
+   "case": "tiny_bar",
+   "gpu_ms": 0.56576,
+   "k": 400,
+   "n": 64,
+   "us_per_launch": 1.4144,
+   "wall_ms": 1.499
+  },
+  {
+   "case": "tiny_bar",
+   "gpu_ms": 1.40112,
+   "k": 1000,
+   "n": 64,
+   "us_per_launch": 1.40112,
+   "wall_ms": 3.61
+  },
+  {
+   "case": "tiny_nobar",
+   "gpu_ms": 0.00304,
+   "k": 1,
+   "n": 64,
+   "us_per_launch": 3.04,
+   "wall_ms": 0.054
+  },
+  {
+   "case": "tiny_nobar",
+   "gpu_ms": 0.00416,
+   "k": 10,
+   "n": 64,
+   "us_per_launch": 0.416,
+   "wall_ms": 0.064
+  },
+  {
+   "case": "tiny_nobar",
+   "gpu_ms": 0.01824,
+   "k": 100,
+   "n": 64,
+   "us_per_launch": 0.1824,
+   "wall_ms": 0.172
+  },
+  {
+   "case": "tiny_nobar",
+   "gpu_ms": 0.064,
+   "k": 400,
+   "n": 64,
+   "us_per_launch": 0.16,
+   "wall_ms": 0.505
+  },
+  {
+   "case": "tiny_nobar",
+   "gpu_ms": 0.167232,
+   "k": 1000,
+   "n": 64,
+   "us_per_launch": 0.167232,
+   "wall_ms": 1.193
+  },
+  {
+   "case": "n500k_bar",
+   "gpu_ms": 0.006528,
+   "k": 1,
+   "n": 500000,
+   "us_per_launch": 6.528,
+   "wall_ms": 0.057
+  },
+  {
+   "case": "n500k_bar",
+   "gpu_ms": 0.058496,
+   "k": 10,
+   "n": 500000,
+   "us_per_launch": 5.8496,
+   "wall_ms": 0.13
+  },
+  {
+   "case": "n500k_bar",
+   "gpu_ms": 0.565728,
+   "k": 100,
+   "n": 500000,
+   "us_per_launch": 5.65728,
+   "wall_ms": 0.905
+  },
+  {
+   "case": "n500k_bar",
+   "gpu_ms": 2.254112,
+   "k": 400,
+   "n": 500000,
+   "us_per_launch": 5.63528,
+   "wall_ms": 3.278
+  },
+  {
+   "case": "n500k_bar",
+   "gpu_ms": 5.631872,
+   "k": 1000,
+   "n": 500000,
+   "us_per_launch": 5.631872,
+   "wall_ms": 8.245
+  },
+  {
+   "case": "n2m_bar",
+   "gpu_ms": 0.01872,
+   "k": 1,
+   "n": 2000000,
+   "us_per_launch": 18.72,
+   "wall_ms": 0.093
+  },
+  {
+   "case": "n2m_bar",
+   "gpu_ms": 0.180704,
+   "k": 10,
+   "n": 2000000,
+   "us_per_launch": 18.0704,
+   "wall_ms": 0.276
+  },
+  {
+   "case": "n2m_bar",
+   "gpu_ms": 1.778208,
+   "k": 100,
+   "n": 2000000,
+   "us_per_launch": 17.78208,
+   "wall_ms": 2.329
+  },
+  {
+   "case": "n2m_bar",
+   "gpu_ms": 6.836992,
+   "k": 400,
+   "n": 2000000,
+   "us_per_launch": 17.09248,
+   "wall_ms": 9.053
+  },
+  {
+   "case": "n2m_bar",
+   "gpu_ms": 16.68912,
+   "k": 1000,
+   "n": 2000000,
+   "us_per_launch": 16.68912,
+   "wall_ms": 21.866
+  }
+ ]
+}
