@@ -50,12 +50,12 @@
       "section": "controls_in_flight"
     },
     {
-      "action": "pitch_pull_in",
-      "text": "controls_pull_in"
-    },
-    {
       "action": "pitch_push_out",
       "text": "controls_push_out"
+    },
+    {
+      "action": "pitch_pull_in",
+      "text": "controls_pull_in"
     },
     {
       "action": "roll_left",
