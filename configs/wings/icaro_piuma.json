@@ -164,7 +164,7 @@
     "_doc": "Внешний вид. Модель заменяемая: новый .glb + правка пути. root_chord_m, sweep_m, color — для заглушки",
     "visual_model": "res://assets/models/glider_icaro_piuma.glb",
     "visual_model_doc": "Модель крыла с трапецией (контракт — docs/flight.md): ноды Sail, ControlFrame, маркеры HangPoint (начало координат), BaseBar, InstrumentMount, WingTipL, WingTipR",
-    "root_chord_m": 2.53,
+    "root_chord_m": 2.45,
     "root_chord_m_doc": "Хорда в корне (длина киля), м",
     "sweep_m": 1.3,
     "sweep_m_doc": "Смещение концов крыла назад от носа, м",
