@@ -86,12 +86,12 @@ controls_glance,Держать — посмотреть на прибор на �
 controls_mouse_look,Мышь — повернуть голову; средняя кнопка или V — снова смотреть вперёд,Mouse — turn your head; middle button or V — look ahead
 controls_mouse_bar,Мышь — трапеция; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar; middle button or V — look ahead
 controls_mouse_bar_look,В режиме «мышь — трапеция»: держать правую кнопку — осмотреться,In “mouse — control bar” mode: hold the right button to look around
-controls_walk,Идти вперёд,Walk forward
+controls_walk,Шаг вперёд (без Shift),Step forward (without Shift)
 controls_step_back,Шаг назад,Step back
-controls_turn_on_ground,Повернуться с крылом налево (D — направо),Turn with the wing to the left (D — right)
-controls_run,Держать вместе с W — бежать (разбег),Hold together with W — run (launch run)
-controls_run_nose,Во время разбега нос держится сам; стрелки ↑/↓ — чуть подправить нос,During the launch run the nose holds itself; ↑/↓ — fine-tune it
-controls_liftoff_keys,"При отрыве от земли зажатые клавиши не действуют — отпустите и нажмите заново, чтобы взяться за трапецию","At liftoff, held keys do nothing — release and press again to take the bar"
+controls_turn_on_ground,Повернуться на месте налево (D — направо); крыло не кренится,Turn in place to the left (D — right); the wing does not bank
+controls_run,Держать — бежать (разбег); W не нужен,Hold — run (launch run); no W needed
+controls_ground_wing,"Стоя и шагом: нос и крен крыла — стрелки, мышь или стик","Standing and walking: wing nose and bank — arrow keys, mouse or stick"
+controls_run_wing,"На бегу: W/S, A/D, стрелки, мышь — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: W/S, A/D, arrows, mouse — wing nose and bank, as in flight; a banked wing turns the run into an arc"
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
