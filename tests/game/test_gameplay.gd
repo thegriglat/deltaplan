@@ -123,8 +123,8 @@ func test_takeoff_latch() -> void:
 			break
 	check(flew, "взлетел разбегом W+Shift")
 	_ticks(game, 0.5)
-	check(game.input_controller.is_latched("pitch_pull_in"), "W защёлкнута после отрыва")
-	check(game.input_controller.control.pitch > -0.5, "зажатая W не тянет трапецию на себя")
+	check(game.input_controller.is_latched("pitch_pull_in"), "«на себя» (pitch_pull_in) защёлкнута после отрыва")
+	check(game.input_controller.control.pitch > -0.5, "зажатая «на себя» не тянет трапецию на себя")
 	_release()
 	game.tick(DT)
 	check(not game.input_controller.is_latched("pitch_pull_in"), "отпустил — защёлка снята")
