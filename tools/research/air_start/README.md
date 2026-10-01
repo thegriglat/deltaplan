@@ -17,6 +17,10 @@
   остаток, аналитика рядом, поле/аналитика, время загрузки.
 - `passes_probe.gd/.tscn`, `passes_run.sh`, `passes_summary.py` — сходимость по проходам (до 4; проход 2 —
   k·u10/U, дальше секущая по двум последним), время каждого прохода.
+- `slow_wind_probe.gd/.tscn`, `slow_wind_run.sh` → `out/slow_wind.csv` — слабый ветер (Онгудай, kayancha_south:
+  12:00 3 м/с с 180°, 2 и 1 м/с с 270°, штиль 9:00): по проходам k, итерации области [без нагрева, с нагревом] и
+  окон, время, GPU, упор в 3000; варианты p1 (один проход, как 1.0.0), p2 (тёплый проход 2), p2cold.
+- `residual_probe.gd/.tscn` → `out/residuals.csv` — история невязок решателя области (k = 1) на слабом ветре.
 - `out/before/` — данные WPC-2 из `576550e` (поле посчитано на коде = main 1.0.0): `wind_profile.csv`,
   `wind_profile_meta.jsonl`, `wind_summary.md/.csv`, `terrain_lines.json`, `hill_geometry.json`.
 - `out/after/` — ветка `air-start/as1`, два прохода (C9 v3): аналитика и поле, сводка WPC-2 и графики `fig/`.
@@ -34,6 +38,9 @@
     tools/research/air_start/passes_run.sh                                  # проходы 1–4
     python3 tools/research/air_start/compare.py after                       # только таблица
     python3 tools/research/air_start/passes_summary.py
+    tools/research/air_start/slow_wind_run.sh                               # слабый ветер по проходам
+    XDG_DATA_HOME=$(mktemp -d) flock /tmp/heat_ca_gpu.lock godot --path . --audio-driver Dummy \
+      --resolution 320x240 res://tools/research/air_start/residual_probe.tscn   # невязки
 
 Сводка WPC-2 (`wind_audit.py`) требует matplotlib (venv `tools/research/heat_ca/.venv`).
 
