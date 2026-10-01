@@ -1,0 +1,119 @@
+{
+  "src": "pdf__Alto_2022_Metric-Imperial_data.pdf.txt",
+  "wings": [
+    {
+      "manufacturer": "",
+      "model": "Alto",
+      "size": "S",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 13.75, "unit": "m^2", "quote": "Wing Surface m^2 - sq ft 13.75 – 148.0"},
+        {"field": "area", "value": 148.0, "unit": "sq ft", "quote": "Wing Surface m^2 - sq ft 13.75 – 148.0"},
+        {"field": "span", "value": 9.77, "unit": "m", "quote": "Wing Span m - ft 9.77 – 32.1"},
+        {"field": "span", "value": 32.1, "unit": "ft", "quote": "Wing Span m - ft 9.77 – 32.1"},
+        {"field": "aspect_ratio", "value": 6.9, "unit": "", "quote": "Aspect Ratio 6.9"},
+        {"field": "double_surface_pct", "value": 85, "unit": "%", "quote": "Double Surface % 85%"},
+        {"field": "battens", "value": 20, "unit": "", "quote": "Battens (Upper + Lower) n° 16 + 4"},
+        {"field": "wing_mass", "value": 27, "unit": "kg", "quote": "Weight (Without glider bag) kg - lb 27 – 59.5"},
+        {"field": "wing_mass", "value": 59.5, "unit": "lb", "quote": "Weight (Without glider bag) kg - lb 27 – 59.5"},
+        {"field": "pilot_mass_min", "value": 60, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 60/85 – 132/187"},
+        {"field": "pilot_mass_max", "value": 85, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 60/85 – 132/187"},
+        {"field": "takeoff_mass_min", "value": 75, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 75/115 – 165/254"},
+        {"field": "takeoff_mass_max", "value": 115, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 75/115 – 165/254"},
+        {"field": "vne", "value": 90, "unit": "km/h", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "stall_speed", "value": 29, "unit": "km/h", "quote": "Stall speed km/h - mph 29 – 18"},
+        {"field": "stall_speed", "value": 18, "unit": "mph", "quote": "Stall speed km/h - mph 29 – 18"},
+        {"field": "nose_angle", "value": 128, "unit": "deg", "quote": "Nose Angle ° 128"}
+      ],
+      "geometry": [
+        {"name": "Wing Span with wingtips", "value": 9.89, "unit": "m", "quote": "Wing Span with wingtips m - ft 9.89 – 32.4"},
+        {"name": "Wing Span with wingtips", "value": 32.4, "unit": "ft", "quote": "Wing Span with wingtips m - ft 9.89 – 32.4"},
+        {"name": "Wing Surface with wingtips", "value": 13.85, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 - sq ft 13.85 – 149.1"},
+        {"name": "Wing Surface with wingtips", "value": 149.1, "unit": "sq ft", "quote": "Wing Surface with wingtips m^2 - sq ft 13.85 – 149.1"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.0, "unit": "", "quote": "Aspect Ratio with wingtips 7.0"},
+        {"name": "Packed Length", "value": 4.90, "unit": "m", "quote": "Packed Length m - ft 4.90 – 16.1"},
+        {"name": "Packed Length", "value": 16.1, "unit": "ft", "quote": "Packed Length m - ft 4.90 – 16.1"},
+        {"name": "Short Packed Length", "value": 3.45, "unit": "m", "quote": "Short Packed Length m - ft 3.45 – 11.3"},
+        {"name": "Short Packed Length", "value": 11.3, "unit": "ft", "quote": "Short Packed Length m - ft 3.45 – 11.3"}
+      ]
+    },
+    {
+      "manufacturer": "",
+      "model": "Alto",
+      "size": "M",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 14.63, "unit": "m^2", "quote": "Wing Surface m^2 - sq ft 14.63 – 157.5"},
+        {"field": "area", "value": 157.5, "unit": "sq ft", "quote": "Wing Surface m^2 - sq ft 14.63 – 157.5"},
+        {"field": "span", "value": 9.98, "unit": "m", "quote": "Wing Span m - ft 9.98 – 32.7"},
+        {"field": "span", "value": 32.7, "unit": "ft", "quote": "Wing Span m - ft 9.98 – 32.7"},
+        {"field": "aspect_ratio", "value": 6.8, "unit": "", "quote": "Aspect Ratio 6.8"},
+        {"field": "double_surface_pct", "value": 85, "unit": "%", "quote": "Double Surface % 85%"},
+        {"field": "battens", "value": 20, "unit": "", "quote": "Battens (Upper + Lower) n° 16 + 4"},
+        {"field": "wing_mass", "value": 28.5, "unit": "kg", "quote": "Weight (Without glider bag) kg - lb 28.5 – 62.8"},
+        {"field": "wing_mass", "value": 62.8, "unit": "lb", "quote": "Weight (Without glider bag) kg - lb 28.5 – 62.8"},
+        {"field": "pilot_mass_min", "value": 70, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 70/93 – 154/205"},
+        {"field": "pilot_mass_max", "value": 93, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 70/93 – 154/205"},
+        {"field": "takeoff_mass_min", "value": 80, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 80/121 – 176/267"},
+        {"field": "takeoff_mass_max", "value": 121, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 80/121 – 176/267"},
+        {"field": "vne", "value": 90, "unit": "km/h", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "stall_speed", "value": 29, "unit": "km/h", "quote": "Stall speed km/h - mph 29 – 18"},
+        {"field": "stall_speed", "value": 18, "unit": "mph", "quote": "Stall speed km/h - mph 29 – 18"},
+        {"field": "nose_angle", "value": 128, "unit": "deg", "quote": "Nose Angle ° 128"}
+      ],
+      "geometry": [
+        {"name": "Wing Span with wingtips", "value": 10.10, "unit": "m", "quote": "Wing Span with wingtips m - ft 10.10 – 33.1"},
+        {"name": "Wing Span with wingtips", "value": 33.1, "unit": "ft", "quote": "Wing Span with wingtips m - ft 10.10 – 33.1"},
+        {"name": "Wing Surface with wingtips", "value": 14.73, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 - sq ft 14.73 – 158.6"},
+        {"name": "Wing Surface with wingtips", "value": 158.6, "unit": "sq ft", "quote": "Wing Surface with wingtips m^2 - sq ft 14.73 – 158.6"},
+        {"name": "Aspect Ratio with wingtips", "value": 6.9, "unit": "", "quote": "Aspect Ratio with wingtips 6.9"},
+        {"name": "Packed Length", "value": 5.15, "unit": "m", "quote": "Packed Length m - ft 5.15 – 16.9"},
+        {"name": "Packed Length", "value": 16.9, "unit": "ft", "quote": "Packed Length m - ft 5.15 – 16.9"},
+        {"name": "Short Packed Length", "value": 3.90, "unit": "m", "quote": "Short Packed Length m - ft 3.90 – 12.8"},
+        {"name": "Short Packed Length", "value": 12.8, "unit": "ft", "quote": "Short Packed Length m - ft 3.90 – 12.8"}
+      ]
+    },
+    {
+      "manufacturer": "",
+      "model": "Alto",
+      "size": "L",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 15.25, "unit": "m^2", "quote": "Wing Surface m^2 - sq ft 15.25 - 164.1"},
+        {"field": "area", "value": 164.1, "unit": "sq ft", "quote": "Wing Surface m^2 - sq ft 15.25 - 164.1"},
+        {"field": "span", "value": 10.36, "unit": "m", "quote": "Wing Span m - ft 10.36 – 34.0"},
+        {"field": "span", "value": 34.0, "unit": "ft", "quote": "Wing Span m - ft 10.36 – 34.0"},
+        {"field": "aspect_ratio", "value": 7.0, "unit": "", "quote": "Aspect Ratio 7.0"},
+        {"field": "double_surface_pct", "value": 85, "unit": "%", "quote": "Double Surface % 85%"},
+        {"field": "battens", "value": 20, "unit": "", "quote": "Battens (Upper + Lower) n° 16 + 4"},
+        {"field": "wing_mass", "value": 29.5, "unit": "kg", "quote": "Weight (Without glider bag) kg - lb 29.5 – 65.0"},
+        {"field": "wing_mass", "value": 65.0, "unit": "lb", "quote": "Weight (Without glider bag) kg - lb 29.5 – 65.0"},
+        {"field": "pilot_mass_min", "value": 85, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 85/109 – 187/240"},
+        {"field": "pilot_mass_max", "value": 109, "unit": "kg", "quote": "Hook-in Pilot Weight (Min / Max) kg - lb 85/109 – 187/240"},
+        {"field": "takeoff_mass_min", "value": 90, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 90/138 – 198/304"},
+        {"field": "takeoff_mass_max", "value": 138, "unit": "kg", "quote": "DHV Certification Weight (Min/Max) kg - lb 90/138 – 198/304"},
+        {"field": "vne", "value": 90, "unit": "km/h", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE km/h - mph 90 – 56"},
+        {"field": "stall_speed", "value": 28, "unit": "km/h", "quote": "Stall speed km/h - mph 28 - 17"},
+        {"field": "stall_speed", "value": 17, "unit": "mph", "quote": "Stall speed km/h - mph 28 - 17"},
+        {"field": "nose_angle", "value": 128, "unit": "deg", "quote": "Nose Angle ° 128"}
+      ],
+      "geometry": [
+        {"name": "Wing Span with wingtips", "value": 10.48, "unit": "m", "quote": "Wing Span with wingtips m - ft 10.48 – 34.4"},
+        {"name": "Wing Span with wingtips", "value": 34.4, "unit": "ft", "quote": "Wing Span with wingtips m - ft 10.48 – 34.4"},
+        {"name": "Wing Surface with wingtips", "value": 15.35, "unit": "m^2", "quote": "Wing Surface with wingtips m^2 - sq ft 15.35 – 165.2"},
+        {"name": "Wing Surface with wingtips", "value": 165.2, "unit": "sq ft", "quote": "Wing Surface with wingtips m^2 - sq ft 15.35 – 165.2"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.2, "unit": "", "quote": "Aspect Ratio with wingtips 7.2"},
+        {"name": "Packed Length", "value": 5.30, "unit": "m", "quote": "Packed Length m - ft 5.30 – 17.4"},
+        {"name": "Packed Length", "value": 17.4, "unit": "ft", "quote": "Packed Length m - ft 5.30 – 17.4"},
+        {"name": "Short Packed Length", "value": 3.94, "unit": "m", "quote": "Short Packed Length m - ft 3.94 – 12.9"},
+        {"name": "Short Packed Length", "value": 12.9, "unit": "ft", "quote": "Short Packed Length m - ft 3.94 – 12.9"}
+      ]
+    }
+  ]
+}

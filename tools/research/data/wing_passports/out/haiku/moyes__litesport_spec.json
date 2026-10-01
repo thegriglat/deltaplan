@@ -1,0 +1,231 @@
+{
+  "src": "moyes__litesport_spec.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Moyes",
+      "model": "Litesport",
+      "size": "3",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13,
+          "unit": "sq.m",
+          "quote": "Area 13 sq.m"
+        },
+        {
+          "field": "span",
+          "value": 9.4,
+          "unit": "m",
+          "quote": "Span 9.4 m"
+        },
+        {
+          "field": "nose_angle",
+          "value": 127,
+          "unit": "degrees",
+          "quote": "Nose Angle 127 - 129 degrees"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.8,
+          "unit": "",
+          "quote": "Aspect Ratio 6.8"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30,
+          "unit": "kgs",
+          "quote": "Glider Weight * 30 kgs"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 65,
+          "unit": "kgs",
+          "quote": "Hook-In-Weight 65-85 kgs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 85,
+          "unit": "kgs",
+          "quote": "Hook-In-Weight 65-85 kgs"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "VNE 85 kph"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "VA 74 kph"
+        },
+        {
+          "field": "stall_speed",
+          "value": 26,
+          "unit": "kph",
+          "quote": "Stall Speed *** 26 kph"
+        },
+        {
+          "field": "trim_speed",
+          "value": 34,
+          "unit": "kph",
+          "quote": "Trim Speed 34 kph"
+        },
+        {
+          "field": "vms",
+          "value": -1.0,
+          "unit": "m/s",
+          "quote": "Minimum Sink Point: -1.0m/s @ 38km/h"
+        },
+        {
+          "field": "best_glide",
+          "value": 14,
+          "unit": "",
+          "quote": "Best Glide Angle 14:1"
+        },
+        {
+          "field": "battens",
+          "value": 27,
+          "unit": "",
+          "quote": "Number of Battens Top 21 Bottom 6"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Packed Length",
+          "value": 4900,
+          "unit": "mm",
+          "quote": "Packed Length 4900 mm"
+        },
+        {
+          "name": "Packed Length - Short",
+          "value": 3980,
+          "unit": "mm",
+          "quote": "Packed Length - Short 3980 mm"
+        },
+        {
+          "name": "Centre of Gravity (Front of Keel)",
+          "value": 1370,
+          "unit": "mm",
+          "quote": "Centre of Gravity (Front of Keel) ** 1370 mm"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Moyes",
+      "model": "Litesport",
+      "size": "4",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.8,
+          "unit": "sq.m",
+          "quote": "Area 13.8 sq.m"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Span 9.6 m"
+        },
+        {
+          "field": "nose_angle",
+          "value": 127,
+          "unit": "degrees",
+          "quote": "Nose Angle 127 - 129 degrees"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.7,
+          "unit": "",
+          "quote": "Aspect Ratio 6.7"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.8,
+          "unit": "kgs",
+          "quote": "Glider Weight * 31.8 kgs"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 68,
+          "unit": "kgs",
+          "quote": "Hook-In-Weight 68-109 kgs"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 109,
+          "unit": "kgs",
+          "quote": "Hook-In-Weight 68-109 kgs"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "VNE 85 kph"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "VA 74 kph"
+        },
+        {
+          "field": "stall_speed",
+          "value": 26,
+          "unit": "kph",
+          "quote": "Stall Speed *** 26 kph"
+        },
+        {
+          "field": "trim_speed",
+          "value": 34,
+          "unit": "kph",
+          "quote": "Trim Speed 34 kph"
+        },
+        {
+          "field": "vms",
+          "value": -1.0,
+          "unit": "m/s",
+          "quote": "Minimum Sink Point: -1.0m/s @ 38km/h"
+        },
+        {
+          "field": "best_glide",
+          "value": 14,
+          "unit": "",
+          "quote": "Best Glide Angle 14:1"
+        },
+        {
+          "field": "battens",
+          "value": 27,
+          "unit": "",
+          "quote": "Number of Battens Top 21 Bottom 6"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Packed Length",
+          "value": 4950,
+          "unit": "mm",
+          "quote": "Packed Length 4950 mm"
+        },
+        {
+          "name": "Packed Length - Short",
+          "value": 4330,
+          "unit": "mm",
+          "quote": "Packed Length - Short 4330 mm"
+        },
+        {
+          "name": "Centre of Gravity (Front of Keel)",
+          "value": 1390,
+          "unit": "mm",
+          "quote": "Centre of Gravity (Front of Keel) ** 1390 mm"
+        }
+      ]
+    }
+  ]
+}

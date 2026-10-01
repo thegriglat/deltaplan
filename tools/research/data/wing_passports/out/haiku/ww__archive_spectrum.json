@@ -1,0 +1,133 @@
+{
+  "src_files": ["ww__archive_spectrum.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "144",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "HGMA 10/30/90",
+      "facts": [
+        {
+          "field": "area",
+          "value": 144,
+          "unit": "ft²",
+          "quote": "Area (ft²) 144"
+        },
+        {
+          "field": "span",
+          "value": 31,
+          "unit": "ft",
+          "quote": "Span (ft) 31"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.7,
+          "unit": "",
+          "quote": "Aspect Ratio 6.7"
+        },
+        {
+          "field": "nose_angle",
+          "value": 120,
+          "unit": "deg",
+          "quote": "Nose Angle 120°"
+        },
+        {
+          "field": "wing_mass",
+          "value": 54,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 54"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 110,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 110-210"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 110-210"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "165",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "HGMA 6/30/90",
+      "facts": [
+        {
+          "field": "area",
+          "value": 165,
+          "unit": "ft²",
+          "quote": "Area (ft²) 165"
+        },
+        {
+          "field": "span",
+          "value": 34,
+          "unit": "ft",
+          "quote": "Span (ft) 34"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.0,
+          "unit": "",
+          "quote": "Aspect Ratio 7.0"
+        },
+        {
+          "field": "nose_angle",
+          "value": 121,
+          "unit": "deg",
+          "quote": "Nose Angle 121°"
+        },
+        {
+          "field": "wing_mass",
+          "value": 60,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 60"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 140,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-240"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 240,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 140-240"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

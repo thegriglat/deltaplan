@@ -1,0 +1,153 @@
+{
+  "src": "pdf__Laminar_2022_Imperial_data.pdf.txt",
+  "wings": [
+    {
+      "manufacturer": "Laminar",
+      "model": "Laminar",
+      "size": "L12.6 (S)",
+      "cert_class": "",
+      "cert_standard": "01-0446-09",
+      "facts": [
+        {"field": "area", "value": 133.5, "unit": "sq ft", "quote": "Wing Surface sq ft 133.5"},
+        {"field": "span", "value": 31.3, "unit": "ft", "quote": "Wing Span ft 31.3"},
+        {"field": "aspect_ratio", "value": 7.36, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.36 - 7.70"},
+        {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+        {"field": "wing_mass", "value": 63, "unit": "lb", "quote": "Weight (without glider bag) lb 63"},
+        {"field": "pilot_mass_min", "value": 121, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 121 / 165"},
+        {"field": "pilot_mass_max", "value": 165, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 121 / 165"},
+        {"field": "takeoff_mass_min", "value": 181, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 181 / 254"},
+        {"field": "takeoff_mass_max", "value": 254, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 181 / 254"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE mph 56"},
+        {"field": "stall_speed", "value": 19, "unit": "mph", "quote": "Stall Speed mph 19"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle deg 132"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 133.5, "unit": "sq ft", "quote": "Wing Surface sq ft 133.5"},
+        {"name": "Wing Surface with wingtips", "value": 135.3, "unit": "sq ft", "quote": "Wing Surface with wingtips sq ft 135.3"},
+        {"name": "Wing Span", "value": 31.3, "unit": "ft", "quote": "Wing Span ft 31.3"},
+        {"name": "Wing Span with wingtips", "value": 32.3, "unit": "ft", "quote": "Wing Span with wingtips ft 32.3"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.7, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.36 - 7.70"},
+        {"name": "Packed Length", "value": 15.6, "unit": "ft", "quote": "Packed Length ft 15.6"},
+        {"name": "Short Packed Length", "value": 11.8, "unit": "ft", "quote": "Short Packed Length ft 11.8"}
+      ]
+    },
+    {
+      "manufacturer": "Laminar",
+      "model": "Laminar",
+      "size": "L13.2 (M)",
+      "cert_class": "",
+      "cert_standard": "01-0441-09",
+      "facts": [
+        {"field": "area", "value": 142.0, "unit": "sq ft", "quote": "Wing Surface sq ft 142.0"},
+        {"field": "span", "value": 32.8, "unit": "ft", "quote": "Wing Span ft 32.8"},
+        {"field": "aspect_ratio", "value": 7.57, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.57 – 7.91"},
+        {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+        {"field": "wing_mass", "value": 68, "unit": "lb", "quote": "Weight (without glider bag) lb 68"},
+        {"field": "pilot_mass_min", "value": 165, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 165 / 198"},
+        {"field": "pilot_mass_max", "value": 198, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 165 / 198"},
+        {"field": "takeoff_mass_min", "value": 176, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 176 / 265"},
+        {"field": "takeoff_mass_max", "value": 265, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 176 / 265"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE mph 56"},
+        {"field": "stall_speed", "value": 19, "unit": "mph", "quote": "Stall Speed mph 19"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle deg 132"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 142.0, "unit": "sq ft", "quote": "Wing Surface sq ft 142.0"},
+        {"name": "Wing Surface with wingtips", "value": 143.8, "unit": "sq ft", "quote": "Wing Surface with wingtips sq ft 143.8"},
+        {"name": "Wing Span", "value": 32.8, "unit": "ft", "quote": "Wing Span ft 32.8"},
+        {"name": "Wing Span with wingtips", "value": 33.7, "unit": "ft", "quote": "Wing Span with wingtips ft 33.7"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.91, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.57 – 7.91"},
+        {"name": "Packed Length", "value": 16.3, "unit": "ft", "quote": "Packed Length ft 16.3"},
+        {"name": "Short Packed Length", "value": 12.8, "unit": "ft", "quote": "Short Packed Length ft 12.8"}
+      ]
+    },
+    {
+      "manufacturer": "Laminar",
+      "model": "Laminar",
+      "size": "L13.7 (M/L)",
+      "cert_class": "",
+      "cert_standard": "01-0437-08",
+      "facts": [
+        {"field": "area", "value": 148.4, "unit": "sq ft", "quote": "Wing Surface sq ft 148.4"},
+        {"field": "span", "value": 32.8, "unit": "ft", "quote": "Wing Span ft 32.8"},
+        {"field": "aspect_ratio", "value": 7.24, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.24 – 7.56"},
+        {"field": "double_surface_pct", "value": 94, "unit": "%", "quote": "Double Surface % 94%"},
+        {"field": "wing_mass", "value": 68, "unit": "lb", "quote": "Weight (without glider bag) lb 68"},
+        {"field": "pilot_mass_min", "value": 176, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 176 / 209"},
+        {"field": "pilot_mass_max", "value": 209, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 176 / 209"},
+        {"field": "takeoff_mass_min", "value": 198, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 198 / 276"},
+        {"field": "takeoff_mass_max", "value": 276, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 198 / 276"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE mph 56"},
+        {"field": "stall_speed", "value": 18, "unit": "mph", "quote": "Stall Speed mph 18"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle deg 132"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 148.4, "unit": "sq ft", "quote": "Wing Surface sq ft 148.4"},
+        {"name": "Wing Surface with wingtips", "value": 150.4, "unit": "sq ft", "quote": "Wing Surface with wingtips sq ft 150.4"},
+        {"name": "Wing Span", "value": 32.8, "unit": "ft", "quote": "Wing Span ft 32.8"},
+        {"name": "Wing Span with wingtips", "value": 33.7, "unit": "ft", "quote": "Wing Span with wingtips ft 33.7"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.56, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.24 – 7.56"},
+        {"name": "Packed Length", "value": 16.3, "unit": "ft", "quote": "Packed Length ft 16.3"},
+        {"name": "Short Packed Length", "value": 12.8, "unit": "ft", "quote": "Short Packed Length ft 12.8"}
+      ]
+    },
+    {
+      "manufacturer": "Laminar",
+      "model": "Laminar",
+      "size": "L14.1 (L)",
+      "cert_class": "",
+      "cert_standard": "01-0476-13",
+      "facts": [
+        {"field": "area", "value": 151.7, "unit": "sq ft", "quote": "Wing Surface sq ft 151.7"},
+        {"field": "span", "value": 34.2, "unit": "ft", "quote": "Wing Span ft 34.2"},
+        {"field": "aspect_ratio", "value": 7.72, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.72 – 8.13"},
+        {"field": "double_surface_pct", "value": 96, "unit": "%", "quote": "Double Surface % 96%"},
+        {"field": "wing_mass", "value": 72, "unit": "lb", "quote": "Weight (without glider bag) lb 72"},
+        {"field": "pilot_mass_min", "value": 209, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 209 / 231"},
+        {"field": "pilot_mass_max", "value": 231, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 209 / 231"},
+        {"field": "takeoff_mass_min", "value": 276, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 276 / 315"},
+        {"field": "takeoff_mass_max", "value": 315, "unit": "lb", "quote": "DHV Certification Weight (Min/Max) lb 276 / 315"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE mph 56"},
+        {"field": "stall_speed", "value": 19, "unit": "mph", "quote": "Stall Speed mph 19"},
+        {"field": "nose_angle", "value": 134, "unit": "deg", "quote": "Nose Angle deg 134"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 151.7, "unit": "sq ft", "quote": "Wing Surface sq ft 151.7"},
+        {"name": "Wing Surface with wingtips", "value": 153.5, "unit": "sq ft", "quote": "Wing Surface with wingtips sq ft 153.5"},
+        {"name": "Wing Span", "value": 34.2, "unit": "ft", "quote": "Wing Span ft 34.2"},
+        {"name": "Wing Span with wingtips", "value": 35.3, "unit": "ft", "quote": "Wing Span with wingtips ft 35.3"},
+        {"name": "Aspect Ratio with wingtips", "value": 8.13, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.72 – 8.13"},
+        {"name": "Packed Length", "value": 17.1, "unit": "ft", "quote": "Packed Length ft 17.1"},
+        {"name": "Short Packed Length", "value": 13.5, "unit": "ft", "quote": "Short Packed Length ft 13.5"}
+      ]
+    },
+    {
+      "manufacturer": "Laminar",
+      "model": "Laminar",
+      "size": "L14.8 (XL)",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {"field": "area", "value": 158.7, "unit": "sq ft", "quote": "Wing Surface sq ft 158.7"},
+        {"field": "span", "value": 34.2, "unit": "ft", "quote": "Wing Span ft 34.2"},
+        {"field": "aspect_ratio", "value": 7.38, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.38 – 7.78"},
+        {"field": "double_surface_pct", "value": 94, "unit": "%", "quote": "Double Surface % 94%"},
+        {"field": "wing_mass", "value": 73, "unit": "lb", "quote": "Weight (without glider bag) lb 73"},
+        {"field": "pilot_mass_min", "value": 220, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 220 / 243"},
+        {"field": "pilot_mass_max", "value": 243, "unit": "lb", "quote": "Suggested hook-in Pilot Weight (Min/Max) lb 220 / 243"},
+        {"field": "vne", "value": 56, "unit": "mph", "quote": "VNE mph 56"},
+        {"field": "stall_speed", "value": 18, "unit": "mph", "quote": "Stall Speed mph 18"},
+        {"field": "nose_angle", "value": 134, "unit": "deg", "quote": "Nose Angle deg 134"}
+      ],
+      "geometry": [
+        {"name": "Wing Surface", "value": 158.7, "unit": "sq ft", "quote": "Wing Surface sq ft 158.7"},
+        {"name": "Wing Surface with wingtips", "value": 160.5, "unit": "sq ft", "quote": "Wing Surface with wingtips sq ft 160.5"},
+        {"name": "Wing Span", "value": 34.2, "unit": "ft", "quote": "Wing Span ft 34.2"},
+        {"name": "Wing Span with wingtips", "value": 35.3, "unit": "ft", "quote": "Wing Span with wingtips ft 35.3"},
+        {"name": "Aspect Ratio with wingtips", "value": 7.78, "unit": "", "quote": "Aspect Ratio without/with wingtips 7.38 – 7.78"},
+        {"name": "Packed Length", "value": 17.1, "unit": "ft", "quote": "Packed Length ft 17.1"},
+        {"name": "Short Packed Length", "value": 13.5, "unit": "ft", "quote": "Short Packed Length ft 13.5"}
+      ]
+    }
+  ]
+}

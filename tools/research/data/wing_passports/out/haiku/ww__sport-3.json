@@ -1,0 +1,370 @@
+{
+  "src_files": [
+    "ww__sport-3.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "135",
+      "cert_class": "Intermediate",
+      "cert_standard": "2/7/2019",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.5,
+          "unit": "m^2",
+          "quote": "Sport 3 135\nArea (m^2)\n12.5"
+        },
+        {
+          "field": "area",
+          "value": 135,
+          "unit": "ft^2",
+          "quote": "Sport 3 135\nArea (ft^2)\n135"
+        },
+        {
+          "field": "span",
+          "value": 8.9,
+          "unit": "m",
+          "quote": "Sport 3 135\nSpan (m)\n8.9"
+        },
+        {
+          "field": "span",
+          "value": 29.3,
+          "unit": "ft",
+          "quote": "Sport 3 135\nSpan (ft) \n29.3"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.4,
+          "unit": "",
+          "quote": "Sport 3 135\nAspect Ratio\n6.4"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85,
+          "unit": "%",
+          "quote": "Double Surface (%)\n85"
+        },
+        {
+          "field": "wing_mass",
+          "value": 24.5,
+          "unit": "kg",
+          "quote": "Sport 3 135\nGlider Weight (kg)\n24.5"
+        },
+        {
+          "field": "wing_mass",
+          "value": 54,
+          "unit": "lbs",
+          "quote": "Sport 3 135\nGlider Weight (lbs)\n54"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 61,
+          "unit": "kg",
+          "quote": "Sport 3 135\nHook-In Weight (kg)\n61-94"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 94,
+          "unit": "kg",
+          "quote": "Sport 3 135\nHook-In Weight (kg)\n61-94"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 135,
+          "unit": "lbs",
+          "quote": "Sport 3 135\nHook-In Weight (lbs)\n135-200"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 200,
+          "unit": "lbs",
+          "quote": "Sport 3 135\nHook-In Weight (lbs)\n135-200"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "Sport 3 135\nVne (kph)\n85"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Sport 3 135\nVne (mph)\n53"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "Sport 3 135\nVa (kph)\n74"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Sport 3 135\nVa (mph)\n46"
+        },
+        {
+          "field": "vms",
+          "value": 30,
+          "unit": "kph",
+          "quote": "Sport 3 135\nVms (kph)\n30"
+        },
+        {
+          "field": "vms",
+          "value": 19,
+          "unit": "mph",
+          "quote": "Sport 3 135\nVms (mph)\n19"
+        },
+        {
+          "field": "year",
+          "value": 2019,
+          "unit": "",
+          "quote": "Sport 3 135\nHGMA Certified\n2/7/2019"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "155",
+      "cert_class": "Intermediate",
+      "cert_standard": "2/1/2019",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.4,
+          "unit": "m^2",
+          "quote": "Sport 3 155\nArea (m^2)\n14.4"
+        },
+        {
+          "field": "area",
+          "value": 155,
+          "unit": "ft^2",
+          "quote": "Sport 3 155\nArea (ft^2)\n155"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Sport 3 155\nSpan (m)\n9.6"
+        },
+        {
+          "field": "span",
+          "value": 31.5,
+          "unit": "ft",
+          "quote": "Sport 3 155\nSpan (ft) \n31.5"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.4,
+          "unit": "",
+          "quote": "Sport 3 155\nAspect Ratio\n6.4"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85,
+          "unit": "%",
+          "quote": "Double Surface (%)\n85"
+        },
+        {
+          "field": "wing_mass",
+          "value": 26.3,
+          "unit": "kg",
+          "quote": "Sport 3 155\nGlider Weight (kg)\n26.3"
+        },
+        {
+          "field": "wing_mass",
+          "value": 58,
+          "unit": "lbs",
+          "quote": "Sport 3 155\nGlider Weight (lbs)\n58"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 68,
+          "unit": "kg",
+          "quote": "Sport 3 155\nHook-In Weight (kg)\n68-113"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 113,
+          "unit": "kg",
+          "quote": "Sport 3 155\nHook-In Weight (kg)\n68-113"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lbs",
+          "quote": "Sport 3 155\nHook-In Weight (lbs)\n150-250"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 250,
+          "unit": "lbs",
+          "quote": "Sport 3 155\nHook-In Weight (lbs)\n150-250"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "Sport 3 155\nVne (kph)\n85"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Sport 3 155\nVne (mph)\n53"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "Sport 3 155\nVa (kph)\n74"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Sport 3 155\nVa (mph)\n46"
+        },
+        {
+          "field": "vms",
+          "value": 30,
+          "unit": "kph",
+          "quote": "Sport 3 155\nVms (kph)\n30"
+        },
+        {
+          "field": "vms",
+          "value": 19,
+          "unit": "mph",
+          "quote": "Sport 3 155\nVms (mph)\n19"
+        },
+        {
+          "field": "year",
+          "value": 2019,
+          "unit": "",
+          "quote": "Sport 3 155\nHGMA Certified\n2/1/2019"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "170",
+      "cert_class": "Intermediate",
+      "cert_standard": "Not Certified",
+      "facts": [
+        {
+          "field": "area",
+          "value": 15.8,
+          "unit": "m^2",
+          "quote": "Sport 3 170\nArea (m^2)\n15.8"
+        },
+        {
+          "field": "area",
+          "value": 170,
+          "unit": "ft^2",
+          "quote": "Sport 3 170\nArea (ft^2)\n170"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "Sport 3 170\nSpan (m)\n10.1"
+        },
+        {
+          "field": "span",
+          "value": 33,
+          "unit": "ft",
+          "quote": "Sport 3 170\nSpan (ft) \n33"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 6.4,
+          "unit": "",
+          "quote": "Sport 3 170\nAspect Ratio\n6.4"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85,
+          "unit": "%",
+          "quote": "Double Surface (%)\n85"
+        },
+        {
+          "field": "wing_mass",
+          "value": 29.5,
+          "unit": "kg",
+          "quote": "Sport 3 170\nGlider Weight (kg)\n29.5"
+        },
+        {
+          "field": "wing_mass",
+          "value": 65,
+          "unit": "lbs",
+          "quote": "Sport 3 170\nGlider Weight (lbs)\n65"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 79,
+          "unit": "kg",
+          "quote": "Sport 3 170\nHook-In Weight (kg)\n79-141"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 141,
+          "unit": "kg",
+          "quote": "Sport 3 170\nHook-In Weight (kg)\n79-141"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 175,
+          "unit": "lbs",
+          "quote": "Sport 3 170\nHook-In Weight (lbs)\n175-310"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 310,
+          "unit": "lbs",
+          "quote": "Sport 3 170\nHook-In Weight (lbs)\n175-310"
+        },
+        {
+          "field": "vne",
+          "value": 85,
+          "unit": "kph",
+          "quote": "Sport 3 170\nVne (kph)\n85"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Sport 3 170\nVne (mph)\n53"
+        },
+        {
+          "field": "va",
+          "value": 74,
+          "unit": "kph",
+          "quote": "Sport 3 170\nVa (kph)\n74"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Sport 3 170\nVa (mph)\n46"
+        },
+        {
+          "field": "vms",
+          "value": 30,
+          "unit": "kph",
+          "quote": "Sport 3 170\nVms (kph)\n30"
+        },
+        {
+          "field": "vms",
+          "value": 19,
+          "unit": "mph",
+          "quote": "Sport 3 170\nVms (mph)\n19"
+        }
+      ]
+    }
+  ]
+}

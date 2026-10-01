@@ -1,0 +1,194 @@
+{
+  "src_files": [
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4161_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4163_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4164_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4166_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Airborne",
+      "model": "Sting 3 XC 168",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0445-09",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 110.0,
+          "unit": "kg",
+          "quote": "110 Kg - 150 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 150.0,
+          "unit": "kg",
+          "quote": "110 Kg - 150 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 33.0 (VG 0%)"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 31.0 (VG 100%)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): 70 (VG 0%)"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): 75 (VG 100%)"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4161_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Laminar Zero 9 12.6",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0446-09",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 82.0,
+          "unit": "kg",
+          "quote": "82 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "82 Kg - 115 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 31.0 (VG 0%)"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 29.0 (VG 100%)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): 80 (VG 0%)"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): >90 (VG 100%)"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4163_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation Rühle GmbH (A.I.R. GmbH)",
+      "model": "Atos VRQ",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0447-09",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "85 Kg - 180 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 180.0,
+          "unit": "kg",
+          "quote": "85 Kg - 180 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 35.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 35.0 (Wölbklappe 0°)"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 29.0 (Wölbklappe 70°)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): >90 (Wölbklappe 0°)"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): 85 (Wölbklappe 70°)"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4164_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "MastR - S",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0448-09",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "85 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "85 Kg - 120 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 31.0 (VG 0%)"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h): 30.0 (VG 100%)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): 90 (VG 0%)"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h): >90 (VG 100%)"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4166_nopr_.html.txt"
+    }
+  ]
+}

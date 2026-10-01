@@ -1,0 +1,981 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3081_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3275_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3277_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3363_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3364_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3416_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3624_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3625_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3626_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3799_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3835_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3999_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4000_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4001_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4002_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Ellipse Deltaplane",
+      "model": "Sol`R",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0495-18",
+      "facts": [
+        {
+          "field": "area",
+          "value": 17.0,
+          "unit": "m2",
+          "quote": "FlÃ¤che 17.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.4,
+          "unit": "m",
+          "quote": "Spannweite 9.4 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 20.7,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 20.7 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 10.0,
+          "unit": "%",
+          "quote": "Doppelsegel 10.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 9.0,
+          "unit": "",
+          "quote": "Anzahl Latten 9"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "Startgewicht 80 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "Startgewicht 80 Kg - 140 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 55.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 55 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2018.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2018"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3081_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma L",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0497-19",
+      "facts": [
+        {
+          "field": "area",
+          "value": 17.35,
+          "unit": "m2",
+          "quote": "FlÃ¤che 17.35 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "Spannweite 10.1 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 25.0 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel 30.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten 14"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 95.0,
+          "unit": "kg",
+          "quote": "Startgewicht 95 Kg - 142 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 142.0,
+          "unit": "kg",
+          "quote": "Startgewicht 95 Kg - 142 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 80 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2019.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2019"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3275_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Delta Flugschule Condor",
+      "model": "FLEX",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0496-19",
+      "facts": [
+        {
+          "field": "area",
+          "value": 16.0,
+          "unit": "m2",
+          "quote": "FlÃ¤che 16.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.2,
+          "unit": "m",
+          "quote": "Spannweite 9.2 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 17.6,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 17.6 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 20.0,
+          "unit": "%",
+          "quote": "Doppelsegel 20.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 11.0,
+          "unit": "",
+          "quote": "Anzahl Latten 11"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 67.0,
+          "unit": "kg",
+          "quote": "Startgewicht 67 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht 67 Kg - 115 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 80 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2019.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2019"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3277_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma M",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0498-19",
+      "facts": [
+        {
+          "field": "area",
+          "value": 16.04,
+          "unit": "m2",
+          "quote": "FlÃ¤che 16.04 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.8,
+          "unit": "m",
+          "quote": "Spannweite 9.8 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 24.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 24.0 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel 30.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten 14"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 83.0,
+          "unit": "kg",
+          "quote": "Startgewicht 83 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht 83 Kg - 115 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 80 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2019.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2019"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3363_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Piuma S",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0499-19",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.76,
+          "unit": "m2",
+          "quote": "FlÃ¤che 13.76 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.0,
+          "unit": "m",
+          "quote": "Spannweite 9.0 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 21.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 21.5 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel 30.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten 14"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 65.0,
+          "unit": "kg",
+          "quote": "Startgewicht 65 Kg - 100 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht 65 Kg - 100 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 80 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2019.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2019"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3364_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat 12.4C",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0500-21",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.4,
+          "unit": "m2",
+          "quote": "FlÃ¤che 12.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "Spannweite 10.0 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.4,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 30.4 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten 24"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht 100 Kg - 120 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2021.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2021"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3416_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto S",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0511-26",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che 13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.73,
+          "unit": "m",
+          "quote": "Spannweite 9.73 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 27.2,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 27.2 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel 85.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "Anzahl Latten 18"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 75.0,
+          "unit": "kg",
+          "quote": "Startgewicht 75 Kg - 115 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht 75 Kg - 115 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2026.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2026"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3624_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto M",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0501-22",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.6,
+          "unit": "m2",
+          "quote": "FlÃ¤che 14.6 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.98,
+          "unit": "m",
+          "quote": "Spannweite 9.98 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 28.5 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 0.85,
+          "unit": "%",
+          "quote": "Doppelsegel 0.85 %"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "Anzahl Latten 18"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "Startgewicht 80 Kg - 121 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "Startgewicht 80 Kg - 121 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2022.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2022"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3625_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Alto L",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0502-23",
+      "facts": [
+        {
+          "field": "area",
+          "value": 15.2,
+          "unit": "m2",
+          "quote": "FlÃ¤che 15.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.4,
+          "unit": "m",
+          "quote": "Spannweite 10.4 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 29.2,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 29.2 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel 85.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "Anzahl Latten 18"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "Startgewicht 90 Kg - 154 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 154.0,
+          "unit": "kg",
+          "quote": "Startgewicht 90 Kg - 154 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2023.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2023"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3626_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "SHE 1 12.7",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0504-23",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che 12.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "Spannweite 10.35 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.4,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 28.4 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "Anzahl Latten 26"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 98.0,
+          "unit": "kg",
+          "quote": "Startgewicht 98 Kg - 129 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 129.0,
+          "unit": "kg",
+          "quote": "Startgewicht 98 Kg - 129 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2023.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2023"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3799_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "Combat C AC 12,7",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0503-23",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che 12.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "Spannweite 10.3 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.6,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 30.6 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel 90.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten 24"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "Startgewicht 111 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "Startgewicht 111 Kg - 131 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2023.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2023"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3835_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S 4",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0403-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che 13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "Spannweite 10.0 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 36.0 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 107.0,
+          "unit": "kg",
+          "quote": "Startgewicht 107 Kg - 132 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 132.0,
+          "unit": "kg",
+          "quote": "Startgewicht 107 Kg - 132 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_3999_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S 3.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0404-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.4,
+          "unit": "m2",
+          "quote": "FlÃ¤che 13.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Spannweite 9.6 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 34.0 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 99.0,
+          "unit": "kg",
+          "quote": "Startgewicht 99 Kg - 124 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 124.0,
+          "unit": "kg",
+          "quote": "Startgewicht 99 Kg - 124 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4000_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S 4.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0405-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.1,
+          "unit": "m2",
+          "quote": "FlÃ¤che 14.1 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.4,
+          "unit": "m",
+          "quote": "Spannweite 10.4 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 35.0 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "Doppelsegel 92.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 114.0,
+          "unit": "kg",
+          "quote": "Startgewicht 114 Kg - 138 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 138.0,
+          "unit": "kg",
+          "quote": "Startgewicht 114 Kg - 138 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4001_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Bautek FluggerÃ¤te GmbH",
+      "model": "Bico",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0406-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 17.2,
+          "unit": "m2",
+          "quote": "FlÃ¤che 17.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Spannweite 9.6 m"
+        },
+        {
+          "field": "wing_mass",
+          "value": 42.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack) 42.5 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 68.0,
+          "unit": "%",
+          "quote": "Doppelsegel 68.0 %"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "Anzahl Latten 23"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht 120 Kg - 279 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 279.0,
+          "unit": "kg",
+          "quote": "Startgewicht 120 Kg - 279 Kg"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4002_nopr_.html.txt"
+    }
+  ]
+}

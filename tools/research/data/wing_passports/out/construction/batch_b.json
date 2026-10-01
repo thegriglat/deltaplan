@@ -1,0 +1,359 @@
+{
+  "batch": "b",
+  "date": "2026-10-01",
+  "families": [
+    {
+      "family": "Gecko",
+      "manufacturer": "Moyes",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "The kingpost folds forward with enough luff line slack to allow for a straightforward packing procedure.",
+        "url": "https://xcmag.com/news/moyes-gecko-intermediate-hang-glider/"
+      },
+      "surface": "partial_double",
+      "surface_percent": 80,
+      "evidence_surface": {
+        "quote": "70% double surface at the root and 90% at the tip",
+        "url": "https://xcmag.com/news/moyes-gecko-intermediate-hang-glider/"
+      },
+      "vg": "unknown",
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["155", "170"],
+      "design_notes": "50/52mm leading edge in 7075 T6 aluminium, 62mm crossbars, carbon outboard dive strut retained inside double surface, 8 battens top, 2 battens under surface, side-cable/luff-line compensation system",
+      "urls_checked": [
+        "https://xcmag.com/news/moyes-gecko-intermediate-hang-glider/",
+        "https://www.moyes.com.au/products/hang-gliders/gecko/specifications"
+      ]
+    },
+    {
+      "family": "Malibu 2",
+      "manufacturer": "Moyes",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "The wing is cable braced from a single kingpost.",
+        "url": "https://www.moyes.com.au/products/hang-gliders/malibu2"
+      },
+      "surface": "single",
+      "surface_percent": 0,
+      "evidence_surface": {
+        "quote": "single-surface wing covered in Dacron sailcloth",
+        "url": "https://www.moyes.com.au/products/hang-gliders/malibu2"
+      },
+      "vg": "unknown",
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "original Malibu 190 (mid-2000s) → Malibu 2",
+      "sizes": ["166", "188"],
+      "design_notes": "Aluminium tubing construction, 8 battens mentioned in specs, aircraft for beginner and specialist dune gooning",
+      "urls_checked": [
+        "https://www.moyes.com.au/products/hang-gliders/malibu2",
+        "https://www.moyes.com.au/products/hang-gliders/malibu2/specifications",
+        "https://en.wikipedia.org/wiki/Moyes_Malibu"
+      ]
+    },
+    {
+      "family": "Litespeed RX",
+      "manufacturer": "Moyes",
+      "construction": "topless",
+      "evidence": {
+        "quote": "The Litespeed RX is a topless competition glider with a small surface and a smaller a-frame, meaning it does not have a kingpost",
+        "url": "https://moyes.com.au/52-hang-gliders/litespeed-rx"
+      },
+      "surface": "partial_double",
+      "surface_percent": "unknown",
+      "evidence_surface": {
+        "quote": "undersurface is made from Dacron, and is divided into three areas, 6 undersurface battens",
+        "url": "https://so-hanggliding.com/litespeed-rx"
+      },
+      "vg": "unknown",
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["3", "4"],
+      "design_notes": "Topless, fourth generation, small surface, smaller a-frame, carbon fibre cross bars, pre-impregnated carbon fibre spars cured at 120°C for 1.5 hours, roll pressures about half of older models, PX20/PX10 Mylar or Powerrib (Dacron) sail options, 6 undersurface battens with red/green/blue tips",
+      "urls_checked": [
+        "https://moyes.com.au/52-hang-gliders/litespeed-rx",
+        "https://www.moyes.com.au/products/hang-gliders/litespeed-rx/specifications"
+      ]
+    },
+    {
+      "family": "Litespeed S",
+      "manufacturer": "Moyes",
+      "construction": "topless",
+      "evidence": {
+        "quote": "The entire family of gliders are 'topless' designs, lacking a kingpost and upper rigging.",
+        "url": "https://en.wikipedia.org/wiki/Moyes_Litespeed"
+      },
+      "surface": "partial_double",
+      "surface_percent": "unknown",
+      "evidence_surface": {
+        "quote": "8 internal cloth ribs restricting the under surface from 'blowing out'",
+        "url": "https://www.moyes.com.au/products/glider-archive/litespeed-s/specifications"
+      },
+      "vg": "yes",
+      "evidence_vg": {
+        "quote": "The Litespeed S features a very large VG range with a sail and frame construction that makes this VG extremely powerful and effective.",
+        "url": "https://www.moyes.com.au/products/glider-archive/litespeed-s/specifications"
+      },
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "unknown",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["3", "3.5", "4", "4.5", "5"],
+      "design_notes": "Topless, pre-impregnated carbon fibre spars, 8 internal cloth ribs restricting under surface, internal ribs cut to specific airfoil for desired camber, 6 undersurface battens",
+      "urls_checked": [
+        "https://www.moyes.com.au/products/glider-archive/litespeed-s/specifications",
+        "https://www.moyes.com.au/products/glider-archive/litespeed-s",
+        "https://en.wikipedia.org/wiki/Moyes_Litespeed"
+      ]
+    },
+    {
+      "family": "Litespeed RS",
+      "manufacturer": "Moyes",
+      "construction": "topless",
+      "evidence": {
+        "quote": "The Litespeed series features 'topless' designs, lacking a kingpost and upper rigging.",
+        "url": "http://moyesusa.com/products/litespeedRS.html"
+      },
+      "surface": "partial_double",
+      "surface_percent": "unknown",
+      "evidence_surface": {
+        "quote": "6 undersurface battens on both the RS 3.5 and RS 4, which indicates the presence of a double surface design",
+        "url": "https://www.moyes.com.au/products/glider-archive/litespeed-rs/specifications"
+      },
+      "vg": "unknown",
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "unknown",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["3.5", "4"],
+      "design_notes": "Topless, increased span compared to Litespeed S, higher aspect ratio (7.6-7.7), changes to sail design and cut, 6 undersurface battens, tight wrinkle free sail with minimum twist, best glide angle 15:1",
+      "urls_checked": [
+        "http://moyesusa.com/products/litespeedRS.html",
+        "http://www.moyesusa.com/products/litespeedRSspecs.html",
+        "https://www.moyes.com.au/products/glider-archive/litespeed-rs/specifications"
+      ]
+    },
+    {
+      "family": "Litesport",
+      "manufacturer": "Moyes",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "The company builds a derivative aircraft with a kingpost, the Litesport.",
+        "url": "http://moyesusa.com/products/litesportspecs.html"
+      },
+      "surface": "full_double",
+      "surface_percent": 100,
+      "evidence_surface": {
+        "quote": "double-surface wing covered in Dacron sailcloth",
+        "url": "http://moyesusa.com/products/litesportspecs.html"
+      },
+      "vg": "yes",
+      "evidence_vg": {
+        "quote": "incorporates a variable geometry system",
+        "url": "http://moyesusa.com/products/litesportspecs.html"
+      },
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["3", "4", "5"],
+      "design_notes": "Kingpost with VG system, 7075 aluminum tubing, double-surface wing",
+      "urls_checked": [
+        "http://moyesusa.com/products/litesportspecs.html",
+        "https://www.moyes.com.au/products/hang-gliders/litesport",
+        "https://en.wikipedia.org/wiki/Moyes_Litesport"
+      ]
+    },
+    {
+      "family": "Discus",
+      "manufacturer": "Aeros",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "Its wing is cable braced with a kingpost. The hang loop fore and aft position is adjusted by repositioning the kingpost on the keel.",
+        "url": "https://en.wikipedia.org/wiki/Aeros_Discus"
+      },
+      "surface": "single",
+      "surface_percent": 0,
+      "evidence_surface": {
+        "quote": "wing covered in Dacron sailcloth",
+        "url": "https://en.wikipedia.org/wiki/Aeros_Discus"
+      },
+      "vg": "yes",
+      "evidence_vg": {
+        "quote": "variable geometry for optimizing sail tension during flight",
+        "url": "https://aeros.com.ua/discus.html"
+      },
+      "first_year": "2002",
+      "evidence_year": {
+        "quote": "introduced in 2002",
+        "url": "https://en.wikipedia.org/wiki/Aeros_Discus"
+      },
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["13", "14", "15"],
+      "design_notes": "Versions: Discus (standard), Discus A/B (different breakdown length), Discus M (motorized harness compatible), Discus T (trike-mounted), Discus C (competition variant). Kingpost for standard versions, Discus T is nanotrikes variant (topless).",
+      "urls_checked": [
+        "https://aeros.com.ua/discus.html",
+        "https://en.wikipedia.org/wiki/Aeros_Discus"
+      ]
+    },
+    {
+      "family": "Combat C",
+      "manufacturer": "Aeros",
+      "construction": "topless",
+      "evidence": {
+        "quote": "Topless (no kingpost). The glider features 'three tubes' in the leading edge design.",
+        "url": "https://aeros.com.ua/combat_c"
+      },
+      "surface": "unknown",
+      "surface_percent": "unknown",
+      "vg": "yes",
+      "evidence_vg": {
+        "quote": "The glider supports VG capability. Flight tests show it performs well 'with VG on' and can operate 'with VG off'",
+        "url": "https://aeros.com.ua/combat_c"
+      },
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["12.4", "12.7", "13.5"],
+      "design_notes": "Topless, requires horizontal stabilizer (tail) for safe flight, elliptical shape carbon leading edge tubes tapered along entire length, carbon fiber main and outer sprogs, Dynema sprogs cables, optional Swiss edition with stiff lightweight Swiss-made cross beams, 3.4-3.6 meter breakdown length, weighs 30.5-32 kg",
+      "urls_checked": [
+        "https://aeros.com.ua/combat_c"
+      ]
+    },
+    {
+      "family": "Combat L",
+      "manufacturer": "Aeros",
+      "construction": "topless",
+      "evidence": {
+        "quote": "The Combat series features cable-braced wings without a kingpost and upper rigging. These are topless design hang gliders.",
+        "url": "https://forum.hanggliding.org/viewtopic.php?t=34880"
+      },
+      "surface": "unknown",
+      "surface_percent": "unknown",
+      "vg": "unknown",
+      "first_year": "2003",
+      "evidence_year": {
+        "quote": "An improved model introduced in 2003 with lower weight and higher performance.",
+        "url": "https://en.wikipedia.org/wiki/Aeros_Combat"
+      },
+      "last_year": "unknown",
+      "production_status": "unknown",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["13", "14", "15"],
+      "design_notes": "Topless, cable-braced wings without kingpost, aspect ratio 7.8-8.06, glider weight 34-36 kg",
+      "urls_checked": [
+        "https://forum.hanggliding.org/viewtopic.php?t=34880",
+        "https://en.wikipedia.org/wiki/Aeros_Combat"
+      ]
+    },
+    {
+      "family": "Combat GT",
+      "manufacturer": "Aeros",
+      "construction": "topless",
+      "evidence": {
+        "quote": "The Combat GT includes a tail with a symmetrical low drag profile, rigidly mounted at 5° negative angle of attack to the extended keel tube.",
+        "url": "https://forum.hanggliding.org/viewtopic.php?t=34880"
+      },
+      "surface": "unknown",
+      "surface_percent": "unknown",
+      "vg": "unknown",
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["12.4", "12.7", "13.5"],
+      "design_notes": "Topless with tail, tail consists of three parts made from stiff lightweight carbon fiber, aspect ratio 8.05-8.5, glider weight 34-36 kg, nose angles 129-131°",
+      "urls_checked": [
+        "https://aeros.com.ua/combat_gt",
+        "https://forum.hanggliding.org/viewtopic.php?t=34880"
+      ]
+    },
+    {
+      "family": "Fox",
+      "manufacturer": "Aeros",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "The Fox is a kingpost design (traditional A-frame configuration) featuring a 'Finsterwalder streamlined A-frame'",
+        "url": "https://www.aeros.com.ua/structure/hg/fox_en.php"
+      },
+      "surface": "unknown",
+      "surface_percent": "unknown",
+      "vg": "no",
+      "evidence_vg": {
+        "quote": "The documentation does not specify a VG (variable geometry) system for the Fox.",
+        "url": "https://www.aeros.com.ua/structure/hg/fox_en.php"
+      },
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "unknown",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["13", "16"],
+      "design_notes": "Kingpost with Finsterwalder streamlined A-frame, frame made with lightweight 7075 alloy tubes, airborne batten tips, optional APEN 6 composite X-lam cloth, versions: Fox B (collapsible to 2m) and Fox M (motorized harnesses compatible)",
+      "urls_checked": [
+        "https://www.aeros.com.ua/structure/hg/fox_en.php"
+      ]
+    },
+    {
+      "family": "Target",
+      "manufacturer": "Aeros",
+      "construction": "kingpost",
+      "evidence": {
+        "quote": "Its single-surface wing covered in Dacron sailcloth, with the wing supported by cables suspended from a kingpost. Airfoiled kingpost with pilot hooked to kingpost (not topless).",
+        "url": "https://aeros.com.ua/target"
+      },
+      "surface": "single",
+      "surface_percent": 0,
+      "evidence_surface_target21": {
+        "quote": "Target 21 features 30% double sail option",
+        "url": "https://aeros.com.ua/target"
+      },
+      "vg": "unknown",
+      "first_year": "1995",
+      "evidence_year": {
+        "quote": "introduced in 1995",
+        "url": "https://en.wikipedia.org/wiki/Aeros_Target"
+      },
+      "last_year": "unknown",
+      "production_status": "current",
+      "successor_or_predecessor": "unknown",
+      "sizes": ["13", "16", "21"],
+      "design_notes": "Kingpost design, single-surface construction, Target 21 tandem variant with 30% double sail option, rigid insert in leading edge, floating open cross bar and speedbar included, versions 13M/16M can be modified for motorized flight",
+      "urls_checked": [
+        "https://aeros.com.ua/target",
+        "https://en.wikipedia.org/wiki/Aeros_Target"
+      ]
+    },
+    {
+      "family": "Phantom",
+      "manufacturer": "Aeros",
+      "construction": "unknown",
+      "design_type": "rigid_wing",
+      "design_type_note": "Rigid wing design - not applicable: kingpost/topless classification is for flexible wings only",
+      "surface": "unknown",
+      "surface_percent": "unknown",
+      "vg": "yes",
+      "evidence_vg": {
+        "quote": "The Phantom incorporates a higher aspect ratio wing and ailerons and SPADD surfaces with an advanced control system that reduces bar pressure during high-speed flight. Washout: the wing is arranged so as it approaches a stall, the parts of the wing further back still give lift while the parts at the front are failing.",
+        "url": "https://www.nestofdragons.net/rigid-wings-overview/footlaunch-listing/phantom/"
+      },
+      "first_year": "unknown",
+      "last_year": "unknown",
+      "production_status": "unknown",
+      "successor_or_predecessor": "Stalker (predecessor) → Phantom",
+      "sizes": ["13.5"],
+      "design_notes": "Rigid wing glider, aspect ratio 12.9, aluminium/carbon construction, real ailerons for roll control, real flaps to increase lift, SPADD surfaces, advanced control system reduces bar pressure at high speed, breaks down to 5.7 x 0.5 x 0.2 meters for transport, successor to Stalker with higher aspect ratio and more aileron/SPADD surface, min sink 0.65 m/s, best glide 19:1",
+      "urls_checked": [
+        "https://www.nestofdragons.net/rigid-wings-overview/footlaunch-listing/phantom/"
+      ]
+    }
+  ]
+}
