@@ -1,0 +1,360 @@
+{
+  "src": "aeros_combat_gt_recon.html.txt",
+  "wings": [
+    {
+      "manufacturer": "Aeros",
+      "model": "Combat GT",
+      "size": "12.4",
+      "cert_class": "",
+      "cert_standard": "BHPA",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.4,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) / 12.4 (134)"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) / 10.0 (33)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 8.05,
+          "unit": "",
+          "quote": "Aspect ratio / 8.05"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.0,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) / 34.0 (75)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 60,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 60-90 (132-198)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 90,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 60-90 (132-198)"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Number of upper sail battens / 24"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "nose_angle",
+          "value": 129,
+          "unit": "deg",
+          "quote": "Nose angle, ° / 129-131"
+        },
+        {
+          "name": "breakdown_length_folded",
+          "value": 4.0,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.0/5.6 (13.0/18.4)"
+        },
+        {
+          "name": "breakdown_length_extended",
+          "value": 5.6,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.0/5.6 (13.0/18.4)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Aeros",
+      "model": "Combat GT",
+      "size": "12.7",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.7,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) / 12.7 (137)"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) / 10.35 (34)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 8.4,
+          "unit": "",
+          "quote": "Aspect ratio / 8.4"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.8,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) / 34.8 (77)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 80,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 80-100 (176-221)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 100,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 80-100 (176-221)"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Number of upper sail battens / 24"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "nose_angle",
+          "value": 129,
+          "unit": "deg",
+          "quote": "Nose angle, ° / 129-131"
+        },
+        {
+          "name": "breakdown_length_folded",
+          "value": 4.1,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.10/5.8 (12.8/19)"
+        },
+        {
+          "name": "breakdown_length_extended",
+          "value": 5.8,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.10/5.8 (12.8/19)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Aeros",
+      "model": "Combat GT",
+      "size": "13.2",
+      "cert_class": "",
+      "cert_standard": "DHV",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.2,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) / 13.2 (142)"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) / 10.35 (34)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 8.05,
+          "unit": "",
+          "quote": "Aspect ratio / 8.05"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.0,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) / 35.0 (78)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 70,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 70-110 (154-243)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 110,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 70-110 (154-243)"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Number of upper sail battens / 24"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "nose_angle",
+          "value": 129,
+          "unit": "deg",
+          "quote": "Nose angle, ° / 129-131"
+        },
+        {
+          "name": "breakdown_length_folded",
+          "value": 4.1,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.1/5.8 (12.8/19)"
+        },
+        {
+          "name": "breakdown_length_extended",
+          "value": 5.8,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.1/5.8 (12.8/19)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Aeros",
+      "model": "Combat GT",
+      "size": "13.5",
+      "cert_class": "",
+      "cert_standard": "DHV",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) / 13.5 (143)"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) / 10.7 (35.1)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 8.5,
+          "unit": "",
+          "quote": "Aspect ratio / 8.5"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.0,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) / 35.0 (78)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 90,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 90-110 (200-243)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 110,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 90-110 (200-243)"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Number of upper sail battens / 24"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "nose_angle",
+          "value": 129,
+          "unit": "deg",
+          "quote": "Nose angle, ° / 129-131"
+        },
+        {
+          "name": "breakdown_length_folded",
+          "value": 4.15,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.15/5.9 (13.4/19.3)"
+        },
+        {
+          "name": "breakdown_length_extended",
+          "value": 5.9,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.15/5.9 (13.4/19.3)"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Aeros",
+      "model": "Combat GT",
+      "size": "14.2",
+      "cert_class": "",
+      "cert_standard": "DHV",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) / 14.2 (153)"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) / 10.7 (35.1)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 8.06,
+          "unit": "",
+          "quote": "Aspect ratio / 8.06"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.8,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) / 35.8 (78)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 85,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 85-115 (187-254)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 115,
+          "unit": "kg",
+          "quote": "Pilot clip-in weight, kg (lb) / 85-115 (187-254)"
+        },
+        {
+          "field": "battens",
+          "value": 24,
+          "unit": "",
+          "quote": "Number of upper sail battens / 24"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "nose_angle",
+          "value": 129,
+          "unit": "deg",
+          "quote": "Nose angle, ° / 129-131"
+        },
+        {
+          "name": "breakdown_length_folded",
+          "value": 4.15,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.15/5.9 (13.4/19.3)"
+        },
+        {
+          "name": "breakdown_length_extended",
+          "value": 5.9,
+          "unit": "m",
+          "quote": "Breakdown length, m (ft) / 4.15/5.9 (13.4/19.3)"
+        }
+      ]
+    }
+  ]
+}

@@ -102,6 +102,33 @@ func test_flight_setup_forecast() -> void:
 	m.queue_free()
 
 
+## 2в. Время старта (AM-06): фиксированные часы вместо слайдера — world.json → time.start_hours,
+## сохранённый час не из списка выбирает ближайший (без миграций — просто ближайшее значение).
+func test_flight_setup_fixed_start_hours() -> void:
+	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
+	var got: Array = []
+	m.done.connect(func(s: FlightSettings) -> void: got.append(s))
+	var hour_opt: OptionButton = m.get("_hour")
+	var hours := SunClock.start_hours()
+	check(hour_opt.item_count == hours.size(), "пунктов столько же, сколько часов в списке")
+	for i in hours.size():
+		var label := hour_opt.get_item_text(i)
+		check(label == SunClock.format_hour(hours[i]), "подпись «%s»" % label)
+	var s := FlightSettings.defaults()
+	s.start_hour = 13.25  # не из списка (старая настройка/чужой мир) — ближайший, без миграции
+	m.set_settings(s)
+	var picked := hour_opt.get_item_text(hour_opt.selected)
+	var picked_h := picked.split(":")[0].to_float()
+	check(is_equal_approx(picked_h, 12.0), "13:15 не в списке → ближайший 12:00: «%s»" % picked)
+	hour_opt.select(3)  # последний час списка (20:00 по умолчанию)
+	m.call("_on_done")
+	check(got.size() == 1, "«Готово» шлёт час")
+	if got.size() == 1:
+		var r: FlightSettings = got[0]
+		check(is_equal_approx(r.start_hour, hours[3]), "выбранный час доходит до settings")
+	m.queue_free()
+
+
 ## 3. Выбор на карте: FlightSettings с pick_lat/lon доходит до done (site или latlon).
 func test_flight_setup_carries_map_pick() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")

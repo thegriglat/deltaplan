@@ -1,0 +1,1345 @@
+group,obs,label,threshold,factor,n,mu,mu_star,mu_star_ci95,sigma,S,verdict,n_conv,mu_star_conv,S_conv
+askervein,AANE10,Askervein AANE10,0.0435,lam_frac,12,0.01662,0.01662,0.0141,0.02654,0.382,слабо,12,0.01662,0.382
+askervein,AANE10,Askervein AANE10,0.0435,lam,12,0.002892,0.002892,0.00396,0.007606,0.0665,нет,12,0.002892,0.0665
+askervein,AANE10,Askervein AANE10,0.0435,cs_h,12,-0.004315,0.004315,0.0035,0.006496,0.0992,нет,12,0.004315,0.0992
+askervein,AANE10,Askervein AANE10,0.0435,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE10,Askervein AANE10,0.0435,k_fa,12,-0.00188,0.001924,0.0024,0.004457,0.0442,нет,12,0.001924,0.0442
+askervein,AANE10,Askervein AANE10,0.0435,z0_mul,12,-0.01536,0.01536,0.00373,0.006872,0.353,слабо,12,0.01536,0.353
+askervein,AANE10,Askervein AANE10,0.0435,alpha_mul,12,0.1461,0.1461,0.0195,0.03645,3.36,двигает,12,0.1461,3.36
+askervein,AANE10,Askervein AANE10,0.0435,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE10,Askervein AANE10,0.0435,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE10,Askervein AANE10,0.0435,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE10,Askervein AANE10,0.0435,adv2,12,0.08512,0.08512,0.0148,0.02625,1.96,двигает,12,0.08512,1.96
+askervein,AANE10,Askervein AANE10,0.0435,closure,12,-0.101,0.101,0.0427,0.08286,2.32,двигает,12,0.101,2.32
+askervein,AANE10,Askervein AANE10,0.0435,nu_const,12,-0.03406,0.03406,0.0354,0.06213,0.783,слабо,12,0.03406,0.783
+askervein,AANE10,Askervein AANE10,0.0435,local_k,12,0.03998,0.04053,0.0216,0.04167,0.932,слабо,12,0.04053,0.932
+askervein,AANE10,Askervein AANE10,0.0435,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE10,Askervein AANE10,0.0435,limiter,12,0.001254,0.003635,0.002,0.005163,0.0836,нет,12,0.003635,0.0836
+askervein,AANE20,Askervein AANE20,0.035,lam_frac,12,0.0184,0.0184,0.0157,0.02934,0.526,слабо,12,0.0184,0.526
+askervein,AANE20,Askervein AANE20,0.035,lam,12,0.00541,0.00541,0.00666,0.01303,0.155,нет,12,0.00541,0.155
+askervein,AANE20,Askervein AANE20,0.035,cs_h,12,-0.001924,0.001924,0.00167,0.003081,0.055,нет,12,0.001924,0.055
+askervein,AANE20,Askervein AANE20,0.035,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE20,Askervein AANE20,0.035,k_fa,12,0.000881,0.001272,0.00131,0.002768,0.0364,нет,12,0.001272,0.0364
+askervein,AANE20,Askervein AANE20,0.035,z0_mul,12,0.0003566,0.00841,0.00476,0.01241,0.24,нет,12,0.00841,0.24
+askervein,AANE20,Askervein AANE20,0.035,alpha_mul,12,0.03574,0.03574,0.013,0.02472,1.02,двигает,12,0.03574,1.02
+askervein,AANE20,Askervein AANE20,0.035,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE20,Askervein AANE20,0.035,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE20,Askervein AANE20,0.035,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE20,Askervein AANE20,0.035,adv2,12,0.03575,0.03575,0.00653,0.0128,1.02,двигает,12,0.03575,1.02
+askervein,AANE20,Askervein AANE20,0.035,closure,12,-0.007872,0.04231,0.018,0.05442,1.21,двигает,12,0.04231,1.21
+askervein,AANE20,Askervein AANE20,0.035,nu_const,12,0.02774,0.03596,0.0284,0.05753,1.03,двигает,12,0.03596,1.03
+askervein,AANE20,Askervein AANE20,0.035,local_k,12,0.106,0.106,0.0427,0.08087,3.03,двигает,12,0.106,3.03
+askervein,AANE20,Askervein AANE20,0.035,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE20,Askervein AANE20,0.035,limiter,12,0.00206,0.003782,0.00215,0.005185,0.108,нет,12,0.003782,0.108
+askervein,AANE30,Askervein AANE30,0.026000000000000002,lam_frac,12,0.02032,0.02032,0.0159,0.03114,0.782,слабо,12,0.02032,0.782
+askervein,AANE30,Askervein AANE30,0.026000000000000002,lam,12,0.006652,0.006652,0.00788,0.01615,0.256,нет,12,0.006652,0.256
+askervein,AANE30,Askervein AANE30,0.026000000000000002,cs_h,12,-0.001563,0.001563,0.00137,0.002548,0.0601,нет,12,0.001563,0.0601
+askervein,AANE30,Askervein AANE30,0.026000000000000002,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE30,Askervein AANE30,0.026000000000000002,k_fa,12,-0.004676,0.004676,0.00569,0.01076,0.18,нет,12,0.004676,0.18
+askervein,AANE30,Askervein AANE30,0.026000000000000002,z0_mul,12,-0.005073,0.005073,0.00324,0.00671,0.195,нет,12,0.005073,0.195
+askervein,AANE30,Askervein AANE30,0.026000000000000002,alpha_mul,12,0.03541,0.03541,0.0105,0.01859,1.36,двигает,12,0.03541,1.36
+askervein,AANE30,Askervein AANE30,0.026000000000000002,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE30,Askervein AANE30,0.026000000000000002,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE30,Askervein AANE30,0.026000000000000002,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE30,Askervein AANE30,0.026000000000000002,adv2,12,0.04062,0.04062,0.00859,0.01589,1.56,двигает,12,0.04062,1.56
+askervein,AANE30,Askervein AANE30,0.026000000000000002,closure,12,-0.0196,0.03348,0.0148,0.03975,1.29,двигает,12,0.03348,1.29
+askervein,AANE30,Askervein AANE30,0.026000000000000002,nu_const,12,0.02706,0.03582,0.0257,0.05395,1.38,двигает,12,0.03582,1.38
+askervein,AANE30,Askervein AANE30,0.026000000000000002,local_k,12,0.06734,0.06973,0.028,0.05683,2.68,двигает,12,0.06973,2.68
+askervein,AANE30,Askervein AANE30,0.026000000000000002,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE30,Askervein AANE30,0.026000000000000002,limiter,12,-0.002883,0.004198,0.00331,0.006929,0.161,нет,12,0.004198,0.161
+askervein,AANE40,Askervein AANE40,0.0445,lam_frac,12,0.0151,0.0151,0.0112,0.02099,0.339,слабо,12,0.0151,0.339
+askervein,AANE40,Askervein AANE40,0.0445,lam,12,0.005093,0.005093,0.00613,0.01215,0.114,нет,12,0.005093,0.114
+askervein,AANE40,Askervein AANE40,0.0445,cs_h,12,-0.0009408,0.0009408,0.000862,0.001579,0.0211,нет,12,0.0009408,0.0211
+askervein,AANE40,Askervein AANE40,0.0445,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE40,Askervein AANE40,0.0445,k_fa,12,-0.005644,0.005644,0.00695,0.01302,0.127,нет,12,0.005644,0.127
+askervein,AANE40,Askervein AANE40,0.0445,z0_mul,12,-0.01047,0.01051,0.0102,0.01983,0.236,нет,12,0.01051,0.236
+askervein,AANE40,Askervein AANE40,0.0445,alpha_mul,12,0.04614,0.04614,0.0134,0.02448,1.04,двигает,12,0.04614,1.04
+askervein,AANE40,Askervein AANE40,0.0445,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE40,Askervein AANE40,0.0445,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE40,Askervein AANE40,0.0445,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE40,Askervein AANE40,0.0445,adv2,12,0.04395,0.04395,0.00964,0.01849,0.988,слабо,12,0.04395,0.988
+askervein,AANE40,Askervein AANE40,0.0445,closure,12,-0.03369,0.0348,0.0273,0.05395,0.782,слабо,12,0.0348,0.782
+askervein,AANE40,Askervein AANE40,0.0445,nu_const,12,0.01362,0.02172,0.0157,0.0347,0.488,слабо,12,0.02172,0.488
+askervein,AANE40,Askervein AANE40,0.0445,local_k,12,-0.0006169,0.04033,0.0231,0.06115,0.906,слабо,12,0.04033,0.906
+askervein,AANE40,Askervein AANE40,0.0445,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE40,Askervein AANE40,0.0445,limiter,12,0.003005,0.003823,0.0027,0.005701,0.0859,нет,12,0.003823,0.0859
+askervein,AANE60,Askervein AANE60,0.044,lam_frac,12,0.0253,0.0253,0.0215,0.03932,0.575,слабо,12,0.0253,0.575
+askervein,AANE60,Askervein AANE60,0.044,lam,12,0.007049,0.007049,0.00912,0.01675,0.16,нет,12,0.007049,0.16
+askervein,AANE60,Askervein AANE60,0.044,cs_h,12,-0.001362,0.001362,0.00121,0.002229,0.031,нет,12,0.001362,0.031
+askervein,AANE60,Askervein AANE60,0.044,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE60,Askervein AANE60,0.044,k_fa,12,-0.002179,0.002179,0.00244,0.004459,0.0495,нет,12,0.002179,0.0495
+askervein,AANE60,Askervein AANE60,0.044,z0_mul,12,7.174e-05,0.006826,0.00371,0.009983,0.155,нет,12,0.006826,0.155
+askervein,AANE60,Askervein AANE60,0.044,alpha_mul,12,0.05506,0.05506,0.0108,0.01983,1.25,двигает,12,0.05506,1.25
+askervein,AANE60,Askervein AANE60,0.044,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE60,Askervein AANE60,0.044,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE60,Askervein AANE60,0.044,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE60,Askervein AANE60,0.044,adv2,12,0.0786,0.0786,0.0209,0.03877,1.79,двигает,12,0.0786,1.79
+askervein,AANE60,Askervein AANE60,0.044,closure,12,-0.037,0.04588,0.0135,0.03759,1.04,двигает,12,0.04588,1.04
+askervein,AANE60,Askervein AANE60,0.044,nu_const,12,0.02059,0.03992,0.0262,0.0615,0.907,слабо,12,0.03992,0.907
+askervein,AANE60,Askervein AANE60,0.044,local_k,12,0.06606,0.06606,0.0298,0.05716,1.5,двигает,12,0.06606,1.5
+askervein,AANE60,Askervein AANE60,0.044,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AANE60,Askervein AANE60,0.044,limiter,12,-0.003955,0.003955,0.00267,0.004967,0.0899,нет,12,0.003955,0.0899
+askervein,AASW10,Askervein AASW10,0.0435,lam_frac,12,0.01116,0.01116,0.00973,0.01812,0.257,нет,12,0.01116,0.257
+askervein,AASW10,Askervein AASW10,0.0435,lam,12,0.001574,0.001574,0.00234,0.005284,0.0362,нет,12,0.001574,0.0362
+askervein,AASW10,Askervein AASW10,0.0435,cs_h,12,-0.003278,0.003278,0.0026,0.004857,0.0754,нет,12,0.003278,0.0754
+askervein,AASW10,Askervein AASW10,0.0435,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW10,Askervein AASW10,0.0435,k_fa,12,-0.003073,0.003073,0.00339,0.006226,0.0707,нет,12,0.003073,0.0707
+askervein,AASW10,Askervein AASW10,0.0435,z0_mul,12,-0.003012,0.007905,0.00227,0.008628,0.182,нет,12,0.007905,0.182
+askervein,AASW10,Askervein AASW10,0.0435,alpha_mul,12,0.1307,0.1307,0.0164,0.03067,3,двигает,12,0.1307,3
+askervein,AASW10,Askervein AASW10,0.0435,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW10,Askervein AASW10,0.0435,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW10,Askervein AASW10,0.0435,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW10,Askervein AASW10,0.0435,adv2,12,0.05215,0.05215,0.00897,0.01724,1.2,двигает,12,0.05215,1.2
+askervein,AASW10,Askervein AASW10,0.0435,closure,12,-0.1294,0.1294,0.0559,0.1047,2.97,двигает,12,0.1294,2.97
+askervein,AASW10,Askervein AASW10,0.0435,nu_const,12,-0.0602,0.0602,0.0413,0.08095,1.38,двигает,12,0.0602,1.38
+askervein,AASW10,Askervein AASW10,0.0435,local_k,12,0.01654,0.02234,0.014,0.03061,0.514,слабо,12,0.02234,0.514
+askervein,AASW10,Askervein AASW10,0.0435,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW10,Askervein AASW10,0.0435,limiter,12,0.009923,0.01121,0.00666,0.01373,0.258,нет,12,0.01121,0.258
+askervein,AASW20,Askervein AASW20,0.036500000000000005,lam_frac,12,0.01208,0.01208,0.011,0.02069,0.331,слабо,12,0.01208,0.331
+askervein,AASW20,Askervein AASW20,0.036500000000000005,lam,12,0.002037,0.002037,0.00264,0.005658,0.0558,нет,12,0.002037,0.0558
+askervein,AASW20,Askervein AASW20,0.036500000000000005,cs_h,12,-0.00422,0.00422,0.00336,0.006422,0.116,нет,12,0.00422,0.116
+askervein,AASW20,Askervein AASW20,0.036500000000000005,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW20,Askervein AASW20,0.036500000000000005,k_fa,12,-0.003332,0.003332,0.00349,0.006862,0.0913,нет,12,0.003332,0.0913
+askervein,AASW20,Askervein AASW20,0.036500000000000005,z0_mul,12,-0.006275,0.009546,0.00304,0.009368,0.262,нет,12,0.009546,0.262
+askervein,AASW20,Askervein AASW20,0.036500000000000005,alpha_mul,12,0.1063,0.1063,0.0125,0.02399,2.91,двигает,12,0.1063,2.91
+askervein,AASW20,Askervein AASW20,0.036500000000000005,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW20,Askervein AASW20,0.036500000000000005,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW20,Askervein AASW20,0.036500000000000005,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW20,Askervein AASW20,0.036500000000000005,adv2,12,0.03995,0.03995,0.00791,0.01485,1.09,двигает,12,0.03995,1.09
+askervein,AASW20,Askervein AASW20,0.036500000000000005,closure,12,-0.1206,0.1206,0.0491,0.0921,3.31,двигает,12,0.1206,3.31
+askervein,AASW20,Askervein AASW20,0.036500000000000005,nu_const,12,-0.05307,0.05307,0.0376,0.07215,1.45,двигает,12,0.05307,1.45
+askervein,AASW20,Askervein AASW20,0.036500000000000005,local_k,12,0.01887,0.02309,0.0136,0.02874,0.633,слабо,12,0.02309,0.633
+askervein,AASW20,Askervein AASW20,0.036500000000000005,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW20,Askervein AASW20,0.036500000000000005,limiter,12,0.01159,0.01252,0.00753,0.01536,0.343,слабо,12,0.01252,0.343
+askervein,AASW30,Askervein AASW30,0.025,lam_frac,12,0.01214,0.01214,0.0117,0.02266,0.486,слабо,12,0.01214,0.486
+askervein,AASW30,Askervein AASW30,0.025,lam,12,0.002117,0.002117,0.00269,0.005741,0.0847,нет,12,0.002117,0.0847
+askervein,AASW30,Askervein AASW30,0.025,cs_h,12,-0.003067,0.003067,0.00242,0.004602,0.123,нет,12,0.003067,0.123
+askervein,AASW30,Askervein AASW30,0.025,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW30,Askervein AASW30,0.025,k_fa,12,-0.002604,0.002605,0.00289,0.005287,0.104,нет,12,0.002605,0.104
+askervein,AASW30,Askervein AASW30,0.025,z0_mul,12,-0.01178,0.01343,0.00369,0.01003,0.537,слабо,12,0.01343,0.537
+askervein,AASW30,Askervein AASW30,0.025,alpha_mul,12,0.08134,0.08134,0.0106,0.01896,3.25,двигает,12,0.08134,3.25
+askervein,AASW30,Askervein AASW30,0.025,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW30,Askervein AASW30,0.025,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW30,Askervein AASW30,0.025,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW30,Askervein AASW30,0.025,adv2,12,0.02048,0.02048,0.00574,0.01054,0.819,слабо,12,0.02048,0.819
+askervein,AASW30,Askervein AASW30,0.025,closure,12,-0.08967,0.08967,0.0311,0.05896,3.59,двигает,12,0.08967,3.59
+askervein,AASW30,Askervein AASW30,0.025,nu_const,12,-0.03103,0.03103,0.0254,0.04696,1.24,двигает,12,0.03103,1.24
+askervein,AASW30,Askervein AASW30,0.025,local_k,12,0.01909,0.0208,0.012,0.02505,0.832,слабо,12,0.0208,0.832
+askervein,AASW30,Askervein AASW30,0.025,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW30,Askervein AASW30,0.025,limiter,12,0.01013,0.01086,0.00651,0.01335,0.434,слабо,12,0.01086,0.434
+askervein,AASW40,Askervein AASW40,0.023,lam_frac,12,0.01122,0.01122,0.0121,0.02316,0.488,слабо,12,0.01122,0.488
+askervein,AASW40,Askervein AASW40,0.023,lam,12,0.002075,0.002075,0.00269,0.005788,0.0902,нет,12,0.002075,0.0902
+askervein,AASW40,Askervein AASW40,0.023,cs_h,12,-0.002006,0.002006,0.00167,0.003171,0.0872,нет,12,0.002006,0.0872
+askervein,AASW40,Askervein AASW40,0.023,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW40,Askervein AASW40,0.023,k_fa,12,-0.001405,0.001409,0.00159,0.002922,0.0612,нет,12,0.001409,0.0612
+askervein,AASW40,Askervein AASW40,0.023,z0_mul,12,-0.02158,0.02158,0.0053,0.009691,0.938,слабо,12,0.02158,0.938
+askervein,AASW40,Askervein AASW40,0.023,alpha_mul,12,0.05885,0.05885,0.00927,0.018,2.56,двигает,12,0.05885,2.56
+askervein,AASW40,Askervein AASW40,0.023,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW40,Askervein AASW40,0.023,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW40,Askervein AASW40,0.023,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW40,Askervein AASW40,0.023,adv2,12,0.02508,0.02508,0.00373,0.006917,1.09,двигает,12,0.02508,1.09
+askervein,AASW40,Askervein AASW40,0.023,closure,12,-0.04179,0.04179,0.0197,0.03566,1.82,двигает,12,0.04179,1.82
+askervein,AASW40,Askervein AASW40,0.023,nu_const,12,-0.00198,0.01372,0.0103,0.0242,0.597,слабо,12,0.01372,0.597
+askervein,AASW40,Askervein AASW40,0.023,local_k,12,0.01742,0.01749,0.012,0.02164,0.76,слабо,12,0.01749,0.76
+askervein,AASW40,Askervein AASW40,0.023,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW40,Askervein AASW40,0.023,limiter,12,0.006735,0.007396,0.00446,0.009083,0.322,слабо,12,0.007396,0.322
+askervein,AASW50,Askervein AASW50,0.0375,lam_frac,12,0.01263,0.01263,0.0138,0.02709,0.337,слабо,12,0.01263,0.337
+askervein,AASW50,Askervein AASW50,0.0375,lam,12,0.002276,0.002276,0.00321,0.007132,0.0607,нет,12,0.002276,0.0607
+askervein,AASW50,Askervein AASW50,0.0375,cs_h,12,-0.0007752,0.0007752,0.000674,0.00124,0.0207,нет,12,0.0007752,0.0207
+askervein,AASW50,Askervein AASW50,0.0375,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW50,Askervein AASW50,0.0375,k_fa,12,0.00209,0.00209,0.00211,0.003783,0.0557,нет,12,0.00209,0.0557
+askervein,AASW50,Askervein AASW50,0.0375,z0_mul,12,-0.03929,0.03929,0.00647,0.01214,1.05,двигает,12,0.03929,1.05
+askervein,AASW50,Askervein AASW50,0.0375,alpha_mul,12,0.0594,0.0594,0.0132,0.02318,1.58,двигает,12,0.0594,1.58
+askervein,AASW50,Askervein AASW50,0.0375,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW50,Askervein AASW50,0.0375,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW50,Askervein AASW50,0.0375,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW50,Askervein AASW50,0.0375,adv2,12,0.01572,0.01572,0.00205,0.003813,0.419,слабо,12,0.01572,0.419
+askervein,AASW50,Askervein AASW50,0.0375,closure,12,0.01903,0.05679,0.0207,0.06732,1.51,двигает,12,0.05679,1.51
+askervein,AASW50,Askervein AASW50,0.0375,nu_const,12,0.02972,0.02972,0.0227,0.04425,0.793,слабо,12,0.02972,0.793
+askervein,AASW50,Askervein AASW50,0.0375,local_k,12,0.01997,0.01997,0.0141,0.0257,0.532,слабо,12,0.01997,0.532
+askervein,AASW50,Askervein AASW50,0.0375,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW50,Askervein AASW50,0.0375,limiter,12,0.002888,0.003165,0.00189,0.003882,0.0844,нет,12,0.003165,0.0844
+askervein,AASW60,Askervein AASW60,0.0385,lam_frac,12,0.0149,0.0149,0.0175,0.03185,0.387,слабо,12,0.0149,0.387
+askervein,AASW60,Askervein AASW60,0.0385,lam,12,0.002456,0.002456,0.00366,0.008342,0.0638,нет,12,0.002456,0.0638
+askervein,AASW60,Askervein AASW60,0.0385,cs_h,12,-0.0001946,0.0001946,0.000156,0.0002993,0.00505,нет,12,0.0001946,0.00505
+askervein,AASW60,Askervein AASW60,0.0385,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW60,Askervein AASW60,0.0385,k_fa,12,0.002499,0.002499,0.00209,0.004511,0.0649,нет,12,0.002499,0.0649
+askervein,AASW60,Askervein AASW60,0.0385,z0_mul,12,-0.04668,0.04668,0.00716,0.01389,1.21,двигает,12,0.04668,1.21
+askervein,AASW60,Askervein AASW60,0.0385,alpha_mul,12,0.0708,0.0708,0.0145,0.02646,1.84,двигает,12,0.0708,1.84
+askervein,AASW60,Askervein AASW60,0.0385,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW60,Askervein AASW60,0.0385,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW60,Askervein AASW60,0.0385,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW60,Askervein AASW60,0.0385,adv2,12,0.007121,0.007121,0.000907,0.001682,0.185,нет,12,0.007121,0.185
+askervein,AASW60,Askervein AASW60,0.0385,closure,12,0.03076,0.0757,0.0286,0.09158,1.97,двигает,12,0.0757,1.97
+askervein,AASW60,Askervein AASW60,0.0385,nu_const,12,0.04628,0.04628,0.0336,0.06364,1.2,двигает,12,0.04628,1.2
+askervein,AASW60,Askervein AASW60,0.0385,local_k,12,0.02266,0.02284,0.0152,0.03007,0.593,слабо,12,0.02284,0.593
+askervein,AASW60,Askervein AASW60,0.0385,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW60,Askervein AASW60,0.0385,limiter,12,0.000431,0.00051,0.000322,0.000666,0.0132,нет,12,0.00051,0.0132
+askervein,AASW70,Askervein AASW70,0.033,lam_frac,12,0.01506,0.01506,0.0166,0.0322,0.456,слабо,12,0.01506,0.456
+askervein,AASW70,Askervein AASW70,0.033,lam,12,0.002427,0.002427,0.00362,0.008327,0.0735,нет,12,0.002427,0.0735
+askervein,AASW70,Askervein AASW70,0.033,cs_h,12,-0.00011,0.00011,9.21e-05,0.0001678,0.00333,нет,12,0.00011,0.00333
+askervein,AASW70,Askervein AASW70,0.033,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW70,Askervein AASW70,0.033,k_fa,12,0.002267,0.002267,0.00189,0.004065,0.0687,нет,12,0.002267,0.0687
+askervein,AASW70,Askervein AASW70,0.033,z0_mul,12,-0.0471,0.0471,0.00728,0.01345,1.43,двигает,12,0.0471,1.43
+askervein,AASW70,Askervein AASW70,0.033,alpha_mul,12,0.0767,0.0767,0.0145,0.02607,2.32,двигает,12,0.0767,2.32
+askervein,AASW70,Askervein AASW70,0.033,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW70,Askervein AASW70,0.033,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW70,Askervein AASW70,0.033,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW70,Askervein AASW70,0.033,adv2,12,0.004693,0.004693,0.000823,0.001516,0.142,нет,12,0.004693,0.142
+askervein,AASW70,Askervein AASW70,0.033,closure,12,0.02697,0.07317,0.0323,0.09122,2.22,двигает,12,0.07317,2.22
+askervein,AASW70,Askervein AASW70,0.033,nu_const,12,0.04643,0.04643,0.0336,0.06426,1.41,двигает,12,0.04643,1.41
+askervein,AASW70,Askervein AASW70,0.033,local_k,12,0.02235,0.02268,0.0158,0.03005,0.687,слабо,12,0.02268,0.687
+askervein,AASW70,Askervein AASW70,0.033,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,AASW70,Askervein AASW70,0.033,limiter,12,6.364e-05,0.0001171,0.0001,0.0002145,0.00355,нет,12,0.0001171,0.00355
+askervein,ANE10,Askervein ANE10,0.046,lam_frac,12,0.02181,0.02181,0.0184,0.03491,0.474,слабо,12,0.02181,0.474
+askervein,ANE10,Askervein ANE10,0.046,lam,12,0.005876,0.005876,0.00705,0.01405,0.128,нет,12,0.005876,0.128
+askervein,ANE10,Askervein ANE10,0.046,cs_h,12,-0.002017,0.002017,0.00169,0.003061,0.0438,нет,12,0.002017,0.0438
+askervein,ANE10,Askervein ANE10,0.046,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE10,Askervein ANE10,0.046,k_fa,12,0.005869,0.0063,0.00756,0.01433,0.137,нет,12,0.0063,0.137
+askervein,ANE10,Askervein ANE10,0.046,z0_mul,12,0.004086,0.01557,0.0112,0.02675,0.338,слабо,12,0.01557,0.338
+askervein,ANE10,Askervein ANE10,0.046,alpha_mul,12,0.06391,0.06391,0.0217,0.03908,1.39,двигает,12,0.06391,1.39
+askervein,ANE10,Askervein ANE10,0.046,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE10,Askervein ANE10,0.046,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE10,Askervein ANE10,0.046,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE10,Askervein ANE10,0.046,adv2,12,0.07525,0.07525,0.013,0.02295,1.64,двигает,12,0.07525,1.64
+askervein,ANE10,Askervein ANE10,0.046,closure,12,-0.008729,0.05906,0.0304,0.08305,1.28,двигает,12,0.05906,1.28
+askervein,ANE10,Askervein ANE10,0.046,nu_const,12,0.02911,0.04063,0.0368,0.07402,0.883,слабо,12,0.04063,0.883
+askervein,ANE10,Askervein ANE10,0.046,local_k,12,0.155,0.155,0.0681,0.1233,3.37,двигает,12,0.155,3.37
+askervein,ANE10,Askervein ANE10,0.046,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE10,Askervein ANE10,0.046,limiter,12,0.008147,0.01056,0.00621,0.01321,0.23,нет,12,0.01056,0.23
+askervein,ANE20,Askervein ANE20,0.044,lam_frac,12,0.02629,0.02629,0.0217,0.04208,0.597,слабо,12,0.02629,0.597
+askervein,ANE20,Askervein ANE20,0.044,lam,12,0.008522,0.008522,0.00997,0.02109,0.194,нет,12,0.008522,0.194
+askervein,ANE20,Askervein ANE20,0.044,cs_h,12,-0.001479,0.001479,0.00129,0.002398,0.0336,нет,12,0.001479,0.0336
+askervein,ANE20,Askervein ANE20,0.044,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE20,Askervein ANE20,0.044,k_fa,12,-0.003897,0.003899,0.00451,0.009,0.0886,нет,12,0.003899,0.0886
+askervein,ANE20,Askervein ANE20,0.044,z0_mul,12,-0.003083,0.005253,0.00262,0.006738,0.119,нет,12,0.005253,0.119
+askervein,ANE20,Askervein ANE20,0.044,alpha_mul,12,0.02882,0.03678,0.0106,0.03037,0.836,слабо,12,0.03678,0.836
+askervein,ANE20,Askervein ANE20,0.044,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE20,Askervein ANE20,0.044,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE20,Askervein ANE20,0.044,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE20,Askervein ANE20,0.044,adv2,12,0.04969,0.05099,0.0161,0.03265,1.16,двигает,12,0.05099,1.16
+askervein,ANE20,Askervein ANE20,0.044,closure,12,0.01927,0.05598,0.04,0.09182,1.27,двигает,12,0.05598,1.27
+askervein,ANE20,Askervein ANE20,0.044,nu_const,12,0.04821,0.05709,0.045,0.0899,1.3,двигает,12,0.05709,1.3
+askervein,ANE20,Askervein ANE20,0.044,local_k,12,0.1872,0.1872,0.0784,0.151,4.26,двигает,12,0.1872,4.26
+askervein,ANE20,Askervein ANE20,0.044,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE20,Askervein ANE20,0.044,limiter,12,0.004129,0.006452,0.00513,0.0106,0.147,нет,12,0.006452,0.147
+askervein,ANE40,Askervein ANE40,0.083,lam_frac,12,0.0285,0.0285,0.0243,0.04462,0.343,слабо,12,0.0285,0.343
+askervein,ANE40,Askervein ANE40,0.083,lam,12,0.009856,0.009856,0.0131,0.02441,0.119,нет,12,0.009856,0.119
+askervein,ANE40,Askervein ANE40,0.083,cs_h,12,-0.001023,0.001023,0.000942,0.001726,0.0123,нет,12,0.001023,0.0123
+askervein,ANE40,Askervein ANE40,0.083,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE40,Askervein ANE40,0.083,k_fa,12,-0.006261,0.006356,0.00792,0.01476,0.0766,нет,12,0.006356,0.0766
+askervein,ANE40,Askervein ANE40,0.083,z0_mul,12,-0.01402,0.01482,0.0171,0.03169,0.178,нет,12,0.01482,0.178
+askervein,ANE40,Askervein ANE40,0.083,alpha_mul,12,0.03079,0.0346,0.013,0.02955,0.417,слабо,12,0.0346,0.417
+askervein,ANE40,Askervein ANE40,0.083,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE40,Askervein ANE40,0.083,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE40,Askervein ANE40,0.083,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE40,Askervein ANE40,0.083,adv2,12,0.04111,0.04111,0.0169,0.0318,0.495,слабо,12,0.04111,0.495
+askervein,ANE40,Askervein ANE40,0.083,closure,12,-0.0242,0.04424,0.0264,0.06221,0.533,слабо,12,0.04424,0.533
+askervein,ANE40,Askervein ANE40,0.083,nu_const,12,0.03843,0.05004,0.0349,0.07269,0.603,слабо,12,0.05004,0.603
+askervein,ANE40,Askervein ANE40,0.083,local_k,12,0.09863,0.1076,0.0411,0.09078,1.3,двигает,12,0.1076,1.3
+askervein,ANE40,Askervein ANE40,0.083,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ANE40,Askervein ANE40,0.083,limiter,12,-0.00413,0.00428,0.00342,0.006033,0.0516,нет,12,0.00428,0.0516
+askervein,ASW10,Askervein ASW10,0.042,lam_frac,12,0.01464,0.01464,0.0129,0.0233,0.349,слабо,12,0.01464,0.349
+askervein,ASW10,Askervein ASW10,0.042,lam,12,0.002429,0.002429,0.00332,0.006362,0.0578,нет,12,0.002429,0.0578
+askervein,ASW10,Askervein ASW10,0.042,cs_h,12,-0.005049,0.005049,0.00384,0.007548,0.12,нет,12,0.005049,0.12
+askervein,ASW10,Askervein ASW10,0.042,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW10,Askervein ASW10,0.042,k_fa,12,-0.003318,0.00332,0.00366,0.006753,0.0791,нет,12,0.00332,0.0791
+askervein,ASW10,Askervein ASW10,0.042,z0_mul,12,-0.00403,0.009519,0.00318,0.01083,0.227,нет,12,0.009519,0.227
+askervein,ASW10,Askervein ASW10,0.042,alpha_mul,12,0.1516,0.1516,0.0196,0.03682,3.61,двигает,12,0.1516,3.61
+askervein,ASW10,Askervein ASW10,0.042,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW10,Askervein ASW10,0.042,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW10,Askervein ASW10,0.042,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW10,Askervein ASW10,0.042,adv2,12,0.08269,0.08269,0.0115,0.02248,1.97,двигает,12,0.08269,1.97
+askervein,ASW10,Askervein ASW10,0.042,closure,12,-0.1647,0.1647,0.0802,0.1433,3.92,двигает,12,0.1647,3.92
+askervein,ASW10,Askervein ASW10,0.042,nu_const,12,-0.08113,0.08113,0.0563,0.1083,1.93,двигает,12,0.08113,1.93
+askervein,ASW10,Askervein ASW10,0.042,local_k,12,0.03048,0.03284,0.0188,0.0386,0.782,слабо,12,0.03284,0.782
+askervein,ASW10,Askervein ASW10,0.042,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW10,Askervein ASW10,0.042,limiter,12,0.005797,0.006916,0.00423,0.008497,0.165,нет,12,0.006916,0.165
+askervein,ASW20,Askervein ASW20,0.004,lam_frac,12,0.01116,0.01116,0.0104,0.01949,2.79,двигает,12,0.01116,2.79
+askervein,ASW20,Askervein ASW20,0.004,lam,12,0.002089,0.002089,0.00245,0.005158,0.522,слабо,12,0.002089,0.522
+askervein,ASW20,Askervein ASW20,0.004,cs_h,12,-0.00577,0.00577,0.00474,0.008645,1.44,двигает,12,0.00577,1.44
+askervein,ASW20,Askervein ASW20,0.004,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW20,Askervein ASW20,0.004,k_fa,12,-0.002921,0.002923,0.00327,0.006058,0.731,слабо,12,0.002923,0.731
+askervein,ASW20,Askervein ASW20,0.004,z0_mul,12,-0.008494,0.01052,0.00276,0.008336,2.63,двигает,12,0.01052,2.63
+askervein,ASW20,Askervein ASW20,0.004,alpha_mul,12,0.0906,0.0906,0.0107,0.02068,22.7,двигает,12,0.0906,22.7
+askervein,ASW20,Askervein ASW20,0.004,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW20,Askervein ASW20,0.004,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW20,Askervein ASW20,0.004,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW20,Askervein ASW20,0.004,adv2,12,0.03078,0.03078,0.00527,0.009898,7.7,двигает,12,0.03078,7.7
+askervein,ASW20,Askervein ASW20,0.004,closure,12,-0.1094,0.1094,0.0453,0.0861,27.3,двигает,12,0.1094,27.3
+askervein,ASW20,Askervein ASW20,0.004,nu_const,12,-0.04875,0.04875,0.0364,0.06542,12.2,двигает,12,0.04875,12.2
+askervein,ASW20,Askervein ASW20,0.004,local_k,12,0.02025,0.02168,0.0128,0.02534,5.42,двигает,12,0.02168,5.42
+askervein,ASW20,Askervein ASW20,0.004,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW20,Askervein ASW20,0.004,limiter,12,0.008996,0.00957,0.00583,0.01179,2.39,двигает,12,0.00957,2.39
+askervein,ASW35,Askervein ASW35,0.065,lam_frac,12,0.0129,0.0129,0.0132,0.026,0.199,нет,12,0.0129,0.199
+askervein,ASW35,Askervein ASW35,0.065,lam,12,0.002364,0.002364,0.00326,0.00634,0.0364,нет,12,0.002364,0.0364
+askervein,ASW35,Askervein ASW35,0.065,cs_h,12,-0.003493,0.003493,0.00274,0.00548,0.0537,нет,12,0.003493,0.0537
+askervein,ASW35,Askervein ASW35,0.065,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW35,Askervein ASW35,0.065,k_fa,12,-0.002331,0.002334,0.00256,0.004757,0.0359,нет,12,0.002334,0.0359
+askervein,ASW35,Askervein ASW35,0.065,z0_mul,12,-0.02352,0.02352,0.00574,0.01039,0.362,слабо,12,0.02352,0.362
+askervein,ASW35,Askervein ASW35,0.065,alpha_mul,12,0.07651,0.07651,0.0111,0.02077,1.18,двигает,12,0.07651,1.18
+askervein,ASW35,Askervein ASW35,0.065,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW35,Askervein ASW35,0.065,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW35,Askervein ASW35,0.065,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW35,Askervein ASW35,0.065,adv2,12,0.04014,0.04014,0.00649,0.01194,0.617,слабо,12,0.04014,0.617
+askervein,ASW35,Askervein ASW35,0.065,closure,12,-0.07266,0.07266,0.0263,0.0493,1.12,двигает,12,0.07266,1.12
+askervein,ASW35,Askervein ASW35,0.065,nu_const,12,-0.01614,0.0198,0.018,0.03583,0.305,слабо,12,0.0198,0.305
+askervein,ASW35,Askervein ASW35,0.065,local_k,12,0.02073,0.0211,0.0129,0.02512,0.325,слабо,12,0.0211,0.325
+askervein,ASW35,Askervein ASW35,0.065,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW35,Askervein ASW35,0.065,limiter,12,0.01114,0.01144,0.00712,0.01414,0.176,нет,12,0.01144,0.176
+askervein,ASW50,Askervein ASW50,0.046,lam_frac,12,0.01513,0.01513,0.0168,0.03218,0.329,слабо,12,0.01513,0.329
+askervein,ASW50,Askervein ASW50,0.046,lam,12,0.002452,0.002452,0.00362,0.008039,0.0533,нет,12,0.002452,0.0533
+askervein,ASW50,Askervein ASW50,0.046,cs_h,12,-0.0002406,0.0002406,0.000182,0.0003551,0.00523,нет,12,0.0002406,0.00523
+askervein,ASW50,Askervein ASW50,0.046,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW50,Askervein ASW50,0.046,k_fa,12,0.001796,0.001796,0.00152,0.003247,0.039,нет,12,0.001796,0.039
+askervein,ASW50,Askervein ASW50,0.046,z0_mul,12,-0.04536,0.04536,0.00717,0.01365,0.986,слабо,12,0.04536,0.986
+askervein,ASW50,Askervein ASW50,0.046,alpha_mul,12,0.06883,0.06883,0.0138,0.02589,1.5,двигает,12,0.06883,1.5
+askervein,ASW50,Askervein ASW50,0.046,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW50,Askervein ASW50,0.046,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW50,Askervein ASW50,0.046,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW50,Askervein ASW50,0.046,adv2,12,0.01607,0.01607,0.000688,0.00131,0.349,слабо,12,0.01607,0.349
+askervein,ASW50,Askervein ASW50,0.046,closure,12,0.01966,0.06771,0.0262,0.08429,1.47,двигает,12,0.06771,1.47
+askervein,ASW50,Askervein ASW50,0.046,nu_const,12,0.04205,0.04205,0.0314,0.06014,0.914,слабо,12,0.04205,0.914
+askervein,ASW50,Askervein ASW50,0.046,local_k,12,0.02437,0.02437,0.0168,0.02998,0.53,слабо,12,0.02437,0.53
+askervein,ASW50,Askervein ASW50,0.046,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW50,Askervein ASW50,0.046,limiter,12,0.0006612,0.0007173,0.000442,0.0008925,0.0156,нет,12,0.0007173,0.0156
+askervein,ASW85,Askervein ASW85,0.045,lam_frac,12,0.01657,0.01657,0.0183,0.03464,0.368,слабо,12,0.01657,0.368
+askervein,ASW85,Askervein ASW85,0.045,lam,12,0.002549,0.002549,0.0038,0.008749,0.0566,нет,12,0.002549,0.0566
+askervein,ASW85,Askervein ASW85,0.045,cs_h,12,-2.006e-05,2.006e-05,1.48e-05,3.009e-05,0.000446,нет,12,2.006e-05,0.000446
+askervein,ASW85,Askervein ASW85,0.045,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW85,Askervein ASW85,0.045,k_fa,12,0.001637,0.001641,0.00166,0.002972,0.0365,нет,12,0.001641,0.0365
+askervein,ASW85,Askervein ASW85,0.045,z0_mul,12,-0.04853,0.04853,0.00701,0.01353,1.08,двигает,12,0.04853,1.08
+askervein,ASW85,Askervein ASW85,0.045,alpha_mul,12,0.08224,0.08224,0.0142,0.02634,1.83,двигает,12,0.08224,1.83
+askervein,ASW85,Askervein ASW85,0.045,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW85,Askervein ASW85,0.045,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW85,Askervein ASW85,0.045,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW85,Askervein ASW85,0.045,adv2,12,0.0031,0.003193,0.00116,0.002294,0.0709,нет,12,0.003193,0.0709
+askervein,ASW85,Askervein ASW85,0.045,closure,12,0.02251,0.07436,0.0344,0.09611,1.65,двигает,12,0.07436,1.65
+askervein,ASW85,Askervein ASW85,0.045,nu_const,12,0.05066,0.05066,0.0393,0.0712,1.13,двигает,12,0.05066,1.13
+askervein,ASW85,Askervein ASW85,0.045,local_k,12,0.02561,0.02609,0.0173,0.03281,0.58,слабо,12,0.02609,0.58
+askervein,ASW85,Askervein ASW85,0.045,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,ASW85,Askervein ASW85,0.045,limiter,12,-0.0009298,0.0009298,0.000783,0.001455,0.0207,нет,12,0.0009298,0.0207
+askervein,BNW10,Askervein BNW10,0.11499999999999999,lam_frac,12,0.01517,0.01517,0.0125,0.02393,0.132,нет,12,0.01517,0.132
+askervein,BNW10,Askervein BNW10,0.11499999999999999,lam,12,0.002218,0.002218,0.00313,0.006314,0.0193,нет,12,0.002218,0.0193
+askervein,BNW10,Askervein BNW10,0.11499999999999999,cs_h,12,-0.004463,0.004463,0.00349,0.006407,0.0388,нет,12,0.004463,0.0388
+askervein,BNW10,Askervein BNW10,0.11499999999999999,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW10,Askervein BNW10,0.11499999999999999,k_fa,12,-0.002038,0.002042,0.00221,0.004054,0.0178,нет,12,0.002042,0.0178
+askervein,BNW10,Askervein BNW10,0.11499999999999999,z0_mul,12,-0.006627,0.0117,0.00272,0.01124,0.102,нет,12,0.0117,0.102
+askervein,BNW10,Askervein BNW10,0.11499999999999999,alpha_mul,12,0.1625,0.1625,0.0225,0.04085,1.41,двигает,12,0.1625,1.41
+askervein,BNW10,Askervein BNW10,0.11499999999999999,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW10,Askervein BNW10,0.11499999999999999,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW10,Askervein BNW10,0.11499999999999999,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW10,Askervein BNW10,0.11499999999999999,adv2,12,0.07839,0.07839,0.0133,0.02584,0.682,слабо,12,0.07839,0.682
+askervein,BNW10,Askervein BNW10,0.11499999999999999,closure,12,-0.1424,0.1424,0.0648,0.1218,1.24,двигает,12,0.1424,1.24
+askervein,BNW10,Askervein BNW10,0.11499999999999999,nu_const,12,-0.06105,0.06105,0.0449,0.08699,0.531,слабо,12,0.06105,0.531
+askervein,BNW10,Askervein BNW10,0.11499999999999999,local_k,12,0.0391,0.03954,0.0219,0.0412,0.344,слабо,12,0.03954,0.344
+askervein,BNW10,Askervein BNW10,0.11499999999999999,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW10,Askervein BNW10,0.11499999999999999,limiter,12,0.006233,0.007959,0.00442,0.009809,0.0692,нет,12,0.007959,0.0692
+askervein,BNW20,Askervein BNW20,0.0665,lam_frac,12,0.01556,0.01556,0.0137,0.02505,0.234,нет,12,0.01556,0.234
+askervein,BNW20,Askervein BNW20,0.0665,lam,12,0.002532,0.002532,0.00348,0.00673,0.0381,нет,12,0.002532,0.0381
+askervein,BNW20,Askervein BNW20,0.0665,cs_h,12,-0.003772,0.003772,0.00292,0.005556,0.0567,нет,12,0.003772,0.0567
+askervein,BNW20,Askervein BNW20,0.0665,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW20,Askervein BNW20,0.0665,k_fa,12,0.002292,0.002983,0.00344,0.00659,0.0449,нет,12,0.002983,0.0449
+askervein,BNW20,Askervein BNW20,0.0665,z0_mul,12,0.001053,0.01459,0.00875,0.02208,0.219,нет,12,0.01459,0.219
+askervein,BNW20,Askervein BNW20,0.0665,alpha_mul,12,0.1354,0.1354,0.0204,0.03694,2.04,двигает,12,0.1354,2.04
+askervein,BNW20,Askervein BNW20,0.0665,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW20,Askervein BNW20,0.0665,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW20,Askervein BNW20,0.0665,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW20,Askervein BNW20,0.0665,adv2,12,0.05938,0.05938,0.0115,0.02001,0.893,слабо,12,0.05938,0.893
+askervein,BNW20,Askervein BNW20,0.0665,closure,12,-0.1176,0.1176,0.0532,0.09655,1.77,двигает,12,0.1176,1.77
+askervein,BNW20,Askervein BNW20,0.0665,nu_const,12,-0.04417,0.04417,0.039,0.07125,0.664,слабо,12,0.04417,0.664
+askervein,BNW20,Askervein BNW20,0.0665,local_k,12,0.06241,0.06241,0.0264,0.04863,0.939,слабо,12,0.06241,0.939
+askervein,BNW20,Askervein BNW20,0.0665,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BNW20,Askervein BNW20,0.0665,limiter,12,0.008864,0.01067,0.00667,0.01424,0.16,нет,12,0.01067,0.16
+askervein,BSE10,Askervein BSE10,0.059,lam_frac,12,0.01692,0.01692,0.0134,0.02643,0.287,нет,12,0.01692,0.287
+askervein,BSE10,Askervein BSE10,0.059,lam,12,0.00284,0.00284,0.00367,0.0073,0.0481,нет,12,0.00284,0.0481
+askervein,BSE10,Askervein BSE10,0.059,cs_h,12,-0.004019,0.004019,0.00334,0.006118,0.0681,нет,12,0.004019,0.0681
+askervein,BSE10,Askervein BSE10,0.059,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE10,Askervein BSE10,0.059,k_fa,12,-0.003395,0.003396,0.0037,0.006849,0.0576,нет,12,0.003396,0.0576
+askervein,BSE10,Askervein BSE10,0.059,z0_mul,12,-0.002925,0.01099,0.00402,0.0133,0.186,нет,12,0.01099,0.186
+askervein,BSE10,Askervein BSE10,0.059,alpha_mul,12,0.168,0.168,0.0231,0.0434,2.85,двигает,12,0.168,2.85
+askervein,BSE10,Askervein BSE10,0.059,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE10,Askervein BSE10,0.059,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE10,Askervein BSE10,0.059,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE10,Askervein BSE10,0.059,adv2,12,0.07699,0.07699,0.0141,0.02513,1.3,двигает,12,0.07699,1.3
+askervein,BSE10,Askervein BSE10,0.059,closure,12,-0.1658,0.1658,0.0759,0.1384,2.81,двигает,12,0.1658,2.81
+askervein,BSE10,Askervein BSE10,0.059,nu_const,12,-0.07236,0.07236,0.0528,0.1038,1.23,двигает,12,0.07236,1.23
+askervein,BSE10,Askervein BSE10,0.059,local_k,12,0.05011,0.05011,0.025,0.0455,0.849,слабо,12,0.05011,0.849
+askervein,BSE10,Askervein BSE10,0.059,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE10,Askervein BSE10,0.059,limiter,12,0.006991,0.008363,0.00486,0.01028,0.142,нет,12,0.008363,0.142
+askervein,BSE100,Askervein BSE100,0.0375,lam_frac,12,0.01397,0.01397,0.0136,0.02583,0.373,слабо,12,0.01397,0.373
+askervein,BSE100,Askervein BSE100,0.0375,lam,12,0.001944,0.001944,0.0029,0.006581,0.0518,нет,12,0.001944,0.0518
+askervein,BSE100,Askervein BSE100,0.0375,cs_h,12,-0.004735,0.004735,0.00377,0.007025,0.126,нет,12,0.004735,0.126
+askervein,BSE100,Askervein BSE100,0.0375,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE100,Askervein BSE100,0.0375,k_fa,12,-0.003844,0.003844,0.00415,0.0077,0.103,нет,12,0.003844,0.103
+askervein,BSE100,Askervein BSE100,0.0375,z0_mul,12,-0.01543,0.01568,0.00435,0.008614,0.418,слабо,12,0.01568,0.418
+askervein,BSE100,Askervein BSE100,0.0375,alpha_mul,12,0.1355,0.1355,0.0165,0.02976,3.61,двигает,12,0.1355,3.61
+askervein,BSE100,Askervein BSE100,0.0375,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE100,Askervein BSE100,0.0375,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE100,Askervein BSE100,0.0375,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE100,Askervein BSE100,0.0375,adv2,12,0.04592,0.04592,0.0105,0.01901,1.22,двигает,12,0.04592,1.22
+askervein,BSE100,Askervein BSE100,0.0375,closure,12,-0.1199,0.1199,0.0417,0.07584,3.2,двигает,12,0.1199,3.2
+askervein,BSE100,Askervein BSE100,0.0375,nu_const,12,-0.03851,0.03851,0.0321,0.05961,1.03,двигает,12,0.03851,1.03
+askervein,BSE100,Askervein BSE100,0.0375,local_k,12,0.01524,0.0218,0.0142,0.03182,0.581,слабо,12,0.0218,0.581
+askervein,BSE100,Askervein BSE100,0.0375,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE100,Askervein BSE100,0.0375,limiter,12,0.01429,0.01574,0.00972,0.01942,0.42,слабо,12,0.01574,0.42
+askervein,BSE110,Askervein BSE110,0.041,lam_frac,12,0.01499,0.01499,0.015,0.02743,0.366,слабо,12,0.01499,0.366
+askervein,BSE110,Askervein BSE110,0.041,lam,12,0.001988,0.001988,0.00297,0.006766,0.0485,нет,12,0.001988,0.0485
+askervein,BSE110,Askervein BSE110,0.041,cs_h,12,-0.002074,0.002074,0.00156,0.003,0.0506,нет,12,0.002074,0.0506
+askervein,BSE110,Askervein BSE110,0.041,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE110,Askervein BSE110,0.041,k_fa,12,-0.0051,0.0051,0.00565,0.01041,0.124,нет,12,0.0051,0.124
+askervein,BSE110,Askervein BSE110,0.041,z0_mul,12,-0.01488,0.01564,0.00436,0.009692,0.382,слабо,12,0.01564,0.382
+askervein,BSE110,Askervein BSE110,0.041,alpha_mul,12,0.1309,0.1309,0.0158,0.02877,3.19,двигает,12,0.1309,3.19
+askervein,BSE110,Askervein BSE110,0.041,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE110,Askervein BSE110,0.041,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE110,Askervein BSE110,0.041,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE110,Askervein BSE110,0.041,adv2,12,0.02734,0.02734,0.00689,0.01282,0.667,слабо,12,0.02734,0.667
+askervein,BSE110,Askervein BSE110,0.041,closure,12,-0.1093,0.1093,0.0329,0.05979,2.67,двигает,12,0.1093,2.67
+askervein,BSE110,Askervein BSE110,0.041,nu_const,12,-0.02654,0.02654,0.0272,0.05076,0.647,слабо,12,0.02654,0.647
+askervein,BSE110,Askervein BSE110,0.041,local_k,12,0.01479,0.02378,0.0153,0.03428,0.58,слабо,12,0.02378,0.58
+askervein,BSE110,Askervein BSE110,0.041,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE110,Askervein BSE110,0.041,limiter,12,0.007684,0.008678,0.00522,0.01066,0.212,нет,12,0.008678,0.212
+askervein,BSE150,Askervein BSE150,0.04,lam_frac,12,0.01352,0.01352,0.0133,0.02658,0.338,слабо,12,0.01352,0.338
+askervein,BSE150,Askervein BSE150,0.04,lam,12,0.00163,0.001841,0.00271,0.006057,0.046,нет,12,0.001841,0.046
+askervein,BSE150,Askervein BSE150,0.04,cs_h,12,-0.0009645,0.0009645,0.000855,0.001528,0.0241,нет,12,0.0009645,0.0241
+askervein,BSE150,Askervein BSE150,0.04,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE150,Askervein BSE150,0.04,k_fa,12,-0.004155,0.004155,0.00476,0.008909,0.104,нет,12,0.004155,0.104
+askervein,BSE150,Askervein BSE150,0.04,z0_mul,12,-0.02248,0.02248,0.00383,0.007115,0.562,слабо,12,0.02248,0.562
+askervein,BSE150,Askervein BSE150,0.04,alpha_mul,12,0.1004,0.1004,0.0116,0.02139,2.51,двигает,12,0.1004,2.51
+askervein,BSE150,Askervein BSE150,0.04,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE150,Askervein BSE150,0.04,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE150,Askervein BSE150,0.04,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE150,Askervein BSE150,0.04,adv2,12,0.0173,0.0173,0.00377,0.006852,0.433,слабо,12,0.0173,0.433
+askervein,BSE150,Askervein BSE150,0.04,closure,12,-0.04162,0.04202,0.0216,0.04081,1.05,двигает,12,0.04202,1.05
+askervein,BSE150,Askervein BSE150,0.04,nu_const,12,0.007904,0.01835,0.0136,0.03111,0.459,слабо,12,0.01835,0.459
+askervein,BSE150,Askervein BSE150,0.04,local_k,12,0.01267,0.02117,0.0129,0.02962,0.529,слабо,12,0.02117,0.529
+askervein,BSE150,Askervein BSE150,0.04,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE150,Askervein BSE150,0.04,limiter,12,0.001323,0.002332,0.00124,0.003069,0.0583,нет,12,0.002332,0.0583
+askervein,BSE170,Askervein BSE170,0.04,lam_frac,12,0.012,0.012,0.0121,0.02257,0.3,слабо,12,0.012,0.3
+askervein,BSE170,Askervein BSE170,0.04,lam,12,0.001597,0.001597,0.00236,0.005393,0.0399,нет,12,0.001597,0.0399
+askervein,BSE170,Askervein BSE170,0.04,cs_h,12,-0.0002403,0.0002466,0.000199,0.0003829,0.00616,нет,12,0.0002466,0.00616
+askervein,BSE170,Askervein BSE170,0.04,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE170,Askervein BSE170,0.04,k_fa,12,-0.003127,0.003127,0.00368,0.00671,0.0782,нет,12,0.003127,0.0782
+askervein,BSE170,Askervein BSE170,0.04,z0_mul,12,-0.0117,0.01274,0.00329,0.008184,0.318,слабо,12,0.01274,0.318
+askervein,BSE170,Askervein BSE170,0.04,alpha_mul,12,0.09465,0.09465,0.0107,0.02008,2.37,двигает,12,0.09465,2.37
+askervein,BSE170,Askervein BSE170,0.04,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE170,Askervein BSE170,0.04,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE170,Askervein BSE170,0.04,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE170,Askervein BSE170,0.04,adv2,12,-0.00163,0.003336,0.000974,0.003558,0.0834,нет,12,0.003336,0.0834
+askervein,BSE170,Askervein BSE170,0.04,closure,12,-0.04539,0.04539,0.0175,0.03261,1.13,двигает,12,0.04539,1.13
+askervein,BSE170,Askervein BSE170,0.04,nu_const,12,0.003332,0.01497,0.0114,0.0271,0.374,слабо,12,0.01497,0.374
+askervein,BSE170,Askervein BSE170,0.04,local_k,12,0.01524,0.01996,0.0128,0.02621,0.499,слабо,12,0.01996,0.499
+askervein,BSE170,Askervein BSE170,0.04,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE170,Askervein BSE170,0.04,limiter,12,0.001729,0.00212,0.00148,0.002986,0.053,нет,12,0.00212,0.053
+askervein,BSE20,Askervein BSE20,0.057999999999999996,lam_frac,12,0.01635,0.01635,0.0136,0.02606,0.282,нет,12,0.01635,0.282
+askervein,BSE20,Askervein BSE20,0.057999999999999996,lam,12,0.002464,0.002464,0.00329,0.007141,0.0425,нет,12,0.002464,0.0425
+askervein,BSE20,Askervein BSE20,0.057999999999999996,cs_h,12,-0.004027,0.004027,0.00326,0.006067,0.0694,нет,12,0.004027,0.0694
+askervein,BSE20,Askervein BSE20,0.057999999999999996,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE20,Askervein BSE20,0.057999999999999996,k_fa,12,-0.00373,0.003731,0.00405,0.007446,0.0643,нет,12,0.003731,0.0643
+askervein,BSE20,Askervein BSE20,0.057999999999999996,z0_mul,12,-0.002485,0.01164,0.00403,0.01396,0.201,нет,12,0.01164,0.201
+askervein,BSE20,Askervein BSE20,0.057999999999999996,alpha_mul,12,0.1801,0.1801,0.0237,0.04581,3.1,двигает,12,0.1801,3.1
+askervein,BSE20,Askervein BSE20,0.057999999999999996,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE20,Askervein BSE20,0.057999999999999996,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE20,Askervein BSE20,0.057999999999999996,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE20,Askervein BSE20,0.057999999999999996,adv2,12,0.09292,0.09292,0.0157,0.02924,1.6,двигает,12,0.09292,1.6
+askervein,BSE20,Askervein BSE20,0.057999999999999996,closure,12,-0.1837,0.1837,0.0879,0.1552,3.17,двигает,12,0.1837,3.17
+askervein,BSE20,Askervein BSE20,0.057999999999999996,nu_const,12,-0.08373,0.08373,0.0602,0.1163,1.44,двигает,12,0.08373,1.44
+askervein,BSE20,Askervein BSE20,0.057999999999999996,local_k,12,0.04457,0.04461,0.024,0.04483,0.769,слабо,12,0.04461,0.769
+askervein,BSE20,Askervein BSE20,0.057999999999999996,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE20,Askervein BSE20,0.057999999999999996,limiter,12,0.01186,0.01347,0.00777,0.01648,0.232,нет,12,0.01347,0.232
+askervein,BSE30,Askervein BSE30,0.0465,lam_frac,12,0.01385,0.01385,0.0113,0.02221,0.298,нет,12,0.01385,0.298
+askervein,BSE30,Askervein BSE30,0.0465,lam,12,0.002096,0.002096,0.00286,0.006255,0.0451,нет,12,0.002096,0.0451
+askervein,BSE30,Askervein BSE30,0.0465,cs_h,12,-0.003677,0.003677,0.00303,0.005551,0.0791,нет,12,0.003677,0.0791
+askervein,BSE30,Askervein BSE30,0.0465,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE30,Askervein BSE30,0.0465,k_fa,12,-0.003878,0.003879,0.00434,0.007856,0.0834,нет,12,0.003879,0.0834
+askervein,BSE30,Askervein BSE30,0.0465,z0_mul,12,-0.002527,0.009772,0.00299,0.01133,0.21,нет,12,0.009772,0.21
+askervein,BSE30,Askervein BSE30,0.0465,alpha_mul,12,0.1606,0.1606,0.0216,0.04015,3.45,двигает,12,0.1606,3.45
+askervein,BSE30,Askervein BSE30,0.0465,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE30,Askervein BSE30,0.0465,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE30,Askervein BSE30,0.0465,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE30,Askervein BSE30,0.0465,adv2,12,0.08365,0.08365,0.0147,0.02803,1.8,двигает,12,0.08365,1.8
+askervein,BSE30,Askervein BSE30,0.0465,closure,12,-0.1652,0.1652,0.074,0.137,3.55,двигает,12,0.1652,3.55
+askervein,BSE30,Askervein BSE30,0.0465,nu_const,12,-0.0754,0.0754,0.0542,0.1037,1.62,двигает,12,0.0754,1.62
+askervein,BSE30,Askervein BSE30,0.0465,local_k,12,0.03013,0.03224,0.0199,0.03827,0.693,слабо,12,0.03224,0.693
+askervein,BSE30,Askervein BSE30,0.0465,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE30,Askervein BSE30,0.0465,limiter,12,0.009774,0.01159,0.00649,0.01417,0.249,нет,12,0.01159,0.249
+askervein,BSE50,Askervein BSE50,0.0475,lam_frac,12,0.0123,0.0123,0.011,0.02011,0.259,нет,12,0.0123,0.259
+askervein,BSE50,Askervein BSE50,0.0475,lam,12,0.001546,0.0018,0.00257,0.005852,0.0379,нет,12,0.0018,0.0379
+askervein,BSE50,Askervein BSE50,0.0475,cs_h,12,-0.002294,0.002294,0.00183,0.003512,0.0483,нет,12,0.002294,0.0483
+askervein,BSE50,Askervein BSE50,0.0475,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE50,Askervein BSE50,0.0475,k_fa,12,-0.003005,0.003005,0.00356,0.006213,0.0633,нет,12,0.003005,0.0633
+askervein,BSE50,Askervein BSE50,0.0475,z0_mul,12,-0.009189,0.01002,0.0032,0.007159,0.211,нет,12,0.01002,0.211
+askervein,BSE50,Askervein BSE50,0.0475,alpha_mul,12,0.1592,0.1592,0.021,0.03713,3.35,двигает,12,0.1592,3.35
+askervein,BSE50,Askervein BSE50,0.0475,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE50,Askervein BSE50,0.0475,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE50,Askervein BSE50,0.0475,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE50,Askervein BSE50,0.0475,adv2,12,0.04764,0.04764,0.00933,0.01725,1,двигает,12,0.04764,1
+askervein,BSE50,Askervein BSE50,0.0475,closure,12,-0.1222,0.1222,0.0493,0.09267,2.57,двигает,12,0.1222,2.57
+askervein,BSE50,Askervein BSE50,0.0475,nu_const,12,-0.04923,0.04923,0.0375,0.07112,1.04,двигает,12,0.04923,1.04
+askervein,BSE50,Askervein BSE50,0.0475,local_k,12,0.01567,0.02543,0.0154,0.0362,0.535,слабо,12,0.02543,0.535
+askervein,BSE50,Askervein BSE50,0.0475,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE50,Askervein BSE50,0.0475,limiter,12,0.002403,0.003287,0.00181,0.004111,0.0692,нет,12,0.003287,0.0692
+askervein,BSE60,Askervein BSE60,0.046,lam_frac,12,0.01257,0.01257,0.0114,0.02105,0.273,нет,12,0.01257,0.273
+askervein,BSE60,Askervein BSE60,0.046,lam,12,0.001533,0.002028,0.00279,0.006303,0.0441,нет,12,0.002028,0.0441
+askervein,BSE60,Askervein BSE60,0.046,cs_h,12,-0.004585,0.004585,0.00366,0.006847,0.0997,нет,12,0.004585,0.0997
+askervein,BSE60,Askervein BSE60,0.046,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE60,Askervein BSE60,0.046,k_fa,12,-0.00376,0.00376,0.00406,0.007497,0.0817,нет,12,0.00376,0.0817
+askervein,BSE60,Askervein BSE60,0.046,z0_mul,12,-0.00799,0.009436,0.0036,0.008328,0.205,нет,12,0.009436,0.205
+askervein,BSE60,Askervein BSE60,0.046,alpha_mul,12,0.1736,0.1736,0.021,0.04027,3.77,двигает,12,0.1736,3.77
+askervein,BSE60,Askervein BSE60,0.046,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE60,Askervein BSE60,0.046,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE60,Askervein BSE60,0.046,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE60,Askervein BSE60,0.046,adv2,12,0.05555,0.05555,0.0114,0.02233,1.21,двигает,12,0.05555,1.21
+askervein,BSE60,Askervein BSE60,0.046,closure,12,-0.152,0.152,0.0611,0.1178,3.3,двигает,12,0.152,3.3
+askervein,BSE60,Askervein BSE60,0.046,nu_const,12,-0.06567,0.06567,0.0476,0.08897,1.43,двигает,12,0.06567,1.43
+askervein,BSE60,Askervein BSE60,0.046,local_k,12,0.01321,0.02483,0.0159,0.03643,0.54,слабо,12,0.02483,0.54
+askervein,BSE60,Askervein BSE60,0.046,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE60,Askervein BSE60,0.046,limiter,12,0.01298,0.01436,0.00949,0.01761,0.312,слабо,12,0.01436,0.312
+askervein,BSE70,Askervein BSE70,0.045,lam_frac,12,0.01277,0.01277,0.0118,0.02169,0.284,нет,12,0.01277,0.284
+askervein,BSE70,Askervein BSE70,0.045,lam,12,0.001644,0.001982,0.00289,0.006359,0.044,нет,12,0.001982,0.044
+askervein,BSE70,Askervein BSE70,0.045,cs_h,12,-0.003636,0.003636,0.00278,0.005251,0.0808,нет,12,0.003636,0.0808
+askervein,BSE70,Askervein BSE70,0.045,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE70,Askervein BSE70,0.045,k_fa,12,-0.003586,0.003586,0.00405,0.007152,0.0797,нет,12,0.003586,0.0797
+askervein,BSE70,Askervein BSE70,0.045,z0_mul,12,-0.01037,0.01123,0.00362,0.008322,0.25,нет,12,0.01123,0.25
+askervein,BSE70,Askervein BSE70,0.045,alpha_mul,12,0.1605,0.1605,0.0195,0.03626,3.57,двигает,12,0.1605,3.57
+askervein,BSE70,Askervein BSE70,0.045,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE70,Askervein BSE70,0.045,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE70,Askervein BSE70,0.045,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE70,Askervein BSE70,0.045,adv2,12,0.03767,0.03767,0.00892,0.01595,0.837,слабо,12,0.03767,0.837
+askervein,BSE70,Askervein BSE70,0.045,closure,12,-0.1315,0.1315,0.0495,0.09293,2.92,двигает,12,0.1315,2.92
+askervein,BSE70,Askervein BSE70,0.045,nu_const,12,-0.05156,0.05156,0.0401,0.07343,1.15,двигает,12,0.05156,1.15
+askervein,BSE70,Askervein BSE70,0.045,local_k,12,0.01368,0.02313,0.0151,0.03415,0.514,слабо,12,0.02313,0.514
+askervein,BSE70,Askervein BSE70,0.045,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE70,Askervein BSE70,0.045,limiter,12,0.008402,0.009403,0.00542,0.01152,0.209,нет,12,0.009403,0.209
+askervein,BSE80,Askervein BSE80,0.0375,lam_frac,12,0.01359,0.01359,0.0134,0.02385,0.362,слабо,12,0.01359,0.362
+askervein,BSE80,Askervein BSE80,0.0375,lam,12,0.00181,0.002051,0.00296,0.006737,0.0547,нет,12,0.002051,0.0547
+askervein,BSE80,Askervein BSE80,0.0375,cs_h,12,-0.006298,0.006298,0.00472,0.008904,0.168,нет,12,0.006298,0.168
+askervein,BSE80,Askervein BSE80,0.0375,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE80,Askervein BSE80,0.0375,k_fa,12,-0.004032,0.004033,0.00407,0.008069,0.108,нет,12,0.004033,0.108
+askervein,BSE80,Askervein BSE80,0.0375,z0_mul,12,-0.01066,0.01193,0.00429,0.009775,0.318,слабо,12,0.01193,0.318
+askervein,BSE80,Askervein BSE80,0.0375,alpha_mul,12,0.1562,0.1562,0.0181,0.03461,4.16,двигает,12,0.1562,4.16
+askervein,BSE80,Askervein BSE80,0.0375,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE80,Askervein BSE80,0.0375,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE80,Askervein BSE80,0.0375,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE80,Askervein BSE80,0.0375,adv2,12,0.0453,0.0453,0.00899,0.01667,1.21,двигает,12,0.0453,1.21
+askervein,BSE80,Askervein BSE80,0.0375,closure,12,-0.1326,0.1326,0.0467,0.08986,3.54,двигает,12,0.1326,3.54
+askervein,BSE80,Askervein BSE80,0.0375,nu_const,12,-0.04864,0.04864,0.0395,0.07028,1.3,двигает,12,0.04864,1.3
+askervein,BSE80,Askervein BSE80,0.0375,local_k,12,0.01445,0.0227,0.0158,0.03412,0.605,слабо,12,0.0227,0.605
+askervein,BSE80,Askervein BSE80,0.0375,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE80,Askervein BSE80,0.0375,limiter,12,0.008213,0.009316,0.00541,0.01151,0.248,нет,12,0.009316,0.248
+askervein,BSE90,Askervein BSE90,0.0435,lam_frac,12,0.01436,0.01436,0.0138,0.02576,0.33,слабо,12,0.01436,0.33
+askervein,BSE90,Askervein BSE90,0.0435,lam,12,0.001978,0.002074,0.00306,0.007035,0.0477,нет,12,0.002074,0.0477
+askervein,BSE90,Askervein BSE90,0.0435,cs_h,12,-0.004922,0.004922,0.00373,0.007207,0.113,нет,12,0.004922,0.113
+askervein,BSE90,Askervein BSE90,0.0435,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE90,Askervein BSE90,0.0435,k_fa,12,-0.003991,0.003991,0.00448,0.007993,0.0918,нет,12,0.003991,0.0918
+askervein,BSE90,Askervein BSE90,0.0435,z0_mul,12,-0.01315,0.01414,0.00446,0.01005,0.325,слабо,12,0.01414,0.325
+askervein,BSE90,Askervein BSE90,0.0435,alpha_mul,12,0.1519,0.1519,0.0171,0.03322,3.49,двигает,12,0.1519,3.49
+askervein,BSE90,Askervein BSE90,0.0435,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE90,Askervein BSE90,0.0435,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE90,Askervein BSE90,0.0435,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE90,Askervein BSE90,0.0435,adv2,12,0.04211,0.04211,0.00956,0.01841,0.968,слабо,12,0.04211,0.968
+askervein,BSE90,Askervein BSE90,0.0435,closure,12,-0.1311,0.1311,0.0467,0.08621,3.01,двигает,12,0.1311,3.01
+askervein,BSE90,Askervein BSE90,0.0435,nu_const,12,-0.04623,0.04623,0.0364,0.06836,1.06,двигает,12,0.04623,1.06
+askervein,BSE90,Askervein BSE90,0.0435,local_k,12,0.01578,0.02322,0.0156,0.03434,0.534,слабо,12,0.02322,0.534
+askervein,BSE90,Askervein BSE90,0.0435,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,BSE90,Askervein BSE90,0.0435,limiter,12,0.01331,0.01392,0.0086,0.01715,0.32,слабо,12,0.01392,0.32
+askervein,CP,Askervein CP,0.05218045611145999,lam_frac,12,0.01259,0.01259,0.0102,0.02017,0.241,нет,12,0.01259,0.241
+askervein,CP,Askervein CP,0.05218045611145999,lam,12,0.001645,0.001724,0.00255,0.005849,0.033,нет,12,0.001724,0.033
+askervein,CP,Askervein CP,0.05218045611145999,cs_h,12,-0.00368,0.00368,0.00287,0.005376,0.0705,нет,12,0.00368,0.0705
+askervein,CP,Askervein CP,0.05218045611145999,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,CP,Askervein CP,0.05218045611145999,k_fa,12,-0.00364,0.00364,0.00381,0.007401,0.0698,нет,12,0.00364,0.0698
+askervein,CP,Askervein CP,0.05218045611145999,z0_mul,12,-0.003819,0.008327,0.00239,0.008922,0.16,нет,12,0.008327,0.16
+askervein,CP,Askervein CP,0.05218045611145999,alpha_mul,12,0.1598,0.1598,0.0207,0.03912,3.06,двигает,12,0.1598,3.06
+askervein,CP,Askervein CP,0.05218045611145999,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,CP,Askervein CP,0.05218045611145999,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,CP,Askervein CP,0.05218045611145999,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,CP,Askervein CP,0.05218045611145999,adv2,12,0.0642,0.0642,0.0115,0.02203,1.23,двигает,12,0.0642,1.23
+askervein,CP,Askervein CP,0.05218045611145999,closure,12,-0.1439,0.1439,0.0621,0.1131,2.76,двигает,12,0.1439,2.76
+askervein,CP,Askervein CP,0.05218045611145999,nu_const,12,-0.06198,0.06198,0.0465,0.086,1.19,двигает,12,0.06198,1.19
+askervein,CP,Askervein CP,0.05218045611145999,local_k,12,0.01833,0.02657,0.0161,0.03637,0.509,слабо,12,0.02657,0.509
+askervein,CP,Askervein CP,0.05218045611145999,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,CP,Askervein CP,0.05218045611145999,limiter,12,0.007353,0.008702,0.00476,0.01069,0.167,нет,12,0.008702,0.167
+askervein,HT,Askervein HT,0.067,lam_frac,12,0.01533,0.01533,0.0134,0.02417,0.229,нет,12,0.01533,0.229
+askervein,HT,Askervein HT,0.067,lam,12,0.002247,0.002247,0.00313,0.006216,0.0335,нет,12,0.002247,0.0335
+askervein,HT,Askervein HT,0.067,cs_h,12,-0.003813,0.003813,0.00301,0.005618,0.0569,нет,12,0.003813,0.0569
+askervein,HT,Askervein HT,0.067,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,HT,Askervein HT,0.067,k_fa,12,-0.002289,0.002292,0.00225,0.004603,0.0342,нет,12,0.002292,0.0342
+askervein,HT,Askervein HT,0.067,z0_mul,12,-0.00425,0.01045,0.00342,0.01179,0.156,нет,12,0.01045,0.156
+askervein,HT,Askervein HT,0.067,alpha_mul,12,0.1644,0.1644,0.0229,0.04132,2.45,двигает,12,0.1644,2.45
+askervein,HT,Askervein HT,0.067,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,HT,Askervein HT,0.067,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,HT,Askervein HT,0.067,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,HT,Askervein HT,0.067,adv2,12,0.07981,0.07981,0.0132,0.02508,1.19,двигает,12,0.07981,1.19
+askervein,HT,Askervein HT,0.067,closure,12,-0.1473,0.1473,0.0661,0.1263,2.2,двигает,12,0.1473,2.2
+askervein,HT,Askervein HT,0.067,nu_const,12,-0.06446,0.06446,0.0505,0.09234,0.962,слабо,12,0.06446,0.962
+askervein,HT,Askervein HT,0.067,local_k,12,0.0432,0.0432,0.0221,0.04223,0.645,слабо,12,0.0432,0.645
+askervein,HT,Askervein HT,0.067,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,HT,Askervein HT,0.067,limiter,12,0.003884,0.005352,0.00276,0.006584,0.0799,нет,12,0.005352,0.0799
+askervein,HT_prof15,Askervein HT_prof15,0.05,lam_frac,12,0.01437,0.01437,0.0117,0.02288,0.287,нет,12,0.01437,0.287
+askervein,HT_prof15,Askervein HT_prof15,0.05,lam,12,0.001908,0.001908,0.00265,0.005853,0.0382,нет,12,0.001908,0.0382
+askervein,HT_prof15,Askervein HT_prof15,0.05,cs_h,12,-0.003141,0.003141,0.00249,0.00459,0.0628,нет,12,0.003141,0.0628
+askervein,HT_prof15,Askervein HT_prof15,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof15,Askervein HT_prof15,0.05,k_fa,12,-0.001668,0.001671,0.00179,0.003311,0.0334,нет,12,0.001671,0.0334
+askervein,HT_prof15,Askervein HT_prof15,0.05,z0_mul,12,-0.005646,0.01058,0.00292,0.01075,0.212,нет,12,0.01058,0.212
+askervein,HT_prof15,Askervein HT_prof15,0.05,alpha_mul,12,0.1555,0.1555,0.0197,0.03642,3.11,двигает,12,0.1555,3.11
+askervein,HT_prof15,Askervein HT_prof15,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof15,Askervein HT_prof15,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof15,Askervein HT_prof15,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof15,Askervein HT_prof15,0.05,adv2,12,0.09145,0.09145,0.0159,0.02934,1.83,двигает,12,0.09145,1.83
+askervein,HT_prof15,Askervein HT_prof15,0.05,closure,12,-0.1412,0.1412,0.0712,0.1307,2.82,двигает,12,0.1412,2.82
+askervein,HT_prof15,Askervein HT_prof15,0.05,nu_const,12,-0.06829,0.06829,0.0538,0.09482,1.37,двигает,12,0.06829,1.37
+askervein,HT_prof15,Askervein HT_prof15,0.05,local_k,12,0.04138,0.04138,0.0216,0.04107,0.828,слабо,12,0.04138,0.828
+askervein,HT_prof15,Askervein HT_prof15,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof15,Askervein HT_prof15,0.05,limiter,12,0.0002375,0.002037,0.00124,0.003173,0.0407,нет,12,0.002037,0.0407
+askervein,HT_prof24,Askervein HT_prof24,0.05,lam_frac,12,0.01226,0.01226,0.0104,0.01963,0.245,нет,12,0.01226,0.245
+askervein,HT_prof24,Askervein HT_prof24,0.05,lam,12,0.001514,0.001566,0.00232,0.005343,0.0313,нет,12,0.001566,0.0313
+askervein,HT_prof24,Askervein HT_prof24,0.05,cs_h,12,-0.002022,0.002022,0.00159,0.002922,0.0404,нет,12,0.002022,0.0404
+askervein,HT_prof24,Askervein HT_prof24,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof24,Askervein HT_prof24,0.05,k_fa,12,-7.023e-05,0.000225,0.000293,0.0005867,0.0045,нет,12,0.000225,0.0045
+askervein,HT_prof24,Askervein HT_prof24,0.05,z0_mul,12,-0.01122,0.0127,0.00283,0.008134,0.254,нет,12,0.0127,0.254
+askervein,HT_prof24,Askervein HT_prof24,0.05,alpha_mul,12,0.1314,0.1314,0.0154,0.02961,2.63,двигает,12,0.1314,2.63
+askervein,HT_prof24,Askervein HT_prof24,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof24,Askervein HT_prof24,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof24,Askervein HT_prof24,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof24,Askervein HT_prof24,0.05,adv2,12,0.09902,0.09902,0.0178,0.03192,1.98,двигает,12,0.09902,1.98
+askervein,HT_prof24,Askervein HT_prof24,0.05,closure,12,-0.105,0.1052,0.0648,0.1205,2.1,двигает,12,0.1052,2.1
+askervein,HT_prof24,Askervein HT_prof24,0.05,nu_const,12,-0.06219,0.06219,0.047,0.08568,1.24,двигает,12,0.06219,1.24
+askervein,HT_prof24,Askervein HT_prof24,0.05,local_k,12,0.03877,0.03877,0.0205,0.03718,0.775,слабо,12,0.03877,0.775
+askervein,HT_prof24,Askervein HT_prof24,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof24,Askervein HT_prof24,0.05,limiter,12,-0.006187,0.006187,0.00347,0.006503,0.124,нет,12,0.006187,0.124
+askervein,HT_prof34,Askervein HT_prof34,0.05,lam_frac,12,0.01056,0.01056,0.00888,0.01718,0.211,нет,12,0.01056,0.211
+askervein,HT_prof34,Askervein HT_prof34,0.05,lam,12,0.001354,0.001482,0.00216,0.004938,0.0296,нет,12,0.001482,0.0296
+askervein,HT_prof34,Askervein HT_prof34,0.05,cs_h,12,-0.001087,0.001087,0.00081,0.001571,0.0217,нет,12,0.001087,0.0217
+askervein,HT_prof34,Askervein HT_prof34,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof34,Askervein HT_prof34,0.05,k_fa,12,0.0001537,0.0002211,0.00029,0.000612,0.00442,нет,12,0.0002211,0.00442
+askervein,HT_prof34,Askervein HT_prof34,0.05,z0_mul,12,-0.01197,0.01329,0.00301,0.008151,0.266,нет,12,0.01329,0.266
+askervein,HT_prof34,Askervein HT_prof34,0.05,alpha_mul,12,0.1076,0.1076,0.0164,0.03014,2.15,двигает,12,0.1076,2.15
+askervein,HT_prof34,Askervein HT_prof34,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof34,Askervein HT_prof34,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof34,Askervein HT_prof34,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof34,Askervein HT_prof34,0.05,adv2,12,0.09635,0.09635,0.0164,0.03025,1.93,двигает,12,0.09635,1.93
+askervein,HT_prof34,Askervein HT_prof34,0.05,closure,12,-0.0866,0.0866,0.057,0.1052,1.73,двигает,12,0.0866,1.73
+askervein,HT_prof34,Askervein HT_prof34,0.05,nu_const,12,-0.05416,0.05416,0.0403,0.07678,1.08,двигает,12,0.05416,1.08
+askervein,HT_prof34,Askervein HT_prof34,0.05,local_k,12,0.03607,0.03607,0.0176,0.03134,0.721,слабо,12,0.03607,0.721
+askervein,HT_prof34,Askervein HT_prof34,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein,HT_prof34,Askervein HT_prof34,0.05,limiter,12,-0.01026,0.01026,0.00637,0.01153,0.205,нет,12,0.01026,0.205
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,lam_frac,12,-11.64,11.64,8.87,16.89,2.91,двигает,12,11.64,2.91
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,lam,12,-1.03,1.03,1.46,2.956,0.257,нет,12,1.03,0.257
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,cs_h,12,2.585,2.595,2.64,5.306,0.649,слабо,12,2.595,0.649
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,k_fa,12,3.282,3.282,3.57,6.442,0.821,слабо,12,3.282,0.821
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,z0_mul,12,18.34,25.89,11.1,27.99,6.47,двигает,12,25.89,6.47
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,alpha_mul,12,-187.5,188.4,50.7,96.48,47.1,двигает,12,188.4,47.1
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,adv2,12,-82.63,82.63,23.4,45.33,20.7,двигает,12,82.63,20.7
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,closure,12,217.5,217.6,111,198.2,54.4,двигает,12,217.6,54.4
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,nu_const,12,100.8,100.8,78.3,147.3,25.2,двигает,12,100.8,25.2
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,local_k,12,-43.5,43.5,26,49.59,10.9,двигает,12,43.5,10.9
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_all,"χ² Askervein, всего",4.0,limiter,12,-5.277,7.604,5.45,11.63,1.9,двигает,12,7.604,1.9
+askervein_chi2,chi2_вершина,χ² вершина,4.0,lam_frac,12,-4.107,4.107,3.2,6.155,1.03,двигает,12,4.107,1.03
+askervein_chi2,chi2_вершина,χ² вершина,4.0,lam,12,-0.3349,0.3349,0.4,0.8061,0.0837,нет,12,0.3349,0.0837
+askervein_chi2,chi2_вершина,χ² вершина,4.0,cs_h,12,0.6815,0.6815,0.601,1.202,0.17,нет,12,0.6815,0.17
+askervein_chi2,chi2_вершина,χ² вершина,4.0,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_вершина,χ² вершина,4.0,k_fa,12,0.8347,0.8352,0.875,1.626,0.209,нет,12,0.8352,0.209
+askervein_chi2,chi2_вершина,χ² вершина,4.0,z0_mul,12,4.558,5.203,2.3,4.953,1.3,двигает,12,5.203,1.3
+askervein_chi2,chi2_вершина,χ² вершина,4.0,alpha_mul,12,-61.71,61.71,15.9,29.83,15.4,двигает,12,61.71,15.4
+askervein_chi2,chi2_вершина,χ² вершина,4.0,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_вершина,χ² вершина,4.0,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_вершина,χ² вершина,4.0,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_вершина,χ² вершина,4.0,adv2,12,-29.91,29.91,8.03,14.97,7.48,двигает,12,29.91,7.48
+askervein_chi2,chi2_вершина,χ² вершина,4.0,closure,12,67.56,67.56,38.9,74.26,16.9,двигает,12,67.56,16.9
+askervein_chi2,chi2_вершина,χ² вершина,4.0,nu_const,12,44.12,44.12,34.5,63.41,11,двигает,12,44.12,11
+askervein_chi2,chi2_вершина,χ² вершина,4.0,local_k,12,-13.5,13.5,9.41,17.48,3.37,двигает,12,13.5,3.37
+askervein_chi2,chi2_вершина,χ² вершина,4.0,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_вершина,χ² вершина,4.0,limiter,12,-1.521,2.173,1.35,2.897,0.543,слабо,12,2.173,0.543
+askervein_chi2,chi2_линия B,χ² линия B,4.0,lam_frac,12,-6.011,6.011,5.07,9.267,1.5,двигает,12,6.011,1.5
+askervein_chi2,chi2_линия B,χ² линия B,4.0,lam,12,-0.2631,0.37,0.502,1.129,0.0925,нет,12,0.37,0.0925
+askervein_chi2,chi2_линия B,χ² линия B,4.0,cs_h,12,1.31,1.489,1.59,3.124,0.372,слабо,12,1.489,0.372
+askervein_chi2,chi2_линия B,χ² линия B,4.0,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_линия B,χ² линия B,4.0,k_fa,12,2.135,2.135,2.15,4.062,0.534,слабо,12,2.135,0.534
+askervein_chi2,chi2_линия B,χ² линия B,4.0,z0_mul,12,14.13,14.28,5.71,11.08,3.57,двигает,12,14.28,3.57
+askervein_chi2,chi2_линия B,χ² линия B,4.0,alpha_mul,12,-110.9,110.9,29.2,55.95,27.7,двигает,12,110.9,27.7
+askervein_chi2,chi2_линия B,χ² линия B,4.0,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_линия B,χ² линия B,4.0,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_линия B,χ² линия B,4.0,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_линия B,χ² линия B,4.0,adv2,12,-31.34,31.34,11.7,22.19,7.84,двигает,12,31.34,7.84
+askervein_chi2,chi2_линия B,χ² линия B,4.0,closure,12,103.2,104,51.2,97.28,26,двигает,12,104,26
+askervein_chi2,chi2_линия B,χ² линия B,4.0,nu_const,12,53.36,53.36,39.8,72.29,13.3,двигает,12,53.36,13.3
+askervein_chi2,chi2_линия B,χ² линия B,4.0,local_k,12,-13.52,16.57,12.6,25.17,4.14,двигает,12,16.57,4.14
+askervein_chi2,chi2_линия B,χ² линия B,4.0,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_линия B,χ² линия B,4.0,limiter,12,-3.06,4.521,3.35,7.136,1.13,двигает,12,4.521,1.13
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,lam_frac,12,2.922,3.591,3.69,6.961,0.898,слабо,12,3.591,0.898
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,lam,12,0.5698,0.7966,1.08,2.434,0.199,нет,12,0.7966,0.199
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,cs_h,12,0.1621,0.2646,0.249,0.545,0.0662,нет,12,0.2646,0.0662
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,k_fa,12,0.1242,0.2579,0.255,0.5294,0.0645,нет,12,0.2579,0.0645
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,z0_mul,12,-1.933,17.19,7.39,22.21,4.3,двигает,12,17.19,4.3
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,alpha_mul,12,4.863,20.99,9.2,27.59,5.25,двигает,12,20.99,5.25
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,adv2,12,-4.133,4.893,2.63,5.645,1.22,двигает,12,4.893,1.22
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,closure,12,35.08,35.08,16.6,31.18,8.77,двигает,12,35.08,8.77
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,nu_const,12,7.496,13.31,9.13,21.27,3.33,двигает,12,13.31,3.33
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,local_k,12,4.175,6.266,4.85,10.17,1.57,двигает,12,6.266,1.57
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_наветр.,χ² наветр.,4.0,limiter,12,-0.4731,0.7392,0.54,1.16,0.185,нет,12,0.7392,0.185
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,lam_frac,12,-4.442,4.442,4.03,7.222,1.11,двигает,12,4.442,1.11
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,lam,12,-1.002,1.002,1.17,2.48,0.25,нет,12,1.002,0.25
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,cs_h,12,0.4313,0.4313,0.337,0.6575,0.108,нет,12,0.4313,0.108
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,pr_t,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,k_fa,12,0.1887,0.1894,0.21,0.3874,0.0474,нет,12,0.1894,0.0474
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,z0_mul,12,1.588,2.789,0.651,2.652,0.697,слабо,12,2.789,0.697
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,alpha_mul,12,-19.73,19.73,2.45,4.48,4.93,двигает,12,19.73,4.93
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,tau_cool,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,zi_min,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,adv2,12,-17.24,17.24,3.14,5.974,4.31,двигает,12,17.24,4.31
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,closure,12,11.59,11.95,6,11.43,2.99,двигает,12,11.95,2.99
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,nu_const,12,-4.144,6.973,6.12,13.07,1.74,двигает,12,6.973,1.74
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,local_k,12,-20.65,20.65,7.67,14.29,5.16,двигает,12,20.65,5.16
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,heat_mode,12,0,0,0,0,0,нет,12,0,0
+askervein_chi2,chi2_подветр.,χ² подветр.,4.0,limiter,12,-0.2238,0.7137,0.372,0.9873,0.178,нет,12,0.7137,0.178
+cost,askervein_log_iters,askervein: ln(итераций),0.2,lam_frac,12,0.5921,0.5921,0.431,0.8045,2.96,двигает,12,0.5921,2.96
+cost,askervein_log_iters,askervein: ln(итераций),0.2,lam,12,0.009701,0.009701,0.0146,0.0336,0.0485,нет,12,0.009701,0.0485
+cost,askervein_log_iters,askervein: ln(итераций),0.2,cs_h,12,-0.008688,0.008688,0.013,0.0301,0.0434,нет,12,0.008688,0.0434
+cost,askervein_log_iters,askervein: ln(итераций),0.2,pr_t,12,0,0,0,0,0,нет,12,0,0
+cost,askervein_log_iters,askervein: ln(итераций),0.2,k_fa,12,-0.008688,0.008688,0.013,0.0301,0.0434,нет,12,0.008688,0.0434
+cost,askervein_log_iters,askervein: ln(итераций),0.2,z0_mul,12,0.01655,0.06334,0.042,0.101,0.317,слабо,12,0.06334,0.317
+cost,askervein_log_iters,askervein: ln(итераций),0.2,alpha_mul,12,0.09576,0.1116,0.0495,0.1169,0.558,слабо,12,0.1116,0.558
+cost,askervein_log_iters,askervein: ln(итераций),0.2,tau_cool,12,0,0,0,0,0,нет,12,0,0
+cost,askervein_log_iters,askervein: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,12,0,0
+cost,askervein_log_iters,askervein: ln(итераций),0.2,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+cost,askervein_log_iters,askervein: ln(итераций),0.2,adv2,12,0.05544,0.05544,0.029,0.05272,0.277,нет,12,0.05544,0.277
+cost,askervein_log_iters,askervein: ln(итераций),0.2,closure,12,0.2286,0.2761,0.188,0.3745,1.38,двигает,12,0.2761,1.38
+cost,askervein_log_iters,askervein: ln(итераций),0.2,nu_const,12,0.1023,0.1685,0.168,0.3367,0.842,слабо,12,0.1685,0.842
+cost,askervein_log_iters,askervein: ln(итераций),0.2,local_k,12,0.8408,0.8408,0.52,0.9448,4.2,двигает,12,0.8408,4.2
+cost,askervein_log_iters,askervein: ln(итераций),0.2,heat_mode,12,0,0,0,0,0,нет,12,0,0
+cost,askervein_log_iters,askervein: ln(итераций),0.2,limiter,12,0.01738,0.01738,0.0217,0.04058,0.0869,нет,12,0.01738,0.0869
+cost,heat0_log_iters,heat0: ln(итераций),0.2,lam_frac,12,-0.4431,0.4431,0.504,1.047,2.22,двигает,4,0.06631,0.332
+cost,heat0_log_iters,heat0: ln(итераций),0.2,lam,12,-0.2367,0.2367,0.355,0.8199,1.18,двигает,3,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,cs_h,12,-0.1397,0.1397,0.208,0.4766,0.699,слабо,3,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,pr_t,12,0.001455,0.2715,0.143,0.391,1.36,двигает,4,0.1412,0.706
+cost,heat0_log_iters,heat0: ln(итераций),0.2,k_fa,12,-0.1637,0.1637,0.151,0.2961,0.819,слабо,2,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,z0_mul,12,-0.01931,0.1304,0.0949,0.2249,0.652,слабо,4,0.06438,0.322
+cost,heat0_log_iters,heat0: ln(итераций),0.2,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,tau_cool,12,1.134,1.188,0.604,1.162,5.94,двигает,1,1.712,8.56
+cost,heat0_log_iters,heat0: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,2,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,k_smooth_m,12,0.06624,0.4548,0.387,0.8369,2.27,двигает,5,0.3896,1.95
+cost,heat0_log_iters,heat0: ln(итераций),0.2,adv2,12,0.6843,0.8337,0.466,1.006,4.17,двигает,4,0.3521,1.76
+cost,heat0_log_iters,heat0: ln(итераций),0.2,closure,12,0.4365,0.6473,0.48,1.016,3.24,двигает,5,0.659,3.3
+cost,heat0_log_iters,heat0: ln(итераций),0.2,nu_const,12,-0.4406,0.4406,0.443,0.8338,2.2,двигает,2,0,0
+cost,heat0_log_iters,heat0: ln(итераций),0.2,local_k,12,-0.5608,0.7117,0.516,1.103,3.56,двигает,1,1.388,6.94
+cost,heat0_log_iters,heat0: ln(итераций),0.2,heat_mode,12,1.128,1.18,0.623,1.136,5.9,двигает,2,0.8783,4.39
+cost,heat0_log_iters,heat0: ln(итераций),0.2,limiter,12,-0.01725,0.1466,0.117,0.267,0.733,слабо,3,0.01985,0.0992
+cost,heat3_log_iters,heat3: ln(итераций),0.2,lam_frac,12,0.2093,0.2334,0.292,0.5764,1.17,двигает,10,0.08667,0.433
+cost,heat3_log_iters,heat3: ln(итераций),0.2,lam,12,-0.0009824,0.0009824,0.00147,0.003403,0.00491,нет,10,0,0
+cost,heat3_log_iters,heat3: ln(итераций),0.2,cs_h,12,0.1474,0.1474,0.221,0.5105,0.737,слабо,8,0,0
+cost,heat3_log_iters,heat3: ln(итераций),0.2,pr_t,12,0.07158,0.08653,0.0698,0.1366,0.433,слабо,9,0.113,0.565
+cost,heat3_log_iters,heat3: ln(итераций),0.2,k_fa,12,-0.01796,0.01796,0.0223,0.04268,0.0898,нет,9,0.02328,0.116
+cost,heat3_log_iters,heat3: ln(итераций),0.2,z0_mul,12,0,0,0,0,0,нет,8,0,0
+cost,heat3_log_iters,heat3: ln(итераций),0.2,alpha_mul,12,-0.1871,0.2004,0.276,0.6228,1,двигает,9,0.02372,0.119
+cost,heat3_log_iters,heat3: ln(итераций),0.2,tau_cool,12,0.6391,0.6391,0.419,0.8117,3.2,двигает,10,0.3006,1.5
+cost,heat3_log_iters,heat3: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,8,0,0
+cost,heat3_log_iters,heat3: ln(итераций),0.2,k_smooth_m,12,-0.003843,0.02015,0.0178,0.03801,0.101,нет,12,0.02015,0.101
+cost,heat3_log_iters,heat3: ln(итераций),0.2,adv2,12,0.6997,0.6997,0.353,0.6932,3.5,двигает,9,0.632,3.16
+cost,heat3_log_iters,heat3: ln(итераций),0.2,closure,12,0.2474,0.3355,0.31,0.6702,1.68,двигает,9,0.188,0.94
+cost,heat3_log_iters,heat3: ln(итераций),0.2,nu_const,12,-0.673,0.673,0.557,1.064,3.36,двигает,8,0.1096,0.548
+cost,heat3_log_iters,heat3: ln(итераций),0.2,local_k,12,0.1079,0.5458,0.524,1.082,2.73,двигает,8,0.04205,0.21
+cost,heat3_log_iters,heat3: ln(итераций),0.2,heat_mode,12,0.9614,0.9699,0.607,1.154,4.85,двигает,8,0.2099,1.05
+cost,heat3_log_iters,heat3: ln(итераций),0.2,limiter,12,-0.02223,0.03461,0.0407,0.08846,0.173,нет,11,0.03776,0.189
+cost,oblique_log_iters,oblique: ln(итераций),0.2,lam_frac,12,-0.07999,0.07999,0.0781,0.1545,0.4,слабо,11,0.08726,0.436
+cost,oblique_log_iters,oblique: ln(итераций),0.2,lam,12,-0.02026,0.02026,0.0271,0.0507,0.101,нет,11,0.0221,0.11
+cost,oblique_log_iters,oblique: ln(итераций),0.2,cs_h,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,pr_t,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,k_fa,12,0,0,0,0,0,нет,10,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,z0_mul,12,-0.02762,0.05965,0.0461,0.101,0.298,нет,11,0.06507,0.325
+cost,oblique_log_iters,oblique: ln(итераций),0.2,alpha_mul,12,-0.01291,0.03231,0.0232,0.05291,0.162,нет,10,0.03877,0.194
+cost,oblique_log_iters,oblique: ln(итераций),0.2,tau_cool,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,adv2,12,0.005772,0.03428,0.0206,0.05399,0.171,нет,11,0.03651,0.183
+cost,oblique_log_iters,oblique: ln(итераций),0.2,closure,12,0.5686,0.5939,0.66,1.237,2.97,двигает,10,0.07505,0.375
+cost,oblique_log_iters,oblique: ln(итераций),0.2,nu_const,12,-0.5871,0.6027,0.662,1.24,3.01,двигает,10,0.07805,0.39
+cost,oblique_log_iters,oblique: ln(итераций),0.2,local_k,12,-0.2532,0.2532,0.123,0.2245,1.27,двигает,12,0.2532,1.27
+cost,oblique_log_iters,oblique: ln(итераций),0.2,heat_mode,12,0,0,0,0,0,нет,11,0,0
+cost,oblique_log_iters,oblique: ln(итераций),0.2,limiter,12,0.004457,0.004457,0.00669,0.01544,0.0223,нет,10,0.005349,0.0267
+cost,ridge_log_iters,ridge: ln(итераций),0.2,lam_frac,12,-0.2124,0.2124,0.157,0.2967,1.06,двигает,12,0.2124,1.06
+cost,ridge_log_iters,ridge: ln(итераций),0.2,lam,12,-0.07772,0.07772,0.0891,0.1618,0.389,слабо,12,0.07772,0.389
+cost,ridge_log_iters,ridge: ln(итераций),0.2,cs_h,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,pr_t,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,k_fa,12,-0.01914,0.01914,0.0158,0.03029,0.0957,нет,12,0.01914,0.0957
+cost,ridge_log_iters,ridge: ln(итераций),0.2,z0_mul,12,-0.01696,0.03984,0.0219,0.0571,0.199,нет,12,0.03984,0.199
+cost,ridge_log_iters,ridge: ln(итераций),0.2,alpha_mul,12,0.07355,0.08799,0.11,0.2346,0.44,слабо,11,0.02276,0.114
+cost,ridge_log_iters,ridge: ln(итераций),0.2,tau_cool,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,adv2,12,0.08001,0.1002,0.121,0.2645,0.501,слабо,12,0.1002,0.501
+cost,ridge_log_iters,ridge: ln(итераций),0.2,closure,12,-0.05622,0.177,0.0968,0.2512,0.885,слабо,12,0.177,0.885
+cost,ridge_log_iters,ridge: ln(итераций),0.2,nu_const,12,-0.1795,0.1795,0.167,0.2991,0.897,слабо,12,0.1795,0.897
+cost,ridge_log_iters,ridge: ln(итераций),0.2,local_k,12,-0.444,0.444,0.204,0.3921,2.22,двигает,12,0.444,2.22
+cost,ridge_log_iters,ridge: ln(итераций),0.2,heat_mode,12,0,0,0,0,0,нет,12,0,0
+cost,ridge_log_iters,ridge: ln(итераций),0.2,limiter,12,-0.00722,0.00722,0.0108,0.02501,0.0361,нет,12,0.00722,0.0361
+cost,saddle_log_iters,saddle: ln(итераций),0.2,lam_frac,12,-0.009217,0.009217,0.0138,0.03193,0.0461,нет,12,0.009217,0.0461
+cost,saddle_log_iters,saddle: ln(итераций),0.2,lam,12,-0.003256,0.003256,0.00488,0.01128,0.0163,нет,12,0.003256,0.0163
+cost,saddle_log_iters,saddle: ln(итераций),0.2,cs_h,12,0,0,0,0,0,нет,12,0,0
+cost,saddle_log_iters,saddle: ln(итераций),0.2,pr_t,12,-0.02427,0.02427,0.0166,0.0315,0.121,нет,12,0.02427,0.121
+cost,saddle_log_iters,saddle: ln(итераций),0.2,k_fa,12,0.003256,0.003256,0.00488,0.01128,0.0163,нет,12,0.003256,0.0163
+cost,saddle_log_iters,saddle: ln(итераций),0.2,z0_mul,12,0.0116,0.02733,0.0204,0.0441,0.137,нет,12,0.02733,0.137
+cost,saddle_log_iters,saddle: ln(итераций),0.2,alpha_mul,12,-0.1082,0.2541,0.128,0.3341,1.27,двигает,12,0.2541,1.27
+cost,saddle_log_iters,saddle: ln(итераций),0.2,tau_cool,12,0.3362,0.3362,0.122,0.2305,1.68,двигает,12,0.3362,1.68
+cost,saddle_log_iters,saddle: ln(итераций),0.2,zi_min,12,0,0,0,0,0,нет,12,0,0
+cost,saddle_log_iters,saddle: ln(итераций),0.2,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+cost,saddle_log_iters,saddle: ln(итераций),0.2,adv2,12,0.1635,0.1735,0.102,0.2018,0.868,слабо,12,0.1735,0.868
+cost,saddle_log_iters,saddle: ln(итераций),0.2,closure,12,0.1,0.1095,0.0714,0.1403,0.547,слабо,12,0.1095,0.547
+cost,saddle_log_iters,saddle: ln(итераций),0.2,nu_const,12,0.03131,0.03131,0.0219,0.04285,0.157,нет,12,0.03131,0.157
+cost,saddle_log_iters,saddle: ln(итераций),0.2,local_k,12,-0.01934,0.01934,0.0168,0.03144,0.0967,нет,12,0.01934,0.0967
+cost,saddle_log_iters,saddle: ln(итераций),0.2,heat_mode,12,0,0,0,0,0,нет,12,0,0
+cost,saddle_log_iters,saddle: ln(итераций),0.2,limiter,12,-0.02167,0.02167,0.0325,0.07508,0.108,нет,12,0.02167,0.108
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,lam_frac,12,0.01614,0.01614,0.0147,0.02627,0.161,нет,4,0.02396,0.24
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,lam,12,-0.001646,0.002661,0.00374,0.007818,0.0266,нет,3,0,0
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,cs_h,12,0.002996,0.002996,0.00241,0.00445,0.03,нет,3,0.005288,0.0529
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,pr_t,12,0.002265,0.02953,0.0135,0.03959,0.295,нет,4,0.01524,0.152
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,k_fa,12,0.005814,0.00595,0.00549,0.01029,0.0595,нет,2,0,0
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,z0_mul,12,0.002712,0.002781,0.00159,0.002966,0.0278,нет,4,0.0008174,0.00817
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,tau_cool,12,-0.1857,0.1857,0.0326,0.06197,1.86,двигает,1,0.1951,1.95
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,k_smooth_m,12,-0.006103,0.007617,0.00404,0.008836,0.0762,нет,5,0.00578,0.0578
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,adv2,12,-0.0744,0.0744,0.029,0.05471,0.744,слабо,4,0.0852,0.852
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,closure,12,-0.08385,0.1219,0.0431,0.1226,1.22,двигает,5,0.1032,1.03
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,nu_const,12,0.03105,0.0426,0.0405,0.08257,0.426,слабо,2,0.02332,0.233
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,local_k,12,0.08496,0.08496,0.0728,0.1355,0.85,слабо,1,0.02981,0.298
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,heat_mode,12,-0.07965,0.08525,0.0487,0.09403,0.853,слабо,2,0.08238,0.824
+heat,h0_d400_w200_p01,Онгудай 12:00 штиль: область: w200 p1,0.1,limiter,12,0.008019,0.01543,0.0104,0.02465,0.154,нет,3,0.001107,0.0111
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,lam_frac,12,-0.01318,0.01318,0.0101,0.01902,0.132,нет,4,0.02469,0.247
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,lam,12,-0.000114,0.0008785,0.00107,0.002263,0.00878,нет,3,0,0
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,cs_h,12,-0.008954,0.008954,0.00744,0.01395,0.0895,нет,3,0.01258,0.126
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,pr_t,12,0.06761,0.08342,0.0349,0.08543,0.834,слабо,4,0.0355,0.355
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,k_fa,12,0.00181,0.0064,0.00645,0.01475,0.064,нет,2,0,0
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,z0_mul,12,-0.002631,0.003456,0.00176,0.004251,0.0346,нет,4,0.002086,0.0209
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,tau_cool,12,0.08801,0.08801,0.0245,0.04548,0.88,слабо,1,0.1652,1.65
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,k_smooth_m,12,-0.003012,0.008031,0.00469,0.01158,0.0803,нет,5,0.003847,0.0385
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,adv2,12,0.09517,0.09517,0.042,0.0781,0.952,слабо,4,0.03637,0.364
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,closure,12,0.1177,0.1296,0.0939,0.1867,1.3,двигает,5,0.0755,0.755
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,nu_const,12,-0.07904,0.08242,0.0944,0.1754,0.824,слабо,2,0.02411,0.241
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,local_k,12,-0.2119,0.2138,0.203,0.3606,2.14,двигает,1,0.02973,0.297
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,heat_mode,12,0.7397,0.7397,0.145,0.2663,7.4,двигает,2,0.433,4.33
+heat,h0_d400_w200_p99,Онгудай 12:00 штиль: область: w200 p99,0.1,limiter,12,-0.000777,0.006206,0.00395,0.009936,0.0621,нет,3,0.0004536,0.00454
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,lam_frac,12,-0.08937,0.1012,0.119,0.2571,0.337,слабо,4,0.06274,0.209
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,lam,12,-0.1415,0.1415,0.207,0.4706,0.472,слабо,3,0,0
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,cs_h,12,-0.002477,0.02905,0.0308,0.06719,0.0968,нет,3,0.009384,0.0313
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,pr_t,12,0.1291,0.4295,0.213,0.5775,1.43,двигает,4,0.1248,0.416
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,k_fa,12,0.1334,0.1633,0.157,0.3094,0.544,слабо,2,0,0
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,z0_mul,12,0.06145,0.3666,0.241,0.5881,1.22,двигает,4,0.01899,0.0633
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,tau_cool,12,0.4611,0.498,0.159,0.3556,1.66,двигает,1,0.09044,0.301
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,k_smooth_m,12,-0.1291,0.1519,0.11,0.2258,0.506,слабо,5,0.01845,0.0615
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,adv2,12,0.1456,0.3228,0.221,0.5041,1.08,двигает,4,0.08628,0.288
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,closure,12,0.01174,0.3087,0.154,0.4289,1.03,двигает,5,0.1267,0.422
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,nu_const,12,-0.009994,0.1504,0.142,0.3147,0.501,слабо,2,0.1271,0.424
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,local_k,12,-0.3485,0.468,0.219,0.5164,1.56,двигает,1,0.1309,0.436
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,heat_mode,12,0.6227,0.6391,0.264,0.5239,2.13,двигает,2,0.2702,0.901
+heat,h0_saddle50,Онгудай 12:00 штиль: седловина Каянчи S50,0.3,limiter,12,0.02033,0.385,0.306,0.6923,1.28,двигает,3,0.0001791,0.000597
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,lam_frac,12,-0.126,0.126,0.104,0.1973,0.42,слабо,4,0.1346,0.449
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,lam,12,0.06472,0.07631,0.109,0.2469,0.254,нет,3,0,0
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,cs_h,12,-0.02864,0.04453,0.0533,0.1144,0.148,нет,3,0.00639,0.0213
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,pr_t,12,0.3847,0.4367,0.278,0.5636,1.46,двигает,4,0.1957,0.652
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,k_fa,12,0.2006,0.2006,0.168,0.3283,0.669,слабо,2,0,0
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,z0_mul,12,0.02496,0.296,0.266,0.5726,0.987,слабо,4,0.001906,0.00635
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,tau_cool,12,0.2547,0.5664,0.22,0.6758,1.89,двигает,1,0.4314,1.44
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,k_smooth_m,12,-0.1945,0.1945,0.083,0.144,0.648,слабо,5,0.161,0.537
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,adv2,12,0.2689,0.4041,0.3,0.6775,1.35,двигает,4,0.07598,0.253
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,closure,12,0.3314,0.4703,0.275,0.637,1.57,двигает,5,0.3945,1.32
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,nu_const,12,-0.2915,0.2915,0.287,0.5177,0.972,слабо,2,0.3399,1.13
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,local_k,12,-0.2728,0.449,0.183,0.5051,1.5,двигает,1,0.1414,0.471
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,heat_mode,12,1.031,1.081,0.316,0.6698,3.6,двигает,2,1.353,4.51
+heat,h0_speed50,Онгудай 12:00 штиль: ветер 50 м над стартом,0.3,limiter,12,-0.07838,0.07838,0.0627,0.1141,0.261,нет,3,0.0007337,0.00245
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,lam_frac,12,0.003223,0.003293,0.00328,0.005991,0.0165,нет,4,0.002797,0.014
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,lam,12,0.02677,0.02677,0.0401,0.09221,0.134,нет,3,0,0
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,cs_h,12,-0.00812,0.01207,0.0158,0.03412,0.0604,нет,3,8.948e-05,0.000447
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,pr_t,12,0.005475,0.125,0.0778,0.1966,0.625,слабо,4,0.05083,0.254
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,k_fa,12,-0.04714,0.07702,0.0894,0.1893,0.385,слабо,2,0,0
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,z0_mul,12,-0.01419,0.06078,0.0538,0.1167,0.304,слабо,4,0.001485,0.00742
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,tau_cool,12,0.8753,0.8753,0.173,0.315,4.38,двигает,1,0.4469,2.23
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,k_smooth_m,12,0.006998,0.01695,0.0136,0.03072,0.0847,нет,5,0.006661,0.0333
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,adv2,12,0.06357,0.06503,0.0705,0.1376,0.325,слабо,4,0.00117,0.00585
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,closure,12,-0.08626,0.1733,0.145,0.3202,0.866,слабо,5,0.01284,0.0642
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,nu_const,12,-0.07496,0.07496,0.0871,0.1599,0.375,слабо,2,0.003929,0.0196
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,local_k,12,0.1059,0.1174,0.122,0.2455,0.587,слабо,1,0.001204,0.00602
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,heat_mode,12,0.3986,0.3986,0.13,0.2428,1.99,двигает,2,0.4162,2.08
+heat,h0_th50,Онгудай 12:00 штиль: θ′ 50 м над стартом,0.2,limiter,12,0.006374,0.03611,0.0347,0.07318,0.181,нет,3,1.285e-05,6.43e-05
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,lam_frac,12,-0.02849,0.02849,0.0261,0.04674,0.285,нет,4,0.06747,0.675
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,lam,12,0.1281,0.1309,0.196,0.4491,1.31,двигает,3,0,0
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,cs_h,12,0.01918,0.02603,0.0357,0.0793,0.26,нет,3,0.0007035,0.00704
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,pr_t,12,0.1074,0.1746,0.0838,0.2147,1.75,двигает,4,0.1298,1.3
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,k_fa,12,-0.1061,0.2205,0.193,0.436,2.21,двигает,2,0,0
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,z0_mul,12,-0.006951,0.1342,0.134,0.2839,1.34,двигает,4,0.002986,0.0299
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,tau_cool,12,0.1147,0.2135,0.0974,0.2584,2.13,двигает,1,0.3024,3.02
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,k_smooth_m,12,-0.151,0.1563,0.184,0.4066,1.56,двигает,5,0.03941,0.394
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,adv2,12,0.04227,0.1414,0.081,0.2129,1.41,двигает,4,0.04282,0.428
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,closure,12,0.3673,0.5002,0.373,0.8269,5,двигает,5,0.2509,2.51
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,nu_const,12,-0.324,0.3518,0.361,0.7303,3.52,двигает,2,0.1226,1.23
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,local_k,12,-0.3629,0.4582,0.445,0.8827,4.58,двигает,1,0.1042,1.04
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,heat_mode,12,1.475,1.475,0.457,0.8338,14.8,двигает,2,0.9996,10
+heat,h0_w200_start,Онгудай 12:00 штиль: подъём у старта (200 м),0.1,limiter,12,-0.172,0.2347,0.253,0.5066,2.35,двигает,3,0.0004778,0.00478
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,lam_frac,12,-0.01249,0.01337,0.0108,0.02175,0.134,нет,4,0.02517,0.252
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,lam,12,0.03234,0.0349,0.0517,0.1169,0.349,слабо,3,0,0
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,cs_h,12,-0.005587,0.005587,0.00734,0.01607,0.0559,нет,3,0.0008382,0.00838
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,pr_t,12,-0.04257,0.08789,0.0493,0.1211,0.879,слабо,4,0.03149,0.315
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,k_fa,12,0.01917,0.1002,0.108,0.2275,1,двигает,2,0,0
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,z0_mul,12,-0.006357,0.09661,0.0868,0.1923,0.966,слабо,4,0.006554,0.0655
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,alpha_mul,12,0,0,0,0,0,нет,6,0,0
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,tau_cool,12,0.125,0.1772,0.0928,0.2164,1.77,двигает,1,0.05645,0.564
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,zi_min,12,0,0,0,0,0,нет,2,0,0
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,k_smooth_m,12,-0.04114,0.04114,0.0209,0.03767,0.411,слабо,5,0.04799,0.48
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,adv2,12,0.1313,0.1392,0.124,0.2471,1.39,двигает,4,0.01866,0.187
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,closure,12,0.01121,0.1883,0.102,0.2788,1.88,двигает,5,0.1155,1.15
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,nu_const,12,-0.06416,0.06416,0.0499,0.09226,0.642,слабо,2,0.1018,1.02
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,local_k,12,0.1118,0.1465,0.128,0.256,1.47,двигает,1,0.01857,0.186
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,heat_mode,12,0.1497,0.2714,0.0619,0.2617,2.71,двигает,2,0.2848,2.85
+heat,h0_w50,Онгудай 12:00 штиль: w 50 м над стартом,0.1,limiter,12,0.01047,0.0528,0.0481,0.1065,0.528,слабо,3,1.629e-05,0.000163
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,lam_frac,12,-0.01608,0.01614,0.0206,0.03794,0.161,нет,10,0.0193,0.193
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,lam,12,0.001561,0.001561,0.00233,0.005342,0.0156,нет,10,2.111e-05,0.000211
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,cs_h,12,0.002811,0.002811,0.00268,0.005115,0.0281,нет,8,0.0005933,0.00593
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,pr_t,12,-0.0142,0.01567,0.0122,0.02396,0.157,нет,9,0.006706,0.0671
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,k_fa,12,6.831e-05,0.0006845,0.000528,0.001212,0.00684,нет,9,0.000675,0.00675
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,z0_mul,12,0.003453,0.003453,0.00152,0.002945,0.0345,нет,8,0.004317,0.0432
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,alpha_mul,12,-0.06089,0.06293,0.0147,0.03252,0.629,слабо,9,0.07371,0.737
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,tau_cool,12,-0.07607,0.07607,0.0269,0.0506,0.761,слабо,10,0.0705,0.705
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,k_smooth_m,12,-0.001345,0.00228,0.00129,0.003088,0.0228,нет,12,0.00228,0.0228
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,adv2,12,-0.1056,0.1056,0.0648,0.1169,1.06,двигает,9,0.07161,0.716
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,closure,12,-0.001507,0.1179,0.0641,0.1753,1.18,двигает,9,0.07838,0.784
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,nu_const,12,0.01805,0.03965,0.0361,0.07646,0.396,слабо,8,0.01609,0.161
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,local_k,12,0.02997,0.03685,0.0302,0.06024,0.368,слабо,8,0.02021,0.202
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,heat_mode,12,-0.1119,0.1165,0.0833,0.1673,1.17,двигает,8,0.04291,0.429
+heat,h3_d400_w200_p01,Онгудай 12:00 3 м/с: область: w200 p1,0.1,limiter,12,-0.002224,0.004388,0.00325,0.007082,0.0439,нет,11,0.004397,0.044
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,lam_frac,12,0.004979,0.006527,0.00782,0.01481,0.0653,нет,10,0.007085,0.0709
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,lam,12,0.000162,0.0001882,0.00035,0.0006124,0.00188,нет,10,1.575e-05,0.000157
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,cs_h,12,-0.0143,0.0143,0.0102,0.01944,0.143,нет,8,0.01141,0.114
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,pr_t,12,0.03182,0.03182,0.0166,0.03124,0.318,слабо,9,0.02399,0.24
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,k_fa,12,-0.0004544,0.0004866,0.000447,0.0008604,0.00487,нет,9,0.0003454,0.00345
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,z0_mul,12,-0.007621,0.007621,0.00321,0.005959,0.0762,нет,8,0.005077,0.0508
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,alpha_mul,12,0.1198,0.1198,0.0243,0.04386,1.2,двигает,9,0.1298,1.3
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,tau_cool,12,0.09156,0.09156,0.0234,0.04446,0.916,слабо,10,0.08778,0.878
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,k_smooth_m,12,-0.0001752,0.002263,0.00107,0.003083,0.0226,нет,12,0.002263,0.0226
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,adv2,12,0.1253,0.1253,0.0417,0.0792,1.25,двигает,9,0.09937,0.994
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,closure,12,0.01461,0.1045,0.0615,0.1649,1.05,двигает,9,0.06045,0.605
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,nu_const,12,-0.05291,0.05291,0.0598,0.1117,0.529,слабо,8,0.00576,0.0576
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,local_k,12,-0.09231,0.09247,0.0684,0.1281,0.925,слабо,8,0.0263,0.263
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,heat_mode,12,0.2687,0.2687,0.0953,0.1808,2.69,двигает,8,0.1748,1.75
+heat,h3_d400_w200_p99,Онгудай 12:00 3 м/с: область: w200 p99,0.1,limiter,12,0.003728,0.007287,0.00464,0.01113,0.0729,нет,11,0.007569,0.0757
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,lam_frac,12,-0.02602,0.04824,0.0466,0.09711,0.161,нет,10,0.04032,0.134
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,lam,12,-0.01272,0.01272,0.0189,0.04302,0.0424,нет,10,0.000335,0.00112
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,cs_h,12,-0.01625,0.01625,0.0131,0.02293,0.0542,нет,8,0.01033,0.0344
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,pr_t,12,0.07408,0.149,0.0816,0.2061,0.497,слабо,9,0.1239,0.413
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,k_fa,12,-0.01243,0.01243,0.0127,0.02457,0.0414,нет,9,0.01544,0.0515
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,z0_mul,12,-0.05845,0.05845,0.00886,0.01746,0.195,нет,8,0.05697,0.19
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,alpha_mul,12,0.3931,0.3931,0.126,0.2299,1.31,двигает,9,0.3459,1.15
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,tau_cool,12,0.5538,0.5538,0.132,0.2487,1.85,двигает,10,0.5698,1.9
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,k_smooth_m,12,0.01291,0.0302,0.0152,0.04065,0.101,нет,12,0.0302,0.101
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,adv2,12,0.6098,0.6098,0.136,0.2535,2.03,двигает,9,0.6234,2.08
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,closure,12,-0.3383,0.3805,0.221,0.4644,1.27,двигает,9,0.4592,1.53
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,nu_const,12,-0.3748,0.3748,0.271,0.5134,1.25,двигает,8,0.1459,0.486
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,local_k,12,-0.3828,0.3934,0.272,0.5221,1.31,двигает,8,0.1895,0.632
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,heat_mode,12,0.6835,0.6835,0.175,0.3394,2.28,двигает,8,0.5235,1.74
+heat,h3_saddle50,Онгудай 12:00 3 м/с: седловина Каянчи S50,0.3,limiter,12,-0.02205,0.05657,0.044,0.09802,0.189,нет,11,0.05837,0.195
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,lam_frac,12,-0.003708,0.0998,0.106,0.2192,0.333,слабо,10,0.1147,0.382
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,lam,12,0.0001429,0.0003972,0.000469,0.001069,0.00132,нет,10,0.0001526,0.000509
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,cs_h,12,-0.02083,0.02083,0.0153,0.02885,0.0694,нет,8,0.0119,0.0397
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,pr_t,12,-0.004063,0.09709,0.0538,0.1459,0.324,слабо,9,0.09213,0.307
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,k_fa,12,-0.005709,0.005709,0.00592,0.01034,0.019,нет,9,0.007476,0.0249
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,z0_mul,12,-0.04291,0.04291,0.0101,0.01872,0.143,нет,8,0.0363,0.121
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,alpha_mul,12,0.4181,0.4181,0.132,0.2444,1.39,двигает,9,0.3799,1.27
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,tau_cool,12,0.5674,0.5674,0.1,0.179,1.89,двигает,10,0.5907,1.97
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,k_smooth_m,12,0.02627,0.02662,0.0126,0.02366,0.0887,нет,12,0.02662,0.0887
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,adv2,12,0.6457,0.7012,0.234,0.5173,2.34,двигает,9,0.7728,2.58
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,closure,12,-0.5501,0.7492,0.393,0.8692,2.5,двигает,9,0.6385,2.13
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,nu_const,12,-0.3229,0.3229,0.245,0.4738,1.08,двигает,8,0.2939,0.98
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,local_k,12,-0.1203,0.2483,0.14,0.3502,0.828,слабо,8,0.1855,0.618
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,heat_mode,12,0.6358,0.6741,0.272,0.5818,2.25,двигает,8,0.6304,2.1
+heat,h3_speed50,Онгудай 12:00 3 м/с: ветер 50 м над стартом,0.3,limiter,12,-0.09892,0.09892,0.0746,0.1411,0.33,слабо,11,0.1041,0.347
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,lam_frac,12,-0.002154,0.005567,0.00523,0.01089,0.0278,нет,10,0.006125,0.0306
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,lam,12,-0.005663,0.005663,0.00849,0.01961,0.0283,нет,10,2.955e-06,1.48e-05
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,cs_h,12,8.083e-05,0.0003976,0.000354,0.0007729,0.00199,нет,8,0.0002299,0.00115
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,pr_t,12,0.0638,0.06468,0.0397,0.07781,0.323,слабо,9,0.05736,0.287
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,k_fa,12,0.0008908,0.0008908,0.000939,0.001879,0.00445,нет,9,0.001132,0.00566
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,z0_mul,12,0.001917,0.001917,0.00152,0.002749,0.00959,нет,8,0.0005436,0.00272
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,alpha_mul,12,-0.01981,0.02124,0.0169,0.03172,0.106,нет,9,0.008184,0.0409
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,tau_cool,12,0.1138,0.1138,0.0261,0.046,0.569,слабо,10,0.1082,0.541
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,k_smooth_m,12,0.002389,0.004788,0.00194,0.0056,0.0239,нет,12,0.004788,0.0239
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,adv2,12,0.02426,0.07721,0.0832,0.1797,0.386,слабо,9,0.02347,0.117
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,closure,12,0.1293,0.1309,0.163,0.3009,0.655,слабо,9,0.006616,0.0331
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,nu_const,12,-0.09203,0.09905,0.118,0.225,0.495,слабо,8,0.005261,0.0263
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,local_k,12,-0.02878,0.1129,0.102,0.2208,0.564,слабо,8,0.01181,0.0591
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,heat_mode,12,0.3587,0.3587,0.109,0.2037,1.79,двигает,8,0.3177,1.59
+heat,h3_th50,Онгудай 12:00 3 м/с: θ′ 50 м над стартом,0.2,limiter,12,0.01853,0.01853,0.0218,0.04616,0.0927,нет,11,0.02017,0.101
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,lam_frac,12,0.03005,0.03647,0.0406,0.0782,0.365,слабо,10,0.04005,0.401
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,lam,12,0.0002096,0.000597,0.000799,0.001604,0.00597,нет,10,0.0002324,0.00232
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,cs_h,12,-0.009426,0.009426,0.00738,0.01318,0.0943,нет,8,0.007122,0.0712
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,pr_t,12,0.1133,0.1139,0.0656,0.1258,1.14,двигает,9,0.09651,0.965
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,k_fa,12,0.005382,0.005928,0.00627,0.01332,0.0593,нет,9,0.007463,0.0746
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,z0_mul,12,-0.007987,0.0106,0.00204,0.008141,0.106,нет,8,0.009427,0.0943
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,alpha_mul,12,0.08495,0.12,0.0439,0.1192,1.2,двигает,9,0.09867,0.987
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,tau_cool,12,0.114,0.1335,0.0188,0.07964,1.33,двигает,10,0.1334,1.33
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,k_smooth_m,12,-0.00512,0.008068,0.00577,0.01278,0.0807,нет,12,0.008068,0.0807
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,adv2,12,0.1857,0.2134,0.156,0.3123,2.13,двигает,9,0.1606,1.61
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,closure,12,0.07811,0.385,0.25,0.6099,3.85,двигает,9,0.2078,2.08
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,nu_const,12,-0.1015,0.1015,0.116,0.2259,1.02,двигает,8,0.005363,0.0536
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,local_k,12,-0.2349,0.2582,0.233,0.4281,2.58,двигает,8,0.0379,0.379
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,heat_mode,12,0.9471,0.9471,0.37,0.7131,9.47,двигает,8,0.6474,6.47
+heat,h3_w200_start,Онгудай 12:00 3 м/с: подъём у старта (200 м),0.1,limiter,12,0.04724,0.06003,0.0471,0.09796,0.6,слабо,11,0.06531,0.653
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,lam_frac,12,0.01925,0.01925,0.0191,0.03617,0.192,нет,10,0.02011,0.201
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,lam,12,-0.007334,0.007334,0.0109,0.02498,0.0733,нет,10,0.0001372,0.00137
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,cs_h,12,-0.006109,0.006109,0.00437,0.008704,0.0611,нет,8,0.003495,0.0349
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,pr_t,12,0.02347,0.03209,0.0148,0.03587,0.321,слабо,9,0.02519,0.252
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,k_fa,12,-0.0008408,0.0008408,0.000826,0.001527,0.00841,нет,9,0.00103,0.0103
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,z0_mul,12,0.002315,0.002433,0.00178,0.00328,0.0243,нет,8,0.001137,0.0114
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,alpha_mul,12,0.04037,0.04835,0.0159,0.04039,0.484,слабо,9,0.05658,0.566
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,tau_cool,12,0.02871,0.03561,0.0126,0.0322,0.356,слабо,10,0.03233,0.323
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,zi_min,12,0,0,0,0,0,нет,8,0,0
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,k_smooth_m,12,-0.003515,0.004709,0.00334,0.007179,0.0471,нет,12,0.004709,0.0471
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,adv2,12,0.1779,0.1881,0.153,0.3093,1.88,двигает,9,0.1131,1.13
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,closure,12,0.02807,0.2868,0.185,0.4502,2.87,двигает,9,0.1695,1.69
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,nu_const,12,-0.1212,0.1212,0.102,0.1853,1.21,двигает,8,0.03575,0.358
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,local_k,12,0.04031,0.06364,0.054,0.1121,0.636,слабо,8,0.01788,0.179
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,heat_mode,12,0.05291,0.1716,0.0712,0.221,1.72,двигает,8,0.1187,1.19
+heat,h3_w50,Онгудай 12:00 3 м/с: w 50 м над стартом,0.1,limiter,12,0.0001959,0.01467,0.0142,0.03019,0.147,нет,11,0.01547,0.155
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,lam_frac,12,-0.0653,0.0653,0.0508,0.0927,1.31,двигает,12,0.0653,1.31
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,lam,12,-0.03351,0.03351,0.0376,0.07003,0.67,слабо,12,0.03351,0.67
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,cs_h,12,0.0002987,0.000317,0.000345,0.0006925,0.00634,нет,12,0.000317,0.00634
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,k_fa,12,-0.001935,0.001935,0.00182,0.003566,0.0387,нет,12,0.001935,0.0387
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,z0_mul,12,0.02177,0.02345,0.0161,0.0317,0.469,слабо,12,0.02345,0.469
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,alpha_mul,12,-4.306e-05,0.01296,0.00398,0.01552,0.259,нет,11,0.01197,0.239
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,adv2,12,-0.001816,0.02937,0.0142,0.04077,0.587,слабо,12,0.02937,0.587
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,closure,12,-0.09403,0.1042,0.0482,0.1016,2.08,двигает,12,0.1042,2.08
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,nu_const,12,-0.009503,0.01929,0.0178,0.03706,0.386,слабо,12,0.01929,0.386
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,local_k,12,-0.07999,0.09997,0.0517,0.1092,2,двигает,12,0.09997,2
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_2L,за гребнем: S20 в 2L,0.05,limiter,12,0.005824,0.006394,0.00421,0.008535,0.128,нет,12,0.006394,0.128
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,lam_frac,12,0.008386,0.09424,0.0834,0.1865,1.88,двигает,12,0.09424,1.88
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,lam,12,-0.01566,0.01566,0.0189,0.03455,0.313,слабо,12,0.01566,0.313
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,cs_h,12,-1.748e-06,0.0003279,0.00023,0.0005573,0.00656,нет,12,0.0003279,0.00656
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,k_fa,12,-0.004289,0.004525,0.00522,0.009999,0.0905,нет,12,0.004525,0.0905
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,z0_mul,12,-0.03372,0.06772,0.0626,0.1307,1.35,двигает,12,0.06772,1.35
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,alpha_mul,12,0.0005381,0.01794,0.00754,0.02354,0.359,слабо,11,0.01577,0.315
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,adv2,12,0.02671,0.0499,0.0218,0.05941,0.998,слабо,12,0.0499,0.998
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,closure,12,0.03086,0.09141,0.0778,0.1678,1.83,двигает,12,0.09141,1.83
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,nu_const,12,-0.06238,0.06559,0.0534,0.1006,1.31,двигает,12,0.06559,1.31
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,local_k,12,-0.165,0.1725,0.0864,0.1698,3.45,двигает,12,0.1725,3.45
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s20_4L,за гребнем: S20 в 4L,0.05,limiter,12,-0.003698,0.00523,0.0046,0.009744,0.105,нет,12,0.00523,0.105
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,lam_frac,12,-0.07799,0.07799,0.0562,0.1076,1.56,двигает,12,0.07799,1.56
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,lam,12,-0.04936,0.04936,0.0576,0.1029,0.987,слабо,12,0.04936,0.987
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,cs_h,12,6.79e-05,0.0009314,0.000867,0.00195,0.0186,нет,12,0.0009314,0.0186
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,k_fa,12,-0.000572,0.0006741,0.000699,0.001367,0.0135,нет,12,0.0006741,0.0135
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,z0_mul,12,0.0214,0.0245,0.0156,0.03096,0.49,слабо,12,0.0245,0.49
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,alpha_mul,12,-0.005076,0.01677,0.00612,0.02015,0.335,слабо,11,0.01465,0.293
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,adv2,12,0.004468,0.03373,0.0188,0.0485,0.675,слабо,12,0.03373,0.675
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,closure,12,-0.09001,0.1081,0.0556,0.1196,2.16,двигает,12,0.1081,2.16
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,nu_const,12,-0.01337,0.02775,0.0243,0.05203,0.555,слабо,12,0.02775,0.555
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,local_k,12,-0.09757,0.1225,0.0591,0.1304,2.45,двигает,12,0.1225,2.45
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_2L,за гребнем: S50 в 2L,0.05,limiter,12,0.00148,0.004346,0.00351,0.00786,0.0869,нет,12,0.004346,0.0869
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,lam_frac,12,0.06864,0.1091,0.0811,0.1752,2.18,двигает,12,0.1091,2.18
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,lam,12,0.02285,0.03087,0.0347,0.06672,0.617,слабо,12,0.03087,0.617
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,cs_h,12,-0.000474,0.0005037,0.000406,0.0007715,0.0101,нет,12,0.0005037,0.0101
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,k_fa,12,-0.001717,0.002256,0.00249,0.004847,0.0451,нет,12,0.002256,0.0451
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,z0_mul,12,-0.03313,0.05989,0.0572,0.122,1.2,двигает,12,0.05989,1.2
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,alpha_mul,12,-0.004314,0.01863,0.00547,0.02201,0.373,слабо,11,0.0168,0.336
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,adv2,12,0.02921,0.05309,0.0235,0.06321,1.06,двигает,12,0.05309,1.06
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,closure,12,0.08848,0.1087,0.0769,0.1494,2.17,двигает,12,0.1087,2.17
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,nu_const,12,-0.05262,0.05262,0.0427,0.08338,1.05,двигает,12,0.05262,1.05
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,local_k,12,-0.03568,0.09531,0.0662,0.1512,1.91,двигает,12,0.09531,1.91
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_s50_4L,за гребнем: S50 в 4L,0.05,limiter,12,-0.003524,0.004513,0.00432,0.008726,0.0903,нет,12,0.004513,0.0903
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,lam_frac,12,0.1333,0.1333,0.109,0.1988,2.67,двигает,12,0.1333,2.67
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,lam,12,0.05788,0.05788,0.0667,0.1175,1.16,двигает,12,0.05788,1.16
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,cs_h,12,0.0002344,0.0006934,0.000678,0.00149,0.0139,нет,12,0.0006934,0.0139
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,k_fa,12,0.004887,0.004954,0.00529,0.009905,0.0991,нет,12,0.004954,0.0991
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,z0_mul,12,0.005346,0.0168,0.0102,0.02528,0.336,слабо,12,0.0168,0.336
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,alpha_mul,12,-0.0182,0.02904,0.013,0.03378,0.581,слабо,11,0.02796,0.559
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,adv2,12,0.01425,0.06152,0.0231,0.0756,1.23,двигает,12,0.06152,1.23
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,closure,12,0.1897,0.2262,0.105,0.2364,4.52,двигает,12,0.2262,4.52
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,nu_const,12,0.1267,0.1267,0.101,0.1903,2.53,двигает,12,0.1267,2.53
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,local_k,12,0.3043,0.3044,0.143,0.2638,6.09,двигает,12,0.3044,6.09
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_umin20,за гребнем: мин. u20 (ротор <0),0.05,limiter,12,-0.006249,0.007854,0.00776,0.01514,0.157,нет,12,0.007854,0.157
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,lam_frac,12,-0.05737,0.05737,0.0431,0.0831,2.87,двигает,12,0.05737,2.87
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,lam,12,-0.02279,0.02279,0.0251,0.04802,1.14,двигает,12,0.02279,1.14
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,cs_h,12,0.001241,0.001241,0.001,0.001911,0.0621,нет,12,0.001241,0.0621
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,k_fa,12,0.0002672,0.0006142,0.000623,0.001222,0.0307,нет,12,0.0006142,0.0307
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,z0_mul,12,-0.008742,0.008858,0.00461,0.008382,0.443,слабо,12,0.008858,0.443
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,alpha_mul,12,0.004861,0.005583,0.00354,0.007006,0.279,нет,11,0.006087,0.304
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,adv2,12,-0.021,0.02121,0.0111,0.02182,1.06,двигает,12,0.02121,1.06
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,closure,12,-0.007672,0.02946,0.0184,0.04669,1.47,двигает,12,0.02946,1.47
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,nu_const,12,-0.04217,0.04739,0.0376,0.06864,2.37,двигает,12,0.04739,2.37
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,local_k,12,-0.1537,0.1537,0.0702,0.126,7.68,двигает,12,0.1537,7.68
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,lee_wmin50,за гребнем: мин. w50/U,0.02,limiter,12,0.001964,0.00289,0.00199,0.004281,0.144,нет,12,0.00289,0.144
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,lam_frac,12,0.004757,0.008464,0.00837,0.01677,0.282,нет,11,0.009234,0.308
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,lam,12,0.002298,0.002298,0.00257,0.004559,0.0766,нет,11,0.002507,0.0836
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,cs_h,12,-0.005325,0.005325,0.00405,0.00766,0.177,нет,11,0.005809,0.194
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,pr_t,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,k_fa,12,-0.0004355,0.0004405,0.000438,0.0008435,0.0147,нет,10,0.0005286,0.0176
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,z0_mul,12,0.02389,0.02389,0.00654,0.01241,0.796,слабо,11,0.02191,0.73
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,alpha_mul,12,0.03906,0.05534,0.019,0.05413,1.84,двигает,10,0.05322,1.77
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,tau_cool,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,zi_min,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,adv2,12,0.06161,0.06161,0.00839,0.01564,2.05,двигает,11,0.06049,2.02
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,closure,12,-0.0981,0.1062,0.0583,0.1198,3.54,двигает,10,0.1195,3.98
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,nu_const,12,-0.05369,0.05369,0.038,0.07008,1.79,двигает,10,0.04631,1.54
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,local_k,12,0.02538,0.02668,0.0166,0.03245,0.889,слабо,12,0.02668,0.889
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,heat_mode,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_0,"разгон у гребня 20 м, 0°",0.03,limiter,12,0.004629,0.007726,0.00395,0.009675,0.258,нет,10,0.009271,0.309
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,lam_frac,12,-0.002512,0.01022,0.0114,0.02442,0.341,слабо,11,0.01115,0.372
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,lam,12,-0.0002612,0.0003333,0.000397,0.0008337,0.0111,нет,11,0.0003636,0.0121
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,cs_h,12,-0.002649,0.002649,0.0021,0.00385,0.0883,нет,11,0.00289,0.0963
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,pr_t,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,k_fa,12,-0.0004919,0.0004957,0.000545,0.0009364,0.0165,нет,10,0.0005948,0.0198
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,z0_mul,12,0.01422,0.01444,0.00701,0.01337,0.481,слабо,11,0.0119,0.397
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,alpha_mul,12,0.03142,0.0459,0.0149,0.04476,1.53,двигает,10,0.04306,1.44
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,tau_cool,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,zi_min,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,adv2,12,0.03279,0.03279,0.00633,0.01244,1.09,двигает,11,0.03235,1.08
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,closure,12,-0.07725,0.1006,0.0493,0.1143,3.35,двигает,10,0.1104,3.68
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,nu_const,12,-0.0578,0.0578,0.0376,0.07208,1.93,двигает,10,0.04141,1.38
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,local_k,12,0.007756,0.01164,0.00862,0.01843,0.388,слабо,12,0.01164,0.388
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,heat_mode,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_su20_45,"разгон у гребня 20 м, 45°",0.03,limiter,12,0.001342,0.003039,0.00157,0.004034,0.101,нет,10,0.003647,0.122
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,lam_frac,12,0.0301,0.0301,0.0295,0.05651,0.602,слабо,11,0.03283,0.657
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,lam,12,0.005072,0.005072,0.00646,0.01244,0.101,нет,11,0.005533,0.111
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,cs_h,12,-0.01746,0.01746,0.0125,0.0242,0.349,слабо,11,0.01905,0.381
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,pr_t,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,k_fa,12,-0.0008669,0.0008739,0.000959,0.001829,0.0175,нет,10,0.001049,0.021
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,z0_mul,12,-0.03157,0.03272,0.0109,0.02152,0.654,слабо,11,0.03142,0.628
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,alpha_mul,12,0.2707,0.2707,0.023,0.04388,5.41,двигает,10,0.2759,5.52
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,tau_cool,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,zi_min,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,adv2,12,0.1041,0.1041,0.00774,0.01483,2.08,двигает,11,0.1033,2.07
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,closure,12,-0.08857,0.08857,0.0374,0.07003,1.77,двигает,10,0.07014,1.4
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,nu_const,12,-0.005208,0.02304,0.0154,0.03761,0.461,слабо,10,0.01695,0.339
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,local_k,12,0.0365,0.0426,0.0274,0.05825,0.852,слабо,12,0.0426,0.852
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,heat_mode,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w0_50,"w у склона 0°, 50 м, м/с",0.05,limiter,12,0.01019,0.01338,0.00827,0.01776,0.268,нет,10,0.01605,0.321
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,lam_frac,12,-0.003033,0.003033,0.00312,0.005845,0.0607,нет,11,0.003308,0.0662
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,lam,12,-0.001146,0.001146,0.00131,0.002336,0.0229,нет,11,0.00125,0.025
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,cs_h,12,0.0003066,0.0003066,0.000347,0.000683,0.00613,нет,11,0.0003345,0.00669
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,pr_t,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,k_fa,12,-1.411e-05,1.443e-05,1.64e-05,3.355e-05,0.000289,нет,10,1.731e-05,0.000346
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,z0_mul,12,-0.003836,0.003836,0.00191,0.003496,0.0767,нет,11,0.004063,0.0813
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,alpha_mul,12,-3.528e-05,0.002784,0.000914,0.003379,0.0557,нет,10,0.002505,0.0501
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,tau_cool,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,zi_min,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,adv2,12,-0.003873,0.003873,0.000497,0.000945,0.0775,нет,11,0.003846,0.0769
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,closure,12,-0.00382,0.01134,0.0051,0.01488,0.227,нет,10,0.009817,0.196
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,nu_const,12,-0.01157,0.01157,0.00806,0.01516,0.231,нет,10,0.007009,0.14
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,local_k,12,-0.007475,0.00765,0.00359,0.006923,0.153,нет,12,0.00765,0.153
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,heat_mode,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_100,"косой ветер w45/w0, 100 м",0.05,limiter,12,-0.0002921,0.0003741,0.000213,0.0004715,0.00748,нет,10,0.0004489,0.00898
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,lam_frac,12,-0.003823,0.003823,0.00377,0.007176,0.0765,нет,11,0.004171,0.0834
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,lam,12,-0.001349,0.001349,0.0014,0.00275,0.027,нет,11,0.001472,0.0294
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,cs_h,12,0.000528,0.000528,0.00063,0.001264,0.0106,нет,11,0.0005759,0.0115
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,pr_t,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,k_fa,12,2.725e-05,3.439e-05,4.79e-05,0.0001077,0.000688,нет,10,4.127e-05,0.000825
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,z0_mul,12,-0.004943,0.005098,0.00222,0.00423,0.102,нет,11,0.005477,0.11
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,alpha_mul,12,0.0001147,0.003122,0.00104,0.003793,0.0624,нет,10,0.002904,0.0581
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,tau_cool,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,zi_min,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,k_smooth_m,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,adv2,12,-0.003804,0.003804,0.000867,0.00158,0.0761,нет,11,0.003802,0.076
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,closure,12,-0.004898,0.01356,0.00591,0.01745,0.271,нет,10,0.01196,0.239
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,nu_const,12,-0.01239,0.01239,0.00924,0.01677,0.248,нет,10,0.007128,0.143
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,local_k,12,-0.009591,0.009808,0.00487,0.008819,0.196,нет,12,0.009808,0.196
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,heat_mode,12,0,0,0,0,0,нет,11,0,0
+pilot,obl_w45_w0_50,"косой ветер w45/w0, 50 м",0.05,limiter,12,-0.0006446,0.0007268,0.000545,0.001007,0.0145,нет,10,0.0008722,0.0174
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,lam_frac,12,0.0762,0.0762,0.0599,0.1121,1.52,двигает,12,0.0762,1.52
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,lam,12,0.02481,0.02481,0.0262,0.0509,0.496,слабо,12,0.02481,0.496
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,cs_h,12,-0.01009,0.01009,0.0083,0.0151,0.202,нет,12,0.01009,0.202
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,k_fa,12,-0.008302,0.008594,0.00835,0.01539,0.172,нет,12,0.008594,0.172
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,z0_mul,12,0.1127,0.1127,0.0274,0.05036,2.25,двигает,12,0.1127,2.25
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,alpha_mul,12,0.02458,0.05441,0.022,0.06606,1.09,двигает,11,0.05184,1.04
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,adv2,12,0.1425,0.1425,0.0276,0.05043,2.85,двигает,12,0.1425,2.85
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,closure,12,-0.2404,0.242,0.123,0.2384,4.84,двигает,12,0.242,4.84
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,nu_const,12,-0.1132,0.1132,0.0766,0.1448,2.26,двигает,12,0.1132,2.26
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,local_k,12,0.1756,0.1787,0.0928,0.1731,3.57,двигает,12,0.1787,3.57
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su10,хребет: разгон у бровки 10 м,0.05,limiter,12,-0.01684,0.01684,0.00878,0.01635,0.337,слабо,12,0.01684,0.337
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,lam_frac,12,0.05882,0.05882,0.0462,0.08648,1.18,двигает,12,0.05882,1.18
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,lam,12,0.01849,0.01849,0.0203,0.03829,0.37,слабо,12,0.01849,0.37
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,cs_h,12,-0.00466,0.00466,0.00359,0.006913,0.0932,нет,12,0.00466,0.0932
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,k_fa,12,0.003201,0.003201,0.00284,0.005712,0.064,нет,12,0.003201,0.064
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,z0_mul,12,0.05329,0.05329,0.00976,0.01823,1.07,двигает,12,0.05329,1.07
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,alpha_mul,12,-0.009369,0.04147,0.0141,0.04966,0.829,слабо,11,0.04246,0.849
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,adv2,12,0.151,0.151,0.0235,0.04195,3.02,двигает,12,0.151,3.02
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,closure,12,-0.05856,0.07985,0.0635,0.1307,1.6,двигает,12,0.07985,1.6
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,nu_const,12,-0.05269,0.05269,0.0396,0.07453,1.05,двигает,12,0.05269,1.05
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,local_k,12,0.1513,0.1516,0.078,0.1434,3.03,двигает,12,0.1516,3.03
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_crest_su50,хребет: разгон у бровки 50 м,0.05,limiter,12,-0.01434,0.01434,0.00776,0.01465,0.287,нет,12,0.01434,0.287
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,lam_frac,12,-0.004212,0.004212,0.00449,0.008741,0.211,нет,12,0.004212,0.211
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,lam,12,-0.001093,0.001093,0.00131,0.002505,0.0547,нет,12,0.001093,0.0547
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,cs_h,12,0.0001338,0.0001338,0.000108,0.0001982,0.00669,нет,12,0.0001338,0.00669
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,k_fa,12,-4.002e-05,0.0001393,0.000165,0.0003408,0.00697,нет,12,0.0001393,0.00697
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,z0_mul,12,-0.004979,0.005192,0.00384,0.007296,0.26,нет,12,0.005192,0.26
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,alpha_mul,12,0.026,0.026,0.00279,0.005057,1.3,двигает,11,0.02555,1.28
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,adv2,12,-0.006692,0.006871,0.00193,0.00389,0.344,слабо,12,0.006871,0.344
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,closure,12,0.009446,0.01144,0.0064,0.01369,0.572,слабо,12,0.01144,0.572
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,nu_const,12,-0.0002854,0.00297,0.00217,0.005137,0.148,нет,12,0.00297,0.148
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,local_k,12,-0.01253,0.01253,0.00598,0.01158,0.627,слабо,12,0.01253,0.627
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2.5H,"хребет: разгон на 2,5H",0.02,limiter,12,0.0008803,0.0008803,0.000554,0.001046,0.044,нет,12,0.0008803,0.044
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,lam_frac,12,0.003791,0.003883,0.00373,0.007353,0.194,нет,12,0.003883,0.194
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,lam,12,0.001627,0.001627,0.0021,0.004096,0.0813,нет,12,0.001627,0.0813
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,cs_h,12,0.0001373,0.0001373,0.000107,0.000202,0.00686,нет,12,0.0001373,0.00686
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,k_fa,12,0.0004516,0.0004516,0.000436,0.0008114,0.0226,нет,12,0.0004516,0.0226
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,z0_mul,12,-0.003108,0.00405,0.00175,0.004287,0.202,нет,12,0.00405,0.202
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,alpha_mul,12,0.04346,0.04346,0.0119,0.02328,2.17,двигает,11,0.04414,2.21
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,adv2,12,-0.0002818,0.002031,0.000716,0.002462,0.102,нет,12,0.002031,0.102
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,closure,12,0.007978,0.0096,0.00736,0.01472,0.48,слабо,12,0.0096,0.48
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,nu_const,12,0.01173,0.01177,0.00926,0.01766,0.588,слабо,12,0.01177,0.588
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,local_k,12,0.01688,0.01791,0.00813,0.01651,0.895,слабо,12,0.01791,0.895
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_su_2H,хребет: разгон на 2H,0.02,limiter,12,0.0003526,0.0003526,0.000218,0.0004052,0.0176,нет,12,0.0003526,0.0176
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,lam_frac,12,-0.007647,0.007647,0.00626,0.01126,0.765,слабо,12,0.007647,0.765
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,lam,12,-0.002453,0.002453,0.00267,0.005048,0.245,нет,12,0.002453,0.245
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,cs_h,12,9.522e-05,9.544e-05,7.79e-05,0.000145,0.00954,нет,12,9.544e-05,0.00954
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,k_fa,12,-0.0004363,0.0004363,0.00046,0.0008639,0.0436,нет,12,0.0004363,0.0436
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,z0_mul,12,-0.003569,0.003569,0.00154,0.002898,0.357,слабо,12,0.003569,0.357
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,alpha_mul,12,0.009547,0.009547,0.0011,0.002068,0.955,слабо,11,0.00938,0.938
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,adv2,12,-0.007385,0.007385,0.00113,0.002109,0.739,слабо,12,0.007385,0.739
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,closure,12,-0.000307,0.004197,0.00214,0.005903,0.42,слабо,12,0.004197,0.42
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,nu_const,12,-0.004722,0.004838,0.00396,0.007674,0.484,слабо,12,0.004838,0.484
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,local_k,12,-0.02021,0.02025,0.00872,0.01682,2.03,двигает,12,0.02025,2.03
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2.5H,"хребет: |w|/U на 2,5H",0.01,limiter,12,0.0008633,0.0008633,0.00049,0.000918,0.0863,нет,12,0.0008633,0.0863
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,lam_frac,12,-0.00834,0.00834,0.00643,0.01212,0.834,слабо,12,0.00834,0.834
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,lam,12,-0.00259,0.00259,0.00299,0.005316,0.259,нет,12,0.00259,0.259
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,cs_h,12,0.0001291,0.0001299,0.000106,0.0001953,0.013,нет,12,0.0001299,0.013
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,pr_t,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,k_fa,12,-0.000332,0.000332,0.000328,0.0006286,0.0332,нет,12,0.000332,0.0332
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,z0_mul,12,-0.004445,0.004445,0.00181,0.003353,0.445,слабо,12,0.004445,0.445
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,alpha_mul,12,0.01265,0.01265,0.00263,0.004808,1.26,двигает,11,0.0128,1.28
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,tau_cool,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,adv2,12,-0.00858,0.00858,0.00121,0.00236,0.858,слабо,12,0.00858,0.858
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,closure,12,-0.0005587,0.003543,0.00154,0.004594,0.354,слабо,12,0.003543,0.354
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,nu_const,12,-0.003133,0.003133,0.0031,0.005561,0.313,слабо,12,0.003133,0.313
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,local_k,12,-0.02092,0.02092,0.00957,0.01749,2.09,двигает,12,0.02092,2.09
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,ridge_w_2H,хребет: |w|/U на 2H,0.01,limiter,12,0.001128,0.001128,0.000636,0.001205,0.113,нет,12,0.001128,0.113
+pilot,saddle_lee50,за седловиной S50,0.05,lam_frac,12,0.002945,0.009985,0.0105,0.02364,0.2,нет,12,0.009985,0.2
+pilot,saddle_lee50,за седловиной S50,0.05,lam,12,2.469e-05,0.0005295,0.000653,0.001344,0.0106,нет,12,0.0005295,0.0106
+pilot,saddle_lee50,за седловиной S50,0.05,cs_h,12,-0.0009402,0.001577,0.00153,0.003083,0.0315,нет,12,0.001577,0.0315
+pilot,saddle_lee50,за седловиной S50,0.05,pr_t,12,-0.01456,0.01456,0.0109,0.02264,0.291,нет,12,0.01456,0.291
+pilot,saddle_lee50,за седловиной S50,0.05,k_fa,12,-0.003274,0.003274,0.00292,0.005248,0.0655,нет,12,0.003274,0.0655
+pilot,saddle_lee50,за седловиной S50,0.05,z0_mul,12,0.05073,0.05248,0.0299,0.05963,1.05,двигает,12,0.05248,1.05
+pilot,saddle_lee50,за седловиной S50,0.05,alpha_mul,12,-0.3446,0.3446,0.0712,0.1325,6.89,двигает,12,0.3446,6.89
+pilot,saddle_lee50,за седловиной S50,0.05,tau_cool,12,0.2996,0.2996,0.17,0.3095,5.99,двигает,12,0.2996,5.99
+pilot,saddle_lee50,за седловиной S50,0.05,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_lee50,за седловиной S50,0.05,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_lee50,за седловиной S50,0.05,adv2,12,0.1185,0.126,0.0764,0.1468,2.52,двигает,12,0.126,2.52
+pilot,saddle_lee50,за седловиной S50,0.05,closure,12,0.122,0.247,0.178,0.4153,4.94,двигает,12,0.247,4.94
+pilot,saddle_lee50,за седловиной S50,0.05,nu_const,12,-0.1774,0.1774,0.142,0.2571,3.55,двигает,12,0.1774,3.55
+pilot,saddle_lee50,за седловиной S50,0.05,local_k,12,-0.001483,0.01317,0.00838,0.02077,0.263,нет,12,0.01317,0.263
+pilot,saddle_lee50,за седловиной S50,0.05,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_lee50,за седловиной S50,0.05,limiter,12,-0.001711,0.00386,0.00226,0.005447,0.0772,нет,12,0.00386,0.0772
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,lam_frac,12,-0.002518,0.01331,0.0138,0.03048,0.133,нет,12,0.01331,0.133
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,lam,12,0.0003411,0.002178,0.0027,0.005414,0.0218,нет,12,0.002178,0.0218
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,cs_h,12,-0.004024,0.004024,0.00354,0.006561,0.0402,нет,12,0.004024,0.0402
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,pr_t,12,-0.006765,0.01632,0.0146,0.035,0.163,нет,12,0.01632,0.163
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,k_fa,12,-0.008315,0.008315,0.0078,0.01434,0.0831,нет,12,0.008315,0.0831
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,z0_mul,12,0.08587,0.0874,0.0674,0.135,0.874,слабо,12,0.0874,0.874
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,alpha_mul,12,-0.2712,0.2712,0.0601,0.1176,2.71,двигает,12,0.2712,2.71
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,tau_cool,12,0.3308,0.3323,0.263,0.4716,3.32,двигает,12,0.3323,3.32
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,adv2,12,0.00582,0.08339,0.0516,0.1313,0.834,слабо,12,0.08339,0.834
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,closure,12,0.1106,0.5933,0.33,0.8944,5.93,двигает,12,0.5933,5.93
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,nu_const,12,-0.4271,0.4271,0.304,0.6009,4.27,двигает,12,0.4271,4.27
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,local_k,12,-0.004169,0.01644,0.0103,0.02508,0.164,нет,12,0.01644,0.164
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio20,"седловина ×, 20 м",0.1,limiter,12,0.01746,0.01799,0.0113,0.02162,0.18,нет,12,0.01799,0.18
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,lam_frac,12,-0.003716,0.01234,0.0138,0.02868,0.123,нет,12,0.01234,0.123
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,lam,12,0.000128,0.001788,0.00206,0.004375,0.0179,нет,12,0.001788,0.0179
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,cs_h,12,-0.001858,0.002276,0.00209,0.004195,0.0228,нет,12,0.002276,0.0228
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,pr_t,12,-0.004107,0.01387,0.0112,0.02789,0.139,нет,12,0.01387,0.139
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,k_fa,12,-0.004611,0.004611,0.0044,0.007781,0.0461,нет,12,0.004611,0.0461
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,z0_mul,12,0.06414,0.07275,0.0548,0.1099,0.727,слабо,12,0.07275,0.727
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,alpha_mul,12,-0.2844,0.2844,0.0623,0.117,2.84,двигает,12,0.2844,2.84
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,tau_cool,12,0.2942,0.2958,0.21,0.4166,2.96,двигает,12,0.2958,2.96
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,zi_min,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,k_smooth_m,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,adv2,12,0.0143,0.06922,0.0467,0.1142,0.692,слабо,12,0.06922,0.692
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,closure,12,0.1491,0.4691,0.289,0.7238,4.69,двигает,12,0.4691,4.69
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,nu_const,12,-0.369,0.369,0.278,0.5189,3.69,двигает,12,0.369,3.69
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,local_k,12,-0.003139,0.01312,0.00843,0.02044,0.131,нет,12,0.01312,0.131
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,heat_mode,12,0,0,0,0,0,нет,12,0,0
+pilot,saddle_ratio50,"седловина ×, 50 м",0.1,limiter,12,0.01281,0.01331,0.00836,0.01605,0.133,нет,12,0.01331,0.133

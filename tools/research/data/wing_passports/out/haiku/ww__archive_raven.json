@@ -1,0 +1,89 @@
+{
+  "src_files": ["ww__archive_raven.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Raven",
+      "size": "149",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 149,
+          "unit": "ft²",
+          "quote": "Area (ft²) 149"
+        },
+        {
+          "field": "year",
+          "value": 1979,
+          "unit": "",
+          "quote": "produced from June 1979 to June 1982"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Raven",
+      "size": "179",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 179,
+          "unit": "ft²",
+          "quote": "Area (ft²) 179"
+        },
+        {
+          "field": "year",
+          "value": 1979,
+          "unit": "",
+          "quote": "produced from June 1979 to June 1982"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Raven",
+      "size": "209",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 209,
+          "unit": "ft²",
+          "quote": "Area (ft²) 209"
+        },
+        {
+          "field": "year",
+          "value": 1979,
+          "unit": "",
+          "quote": "produced from June 1979 to June 1982"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Raven",
+      "size": "229",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 229,
+          "unit": "ft²",
+          "quote": "Area (ft²) 229"
+        },
+        {
+          "field": "year",
+          "value": 1979,
+          "unit": "",
+          "quote": "produced from June 1979 to June 1982"
+        }
+      ]
+    }
+  ]
+}

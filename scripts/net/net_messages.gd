@@ -118,7 +118,10 @@ const MESSAGES := {
 		"wing": "string",
 		"colors": "msg:WingColors",
 	},
-	"ZoneState": {"clock": "double", "queue": "[]string"},
+	"ZoneState":
+	{"clock": "double", "queue": "[]string", "thermalSources": "msg:ThermalSources"},
+	# источники термиков из поля (AM-07): mask — bytes proto, в JSON base64 (строка)
+	"ThermalSources": {"grid": "string", "mask": "string"},
 	# не вариант Envelope: UDP-объявление зоны в локальной сети (LanDiscovery), без конверта
 	"LanAnnounce":
 	{
@@ -133,7 +136,7 @@ const MESSAGES := {
 
 ## Вложенные сообщения, у которых «нет» — отдельный смысл: при разборе null вместо умолчаний.
 ## Ключ — "<Сообщение>.<поле>".
-const NULLABLE := {"PilotState.colors": true}
+const NULLABLE := {"PilotState.colors": true, "ZoneState.thermalSources": true}
 
 ## Перечисления: имена по порядку номеров (индекс = номер в .proto).
 const ENUMS := {

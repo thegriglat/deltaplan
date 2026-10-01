@@ -39,8 +39,8 @@ func test_wings_sorted_by_glide_then_wind() -> void:
 	)
 	var kp := WingCatalog.wings_in_group("kingpost")
 	check(
-		kp == PackedStringArray(["wings/magic", "wings/laminar"]),
-		"мачтовые: %s" % [kp]
+		kp.has("wings/magic") and kp.find("wings/magic") < kp.find("wings/laminar"),
+		"мачтовые: Magic раньше Laminar: %s" % [kp]
 	)
 
 

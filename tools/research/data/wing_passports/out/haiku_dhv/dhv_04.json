@@ -1,0 +1,801 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4013_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4016_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4017_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4022_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4023_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4025_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4026_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4033_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4034_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4035_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4036_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4072_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4073_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4084_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4085_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Laminar 14.2 Zero 7",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0407-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.33,
+          "unit": "m",
+          "quote": "Spannweite\n 10.33 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 94.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 94.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 36.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 24"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4013_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VR",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0408-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.6,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.6 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.74,
+          "unit": "m",
+          "quote": "Spannweite\n 13.74 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 43.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 43.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 18"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4016_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "U2 160",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0409-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.9,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.9 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "Spannweite\n 10.1 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 31.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 20.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 20"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4017_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L 14",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0414-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "Spannweite\n 10.7 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 38.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 38.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 24"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4022_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L 13",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0413-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "Spannweite\n 10.35 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 35.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 24"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4023_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Phantom",
+      "size": "",
+      "cert_class": "3 E",
+      "cert_standard": "DHV 01-0411-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.2,
+          "unit": "m",
+          "quote": "Spannweite\n 13.2 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 45.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 45.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 14"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4025_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Seedwings Airsports GmbH",
+      "model": "Spyder 12.5",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0410-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.5,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 12.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.8,
+          "unit": "m",
+          "quote": "Spannweite\n 9.8 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 82.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 82.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 28.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 17.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 17"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4026_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Delta Flugschule Condor",
+      "model": "CREX 3",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0505-24",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.5,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Spannweite\n 9.6 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 60.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 60.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 23.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 23.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 80 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 15.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 15"
+        },
+        {
+          "field": "year",
+          "value": 2024.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2024"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4033_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "Combat C AC 13",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0506-24",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.0,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 13.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.7,
+          "unit": "m",
+          "quote": "Spannweite\n 10.7 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.2,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 30.2 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 24"
+        },
+        {
+          "field": "year",
+          "value": 2024.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2024"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4034_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Orbiter 14",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0412-05",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.45,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.45 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "Spannweite\n 10.35 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 30.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 18"
+        },
+        {
+          "field": "year",
+          "value": 2005.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2005"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4035_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus 15",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0415-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.7,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "Spannweite\n 10.3 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 33.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 20.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 20"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4036_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Funky 15",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0416-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 15.3,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 15.3 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.5,
+          "unit": "m",
+          "quote": "Spannweite\n 9.5 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 30.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 23.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 23.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 70 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 14"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4072_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Funky 17",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0417-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 17.3,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 17.3 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.9,
+          "unit": "m",
+          "quote": "Spannweite\n 9.9 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 30.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25.0,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 25.0 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 70 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 14"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4073_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Laminar Z8 14.1",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0418-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.2,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 14.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.33,
+          "unit": "m",
+          "quote": "Spannweite\n 10.33 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 96.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 96.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.5,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 35.5 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 26"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4084_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Orbiter 16",
+      "size": "",
+      "cert_class": "2-3",
+      "cert_standard": "DHV 01-0419-06",
+      "facts": [
+        {
+          "field": "area",
+          "value": 15.8,
+          "unit": "m2",
+          "quote": "FlÃ¤che\n 15.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.45,
+          "unit": "m",
+          "quote": "Spannweite\n 10.45 m"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "Doppelsegel\n 85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.4,
+          "unit": "kg",
+          "quote": "Gewicht (ohne Packsack)\n 30.4 Kg"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 4.0,
+          "unit": "",
+          "quote": "Anzahl Latten\n 4"
+        },
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "MusterprÃ¼fdatum\n 2006"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4085_nopr_.html.txt"
+    }
+  ]
+}

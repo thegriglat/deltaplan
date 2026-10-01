@@ -6,8 +6,10 @@ extends Node3D
 ## реже на лугу у опушек (полоса edge_band_m от кромки леса Terrain.forest_at) и в ложбинах
 ## (вогнутость рельефа), изредка — поодиночке. Деревья (модели пород assets/models/trees, LOD2 —
 ## импостер-крест) — поодиночке и группами по 2–5 на лугах и полянах, чаще у кромки леса.
-## Не ставятся в лес, воду, на поля, застройку, скалы, просеки (Terrain.set_clearings), у площадок
-## и в коридоре разбега старта. Расстановка детерминирована хешем клетки, тайлы кешируются.
+## Не ставятся в лес, воду, на поля, застройку, скалы, просеки (Terrain.set_clearings), у площадок,
+## в коридоре разбега старта; одиночные деревья — и на пустырях у стартов
+## (Terrain.get_start_clearings).
+## Расстановка детерминирована хешем клетки, тайлы кешируются.
 ## Подключение: ShrubScatter.attach(terrain, camera) — нода "Shrubs" ребёнком Terrain.
 
 const SHADER := preload("res://scripts/terrain/shrub_scatter.gdshader")
@@ -39,6 +41,8 @@ var _ttiles: Dictionary = {}
 ## площадки: [Vector2 позиция, Vector2 направление разбега (ZERO у посадок), радиус, м]
 var _sites: Array = []
 var _clear: Array = []
+## Пустыри у стартов Vector3(x, z, r): одиночных деревьев там нет (кусты — есть).
+var _tree_free: Array[Vector3] = []
 var _key := ""
 var _task := -1
 var _buffers: Array = []
@@ -229,11 +233,12 @@ func _link_wind() -> void:
 func _check_key() -> void:
 	var cl: Array = terrain._clearings
 	var k := (
-		"%s|%d|%d"
+		"%s|%d|%d|%d"
 		% [
 			terrain.location_id,
 			terrain.layers[0].get_instance_id(),
-			(cl[0] as Image).get_instance_id() if cl.size() == 3 else 0
+			(cl[0] as Image).get_instance_id() if cl.size() == 3 else 0,
+			terrain.surface_revision
 		]
 	)
 	if k == _key:
@@ -262,6 +267,8 @@ func _check_key() -> void:
 		_sites.append(
 			[Vector2(sp.x, sp.z), Vector2.ZERO, float(_cfg.get("keep_off_landing_m", 60.0))]
 		)
+	# пустыри у стартов (≥ 2 длины разбега, Terrain.get_start_clearings) — без деревьев, кусты есть
+	_tree_free = terrain.get_start_clearings()
 	_last_center = Vector2(INF, INF)
 	_first_done = false
 
@@ -553,7 +560,7 @@ func _tree_cell(ix: int, iz: int, cell: float, out: Dictionary) -> void:
 		var pz := cz + sin(a) * dd
 		if terrain.forest_at(px, pz) > keep or not terrain.surface_at(px, pz) in OPEN:
 			continue
-		if not is_free(px, pz, crown):
+		if not is_free(px, pz, crown) or in_start_clearing(px, pz, crown):
 			continue
 		var sp := sp0
 		if RockScatter.hash01(ix, iz, s0 + 2) < 0.3:
@@ -596,6 +603,14 @@ func is_free(x: float, z: float, rad: float) -> bool:
 		if _cleared(x + o.x, z + o.y):
 			return false
 	return terrain.surface_at(x, z) in OPEN
+
+
+## Точка (с кроной rad) задевает пустырь у старта — одиночному дереву там не место.
+func in_start_clearing(x: float, z: float, rad: float) -> bool:
+	for c in _tree_free:
+		if Vector2(x - c.x, z - c.y).length() < c.z + rad:
+			return true
+	return false
 
 
 func _cleared(x: float, z: float) -> bool:

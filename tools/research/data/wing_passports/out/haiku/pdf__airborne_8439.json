@@ -1,0 +1,166 @@
+{
+  "src": "pdf__airborne__8439.pdf.txt",
+  "wings": [
+    {
+      "manufacturer": "AIRBORNE WINDSPORTS",
+      "model": "F2",
+      "size": "190",
+      "cert_class": "Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "area",
+          "value": 17.7,
+          "unit": "sq meter",
+          "quote": "SAIL AREA 17.7 sq meter"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "WING SPAN 10.1 m"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 5.8,
+          "unit": "",
+          "quote": "ASPECT RATIO 5.8"
+        },
+        {
+          "field": "nose_angle",
+          "value": 118,
+          "unit": "degrees",
+          "quote": "NOSE ANGLE 118 degrees"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 30,
+          "unit": "%",
+          "quote": "DOUBLE SURFACE % 30 %"
+        },
+        {
+          "field": "battens",
+          "value": 15,
+          "unit": "",
+          "quote": "BATTENS 15"
+        },
+        {
+          "field": "wing_mass",
+          "value": 23,
+          "unit": "kg",
+          "quote": "GLIDER WEIGHT 23 kg"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 70,
+          "unit": "kg",
+          "quote": "RECOMMENDED PILOT HOOK IN WEIGHT RANGE 70-120 kg"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 120,
+          "unit": "kg",
+          "quote": "RECOMMENDED PILOT HOOK IN WEIGHT RANGE 70-120 kg"
+        },
+        {
+          "field": "vne",
+          "value": 80,
+          "unit": "km/h",
+          "quote": "VNE (Velocity Never to Exceed) 80 km/h"
+        },
+        {
+          "field": "va",
+          "value": 69,
+          "unit": "km/h",
+          "quote": "VA (Maximum rough air manoeuvring speed) 69 km/h"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "stall speed for of the F2 at maximum recommended wing loading is 25 mph (40 km/h) or less"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "leading_edge_nose_to_crossbar",
+          "value": 3530,
+          "unit": "mm",
+          "quote": "Nose Plate anchor hole to crossbar plate attachment hole 3530 mm"
+        },
+        {
+          "name": "leading_edge_nose_to_rear_sail",
+          "value": 5810,
+          "unit": "mm",
+          "quote": "Nose Plate anchor hole to rear sail attachment point 5810 mm"
+        },
+        {
+          "name": "leading_edge_nose_od",
+          "value": 50,
+          "unit": "mm",
+          "quote": "Outside diameter at nose 50 mm"
+        },
+        {
+          "name": "leading_edge_crossbar_od",
+          "value": 52,
+          "unit": "mm",
+          "quote": "Outside diameter at cross bar 52 mm"
+        },
+        {
+          "name": "leading_edge_rear_od",
+          "value": 50,
+          "unit": "mm",
+          "quote": "Outside diameter at rear sail attachment point 50 mm"
+        },
+        {
+          "name": "crossbar_length_pin_to_pin",
+          "value": 3100,
+          "unit": "mm",
+          "quote": "Overall pin to pin length from leading edge attachment point to hinge bolt at glider centre line 3100 mm"
+        },
+        {
+          "name": "crossbar_od",
+          "value": 62,
+          "unit": "mm",
+          "quote": "Largest outside diameter 62 mm"
+        },
+        {
+          "name": "keel_load_bearing_pin",
+          "value": 1455,
+          "unit": "mm",
+          "quote": "The cross bar centre load bearing pin 1455 mm"
+        },
+        {
+          "name": "keel_hang_loop_forward",
+          "value": 1625,
+          "unit": "mm",
+          "quote": "The pilot hang loop Fwd 1625 mm"
+        },
+        {
+          "name": "keel_hang_loop_rear",
+          "value": 1675,
+          "unit": "mm",
+          "quote": "The pilot hang loop Rear 1675 mm"
+        },
+        {
+          "name": "sail_chord_3ft_outboard",
+          "value": 2280,
+          "unit": "mm",
+          "quote": "Chord length at 3 ft outboard of centre line 2280 mm"
+        },
+        {
+          "name": "sail_chord_3ft_inboard_tip",
+          "value": 1225,
+          "unit": "mm",
+          "quote": "Chord length at 3 ft inboard of tip 1225 mm"
+        },
+        {
+          "name": "span_tip_to_tip",
+          "value": 10100,
+          "unit": "mm",
+          "quote": "Span (extreme tip to tip) 10100 mm"
+        }
+      ]
+    }
+  ]
+}

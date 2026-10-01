@@ -1,0 +1,8 @@
+{
+  "spectrum": {
+    "analytic_150": "tools/research/air_turb/out/flight_analytic_150.csv",
+    "analytic_400": "tools/research/air_turb/out/flight_analytic_400.csv",
+    "field_150": "tools/research/air_turb/out/flight_field_150.csv",
+    "field_400": "tools/research/air_turb/out/flight_field_400.csv"
+  }
+}

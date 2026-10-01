@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://pdhiyerg3y58"
+path="res://.godot/imported/air_reduce.glsl-a7766031b9b2f947caa89ab51a6a0a97.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_reduce.glsl"
+dest_files=["res://.godot/imported/air_reduce.glsl-a7766031b9b2f947caa89ab51a6a0a97.res"]
+
+[params]
+

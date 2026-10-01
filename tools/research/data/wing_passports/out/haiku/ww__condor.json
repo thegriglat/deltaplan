@@ -1,0 +1,129 @@
+{
+  "src_files": ["ww__condor.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Condor",
+      "size": "225",
+      "facts": [
+        {
+          "field": "area",
+          "value": 225,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 225"
+        },
+        {
+          "field": "span",
+          "value": 35.8,
+          "unit": "ft",
+          "quote": "Span (ft) 35.8"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 5.7,
+          "unit": "",
+          "quote": "Aspect Ratio 5.7"
+        },
+        {
+          "field": "wing_mass",
+          "value": 48,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 48"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 100,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 100-265"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 265,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 100-265"
+        },
+        {
+          "field": "vne",
+          "value": 32,
+          "unit": "mph",
+          "quote": "Vne (mph) 32"
+        },
+        {
+          "field": "va",
+          "value": 24,
+          "unit": "mph",
+          "quote": "Va (mph) 24"
+        },
+        {
+          "field": "vms",
+          "value": 15,
+          "unit": "mph",
+          "quote": "Vms (mph) 15"
+        },
+        {
+          "field": "vd",
+          "value": 43,
+          "unit": "mph",
+          "quote": "Vd (mph) 43"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Condor",
+      "size": "330",
+      "facts": [
+        {
+          "field": "area",
+          "value": 330,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 330"
+        },
+        {
+          "field": "span",
+          "value": 39,
+          "unit": "ft",
+          "quote": "Span (ft) 39"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 4.6,
+          "unit": "",
+          "quote": "Aspect Ratio 4.6"
+        },
+        {
+          "field": "wing_mass",
+          "value": 53,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 53"
+        },
+        {
+          "field": "vne",
+          "value": 32,
+          "unit": "mph",
+          "quote": "Vne (mph) 32"
+        },
+        {
+          "field": "va",
+          "value": 24,
+          "unit": "mph",
+          "quote": "Va (mph) 24"
+        },
+        {
+          "field": "vms",
+          "value": 13,
+          "unit": "mph",
+          "quote": "Vms (mph) 13"
+        },
+        {
+          "field": "vd",
+          "value": 32,
+          "unit": "mph",
+          "quote": "Vd (mph) 32"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

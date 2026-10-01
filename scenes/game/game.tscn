@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/game.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/world/environment.tscn" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/instruments/instrument_overlay.tscn" id="8"]
 [ext_resource type="Script" path="res://scripts/audio/vario_audio.gd" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/audio/flight_audio.tscn" id="10"]
+[ext_resource type="Script" path="res://scripts/atmosphere/wind_field_debug.gd" id="11"]
 
 [node name="Game" type="Node3D"]
 script = ExtResource("1")
@@ -38,3 +39,6 @@ script = ExtResource("6")
 script = ExtResource("9")
 
 [node name="FlightAudio" parent="." instance=ExtResource("10")]
+
+[node name="WindFieldDebug" type="Node3D" parent="."]
+script = ExtResource("11")

@@ -1,0 +1,86 @@
+{
+  "src_files": ["ww__archive_falcon-3.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "145",
+      "cert_class": "USHPA Novice",
+      "cert_standard": "HGMA 4/20/09",
+      "facts": [
+        {
+          "field": "area",
+          "value": 145,
+          "unit": "ft²",
+          "quote": "Area (ft²) 145"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "170",
+      "cert_class": "USHPA Novice",
+      "cert_standard": "HGMA 4/20/09",
+      "facts": [
+        {
+          "field": "area",
+          "value": 170,
+          "unit": "ft²",
+          "quote": "Area (ft²) 170"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "195",
+      "cert_class": "USHPA Novice",
+      "cert_standard": "HGMA 4/20/09",
+      "facts": [
+        {
+          "field": "area",
+          "value": 195,
+          "unit": "ft²",
+          "quote": "Area (ft²) 195"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        }
+      ]
+    }
+  ]
+}

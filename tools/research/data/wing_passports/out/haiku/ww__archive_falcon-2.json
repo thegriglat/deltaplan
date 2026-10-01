@@ -1,0 +1,117 @@
+{
+  "src_files": ["ww__archive_falcon-2.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "140",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "5/3/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 140,
+          "unit": "ft²",
+          "quote": "Area (ft²) 140"
+        },
+        {
+          "field": "va",
+          "value": 42,
+          "unit": "mph",
+          "quote": "Va (mph) 42"
+        },
+        {
+          "field": "vne",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Vne (mph) 48"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "170",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "5/3/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 170,
+          "unit": "ft²",
+          "quote": "Area (ft²) 170"
+        },
+        {
+          "field": "va",
+          "value": 42,
+          "unit": "mph",
+          "quote": "Va (mph) 42"
+        },
+        {
+          "field": "vne",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Vne (mph) 48"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "195",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "5/3/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 195,
+          "unit": "ft²",
+          "quote": "Area (ft²) 195"
+        },
+        {
+          "field": "va",
+          "value": 42,
+          "unit": "mph",
+          "quote": "Va (mph) 42"
+        },
+        {
+          "field": "vne",
+          "value": 48,
+          "unit": "mph",
+          "quote": "Vne (mph) 48"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "225",
+      "cert_class": "USHPA Novice (II)",
+      "cert_standard": "5/3/2003",
+      "facts": [
+        {
+          "field": "area",
+          "value": 225,
+          "unit": "ft²",
+          "quote": "Area (ft²) 225"
+        },
+        {
+          "field": "va",
+          "value": 40,
+          "unit": "mph",
+          "quote": "Va (mph) 40"
+        },
+        {
+          "field": "vne",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Vne (mph) 46"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

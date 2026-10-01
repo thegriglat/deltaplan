@@ -1,0 +1,13 @@
+ok 351 23 с HT10 0.462
+fields/ask_25_best 112 139 66 21 МБ
+ok 91 2 с HT10 0.483
+fields/ask_50a_best 56 70 34 3 МБ
+ok 101 11 с HT10 0.436
+fields/ask_25_nom 112 139 66 21 МБ
+ok 1831 622 с HT10 0.63
+fields/ask_12p5_best 223 278 130 161 МБ
+ok 451 137 с HT10 0.602
+fields/ask_12p5_nom 223 278 130 161 МБ
+{'lam_frac': 0.1, 'z0': 0.03} → ok 151 it 34.8 с; HT10 0.393
+{'lam_frac': 0.25, 'z0': 0.042} → ok 731 it 139.7 с; HT10 0.413
+{'lam_frac': 0.05, 'z0': 0.03} → ok 141 it 31.7 с; HT10 0.400

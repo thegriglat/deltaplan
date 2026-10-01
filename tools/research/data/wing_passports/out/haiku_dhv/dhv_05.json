@@ -1,0 +1,891 @@
+{
+  "src_files": [
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4086_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4088_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4093_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4107_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4110_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4113_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4115_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4116_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4118_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4120_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4121_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4126_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4127_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4128_nopr_.html.txt",
+    "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4129_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Laminar Z8 13.2",
+      "size": "13.2",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0420-06",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "2006-10-25"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 120 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "90 Kg - 120 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 96.0,
+          "unit": "%",
+          "quote": "96.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.8,
+          "unit": "kg",
+          "quote": "34.8 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.2,
+          "unit": "m2",
+          "quote": "13.2 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.05,
+          "unit": "m",
+          "quote": "10.05 m"
+        },
+        {
+          "field": "battens",
+          "value": 6.0,
+          "unit": "",
+          "quote": "6 / 26"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4086_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Bautek FluggerÃ¤te GmbH",
+      "model": "Kite",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "DHV 01-0421-06",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2006.0,
+          "unit": "",
+          "quote": "2006-10-30"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 149 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 149.0,
+          "unit": "kg",
+          "quote": "90 Kg - 149 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.4,
+          "unit": "kg",
+          "quote": "30.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.8,
+          "unit": "m2",
+          "quote": "13.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.15,
+          "unit": "m",
+          "quote": "10.15 m"
+        },
+        {
+          "field": "battens",
+          "value": 21.0,
+          "unit": "",
+          "quote": "21 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4088_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "PiBi",
+      "size": "",
+      "cert_class": "DHV 1",
+      "cert_standard": "DHV 01-0510-25",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2026.0,
+          "unit": "",
+          "quote": "2026-06-24"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 142.0,
+          "unit": "kg",
+          "quote": "142 Kg - 227 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 227.0,
+          "unit": "kg",
+          "quote": "142 Kg - 227 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 0.0,
+          "unit": "%",
+          "quote": "0.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33.0,
+          "unit": "kg",
+          "quote": "33.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 23.5,
+          "unit": "m2",
+          "quote": "23.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 11.2,
+          "unit": "m",
+          "quote": "11.2 m"
+        },
+        {
+          "field": "battens",
+          "value": 16.0,
+          "unit": "",
+          "quote": "16"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4093_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VQ",
+      "size": "",
+      "cert_class": "DHV 3 E",
+      "cert_standard": "DHV 01-0422-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-08-30"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 85.0,
+          "unit": "kg",
+          "quote": "85 Kg - 179 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 179.0,
+          "unit": "kg",
+          "quote": "85 Kg - 179 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 100.0,
+          "unit": "%",
+          "quote": "100.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 38.0,
+          "unit": "kg",
+          "quote": "38.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.0,
+          "unit": "m2",
+          "quote": "14.0 m2"
+        },
+        {
+          "field": "span",
+          "value": 13.4,
+          "unit": "m",
+          "quote": "13.4 m"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "18"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4107_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed RS 4",
+      "size": "4",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0427-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-10-15"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 122.0,
+          "unit": "kg",
+          "quote": "122 Kg - 138 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 138.0,
+          "unit": "kg",
+          "quote": "122 Kg - 138 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.4,
+          "unit": "kg",
+          "quote": "34.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.1,
+          "unit": "m2",
+          "quote": "14.1 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.4,
+          "unit": "m",
+          "quote": "10.4 m"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "23 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4110_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Space 16",
+      "size": "16",
+      "cert_class": "DHV 1-2",
+      "cert_standard": "DHV 01-0423-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-09-05"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 147 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 147.0,
+          "unit": "kg",
+          "quote": "90 Kg - 147 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 72.0,
+          "unit": "%",
+          "quote": "72.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 27.0,
+          "unit": "kg",
+          "quote": "27.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 15.9,
+          "unit": "m2",
+          "quote": "15.9 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.8,
+          "unit": "m",
+          "quote": "9.8 m"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "14 / 2"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4113_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Easy 2 M",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "DHV 01-0424-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-10-11"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "80 Kg - 121 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "80 Kg - 121 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.5,
+          "unit": "kg",
+          "quote": "30.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.45,
+          "unit": "m2",
+          "quote": "14.45 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "10.35 m"
+        },
+        {
+          "field": "battens",
+          "value": 18.0,
+          "unit": "",
+          "quote": "18 / 4"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4115_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Easy 2 L",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "DHV 01-0425-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-10-11"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "90 Kg - 138 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 138.0,
+          "unit": "kg",
+          "quote": "90 Kg - 138 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30.4,
+          "unit": "kg",
+          "quote": "30.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 15.8,
+          "unit": "m2",
+          "quote": "15.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.45,
+          "unit": "m",
+          "quote": "10.45 m"
+        },
+        {
+          "field": "battens",
+          "value": 4.0,
+          "unit": "",
+          "quote": "4 / 18"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4116_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "litespeed RS 3.5",
+      "size": "3.5",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0426-07",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2007.0,
+          "unit": "",
+          "quote": "2007-10-15"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 112.0,
+          "unit": "kg",
+          "quote": "112 Kg - 128 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 128.0,
+          "unit": "kg",
+          "quote": "112 Kg - 128 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92.0,
+          "unit": "%",
+          "quote": "92.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 34.4,
+          "unit": "kg",
+          "quote": "34.4 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "10.3 m"
+        },
+        {
+          "field": "battens",
+          "value": 23.0,
+          "unit": "",
+          "quote": "23 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4118_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3 170",
+      "size": "170",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0509-25",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2025.0,
+          "unit": "",
+          "quote": "2025-12-16"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 108.0,
+          "unit": "kg",
+          "quote": "108 Kg - 170 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 170.0,
+          "unit": "kg",
+          "quote": "108 Kg - 170 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 80.0,
+          "unit": "%",
+          "quote": "80.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 29.5,
+          "unit": "kg",
+          "quote": "29.5 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 15.8,
+          "unit": "m2",
+          "quote": "15.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.1,
+          "unit": "m",
+          "quote": "10.1 m"
+        },
+        {
+          "field": "battens",
+          "value": 17.0,
+          "unit": "",
+          "quote": "17 / 4"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4120_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3 155 Race",
+      "size": "",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0508-25",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2025.0,
+          "unit": "",
+          "quote": "2025-12-09"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 96.0,
+          "unit": "kg",
+          "quote": "96 Kg - 141 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 141.0,
+          "unit": "kg",
+          "quote": "96 Kg - 141 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 85.0,
+          "unit": "%",
+          "quote": "85.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 28.6,
+          "unit": "kg",
+          "quote": "28.6 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.4,
+          "unit": "m2",
+          "quote": "14.4 m2"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "9.6 m"
+        },
+        {
+          "field": "battens",
+          "value": 14.0,
+          "unit": "",
+          "quote": "14 / 4"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4121_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Airborne",
+      "model": "C4 13,5",
+      "size": "13.5",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0428-08",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2008.0,
+          "unit": "",
+          "quote": "2008-02-07"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 104.0,
+          "unit": "kg",
+          "quote": "104 Kg - 144 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 144.0,
+          "unit": "kg",
+          "quote": "104 Kg - 144 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 93.0,
+          "unit": "%",
+          "quote": "93.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.0,
+          "unit": "kg",
+          "quote": "35.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.5,
+          "unit": "m2",
+          "quote": "13.5 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "10.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "24 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4126_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Airborne",
+      "model": "C4 14",
+      "size": "14",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0429-08",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2008.0,
+          "unit": "",
+          "quote": "2008-02-07"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "121 Kg - 160 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 160.0,
+          "unit": "kg",
+          "quote": "121 Kg - 160 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 93.0,
+          "unit": "%",
+          "quote": "93.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.0,
+          "unit": "kg",
+          "quote": "36.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 14.3,
+          "unit": "m2",
+          "quote": "14.3 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.4,
+          "unit": "m",
+          "quote": "10.4 m"
+        },
+        {
+          "field": "battens",
+          "value": 24.0,
+          "unit": "",
+          "quote": "24 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4127_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat-L 12 07",
+      "size": "07",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0430-08",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2008.0,
+          "unit": "",
+          "quote": "2008-02-21"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 95.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 131.0,
+          "unit": "kg",
+          "quote": "95 Kg - 131 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 35.0,
+          "unit": "kg",
+          "quote": "35.0 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "m2",
+          "quote": "12.8 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.0,
+          "unit": "m",
+          "quote": "10.0 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4128_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat-L 13 07",
+      "size": "07",
+      "cert_class": "DHV 3",
+      "cert_standard": "DHV 01-0431-08",
+      "facts": [
+        {
+          "field": "year",
+          "value": 2008.0,
+          "unit": "",
+          "quote": "2008-02-21"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 111.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 141.0,
+          "unit": "kg",
+          "quote": "111 Kg - 141 Kg"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 90.0,
+          "unit": "%",
+          "quote": "90.0 %"
+        },
+        {
+          "field": "wing_mass",
+          "value": 36.3,
+          "unit": "kg",
+          "quote": "36.3 Kg *)"
+        },
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "m2",
+          "quote": "13.7 m2"
+        },
+        {
+          "field": "span",
+          "value": 10.35,
+          "unit": "m",
+          "quote": "10.35 m"
+        },
+        {
+          "field": "battens",
+          "value": 26.0,
+          "unit": "",
+          "quote": "26 / 6"
+        }
+      ],
+      "src": "dhv__data_lang_DE_equptype_1_templatesetid_1_idtype_4129_nopr_.html.txt"
+    }
+  ]
+}

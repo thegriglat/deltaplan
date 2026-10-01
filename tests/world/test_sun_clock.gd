@@ -89,13 +89,28 @@ func test_sky_follows_clock() -> void:
 
 func test_flight_settings_keep_time() -> void:
 	var s := FlightSettings.defaults()
-	approx(s.start_hour, 13.0, 1e-6, "по умолчанию 13:00")
+	approx(s.start_hour, 12.0, 1e-6, "по умолчанию 12:00 (AM-06: одна из фиксированных часов старта)")
 	check(s.month == 7 and s.day == 15, "по умолчанию середина лета")
 	s.start_hour = 7.5
 	s.month = 5
 	s.day = 3
 	var r := FlightSettings.from_dict(s.to_dict())
 	check(is_equal_approx(r.start_hour, 7.5) and r.month == 5 and r.day == 3, "время и дата в JSON")
+
+
+## AM-06: старт — только фиксированные часы (world.json → time.start_hours); нет в списке —
+## ближайший, без миграции сохранённых настроек.
+func test_start_hours_fixed_list() -> void:
+	var hours := SunClock.start_hours()
+	check(hours.size() == 4, "4 часа старта, получили %d" % hours.size())
+	var expected: PackedFloat32Array = [9.0, 12.0, 15.0, 20.0]
+	for i in mini(hours.size(), expected.size()):
+		approx(hours[i], expected[i], 1e-6, "час старта #%d" % i)
+	approx(SunClock.nearest_start_hour(9.4), 9.0, 1e-6, "ближайший к 9:24 — 9:00")
+	approx(SunClock.nearest_start_hour(13.6), 15.0, 1e-6, "ближайший к 13:36 — 15:00")
+	approx(SunClock.nearest_start_hour(20.0), 20.0, 1e-6, "20:00 — уже в списке")
+	approx(SunClock.nearest_start_hour(3.0), 9.0, 1e-6, "меньше самого раннего — самый ранний")
+	approx(SunClock.nearest_start_hour(23.0), 20.0, 1e-6, "больше самого позднего — самый поздний")
 
 
 func test_zone_time_by_location() -> void:

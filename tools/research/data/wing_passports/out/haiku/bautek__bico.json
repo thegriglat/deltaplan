@@ -1,0 +1,81 @@
+{
+  "src": "bautek__bico.html.txt",
+  "wings": [
+    {
+      "manufacturer": "bautek",
+      "model": "BiCo",
+      "size": "",
+      "cert_class": "DHV 2",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "wing_mass",
+          "value": 42,
+          "unit": "kg",
+          "quote": "The BiCo weighing 42kg [93 lbs]"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 187,
+          "unit": "lbs",
+          "quote": "can be loaded ... with min. 187 lbs [80 kg]"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 523,
+          "unit": "lbs",
+          "quote": "Max. Load: 523 lbs [237 kg]"
+        },
+        {
+          "field": "nose_angle",
+          "value": 132,
+          "unit": "deg",
+          "quote": "Nose angle: 132 degr."
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 615,
+          "unit": "lbs",
+          "quote": "Max Take-off weight: 615 lbs [279 kg]"
+        },
+        {
+          "field": "area",
+          "value": 185,
+          "unit": "sqf",
+          "quote": "Sail area: 185 sqf [17.2 sm]"
+        },
+        {
+          "field": "span",
+          "value": 31.5,
+          "unit": "ft",
+          "quote": "Span: 31.5 ft [9.6m]"
+        },
+        {
+          "field": "vms",
+          "value": 167,
+          "unit": "ft/min",
+          "quote": "Min. Sink: 167 – 236 ft/min"
+        },
+        {
+          "field": "vms",
+          "value": 236,
+          "unit": "ft/min",
+          "quote": "Min. Sink: 167 – 236 ft/min"
+        },
+        {
+          "field": "best_glide",
+          "value": 13,
+          "unit": "",
+          "quote": "ca. 1 : 13 at 22 mph with min. load"
+        },
+        {
+          "field": "best_glide",
+          "value": 10,
+          "unit": "",
+          "quote": "ca. 1 : 10 at 29 mph with max. load"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

@@ -9,6 +9,10 @@ const GROUP_GLIDE := {
 	"kingpost": Vector2(10.5, 13.0),
 	"topless": Vector2(15.0, 16.0),
 }
+## Крылья, чья поляра (К4: подобием от базы, качество = базе) взята из другой группы, чем группа меню:
+## Icaro MastR — по сути безмачтовый Laminar с небольшой мачтой; в меню — группа kingpost (решение
+## пользователя, шлюз 1), поляра — от combat, поэтому класс качества — как у topless.
+const GLIDE_CLASS_OVERRIDE := {"icaro_mastr": "topless"}
 
 
 ## Все крылья из configs/wings: id ("training" …).
@@ -59,10 +63,12 @@ func test_simulated_glide_matches_polar() -> void:
 				maxf(0.05, expect * 0.04),
 				"%s трапеция %.2f, V=%.1f км/ч: снижение" % [w, p, vk]
 			)
+			# 0,02 м/с или 1 % снижения: на большой скорости (снижение 2,5–3 м/с) установление у тяжёлых
+			# быстрых крыльев сходится с той же относительной точностью
 			approx(
 				r.y,
 				m.steady_glide(r.x).y,
-				0.02,
+				maxf(0.02, 0.01 * r.y),
 				"%s трапеция %.2f: сходимость к steady_glide" % [w, p]
 			)
 
@@ -115,7 +121,7 @@ func test_fr1_sport_anchors() -> void:
 
 func test_wing_classes_glide() -> void:
 	for w in wings():
-		var r: Vector2 = GROUP_GLIDE[Config.value("wings/" + w, "group")]
+		var r: Vector2 = GROUP_GLIDE[GLIDE_CLASS_OVERRIDE.get(w, Config.value("wings/" + w, "group"))]
 		var ld: float = sweep(Sim.make(w)).best_ld
 		check(
 			ld >= r.x - 0.3 and ld <= r.y + 0.3,

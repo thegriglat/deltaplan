@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_config.gd::test_sim_config_loads
+  ok   test_config.gd::test_deep_merge
+  ok   test_config.gd::test_dotted_value
+Профиль перенесён: /home/greg/projects/.tmp/tmp.rOUwXCV4h5/Deltaplan/test_user_dir_migration/old → /home/greg/projects/.tmp/tmp.rOUwXCV4h5/Deltaplan/test_user_dir_migration/new
+  ok   test_user_dir_migration.gd::test_copies_once_and_keeps_old
+  ok   test_user_dir_migration.gd::test_skips_when_new_has_settings_or_no_old
+
+5 тестов, 0 упало, 0 пропущено

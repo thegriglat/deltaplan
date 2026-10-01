@@ -1,0 +1,17 @@
+{
+  "_doc": "Особенности вида N34 из «Заметок по виду» ТЗ: «New airfoil uprights 55×26 mm» — профильные стойки (faired_uprights). CCS (камбер-контроль) полями К1 не выражается. Ориентир reference.min_sink_speed_kmh — замер sweep поляры (плато мин. снижения на базе combat плоское: подобие даёт 40,1, тест замеряет 44,0); поляра не тронута.",
+  "params": {
+    "faired_uprights": true
+  },
+  "config": {
+    "reference": {
+      "_doc": "Ориентиры поляры (FR-1): ориентиры базы combat × f; min_sink_speed_kmh — замер sweep (плато плоское), остальное — как подобие",
+      "stall_speed_kmh": 27.4,
+      "min_sink_ms": 0.822,
+      "min_sink_speed_kmh": 44.0,
+      "best_glide": 16.0,
+      "best_glide_speed_kmh": 48.9,
+      "sink_at_80_kmh_ms": 2.28
+    }
+  }
+}

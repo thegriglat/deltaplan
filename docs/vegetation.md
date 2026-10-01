@@ -76,6 +76,10 @@
 
 - `radius_m`, `clump_spacing_m`, `blades_per_clump`, `segments`, `blade_width_m` — форма и число пучков.
 - `blade_height_m`, `crop_height_m`, `shrub_density` — высота по классу поверхности (луг/поле/кустарник).
+- `forest_density` (0,4), `forest_height_m` (0,12–0,35 м), `forest_shade` (0,8) — трава под пологом леса
+  (класс FOREST, SF-2): реже, ниже и темнее луга — тень полога (под кронами светлого леса ~10–30 % света
+  открытого места, травяной ярус покрывает ~30–50 % земли; оценка, не замер). Цвет — палитра луга в
+  этой точке × `forest_shade`; у стволов не выкашивается. `forest_density` 0 — травы в лесу нет.
 - `far_density_min`, `thin_start_k`, `thin_end_k` — прореживание вдали (рекомендация 1): доля видимых
   пучков падает от 1.0 у камеры до `far_density_min` на доле `thin_end_k` от `radius_m` (начиная с
   `thin_start_k`); пучок виден, если `hash(cell) < density`. По умолчанию даёт в 0–10 м от камеры

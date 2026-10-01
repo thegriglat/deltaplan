@@ -8,12 +8,22 @@ extends RefCounted
 ## леса — гуще и раскидистее (опушка — стена деревьев), утоплено меньше (edge_sink_fraction);
 ## порода выбирается по высоте над морем и экспозиции (веса — configs/world.json → trees.species,
 ## локация может переопределить), всё детерминировано хешем клетки: при пересчёте вокруг новой
-## точки дерево остаётся тем же. Результат — буферы MultiMesh (порода × LOD).
+## точки дерево остаётся тем же (и тот же вариант модели — хеш клетки). Результат — буферы MultiMesh
+## (порода × вариант × LOD). У границы LOD (полоса lod_fade_m + запас на сдвиг камеры до пересчёта
+## rebuild_step_m) экземпляр стоит в обоих соседних LOD с кодом растворения в альфе цвета
+## (FADE_*): tree_model.gdshader по живому расстоянию до камеры проявляет один и растворяет другой.
 
 ## Породы в порядке индексов (ключи trees.species и trees.models).
 const SPECIES: PackedStringArray = ["pine", "cedar", "larch", "birch", "spruce"]
 ## Чисел на экземпляр в буфере MultiMesh (TRANSFORM_3D + цвет).
 const STRIDE := 16
+## Коды растворения на границе LOD (альфа цвета экземпляра, tree_model.gdshader): 1 — без растворения;
+## 0,1/0,2 — уходит/проявляется на границе LOD0↔LOD1; 0,3/0,4 — на границе LOD1↔LOD2.
+const FADE_NONE := 1.0
+const FADE_OUT0 := 0.1
+const FADE_IN0 := 0.2
+const FADE_OUT1 := 0.3
+const FADE_IN1 := 0.4
 ## Кольца поиска кромки, доли edge_band_m.
 const EDGE_RINGS_K: PackedFloat32Array = [0.25, 0.5, 0.75, 1.0, 1.4]
 ## 8 направлений колец (через 45°).
@@ -34,6 +44,12 @@ var spacing: float = 8.0
 var radius: float = 500.0
 ## Границы LOD, м: [конец LOD0, конец LOD1]; дальше до radius — LOD2.
 var lod_distances := PackedFloat32Array([60.0, 180.0])
+## Ширина растворения на границе LOD, м (шейдер); в обоих LOD экземпляр стоит в полосе
+## ±(lod_fade_m/2 + fade_margin_m): камера до пересчёта сдвигается до rebuild_step_m.
+var lod_fade_m: float = 10.0
+var fade_margin_m: float = 16.0
+## Вариантов модели на породу (вариант — хеш клетки).
+var variants: int = 8
 var density: float = 0.8
 var sink_fraction: float = 0.5
 ## У опушки DSM ещё не поднялся на высоту крон — дерево утоплено меньше.
@@ -64,9 +80,10 @@ var edge_scale_k: float = 0.15
 var edge_extra: float = 0.5
 var color_variation: float = 0.15
 var band_blend_m: float = 200.0
-## Высота модели каждой породы, м (из меша) — для масштаба.
-var model_height := PackedFloat32Array([20.0, 22.0, 25.0, 14.0, 23.0])
-## Результат build(): buffers[вид * 3 + lod] — PackedFloat32Array, counts — число экземпляров.
+## Высота модели породы и варианта, м (из меша) — для масштаба: model_height[вид * variants + вариант].
+var model_height := PackedFloat32Array()
+## Результат build(): buffers[(вид * variants + вариант) * 3 + lod] — PackedFloat32Array,
+## counts — число экземпляров (в полосе растворения экземпляр в двух LOD — учтён в обоих).
 var buffers: Array[PackedFloat32Array] = []
 var counts := PackedInt32Array()
 
@@ -85,6 +102,11 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	spacing = float(cfg.get("spacing_m", 8.0))
 	radius = float(cfg.get("radius_m", 500.0))
 	lod_distances = PackedFloat32Array(cfg.get("lod_distances_m", [60.0, 180.0]))
+	lod_fade_m = float(cfg.get("lod_fade_m", 10.0))
+	fade_margin_m = float(cfg.get("rebuild_step_m", 16.0)) if lod_fade_m > 0.0 else 0.0
+	variants = maxi(1, int(cfg.get("variants", 8)))
+	model_height.resize(SPECIES.size() * variants)
+	model_height.fill(20.0)
 	density = float(cfg.get("density", 0.8))
 	sink_fraction = float(cfg.get("sink_fraction", 0.5))
 	edge_sink_fraction = float(cfg.get("edge_sink_fraction", sink_fraction))
@@ -144,7 +166,7 @@ func pick_species(h: float, north: float, u: float) -> int:
 
 ## Расставить деревья в круге radius вокруг center (X/Z мира). Заполняет buffers и counts.
 func build(center: Vector2) -> void:
-	var n_buf := SPECIES.size() * 3
+	var n_buf := SPECIES.size() * variants * 3
 	buffers.clear()
 	buffers.resize(n_buf)
 	counts = PackedInt32Array()
@@ -160,6 +182,7 @@ func build(center: Vector2) -> void:
 	var d0 := lod_distances[0] if lod_distances.size() > 0 else 60.0
 	var d1 := lod_distances[1] if lod_distances.size() > 1 else 180.0
 	var e := layer.spacing
+	var band := lod_fade_m * 0.5 + fade_margin_m if lod_fade_m > 0.0 else -1.0
 	for dj in range(-nr, nr + 1):
 		for di in range(-nr, nr + 1):
 			var i := ci + di
@@ -211,7 +234,8 @@ func build(center: Vector2) -> void:
 				if sp < 0:
 					continue
 				var hh := lerpf(_h_min[sp], _h_max[sp], hash01(i, j, 5 + k0))
-				var s := hh / maxf(model_height[sp], 0.1)
+				var mv := sp * variants + int(hash01(i, j, 9 + k0) * 16777216.0) % variants
+				var s := hh / maxf(model_height[mv], 0.1)
 				# опушечное дерево раскидистее: крона шире (не выше — меньше нависает над лугом)
 				var sw := s * (1.0 + edge_scale_k * ek)
 				var a := hash01(i, j, 6 + k0) * TAU
@@ -219,14 +243,25 @@ func build(center: Vector2) -> void:
 				var sn := sin(a) * sw
 				var y := h - sink_for_edge(de) * hh
 				var v := 1.0 + color_variation * (hash01(i, j, 7 + k0) - 0.5) * 2.0
-				var lod := 0 if d2 < d0 * d0 else (1 if d2 < d1 * d1 else 2)
-				var b := sp * 3 + lod
-				# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет
-				lists[b].append_array(
-					PackedFloat32Array(
-						[c, 0.0, sn, x, 0.0, s, 0.0, y, -sn, 0.0, c, z, v, v, v, 1.0]
-					)
+				var d := sqrt(d2)
+				var b := mv * 3
+				# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет (альфа — код
+				# растворения FADE_*)
+				var row := PackedFloat32Array(
+					[c, 0.0, sn, x, 0.0, s, 0.0, y, -sn, 0.0, c, z, v, v, v, FADE_NONE]
 				)
+				if absf(d - d0) < band:
+					row[15] = FADE_OUT0
+					lists[b].append_array(row)
+					row[15] = FADE_IN0
+					lists[b + 1].append_array(row)
+				elif absf(d - d1) < band:
+					row[15] = FADE_OUT1
+					lists[b + 1].append_array(row)
+					row[15] = FADE_IN1
+					lists[b + 2].append_array(row)
+				else:
+					lists[b + (0 if d < d0 else (1 if d < d1 else 2))].append_array(row)
 	for b in n_buf:
 		buffers[b] = lists[b]
 		counts[b] = lists[b].size() / STRIDE

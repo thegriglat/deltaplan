@@ -6,7 +6,7 @@ extends Node
 ## Интерфейс скрыт. Нужно окно (настоящий рендер):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/cloud_shadow_shot.tscn -- --autostart --bots=0 --temp=26 --wind=3 \
-##     --hour=13 --location=ongudai --out=/tmp/cs --tag=before [--wait=20]
+##     --hour=12 --location=ongudai --out=/tmp/cs --tag=before [--wait=20]
 ## --preset=low|medium|high — пресет графики (пишется во временный профиль!); --gpu=N — после
 ## каждого вида N кадров замера времени GPU (кадр и карта теней); --no-shadows — без теней облаков.
 ## Пишет <out>/<tag>_high.png, <tag>_mid.png, <tag>_low.png (и карту теней <tag>_<вид>_map.png).

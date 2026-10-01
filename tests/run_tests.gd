@@ -1,16 +1,23 @@
 extends Node
-## Запуск: godot --headless --path . res://tests/run_tests.tscn [-- --filter=подстрока]
+## Запуск: godot --headless --path . res://tests/run_tests.tscn [-- --filter=подстрока] [--gpu]
 ## Ищет tests/**/test_*.gd, вызывает методы test_*. Код выхода 1, если есть падения.
+## --gpu — не пропускать тесты, которым нужен настоящий RenderingDevice (TestCase.needs_gpu() ==
+## true): под headless RD недоступен, поэтому по умолчанию (tools/check.sh) такие тесты
+## пропускаются, не падают; запускать их — tools/gpu_tests.sh (окно, не headless, флаг --gpu).
 
 func _ready() -> void:
 	var filter := ""
+	var gpu := false
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--filter="):
 			filter = a.substr(9)
+		elif a == "--gpu":
+			gpu = true
 	var files: PackedStringArray = []
 	_find("res://tests", files)
 	var total := 0
 	var failed := 0
+	var skipped := 0
 	for f in files:
 		if filter != "" and not f.contains(filter):
 			continue
@@ -19,6 +26,10 @@ func _ready() -> void:
 			if not String(m.name).begins_with("test_"):
 				continue
 			var inst: Object = script.new()
+			if inst.has_method("needs_gpu") and inst.needs_gpu() and not gpu:
+				skipped += 1
+				print("  skip %s::%s (нужен GPU — tools/gpu_tests.sh)" % [f.get_file(), m.name])
+				continue
 			if inst is Node:
 				add_child(inst)
 			total += 1
@@ -34,7 +45,7 @@ func _ready() -> void:
 					print("         " + msg)
 			if inst is Node:
 				inst.queue_free()
-	print("\n%d тестов, %d упало" % [total, failed])
+	print("\n%d тестов, %d упало, %d пропущено" % [total, failed, skipped])
 	get_tree().quit(1 if failed > 0 else 0)
 
 

@@ -1,0 +1,131 @@
+{
+  "src_files": ["ww__archive_duck.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Duck",
+      "size": "130",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 130,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n130"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Duck",
+      "size": "160",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 160,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n160"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Duck",
+      "size": "180",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 180,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n180"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Duck",
+      "size": "200",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 200,
+          "unit": "ft²",
+          "quote": "Area (ft²)\n200"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Attack Duck",
+      "size": "160",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 160,
+          "unit": "ft²",
+          "quote": "Attack Duck variants\n160"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Attack Duck",
+      "size": "180",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 180,
+          "unit": "ft²",
+          "quote": "Attack Duck variants\n180"
+        },
+        {
+          "field": "year",
+          "value": 1982,
+          "unit": "",
+          "quote": "The Duck was produced from February 1982 to August 1986"
+        }
+      ]
+    }
+  ]
+}

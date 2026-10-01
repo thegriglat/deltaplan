@@ -1,0 +1,4099 @@
+{
+  "src_files": [
+    "ww__placard.html"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "154",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-285"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 285,
+          "unit": "lb",
+          "quote": "175-285"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "144",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-235"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "150-235"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "136",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "150-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "160",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 20.0,
+          "unit": "mph",
+          "quote": "20.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 160,
+          "unit": "lb",
+          "quote": "160-260"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 260,
+          "unit": "lb",
+          "quote": "160-260"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "145",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 20.0,
+          "unit": "mph",
+          "quote": "20.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "140-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "170",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-310"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 310,
+          "unit": "lb",
+          "quote": "175-310"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "155",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 3",
+      "size": "135",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 130,
+          "unit": "lb",
+          "quote": "130-200"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 200,
+          "unit": "lb",
+          "quote": "130-200"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 4",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "175-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 4",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "140-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 4",
+      "size": "145",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-190"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 190,
+          "unit": "lb",
+          "quote": "120-190"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "225",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 185,
+          "unit": "lb",
+          "quote": "185-300"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 300,
+          "unit": "lb",
+          "quote": "185-300"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "140-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "140",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-190"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 190,
+          "unit": "lb",
+          "quote": "120-190"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "175-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "140-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "145",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 18.0,
+          "unit": "mph",
+          "quote": "18.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-190"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 190,
+          "unit": "lb",
+          "quote": "120-190"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "180",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "175-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "164",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "145",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 42.0,
+          "unit": "mph",
+          "quote": "42.0"
+        },
+        {
+          "field": "vne",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 125,
+          "unit": "lb",
+          "quote": "125-200"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 200,
+          "unit": "lb",
+          "quote": "125-200"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "160",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 180,
+          "unit": "lb",
+          "quote": "180-280"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 280,
+          "unit": "lb",
+          "quote": "180-280"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "150",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 160,
+          "unit": "lb",
+          "quote": "160-240"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 240,
+          "unit": "lb",
+          "quote": "160-240"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "140",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "140-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2/T2C",
+      "size": "154",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-285"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 285,
+          "unit": "lb",
+          "quote": "175-285"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2/T2C",
+      "size": "144",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-235"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "150-235"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2/T2C",
+      "size": "136",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 21.0,
+          "unit": "mph",
+          "quote": "21.0"
+        },
+        {
+          "field": "vd",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "150-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "166",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-285"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 285,
+          "unit": "lb",
+          "quote": "175-285"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "147",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "135",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 125,
+          "unit": "lb",
+          "quote": "125-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "125-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "225",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 185,
+          "unit": "lb",
+          "quote": "185-440"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 440,
+          "unit": "lb",
+          "quote": "185-440"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "150-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-230"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 230,
+          "unit": "lb",
+          "quote": "140-230"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "140",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "120-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "150",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "150-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "141",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 130,
+          "unit": "lb",
+          "quote": "130-225"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 225,
+          "unit": "lb",
+          "quote": "130-225"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "155",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "vne",
+          "value": 55.0,
+          "unit": "mph",
+          "quote": "55.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 170,
+          "unit": "lb",
+          "quote": "170-280"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 280,
+          "unit": "lb",
+          "quote": "170-280"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "142",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "vne",
+          "value": 55.0,
+          "unit": "mph",
+          "quote": "55.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-240"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 240,
+          "unit": "lb",
+          "quote": "140-240"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "132",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 48.0,
+          "unit": "mph",
+          "quote": "48.0"
+        },
+        {
+          "field": "vne",
+          "value": 55.0,
+          "unit": "mph",
+          "quote": "55.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-220"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 220,
+          "unit": "lb",
+          "quote": "120-220"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "154",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 52.0,
+          "unit": "mph",
+          "quote": "52.0"
+        },
+        {
+          "field": "vne",
+          "value": 60.0,
+          "unit": "mph",
+          "quote": "60.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 160,
+          "unit": "lb",
+          "quote": "160-270"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 270,
+          "unit": "lb",
+          "quote": "160-270"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "146",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 52.0,
+          "unit": "mph",
+          "quote": "52.0"
+        },
+        {
+          "field": "vne",
+          "value": 60.0,
+          "unit": "mph",
+          "quote": "60.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 145,
+          "unit": "lb",
+          "quote": "145-260"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 260,
+          "unit": "lb",
+          "quote": "145-260"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "158",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 50.0,
+          "unit": "mph",
+          "quote": "50.0"
+        },
+        {
+          "field": "vne",
+          "value": 58.0,
+          "unit": "mph",
+          "quote": "58.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "145",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 55.0,
+          "unit": "mph",
+          "quote": "55.0"
+        },
+        {
+          "field": "vne",
+          "value": 63.0,
+          "unit": "mph",
+          "quote": "63.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 135,
+          "unit": "lb",
+          "quote": "135-235"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "135-235"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "143",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 50.0,
+          "unit": "mph",
+          "quote": "50.0"
+        },
+        {
+          "field": "vne",
+          "value": 58.0,
+          "unit": "mph",
+          "quote": "58.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 125,
+          "unit": "lb",
+          "quote": "125-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "125-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "153",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 50.0,
+          "unit": "mph",
+          "quote": "50.0"
+        },
+        {
+          "field": "vne",
+          "value": 58.0,
+          "unit": "mph",
+          "quote": "58.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "163",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 50.0,
+          "unit": "mph",
+          "quote": "50.0"
+        },
+        {
+          "field": "vne",
+          "value": 58.0,
+          "unit": "mph",
+          "quote": "58.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-275"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 275,
+          "unit": "lb",
+          "quote": "175-275"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "144",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 120,
+          "unit": "lb",
+          "quote": "120-210"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 210,
+          "unit": "lb",
+          "quote": "120-210"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "165",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 140,
+          "unit": "lb",
+          "quote": "140-240"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 240,
+          "unit": "lb",
+          "quote": "140-240"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "175",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 175,
+          "unit": "lb",
+          "quote": "175-320"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 320,
+          "unit": "lb",
+          "quote": "175-320"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "155",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-250"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 250,
+          "unit": "lb",
+          "quote": "150-250"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "135",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 19.0,
+          "unit": "mph",
+          "quote": "19.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 53.0,
+          "unit": "mph",
+          "quote": "53.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 130,
+          "unit": "lb",
+          "quote": "130-200"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 200,
+          "unit": "lb",
+          "quote": "130-200"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "188",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 150,
+          "unit": "lb",
+          "quote": "150-235"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 235,
+          "unit": "lb",
+          "quote": "150-235"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "168",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 25.0,
+          "unit": "mph",
+          "quote": "25.0"
+        },
+        {
+          "field": "vd",
+          "value": 35.0,
+          "unit": "mph",
+          "quote": "35.0"
+        },
+        {
+          "field": "va",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "vne",
+          "value": 46.0,
+          "unit": "mph",
+          "quote": "46.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 130,
+          "unit": "lb",
+          "quote": "130-190"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 190,
+          "unit": "lb",
+          "quote": "130-190"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2",
+      "size": "144",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 34.0,
+          "unit": "mph",
+          "quote": "34.0"
+        },
+        {
+          "field": "vd",
+          "value": 120.0,
+          "unit": "mph",
+          "quote": "120.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 72,
+          "unit": "lb",
+          "quote": "72-107"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 107,
+          "unit": "lb",
+          "quote": "72-107"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2",
+      "size": "154",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 34.0,
+          "unit": "mph",
+          "quote": "34.0"
+        },
+        {
+          "field": "vd",
+          "value": 120.0,
+          "unit": "mph",
+          "quote": "120.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 84,
+          "unit": "lb",
+          "quote": "84-129"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 129,
+          "unit": "lb",
+          "quote": "84-129"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "160",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 32.0,
+          "unit": "mph",
+          "quote": "32.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 73,
+          "unit": "lb",
+          "quote": "73-118"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 118,
+          "unit": "lb",
+          "quote": "73-118"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "145",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 32.0,
+          "unit": "mph",
+          "quote": "32.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 64,
+          "unit": "lb",
+          "quote": "64-100"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100,
+          "unit": "lb",
+          "quote": "64-100"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "175",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 31.0,
+          "unit": "mph",
+          "quote": "31.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 79,
+          "unit": "lb",
+          "quote": "79-145"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 145,
+          "unit": "lb",
+          "quote": "79-145"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "155",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 30.0,
+          "unit": "mph",
+          "quote": "30.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 68,
+          "unit": "lb",
+          "quote": "68-113"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 113,
+          "unit": "lb",
+          "quote": "68-113"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "135",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 30.0,
+          "unit": "mph",
+          "quote": "30.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 61,
+          "unit": "lb",
+          "quote": "61-91"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 91,
+          "unit": "lb",
+          "quote": "61-91"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 29.0,
+          "unit": "mph",
+          "quote": "29.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 79,
+          "unit": "lb",
+          "quote": "79-125"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 125,
+          "unit": "lb",
+          "quote": "79-125"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 29.0,
+          "unit": "mph",
+          "quote": "29.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 64,
+          "unit": "lb",
+          "quote": "64-100"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100,
+          "unit": "lb",
+          "quote": "64-100"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 3",
+      "size": "145",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 29.0,
+          "unit": "mph",
+          "quote": "29.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 68.0,
+          "unit": "mph",
+          "quote": "68.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 54,
+          "unit": "lb",
+          "quote": "54-86"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 86,
+          "unit": "lb",
+          "quote": "54-86"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "225",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 64.0,
+          "unit": "mph",
+          "quote": "64.0"
+        },
+        {
+          "field": "vne",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 84,
+          "unit": "lb",
+          "quote": "84-136"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 136,
+          "unit": "lb",
+          "quote": "84-136"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 68,
+          "unit": "lb",
+          "quote": "68-114"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 114,
+          "unit": "lb",
+          "quote": "68-114"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 64,
+          "unit": "lb",
+          "quote": "64-100"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100,
+          "unit": "lb",
+          "quote": "64-100"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon 2",
+      "size": "140",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 55,
+          "unit": "lb",
+          "quote": "55-86"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 86,
+          "unit": "lb",
+          "quote": "55-86"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "145",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 57,
+          "unit": "lb",
+          "quote": "57-91"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 91,
+          "unit": "lb",
+          "quote": "57-91"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "164",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 68,
+          "unit": "lb",
+          "quote": "68-114"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 114,
+          "unit": "lb",
+          "quote": "68-114"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "180",
+      "cert_class": "II Novice*",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 67.0,
+          "unit": "mph",
+          "quote": "67.0"
+        },
+        {
+          "field": "vne",
+          "value": 77.0,
+          "unit": "mph",
+          "quote": "77.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 80,
+          "unit": "lb",
+          "quote": "80-125"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 125,
+          "unit": "lb",
+          "quote": "80-125"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "160",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 82,
+          "unit": "lb",
+          "quote": "82-127"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 127,
+          "unit": "lb",
+          "quote": "82-127"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "150",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 73,
+          "unit": "lb",
+          "quote": "73-109"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 109,
+          "unit": "lb",
+          "quote": "73-109"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "140",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 64,
+          "unit": "lb",
+          "quote": "64-100"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100,
+          "unit": "lb",
+          "quote": "64-100"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "166",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 80,
+          "unit": "lb",
+          "quote": "80-130"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 130,
+          "unit": "lb",
+          "quote": "80-130"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "147",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 68,
+          "unit": "lb",
+          "quote": "68-114"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 114,
+          "unit": "lb",
+          "quote": "68-114"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra Sport",
+      "size": "135",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 74.0,
+          "unit": "mph",
+          "quote": "74.0"
+        },
+        {
+          "field": "vne",
+          "value": 85.0,
+          "unit": "mph",
+          "quote": "85.0"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 57,
+          "unit": "lb",
+          "quote": "57-95"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 95,
+          "unit": "lb",
+          "quote": "57-95"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "225",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "195",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "170",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "140",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "150",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "141",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        },
+        {
+          "field": "takeoff_mass_min",
+          "value": 59,
+          "unit": "lb",
+          "quote": "59-100"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 100,
+          "unit": "lb",
+          "quote": "59-100"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "155",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 76.8,
+          "unit": "mph",
+          "quote": "76.8"
+        },
+        {
+          "field": "vne",
+          "value": 88.0,
+          "unit": "mph",
+          "quote": "88.0"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "142",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 76.8,
+          "unit": "mph",
+          "quote": "76.8"
+        },
+        {
+          "field": "vne",
+          "value": 88.0,
+          "unit": "mph",
+          "quote": "88.0"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "XC",
+      "size": "132",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 76.8,
+          "unit": "mph",
+          "quote": "76.8"
+        },
+        {
+          "field": "vne",
+          "value": 88.0,
+          "unit": "mph",
+          "quote": "88.0"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "154",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 83.2,
+          "unit": "mph",
+          "quote": "83.2"
+        },
+        {
+          "field": "vne",
+          "value": 96.0,
+          "unit": "mph",
+          "quote": "96.0"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "RamAir",
+      "size": "146",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 83.2,
+          "unit": "mph",
+          "quote": "83.2"
+        },
+        {
+          "field": "vne",
+          "value": 96.0,
+          "unit": "mph",
+          "quote": "96.0"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "158",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 80.0,
+          "unit": "mph",
+          "quote": "80.0"
+        },
+        {
+          "field": "vne",
+          "value": 92.8,
+          "unit": "mph",
+          "quote": "92.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP AT",
+      "size": "145",
+      "cert_class": "IV Advanced",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 88.0,
+          "unit": "mph",
+          "quote": "88.0"
+        },
+        {
+          "field": "vne",
+          "value": 100.8,
+          "unit": "mph",
+          "quote": "100.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "143",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 80.0,
+          "unit": "mph",
+          "quote": "80.0"
+        },
+        {
+          "field": "vne",
+          "value": 92.8,
+          "unit": "mph",
+          "quote": "92.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "153",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 80.0,
+          "unit": "mph",
+          "quote": "80.0"
+        },
+        {
+          "field": "vne",
+          "value": 92.8,
+          "unit": "mph",
+          "quote": "92.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super Sport",
+      "size": "163",
+      "cert_class": "III Intermediate",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 80.0,
+          "unit": "mph",
+          "quote": "80.0"
+        },
+        {
+          "field": "vne",
+          "value": 92.8,
+          "unit": "mph",
+          "quote": "92.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "144",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Spectrum",
+      "size": "165",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 84.8,
+          "unit": "mph",
+          "quote": "84.8"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "188",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Skyhawk",
+      "size": "168",
+      "cert_class": "II Novice",
+      "cert_standard": "HGMA",
+      "facts": [
+        {
+          "field": "vms",
+          "value": 40.0,
+          "unit": "mph",
+          "quote": "40.0"
+        },
+        {
+          "field": "vd",
+          "value": 56.0,
+          "unit": "mph",
+          "quote": "56.0"
+        },
+        {
+          "field": "va",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        },
+        {
+          "field": "vne",
+          "value": 73.6,
+          "unit": "mph",
+          "quote": "73.6"
+        }
+      ]
+    }
+  ]
+}
