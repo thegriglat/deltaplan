@@ -1,5 +1,5 @@
 {
-  "_doc": "Moyes Litesport (прототип — Moyes Litesport 4, раздел N28 ТЗ docs/research/glider_3d_tz.md; паспорт — tools/research/data/wing_passports/wings_merged.json, ключи «Moyes|Litesport||4», «Moyes|Litesport||3»). Площадь, размах, масса, диапазон пилота, тип конструкции, доля двойной обшивки — по паспорту; чего в паспорте нет (era, double_surface_pct) — как у базы; поляра и скорости — подобием от базы laminar по нагрузке на крыло (К4, f = 1,0709), качество — как у базы. Остальная физика (крен, сваливание, разбег, ветер) — как у базы laminar. DHV Vmin нет. Конфиг создан tools/research/data/wing_passports/make_new_wings.py.",
+  "_doc": "Moyes Litesport (прототип — Moyes Litesport 4, раздел N28 ТЗ docs/research/glider_3d_tz.md; паспорт — tools/research/data/wing_passports/wings_merged.json, ключи «Moyes|Litesport||4», «Moyes|Litesport||3»). Площадь, размах, масса, диапазон пилота, тип конструкции, доля двойной обшивки — по паспорту; чего в паспорте нет (era, double_surface_pct) — как у базы; поляра и скорости — подобием от базы laminar по нагрузке на крыло (К4, f = 1,0709), качество — как у базы. Остальная физика (крен, сваливание, разбег, ветер) — как у базы laminar. DHV Vmin нет. Конфиг создан tools/research/data/wing_passports/make_new_wings.py. Паспорт (WPC-4): скорости и поляра приведены к паспорту при эталонной массе 122,8 кг (паспорт — эталон, решение по шлюзу 1 docs/plan/wing-physics-check.md; цели как в WPC-1 tools/research/wing_physics_check/README.md: √(M/M_паспорта), DHV Vmin/Vmax при VG 0). Источники: stall — Moyes|Litesport||4: stall_speed_kmh 26 при 120 кг; «Stall Speed *** 26 kph»; trim — Moyes|Litesport||4: trim_speed_kmh 34 при 120 кг; «Trim Speed 34 kph»; min_sink — Moyes|Litesport||4: min_sink_ms 1 при 120 кг; «Minimum Sink Point: -1.0m/s @ 38km/h»; min_sink_speed — Moyes|Litesport||4: «Minimum Sink Point: -1.0m/s @ 38km/h»; best_glide — Moyes|Litesport||4: best_glide 14; «Best Glide Angle 14:1». Сделано tools/research/data/wing_passports/fit_passports.py.",
   "name": "wing_moyes_litesport",
   "name_doc": "Название для меню",
   "group": "kingpost",
@@ -27,85 +27,85 @@
   "pilot_mass_ref_kg": 91.0,
   "pilot_mass_ref_kg_doc": "Эталонная масса пилота, для которой задана поляра, кг: на том же месте диапазона, что у базы laminar (82 в 65–95), округлено до 1 кг (К4). Полная эталонная масса = эта + масса крыла",
   "polar": {
-    "_doc": "Поляра при эталонной массе: пары [воздушная скорость км/ч, снижение м/с]. Первая точка — скорость сваливания в прямолинейном полёте. Между точками — линейная интерполяция в координатах CL→CD. Своей поляры у прототипа нет: поляра базы laminar, перенесённая подобием на нагрузку этого крыла (docs/wings_models3d_contracts.md, К4): скорости и снижения × f = √((m/S)/(m/S)_база) = 1,0709; безразмерная поляра CL→CD и качество — как у базы",
+    "_doc": "Поляра при эталонной массе: пары [воздушная скорость км/ч, снижение м/с]. Первая точка — скорость сваливания в прямолинейном полёте. Между точками — линейная интерполяция в координатах CL→CD. Своей поляры у прототипа нет: поляра базы laminar, перенесённая подобием на нагрузку этого крыла (docs/wings_models3d_contracts.md, К4): скорости и снижения × f = √((m/S)/(m/S)_база) = 1,0709; безразмерная поляра CL→CD и качество — как у базы. Паспорт (WPC-4): поляра сдвинута целиком (tools/research/data/wing_passports/fit_passports.py): подобие × s = 0,9440 (по паспорту: min_sink, min_sink_speed, best_glide), сваливание (первая точка, CL_max) — паспорт: Moyes|Litesport||4: stall_speed_kmh 26 при 120 кг; «Stall Speed *** 26 kph»; точки медленнее сваливания отброшены, первая точка — на той же кривой CL→CD",
     "points_kmh_ms": [
       [
-        27.84,
-        1.553
+        26.27,
+        1.467
       ],
       [
-        29.99,
-        1.307
+        28.31,
+        1.234
       ],
       [
-        32.13,
-        1.157
+        30.33,
+        1.092
       ],
       [
-        34.27,
-        1.05
+        32.35,
+        0.991
       ],
       [
-        37.48,
-        0.985
+        35.38,
+        0.93
       ],
       [
-        40.7,
-        0.964
+        38.42,
+        0.91
       ],
       [
-        44.98,
-        0.985
+        42.46,
+        0.93
       ],
       [
-        49.26,
-        1.039
+        46.5,
+        0.981
       ],
       [
-        53.55,
-        1.146
+        50.55,
+        1.082
       ],
       [
-        57.83,
-        1.307
+        54.59,
+        1.234
       ],
       [
-        62.11,
-        1.521
+        58.63,
+        1.436
       ],
       [
-        66.4,
-        1.778
+        62.68,
+        1.678
       ],
       [
-        74.97,
-        2.463
+        70.77,
+        2.325
       ],
       [
-        85.68,
-        3.481
+        80.88,
+        3.286
       ],
       [
-        96.39,
-        4.712
+        90.99,
+        4.448
       ]
     ]
   },
   "reference": {
-    "_doc": "Ориентиры поляры (FR-1) для тестов и документации: при эталонной массе на уровне моря. Ориентиры базы laminar × f (качество best_glide — как у базы: подобие его не меняет; sink_at_80 — по поляре базы на 80/f км/ч × f)",
-    "stall_speed_kmh": 28.2,
-    "min_sink_ms": 0.964,
-    "min_sink_speed_kmh": 40.7,
+    "_doc": "Ориентиры поляры (FR-1) для тестов и документации: при эталонной массе на уровне моря — замер модели (FlightModel.steady_glide по поляре конфига, как tests/flight/test_polar.gd; WPC-4)",
+    "stall_speed_kmh": 26.5,
+    "min_sink_ms": 0.91,
+    "min_sink_speed_kmh": 38.4,
     "best_glide": 13.2,
-    "best_glide_speed_kmh": 49.3,
-    "sink_at_80_kmh_ms": 2.91
+    "best_glide_speed_kmh": 46.5,
+    "sink_at_80_kmh_ms": 3.19
   },
-  "trim_speed_kmh": 37.5,
-  "trim_speed_kmh_doc": "Скорость трима (трапеция в нейтрали) при эталонной массе, км/ч (база laminar × f, К4)",
-  "full_pull_speed_kmh": 91.0,
-  "full_pull_speed_kmh_doc": "Скорость при трапеции полностью на себя при эталонной массе, км/ч (база laminar × f, К4)",
-  "full_push_speed_kmh": 23.6,
-  "full_push_speed_kmh_doc": "Скорость, соответствующая трапеции полностью от себя, км/ч. Ниже сваливания — полное выжимание сваливает крыло (база laminar × f, К4)",
+  "trim_speed_kmh": 34.4,
+  "trim_speed_kmh_doc": "Скорость трима (трапеция в нейтрали) при эталонной массе, км/ч (WPC-4, паспорт: Moyes|Litesport||4: trim_speed_kmh 34 при 120 кг; «Trim Speed 34 kph»)",
+  "full_pull_speed_kmh": 85.9,
+  "full_pull_speed_kmh_doc": "Скорость при трапеции полностью на себя при эталонной массе, км/ч (WPC-4, в паспорте нет: прежняя × s = 0,9440; VG в игре нет — DHV при VG 0)",
+  "full_push_speed_kmh": 22.6,
+  "full_push_speed_kmh_doc": "Скорость, соответствующая трапеции полностью от себя, км/ч. Ниже сваливания — полное выжимание сваливает крыло (WPC-4: тот же заход за угол срыва, что был: ΔCL = 0,981, Δα = 12,5°)",
   "lift_slope_per_rad": 4.5,
   "lift_slope_per_rad_doc": "Наклон кривой подъёмной силы dCL/dα, 1/рад. Нужен для реакции на вертикальные порывы и для угла тангажа",
   "zero_lift_alpha_deg": -6.0,
