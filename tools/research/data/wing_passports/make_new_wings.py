@@ -43,6 +43,36 @@ CFG_DIR = os.path.join(ROOT, "configs", "wings")
 LOCALE = os.path.join(ROOT, "locale", "ui.csv")
 G = 9.80665
 RHO = 1.225
+MERGED = os.path.join(HERE, "wings_merged.json")
+# К4 v2: DHV Vmin базы — по паспорту самой модели или ближайшего аналога того же семейства (ключ wings_merged.json).
+# Нет данных — сравнивать не с чем, расхождение нового крыла указывается как есть.
+BASE_DHV = {
+    "combat": "Aeros|Combat GT||12.7",   # у 13.2 нет Vmin; тот же Combat GT, пересчёт по нагрузке на крыло
+    "laminar": "Icaro|Orbiter||14",      # аналог конфига (docs/research/wings_config_sources.md §1)
+    "target": "Aeros|Fox||13",           # у Fox 16 нет Vmin; Fox — ближайший к Target 16 (раздел E2 ТЗ)
+}
+
+
+def _vmin_ref(vmin, m_lo, m_hi, s_dhv, m, s):
+    """DHV Vmin (при середине «Startgewicht» и площади s_dhv) → при массе m и площади s: × √((m/s)/(m_dhv/s_dhv))."""
+    m_dhv = 0.5 * (m_lo + m_hi)
+    return vmin * math.sqrt((m / s) / (m_dhv / s_dhv)), m_dhv
+
+
+def base_dhv_diff(base, base_cfg):
+    """Расхождение сваливания поляры базы с DHV Vmin её паспорта/аналога (доля) или None."""
+    key = BASE_DHV.get(base)
+    if not key:
+        return None
+    rec = next((r for r in load_json(MERGED) if r["key"] == key), None)
+    if rec is None:
+        return None
+    g = lambda n: (rec["fields"].get(n) or {}).get("value")
+    if not (g("vmin_vg0_kmh") and g("takeoff_mass_min_kg") and g("takeoff_mass_max_kg") and g("area_m2")):
+        return None
+    m = base_cfg["pilot_mass_ref_kg"] + base_cfg["wing_mass_kg"]
+    v, _ = _vmin_ref(g("vmin_vg0_kmh"), g("takeoff_mass_min_kg"), g("takeoff_mass_max_kg"), g("area_m2"), m, base_cfg["area_m2"])
+    return base_cfg["polar"]["points_kmh_ms"][0][0] / v - 1, key
 
 
 def fm(x, nd=2):
@@ -282,17 +312,23 @@ def make_config(wid, s, base_cfg, design, params):
         cfg[k + "_doc"] = base_cfg[k + "_doc"] + " (база %s × f, К4)" % base
     cfg["wind_max_ms_doc"] = base_cfg["wind_max_ms_doc"] + " — как у базы %s" % base
 
-    # DHV Vmin — проверка, не подгонка (К4)
+    # DHV Vmin — проверка, не подгонка (К4 v2: расхождение — относительно такого же расхождения у базы, без порога)
     stall = pts[0][0]
     dhv_note = "DHV Vmin нет"
-    vmin_ref = diff = None
+    vmin_ref = diff = rel = None
+    bd = base_dhv_diff(base, base_cfg)
     if dhv.get("vmin_vg0_kmh") and dhv.get("takeoff_mass_min_kg") and dhv.get("takeoff_mass_max_kg"):
-        m_dhv = 0.5 * (dhv["takeoff_mass_min_kg"] + dhv["takeoff_mass_max_kg"])
-        vmin_ref = dhv["vmin_vg0_kmh"] * math.sqrt(m_new / m_dhv)
+        vmin_ref, m_dhv = _vmin_ref(dhv["vmin_vg0_kmh"], dhv["takeoff_mass_min_kg"], dhv["takeoff_mass_max_kg"],
+                                    c["area_m2"], m_new, c["area_m2"])
         diff = stall / vmin_ref - 1
-        dhv_note = ("DHV Vmin (VG 0) %s км/ч при середине «Startgewicht» %s кг (%s) → на эталонной массе %s кг: %s км/ч; сваливание поляры %s км/ч (%+.0f %%)%s" % (
-            fm(dhv["vmin_vg0_kmh"], 1), fm(m_dhv, 1), cert or "DHV", fm(m_new, 1), fm(vmin_ref, 1), fm(stall, 1), 100 * diff,
-            " — расхождение больше 10 %: не правится (К4: проверка, не подгонка; при какой массе DHV мерил Vmin, в карточке не сказано)" if abs(diff) > 0.1 else ""))
+        if bd is None:
+            base_txt = "у базы %s данных DHV Vmin нет — сравнить не с чем" % base
+        else:
+            rel = (1 + diff) / (1 + bd[0]) - 1
+            base_txt = "у базы %s то же расхождение %+.0f %% (DHV «%s») — относительно базы %+.0f %%" % (base, 100 * bd[0], bd[1], 100 * rel)
+        dhv_note = ("DHV Vmin (VG 0) %s км/ч при середине «Startgewicht» %s кг (%s) → на эталонной массе %s кг: %s км/ч; сваливание поляры %s км/ч (%+.0f %%); %s. "
+                    "Не правится (К4: проверка, не подгонка; при какой массе DHV мерил Vmin, в карточке не сказано)" % (
+                        fm(dhv["vmin_vg0_kmh"], 1), fm(m_dhv, 1), cert or "DHV", fm(m_new, 1), fm(vmin_ref, 1), fm(stall, 1), 100 * diff, base_txt))
     elif dhv.get("vmin_vg0_kmh"):
         dhv_note = "DHV Vmin (VG 0) %s км/ч — без диапазона «Startgewicht», на эталонную массу не пересчитан" % fm(dhv["vmin_vg0_kmh"], 1)
 
@@ -308,7 +344,7 @@ def make_config(wid, s, base_cfg, design, params):
     vis["color"] = list(design.get("center") if design.get("base") == [0.96, 0.96, 0.95] else design["base"])
     return cfg, dict(f=f, stall=stall, stall_base=base_cfg["polar"]["points_kmh_ms"][0][0], trim=cfg["trim_speed_kmh"],
                      trim_base=base_cfg["trim_speed_kmh"], bg=ref_d["best_glide"], bg_base=base_cfg["reference"]["best_glide"],
-                     vmin_ref=vmin_ref, diff=diff, wm=wm, lo=lo, hi=hi, ref=ref, pm_src=(pm["min"][1], pm["max"][1]), m_new=m_new,
+                     vmin_ref=vmin_ref, diff=diff, rel=rel, wm=wm, lo=lo, hi=hi, ref=ref, pm_src=(pm["min"][1], pm["max"][1]), m_new=m_new,
                      dhv=dhv)
 
 
@@ -408,13 +444,14 @@ def fmt_entry(wid, p):
 
 
 def print_report(report):
-    print("| id | раздел | база | f | сваливание, км/ч (база) | трим (база) | качество (база) | DHV Vmin на эт. массе | расхождение | крыло, кг | пилот, кг (эталон) | откуда пилот |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| id | раздел | база | f | сваливание, км/ч (база) | трим (база) | качество (база) | DHV Vmin на эт. массе | расхождение | относит. базы | крыло, кг | пилот, кг (эталон) | откуда пилот |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for wid, s, i in report:
-        print("| %s | %s | %s | %.4f | %s (%s) | %s (%s) | %s (%s) | %s | %s | %s | %s–%s (%s) | %s |" % (
+        print("| %s | %s | %s | %.4f | %s (%s) | %s (%s) | %s (%s) | %s | %s | %s | %s | %s–%s (%s) | %s |" % (
             wid, s["section"], s["base"], i["f"], fm(i["stall"], 1), fm(i["stall_base"], 1), fm(i["trim"], 1), fm(i["trim_base"], 1),
             fm(i["bg"], 1), fm(i["bg_base"], 1), "—" if i["vmin_ref"] is None else fm(i["vmin_ref"], 1),
-            "—" if i["diff"] is None else "%+.0f %%" % (100 * i["diff"]), fm(i["wm"], 1), fm(i["lo"], 0), fm(i["hi"], 0), fm(i["ref"], 0),
+            "—" if i["diff"] is None else "%+.0f %%" % (100 * i["diff"]),
+            "—" if i["rel"] is None else "%+.0f %%" % (100 * i["rel"]), fm(i["wm"], 1), fm(i["lo"], 0), fm(i["hi"], 0), fm(i["ref"], 0),
             i["pm_src"][0] if i["pm_src"][0] == i["pm_src"][1] else "мин: %s; макс: %s" % i["pm_src"]))
 
 
