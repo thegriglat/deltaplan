@@ -16,13 +16,24 @@
 | `assets/models/glider_magic.glb` | соревновательное мачтовое конца 1980-х (в духе Airwave Magic IV 166): двухобшивочное 60 %, 124°, 11 лат, карман 0,1 м, шеврон маджента/бирюза/жёлтый | 12 576 |
 | `assets/models/glider_laminar.glb` | мачтовое двухобшивочное 80 % (в духе Icaro Laminar Easy 14), 127°, 13 лат, круглые стойки, узор `laminar` | 11 696 |
 | `assets/models/glider_combat.glb` | безмачтовое (в духе Aeros Combat GT 13.2): 95 %, 130°, 16 лат, обтекатели, спидбар, тёмная кромка и жёлтый центр | 13 844 |
-| `assets/models/glider_moyes_gecko.glb` | мачтовое двухобшивочное 85 % (по паспорту Moyes Gecko 155)  124°  8 лат на сторону | 12 992 |
-| `assets/models/glider_ww_t3.glb` | безмачтовое (по паспорту Wills Wing T3 144)  127°  как база sport | 13 268 |
-| `assets/models/glider_moyes_litespeed_rx.glb` | безмачтовое (по паспорту Moyes Litespeed RX)  127 5°  как база sport | 13 268 |
-| `assets/models/glider_moyes_litesport.glb` | мачтовое двухобшивочное (по паспорту Moyes Litesport)  127°  как база laminar | 11 696 |
-| `assets/models/glider_aeros_combat_c.glb` | безмачтовое (по паспорту Aeros Combat C)  130°  как база combat | 13 844 |
-| `assets/models/glider_icaro_laminar_z9.glb` | безмачтовое (по паспорту Icaro Laminar Z9)  132°  короткие латы у задней кромки | 13 844 |
-| `assets/models/glider_bautek_fizz.glb` | мачтовое без шнуров-люфов (по паспорту Bautek Fizz)  130°  как база laminar | 12 944 |
+| `assets/models/glider_icaro_piuma.glb` | N1, в духе Icaro Piuma: учебное мачтовое однообшивочное (нижняя обшивка 30 %), 120°, 7 лат, профилированные стойки, колёса, шеврон | 12 728 |
+| `assets/models/glider_ww_t2c.glb` | N24, в духе Wills Wing T2C: безмачтовое двухобшивочное 92 %, 129,5°, 11 лат, обтекатели, спидбар, узор `sport` | 13 268 |
+| `assets/models/glider_moyes_malibu2.glb` | N2, в духе Moyes Malibu 2 166: учебное мачтовое однообшивочное (20 %), 120,5°, 7 лат, круглые стойки, колёса | 12 248 |
+| `assets/models/glider_air_f2.glb` | N3, в духе Airborne F2 190: учебное мачтовое (нижняя обшивка 30 %), 118°, 7 лат, круглые стойки, колёса, шеврон | 12 248 |
+| `assets/models/glider_aeros_fox.glb` | N4, в духе Aeros Fox: учебное мачтовое (25 %), 120°, 7 лат, профилированные стойки (Finsterwalder), колёса | 12 728 |
+| `assets/models/glider_ww_sport3.glb` | N10, в духе Wills Wing Sport 3 155: мачтовое двухобшивочное 85 %, 127°, 7 лат, шеврон | 12 128 |
+| `assets/models/glider_ww_u2.glb` | N11, в духе Wills Wing U2 145: мачтовое двухобшивочное 84 %, 126,5°, 8 лат, профилированные стойки | 13 472 |
+| `assets/models/glider_aeros_discus.glb` | N12, в духе Aeros Discus 14: мачтовое двухобшивочное 85 %, 125°, 9 лат, узор `laminar` | 12 560 |
+| `assets/models/glider_air_sting3.glb` | N13, в духе Airborne Sting 3 154 (Sport): мачтовое двухобшивочное 75 %, 121°, 8 лат, профилированные стойки, шеврон | 13 472 |
+| `assets/models/glider_icaro_alto.glb` | N14, в духе Icaro Alto M: мачтовое двухобшивочное 85 %, 127,5°, 8 лат | 12 992 |
+| `assets/models/glider_icaro_mastr.glb` | N15, в духе Icaro MastR L: двухобшивочное 94 %, 131°, 11 лат, небольшая мачта 0,6 м (оценка) без верхних тросов — только две luff-линии (`top_wires: false`), обтекатели, тёмная кромка | 13 424 |
+| `assets/models/glider_moyes_gecko.glb` | мачтовое двухобшивочное 85 % (по паспорту Moyes Gecko 155), 124°, 8 лат на сторону | 12 992 |
+| `assets/models/glider_ww_t3.glb` | безмачтовое (по паспорту Wills Wing T3 144), 127°, как база sport | 13 268 |
+| `assets/models/glider_moyes_litespeed_rx.glb` | безмачтовое (по паспорту Moyes Litespeed RX), 127,5°, как база sport | 13 268 |
+| `assets/models/glider_moyes_litesport.glb` | мачтовое двухобшивочное (по паспорту Moyes Litesport), 127°, как база laminar | 11 696 |
+| `assets/models/glider_aeros_combat_c.glb` | безмачтовое (по паспорту Aeros Combat C), 130°, как база combat | 13 844 |
+| `assets/models/glider_icaro_laminar_z9.glb` | безмачтовое (по паспорту Icaro Laminar Z9), 132°, короткие латы у задней кромки | 13 844 |
+| `assets/models/glider_bautek_fizz.glb` | мачтовое без шнуров-люфов (по паспорту Bautek Fizz), 130°, как база laminar | 12 944 |
 | `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 5 433 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 742 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 078 |
@@ -67,7 +78,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 `bar_grips` (true — резиновые накладки на штанге под руками; false у советских — голая труба),
 `upright_bend` (нет; `{t0, fwd_m, out_m}` — изгиб нижней части стоек: от доли длины t0 от верха
 вперёд/наружу до fwd_m/out_m, у `sport`/`combat` 0,5 и 0,03 м — выше t0 стойка прямая, хват стоя не
-меняется), `strap_color` (цвет основной стропы подвески). `antidive_tube` (нет; только «Апогей»): антипикирующая трубка у законцовки, по одной на полукрыло — `{a0, a1, t1, r_m}`: от передней кромки на станции a0 (доля полуразмаха) назад-внутрь под ≈45° к точке t1 (доля хорды) на станции a1, пересекает последнюю полную лату; идёт под парусом (под нижней обшивкой, дальше — под верхней), материал труб, часть меша `Frame`, r_m — радиус (0,01 — труба Ø20 мм).
+меняется), `strap_color` (цвет основной стропы подвески), `top_wires` (true; false — мачта без верхних тросов к носу, хвосту и поперечине, от неё только `luff_lines`: Icaro MastR). `antidive_tube` (нет; только «Апогей»): антипикирующая трубка у законцовки, по одной на полукрыло — `{a0, a1, t1, r_m}`: от передней кромки на станции a0 (доля полуразмаха) назад-внутрь под ≈45° к точке t1 (доля хорды) на станции a1, пересекает последнюю полную лату; идёт под парусом (под нижней обшивкой, дальше — под верхней), материал труб, часть меша `Frame`, r_m — радиус (0,01 — труба Ø20 мм).
 Узоры `design.pattern`: `center_v`, `chevron`, `sport`, а также `panels` (радиальные полотнища от носа:
 `design.panels` — цвета от киля к законцовке по кругу, `panel_count` — полотнищ на полукрыло, `seam` —
 цвет строчки; `design.bottom: "panels"` — те же полотнища на нижней обшивке), `laminar` (светлая кромка,

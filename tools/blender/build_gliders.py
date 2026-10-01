@@ -266,9 +266,13 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
         top = Vector((0, apex_y, kz + p["kingpost_m"]))
         mb.add_tube([(0, apex_y, kz), top], 0.022, "Tube", sides=8)
         mb.add_ellipsoid(top, (0.03, 0.03, 0.04), "Dark", 8, 5)
-        targets = [Vector((0, ws.y_nose, kz + 0.03)), Vector((0, tail_y, kz + 0.02))]
+        # top_wires (необязательное, по умолчанию true): false — мачта без верхних тросов (Icaro MastR),
+        # от неё только luff-линии к задней кромке
+        top_wires = p.get("top_wires", True)
+        targets = [Vector((0, ws.y_nose, kz + 0.03)), Vector((0, tail_y, kz + 0.02))] if top_wires else []
         for s in (-1, 1):
-            targets.append(le_tube_point(ws, s * p["crossbar_u"], r_le))
+            if top_wires:
+                targets.append(le_tube_point(ws, s * p["crossbar_u"], r_le))
             for a in p["luff_lines"]:
                 targets.append(ws.upper(s * a, 1.0))
         for tg in targets:

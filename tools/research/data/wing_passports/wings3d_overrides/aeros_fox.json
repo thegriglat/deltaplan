@@ -1,0 +1,7 @@
+{
+  "_doc": "Особенности вида N4 из «Заметок по виду» ТЗ: «Finsterwalder streamlined A-frame» — профилированные стойки трапеции (faired_uprights). Колёса — как у базы target (в разделе иного нет).",
+  "params": {
+    "faired_uprights": true,
+    "wheels": true
+  }
+}
