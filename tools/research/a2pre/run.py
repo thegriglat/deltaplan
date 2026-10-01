@@ -387,6 +387,33 @@ def plan_morris(n):
     return items, len(bad)
 
 
+def plan_b1():
+    """Б1: регрессия матрицы А2 на λ совместной калибровки (cases/b1/out/fit.json) в двух переводах в параметры игры:
+    (а) lam = λ, lam_frac = 0; (б) lam = 40, lam_frac = λ/h_нейтр (h — средняя нейтральная толщина двух случаев);
+    α, z0, max_profile Онгудая — номинал игры (0,14 / 0,1 / 1,8) и перекалибровки (0,235 / 0,09 / 2,0) — сами не выбираются.
+    k_relax — Params() (0,1, А2)."""
+    fit = json.loads((HERE.parent / "cases/b1/out/fit.json").read_text())["joint_lam"]
+    lam = float(fit["values"]["lam"])
+    hA = fit["h_by_sub"]["tu03b"]
+    hP = 0.5 * (fit["h_by_sub"]["ne"] + fit["h_by_sub"]["sw"])
+    lf = lam / (0.5 * (hA + hP))
+    prof = dict(game=dict(alpha=0.14, z0=0.1, max_profile=1.8), recal=dict(alpha=0.235, z0=0.09, max_profile=2.0))
+    tr = dict(a=dict(lam=lam, lam_frac=0.0), b=dict(lam=40.0, lam_frac=lf))
+    items = []
+    for tn, tv in tr.items():
+        for pn, pv in prof.items():
+            ps = f"b1{tn}_{pn}"
+            for dom in (400, 200):
+                for U, heat, modes in ((0.0, True, ("cbl", "surface")), (3.0, True, ("cbl", "surface")),
+                                       (3.0, False, ("cbl",)), (0.0, False, ("cbl",))):
+                    for hm in modes:
+                        key = f"{ps}|d{dom}|U{U:g}|{'heat' if heat else 'noheat'}|{hm}"
+                        items.append(dict(key=key, pset=ps, base=pn, variant=tn, dom=dom, U=U, heat=heat, heat_mode=hm,
+                                          params=dict(pv, **tv, heat_mode=hm), b1=dict(lam_fit=lam, lf=lf, h_ask=hA, h_pd=hP)))
+    items.sort(key=lambda r: r["heat_mode"] != "cbl")
+    return items
+
+
 def main():
     what = sys.argv[1] if len(sys.argv) > 1 else "matrix"
     n = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 40
@@ -399,6 +426,8 @@ def main():
     if what == "a2":
         only = sys.argv[2].split(",") if len(sys.argv) > 2 else None
         run_list(plan_a2(only), "matrix_a2.jsonl", maps_name="matrix_a2_maps.npz")
+    if what == "b1":
+        run_list(plan_b1(), "matrix_b1.jsonl")
     if what == "scan":
         only = sys.argv[2].split(",") if len(sys.argv) > 2 else None
         run_list(plan_scan(only), "scan_a2.jsonl")
