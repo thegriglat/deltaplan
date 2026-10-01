@@ -71,8 +71,6 @@ static func domain_case(
 		"%s %sм %sч U%s %s°%s"
 		% [String(loc.get("id", "")), dx, hour, u10, wdir, "" if heat else " без нагрева"]
 	)
-	# сглаженный рельеф — здесь, один раз: его берут и prepare(), и without_heat() (копии случая)
-	c._smooth_terrain()
 	return c
 
 
@@ -105,20 +103,6 @@ static func block_mean(
 	if i0 < 0 or j0 < 0 or i0 + f * nx > layer.width or j0 + f * ny > layer.height:
 		push_error("AirPlace: область вне слоя рельефа")
 		return out
-	var lv := _po2_level(f)
-	if lv >= 0:
-		# строки области подряд (слой растёт на юг) → Image RF → мип-уровень lv = среднее блоков f×f
-		# (усреднение 2×2 по уровням, float32; высоты слоя — float32)
-		var r0 := layer.height - j0 - f * ny
-		var w0 := layer.width
-		var img := Image.create_from_data(
-			w0,
-			f * ny,
-			false,
-			Image.FORMAT_RF,
-			layer.heights.slice(r0 * w0, (r0 + f * ny) * w0).to_byte_array()
-		)
-		return _block_level(img.get_region(Rect2i(i0, 0, f * nx, f * ny)), lv, nx, ny)
 	out.resize(nx * ny)
 	var w := layer.width
 	var h := layer.heights
@@ -159,14 +143,6 @@ static func water_fraction(
 	var j0 := roundi((y0 - yl) / s)
 	var iw := img.get_width()
 	var ih := img.get_height()
-	var lv := _po2_level(f)
-	if lv >= 0 and iw == layer.width and ih == layer.height:
-		# маска пиксель в пиксель со слоем: порог > 127 (adjust_bcs: контраст 1000 → 0 / 255) →
-		# RF (0 / 1) → мип-уровень lv — доля точно (двоичные дроби)
-		var reg := img.get_region(Rect2i(i0, ih - j0 - f * ny, f * nx, f * ny))
-		reg.adjust_bcs(1.0, 1000.0, 1.0)
-		reg.convert(Image.FORMAT_RF)
-		return _block_level(reg, lv, nx, ny)
 	out.resize(nx * ny)
 	for j in ny:
 		for i in nx:
@@ -179,34 +155,6 @@ static func water_fraction(
 					if px_data[py * iw + px] > 127:
 						cnt += 1
 			out[j * nx + i] = float(cnt) / (f * f)
-	return out
-
-
-## log2(f), если f — степень двойки (≥ 1), иначе −1.
-static func _po2_level(f: int) -> int:
-	if f < 1 or (f & (f - 1)) != 0:
-		return -1
-	var l := 0
-	while (1 << l) < f:
-		l += 1
-	return l
-
-
-## Средние блоков 2^lv × 2^lv области img (FORMAT_RF, (f·nx) × (f·ny), строка 0 — север) →
-## (ny·nx) float64, j — на север.
-static func _block_level(img: Image, lv: int, nx: int, ny: int) -> PackedFloat64Array:
-	var off := 0
-	if lv > 0:
-		img.generate_mipmaps()
-		off = img.get_mipmap_offset(lv)
-	var m := img.get_data().slice(off, off + nx * ny * 4).to_float32_array()
-	var out := PackedFloat64Array()
-	out.resize(nx * ny)
-	for j in ny:
-		var src := (ny - 1 - j) * nx
-		var dst := j * nx
-		for i in nx:
-			out[dst + i] = m[src + i]
 	return out
 
 
