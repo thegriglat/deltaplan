@@ -59,6 +59,16 @@ func test_k1_wing_config_shape() -> void:
 		check(stall < trim, "%s: сваливание %.1f < трим %.1f" % [id, stall, trim])
 		check(trim < float(w.full_pull_speed_kmh), "%s: трим < на себя" % id)
 		check(float(w.full_push_speed_kmh) < trim, "%s: от себя < трим" % id)
+		# v2: с нейтральной трапецией крыло на разбеге не сорвано — нейтраль ≤ α_срыва − 3°
+		var mass_ref := float(w.pilot_mass_ref_kg) + float(w.wing_mass_kg)
+		var rho_ref := float(Config.value("flight", "air_density.polar_ref_kgm3"))
+		var cl_max := WingPolar.new(pts, mass_ref, rho_ref, float(w.area_m2)).cl_max
+		var a_stall := rad_to_deg(cl_max / float(w.lift_slope_per_rad)) + float(w.zero_lift_alpha_deg)
+		var a_neutral := float(w.launch.alpha_neutral_deg)
+		check(
+			a_neutral <= a_stall - 3.0 + 1.0e-6,
+			"%s: нейтраль разбега %.1f° ≤ α_срыва %.1f° − 3°" % [id, a_neutral, a_stall]
+		)
 		check(
 			float(w.pilot_mass_min_kg) <= float(w.pilot_mass_ref_kg)
 			and float(w.pilot_mass_ref_kg) <= float(w.pilot_mass_max_kg),
