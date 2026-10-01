@@ -658,7 +658,14 @@ func _screenshot() -> void:
 		while NetZone.zone_time() < opts.time_s and state in [State.FLYING, State.RESULT]:
 			await get_tree().process_frame
 	elif state == State.FLYING and opts.time_s > 0.0:
+		var held := false
 		while game.sim_time_s < opts.time_s and state == State.FLYING:
+			if not held and opts.hold_key != "" and game.sim_time_s >= opts.time_s - opts.hold_key_s:
+				held = true
+				var ev := InputEventKey.new()
+				ev.physical_keycode = OS.find_keycode_from_string(opts.hold_key)
+				ev.pressed = true
+				Input.parse_input_event(ev)
 			await get_tree().physics_frame
 			if _look_target != null:
 				_look_target.global_position = _look_point()

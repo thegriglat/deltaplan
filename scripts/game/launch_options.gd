@@ -18,6 +18,8 @@ extends RefCounted
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
 ##   --glance              держать клавишу «взгляд на прибор»
+##   --hold-key=<клавиша>[,<с>]  зажать физическую клавишу (имя Godot: A, W…) за <с> (по умолчанию
+##                         1) до кадра --time в полёте — кадры обзора с клавиш (У2)
 ##   --helmet=<вид>        каска в кабине: none | open | visor | visor_dark (поверх настройки;
 ##                         применяет SunGlare, configs/helmet.json)
 ##   --debug=perf,wind,thermals  сразу включить отладочные слои F1/F5/F6 (DebugOverlays)
@@ -69,6 +71,8 @@ var camera := ""
 var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" или ""
 var look := Vector2.ZERO
 var glance := false  ## держать «взгляд на прибор» (скриншоты)
+var hold_key := ""  ## --hold-key: физическая клавиша, зажимаемая перед кадром
+var hold_key_s := 1.0  ## --hold-key: за сколько секунд до кадра зажать, с
 ## Отладочные слои (--debug=perf,wind,thermals) — включить сразу после старта.
 var debug_overlays: PackedStringArray = []
 var no_overlay := false  ## скрыть InstrumentOverlay перед скриншотом (чистый кадр мира)
@@ -126,6 +130,11 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autopilot = true
 			"glance":
 				o.glance = true
+			"hold-key":
+				var hk := val.split(",")
+				o.hold_key = hk[0]
+				if hk.size() > 1:
+					o.hold_key_s = float(hk[1])
 			"no-overlay":
 				o.no_overlay = true
 			"debug":

@@ -18,7 +18,6 @@ var config_dir: String = UserSettings.DEFAULT_DIR
 var _volume: HSlider
 var _sens: HSlider
 var _invert: CheckBox
-var _mouse_mode: OptionButton
 var _roll_mode: OptionButton
 var _sound: OptionButton
 var _graphics: OptionButton
@@ -72,10 +71,6 @@ func _ready() -> void:
 	_invert = CheckBox.new()
 	_invert.text = tr("settings_invert_pitch_hint")
 	UiKit.row(box, tr("settings_invert_pitch"), _invert)
-	_mouse_mode = OptionButton.new()
-	_mouse_mode.add_item(tr("settings_mouse_look"))
-	_mouse_mode.add_item(tr("settings_mouse_bar"))
-	UiKit.row(box, tr("settings_mouse"), _mouse_mode)
 	_roll_mode = OptionButton.new()
 	_roll_mode.add_item(tr("settings_roll_simple"))
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
@@ -189,7 +184,6 @@ func load_values() -> void:
 	_sens.value = float(Config.value("controls", "mouse.look_sensitivity_deg_per_px"))
 	_sens.value_changed.emit(_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
-	_mouse_mode.select(0 if String(Config.value("controls", "mouse.mode")) == "look" else 1)
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
@@ -232,11 +226,7 @@ func save() -> bool:
 				{
 					"invert_pitch": _invert.button_pressed,
 					"roll_control_mode": "weight_shift" if _roll_mode.selected == 1 else "rate",
-					"mouse":
-					{
-						"look_sensitivity_deg_per_px": _sens.value,
-						"mode": "look" if _mouse_mode.selected == 0 else "bar",
-					},
+					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
 				},
 				config_dir
 			)

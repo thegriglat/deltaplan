@@ -75,17 +75,13 @@
     },
     {
       "mouse": true,
-      "mouse_mode": "look",
-      "text": "controls_mouse_look"
-    },
-    {
-      "mouse": true,
-      "mouse_mode": "bar",
       "text": "controls_mouse_bar"
     },
     {
-      "mouse_mode": "bar",
       "text": "controls_mouse_bar_look"
+    },
+    {
+      "text": "controls_look_keys"
     },
     {
       "section": "controls_on_ground"
@@ -140,5 +136,5 @@
       "text": "controls_catch_up"
     }
   ],
-  "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши; mouse_mode — показывать только при этом controls.json → mouse.mode (look/bar); text — объяснение простыми словами"
+  "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши, с подписью «Мышь»; text — объяснение простыми словами"
 }

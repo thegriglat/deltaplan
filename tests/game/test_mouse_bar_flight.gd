@@ -1,5 +1,5 @@
 extends Node
-## CF-2: мышь в режиме "bar" (controls.json → mouse.mode) управляет трапецией в загруженной сцене
+## CF-2: мышь (всегда трапеция, У1 v3) управляет трапецией в загруженной сцене
 ## полёта. События идут через настоящий вьюпорт (Viewport.push_input: GUI → _unhandled_input),
 ## а не прямым вызовом _unhandled_input — так видно, если их съест Control интерфейса полёта
 ## (отладочные слои F1/F5/F6, Debug Menu F2, пасхалки, меню). Шаги физики — Game.tick() вручную.
@@ -17,7 +17,7 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Игра в воздухе (--air-start), режим bar, мышь «захвачена» (headless курсор не захватить —
+## Игра в воздухе (--air-start), мышь «захвачена» (headless курсор не захватить —
 ## Input.mouse_mode остаётся VISIBLE, но InputController смотрит на свой mouse_captured).
 func _open(air: bool) -> Node:
 	var args := ["--autostart"]
@@ -38,18 +38,10 @@ func _open(air: bool) -> Node:
 	# Шагаем сами. Не PROCESS_MODE_DISABLED: выключенный узел (и InputController под ним)
 	# не получает _unhandled_input — события мыши бы терялись.
 	game.set_physics_process(false)
-	var controls_cfg: Dictionary = Config.get_config("controls")
-	main.set_meta("_orig_mouse_mode", String(controls_cfg.mouse.mode))
-	controls_cfg.mouse.mode = "bar"
-	game.input_controller.reload_config()
 	return main
 
 
 func _close(main: Node) -> void:
-	if main.has_meta("_orig_mouse_mode"):
-		Config.get_config("controls").mouse.mode = main.get_meta("_orig_mouse_mode")
-		var game: Game = main.get_node("Game")
-		game.input_controller.reload_config()
 	main.queue_free()
 	for i in 2:
 		await get_tree().process_frame
