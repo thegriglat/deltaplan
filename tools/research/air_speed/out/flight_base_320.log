@@ -1,0 +1,39 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+air_model: analytic (нет поля)
+Terrain: локация 'ongudai' загружена за 3.60 с, чанков 160
+Terrain: поля рельефа за 3.53 с
+WorldObjects: 'ongudai' за 1.77 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.989988, "wait_threads_s": 0.000006, "nodes_s": 0.022568, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: field (массивы; уровней 3)
+air_model: поле 12:00 ч, 3.0 м/с с 150° (загрузка): 7.62 с, итераций [230, 190], окна ["100 м [40, 40]", "50 м [50, 50]"]
+WorldObjects: палаток у старта 5 из 5 за 331 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=150&hour=12.00&lat=50.78708&lon=86.23278&seed=1550271237&sky=clear&temp=26.0&v=1&wind=3.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:96)
+       [1] set_input_enabled (res://scripts/game/game.gd:539)
+       [2] set_flying (res://scripts/game/game.gd:516)
+       [3] _fly (res://scenes/main.gd:165)
+       [4] start (res://scripts/game/game.gd:318)
+flight_probe: полёт, загрузка 19.1 с; { &"hour": 12.0, &"u10": 3.0, &"wdir": 150.0, &"t_max": 26.0, &"sky": "clear", &"reason": "загрузка", &"start_ms": 7.14, &"iters": [230, 190], &"gpu_s": 1.91402902746201, &"warm": false, &"poll_max_ms": 52.614, &"chunk_max_ms": 31.229024, &"windows": [{ &"dx": 100.0, &"x0": 4025.0, &"y0": -3525.0, &"reason": "загрузка", &"iters": [40, 40], &"status": "ok", &"warm": false, &"wall_ms": 433.519, &"total_ms": 1047.887, &"prep_ms": 589.592, &"gpu_ms": 323.865281462669, &"max_chunk_ms": 31.069184, &"chunks": 26, &"poll_max_ms": 49.89, &"finish_ms": 13.818, &"start_ms": 7.793 }, { &"dx": 50.0, &"x0": 5625.0, &"y0": -1925.0, &"reason": "загрузка", &"iters": [50, 50], &"status": "ok", &"warm": false, &"wall_ms": 735.81, &"total_ms": 2346.543, &"prep_ms": 678.409, &"gpu_ms": 584.583009541035, &"max_chunk_ms": 28.584032, &"chunks": 39, &"poll_max_ms": 48.524, &"finish_ms": 23.333, &"start_ms": 10.407 }], &"wall_s": 7.617303, &"loading": true, &"main_max_ms": 54.119 }
+air_model: поле 12:15 ч, 3.0 м/с с 150° (срок 15.0 мин): 22.25 с, итераций [120, 190], тёплый старт, окна ["100 м [20, 20]", "50 м [20, 30]"]
+flight_probe: прогон 0: 22.28 с, [120, 190]
+air_model: поле 12:30 ч, 3.0 м/с с 150° (срок 15.0 мин): 20.98 с, итераций [110, 180], тёплый старт, окна ["100 м [30, 40]", "50 м [40, 50]"]
+flight_probe: прогон 1: 21.00 с, [110, 180]
+air_model: поле 12:45 ч, 3.0 м/с с 150° (срок 15.0 мин): 17.05 с, итераций [120, 180], тёплый старт, окна ["100 м [10, 20]", "50 м [10, 30]"]
+flight_probe: прогон 2: 17.08 с, [120, 180]
+flight_probe: термики { &"main_build_ms": [1112.177, 1233.974, 1639.162], &"update_air_ms": [1109.049, 1353.614], &"thread": [{ &"wall_ms": 1641.031, &"frames": 8, &"frame_max_ms": 1289.628, &"same_as_main": true }, { &"wall_ms": 1698.655, &"frames": 34, &"frame_max_ms": 127.036, &"same_as_main": true }, { &"wall_ms": 1382.09, &"frames": 32, &"frame_max_ms": 102.312, &"same_as_main": true }], &"sources": 2774, &"grid": [96, 96, 50] }
+flight_probe: tools/research/air_speed/out/flight_base_320.json
+WARNING: 120 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 80 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketLargeE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
