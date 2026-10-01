@@ -308,7 +308,8 @@ func _apply_gamepad() -> void:
 	if gx != 0.0 or gy != 0.0:
 		# стик — трапеция и в полёте, и на земле (С2 v2): на земле нос и заданный крен крыла
 		control.roll = gx  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
-		control.pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
+		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v2)
+		control.pitch = -gy * inv
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
