@@ -165,6 +165,8 @@ func _fly(s: FlightSettings) -> void:
 	game.set_flying(true)
 	if opts.camera != "":
 		game.camera.set_mode(opts.camera)
+	if opts.fov_deg > 0.0:
+		game.camera.fov = opts.fov_deg
 	if opts.look != Vector2.ZERO:
 		game.camera.set_look(opts.look.x, opts.look.y)
 	if opts.glance:

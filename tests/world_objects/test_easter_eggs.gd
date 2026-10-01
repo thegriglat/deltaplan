@@ -60,6 +60,7 @@ func _flight(with_eggs: bool) -> Dictionary:
 		game.eggs.force("probe", 45.0)
 	else:
 		game.eggs.enabled = false
+	var key_start := game.world_key()
 	var start: Vector3 = game.get_start().position
 	var pts: Array[Vector3] = []
 	for i in 8:
@@ -89,7 +90,14 @@ func _flight(with_eggs: bool) -> Dictionary:
 			for p in pts:
 				av.append(game.air.air_velocity_at(p))
 			rec.append(av)
-	var out := {"rec": rec, "spawned": game.eggs.spawn_log.size(), "alive_max": alive_max}
+	var out := {
+		"rec": rec,
+		"spawned": game.eggs.spawn_log.size(),
+		"alive_max": alive_max,
+		"key_start": key_start,
+		"key_end": game.world_key(),
+		"bots": game.bots.agents.size(),
+	}
 	game.autopilot.release_all()
 	main.queue_free()
 	await _settle()
@@ -117,6 +125,12 @@ func test_physics_bitwise_same() -> void:
 	var b := await _flight(true)
 	check(int(b.spawned) >= 2, "в прогоне B пасхалки появились (%d)" % int(b.spawned))
 	check(int(b.alive_max) >= 1, "и были живы в дереве")
+	# К9 (v5): пасхалки не добавляют ботов в game.bots и не меняют ключ мира
+	check(int(b.bots) == int(a1.bots), "ботов игры столько же: %d / %d" % [b.bots, a1.bots])
+	check(
+		b.key_start == a1.key_start and b.key_end == a1.key_start,
+		"ключ мира тот же: %s → %s / %s" % [b.key_start, b.key_end, a1.key_start]
+	)
 	var d := _first_diff(a1.rec, b.rec)
 	check(d == "", "с пасхалками физика та же побитно: " + d)
 	print("         B: появлений %d, одновременно ≤ %d" % [b.spawned, b.alive_max])
