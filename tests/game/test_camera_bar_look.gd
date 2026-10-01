@@ -37,6 +37,9 @@ func _open_bar() -> Node:
 	var controls_cfg: Dictionary = Config.get_config("controls")
 	main.set_meta("_orig_mouse_mode", String(controls_cfg.mouse.mode))
 	controls_cfg.mouse.mode = "bar"
+	# Трапеция от мыши — только в воздухе (С2 v1; на земле смещение не копится, CF-2). Game
+	# выключен и tick не идёт — фазу задаём сами.
+	ic.on_ground = false
 	ic.set_mouse_captured(true)
 	return main
 
