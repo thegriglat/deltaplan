@@ -7,11 +7,13 @@ extends Node
 ## пересчёта. docs/air_model.md → «Загрузка и пересчёт поля».
 ##
 ##   rt.setup(atmo, {detail = layer, water = img, loc = {...}}, conditions_fn)
-##   await rt.load_field()        # экран загрузки: порции poll_slice, доля — progress_changed
+##   await rt.load_field()        # экран загрузки: кадр с этапом, затем один проход без кадров
 ##   rt.recompute_enabled = true  # полёт: пересчёт каждые recompute_game_min и при смене условий
 ##
-## Опрос решателя — сам, в _process (RD — только главный поток): при загрузке poll_slice(40 мс),
-## в полёте poll() порциями ≤ 25 мс. Ошибка/нет GPU/таймаут: при загрузке — аналитика и строка
+## Загрузка (контракт S2): после кадра с этапом «Рассчитываем ветер» — область и окна одним
+## проходом на главном потоке без отдачи кадров (_compute_pass; рабочие потоки — параллельно GPU).
+## Полёт — опрос в _process (RD — только главный поток): poll() порциями ≤ 25 мс.
+## Ошибка/нет GPU/таймаут: при загрузке — аналитика и строка
 ## «air_model: analytic (<причина>)», в полёте — остаётся прежнее поле, следующая попытка — на
 ## следующем сроке. Очереди нет: пересчёт, не успевший до следующего срока, по окончании сразу
 ## сменяется новым — на последний срок.
@@ -28,8 +30,9 @@ enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT }
 
 ## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
-## Экран загрузки: работа решателя за кадр, мс главного потока.
-const LOAD_SLICE_MS := 40.0
+## Загрузка: наибольший непрерывный кусок главного потока в этапе, мс. INF — весь расчёт одним
+## проходом (экран замирает на кадре с этапом «ветер»); конечное — кусками с кадром между ними.
+const LOAD_BLOCK_MS := INF
 ## Полёт: бюджет GPU-порции, мс (кадр не ждёт: poll() раз в кадр).
 const FLIGHT_CHUNK_MS := 25.0
 ## Смена условий, после которой пересчёт — внеочередной (ветер, м/с и °; погода — t_max, °C).
@@ -57,6 +60,8 @@ var last_info := {}
 var focus_fn: Callable
 ## Сдвигов окон за пилотом (замеры, тесты).
 var shift_count := 0
+## Кусок главного потока при загрузке, мс (LOAD_BLOCK_MS; замеры и тесты — конечное).
+var load_block_ms := LOAD_BLOCK_MS
 ## Число поданных полей и неудач за жизнь узла (замеры, тесты).
 var applied_count := 0
 var failed_count := 0
@@ -90,6 +95,12 @@ var _focus_node: Node3D
 var _focus_start := Vector3.ZERO
 var _dom_field: WindField
 var _pd := {}
+## Идёт загрузка проходом (_compute_pass): _process не опрашивает, сигналы клипмапа — проходу.
+var _blocking := false
+## Начало текущего куска главного потока (мкс) и наибольший кусок за проход, мс.
+var _piece_t0 := 0
+var _block_max := 0.0
+var _win_error := ""
 
 
 func _init() -> void:
@@ -210,10 +221,7 @@ func load_field() -> bool:
 	if _cur_key == _place_key and needs_recompute(_cur, c, _step_min()) == "":
 		progress_changed.emit(1.0)
 		return true  # то же место и условия: поле уже в атмосфере
-	_begin(c, "загрузка", true)
-	while _stage != Stage.IDLE:
-		await get_tree().process_frame
-	return _ok
+	return await _load_blocking(c)
 
 
 ## Внеочередной пересчёт по текущим условиям (в полёте). Идёт расчёт — не копится.
@@ -258,7 +266,8 @@ func stop() -> void:
 	if _task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
-	_build_id += 1  # собираемое поле больше не подаётся
+	_build_id += 1  # собираемое поле больше не подаётся; проход загрузки — прерван
+	_blocking = false
 	if _clip != null and _clip.is_busy():
 		_clip.release()
 	_stage = Stage.IDLE
@@ -298,6 +307,8 @@ func _step_min() -> float:
 
 
 func _process(_dt: float) -> void:
+	if _blocking:
+		return  # загрузка идёт проходом (_compute_pass)
 	var t_in := Time.get_ticks_usec()
 	match _stage:
 		Stage.IDLE:
@@ -313,11 +324,7 @@ func _process(_dt: float) -> void:
 		Stage.SOLVE:
 			_poll_solve()
 		Stage.WINDOWS, Stage.SHIFT:
-			if _loading:
-				_clip.poll_slice(LOAD_SLICE_MS)
-				progress_changed.emit(0.5 + 0.5 * _clip.progress())
-			else:
-				_clip.poll()
+			_clip.poll()
 	# сдвиг окон — свои пределы у задач окон (AirClipmap.timeout_s)
 	if _stage != Stage.IDLE and _stage != Stage.SHIFT and _timed_out():
 		_fail("таймаут расчёта (%.0f с)" % _timeout_s())
@@ -365,6 +372,184 @@ static func _prep_task(place: Dictionary, c: Dictionary, out: Dictionary) -> voi
 		out.case = PreparedCase.from_case(base)
 
 
+## Загрузка (S2): progress_changed(0.0), кадр с этапом «ветер» нарисован — затем область и окна
+## одним проходом (_compute_pass) и подача поля (_apply).
+func _load_blocking(c: Dictionary) -> bool:
+	_req = c.duplicate()
+	_req.hour = float(c.hour)
+	_req.reason = "загрузка"
+	_loading = true
+	_ok = false
+	_t0 = Time.get_ticks_usec()
+	_main_ms = 0.0
+	_block_max = 0.0
+	_stage = Stage.PREP
+	_blocking = true
+	var gen := _build_id
+	progress_changed.emit(0.0)
+	await RenderingServer.frame_post_draw
+	if gen != _build_id:
+		return false  # остановлен
+	_piece_t0 = Time.get_ticks_usec()
+	var levels := await _compute_pass(_req, gen)
+	if levels.is_empty() or gen != _build_id:
+		return false  # _fail или остановка
+	_apply(levels)
+	return _ok
+
+
+## Область и окна 100/50 м одним проходом: вход места и обе prepare (рабочий поток; входы окон —
+## в рабочих потоках параллельно), решатель области, сборка её поля (рабочий поток, параллельно
+## окнам), окна (AirClipmap.run_blocking). Главный поток ждёт; кадр — только если load_block_ms
+## конечно (кусками). Итог — уровни от мелкого к грубому, в r — разбивка времени (prep_s, solve_s,
+## build_s, windows_s), итерации, окна; пусто — неудача (_fail уже был) или остановка.
+func _compute_pass(r: Dictionary, gen: int) -> Array[WindField]:
+	var none: Array[WindField] = []
+	var t := Time.get_ticks_usec()
+	var prep := {}
+	_task = WorkerThreadPool.add_task(_prep_task.bind(_place, r, prep), false, "AirRuntime")
+	var clip: AirClipmap = null
+	if _windows_wanted():
+		clip = _new_clip(r)
+		clip.chunk_ms = 30.0
+		_clip = clip
+		var p: Vector3 = focus_fn.call()
+		clip.start(Vector2(p.x, -p.z))  # входы окон — в рабочих потоках, пока считается область
+	_win_error = ""
+	if not await _wait_task(_task, gen):
+		return none
+	_task = -1
+	r.prep_s = (Time.get_ticks_usec() - t) / 1e6
+	var c: AirCase = prep.get("case")
+	if c == null:
+		_fail("область вне слоя рельефа")
+		return none
+	# решатель области
+	_stage = Stage.SOLVE
+	t = Time.get_ticks_usec()
+	_job = AirPicardJob.new()
+	_job.case = c
+	_job.mech = true
+	_job.chunk_ms = 30.0
+	_job.timeout_s = maxf(_timeout_s() - (t - _t0) / 1e6, 1.0)
+	if not _job.start(_gpu):
+		_fail(_job.error)
+		return none
+	r.start_ms = (Time.get_ticks_usec() - t) / 1000.0
+	while not _job.is_done() and _job.error == "":
+		_job.poll_slice(_piece_left_ms())
+		if not _job.is_done() and _job.error == "":
+			progress_changed.emit(_job.progress() * (0.5 if clip != null else 1.0))
+			if not await _yield_frame(gen):
+				return none
+	if _job.error != "":
+		_fail(_job.error)
+		return none
+	r.solve_s = (Time.get_ticks_usec() - t) / 1e6
+	_warm_next = _job.state()
+	(
+		r
+		. merge(
+			{
+				iters = _job.results.map(_iters_of),
+				gpu_s = _job.gpu_ms_total / 1000.0,
+				warm = false,
+				poll_max_ms = _job.max_poll_cpu_ms,
+				chunk_max_ms = _job.max_chunk_gpu_ms,
+			},
+			true
+		)
+	)
+	var pd := _job.parent_data() if clip != null else {}
+	# сборка поля области — в рабочем потоке, пока считаются окна (как field_async)
+	var inp := _job._field_inputs()
+	_job.release()
+	_job = null
+	_stage = Stage.BUILD
+	var built := {}
+	var mx := [float(_cfg.get("max_speed_ms", 40.0)), float(_cfg.get("max_w_ms", 10.0))]
+	var bt := _build_task.bind(inp, mx[0], mx[1], built)
+	_task = WorkerThreadPool.add_task(bt, false, "AirRuntime")
+	var win_ok := false
+	if clip != null:
+		_stage = Stage.WINDOWS
+		t = Time.get_ticks_usec()
+		clip.timeout_s = maxf(_timeout_s() - (t - _t0) / 1e6, 1.0)
+		clip.set_domain_data(pd, null)
+		if is_inf(load_block_ms):
+			win_ok = clip.run_blocking()
+		else:
+			while clip.is_busy():
+				clip.poll_slice(_piece_left_ms())
+				if clip.is_busy():
+					progress_changed.emit(0.5 + 0.5 * clip.progress())
+					if not await _yield_frame(gen):
+						return none
+			win_ok = _win_error == "" and clip.is_ready()
+		r.windows_s = (Time.get_ticks_usec() - t) / 1e6
+		if not win_ok:
+			print("air_model: окна не посчитались (%s) — только область" % _win_error)
+	if not await _wait_task(_task, gen):
+		return none
+	_task = -1
+	r.build_s = float(built.get("ms", 0.0)) / 1000.0
+	var f: WindField = built.get("field")
+	if f == null:
+		_fail("поле не собралось")
+		return none
+	if _timed_out():
+		_fail("таймаут расчёта (%.0f с)" % _timeout_s())
+		return none
+	f.meta.source = "gpu"
+	f.meta.cond = {wind = snappedf(float(r.u10), 0.01), wdir = snappedf(float(r.wdir), 0.1)}
+	if not win_ok:
+		var one: Array[WindField] = [f]
+		return one
+	clip.set_domain_data(pd, f)  # набор окон + область (levels_changed)
+	var lv := clip.levels()
+	r.windows = clip.history.slice(-lv.size() + 1)
+	return lv
+
+
+## Рабочий поток: WindField области (как AirPicardJob.field_async) и время сборки, мс.
+static func _build_task(inp: Dictionary, max_speed: float, max_w: float, out: Dictionary) -> void:
+	var t0 := Time.get_ticks_usec()
+	out.field = AirPicardJob._build_field(inp, max_speed, max_w)
+	out.ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+## Сколько ещё можно занять главный поток в текущем куске, мс (один проход — без предела).
+func _piece_left_ms() -> float:
+	if is_inf(load_block_ms):
+		return 1.0e9
+	return maxf(load_block_ms - (Time.get_ticks_usec() - _piece_t0) / 1000.0, 1.0)
+
+
+## Конец куска: кадр (кусками) и проверка таймаута. false — остановлен или таймаут (_fail).
+func _yield_frame(gen: int) -> bool:
+	_block_max = maxf(_block_max, (Time.get_ticks_usec() - _piece_t0) / 1000.0)
+	await get_tree().process_frame
+	_piece_t0 = Time.get_ticks_usec()
+	if gen != _build_id:
+		return false
+	if _timed_out():
+		_fail("таймаут расчёта (%.0f с)" % _timeout_s())
+		return false
+	return true
+
+
+## Ждать задачу рабочего потока: один проход — сразу, кусками — с кадрами. false — остановлен.
+func _wait_task(id: int, gen: int) -> bool:
+	if not is_inf(load_block_ms):
+		while not WorkerThreadPool.is_task_completed(id):
+			if not await _yield_frame(gen):
+				return false
+	if gen != _build_id:
+		return false
+	WorkerThreadPool.wait_for_task_completion(id)
+	return gen == _build_id
+
+
 func _poll_prep() -> void:
 	if not WorkerThreadPool.is_task_completed(_task):
 		return
@@ -392,9 +577,7 @@ func _poll_prep() -> void:
 
 
 func _poll_solve() -> void:
-	var p := _job.poll_slice(LOAD_SLICE_MS) if _loading else _job.poll()
-	if _loading:
-		progress_changed.emit(p * (0.5 if _windows_wanted() else 1.0))
+	_job.poll()
 	if _job.error != "":
 		_fail(_job.error)
 		return
@@ -453,21 +636,7 @@ func _on_field(f: WindField, id: int) -> void:
 func _start_windows() -> void:
 	var fresh := _loading or _clip == null or not _clip.is_ready()
 	if fresh:
-		_clip = AirClipmap.new()
-		_clip.use_gpu(_gpu)
-		_clip.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
-		_clip.setup(
-			_place.detail,
-			_place.get("water"),
-			_place.loc,
-			float(_req.hour),
-			float(_req.u10),
-			float(_req.wdir),
-			float(_req.get("t_max", NAN)),
-			String(_req.get("sky", "clear"))
-		)
-		_clip.levels_changed.connect(_on_levels)
-		_clip.failed.connect(_on_windows_failed)
+		_clip = _new_clip(_req)
 	else:
 		_clip.set_conditions(
 			float(_req.hour),
@@ -482,6 +651,26 @@ func _start_windows() -> void:
 		var p: Vector3 = focus_fn.call()
 		_clip.start(Vector2(p.x, -p.z))
 	_stage = Stage.WINDOWS
+
+
+## Новый клипмап по месту и условиям r (окна ещё не заведены: start).
+func _new_clip(r: Dictionary) -> AirClipmap:
+	var cm := AirClipmap.new()
+	cm.use_gpu(_gpu)
+	cm.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
+	cm.setup(
+		_place.detail,
+		_place.get("water"),
+		_place.loc,
+		float(r.hour),
+		float(r.u10),
+		float(r.wdir),
+		float(r.get("t_max", NAN)),
+		String(r.get("sky", "clear"))
+	)
+	cm.levels_changed.connect(_on_levels)
+	cm.failed.connect(_on_windows_failed)
+	return cm
 
 
 func _windows_wanted() -> bool:
@@ -501,6 +690,8 @@ func _update_windows() -> void:
 
 
 func _on_levels(levels: Array[WindField]) -> void:
+	if _blocking:
+		return  # набор забирает проход загрузки
 	if _stage == Stage.SHIFT:
 		atmosphere.call("set_air_field", levels, -1.0)
 		shift_count += 1
@@ -512,6 +703,9 @@ func _on_levels(levels: Array[WindField]) -> void:
 
 
 func _on_windows_failed(reason: String) -> void:
+	if _blocking:
+		_win_error = reason
+		return
 	if _stage == Stage.SHIFT:
 		print("air_model: сдвиг окон не удался (%s) — прежние уровни" % reason)
 		_stage = Stage.IDLE
@@ -531,6 +725,12 @@ func _apply(levels: Array[WindField]) -> void:
 	_warm_next = {}
 	_req.wall_s = (Time.get_ticks_usec() - _t0) / 1e6
 	_req.loading = _loading
+	if _blocking:
+		_block_max = maxf(_block_max, (Time.get_ticks_usec() - _piece_t0) / 1000.0)
+		_req.block_max_s = _block_max / 1000.0
+		_req.blocking = true
+		_main_ms = _block_max
+		_blocking = false
 	_req.main_max_ms = _main_ms
 	last_info = _req.duplicate()
 	last_error = ""

@@ -638,3 +638,133 @@ func test_runtime_with_windows() -> void:
 	rt.queue_free()
 	host.queue_free()
 	atmo.free()
+
+
+# ---------------------------------------------------------------- загрузка одним проходом (S2)
+
+
+## Поле загрузки AirRuntime одним проходом (S2, LOAD_BLOCK_MS = INF) и кусками (load_block_ms =
+## 40) — побитно то же, что прежняя нарезка экрана загрузки (C9 v2: область poll_slice(40) раз в
+## кадр → field_async → клипмап poll_slice(40) раз в кадр), все три уровня; итерации те же;
+## разбивка времени в last_info.
+func test_runtime_blocking_bitwise() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	var loc := TestAirPlace.load_loc("ongudai")
+	var detail: HeightLayer = lw[0]
+	var place := {detail = detail, water = lw[1], loc = loc}
+	_rt_cond = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
+	var m100 := TestAirPicard.load_fix(FIX_W + "ongudai_w100_h12")
+	var start := Vector3(float(m100.site.x), 0.0, -float(m100.site.y))
+	start.y = detail.sample(start.x, start.z)
+	var tree := Engine.get_main_loop() as SceneTree
+	await tree.process_frame
+	# ---- эталон: нарезка, как загрузка до S2
+	var ac: Dictionary = Config.get_config("atmosphere").get("air_model", {})
+	var prep := {}
+	AirRuntime._prep_task(place, _rt_cond, prep)
+	var dom := AirPicardJob.new()
+	dom.case = prep.get("case")
+	dom.mech = true
+	dom.chunk_ms = 30.0
+	if dom.case == null or not await run_job(dom, true):
+		failures.append("эталон: область не посчиталась")
+		return
+	var pd := dom.parent_data()
+	var got_df := []
+	dom.field_ready.connect(func(f: WindField) -> void: got_df.append(f), CONNECT_ONE_SHOT)
+	dom.field_async(float(ac.get("max_speed_ms", 40.0)), float(ac.get("max_w_ms", 10.0)))
+	var dom_iters := dom.results.map(func(r: Dictionary) -> int: return int(r.iters))
+	dom.release()
+	while got_df.is_empty():
+		await tree.process_frame
+	var df: WindField = got_df[0]
+	df.meta.source = "gpu"
+	df.meta.cond = {wind = 3.0, wdir = 150.0}
+	var cm := AirClipmap.new()
+	cm.chunk_ms = 30.0
+	cm.setup(detail, lw[1], loc, 12.0, 3.0, 150.0, NAN, "clear")
+	var ref: Array = []
+	cm.levels_changed.connect(func(lv: Array[WindField]) -> void: ref.append(lv))
+	cm.set_domain_data(pd, df)
+	cm.start(Vector2(start.x, -start.z))
+	await run_clipmap(cm, true)
+	var ref_win := cm.history.map(func(h: Dictionary) -> Array: return h.iters)
+	cm.release()
+	if ref.size() != 1:
+		failures.append("эталон: окна не посчитались")
+		return
+	# ---- AirRuntime: один проход и кусками по 40 мс
+	for block_ms in [INF, 40.0]:
+		var atmo := _bitwise_atmo()
+		var host := Node.new()
+		host.set_physics_process(false)
+		var pilot := Node3D.new()
+		host.add_child(pilot)
+		tree.root.add_child(host)
+		var rt := AirRuntime.new()
+		tree.root.add_child(rt)
+		rt.load_block_ms = block_ms
+		rt.setup(atmo, place, _rt_conditions)
+		rt.set_focus(pilot, start)
+		var ok: bool = await rt.load_field()
+		var li := rt.last_info
+		var label := "один проход" if is_inf(block_ms) else "кусками %.0f мс" % block_ms
+		check(ok, "%s: поле посчитано (%s)" % [label, rt.last_error])
+		if ok:
+			var lv: Array[WindField] = atmo.air_field.levels
+			check(lv.size() == 3, "%s: три уровня" % label)
+			for q in mini(lv.size(), 3):
+				var diff := field_diff(lv[q], ref[0][q])
+				check(diff.is_empty(), "%s: уровень %d м побитно как нарезка %s" % [label, lv[q].dx, diff])
+			check(str(li.get("iters")) == str(dom_iters), "%s: итерации области" % label)
+			var wi: Array = (li.get("windows", []) as Array).map(
+				func(h: Dictionary) -> Array: return h.iters
+			)
+			check(str(wi) == str(ref_win), "%s: итерации окон %s = %s" % [label, wi, ref_win])
+			for k in ["prep_s", "solve_s", "build_s", "windows_s", "block_max_s"]:
+				check(float(li.get(k, -1.0)) > 0.0, "%s: last_info.%s" % [label, k])
+			check(li.get("blocking") == true, "%s: last_info.blocking" % label)
+			print(
+				(
+					"  %s: стена %.2f с (вход %.2f, решатель %.2f, сборка %.2f, окна %.2f), кусок max %.2f с"
+					% [
+						label,
+						float(li.wall_s),
+						float(li.prep_s),
+						float(li.solve_s),
+						float(li.build_s),
+						float(li.windows_s),
+						float(li.block_max_s)
+					]
+				)
+			)
+		rt.stop()
+		rt.queue_free()
+		host.queue_free()
+		await tree.process_frame
+		atmo.free()
+
+
+func _bitwise_atmo() -> Atmosphere:
+	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
+	w.wind_speed_kmh = Units.to_kmh(3.0)
+	w.wind_from_deg = 150.0
+	w.thermal_mode = "static"
+	w.static_thermals = []
+	var atmo := Atmosphere.new()
+	atmo.visuals_enabled = false
+	atmo.configure(Config.get_config("atmosphere"), w)
+	atmo.set_thermal_mode("static")
+	atmo.turbulence_enabled = false
+	atmo.step(0.01)
+	return atmo
+
+
+## Свойства WindField, что различаются (побитно, var_to_bytes); пусто — поля одинаковы.
+static func field_diff(a: WindField, b: WindField) -> Array[String]:
+	var out: Array[String] = []
+	for pr in a.get_property_list():
+		if pr.usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			if var_to_bytes(a.get(pr.name)) != var_to_bytes(b.get(pr.name)):
+				out.append(String(pr.name))
+	return out

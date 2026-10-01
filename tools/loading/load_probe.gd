@@ -8,6 +8,8 @@ extends Node
 ## Встроенное место вместо точки: --location=<id> [--hour=12]; --stage-shot=<этап> — кадр экрана
 ## загрузки в начале этапа (например wind) и через 0,5 с (--no-shots — только интервалы кадров
 ## этапа: чтение кадра само даёт интервал ~0,3 с); --lang=ru|en — язык.
+## --load-block-ms=<мс> — загрузка поля ветра кусками с кадром между ними (AirRuntime.load_block_ms;
+## по умолчанию — один проход без кадров, контракт S2).
 ## --cache — свой кеш рельефа (пустая папка — «холодная» загрузка из сети); --url=<шаблон> —
 ## другой адрес тайлов (проверка ошибок сети).
 ## Код выхода: 0 — полёт начался, 2 — вернулись в меню (ошибка показана), 1 — таймаут.
@@ -35,6 +37,7 @@ var _in_stage := false
 var _stage_t0 := 0
 ## Кадры экрана этапа не снимать (только замер интервалов этапа).
 var _no_shots := false
+var _load_block_ms := NAN
 
 
 func _ready() -> void:
@@ -70,6 +73,8 @@ func _ready() -> void:
 				Config.get_config("game").language = v  # главная сцена включит его сама
 			"no-shots":
 				_no_shots = true
+			"load-block-ms":
+				_load_block_ms = float(v)
 	if is_nan(_lat) and _location == "":
 		push_error("load_probe: нужен --latlon=<lat>,<lon> или --location=<id>")
 		get_tree().quit(1)
@@ -105,6 +110,8 @@ func _run() -> void:
 	for i in 10:
 		await get_tree().process_frame
 	var terrain: Terrain = game.terrain
+	if not is_nan(_load_block_ms):
+		game.air_runtime.load_block_ms = _load_block_ms
 	terrain.progress.trace = true
 	# как автостарт: выбор пилота (user://last_flight.json) замер не перезаписывает
 	(_main.get("opts") as LaunchOptions).autostart = true
@@ -157,6 +164,9 @@ func _run() -> void:
 		print("load_probe: этап %-10s %6.2f с" % [d.key, d.s])
 	if _stage_shot != "":
 		print("load_probe: этап %s — макс. интервал %.0f мс" % [_stage_shot, _stage_max_gap * 1000.0])
+	var gm: Game = _main.get_node("Game")
+	if gm.air_runtime != null and not gm.air_runtime.last_info.is_empty():
+		print("load_probe: air %s" % JSON.stringify(gm.air_runtime.last_info))
 	await _quit(code)
 
 

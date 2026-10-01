@@ -1,7 +1,8 @@
 extends TestCase
 ## AirRuntime на GPU (AM-06Б, контракт C9): поле Онгудая (область 400 м) при загрузке — готово, в
 ## атмосфере, выборка у старта совпадает с AirPicardJob напрямую; пересчёт в полёте по сроку
-## (тёплый старт) и при смене ветра; кадр во время расчёта.
+## (тёплый старт) и при смене ветра; кадр во время пересчёта. Загрузка — одним проходом (S2):
+## кадр с этапом до прохода, разбивка времени в last_info.
 ## tools/gpu_tests.sh --filter=test_air_runtime (под flock /tmp/heat_ca_gpu.lock).
 ## AIR_RUNTIME_TRACE=<файл.csv> — ещё и ход w в точке у старта через пересчёт (график:
 ## tools/research/air_runtime/plot_blend.py).
@@ -124,7 +125,25 @@ func test_ongudai_runtime() -> void:
 		return
 	check(atmo.is_air_field_on(), "поле в атмосфере")
 	check(atmo.air_field.blend_fraction() == 1.0, "при загрузке — без подмены")
-	check(g.x <= 100.0, "кадр загрузки ≤ 100 мс (%.0f)" % g.x)
+	# S2: один проход без кадров — наибольший кадр загрузки и есть проход
+	check(li.get("blocking") == true, "загрузка одним проходом (last_info.blocking)")
+	for k in ["prep_s", "solve_s", "build_s", "block_max_s"]:
+		check(float(li.get(k, -1.0)) > 0.0, "last_info.%s" % k)
+	print(
+		(
+			"  загрузка: вход %.2f с, решатель %.2f с, сборка %.2f с, кусок главного потока max %.2f с"
+			% [
+				float(li.get("prep_s", 0)),
+				float(li.get("solve_s", 0)),
+				float(li.get("build_s", 0)),
+				float(li.get("block_max_s", 0))
+			]
+		)
+	)
+	check(
+		float(li.get("block_max_s", 0)) <= float(li.get("wall_s", 0)) + 1e-6,
+		"кусок ≤ стены этапа"
+	)
 	# ---- выборка у старта против AirPicardJob напрямую
 	var job := AirPicardJob.new()
 	job.case = AirPlace.domain_case(detail, lw[1], loc, 400.0, 12.0, 3.0, 150.0)

@@ -16,7 +16,10 @@ extends RefCounted
 ##   cm.levels_changed.connect(func(lv): atmo.set_air_field(lv))
 ##   cm.set_domain(domain_job, domain_field)     # после решения области (при пересчёте — снова)
 ##   cm.start(start_xz)                          # окна с центром на старте
-##   …раз в кадр: cm.update(pilot_pos); cm.poll()  (экран загрузки: cm.poll_slice(40))
+##   …раз в кадр: cm.update(pilot_pos); cm.poll()  (экран загрузки: cm.run_blocking())
+## Окна можно завести (start) до решения области: входы окон готовятся в рабочих потоках, пока
+## область решается; первое окно ждёт set_domain_data. Поле области можно отдать позже
+## (set_domain_data(pd, null), затем тот же pd с полем) — levels_changed ждёт его.
 
 ## Новый набор уровней готов (от мелкого к грубому: окно 50 м, окно 100 м, область).
 signal levels_changed(levels: Array[WindField])
@@ -71,6 +74,12 @@ var _gpu_external := false
 var _domain_dirty := false
 ## После неудачи — не пробовать сдвиг до этого момента (мкс).
 var _retry_at := 0
+## Набор окон готов, а поля области ещё нет (set_domain_data(pd, null)) — levels_changed после.
+var _levels_due := false
+## Идёт run_blocking: поля окон собираются в рабочих потоках, главный поток их ждёт (без кадров).
+var _blocking := false
+## Неудач очереди (run_blocking: была ли неудача за проход).
+var _fail_count := 0
 
 
 ## Вход места — как AirPlace.domain_case (detail — слой 25 м, water — маска или null, loc —
@@ -126,10 +135,19 @@ func set_domain(domain_job: AirPicardJob, domain_field: WindField) -> void:
 
 
 ## То же с готовым parent_data() области (задача уже освобождена).
+## field = null — поле области ещё собирается: окна считаются, набор (levels_changed) — когда
+## придёт тот же pd с полем. Окна, заведённые до области (start раньше), ждут здесь только pd.
 func set_domain_data(pd: Dictionary, domain_field: WindField) -> void:
+	if is_same(pd, _domain_pd):
+		_domain_field = domain_field
+		if _levels_due and domain_field != null:
+			_levels_due = false
+			levels_changed.emit(levels())
+		return
+	var awaited := _domain_pd.is_empty() and _cur == 0 and _job == null and not _waiting_field
 	_domain_pd = pd
 	_domain_field = domain_field
-	if not _lv.is_empty():
+	if not _lv.is_empty() and not awaited:
 		if is_busy():
 			_domain_dirty = true
 		else:
@@ -222,6 +240,39 @@ func poll_slice(slice_ms: float) -> void:
 	_poll(slice_ms)
 
 
+## Экран загрузки одним проходом (S2): довести очередь окон до конца без кадров — входы окон
+## ждать в рабочих потоках, решатель — AirGpuJob.run_blocking, поля окон собираются в рабочих
+## потоках параллельно со следующим окном (главный поток ждёт их в конце). Итог — как у
+## poll_slice: levels_changed (или позже, когда придёт поле области) / failed. true — набор
+## готов. Предел времени окна — timeout_s (проверяется внутри решателя). Нужна область
+## (set_domain_data); поле окна, собираемое после poll/poll_slice (field_ready ещё не пришёл),
+## без кадра не дождаться — false, расчёт продолжит poll.
+func run_blocking() -> bool:
+	if _waiting_field:
+		return false
+	_blocking = true
+	var fails := _fail_count
+	while _cur >= 0:
+		var row := _cur_row
+		if int(row.task) >= 0:
+			WorkerThreadPool.wait_for_task_completion(int(row.task))
+			row.task = -1
+		if _job == null:
+			if _cur == 0 and _domain_pd.is_empty():
+				_fail("нет области (set_domain_data)")
+				break
+			_start_job()
+			if _job == null:
+				break  # _fail уже был
+		_job.run_blocking()
+		if _job.error != "":
+			_fail(_job.error)
+			break
+		_level_done()
+	_blocking = false
+	return _fail_count == fails and is_ready() and not is_busy()
+
+
 func release() -> void:
 	if _job != null:
 		_job.release()
@@ -270,6 +321,9 @@ func _pending_row(q: int) -> Dictionary:
 
 func _next() -> void:
 	if _queue.is_empty():
+		if not _collect_fields():
+			_fail("поле окна не построено")
+			return
 		_finish_all()
 		return
 	_cur = _queue.pop_front()
@@ -400,6 +454,18 @@ func _level_done() -> void:
 	if q < _lv.size() - 1:
 		row.pd = job.parent_data()
 	row.st = job.window_state()
+	if _blocking:
+		# поле окна — в рабочем потоке, пока решается следующее окно; ждём в конце очереди
+		var inp := job._field_inputs()
+		job.release()
+		row.built = {}
+		row.ftask = WorkerThreadPool.add_task(_build_window_field.bind(inp, row.built))
+		_job = null
+		history[-1].finish_ms = (Time.get_ticks_usec() - t_done) / 1000.0
+		history[-1].start_ms = float(row.get("start_ms", 0.0))
+		_cur = -1
+		_next()
+		return
 	_waiting_field = true
 	job.field_ready.connect(_on_field.bind(row), CONNECT_ONE_SHOT)
 	job.field_async()
@@ -408,6 +474,27 @@ func _level_done() -> void:
 	_job = null
 	history[-1].finish_ms = (Time.get_ticks_usec() - t_done) / 1000.0
 	history[-1].start_ms = float(row.get("start_ms", 0.0))
+
+
+## Рабочий поток: поле окна (как AirPicardJob.field_async, пределы по умолчанию).
+static func _build_window_field(inp: Dictionary, out: Dictionary) -> void:
+	var t0 := Time.get_ticks_usec()
+	out.field = AirPicardJob._build_field(inp, 40.0, 10.0)
+	out.ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+## run_blocking: дождаться полей окон очереди (рабочие потоки). false — поле не собралось.
+func _collect_fields() -> bool:
+	var ok := true
+	for row in _pending:
+		if int(row.get("ftask", -1)) >= 0:
+			WorkerThreadPool.wait_for_task_completion(int(row.ftask))
+			row.ftask = -1
+			row.field = row.built.get("field")
+			row.build_ms = float(row.built.get("ms", 0.0))
+			row.erase("built")
+			ok = ok and row.field != null
+	return ok
 
 
 func _on_field(f: WindField, row: Dictionary) -> void:
@@ -427,7 +514,10 @@ func _finish_all() -> void:
 		_lv[off + i] = _pending[i]
 	_pending.clear()
 	_cur = -1
-	levels_changed.emit(levels())
+	if _domain_field == null and not _domain_pd.is_empty():
+		_levels_due = true  # поле области ещё собирается — набор, когда придёт (set_domain_data)
+	else:
+		levels_changed.emit(levels())
 	if _domain_dirty:
 		_domain_dirty = false
 		_enqueue(0, "область")
@@ -435,6 +525,8 @@ func _finish_all() -> void:
 
 func _fail(msg: String) -> void:
 	_wait_tasks()
+	_collect_fields()
+	_fail_count += 1
 	if _job != null:
 		_job.release()
 		_job = null
