@@ -34,7 +34,10 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 		var mean := Callable(air, "mean_wind_at") if air.has_method("mean_wind_at") else Callable()
 		var th := Callable(air, "thermals_near") if air.has_method("thermals_near") else Callable()
 		var gusts := Callable(air, "air_velocity_at") if air.has_method("air_velocity_at") else Callable()
-		terrain.set_wind_sources(mean, th, gusts)
+		# Поле воздуха для травы (AM-10, WF-10): сам air (Atmosphere) — is_air_field_on(),
+		# air_field. У CalmAir и т. п. этого метода нет — текстура ветра поля не строится.
+		var field_src: Object = air if air.has_method("is_air_field_on") else null
+		terrain.set_wind_sources(mean, th, gusts, field_src)
 	_terrain = terrain
 	if terrain.has_method("set_pilot"):
 		terrain.set_pilot(pilot)

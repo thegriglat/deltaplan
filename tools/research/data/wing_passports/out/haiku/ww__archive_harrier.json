@@ -1,0 +1,131 @@
+{
+  "src_files": ["ww__archive_harrier.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier",
+      "size": "147",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 147,
+          "unit": "ft²",
+          "quote": "Area (ft²) 147"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier entered production in October 1980"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier",
+      "size": "177",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 177,
+          "unit": "ft²",
+          "quote": "Area (ft²) 177"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier entered production in October 1980"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier",
+      "size": "187",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 187,
+          "unit": "ft²",
+          "quote": "Area (ft²) 187"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier entered production in October 1980"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier II",
+      "size": "147",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 147,
+          "unit": "ft²",
+          "quote": "Area (ft²) 147"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier II designation indicates a second-generation variant produced during the same general era"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier II",
+      "size": "177",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 177,
+          "unit": "ft²",
+          "quote": "Area (ft²) 177"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier II designation indicates a second-generation variant produced during the same general era"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Harrier II",
+      "size": "187",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 187,
+          "unit": "ft²",
+          "quote": "Area (ft²) 187"
+        },
+        {
+          "field": "year",
+          "value": 1980,
+          "unit": "year",
+          "quote": "The Harrier II designation indicates a second-generation variant produced during the same general era"
+        }
+      ]
+    }
+  ]
+}

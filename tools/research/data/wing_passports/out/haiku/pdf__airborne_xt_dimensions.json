@@ -1,0 +1,57 @@
+{
+  "src": "pdf__airborne__xt_series_dimensions.pdf.txt",
+  "wings": [
+    {
+      "manufacturer": "Airborne",
+      "model": "XT Series",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "geometry": [
+        {
+          "name": "Trike assembly width",
+          "value": 10020,
+          "unit": "mm",
+          "quote": "MEASURED WIDTH 10020mm"
+        },
+        {
+          "name": "Vertical dimension",
+          "value": 3865,
+          "unit": "mm",
+          "quote": "3865 APPROX"
+        },
+        {
+          "name": "Dimension (measured)",
+          "value": 1685,
+          "unit": "mm",
+          "quote": "1685 MEASURED"
+        },
+        {
+          "name": "Dimension (measured)",
+          "value": 1910,
+          "unit": "mm",
+          "quote": "1910 MEASURED"
+        },
+        {
+          "name": "Dimension (measured)",
+          "value": 1240,
+          "unit": "mm",
+          "quote": "1240 MEASURED"
+        },
+        {
+          "name": "Dimension (measured)",
+          "value": 2880,
+          "unit": "mm",
+          "quote": "2880 MEASURED"
+        },
+        {
+          "name": "Trike base height reference",
+          "value": 3417,
+          "unit": "mm",
+          "quote": "3417 APPROX"
+        }
+      ]
+    }
+  ]
+}

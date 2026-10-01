@@ -1,0 +1,38 @@
+{
+ "+185_+055": {
+  "landcover_vec_br": 955045,
+  "vertices": 653974,
+  "unique_vertices": 457933,
+  "vertices_in_shared_points": 387029,
+  "raster5m_px": 21328160,
+  "raster5m_br9": 718985,
+  "raster5m_zstd19": 607048,
+  "raster2m_px": 133301000,
+  "raster2m_br9": 2015351,
+  "raster2m_zstd19": 1864309
+ },
+ "+184_+055": {
+  "landcover_vec_br": 1315804,
+  "vertices": 879380,
+  "unique_vertices": 536660,
+  "vertices_in_shared_points": 674962,
+  "raster5m_px": 21428240,
+  "raster5m_br9": 868557,
+  "raster5m_zstd19": 708078,
+  "raster2m_px": 133912600,
+  "raster2m_br9": 2402317,
+  "raster2m_zstd19": 2203193
+ },
+ "+184_+058": {
+  "landcover_vec_br": 1317312,
+  "vertices": 769563,
+  "unique_vertices": 508437,
+  "vertices_in_shared_points": 512532,
+  "raster5m_px": 21428240,
+  "raster5m_br9": 1126237,
+  "raster5m_zstd19": 907344,
+  "raster2m_px": 133912600,
+  "raster2m_br9": 3120475,
+  "raster2m_zstd19": 2702331
+ }
+}

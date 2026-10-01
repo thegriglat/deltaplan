@@ -1,7 +1,7 @@
 // Травинки вокруг камеры (VR-17, VR-6): пучки на сетке, привязанной к миру (при движении не
 // «прыгают»), MultiMesh без трансформов — положение, высоту и цвет каждого пучка считает шейдер.
-// Где трава — решает карта поверхности (луг, пашня — выше, кустарник — реже; лес, скалы, вода,
-// застройка — нет); цвет — цвет земли луга в этой точке (meadow_look.gdshaderinc: палитра,
+// Где трава — решает карта поверхности (луг, пашня — выше, кустарник — реже, лес — реже, ниже и
+// темнее, тень полога; скалы, вода, застройка — нет); цвет — цвет земли луга в этой точке (meadow_look.gdshaderinc: палитра,
 // влажность, экспозиция, пятна с высоты — как рисует terrain.gdshader). Качание — тем же полем
 // ветра, что колышет рельеф (порывы, термики), приминание у ног пилота. Параметры задаёт
 // GrassField из configs/vegetation.json → grass.
@@ -20,6 +20,10 @@ uniform float area_radius_m = 35.0;
 uniform vec2 blade_height_m = vec2(0.25, 0.55);   // луг, мин/макс
 uniform vec2 crop_height_m = vec2(0.6, 0.9);      // посевы (нива)
 uniform float shrub_density = 0.5;
+// трава под пологом леса (К2 v2): доля пучков, высота мин/макс, множитель цвета (тень полога)
+uniform float forest_density = 0.0;
+uniform vec2 forest_height_m = vec2(0.12, 0.3);
+uniform float forest_shade = 1.0;
 uniform float color_variation = 0.15;
 uniform vec3 blade_tint = vec3(1.08, 1.0, 0.85);  // оттенок травинок поверх цвета луга
 uniform float dry_clump_share = 0.0;              // доля сухих соломенных пучков (редкие)
@@ -96,6 +100,8 @@ void vertex() {
 			hh = mix(crop_height_m.x, crop_height_m.y, r);
 		} else if (c == 4 && hash12(cell + 8.8) < shrub_density) {
 			hh = mix(blade_height_m.x, blade_height_m.y, r);
+		} else if (c == 1 && hash12(cell + 8.8) < forest_density) {
+			hh = mix(forest_height_m.x, forest_height_m.y, r);
 		}
 		float e = layer_spacing;
 		vec3 n = normalize(vec3(h_bilinear(xz - vec2(e, 0.0)) - h_bilinear(xz + vec2(e, 0.0)), 2.0 * e,
@@ -157,6 +163,8 @@ void vertex() {
 		base = meadow_macro(xz, base, 0.05, wet, d, 0.0);
 		if (c == 3) {
 			base = field_plot_color(xz, base);
+		} else if (c == 1) {
+			base *= forest_shade;   // под пологом темнее
 		}
 		// редкие сухие пучки — солома той же яркости (основной тон — из палитры луга: сухо там,
 		// где сухо по локации, южным склонам и пятнам)

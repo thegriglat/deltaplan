@@ -1,7 +1,8 @@
 extends Node
 ## NET-31. NetZone: Zone ↔ FlightSettings; три клиента и сервер (NetTestServer: Go-сервер и
 ## встроенный LocalServer, NET-22):
-## создание и вход по коду, единый список пилотов и ведущий, часы зоны у всех вместе, уход
+## создание и вход по коду, единый список пилотов и ведущий, часы зоны у всех вместе, источники
+## термиков из поля от ведущего (ZoneState.thermalSources, AM-07), уход
 ## ведущего → ведущий второй, часы без скачка > 0,2 с, очередь сохранилась; неверный код →
 ## ZONE_NOT_FOUND. Нет go или исходников сервера — вид "go" SKIP (тест проходит).
 
@@ -150,6 +151,15 @@ func _three_pilots_leader_leaves(srv: NetTestServer) -> void:
 		var d: float = absf(z.zone_time() - za.zone_time())
 		check(d < 0.2, "часы у %s отстают от A на %.3f с" % [z.my_id, d])
 	check(zb.queue == za.queue and zc.queue == za.queue, "очередь у всех: %s" % [zb.queue])
+	# источники термиков из поля (AM-07): ведущий ставит — у всех те же, маска байт в байт
+	var mask := PackedByteArray([0x02, 0x04, 0x00, 0x80])
+	za.set_thermal_sources("400.000,-19200.000,-19200.000,4,8", mask)
+	await _wait(func() -> bool: return not zb.thermal_sources.is_empty(), 2.0)
+	await _wait(func() -> bool: return not zc.thermal_sources.is_empty(), 1.0)
+	for z: Node in [zb, zc]:
+		check(z.thermal_sources == za.thermal_sources, "источники термиков: %s" % [z.thermal_sources])
+		var got := Marshalls.base64_to_raw(String(z.thermal_sources.get("mask", "")))
+		check(got == mask, "маска источников байт в байт: %s" % [got])
 	# очередь с ботами, затем ведущий уходит
 	za.set_queue([ids[0], ids[1], ids[2], "bot-1", "bot-2"])
 	await _wait(func() -> bool: return zb.queue.size() == 5 and zc.queue.size() == 5, 2.0)

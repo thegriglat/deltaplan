@@ -1,0 +1,4 @@
+source,ri_range,ratio_umax_rev_over_u100_low,ratio_median_est,ratio_high,note
+Fig.10,-0.6..-0.1,0.10,0.25,0.45,"scatter; unstable: no clear trend; digitized by eye, +-0.03"
+Fig.10,-0.1..0.1,0.05,0.22,0.55,"max density; U100>12 m/s points cluster at 0.1-0.3"
+Fig.10,0.1..0.4,0.06,0.12,0.22,"stable: ratio falls with Ri"

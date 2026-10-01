@@ -20,7 +20,8 @@ LOC = ROOT / "configs/locations/ongudai.json"
 R_EARTH = 6371008.8
 
 
-def load_detail():
+def load_detail(loc="ongudai"):
+    DATA = ROOT / f"data/terrain/{loc}"
     meta = json.loads((DATA / "meta.json").read_text())
     lay = next(l for l in meta["layers"] if l["id"] == "detail")
     raw = brotli.decompress((DATA / lay["file"]).read_bytes())
@@ -89,3 +90,29 @@ def slopes(hc, dx):
     """Градиент высоты (м/м) центральными разностями на сетке клеток: (dh/dx, dh/dy)."""
     gy, gx = np.gradient(hc, dx)
     return gx, gy
+
+
+class Location:
+    """Любое встроенное место: высоты слоя detail (оси решателя: i — восток, j — север), старты."""
+
+    def __init__(self, loc_id):
+        self.id = loc_id
+        self.h, self.info, self.meta, water = load_detail(loc_id)
+        self.water = None if water is None else water.astype(float)
+        self.loc = json.loads((ROOT / f"configs/locations/{loc_id}.json").read_text())
+        self.sites = {}
+        for s in self.loc["start_sites"]:
+            x, y = latlon_to_xy(s["lat"], s["lon"], self.meta)
+            self.sites[s["id"]] = dict(name=s["id"], x=x, y=y, heading=s["heading_deg"])
+
+    def height_at(self, x, z):
+        """Высота в точке мира игры (x — восток, z — юг), билинейно."""
+        y = -z
+        s = self.info["spacing"]
+        fi = (x - self.info["x0"]) / s
+        fj = (y - self.info["y0"]) / s
+        i0 = int(np.clip(np.floor(fi), 0, self.h.shape[1] - 2))
+        j0 = int(np.clip(np.floor(fj), 0, self.h.shape[0] - 2))
+        a, b = fi - i0, fj - j0
+        h = self.h
+        return float((1 - b) * ((1 - a) * h[j0, i0] + a * h[j0, i0 + 1]) + b * ((1 - a) * h[j0 + 1, i0] + a * h[j0 + 1, i0 + 1]))

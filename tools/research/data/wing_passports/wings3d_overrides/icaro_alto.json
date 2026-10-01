@@ -1,0 +1,7 @@
+{
+  "_doc": "Особенности вида N14 из «Заметок по виду» ТЗ: «Elliptical wingtips» — скруглённая законцовка (tip_round, как по умолчанию); «Eight battens per wing» и паспорт «Battens (Upper + Lower) 16 + 4» — 8 верхних лат на сторону (в спецификации 9 — из «Anzahl Latten 18», это верхние + нижние другого размера; расхождение — в отчёте W3-03). «Profiled kingpost elements» — полем К1 не выражается.",
+  "params": {
+    "tip_round": true,
+    "battens_per_side": 8
+  }
+}

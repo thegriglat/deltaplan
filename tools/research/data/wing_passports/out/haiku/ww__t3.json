@@ -1,0 +1,248 @@
+{
+  "src_files": ["ww__t3.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "136",
+      "cert_class": "",
+      "cert_standard": "HGMA Certified 3/2/2020",
+      "facts": [
+        {
+          "field": "area",
+          "value": 136,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 136"
+        },
+        {
+          "field": "span",
+          "value": 32.1,
+          "unit": "ft",
+          "quote": "Span (ft) 32.1"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.6,
+          "unit": "",
+          "quote": "Aspect Ratio 7.6"
+        },
+        {
+          "field": "wing_mass",
+          "value": 69,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 69"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-210"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 210,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-210"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92,
+          "unit": "%",
+          "quote": "Double Surface (%) 92"
+        },
+        {
+          "field": "nose_angle",
+          "value": 127,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 127-132"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vms",
+          "value": 21,
+          "unit": "mph",
+          "quote": "Vms (mph) 21"
+        },
+        {
+          "field": "vd",
+          "value": 70,
+          "unit": "mph",
+          "quote": "Vd (mph) 70"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "144",
+      "cert_class": "",
+      "cert_standard": "HGMA Certified 3/2/2020",
+      "facts": [
+        {
+          "field": "area",
+          "value": 144,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 144"
+        },
+        {
+          "field": "span",
+          "value": 33,
+          "unit": "ft",
+          "quote": "Span (ft) 33"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.6,
+          "unit": "",
+          "quote": "Aspect Ratio 7.6"
+        },
+        {
+          "field": "wing_mass",
+          "value": 71,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 71"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 160,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 160-235"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 235,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 160-235"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92,
+          "unit": "%",
+          "quote": "Double Surface (%) 92"
+        },
+        {
+          "field": "nose_angle",
+          "value": 127,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 127-132"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vms",
+          "value": 21,
+          "unit": "mph",
+          "quote": "Vms (mph) 21"
+        },
+        {
+          "field": "vd",
+          "value": 70,
+          "unit": "mph",
+          "quote": "Vd (mph) 70"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T3",
+      "size": "154",
+      "cert_class": "",
+      "cert_standard": "HGMA Certified 3/2/2020",
+      "facts": [
+        {
+          "field": "area",
+          "value": 154,
+          "unit": "ft^2",
+          "quote": "Area (ft^2) 154"
+        },
+        {
+          "field": "span",
+          "value": 34.2,
+          "unit": "ft",
+          "quote": "Span (ft) 34.2"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.6,
+          "unit": "",
+          "quote": "Aspect Ratio 7.6"
+        },
+        {
+          "field": "wing_mass",
+          "value": 73,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 73"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 185,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 185-285"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 285,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 185-285"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 92,
+          "unit": "%",
+          "quote": "Double Surface (%) 92"
+        },
+        {
+          "field": "nose_angle",
+          "value": 127,
+          "unit": "deg",
+          "quote": "Nose Angle (deg) 127-132"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vms",
+          "value": 21,
+          "unit": "mph",
+          "quote": "Vms (mph) 21"
+        },
+        {
+          "field": "vd",
+          "value": 70,
+          "unit": "mph",
+          "quote": "Vd (mph) 70"
+        }
+      ]
+    }
+  ]
+}

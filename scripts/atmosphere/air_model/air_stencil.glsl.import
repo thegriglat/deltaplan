@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://blxpsnnup2fxt"
+path="res://.godot/imported/air_stencil.glsl-81c0b764c4e9e9645493e53e95cf7b87.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_stencil.glsl"
+dest_files=["res://.godot/imported/air_stencil.glsl-81c0b764c4e9e9645493e53e95cf7b87.res"]
+
+[params]
+

@@ -58,16 +58,17 @@ func _run() -> void:
 	_main = main
 	add_child(main)
 	var game: Game = main.get_node("Game")
+	var start_menu: StartMenu = main.get_node("UI/StartMenu")
+	# Меню мир за собой не грузит (0.8.0): ждём открытого меню, мир грузится по «Лететь».
 	for i in 600:
-		if game.settings != null:
+		if start_menu.visible and int(main.get("state")) == 0:  # State.MENU
 			break
 		await get_tree().process_frame
-	if game.settings == null:
-		_fail("мир за меню не загрузился")
+	if not start_menu.visible:
+		_fail("меню не открылось")
 		return
 	game.autopilot = Autopilot.new()
 
-	var start_menu: StartMenu = main.get_node("UI/StartMenu")
 	var fss: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
 	start_menu.setup_requested.emit()
 	var site_idx := _pick_site(fss)

@@ -1,0 +1,197 @@
+{
+  "src_files": ["ww__polar_data.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Falcon",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 19,
+          "sink": 215,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 215@19"
+        },
+        {
+          "speed": 34,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@34"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Eagle",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 22,
+          "sink": 205,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 205@22"
+        },
+        {
+          "speed": 37,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@37"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Ultra",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 22,
+          "sink": 196,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 196@22"
+        },
+        {
+          "speed": 40,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@40"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Super",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 22,
+          "sink": 196,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 196@22"
+        },
+        {
+          "speed": 40,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@40"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport 2",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 22,
+          "sink": 185,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 185@22"
+        },
+        {
+          "speed": 40,
+          "sink": 445,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 445@40"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "U2",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 23,
+          "sink": 176,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 176@23"
+        },
+        {
+          "speed": 44,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@44"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 23,
+          "sink": 176,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 176@23"
+        },
+        {
+          "speed": 44,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@44"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Talon",
+      "size": "",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [],
+      "polar": [
+        {
+          "speed": 24,
+          "sink": 176,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V1 (fpm@mph): 176@24"
+        },
+        {
+          "speed": 47,
+          "sink": 530,
+          "unit_speed": "mph",
+          "unit_sink": "fpm",
+          "quote": "V2 (fpm@mph): 530@47"
+        }
+      ]
+    }
+  ]
+}

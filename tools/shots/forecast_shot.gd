@@ -6,7 +6,7 @@ extends Node
 ## Интерфейс скрыт. Запуск (нужно окно — настоящий рендер):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/forecast_shot.tscn -- --autostart --bots=0 --temp=26 --wind=3 \
-##     --hour=13 --out=/tmp/fc --tag=p26_w3 [--wait=20]
+##     --hour=12 --out=/tmp/fc --tag=p26_w3 [--wait=20]
 ## --orbit=<°> — вид сверху повёрнут вокруг точки взгляда (например, против солнца — блик на воде).
 ## Пишет <out>/<tag>_launch.png, <out>/<tag>_above.png, <out>/<tag>.txt. Код выхода 0/1.
 

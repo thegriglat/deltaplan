@@ -1,0 +1,1105 @@
+{
+  "batch": "c",
+  "date": "2026-10-01",
+  "families": [
+    {
+      "family": "Piuma",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Piuma includes a kingpost. With a high aspect ratio comparable to most topless gliders, this wing balances the performance of a topless glider with some of the forgiving characteristics of a king posted glider.",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Piuma/Piuma-2025.htm"
+        }
+      },
+      "surface": {
+        "type": "single",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Designed as a single-surface hang glider offering easy take-off and landing",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Piuma/Piuma-2025.htm"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": 2019,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "Original introduction: 2019; Current version: 2025",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Piuma/Piuma-2025.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [
+        "Profiled downtubes with rubber grip surface",
+        "Floating crossbar",
+        "Elliptical wingtips",
+        "Semi-automatic nose fairing",
+        "Speed battens on trailing edge (carbon-fiber)",
+        "Six battens per wing",
+        "Trailing edge leech line for sail tension adjustment",
+        "Tail fin to prevent Dutch roll",
+        "7075 aluminum alloy tubing (aeronautical industry standard)"
+      ],
+      "urls_checked": [
+        "https://www.icaro2000.com/Products/Hanggliders/Piuma/Piuma-2025.htm"
+      ]
+    },
+    {
+      "family": "Alto",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "Kingpost design featuring a new and improved A-frame position with profiled kingpost elements",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "surface": {
+        "type": "single",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Dacron 4.0 oz fabric as standard, with higher-performance alternatives including 4.05 oz RSQ Square, PXB05, or Technora ODL06",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "efficient variable geometry combined with a swivel compensator and cable-supported floating tips",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "production": {
+        "first_year": 2022,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "2022 specifications and design updates, indicating active production",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "evolution of the earlier Orbiter 2 model"
+        ],
+        "evidence": {
+          "quote": "The Alto represents an evolution of the earlier Orbiter 2 model",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "sizes": [],
+      "design_notes": [
+        "Lighter, stronger aluminum frame (7075 alloy/Ergal)",
+        "Elliptical wingtips designed to reduce induced drag",
+        "Eight battens per wing with snap-fit batten system",
+        "Semi-automatic nose fairing with guided upper surface",
+        "DHV 2-3 certification rating",
+        "Optional competition upgrades including carbon speedbar and aluminum competition A-frame",
+        "Optional tail fin for tow-launching stability"
+      ],
+      "urls_checked": [
+        "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+      ]
+    },
+    {
+      "family": "MastR",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "The MastR is a topless glider with a king post, and is essentially the Laminar with a kingpost. The new MastR for advanced pilots appeared in 2007, created by adding a central hole for the kingpost",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "surface": {
+        "type": "full_double",
+        "double_percent": 100,
+        "evidence": {
+          "quote": "Double surface sail design with mylar pockets that don't interrupt the leading edge, enabling uniform tension distribution across the wing",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "an efficient variable geometry combined with a swivel compensator: floating tips supported by cable",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "production": {
+        "first_year": 2007,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "The new MastR for advanced pilots appeared in 2007",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Essentially the Laminar with a kingpost"
+        ],
+        "evidence": {
+          "quote": "The MastR is a topless glider with a king post, and is essentially the Laminar with a kingpost",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "sizes": [
+        "12.60 m²",
+        "13.77 m²",
+        "14.88 m²"
+      ],
+      "design_notes": [
+        "Profiled kingpost canted slightly forward reducing parasitic drag",
+        "Two luff-lines extend from the kingpost to the trailing edge of the wing",
+        "RSQ Polykote sail (rectangular box double-ripstop pattern)",
+        "Optional technora sail available",
+        "7075 alloy frame (aeronautical industry standard)",
+        "Single pitch cable configuration",
+        "Floating crossbar and elliptical wingtips",
+        "Semi-automatic nose fairing system",
+        "Snap-fit batten system",
+        "Twelve sail design options available",
+        "All sizes certified DHV 3",
+        "Wingspans 9.40 to 10.48 meters",
+        "Pilot weight ranges: 50–75 kg (S), 70–90 kg (M), 85–110 kg (L)"
+      ],
+      "urls_checked": [
+        "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+      ]
+    },
+    {
+      "family": "Laminar",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "Topless design. The hang glider's modern age began in 1996 with the introduction of topless gliders",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm"
+        }
+      },
+      "surface": {
+        "type": "single",
+        "double_percent": null,
+        "evidence": {
+          "quote": "Dacron (Square material) as standard, with optional Technora fabric",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "Variable Geometry system with adjustable configurations from half to full tension",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm"
+        }
+      },
+      "production": {
+        "first_year": 1994,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "Initially introduced in 1994, with significant redesigns in 2017 and continuing updates through 2022",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Predecessor to MastR (MastR is Laminar with kingpost added)"
+        ],
+        "evidence": {
+          "quote": "The MastR is a topless glider with a king post, and is essentially the Laminar with a kingpost",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/MastR/MastR.htm"
+        }
+      },
+      "sizes": [
+        "12.6 m²",
+        "14.1 m²",
+        "14.8 m²"
+      ],
+      "design_notes": [
+        "Six removable mini-battens on trailing edge (under 15 grams total)",
+        "Ergal 7075 aluminum frame tubes (aerospace-grade alloy)",
+        "Circular-section crossbar with carbon lamination",
+        "Compensated Twist Tips system allowing differential movement",
+        "Optional carbon battens, leading edges, and stiffeners",
+        "New wingtip design with reduced vortices",
+        "Machined Ergal 7075 H-block and crossbar junction",
+        "Emphasis on easier turn initiation and improved handling"
+      ],
+      "urls_checked": [
+        "https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm"
+      ]
+    },
+    {
+      "family": "Easy 2",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [],
+      "urls_checked": []
+    },
+    {
+      "family": "Orbiter",
+      "manufacturer": "Icaro",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Alto represents an evolution of the earlier Orbiter 2 model",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "superseded",
+        "evidence": {
+          "quote": "The Alto represents an evolution of the earlier Orbiter 2 model",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Predecessor to Alto"
+        ],
+        "evidence": {
+          "quote": "The Alto represents an evolution of the earlier Orbiter 2 model",
+          "url": "https://www.icaro2000.com/Products/Hanggliders/Alto/Alto.htm"
+        }
+      },
+      "sizes": [],
+      "design_notes": [
+        "Wing areas range from 13.73 m² (Small) to 15.23 m² (Large)",
+        "Weights from 27 kg to 31 kg without the glider bag",
+        "Pilot hook-in weight ranges: 60-85 kg (Small) to 85-110 kg (Large)"
+      ],
+      "urls_checked": []
+    },
+    {
+      "family": "Fizz",
+      "manufacturer": "Bautek",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Fizz has the classic and time tested kingpost construction, without luff-lines, but with sprogs inside the double sail",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 90,
+        "evidence": {
+          "quote": "full Mylar sail of high quality One Design Laminat (Technora Black) with 90% double surface sail",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "VG extended travel with a 24-to-1 advantage. When detensioned, the side wires (flying wires) are almost tight and spring loaded",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "production": {
+        "first_year": 2006,
+        "last_year": null,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "developed following the 2006 Kite model. An upgraded version appeared in 2014/15, with the Fizz SE (SE = special edition) arriving in 2017. The company ceased new glider production",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Followed Kite model (2006)",
+          "Fizz SE arrived 2017"
+        ],
+        "evidence": {
+          "quote": "The original Fizz was developed following the 2006 Kite model. An upgraded version appeared in 2014/15, with the Fizz SE arriving in 2017",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "sizes": [
+        "152 square feet"
+      ],
+      "design_notes": [
+        "34-foot span",
+        "7.7 aspect ratio",
+        "Radial wingtips with winglets",
+        "Spring-loaded side wires for shock absorption",
+        "Optional profiled aluminum basebar with split wheels",
+        "Optional tail fin for enhanced directional stability",
+        "Optional carbon components in the SE model",
+        "Low-drag Bautek profile aluminum tubing"
+      ],
+      "urls_checked": [
+        "https://www.bautek.com/english/hanggliders/fizz/"
+      ]
+    },
+    {
+      "family": "Kite",
+      "manufacturer": "Bautek",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Kite features a kingpost design with Sturdy, yet lightweight construction",
+          "url": "https://www.bautek.com/english/hanggliders/kite/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 85,
+        "evidence": {
+          "quote": "Double surface sail construction, approximately 85% coverage, utilizing crease-resistant Polyester fabric for the upper sail and light Mylar (Apen smoke) for trailing and leading edges",
+          "url": "https://www.bautek.com/english/hanggliders/kite/"
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "efficient variable geometry system. With the VG on, the glide ratio is very good",
+          "url": "https://www.bautek.com/english/hanggliders/kite/"
+        }
+      },
+      "production": {
+        "first_year": 2006,
+        "last_year": null,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "Introduced in 2006 with continuous optimization thereafter. The company ceased new production of all hanggliders",
+          "url": "https://www.bautek.com/english/hanggliders/kite/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Predecessor to Fizz (Fizz developed following 2006 Kite)"
+        ],
+        "evidence": {
+          "quote": "The original Fizz was developed following the 2006 Kite model",
+          "url": "https://www.bautek.com/english/hanggliders/fizz/"
+        }
+      },
+      "sizes": [
+        "149 square feet"
+      ],
+      "design_notes": [
+        "33-foot wingspan",
+        "Packs to either 18.7 feet (long) or 12.5 feet (short) configurations",
+        "Integrated swivel tips with threaded adjustment",
+        "Steel spring-tensioned lower side wires",
+        "Stainless steel cables without plastic covering",
+        "Optional profiled base tube with split wheel capability",
+        "Maximum hook-in weight of 265 pounds",
+        "DHV-2 (intermediate) classification",
+        "Customizable double-sail color combinations"
+      ],
+      "urls_checked": [
+        "https://www.bautek.com/english/hanggliders/kite/"
+      ]
+    },
+    {
+      "family": "Astir",
+      "manufacturer": "Bautek",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "Bowsprit glider design, based on the Zephir CX concept",
+          "url": "https://www.bautek.com/english/hanggliders/astir/"
+        }
+      },
+      "surface": {
+        "type": "partial_double",
+        "double_percent": 85,
+        "evidence": {
+          "quote": "Double surface (85%), combining Apen Smoke at leading and trailing edges with white polyester sailcloth in the central section",
+          "url": "https://www.bautek.com/english/hanggliders/astir/"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "discontinued",
+        "evidence": {
+          "quote": "The company notes we no longer produce any new hanggliders",
+          "url": "https://www.bautek.com/english/hanggliders/astir/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [
+        "158 sq ft"
+      ],
+      "design_notes": [
+        "34.6 ft wingspan",
+        "Pack lengths offered: long 20.2 ft; short 15.4 ft; extra short 9.8 ft",
+        "DHV 2 (intermediate) rating",
+        "64 lbs glider weight",
+        "Leading edge and keel tubes made of seamless aluminum tubes",
+        "Uprights and kingpost made of extruded aluminum",
+        "Based on Zephir CX concept"
+      ],
+      "urls_checked": [
+        "https://www.bautek.com/english/hanggliders/astir/"
+      ]
+    },
+    {
+      "family": "BiCo",
+      "manufacturer": "Bautek",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The BiCo's 9.6 m span wing is cable braced from a single tube-type kingpost",
+          "url": "https://forum.hanggliding.org/viewtopic.php?t=29249"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [
+        "9.6 m span"
+      ],
+      "design_notes": [
+        "Single tube-type kingpost"
+      ],
+      "urls_checked": [
+        "https://en.wikipedia.org/wiki/Bautek_Bico"
+      ]
+    },
+    {
+      "family": "Crossover",
+      "manufacturer": "Flugsport Skypoint",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Crossover 14/15 is described as a real intermediate with excellent performance combined with simple flight characteristics",
+          "url": "https://www.flypureair.co.uk/store/Skypoint-Crossover-14-15-p174031701"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [],
+      "urls_checked": [
+        "https://www.flypureair.co.uk/store/Skypoint-Crossover-14-15-p174031701"
+      ]
+    },
+    {
+      "family": "Funky",
+      "manufacturer": "Flugsport Skypoint",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "The Funky includes a kingpost that can be erected and features tubes made from high-strength Perunal 7075 aluminum",
+          "url": "https://en.wikipedia.org/wiki/Seedwings_Europe"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [
+        "High-strength Perunal 7075 aluminum tubes"
+      ],
+      "urls_checked": []
+    },
+    {
+      "family": "Space",
+      "manufacturer": "Flugsport Skypoint",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [],
+      "urls_checked": []
+    },
+    {
+      "family": "Spyder",
+      "manufacturer": "Seedwings",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "The Austrian maker's topless is the Spyder",
+          "url": "https://www.delta-club-82.com/bible/494-hang-glider-spyder.htm"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "They have easy to tension curved wing tips, a kingpost hang point, and effective VG system",
+          "url": "https://www.delta-club-82.com/bible/494-hang-glider-spyder.htm"
+        }
+      },
+      "production": {
+        "first_year": 2004,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "The Spyder is a 2004 hang glider for advanced pilots",
+          "url": "https://www.delta-club-82.com/bible/494-hang-glider-spyder.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [
+        "12.5 m²",
+        "14 m²",
+        "15 m²"
+      ],
+      "design_notes": [
+        "Made with 7075 aluminum",
+        "Sail made by Pause Segel",
+        "Battens: 1 nose batten, 9 top battens with clip ends per side, 2 lower batten per side, 2 sprogs per side",
+        "No luff lines",
+        "Easy to tension curved wing tips",
+        "For advanced pilots",
+        "Spyder 12.5: Wing span 9.8 m, weight 27 kg, pilot weight range 45-70 kg"
+      ],
+      "urls_checked": [
+        "https://www.delta-club-82.com/bible/494-hang-glider-spyder.htm"
+      ]
+    },
+    {
+      "family": "Skyrunner XR",
+      "manufacturer": "Seedwings",
+      "construction": {
+        "type": "kingpost",
+        "evidence": {
+          "quote": "the performanced Skyrunner with king-post topping the intermediate gliders range",
+          "url": "https://en.wikipedia.org/wiki/Seedwings_Europe"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [
+        "High performance model"
+      ],
+      "urls_checked": [
+        "https://en.wikipedia.org/wiki/Seedwings_Europe"
+      ]
+    },
+    {
+      "family": "Crex",
+      "manufacturer": "Delta Flugschule Condor",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": 2015,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "The CREX was manufactured by Condor in 2015",
+          "url": "https://www.delta-club-82.com/bible/952-hang-glider-crex.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [
+        "14.5 m²"
+      ],
+      "design_notes": [
+        "Wing span 9.60 m",
+        "Aspect ratio 6.4",
+        "Weight 23 kg",
+        "Maximum pilot weight 100 kg",
+        "Packed lengths: 5.5 m (standard), 3.30 m (short)",
+        "For intermediate pilots"
+      ],
+      "urls_checked": [
+        "https://www.delta-club-82.com/bible/952-hang-glider-crex.htm"
+      ]
+    },
+    {
+      "family": "FLEX",
+      "manufacturer": "Delta Flugschule Condor",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": 2019,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "The FLEX was manufactured by Condor in 2019",
+          "url": "http://www.delta-club-82.com/bible/1000-hang-glider-flex.htm"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [
+        "16 m²"
+      ],
+      "design_notes": [
+        "Wing span 9.15 m",
+        "Aspect ratio 5.2",
+        "Weight 17 kg",
+        "Pilot weight range 50–98 kg",
+        "Speed range 29–65 km/h",
+        "11 battens",
+        "Packed lengths: 5.35 m (full) / 3.70 m (short)",
+        "For novice pilots"
+      ],
+      "urls_checked": [
+        "http://www.delta-club-82.com/bible/1000-hang-glider-flex.htm"
+      ]
+    },
+    {
+      "family": "Lifter",
+      "manufacturer": "Delta Flugschule Condor",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [],
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "sizes": [],
+      "design_notes": [],
+      "urls_checked": []
+    },
+    {
+      "family": "Combat C AC",
+      "manufacturer": "DesignProducts / Aeros",
+      "construction": {
+        "type": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "A new sail construction with lighter materials was developed for both Combat C and SHE1, with new sails made by Air Creations. Gliders with the new sails are designated as AC, and are about 2 kilos lighter",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "vg": {
+        "present": "unknown",
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "The Combat C is available in sizes 13.5, 12.4, and 12.7",
+          "url": "https://skygearhub.com/product/hanggliding-gliders/aeros-combat-c/"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Related to SHE 1 (both have new AC sails)"
+        ],
+        "evidence": {
+          "quote": "A new sail construction with lighter materials was developed for both Combat C and SHE1",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "sizes": [
+        "12.4 m²",
+        "12.7 m²",
+        "13.5 m²"
+      ],
+      "design_notes": [
+        "New sails made by Air Creations for AC variant",
+        "About 2 kilos lighter than standard version",
+        "For 12.7 size: Glider weight 31.00 kg",
+        "12.7 size minimum hook-in weight 85 kg, maximum 95 kg"
+      ],
+      "urls_checked": [
+        "https://skygearhub.com/product/hanggliding-gliders/aeros-combat-c/"
+      ]
+    },
+    {
+      "family": "SHE 1",
+      "manufacturer": "DesignProducts",
+      "construction": {
+        "type": "topless",
+        "evidence": {
+          "quote": "The SHE1 has the same planform and airfoil as the Combat, but features a new lighter cross-bar and a hole in the sail",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "surface": {
+        "type": "unknown",
+        "double_percent": null,
+        "evidence": {
+          "quote": "",
+          "url": ""
+        }
+      },
+      "vg": {
+        "present": "yes",
+        "evidence": {
+          "quote": "The aircraft features VG (variable geometry) in-flight trimming devices",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "production": {
+        "first_year": null,
+        "last_year": null,
+        "status": "in production",
+        "evidence": {
+          "quote": "DHV test reference no DHV 01-0504-23 with Classification 3",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "successor_or_predecessor": {
+        "relations": [
+          "Related to Combat C (both have new AC sails)"
+        ],
+        "evidence": {
+          "quote": "A new sail construction with lighter materials was developed for both Combat C and SHE1",
+          "url": "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+        }
+      },
+      "sizes": [
+        "12.7 m²"
+      ],
+      "design_notes": [
+        "Designed by Markus Egimann of Design Products",
+        "Co-designed, developed and produced CF frames",
+        "Same planform and airfoil as Combat",
+        "New lighter cross-bar",
+        "Hole in the sail",
+        "Flies with top notch performance",
+        "Handles easier than the Combat",
+        "Single-seat hang glider",
+        "Profiled uprights and speedbar A-frame base tube",
+        "Capable of winch towing and microlight towing",
+        "DHV Classification 3",
+        "Maximum speed (VNE): 90 km/h",
+        "Minimum speed (Vmin): 38-42 km/h",
+        "Total weight in flight: 98 Kg - 129 Kg"
+      ],
+      "urls_checked": [
+        "https://service.dhv.de/db1/technictestreport1.php?lang=EN&templatesetid=-1&fieldvalue=-3799"
+      ]
+    }
+  ]
+}

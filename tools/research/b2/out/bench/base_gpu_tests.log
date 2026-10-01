@@ -1,0 +1,414 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+  блок | размер | отн. ошибка
+  axpy | 15360 | 8.75e-08
+  xpay | 15360 | 6.66e-08
+  axpby | 15360 | 7.04e-08
+  scale | 15360 | 0.0
+  mul | 15360 | 0.0
+  sum (x>0) | 15360 | 3.83e-08
+  sum (±) | 15360 | 7.38e-10
+  max|x| | 15360 | 1.11e-16
+  dot | 15360 | 1.05e-09
+  sum (x>0) | 12345 | 1.60e-09
+  dot | 12345 | 1.41e-10
+  resid7 | 23x20x17 | 1.08e-07
+  apply7 | 23x20x17 | 1.10e-07
+  прогонка x зебра (разд., n=23) | 23x20x17 | 3.19e-07
+  прогонка x все линии (разд.) | 23x20x17 | 3.04e-07
+  прогонка y зебра (разд., n=20) | 23x20x17 | 2.35e-07
+  прогонка y все линии (разд.) | 23x20x17 | 3.14e-07
+  прогонка z зебра (разд., n=17) | 23x20x17 | 3.13e-07
+  прогонка z все линии (разд.) | 23x20x17 | 2.90e-07
+  прогонка x зебра (разд., n=1000) | 1000x2x1 | 1.90e-07
+  прогонка x все линии (разд.) | 1000x2x1 | 1.75e-07
+  прогонка y зебра (разд., n=2) | 1000x2x1 | 1.10e-07
+  прогонка y все линии (разд.) | 1000x2x1 | 1.65e-07
+  прогонка x зебра (многопр., n=2500) | 2500x2x1 | 1.66e-07
+  прогонка x все линии (многопр.) | 2500x2x1 | 1.66e-07
+  прогонка y зебра (разд., n=2) | 2500x2x1 | 1.27e-07
+  прогонка y все линии (разд.) | 2500x2x1 | 8.44e-08
+  прогонка x зебра (разд., n=2) | 2x1300x1 | 1.59e-07
+  прогонка x все линии (разд.) | 2x1300x1 | 1.31e-07
+  прогонка y зебра (многопр., n=1300) | 2x1300x1 | 1.89e-07
+  прогонка y все линии (многопр.) | 2x1300x1 | 1.57e-07
+  шаблон уровня 0 | 32x32x16 | 1.49e-08
+  шаблон уровня 1 | 16x16x16 | 7.45e-09
+  V-цикл ×1 | 32x32x16 | 3.86e-06
+  V-цикл ×5 | 32x32x16 | 1.25e-06
+  V-цикл ×5 без центрирования (справка) | 32x32x16 | 2.95e-06
+  ok   test_air_gpu_blocks.gd::test_blocks_vs_reference
+  ok   test_air_gpu_blocks.gd::test_two_runs_bitwise_equal
+  (96, 96, 48), бюджет 30 мс: готово, V-циклов 3, порций 2, кадров 4, стена 49 мс, GPU Σ 3.9 мс, макс. порция 2.65 мс, макс. ожидание sync 0.02 мс, невязка 3.41e-05
+  (192, 192, 48), бюджет 30 мс: готово, V-циклов 3, порций 4, кадров 5, стена 51 мс, GPU Σ 8.7 мс, макс. порция 3.30 мс, макс. ожидание sync 2.59 мс, невязка 3.67e-05
+  (192, 192, 48), бюджет 2 мс: готово, V-циклов 3, порций 7, кадров 8, стена 101 мс, GPU Σ 8.7 мс, макс. порция 2.27 мс, макс. ожидание sync 2.46 мс, невязка 3.67e-05
+  ok   test_air_gpu_blocks.gd::test_job_chunks
+WARNING: AirGpuJob: таймаут расчёта (0 с)
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _fail (res://scripts/atmosphere/air_model/air_gpu_job.gd:303)
+         [1] _poll (res://scripts/atmosphere/air_model/air_gpu_job.gd:102)
+         [2] poll (res://scripts/atmosphere/air_model/air_gpu_job.gd:85)
+         [3] test_errors_are_reported (res://tests/atmosphere/test_air_gpu_blocks.gd:373)
+         [4] _ready (res://tests/run_tests.gd:36)
+         [5] test_job_chunks (res://tests/atmosphere/test_air_gpu_blocks.gd:359)
+  ok   test_air_gpu_blocks.gd::test_errors_are_reported
+  ok   test_air_gpu_blocks.gd::test_bench_blocks
+  ok   test_air_gpu_headless.gd::test_no_rd_is_clear_error
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    kayancha_start_agl10: air (-0.423, 0.070, -1.898), поле (-0.423, 0.070, -1.898), w_conv 0.047 (не пилоту)
+    kayancha_start_agl50: air (-0.563, 0.076, -2.455), поле (-0.563, 0.076, -2.455), w_conv 0.103 (не пилоту)
+    kayancha_start_agl150: air (-0.716, -0.079, -2.815), поле (-0.716, -0.079, -2.815), w_conv 0.193 (не пилоту)
+    kayancha_start_agl400: air (-0.661, -0.205, -3.198), поле (-0.661, -0.205, -3.198), w_conv 0.071 (не пилоту)
+  ok   test_air_model_atmo.gd::test_kayancha_probes
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+air_model: analytic (air_model.enabled = off)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+  ok   test_air_model_atmo.gd::test_off_and_outside_bitwise_analytic
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    край поля: макс. изменение 0.0296 м/с на 5 м
+  ok   test_air_model_atmo.gd::test_edge_smooth_in_atmosphere
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_model_atmo.gd::test_fingerprint_world_without_field
+  ok   test_air_model_atmo.gd::test_config_documented
+  ok   test_air_picard_bench.gd::test_bench_ongudai
+  Онгудай 400 м, 3 м/с: 12:00 холодный 130 итераций; то же тёплым 20; 12:30 холодный 120, тёплый от 12:00 50 (−58 %); max|Δu| холодный/тёплый 1.13e-01 м/с, max|Δθ′| 8.33e-02 К
+  ok   test_air_picard_bench.gd::test_warm_start
+  случай | блок | отн. ошибка
+  flat_wind | типы клеток и граней (несовпадений) | 0.0
+  flat_wind | подготовка: U_b и граница u | 1.15e-07
+  flat_wind | подготовка: U_b и граница v | 7.92e-08
+  flat_wind | подготовка: губка s | 0.0
+  flat_wind | подготовка: губка s_w | 0.0
+  flat_wind | подготовка: губка s_θ | 0.0
+  flat_wind | подготовка: K_b | 1.93e-07
+  flat_wind | подготовка: нагрев Q | 0.0
+  flat_wind | подготовка: K_x проекции | 7.38e-08
+  flat_wind | подготовка: K_y проекции | 7.38e-08
+  flat_wind | подготовка: K_z проекции | 1.17e-07
+  flat_wind | подготовка: λ | 0.0
+  flat_wind | подготовка: c_pl | 6.21e-08
+  flat_wind | граничные условия u | 1.15e-07
+  flat_wind | граничные условия v | 7.92e-08
+  flat_wind | местное K (kloc) K | 0.0
+  flat_wind | местное K (kloc) K_h | 0.0
+  flat_wind | шаблон импульса C_u | 2.24e-08
+  flat_wind | шаблон импульса b_u | 4.50e-10
+  flat_wind | шаблон импульса C_v | 1.49e-08
+  flat_wind | шаблон импульса b_v | 6.18e-10
+  flat_wind | шаблон импульса C_w | 2.98e-08
+  flat_wind | шаблон импульса b_w | 1.11e-07
+  flat_wind | прогонка u (z, x, y) ×1 | 5.76e-07
+  flat_wind | шаг импульса u | 5.76e-07
+  flat_wind | шаг импульса v | 4.75e-07
+  flat_wind | шаг импульса w | 1.98e-07
+  flat_wind | ∇·u* против эталона (справка: пол округления входа) | 1.42e-03
+  flat_wind | ∇·u* (f64 от тех же входов) | 7.40e-07
+  flat_wind | правая часть (минус среднее) | 6.28e-11
+  flat_wind | V-цикл ×1 (φ минус среднее) | 5.41e-07
+  flat_wind | V-цикл ×1 без центрирования (справка) | 1.49e-06
+  flat_wind | φ минус среднее | 6.76e-08
+  flat_wind | проекция u | 1.15e-07
+  flat_wind | проекция v | 7.92e-08
+  flat_wind | проекция w | 6.59e-08
+  flat_wind | проекция p | 5.50e-08
+  flat_wind | ∇·u после проекции: max|GPU| 1.29e-07, max|эталон| 1.28e-07 (справка) | 0.0
+  flat_wind | шаблон тепла θ′_d C | 1.49e-08
+  flat_wind | шаблон тепла θ′_d b | 0.0
+  flat_wind | шаг тепла θ′_d | 0.0
+  flat_wind | шаблон тепла θ′ C | 1.49e-08
+  flat_wind | шаблон тепла θ′ b | 8.16e-08
+  flat_wind | шаг тепла θ′ | 2.45e-07
+  agnesi | типы клеток и граней (несовпадений) | 0.0
+  agnesi | подготовка: U_b и граница u | 1.06e-07
+  agnesi | подготовка: U_b и граница v | 1.28e-07
+  agnesi | подготовка: губка s | 0.0
+  agnesi | подготовка: губка s_w | 0.0
+  agnesi | подготовка: губка s_θ | 0.0
+  agnesi | подготовка: K_b | 3.21e-07
+  agnesi | подготовка: нагрев Q | 0.0
+  agnesi | подготовка: K_x проекции | 6.92e-08
+  agnesi | подготовка: K_y проекции | 6.92e-08
+  agnesi | подготовка: K_z проекции | 6.92e-08
+  agnesi | подготовка: λ | 0.0
+  agnesi | подготовка: c_pl | 0.0
+  agnesi | граничные условия u | 7.39e-08
+  agnesi | граничные условия v | 3.03e-23
+  agnesi | местное K (kloc) K | 9.31e-08
+  agnesi | местное K (kloc) K_h | 9.31e-08
+  agnesi | шаблон импульса C_u | 5.96e-08
+  agnesi | шаблон импульса b_u | 3.31e-09
+  agnesi | шаблон импульса C_v | 5.96e-08
+  agnesi | шаблон импульса b_v | 6.05e-08
+  agnesi | шаблон импульса C_w | 5.96e-08
+  agnesi | шаблон импульса b_w | 8.30e-08
+  agnesi | прогонка u (z, x, y) ×1 | 5.76e-07
+  agnesi | шаг импульса u | 5.86e-07
+  agnesi | шаг импульса v | 2.21e-07
+  agnesi | шаг импульса w | 3.50e-07
+  agnesi | ∇·u* против эталона (справка: пол округления входа) | 2.10e-07
+  agnesi | ∇·u* (f64 от тех же входов) | 1.40e-07
+  agnesi | правая часть (минус среднее) | 2.73e-10
+  agnesi | V-цикл ×1 (φ минус среднее) | 8.37e-07
+  agnesi | V-цикл ×1 без центрирования (справка) | 4.20e-06
+  agnesi | φ минус среднее | 1.05e-07
+  agnesi | проекция u | 7.40e-08
+  agnesi | проекция v | 6.80e-08
+  agnesi | проекция w | 1.14e-07
+  agnesi | проекция p | 3.67e-08
+  agnesi | ∇·u после проекции: max|GPU| 7.79e-04, max|эталон| 7.79e-04 (справка) | 0.0
+  agnesi | шаблон тепла θ′_d C | 5.96e-08
+  agnesi | шаблон тепла θ′_d b | 0.0
+  agnesi | шаг тепла θ′_d | 0.0
+  agnesi | шаблон тепла θ′ C | 5.96e-08
+  agnesi | шаблон тепла θ′ b | 0.0
+  agnesi | шаг тепла θ′ | 0.0
+  heated_slope | типы клеток и граней (несовпадений) | 0.0
+  heated_slope | подготовка: U_b и граница u | 0.0
+  heated_slope | подготовка: U_b и граница v | 0.0
+  heated_slope | подготовка: губка s | 0.0
+  heated_slope | подготовка: губка s_w | 0.0
+  heated_slope | подготовка: губка s_θ | 0.0
+  heated_slope | подготовка: K_b | 3.62e-07
+  heated_slope | подготовка: нагрев Q | 0.0
+  heated_slope | подготовка: K_x проекции | 1.02e-07
+  heated_slope | подготовка: K_y проекции | 1.02e-07
+  heated_slope | подготовка: K_z проекции | 5.09e-08
+  heated_slope | подготовка: λ | 0.0
+  heated_slope | подготовка: c_pl | 6.55e-08
+  heated_slope | граничные условия u | 0.0
+  heated_slope | граничные условия v | 0.0
+  heated_slope | местное K (kloc) K | 6.69e-08
+  heated_slope | местное K (kloc) K_h | 6.69e-08
+  heated_slope | шаблон импульса C_u | 2.98e-08
+  heated_slope | шаблон импульса b_u | 6.46e-08
+  heated_slope | шаблон импульса C_v | 4.47e-08
+  heated_slope | шаблон импульса b_v | 6.15e-08
+  heated_slope | шаблон импульса C_w | 2.98e-08
+  heated_slope | шаблон импульса b_w | 1.93e-07
+  heated_slope | прогонка u (z, x, y) ×1 | 4.43e-07
+  heated_slope | шаг импульса u | 3.89e-07
+  heated_slope | шаг импульса v | 3.43e-07
+  heated_slope | шаг импульса w | 4.97e-07
+  heated_slope | ∇·u* против эталона (справка: пол округления входа) | 9.02e-07
+  heated_slope | ∇·u* (f64 от тех же входов) | 3.19e-07
+  heated_slope | правая часть (минус среднее) | 1.13e-09
+  heated_slope | V-цикл ×1 (φ минус среднее) | 6.05e-07
+  heated_slope | V-цикл ×1 без центрирования (справка) | 3.18e-06
+  heated_slope | φ минус среднее | 6.73e-08
+  heated_slope | проекция u | 1.07e-07
+  heated_slope | проекция v | 8.63e-08
+  heated_slope | проекция w | 8.96e-08
+  heated_slope | проекция p | 7.68e-08
+  heated_slope | ∇·u после проекции: max|GPU| 7.14e-06, max|эталон| 7.14e-06 (справка) | 0.0
+  heated_slope | шаблон тепла θ′_d C | 5.96e-08
+  heated_slope | шаблон тепла θ′_d b | 5.99e-08
+  heated_slope | шаг тепла θ′_d | 7.33e-07
+  heated_slope | шаблон тепла θ′ C | 4.47e-08
+  heated_slope | шаблон тепла θ′ b | 6.52e-08
+  heated_slope | шаг тепла θ′ | 7.33e-07
+  saddle | типы клеток и граней (несовпадений) | 0.0
+  saddle | подготовка: U_b и граница u | 1.37e-07
+  saddle | подготовка: U_b и граница v | 1.28e-07
+  saddle | подготовка: губка s | 0.0
+  saddle | подготовка: губка s_w | 0.0
+  saddle | подготовка: губка s_θ | 0.0
+  saddle | подготовка: K_b | 3.21e-07
+  saddle | подготовка: нагрев Q | 0.0
+  saddle | подготовка: K_x проекции | 1.06e-07
+  saddle | подготовка: K_y проекции | 1.06e-07
+  saddle | подготовка: K_z проекции | 1.16e-07
+  saddle | подготовка: λ | 0.0
+  saddle | подготовка: c_pl | 6.21e-08
+  saddle | граничные условия u | 8.45e-08
+  saddle | граничные условия v | 4.55e-08
+  saddle | местное K (kloc) K | 6.67e-08
+  saddle | местное K (kloc) K_h | 6.67e-08
+  saddle | шаблон импульса C_u | 2.24e-08
+  saddle | шаблон импульса b_u | 1.71e-09
+  saddle | шаблон импульса C_v | 2.24e-08
+  saddle | шаблон импульса b_v | 3.20e-09
+  saddle | шаблон импульса C_w | 2.98e-08
+  saddle | шаблон импульса b_w | 8.75e-08
+  saddle | прогонка u (z, x, y) ×1 | 4.89e-07
+  saddle | шаг импульса u | 4.91e-07
+  saddle | шаг импульса v | 3.48e-07
+  saddle | шаг импульса w | 2.00e-07
+  saddle | ∇·u* против эталона (справка: пол округления входа) | 3.37e-07
+  saddle | ∇·u* (f64 от тех же входов) | 1.66e-07
+  saddle | правая часть (минус среднее) | 4.05e-11
+  saddle | V-цикл ×1 (φ минус среднее) | 7.37e-07
+  saddle | V-цикл ×1 без центрирования (справка) | 1.32e-06
+  saddle | φ минус среднее | 7.02e-08
+  saddle | проекция u | 8.45e-08
+  saddle | проекция v | 9.10e-08
+  saddle | проекция w | 6.66e-08
+  saddle | проекция p | 5.31e-08
+  saddle | ∇·u после проекции: max|GPU| 4.92e-04, max|эталон| 4.92e-04 (справка) | 0.0
+  saddle | шаблон тепла θ′_d C | 2.98e-08
+  saddle | шаблон тепла θ′_d b | 0.0
+  saddle | шаг тепла θ′_d | 0.0
+  saddle | шаблон тепла θ′ C | 2.98e-08
+  saddle | шаблон тепла θ′ b | 8.72e-08
+  saddle | шаг тепла θ′ | 3.41e-07
+  ok   test_air_picard_gpu.gd::test_blocks_vs_reference
+  случай | итераций GPU / эталон | max|Δu|/|u₀| | max|Δθ′|, К | ∇·u СКО GPU / эталон | стена, мс | GPU, мс | макс. порция, мс
+  flat_wind | 10 / 10 | 6.36e-07 | 1.60e-07 | 1.28e-09 / 1.32e-09 | 161 | 42.0 | 7.48
+  agnesi | 710 / 710 | 5.21e-07 | 0.0 | 1.50e-09 / 3.46e-09 | 1813 | 675.8 | 10.15
+  heated_slope | 60 / 60 | 1.72e-06 | 3.87e-07 | 8.46e-11 / 8.01e-11 | 334 | 90.2 | 10.30
+  saddle | 320 / 320 | 5.76e-07 | 4.17e-07 | 2.05e-09 / 2.47e-09 | 1011 | 324.3 | 9.91
+  ok   test_air_picard_gpu.gd::test_solutions_vs_reference
+  ok   test_air_picard_gpu.gd::test_two_runs_bitwise_equal
+  Онгудай 400 м, 3 м/с без нагрева: ok, итераций 150 (эталон f64 151, f32 151), ∇·u СКО 5.02e-10 (эталон 9.42e-19)
+  Онгудай 400 м, 3 м/с: ok, итераций 130 (эталон f64 131, f32 131), ∇·u СКО 5.06e-10 (эталон 9.50e-19)
+  поле у старта (16×16×50), max|Δ|: u 7.34e-04, v 5.90e-04, w_mech 2.29e-04, w_conv 1.31e-04, theta 7.46e-04; |u₀| = 7.19 м/с
+  WindField (field_async): 622 мс до сигнала
+  Каянча, 10 м над землёй (GPU/эталон): u -1.5137/-1.5138, v 3.0602/3.0604, w_mech 0.0113/0.0113, w_conv 0.0118/0.0118, theta 0.2961/0.2961
+  Каянча, 50 м над землёй (GPU/эталон): u -2.4186/-2.4188, v 3.6646/3.6648, w_mech 0.0496/0.0496, w_conv 0.0258/0.0258, theta 0.2951/0.2951
+  Каянча, 150 м над землёй (GPU/эталон): u -3.3785/-3.3787, v 4.2319/4.2321, w_mech 0.1293/0.1293, w_conv 0.0588/0.0588, theta 0.2915/0.2915
+  Каянча, 400 м над землёй (GPU/эталон): u -3.4977/-3.4980, v 4.6678/4.6681, w_mech 0.1453/0.1454, w_conv 0.1005/0.1005, theta 0.2785/0.2785
+  баланс тепла GPU: нагрев 2.80e+08, фон 1.39e+08, выхолаживание 1.03e+08, губка 5.48e+07, вынос 2.60e+08, невязка отн. 4.63e-04 (эталон 4.62e-04)
+  стена 2680 мс, GPU 1176.5 мс, порций 140, макс. порция 11.78 мс
+  ok   test_air_picard_gpu.gd::test_ongudai_d400_vs_reference
+  400 м: подготовка 539 мс; max|Δhc| 1.22e-04 м, max|ΔH| 2.37e-05 Вт/м², max|Δγ| 7.38e-11 К/м, z_i 3362.33 / 3362.33 м
+  200 м: подготовка 608 мс; max|Δhc| 0.0 м, max|ΔH| 2.42e-05 Вт/м², max|Δγ| 7.38e-11 К/м, z_i 3362.33 / 3362.33 м
+  ok   test_air_place.gd::test_domain_input_vs_reference
+air_model: analytic (нет поля)
+air_model: field (массивы, ветер поля 3.0 м/с с 150.0°; уровней 1)
+air_model: поле 12:00 ч, 3.0 м/с с 150° (загрузка): 3.08 с, итераций [150, 130]
+  загрузка: 3.08 с стены (GPU 1.13 с, итераций [150, 130]), кадр max 57 мс, средний 24 мс; главный поток max 56.4 мс, запуск задачи 14 мс, опрос max 56.3 мс
+  у старта: max|поле AirRuntime − AirPicardJob| = 0.0 м/с
+  точка хода w: (8825, 1764, -875), w_mech 0.56 м/с
+air_model: поле 12:15 ч, 3.0 м/с с 150° (срок 15.0 мин): 4.27 с, итераций [80, 130], тёплый старт
+  пересчёт (срок): 4.27 с стены (GPU 1.15 с, итераций [80, 130], тёплый true), кадр max 499 мс, средний 19 мс; главный поток max 18.1 мс, запуск задачи 18 мс, опрос max 8.6 мс, порция GPU max 14.2 мс
+    шаг атмосферы max 496 мс
+air_model: field (массивы, ветер поля 4.0 м/с с 150.0°; уровней 1)
+air_model: поле 12:15 ч, 4.0 м/с с 150° (смена ветра): 3.88 с, итераций [110, 120], тёплый старт
+  пересчёт (смена ветра): 3.88 с стены (GPU 1.28 с, итераций [110, 120], тёплый true), кадр max 17 мс, средний 17 мс; главный поток max 8.0 мс, запуск задачи 8 мс, опрос max 8.0 мс, порция GPU max 13.4 мс
+    шаг атмосферы max 0 мс
+  наибольший шаг w (≤ 0,1 с) через подмены: 0.0005 м/с
+  ok   test_air_runtime_gpu.gd::test_ongudai_runtime
+    источников 44: в тени 0, в схождении 23 (8.7/км²), на солнце 11 (3.6/км²)
+    w* 2.30 м/с, w0/w* 1.24…1.24 (k Аллена 1.24), R 129 м, живых n_A·(Φ/Φ̂) → 2.5/км²
+  ok   test_air_thermals.gd::test_sources_sunny_convergence_not_shade
+    инверсия 20 К/км на 2000 м: потолок частицы 2061 м
+    свободная атмосфера 5,8 К/км над 2000 м: потолок 2212 м
+    тёплый слой θ′ +2 К с 800 м: потолок 1808 м
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_ceiling_inversion_and_cloudbase
+    поток: поля 3482097 м³/с, водосборам 3482097, несут ядра 1985718, без хозяина 0; жизнь 0.55
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    Монте-Карло (ξ = 0,5, 30000 точек): ядра 0.112 м/с, ожидание поля 0.118 — 0.95
+  ok   test_air_thermals.gd::test_mass_flux_matches_field
+    без ведущего: источников 44 / 36, других столбцов 27
+    с маской: |Δw0| ≤ 0.00000 отн., |Δпотолок| ≤ 0.305 м, |Δснос| ≤ 0.00073 м/с
+    (без ведущего одинаковы: false)
+  ok   test_air_thermals.gd::test_host_mask_same_sources_with_noise
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    два клиента (шум поля 3e-3): термиков 1223, |Δось| ≤ 0.39 м, |Δсила| ≤ 0.000 м/с
+  ok   test_air_thermals.gd::test_two_clients_same_thermals
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    термики: поля 95, сетки в поле 0, сетки вне поля 1166
+air_model: analytic (air_model.enabled = off)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_atmosphere_field_region_and_off
+    Каянча 12:00 (32×32): ист. 64, w* 2.56, w0/w* 1.24…1.24, столб 1120, снос (-3.12, -3.50)
+    поток: поля 2879601, несут ядра 816135 (28 %)
+  ok   test_air_thermals.gd::test_real_kayancha_fixture
+  ongudai_w100_h12: вход 25 мс, подготовка пары 256 мс; max|Δhc| 0.0 м, max|ΔH| 2.42e-05 Вт/м², max|Δγ| 7.38e-11 К/м
+  ongudai_w50_h12: вход 13 мс, подготовка пары 346 мс; max|Δhc| 0.0 м, max|ΔH| 2.64e-05 Вт/м², max|Δγ| 2.33e-08 К/м
+  ok   test_air_window_case.gd::test_window_input_vs_reference
+  ok   test_air_window_case.gd::test_gauss_folded_equals_direct
+  окно 100 м, 3 м/с | без нагрева: 40 итер. (эталон f64 41, f32 41); с нагревом: 40 итер. (эталон f64 41, f32 41) | поле max|Δ|/|u₀| 2.07e-04, θ′ 6.21e-04 К | граница 7.22e-05 | поправка потока 1.67e-03 (эталон 1.67e-03) м/с | ∇·u СКО 1.81e-09 (эталон 3.80e-18) | баланс тепла -1.12e-04 (эталон -9.98e-05) | стена 1007 мс, GPU 286 мс, макс. порция 11.4 мс
+    выборка WindField над стартом, max|Δ| u,v,w: 10 м 5.20e-04, 50 м 5.95e-04, 150 м 5.88e-04, 400 м 5.27e-04
+  окно 50 м, 3 м/с | без нагрева: 50 итер. (эталон f64 51, f32 51); с нагревом: 60 итер. (эталон f64 61, f32 61) | поле max|Δ|/|u₀| 1.22e-04, θ′ 5.74e-04 К | граница nan | поправка потока 1.01e-03 (эталон nan) м/с | ∇·u СКО 2.98e-09 (эталон 7.67e-18) | баланс тепла -4.79e-05 (эталон -3.64e-05) | стена 1531 мс, GPU 583 мс, макс. порция 13.7 мс
+    выборка WindField над стартом, max|Δ| u,v,w: 10 м 1.02e-04, 50 м 1.81e-04, 150 м 2.53e-04, 400 м 3.54e-04
+  окно 100 м, 6 м/с | без нагрева: 50 итер. (эталон f64 51, f32 51); с нагревом: 50 итер. (эталон f64 51, f32 51) | поле max|Δ|/|u₀| 3.05e-05, θ′ 1.52e-04 К | граница 6.24e-06 | поправка потока 2.09e-03 (эталон 2.09e-03) м/с | ∇·u СКО 3.01e-09 (эталон 7.33e-18) | баланс тепла 1.45e-06 (эталон 3.79e-06) | стена 1087 мс, GPU 339 мс, макс. порция 11.4 мс
+    выборка WindField над стартом, max|Δ| u,v,w: 10 м 5.11e-05, 50 м 2.56e-05, 150 м 5.37e-05, 400 м 1.08e-04
+  ok   test_air_window_gpu.gd::test_window_vs_reference
+  ok   test_air_window_gpu.gd::test_window_two_runs_bitwise_equal
+  загрузка окон (poll_slice 40): стена 2831 мс, наибольший кадр 247 мс
+  стык уровней, 50 м над землёй: 50→100 м: у грани 11.2 %, в 5 клетках 18.7 %, за 50 м: стык 9.8 %, внутри 9.0 %, 100→400 м: у грани 6.1 %, в 5 клетках 17.0 %, за 50 м: стык 11.4 %, внутри 18.3 %; наибольший шаг профиля за 10 м 0.127 м/с
+  стык уровней, 300 м над землёй: 50→100 м: у грани 0.5 %, в 5 клетках 1.1 %, за 50 м: стык 1.4 %, внутри 1.1 %, 100→400 м: у грани 2.7 %, в 5 клетках 7.4 %, за 50 м: стык 4.7 %, внутри 2.0 %; наибольший шаг профиля за 10 м 0.038 м/с
+  сдвиг к 1000 м: стена 1935 мс, кадров 118, наибольший кадр 33 мс, наибольший poll 32.5 мс
+  сдвиг к 2000 м: стена 3074 мс, кадров 184, наибольший кадр 41 мс, наибольший poll 39.9 мс
+    окно 100 м (4025.0, -3525.0) — загрузка: итераций [40, 40], ok; подготовка 387 мс, стена 415 мс, GPU 275 мс, порций 25, макс. порция 25.0 мс, макс. poll 55.4 мс, start 246 мс, итог 8 мс
+    окно 50 м (5625.0, -1925.0) — загрузка: итераций [50, 60], ok; подготовка 479 мс, стена 742 мс, GPU 548 мс, порций 36, макс. порция 27.5 мс, макс. poll 55.7 мс, start 20 мс, итог 13 мс
+    окно 50 м (6625.0, -1925.0) — сдвиг (тёплый): итераций [40, 60], ok; подготовка 429 мс, стена 863 мс, GPU 443 мс, порций 51, макс. порция 13.8 мс, макс. poll 5.3 мс, start 6 мс, итог 30 мс
+    окно 100 м (6025.0, -3525.0) — сдвиг (тёплый): итераций [40, 40], ok; подготовка 389 мс, стена 572 мс, GPU 236 мс, порций 34, макс. порция 11.5 мс, макс. poll 11.1 мс, start 11 мс, итог 8 мс
+    окно 50 м (7625.0, -1925.0) — сдвиг (тёплый): итераций [40, 70], ok; подготовка 484 мс, стена 1008 мс, GPU 528 мс, порций 60, макс. порция 13.5 мс, макс. poll 7.6 мс, start 10 мс, итог 38 мс
+  ok   test_air_window_gpu.gd::test_clipmap_load_and_shift
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 3)
+air_model: поле 12:00 ч, 3.0 м/с с 150° (загрузка): 5.54 с, итераций [150, 130], окна ["100 м [40, 40]", "50 м [50, 60]"]
+  AirRuntime, загрузка с окнами: 5.54 с стены, кадр max 58 мс, AirRuntime за кадр max 57 мс
+    без сдвига: шаг атмосферы max 425 мс (термики по полю)
+    шаг атмосферы max 0 мс, AirRuntime за кадр max 25 мс
+  сдвиг за пилотом: 2.83 с до подачи, кадр max 26 мс
+air_model: поле 12:15 ч, 3.0 м/с с 150° (срок 15.0 мин): 6.04 с, итераций [80, 130], тёплый старт, окна ["100 м [30, 40]", "50 м [30, 70]"]
+  пересчёт 12:15 с окнами: 6.04 с стены, итераций области [80, 130], окна ["100 м [30, 40]", "50 м [30, 70]"]; кадр max 40 мс
+  ok   test_air_window_gpu.gd::test_runtime_with_windows
+  ok   test_air_contracts.gd::test_contract_versions
+  ok   test_air_contracts.gd::test_thd_in_state_keys
+  ok   test_air_contracts.gd::test_c1_ref_fixture_format
+  ok   test_air_contracts.gd::test_c1_ref_mask_rule
+  ok   test_air_contracts.gd::test_c1_ref_solution_div_free
+  ok   test_air_contracts.gd::test_c2_air_case_grid
+  ok   test_air_contracts.gd::test_c2_params_match_reference
+  ok   test_air_contracts.gd::test_c3_from_arrays_axes_units
+  ok   test_air_contracts.gd::test_c3_mask_log_profile
+ERROR: WindField: неверные размеры сетки
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] from_arrays (res://scripts/atmosphere/air_model/wind_field.gd:123)
+       [1] test_c3_sanitize_and_limits (res://tests/contracts/test_air_contracts.gd:465)
+       [2] _ready (res://tests/run_tests.gd:36)
+       [3] test_runtime_with_windows (res://tests/atmosphere/test_air_window_gpu.gd:639)
+  ok   test_air_contracts.gd::test_c3_sanitize_and_limits
+  ok   test_air_contracts.gd::test_c3_from_mac_ref
+  ok   test_air_contracts.gd::test_c3_game_field_files
+  ok   test_air_contracts.gd::test_c4_field_set_vector4
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_contracts.gd::test_c4_atmosphere_api_and_analytic
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c4_atmosphere_field_rule
+  ok   test_air_contracts.gd::test_c4_turb_at
+  ok   test_air_contracts.gd::test_c4_config_keys
+  ok   test_air_contracts.gd::test_c5_signature_and_mask
+  ok   test_air_contracts.gd::test_c5_net_schema
+ERROR: WindField: user://c6_version_test — версия формата 2.0, читается 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] load_file (res://scripts/atmosphere/air_model/wind_field.gd:221)
+       [1] test_c6_field_version (res://tests/contracts/test_air_contracts.gd:736)
+       [2] _ready (res://tests/run_tests.gd:36)
+       [3] test_runtime_with_windows (res://tests/atmosphere/test_air_window_gpu.gd:639)
+  ok   test_air_contracts.gd::test_c6_field_version
+  ok   test_air_contracts.gd::test_c6_start_hours
+  ok   test_air_contracts.gd::test_c7_levels_fine_to_coarse
+  ok   test_air_contracts.gd::test_c7_window_grid_and_api
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_contracts.gd::test_c8_blend
+  ok   test_air_contracts.gd::test_c8_blend_during_blend
+air_model: analytic (нет слоя рельефа detail)
+  ok   test_air_contracts.gd::test_c9_runtime_shape
+
+58 тестов, 0 упало, 0 пропущено

@@ -1,0 +1,481 @@
+{
+  "src": "pdf__aeros_discus_manual.pdf",
+  "wings": [
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus",
+      "size": "12",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 11.6,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) 11.6 (125)"
+        },
+        {
+          "field": "span",
+          "value": 9.2,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) 9.2 (30)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.3,
+          "unit": "",
+          "quote": "Aspect ratio 7.3"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose angle, ° 125-128"
+        },
+        {
+          "field": "wing_mass",
+          "value": 25,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) * 25 (55)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 50,
+          "unit": "kg",
+          "quote": "Min. clip-in weight, kg (lb) 50 (110)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 80,
+          "unit": "kg",
+          "quote": "Max. clip-in weight, kg (lb) 80 (177)"
+        },
+        {
+          "field": "stall_speed",
+          "value": 29,
+          "unit": "km/h",
+          "quote": "Min. airspeed, km/h (mph) 29-30 (18-19)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80,
+          "unit": "km/h",
+          "quote": "Max. airspeed, km/h (mph) 80 (50)"
+        },
+        {
+          "field": "trim_speed",
+          "value": 33,
+          "unit": "km/h",
+          "quote": "range of trim speed for the Discus with VG off is 33 - 35 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 18,
+          "unit": "",
+          "quote": "Number of upper sail battens 18"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Front leading edge diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "front leading edge is 60 mm oversleeved with 62 mm at the crossbar"
+        },
+        {
+          "name": "Front leading edge at crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "62 mm at the crossbar junction"
+        },
+        {
+          "name": "Rear leading edge diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "rear leading edge is 50 mm oversleeved with 52 mm at the washout"
+        },
+        {
+          "name": "Rear leading edge at washout",
+          "value": 52,
+          "unit": "mm",
+          "quote": "52 mm at the washout tube outboard sprog attachment point"
+        },
+        {
+          "name": "Tip wand clevis pin position",
+          "value": 12,
+          "unit": "mm",
+          "quote": "clevis pin and a small screw 12 mm from the end of the tube"
+        },
+        {
+          "name": "Sail mount strap clevis pin position",
+          "value": 100,
+          "unit": "mm",
+          "quote": "clevis pin located 100 mm from the end of the leading edge"
+        },
+        {
+          "name": "Batten alignment tolerance",
+          "value": 3,
+          "unit": "mm",
+          "quote": "not be any deviation of more than 3 mm (1/8'') from one batten"
+        }
+      ]
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus",
+      "size": "13",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 12.8,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) 12.8 (138)"
+        },
+        {
+          "field": "span",
+          "value": 9.6,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) 9.6 (31.5)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.2,
+          "unit": "",
+          "quote": "Aspect ratio 7.2"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose angle, ° 125-128"
+        },
+        {
+          "field": "wing_mass",
+          "value": 30,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) * 30 (66)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 65,
+          "unit": "kg",
+          "quote": "Min. clip-in weight, kg (lb) 65 (143)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 100,
+          "unit": "kg",
+          "quote": "Max. clip-in weight, kg (lb) 100 (220.5)"
+        },
+        {
+          "field": "stall_speed",
+          "value": 29,
+          "unit": "km/h",
+          "quote": "Min. airspeed, km/h (mph) 29-30 (18-19)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80,
+          "unit": "km/h",
+          "quote": "Max. airspeed, km/h (mph) 80 (50)"
+        },
+        {
+          "field": "trim_speed",
+          "value": 33,
+          "unit": "km/h",
+          "quote": "range of trim speed for the Discus with VG off is 33 - 35 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 20,
+          "unit": "",
+          "quote": "Number of upper sail battens 20"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Front leading edge diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "front leading edge is 60 mm oversleeved with 62 mm at the crossbar"
+        },
+        {
+          "name": "Front leading edge at crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "62 mm at the crossbar junction"
+        },
+        {
+          "name": "Rear leading edge diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "rear leading edge is 50 mm oversleeved with 52 mm at the washout"
+        },
+        {
+          "name": "Rear leading edge at washout",
+          "value": 52,
+          "unit": "mm",
+          "quote": "52 mm at the washout tube outboard sprog attachment point"
+        },
+        {
+          "name": "Tip wand clevis pin position",
+          "value": 12,
+          "unit": "mm",
+          "quote": "clevis pin and a small screw 12 mm from the end of the tube"
+        },
+        {
+          "name": "Sail mount strap clevis pin position",
+          "value": 100,
+          "unit": "mm",
+          "quote": "clevis pin located 100 mm from the end of the leading edge"
+        },
+        {
+          "name": "Batten alignment tolerance",
+          "value": 3,
+          "unit": "mm",
+          "quote": "not be any deviation of more than 3 mm (1/8'') from one batten"
+        }
+      ]
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus",
+      "size": "14",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 13.7,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) 13.7 (147.5)"
+        },
+        {
+          "field": "span",
+          "value": 10,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) 10 (32.8)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.3,
+          "unit": "",
+          "quote": "Aspect ratio 7.3"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose angle, ° 125-128"
+        },
+        {
+          "field": "wing_mass",
+          "value": 31,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) * 31 (68)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 75,
+          "unit": "kg",
+          "quote": "Min. clip-in weight, kg (lb) 75 (165)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 115,
+          "unit": "kg",
+          "quote": "Max. clip-in weight, kg (lb) 115 (254)"
+        },
+        {
+          "field": "stall_speed",
+          "value": 29,
+          "unit": "km/h",
+          "quote": "Min. airspeed, km/h (mph) 29-30 (18-19)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80,
+          "unit": "km/h",
+          "quote": "Max. airspeed, km/h (mph) 80 (50)"
+        },
+        {
+          "field": "trim_speed",
+          "value": 33,
+          "unit": "km/h",
+          "quote": "range of trim speed for the Discus with VG off is 33 - 35 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 20,
+          "unit": "",
+          "quote": "Number of upper sail battens 20"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Front leading edge diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "front leading edge is 60 mm oversleeved with 62 mm at the crossbar"
+        },
+        {
+          "name": "Front leading edge at crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "62 mm at the crossbar junction"
+        },
+        {
+          "name": "Rear leading edge diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "rear leading edge is 50 mm oversleeved with 52 mm at the washout"
+        },
+        {
+          "name": "Rear leading edge at washout",
+          "value": 52,
+          "unit": "mm",
+          "quote": "52 mm at the washout tube outboard sprog attachment point"
+        },
+        {
+          "name": "Tip wand clevis pin position",
+          "value": 12,
+          "unit": "mm",
+          "quote": "clevis pin and a small screw 12 mm from the end of the tube"
+        },
+        {
+          "name": "Sail mount strap clevis pin position",
+          "value": 100,
+          "unit": "mm",
+          "quote": "clevis pin located 100 mm from the end of the leading edge"
+        },
+        {
+          "name": "Batten alignment tolerance",
+          "value": 3,
+          "unit": "mm",
+          "quote": "not be any deviation of more than 3 mm (1/8'') from one batten"
+        }
+      ]
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus",
+      "size": "15",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 14.7,
+          "unit": "sq.m",
+          "quote": "Sail area, sq.m. (sq.ft.) 14.7 (158)"
+        },
+        {
+          "field": "span",
+          "value": 10.3,
+          "unit": "m",
+          "quote": "Wing span, m (ft.) 10.3 (33.8)"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.2,
+          "unit": "",
+          "quote": "Aspect ratio 7.2"
+        },
+        {
+          "field": "nose_angle",
+          "value": 125,
+          "unit": "deg",
+          "quote": "Nose angle, ° 125-128"
+        },
+        {
+          "field": "wing_mass",
+          "value": 33,
+          "unit": "kg",
+          "quote": "Weight (without bags), kg (lb) * 33 (73)"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 85,
+          "unit": "kg",
+          "quote": "Min. clip-in weight, kg (lb) 85 (187)"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 125,
+          "unit": "kg",
+          "quote": "Max. clip-in weight, kg (lb) 125 (276)"
+        },
+        {
+          "field": "stall_speed",
+          "value": 29,
+          "unit": "km/h",
+          "quote": "Min. airspeed, km/h (mph) 29-30 (18-19)"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80,
+          "unit": "km/h",
+          "quote": "Max. airspeed, km/h (mph) 80 (50)"
+        },
+        {
+          "field": "trim_speed",
+          "value": 33,
+          "unit": "km/h",
+          "quote": "range of trim speed for the Discus with VG off is 33 - 35 km/h"
+        },
+        {
+          "field": "battens",
+          "value": 20,
+          "unit": "",
+          "quote": "Number of upper sail battens 20"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "Front leading edge diameter",
+          "value": 60,
+          "unit": "mm",
+          "quote": "front leading edge is 60 mm oversleeved with 62 mm at the crossbar"
+        },
+        {
+          "name": "Front leading edge at crossbar",
+          "value": 62,
+          "unit": "mm",
+          "quote": "62 mm at the crossbar junction"
+        },
+        {
+          "name": "Rear leading edge diameter",
+          "value": 50,
+          "unit": "mm",
+          "quote": "rear leading edge is 50 mm oversleeved with 52 mm at the washout"
+        },
+        {
+          "name": "Rear leading edge at washout",
+          "value": 52,
+          "unit": "mm",
+          "quote": "52 mm at the washout tube outboard sprog attachment point"
+        },
+        {
+          "name": "Tip wand clevis pin position",
+          "value": 12,
+          "unit": "mm",
+          "quote": "clevis pin and a small screw 12 mm from the end of the tube"
+        },
+        {
+          "name": "Sail mount strap clevis pin position",
+          "value": 100,
+          "unit": "mm",
+          "quote": "clevis pin located 100 mm from the end of the leading edge"
+        },
+        {
+          "name": "Batten alignment tolerance",
+          "value": 3,
+          "unit": "mm",
+          "quote": "not be any deviation of more than 3 mm (1/8'') from one batten"
+        }
+      ]
+    }
+  ]
+}

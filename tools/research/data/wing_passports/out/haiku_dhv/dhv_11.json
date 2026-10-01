@@ -1,0 +1,729 @@
+{
+  "src_files": [
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4001_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4002_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4013_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4016_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4017_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4022_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4023_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4025_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4026_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4033_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4034_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4035_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4036_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4072_nopr_.html.txt",
+    "dhv__test_lang_DE_templatesetid_1_fieldvalue_4073_nopr_.html.txt"
+  ],
+  "wings": [
+    {
+      "manufacturer": "Moyes Delta Gliders Pty Ltd",
+      "model": "Litespeed S 4.5",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0405-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 114.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 114 Kg - 138 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 138.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 114 Kg - 138 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 28"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 75"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4001_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Bautek FluggerÃ¤te GmbH",
+      "model": "Bico",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0406-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 120.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 120 Kg - 279 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 279.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 120 Kg - 279 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 37.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 37"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4002_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Icaro 2000 s.r.l.",
+      "model": "Laminar 14.2 Zero 7",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0407-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 105.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 134 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 134.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 134 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 28"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 85"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >80"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4013_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Aeronautic Innovation RÃ¼hle GmbH (A.I.R. GmbH)",
+      "model": "Atos VR",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0408-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 90 Kg - 182 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 182.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 90 Kg - 182 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 35.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 35"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4016_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Wills Wing Inc. (Alt)",
+      "model": "U2 160",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0409-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 100 Kg - 133 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 133.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 100 Kg - 133 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 29"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 28"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 85"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4017_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L 14",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0414-06",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 115 Kg - 152 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 152.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 115 Kg - 152 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 24.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 24"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 28"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 75"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4022_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Combat L 13",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0413-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 105.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 134 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 134.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 134 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 29"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4023_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Phantom",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0411-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 100.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 100 Kg - 154 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 154.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 100 Kg - 154 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 36.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 36"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4025_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Seedwings Airsports GmbH",
+      "model": "Spyder 12.5",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0410-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 84.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 84 Kg - 110 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 110.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 84 Kg - 110 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 33.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 33"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 32.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 32"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 75.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 75"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4026_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Delta Flugschule Condor",
+      "model": "CREX 3",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0505-24",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 72.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 72 Kg - 121 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 72 Kg - 121 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 35.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 35"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 80"
+        },
+        {
+          "field": "vne",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 80 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4033_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "DesignProducts Markus Eggimann",
+      "model": "Combat C AC 13",
+      "size": "",
+      "cert_class": "3",
+      "cert_standard": "DHV 01-0506-24",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 122.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 122 Kg - 140 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 140.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 122 Kg - 140 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 39.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 39"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 38.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 38"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 96.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 96"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4034_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "ICARO paragliders - Fly & more GmbH",
+      "model": "Orbiter 14",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0412-05",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 80.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 80 Kg - 121 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 121.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 80 Kg - 121 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 31.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 31"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 29"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 80.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 80"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4035_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "AEROS Ltd.",
+      "model": "Discus 15",
+      "size": "",
+      "cert_class": "2",
+      "cert_standard": "DHV 01-0415-06",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 115.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 115 Kg - 142 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 142.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 115 Kg - 142 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 30.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 30"
+        },
+        {
+          "field": "vmin_vg100",
+          "value": 29.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 29"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 85.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 85"
+        },
+        {
+          "field": "vmax_vg100",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) >90"
+        },
+        {
+          "field": "vne",
+          "value": 90.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 90 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4036_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Funky 15",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0416-06",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 90.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 90 Kg - 130 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 130.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 90 Kg - 130 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 28.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 28"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 63.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 63"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 70 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4072_nopr_.html.txt"
+    },
+    {
+      "manufacturer": "Flugsport Skypoint Gesmbh",
+      "model": "Funky 17",
+      "size": "",
+      "cert_class": "1",
+      "cert_standard": "DHV 01-0417-06",
+      "facts": [
+        {
+          "field": "takeoff_mass_min",
+          "value": 105.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 149 Kg"
+        },
+        {
+          "field": "takeoff_mass_max",
+          "value": 149.0,
+          "unit": "kg",
+          "quote": "Startgewicht\n 105 Kg - 149 Kg"
+        },
+        {
+          "field": "vmin_vg0",
+          "value": 27.0,
+          "unit": "km/h",
+          "quote": "V min (km/h) 27"
+        },
+        {
+          "field": "vmax_vg0",
+          "value": 62.0,
+          "unit": "km/h",
+          "quote": "V max (km/h) 62"
+        },
+        {
+          "field": "vne",
+          "value": 70.0,
+          "unit": "km/h",
+          "quote": "HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit 70 km/h"
+        }
+      ],
+      "src": "dhv__test_lang_DE_templatesetid_1_fieldvalue_4073_nopr_.html.txt"
+    }
+  ]
+}

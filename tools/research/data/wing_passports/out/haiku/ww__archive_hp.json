@@ -1,0 +1,26 @@
+{
+  "src_files": ["ww__archive_hp.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "HP",
+      "size": "170",
+      "cert_class": "",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 170,
+          "unit": "ft²",
+          "quote": "offered in a single 170 ft² size"
+        },
+        {
+          "field": "year",
+          "value": 1984,
+          "unit": "",
+          "quote": "Introduced in September 1984"
+        }
+      ]
+    }
+  ]
+}

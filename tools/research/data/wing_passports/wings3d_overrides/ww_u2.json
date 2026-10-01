@@ -1,0 +1,7 @@
+{
+  "_doc": "Особенности вида N11 из «Заметок по виду» ТЗ: «Litestream control bar with streamlined aluminum components» — профилированные стойки трапеции (faired_uprights); «Curved tip planform» — скруглённая законцовка (tip_round, как по умолчанию).",
+  "params": {
+    "faired_uprights": true,
+    "tip_round": true
+  }
+}

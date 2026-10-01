@@ -1,0 +1,216 @@
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:233: RuntimeWarning: Mean of empty slice
+  up = np.nanmean(sp[:, :, iu], axis=1)          # профиль скорости вдали против ветра (по z над морем = над подножием)
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:238: RuntimeWarning: Mean of empty slice
+  row = np.nanmean(sp[k], axis=0)
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:240: RuntimeWarning: Mean of empty slice
+  wmax = float(np.nanmax(np.abs(np.nanmean(w[k], axis=0))[near]))
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:241: RuntimeWarning: Mean of empty slice
+  prel = np.nanmax(np.nanmean(psp[k], axis=0)[near]) - 1
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:242: RuntimeWarning: Mean of empty slice
+  pwmax = float(np.nanmax(np.abs(np.nanmean(pw[k], axis=0))[near]))
+/home/greg/deltaplan-wf-am09/tools/research/air3d/synth.py:254: RuntimeWarning: Mean of empty slice
+  np.savez_compressed(OUT / f"sec_check4_N{N:g}.npz", u=np.nanmean(u, axis=1), w=np.nanmean(w, axis=1),
+check4 {"H": 500.0, "L": 500.0, "N": 0.0, "U_aloft": 9.0, "z1H": {"z": 487.5, "speedup_max": -0.0433992516454097, "w_absmax": 3.917345702648163, "w_limit": 0.1, "U_at_z": 8.553095581828375, "potential_speedup": 0.4883410280044187, "potential_w_over_U": 0.6694782450519048}, "z1.5H": {"z": 737.5, "speedup_max": 0.23529631513789373, "w_absmax": 2.124671619385481, "w_limit": 0.1, "U_at_z": 8.94880601785169, "potential_speedup": 0.4276265898997551, "potential_w_over_U": 0.2519301422441436}, "z2H": {"z": 987.5, "speedup_max": 0.19070489564221527, "w_absmax": 1.407963640987873, "w_limit": 0.1, "U_at_z": 9.016264223501631, "potential_speedup": 0.24250779602111328, "potential_w_over_U": 0.14632879647617855}, "z2.5H": {"z": 1237.5, "speedup_max": 0.16403142810923432, "w_absmax": 1.0256772749125957, "w_limit": 0.1, "U_at_z": 9.013817608569063, "potential_speedup": 0.15996864762038965, "potential_w_over_U": 0.09770265710967634}, "z3H": {"z": 1487.5, "speedup_max": 0.13869563423142428, "w_absmax": 0.7852202039211988, "w_limit": 0.1, "U_at_z": 9.012428343352608, "potential_speedup": 0.11498160532634794, "potential_w_over_U": 0.07019182804991786}, "speedup_by_agl": [{"agl": 10, "max": 1.0669738886762694, "x": -75.0}, {"agl": 25, "max": 0.8494354401111344, "x": -75.0}, {"agl": 50, "max": 0.7401663037054349, "x": -75.0}, {"agl": 100, "max": 0.6312482386366702, "x": -75.0}, {"agl": 200, "max": 0.47325665295367014, "x": -25.0}, {"agl": 400, "max": 0.3011061332883098, "x": 75.0}]}
+check5 {"angle": 0.0, "ratio_20": 1.8996238919688175, "ratio_50": 1.7444652583023006, "dir_dev_20": 0.8943604119700297, "lee50_over_Ua": 0.46914042277689144, "lee50_over_up50": 1.1436360178299703, "lee50_behind_peak_over_up50": 0.7923060266498909, "w_lee50_saddle": -0.2595369982849316, "w_lee50_peak": -0.5417675620453549} 151
+check5 {"angle": 15.0, "ratio_20": 1.8357687893199366, "ratio_50": 1.6930637232781702, "dir_dev_20": 4.165384420315256, "lee50_over_Ua": 0.44249527551437645, "lee50_over_up50": 1.0145923932791374, "lee50_behind_peak_over_up50": 0.9295694871040819, "w_lee50_saddle": -0.22730169977036246, "w_lee50_peak": -0.5849260030973136} 151
+check6 {"angle": 0.0, "wmax_50": 1.8937942361671647, "wmax_100": 2.4963048934936523, "wmax_200": 2.019545487909509, "speedup_20": 0.3893408889132324, "speedup_50": 0.32182894362512715} 51
+check6 {"angle": 45.0, "wmax_50": 1.360872252875526, "wmax_100": 1.7943757057189942, "wmax_200": 1.4466960998189529, "speedup_20": 0.31166994251376123, "speedup_50": 0.23293483378198232} 61
+check4 {"H": 500.0, "L": 500.0, "N": 0.0, "U_aloft": 9.0, "z1H": {"z": 487.5, "speedup_max": -0.08218145208792416, "w_absmax": 3.8316588401794434, "w_limit": 0.1, "U_at_z": 8.549948577739732, "potential_speedup": 0.4883410280044187, "potential_w_over_U": 0.6694782450519048}, "z1.5H": {"z": 737.5, "speedup_max": 0.20697086322362002, "w_absmax": 2.1995910555124283, "w_limit": 0.1, "U_at_z": 8.96424272859876, "potential_speedup": 0.4276265898997551, "potential_w_over_U": 0.2519301422441436}, "z2H": {"z": 987.5, "speedup_max": 0.18680671887357803, "w_absmax": 1.501817211508751, "w_limit": 0.1, "U_at_z": 9.021281535679197, "potential_speedup": 0.24250779602111328, "potential_w_over_U": 0.14632879647617855}, "z2.5H": {"z": 1237.5, "speedup_max": 0.17071329227170762, "w_absmax": 1.1146067790687084, "w_limit": 0.1, "U_at_z": 9.018980862341397, "potential_speedup": 0.15996864762038965, "potential_w_over_U": 0.09770265710967634}, "z3H": {"z": 1487.5, "speedup_max": 0.1481454910811042, "w_absmax": 0.8580625765025616, "w_limit": 0.1, "U_at_z": 9.017489373727365, "potential_speedup": 0.11498160532634794, "potential_w_over_U": 0.07019182804991786}, "speedup_by_agl": [{"agl": 10, "max": 0.9373999063054792, "x": -75.0}, {"agl": 25, "max": 0.7343049902311476, "x": -75.0}, {"agl": 50, "max": 0.6415360773248016, "x": -75.0}, {"agl": 100, "max": 0.5605779694151973, "x": -75.0}, {"agl": 200, "max": 0.43463798086813665, "x": -25.0}, {"agl": 400, "max": 0.2917193811758545, "x": 75.0}]}
+check5 {"angle": 0.0, "ratio_20": 1.9118755641402538, "ratio_50": 1.7550632184204469, "dir_dev_20": 0.8870501480013343, "lee50_over_Ua": 0.4708971160116243, "lee50_over_up50": 1.1498732055682805, "lee50_behind_peak_over_up50": 0.7714455321648831, "w_lee50_saddle": -0.2641173519462008, "w_lee50_peak": -0.5340207230012017} 151
+check5 {"angle": 15.0, "ratio_20": 1.8432064905784926, "ratio_50": 1.6995301844435526, "dir_dev_20": 4.147999652016045, "lee50_over_Ua": 0.4417010827609518, "lee50_over_up50": 1.0130452720814491, "lee50_behind_peak_over_up50": 0.9111529537210219, "w_lee50_saddle": -0.23164319883871973, "w_lee50_peak": -0.5770940157180626} 151
+check6 {"angle": 0.0, "wmax_50": 1.8587332175882065, "wmax_100": 2.448400115966797, "wmax_200": 2.003094769564251, "speedup_20": 0.36178533920656486, "speedup_50": 0.29762308518125025} 61
+check6 {"angle": 45.0, "wmax_50": 1.3454258667942658, "wmax_100": 1.7700251936912539, "wmax_200": 1.4418868458511045, "speedup_20": 0.29253595790923703, "speedup_50": 0.2167122811596427} 61
+{
+ "am09": {
+  "lam_frac": 0.25,
+  "ridge": {
+   "z2H": {
+    "z": 987.5,
+    "speedup_max": 0.19070489564221527,
+    "w_absmax": 1.407963640987873,
+    "w_limit": 0.1,
+    "U_at_z": 9.016264223501631,
+    "potential_speedup": 0.24250779602111328,
+    "potential_w_over_U": 0.14632879647617855
+   },
+   "z2.5H": {
+    "z": 1237.5,
+    "speedup_max": 0.16403142810923432,
+    "w_absmax": 1.0256772749125957,
+    "w_limit": 0.1,
+    "U_at_z": 9.013817608569063,
+    "potential_speedup": 0.15996864762038965,
+    "potential_w_over_U": 0.09770265710967634
+   }
+  },
+  "saddle": {
+   "a0": {
+    "ratio_20": 1.8996238919688175,
+    "ratio_50": 1.7444652583023006,
+    "dir_dev_20": 0.8943604119700297
+   },
+   "a15": {
+    "ratio_20": 1.8357687893199366,
+    "ratio_50": 1.6930637232781702,
+    "dir_dev_20": 4.165384420315256
+   }
+  },
+  "oblique": {
+   "w45_over_w0_50": 0.7185956250610334,
+   "w45_over_w0_100": 0.7188127181082086,
+   "w45_over_w0_200": 0.716347370475161,
+   "speedup20": [
+    0.3893408889132324,
+    0.31166994251376123
+   ]
+  }
+ },
+ "am01": {
+  "lam_frac": 0.1,
+  "ridge": {
+   "z2H": {
+    "z": 987.5,
+    "speedup_max": 0.18680671887357803,
+    "w_absmax": 1.501817211508751,
+    "w_limit": 0.1,
+    "U_at_z": 9.021281535679197,
+    "potential_speedup": 0.24250779602111328,
+    "potential_w_over_U": 0.14632879647617855
+   },
+   "z2.5H": {
+    "z": 1237.5,
+    "speedup_max": 0.17071329227170762,
+    "w_absmax": 1.1146067790687084,
+    "w_limit": 0.1,
+    "U_at_z": 9.018980862341397,
+    "potential_speedup": 0.15996864762038965,
+    "potential_w_over_U": 0.09770265710967634
+   }
+  },
+  "saddle": {
+   "a0": {
+    "ratio_20": 1.9118755641402538,
+    "ratio_50": 1.7550632184204469,
+    "dir_dev_20": 0.8870501480013343
+   },
+   "a15": {
+    "ratio_20": 1.8432064905784926,
+    "ratio_50": 1.6995301844435526,
+    "dir_dev_20": 4.147999652016045
+   }
+  },
+  "oblique": {
+   "w45_over_w0_50": 0.7238402230418085,
+   "w45_over_w0_100": 0.7229313469429918,
+   "w45_over_w0_200": 0.7198295696038234,
+   "speedup20": [
+    0.36178533920656486,
+    0.29253595790923703
+   ]
+  }
+ }
+}
+altai/sinyukha_west: ветер 5.56 м/с с 96°, 13 ч
+  400 м: ok, 71 итераций
+  100 м: ok, 51 итераций
+  400 м: ok, 71 итераций
+  100 м: ok, 51 итераций
+  /home/greg/deltaplan-wf-am09/tools/research/air_turb/fields/altai_sinyukha_west_w100_h13 4.96 МБ
+  3.8 с
+askarovo/biyagoda_west: ветер 5.56 м/с с 114°, 13 ч
+  400 м: ok, 51 итераций
+  100 м: ok, 51 итераций
+  400 м: ok, 41 итераций
+  100 м: ok, 41 итераций
+  /home/greg/deltaplan-wf-am09/tools/research/air_turb/fields/askarovo_biyagoda_west_w100_h13 3.98 МБ
+  2.5 с
+aushkul/aushtau_east: ветер 5.56 м/с с 299°, 13 ч
+  400 м: ok, 41 итераций
+  100 м: ok, 41 итераций
+  400 м: ok, 51 итераций
+  100 м: ok, 41 итераций
+  /home/greg/deltaplan-wf-am09/tools/research/air_turb/fields/aushkul_aushtau_east_w100_h13 3.98 МБ
+  2.4 с
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+turb_askervein: 4 полей → tools/research/tune/out/tke_model.json
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Terrain: локация 'altai' загружена за 0.59 с, чанков 160
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/altai_sinyukha_west_w100_h13, ветер поля 5.55555555555556 м/с с 96.0°; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/altai_sinyukha_west_w100_h13, ветер поля 5.55555555555556 м/с с 96.0°; уровней 1)
+WARNING: A Thread object is being destroyed without its completion having been realized.
+Please call wait_to_finish() on it to ensure correct cleanup.
+     at: ~Thread (core/os/thread.cpp:116)
+     GDScript backtrace (most recent call first):
+         [0] _lee_all (res://tools/research/air_turb/turb_probe.gd:198)
+         [1] _ready (res://tools/research/air_turb/turb_probe.gd:42)
+{"analytic":{"jerk_threshold":1.95410585403442,"jerks_per_min":18.0,"jerks_per_min_abs_thr":-1.0,"mean_u":-2.19207382202148,"mean_w":-4.14345788955688,"mean_wind_h":5.57604837417603,"mean_wind_w":0.0,"sigma_u":4.99587392807007,"sigma_w":1.13898718357086},"field":{"jerk_threshold":3.40128886699677,"jerks_per_min":15.0,"jerks_per_min_abs_thr":84.3333333333333,"mean_u":0.135426118969917,"mean_w":-0.192551836371422,"mean_wind_h":1.04955470561981,"mean_wind_w":0.0365328416228294,"sigma_u":1.29447329044342,"sigma_w":2.06322073936462},"field_at_point":{"a_out":573.213806152344,"agl":10.0000169783592,"desc":0.110042631626129,"lee_f":1.0,"n2":-0.00000270811801783566,"share":1.0,"shear":0.0267936699092388,"u_field":1.04350912570953,"u_out":9.55886363983154,"ustar":0.124959148466587,"w_mech":0.0366968363523483,"wstar":2.26034784317017},"key":"altai/sinyukha_west","no_thermals_analytic":{"expected_mean_w":-0.0833334748196601,"mean_w":-4.61694383621216,"sigma_w":1.53802633285522},"no_thermals_field":{"expected_mean_w":-0.0468006331968307,"mean_w":-0.239481449127197,"sigma_w":2.56879878044128},"pos":[-2119.81274414062,726.106811523438,5320.6796875]}
+Terrain: локация 'askarovo' загружена за 0.45 с, чанков 160
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/askarovo_biyagoda_west_w100_h13, ветер поля 5.55555555555556 м/с с 114.0°; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/askarovo_biyagoda_west_w100_h13, ветер поля 5.55555555555556 м/с с 114.0°; уровней 1)
+WARNING: A Thread object is being destroyed without its completion having been realized.
+Please call wait_to_finish() on it to ensure correct cleanup.
+     at: ~Thread (core/os/thread.cpp:116)
+     GDScript backtrace (most recent call first):
+         [0] _lee_all (res://tools/research/air_turb/turb_probe.gd:198)
+         [1] _ready (res://tools/research/air_turb/turb_probe.gd:42)
+{"analytic":{"jerk_threshold":1.9243415594101,"jerks_per_min":7.33333333333333,"jerks_per_min_abs_thr":-1.0,"mean_u":-2.42537212371826,"mean_w":-4.20341110229492,"mean_wind_h":5.54504108428955,"mean_wind_w":0.0,"sigma_u":4.93054914474487,"sigma_w":1.07546019554138},"field":{"jerk_threshold":4.59807443618774,"jerks_per_min":6.33333333333333,"jerks_per_min_abs_thr":243.0,"mean_u":-2.37844586372375,"mean_w":0.39219930768013,"mean_wind_h":0.585460126399994,"mean_wind_w":-0.191223725676537,"sigma_u":1.26418781280518,"sigma_w":2.04097485542297},"field_at_point":{"a_out":567.149963378906,"agl":10.0000065828445,"desc":0.0658245012164116,"lee_f":1.0,"n2":-0.00000216578973777359,"share":1.0,"shear":0.024401031434536,"u_field":0.588333785533905,"u_out":9.88344192504883,"ustar":0.203616052865982,"w_mech":-0.191829562187195,"wstar":2.50544142723083},"key":"askarovo/biyagoda_west","no_thermals_analytic":{"expected_mean_w":-0.0833333881903708,"mean_w":-4.51930475234985,"sigma_w":1.4211905002594},"no_thermals_field":{"expected_mean_w":-0.274557113866907,"mean_w":-0.194037392735481,"sigma_w":2.72425293922424},"pos":[-1181.01916503906,518.534606933594,36.2270965576172]}
+Terrain: локация 'aushkul' загружена за 0.47 с, чанков 160
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/aushkul_aushtau_east_w100_h13, ветер поля 5.55555555555556 м/с с 299.0°; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (tools/research/air_turb/fields/aushkul_aushtau_east_w100_h13, ветер поля 5.55555555555556 м/с с 299.0°; уровней 1)
+WARNING: A Thread object is being destroyed without its completion having been realized.
+Please call wait_to_finish() on it to ensure correct cleanup.
+     at: ~Thread (core/os/thread.cpp:116)
+     GDScript backtrace (most recent call first):
+         [0] _lee_all (res://tools/research/air_turb/turb_probe.gd:198)
+         [1] _ready (res://tools/research/air_turb/turb_probe.gd:42)
+{"analytic":{"jerk_threshold":2.0241025686264,"jerks_per_min":26.0,"jerks_per_min_abs_thr":-1.0,"mean_u":-3.22734618186951,"mean_w":-4.49199438095093,"mean_wind_h":5.55565786361694,"mean_wind_w":0.0,"sigma_u":4.89841890335083,"sigma_w":1.27413594722748},"field":{"jerk_threshold":3.32738399505615,"jerks_per_min":7.66666666666667,"jerks_per_min_abs_thr":86.6666666666667,"mean_u":-0.602804660797119,"mean_w":-0.327762395143509,"mean_wind_h":0.929232001304626,"mean_wind_w":-0.0944408550858498,"sigma_u":1.37059462070465,"sigma_w":1.65903043746948},"field_at_point":{"a_out":575.678771972656,"agl":10.0000032532155,"desc":0.0514151342213154,"lee_f":1.0,"n2":-0.00000306364381685853,"share":1.0,"shear":0.033460546284914,"u_field":0.929192841053009,"u_out":8.25914478302002,"ustar":0.133113458752632,"w_mech":-0.0944379642605782,"wstar":2.55988883972168},"key":"aushkul/aushtau_east","no_thermals_analytic":{"expected_mean_w":-0.0833333604434628,"mean_w":-4.50915718078613,"sigma_w":1.41569173336029},"no_thermals_field":{"expected_mean_w":-0.177774215529313,"mean_w":-0.319082826375961,"sigma_w":1.96170365810394},"pos":[439.692932128906,431.674591064453,-378.997833251953]}
+λ/h = 0.250 ± 0.016 (MINOS (-0.01532648421961272, 9.955180790832685e-09)), z0 = 0.034 ± 0.011, (поправка сетки 25 → 12,5 м; её величина — в σ точки)
+χ² = 86.2 / ndf 38 (p = 1.32e-05); номинал χ² = 103.5
+корреляции [[1.0, -0.0], [-0.0, 1.0]]
+без границы: λ/h = 0.600 ± 0.082, χ² 76.4; поправка сетки общим множителем: λ/h = 0.2500 ± 0.0047, sg = 2.153 ± 0.054, χ² 572.2
+  наветренная сторона: n = 12, χ² = 8.9
+  вершина/гребень: n = 8, χ² = 19.0
+  подветренная сторона: n = 8, χ² = 29.5
+  линия B (вдоль гребня): n = 11, χ² = 28.7
+  без подветренной стороны: λ/h = 0.250 ± 0.020, sg 1.00, χ² = 56.7/31
+  только подветренная сторона: λ/h = 0.25 ± 0.14, sg 1.00, χ² = 29.4/8
+  без вершины/гребня: λ/h = 0.250 ± 0.021, sg 1.00, χ² = 67.2/31
+  только наветренная сторона: λ/h = 0.19 ± 0.19, sg 1.00, χ² = 9.0/12
+  eigentune {'dir': 0, 'sign': 1, 'lam_frac': 0.24999998978274968, 'z0': 0.04823144803890374, 'chi2': 87.25449468226292}
+  eigentune {'dir': 0, 'sign': -1, 'lam_frac': 0.24999999030688871, 'z0': 0.02465083491070723, 'chi2': 87.16140280492698}
+  eigentune {'dir': 1, 'sign': 1, 'lam_frac': 0.24997465854971604, 'z0': 0.034481088485003156, 'chi2': 86.20779333366985}
+  eigentune {'dir': 1, 'sign': -1, 'lam_frac': 0.25002532410692113, 'z0': 0.03448108848502499, 'chi2': 86.2046495238817}
+лучшее {'ex0': 0.5, 'width': 0.2, 'desc': 0.02, 'chi2': 141.22904577074826, 'ndf': 10} номинал χ² 141.4
+по группам {'наветренная сторона': (6, 119.3), 'вершина': (4, 19.4), 'подветренная сторона': (3, 2.5)}
+профиль ex0 [(0.0, 141.3), (0.05, 141.3), (0.1, 141.3), (0.15, 141.3), (0.2, 141.3), (0.25, 141.3), (0.3, 141.3), (0.35, 141.3), (0.4, 141.3), (0.45, 141.6), (0.5, 141.2), (0.55, 144.0), (0.6, 144.2), (0.65, 144.2), (0.7, 144.2)]
+только подветренная (2.5072653793401405, (0.5, 0.2, 0.02))
+  ASW85_10  данные 0.77 модель 1.42 ± 0.46 (игра 50 м 1.04) lee 0.00 σu 1.82 σw 0.96 u* 0.63
+  ASW50_10  данные 0.86 модель 1.69 ± 0.95 (игра 50 м 1.48) lee 0.00 σu 1.99 σw 1.05 u* 0.51
+  ASW35_10  данные 1.02 модель 1.48 ± 0.68 (игра 50 м 1.23) lee 0.00 σu 1.86 σw 0.99 u* 0.51
+  ASW20_10  данные 0.97 модель 2.11 ± 1.58 (игра 50 м 2.43) lee 0.00 σu 2.22 σw 1.17 u* 0.33
+  ASW10_10  данные 1.02 модель 2.74 ± 0.05 (игра 50 м 4.02) lee 0.00 σu 2.53 σw 1.34 u* 0.93
+  HT_10     данные 0.90 модель 4.15 ± 1.96 (игра 50 м 1.78) lee 0.00 σu 3.11 σw 1.65 u* 1.08
+  ANE10_10  данные 1.51 модель 6.72 ± 3.99 (игра 50 м 4.82) lee 1.00 σu 3.96 σw 2.09 u* 0.55
+  ANE20_10  данные 3.29 модель 5.68 ± 3.82 (игра 50 м 3.26) lee 1.00 σu 3.64 σw 1.93 u* 0.24
+  ANE40_10  данные 2.95 модель 2.11 ± 1.21 (игра 50 м 3.65) lee 1.00 σu 2.47 σw 1.92 u* 0.26
+  AASW10_10 данные 1.09 модель 2.87 ± 3.00 (игра 50 м 1.30) lee 0.00 σu 2.59 σw 1.37 u* 0.85
+  CP_10     данные 0.89 модель 2.38 ± 0.53 (игра 50 м 1.82) lee 0.00 σu 2.36 σw 1.25 u* 1.00
+  CP_5      данные 0.94 модель 6.85 ± 4.90 (игра 50 м 1.92) lee 0.00 σu 4.00 σw 2.10 u* 1.00
+  CP_16     данные 0.80 модель 2.25 ± 0.50 (игра 50 м 1.72) lee 0.00 σu 2.28 σw 1.25 u* 1.00
+RS модель {'lee': 0.00647992523307298, 'su': 1.52675712108612, 'sw': 0.808394074440002, 'tke': 2.65773779658203, 'u': 8.5440731048584, 'ustar': 0.650108218193054} данные ТКЭ 1.456
+N_L·z_i/L на 0,4 z_i (область 400 м, 12:00): модель 1.39 ± 0.13, данные 1.20 ± 0.36, χ² 0.25
+N_L·z_i/L на 0,4 z_i (область 400 м, 15:00): модель 1.50 ± 0.12, данные 1.20 ± 0.36, χ² 0.63
+наклон спектра u, 150 м: модель -1.58 ± 0.07, данные -1.67 ± 0.10, χ² 0.53
+наклон спектра w, 150 м: модель -1.70 ± 0.09, данные -1.67 ± 0.10, χ² 0.06
+наклон спектра u, 400 м: модель -2.00 ± 0.14, данные -1.67 ± 0.10, χ² 3.94
+наклон спектра w, 400 м: модель -1.68 ± 0.07, данные -1.67 ± 0.10, χ² 0.01
+run_rest: готово
+exit 0

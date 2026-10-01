@@ -1,0 +1,71 @@
+{
+  "src_files": ["ww__archive_sport-at.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport AT",
+      "size": "150",
+      "cert_class": "intermediate",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 150,
+          "unit": "ft²",
+          "quote": "Area (ft²) 150"
+        },
+        {
+          "field": "year",
+          "value": 1990,
+          "unit": "year",
+          "quote": "Produced from January 1990 to June 1991"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport AT",
+      "size": "167",
+      "cert_class": "intermediate",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 167,
+          "unit": "ft²",
+          "quote": "Area (ft²) 167"
+        },
+        {
+          "field": "year",
+          "value": 1990,
+          "unit": "year",
+          "quote": "Produced from January 1990 to June 1991"
+        }
+      ],
+      "geometry": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Sport AT",
+      "size": "180",
+      "cert_class": "intermediate",
+      "cert_standard": "",
+      "facts": [
+        {
+          "field": "area",
+          "value": 180,
+          "unit": "ft²",
+          "quote": "Area (ft²) 180"
+        },
+        {
+          "field": "year",
+          "value": 1990,
+          "unit": "year",
+          "quote": "Produced from January 1990 to June 1991"
+        }
+      ],
+      "geometry": []
+    }
+  ]
+}

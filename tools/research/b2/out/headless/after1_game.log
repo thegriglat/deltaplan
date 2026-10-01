@@ -1,0 +1,486 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  ok   test_bot_names.gd::test_pools
+  ok   test_bot_names.gd::test_unique_from_current_language
+  ok   test_bot_names.gd::test_language_switch_refreshes
+  ok   test_bot_names.gd::test_more_bots_than_pool
+  ok   test_bot_names.gd::test_setting_toggles_tag
+  ok   test_bots.gd::test_zero_bots
+  ok   test_bots.gd::test_wait_on_ground_then_interval
+  ok   test_bots.gd::test_half_airborne
+  ok   test_bots.gd::test_deterministic
+  ok   test_bots.gd::test_thermal_rule_and_separation
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+air_model: analytic (нет поля)
+Terrain: локация 'ongudai' загружена за 1.69 с, чанков 160
+WorldObjects: 'ongudai' за 1.37 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.961889, "wait_threads_s": 0.000004, "nodes_s": 0.009172, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.55 с
+WorldObjects: палаток у старта 5 из 5 за 282 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_camera_bar_look.gd::test_bar_mode_right_button_looks_without_moving_bar
+Terrain: локация 'ongudai' загружена за 1.31 с, чанков 160
+WorldObjects: 'ongudai' за 1.35 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.942806, "wait_threads_s": 0.000005, "nodes_s": 0.009509, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.22 с
+WorldObjects: палаток у старта 5 из 5 за 278 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_camera_bar_look.gd::test_bar_mode_look_center_still_works
+Terrain: локация 'ongudai' загружена за 1.50 с, чанков 160
+WorldObjects: 'ongudai' за 1.34 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.936399, "wait_threads_s": 0.000005, "nodes_s": 0.009612, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.31 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 1 из 1 за 260 мс
+NetBots: считаю ботов — 2, продолжены 0 ["bot-0", "bot-1"]
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=-1&hour=9.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=1.4
+case1: 27.3 с, min AGL 0.0 м
+case2: 12.8 с, min AGL 50.0 м
+  ok   test_catch_up_game.gd::test_catch_up_in_main_scene
+Terrain: локация 'ongudai' загружена за 1.34 с, чанков 160
+WorldObjects: 'ongudai' за 1.32 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.925034, "wait_threads_s": 0.000005, "nodes_s": 0.009511, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.19 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 1 из 1 за 260 мс
+net: вход в зону — ведущий в воздухе, догоняю
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=-1&hour=9.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=1.4
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 1 из 1 за 259 мс
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=-1&hour=9.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=1.4
+  ok   test_catch_up_game.gd::test_auto_catch_up_on_join
+  ok   test_catch_up_tow.gd::test_profile_300m_and_2km_arrive_in_10s
+  ok   test_catch_up_tow.gd::test_profile_beyond_cap_holds_v_max
+  ok   test_catch_up_tow.gd::test_profile_smooth_no_jerk
+  ok   test_catch_up_tow.gd::test_case1_from_landing_field_to_friend_above_launch
+  ok   test_catch_up_tow.gd::test_case2_from_valley_to_friend_2km_aside_1000m_up
+  ok   test_catch_up_tow.gd::test_ridge_higher_than_target_clearance
+  ok   test_catch_up_tow.gd::test_target_turning_around
+  ok   test_catch_up_tow.gd::test_abort_returns_in_place
+  ok   test_catch_up_tow.gd::test_target_lost_stops
+Terrain: локация 'ongudai' загружена за 1.34 с, чанков 160
+WorldObjects: 'ongudai' за 1.32 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.924765, "wait_threads_s": 0.000005, "nodes_s": 0.009444, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.14 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         training F: точек в кадре — трапеция 0, парус 0, руки 0, приборы 0
+Terrain: локация 'ongudai' загружена за 1.28 с, чанков 160
+WorldObjects: 'ongudai' за 1.32 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.922105, "wait_threads_s": 0.000004, "nodes_s": 0.009503, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.11 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         sport F: точек в кадре — трапеция 0, парус 0, руки 0, приборы 0
+Terrain: локация 'ongudai' загружена за 1.29 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.918063, "wait_threads_s": 0.000005, "nodes_s": 0.009409, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.11 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         laminar F: точек в кадре — трапеция 0, парус 0, руки 0, приборы 0
+  ok   test_cockpit.gd::test_cockpit_view_by_head_angle
+Terrain: локация 'ongudai' загружена за 1.42 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.917426, "wait_threads_s": 0.000005, "nodes_s": 0.009604, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.20 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         планшет по x кадра: без ввода 0.006, A→D→A амплитуда 0.087 (размах 0.137), скачок 0.0034
+  ok   test_cockpit.gd::test_tablet_steady_on_roll
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Terrain: локация 'ongudai' загружена за 1.31 с, чанков 160
+WorldObjects: 'ongudai' за 1.30 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.914212, "wait_threads_s": 0.000004, "nodes_s": 0.009422, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.11 с
+WorldObjects: палаток у старта 5 из 5 за 278 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         CollisionCheck.check: 15.0 мкс на шаг
+  ok   test_collisions.gd::test_collisions_in_real_world
+  ok   test_collisions.gd::test_collision_check_unit
+  ok   test_debug_overlays.gd::test_toggle_without_render
+  ok   test_debug_overlays.gd::test_w_color
+== e2e: altai ==
+Terrain: локация 'altai' загружена за 1.31 с, чанков 160
+WorldObjects: 'altai' за 1.69 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.503598, "wait_threads_s": 0.645015, "nodes_s": 0.021376, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.85 с
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=51.82121&lon=85.85361&seed=1536896211&sky=clear&temp=26.0&v=1&wind=3.0
+         altai: отрыв за 1.7 с, в воздухе 60.0 с, посадка true
+== e2e: askarovo ==
+Terrain: локация 'askarovo' загружена за 1.29 с, чанков 160
+WorldObjects: 'askarovo' за 9.80 с — ветроуказателей 17, посадок 2, троп к стартам 3, OSM { "wire_tiles": 219, "supports": 455, "wires": 1561, "road_tiles": 562, "buildings": 11006, "building_tiles": 223, "power_s": 0.16761, "wait_threads_s": 0.825083, "nodes_s": 0.013788, "osm_fence_spans": 0, "osm_fence_tiles": 0 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 20.30 с
+WorldObjects: палаток у старта 5 из 5 за 786 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=53.25865&lon=58.52609&seed=686242849&sky=clear&temp=26.0&v=1&wind=3.0
+         askarovo: отрыв за 1.4 с, в воздухе 64.8 с, посадка true
+== e2e: aushkul ==
+Terrain: локация 'aushkul' загружена за 1.34 с, чанков 160
+WorldObjects: 'aushkul' за 1.79 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 266, "supports": 529, "wires": 1761, "road_tiles": 613, "buildings": 3881, "building_tiles": 137, "power_s": 0.163379, "wait_threads_s": 1.294086, "nodes_s": 0.008998, "osm_fence_spans": 0, "osm_fence_tiles": 0 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 4.02 с
+WorldObjects: палаток у старта 5 из 5 за 399 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=54.72585&lon=59.68922&seed=1590306792&sky=clear&temp=26.0&v=1&wind=3.0
+         aushkul: отрыв за 1.6 с, в воздухе 64.7 с, посадка true
+== e2e: ongudai ==
+Terrain: локация 'ongudai' загружена за 1.38 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.919699, "wait_threads_s": 0.000004, "nodes_s": 0.009801, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.13 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=1069870518&sky=clear&temp=26.0&v=1&wind=3.0
+         ongudai: отрыв за 1.5 с, в воздухе 65.6 с, посадка true
+  ok   test_e2e.gd::test_e2e_all_locations
+  ok   test_flight_stats.gd::test_bounce_after_liftoff_does_not_finish
+  ok   test_flight_stats.gd::test_settles_back_before_arming_is_takeoff_failed
+  ok   test_flight_stats.gd::test_normal_flight_then_landing
+  ok   test_flight_stats.gd::test_summary_must_overwrite_stray_flight_time_from_landing_flare
+  ok   test_flight_stats.gd::test_circling_tracks_best_thermal
+Terrain: локация 'ongudai' загружена за 1.28 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.918131, "wait_threads_s": 0.000004, "nodes_s": 0.009983, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.10 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Terrain: локация 'altai' загружена за 0.55 с, чанков 160
+WorldObjects: 'altai' за 1.74 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.507904, "wait_threads_s": 0.657615, "nodes_s": 0.022467, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.27 с
+WorldObjects: палаток у старта 5 из 5 за 315 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=14.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=225&hour=14.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=225&hour=14.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=225&hour=19.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         термиков в 5 км: 14 ч — 1573, 19 ч — 366
+  ok   test_forecast_game.gd::test_game_uses_forecast
+Terrain: локация 'altai' загружена за 0.53 с, чанков 160
+WorldObjects: 'altai' за 1.70 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.511268, "wait_threads_s": 0.632762, "nodes_s": 0.025045, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.96 с
+WorldObjects: у старта нет ровного места для палаток
+Terrain: локация 'ongudai' загружена за 0.53 с, чанков 160
+WorldObjects: 'ongudai' за 1.55 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 1.010599, "wait_threads_s": 0.000005, "nodes_s": 0.009505, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.28 с
+WorldObjects: палаток у старта 5 из 5 за 289 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         фазы ["standing", "running", "flying"], в воздухе 30.0 с, AGL 56 м, V 38 км/ч, от старта 183 м
+         анимации пилота: ["stand", "run", "run_air", "climb_in", "prone"]
+  ok   test_game_flight.gd::test_main_scene_autopilot_flight
+Terrain: локация 'ongudai' загружена за 1.42 с, чанков 160
+WorldObjects: 'ongudai' за 1.34 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.934211, "wait_threads_s": 0.000005, "nodes_s": 0.009952, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.25 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_game_flight.gd::test_landing_shows_result_screen
+Terrain: локация 'ongudai' загружена за 1.31 с, чанков 160
+WorldObjects: 'ongudai' за 1.43 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.934756, "wait_threads_s": 0.000006, "nodes_s": 0.015536, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.23 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_game_flight.gd::test_air_start
+Terrain: локация 'ongudai' загружена за 1.75 с, чанков 160
+WorldObjects: 'ongudai' за 1.34 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.932975, "wait_threads_s": 0.000005, "nodes_s": 0.009978, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.49 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         защёлка: AGL при отрыве 0.0, мин. 0,5–3 с 0.4, через 3 с 3.1 м; трапеция 0.00
+  ok   test_game_flight.gd::test_takeoff_with_held_keys_latch
+Terrain: локация 'ongudai' загружена за 1.44 с, чанков 160
+WorldObjects: 'ongudai' за 1.60 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 1.037105, "wait_threads_s": 0.000004, "nodes_s": 0.010054, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.82 с
+WorldObjects: палаток у старта 5 из 5 за 357 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+         5 мин: в воздухе 298 с, фаза flying
+  ok   test_game_flight.gd::test_long_autoflight_no_errors
+  ok   test_game_logic.gd::test_start_placement_downhill_heading
+  ok   test_game_logic.gd::test_start_placement_finds_slope_nearby
+  ok   test_game_logic.gd::test_flight_stats
+  ok   test_game_logic.gd::test_launch_options
+  ok   test_game_logic.gd::test_flight_settings_roundtrip
+  ok   test_game_logic.gd::test_forecast_settings
+  ok   test_game_logic.gd::test_unknown_wing_default
+  ok   test_game_logic.gd::test_forecast_launch_options
+  ok   test_game_logic.gd::test_user_settings_merge
+  ok   test_game_logic.gd::test_calm_air_contract
+  ok   test_game_logic.gd::test_assets_credits_parse
+  ok   test_game_logic.gd::test_result_texts
+  ok   test_game_logic.gd::test_cloud_whiteout
+  ok   test_game_logic.gd::test_pilot_animator_sequence
+Terrain: локация 'ongudai' загружена за 1.37 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.918157, "wait_threads_s": 0.000004, "nodes_s": 0.009977, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.15 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_walk_run_and_turn_on_ground
+Terrain: локация 'ongudai' загружена за 1.27 с, чанков 160
+WorldObjects: 'ongudai' за 1.29 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.907294, "wait_threads_s": 0.000004, "nodes_s": 0.009694, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.09 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_takeoff_latch
+Terrain: локация 'ongudai' загружена за 1.32 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.918873, "wait_threads_s": 0.000004, "nodes_s": 0.009953, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.12 с
+WorldObjects: палаток у старта 5 из 5 за 274 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_camera_cycle_and_corner_instrument
+Terrain: локация 'ongudai' загружена за 1.35 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.916977, "wait_threads_s": 0.000005, "nodes_s": 0.010063, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.12 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_chase_above_ground_free_does_not_fly_wing
+Terrain: локация 'ongudai' загружена за 1.32 с, чанков 160
+WorldObjects: 'ongudai' за 1.30 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.9131, "wait_threads_s": 0.000005, "nodes_s": 0.010021, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.12 с
+WorldObjects: палаток у старта 5 из 5 за 274 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_pages_1_to_5_any_camera
+Terrain: локация 'ongudai' загружена за 1.28 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.912015, "wait_threads_s": 0.000004, "nodes_s": 0.010043, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.10 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_vario_90s_matches_sound
+Terrain: локация 'ongudai' загружена за 1.27 с, чанков 160
+WorldObjects: 'ongudai' за 1.33 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.934033, "wait_threads_s": 0.000004, "nodes_s": 0.010324, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.16 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_pause_freezes_time_and_sound
+Terrain: локация 'ongudai' загружена за 1.44 с, чанков 160
+WorldObjects: 'ongudai' за 1.30 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.910937, "wait_threads_s": 0.000004, "nodes_s": 0.009791, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.22 с
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_restart_returns_to_start
+Terrain: локация 'ongudai' загружена за 1.30 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.911895, "wait_threads_s": 0.000005, "nodes_s": 0.009957, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.13 с
+WorldObjects: палаток у старта 5 из 5 за 426 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_result_info_fields
+Terrain: локация 'ongudai' загружена за 1.53 с, чанков 160
+WorldObjects: 'ongudai' за 1.31 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.908809, "wait_threads_s": 0.000004, "nodes_s": 0.009881, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.29 с
+WorldObjects: палаток у старта 5 из 5 за 275 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_touch_near_start_is_not_landing
+Terrain: локация 'ongudai' загружена за 1.48 с, чанков 160
+WorldObjects: 'ongudai' за 1.35 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.951619, "wait_threads_s": 0.000005, "nodes_s": 0.010067, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.31 с
+WorldObjects: палаток у старта 5 из 5 за 277 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_gameplay.gd::test_result_buttons
+Terrain: локация 'altai' загружена за 1.45 с, чанков 160
+WorldObjects: 'altai' за 1.74 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.505388, "wait_threads_s": 0.684205, "nodes_s": 0.024766, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 4.56 с
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=20260927&sky=clear&temp=31.0&v=1&wind=5.0
+  ok   test_input_launch.gd::test_nose_up_full_strong_wind_stalls
+NetBots: считаю ботов — 4, продолжены 0 ["bot-0", "bot-1", "bot-2", "bot-3"]
+  ok   test_net_bots.gd::test_leader_sends_bot_states
+  ok   test_net_bots.gd::test_non_leader_only_remote
+NetBots: считаю ботов — 4, продолжены 0 ["bot-0", "bot-1", "bot-2", "bot-3"]
+NetBots: считаю ботов — 4, продолжены 4 ["bot-0", "bot-1", "bot-2", "bot-3"]
+  ok   test_net_bots.gd::test_takeover_from_last_states
+NetBots: считаю ботов — 4, продолжены 1 ["bot-0", "bot-1", "bot-2", "bot-3"]
+  ok   test_net_bots.gd::test_takeover_fills_missing_bots
+NetBots: считаю ботов — 4, продолжены 0 ["bot-0", "bot-1", "bot-2", "bot-3"]
+  ok   test_net_bots.gd::test_old_leader_hands_over
+  ok   test_net_bots.gd::test_others_start_queue
+  ok   test_net_flight.gd::test_proto_phases
+  ok   test_net_flight.gd::test_world_step_follows_zone_clock
+  ok   test_net_flight.gd::test_airborne_friends_for_continue_nearby
+  ok   test_net_flight.gd::test_colors_stable_by_name
+  ok   test_net_flight.gd::test_world_settings_from_key_own_wing
+  ok   test_net_flight.gd::test_result_screen_net_buttons
+Terrain: локация 'altai' загружена за 0.55 с, чанков 160
+WorldObjects: 'altai' за 2.04 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.508989, "wait_threads_s": 0.791495, "nodes_s": 0.027001, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.90 с
+WorldObjects: у старта нет ровного места для палаток
+Terrain: локация 'ongudai' загружена за 0.60 с, чанков 160
+WorldObjects: 'ongudai' за 1.55 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.926284, "wait_threads_s": 0.000005, "nodes_s": 0.009075, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 2.90 с
+WorldObjects: палаток у старта 5 из 5 за 270 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 1 из 1 за 254 мс
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_net_flight.gd::test_net_flight_rules_in_main_scene
+NetBots: считаю ботов — 2, продолжены 0 ["bot-0", "bot-1"]
+net-queue: ["1", "2", "3", "bot-0", "bot-1"]
+net-queue: 1 — из очереди (gone)
+net-queue: ["2", "3", "bot-0", "bot-1"]
+net-queue: 2 — из очереди (gone)
+net-queue: ["3", "bot-0", "bot-1"]
+net-queue: 3 — из очереди (gone)
+net-queue: ["bot-0", "bot-1"]
+net-queue: bot-0 — из очереди (gone)
+net-queue: ["bot-1"]
+net-queue: bot-1 — из очереди (gone)
+net-queue: []
+net-queue: ["bot-0"]
+net-queue: bot-0 — из очереди (gone)
+net-queue: []
+net-queue: ["bot-1"]
+  ok   test_net_queue.gd::test_humans_in_order_then_bots
+net-queue: 1 простоял первым 60 с — в конец
+net-queue: ["2", "3", "bot-0", "1"]
+net-queue: 2 простоял первым 61 с — в конец
+net-queue: ["3", "bot-0", "1", "2"]
+  ok   test_net_queue.gd::test_idle_first_to_end
+net-queue: 1 — из очереди (gone)
+net-queue: ["2", "3", "bot-0"]
+net-queue: ["2", "3", "1", "bot-0"]
+net-queue: ["3"]
+net-queue: ["bot-0", "1", "bot-1"]
+  ok   test_net_queue.gd::test_return_to_end
+net-queue: 1 — из очереди (gone)
+net-queue: ["2", "3", "bot-0"]
+net-queue: 2 — из очереди (gone)
+net-queue: ["3", "bot-0"]
+  ok   test_net_queue.gd::test_leader_change_keeps_order
+net-queue: 3 — из очереди (gone)
+net-queue: ["2"]
+  ok   test_net_queue.gd::test_tow_leaves_queue
+  ok   test_remote_pilots.gd::test_upsert_creates_node_with_name
+  ok   test_remote_pilots.gd::test_phase_changes_pose
+  ok   test_remote_pilots.gd::test_remove_and_lost
+  ok   test_remote_pilots.gd::test_ten_pilots
+  ok   test_remote_pilots.gd::test_proto_json_fields_and_external_pose
+  ok   test_remote_pilots.gd::test_decoded_pilot_state
+  L_run apogee          16.7 м за  3.3 с (отрыв)
+  L_run atlas            3.4 м за  1.2 с (срыв nose_high)
+  L_run combat          69.9 м за 10.0 с (срыв weak_run)
+  L_run laminar         17.2 м за  3.3 с (отрыв)
+  L_run magic           17.9 м за  3.4 с (отрыв)
+  L_run slavutich_ut    13.7 м за  2.9 с (отрыв)
+  L_run sport           71.9 м за 10.0 с (срыв weak_run)
+  L_run target          16.4 м за  3.2 с (отрыв)
+  L_run training        13.0 м за  2.7 с (отрыв)
+  ok   test_start_clearing.gd::test_radius_covers_two_runs
+Terrain: локация 'ongudai' загружена за 1.41 с, чанков 160
+  старт в лесу: (-19680.0, -19680.0), курс 326°, склон 27.3°, доля леса в R 1.00
+  add_start_clearing R=160 м: 4.3 мс
+  разбег, ветер 0 м/с: срыв weak_run, пройдено 68 м
+  разбег, ветер 3 м/с: отрыв на 3 м, 100 м полёта, пройдено 103 м
+  ok   test_start_clearing.gd::test_clearing_after_load
+  ok   test_start_clearing.gd::test_clearing_no_mask
+  ok   test_start_fixes_contracts.gd::test_k1_surface_classes
+  ok   test_start_fixes_contracts.gd::test_k2_grass_config
+  ok   test_start_fixes_contracts.gd::test_k3_ground_run_shape
+  ok   test_start_fixes_contracts.gd::test_k4_basis_convention
+  ok   test_ui.gd::test_start_menu_emits_signals
+  ok   test_ui.gd::test_flight_setup_emits_choice
+  ok   test_ui.gd::test_pause_and_result_buttons
+  ok   test_ui.gd::test_controls_screen_lists_keys
+  ok   test_ui.gd::test_about_has_attribution
+  ok   test_ui.gd::test_settings_saved_to_user_config
+  ok   test_wing_catalog.gd::test_groups_in_file_order
+  ok   test_wing_catalog.gd::test_every_wing_in_one_group
+  ok   test_wing_catalog.gd::test_wings_sorted_by_glide_then_wind
+  ok   test_wing_catalog.gd::test_group_ranges
+  ok   test_world_key.gd::test_example_exact
+  ok   test_world_key.gd::test_parse_any_order_and_round_trip
+  ok   test_world_key.gd::test_defaults_for_missing_keys
+  ok   test_world_key.gd::test_every_param_changes_hash
+  ok   test_world_seed.gd::test_launch_option
+Terrain: локация 'altai' загружена за 0.56 с, чанков 160
+WorldObjects: 'altai' за 1.65 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.511379, "wait_threads_s": 0.610804, "nodes_s": 0.023339, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.49 с
+WorldObjects: у старта нет ровного места для палаток
+Terrain: локация 'ongudai' загружена за 0.61 с, чанков 160
+WorldObjects: 'ongudai' за 1.46 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.926296, "wait_threads_s": 0.000005, "nodes_s": 0.009279, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 2.95 с
+WorldObjects: палаток у старта 5 из 5 за 274 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=924803917&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (air_model.enabled = off)
+air_model: analytic (нет поля)
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 264 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=1587573806&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (air_model.enabled = off)
+  ok   test_world_seed.gd::test_menu_fly_new_day_restart_same
+air_model: analytic (нет поля)
+Terrain: локация 'altai' загружена за 0.55 с, чанков 160
+WorldObjects: 'altai' за 1.65 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.514276, "wait_threads_s": 0.606227, "nodes_s": 0.025318, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 3.33 с
+WorldObjects: у старта нет ровного места для палаток
+Terrain: локация 'ongudai' загружена за 0.53 с, чанков 160
+WorldObjects: 'ongudai' за 1.55 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.952888, "wait_threads_s": 0.000005, "nodes_s": 0.009077, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 2.78 с
+WorldObjects: палаток у старта 5 из 5 за 272 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=777&sky=clear&temp=26.0&v=1&wind=3.0
+air_model: analytic (нет RenderingDevice: headless)
+WorldObjects: палаток у старта 5 из 5 за 269 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=777&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_world_seed.gd::test_seed_option_fixes_day
+Terrain: локация 'ongudai' загружена за 0.55 с, чанков 160
+WorldObjects: 'ongudai' за 1.37 с — ветроуказателей 6, посадок 1, троп к стартам 1, OSM { "wire_tiles": 775, "supports": 3767, "wires": 11012, "road_tiles": 349, "buildings": 5482, "building_tiles": 258, "power_s": 0.924288, "wait_threads_s": 0.000005, "nodes_s": 0.009641, "osm_fence_spans": 2230, "osm_fence_tiles": 8 }
+air_model: analytic (нет RenderingDevice: headless)
+Terrain: поля рельефа за 2.61 с
+WorldObjects: палаток у старта 5 из 5 за 269 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=20260927&sky=clear&temp=26.0&v=1&wind=3.0
+  ok   test_world_seed.gd::test_autostart_uses_config_seed
+
+116 тестов, 0 упало, 0 пропущено
+ERROR: Pages in use exist at exit in PagedAllocator: N20RasterizerSceneDummy21GeometryInstanceDummyE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: 1030 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 286 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 55 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.
+ERROR: 4 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.
+ERROR: 123 RID allocations of type 'N13RendererDummy11MeshStorage14DummyMultiMeshE' were leaked at exit.
+ERROR: 252 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.
+ERROR: 64 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 283 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketLargeE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

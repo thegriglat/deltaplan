@@ -3,7 +3,7 @@ extends Node
 ## Запуск (окно нужно — настоящий рендер; профиль — временный):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/campfire_shot.tscn -- --autostart --bots=4 --location=ongudai \
-##     --wind=3 --from=launch --hour=13 --out=/tmp/fire --tag=w3 [--wait=8]
+##     --wind=3 --from=launch --hour=12 --out=/tmp/fire --tag=w3 [--wait=8]
 ## Пишет <out>/<tag>_{launch,close,air300,air500}.png: с глаз пилота на старте на костёр,
 ## вблизи, с воздуха в 300 м и 500 м (сбоку от ветра — видно, куда сносит дым).
 

@@ -60,7 +60,8 @@ var _dir_opt: OptionButton
 var _dir_hint: Label
 var _sky_opt: OptionButton
 var _site_opt: OptionButton
-var _hour: HSlider
+var _hour: OptionButton
+var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпадает с пунктами _hour
 var _month_opt: OptionButton
 var _day: SpinBox
 var _pick_label: Label
@@ -137,8 +138,7 @@ func _apply_settings() -> void:
 		0 if settings.wind_into_launch else 1 + posmod(roundi(settings.wind_from_deg / 45.0), 8)
 	)
 	_sky_opt.select(maxi(_skies.find(settings.sky), 0))
-	_hour.value = SunClock.clamp_hour(settings.start_hour)
-	_hour.value_changed.emit(_hour.value)
+	_hour.select(maxi(_hours.find(SunClock.nearest_start_hour(settings.start_hour)), 0))
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
@@ -262,20 +262,13 @@ func _num_range(r: Vector2) -> String:
 	return _num(r.x) if is_equal_approx(r.x, r.y) else "%s–%s" % [_num(r.x), _num(r.y)]
 
 
-## Время старта (шаг 15 мин, world.json → time.min_hour..max_hour) и дата (месяц, число).
+## Час старта — фиксированный список (AM-06, world.json → time.start_hours) и дата (месяц, число).
 func _build_time(box: Control) -> void:
-	var t: Dictionary = Config.get_config("world").get("time", {})
-	_hour = UiKit.slider_row(
-		box,
-		tr("setup_start_time"),
-		float(t.get("min_hour", 6.0)),
-		float(t.get("max_hour", 20.0)),
-		0.25,
-		"%.2f"
-	)
-	# подпись «13:00» вместо числа (обработчик UiKit подключён раньше — этот перезаписывает)
-	var hour_label: Label = _hour.get_parent().get_child(1)
-	_hour.value_changed.connect(func(x: float) -> void: hour_label.text = SunClock.format_hour(x))
+	_hours = SunClock.start_hours()
+	_hour = OptionButton.new()
+	for h in _hours:
+		_hour.add_item(SunClock.format_hour(h))
+	UiKit.row(box, tr("setup_start_time"), _hour)
 	var date_row := HBoxContainer.new()
 	date_row.add_theme_constant_override("separation", 10)
 	_day = SpinBox.new()
@@ -396,7 +389,7 @@ func _collect() -> FlightSettings:
 	if not s.wind_into_launch:
 		s.wind_from_deg = float(_dir_opt.selected - 1) * 45.0
 	s.sky = String(_skies[maxi(_sky_opt.selected, 0)])
-	s.start_hour = _hour.value
+	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
 	var k: Variant = null

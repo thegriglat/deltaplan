@@ -1,0 +1,230 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+  skip test_air_gpu_blocks.gd::test_blocks_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_job_chunks (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_errors_are_reported (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_gpu_blocks.gd::test_bench_blocks (нужен GPU — tools/gpu_tests.sh)
+WARNING: AirGpuJob: нет RenderingDevice: headless
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _fail (res://scripts/atmosphere/air_model/air_gpu_job.gd:303)
+         [1] start (res://scripts/atmosphere/air_model/air_gpu_job.gd:73)
+         [2] test_no_rd_is_clear_error (res://tests/atmosphere/test_air_gpu_headless.gd:16)
+         [3] _ready (res://tests/run_tests.gd:36)
+  ok   test_air_gpu_headless.gd::test_no_rd_is_clear_error
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    kayancha_start_agl10: air (-0.423, 0.070, -1.898), поле (-0.423, 0.070, -1.898), w_conv 0.047 (не пилоту)
+    kayancha_start_agl50: air (-0.563, 0.076, -2.455), поле (-0.563, 0.076, -2.455), w_conv 0.103 (не пилоту)
+    kayancha_start_agl150: air (-0.716, -0.079, -2.815), поле (-0.716, -0.079, -2.815), w_conv 0.193 (не пилоту)
+    kayancha_start_agl400: air (-0.661, -0.205, -3.198), поле (-0.661, -0.205, -3.198), w_conv 0.071 (не пилоту)
+  ok   test_air_model_atmo.gd::test_kayancha_probes
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+air_model: analytic (air_model.enabled = off)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+  ok   test_air_model_atmo.gd::test_off_and_outside_bitwise_analytic
+air_model: analytic (нет поля)
+air_model: field (res://tests/atmosphere/fixtures/air_model/field/kayancha_w100_h13_U3_d180, ветер поля 3.0 м/с с 180.0°; уровней 1)
+    край поля: макс. изменение 0.0151 м/с на 5 м
+  ok   test_air_model_atmo.gd::test_edge_smooth_in_atmosphere
+air_model: analytic (air_model.enabled = off)
+  ok   test_air_model_atmo.gd::test_fingerprint_world_without_field
+  ok   test_air_model_atmo.gd::test_config_documented
+  skip test_air_picard_bench.gd::test_bench_ongudai (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_bench.gd::test_warm_start (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_blocks_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_solutions_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_picard_gpu.gd::test_ongudai_d400_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  400 м: подготовка 560 мс; max|Δhc| 1.22e-04 м, max|ΔH| 2.37e-05 Вт/м², max|Δγ| 7.38e-11 К/м, z_i 3362.33 / 3362.33 м
+  200 м: подготовка 619 мс; max|Δhc| 0.0 м, max|ΔH| 2.42e-05 Вт/м², max|Δγ| 7.38e-11 К/м, z_i 3362.33 / 3362.33 м
+  ok   test_air_place.gd::test_domain_input_vs_reference
+  skip test_air_runtime_gpu.gd::test_ongudai_runtime (нужен GPU — tools/gpu_tests.sh)
+    источников 44: в тени 0, в схождении 23 (8.7/км²), на солнце 11 (3.6/км²)
+    w* 2.30 м/с, w0/w* 1.24…1.24 (k Аллена 1.24), R 129 м, живых n_A·(Φ/Φ̂) → 2.5/км²
+  ok   test_air_thermals.gd::test_sources_sunny_convergence_not_shade
+    инверсия 20 К/км на 2000 м: потолок частицы 2061 м
+    свободная атмосфера 5,8 К/км над 2000 м: потолок 2212 м
+    тёплый слой θ′ +2 К с 800 м: потолок 1808 м
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_ceiling_inversion_and_cloudbase
+    поток: поля 3482097 м³/с, водосборам 3482097, несут ядра 1985718, без хозяина 0; жизнь 0.55
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    Монте-Карло (ξ = 0,5, 30000 точек): ядра 0.112 м/с, ожидание поля 0.118 — 0.95
+  ok   test_air_thermals.gd::test_mass_flux_matches_field
+    без ведущего: источников 44 / 36, других столбцов 27
+    с маской: |Δw0| ≤ 0.00000 отн., |Δпотолок| ≤ 0.305 м, |Δснос| ≤ 0.00073 м/с
+    (без ведущего одинаковы: false)
+  ok   test_air_thermals.gd::test_host_mask_same_sources_with_noise
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    два клиента (шум поля 3e-3): термиков 1223, |Δось| ≤ 0.39 м, |Δсила| ≤ 0.000 м/с
+  ok   test_air_thermals.gd::test_two_clients_same_thermals
+air_model: analytic (нет поля)
+air_model: field (массивы; уровней 1)
+    термики: поля 95, сетки в поле 0, сетки вне поля 1166
+air_model: analytic (air_model.enabled = off)
+air_model: field (массивы; уровней 1)
+  ok   test_air_thermals.gd::test_atmosphere_field_region_and_off
+    Каянча 12:00 (32×32): ист. 64, w* 2.56, w0/w* 1.24…1.24, столб 1120, снос (-3.12, -3.50)
+    поток: поля 2879601, несут ядра 816135 (28 %)
+  ok   test_air_thermals.gd::test_real_kayancha_fixture
+  ongudai_w100_h12: вход 25 мс, подготовка пары 298 мс; max|Δhc| 0.0 м, max|ΔH| 2.42e-05 Вт/м², max|Δγ| 7.38e-11 К/м
+  ongudai_w50_h12: вход 25 мс, подготовка пары 624 мс; max|Δhc| 0.0 м, max|ΔH| 2.64e-05 Вт/м², max|Δγ| 2.33e-08 К/м
+  ok   test_air_window_case.gd::test_window_input_vs_reference
+  ok   test_air_window_case.gd::test_gauss_folded_equals_direct
+  skip test_air_window_gpu.gd::test_window_vs_reference (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_window_two_runs_bitwise_equal (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_clipmap_load_and_shift (нужен GPU — tools/gpu_tests.sh)
+  skip test_air_window_gpu.gd::test_runtime_with_windows (нужен GPU — tools/gpu_tests.sh)
+air_model: analytic (нет поля)
+  ok   test_atmosphere.gd::test_thermal_profile
+  ok   test_atmosphere.gd::test_wing_asymmetry_at_edge
+  ok   test_atmosphere.gd::test_wind_drift_and_lean
+  ok   test_atmosphere.gd::test_lifecycle_envelope
+  ok   test_atmosphere.gd::test_lifecycle_in_field
+  ok   test_atmosphere.gd::test_background_sink
+  ok   test_atmosphere.gd::test_cloudbase_limits_climb_without_cloud
+  ok   test_atmosphere.gd::test_ridge_lift_windward_and_lee_sink
+  ok   test_atmosphere.gd::test_lee_turbulence_stronger
+  ok   test_atmosphere.gd::test_turbulence_deterministic_and_ground_stronger
+  ok   test_atmosphere.gd::test_deterministic_generation
+  ok   test_atmosphere.gd::test_sun_controls_sources
+         air_velocity_at: медиана 28.86 мкс/вызов (серии 28.7…32.9), термиков 205
+         step: 125.1 мкс в среднем
+  ok   test_atmosphere.gd::test_performance
+  ok   test_birds.gd::test_birds_absent_below_min_strength
+  ok   test_birds.gd::test_birds_appear_in_weak_thermal_and_climb
+  ok   test_birds.gd::test_bird_flees_when_pilot_close
+  ok   test_birds.gd::test_companion_pair_ignores_pilot_proximity
+  ok   test_calibration.gd::test_thermal_strength_by_day
+  ok   test_calibration.gd::test_medium_lift_at_working_height
+  ok   test_calibration.gd::test_thermal_drifts_with_wind_as_a_whole
+  ok   test_calibration.gd::test_static_thermal_stays_over_source
+  ok   test_calibration.gd::test_sources_prefer_ridge_triggers
+  ok   test_calibration.gd::test_thermal_within_3km_after_start
+  ok   test_cloud_fade.gd::test_life_fade_reaches_zero_before_cloud_ends
+  ok   test_cloud_fade.gd::test_range_fade_is_smooth_to_zero
+  ok   test_cloud_fade.gd::test_step_fade_is_gradual
+  ok   test_cloud_fade.gd::test_cap_prefers_shown
+  ok   test_cloud_fade.gd::test_no_instant_disappearance_in_flight
+air_model: analytic (air_model.enabled = off)
+    t=600 лимит=0: облаков 79 (тающих/проявляющихся 19, Cb 0)
+    t=3600 лимит=0: облаков 74 (тающих/проявляющихся 14, Cb 0)
+  ok   test_cloud_layer_history.gd::test_fresh_layer_matches_running
+    t=600 лимит=12: облаков 13 (тающих/проявляющихся 13, Cb 0)
+  ok   test_cloud_layer_history.gd::test_fresh_layer_matches_running_with_cap
+air_model: analytic (нет поля)
+  ok   test_cloud_suck.gd::test_suck_under_mature_cloud
+  ok   test_cloud_suck.gd::test_in_cloud_chaos_and_eject
+  ok   test_cloud_suck.gd::test_no_suck_under_young_or_decaying
+  ok   test_cloud_suck.gd::test_cloud_density_at
+  ok   test_cloud_suck.gd::test_turbulence_stronger_in_cloud
+  ok   test_clouds_and_generation.gd::test_cloud_lifecycle_follows_thermal
+  ok   test_clouds_and_generation.gd::test_cloud_over_leaning_column_and_drift
+  ok   test_clouds_and_generation.gd::test_weak_thermal_no_cloud_and_blue_day
+  ok   test_clouds_and_generation.gd::test_overlapping_clouds_merge
+  ok   test_clouds_and_generation.gd::test_static_thermals_from_weather_config
+  ok   test_clouds_and_generation.gd::test_decaying_thermal_bottom_cut
+  ok   test_clouds_and_generation.gd::test_cloud_streets_align_across_wind
+  ok   test_clouds_and_generation.gd::test_set_wind_changes_lean_and_mean_wind
+  ok   test_clouds_and_generation.gd::test_cloud_shadow_weakens_new_thermals
+  ok   test_clouds_and_generation.gd::test_dry_and_extreme_thermals
+  ok   test_clouds_and_generation.gd::test_source_strength_controls_frequency
+air_model: analytic (air_model.enabled = off)
+    determinism: прогоны 27.2 с
+  ok   test_determinism.gd::test_runs_and_jump_match
+  ok   test_determinism.gd::test_other_seed_differs
+  ok   test_determinism.gd::test_pilot_path_does_not_matter
+  skip test_gpu_smoke.gd::test_compute_smoke (нужен GPU — tools/gpu_tests.sh)
+air_model: analytic (нет поля)
+  ok   test_hazards.gd::test_cirrus_weakens_thermals
+  ok   test_hazards.gd::test_cb_downdraft_and_outflow
+  ok   test_hazards.gd::test_cb_suck_under_base
+  ok   test_hazards.gd::test_storm_preset_makes_cb
+  ok   test_hazards.gd::test_lee_wave_crest_lift
+  ok   test_hazards.gd::test_no_wave_without_preset
+  ok   test_hazards.gd::test_dust_devils_from_young_thermals_over_dry_ground
+  ветер 2 м/с: за гребнем w -0.71 (-0.30·u), σ 0.90 (0.38·u), u 2.37; наветренный w 1.15 σ 0.57
+  ветер 5 м/с: за гребнем w -3.93 (-0.62·u), σ 3.49 (0.55·u), u 6.37; наветренный w 3.09 σ 1.53
+  ветер 8 м/с: за гребнем w -6.95 (-0.60·u), σ 5.42 (0.47·u), u 11.52; наветренный w 5.59 σ 2.76
+  FAIL test_lee_rotor.gd::test_lee_sink_and_rotor_scale_with_wind
+         check failed: 8 м/с: ротор σ 5.42
+  ok   test_lee_rotor.gd::test_rotor_reverse_flow_near_slope
+  ok   test_lee_rotor.gd::test_same_seed_same_air
+  за 30 с после гребня: штиль −25 м, ветер 6 м/с −100 м
+  ok   test_lee_rotor.gd::test_flying_into_lee_loses_height
+  ok   test_pilot_words.gd::test_suck_layer_under_mature_cloud
+  ok   test_pilot_words.gd::test_no_suck_under_young_or_decaying_cloud
+  ok   test_pilot_words.gd::test_ejected_from_cloud_within_90s
+  ok   test_pilot_words.gd::test_cloud_chaos_sigma_and_load_peak
+  ok   test_pilot_words.gd::test_can_escape_pulling_away_from_base
+  ok   test_pilot_words.gd::test_extreme_thermals_rare_and_only_strong
+  ok   test_pilot_words.gd::test_variometer_plus8_reachable_in_extreme_core
+  ok   test_pilot_words.gd::test_dry_thermal_fraction_and_climb
+  ok   test_pilot_words.gd::test_background_sink_medium
+  ok   test_pilot_words.gd::test_ring_sink_weaker_than_core
+Terrain: локация 'altai' загружена за 1.75 с, чанков 160
+Terrain: локация 'askarovo' загружена за 1.64 с, чанков 160
+Terrain: локация 'aushkul' загружена за 1.34 с, чанков 160
+Terrain: локация 'ongudai' загружена за 1.60 с, чанков 160
+  ok   test_ridge_starts.gd::test_ridge_no_climb_8kmh
+Terrain: локация 'altai' загружена за 1.40 с, чанков 160
+Terrain: локация 'askarovo' загружена за 1.30 с, чанков 160
+Terrain: локация 'aushkul' загружена за 1.47 с, чанков 160
+Terrain: локация 'ongudai' загружена за 1.39 с, чанков 160
+  ok   test_ridge_starts.gd::test_lee_zone_all_starts
+  ok   test_storm_rarity.gd::test_chance_grows_with_heat
+air_model: analytic (air_model.enabled = off)
+    «+26» (+29.2) ясно 13 ч: Cb ближе 10 км за час — 0/24, буря в t=0 — 0/24 (69.2 с)
+  ok   test_storm_rarity.gd::test_clear_26_almost_never
+    «+34» (+37.7) ясно 15 ч: Cb ближе 10 км — 1 на 10 полётов, буря в t=0 — 0, макс 0.0 м/с (20.4 с)
+  ok   test_storm_rarity.gd::test_hot_34_occasional
+air_model: analytic (нет поля)
+  ok   test_storm_rarity.gd::test_overlapping_outflows_do_not_add
+  ok   test_surface_heating.gd::test_rocks_lag_behind_meadow
+  ok   test_surface_heating.gd::test_disabled_returns_empty
+  FAIL test_wave.gd::test_synthetic_ridge_lens_matches_lift
+         check failed: синтетика: в центре линзы подъём >= половины max_ms: 3.96 >= 4.00
+  ok   test_wave.gd::test_rotor_turbulence_under_crest
+  ok   test_wave.gd::test_no_wave_without_preset
+Terrain: локация 'ongudai' загружена за 1.37 с, чанков 160
+  ok   test_wave.gd::test_ongudai_lens_matches_lift
+  ok   test_wave.gd::test_climb_above_cloudbase_in_first_crest
+  ok   test_weather_day.gd::test_wind_grows_above_launch
+  ok   test_weather_day.gd::test_soft_update_keeps_thermals
+  ok   test_weather_model.gd::test_reference_forecasts_match_presets
+  ok   test_weather_model.gd::test_monotonic_in_temperature
+  ok   test_weather_model.gd::test_wind_weakens_thermals_and_blows_dust_away
+  ok   test_weather_model.gd::test_blue_and_dead_days
+  ok   test_weather_model.gd::test_spring_air_is_livelier
+  ok   test_weather_model.gd::test_wave_off_by_default
+  ok   test_weather_model.gd::test_deterministic_and_complete
+  ok   test_weather_model.gd::test_typical_max
+  ok   test_weather_model.gd::test_speed
+  ok   test_weather_model.gd::test_day_course
+  ok   test_weather_model.gd::test_sky_cover
+  ok   test_weather_model.gd::test_spring_plus15_is_a_thermal_day
+    wind_field: макс. ошибка 0.0
+  ok   test_wind_field.gd::test_constant_field
+    wind_field: макс. ошибка 0.00000048054801
+  ok   test_wind_field.gd::test_linear_field_exact
+  ok   test_wind_field.gd::test_log_profile_near_ground
+  ok   test_wind_field.gd::test_masked_columns_and_slope
+  ok   test_wind_field.gd::test_nan_and_limits
+  ok   test_wind_field.gd::test_contains_and_edge
+  ok   test_wind_field.gd::test_set_combines_levels_and_analytic
+  ok   test_wind_field.gd::test_blend_monotonic
+  ok   test_wind_field.gd::test_from_mac_centers
+  ok   test_xc_bot.gd::test_xc_bot_synthetic_10km
+  ok   test_xc_bot.gd::test_xc_ideal_pilot_turbulence
+
+124 тестов, 2 упало, 17 пропущено

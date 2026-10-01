@@ -1,0 +1,147 @@
+{
+  "src_files": ["ww__t2c.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2C",
+      "size": "136",
+      "cert_class": "USHPA Rating 4",
+      "cert_standard": "HGMA 2/26/2013",
+      "facts": [
+        {"field": "area", "value": 136, "unit": "ft^2", "quote": "Area (ft^2) 136"},
+        {"field": "span", "value": 31.4, "unit": "ft", "quote": "Span (ft) 31.4"},
+        {"field": "aspect_ratio", "value": 7.3, "unit": "", "quote": "Aspect Ratio 7.3"},
+        {"field": "wing_mass", "value": 68, "unit": "lbs", "quote": "Glider Weight (lbs) 68"},
+        {"field": "pilot_mass_min", "value": 150, "unit": "lbs", "quote": "Hook-In Weight (lbs) 150-210"},
+        {"field": "pilot_mass_max", "value": 210, "unit": "lbs", "quote": "Hook-In Weight (lbs) 150-210"},
+        {"field": "double_surface_pct", "value": 92, "unit": "%", "quote": "Double Surface (%) 92"},
+        {"field": "nose_angle", "value": 127, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vms", "value": 21, "unit": "mph", "quote": "Vms (mph) 21"},
+        {"field": "vd", "value": 70, "unit": "mph", "quote": "Vd (mph) 70"},
+        {"field": "battens", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens which are both 1 lb. lighter and stiffer than standard 10mm battens"}
+      ],
+      "geometry": [
+        {"name": "batten_diameter", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens"},
+        {"name": "front_rear_wire_diameter", "value": 5, "unit": "64ths in", "quote": "5/64 (2mm) 1×19 front-rear wires"},
+        {"name": "sidewire_diameter", "value": 3, "unit": "32nds in", "quote": "3/32 1×19 sidewires standard"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2",
+      "size": "144",
+      "cert_class": "USHPA Rating 4",
+      "cert_standard": "HGMA 5/22/2006",
+      "facts": [
+        {"field": "area", "value": 144, "unit": "ft^2", "quote": "Area (ft^2) 144"},
+        {"field": "span", "value": 32.3, "unit": "ft", "quote": "Span (ft) 32.3"},
+        {"field": "aspect_ratio", "value": 7.3, "unit": "", "quote": "Aspect Ratio 7.3"},
+        {"field": "wing_mass", "value": 71, "unit": "lbs", "quote": "Glider Weight (lbs) 71"},
+        {"field": "pilot_mass_min", "value": 160, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-235"},
+        {"field": "pilot_mass_max", "value": 235, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-235"},
+        {"field": "double_surface_pct", "value": 92, "unit": "%", "quote": "Double Surface (%) 92"},
+        {"field": "nose_angle", "value": 127, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vms", "value": 21, "unit": "mph", "quote": "Vms (mph) 21"},
+        {"field": "vd", "value": 70, "unit": "mph", "quote": "Vd (mph) 70"},
+        {"field": "battens", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens which are both 1 lb. lighter and stiffer than standard 10mm battens"}
+      ],
+      "geometry": [
+        {"name": "batten_diameter", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens"},
+        {"name": "front_rear_wire_diameter", "value": 5, "unit": "64ths in", "quote": "5/64 (2mm) 1×19 front-rear wires"},
+        {"name": "sidewire_diameter", "value": 3, "unit": "32nds in", "quote": "3/32 1×19 sidewires standard"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2C",
+      "size": "144",
+      "cert_class": "USHPA Rating 4",
+      "cert_standard": "HGMA 5/22/2006",
+      "facts": [
+        {"field": "area", "value": 144, "unit": "ft^2", "quote": "Area (ft^2) 144"},
+        {"field": "span", "value": 32.3, "unit": "ft", "quote": "Span (ft) 32.3"},
+        {"field": "aspect_ratio", "value": 7.3, "unit": "", "quote": "Aspect Ratio 7.3"},
+        {"field": "wing_mass", "value": 71, "unit": "lbs", "quote": "Glider Weight (lbs) 71"},
+        {"field": "pilot_mass_min", "value": 160, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-235"},
+        {"field": "pilot_mass_max", "value": 235, "unit": "lbs", "quote": "Hook-In Weight (lbs) 160-235"},
+        {"field": "double_surface_pct", "value": 92, "unit": "%", "quote": "Double Surface (%) 92"},
+        {"field": "nose_angle", "value": 127, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vms", "value": 21, "unit": "mph", "quote": "Vms (mph) 21"},
+        {"field": "vd", "value": 70, "unit": "mph", "quote": "Vd (mph) 70"},
+        {"field": "battens", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens which are both 1 lb. lighter and stiffer than standard 10mm battens"}
+      ],
+      "geometry": [
+        {"name": "batten_diameter", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens"},
+        {"name": "front_rear_wire_diameter", "value": 5, "unit": "64ths in", "quote": "5/64 (2mm) 1×19 front-rear wires"},
+        {"name": "sidewire_diameter", "value": 3, "unit": "32nds in", "quote": "3/32 1×19 sidewires standard"},
+        {"name": "sprog_cable_diameter", "value": 0.125, "unit": "in", "quote": "Carbon sprogs with 1/8 inch cables"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2",
+      "size": "154",
+      "cert_class": "USHPA Rating 4",
+      "cert_standard": "HGMA 10/6/2006",
+      "facts": [
+        {"field": "area", "value": 154, "unit": "ft^2", "quote": "Area (ft^2) 154"},
+        {"field": "span", "value": 33.5, "unit": "ft", "quote": "Span (ft) 33.5"},
+        {"field": "aspect_ratio", "value": 7.4, "unit": "", "quote": "Aspect Ratio 7.4"},
+        {"field": "wing_mass", "value": 73, "unit": "lbs", "quote": "Glider Weight (lbs) 73"},
+        {"field": "pilot_mass_min", "value": 185, "unit": "lbs", "quote": "Hook-In Weight (lbs) 185-285"},
+        {"field": "pilot_mass_max", "value": 285, "unit": "lbs", "quote": "Hook-In Weight (lbs) 185-285"},
+        {"field": "double_surface_pct", "value": 92, "unit": "%", "quote": "Double Surface (%) 92"},
+        {"field": "nose_angle", "value": 127, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vms", "value": 21, "unit": "mph", "quote": "Vms (mph) 21"},
+        {"field": "vd", "value": 70, "unit": "mph", "quote": "Vd (mph) 70"},
+        {"field": "battens", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens which are both 1 lb. lighter and stiffer than standard 10mm battens"}
+      ],
+      "geometry": [
+        {"name": "batten_diameter", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens"},
+        {"name": "front_rear_wire_diameter", "value": 5, "unit": "64ths in", "quote": "5/64 (2mm) 1×19 front-rear wires"},
+        {"name": "sidewire_diameter", "value": 3, "unit": "32nds in", "quote": "3/32 1×19 sidewires standard"}
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "T2C",
+      "size": "154",
+      "cert_class": "USHPA Rating 4",
+      "cert_standard": "HGMA 10/6/2006",
+      "facts": [
+        {"field": "area", "value": 154, "unit": "ft^2", "quote": "Area (ft^2) 154"},
+        {"field": "span", "value": 33.5, "unit": "ft", "quote": "Span (ft) 33.5"},
+        {"field": "aspect_ratio", "value": 7.4, "unit": "", "quote": "Aspect Ratio 7.4"},
+        {"field": "wing_mass", "value": 73, "unit": "lbs", "quote": "Glider Weight (lbs) 73"},
+        {"field": "pilot_mass_min", "value": 185, "unit": "lbs", "quote": "Hook-In Weight (lbs) 185-285"},
+        {"field": "pilot_mass_max", "value": 285, "unit": "lbs", "quote": "Hook-In Weight (lbs) 185-285"},
+        {"field": "double_surface_pct", "value": 92, "unit": "%", "quote": "Double Surface (%) 92"},
+        {"field": "nose_angle", "value": 127, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "nose_angle", "value": 132, "unit": "deg", "quote": "Nose Angle (deg) 127-132"},
+        {"field": "vne", "value": 53, "unit": "mph", "quote": "Vne (mph) 53"},
+        {"field": "va", "value": 46, "unit": "mph", "quote": "Va (mph) 46"},
+        {"field": "vms", "value": 21, "unit": "mph", "quote": "Vms (mph) 21"},
+        {"field": "vd", "value": 70, "unit": "mph", "quote": "Vd (mph) 70"},
+        {"field": "battens", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens which are both 1 lb. lighter and stiffer than standard 10mm battens"}
+      ],
+      "geometry": [
+        {"name": "batten_diameter", "value": 12, "unit": "mm", "quote": "12mm 7075 Battens"},
+        {"name": "front_rear_wire_diameter", "value": 5, "unit": "64ths in", "quote": "5/64 (2mm) 1×19 front-rear wires"},
+        {"name": "sidewire_diameter", "value": 3, "unit": "32nds in", "quote": "3/32 1×19 sidewires standard"},
+        {"name": "sprog_cable_diameter", "value": 0.125, "unit": "in", "quote": "Carbon sprogs with 1/8 inch cables"}
+      ]
+    }
+  ]
+}

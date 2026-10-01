@@ -432,8 +432,17 @@ float grass_wind_far(vec2 xz, float dist, float foot) {
 // берега — гладкая полоса ветровой тени. Цвет воды не трогаем — всё через нормаль и шероховатость.
 // rough — шероховатость; nw — нормаль воды (мир); rip — рябь −0,5..0,5 (лёгкий оттенок).
 void water_wind(vec2 xz, float dist, float foot, out float rough, out vec3 nw, out float rip) {
-	float spd = length(wind_vec);
-	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
+	// поле ветра (AM-10, WF-10): рябь по локальному ветру поля, если есть (та же текстура, что
+	// у травы) — штиль в ветровой тени рельефа, сильнее у бровки; без поля — прежний wind_vec.
+	vec2 local_wind = wind_vec;
+	if (field_wind_size_m > 0.0) {
+		vec2 fuv = (xz - field_wind_origin) / field_wind_size_m;
+		if (fuv.x > 0.0 && fuv.x < 1.0 && fuv.y > 0.0 && fuv.y < 1.0) {
+			local_wind = texture(field_wind_tex, fuv).rg;
+		}
+	}
+	float spd = length(local_wind);
+	vec2 d = spd > 0.05 ? local_wind / spd : vec2(1.0, 0.0);
 	// ветровая тень: суша с наветра (маска воды 10 м, 4 выборки ~0,13–1 × water_lee_m) — ближе
 	// берег, сильнее тень
 	float lee = 0.0;

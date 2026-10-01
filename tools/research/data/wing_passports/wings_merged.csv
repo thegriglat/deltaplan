@@ -1,0 +1,204 @@
+manufacturer,family,version,size,status,cert,cert_years,area_m2,span_m,aspect_ratio,double_surface_pct,wing_mass_kg,pilot_mass_min_kg,pilot_mass_max_kg,takeoff_mass_min_kg,takeoff_mass_max_kg,vne_kmh,va_kmh,vms_kmh,vd_kmh,stall_speed_kmh,trim_speed_kmh,vmin_vg0_kmh,vmax_vg0_kmh,vmin_vg100_kmh,vmax_vg100_kmh,best_glide,min_sink_ms,nose_angle_deg,battens,n_sources,n_flags,conflict_fields
+A.I.R.,Atos VQ,,,current,DHV 3E,2007;2016,14.0,13.5,,100.0,40.0,,,85.0,179.0,90.0,,,,,,35.0,90.0,,,,,,18.0,3,2,wing_mass_kg
+A.I.R.,Atos VQ,,190,historical,DHV 3E,2013,14.2,13.4,,100.0,45.0,,,100.0,228.0,90.0,,,,,,38.0,,33.0,,,,,18,2,1,
+A.I.R.,Atos VRQ,,,historical,DHV 3E,,14.3,13.8,,100.0,41.5,,,85.0,180.0,90.0,,,,,,35.0,90.0,29.0,85.0,,,,,2,1,
+A.I.R.,Atos VRS,,,current,DHV 3E,2016,12.2,12.0,,100.0,34.5,,,85.0,130.0,100.0,,,,,,37.0,100.0,,,,,,14,2,0,
+A.I.R.,Atos VRS,,135,historical,DHV 3E,2013,12.2,12.0,,100.0,37.6,,,87.0,172.0,100.0,,,,,,37.0,,32.0,,,,,14,2,0,
+A.I.R.,Atos VRS,,190,historical,DHV 3E,2013,12.2,12.0,,100.0,43.0,,,98.0,226.0,100.0,,,,,,39.0,,34.0,,,,,14,2,0,
+A.I.R.,Atos VR,,,current,DHV 3E;DHV 3,2005;2017,14.75,14.12,,100.0,43.0,,,110.0,177.0,90.0,,,,,,34.0,90.0,,,,,,18.0,4,3,takeoff_mass_min_kg;span_m;vmin_vg0_kmh
+A.I.R.,Atos VR,,190,historical,DHV 3E,2012,14.3,13.8,,100.0,45.0,,,100.0,228.0,90.0,,,,,,38.0,,33.0,,,,,18,2,1,
+Aeros,Combat C,,12.4,current,DHV 3,2021,12.4,10.0,,90.0,30.4,,,100.0,120.0,90.0,,,,,,39.0,,37.0,,,,,24.0,2,0,
+Aeros,Combat C,,12.7,current,DHV 3,2016,12.7,10.3,,90.0,31.3,,,111.0,131.0,90.0,,,,,,32.0,90.0,30.0,115.0,,,,24,2,0,
+Aeros,Combat C,,13.5,current,DHV 3,2017,13.5,10.7,,90.0,32.5,,,122.0,140.0,90.0,,,,,,31.0,90.0,,,,,,24,2,0,
+Aeros,Combat GT,,12.4,current,,,12.4,10.0,8.05,,34.0,60,90,,,,,,,,,,,,,,,,24,1,0,
+Aeros,Combat GT,,12.7,current,DHV 3,2017,12.7,10.3,8.4,90.0,36.0,80,100,115.0,135.0,90.0,,,,,,32.0,85.0,30.0,,,,,24,3,0,wing_mass_kg
+Aeros,Combat GT,,12.8,historical,DHV 3,,12.8,10.0,,90.0,35.7,,,95.0,131.0,90.0,,,,,,,,,,,,,26.0,2,0,
+Aeros,Combat GT,,13.2,current,DHV 3,,13.2,10.35,8.05,90.0,36.3,70,110,111.0,141.0,90.0,,,,,,,,,,,,,26.0,3,0,wing_mass_kg;battens
+Aeros,Combat GT,,13.5,current,DHV 3,,13.5,10.7,8.5,90.0,38.2,90,110,123.0,146.0,90.0,,,,,,,,,,,,,26.0,3,0,wing_mass_kg;battens
+Aeros,Combat GT,,13.7,historical,DHV 3,,13.7,10.35,,90.0,39.7,,,111.0,141.0,90.0,,,,,,,,,,,,,26.0,2,0,
+Aeros,Combat GT,,14.2,current,DHV 3,,14.2,10.7,8.06,90.0,37.8,85,115,123.0,146.0,90.0,,,,,,,,,,,,,26.0,3,0,wing_mass_kg;battens
+Aeros,Combat L,,12,historical,DHV 3,2008,12.8,10.0,,90.0,35.8,,,95.0,131.0,90.0,,,,,,32.0,85.0,30.0,90.0,,,,26.0,4,0,wing_mass_kg
+Aeros,Combat L,,13,historical,DHV 3,2005;2008,13.7,10.35,,90.0,36.3,,,111.0,141.0,90.0,,,,,,30.5,90.0,29.0,90.0,,,,26.0,6,0,takeoff_mass_min_kg;takeoff_mass_max_kg;wing_mass_kg;battens;vmax_vg0_kmh;vmin_vg0_kmh
+Aeros,Combat L,,14,historical,DHV 3,2006;2008,14.2,10.7,,90.0,38.5,,,123.0,146.0,90.0,,,,,,27.5,80.0,28.5,90.0,,,,26.0,6,1,takeoff_mass_min_kg;takeoff_mass_max_kg;wing_mass_kg;battens;vmax_vg0_kmh;vmin_vg0_kmh;vmin_vg100_kmh
+Aeros,Discus,,12,historical,,,11.6,9.2,7.3,,25,50,80,,,,,,,29,33,,80,,,,,125,18,1,0,
+Aeros,Discus,,13,historical,,,12.8,9.6,7.2,,30,65,100,,,,,,,29,33,,80,,,,,125,20,1,0,
+Aeros,Discus,,14,historical,DHV 2,2013,13.7,10.0,7.3,85.0,31.0,75,115,100.0,133.0,90.0,,,,29,33,30.0,80.0,29.0,80.0,,,125,18,3,0,battens
+Aeros,Discus,,15,historical,DHV 2-3;DHV 2,2006,14.7,10.3,7.2,85.0,33.5,85,125,115.0,142.0,90.0,,,,29,33,30.0,87.5,29.0,90.0,,,125,20.0,3,0,vmax_vg0_kmh
+Aeros,Fox,,,historical,DHV 1,,16.2,9.6,,25.0,25.2,,,85.0,139.0,75.0,,,,,,,,,,,,,15.0,2,0,
+Aeros,Fox,,13,current,DHV 1,2016,13.4,8.6,,30.0,20.6,,,75.0,102.0,70.0,,,,,,27.0,70.0,,,,,,13,2,0,
+Aeros,Phantom,,,historical,DHV 3E;DHV 3,2005,13.5,13.2,,100.0,45.0,,,100.0,154.0,90.0,,,,,,36.0,90.0,,,,,,14.0,2,1,
+Aeros,Target,,21,current,DHV 1,2017,20.5,10.8,,20.0,36.5,,,120.0,236.0,80.0,,,,,,24.0,70.0,,,,,,17,2,0,
+Airborne,C4,,13.5,historical,DHV 3,2008,13.5,10.0,,93.0,35.0,,,104.0,144.0,,,,,,,,,,,,,,24.0,1,0,
+Airborne,C4,,14,historical,DHV 3,2008,14.3,10.4,,93.0,36.0,,,121.0,160.0,,,,,,,,,,,,,,24.0,1,0,
+Airborne,F2,,190,current,HGMA/USHPA II Novice,,17.7,10.1,5.8,30,23,70,120,,,80,69,,,40.2336,,,,,,,,118,15,1,0,
+Airborne,REV,,13.5,historical,DHV 3,,13.5,10.04,,96.0,34.4,,,104.0,140.0,90.0,,,,,,,,,,,,,24.0,2,0,
+Airborne,REV,,14.5,historical,DHV 3,,14.45,10.64,,95.0,36.0,,,121.0,158.0,,,,,,,31.0,87.0,30.0,90.0,,,,24.0,2,0,
+Airborne,Sting 3,,154,historical,DHV 2,2008,14.33,9.1,5.7,75.0,26.3,50,100,76.0,126.0,90.0,74,,,,56,29.0,85.0,28.0,90.0,,,121,16.0,3,1,vne_kmh;battens
+Airborne,Sting 3,,168,historical,DHV 2,2009,15.6,9.5,,75.0,30.0,,,110.0,150.0,90.0,,,,,,33.0,70.0,31.0,75.0,,,,18.0,2,1,
+Airborne,Sting 3,,175,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Airborne,XT,,,current,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Bautek,Astir,,,current,DHV 2,,14.6787,10.5461,7.6,85,29.0299,59.8742,114.7589,59.8742,117.934,80.4672,,30.5775,,24.9448,,,,,,23,,130,,1,2,
+Bautek,BiCo,,,current,DHV 2,2005,17.2,9.6,,68.0,42.5,84.8218,237.2288,120.0,279.0,90.0,,,,,,37.0,90.0,,,11.5,1.0236,132,23.0,3,4,min_sink_ms;best_glide
+Bautek,Fizz,,,current,DHV 3,,14.1,10.41,7.7,90.0,31.5,59.8742,117.934,92.0,146.0,90.1233,,30.5775,,25.7495,,31.0,90.0,30.0,90.0,,,130,24.0,3,0,
+Bautek,Kite,,,current,DHV 2,2006,13.8,10.15,7.5,85.0,30.4,,120.202,90.0,149.0,90.1233,,30.5775,,24.9448,,,,,,,,128,21.0,2,0,battens;wing_mass_kg
+Delta Flugschule Condor,Crex,3,,current,DHV 1,2024,14.5,9.6,,60.0,23.0,,,72.0,121.0,80.0,,,,,,35.0,80.0,,,,,,15.0,2,0,
+Delta Flugschule Condor,Crex,,14.5,current,DHV 1,2016,14.5,9.6,,60.0,23.7,,,72.0,121.0,70.0,,,,,,29.0,70.0,,,,,,15,2,0,
+Delta Flugschule Condor,FLEX,,,current,DHV 1,2019,16.0,9.2,,20.0,17.6,,,67.0,115.0,80.0,,,,,,29.0,65.0,,,,,,11.0,2,1,
+Delta Flugschule Condor,Lifter,,,historical,DHV 1,2008,16.0,9.2,,20.0,17.6,,,67.0,115.0,70.0,,,,,,,,,,,,,11.0,2,2,
+DesignProducts,Combat C AC,,12.7,current,DHV 3,2023,12.7,10.3,,90.0,30.6,,,111.0,131.0,90.0,,,,,,32.0,90.0,30.0,115.0,,,,24.0,2,0,
+DesignProducts,Combat C AC,,13,current,DHV 3,2024,13.0,10.7,,90.0,30.2,,,122.0,140.0,90.0,,,,,,39.0,93.0,38.0,90.0,,,,24.0,2,0,vmax_vg0_kmh
+DesignProducts,SHE 1,,12.7,current,DHV 3,2023,12.7,10.35,,90.0,28.4,,,98.0,129.0,90.0,,,,,,38.0,,42.0,,,,,26.0,2,0,
+Ellipse,Sol'R,,,current,DHV 1,2018,17.0,9.4,,10.0,20.7,,,80.0,140.0,55.0,,,,,,,,,,,,,9.0,2,0,
+Flugsport Skypoint,Crossover,,14,historical,DHV 2,,14.0,9.9,,82.0,28.2,,,90.0,138.0,90.0,,,,,,,,,,,,,18.0,2,0,
+Flugsport Skypoint,Crossover,,15,historical,DHV 2,,15.0,10.1,,82.0,29.3,,,100.0,151.0,90.0,,,,,,,,,,,,,20.0,2,0,
+Flugsport Skypoint,Funky,,15,historical,DHV 1,2006,15.3,9.5,,30.0,23.0,,,90.0,130.0,70.0,,,,,,28.0,66.5,,,,,,14.0,2,0,vmax_vg0_kmh
+Flugsport Skypoint,Funky,,17,historical,DHV 1,2006,17.3,9.9,,30.0,25.0,,,105.0,149.0,70.0,,,,,,27.0,66.0,,,,,,14.0,2,0,vmax_vg0_kmh
+Flugsport Skypoint,Space,,14,historical,DHV 1-2;DHV 1,2008,14.2,9.5,,72.0,25.5,,,90.0,135.0,80.0,,,,,,32.0,69.0,31.0,71.0,,,,14.0,2,1,
+Flugsport Skypoint,Space,,16,historical,DHV 1-2,2007,15.9,9.8,,72.0,27.0,,,90.0,147.0,,,,,,,,,,,,,,14.0,1,0,
+Icaro,Alto,,,current,DHV 2-3,,,,,,,,,,,,,,,,,,,,,,,,8.0,2,0,
+Icaro,Alto,,L,current,DHV 2-3;DHV 3,2023,15.2,10.4,7.0,85.0,29.2,85.0,109.0,90.0,154.0,90.0,,,,28,,35.0,88.0,31.0,108.0,,,128.0,18.0,4,0,battens;takeoff_mass_max_kg
+Icaro,Alto,,M,current,DHV 2-3;DHV 3,2022,14.6,9.98,6.8,85.0,28.5,70.0,93.0,80.0,121.0,90.0,,,,29,,32.0,,31.0,,,,127.5,18.0,4,1,battens
+Icaro,Alto,,S,current,DHV 2-3,2026,13.7,9.73,6.9,85.0,27.2,60.0,85.0,75.0,115.0,90.0,,,,29,,29.0,80.0,28.0,,,,128.0,18.0,4,0,battens
+Icaro,Biplace,,,current,DHV 1,,21,10.82,5.6,30,33.5,153,217,,,,,,,,,,,,,,,,16,1,0,
+Icaro,Easy 2,,L,historical,DHV 2,2007,15.8,10.45,,85.0,30.4,,,90.0,138.0,,,,,,,,,,,,,,4.0,1,1,
+Icaro,Easy 2,,M,historical,DHV 2,2007,14.45,10.35,,85.0,30.5,,,80.0,121.0,,,,,,,,,,,,,,18.0,1,0,
+Icaro,Laminar,Z8,13.2,historical,DHV 3,2006,13.2,10.05,,96.0,34.8,,,90.0,120.0,,,,,,,,,,,,,,6.0,1,1,
+Icaro,Laminar,Z8,14.1,historical,DHV 3,2006,14.2,10.33,,96.0,35.5,,,,,,,,,,,,90.0,,,,,,26.0,1,0,
+Icaro,Laminar,Zero 7,14.2,historical,DHV 3,2005,14.2,10.33,,94.0,36.5,,,105.0,134.0,90.0,,,,,,30.0,87.5,28.0,80.0,,,,24.0,2,0,vmax_vg0_kmh
+Icaro,Laminar,Zero 9,12.6,historical,DHV 3,2009,12.6,9.7,,94.0,31.5,,,82.0,115.0,90.0,,,,,,31.0,80.0,29.0,90.0,,,,22.0,2,1,
+Icaro,Laminar,Zero 9,13.2,historical,DHV 3,2009,13.24,10.1,,96.0,32.8,,,80.0,120.0,90.0,,,,,,33.0,90.0,30.0,90.0,,,,24.0,2,1,
+Icaro,Laminar,Zero 9,13.7,historical,DHV 3,2008,13.7,10.1,,94.0,33.6,,,90.0,125.0,90.0,,,,,,32.0,84.0,29.0,90.0,,,,24.0,2,1,
+Icaro,Laminar,Zero 9,14.1,historical,DHV 3,2008,14.1,10.5,,96.0,34.7,,,105.0,134.0,90.0,,,,,,31.0,80.0,29.0,90.0,,,,26.0,2,1,
+Icaro,Laminar,,12.6,current,класс на странице производителя 3,,12.4613,9.5756,7.36,96,28.5382,54.9423,74.9214,81.0501,115.1062,90.0616,,,,30.2888,,,,,,,,132,26.0,3,0,
+Icaro,Laminar,,13.2,current,класс на странице производителя 3,,13.2155,10.0237,7.57,96,30.9221,74.9214,89.9056,79.9161,120.101,90.0616,,,,30.2888,,,,,,,,132,30.0,3,0,
+Icaro,Laminar,,13.7,current,класс на странице производителя 3,,13.8349,10.0237,7.24,94,30.9221,79.9161,94.9004,89.9056,125.0957,90.0616,,,,28.9841,,,,,,,,132,30.0,3,0,
+Icaro,Laminar,,14.1,current,класс на странице производителя 3;DHV 3,2013,14.1,10.7,7.72,96.0,33.6,92.4004,102.3899,125.0,143.0,90.0,,,,30.2888,,31.0,80.0,30.0,90.0,,,134,26,5,1,wing_mass_kg;pilot_mass_min_kg;pilot_mass_max_kg;takeoff_mass_min_kg;takeoff_mass_max_kg;battens
+Icaro,Laminar,,14.8,current,класс на странице производителя 3,,14.7809,10.485,7.38,94,33.0561,99.8952,110.1115,,,90.0616,,,,28.9841,,,,,,,,134,32.0,3,0,
+Icaro,MastR,,L,current,DHV 3,2009,14.8,10.4,7.38,94.0,31.5,85,110,95.0,146.0,90.0,,,,,,32.0,74.0,31.0,90.0,,,131,22.0,3,1,
+Icaro,MastR,,M,current,DHV 3,2009,10.0,10.0,7.35,94.0,30.5,70,90,90.0,130.0,90.0,,,,,,32.0,85.0,30.0,90.0,,,131,20.0,3,2,area_m2
+Icaro,MastR,,S,current,DHV 3,,12.6,9.4,7.01,96.0,26.7,50,75,85.0,120.0,90.0,,,,,,31.0,90.0,30.0,90.0,,,128,,3,0,
+Icaro,Orbiter,,14,historical,DHV 2-3;DHV 2,2005,14.45,10.35,,85.0,30.5,,,80.0,121.0,90.0,,,,,,31.0,85.0,29.0,90.0,,,,18.0,2,0,vmax_vg0_kmh
+Icaro,Orbiter,,16,historical,DHV 2-3,2006,15.8,10.45,,85.0,30.4,,,,,,,,,,,,90.0,,,,,,4.0,1,1,
+Icaro,Orbiter,,S,historical,DHV 2-3;DHV 2,2008,13.73,9.73,,85.0,27.3,,,75.0,115.0,90.0,,,,,,29.0,80.0,28.0,90.0,,,,18.0,2,1,
+Icaro,PiBi,,,current,DHV 1,2026,23.5,11.2,,0.0,33.0,,,142.0,227.0,,,,,,,,,,,,,,16.0,1,2,
+Icaro,Piuma,Trike,L,current,DHV 1,,17.405,10.04,5.8,30,25.5,,,95,173,70,,,,26,,,,,,,,120,12,1,0,aspect_ratio
+Icaro,Piuma,Trike,XL,current,DHV 1,,20.555,10.92,5.85,30,33.0,,,153,217,70,,,,25,,,,,,,,120,14,1,0,span_m;aspect_ratio
+Icaro,Piuma,,L,current,DHV 1,2019,17.35,10.1,5.7,30.0,25.0,85,120,95.0,142.0,80.0,,,,26,,25.0,70.0,,,,,120,14.0,5,0,aspect_ratio;battens;wing_mass_kg;vne_kmh
+Icaro,Piuma,,M,current,DHV 1,2019,16.04,9.8,6.0,30.0,24.0,70,90,83.0,115.0,80.0,,,,28,,31.0,80.0,,,,,120,14.0,5,0,aspect_ratio;battens;wing_mass_kg;vne_kmh
+Icaro,Piuma,,S,current,DHV 1,2019,13.76,9.0,6.0,30.0,21.5,55,75,65.0,100.0,80.0,,,,29,,31.0,75.0,,,,,120,14.0,5,0,aspect_ratio;battens;wing_mass_kg;vne_kmh
+Icaro,Piuma,,XL,current,DHV 1,,20.3718,10.73,5.7,30,33.0,110,180,153,217,70,,,,24,,,,,,,,120,14.0,3,0,span_m;aspect_ratio;pilot_mass_min_kg
+Icaro,RX 2 BIP,,,historical,DHV 1,,21.0,10.7,,30.0,33.5,,,153.0,217.0,70.0,,,,,,,,,,,,,16.0,2,0,
+Moyes,Gecko,,155,current,DHV 3,2016,14.5,9.7,6.48,85.0,29.5,55,86,100.0,133.0,90.0,,,,32.0934,,28.0,80.0,,,,,124,17,3,0,double_surface_pct;battens
+Moyes,Gecko,,170,current,,,15.7968,10.0703,6.42,80.0,33.1061,70,110,,,,,,,32.0934,,,,,,,,124,8,1,0,double_surface_pct
+Moyes,Litespeed RS,,3.5,historical,DHV 3,2007,13.7,10.3,,92.0,34.4,,,112.0,128.0,,,,,,,,,,,,,,23.0,1,0,
+Moyes,Litespeed RS,,4,historical,DHV 3,2007,14.1,10.4,,92.0,34.4,,,122.0,138.0,,,,,,,,,,,,,,23.0,1,0,
+Moyes,Litespeed RX,,3,current,DHV 3,2013;2015,12.8,9.77,7.4,92.0,32.4,58.9835,88.9521,90.0,120.0,90.0,74.0149,,,27.1794,35.2028,33.5,77.5,32.0,90.0,14.5,,127.5,21.0,5,3,nose_angle_deg;wing_mass_kg;vne_kmh;vmin_vg0_kmh;vmax_vg0_kmh
+Moyes,Litespeed RX,,3.5,current,DHV 3,2013;2015,13.5,10.07,7.5,92.0,33.6,68.0194,107.9775,110.0,140.0,90.0,74.0149,,,27.6794,37.0075,32.0,75.0,31.0,90.0,15,,127.5,23.0,5,3,nose_angle_deg;wing_mass_kg;vne_kmh;vmin_vg0_kmh
+Moyes,Litespeed RX,,4,current,DHV 3,2013;2015,13.9,10.27,7.6,92.0,34.25,74.9214,115.1062,125.0,150.0,90.0,74.0149,,,28.9841,37.0075,31.5,75.0,30.0,90.0,15,,127.5,23.0,5,3,nose_angle_deg;wing_mass_kg;vne_kmh;vmin_vg0_kmh
+Moyes,Litespeed RX,,5,current,DHV 3,2015,14.8,10.4,7.3,92.0,34.3,84.9109,118.9206,125.0,155.0,90.0,74.0149,,,27.6794,35.2028,30.0,75.0,,,15,,127.5,23,3,3,nose_angle_deg;wing_mass_kg;vne_kmh
+Moyes,Litespeed S,,3.5,historical,DHV 3,2005,13.4,9.6,7.5,92.0,34.0,68.0194,108.9311,99.0,124.0,90.0,74.0149,,,25.8748,33.8981,30.0,77.0,28.0,,15,,130,23.0,3,1,span_m;vne_kmh
+Moyes,Litespeed S,,4,historical,DHV 3,2005,13.7,10.0,7.3,92.0,36.0,68.0194,108.9311,107.0,132.0,90.0,74.0149,,,25.8748,33.8981,30.0,80.0,28.0,,15,,130,23.0,3,0,wing_mass_kg;vne_kmh
+Moyes,Litespeed S,,4.5,historical,DHV 3,2005,14.1,10.4,7.6,92.0,35.0,74.9214,120.101,114.0,138.0,90.0,74.0149,,,25.8748,33.8981,30.0,75.0,28.0,90.0,15,,130,23.0,3,0,vne_kmh
+Moyes,Litespeed S,,5,historical,,,14.5929,10.3816,7.4,,34.4865,74.9214,120.101,,,85.1476,74.0149,,,25.8748,33.8981,,,,,15,,130,,1,0,
+Moyes,Litesport,,,current,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Moyes,Litesport,,3,current,,,13,9.4,6.8,,30,65,85,,,85,74,,,26,34,,,,,14,-1.0,127,27,1,2,
+Moyes,Litesport,,4,current,,,13.8,9.6,6.7,,31.8,68,109,,,85,74,,,26,34,,,,,14,-1.0,127,27,1,2,
+Moyes,Malibu,2,,current,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Moyes,Malibu,2,166,current,DHV 1,2016,15.4,9.1,5.5,20.0,24.0,60,110,88.0,128.0,70.0,55,,,22,32,28.0,70.0,,,9.5,,120.5,15,3,0,wing_mass_kg;vne_kmh
+Moyes,Malibu,2,188,current,DHV 1,2016,17.5,10.1,5.8,20.0,25.0,80,126,100.0,152.0,70.0,55,,,22,32,27.0,70.0,,,9.5,,120.5,15,3,0,wing_mass_kg;vne_kmh;vmax_vg0_kmh
+Moyes,Malibu,,188,historical,DHV 1,2009,17.5,10.1,,20.0,25.0,,,100.0,152.0,70.0,,,,,,,,,,,,,15.0,2,1,
+Seedwings,Skyrunner XR,,,historical,DHV 2-3,2013,14.2,10.2,,90.0,32.8,,,100.0,150.0,90.0,,,,,,31.0,90.0,31.0,90.0,,,,20,2,0,
+Seedwings,Spyder,,12.5,historical,DHV 2,2005,12.5,9.8,,82.0,28.5,,,84.0,110.0,90.0,,,,,,33.0,82.5,32.0,90.0,,,,17.0,2,0,vmax_vg0_kmh
+Wills Wing,Attack Duck,,160,historical,,,14.8645,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Attack Duck,,180,historical,,,16.7225,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Condor,,225,current,,,20.9032,10.9118,5.7,,21.7724,45.3592,120.202,,,51.499,38.6243,24.1402,69.2018,,,,,,,,,,,1,2,
+Wills Wing,Condor,,330,current,,,30.658,11.8872,4.6,,24.0404,,,,,51.499,38.6243,20.9215,51.499,,,,,,,,,,,1,3,
+Wills Wing,Cross Country,,132,historical,HGMA/USHPA IV Advanced,,12.2632,9.3726,7.2,,28.1227,54.4311,99.7903,54.4311,99.7903,88.257,77.0243,40.1168,56.1635,40.2336,,,,,,,,,,2,2,vd_kmh
+Wills Wing,Cross Country,,142,historical,HGMA/USHPA IV Advanced,,13.1922,9.906,7.4,,29.9371,63.5029,108.8622,63.5029,108.8622,88.257,77.0243,40.1168,56.1635,40.2336,,,,,,,,,,2,2,vd_kmh
+Wills Wing,Cross Country,,155,historical,HGMA/USHPA IV Advanced,,14.4,10.3632,7.5,,31.7515,77.1107,127.0059,77.1107,127.0059,88.257,77.0243,40.1168,56.1635,40.2336,,,,,,,,,,2,2,vd_kmh
+Wills Wing,Duck,,130,historical,,,12.0774,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Duck,,160,historical,,,14.8645,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Duck,,180,historical,,,16.7225,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Duck,,200,historical,,,18.5806,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Eagle,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Eagle,,145,historical,HGMA/USHPA II Novice,,13.4709,9.144,6.2,,23.8136,58.967,90.7185,56.8495,90.8592,77.1243,67.2962,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Eagle,,164,historical,HGMA/USHPA II Novice,,15.2361,9.7536,6.2,,26.5352,68.0389,113.3981,68.0194,113.699,85.1476,74.0149,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Eagle,,180,historical,HGMA/USHPA II Novice,,16.7225,10.1498,6.2,,28.3495,79.3787,124.7379,79.6893,124.869,77.1243,67.2962,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Falcon 2,,140,historical,HGMA/USHPA II Novice,,13.0064,,,,,,,54.7155,86.0913,77.1243,67.2962,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Falcon 2,,170,historical,HGMA/USHPA II Novice,,15.7935,,,,,,,63.7515,99.8952,77.1243,67.2962,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Falcon 2,,195,historical,HGMA/USHPA II Novice,,18.1161,,,,,,,68.0194,113.699,77.1243,67.2962,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Falcon 2,,225,historical,HGMA/USHPA II Novice,,20.9032,,,,,,,83.9573,136.0389,79.6476,64.1869,40.1168,56.1635,,,,,,,,,,,2,3,vne_kmh
+Wills Wing,Falcon 3,,145,historical,HGMA/USHPA II Novice,,13.4709,,,,,,,54.2155,86.0913,77.1243,67.7962,28.9841,56.1635,,,,,,,,,,,2,3,va_kmh;vne_kmh
+Wills Wing,Falcon 3,,170,historical,HGMA/USHPA II Novice,,15.7935,,,,,,,63.7515,99.8952,77.1243,67.2962,28.9841,56.1635,,,,,,,,,,,2,3,va_kmh;vne_kmh
+Wills Wing,Falcon 3,,195,historical,HGMA/USHPA II Novice,,18.1161,,,,,,,79.1893,124.869,77.1243,67.2962,28.9841,56.1635,,,,,,,,,,,2,3,va_kmh;vne_kmh
+Wills Wing,Falcon 4,,145,current,класс на странице производителя 2;HGMA/USHPA II Novice,,13.4709,8.5344,5.4,,20.4117,54.4311,86.1826,54.4311,86.1826,77.2485,67.5924,28.9682,56.327,,,,,,,,,,,2,1,
+Wills Wing,Falcon 4,,170,current,класс на странице производителя 2;HGMA/USHPA II Novice,,15.7935,9.3269,5.5,,22.226,63.5029,99.7903,63.5029,99.7903,77.2485,67.5924,28.9682,56.327,,,,,,,,,,,2,1,
+Wills Wing,Falcon 4,,195,current,класс на странице производителя 2;HGMA/USHPA II Novice,,18.1161,10.0584,5.6,,24.494,79.3787,124.7379,79.3787,124.7379,77.2485,67.5924,28.9682,56.327,,,,,,,,,,,2,1,
+Wills Wing,Falcon,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Falcon,,140,historical,HGMA/USHPA II Novice,,13.0064,8.4734,5.5,,19.0509,52.1631,61.235,54.4311,95.2544,85.0476,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Falcon,,170,historical,HGMA/USHPA II Novice,,15.7935,9.3269,5.5,,20.8652,61.235,70.3068,63.5029,104.3262,85.0476,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Falcon,,195,historical,HGMA/USHPA II Novice,,18.1161,10.0584,5.6,,22.6796,70.3068,86.1826,68.0389,124.7379,85.0476,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Falcon,,225,historical,HGMA/USHPA II Novice,,20.9032,10.9118,5.7,,26.7619,86.1826,104.3262,83.9146,199.5806,85.0476,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Fusion,,,historical,HGMA/USHPA IV Advanced,,,,,,,,,,,,,,,,,,,,,,,,,2,0,
+Wills Wing,Fusion,,141,historical,HGMA/USHPA IV Advanced,,13.0993,10.0584,7.7,88,33.5658,65.7709,99.7903,58.9835,101.0291,85.0476,73.8149,40.1168,56.1635,40.2336,,,,,,,,128,,2,3,vd_kmh
+Wills Wing,Fusion,,150,historical,HGMA/USHPA IV Advanced,,13.9355,10.3937,7.7,88,34.473,68.0389,122.4699,68.0389,124.7379,85.0476,73.8149,40.1168,56.1635,40.2336,,,,,,,,128,,2,2,va_kmh;vd_kmh
+Wills Wing,HP AT,,145,historical,HGMA/USHPA IV Advanced,,13.4709,,,,,61.235,106.5942,61.235,106.5942,101.0943,88.257,40.1168,56.1635,40.2336,,,,,,,,,,2,2,va_kmh;vne_kmh;vd_kmh
+Wills Wing,HP AT,,158,historical,HGMA/USHPA IV Advanced,,14.6787,,,,,68.0389,113.3981,68.0389,113.3981,93.071,80.2336,40.1168,56.1635,40.2336,,,,,,,,,,2,2,va_kmh;vne_kmh;vd_kmh
+Wills Wing,HP II,,170,historical,,,15.7935,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,HP,,170,historical,,,15.7935,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier II,,147,historical,,,13.6567,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier II,,177,historical,,,16.4438,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier II,,187,historical,,,17.3729,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier,,147,historical,,,13.6567,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier,,177,historical,,,16.4438,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Harrier,,187,historical,,,17.3729,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,RamAir,,146,historical,HGMA/USHPA IV Advanced,,13.5638,,,,,65.7709,117.934,65.7709,117.934,96.2803,83.4429,40.1168,56.1635,40.2336,,,,,,,,,2,2,3,vd_kmh
+Wills Wing,RamAir,,154,historical,HGMA/USHPA IV Advanced,,14.3071,,,,,72.5748,122.4699,72.5748,122.4699,96.2803,83.4429,40.1168,56.1635,40.2336,,,,,,,,,2,2,3,vd_kmh
+Wills Wing,Raven,,149,historical,,,13.8426,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Raven,,179,historical,,,16.6296,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Raven,,209,historical,,,19.4167,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Raven,,229,historical,,,21.2748,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Skyhawk,,168,historical,HGMA/USHPA II Novice,,15.6077,,,,,,,58.967,86.1826,73.8149,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Skyhawk,,188,historical,HGMA/USHPA II Novice,,17.4658,,,,,,,68.0389,106.5942,73.8149,73.8149,40.1168,56.1635,,,,,,,,,,,2,2,
+Wills Wing,Spectrum,,144,historical,HGMA/USHPA II Novice,,13.378,9.4488,6.7,,24.494,49.8952,95.2544,54.4311,95.2544,85.0476,73.8149,40.1168,56.1635,,,,,,,,,120,,2,2,
+Wills Wing,Spectrum,,165,historical,HGMA/USHPA II Novice,,15.329,10.3632,7.0,,27.2155,63.5029,108.8622,63.5029,108.8622,85.0476,73.8149,40.1168,56.1635,,,,,,,,,121,,2,2,
+Wills Wing,Sport 2,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Sport 2,,135,historical,HGMA/USHPA III Intermediate;DHV 1-2,2013,12.5,8.9,,74.0,25.3,,,85.0,115.0,85.0,74.0149,30.2888,56.1635,,,33.0,85.0,,,,,,13,3,3,takeoff_mass_min_kg;takeoff_mass_max_kg
+Wills Wing,Sport 2,,155,historical,HGMA/USHPA III Intermediate;DHV 2,2008,14.4,9.6,,74.0,27.0,,,68.0,140.0,90.0,74.0149,30.2888,56.1635,,,28.0,80.0,28.0,90.0,,,,15.0,3,4,vne_kmh;takeoff_mass_max_kg
+Wills Wing,Sport 2,,175,historical,HGMA/USHPA III Intermediate,,,,,,,,,79.1893,145.0748,85.1476,74.0149,30.7888,56.1635,,,,,,,,,,,1,3,
+Wills Wing,Sport 3,,135,current,HGMA/USHPA III Intermediate,,12.521,8.9153,6.4,85,24.497,61.1175,92.3592,58.967,90.7185,85.2952,74.0298,30.5775,56.327,,,,,,,,,,,2,1,pilot_mass_max_kg
+Wills Wing,Sport 3,,155,current,HGMA/USHPA III Intermediate;DHV 3,2025,14.4,9.6,6.4,85.0,28.6,68.0194,113.199,96.0,141.0,85.2952,74.0298,30.5775,56.327,,,,,,,,,,14.0,3,1,takeoff_mass_min_kg;takeoff_mass_max_kg;wing_mass_kg
+Wills Wing,Sport 3,,170,current,HGMA/USHPA III Intermediate;DHV 3,2025,15.8,10.1,6.4,80.0,29.5,79.1893,140.8068,108.0,170.0,85.2952,74.0298,30.5775,56.327,,,,,,,,,,17.0,3,1,takeoff_mass_min_kg;takeoff_mass_max_kg;double_surface_pct
+Wills Wing,Sport AT,,150,historical,HGMA/USHPA III Intermediate,,13.9355,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Sport AT,,167,historical,HGMA/USHPA III Intermediate,,15.5148,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Sport AT,,180,historical,HGMA/USHPA III Intermediate,,16.7225,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Sportster,,148,historical,HGMA/USHPA III Intermediate,,13.7496,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Sport,,150,historical,HGMA/USHPA III Intermediate,,13.9355,,,,,56.699,95.2544,,,74.0298,74.0298,,,40.2336,,,,,,,,,,1,0,
+Wills Wing,Sport,,167,historical,HGMA/USHPA III Intermediate,,15.5148,,,,,63.5029,108.8622,,,74.0298,74.0298,,,40.2336,,,,,,,,,,1,0,
+Wills Wing,Sport,,180,historical,HGMA/USHPA III Intermediate,,16.7225,,,,,90.7185,136.0777,,,74.0298,74.0298,,,40.2336,,,,,,,,,,1,0,
+Wills Wing,Super Sport,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Super Sport,,143,historical,HGMA/USHPA III Intermediate,,13.2851,9.4488,6.7,,25.8548,56.699,95.2544,56.699,95.2544,93.071,80.2336,40.1168,56.1635,,,,,,,,,,,2,2,vne_kmh
+Wills Wing,Super Sport,,153,historical,HGMA/USHPA III Intermediate,,14.2142,9.9578,7.0,,28.1227,69.8532,113.3981,68.0389,113.3981,93.071,80.2336,40.1168,56.1635,,,,,,,,,,,2,2,vne_kmh
+Wills Wing,Super Sport,,163,historical,HGMA/USHPA III Intermediate,,15.1432,10.4638,7.3,,29.9371,79.3787,124.7379,79.3787,124.7379,93.071,80.2336,40.1168,56.1635,,,,,,,,,,,2,2,vne_kmh
+Wills Wing,T2/T2C,,136,historical,HGMA/USHPA IV Advanced,,,,,,,,,68.0389,95.2544,85.2952,74.0298,33.7962,64.3738,,,,,,,,,,,1,1,
+Wills Wing,T2/T2C,,144,historical,HGMA/USHPA IV Advanced,,,,,,,,,68.0389,106.5942,85.2952,74.0298,33.7962,64.3738,,,,,,,,,,,1,1,
+Wills Wing,T2/T2C,,154,historical,HGMA/USHPA IV Advanced,,,,,,,,,79.3787,129.2738,85.2952,74.0298,33.7962,64.3738,,,,,,,,,,,1,1,
+Wills Wing,T2C,,136,current,DHV 3,2013,12.6,9.6,7.3,92.0,32.3,68.0389,95.2544,99.0,126.0,85.0,74.0298,33.7962,112.6541,35.4056,,33.0,,32.0,,,,129.5,21,4,1,wing_mass_kg;nose_angle_deg
+Wills Wing,T2C,,144,current,DHV 3,2013,13.4,9.8,7.3,92.0,33.4,72.5748,106.5942,104.0,139.0,85.0,74.0298,33.7962,112.6541,35.4056,,32.0,85.0,31.0,90.0,,,129.5,23,4,1,wing_mass_kg;nose_angle_deg
+Wills Wing,T2C,,154,current,DHV 3,2008,14.3,10.23,7.4,92.0,34.9,83.9146,129.2738,84.0,141.0,90.0,74.0298,33.7962,112.6541,35.4056,,32.0,,30.0,,,,129.5,25.0,4,2,vne_kmh;wing_mass_kg;nose_angle_deg
+Wills Wing,T2,,144,current,HGMA/USHPA IV Advanced,,13.378,9.845,7.3,92,32.3185,72.5748,106.5942,72,107,85.2952,74.0298,33.8981,116.327,35.4056,,64.3738,,,,,,129.5,,3,4,wing_mass_kg;vd_kmh;nose_angle_deg
+Wills Wing,T2,,154,current,HGMA/USHPA IV Advanced,,14.3071,10.2108,7.4,92,33.4524,83.9146,129.2738,84,129,85.2952,74.0298,33.8981,116.327,35.4056,,64.3738,,,,,,129.5,,3,4,wing_mass_kg;vd_kmh;nose_angle_deg
+Wills Wing,T3,,136,current,HGMA/USHPA IV Advanced,,12.6348,9.7841,7.6,92,31.2979,68.0389,95.2544,68.0389,95.2544,85.2952,74.0298,33.7962,88.5139,,,,,,,,,127,,2,0,vd_kmh
+Wills Wing,T3,,144,current,HGMA/USHPA IV Advanced,,13.378,10.0584,7.6,92,32.2051,72.5748,106.5942,68.0389,106.5942,85.2952,74.0298,33.7962,88.5139,,,,,,,,,127,,2,0,vd_kmh
+Wills Wing,T3,,154,current,HGMA/USHPA IV Advanced,,14.3071,10.4242,7.6,92,33.1122,83.9146,129.2738,79.3787,129.2738,85.2952,74.0298,33.7962,88.5139,,,,,,,,,127,,2,0,vd_kmh
+Wills Wing,Talon,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Talon,,140,historical,HGMA/USHPA IV Advanced,,13.0064,,,,,,,63.7515,99.8952,85.1476,74.0149,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Talon,,150,historical,HGMA/USHPA IV Advanced,,13.9355,,,,,,,72.7874,108.9311,85.1476,74.0149,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,Talon,,160,historical,HGMA/USHPA IV Advanced,,14.8645,,,,,,,81.8233,127.0029,85.1476,74.0149,40.1168,56.1635,,,,,,,,,,,2,3,
+Wills Wing,U2,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,U2,,145,current,HGMA/USHPA III Intermediate;DHV 2-3,2013,13.5,9.5,6.8,84.0,27.6,63.7515,99.8952,93.0,128.0,85.0,74.0149,32.0934,56.1635,,,31.0,85.0,30.0,85.0,,,126.5,17,4,3,takeoff_mass_min_kg;takeoff_mass_max_kg;wing_mass_kg
+Wills Wing,U2,,160,current,HGMA/USHPA III Intermediate;DHV 2-3;DHV 2,2005,14.9,10.1,6.8,85.0,31.0,72.7874,117.967,100.0,133.0,90.0,74.0149,32.0934,56.1635,,,29.0,87.5,28.0,90.0,,,126.5,20.0,4,3,vne_kmh;takeoff_mass_min_kg;takeoff_mass_max_kg;vmax_vg0_kmh
+Wills Wing,Ultra Sport,,,historical,,,,,,,,,,,,,,,,,,,,,,,,,,1,0,
+Wills Wing,Ultra Sport,,135,historical,HGMA/USHPA III Intermediate,,12.5419,9.2964,6.9,,27.2155,56.699,95.2544,56.8495,95.1272,85.1476,74.0149,40.1168,56.1635,40.2336,,,,,,,,,,2,3,vd_kmh
+Wills Wing,Ultra Sport,,147,historical,HGMA/USHPA III Intermediate,,13.6567,9.9578,7.25,,29.4835,68.0389,113.3981,68.0194,113.699,85.1476,74.0149,40.1168,56.1635,40.2336,,,,,,,,,,2,3,vd_kmh
+Wills Wing,Ultra Sport,,166,historical,HGMA/USHPA III Intermediate,,15.4219,10.415,7.0,,31.7515,79.3787,129.2738,79.6893,129.6369,85.1476,74.0149,40.1168,56.1635,40.2336,,,,,,,,,,2,3,vd_kmh

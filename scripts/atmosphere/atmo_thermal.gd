@@ -39,6 +39,9 @@ var overdevelop: float = 0.0
 var is_cb: bool = false
 ## Усиление подъёма под основанием (облачный подсос) 0..; у Cb > 0.
 var suck: float = 0.0
+## Множитель кольца опускания Гедеона; < 0 — общий (thermal.ring_sink_factor). Термик из поля
+## (AM-07) — свой: кольцо возвращает подсеточную долю потока ядра, организованная уходит вверх.
+var ring: float = -1.0
 
 ## Клетка источника (ThermalField: ось a — по ветру, c — поперёк).
 var cell: Vector2i = Vector2i.ZERO

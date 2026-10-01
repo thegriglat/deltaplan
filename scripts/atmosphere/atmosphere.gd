@@ -21,6 +21,13 @@ signal weather_changed
 ## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
 signal weather_updated
 
+## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
+static var _air_log_last := ""
+## Поле из командной строки (--air-field=<путь>, отладка до решателя на GPU): читается один раз.
+static var _cmd_field_checked := false
+static var _cmd_field: WindField
+static var _cmd_field_error := ""
+
 ## Нода, вокруг которой живут термики и облака (обычно планер). Если не задана — активная камера.
 @export var focus_node: Node3D
 ## Рисовать облака и птиц (в тестах без окна — выключено автоматически).
@@ -38,6 +45,11 @@ var cloud_phys: CloudPhysics
 var storm: StormField
 ## Подветренные волны и роторы (VR-27).
 var wave: WaveField
+## Среднее поле воздуха (масштаб 1, docs/air_model.md → «Поле на CPU»): уровни и плавная подмена.
+## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
+var air_field: AirFieldSet
+## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
+var field_turb: FieldTurbulence
 
 ## Время атмосферы, с. Термики — чистые функции времени и координат.
 var time_s: float = 0.0
@@ -100,6 +112,10 @@ var _in_cloud_turb: float = 1.5
 var _in_cloud_eject: float = 3.0
 var _in_cloud_scale_k: float = 3.0
 var _last_sigma: float = 0.0
+## Промежуточные величины выборки (_extra_flow): σ гроз и роторов волн, облако в точке.
+var _storm_turb: float = 0.0
+var _rotor_turb: float = 0.0
+var _cin := Vector3.ZERO
 ## Базовые коэффициенты болтанки (без поправок хода дня).
 var _mech_k_base: float = 0.14
 var _edge_factor_base: float = 0.35
@@ -108,6 +124,10 @@ var _edge_width: float = 0.45
 var _blend_tau: float = 0.0
 var _target: Dictionary = {}
 var _day_w: Dictionary = {}  ## погода шага дня, выставленная в weather
+## Поле воздуха используется (air_model.enabled ≠ off и поле есть).
+var _air_on: bool = false
+var _air_mode: String = "auto"
+var _air_blend_s: float = 60.0
 
 var _clouds: Node3D
 var _birds: Node3D
@@ -146,7 +166,11 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	var old_ground := ground
 	wind = WindModel.new()
 	wind.setup(cfg.wind, cfg.turbulence, seed_used)
+	var wc := _wind_conditions()
+	wind.set_conditions(wc.x, wc.y)
 	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
+	field_turb = FieldTurbulence.new()
+	field_turb.setup(cfg.turbulence, cfg.lee, seed_used)
 	ground = GroundField.new()
 	ground.setup(cfg.ground, cfg.lee)
 	if old_ground != null and old_ground.has_ground:
@@ -187,6 +211,7 @@ func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	_refresh_interval = float(cfg.thermal.refresh_interval_s)
 	_state_interval = float(cfg.thermal.state_update_interval_s)
 	_cache_coefficients()
+	_setup_air()
 	_cloudbase_agl = float(weather.cloudbase_agl_m)
 	_update_cloudbase()
 	for st: Dictionary in weather.get("static_thermals", []):
@@ -214,6 +239,7 @@ func _update_weather(w: Dictionary, blend_s: float) -> void:
 	field.cloud_width_per_ms = (
 		float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
 	)
+	_update_wind_conditions()
 	_target = {
 		"bg_sink": float(weather.background_sink_ms),
 		"conv_amp": float(weather.convective_turbulence_ms),
@@ -264,6 +290,7 @@ func _apply_day(t: float) -> void:
 		field.cloud_width_per_ms = (
 			float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
 		)
+		_update_wind_conditions()
 		weather_updated.emit()
 	_bg_sink = _lerp_key(w0, w1, f, "background_sink_ms", _bg_sink)
 	_conv_amp = _lerp_key(w0, w1, f, "convective_turbulence_ms", _conv_amp)
@@ -373,6 +400,89 @@ func _cache_coefficients() -> void:
 static func _lenschow(xi: float) -> float:
 	var a := 1.0 - 0.8 * xi
 	return sqrt(1.8 * pow(xi, 2.0 / 3.0) * a * a)
+
+
+## Поле воздуха по конфигу air_model: режим, край, ограничители; поле с --air-field=<путь>.
+func _setup_air() -> void:
+	var ac: Dictionary = cfg.get("air_model", {})
+	if air_field == null:
+		air_field = AirFieldSet.new()
+	air_field.edge_cells = float(ac.get("edge_blend_cells", 5.0))
+	air_field.max_speed = float(ac.get("max_speed_ms", 40.0))
+	air_field.max_w = float(ac.get("max_w_ms", 10.0))
+	for f in air_field.levels:
+		f.edge_cells = air_field.edge_cells
+	_air_blend_s = float(ac.get("blend_s", 60.0))
+	_air_mode = String(ac.get("enabled", "auto"))
+	if _air_mode != "off" and not air_field.is_active():
+		var f := _cmdline_field()
+		if f != null:
+			air_field.set_field(f, 0.0)
+	_update_air_mode()
+
+
+## Подать поле воздуха: WindField, массив уровней (от мелкого к грубому) или null — без поля.
+## blend_s — время плавной подмены старого поля (или аналитики) новым, с времени атмосферы;
+## < 0 — air_model.blend_s. При air_model.enabled = off поле хранится, но не используется.
+func set_air_field(new_field: Variant, blend_s: float = -1.0) -> void:
+	if air_field == null:
+		air_field = AirFieldSet.new()
+	air_field.set_field(new_field, _air_blend_s if blend_s < 0.0 else blend_s)
+	_update_air_mode()
+
+
+## Режим поля воздуха поверх конфига: "auto" | "on" | "off" (отладка «поле/аналитика», замеры).
+func set_air_mode(mode: String) -> void:
+	_air_mode = mode
+	_update_air_mode()
+
+
+## Используется ли сейчас поле воздуха (иначе — аналитика).
+func is_air_field_on() -> bool:
+	return _air_on
+
+
+func _update_air_mode() -> void:
+	var reason := ""
+	if _air_mode == "off":
+		reason = "air_model.enabled = off"
+	elif not air_field.is_active():
+		reason = "нет поля" if _cmd_field_error == "" else _cmd_field_error
+		if _air_mode == "on":
+			reason += "; требуется поле (enabled = on)"
+	_air_on = reason == ""
+	if not air_field.levels.is_empty() and field_turb != null:
+		field_turb.z0 = air_field.levels[0].z0
+	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
+	if field != null:
+		field.air = air_field if _air_on else null
+	var line := "air_model: analytic (%s)" % reason
+	if _air_on:
+		var src := "поле"
+		if not air_field.levels.is_empty():
+			var m: Dictionary = air_field.levels[0].meta
+			src = String(m.get("path", "массивы"))
+			var cond: Dictionary = m.get("cond", {})
+			if cond.has("wind"):
+				src += ", ветер поля %s м/с с %s°" % [cond.wind, cond.get("wdir", "?")]
+		line = "air_model: field (%s; уровней %d)" % [src, air_field.levels.size()]
+	if line != _air_log_last:
+		_air_log_last = line
+		if _air_mode == "on" and not _air_on:
+			push_warning(line)
+		print(line)
+
+
+static func _cmdline_field() -> WindField:
+	if not _cmd_field_checked:
+		_cmd_field_checked = true
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--air-field="):
+				var path := a.substr(12)
+				_cmd_field = WindField.load_file(path)
+				if _cmd_field == null:
+					_cmd_field_error = "ошибка чтения поля %s" % path
+	return _cmd_field
 
 
 ## Функции рельефа: height_fn(x, z) -> высота над уровнем моря, sun_fn(x, z) -> 0..1.
@@ -486,6 +596,8 @@ func step(dt: float) -> void:
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	time_s += dt
+	if _air_on:
+		air_field.advance(dt)
 	if not _day_active() and not _target.is_empty():
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
@@ -519,10 +631,16 @@ func _update_focus() -> void:
 
 
 ## Скорость воздуха в точке (ветер + вертикальные потоки + пульсации), м/с, мир.
+## С полем воздуха (доля fw.w > 0) — _air_velocity_field (масштабы 1–3 из поля); без поля и вне
+## поля — аналитика ниже (побитно прежняя).
 func air_velocity_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
 	var agl := maxf(pos.y - gs.x, 0.0)
 	var u := wind.speed_at_pos(agl, pos.y)
+	if _air_on:
+		var fw := air_field.sample(pos, gs.x)
+		if fw.w > 0.0:
+			return _air_velocity_field(pos, gs, agl, u, fw)
 	var wd := wind.dir
 	# Подветренная зона: ниже линии тени от гребня против ветра (и в слое сдвига над ней).
 	var lee := 0.0
@@ -540,14 +658,8 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	# Склоновый подъём: V·∇h впереди по ветру, затухает с высотой над склоном.
 	var w_ridge := 0.0
 	if u > 0.0 and ground.has_ground:
-		var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
-		var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
-		var slope := wd.x * gr.y + wd.z * gr.z
-		var agl_s := maxf(pos.y - gr.x, 0.0)
-		w_ridge = (
-			clampf(_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max)
-			* (1.0 - lee)
-		)
+		w_ridge = _ridge_lift(pos, agl, u)
+	w_ridge *= 1.0 - lee
 	# Термики и фоновое опускание (у земли плавно гаснут).
 	var th := field.sample(pos)
 	var fade := minf(agl / _ground_fade, 1.0)
@@ -558,50 +670,210 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
 		w += ld.y
 		h += ld.x
-	var v := Vector3(wd.x * h, w, wd.z * h)
-	# Грозы: нисходящий поток, растекание и фронт порывов.
-	var storm_turb := 0.0
-	if not storm.cells.is_empty():
-		var sf := storm.sample(pos, agl, time_s)
-		v += Vector3(sf.x, sf.y, sf.z)
-		storm_turb = sf.w
-	# Подветренные волны и роторы.
-	var rotor_turb := 0.0
-	if wave.enabled:
-		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
-		v.y += wv.x
-		rotor_turb = wv.y
-	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
-	var cin := Vector3.ZERO
-	if cloud_phys.cloud_count() > 0:
-		cin = cloud_phys.sample(pos)
-		v += Vector3(cin.y, 0.0, cin.z) * _in_cloud_eject * cin.x
+	var v := _extra_flow(Vector3(wd.x * h, w, wd.z * h), pos, agl)
 	_last_sigma = 0.0
 	if not turbulence_enabled:
 		return v
-	# Турбулентность: механическая + конвективная (Lenschow) + край термика + ротор.
-	var mech := _mech_k * u * (1.0 + _mech_boost * exp(-agl / _mech_h))
-	var conv := 0.0
-	if not above_base:
-		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
-		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
 	var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee
-	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
-	amp2 += storm_turb * storm_turb + rotor_turb * rotor_turb
-	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
-	var amp := minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
+	var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
+	var tv := _analytic_turb(pos, agl, amp, fade)
 	# В облаке — бурление: большие пульсации мелкого масштаба во всех направлениях.
-	var chaos := _in_cloud_turb * cin.x
+	var chaos := _in_cloud_turb * _cin.x
 	_last_sigma = sqrt(amp * amp + chaos * chaos)
 	if chaos > 1.0e-3:
 		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
 	if amp < 1.0e-3:
 		return v
+	return v + tv
+
+
+## Склоновый подъём аналитики: V·∇h впереди по ветру, затухает с высотой над склоном, м/с.
+func _ridge_lift(pos: Vector3, agl: float, u: float) -> float:
+	var wd := wind.dir
+	var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
+	var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
+	var slope := wd.x * gr.y + wd.z * gr.z
+	var agl_s := maxf(pos.y - gr.x, 0.0)
+	return clampf(_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max)
+
+
+## Грозы, подветренные волны, поток в облаке — добавить к скорости v; σ болтанки гроз и роторов
+## волн — в _storm_turb, _rotor_turb, облако в точке — в _cin (для бурления).
+func _extra_flow(v_in: Vector3, pos: Vector3, agl: float) -> Vector3:
+	var v := v_in
+	# Грозы: нисходящий поток, растекание и фронт порывов.
+	_storm_turb = 0.0
+	if not storm.cells.is_empty():
+		var sf := storm.sample(pos, agl, time_s)
+		v += Vector3(sf.x, sf.y, sf.z)
+		_storm_turb = sf.w
+	# Подветренные волны и роторы.
+	_rotor_turb = 0.0
+	if wave.enabled:
+		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
+		v.y += wv.x
+		_rotor_turb = wv.y
+	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
+	_cin = Vector3.ZERO
+	if cloud_phys.cloud_count() > 0:
+		_cin = cloud_phys.sample(pos)
+		v += Vector3(_cin.y, 0.0, _cin.z) * _in_cloud_eject * _cin.x
+	return v
+
+
+## σ болтанки аналитики (горизонталь), м/с: механическая + конвективная (Lenschow) + край термика
+## + ротор + грозы и роторы волн.
+func _analytic_amp(
+	_pos: Vector3, gs: Vector4, agl: float, u: float, th: Vector3, rot: float, above_base: bool
+) -> float:
+	var mech := _mech_k * u * (1.0 + _mech_boost * exp(-agl / _mech_h))
+	var conv := 0.0
+	if not above_base:
+		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
+		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
+	amp2 += _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
+	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
+	return minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
+
+
+## Пульсации аналитики: двухмасштабный шум WindModel.gust_unit × σ (вертикаль — доля
+## vertical_ratio и гаснет у земли).
+func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector3:
+	if amp < 1.0e-3:
+		return Vector3.ZERO
 	# Крупные вихри растут с высотой (у земли масштаб вихрей ~ высоты): на разбеге и посадке —
 	# мелкая болтанка, как раньше.
 	var n := wind.gust_unit(pos, time_s, _advect, agl / wind.large_fade_agl)
-	return v + Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+	return Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
+
+
+## Скорость воздуха с полем (масштабы 1–3 из поля, docs/air_model.md → «Масштаб 3: возмущения
+## из поля»). fw — выборка поля (доля a = fw.w > 0); в полосе края (a < 1) остаток — аналитика с её
+## линией тени.
+## - Среднее: горизонталь и w_mech — поле; подветренного опускания и ослабления ветра поверх поля
+##   нет (они уже в поле); у аналитической доли — как в аналитике.
+## - Зона отрыва — признак из поля (FieldTurbulence.lee: дефицит скорости у земли против
+##   лог-профиля под «внешним» ветром столба и опускание); в ней эвристика (C4 v4) даёт болтанку
+##   слоя смешения по ΔU от ветра поля на уровне гребня U_H, рывки (часть этой болтанки, с нулевым
+##   средним, только при turbulence_enabled) и обратный поток у земли 0,22·U_H — только там, где
+##   пузырь отрыва решателем не разрешён (грубая сетка).
+## - Болтанка: механическая по u* поля и местному сдвигу (с поправкой на устойчивость Ri),
+##   конвективная по w* (Lenschow), слоя смешения за гребнем по ΔU; шум — спектр фон Кармана
+##   (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости.
+func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Vector4) -> Vector3:
+	var wd := wind.dir
+	var a := fw.w
+	var tb := air_field.sample_turb(pos, gs.x)
+	# аналитическая доля (полоса края поля): линия тени, склоновый подъём
+	var lee_a := 0.0
+	var relief := -1.0
+	var w_ridge := 0.0
+	if a < 1.0 and u > 0.0:
+		var depth := gs.w - pos.y
+		if depth > -_lee_shear:
+			relief = ground.relief_at(pos.x, pos.z)
+			lee_a = (
+				clampf((depth + _lee_shear) / (_lee_depth + _lee_shear), 0.0, 1.0)
+				* clampf(relief / _lee_relief, 0.0, 1.0)
+			)
+		if ground.has_ground:
+			w_ridge = _ridge_lift(pos, agl, u) * (1.0 - lee_a)
+	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU от ветра поля
+	# на уровне гребня U_H (та же вертикаль, высота h + max(r, agl); C4 v4)
+	var uf := Vector2(fw.x, fw.z).length() / a
+	var lee_f := field_turb.lee(uf, agl, tb)
+	var danger := 0.0
+	if lee_f > 0.0 or lee_a > 0.0:
+		danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
+		if relief < 0.0:
+			relief = ground.relief_at(pos.x, pos.z)
+	var u_h := uf
+	if lee_f > 0.0 and relief > agl:
+		var fh := air_field.sample(Vector3(pos.x, gs.x + relief, pos.z), gs.x)
+		if fh.w > 0.0:
+			u_h = Vector2(fh.x, fh.z).length() / fh.w
+	var du := maxf(u_h - uf, 0.0) * lee_f
+	# средняя вертикаль: w_mech поля + аналитика в доле края; термики и фон — как всегда
+	var th := field.sample(pos)
+	var fade := minf(agl / _ground_fade, 1.0)
+	var above_base := pos.y >= field.cloudbase_msl
+	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + fw.y + (1.0 - a) * w_ridge
+	var h := u * (1.0 - a) * (1.0 - lee_a * _lee_wind_red)
+	if lee_a > 0.0:
+		w -= (1.0 - a) * lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee_a
+	var hard_a := (1.0 - a) * u * lee_a * danger
+	if hard_a > 0.0:
+		# аналитическая доля: рывки вниз в пятнах шума и ротор у земли — как в аналитике
+		if hard_a > 1.0e-3:
+			w -= _lee_burst * hard_a * _lee_burst_g(pos, u)
+		h -= _lee_reverse * hard_a * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+	if lee_f > 0.0 and danger > 0.0:
+		# обратный поток у земли — только там, где пузырь отрыва (L ≈ 2,8 r) решателем не разрешён
+		# (меньше n1 клеток на длину): в окнах 50/100 м возвратное течение даёт само поле
+		var unres := field_turb.reverse_unresolved(relief, air_field.sample_dx(pos, gs.x))
+		if unres > 0.0:
+			h -= (
+				a * field_turb.reverse * u_h * lee_f * danger * unres
+				* exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
+			)
+	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
+	v = _extra_flow(v, pos, agl)
+	_last_sigma = 0.0
+	if not turbulence_enabled:
+		return v
+	# болтанка поля
+	var conv_a := 0.0
+	if tb[WindField.T_HMIX] <= 0.0 and not above_base:
+		# в поле нет данных о нагреве — конвективная болтанка аналитики (погода)
+		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
+		conv_a = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
+	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio))
+	var s_u := sg.x
+	var s_w := sg.y
+	var s_sep := field_turb.sep_sigma(du)
+	# рывки вниз слоя смешения (с нулевым средним — поток массы уже в w_mech поля): часть
+	# пульсаций, их доля в σ_w вычитается из гауссовой, σ_w в зоне = 0,14·ΔU (Bell & Mehta 1990)
+	var hard_f := du * danger
+	var w_burst := 0.0
+	if hard_f > 1.0e-3:
+		var amp_b := field_turb.burst_per_du * hard_f
+		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		var g_std := field_turb.burst_std(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
+		w_burst = -amp_b * (_lee_burst_g(pos, u) - g_mean)
+		var s_b := amp_b * g_std
+		s_sep.y = sqrt(maxf(s_sep.y * s_sep.y - s_b * s_b, 0.0))
+	s_u = maxf(s_u, s_sep.x)
+	s_w = maxf(s_w, s_sep.y)
+	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
+	s_u = minf(sqrt(s_u * s_u + ex2), maxf(_turb_max, minf(s_sep.x, _lee_rotor_max)))
+	s_w = minf(
+		sqrt(s_w * s_w + ex2 * _vert_ratio * _vert_ratio),
+		maxf(_turb_max, minf(s_sep.y, _lee_rotor_max))
+	)
+	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
+	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
+	var l_sep := field_turb.sep_scale * maxf(relief, 0.0) * lee_f
+	var n := field_turb.gusts.sample(
+		pos, time_s, _advect, wd, maxf(sg.z, l_sep), maxf(sg.w, l_sep)
+	)
+	var tv := Vector3(n.x * s_u, n.y * s_w + a * w_burst, n.z * s_u)
+	var sig := s_u
+	if a < 1.0:
+		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
+		var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee_a
+		var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
+		var ta := _analytic_turb(pos, agl, amp, fade)
+		var k := 1.0 / sqrt(a * a + (1.0 - a) * (1.0 - a))
+		tv = (tv * a + ta * (1.0 - a)) * k
+		sig = sqrt(a * s_u * s_u + (1.0 - a) * amp * amp)
+	var chaos := _in_cloud_turb * _cin.x
+	_last_sigma = sqrt(sig * sig + chaos * chaos)
+	if chaos > 1.0e-3:
+		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
+		v += nc * chaos
+	return v + tv
 
 
 ## Опасность подветренной зоны 0..1 от ветра прогноза (нелинейно: слабый ветер — мягко).
@@ -612,6 +884,13 @@ func _lee_danger(u_ref: float) -> float:
 ## Подветренный поток: (добавка к горизонтали вдоль ветра, вертикаль), м/с. Нисходящий поток,
 ## рывки сверху (детерминированный шум, редкие сильные удары вниз) и ротор у склона — обратный
 ## поток у земли в глубине зоны.
+## Пятно рывка 0..1: clamp((n − порог)/ширина) детерминированного шума (burst_*), переносится
+## ветром u.
+func _lee_burst_g(pos: Vector3, u: float) -> float:
+	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
+	return clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
+
+
 func _lee_flow(
 	pos: Vector3, agl: float, u: float, lee: float, danger: float, relief: float
 ) -> Vector2:
@@ -647,6 +926,28 @@ func get_insolation() -> float:
 	return 1.0 - cover * float(cfg.cirrus.sun_block)
 
 
+## Условия устойчивости профиля ветра (WindProfile, C2 v4) из погоды: (высота солнца часа, °;
+## облачность 0..1). Час — WeatherModel.derive → _derived.sun_elev_deg (пресет без часа —
+## clouds.sun_elevation_deg), облачность — прогноз (sky_params(sky).cover; пресет — ясно).
+func _wind_conditions() -> Vector2:
+	var dv: Dictionary = weather.get("_derived", {})
+	var sun := float(dv.get("sun_elev_deg", float(cfg.clouds.sun_elevation_deg)))
+	var cover := 0.0
+	if dv.has("sky"):
+		cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
+	return Vector2(sun, cover)
+
+
+## Погода сменилась (шаг хода дня, мягкое обновление): профиль ветра по новым условиям.
+func _update_wind_conditions() -> void:
+	var wc := _wind_conditions()
+	if wc.x == wind.sun_elev_deg and wc.y == wind.cover:
+		return
+	wind.set_conditions(wc.x, wc.y)
+	_advect = wind.speed_at(float(cfg.turbulence.advection_height_m))
+	_update_wave_wind()
+
+
 func _update_wave_wind() -> void:
 	if wave != null:
 		var u := wind.speed_at(float(cfg.wave.wind_reference_agl_m))
@@ -654,9 +955,16 @@ func _update_wave_wind() -> void:
 
 
 ## Средний ветер без пульсаций и вертикальных потоков (для колдуна на старте и т. п.), м/с.
+## С полем воздуха — горизонталь и механическая вертикаль поля (тот же вес края, что в
+## air_velocity_at), без подветренной эвристики.
 func mean_wind_at(pos: Vector3) -> Vector3:
 	var gs := ground.sample(pos.x, pos.z)
 	var s := wind.speed_at_pos(maxf(pos.y - gs.x, 0.0), pos.y)
+	if _air_on:
+		var fw := air_field.sample(pos, gs.x)
+		if fw.w > 0.0:
+			var a := s * (1.0 - fw.w)
+			return Vector3(fw.x + wind.dir.x * a, fw.y, fw.z + wind.dir.z * a)
 	return Vector3(wind.dir.x * s, 0.0, wind.dir.z * s)
 
 

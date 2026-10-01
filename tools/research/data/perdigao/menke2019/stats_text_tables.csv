@@ -1,0 +1,44 @@
+source,quantity,value,unit,note
+Text 2.1,ridge-to-ridge distance,1400,m,
+Text 2.1,valley-to-ridgetop height,~200,m,
+Text 2.2,RHI range gates,15,m,"start 100 m, to 3000 m; FWHM ~30 m; 23 scans/10 min; CNR threshold -24 dB"
+Text 3.2,recirc threshold reverse speed,0.5,m/s,"also length >50 m (5 cells of 10 m), >=1 valid meas below contour"
+Text 2,periods total,1619,-,"Fig.3 caption says 1613"
+Text 4.1,recirc frequency all,52,%,
+Text 4.1,recirc frequency T1,69,%,
+Text 4.1,recirc frequency T2,51,%,
+Text 4.1,recirc frequency T3,32,%,
+Text 5,recirc frequency SW,55,%,
+Text 5,recirc frequency NE,49,%,
+Fig.6,N_total SW / ratio rec:norec,547 / 1.5,-,
+Fig.6,N_total NE / ratio,787 / 0.9,-,
+Fig.7,N T1 SW / ratio,180 / 3.6,-,
+Fig.7,N T2 SW / ratio,263 / 1.2,-,
+Fig.7,N T3 SW / ratio,162 / 0.6,-,
+Fig.7,N T1 NE / ratio,319 / 1.8,-,
+Fig.7,N T2 NE / ratio,464 / 1.0,-,
+Fig.7,N T3 NE / ratio,225 / 0.4,-,
+Text 4.2,mean zone length (both dirs),697,m,"= half ridge distance; T3 -22%, T1 +9% => ~544 and ~760"
+Text 4.2,mean zone depth above valley bottom,157,m,"insignificant differences between transects"
+Text 4.2,max zone depth T1,300,m,above valley bottom
+Text 4.2,max zone depth T2,215,m,
+Text 4.2,max zone depth T3,189,m,
+Text 4.2,median reverse speed T1,2.0,m/s,
+Text 4.2,median reverse speed T2,1.5,m/s,
+Text 4.2,median reverse speed T3,1.4,m/s,
+Text 4.2,max reverse speed,>4,m/s,
+Text 4.3.1,case 5 May 2017 16:30 T2 SW U100,10.4,m/s,"dir 254; neutral"
+Text 4.3.1,case zone length,807,m,
+Text 4.3.1,case zone top above valley bottom,192,m,"over ridge-peak height"
+Text 4.3.1,case max reverse speed,1.8,m/s,"17% of inflow"
+Text 4.3.1,case wake reach above NE peak,~250,m,
+Table 3,U SW ridge / NE ridge,10.4 / 5.2,m/s,100 m sonics
+Table 3,turbulence intensity SW / NE,11.8 / 30.7,%,
+Table 3,TKE SW / NE,2.26 / 4.32,m2/s2,
+Table 3,veer 60-100 m SW / NE,-2.1 / -13.7,deg,
+Table 4,I upwind SW rec/norec,13.0 / 13.5,%,
+Table 4,I downwind SW rec/norec,20.8 / 16.6,%,
+Table 4,dU SW rec/norec,-7.1 / 2.5,%,N=142/118
+Table 4,I upwind NE rec/norec,11.2 / 8.4,%,
+Table 4,I downwind NE rec/norec,13.1 / 9.2,%,
+Table 4,dU NE rec/norec,15.5 / 19.3,%,N=225/230

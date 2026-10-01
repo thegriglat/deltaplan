@@ -30,6 +30,8 @@ const TOW_FLOW_CAP_MS := 28.0
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
 var air: Node3D
+## Среднее поле воздуха (AM-06Б, контракт C9): расчёт при загрузке и пересчёт в полёте.
+var air_runtime: AirRuntime
 ## Приборы на трапеции (game.json → mounted_instruments); первый — планшет Instrument3D.
 var mounted: Array[Node3D] = []
 var stats := FlightStats.new()
@@ -123,6 +125,8 @@ func _ready() -> void:
 	air.name = "Air"
 	add_child(air)
 	air.set_physics_process(false)
+	air_runtime = AirRuntime.new()
+	add_child(air_runtime)
 	if air.has_signal("weather_updated"):
 		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
 	air.set("focus_node", glider)
@@ -280,6 +284,8 @@ func start(s: FlightSettings) -> bool:
 		_start_heading if settings.wind_into_launch else settings.wind_from_deg,
 		_start_pos.y
 	)
+	# Среднее поле на час старта, ветер и погоду полёта — до термиков (их источники — из поля).
+	await _load_air_field(progress)
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
 	# Верх дымки — на высоте инверсии (основание облаков).
@@ -310,6 +316,26 @@ func start(s: FlightSettings) -> bool:
 	progress.finish()
 	status_changed.emit("")
 	return true
+
+
+## Этап загрузки «Рассчитываем ветер» (AM-06Б): точное поле для часа старта, ветра и погоды
+## полёта; без GPU / headless / ошибка — этап пропускается, аналитика. Дальше — пересчёт в полёте
+## (каждые air_model.recompute_game_min игровых минут и при смене ветра/погоды).
+func _load_air_field(progress: LoadProgress) -> void:
+	var cond := AirRuntime.conditions_of.bind(sky.clock, air, settings)
+	air_runtime.setup(air, AirRuntime.place_of(terrain, _clock_utc_offset()), cond)
+	air_runtime.set_focus(glider, _start_pos)
+	if air_runtime.unavailable_reason() == "":
+		progress.stage("wind", tr("loading_wind"))
+		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
+	await air_runtime.load_field()
+	if air_runtime.progress_changed.is_connected(_on_air_progress):
+		air_runtime.progress_changed.disconnect(_on_air_progress)
+	air_runtime.recompute_enabled = true
+
+
+func _on_air_progress(f: float, progress: LoadProgress) -> void:
+	progress.sub(f, 1.0)
 
 
 ## Место для погоды: дата, широта/долгота, пояс, высоты долины и средней земли вокруг (0, 0).
@@ -802,6 +828,9 @@ func _choose_start() -> void:
 			push_warning("Game: у выбранной точки нет склона для разбега — старт на месте")
 		_start_pos = launch.position
 		_start_heading = float(launch.heading_deg)
+		# Пустырь вокруг старта (≥ 2 длины разбега): в лесу иначе не разбежаться и не набрать
+		# высоту до крон (docs/game.md → «Старт с карты»).
+		terrain.add_start_clearing(_start_pos.x, _start_pos.z, float(cfg.clearing_radius_m))
 		return
 	var sites := terrain.get_start_sites()
 	if sites.is_empty():

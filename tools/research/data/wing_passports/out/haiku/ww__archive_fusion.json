@@ -1,0 +1,183 @@
+{
+  "src_files": ["ww__archive_fusion.html.txt"],
+  "wings": [
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "141",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 10/20/98",
+      "facts": [
+        {
+          "field": "area",
+          "value": 141,
+          "unit": "ft²",
+          "quote": "Area (ft²) 141"
+        },
+        {
+          "field": "span",
+          "value": 33,
+          "unit": "ft",
+          "quote": "Span (ft) 33"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.7,
+          "unit": "",
+          "quote": "Aspect Ratio 7.7"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 88,
+          "unit": "%",
+          "quote": "Double Surface 88%"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose Angle 128–132°"
+        },
+        {
+          "field": "wing_mass",
+          "value": 74,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 74"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 145,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 145-220"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 220,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 145-220"
+        },
+        {
+          "field": "va",
+          "value": 46,
+          "unit": "mph",
+          "quote": "Va (mph) 46"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 45,
+          "unit": "mph",
+          "quote": "Vd min (mph) >45"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion",
+      "size": "150",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 4/16/97",
+      "facts": [
+        {
+          "field": "area",
+          "value": 150,
+          "unit": "ft²",
+          "quote": "Area (ft²) 150"
+        },
+        {
+          "field": "span",
+          "value": 34.1,
+          "unit": "ft",
+          "quote": "Span (ft) 34.1"
+        },
+        {
+          "field": "aspect_ratio",
+          "value": 7.7,
+          "unit": "",
+          "quote": "Aspect Ratio 7.7"
+        },
+        {
+          "field": "double_surface_pct",
+          "value": 88,
+          "unit": "%",
+          "quote": "Double Surface 88%"
+        },
+        {
+          "field": "nose_angle",
+          "value": 128,
+          "unit": "deg",
+          "quote": "Nose Angle 128–132°"
+        },
+        {
+          "field": "wing_mass",
+          "value": 76,
+          "unit": "lbs",
+          "quote": "Glider Weight (lbs) 76"
+        },
+        {
+          "field": "pilot_mass_min",
+          "value": 150,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-270"
+        },
+        {
+          "field": "pilot_mass_max",
+          "value": 270,
+          "unit": "lbs",
+          "quote": "Hook-In Weight (lbs) 150-270"
+        },
+        {
+          "field": "va",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Va (mph) 53"
+        },
+        {
+          "field": "vne",
+          "value": 53,
+          "unit": "mph",
+          "quote": "Vne (mph) 53"
+        },
+        {
+          "field": "stall_speed",
+          "value": 25,
+          "unit": "mph",
+          "quote": "Vs max (mph) <25"
+        },
+        {
+          "field": "vd",
+          "value": 45,
+          "unit": "mph",
+          "quote": "Vd min (mph) >45"
+        }
+      ]
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion 150 R",
+      "size": "150",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 11/11/97",
+      "facts": []
+    },
+    {
+      "manufacturer": "Wills Wing",
+      "model": "Fusion SP",
+      "size": "",
+      "cert_class": "USHPA Advanced (IV)",
+      "cert_standard": "HGMA 11/06/00",
+      "facts": []
+    }
+  ]
+}
