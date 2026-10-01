@@ -1,0 +1,779 @@
+{
+ "top_start": {
+  "location": "ongudai",
+  "msl_m": 1868.8,
+  "start": "kayancha_south"
+ },
+ "groups": {
+  "topless": {
+   "n": 15,
+   "stall_model": [
+    25.8,
+    28.46,
+    15
+   ],
+   "stall_passport": [
+    28.8,
+    37.82,
+    10
+   ],
+   "stall_diff": [
+    -27.24,
+    -4.11,
+    10
+   ],
+   "trim_model": [
+    34.14,
+    37.24,
+    15
+   ],
+   "full_pull_model": [
+    89.53,
+    100.3,
+    15
+   ],
+   "full_pull_passport": [
+    71.85,
+    89.74,
+    8
+   ],
+   "full_pull_diff": [
+    9.37,
+    35.93,
+    8
+   ],
+   "min_sink_model": [
+    0.78,
+    0.85,
+    15
+   ],
+   "best_glide_model": [
+    15.0,
+    15.97,
+    15
+   ],
+   "trim_passport": [
+    33.56,
+    36.57,
+    3
+   ],
+   "trim_diff": [
+    1.53,
+    9.77,
+    3
+   ],
+   "best_glide_passport": [
+    15,
+    15,
+    3
+   ],
+   "best_glide_diff": [
+    -0.02,
+    0.06,
+    3
+   ],
+   "min_sink_passport": [
+    0.87,
+    0.9,
+    3
+   ],
+   "min_sink_diff": [
+    -7.33,
+    -5.42,
+    3
+   ]
+  },
+  "kingpost": {
+   "n": 19,
+   "stall_model": [
+    25.08,
+    30.07,
+    19
+   ],
+   "stall_passport": [
+    25.33,
+    33.71,
+    11
+   ],
+   "stall_diff": [
+    -22.66,
+    11.69,
+    11
+   ],
+   "trim_model": [
+    33.32,
+    38.69,
+    19
+   ],
+   "trim_passport": [
+    33.39,
+    34.35,
+    2
+   ],
+   "trim_diff": [
+    8.92,
+    15.34,
+    2
+   ],
+   "full_pull_model": [
+    74.43,
+    95.72,
+    19
+   ],
+   "full_pull_passport": [
+    75.04,
+    92.06,
+    8
+   ],
+   "full_pull_diff": [
+    -5.32,
+    25.75,
+    8
+   ],
+   "min_sink_model": [
+    0.81,
+    1.14,
+    19
+   ],
+   "best_glide_model": [
+    10.62,
+    15.95,
+    19
+   ],
+   "min_sink_passport": [
+    0.9,
+    1.07,
+    5
+   ],
+   "min_sink_diff": [
+    -4.59,
+    8.91,
+    5
+   ],
+   "best_glide_passport": [
+    14,
+    14,
+    1
+   ],
+   "best_glide_diff": [
+    -5.94,
+    -5.94,
+    1
+   ]
+  },
+  "trainer": {
+   "n": 11,
+   "stall_model": [
+    22.31,
+    26.48,
+    11
+   ],
+   "stall_passport": [
+    27.74,
+    34.54,
+    7
+   ],
+   "stall_diff": [
+    -29.7,
+    -8.69,
+    7
+   ],
+   "trim_model": [
+    28.4,
+    33.68,
+    11
+   ],
+   "full_pull_model": [
+    54.8,
+    65.03,
+    11
+   ],
+   "full_pull_passport": [
+    63.77,
+    81.6,
+    7
+   ],
+   "full_pull_diff": [
+    -27.25,
+    -4.48,
+    7
+   ],
+   "min_sink_model": [
+    0.92,
+    1.24,
+    11
+   ],
+   "best_glide_model": [
+    7.26,
+    9.03,
+    11
+   ],
+   "trim_passport": [
+    31.56,
+    31.56,
+    1
+   ],
+   "trim_diff": [
+    1.05,
+    1.05,
+    1
+   ],
+   "best_glide_passport": [
+    7.0,
+    9.5,
+    2
+   ],
+   "best_glide_diff": [
+    -5.04,
+    3.78,
+    2
+   ],
+   "min_sink_passport": [
+    1.08,
+    1.08,
+    1
+   ],
+   "min_sink_diff": [
+    -7.29,
+    -7.29,
+    1
+   ]
+  },
+  "soviet": {
+   "n": 3,
+   "stall_model": [
+    23.48,
+    31.13,
+    3
+   ],
+   "trim_model": [
+    28.79,
+    33.88,
+    3
+   ],
+   "full_pull_model": [
+    54.12,
+    64.17,
+    3
+   ],
+   "min_sink_model": [
+    1.06,
+    1.35,
+    3
+   ],
+   "best_glide_model": [
+    6.24,
+    8.41,
+    3
+   ],
+   "best_glide_passport": [
+    6.0,
+    6.5,
+    2
+   ],
+   "best_glide_diff": [
+    4.0,
+    8.39,
+    2
+   ],
+   "stall_passport": [
+    31.01,
+    31.01,
+    1
+   ],
+   "stall_diff": [
+    0.38,
+    0.38,
+    1
+   ],
+   "full_pull_passport": [
+    72.0,
+    72.0,
+    1
+   ],
+   "full_pull_diff": [
+    -10.87,
+    -10.87,
+    1
+   ],
+   "min_sink_passport": [
+    1.0,
+    1.0,
+    1
+   ],
+   "min_sink_diff": [
+    6.0,
+    6.0,
+    1
+   ]
+  }
+ },
+ "big_diffs_ref": [
+  {
+   "wing": "aeros_combat_c",
+   "group": "topless",
+   "quantity": "stall",
+   "model": 28.46,
+   "config": 28.23,
+   "passport": 31.91,
+   "diff_pct": -10.8,
+   "config_diff_pct": -11.5,
+   "passport_src": "Aeros|Combat C||12.7: DHV vmin_vg0_kmh 32 при 121 кг; «V min VG 0%: 32 km/h»"
+  },
+  {
+   "wing": "aeros_combat_c",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 100.3,
+   "config": 100.8,
+   "passport": 89.74,
+   "diff_pct": 11.8,
+   "config_diff_pct": 12.3,
+   "passport_src": "Aeros|Combat C||12.7: DHV vmax_vg0_kmh 90 при 121 кг; «V max VG 0%: 90 km/h»"
+  },
+  {
+   "wing": "aeros_discus",
+   "group": "kingpost",
+   "quantity": "trim",
+   "model": 38.51,
+   "config": 38.6,
+   "passport": 33.39,
+   "diff_pct": 15.3,
+   "config_diff_pct": 15.6,
+   "passport_src": "Aeros|Discus||14: trim_speed_kmh 33 при 126 кг; «range of trim speed for the Discus with VG off is 33 - 35 km/h»"
+  },
+  {
+   "wing": "aeros_discus",
+   "group": "kingpost",
+   "quantity": "full_pull",
+   "model": 93.01,
+   "config": 93.6,
+   "passport": 84.18,
+   "diff_pct": 10.5,
+   "config_diff_pct": 11.2,
+   "passport_src": "Aeros|Discus||14: DHV vmax_vg0_kmh 80 при 116 кг; «Max. airspeed, km/h (mph) 80 (50) / V max (km/h)  80  >80»"
+  },
+  {
+   "wing": "aeros_fox",
+   "group": "trainer",
+   "quantity": "stall",
+   "model": 25.11,
+   "config": 24.69,
+   "passport": 30.4,
+   "diff_pct": -17.4,
+   "config_diff_pct": -18.8,
+   "passport_src": "Aeros|Fox||13 (размер 13): DHV vmin_vg0_kmh 27 при 88 кг; «egeschwindigkeit  gering  GERADEAUSFLUG   -   1   V min (km/h)  27  V max (km/h)  70  BÃ¼g»"
+  },
+  {
+   "wing": "aeros_fox",
+   "group": "trainer",
+   "quantity": "full_pull",
+   "model": 60.85,
+   "config": 61.7,
+   "passport": 78.82,
+   "diff_pct": -22.8,
+   "config_diff_pct": -21.7,
+   "passport_src": "Aeros|Fox||13 (размер 13): DHV vmax_vg0_kmh 70 при 88 кг; «gering  GERADEAUSFLUG   -   1   V min (km/h)  27  V max (km/h)  70  BÃ¼geldruck bei 60 km/»"
+  },
+  {
+   "wing": "air_rev",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 97.31,
+   "config": 97.8,
+   "passport": 80.82,
+   "diff_pct": 20.4,
+   "config_diff_pct": 21.0,
+   "passport_src": "Airborne|REV||14.5 (размер 14.5): DHV vmax_vg0_kmh 87 при 140 кг; «V max (km/h)  87  >90»"
+  },
+  {
+   "wing": "air_sting3",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 25.44,
+   "config": 25.18,
+   "passport": 29.47,
+   "diff_pct": -13.7,
+   "config_diff_pct": -14.6,
+   "passport_src": "Airborne|Sting 3||154: DHV vmin_vg0_kmh 29 при 101 кг; «V min (km/h) 29»"
+  },
+  {
+   "wing": "atlas",
+   "group": "soviet",
+   "quantity": "full_pull",
+   "model": 64.17,
+   "config": 65.0,
+   "passport": 72.0,
+   "diff_pct": -10.9,
+   "config_diff_pct": -9.7,
+   "passport_src": "«Крылья Родины» (Кареткин, Рябцев, Бабкин): срыв 29–30 при пилоте ≤ 70 кг, макс. 72, снижение 1 м/с"
+  },
+  {
+   "wing": "bautek_astir",
+   "group": "kingpost",
+   "quantity": "min_sink_speed",
+   "model": 39.0,
+   "config": 39.0,
+   "passport": 31.05,
+   "diff_pct": 25.6,
+   "config_diff_pct": 25.6,
+   "passport_src": "Bautek|Astir||: vms_kmh 30.5775 при 116 кг; «V min sink: ca 19 mph»"
+  },
+  {
+   "wing": "bautek_astir",
+   "group": "kingpost",
+   "quantity": "best_glide_speed",
+   "model": 47.21,
+   "config": 47.2,
+   "passport": 37.59,
+   "diff_pct": 25.6,
+   "config_diff_pct": 25.6,
+   "passport_src": "Bautek|Astir||: «V best glide: ca 23 mph» (mph)"
+  },
+  {
+   "wing": "bautek_fizz",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 28.03,
+   "config": 27.74,
+   "passport": 31.71,
+   "diff_pct": -11.6,
+   "config_diff_pct": -12.5,
+   "passport_src": "Bautek|Fizz||: DHV vmin_vg0_kmh 31 при 119 кг; «V min (km/h)  31  30»"
+  },
+  {
+   "wing": "bautek_fizz",
+   "group": "kingpost",
+   "quantity": "min_sink_speed",
+   "model": 40.53,
+   "config": 40.5,
+   "passport": 31.09,
+   "diff_pct": 30.3,
+   "config_diff_pct": 30.3,
+   "passport_src": "Bautek|Fizz||: vms_kmh 30.5775 при 120 кг; «ca 19 mph»"
+  },
+  {
+   "wing": "bautek_kite",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 28.32,
+   "config": 28.03,
+   "passport": 25.36,
+   "diff_pct": 11.7,
+   "config_diff_pct": 10.5,
+   "passport_src": "Bautek|Kite||: stall_speed_kmh 24.9448 при 120 кг; «Stall speed: ca. 15.5 mph, [25km/h]»"
+  },
+  {
+   "wing": "bautek_kite",
+   "group": "kingpost",
+   "quantity": "min_sink_speed",
+   "model": 40.96,
+   "config": 41.0,
+   "passport": 31.08,
+   "diff_pct": 31.8,
+   "config_diff_pct": 31.9,
+   "passport_src": "Bautek|Kite||: vms_kmh 30.5775 при 120 кг; «V min sink: ca. 19 mph, [30km/h]»"
+  },
+  {
+   "wing": "condor_crex3",
+   "group": "trainer",
+   "quantity": "stall",
+   "model": 24.28,
+   "config": 24.03,
+   "passport": 34.54,
+   "diff_pct": -29.7,
+   "config_diff_pct": -30.4,
+   "passport_src": "Delta Flugschule Condor|Crex|3|: DHV vmin_vg0_kmh 35 при 96 кг; «V min (km/h) 35»"
+  },
+  {
+   "wing": "condor_crex3",
+   "group": "trainer",
+   "quantity": "full_pull",
+   "model": 59.66,
+   "config": 60.1,
+   "passport": 78.96,
+   "diff_pct": -24.4,
+   "config_diff_pct": -23.9,
+   "passport_src": "Delta Flugschule Condor|Crex|3|: DHV vmax_vg0_kmh 80 при 96 кг; «HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 80 km/h / V max (km/h) 80»"
+  },
+  {
+   "wing": "condor_flex",
+   "group": "trainer",
+   "quantity": "stall",
+   "model": 22.31,
+   "config": 22.08,
+   "passport": 28.45,
+   "diff_pct": -21.6,
+   "config_diff_pct": -22.4,
+   "passport_src": "Delta Flugschule Condor|FLEX||: DHV vmin_vg0_kmh 29 при 91 кг; «V min VG 0%: 29 km/h»"
+  },
+  {
+   "wing": "condor_flex",
+   "group": "trainer",
+   "quantity": "full_pull",
+   "model": 54.8,
+   "config": 55.2,
+   "passport": 63.77,
+   "diff_pct": -14.1,
+   "config_diff_pct": -13.4,
+   "passport_src": "Delta Flugschule Condor|FLEX||: DHV vmax_vg0_kmh 65 при 91 кг; «V max VG 0%: 65 km/h»"
+  },
+  {
+   "wing": "dp_she1",
+   "group": "topless",
+   "quantity": "stall",
+   "model": 27.52,
+   "config": 27.29,
+   "passport": 37.82,
+   "diff_pct": -27.2,
+   "config_diff_pct": -27.8,
+   "passport_src": "DesignProducts|SHE 1||12.7: DHV vmin_vg0_kmh 38 при 114 кг; «V min VG 0%: 38 km/h»"
+  },
+  {
+   "wing": "fs_space",
+   "group": "trainer",
+   "quantity": "stall",
+   "model": 26.48,
+   "config": 26.2,
+   "passport": 31.57,
+   "diff_pct": -16.1,
+   "config_diff_pct": -17.0,
+   "passport_src": "Flugsport Skypoint|Space||14: DHV vmin_vg0_kmh 32 при 112 кг; «V min (km/h) 32»"
+  },
+  {
+   "wing": "icaro_alto",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 26.07,
+   "config": 25.8,
+   "passport": 33.71,
+   "diff_pct": -22.7,
+   "config_diff_pct": -23.5,
+   "passport_src": "Icaro|Alto||M: DHV vmin_vg0_kmh 32 при 100 кг; «V min VG 0%: 32 km/h»"
+  },
+  {
+   "wing": "icaro_laminar_z9",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 95.12,
+   "config": 95.6,
+   "passport": 75.04,
+   "diff_pct": 26.8,
+   "config_diff_pct": 27.4,
+   "passport_src": "Icaro|Laminar||14.1 (размер 14.1): DHV vmax_vg0_kmh 80 при 134 кг; «V max (km/h)  80  >90»"
+  },
+  {
+   "wing": "icaro_mastr",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 27.14,
+   "config": 26.92,
+   "passport": 32.92,
+   "diff_pct": -17.5,
+   "config_diff_pct": -18.2,
+   "passport_src": "Icaro|MastR||L: DHV vmin_vg0_kmh 32 при 120 кг; «V min (km/h) 32»"
+  },
+  {
+   "wing": "icaro_mastr",
+   "group": "kingpost",
+   "quantity": "full_pull",
+   "model": 95.72,
+   "config": 96.2,
+   "passport": 76.12,
+   "diff_pct": 25.7,
+   "config_diff_pct": 26.4,
+   "passport_src": "Icaro|MastR||L: DHV vmax_vg0_kmh 74 при 120 кг; «V max (km/h) 74»"
+  },
+  {
+   "wing": "icaro_piuma",
+   "group": "trainer",
+   "quantity": "stall",
+   "model": 24.16,
+   "config": 23.91,
+   "passport": 31.62,
+   "diff_pct": -23.6,
+   "config_diff_pct": -24.4,
+   "passport_src": "Icaro|Piuma||M: DHV vmin_vg0_kmh 31 при 99 кг; «V min VG 0%: 31 km/h»"
+  },
+  {
+   "wing": "icaro_piuma",
+   "group": "trainer",
+   "quantity": "full_pull",
+   "model": 59.37,
+   "config": 59.8,
+   "passport": 81.6,
+   "diff_pct": -27.2,
+   "config_diff_pct": -26.7,
+   "passport_src": "Icaro|Piuma||M: DHV vmax_vg0_kmh 80 при 99 кг; «V max VG 0%: 80 km/h»"
+  },
+  {
+   "wing": "moyes_litespeed_rx",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 97.67,
+   "config": 98.4,
+   "passport": 71.85,
+   "diff_pct": 35.9,
+   "config_diff_pct": 36.9,
+   "passport_src": "Moyes|Litespeed RX||4: DHV vmax_vg0_kmh 75 при 138 кг; «V max (km/h)  75  >90 / FLUG   VG 0%   VG 100%  3   V min (km/h)  31  30  V max (km/h)  75»"
+  },
+  {
+   "wing": "moyes_litespeed_s",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 96.68,
+   "config": 97.4,
+   "passport": 80.83,
+   "diff_pct": 19.6,
+   "config_diff_pct": 20.5,
+   "passport_src": "Moyes|Litespeed S||4: DHV vmax_vg0_kmh 80 при 120 кг; «V max VG 0%: 80 km/h»"
+  },
+  {
+   "wing": "moyes_malibu2",
+   "group": "trainer",
+   "quantity": "full_pull",
+   "model": 61.45,
+   "config": 61.9,
+   "passport": 69.35,
+   "diff_pct": -11.4,
+   "config_diff_pct": -10.7,
+   "passport_src": "Moyes|Malibu|2|166: DHV vmax_vg0_kmh 70 при 108 кг; «70 kph (43 mph) / chnittlich  GERADEAUSFLUG   1   V min (km/h)  28  V max (km/h)  70  BÃ¼g»"
+  },
+  {
+   "wing": "seed_spyder",
+   "group": "topless",
+   "quantity": "stall",
+   "model": 25.8,
+   "config": 25.65,
+   "passport": 32.74,
+   "diff_pct": -21.2,
+   "config_diff_pct": -21.7,
+   "passport_src": "Seedwings|Spyder||12.5: DHV vmin_vg0_kmh 33 при 97 кг; «V min (km/h) 33»"
+  },
+  {
+   "wing": "sport",
+   "group": "topless",
+   "quantity": "min_sink_speed",
+   "model": 33.0,
+   "config": 34.0,
+   "passport": 39.33,
+   "diff_pct": -16.1,
+   "config_diff_pct": -13.6,
+   "passport_src": "Moyes Litespeed RS 4 (moyes.com.au, по _doc конфига)"
+  },
+  {
+   "wing": "ww_sport3",
+   "group": "kingpost",
+   "quantity": "min_sink_speed",
+   "model": 39.83,
+   "config": 39.8,
+   "passport": 31.01,
+   "diff_pct": 28.4,
+   "config_diff_pct": 28.3,
+   "passport_src": "Wills Wing|Sport 3||155: vms_kmh 30.5775 при 119 кг; «19.0 / Sport 3 155\nVms (kph)\n30 / Sport 3 155\nVms (mph)\n19»"
+  },
+  {
+   "wing": "ww_t2c",
+   "group": "topless",
+   "quantity": "stall",
+   "model": 28.1,
+   "config": 27.93,
+   "passport": 31.99,
+   "diff_pct": -12.2,
+   "config_diff_pct": -12.7,
+   "passport_src": "Wills Wing|T2C||144: DHV vmin_vg0_kmh 32 при 122 кг; «V min (km/h)  32  31»"
+  },
+  {
+   "wing": "ww_t2c",
+   "group": "topless",
+   "quantity": "full_pull",
+   "model": 97.57,
+   "config": 98.3,
+   "passport": 84.97,
+   "diff_pct": 14.8,
+   "config_diff_pct": 15.7,
+   "passport_src": "Wills Wing|T2C||144: DHV vmax_vg0_kmh 85 при 122 кг; «V max (km/h)  85  >90»"
+  },
+  {
+   "wing": "ww_talon",
+   "group": "topless",
+   "quantity": "min_sink_speed",
+   "model": 33.19,
+   "config": 34.2,
+   "passport": 37.68,
+   "diff_pct": -11.9,
+   "config_diff_pct": -9.2,
+   "passport_src": "Wills Wing polar data Talon: V1 (fpm@mph): 176@24 при 1,3·70+крыло = 125 кг"
+  },
+  {
+   "wing": "ww_u2",
+   "group": "kingpost",
+   "quantity": "stall",
+   "model": 27.12,
+   "config": 26.84,
+   "passport": 31.15,
+   "diff_pct": -13.0,
+   "config_diff_pct": -13.8,
+   "passport_src": "Wills Wing|U2||145: DHV vmin_vg0_kmh 31 при 110 кг; «V min (km/h)  31  30»"
+  },
+  {
+   "wing": "ww_u2",
+   "group": "kingpost",
+   "quantity": "min_sink_speed",
+   "model": 39.22,
+   "config": 39.2,
+   "passport": 32.41,
+   "diff_pct": 21.0,
+   "config_diff_pct": 20.9,
+   "passport_src": "Wills Wing|U2||145: vms_kmh 32.0934 при 109 кг; «20.0 / 32.0 / Vms (kph) 32 / Vms (mph) 20»"
+  }
+ ],
+ "penetration_6ms": {
+  "wind_ms": 6.0,
+  "gs_trim_0m_range": [
+   2.27,
+   4.17
+  ],
+  "gs_pull_0m_range": [
+   9.27,
+   21.11
+  ],
+  "gs_trim_1500m_range": [
+   2.87,
+   4.92
+  ],
+  "gs_pull_1500m_range": [
+   10.33,
+   23.04
+  ],
+  "worst_trim_0m": {
+   "wing": "slavutich_ut",
+   "group": "soviet",
+   "mass_case": "pilot85",
+   "total_mass_kg": 110.0,
+   "trim_kmh": 30.2,
+   "full_pull_kmh": 56.8,
+   "gs_trim_0m": 2.27,
+   "gs_pull_0m": 9.27,
+   "gs_trim_1000m": 2.66,
+   "gs_pull_1000m": 9.94,
+   "trim_1000m_kmh": 31.62,
+   "trim_1000m_expected_kmh": 31.68,
+   "gs_trim_1500m": 2.87,
+   "gs_pull_1500m": 10.33,
+   "trim_1500m_kmh": 32.39,
+   "trim_1500m_expected_kmh": 32.45,
+   "gs_trim_2000m": 3.08,
+   "gs_pull_2000m": 10.72,
+   "trim_2000m_kmh": 33.18,
+   "trim_2000m_expected_kmh": 33.24
+  },
+  "max_density_trim_mismatch_pct": 0.19047619047619646
+ },
+ "trim_pull_vs_config_max_abs_pct": [
+  0.73,
+  1.59
+ ],
+ "n_wings": 48,
+ "n_rows": 1248
+}

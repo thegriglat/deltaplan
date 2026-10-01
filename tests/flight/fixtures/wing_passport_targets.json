@@ -1,0 +1,735 @@
+{
+ "_doc": "Паспортные цели крыльев (WPC-4) при эталонной массе, ρ = 1,225: value — паспорт, приведённый к массе mass_kg как в WPC-1 (tools/research/wing_physics_check/README.md); tol_pct — допуск модели; exceptions — цели вне допуска с причиной. Генерирует tools/research/data/wing_passports/fit_passports.py",
+ "tolerance_pct": {
+  "stall": 7.0,
+  "trim": 7.0,
+  "full_pull": 7.0,
+  "min_sink": 10.0,
+  "min_sink_speed": 10.0,
+  "best_glide": 10.0,
+  "best_glide_speed": 10.0
+ },
+ "wings": {
+  "aeros_combat_c": {
+   "mass_kg": 120.3,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 31.907,
+     "tol_pct": 7.0,
+     "src": "Aeros|Combat C||12.7: DHV vmin_vg0_kmh 32 при 121 кг; «V min VG 0%: 32 km/h»"
+    },
+    "full_pull": {
+     "value": 89.739,
+     "tol_pct": 7.0,
+     "src": "Aeros|Combat C||12.7: DHV vmax_vg0_kmh 90 при 121 кг; «V max VG 0%: 90 km/h»"
+    }
+   }
+  },
+  "aeros_combat_l": {
+   "mass_kg": 124.3,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 30.294,
+     "tol_pct": 7.0,
+     "src": "Aeros|Combat L||13: DHV vmin_vg0_kmh 30.5 при 126 кг; «V min (km/h) 30 / V min (km/h) 31»"
+    },
+    "full_pull": {
+     "value": 89.391,
+     "tol_pct": 7.0,
+     "src": "Aeros|Combat L||13: DHV vmax_vg0_kmh 90 при 126 кг; «HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h / V max (km/h) >90 / V max (km/h) 85»"
+    }
+   }
+  },
+  "aeros_discus": {
+   "mass_kg": 129.0,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 31.568,
+     "tol_pct": 7.0,
+     "src": "Aeros|Discus||14: DHV vmin_vg0_kmh 30 при 116 кг; «V min (km/h)  30  29»"
+    },
+    "trim": {
+     "value": 34.402,
+     "tol_pct": 7.0,
+     "src": "Aeros|Discus||14: trim_speed_kmh 33 при 126 кг; «range of trim speed for the Discus with VG off is 33 - 35 km/h»; середина диапазона 33–35 (решение пользователя 01.10)"
+    },
+    "full_pull": {
+     "value": 84.183,
+     "tol_pct": 7.0,
+     "src": "Aeros|Discus||14: DHV vmax_vg0_kmh 80 при 116 кг; «Max. airspeed, km/h (mph) 80 (50) / V max (km/h)  80  >80»"
+    }
+   }
+  },
+  "aeros_fox": {
+   "mass_kg": 112.2,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 30.401,
+     "tol_pct": 7.0,
+     "src": "Aeros|Fox||13 (размер 13): DHV vmin_vg0_kmh 27 при 88 кг; «egeschwindigkeit  gering  GERADEAUSFLUG   -   1   V min (km/h)  27  V max (km/h)  70  BÃ¼g»"
+    },
+    "full_pull": {
+     "value": 78.818,
+     "tol_pct": 7.0,
+     "src": "Aeros|Fox||13 (размер 13): DHV vmax_vg0_kmh 70 при 88 кг; «gering  GERADEAUSFLUG   -   1   V min (km/h)  27  V max (km/h)  70  BÃ¼geldruck bei 60 km/»"
+    }
+   }
+  },
+  "air_rev": {
+   "mass_kg": 120.4,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 28.8,
+     "tol_pct": 7.0,
+     "src": "Airborne|REV||14.5 (размер 14.5): DHV vmin_vg0_kmh 31 при 140 кг; «V min (km/h)  31  30»"
+    },
+    "full_pull": {
+     "value": 80.825,
+     "tol_pct": 7.0,
+     "src": "Airborne|REV||14.5 (размер 14.5): DHV vmax_vg0_kmh 87 при 140 кг; «V max (km/h)  87  >90»"
+    }
+   }
+  },
+  "air_sting3": {
+   "mass_kg": 104.3,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 29.47,
+     "tol_pct": 7.0,
+     "src": "Airborne|Sting 3||154: DHV vmin_vg0_kmh 29 при 101 кг; «V min (km/h) 29»"
+    },
+    "full_pull": {
+     "value": 86.377,
+     "tol_pct": 7.0,
+     "src": "Airborne|Sting 3||154: DHV vmax_vg0_kmh 85 при 101 кг; «V max (km/h) 85»"
+    }
+   }
+  },
+  "apogee": {
+   "mass_kg": 100.0,
+   "group": "soviet",
+   "targets": {
+    "best_glide": {
+     "value": 6.5,
+     "tol_pct": 10.0,
+     "src": "Апогей (со слов пилота 28.09.2026): качество 6–7"
+    }
+   }
+  },
+  "atlas": {
+   "mass_kg": 105.0,
+   "group": "soviet",
+   "targets": {
+    "stall": {
+     "value": 31.014,
+     "tol_pct": 7.0,
+     "src": "«Крылья Родины» (Кареткин, Рябцев, Бабкин): срыв 29–30 при пилоте ≤ 70 кг, макс. 72, снижение 1 м/с"
+    },
+    "full_pull": {
+     "value": 72.0,
+     "tol_pct": 7.0,
+     "src": "«Крылья Родины» (Кареткин, Рябцев, Бабкин): срыв 29–30 при пилоте ≤ 70 кг, макс. 72, снижение 1 м/с"
+    },
+    "min_sink": {
+     "value": 1.0,
+     "tol_pct": 10.0,
+     "src": "«Крылья Родины» (Кареткин, Рябцев, Бабкин): срыв 29–30 при пилоте ≤ 70 кг, макс. 72, снижение 1 м/с"
+    }
+   }
+  },
+  "bautek_astir": {
+   "mass_kg": 120.0,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 25.333,
+     "tol_pct": 7.0,
+     "src": "Bautek|Astir||: stall_speed_kmh 24.9448 при 116 кг; «Stall speed: ca. 15.5 mph»"
+    },
+    "min_sink_speed": {
+     "value": 31.054,
+     "tol_pct": 10.0,
+     "src": "Bautek|Astir||: vms_kmh 30.5775 при 116 кг; «V min sink: ca 19 mph»"
+    },
+    "best_glide_speed": {
+     "value": 37.592,
+     "tol_pct": 10.0,
+     "src": "Bautek|Astir||: «V best glide: ca 23 mph» (mph)"
+    }
+   }
+  },
+  "bautek_fizz": {
+   "mass_kg": 124.5,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 31.708,
+     "tol_pct": 7.0,
+     "src": "Bautek|Fizz||: DHV vmin_vg0_kmh 31 при 119 кг; «V min (km/h)  31  30»"
+    },
+    "full_pull": {
+     "value": 92.056,
+     "tol_pct": 7.0,
+     "src": "Bautek|Fizz||: DHV vmax_vg0_kmh 90 при 119 кг; «V max (km/h)  90  >90»"
+    },
+    "min_sink_speed": {
+     "value": 31.093,
+     "tol_pct": 10.0,
+     "src": "Bautek|Fizz||: vms_kmh 30.5775 при 120 кг; «ca 19 mph»"
+    }
+   }
+  },
+  "bautek_kite": {
+   "mass_kg": 124.4,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 25.356,
+     "tol_pct": 7.0,
+     "src": "Bautek|Kite||: stall_speed_kmh 24.9448 при 120 кг; «Stall speed: ca. 15.5 mph, [25km/h]»"
+    },
+    "min_sink_speed": {
+     "value": 31.081,
+     "tol_pct": 10.0,
+     "src": "Bautek|Kite||: vms_kmh 30.5775 при 120 кг; «V min sink: ca. 19 mph, [30km/h]»"
+    }
+   }
+  },
+  "combat": {
+   "mass_kg": 123.0,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 29.759,
+     "tol_pct": 7.0,
+     "src": "Aeros Combat GT 13.2 (aeros.com.ua/combat_gt): Vmin 29–31 при рекоменд. массе"
+    }
+   }
+  },
+  "condor_crex3": {
+   "mass_kg": 94.0,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 34.544,
+     "tol_pct": 7.0,
+     "src": "Delta Flugschule Condor|Crex|3|: DHV vmin_vg0_kmh 35 при 96 кг; «V min (km/h) 35»"
+    },
+    "full_pull": {
+     "value": 78.957,
+     "tol_pct": 7.0,
+     "src": "Delta Flugschule Condor|Crex|3|: DHV vmax_vg0_kmh 80 при 96 кг; «HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 80 km/h / V max (km/h) 80»"
+    }
+   }
+  },
+  "condor_flex": {
+   "mass_kg": 87.6,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 28.453,
+     "tol_pct": 7.0,
+     "src": "Delta Flugschule Condor|FLEX||: DHV vmin_vg0_kmh 29 при 91 кг; «V min VG 0%: 29 km/h»"
+    },
+    "full_pull": {
+     "value": 63.774,
+     "tol_pct": 7.0,
+     "src": "Delta Flugschule Condor|FLEX||: DHV vmax_vg0_kmh 65 при 91 кг; «V max VG 0%: 65 km/h»"
+    }
+   }
+  },
+  "dp_she1": {
+   "mass_kg": 112.4,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 37.815,
+     "tol_pct": 7.0,
+     "src": "DesignProducts|SHE 1||12.7: DHV vmin_vg0_kmh 38 при 114 кг; «V min VG 0%: 38 km/h»"
+    }
+   }
+  },
+  "fs_funky": {
+   "mass_kg": 108.0,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 27.744,
+     "tol_pct": 7.0,
+     "src": "Flugsport Skypoint|Funky||15: DHV vmin_vg0_kmh 28 при 110 кг; «V min (km/h) 28»"
+    },
+    "full_pull": {
+     "value": 65.893,
+     "tol_pct": 7.0,
+     "src": "Flugsport Skypoint|Funky||15: DHV vmax_vg0_kmh 66.5 при 110 кг; «HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 70 km/h / V max (km/h) 63»"
+    }
+   }
+  },
+  "fs_space": {
+   "mass_kg": 109.5,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 31.57,
+     "tol_pct": 7.0,
+     "src": "Flugsport Skypoint|Space||14: DHV vmin_vg0_kmh 32 при 112 кг; «V min (km/h) 32»"
+    },
+    "full_pull": {
+     "value": 68.074,
+     "tol_pct": 7.0,
+     "src": "Flugsport Skypoint|Space||14: DHV vmax_vg0_kmh 69 при 112 кг; «V max (km/h) 69»"
+    }
+   }
+  },
+  "icaro_alto": {
+   "mass_kg": 111.5,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 33.706,
+     "tol_pct": 7.0,
+     "src": "Icaro|Alto||M: DHV vmin_vg0_kmh 32 при 100 кг; «V min VG 0%: 32 km/h»"
+    },
+    "full_pull": {
+     "value": 86.669,
+     "tol_pct": 7.0,
+     "src": "Icaro|Alto||S (размер S): DHV vmax_vg0_kmh 80 при 95 кг; «V max VG 0%: 80 km/h»"
+    }
+   }
+  },
+  "icaro_laminar_z9": {
+   "mass_kg": 117.9,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 29.078,
+     "tol_pct": 7.0,
+     "src": "Icaro|Laminar||14.1 (размер 14.1): DHV vmin_vg0_kmh 31 при 134 кг; «V min (km/h)  31  30»"
+    },
+    "full_pull": {
+     "value": 75.04,
+     "tol_pct": 7.0,
+     "src": "Icaro|Laminar||14.1 (размер 14.1): DHV vmax_vg0_kmh 80 при 134 кг; «V max (km/h)  80  >90»"
+    }
+   }
+  },
+  "icaro_mastr": {
+   "mass_kg": 127.5,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 32.916,
+     "tol_pct": 7.0,
+     "src": "Icaro|MastR||L: DHV vmin_vg0_kmh 32 при 120 кг; «V min (km/h) 32»"
+    },
+    "full_pull": {
+     "value": 76.119,
+     "tol_pct": 7.0,
+     "src": "Icaro|MastR||L: DHV vmax_vg0_kmh 74 при 120 кг; «V max (km/h) 74»"
+    }
+   }
+  },
+  "icaro_piuma": {
+   "mass_kg": 103.0,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 31.62,
+     "tol_pct": 7.0,
+     "src": "Icaro|Piuma||M: DHV vmin_vg0_kmh 31 при 99 кг; «V min VG 0%: 31 km/h»"
+    },
+    "full_pull": {
+     "value": 81.6,
+     "tol_pct": 7.0,
+     "src": "Icaro|Piuma||M: DHV vmax_vg0_kmh 80 при 99 кг; «V max VG 0%: 80 km/h»"
+    }
+   }
+  },
+  "moyes_gecko": {
+   "mass_kg": 102.5,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 26.264,
+     "tol_pct": 7.0,
+     "src": "Moyes|Gecko||155: DHV vmin_vg0_kmh 28 при 116 кг; «schnittlich  GERADEAUSFLUG   VG 0%   VG 100%  3   V min (km/h)  28  28  V max (km/h)  80  »"
+    },
+    "full_pull": {
+     "value": 75.039,
+     "tol_pct": 7.0,
+     "src": "Moyes|Gecko||155: DHV vmax_vg0_kmh 80 при 116 кг; «FLUG   VG 0%   VG 100%  3   V min (km/h)  28  28  V max (km/h)  80  105  BÃ¼geldruck bei 6»"
+    }
+   }
+  },
+  "moyes_litespeed_rx": {
+   "mass_kg": 126.2,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 30.178,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed RX||4: DHV vmin_vg0_kmh 31.5 при 138 кг; «V min (km/h)  32  30 / schnittlich  GERADEAUSFLUG   VG 0%   VG 100%  3   V min (km/h)  31 »"
+    },
+    "trim": {
+     "value": 36.566,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed RX||4: trim_speed_kmh 37.0075 при 129 кг; «Trim Speed 37 kph / Trim Speed 23 mph»"
+    },
+    "full_pull": {
+     "value": 71.852,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed RX||4: DHV vmax_vg0_kmh 75 при 138 кг; «V max (km/h)  75  >90 / FLUG   VG 0%   VG 100%  3   V min (km/h)  31  30  V max (km/h)  75»"
+    },
+    "best_glide": {
+     "value": 15,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litespeed RX||4: best_glide 15; «Best Glide Angle 15/1»"
+    },
+    "best_glide_speed": {
+     "value": 47.566,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litespeed RX||4: best_glide_speed_kmh 48.1402 при 129 кг; «Best Glide Speed 48 kph / Best Glide Speed 30 mph»"
+    }
+   }
+  },
+  "moyes_litespeed_s": {
+   "mass_kg": 122.0,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 30.312,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed S||4: DHV vmin_vg0_kmh 30 при 120 кг; «V min VG 0%: 30 km/h»"
+    },
+    "trim": {
+     "value": 33.559,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed S||4: trim_speed_kmh 33.8981 при 124 кг; «Trim Speed 34kph / Trim Speed 21mph»"
+    },
+    "full_pull": {
+     "value": 80.832,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litespeed S||4: DHV vmax_vg0_kmh 80 при 120 кг; «V max VG 0%: 80 km/h»"
+    },
+    "best_glide": {
+     "value": 15,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litespeed S||4: best_glide 15; «Best Glide Angle 15:1»"
+    },
+    "best_glide_speed": {
+     "value": 44.581,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litespeed S||4: best_glide_speed_kmh 45.0308 при 124 кг; «Best Glide Speed 45kph / Best Glide Speed 28mph»"
+    }
+   }
+  },
+  "moyes_litesport": {
+   "mass_kg": 122.8,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 26.269,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litesport||4: stall_speed_kmh 26 при 120 кг; «Stall Speed *** 26 kph»"
+    },
+    "trim": {
+     "value": 34.351,
+     "tol_pct": 7.0,
+     "src": "Moyes|Litesport||4: trim_speed_kmh 34 при 120 кг; «Trim Speed 34 kph»"
+    },
+    "min_sink": {
+     "value": 1.01,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litesport||4: min_sink_ms 1 при 120 кг; «Minimum Sink Point: -1.0m/s @ 38km/h»"
+    },
+    "min_sink_speed": {
+     "value": 38.393,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litesport||4: «Minimum Sink Point: -1.0m/s @ 38km/h»"
+    },
+    "best_glide": {
+     "value": 14,
+     "tol_pct": 10.0,
+     "src": "Moyes|Litesport||4: best_glide 14; «Best Glide Angle 14:1»"
+    }
+   }
+  },
+  "moyes_malibu2": {
+   "mass_kg": 106.0,
+   "group": "trainer",
+   "targets": {
+    "stall": {
+     "value": 27.74,
+     "tol_pct": 7.0,
+     "src": "Moyes|Malibu|2|166: DHV vmin_vg0_kmh 28 при 108 кг; «windigkeit  durchschnittlich  GERADEAUSFLUG   1   V min (km/h)  28  V max (km/h)  70  BÃ¼g»"
+    },
+    "trim": {
+     "value": 31.557,
+     "tol_pct": 7.0,
+     "src": "Moyes|Malibu|2|166: trim_speed_kmh 32 при 109 кг; «32 kph (20 mph)»"
+    },
+    "full_pull": {
+     "value": 69.349,
+     "tol_pct": 7.0,
+     "src": "Moyes|Malibu|2|166: DHV vmax_vg0_kmh 70 при 108 кг; «70 kph (43 mph) / chnittlich  GERADEAUSFLUG   1   V min (km/h)  28  V max (km/h)  70  BÃ¼g»"
+    },
+    "best_glide": {
+     "value": 9.5,
+     "tol_pct": 10.0,
+     "src": "Moyes|Malibu|2|166: best_glide 9.5; «9.5:1»"
+    }
+   }
+  },
+  "seed_skyrunner_xr": {
+   "mass_kg": 127.8,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 31.345,
+     "tol_pct": 7.0,
+     "src": "Seedwings|Skyrunner XR||: DHV vmin_vg0_kmh 31 при 125 кг; «V min (km/h)  31  31»"
+    },
+    "full_pull": {
+     "value": 91.002,
+     "tol_pct": 7.0,
+     "src": "Seedwings|Skyrunner XR||: DHV vmax_vg0_kmh 90 при 125 кг; «V max (km/h)  90  >90»"
+    }
+   }
+  },
+  "seed_spyder": {
+   "mass_kg": 95.5,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 32.744,
+     "tol_pct": 7.0,
+     "src": "Seedwings|Spyder||12.5: DHV vmin_vg0_kmh 33 при 97 кг; «V min (km/h) 33»"
+    },
+    "full_pull": {
+     "value": 81.86,
+     "tol_pct": 7.0,
+     "src": "Seedwings|Spyder||12.5: DHV vmax_vg0_kmh 82.5 при 97 кг; «HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit\n 90 km/h / V max (km/h) 75»"
+    }
+   }
+  },
+  "slavutich_ut": {
+   "mass_kg": 100.0,
+   "group": "soviet",
+   "targets": {
+    "best_glide": {
+     "value": 6.0,
+     "tol_pct": 10.0,
+     "src": "Славутич-УТ (delta-nsk.ucoz.ru, ru.wikipedia): качество 6"
+    }
+   }
+  },
+  "sport": {
+   "mass_kg": 119.4,
+   "group": "topless",
+   "targets": {
+    "trim": {
+     "value": 35.397,
+     "tol_pct": 7.0,
+     "src": "Moyes Litespeed RS 4 (moyes.com.au, по _doc конфига)"
+    },
+    "min_sink": {
+     "value": 0.885,
+     "tol_pct": 10.0,
+     "src": "Moyes Litespeed RS 4 (moyes.com.au, по _doc конфига)"
+    },
+    "min_sink_speed": {
+     "value": 39.33,
+     "tol_pct": 10.0,
+     "src": "Moyes Litespeed RS 4 (moyes.com.au, по _doc конфига)"
+    },
+    "best_glide": {
+     "value": 15.0,
+     "tol_pct": 10.0,
+     "src": "Moyes Litespeed RS 4 (moyes.com.au, по _doc конфига)"
+    }
+   }
+  },
+  "target": {
+   "mass_kg": 106.0,
+   "group": "trainer",
+   "targets": {
+    "best_glide": {
+     "value": 7.0,
+     "tol_pct": 10.0,
+     "src": "Aeros Target 16 (en.wikipedia Aeros_Target, delta-nsk.ucoz.ru): качество 7"
+    }
+   }
+  },
+  "training": {
+   "mass_kg": 102.2,
+   "group": "trainer",
+   "targets": {
+    "min_sink": {
+     "value": 1.079,
+     "tol_pct": 10.0,
+     "src": "Wills Wing Falcon (willswing.com polar data; Falcon 4 170)"
+    },
+    "min_sink_speed": {
+     "value": 30.205,
+     "tol_pct": 10.0,
+     "src": "Wills Wing Falcon (willswing.com polar data; Falcon 4 170)"
+    }
+   }
+  },
+  "ww_eagle": {
+   "mass_kg": 120.5,
+   "group": "kingpost",
+   "targets": {
+    "min_sink": {
+     "value": 1.066,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Eagle: V1 (fpm@mph): 205@22 при 1,3·68+крыло = 115 кг"
+    },
+    "min_sink_speed": {
+     "value": 36.249,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Eagle: V1 (fpm@mph): 205@22 при 1,3·68+крыло = 115 кг"
+    }
+   }
+  },
+  "ww_fusion": {
+   "mass_kg": 125.5,
+   "group": "topless",
+   "targets": {
+    "min_sink": {
+     "value": 0.903,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Fusion: V1 (fpm@mph): 176@23 при 1,3·68+крыло = 123 кг"
+    },
+    "min_sink_speed": {
+     "value": 37.396,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Fusion: V1 (fpm@mph): 176@23 при 1,3·68+крыло = 123 кг"
+    }
+   }
+  },
+  "ww_sport3": {
+   "mass_kg": 122.6,
+   "group": "kingpost",
+   "targets": {
+    "min_sink_speed": {
+     "value": 31.009,
+     "tol_pct": 10.0,
+     "src": "Wills Wing|Sport 3||155: vms_kmh 30.5775 при 119 кг; «19.0 / Sport 3 155\nVms (kph)\n30 / Sport 3 155\nVms (mph)\n19»"
+    }
+   }
+  },
+  "ww_super_sport": {
+   "mass_kg": 123.1,
+   "group": "kingpost",
+   "targets": {
+    "min_sink": {
+     "value": 1.013,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Super Sport: V1 (fpm@mph): 196@22 при 1,3·70+крыло = 119 кг"
+    },
+    "min_sink_speed": {
+     "value": 36.025,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Super Sport: V1 (fpm@mph): 196@22 при 1,3·70+крыло = 119 кг"
+    }
+   }
+  },
+  "ww_t2c": {
+   "mass_kg": 121.4,
+   "group": "topless",
+   "targets": {
+    "stall": {
+     "value": 31.987,
+     "tol_pct": 7.0,
+     "src": "Wills Wing|T2C||144: DHV vmin_vg0_kmh 32 при 122 кг; «V min (km/h)  32  31»"
+    },
+    "full_pull": {
+     "value": 84.965,
+     "tol_pct": 7.0,
+     "src": "Wills Wing|T2C||144: DHV vmax_vg0_kmh 85 при 122 кг; «V max (km/h)  85  >90»"
+    },
+    "min_sink_speed": {
+     "value": 33.578,
+     "tol_pct": 10.0,
+     "src": "Wills Wing|T2C||144: vms_kmh 33.7962 при 123 кг; «Vms (mph) 21»"
+    }
+   }
+  },
+  "ww_t3": {
+   "mass_kg": 120.2,
+   "group": "topless",
+   "targets": {
+    "min_sink_speed": {
+     "value": 33.575,
+     "tol_pct": 10.0,
+     "src": "Wills Wing|T3||144: vms_kmh 33.7962 при 122 кг; «21.0 / Vms (mph) 21»"
+    }
+   }
+  },
+  "ww_talon": {
+   "mass_kg": 119.4,
+   "group": "topless",
+   "targets": {
+    "min_sink": {
+     "value": 0.872,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Talon: V1 (fpm@mph): 176@24 при 1,3·70+крыло = 125 кг"
+    },
+    "min_sink_speed": {
+     "value": 37.685,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Talon: V1 (fpm@mph): 176@24 при 1,3·70+крыло = 125 кг"
+    }
+   }
+  },
+  "ww_u2": {
+   "mass_kg": 111.6,
+   "group": "kingpost",
+   "targets": {
+    "stall": {
+     "value": 31.154,
+     "tol_pct": 7.0,
+     "src": "Wills Wing|U2||145: DHV vmin_vg0_kmh 31 при 110 кг; «V min (km/h)  31  30»"
+    },
+    "full_pull": {
+     "value": 85.422,
+     "tol_pct": 7.0,
+     "src": "Wills Wing|U2||145: DHV vmax_vg0_kmh 85 при 110 кг; «V max (km/h)  85  >85»"
+    },
+    "min_sink": {
+     "value": 0.899,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data U2: V1 (fpm@mph): 176@23 при 1,3·64+крыло = 110 кг"
+    },
+    "min_sink_speed": {
+     "value": 32.411,
+     "tol_pct": 10.0,
+     "src": "Wills Wing|U2||145: vms_kmh 32.0934 при 109 кг; «20.0 / 32.0 / Vms (kph) 32 / Vms (mph) 20»"
+    }
+   }
+  },
+  "ww_ultra_sport": {
+   "mass_kg": 123.5,
+   "group": "kingpost",
+   "targets": {
+    "min_sink": {
+     "value": 1.019,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Ultra Sport: V1 (fpm@mph): 196@22 при 1,3·68+крыло = 118 кг"
+    },
+    "min_sink_speed": {
+     "value": 36.236,
+     "tol_pct": 10.0,
+     "src": "Wills Wing polar data Ultra Sport: V1 (fpm@mph): 196@22 при 1,3·68+крыло = 118 кг"
+    }
+   }
+  }
+ }
+}

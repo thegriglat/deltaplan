@@ -53,7 +53,13 @@ func test_simulated_glide_matches_polar() -> void:
 	for w in wings():
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var m := Sim.make(w)
-		for p in [0.25, 0.0, -0.2, -0.45, -0.8]:
+		# «чуть от себя» — не дальше середины между тримом и сваливанием: у крыльев с тримом у самого
+		# сваливания (паспорт Aeros Discus: трим 1,06·Vmin) четверть хода от себя — уже срыв, а тест — про
+		# присоединённый поток
+		var trim := float(wing.trim_speed_kmh)
+		var push := float(wing.full_push_speed_kmh)
+		var mid := 0.5 * (trim + float(wing.polar.points_kmh_ms[0][0]))
+		for p in [minf(0.25, (trim - mid) / (trim - push)), 0.0, -0.2, -0.45, -0.8]:
 			var r: Vector2 = Sim.settle(m, p)
 			var vk := Units.to_kmh(r.x)
 			var expect := polar_sink(wing, vk)
@@ -107,16 +113,18 @@ func test_reference_points() -> void:
 
 
 func test_fr1_sport_anchors() -> void:
-	# FR-1: сваливание ~27, мин. снижение ~0,9 @32 (принято 0,82 @33–36, см. questions.md),
-	# качество ~15 @42, ~3 м/с @80
+	# FR-1 по паспорту прототипа (WPC-4: паспорт — эталон; Moyes Litespeed RS 4: трим 36, мин. снижение
+	# 0,9 @ 40 км/ч, качество 15 при середине hook-in + крыло 123,5 кг → × √(119,4/123,5) на эталонную массу):
+	# мин. снижение ~0,89 @ ~39, качество ~15; сваливания в паспорте нет — подобие поляры (≈29,5);
+	# скорость качества и снижение на 80 км/ч — следствие той же поляры (было 43 и ~3 м/с до WPC-4)
 	var m := Sim.make("sport")
 	var s := sweep(m)
-	approx(Units.to_kmh(m.stall_speed()), 27.0, 1.0, "сваливание")
-	check(s.min_sink >= 0.75 and s.min_sink <= 0.95, "мин. снижение ~0,9: %.2f" % s.min_sink)
-	approx(s.min_sink_v, 33.0, 4.0, "скорость мин. снижения")
+	approx(Units.to_kmh(m.stall_speed()), 29.5, 1.0, "сваливание")
+	approx(s.min_sink, 0.885, 0.06, "мин. снижение ~0,9")
+	approx(s.min_sink_v, 39.3, 4.0, "скорость мин. снижения")
 	approx(s.best_ld, 15.0, 0.5, "макс. качество")
-	approx(s.best_ld_v, 43.0, 4.0, "скорость макс. качества")
-	approx(m.steady_glide(Units.kmh(80.0)).y, 3.0, 0.15, "снижение на 80 км/ч")
+	approx(s.best_ld_v, 49.0, 4.0, "скорость макс. качества")
+	approx(m.steady_glide(Units.kmh(80.0)).y, 2.5, 0.15, "снижение на 80 км/ч")
 
 
 func test_wing_classes_glide() -> void:
@@ -134,5 +142,6 @@ func test_density_altitude() -> void:
 	var m := Sim.make("sport", 0.0, {"air_density": {"altitude_dependent": true}})
 	m.reset_in_air(Vector3(0, 2000, 0), 0.0)
 	var ratio := sqrt(m.air_density(0.0) / m.air_density(2000.0))
-	approx(m.trim_speed() / Units.kmh(36.0), ratio, 0.01, "трим на 2000 м")
+	var trim := Units.kmh(float(Config.value("wings/sport", "trim_speed_kmh")))
+	approx(m.trim_speed() / trim, ratio, 0.01, "трим на 2000 м")
 	check(ratio > 1.08 and ratio < 1.12, "плотность на 2000 м ≈ 0,82 от уровня моря")
