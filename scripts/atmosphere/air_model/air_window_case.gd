@@ -149,6 +149,7 @@ func without_heat() -> AirCase:
 	c.z_i = z_i
 	c.u10 = u10
 	c.wdir = wdir
+	c._hs = _hs
 	c.label = label + " без нагрева"
 	_mech_case = c
 	return c

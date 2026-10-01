@@ -269,13 +269,13 @@ func _bench(reps: int) -> void:
 					SOLAR_DIR, NAN, "clear", true, ctx
 				)
 			add.call("ВХОД итого", Time.get_ticks_usec() - t0)
+			# оба prepare, как в игре: область — AirRuntime.PreparedCase.from_case, окно — prepare_pair
 			t0 = Time.get_ticks_usec()
-			c.prepare()
-			add.call("prepare нагрев", Time.get_ticks_usec() - t0)
-			var m := c.without_heat()
-			t0 = Time.get_ticks_usec()
-			m.prepare()
-			add.call("prepare без", Time.get_ticks_usec() - t0)
+			if cs.kind == "d":
+				c = AirRuntime.PreparedCase.from_case(c)
+			else:
+				(c as AirWindowCase).prepare_pair()
+			add.call("prepare пара", Time.get_ticks_usec() - t0)
 			# части prepare на тех же входах
 			var sig := float(c.p.k_smooth_m) / c.dx
 			t0 = Time.get_ticks_usec()
@@ -300,7 +300,7 @@ func _bench(reps: int) -> void:
 			add.call("  _closure (гаусс H)", Time.get_ticks_usec() - t0)
 			add.call(
 				"ПОДГОТОВКА итого",
-				int((t["ВХОД итого"][r] + t["prepare нагрев"][r] + t["prepare без"][r]) * 1000.0)
+				int((t["ВХОД итого"][r] + t["prepare пара"][r]) * 1000.0)
 			)
 		var line := "%s (reps %d):" % [cs.name, reps]
 		for k: String in t:
@@ -381,7 +381,7 @@ func _solve(dir: String, cmp: bool) -> int:
 					e = maxf(e, absf(a[q] - b[q]))
 				bitwise = bitwise and a == b
 				var tol := 1e-4 if f.begins_with("th") else 1e-3
-				line += ", max|Δ%s| %.3e" % [f, e]
+				line += ", max|Δ%s| %s" % [f, TestAirPicard.sci(e)]
 				if e > tol:
 					fails += 1
 			if not same_it:

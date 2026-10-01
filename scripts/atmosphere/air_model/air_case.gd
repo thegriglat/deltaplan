@@ -339,15 +339,21 @@ func prepare() -> bool:
 					kb = 0  # столбец целиком в земле (argmax по пустому — 0)
 				var h0 := hk[c]
 				if cbl and h0 > 0.0:
-					# нелокальный перенос: равномерно по слою перемешивания (0 ≤ z − h < h_bl)
-					var n_in := 0
-					var ks := -1
-					for k in range(maxi(kf[q], 1), nz_h - 1):
-						var za := zc(k) - hc[c]
-						if za < h_bl[c] and za > -dz:
-							if ks < 0:
-								ks = k
-							n_in += 1
+					# нелокальный перенос: равномерно по слою перемешивания (0 ≤ z − h < h_bl);
+					# za = zc(k) − h растёт с k — уровни в слое идут подряд: [ks, ke]
+					var hcc := hc[c]
+					var hb := h_bl[c]
+					var k_lo := maxi(kf[q], 1)
+					var k_hi := nz_h - 2
+					var ks := k_lo
+					while ks <= k_hi and not (zc(ks) - hcc > -dz):
+						ks += 1
+					var ke := clampi(floori((hcc + hb - z_bot) / dz + 0.5), ks - 1, k_hi)
+					while ke >= ks and not (zc(ke) - hcc < hb):
+						ke -= 1
+					while ke < k_hi and zc(ke + 1) - hcc < hb:
+						ke += 1
+					var n_in := maxi(ke - ks + 1, 0)
 					if n_in > 0:
 						qv = h0 / (n_in * dz)
 						k0 = ks
@@ -431,8 +437,7 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	var hs_heat := gauss2d(hk, nx, ny, sig) if any_heat else PackedFloat64Array()
 	if not any_heat:
 		hs_heat.resize(n)
-	if _hs.size() != n:
-		_hs = gauss2d(hc, nx, ny, sig)
+	_smooth_terrain()
 	var hs := _hs
 	var h_mech := NEUTRAL_BL_K * ustar / float(p.f_cor)
 	h_bl = PackedFloat64Array()
@@ -462,6 +467,12 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 		wmax = maxf(wmax, ws)
 		hmax = maxf(hmax, h)
 	closure_info = {ustar = ustar, h_mech = h_mech, wstar_max = wmax, h_max = hmax}
+
+
+## Сглаженный рельеф _hs (гаусс k_smooth_m) — если ещё нет; общий у случая с нагревом и без.
+func _smooth_terrain() -> void:
+	if _hs.size() != nx * ny:
+		_hs = gauss2d(hc, nx, ny, float(p.k_smooth_m) / dx)
 
 
 func _count_unknowns(kf: PackedInt32Array) -> void:
