@@ -5,7 +5,7 @@ extends Node
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/ui_shot.tscn -- --out=/tmp/ui
 ## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
-## --lang=ru|en — язык интерфейса (без записи в профиль); --only=setup — только «Полёт…»:
+## --lang=ru|en — язык интерфейса (без записи в профиль); --only=about — только «Об игре»; --only=setup — только «Полёт…»:
 ## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
 ## --net-settings (NET-40/К3) — только settings.png, но панель в сетевом режиме
 ## (set_net_mode(true) — строка «Скорость времени» скрыта).
@@ -57,6 +57,19 @@ func _run() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	_main = main
 	add_child(main)
+	if _only == "about":
+		# Только «Об игре» — без ожидания фона игры.
+		if _lang != "":
+			Language.apply(_lang)
+			main.call("_rebuild_ui")
+		for i in 4:
+			await get_tree().process_frame
+		main.get_node("UI/StartMenu").visible = false
+		main.get_node("UI/AboutScreen").visible = true
+		await _shoot("about")
+		print("ui_shot: OK")
+		await _quit(0)
+		return
 	var game: Game = main.get_node("Game")
 	for i in 600:
 		if game.settings != null:
