@@ -11,3 +11,5 @@
 ## Задачи
 | Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа / решения |
 |---|---|---|---|---|---|
+| UC-1 Раскладка и проверки | в работе (01.10) | dp-engineer | `~/deltaplan-ui-controls-uc1` / `ui-controls/uc1` | — | — |
+| UC-2 Тексты (docs, README, сайт) | в работе (01.10) | dp-writer | `~/deltaplan-ui-controls-uc2` / `ui-controls/uc2` | — | — |
