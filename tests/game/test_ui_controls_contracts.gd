@@ -48,7 +48,6 @@ static func _ic(invert: bool, mouse_mode: String = "look") -> InputController:
 static func _air(ic: InputController) -> void:
 	ic.reset()
 	ic.on_ground = false
-	ic._was_on_ground = false
 
 
 static func _free(ic: InputController) -> void:
@@ -154,3 +153,147 @@ func test_u1_keys_change_alpha() -> void:
 	print("    У1: угол атаки (training) — трим %.2f°, W %.2f°, S %.2f°" % [trim, a_w, a_s])
 	check(a_w > trim + 0.5, "У1: W — угол атаки больше трима (%.2f° > %.2f°)" % [a_w, trim])
 	check(a_s < trim - 0.5, "У1: S — угол атаки меньше трима (%.2f° < %.2f°)" % [a_s, trim])
+
+
+# --- У2 v1: при «мышь — трапеция» (bar + захват) WASD — обзор головой, не трапеция ---
+
+
+## Есть ли метод у нового узла (узел сразу освобождается).
+static func _has(n: Node, method: String) -> bool:
+	var r := n.has_method(method)
+	n.free()
+	return r
+
+
+func test_u2_shape() -> void:
+	check(_keys("look_up") == ["W"] and _keys("look_down") == ["S"], "У2: look_up = W, look_down = S")
+	check(_keys("look_left") == ["A"] and _keys("look_right") == ["D"], "У2: look_left = A, look_right = D")
+	var rate: Variant = Config.value("camera", "cockpit.head.key_rate_deg_s")
+	check(rate != null and float(rate) > 0.0, "У2: camera.json → cockpit.head.key_rate_deg_s > 0")
+	check(_has(InputController.new(), "keys_look"), "У2: InputController.keys_look()")
+	var cam := CameraRig.new()
+	check("keys_look_fn" in cam and cam.has_method("head_look_deg"), "У2: CameraRig.keys_look_fn, head_look_deg()")
+	cam.free()
+
+
+## InputController в режиме bar с захваченной мышью (без настоящего захвата курсора).
+static func _ic_bar(captured: bool = true) -> InputController:
+	var ic := _ic(false, "bar")
+	ic.roll_mode = "rate"
+	ic.mouse_captured = captured
+	return ic
+
+
+## (pitch, roll) после удержания клавиш seconds (с нейтрали); фаза — как задана в ic.
+static func _hold(ic: InputController, codes: Array, seconds: float = 0.5) -> Vector2:
+	for c in codes:
+		_key(c, true)
+	for i in int(round(seconds / DT)):
+		ic.update(DT)
+	var r := Vector2(ic.control.pitch, ic.control.roll)
+	for c in codes:
+		_key(c, false)
+	ic.update(DT)
+	return r
+
+
+func test_u2_wasd_not_bar_in_flight() -> void:
+	if not _has(InputController.new(), "keys_look"):
+		check(false, "У2: нет keys_look() — до UC-3")
+		return
+	var ic := _ic_bar()
+	check(ic.keys_look(), "У2: bar + захват, полёт — keys_look() = true")
+	var res := {}
+	for name in ["W", "S", "A", "D"]:
+		_air(ic)
+		res[name] = _hold(ic, [OS.find_keycode_from_string(name)])
+	_air(ic)
+	var up := _hold(ic, [KEY_UP])
+	_air(ic)
+	var right := _hold(ic, [KEY_RIGHT])
+	_air(ic)
+	Input.action_press("pitch_push_out")
+	for i in 60:
+		ic.update(DT)
+	var auto := ic.control.pitch
+	Input.action_release("pitch_push_out")
+	print("    У2: bar+захват — W %s, S %s, A %s, D %s; ↑ %.2f, → %.2f, action_press %.2f" % [
+		res.W, res.S, res.A, res.D, up.x, right.y, auto])
+	for name in res:
+		var v: Vector2 = res[name]
+		check(absf(v.x) < 1e-6 and absf(v.y) < 1e-6, "У2: %s не двигает трапецию (%s)" % [name, v])
+	check(up.x > 0.0, "У2: ↑ — по-прежнему от себя (%.2f)" % up.x)
+	check(right.y > 0.0, "У2: → — по-прежнему крен вправо (%.2f)" % right.y)
+	check(auto > 0.0, "У2: действие без клавиши (автопилот) считается (%.2f)" % auto)
+	_free(ic)
+	# мышь не захвачена — как раньше (У1 v2)
+	ic = _ic_bar(false)
+	check(not ic.keys_look(), "У2: без захвата — keys_look() = false")
+	var w := _hold(ic, [KEY_W])
+	print("    У2: bar без захвата — W %.2f" % w.x)
+	check(w.x > 0.0, "У2: без захвата W — от себя (%.2f)" % w.x)
+	_free(ic)
+	# режим look — как раньше
+	ic = _ic(false, "look")
+	ic.mouse_captured = true
+	check(not ic.keys_look(), "У2: режим look — keys_look() = false")
+	_free(ic)
+
+
+func test_u2_run_as_in_flight() -> void:
+	if not _has(InputController.new(), "keys_look"):
+		check(false, "У2: нет keys_look() — до UC-3")
+		return
+	var ic := _ic_bar()
+	ic.reset()  # на земле
+	check(not ic.keys_look(), "У2: стоя на земле — keys_look() = false")
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	check(ic.keys_look(), "У2: разбег (Shift) — keys_look() = true")
+	var w := _hold(ic, [KEY_W])
+	var up := _hold(ic, [KEY_UP])
+	_key(KEY_SHIFT, false)
+	ic.update(DT)
+	print("    У2: разбег bar+захват — W %.2f, ↑ %.2f" % [w.x, up.x])
+	check(absf(w.x) < 1e-6, "У2: на разбеге W не двигает трапецию (%.2f)" % w.x)
+	check(up.x > 0.0, "У2: на разбеге ↑ — нос вверх (%.2f)" % up.x)
+	_free(ic)
+
+
+## CameraRig в кабине, keys_look_fn — как задано; поворот головы после удержания клавиши.
+static func _head_after(keys_look: bool, code: Key, seconds: float = 0.5) -> Vector2:
+	var root := (Engine.get_main_loop() as SceneTree).root
+	var host := root.get_child(root.get_child_count() - 1)
+	var target := Node3D.new()
+	host.add_child(target)
+	var cam := CameraRig.new()
+	host.add_child(cam)
+	cam.target = target
+	cam.set_mode("cockpit")
+	cam.keys_look_fn = func() -> bool: return keys_look
+	_key(code, true)
+	for i in int(round(seconds / DT)):
+		cam._process(DT)
+	var h: Vector2 = cam.head_look_deg()
+	_key(code, false)
+	cam.queue_free()
+	target.queue_free()
+	return h
+
+
+func test_u2_cockpit_head_from_keys() -> void:
+	if not _has(CameraRig.new(), "head_look_deg"):
+		check(false, "У2: нет CameraRig.head_look_deg() — до UC-3")
+		return
+	var rate := float(Config.value("camera", "cockpit.head.key_rate_deg_s"))
+	var a := _head_after(true, KEY_A)
+	var d := _head_after(true, KEY_D)
+	var w := _head_after(true, KEY_W)
+	var s := _head_after(true, KEY_S)
+	var off := _head_after(false, KEY_A)
+	print("    У2: голова за 0,5 с (%.0f°/с) — A %s, D %s, W %s, S %s, без обзора A %s" % [rate, a, d, w, s, off])
+	var want := minf(rate * 0.5, float(Config.value("camera", "cockpit.head.yaw_limit_deg")))
+	check(absf(a.x - want) < 0.1 * want + 1.0, "У2: A — голова влево ≈ %.0f° (%.1f°)" % [want, a.x])
+	check(d.x < -0.5 * want, "У2: D — голова вправо (%.1f°)" % d.x)
+	check(w.y > 0.0 and s.y < 0.0, "У2: W — вверх, S — вниз (%.1f°, %.1f°)" % [w.y, s.y])
+	check(off.length() < 1e-3, "У2: keys_look_fn = false — голова на месте (%s)" % off)
