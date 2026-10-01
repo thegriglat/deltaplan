@@ -1,0 +1,15 @@
+wing,mass_case,v_kmh,passport_sink_ms,model_sink_ms,src
+training,ref,54.0,2.659,2.21,Wills Wing Falcon (willswing.com polar data; Falcon 4 170)
+training,pilot85,55.4,2.723,2.263,Wills Wing Falcon (willswing.com polar data; Falcon 4 170)
+ww_eagle,ref,61.0,2.756,2.119,WW polar Eagle: V2 (fpm@mph): 530@37
+ww_eagle,pilot85,58.6,2.651,2.039,WW polar Eagle: V2 (fpm@mph): 530@37
+ww_fusion,ref,71.5,2.72,1.986,WW polar Fusion: V2 (fpm@mph): 530@44
+ww_fusion,pilot85,69.8,2.654,1.938,WW polar Fusion: V2 (fpm@mph): 530@44
+ww_super_sport,ref,65.5,2.739,2.362,WW polar Super Sport: V2 (fpm@mph): 530@40
+ww_super_sport,pilot85,62.8,2.625,2.264,WW polar Super Sport: V2 (fpm@mph): 530@40
+ww_talon,ref,73.8,2.627,2.282,WW polar Talon: V2 (fpm@mph): 530@47
+ww_talon,pilot85,73.8,2.627,2.282,WW polar Talon: V2 (fpm@mph): 530@47
+ww_u2,ref,71.2,2.706,2.282,WW polar U2: V2 (fpm@mph): 530@44
+ww_u2,pilot85,71.5,2.718,2.292,WW polar U2: V2 (fpm@mph): 530@44
+ww_ultra_sport,ref,65.9,2.755,2.325,WW polar Ultra Sport: V2 (fpm@mph): 530@40
+ww_ultra_sport,pilot85,63.4,2.653,2.238,WW polar Ultra Sport: V2 (fpm@mph): 530@40

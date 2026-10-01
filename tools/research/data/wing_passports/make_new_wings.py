@@ -22,6 +22,8 @@
   python3 tools/research/data/wing_passports/make_new_wings.py --all           # все 39 (проба меню)
 Печатает таблицу К4 (f, сваливание/трим/качество против базы, DHV Vmin на эталонной массе, масса, пилот).
 Потом: blender --background --python tools/blender/build_gliders.py -- <id…>; godot --import.
+Подобие — только заготовка: после этого скрипта конфиги приводятся к паспортам (WPC-4, паспорт — эталон):
+  python3 tools/research/data/wing_passports/fit_passports.py
 """
 import colorsys
 import copy
