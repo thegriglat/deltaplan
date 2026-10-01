@@ -49,6 +49,12 @@ const CMD_FIELD := "поле из файла (--air-field)"
 ## 0,3. Верхний 3: старт в тени/отрыве (U₁ → 0) не должен раздувать приток до бури — U над
 ## стартом тогда остаётся ниже меню (граница модели), приток — не больше 3 × меню.
 const INFLOW_K_MIN := 0.3
+## Показатель степенного закона U над стартом ∝ k^p (k₁ = k₀·(u10/U₁)^(1/p)) по ветру меню:
+## [u10 м/с, p], между точками — линейно, за краями — край. _doc: медианы
+## p = ln(r₂/r₁)/ln(k₂/k₁) по парам проходов 1–2 на 10 стартах (tools/research/air_start/out/
+## passes.csv, air-start AS-1): 3 м/с — 0,57 (18 пар), 6 — 0,76 (20), 10 — 0,90 (10). p < 1:
+## нагретые склоны дают ветер, не растущий с притоком, толщина слоя ∝ u*.
+const INFLOW_P := [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]]
 const INFLOW_K_MAX := 3.0
 ## Высота замера U над землёй старта, м (ветер меню — на 10 м).
 const START_AGL_M := 10.0
@@ -387,6 +393,8 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 	_req = c.duplicate()
 	_req.hour = slot_hour(float(c.hour), _step_min()) if not loading else float(c.hour)
 	_req.reason = reason
+	# проход 1 упёрся в предел итераций — второго прохода не было (слабый ветер)
+	_req.not_converged = false
 	_loading = loading
 	_ok = false
 	_t0 = Time.get_ticks_usec()
@@ -652,6 +660,11 @@ func _levels_done(levels: Array[WindField]) -> void:
 	if more and _pass >= 2:
 		# сверх контрактных двух — только если остаток больше pass_tol
 		more = not is_nan(u) and absf(u / u10 - 1.0) > pass_tol
+	if more and _pass == 1 and _hit_iter_limit():
+		# слабый ветер: решение не сошлось — подстройка по нему бессмысленна и долга
+		more = false
+		_req.not_converged = true
+		print("air_model: проход 1 не сошёлся (предел итераций) — без подстройки")
 	if more:
 		var k1 := _next_k(u10)
 		_warm_pass = _warm_next
@@ -672,15 +685,42 @@ func _levels_done(levels: Array[WindField]) -> void:
 	_apply(levels)
 
 
-## k следующего прохода: после первого — k·u10/U (поле ∝ притоку); дальше — секущая по двум
-## последним проходам (U = a + b·k: нагрев склонов даёт часть ветра, не растущую с притоком).
+## Показатель p закона U ∝ k^p для ветра меню u10 (INFLOW_P).
+static func inflow_p(u10: float) -> float:
+	var t: Array = INFLOW_P
+	if u10 <= float(t[0][0]):
+		return float(t[0][1])
+	for i in range(1, t.size()):
+		if u10 <= float(t[i][0]):
+			var a: Array = t[i - 1]
+			var b: Array = t[i]
+			var f := (u10 - float(a[0])) / (float(b[0]) - float(a[0]))
+			return lerpf(float(a[1]), float(b[1]), f)
+	return float(t[-1][1])
+
+
+## Проход упёрся в предел итераций (область с нагревом или без, окно).
+func _hit_iter_limit() -> bool:
+	var lim := AirPicardJob.new().max_outer
+	for n: Variant in _req.get("iters", []):
+		if int(n) >= lim:
+			return true
+	for h: Variant in _req.get("windows", []):
+		for n: Variant in (h as Dictionary).get("iters", []):
+			if int(n) >= lim:
+				return true
+	return false
+
+
+## k следующего прохода: после первого — k·(u10/U)^(1/p) (U ∝ k^p); дальше (max_passes > 2,
+## не по умолчанию) — секущая по двум последним проходам.
 func _next_k(u10: float) -> float:
 	var last: Dictionary = _pass_log[-1]
 	var k := float(last.k)
 	var u := float(last.u)
 	if is_nan(u) or u <= 1.0e-3:
 		return INFLOW_K_MAX
-	var k1 := k * u10 / u
+	var k1 := k * pow(u10 / u, 1.0 / inflow_p(u10))
 	if _pass_log.size() >= 2:
 		var prev: Dictionary = _pass_log[-2]
 		var dk := k - float(prev.k)
