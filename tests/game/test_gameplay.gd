@@ -184,6 +184,14 @@ func test_ground_bar_keys() -> void:
 		c = ic.control
 		var v := c.pitch if shared_action.begins_with("pitch") else c.roll
 		print("    на бегу %s: pitch %.2f roll %.2f" % [OS.get_keycode_string(shared), c.pitch, c.roll])
+		if ic.keys_look():
+			# У2 v1: мышь — трапеция и захвачена — на разбеге W/S/A/D крутят голову, не трапецию
+			check(absf(v) < 1e-6, "У2: на бегу при мыши-трапеции с захватом — не трапеция: %.2f" % v)
+			ic.mouse_captured = false  # без захвата — как в С2 v2
+			_ticks(game, 0.5)
+			c = ic.control
+			v = c.pitch if shared_action.begins_with("pitch") else c.roll
+			print("    на бегу без захвата мыши %s: %.2f" % [OS.get_keycode_string(shared), v])
 		check(absf(v) > 0.5, "на бегу та же клавиша — трапеция: %.2f" % v)
 		check(c.walk == 0.0 and c.turn == 0.0, "на бегу walk/turn = 0")
 		_key(shared, false)
