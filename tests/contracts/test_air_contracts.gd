@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
-const CONTRACTS := {C1 = 2, C2 = 6, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
+const CONTRACTS := {C1 = 2, C2 = 5, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 2, C8 = 2, C9 = 2, C10 = 3}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -329,47 +329,6 @@ func test_c2_air_case_grid() -> void:
 	var nh := c.without_heat()
 	check(nh.heat.is_empty(), "without_heat(): H = 0")
 	check(nh.dims() == c.dims(), "without_heat(): та же сетка")
-
-
-## C2 v6 (air-start): ветер меню — на 10 м над стартом; приток области/окна умножен на inflow_k, а
-## α, класс устойчивости и max_profile — по ветру меню; k = 1 — прежний случай. Вызов через callv —
-## файл разбирается и без нового аргумента (тогда проверка падает, а не весь набор).
-func test_c2_inflow_scale() -> void:
-	var lw := TestAirPlace.load_detail("ongudai")
-	check(lw.size() == 2, "слой detail Онгудая")
-	if lw.size() != 2:
-		return
-	var loc := TestAirPlace.load_loc("ongudai")
-	var dc := Callable(AirPlace, "domain_case")
-	var a: AirCase = dc.callv([lw[0], lw[1], loc, 400.0, 12.0, 6.0, 150.0, NAN, "clear", false])
-	var b: AirCase = dc.callv([lw[0], lw[1], loc, 400.0, 12.0, 6.0, 150.0, NAN, "clear", false, 1.4])
-	check(a != null and b != null, "domain_case(…, inflow_k)")
-	if a == null or b == null:
-		return
-	approx(a.u10, 6.0, 1e-9, "k по умолчанию 1: приток = меню")
-	approx(b.u10, 8.4, 1e-9, "приток = k·меню")
-	check("u10_menu" in b and "inflow_k" in b, "AirCase.u10_menu, inflow_k")
-	if "u10_menu" in b:
-		approx(float(b.get("u10_menu")), 6.0, 1e-9, "u10_menu")
-		approx(float(b.get("inflow_k")), 1.4, 1e-9, "inflow_k")
-	approx(float(b.p.alpha), float(a.p.alpha), 1e-12, "α — по ветру меню")
-	approx(float(b.p.max_profile), float(a.p.max_profile), 1e-12, "max_profile (z_sat) — по ветру меню")
-	var m := b.meta()
-	check(m.has("u10_menu") and m.has("inflow_k"), "meta(): u10_menu, inflow_k")
-	approx(float(m.get("u10", 0.0)), 8.4, 1e-9, "meta.u10 — приток")
-	var nh := b.without_heat()
-	approx(nh.u10, 8.4, 1e-9, "without_heat: приток")
-	if "inflow_k" in nh:
-		approx(float(nh.get("inflow_k")), 1.4, 1e-9, "without_heat: inflow_k")
-	var ctx := AirPlace.context(lw[0], loc, WeatherModel.config())
-	var wc := Callable(AirWindowCase, "window_case")
-	var w: AirCase = wc.callv(
-		[lw[0], lw[1], loc, 100.0, 7230.0, -1330.0, 12.0, 6.0, 150.0, NAN, "clear", false, ctx, 64, 1.4]
-	)
-	check(w != null, "window_case(…, n, inflow_k)")
-	if w != null:
-		approx(w.u10, 8.4, 1e-9, "окно: приток = k·меню")
-		approx(float(w.p.max_profile), float(a.p.max_profile), 1e-12, "окно: max_profile по меню")
 
 
 ## C2 v4 (инвариант, 01.10.2026): `AirCase.p` игры = `Params()` эталона air.py по всем общим
@@ -952,10 +911,6 @@ func test_c7_window_grid_and_api() -> void:
 	]:
 		check(cm.has_method(m), "AirClipmap." + m)
 	check(cm.has_signal("levels_changed") and cm.has_signal("failed"), "сигналы клипмапа")
-	for mi: Dictionary in cm.get_method_list():
-		if String(mi.name) in ["setup", "set_conditions"]:
-			var names: Array = (mi.args as Array).map(func(x: Dictionary) -> String: return x.name)
-			check(names.has("inflow_k"), "C7 v3: AirClipmap.%s(…, inflow_k)" % mi.name)
 	var job := AirWindowJob.new()
 	for m in ["window_state", "parent_data", "nest_corr", "state", "grid", "field_async"]:
 		check(job.has_method(m), "AirWindowJob." + m)
@@ -1039,10 +994,6 @@ func test_c9_runtime_shape() -> void:
 		check(rt.has_method(m), "метод " + m)
 	check("recompute_enabled" in rt and "last_error" in rt, "recompute_enabled, last_error")
 	check("focus_fn" in rt and "shift_count" in rt, "C9 v2: focus_fn, shift_count")
-	check("inflow_k" in rt, "C9 v3: inflow_k")
-	var rt_src := FileAccess.get_file_as_string(JOB_DIR + "air_runtime.gd")
-	for k in ["u_start10_first", "u_start10", "passes"]:
-		check(k in rt_src, "C9 v3: last_info." + k)
 	var tree := Engine.get_main_loop() as SceneTree
 	await tree.process_frame
 	tree.root.add_child(rt)
