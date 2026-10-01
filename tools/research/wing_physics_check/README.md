@@ -1,6 +1,6 @@
 # Проверка физики крыльев — данные и инструменты
 
-Модуль wing-physics-check (`docs/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона.
+Модуль wing-physics-check (`docs/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона, WPC-3 — пачка полётов.
 
 ## WPC-1: паспорта крыльев против модели полёта
 
@@ -111,3 +111,8 @@ python3 tools/research/wing_physics_check/wings_audit.py               # кар�
 - Динамик при 3 м/с: аналитика — w 1,0–1,7 м/с на 7 стартах из 10, поле — 0,6–1,4 (медиана 0,72) при мин.
   снижении крыльев 0,8–1,35: на большинстве стартов в поле — пограничный, как в жизни; при 6 м/с — 2–4 м/с.
 - Разбег (1,5 м): аналитика 0,65–0,73 × U меню при 6 м/с (лог/степенной закон у земли — норма); поле — 0,5–1,5.
+
+## WPC-3: пачка полётов против ветра и в динамике (контракт К6)
+
+- WPC-3, пачка полётов против ветра и в динамике: `tools/flight/wind_penetration_batch.sh` (аналитика — все 48 крыльев; поле GPU — slavutich_ut, training, laminar, combat; поля — `build/wpc3/fields/`, части — `build/wpc3/parts/`) → `out/penetration.csv` (К6, 4160 строк), сводка `python3 tools/flight/wind_penetration_table.py` → `out/penetration_summary.md`, `out/penetration_by_wing.csv`. Прогон 01.10: 1870 с (аналитика 4 процесса 1413 с, расчёт 8 полей 81 с, полёты в поле 375 с). Условия поля — по умолчанию меню (FlightSettings.defaults(): поле на 12:00, ясно, температура по умолчанию); турбулентность включена в обоих режимах (сид конфига, детерминировано: повтор 640 строк — разница 0); термики выключены.
+- Разброс за окно (СКО путевой, воздушной, vz, w воздуха; 4 крыла, оба режима): `godot --headless --path . res://tools/flight/wind_penetration_run.tscn -- --mode=<analytic|field> --sites=<старт> --wings=slavutich_ut,training,laminar,combat --csv=build/wpc3/spread/<имя>.csv --stats=build/wpc3/spread/<имя>_sd.csv` (по старту, параллельно, ≈ 6 мин) → `python3 tools/flight/wind_penetration_table.py --spread build/wpc3/spread/*_sd.csv` → `out/penetration_spread.csv` и раздел сводки.
