@@ -2,7 +2,7 @@ extends Node
 ## Крыло не уходит в землю на старте (SF-4, docs/flight.md → «Поза крыла на земле»).
 ## Реальная модель крыла (вершины сеток под нодой Wing, с трапецией) в позе планера
 ## Transform3D(Telemetry.basis, ступни) — зазор до рельефа по вертикали
-## (tools/flight/wing_clearance.gd). Штиль, крен 0 (A/D не нажаты, ветра нет):
+## (tools/flight/wing_clearance.gd). Штиль, заданный крен 0 (roll = 0, ветра нет):
 ##   ровно и склон 20° вниз по курсу — стоит (трапеция нейтрально и до упора в обе стороны),
 ##   шагом, разбег до отрыва (или срыва) — наименьший зазор ≥ MIN_CLEARANCE_M;
 ##   косой склон 15° — только фиксируем число (верхняя консоль близко к склону — так и есть).
@@ -34,10 +34,10 @@ static func _ground(kind: String) -> Callable:
 	return func(_x: float, _z: float) -> float: return 100.0
 
 
-static func _ctl(pitch: float, run: bool, walk: float, roll: float = 0.0) -> ControlInput:
+static func _ctl(pitch: float, run: bool, walk: float, turn: float = 0.0) -> ControlInput:
 	var c := ControlInput.new()
 	c.pitch = pitch
-	c.roll = roll
+	c.turn = turn
 	c.run = run
 	c.walk = walk
 	return c
@@ -73,10 +73,9 @@ func test_wing_above_ground_on_launch() -> void:
 		"стоит, нос вниз до упора": [_ctl(-1, false, 0), 3.0],
 		"шагом": [_ctl(0, false, 1), 4.0],
 		"разбег": [_ctl(0, true, 0), 12.0],
-		# SF-3: A/D на земле — только курс, крыло не кренит
+		# К3 v3: A/D стоя — поворот на месте (input.turn), крыло не кренит
 		"стоит, A": [_ctl(0, false, 0, -1), 3.0],
 		"стоит, D": [_ctl(0, false, 0, 1), 3.0],
-		"разбег, A": [_ctl(0, true, 0, -1), 12.0],
 	}
 	for p in Config.list_configs("wings"):
 		var w := String(p).get_file()
@@ -89,7 +88,7 @@ func test_wing_above_ground_on_launch() -> void:
 			for ph: String in phases:
 				var r := _phase(g, pts, gf, phases[ph][0], phases[ph][1])
 				# на косом склоне рука пилота держит крыло с пределом силы: у крупных тяжёлых крыльев
-				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге с A/D остаётся до ~0,7° —
+				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге остаётся до ~0,7° —
 				# незаметно; на ровном и склоне вниз — прежние 0,5°
 				var bank_tol := 1.0 if kind == "косой 15°" else 0.5
 				check(r.bank_deg < bank_tol, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])

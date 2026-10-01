@@ -20,7 +20,7 @@ const OVERBANK_FADE_DEG := 10.0
 
 var telemetry := Telemetry.new()
 var mode: Mode = Mode.GROUND
-## Причина срыва взлёта: "nose_high", "nose_low", "tailwind", "crosswind", "weak_run" или "".
+## Причина срыва взлёта: "wingtip" (консоль на земле) или "" (GroundRun.failure).
 var takeoff_failure: String = ""
 ## Перегрузка n (load_factor, load_raw, load_max, load_min).
 var load := LoadMeter.new()
@@ -69,8 +69,9 @@ var _roll_overbank: float = PI  ## крен, круче которого уст�
 var _rho_ref: float = 1.225
 var _stall_time: float = 0.0
 var _attached: float = 1.0  ## доля присоединённого потока: 1 — обтекание, 0 — полный срыв
-var _air_time: float = 0.0
 var _flare := LandingFlare.new()
+## Пилот после отрыва ещё на ногах (не в подвеске): касание — снова разбег (К3 v3, без таймера).
+var _upright := false
 var _accel_t: float = 0.0  ## касательное ускорение по потоку с прошлого шага, м/с²
 
 
@@ -140,7 +141,6 @@ func reset_in_air(
 ) -> void:
 	_reset_common(pos, heading_deg)
 	mode = Mode.AIR
-	_air_time = 1.0e6  # никакой «форы» после взлёта
 	rho = air_density(pos.y)
 	var v := airspeed_ms if airspeed_ms > 0.0 else trim_speed()
 	var gamma := -asin(clampf(steady_glide(v).y / v, -1.0, 1.0))
@@ -269,9 +269,9 @@ func _reset_common(pos: Vector3, heading_deg: float) -> void:
 	_attached = 1.0
 	_flare.reset()
 	load.reset()
-	_air_time = 0.0
 	_accel_t = 0.0
 	_ground.reset()
+	_upright = false
 	takeoff_failure = ""
 	landing_result = {}
 
@@ -291,7 +291,6 @@ func _alpha_command(pitch_in: float) -> float:
 
 
 func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
-	_air_time += dt
 	rho = air_density(position.y)
 	# воздух в центре и на концах крыла (FR-8)
 	var tip := right_dir() * cos(bank) - UP * sin(bank)
@@ -310,6 +309,8 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var q := 0.5 * rho * v * v * area if v > min_v else 0.0
 
 	var agl := position.y - ground_height(ground_fn, position.x, position.z)
+	if agl > float(flight.takeoff.upright_clear_m):
+		_upright = false  # ступни высоко — пилот в подвеске, касание дальше — посадка
 	_flare.update(self, input, agl, dt)
 	_update_pitch(dt, input, asin(clampf(u.y, -1.0, 1.0)), q)
 	var c := aero_coefs(dt)
@@ -330,10 +331,12 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	# касание земли (FR-10)
 	var gh := ground_height(ground_fn, position.x, position.z)
 	if position.y <= gh:
-		if _air_time < float(flight.takeoff.grace_s):
-			# сразу после отрыва крыло может чиркнуть по склону — прижимаем к поверхности
+		if _upright:
+			# пилот ещё на ногах (после отрыва ступни не поднялись выше takeoff.upright_clear_m):
+			# касание — это снова шаги разбега, а не посадка; дальше — GroundRun (отрыв, когда L ≥ W)
 			position.y = gh
-			velocity.y = maxf(velocity.y, 0.0)
+			mode = Mode.GROUND
+			_ground.resume(self)
 		else:
 			landing_result = _flare.touchdown(self, ground_fn, gh)
 			mode = Mode.LANDED
@@ -345,6 +348,13 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 func _update_pitch(dt: float, input: ControlInput, gamma: float, q: float) -> void:
 	var st: Dictionary = wing.stall
 	var alpha_target := _alpha_command(input.pitch)
+	if _upright:
+		# пилот ещё на ногах и держит крыло за стойки, как на разбеге (GroundRun._aero_force):
+		# угол атаки — launch.alpha_neutral_deg + pitch·alpha_range_deg, не трим подвески
+		var la: Dictionary = wing.launch
+		alpha_target = Units.deg(
+			float(la.alpha_neutral_deg) + clampf(input.pitch, -1.0, 1.0) * float(la.alpha_range_deg)
+		)
 	var tau := tau_pitch
 	if stalled and not _flare.active and _stall_time > float(st.nose_drop_delay_s):
 		alpha_target -= Units.deg(float(st.nose_drop_deg))
@@ -454,7 +464,7 @@ func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: C
 	match _ground.step(self, dt, input, air_fn, ground_fn):
 		GroundRun.Result.TOOK_OFF:
 			mode = Mode.AIR
-			_air_time = 0.0
+			_upright = true
 			_accel_t = 0.0
 			took_off.emit()
 		GroundRun.Result.FAILED:

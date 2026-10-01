@@ -6,42 +6,39 @@ extends Node
 ## "weight_shift" — смещение веса: A/D плавно смещают вес, отпустил — пружиной в центр,
 ## крыло само выравнивается. X — «в центр» в обоих режимах: трапеция в нейтраль и крыло
 ## плавно в горизонт. Автопилот (Game.autopilot) всегда управляет в режиме "rate".
-## Мышь по умолчанию крутит голову (это делает CameraRig); в режиме "bar" — управляет трапецией,
-## а пока зажата правая кнопка — крутит голову (трапеция держит последнее положение).
-## Клавиши регистрируются в InputMap из configs/controls.json.
+## Мышь по умолчанию ("bar") управляет трапецией и в полёте, и на земле, а пока зажата правая
+## кнопка — крутит голову (трапеция держит последнее положение); в режиме "look" мышь только
+## крутит голову (это делает CameraRig). Клавиши регистрируются в InputMap из configs/controls.json.
+## На земле (С2 v2): стоя и шагом W/S — шаг, A/D — поворот на месте (ControlInput.turn), нос и крен
+## крыла — те же действия «трапеции», что в полёте (стрелки), мышь, стик; клавиши, занятые шагом
+## и поворотом, трапецию стоя не двигают. С зажатым Shift (разбег) все органы — нос и крен, как
+## в полёте. Трапеция на отрыве непрерывна: одни и те же положения клавиш, мыши и стика.
 
-## Действия, которые защёлкиваются при отрыве.
-const LATCH_ACTIONS: Array[String] = [
-	"pitch_pull_in", "pitch_push_out", "roll_left", "roll_right", "walk_forward", "walk_back"
-]
+## Действия шага и поворота на земле: их клавиши стоя не двигают трапецию.
+const GROUND_MOVE_ACTIONS: Array[String] = ["walk_forward", "walk_back", "turn_left", "turn_right"]
 
 var control := ControlInput.new()
 var mouse_captured := false
-## Фазу сообщает главная сцена по телеметрии: на земле W/S — ходьба, в разбеге — угол носа.
+## Фазу сообщает главная сцена по телеметрии: на земле стоя W/S — шаг, A/D — поворот.
 var on_ground := true
 ## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
 var enabled := true
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
-## на земле стоим. Защёлка при отрыве продолжает отслеживаться.
+## на земле стоим.
 var hands_off := false
-## Телеметрия планера для автоматического носа на разбеге (LaunchNose): () -> Telemetry.
-## Не задана — берётся у соседнего узла Glider (сцена игры); нет и его — нос на нейтрали.
+## Телеметрия планера для «в центр» (X) в режиме rate: () -> Telemetry.
+## Не задана — берётся у соседнего узла Glider (сцена игры).
 var telemetry_fn: Callable
 ## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса (из controls.json).
 var roll_mode := "rate"
-## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит,
-## W — просто шаг.
+## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
 
 var _cfg: Dictionary
-var _nose_trim := 0.0  # подстройка носа на разбеге стрелками
-var _auto_nose := 0.0  # автоматический нос по ветру (≤ 0 — ниже нейтрали)
-var _launch_nose := LaunchNose.new()
-var _was_on_ground := true
-var _latched := {}  # действие → true: зажато в момент отрыва, не отпущено
+var _key_pitch := 0.0  # трапеция по тангажу от клавиш, доля хода (мышь и стик — отдельно)
 var _mouse_offset := Vector2.ZERO  # режим bar: накопленное смещение мыши, доли полного хода
 var _bar_look_held := false  # режим bar: правая кнопка зажата — мышь крутит голову, не трапецию
-var _roll_pos := 0.0  # смещение веса: положение пилота поперёк трапеции (до плавной нейтрали)
+var _roll_pos := 0.0  # крен от клавиш: смещение веса (до плавной нейтрали) или ручка крена (rate)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
 var _prev_bank := 0.0  # «в центр» в режиме rate: крен прошлого шага, °
 
@@ -55,7 +52,6 @@ func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
 	roll_mode = String(_cfg.get("roll_control_mode", "rate"))
-	_launch_nose.configure(_cfg.get("ground", {}).get("auto_nose", {}))
 
 
 func mouse_mode() -> String:
@@ -91,10 +87,10 @@ static func register_actions(cfg: Dictionary) -> void:
 			InputMap.action_add_event(action, jb)
 
 
+## Захват курсора. Смещение мыши (bar) при этом не меняется: трапеция держит положение.
 func set_mouse_captured(on: bool) -> void:
 	mouse_captured = on
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if on else Input.MOUSE_MODE_VISIBLE
-	_mouse_offset = Vector2(control.roll, -control.pitch)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -108,6 +104,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_bar_look_held = event.pressed
 		return
+	# Мышь — трапеция и на земле, и в полёте (С2 v2): смещение копится всегда, поэтому на
+	# отрыве трапеция непрерывна.
 	if (
 		mouse_captured
 		and mouse_mode() == "bar"
@@ -120,16 +118,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		_mouse_offset = _mouse_offset.clamp(Vector2(-1, -1), Vector2(1, 1))
 
 
-## Новый полёт: снять защёлки и подстройку носа.
+## Новый полёт: трапеция в нейтраль.
 func reset() -> void:
-	_latched.clear()
-	_nose_trim = 0.0
-	_auto_nose = 0.0
-	_launch_nose.reset()
-	_was_on_ground = true
+	_key_pitch = 0.0
 	on_ground = true
 	_roll_pos = 0.0
 	_centering = false
+	_mouse_offset = Vector2.ZERO
 	control = ControlInput.new()
 
 
@@ -137,20 +132,14 @@ func reset() -> void:
 func update(dt: float) -> ControlInput:
 	control.weight_shift = weight_shift()
 	if not enabled or hands_off:
-		if _was_on_ground and not on_ground:
-			_latch_pressed()
-		_was_on_ground = on_ground
 		control.pitch = 0.0
 		control.roll = 0.0
+		_key_pitch = 0.0
 		_roll_pos = 0.0
 		control.walk = 0.0
+		control.turn = 0.0
 		control.run = false
 		return control
-	# Отрыв: зажатые сейчас клавиши тангажа/крена не действуют, пока их не отпустят.
-	if _was_on_ground and not on_ground:
-		_latch_pressed()
-	_was_on_ground = on_ground
-	_release_latches()
 	if on_ground:
 		_update_ground(dt)
 	else:
@@ -159,100 +148,99 @@ func update(dt: float) -> ControlInput:
 	control.pitch = clampf(control.pitch, -1.0, 1.0)
 	control.roll = clampf(control.roll, -1.0, 1.0)
 	control.walk = clampf(control.walk, -1.0, 1.0)
+	control.turn = clampf(control.turn, -1.0, 1.0)
 	return control
 
 
-## Клавиши, зажатые в момент отрыва, до отпускания (защёлка).
-func is_latched(action: String) -> bool:
-	return _latched.has(action)
-
-
-## На земле (FR-30): W — идти, W+Shift — разбег, S — назад, A/D — поворот.
-## Нос крыла на разбеге держится сам (_run_nose), ↑/↓ — подстройка поверх.
+## На земле (С2 v2). Стоя и шагом: W/S — шаг (walk), A/D — поворот на месте (turn); трапеция —
+## действия pitch_*/roll_* без клавиш шага и поворота (стрелки), мышь, стик. Разбег (зажат Shift,
+## W не нужен): все клавиши действий трапеции, мышь, стик — нос и крен крыла, как в полёте.
+## Трапеция на земле: pitch — нос крыла (0 — угол разбега крыла launch.alpha_neutral_deg),
+## roll — заданный крен руки пилота; клавиши ведут её так же, как в полёте (тот же ход и возврат),
+## поэтому на отрыве скачка нет.
 func _update_ground(dt: float) -> void:
-	var kb: Dictionary = _cfg.keyboard
-	var g: Dictionary = _cfg.ground
-	var sens := float(kb.sensitivity)
-	var fwd := _strength("walk_forward") - _strength("walk_back")
-	var roll_dir := _strength("roll_right") - _strength("roll_left")
-	var run := Input.is_action_pressed("run") and fwd > 0.0 and not run_blocked
-	var trim_dir := _strength("nose_up") - _strength("nose_down")
-	var rng := float(g.nose_trim_range)
-	_nose_trim = clampf(
-		_nose_trim + trim_dir * float(g.nose_pitch_rate_per_s) * sens * dt, -rng, rng
-	)
-	_update_auto_nose(trim_dir, dt)
-	var nose := _run_nose()
+	var run := Input.is_action_pressed("run") and not run_blocked
 	control.run = run
 	if run:
 		control.walk = 0.0
-		control.pitch = nose
-		control.roll = _ramp(
-			control.roll,
-			roll_dir,
-			float(kb.roll_rate_per_s) * sens,
-			float(kb.roll_return_per_s),
-			dt
-		)
+		control.turn = 0.0
 	else:
-		# Ходьба с крылом на плечах: нос держим под углом разбега, чтобы сразу бежать.
-		control.walk = fwd
-		control.pitch = move_toward(control.pitch, nose, float(kb.pitch_return_per_s) * dt)
-		control.roll = roll_dir
-	_roll_pos = control.roll
+		control.walk = _strength("walk_forward") - _strength("walk_back")
+		control.turn = _strength("turn_right") - _strength("turn_left")
+	var only_bar := not run
+	_update_bar(dt, _bar_pitch_dir(only_bar), _bar_roll_dir(only_bar), false)
 
 
 func _update_air(dt: float) -> void:
+	control.run = false
+	control.walk = 0.0
+	control.turn = 0.0
+	_update_bar(dt, _bar_pitch_dir(false), _bar_roll_dir(false), true)
+
+
+## Направление трапеции по тангажу с клавиш: +1 — от себя (нос вверх), −1 — на себя.
+## only_bar — стоя на земле: клавиши шага и поворота не считаются.
+func _bar_pitch_dir(only_bar: bool) -> float:
+	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
+	return (
+		-(_bar_strength("pitch_pull_in", only_bar) - _bar_strength("pitch_push_out", only_bar))
+		* inv
+	)
+
+
+func _bar_roll_dir(only_bar: bool) -> float:
+	return _bar_strength("roll_right", only_bar) - _bar_strength("roll_left", only_bar)
+
+
+## Трапеция (нос и крен): клавиши + мышь (bar), сумма до упора. Одна и та же на земле и в полёте;
+## «в центр» (X) — только в полёте (allow_center).
+func _update_bar(dt: float, pitch_dir: float, roll_dir: float, allow_center: bool) -> void:
 	var kb: Dictionary = _cfg.keyboard
 	var sens := float(kb.sensitivity)
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
-	var pitch_dir := -(_strength("pitch_pull_in") - _strength("pitch_push_out")) * inv
-	var roll_dir := _strength("roll_right") - _strength("roll_left")
-	control.run = false
-	control.walk = 0.0
-	_nose_trim = 0.0
-	_auto_nose = 0.0
-	_launch_nose.reset()
-	_update_centering(pitch_dir, roll_dir)
+	if allow_center:
+		_update_centering(pitch_dir, roll_dir)
+	else:
+		_centering = false
 	var c_tau := maxf(float(kb.center_time_s), 0.01)
-	if mouse_captured and mouse_mode() == "bar":
+	var bar := mouse_mode() == "bar"
+	if bar:
 		var ret := float(_cfg.mouse.bar_return_to_center_per_s)
 		if _centering:
 			_mouse_offset *= exp(-dt / c_tau)
 		elif ret > 0.0:
 			_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
-		var dz := float(_cfg.mouse.bar_deadzone)
-		control.roll = _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
-		control.pitch = -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
-		_roll_pos = control.roll
-		if _centering and not control.weight_shift:
-			control.roll = _level_wing(kb, dt)
-		return
+	var dz := float(_cfg.mouse.bar_deadzone)
+	var m_roll := _mouse_offset.x if bar and absf(_mouse_offset.x) > dz else 0.0
+	var m_pitch := -_mouse_offset.y * inv if bar and absf(_mouse_offset.y) > dz else 0.0
 	if _centering:
-		control.pitch *= exp(-dt / c_tau)
+		_key_pitch *= exp(-dt / c_tau)
 		_roll_pos *= exp(-dt / c_tau)
-		control.roll = _soft_center(_roll_pos, float(kb.roll_neutral_zone))
-		if not control.weight_shift:
-			control.roll = _level_wing(kb, dt)
-		return
-	var ret_rate := float(kb.pitch_return_per_s)
-	if not _latched.is_empty():
-		# После отрыва трапеция плавно уходит в трим за takeoff_latch.trim_time_s.
-		var tt := float(_cfg.get("takeoff_latch", {}).get("trim_time_s", 0.8))
-		ret_rate = maxf(ret_rate, 1.0 / maxf(tt, 0.05))
-	control.pitch = _ramp(control.pitch, pitch_dir, float(kb.pitch_rate_per_s) * sens, ret_rate, dt)
-	if control.weight_shift:
-		_roll_pos = _roll_shift(_roll_pos, roll_dir, kb, sens, dt)
-		control.roll = _soft_center(_roll_pos, float(kb.roll_neutral_zone))
 	else:
-		control.roll = _ramp(
-			control.roll,
-			roll_dir,
-			float(kb.roll_rate_per_s) * sens,
-			float(kb.roll_return_per_s),
+		_key_pitch = _ramp(
+			_key_pitch,
+			pitch_dir,
+			float(kb.pitch_rate_per_s) * sens,
+			float(kb.pitch_return_per_s),
 			dt
 		)
-		_roll_pos = control.roll
+		if control.weight_shift:
+			_roll_pos = _roll_shift(_roll_pos, roll_dir, kb, sens, dt)
+		else:
+			_roll_pos = _ramp(
+				_roll_pos,
+				roll_dir,
+				float(kb.roll_rate_per_s) * sens,
+				float(kb.roll_return_per_s),
+				dt
+			)
+	var k_roll := _roll_pos
+	if control.weight_shift:
+		k_roll = _soft_center(_roll_pos, float(kb.roll_neutral_zone))
+	control.pitch = clampf(_key_pitch + m_pitch, -1.0, 1.0)
+	control.roll = clampf(k_roll + m_roll, -1.0, 1.0)
+	if _centering and not control.weight_shift:
+		control.roll = _level_wing(kb, dt)
 
 
 ## «В центр» в режиме rate: ручка крена против крена (с упреждением по скорости крена), пока
@@ -318,41 +306,13 @@ func _apply_gamepad() -> void:
 	var gx := _stick(Input.get_joy_axis(dev, int(gp.roll_axis)), gp)
 	var gy := _stick(Input.get_joy_axis(dev, int(gp.pitch_axis)), gp)
 	if gx != 0.0 or gy != 0.0:
+		# стик — трапеция и в полёте, и на земле (С2 v2): на земле нос и заданный крен крыла
 		control.roll = gx  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
-		_roll_pos = gx
-		if on_ground:
-			control.walk = -gy
-		else:
-			control.pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
+		control.pitch = gy * inv  # стик на себя (вниз, +) = трапеция от себя
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
-		control.pitch = _run_nose()
-
-
-## Нос на разбеге: нейтраль + автоматический нос по ветру + подстройка стрелками.
-func _run_nose() -> float:
-	return float(_cfg.ground.run_nose_neutral) + _auto_nose + _nose_trim
-
-
-## «Нос держится сам» (G06, ground.auto_nose): стоя пилот чувствует ветер в лицо; в сильный
-## ветер нос сам уходит вниз до угла атаки ~18° (как автопилот F01), в слабый — нейтраль.
-## Пока игрок подстраивает нос стрелками, автомат замирает — ошибка «нос высоко/низко» возможна.
-func _update_auto_nose(trim_dir: float, dt: float) -> void:
-	var an: Dictionary = _cfg.ground.get("auto_nose", {})
-	if not bool(an.get("enabled", true)):
-		_auto_nose = 0.0
-		return
-	var t := _telemetry()
-	if t == null:
-		return
-	_launch_nose.observe(t)
-	if trim_dir != 0.0 or absf(_nose_trim) > 1e-6:
-		return
-	var dir := _launch_nose.direction(t)
-	var rate := float(an.get("rate_per_s", 0.6))
-	var rng := float(an.get("range", 0.3))
-	_auto_nose = clampf(_auto_nose + dir * rate * dt, -rng, 0.0)
+		control.turn = 0.0
 
 
 func _telemetry() -> Telemetry:
@@ -364,21 +324,37 @@ func _telemetry() -> Telemetry:
 	return telemetry_fn.call() as Telemetry
 
 
-## Сила действия с учётом защёлки.
 func _strength(action: String) -> float:
-	return 0.0 if _latched.has(action) else Input.get_action_strength(action)
+	return Input.get_action_strength(action) if InputMap.has_action(action) else 0.0
 
 
-func _latch_pressed() -> void:
-	for a in LATCH_ACTIONS:
-		if InputMap.has_action(a) and Input.is_action_pressed(a):
-			_latched[a] = true
+## Сила действия трапеции. only_bar (стоя на земле): если действие зажато только клавишами,
+## которые заняты шагом или поворотом (GROUND_MOVE_ACTIONS), — 0. Нажатие без физической
+## клавиши (Input.action_press — автопилот, тесты) считается.
+func _bar_strength(action: String, only_bar: bool) -> float:
+	var s := _strength(action)
+	if s <= 0.0 or not only_bar:
+		return s
+	var any_key := false
+	for ev in InputMap.action_get_events(action):
+		var k := ev as InputEventKey
+		if k == null or not Input.is_physical_key_pressed(k.physical_keycode):
+			continue
+		any_key = true
+		if not _is_move_key(k.physical_keycode):
+			return s
+	return 0.0 if any_key else s
 
 
-func _release_latches() -> void:
-	for a: String in _latched.keys():
-		if not Input.is_action_pressed(a):
-			_latched.erase(a)
+static func _is_move_key(code: Key) -> bool:
+	for a in GROUND_MOVE_ACTIONS:
+		if not InputMap.has_action(a):
+			continue
+		for ev in InputMap.action_get_events(a):
+			var k := ev as InputEventKey
+			if k != null and k.physical_keycode == code:
+				return true
+	return false
 
 
 static func _ramp(v: float, dir: float, rate: float, ret: float, dt: float) -> float:

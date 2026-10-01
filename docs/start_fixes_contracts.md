@@ -27,7 +27,7 @@ v2 (SF-2): трава и на FOREST. Ключи `configs/vegetation.json → gr
 - `forest_shade` (float, 0,8) — множитель цвета (× цвет луга в этой точке).
 Формула доли по классу в GDScript — `GrassField.class_share(c, shrub_density, forest_density)`. Проверка — `test_k2_grass_config`, `test_forest_grass_reaches_material`. SF-1 от этого не зависит (поляна — класс GRASS).
 
-## К3. Крен на земле и переход в полёт — v2
+## К3. Крен на земле и переход в полёт — v2 (заменён К3 v3 — `docs/control-fix_contracts.md`, С3)
 Владелец: SF-3 (`scripts/flight/ground_run.gd`: `_ground_bank`, `_turn`; стык GROUND→AIR в `flight_model.gd`). Потребители: `FlightTelemetry` (bank_deg, basis), `GliderVisual`, камеры, боты (`bot_pilot.gd` — управляют через `ControlInput`), сеть (`net_flight.gd` передаёт bank), SF-4.
 Не меняется (v1):
 - `FlightModel.bank: float` — рад, + вправо, **относительно горизонта** (не склона); `FlightModel.roll_rate: float` — рад/с; `FlightModel.heading` — рад, 0 — север, по часовой; `FlightModel.position` на земле — точка ступней на рельефе.

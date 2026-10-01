@@ -1,0 +1,149 @@
+extends Node
+## CF-1 зонд: старт по умолчанию в сцене игры, без ввода / разбег; CSV по шагам.
+## Совместим со старыми версиями (поля через get()). Выход — env CF1_OUT (каталог), CF1_TAG.
+
+const DT := 1.0 / 120.0
+const MAIN_SCENE := preload("res://scenes/main.tscn")
+const T_MAX := 20.0
+const LOG_EVERY := 12  # 0,1 с
+
+var failures: PackedStringArray = []
+
+
+func check(cond: bool, msg: String = "") -> void:
+	if not cond:
+		failures.append("check failed: " + msg)
+
+
+func test_probe() -> void:
+	var out_dir := OS.get_environment("CF1_OUT")
+	var tag := OS.get_environment("CF1_TAG")
+	var main: Node = MAIN_SCENE.instantiate()
+	add_child(main)
+	var game: Game = main.get_node("Game")
+	var menu: Node = main.get_node("UI/StartMenu")
+	for i in 1200:
+		if menu.visible:
+			break
+		await get_tree().process_frame
+	(main.get("opts") as Object).set("autostart", true)
+	(main.get("opts") as Object).set("bots", 0)
+	var cases := OS.get_environment("CF1_CASES")
+	if cases == "":
+		cases = "default"
+	var scens := OS.get_environment("CF1_SCENS")
+	if scens == "":
+		scens = "idle,run_neutral,run_pull,run_push,walk"
+	var seeds := OS.get_environment("CF1_SEEDS")
+	if seeds == "":
+		seeds = "-1"
+	for cs: String in cases.split(","):
+		var s := FlightSettings.defaults()
+		if cs != "default":
+			var parts := cs.split(":")
+			s.wing = "wings/" + parts[0]
+			s.wind_speed_kmh = float(parts[1])
+		var t0 := Time.get_ticks_msec()
+		await main.call("_fly", s)
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		var ar: Object = game.get("air_runtime")
+		print("CF1 fly %s done %.1f s, air_runtime=%s reason=%s" % [cs, (Time.get_ticks_msec() - t0) / 1000.0, ar, ar.call("unavailable_reason") if ar != null and ar.has_method("unavailable_reason") else "-"])
+		for sd: String in seeds.split(","):
+			for scen: String in scens.split(","):
+				var name := scen if cs == "default" and sd == "-1" else "%s-%s-%s" % [cs.replace(":", "-"), sd, scen]
+				var f := FileAccess.open("%s/%s_%s.csv" % [out_dir, tag, name], FileAccess.WRITE)
+				f.store_line(
+					"t,mode,phase,speed,dx,feet_load,wind_moment,hold_limit,bank_deg,alpha_deg,theta_deg,wu,wv,ww,fail,loc,wing,mass,heading,agl,roll_rate,airspeed,land,pitch_cmd,auto_nose"
+				)
+				_run(game, scen, f, s, float(sd))
+				f.close()
+		game.process_mode = Node.PROCESS_MODE_INHERIT
+	_release()
+	main.queue_free()
+
+
+func _run(game: Game, scen: String, f: FileAccess, s: FlightSettings, sd: float) -> void:
+	game.restart()
+	if sd >= 0.0:
+		game.air.set("time_s", sd)
+	var m: FlightModel = game.glider.model
+	var g: Object = m.get("_ground")
+	var p0 := m.position
+	var t := 0.0
+	var n := 0
+	_release()
+	var t_off := -1.0
+	var post := float(OS.get_environment("CF1_POST")) if OS.get_environment("CF1_POST") != "" else 0.0
+	while t < T_MAX or (t_off >= 0.0 and t < t_off + post):
+		var running := scen.begins_with("run") and t >= 1.0 and t_off < 0.0
+		_press("walk_forward", running or (scen == "walk" and t >= 1.0))
+		_press("run", running)
+		_press("pitch_pull_in", running and scen != "run_pull" and scen != "run_push" and false)
+		_press("nose_down", scen == "run_pull" and running)
+		_press("nose_up", scen == "run_push" and running)
+		game.tick(DT)
+		t += DT
+		n += 1
+		if t_off < 0.0 and m.mode == FlightModel.Mode.AIR:
+			t_off = t
+		var done := m.mode != FlightModel.Mode.GROUND and (post <= 0.0 or m.mode != FlightModel.Mode.AIR or t >= t_off + post or bool(game.get("_crashed")))
+		if n % LOG_EVERY == 0 or done:
+			var w := Vector3.ZERO
+			var af: Callable = game.glider.air_fn
+			if af.is_valid():
+				var v: Variant = af.call(m.position + Vector3.UP * 1.5)
+				if v is Vector3:
+					w = v
+			var fl: Variant = g.get("feet_load") if g != null else null
+			var wm: Variant = g.get("wind_moment_nm") if g != null else null
+			var hl: Variant = g.get("hold_limit_nm") if g != null else null
+			var sp: Variant = g.get("_speed") if g != null else null
+			var d := m.position - p0
+			f.store_line(
+				(
+					"%.2f,%d,%s,%.3f,%.3f,%s,%s,%s,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%s,%s,%s,%.1f,%.1f,%.2f,%.1f,%.2f,%s,%.3f,%s"
+					% [
+						t,
+						m.mode,
+						m.phase(),
+						float(sp) if sp != null else m.velocity.length(),
+						Vector2(d.x, d.z).length(),
+						str(fl),
+						str(wm),
+						str(hl),
+						rad_to_deg(m.bank),
+						rad_to_deg(m.alpha),
+						rad_to_deg(m.theta),
+						w.x,
+						w.z,
+						w.y,
+						m.takeoff_failure,
+						s.location_id + "/" + s.site_id,
+						s.wing,
+						m.mass,
+						rad_to_deg(m.heading),
+						m.position.y - game.terrain.height_at(m.position.x, m.position.z),
+						rad_to_deg(m.roll_rate),
+						(m.velocity - w).length(),
+						str(m.landing_result.get("grade", "")) + ("/hit" if bool(game.get("_crashed")) else ""),
+						float(game.input_controller.control.pitch),
+						str(game.input_controller.get("_auto_nose")),
+					]
+				)
+			)
+		if done:
+			break
+
+
+func _press(action: String, on: bool) -> void:
+	if not InputMap.has_action(action):
+		return
+	if on:
+		Input.action_press(action)
+	else:
+		Input.action_release(action)
+
+
+func _release() -> void:
+	for a: String in ["walk_forward", "run", "pitch_pull_in", "nose_up", "nose_down"]:
+		_press(a, false)

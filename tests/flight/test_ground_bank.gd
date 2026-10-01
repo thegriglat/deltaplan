@@ -1,6 +1,7 @@
 extends TestCase
-## Крен крыла на плечах пилота на земле (SF-3): «рука пилота» с пределом ∝ доле веса на ногах,
-## поворот стоя — на месте, на бегу — по дуге; переход в полёт без рывка. docs/flight.md.
+## Крен крыла на плечах пилота на земле (SF-3, К3 v3): «рука пилота» ведёт крыло к заданному крену
+## (input.roll) с пределом ∝ доле веса на ногах; поворот стоя — на месте (input.turn), на бегу —
+## дугой от крена крыла; переход в полёт без рывка. docs/flight.md.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
 const FLAT := 500.0
@@ -29,12 +30,13 @@ static func m_max() -> float:
 	return float(Config.get_config("flight").ground_bank.pilot_moment_max_nm)
 
 
-## 1. Штиль, стоит 10 с с зажатой A (D): крен < 0,5°, курс поворачивается.
+## 1. Штиль, стоит 10 с с зажатой A (D) — input.turn: крен < 0,5°, курс поворачивается.
 func test_standing_turn_stays_level() -> void:
 	for roll in [-1.0, 1.0]:
 		var m := Sim.make("sport")
 		m.reset_on_ground(Vector3.ZERO, 0.0)
-		var inp := Sim.input(0.0, roll)
+		var inp := Sim.input()
+		inp.turn = roll
 		var max_bank := 0.0
 		var turned := 0.0
 		var h_prev := m.heading
@@ -50,7 +52,7 @@ func test_standing_turn_stays_level() -> void:
 			)
 		)
 		check(m.phase() == "standing", "стоит: " + m.phase())
-		check(max_bank < 0.5, "стоя с A/D крыло не кренится: %.3f°" % max_bank)
+		check(max_bank < 0.5, "стоя поворот (turn) крыло не кренит: %.3f°" % max_bank)
 		check(absf(rad_to_deg(turned)) > 30.0, "курс поворачивается: %.0f°" % rad_to_deg(turned))
 		check(signf(turned) == signf(roll), "D — вправо, A — влево")
 
@@ -95,59 +97,92 @@ func test_side_gust_threshold() -> void:
 				]
 			)
 		)
-		check(hi.failure == "crosswind", "порыв выше порога опрокидывает: '%s'" % hi.failure)
+		check(hi.failure == "wingtip", "порыв выше порога опрокидывает: '%s'" % hi.failure)
 		check(hi.t < GUST_FAIL_S, "опрокидывает за %.2f с" % hi.t)
-		check(hi2.failure == "crosswind" and hi2.t < hi.t, "сильнее порыв — быстрее")
+		check(hi2.failure == "wingtip" and hi2.t < hi.t, "сильнее порыв — быстрее")
 		check(lo.failure == "", "порыв на 20 %% ниже порога — держит: '%s'" % lo.failure)
 		check(lo.max_bank < 5.0, "держит почти ровно: %.2f°" % lo.max_bank)
 
 
-## 4. Разбег с зажатой D: дуга, радиус ≥ v²/a_max, крен < 3° в штиль.
+## 1б. Стоя крен крыла — заданный рукой (input.roll · command_max_deg): штиль и встречный 6 м/с,
+## «Славутич» и «спорт». В штиль рука доводит до заданного; в 6 м/с — сколько позволяет M_max·N/W.
+func test_standing_bank_command() -> void:
+	var phi_max := float(Config.get_config("flight").ground_bank.command_max_deg)
+	for w in ["slavutich_ut", "sport"]:
+		for head in [0.0, 6.0]:
+			for roll in [1.0, -1.0, 0.5]:
+				var m := Sim.make(w)
+				m.reset_on_ground(Vector3.ZERO, 0.0)
+				var inp := Sim.input(0.0, roll)
+				var af := wind_fn(Vector3(0, 0, head))
+				Sim.run_for(m, 3.0, inp, af, slope)
+				var gr: GroundRun = m._ground
+				var b := m.telemetry.bank_deg
+				print(
+					(
+						"    %s встречный %.0f, roll %+.1f: крен %.2f° (задано %.1f°), N/W %.2f, %s"
+						% [w, head, roll, b, roll * phi_max, gr.feet_load, m.phase()]
+					)
+				)
+				check(m.mode == FlightModel.Mode.GROUND, "%s %.0f: стоит (%s)" % [w, head, m.phase()])
+				check(signf(b) == signf(roll), "%s: крен в сторону ввода: %.2f" % [w, b])
+				if head == 0.0:
+					approx(b, roll * phi_max, 0.5, "%s штиль: крен к заданному" % w)
+				else:
+					check(absf(b) > 0.5 * absf(roll) * phi_max, "%s 6 м/с: крен заметен %.2f" % [w, b])
+				check(absf(m.telemetry.heading_deg) < 0.5, "крен стоя не поворачивает курс")
+			# отпустил — снова горизонт
+			var m2 := Sim.make(w)
+			m2.reset_on_ground(Vector3.ZERO, 0.0)
+			Sim.run_for(m2, 2.0, Sim.input(0.0, 1.0), wind_fn(Vector3(0, 0, head)), slope)
+			# в сильный ветер к рулю руки добавляется аэродемпфирование — медленная мода ≈ 1 с
+			Sim.run_for(m2, 6.0, Sim.input(), wind_fn(Vector3(0, 0, head)), slope)
+			check(absf(m2.telemetry.bank_deg) < 0.5, "%s: отпустил — горизонт %.2f" % [w, m2.telemetry.bank_deg])
+
+
+## 4. Разбег с креном вправо (roll): дуга от крена, |a| ≤ a_max, радиус ≥ R_min; без крена — прямо.
 func test_run_arc() -> void:
 	var a_max := float(Config.value("pilot", "run.turn_accel_max_ms2"))
 	var w_walk := deg_to_rad(float(Config.value("pilot", "walk.turn_rate_dps")))
-	var m := Sim.make("sport")
-	m.reset_on_ground(Vector3.ZERO, 0.0)
-	var inp := Sim.input(0.0, 1.0, true)
-	var max_bank := 0.0
-	var min_ratio := INF  # R / R_min
-	var r_at_fast := 0.0
-	var v_fast := 0.0
-	var h_prev := m.heading
-	var turned := 0.0
-	for i in int(8.0 / Sim.DT):
-		m.step(Sim.DT, inp, Callable(), slope)
-		if m.mode != FlightModel.Mode.GROUND:
-			break
-		max_bank = maxf(max_bank, absf(m.telemetry.bank_deg))
-		var dh := wrapf(m.heading - h_prev, -PI, PI)
-		h_prev = m.heading
-		turned += dh
-		var v := Vector2(m.velocity.x, m.velocity.z).length()
-		if dh > 1.0e-6 and v > 0.5:
-			var r := v * Sim.DT / dh
-			var r_min := maxf(v * v / a_max, v / w_walk)
-			min_ratio = minf(min_ratio, r / r_min)
-			if v > v_fast:
-				v_fast = v
-				r_at_fast = r
-	print(
-		(
-			"    разбег с D: %.0f°, крен %.2f°, R/R_min %.3f, на %.1f м/с R %.1f м (v²/a %.1f), %s"
-			% [
-				rad_to_deg(turned),
-				max_bank,
-				min_ratio,
-				v_fast,
-				r_at_fast,
-				v_fast * v_fast / a_max,
-				m.phase()
-			]
+	for roll in [1.0, 0.5, -1.0, 0.0]:
+		var m := Sim.make("sport")
+		m.reset_on_ground(Vector3.ZERO, 0.0)
+		var inp := Sim.input(0.0, roll, true)
+		var max_bank := 0.0
+		var min_ratio := INF  # R / R_min
+		var max_a := 0.0
+		var h_prev := m.heading
+		var turned := 0.0
+		for i in int(8.0 / Sim.DT):
+			m.step(Sim.DT, inp, Callable(), slope)
+			if m.mode != FlightModel.Mode.GROUND:
+				break
+			max_bank = maxf(max_bank, absf(m.telemetry.bank_deg))
+			var dh := wrapf(m.heading - h_prev, -PI, PI)
+			h_prev = m.heading
+			turned += dh
+			var v := Vector2(m.velocity.x, m.velocity.z).length()
+			if absf(dh) > 1.0e-6 and v > 0.5:
+				var r := v * Sim.DT / absf(dh)
+				var r_min := maxf(v * v / a_max, v / w_walk)
+				min_ratio = minf(min_ratio, r / r_min)
+				max_a = maxf(max_a, v * absf(dh) / Sim.DT)
+		print(
+			(
+				"    разбег roll %+.1f: повернул %.1f°, max|крен| %.2f°, max|a| %.2f м/с² (≤ %.1f), R/R_min %.3f, %s"
+				% [roll, rad_to_deg(turned), max_bank, max_a, a_max, min_ratio, m.phase()]
+			)
 		)
-	)
-	check(turned > deg_to_rad(20.0), "на бегу поворачивает: %.0f°" % rad_to_deg(turned))
-	check(min_ratio > 0.99, "радиус не меньше R_min: %.3f" % min_ratio)
-	check(max_bank < 3.0, "крен на бегу в штиль < 3°: %.2f°" % max_bank)
+		if roll == 0.0:
+			check(absf(rad_to_deg(turned)) < 0.5, "без крена — прямо: %.2f°" % rad_to_deg(turned))
+			check(max_bank < 1.0, "без ввода крен ≈ 0: %.2f°" % max_bank)
+		else:
+			check(
+				signf(turned) == signf(roll) and absf(turned) > deg_to_rad(10.0),
+				"дуга в сторону крена: %.0f°" % rad_to_deg(turned)
+			)
+			check(max_a <= a_max * 1.01, "|a| ≤ a_max: %.3f" % max_a)
+			check(min_ratio > 0.99, "радиус не меньше R_min: %.3f" % min_ratio)
 
 
 ## 5. Переход: крен и скорость крена непрерывны на отрыве (штиль и слабый боковой ветер).

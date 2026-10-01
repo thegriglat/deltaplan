@@ -173,7 +173,6 @@ func test_keyboard_shift_and_center_key() -> void:
 	var ic := _controller()
 	ic.roll_mode = "weight_shift"
 	ic.on_ground = false
-	ic._was_on_ground = false
 	var m := Sim.make("training")
 	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
 	Sim.run_for(m, 3.0, ws())
@@ -216,7 +215,6 @@ func test_rate_mode_center_key_levels_wing() -> void:
 	var ic := _controller()
 	ic.roll_mode = "rate"
 	ic.on_ground = false
-	ic._was_on_ground = false
 	var m := Sim.make("sport")
 	ic.telemetry_fn = func() -> Telemetry: return m.telemetry
 	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
