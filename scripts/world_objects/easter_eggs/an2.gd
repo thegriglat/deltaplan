@@ -51,7 +51,10 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 
 func update(ctx: EggContext) -> bool:
 	var age := ctx.t - t0
-	if not track_ok or age < 0.0 or age * _speed > _len:
+	if not track_ok:
+		# нет трассы (форс без места): невидима, живёт lifetime_s из конфига (К3, К7 «жизнь»)
+		return age >= 0.0 and age < lifetime_s
+	if age < 0.0 or age * _speed > _len:
 		return false
 	var s := age * _speed
 	var pos := _p0 + _dir * s
