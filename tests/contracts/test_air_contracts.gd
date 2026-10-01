@@ -395,6 +395,18 @@ func test_c2_params_match_reference() -> void:
 			1.0e-9 * r[5],
 			"max_profile = rules.py: " + tag
 		)
+	# C2 v5: устойчивые E, F — h = min(0,3u*/f, 0,4√(u*L/f)), L по Golder 1972 (числа wind_prof.py:
+	# E при z0 0,1 м — L 45,5 м, F — 14,1 м); (α, U10, z0, f, класс) → (z_sat, max_profile)
+	var ctl_s := [
+		[0.56, 3.0, 0.1, 1.13e-4, 4, 38.85066569723485, 2.1382729414369037],
+		[0.88, 3.0, 0.1, 1.13e-4, 5, 21.626220702370595, 1.9714372357973053],
+		[0.88, 5.0, 0.1, 1.13e-4, 5, 27.91933087389579, 2.4682912571816895],
+	]
+	for r: Array in ctl_s:
+		var mp := WindProfile.max_profile(r[0], r[1], r[2], r[3], r[4])
+		approx(WindProfile.z_sat(r[1], r[2], r[3], r[4]), r[5], 1.0e-9 * r[5], "z_sat E/F %s" % r)
+		approx(mp, r[6], 1.0e-9 * r[6], "max_profile E/F %s" % r)
+	approx(WindProfile.z_sat(3.0, 0.1, 1.13e-4, 3), ctl[0][4], 1.0e-6, "D — как rules.py")
 	# класс Тёрнера → α (Irwin 1979 к D): полдень ясно — A (штиль), B (3 м/с), D (6 м/с);
 	# облачно 3 м/с — D; ночь ясно 3 м/с — F, облачно — E
 	var cls := [
@@ -425,6 +437,9 @@ func test_c2_params_match_reference() -> void:
 	approx(pp.x, float(c.p.alpha), 1.0e-6, "WindModel α = α случая решателя (12:00, 3 м/с)")
 	approx(pp.y, float(c.p.max_profile), 1.0e-6, "WindModel предел = max_profile случая")
 	approx(wm.profile(1.0e4), float(c.p.max_profile), 1.0e-6, "WindModel выше z_sat = max_profile")
+	# вечер, ясно, 3 м/с — класс F: на 300 м ≈ 2·U10, а не 14·U10 (v4)
+	wm.set_conditions(6.4, 0.0)
+	approx(wm.profile(300.0), 1.9714372357973053, 1.0e-6, "F: WindModel на 300 м = max_profile F")
 
 
 static func _case_meta(c: AirCase, z_i: float) -> Dictionary:

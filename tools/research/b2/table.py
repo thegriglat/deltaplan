@@ -33,7 +33,7 @@ def main():
         for sky in ("clear", "partly", "overcast"):
             for u in (0.0, 3.0, 6.0):
                 a, mp, cls, el = WP.for_hour(ctx, hour, sky, u, Z0, F_COR)
-                zs = WP.z_sat(u, Z0, F_COR)
+                zs = WP.z_sat(u, Z0, F_COR, WP.CLASSES.index(cls))
                 rows.append((hour, sky, u, cls, a, mp, zs))
                 lines.append(f"| {hour:g} | {el:.1f} | {sky} | {u:g} | {cls} | {a:.3f} | {zs:.0f} | {mp:.3f} |")
     lines += ["", "## Профиль WindModel: ветер / U10 на высоте над рельефом", "",

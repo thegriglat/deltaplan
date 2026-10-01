@@ -10,7 +10,8 @@ U(z) = U10 (z/10)^α до z_sat, выше — постоянный: max_profile 
   stability», Atmos. Environ. 13, сельская местность: A 0,07, B 0,07, C 0,10, D 0,15, E 0,35, F 0,55) к классу D.
   α_N = configs/atmosphere.json → wind.shear_exponent_neutral (0,24 — совместная калибровка Б1, Askervein).
 * z_sat = wind.z_sat_frac · h, h = 0,3 u*/f — толщина нейтрального слоя модели (air._bl_depth), u* = κ U10/ln(10/z0)
-  — то же правило, что tools/research/cases/rules.py (C10 v3).
+  — то же правило, что tools/research/cases/rules.py (C10 v3); для устойчивых E, F h = min(0,3 u*/f, 0,4 √(u* L/f)),
+  L по классу и z0 — Golder 1972 (C2 v5).
 
 Индекс радиации (NRI) по Тёрнеру: ночь (от часа до заката до часа после восхода) — облачность ≤ 0,4 → −2, иначе −1;
 день — класс инсоляции по высоте солнца (> 60° — 4, 35–60° — 3, 15–35° — 2, ≤ 15° — 1), облачность > 0,5 снижает
@@ -87,13 +88,33 @@ def alpha(u10, sun_elev_deg, cover):
     return alpha_n() * IRWIN_RURAL[stability_class(u10, sun_elev_deg, cover)] / IRWIN_RURAL[3]
 
 
-def z_sat(u10, z0, f_cor):
+# Golder (1972): 1/L = a + b·lg z0 по классу A–F (Myrup & Ranzieri 1976; Seinfeld & Pandis, «Atmospheric Chemistry and
+# Physics», гл. 16) — длина Обухова для толщины устойчивого слоя (C2 v5).
+GOLDER = ((-0.096, 0.029), (-0.037, 0.029), (-0.002, 0.018), (0.0, 0.0), (0.004, -0.018), (0.035, -0.036))
+D = 3
+
+
+def obukhov_inv(cls, z0):
+    a, b = GOLDER[cls]
+    return a + b * math.log10(z0)
+
+
+def bl_depth(u10, z0, f_cor, cls=D):
+    """Толщина слоя для насыщения профиля: 0,3 u*/f; для устойчивых E, F — не больше 0,4 √(u*·L/f) (Зилитинкевич,
+    как air._bl_depth и AirCase._closure)."""
     us = KAPPA * max(u10, U10_MIN) / math.log(10.0 / z0)
-    return z_sat_frac() * H_MECH_C * us / f_cor
+    h = H_MECH_C * us / f_cor
+    if cls > D:
+        h = min(h, 0.4 * math.sqrt(us / obukhov_inv(cls, z0) / f_cor))
+    return h
 
 
-def max_profile(alpha_v, u10, z0, f_cor):
-    return (z_sat(u10, z0, f_cor) / 10.0) ** alpha_v
+def z_sat(u10, z0, f_cor, cls=D):
+    return z_sat_frac() * bl_depth(u10, z0, f_cor, cls)
+
+
+def max_profile(alpha_v, u10, z0, f_cor, cls=D):
+    return (z_sat(u10, z0, f_cor, cls) / 10.0) ** alpha_v
 
 
 def for_hour(ctx, hour, sky, u10, z0, f_cor):
@@ -103,5 +124,6 @@ def for_hour(ctx, hour, sky, u10, z0, f_cor):
     doy = W.day_of_year(ctx["month"], ctx["day"])
     el = W.solar_position(ctx["lat"], ctx["lon"], doy, hour, ctx["utc_offset_h"])[1]
     cover = float(W.CFG["sky"].get(sky, W.CFG["sky"]["clear"]).get("cover", 0.0))
+    k = stability_class(u10, el, cover)
     a = alpha(u10, el, cover)
-    return a, max_profile(a, u10, z0, f_cor), CLASSES[stability_class(u10, el, cover)], el
+    return a, max_profile(a, u10, z0, f_cor, k), CLASSES[k], el

@@ -24,7 +24,7 @@ func _ready() -> void:
 			for u in [0.0, 3.0, 6.0]:
 				var k := WindProfile.stability_class(u, sun, cover)
 				var a := WindProfile.alpha(u, sun, cover)
-				var mp := WindProfile.max_profile(a, u, AirCase.Z0, AirCase.F_COR)
+				var mp := WindProfile.max_profile(a, u, AirCase.Z0, AirCase.F_COR, k)
 				var wm := WindModel.new()
 				wm.setup(cfg.wind, cfg.turbulence, 1)
 				wm.set_conditions(sun, cover)

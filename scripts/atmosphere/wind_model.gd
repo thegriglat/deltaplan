@@ -115,8 +115,9 @@ func set_conditions(sun_elev: float, cover_frac: float) -> void:
 
 ## α и предел профиля из WindProfile (z0 и f — как у решателя: AirCase.Z0, F_COR).
 func _update_profile() -> void:
+	var k := WindProfile.stability_class(speed_ref, sun_elev_deg, cover)
 	_alpha = WindProfile.alpha(speed_ref, sun_elev_deg, cover)
-	_max_f = WindProfile.max_profile(_alpha, speed_ref, AirCase.Z0, AirCase.F_COR)
+	_max_f = WindProfile.max_profile(_alpha, speed_ref, AirCase.Z0, AirCase.F_COR, k)
 
 
 ## Показатель профиля и ветер на высоте / U10 (для отладки и тестов).

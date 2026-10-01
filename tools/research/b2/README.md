@@ -11,6 +11,7 @@
 | `bench.sh` | GPU-тесты `test_air_` и bench Пикара 400/200 м (QUICK и полный) → `out/bench/<метка>_*.log` |
 | `headless.sh` | все headless-тесты по папкам → `out/headless/<метка>_<папка>.log` |
 | `cost.py` | таблица цены до/после из логов bench и GPU-тестов → `out/cost.md` |
+| `tke_recheck.py` | ТКЭ Askervein масштаба 3 (метод AM-09б) с λ/h 0,0158 и профилем Б1 → `out/tke/` (поля — `fields/`, вне git) |
 | `split.py` | откуда рост итераций: профиль притока или λ/h (эталон air.py, 4 набора) → `out/split.md` |
 
 ```bash
