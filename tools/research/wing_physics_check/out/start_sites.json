@@ -1,0 +1,52 @@
+[
+  {
+    "location": "altai",
+    "msl_m": 1106.9,
+    "start": "sinyukha_west"
+  },
+  {
+    "location": "altai",
+    "msl_m": 1209.2,
+    "start": "sinyukha_east"
+  },
+  {
+    "location": "altai",
+    "msl_m": 629.9,
+    "start": "tugaya_south"
+  },
+  {
+    "location": "askarovo",
+    "msl_m": 635.4,
+    "start": "biyagoda_west"
+  },
+  {
+    "location": "askarovo",
+    "msl_m": 637.0,
+    "start": "biyagoda_east"
+  },
+  {
+    "location": "askarovo",
+    "msl_m": 728.2,
+    "start": "biyagoda_south_west"
+  },
+  {
+    "location": "aushkul",
+    "msl_m": 628.2,
+    "start": "aushtau_east"
+  },
+  {
+    "location": "aushkul",
+    "msl_m": 619.3,
+    "start": "aushtau_south"
+  },
+  {
+    "location": "aushkul",
+    "msl_m": 522.0,
+    "start": "ridge_west"
+  },
+  {
+    "location": "ongudai",
+    "msl_m": 1868.8,
+    "start": "kayancha_south"
+  }
+]
