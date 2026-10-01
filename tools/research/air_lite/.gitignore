@@ -4,3 +4,4 @@ out/ds_*.npz
 out/eval_*.npz
 __pycache__/
 out/gbm_*.txt
+out/folds/

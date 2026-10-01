@@ -2,12 +2,12 @@
 """Набор точек для суррогата: признаки (features.py) + целевые величины полных решений (gen.py).
 
 По каждому окну 100 м каждого случая: столбцы внутри окна (без 5 клеток у края — зона релаксации
-к родителю), высоты AGL пилота (25…800 м). Целевые величины:
+к родителю), высоты AGL 25…2000 м. Целевые величины:
   механика (решение без нагрева, только U10 ≥ 0,5 м/с), в долях фона Ubg(a):
     t_mpar — вдоль ветра, t_mper — поперёк (влево), t_mw — w_mech;
   нагрев (решение с нагревом минус без), м/с и К:
-    t_cu, t_cv — добавка горизонтали (восток, север), t_cw — w_conv, t_th — θ′.
-Для обучения — случайные 400 столбцов окна × все высоты (out/ds_points.npz); полные окна для ключевых
+    t_cpar, t_cper — добавка горизонтали (вдоль ветра, влево), t_cw — w_conv, t_th — θ′.
+Для обучения — случайные 300 столбцов окна × все высоты (out/ds_points.npz); полные окна для ключевых
 чисел пересобираются в evaluate.py.
 
   .venv/bin/python build.py            # → out/ds_points.npz
@@ -30,7 +30,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 FIELDS = HERE / "fields"
 AGL_ALL = (25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000)
-AGL_FIT = (25, 50, 75, 100, 150, 200, 300, 400, 600, 800)
+AGL_FIT = AGL_ALL
 EDGE = 5
 U_MIN = 0.5
 
@@ -102,53 +102,66 @@ def window_frame(run, iw, Z, agl_idx=None):
     # цели
     hh = Z[f"w{iw}_h"][:, ia].astype(np.float64)
     mm = Z[f"w{iw}_m"][:, ia].astype(np.float64)
-    ex, ey = F.unit(wdir)
+    ex, ey = F.unit(wdir if U10 > 0 else 0.0)     # штиль — та же система, что у признаков (ветер «с севера»)
     targ = {}
     if U10 >= U_MIN:
         ub = Ub[:, None, None]
         targ["t_mpar"] = (mm[0] * ex + mm[1] * ey) / ub
         targ["t_mper"] = (-mm[0] * ey + mm[1] * ex) / ub
         targ["t_mw"] = mm[2] / ub
-    targ["t_cu"] = hh[0] - mm[0]
-    targ["t_cv"] = hh[1] - mm[1]
+    du, dv = hh[0] - mm[0], hh[1] - mm[1]
+    targ["t_cpar"] = du * ex + dv * ey
+    targ["t_cper"] = -du * ey + dv * ex
     targ["t_cw"] = hh[2] - mm[2]
     targ["t_th"] = hh[3]
     aux = dict(hh=hh, mm=mm, hc=hc, H=H, X=X, Y=Y, agl=agl, Ub=Ub, ex=ex, ey=ey, day=D, N=N)
     return feats, targ, aux
 
 
-def main(n_cols=400, seed=1):
-    rng = np.random.default_rng(seed)
-    runs = load_runs()
-    plan = json.loads((OUT / "plan.json").read_text())
+_RUNS, _PLAN = None, None
+
+
+def _one(args):
+    ir, n_cols, seed = args
+    run = _RUNS[ir]
+    rng = np.random.default_rng(seed * 100003 + ir)
     agl_idx = [AGL_ALL.index(a) for a in AGL_FIT]
+    Z = np.load(FIELDS / f"{run['id']}.npz")
     cols = {}
-    meta = []
-    for ir, run in enumerate(runs):
-        Z = np.load(FIELDS / f"{run['id']}.npz")
-        for iw in range(len(plan["centers"][run["loc"]])):
-            if f"w{iw}" not in run:
-                continue
-            feats, targ, aux = window_frame(run, iw, Z, agl_idx)
-            nA, ny, nx = feats["a"].shape
-            jj = rng.integers(EDGE, ny - EDGE, n_cols)
-            ii = rng.integers(EDGE, nx - EDGE, n_cols)
-            sel = lambda A: A[:, jj, ii].ravel()
-            for k, v in feats.items():
-                cols.setdefault(k, []).append(sel(v).astype(np.float32))
-            for k in ("t_mpar", "t_mper", "t_mw", "t_cu", "t_cv", "t_cw", "t_th"):
-                v = targ.get(k)
-                cols.setdefault(k, []).append(sel(v).astype(np.float32) if v is not None
-                                              else np.full(nA * n_cols, np.nan, np.float32))
-            n = nA * n_cols
-            cols.setdefault("case", []).append(np.full(n, ir, np.int32))
-            cols.setdefault("win", []).append(np.full(n, iw, np.int16))
-            meta.append(dict(case=ir, id=run["id"], loc=run["loc"], win=iw))
-        if ir % 50 == 0:
-            print(ir, len(runs), flush=True)
-    data = {k: np.concatenate(v) for k, v in cols.items()}
-    locs = np.array([r["loc"] for r in runs])
-    np.savez_compressed(OUT / "ds_points.npz", **data, case_loc=locs, case_id=np.array([r["id"] for r in runs]))
+    for iw in range(len(_PLAN["centers"][run["loc"]])):
+        if f"w{iw}" not in run:
+            continue
+        feats, targ, aux = window_frame(run, iw, Z, agl_idx)
+        nA, ny, nx = feats["a"].shape
+        jj = rng.integers(EDGE, ny - EDGE, n_cols)
+        ii = rng.integers(EDGE, nx - EDGE, n_cols)
+        sel = lambda A: A[:, jj, ii].ravel()
+        for k, v in feats.items():
+            cols.setdefault(k, []).append(sel(v).astype(np.float32))
+        for k in TARGETS:
+            v = targ.get(k)
+            cols.setdefault(k, []).append(sel(v).astype(np.float32) if v is not None
+                                          else np.full(nA * n_cols, np.nan, np.float32))
+        n = nA * n_cols
+        cols.setdefault("case", []).append(np.full(n, ir, np.int32))
+        cols.setdefault("win", []).append(np.full(n, iw, np.int16))
+    return {k: np.concatenate(v) for k, v in cols.items()}
+
+
+TARGETS = ("t_mpar", "t_mper", "t_mw", "t_cpar", "t_cper", "t_cw", "t_th")
+
+
+def main(n_cols=300, seed=1, procs=12):
+    global _RUNS, _PLAN
+    import multiprocessing as mp
+    _RUNS = load_runs()
+    _PLAN = json.loads((OUT / "plan.json").read_text())
+    with mp.get_context("fork").Pool(procs) as pool:
+        parts = pool.map(_one, [(ir, n_cols, seed) for ir in range(len(_RUNS))], chunksize=4)
+    data = {k: np.concatenate([p[k] for p in parts]) for k in parts[0]}
+    runs = _RUNS
+    np.savez_compressed(OUT / "ds_points.npz", **data, case_loc=np.array([r["loc"] for r in runs]),
+                        case_id=np.array([r["id"] for r in runs]))
     print("точек:", len(data["a"]), "признаков:", len([k for k in data if not k.startswith("t_")]))
 
 

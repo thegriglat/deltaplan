@@ -8,7 +8,7 @@
   m_u, m_v, m_w — решение без нагрева (механика: w_mech), h_u, h_v, h_w, h_th — с нагревом,
   плюс hc, H (поток тепла), h_bl (толщина слоя решателя) → fields/<id>.npz (float16; вне git).
 Строка на случай → out/runs.jsonl (итерации, время, статус); готовые пропускаются.
-Замок GPU (/tmp/heat_ca_gpu.lock) — на каждый случай, внутри скрипта: снаружи flock НЕ нужен.
+Замок GPU (/tmp/heat_ca_gpu.lock) — на пачку случаев ≤ --batch-s с (5 мин), внутри скрипта: снаружи flock НЕ нужен.
 
   PY=.venv/bin/python
   $PY gen.py plan                      # → out/plan.json
@@ -155,6 +155,7 @@ def main():
     ap.add_argument("--ids", default="")
     ap.add_argument("--limit", type=int, default=10 ** 6)
     ap.add_argument("--log", default=str(OUT / "runs.jsonl"))
+    ap.add_argument("--batch-s", type=float, default=300.0)
     a = ap.parse_args()
     if a.cmd == "plan":
         make_plan()
@@ -167,28 +168,37 @@ def main():
     # чередовать места: любой префикс прогона покрывает все места
     todo.sort(key=lambda c: (int(c["id"].rsplit("_", 1)[1]), c["loc"]))
     t_start = time.time()
-    for n, c in enumerate(todo):
-        row = dict(c)
-        t0 = time.perf_counter()
+    n = 0
+    while n < len(todo):
+        # замок GPU — на пачку случаев не дольше a.batch_s секунд (очередь других агентов проходит между пачками)
         with GpuLock() as lk:
-            try:
-                row.update(run_case(c, plan["centers"][c["loc"]]))
-                st = [v["status"] for v in row["runs"].values()]
-                row["status"] = "ok" if all(s == "ok" for s in st) else ("diverged" if "diverged" in st else "max")
-            except Exception as e:  # noqa: BLE001
-                row.update(status="error", error=f"{type(e).__name__}: {e}", tb=traceback.format_exc()[-2000:])
+            t_batch = time.perf_counter()
+            first = True
+            while n < len(todo) and time.perf_counter() - t_batch < a.batch_s:
+                c = todo[n]
+                row = dict(c)
+                t0 = time.perf_counter()
                 try:
-                    import cupy as cp
-                    cp.get_default_memory_pool().free_all_blocks()
-                except Exception:  # noqa: BLE001
-                    pass
-        row["t_wall"] = round(time.perf_counter() - t0, 2)
-        row["lock_wait"] = round(lk.wait, 2)
-        with log.open("a") as f:
-            f.write(json.dumps(row, default=float, ensure_ascii=False) + "\n")
-        it = sum(v["iters"] for v in row.get("runs", {}).values())
-        print(f"[{(time.time() - t_start) / 60:6.1f} мин] {n + 1}/{len(todo)} {c['id']}: {row['status']}, {it} ит., "
-              f"{row['t_wall']:.1f} с, ждал GPU {lk.wait:.0f} с", flush=True)
+                    row.update(run_case(c, plan["centers"][c["loc"]]))
+                    st = [v["status"] for v in row["runs"].values()]
+                    row["status"] = "ok" if all(s == "ok" for s in st) else ("diverged" if "diverged" in st else "max")
+                except Exception as e:  # noqa: BLE001
+                    row.update(status="error", error=f"{type(e).__name__}: {e}", tb=traceback.format_exc()[-2000:])
+                    try:
+                        import cupy as cp
+                        cp.get_default_memory_pool().free_all_blocks()
+                    except Exception:  # noqa: BLE001
+                        pass
+                row["t_wall"] = round(time.perf_counter() - t0, 2)
+                row["lock_wait"] = round(lk.wait, 2) if first else 0.0
+                first = False
+                with log.open("a") as f:
+                    f.write(json.dumps(row, default=float, ensure_ascii=False) + "\n")
+                it = sum(v["iters"] for v in row.get("runs", {}).values())
+                print(f"[{(time.time() - t_start) / 60:6.1f} мин] {n + 1}/{len(todo)} {c['id']}: {row['status']}, {it} ит., "
+                      f"{row['t_wall']:.1f} с", flush=True)
+                n += 1
+        print(f"  пачка: ждал GPU {lk.wait:.0f} с", flush=True)
     print(f"готово: {len(todo)} случаев за {(time.time() - t_start) / 3600:.2f} ч")
 
 
