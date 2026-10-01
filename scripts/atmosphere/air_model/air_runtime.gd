@@ -7,11 +7,12 @@ extends Node
 ## пересчёта. docs/air_model.md → «Загрузка и пересчёт поля».
 ##
 ##   rt.setup(atmo, {detail = layer, water = img, loc = {...}}, conditions_fn)
-##   await rt.load_field()        # экран загрузки: кадр с этапом, затем один проход без кадров
+##   await rt.load_field()        # экран загрузки: кадр с этапом, затем куски по LOAD_BLOCK_MS
 ##   rt.recompute_enabled = true  # полёт: пересчёт каждые recompute_game_min и при смене условий
 ##
-## Загрузка (контракт S2): после кадра с этапом «Рассчитываем ветер» — область и окна одним
-## проходом на главном потоке без отдачи кадров (_compute_pass; рабочие потоки — параллельно GPU).
+## Загрузка (контракт S2): после кадра с этапом «Рассчитываем ветер» — область и окна на главном
+## потоке кусками по LOAD_BLOCK_MS с одним кадром между ними (_compute_pass; рабочие потоки —
+## параллельно GPU).
 ## Полёт — опрос в _process (RD — только главный поток): poll() порциями ≤ 25 мс.
 ## Ошибка/нет GPU/таймаут: при загрузке — аналитика и строка
 ## «air_model: analytic (<причина>)», в полёте — остаётся прежнее поле, следующая попытка — на
@@ -30,9 +31,10 @@ enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT }
 
 ## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
-## Загрузка: наибольший непрерывный кусок главного потока в этапе, мс. INF — весь расчёт одним
-## проходом (экран замирает на кадре с этапом «ветер»); конечное — кусками с кадром между ними.
-const LOAD_BLOCK_MS := INF
+## Загрузка: наибольший непрерывный кусок главного потока в этапе, мс; между кусками — один кадр
+## (события окна: Windows считает окно «не отвечающим» после ~5 с без них). INF — весь расчёт
+## одним проходом. 1500 — шлюз (б) плана air-speed: на RX 5600 XT проход 7–11 с.
+const LOAD_BLOCK_MS := 1500.0
 ## Полёт: бюджет GPU-порции, мс (кадр не ждёт: poll() раз в кадр).
 const FLIGHT_CHUNK_MS := 25.0
 ## Смена условий, после которой пересчёт — внеочередной (ветер, м/с и °; погода — t_max, °C).
@@ -373,7 +375,7 @@ static func _prep_task(place: Dictionary, c: Dictionary, out: Dictionary) -> voi
 
 
 ## Загрузка (S2): progress_changed(0.0), кадр с этапом «ветер» нарисован — затем область и окна
-## одним проходом (_compute_pass) и подача поля (_apply).
+## проходом (_compute_pass, кусками по load_block_ms) и подача поля (_apply).
 func _load_blocking(c: Dictionary) -> bool:
 	_req = c.duplicate()
 	_req.hour = float(c.hour)
@@ -398,10 +400,10 @@ func _load_blocking(c: Dictionary) -> bool:
 	return _ok
 
 
-## Область и окна 100/50 м одним проходом: вход места и обе prepare (рабочий поток; входы окон —
+## Область и окна 100/50 м блокирующим проходом: вход места и обе prepare (рабочий поток; входы окон —
 ## в рабочих потоках параллельно), решатель области, сборка её поля (рабочий поток, параллельно
-## окнам), окна (AirClipmap.run_blocking). Главный поток ждёт; кадр — только если load_block_ms
-## конечно (кусками). Итог — уровни от мелкого к грубому, в r — разбивка времени (prep_s, solve_s,
+## окнам), окна (AirClipmap.run_blocking). Главный поток ждёт; кадр — только между кусками по
+## load_block_ms (INF — ни одного). Второй проход поля при загрузке — второй вызов. Итог — уровни от мелкого к грубому, в r — разбивка времени (prep_s, solve_s,
 ## build_s, windows_s), итерации, окна; пусто — неудача (_fail уже был) или остановка.
 func _compute_pass(r: Dictionary, gen: int) -> Array[WindField]:
 	var none: Array[WindField] = []
@@ -437,7 +439,9 @@ func _compute_pass(r: Dictionary, gen: int) -> Array[WindField]:
 		return none
 	r.start_ms = (Time.get_ticks_usec() - t) / 1000.0
 	while not _job.is_done() and _job.error == "":
-		_job.poll_slice(_piece_left_ms())
+		var left := _piece_left_ms()
+		if left > 0.0:
+			_job.poll_slice(left)
 		if not _job.is_done() and _job.error == "":
 			progress_changed.emit(_job.progress() * (0.5 if clip != null else 1.0))
 			if not await _yield_frame(gen):
@@ -476,16 +480,15 @@ func _compute_pass(r: Dictionary, gen: int) -> Array[WindField]:
 		t = Time.get_ticks_usec()
 		clip.timeout_s = maxf(_timeout_s() - (t - _t0) / 1e6, 1.0)
 		clip.set_domain_data(pd, null)
-		if is_inf(load_block_ms):
-			win_ok = clip.run_blocking()
-		else:
-			while clip.is_busy():
-				clip.poll_slice(_piece_left_ms())
-				if clip.is_busy():
-					progress_changed.emit(0.5 + 0.5 * clip.progress())
-					if not await _yield_frame(gen):
-						return none
-			win_ok = _win_error == "" and clip.is_ready()
+		while clip.is_busy() and _win_error == "":
+			var left := _piece_left_ms()
+			if left > 0.0:
+				clip.run_blocking(INF if is_inf(load_block_ms) else left)
+			if clip.is_busy() and _win_error == "":
+				progress_changed.emit(0.5 + 0.5 * clip.progress())
+				if not await _yield_frame(gen):
+					return none
+		win_ok = _win_error == "" and clip.is_ready()
 		r.windows_s = (Time.get_ticks_usec() - t) / 1e6
 		if not win_ok:
 			print("air_model: окна не посчитались (%s) — только область" % _win_error)
@@ -518,11 +521,12 @@ static func _build_task(inp: Dictionary, max_speed: float, max_w: float, out: Di
 	out.ms = (Time.get_ticks_usec() - t0) / 1000.0
 
 
-## Сколько ещё можно занять главный поток в текущем куске, мс (один проход — без предела).
+## Сколько ещё можно занять главный поток в текущем куске, мс (≤ 0 — кусок кончился, нужен кадр;
+## один проход — без предела).
 func _piece_left_ms() -> float:
 	if is_inf(load_block_ms):
 		return 1.0e9
-	return maxf(load_block_ms - (Time.get_ticks_usec() - _piece_t0) / 1000.0, 1.0)
+	return load_block_ms - (Time.get_ticks_usec() - _piece_t0) / 1000.0
 
 
 ## Конец куска: кадр (кусками) и проверка таймаута. false — остановлен или таймаут (_fail).
@@ -538,11 +542,14 @@ func _yield_frame(gen: int) -> bool:
 	return true
 
 
-## Ждать задачу рабочего потока: один проход — сразу, кусками — с кадрами. false — остановлен.
+## Ждать задачу рабочего потока: главный поток ждёт до конца куска, затем кадр. false —
+## остановлен.
 func _wait_task(id: int, gen: int) -> bool:
 	if not is_inf(load_block_ms):
 		while not WorkerThreadPool.is_task_completed(id):
-			if not await _yield_frame(gen):
+			if _piece_left_ms() > 0.0:
+				OS.delay_usec(200)
+			elif not await _yield_frame(gen):
 				return false
 	if gen != _build_id:
 		return false

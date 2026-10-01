@@ -8,8 +8,8 @@ extends Node
 ## Встроенное место вместо точки: --location=<id> [--hour=12]; --stage-shot=<этап> — кадр экрана
 ## загрузки в начале этапа (например wind) и через 0,5 с (--no-shots — только интервалы кадров
 ## этапа: чтение кадра само даёт интервал ~0,3 с); --lang=ru|en — язык.
-## --load-block-ms=<мс> — загрузка поля ветра кусками с кадром между ними (AirRuntime.load_block_ms;
-## по умолчанию — один проход без кадров, контракт S2).
+## --load-block-ms=<мс>|inf — кусок главного потока при расчёте ветра (AirRuntime.load_block_ms;
+## по умолчанию LOAD_BLOCK_MS, контракт S2; inf — один проход без кадров).
 ## --cache — свой кеш рельефа (пустая папка — «холодная» загрузка из сети); --url=<шаблон> —
 ## другой адрес тайлов (проверка ошибок сети).
 ## Код выхода: 0 — полёт начался, 2 — вернулись в меню (ошибка показана), 1 — таймаут.
@@ -74,7 +74,7 @@ func _ready() -> void:
 			"no-shots":
 				_no_shots = true
 			"load-block-ms":
-				_load_block_ms = float(v)
+				_load_block_ms = INF if v == "inf" else float(v)
 	if is_nan(_lat) and _location == "":
 		push_error("load_probe: нужен --latlon=<lat>,<lon> или --location=<id>")
 		get_tree().quit(1)

@@ -643,8 +643,8 @@ func test_runtime_with_windows() -> void:
 # ---------------------------------------------------------------- загрузка одним проходом (S2)
 
 
-## Поле загрузки AirRuntime одним проходом (S2, LOAD_BLOCK_MS = INF) и кусками (load_block_ms =
-## 40) — побитно то же, что прежняя нарезка экрана загрузки (C9 v2: область poll_slice(40) раз в
+## Поле загрузки AirRuntime кусками по LOAD_BLOCK_MS (S2), одним проходом (INF) и мелкими кусками
+## (40 мс) — побитно то же, что прежняя нарезка экрана загрузки (C9 v2: область poll_slice(40) раз в
 ## кадр → field_async → клипмап poll_slice(40) раз в кадр), все три уровня; итерации те же;
 ## разбивка времени в last_info.
 func test_runtime_blocking_bitwise() -> void:
@@ -693,8 +693,8 @@ func test_runtime_blocking_bitwise() -> void:
 	if ref.size() != 1:
 		failures.append("эталон: окна не посчитались")
 		return
-	# ---- AirRuntime: один проход и кусками по 40 мс
-	for block_ms in [INF, 40.0]:
+	# ---- AirRuntime: кусками по LOAD_BLOCK_MS, один проход, кусками по 40 мс
+	for block_ms in [AirRuntime.LOAD_BLOCK_MS, INF, 40.0]:
 		var atmo := _bitwise_atmo()
 		var host := Node.new()
 		host.set_physics_process(false)
@@ -724,6 +724,12 @@ func test_runtime_blocking_bitwise() -> void:
 			for k in ["prep_s", "solve_s", "build_s", "windows_s", "block_max_s"]:
 				check(float(li.get(k, -1.0)) > 0.0, "%s: last_info.%s" % [label, k])
 			check(li.get("blocking") == true, "%s: last_info.blocking" % label)
+			if not is_inf(block_ms) and block_ms >= 1000.0:
+				# кусок — до LOAD_BLOCK_MS плюс одна порция GPU / чтение буферов
+				check(
+					float(li.block_max_s) <= block_ms / 1000.0 + 0.15,
+					"%s: кусок %.2f с" % [label, float(li.block_max_s)]
+				)
 			print(
 				(
 					"  %s: стена %.2f с (вход %.2f, решатель %.2f, сборка %.2f, окна %.2f), кусок max %.2f с"

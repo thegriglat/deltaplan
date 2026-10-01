@@ -244,17 +244,31 @@ func poll_slice(slice_ms: float) -> void:
 ## ждать в рабочих потоках, решатель — AirGpuJob.run_blocking, поля окон собираются в рабочих
 ## потоках параллельно со следующим окном (главный поток ждёт их в конце). Итог — как у
 ## poll_slice: levels_changed (или позже, когда придёт поле области) / failed. true — набор
-## готов. Предел времени окна — timeout_s (проверяется внутри решателя). Нужна область
-## (set_domain_data); поле окна, собираемое после poll/poll_slice (field_ready ещё не пришёл),
-## без кадра не дождаться — false, расчёт продолжит poll.
-func run_blocking() -> bool:
+## готов. max_ms — кусок главного потока (S2: AirRuntime.LOAD_BLOCK_MS): очередь не пройдена —
+## false и is_busy(), следующий вызов (после кадра) продолжает. Предел времени окна — timeout_s
+## (проверяется внутри решателя). Нужна область (set_domain_data); поле окна, собираемое после
+## poll/poll_slice (field_ready ещё не пришёл), без кадра не дождаться — false, расчёт продолжит
+## poll.
+func run_blocking(max_ms := INF) -> bool:
 	if _waiting_field:
 		return false
+	var t_in := Time.get_ticks_usec()
 	_blocking = true
 	var fails := _fail_count
 	while _cur >= 0:
+		var left := max_ms - (Time.get_ticks_usec() - t_in) / 1000.0
+		if left <= 0.0:
+			break
 		var row := _cur_row
 		if int(row.task) >= 0:
+			if not is_inf(max_ms):
+				var t_end := Time.get_ticks_usec() + int(left * 1000.0)
+				while not WorkerThreadPool.is_task_completed(int(row.task)):
+					if Time.get_ticks_usec() >= t_end:
+						break
+					OS.delay_usec(200)
+				if not WorkerThreadPool.is_task_completed(int(row.task)):
+					break  # кусок кончился, вход окна ещё готовится
 			WorkerThreadPool.wait_for_task_completion(int(row.task))
 			row.task = -1
 		if _job == null:
@@ -264,10 +278,15 @@ func run_blocking() -> bool:
 			_start_job()
 			if _job == null:
 				break  # _fail уже был
-		_job.run_blocking()
+		if is_inf(max_ms):
+			_job.run_blocking()
+		else:
+			_job.poll_slice(maxf(max_ms - (Time.get_ticks_usec() - t_in) / 1000.0, 1.0))
 		if _job.error != "":
 			_fail(_job.error)
 			break
+		if not _job.is_done():
+			break  # кусок кончился
 		_level_done()
 	_blocking = false
 	return _fail_count == fails and is_ready() and not is_busy()
