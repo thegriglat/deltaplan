@@ -23,6 +23,24 @@ var resolved_n1: float = 8.0
 ## Масштаб вихрей зоны отрыва, доли превышения гребня (lee.field_eddy_scale_per_relief).
 var sep_scale: float = 0.5
 
+## Последний вызов sigma: σ поперёк ветра (м/с), доли конвективной дисперсии горизонтали вдоль и
+## поперёк ветра (0..1) и их интегральный масштаб (м; 0 — нет).
+var last_sv: float = 0.0
+var last_fu_c: float = 0.0
+var last_fv_c: float = 0.0
+var last_l_c: float = 0.0
+
+## Приземный слой — нижняя доля пограничного слоя (≈ 0,1 h, Stull 1988, §1.5): ниже u* болтанки
+## согласован со средним ветром в точке.
+const SURFACE_FRAC := 0.1
+## σ_v/σ_w = 1 + V_ANISO·(σ_u/σ_w − 1): у земли 1,9/1,25 при σ_u/σ_w = 2,4/1,25 (Panofsky & Dutton
+## 1984), выше — к изотропии вместе с σ_u.
+const V_ANISO := (1.9 / 1.25 - 1.0) / (2.4 / 1.25 - 1.0)
+## Растяжение масштабов у земли (taylor_stretch): высота спада, м (≈ размах крыла: ниже пилот на
+## земле, на разбеге или выравнивании), и наибольший множитель.
+const TAYLOR_H := 10.0
+const TAYLOR_MAX := 8.0
+
 var _sw_per_ustar: float = 1.25
 var _mix_len: float = 40.0
 var _neutral_h_k: float = AirCase.NEUTRAL_BL_K / AirCase.F_COR
@@ -110,11 +128,14 @@ func lee(uf: float, agl: float, tb: PackedFloat32Array) -> float:
 	return sep * smoothstep(0.0, _desc, tb[WindField.T_DESC])
 
 
-## σ болтанки поля: Vector4(σ_u, σ_w, L_u, L_w) — СКО горизонтали и вертикали (м/с) и интегральные
-## масштабы (м) для спектра. Законы и источники — docs/air_model.md → «Масштаб 3: возмущения».
+## σ болтанки поля: Vector4(σ_u, σ_w, L_u, L_w) — СКО горизонтали вдоль ветра и вертикали (м/с) и
+## интегральные масштабы механических вихрей (м) для спектра; заодно last_sv (σ поперёк ветра) и
+## доли конвективной дисперсии горизонтали last_fu_c, last_fv_c с их масштабом last_l_c.
+## Законы и источники — docs/air_model.md → «Масштаб 3: возмущения».
 ## conv_analytic — (σ_u, σ_w) конвективной болтанки аналитики: берётся, если в поле нет данных о
-## нагреве (T_HMIX = 0).
-func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2) -> Vector4:
+## нагреве (T_HMIX = 0). u_pt — модуль среднего ветра поля в точке (≥ 0): у земли (ниже
+## SURFACE_FRAC·h) u* берётся согласованным с ним — κ·U/ln(z/z0) (AS-2); < 0 — не учитывать.
+func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2, u_pt: float = -1.0) -> Vector4:
 	var z := maxf(agl, 1.0)
 	var h_mix := tb[WindField.T_HMIX]
 	var ustar := tb[WindField.T_USTAR]
@@ -127,7 +148,15 @@ func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2) -> Vector
 	var decay := pow(maxf(1.0 - z / maxf(h_bl, 1.0), 0.0), 0.75)
 	var shear := tb[WindField.T_SHEAR]
 	var l_mix := 1.0 / (1.0 / (WindField.KAPPA * z) + 1.0 / lam)
-	var u_m := maxf(ustar * decay, l_mix * shear)
+	var u_wall := ustar * decay
+	if u_pt >= 0.0:
+		# приземный слой: турбулентность в равновесии со средним профилем в точке — u* из того
+		# же лог-закона, что даёт пилоту средний ветер (u* столбца берётся по клетке выше и на
+		# склонах с разгоном расходится с ветром в точке до 10–40 %); выше — u* стенки
+		var u_loc := WindField.KAPPA * u_pt / log(maxf(z, 2.0 * z0) / z0)
+		var sl := smoothstep(0.5, 1.0, z / maxf(SURFACE_FRAC * h_bl, 1.0))
+		u_wall = lerpf(u_loc, u_wall, sl)
+	var u_m := maxf(u_wall, l_mix * shear)
 	# устойчивость: градиентное число Ричардсона, u*_loc ∝ √F(Ri), F = 1/(1 + 5Ri)² — как решатель
 	var n2 := tb[WindField.T_N2]
 	var n_bv := 0.0
@@ -140,13 +169,18 @@ func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2) -> Vector
 	var aniso := 1.0
 	if h_ft < 1000.0:
 		aniso = 1.0 / pow(0.177 + 0.000823 * h_ft, 0.4)
+	# анизотропия: σ_u/σ_w по MIL-HDBK-1797 (≈ 2 у земли → 1 к 300 м); поперёк ветра — та же доля
+	# пути к изотропии, у земли σ_v/σ_w = 1,9/1,25 (σ_u : σ_v : σ_w = 2,4 : 1,9 : 1,25 u* —
+	# Panofsky & Dutton 1984; Kaimal & Finnigan 1994, §1.6)
 	var su_m := sw_m * aniso
+	var sv_m := sw_m * (1.0 + V_ANISO * (aniso - 1.0))
 	# конвекция: Lenschow et al. (1980) по w* поля (H ≤ 0 — нет); нет данных о нагреве — аналитика
 	var su_c := 0.0
 	var sw_c := 0.0
 	var wstar := tb[WindField.T_WSTAR]
 	var l_w := mil_lw(z)
 	var l_u := mil_lu(z)
+	var l_c := 0.0
 	if h_mix > 0.0:
 		var xi := z / h_mix
 		if xi < 1.0:
@@ -156,17 +190,51 @@ func sigma(agl: float, tb: PackedFloat32Array, conv_analytic: Vector2) -> Vector
 			var l_cbl := _cbl_frac * h_mix
 			sw_c = wstar * sqrt(1.8) * pow(xi, 1.0 / 3.0) * (1.0 - 0.8 * xi)
 			sw_c *= pow(minf(l_w / l_cbl, 1.0), 1.0 / 3.0)
+			# горизонталь конвективных вихрей — масштаба слоя (пик спектров u, v на ~1,5 z_i,
+			# Kaimal et al. 1976), не высоты над землёй
+			l_c = l_cbl
 	else:
 		su_c = conv_analytic.x
 		sw_c = conv_analytic.y
-	var s_u := sqrt(su_m * su_m + su_c * su_c)
-	var s_w := sqrt(sw_m * sw_m + sw_c * sw_c)
+	# сложение механики и конвекции — как в подобии приземного слоя: σ³ = σ_m³ + σ_c³
+	# (σ_u/u* = (12 + 0,5 z_i/|L|)^(1/3), σ_w/u* = 1,25(1 + 3|z/L|)^(1/3) — Panofsky et al. 1977;
+	# конвективный член 0,5 z_i/|L| = 0,5κ (w*/u*)³ → σ_u,c ≈ 0,59 w*)
+	var s_u := _cube_sum(su_m, su_c)
+	var s_v := _cube_sum(sv_m, su_c)
+	var s_w := _cube_sum(sw_m, sw_c)
+	# доля дисперсии сверх механической — конвективные вихрей масштаба l_c (с данными о нагреве)
+	last_l_c = l_c
+	last_fu_c = 0.0
+	last_fv_c = 0.0
+	if l_c > 0.0:
+		last_fu_c = 1.0 - su_m * su_m / maxf(s_u * s_u, 1.0e-9) if s_u > 1.0e-4 else 0.0
+		last_fv_c = 1.0 - sv_m * sv_m / maxf(s_v * s_v, 1.0e-9) if s_v > 1.0e-4 else 0.0
+	last_sv = s_v
 	# масштабы: в устойчивом воздухе вихри не крупнее σ_w/N (Hunt, Kaimal & Gaynor 1985)
 	if n_bv > 0.0 and s_w > 1.0e-3:
 		var lb := s_w / n_bv
 		l_u = 1.0 / (1.0 / l_u + 1.0 / lb)
 		l_w = 1.0 / (1.0 / l_w + 1.0 / lb)
+		if last_l_c > 0.0:
+			last_l_c = 1.0 / (1.0 / last_l_c + 1.0 / lb)
 	return Vector4(s_u, s_w, l_u, l_w)
+
+
+## Растяжение масштабов механических вихрей у земли (AS-2): шум переносится одной скоростью
+## advect (ветер на turbulence.advection_height_m, 300 м), а вихри приземного слоя — местным ветром
+## U (гипотеза Тейлора с местной скоростью переноса — Willis & Deardorff 1976; Kaimal & Finnigan
+## 1994, §2.5). У стоящего или бегущего пилота время вихря — L/U, а не L/advect (у земли при
+## 6 м/с advect/U ≈ 3–4: порывы в 3–4 раза чаще и резче, чем в воздухе). Множитель масштаба —
+## advect/U (не больше TAYLOR_MAX) с весом e^(−agl/TAYLOR_H): выше пилот летит ~10 м/с
+## относительно воздуха, и встречу с вихрями задаёт его полёт. Перенос поля по высоте один —
+## иначе шум со временем рвётся сдвигом.
+static func taylor_stretch(advect: float, u_loc: float, agl: float) -> float:
+	var r := clampf(advect / maxf(u_loc, 0.5), 1.0, TAYLOR_MAX)
+	return 1.0 + (r - 1.0) * exp(-maxf(agl, 0.0) / TAYLOR_H)
+
+
+static func _cube_sum(a: float, b: float) -> float:
+	return pow(a * a * a + b * b * b, 1.0 / 3.0)
 
 
 ## Масштабы MIL-HDBK-1797 (фон Карман), м: ниже 1000 футов L_w = h, L_u = h/(0,177 + 0,000823h)^1,2
