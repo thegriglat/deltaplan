@@ -1,0 +1,82 @@
+{
+  "status": "done",
+  "summary": "export_onnx.py (--ckpt/--random/--info/--verify/--make-ref) через evaluate.export_onnx + метаданные O1; фикстура tiny_p2v4.onnx (113 КБ) с эталоном ORT; замер ORT CPU сети первого пилота в README.",
+  "commits": [
+    "b7f15a8 ON-1: export_onnx.py, tiny_p2v4 с эталоном, README"
+  ],
+  "checks": [
+    {
+      "name": "dp accept ON-1 --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "tiny размер",
+      "value": "113727 Б",
+      "pass": true
+    },
+    {
+      "name": "ORT 1 поток, пилот-1",
+      "value": "45 мс",
+      "pass": true
+    },
+    {
+      "name": "ORT 4 потока, пилот-1",
+      "value": "17 мс",
+      "pass": true
+    },
+    {
+      "name": "o1_pilot_code",
+      "value": "PASS (dp accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "tiny_size",
+      "value": "PASS (dp accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "tiny_verify",
+      "value": "PASS (dp accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "info_pilot1",
+      "value": "PASS (dp accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "ckpt_export",
+      "value": "PASS (dp accept --dry)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сеть П-2 (9 карт) не пробовалась: её ещё нет; путь кода p2_version 4 проверен только на tiny"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept ON-1",
+  "uncertain": [
+    {
+      "where": "tools/air_onnx/export_onnx.py: write_meta/domain",
+      "why": "deltaplan.domain берётся из task.json[domain]; в task.json пилота-1 такого поля нет, формат у П-2 неизвестен",
+      "checked": "без поля метаданная просто не пишется (O1: необязательна)"
+    },
+    {
+      "where": "tests/air_onnx/fixtures/tiny_p2v4_ref.json",
+      "why": "эталон — выборка 64 точек + средние/максимумы по каналам, не полное поле; допуск 1e-4",
+      "checked": "повторный экспорт даёт побайтно тот же .onnx, расхождение 0"
+    }
+  ],
+  "dp_feedback": "Замер: числа при нагрузке пилота (load ~3.8), в карточке этого не оговорено.",
+  "extra": {
+    "ref_input": "maps=sin(0.07i+0.11j+0.5c), nums=cos(0.3k+0.2)",
+    "ort_pilot1_ms": {
+      "1": 45,
+      "4": 17
+    }
+  },
+  "t": "2026-10-03T04:43:55",
+  "by": "executor"
+}
