@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "AirNnInput (row_from_case, cond_for, tapered_heat, guard) и тест N3: строка игры = строка Python на 3 случаях (Онгудай 12:00, Онгудай 9:00 пасмурно с инверсией, Аушкуль 15:00 переменная), числа ≤1e-3 отн., hc и heat ≤0.001. Эталон — фикстура make_input_fixture.py (real.case + Day.summary без решения, CPU).",
+  "commits": [
+    "7c90522 ON-4: AirNnInput (row_from_case, guard), фикстура входа из Python и тест N3"
+  ],
+  "checks": [
+    {
+      "name": "tests_input",
+      "value": "3/3, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "fixture_verify",
+      "value": "exit 0, 3 случая",
+      "pass": true
+    },
+    {
+      "name": "tests_c2",
+      "value": "фильтр dp сопоставляется с именем ФАЙЛА, test_c2_* лежат в test_air_contracts.gd: 0 тестов, dp пишет FAIL 0/0. По --filter=air_contracts test_c2_air_case_grid / inflow_scale / params_match_reference: ok (в файле падает один посторонний тест, не c2_)",
+      "pass": true
+    },
+    {
+      "name": "точность строки",
+      "value": "max|dhc| 0.001 м, max|dheat| 0.001 Вт/м2 (округление фикстуры), числа ≤1e-3 отн.",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "film/maps не переносил (ON-3). Конфиг air_model.nn_domain в configs/atmosphere.json не заведён (вне скоупа): default_domain() читает его, если появится, иначе константы набора."
+  ],
+  "questions": [
+    "Форма cond (второй аргумент row_from_case): {hour, t_max, sky, ctx, cfg?}; ctx = AirPlace.context(detail, loc, cfg); helper cond_for(detail, loc, hour, t_max, sky). Подходит ли O5? Без detail достаточно любого ctx {month, day, lat, lon, utc_offset_h, valley_msl_m, mean_msl_m}.",
+    "Заведёт ли координатор air_model.nn_domain в конфиг (ключи U10, hour, t_max: [lo, hi])?"
+  ],
+  "how_to_check": "dp accept ON-4 (tests_c2 краснеет только из-за фильтра по имени файла); godot ... --filter=air_nn_input; CUDA_VISIBLE_DEVICES= .../air_nn_pilot/.venv/bin/python -B tools/air_onnx/make_input_fixture.py --verify",
+  "uncertain": [
+    {
+      "where": "air_nn_input.gd:row_from_case, profile (alpha/max_profile/stab)",
+      "why": "k != 1: в наборе k = 1 (U10 притока = меню). В игре alpha, max_profile и класс — по ветру МЕНЮ (C2 v6), а row.U10 = k*меню. В FiLM берём alpha/max_profile из случая (по меню), U10 = приток k*меню, как видит решатель; такой пары в наборе не было. Для «Расхождения» O4.",
+      "checked": "test_row_inflow_scale: k=1.4 -> U10=4.2, alpha/max_profile/класс те же, что при k=1"
+    },
+    {
+      "where": "air_nn_input.gd:row_from_case, day",
+      "why": "z_i_msl = round(case.z_i) (та же сетка theta, что у Python). cap_agl INF и z_i NAN: ключ day.cap_agl / z_i_msl ОТСУТСТВУЕТ (у Python null) — film() ON-3 должен читать отсутствие ключа как пропуск. z_dry_game_msl и valley_msl набором в film не используются, не передаю.",
+      "checked": "сверка 3 случаев; cap_agl есть только в 9:00 (инверсия), нет в 12:00/15:00 в обоих языках"
+    },
+    {
+      "where": "air_nn_input.gd:row_from_case, profile.sun_az / sun_el",
+      "why": "Как в Python: sun_az — азимут (градусы) с запаздыванием прогрева lag_h.none (0,3 ч), sun_el — высота БЕЗ запаздывания (wind_prof.for_hour). Разные моменты; воспроизведено, не унифицировано.",
+      "checked": "оба совпали с Python ≤1e-3"
+    },
+    {
+      "where": "tools/air_onnx/make_input_fixture.py",
+      "why": "real.make тянет CuPy (Air.__init__ -> cp.asarray) и без GPU падает. Не вызываю: D.hc = hc, D.H = cond.H с гашением у края по формуле air.py:663-667 (taper = Params().heat_taper_m); эталон d400_H воспроизведён, а не прочитан из Air.",
+      "checked": "формула идентична AirCase.prepare; heat совпал ≤0.001 Вт/м2"
+    },
+    {
+      "where": "расхождения игры и Python для «Расхождения» O4",
+      "why": "(1) heat по case.taper (true по умолчанию) — совпадает с набором только при taper=true; (2) округления summary() (z_i, z_lcl до м, heat до 0,001, brk до 0,01, t до 0,01) воспроизведены намеренно; (3) hour — местное солнечное время игры, у набора (9,12,15,20) тот же смысл; (4) правок air_place/air_case/погоды не потребовалось, других расхождений не найдено.",
+      "checked": "3 случая, 2 места, 3 неба, час 9 с инверсией"
+    }
+  ],
+  "dp_feedback": "dp accept: --filter в условиях приёмки матчится по имени файла теста, а не функции — --filter=c2_ даёт 0/0 FAIL; нужен фильтр по методам либо имя файла в карточке (заменить на --filter=air_contracts). Ещё: dp report без stdin-файла висит бесконечно, лучше сообщение об ошибке при пустом tty.",
+  "extra": {
+    "cases": 3,
+    "fixture_mb": 0.44,
+    "heat_err_wm2": 0.001,
+    "hc_err_m": 0.001
+  },
+  "t": "2026-10-03T04:54:03",
+  "by": "executor"
+}

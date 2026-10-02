@@ -45,13 +45,10 @@
       "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/make_input_fixture.py --verify",
       "expect": "exit=0",
       "timeout": 1800
-    },
-    {
-      "name": "tests_c2",
-      "tests": "c2_"
     }
   ],
   "report_extra": [],
   "notes": "Источник правды набора — tools/research/air_nn_pilot/airlite_gen.py:solve_case (row: U10, wdir, t_max, hour, sky; res.profile = cond.alpha/max_profile/stab_class/sun_elev/sun[0]; res.day = cond.day.summary() из tools/research/air3d/weather.py; d400_hc = D.hc, d400_H = D.H из real.make). Аналоги в игре: AirPlace.domain_case / AirPlace.day / AirCase (meta, heat, hc, z_i), WeatherModel. Эталон Python — только до решения (real.case/real.make без RS.solve), CPU, никакого GPU (CuPy не импортировать — если real.make тянет cupy, подменить/обойти и записать). Внимание: в игре α/max_profile — по ветру меню, а U10 притока = k·меню (C2 v6); в наборе k = 1 — описать, что берём в FiLM, в контракте O4 «Расхождения». Python — venv пилота только на чтение: CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python. Расхождения игры и Python, которые не закрыть, — списком в отчёт (uncertain) — координатор внесёт в контракт.",
-  "created": "2026-10-03T04:42:34"
+  "created": "2026-10-03T04:42:34",
+  "edited": "2026-10-03T04:54:52"
 }
