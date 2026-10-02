@@ -5,5 +5,6 @@
   "branch": "feature/ui-controls",
   "copy": "~/deltaplan-ui-controls",
   "created": "2026-10-01T18:00:00",
-  "migrated_from": "docs/archive/plan/ui-controls-progress.md (вручную, tools/dp)"
+  "migrated_from": "docs/archive/plan/ui-controls-progress.md (вручную, tools/dp)",
+  "code": "UC"
 }

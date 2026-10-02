@@ -6,5 +6,6 @@
   "copy": "~/deltaplan-eggs",
   "created": "2026-09-30T00:00:00",
   "legacy_journal": "docs/archive/plan/world-easter-eggs-progress.md",
-  "migrated_from": "docs/archive/plan/world-easter-eggs-progress.md (tools/dp_migrate.py)"
+  "migrated_from": "docs/archive/plan/world-easter-eggs-progress.md (tools/dp_migrate.py)",
+  "code": "EE"
 }

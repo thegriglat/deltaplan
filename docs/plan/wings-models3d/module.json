@@ -6,5 +6,6 @@
   "copy": "~/deltaplan-wings3d",
   "created": "2026-10-01T00:00:00",
   "legacy_journal": "docs/archive/plan/wings-models3d-progress.md",
-  "migrated_from": "docs/archive/plan/wings-models3d-progress.md (tools/dp_migrate.py)"
+  "migrated_from": "docs/archive/plan/wings-models3d-progress.md (tools/dp_migrate.py)",
+  "code": "WM"
 }
