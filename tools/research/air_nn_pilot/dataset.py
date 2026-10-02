@@ -135,9 +135,13 @@ def late_spec(cfg, spec):
 
 
 def p6_dir(cfg, root):
-    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига, иначе <root>/pilot/tiles/v2 (П6 v2)."""
-    d = os.environ.get("AIRNN_P6_DIR") or (cfg.get("terrain") or {}).get("p6_dir")
-    return Path(d) if d else Path(root) / "pilot" / "tiles" / "v2"
+    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига (относительный — от <root>), иначе
+    <root>/pilot/tiles/v2."""
+    d = os.environ.get("AIRNN_P6_DIR")
+    if d:
+        return Path(d)
+    d = (cfg.get("terrain") or {}).get("p6_dir")
+    return Path(root) / (d or "pilot/tiles/v2")
 
 
 def load_cfg(path):

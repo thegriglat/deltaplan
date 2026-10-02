@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Контрактный тест П1 «Образец набора пилота» v1 и v2 (docs/contracts/air-nn.md) на готовых случаях набора.
+"""Контрактный тест П1 «Образец набора пилота» v1, v2 и v3 (docs/contracts/air-nn.md) на готовых случаях набора.
 
   .venv/bin/python tests/test_contract_sample.py [--dataset smoke] [--root КАТАЛОГ] [--data-root R] [--max N]
   (или .venv/bin/python -m pytest tests/test_contract_sample.py — набор из AIRNN_P1_DATASET, по умолчанию smoke)
@@ -10,6 +10,8 @@
 высот контракта; места — из plan.json и только встроенные/s_*/p_*/t_*; у каждого done — файл с той же sha256, у
 файла — строка done; в метаданных случая — условия, day, profile, сетки d400/w<k>, статусы решений; v2 — + `ctx`
 (lat, lon, month, day, utc_offset_h, долина) и `place` (system, part), `centers` для каждого места.
+«П1 v3» = v2 + цель max — среднее поздних снимков: `solver.late_mean = {from, step}` в plan/manifest; у решений
+`target`/`late_n`/`late_spread60_p90` (late_n = числу снимков from…max_outer через step у max, 1 у сошедшихся).
 `--dataset smoke` проверяет ещё наборы v2 профиля smoke пилота (`config.yaml → profiles.smoke.datasets` с `root`,
 подставной набор terrain — `tests/make_mock_p6.py`): smoke П-2 читает оба варианта.
 """
@@ -62,13 +64,21 @@ def check_dir(L, max_cases=0):
         assert p.exists(), f"нет {p}"
     man = json.loads(L.manifest.read_text())
     contract = man["contract"]
-    assert contract in ("П1 v1", "П1 v2") and man["solver_version"] == L.dir.parent.name, contract
+    assert contract in ("П1 v1", "П1 v2", "П1 v3") and man["solver_version"] == L.dir.parent.name, contract
     plan = json.loads(L.plan.read_text())
-    v2 = contract == "П1 v2"
+    v3 = contract == "П1 v3"
+    v2 = contract in ("П1 v2", "П1 v3")   # v3 = v2 + цель max — среднее поздних снимков
     region_only = bool(plan.get("region_only"))
     assert region_only == v2, "П1 v2 — только область (plan.json → region_only)"
     if v2:
         assert int(plan["solver"]["max_outer"]) > 0 and man["solver"] == plan["solver"], "предел итераций в plan/manifest"
+    if v3:   # число снимков — по from…max_outer через step (последний — всегда предел)
+        lm, mo_ = plan["solver"]["late_mean"], int(plan["solver"]["max_outer"])
+        assert set(lm) >= {"from", "step"} and 0 < int(lm["from"]) <= mo_ and int(lm["step"]) > 0, lm
+        pts = list(range(int(lm["from"]), mo_ + 1, int(lm["step"])))
+        late_n = len(pts) + (pts[-1] != mo_)
+    else:
+        assert "late_mean" not in (plan.get("solver") or {}), "late_mean — только П1 v3"
     assert plan["agl"] == AGL, plan["agl"]
     for loc in plan["places"]:
         assert loc in REAL or re.fullmatch(r"[sp]_\w+", loc) or re.fullmatch(r"t_\d{4}", loc), loc
@@ -106,7 +116,8 @@ def check_dir(L, max_cases=0):
                 assert a.shape == shp and a.dtype == np.float16, f"{cid}/{k}: {a.shape} {a.dtype}"
                 assert np.isfinite(a).all(), f"{cid}/{k}: не конечные значения"
             hc = z["d400_hc"].astype(np.float32)
-            assert 0 < hc.min() and hc.max() < 6000, f"{cid}: высоты рельефа {hc.min()}…{hc.max()}"
+            # места П6 v2: от уровня моря (0 м, t_0065) до 6,2 км (t_0281)
+            assert -450 < hc.min() and hc.max() < 9000, f"{cid}: высоты рельефа {hc.min()}…{hc.max()}"
         m = json.loads(r["meta"])
         for k in ("hour", "U10", "wdir", "t_max", "sky", "day", "profile", "runs", "d400", "status", "t_wall"):
             assert k in m, f"{cid}: нет {k} в метаданных"
@@ -116,6 +127,12 @@ def check_dir(L, max_cases=0):
             for t in ("h", "m"):
                 rr = m["runs"][f"{lv}_{t}"]
                 assert rr["status"] in ("ok", "max", "diverged") and rr["iters"] > 0
+                if v3 and lv == "d400":   # метаданные цели П1 v3
+                    if rr["status"] == "max":
+                        assert rr["target"] == "late_mean" and rr["late_n"] == late_n, (cid, t, rr)
+                        assert isinstance(rr["late_spread60_p90"], float) and 0 <= rr["late_spread60_p90"] < 50, (cid, t, rr)
+                    else:
+                        assert rr["target"] == "final" and rr["late_n"] == 1 and rr["late_spread60_p90"] == 0.0, (cid, t, rr)
         assert m["d400"]["nx"] == 96 and m["d400"]["dx"] == 400
         assert r["solve_status"] == m["status"]
         if v2:
