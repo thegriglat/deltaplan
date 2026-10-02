@@ -16,6 +16,10 @@ terrain:
   cond_seed: 20261004        # условия — plan_rows (час × облачность по кругу, каждый 12-й — штиль), своё зерно
   n_cond: 12                 # 12 = все сочетания 4 часов × 3 облачностей, один штиль на место
   max_outer: 1000            # предел внешних итераций решения (main: 3000); замер — tests/out/maxcap.json
+  # П1 v3 (NN-17, решение пользователя 03.10 Q2-Б): цель решения max — среднее снимков на итерациях from…max_outer
+  # через step (500…1000 через 50 — 11 снимков); наборы с late_mean (ниже) — П1 v3
+  late_mean: {from: 500, step: 50}
+  late_edge_cells: 5         # край области вне late_spread60_p90 (= edge_cells пилота, config.yaml → eval)
   expected_places: 345       # ожидаемое число мест П6 (NN-P4, пул + отложенные) — для оценки по подставной пробе
   probe: {n_places: 8, n_cond: 2}   # проба: 8 мест равномерно по рангу крутизны × 2 условия
 
@@ -32,8 +36,11 @@ datasets:
   smoke: {places: [ongudai, s_hill, p_000, p_001, p_002], n_cond: 3}
   chaos: {places: [s_hill, s_ridge, p_001, p_002], n_cond: 2}   # тест прерывания (во временном AIR_NN_DATA)
   # П1 v2 (NN-P6)
-  terrain: {terrain: true}                       # весь индекс П6 × terrain.n_cond
-  probe: {terrain: true, probe: true}            # проба времени (подмножество terrain)
+  terrain: {terrain: true, late_mean: true}                  # весь индекс П6 × terrain.n_cond (П1 v3)
+  probe: {terrain: true, probe: true, late_mean: true}       # проба времени (подмножество terrain, П1 v3)
+  probe_v2: {terrain: true, probe: true}         # та же проба в П1 v2 (без late_mean) — замер времени v3 против v2 (NN-17)
+  # мини-набор П1 v3 (NN-17): 3 места t_* × 2 условия, малый предел (снимки 150, 200, 250, 300) — для теста контракта
+  lm_smoke: {terrain: true, n_places: 3, n_cond: 2, max_outer: 300, late_mean: {from: 150, step: 50}}
   chaos_t: {terrain: true, n_places: 4, n_cond: 2}   # тест прерывания воркеров (подставной П6, 8 случаев)
   # кривая воркеров: 12 случаев main «только область» (4 max + 8 ok), предел terrain.max_outer
   bench12: {region_only: true, ids: [aushkul_029, aushkul_065, p_011_029, s_valley_003, altai_020, ongudai_020, altai_022,
