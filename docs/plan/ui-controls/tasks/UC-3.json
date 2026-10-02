@@ -1,0 +1,54 @@
+{
+  "id": "UC-3",
+  "module": "ui-controls",
+  "type": "dp-engineer",
+  "title": "Обзор с WASD при трапеции мышью",
+  "goal": "Обзор с WASD при трапеции мышью",
+  "plan_ref": "UC-3",
+  "contracts": [
+    {
+      "name": "У1",
+      "version": "2",
+      "ref": "docs/ui-controls_contracts.md"
+    },
+    {
+      "name": "У2",
+      "version": "1",
+      "ref": "docs/ui-controls_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-ui-controls-UC-3",
+  "branch": "ui-controls/UC-3",
+  "base": "feature/ui-controls",
+  "scope": [
+    "действия `look_up/look_down/look_left/look_right` = W/S/A/D в `controls.json → keys` (+ `_doc`); `InputController`: при «мышь — трапеция» (bar и мышь захвачена) клавиши обзора не двигают трапецию (в полёте и на разбеге), действия без физической клавиши (автопилот, тесты) — считаются; `CameraRig`: в кабине при том же условии клавиши обзора поворачивают голову (`key_rate_deg_s`), в `chase` — ничего, `free` — без изменений; `camera.json → cockpit.head.key_rate_deg_s`; контрактный тест У2."
+  ],
+  "dont_touch": [
+    "тексты (UC-4), `ground_run.gd`, физику."
+  ],
+  "accept": [
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "contracts",
+      "tests": "contracts"
+    },
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "ui",
+      "tests": "ui"
+    },
+    {
+      "name": "flight",
+      "tests": "flight"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-02T01:04:21"
+}

@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "`controls.json`: `pitch_push_out`=[W,Up], `pitch_pull_in`=[S,Down]; стик `-gy·inv`; `ui.json` «На земле» → `walk_*`; локали (инверсия «как ручка самолёта»); шапка `autopilot.gd`. Тест У1 5/5: pitch за 0,5 с W/↑ +0,75, S/↓ −0,75, инверсия — наоборот; мышь bar от себя +1,0; α (training) трим 11,78°, W 23,10°, S −1,09°. Стик headless не проверить (нет виртуального геймпада) — выкладка. Перепроверено на ветке модуля: contracts 37/37, game 125/125, ui 88/89 (port_busy — известное), flight 112/113 (`test_takeoff::test_headwind_launch` atlas 4 м/с — падает и на main 938d1ea, не регрессия).",
+  "commits": [
+    "fc09b4b",
+    "7e65293"
+  ],
+  "checks": [
+    {
+      "name": "ui_controls",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "contracts",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "ui",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "flight",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-1",
+  "t": "2026-10-01T21:26:53",
+  "by": "dp-engineer",
+  "migrated": true
+}

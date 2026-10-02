@@ -6,7 +6,7 @@
 Проверяет: manifest.json (contract «П6 v1»), столбцы и типы index.csv, уникальность id, части pool/holdout;
 у каждой строки — файл cut/<id>.npz с той же sha256; ключи h (1601×1601 float32), hc400 (96×96 float64), meta;
 конечность; hc400 = блочное среднее h 16×16 по области [−19 200, 19 200] м (≤ 1e-6 м); признаки индекса
-согласованы с hc400; инварианты расстояний: места пула не ближе 100 км к Онгудаю, отложенные — не ближе 50 км к пулу.
+согласованы с hc400; размах ≤ 3000 м; инварианты расстояний: места пула не ближе 100 км к Онгудаю, отложенные — не ближе 50 км к пулу.
 Владелец (NN-P4) может дополнять проверки; менять формат — только через координатора (версия контракта).
 """
 from __future__ import annotations
@@ -31,6 +31,7 @@ FLOATS = {"lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m",
           "tpi2k_p95", "sea_frac"}
 N_NODES, SP, N400, DX = 1601, 25.0, 96, 400.0
 R_EARTH = 6371008.8
+RELIEF_MAX_M = 3000.0  # решение пользователя 02.10: предел размаха высот в квадрате
 
 
 def block_mean_400(h):
@@ -66,6 +67,7 @@ def check(d: Path, max_cut=0):
             assert math.isfinite(v), (r["id"], k)
         assert int(r["zoom"]) > 0
         assert abs(float(r["relief_m"]) - (float(r["h_max"]) - float(r["h_min"]))) < 1e-2, r["id"]
+        assert float(r["relief_m"]) <= RELIEF_MAX_M, ("размах > 3000 м", r["id"])
     ong = json.loads((ROOT / "configs/locations/ongudai.json").read_text())
     og = (ong["center_lat"], ong["center_lon"])
     pool = [(float(r["lat"]), float(r["lon"])) for r in rows if r["part"] == "pool"]

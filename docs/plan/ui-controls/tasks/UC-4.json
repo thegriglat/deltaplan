@@ -1,0 +1,30 @@
+{
+  "id": "UC-4",
+  "module": "ui-controls",
+  "type": "dp-writer",
+  "title": "Тексты этапа 2",
+  "goal": "Тексты этапа 2",
+  "plan_ref": "UC-4",
+  "contracts": [],
+  "copy": "~/deltaplan-ui-controls-UC-4",
+  "branch": "ui-controls/UC-4",
+  "base": "feature/ui-controls",
+  "scope": [
+    "экран «Управление» (`configs/ui.json → controls_help`: строка «мышь — трапеция: WASD — осмотреться, трапеция — мышь и стрелки»), `locale/ui.csv` (ru/en), подсказка в настройках режима мыши (если есть), `docs/game.md`, `site/content/mechanics/flight.md` (управление), CHANGELOG «В работе»."
+  ],
+  "dont_touch": [],
+  "accept": [
+    {
+      "name": "ui",
+      "tests": "ui"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet -d /tmp/dp-hugo-$$",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-02T01:04:01"
+}

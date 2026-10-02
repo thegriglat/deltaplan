@@ -1,0 +1,49 @@
+{
+  "id": "UC-1",
+  "module": "ui-controls",
+  "type": "dp-engineer",
+  "title": "Раскладка и проверки",
+  "goal": "Раскладка и проверки",
+  "plan_ref": "UC-1",
+  "contracts": [
+    {
+      "name": "У1",
+      "version": "2",
+      "ref": "docs/ui-controls_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-ui-controls-UC-1",
+  "branch": "ui-controls/UC-1",
+  "base": "feature/ui-controls",
+  "scope": [
+    "перестановка клавиш тангажа в `configs/controls.json` (одно место знака для клавиатуры); стик вперёд = от себя; инверсия по-прежнему меняет всё (клавиши, мышь, стик); экран «Управление» (`configs/ui.json → controls_help`), подсказки и локали (`locale/ui.csv`); `*_doc` в `controls.json`; комментарии `autopilot.gd`/тестов, где написано «W = pitch_pull_in» (автопилот и тесты жмут действия по имени — знак по имени не меняется); регрессионный тест У1."
+  ],
+  "dont_touch": [
+    "`scripts/flight/ground_run.gd`, логику земли в `input_controller.gd` (работа `feature/control-fix`, CF-3). Правка `_apply_gamepad` (одна строка знака) — отдельным последним коммитом, вливается только после согласования с главной сессией (файл control-fix)."
+  ],
+  "accept": [
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "contracts",
+      "tests": "contracts"
+    },
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "ui",
+      "tests": "ui"
+    },
+    {
+      "name": "flight",
+      "tests": "flight"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-01T21:26:21"
+}
