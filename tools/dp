@@ -2,7 +2,7 @@
 """dp — журнал, карточки задач и приёмка модулей Deltaplan (только стандартная библиотека).
 
 Хранение: docs/plan/<модуль>/ — module.json, tasks/<ID>.json (карточка), tasks/<ID>.report.json
-(отчёт исполнителя), events.jsonl и decisions.jsonl (только дописывание). Дом журнала модуля —
+(отчёт исполнителя), tasks/<ID>.review.json (ревью), events.jsonl и decisions.jsonl (только дописывание). Дом журнала модуля —
 рабочая копия ветки feature/<модуль>, если она есть (видно из любой копии), иначе текущая копия.
 Справка с примерами — tools/dp.md. Коды выхода: 0 ок, 1 ошибка/проверка не прошла, 2 аргументы.
 """
@@ -18,10 +18,14 @@ import tempfile
 import time
 from pathlib import Path
 
-LIFECYCLE = ["created", "started", "reported", "checked", "accepted", "merged", "blocked", "cancelled"]
+LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
 EVENT_KINDS = ["started", "reported", "accepted", "merged", "blocked", "cancelled", "note"]
 FINAL = {"accepted", "merged", "cancelled"}
 REPORT_STATUS = {"done", "partial", "blocked", "failed"}
+REVIEW_TYPES = {"dp-engineer", "dp-researcher"}  # этим задачам после PASS нужен dp-reviewer
+VERDICTS = ("accept", "rework")
+SEVERITY = {"blocker": "B", "major": "M", "minor": "m"}
+MAX_ISSUES = 7
 GODOT_TESTS = "godot --headless --path . res://tests/run_tests.tscn -- --filter={f}"
 
 
@@ -211,6 +215,18 @@ def add_event(home, task, kind, by, note="", commits=None, **extra):
     return ev
 
 
+def rev_tag(ev):
+    """rev:rework 2B1M — вердикт и число замечаний по серьёзности."""
+    cnt = ev.get("issues") or {}
+    return f"rev:{ev.get('verdict', '?')}" + ("" if not any(cnt.values()) else " " + "".join(
+        f"{cnt[k]}{SEVERITY[k]}" for k in SEVERITY if cnt.get(k)))
+
+
+def task_cards(home):
+    return {p.stem: read_json(p) for p in sorted((home / "tasks").glob("*.json"))
+            if not p.name.endswith((".report.json", ".review.json"))}
+
+
 def task_states(home):
     """{ID: {status, t, last_t, commits[], note}} по событиям."""
     st = {}
@@ -218,7 +234,7 @@ def task_states(home):
         tid = ev.get("task")
         if not tid:
             continue
-        s = st.setdefault(tid, {"status": "created", "t": ev.get("t"), "last_t": ev.get("t"), "commits": [], "note": ""})
+        s = st.setdefault(tid, {"status": "created", "t": ev.get("t"), "last_t": ev.get("t"), "commits": [], "note": "", "rev": ""})
         s["last_t"] = ev.get("t")
         k = ev.get("ev")
         if k in LIFECYCLE and not (k == "checked" and s["status"] in FINAL):
@@ -226,6 +242,8 @@ def task_states(home):
             s["t"] = ev.get("t")
             if k in ("blocked", "checked", "accepted", "cancelled"):
                 s["note"] = ev.get("note", "")
+        if k == "reviewed":
+            s["rev"] = rev_tag(ev)
         for c in ev.get("commits", []):
             if c not in s["commits"]:
                 s["commits"].append(c)
@@ -488,8 +506,11 @@ def cmd_accept(a):
     if not a.dry:
         summ = "; ".join(f"{r[0]}={'ok' if r[1] else 'FAIL'}:{short(r[2], 30)}" for r in res)
         full_set = not a.only and len(checks) == len(card.get("accept", []))
-        kind = "accepted" if allok and full_set and not a.no_accept else "checked"
+        need_rev = card.get("type") in REVIEW_TYPES and not a.here and not a.no_review
+        kind = "accepted" if allok and full_set and not a.no_accept and not need_rev else "checked"
         add_event(home, a.id, kind, by_default(a), note=f"{npass}/{len(res)} {summ}", commits=a.commit)
+        if allok and full_set and need_rev:
+            print(f"{a.id}: PASS → ревью: dp-reviewer (задание: «Ревью задачи {a.id}»), вердикт — dp review {a.id}")
     sys.exit(0 if allok else 1)
 
 
@@ -580,6 +601,117 @@ def cmd_report(a):
     print(f"{a.id}: отчёт {r['status']} → {rel(p)}")
 
 
+# ---------------------------------------------------------------- review
+
+REVIEW_TEMPLATE = {
+    "verdict": "accept | rework",
+    "summary": "1–3 строки: итог ревью",
+    "issues": [{"file": "scripts/flight/glider.gd", "line": 42, "severity": "blocker | major | minor",
+                "what": "что не так (контракт, скоуп, физика, подгонка под тест, баг, отчёт ≠ факт)",
+                "fix": "что сделать"}],
+    "rerun": [{"name": "проверка, перезапущенная ревьюером", "value": "число/итог", "pass": True}],
+}
+
+
+def validate_review(r):
+    errs = []
+    if not isinstance(r, dict):
+        return ["ревью должно быть объектом JSON"]
+    if r.get("verdict") not in VERDICTS:
+        errs.append(f"verdict ∈ {list(VERDICTS)}")
+    sm = r.get("summary")
+    if not isinstance(sm, str) or not sm.strip():
+        errs.append("summary — непустая строка")
+    elif len(sm.strip().splitlines()) > 3:
+        errs.append("summary — не больше 3 строк")
+    iss = r.get("issues", [])
+    if not isinstance(iss, list):
+        errs.append("issues — список")
+        iss = []
+    if len(iss) > MAX_ISSUES:
+        errs.append(f"issues — не больше {MAX_ISSUES} (мелочи и стиль — не замечания)")
+    for n, i in enumerate(iss):
+        if not isinstance(i, dict):
+            errs.append(f"issues[{n}] — объект")
+            continue
+        miss = [k for k in ("file", "severity", "what", "fix") if not i.get(k)]
+        if miss:
+            errs.append(f"issues[{n}]: нет {', '.join(miss)}")
+        if i.get("severity") and i["severity"] not in SEVERITY:
+            errs.append(f"issues[{n}].severity ∈ {list(SEVERITY)}")
+        if "line" in i and i["line"] not in (None, "") and not isinstance(i["line"], (int, str)):
+            errs.append(f"issues[{n}].line — число или строка «12-30»")
+    if r.get("verdict") == "accept" and any(isinstance(i, dict) and i.get("severity") == "blocker" for i in iss):
+        errs.append("verdict=accept при blocker — противоречие")
+    if "rerun" in r and not isinstance(r["rerun"], list):
+        errs.append("rerun — список")
+    return errs
+
+
+def cmd_review(a):
+    if a.template:
+        print(json.dumps(REVIEW_TEMPLATE, ensure_ascii=False, indent=2))
+        return
+    if not a.id:
+        raise DpError("нужен ID задачи")
+    mod, home = find_task(a.id)
+    p = home / "tasks" / f"{a.id}.review.json"
+    if a.show:
+        r = read_json(p)
+        if not r:
+            raise DpError(f"{a.id}: ревью нет")
+        if a.full:
+            print(json.dumps(r, ensure_ascii=False, indent=2))
+            return
+        L = [f"{a.id} {rev_tag({'verdict': r.get('verdict'), 'issues': count_sev(r)})} ({r.get('by', '-')}): "
+             f"{short(r.get('summary', ''), 300)}"]
+        for i in r.get("issues", []):
+            ln = f":{i['line']}" if i.get("line") not in (None, "") else ""
+            L.append(f"  [{i.get('severity')}] {i.get('file')}{ln} — {short(i.get('what', ''), 160)} → {short(i.get('fix', ''), 120)}")
+        for c in r.get("rerun", []) or []:
+            L.append(f"  перезапуск: {'PASS' if c.get('pass') else 'FAIL'} {c.get('name')} {short(c.get('value', ''), 60)}")
+        print("\n".join(L))
+        return
+    if not a.verdict:
+        raise DpError("нужен --verdict accept|rework (или --show / --template)")
+    if a.from_:
+        src = sys.stdin.read() if a.from_ == "-" else Path(a.from_).read_text()
+        try:
+            r = json.loads(src)
+        except json.JSONDecodeError as e:
+            raise DpError(f"ревью: неверный JSON ({e}); схема — dp review --template")
+        if not isinstance(r, dict):
+            raise DpError("ревью должно быть объектом JSON")
+        if r.get("verdict") and r["verdict"] != a.verdict:
+            raise DpError(f"verdict в файле ({r['verdict']}) ≠ --verdict {a.verdict}")
+        r["verdict"] = a.verdict
+        if a.note and not r.get("summary"):
+            r["summary"] = a.note
+    else:
+        if not a.note:
+            raise DpError("нужен --from review.json или --note «итог»")
+        r = {"verdict": a.verdict, "summary": a.note, "issues": []}
+    r.setdefault("issues", [])
+    errs = validate_review(r)
+    if errs:
+        raise DpError(f"{a.id}: ревью не принято: " + "; ".join(errs))
+    r["t"] = now()
+    r["by"] = by_default(a)
+    write_json(p, r)
+    cnt = count_sev(r)
+    ev = add_event(home, a.id, "reviewed", r["by"], note=short(r["summary"], 160), verdict=a.verdict,
+                   issues={k: v for k, v in cnt.items() if v}, review=f"docs/plan/{mod}/tasks/{a.id}.review.json")
+    print(f"{a.id}: {rev_tag(ev)} → {rel(p)}")
+
+
+def count_sev(r):
+    cnt = {k: 0 for k in SEVERITY}
+    for i in r.get("issues", []) or []:
+        if isinstance(i, dict) and i.get("severity") in cnt:
+            cnt[i["severity"]] += 1
+    return cnt
+
+
 # ---------------------------------------------------------------- status
 
 def branch_info(br, wt_by_branch):
@@ -593,9 +725,9 @@ def branch_info(br, wt_by_branch):
 
 def module_status(mod, home, a, lines):
     st = task_states(home)
-    cards = {p.stem: read_json(p) for p in sorted((home / "tasks").glob("*.json")) if not p.name.endswith(".report.json")}
+    cards = task_cards(home)
     for tid in cards:
-        st.setdefault(tid, {"status": "created", "t": None, "last_t": None, "commits": [], "note": ""})
+        st.setdefault(tid, {"status": "created", "t": None, "last_t": None, "commits": [], "note": "", "rev": ""})
     wt = {b: p for p, b in worktrees()}
     meta = module_meta(mod, home)
     cnt = {}
@@ -620,7 +752,8 @@ def module_status(mod, home, a, lines):
                 old = f" ⚠тихо {age(s['last_t'])}"
         extra = f" {br} {blast}" if blast else ""
         note = f" — {short(s['note'], 60)}" if s["note"] and s["status"] in ("blocked", "checked") else ""
-        lines.append(f"  {tid} {s['status']} {age(s['t'])} {card.get('type', '').removeprefix('dp-')}{extra}{old}{note}")
+        rv = f" {s['rev']}" if s.get("rev") else ""
+        lines.append(f"  {tid} {s['status']} {age(s['t'])} {card.get('type', '').removeprefix('dp-')}{rv}{extra}{old}{note}")
     decs = read_jsonl(home / "decisions.jsonl")
     answered = {x.get("answers") for x in decs if x.get("answers")}
     for q in decs:
@@ -733,8 +866,9 @@ def cmd_render(a):
     home = mods[a.module]
     meta = module_meta(a.module, home)
     st = task_states(home)
-    cards = {p.stem: read_json(p) for p in sorted((home / "tasks").glob("*.json")) if not p.name.endswith(".report.json")}
+    cards = task_cards(home)
     reps = {p.name[:-12]: read_json(p) for p in (home / "tasks").glob("*.report.json")}
+    revs = {p.name[:-12]: read_json(p) for p in sorted((home / "tasks").glob("*.review.json"))}
     evs = read_jsonl(home / "events.jsonl")
     decs = read_jsonl(home / "decisions.jsonl")
     L = [MARK, f"# Журнал модуля «{a.module}»", "",
@@ -762,6 +896,17 @@ def cmd_render(a):
         cell = lambda x: str(x).replace("|", "\\|").replace("\n", " ")
         L.append(f"| {tid} {cell(c.get('title', ''))} | **{s['status']}**{date} | {c.get('type', '')} | "
                  f"`{c.get('branch', '')}` | {', '.join(s.get('commits', []))} | {cell(res)} |")
+    L += ["", "## Ревью", ""]
+    for tid, rv in revs.items():
+        if not rv:
+            continue
+        L.append(f"- {tid} — **{rv.get('verdict')}** ({rv.get('by', '-')}, {str(rv.get('t', ''))[:16].replace('T', ' ')}): "
+                 + str(rv.get("summary", "")).replace("\n", " "))
+        for i in rv.get("issues", []):
+            ln = f":{i['line']}" if i.get("line") not in (None, "") else ""
+            L.append(f"  - [{i.get('severity')}] `{i.get('file')}{ln}` {i.get('what')} → {i.get('fix')}")
+    if not revs:
+        L.append("- нет")
     L += ["", "## Хронология", ""]
     for e in evs:
         cm = f" [{', '.join(e['commits'])}]" if e.get("commits") else ""
@@ -842,6 +987,8 @@ def build():
     q.add_argument("-j", "--jobs", type=int, default=1); q.add_argument("--commit", action="append")
     q.add_argument("--dry", action="store_true", help="не писать событие")
     q.add_argument("--no-accept", dest="no_accept", action="store_true", help="записать checked, даже если всё PASS")
+    q.add_argument("--no-review", dest="no_review", action="store_true",
+                   help="engineer/researcher: accepted без ревью (по умолчанию PASS → checked, ждёт dp-reviewer)")
     q.add_argument("--full", action="store_true", help="пути логов и для PASS"); q.add_argument("--by")
     q.set_defaults(fn=cmd_accept)
 
@@ -850,6 +997,14 @@ def build():
     q.add_argument("--show", action="store_true"); q.add_argument("--template", action="store_true")
     q.add_argument("--full", action="store_true"); q.add_argument("--by")
     q.set_defaults(fn=cmd_report)
+
+    q = sp.add_parser("review", help="вердикт ревьюера: dp review ID --verdict accept|rework --from r.json | --note … | --show | --template")
+    q.add_argument("id", nargs="?"); q.add_argument("--verdict", choices=VERDICTS)
+    q.add_argument("--from", dest="from_", metavar="FILE", help="JSON ревью (dp review --template), - = stdin")
+    q.add_argument("--note", help="короткое ревью без файла (замечаний нет) или summary к --from")
+    q.add_argument("--show", action="store_true"); q.add_argument("--template", action="store_true")
+    q.add_argument("--full", action="store_true"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_review)
 
     q = sp.add_parser("status", help="сводка: задачи, ветки, тишина, вопросы пользователю")
     q.add_argument("module", nargs="?"); q.add_argument("--full", action="store_true", help="и закрытые задачи")

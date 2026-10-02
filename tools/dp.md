@@ -7,7 +7,7 @@
 ## Где лежит
 `docs/plan/<модуль>/`:
 - `module.json` — план, контракты, ветка, копия модуля;
-- `tasks/<ID>.json` — карточка задачи, `tasks/<ID>.report.json` — отчёт исполнителя;
+- `tasks/<ID>.json` — карточка задачи, `tasks/<ID>.report.json` — отчёт исполнителя, `tasks/<ID>.review.json` — последнее ревью;
 - `events.jsonl` — события (только дописывание): `{t, by, task, ev, commits?, note?}`;
 - `decisions.jsonl` — решения и вопросы пользователю: `{t, by, kind: decision|question, text, why?, id?, answers?}`.
 
@@ -26,8 +26,9 @@ dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit 
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
 dp decide <модуль> "<вопрос>" --ask      # шлюз: вопрос пользователю → Q1, висит в status до --answers Q1
-dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept]
+dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept] [--no-review]
 dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --template
+dp review <ID> --verdict accept|rework --from r.json|- [--note …]  |  --note "итог"  |  dp review <ID> --show [--full]  |  dp review --template
 dp status [<модуль>] [--full] [--stale 40]
 dp log <модуль|ID> [-n 10] [--full]
 dp plan <модуль|файл.md> [<номер|начало заголовка>] [--contracts] [--depth 3] [--max 150]
@@ -51,7 +52,18 @@ accept[], report_extra[], notes`. Править можно и руками (Edi
 
 ### Приёмка
 `dp accept UC-3` → таблица `PASS/FAIL имя значение`, у FAIL — путь к логу. Все проверки прошли → событие `accepted`,
-иначе `checked` с итогом (`--no-accept` — всегда `checked`, `--dry` — без события).
+иначе `checked` с итогом (`--no-accept` — всегда `checked`, `--dry` — без события). У задач `dp-engineer`/`dp-researcher`
+всё PASS → тоже `checked` (ждёт ревью; `--no-review` — сразу `accepted`, `--here` после слияния ревью не ждёт).
+
+### Ревью (`dp-reviewer`)
+После PASS у engineer/researcher координатор запускает свежего `dp-reviewer` (задание — только «Ревью задачи <ID>», копия, ветка).
+Ревьюер сдаёт `dp review <ID> --verdict accept|rework --from - < r.json` (без замечаний — `--note "итог"`).
+Схема (`dp review --template`): `verdict` accept|rework, `summary` (1–3 строки), `issues[]` (≤ 7) —
+`{file, line, severity: blocker|major|minor, what, fix}`, `rerun[{name, value, pass}]` — что ревьюер перезапустил.
+blocker при accept — ошибка. Пишет `tasks/<ID>.review.json` (последнее ревью) и событие `reviewed`
+`{verdict, issues: {blocker: n, …}, review: путь}`. `dp status` показывает у задачи `rev:rework 2B1M`
+(B blocker, M major, m minor); `dp render` — раздел «Ревью». Дальше решает координатор:
+`dp event <ID> accepted --note "по ревью"` или доработка по `dp review <ID> --show`.
 
 ### Отчёт исполнителя
 `dp report --template` печатает схему: `status` (done|partial|blocked|failed), `summary`, `commits[]`,
@@ -75,7 +87,11 @@ tools/dp report UC-7 < /tmp/uc7_report.json
 
 # координатор: приёмка и решения
 tools/dp report UC-7 --show
-tools/dp accept UC-7 -j 4 --commit 1a2b3c4      # после слияния в ветку модуля — с --here
+tools/dp accept UC-7 -j 4 --commit 1a2b3c4      # engineer: PASS → checked, ждёт ревью; после слияния — с --here
+# ревьюер (свежий агент): dp task show / plan / report --show / git diff base...branch → вердикт
+tools/dp review UC-7 --verdict rework --from - --by reviewer < /tmp/uc7_review.json
+tools/dp review UC-7 --show        # координатор: вердикт и замечания, без чтения кода
+tools/dp event UC-7 accepted --note "по ревью"
 tools/dp decide ui-controls "Q оставить на свободной камере" --by coordinator --why "дёшево поменять"
 tools/dp decide ui-controls "Клавиша Q: прибор или камера вниз?" --ask
 tools/dp status ui-controls
