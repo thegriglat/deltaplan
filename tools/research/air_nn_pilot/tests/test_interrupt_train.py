@@ -29,7 +29,7 @@ sys.path.insert(0, str(HERE))
 from pilotnn import common as C  # noqa: E402
 
 PROFILE = "dev"
-SKIP_KEYS = ("t_", "time_ms", "path", "cpu", "date", "t_eval_s", "root")
+SKIP_KEYS = ("t_", "time_ms", "path", "cpu", "date", "t_eval_s", "root", "gpu_lock_wait")   # время, не метрики
 
 
 def cfg():
