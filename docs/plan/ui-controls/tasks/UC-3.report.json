@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "`look_*` = W/S/A/D, `keys_look()`, `CameraRig.keys_look_fn`/`head_look_deg()`, `key_rate_deg_s` 90. У2: bar+захват W/S/A/D → pitch/roll 0,0; ↑ 0,75, → 1,00, action_press 0,75; без захвата W 0,75; разбег W 0,00, ↑ 0,75; голова за 0,5 с A +45°, D −45°, W +45°, S −45°, без обзора 0. Перепроверено на ветке модуля после слияния: ui_controls 9/0, contracts 50/0, game 138/0 (1 пропуск), ui 93/1 (`test_net_screen::…embedded_vs_remote` — было и до), flight 129/0. Кадры — `/home/greg/deltaplan/build/screenshots/UC-3/` (01 вперёд, 02 A 1 с — голова влево 90°, 03 W 1 с — вверх до предела 60°). Замечено: при автопилоте зажатая физическая W/S/A/D гасит его нажатие того же действия (как стоя на земле) — в игре без автопилота не важно, оставляю.",
+  "commits": [
+    "ec4ec5e",
+    "81b3f5c",
+    "ae013fd"
+  ],
+  "checks": [
+    {
+      "name": "ui_controls",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "contracts",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "ui",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "flight",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-3",
+  "t": "2026-10-02T01:26:25",
+  "by": "dp-engineer",
+  "migrated": true
+}

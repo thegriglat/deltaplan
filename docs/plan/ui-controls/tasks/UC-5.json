@@ -1,0 +1,59 @@
+{
+  "id": "UC-5",
+  "module": "ui-controls",
+  "type": "dp-engineer",
+  "title": "Мышь — всегда крыло, W/S/A/D — пилот/голова",
+  "goal": "Мышь — всегда крыло, W/S/A/D — пилот/голова",
+  "plan_ref": "UC-5",
+  "contracts": [
+    {
+      "name": "У1",
+      "version": "3",
+      "ref": "docs/ui-controls_contracts.md"
+    },
+    {
+      "name": "У2",
+      "version": "2",
+      "ref": "docs/ui-controls_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-ui-controls-UC-5",
+  "branch": "ui-controls/UC-5",
+  "base": "feature/ui-controls",
+  "scope": [
+    "`configs/controls.json` — клавиши трапеции только стрелки, убрать `mouse.mode` (+ `_doc` везде, где упомянуты W/S/A/D как трапеция или режим мыши); `InputController` — убрать `mouse_mode()` и ветки режима `look`, `keys_look()` по У2 v2, упростить `_bar_strength` (фильтры не нужны); `CameraRig` — убрать ветку режима `look` (обзор мышью — правой кнопкой, как в `bar`), `keys_look_fn` как было; `settings_panel.gd` — убрать пункт «Мышь: Обзор / Трапеция»; `controls_screen.gd` и `configs/ui.json → controls_help` — убрать поле `mouse_mode` и строки режима `look` (код фильтра и строки, без переделки экрана); `locale/ui.csv` — удалить ключи пункта режима мыши и строк режима `look`, тексты строк экрана «Управление» и подсказок (ru/en) привести к схеме этапа 3 (крыло — мышь и стрелки; на земле W/S/A/D — шаг/поворот; в полёте — осмотреться); всё прочее, что опирается на `mouse.mode`/«W = трапеция» (автопилот жмёт действия по имени — проверить; `tools/` и тесты, жмущие физические W/S/A/D ради трапеции — на стрелки)."
+  ],
+  "dont_touch": [
+    "`ground_run.gd`, физику; `docs/`, сайт, CHANGELOG (UC-6); контрактный тест и `test_ground_bar_keys` (правит координатор — если нужен другой интерфейс, к координатору)."
+  ],
+  "accept": [
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "contracts",
+      "tests": "contracts"
+    },
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "ui",
+      "tests": "ui"
+    },
+    {
+      "name": "flight",
+      "tests": "flight"
+    },
+    {
+      "name": "no_mouse_mode",
+      "cmd": "grep -rn 'mouse.mode\\|mouse_mode' scripts configs tests tools | grep -v 'Input.mouse_mode'",
+      "expect": "exit=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-02T02:24:29"
+}

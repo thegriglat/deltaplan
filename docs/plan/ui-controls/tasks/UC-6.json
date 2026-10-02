@@ -1,0 +1,26 @@
+{
+  "id": "UC-6",
+  "module": "ui-controls",
+  "type": "dp-writer",
+  "title": "Тексты этапа 3 (docs, сайт, CHANGELOG)",
+  "goal": "Тексты этапа 3 (docs, сайт, CHANGELOG)",
+  "plan_ref": "UC-6",
+  "contracts": [],
+  "copy": "~/deltaplan-ui-controls-UC-6",
+  "branch": "ui-controls/UC-6",
+  "base": "feature/ui-controls",
+  "scope": [
+    "`docs/game.md`, `site/content/mechanics/flight.md`, CHANGELOG «В работе»."
+  ],
+  "dont_touch": [],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet -d /tmp/dp-hugo-$$",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-02T02:18:00"
+}

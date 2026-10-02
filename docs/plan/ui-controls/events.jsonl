@@ -1,0 +1,25 @@
+{"t": "2026-10-01T21:23:44", "by": "coordinator", "task": "UC-2", "ev": "created", "note": "Тексты (docs, README, сайт)"}
+{"t": "2026-10-01T21:23:44", "by": "coordinator", "task": "UC-2", "ev": "started", "note": "dp-writer"}
+{"t": "2026-10-01T21:23:44", "by": "dp-writer", "task": "UC-2", "ev": "reported", "commits": ["db8230f"], "note": "done"}
+{"t": "2026-10-01T21:23:44", "by": "coordinator", "task": "UC-2", "ev": "accepted", "commits": [], "note": "перепроверено на ветке модуля; копия и ветка удалены"}
+{"t": "2026-10-01T21:26:21", "by": "coordinator", "task": "UC-1", "ev": "created", "note": "Раскладка и проверки"}
+{"t": "2026-10-01T21:26:21", "by": "coordinator", "task": "UC-1", "ev": "started", "note": "dp-engineer"}
+{"t": "2026-10-01T21:26:53", "by": "dp-engineer", "task": "UC-1", "ev": "reported", "commits": ["fc09b4b", "7e65293"], "note": "done"}
+{"t": "2026-10-01T21:30:24", "by": "coordinator", "task": "UC-1", "ev": "accepted", "commits": ["c33a98b"], "note": "перепроверено на ветке модуля; копия и ветка удалены"}
+{"t": "2026-10-02T00:24:29", "by": "coordinator", "task": null, "ev": "note", "commits": ["acf1752"], "note": "подтянут main dcf039e (control-fix CF-1/CF-3) — конфликты разрешены, тесты зелёные"}
+{"t": "2026-10-02T01:04:01", "by": "coordinator", "task": "UC-4", "ev": "created", "note": "Тексты этапа 2"}
+{"t": "2026-10-02T01:04:01", "by": "coordinator", "task": "UC-4", "ev": "started", "note": "dp-writer"}
+{"t": "2026-10-02T01:04:01", "by": "dp-writer", "task": "UC-4", "ev": "reported", "commits": ["6fc69a9"], "note": "done"}
+{"t": "2026-10-02T01:04:21", "by": "coordinator", "task": "UC-3", "ev": "created", "note": "Обзор с WASD при трапеции мышью"}
+{"t": "2026-10-02T01:04:21", "by": "coordinator", "task": "UC-3", "ev": "started", "note": "dp-engineer"}
+{"t": "2026-10-02T01:04:29", "by": "coordinator", "task": "UC-4", "ev": "accepted", "commits": ["4efc60e"], "note": "перепроверено на ветке модуля; копия и ветка удалены"}
+{"t": "2026-10-02T01:26:25", "by": "dp-engineer", "task": "UC-3", "ev": "reported", "commits": ["ec4ec5e", "81b3f5c", "ae013fd"], "note": "done"}
+{"t": "2026-10-02T01:29:43", "by": "coordinator", "task": "UC-3", "ev": "accepted", "commits": ["e16b34c"], "note": "перепроверено на ветке модуля; копия и ветка удалены"}
+{"t": "2026-10-02T02:18:00", "by": "coordinator", "task": "UC-6", "ev": "created", "note": "Тексты этапа 3 (docs, сайт, CHANGELOG)"}
+{"t": "2026-10-02T02:18:00", "by": "coordinator", "task": "UC-6", "ev": "started", "note": "dp-writer"}
+{"t": "2026-10-02T02:18:00", "by": "dp-writer", "task": "UC-6", "ev": "reported", "commits": ["b6ba231"], "note": "done"}
+{"t": "2026-10-02T02:18:20", "by": "coordinator", "task": "UC-6", "ev": "accepted", "commits": ["a1ac340"], "note": "перепроверено на ветке модуля; копия и ветка удалены"}
+{"t": "2026-10-02T02:24:29", "by": "coordinator", "task": "UC-5", "ev": "created", "note": "Мышь — всегда крыло, W/S/A/D — пилот/голова"}
+{"t": "2026-10-02T02:24:29", "by": "coordinator", "task": "UC-5", "ev": "started", "note": "dp-engineer (Opus)"}
+{"t": "2026-10-02T02:24:29", "by": "dp-engineer", "task": "UC-5", "ev": "reported", "commits": ["0d001ba"], "note": "done"}
+{"t": "2026-10-02T02:32:02", "by": "coordinator", "task": "UC-5", "ev": "accepted", "commits": ["3404a9d"], "note": "перепроверено на ветке модуля; копия и ветка удалены"}

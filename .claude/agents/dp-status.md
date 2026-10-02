@@ -11,7 +11,7 @@ omitClaudeMd: true
 Собери (период — из задания, по умолчанию 31 минута):
 1. Рабочие копии: `git -C /home/greg/deltaplan worktree list`.
 2. Коммиты за период по всем веткам: `git -C /home/greg/deltaplan log --all --since="<период> ago" --format="%h %ad %s" --date=format:%H:%M` (обрезать строки до ~150 символов).
-3. Журналы координаторов: последние 3 строки раздела «Хронология» в `docs/plan/*_progress.md` рабочих копий `feature/*`.
+3. Журналы координаторов: `/home/greg/deltaplan/tools/dp status` (модули на dp: задачи, «⚠тихо», вопросы пользователю — переписать как есть); для модулей без dp — последние 3 строки раздела «Хронология» в `docs/plan/*_progress.md` рабочих копий `feature/*`.
 4. По каждой рабочей копии: число незакоммиченных файлов и время последней правки среди них (`git status --short` + `stat -c %y`); `project.godot` изменён? (`git diff --quiet project.godot`).
 5. Процессы: `ps -eo pid,etime,args` для godot/python/циклов ожидания; для долгих (> 30 мин) — рабочая папка (`readlink /proc/PID/cwd`).
 
