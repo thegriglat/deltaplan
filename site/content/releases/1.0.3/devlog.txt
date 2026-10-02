@@ -1,0 +1,15 @@
+Deltaplan 1.0.3 — choose your wind model
+
+A small update with a new setting. If the game crashes while loading a site or in flight, you no longer have to go back to an older version: switch the wind model to Simplified and keep flying with all the new gliders and controls.
+
+Settings:
+- New option "Wind over terrain": Calculated from terrain (as before) or Simplified
+- Simplified skips the GPU wind calculation on site load; wind and thermals use the lighter model
+- The choice is saved and applies from the next site load; in network play each pilot chooses for themselves
+
+Gliders:
+- Apogee is now 14.4 m2 instead of 16 (a copy of the Airwave Magic 155), with a shorter chord
+- It flies slightly faster: trim about 34 km/h instead of 32, stall about 26 instead of 24.5, min sink 1.37 m/s; glide ratio unchanged (about 7)
+
+Known issues:
+- Mac build is untested
