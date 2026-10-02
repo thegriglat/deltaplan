@@ -160,3 +160,24 @@ def solver_status(row):
     order = {"ok": 0, "max": 1, "diverged": 2, "error": 3}
     st = [v.get("status", "ok") for k, v in (row.get("runs") or {}).items() if k.startswith("d400")]
     return max(st, key=lambda s: order.get(s, 3)) if st else "ok"
+
+
+def solution_info(row, key):
+    """Статус и цель одного решения случая (П1 v3): key — «d400_h» (с нагревом) или «d400_m» (без).
+    → dict(status, converged, target, late_n, spread). Сошедшееся — status «ok» (цель «final»); у v1 решение «max»
+    без поля target — цель «last» (последнее состояние); спред late_spread60_p90 — только у late_mean (иначе None)."""
+    r = (row.get("runs") or {}).get(key) or {}
+    st = r.get("status", "ok")
+    tg = r.get("target") or ("final" if st == "ok" else "last")
+    sp = r.get("late_spread60_p90")
+    return dict(status=st, converged=(st == "ok"), target=tg, late_n=r.get("late_n"),
+                spread=float(sp) if sp is not None else None)
+
+
+def case_groups(row):
+    """Группы случая для отчёта П3 v3: gh — ветер и w с нагревом (по статусу `h`), gm — w без нагрева (по `m`),
+    gall — «всё ок» (сошёлся и `h`, и `m`); значения «conv» | «nc» (несошедшееся)."""
+    h, m = solution_info(row, "d400_h"), solution_info(row, "d400_m")
+    g = lambda ok: "conv" if ok else "nc"  # noqa: E731
+    return dict(gh=g(h["converged"]), gm=g(m["converged"]), gall=g(h["converged"] and m["converged"]),
+                target_h=h["target"], target_m=m["target"], spread_h=h["spread"], spread_m=m["spread"])

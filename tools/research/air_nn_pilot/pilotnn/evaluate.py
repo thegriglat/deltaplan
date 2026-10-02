@@ -1,4 +1,4 @@
-"""Оценка и отчёт пилота (контракт П3 v2): python -m pilotnn.evaluate <eval|report> <каталог прогона> <каталог отчёта>
+"""Оценка и отчёт пилота (контракты П3 v2/v3): python -m pilotnn.evaluate <eval|report> <каталог прогона> <каталог отчёта>
 
 eval   — предсказания основной сети и сетей кривой, базовые линии, метрики П3 v2, сравнение с целями air-lite,
          признаки рельефа наборов, экспорт ONNX + ORT ↔ PyTorch + время ORT CPU
@@ -14,6 +14,9 @@ report — картинки и report.md; вывод ШП-2 — правилом
 по 13 высотам, по корзинам U10 × высотам, на гребнях на 60 м; то же для w (Δw без и с нагревом, знаковое).
 Наборы: (г) отложенные горные системы (главное), (б) Онгудай, (б′) отложенные процедурные, (а) новые условия —
 места П6 и прежние раздельно, обучающие (до max_train_eval случаев).
+П3 v3: все метрики — по группам решений (`conv` сошедшиеся / `nc` несошедшиеся / `all` все): ветер, w с нагревом и
+смещение — по статусу `h`, w без нагрева — по `m`, «всё ок» — по обоим (`data.case_groups`); у несошедшихся — отношение
+ошибки ветра к `late_spread60_p90` решения.
 Базовые линии: «приток» — профиль притока без поправки (цель П2 = 0: u = Ub(a)·ê, w = 0, θ′ = 0);
 «среднее» — среднее цели П2 по обучающим случаям (по каналу и высоте, без зависимости от места).
 """
@@ -36,7 +39,7 @@ import torch  # noqa: E402
 from . import common as C  # noqa: E402
 from . import model as M  # noqa: E402
 from . import prep as P  # noqa: E402
-from .data import Datasets, solver_status, terrain_features  # noqa: E402
+from .data import Datasets, case_groups, solver_status, terrain_features  # noqa: E402
 from .train import case_file, load_arrays  # noqa: E402
 
 CODE_FILES = [Path(__file__), Path(P.__file__), Path(M.__file__)]
@@ -190,6 +193,13 @@ class Pooled:
         return r
 
 
+def add_pooled(pools, t, p, gr):
+    """Цели air-lite по группам: механика (t_m*) — по статусу `m`, θ′ — по `h`, добавка нагрева (t_c*) — по обоим."""
+    for k in t:
+        g = gr["gm"] if k.startswith("t_m") else gr["gh"] if k == "t_th" else gr["gall"]
+        pools[g].add({k: t[k]}, {k: p[k]})
+
+
 def agg(rows, key):
     v = np.array([r[key] for r in rows if np.isfinite(r[key])])
     if v.size == 0:
@@ -247,20 +257,39 @@ def bin_label(k, edges):
     return f"{edges[k]:g}–{edges[k + 1]:g}" if k + 1 < len(edges) else f"≥ {edges[k]:g}"
 
 
+GROUPS = ("conv", "nc", "all")             # сошедшиеся / несошедшиеся / все (для вердикта отказа и контроля)
+GROUP_NAMES = dict(conv="сошедшиеся", nc="несошедшиеся", all="все")
+
+
+def _cat(l, dtype=np.float64):
+    return np.concatenate(l).astype(dtype) if l else np.zeros(0, dtype)
+
+
+class _Sub:
+    """Накопитель одной группы. Ветер, w с нагревом, смещение e — по статусу решения `h`; w без нагрева — по `m`;
+    «всё ок» — по обоим (сошлись и `h`, и `m`)."""
+
+    def __init__(self, n_agl):
+        self.cells = {k: [] for k in AREA + ("okw", "allok")}
+        self.ridge = {k: [] for k in AREA + ("okw", "allok", "e", "v")}
+        z = lambda: np.zeros(n_agl)  # noqa: E731
+        self.bias = dict(e=z(), v=z(), wh=z(), n=0.0, wm=z(), nm=0.0)
+        self.bins = {}
+        self.ch = self.cm = 0
+
+
 class AreaAcc:
-    """Накопитель метрик П3 v2 одного (набора, предсказания): клетки области и гребней на 60 м, смещение."""
+    """Накопитель метрик П3 v2/v3 одного (набора, предсказания): клетки области и гребней на 60 м, смещение; три
+    группы — сошедшиеся (`conv`), несошедшиеся (`nc`), все (`all`)."""
 
     def __init__(self, ec, n_agl):
         self.ec, self.nA = ec, n_agl
         self.edges = list(ec["u10_bins"])
-        self.cells = {k: [] for k in AREA + ("okw",)}
-        self.ridge = {k: [] for k in AREA + ("okw", "e", "v")}
-        z = lambda: np.zeros(n_agl)  # noqa: E731
-        self.bias = dict(e=z(), v=z(), wm=z(), wh=z(), n=z())
-        self.bins = {}
+        self.sub = {g: _Sub(n_agl) for g in GROUPS}
         self.cases = []
 
-    def add(self, cid, row, truth, pred, lw, ridge_mask):
+    def add(self, cid, row, truth, pred, lw, ridge_mask, gr):
+        """gr — `data.case_groups(row)`."""
         ec = self.ec
         e = ec["edge_cells"]
         s = (Ellipsis, slice(e, -e or None), slice(e, -e or None))
@@ -270,12 +299,11 @@ class AreaAcc:
         dw = np.hypot(ph[0] - th[0], ph[1] - th[1])
         okw = dw <= np.maximum(ec["wind_ok_ms"], ec["wind_ok_rel"] * vt)
         dlm, dlh = np.abs(pm[2] - tm[2]), np.abs(ph[2] - th[2])
-        for k, v in (("wind", dw), ("lift_m", dlm), ("lift_h", dlh), ("okw", okw)):
-            self.cells[k].append(v.astype(np.float32 if k != "okw" else bool).ravel())
+        lt = ec["lift_ok_ms"]
+        allok = okw & (dlm < lt) & (dlh < lt)
         r = ridge_mask
         ev = np.hypot(ph[0], ph[1]) - vt
-        for k, v in (("wind", dw), ("lift_m", dlm), ("lift_h", dlh), ("okw", okw), ("e", ev), ("v", vt)):
-            self.ridge[k].append(v[r].astype(np.float32 if k != "okw" else bool))
+        f32 = lambda v: v.astype(np.float32)  # noqa: E731
         # смещение по высотам (все 13), клетки области
         Th, Ph = truth["h"][s], pred["h"][s]
         Tm, Pm = truth["m"][s], pred["m"][s]
@@ -283,53 +311,87 @@ class AreaAcc:
         E = np.hypot(Ph[0], Ph[1]) - VT
         se, sv = E.sum(axis=(-2, -1)), VT.sum(axis=(-2, -1))
         n = float(E.shape[-1] * E.shape[-2])
-        self.bias["e"] += se; self.bias["v"] += sv; self.bias["n"] += n
-        self.bias["wm"] += (Pm[2] - Tm[2]).sum(axis=(-2, -1)); self.bias["wh"] += (Ph[2] - Th[2]).sum(axis=(-2, -1))
-        b = self.bins.setdefault(u10_bin(row["U10"], self.edges), dict(cases=0, e=np.zeros(self.nA), v=np.zeros(self.nA),
-                                                                          n=np.zeros(self.nA)))
-        b["cases"] += 1; b["e"] += se; b["v"] += sv; b["n"] += n
+        swh, swm = (Ph[2] - Th[2]).sum(axis=(-2, -1)), (Pm[2] - Tm[2]).sum(axis=(-2, -1))
+        ub = u10_bin(row["U10"], self.edges)
+        for g in (gr["gh"], "all"):
+            q = self.sub[g]
+            q.ch += 1
+            for k, v in (("wind", f32(dw)), ("lift_h", f32(dlh)), ("okw", okw)):
+                q.cells[k].append(v.ravel())
+            for k, v in (("wind", dw), ("lift_h", dlh), ("okw", okw), ("e", ev), ("v", vt)):
+                q.ridge[k].append(f32(v[r]) if k != "okw" else v[r])
+            q.bias["e"] += se; q.bias["v"] += sv; q.bias["wh"] += swh; q.bias["n"] += n
+            b = q.bins.setdefault(ub, dict(cases=0, e=np.zeros(self.nA), v=np.zeros(self.nA), n=0.0))
+            b["cases"] += 1; b["e"] += se; b["v"] += sv; b["n"] += n
+        for g in (gr["gm"], "all"):
+            q = self.sub[g]
+            q.cm += 1
+            q.cells["lift_m"].append(f32(dlm).ravel())
+            q.ridge["lift_m"].append(f32(dlm[r]))
+            q.bias["wm"] += swm; q.bias["nm"] += n
+        for g in (gr["gall"], "all"):
+            q = self.sub[g]
+            q.cells["allok"].append(allok.ravel())
+            q.ridge["allok"].append(allok[r])
         self.cases.append(dict(case=cid, loc=row["loc"], U10=float(row["U10"]), frac_wind_ok=float(okw.mean()),
-                               wind_median=float(np.median(dw)), e60=float(ev.mean()), v60=float(vt.mean())))
+                               wind_median=float(np.median(dw)), e60=float(ev.mean()), v60=float(vt.mean()),
+                               gh=gr["gh"], gm=gr["gm"], target_h=gr["target_h"], target_m=gr["target_m"],
+                               spread_h=gr["spread_h"]))
 
-    @staticmethod
-    def _stats(d, with_q):
-        if not d["wind"]:
+    def _res(self, g, with_q):
+        q = self.sub[g]
+        if not q.ch and not q.cm:
             return None
-        out = {}
-        okw = np.concatenate(d["okw"])
-        out["n_points"] = int(okw.size)
-        if okw.size == 0:
-            return out
-        out["frac_wind_ok"] = float(okw.mean())
-        for k in AREA:
-            v = np.concatenate(d[k]).astype(np.float64)
-            out[k] = dict(median=float(np.median(v)), p90=float(np.percentile(v, 90)), mean=float(v.mean()))
-            if with_q:
-                out[k]["q"] = np.percentile(v, np.linspace(0, 100, NQ)).astype(float).round(5).tolist()
-        return out
+        lt = self.ec["lift_ok_ms"]
+        res = dict(n_cases=q.ch, n_cases_m=q.cm)
+        for name, d in (("area", q.cells), ("ridge", q.ridge)):
+            st = {}
+            if d["wind"]:
+                okw = _cat(d["okw"], bool)
+                st["n_points"] = int(okw.size)
+                st["frac_wind_ok"] = float(okw.mean())
+                for k in ("wind", "lift_h"):
+                    v = _cat(d[k])
+                    st[k] = dict(median=float(np.median(v)), p90=float(np.percentile(v, 90)), mean=float(v.mean()))
+                    if with_q and name == "area":
+                        st[k]["q"] = np.percentile(v, np.linspace(0, 100, NQ)).astype(float).round(5).tolist()
+                st["frac_lift_h_ok"] = float(np.mean(_cat(d["lift_h"]) < lt))
+                if name == "ridge":
+                    e, v = _cat(d["e"]), _cat(d["v"])
+                    st["e_mean"], st["v_mean"] = float(e.mean()), float(v.mean())
+            if d["lift_m"]:
+                v = _cat(d["lift_m"])
+                st["n_points_m"] = int(v.size)
+                st["lift_m"] = dict(median=float(np.median(v)), p90=float(np.percentile(v, 90)), mean=float(v.mean()))
+                if with_q and name == "area":
+                    st["lift_m"]["q"] = np.percentile(v, np.linspace(0, 100, NQ)).astype(float).round(5).tolist()
+                st["frac_lift_m_ok"] = float(np.mean(v < lt))
+            if d["allok"]:
+                st["n_points_all"] = int(sum(a.size for a in d["allok"]))
+                st["frac_all_ok"] = float(_cat(d["allok"], bool).mean())
+            res[name] = st or None
+        n = max(q.bias["n"], 1.0)
+        nm = max(q.bias["nm"], 1.0)
+        res["bias"] = dict(e=(q.bias["e"] / n).tolist(), v=(q.bias["v"] / n).tolist(),
+                           w_m=(q.bias["wm"] / nm).tolist(), w_h=(q.bias["wh"] / n).tolist())
+        res["bias_bins"] = {bin_label(k, self.edges): dict(cases=b["cases"], e=(b["e"] / max(b["n"], 1.0)).tolist(),
+                                                            v=(b["v"] / max(b["n"], 1.0)).tolist())
+                            for k, b in sorted(q.bins.items())}
+        mine = [c for c in self.cases if g == "all" or c["gh"] == g]
+        res["targets_h"] = {t: sum(c["target_h"] == t for c in mine) for t in sorted({c["target_h"] for c in mine})}
+        mine_m = [c for c in self.cases if g == "all" or c["gm"] == g]
+        res["targets_m"] = {t: sum(c["target_m"] == t for c in mine_m) for t in sorted({c["target_m"] for c in mine_m})}
+        if g == "nc":
+            # ошибка ветра сети относительно собственного разброса решения: медиана по случаям (решение h не сошлось,
+            # у него есть late_spread60_p90 > 0); у целей «last» (v1) разброса нет — в отношение не входят
+            rt = np.array([c["wind_median"] / c["spread_h"] for c in mine if c["spread_h"]], float)
+            res["spread_ratio"] = (dict(n=int(rt.size), median=float(np.median(rt)), p90=float(np.percentile(rt, 90)))
+                                   if rt.size else dict(n=0, median=None, p90=None))
+        return res
 
     def result(self, with_q=True):
-        ec = self.ec
-        lt = ec["lift_ok_ms"]
-        res = dict(n_cases=len(self.cases))
-        for name, d in (("area", self.cells), ("ridge", self.ridge)):
-            st = self._stats(d, with_q and name == "area")
-            if st and st.get("n_points"):
-                lm, lh = np.concatenate(d["lift_m"]), np.concatenate(d["lift_h"])
-                okw = np.concatenate(d["okw"])
-                st["frac_lift_m_ok"] = float(np.mean(lm < lt))
-                st["frac_lift_h_ok"] = float(np.mean(lh < lt))
-                st["frac_all_ok"] = float(np.mean(okw & (lm < lt) & (lh < lt)))
-                if name == "ridge":
-                    e, v = np.concatenate(d["e"]).astype(np.float64), np.concatenate(d["v"]).astype(np.float64)
-                    st["e_mean"], st["v_mean"] = float(e.mean()), float(v.mean())
-            res[name] = st
-        n = np.maximum(self.bias["n"], 1)
-        res["bias"] = dict(e=(self.bias["e"] / n).tolist(), v=(self.bias["v"] / n).tolist(),
-                           w_m=(self.bias["wm"] / n).tolist(), w_h=(self.bias["wh"] / n).tolist())
-        res["bias_bins"] = {bin_label(k, self.edges): dict(cases=b["cases"], e=(b["e"] / np.maximum(b["n"], 1)).tolist(),
-                                                            v=(b["v"] / np.maximum(b["n"], 1)).tolist())
-                            for k, b in sorted(self.bins.items())}
+        res = {g: self._res(g, with_q) for g in GROUPS}
+        res["n_cases"] = self.sub["all"].ch
         return res
 
 
@@ -341,20 +403,34 @@ def ridge_mask(hc, ec):
 
 
 def summarize(rows, ec):
-    """Центры (v1-точки) — ключевые числа по списку точек; «ок» ветра — по правилу П3 v2."""
+    """Центры (v1-точки) — ключевые числа по списку точек, три группы; «ок» ветра — по правилу П3 v2.
+    Группы точек: gh (ветер, подъём с нагревом), gm (подъём без нагрева), gall («всё ок»)."""
     out = {}
-    for k in METRICS:
-        out[k] = agg(rows, k)
-    if rows:
-        w = np.array([r["wind"] for r in rows]); lm = np.array([r["lift_m"] for r in rows]); lh = np.array([r["lift_h"] for r in rows])
-        vt = np.array([r["true_speed"] for r in rows])
-        okw = w <= np.maximum(ec["wind_ok_ms"], ec["wind_ok_rel"] * vt)
-        out["frac_wind_ok"] = float(np.mean(okw))
-        out["frac_lift_m_ok"] = float(np.mean(lm < ec["lift_ok_ms"]))
-        out["frac_lift_h_ok"] = float(np.mean(lh < ec["lift_ok_ms"]))
-        out["frac_all_ok"] = float(np.mean(okw & (lm < ec["lift_ok_ms"]) & (lh < ec["lift_ok_ms"])))
-        out["n_points"] = len(rows)
-        out["n_cases"] = len({r["case"] for r in rows})
+    lt = ec["lift_ok_ms"]
+    for g in GROUPS:
+        pick = lambda which: [r for r in rows if g == "all" or r[which] == g]  # noqa: E731
+        rh, rmm, ra = pick("gh"), pick("gm"), pick("gall")
+        if not rh and not rmm:
+            out[g] = None
+            continue
+        d = {k: agg(rh, k) for k in ("wind", "speed", "rms1km", "lift_h")}
+        d["lift_m"] = agg(rmm, "lift_m")
+        if rh:
+            w = np.array([r["wind"] for r in rh]); vt = np.array([r["true_speed"] for r in rh])
+            d["frac_wind_ok"] = float(np.mean(w <= np.maximum(ec["wind_ok_ms"], ec["wind_ok_rel"] * vt)))
+            d["frac_lift_h_ok"] = float(np.mean(np.array([r["lift_h"] for r in rh]) < lt))
+            d["n_points"] = len(rh)
+            d["n_cases"] = len({r["case"] for r in rh})
+        if rmm:
+            d["frac_lift_m_ok"] = float(np.mean(np.array([r["lift_m"] for r in rmm]) < lt))
+            d["n_points_m"] = len(rmm)
+        if ra:
+            w = np.array([r["wind"] for r in ra]); vt = np.array([r["true_speed"] for r in ra])
+            okw = w <= np.maximum(ec["wind_ok_ms"], ec["wind_ok_rel"] * vt)
+            ok = okw & (np.array([r["lift_m"] for r in ra]) < lt) & (np.array([r["lift_h"] for r in ra]) < lt)
+            d["frac_all_ok"] = float(ok.mean())
+            d["n_points_all"] = len(ra)
+        out[g] = d
     return out
 
 
@@ -484,8 +560,8 @@ def run_eval(run: Path, rep: Path):
                 sig.check()
 
     model, task = load_net(run / "main", dev)
-    pooled_nc = Pooled()
-    pooled_hp = Pooled()
+    pooled_nc = {g: Pooled() for g in GROUPS[:2]}
+    pooled_hp = {g: Pooled() for g in GROUPS[:2]}
     for sname, ids in sets.items():
         if not ids:
             result["sets"][sname] = None
@@ -499,29 +575,33 @@ def run_eval(run: Path, rep: Path):
                 row = rows_by_id[cid]
                 z, truth = truth_of(cid)
                 hc = z["d400_hc"].astype(np.float64)
-                rm = ridges.setdefault(cid, ridge_mask(hc, ec))
+                if cid not in ridges:
+                    ridges[cid] = ridge_mask(hc, ec)
+                rm = ridges[cid]
+                gr = case_groups(row)
                 g = grid_of(row, truth["h"].shape)
                 starts = dss.starts(row["loc"])
                 preds = dict(net=P.to_physical(Yp[i], metas[i], agl),
                              inflow=P.to_physical(np.zeros_like(Yp[i]), metas[i], agl),
                              mean=P.to_physical(np.broadcast_to(ymean[:, None, None], Yp[i].shape), metas[i], agl))
                 for pn, pf in preds.items():
-                    acc[pn].add(cid, row, truth, pf, lw, rm)
+                    acc[pn].add(cid, row, truth, pf, lw, rm, gr)
                     kn = key_numbers(truth, pf, starts, g, lw, ec["rms_radius_m"])
                     for si, k in enumerate(kn):
-                        k.update(case=cid, loc=row["loc"], start=si, U10=row["U10"], hour=row["hour"])
+                        k.update(case=cid, loc=row["loc"], start=si, U10=row["U10"], hour=row["hour"], gh=gr["gh"], gm=gr["gm"],
+                                 gall=gr["gall"])
                         pts[pn].append(k)
                 if sname == "holdout_sys":
                     for gname in hold_groups(row["loc"], p6, ec):
                         for gp in ("net", "inflow"):
                             gacc.setdefault(gname, {}).setdefault(gp, AreaAcc(ec, len(agl))).add(
-                                cid, row, truth, preds[gp], lw, rm)
+                                cid, row, truth, preds[gp], lw, rm, gr)
                 if sname in ("newcond_p6", "newcond_old"):
-                    pooled_nc.add(airlite_targets(truth, row, ec["edge_cells"]),
-                                  airlite_targets(preds["net"], row, ec["edge_cells"]))
+                    add_pooled(pooled_nc, airlite_targets(truth, row, ec["edge_cells"]),
+                               airlite_targets(preds["net"], row, ec["edge_cells"]), gr)
                 elif sname == "holdout_place":
-                    pooled_hp.add(airlite_targets(truth, row, ec["edge_cells"]),
-                                  airlite_targets(preds["net"], row, ec["edge_cells"]))
+                    add_pooled(pooled_hp, airlite_targets(truth, row, ec["edge_cells"]),
+                               airlite_targets(preds["net"], row, ec["edge_cells"]), gr)
                 if cid in fig_pick:
                     keep_fields[cid] = dict(truth=truth, net=preds["net"], hc=hc.astype(np.float32), g=g,
                                             starts=starts, set=sname, ridge=rm)
@@ -530,20 +610,19 @@ def run_eval(run: Path, rep: Path):
         result["sets"][sname] = {pn: acc[pn].result() for pn in PREDS}
         result["sets"][sname]["per_case"] = acc["net"].cases
         if gacc:
-            result["sets"][sname]["groups"] = {
-                g: {pn: {k: v for k, v in a.result(with_q=False).items() if k in ("n_cases", "area", "ridge", "bias")}
-                    for pn, a in d.items()} for g, d in sorted(gacc.items())}
+            result["sets"][sname]["groups"] = {g: {pn: trim(a.result(with_q=False)) for pn, a in d.items()}
+                                               for g, d in sorted(gacc.items())}
         result["centers"][sname] = {pn: summarize(pts[pn], ec) for pn in PREDS}
         result["per_point"] += [dict(r, set=sname, pred=pn) for pn in PREDS for r in pts[pn]]
-    result["airlite_net"] = dict(newcond=pooled_nc.result(), holdout_place=pooled_hp.result())
+    result["airlite_net"] = dict(newcond={g: p.result() for g, p in pooled_nc.items()},
+                                 holdout_place={g: p.result() for g, p in pooled_hp.items()})
     # кривая (в): сети точек на (г) и (б); точка полного пула = основная сеть (числа — из наборов выше)
     for c in info["curve"]:
         ent = dict(n=c["n"], n_places=c["n_places"], is_main=c["is_main"], curve_places=c["curve_places"],
                    n_train=len(c["train_ids"]))
         if c["is_main"]:
             for s in curve_sets:
-                ent[s] = ({k: v for k, v in result["sets"][s]["net"].items() if k in ("n_cases", "area", "ridge", "bias")}
-                          if result["sets"].get(s) else None)
+                ent[s] = trim(result["sets"][s]["net"]) if result["sets"].get(s) else None
             ent["best"] = json.loads((run / "main" / "manifest.json").read_text()).get("best", {})
         else:
             net_c, _ = load_net(run / c["dir"], dev)
@@ -556,11 +635,11 @@ def run_eval(run: Path, rep: Path):
                 for part, Yp, metas in predict_chunks(net_c, ids):
                     for i, cid in enumerate(part):
                         z, truth = truth_of(cid)
-                        acc.add(cid, rows_by_id[cid], truth, P.to_physical(Yp[i], metas[i], agl), lw, ridges[cid])
+                        acc.add(cid, rows_by_id[cid], truth, P.to_physical(Yp[i], metas[i], agl), lw, ridges[cid],
+                                case_groups(rows_by_id[cid]))
                         done += 1
                         prog.put(done)
-                r = acc.result(with_q=False)
-                ent[s] = {k: r[k] for k in ("n_cases", "area", "ridge", "bias")}
+                ent[s] = trim(acc.result(with_q=False))
             ent["best"] = json.loads((run / c["dir"] / "manifest.json").read_text()).get("best", {})
             del net_c
             torch.cuda.empty_cache()
@@ -597,6 +676,16 @@ def run_eval(run: Path, rep: Path):
     al = al if al.is_absolute() else C.PILOT / al
     result["airlite_ref"] = airlite_ref(al)
     result["config_eval"] = ec
+    result["refuse_baselines"] = dict(
+        used=["inflow", "mean"], names=[PRED_NAMES["inflow"], PRED_NAMES["mean"]], excluded=["регрессия air-lite"],
+        why="отказ сравнивает медиану ошибки ветра сети на (г) (все случаи) с наименьшей из медиан двух базовых линий "
+            "(профиль притока без поправки, среднее по обучению); регрессия air-lite не входит: она на окнах 100 м и "
+            "старых фолдах («место ongudai», «новые условия»), на отложенных системах и области 400 м её нет")
+    result["groups_note"] = dict(
+        conv="сошедшиеся: статус решения «ok», цель — конечное состояние (final)",
+        nc="несошедшиеся: статус «max», цель — late_mean (П1 v3) или last (набор v1)",
+        by="ветер, w с нагревом и смещение — по статусу решения h; w без нагрева — по m; «всё ок» — сошлись и h, и m",
+        all="все случаи: только для вердикта отказа и контроля")
     result["config_estimate"] = cfg.get("estimate", {})
     result["config_train"] = cfg["train"]
     result["config_curve"] = cfg.get("curve", {})
@@ -621,6 +710,13 @@ def airlite_ref(path):
                 if fold in folds:
                     out.setdefault(t, {}).setdefault(kind, {})[fold] = {k: folds[fold].get(k) for k in ("rmse", "skill", "n")}
     return out
+
+
+def trim(r):
+    """Результат AreaAcc без лишнего (для разбивок и кривой): по группам — число случаев, область, гребни, смещение."""
+    return {g: ({k: v for k, v in r[g].items() if k in ("n_cases", "n_cases_m", "area", "ridge", "bias", "bias_bins",
+                                                          "spread_ratio", "targets_h", "targets_m")} if r[g] else None)
+            for g in GROUPS} | dict(n_cases=r["n_cases"])
 
 
 def pick_figure_cases(sets, rows, nfig):

@@ -1,5 +1,6 @@
-"""Отчёт пилота (контракт П3 v2): картинки + report.md из metrics.json. Вывод ШП-2 — правилом из чисел
-(`config.yaml → eval.shp2`, функция `shp2_rule`; ею же пользуется tests/check_report_v2.py)."""
+"""Отчёт пилота (контракт П3 v3): картинки + report.md из metrics.json; все числа — раздельно для сошедшихся и
+несошедшихся решений. Вывод ШП-2 — правилом из чисел (`config.yaml → eval.shp2`, функция `shp2_rule`; ею же пользуются
+tests/check_report_v3.py и tests/test_verdict.py)."""
 from __future__ import annotations
 
 import datetime as dt
@@ -14,7 +15,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from . import common as C  # noqa: E402
-from .evaluate import NQ, PRED_NAMES, PREDS, SET_NAMES, SETS, Prog, at_level, level_weights  # noqa: E402
+from .evaluate import GROUP_NAMES, NQ, PRED_NAMES, PREDS, SET_NAMES, SETS, Prog, at_level, level_weights  # noqa: E402
 
 # категориальные слоты 1–6 (порядок фиксирован; цвет — за набором, не за рангом)
 SLOTS = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300")
@@ -26,8 +27,9 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor":
                      "axes.spines.top": False, "axes.spines.right": False, "figure.dpi": 110, "savefig.dpi": 110,
                      "lines.linewidth": 2.0})
 VERDICTS = ("идём в волну 0", "правим подход", "отказ от направления")
-# разделы report.md (П3 v2) — проверяет tests/check_report_v2.py
-SECTIONS = ("## Вывод ШП-2", "## Наборы и деление", "## Область на 60 м", "## Гребни на 60 м",
+GR2 = ("conv", "nc")                       # группы таблиц: сошедшиеся, несошедшиеся
+# разделы report.md (П3 v3) — проверяет tests/check_report_v3.py
+SECTIONS = ("## Вывод ШП-2", "## ШП-2: сошедшиеся и несошедшиеся", "## Наборы и деление", "## Область на 60 м", "## Гребни на 60 м",
             "## Центры (plan.json → centers)", "## Смещение скорости по высотам", "## Смещение по корзинам U10",
             "## (г) по системам и уклону", "## Кривая (в)", "## Признаки рельефа наборов", "## Сравнение с регрессией air-lite", "## Картинки",
             "## ONNX и время на CPU", "## Обучение и время", "## Границы")
@@ -56,26 +58,23 @@ def bias_thr(v, sc):
     return max(sc["bias_abs_ms"], sc["bias_rel"] * v)
 
 
-def shp2_rule(M):
-    """Правило ШП-2 (П3 v2, план §8.2) по числам metrics.json → dict(verdict, reason, checks[...]).
-    checks: (что, значение, порог, выполнено). Вердикт: «идём в волну 0» — все проверки на (г) выполнены;
-    «отказ от направления» — медиана ошибки ветра сети на (г) ≥ refuse_ratio × лучшей базовой линии;
-    иначе «правим подход»."""
-    ec = M["config_eval"]
-    sc = ec["shp2"]
-    agl = M["agl"]
-    S = (M["sets"] or {}).get(sc["set"])
+def grp(x, g):
+    """Группа g («conv»/«nc»/«all») результата предсказания набора; None, если случаев группы нет."""
+    return (x or {}).get(g)
+
+
+def rule_checks(G, ec, sc, agl):
+    """Правило v2 (доли «ок», смещение по высотам, корзинам U10 и гребням) на одной группе G = результат AreaAcc[g]
+    (сеть). → (checks, n_bins). Проверки: dict(what, value, thr, ok, kind)."""
     checks = []
-    if not S or not (S["net"].get("area") or {}).get("n_points"):
-        return dict(verdict="правим подход", reason=f"нет случаев набора {SET_NAMES[sc['set']]} — правило не применимо",
-                    checks=checks, set=sc["set"], n_bins_rated=0)
-    a = S["net"]["area"]
+    a = G["area"]
     for k, nm in (("frac_wind_ok", f"доля «ок» ветра (≤ max({ec['wind_ok_ms']:g} м/с; {ec['wind_ok_rel'] * 100:g} % |V|))"),
                   ("frac_lift_m_ok", f"доля «ок» подъёма без нагрева (< {ec['lift_ok_ms']:g} м/с)"),
                   ("frac_lift_h_ok", f"доля «ок» подъёма с нагревом (< {ec['lift_ok_ms']:g} м/с)")):
-        checks.append(dict(what=nm + ", область 60 м", value=a[k], thr=f"≥ {sc['frac_ok']:g}", ok=a[k] >= sc["frac_ok"],
-                           kind="frac"))
-    b = S["net"]["bias"]
+        v = a.get(k)
+        checks.append(dict(what=nm + ", область 60 м", value=v, thr=f"≥ {sc['frac_ok']:g}",
+                           ok=v is not None and v >= sc["frac_ok"], kind="frac"))
+    b = G["bias"]
     for i, z in enumerate(agl):
         if z > sc["bias_max_agl_m"]:
             continue
@@ -83,7 +82,7 @@ def shp2_rule(M):
         checks.append(dict(what=f"|среднее e|, {z:g} м", value=abs(b["e"][i]), thr=f"≤ {t:.3f}", ok=abs(b["e"][i]) <= t,
                            kind="bias"))
     n_bins = 0
-    for lab, bb in S["net"]["bias_bins"].items():
+    for lab, bb in G["bias_bins"].items():
         if bb["cases"] < sc["bin_min_cases"]:
             continue
         n_bins += 1
@@ -97,26 +96,69 @@ def shp2_rule(M):
                 worst = (r, z, abs(bb["e"][i]), t)
         checks.append(dict(what=f"|среднее e|, U10 {lab} м/с ({bb['cases']} случаев), худшая высота {worst[1]:g} м",
                            value=worst[2], thr=f"≤ {worst[3]:.3f}", ok=worst[2] <= worst[3], kind="bias"))
-    r = S["net"].get("ridge")
+    r = G.get("ridge")
     if r and r.get("n_points"):
         t = bias_thr(r["v_mean"], sc)
         checks.append(dict(what="|среднее e| на гребнях, 60 м", value=abs(r["e_mean"]), thr=f"≤ {t:.3f}",
                            ok=abs(r["e_mean"]) <= t, kind="bias"))
-    net_med = a["wind"]["median"]
-    base = min(S[p]["area"]["wind"]["median"] for p in ("inflow", "mean"))
+    return checks, n_bins
+
+
+def shp2_rule(M):
+    """Вердикт ШП-2 (П3 v3, план §8.2) по числам metrics.json → dict(verdict, reason, checks, refuse, nc, ...).
+    1. «отказ от направления»: медиана ошибки ветра сети на (г) (ВСЕ случаи, обе группы) ≥ refuse_ratio × наименьшей из
+       медиан базовых линий (профиль притока, среднее; регрессия air-lite не входит — metrics.json → refuse_baselines);
+    2. иначе «идём в волну 0»: правило v2 выполнено на СОШЕДШИХСЯ решениях (г);
+    3. иначе «правим подход».
+    Правило v2 на несошедшихся (`nc`) — отдельная строка таблицы, в вердикт не входит.
+    checks — сначала проверка отказа (kind «ratio»), затем проверки правила v2 на сошедшихся."""
+    ec = M["config_eval"]
+    sc = ec["shp2"]
+    agl = M["agl"]
+    S = (M["sets"] or {}).get(sc["set"])
+    out = dict(set=sc["set"], checks=[], n_bins_rated=0, refuse=None, nc=None)
+    al = grp(S["net"], "all") if S else None
+    if not al or not (al["area"] or {}).get("n_points"):
+        return dict(out, verdict="правим подход",
+                    reason=f"нет случаев набора {SET_NAMES[sc['set']]} — правило не применимо")
+    net_med = al["area"]["wind"]["median"]
+    bases = {p: S[p]["all"]["area"]["wind"]["median"] for p in ("inflow", "mean")}
+    bname = min(bases, key=bases.get)
+    base = bases[bname]
     ratio = net_med / base if base > 0 else float("inf")
     refuse = ratio >= sc["refuse_ratio"]
-    checks.append(dict(what="медиана ошибки ветра сети / лучшей базовой линии (отказ — если ≥ порога)", value=ratio,
-                       thr=f"< {sc['refuse_ratio']:g}", ok=not refuse, kind="ratio"))
-    if refuse:
-        v, why = "отказ от направления", "сеть на отложенных системах не лучше базовой линии (сжатия решателя нет)"
-    elif all(c["ok"] for c in checks):
-        v, why = "идём в волну 0", "все проверки ШП-2 на отложенных системах выполнены"
+    out["refuse"] = dict(net_median=net_med, base_medians=bases, base=bname, base_median=base, ratio=ratio,
+                         thr=sc["refuse_ratio"], refused=refuse, n_cases=S["net"]["all"]["n_cases"])
+    out["checks"].append(dict(what="отказ: медиана ошибки ветра сети / лучшей базовой линии, все случаи (г)", value=ratio,
+                              thr=f"< {sc['refuse_ratio']:g}", ok=not refuse, kind="ratio"))
+    cv = grp(S["net"], "conv")
+    cv_ok = bool(cv and (cv["area"] or {}).get("n_points"))
+    if cv_ok:
+        ck, nb = rule_checks(cv, ec, sc, agl)
+        out["checks"] += ck
+        out["n_bins_rated"] = nb
+    nc = grp(S["net"], "nc")
+    if nc and (nc["area"] or {}).get("n_points"):
+        ck, nb = rule_checks(nc, ec, sc, agl)
+        out["nc"] = dict(n_cases=nc["n_cases"], applicable=True, ok=all(c["ok"] for c in ck), n_failed=sum(not c["ok"] for c in ck),
+                         n_checks=len(ck), checks=ck, n_bins_rated=nb, spread_ratio=nc.get("spread_ratio"),
+                         frac_wind_ok=nc["area"].get("frac_wind_ok"), frac_lift_m_ok=nc["area"].get("frac_lift_m_ok"),
+                         frac_lift_h_ok=nc["area"].get("frac_lift_h_ok"))
     else:
-        bad = [c["what"] for c in checks if not c["ok"]]
-        v, why = "правим подход", (f"не выполнено {len(bad)} из {len(checks)}: " + "; ".join(bad[:4])
+        out["nc"] = dict(n_cases=(nc or {}).get("n_cases", 0), applicable=False)
+    rule = out["checks"][1:]
+    if refuse:
+        v, why = "отказ от направления", ("сеть на отложенных системах (все случаи) не лучше базовой линии — "
+                                          f"{bname}: сжатия решателя нет")
+    elif not cv_ok:
+        v, why = "правим подход", "на отложенных системах нет сошедшихся решений — правило v2 не к чему применить"
+    elif all(c["ok"] for c in rule):
+        v, why = "идём в волну 0", "правило ШП-2 на сошедшихся решениях отложенных систем выполнено"
+    else:
+        bad = [c["what"] for c in rule if not c["ok"]]
+        v, why = "правим подход", (f"на сошедшихся не выполнено {len(bad)} из {len(rule)}: " + "; ".join(bad[:4])
                                    + ("…" if len(bad) > 4 else ""))
-    return dict(verdict=v, reason=why, checks=checks, set=sc["set"], n_bins_rated=n_bins)
+    return dict(out, verdict=v, reason=why)
 
 
 # ----------------------------------------------------------------------------------------- картинки
@@ -184,9 +226,11 @@ def fig_curve(rep: Path, M, idx):
     panels = (("доля «ок» ветра, область 60 м", lambda a: a["area"]["frac_wind_ok"], ec["shp2"]["frac_ok"]),
               ("медиана ошибки ветра, м/с", lambda a: a["area"]["wind"]["median"], None),
               (f"среднее e на {a60:g} м, м/с", lambda a: at_key(a["bias"]["e"], M["agl"], a60), 0.0))
+    cg = lambda c: (c or {}).get("conv")  # noqa: E731    # рисуем сошедшиеся (несошедшие — в таблице)
     for k, (name, fn, ref) in enumerate(panels):
         for s in ("holdout_sys", "holdout_place"):
-            ys = [fn(c[s]) if c.get(s) and (c[s].get("area") or {}).get("n_points") else np.nan for c in cv]
+            ys = [fn(cg(c.get(s))) if cg(c.get(s)) and (cg(c.get(s)).get("area") or {}).get("n_points") else np.nan
+                  for c in cv]
             if np.all(np.isnan(ys)):
                 continue
             ax[k].plot(xs, ys, "-o", color=SET_COLOR[s], ms=6, label=SET_NAMES[s])
@@ -197,7 +241,7 @@ def fig_curve(rep: Path, M, idx):
         ax[k].set_xlabel("мест П6 в обучении (+ прежние места пула)")
         ax[k].set_title(name, fontsize=9)
     ax[0].legend(frameon=False)
-    fig.suptitle("Кривая (в): незнакомый рельеф от числа рельефов в обучении (последняя точка — основная сеть)", fontsize=10)
+    fig.suptitle("Кривая (в), сошедшиеся решения: незнакомый рельеф от числа рельефов в обучении (последняя точка — основная сеть)", fontsize=10)
     p = rep / "figures" / f"{idx:02d}_кривая_рельефов.png"
     fig.savefig(p)
     plt.close(fig)
@@ -206,7 +250,8 @@ def fig_curve(rep: Path, M, idx):
 
 def fig_cdf(rep: Path, M, idx):
     ec = M["config_eval"]
-    sets = [s for s in ("holdout_sys", "holdout_place", "holdout_proc", "newcond_p6", "newcond_old") if M["sets"].get(s)]
+    sets = [s for s in ("holdout_sys", "holdout_place", "holdout_proc", "newcond_p6", "newcond_old")
+            if (M["sets"].get(s) or {}).get("net", {}).get("conv")]
     if not sets:
         return None
     fig, ax = plt.subplots(len(sets), 3, figsize=(12, 2.9 * len(sets)), constrained_layout=True, squeeze=False)
@@ -215,7 +260,7 @@ def fig_cdf(rep: Path, M, idx):
         for c, (key, name) in enumerate((("wind", "ошибка ветра с нагревом, м/с"), ("lift_m", "ошибка подъёма без нагрева, м/с"),
                                          ("lift_h", "ошибка подъёма с нагревом, м/с"))):
             for pn in PREDS:
-                a = (M["sets"][s][pn].get("area") or {}).get(key)
+                a = ((M["sets"][s][pn].get("conv") or {}).get("area") or {}).get(key)
                 if a and a.get("q"):
                     ax[r, c].plot(a["q"], qq, color=PRED_COLOR[pn], lw=1.6, label=PRED_NAMES[pn])
             thr = ec["wind_ok_ms"] if key == "wind" else ec["lift_ok_ms"]
@@ -227,7 +272,7 @@ def fig_cdf(rep: Path, M, idx):
             if c == 0:
                 ax[r, c].set_ylabel(f"{SET_NAMES[s]}\nдоля клеток")
     ax[0, 0].legend(frameon=False, loc="lower right")
-    fig.suptitle("Распределение ошибок по клеткам области на 60 м: сеть против базовых линий "
+    fig.suptitle("Сошедшиеся решения: распределение ошибок по клеткам области на 60 м: сеть против базовых линий "
                  "(пунктир — 0,3 и 0,1 м/с; для ветра порог ещё и 10 % |V|)", fontsize=10)
     p = rep / "figures" / f"{idx:02d}_распределения_ошибок.png"
     fig.savefig(p)
@@ -236,20 +281,20 @@ def fig_cdf(rep: Path, M, idx):
 
 
 def fig_bias(rep: Path, M, idx):
-    sets = [s for s in SETS if M["sets"].get(s)]
+    sets = [s for s in SETS if (M["sets"].get(s) or {}).get("net", {}).get("conv")]
     if not sets:
         return None
     sc = M["config_eval"]["shp2"]
     agl = M["agl"]
     fig, ax = plt.subplots(1, 2, figsize=(11, 4.2), constrained_layout=True)
     for s in sets:
-        ax[0].plot(M["sets"][s]["net"]["bias"]["e"], agl, "-o", ms=4, color=SET_COLOR[s], label=SET_NAMES[s])
-    S = M["sets"].get(sc["set"])
+        ax[0].plot(M["sets"][s]["net"]["conv"]["bias"]["e"], agl, "-o", ms=4, color=SET_COLOR[s], label=SET_NAMES[s])
+    S = grp((M["sets"].get(sc["set"]) or {}).get("net"), "conv")
     if S:
-        t = [bias_thr(v, sc) for v in S["net"]["bias"]["v"]]
-        bins = list(S["net"]["bias_bins"])
+        t = [bias_thr(v, sc) for v in S["bias"]["v"]]
+        bins = list(S["bias_bins"])
         for j, lab in enumerate(bins):
-            bb = S["net"]["bias_bins"][lab]
+            bb = S["bias_bins"][lab]
             ax[1].plot(bb["e"], agl, "-o", ms=4, color=SLOTS[j % len(SLOTS)], label=f"U10 {lab} м/с ({bb['cases']} сл.)")
         for k in (0, 1):
             ax[k].plot(t, agl, ls="--", color=MUTED, lw=1, label="порог ШП-2 (г)" if k == 0 else None)
@@ -263,7 +308,7 @@ def fig_bias(rep: Path, M, idx):
         ax[k].set_ylabel("высота над рельефом, м")
         ax[k].set_title(ttl, fontsize=9)
         ax[k].legend(frameon=False, fontsize=7)
-    fig.suptitle("Смещение скорости ветра с нагревом (среднее по клеткам области)", fontsize=10)
+    fig.suptitle("Сошедшиеся решения: смещение скорости ветра с нагревом (среднее по клеткам области)", fontsize=10)
     p = rep / "figures" / f"{idx:02d}_смещение.png"
     fig.savefig(p)
     plt.close(fig)
@@ -343,13 +388,21 @@ def estimate(M):
 
 
 # ------------------------------------------------------------------------------------------------ отчёт
-def area_row(x, lab, pn):
+def n_str(x):
+    """Число случаев группы: h (ветер, w с нагревом) / m (w без нагрева)."""
+    return f"{x['n_cases']} / {x['n_cases_m']}"
+
+
+def area_row(x, lab, pn, g):
+    """Строка таблицы области/гребней: x — результат группы g предсказания pn."""
+    if not x:
+        return None
     a = x.get("area") or {}
     if not a.get("n_points"):
         return None
-    c = lambda k: f"{f2(a[k]['median'], 3)} ({f2(a[k]['p90'], 3)})"  # noqa: E731
-    return (f"| {lab} | {PRED_NAMES[pn]} | {x['n_cases']} / {a['n_points']} | {pct(a['frac_wind_ok'])} | "
-            f"{pct(a['frac_lift_m_ok'])} | {pct(a['frac_lift_h_ok'])} | {pct(a['frac_all_ok'])} | {c('wind')} | "
+    c = lambda k: f"{f2(a[k]['median'], 3)} ({f2(a[k]['p90'], 3)})" if a.get(k) else "—"  # noqa: E731
+    return (f"| {lab} | {GROUP_NAMES[g]} | {PRED_NAMES[pn]} | {n_str(x)} / {a['n_points']} | {pct(a['frac_wind_ok'])} | "
+            f"{pct(a.get('frac_lift_m_ok'))} | {pct(a['frac_lift_h_ok'])} | {pct(a.get('frac_all_ok'))} | {c('wind')} | "
             f"{c('lift_m')} | {c('lift_h')} |")
 
 
@@ -386,26 +439,67 @@ def build_report(run: Path, rep: Path):
     md.append(f"# Пилот air-nn П-2: отчёт `{rep.name}`" + (f" (профиль {prof})" if prof else "") + "\n")
     n_cases = sum(d["n_rows"] for d in M["datasets"])
     md.append(f"Построен {dt.datetime.now().isoformat(timespec='minutes')} скриптом `pilotnn/report.py` (коммит "
-              f"{C.git_commit()}); прогон `{run}`; наборов {len(M['datasets'])}, случаев {n_cases}; контракт отчёта П3 v2.\n")
+              f"{C.git_commit()}); прогон `{run}`; наборов {len(M['datasets'])}, случаев {n_cases}; контракт отчёта П3 v3.\n")
+    gn = M.get("groups_note") or {}
+    md.append("**Группы решений (П3 v3).** Все числа ниже — раздельно: **сошедшиеся** — " + gn.get("conv", "") .split(": ", 1)[-1]
+              + "; **несошедшиеся** — " + gn.get("nc", "").split(": ", 1)[-1] + ". " + gn.get("by", "").capitalize()
+              + ". В таблицах «случаев» — h / m: число случаев группы по статусу `h` / по статусу `m`; «клеток» — клетки "
+              "области (ветер, подъём с нагревом).\n")
     if prof:
         md.append(f"> **профиль {prof}**: малый набор и мало эпох (подставной индекс П6 и набор terrain) — числа проверяют "
                   "конвейер, а не качество сети.\n")
     # --- вывод
     md.append("## Вывод ШП-2 (правилом из чисел, `config.yaml → eval.shp2`)\n")
-    md.append(f"Главный набор — {SET_NAMES[R['set']]}. Ветер «ок» — |Δ(u,v)| ≤ max({ec['wind_ok_ms']:g} м/с; "
-              f"{ec['wind_ok_rel'] * 100:g} % |V_решателя|); подъём «ок» — |Δw| < {ec['lift_ok_ms']:g} м/с; смещение — "
-              f"|среднее e| ≤ max({sc['bias_abs_ms']:g} м/с; {sc['bias_rel'] * 100:g} % средней |V_решателя|) на высотах "
-              f"≤ {sc['bias_max_agl_m']:g} м, в корзинах U10 с ≥ {sc['bin_min_cases']} случаями (оценено корзин: "
-              f"{R.get('n_bins_rated', 0)}) и на гребнях; отказ — медиана ошибки ветра сети ≥ {sc['refuse_ratio']:g} × "
-              "лучшей базовой линии.\n")
+    md.append(f"Главный набор — {SET_NAMES[R['set']]}. Порядок правила П3 v3: (1) **отказ**, если медиана ошибки ветра сети "
+              f"на (г) по всем случаям ≥ {sc['refuse_ratio']:g} × наименьшей из медиан базовых линий (профиль притока, "
+              "среднее по обучению; **регрессия air-lite в сравнение не входит** — она на окнах 100 м и старых фолдах, на "
+              "отложенных системах и области 400 м её нет); (2) иначе **идём в волну 0**, если правило v2 выполнено на "
+              f"сошедшихся решениях (г): ветер «ок» — |Δ(u,v)| ≤ max({ec['wind_ok_ms']:g} м/с; {ec['wind_ok_rel'] * 100:g} % "
+              f"|V_решателя|), подъём «ок» — |Δw| < {ec['lift_ok_ms']:g} м/с, |среднее e| ≤ max({sc['bias_abs_ms']:g} м/с; "
+              f"{sc['bias_rel'] * 100:g} % средней |V_решателя|) на высотах ≤ {sc['bias_max_agl_m']:g} м, в корзинах U10 с ≥ "
+              f"{sc['bin_min_cases']} случаями (оценено корзин: {R.get('n_bins_rated', 0)}) и на гребнях; (3) иначе "
+              "**правим подход**. Несошедшиеся — отдельной строкой ниже, в вердикт не входят.\n")
     if R["checks"]:
         md.append("| проверка | значение | порог | выполнено |")
         md.append("|---|---|---|---|")
         for c in R["checks"]:
-            vs = pct(c["value"]) if c["kind"] == "frac" else f2(c["value"], 3)
+            vs = "—" if c["value"] is None else pct(c["value"]) if c["kind"] == "frac" else f2(c["value"], 3)
             ts = f"≥ {pct(sc['frac_ok'])}" if c["kind"] == "frac" else c["thr"]
             md.append(f"| {c['what']} | {vs} | {ts} | {'да' if c['ok'] else '**нет**'} |")
     md.append(f"\n**ШП-2: {R['verdict']}** — {R['reason']}.\n")
+    # --- таблица ШП-2 по группам
+    md.append("## ШП-2: сошедшиеся и несошедшиеся\n")
+    rf = R.get("refuse")
+    if rf:
+        md.append(f"Отказ: медиана ошибки ветра сети на (г) по всем случаям ({rf['n_cases']}) {f2(rf['net_median'], 3)} м/с; "
+                  f"базовые линии — профиль притока {f2(rf['base_medians']['inflow'], 3)}, среднее {f2(rf['base_medians']['mean'], 3)} "
+                  f"м/с (лучшая — {PRED_NAMES[rf['base']]}); отношение {f2(rf['ratio'], 3)}, порог < {rf['thr']:g} → "
+                  f"**{'отказ' if rf['refused'] else 'не отказ'}**.\n")
+    md.append("| группа решений (г) | случаев (h / m) | ветер ок | подъём б/н ок | подъём с/н ок | правило v2 | в вердикте |")
+    md.append("|---|---|---|---|---|---|---|")
+    S = (M["sets"].get(R["set"]) or {}).get("net") or {}
+    cvr = grp(S, "conv")
+    if cvr and (cvr["area"] or {}).get("n_points"):
+        ck = [c for c in R["checks"] if c["kind"] != "ratio"]
+        md.append(f"| сошедшиеся | {n_str(cvr)} | {pct(cvr['area']['frac_wind_ok'])} | {pct(cvr['area'].get('frac_lift_m_ok'))} | "
+                  f"{pct(cvr['area']['frac_lift_h_ok'])} | {'выполнено' if all(c['ok'] for c in ck) else 'не выполнено'} "
+                  f"({sum(not c['ok'] for c in ck)} из {len(ck)} проверок не выполнено) | да |")
+    else:
+        md.append("| сошедшиеся | 0 | — | — | — | не к чему применить | да |")
+    nc = R.get("nc") or {}
+    if nc.get("applicable"):
+        md.append(f"| **несошедшиеся** | {n_str(grp(S, 'nc'))} | {pct(nc['frac_wind_ok'])} | {pct(nc['frac_lift_m_ok'])} | "
+                  f"{pct(nc['frac_lift_h_ok'])} | {'выполнено' if nc['ok'] else 'не выполнено'} ({nc['n_failed']} из "
+                  f"{nc['n_checks']} проверок не выполнено) | **нет** (цель шумит: свой разброс p90 ≈ 0,9 м/с против 0,3) |")
+        sr = nc.get("spread_ratio") or {}
+        md.append(f"\nНесошедшиеся: ошибка ветра сети относительно собственного разброса решения (медиана по случаям от "
+                  f"медианы ошибки на 60 м к `late_spread60_p90`): "
+                  + (f"медиана {f2(sr['median'], 2)}, p90 {f2(sr['p90'], 2)} по {sr['n']} случаям (цель late_mean)."
+                     if sr.get("n") else "нет случаев с late_spread60_p90 (цель last у набора v1)."
+                     ) + " Отношение ≈ 1 — ошибка сети сравнима с шумом цели; ≫ 1 — ошибка больше шума.\n")
+    else:
+        md.append(f"| **несошедшиеся** | {nc.get('n_cases', 0)} | — | — | — | не к чему применить | **нет** |")
+        md.append("")
     # --- наборы и деление
     md.append("## Наборы и деление\n")
     md.append("| набор | контракт | каталог | случаев | ok / max | мест |")
@@ -423,92 +517,124 @@ def build_report(run: Path, rep: Path):
               f"{sz.get('holdout_proc_ids')} ({', '.join(sp['holdout_proc']) or '—'}); пул — мест П6 {len(sp['p6_pool'])} "
               f"+ прежних {len(sp['others'])}.\n")
     md.append("Оценено случаев: " + ", ".join(f"{SET_NAMES[k]} — {v}" for k, v in M["eval_sizes"].items()) + ".\n")
+    md.append("Группы по наборам оценки (случаев h: сошедшиеся / несошедшиеся; цели несошедшихся h — число решений по "
+              "виду цели):\n")
+    md.append("| набор | сошедшиеся | несошедшиеся | цели несошедшихся (h) |")
+    md.append("|---|---|---|---|")
+    for s in SETS:
+        d = M["sets"].get(s)
+        if not d:
+            continue
+        x = d["net"]
+        n_nc = (x["nc"] or {}).get("n_cases", 0)
+        tg = ", ".join(f"{k}: {v}" for k, v in ((x["nc"] or {}).get("targets_h") or {}).items()) or "—"
+        md.append(f"| {SET_NAMES[s]} | {(x['conv'] or {}).get('n_cases', 0)} | {n_nc} | {tg} |")
     # --- область
-    hdr = ("| набор | предсказание | случаев / клеток | ветер ок | подъём б/н ок | подъём с/н ок | всё ок | ветер, м/с "
-           "медиана (p90) | подъём б/н | подъём с/н |")
-    md.append(f"## Область на 60 м (все клетки без {ec['edge_cells']} у края)\n")
+    hdr = ("| набор | группа | предсказание | случаев (h / m) / клеток | ветер ок | подъём б/н ок | подъём с/н ок | всё ок | "
+           "ветер, м/с медиана (p90) | подъём б/н | подъём с/н |")
+    md.append(f"\n## Область на 60 м (все клетки без {ec['edge_cells']} у края)\n")
     md.append("Ошибка против решателя AM-01 на 60 м над рельефом (линейно между 50 и 75 м). Ветер — |Δ(u,v)| с нагревом; "
-              "подъём — |Δw| без и с нагревом.\n")
+              "подъём — |Δw| без и с нагревом. «Всё ок» — клетки, где ок и ветер, и оба подъёма (случаи, где сошлись и `h`, и "
+              "`m`; у несошедшихся — хотя бы одно не сошлось).\n")
     md.append(hdr)
-    md.append("|---|---|---|---|---|---|---|---|---|---|")
+    md.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for s in SETS:
         d = M["sets"].get(s)
         if d:
             for pn in PREDS:
-                r = area_row(d[pn], SET_NAMES[s], pn)
-                if r:
-                    md.append(r)
+                for g in GR2:
+                    r = area_row(d[pn][g], SET_NAMES[s], pn, g)
+                    if r:
+                        md.append(r)
     # --- гребни
     md.append(f"\n## Гребни на 60 м (tpi_2k случая ≥ p{ec['ridge_pct']:g} по области)\n")
     md.append(hdr + " среднее e, м/с | средняя |V|, м/с |")
-    md.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
+    md.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for s in SETS:
         d = M["sets"].get(s)
         if not d:
             continue
         for pn in PREDS:
-            x = dict(d[pn], area=d[pn].get("ridge"))
-            r = area_row(x, SET_NAMES[s], pn)
-            if r:
-                md.append(r + f" {sg(x['area'].get('e_mean'))} | {f2(x['area'].get('v_mean'))} |")
+            for g in GR2:
+                x = d[pn][g]
+                if not x:
+                    continue
+                x = dict(x, area=x.get("ridge"))
+                r = area_row(x, SET_NAMES[s], pn, g)
+                if r:
+                    md.append(r + f" {sg(x['area'].get('e_mean'))} | {f2(x['area'].get('v_mean'))} |")
     # --- центры
     md.append("\n## Центры (plan.json → centers)\n")
     md.append("Точки v1 (старты и вершины встроенных мест; у мест П6 — точки наибольшего превышения над окрестностью 2 км; "
               "у синтетики/процедурных — центр рельефа), билинейно; RMS 1 км — по клеткам в 1 км от точки.\n")
-    md.append("| набор | предсказание | случаев / точек | ветер, м/с | подъём б/н | подъём с/н | RMS 1 км | ветер ок | "
+    md.append("| набор | группа | предсказание | случаев / точек | ветер, м/с | подъём б/н | подъём с/н | RMS 1 км | ветер ок | "
               "подъём б/н ок | подъём с/н ок |")
-    md.append("|---|---|---|---|---|---|---|---|---|---|")
+    md.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for s in SETS:
         d = (M.get("centers") or {}).get(s)
         if not d:
             continue
         for pn in PREDS:
-            x = d[pn]
-            if not x:
-                continue
-            cell = lambda k: f"{f2(x[k]['median'], 3)} ({f2(x[k]['p90'], 3)})" if x.get(k) else "—"  # noqa: E731
-            md.append(f"| {SET_NAMES[s]} | {PRED_NAMES[pn]} | {x['n_cases']} / {x['n_points']} | {cell('wind')} | "
-                      f"{cell('lift_m')} | {cell('lift_h')} | {cell('rms1km')} | {pct(x['frac_wind_ok'])} | "
-                      f"{pct(x['frac_lift_m_ok'])} | {pct(x['frac_lift_h_ok'])} |")
+            for g in GR2:
+                x = d[pn][g]
+                if not x or not x.get("n_points"):
+                    continue
+                cell = lambda k: f"{f2(x[k]['median'], 3)} ({f2(x[k]['p90'], 3)})" if x.get(k) else "—"  # noqa: E731
+                md.append(f"| {SET_NAMES[s]} | {GROUP_NAMES[g]} | {PRED_NAMES[pn]} | {x['n_cases']} / {x['n_points']} | "
+                          f"{cell('wind')} | {cell('lift_m')} | {cell('lift_h')} | {cell('rms1km')} | "
+                          f"{pct(x['frac_wind_ok'])} | {pct(x.get('frac_lift_m_ok'))} | {pct(x['frac_lift_h_ok'])} |")
     # --- смещение по высотам
     md.append("\n## Смещение скорости по высотам\n")
     md.append("Среднее по клеткам области e = |V_сети| − |V_решателя| (с нагревом), м/с; в скобках — средняя |V_решателя|. "
-              "Строка «порог» — max(0,1; 2 %·|V|) для (г).\n")
-    md.append("| набор | " + " | ".join(f"{a:g} м" for a in agl) + " |")
-    md.append("|---|" + "---|" * len(agl))
+              "Строка «порог» — max(0,1; 2 %·|V|) для (г), сошедшиеся.\n")
+    md.append("| набор | группа | " + " | ".join(f"{a:g} м" for a in agl) + " |")
+    md.append("|---|---|" + "---|" * len(agl))
     for s in SETS:
         d = M["sets"].get(s)
         if d:
-            b = d["net"]["bias"]
-            md.append(f"| {SET_NAMES[s]} | " + " | ".join(f"{sg(e)} ({f2(v, 1)})" for e, v in zip(b["e"], b["v"])) + " |")
-    S = M["sets"].get(sc["set"])
-    if S:
-        md.append("| порог (г) | " + " | ".join(f"{bias_thr(v, sc):.3f}" for v in S["net"]["bias"]["v"]) + " |")
-    md.append("\nСмещение w (среднее Δw сети, м/с; без нагрева / с нагревом):\n")
-    md.append("| набор | " + " | ".join(f"{a:g} м" for a in agl) + " |")
-    md.append("|---|" + "---|" * len(agl))
+            for g in GR2:
+                if d["net"][g]:
+                    b = d["net"][g]["bias"]
+                    md.append(f"| {SET_NAMES[s]} | {GROUP_NAMES[g]} | " + " | ".join(
+                        f"{sg(e)} ({f2(v, 1)})" for e, v in zip(b["e"], b["v"])) + " |")
+    Sc = grp((M["sets"].get(sc["set"]) or {}).get("net"), "conv")
+    if Sc:
+        md.append("| порог (г) | сошедшиеся | " + " | ".join(f"{bias_thr(v, sc):.3f}" for v in Sc["bias"]["v"]) + " |")
+    md.append("\nСмещение w (среднее Δw сети, м/с; без нагрева [по `m`] / с нагревом [по `h`]):\n")
+    md.append("| набор | группа | " + " | ".join(f"{a:g} м" for a in agl) + " |")
+    md.append("|---|---|" + "---|" * len(agl))
     for s in SETS:
         d = M["sets"].get(s)
         if d:
-            b = d["net"]["bias"]
-            md.append(f"| {SET_NAMES[s]} | " + " | ".join(f"{sg(m)} / {sg(h)}" for m, h in zip(b["w_m"], b["w_h"])) + " |")
-    md.append(f"\nДля сравнения — смещение e на {a60:g} м (линейно между 50 и 75 м): сеть / профиль притока — "
-              + "; ".join(f"{SET_NAMES[s]} {sg(at_key(M['sets'][s]['net']['bias']['e'], agl, a60))} / "
-                          f"{sg(at_key(M['sets'][s]['inflow']['bias']['e'], agl, a60))}" for s in SETS if M["sets"].get(s))
-              + ".\n")
+            for g in GR2:
+                if d["net"][g]:
+                    b = d["net"][g]["bias"]
+                    md.append(f"| {SET_NAMES[s]} | {GROUP_NAMES[g]} | " + " | ".join(
+                        f"{sg(m)} / {sg(h)}" for m, h in zip(b["w_m"], b["w_h"])) + " |")
+    cmp_ = []
+    for s in SETS:
+        d = M["sets"].get(s)
+        if d and d["net"]["conv"]:
+            cmp_.append(f"{SET_NAMES[s]} {sg(at_key(d['net']['conv']['bias']['e'], agl, a60))} / "
+                        f"{sg(at_key(d['inflow']['conv']['bias']['e'], agl, a60))}")
+    md.append(f"\nДля сравнения — смещение e на {a60:g} м (линейно между 50 и 75 м), сошедшиеся: сеть / профиль притока — "
+              + "; ".join(cmp_) + ".\n")
     # --- корзины
     md.append("## Смещение по корзинам U10\n")
     md.append(f"Среднее e по клеткам области на высотах ≤ {sc['bias_max_agl_m']:g} м (сеть), в скобках — порог; корзины с < "
               f"{sc['bin_min_cases']} случаями в правило не входят.\n")
-    md.append("| набор | U10, м/с | случаев | " + " | ".join(f"{agl[j]:g} м" for j in low) + " |")
-    md.append("|---|---|---|" + "---|" * len(low))
+    md.append("| набор | группа | U10, м/с | случаев | " + " | ".join(f"{agl[j]:g} м" for j in low) + " |")
+    md.append("|---|---|---|---|" + "---|" * len(low))
     for s in SETS:
         d = M["sets"].get(s)
         if not d:
             continue
-        for lab, bb in d["net"]["bias_bins"].items():
-            md.append(f"| {SET_NAMES[s]} | {lab} | {bb['cases']} | " + " | ".join(
-                f"{sg(bb['e'][j])} ({bias_thr(bb['v'][j], sc):.2f})" for j in low) + " |")
+        for g in GR2:
+            if not d["net"][g]:
+                continue
+            for lab, bb in d["net"][g]["bias_bins"].items():
+                md.append(f"| {SET_NAMES[s]} | {GROUP_NAMES[g]} | {lab} | {bb['cases']} | " + " | ".join(
+                    f"{sg(bb['e'][j])} ({bias_thr(bb['v'][j], sc):.2f})" for j in low) + " |")
     # --- (г) по группам
     md.append("\n## (г) по системам и уклону\n")
     G = (M["sets"].get("holdout_sys") or {}).get("groups") or {}
@@ -516,40 +642,45 @@ def build_report(run: Path, rep: Path):
         md.append(f"Разбивка (г) по горным системам и корзинам уклона 400 м slope_p50 из индекса П6 (границы "
                   f"{ec.get('slope_bins')}); правило ШП-2 — по всему (г), разбивка — для понимания (отложенные системы положе "
                   "пула). Доли «ок» — клетки области на 60 м; e — среднее по клеткам области.\n")
-        md.append(f"| группа | предсказание | случаев | ветер ок | подъём б/н ок | подъём с/н ок | медиана ветра, м/с | "
-                  f"среднее e на {a60:g} м | max |e| ≤ {sc['bias_max_agl_m']:g} м (порог) | e на гребнях |")
-        md.append("|---|---|---|---|---|---|---|---|---|---|")
-        for g, d in G.items():
+        md.append(f"| группа рельефа | решения | предсказание | случаев (h / m) | ветер ок | подъём б/н ок | подъём с/н ок | "
+                  f"медиана ветра, м/с | среднее e на {a60:g} м | max |e| ≤ {sc['bias_max_agl_m']:g} м (порог) | "
+                  "e на гребнях |")
+        md.append("|---|---|---|---|---|---|---|---|---|---|---|")
+        for gname, d in G.items():
             for pn in ("net", "inflow"):
-                x = d.get(pn)
-                if not x or not (x.get("area") or {}).get("n_points"):
-                    continue
-                a = x["area"]
-                j = max(low, key=lambda j: abs(x["bias"]["e"][j]))
-                md.append(f"| {g} | {PRED_NAMES[pn]} | {x['n_cases']} | {pct(a['frac_wind_ok'])} | {pct(a['frac_lift_m_ok'])} | "
-                          f"{pct(a['frac_lift_h_ok'])} | {f2(a['wind']['median'], 3)} | {sg(at_key(x['bias']['e'], agl, a60))} | "
-                          f"{f2(abs(x['bias']['e'][j]), 3)} @ {agl[j]:g} м ({bias_thr(x['bias']['v'][j], sc):.3f}) | "
-                          f"{sg((x.get('ridge') or {}).get('e_mean'))} |")
+                for g in GR2:
+                    x = d.get(pn, {}).get(g)
+                    if not x or not (x.get("area") or {}).get("n_points"):
+                        continue
+                    a = x["area"]
+                    j = max(low, key=lambda j: abs(x["bias"]["e"][j]))
+                    md.append(f"| {gname} | {GROUP_NAMES[g]} | {PRED_NAMES[pn]} | {n_str(x)} | {pct(a['frac_wind_ok'])} | "
+                              f"{pct(a.get('frac_lift_m_ok'))} | {pct(a['frac_lift_h_ok'])} | {f2(a['wind']['median'], 3)} | "
+                              f"{sg(at_key(x['bias']['e'], agl, a60))} | {f2(abs(x['bias']['e'][j]), 3)} @ {agl[j]:g} м "
+                              f"({bias_thr(x['bias']['v'][j], sc):.3f}) | {sg((x.get('ridge') or {}).get('e_mean'))} |")
     else:
         md.append("Нет случаев (г) или индекса П6.\n")
     # --- кривая
     md.append("\n## Кривая (в): число рельефов П6 в обучении, оценка на (г) и (б)\n")
     if M["curve"]:
-        md.append("| мест П6 | случаев обучения | лучшая проверка (эпоха) | набор | ветер ок | медиана ветра, м/с | медиана подъёма "
-                  f"б/н / с/н | среднее e на {a60:g} м | max |e| ≤ {sc['bias_max_agl_m']:g} м |")
-        md.append("|---|---|---|---|---|---|---|---|---|")
+        md.append("| мест П6 | случаев обучения | лучшая проверка (эпоха) | набор | решения | случаев (h / m) | ветер ок | "
+                  f"медиана ветра, м/с | медиана подъёма б/н / с/н | среднее e на {a60:g} м | max |e| ≤ {sc['bias_max_agl_m']:g} м |")
+        md.append("|---|---|---|---|---|---|---|---|---|---|---|")
         for c in M["curve"]:
             b = c.get("best") or {}
             for s in ("holdout_sys", "holdout_place"):
-                x = c.get(s)
-                if not x or not (x.get("area") or {}).get("n_points"):
-                    continue
-                a = x["area"]
-                mx = max(abs(x["bias"]["e"][j]) for j in low)
-                md.append(f"| {c['n_places']}{' (= основная)' if c['is_main'] else ''} | {c['n_train']} | "
-                          f"{f2(b.get('val'), 4)} ({(b.get('epoch') or 0) + 1}) | {SET_NAMES[s]} | {pct(a['frac_wind_ok'])} | "
-                          f"{f2(a['wind']['median'], 3)} | {f2(a['lift_m']['median'], 3)} / {f2(a['lift_h']['median'], 3)} | "
-                          f"{sg(at_key(x['bias']['e'], agl, a60))} | {f2(mx, 3)} |")
+                for g in GR2:
+                    x = (c.get(s) or {}).get(g)
+                    if not x or not (x.get("area") or {}).get("n_points"):
+                        continue
+                    a = x["area"]
+                    mx = max(abs(x["bias"]["e"][j]) for j in low)
+                    lm = f2(a["lift_m"]["median"], 3) if a.get("lift_m") else "—"
+                    md.append(f"| {c['n_places']}{' (= основная)' if c['is_main'] else ''} | {c['n_train']} | "
+                              f"{f2(b.get('val'), 4)} ({(b.get('epoch') or 0) + 1}) | {SET_NAMES[s]} | {GROUP_NAMES[g]} | "
+                              f"{n_str(x)} | {pct(a['frac_wind_ok'])} | {f2(a['wind']['median'], 3)} | "
+                              f"{lm} / {f2(a['lift_h']['median'], 3)} | "
+                              f"{sg(at_key(x['bias']['e'], agl, a60))} | {f2(mx, 3)} |")
         md.append(f"\nПорядок мест П6 (слои `stratum` по кругу, внутри слоя — по хешу; зерно {sp['seed']}): "
                   + ", ".join(sp["curve_order"]) + f". В каждую точку входят прежние места пула ({len(sp['curve_base'])}).\n")
     else:
@@ -569,21 +700,24 @@ def build_report(run: Path, rep: Path):
               "(с нагревом − без) вдоль/поперёк, w_conv, м/с; θ′, К. rmse и skill = 1 − mse/var по всем высотам 25–2000 м. "
               f"**Оговорка: air-lite — окна 100 м у стартов, сеть — область 400 м (без {ec['edge_cells']} клеток у края); "
               "(а) здесь — места П6 и прежние вместе.**\n")
-    md.append("| цель | сеть (а) rmse / skill | air-lite lin «новые условия» | air-lite gbm | сеть (б) rmse / skill | "
-              "air-lite lin «место ongudai» | air-lite gbm |")
-    md.append("|---|---|---|---|---|---|---|")
+    md.append("Цели: механика (t_m*) — по статусу `m`, θ′ — по `h`, добавка нагрева (t_c*) — сошлись и `h`, и `m`. "
+              "air-lite — одна общая оценка (его фолды без деления по сходимости).\n")
+    md.append("| цель | сеть (а) сошедшиеся | сеть (а) несошедшиеся | air-lite lin «новые условия» | air-lite gbm | "
+              "сеть (б) сошедшиеся | сеть (б) несошедшиеся | air-lite lin «место ongudai» | air-lite gbm |")
+    md.append("|---|---|---|---|---|---|---|---|---|")
     ar = M.get("airlite_ref") or {}
     an = M.get("airlite_net") or {}
     for t in ("t_mpar", "t_mper", "t_mw", "t_cpar", "t_cper", "t_cw", "t_th"):
-        def net(s):
-            x = (an.get(s) or {}).get(t)
-            return f"{f2(x['rmse'], 3)} / {f2(x['skill'])}" if x else "—"
+        def net(s, g):
+            x = ((an.get(s) or {}).get(g) or {}).get(t)
+            return f"{f2(x['rmse'], 3)} / {f2(x['skill'])} (n={x['n']})" if x else "—"
 
         def al(kind, fold):
             x = ((ar.get(t) or {}).get(kind) or {}).get(fold)
             return f"{f2(x['rmse'], 3)} / {f2(x['skill'])}" if x else "—"
-        md.append(f"| {t} | {net('newcond')} | {al('lin', 'новые условия')} | {al('gbm', 'новые условия')} | "
-                  f"{net('holdout_place')} | {al('lin', 'место ongudai')} | {al('gbm', 'место ongudai')} |")
+        md.append(f"| {t} | {net('newcond', 'conv')} | {net('newcond', 'nc')} | {al('lin', 'новые условия')} | "
+                  f"{al('gbm', 'новые условия')} | {net('holdout_place', 'conv')} | {net('holdout_place', 'nc')} | "
+                  f"{al('lin', 'место ongudai')} | {al('gbm', 'место ongudai')} |")
     # --- картинки
     md.append("\n## Картинки\n")
     for p in figs:
@@ -619,11 +753,16 @@ def build_report(run: Path, rep: Path):
     md.append("- Проверка по типам рельефа, линейная теория и паттерны — не в пилоте П-2 (решение пользователя 02.10).")
     md.append(f"- «Обучающие» — до {ec.get('max_train_eval', 60)} случаев обучения (проверка, что сеть учится; не оценка "
               "качества).")
+    md.append("- Несошедшиеся решения (статус `max`): цель — среднее поздних состояний (late_mean, П1 v3) или последнее состояние "
+              "(набор v1); у них свой разброс p90 ≈ 0,9 м/с (NN-P6) против порога «ок» 0,3 м/с, поэтому правило v2 на них — "
+              "справочная строка, не вердикт.")
+    md.append("- Отказ сравнивает сеть с лучшей из двух базовых линий (профиль притока, среднее); регрессия air-lite не входит "
+              "(окна 100 м, старые фолды).")
     md.append("- Гребни — по процентилю tpi_2k своего случая: «гребни» есть у любого рельефа (у пологого — условные).")
     (rep / "report.md").write_text("\n".join(md) + "\n")
     C.atomic_write_json(rep / "shp2.json", R)
     m = C.read_json(rep / "manifest.json", {})
-    C.write_manifest(rep, m.get("what", "оценка и отчёт пилота (П3 v2)"), m.get("inputs_hash", ""), True, run=str(run),
+    C.write_manifest(rep, m.get("what", "оценка и отчёт пилота (П3 v3)"), m.get("inputs_hash", ""), True, run=str(run),
                      report_built=True, verdict=f"ШП-2: {R['verdict']}", figures=[p.name for p in figs])
     prog.put(len(figs), force=True)
     print(f"отчёт: {rep / 'report.md'}; {len(figs)} картинок; ШП-2: {R['verdict']}", flush=True)
