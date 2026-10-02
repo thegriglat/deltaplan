@@ -2,7 +2,7 @@
 """Загрузчик мест t_* (places.py, П6 v1): форма h, info, context, hc400 = блочное среднее решателя побитно.
 
 На подставном каталоге (tests/make_fake_p6.py, 3 места во временном каталоге) и, если готовы настоящие вырезки
-($AIR_NN_DATA/pilot/tiles/v1, manifest → complete = true), — на 6 местах из них (равномерно по индексу).
+(каталог — configs/dataset.yaml → terrain.p6_dir, tiles/v3; manifest → complete = true), — на 6 местах из них (равномерно по индексу).
 Проверки: h (1601, 1601) float64 = float32 файла; info spacing 25, x0 = y0 = −20 000; water None; sites пусто;
 meta center_lat/lon = индекс; height_at в узле = h; context: дата reference_context, lat/lon индекса,
 utc_offset_h = round(lon/15), valley/mean по рельефу (W.ground_context); R.grid_domain(loc, 400) → hc побитно =
@@ -88,7 +88,10 @@ def main():
         assert same, "make_fake_p6 не повторяется побитно"
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    real = Path(os.environ.get("AIR_NN_DATA") or "/home/greg/air_nn_data") / "pilot/tiles/v1"
+    import dataset as DS   # путь настоящих вырезок — из конфига (configs/dataset.yaml → terrain.p6_dir)
+    cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
+    os.environ.pop("AIRNN_P6_DIR", None)   # check_dir выше его выставляла
+    real = DS.p6_dir(cfg, os.environ.get("AIR_NN_DATA") or cfg["data_root"])
     mf = real / "manifest.json"
     if mf.exists() and json.loads(mf.read_text()).get("complete"):
         n = check_dir(real, n_max=6)

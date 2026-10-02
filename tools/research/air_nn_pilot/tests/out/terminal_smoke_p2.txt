@@ -1,23 +1,26 @@
-пилот air-nn: прогон 2026-10-02_smoke (профиль smoke)
-  лог: /home/greg/air_nn_data/pilot/smoke_p2/runs/2026-10-02_smoke/pilot.log
-  отчёт будет: /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-02_smoke/report.md
-этап 1 из 6: досчёт наборов
+пилот air-nn: прогон 2026-10-03_nnp7smoke (профиль smoke)
+  лог: /home/greg/air_nn_data/pilot/smoke_p2/runs/2026-10-03_nnp7smoke/pilot.log
+  отчёт будет: /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-03_nnp7smoke/report.md
+этап 1 из 7: рельеф П6 (tiles/v3)
+  вырезки П6 готовы (/home/greg/air_nn_data/pilot/tiles/v3) — пропуск
+этап 2 из 7: досчёт наборов
   набор smoke: досчёт
   журнал досчёта: /home/greg/air_nn_data/pilot/logs/dataset_smoke.log
   решений 15/15 (100 %) · завершение…
-  набор smoke (П1 v1) /home/greg/air_nn_data/pilot/datasets/s0-3acd749/smoke: готовых случаев 15, пригодных (статусы ['max', 'ok']) 15
-  набор smoke_terrain (П1 v2) /home/greg/air_nn_data/pilot/tmp/NN-P5_mock/datasets/s0-3acd749/smoke_terrain: готовых случаев 40, пригодных (статусы ['max', 'ok']) 40
-  индекс П6: /home/greg/air_nn_data/pilot/tmp/NN-P5_mock/tiles/v1/index.csv — мест в наборах 10 из 10
-  деление: обучение 20, проверка 7, (а) 10, (г) 12 (3 мест), (б) 3 ['ongudai'], (б′) 3 ['p_002']; кривая [2, 4, 7] мест П6 (+ 3 прочих)
-этап 2 из 6: подготовка тензоров
-  набор smoke: 15 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_176f0f_p05ea80bf
-  набор smoke_terrain: 40 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_terrain_7a1d2c_p05ea80bf
-этап 3 из 6: обучение основной сети
-этап 4 из 6: кривая (в): обучение по числу рельефов
-этап 5 из 6: оценка и ONNX
-  картинок 10/10 (100 %) · завершение…
-  картинок 10/10 (100 %) · завершение…
-этап 6 из 6: отчёт
-  картинок 10/10 (100 %) · завершение…
-готово: /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-02_smoke/report.md
+  набор terrain_smoke: досчёт
+  журнал досчёта: /home/greg/air_nn_data/pilot/logs/dataset_terrain_smoke.log
+  набор smoke (П1 v1) /home/greg/air_nn_data/pilot/datasets/s0-1c8c322/smoke: готовых случаев 15, пригодных (статусы ['max', 'ok']) 15
+  набор terrain_smoke (П1 v3) /home/greg/air_nn_data/pilot/datasets/s0-1c8c322/terrain_smoke: готовых случаев 12, пригодных (статусы ['max', 'ok']) 12
+  индекс П6: /home/greg/air_nn_data/pilot/tiles/v3/index.csv — мест в наборах 6 из 360
+  деление: обучение 10, проверка 4, (а) 3, (г) 4 (2 мест), (б) 3 ['ongudai'], (б′) 3 ['p_002']; кривая [2, 4] мест П6 (+ 3 прочих)
+этап 3 из 7: подготовка тензоров
+  набор smoke: 15 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-1c8c322/smoke_d9f952_p05ea80bf
+  набор terrain_smoke: 12 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-1c8c322/terrain_smoke_b9ed0e_p05ea80bf
+этап 4 из 7: обучение основной сети
+  эпох 35/40 (88 %) · осталось ~0:03
+этап 5 из 7: кривая (в): обучение по числу рельефов
+этап 6 из 7: оценка и ONNX
+этап 7 из 7: отчёт
+  картинок 1/10 (10 %) · осталось: оценка скорости…
+готово: /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-03_nnp7smoke/report.md
   ШП-2: правим подход

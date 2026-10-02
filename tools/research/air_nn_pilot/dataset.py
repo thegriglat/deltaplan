@@ -56,6 +56,7 @@ CONTRACT_V2 = "П1 v2"
 CONTRACT_V3 = "П1 v3"
 GPU_LOCK = "/tmp/heat_ca_gpu.lock"
 EXIT_OK, EXIT_ERR, EXIT_SIGNAL, EXIT_DISK, EXIT_FAILED, EXIT_BUSY = 0, 1, 2, 3, 4, 5
+ABANDON_WAIT_S = 60.0   # ожидание воркера после SIGUSR1 (бросить случай), затем SIGKILL (замечание ревью NN-P6)
 ZIP_DATE = (1980, 1, 1, 0, 0, 0)
 
 
@@ -136,12 +137,12 @@ def late_spec(cfg, spec):
 
 def p6_dir(cfg, root):
     """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига (относительный — от <root>), иначе
-    <root>/pilot/tiles/v2."""
+    <root>/pilot/tiles/v3."""
     d = os.environ.get("AIRNN_P6_DIR")
     if d:
         return Path(d)
     d = (cfg.get("terrain") or {}).get("p6_dir")
-    return Path(root) / (d or "pilot/tiles/v2")
+    return Path(root) / (d or "pilot/tiles/v3")
 
 
 def load_cfg(path):
@@ -261,7 +262,7 @@ def build_terrain_plan(cfg, name, spec, root):
     """План набора terrain (П1 v2): места t_* — все строки index.csv П6, n_cond условий на место (plan_rows: час ×
     облачность по кругу, каждый 12-й — штиль, своё зерно), только область; centers — window_centers (3 точки, для
     оценки). spec: terrain: true; probe: true — подмножество (configs terrain.probe); n_places: первые N мест индекса
-    (тесты); n_cond — меньше условий (тесты)."""
+    (тесты); places: явный список мест; n_cond — меньше условий (тесты)."""
     import airlite_gen as G
     import places as P
     tc = cfg["terrain"]
@@ -272,7 +273,12 @@ def build_terrain_plan(cfg, name, spec, root):
     os.environ["AIRNN_P6_DIR"] = str(d)   # places.location("t_…") читает каталог отсюда (и воркеры — по наследству)
     idx = P.p6_index(str(d))
     locs = list(idx)
-    if spec.get("n_places"):
+    if spec.get("places"):   # явный список мест индекса (мини-набор terrain_smoke)
+        miss = [l for l in spec["places"] if l not in idx]
+        if miss:
+            raise RuntimeError(f"места {miss} нет в индексе П6 {d}/index.csv")
+        locs = list(spec["places"])
+    elif spec.get("n_places"):
         locs = locs[: int(spec["n_places"])]
     n_cond = int(tc["n_cond"]) if spec.get("probe") else int(spec.get("n_cond") or tc["n_cond"])
     rows = G.plan_rows(locs, lambda l: n_cond, seed=tc["cond_seed"])
@@ -356,7 +362,7 @@ def write_manifest(L, con, extra=None):
                   f"cd tools/research/air_nn_pilot && .venv/bin/python dataset.py run --dataset {L.name}"],
         inputs=dict(solver="tools/research/air3d/*.py (не правится)", places="data/terrain/<место>, configs/locations",
                     airlite="research/air-lite 7cc7e33 tools/research/air_lite/{gen.py, places.py}",
-                    **({"p6": "вырезки П6 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v2), sha256 index.csv — plan.json → p6"}
+                    **({"p6": "вырезки П6 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v3), sha256 index.csv — plan.json → p6"}
                        if L.spec.get("terrain") else {})),
         counts=dict(total=sum(n.values()), **n), size_bytes=size,
         complete=sum(n.values()) > 0 and n.get("done", 0) == sum(n.values()),
@@ -905,8 +911,15 @@ def cmd_run_workers(cfg, L, a, n_workers):
                     for p in procs:
                         if p.is_alive():
                             os.kill(p.pid, signal.SIGUSR1)
+                t_wait = time.time()
                 while busy.value > 0 and any(p.is_alive() for p in procs):   # дописать / бросить текущие случаи
                     time.sleep(0.1)
+                    if abandon.is_set() and time.time() - t_wait > ABANDON_WAIT_S:   # воркер не отреагировал на SIGUSR1
+                        for p in procs:
+                            if p.is_alive():
+                                log(f"  воркер pid {p.pid} не бросил случай за {ABANDON_WAIT_S:.0f} с после SIGUSR1 — SIGKILL")
+                                p.kill()
+                        break
             finally:
                 lk.__exit__()
                 n_b = done_now() - d_b

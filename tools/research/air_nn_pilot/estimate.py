@@ -13,6 +13,11 @@ air-lite (49 случаев, в т. ч. 8 «max»), для процедурны�
 пробы: время GPU на случай = длительность пачек / число случаев (воркеры уже учтены), с поправкой на крутизну —
 каждое место индекса получает среднее время ближайшего по рангу slope_p50 места пробы; диск — средний размер файла.
   .venv/bin/python estimate.py --dataset probe [--n-places 345]   → figures/estimate_probe.json
+
+Полный прогон П-2 (NN-P7): .venv/bin/python estimate.py --full-p2   → figures/estimate_p2_full.json
+  ч GPU набора terrain (замер пробы на tiles/v3: время случая ok и max раздельно × доля max индекса, интервал Уилсона по
+  доле max), ч подготовки (CPU), ч обучения (tests/out/bench_epoch.json NN-P5 × образцы × эпохи — верхняя граница, ранняя
+  остановка короче), ГБ диска (набор, кеш подготовки, прогоны), всего, готовая команда.
 """
 from __future__ import annotations
 
@@ -20,6 +25,7 @@ import argparse
 import json
 import os
 import sqlite3
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -101,13 +107,110 @@ def estimate_terrain(cfg, L, a):
     return 0
 
 
+def wilson(k, n, z=1.96):
+    p = k / n
+    d = 1 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    h = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / d
+    return max(0.0, c - h), min(1.0, c + h)
+
+
+def full_p2(a):
+    """Оценка полного прогона П-2 по пробе на настоящих местах (набор probe на tiles/v3) и замеру эпохи NN-P5."""
+    import csv
+    import yaml
+    sys_path = str(HERE)
+    import sys
+    sys.path.insert(0, sys_path)
+    from pilotnn import report as RP
+    cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
+    pcfg = yaml.safe_load((HERE / "config.yaml").read_text())
+    root = Path(a.data_root or os.environ.get("AIR_NN_DATA") or cfg["data_root"])
+    L = DS.Layout(cfg, root, "probe")
+    plan = json.loads(L.plan.read_text())
+    con = sqlite3.connect(f"file:{L.db}?mode=ro", uri=True)
+    rows = con.execute("SELECT id, loc, t_wall, solve_status, bytes FROM cases WHERE status='done'").fetchall()
+    b = con.execute("SELECT SUM(n_cases), SUM(t_end - t_start) FROM batches WHERE n_cases > 0").fetchone()
+    con.close()
+    d = DS.p6_dir(cfg, root)
+    with open(d / "index.csv", newline="") as f:
+        idx = list(csv.DictReader(f))
+    n_places, n_cond = len(idx), int(cfg["terrain"]["n_cond"])
+    n_cases = n_places * n_cond
+    k_par = b[1] / sum(r[2] for r in rows)                  # доля времени GPU на секунду t_wall случая при N воркерах
+    ok = [r[2] * k_par for r in rows if r[3] == "ok"]
+    mx = [r[2] * k_par for r in rows if r[3] != "ok"]
+    f = len(mx) / len(rows)
+    flo, fhi = wilson(len(mx), len(rows))
+    t_ok, t_mx = float(np.mean(ok)), float(np.mean(mx))
+    gpu = lambda ff: n_cases * ((1 - ff) * t_ok + ff * t_mx) / 3600   # noqa: E731
+    gpu_h = gpu(f)
+    # доля времени max — часть GPU-часов
+    max_share = n_cases * f * t_mx / 3600 / gpu_h
+    mb_case = float(np.mean([r[4] for r in rows])) / 1e6
+    # подготовка (CPU): по замеру smoke П-2 (tests/out/smoke_p2_prep.json), иначе 0,1 с/случай (пул процессов)
+    prep_s = 0.1
+    pj = HERE / "tests/out/smoke_p2_prep.json"
+    if pj.exists():
+        prep_s = max(0.1, json.loads(pj.read_text())["s_per_case"])   # не меньше 0,1 с (холодный диск, запас)
+    n_old = int(pcfg["estimate"]["n_old_pool"] + pcfg["estimate"]["n_old_hold"])
+    prep_h = (n_cases + n_old) * prep_s / 3600
+    prep_mb_case = float(os.environ.get("PREP_MB_CASE") or 1.95)   # кеш подготовки: 39 МБ на 20 случаев probe
+    # обучение: report.estimate (замер эпохи NN-P5 × образцы × эпохи; верхняя граница — без ранней остановки)
+    sm = sorted((root / "pilot/smoke_p2/reports").glob("*/metrics.json"), key=lambda p: p.stat().st_mtime)
+    M = dict(config_estimate=pcfg["estimate"], main={}, t_eval_s=2.85, n_eval_cases=30)
+    if sm:
+        sj = json.loads(sm[-1].read_text())
+        M.update(t_eval_s=sj["t_eval_s"], n_eval_cases=sj["n_eval_cases"])
+    E = RP.estimate(M)
+    train_h = E["h_main"] + E["h_curve"]
+    runs_gb = 0.5
+    disk = dict(dataset_terrain=round(n_cases * mb_case / 1e3, 1), prep_terrain=round(n_cases * prep_mb_case / 1e3, 1),
+                prep_main=round(n_old * prep_mb_case / 1e3, 1), runs_reports=runs_gb)
+    total_gb = sum(disk.values())
+    total_h = gpu_h + prep_h + train_h + E["h_eval"]
+    cmd = ("tmux new -s p2 'cd /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot && ./run_pilot.sh; exec bash'   "
+           "# копия после слияния ветки air-nn/assemble; повтор той же команды продолжает")
+    probe_places = [dict(loc=l, slope_p50=round(float(plan["place_info"][l]["slope_p50"]), 3),
+                         relief_m=round(float(plan["place_info"][l]["relief_m"])), system=plan["place_info"][l]["system"],
+                         part=plan["place_info"][l]["part"],
+                         gpu_s_case=round(float(np.mean([r[2] * k_par for r in rows if r[1] == l])), 1),
+                         n=sum(r[1] == l for r in rows), n_max=sum(r[1] == l and r[3] != "ok" for r in rows))
+                    for l in plan["places"]]
+    out = dict(probe_real_places=not plan["p6"]["fake"], probe_dataset=str(L.dir), probe_places=probe_places,
+               probe_n_places=len(plan["places"]), probe_n_cases=len(rows), solver_version=L.version,
+               tiles=str(d), n_places=n_places, n_cond=n_cond, n_cases_terrain=n_cases,
+               gpu_s_case_ok=round(t_ok, 2), gpu_s_case_max=round(t_mx, 2), max_frac=round(f, 3),
+               max_frac_ci95=[round(flo, 3), round(fhi, 3)], max_time_share=round(max_share, 2),
+               gpu_h_terrain=round(gpu_h, 1), gpu_h_terrain_range=[round(gpu(flo), 1), round(gpu(fhi), 1)],
+               workers=cfg["run"]["workers"], cpu_h_prep=round(prep_h, 2), prep_s_per_case=prep_s,
+               train_h_main=round(E["h_main"], 2), train_h_curve=round(E["h_curve"], 2), train_h=round(train_h, 2),
+               eval_h=round(E["h_eval"], 2), t_per_sample_ms=E["t_per_sample_ms"], bench=E["src"],
+               total_h=round(total_h, 1), total_h_range=[round(total_h - gpu_h + gpu(flo), 1), round(total_h - gpu_h + gpu(fhi), 1)],
+               disk_gb=round(total_gb, 1), disk_parts_gb=disk, mb_per_case=round(mb_case, 3),
+               free_gb_now=round(shutil.disk_usage(root).free / 1e9, 1), command=cmd,
+               notes=["обучение — верхняя граница: max_epochs 150 без ранней остановки (patience 30)",
+                      "ГПУ — время случая с учётом 2 воркеров (длительность пачек / случаи), замок GPU пилота",
+                      "кеш подготовки main пересчитывается (код prep изменился с P-1); старый кеш prep/*/main_2922f6_* можно удалить"])
+    o = Path(a.out if a.out != str(HERE / "figures/estimate.json") else HERE / "figures/estimate_p2_full.json")
+    o.parent.mkdir(parents=True, exist_ok=True)
+    o.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
+    print(f"П-2 полный: {n_places} мест × {n_cond} = {n_cases} случаев; GPU {gpu_h:.1f} ч (CI max {flo:.0%}–{fhi:.0%}: "
+          f"{gpu(flo):.1f}–{gpu(fhi):.1f}); подготовка {prep_h:.2f} ч CPU; обучение ≤ {train_h:.1f} ч; оценка {E['h_eval']:.2f} ч; "
+          f"всего ≤ {total_h:.1f} ч; диск {total_gb:.1f} ГБ → {o}")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", default="main")
     ap.add_argument("--data-root", default=None)
     ap.add_argument("--n-places", type=int, default=0, help="probe: пересчитать оценку на это число мест")
     ap.add_argument("--out", default=str(HERE / "figures/estimate.json"))
+    ap.add_argument("--full-p2", action="store_true", help="оценка полного прогона П-2 → figures/estimate_p2_full.json")
     a = ap.parse_args()
+    if a.full_p2:
+        return full_p2(a)
     cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
     if (cfg["datasets"].get(a.dataset) or {}).get("terrain"):
         root = Path(a.data_root or os.environ.get("AIR_NN_DATA") or cfg["data_root"])

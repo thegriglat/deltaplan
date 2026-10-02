@@ -6,12 +6,13 @@ paths:
   base: ${AIR_NN_DATA}/pilot                 # runs/, reports/, prep/ — по §4.4 плана
 
 # Наборы П1 (несколько; id случаев уникальны между наборами): main v1 (область + окна, окна пилот не читает) и
-# terrain v2 (только область, места t_* индекса П6). У набора: name — имя для `dataset.py path/run --dataset <name>`;
+# terrain v3 (только область, места t_* индекса П6). У набора: name — имя для `dataset.py path/run --dataset <name>`;
 # root — явный каталог (раскладка П1) вместо dataset.py path; gen — досчитывать генератором перед подготовкой.
 datasets:
-  - {name: main, gen: true}
+  - {name: main, gen: false, main_version: true}   # готовый набор main — под версией решателя main_version (configs/dataset.yaml, s0-3acd749; s0-1c8c322 — только комментарии), не пересчитывается
   - {name: terrain, gen: true}
-terrain_index: ${AIR_NN_DATA}/pilot/tiles/v1/index.csv   # индекс мест П6 (part, stratum, system, признаки рельефа)
+terrain_index: ${AIR_NN_DATA}/pilot/tiles/v3/index.csv   # индекс мест П6 v3 (part, stratum, system, признаки рельефа)
+terrain_stage: {config: configs/terrain.yaml}   # стадия «рельеф»: terrain_cut.py run (готово по manifest.json → пропуск); не задана — стадии нет (тесты на подставном П6)
 
 dataset:                                     # общее для всех наборов
   log_dir: ${AIR_NN_DATA}/pilot/logs         # журнал досчёта: logs/dataset_<name>.log (как у NN-P1)
@@ -84,22 +85,50 @@ estimate:                                    # оценка полного об�
   n_old_pool: 1629                           # main вне (б)/(б′): 1890 − 110 ongudai − 5 × 30
   n_old_hold: 261
   p6_pool_places: 300
-  p6_holdout_places: 45                      # 3 системы × ~15 мест (NN-P4)
-  n_cond: 11                                 # условий на место П6 (10–12, NN-P6)
+  p6_holdout_places: 60                      # 4 системы × 15 мест (NN-P4, NN-16)
+  n_cond: 12                                 # условий на место П6 (configs/dataset.yaml → terrain.n_cond)
   newcond_frac: 0.15
   val_frac: 0.10
   curve_sizes: [25, 50, 100, 200, 300]
   max_epochs: 150
   curve_max_epochs: 150
 
-# Профили: --smoke = профиль smoke (smoke П-2: набор smoke NN-P1 v1 + подставной terrain v2 и индекс П6 из
-# tests/make_mock_p6.py); свои каталоги pilot/smoke_p2 (прежний smoke П-1 в pilot/smoke не трогается).
+# Профили: --smoke = профиль smoke (smoke П-2: набор smoke NN-P1 v1 + terrain_smoke — 6 настоящих мест tiles/v3 × 2 условия,
+# П1 v3); свои каталоги pilot/smoke_p2 (прежний smoke П-1 в pilot/smoke не трогается). Профиль smoke_mock — прежний
+# smoke на подставном П6 (tests/make_mock_p6.py; тесты).
 profiles:
   smoke:
     paths:
       base: ${AIR_NN_DATA}/pilot/smoke_p2
     datasets:
       - {name: smoke, gen: true}             # 15 случаев: ongudai, s_hill, p_000…p_002 × 3
+      - {name: terrain_smoke, gen: true}     # 12 случаев: t_0050, t_0125, t_0200, t_0275 (пул), t_0318, t_0327 (Кавказ, отложенная) × 2
+    dataset:
+      min_cases: 10
+    split:
+      holdout_proc_n: 1
+      newcond_frac: 0.2
+      val_frac: 0.15
+      curve_sizes: [2, 4]                    # 4 места П6 пула: 2 и полный пул (= основная сеть)
+    train:
+      batch: 2
+      max_epochs: 40
+      patience: 40
+      ckpt_every_min: 0.5
+      lock_chunk_s: 60
+    curve:
+      max_epochs: 5
+    eval:
+      ort_repeats: 10
+      n_slice_figures: {holdout_sys: 1, holdout_place: 1, newcond_p6: 1, holdout_proc: 1}
+      shp2:
+        bin_min_cases: 3                     # smoke: малый набор — проверка ветки корзин U10
+  smoke_mock:
+    paths:
+      base: ${AIR_NN_DATA}/pilot/smoke_p2_mock
+    terrain_stage: null
+    datasets:
+      - {name: smoke, gen: true}
       - {name: smoke_terrain, gen: false, root: "${AIR_NN_DATA}/pilot/tmp/NN-18_mock/datasets/s0-3acd749/smoke_terrain"}
     terrain_index: ${AIR_NN_DATA}/pilot/tmp/NN-18_mock/tiles/v1/index.csv
     dataset:
@@ -108,7 +137,7 @@ profiles:
       holdout_proc_n: 1
       newcond_frac: 0.2
       val_frac: 0.15
-      curve_sizes: [2, 4, 25]                # 7 мест П6 пула: 2, 4 и полный пул (= основная сеть)
+      curve_sizes: [2, 4, 25]                # подставной П6: 7 мест пула: 2, 4 и полный пул (= основная сеть)
     train:
       batch: 2
       max_epochs: 40

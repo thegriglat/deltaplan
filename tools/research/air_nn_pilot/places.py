@@ -99,11 +99,11 @@ class SynthLocation:
 
 # ------------------------------------------------------------------------------------------- места t_* (П6 v1)
 def p6_dir():
-    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v2 (по умолчанию /home/greg/air_nn_data)."""
+    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v3 (по умолчанию /home/greg/air_nn_data)."""
     d = os.environ.get("AIRNN_P6_DIR")
     if d:
         return Path(d)
-    return Path(os.environ.get("AIR_NN_DATA") or "/home/greg/air_nn_data") / "pilot" / "tiles" / "v2"
+    return Path(os.environ.get("AIR_NN_DATA") or "/home/greg/air_nn_data") / "pilot" / "tiles" / "v3"
 
 
 @lru_cache(maxsize=4)
