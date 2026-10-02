@@ -88,14 +88,99 @@ def level_meta(S):
     return dict(dx=g.dx, dz=g.dz, x0=g.x0, y0=g.y0, nx=g.nx, ny=g.ny, nz=g.nz, z_bot=g.z_bot)
 
 
-def solve_case(c, centers, max_outer=None):
+def late_points(late_from, late_step, max_outer):
+    """Итерации снимков цели «среднее поздних» (П1 v3): late_from, late_from + late_step, …, max_outer (последний —
+    всегда предел: конечное состояние несошедшегося решения входит в среднее)."""
+    if int(late_from) % 10 or int(late_step) % 10 or int(late_step) <= 0:
+        raise ValueError(f"late_mean: from={late_from} и step={late_step} должны быть кратны 10 (решатель зовёт обратный вызов раз в 10 итераций)")
+    pts = list(range(int(late_from), int(max_outer) + 1, int(late_step)))
+    if not pts or pts[-1] != int(max_outer):
+        pts.append(int(max_outer))
+    return pts
+
+
+def at60(sl):
+    """(C, 13, ny, nx) → (C, ny, nx) на 60 м над рельефом (линейно между уровнями 50 и 75 м)."""
+    i50, i75 = AGL.index(50), AGL.index(75)
+    return sl[:, i50] + (60.0 - 50.0) / 25.0 * (sl[:, i75] - sl[:, i50])
+
+
+def late_spread60_p90(snaps, mean, edge):
+    """Собственный разброс решения (П1 v3): на 60 м для каждой клетки области без edge клеток у края — RMS по снимкам
+    |Δ(u, v)| от среднего, затем 90-й процентиль по клеткам, м/с. snaps — список (C, 13, ny, nx) float64."""
+    m60 = at60(mean[:2])
+    acc = np.zeros(m60.shape[1:])
+    for s in snaps:
+        d = at60(s[:2]) - m60
+        acc += d[0] ** 2 + d[1] ** 2
+    rms = np.sqrt(acc / len(snaps))
+    if edge > 0:
+        rms = rms[edge:-edge, edge:-edge]
+    return float(np.nanpercentile(rms, 90))
+
+
+def solve_late(D, max_outer, late, heat):
+    """Решение области D с целью П1 v3. Снимки поздних состояний — обратным вызовом `cb` решателя (Solver.solve
+    вызывает его после каждых check_every итераций, вне счёта; cb только читает поля — траектория итераций та же,
+    поэтому снимок на итерации k побитно равен решению с max_outer = k: tests/test_late_mean.py). Решатель не
+    правится; инициализация и учёт времени — как ref_study.solve.
+    → (r как ref_study.solve + target/late_n/late_spread60_p90/late_its, срезы (C, 13, ny, nx) float64, снимки)."""
+    import cupy as cp
+    pts = late_points(late["from"], late["step"], max_outer)
+    todo = list(pts)
+    snaps, its = [], []
+
+    def cb(S, r):
+        while todo and r["it"] >= todo[0]:
+            todo.pop(0)
+            sl = slices(S)
+            snaps.append(sl if heat else sl[:3])
+            its.append(int(r["it"]))
+
+    cp.cuda.Device().synchronize()
+    t0 = time.perf_counter()
+    D.init_background()
+    cp.cuda.Device().synchronize()
+    t_init = time.perf_counter() - t0
+    st = D.solve(max_outer=max_outer, cb=cb, **RS.TOL)
+    r = dict(status=st, iters=D.outer, t_solve=round(D.wall - D.t_check, 3), t_init=round(t_init, 3))
+    if st == "max":
+        # снимки по возрастанию итераций; последний — конечное состояние (то же, что slices(D) в v2)
+        assert len(snaps) == len(pts), (len(snaps), pts, its)
+        mean = np.zeros_like(snaps[0])
+        for s in snaps:
+            mean += s
+        mean /= len(snaps)
+        r.update(target="late_mean", late_n=len(snaps), late_its=its,
+                 late_spread60_p90=float(f"{late_spread60_p90(snaps, mean, int(late.get('edge_cells', 0))):.4g}"))
+        out = mean
+    else:   # сошлось (или разошлось) — конечное состояние, как v2
+        sl = slices(D)
+        out = sl if heat else sl[:3]
+        r.update(target="final", late_n=1, late_spread60_p90=0.0)
+    return r, out, snaps
+
+
+RUN_KEYS = ("status", "iters", "t_solve", "t_init")
+LATE_KEYS = ("target", "late_n", "late_spread60_p90", "late_its")
+
+
+def solve_case(c, centers, max_outer=None, late=None, keep_snaps=None):
     """Тело run_case air-lite без записи: → (метаданные случая как строка runs.jsonl без статуса/времени,
     {ключ: массив float16} в порядке air-lite).
 
     centers = [] — только область (набор terrain, П1 v2): окна решаются после области и её не меняют, поэтому
     d400_* те же, что с окнами (tests/test_region_only.py). max_outer — предел внешних итераций каждого решения
     (None — как air-lite, ref_study.MAXIT = 3000); решение с пределом — то же поле, что полное в момент предела
-    (итерации детерминированы), статус «max», если не сошлось (NN-P6, tests/out/maxcap.json)."""
+    (итерации детерминированы), статус «max», если не сошлось (NN-P6, tests/out/maxcap.json).
+
+    late = {from, step, edge_cells} — цель П1 v3 (NN-17): решение области со статусом max → d400_* = среднее снимков на
+    итерациях late_points(from, step, max_outer), сошедшееся — конечное состояние (побитно как без late). Только для
+    наборов без окон (окна вложены в состояние области — v3 их не определяет). keep_snaps — dict, куда положить
+    снимки {d400_h: [...], d400_m: [...]} (float64, для теста)."""
+    if late is not None:
+        assert not centers, "П1 v3 (late_mean) — только область, без окон"
+        assert max_outer is not None, "П1 v3: нужен предел итераций"
     mo = RS.MAXIT if max_outer is None else int(max_outer)
     loc = c["loc"]
     res = dict(runs={})
@@ -104,10 +189,16 @@ def solve_case(c, centers, max_outer=None):
         g, hc = R.grid_domain(loc, 400)
         cond = R.case(loc, g, hc, c["hour"], c["U10"], c["wdir"], c["t_max"], c["sky"], heat)
         D = R.make(loc, g, hc, cond)
-        r = RS.solve(D, max_outer=mo)
-        res["runs"][f"d400_{tag}"] = {k: r[k] for k in ("status", "iters", "t_solve", "t_init")}
-        sl = slices(D)
-        arrays[f"d400_{tag}"] = sl if heat else sl[:3]
+        if late is None:
+            r = RS.solve(D, max_outer=mo)
+            res["runs"][f"d400_{tag}"] = {k: r[k] for k in RUN_KEYS}
+            sl = slices(D)
+            arrays[f"d400_{tag}"] = sl if heat else sl[:3]
+        else:
+            r, arrays[f"d400_{tag}"], snaps = solve_late(D, mo, late, heat)
+            res["runs"][f"d400_{tag}"] = {k: r[k] for k in RUN_KEYS + LATE_KEYS if k in r}
+            if keep_snaps is not None:
+                keep_snaps[f"d400_{tag}"] = snaps
         if heat:
             arrays["d400_hc"], arrays["d400_H"], arrays["d400_hbl"] = D.hc, D.H, D.h_bl
             res["d400"] = level_meta(D)
@@ -120,7 +211,7 @@ def solve_case(c, centers, max_outer=None):
             cw = R.case(loc, gw, hw, c["hour"], c["U10"], c["wdir"], c["t_max"], c["sky"], heat)
             Wn = R.make(loc, gw, hw, cw, parent=D)
             r = RS.solve(Wn, max_outer=mo)
-            res["runs"][f"w{iw}_{tag}"] = {k: r[k] for k in ("status", "iters", "t_solve", "t_init")}
+            res["runs"][f"w{iw}_{tag}"] = {k: r[k] for k in RUN_KEYS}
             sl = slices(Wn)
             arrays[f"w{iw}_{tag}"] = sl if heat else sl[:3]
             if heat:

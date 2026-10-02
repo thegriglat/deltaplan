@@ -1,0 +1,68 @@
+{
+  "id": "NN-16",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Отложенная система Южные Альпы НЗ: перевыбор и нарезка tiles/v2 (П6 v2)",
+  "goal": "На tiles/v1 отложенные системы положе пула (медиана уклона 0,068); по решению пользователя (Q1) добавить крутую отложенную систему — Южные Альпы Новой Зеландии, 15 мест — перевыбрать и нарезать места в tiles/v2.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П6",
+      "version": "2",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "/home/greg/deltaplan-air-nn-nz",
+  "branch": "air-nn/nz",
+  "base": "feature/air-nn",
+  "scope": [
+    "configs/terrain.yaml: + отложенная горная система с ключом southern_alps_nz (рамка/полигон Южных Альп, 15 мест), выход tiles/v2",
+    "terrain_cut.py: перевыбор (select) — пул 300 не ближе 50 км к местам всех отложенных систем; fetch докачивает только недостающие тайлы в общий raw/; cut в tiles/v2; meta вырезки П6 v2; гистограммы figures/ по системам",
+    "tests/test_contract_terrain.py: П6 v2 — отложенные системы и число мест из конфига (4 × 15), путь набора из конфига; tests/test_terrain_cut.py — при необходимости",
+    "README пилота: раздел рельефов — tiles/v2, команды, таблица признаков (уклон p50/p95, размах) по системам против пула и Онгудая"
+  ],
+  "dont_touch": [
+    "tiles/v1/ и raw/ (только дописывать недостающие тайлы, ничего не удалять)",
+    "pilotnn/*, pilot.py, run_pilot.sh, dataset.py, airlite_gen.py, configs/dataset.yaml — другие задачи (путь tiles/v2 в dataset.yaml поставит NN-P7)",
+    "tools/research/air3d/*.py; незакоммиченный симлинк tools/research/air_nn_pilot/.venv"
+  ],
+  "accept": [
+    {
+      "name": "contract_p6v2",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py",
+      "expect": "re:П6 v2: ок"
+    },
+    {
+      "name": "pool_n",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py --max 1",
+      "expect": "num:пул (\\d+) >=280"
+    },
+    {
+      "name": "holdout_nz",
+      "cmd": "python3 -c 'import csv,os;d=os.environ.get(\"AIR_NN_DATA\",\"/home/greg/air_nn_data\");r=list(csv.DictReader(open(d+\"/pilot/tiles/v2/index.csv\")));print(\"nz\", sum(x[\"part\"]==\"holdout\" and x[\"system\"]==\"southern_alps_nz\" for x in r))'",
+      "expect": "num:nz (\\d+) >=15"
+    },
+    {
+      "name": "holdout_systems",
+      "cmd": "python3 -c 'import csv,os;d=os.environ.get(\"AIR_NN_DATA\",\"/home/greg/air_nn_data\");r=list(csv.DictReader(open(d+\"/pilot/tiles/v2/index.csv\")));print(\"sys\", len({x[\"system\"] for x in r if x[\"part\"]==\"holdout\"}))'",
+      "expect": "num:sys (\\d+) >=4"
+    },
+    {
+      "name": "status_complete",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python terrain_cut.py status",
+      "expect": "re:(?i)complete|готово"
+    },
+    {
+      "name": "repeat_interrupt",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_terrain_cut.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "таблица признаков по системам (мест, уклон p50/p95, размах) против пула и Онгудая",
+    "сколько тайлов докачано, время стадий, диск tiles/v2"
+  ],
+  "notes": "Загрузка тайлов для 15 мест разрешена решением пользователя (Q1, «перевыбор и нарезка»); прежний замер: Terrarium ~1 с/тайл, 16 потоков ≈ 15 тайлов/с. Сначала проба выбора (select) — показать кандидатов НЗ (уклон, размах ≤ 3000 м, sea_frac ≤ порога), потом fetch и cut пачкой. Если 15 мест НЗ не укладываются в инварианты П6 — не ослаблять их молча: сколько вышло и почему, в отчёт (uncertain). tiles/v1 оставить нетронутым. Окружение: .venv — симлинк на /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv (не коммитить). Тяжёлые CPU-стадии (cut) — под dp lock cpu.",
+  "created": "2026-10-03T00:55:56",
+  "edited": "2026-10-03T00:56:20"
+}

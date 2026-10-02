@@ -1,0 +1,120 @@
+{
+ "max_outer": 300,
+ "late": {
+  "from": 150,
+  "step": 50,
+  "edge_cells": 5
+ },
+ "points": [
+  150,
+  200,
+  250,
+  300
+ ],
+ "checks": {
+  "mixed: одно решение max, другое ok": {
+   "ok": true,
+   "info": {
+    "h": [
+     "ok",
+     181
+    ],
+    "m": [
+     "max",
+     301
+    ]
+   }
+  },
+  "mixed m: метаданные late_mean": {
+   "ok": true,
+   "info": {
+    "target": "late_mean",
+    "late_n": 4,
+    "late_its": [
+     151,
+     201,
+     251,
+     301
+    ],
+    "late_spread60_p90": 0.1199
+   }
+  },
+  "mixed h: метаданные final": {
+   "ok": true
+  },
+  "mixed m: d400_m = среднее снимков (≤ 1 ulp fp16)": {
+   "ok": true,
+   "info": {
+    "cells_not_bitwise": 0,
+    "total": 359424
+   }
+  },
+  "mixed m: late_spread60_p90 = пересчёт": {
+   "ok": true,
+   "info": {
+    "gen": 0.1199,
+    "ref": 0.119891
+   }
+  },
+  "mixed m: последний снимок = конечное состояние v2 (побитно)": {
+   "ok": true
+  },
+  "mixed m: среднее ≠ конечному состоянию": {
+   "ok": true,
+   "info": {
+    "max_abs": 0.2666015625
+   }
+  },
+  "mixed: d400_h побитно как v2": {
+   "ok": true
+  },
+  "mixed: d400_hc побитно как v2": {
+   "ok": true
+  },
+  "mixed: d400_H побитно как v2": {
+   "ok": true
+  },
+  "mixed: d400_hbl побитно как v2": {
+   "ok": true
+  },
+  "mixed: статусы/итерации как v2": {
+   "ok": true
+  },
+  "mixed m: снимок 150 = решение v2 с max_outer=150 (побитно)": {
+   "ok": true
+  },
+  "ok: оба решения final": {
+   "ok": true,
+   "info": {
+    "d400_h": [
+     "ok",
+     71
+    ],
+    "d400_m": [
+     "ok",
+     61
+    ]
+   }
+  },
+  "ok: все массивы побитно как v2": {
+   "ok": true
+  },
+  "повтор: массивы побитно": {
+   "ok": true
+  },
+  "повтор: метаданные решений те же": {
+   "ok": true
+  },
+  "повтор: npz = файлу набора lm_smoke (побитно)": {
+   "ok": true,
+   "info": "/home/greg/air_nn_data/pilot/datasets/s0-1c8c322/lm_smoke/cases/t_0000_000.npz"
+  }
+ },
+ "ok": true,
+ "t_s": 26.4,
+ "solver_version": "s0-1c8c322",
+ "cases": [
+  "t_0000_000",
+  "t_0000_001"
+ ]
+}

@@ -1,0 +1,256 @@
+{
+  "status": "done",
+  "summary": "Добавлена отложенная система southern_alps_nz (15 мест, крутая: уклон p50 медиана 0,297), пул 300 перевыбран (не ближе 50 км к местам всех 4 отложенных систем), докачано 9 690 тайлов, нарезка в tiles/v2 (360 мест: пул 300 + 4×15, complete). Контрактный тест П6 v2 берёт системы и число мест из конфига.",
+  "commits": [
+    "aa629d3 air-nn NN-16: Южные Альпы НЗ — отложенная система, перевыбор и нарезка tiles/v2"
+  ],
+  "checks": [
+    {
+      "name": "contract_p6v2",
+      "value": "П6 v2: ок, 360 вырезок проверено",
+      "pass": true
+    },
+    {
+      "name": "pool_n",
+      "value": "300",
+      "pass": true
+    },
+    {
+      "name": "holdout_nz",
+      "value": "15",
+      "pass": true
+    },
+    {
+      "name": "holdout_systems",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "status_complete",
+      "value": "готово",
+      "pass": true
+    },
+    {
+      "name": "repeat_interrupt",
+      "value": "3 места побитно как tiles/v2, kill -9 fetch и cut",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный побитный повтор всех 360 вырезок не делался (тест — 3 места разной крутизны + kill -9 в fetch и cut)",
+    "tests/test_places_terrain.py и configs/dataset.yaml/places.py/dataset.py по-прежнему на tiles/v1 — вне скоупа (NN-P7 и др.)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept NN-16; README пилота, раздел «v2 (NN-16)»; таблица — $AIR_NN_DATA/pilot/tiles/v2/figures/systems_table.md (копия figures/p2_terrain_v2/)",
+  "uncertain": [
+    {
+      "where": "configs/terrain.yaml: select.holdout.slope_est_min {southern_alps_nz: 0.12}; terrain_cut.py stage_select",
+      "why": "Своё решение: без нижней границы уклона равномерная выборка по уклону внутри бокса дала бы и равнинные места (p50 0,005–0,07), а смысл Q1 — крутая система. Граница 0,12 = граница слоёв s1/s2 пула. Остальные системы — без границы, как v1.",
+      "checked": "кандидаты бокса просмотрены по screen.json; итог НЗ: p50 0,123–0,477, размах 1523–2631 м; 15 мест без отсева (6 запасных из 18 не понадобились)"
+    },
+    {
+      "where": "configs/terrain.yaml: бокс southern_alps_nz [-46.0,-42.4,166.6,172.8]",
+      "why": "Грубый бокс (включает Фьордленд и часть Кентерберийских предгорий; север Южного острова остаётся в new_zealand и может попасть в пул, но не ближе 50 км к местам НЗ-системы).",
+      "checked": "тест system_of; пул ≥ 50 км от отложенных проверен контрактным тестом"
+    },
+    {
+      "where": "пул v2",
+      "why": "Из-за общего ГСЧ выбора пул заметно изменился: совпадает лишь 102 из 300 центров с v1 (докачано 9 690 тайлов вместо ~740). Для P6 v2 это допустимо («перевыбор»), но v1 и v2 пулы не сопоставимы по местам.",
+      "checked": "сравнение lat/lon индексов v1 и v2; слой s5 (≥0,4) цель 49 вместо 50, нехватка перенесена в s4 (51); пул всё равно 300"
+    },
+    {
+      "where": "tmp/terrain_v2/screen.json",
+      "why": "Стадия screen не перезапускалась, файл скопирован из terrain_v1 (screen не зависит от изменённых ключей конфига; тайлы z5/z8 общие). Времени screen для v2 нет.",
+      "checked": "ключи screen в конфиге не менялись; select отработал на нём штатно"
+    },
+    {
+      "where": "terrain_cut.py CONTRACT=П6 v2",
+      "why": "meta вырезок теперь 'П6 v2', поэтому sha256 вырезок v2 ≠ v1 даже для общих мест (содержимое h/hc400 то же).",
+      "checked": "тест сравнивает с tiles/v2, а не v1"
+    }
+  ],
+  "dp_feedback": "dp job wait без таймаута падает с сообщением, а в описании задачи написано просто «dp job wait <имя>» — стоит дописать таймаут в шаблон задания. dp lock cpu <имя> -- cmd работает, но dp lock --help пустой (нет описания аргументов).",
+  "extra": {
+    "table": {
+      "пул": {
+        "n": 300,
+        "slope_p50_med": 0.212,
+        "slope_p95_med": 0.447,
+        "relief_med": 1912,
+        "relief_max": 2992
+      },
+      "appalachians": {
+        "n": 15,
+        "slope_p50_med": 0.047,
+        "slope_p95_med": 0.147,
+        "relief_med": 423
+      },
+      "caucasus": {
+        "n": 15,
+        "slope_p50_med": 0.09,
+        "slope_p95_med": 0.331,
+        "relief_med": 1896
+      },
+      "pyrenees": {
+        "n": 15,
+        "slope_p50_med": 0.103,
+        "slope_p95_med": 0.313,
+        "relief_med": 1575
+      },
+      "southern_alps_nz": {
+        "n": 15,
+        "slope_p50_med": 0.297,
+        "slope_p95_med": 0.59,
+        "relief_med": 1906
+      },
+      "procedural": {
+        "n": 40,
+        "slope_p50_med": 0.016,
+        "slope_p95_med": 0.126,
+        "relief_med": 719
+      },
+      "ongudai": {
+        "slope_p50": 0.219,
+        "slope_p95": 0.39,
+        "relief": 1963
+      }
+    },
+    "tiles_total": 19048,
+    "tiles_downloaded": 9690,
+    "mb_downloaded": 600,
+    "time_s": {
+      "select": 4.4,
+      "fetch": 587,
+      "cut": 37,
+      "figures": 39
+    },
+    "disk": {
+      "tiles_v2_gb": 2.9,
+      "tmp_terrain_v2_gb": 0.46,
+      "raw_gb": 2.5
+    },
+    "rejected_cut": {
+      "relief_high": 1,
+      "sea": 12,
+      "reserve_unused": 41
+    },
+    "таблица признаков по системам": {
+      "пул": {
+        "n": 300,
+        "slope_p50_med": 0.212,
+        "slope_p95_med": 0.447,
+        "relief_med": 1912,
+        "relief_max": 2992
+      },
+      "appalachians": {
+        "n": 15,
+        "slope_p50_med": 0.047,
+        "slope_p95_med": 0.147,
+        "relief_med": 423
+      },
+      "caucasus": {
+        "n": 15,
+        "slope_p50_med": 0.09,
+        "slope_p95_med": 0.331,
+        "relief_med": 1896
+      },
+      "pyrenees": {
+        "n": 15,
+        "slope_p50_med": 0.103,
+        "slope_p95_med": 0.313,
+        "relief_med": 1575
+      },
+      "southern_alps_nz": {
+        "n": 15,
+        "slope_p50_med": 0.297,
+        "slope_p95_med": 0.59,
+        "relief_med": 1906
+      },
+      "procedural": {
+        "n": 40,
+        "slope_p50_med": 0.016,
+        "slope_p95_med": 0.126,
+        "relief_med": 719
+      },
+      "ongudai": {
+        "slope_p50": 0.219,
+        "slope_p95": 0.39,
+        "relief": 1963
+      }
+    },
+    "тайлов докачано": 9690,
+    "время стадий": {
+      "select": 4.4,
+      "fetch": 587,
+      "cut": 37,
+      "figures": 39
+    },
+    "диск tiles/v2": {
+      "tiles_v2_gb": 2.9,
+      "tmp_terrain_v2_gb": 0.46,
+      "raw_gb": 2.5
+    }
+  },
+  "таблица признаков по системам (мест, уклон p50/p95, размах) против пула и Онгудая": {
+    "пул": {
+      "n": 300,
+      "slope_p50_med": 0.212,
+      "slope_p95_med": 0.447,
+      "relief_med": 1912,
+      "relief_max": 2992
+    },
+    "appalachians": {
+      "n": 15,
+      "slope_p50_med": 0.047,
+      "slope_p95_med": 0.147,
+      "relief_med": 423
+    },
+    "caucasus": {
+      "n": 15,
+      "slope_p50_med": 0.09,
+      "slope_p95_med": 0.331,
+      "relief_med": 1896
+    },
+    "pyrenees": {
+      "n": 15,
+      "slope_p50_med": 0.103,
+      "slope_p95_med": 0.313,
+      "relief_med": 1575
+    },
+    "southern_alps_nz": {
+      "n": 15,
+      "slope_p50_med": 0.297,
+      "slope_p95_med": 0.59,
+      "relief_med": 1906
+    },
+    "procedural": {
+      "n": 40,
+      "slope_p50_med": 0.016,
+      "slope_p95_med": 0.126,
+      "relief_med": 719
+    },
+    "ongudai": {
+      "slope_p50": 0.219,
+      "slope_p95": 0.39,
+      "relief": 1963
+    }
+  },
+  "сколько тайлов докачано, время стадий, диск tiles/v2": {
+    "тайлов_докачано": 9690,
+    "МБ": 600,
+    "время_с": {
+      "select": 4.4,
+      "fetch": 587,
+      "cut": 37,
+      "figures": 39
+    },
+    "диск_ГБ": {
+      "tiles_v2_gb": 2.9,
+      "tmp_terrain_v2_gb": 0.46,
+      "raw_gb": 2.5
+    }
+  },
+  "t": "2026-10-03T01:13:18",
+  "by": "-"
+}

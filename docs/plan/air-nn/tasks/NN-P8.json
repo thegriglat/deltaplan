@@ -1,0 +1,70 @@
+{
+  "id": "NN-P8",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Предел дна квадрата 3000 м: перевыбор и нарезка tiles/v3 (П6 v3)",
+  "goal": "По решению пользователя (Q4, вариант Б) места с дном квадрата выше 3000 м (Тибет и т. п.; фон погоды и решатель там вне калибровки) не берём: перевыбор в tiles/v3 с тем же составом (пул 300 + 4 × 15).",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П6",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "/home/greg/deltaplan-air-nn-hmin",
+  "branch": "air-nn/hmin",
+  "base": "feature/air-nn",
+  "scope": [
+    "configs/terrain.yaml: ключ предела дна квадрата (h_min ≤ 3000 м), выход tiles/v3 и tmp/terrain_v3",
+    "terrain_cut.py: фильтр h_min в select (по оценке на грубых тайлах) и/или при cut с добором из запаса, как отсев по размаху; meta П6 v3; таблицы и гистограммы по системам в figures/p2_terrain_v3",
+    "tests/test_contract_terrain.py (П6 v3: h_min ≤ порога конфига), tests/test_terrain_cut.py — путь v3; README пилота — короткий раздел v3"
+  ],
+  "dont_touch": [
+    "tiles/v1/, tiles/v2/ и raw/ (только дописывать тайлы)",
+    "dataset.py, airlite_gen.py, configs/dataset.yaml (NN-17), pilotnn/*, pilot.py, run_pilot.sh; tools/research/air3d/*.py; симлинк .venv"
+  ],
+  "accept": [
+    {
+      "name": "contract_p6v3",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py",
+      "expect": "re:П6 v3: ок"
+    },
+    {
+      "name": "pool_n",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py --max 1",
+      "expect": "num:пул (\\d+) >=280"
+    },
+    {
+      "name": "holdout_n",
+      "cmd": "python3 -c 'import csv,os;d=os.environ.get(\"AIR_NN_DATA\",\"/home/greg/air_nn_data\");r=list(csv.DictReader(open(d+\"/pilot/tiles/v3/index.csv\")));print(\"h\", sum(x[\"part\"]==\"holdout\" for x in r))'",
+      "expect": "num:h (\\d+) >=60"
+    },
+    {
+      "name": "hmin_max",
+      "cmd": "python3 -c 'import csv,os;d=os.environ.get(\"AIR_NN_DATA\",\"/home/greg/air_nn_data\");r=list(csv.DictReader(open(d+\"/pilot/tiles/v3/index.csv\")));print(\"hmin\", int(max(float(x[\"h_min\"]) for x in r)))'",
+      "expect": "num:hmin (\\d+) <=3000"
+    },
+    {
+      "name": "status_complete",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python terrain_cut.py status",
+      "expect": "re:(?i)complete|готово"
+    },
+    {
+      "name": "repeat_interrupt",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_terrain_cut.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "таблица признаков по системам v3 против v2 (мест",
+    "уклон p50/p95",
+    "размах",
+    "h_min max)",
+    "сколько мест заменено",
+    "время стадий и диск"
+  ],
+  "notes": "Повтор NN-16 с одним новым инвариантом — код NN-16 (dp report NN-16 --show) не переделывать. Ничего не шлифовать: цель П-2 — понять, стоит ли идея работы. Если отсев по h_min выбивает места НЗ/слоя s5 — добрать из запаса тем же правилом, недобор — в uncertain. Окружение: .venv — симлинк на /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv (не коммитить). cut — под dp lock cpu; долгие стадии — dp job. События dp — с DP_ROLE=researcher.",
+  "created": "2026-10-03T01:33:50",
+  "edited": "2026-10-03T01:33:50"
+}

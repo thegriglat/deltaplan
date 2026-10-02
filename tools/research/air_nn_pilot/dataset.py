@@ -9,6 +9,9 @@
   $PY dataset.py path   [--dataset main]                 # каталог набора (для скриптов)
 Общие: --config configs/dataset.yaml, --data-root (иначе $AIR_NN_DATA, иначе data_root конфига).
 
+П1 v3 (NN-17): наборы с `late_mean` (terrain, probe, lm_smoke) — у решения со статусом max d400_* = среднее снимков
+поздних итераций (solver.late_mean: from…max_outer через step), метаданные решений target/late_n/late_spread60_p90.
+
 Каталог набора: $AIR_NN_DATA/pilot/datasets/s0-<хеш air3d/*.py>/<набор>/{manifest.json, plan.json, state.sqlite,
 cases/<id>.npz}; временное — $AIR_NN_DATA/pilot/tmp/<версия>_<набор>/.
 
@@ -50,8 +53,10 @@ AIR3D = HERE.parent / "air3d"
 SCHEMA_VERSION = 1
 CONTRACT = "П1 v1"
 CONTRACT_V2 = "П1 v2"
+CONTRACT_V3 = "П1 v3"
 GPU_LOCK = "/tmp/heat_ca_gpu.lock"
 EXIT_OK, EXIT_ERR, EXIT_SIGNAL, EXIT_DISK, EXIT_FAILED, EXIT_BUSY = 0, 1, 2, 3, 4, 5
+ABANDON_WAIT_S = 60.0   # ожидание воркера после SIGUSR1 (бросить случай), затем SIGKILL (замечание ревью NN-P6)
 ZIP_DATE = (1980, 1, 1, 0, 0, 0)
 
 
@@ -94,10 +99,10 @@ def kind_of(loc):
 
 
 class Layout:
-    def __init__(self, cfg, data_root, name):
+    def __init__(self, cfg, data_root, name, version=None):
         self.root = Path(data_root) / "pilot"
         self.name = name
-        self.version = solver_version()
+        self.version = version or solver_version()   # version — чтение набора другой версии решателя (main_version)
         self.dir = self.root / "datasets" / self.version / name
         self.cases = self.dir / "cases"
         self.db = self.dir / "state.sqlite"
@@ -105,7 +110,7 @@ class Layout:
         self.manifest = self.dir / "manifest.json"
         self.tmp = self.root / "tmp" / f"{self.version}_{name}"
         self.spec = (cfg.get("datasets") or {}).get(name) or {}
-        self.contract = CONTRACT_V2 if is_v2(self.spec) else CONTRACT
+        self.contract = CONTRACT_V3 if late_spec(cfg, self.spec) else (CONTRACT_V2 if is_v2(self.spec) else CONTRACT)
         self.data_root = Path(data_root)
 
     def case_file(self, cid):
@@ -117,10 +122,27 @@ def is_v2(spec):
     return bool(spec.get("terrain") or spec.get("region_only"))
 
 
+def late_spec(cfg, spec):
+    """Цель П1 v3 (NN-17): spec.late_mean — true (по умолчанию terrain.late_mean) или {from, step}; иначе None.
+    → {from, step, edge_cells} (edge_cells — край области вне разброса late_spread60_p90, как edge_cells пилота)."""
+    lm = spec.get("late_mean")
+    if not lm or not is_v2(spec):
+        return None
+    tc = cfg.get("terrain") or {}
+    base = dict(tc.get("late_mean") or {})
+    if isinstance(lm, dict):
+        base.update(lm)
+    return {"from": int(base["from"]), "step": int(base["step"]), "edge_cells": int(tc.get("late_edge_cells", 5))}
+
+
 def p6_dir(cfg, root):
-    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига, иначе <root>/pilot/tiles/v1."""
-    d = os.environ.get("AIRNN_P6_DIR") or (cfg.get("terrain") or {}).get("p6_dir")
-    return Path(d) if d else Path(root) / "pilot" / "tiles" / "v1"
+    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига (относительный — от <root>), иначе
+    <root>/pilot/tiles/v3."""
+    d = os.environ.get("AIRNN_P6_DIR")
+    if d:
+        return Path(d)
+    d = (cfg.get("terrain") or {}).get("p6_dir")
+    return Path(root) / (d or "pilot/tiles/v3")
 
 
 def load_cfg(path):
@@ -203,7 +225,8 @@ def build_plan(cfg, name, root=None):
                 proc=dict(seed=pc["proc_seed"], cond_seed=pc["proc_cond_seed"], n_cond=pc["n_proc_cond"], params=procs),
                 places=locs, order=[r["id"] for r in order], dataset=name)
     if spec.get("region_only"):   # подмножество main «только область» (П1 v2): те же условия, без окон, свой предел
-        plan.update(contract=CONTRACT_V2, region_only=True, solver=solver_spec(cfg, spec))
+        plan.update(contract=CONTRACT_V3 if late_spec(cfg, spec) else CONTRACT_V2, region_only=True,
+                    solver=solver_spec(cfg, spec))
     return plan
 
 
@@ -211,7 +234,14 @@ def solver_spec(cfg, spec):
     """Предел итераций решений набора П1 v2 (уточнение 02.10): solver.max_outer — в plan.json и manifest.json."""
     import ref_study as RS
     mo = int(spec.get("max_outer") or (cfg.get("terrain") or {}).get("max_outer") or RS.MAXIT)
-    return dict(max_outer=mo, check_every=10, tol=dict(RS.TOL), maxit_v1=RS.MAXIT)
+    out = dict(max_outer=mo, check_every=10, tol=dict(RS.TOL), maxit_v1=RS.MAXIT)
+    lm = late_spec(cfg, spec)
+    if lm:   # П1 v3: цель несошедшегося решения — среднее снимков late_points(from, step, max_outer)
+        import airlite_gen as G
+        out.update(late_mean={"from": lm["from"], "step": lm["step"]},
+                   late_spread=dict(edge_cells=lm["edge_cells"], agl_m=60.0),
+                   late_points=G.late_points(lm["from"], lm["step"], mo))
+    return out
 
 
 def probe_pick(idx, locs, n_places, n_cond_probe, n_cond):
@@ -232,7 +262,7 @@ def build_terrain_plan(cfg, name, spec, root):
     """План набора terrain (П1 v2): места t_* — все строки index.csv П6, n_cond условий на место (plan_rows: час ×
     облачность по кругу, каждый 12-й — штиль, своё зерно), только область; centers — window_centers (3 точки, для
     оценки). spec: terrain: true; probe: true — подмножество (configs terrain.probe); n_places: первые N мест индекса
-    (тесты); n_cond — меньше условий (тесты)."""
+    (тесты); places: явный список мест; n_cond — меньше условий (тесты)."""
     import airlite_gen as G
     import places as P
     tc = cfg["terrain"]
@@ -243,7 +273,12 @@ def build_terrain_plan(cfg, name, spec, root):
     os.environ["AIRNN_P6_DIR"] = str(d)   # places.location("t_…") читает каталог отсюда (и воркеры — по наследству)
     idx = P.p6_index(str(d))
     locs = list(idx)
-    if spec.get("n_places"):
+    if spec.get("places"):   # явный список мест индекса (мини-набор terrain_smoke)
+        miss = [l for l in spec["places"] if l not in idx]
+        if miss:
+            raise RuntimeError(f"места {miss} нет в индексе П6 {d}/index.csv")
+        locs = list(spec["places"])
+    elif spec.get("n_places"):
         locs = locs[: int(spec["n_places"])]
     n_cond = int(tc["n_cond"]) if spec.get("probe") else int(spec.get("n_cond") or tc["n_cond"])
     rows = G.plan_rows(locs, lambda l: n_cond, seed=tc["cond_seed"])
@@ -259,7 +294,8 @@ def build_terrain_plan(cfg, name, spec, root):
     ish = hashlib.sha256((d / "index.csv").read_bytes()).hexdigest()
     pinfo = {loc: {k: idx[loc][k] for k in ("system", "part", "stratum", "slope_p50", "relief_m", "lat", "lon")}
              for loc in locs}
-    return dict(contract=CONTRACT_V2, region_only=True, agl=list(G.AGL), centers=centers, cases=rows,
+    return dict(contract=CONTRACT_V3 if late_spec(cfg, spec) else CONTRACT_V2, region_only=True, agl=list(G.AGL),
+                centers=centers, cases=rows,
                 seed=tc["cond_seed"], n_cond=n_cond, places=locs, order=[r["id"] for r in order], dataset=name,
                 solver=solver_spec(cfg, spec), probe=probe, place_info=pinfo,
                 proc=dict(seed=cfg["plan"]["proc_seed"]),
@@ -316,15 +352,17 @@ def write_manifest(L, con, extra=None):
     m.update(dict(
         what=(f"набор пилота air-nn «{L.name}»: решения эталона AM-01 (air3d, «как игра») — область 400 м 96² и окна "
               "100 м 64² на 13 высотах AGL, с нагревом и без; места × условия по plan.json") if L.contract == CONTRACT else
-             (f"набор пилота air-nn «{L.name}» (П1 v2): решения эталона AM-01 (air3d, «как игра») — только область 400 м "
-              "96² на 13 высотах AGL, с нагревом и без, предел итераций solver.max_outer; места × условия по plan.json"),
+             (f"набор пилота air-nn «{L.name}» ({L.contract}): решения эталона AM-01 (air3d, «как игра») — только область "
+              "400 м 96² на 13 высотах AGL, с нагревом и без, предел итераций solver.max_outer; места × условия по plan.json"
+              + ("; у несошедшихся (max) — среднее снимков поздних итераций solver.late_mean (П1 v3), у сошедшихся — "
+                 "конечное состояние" if L.contract == CONTRACT_V3 else "")),
         contract=L.contract, solver_version=L.version, schema_version=SCHEMA_VERSION,
         code="tools/research/air_nn_pilot (dataset.py, airlite_gen.py, places.py, procedural.py)",
         commands=[f"cd tools/research/air_nn_pilot && .venv/bin/python dataset.py plan --dataset {L.name}",
                   f"cd tools/research/air_nn_pilot && .venv/bin/python dataset.py run --dataset {L.name}"],
         inputs=dict(solver="tools/research/air3d/*.py (не правится)", places="data/terrain/<место>, configs/locations",
                     airlite="research/air-lite 7cc7e33 tools/research/air_lite/{gen.py, places.py}",
-                    **({"p6": "вырезки П6 v1 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v1), sha256 index.csv — plan.json → p6"}
+                    **({"p6": "вырезки П6 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v3), sha256 index.csv — plan.json → p6"}
                        if L.spec.get("terrain") else {})),
         counts=dict(total=sum(n.values()), **n), size_bytes=size,
         complete=sum(n.values()) > 0 and n.get("done", 0) == sum(n.values()),
@@ -522,7 +560,9 @@ def solve_store(con, L, plan, cid, c, stop, abandon=None):
         stop.in_solve = True
         if abandon is not None and abandon.is_set():
             raise Abandon()
-        res, arrays = G.solve_case(c, [] if region_only else plan["centers"][c["loc"]], max_outer=mo)
+        sv = plan.get("solver") or {}
+        late = dict(sv["late_mean"], edge_cells=sv["late_spread"]["edge_cells"]) if sv.get("late_mean") else None
+        res, arrays = G.solve_case(c, [] if region_only else plan["centers"][c["loc"]], max_outer=mo, late=late)
         stop.in_solve = False
     except Abandon:
         stop.in_solve = False
@@ -566,7 +606,8 @@ def solve_store(con, L, plan, cid, c, stop, abandon=None):
     row.update(res)
     row.update(case_extra(c["loc"]))
     if mo is not None:
-        row["solver"] = dict(max_outer=int(mo))
+        row["solver"] = dict(max_outer=int(mo), **({"late_mean": plan["solver"]["late_mean"]}
+                                                    if plan["solver"].get("late_mean") else {}))
     row.update(status=sst, t_wall=t_wall)
     con.execute("BEGIN IMMEDIATE")
     con.execute("UPDATE cases SET status='done', pid=NULL, finished=?, t_wall=?, iters=?, solve_status=?, runs=?, "
@@ -870,8 +911,15 @@ def cmd_run_workers(cfg, L, a, n_workers):
                     for p in procs:
                         if p.is_alive():
                             os.kill(p.pid, signal.SIGUSR1)
+                t_wait = time.time()
                 while busy.value > 0 and any(p.is_alive() for p in procs):   # дописать / бросить текущие случаи
                     time.sleep(0.1)
+                    if abandon.is_set() and time.time() - t_wait > ABANDON_WAIT_S:   # воркер не отреагировал на SIGUSR1
+                        for p in procs:
+                            if p.is_alive():
+                                log(f"  воркер pid {p.pid} не бросил случай за {ABANDON_WAIT_S:.0f} с после SIGUSR1 — SIGKILL")
+                                p.kill()
+                        break
             finally:
                 lk.__exit__()
                 n_b = done_now() - d_b

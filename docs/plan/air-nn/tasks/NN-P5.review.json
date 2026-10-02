@@ -1,0 +1,35 @@
+{
+  "summary": "Вход П2 v4 (отражение — знаки по таблице, тест согласованности prep(отражённый рельеф, −r)=R с допуском 1e-5), деление v3, точки/«ок»/смещение и правило ШП-2 в evaluate/report соответствуют П3 v2; скоуп соблюдён. Блокеров нет; П3 v3 (сошедшиеся/несошедшиеся) в карточке не значился и не реализован — нужна отдельная задача или поправка карточки.",
+  "findings": [
+    {
+      "file": "tools/research/air_nn_pilot/pilotnn/evaluate.py",
+      "line": 1,
+      "severity": "minor",
+      "what": "Контракт П3 уже v3 (03.10): числа раздельно для сошедшихся/несошедшихся, ШП-2 по сошедшимся, отношение к late_spread60_p90 — в коде нет (карточка задачи на П3 v2, так что это не вина исполнителя).",
+      "fix": "Координатору: завести задачу на П3 v3 после NN-17 (late_mean) или дополнить карточку; вердикт «идём в волну 0» до этого считается по всем случаям (г)."
+    },
+    {
+      "file": "tools/research/air_nn_pilot/pilotnn/report.py",
+      "line": 106,
+      "severity": "minor",
+      "what": "«Отказ от направления» сравнивает с min(inflow, mean); регрессия air-lite (третья базовая линия П3) в «наименьшую из медиан» не входит.",
+      "fix": "Явно записать в README/контракте, что air-lite исключена (окна 100 м против области 400 м), либо включить её при наличии метрик на (г)."
+    },
+    {
+      "file": "tools/research/air_nn_pilot/pilotnn/evaluate.py",
+      "line": 502,
+      "severity": "minor",
+      "what": "ridges.setdefault(cid, ridge_mask(...)) вычисляет гауссов фильтр на каждый проход — кеш не работает (не ошибка, лишняя работа).",
+      "fix": "if cid not in ridges: ridges[cid] = ridge_mask(...)."
+    }
+  ],
+  "rerun": [
+    "dp accept NN-P5 --only test_reflect --dry: PASS",
+    "dp accept NN-P5 --only test_split --dry: PASS",
+    "dp accept NN-P5 --only smoke_report_v2 --dry: PASS «ШП-2: правим подход» — совпадает с отчётом"
+  ],
+  "verdict": "accept",
+  "issues": [],
+  "t": "2026-10-03T01:54:55",
+  "by": "reviewer"
+}
