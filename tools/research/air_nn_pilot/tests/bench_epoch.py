@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Замер времени эпохи полного размера (приёмка NN-P2 п. 4): кеш подготовки smoke-набора размножается до
+"""Замер времени эпохи полного размера (NN-P2 п. 4; NN-P5 — объём П-2, 9 карт): кеш подготовки smoke-набора размножается до
 n_train обучающих образцов (индексы по кругу), шаг обучения — как в pilotnn/train.py (bf16, детерминированный
 режим, AdamW, EMA, конфиг основной сети); + проверка на n_val. Под замком GPU. → tests/out/bench_epoch.json.
 
-  .venv/bin/python tests/bench_epoch.py <каталог кеша подготовки> [--n-train 1220] [--n-val 160] [--epochs 3]
+  .venv/bin/python tests/bench_epoch.py <каталог кеша подготовки> [--n-train 3697] [--n-val 493] [--epochs 3]
+  П-2: обучающих (1629 main вне (б)/(б′) + 300 мест × 11 условий) × 0,75 ≈ 3697, проверка × 0,10 ≈ 493.
 """
 from __future__ import annotations
 
@@ -30,8 +31,8 @@ from pilotnn.train import EMA, channel_scale, evaluate_loss, height_weights, loa
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("prep")
-    ap.add_argument("--n-train", type=int, default=1220)
-    ap.add_argument("--n-val", type=int, default=160)
+    ap.add_argument("--n-train", type=int, default=3697)
+    ap.add_argument("--n-val", type=int, default=493)
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--deterministic", type=int, default=1)
     a = ap.parse_args()
@@ -55,7 +56,7 @@ def main():
     n = a.n_train
     vi = np.arange(a.n_val) % len(X)
     Xv, Fv, Yv = X[vi], F[vi], Y[vi]
-    res = dict(n_src=len(X), n_train=n, n_val=a.n_val, batch=bs, deterministic=bool(a.deterministic),
+    res = dict(n_src=len(X), n_maps=int(X.shape[1]), n_film=int(F.shape[1]), n_train=n, n_val=a.n_val, batch=bs, deterministic=bool(a.deterministic),
                n_params=M.n_params(model), epochs=[])
     with C.GpuLock():
         for ep in range(a.epochs):

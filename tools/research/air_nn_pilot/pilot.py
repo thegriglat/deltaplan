@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Пилот air-nn одной командой: досчёт набора → подготовка → обучение основной сети → кривая (в) → оценка → отчёт.
+"""Пилот air-nn одной командой: досчёт наборов → подготовка → обучение основной сети → кривая (в) → оценка → отчёт.
 
-  ./run_pilot.sh [--smoke | --profile dev] [--name ИМЯ] [--config config.yaml]  — запуск или продолжение
-  ./run_pilot.sh status [--smoke | --profile dev] [--name ИМЯ]                 — где прогон, что готово
+  ./run_pilot.sh [--smoke | --profile ИМЯ] [--name ИМЯ] [--config config.yaml]  — запуск или продолжение
+  ./run_pilot.sh status [--smoke | --profile ИМЯ] [--name ИМЯ]                  — где прогон, что готово
+
+Наборы — список `config.yaml → datasets` (main v1 + terrain v2), индекс мест П6 — `terrain_index`; деление v3
+(`pilotnn/split.py`), кеш подготовки — по набору. Точка кривой с полным пулом П6 = основная сеть (не обучается).
 
 Терминал: строка этапа «этап n из N: …» и одна обновляемая строка прогресса (сделано/всего, %, осталось);
 подробный лог шагов — в <прогон>/pilot.log (путь печатается в начале). Повтор той же команды продолжает с места
@@ -26,11 +29,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from pilotnn import common as C  # noqa: E402
-from pilotnn.data import Dataset, solver_status  # noqa: E402
+from pilotnn.data import Datasets, read_p6_index, solver_status  # noqa: E402
 from pilotnn.split import make_split  # noqa: E402
 
 PY = sys.executable
-STEPS = ("досчёт набора", "подготовка тензоров", "обучение основной сети", "кривая (в): обучение по числу рельефов",
+STEPS = ("досчёт наборов", "подготовка тензоров", "обучение основной сети", "кривая (в): обучение по числу рельефов",
          "оценка и ONNX", "отчёт")
 
 
@@ -207,33 +210,33 @@ class DatasetProgress:
         return self.v
 
 
-def dataset_progress(cfg):
-    if cfg["dataset"].get("root"):
+def dataset_progress(spec):
+    if spec.get("root"):
         return None
     try:
-        return DatasetProgress(cfg["dataset"]["name"])()
+        return DatasetProgress(spec["name"])()
     except Exception:  # noqa: BLE001
         return None
 
 
-def resolve_dataset(cfg):
-    root = cfg["dataset"].get("root")
+def resolve_dataset(spec, cfg):
+    """Каталог набора: явный root или `dataset.py path --dataset <name>`. → (Path | None, ошибка)."""
+    root = spec.get("root")
     if root:
         p = C.expand(root, cfg)
     else:
         try:
-            p = Path(p1("path", "--dataset", cfg["dataset"]["name"]).strip().splitlines()[-1])
+            p = Path(p1("path", "--dataset", spec["name"]).strip().splitlines()[-1])
         except Exception as e:  # noqa: BLE001
-            return None, f"набор {cfg['dataset']['name']}: {e}"
+            return None, f"набор {spec['name']}: {e}"
     if not p.exists():
-        return None, f"набор: нет каталога {p}"
+        return None, f"набор {spec['name']}: нет каталога {p}"
     return p, ""
 
 
-def gen_dataset(cfg, rn: "Runner", ui: "UI"):
-    """Досчёт набора генератором NN-P1 (с продолжения). Код 5 (досчёт уже идёт другим процессом) — ждать его
+def gen_dataset(cfg, name, rn: "Runner", ui: "UI"):
+    """Досчёт набора генератором (dataset.py, с продолжения). Код 5 (досчёт уже идёт другим процессом) — ждать его
     с прогрессом по status --json и повторять. → код выхода пилота."""
-    name = cfg["dataset"]["name"]
     log_dir = C.expand(cfg["dataset"]["log_dir"], cfg)
     log_dir.mkdir(parents=True, exist_ok=True)
     glog = log_dir / f"dataset_{name}.log"
@@ -275,7 +278,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "status"))
     ap.add_argument("--smoke", action="store_true", help="мини-прогон: профиль smoke (набор smoke NN-P1)")
-    ap.add_argument("--profile", default=None, help="профиль из config.yaml → profiles (smoke, dev)")
+    ap.add_argument("--profile", default=None, help="профиль из config.yaml → profiles (smoke)")
     ap.add_argument("--name", default=None)
     ap.add_argument("--config", default=str(HERE / "config.yaml"))
     a = ap.parse_args()
@@ -313,56 +316,95 @@ def main():
             ui.say(f"ошибка на шаге «{what}» (код {rc}); подробности — {run / 'pilot.log'}")
         return rc
 
-    # 1. набор
+    # 1. наборы
     head(1)
-    if cfg["dataset"].get("gen") and not cfg["dataset"].get("root"):
-        rc = gen_dataset(cfg, rn, ui)
-        if rc:
-            return fin(rc, STEPS[0])
-    ds_root, err = resolve_dataset(cfg)
-    if ds_root is None:
-        ui.say(err)
-        return C.EXIT_NODATA
-    ds = Dataset(ds_root)
+    specs = cfg["datasets"]
+    for spec in specs:
+        if spec.get("gen") and not spec.get("root"):
+            ui.say(f"  набор {spec['name']}: досчёт")
+            rc = gen_dataset(cfg, spec["name"], rn, ui)
+            if rc:
+                return fin(rc, STEPS[0])
+    roots = []
+    for spec in specs:
+        r, err = resolve_dataset(spec, cfg)
+        if r is None:
+            ui.say("  " + err)
+            return C.EXIT_NODATA
+        roots.append((spec["name"], r))
+    dss = Datasets(roots)
     allowed = set(cfg["dataset"]["allowed_status"])
-    all_rows = ds.case_rows()
+    try:
+        all_rows = dss.case_rows()
+    except ValueError as e:
+        ui.say(f"  наборы несовместимы: {e}")
+        return C.EXIT_NODATA
     rows = [r for r in all_rows if solver_status(r) in allowed]
-    ui.say(f"  набор {ds_root}: готовых случаев {len(all_rows)}, пригодных (статусы {sorted(allowed)}) {len(rows)}")
+    for name_ds, r in roots:
+        d = dss.sets[name_ds]
+        n_all = sum(x["ds"] == name_ds for x in all_rows)
+        n_ok = sum(x["ds"] == name_ds for x in rows)
+        ui.say(f"  набор {name_ds} ({d.contract}) {r}: готовых случаев {n_all}, пригодных (статусы {sorted(allowed)}) {n_ok}")
     if len(rows) < cfg["dataset"]["min_cases"]:
         ui.say(f"  мало случаев (< {cfg['dataset']['min_cases']})")
         return C.EXIT_NODATA
-    split = make_split(rows, cfg["split"])
+    p6_path = C.expand(cfg["terrain_index"], cfg)
+    p6_all = read_p6_index(p6_path)
+    t_locs = sorted({r["loc"] for r in rows if r["loc"].startswith("t_")})
+    if t_locs and not p6_all:
+        ui.say(f"  в наборах есть места t_*, но нет индекса П6 {p6_path}")
+        return C.EXIT_NODATA
+    p6 = {l: p6_all[l] for l in t_locs if l in p6_all}
+    try:
+        split = make_split(rows, cfg["split"], p6)
+    except ValueError as e:
+        ui.say(f"  деление: {e}")
+        return C.EXIT_NODATA
     C.atomic_write_json(run / "config.json", cfg)
     C.atomic_write_json(run / "split.json", split)
+    C.atomic_write_json(run / "p6.json", dict(path=str(p6_path), places=p6))
+    ui.say(f"  индекс П6: {p6_path} — мест в наборах {len(p6)} из {len(p6_all)}")
     ui.say(f"  деление: обучение {len(split['train_ids'])}, проверка {len(split['val_ids'])}, (а) {len(split['newcond_ids'])}, "
-           f"(б) {len(split['holdout_place_ids'])} {split['holdout_places']}, (б′) {len(split['holdout_proc_ids'])} "
-           f"{split['holdout_proc']}; кривая {[c['n_places'] for c in split['curve']]} рельефов")
-    # 2. подготовка
+           f"(г) {len(split['holdout_sys_ids'])} ({len(split['holdout_sys'])} мест), (б) {len(split['holdout_place_ids'])} "
+           f"{split['holdout_places']}, (б′) {len(split['holdout_proc_ids'])} {split['holdout_proc']}; кривая "
+           f"{[c['n_places'] for c in split['curve']]} мест П6 (+ {len(split['curve_base'])} прочих)")
+    # 2. подготовка (кеш — по набору)
     head(2)
     from pilotnn import prep as P
-    from pilotnn.train import CODE_FILES as TRAIN_CODE
     ph = C.code_hash(Path(P.__file__), HERE / "pilotnn" / "prepstep.py")
-    ver = ds_root.parent.name if ds.layout == "pilot" else "dev"
-    prep_dir = prep_base / ver / f"{ds_root.name}_{C.sha(str(ds_root))[:6]}_p{ph[:8]}"
-    ids = sorted(set(split["train_ids"] + split["val_ids"] + split["newcond_ids"] + split["holdout_place_ids"]
-                     + split["holdout_proc_ids"]))
-    prep_dir.mkdir(parents=True, exist_ok=True)
-    C.atomic_write_json(run / "prep_ids.json", ids)
-    C.check_space(prep_dir, 1.0 + 0.0019 * len(ids))
-    rc = rn.run(["-m", "pilotnn.prepstep", prep_dir, ds_root, run / "prep_ids.json"], progress_file(prep_dir / "progress.json"))
-    if rc:
-        return fin(rc, STEPS[1])
-    info = dict(dataset_root=str(ds_root), prep_dir=str(prep_dir), agl=list(ds.agl), smoke=bool(profile), profile=profile or "", name=name,
-                curve=[dict(dir=f"curve_{c['n_places']:02d}", n=c["n"], n_places=c["n_places"], places=c["places"],
+    ids = set(split["train_ids"] + split["val_ids"] + split["newcond_ids"] + split["holdout_place_ids"]
+              + split["holdout_sys_ids"] + split["holdout_proc_ids"])
+    ds_info = []
+    for name_ds, ds_root in roots:
+        d = dss.sets[name_ds]
+        ver = ds_root.parent.name if d.layout == "pilot" else "dev"
+        prep_dir = prep_base / ver / f"{ds_root.name}_{C.sha(str(ds_root))[:6]}_p{ph[:8]}"
+        mine = sorted(r["id"] for r in rows if r["ds"] == name_ds and r["id"] in ids)
+        ds_info.append(dict(name=name_ds, root=str(ds_root), contract=d.contract, prep_dir=str(prep_dir), n_cases=len(mine)))
+        if not mine:
+            continue
+        prep_dir.mkdir(parents=True, exist_ok=True)
+        idf = run / f"prep_ids_{name_ds}.json"
+        C.atomic_write_json(idf, mine)
+        C.check_space(prep_dir, 1.0 + 0.0019 * len(mine))
+        ui.say(f"  набор {name_ds}: {len(mine)} случаев → {prep_dir}")
+        rc = rn.run(["-m", "pilotnn.prepstep", prep_dir, ds_root, idf], progress_file(prep_dir / "progress.json"))
+        if rc:
+            return fin(rc, STEPS[1])
+    prep_dirs = [x["prep_dir"] for x in ds_info if x["n_cases"]]
+    info = dict(datasets=ds_info, prep_dirs=prep_dirs, p6_index=str(p6_path), agl=list(dss.agl), smoke=bool(profile),
+                profile=profile or "", name=name,
+                curve=[dict(dir="main" if c["is_main"] else f"curve_{c['n_places']:03d}", n=c["n"], n_places=c["n_places"],
+                            is_main=c["is_main"], places=c["places"], curve_places=c["curve_places"],
                             train_ids=c["train_ids"]) for c in split["curve"]])
     C.atomic_write_json(run / "run_info.json", info)
     C.write_manifest(run, "прогон пилота air-nn (обучение)", C.sha(dict(cfg=cfg, split=split)), False,
-                     dataset=str(ds_root), prep=str(prep_dir))
+                     datasets=ds_info)
 
     def task(d: Path, label, train_ids, val_ids, over=None):
         d.mkdir(parents=True, exist_ok=True)
         tc = C.deep_update(cfg["train"], over or {})
-        t = dict(label=label, train=tc, prep_dir=str(prep_dir), train_ids=train_ids, val_ids=val_ids)
+        t = dict(label=label, train=tc, prep_dirs=prep_dirs, train_ids=train_ids, val_ids=val_ids)
         old = C.read_json(d / "task.json")
         if old != t:
             C.atomic_write_json(d / "task.json", t)
@@ -376,9 +418,10 @@ def main():
         return fin(rc, STEPS[2])
     # 4. кривая
     head(4)
-    K = len(split["curve"])
-    for i, c in enumerate(split["curve"]):
-        dc = task(run / info["curve"][i]["dir"], f"кривая: {c['n_places']} рельефов", c["train_ids"],
+    todo = [(i, c) for i, c in enumerate(split["curve"]) if not c["is_main"]]   # полный пул = основная сеть
+    K = len(todo)
+    for i, (ci, c) in enumerate(todo):
+        dc = task(run / info["curve"][ci]["dir"], f"кривая: {c['n_places']} рельефов", c["train_ids"],
                   c["val_ids"] or split["val_ids"],   # мало случаев у мест точки — проверка по всему пулу
                   dict(max_epochs=cfg.get("curve", {}).get("max_epochs", cfg["train"]["max_epochs"])))
         pf = progress_file(dc / "progress.json")
@@ -392,7 +435,7 @@ def main():
         if rc:
             return fin(rc, STEPS[3])
     C.write_manifest(run, "прогон пилота air-nn (обучение)", C.sha(dict(cfg=cfg, split=split)), True,
-                     dataset=str(ds_root), prep=str(prep_dir))
+                     datasets=ds_info)
     # 5. оценка
     head(5)
     rc = rn.run(["-m", "pilotnn.evaluate", "eval", run, rep], progress_file(rep / "progress.json"))
@@ -411,10 +454,14 @@ def main():
 
 def status(cfg, run, rep):
     print(f"прогон: {run}")
-    ds_root, _ = resolve_dataset(cfg)
-    if ds_root:
-        pr = dataset_progress(cfg)
-        print(f"  набор: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" + (f" ({pr[3]})" if pr[3] else "") if pr else ""))
+    for spec in cfg["datasets"]:
+        ds_root, err = resolve_dataset(spec, cfg)
+        if ds_root:
+            pr = dataset_progress(spec)
+            print(f"  набор {spec['name']}: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" + (f" ({pr[3]})" if pr[3] else "")
+                                                       if pr else ""))
+        else:
+            print(f"  {err}")
     if not run.exists():
         print("  прогон ещё не запускался")
         return C.EXIT_OK
@@ -426,10 +473,10 @@ def status(cfg, run, rep):
     except BlockingIOError:
         print("  сейчас: идёт (процесс держит замок прогона)")
     info = C.read_json(run / "run_info.json", {})
-    if info:
-        pp = C.read_json(Path(info["prep_dir"]) / "progress.json")
+    for x in info.get("datasets", []):
+        pp = C.read_json(Path(x["prep_dir"]) / "progress.json")
         if pp:
-            print(f"  подготовка: {pp['done']}/{pp['total']} случаев")
+            print(f"  подготовка {x['name']}: {pp['done']}/{pp['total']} случаев")
 
     def st(d: Path):
         m = C.read_json(d / "manifest.json")
@@ -442,7 +489,7 @@ def status(cfg, run, rep):
         return "не начато"
     print(f"  основная сеть: {st(run / 'main')}")
     for c in info.get("curve", []):
-        print(f"  кривая {c['n_places']:>2} рельефов: {st(run / c['dir'])}")
+        print(f"  кривая {c['n_places']:>3} мест П6: " + ("= основная сеть" if c.get("is_main") else st(run / c["dir"])))
     m = C.read_json(rep / "manifest.json")
     if m and m.get("report_built"):
         print(f"  отчёт: {rep / 'report.md'}\n  {m.get('verdict', '')}")

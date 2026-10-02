@@ -4,7 +4,7 @@
   {
    "step": "A: непрерванный",
    "rc": 0,
-   "t": 56.1
+   "t": 356.0
   },
   {
    "step": "kill -9 посреди обучения",
@@ -19,16 +19,16 @@
   },
   {
    "step": "kill -9 при записи чекпойнта",
-   "at_epoch": 15.666666666666666,
+   "at_epoch": 15.3,
    "tmp_files_at_kill": [
-    "best.pt.tmp400080"
+    "last.pt.tmp704441"
    ]
   },
   {
    "step": "kill -9 посреди кривой",
    "curve": [
     [
-     "curve_02",
+     "curve_002",
      2
     ]
    ]
@@ -40,16 +40,16 @@
   {
    "step": "повтор готового прогона",
    "rc": 0,
-   "t": 20.6
+   "t": 29.6
   }
  ],
  "compare": {
-  "n_numbers": 1712,
+  "n_numbers": 13788,
   "n_missing": 0,
   "missing": [],
-  "n_different": 1,
-  "max_rel_diff": 0.004592703645296469,
-  "max_rel_key": "/gpu_lock_wait_s"
+  "n_different": 0,
+  "max_rel_diff": 0.0,
+  "max_rel_key": null
  },
  "val_history_equal": true,
  "val_history_max_abs": 0.0,
@@ -59,13 +59,13 @@
  ],
  "layout": {
   "runs": [
-   "2026-10-02_itest_cut"
+   "2026-10-03_itest_cut"
   ],
   "reports": [
-   "2026-10-02_itest_cut"
+   "2026-10-03_itest_cut"
   ],
   "tmp_left": []
  },
- "verdict_a": "«правим подход и повторяем пилот» — (а) не выполнен: сеть или вход не годятся, разбираться до всего остального.",
- "verdict_b": "«правим подход и повторяем пилот» — (а) не выполнен: сеть или вход не годятся, разбираться до всего остального."
+ "verdict_a": "ШП-2: правим подход",
+ "verdict_b": "ШП-2: правим подход"
 }
