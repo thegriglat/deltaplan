@@ -79,7 +79,7 @@ class Eta:
     def __init__(self):
         self.hist = []
 
-    def line(self, done, total, unit, extra=""):
+    def line(self, done, total, unit, extra="", eta_s=None):
         now = time.time()
         if not self.hist or done != self.hist[-1][1]:
             self.hist.append((now, done))
@@ -90,7 +90,10 @@ class Eta:
         if total and done >= total:
             eta = "завершение…"
         else:
-            eta = f"осталось ~{C.fmt_dur((total - done) / rate)}" if rate else "осталось: оценка скорости…"
+            if eta_s is not None:                      # оценка самого шага (генератор NN-P1: по видам случаев)
+                eta = f"осталось ~{C.fmt_dur(eta_s)}"
+            else:
+                eta = f"осталось ~{C.fmt_dur((total - done) / rate)}" if rate else "осталось: оценка скорости…"
         p = 100 * done / total if total else 0
         dd = f"{done:.1f}" if isinstance(done, float) and not float(done).is_integer() else f"{int(done)}"
         return f"  {unit} {dd}/{total} ({p:.0f} %){' · ' + extra if extra else ''} · {eta}"
@@ -131,7 +134,8 @@ class Runner:
                 return C.EXIT_SIGINT if self.signum == signal.SIGINT else C.EXIT_SIGTERM
             pr = progress_fn()
             if pr:
-                self.ui.progress(eta.line(pr[0], pr[1], pr[2], ", ".join(x for x in (pr[3], extra) if x)))
+                self.ui.progress(eta.line(pr[0], pr[1], pr[2], ", ".join(x for x in (pr[3], extra) if x),
+                                          pr[4] if len(pr) > 4 else None))
             time.sleep(0.5)
         return 0
 
@@ -152,8 +156,7 @@ class Runner:
             except Exception:  # noqa: BLE001
                 pr = None
             if pr:
-                done, total, unit, extra = pr
-                self.ui.progress(eta.line(done, total, unit or unit_default, extra))
+                self.ui.progress(eta.line(pr[0], pr[1], pr[2] or unit_default, pr[3], pr[4] if len(pr) > 4 else None))
             if rc is not None:
                 break
             time.sleep(poll)
@@ -184,7 +187,7 @@ class DatasetProgress:
     """Сделано/всего для досчёта набора — из `dataset.py status --json` (NN-P1), не чаще раза в 10 с."""
 
     def __init__(self, name):
-        self.name, self.t, self.v = name, 0.0, None
+        self.name, self.t, self.v, self.js = name, 0.0, None, {}
 
     def __call__(self):
         if time.time() - self.t > 10:
@@ -196,7 +199,9 @@ class DatasetProgress:
                     extra.append(f"ошибок {js['failed']}")
                 if js.get("max"):
                     extra.append(f"max {js['max']}")
-                self.v = (js["done"], js["total"], "решений", ", ".join(extra))
+                eta = js.get("eta_h")
+                self.js = js
+                self.v = (js["done"], js["total"], "решений", ", ".join(extra), eta * 3600 if eta is not None else None)
             except Exception:  # noqa: BLE001
                 pass
         return self.v
@@ -239,11 +244,17 @@ def gen_dataset(cfg, rn: "Runner", ui: "UI"):
         rc = rn.run([HERE / "dataset.py", "run", "--dataset", name, "--log", glog], prog)
         if rc == 5:
             if not said:
-                ui.say("  досчёт этого набора уже идёт в другом процессе — жду его, проверка раз в 30 с")
+                ui.say("  досчёт этого набора уже идёт в другом процессе — жду его (прогресс — по status --json)")
                 said = True
-            rc = rn.wait(30, prog, "ожидание чужого досчёта")
-            if rc:
-                return rc
+            idle = 0
+            while idle < 2:                          # повтор run — когда чужой досчёт закончился или стоит
+                rc = rn.wait(15, prog, "ожидание чужого досчёта")
+                if rc:
+                    return rc
+                prog.t = 0.0
+                prog()
+                js = prog.js or {}
+                idle = idle + 1 if (js.get("complete") or not js.get("running")) else 0
             continue
         if rc == 0:
             return C.EXIT_OK
