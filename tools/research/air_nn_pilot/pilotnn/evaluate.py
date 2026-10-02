@@ -289,7 +289,7 @@ def run_eval(run: Path, rep: Path):
         ysum = y.mean(axis=(1, 2)) if ysum is None else ysum + y.mean(axis=(1, 2))
         ycount += 1
     ymean = (ysum / max(ycount, 1)).astype(np.float32)
-    lock = C.GpuLock()
+    lock = C.GpuLock(sig)
     t_eval0 = time.time()
     result = dict(sets={}, curve=[], airlite_net={}, per_point=[], per_case={}, ymean=ymean.tolist())
     keep_fields = {}
@@ -440,6 +440,10 @@ def flatten_fields(kf):
 if __name__ == "__main__":
     cmd, run, rep = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3])
     if cmd == "eval":
-        sys.exit(run_eval(run, rep))
+        try:
+            sys.exit(run_eval(run, rep))
+        except C.StopRequested as e:                 # сигнал во время ожидания замка GPU или оценки
+            print(f"оценка прервана ({e}); повтор — заново (оценка короткая)", flush=True)
+            sys.exit(e.code)
     from .report import build_report
     sys.exit(build_report(run, rep))

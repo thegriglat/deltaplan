@@ -215,7 +215,11 @@ def verdict(M):
 def estimate(M):
     """Оценка полного прогона по замеру этого прогона: время эпохи на образец × образцы × эпохи."""
     es, mn = M.get("config_estimate") or {}, M["main"]
-    tps = mn.get("t_per_sample_ms")
+    tps, src = mn.get("t_per_sample_ms"), "обучение этого прогона"
+    bp = C.PILOT / es.get("bench", "tests/out/bench_epoch.json")
+    if bp.exists():                       # замер эпохи полного размера (tests/bench_epoch.py) точнее малого прогона
+        b = json.loads(bp.read_text())
+        tps, src = b["t_per_sample_ms"], f"tests/bench_epoch.py ({b['n_train']} образцов, батч {b['batch']})"
     if not tps or not es:
         return None
     n_full = es["n_cases_full"]
@@ -231,7 +235,7 @@ def estimate(M):
     t_curve = tps / 1000 * n_train * curve_frac * ep_curve
     n_eval_full = n_full * (1 - pool_frac) * (1 + len(sizes)) + n_full * pool_frac * es.get("newcond_frac", 0.15) + 60
     t_eval = M["t_eval_s"] / max(M["n_eval_cases"], 1) * n_eval_full + 60
-    return dict(t_per_sample_ms=tps, n_train_full=n_train, epochs_main=ep_main, epochs_curve=ep_curve,
+    return dict(src=src, t_per_sample_ms=tps, n_train_full=n_train, epochs_main=ep_main, epochs_curve=ep_curve,
                 curve_frac=curve_frac, h_main=t_main / 3600, h_curve=t_curve / 3600, h_eval=t_eval / 3600,
                 h_total=(t_main + t_curve + t_eval) / 3600)
 
@@ -262,13 +266,13 @@ def build_report(run: Path, rep: Path):
     est = estimate(M)
     info = json.loads((run / "run_info.json").read_text())
     md = []
-    md.append(f"# Пилот air-nn: отчёт `{rep.name}`{' (smoke)' if info.get('smoke') else ''}\n")
+    md.append(f"# Пилот air-nn: отчёт `{rep.name}`{f" (профиль {info['profile']})" if info.get('profile') else ''}\n")
     md.append(f"Построен {dt.datetime.now().isoformat(timespec='minutes')} скриптом `pilotnn/report.py` (коммит "
               f"{C.git_commit()}); прогон `{run}`; набор `{M['dataset']['root']}` — {M['dataset']['n_cases']} случаев "
               f"(решения области: ok {M['dataset']['status']['ok']}, max {M['dataset']['status']['max']}), "
               f"{len(M['dataset']['places'])} мест.\n")
-    if info.get("smoke"):
-        md.append("> **smoke**: крошечный набор разработки и несколько эпох — числа проверяют конвейер, а не качество сети.\n")
+    if info.get("profile"):
+        md.append(f"> **профиль {info['profile']}**: малый набор и мало эпох — числа проверяют конвейер, а не качество сети.\n")
     md.append("## Вывод по ориентирам ШП (правилом из чисел, план §8.2)\n")
     md += lines
     md.append(f"\n**Итог по правилу: {concl}**\n")
@@ -347,9 +351,10 @@ def build_report(run: Path, rep: Path):
               f"{mn['best']['epoch'] + 1} (проверка {f2(mn['best']['val'], 4)}); {mn['gpu']}, torch {mn['torch']}, "
               "детерминированный режим.")
     md.append(f"- Время эпохи (медиана): {f2(mn['t_epoch_median_s'])} с, на образец {f2(mn['t_per_sample_ms'])} мс "
-              f"(с проверкой в конце эпохи). Оценка {M['n_eval_cases']} предсказаний: {f2(M['t_eval_s'], 0)} с.")
+              f"(с проверкой в конце эпохи, без ожидания замка GPU). Оценка {M['n_eval_cases']} предсказаний: {f2(M['t_eval_s'], 0)} с.")
     if est:
-        md.append(f"- **Оценка полного прогона** ({M['config_estimate']['n_cases_full']} случаев, обучающих ≈ "
+        md.append(f"- **Оценка полного прогона** (время эпохи на образец {f2(est['t_per_sample_ms'])} мс — {est['src']}; "
+                  f"{M['config_estimate']['n_cases_full']} случаев, обучающих ≈ "
                   f"{est['n_train_full']:.0f}; эпох: основная {est['epochs_main']}, кривая {est['epochs_curve']}, кривая = "
                   f"{est['curve_frac']:.2f} основной по объёму): основная сеть {f2(est['h_main'])} ч, кривая {f2(est['h_curve'])} ч, "
                   f"оценка {f2(est['h_eval'])} ч, **итого ≈ {f2(est['h_total'])} ч** (верхняя граница — без ранней остановки; "

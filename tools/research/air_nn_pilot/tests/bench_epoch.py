@@ -35,7 +35,7 @@ def main():
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--deterministic", type=int, default=1)
     a = ap.parse_args()
-    cfg = C.load_config(HERE / "config.yaml")
+    cfg = C.load_config(HERE / "config.yaml")   # основной пилот (не профиль)
     tc = cfg["train"]
     ids = sorted(p.stem for p in (Path(a.prep) / "cases").glob("*.npz"))
     X, F, Y, _ = load_arrays(Path(a.prep), ids)

@@ -6,6 +6,8 @@
       для ранней остановки, остальное — обучение (по хешу (зерно, id));
   (в) кривая: места обучения в порядке хеша (зерно, «curve», место); точка n — первые n мест (вложенные
       подмножества); обучение/проверка — их части из (а); оценка — на отложенных местах (б).
+  Крошечные наборы (smoke): у места обучения — не меньше одного случая обучения; нет случаев проверки — проверка
+  по всему пулу, а если и там нет — по обучению (val_is_train; ранняя остановка тогда не значима).
 """
 from __future__ import annotations
 
@@ -34,6 +36,10 @@ def make_split(rows, sc):
         u = u01(seed, r["id"])
         part[r["id"]] = ("newcond" if u < sc["newcond_frac"] else
                          "val" if u < sc["newcond_frac"] + sc["val_frac"] else "train")
+    for loc in pool:                           # у каждого места обучения — хотя бы один случай обучения
+        mine = sorted((r["id"] for r in rows if r["loc"] == loc), key=lambda i: -u01(seed, i))
+        if mine and all(part[i] != "train" for i in mine):
+            part[mine[0]] = "train"
     by = {}
     for r in rows:
         by.setdefault((part[r["id"]], r["loc"]), []).append(r["id"])
@@ -48,6 +54,10 @@ def make_split(rows, sc):
             continue
         pl = pool[:n_eff]
         curve.append(dict(n=n, n_places=n_eff, places=sorted(pl), train_ids=ids("train", pl), val_ids=ids("val", pl)))
+    val_all = ids("val", pool)
+    for c in curve:                             # нет случаев проверки у точки — проверка всего пула, иначе — обучение
+        c["val_ids"] = c["val_ids"] or val_all or c["train_ids"]
     return dict(seed=seed, holdout_places=hold_places, holdout_proc=hold_proc, pool_order=pool,
-                train_ids=ids("train", pool), val_ids=ids("val", pool), newcond_ids=ids("newcond", pool),
+                train_ids=ids("train", pool), val_ids=val_all or ids("train", pool),
+                val_is_train=not val_all, newcond_ids=ids("newcond", pool),
                 holdout_place_ids=ids("holdout", hold_places), holdout_proc_ids=ids("holdout", hold_proc), curve=curve)

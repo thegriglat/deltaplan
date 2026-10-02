@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Пилот air-nn одной командой: досчёт набора → подготовка → обучение основной сети → кривая (в) → оценка → отчёт.
 
-  ./run_pilot.sh [--smoke] [--name ИМЯ] [--config config.yaml]     — запуск или продолжение
-  ./run_pilot.sh status [--smoke] [--name ИМЯ]                     — где прогон, что готово
+  ./run_pilot.sh [--smoke | --profile dev] [--name ИМЯ] [--config config.yaml]  — запуск или продолжение
+  ./run_pilot.sh status [--smoke | --profile dev] [--name ИМЯ]                 — где прогон, что готово
 
 Терминал: строка этапа «этап n из N: …» и одна обновляемая строка прогресса (сделано/всего, %, осталось);
 подробный лог шагов — в <прогон>/pilot.log (путь печатается в начале). Повтор той же команды продолжает с места
@@ -15,11 +15,9 @@ import argparse
 import ctypes
 import datetime as dt
 import fcntl
-import glob
 import json
 import os
 import signal
-import sqlite3
 import subprocess
 import sys
 import time
@@ -115,6 +113,20 @@ class Runner:
         elif first:
             self.ui.say(f"сигнал {signum}: остановка")
 
+    def wait(self, seconds, progress_fn, extra=""):
+        """Пауза без процесса-шага с обновлением прогресса; сигнал — выход с его кодом."""
+        eta = Eta()
+        t0 = time.time()
+        while time.time() - t0 < seconds:
+            if self.signum is not None:
+                self.ui.end_progress()
+                return C.EXIT_SIGINT if self.signum == signal.SIGINT else C.EXIT_SIGTERM
+            pr = progress_fn()
+            if pr:
+                self.ui.progress(eta.line(pr[0], pr[1], pr[2], ", ".join(x for x in (pr[3], extra) if x)))
+            time.sleep(0.5)
+        return 0
+
     def run(self, args, progress_fn, unit_default="", poll=0.5):
         """Запуск шага как процесса; progress_fn() → (done, total, unit, extra) | None. → код выхода шага."""
         if self.signum is not None:
@@ -151,39 +163,106 @@ def progress_file(p: Path):
     return f
 
 
-def dataset_progress(root: Path):
-    """Сделано/всего для досчёта набора — из state.sqlite набора П1 (только чтение).
-    TODO(после слияния P1): брать из его команды `status` (машиночитаемый вывод), а не из базы напрямую."""
-    db = root / "state.sqlite"
-    if not db.exists():
+def p1(*args, timeout=120):
+    """Команда генератора NN-P1 (dataset.py) → stdout."""
+    r = subprocess.run([PY, str(HERE / "dataset.py"), *map(str, args)], cwd=HERE, capture_output=True, text=True,
+                       timeout=timeout)
+    if r.returncode != 0:
+        raise RuntimeError(f"dataset.py {' '.join(map(str, args))}: код {r.returncode}: {r.stdout[-500:]}{r.stderr[-500:]}")
+    return r.stdout
+
+
+class DatasetProgress:
+    """Сделано/всего для досчёта набора — из `dataset.py status --json` (NN-P1), не чаще раза в 10 с."""
+
+    def __init__(self, name):
+        self.name, self.t, self.v = name, 0.0, None
+
+    def __call__(self):
+        if time.time() - self.t > 10:
+            self.t = time.time()
+            try:
+                js = json.loads(p1("status", "--dataset", self.name, "--json").strip().splitlines()[-1])
+                extra = []
+                if js.get("failed"):
+                    extra.append(f"ошибок {js['failed']}")
+                if js.get("max"):
+                    extra.append(f"max {js['max']}")
+                self.v = (js["done"], js["total"], "решений", ", ".join(extra))
+            except Exception:  # noqa: BLE001
+                pass
+        return self.v
+
+
+def dataset_progress(cfg):
+    if cfg["dataset"].get("root"):
         return None
-    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=5)
     try:
-        rows = dict(con.execute("SELECT status, COUNT(*) FROM cases GROUP BY status").fetchall())
-    finally:
-        con.close()
-    total = sum(rows.values())
-    done = rows.get("done", 0)
-    return done, total, "решений", f"ошибок {rows.get('failed', 0)}" if rows.get("failed") else ""
+        return DatasetProgress(cfg["dataset"]["name"])()
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def resolve_dataset(cfg):
-    pat = str(C.expand(cfg["dataset"]["root_glob"], cfg))
-    found = sorted(glob.glob(pat))
-    if len(found) != 1:
-        return None, f"набор: по шаблону {pat} найдено {len(found)} каталогов: {found}"
-    return Path(found[0]), ""
+    root = cfg["dataset"].get("root")
+    if root:
+        p = C.expand(root, cfg)
+    else:
+        try:
+            p = Path(p1("path", "--dataset", cfg["dataset"]["name"]).strip().splitlines()[-1])
+        except Exception as e:  # noqa: BLE001
+            return None, f"набор {cfg['dataset']['name']}: {e}"
+    if not p.exists():
+        return None, f"набор: нет каталога {p}"
+    return p, ""
+
+
+def gen_dataset(cfg, rn: "Runner", ui: "UI"):
+    """Досчёт набора генератором NN-P1 (с продолжения). Код 5 (досчёт уже идёт другим процессом) — ждать его
+    с прогрессом по status --json и повторять. → код выхода пилота."""
+    name = cfg["dataset"]["name"]
+    log_dir = C.expand(cfg["dataset"]["log_dir"], cfg)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    glog = log_dir / f"dataset_{name}.log"
+    ui.say(f"  журнал досчёта: {glog}")
+    prog = DatasetProgress(name)
+    said = False
+    while True:
+        rc = rn.run([HERE / "dataset.py", "run", "--dataset", name, "--log", glog], prog)
+        if rc == 5:
+            if not said:
+                ui.say("  досчёт этого набора уже идёт в другом процессе — жду его, проверка раз в 30 с")
+                said = True
+            rc = rn.wait(30, prog, "ожидание чужого досчёта")
+            if rc:
+                return rc
+            continue
+        if rc == 0:
+            return C.EXIT_OK
+        if rc == 2:
+            return C.EXIT_SIGINT if rn.signum in (None, signal.SIGINT) else C.EXIT_SIGTERM
+        if rc == 3:
+            return C.EXIT_NOSPACE
+        if rc == 4:
+            ui.say(f"  в наборе есть окончательно упавшие случаи (код 4) — продолжаю с готовыми; см. {glog}")
+            return C.EXIT_OK
+        if rc in (C.EXIT_SIGINT, C.EXIT_SIGTERM):
+            return rc
+        ui.say(f"  досчёт: код {rc}; см. {glog}")
+        return C.EXIT_ERROR
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", nargs="?", default="run", choices=("run", "status"))
-    ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--smoke", action="store_true", help="мини-прогон: профиль smoke (набор smoke NN-P1)")
+    ap.add_argument("--profile", default=None, help="профиль из config.yaml → profiles (smoke, dev)")
     ap.add_argument("--name", default=None)
     ap.add_argument("--config", default=str(HERE / "config.yaml"))
     a = ap.parse_args()
-    cfg = C.load_config(a.config, a.smoke)
-    name = a.name or ("smoke" if a.smoke else "pilot")
+    profile = a.profile or ("smoke" if a.smoke else None)
+    cfg = C.load_config(a.config, profile)
+    name = a.name or profile or "pilot"
     if not name.replace("_", "").replace("-", "").isalnum():
         print("имя прогона: буквы, цифры, _ и -")
         return C.EXIT_USAGE
@@ -199,7 +278,7 @@ def main():
         return C.EXIT_ERROR
     ui = UI(run / "pilot.log")
     rn = Runner(ui)
-    ui.say(f"пилот air-nn: прогон {run.name}{' (smoke)' if a.smoke else ''}")
+    ui.say(f"пилот air-nn: прогон {run.name}{f' (профиль {profile})' if profile else ''}")
     ui.say(f"  лог: {run / 'pilot.log'}")
     ui.say(f"  отчёт будет: {rep / 'report.md'}")
     C.check_space(run, 3.0)
@@ -217,13 +296,11 @@ def main():
 
     # 1. набор
     head(1)
-    ds_root, err = resolve_dataset(cfg)
-    gen = cfg["dataset"].get("gen_cmd") or []
-    if gen:
-        rc = rn.run(gen, lambda: dataset_progress(ds_root) if ds_root else None)
+    if cfg["dataset"].get("gen") and not cfg["dataset"].get("root"):
+        rc = gen_dataset(cfg, rn, ui)
         if rc:
             return fin(rc, STEPS[0])
-        ds_root, err = resolve_dataset(cfg)
+    ds_root, err = resolve_dataset(cfg)
     if ds_root is None:
         ui.say(err)
         return C.EXIT_NODATA
@@ -256,7 +333,7 @@ def main():
     rc = rn.run(["-m", "pilotnn.prepstep", prep_dir, ds_root, run / "prep_ids.json"], progress_file(prep_dir / "progress.json"))
     if rc:
         return fin(rc, STEPS[1])
-    info = dict(dataset_root=str(ds_root), prep_dir=str(prep_dir), agl=list(ds.agl), smoke=a.smoke, name=name,
+    info = dict(dataset_root=str(ds_root), prep_dir=str(prep_dir), agl=list(ds.agl), smoke=bool(profile), profile=profile or "", name=name,
                 curve=[dict(dir=f"curve_{c['n_places']:02d}", n=c["n"], n_places=c["n_places"], places=c["places"],
                             train_ids=c["train_ids"]) for c in split["curve"]])
     C.atomic_write_json(run / "run_info.json", info)
@@ -328,8 +405,8 @@ def status(cfg, run, rep):
     info = C.read_json(run / "run_info.json", {})
     ds_root, _ = resolve_dataset(cfg)
     if ds_root:
-        pr = dataset_progress(ds_root)
-        print(f"  набор: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" if pr else ""))
+        pr = dataset_progress(cfg)
+        print(f"  набор: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" + (f" ({pr[3]})" if pr[3] else "") if pr else ""))
     if info:
         pp = C.read_json(Path(info["prep_dir"]) / "progress.json")
         if pp:

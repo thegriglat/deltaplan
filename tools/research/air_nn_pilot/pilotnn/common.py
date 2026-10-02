@@ -38,6 +38,7 @@ class Signals:
 
     def __init__(self):
         self.signum = None
+        self.raise_now = False                  # True — во время блокирующего ожидания (замок GPU): сразу исключение
         signal.signal(signal.SIGINT, self._h)
         signal.signal(signal.SIGTERM, self._h)
 
@@ -47,6 +48,8 @@ class Signals:
             os._exit(EXIT_SIGINT if signum == signal.SIGINT else EXIT_SIGTERM)
         self.signum = signum
         print(f"\nсигнал {signum}: мягкая остановка (дописываю состояние; повторный сигнал — сразу)", flush=True)
+        if self.raise_now:
+            raise StopRequested(signum)
 
     def check(self):
         if self.signum is not None:
@@ -60,12 +63,16 @@ def deep_update(a: dict, b: dict) -> dict:
     return out
 
 
-def load_config(path, smoke=False):
+def load_config(path, profile=None):
+    """Конфиг + профиль (smoke, dev, …) из раздела profiles; profile=None — основной пилот."""
     cfg = yaml.safe_load(Path(path).read_text())
-    if smoke:
-        cfg = deep_update(cfg, cfg.get("smoke_overrides", {}))
-    cfg.pop("smoke_overrides", None)
-    cfg["smoke"] = bool(smoke)
+    profiles = cfg.pop("profiles", {}) or {}
+    if profile:
+        if profile not in profiles:
+            raise SystemExit(f"нет профиля {profile} в {path} (есть: {', '.join(profiles)})")
+        cfg = deep_update(cfg, profiles[profile])
+    cfg["profile"] = profile or ""
+    cfg["smoke"] = bool(profile)
     cfg["data_root"] = os.environ.get("AIR_NN_DATA", cfg.get("data_root_default", "/home/greg/air_nn_data"))
     return cfg
 
@@ -177,17 +184,31 @@ def check_space(path: Path, need_gb: float):
 class GpuLock:
     """flock на общем файле замка GPU (как остальные исследования); снимается ОС при смерти процесса."""
 
-    def __init__(self):
+    def __init__(self, sig: "Signals | None" = None):
         self.f = None
         self.t_acq = 0.0
         self.waited = 0.0
+        self.sig = sig
 
     def acquire(self):
+        """Блокирующее ожидание (очередь ядра: между пачками генератора замок достаётся ждущему); сигнал из
+        Signals прерывает ожидание исключением StopRequested."""
         if self.f is None:
-            self.f = open(GPU_LOCK, "w")
+            f = open(GPU_LOCK, "w")
             t0 = time.perf_counter()
-            fcntl.flock(self.f, fcntl.LOCK_EX)
-            self.waited += time.perf_counter() - t0
+            try:
+                if self.sig is not None:
+                    self.sig.raise_now = True
+                    self.sig.check()
+                fcntl.flock(f, fcntl.LOCK_EX)
+            except BaseException:
+                f.close()
+                raise
+            finally:
+                if self.sig is not None:
+                    self.sig.raise_now = False
+                self.waited += time.perf_counter() - t0
+            self.f = f
             self.t_acq = time.perf_counter()
 
     def release(self):

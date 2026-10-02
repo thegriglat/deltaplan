@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Тест прерываний (план §4.6, приёмка NN-P2 п. 2) на smoke-конфиге:
+"""Тест прерываний обучения и оценки (план §4.6, приёмка NN-P2 п. 2) на малом профиле (dev или smoke):
 
-  A. непрерванный прогон `run_pilot.sh --smoke --name itest_ref` до отчёта;
+  A. непрерванный прогон `run_pilot.sh --profile <п> --name itest_ref` до отчёта;
   B. `--name itest_cut`: kill -9 управляющего посреди обучения основной сети → повтор; SIGINT посреди обучения
      (ожидается код 130, мягкая остановка с чекпойнтом) → повтор; kill -9 во время записи чекпойнта (пауза между
      записью временного файла и rename — PILOT_TEST_CKPT_PAUSE) → повтор; kill -9 посреди кривой → повтор до отчёта;
   сравнение: metrics.json B против A (все числа, кроме времени), без дублей каталогов и временных файлов.
-Убивает только PID, которые запустил сам. Результат → tests/out/interrupt_result.json.
+Убивает только PID, которые запустил сам. Пороги — в долях max_epochs профиля. Результат →
+tests/out/interrupt_train_<профиль>.json. (Тест прерывания генератора набора — tests/test_interrupt.py NN-P1.)
 
-  .venv/bin/python tests/test_interrupt.py [--keep]
+  .venv/bin/python tests/test_interrupt_train.py [--profile dev|smoke] [--keep]
 """
 from __future__ import annotations
 
@@ -27,18 +28,21 @@ HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 from pilotnn import common as C  # noqa: E402
 
-CMD = [str(HERE / "run_pilot.sh"), "--smoke"]
+PROFILE = "dev"
 SKIP_KEYS = ("t_", "time_ms", "path", "cpu", "date", "t_eval_s", "root")
 
 
+def cfg():
+    return C.load_config(HERE / "config.yaml", PROFILE)
+
+
 def dirs(name):
-    cfg = C.load_config(HERE / "config.yaml", smoke=True)
-    return C.run_dirs(cfg, name)
+    return C.run_dirs(cfg(), name)
 
 
 def start(name, env_extra=None):
     env = dict(os.environ, **(env_extra or {}))
-    return subprocess.Popen(CMD + ["--name", name], cwd=HERE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    return subprocess.Popen([str(HERE / "run_pilot.sh"), "--profile", PROFILE, "--name", name], cwd=HERE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             env=env)
 
 
@@ -100,7 +104,11 @@ def compare(a, b):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--keep", action="store_true", help="не удалять прежние каталоги itest_* (продолжить)")
+    ap.add_argument("--profile", default="dev")
     a = ap.parse_args()
+    global PROFILE
+    PROFILE = a.profile
+    E = cfg()["train"]["max_epochs"]
     log = []
     for name in ("itest_ref", "itest_cut"):
         run, rep, _ = dirs(name)
@@ -116,7 +124,7 @@ def main():
     main_d = run / "main"
     # 1. kill -9 посреди обучения
     p = start("itest_cut")
-    assert wait_until(lambda: progress(main_d) >= 25, p)
+    assert wait_until(lambda: progress(main_d) >= max(2, 0.17 * E), p)
     p.send_signal(signal.SIGKILL); p.wait()
     log.append(dict(step="kill -9 посреди обучения", at_epoch=progress(main_d), rc=p.returncode))
     print(log[-1], flush=True)
@@ -124,7 +132,7 @@ def main():
     # 2. SIGINT посреди обучения
     p = start("itest_cut")
     e0 = progress(main_d)
-    assert wait_until(lambda: progress(main_d) >= e0 + 30, p)
+    assert wait_until(lambda: progress(main_d) >= e0 + max(2, 0.2 * E), p)
     at = progress(main_d)
     p.send_signal(signal.SIGINT)
     rc = p.wait(120)
@@ -145,7 +153,7 @@ def main():
     # 4. kill -9 посреди кривой
     p = start("itest_cut")
     cdirs = sorted(run.glob("curve_*"))
-    ok = wait_until(lambda: any(progress(d) >= 3 for d in sorted(run.glob("curve_*"))), p)
+    ok = wait_until(lambda: any(progress(d) >= 0.3 * cfg()["curve"]["max_epochs"] for d in sorted(run.glob("curve_*"))), p)
     if ok:
         p.send_signal(signal.SIGKILL); p.wait()
         log.append(dict(step="kill -9 посреди кривой", curve=[(d.name, progress(d)) for d in sorted(run.glob("curve_*"))]))
@@ -170,17 +178,16 @@ def main():
     cmp_all = compare(A, B)
     hist_a = [h["val"] for h in A["main"]["history"]]
     hist_b = [h["val"] for h in B["main"]["history"]]
-    base = C.expand(C.load_config(HERE / "config.yaml", smoke=True)["paths"]["base"],
-                    C.load_config(HERE / "config.yaml", smoke=True))
+    base = C.expand(cfg()["paths"]["base"], cfg())
     dup = dict(runs=[x.name for x in (base / "runs").glob("*itest_cut")], reports=[x.name for x in (base / "reports").glob("*itest_cut")],
                tmp_left=[str(x) for x in run.rglob("*.tmp*")] + [str(x) for x in rep.rglob("*.tmp*")])
-    res = dict(log=log, compare=cmp_all, val_history_equal=hist_a == hist_b,
+    res = dict(profile=PROFILE, log=log, compare=cmp_all, val_history_equal=hist_a == hist_b,
                val_history_max_abs=max(abs(x - y) for x, y in zip(hist_a, hist_b)) if len(hist_a) == len(hist_b) else None,
                epochs=(len(hist_a), len(hist_b)), layout=dup, verdict_a=C.read_json(repa / "manifest.json")["verdict"],
                verdict_b=C.read_json(rep / "manifest.json")["verdict"])
     out = HERE / "tests" / "out"
     out.mkdir(exist_ok=True)
-    C.atomic_write_json(out / "interrupt_result.json", res)
+    C.atomic_write_json(out / f"interrupt_train_{PROFILE}.json", res)
     print(json.dumps(res["compare"], ensure_ascii=False, indent=1))
     print("история проверки совпадает:", res["val_history_equal"], "; max |Δ| =", res["val_history_max_abs"])
     print("каталоги:", dup)

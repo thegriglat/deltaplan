@@ -49,25 +49,15 @@ class Dataset:
             rows = list(seen.values())
         else:
             con = sqlite3.connect(f"file:{self.root / 'state.sqlite'}?mode=ro", uri=True, timeout=30)
-            con.row_factory = sqlite3.Row
-            for rec in con.execute("SELECT * FROM cases"):
-                d = dict(rec)
-                if str(d.get("status")) not in ("done", "ok"):
-                    continue
-                row = {}
-                for k, v in d.items():          # JSON-колонки (метаданные случая) — разворачиваются в строку
-                    if isinstance(v, str) and v[:1] == "{":
-                        try:
-                            js = json.loads(v)
-                        except ValueError:
-                            js = None
-                        if isinstance(js, dict):
-                            row.update(js)
-                            continue
-                    row.setdefault(k, v)
-                row.setdefault("id", d.get("id"))
-                rows.append(row)
-            con.close()
+            try:
+                for cid, st, meta in con.execute("SELECT id, status, meta FROM cases"):
+                    if st != "done" or not meta:
+                        continue
+                    row = json.loads(meta)            # строка runs.jsonl air-lite (контракт П1, NN-P1)
+                    row["id"] = cid
+                    rows.append(row)
+            finally:
+                con.close()
         rows = [r for r in rows if (self.cases_dir / f"{r['id']}.npz").exists()]
         rows.sort(key=lambda r: r["id"])
         return rows

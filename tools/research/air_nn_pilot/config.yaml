@@ -1,15 +1,17 @@
 # Конфиг пилота air-nn (этап П): один файл — зёрна, размеры, пути. Пути — от $AIR_NN_DATA (по умолчанию ниже).
-# Раздел smoke_overrides накладывается при --smoke (крошечный набор, пара эпох, отдельные каталоги).
+# Раздел profiles.<имя> накладывается при --smoke (профиль smoke) или --profile <имя>; свои каталоги.
 data_root_default: /home/greg/air_nn_data
 
 paths:
   base: ${AIR_NN_DATA}/pilot                 # runs/, reports/, prep/ — по §4.4 плана
 
 dataset:
-  # Набор П1: $AIR_NN_DATA/pilot/datasets/<версия решателя>/<имя>/ (версия — s0-<хеш>, ищется по шаблону).
-  root_glob: ${AIR_NN_DATA}/pilot/datasets/s0-*/pilot
-  # Досчёт набора (генератор NN-P1, с продолжением). Пусто — шаг только проверяет готовые образцы.
-  gen_cmd: []
+  # Набор П1 (генератор NN-P1, dataset.py): каталог — `dataset.py path --dataset <name>`; досчёт — `dataset.py run`
+  # (с продолжения; если досчёт уже идёт другим процессом — ждём его с прогрессом по `status --json`).
+  name: main
+  gen: true                                  # false — только проверить готовые образцы (без досчёта)
+  root: ""                                   # явный каталог набора (раскладка П1 или air-lite) вместо dataset.py path
+  log_dir: ${AIR_NN_DATA}/pilot/logs         # журнал досчёта: logs/dataset_<name>.log (как у NN-P1)
   allowed_status: [ok, max]                  # статусы решений области, пригодные как цель (max — предел итераций)
   min_cases: 20
 
@@ -58,28 +60,58 @@ eval:
   better_than_baseline: 0.7                  # (б): медиана ошибки сети ≤ 0,7 × лучшей базовой линии
   curve_drop: 0.9                            # (в): ошибка на max n ≤ 0,9 × ошибки на min n и спад монотонный
 
-estimate:                                    # оценка полного прогона по замеру (отчёт smoke)
-  n_cases_full: 1890
+estimate:                                    # оценка полного прогона по замеру этого прогона (в отчёте)
+  n_cases_full: 1890                         # main NN-P1: 690 air-lite + 40 × 30 процедурных
+  pool_frac: 0.862                           # доля случаев вне (б)/(б′): 1 − (110 ongudai + 5 × 30) / 1890
+  pool_places: 43                            # 3 встроенных + 5 синтетик + 35 процедурных
+  curve_sizes: [5, 10, 20, 40]
+  max_epochs: 150
+  curve_max_epochs: 150
 
-smoke_overrides:
-  paths:
-    base: ${AIR_NN_DATA}/pilot/smoke
-  dataset:
-    root_glob: ${AIR_NN_DATA}/pilot/tmp/dev_p2/tools/research/air_lite
-    min_cases: 10
-  split:
-    holdout_proc_prefix: "s_"
-    holdout_proc_n: 1
-    newcond_frac: 0.2
-    val_frac: 0.15
-    curve_sizes: [2, 4, 7]
-  train:
-    batch: 4
-    max_epochs: 150
-    patience: 150
-    ckpt_every_min: 0.5
-    lock_chunk_s: 60
-  curve:
-    max_epochs: 10
-  eval:
-    ort_repeats: 10
+# Профили: --smoke = профиль smoke; --profile dev — данные разработки P2 (48 случаев air-lite, временные).
+profiles:
+  smoke:                                     # набор smoke NN-P1 (4 случая: ongudai × 2 и p_000 × 2) — проверка конвейера
+    paths:
+      base: ${AIR_NN_DATA}/pilot/smoke
+    dataset:
+      name: smoke
+      min_cases: 4
+    split:
+      holdout_proc_n: 0
+      newcond_frac: 0.34
+      val_frac: 0.0
+      curve_sizes: [1]
+    train:
+      batch: 1
+      max_epochs: 40
+      patience: 40
+      ckpt_every_min: 0.5
+      lock_chunk_s: 60
+    curve:
+      max_epochs: 5
+    eval:
+      ort_repeats: 10
+      n_slice_figures: {holdout_place: 1, newcond: 1, holdout_proc: 1}
+  dev:                                       # данные разработки P2 (README → «Набор»): 9 мест, 48 случаев
+    paths:
+      base: ${AIR_NN_DATA}/pilot/tmp/dev_p2/pilot
+    dataset:
+      gen: false
+      root: ${AIR_NN_DATA}/pilot/tmp/dev_p2/tools/research/air_lite
+      min_cases: 10
+    split:
+      holdout_proc_prefix: "s_"
+      holdout_proc_n: 1
+      newcond_frac: 0.2
+      val_frac: 0.15
+      curve_sizes: [2, 4, 7]
+    train:
+      batch: 4
+      max_epochs: 150
+      patience: 150
+      ckpt_every_min: 0.5
+      lock_chunk_s: 60
+    curve:
+      max_epochs: 10
+    eval:
+      ort_repeats: 10

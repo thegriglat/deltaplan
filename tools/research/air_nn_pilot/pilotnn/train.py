@@ -7,6 +7,7 @@
   history.json   — по строке на эпоху; progress.json — прогресс для pilot.py; manifest.json — complete + хеш входов
 Чекпойнт — каждые ckpt_every_min минут и в конце эпохи; запись атомарная (временный файл → fsync → rename).
 Повтор команды: complete и тот же хеш → пропуск; иначе — продолжение с last.pt (результат = непрерванному).
+Время эпохи (history, manifest) — без ожидания замка GPU.
 Детерминированность: torch.use_deterministic_algorithms(True), cuDNN deterministic, порядок данных — перестановка
 от (зерно, эпоха), инициализация — от зерна. Замок GPU — кусками ≤ lock_chunk_s, между кусками отпускается.
 """
@@ -215,14 +216,21 @@ def main(run: Path):
         acc = ck["acc"]
         print(f"продолжение с чекпойнта: эпоха {epoch}, шаг {step0}/{spe}", flush=True)
     prog = Progress(run, E, task["label"])
-    lock = C.GpuLock()
+    lock = C.GpuLock(sig)
     t_ck = time.time()
     t_ep_start = [time.time()]
+    w_start = [0.0]
+
+    def ep_time():
+        """Время эпохи под своим замком: стеночное минус ожидание замка GPU (чужие задачи на общей карте)."""
+        now = time.time()
+        acc["t"] += now - t_ep_start[0] - (lock.waited - w_start[0])
+        t_ep_start[0] = now
+        w_start[0] = lock.waited
 
     def ckpt(ep, st):
         nonlocal t_ck
-        acc["t"] += time.time() - t_ep_start[0]
-        t_ep_start[0] = time.time()
+        ep_time()
         save_ckpt(last, dict(model=model.state_dict(), opt=opt.state_dict(), ema=ema.state_dict(), rng=rng_state(),
                              epoch=ep, step=st, gstep=gstep, hist=hist, best=best, bad=bad, acc=acc))
         t_ck = time.time()
@@ -233,15 +241,19 @@ def main(run: Path):
         while epoch < E and not stopped:
             perm = np.random.default_rng([seed, epoch]).permutation(n)
             t_ep_start[0] = time.time()
+            w_start[0] = lock.waited
             if step0 == 0:
                 acc = dict(loss=0.0, n=0, t=0.0)
             for st in range(step0, spe):
+                if lock.f is None:
+                    try:
+                        lock.acquire()                    # сигнал во время ожидания → StopRequested ниже
+                    except C.StopRequested:
+                        pass
                 if sig.signum is not None:
                     lock.release()
                     ckpt(epoch, st)
                     sig.check()
-                if lock.f is None:
-                    lock.acquire()
                 idx = np.sort(perm[st * bs:(st + 1) * bs])
                 xb = torch.from_numpy(Xt[idx]).to(dev, non_blocking=True)
                 fb = torch.from_numpy(Ft[idx]).to(dev)
@@ -268,7 +280,13 @@ def main(run: Path):
             live = {k: v.clone() for k, v in model.state_dict().items()}
             ema.copy_to(model)
             if lock.f is None:
-                lock.acquire()
+                try:
+                    lock.acquire()
+                except C.StopRequested:              # проверка эпохи не начата: продолжение повторит её с конца эпохи
+                    model.load_state_dict(live)
+                    lock.release()
+                    ckpt(epoch, spe)
+                    raise
             vl = evaluate_loss(model, Xv, Fv, Yv, scale, hw, bs, dev)
             if vl < best["val"]:
                 best = dict(val=vl, epoch=epoch)
@@ -277,7 +295,8 @@ def main(run: Path):
             else:
                 bad += 1
             model.load_state_dict(live)
-            dt_ep = acc["t"] + time.time() - t_ep_start[0]
+            ep_time()
+            dt_ep = acc["t"]
             hist.append(dict(epoch=epoch, train=acc["loss"] / max(acc["n"], 1), val=vl,
                              lr=lr_at(gstep - 1, total_steps, warm, tc["lr"]), t_epoch_s=round(dt_ep, 3), steps=acc["n"]))
             print(f"эпоха {epoch + 1}/{E}: обучение {hist[-1]['train']}, проверка {vl:.5f} "
@@ -301,7 +320,8 @@ def main(run: Path):
                      n_params=M.n_params(model), best=best, epochs=len(hist), n_train=n, n_val=len(Xv),
                      steps_per_epoch=spe, t_epoch_median_s=float(np.median(pe)) if pe else None,
                      t_per_sample_ms=float(np.median(pe)) / n * 1000 if pe else None,
-                     torch=torch.__version__, deterministic=True, gpu=torch.cuda.get_device_name(0))
+                     torch=torch.__version__, deterministic=True, gpu=torch.cuda.get_device_name(0),
+                     gpu_lock_wait_s=round(lock.waited, 1))
     print(f"готово: лучшая проверка {best['val']:.5f} на эпохе {best['epoch'] + 1}", flush=True)
     return C.EXIT_OK
 
