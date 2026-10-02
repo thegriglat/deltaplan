@@ -21,3 +21,8 @@
 {"t": "2026-10-02T23:51:10", "by": "coordinator", "task": "NN-P4", "ev": "checked", "commits": ["0accfe2"], "note": "1/1 contract_p6=ok:П6 v1: ок"}
 {"t": "2026-10-02T23:51:18", "by": "coordinator", "task": "NN-P4", "ev": "merged", "commits": ["0accfe2"], "note": "влита в feature/air-nn, копия удалена"}
 {"t": "2026-10-02T23:51:47", "by": "coordinator", "task": null, "ev": "note", "note": "dp: status пометил NN-P5 «⚠тихо 48м», хотя коммит в ветке задачи 6 мин назад — тишина считается по событиям, коммиты не учитываются — обошёл: смотрю колонку коммита глазами"}
+{"t": "2026-10-02T23:56:14", "by": "-", "task": "NN-P6", "ev": "checked", "note": "5/6 region_only_bitwise=ok:exit 0; places_t_loader=ok:exit 0; maxcap=FAIL:n 12; 0.9788; workers_bench=ok:bitwise=True; interrupt_workers=ok:exit 0; estimate=ok:ч GPU"}
+{"t": "2026-10-02T23:56:36", "by": "coordinator", "task": "NN-P6", "ev": "edited", "note": "accept:maxcap, accept:maxcap_oklong"}
+{"t": "2026-10-02T23:56:45", "by": "coordinator", "task": "NN-P6", "ev": "edited", "note": "accept:maxcap, accept:maxcap_n"}
+{"t": "2026-10-02T23:56:45", "by": "coordinator", "task": null, "ev": "note", "note": "dp: task set --check не принимает объектный expect ({re,num,max}), хотя task new --from и accept его понимают — обошёл: разбил на две проверки"}
+{"t": "2026-10-02T23:56:45", "by": "coordinator", "task": "NN-P6", "ev": "checked", "note": "3/3 maxcap_oklong=ok:0.0951; maxcap=ok:1.087; maxcap_n=ok:12"}
