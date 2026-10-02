@@ -1,10 +1,10 @@
-# Рельефы П-2 (NN-P4, контракт П6 v1): terrain_cut.py screen → select → fetch → cut.
+# Рельефы П-2 (NN-P4, контракт П6 v2): terrain_cut.py screen → select → fetch → cut.
 # Пути — от AIR_NN_DATA (окружение) или data_root; --root КАТАЛОГ — всё в одном временном корне (тесты).
 data_root: /home/greg/air_nn_data
 paths:
   raw: pilot/raw            # raw/terrarium/<z>/<x>/<y>.png — раскладка кеша игры (user://terrain_cache/terrarium/…)
-  out: pilot/tiles/v1       # manifest.json, index.csv, cut/<id>.npz, figures/
-  work: pilot/tmp/terrain_v1  # экран, выбор, вырезки всех мест (с запасом), логи
+  out: pilot/tiles/v2       # manifest.json, index.csv, cut/<id>.npz, figures/
+  work: pilot/tmp/terrain_v2  # экран, выбор, вырезки всех мест (с запасом), логи
 
 # Источник и путь рельефа — из конфига игры (configs/world.json → runtime_terrain): шаблон URL, User-Agent,
 # слой detail (size_km, zoom, min_spacing_m, chunk_cells). Здесь — только вежливость загрузки.
@@ -46,10 +46,13 @@ select:
   exclude:                  # места пула не ближе km к точке (Онгудай — вне обучения)
     - {name: ongudai, location: ongudai, km: 100.0}
   holdout:
-    systems: [caucasus, pyrenees, appalachians]   # решение пользователя 02.10
+    systems: [caucasus, pyrenees, appalachians, southern_alps_nz]   # решение пользователя 02.10; НЗ — 03.10 (Q1)
     per_system: 15
     reserve: 3
-    pool_min_km: 50.0       # отложенные места не ближе к местам пула (центры)
+    # нижняя граница оценки уклона p50 (z8) для мест системы: НЗ нужна как крутая система (v1: отложенные положе пула);
+    # 0,12 — граница слоёв s1/s2 пула; остальные системы — без границы (равномерно по уклону, как v1)
+    slope_est_min: {southern_alps_nz: 0.12}
+    pool_min_km: 50.0       # места пула не ближе к местам отложенных систем (центры; П6 v2)
 
 # Справочные вырезки тем же путём (не в индексе): сравнение Terrarium с Copernicus встроенных мест.
 ref_cuts: [ongudai, altai]
@@ -57,6 +60,7 @@ ref_cuts: [ongudai, altai]
 # Горные системы: боксы [lat_min, lat_max, lon_min, lon_max]; первый подходящий — система места, иначе other.
 # Боксы грубые (для доли системы и отложенных систем), горы внутри отбирает маска рельефа.
 systems:
+  southern_alps_nz: [[-46.0, -42.4, 166.6, 172.8]]   # Южные Альпы (Новая Зеландия), v2; до new_zealand — первый подходящий
   caucasus:     [[40.0, 44.6, 37.0, 49.8]]
   pyrenees:     [[41.9, 43.5, -2.2, 3.4]]
   appalachians: [[33.5, 42.0, -85.8, -74.5], [42.0, 48.5, -78.0, -63.5]]
