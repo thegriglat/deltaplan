@@ -87,6 +87,8 @@ def estimate_terrain(cfg, L, a):
               f"{p['gpu_s_per_case']:6.1f} с {p['max_frac']:.0%}")
     print(f"  полный terrain: {len(idx)} мест × {n_cond} = {n_full} случаев ≈ {out['full']['gpu_h']:.1f} ч GPU "
           f"(без поправки на крутизну {out['full']['gpu_h_flat']:.1f} ч GPU), ≈ {out['full']['gb']:.1f} ГБ")
+    if not a.n_places and plan["p6"]["fake"]:
+        a.n_places = int(cfg["terrain"].get("expected_places") or 0)   # подставной индекс — пересчёт на ожидаемое число мест
     if a.n_places:
         f = a.n_places / len(idx)
         out["scaled"] = dict(n_places=a.n_places, n_cases=a.n_places * n_cond, gpu_h=round(out["full"]["gpu_h"] * f, 1),
@@ -108,7 +110,18 @@ def main():
     a = ap.parse_args()
     cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
     if (cfg["datasets"].get(a.dataset) or {}).get("terrain"):
-        L = DS.Layout(cfg, a.data_root or os.environ.get("AIR_NN_DATA") or cfg["data_root"], a.dataset)
+        root = Path(a.data_root or os.environ.get("AIR_NN_DATA") or cfg["data_root"])
+        L = DS.Layout(cfg, root, a.dataset)
+        if not L.db.exists() and not a.data_root:
+            # проба NN-P6 считалась во временном корне (набор в datasets/ не пишется до согласования счёта)
+            alt = root / "pilot/tmp" / f"nnp6_{a.dataset}"
+            if DS.Layout(cfg, alt, a.dataset).db.exists():
+                print(f"(набор {a.dataset} не найден в {root}; беру пробу NN-P6 из {alt})")
+                L = DS.Layout(cfg, alt, a.dataset)
+        if "AIRNN_P6_DIR" not in os.environ and L.manifest.exists():
+            d = (json.loads(L.manifest.read_text()).get("terrain") or {}).get("p6_dir")
+            if d:
+                os.environ["AIRNN_P6_DIR"] = d
         return estimate_terrain(cfg, L, a)
     L = DS.Layout(cfg, a.data_root or os.environ.get("AIR_NN_DATA") or cfg["data_root"], a.dataset)
     con = sqlite3.connect(f"file:{L.db}?mode=ro", uri=True)

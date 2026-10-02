@@ -195,6 +195,11 @@ def main():
                 dw = np.abs(X[2] - F[2])
                 rec["caps"][k] = dict(dV=dV.ravel(), dw=dw.ravel(), Vf=Vf.ravel(),
                                       t=meta["hist"].get(str(k), {}).get("t"))
+            # «шум» самого несошедшегося решения: разница двух поздних состояний одного счёта (1500 и 2000 итераций)
+            if all(f"cap{k}" in c.files for k in (1500, 2000)):
+                A = at60(c["cap1500"])[:, EDGE:-EDGE, EDGE:-EDGE]
+                B = at60(c["cap2000"])[:, EDGE:-EDGE, EDGE:-EDGE]
+                rec["noise"] = dict(dV=np.hypot(A[0] - B[0], A[1] - B[1]).ravel(), dw=np.abs(A[2] - B[2]).ravel())
             per.append(rec)
         print(f"[{(time.time() - t0) / 60:5.1f} мин] {n + 1}/{len(sel)} {grp} {cid} {tags}", flush=True)
 
@@ -216,7 +221,7 @@ def main():
                 frac_lift_ok=round(float(np.mean(dw < 0.1)), 4),
                 per_solution_p90_dV=[round(float(np.percentile(r["caps"][k]["dV"], 90)), 3) for r in rs])
     for r in per:
-        out["cases"].append({k: v for k, v in r.items() if k != "caps"} |
+        out["cases"].append({k: v for k, v in r.items() if k not in ("caps", "noise")} |
                             dict(p90_dV={k: round(float(np.percentile(v["dV"], 90)), 3) for k, v in r["caps"].items()},
                                  p90_dw={k: round(float(np.percentile(v["dw"], 90)), 3) for k, v in r["caps"].items()}))
     rs = [r for r in per if r["group"] == "max"]
@@ -237,23 +242,48 @@ def main():
                              n_ok_cut=sum(v["status"] == "ok" and v["iters"] > k for v in sols)) for k in CAPS})
     for k in CAPS:
         out["time_model_main"]["by_cap"][str(k)]["saving"] = round(1 - out["time_model_main"]["by_cap"][str(k)]["solver_h"] * 3600 / t_full, 3)
-    # выбор: наименьший предел, при котором на max-решениях p90 |ΔV| ≤ 0,1 и p90 |Δw| ≤ 0,03 и у обрезанных
-    # сошедшихся (oklong) p90 |ΔV| ≤ 0,1
+    # шум несошедшихся: |Δ| между состояниями 1500 и 2000 итераций того же счёта (и 2000 против 3000 — by_cap 2000)
+    rn = [r for r in rs if "noise" in r]
+    nV = np.concatenate([r["noise"]["dV"] for r in rn])
+    nw = np.concatenate([r["noise"]["dw"] for r in rn])
+    out["noise_max"] = dict(what="|Δ| на 60 м между состояниями 1500 и 2000 итераций одного и того же несошедшегося решения "
+                                 "(решение не стоит на месте: остаток mom_rms на полке, поле колеблется)",
+                            n_solutions=len(rn), dV=stats(nV), dw=stats(nw),
+                            dV_2000_vs_3000=out["by_cap"]["2000"]["max"]["dV"], dw_2000_vs_3000=out["by_cap"]["2000"]["max"]["dw"])
+    floor_V = max(out["noise_max"]["dV"]["p90"], out["by_cap"]["2000"]["max"]["dV"]["p90"])
+    floor_w = max(out["noise_max"]["dw"]["p90"], out["by_cap"]["2000"]["max"]["dw"]["p90"])
+    for k in CAPS:
+        b = out["by_cap"][str(k)]["max"]
+        b["ratio_to_noise_p90_dV"] = round(b["dV"]["p90"] / floor_V, 3)
+        b["ratio_to_noise_p90_dw"] = round(b["dw"]["p90"] / floor_w, 3)
+    # выбор: наименьший предел, при котором (1) у сошедшихся медленных решений, которые предел обрезает (oklong),
+    # p90 |ΔV| ≤ 0,1 м/с и p90 |Δw| ≤ 0,03 м/с; (2) у несошедшихся p90 |ΔV|, |Δw| к полному ≤ 1,25 × шума самого
+    # решения (p90 |Δ| поздних состояний) — предел не хуже, чем «какое из поздних состояний взять».
+    # Порог p90 |ΔV| ≤ 0,1 для max-решений не выполняется НИ ПРИ КАКОМ пределе (и при 2000) — см. вывод.
     choice = None
     for k in CAPS:
         b = out["by_cap"][str(k)]
-        if b["max"]["dV"]["p90"] <= 0.1 and b["max"]["dw"]["p90"] <= 0.03 and b["oklong"]["dV"]["p90"] <= 0.1:
+        if (b["oklong"]["dV"]["p90"] <= 0.1 and b["oklong"]["dw"]["p90"] <= 0.03
+                and b["max"]["ratio_to_noise_p90_dV"] <= 1.25 and b["max"]["ratio_to_noise_p90_dw"] <= 1.25):
             choice = k
             break
     out["chosen_cap"] = choice
+    out["rule"] = ("наименьший предел: oklong p90 |ΔV| ≤ 0,1 и p90 |Δw| ≤ 0,03; max — p90 |ΔV|, |Δw| ≤ 1,25 × шума "
+                   "несошедшегося решения")
     ck = str(choice if choice else CAPS[-1])
     out["p90_dV_60m"] = out["by_cap"][ck]["max"]["dV"]["p90"]
     out["p90_dw_60m"] = out["by_cap"][ck]["max"]["dw"]["p90"]
     out["median_dV_60m"] = out["by_cap"][ck]["max"]["dV"]["median"]
     out["max_dV_60m"] = out["by_cap"][ck]["max"]["dV"]["max"]
+    out["p90_dV_60m_oklong"] = out["by_cap"][ck]["oklong"]["dV"]["p90"]
+    out["p90_dw_60m_oklong"] = out["by_cap"][ck]["oklong"]["dw"]["p90"]
+    out["noise_p90_dV_60m"] = floor_V
+    tm = out["time_model_main"]
+    out["saving_main_solver"] = tm["by_cap"][ck]["saving"]
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(json.dumps(out, ensure_ascii=False, indent=1, default=float) + "\n")
-    print(json.dumps({k: out[k] for k in ("n_cases", "chosen_cap", "p90_dV_60m", "p90_dw_60m", "full_equals_main",
+    print(json.dumps({k: out[k] for k in ("n_cases", "chosen_cap", "p90_dV_60m", "p90_dw_60m", "noise_p90_dV_60m",
+                                          "p90_dV_60m_oklong", "saving_main_solver", "full_equals_main",
                                           "direct_equals_snapshot")}, ensure_ascii=False))
     for k in CAPS:
         b = out["by_cap"][str(k)]

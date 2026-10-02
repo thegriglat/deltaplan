@@ -373,7 +373,8 @@ def cmd_plan(cfg, L, quiet=False):
     write_manifest(L, con, dict(created=con.execute("SELECT value FROM meta WHERE key='created'").fetchone()[0],
                                 plan=dict(sha256=ph, n_cases=len(plan["cases"]), places=plan["places"], seeds=cfg["plan"]),
                                 **({"solver": plan["solver"], "region_only": True,
-                                    "terrain": {k: plan.get(k) for k in ("seed", "n_cond", "probe", "p6")}}
+                                    "terrain": {**{k: plan.get(k) for k in ("seed", "n_cond", "probe", "p6")},
+                                                "p6_dir": os.environ.get("AIRNN_P6_DIR")}}
                                    if plan.get("region_only") else {})))
     con.close()
     if not quiet:
