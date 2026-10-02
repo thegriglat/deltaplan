@@ -29,8 +29,8 @@ dp task new <модуль> <ID> --type dp-engineer --title "…" --goal "…" [-
     [--contract У2@1] [--scope путь] [--dont-touch путь] [--test ui_controls] \
     [--check ИМЯ "команда" EXPECT] [--from card.json|-] [--force]
 dp task show <ID> [--json] [--full] [--diff]   # карточка для исполнителя; --full — полное задание (пункты по строке, правила, заметки); --diff — как менялась (события edited)
-dp task sync <ID> [--message М] [--trailer Т]  # влить ветку модуля (base) в ветку задачи в её копии
-dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
+dp task sync <ID> [--message М] [--trailer Т]  # влить ветку модуля (base) в ветку задачи в её копии (единственный путь вместо ручного слияния; указан в task show и dp --help)
+dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]   # порядок: сначала --drop-check, потом --check/--test (замена проверки одним вызовом)
                                   # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
                                   # строка в списочное поле (scope, report_extra…) — список через запятую: report_extra=epoch_s,hours
 dp task note <ID> "правило/заметка"               # дописать в уже выданную задачу: видно в task show («Дополнения после выдачи») и в dp inbox <ID>
@@ -40,10 +40,10 @@ dp event <модуль> note --note "…" # событие модуля (не з
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
 dp decide <модуль> "<вопрос>" --ask      # шлюз: вопрос пользователю → Q1, висит в status до --answers Q1
 dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept] [--no-review] [--bg --timeout СЕК]
-                                  # --dry — пробный прогон исполнителем до отчёта (без события); --only → в конце сводка по всем проверкам карточки
+                                  # --dry — пробный прогон исполнителем до отчёта (без события); по ходу в stderr «… имя» при старте и «PASS|FAIL имя N с» по завершении каждой проверки; --only → в конце сводка по всем проверкам карточки
                                   # (последние результаты для текущего HEAD, build/dp/<ID>/results.json); частичные прогоны складываются в accepted
                                   # --bg — через dp job (долгие GPU-проверки): dp job wait dp-accept-<ID> <сек>
-dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --template
+dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --template [ID]  # с ID — плюс ключи report_extra карточки
 dp review <ID> --verdict accept|rework --from r.json|- [--note …]  |  --note "итог"  |  dp review <ID> --show [--full]  |  dp review --template
 dp status [<модуль>] [--full] [--stale 40]   # «⚠тихо» = ни событий, ни коммитов ветки задачи > 40 мин; accepted+merged — одним статусом
 dp log <модуль|ID> [-n 10] [--full] [--no-decisions]   # события и решения; [src] и [unparsed] у записей из миграции
@@ -103,7 +103,7 @@ blocker при accept — ошибка. Пишет `tasks/<ID>.review.json` (п�
 ### Отчёт исполнителя
 `dp report --template` печатает схему: `status` (done|partial|blocked|failed), `summary`, `commits[]`,
 `checks[{name, value, pass}]` (при done — по каждой проверке карточки), `not_done[]`, `questions[]`, `images[]`,
-`how_to_check`, `dp_feedback`. Неверный отчёт не сохраняется (ошибка — что не так). Сохранённый — событие `reported`.
+`how_to_check`, `dp_feedback`. `report_extra` карточки — ключи верхнего уровня отчёта (`dp report --template <ID>` и `task show` их показывают); ключ отчёта, отличающийся регистром или единственным префиксом (от 3 знаков), принимается и переименуется в ключ карточки, иначе ошибка подсказывает ближайший. Неверный отчёт не сохраняется (ошибка — что не так). Сохранённый — событие `reported`.
 
 ## Примеры
 ```
