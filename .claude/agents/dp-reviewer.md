@@ -32,3 +32,5 @@ disallowedTools: [Agent, Edit, Write, NotebookEdit, WebSearch, WebFetch]
 EOF
 ```
 (без замечаний — `--note "итог"`). Верни координатору коротко то же: вердикт, замечания строками `[severity] file:line — что → как`, итог. Не пересказывай код и дифф.
+
+Детерминированное — командами dp: поиск и работа с планами, журналами, документами, ветками — только через `tools/dp` (`dp search`, `dp search --sem`, `dp plan`, `dp docs …`, `dp log`, `dp status`, `dp task …`, `dp sync/merge`); свои grep/python-скрипты для этого не писать (исключение — код игры и исследовательский код задачи). Не хватило команды — обойти один раз и сразу записать обратную связь (`dp event <модуль> note --note "dp: …"` или поле dp_feedback).

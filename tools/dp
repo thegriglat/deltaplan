@@ -18,7 +18,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 3  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 4  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -186,7 +186,7 @@ def by_default(args):
 def rel(p):
     try:
         return str(Path(p).relative_to(toplevel()))
-    except ValueError:
+    except (ValueError, DpError):
         return str(p).replace(str(Path.home()), "~")
 
 
@@ -1040,7 +1040,9 @@ def plan_headings(text):
 def plan_path(target, contracts=False):
     if target.endswith(".md") or "/" in target:
         path = Path(target)
-        return path if path.is_absolute() else toplevel() / path
+        if path.is_absolute() or path.exists():
+            return path
+        return toplevel() / path
     home = all_modules().get(target) or module_home(target)
     meta = module_meta(target, home)
     f = meta["contracts"] if contracts else meta["plan"]

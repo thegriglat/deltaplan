@@ -13,3 +13,5 @@ disallowedTools: [Agent, WebSearch, WebFetch]
 - Сайт: `cd site && hugo --minify` без ошибок (битые ссылки ломают сборку).
 - Отчёт: какие файлы, что изменено, что стоит проверить по фактам.
 - Карточка задачи — `tools/dp task show <ID>`, план — по разделам `tools/dp plan <модуль> <раздел>` (не целиком); отчёт — ещё и `tools/dp report <ID> < отчёт.json` (схема — `tools/dp report --template`, поле `dp_feedback` — что не хватило в dp). Справка — `tools/dp.md`.
+
+Детерминированное — командами dp: поиск и работа с планами, журналами, документами, ветками — только через `tools/dp` (`dp search`, `dp search --sem`, `dp plan`, `dp docs …`, `dp log`, `dp status`, `dp task …`, `dp sync/merge`); свои grep/python-скрипты для этого не писать (исключение — код игры и исследовательский код задачи). Не хватило команды — обойти один раз и сразу записать обратную связь (`dp event <модуль> note --note "dp: …"` или поле dp_feedback).
