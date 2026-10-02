@@ -39,7 +39,7 @@ dp render <модуль> [--out путь|-] [--force]
 dp plan edit <модуль|файл.md> <раздел> --append "текст" | --replace СТАРОЕ НОВОЕ | --set [ФАЙЛ|-] [--contracts] [--commit]
 dp decide <модуль> "решение" --by user --why "…" [--plan [раздел]]
 dp inbox <модуль> [--by coordinator] [--peek]  |  dp questions  |  dp answer <Qn|модуль/Qn> "ответ"
-dp module new <модуль> [--from main]  |  dp sync <модуль|ветка>  |  dp merge <ветка> [--into main] [--push]  |  dp gc [--remove]
+dp module new <модуль> [--from main]  |  dp sync <модуль|ветка>  |  dp merge <ветка> [--into main] [--push]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
 dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
 
