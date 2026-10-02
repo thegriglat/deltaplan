@@ -14,7 +14,11 @@ pilot/
         plan.json                   — план: agl, centers (окна), cases (условия), seed, proc (параметры рельефов), order
         state.sqlite                — статусы и метаданные случаев (таблицы cases, events, batches, meta), WAL
         cases/<id>.npz              — решения случая, float16 (ключи и оси — контракт П1)
-  reports/                          — отчёты пилота (NN-P2)
+  logs/                             — журналы досчёта наборов: dataset_<набор>.log (dataset.py run --log, run_pilot.sh)
+  prep/<версия решателя>/<набор>_<хеш>_p<хеш кода>/  — кеш входа/цели сети (NN-P2, контракт П2), cases/<id>.npz
+  runs/<дата>_<имя>/                — прогоны обучения пилота (NN-P2): pilot.log, main/, curve_NN/, manifest.json
+  reports/<дата>_<имя>/             — отчёты пилота (NN-P2): report.md, figures/, metrics.json, manifest.json
+  smoke/{prep,runs,reports}/        — то же для run_pilot.sh --smoke
   tmp/                              — временное: недописанные файлы (*.part), замки run; можно удалить, когда run не идёт
 ```
 

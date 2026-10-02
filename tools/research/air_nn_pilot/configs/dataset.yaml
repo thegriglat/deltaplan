@@ -18,5 +18,6 @@ run:
 # Наборы: подмножества плана main (те же id и условия → те же файлы). places — список мест; n_cond — первые N условий места.
 datasets:
   main: {}                               # весь план: 690 air-lite + n_proc × n_proc_cond процедурных
-  smoke: {places: [ongudai, p_000], n_cond: 2}        # мини-прогон run_pilot.sh --smoke (не пишет в main)
+  # мини-прогон run_pilot.sh --smoke (не пишет в main): ongudai — (б); s_hill и p_000…p_002 — обучение, (а) и кривая (в) 2/4
+  smoke: {places: [ongudai, s_hill, p_000, p_001, p_002], n_cond: 3}
   chaos: {places: [s_hill, s_ridge, p_001, p_002], n_cond: 2}   # тест прерывания (во временном AIR_NN_DATA)
