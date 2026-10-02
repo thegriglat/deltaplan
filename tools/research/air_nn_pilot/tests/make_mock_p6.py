@@ -66,9 +66,9 @@ def main():
     if a.src:
         src = Path(a.src)
     else:
-        import subprocess
-        src = Path(subprocess.run([sys.executable, str(HERE / "dataset.py"), "path", "--dataset", "main"], cwd=HERE,
-                                  capture_output=True, text=True, check=True).stdout.strip().splitlines()[-1])
+        import yaml   # main лежит под версией main_version (configs/dataset.yaml), а не под текущей версией решателя
+        ver = yaml.safe_load((HERE / "configs" / "dataset.yaml").read_text())["main_version"]
+        src = Path(data) / "pilot" / "datasets" / ver / "main"
     ds = Dataset(src)
     rows = [r for r in ds.case_rows() if solver_status(r) in ("ok", "max")]
     out = Path(a.out)
@@ -89,7 +89,7 @@ def main():
         con.execute(sql)
     index, plan_cases, centers = [], [], {}
     ord_ = 0
-    SOLVER = dict(max_outer=100000, late_mean=dict(**{"from": 500, "step": 50}))       # подставной предел итераций, заведомо не меньше итераций случаев main
+    SOLVER = dict(max_outer=3000, late_mean={"from": 2000, "step": 100})   # = предел main (ref_study.MAXIT); 11 снимков, как у настоящего П1 v3
     for k, (loc, part, system) in enumerate(MAPPING):
         tid = f"t_{k:04d}"
         mine = [r for r in rows if r["loc"] == loc][: a.n_cond]
@@ -141,7 +141,7 @@ def main():
                          len(b), hashlib.sha256(b).hexdigest()))
             plan_cases.append(cond)
             ord_ += 1
-    meta = dict(schema_version="1", solver_version=src.parent.name, contract="П1 v2", dataset=NAME, mock="1",
+    meta = dict(schema_version="1", solver_version=src.parent.name, contract="П1 v3", dataset=NAME, mock="1",
                 created="mock")
     con.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", list(meta.items()))
     con.commit()
@@ -150,8 +150,8 @@ def main():
                 dataset=NAME, n_cond=a.n_cond, mock=True, source=str(src), region_only=True, solver=SOLVER)
     C.atomic_write_json(dsd / "plan.json", plan)
     C.atomic_write_json(dsd / "manifest.json", dict(
-        what=f"ПОДСТАВНОЙ набор terrain v2 (только область; метаданные решений П1 v3 — статусы, target, late_spread60_p90 — подставные) для smoke П-2: случаи main, места переименованы в t_*",
-        contract="П1 v2", solver_version=src.parent.name, schema_version=1, mock=True, source=str(src), solver=SOLVER,
+        what=f"ПОДСТАВНОЙ набор terrain (П1 v3, только область; статусы, target, late_spread60_p90 — подставные) для smoke П-2: случаи main, места переименованы в t_*",
+        contract="П1 v3", solver_version=src.parent.name, schema_version=1, mock=True, source=str(src), solver=SOLVER,
         mapping={f"t_{k:04d}": m[0] for k, m in enumerate(MAPPING)}, counts=dict(total=ord_, done=ord_),
         complete=True, command=" ".join(sys.argv)))
     with open(tiles / "index.csv", "w", newline="") as fh:

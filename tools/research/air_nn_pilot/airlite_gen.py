@@ -91,6 +91,8 @@ def level_meta(S):
 def late_points(late_from, late_step, max_outer):
     """Итерации снимков цели «среднее поздних» (П1 v3): late_from, late_from + late_step, …, max_outer (последний —
     всегда предел: конечное состояние несошедшегося решения входит в среднее)."""
+    if int(late_from) % 10 or int(late_step) % 10 or int(late_step) <= 0:
+        raise ValueError(f"late_mean: from={late_from} и step={late_step} должны быть кратны 10 (решатель зовёт обратный вызов раз в 10 итераций)")
     pts = list(range(int(late_from), int(max_outer) + 1, int(late_step)))
     if not pts or pts[-1] != int(max_outer):
         pts.append(int(max_outer))

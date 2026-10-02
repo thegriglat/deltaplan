@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Пилот air-nn одной командой: досчёт наборов → подготовка → обучение основной сети → кривая (в) → оценка → отчёт.
+"""Пилот air-nn одной командой: рельеф П6 (terrain_cut.py, пропуск, если готов) → досчёт наборов → подготовка → обучение основной сети → кривая (в) → оценка → отчёт.
 
   ./run_pilot.sh [--smoke | --profile ИМЯ] [--name ИМЯ] [--config config.yaml]  — запуск или продолжение
   ./run_pilot.sh status [--smoke | --profile ИМЯ] [--name ИМЯ]                  — где прогон, что готово
@@ -33,7 +33,7 @@ from pilotnn.data import Datasets, read_p6_index, solver_status  # noqa: E402
 from pilotnn.split import make_split  # noqa: E402
 
 PY = sys.executable
-STEPS = ("досчёт наборов", "подготовка тензоров", "обучение основной сети", "кривая (в): обучение по числу рельефов",
+STEPS = ("рельеф П6 (tiles/v3)", "досчёт наборов", "подготовка тензоров", "обучение основной сети", "кривая (в): обучение по числу рельефов",
          "оценка и ONNX", "отчёт")
 
 
@@ -165,6 +165,9 @@ class Runner:
             time.sleep(poll)
         self.child = None
         self.ui.end_progress()
+        if rc is not None and rc < 0 and self.signum is not None:
+            # шаг убит самим сигналом (пришёл между fork и установкой обработчика) — это прерывание, не ошибка
+            return C.EXIT_SIGINT if self.signum == signal.SIGINT else C.EXIT_SIGTERM
         return rc
 
 
@@ -211,7 +214,7 @@ class DatasetProgress:
 
 
 def dataset_progress(spec):
-    if spec.get("root"):
+    if spec.get("root") or spec.get("main_version"):
         return None
     try:
         return DatasetProgress(spec["name"])()
@@ -222,7 +225,11 @@ def dataset_progress(spec):
 def resolve_dataset(spec, cfg):
     """Каталог набора: явный root или `dataset.py path --dataset <name>`. → (Path | None, ошибка)."""
     root = spec.get("root")
-    if root:
+    if spec.get("main_version"):   # готовый набор под версией решателя main_version (configs/dataset.yaml)
+        import yaml
+        ver = yaml.safe_load((HERE / "configs" / "dataset.yaml").read_text())["main_version"]
+        p = Path(cfg["data_root"]) / "pilot" / "datasets" / ver / spec["name"]
+    elif root:
         p = C.expand(root, cfg)
     else:
         try:
@@ -232,6 +239,22 @@ def resolve_dataset(spec, cfg):
     if not p.exists():
         return None, f"набор {spec['name']}: нет каталога {p}"
     return p, ""
+
+
+def terrain_manifest(cfg) -> Path | None:
+    """manifest.json вырезок П6 стадии «рельеф» (config.yaml → terrain_stage.config → paths.out) или None, если стадия
+    не настроена (тесты на подставном П6)."""
+    ts = cfg.get("terrain_stage")
+    if not ts:
+        return None
+    import yaml
+    tc = yaml.safe_load((HERE / ts["config"]).read_text())
+    return Path(cfg["data_root"]) / tc["paths"]["out"] / "manifest.json"
+
+
+def terrain_complete(cfg) -> bool:
+    m = terrain_manifest(cfg)
+    return bool(m and (C.read_json(m, {}) or {}).get("complete"))
 
 
 def gen_dataset(cfg, name, rn: "Runner", ui: "UI"):
@@ -316,15 +339,29 @@ def main():
             ui.say(f"ошибка на шаге «{what}» (код {rc}); подробности — {run / 'pilot.log'}")
         return rc
 
-    # 1. наборы
+    # 1. рельеф П6: terrain_cut.py run (все стадии с продолжения; готово по manifest.json → complete — мгновенный пропуск)
     head(1)
+    tm = terrain_manifest(cfg)
+    if tm is None:
+        ui.say("  стадия не настроена (config.yaml → terrain_stage) — пропуск")
+    elif terrain_complete(cfg):
+        ui.say(f"  вырезки П6 готовы ({tm.parent}) — пропуск")
+    else:
+        ui.say(f"  вырезки П6 не готовы ({tm}) — terrain_cut.py run (продолжение с места; лог — {run / 'pilot.log'})")
+        rc = rn.run([HERE / "terrain_cut.py", "run", "--config", HERE / cfg["terrain_stage"]["config"]], lambda: None)
+        if rc == 0 and not terrain_complete(cfg):
+            rc = C.EXIT_ERROR
+        if rc:
+            return fin(rc, STEPS[0])
+    # 2. наборы
+    head(2)
     specs = cfg["datasets"]
     for spec in specs:
-        if spec.get("gen") and not spec.get("root"):
+        if spec.get("gen") and not spec.get("root") and not spec.get("main_version"):
             ui.say(f"  набор {spec['name']}: досчёт")
             rc = gen_dataset(cfg, spec["name"], rn, ui)
             if rc:
-                return fin(rc, STEPS[0])
+                return fin(rc, STEPS[1])
     roots = []
     for spec in specs:
         r, err = resolve_dataset(spec, cfg)
@@ -368,8 +405,8 @@ def main():
            f"(г) {len(split['holdout_sys_ids'])} ({len(split['holdout_sys'])} мест), (б) {len(split['holdout_place_ids'])} "
            f"{split['holdout_places']}, (б′) {len(split['holdout_proc_ids'])} {split['holdout_proc']}; кривая "
            f"{[c['n_places'] for c in split['curve']]} мест П6 (+ {len(split['curve_base'])} прочих)")
-    # 2. подготовка (кеш — по набору)
-    head(2)
+    # 3. подготовка (кеш — по набору)
+    head(3)
     from pilotnn import prep as P
     ph = C.code_hash(Path(P.__file__), HERE / "pilotnn" / "prepstep.py")
     ids = set(split["train_ids"] + split["val_ids"] + split["newcond_ids"] + split["holdout_place_ids"]
@@ -390,7 +427,7 @@ def main():
         ui.say(f"  набор {name_ds}: {len(mine)} случаев → {prep_dir}")
         rc = rn.run(["-m", "pilotnn.prepstep", prep_dir, ds_root, idf], progress_file(prep_dir / "progress.json"))
         if rc:
-            return fin(rc, STEPS[1])
+            return fin(rc, STEPS[2])
     prep_dirs = [x["prep_dir"] for x in ds_info if x["n_cases"]]
     info = dict(datasets=ds_info, prep_dirs=prep_dirs, p6_index=str(p6_path), agl=list(dss.agl), smoke=bool(profile),
                 profile=profile or "", name=name,
@@ -410,14 +447,14 @@ def main():
             C.atomic_write_json(d / "task.json", t)
         return d
 
-    # 3. основная сеть
-    head(3)
+    # 4. основная сеть
+    head(4)
     dm = task(run / "main", "основная сеть", split["train_ids"], split["val_ids"])
     rc = rn.run(["-m", "pilotnn.train", dm], progress_file(dm / "progress.json"))
     if rc:
-        return fin(rc, STEPS[2])
-    # 4. кривая
-    head(4)
+        return fin(rc, STEPS[3])
+    # 5. кривая
+    head(5)
     todo = [(i, c) for i, c in enumerate(split["curve"]) if not c["is_main"]]   # полный пул = основная сеть
     K = len(todo)
     for i, (ci, c) in enumerate(todo):
@@ -433,19 +470,19 @@ def main():
             return i + frac, K, "прогонов", ep
         rc = rn.run(["-m", "pilotnn.train", dc], prog)
         if rc:
-            return fin(rc, STEPS[3])
+            return fin(rc, STEPS[4])
     C.write_manifest(run, "прогон пилота air-nn (обучение)", C.sha(dict(cfg=cfg, split=split)), True,
                      datasets=ds_info)
-    # 5. оценка
-    head(5)
+    # 6. оценка
+    head(6)
     rc = rn.run(["-m", "pilotnn.evaluate", "eval", run, rep], progress_file(rep / "progress.json"))
     if rc:
-        return fin(rc, STEPS[4])
-    # 6. отчёт
-    head(6)
+        return fin(rc, STEPS[5])
+    # 7. отчёт
+    head(7)
     rc = rn.run(["-m", "pilotnn.evaluate", "report", run, rep], progress_file(rep / "progress.json"))
     if rc:
-        return fin(rc, STEPS[5])
+        return fin(rc, STEPS[6])
     m = C.read_json(rep / "manifest.json", {})
     ui.say(f"готово: {rep / 'report.md'}")
     ui.say(f"  {m.get('verdict', '')}")
@@ -453,7 +490,13 @@ def main():
 
 
 def status(cfg, run, rep):
+    """Где прогон: по этапам «этап n из N» (рельеф, наборы, подготовка, основная сеть, кривая, оценка, отчёт)."""
+    N = len(STEPS)
     print(f"прогон: {run}")
+    tm = terrain_manifest(cfg)
+    print(f"этап 1 из {N}: {STEPS[0]} — " + ("не настроен" if tm is None else
+                                           f"готово ({tm.parent})" if terrain_complete(cfg) else f"не готово ({tm})"))
+    print(f"этап 2 из {N}: {STEPS[1]}")
     for spec in cfg["datasets"]:
         ds_root, err = resolve_dataset(spec, cfg)
         if ds_root:
@@ -473,6 +516,7 @@ def status(cfg, run, rep):
     except BlockingIOError:
         print("  сейчас: идёт (процесс держит замок прогона)")
     info = C.read_json(run / "run_info.json", {})
+    print(f"этап 3 из {N}: {STEPS[2]}" + ("" if info else " — не начат"))
     for x in info.get("datasets", []):
         pp = C.read_json(Path(x["prep_dir"]) / "progress.json")
         if pp:
@@ -487,16 +531,16 @@ def status(cfg, run, rep):
         if p:
             return f"в работе: {p['done']:.1f}/{p['total']} {p.get('unit', '')} {p.get('extra', '')}"
         return "не начато"
-    print(f"  основная сеть: {st(run / 'main')}")
+    print(f"этап 4 из {N}: {STEPS[3]} — {st(run / 'main')}")
+    print(f"этап 5 из {N}: {STEPS[4]}")
     for c in info.get("curve", []):
         print(f"  кривая {c['n_places']:>3} мест П6: " + ("= основная сеть" if c.get("is_main") else st(run / c["dir"])))
     m = C.read_json(rep / "manifest.json")
+    print(f"этап 6 из {N}: {STEPS[5]} — " + ("не начат" if not m else "готова" if m.get("complete") else "в работе"))
     if m and m.get("report_built"):
-        print(f"  отчёт: {rep / 'report.md'}\n  {m.get('verdict', '')}")
-    elif m:
-        print(f"  оценка: {'готова' if m.get('complete') else 'в работе'}; отчёт не построен")
+        print(f"этап 7 из {N}: {STEPS[6]} — готов: {rep / 'report.md'}\n  {m.get('verdict', '')}")
     else:
-        print("  отчёт: нет")
+        print(f"этап 7 из {N}: {STEPS[6]} — нет")
     print(f"  лог: {run / 'pilot.log'}")
     return C.EXIT_OK
 

@@ -142,7 +142,10 @@ def test_real_p6_index():
     import json
     import os
     from pilotnn.data import read_p6_index
-    path = Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")) / "pilot/tiles/v1/index.csv"
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import dataset as DS   # индекс П6 — из конфига (configs/dataset.yaml → terrain.p6_dir)
+    cfg = DS.load_cfg(Path(__file__).resolve().parents[1] / "configs/dataset.yaml")
+    path = DS.p6_dir(cfg, os.environ.get("AIR_NN_DATA") or cfg["data_root"]) / "index.csv"
     p6 = read_p6_index(path)
     if not p6:
         print(f"  (нет {path} — пропуск)")

@@ -117,7 +117,7 @@ def check_dir(L, max_cases=0):
                 assert np.isfinite(a).all(), f"{cid}/{k}: не конечные значения"
             hc = z["d400_hc"].astype(np.float32)
             # места П6 v2: от уровня моря (0 м, t_0065) до 6,2 км (t_0281)
-            assert -450 < hc.min() and hc.max() < 9000, f"{cid}: высоты рельефа {hc.min()}…{hc.max()}"
+            assert -450 < hc.min() and hc.max() < 6500, f"{cid}: высоты рельефа {hc.min()}…{hc.max()} (граница: дно ≤ 3000 + размах ≤ 3000, П6 v3)"
         m = json.loads(r["meta"])
         for k in ("hour", "U10", "wdir", "t_max", "sky", "day", "profile", "runs", "d400", "status", "t_wall"):
             assert k in m, f"{cid}: нет {k} в метаданных"
@@ -148,15 +148,16 @@ def check_dir(L, max_cases=0):
 
 
 def smoke_v2_dirs():
-    """Наборы с явным root из профиля smoke пилота (подставной terrain v2)."""
+    """Наборы с явным root из профиля smoke пилота (подставной terrain, профиль smoke_mock)."""
     sys.path.insert(0, str(HERE))
     from pilotnn import common as C
-    cfg = C.load_config(HERE / "config.yaml", "smoke")
+    cfg = C.load_config(HERE / "config.yaml", "smoke_mock")
     return [C.expand(d["root"], cfg) for d in cfg.get("datasets", []) if d.get("root")]
 
 
 def test_contract_sample():
     check(os.environ.get("AIRNN_P1_DATASET", "smoke"))
+    check("terrain_smoke")   # настоящие места tiles/v3 (П1 v3), если посчитан (NN-P7)
     for d in smoke_v2_dirs():
         if d.exists():
             check_dir(d)
@@ -179,4 +180,4 @@ if __name__ == "__main__":
         for d in dirs:
             assert d.exists(), f"нет подставного набора v2 {d}: tests/make_mock_p6.py"
             n = check_dir(d, a.max)
-            assert json.loads((d / "manifest.json").read_text())["contract"] == "П1 v2", d
+            assert json.loads((d / "manifest.json").read_text())["contract"] in ("П1 v2", "П1 v3"), d

@@ -446,7 +446,7 @@ def build_report(run: Path, rep: Path):
               + ". В таблицах «случаев» — h / m: число случаев группы по статусу `h` / по статусу `m`; «клеток» — клетки "
               "области (ветер, подъём с нагревом).\n")
     if prof:
-        md.append(f"> **профиль {prof}**: малый набор и мало эпох (подставной индекс П6 и набор terrain) — числа проверяют "
+        md.append(f"> **профиль {prof}**: малый набор и мало эпох (малый набор terrain на настоящих местах П6) — числа проверяют "
                   "конвейер, а не качество сети.\n")
     # --- вывод
     md.append("## Вывод ШП-2 (правилом из чисел, `config.yaml → eval.shp2`)\n")
@@ -507,6 +507,16 @@ def build_report(run: Path, rep: Path):
     for d in M["datasets"]:
         md.append(f"| {d['name']} | {d['contract']} | `{d['root']}` | {d['n_rows']} | {d['status']['ok']} / "
                   f"{d['status']['max']} | {len(d['places'])} |")
+    p6j = C.read_json(run / "p6.json", {}).get("places") or {}
+    if 0 < len(p6j) <= 20:   # мини-наборы (smoke): места П6 по строкам; в полном прогоне (сотни мест) — только индекс
+        sp0 = M["split"]
+        md.append("\n| место П6 | система | часть | слой | уклон p50 | размах, м | в делении |")
+        md.append("|---|---|---|---|---|---|---|")
+        for l in sorted(p6j):
+            r = p6j[l]
+            role = "(г)" if l in sp0["holdout_sys"] else "пул" + (", кривая" if l in sp0.get("curve_order", []) else "")
+            md.append(f"| {l} | {r.get('system')} | {r.get('part')} | {r.get('stratum')} | {float(r['slope_p50']):.3f} | "
+                      f"{float(r['relief_m']):.0f} | {role} |")
     sz, sp = M["split_sizes"], M["split"]
     systems = sorted(set(M["p6_systems"].values()))
     md.append(f"\nИндекс П6: `{M.get('p6_index')}`. Деление v3 (зерно {sp['seed']}): обучение {sz.get('train_ids')}, "

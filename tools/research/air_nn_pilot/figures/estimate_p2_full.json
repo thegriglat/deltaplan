@@ -1,0 +1,155 @@
+{
+ "probe_real_places": true,
+ "probe_dataset": "/home/greg/air_nn_data/pilot/datasets/s0-1c8c322/probe",
+ "probe_places": [
+  {
+   "loc": "t_0006",
+   "slope_p50": 0.004,
+   "relief_m": 224,
+   "system": "arabia",
+   "part": "pool",
+   "gpu_s_case": 13.7,
+   "n": 2,
+   "n_max": 1
+  },
+  {
+   "loc": "t_0082",
+   "slope_p50": 0.111,
+   "relief_m": 2118,
+   "system": "andes_north",
+   "part": "pool",
+   "gpu_s_case": 3.3,
+   "n": 2,
+   "n_max": 0
+  },
+  {
+   "loc": "t_0107",
+   "slope_p50": 0.163,
+   "relief_m": 1581,
+   "system": "andes_north",
+   "part": "pool",
+   "gpu_s_case": 3.2,
+   "n": 2,
+   "n_max": 0
+  },
+  {
+   "loc": "t_0158",
+   "slope_p50": 0.218,
+   "relief_m": 2195,
+   "system": "hindukush_pamir",
+   "part": "pool",
+   "gpu_s_case": 18.0,
+   "n": 2,
+   "n_max": 2
+  },
+  {
+   "loc": "t_0181",
+   "slope_p50": 0.283,
+   "relief_m": 2315,
+   "system": "himalaya_tibet",
+   "part": "pool",
+   "gpu_s_case": 17.2,
+   "n": 2,
+   "n_max": 1
+  },
+  {
+   "loc": "t_0237",
+   "slope_p50": 0.33,
+   "relief_m": 1793,
+   "system": "rockies_cordillera",
+   "part": "pool",
+   "gpu_s_case": 15.7,
+   "n": 2,
+   "n_max": 1
+  },
+  {
+   "loc": "t_0255",
+   "slope_p50": 0.409,
+   "relief_m": 2598,
+   "system": "tianshan",
+   "part": "pool",
+   "gpu_s_case": 4.4,
+   "n": 2,
+   "n_max": 0
+  },
+  {
+   "loc": "t_0294",
+   "slope_p50": 0.497,
+   "relief_m": 2493,
+   "system": "rockies_cordillera",
+   "part": "pool",
+   "gpu_s_case": 4.1,
+   "n": 2,
+   "n_max": 0
+  },
+  {
+   "loc": "t_0331",
+   "slope_p50": 0.033,
+   "relief_m": 451,
+   "system": "pyrenees",
+   "part": "holdout",
+   "gpu_s_case": 2.1,
+   "n": 2,
+   "n_max": 0
+  },
+  {
+   "loc": "t_0332",
+   "slope_p50": 0.068,
+   "relief_m": 911,
+   "system": "pyrenees",
+   "part": "holdout",
+   "gpu_s_case": 3.5,
+   "n": 2,
+   "n_max": 0
+  }
+ ],
+ "probe_n_places": 10,
+ "probe_n_cases": 20,
+ "solver_version": "s0-1c8c322",
+ "tiles": "/home/greg/air_nn_data/pilot/tiles/v3",
+ "n_places": 360,
+ "n_cond": 12,
+ "n_cases_terrain": 4320,
+ "gpu_s_case_ok": 3.44,
+ "gpu_s_case_max": 23.77,
+ "max_frac": 0.25,
+ "max_frac_ci95": [
+  0.112,
+  0.469
+ ],
+ "max_time_share": 0.7,
+ "gpu_h_terrain": 10.2,
+ "gpu_h_terrain_range": [
+  6.9,
+  15.6
+ ],
+ "workers": 2,
+ "cpu_h_prep": 0.17,
+ "prep_s_per_case": 0.1,
+ "train_h_main": 1.51,
+ "train_h_curve": 3.18,
+ "train_h": 4.69,
+ "eval_h": 0.17,
+ "t_per_sample_ms": 9.233827427509693,
+ "bench": "tests/bench_epoch.py (3697 образцов, батч 8, 9 карт)",
+ "total_h": 15.3,
+ "total_h_range": [
+  11.9,
+  20.6
+ ],
+ "disk_gb": 18.4,
+ "disk_parts_gb": {
+  "dataset_terrain": 5.8,
+  "prep_terrain": 8.4,
+  "prep_main": 3.7,
+  "runs_reports": 0.5
+ },
+ "mb_per_case": 1.336,
+ "free_gb_now": 62.4,
+ "command": "tmux new -s p2 'cd /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot && ./run_pilot.sh; exec bash'   # копия после слияния ветки air-nn/assemble; повтор той же команды продолжает",
+ "notes": [
+  "обучение — верхняя граница: max_epochs 150 без ранней остановки (patience 30)",
+  "ГПУ — время случая с учётом 2 воркеров (длительность пачек / случаи), замок GPU пилота",
+  "кеш подготовки main пересчитывается (код prep изменился с P-1); старый кеш prep/*/main_2922f6_* можно удалить"
+ ]
+}
