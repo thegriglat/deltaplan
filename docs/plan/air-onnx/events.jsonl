@@ -1,1 +1,6 @@
 {"t": "2026-10-03T04:29:52", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-03T04:39:47", "by": "coordinator", "task": null, "ev": "note", "note": "контракты O1–O6 v1 и тест O1 (tools/air_onnx/test_contract_o1.py: O1: OK, сеть первого пилота проходит)"}
+{"t": "2026-10-03T04:40:09", "by": "coordinator", "task": "ON-1", "ev": "created", "note": "Экспорт .onnx из чекпойнта пилота и малая тестовая сеть"}
+{"t": "2026-10-03T04:40:37", "by": "coordinator", "task": "ON-1", "ev": "edited", "note": "dont_touch", "diff": {"dont_touch": ["[\"tools/research/air_nn_pilot/\", \"scripts/\", \"native/\"]", "[\"tools/research/air_nn_pilot/\", \"scripts/\", \"native/\", \"tools/air_onnx/test_contract_o1.py\"]"]}}
+{"t": "2026-10-03T04:40:37", "by": "coordinator", "task": "ON-2", "ev": "created", "note": "Расширение AirOnnx (ORT CPU) из пробника: несколько входов, сборка Linux+Windows, экспорт"}
+{"t": "2026-10-03T04:41:00", "by": "coordinator", "task": "ON-3", "ev": "created", "note": "AirNnPrep: вход и выход сети в GDScript = prep.py (тест N1/N2 на фикстуре)"}
