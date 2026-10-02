@@ -1,0 +1,58 @@
+{
+  "id": "NN-17",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Генератор: цель несошедшихся — среднее поздних состояний (П1 v3)",
+  "goal": "По решению пользователя (Q2, вариант Б) цель решения со статусом max — среднее снимков поздних итераций (по умолчанию 500…1000 через 50), а не последнее колеблющееся состояние; плюс собственный разброс решения для оценки.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П1",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "/home/greg/deltaplan-air-nn-latemean",
+  "branch": "air-nn/latemean",
+  "base": "feature/air-nn",
+  "scope": [
+    "dataset.py, airlite_gen.py: снимки полей решения на итерациях late_from…max_iter через late_step без правки решателя (решатель — tools/research/air3d/*.py — не трогать: снимки через вызов порциями/обратный вызов/продолжение из состояния — как позволяет код); среднее → d400_* для max, конечное состояние — для сошедшихся; метаданные target, late_n, late_spread60_p90; manifest/plan solver.late_mean, meta.contract П1 v3",
+    "configs/dataset.yaml: late_mean {from: 500, step: 50} для наборов terrain/probe/мини-набора; мини-набор lm_smoke (2–3 места t_* × 2 условия, из них ≥ 1 решение max; малый предел итераций допустим для теста)",
+    "tests/test_late_mean.py: у max d400_* = ручное среднее снимков (в пределах округления fp16), у сошедшегося — побитно как v2 при тех же условиях; повтор случая побитно; tests/test_contract_sample.py — вариант v3",
+    "README пилота: генератор, П1 v3, время случая против v2"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель)",
+    "pilotnn/* (деление/оценка/отчёт — NN-P5/NN-18), pilot.py, run_pilot.sh (NN-P7), terrain_cut.py и configs/terrain.yaml (NN-16)",
+    "набор main и tiles/* — только чтение; массовый счёт (полный набор terrain) НЕ запускать — только lm_smoke и probe; незакоммиченный симлинк .venv"
+  ],
+  "accept": [
+    {
+      "name": "late_mean",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_late_mean.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_v3",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_sample.py --dataset lm_smoke",
+      "expect": "exit=0"
+    },
+    {
+      "name": "region_only",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_region_only.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "interrupt",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_interrupt.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "время случая v3 против v2 (сошедшиеся/max), late_spread60_p90 на probe: медиана и p90 по max-решениям, доля max",
+    "как сняты снимки (без правки решателя) и почему это равно продолжению счёта"
+  ],
+  "notes": "GPU — только под замком (dp lock gpu … или GpuLock пилота), не держать дольше нужного: параллельно может идти NN-P7. Решатель не правится: если снимки поздних состояний без правки решателя невозможны — остановиться и вернуть шлюз (варианты, цена). tests/test_contract_sample.py сейчас в конфликте слияния у NN-P5 — до его правки дождаться сообщения координатора о слиянии NN-P5 в feature/air-nn и влить feature/air-nn в свою ветку; прочие файлы — сразу. Probe (6–10 мест × 2 условия) пересчитать в v3 разрешено — оттуда late_spread60_p90 и доля max. Окружение: .venv — симлинк на /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv (не коммитить).",
+  "created": "2026-10-03T00:56:42",
+  "edited": "2026-10-03T00:56:42"
+}

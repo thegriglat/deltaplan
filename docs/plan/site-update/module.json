@@ -1,0 +1,11 @@
+{
+  "module": "site-update",
+  "plan": "docs/archive/plan/site-update.md",
+  "contracts": "docs/site_update_contracts.md",
+  "branch": "feature/site-update",
+  "copy": "~/deltaplan-site",
+  "created": "2026-10-01T00:00:00",
+  "legacy_journal": "docs/archive/plan/site-update-progress.md",
+  "migrated_from": "docs/archive/plan/site-update-progress.md (tools/dp_migrate.py)",
+  "code": "SU"
+}

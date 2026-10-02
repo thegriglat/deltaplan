@@ -1,0 +1,19 @@
+{
+  "id": "AM-01",
+  "module": "air-model",
+  "type": "Opus",
+  "title": "3D-эталон CuPy",
+  "goal": "3D-эталон CuPy",
+  "plan_ref": "AM-01",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/air-model-progress.md:10",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

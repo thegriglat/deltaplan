@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-10-03"
+summary: "Паспорта крыльев → конфиги configs/wings/*.json: что изменено, источники, противоречия — Принципы: физика прежде «нравится»; число меняется, только если есть паспорт той же модели и размера (или явно помеченный аналог); абсолютным L/D из заявок не верим; при противоречии не подгоняем молча, а фиксир"
+related: []
+conclusion: ""
+data: ""
+applied_in: "configs/wings/*.json"
+---
 # Паспорта крыльев → конфиги `configs/wings/*.json`: что изменено, источники, противоречия
 
 Ветка `wings/passports`, 2026-10-01. Входные данные — `tools/research/data/wing_passports/` (`wings_merged.json`: у каждого числа цитата и файл разбора; `sources.md`; PDF не храним, числа + адреса). Список моделей — `docs/research/glider_models.md`. ТЗ на 3D — `docs/research/glider_3d_tz.md`.
@@ -92,4 +103,4 @@ python3 wings3d_geometry.py      # площадь в плане 3D-моделе�
 
 ## 7. Проверки
 
-Тесты до и после правок (`godot --headless --path . res://tests/run_tests.tscn -- --filter=…`): `test_wings`, `test_polar`, `test_mass`, `test_wing_catalog`, `test_wing_picker` — результаты в журнале `docs/plan/wings_passports_progress.md`.
+Тесты до и после правок (`godot --headless --path . res://tests/run_tests.tscn -- --filter=…`): `test_wings`, `test_polar`, `test_mass`, `test_wing_catalog`, `test_wing_picker` — результаты в журнале `docs/archive/plan/wings-passports-progress.md`.

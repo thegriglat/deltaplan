@@ -1,0 +1,19 @@
+{
+  "id": "AS-2",
+  "module": "air-start",
+  "type": "dp-engineer",
+  "title": "Турбулентность у земли",
+  "goal": "Турбулентность у земли",
+  "plan_ref": "AS-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-start",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/air-start-progress.md:43",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

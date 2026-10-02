@@ -1,6 +1,6 @@
 class_name GliderVisual
 extends Node3D
-## Визуал дельтаплана: крыло + пилот (docs/flight.md → «Визуал и контракт моделей»).
+## Визуал дельтаплана: крыло + пилот (docs/guide/flight.md → «Визуал и контракт моделей»).
 ##
 ## Крыло: wings/<id>.json → visual.visual_model. Начало координат модели — HangPoint;
 ## ноды Sail, ControlFrame, маркеры HangPoint, BaseBar, InstrumentMount, WingTipL, WingTipR.
@@ -48,7 +48,7 @@ var _pcfg: Dictionary = {}  ## pilot.json → visual
 var _hang := Vector3.ZERO  ## точка подвески в координатах обёртки
 var _head: Node3D
 var _pose := Transform3D.IDENTITY
-## Модель сама встаёт анимацией stand (docs/models.md → «Пилот»); иначе (заглушка) — поворот.
+## Модель сама встаёт анимацией stand (docs/guide/models.md → «Пилот»); иначе (заглушка) — поворот.
 var _animated_stand := false
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D

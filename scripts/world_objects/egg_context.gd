@@ -1,6 +1,6 @@
 class_name EggContext
 extends RefCounted
-## Контекст пасхалки (docs/easter_eggs_contracts.md → К2): планировщик заполняет один раз за
+## Контекст пасхалки (docs/contracts/easter-eggs.md → К2): планировщик заполняет один раз за
 ## update() и отдаёт всем пасхалкам. ТОЛЬКО ЧТЕНИЕ: ничего из этого пасхалка не меняет.
 
 ## Время мира, с (Game.world_time(); в сети — часы зоны).

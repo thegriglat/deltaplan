@@ -1,0 +1,14 @@
+{
+  "status": "done",
+  "summary": "зелёные | `test_wings`, `test_polar`, `test_mass`, `test_wing_catalog`, `test_wing_picker`, `test_roll`, `test_stall`, `test_landing`, `test_ground` — 0 упавших (до правок первые 5 — тоже 0)",
+  "commits": [],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/wings-passports-progress.md:15",
+  "dp_feedback": "",
+  "t": "2026-10-01T12:00:00",
+  "by": "координатор",
+  "migrated": true
+}

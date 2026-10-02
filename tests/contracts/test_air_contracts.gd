@@ -1,10 +1,10 @@
 # gdlint: disable=max-public-methods
 extends TestCase
-## Контрактные тесты модели воздуха (docs/air_model_contracts.md): форма данных и соглашения на
+## Контрактные тесты модели воздуха (docs/contracts/air-model.md): форма данных и соглашения на
 ## стыках задач AM-xx. Без GPU. Ломаются, если владелец поменял формат/интерфейс без правки
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
-## Версии разделов контракта — те же, что в заголовках docs/air_model_contracts.md.
+## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
 const CONTRACTS := {C1 = 2, C2 = 6, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
 const DOC := "res://docs/air_model_contracts.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
@@ -845,7 +845,7 @@ func test_c5_signature_and_mask() -> void:
 	var mask := t.mask_bytes()
 	check(mask.size() == (4 * 4 + 7) >> 3, "маска (nx·ny + 7) >> 3 байт")
 	check(mask == PackedByteArray([2, 4]), "бит j·nx + i, младший бит байта — первый")
-	check(Marshalls.raw_to_base64(mask) == "AgQ=", "base64 как в docs/net_protocol.md")
+	check(Marshalls.raw_to_base64(mask) == "AgQ=", "base64 как в docs/guide/net-protocol.md")
 
 
 func test_c5_net_schema() -> void:

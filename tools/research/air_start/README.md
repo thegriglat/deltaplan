@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "air-start"
+updated: "2026-10-02"
+summary: "Воздух у старта (air-start) — данные AS-1 — Жалоба пилота на 1.0.0: при 6 м/с на старте «сдувает»."
+related: []
+conclusion: ""
+data: "tools/research/air_start/"
+applied_in: ""
+---
 # Воздух у старта (air-start) — данные AS-1
 
 Жалоба пилота на 1.0.0: при 6 м/с на старте «сдувает». Причина (WPC-2): ветер меню решатель ставил притоком на

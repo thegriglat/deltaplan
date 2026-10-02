@@ -1,0 +1,19 @@
+{
+  "id": "E9",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "шары",
+  "goal": "шары",
+  "plan_ref": "E9",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/world-easter-eggs-progress.md:20",
+  "created": "2026-09-30T04:17:02",
+  "migrated": true
+}

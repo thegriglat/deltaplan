@@ -1,0 +1,19 @@
+{
+  "id": "WP-4",
+  "module": "wings-passports",
+  "type": "координатор",
+  "title": "ТЗ на 3D",
+  "goal": "ТЗ на 3D",
+  "plan_ref": "WP-4",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wings-passports",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wings-passports-progress.md:14",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

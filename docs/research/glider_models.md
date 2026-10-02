@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-09-30"
+summary: "Список моделей дельтапланов — Сгенерировано tools/research/data/wing_passports/consolidate.py (2026-09-30)."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Список моделей дельтапланов
 
 Сгенерировано `tools/research/data/wing_passports/consolidate.py` (2026-09-30). Не править руками: добавить источник и перезапустить скрипт (см. «Как расширять»).

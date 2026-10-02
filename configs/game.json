@@ -108,7 +108,7 @@
   ],
   "mounted_instruments_doc": "Приборы на трапеции (кабинный вид): сцена, маркер крепления в модели крыла (−Z маркера смотрит на глаза пилота), rotate_y_deg — поворот сцены на маркере (экраны Instrument3D и Vario90s3D смотрят в +Z → 180°), shares_tablet — показывает общий экран планшета (use_instrument(FlightInstrument)), иначе прибор сам считает свой вариометр по update(t, dt); optional — молча пропустить, если нет сцены или маркера",
   "cloud_whiteout": {
-    "_doc": "«Белая мгла» в облаке (docs/atmosphere.md): туман окружения сгущается по плотности облака у камеры, горизонт теряется — только приборы (FR-21)",
+    "_doc": "«Белая мгла» в облаке (docs/guide/atmosphere.md): туман окружения сгущается по плотности облака у камеры, горизонт теряется — только приборы (FR-21)",
     "density_gain": 1.5,
     "density_gain_doc": "Сила мглы = clamp(плотность облака × gain, 0, 1)",
     "rise_time_s": 0.3,
@@ -238,7 +238,7 @@
     "enabled_doc": "Выбирать пресет по видеокарте при первом запуске (пока выключено: решено не оптимизировать под слабое железо)"
   },
   "pilot_animation": {
-    "_doc": "Анимации пилота (pilot.glb, docs/models.md → «Пилот»): stand ⇄ walk → run → отрыв → run_air → climb_in → prone → у земли climb_out → flare → касание → stand. Нет AnimationPlayer или анимации — пропускаем",
+    "_doc": "Анимации пилота (pilot.glb, docs/guide/models.md → «Пилот»): stand ⇄ walk → run → отрыв → run_air → climb_in → prone → у земли climb_out → flare → касание → stand. Нет AnimationPlayer или анимации — пропускаем",
     "by_phase": {
       "standing": "stand",
       "walking": "walk",
@@ -278,7 +278,7 @@
     "looped_doc": "Позы и циклы — зациклить (иначе однокадровая поза «доигрывает» раньше перехода и пилот остаётся в позе покоя)"
   },
   "world_objects_scene": "res://scenes/world_objects/world_objects.tscn",
-  "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, ЛЭП, препятствия (docs/world_objects.md); пусто — без них",
+  "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, ЛЭП, препятствия (docs/guide/world-objects.md); пусто — без них",
   "collision_texts": {
     "_doc": "Итог полёта при столкновении с препятствием (WorldObjects.obstacle_hit → kind)",
     "wire": "collision_wire",

@@ -29,3 +29,8 @@ tools/research/data/wing_passports/out/*.log
 
 # dp: метки чтения inbox (у каждого читателя своя)
 docs/plan/*/.read_*
+
+# docs: Godot-импорт картинок и .gdignore не храним; Obsidian-просмотрщик
+docs/**/*.import
+docs/**/.gdignore
+.obsidian/

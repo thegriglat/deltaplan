@@ -1,8 +1,16 @@
+---
+type: "reference"
+status: "active"
+module: ""
+updated: "2026-10-03"
+summary: "Приёмка кабины (карточка game/01, VR-11, FR-25a, VR-6) — Кадры: tools/shots/cockpit.sh (1920×1080, Онгудай, --autopilot, время симуляции 20 с; TS — Аскарово, 172 с)."
+related: []
+---
 # Приёмка кабины (карточка game/01, VR-11, FR-25a, VR-6)
 
 Кадры: `tools/shots/cockpit.sh` (1920×1080, Онгудай, `--autopilot`, время симуляции 20 с; TS — Аскарово, 172 с).
 Имена `<крыло>_<кадр>.jpg`, крылья training / sport / kingpost. Проверка геометрией — `tests/game/test_cockpit.gd`.
-Сравнение с фото из docs/models.md («Deltaplane_au_départ», «Hang_glider_start_hill_aug2004», «Fluegelkamera»).
+Сравнение с фото из docs/guide/models.md («Deltaplane_au_départ», «Hang_glider_start_hill_aug2004», «Fluegelkamera»).
 
 | Кадр | Пункт чек-листа | Итог | Что сделано / что делать |
 |---|---|---|---|

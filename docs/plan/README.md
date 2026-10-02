@@ -1,3 +1,11 @@
+---
+type: "plan"
+status: "superseded"
+module: ""
+updated: "2026-10-03"
+summary: "План: группы задач — Верхний уровень плана. Работа делится на группы (области кода)."
+related: []
+---
 # План: группы задач
 
 Верхний уровень плана. Работа делится на **группы** (области кода). Для каждой группы отдельный
@@ -47,7 +55,7 @@
 
 ## 1. Физика полёта — `flight/` (S)
 - **Владения:** `scripts/flight/` (кроме `glider_visual.gd` → группа 7), `configs/wings/`, `configs/pilot.json`,
-  `configs/flight.json`, `tests/flight/`. Документ — docs/flight.md.
+  `configs/flight.json`, `tests/flight/`. Документ — docs/guide/flight.md.
 - **API:** `FlightModel` (`setup`, `step(dt, input, air_fn, ground_fn)`, `reset_on_ground/in_air`, `phase()`,
   сигналы `took_off`, `landed(result)`, `takeoff_failed`), `Glider` (`setup`, `set_input`, `set_air_fn`,
   `set_ground_fn`, `step(dt)`, `get_marker(name)`, сигнал `telemetry_updated(t)`), `Telemetry`.
@@ -65,7 +73,7 @@
 - **Владения:** в `scripts/atmosphere/` — модель воздуха: `atmosphere.gd`, `thermal_field.gd`, `atmo_thermal.gd`,
   `wind_model.gd`, `ground_field.gd`, `wave_field.gd`, `storm_field.gd` (физика), `dust_model.gd`,
   `cloud_physics.gd`, `bird_flock.gd` (поведение); `configs/atmosphere.json`, `configs/weather/`,
-  `tests/atmosphere/`. Документ — docs/atmosphere.md. Файлы делятся с группой 3 по списку выше.
+  `tests/atmosphere/`. Документ — docs/guide/atmosphere.md. Файлы делятся с группой 3 по списку выше.
 - **API:** `set_weather`, `set_wind`, `set_ground(height_fn, sun_fn, surface_fn)`, `set_sun_direction`,
   `air_velocity_at(pos)`, `mean_wind_at`, `step(dt)`, `get_cloudbase_msl`, `cloud_density_at`,
   `get_insolation`, `thermals_near`, `set_thermal_mode`, `load_static_thermals`, `focus_node`.
@@ -86,7 +94,7 @@
 - **API:** облака рисует сама `Atmosphere` (дочерние `Clouds`, `Birds`); качество `clouds.quality`.
 - **Сделано:** объёмные облака (compute, low-res буфер), стадии жизни, плоская кромка, тени, улицы,
   переразвитие, Cb с наковальней и виргой, лентикуляры/шапки/роторные, пыльные вихри, перистая пелена с гало.
-- **Открыто:** известные проблемы из docs/atmosphere.md (Cb «гриб», лентикуляры без «стопки тарелок»);
+- **Открыто:** известные проблемы из docs/guide/atmosphere.md (Cb «гриб», лентикуляры без «стопки тарелок»);
   дождевые полосы до земли под тучами (FR-14d, визуал к физике группы 2); проверка FR-14a «читаемость
   стадии и подсоса» на 1–20 км и снизу — скриншот-сравнение с фото; облака и дымка — порядок наложения
   (questions terrain2.3).
@@ -94,7 +102,7 @@
 
 ## 4. Рельеф, земля, небо и дымка — `terrain/` (L)
 - **Владения:** `scripts/terrain/` (кроме файлов растительности → группа 5), `scripts/world/`, `tools/terrain/`,
-  `data/terrain/`, `configs/locations/`, `configs/world.json`, `tests/terrain/`. Документ — docs/terrain.md.
+  `data/terrain/`, `configs/locations/`, `configs/world.json`, `tests/terrain/`. Документ — docs/guide/terrain.md.
 - **API:** `Terrain`: `height_at`, `normal_at`, `get_start_sites`, `get_landing_sites`, `sun_exposure_at`,
   `surface_at`, `thermal_source_strength_at`, `latlon_to_local`, `set_clearings`, `set_wind_sources`,
   `set_pilot`, `get_grass_palette`, сигнал `loaded`; `MapPicker.point_picked`; `SkyEnvironment`:
@@ -131,7 +139,7 @@
 
 ## 6. Объекты мира — `world_objects/` (S)
 - **Владения:** `scripts/world_objects/`, `scenes/world_objects/`, `configs/world_objects.json`, `data/osm/`,
-  `tools/osm/`, `tests/world_objects/`, `assets/models/world/`. Документ — docs/world_objects.md.
+  `tools/osm/`, `tests/world_objects/`, `assets/models/world/`. Документ — docs/guide/world-objects.md.
 - **API:** `WorldObjects.setup(terrain, air)`, `wire_hit(a, b)`, `obstacle_hit(a, b)`, `get_landing_sites()`,
   `clearing_mask_for(id)`, `is_clear_at`, `WorldClearings.build_for(id)`, сигнал `built`.
 - **Сделано:** ветроуказатели по локальному ветру и в роторе (VR-7, VR-20), посадки с препятствиями (VR-12),
@@ -143,7 +151,7 @@
 ## 7. Модели и визуал крыла/пилота — `models/` (L)
 - **Владения:** `tools/blender/` (кроме `build_trees.py`), `assets/models/` (glider_*, pilot, instrument, vario_90s,
   bird), `assets/source/`, `assets/shaders/sail/`, `scripts/flight/glider_visual.gd`, `scenes/glider/*_visual.tscn`,
-  `scenes/models_preview/`. Документ — docs/models.md (контракт маркеров и осей).
+  `scenes/models_preview/`. Документ — docs/guide/models.md (контракт маркеров и осей).
 - **API:** маркеры `HangPoint`, `PilotHead`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`,
   `CockpitCamera`; `SailMaterial` (параметры паруса); анимации пилота stand/walk/run/run_air/climb_in/prone/
   climb_out/flare (запускает `PilotAnimator` группы 12).
@@ -157,7 +165,7 @@
 
 ## 8. Приборы — `instruments/` (S)
 - **Владения:** `scripts/instruments/`, `scenes/instruments/`, `configs/instruments.json`, `tests/instruments/`.
-  Документ — docs/instruments.md.
+  Документ — docs/guide/instruments.md.
 - **API:** `Vario`, `FlightInstrument` (`update`, `get_texture`, `set_page`, `set_task`, `set_task_state`,
   `set_sound_settings`, `get_wind`, `reset`), `Instrument3D`, `InstrumentOverlay`, `ThermalAssistant`,
   `WindEstimator`, `InstrumentTask`.
@@ -171,7 +179,7 @@
 
 ## 9. Звук — `sound/` (M)
 - **Владения:** `scripts/audio/`, `scenes/audio/`, `configs/audio.json`, `assets/sounds/`, `tools/sounds/`,
-  `tests/audio/`. Документы — docs/instruments.md («Звуки полёта»), docs/research/sounds.md.
+  `tests/audio/`. Документы — docs/guide/instruments.md («Звуки полёта»), docs/research/sounds.md.
 - **API:** `VarioAudio` (`set_vario`, `set_volume_db`, `set_enabled`), `FlightAudio` (`update(t, extra)`,
   `play_landing`, `play_step`, `play_carabiner`), аудиошины Master/Vario/Wind/Effects/Ambient.
 - **Сделано:** вариометр (XC Tracer и classic_90s), поток, тросы, парус, каркас, разбег, посадка, окружение.
@@ -181,17 +189,17 @@
 - **Вопросы:** прослушать звуки (пользователь, sounds.6); пилоту — похож ли поток/вариометр.
 
 ## 10. Задания, тренировки, рекорды — `tasks/` (S)
-- **Владения:** `scripts/tasks/`, `scenes/tasks/`, `configs/tasks/`, `tests/tasks/`. Документ — docs/tasks.md.
+- **Владения:** `scripts/tasks/`, `scenes/tasks/`, `configs/tasks/`, `tests/tasks/`. Документ — docs/guide/tasks.md.
 - **API:** `Task.load_config / list_available`, `TaskTracker` (`setup`, `update(t)`, `get_state`, `result`,
   сигналы `turnpoint_reached`, `start_taken`, `goal_reached`, `task_failed`), `TrainingMode` (`update`,
   `on_landed`, `result`, сигнал `finished`), `FlightRecords.add_flight`.
 - **Сделано:** вся логика FR-35…FR-37 без нод, импорт `.xctsk`, оптимизатор маршрута, 3 тренировки, рекорды.
 - **Открыто:** в игру не подключено — выбор режима, трекер в `Game.tick()`, итог и «Новый рекорд!» (делают
-  группы 11 и 12 по API из docs/tasks.md); здесь — только правки логики по их запросам и старт `ongudai_demo`
+  группы 11 и 12 по API из docs/guide/tasks.md); здесь — только правки логики по их запросам и старт `ongudai_demo`
   на `kayancha_south`.
 
 ## 11. Интерфейс — `ui/` (M)
-- **Владения:** `scripts/ui/`, `scenes/ui/`, `locale/`, `configs/ui.json`. Документ — docs/game.md («Как добавить экран»).
+- **Владения:** `scripts/ui/`, `scenes/ui/`, `locale/`, `configs/ui.json`. Документ — docs/guide/game.md («Как добавить экран»).
 - **API:** экраны наружу — только сигналы; `UiKit`, `AssetsCredits`, `UserSettings.save_patch`.
 - **Сделано:** меню, «Полёт…» (крыло, масса, погода, ветер, место), пауза, настройки, «Об игре», итог, tr().
 - **В работе (integration):** простое меню «фото + кнопки», экран «Управление», выбор старта на карте.
@@ -201,7 +209,7 @@
 
 ## 12. Сцена игры и управление — `game/` (M)
 - **Владения:** `scenes/main.*`, `scenes/game/`, `scripts/game/`, `scripts/core/`, `configs/game.json`,
-  `configs/controls.json`, `configs/camera.json`, `tests/game/`. Документ — docs/game.md.
+  `configs/controls.json`, `configs/camera.json`, `tests/game/`. Документ — docs/guide/game.md.
 - **API:** `Game.start/restart/tick`, `InputController`, `CameraRig`, `PilotAnimator`, `WorldLink`,
   `GraphicsPresets`, `UserSettings`, `LaunchOptions` (командная строка, `--smoke`, `--autopilot`).
 - **Сделано:** сборка всех модулей, порядок шага, камеры, мышь-голова, геймпад, белая мгла в облаке,
@@ -212,7 +220,7 @@
 
 ## 13. Сборка, проверка и выпуск (Linux) — `build/` (M)
 - **Владения:** `tools/build.sh`, `tools/check.sh`, `tools/lint.sh`, новые `tools/soak.sh`, `tools/bench/`,
-  `tests/stability/`, `export_presets.cfg` (Linux), `project.godot` (окно), `TODO.md`, `docs/ARCHITECTURE.md`
+  `tests/stability/`, `export_presets.cfg` (Linux), `project.godot` (окно), `TODO.md`, `docs/guide/architecture.md`
   (таблица модулей), ключи `graphics*` в `configs/game.json` (по согласованию с группой 12).
 - **Сделано:** `tools/check.sh` (линтер, тесты, сборка Linux, smoke), `tools/build.sh linux`.
 - **Открыто:** матрица стабильности (места × крылья × погоды, 30-мин прогон сборки); замеры NFR-1 (60 FPS на

@@ -1,0 +1,16 @@
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "CF-1", "ev": "created", "note": "Старт с земли", "src": "docs/plan/control-fix_progress.md:55"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "CF-2", "ev": "created", "note": "Мышь", "src": "docs/plan/control-fix_progress.md:56"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "CF-1", "ev": "started", "note": "dp-engineer", "src": "docs/plan/control-fix_progress.md:55"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "CF-2", "ev": "started", "note": "dp-engineer", "src": "docs/plan/control-fix_progress.md:56"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "План — `docs/plan/control-fix.md`, контракты — `docs/control-fix_contracts.md`. Ветка `feature/control-fix`, копия `~/deltaplan-control-fix` (от `main` 3820bda = v1.0.0).", "src": "docs/plan/control-fix_progress.md:3", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T20:24:03", "by": "dp-engineer", "task": "CF-2", "ev": "reported", "commits": ["6ae229a", "01eeda7"], "note": "done", "src": "docs/plan/control-fix_progress.md:56"}
+{"t": "2026-10-01T21:06:00", "by": "coordinator", "task": "CF-2", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/control-fix_progress.md:56"}
+{"t": "2026-10-01T21:06:00", "by": "coordinator", "task": "CF-2", "ev": "merged", "commits": ["a5bf8c1"], "src": "docs/plan/control-fix_progress.md:56"}
+{"t": "2026-10-01T21:25:20", "by": "coordinator", "task": "CF-3", "ev": "created", "note": "Управление крылом на земле (вариант В) + старт без порогов времени", "src": "docs/plan/control-fix_progress.md:57"}
+{"t": "2026-10-01T21:25:21", "by": "coordinator", "task": "CF-3", "ev": "started", "note": "dp-engineer", "src": "docs/plan/control-fix_progress.md:57"}
+{"t": "2026-10-01T22:04:12", "by": "dp-engineer", "task": "CF-1", "ev": "reported", "commits": ["4a7d7ea", "ea37cfa", "d3f01bb", "d2ca48c", "17b402f", "545a3f9", "0bdf620"], "note": "done", "src": "docs/plan/control-fix_progress.md:55"}
+{"t": "2026-10-01T22:05:21", "by": "coordinator", "task": "CF-1", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/control-fix_progress.md:55"}
+{"t": "2026-10-01T22:05:21", "by": "coordinator", "task": "CF-1", "ev": "merged", "commits": ["1996fb7"], "src": "docs/plan/control-fix_progress.md:55"}
+{"t": "2026-10-01T23:42:21", "by": "dp-engineer", "task": "CF-3", "ev": "reported", "commits": ["118efac", "3eca042", "dd29607", "400a82a", "5c55f3f", "68272a0", "db91ccc", "0491ea7", "36bde4a", "8e66235"], "note": "done", "src": "docs/plan/control-fix_progress.md:57"}
+{"t": "2026-10-02T00:02:23", "by": "coordinator", "task": "CF-3", "ev": "merged", "commits": ["bb4a665"], "src": "docs/plan/control-fix_progress.md:57"}
+{"t": "2026-10-02T12:00:01", "by": "coordinator", "task": "CF-3", "ev": "accepted", "note": "принята (02.10)", "src": "docs/plan/control-fix_progress.md:57"}

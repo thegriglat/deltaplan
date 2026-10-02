@@ -140,13 +140,13 @@ LCL (уровень конденсации) ≈ 122–125 м на градус �
 минут и при смене ветра или погоды), **термики** (модель пузырей, но источники и сила — из поля, а не из
 таблицы опор) и **возмущения** (болтанка и порывы — из статистики турбулентности поля). Суточный ход,
 инерция прогрева по классам поверхности и температура как входной параметр остались теми же — поле берёт
-их как вход. Подробнее — [модель воздуха](/mechanics/air-model/), [docs/air_model.md](/docs/air_model.md).
+их как вход. Подробнее — [модель воздуха](/mechanics/air-model/), [docs/guide/air-model.md](/docs/guide/air-model.md).
 
 ## Подробнее
 
 - [docs/plan/weather_by_temperature.md](/docs/plan/weather_by_temperature.md) — полный план: интерфейс,
   формулы, конфиги, ответы пилота.
-- [docs/atmosphere.md](/docs/atmosphere.md) → «Погода из прогноза» — как это подключено в игре.
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) → «Погода из прогноза» — как это подключено в игре.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md) — таблицы для калибровки
   (§1 «Термики», §6 «Профили атмосферы, облака»).
 - [scripts/atmosphere/weather_model.gd](/scripts/atmosphere/weather_model.gd),

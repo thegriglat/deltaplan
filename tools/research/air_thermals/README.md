@@ -1,6 +1,17 @@
+---
+type: "research"
+status: "closed"
+module: "air-model"
+updated: "2026-10-03"
+summary: "AM-07: термики из поля — замеры — Описание модели — docs/guide/air-model.md → «Масштаб 2: термики из поля»."
+related: []
+conclusion: ""
+data: "tools/research/air_thermals/"
+applied_in: ""
+---
 # AM-07: термики из поля — замеры
 
-Описание модели — `docs/air_model.md` → «Масштаб 2: термики из поля». Здесь — как получены числа.
+Описание модели — `docs/guide/air-model.md` → «Масштаб 2: термики из поля». Здесь — как получены числа.
 
 ## Поля (эталон AM-01, вне git: `fields/`, ~45 МБ)
 ```bash

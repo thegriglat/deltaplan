@@ -1,0 +1,11 @@
+{
+  "module": "air-start",
+  "plan": "docs/archive/plan/air-start.md",
+  "contracts": "docs/contracts/air-model.md",
+  "branch": "feature/air-start",
+  "copy": "~/deltaplan-air-start",
+  "created": "2026-10-01T00:00:00",
+  "legacy_journal": "docs/archive/plan/air-start-progress.md",
+  "migrated_from": "docs/archive/plan/air-start-progress.md (tools/dp_migrate.py)",
+  "code": "AS"
+}

@@ -1,0 +1,11 @@
+{
+  "module": "wing-physics-check",
+  "plan": "docs/archive/plan/wing-physics-check.md",
+  "contracts": "docs/contracts/wing-physics-check.md",
+  "branch": "feature/wing-physics-check",
+  "copy": "~/deltaplan-wing-physics-check",
+  "created": "2026-10-01T00:00:00",
+  "legacy_journal": "docs/archive/plan/wing-physics-check-progress.md",
+  "migrated_from": "docs/archive/plan/wing-physics-check-progress.md (tools/dp_migrate.py)",
+  "code": "WPC"
+}

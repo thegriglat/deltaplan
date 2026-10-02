@@ -86,6 +86,7 @@ def main():
         con.execute(sql)
     index, plan_cases, centers = [], [], {}
     ord_ = 0
+    SOLVER = dict(max_outer=100000)      # подставной предел итераций (П1 v2), заведомо не меньше итераций случаев main
     for k, (loc, part, system) in enumerate(MAPPING):
         tid = f"t_{k:04d}"
         mine = [r for r in rows if r["loc"] == loc][: a.n_cond]
@@ -120,6 +121,7 @@ def main():
             m["ctx"] = dict(lat=lat, lon=lon, month=7, day=15, utc_offset_h=round(lon / 15),
                             valley=(m.get("day") or {}).get("valley_msl"))
             m["place"] = dict(system=system, part=part)
+            m["solver"] = SOLVER
             con.execute("INSERT INTO cases (id, loc, kind, ord, cond, status, attempts, t_wall, iters, solve_status, runs,"
                         " meta, file, bytes, sha256) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (cid, tid, "terrain", ord_, json.dumps(cond, ensure_ascii=False), "done", 1, t_wall, iters,
@@ -133,11 +135,11 @@ def main():
     con.commit()
     con.close()
     plan = dict(agl=ds.plan["agl"], centers=centers, cases=plan_cases, places=[f"t_{k:04d}" for k in range(len(MAPPING))],
-                dataset=NAME, n_cond=a.n_cond, mock=True, source=str(src))
+                dataset=NAME, n_cond=a.n_cond, mock=True, source=str(src), region_only=True, solver=SOLVER)
     C.atomic_write_json(dsd / "plan.json", plan)
     C.atomic_write_json(dsd / "manifest.json", dict(
         what=f"ПОДСТАВНОЙ набор terrain v2 (только область) для smoke П-2: случаи main, места переименованы в t_*",
-        contract="П1 v2", solver_version=src.parent.name, schema_version=1, mock=True, source=str(src),
+        contract="П1 v2", solver_version=src.parent.name, schema_version=1, mock=True, source=str(src), solver=SOLVER,
         mapping={f"t_{k:04d}": m[0] for k, m in enumerate(MAPPING)}, counts=dict(total=ord_, done=ord_),
         complete=True, command=" ".join(sys.argv)))
     with open(tiles / "index.csv", "w", newline="") as fh:

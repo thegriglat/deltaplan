@@ -1,0 +1,19 @@
+{
+  "id": "SU-5",
+  "module": "site-update",
+  "type": "dp-writer",
+  "title": "тексты раздела и картинки",
+  "goal": "тексты раздела и картинки",
+  "plan_ref": "SU-5",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/site-update",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/site-update-progress.md:12",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

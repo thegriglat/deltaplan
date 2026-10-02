@@ -15,7 +15,7 @@ extends RefCounted
 
 ## Выше этой высоты над землёй проверки нет, м.
 const CHECK_BELOW_AGL_M := 60.0
-## Доля леса, с которой в точке стоят деревья (порог кромки, docs/terrain.md → forest_at).
+## Доля леса, с которой в точке стоят деревья (порог кромки, docs/guide/terrain.md → forest_at).
 const FOREST_MIN := 0.5
 ## Кроны, если в world.json нет пород, м над поверхностью рельефа.
 const DEFAULT_CROWN_AGL_M := 7.0

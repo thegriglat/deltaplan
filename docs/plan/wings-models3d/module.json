@@ -1,0 +1,11 @@
+{
+  "module": "wings-models3d",
+  "plan": "docs/archive/plan/wings-models3d.md",
+  "contracts": "docs/contracts/wings-models3d.md",
+  "branch": "feature/wings-models3d",
+  "copy": "~/deltaplan-wings3d",
+  "created": "2026-10-01T00:00:00",
+  "legacy_journal": "docs/archive/plan/wings-models3d-progress.md",
+  "migrated_from": "docs/archive/plan/wings-models3d-progress.md (tools/dp_migrate.py)",
+  "code": "WM"
+}

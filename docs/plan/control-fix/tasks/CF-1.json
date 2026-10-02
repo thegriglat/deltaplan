@@ -1,0 +1,19 @@
+{
+  "id": "CF-1",
+  "module": "control-fix",
+  "type": "dp-engineer",
+  "title": "Старт с земли",
+  "goal": "Старт с земли",
+  "plan_ref": "CF-1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/control-fix",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/control-fix-progress.md:55",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

@@ -2,7 +2,7 @@
 # AM-09б: пробы при λ/h = 0,25 с согласованным масштабом 3 (λ = max(40 м, λ/h·h), h нейтр. = 0,3 u*/f)
 # одной пачкой. Шаги пишутся в out/am09b/steps.jsonl (по строке на шаг); повторный запуск
 # пропускает сделанные шаги. Из корня копии:
-#   /home/greg/deltaplan/tools/job.sh start am09b-probes 14400 sh tools/research/tune/run_am09b.sh
+#   /home/greg/deltaplan/tools/dp job start am09b-probes 14400 sh tools/research/tune/run_am09b.sh
 # Поля (вне git): tools/research/air_thermals/fields, air_turb/fields, tune/fields.
 # Итог — am09b_summary.py (таблица «0,1 → 0,25»).
 set -e

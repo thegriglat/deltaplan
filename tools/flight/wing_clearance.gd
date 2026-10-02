@@ -1,5 +1,5 @@
 extends RefCounted
-## Зазор крыла над рельефом на земле (SF-4, docs/flight.md → «Поза крыла на земле»).
+## Зазор крыла над рельефом на земле (SF-4, docs/guide/flight.md → «Поза крыла на земле»).
 ##
 ## Берёт реальную модель крыла (GliderVisual: вершины всех сеток под нодой Wing, с трапецией),
 ## ставит её позой планера Transform3D(Telemetry.basis, FlightModel.position) — как Glider — и

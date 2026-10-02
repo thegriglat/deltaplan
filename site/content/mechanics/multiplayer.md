@@ -75,7 +75,7 @@ deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86
 
 ## Протокол: .proto поверх WebSocket
 
-Контракт сообщений — единственный источник правды: [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) (Protocol Buffers), человеческое описание с примерами каждого сообщения — [docs/net_protocol.md](/docs/net_protocol.md); при расхождении текста и `.proto` прав `.proto`. Из него генерируется Go-код сервера — вручную сгенерированный код не редактируется.
+Контракт сообщений — единственный источник правды: [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) (Protocol Buffers), человеческое описание с примерами каждого сообщения — [docs/guide/net-protocol.md](/docs/guide/net-protocol.md); при расхождении текста и `.proto` прав `.proto`. Из него генерируется Go-код сервера — вручную сгенерированный код не редактируется.
 
 **Транспорт** — один WebSocket на клиента (`ws://IP:порт/v1/ws`), в Godot — встроенный `WebSocketPeer`, без сторонних аддонов. Каждый текстовый кадр — ровно одно сообщение `Envelope` (с `oneof` — `hello`, `pilotState`, `zoneState` и так далее). **Кодировка** — proto3 JSON (Go — `protojson`, Godot — встроенный `JSON`): читается глазами при отладке трафика, контракт при этом тот же `.proto`; бинарный protobuf (генератор GDScript `godobuf`) — в планах на потом, без смены контракта.
 
@@ -83,7 +83,7 @@ deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86
 
 Основные сообщения: `Hello`/`Welcome` (рукопожатие и версия игры), `CreateZone`/`ZoneCreated`, `JoinZone`/`ZoneJoined`, `PeerJoined`/`PeerLeft`/`LeaderChanged`, `Ping`/`Pong` (раз в 2 с — задержка и часы сервера), и пересылаемые внутри зоны `PilotState` (10 Гц на пилота/бота — позиция, ориентация, скорость, фаза, крыло, расцветка) и `ZoneState` (1 Гц, только от ведущего — часы и очередь). Экономия трафика: числа округляются (позиция до 0,01 м, скорость до 0,01 м/с), имя/крыло/расцветка шлются раз в секунду, а не в каждом пакете — итог около 1,9 КБ/с на отправку своего состояния у обычного клиента.
 
-Ниже — упрощённая схема входа в зону (без потока `PilotState`/`ZoneState`, подробности — в [docs/net_protocol.md](/docs/net_protocol.md)):
+Ниже — упрощённая схема входа в зону (без потока `PilotState`/`ZoneState`, подробности — в [docs/guide/net-protocol.md](/docs/guide/net-protocol.md)):
 
 ```mermaid
 sequenceDiagram
@@ -136,9 +136,9 @@ sequenceDiagram
 
 ## Подробнее
 
-- [docs/game.md](/docs/game.md) — общее устройство игры.
+- [docs/guide/game.md](/docs/guide/game.md) — общее устройство игры.
 - [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — план и архитектура сетевой игры (роли, роадмап задач NET-xx, риски, что «на потом»).
-- [docs/net_protocol.md](/docs/net_protocol.md) — полный протокол: все сообщения, коды ошибок, примеры JSON, диаграммы сценариев.
+- [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — полный протокол: все сообщения, коды ошибок, примеры JSON, диаграммы сценариев.
 - [server/README.md](/server/README.md) — как поднять сервер на Go (локально и на VPS через Docker).
 - [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) — исходный контракт сообщений.
 - [scripts/net/net_zone.gd](/scripts/net/net_zone.gd), [scripts/net/net_client.gd](/scripts/net/net_client.gd) — клиент сети в игре.

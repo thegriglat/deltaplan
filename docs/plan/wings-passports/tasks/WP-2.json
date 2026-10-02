@@ -1,0 +1,19 @@
+{
+  "id": "WP-2",
+  "module": "wings-passports",
+  "type": "dp-researcher",
+  "title": "Выборка конструкции (мачта/топлесс, VG, годы, заметки по виду), 3 пакета",
+  "goal": "Выборка конструкции (мачта/топлесс, VG, годы, заметки по виду), 3 пакета",
+  "plan_ref": "WP-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wings-passports",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wings-passports-progress.md:12",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

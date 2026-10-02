@@ -199,7 +199,7 @@ $$
 
 ## Подробнее
 
-- [docs/flight.md](/docs/flight.md) — полное описание модели полёта, API `FlightModel`/`Glider`, контракт
+- [docs/guide/flight.md](/docs/guide/flight.md) — полное описание модели полёта, API `FlightModel`/`Glider`, контракт
   визуала и тесты.
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — вывод масштабирования поляры по массе и
   проверка на паспортных данных.

@@ -1,0 +1,19 @@
+{
+  "id": "SF-1",
+  "module": "start-fixes",
+  "type": "dp-engineer",
+  "title": "Пустырь",
+  "goal": "Пустырь",
+  "plan_ref": "SF-1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/start-fixes",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/start-fixes-progress.md:21",
+  "created": "2026-09-30T08:00:00",
+  "migrated": true
+}

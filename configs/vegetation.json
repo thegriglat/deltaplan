@@ -101,7 +101,7 @@
     }
   },
   "trees": {
-    "_doc": "Деревья по кромке маски леса 10 м (V02, docs/vegetation.md): модели (TerrainTreeModels/TreePlacer) и импостеры (ForestImpostors) стоят там, где доля леса ≥ 0,5; у опушки гуще и раскидистее. Ключи — поверх configs/world.json → trees.",
+    "_doc": "Деревья по кромке маски леса 10 м (V02, docs/guide/vegetation.md): модели (TerrainTreeModels/TreePlacer) и импостеры (ForestImpostors) стоят там, где доля леса ≥ 0,5; у опушки гуще и раскидистее. Ключи — поверх configs/world.json → trees.",
     "edge_band_m": 16,
     "edge_band_m_doc": "Ширина полосы опушки от кромки леса, м: в ней деревья гуще и раскидистее",
     "edge_density": 1.0,

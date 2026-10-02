@@ -1,0 +1,11 @@
+{
+  "module": "control-fix",
+  "plan": "docs/archive/plan/control-fix.md",
+  "contracts": "docs/contracts/control-fix.md",
+  "branch": "feature/control-fix",
+  "copy": "~/deltaplan-control-fix",
+  "created": "2026-10-01T00:00:00",
+  "legacy_journal": "docs/archive/plan/control-fix-progress.md",
+  "migrated_from": "docs/archive/plan/control-fix-progress.md (tools/dp_migrate.py)",
+  "code": "CF"
+}

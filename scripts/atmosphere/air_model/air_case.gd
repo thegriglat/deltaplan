@@ -28,7 +28,7 @@ const NCOL := 12
 const NLEV := 5
 
 ## λ/h — асимптотическая длина перемешивания как доля толщины слоя, λ = max(p.lam, LAM_FRAC·h):
-## совместная калибровка Б1 (Askervein + Perdigão, docs/plan/air_model_b1.md), перевод (б)
+## совместная калибровка Б1 (Askervein + Perdigão, docs/archive/plan/air-model-b1.md), перевод (б)
 ## решения К2: общий λ ≈ 27 м при h_нейтр 1713 м → 0,0158, пол lam 40 м; одинаково с air.py
 ## (Params.lam_frac).
 ## Один источник для решателя (p.lam_frac) и масштаба 3 (FieldTurbulence).
@@ -36,7 +36,7 @@ const LAM_FRAC := 0.0158
 ## Толщина нейтрального слоя h = NEUTRAL_BL_K·u*/f, как air.py (_closure). Литература: 0,2–0,25
 ## (Blackadar & Tennekes 1968; Tennekes 1973), 0,07–0,5 у разных авторов, ≈ 0,6 для «истинно
 ## нейтрального» слоя (Zilitinkevich et al. 2007); λ/h подогнан при 0,3 — данные Askervein задают
-## произведение LAM_FRAC·NEUTRAL_BL_K (docs/air_model_tune.md → AM-09б). Один источник для
+## произведение LAM_FRAC·NEUTRAL_BL_K (docs/research/air-model-tune.md → AM-09б). Один источник для
 ## решателя и масштаба 3.
 const NEUTRAL_BL_K := 0.3
 ## Параметр Кориолиса 51° с. ш., 1/с (air.py Params.f_cor) — только для толщины слоя h.
@@ -51,7 +51,7 @@ const P_IPRT := 20
 var p := {
 	tau_cool = 7200.0,
 	# турбулентное число Прандтля, K_θ = K/Pr_t (все три оси); 0,85 — Kays 1994, решение пользователя
-	# 30.09.2026 (варианты 1,0/0,74/0,95 — docs/plan/air_model_a1.md §1)
+	# 30.09.2026 (варианты 1,0/0,74/0,95 — docs/archive/plan/air-model-a1.md §1)
 	pr_t = 0.85,
 	z0 = Z0,
 	# профиль притока (C2 v4): у случая — WindProfile.apply_to_case (α по устойчивости на час);
@@ -162,7 +162,7 @@ func dims() -> Vector3i:
 	return Vector3i(nx + 2, ny + 2, nz + 2)
 
 
-## Метаданные поля для WindField (docs/air_model.md → «Поле на CPU») + вход термиков из поля
+## Метаданные поля для WindField (docs/guide/air-model.md → «Поле на CPU») + вход термиков из поля
 ## (AM-07, air_thermals.gd): heat — поток тепла по столбцам (ny·nx, Вт/м², как в решении, с
 ## гашением у края), z_i (м над морем; нет — без ключа), gam — dθ̄/dz в центрах nz уровней, u10.
 func meta() -> Dictionary:

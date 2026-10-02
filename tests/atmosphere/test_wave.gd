@@ -1,7 +1,7 @@
 extends TestCase
 ## Волна (VR-27): физика подъёма (WaveField.sample) и лентикуляры (WaveField.crests) —
 ## одно и то же поле, стоят в одном месте. Проверка на синтетическом гребне и на Онгудае.
-## См. docs/plan/atmosphere/06-volna-proverka.md.
+## См. docs/archive/plan/atmosphere/06-volna-proverka.md.
 
 const RIDGE_H := 800.0
 const RIDGE_W := 1500.0

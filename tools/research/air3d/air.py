@@ -516,7 +516,7 @@ class Params:
     zi_min: float = 300.0             # мин. толщина слоя перемешивания над прогретым склоном, м
     pr_t: float = 0.85                # турбулентное число Прандтля, K_θ = K/Pr_t на всех трёх осях (Kays 1994: 0,85).
                                       # Решение пользователя 30.09.2026 (варианты 1,0/0,74/0,95 —
-                                      # docs/plan/air_model_a1.md §1)
+                                      # docs/archive/plan/air-model-a1.md §1)
     heat_mode: str = "cbl"            # cbl — нагрев по толщине слоя перемешивания (нелокальный перенос), surface — в первую клетку
     # численные
     dtau_u: float | None = None       # псевдошаг импульса, с; None — dtau_per_m·Δx (по уровню клипмапа)
@@ -536,7 +536,7 @@ class Params:
     closure: str = "hb"               # hb | const
     local_k: bool = True              # добавка длины перемешивания по местному сдвигу (Прандтль–Блэкадар)
     lam: float = 40.0                 # асимптотическая длина перемешивания λ, м (Блэкадар; HB93 — 30 м)
-    lam_frac: float = 0.0158          # λ = max(lam, lam_frac·h) (0 — выкл.). Б1 (docs/plan/air_model_b1.md, совместная
+    lam_frac: float = 0.0158          # λ = max(lam, lam_frac·h) (0 — выкл.). Б1 (docs/archive/plan/air-model-b1.md, совместная
                                       # калибровка Askervein + Perdigão): общий λ ≈ 27 м, перевод (б) К2 — lam 40 м (пол),
                                       # λ/h = 27/1713 (h_нейтр); до Б1 — 0,25 (AM-09, один Askervein с α 0,17)
     k_relax: float = 0.1              # нижняя релаксация обновления K (численная). А2 (docs/plan/air_model_a2.md): 0,5 → 0,1 —

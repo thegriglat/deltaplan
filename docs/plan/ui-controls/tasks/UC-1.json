@@ -9,7 +9,7 @@
     {
       "name": "У1",
       "version": "2",
-      "ref": "docs/ui-controls_contracts.md"
+      "ref": "docs/contracts/ui-controls.md"
     }
   ],
   "copy": "~/deltaplan-ui-controls-UC-1",

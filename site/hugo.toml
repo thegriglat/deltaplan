@@ -53,6 +53,9 @@ disableKinds = ['taxonomy', 'term']
   # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
   # Порядок важен: сначала более длинные префиксы.
   [[params.repoMap]]
+    content = 'research/archive/plan/'
+    repo = 'docs/archive/plan/'
+  [[params.repoMap]]
     content = 'research/plan/'
     repo = 'docs/plan/'
   [[params.repoMap]]
@@ -219,7 +222,16 @@ disableKinds = ['taxonomy', 'term']
   [[module.mounts]]
     source = '../docs'
     target = 'content/docs'
-    files = ['/*.md']
+    files = ['! INDEX.md', '/*.md']
+
+  [[module.mounts]]
+    source = '../docs/guide'
+    target = 'content/docs/guide'
+    files = ['*.md']
+  [[module.mounts]]
+    source = '../docs/contracts'
+    target = 'content/docs/contracts'
+    files = ['*.md']
 
   # --- Планы: docs/plan/ (README.md → _index.md раздела) ---
   [[module.mounts]]
@@ -230,26 +242,14 @@ disableKinds = ['taxonomy', 'term']
     source = '../docs/plan/README.md'
     target = 'content/research/plan/_index.md'
   [[module.mounts]]
-    source = '../docs/plan/atmosphere/README.md'
-    target = 'content/research/plan/atmosphere/_index.md'
-  [[module.mounts]]
-    source = '../docs/plan/build/README.md'
-    target = 'content/research/plan/build/_index.md'
-  [[module.mounts]]
     source = '../docs/plan/game/README.md'
     target = 'content/research/plan/game/_index.md'
+
+  # --- Архив закрытых планов: docs/archive/plan/ ---
   [[module.mounts]]
-    source = '../docs/plan/tasks/README.md'
-    target = 'content/research/plan/tasks/_index.md'
-  [[module.mounts]]
-    source = '../docs/plan/terrain/README.md'
-    target = 'content/research/plan/terrain/_index.md'
-  [[module.mounts]]
-    source = '../docs/plan/ui/README.md'
-    target = 'content/research/plan/ui/_index.md'
-  [[module.mounts]]
-    source = '../docs/plan/vegetation/README.md'
-    target = 'content/research/plan/vegetation/_index.md'
+    source = '../docs/archive/plan'
+    target = 'content/research/archive/plan'
+    files = ['*.md', '**/*.md']
 
   # --- Исследования и источники: docs/research/ ---
   [[module.mounts]]

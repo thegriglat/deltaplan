@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "instruments"
+updated: "2026-09-27"
+summary: "Звук: ассеты и процедурный синтез (FR-28, FR-29) — Итог: 51 файл, 8,2 МБ в assets/sounds/ (ориентир был ≤ 30 МБ)."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Звук: ассеты и процедурный синтез (FR-28, FR-29)
 
 Итог: 51 файл, 8,2 МБ в `assets/sounds/` (ориентир был ≤ 30 МБ). Всё CC0, кроме двух файлов под CC-BY 4.0 (нужна строка в титрах),

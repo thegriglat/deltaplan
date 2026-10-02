@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита b62b500, копия удалена | b9bef60, 2ad95ea, 82259ed, c96096e; после слияния координатор перегенерировал ТЗ/спецификацию на новых базах W3-01 и пересобрал N1 — 3cef695. `make_3d_tz.py` → `out/wings3d_spec.json` (39 крыльев, сверка с «Что задать» OK, `--check`); `make_new_wings.py <id…>/--existing/--all` — запись формы, конфиг (К4), `ui.csv`, идемпотентно; правки вида — `wings3d_overrides/<id>.json`. N1 icaro_piuma: f 0,996, сваливание 23,9, трим 30,9, L/D 9 (= training), площадь 16,00/16,04, 12 728 треуг.; N24 ww_t2c: f 1,034, сваливание 27,9, трим 37,2, L/D 15 (= sport), 13,39/13,40, 13 268 треуг. DHV Vmin выше сваливания поляры у всех 22 крыльев с данными на 5–30 % (N1 −24 %, N24 −13 %) — на шлюз. Меню: самая длинная группа kingpost — 18 крыльев, 1280×720 прокручивается штатно, правок не нужно. Тесты test_wing_picker/test_wing_catalog — без жёстких списков. Перепроверено: check_models OK, 11 наборов тестов крыльев и test_ui — 0 падений. Кадры — build/screenshots/w3-02/",
+  "commits": [
+    "b9bef60",
+    "2ad95ea",
+    "82259ed",
+    "c96096e",
+    "3cef695"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/wings-models3d-progress.md:9",
+  "dp_feedback": "",
+  "t": "2026-10-01T13:54:19",
+  "by": "dp-engineer",
+  "migrated": true
+}

@@ -134,7 +134,7 @@ $$ \hat w / w_* = (z/z_i)^{1/3} (1 - 1{,}1\, z/z_i) $$
 поля воздуха: максимумы подъёма и схождения потока у земли на этот час, масштаб Дирдорфа — из
 смоделированного потока тепла и высоты слоя перемешивания в конкретной точке. Форма самого пузыря
 (Гедеон/Аллен) и его жизнь остались такими же — подробнее на странице [модели воздуха](/mechanics/air-model/)
-и в [docs/air_model.md](/docs/air_model.md) → «Масштаб 2: термики из поля». Описанная выше таблица опор
+и в [docs/guide/air-model.md](/docs/guide/air-model.md) → «Масштаб 2: термики из поля». Описанная выше таблица опор
 работает как запасной путь, если поле недоступно.
 
 ## Подробнее
@@ -145,7 +145,7 @@ $$ \hat w / w_* = (z/z_i)^{1/3} (1 - 1{,}1\, z/z_i) $$
   погрешностями (§1 «Термики»).
 - [docs/research/xc_reference.md](/docs/research/xc_reference.md) — эталоны маршрутных полётов
   (набор, доля времени в кружении, число термиков на 10 км).
-- [docs/atmosphere.md](/docs/atmosphere.md) — устройство модуля атмосферы, таблица «слова пилота в
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы, таблица «слова пилота в
   числах».
 - [scripts/atmosphere/thermal_field.gd](/scripts/atmosphere/thermal_field.gd),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),

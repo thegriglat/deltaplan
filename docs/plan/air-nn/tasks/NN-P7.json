@@ -1,0 +1,78 @@
+{
+  "id": "NN-P7",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Сборка П-2 в run_pilot.sh: стадии рельефа и набора, smoke П-2, прерывания, пробный замер, оценка полного прогона",
+  "goal": "Одна команда ./run_pilot.sh проводит весь П-2 (рельеф → набор terrain → подготовка → обучение → кривая → оценка → отчёт) с продолжением после прерывания; smoke П-2 на настоящих местах проходит с нуля; по пробному замеру — готовая команда массового счёта с оценкой времени и диска.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П1",
+      "version": "2",
+      "ref": "docs/contracts/air-nn.md"
+    },
+    {
+      "name": "П3",
+      "version": "2",
+      "ref": "docs/contracts/air-nn.md"
+    },
+    {
+      "name": "П6",
+      "version": "1",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-assemble",
+  "branch": "air-nn/assemble",
+  "base": "feature/air-nn",
+  "scope": [
+    "pilot.py / run_pilot.sh: стадии «рельеф» (terrain_cut.py run — уже готово в tiles/v1, стадия должна мгновенно пропускаться по complete) и «набор terrain» (dataset.py run --dataset terrain) перед прежними стадиями; «этап n из N» + одна строка прогресса, лог в файл; status учитывает новые стадии",
+    "configs/dataset.yaml: набор terrain (П1 v2, все места index.csv, n_cond = 12, предел max_outer как у probe, N воркеров = 2) и мини-набор terrain_smoke (4–6 настоящих мест t_* разной крутизны, из них ≥ 1 holdout, × 2 условия); config.yaml: профиль smoke П-2 на настоящем индексе и terrain_smoke вместо подставного NN-P5 (подставной оставить для тестов)",
+    "dataset.py:873 — ожидание воркера после SIGUSR1 с тайм-аутом, затем SIGKILL (замечание ревью NN-P6)",
+    "tests/test_interrupt_pipeline.py: smoke П-2, прерывание на каждой стадии (Ctrl-C и kill -9), повтор той же команды → metrics.json совпадает с непрерванным",
+    "пробный замер на настоящих местах: dataset.py run --dataset probe (6–10 мест П6 разной крутизны × 2 условия) → estimate.py --dataset probe; итог — figures/estimate_p2_full.json: ч GPU набора terrain, доля max, ч обучения (из tests/out/bench_epoch.json NN-P5), ГБ диска (набор + кеш подготовки + прогоны), всего часов; готовая команда полного прогона",
+    "README пилота: запуск П-2 одной командой, время и диск"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель)",
+    "формат tiles/v1 и index.csv (П6), набор main — только чтение",
+    "логика деления/оценки/отчёта (pilotnn/split, evaluate, report) — только вызовы",
+    "массовый счёт (полный dataset.py run --dataset terrain и полный ./run_pilot.sh) НЕ запускать — только smoke и probe",
+    "незакоммиченный симлинк tools/research/air_nn_pilot/.venv"
+  ],
+  "accept": [
+    {
+      "name": "smoke_p2",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/check_report_v2.py --latest-smoke",
+      "expect": "re:ШП-2: (идём в волну 0|правим подход|отказ)"
+    },
+    {
+      "name": "smoke_real_places",
+      "cmd": "cd tools/research/air_nn_pilot && grep -c '^| *t_[0-9]' $(ls -td /home/greg/air_nn_data/pilot/smoke_p2/reports/*/ | head -1)report.md",
+      "expect": "num:^(\\d+) >=4"
+    },
+    {
+      "name": "interrupt_pipeline",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_interrupt_pipeline.py",
+      "expect": "exit=0",
+      "timeout": 7200
+    },
+    {
+      "name": "status",
+      "cmd": "cd tools/research/air_nn_pilot && ./run_pilot.sh status --smoke",
+      "expect": "re:этап"
+    },
+    {
+      "name": "estimate_full",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/air_nn_pilot/figures/estimate_p2_full.json'));print('gpu_h', d['gpu_h_terrain']);print('total_h', d['total_h']);print('disk_gb', d['disk_gb']);print('real', d['probe_real_places'])\"",
+      "expect": "re:real True"
+    }
+  ],
+  "report_extra": [
+    "пробный замер: мест, случаев, с/случай по крутизне, доля max",
+    "оценка полного прогона: ч GPU, ч CPU, ч обучения, ГБ, всего",
+    "готовая команда полного прогона (для пользователя, в tmux)"
+  ],
+  "notes": "Smoke и probe — на настоящих местах tiles/v1 (NN-P4 готово, 345 мест). Предел итераций max_outer = 1000 (NN-P6). GPU — под замком пилота.",
+  "created": "2026-10-03T00:11:24"
+}

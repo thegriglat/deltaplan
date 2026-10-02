@@ -1,7 +1,7 @@
 #!/bin/sh
 # А1.3 (ревью), вторая пачка: варианты диагноза 200 м (по 400 итераций), контроль на air.py до А1,
 # затем GPU-тесты test_air_* и bench 400 м. GPU под замком. Запуск (из этого каталога):
-#   /home/greg/deltaplan/tools/job.sh start a1rev2 5400 sh run_all2.sh
+#   /home/greg/deltaplan/tools/dp job start a1rev2 5400 sh run_all2.sh
 # AIR3D_OLD — каталог с air.py от feature/air-model и ссылками на остальные модули air3d (контроль «до»).
 cd "$(dirname "$0")"
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python

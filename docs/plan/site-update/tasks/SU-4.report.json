@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | 46a8415, cf234b3 (без столбца «Мачта» в группах), слияние e050c2f. `tools/site/gen_wings.py`: раздел + 4 группы + 48 страниц (53 файла); отметки: паспорт 285, аналог 5 (laminar), оценка 467 (из них 336 — числа модели игры). Перепроверено: `--check` rc 0, `check_contracts.py` C1–C3 зелёные, hugo 248 страниц без WARN/ERROR. Скриншоты `build/screenshots/site/SU-4/`",
+  "commits": [
+    "46a8415",
+    "cf234b3"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/site-update-progress.md:11",
+  "dp_feedback": "",
+  "t": "2026-10-01T15:58:34",
+  "by": "dp-engineer",
+  "migrated": true
+}

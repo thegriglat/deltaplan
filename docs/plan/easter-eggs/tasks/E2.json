@@ -1,0 +1,19 @@
+{
+  "id": "E2",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "лайнер и след",
+  "goal": "лайнер и след",
+  "plan_ref": "E2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/world-easter-eggs-progress.md:13",
+  "created": "2026-09-30T03:04:29",
+  "migrated": true
+}

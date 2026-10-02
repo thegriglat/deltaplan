@@ -1,0 +1,19 @@
+{
+  "id": "А1.3",
+  "module": "air-model",
+  "type": "dp-researcher",
+  "title": "Ревью и приёмка А1",
+  "goal": "Ревью и приёмка А1",
+  "plan_ref": "А1.3",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:26",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

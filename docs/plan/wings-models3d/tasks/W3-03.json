@@ -1,0 +1,19 @@
+{
+  "id": "W3-03",
+  "module": "wings-models3d",
+  "type": "dp-engineer",
+  "title": "новые P1, пачка А: N2, N3, N4, N10–N15 (+ строки docs/guide/models.md N1, N24)",
+  "goal": "новые P1, пачка А: N2, N3, N4, N10–N15 (+ строки docs/guide/models.md N1, N24)",
+  "plan_ref": "W3-03",
+  "contracts": [],
+  "copy": "",
+  "branch": "wings3d/w3-03",
+  "base": "feature/wings-models3d",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wings-models3d-progress.md:11",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

@@ -1,5 +1,5 @@
 extends Node
-## AM-08: замеры масштаба 3 с полем и без (docs/air_model.md → «Масштаб 3: возмущения из поля»).
+## AM-08: замеры масштаба 3 с полем и без (docs/guide/air-model.md → «Масштаб 3: возмущения из поля»).
 ## Headless, детерминированно (сид 42, как база AM-00 tools/research/air_model_baseline/probe.gd).
 ##
 ##   godot --headless --path . res://tools/research/air_turb/turb_probe.tscn -- \

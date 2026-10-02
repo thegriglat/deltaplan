@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "game"
+updated: "2026-09-27"
+summary: "Правила маршрутных соревнований (дельтапланеризм) — Кратко — то, что нужно для FR-35. Первоисточники: FAI Sporting Code Section 7A (Cross Country — общие правила, класс 1 = дельтапланы) и Section 7F (XC Scoring — формула GAP, геометрия заданий)."
+related: []
+conclusion: "Доступные очки = 1000 × валидность задания (валидность старта × дистанции × времени)."
+data: ""
+applied_in: ""
+---
 # Правила маршрутных соревнований (дельтапланеризм)
 
 Кратко — то, что нужно для FR-35. Первоисточники: FAI Sporting Code **Section 7A** (Cross Country — общие

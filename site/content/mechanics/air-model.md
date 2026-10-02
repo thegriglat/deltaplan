@@ -110,10 +110,10 @@ description: "Одно физическое поле воздуха вместо
 
 ## Подробнее
 
-- [Модель воздуха в игре](/docs/air_model.md) — главный документ: что работает, законы, числа, границы.
-- [План модели воздуха](/docs/plan/air_model.md) и [журнал работ](/docs/plan/air_model_progress.md) — решения, этапы, закрытие модуля.
-- [Калибровка](/docs/air_model_tune.md), [чувствительность](/docs/air_model_sensitivity.md), [решатель на GPU и окна](/docs/air_model_gpu.md).
-- Калибровка по двум наборам: [Askervein и Perdigão](/docs/plan/air_model_b1.md).
+- [Модель воздуха в игре](/docs/guide/air-model.md) — главный документ: что работает, законы, числа, границы.
+- [План модели воздуха](/docs/plan/air_model.md) и [журнал работ](/docs/archive/plan/air-model-progress.md) — решения, этапы, закрытие модуля.
+- [Калибровка](/docs/research/air-model-tune.md), [чувствительность](/docs/research/air-model-sensitivity.md), [решатель на GPU и окна](/docs/guide/air-model-gpu.md).
+- Калибровка по двум наборам: [Askervein и Perdigão](/docs/archive/plan/air-model-b1.md).
 - [Каталог экспериментальных данных](/docs/research/experimental_data.md); данные [Askervein](/tools/research/data/askervein/README.md) и [Perdigão](/tools/research/data/perdigao/README.md).
 - Исследования: [3D-эталон на рельефе Онгудая](/tools/research/air3d/README.md), [термики из поля](/tools/research/air_thermals/README.md), [болтанка из поля](/tools/research/air_turb/README.md), [прототип 2D](/tools/research/heat_ca/README.md).
 - [Ветер у склона](/mechanics/slope-wind/), [термики](/mechanics/thermals/), [погода](/mechanics/weather/); [исследования и планы](/research/).

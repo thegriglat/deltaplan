@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | 38 конфигов; макс. отклонение модель/паспорт: сваливание 1,0 %, трим 0,4 %, «на себя» 3,0 %, мин. снижение 9,9 %, его скорость 8,1 %, качество 8,4 %; путевая против 6 м/с на триме > 0 у всех 48 (мин. 1,6 м/с, 85 кг); atlas нейтраль 16→8° (запас 4,45°); тесты: wing_passports 4/4, contracts 33/33, flight 84/84, wing_models_contract 4/4",
+  "commits": [
+    "638c0fb",
+    "e9126b0"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/wing-physics-check-progress.md:10",
+  "dp_feedback": "",
+  "t": "2026-10-01T22:25:50",
+  "by": "dp-engineer",
+  "migrated": true
+}

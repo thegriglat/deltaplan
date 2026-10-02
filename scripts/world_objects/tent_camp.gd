@@ -1,6 +1,6 @@
 class_name TentCamp
 extends RefCounted
-## Лагерь пилотов у старта (docs/world_objects.md → «Палатки у старта»): туристические палатки
+## Лагерь пилотов у старта (docs/guide/world-objects.md → «Палатки у старта»): туристические палатки
 ## (купольная 2-местная, туннельная 3-местная, тент-навес; assets/models/world/tents.glb —
 ## tools/blender/build_tents.py, 2 LOD) кучкой на ровном месте в нескольких десятках метров от
 ## старта. Палаток = 1 (игрок) + боты («Другие пилоты в небе», configs/bots.json → count).

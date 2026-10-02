@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (30.09), спит — шлюз: ночи в игре нет | тесты К7 6/6 + свои 2/2 ok (перепроверено); lint чисто; солнце < −12°, cirrus < 0,3, не overcast; раз в ~5 мин тёмного времени, болид 8 %; draws ±1 (шум), медиана GPU −0,08 мс (шум); кадр `01_метеор.jpg` — сумерки 21:00, 3 попытки",
+  "commits": [
+    "c2e20f9"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/world-easter-eggs-progress.md:12",
+  "dp_feedback": "",
+  "t": "2026-09-30T02:42:02",
+  "by": "dp-engineer",
+  "migrated": true
+}

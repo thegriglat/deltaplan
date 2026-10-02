@@ -1,0 +1,19 @@
+{
+  "id": "SU-4",
+  "module": "site-update",
+  "type": "dp-engineer",
+  "title": "генератор страниц",
+  "goal": "генератор страниц",
+  "plan_ref": "SU-4",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/site-update",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/site-update-progress.md:11",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

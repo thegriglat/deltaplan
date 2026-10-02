@@ -1,0 +1,19 @@
+{
+  "id": "WPC-2",
+  "module": "wing-physics-check",
+  "type": "dp-researcher",
+  "title": "ветер у склона",
+  "goal": "ветер у склона",
+  "plan_ref": "WPC-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wing-physics-check",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wing-physics-check-progress.md:9",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

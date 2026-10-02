@@ -1,6 +1,6 @@
 {
   "status": "done",
-  "summary": "`ui.json → controls_help` строка `controls_mouse_bar_wasd` (bar); `locale/ui.csv` новая строка + `controls_run_wing`; `docs/game.md` (абзацы о мыши и разбеге, таблица, строка «сзади — ничего»); `site/content/mechanics/flight.md`; CHANGELOG «В работе». `--filter=ui` 93/5: 4 — `test_u2_*` (ждут UC-3), `test_net_screen::…embedded_vs_remote` — падает и на ветке модуля до UC-4 (порт). hugo собирается. Открыто: экран показывает «W / ↑» у строк трапеции и в режиме bar — фильтр клавиш нужен в коде экрана.",
+  "summary": "`ui.json → controls_help` строка `controls_mouse_bar_wasd` (bar); `locale/ui.csv` новая строка + `controls_run_wing`; `docs/guide/game.md` (абзацы о мыши и разбеге, таблица, строка «сзади — ничего»); `site/content/mechanics/flight.md`; CHANGELOG «В работе». `--filter=ui` 93/5: 4 — `test_u2_*` (ждут UC-3), `test_net_screen::…embedded_vs_remote` — падает и на ветке модуля до UC-4 (порт). hugo собирается. Открыто: экран показывает «W / ↑» у строк трапеции и в режиме bar — фильтр клавиш нужен в коде экрана.",
   "commits": [
     "6fc69a9"
   ],

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Замер FPS (NFR-1) на пресете medium (карточка docs/plan/build/03-zamery-fps-zagruzka.md).
+# Замер FPS (NFR-1) на пресете medium (карточка docs/archive/plan/build/03-zamery-fps-zagruzka.md).
 # Для каждой локации configs/locations/*.json один прогон tools/bench/probe.tscn (--autopilot):
 # на трёх отметках симуляционного времени полёта (старт у склона, высота над лесом, вид на облака)
 # сэмплирует камеры "кабина" и "сзади" по --sample= с, печатает средний и 1%-low FPS.

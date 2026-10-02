@@ -18,6 +18,9 @@ import tempfile
 import time
 from pathlib import Path
 
+DP_VERSION = 7  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
+
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
 EVENT_KINDS = ["started", "reported", "accepted", "merged", "blocked", "cancelled", "note"]
 FINAL = {"accepted", "merged", "cancelled"}
@@ -27,11 +30,32 @@ VERDICTS = ("accept", "rework")
 SEVERITY = {"blocker": "B", "major": "M", "minor": "m"}
 MAX_ISSUES = 7
 DEFAULT_SECTION = "Решения пользователя"
+CODE_RE = re.compile(r"^[A-Z]{2,4}$")
+ID_RE = re.compile(r"^([A-Z]{2,4})-(\d+)[a-z]?$")
+RESERVED_CODES = {"T"}  # T-<n> — реестр TODO.md (всё равно короче 2 букв, но держим явно)
 GODOT_TESTS = "godot --headless --path . res://tests/run_tests.tscn -- --filter={f}"
 
 
 class DpError(Exception):
     pass
+
+
+def maybe_reexec():
+    """Если в главной копии dp новее (DP_VERSION) — перезапуститься из неё (те же аргументы, тот же cwd)."""
+    if os.environ.get("DP_NO_REEXEC") or os.environ.get("DP_REEXECED"):
+        return
+    try:
+        main = Path(MAIN_DP)
+        if not main.is_file() or main.resolve() == Path(__file__).resolve():
+            return
+        m = re.search(r"^DP_VERSION\s*=\s*(\d+)", main.read_text()[:6000], re.M)
+        if not m or int(m[1]) <= DP_VERSION:
+            return
+        print(f"dp: версия {DP_VERSION} старее главной ({m[1]}) — запуск из {MAIN_DP} (DP_NO_REEXEC=1 — отключить)", file=sys.stderr)
+        os.environ["DP_REEXECED"] = "1"
+        os.execv(sys.executable, [sys.executable, str(main)] + sys.argv[1:])
+    except OSError:
+        return
 
 
 def die(msg, code=1):
@@ -162,7 +186,7 @@ def by_default(args):
 def rel(p):
     try:
         return str(Path(p).relative_to(toplevel()))
-    except ValueError:
+    except (ValueError, DpError):
         return str(p).replace(str(Path.home()), "~")
 
 
@@ -189,15 +213,35 @@ def module_meta(mod, home):
     m = read_json(home / "module.json") or {}
     m.setdefault("module", mod)
     m.setdefault("plan", f"docs/plan/{mod}.md")
-    m.setdefault("contracts", f"docs/{mod}_contracts.md")
+    m.setdefault("contracts", f"docs/contracts/{mod}.md")
     m.setdefault("branch", f"feature/{mod}")
     return m
 
 
+def module_codes():
+    """{код: модуль} по module.json всех модулей."""
+    out = {}
+    for m, h in all_modules().items():
+        c = (read_json(h / "module.json") or {}).get("code")
+        if c:
+            out[c] = m
+    return out
+
+
+def check_code(code, mod):
+    if not CODE_RE.match(code) or code in RESERVED_CODES:
+        raise DpError(f"код модуля «{code}»: 2–4 заглавные латинские буквы (T зарезервирован под TODO.md), напр. NN, UC")
+    other = module_codes().get(code)
+    if other and other != mod:
+        raise DpError(f"код {code} уже у модуля {other}")
+
+
 def ensure_module(mod, home, **kw):
+    if kw.get("code"):
+        check_code(kw["code"], mod)
     p = home / "module.json"
     if not p.exists():
-        meta = {"module": mod, "plan": f"docs/plan/{mod}.md", "contracts": f"docs/{mod}_contracts.md",
+        meta = {"module": mod, "plan": f"docs/plan/{mod}.md", "contracts": f"docs/contracts/{mod}.md",
                 "branch": f"feature/{mod}", "copy": f"~/deltaplan-{mod}", "created": now()}
         meta.update({k: v for k, v in kw.items() if v})
         write_json(p, meta)
@@ -235,9 +279,10 @@ def task_states(home):
         tid = ev.get("task")
         if not tid:
             continue
-        s = st.setdefault(tid, {"status": "created", "t": ev.get("t"), "last_t": ev.get("t"), "commits": [], "note": "", "rev": ""})
+        s = st.setdefault(tid, {"status": "created", "t": ev.get("t"), "last_t": ev.get("t"), "commits": [], "note": "", "rev": "", "seen": set()})
         s["last_t"] = ev.get("t")
         k = ev.get("ev")
+        s["seen"].add(k)
         if k in LIFECYCLE and not (k == "checked" and s["status"] in FINAL):
             s["status"] = k
             s["t"] = ev.get("t")
@@ -262,6 +307,18 @@ CARD_TEMPLATE = {
 
 def cmd_task_new(a):
     home = module_home(a.module)
+    if not a.id:
+        code = (read_json(home / "module.json") or {}).get("code")
+        if not code:
+            raise DpError(f"у модуля {a.module} нет кода: dp init {a.module} --code XX (2–4 заглавные буквы), либо задайте ID явно")
+        nums = [int(m[2]) for t in task_cards(home) if (m := ID_RE.match(t)) and m[1] == code]
+        a.id = f"{code}-{max(nums, default=0) + 1}"
+    else:
+        if not ID_RE.match(a.id) or a.id.startswith("T-"):
+            raise DpError(f"ID «{a.id}»: формат <КОД>-<n>[буква], напр. NN-7 или NN-7a (код — 2–4 заглавные латинские; T — TODO.md); без ID — следующий номер")
+        for m, h in all_modules().items():
+            if m != a.module and (h / "tasks" / f"{a.id}.json").exists():
+                raise DpError(f"ID {a.id} уже есть в модуле {m}")
     p = home / "tasks" / f"{a.id}.json"
     if p.exists() and not a.force:
         raise DpError(f"карточка уже есть: {rel(p)} (--force — перезаписать)")
@@ -289,7 +346,7 @@ def cmd_task_new(a):
     for f in a.test or []:
         card["accept"].append({"name": f, "tests": f})
     for name, cmd, exp in a.check or []:
-        card["accept"].append({"name": name, "cmd": cmd, "expect": exp})
+        card["accept"].append({"name": name, "cmd": cmd, "expect": expect_arg(exp)})
     if not card["type"]:
         raise DpError("нужен --type (dp-engineer|dp-researcher|dp-writer|dp-mechanic)")
     ensure_module(a.module, home)
@@ -298,6 +355,16 @@ def cmd_task_new(a):
     add_event(home, a.id, "created", by_default(a), note=card.get("title", ""))
     empty = [k for k in ("goal", "scope", "accept") if not card.get(k)]
     print(f"{a.id}: {rel(p)}" + (f"; пусто: {', '.join(empty)}" if empty else ""))
+
+
+def expect_arg(exp):
+    """EXPECT из командной строки: «{…}» — JSON-объект (составное условие), иначе строка."""
+    if isinstance(exp, str) and exp.lstrip().startswith("{"):
+        try:
+            return json.loads(exp)
+        except json.JSONDecodeError as e:
+            raise DpError(f"expect: неверный JSON-объект ({e})")
+    return exp
 
 
 def fmt_check(c):
@@ -320,6 +387,7 @@ def cmd_task_set(a):
     mod, home = find_task(a.id)
     p = home / "tasks" / f"{a.id}.json"
     card = read_json(p)
+    before = json.loads(json.dumps(card))
     changed = []
     for op in a.ops or []:
         m = re.match(r"^([A-Za-z_][\w]*)(\+=|-=|=)(.*)$", op, re.S)
@@ -348,7 +416,7 @@ def cmd_task_set(a):
         changed.append(key)
     acc = card.setdefault("accept", [])
     for name, cmd, exp in a.check or []:
-        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": exp}]
+        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": expect_arg(exp)}]
         changed.append(f"accept:{name}")
     for f in a.test or []:
         acc[:] = [c for c in acc if c.get("name") != f] + [{"name": f, "tests": f}]
@@ -363,7 +431,9 @@ def cmd_task_set(a):
         raise DpError("нечего менять: поле=значение, --check, --test, --drop-check")
     card["edited"] = now()
     write_json(p, card)
-    add_event(home, a.id, "edited", by_default(a), note=", ".join(changed))
+    diff = {k: [short(json.dumps(before.get(k), ensure_ascii=False), 300), short(json.dumps(card.get(k), ensure_ascii=False), 300)]
+            for k in dict.fromkeys(c.split(":")[0] for c in changed)}
+    add_event(home, a.id, "edited", by_default(a), note=", ".join(changed), diff=diff)
     print(f"{a.id}: изменено — {', '.join(changed)}")
 
 
@@ -373,7 +443,17 @@ def cmd_task_show(a):
     if a.json:
         print(json.dumps(card, ensure_ascii=False, indent=2))
         return
+    if a.diff:
+        evs = [e for e in read_jsonl(home / "events.jsonl") if e.get("task") == a.id and e.get("ev") == "edited"]
+        if not evs:
+            print(f"{a.id}: карточка не менялась после создания")
+        for e in evs:
+            print(f"{hm(e['t'])} ({e.get('by', '-')}) {e.get('note', '')}")
+            for k, (old, new) in (e.get("diff") or {}).items():
+                print(f"    {k}: {old} → {new}")
+        return
     meta = module_meta(mod, home)
+    full = a.full
     L = [f"{card['id']} [{mod}] {card.get('title', '')} — {card.get('type', '')}"]
     if card.get("goal"):
         L.append(f"Цель: {card['goal']}")
@@ -382,19 +462,27 @@ def cmd_task_show(a):
     L.append(f"Копия: {card.get('copy')}  ветка: {card.get('branch')} от {card.get('base')}")
     if card.get("contracts"):
         L.append("Контракты: " + "; ".join(f"{c['name']} v{c.get('version', '?')} ({c.get('ref', '')})" for c in card["contracts"]))
-    if card.get("scope"):
-        L.append("Скоуп: " + ", ".join(card["scope"]))
-    if card.get("dont_touch"):
-        L.append("Не трогать: " + ", ".join(card["dont_touch"]))
+    for key, title in (("scope", "Скоуп"), ("dont_touch", "Не трогать")):
+        items = card.get(key) or []
+        if items and (full or len(items) > 3):
+            L += [f"{title}:"] + [f"  - {x}" for x in items]
+        elif items:
+            L.append(f"{title}: " + "; ".join(items))
     if card.get("accept"):
-        L.append("Приёмка (dp accept " + card["id"] + "):")
+        L.append("Приёмка (dp accept " + card["id"] + "; пробный прогон до отчёта — dp accept " + card["id"] + " --dry):")
         L += [f"  - {fmt_check(c)}" for c in card["accept"]]
     if card.get("notes"):
         L.append(f"Заметки: {card['notes']}")
-    L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила».")
+    L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила» (читать обязательно).")
+    L.append("Долгие запуски — `dp job start <имя> <таймаут_с> <команда…>`, ожидание — `dp job wait <имя>` в фоне (run_in_background), не циклы `until grep`.")
     rx = ", ".join(card.get("report_extra") or [])
     L.append(f"Отчёт: dp report {card['id']} < отчёт.json (dp report --template){'; ещё поля: ' + rx if rx else ''}; "
              f"в конце — обратная связь по dp (поле dp_feedback).")
+    if full:
+        L.append("Копия задачи — своя; чужие не трогать; контракты менять только через координатора; коммиты — только свои файлы "
+                 "(git commit -- <пути>), по-русски, со строкой Claude-Session. Свежая работа соседей — git merge ветки модуля в свою "
+                 f"(dp task sync {card['id']}).")
+        L.append(f"Журнал и карточка: docs/plan/{mod}/ (dp log {card['id']}, dp task show {card['id']} --diff).")
     print("\n".join(L))
 
 
@@ -445,13 +533,28 @@ def cmd_decide(a):
     print(f"{a.module}: {d.get('id', 'решение')} записан{'' if a.ask else 'о'} ({d['by']}){plan_note}")
 
 
+def mark(e):
+    """Хвост строки журнала: пометка unparsed и источник (миграция из старых журналов)."""
+    return (" [unparsed]" if e.get("unparsed") else "") + (f" [{e['src']}]" if e.get("src") else "")
+
+
 def cmd_log(a):
     mod, home, task = resolve_target(a.target)
-    evs = [e for e in read_jsonl(home / "events.jsonl") if task is None or e.get("task") == task]
-    for e in evs[-a.n:]:
-        c = (" " + ",".join(e["commits"])) if e.get("commits") else ""
-        n = (" — " + short(e["note"], 100 if not a.full else 10000)) if e.get("note") else ""
-        print(f"{e['t'][5:16].replace('T', ' ')} {e.get('task') or '·'} {e['ev']} ({e.get('by', '-')}){c}{n}")
+    rows = [(e.get("t", ""), "ev", e) for e in read_jsonl(home / "events.jsonl") if task is None or e.get("task") == task]
+    if not a.no_decisions:
+        rows += [(d.get("t", ""), "dec", d) for d in read_jsonl(home / "decisions.jsonl") if task is None or d.get("task") == task]
+    rows.sort(key=lambda r: r[0])
+    for t, kind, e in rows[-a.n:]:
+        if kind == "ev":
+            c = (" " + ",".join(e["commits"])) if e.get("commits") else ""
+            n = (" — " + short(e["note"], 100 if not a.full else 10000)) if e.get("note") else ""
+            print(f"{t[5:16].replace('T', ' ')} {e.get('task') or '·'} {e['ev']} ({e.get('by', '-')}){c}{n}{mark(e)}")
+        else:
+            tag = ("вопрос " + str(e.get("id", ""))) if e.get("kind") == "question" else (
+                "решение" + (f" (ответ на {e['answers']})" if e.get("answers") else ""))
+            why = f" — почему: {short(e['why'], 100 if not a.full else 10000)}" if e.get("why") else ""
+            print(f"{t[5:16].replace('T', ' ')} {e.get('task') or '·'} {tag} ({e.get('by', '-')}): "
+                  f"{short(e.get('text', ''), 100 if not a.full else 10000)}{why}{mark(e)}")
 
 
 # ---------------------------------------------------------------- accept
@@ -462,6 +565,8 @@ def parse_expect(exp):
     if isinstance(exp, dict):
         return exp
     s = str(exp).strip()
+    if s.startswith("{"):
+        return expect_arg(s)
     if s.startswith("exit="):
         return {"exit": int(s[5:])}
     if s.startswith("!re:"):
@@ -551,6 +656,28 @@ def run_check(c, cwd, logdir, idx, tid):
     return name, ok, val, str(log), dur
 
 
+def accept_bg(a, cwd):
+    """Фоновый прогон (долгие GPU-проверки) через dp job; результат — dp accept тем же процессом, событие пишет он."""
+    skip = {"--bg"}
+    argv, it = [], iter(sys.argv[1:])
+    for x in it:
+        if x in skip:
+            continue
+        if x == "--timeout":
+            next(it, None)
+            continue
+        if x.startswith("--timeout="):
+            continue
+        argv.append(x)
+    name = f"dp-accept-{a.id}"
+    try:
+        job_start(name, a.timeout, [sys.executable, str(Path(__file__).resolve()), *argv, "--cwd", str(cwd)])
+    except DpError as e:
+        die(str(e))
+    print(f"ждать: dp job wait {name} {a.timeout}; итог — в событиях (dp log {a.id}), логи — build/dp/{a.id}")
+    sys.exit(0)
+
+
 def cmd_accept(a):
     mod, home = find_task(a.id)
     card = read_json(home / "tasks" / f"{a.id}.json")
@@ -563,6 +690,8 @@ def cmd_accept(a):
         cwd = str(cp) if cp and cp.is_dir() and not a.here else str(toplevel())
     logdir = toplevel() / "build/dp" / a.id
     logdir.mkdir(parents=True, exist_ok=True)
+    if a.bg:
+        return accept_bg(a, cwd)
     with cf.ThreadPoolExecutor(max_workers=max(1, a.jobs)) as ex:
         res = list(ex.map(lambda ic: run_check(ic[1], cwd, logdir, ic[0], a.id), enumerate(checks, 1)))
     w = max(len(r[0]) for r in res)
@@ -571,12 +700,26 @@ def cmd_accept(a):
     npass = sum(r[1] for r in res)
     allok = npass == len(res)
     print(f"{a.id}: {npass}/{len(res)} в {rel(cwd)}" + ("" if allok else "; логи build/dp/" + a.id))
+    # сводка по всем проверкам карточки: последний результат каждой (для текущего HEAD копии)
+    head = gitr("rev-parse", "--short", "HEAD", cwd=cwd).stdout.strip()
+    resf = logdir / "results.json"
+    store = read_json(resf) or {}
+    for name, ok, val, log, dur in res:
+        store[name] = {"ok": ok, "val": val, "t": now(), "head": head}
+    write_json(resf, store)
+    allnames = [c.get("name") for c in card.get("accept", [])]
+    cur = {n: store[n] for n in allnames if n in store and store[n].get("head") == head}
+    n_ok = sum(1 for v in cur.values() if v["ok"])
+    if a.only or len(cur) < len(allnames):
+        gaps = [f"{n}={'FAIL' if n in cur else ('устарело' if n in store else 'не запускалась')}" for n in allnames if n not in cur or not cur[n]["ok"]]
+        print(f"Сводно по карточке ({head}): {n_ok}/{len(allnames)} PASS" + (f"; нет: {', '.join(gaps)}" if gaps else ""))
     if not a.dry:
-        summ = "; ".join(f"{r[0]}={'ok' if r[1] else 'FAIL'}:{short(r[2], 30)}" for r in res)
-        full_set = not a.only and len(checks) == len(card.get("accept", []))
+        summ = "; ".join(f"{n}={'ok' if cur[n]['ok'] else 'FAIL'}:{short(cur[n]['val'], 30)}" for n in cur)
+        allok_card = n_ok == len(allnames)
+        full_set = allok_card
         need_rev = card.get("type") in REVIEW_TYPES and not a.here and not a.no_review
         kind = "accepted" if allok and full_set and not a.no_accept and not need_rev else "checked"
-        add_event(home, a.id, kind, by_default(a), note=f"{npass}/{len(res)} {summ}", commits=a.commit)
+        add_event(home, a.id, kind, by_default(a), note=f"{n_ok}/{len(allnames)} {summ}", commits=a.commit)
         if allok and full_set and need_rev:
             print(f"{a.id}: PASS → ревью: dp-reviewer (задание: «Ревью задачи {a.id}»), вердикт — dp review {a.id}")
     sys.exit(0 if allok else 1)
@@ -595,6 +738,7 @@ REPORT_TEMPLATE = {
     "how_to_check": "команда или dp accept <ID>",
     "uncertain": [{"where": "файл:строка", "why": "в чём не уверен", "checked": "что уже проверил"}],
     "dp_feedback": "чего не хватило в dp, что неудобно (можно пусто)",
+    "extra": {"своё_число": "свободный объект для своих чисел/таблиц (можно опустить)"},
 }
 
 
@@ -618,6 +762,8 @@ def validate_report(r, card):
     miss = [c["name"] for c in (card or {}).get("accept", []) if c.get("name") not in names]
     if miss and r.get("status") == "done":
         errs.append("нет результатов проверок: " + ", ".join(miss))
+    if "extra" in r and not isinstance(r["extra"], dict):
+        errs.append("extra — объект")
     for k in (card or {}).get("report_extra", []) or []:
         if k not in r:
             errs.append(f"нет поля {k} (report_extra)")
@@ -655,6 +801,9 @@ def cmd_report(a):
                          + (f" (проверил: {short(u.get('checked', ''), 80)})" if u.get("checked") else ""))
             else:
                 L.append("не уверен: " + short(str(u), 200))
+        if isinstance(r.get("extra"), dict) and r["extra"]:
+            L.append("extra: " + short("; ".join(f"{k}={json.dumps(v, ensure_ascii=False) if not isinstance(v, str) else v}"
+                                                 for k, v in r["extra"].items()), 300) + "  (--full — целиком)")
         if r.get("dp_feedback"):
             L.append("dp: " + short(r["dp_feedback"], 200))
         print("\n".join(L))
@@ -798,16 +947,26 @@ def branch_info(br, wt_by_branch):
     return wt_by_branch.get(br, ""), f"{h} {age(dt.datetime.fromtimestamp(int(ts)).isoformat())}"
 
 
+def branch_last_ts(br):
+    """Время последнего коммита ветки, которого нет в main (datetime) или None."""
+    out = git("log", "-1", "--format=%ct", br, "--not", "main", "--")
+    return dt.datetime.fromtimestamp(int(out)) if out.strip().isdigit() else None
+
+
+def state_label(s):
+    return "accepted+merged" if {"accepted", "merged"} <= s.get("seen", set()) else s["status"]
+
+
 def module_status(mod, home, a, lines):
     st = task_states(home)
     cards = task_cards(home)
     for tid in cards:
-        st.setdefault(tid, {"status": "created", "t": None, "last_t": None, "commits": [], "note": "", "rev": ""})
+        st.setdefault(tid, {"status": "created", "t": None, "last_t": None, "commits": [], "note": "", "rev": "", "seen": set()})
     wt = {b: p for p, b in worktrees()}
     meta = module_meta(mod, home)
     cnt = {}
     for s in st.values():
-        cnt[s["status"]] = cnt.get(s["status"], 0) + 1
+        cnt[state_label(s)] = cnt.get(state_label(s), 0) + 1
     mwt, mlast = branch_info(meta["branch"], wt)
     evs = read_jsonl(home / "events.jsonl")
     last_ev = f" | событие {age(evs[-1]['t'])} назад" if evs else ""
@@ -822,13 +981,17 @@ def module_status(mod, home, a, lines):
         bwt, blast = branch_info(br, wt) if br else ("", "")
         old = ""
         if s["status"] not in FINAL and s["last_t"]:
-            mins = (dt.datetime.now() - dt.datetime.fromisoformat(s["last_t"])).total_seconds() / 60
+            last = dt.datetime.fromisoformat(s["last_t"])
+            cts = branch_last_ts(br) if br and branch_exists(br) else None
+            if cts and cts > last:
+                last = cts  # тихо = ни событий, ни коммитов ветки задачи
+            mins = (dt.datetime.now() - last).total_seconds() / 60
             if mins > stale_min:
-                old = f" ⚠тихо {age(s['last_t'])}"
+                old = f" ⚠тихо {age(last.isoformat())}"
         extra = f" {br} {blast}" if blast else ""
         note = f" — {short(s['note'], 60)}" if s["note"] and s["status"] in ("blocked", "checked") else ""
         rv = f" {s['rev']}" if s.get("rev") else ""
-        lines.append(f"  {tid} {s['status']} {age(s['t'])} {card.get('type', '').removeprefix('dp-')}{rv}{extra}{old}{note}")
+        lines.append(f"  {tid} {state_label(s)} {age(s['t'])} {card.get('type', '').removeprefix('dp-')}{rv}{extra}{old}{note}")
     decs = read_jsonl(home / "decisions.jsonl")
     answered = {x.get("answers") for x in decs if x.get("answers")}
     for q in decs:
@@ -849,6 +1012,7 @@ def cmd_status(a):
         for m, h in mods.items():
             module_status(m, h, a, lines)
         feats = [(p, b) for p, b in worktrees() if b.startswith("feature/") and b[8:] not in mods]
+        feats = [(p, b) for p, b in feats if Path(p) != toplevel() and (Path(p) / "docs/plan").is_dir()]
         if feats:
             lines.append("копии без dp: " + ", ".join(b[8:] for p, b in feats))
         if not lines:
@@ -877,7 +1041,9 @@ def plan_headings(text):
 def plan_path(target, contracts=False):
     if target.endswith(".md") or "/" in target:
         path = Path(target)
-        return path if path.is_absolute() else toplevel() / path
+        if path.is_absolute() or path.exists():
+            return path
+        return toplevel() / path
     home = all_modules().get(target) or module_home(target)
     meta = module_meta(target, home)
     f = meta["contracts"] if contracts else meta["plan"]
@@ -1086,7 +1252,7 @@ def cmd_render(a):
         L.append(f"- {e['t'][:16].replace('T', ' ')} {e.get('task') or '—'} **{e['ev']}** ({e.get('by', '-')}){cm}"
                  + (f": {e['note']}" if e.get("note") else ""))
     text = "\n".join(L) + "\n"
-    out = a.out or str(toplevel() / f"docs/plan/{a.module}_progress.md")
+    out = a.out or str(toplevel() / f"docs/plan/{a.module}/journal.md")
     if out == "-":
         sys.stdout.write(text)
         return
@@ -1099,7 +1265,16 @@ def cmd_render(a):
 
 def cmd_init(a):
     home = module_home(a.module)
-    ensure_module(a.module, home, plan=a.plan, contracts=a.contracts, branch=a.branch, copy=a.copy)
+    ensure_module(a.module, home, plan=a.plan, contracts=a.contracts, branch=a.branch, copy=a.copy, code=a.code)
+    if a.legacy or a.code:
+        mp = home / "module.json"
+        m = read_json(mp) or {}
+        if a.legacy:
+            m["legacy_journal"] = a.legacy
+        if a.code:
+            check_code(a.code, a.module)
+            m["code"] = a.code
+        write_json(mp, m)
     print(f"{a.module}: {rel(home)}")
 
 
@@ -1220,12 +1395,29 @@ def dirty(path):
     return [l for l in gitr("status", "--porcelain", "--untracked-files=no", cwd=path).stdout.splitlines() if l.strip()]
 
 
-def do_merge(path, src, msg, ff=True):
+def journal_commit(path):
+    """Журнал dp (docs/plan/<модуль>/) не считается «грязью»: коммитим его своими путями, «<модуль>: журнал dp».
+    → список модулей. Остальные изменения остаются и по-прежнему дают отказ."""
+    out = gitr("status", "--porcelain", "--untracked-files=all", "--", "docs/plan", cwd=path).stdout
+    mods = []
+    for l in out.splitlines():
+        parts = l[3:].strip().strip('"').split("/")
+        if len(parts) >= 4 and parts[:2] == ["docs", "plan"] and parts[2] not in mods:
+            mods.append(parts[2])
+    for m in mods:
+        commit_paths(path, [Path(path) / "docs/plan" / m], f"{m}: журнал dp")
+    return mods
+
+
+def do_merge(path, src, msg, ff=True, trailers=None):
     """merge src в ветку копии path. → (хеш, файлов, 'up-to-date'|'merged'); конфликт → abort + DpError."""
+    jm = journal_commit(path)
+    if jm:
+        print(f"журнал dp закоммичен в {pretty(path)}: {', '.join(jm)}")
     if dirty(path):
         raise DpError(f"копия {pretty(path)} грязная (изменения в отслеживаемых файлах) — отказ")
     before = gitr("rev-parse", "HEAD", cwd=path).stdout.strip()
-    args = ["merge", "--no-edit", "-m", msg] + (["-m", session_line()] if session_line() else []) + ([] if ff else ["--no-ff"]) + [src]
+    args = ["merge", "--no-edit", "-m", msg] + (["-m", session_line()] if session_line() else []) + [x for t in trailers or [] for x in ("-m", t)] + ([] if ff else ["--no-ff"]) + [src]
     r = gitr(*args, cwd=path)
     if r.returncode:
         files = gitr("diff", "--name-only", "--diff-filter=U", cwd=path).stdout.split()
@@ -1254,7 +1446,7 @@ def cmd_module_new(a):
     global _WT
     _WT = None
     home = copy / "docs/plan" / mod
-    ensure_module(mod, home, copy=str(copy).replace(str(Path.home()), "~"))
+    ensure_module(mod, home, copy=str(copy).replace(str(Path.home()), "~"), code=a.code)
     add_event(home, None, "note", by_default(a), note=f"модуль заведён от {a.from_}")
     h = commit_paths(copy, [home], f"{mod}: заведён модуль dp (module.json, events.jsonl)")
     print(f"{mod}: {br} от {a.from_} @ {str(copy).replace(str(Path.home()), '~')}, коммит {h}")
@@ -1265,8 +1457,19 @@ def cmd_sync(a):
     path = copy_of(br)
     if not path:
         raise DpError(f"у ветки {br} нет рабочей копии")
-    h, n, kind = do_merge(path, "main", f"Слияние main в {br}")
+    h, n, kind = do_merge(path, "main", a.message or f"Слияние main в {br}", trailers=a.trailer)
     print(f"{br}: main уже влит" if kind == "up-to-date" else f"{br}: влит main, {h}, файлов {n}")
+
+
+def cmd_task_sync(a):
+    mod, home = find_task(a.id)
+    card = read_json(home / "tasks" / f"{a.id}.json")
+    br, base = card.get("branch"), card.get("base") or f"feature/{mod}"
+    path = copy_of(br) if br else None
+    if not path:
+        raise DpError(f"у ветки задачи {br} нет рабочей копии")
+    h, n, kind = do_merge(path, base, a.message or f"Слияние {base} в {br}", trailers=a.trailer)
+    print(f"{br}: {base} уже влит" if kind == "up-to-date" else f"{br}: влит {base}, {h}, файлов {n}")
 
 
 def cmd_merge(a):
@@ -1275,13 +1478,15 @@ def cmd_merge(a):
     if not path:
         raise DpError(f"ветка {a.into} нигде не выписана — нужна копия, где она открыта")
     subj = gitr("log", "-1", "--format=%s", br, "--").stdout.strip()
-    h, n, kind = do_merge(path, br, f"Слияние {br}: {subj}", ff=False)
+    h, n, kind = do_merge(path, br, a.message or f"Слияние {br}: {subj}", ff=False, trailers=a.trailer)
     out = f"{a.into}: {br} уже влита" if kind == "up-to-date" else f"{a.into} {h}: слияние {br}, файлов {n}"
     if a.push:
         r = gitr("push", "origin", a.into, cwd=path)
         if r.returncode:
             raise DpError(f"{out}; push не удался: {gerr(r)}")
         out += "; pushed"
+    if a.into == "main" and kind != "up-to-date" and not a.no_index:
+        out += "; " + sem_index_bg()
     print(out)
 
 
@@ -1431,6 +1636,438 @@ def cmd_digest(a):
     print("\n".join(L))
 
 
+# ---------------------------------------------------------------- search
+
+def cmd_search(a):
+    """Поиск по карточкам, отчётам, событиям и решениям всех модулей: строка на находку."""
+    if a.sem:
+        a.max = a.max or 10
+        return sem_search(a)
+    a.max = a.max or 30
+    try:
+        rx = re.compile(a.pattern, re.I)
+    except re.error:
+        rx = re.compile(re.escape(a.pattern), re.I)
+    hits = []
+
+    def scan(mod, tid, typ, t, text, src=None, unparsed=None):
+        text = " ".join(str(text).split())
+        m = rx.search(text)
+        if m:
+            lo, hi = max(0, m.start() - 70), min(len(text), m.end() + 90)
+            frag = ("…" if lo else "") + text[lo:hi] + ("…" if hi < len(text) else "")
+            hits.append((str(t or "")[:10], mod, tid or "-", typ + (" unparsed" if unparsed else ""), frag + (f" [{src}]" if src else "")))
+
+    for mod, home in all_modules().items():
+        if a.module and mod != a.module:
+            continue
+        for tid, c in task_cards(home).items():
+            scan(mod, tid, "card", c.get("created"), " | ".join(
+                str(c.get(k, "")) for k in ("title", "goal", "notes", "plan_ref")) + " | " + " ".join(c.get("scope") or [])
+                + " | " + " ".join(f"{x.get('name')}@{x.get('version')}" if isinstance(x, dict) else str(x)
+                                   for x in c.get("contracts") or []), src=c.get("src"))
+            r = read_json(home / "tasks" / f"{tid}.report.json")
+            if r:
+                scan(mod, tid, "report", r.get("t"), " | ".join(
+                    [str(r.get("summary", "")), str(r.get("how_to_check", "")), str(r.get("dp_feedback", ""))]
+                    + [str(x) for x in r.get("not_done") or []]
+                    + [f"{k.get('name')}={k.get('value')}" for k in r.get("checks") or []]))
+        for e in read_jsonl(home / "events.jsonl"):
+            if e.get("note"):
+                scan(mod, e.get("task"), "event:" + str(e.get("ev")), e.get("t"), e["note"], e.get("src"), e.get("unparsed"))
+        for d in read_jsonl(home / "decisions.jsonl"):
+            scan(mod, d.get("task"), d.get("kind", "decision"), d.get("t"), f"{d.get('text', '')} {d.get('why', '')}", d.get("src"), d.get("unparsed"))
+    hits.sort(key=lambda h: (h[0], h[1], h[2]), reverse=True)
+    for d, mod, tid, typ, frag in hits[: a.max]:
+        print(f"{mod} {tid} {typ} {d} — {frag}")
+    if len(hits) > a.max:
+        print(f"… ещё {len(hits) - a.max} (--max N, --module М)")
+    if not hits:
+        print("ничего не найдено")
+
+
+# ---------------------------------------------------------------- sem (index / search --sem)
+
+SEM_CHUNK = 1500
+
+
+def sem_chunks(path, rel, text):
+    """Нарезка markdown по заголовкам, кусок ≤ ~SEM_CHUNK символов с перекрытием."""
+    lines = text.splitlines()
+    secs, cur, title, start = [], [], rel, 1
+    for i, ln in enumerate(lines, 1):
+        if re.match(r"#{1,4}\s", ln) and cur:
+            secs.append((start, title, "\n".join(cur)))
+            cur, start = [], i
+        if re.match(r"#{1,4}\s", ln):
+            title = ln.lstrip("# ").strip()
+        cur.append(ln)
+    if cur:
+        secs.append((start, title, "\n".join(cur)))
+    out = []
+    for st, ti, body in secs:
+        if not body.strip():
+            continue
+        pos = 0
+        while pos < len(body):
+            end = min(len(body), pos + SEM_CHUNK)
+            if end < len(body):
+                nl = body.rfind("\n", pos + SEM_CHUNK // 2, end)
+                end = nl if nl > 0 else end
+            part = body[pos:end]
+            if part.strip():
+                out.append((st + body.count("\n", 0, pos), ti, part))
+            if end >= len(body):
+                break
+            pos = max(end - 200, pos + 1)
+    return out
+
+
+def sem_root():
+    """Главная копия (общий индекс считается по ней, из любой копии)."""
+    cd = git("rev-parse", "--path-format=absolute", "--git-common-dir")
+    return Path(cd).parent if cd else toplevel()
+
+
+def sem_corpus():
+    top = sem_root()
+    files = set()
+    for pat in ("docs/**/*.md", "tools/research/**/README*.md", "tools/research/**/summary*.md",
+                "tools/research/**/reference*.md", "site/content/diary/*.md", "CHANGELOG.md"):
+        files.update(top.glob(pat))
+    items = []
+    for f in sorted(files):
+        rel = str(f.relative_to(top))
+        m = re.match(r"docs/plan/([^/]+)/", rel)
+        txt = f.read_text(encoding="utf-8", errors="replace")
+        sm = re.match(r"---\n(?:.*\n)*?status:\s*\"?(\w+)", txt) if txt.startswith("---\n") else None
+        status = sm.group(1) if sm else ("archive" if rel.startswith("docs/archive/") else "")
+        for st, ti, body in sem_chunks(f, rel, txt):
+            items.append({"id": f"{rel}#{st}", "path": rel, "line": st, "title": ti, "module": m.group(1) if m else "", "text": body,
+                          "status": status})
+
+    def rec(mod, rel, line, kind, title, text):
+        if text.strip():
+            items.append({"id": f"{rel}#{line}", "path": rel, "line": line, "title": f"{kind} {title}".strip(), "module": mod, "text": text})
+
+    for mod, home in all_modules().items():
+        rel0 = f"docs/plan/{mod}"
+        for tid, c in task_cards(home).items():
+            rec(mod, f"{rel0}/tasks/{tid}.json", 1, "card", f"{tid} {c.get('title', '')}", " | ".join(
+                str(c.get(k, "")) for k in ("title", "goal", "notes")) + " | " + " ".join(c.get("scope") or []))
+            r = read_json(home / "tasks" / f"{tid}.report.json")
+            if r:
+                rec(mod, f"{rel0}/tasks/{tid}.report.json", 1, "report", tid, " | ".join(
+                    [str(r.get("summary", "")), str(r.get("how_to_check", "")), str(r.get("dp_feedback", ""))]
+                    + [str(x) for x in r.get("not_done") or []]))
+        for n, e in enumerate(read_jsonl(home / "events.jsonl"), 1):
+            if e.get("note"):
+                rec(mod, f"{rel0}/events.jsonl", n, "event", f"{e.get('ev')} {e.get('task') or ''} {str(e.get('t', ''))[:10]}", e["note"])
+        for n, d in enumerate(read_jsonl(home / "decisions.jsonl"), 1):
+            rec(mod, f"{rel0}/decisions.jsonl", n, d.get("kind", "decision"), f"{d.get('task') or ''} {str(d.get('t', ''))[:10]}",
+                f"{d.get('text', '')} {d.get('why', '')}")
+    return items
+
+
+OLLAMA = "http://localhost:11434/api/embed"
+SEM_DIM = 1024
+SEM_BATCH = 32
+
+
+def ollama_embed(texts):
+    import urllib.request
+    body = json.dumps({"model": "bge-m3", "input": texts, "truncate": True, "keep_alive": "2m"}
+                      | ({"options": {"num_gpu": 0}} if os.environ.get("DP_SEM_CPU") else {})).encode()  # DP_SEM_CPU=1 — только CPU
+    try:
+        req = urllib.request.Request(OLLAMA, body, {"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=600) as r:
+            return json.loads(r.read())["embeddings"]
+    except Exception as e:
+        raise DpError("Ollama не запущен / нет модели: ollama pull bge-m3") from e
+
+
+def sem_norm(v):
+    n = sum(x * x for x in v) ** 0.5 or 1.0
+    return [x / n for x in v]
+
+
+def sem_sync(quiet=False):
+    """Привести общий индекс к корпусу (по хешу текста куска). -> (meta, rows, embedded, removed, dir)."""
+    import fcntl
+    import hashlib
+    import struct
+    idx = Path.home() / ".cache" / "deltaplan_sem" / "main"
+    idx.mkdir(parents=True, exist_ok=True)
+    corpus = list({c["id"]: c for c in sem_corpus()}.values())  # id уникален
+    lock = open(idx / ".lock", "w")
+    fcntl.flock(lock, fcntl.LOCK_EX)  # вторая индексация ждёт первую
+    try:
+        old = {}
+        try:
+            meta = [json.loads(l) for l in (idx / "meta.jsonl").read_text(encoding="utf-8").splitlines()]
+            raw = (idx / "emb.f16").read_bytes()
+            if len(raw) == 2 * SEM_DIM * len(meta):
+                for i, m in enumerate(meta):
+                    old[m["id"]] = (m["h"], raw[i * 2 * SEM_DIM:(i + 1) * 2 * SEM_DIM])
+        except (OSError, ValueError):
+            pass
+        new_meta, rows, todo = [], [], []
+        for c in corpus:
+            h = hashlib.sha1(c["text"].encode()).hexdigest()[:16]
+            if c["id"] in old and old[c["id"]][0] == h:
+                rows.append(old[c["id"]][1])
+            else:
+                rows.append(None)
+                todo.append(len(new_meta))
+            new_meta.append({"id": c["id"], "path": c["path"], "line": c["line"], "title": c["title"], "module": c["module"],
+                             "h": h, "snip": " ".join(c["text"].split())[:400], "status": c.get("status", ""),
+                             "_t": c["title"] + "\n" + c["text"]})
+        removed = len(old) - sum(1 for m in new_meta if m["id"] in old)
+        t0 = time.time()
+        for s0 in range(0, len(todo), SEM_BATCH):
+            idxs = todo[s0:s0 + SEM_BATCH]
+            embs = ollama_embed([new_meta[i]["_t"][:3000] for i in idxs])
+            for i, v in zip(idxs, embs):
+                rows[i] = struct.pack(f"{SEM_DIM}e", *sem_norm(v))
+            if not quiet:
+                print(f"\rиндекс: {min(s0 + SEM_BATCH, len(todo))}/{len(todo)} кусков, {time.time() - t0:.0f} с",
+                      end="", file=sys.stderr, flush=True)
+        if todo and not quiet:
+            print(file=sys.stderr)
+        for m in new_meta:
+            m.pop("_t")
+        if todo or removed or not old:
+            # атомарная замена: читающий поиск видит либо старую, либо новую версию
+            for name, data in (("emb.f16", b"".join(rows)),
+                               ("meta.jsonl", "".join(json.dumps(m, ensure_ascii=False) + "\n" for m in new_meta).encode())):
+                tmp = idx / (name + ".tmp")
+                tmp.write_bytes(data)
+                os.replace(tmp, idx / name)
+        return new_meta, rows, len(todo), removed, idx
+    finally:
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
+
+
+def sem_index_bg():
+    """После слияния в main: dp index отвязанным процессом (лог index.log); без Ollama — предупреждение."""
+    import urllib.request
+    try:
+        urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2).read()
+    except Exception:
+        return "индекс не обновлён: Ollama не запущен"
+    idx = Path.home() / ".cache" / "deltaplan_sem" / "main"
+    idx.mkdir(parents=True, exist_ok=True)
+    log = open(idx / "index.log", "w")
+    subprocess.Popen([sys.executable, os.path.abspath(__file__), "index"], cwd=sem_root(), stdout=log, stderr=log,
+                     stdin=subprocess.DEVNULL, start_new_session=True)
+    return "индекс обновляется в фоне"
+
+
+def cmd_index(a):
+    t0 = time.time()
+    if a.full:
+        for n in ("emb.f16", "meta.jsonl"):
+            (Path.home() / ".cache" / "deltaplan_sem" / "main" / n).unlink(missing_ok=True)
+    meta, rows, n, rm, idx = sem_sync()
+    size = sum(p.stat().st_size for p in idx.glob("*")) / 1e6
+    print(f"индекс {idx}: кусков {len(meta)}, пересчитано {n}, убрано {rm}, {size:.1f} МБ, {time.time() - t0:.0f} с")
+
+
+def sem_search(a):
+    import operator
+    import struct
+    t0 = time.time()
+    meta, rows, n, _, _ = sem_sync(quiet=True)
+    q = sem_norm(ollama_embed([a.pattern])[0])
+    res = []
+    for m, r in zip(meta, rows):
+        if a.module and m["module"] != a.module:
+            continue
+        if a.path and not m["path"].startswith(a.path):
+            continue
+        if not a.all and (m["path"].startswith("docs/archive/") or m.get("status") in ("superseded", "closed", "archive")):
+            continue
+        res.append((sum(map(operator.mul, q, struct.unpack(f"{SEM_DIM}e", r))), m))
+    res.sort(key=lambda x: -x[0])
+    for sc, h in res[: a.max]:
+        sn = h["snip"][:150] + ("…" if len(h["snip"]) > 150 else "")
+        st = f" [{h['status']}]" if h.get("status") else ""
+        print(f"{sc:.2f} {h['path']}:{h['line']}{st} — {h['title']} — {sn}")
+    if not res:
+        print("ничего не найдено")
+    print(f"({time.time() - t0:.0f} с, обновлено кусков: {n})")
+
+
+
+# ---------------------------------------------------------------- job (долгие запуски без опроса по имени процесса)
+
+def job_dir():
+    d = Path(os.environ.get("JOB_DIR") or Path.home() / ".cache" / "deltaplan-jobs")
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def job_files(name):
+    d = job_dir()
+    return d / f"{name}.pid", d / f"{name}.log", d / f"{name}.rc"
+
+
+def job_start(name, limit, cmd):
+    pidf, log, rcf = job_files(name)
+    rcf.unlink(missing_ok=True)
+    d = job_dir()
+    # setsid — своя группа: при таймауте гасится всё дерево; rc пишется всегда (124 — таймаут)
+    pr = subprocess.Popen(["setsid", "bash", "-c", 'timeout -k 30 "$1" "${@:3}" >"$2.log" 2>&1; echo $? >"$2.rc"', "_", str(limit), str(d / name), *cmd],
+                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=False)
+    pidf.write_text(str(pr.pid))
+    print(f"{name}: PID {pr.pid}, лог {log}")
+
+
+def job_alive(pid):
+    try:
+        os.kill(pid, 0)
+        return Path(f"/proc/{pid}").exists() and Path(f"/proc/{pid}/stat").read_text().split()[2] != "Z"
+    except OSError:
+        return False
+
+
+def cmd_job(a):
+    pidf, log, rcf = job_files(a.name) if a.name else (None, None, None)
+    if a.action == "start":
+        if not a.cmd or a.timeout is None:
+            raise DpError("dp job start <имя> <таймаут_с> <команда…>")
+        cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
+        if a.lock:
+            cmd = [sys.executable, str(Path(__file__).resolve()), "lock", a.lock, a.name, "--", *cmd]
+        job_start(a.name, a.timeout, cmd)
+        return
+    if a.action == "status" and not a.name:
+        for f in sorted(job_dir().glob("*.pid")):
+            n = f.stem
+            rc = job_dir() / f"{n}.rc"
+            pid = int(f.read_text() or 0)
+            print(f"{n}: " + (f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if job_alive(pid) else "нет данных"))
+        return
+    if not a.name:
+        raise DpError(f"dp job {a.action} <имя>")
+    if a.action == "wait":
+        try:
+            pid = int(pidf.read_text())
+        except (OSError, ValueError):
+            print(f"{a.name}: не запускался"); sys.exit(2)
+        limit = a.timeout if a.timeout is not None else None
+        if limit is None:
+            raise DpError("dp job wait <имя> <таймаут_с> — таймаут обязателен")
+        r = subprocess.run(["timeout", str(limit), "tail", f"--pid={pid}", "-f", "/dev/null"])
+        if rcf.exists():
+            rc = int(rcf.read_text().strip() or 1)
+            print(f"{a.name}: код {rc}")
+            print("\n".join(log.read_text(errors="replace").splitlines()[-20:]))
+            sys.exit(rc)
+        if not job_alive(pid):
+            print(f"{a.name}: прерван (нет кода выхода — остановлен dp job stop или убит)"); sys.exit(143)
+        print(f"{a.name}: ещё идёт (PID {pid}) — ожидание прервано по таймауту {limit} с")
+        sys.exit(124 if r.returncode == 124 else 3)
+    if a.action == "status":
+        print(f"{a.name}: " + (f"код {rcf.read_text().strip()}" if rcf.exists() else "идёт" if pidf.exists() and job_alive(int(pidf.read_text() or 0)) else "нет данных"))
+        return
+    if a.action == "stop":
+        try:
+            pid = int(pidf.read_text())
+        except (OSError, ValueError):
+            raise DpError(f"{a.name}: не запускался")
+        if not job_alive(pid):
+            print(f"{a.name}: уже не идёт"); return
+        if Path(f"/proc/{pid}").stat().st_uid != os.getuid() or str(job_dir() / a.name) not in Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace"):
+            raise DpError(f"PID {pid} — не наш запуск {a.name}, не трогаю")
+        try:
+            os.killpg(os.getpgid(pid), 15)
+        except OSError:
+            os.kill(pid, 15)
+        print(f"{a.name}: остановлен (PID {pid})")
+
+
+# ---------------------------------------------------------------- lock (общие замки: gpu — один держатель, cpu — N слотов)
+
+GPU_LOCK = "/tmp/heat_ca_gpu.lock"  # тот же файл, что GpuLock пилота (tools/research/air_nn_pilot/dataset.py)
+
+
+def lock_slots(res):
+    if res == "gpu":
+        return [Path(GPU_LOCK)]
+    d = job_dir() / "locks"
+    d.mkdir(parents=True, exist_ok=True)
+    n = int(os.environ.get("DP_CPU_SLOTS") or max(1, (os.cpu_count() or 8) // 8))
+    return [d / f"cpu.{i}.lock" for i in range(n)]
+
+
+def lock_status():
+    import fcntl
+    for res in ("gpu", "cpu"):
+        slots = lock_slots(res)
+        for i, lp in enumerate(slots):
+            f = open(lp, "a")
+            tag = res if res == "gpu" else f"cpu[{i + 1}/{len(slots)}]"
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                print(f"{tag}: свободен")
+            except OSError:
+                try:
+                    x = json.loads(Path(str(lp) + ".info").read_text())
+                    print(f"{tag}: занят — {x['holder']}, PID {x['pid']}, «{x['cmd']}», с {x['since']}, копия {x['cwd']}")
+                except (OSError, ValueError):
+                    print(f"{tag}: занят (держит процесс не через dp lock, например пилот)")
+            finally:
+                f.close()
+
+
+def cmd_lock(a):
+    import fcntl
+    import signal
+    args = list(a.args)
+    if args[:1] == ["status"]:
+        return lock_status()
+    if "--" not in args or len(args) < 4 or args[0] not in ("cpu", "gpu"):
+        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>  |  dp lock status")
+    k = args.index("--")
+    head, cmd = args[:k], args[k + 1:]
+    res, holder, timeout = head[0], head[1], None
+    if "--timeout" in head:
+        timeout = int(head[head.index("--timeout") + 1])
+    if not cmd or len(head) < 2:
+        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>")
+    slots = lock_slots(res)
+    deadline = time.time() + timeout if timeout else None
+    got = None
+    while got is None:
+        for lp in slots:
+            f = open(lp, "a")
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                got = (f, lp)
+                break
+            except OSError:
+                f.close()
+        if got is None:
+            if deadline and time.time() > deadline:
+                print(f"lock {res}: таймаут {timeout} с в ожидании", file=sys.stderr)
+                sys.exit(124)
+            time.sleep(0.2)
+    f, lp = got
+    ip = Path(str(lp) + ".info")
+    ip.write_text(json.dumps({"holder": holder, "pid": os.getpid(), "cmd": " ".join(cmd)[:200], "since": now(), "cwd": os.getcwd()}))
+    child = subprocess.Popen(cmd)
+    for sg in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(sg, lambda sig, _: child.send_signal(sig))
+    try:
+        rc = child.wait()
+    finally:
+        ip.unlink(missing_ok=True)
+        f.close()
+    sys.exit(rc)
+
+
 # ---------------------------------------------------------------- CLI
 
 class Parser(argparse.ArgumentParser):
@@ -1447,12 +2084,14 @@ def build():
     q = sp.add_parser("init", help="завести модуль (module.json); task new делает это сам")
     q.add_argument("module")
     q.add_argument("--plan"); q.add_argument("--contracts"); q.add_argument("--branch"); q.add_argument("--copy")
+    q.add_argument("--code", help="код модуля для ID задач: 2–4 заглавные латинские (NN, UC), уникален")
+    q.add_argument("--legacy", metavar="ПУТЬ", help="ссылка на старый журнал модуля (поле legacy_journal в module.json)")
     q.set_defaults(fn=cmd_init)
 
     t = sp.add_parser("task", help="карточка задачи: new | show | set")
-    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set")
+    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set|sync")
     q = tsp.add_parser("new", help="создать карточку")
-    q.add_argument("module"); q.add_argument("id")
+    q.add_argument("module"); q.add_argument("id", nargs="?", help="<КОД>-<n>[буква]; без ID — следующий номер модуля")
     q.add_argument("--type", help="dp-engineer|dp-researcher|dp-writer|dp-mechanic")
     q.add_argument("--title"); q.add_argument("--goal"); q.add_argument("--plan-ref", dest="plan_ref", help="раздел плана, напр. §UC-3")
     q.add_argument("--copy"); q.add_argument("--branch")
@@ -1466,7 +2105,12 @@ def build():
     q.set_defaults(fn=cmd_task_new)
     q = tsp.add_parser("show", help="карточка для исполнителя (коротко)")
     q.add_argument("id"); q.add_argument("--json", action="store_true")
+    q.add_argument("--full", action="store_true", help="полное задание исполнителю: карточка + правила + заметки, пункты по строке")
+    q.add_argument("--diff", action="store_true", help="как менялась карточка (события edited)")
     q.set_defaults(fn=cmd_task_show)
+    q = tsp.add_parser("sync", help="влить ветку модуля (base) в ветку задачи в её копии")
+    q.add_argument("id"); q.add_argument("--message"); q.add_argument("--trailer", action="append")
+    q.set_defaults(fn=cmd_task_sync)
     q = tsp.add_parser("set", help="правка карточки: поле=значение | поле+=элемент | поле-=элемент (JSON или строка)")
     q.add_argument("id"); q.add_argument("ops", nargs="*", metavar="ПОЛЕ=ЗНАЧ")
     q.add_argument("--check", action="append", nargs=3, metavar=("ИМЯ", "CMD", "EXPECT"), help="добавить/заменить проверку")
@@ -1500,6 +2144,8 @@ def build():
     q.add_argument("--no-review", dest="no_review", action="store_true",
                    help="engineer/researcher: accepted без ревью (по умолчанию PASS → checked, ждёт dp-reviewer)")
     q.add_argument("--full", action="store_true", help="пути логов и для PASS"); q.add_argument("--by")
+    q.add_argument("--bg", action="store_true", help="в фоне через dp job (долгие GPU-проверки); ждать — dp job wait dp-accept-<ID>")
+    q.add_argument("--timeout", type=int, default=3600, metavar="СЕК", help="с --bg: общий таймаут фонового прогона (3600)")
     q.set_defaults(fn=cmd_accept)
 
     q = sp.add_parser("report", help="отчёт исполнителя: dp report ID < r.json | --show | --template")
@@ -1525,6 +2171,7 @@ def build():
     q = sp.add_parser("log", help="последние события модуля или задачи")
     q.add_argument("target", metavar="ID|модуль"); q.add_argument("-n", type=int, default=10)
     q.add_argument("--full", action="store_true")
+    q.add_argument("--no-decisions", dest="no_decisions", action="store_true", help="не показывать решения/вопросы")
     q.set_defaults(fn=cmd_log)
 
     q = sp.add_parser("plan", help="оглавление плана или раздел (номер из оглавления или начало заголовка)")
@@ -1556,14 +2203,18 @@ def build():
     msp = m.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new")
     q = msp.add_parser("new", help="ветка feature/<модуль> + git worktree ~/deltaplan-<модуль> + module.json/events.jsonl")
     q.add_argument("module"); q.add_argument("--from", dest="from_", default="main"); q.add_argument("--by")
+    q.add_argument("--code", help="код модуля для ID задач: 2–4 заглавные латинские (NN, UC), уникален")
     q.set_defaults(fn=cmd_module_new)
 
     q = sp.add_parser("sync", help="влить main в ветку модуля (в её копии)")
     q.add_argument("target", metavar="модуль|ветка")
+    q.add_argument("--message", "-m", help="сообщение слияния вместо стандартного"); q.add_argument("--trailer", action="append", help="доп. строка в конец сообщения (можно несколько)")
     q.set_defaults(fn=cmd_sync)
 
     q = sp.add_parser("merge", help="слияние --no-ff ветки в целевую (в копии, где она выписана)")
     q.add_argument("branch", metavar="ветка|модуль"); q.add_argument("--into", default="main"); q.add_argument("--push", action="store_true")
+    q.add_argument("--no-index", action="store_true", help="не обновлять смысловой индекс в фоне (при слиянии в main)")
+    q.add_argument("--message", "-m", help="сообщение слияния вместо стандартного"); q.add_argument("--trailer", action="append", help="доп. строка в конец сообщения (можно несколько)")
     q.set_defaults(fn=cmd_merge)
 
     q = sp.add_parser("gc", help="копии и ветки, уже влитые в main (список; --remove — удалить)")
@@ -1575,13 +2226,36 @@ def build():
     q.add_argument("--since", default="today", metavar="today|ДАТА|2h")
     q.set_defaults(fn=cmd_digest)
 
-    q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>_progress.md")
+    q = sp.add_parser("search", help="поиск по карточкам, отчётам, событиям, решениям всех модулей (прошлые работы)")
+    q.add_argument("pattern", metavar="текст|regex"); q.add_argument("--module"); q.add_argument("--max", type=int, default=None)
+    q.add_argument("--sem", action="store_true", help="по смыслу (bge-m3 через Ollama; нужен dp index); --max по умолчанию 10")
+    q.add_argument("--path", help="с --sem: префикс пути")
+    q.add_argument("--all", action="store_true", help="с --sem: и docs/archive/**, и документы status: superseded|closed")
+    q.set_defaults(fn=cmd_search)
+
+    q = sp.add_parser("job", help="долгий запуск в фоне: start <имя> <таймаут_с> <команда…> | wait <имя> <таймаут_с> | status [имя] | stop <имя>")
+    q.add_argument("action", choices=["start", "wait", "status", "stop"]); q.add_argument("name", nargs="?")
+    q.add_argument("timeout", nargs="?", type=int); q.add_argument("cmd", nargs=argparse.REMAINDER)
+    q.add_argument("--lock", metavar="cpu|gpu", help="start: выполнять под dp lock cpu|gpu (держатель — имя задачи)")
+    q.set_defaults(fn=cmd_job)
+
+    q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--timeout СЕК] -- <команда…> | lock status; gpu — тот же замок, что у пилота")
+    q.add_argument("args", nargs=argparse.REMAINDER)
+    q.set_defaults(fn=cmd_lock)
+
+    q = sp.add_parser("index", help="смысловой индекс проекта для dp search --sem (вне git, ~/.cache/deltaplan_sem)")
+    q.add_argument("--full", action="store_true", help="пересчитать всё")
+    q.set_defaults(fn=cmd_index)
+
+    q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>/journal.md")
     q.add_argument("module"); q.add_argument("--out", help="путь или - (stdout)"); q.add_argument("--force", action="store_true")
     q.set_defaults(fn=cmd_render)
     return p
 
 
 def main():
+    maybe_reexec()
+    if sys.argv[1:2] == ["docs"]: sys.path.insert(0, str(Path(__file__).resolve().parent)); import dp_docs; sys.exit(dp_docs.main(sys.argv[2:]))  # dp docs — tools/dp_docs.py
     a = build().parse_args()
     try:
         a.fn(a)

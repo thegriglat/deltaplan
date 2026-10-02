@@ -1,0 +1,19 @@
+{
+  "id": "CF-2",
+  "module": "control-fix",
+  "type": "dp-engineer",
+  "title": "Мышь",
+  "goal": "Мышь",
+  "plan_ref": "CF-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/control-fix",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/control-fix-progress.md:56",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

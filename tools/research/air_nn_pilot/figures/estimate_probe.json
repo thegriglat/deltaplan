@@ -1,0 +1,141 @@
+{
+ "dataset": "probe",
+ "p6_fake": true,
+ "p6_dir": "/home/greg/air_nn_data/pilot/tmp/nnp6_fake8",
+ "n_probe_cases": 16,
+ "n_probe_plan": 16,
+ "workers_rate_per_h": 430.9,
+ "gpu_s_per_case": 8.36,
+ "max_frac": 0.375,
+ "max_outer": 1000,
+ "places": [
+  {
+   "loc": "t_0004",
+   "slope_p50": 0.0,
+   "relief_m": 400,
+   "system": "fake_s",
+   "n": 2,
+   "t_wall_mean_s": 2.25,
+   "gpu_s_per_case": 1.15,
+   "max_frac": 0.0,
+   "iters": [
+    112,
+    32
+   ]
+  },
+  {
+   "loc": "t_0005",
+   "slope_p50": 0.0004,
+   "relief_m": 604,
+   "system": "fake_s",
+   "n": 2,
+   "t_wall_mean_s": 3.5,
+   "gpu_s_per_case": 1.79,
+   "max_frac": 0.0,
+   "iters": [
+    132,
+    162
+   ]
+  },
+  {
+   "loc": "t_0007",
+   "slope_p50": 0.0056,
+   "relief_m": 239,
+   "system": "fake_p",
+   "n": 2,
+   "t_wall_mean_s": 18.12,
+   "gpu_s_per_case": 9.25,
+   "max_frac": 0.5,
+   "iters": [
+    122,
+    2002
+   ]
+  },
+  {
+   "loc": "t_0006",
+   "slope_p50": 0.0057,
+   "relief_m": 1023,
+   "system": "fake_p",
+   "n": 2,
+   "t_wall_mean_s": 37.66,
+   "gpu_s_per_case": 19.22,
+   "max_frac": 1.0,
+   "iters": [
+    1592,
+    2002
+   ]
+  },
+  {
+   "loc": "t_0002",
+   "slope_p50": 0.034,
+   "relief_m": 598,
+   "system": "ural",
+   "n": 2,
+   "t_wall_mean_s": 4.58,
+   "gpu_s_per_case": 2.34,
+   "max_frac": 0.0,
+   "iters": [
+    242,
+    182
+   ]
+  },
+  {
+   "loc": "t_0001",
+   "slope_p50": 0.0372,
+   "relief_m": 594,
+   "system": "ural",
+   "n": 2,
+   "t_wall_mean_s": 13.73,
+   "gpu_s_per_case": 7.01,
+   "max_frac": 0.5,
+   "iters": [
+    1012,
+    202
+   ]
+  },
+  {
+   "loc": "t_0000",
+   "slope_p50": 0.1173,
+   "relief_m": 1114,
+   "system": "altai",
+   "n": 2,
+   "t_wall_mean_s": 23.77,
+   "gpu_s_per_case": 12.13,
+   "max_frac": 0.5,
+   "iters": [
+    2002,
+    202
+   ]
+  },
+  {
+   "loc": "t_0003",
+   "slope_p50": 0.2186,
+   "relief_m": 1963,
+   "system": "altai",
+   "n": 2,
+   "t_wall_mean_s": 27.36,
+   "gpu_s_per_case": 13.96,
+   "max_frac": 0.5,
+   "iters": [
+    332,
+    2002
+   ]
+  }
+ ],
+ "mb_per_case": 1.145,
+ "full": {
+  "n_places": 8,
+  "n_cond": 12,
+  "n_cases": 96,
+  "gpu_h": 0.22,
+  "gpu_h_flat": 0.22,
+  "gb": 0.11
+ },
+ "scaled": {
+  "n_places": 345,
+  "n_cases": 4140,
+  "gpu_h": 9.5,
+  "gb": 4.7,
+  "note": "пересчёт на заданное число мест при том же распределении крутизны, что у индекса пробы"
+ }
+}

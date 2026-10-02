@@ -10,7 +10,7 @@
   "branch": "ui-controls/UC-6",
   "base": "feature/ui-controls",
   "scope": [
-    "`docs/game.md`, `site/content/mechanics/flight.md`, CHANGELOG «В работе»."
+    "`docs/guide/game.md`, `site/content/mechanics/flight.md`, CHANGELOG «В работе»."
   ],
   "dont_touch": [],
   "accept": [

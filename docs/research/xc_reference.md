@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "game"
+updated: "2026-09-27"
+summary: "Эталоны маршрутных XC-полётов на дельтаплане (карточка 02) — Ориентиры для сравнения с ботом (tests/atmosphere/xc/, tools/atmosphere/xc_matrix.sh)."
+related: []
+conclusion: "Бот без облаков (--clouds не задан) находит термики хуже: на реальном Онгудае садится через 5–6 км даже в средний день."
+data: ""
+applied_in: ""
+---
 # Эталоны маршрутных XC-полётов на дельтаплане (карточка 02)
 
 Ориентиры для сравнения с ботом (`tests/atmosphere/xc/`, `tools/atmosphere/xc_matrix.sh`). Треки массово не

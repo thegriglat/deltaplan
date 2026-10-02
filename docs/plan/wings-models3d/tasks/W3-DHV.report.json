@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита fe06857, копия удалена | b82b3a9: ключ `about_thanks_dhv` (ru/en) под `about_intro` в `about_screen.gd`; на сайте страницы «Об игре» нет — раздел «Благодарности» на главной `site/content/_index.md` со ссылкой dhv.de; `ui_shot --only=about` (общий ui_shot в копии падал «фон за меню не загрузился» — не разбиралось). test_ui 6/0 (перепроверено). Кадры — build/screenshots/w3-dhv/",
+  "commits": [
+    "b82b3a9"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/wings-models3d-progress.md:10",
+  "dp_feedback": "",
+  "t": "2026-10-01T13:41:26",
+  "by": "dp-writer",
+  "migrated": true
+}

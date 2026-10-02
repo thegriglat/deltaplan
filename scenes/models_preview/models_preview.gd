@@ -1,5 +1,5 @@
 extends Node3D
-## Просмотр моделей из assets/models (docs/models.md): три крыла с пилотом и прибором,
+## Просмотр моделей из assets/models (docs/guide/models.md): три крыла с пилотом и прибором,
 ## собранные так же, как это делает обёртка: pilot.glb — в HangPoint, instrument.glb — в
 ## InstrumentMount (центр штанги), vario_90s.glb — в VarioMount (левая стойка). Запуск со снимком:
 ##   xvfb-run -a godot --path . --rendering-method gl_compatibility \
@@ -80,7 +80,7 @@ func _place_camera(view: String) -> void:
 		"cockpit":
 			var wing := get_node(WINGS[2]) as Node3D
 			var head := wing.find_child("Head", true, false) as Node3D
-			# рекомендация docs/models.md: глаза = Head, взгляд вперёд с наклоном вверх,
+			# рекомендация docs/guide/models.md: глаза = Head, взгляд вперёд с наклоном вверх,
 			# вертикальный FOV ~100°; параметры --pitch=, --fov=, --wing=0..2
 			wing = get_node(WINGS[int(_args.get("wing", "2"))]) as Node3D
 			head = wing.find_child("Head", true, false) as Node3D

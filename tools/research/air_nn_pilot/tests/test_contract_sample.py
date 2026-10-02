@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Контрактный тест П1 «Образец набора пилота» v1 и v2 (docs/air_nn_contracts.md) на готовых случаях набора.
+"""Контрактный тест П1 «Образец набора пилота» v1 и v2 (docs/contracts/air-nn.md) на готовых случаях набора.
 
   .venv/bin/python tests/test_contract_sample.py [--dataset smoke] [--root КАТАЛОГ] [--data-root R] [--max N]
   (или .venv/bin/python -m pytest tests/test_contract_sample.py — набор из AIRNN_P1_DATASET, по умолчанию smoke)
@@ -63,8 +63,12 @@ def check_dir(L, max_cases=0):
     man = json.loads(L.manifest.read_text())
     contract = man["contract"]
     assert contract in ("П1 v1", "П1 v2") and man["solver_version"] == L.dir.parent.name, contract
-    v2 = contract == "П1 v2"
     plan = json.loads(L.plan.read_text())
+    v2 = contract == "П1 v2"
+    region_only = bool(plan.get("region_only"))
+    assert region_only == v2, "П1 v2 — только область (plan.json → region_only)"
+    if v2:
+        assert int(plan["solver"]["max_outer"]) > 0 and man["solver"] == plan["solver"], "предел итераций в plan/manifest"
     assert plan["agl"] == AGL, plan["agl"]
     for loc in plan["places"]:
         assert loc in REAL or re.fullmatch(r"[sp]_\w+", loc) or re.fullmatch(r"t_\d{4}", loc), loc
@@ -73,7 +77,7 @@ def check_dir(L, max_cases=0):
     con = sqlite3.connect(f"file:{L.db}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     meta = dict(con.execute("SELECT key, value FROM meta").fetchall())
-    assert meta["contract"] == contract and meta["solver_version"] == L.dir.parent.name
+    assert meta["contract"] == man["contract"] and meta["solver_version"] == L.dir.parent.name
     rows = con.execute("SELECT * FROM cases WHERE status='done' ORDER BY ord").fetchall()
     assert rows, "нет готовых случаев"
     assert con.execute("SELECT COUNT(*) FROM cases").fetchone()[0] == len(cases)
@@ -89,7 +93,7 @@ def check_dir(L, max_cases=0):
         assert r["loc"] == c["loc"] and json.loads(r["cond"]) == c
         path = L.case_file(cid)
         assert hashlib.sha256(path.read_bytes()).hexdigest() == r["sha256"], f"{cid}: sha256 файла ≠ базы"
-        nw = 0 if v2 else len(plan["centers"][c["loc"]])
+        nw = 0 if region_only else len(plan["centers"][c["loc"]])
         with np.load(path, allow_pickle=False) as z:
             want = {"d400_h": (4, 13, 96, 96), "d400_m": (3, 13, 96, 96), "d400_hc": (96, 96), "d400_H": (96, 96),
                     "d400_hbl": (96, 96)}
@@ -118,6 +122,9 @@ def check_dir(L, max_cases=0):
             assert not any(k[:1] == "w" and k[1:].isdigit() for k in m), f"{cid}: сетка окна в наборе v2"
             assert set(m.get("ctx") or {}) >= {"lat", "lon", "month", "day", "utc_offset_h"}, f"{cid}: ctx"
             assert (m.get("place") or {}).get("part") in ("pool", "holdout") and "system" in m["place"], f"{cid}: place"
+            assert m["ctx"]["utc_offset_h"] == round(m["ctx"]["lon"] / 15.0), cid
+            mo = plan["solver"]["max_outer"]
+            assert m["solver"]["max_outer"] == mo and all(v["iters"] <= mo + 10 for v in m["runs"].values()), cid
     con.close()
     print(f"ok: контракт {contract} — {len(rows)} случаев набора {L.dir.name} ({L.dir})")
     return len(rows)

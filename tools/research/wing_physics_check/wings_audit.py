@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """WPC-1: паспорт против модели. Читает замеры модели (out/model_runs.jsonl от wings_audit_run.gd),
 конфиги крыльев и паспорта (tools/research/data/wing_passports/), пишет:
-  out/wings_audit.csv   — контракт К4 v2 (docs/wing-physics-check_contracts.md)
+  out/wings_audit.csv   — контракт К4 v2 (docs/contracts/wing-physics-check.md)
   out/summary.json      — сводка: группы, расхождения > 10 %, путевая против 6 м/с, отрыв
   out/penetration_est.csv, out/takeoff.csv — подробные таблицы
   out/fig_*.png         — картинки (если есть matplotlib)

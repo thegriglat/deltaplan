@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | Регрессии мыши в коде с v0.8.0 нет (`input_controller.gd`, `camera_rig.gd`, `settings_panel.gd` не менялись; режим по умолчанию `look` с v0.5.0; все Control слоёв F1/F5/F6, Debug Draw 3D, Debug Menu — `mouse_filter = IGNORE`). Найден старый изъян (с v0.5.0): в `bar` смещение мыши копилось на земле и после отрыва разом отклоняло трапецию (до ±1,0) — исправлено в рамках С2 v1. Тест `test_mouse_bar_flight.gd` (4/4): 30 % хода мыши → крен +8,8°/−15,1°, тангаж +10,4°/−7,0° за 1,5 с (v0.8.0 — то же). Перепроверено: `test_mouse_bar` 4/4, `camera_bar` 2/2, `contracts` 34/34, `game` 126/0. `ui`: 1 известное (порт 8080).",
+  "commits": [
+    "6ae229a",
+    "01eeda7"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/control-fix-progress.md:56",
+  "dp_feedback": "",
+  "t": "2026-10-01T20:24:03",
+  "by": "dp-engineer",
+  "migrated": true
+}

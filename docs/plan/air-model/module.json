@@ -1,0 +1,11 @@
+{
+  "module": "air-model",
+  "plan": "docs/plan/air_model.md",
+  "contracts": "docs/contracts/air-model.md",
+  "branch": "feature/air-model",
+  "copy": "~/deltaplan-wf",
+  "created": "2026-09-29T00:00:00",
+  "legacy_journal": "docs/archive/plan/air-model-progress.md",
+  "migrated_from": "docs/archive/plan/air-model-progress.md (tools/dp_migrate.py)",
+  "code": "AM"
+}

@@ -1,5 +1,5 @@
 extends TestCase
-## Контракты модуля start-fixes (docs/start_fixes_contracts.md): форма стыков К1–К4.
+## Контракты модуля start-fixes (docs/contracts/start-fixes.md): форма стыков К1–К4.
 ## Ломается, если формат поменяли без правки контракта.
 
 

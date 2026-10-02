@@ -1,5 +1,5 @@
 extends TestCase
-## NET-30. Кодирование/разбор сообщений (NetMessages) против примеров docs/net_protocol.md:
+## NET-30. Кодирование/разбор сообщений (NetMessages) против примеров docs/guide/net-protocol.md:
 ## каждый блок ```json разбирается, кодируется обратно и сверяется с исходным JSON (как
 ## словари); каждый вариант Envelope из NetMessages.ENVELOPE должен быть среди примеров.
 ## Плюс подстановка умолчаний proto3, мусор и незнакомые варианты.
@@ -27,7 +27,7 @@ func test_doc_examples_round_trip() -> void:
 		var back: Variant = JSON.parse_string(again)
 		check(_same(orig, back), "%s: туда-обратно\n  было:  %s\n  стало: %s" % [ex.header, text, again])
 	for type: String in NetMessages.ENVELOPE:
-		check(seen.has(type), "в docs/net_protocol.md есть пример %s" % type)
+		check(seen.has(type), "в docs/guide/net-protocol.md есть пример %s" % type)
 
 
 ## Блоки ```json lan-announce — LanAnnounce без Envelope (UDP, LanDiscovery).
@@ -154,7 +154,7 @@ func test_vec_quat_helpers() -> void:
 	check(NetMessages.to_quaternion(back.rot).is_equal_approx(q), "rot через провод")
 
 
-## Блоки ```json из docs/net_protocol.md с заголовком #### над ними.
+## Блоки ```json из docs/guide/net-protocol.md с заголовком #### над ними.
 func _doc_examples(fence: String = "```json") -> Array:
 	var f := FileAccess.open(DOC_PATH, FileAccess.READ)
 	check(f != null, "открыт %s" % DOC_PATH)

@@ -1,0 +1,19 @@
+{
+  "id": "SU-1",
+  "module": "site-update",
+  "type": "dp-mechanic",
+  "title": "скриншоты",
+  "goal": "скриншоты",
+  "plan_ref": "SU-1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/site-update",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/site-update-progress.md:8",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

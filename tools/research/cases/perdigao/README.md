@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Случай Perdigão (А4) — C10 v1 → v2 (Б1) — Б1 (01.10.2026): модуль приведён к C10 v2 — общая схема ../scheme.py, сетка/область/губки/профиль притока по общим правилам ../rules.py (dx 30 м, область 6 км, потолок 1748 м над нулём, губки 1050 м / от высшей точки рельефа, m…"
+related: []
+conclusion: ""
+data: "tools/research/cases/perdigao/"
+applied_in: ""
+---
 # Случай Perdigão (А4) — C10 v1 → v2 (Б1)
 
 **Б1 (01.10.2026):** модуль приведён к C10 v2 — общая схема `../scheme.py`, сетка/область/губки/профиль притока по
@@ -7,7 +18,7 @@ max_profile по z_sat = 0,3·h), U10 фона по правилу «модел�
 (`trial.py`, `out/trial_runs.jsonl`, 1-й порядок, k_relax 0,5) — история, по v2 не проходит; контроль v2 — `../b1/`.
 
 Модуль случая калибровки `tools/research/cases/perdigao.py` (`NAME = "pd"`, `SUBCASES = ["ne", "sw"]`) и его
-скрипты. Постановка, решения и границы — `docs/plan/air_model_a4.md`. Контракт — `docs/air_model_contracts.md`,
+скрипты. Постановка, решения и границы — `docs/archive/plan/air-model-a4.md`. Контракт — `docs/contracts/air-model.md`,
 «C10 v1». Решатель (`tools/research/air3d/air.py`, `solver.py`) не менялся.
 
 | Файл | Что |
@@ -27,7 +38,7 @@ PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 uv pip install --python $PY brotli tifffile imagecodecs pyproj          # один раз
 cd perdigao
 $PY terrain.py                      # сеть: тайлы Copernicus N39W008 и WorldCover N39W009 (кеш ~/.cache/deltaplan_terrain)
-/home/greg/deltaplan/tools/job.sh start a4-trial 4000 $PY trial.py      # 14 прогонов; ~25 мин при занятом GPU
+/home/greg/deltaplan/tools/dp job start a4-trial 4000 $PY trial.py      # 14 прогонов; ~25 мин при занятом GPU
 $PY table.py; $PY figs.py
 cd ..; $PY check_c10.py perdigao perdigao/out/trial_runs.jsonl          # контрактный тест, без GPU
 ```

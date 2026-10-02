@@ -60,7 +60,7 @@ extends RefCounted
 ##                         рывки кадра > 50 мс, сборка шейдеров облаков) и выходит
 ##   --air-field=<путь>    отладка поля воздуха (AM-05): среднее поле из файла (<путь>.json +
 ##                         .bin, WindField.load_file) вместо аналитики; читает Atmosphere
-##                         (configs/atmosphere.json → air_model.enabled ≠ off), docs/air_model.md
+##                         (configs/atmosphere.json → air_model.enabled ≠ off), docs/guide/air-model.md
 
 var smoke := false
 var autostart := false

@@ -1,0 +1,19 @@
+{
+  "id": "E0",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "каркас",
+  "goal": "каркас",
+  "plan_ref": "E0",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/world-easter-eggs-progress.md:10",
+  "created": "2026-09-30T01:54:22",
+  "migrated": true
+}

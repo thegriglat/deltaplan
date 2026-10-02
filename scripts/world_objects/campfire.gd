@@ -1,6 +1,6 @@
 class_name Campfire
 extends Node3D
-## Костёр в лагере пилотов (docs/world_objects.md → «Костёр»): кольцо камней, поленья, язычки
+## Костёр в лагере пилотов (docs/guide/world-objects.md → «Костёр»): кольцо камней, поленья, язычки
 ## пламени (GPUParticles3D), дешёвый мерцающий свет и дым (GPUParticles3D,
 ## smoke_particles.gdshader).
 ## Дым сносит ЛОКАЛЬНЫЙ ветер модели (Atmosphere.air_velocity_at у костра, у земли и выше):

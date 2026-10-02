@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | тесты пасхалок 40/40 на ветке модуля (после `--import`); lint чисто; `_set` → `_set_part` (совпадало с `Object._set`); форс без лагеря — жива, пуста; `tent_gap_m` 1,5 → 3 м; кадры `08_люди.jpg` (люди точками), `08_люди_зум.jpg` (координатор, `--fov=8`: фигурки у палаток видны)",
+  "commits": [
+    "7956dd0",
+    "186d9b3"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/world-easter-eggs-progress.md:19",
+  "dp_feedback": "",
+  "t": "2026-10-01T16:40:31",
+  "by": "dp-engineer",
+  "migrated": true
+}

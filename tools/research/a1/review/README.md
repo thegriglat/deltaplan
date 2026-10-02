@@ -1,6 +1,17 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "А1.3 — ревью структурных правок решателя воздуха (А1.2) — Воспроизведение (из этого каталога; venv с CuPy — tools/research/morris/README.md): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python /home/greg/deltaplan/tools/dp job start a1rev 3600 sh run_all.sh # …"
+related: []
+conclusion: ""
+data: "tools/research/a1/review/"
+applied_in: ""
+---
 # А1.3 — ревью структурных правок решателя воздуха (А1.2)
 
-План — `docs/plan/air_model_a1.md`; правки А1.2 — ветка `air/a1` (026cb71…5aceaa3), дифф
+План — `docs/archive/plan/air-model-a1.md`; правки А1.2 — ветка `air/a1` (026cb71…5aceaa3), дифф
 `git diff feature/air-model...air/a1`. Здесь — скрипты и числа перепроверки приёмки (1)–(5) и диагноз
 несходимости эталона `picard/` 200 м, 3 м/с с нагревом. Решатели не правились.
 
@@ -15,9 +26,9 @@
 Воспроизведение (из этого каталога; venv с CuPy — `tools/research/morris/README.md`):
 ```bash
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
-/home/greg/deltaplan/tools/job.sh start a1rev 3600 sh run_all.sh        # (1)–(3), Онгудай, (4) Askervein, diag base32/base64
+/home/greg/deltaplan/tools/dp job start a1rev 3600 sh run_all.sh        # (1)–(3), Онгудай, (4) Askervein, diag base32/base64
 AIR3D_OLD=<каталог с air.py от feature/air-model + ссылки на прочие *.py air3d> \
-  /home/greg/deltaplan/tools/job.sh start a1rev2 5400 sh run_all2.sh    # варианты diag, tools/gpu_tests.sh --filter=test_air_, bench 400 м
+  /home/greg/deltaplan/tools/dp job start a1rev2 5400 sh run_all2.sh    # варианты diag, tools/gpu_tests.sh --filter=test_air_, bench 400 м
 flock /tmp/heat_ca_gpu.lock $PY diag200.py krelax25 400
 python3 diag_table.py
 # headless: XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=test_air_contracts   (и --filter=test_air_)

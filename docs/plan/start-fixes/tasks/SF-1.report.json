@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (30.09) | К1 v2: `Terrain.add_start_clearing(x, z, r)` синхронный, `surface_revision`, `get_start_clearings()`, `TerrainRenderer.refresh_surface`; только FOREST → GRASS (кусты/трава/камни остаются). L_run (штиль, 12°): sport 71,9 м / combat 69,9 м (weak_run за 10 с), остальные 13–18 м, atlas — nose_high 1,2 с → R = 160 м (2×71,9 = 144, запас 10 %); встроенные старты: 70 м лес+кусты как было, до 160 м — только лес. Поляна 0,3–0,4 мс (карта), 5–10 мс (Онгудай с маской). Перепроверено: start_ 13/13, vegetation 21/21, game 116/116, terrain 62/63 (`test_forest_mask_loaded` 0,61 с > 0,5 — порог времени, падает и без задачи). Скриншоты: трава на поляне есть, деревьев нет; кусты стоят на пути разбега — вопрос пользователю",
+  "commits": [
+    "6db17c5",
+    "dbdbf59"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/start-fixes-progress.md:21",
+  "dp_feedback": "",
+  "t": "2026-09-30T15:54:05",
+  "by": "dp-engineer",
+  "migrated": true
+}

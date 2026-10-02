@@ -1,0 +1,19 @@
+{
+  "id": "W3-02",
+  "module": "wings-models3d",
+  "type": "dp-engineer",
+  "title": "шаблон новой модели (К3, К4), проба N1/N24",
+  "goal": "шаблон новой модели (К3, К4), проба N1/N24",
+  "plan_ref": "W3-02",
+  "contracts": [],
+  "copy": "",
+  "branch": "wings3d/w3-02",
+  "base": "feature/wings-models3d",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wings-models3d-progress.md:9",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

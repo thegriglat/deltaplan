@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (30.09) | тест К7 6/6 ok (перепроверено на ветке модуля); база без пасхалок побитно = да; B (проба ×2) = A побитно; lint чисто; кадр `00_проба.jpg`; GPU проба 8,71 / база 9,50 мс — шум ~1 мс",
+  "commits": [
+    "234592c"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/archive/plan/world-easter-eggs-progress.md:10",
+  "dp_feedback": "",
+  "t": "2026-09-30T01:55:22",
+  "by": "dp-engineer",
+  "migrated": true
+}

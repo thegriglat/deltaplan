@@ -9,7 +9,12 @@
    нет недописанных *.part, лишних файлов нет; контрактный тест на обоих корнях.
 Итог — tests/out/interrupt_result.json. Убивает только процессы, которые запустил сам (по PID).
 
-  .venv/bin/python tests/test_interrupt.py [--seed N] [--keep]
+Режим --workers (NN-P6): набор `chaos_t` (П1 v2, только область, 8 случаев на подставном каталоге П6
+tests/make_fake_p6.py), счёт двумя воркерами (--workers 2). kill -9 — запускающему (воркеры умирают по PDEATHSIG;
+проверяется, что workers.lock освобождается), SIGINT — запускающему (воркерам SIGUSR1 — бросить случай, код 2).
+Итог — tests/out/interrupt_workers.json.
+
+  .venv/bin/python tests/test_interrupt.py [--seed N] [--keep] [--workers]
 """
 from __future__ import annotations
 
@@ -34,15 +39,36 @@ import test_contract_sample as TC  # noqa: E402
 PY = str(HERE / ".venv/bin/python")
 NAME = "chaos"
 PAUSE = 2.0
+MODE = dict(extra=[], env={})   # --workers: набор chaos_t, --workers 2, AIRNN_P6_DIR
 
 
 def run_cmd(root, log, extra_env=None):
     env = dict(os.environ)
     env.pop("AIR_NN_DATA", None)
+    env.update(MODE["env"])
     if extra_env:
         env.update(extra_env)
     return subprocess.Popen([PY, str(HERE / "dataset.py"), "run", "--dataset", NAME, "--data-root", str(root),
-                             "--log", str(log)], cwd=HERE, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+                             "--log", str(log), *MODE["extra"]], cwd=HERE, env=env, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.PIPE)
+
+
+def workers_lock_free(L, timeout=20.0):
+    """После kill -9 запускающего его воркеры должны умереть (PDEATHSIG) — workers.lock свободен."""
+    import fcntl
+    p = L.tmp / "workers.lock"
+    if not p.exists():
+        return True
+    t0 = time.time()
+    with open(p, "a") as f:
+        while time.time() - t0 < timeout:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(f, fcntl.LOCK_UN)
+                return True
+            except BlockingIOError:
+                time.sleep(0.2)
+    return False
 
 
 def wait_marker(proc, log, pat, start_at, timeout=1800, nth=1):
@@ -67,13 +93,21 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=int(time.time()) % 100000)
     ap.add_argument("--keep", action="store_true")
+    ap.add_argument("--workers", action="store_true", help="режим воркеров: chaos_t (П1 v2, подставной П6), --workers 2")
     a = ap.parse_args()
+    global NAME
     rnd = random.Random(a.seed)
     cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
-    base = Path(os.environ.get("AIR_NN_DATA") or cfg["data_root"]) / "pilot" / "tmp" / f"chaos_{os.getpid()}"
+    base = Path(os.environ.get("AIR_NN_DATA") or cfg["data_root"]) / "pilot" / "tmp" / \
+        f"chaos{'_w' if a.workers else ''}_{os.getpid()}"
     ref_root, run_root = base / "ref", base / "run"
     logs = base / "logs"
     logs.mkdir(parents=True, exist_ok=True)
+    if a.workers:
+        import make_fake_p6 as FP
+        NAME = "chaos_t"
+        FP.make(base / "p6", ["altai", "askarovo", "p_000", "s_hill"])
+        MODE.update(extra=["--workers", "2"], env={"AIRNN_P6_DIR": str(base / "p6")})
     steps = []
     t_all = time.time()
 
@@ -109,6 +143,8 @@ def main():
         if how == "kill9":
             os.kill(p.pid, signal.SIGKILL)
             rc = p.wait()
+            if a.workers:
+                assert workers_lock_free(DS.Layout(cfg, run_root, NAME)), "воркеры пережили kill -9 запускающего"
         else:
             os.kill(p.pid, signal.SIGINT)
             rc = p.wait(timeout=120)
@@ -159,12 +195,13 @@ def main():
                recovered_lines=[ln for ln in log.read_text().splitlines() if "продолжение:" in ln])
     ok = (not diff and not missing and not extra and st == {"done": len(ids)} and dup == 0 and not bad_sha and not parts)
     res["ok"] = ok
-    out = HERE / "tests/out/interrupt_result.json"
+    res["mode"] = "workers (chaos_t, --workers 2)" if a.workers else "in-process (chaos)"
+    out = HERE / ("tests/out/interrupt_workers.json" if a.workers else "tests/out/interrupt_result.json")
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n")
     print(json.dumps(res, ensure_ascii=False, indent=1))
     if ok and not a.keep:
-        shutil.copy(log, HERE / "tests/out/interrupt_run.log")
+        shutil.copy(log, HERE / ("tests/out/interrupt_workers_run.log" if a.workers else "tests/out/interrupt_run.log"))
         shutil.rmtree(base)
     print("ИТОГ:", "ok — набор после прерываний побитно равен непрерванному" if ok else "ПРОВАЛ")
     _ = tail

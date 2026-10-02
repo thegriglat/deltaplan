@@ -1,7 +1,7 @@
 # Данные пилота air-nn (`$AIR_NN_DATA/pilot/`)
 
 Пишется генератором набора `tools/research/air_nn_pilot/dataset.py` (NN-P1); правила — `docs/plan/air_nn.md` §4.4–4.6,
-формат случая — `docs/air_nn_contracts.md`, контракт П1. Руками здесь ничего не правится: всё делают скрипты.
+формат случая — `docs/contracts/air-nn.md`, контракт П1. Руками здесь ничего не правится: всё делают скрипты.
 
 ```
 pilot/

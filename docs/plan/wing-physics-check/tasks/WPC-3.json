@@ -1,0 +1,19 @@
+{
+  "id": "WPC-3",
+  "module": "wing-physics-check",
+  "type": "dp-engineer",
+  "title": "пачка полётов",
+  "goal": "пачка полётов",
+  "plan_ref": "WPC-3",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wing-physics-check",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/archive/plan/wing-physics-check-progress.md:11",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

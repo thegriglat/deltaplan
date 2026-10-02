@@ -1,6 +1,6 @@
 class_name EasterEggs
 extends Node3D
-## Планировщик пасхалок (docs/easter_eggs_contracts.md → К1, К4, К5, К6). Узел Game/EasterEggs.
+## Планировщик пасхалок (docs/contracts/easter-eggs.md → К1, К4, К5, К6). Узел Game/EasterEggs.
 ## Ход — кадром (_process → update), не из шага физики. Только в полёте; время — Game.world_time().
 ## Расписание — чистая функция (ключ мира, id, окно): любой шаг кадра и прыжок времени дают то же.
 ## Планировщик ничего не пишет в игру: он только читает контекст и держит своих детей.

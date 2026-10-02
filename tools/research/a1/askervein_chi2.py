@@ -3,7 +3,7 @@ runs-файла recal (без интерполяции) — рецепт при�
 
   PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
   $PY askervein_chi2.py [../recal/out/runs_check25.jsonl]
-Опорное: check25 (λ/h 0,0307, α 0,2346, z0 0,09) — χ² 68,15 (docs/air_model_tune.md, «Перекалибровка»).
+Опорное: check25 (λ/h 0,0307, α 0,2346, z0 0,09) — χ² 68,15 (docs/research/air-model-tune.md, «Перекалибровка»).
 """
 from __future__ import annotations
 

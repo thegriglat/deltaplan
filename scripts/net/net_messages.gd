@@ -2,10 +2,10 @@ class_name NetMessages
 extends RefCounted
 ## Кодирование и разбор сообщений сетевой игры: Envelope ↔ (тип, данные).
 ##
-## Источник правды — server/proto/deltaplan/v1/net.proto (описание: docs/net_protocol.md).
+## Источник правды — server/proto/deltaplan/v1/net.proto (описание: docs/guide/net-protocol.md).
 ## Таблицы MESSAGES/ENUMS/ENVELOPE ниже — ручное зеркало net.proto: новое поле или сообщение
 ## в .proto нужно добавить и сюда (тест tests/net/test_messages.gd проверяет все примеры
-## из docs/net_protocol.md).
+## из docs/guide/net-protocol.md).
 ##
 ## Формат на проводе — proto3 JSON (как Go protojson). Все его особенности — только здесь:
 ##   - ключи lowerCamelCase — и в данных GDScript те же ключи ("pilotId", "joinOrder");

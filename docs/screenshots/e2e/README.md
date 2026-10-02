@@ -1,3 +1,11 @@
+---
+type: "reference"
+status: "active"
+module: ""
+updated: "2026-10-01"
+summary: "Скриншоты 12-02 — сквозной тест свободного полёта — Кадры сняты tools/shots/e2e.sh (драйвер tools/shots/e2e_shot.gd/.tscn): та же цепочка, что в tests/game/test_e2e.gd — меню → «Полёт…» → выбор локации/старта → «Лететь» → разбег W+Shift (Autopilot) → полёт по курсу от склона → с…"
+related: []
+---
 # Скриншоты 12-02 — сквозной тест свободного полёта
 
 Кадры сняты `tools/shots/e2e.sh` (драйвер `tools/shots/e2e_shot.gd`/`.tscn`): та же цепочка, что

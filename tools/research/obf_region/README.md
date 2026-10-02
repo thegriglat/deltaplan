@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-09-30"
+summary: "Эксперимент: состав OsmAnd OBF региона — К документу docs/plan/offline_world_data.md (раздел «Почему не OsmAnd OBF»)."
+related: []
+conclusion: ""
+data: "tools/research/obf_region/"
+applied_in: ""
+---
 # Эксперимент: состав OsmAnd OBF региона
 
 К документу `docs/plan/offline_world_data.md (раздел «Почему не OsmAnd OBF»)`.

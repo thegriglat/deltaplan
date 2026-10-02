@@ -88,9 +88,15 @@ def level_meta(S):
     return dict(dx=g.dx, dz=g.dz, x0=g.x0, y0=g.y0, nx=g.nx, ny=g.ny, nz=g.nz, z_bot=g.z_bot)
 
 
-def solve_case(c, centers):
+def solve_case(c, centers, max_outer=None):
     """Тело run_case air-lite без записи: → (метаданные случая как строка runs.jsonl без статуса/времени,
-    {ключ: массив float16} в порядке air-lite)."""
+    {ключ: массив float16} в порядке air-lite).
+
+    centers = [] — только область (набор terrain, П1 v2): окна решаются после области и её не меняют, поэтому
+    d400_* те же, что с окнами (tests/test_region_only.py). max_outer — предел внешних итераций каждого решения
+    (None — как air-lite, ref_study.MAXIT = 3000); решение с пределом — то же поле, что полное в момент предела
+    (итерации детерминированы), статус «max», если не сошлось (NN-P6, tests/out/maxcap.json)."""
+    mo = RS.MAXIT if max_outer is None else int(max_outer)
     loc = c["loc"]
     res = dict(runs={})
     arrays = {}
@@ -98,7 +104,7 @@ def solve_case(c, centers):
         g, hc = R.grid_domain(loc, 400)
         cond = R.case(loc, g, hc, c["hour"], c["U10"], c["wdir"], c["t_max"], c["sky"], heat)
         D = R.make(loc, g, hc, cond)
-        r = RS.solve(D)
+        r = RS.solve(D, max_outer=mo)
         res["runs"][f"d400_{tag}"] = {k: r[k] for k in ("status", "iters", "t_solve", "t_init")}
         sl = slices(D)
         arrays[f"d400_{tag}"] = sl if heat else sl[:3]
@@ -113,7 +119,7 @@ def solve_case(c, centers):
             gw, hw = grid_window(loc, 100, ctr)
             cw = R.case(loc, gw, hw, c["hour"], c["U10"], c["wdir"], c["t_max"], c["sky"], heat)
             Wn = R.make(loc, gw, hw, cw, parent=D)
-            r = RS.solve(Wn)
+            r = RS.solve(Wn, max_outer=mo)
             res["runs"][f"w{iw}_{tag}"] = {k: r[k] for k in ("status", "iters", "t_solve", "t_init")}
             sl = slices(Wn)
             arrays[f"w{iw}_{tag}"] = sl if heat else sl[:3]
