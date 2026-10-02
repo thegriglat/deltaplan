@@ -56,7 +56,7 @@ eval:
   ort_threads: [4, 1]
   ort_repeats: 20
   max_train_eval: 60                         # обучающих случаев в оценке «учится ли»
-  n_slice_figures: {holdout_sys: 2, holdout_place: 1, newcond: 1, holdout_proc: 1}
+  n_slice_figures: {holdout_sys: 2, holdout_place: 1, newcond_p6: 1, newcond_old: 1, holdout_proc: 1}
   # точки, «ок» и смещение (контракт П3 v2)
   wind_ok_ms: 0.3                            # ветер «ок»: |Δ(u,v)| ≤ max(wind_ok_ms; wind_ok_rel·|V_решателя|)
   wind_ok_rel: 0.10
@@ -115,6 +115,6 @@ profiles:
       max_epochs: 5
     eval:
       ort_repeats: 10
-      n_slice_figures: {holdout_sys: 1, holdout_place: 1, newcond: 1, holdout_proc: 1}
+      n_slice_figures: {holdout_sys: 1, holdout_place: 1, newcond_p6: 1, holdout_proc: 1}
       shp2:
         bin_min_cases: 3                     # smoke: малый набор — проверка ветки корзин U10
