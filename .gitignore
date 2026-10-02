@@ -26,3 +26,6 @@ tools/research/data/wing_passports/raw/
 tools/research/data/wing_passports/out/text/
 tools/research/data/wing_passports/out/*.jsonl
 tools/research/data/wing_passports/out/*.log
+
+# dp: метки чтения inbox (у каждого читателя своя)
+docs/plan/*/.read_*
