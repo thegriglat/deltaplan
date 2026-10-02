@@ -810,6 +810,8 @@ def ref_features(ctx: Ctx):
         return json.loads(p.read_text())
     sys.path.insert(0, str(HERE))
     import places as PL
+    import procedural as PR
+    PR.configure(yaml.safe_load((HERE / "configs/dataset.yaml").read_text())["plan"]["proc_seed"])  # как набор main
     out = {}
     names = ["ongudai", "altai", "aushkul", "askarovo"] + [f"p_{k:03d}" for k in range(40)]
     for n in names:

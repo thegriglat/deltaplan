@@ -57,6 +57,7 @@
 | `data/terrain/askarovo/*` | то же — хребет Биягода у Аскарово (Башкортостан) | то же | то же | локация «Башкирия — Аскарово» |
 | `data/terrain/aushkul/*` | то же — озеро Аушкуль, гора Ауштау (Башкортостан) | то же | то же | локация «Башкирия — Аушкуль» |
 | `user://terrain_cache/terrarium/…` (не в репо) | тайлы высот, скачанные в игре по выбранной точке | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) | как выше | рантайм-загрузка рельефа (FR-17) |
+| `$AIR_NN_DATA/pilot/raw/terrarium/…`, `pilot/tiles/v1/cut/*.npz` (не в репо) | тайлы высот z5/z8/z12 и вырезки 38,4 км по горам суши для пилота air-nn П-2 (NN-P4, `tools/research/air_nn_pilot/terrain_cut.py`) | [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) | как выше | обучение и проверка сети поля ветра (исследование) |
 | `data/osm/altai.json`, `ongudai.json`, `askarovo.json`, `aushkul.json` | дороги, здания (прямоугольники), ЛЭП и опоры, реки и водоёмы, населённые пункты, поля и заборы — квадрат детального слоя рельефа; упаковано `tools/osm/fetch_osm.py` (Overpass API) | [OpenStreetMap](https://www.openstreetmap.org/) | **ODbL 1.0**: «© OpenStreetMap contributors» (атрибуция в титрах; производная база — под ODbL) | объекты мира: дороги, здания, ЛЭП, заборы у посадок (`scripts/world_objects/`) |
 
 ## Модели и текстуры
