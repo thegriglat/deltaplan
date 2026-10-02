@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита (слияние после 0a test_polar), копия удалена | cb8a056. 7 крыльев, площадь ±0,2 %, 11 696–13 844 треуг.; overrides: Z9 `short_battens`, Fizz без luff-линий; reference.min_sink_speed_kmh Combat C/Z9 — замер sweep. Перепроверено: check_models OK, 11 наборов — 0 падений. Кадры — build/screenshots/w3-04/",
+  "commits": [
+    "cb8a056"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_models3d_progress.md:12",
+  "dp_feedback": "",
+  "t": "2026-10-01T14:09:16",
+  "by": "dp-engineer",
+  "migrated": true
+}

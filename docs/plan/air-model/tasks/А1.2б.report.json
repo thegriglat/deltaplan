@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята, слита d38e858 (копия и ветка удалены) | контракты 25/25 (новый test_thd_in_state_keys — по тексту state/parent_data/window_state; ловит удаление thd — проверено исполнителем); bench QUICK код 0, без таймаута и 139; 200 м 3 м/с пропущен до А2 (все варианты: с нагревом, пара, загрузка); fixtures picard/ 200 м — честный status max",
+  "commits": [
+    "28e4384"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/air_model_progress.md:27",
+  "dp_feedback": "",
+  "t": "2026-09-29T12:00:00",
+  "by": "dp-engineer",
+  "migrated": true
+}

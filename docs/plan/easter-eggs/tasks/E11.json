@@ -1,0 +1,19 @@
+{
+  "id": "E11",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "орлы",
+  "goal": "орлы",
+  "plan_ref": "E11",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:22",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

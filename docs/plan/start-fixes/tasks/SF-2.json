@@ -1,0 +1,19 @@
+{
+  "id": "SF-2",
+  "module": "start-fixes",
+  "type": "dp-engineer",
+  "title": "Трава в лесу",
+  "goal": "Трава в лесу",
+  "plan_ref": "SF-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/start-fixes",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/start_fixes_progress.md:22",
+  "created": "2026-09-30T08:00:00",
+  "migrated": true
+}

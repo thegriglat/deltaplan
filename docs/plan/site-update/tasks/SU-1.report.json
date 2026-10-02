@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | e43260d, e552ba1 (исполнитель), e466e36 выбор кадров (координатор), слияние a879c24. `docs/screenshots/gameplay/*` пересняты; `docs/screenshots/site/01–08` (термик ×2, разбег, у облаков, 4 крыла сзади), 66–305 КБ; C3 зелёный. e2e не переснят: `tools/shots/e2e.sh` на всех 4 местах — «e2e_shot: FAIL (мир за меню не загрузился)», повтор Онгудая — то же; старые `docs/screenshots/e2e/*.jpg` оставлены (открытый вопрос главной сессии — поломка инструмента вне сайта)",
+  "commits": [
+    "e43260d",
+    "e552ba1",
+    "e466e36"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/site_update_progress.md:8",
+  "dp_feedback": "",
+  "t": "2026-10-01T15:57:37",
+  "by": "dp-mechanic",
+  "migrated": true
+}

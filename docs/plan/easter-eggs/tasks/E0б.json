@@ -1,0 +1,19 @@
+{
+  "id": "E0б",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "место и условия (К8)",
+  "goal": "место и условия (К8)",
+  "plan_ref": "E0б",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:11",
+  "created": "2026-09-30T02:48:56",
+  "migrated": true
+}

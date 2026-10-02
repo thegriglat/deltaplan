@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита f59bed7, копия удалена | 8f919e4, 53d7379. 9 крыльев, площадь ±0,3 %, 12 128–13 472 треуг.; новое необязательное поле К1 `top_wires` (MastR); test_polar: класс качества MastR — topless. Конфликты glider_params/ui.csv сняты `make_new_wings.py --existing` (записи совпали с обеими ветками), docs/models.md объединён. После слияния: 27 крыльев, check_models OK, 11 наборов тестов — 0 падений (перепроверено). Кадры — build/screenshots/w3-03/",
+  "commits": [
+    "8f919e4",
+    "53d7379"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_models3d_progress.md:11",
+  "dp_feedback": "",
+  "t": "2026-10-01T14:09:54",
+  "by": "dp-engineer",
+  "migrated": true
+}

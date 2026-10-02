@@ -1,0 +1,22 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | Кода-регрессии на земле нет (headless v0.8.0 = промежуточные = 1.0.0). Причина — поле GPU у старта: 4e71747 (AM-04), усиление e674c49 (Б2) → air-start. Исправлено в зоне: предел бега — предел ног (v_cap не режет разгон склоном/крылом): «спорт» штиль weak_run 67 м → 13 м, atlas 64 → 18 м, combat 66 → 14 м. Тесты `test_start_regression(_gpu)`, `test_run_speed`. Перепроверено после слияния: contracts 34/0, flight/ 82/1 (известное test_headwind_launch atlas), game/ 127/0, start_ 14/0, run_speed 2/0. Развилки (не делались): курс в воздухе без инерции рыскания (`flight_model.gd:326–328`), тангаж стоя по мгновенному потоку (`ground_run.gd:126–129`) — после air-start; atlas `launch.alpha_neutral_deg` 16° > срыва 12,5° → нужно ≈ 8° (wing-physics-check).",
+  "commits": [
+    "4a7d7ea",
+    "ea37cfa",
+    "d3f01bb",
+    "d2ca48c",
+    "17b402f",
+    "545a3f9",
+    "0bdf620"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/control-fix_progress.md:55",
+  "dp_feedback": "",
+  "t": "2026-10-01T22:04:12",
+  "by": "dp-engineer",
+  "migrated": true
+}

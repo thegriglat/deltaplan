@@ -1,0 +1,11 @@
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "AS-2", "ev": "created", "note": "Турбулентность у земли", "src": "docs/plan/air-start_progress.md:43"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "AS-2", "ev": "started", "note": "dp-engineer", "src": "docs/plan/air-start_progress.md:43"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "План — `docs/plan/air-start.md`; контракты — `docs/air_model_contracts.md` (C2 v6, C7 v3, C9 v3). Ветка `feature/air-start`, копия `~/deltaplan-air-start` (от `main` 938d1ea).", "src": "docs/plan/air-start_progress.md:3", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T22:20:53", "by": "dp-engineer", "task": "AS-2", "ev": "reported", "commits": ["4b3895c"], "note": "done", "src": "docs/plan/air-start_progress.md:43"}
+{"t": "2026-10-01T23:10:25", "by": "coordinator", "task": "AS-2", "ev": "accepted", "note": "принята (01.10), итоговый замер — после AS-1", "src": "docs/plan/air-start_progress.md:43"}
+{"t": "2026-10-01T23:10:25", "by": "coordinator", "task": "AS-2", "ev": "merged", "commits": ["26ea241"], "src": "docs/plan/air-start_progress.md:43"}
+{"t": "2026-10-01T23:14:57", "by": "coordinator", "task": "AS-1", "ev": "created", "note": "Поле под старт", "src": "docs/plan/air-start_progress.md:42"}
+{"t": "2026-10-01T23:14:58", "by": "coordinator", "task": "AS-1", "ev": "started", "note": "dp-engineer", "src": "docs/plan/air-start_progress.md:42"}
+{"t": "2026-10-02T00:50:44", "by": "dp-engineer", "task": "AS-1", "ev": "reported", "commits": ["67b1799", "a55c438", "1bf3ee6", "17dd851", "b9055a6"], "note": "done", "src": "docs/plan/air-start_progress.md:42"}
+{"t": "2026-10-02T00:51:06", "by": "coordinator", "task": "AS-1", "ev": "merged", "commits": ["87a7982"], "src": "docs/plan/air-start_progress.md:42"}
+{"t": "2026-10-02T12:00:01", "by": "coordinator", "task": "AS-1", "ev": "accepted", "note": "принята (02.10, вариант (в) по решению пользователя; тесты — после выпуска по указанию пользователя)", "src": "docs/plan/air-start_progress.md:42"}

@@ -1,0 +1,19 @@
+{
+  "id": "AS-1",
+  "module": "air-start",
+  "type": "dp-engineer",
+  "title": "Поле под старт",
+  "goal": "Поле под старт",
+  "plan_ref": "AS-1",
+  "contracts": [],
+  "copy": "~/deltaplan-air-start-as1",
+  "branch": "air-start/as1",
+  "base": "feature/air-start",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air-start_progress.md:42",
+  "created": "2026-10-01T23:14:57",
+  "migrated": true
+}

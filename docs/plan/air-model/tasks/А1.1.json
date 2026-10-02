@@ -1,0 +1,19 @@
+{
+  "id": "А1.1",
+  "module": "air-model",
+  "type": "dp-researcher",
+  "title": "План структурных правок (Pr_t, τ по диабатической θ′, h при closure=const)",
+  "goal": "План структурных правок (Pr_t, τ по диабатической θ′, h при closure=const)",
+  "plan_ref": "А1.1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:24",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

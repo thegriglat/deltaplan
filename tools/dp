@@ -1431,6 +1431,50 @@ def cmd_digest(a):
     print("\n".join(L))
 
 
+# ---------------------------------------------------------------- search
+
+def cmd_search(a):
+    """Поиск по карточкам, отчётам, событиям и решениям всех модулей: строка на находку."""
+    try:
+        rx = re.compile(a.pattern, re.I)
+    except re.error:
+        rx = re.compile(re.escape(a.pattern), re.I)
+    hits = []
+
+    def scan(mod, tid, typ, t, text):
+        text = " ".join(str(text).split())
+        m = rx.search(text)
+        if m:
+            lo, hi = max(0, m.start() - 70), min(len(text), m.end() + 90)
+            frag = ("…" if lo else "") + text[lo:hi] + ("…" if hi < len(text) else "")
+            hits.append((str(t or "")[:10], mod, tid or "-", typ, frag))
+
+    for mod, home in all_modules().items():
+        if a.module and mod != a.module:
+            continue
+        for tid, c in task_cards(home).items():
+            scan(mod, tid, "card", c.get("created"), " | ".join(
+                str(c.get(k, "")) for k in ("title", "goal", "notes", "plan_ref")) + " | " + " ".join(c.get("scope") or []))
+            r = read_json(home / "tasks" / f"{tid}.report.json")
+            if r:
+                scan(mod, tid, "report", r.get("t"), " | ".join(
+                    [str(r.get("summary", "")), str(r.get("how_to_check", "")), str(r.get("dp_feedback", ""))]
+                    + [str(x) for x in r.get("not_done") or []]
+                    + [f"{k.get('name')}={k.get('value')}" for k in r.get("checks") or []]))
+        for e in read_jsonl(home / "events.jsonl"):
+            if e.get("note"):
+                scan(mod, e.get("task"), "event:" + str(e.get("ev")), e.get("t"), e["note"])
+        for d in read_jsonl(home / "decisions.jsonl"):
+            scan(mod, d.get("task"), d.get("kind", "decision"), d.get("t"), f"{d.get('text', '')} {d.get('why', '')}")
+    hits.sort(key=lambda h: (h[0], h[1], h[2]), reverse=True)
+    for d, mod, tid, typ, frag in hits[: a.max]:
+        print(f"{mod} {tid} {typ} {d} — {frag}")
+    if len(hits) > a.max:
+        print(f"… ещё {len(hits) - a.max} (--max N, --module М)")
+    if not hits:
+        print("ничего не найдено")
+
+
 # ---------------------------------------------------------------- CLI
 
 class Parser(argparse.ArgumentParser):
@@ -1574,6 +1618,10 @@ def build():
     q = sp.add_parser("digest", help="основа записи дневника: решения, принятые задачи, правки плана, коммиты main")
     q.add_argument("--since", default="today", metavar="today|ДАТА|2h")
     q.set_defaults(fn=cmd_digest)
+
+    q = sp.add_parser("search", help="поиск по карточкам, отчётам, событиям, решениям всех модулей (прошлые работы)")
+    q.add_argument("pattern", metavar="текст|regex"); q.add_argument("--module"); q.add_argument("--max", type=int, default=30)
+    q.set_defaults(fn=cmd_search)
 
     q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>_progress.md")
     q.add_argument("module"); q.add_argument("--out", help="путь или - (stdout)"); q.add_argument("--force", action="store_true")

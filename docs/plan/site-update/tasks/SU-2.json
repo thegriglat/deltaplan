@@ -1,0 +1,19 @@
+{
+  "id": "SU-2",
+  "module": "site-update",
+  "type": "dp-writer",
+  "title": "модель воздуха",
+  "goal": "модель воздуха",
+  "plan_ref": "SU-2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/site-update",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/site_update_progress.md:9",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

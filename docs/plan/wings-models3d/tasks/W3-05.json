@@ -1,0 +1,19 @@
+{
+  "id": "W3-05",
+  "module": "wings-models3d",
+  "type": "dp-engineer",
+  "title": "новые P2, пачка В: N5–N9, N16–N19",
+  "goal": "новые P2, пачка В: N5–N9, N16–N19",
+  "plan_ref": "W3-05",
+  "contracts": [],
+  "copy": "",
+  "branch": "wings3d/w3-05",
+  "base": "feature/wings-models3d",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/wings_models3d_progress.md:13",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

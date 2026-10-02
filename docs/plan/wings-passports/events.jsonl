@@ -1,0 +1,23 @@
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WP-1", "ev": "created", "note": "Контракты", "src": "docs/plan/wings_passports_progress.md:11"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WP-2", "ev": "created", "note": "Выборка конструкции (мачта/топлесс, VG, годы, заметки по виду), 3 пакета", "src": "docs/plan/wings_passports_progress.md:12"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WP-3", "ev": "created", "note": "Правки конфигов существующих", "src": "docs/plan/wings_passports_progress.md:13"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WP-4", "ev": "created", "note": "ТЗ на 3D", "src": "docs/plan/wings_passports_progress.md:14"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WP-5", "ev": "created", "note": "Тесты после правок", "src": "docs/plan/wings_passports_progress.md:15"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WP-2", "ev": "started", "note": "3× dp-researcher (haiku)", "src": "docs/plan/wings_passports_progress.md:12"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WP-3", "ev": "started", "note": "координатор", "src": "docs/plan/wings_passports_progress.md:13"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WP-4", "ev": "started", "note": "координатор (генератор `make_3d_tz.py`)", "src": "docs/plan/wings_passports_progress.md:14"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WP-5", "ev": "started", "note": "координатор", "src": "docs/plan/wings_passports_progress.md:15"}
+{"t": "2026-10-01T12:00:00", "by": "—", "task": "WP-1", "ev": "reported", "note": "partial", "src": "docs/plan/wings_passports_progress.md:11"}
+{"t": "2026-10-01T12:00:00", "by": "dp-researcher", "task": "WP-2", "ev": "reported", "note": "done", "src": "docs/plan/wings_passports_progress.md:12"}
+{"t": "2026-10-01T12:00:00", "by": "координатор", "task": "WP-3", "ev": "reported", "note": "done", "src": "docs/plan/wings_passports_progress.md:13"}
+{"t": "2026-10-01T12:00:00", "by": "координатор", "task": "WP-4", "ev": "reported", "note": "done", "src": "docs/plan/wings_passports_progress.md:14"}
+{"t": "2026-10-01T12:00:00", "by": "координатор", "task": "WP-5", "ev": "reported", "note": "done", "src": "docs/plan/wings_passports_progress.md:15"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "Координатор: dp-coordinator (сессия 01K4ZH58…). Рабочая копия `~/deltaplan-wings`, ветка `wings/passports` (от `main`, 1d8be1a). В `main` не вливается — отчёт главной сессии.", "src": "docs/plan/wings_passports_progress.md:3", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "Задача: (1) поправить `configs/wings/*.json` существующих крыльев по паспортам (источник каждого числа — `docs/research/wings_config_sources.md`); (2) ТЗ на 3D-модели `docs/research/glider_3d_tz.md`: по разделу на каждую существующую и каждую новую модель.", "src": "docs/plan/wings_passports_progress.md:5", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "Границы: модуль воздуха не трогаем; полярами, закруткой, формой паруса без данных не занимаемся; абсолютным L/D из заявок не верим.", "src": "docs/plan/wings_passports_progress.md:7", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "Решения координатора: поляры и абсолютный L/D не трогали (противоречия — `wings_config_sources.md` §4, вынесены в отчёт); `laminar` — масса/двойная поверхность по аналогу с явной пометкой, размах/площадь не менялись (тождество не доказано); `target` (Fox ↔ Target 16) — не менялся.", "src": "docs/plan/wings_passports_progress.md:17", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T12:00:01", "by": "coordinator", "task": "WP-2", "ev": "accepted", "note": "принята", "src": "docs/plan/wings_passports_progress.md:12"}
+{"t": "2026-10-01T12:00:01", "by": "coordinator", "task": "WP-3", "ev": "accepted", "note": "сделано", "src": "docs/plan/wings_passports_progress.md:13"}
+{"t": "2026-10-01T12:00:01", "by": "coordinator", "task": "WP-4", "ev": "accepted", "note": "сделано", "src": "docs/plan/wings_passports_progress.md:14"}
+{"t": "2026-10-01T12:00:01", "by": "coordinator", "task": "WP-5", "ev": "accepted", "note": "зелёные", "src": "docs/plan/wings_passports_progress.md:15"}
+{"t": "2026-10-01T12:00:02", "by": "coordinator", "task": "WP-1", "ev": "note", "note": "статус в журнале: не нужны: интерфейсы не меняются (json-поля те же, `glider_params.json` — параметры модели)", "src": "docs/plan/wings_passports_progress.md:11"}

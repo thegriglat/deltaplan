@@ -1,0 +1,19 @@
+{
+  "id": "А4",
+  "module": "air-model",
+  "type": "dp-researcher",
+  "title": "Случай Perdigão (обёртка C10)",
+  "goal": "Случай Perdigão (обёртка C10)",
+  "plan_ref": "А4",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:31",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}
