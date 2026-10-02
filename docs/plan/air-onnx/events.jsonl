@@ -13,3 +13,4 @@
 {"t": "2026-10-03T04:44:40", "by": "coordinator", "task": "ON-1", "ev": "accepted", "note": "по отчёту: формат проверяет детерминированный контрактный тест O1 (tiny и чекпойнт пилота-1); ревью стыка — на ON-3 и ON-5, где игра читает сеть"}
 {"t": "2026-10-03T04:44:50", "by": "coordinator", "task": "ON-1", "ev": "accepted", "commits": ["6927278"], "note": "5/5 o1_pilot_code=ok:O1: OK; tiny_size=ok:113727; tiny_verify=ok:exit 0; info_pilot1=ok:maps: [1, 4, 96, 96; ckpt_export=ok:deltaplan.p2_version = 2 delt…"}
 {"t": "2026-10-03T04:44:51", "by": "coordinator", "task": "ON-1", "ev": "merged", "commits": ["6927278"]}
+{"t": "2026-10-03T04:45:22", "by": "coordinator", "task": "ON-4", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-air-onnx-ON-4"}
