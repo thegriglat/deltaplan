@@ -1,4 +1,5 @@
 # air-nn — журнал хода работ
+> **Журнал продолжается в `tools/dp`: `docs/plan/air-nn/` (`tools/dp status air-nn`, `tools/dp log air-nn`). Ниже — история до 02.10 23:00.**
 
 План — `docs/plan/air_nn.md`; контракты — `docs/air_nn_contracts.md`. Ветка `feature/air-nn` (от `main` 9360397),
 копия `~/deltaplan-air-nn`. Координатор — `dp-coordinator`.

@@ -1,0 +1,1 @@
+{"t": "2026-10-02T22:59:34", "by": "coordinator", "task": null, "ev": "note", "note": "Журнал продолжается в dp (docs/plan/air-nn/); история до 02.10 22:58 — docs/plan/air_nn_progress.md. Состояние на старте: NN-P4 (air-nn/terrain) кода нет; NN-P5 (air-nn/inputs) 28b0ac5 не влит; NN-P6 (air-nn/gen2) кода нет; NN-P7 не начата."}
