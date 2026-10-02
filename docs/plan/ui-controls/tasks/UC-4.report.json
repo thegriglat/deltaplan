@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "`ui.json → controls_help` строка `controls_mouse_bar_wasd` (bar); `locale/ui.csv` новая строка + `controls_run_wing`; `docs/game.md` (абзацы о мыши и разбеге, таблица, строка «сзади — ничего»); `site/content/mechanics/flight.md`; CHANGELOG «В работе». `--filter=ui` 93/5: 4 — `test_u2_*` (ждут UC-3), `test_net_screen::…embedded_vs_remote` — падает и на ветке модуля до UC-4 (порт). hugo собирается. Открыто: экран показывает «W / ↑» у строк трапеции и в режиме bar — фильтр клавиш нужен в коде экрана.",
+  "commits": [
+    "6fc69a9"
+  ],
+  "checks": [
+    {
+      "name": "ui",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-4",
+  "t": "2026-10-02T01:04:01",
+  "by": "dp-writer",
+  "migrated": true
+}

@@ -13,3 +13,4 @@ disallowedTools: [Agent]
 - Источники — со ссылками; лицензии данных — в README и ASSETS.md.
 - Долгие запуски — фоном (`run_in_background`) или `/home/greg/deltaplan/tools/job.sh start/wait` (с таймаутом); не ждать и не убивать по `pgrep -f`/`pkill -f` (workflow.md, «Общие правила»).
 - Отчёт: главные числа, рекомендация, пути к 5–8 лучшим картинкам, хеши коммитов.
+- Карточка задачи — `tools/dp task show <ID>`, план — по разделам `tools/dp plan <модуль> <раздел>` (не целиком); отчёт — ещё и `tools/dp report <ID> < отчёт.json` (схема — `tools/dp report --template`, поле `dp_feedback` — что не хватило в dp). Справка — `tools/dp.md`.
