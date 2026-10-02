@@ -1,0 +1,595 @@
+{
+ "contract": "П6 v2",
+ "complete": true,
+ "command": "terrain_cut.py cut",
+ "commit": "6cbc7898dbeea86bd9e1400edfae732595a2d0ee",
+ "code_dirty": true,
+ "config_file": "/home/greg/deltaplan-air-nn-nz/tools/research/air_nn_pilot/configs/terrain.yaml",
+ "config_sha256": "278436724cda11c379006a217ac086975cae3840bfdba0ae583046f1cec2c2b8",
+ "config": {
+  "data_root": "/home/greg/air_nn_data",
+  "paths": {
+   "raw": "pilot/raw",
+   "out": "pilot/tiles/v2",
+   "work": "pilot/tmp/terrain_v2"
+  },
+  "source": {
+   "layer": "detail",
+   "workers": 16,
+   "retries": 6,
+   "backoff_s": 2.0,
+   "timeout_s": 30
+  },
+  "square_km": 38.4,
+  "grid_step_km": 38.6,
+  "screen": {
+   "lat_range": [
+    -56.0,
+    70.0
+   ],
+   "z_mask": 5,
+   "mask_relief_min_m": 150,
+   "mask_sea_max": 0.5,
+   "z_cand": 8,
+   "grid_seed": 20261004
+  },
+  "select": {
+   "seed": 20261005,
+   "strata": [
+    0.0,
+    0.06,
+    0.12,
+    0.2,
+    0.3,
+    0.4,
+    Infinity
+   ],
+   "per_stratum": 50,
+   "relief_bins": [
+    0,
+    1000,
+    2000,
+    3000
+   ],
+   "reserve": 0.12,
+   "slope_est_scale": 1.0,
+   "relief_min_m": 200,
+   "relief_max_est_m": 3100,
+   "relief_max_m": 3000,
+   "sea_max": 0.05,
+   "system_cap": 0.12,
+   "other_cap": 0.35,
+   "exclude": [
+    {
+     "name": "ongudai",
+     "location": "ongudai",
+     "km": 100.0
+    }
+   ],
+   "holdout": {
+    "systems": [
+     "caucasus",
+     "pyrenees",
+     "appalachians",
+     "southern_alps_nz"
+    ],
+    "per_system": 15,
+    "reserve": 3,
+    "slope_est_min": {
+     "southern_alps_nz": 0.12
+    },
+    "pool_min_km": 50.0
+   }
+  },
+  "ref_cuts": [
+   "ongudai",
+   "altai"
+  ],
+  "systems": {
+   "southern_alps_nz": [
+    [
+     -46.0,
+     -42.4,
+     166.6,
+     172.8
+    ]
+   ],
+   "caucasus": [
+    [
+     40.0,
+     44.6,
+     37.0,
+     49.8
+    ]
+   ],
+   "pyrenees": [
+    [
+     41.9,
+     43.5,
+     -2.2,
+     3.4
+    ]
+   ],
+   "appalachians": [
+    [
+     33.5,
+     42.0,
+     -85.8,
+     -74.5
+    ],
+    [
+     42.0,
+     48.5,
+     -78.0,
+     -63.5
+    ]
+   ],
+   "alps": [
+    [
+     43.6,
+     48.4,
+     5.0,
+     16.8
+    ]
+   ],
+   "carpathians": [
+    [
+     44.2,
+     50.2,
+     18.0,
+     27.5
+    ]
+   ],
+   "balkans": [
+    [
+     39.0,
+     46.0,
+     13.5,
+     28.5
+    ]
+   ],
+   "apennines": [
+    [
+     37.5,
+     44.6,
+     7.5,
+     18.6
+    ]
+   ],
+   "iberia": [
+    [
+     36.0,
+     43.9,
+     -9.6,
+     3.4
+    ]
+   ],
+   "scandinavia": [
+    [
+     57.5,
+     70.0,
+     4.5,
+     31.0
+    ]
+   ],
+   "britain": [
+    [
+     49.8,
+     59.0,
+     -8.5,
+     2.0
+    ]
+   ],
+   "ural": [
+    [
+     50.0,
+     70.0,
+     55.0,
+     66.5
+    ]
+   ],
+   "anatolia": [
+    [
+     35.8,
+     42.2,
+     26.0,
+     45.0
+    ]
+   ],
+   "iran": [
+    [
+     25.0,
+     40.0,
+     44.0,
+     62.0
+    ]
+   ],
+   "hindukush_pamir": [
+    [
+     33.0,
+     40.5,
+     62.0,
+     75.5
+    ]
+   ],
+   "tianshan": [
+    [
+     39.5,
+     45.5,
+     68.0,
+     95.5
+    ]
+   ],
+   "altai_sayan": [
+    [
+     45.0,
+     56.5,
+     82.0,
+     100.0
+    ]
+   ],
+   "mongolia_baikal": [
+    [
+     45.0,
+     58.0,
+     100.0,
+     120.0
+    ]
+   ],
+   "himalaya_tibet": [
+    [
+     26.0,
+     39.5,
+     72.0,
+     104.0
+    ]
+   ],
+   "china_east": [
+    [
+     18.0,
+     45.0,
+     104.0,
+     123.0
+    ]
+   ],
+   "indochina": [
+    [
+     5.0,
+     26.0,
+     92.0,
+     110.0
+    ]
+   ],
+   "japan_korea": [
+    [
+     30.0,
+     46.0,
+     124.0,
+     146.0
+    ]
+   ],
+   "siberia_east": [
+    [
+     50.0,
+     70.0,
+     120.0,
+     180.0
+    ]
+   ],
+   "taiwan_philippines": [
+    [
+     4.5,
+     25.5,
+     117.0,
+     127.0
+    ]
+   ],
+   "insulindia": [
+    [
+     -11.0,
+     7.5,
+     94.0,
+     141.0
+    ]
+   ],
+   "newguinea": [
+    [
+     -11.0,
+     -0.5,
+     141.0,
+     156.0
+    ]
+   ],
+   "australia": [
+    [
+     -44.0,
+     -10.0,
+     112.0,
+     154.0
+    ]
+   ],
+   "new_zealand": [
+    [
+     -47.5,
+     -34.0,
+     166.0,
+     179.0
+    ]
+   ],
+   "india": [
+    [
+     6.0,
+     26.0,
+     68.0,
+     92.0
+    ]
+   ],
+   "arabia": [
+    [
+     12.0,
+     32.0,
+     34.0,
+     60.0
+    ]
+   ],
+   "east_africa": [
+    [
+     -15.0,
+     16.0,
+     28.0,
+     52.0
+    ]
+   ],
+   "south_africa": [
+    [
+     -35.0,
+     -15.0,
+     12.0,
+     41.0
+    ]
+   ],
+   "atlas": [
+    [
+     27.0,
+     37.5,
+     -12.0,
+     12.0
+    ]
+   ],
+   "africa_other": [
+    [
+     -15.0,
+     27.0,
+     -18.0,
+     28.0
+    ]
+   ],
+   "coast_mountains": [
+    [
+     48.0,
+     60.0,
+     -137.0,
+     -125.0
+    ]
+   ],
+   "alaska_yukon": [
+    [
+     58.0,
+     70.0,
+     -170.0,
+     -125.0
+    ]
+   ],
+   "rockies_cordillera": [
+    [
+     31.0,
+     58.0,
+     -125.0,
+     -102.0
+    ]
+   ],
+   "mexico_central_america": [
+    [
+     7.0,
+     31.0,
+     -118.0,
+     -77.0
+    ]
+   ],
+   "andes_north": [
+    [
+     -15.0,
+     12.5,
+     -82.0,
+     -60.0
+    ]
+   ],
+   "andes_central": [
+    [
+     -35.0,
+     -15.0,
+     -76.0,
+     -60.0
+    ]
+   ],
+   "patagonia": [
+    [
+     -56.0,
+     -35.0,
+     -76.0,
+     -63.0
+    ]
+   ],
+   "brazil_highlands": [
+    [
+     -35.0,
+     5.0,
+     -60.0,
+     -34.0
+    ]
+   ]
+  }
+ },
+ "seeds": {
+  "grid": 20261004,
+  "select": 20261005
+ },
+ "terrain_path": {
+  "game": "scripts/terrain/terrarium_loader.gd + configs/world.json runtime_terrain",
+  "layer": {
+   "id": "detail",
+   "size_km": 40,
+   "size_km_doc": "Сторона детального квадрата, км (округляется вверх до целого числа чанков)",
+   "zoom": 12,
+   "zoom_doc": "Уровень тайлов: z12 ≈ 38·cos(широта) м/пикс (≈ 24 м на 52°)",
+   "min_spacing_m": 18,
+   "min_spacing_m_doc": "Шаг сетки не мельче, м: на высоких широтах (Гренландия) уровень тайлов понижается, чтобы сетка не разрасталась как 1/cos(широта)",
+   "chunk_cells": 128,
+   "chunk_cells_doc": "Клеток в чанке (делится на 2^(число LOD − 1))",
+   "lod_distances_m": [
+    1500,
+    3500,
+    7000,
+    14000
+   ],
+   "skirt_depth_m": 40
+  },
+  "url_template": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+  "smoothing": "нет",
+  "grid": "билинейно (HeightLayer.sample) на 1601×1601 по 25 м → hc400 = блочное среднее 16×16"
+ },
+ "source": "AWS Terrain Tiles (Terrarium)",
+ "attribution": "Terrain Tiles (Mapzen/AWS Open Data, формат Terrarium): SRTM, GMTED2010, ETOPO1, NRCan CDEM, EU-DEM, LINZ и др.; см. https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+ "license": "Открытые данные; условия источников — https://github.com/tilezen/joerd/blob/master/docs/attribution.md (в т. ч. EU-DEM — атрибуция Copernicus, ArcticDEM/LINZ — CC BY)",
+ "n_places": 360,
+ "counts": {
+  "part": {
+   "pool": 300,
+   "holdout": 60
+  },
+  "stratum": {
+   "pool": {
+    "s0_0.00-0.06": 49,
+    "s1_0.06-0.12": 53,
+    "s2_0.12-0.20": 45,
+    "s3_0.20-0.30": 60,
+    "s4_0.30-0.40": 50,
+    "s5_0.40-inf": 43
+   },
+   "holdout": {
+    "s0_0.00-0.06": 19,
+    "s1_0.06-0.12": 11,
+    "s2_0.12-0.20": 12,
+    "s3_0.20-0.30": 8,
+    "s5_0.40-inf": 5,
+    "s4_0.30-0.40": 5
+   }
+  },
+  "system": {
+   "pool": {
+    "east_africa": 8,
+    "south_africa": 6,
+    "patagonia": 9,
+    "himalaya_tibet": 33,
+    "balkans": 3,
+    "arabia": 6,
+    "tianshan": 17,
+    "andes_central": 7,
+    "scandinavia": 2,
+    "altai_sayan": 10,
+    "africa_other": 2,
+    "other": 15,
+    "iran": 7,
+    "mexico_central_america": 13,
+    "brazil_highlands": 4,
+    "indochina": 5,
+    "andes_north": 8,
+    "china_east": 15,
+    "siberia_east": 15,
+    "alaska_yukon": 9,
+    "mongolia_baikal": 9,
+    "anatolia": 4,
+    "iberia": 3,
+    "alps": 11,
+    "insulindia": 4,
+    "rockies_cordillera": 32,
+    "japan_korea": 4,
+    "newguinea": 2,
+    "hindukush_pamir": 6,
+    "taiwan_philippines": 1,
+    "coast_mountains": 29,
+    "new_zealand": 1
+   },
+   "holdout": {
+    "appalachians": 15,
+    "caucasus": 15,
+    "pyrenees": 15,
+    "southern_alps_nz": 15
+   }
+  }
+ },
+ "selection": {
+  "targets": {
+   "s5_0.40-inf": 49,
+   "s4_0.30-0.40": 51,
+   "s3_0.20-0.30": 50,
+   "s2_0.12-0.20": 50,
+   "s1_0.06-0.12": 50,
+   "s0_0.00-0.06": 50,
+   "caucasus": 15,
+   "pyrenees": 15,
+   "appalachians": 15,
+   "southern_alps_nz": 15
+  },
+  "rejected_select": {
+   "no_data": 0,
+   "sea": 3398,
+   "relief_low": 2395,
+   "relief_high": 1290,
+   "exclude": 19,
+   "holdout_zone": 839
+  },
+  "rejected_cut": {
+   "nodata": 0,
+   "relief_high": 1,
+   "sea": 12,
+   "reserve_unused": 41
+  },
+  "available": {
+   "s5_0.40-inf": 64,
+   "s4_0.30-0.40": 416,
+   "s3_0.20-0.30": 1675,
+   "s2_0.12-0.20": 4405,
+   "s1_0.06-0.12": 8073,
+   "s0_0.00-0.06": 30474
+  }
+ },
+ "sizes": {
+  "h": [
+   1601,
+   1601
+  ],
+  "hc400": [
+   96,
+   96
+  ],
+  "spacing_m": 25.0,
+  "cell_m": 400.0,
+  "cut_bytes": 3044771060
+ },
+ "time_s": {
+  "cut": 37.153013467788696
+ },
+ "date": "2026-10-02T20:09:58+00:00",
+ "figures": [
+  "examples_hc400.png",
+  "features_ref.json",
+  "hist_relief.png",
+  "hist_slope_p50.png",
+  "hist_slope_p95.png",
+  "map_places.png",
+  "scatter_slope_relief.png",
+  "systems_table.json",
+  "systems_table.md"
+ ]
+}

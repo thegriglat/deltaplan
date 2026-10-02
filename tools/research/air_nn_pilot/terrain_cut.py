@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Рельефы П-2 (NN-P4, контракт П6 v1): выбор, скачивание и нарезка реальных горных квадратов 38,4 км.
+"""Рельефы П-2 (NN-P4, NN-16; контракт П6 v2): выбор, скачивание и нарезка реальных горных квадратов 38,4 км.
 
   .venv/bin/python terrain_cut.py run            # все стадии по порядку (этап n из 5), с продолжения
   .venv/bin/python terrain_cut.py screen|select|fetch|cut|figures
@@ -45,7 +45,7 @@ import yaml
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-CONTRACT = "П6 v1"
+CONTRACT = "П6 v2"
 MERCATOR_R_M = 6378137.0      # web-mercator, как MERCATOR_R_M игры
 R_EARTH = 6371008.8           # сфера для расстояний (как контрактный тест)
 TILE_PX = 256
@@ -526,7 +526,9 @@ def stage_select(ctx: Ctx, a):
     ho = sel["holdout"]
     hold = []
     for sysname in ho["systems"]:
-        cs = sorted([c for c in good if c["system"] == sysname], key=lambda c: (c["slope_est"], c["cid"]))
+        smin = float((ho.get("slope_est_min") or {}).get(sysname, 0.0))   # крутая система: нижняя граница оценки уклона
+        cs = sorted([c for c in good if c["system"] == sysname and c["slope_est"] >= smin],
+                    key=lambda c: (c["slope_est"], c["cid"]))
         m = min(len(cs), int(ho["per_system"]) + int(ho["reserve"]))
         idx = sorted({int(round(q)) for q in np.linspace(0, len(cs) - 1, m)}) if m else []
         pick = [cs[i] for i in idx]
@@ -825,6 +827,29 @@ def ref_features(ctx: Ctx):
     return out
 
 
+def write_system_table(figd: Path, pool, hold, proc, refs):
+    """Таблица признаков по системам (отложенные), пулу, процедурным и Онгудаю → systems_table.json/.md."""
+    def agg(rs, label):
+        g = lambda k: np.array([float(r[k]) for r in rs])
+        return dict(group=label, n=len(rs), slope_p50_med=float(np.median(g("slope_p50"))),
+                    slope_p50_min=float(g("slope_p50").min()), slope_p50_max=float(g("slope_p50").max()),
+                    slope_p95_med=float(np.median(g("slope_p95"))), relief_med=float(np.median(g("relief_m"))),
+                    relief_min=float(g("relief_m").min()), relief_max=float(g("relief_m").max()))
+    rows = [agg(pool, "пул")] + [agg([r for r in hold if r["system"] == s_], f"отложено: {s_}")
+                                 for s_ in sorted({r["system"] for r in hold})]
+    rows.append(agg(proc and [{k: str(v) for k, v in p.items()} for p in proc], "процедурные p_*"))
+    og = refs["ongudai"]
+    rows.append(dict(group="Онгудай", n=1, slope_p50_med=og["slope_p50"], slope_p50_min=og["slope_p50"],
+                     slope_p50_max=og["slope_p50"], slope_p95_med=og["slope_p95"], relief_med=og["relief_m"],
+                     relief_min=og["relief_m"], relief_max=og["relief_m"]))
+    atomic_json(figd / "systems_table.json", rows)
+    md = ["| группа | мест | уклон p50 (мед; min–max) | уклон p95 (мед) | размах, м (мед; min–max) |", "|---|---|---|---|---|"]
+    for r in rows:
+        md.append(f"| {r['group']} | {r['n']} | {r['slope_p50_med']:.3f}; {r['slope_p50_min']:.3f}–{r['slope_p50_max']:.3f} | "
+                  f"{r['slope_p95_med']:.3f} | {r['relief_med']:.0f}; {r['relief_min']:.0f}–{r['relief_max']:.0f} |")
+    atomic_write(figd / "systems_table.md", ("\n".join(md) + "\n").encode())
+
+
 def stage_figures(ctx: Ctx, a):
     import matplotlib
     matplotlib.use("Agg")
@@ -842,12 +867,16 @@ def stage_figures(ctx: Ctx, a):
     pool = [r for r in rows if r["part"] == "pool"]
     hold = [r for r in rows if r["part"] == "holdout"]
     marks = [("ongudai", "Онгудай", "#d62728"), ("altai", "Алтай", "#9467bd")]
+    hsys = sorted({r["system"] for r in hold})
+    write_system_table(figd, pool, hold, proc, refs)
     for key, xl, fn, bins in [("slope_p50", "уклон p50 по клеткам 400 м, м/м", "hist_slope_p50.png", np.linspace(0, 0.7, 36)),
                               ("relief_m", "размах hc400, м", "hist_relief.png", np.linspace(0, 3000, 31)),
                               ("slope_p95", "уклон p95 по клеткам 400 м, м/м", "hist_slope_p95.png", np.linspace(0, 1.2, 37))]:
         fig, ax = plt.subplots(figsize=(7.5, 4.2))
         ax.hist([float(r[key]) for r in pool], bins=bins, alpha=0.75, label=f"пул ({len(pool)})", color="#1f77b4")
-        ax.hist([float(r[key]) for r in hold], bins=bins, alpha=0.75, label=f"отложенные ({len(hold)})", color="#ff7f0e")
+        for sname, col in zip(hsys, ("#ff7f0e", "#2ca02c", "#17becf", "#e377c2", "#bcbd22")):
+            hh = [float(r[key]) for r in hold if r["system"] == sname]
+            ax.hist(hh, bins=bins, alpha=0.55, label=f"отложенные: {sname} ({len(hh)})", color=col)
         ax.hist([p[key] for p in proc], bins=bins, alpha=0.6, label=f"процедурные ({len(proc)})", color="#7f7f7f",
                 histtype="step", linewidth=2)
         for n, lab, col in marks:
@@ -862,8 +891,7 @@ def stage_figures(ctx: Ctx, a):
     # уклон × размах
     fig, ax = plt.subplots(figsize=(7.5, 5))
     ax.scatter([float(r["relief_m"]) for r in pool], [float(r["slope_p50"]) for r in pool], s=10, label="пул")
-    hs = sorted({r["system"] for r in hold})
-    for sname, m in zip(hs, "^sD"):
+    for sname, m in zip(hsys, "^sDvP"):
         hh = [r for r in hold if r["system"] == sname]
         ax.scatter([float(r["relief_m"]) for r in hh], [float(r["slope_p50"]) for r in hh], s=22, marker=m,
                    label=f"отложенные: {sname}")
@@ -908,7 +936,7 @@ def stage_figures(ctx: Ctx, a):
     fig.savefig(figd / "examples_hc400.png", dpi=100)
     plt.close(fig)
     atomic_json(figd / "features_ref.json", refs)
-    copy = HERE / "figures/p2_terrain"
+    copy = HERE / f"figures/p2_terrain_{ctx.out.name}"
     copy.mkdir(parents=True, exist_ok=True)
     if a.root is None:
         for f in figd.iterdir():
