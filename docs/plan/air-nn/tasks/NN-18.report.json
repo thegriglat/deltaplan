@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "Отчёт П3 v3: все числа (область, гребни, центры, смещение, корзины U10, разбивка (г), кривая (в), цели air-lite) раздельно для сошедшихся и несошедшихся решений; вердикт ШП-2 по правилу отказ(все случаи (г), лучшая из двух базовых линий, air-lite не включён) -> правило v2 на сошедшихся -> правим; строка «несошедшиеся» с отношением ошибки к late_spread60_p90. Исправлено замечание ревью NN-P5 про ridges. Smoke на подставных метаданных: ШП-2 = правим подход.",
+  "commits": [
+    "cdb2851 NN-18: отчёт П3 v3 — группы сходимости, вердикт с отказом, test_verdict, check_report_v3"
+  ],
+  "checks": [
+    {
+      "name": "verdict",
+      "value": "test_verdict.py exit=0 (23 сценария)",
+      "pass": true
+    },
+    {
+      "name": "smoke_report_v3",
+      "value": "ШП-2: правим подход",
+      "pass": true
+    },
+    {
+      "name": "split_still",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "smoke (г) conv/nc: ветер ок",
+      "value": "сошедшиеся 43 % (8/7 случаев h/m), несошедшиеся 39 % (4/5)",
+      "pass": true
+    },
+    {
+      "name": "smoke (г) подъём б/н ок / с/н ок",
+      "value": "сошедшиеся 86 % / 83 %, несошедшиеся 90 % / 85 %",
+      "pass": true
+    },
+    {
+      "name": "smoke (г) отказ",
+      "value": "медиана сети 0,649 м/с, лучшая база (среднее) 0,989 -> отношение 0,656 < 1, не отказ",
+      "pass": true
+    },
+    {
+      "name": "smoke несошедшиеся: ошибка/late_spread60_p90",
+      "value": "медиана 0,70, p90 1,34, n=4 (подставные разбросы)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Метаданные П1 v3 — подставные (генератор NN-17 не влит): tests/make_mock_p6.py проставляет статусы/target/late_n/late_spread60_p90 по ord % 5 (h, m, оба), поля решателя не пересчитываются; числа smoke проверяют конвейер, а не качество сети. Реальные метаданные должны лежать в runs.d400_h / runs.d400_m (как в air-nn/latemean airlite_gen.LATE_KEYS)."
+  ],
+  "questions": [
+    "Для «всё ок» принято: группа conv = сошлись и h, и m; nc = хотя бы одно не сошлось (в задаче не оговорено). Подходит?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept NN-18; cd tools/research/air_nn_pilot && .venv/bin/python tests/test_verdict.py; отчёт smoke — /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-03_v3/report.md (run_pilot.sh --smoke --name v3 после tests/make_mock_p6.py --src .../datasets/s0-3acd749/main)",
+  "uncertain": [
+    {
+      "where": "pilotnn/data.py:solution_info",
+      "why": "Место метаданных target/late_n/late_spread60_p90 взято по air-nn/latemean (в runs.d400_h/m); у v1 решение max без target -> last. Если NN-17 положит поля иначе, правка в одной функции.",
+      "checked": "git grep late_spread60_p90 по air-nn/latemean: airlite_gen.py r.update(...) в записи решения, LATE_KEYS"
+    },
+    {
+      "where": "pilotnn/evaluate.py AreaAcc",
+      "why": "Группы разных метрик по разным статусам (ветер/w с нагревом по h, w без нагрева по m): число случаев в группе у h и m разное, в таблицах выводится «h / m»; метрика «всё ок» — по обоим.",
+      "checked": "test_verdict.py, check_report_v3.py (группа all >= conv), smoke с h-only, m-only и обоими несошедшимися"
+    },
+    {
+      "where": "tests/make_mock_p6.py",
+      "why": "Манифест подставного набора оставлен «П1 v2» (метаданные решений — v3), чтобы не трогать test_contract_sample.py, который меняет NN-17; test_contract_sample --dataset smoke проходит.",
+      "checked": "прогнал test_contract_sample.py --dataset smoke"
+    },
+    {
+      "where": "pilotnn/evaluate.py: Pooled/add_pooled",
+      "why": "Цели air-lite по группам: t_m* по m, t_th по h, t_c* по обоим — моё решение, в контракте не расписано.",
+      "checked": "отчёт строится, n по группам выводится"
+    }
+  ],
+  "dp_feedback": "Нет команды «найти, где в ветке соседа задачи лежит формат поля» (искал git grep по чужой ветке). Smoke-прогон (run_pilot.sh) через dp job прошёл штатно.",
+  "доли «ок» и медианы на smoke по группам; как строится вердикт по metrics.json": {
+    "smoke": {
+      "(г) сошедшиеся": "8/7; 43 % / 86 % / 83 %; 0.712",
+      "(г) несошедшиеся": "4/5; 39 % / 90 % / 85 %; 0.536",
+      "(б) сошедшиеся": "3/3; 5 % / 63 % / 47 %; 1.693; несошедших нет",
+      "(б') сошедшиеся": "3/3; 43 % / 78 % / 75 %; 1.068; несошедших нет",
+      "(а) П6 сошедшиеся": "3/5; 50 % / 84 % / 80 %; 0.737",
+      "(а) П6 несошедшиеся": "5/3; 32 % / 83 % / 83 %; 0.917",
+      "(а) прежние сошедшиеся": "2/2; 76 % / 94 % / 91 %; 0.996; несошедших нет"
+    },
+    "verdict": "report.shp2_rule(M): M['sets'][eval.shp2.set]['net'|'inflow'|'mean'] -> группы conv/nc/all. (1) отказ: net.all.area.wind.median / min(inflow.all..., mean.all...) >= refuse_ratio -> «отказ от направления» (air-lite не входит, metrics.json -> refuse_baselines); (2) иначе rule_checks(net.conv) все выполнены -> «идём в волну 0»; нет сошедшихся или не все -> (3) «правим подход». net.nc считается теми же rule_checks, пишется в shp2.json -> nc и строкой таблицы, в вердикт не входит. Вердикт smoke: отношение 0.656 -> не отказ; на сошедших 0 из 12 проверок -> правим подход."
+  },
+  "t": "2026-10-03T02:08:34",
+  "by": "researcher"
+}
