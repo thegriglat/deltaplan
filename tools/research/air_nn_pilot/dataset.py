@@ -98,10 +98,10 @@ def kind_of(loc):
 
 
 class Layout:
-    def __init__(self, cfg, data_root, name):
+    def __init__(self, cfg, data_root, name, version=None):
         self.root = Path(data_root) / "pilot"
         self.name = name
-        self.version = solver_version()
+        self.version = version or solver_version()   # version — чтение набора другой версии решателя (main_version)
         self.dir = self.root / "datasets" / self.version / name
         self.cases = self.dir / "cases"
         self.db = self.dir / "state.sqlite"

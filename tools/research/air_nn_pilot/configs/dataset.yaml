@@ -1,5 +1,8 @@
 # Набор пилота air-nn (NN-P1): генератор dataset.py. Пути — от AIR_NN_DATA (окружение) или data_root ниже.
 data_root: /home/greg/air_nn_data      # по умолчанию; AIR_NN_DATA из окружения и --data-root важнее
+# версия решателя, под которой лежит набор main (s0-3acd749 → s0-1c8c322 сменилась только комментариями air3d,
+# решение координатора 03.10); тестам, читающим main (test_region_only), — отсюда
+main_version: s0-3acd749
 
 plan:
   airlite_seed: 20261001     # план air-lite (research/air-lite 7cc7e33, gen.py make_plan): 4 места × 110 + 5 синтетик × 50
