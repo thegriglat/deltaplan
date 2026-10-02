@@ -1,10 +1,10 @@
-# Рельефы П-2 (NN-P4, контракт П6 v2): terrain_cut.py screen → select → fetch → cut.
+# Рельефы П-2 (NN-P4, контракт П6 v3): terrain_cut.py screen → select → fetch → cut.
 # Пути — от AIR_NN_DATA (окружение) или data_root; --root КАТАЛОГ — всё в одном временном корне (тесты).
 data_root: /home/greg/air_nn_data
 paths:
   raw: pilot/raw            # raw/terrarium/<z>/<x>/<y>.png — раскладка кеша игры (user://terrain_cache/terrarium/…)
-  out: pilot/tiles/v2       # manifest.json, index.csv, cut/<id>.npz, figures/
-  work: pilot/tmp/terrain_v2  # экран, выбор, вырезки всех мест (с запасом), логи
+  out: pilot/tiles/v3       # manifest.json, index.csv, cut/<id>.npz, figures/
+  work: pilot/tmp/terrain_v3  # экран, выбор, вырезки всех мест (с запасом), логи
 
 # Источник и путь рельефа — из конфига игры (configs/world.json → runtime_terrain): шаблон URL, User-Agent,
 # слой detail (size_km, zoom, min_spacing_m, chunk_cells). Здесь — только вежливость загрузки.
@@ -40,6 +40,8 @@ select:
   relief_min_m: 200         # оценка по z8: ниже — не горы
   relief_max_est_m: 3100    # оценка по z8 (z8 завышает размах на ~4 % против hc400 — проба; точный фильтр — в cut)
   relief_max_m: 3000        # решение пользователя 02.10 (контракт П6): размах hc400 ≤ 3000 м
+  hmin_max_m: 3000          # решение пользователя 03.10 (Q4, П6 v3): дно квадрата h_min (по hc400) ≤ 3000 м над морем
+  hmin_max_est_m: 3000      # оценка h_min по z8 (экран): z8 ≥ hc400 по минимуму не бывает выше на мелочь; точный фильтр — в cut
   sea_max: 0.05             # доля узлов h ≤ 0,5 м (sea_frac) — порог для оценки и для вырезки
   system_cap: 0.12          # доля пула на одну горную систему
   other_cap: 0.35           # доля пула вне перечисленных систем

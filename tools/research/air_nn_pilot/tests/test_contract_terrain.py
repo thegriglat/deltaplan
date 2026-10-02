@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Контрактный тест П6 «Вырезка места» v2 (docs/contracts/air-nn.md) на готовых вырезках.
+"""Контрактный тест П6 «Вырезка места» v3 (docs/contracts/air-nn.md) на готовых вырезках.
 
   .venv/bin/python tests/test_contract_terrain.py [--dir <каталог набора; по умолчанию paths.out из configs/terrain.yaml>] [--max N]
 
-Проверяет: manifest.json (contract «П6 v2»), столбцы и типы index.csv, уникальность id, части pool/holdout;
+Проверяет: manifest.json (contract «П6 v3»), столбцы и типы index.csv, уникальность id, части pool/holdout;
 у каждой строки — файл cut/<id>.npz с той же sha256; ключи h (1601×1601 float32), hc400 (96×96 float64), meta;
 конечность; hc400 = блочное среднее h 16×16 по области [−19 200, 19 200] м (≤ 1e-6 м); признаки индекса
-согласованы с hc400; размах ≤ 3000 м; неперекрытие пула; инварианты расстояний: места пула не ближе 100 км к Онгудаю, места пула — не ближе 50 км к местам отложенных систем; отложенные системы и число мест — из
+согласованы с hc400; размах ≤ 3000 м; дно h_min ≤ select.hmin_max_m конфига (3000 м, v3); неперекрытие пула; инварианты расстояний: места пула не ближе 100 км к Онгудаю, места пула — не ближе 50 км к местам отложенных систем; отложенные системы и число мест — из
 configs/terrain.yaml (select.holdout: systems × per_system, сейчас 4 × 15), не константа; путь набора — из конфига.
 Владелец (NN-P4) может дополнять проверки; менять формат — только через координатора (версия контракта).
 """
@@ -34,7 +34,8 @@ FLOATS = {"lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m",
 N_NODES, SP, N400, DX = 1601, 25.0, 96, 400.0
 R_EARTH = 6371008.8
 RELIEF_MAX_M = 3000.0  # решение пользователя 02.10: предел размаха высот в квадрате
-CONTRACT = "П6 v2"
+CONTRACT = "П6 v3"
+HMIN_MAX_M = float(yaml.safe_load((HERE / "configs/terrain.yaml").read_text())["select"]["hmin_max_m"])  # П6 v3
 
 
 def terrain_cfg():
@@ -83,6 +84,7 @@ def check(d: Path, max_cut=0):
         assert int(r["zoom"]) > 0
         assert abs(float(r["relief_m"]) - (float(r["h_max"]) - float(r["h_min"]))) < 1e-2, r["id"]
         assert float(r["relief_m"]) <= RELIEF_MAX_M, ("размах > 3000 м", r["id"])
+        assert float(r["h_min"]) <= HMIN_MAX_M, ("дно квадрата h_min > порога конфига", r["id"], r["h_min"])
     ong = json.loads((ROOT / "configs/locations/ongudai.json").read_text())
     og = (ong["center_lat"], ong["center_lon"])
     pool = [(float(r["lat"]), float(r["lon"])) for r in rows if r["part"] == "pool"]
@@ -124,6 +126,7 @@ def check(d: Path, max_cut=0):
         assert meta.get("contract") == CONTRACT, meta.get("contract")
         assert abs(meta["lat"] - float(r["lat"])) < 1e-9 and abs(meta["lon"] - float(r["lon"])) < 1e-9
         assert abs(hc.max() - float(r["h_max"])) < 0.01 and abs(hc.min() - float(r["h_min"])) < 0.01, r["id"]
+    print(f"пул {len(pool)}, дно max {max(float(r['h_min']) for r in rows):.0f} м")
     print(f"{CONTRACT}: ок — мест {len(rows)} (пул {len(pool)}, отложено {len(hold)}: {len(want)} систем × {ho['per_system']}), "
           f"вырезок проверено {len(sel)}")
 
