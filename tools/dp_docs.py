@@ -79,7 +79,8 @@ def scope():
             continue
         out.append(r)
     for p in sorted((ROOT / "tools/research").rglob("*.md")):
-        if p.name in ("README.md", "summary.md") and "/out/" not in p.as_posix():
+        if p.name in ("README.md", "summary.md") and "/out/" not in p.as_posix() \
+                and not any(x in p.parts for x in (".venv", "venv", "site-packages", "node_modules")):
             out.append(p.relative_to(ROOT).as_posix())
     out += [f for f in ("TODO.md", "REQUIREMENTS.md") if (ROOT / f).exists()]
     return out
