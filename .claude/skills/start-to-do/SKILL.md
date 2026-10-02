@@ -41,4 +41,9 @@ tools/dp task new <модуль> <ID> --type dp-engineer --title "…" --goal "1
 `tools/dp event <ID> started --note "<тип>, <копия>"`; карточку и события коммитит координатор: `git add docs/plan/<модуль> && git commit -m "…" -- docs/plan/<модуль>`.
 
 ## 6. Приёмка (после отчёта)
-`tools/dp report <ID> --show` → `tools/dp accept <ID>` (в копии задачи; таблица PASS/FAIL, при всех PASS — событие `accepted`), влить `<модуль>/<ID>` в `feature/<модуль>`, `tools/dp accept <ID> --here --commit <слияние>` (затронутые тесты на ветке модуля), `git worktree remove` и удалить ветку, `tools/dp event <ID> merged`; решения по ходу — `tools/dp decide`. Модуль со старым `<модуль>_progress.md` — журнал как был.
+Координатор **не читает код, диффы и логи задачи** — ревью делает `dp-reviewer`.
+1. `tools/dp report <ID> --show` → `tools/dp accept <ID>` (в копии задачи; таблица PASS/FAIL).
+2. FAIL → на доработку, ревьюер не нужен.
+3. PASS у `dp-writer`/`dp-mechanic` → событие `accepted`, дальше п. 5.
+4. PASS у `dp-engineer`/`dp-researcher` → событие `checked`; по умолчанию — принять по отчёту (`dp report <ID> --show`: проверки и `uncertain`) и `git diff --stat` → `tools/dp event <ID> accepted --note "по отчёту"`. Ревьюер — только для физики/GPU/стыка контракта/второй доработки/серьёзных `uncertain` (workflow.md, «Приёмка»): свежий `dp-reviewer` (сложная физика — `model: fable`) с заданием ровно: «Ревью задачи <ID>. Копия <путь>, ветка <ветка>.» — без истории и пересказа отчёта. Вердикт — в журнале: `tools/dp review <ID> --show`. `accept` → `tools/dp event <ID> accepted --note "по ревью"`; `rework` → замечания исполнителю (новому или тому же), после доработки снова п. 1 и свежий ревьюер. Спорное — вопрос ревьюеру/исполнителю.
+5. Влить `<модуль>/<ID>` в `feature/<модуль>`, `tools/dp accept <ID> --here --commit <слияние>` (затронутые тесты на ветке модуля), `git worktree remove` и удалить ветку, `tools/dp event <ID> merged`; решения по ходу — `tools/dp decide`. Модуль со старым `<модуль>_progress.md` — журнал как был.

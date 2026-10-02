@@ -1,0 +1,83 @@
+{
+  "id": "NN-P4",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Рельефы П-2: выбор, скачивание, нарезка (П6)",
+  "goal": "Дать пилоту П-2 ~300 реальных горных квадратов 38,4 км + отложенные системы (Кавказ, Пиренеи, Аппалачи) тем же путём рельефа, что у игры (Terrarium, без сглаживания, клетки 400 м), стадиями пачкой с продолжением.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П6",
+      "version": "1",
+      "ref": "docs/air_nn_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-terrain",
+  "branch": "air-nn/terrain",
+  "base": "feature/air-nn",
+  "scope": [
+    "tools/research/air_nn_pilot/terrain_cut.py (или пакет pilotnn_terrain/): стадии screen (z5 маска гор → z8 кандидаты), select (сетка кандидатов без перекрытия; слои уклона p50 0/0,06/0,12/0,2/0,3/0,4/∞ ~по 50 мест; предел доли одной системы; размах ≤ 3000 м; отложенные Кавказ/Пиренеи/Аппалачи по 10–20), fetch (все тайлы z12 всех мест одним прогоном, пул загрузок, продолжение), cut (пул процессов: путь игры → сетка 25 м → клетки 400 м, признаки, index.csv), status (этап, сделано/всего, --json)",
+    "tools/research/air_nn_pilot/configs/terrain.yaml (зёрна, пороги, системы — боксы/полигоны)",
+    "tools/research/air_nn_pilot/tests/test_terrain_cut.py (побитный повтор вырезки; kill -9 в fetch и cut + повтор той же команды → те же файлы и sha256)",
+    "tests/test_contract_terrain.py — можно дополнять (формат — только через координатора)",
+    "раздел README пилота про рельефы; гистограммы уклона/размаха пула и отложенных против Онгудая/Алтая/процедурных → tiles/v1/figures/ и копия в tools/research/air_nn_pilot/figures/p2_terrain/",
+    "данные: $AIR_NN_DATA/pilot/raw/terrarium, pilot/tiles/v1 (полный прогон всех стадий — это не массовый счёт, он нужен для выбора; ~5–6 ГБ)"
+  ],
+  "dont_touch": [
+    "places.py (загрузчик мест t_* по П6 пишет NN-P6 — решение координатора)",
+    "dataset.py, airlite_gen.py, configs/dataset.yaml (NN-P6); pilot.py, config.yaml, pilotnn/ (NN-P5)",
+    "tools/research/air3d/*.py (решатель; версия s0 от хеша), scripts/ игры",
+    "незакоммиченный симлинк tools/research/air_nn_pilot/.venv — не коммитить"
+  ],
+  "accept": [
+    {
+      "name": "contract_p6",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py",
+      "expect": "re:П6 v1: ок",
+      "timeout": 1800
+    },
+    {
+      "name": "pool_n",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py --max 1",
+      "expect": "num:пул (\\d+) >=280"
+    },
+    {
+      "name": "holdout_n",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py --max 1",
+      "expect": "num:отложено (\\d+) >=30"
+    },
+    {
+      "name": "steep_p50_04",
+      "cmd": "python3 -c \"import csv,os;d=os.environ.get('AIR_NN_DATA','/home/greg/air_nn_data');r=list(csv.DictReader(open(d+'/pilot/tiles/v1/index.csv')));print('n04', sum(float(x['slope_p50'])>=0.4 for x in r))\"",
+      "expect": "num:n04 (\\d+) >=5"
+    },
+    {
+      "name": "ongudai_range",
+      "cmd": "python3 -c \"import csv,os;d=os.environ.get('AIR_NN_DATA','/home/greg/air_nn_data');r=list(csv.DictReader(open(d+'/pilot/tiles/v1/index.csv')));print('n_ong', sum(float(x['slope_p50'])>=0.22 for x in r if x['part']=='pool'))\"",
+      "expect": "num:n_ong (\\d+) >=60"
+    },
+    {
+      "name": "relief_2k",
+      "cmd": "python3 -c \"import csv,os;d=os.environ.get('AIR_NN_DATA','/home/greg/air_nn_data');r=list(csv.DictReader(open(d+'/pilot/tiles/v1/index.csv')));print('n2k', sum(float(x['relief_m'])>=2000 for x in r))\"",
+      "expect": "num:n2k (\\d+) >=20"
+    },
+    {
+      "name": "status_complete",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python terrain_cut.py status",
+      "expect": "re:(?i)complete|готово"
+    },
+    {
+      "name": "repeat_interrupt",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_terrain_cut.py",
+      "expect": "exit=0",
+      "timeout": 3600
+    }
+  ],
+  "report_extra": [
+    "время стадий screen/select/fetch/cut, число тайлов, ГБ raw и tiles/v1",
+    "таблица слоёв: мест по stratum и system; признаки Онгудая/Алтая/процедурных для сравнения",
+    "что отсеялось (море, размах > 3000 м, перекрытие) — числа"
+  ],
+  "notes": "Прежний разбор (из журнала): Terrarium ~1 с/тайл, 50–100 КБ, 16 потоков ≈ 15 тайлов/с; над океаном отрицательные глубины — правило ≤ 0,5 м море; для побитного R.grid_domain = hc400 — h в float64 в places.location (передать NN-P6 через отчёт); requests не нужен (urllib). Оценка ≈ 19 тыс. тайлов z12, ~1,7 ГБ сырья + ~2,8 ГБ вырезок, ~25 мин загрузки (+ экран 1–1,5 ГБ) — сначала проба на 1–2 местах, затем всё пачкой.",
+  "created": "2026-10-02T23:02:37"
+}
