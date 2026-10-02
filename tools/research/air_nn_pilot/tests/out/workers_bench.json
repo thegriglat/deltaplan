@@ -1,0 +1,88 @@
+{
+ "what": "случаев в час от числа воркеров на 12 случаях main «только область» (bench12), предел 1000 итераций; замок GPU — на весь прогон N",
+ "ids": [
+  "aushkul_029",
+  "aushkul_065",
+  "p_011_029",
+  "s_valley_003",
+  "altai_020",
+  "ongudai_020",
+  "altai_022",
+  "aushkul_063",
+  "p_000_020",
+  "p_015_028",
+  "s_saddle_006",
+  "s_scarp_008"
+ ],
+ "max_outer": 1000,
+ "curve": [
+  {
+   "n": 1,
+   "cases": 12,
+   "batch_s": 73.1,
+   "rate_per_h": 591.4,
+   "lock_wait_s": 38.9,
+   "wall_total_s": 118.8,
+   "case_t_wall_mean_s": 6.08,
+   "n_max": 4,
+   "gpu_util_mean": 85.5,
+   "gpu_mem_peak_mb": 1581.0
+  },
+  {
+   "n": 2,
+   "cases": 12,
+   "batch_s": 69.2,
+   "rate_per_h": 623.9,
+   "lock_wait_s": 0.0,
+   "wall_total_s": 75.9,
+   "case_t_wall_mean_s": 10.61,
+   "n_max": 4,
+   "gpu_util_mean": 97.3,
+   "gpu_mem_peak_mb": 1636.0
+  },
+  {
+   "n": 3,
+   "cases": 12,
+   "batch_s": 69.8,
+   "rate_per_h": 618.5,
+   "lock_wait_s": 0.0,
+   "wall_total_s": 77.0,
+   "case_t_wall_mean_s": 15.68,
+   "n_max": 4,
+   "gpu_util_mean": 98.4,
+   "gpu_mem_peak_mb": 2008.0
+  },
+  {
+   "n": 4,
+   "cases": 12,
+   "batch_s": 70.1,
+   "rate_per_h": 616.7,
+   "lock_wait_s": 0.0,
+   "wall_total_s": 77.0,
+   "case_t_wall_mean_s": 22.1,
+   "n_max": 4,
+   "gpu_util_mean": 99.4,
+   "gpu_mem_peak_mb": 2443.0
+  }
+ ],
+ "bitwise": true,
+ "same_files_all_n": true,
+ "equal_to_main_ok_cases": {
+  "altai_020": true,
+  "ongudai_020": true,
+  "altai_022": true,
+  "aushkul_063": true,
+  "p_000_020": true,
+  "p_015_028": true,
+  "s_saddle_006": true,
+  "s_scarp_008": true
+ },
+ "chosen_n": 2,
+ "rule": "наименьшее N со скоростью ≥ 95 % лучшей",
+ "speedup": {
+  "1": 1.0,
+  "2": 1.05,
+  "3": 1.05,
+  "4": 1.04
+ }
+}

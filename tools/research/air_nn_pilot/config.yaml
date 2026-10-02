@@ -1,0 +1,117 @@
+# Конфиг пилота air-nn (этап П): один файл — зёрна, размеры, пути. Пути — от $AIR_NN_DATA (по умолчанию ниже).
+# Раздел profiles.<имя> накладывается при --smoke (профиль smoke) или --profile <имя>; свои каталоги.
+data_root_default: /home/greg/air_nn_data
+
+paths:
+  base: ${AIR_NN_DATA}/pilot                 # runs/, reports/, prep/ — по §4.4 плана
+
+dataset:
+  # Набор П1 (генератор NN-P1, dataset.py): каталог — `dataset.py path --dataset <name>`; досчёт — `dataset.py run`
+  # (с продолжения; если досчёт уже идёт другим процессом — ждём его с прогрессом по `status --json`).
+  name: main
+  gen: true                                  # false — только проверить готовые образцы (без досчёта)
+  root: ""                                   # явный каталог набора (раскладка П1 или air-lite) вместо dataset.py path
+  log_dir: ${AIR_NN_DATA}/pilot/logs         # журнал досчёта: logs/dataset_<name>.log (как у NN-P1)
+  allowed_status: [ok, max]                  # статусы решений области, пригодные как цель (max — предел итераций)
+  min_cases: 20
+
+split:
+  seed: 20261002
+  holdout_places: [ongudai]                  # (б): место целиком вне обучения и проверки
+  holdout_proc_prefix: "p_"                  # + отложенные процедурные рельефы (кривая (в) и (б'))
+  holdout_proc_n: 5
+  newcond_frac: 0.15                         # (а): «новые условия» на знакомом рельефе
+  val_frac: 0.10                             # проверка для ранней остановки
+  curve_sizes: [5, 10, 20, 40]
+
+train:
+  seed: 1
+  model:
+    channels: [32, 64, 96, 128, 192]         # 4 понижения: 96 → 6 клеток (рецептивное поле — вся область)
+    emb: 128
+  batch: 8
+  lr: 2.0e-3
+  weight_decay: 1.0e-4
+  warmup_frac: 0.03
+  max_epochs: 150
+  patience: 30
+  ema_decay: 0.999
+  grad_clip: 1.0
+  near_ground_weight: 2.0                    # вес потерь на высотах ≤ near_ground_max_m (60 м над стартами)
+  near_ground_max_m: 100
+  ckpt_every_min: 5
+  lock_chunk_s: 240                          # замок GPU — куски ≤ 4 мин (между ними — чужие GPU-тесты)
+
+curve:
+  max_epochs: 150                            # точки кривой — с теми же гиперпараметрами
+
+eval:
+  agl_key_m: 60                              # ключевые числа: 60 м над стартом (между 50 и 75 м)
+  rms_radius_m: 1000
+  edge_cells: 5                              # край области вне сравнения с air-lite (зона притока/выхода)
+  airlite_metrics: ref/air_lite_fit_metrics.json
+  ort_threads: [4, 1]
+  ort_repeats: 20
+  n_slice_figures: {holdout_place: 2, newcond: 2, holdout_proc: 1}
+  # ориентиры ШП (план §8.2) — правило вывода в отчёте
+  wind_ok_ms: 0.3
+  lift_ok_ms: 0.1
+  frac_ok: 0.90
+  better_than_baseline: 0.7                  # (б): медиана ошибки сети ≤ 0,7 × лучшей базовой линии
+  curve_drop: 0.9                            # (в): ошибка на max n ≤ 0,9 × ошибки на min n и спад монотонный
+
+estimate:                                    # оценка полного прогона по замеру этого прогона (в отчёте)
+  n_cases_full: 1890                         # main NN-P1: 690 air-lite + 40 × 30 процедурных
+  pool_frac: 0.862                           # доля случаев вне (б)/(б′): 1 − (110 ongudai + 5 × 30) / 1890
+  pool_places: 43                            # 3 встроенных + 5 синтетик + 35 процедурных
+  curve_sizes: [5, 10, 20, 40]
+  max_epochs: 150
+  curve_max_epochs: 150
+
+# Профили: --smoke = профиль smoke; --profile dev — данные разработки P2 (48 случаев air-lite, временные).
+profiles:
+  smoke:                                     # набор smoke NN-P1 (15 случаев: ongudai, s_hill, p_000…p_002 × 3) — все ветки отчёта
+    paths:
+      base: ${AIR_NN_DATA}/pilot/smoke
+    dataset:
+      name: smoke
+      min_cases: 10
+    split:
+      holdout_proc_n: 0
+      newcond_frac: 0.34
+      val_frac: 0.17
+      curve_sizes: [2, 4]
+    train:
+      batch: 2
+      max_epochs: 40
+      patience: 40
+      ckpt_every_min: 0.5
+      lock_chunk_s: 60
+    curve:
+      max_epochs: 5
+    eval:
+      ort_repeats: 10
+      n_slice_figures: {holdout_place: 1, newcond: 1, holdout_proc: 1}
+  dev:                                       # ВРЕМЕННЫЙ, для разработки P2: данные в pilot/tmp/dev_p2 (48 случаев, 9 мест)
+    paths:
+      base: ${AIR_NN_DATA}/pilot/tmp/dev_p2/pilot
+    dataset:
+      gen: false
+      root: ${AIR_NN_DATA}/pilot/tmp/dev_p2/tools/research/air_lite
+      min_cases: 10
+    split:
+      holdout_proc_prefix: "s_"
+      holdout_proc_n: 1
+      newcond_frac: 0.2
+      val_frac: 0.15
+      curve_sizes: [2, 4, 7]
+    train:
+      batch: 4
+      max_epochs: 150
+      patience: 150
+      ckpt_every_min: 0.5
+      lock_chunk_s: 60
+    curve:
+      max_epochs: 10
+    eval:
+      ort_repeats: 10

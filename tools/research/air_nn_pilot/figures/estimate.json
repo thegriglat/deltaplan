@@ -1,0 +1,106 @@
+{
+ "measured": {
+  "altai_000": {
+   "kind": "real",
+   "t_wall": 69.79,
+   "t_solver": 66.85,
+   "iters": 6668,
+   "status": "max",
+   "mb": 3.292881
+  },
+  "askarovo_000": {
+   "kind": "real",
+   "t_wall": 9.53,
+   "t_solver": 8.28,
+   "iters": 808,
+   "status": "ok",
+   "mb": 2.934614
+  },
+  "p_005_000": {
+   "kind": "proc",
+   "t_wall": 4.76,
+   "t_solver": 4.05,
+   "iters": 374,
+   "status": "ok",
+   "mb": 1.795304
+  },
+  "p_010_000": {
+   "kind": "proc",
+   "t_wall": 3.54,
+   "t_solver": 2.88,
+   "iters": 264,
+   "status": "ok",
+   "mb": 1.580882
+  },
+  "p_020_000": {
+   "kind": "proc",
+   "t_wall": 3.52,
+   "t_solver": 2.87,
+   "iters": 264,
+   "status": "ok",
+   "mb": 1.621607
+  },
+  "s_scarp_000": {
+   "kind": "synth",
+   "t_wall": 62.2,
+   "t_solver": 60.06,
+   "iters": 6834,
+   "status": "max",
+   "mb": 1.711246
+  },
+  "s_valley_000": {
+   "kind": "synth",
+   "t_wall": 5.24,
+   "t_solver": 4.31,
+   "iters": 404,
+   "status": "ok",
+   "mb": 1.546772
+  }
+ },
+ "n_cases": {
+  "proc": 1200,
+  "real": 440,
+  "synth": 250
+ },
+ "estimate": {
+  "real": {
+   "n": 440,
+   "airlite_cases": 24,
+   "airlite_solver_mean_s": 21.76,
+   "airlite_max_frac": 0.208,
+   "overhead": 1.056,
+   "case_s": 22.97,
+   "hours": 2.81,
+   "mb": 3.114,
+   "gb": 1.37,
+   "measured_mean_s": 39.66
+  },
+  "synth": {
+   "n": 250,
+   "airlite_cases": 25,
+   "airlite_solver_mean_s": 9.89,
+   "airlite_max_frac": 0.12,
+   "overhead": 1.048,
+   "case_s": 10.36,
+   "hours": 0.72,
+   "mb": 1.629,
+   "gb": 0.41,
+   "measured_mean_s": 33.72
+  },
+  "proc": {
+   "n": 1200,
+   "airlite_cases": 25,
+   "airlite_solver_mean_s": 9.89,
+   "airlite_max_frac": 0.12,
+   "overhead": 1.206,
+   "case_s": 11.92,
+   "hours": 3.97,
+   "mb": 1.666,
+   "gb": 2.0,
+   "measured_mean_s": 3.94
+  }
+ },
+ "total_hours": 7.5,
+ "total_gb": 3.78,
+ "overhead_all": 1.062
+}
