@@ -9,6 +9,7 @@
 import argparse
 import concurrent.futures as cf
 import datetime as dt
+import difflib
 import json
 import os
 import re
@@ -18,7 +19,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 9  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 10  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -437,18 +438,19 @@ def cmd_task_set(a):
             cs.append({"name": name, "version": ver or "?", "ref": module_meta(mod, home)["contracts"]})
         changed.append(f"contract:{name}")
     acc = card.setdefault("accept", [])
-    for name, cmd, exp in a.check or []:
-        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": expect_arg(exp)}]
-        changed.append(f"accept:{name}")
-    for f in a.test or []:
-        acc[:] = [c for c in acc if c.get("name") != f] + [{"name": f, "tests": f}]
-        changed.append(f"accept:{f}")
+    # сначала снять, потом добавить: --drop-check X --check X … заменяет проверку
     for name in a.drop_check or []:
         n0 = len(acc)
         acc[:] = [c for c in acc if c.get("name") != name]
         if len(acc) == n0:
             raise DpError(f"проверки «{name}» нет в карточке")
         changed.append(f"accept:-{name}")
+    for name, cmd, exp in a.check or []:
+        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": expect_arg(exp)}]
+        changed.append(f"accept:{name}")
+    for f in a.test or []:
+        acc[:] = [c for c in acc if c.get("name") != f] + [{"name": f, "tests": f}]
+        changed.append(f"accept:{f}")
     if not changed:
         raise DpError("нечего менять: поле=значение, --check, --test, --drop-check, --contract")
     card["edited"] = now()
@@ -517,10 +519,11 @@ def cmd_task_show(a):
     if nedit:
         L.append(f"Карточка правилась {nedit} раз (dp task show {a.id} --diff)")
     L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила» (читать обязательно).")
-    L.append("Долгие запуски — `dp job start <имя> <таймаут_с> <команда…>`, ожидание — `dp job wait <имя>` в фоне (run_in_background), не циклы `until grep`.")
-    rx = ", ".join(card.get("report_extra") or [])
-    L.append(f"Отчёт: dp report {card['id']} < отчёт.json (dp report --template){'; ещё поля: ' + rx if rx else ''}; "
-             f"в конце — обратная связь по dp (поле dp_feedback).")
+    L.append(f"Свежая работа соседей (ветка {card.get('base') or 'модуля'} → ваша): dp task sync {card['id']}.")
+    L.append("Долгие запуски — `dp job start <имя> <таймаут_с> <команда…>`, ожидание — `dp job wait <имя> <таймаут_с>` в фоне (run_in_background), не циклы `until grep`.")
+    rx = ", ".join(f"«{k}»" for k in card.get("report_extra") or [])
+    L.append(f"Отчёт: dp report {card['id']} < отчёт.json (схема с полями карточки — dp report --template {card['id']})"
+             f"{'; обязательные поля верхнего уровня отчёта: ' + rx if rx else ''}; в конце — обратная связь по dp (поле dp_feedback).")
     if full:
         L.append("Копия задачи — своя; чужие не трогать; контракты менять только через координатора; коммиты — только свои файлы "
                  "(git commit -- <пути>), по-русски, со строкой Claude-Session. Свежая работа соседей — git merge ветки модуля в свою "
@@ -736,7 +739,13 @@ def cmd_accept(a):
     if a.bg:
         return accept_bg(a, cwd)
     with cf.ThreadPoolExecutor(max_workers=max(1, a.jobs)) as ex:
-        res = list(ex.map(lambda ic: run_check(ic[1], cwd, logdir, ic[0], a.id), enumerate(checks, 1)))
+        def one(ic):
+            nm = ic[1].get("name", f"check{ic[0]}")
+            print(f"… {nm}", file=sys.stderr, flush=True)  # прогресс — в stderr, итоговая таблица — в stdout
+            r = run_check(ic[1], cwd, logdir, ic[0], a.id)
+            print(f"{'PASS' if r[1] else 'FAIL'} {nm} {r[4]:.0f} с", file=sys.stderr, flush=True)
+            return r
+        res = list(ex.map(one, enumerate(checks, 1)))
     w = max(len(r[0]) for r in res)
     for name, ok, val, log, dur in res:
         print(f"{'PASS' if ok else 'FAIL'} {name:<{w}} {val}" + (f"  [{rel(log)}]" if (not ok or a.full) else ""))
@@ -807,15 +816,39 @@ def validate_report(r, card):
         errs.append("нет результатов проверок: " + ", ".join(miss))
     if "extra" in r and not isinstance(r["extra"], dict):
         errs.append("extra — объект")
-    for k in (card or {}).get("report_extra", []) or []:
-        if k not in r:
-            errs.append(f"нет поля {k} (report_extra)")
+    want = [k for k in (card or {}).get("report_extra", []) or [] if isinstance(k, str)]
+    for k in want:
+        if k in r:
+            continue
+        alt = match_extra_key(k, [x for x in r if x not in want])
+        if alt:  # регистр/единственный префикс — переименовать в ключ карточки
+            r[k] = r.pop(alt)
+            continue
+        near = difflib.get_close_matches(k, [x for x in r if x not in want], n=1, cutoff=0.5)
+        errs.append(f"нет поля «{k}» (report_extra)" + (f"; есть похожее «{near[0]}» — переименуйте" if near else "")
+                    + ("" if len(want) < 2 else f"; ожидаются: {', '.join(want)}"))
     return errs
+
+
+def match_extra_key(k, keys):
+    """Ключ отчёта, подходящий под ключ карточки: без учёта регистра или единственный префикс (в любую сторону, от 3 знаков)."""
+    kl = k.lower()
+    ci = [x for x in keys if isinstance(x, str) and x.lower() == kl]
+    if len(ci) == 1:
+        return ci[0]
+    pre = [x for x in keys if isinstance(x, str) and len(x) >= 3 and len(kl) >= 3 and (kl.startswith(x.lower()) or x.lower().startswith(kl))]
+    return pre[0] if len(pre) == 1 else None
 
 
 def cmd_report(a):
     if a.template:
-        print(json.dumps(REPORT_TEMPLATE, ensure_ascii=False, indent=2))
+        t = dict(REPORT_TEMPLATE)
+        if a.id:  # ключи report_extra карточки — полями верхнего уровня
+            _, home = find_task(a.id)
+            card = read_json(home / "tasks" / f"{a.id}.json") or {}
+            for k in card.get("report_extra") or []:
+                t[k] = "… (обязательное поле карточки)"
+        print(json.dumps(t, ensure_ascii=False, indent=2))
         return
     if not a.id:
         raise DpError("нужен ID задачи")
@@ -2252,7 +2285,7 @@ class Parser(argparse.ArgumentParser):
 
 
 def build():
-    p = Parser(prog="dp", description="Журнал, карточки задач и приёмка модулей Deltaplan. Справка с примерами — tools/dp.md.",
+    p = Parser(prog="dp", description="Журнал, карточки задач и приёмка модулей Deltaplan. Справка с примерами — tools/dp.md. Влить ветку модуля в ветку задачи — dp task sync <ID>.",
                formatter_class=argparse.RawDescriptionHelpFormatter,
                epilog="Автор событий: --by или $DP_ROLE. Коды: 0 ок, 1 ошибка/FAIL, 2 аргументы.")
     sp = p.add_subparsers(dest="cmd", required=True, parser_class=Parser, metavar="команда")
@@ -2264,7 +2297,7 @@ def build():
     q.add_argument("--legacy", metavar="ПУТЬ", help="ссылка на старый журнал модуля (поле legacy_journal в module.json)")
     q.set_defaults(fn=cmd_init)
 
-    t = sp.add_parser("task", help="карточка задачи: new | show | set | note | sync")
+    t = sp.add_parser("task", help="карточка задачи: new | show | set | note | sync (sync — влить ветку модуля в ветку задачи)")
     tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set|note|sync")
     q = tsp.add_parser("new", help="создать карточку")
     q.add_argument("module"); q.add_argument("id", nargs="?", help="<КОД>-[этап]<n>[буква]; без ID — следующий номер модуля")
@@ -2285,7 +2318,7 @@ def build():
     q.add_argument("--full", action="store_true", help="полное задание исполнителю: карточка + правила + заметки, пункты по строке")
     q.add_argument("--diff", action="store_true", help="как менялась карточка (события edited)")
     q.set_defaults(fn=cmd_task_show)
-    q = tsp.add_parser("sync", help="влить ветку модуля (base) в ветку задачи в её копии")
+    q = tsp.add_parser("sync", help="влить ветку модуля (base из карточки) в ветку задачи в её копии")
     q.add_argument("id"); q.add_argument("--message"); q.add_argument("--trailer", action="append")
     q.set_defaults(fn=cmd_task_sync)
     q = tsp.add_parser("set", help="правка карточки: поле=значение | поле+=элемент | поле-=элемент (JSON или строка)")
