@@ -4,3 +4,7 @@
 {"t": "2026-10-03T04:40:37", "by": "coordinator", "task": "ON-1", "ev": "edited", "note": "dont_touch", "diff": {"dont_touch": ["[\"tools/research/air_nn_pilot/\", \"scripts/\", \"native/\"]", "[\"tools/research/air_nn_pilot/\", \"scripts/\", \"native/\", \"tools/air_onnx/test_contract_o1.py\"]"]}}
 {"t": "2026-10-03T04:40:37", "by": "coordinator", "task": "ON-2", "ev": "created", "note": "Расширение AirOnnx (ORT CPU) из пробника: несколько входов, сборка Linux+Windows, экспорт"}
 {"t": "2026-10-03T04:41:00", "by": "coordinator", "task": "ON-3", "ev": "created", "note": "AirNnPrep: вход и выход сети в GDScript = prep.py (тест N1/N2 на фикстуре)"}
+{"t": "2026-10-03T04:42:06", "by": "coordinator", "task": "ON-1", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-air-onnx-ON-1"}
+{"t": "2026-10-03T04:42:06", "by": "coordinator", "task": "ON-2", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-air-onnx-ON-2"}
+{"t": "2026-10-03T04:42:06", "by": "coordinator", "task": "ON-3", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-air-onnx-ON-3"}
+{"t": "2026-10-03T04:42:34", "by": "coordinator", "task": "ON-4", "ev": "created", "note": "AirNnInput: строка входа сети из игры (AirCase, погода) и страж области применимости"}
