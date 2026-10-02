@@ -61,6 +61,11 @@
       "name": "estimate_full",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/air_nn_pilot/figures/estimate_p2_full.json'));print('gpu_h', d['gpu_h_terrain']);print('total_h', d['total_h']);print('disk_gb', d['disk_gb']);print('real', d['probe_real_places'])\"",
       "expect": "re:real True"
+    },
+    {
+      "name": "smoke_p2",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/check_report_v3.py --latest-smoke",
+      "expect": "re:ШП-2: (идём в волну 0|правим подход|отказ)"
     }
   ],
   "report_extra": [
@@ -70,5 +75,5 @@
   ],
   "notes": "Начинать от feature/air-nn после слияния NN-P5, NN-17, NN-18, NN-P8 (координатор сообщит). Места — tiles/v3 (П6 v3: дно квадрата ≤ 3000 м, пул 300 + 4 × 15 с южными Альпами НЗ). Цель max — среднее поздних состояний (П1 v3, NN-17: снимки ~бесплатны, +1 % времени). Версия решателя s0-1c8c322 отличается от s0-3acd749 только комментариями — main не пересчитывать (main_version в configs/dataset.yaml). Предел итераций max_outer = 1000 (NN-P6). GPU — под замком пилота. Массовый счёт одобрен пользователем, но запускает его главная сессия: дать готовую команду (cwd, tmux), оценку времени и диска — сам не запускать. Ничего не шлифовать: цель П-2 — понять, стоит ли идея работы. События dp — с DP_ROLE=researcher.",
   "created": "2026-10-03T00:11:24",
-  "edited": "2026-10-03T02:10:51"
+  "edited": "2026-10-03T02:11:10"
 }
