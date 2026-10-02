@@ -73,15 +73,20 @@ class UI:
 
 
 class Eta:
+    """Оставшееся время по скорости за последние WINDOW с (ожидание замка GPU и пауза шага не тянут оценку за собой)."""
+    WINDOW = 180.0
+
     def __init__(self):
-        self.t0 = None
-        self.d0 = None
+        self.hist = []
 
     def line(self, done, total, unit, extra=""):
         now = time.time()
-        if self.t0 is None:
-            self.t0, self.d0 = now, done
-        rate = (done - self.d0) / (now - self.t0) if now - self.t0 > 3 and done > self.d0 else None
+        if not self.hist or done != self.hist[-1][1]:
+            self.hist.append((now, done))
+        while len(self.hist) > 2 and now - self.hist[0][0] > self.WINDOW:
+            self.hist.pop(0)
+        t0, d0 = self.hist[0]
+        rate = (done - d0) / (now - t0) if now - t0 > 3 and done > d0 else None
         if total and done >= total:
             eta = "завершение…"
         else:

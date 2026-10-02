@@ -1,0 +1,71 @@
+{
+ "profile": "smoke",
+ "log": [
+  {
+   "step": "A: непрерванный",
+   "rc": 0,
+   "t": 937.4
+  },
+  {
+   "step": "kill -9 посреди обучения",
+   "at_epoch": 7,
+   "rc": -9
+  },
+  {
+   "step": "SIGINT посреди обучения",
+   "at_epoch": 15,
+   "rc": 130,
+   "ckpt": true
+  },
+  {
+   "step": "kill -9 при записи чекпойнта",
+   "at_epoch": 15.5,
+   "tmp_files_at_kill": [
+    "last.pt.tmp257615"
+   ]
+  },
+  {
+   "step": "kill -9 посреди кривой",
+   "curve": [
+    [
+     "curve_01",
+     2
+    ]
+   ]
+  },
+  {
+   "step": "повтор до отчёта",
+   "rc": 0
+  },
+  {
+   "step": "повтор готового прогона",
+   "rc": 0,
+   "t": 27.1
+  }
+ ],
+ "compare": {
+  "n_numbers": 913,
+  "n_missing": 0,
+  "missing": [],
+  "n_different": 0,
+  "max_rel_diff": 0.0,
+  "max_rel_key": null
+ },
+ "val_history_equal": true,
+ "val_history_max_abs": 0.0,
+ "epochs": [
+  40,
+  40
+ ],
+ "layout": {
+  "runs": [
+   "2026-10-02_itest_cut"
+  ],
+  "reports": [
+   "2026-10-02_itest_cut"
+  ],
+  "tmp_left": []
+ },
+ "verdict_a": "не оценено: нет случаев (а) «новые условия» (малый набор).",
+ "verdict_b": "не оценено: нет случаев (а) «новые условия» (малый набор)."
+}

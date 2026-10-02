@@ -203,6 +203,9 @@ def summarize(rows, ec):
         out["frac_all_ok"] = float(np.mean((w < ec["wind_ok_ms"]) & (lm < ec["lift_ok_ms"]) & (lh < ec["lift_ok_ms"])))
         out["n_points"] = len(rows)
         out["n_cases"] = len({r["case"] for r in rows})
+        per_case = {r["case"]: r for r in rows}.values()      # RMS по всей области (60 м) — одно число на случай
+        for k in ("f_wind", "f_lift_m", "f_lift_h"):
+            out[k] = agg(list(per_case), k) if all(k in r for r in per_case) else None
     return out
 
 
@@ -363,7 +366,7 @@ def run_eval(run: Path, rep: Path):
             result["curve"].append(ent)
             del net_c
             torch.cuda.empty_cache()
-    t_eval = time.time() - t_eval0
+    t_eval = time.time() - t_eval0 - lock.waited          # без ожидания замка GPU
     # ONNX (CPU; замок GPU не нужен)
     Xs, Fs, _, _ = load_arrays(prep_dir, (sets["holdout_place"] or sets["newcond"] or tr_eval)[:3], with_y=False)
     result["onnx"] = export_onnx(model, Xs, Fs, run / "main" / "model.onnx", ec["ort_repeats"], ec["ort_threads"])
@@ -374,6 +377,7 @@ def run_eval(run: Path, rep: Path):
                                              "t_epoch_median_s", "t_per_sample_ms", "gpu", "torch")}
     result["main"]["history"] = json.loads((run / "main" / "history.json").read_text())
     result["t_eval_s"] = t_eval
+    result["gpu_lock_wait_s"] = lock.waited
     result["n_eval_cases"] = n_total - 1
     result["dataset"] = dict(root=info["dataset_root"], n_cases=len(rows_by_id),
                              status={s: sum(solver_status(r) == s for r in rows_by_id.values()) for s in ("ok", "max", "diverged")},
