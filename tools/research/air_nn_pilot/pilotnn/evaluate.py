@@ -359,6 +359,17 @@ def summarize(rows, ec):
 
 
 # ------------------------------------------------------------------------------------------------ eval
+def hold_groups(loc, p6, ec):
+    """Группы (г) для разбивки отчёта: система и корзина уклона slope_p50 из индекса П6."""
+    r = p6.get(loc)
+    if not r:
+        return []
+    e = list(ec.get("slope_bins", [0.12, 0.3]))
+    k = int(np.searchsorted(np.asarray(e), float(r["slope_p50"]), side="right"))
+    lab = (f"< {e[0]:g}" if k == 0 else f"≥ {e[-1]:g}" if k == len(e) else f"{e[k - 1]:g}–{e[k]:g}")
+    return [f"система {r['system']}", f"уклон p50 {lab}"]
+
+
 def eval_sets(split, ec, seed):
     rng = np.random.default_rng(seed)
     tr = list(split["train_ids"])
@@ -481,6 +492,7 @@ def run_eval(run: Path, rep: Path):
             result["centers"][sname] = None
             continue
         acc = {p: AreaAcc(ec, len(agl)) for p in PREDS}
+        gacc = {}                                         # (г): разбивка по системам и уклону (сеть и приток)
         pts = {p: [] for p in PREDS}
         for part, Yp, metas in predict_chunks(model, ids):
             for i, cid in enumerate(part):
@@ -499,6 +511,11 @@ def run_eval(run: Path, rep: Path):
                     for si, k in enumerate(kn):
                         k.update(case=cid, loc=row["loc"], start=si, U10=row["U10"], hour=row["hour"])
                         pts[pn].append(k)
+                if sname == "holdout_sys":
+                    for gname in hold_groups(row["loc"], p6, ec):
+                        for gp in ("net", "inflow"):
+                            gacc.setdefault(gname, {}).setdefault(gp, AreaAcc(ec, len(agl))).add(
+                                cid, row, truth, preds[gp], lw, rm)
                 if sname in ("newcond_p6", "newcond_old"):
                     pooled_nc.add(airlite_targets(truth, row, ec["edge_cells"]),
                                   airlite_targets(preds["net"], row, ec["edge_cells"]))
@@ -512,6 +529,10 @@ def run_eval(run: Path, rep: Path):
                 prog.put(done)
         result["sets"][sname] = {pn: acc[pn].result() for pn in PREDS}
         result["sets"][sname]["per_case"] = acc["net"].cases
+        if gacc:
+            result["sets"][sname]["groups"] = {
+                g: {pn: {k: v for k, v in a.result(with_q=False).items() if k in ("n_cases", "area", "ridge", "bias")}
+                    for pn, a in d.items()} for g, d in sorted(gacc.items())}
         result["centers"][sname] = {pn: summarize(pts[pn], ec) for pn in PREDS}
         result["per_point"] += [dict(r, set=sname, pred=pn) for pn in PREDS for r in pts[pn]]
     result["airlite_net"] = dict(newcond=pooled_nc.result(), holdout_place=pooled_hp.result())

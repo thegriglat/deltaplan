@@ -137,8 +137,49 @@ def test_small_curve_and_unknown_t():
         raise AssertionError("t_* без индекса П6 должно падать")
 
 
+def test_real_p6_index():
+    """На настоящем индексе П6 (NN-P4), если он есть: (г) = все места holdout, кривая 25…300 по слоям по кругу."""
+    import json
+    import os
+    from pilotnn.data import read_p6_index
+    path = Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")) / "pilot/tiles/v1/index.csv"
+    p6 = read_p6_index(path)
+    if not p6:
+        print(f"  (нет {path} — пропуск)")
+        return None
+    rows, _ = fake(0, 0)
+    for l in p6:
+        rows += [dict(id=f"{l}_{k:03d}", loc=l) for k in range(11)]
+    s = make_split(rows, SC, p6)
+    check_disjoint(s, rows)
+    hold = sorted(l for l, r in p6.items() if r["part"] == "holdout")
+    pool = sorted(l for l, r in p6.items() if r["part"] == "pool")
+    assert s["holdout_sys"] == hold and sorted(s["p6_pool"]) == pool
+    cv = s["curve"]
+    assert [c["n_places"] for c in cv] == [min(n, len(pool)) for n in SC["curve_sizes"]], [c["n_places"] for c in cv]
+    assert cv[-1]["is_main"] == (len(pool) <= 300)
+    strata = sorted({p6[l]["stratum"] for l in pool})
+    order = s["curve_order"]
+    assert [p6[l]["stratum"] for l in order[:len(strata)]] == strata
+    out = dict(index=str(path), n_pool=len(pool), n_holdout=len(hold),
+               holdout_by_system={x: sum(p6[l]["system"] == x for l in hold) for x in sorted({p6[l]["system"] for l in hold})},
+               curve=[dict(n=c["n_places"], is_main=c["is_main"], n_train_cases=len(c["train_ids"]),
+                           strata={st: sum(p6[l]["stratum"] == st for l in c["curve_places"]) for st in strata})
+                      for c in cv],
+               n_train=len(s["train_ids"]), n_val=len(s["val_ids"]), n_newcond=len(s["newcond_ids"]),
+               n_holdout_sys_cases=len(s["holdout_sys_ids"]))
+    o = Path(__file__).resolve().parent / "out"
+    o.mkdir(exist_ok=True)
+    (o / "split_real_p6.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
+    return out
+
+
 if __name__ == "__main__":
     test_split_v3()
     test_no_p6()
     test_small_curve_and_unknown_t()
+    r = test_real_p6_index()
+    if r:
+        print(f"ok настоящий индекс П6: пул {r['n_pool']}, (г) {r['n_holdout']} {r['holdout_by_system']}, кривая "
+              + ", ".join(f"{c['n']}{'=осн' if c['is_main'] else ''}" for c in r["curve"]))
     print("ok: деление v3 — (б), (г), (б′), (а), кривая 25…300 (слои по кругу, точка полного пула = основная сеть)")

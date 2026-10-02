@@ -29,7 +29,7 @@ VERDICTS = ("идём в волну 0", "правим подход", "отказ
 # разделы report.md (П3 v2) — проверяет tests/check_report_v2.py
 SECTIONS = ("## Вывод ШП-2", "## Наборы и деление", "## Область на 60 м", "## Гребни на 60 м",
             "## Центры (plan.json → centers)", "## Смещение скорости по высотам", "## Смещение по корзинам U10",
-            "## Кривая (в)", "## Признаки рельефа наборов", "## Сравнение с регрессией air-lite", "## Картинки",
+            "## (г) по системам и уклону", "## Кривая (в)", "## Признаки рельефа наборов", "## Сравнение с регрессией air-lite", "## Картинки",
             "## ONNX и время на CPU", "## Обучение и время", "## Границы")
 
 
@@ -509,6 +509,29 @@ def build_report(run: Path, rep: Path):
         for lab, bb in d["net"]["bias_bins"].items():
             md.append(f"| {SET_NAMES[s]} | {lab} | {bb['cases']} | " + " | ".join(
                 f"{sg(bb['e'][j])} ({bias_thr(bb['v'][j], sc):.2f})" for j in low) + " |")
+    # --- (г) по группам
+    md.append("\n## (г) по системам и уклону\n")
+    G = (M["sets"].get("holdout_sys") or {}).get("groups") or {}
+    if G:
+        md.append(f"Разбивка (г) по горным системам и корзинам уклона 400 м slope_p50 из индекса П6 (границы "
+                  f"{ec.get('slope_bins')}); правило ШП-2 — по всему (г), разбивка — для понимания (отложенные системы положе "
+                  "пула). Доли «ок» — клетки области на 60 м; e — среднее по клеткам области.\n")
+        md.append(f"| группа | предсказание | случаев | ветер ок | подъём б/н ок | подъём с/н ок | медиана ветра, м/с | "
+                  f"среднее e на {a60:g} м | max |e| ≤ {sc['bias_max_agl_m']:g} м (порог) | e на гребнях |")
+        md.append("|---|---|---|---|---|---|---|---|---|---|")
+        for g, d in G.items():
+            for pn in ("net", "inflow"):
+                x = d.get(pn)
+                if not x or not (x.get("area") or {}).get("n_points"):
+                    continue
+                a = x["area"]
+                j = max(low, key=lambda j: abs(x["bias"]["e"][j]))
+                md.append(f"| {g} | {PRED_NAMES[pn]} | {x['n_cases']} | {pct(a['frac_wind_ok'])} | {pct(a['frac_lift_m_ok'])} | "
+                          f"{pct(a['frac_lift_h_ok'])} | {f2(a['wind']['median'], 3)} | {sg(at_key(x['bias']['e'], agl, a60))} | "
+                          f"{f2(abs(x['bias']['e'][j]), 3)} @ {agl[j]:g} м ({bias_thr(x['bias']['v'][j], sc):.3f}) | "
+                          f"{sg((x.get('ridge') or {}).get('e_mean'))} |")
+    else:
+        md.append("Нет случаев (г) или индекса П6.\n")
     # --- кривая
     md.append("\n## Кривая (в): число рельефов П6 в обучении, оценка на (г) и (б)\n")
     if M["curve"]:

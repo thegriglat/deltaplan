@@ -73,6 +73,11 @@ def check(rep: Path):
                 errs.append(f"{s}/{pn}: нет корзин U10")
         if not (M.get("centers") or {}).get(s):
             errs.append(f"centers: нет набора {s}")
+    hs = sets.get("holdout_sys") or {}
+    if hs and M.get("p6_systems"):
+        G = hs.get("groups") or {}
+        if not any(g.startswith("система ") for g in G) or not any(g.startswith("уклон ") for g in G):
+            errs.append("(г): нет разбивки по системам и корзинам уклона")
     cv = M.get("curve") or []
     if len(cv) < 2:
         errs.append(f"кривая: {len(cv)} точек (< 2)")
