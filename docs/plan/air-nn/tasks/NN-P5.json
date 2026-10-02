@@ -1,0 +1,87 @@
+{
+  "id": "NN-P5",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Вход П2 v3, деление, оценка и отчёт П3 v2 (поверх 28b0ac5)",
+  "goal": "Пилот читает несколько наборов (main v1 + terrain v2), делит по П2 v3 (отложенные системы, кривая 25…300), считает и пишет отчёт П3 v2 с правилом ШП-2 — проверено smoke на подставном индексе П6.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П1",
+      "version": "2",
+      "ref": "docs/air_nn_contracts.md"
+    },
+    {
+      "name": "П2",
+      "version": "3",
+      "ref": "docs/air_nn_contracts.md"
+    },
+    {
+      "name": "П3",
+      "version": "2",
+      "ref": "docs/air_nn_contracts.md"
+    },
+    {
+      "name": "П6",
+      "version": "1",
+      "ref": "docs/air_nn_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-inputs",
+  "branch": "air-nn/inputs",
+  "base": "feature/air-nn",
+  "scope": [
+    "уже сделано (28b0ac5): 9 карт П2 v3 в pilotnn/prep.py, tests/test_prep.py зелёный — не переделывать",
+    "pilotnn/split.py — деление v3 (ongudai вне; (г) part=holdout; (б′) 5 отложенных p_*; пул; (а) новые условия; (в) вложенные 25/50/100/200/300 по stratum по кругу, внутри — по хешу; точка полного пула = основная сеть); tests/test_split.py",
+    "pilotnn/data.py — несколько наборов из config.yaml; кеш подготовки по набору (prep_dirs); окна v1 не читать",
+    "pilot.py — чтение нескольких наборов, кривая, оценка; удалить профиль dev; профиль smoke П-2 на подставном индексе",
+    "pilotnn/evaluate.py, pilotnn/report.py — П3 v2: точки (вся область без edge_cells на 60 м, гребни tpi_2k ≥ p90, centers), «ок» ветра ≤ max(0,3; 10 %), подъём < 0,1 (без и с нагревом), смещение e по наборам × 13 высот × корзины U10 и на гребнях, правило ШП-2 из config.yaml (порог смещения max(0,1 м/с; 2 %) подтверждён пользователем), кривая на (г) и (б), таблица признаков рельефа из index.csv П6",
+    "config.yaml — разделы datasets/split/eval/curve и пороги ШП-2",
+    "tests/make_mock_p6.py — подставной П6 (index.csv по контракту, t_0000…t_0009 из случаев main, части pool/holdout, stratum, system) и подставной набор terrain v2 (только область) для smoke",
+    "tests/check_report_v2.py — проверка report.md/metrics.json: все разделы П3 v2 на месте; печатает строку «ШП-2: <вердикт>»",
+    "замер времени обучения на полном объёме (оценка: 1890 + ~3500 случаев terrain) — эпоха, ч на 150 эпох, кривая; число в отчёт",
+    "README пилота — разделы входа, деления, оценки"
+  ],
+  "dont_touch": [
+    "dataset.py, airlite_gen.py, configs/dataset.yaml, places.py (NN-P6); terrain_cut.py, configs/terrain.yaml (NN-P4)",
+    "run_pilot.sh — стадии рельефа/набора добавит NN-P7 (pilot.py правишь ты; согласовать в отчёте, что NN-P7 должен вызвать)",
+    "основной набор main и прежние прогоны в $AIR_NN_DATA/pilot — только чтение; свои данные — smoke-каталоги",
+    "незакоммиченный симлинк tools/research/air_nn_pilot/.venv"
+  ],
+  "accept": [
+    {
+      "name": "test_prep",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_prep.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_split",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_split.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_sample_v2",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_sample.py --dataset smoke",
+      "expect": "exit=0",
+      "timeout": 1800
+    },
+    {
+      "name": "smoke_report_v2",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/check_report_v2.py --latest-smoke",
+      "expect": "re:ШП-2: (идём в волну 0|правим подход|отказ)"
+    },
+    {
+      "name": "interrupt_train",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_interrupt_train.py --profile smoke",
+      "expect": "exit=0",
+      "timeout": 5400
+    }
+  ],
+  "report_extra": [
+    "время эпохи и оценка полного обучения (ч) на объёме П-2",
+    "что нужно от NN-P7 (вызовы pilot.py, профили)",
+    "изменил ли константы карт 4–8 (разрешено один раз, с обоснованием — сначала спросить координатора)"
+  ],
+  "notes": "Продолжение остановленной задачи: начать с split.py v3 поверх 28b0ac5. GPU — только под замком пилота (GpuLock); параллельно идёт NN-P6 (замеры на GPU) — не держать замок дольше нужного.",
+  "created": "2026-10-02T23:02:37"
+}

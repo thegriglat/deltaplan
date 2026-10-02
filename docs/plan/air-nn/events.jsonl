@@ -1,1 +1,7 @@
 {"t": "2026-10-02T22:59:34", "by": "coordinator", "task": null, "ev": "note", "note": "Журнал продолжается в dp (docs/plan/air-nn/); история до 02.10 22:58 — docs/plan/air_nn_progress.md. Состояние на старте: NN-P4 (air-nn/terrain) кода нет; NN-P5 (air-nn/inputs) 28b0ac5 не влит; NN-P6 (air-nn/gen2) кода нет; NN-P7 не начата."}
+{"t": "2026-10-02T23:02:37", "by": "coordinator", "task": "NN-P4", "ev": "created", "note": "Рельефы П-2: выбор, скачивание, нарезка (П6)"}
+{"t": "2026-10-02T23:02:37", "by": "coordinator", "task": "NN-P5", "ev": "created", "note": "Вход П2 v3, деление, оценка и отчёт П3 v2 (поверх 28b0ac5)"}
+{"t": "2026-10-02T23:02:37", "by": "coordinator", "task": "NN-P6", "ev": "created", "note": "Генератор П-2: только область, загрузчик t_*, воркеры GPU, предел несошедшихся, замер"}
+{"t": "2026-10-02T23:03:03", "by": "coordinator", "task": "NN-P4", "ev": "started", "note": "dp-researcher, ~/deltaplan-air-nn-terrain (перезапуск после СТОП)"}
+{"t": "2026-10-02T23:03:03", "by": "coordinator", "task": "NN-P5", "ev": "started", "note": "dp-researcher, ~/deltaplan-air-nn-inputs (перезапуск поверх 28b0ac5)"}
+{"t": "2026-10-02T23:03:03", "by": "coordinator", "task": "NN-P6", "ev": "started", "note": "dp-researcher, ~/deltaplan-air-nn-gen2 (перезапуск после СТОП)"}
