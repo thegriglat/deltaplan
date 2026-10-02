@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Подставной индекс П6 и подставной набор terrain v2 («только область») для smoke П-2 — до настоящих данных
+"""Подставной индекс П6 и подставной набор terrain (П1 v2 + метаданные решений П1 v3) («только область») для smoke П-2 — до настоящих данных
 NN-P4 (вырезки) и NN-P6 (генератор). Формат — по контрактам П6 v1 и П1 v2 (docs/air_nn_contracts.md):
 
   <out>/tiles/v1/index.csv, manifest.json           — индекс П6: столбцы контракта, по строке на место t_0000…t_0009,
@@ -12,6 +12,9 @@ NN-P4 (вырезки) и NN-P6 (генератор). Формат — по ко
 Случаи — первые `--n-cond` случаев мест набора main (только чтение), место переименовано в t_<NNNN> (id
 `t_<NNNN>_<kkk>`), поля решателя побитно те же. Признаки индекса (h_*, relief_m, slope_p50/p95, tpi2k_p95) — по
 `d400_hc` формулами контракта; lat/lon встроенных мест — из configs/locations, процедурных — условные.
+Статусы решений (П1 v3, подставные метаданные — поля не пересчитываются): случаи с ord % 5 = 1 — `h` не сошлось, 2 — `m`,
+3 — оба (target `late_mean`, `late_n` 11, `late_spread60_p90` 0,6…0,9 м/с); остальные — `ok`/`final` (по каждому из
+двух решений), так что в каждой отложенной системе есть и сошедшиеся, и несошедшиеся решения обоих видов (tests/check_report_v3.py).
 Слой `stratum` — по уклону p50 (пороги ниже — только для подставных данных). Повтор команды → те же файлы
 (существующий каталог пересоздаётся целиком).
 
@@ -56,7 +59,7 @@ def stratum(s50):
 def main():
     ap = argparse.ArgumentParser()
     data = os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")
-    ap.add_argument("--out", default=f"{data}/pilot/tmp/NN-P5_mock")
+    ap.add_argument("--out", default=f"{data}/pilot/tmp/NN-18_mock")
     ap.add_argument("--src", default=None, help="каталог набора main (по умолчанию — dataset.py path --dataset main)")
     ap.add_argument("--n-cond", type=int, default=4)
     a = ap.parse_args()
@@ -86,7 +89,7 @@ def main():
         con.execute(sql)
     index, plan_cases, centers = [], [], {}
     ord_ = 0
-    SOLVER = dict(max_outer=100000)      # подставной предел итераций (П1 v2), заведомо не меньше итераций случаев main
+    SOLVER = dict(max_outer=100000, late_mean=dict(**{"from": 500, "step": 50}))       # подставной предел итераций, заведомо не меньше итераций случаев main
     for k, (loc, part, system) in enumerate(MAPPING):
         tid = f"t_{k:04d}"
         mine = [r for r in rows if r["loc"] == loc][: a.n_cond]
@@ -116,6 +119,15 @@ def main():
             m = json.loads(meta)
             m.update(id=cid, loc=tid, mock_src=r["id"])
             m["runs"] = {kk: v for kk, v in m["runs"].items() if kk.startswith("d400")}
+            bad = {"d400_h": ord_ % 5 in (1, 3), "d400_m": ord_ % 5 in (2, 3)}
+            for kk in m["runs"]:
+                if bad.get(kk):
+                    m["runs"][kk].update(status="max", target="late_mean", late_n=11,
+                                         late_spread60_p90=round(0.6 + 0.05 * (ord_ % 7), 3))
+                else:
+                    m["runs"][kk].update(status="ok", target="final", late_n=1, late_spread60_p90=0.0)
+            m["status"] = solve_status = "max" if any(bad.values()) else "ok"
+
             for kk in [kk for kk in m if kk[:1] == "w" and kk[1:].isdigit()]:
                 del m[kk]
             m["ctx"] = dict(lat=lat, lon=lon, month=7, day=15, utc_offset_h=round(lon / 15),
@@ -138,7 +150,7 @@ def main():
                 dataset=NAME, n_cond=a.n_cond, mock=True, source=str(src), region_only=True, solver=SOLVER)
     C.atomic_write_json(dsd / "plan.json", plan)
     C.atomic_write_json(dsd / "manifest.json", dict(
-        what=f"ПОДСТАВНОЙ набор terrain v2 (только область) для smoke П-2: случаи main, места переименованы в t_*",
+        what=f"ПОДСТАВНОЙ набор terrain v2 (только область; метаданные решений П1 v3 — статусы, target, late_spread60_p90 — подставные) для smoke П-2: случаи main, места переименованы в t_*",
         contract="П1 v2", solver_version=src.parent.name, schema_version=1, mock=True, source=str(src), solver=SOLVER,
         mapping={f"t_{k:04d}": m[0] for k, m in enumerate(MAPPING)}, counts=dict(total=ord_, done=ord_),
         complete=True, command=" ".join(sys.argv)))

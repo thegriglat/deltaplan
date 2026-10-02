@@ -73,8 +73,10 @@ eval:
     bias_rel: 0.02
     bias_max_agl_m: 300                      # — на высотах ≤ 300 м (по высотам и в каждой корзине U10 × высота)
     bin_min_cases: 20                        # корзины U10 с меньшим числом случаев (г) — не оцениваются
-    # «отказ от направления»: сеть на (г) не лучше лучшей базовой линии — медиана ошибки ветра сети
-    # ≥ refuse_ratio × медианы лучшей базовой линии (профиль притока / среднее): сжатия решателя нет вовсе
+    # «отказ от направления» (П3 v3, решение пользователя 03.10): медиана ошибки ветра сети на (г) по ВСЕМ случаям
+    # (сошедшиеся + несошедшиеся) ≥ refuse_ratio × наименьшей из медиан двух базовых линий (профиль притока, среднее по
+    # обучению; регрессия air-lite не входит — окна 100 м, старые фолды): сжатия решателя нет вовсе. Иначе вердикт —
+    # правило v2 на сошедшихся решениях (г); несошедшиеся — отдельная строка таблицы, в вердикт не входят.
     refuse_ratio: 1.0
 
 estimate:                                    # оценка полного обучения П-2 по замеру (tests/bench_epoch.py) — в отчёте
@@ -98,8 +100,8 @@ profiles:
       base: ${AIR_NN_DATA}/pilot/smoke_p2
     datasets:
       - {name: smoke, gen: true}             # 15 случаев: ongudai, s_hill, p_000…p_002 × 3
-      - {name: smoke_terrain, gen: false, root: "${AIR_NN_DATA}/pilot/tmp/NN-P5_mock/datasets/s0-3acd749/smoke_terrain"}
-    terrain_index: ${AIR_NN_DATA}/pilot/tmp/NN-P5_mock/tiles/v1/index.csv
+      - {name: smoke_terrain, gen: false, root: "${AIR_NN_DATA}/pilot/tmp/NN-18_mock/datasets/s0-3acd749/smoke_terrain"}
+    terrain_index: ${AIR_NN_DATA}/pilot/tmp/NN-18_mock/tiles/v1/index.csv
     dataset:
       min_cases: 10
     split:
