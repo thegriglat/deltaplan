@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import json
 import multiprocessing as mp
+import os
 import sys
 import time
 from pathlib import Path
@@ -55,7 +56,7 @@ def main(out_dir, ds_root, ids_file):
     done, new = have, 0
     todo = [r for r in rows if not (_OUT / "cases" / f"{r['id']}.npz").exists()]
     t_last = 0.0
-    with mp.get_context("fork").Pool(12) as pool:
+    with mp.get_context("fork").Pool(os.cpu_count() or 12) as pool:
         try:
             for cid, made in pool.imap_unordered(_one, todo, chunksize=2):
                 done += 1
