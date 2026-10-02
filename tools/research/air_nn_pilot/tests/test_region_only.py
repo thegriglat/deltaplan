@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Область без окон = d400_* того же случая, посчитанного с окнами, побитно (П1 v2, тест NN-P6).
 
-Случаи набора main (П1 v1: с окнами, предел ref_study.MAXIT = 3000) пересчитываются `solve_case(c, [],
+Случаи набора main (П1 v1: с окнами, предел ref_study.MAXIT = 3000; каталог — версия main_version конфига, --main-version) пересчитываются `solve_case(c, [],
 max_outer=3000)` — только область, тот же предел; d400_h, d400_m, d400_hc, d400_H, d400_hbl должны совпасть с
 файлом main побитно (float16), статусы и итерации решений области — с метаданными main. Случаи: 1 max (оба решения
 не сошлись — 3000 итераций), 2 ok (одно — медленно сходящееся). Второй предел (terrain.max_outer) проверяется на
@@ -46,10 +46,11 @@ def default_ids(con):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ids", default="")
+    ap.add_argument("--main-version", default=None, help="версия каталога набора main (по умолчанию main_version конфига)")
     a = ap.parse_args()
     cfg = DS.load_cfg(HERE / "configs/dataset.yaml")
     root = os.environ.get("AIR_NN_DATA") or cfg["data_root"]
-    L = DS.Layout(cfg, root, "main")
+    L = DS.Layout(cfg, root, "main", version=a.main_version or cfg.get("main_version"))
     con = sqlite3.connect(f"file:{L.db}?mode=ro", uri=True)
     plan = json.loads(L.plan.read_text())
     conds = {c["id"]: c for c in plan["cases"]}
@@ -80,7 +81,7 @@ def main():
                 print(f"{cid} предел {cap}: {'побитно равно' if good else 'РАЗЛИЧИЕ'} {eq} {its}", flush=True)
     out = HERE / "tests/out/region_only.json"
     out.parent.mkdir(exist_ok=True)
-    out.write_text(json.dumps(dict(ok=ok, cases=res, solver_version=DS.solver_version()), ensure_ascii=False, indent=1) + "\n")
+    out.write_text(json.dumps(dict(ok=ok, cases=res, solver_version=DS.solver_version(), main_dir=str(L.dir)), ensure_ascii=False, indent=1) + "\n")
     print("ИТОГ:", "ok — область без окон = d400_* с окнами побитно" if ok else "ПРОВАЛ")
     return 0 if ok else 1
 
