@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята | `WindField`/`AirFieldSet` (центры клеток, лог-профиль у земли, край smoothstep 5 клеток, подмена `set_field(…, blend_s=60)`); стык: горизонталь+w_mech, w_conv пилоту не отдаётся; air_velocity_at 20,4 мкс (×1,4 к базе); `--air-field=`; тесты 9+5 зелёные; открыто: двойной счёт опускания за гребнем (AM-08), from_arrays 0,18 с — строить в потоке",
+  "commits": [
+    "b3c50ab",
+    "ac43926"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/air_model_progress.md:14",
+  "dp_feedback": "",
+  "t": "2026-09-29T16:50:48",
+  "by": "Opus",
+  "migrated": true
+}

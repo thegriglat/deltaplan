@@ -1,0 +1,19 @@
+{
+  "id": "E6",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "табуны",
+  "goal": "табуны",
+  "plan_ref": "E6",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:17",
+  "created": "2026-09-30T03:45:27",
+  "migrated": true
+}

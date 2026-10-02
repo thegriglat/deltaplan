@@ -1,0 +1,19 @@
+{
+  "id": "Б1",
+  "module": "air-model",
+  "type": "dp-researcher",
+  "title": "Совместная калибровка Askervein + Perdigão",
+  "goal": "Совместная калибровка Askervein + Perdigão",
+  "plan_ref": "Б1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:32",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

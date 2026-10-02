@@ -33,6 +33,7 @@ dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --t
 dp review <ID> --verdict accept|rework --from r.json|- [--note …]  |  --note "итог"  |  dp review <ID> --show [--full]  |  dp review --template
 dp status [<модуль>] [--full] [--stale 40]
 dp log <модуль|ID> [-n 10] [--full]
+dp search <текст|regex> [--module М] [--max 30]   # по карточкам, отчётам, событиям, решениям всех модулей; строка на находку
 dp plan <модуль|файл.md> [<номер|начало заголовка>] [--contracts] [--depth 3] [--max 150]
 dp render <модуль> [--out путь|-] [--force]
 # главная сессия
@@ -42,6 +43,8 @@ dp inbox <модуль> [--by coordinator] [--peek]  |  dp questions  |  dp answ
 dp module new <модуль> [--from main]  |  dp sync <модуль|ветка>  |  dp merge <ветка> [--into main] [--push]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
 dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
+
+**Перед новой работой — `dp search` по прошлым модулям** (старые журналы `docs/plan/*_progress.md` переведены в dp скриптом `tools/dp_migrate.py`; исходник — поле `legacy_journal` в `module.json`, у записей поле `src` — строка исходника).
 
 ### Карточка (`tasks/<ID>.json`)
 `id, module, type, title, goal, plan_ref, contracts[{name, version, ref}], copy, branch, base, scope[], dont_touch[],

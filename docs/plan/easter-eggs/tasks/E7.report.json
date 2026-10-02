@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | тесты пасхалок 52/52 на ветке модуля (uaz 5/5); lint чисто; 55–65 км/ч, отрезок 500–900 м, 1–2 машины, шанс 0,5; пыль: своя копия шейдера `uaz_dust.gdshader`, 35 клубов × 0,18 с (≈ 6,3 с, ~105 м хвоста), 2,5–16 м, подъём 1,2 м/с, светлая, только сухо; один MultiMesh на машину, draws 372 с пасхалкой / 391 без (разный взгляд); кадр `07_уазик.jpg` (askarovo, seed 2, `--air-start=0,200 --fov=6 --look-at=egg:uaz`)",
+  "commits": [
+    "8cc082f",
+    "7f11b79"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/world_easter_eggs_progress.md:18",
+  "dp_feedback": "",
+  "t": "2026-10-01T17:35:19",
+  "by": "dp-engineer",
+  "migrated": true
+}

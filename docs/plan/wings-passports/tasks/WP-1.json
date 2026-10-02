@@ -1,0 +1,19 @@
+{
+  "id": "WP-1",
+  "module": "wings-passports",
+  "type": "—",
+  "title": "Контракты",
+  "goal": "Контракты",
+  "plan_ref": "WP-1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wings-passports",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/wings_passports_progress.md:11",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

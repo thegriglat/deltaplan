@@ -1,0 +1,19 @@
+{
+  "id": "SF-3",
+  "module": "start-fixes",
+  "type": "dp-engineer",
+  "title": "Рука пилота (+SF-4)",
+  "goal": "Рука пилота (+SF-4)",
+  "plan_ref": "SF-3",
+  "contracts": [],
+  "copy": "",
+  "branch": "start/sf3",
+  "base": "feature/start-fixes",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/start_fixes_progress.md:23",
+  "created": "2026-09-30T08:00:00",
+  "migrated": true
+}

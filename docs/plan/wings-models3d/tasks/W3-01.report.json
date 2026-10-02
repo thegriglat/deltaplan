@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита 50794f3, копия удалена | bd54c0a, 811b8dd. training tip 0,90→1,00 (площадь 15,32→15,81 м²); sport латы 14→11, нос 132→128°, nose_forward 1,35, lower_cover 0,70→0,88; combat латы 16→12; laminar 13→9. Все 9 — площадь ±0,6 %. Треугольники: training 13 112, sport 13 268, combat 13 844, laminar 12 560 (≤ 14 000). check_models — крылья из configs/wings, добавлен бюджет на крыло. Тесты крыльев и контрактный — 0 падений (перепроверено). Кадры — build/screenshots/w3-01/",
+  "commits": [
+    "bd54c0a",
+    "811b8dd"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_models3d_progress.md:8",
+  "dp_feedback": "",
+  "t": "2026-10-01T13:37:53",
+  "by": "dp-engineer",
+  "migrated": true
+}

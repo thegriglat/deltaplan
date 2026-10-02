@@ -1,0 +1,19 @@
+{
+  "id": "E8",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "люди на старте",
+  "goal": "люди на старте",
+  "plan_ref": "E8",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:19",
+  "created": "2026-09-30T04:27:52",
+  "migrated": true
+}

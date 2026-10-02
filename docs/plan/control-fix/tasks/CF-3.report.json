@@ -1,0 +1,25 @@
+{
+  "status": "done",
+  "summary": "принята (02.10) | С1 v2 (`turn`), С2 v2 (мышь `bar`, раскладка В, без защёлки, базовый нос = `alpha_neutral_deg`), К3 v3 (φ_зад ±15°, дуга от крена ≤ 2 м/с², срыв только `wingtip`, `upright_clear_m` 1 м). Числа — в «Решениях» 02.10.",
+  "commits": [
+    "118efac",
+    "3eca042",
+    "dd29607",
+    "400a82a",
+    "5c55f3f",
+    "68272a0",
+    "db91ccc",
+    "0491ea7",
+    "36bde4a",
+    "8e66235"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/control-fix_progress.md:57",
+  "dp_feedback": "",
+  "t": "2026-10-01T23:42:21",
+  "by": "dp-engineer",
+  "migrated": true
+}

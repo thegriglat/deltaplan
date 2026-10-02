@@ -1,0 +1,19 @@
+{
+  "status": "done",
+  "summary": "принята (2026-10-01), влита ca1ab89 | 506ad01, 669b9c9, 2b783d8. 12 крыльев, площадь ±0,3 %, 11 840–13 844 треуг.; override: REV `faired_uprights`, reference.min_sink_speed_kmh REV — замер. После слияния: 48 крыльев, check_models OK, контрактный и 16 наборов тестов, перебирающих крылья, — 0 новых падений (test_takeoff atlas падает и на чистом main 5df933e — не регрессия; test_wing_clearance — см. развилку). Кадры — build/screenshots/w3-06/",
+  "commits": [
+    "506ad01",
+    "669b9c9",
+    "2b783d8",
+    "5df933e"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_models3d_progress.md:14",
+  "dp_feedback": "",
+  "t": "2026-10-01T03:32:39",
+  "by": "dp-engineer",
+  "migrated": true
+}

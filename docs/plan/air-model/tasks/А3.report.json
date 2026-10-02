@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята К2, слита 5ec1752 (копия и ветка удалены) | docs/plan/air_model_a3.md: closure hb (высокая; Troen–Mahrt 1986, HB93), local_k вкл (средняя–высокая; Blackadar 1962, YSU), heat_mode cbl (высокая для развитого слоя, средняя на крутых склонах; Deardorff 1966, HB93, EDMF) — всё = текущий AirCase.p, смена в игре не нужна; nu_const/const можно убрать. Неизвестны для волны Б: λ/h, lam, α, z0, tau_cool, k_smooth_m; фиксируются cs_h, k_fa, zi_min, Pr_t. Оговорки local_k: неустойчивая ветвь √(1−16Ri) > 1 внутри слоя — возможный двойной счёт с K_b (кандидат F ≤ 1 при Ri ≤ 0, не считано); длинный хвост устойчивой ветви (GABLS1). Вопрос пользователю — heat_mode на крутом склоне (§6: 1 — как сейчас, рекомендовано; 3 — гибрид, только если полёты покажут заниженный подъём)",
+  "commits": [
+    "b569ec5"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/air_model_progress.md:30",
+  "dp_feedback": "",
+  "t": "2026-09-29T12:00:00",
+  "by": "dp-researcher",
+  "migrated": true
+}

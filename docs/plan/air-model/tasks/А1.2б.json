@@ -1,0 +1,19 @@
+{
+  "id": "А1.2б",
+  "module": "air-model",
+  "type": "dp-engineer",
+  "title": "Мелкие правки по ревью (release в bench, bench без 200 м с нагревом до А2, thd в контрактном тесте, рецепт (4), цена в air_model_gpu.md)",
+  "goal": "Мелкие правки по ревью (release в bench, bench без 200 м с нагревом до А2, thd в контрактном тесте, рецепт (4), цена в air_model_gpu.md)",
+  "plan_ref": "А1.2б",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:27",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

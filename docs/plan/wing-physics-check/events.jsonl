@@ -1,0 +1,21 @@
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WPC-1", "ev": "created", "note": "паспорта против модели", "src": "docs/plan/wing-physics-check_progress.md:8"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WPC-2", "ev": "created", "note": "ветер у склона", "src": "docs/plan/wing-physics-check_progress.md:9"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WPC-4", "ev": "created", "note": "конфиги по паспортам", "src": "docs/plan/wing-physics-check_progress.md:10"}
+{"t": "2026-10-01T08:00:00", "by": "coordinator", "task": "WPC-3", "ev": "created", "note": "пачка полётов", "src": "docs/plan/wing-physics-check_progress.md:11"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WPC-1", "ev": "started", "note": "dp-researcher", "src": "docs/plan/wing-physics-check_progress.md:8"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WPC-2", "ev": "started", "note": "dp-researcher", "src": "docs/plan/wing-physics-check_progress.md:9"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WPC-4", "ev": "started", "note": "dp-engineer", "src": "docs/plan/wing-physics-check_progress.md:10"}
+{"t": "2026-10-01T08:00:01", "by": "coordinator", "task": "WPC-3", "ev": "started", "note": "dp-engineer", "src": "docs/plan/wing-physics-check_progress.md:11"}
+{"t": "2026-10-01T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "План — `docs/plan/wing-physics-check.md`, контракты — `docs/wing-physics-check_contracts.md` (К1–К6 v1, тест `tests/contracts/test_wing_physics_contracts.gd`, 5/5 ok). Ветка `feature/wing-physics-check`, копия `~/deltaplan-wing-physics-check` (от main 3820bda).", "src": "docs/plan/wing-physics-check_progress.md:3", "unparsed": "без даты/классификации"}
+{"t": "2026-10-01T21:17:23", "by": "dp-researcher", "task": "WPC-2", "ev": "reported", "commits": ["576550e"], "note": "done", "src": "docs/plan/wing-physics-check_progress.md:9"}
+{"t": "2026-10-01T21:18:41", "by": "coordinator", "task": "WPC-2", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/wing-physics-check_progress.md:9"}
+{"t": "2026-10-01T21:18:41", "by": "coordinator", "task": "WPC-2", "ev": "merged", "commits": ["27f4b15"], "src": "docs/plan/wing-physics-check_progress.md:9"}
+{"t": "2026-10-01T21:19:04", "by": "dp-researcher", "task": "WPC-1", "ev": "reported", "commits": ["4b3b577"], "note": "done", "src": "docs/plan/wing-physics-check_progress.md:8"}
+{"t": "2026-10-01T21:20:22", "by": "coordinator", "task": "WPC-1", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/wing-physics-check_progress.md:8"}
+{"t": "2026-10-01T21:20:22", "by": "coordinator", "task": "WPC-1", "ev": "merged", "commits": ["7a51574"], "src": "docs/plan/wing-physics-check_progress.md:8"}
+{"t": "2026-10-01T21:55:36", "by": "dp-engineer", "task": "WPC-3", "ev": "reported", "commits": ["f4cbfd3", "eaa2a59"], "note": "done", "src": "docs/plan/wing-physics-check_progress.md:11"}
+{"t": "2026-10-01T21:56:54", "by": "coordinator", "task": "WPC-3", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/wing-physics-check_progress.md:11"}
+{"t": "2026-10-01T21:56:54", "by": "coordinator", "task": "WPC-3", "ev": "merged", "commits": ["aa9dfa6"], "src": "docs/plan/wing-physics-check_progress.md:11"}
+{"t": "2026-10-01T22:25:50", "by": "dp-engineer", "task": "WPC-4", "ev": "reported", "commits": ["638c0fb", "e9126b0"], "note": "done", "src": "docs/plan/wing-physics-check_progress.md:10"}
+{"t": "2026-10-01T22:50:06", "by": "coordinator", "task": "WPC-4", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/wing-physics-check_progress.md:10"}
+{"t": "2026-10-01T22:50:06", "by": "coordinator", "task": "WPC-4", "ev": "merged", "commits": ["a47bbc4"], "src": "docs/plan/wing-physics-check_progress.md:10"}

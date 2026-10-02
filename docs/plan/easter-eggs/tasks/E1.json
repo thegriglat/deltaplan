@@ -1,0 +1,19 @@
+{
+  "id": "E1",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "метеор",
+  "goal": "метеор",
+  "plan_ref": "E1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:12",
+  "created": "2026-09-30T02:41:02",
+  "migrated": true
+}

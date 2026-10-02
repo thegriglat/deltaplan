@@ -1,0 +1,19 @@
+{
+  "id": "Б2",
+  "module": "air-model",
+  "type": "dp-engineer",
+  "title": "α и λ в игре (профиль по устойчивости, C2 v5)",
+  "goal": "α и λ в игре (профиль по устойчивости, C2 v5)",
+  "plan_ref": "Б2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:33",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}
