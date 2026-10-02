@@ -1,0 +1,89 @@
+{
+  "id": "NN-P6",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Генератор П-2: только область, загрузчик t_*, воркеры GPU, предел несошедшихся, замер",
+  "goal": "Генератор считает набор terrain (П1 v2) по индексу П6 — только область 400 м, n_cond условий на место, несколько случаев на GPU одновременно, с продолжением; несошедшиеся решения (~90 % времени GPU) не съедают счёт — с доказательством, что предел не портит цель обучения.",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П1",
+      "version": "2",
+      "ref": "docs/air_nn_contracts.md"
+    },
+    {
+      "name": "П6",
+      "version": "1",
+      "ref": "docs/air_nn_contracts.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-gen2",
+  "branch": "air-nn/gen2",
+  "base": "feature/air-nn",
+  "scope": [
+    "places.py — загрузчик мест t_* по П6 (`$AIRNN_P6_DIR` или $AIR_NN_DATA/pilot/tiles/v1; h в float64 для побитного hc400 = R.grid_domain; context: reference_context, utc_offset_h = round(lon/15)); lru_cache мест ограничить (345 × ~10 МБ)",
+    "tests/make_fake_p6.py — маленький каталог П6 (2–4 места из синтетического/прежнего рельефа) для тестов до готовности NN-P4",
+    "dataset.py — набор terrain (П1 v2): план по index.csv П6 (все строки), n_cond на место (конфиг, 10–12; час × облачность как plan_rows, каждый 12-й штиль, своё зерно), centers = window_centers (только для оценки), ctx/place в метаданных; набор probe — подмножество плана terrain (6–10 мест разной крутизны × 2 условия)",
+    "airlite_gen.py — решение без окон (окна = пустой список в solve_case), без правки решателя air3d",
+    "параллельный счёт: родитель держит runner.lock и замок GPU, N spawn-воркеров со «шлюзом» на пачку, PDEATHSIG, workers.lock, SIGUSR1 — бросить случай; CPU-подготовка параллельно со счётом",
+    "предел несошедшихся (9–16 % случаев, 55–60 с против 5–10 с): предел итераций или ранний отказ по признаку несходимости — значение в manifest/plan (уточнение П1 v2); замер на ≥ 10 max-случаях main: решение с пределом против сохранённого полного (|ΔV| и |Δw| на 60 м: медиана, p90, max) рядом с порогами ШП-2 (0,3 м/с / 10 %, 0,1 м/с) и с ошибкой сети первого пилота на max-случаях (pilot/reports/2026-10-02_pilot) → tests/out/maxcap.json + вывод",
+    "кривая «случаев в час от числа воркеров N = 1…4» на 12 случаях main (4 max + 8 ok) с проверкой побитности → tests/out/workers_bench.json, выбор N в configs/dataset.yaml",
+    "тест прерывания на воркерах (8/8 побитно, без дублей) — tests/test_interrupt.py (дополнить режимом воркеров/terrain)",
+    "tests/test_region_only.py — область без окон = d400_* того же случая с окнами побитно (тот же предел)",
+    "estimate.py — оценка полного счёта terrain (ч GPU, ГБ) по замеру probe; если к моменту замера $AIR_NN_DATA/pilot/tiles/v1/manifest.json complete=true (NN-P4) — probe на реальных местах П6, иначе на make_fake_p6 (тогда реальный замер сделает NN-P7)",
+    "README пилота — раздел генератора П-2"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель; хеш = версия s0)",
+    "terrain_cut.py, configs/terrain.yaml, tiles/v1 (NN-P4) — только чтение; pilot.py, config.yaml, pilotnn/ (NN-P5)",
+    "набор main в $AIR_NN_DATA/pilot/datasets — только чтение (тесты и замеры — во временных корнях pilot/tmp/)",
+    "незакоммиченный симлинк tools/research/air_nn_pilot/.venv"
+  ],
+  "accept": [
+    {
+      "name": "region_only_bitwise",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_region_only.py",
+      "expect": "exit=0",
+      "timeout": 1800
+    },
+    {
+      "name": "places_t_loader",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_places_terrain.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "workers_bench",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/air_nn_pilot/tests/out/workers_bench.json'));print('chosen N=%d bitwise=%s'%(d['chosen_n'],d['bitwise']))\"",
+      "expect": "re:bitwise=True"
+    },
+    {
+      "name": "interrupt_workers",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_interrupt.py --workers",
+      "expect": "exit=0",
+      "timeout": 3600
+    },
+    {
+      "name": "estimate",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python estimate.py --dataset probe",
+      "expect": "re:ч GPU"
+    },
+    {
+      "name": "maxcap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/air_nn_pilot/tests/out/maxcap.json'));c=d['by_cap'][str(d['chosen_cap'])];print('n', d['n_cases']);print('ratio', c['max']['ratio_to_noise_p90_dV'])\"",
+      "expect": "num:ratio ([\\d.]+) <=1.25"
+    },
+    {
+      "name": "maxcap_n",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/air_nn_pilot/tests/out/maxcap.json'));print('n', d['n_cases'])\"",
+      "expect": "num:n (\\d+) >=10"
+    }
+  ],
+  "report_extra": [
+    "время случая probe по крутизне, доля max, выбранный предел и экономия времени",
+    "случаев в час при N = 1…4",
+    "оценка полного счёта terrain: ч GPU, ГБ; на реальных местах или на подставных"
+  ],
+  "notes": "Разбор (из журнала): только область, сумма двух решений — встроенные ср. 10,1 с (мед. 2,3; max 16 %), процедурные 7,5 (1,7; 12 %), синтетика 5,5 (1,3; 9 %); случай max ~55–60 с ≈ 90 % времени GPU; ~100 итер/с на 96×96×~40 — похоже на упор в задержки (воркеры должны помочь — проверить). Порог maxcap p90 |ΔV| ≤ 0,1 м/с — ориентир (треть порога ШП-2): если предел даёт больше — не подгонять, доложить числа.",
+  "created": "2026-10-02T23:02:37",
+  "edited": "2026-10-03T00:01:38"
+}

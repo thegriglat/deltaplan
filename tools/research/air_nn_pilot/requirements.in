@@ -1,0 +1,15 @@
+# Окружение пилота air-nn (этап П): решатель эталона AM-01 (CuPy) + обучение (PyTorch CUDA) + ONNX.
+# Зафиксированные версии — requirements.lock (uv pip compile); ставит setup_env.sh.
+numpy
+scipy
+matplotlib
+pillow
+zstandard
+brotli
+cupy-cuda12x
+lightgbm
+pyyaml
+torch
+onnx
+onnxruntime
+onnxscript
