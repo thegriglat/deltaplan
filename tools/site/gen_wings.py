@@ -118,7 +118,9 @@ OLD = {
     "magic": {"note": "не паспорт: thisdayinaviation.com (экземпляр в Смитсоновском музее), topaflyers.com"},
     "atlas": {"note": "не паспорт: статья «Крылья Родины» (Кареткин, Рябцев, Бабкин, ЦК ДОСААФ)"},
     "slavutich_ut": {"note": "не паспорт: delta-nsk.ucoz.ru (ТТХ), ru.wikipedia «Славутич (дельтапланы)»"},
-    "apogee": {"note": "со слов пилота и reaa.ru; остальное — по ровесникам (docs/plan/wings_lineup.md §1.2, §3)"},
+    "apogee": {"note": "со слов пилота и reaa.ru; остальное — по ровесникам (docs/plan/wings_lineup.md §1.2, §3)",
+               "notes": {"area_m2": "со слов пилота: копия Airwave Magic 155 — 155 кв. фт = 14,4 м²; единичные экземпляры были 16 м², но это редкость",
+                         "span_m": "по ровесникам (docs/plan/wings_lineup.md §3); согласуется с копией Magic 155: при удлинении Magic IV 166 (10,26 м, 15,4 м², λ ≈ 6,8) на 14,4 м² — 9,9 м"}},
 }
 
 PASSPORT_FIELDS = ("span_m", "area_m2", "wing_mass_kg", "pilot_mass_min_kg", "pilot_mass_max_kg", "double_surface_pct")
