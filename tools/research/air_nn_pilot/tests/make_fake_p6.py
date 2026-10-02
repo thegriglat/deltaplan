@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Подставной каталог П6 v1 (вырезки мест t_*) для тестов и пробы генератора П-2 до готовности NN-P4.
 
-Формат — как у NN-P4 (docs/air_nn_contracts.md, П6 v1): manifest.json (contract «П6 v1», complete, fake = true),
+Формат — как у NN-P4 (docs/contracts/air-nn.md, П6 v1): manifest.json (contract «П6 v1», complete, fake = true),
 index.csv (все столбцы), cut/<id>.npz (h float32 1601², hc400 float64 96² = блочное среднее h, meta). Рельефы —
 из уже имеющихся: встроенные места (слой detail 25 м 1601² с центром в центре места — та же сетка, что вырезка П6;
 настоящий рельеф Алтая/Урала), синтетика air-lite и процедурные p_* (климат — координаты, приписанные здесь).

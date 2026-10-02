@@ -1,7 +1,7 @@
 # air-nn — журнал хода работ
 > **Журнал продолжается в `tools/dp`: `docs/plan/air-nn/` (`tools/dp status air-nn`, `tools/dp log air-nn`). Ниже — история до 02.10 23:00.**
 
-План — `docs/plan/air_nn.md`; контракты — `docs/air_nn_contracts.md`. Ветка `feature/air-nn` (от `main` 9360397),
+План — `docs/plan/air_nn.md`; контракты — `docs/contracts/air-nn.md`. Ветка `feature/air-nn` (от `main` 9360397),
 копия `~/deltaplan-air-nn`. Координатор — `dp-coordinator`.
 
 ## Текущая цель (02.10.2026, от главной сессии)
@@ -17,7 +17,7 @@
   688 случаев ≈ 3–4 ч GPU; +40 процедурных рельефов × ~30 условий ≈ 4 ч — меньше одной ночи.
 - 02.10: окружение пилота — свой `.venv` (uv, Python 3.12), версии — `requirements.lock` (torch cu126, cupy-cuda12x,
   onnx, onnxruntime), `setup_env.sh`; системный python не трогаем.
-- 02.10: контракты пилота П1 (образец набора), П2 (вход/выход сети), П3 (отчёт) — `docs/air_nn_contracts.md`.
+- 02.10: контракты пилота П1 (образец набора), П2 (вход/выход сети), П3 (отчёт) — `docs/contracts/air-nn.md`.
 - 02.10: формат образца — раскладка air-lite (`npz`, fp16) без изменений; Zarr и полный `state.sqlite` волны 0 —
   не в пилоте (кроме статусов случаев в SQLite и атомарной записи — §4.6).
 

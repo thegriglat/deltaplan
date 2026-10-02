@@ -1,5 +1,5 @@
 extends Node
-## Кадры тропы к старту (StartTracks) — до/после смягчения вида (docs/world_objects.md).
+## Кадры тропы к старту (StartTracks) — до/после смягчения вида (docs/guide/world-objects.md).
 ## Запуск (окно нужно — настоящий рендер; под timeout 120):
 ##   godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/tracks_shot.tscn -- --autostart --location=ongudai --site=kayancha_south \

@@ -80,8 +80,8 @@ M0 и M1 — первыми, параллельно. M2 и M3 — паралле
 ## M1. Контракт сообщений
 **NET-10. `net.proto` — машиночитаемый контракт** (1 день)
 - Скоуп: все сообщения с комментариями. `Envelope{oneof}`. Клиент → сервер: `Hello{game_version, name}`, `CreateZone{zone}`, `JoinZone{code}`, `LeaveZone`, `Ping`. Сервер → клиент: `Welcome{your_id}`, `ZoneCreated{code}`, `ZoneJoined{zone, peers, leader_id}`, `PeerJoined`, `PeerLeft`, `LeaderChanged`, `Error{code, text}`, `Pong{server_time}`. Пересылаемые внутри зоны: `PilotState{pilot_id, is_bot, name, t, pos, rot, vel, phase, wing, colors}` (10 Гц; ботов шлёт ведущий), `ZoneState{clock, queue}` (только ведущий, 1 Гц; очередь — живые пилоты, затем боты). `Zone{location_id, pick_lat, pick_lon, month, day, start_hour, forecast, seed, bots_count}`. Коды ошибок: `ZONE_NOT_FOUND`, `VERSION_MISMATCH`, `ZONE_FULL`, `BAD_MESSAGE`. Пакет `deltaplan.v1`; правила эволюции — только добавлять поля.
-- Ключевые файлы: `server/proto/deltaplan/v1/net.proto`, `server/buf.yaml` (или скрипт `protoc`), `docs/net_protocol.md` (человеческое описание, пример proto3 JSON каждого сообщения, диаграммы последовательностей).
-- Приёмка: `buf lint` (или `protoc`) без ошибок; Go-код генерируется одной командой; в `docs/net_protocol.md` — пример JSON каждого сообщения и 4 сценария: создать, войти, ведущий вышел, догнать; пользователь согласовал контракт.
+- Ключевые файлы: `server/proto/deltaplan/v1/net.proto`, `server/buf.yaml` (или скрипт `protoc`), `docs/guide/net-protocol.md` (человеческое описание, пример proto3 JSON каждого сообщения, диаграммы последовательностей).
+- Приёмка: `buf lint` (или `protoc`) без ошибок; Go-код генерируется одной командой; в `docs/guide/net-protocol.md` — пример JSON каждого сообщения и 4 сценария: создать, войти, ведущий вышел, догнать; пользователь согласовал контракт.
 
 ## M2. Сервер на Go (`server/`)
 **NET-20. Сервер и зоны** (2 дня)
@@ -101,14 +101,14 @@ M0 и M1 — первыми, параллельно. M2 и M3 — паралле
 
 **NET-23. Поиск зон в локальной сети** (0,5 дня)
 - Скоуп: пока идёт зона на встроенном сервере — объявление раз в секунду UDP broadcast на фиксированный порт: `LanAnnounce{code, host_name, address, port, game_version, pilots_count}` (добавить в `net.proto`, контракт только расширяется); у клиентов — слушатель и список зон рядом (пропадает через 3 с без объявлений); зоны другой версии — помечены.
-- Ключевые файлы: `server/proto/deltaplan/v1/net.proto`, `docs/net_protocol.md`, `scripts/net/lan_discovery.gd` (новый), `tests/net/test_lan_discovery.gd`.
+- Ключевые файлы: `server/proto/deltaplan/v1/net.proto`, `docs/guide/net-protocol.md`, `scripts/net/lan_discovery.gd` (новый), `tests/net/test_lan_discovery.gd`.
 - Приёмка: два процесса на одной машине: второй видит зону первого за ≤ 2 с, после остановки — пропадает за ≤ 4 с; сообщение описано в контракте с примером.
 
 ## M3. Клиент сети в игре (`scripts/net/`)
 **NET-30. Соединение** (1 день)
 - Скоуп: автозагрузка `NetClient`: подключение `ws://адрес/v1/ws` (`WebSocketPeer`), `Hello`, кодирование/разбор сообщений по контракту (proto3 JSON), переподключение при обрыве (3 попытки, затем ошибка), `Ping` раз в 2 с → задержка и смещение часов сервера; сигналы `connected`, `disconnected`, `error(code, text)`, `message(type, data)`.
 - Ключевые файлы: `scripts/net/net_client.gd`, `scripts/net/net_messages.gd`, `project.godot` (автозагрузка), `tests/net/test_messages.gd`.
-- Приёмка: тест кодирования/разбора каждого сообщения против примеров из `docs/net_protocol.md`; интеграционный тест с локальным Go-сервером: подключение, `Hello`, `Ping/Pong`; остановка сервера → `disconnected` и повторы.
+- Приёмка: тест кодирования/разбора каждого сообщения против примеров из `docs/guide/net-protocol.md`; интеграционный тест с локальным Go-сервером: подключение, `Hello`, `Ping/Pong`; остановка сервера → `disconnected` и повторы.
 
 **NET-31. Зона и ведущий** (1 день)
 - Скоуп: `NetZone`: создать/войти; параметры зоны ↔ `FlightSettings` (+ сид); список пилотов, кто ведущий; у ведущего — часы зоны и очередь, рассылка `ZoneState` 1 Гц; у остальных — применение; при `LeaderChanged` новый ведущий продолжает с последнего `ZoneState` без скачка часов.

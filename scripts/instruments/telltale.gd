@@ -1,9 +1,9 @@
 class_name Telltale
 extends Node3D
-## Ленточка («ниточка», yaw string) на тросе трапеции (docs/telltale.md). Нода — дочерняя крыла,
+## Ленточка («ниточка», yaw string) на тросе трапеции (docs/guide/telltale.md). Нода — дочерняя крыла,
 ## стоит в точке узла на тросе; физика — TelltaleModel, рисунок — лента ImmediateMesh.
 ## Точка крепления выводится из геометрии трапеции модели крыла (find_anchor), без координат в
-## коде: работает для любого крыла, собранного по контракту docs/models.md.
+## коде: работает для любого крыла, собранного по контракту docs/guide/models.md.
 ##
 ## Шаг физики делает владелец (GliderVisual.step_telltales ← Glider.step): до первого шага
 ## ленточка скрыта (у ботов шагов нет — ленточек не видно).
@@ -47,7 +47,7 @@ static func build_on(wing: Node3D, cfg: Dictionary = {}) -> Array[Telltale]:
 
 ## Точка узла на тросе в осях крыла {point, wire_dir} или {} если тросов нет.
 ## Сначала пустышка TelltaleL/R; иначе поверхность с материалом «Wire» у ControlFrame
-## (docs/models.md): угол трапеции — нижние точки тросов этой стороны; боковой трос — к самой
+## (docs/guide/models.md): угол трапеции — нижние точки тросов этой стороны; боковой трос — к самой
 ## дальней по размаху точке (узел поперечины), передний — к носу (самой передней точке у киля).
 static func find_anchor(wing: Node3D, sd: int, cfg: Dictionary) -> Dictionary:
 	var mk := wing.find_child(MARKERS[sd], true, false) as Node3D

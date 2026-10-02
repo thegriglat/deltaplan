@@ -1,6 +1,6 @@
 # А1.1 — пробы для плана структурных правок решателя воздуха
 
-План — `docs/plan/air_model_a1.md`. Решатель (`tools/research/air3d/air.py`) не правится: правки
+План — `docs/archive/plan/air-model-a1.md`. Решатель (`tools/research/air3d/air.py`) не правится: правки
 прототипированы подклассами в `probe.py` (`PrtAir` — Pr_t; `SplitAir` — θ′ = θ′_a + θ′_d, схема A′;
 `HAir` — h слоя при `closure = const`).
 

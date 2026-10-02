@@ -1,6 +1,6 @@
 class_name WorldObjects
 extends Node3D
-## Объекты мира по данным локации (docs/world_objects.md):
+## Объекты мира по данным локации (docs/guide/world-objects.md):
 ##   ветроуказатели на стартах и посадках + ленточки на стартах (VR-7) — анимация по ЛОКАЛЬНОМУ
 ##   ветру модели (air_velocity_at у вертлюга), посадочные площадки (VR-12), дороги, здания, ЛЭП
 ##   из OSM (VR-6, VR-9, VR-10). Параметры — configs/world_objects.json.

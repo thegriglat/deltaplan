@@ -9,12 +9,12 @@
     {
       "name": "У1",
       "version": "3",
-      "ref": "docs/ui-controls_contracts.md"
+      "ref": "docs/contracts/ui-controls.md"
     },
     {
       "name": "У2",
       "version": "2",
-      "ref": "docs/ui-controls_contracts.md"
+      "ref": "docs/contracts/ui-controls.md"
     }
   ],
   "copy": "~/deltaplan-ui-controls-UC-5",

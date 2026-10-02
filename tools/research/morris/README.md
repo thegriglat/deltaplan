@@ -1,6 +1,6 @@
 # Моррис: чувствительность модели воздуха
 
-Итог и выводы — `docs/air_model_sensitivity.md`.
+Итог и выводы — `docs/research/air-model-sensitivity.md`.
 
 | Файл | Что |
 |---|---|

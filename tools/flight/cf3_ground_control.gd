@@ -5,7 +5,7 @@ extends Node
 ##
 ## Запуск (без окна):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/flight/cf3_ground_control.tscn
-## Печатает таблицы пунктов приёмки 1–4 (docs/plan/control-fix.md, CF-3); итог в отчёте CF-3.
+## Печатает таблицы пунктов приёмки 1–4 (docs/archive/plan/control-fix.md, CF-3); итог в отчёте CF-3.
 
 const DT := 1.0 / 120.0
 const SLOPE := 0.3

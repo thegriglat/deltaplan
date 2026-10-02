@@ -1,5 +1,5 @@
 extends TestCase
-## Контрактные тесты модуля wing-physics-check (docs/wing-physics-check_contracts.md): форма
+## Контрактные тесты модуля wing-physics-check (docs/contracts/wing-physics-check.md): форма
 ## данных на стыках К1–К6. Без GPU. Правка контракта (версия +1) — вместе с правкой этого файла.
 
 const CONTRACTS := {"К1": 2, "К2": 1, "К3": 1, "К4": 2, "К5": 1, "К6": 1}

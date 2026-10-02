@@ -1,6 +1,6 @@
 extends Node
-## WPC-3: пачка полётов против ветра и в динамике (docs/plan/wing-physics-check.md, контракт К6 —
-## docs/wing-physics-check_contracts.md). Мир — как в игре: рельеф места (Terrain), Atmosphere с
+## WPC-3: пачка полётов против ветра и в динамике (docs/archive/plan/wing-physics-check.md, контракт К6 —
+## docs/contracts/wing-physics-check.md). Мир — как в игре: рельеф места (Terrain), Atmosphere с
 ## ветром «в старт» (set_wind(км/ч, курс старта, высота старта) — как game.gd), турбулентность
 ## включена (сид конфига, часы атмосферы с нуля на каждый полёт), термики выключены (static,
 ## пусто), FlightModel, масса пилота 85 кг (configs/pilot.json, в диапазоне крыла), плотность по

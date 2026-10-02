@@ -4,7 +4,7 @@
 
 **Цель:** по настройке в мире рисуется траектория прошлого полёта полупрозрачной линией, чтобы сравнить текущий полёт с предыдущим.
 
-**Контекст:** docs/game.md, scripts/game/flight_stats.gd (трек и итог — владение ui/02, после её приёмки), docs/terrain.md (latlon_to_local), docs/ARCHITECTURE.md (модульность), REQUIREMENTS.md (FR-22 — подсказок нет: след выключен по умолчанию).
+**Контекст:** docs/guide/game.md, scripts/game/flight_stats.gd (трек и итог — владение ui/02, после её приёмки), docs/guide/terrain.md (latlon_to_local), docs/guide/architecture.md (модульность), REQUIREMENTS.md (FR-22 — подсказок нет: след выключен по умолчанию).
 **Папки-владения:** scripts/game/ghost_track.gd (новый), scripts/game/track_store.gd (новый), configs/game.json → секция ghost_track, tests/game/test_ghost_track.gd; одна строка подключения в scripts/game/game.gd; переключатель в экране настроек — через ui (если ui/02 уже принят — правка его файла минимальна, перечислить в отчёте).
 
 ## Шаги

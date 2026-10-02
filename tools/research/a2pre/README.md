@@ -1,6 +1,6 @@
 # Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах
 
-Записка с выводом — `docs/plan/air_model_a2pre.md`. Решатель (`tools/research/air3d/air.py`, после А1:
+Записка с выводом — `docs/archive/plan/air-model-a2pre.md`. Решатель (`tools/research/air3d/air.py`, после А1:
 Pr_t = 0,85, θ′_d, h при const) не правился: меняются только `A.Params`.
 
 | Файл | Что |

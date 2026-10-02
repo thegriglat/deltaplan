@@ -4,7 +4,7 @@
   * FSR на 10 м над землёй вдоль линий A, AA, B: S(точка, 10 м)/S(RS, 10 м) − 1;
   * профиль разгона на HT и CP: S(HT, z)/S(RS, z) − 1 на той же высоте z (чашки AES/FRG).
 Схема: 25 м + 2-й порядок (область 4 км, потолок 1000 м) — рабочая сетка прогонов; 12,5 м + 2-й
-порядок — эталонная (поправка сетки и её систематика, см. docs/air_model_tune.md).
+порядок — эталонная (поправка сетки и её систематика, см. docs/research/air-model-tune.md).
 
   PY=.venv/bin/python
   flock /tmp/heat_ca_gpu.lock $PY askervein_runs.py design.json out/runs_25.jsonl --dx 25

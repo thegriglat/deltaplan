@@ -1,6 +1,6 @@
 # Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена
 
-Записка — `docs/plan/air_model_b2.md`. Функция профиля — `scripts/atmosphere/wind_profile.gd` (игра) и
+Записка — `docs/archive/plan/air-model-b2.md`. Функция профиля — `scripts/atmosphere/wind_profile.gd` (игра) и
 `tools/research/air3d/wind_prof.py` (эталон), контракт C2 v4.
 
 | файл | что |

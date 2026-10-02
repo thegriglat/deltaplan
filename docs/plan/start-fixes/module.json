@@ -1,10 +1,10 @@
 {
   "module": "start-fixes",
-  "plan": "docs/plan/start_fixes.md",
-  "contracts": "docs/start_fixes_contracts.md",
+  "plan": "docs/archive/plan/start-fixes.md",
+  "contracts": "docs/contracts/start-fixes.md",
   "branch": "feature/start-fixes",
   "copy": "~/deltaplan-start",
   "created": "2026-09-30T00:00:00",
-  "legacy_journal": "docs/plan/start_fixes_progress.md",
-  "migrated_from": "docs/plan/start_fixes_progress.md (tools/dp_migrate.py)"
+  "legacy_journal": "docs/archive/plan/start-fixes-progress.md",
+  "migrated_from": "docs/archive/plan/start-fixes-progress.md (tools/dp_migrate.py)"
 }

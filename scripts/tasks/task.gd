@@ -1,7 +1,7 @@
 class_name Task
 extends RefCounted
 ## Маршрутное задание (FR-35): пункты-цилиндры, старт, ESS, гоул, стартовые окна.
-## Источник — configs/tasks/<id>.json (свой формат, см. docs/tasks.md) или .xctsk (XCTrack).
+## Источник — configs/tasks/<id>.json (свой формат, см. docs/guide/tasks.md) или .xctsk (XCTrack).
 ## Координаты lat/lon переводятся в мир через latlon_fn(lat, lon) -> Vector2(x, z)
 ## (Terrain.latlon_to_local), высота земли у пункта — height_fn(x, z) -> float (Terrain.height_at).
 

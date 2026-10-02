@@ -1,10 +1,10 @@
 # Проверка физики крыльев — данные и инструменты
 
-Модуль wing-physics-check (`docs/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона, WPC-3 — пачка полётов.
+Модуль wing-physics-check (`docs/archive/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона, WPC-3 — пачка полётов.
 
 ## WPC-1: паспорта крыльев против модели полёта
 
-Задача модуля «проверка физики и параметров крыльев» (`docs/plan/wing-physics-check.md`, WPC-1). Выход — контракт К4 v2 (`docs/wing-physics-check_contracts.md`).
+Задача модуля «проверка физики и параметров крыльев» (`docs/archive/plan/wing-physics-check.md`, WPC-1). Выход — контракт К4 v2 (`docs/contracts/wing-physics-check.md`).
 
 ### Воспроизведение (из корня репозитория, ≈ 12 мин на 8 ядрах)
 

@@ -1,7 +1,7 @@
 extends TestCase
 ## Бот-маршрутник (FR-34a) на синтетике: плоская земля, статичные термики сеткой вдоль курса,
 ## без ветра и болтанки. Короткий маршрут 10 км (полный замер 30 км × 5 сидов —
-## tools/atmosphere/xc_run.sh --synthetic, см. карточку docs/plan/atmosphere/01-xc-bot.md).
+## tools/atmosphere/xc_run.sh --synthetic, см. карточку docs/archive/plan/atmosphere/01-xc-bot.md).
 
 const XC_RUN := preload("res://tests/atmosphere/xc/xc_run.gd")
 

@@ -1,7 +1,7 @@
 # gdlint: disable=max-public-methods
 class_name AirGpu
 extends RefCounted
-## Строительные блоки модели воздуха на локальном RenderingDevice (AM-02, docs/air_model_gpu.md).
+## Строительные блоки модели воздуха на локальном RenderingDevice (AM-02, docs/guide/air-model-gpu.md).
 ## Все операции только записываются в текущий список вычислений (без ожидания GPU); выполнение —
 ## submit() / sync() (порциями — AirGpuJob). Барьер — после каждого запуска ядра.
 ## Поля — буферы float32, раскладка (NZ, NY, NX): индекс (k·NY + j)·NX + i. Шаблон — 7 плоскостей

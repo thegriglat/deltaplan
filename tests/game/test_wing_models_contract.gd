@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт «конфиг крыла ↔ 3D-модель ↔ параметры формы ↔ перевод» (docs/wings_models3d_contracts.md,
+## Контракт «конфиг крыла ↔ 3D-модель ↔ параметры формы ↔ перевод» (docs/contracts/wings-models3d.md,
 ## К2, версия 1): у каждого configs/wings/<id>.json есть запись tools/blender/glider_params.json →
 ## wings.<id>, модель glider_<id>.glb, площадь паруса в плане сходится с конфигом, тип конструкции и
 ## двойная обшивка согласованы, название — ключ locale/ui.csv с ru и en.

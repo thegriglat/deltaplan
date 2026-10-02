@@ -1,4 +1,4 @@
-"""Сравнение кадров стенда T01 с эталонными фото (docs/plan/terrain/01-stend-kadry-zamery.md, шаг 5).
+"""Сравнение кадров стенда T01 с эталонными фото (docs/archive/plan/terrain/01-stend-kadry-zamery.md, шаг 5).
 
 Запуск (из корня проекта, после tools/terrain/shots.sh):
     uv run --with numpy --with pillow python tools/terrain/compare_ref.py <папка_кадров> [--out metrics.json]

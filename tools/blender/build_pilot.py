@@ -4,13 +4,13 @@
     BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user \\
         blender --background --python tools/blender/build_pilot.py
 
-Контракт (docs/models.md → «Пилот»): начало координат = карабин (точка подвеса HangPoint крыла),
+Контракт (docs/guide/models.md → «Пилот»): начало координат = карабин (точка подвеса HangPoint крыла),
 вперёд +Y Blender = −Z Godot. Скелет `Pilot` (Armature → Skeleton3D), меши PilotBody (тело,
 подвеска, руки, ноги, ботинки, перчатки, кокон, фал) и Helmet (голова, шея и шлем — отдельно,
 кабинная камера её прячет). Кости: Hips, Spine, Chest, Head, UpperArm.L/R, Forearm.L/R, Hand.L/R,
 Thigh.L/R, Shin.L/R, Foot.L/R, PodTail (кокон ног), Strap (подвесной фал). Пустышки на костях: Head
 (глаза), HandL/HandR (хват), CockpitCamera. Анимации: stand, walk, run, run_air, climb_in, prone,
-climb_out, flare (docs/models.md).
+climb_out, flare (docs/guide/models.md).
 
 Тело — MakeHuman (MPFB 2, pilot_mpfb.py): мужчина ~30 лет, 1,78 м, с плавной привязкой к костям
 (веса рига game_engine, слитые в наши 17 костей). Кулаки — кисти MPFB с пальцами, согнутыми вокруг

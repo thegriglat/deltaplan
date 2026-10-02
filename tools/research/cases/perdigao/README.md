@@ -7,7 +7,7 @@ max_profile по z_sat = 0,3·h), U10 фона по правилу «модел�
 (`trial.py`, `out/trial_runs.jsonl`, 1-й порядок, k_relax 0,5) — история, по v2 не проходит; контроль v2 — `../b1/`.
 
 Модуль случая калибровки `tools/research/cases/perdigao.py` (`NAME = "pd"`, `SUBCASES = ["ne", "sw"]`) и его
-скрипты. Постановка, решения и границы — `docs/plan/air_model_a4.md`. Контракт — `docs/air_model_contracts.md`,
+скрипты. Постановка, решения и границы — `docs/archive/plan/air-model-a4.md`. Контракт — `docs/contracts/air-model.md`,
 «C10 v1». Решатель (`tools/research/air3d/air.py`, `solver.py`) не менялся.
 
 | Файл | Что |

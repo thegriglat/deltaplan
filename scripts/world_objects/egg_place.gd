@@ -1,6 +1,6 @@
 class_name EggPlace
 extends RefCounted
-## Место для пасхалок (docs/easter_eggs_contracts.md → К8): дешёвые проверки «логично ли здесь»
+## Место для пасхалок (docs/contracts/easter-eggs.md → К8): дешёвые проверки «логично ли здесь»
 ## по рельефу, карте поверхности, OSM локации и лагерю. ТОЛЬКО ЧТЕНИЕ: рельеф, OSM и
 ## WorldObjects не меняются. Нет данных (OSM, WorldCover) → «нет»: {} / [] / INF / NONE.
 ## Строит планировщик один раз на полёт (EasterEggs), пороги — configs/easter_eggs.json → place.

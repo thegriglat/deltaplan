@@ -23,7 +23,7 @@ description: "Визуальные признаки ветра и воздуха
 
 Травинки приминаются у ног пилота на старте и на посадке, на официальных посадочных площадках трава
 скошена прямоугольником по их реальной оси. Подробности расстановки, прореживания вдали и приминания —
-в [docs/vegetation.md](/docs/vegetation.md).
+в [docs/guide/vegetation.md](/docs/guide/vegetation.md).
 
 ## Рябь на воде
 
@@ -64,7 +64,7 @@ description: "Визуальные признаки ветра и воздуха
 старте показывает направление и силу ветра, в полёте — поток воздуха у самого крыла (скольжение,
 рыскание). Она видна на периферии зрения, как у настоящих пилотов, без каких-либо подсказок сверху.
 Подробнее о её узле крепления и параметрах — на странице [Приборы](/mechanics/instruments/) и в
-[docs/telltale.md](/docs/telltale.md).
+[docs/guide/telltale.md](/docs/guide/telltale.md).
 
 ## Дымка и видимость
 
@@ -72,7 +72,7 @@ description: "Визуальные признаки ветра и воздуха
 гряды синеют с расстоянием (голубая дымка чистого воздуха), под слоем перемешивания видимость ограничена
 и резко улучшается выше его верхней границы. Подробно про дымку, инверсию и её связь с высотой облаков
 — на странице [Рельеф и места](/mechanics/terrain/) (раздел мира и неба) и в
-[docs/atmosphere.md](/docs/atmosphere.md).
+[docs/guide/atmosphere.md](/docs/guide/atmosphere.md).
 
 ## Что из списка сделано, а что нет
 
@@ -131,10 +131,10 @@ description: "Визуальные признаки ветра и воздуха
 
 - [docs/research/visual_cues.md](/docs/research/visual_cues.md) — полный список признаков, их важность,
   источники по метеорологии для пилотов.
-- [docs/vegetation.md](/docs/vegetation.md) — трава и деревья вокруг камеры.
-- [docs/world_objects.md](/docs/world_objects.md) — ветроуказатели, костёр, лагерь, ЛЭП.
-- [docs/telltale.md](/docs/telltale.md) — ленточка на тросе трапеции.
-- [docs/atmosphere.md](/docs/atmosphere.md) — модель ветра, термиков, дымки и опасной погоды, которую
+- [docs/guide/vegetation.md](/docs/guide/vegetation.md) — трава и деревья вокруг камеры.
+- [docs/guide/world-objects.md](/docs/guide/world-objects.md) — ветроуказатели, костёр, лагерь, ЛЭП.
+- [docs/guide/telltale.md](/docs/guide/telltale.md) — ленточка на тросе трапеции.
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — модель ветра, термиков, дымки и опасной погоды, которую
   эти признаки показывают.
 - Код: [scripts/terrain/grass_field.gd](/scripts/terrain/grass_field.gd),
   [scripts/terrain/terrain_wind.gd](/scripts/terrain/terrain_wind.gd),

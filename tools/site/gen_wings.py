@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Страницы сайта «Модели аппаратов» из данных репозитория (контракт C2, docs/plan/site_update.md).
+"""Страницы сайта «Модели аппаратов» из данных репозитория (контракт C2, docs/archive/plan/site-update.md).
 
     python3 tools/site/gen_wings.py           # пишет site/content/wings/**
     python3 tools/site/gen_wings.py --check   # ничего не пишет; код 1, если файлы расходятся с данными

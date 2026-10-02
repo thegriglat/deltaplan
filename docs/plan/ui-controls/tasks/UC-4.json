@@ -10,7 +10,7 @@
   "branch": "ui-controls/UC-4",
   "base": "feature/ui-controls",
   "scope": [
-    "экран «Управление» (`configs/ui.json → controls_help`: строка «мышь — трапеция: WASD — осмотреться, трапеция — мышь и стрелки»), `locale/ui.csv` (ru/en), подсказка в настройках режима мыши (если есть), `docs/game.md`, `site/content/mechanics/flight.md` (управление), CHANGELOG «В работе»."
+    "экран «Управление» (`configs/ui.json → controls_help`: строка «мышь — трапеция: WASD — осмотреться, трапеция — мышь и стрелки»), `locale/ui.csv` (ru/en), подсказка в настройках режима мыши (если есть), `docs/guide/game.md`, `site/content/mechanics/flight.md` (управление), CHANGELOG «В работе»."
   ],
   "dont_touch": [],
   "accept": [

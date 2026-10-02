@@ -7,7 +7,7 @@ extends RefCounted
 ## Эталонный мир без рельефа из данных: аналитические холмы, источники термиков по солнцу,
 ## ход дня (WeatherModel.derive по часам, солнце по дате и месту) — всё, что есть в игре, кроме
 ## загрузки карты. Тест — tests/atmosphere/test_determinism.gd; сравнить Linux и Windows —
-## scripts/atmosphere/atmo_fingerprint_cli.gd (docs/atmosphere.md → «Детерминизм»).
+## scripts/atmosphere/atmo_fingerprint_cli.gd (docs/guide/atmosphere.md → «Детерминизм»).
 
 ## Центр отпечатка и фокус (пилот) эталонного мира.
 const CENTER := Vector3(1500.0, 0.0, -2500.0)
@@ -132,7 +132,7 @@ static func make_world(key: String = DEFAULT_KEY, atmo_cfg: Dictionary = {}) -> 
 		cfg = Config.get_config("atmosphere").duplicate(true)
 		cfg.thermal.generation_radius_m = GEN_RADIUS_M
 	# Поле воздуха (масштаб 1) — у каждого клиента своё и зависит от GPU: отпечаток мира — всегда
-	# на аналитике (docs/air_model.md → «Поле на CPU»).
+	# на аналитике (docs/guide/air-model.md → «Поле на CPU»).
 	cfg = cfg.duplicate(true)
 	var am: Dictionary = cfg.get("air_model", {})
 	am.enabled = "off"

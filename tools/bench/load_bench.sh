@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Замер времени загрузки (NFR-2, ≤ 10 с) на пресете medium (карточка
-# docs/plan/build/03-zamery-fps-zagruzka.md). Для каждой локации configs/locations/*.json —
+# docs/archive/plan/build/03-zamery-fps-zagruzka.md). Для каждой локации configs/locations/*.json —
 # tools/bench/probe.tscn --mode=load: время от старта скрипта пробы (движок уже поднят) до первого
 # кадра полёта (FLYING), тёплый кеш .godot/ (запускается после import, обычно уже тёплый).
 #   tools/bench/load_bench.sh [локация...]   (по умолчанию все локации)

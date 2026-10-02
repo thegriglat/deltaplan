@@ -92,4 +92,4 @@ python3 wings3d_geometry.py      # площадь в плане 3D-моделе�
 
 ## 7. Проверки
 
-Тесты до и после правок (`godot --headless --path . res://tests/run_tests.tscn -- --filter=…`): `test_wings`, `test_polar`, `test_mass`, `test_wing_catalog`, `test_wing_picker` — результаты в журнале `docs/plan/wings_passports_progress.md`.
+Тесты до и после правок (`godot --headless --path . res://tests/run_tests.tscn -- --filter=…`): `test_wings`, `test_polar`, `test_mass`, `test_wing_catalog`, `test_wing_picker` — результаты в журнале `docs/archive/plan/wings-passports-progress.md`.

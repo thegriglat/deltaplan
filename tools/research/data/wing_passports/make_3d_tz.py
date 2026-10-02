@@ -5,7 +5,7 @@
 out/construction/batch_*.json (тип конструкции — выборка из открытых источников),
 tools/blender/glider_params.json, configs/wings/*.json, wings3d_geometry.py.
 Выход: docs/research/glider_3d_tz.md и out/wings3d_spec.json — машиночитаемая спецификация новых крыльев
-(docs/wings_models3d_contracts.md, К3; те же числа, что в таблицах «Что задать» — генератор сверяет их сам).
+(docs/contracts/wings-models3d.md, К3; те же числа, что в таблицах «Что задать» — генератор сверяет их сам).
 Запуск: python3 make_3d_tz.py (только стандартная библиотека); python3 make_3d_tz.py --check — только сверка
 (ТЗ и спецификация на диске = сгенерированным, таблицы ТЗ = спецификации), без записи.
 """
@@ -354,7 +354,7 @@ BOILER = (
     "**Как делать и проверять (одинаково для всех разделов).** Параметры формы — `tools/blender/glider_params.json` → `wings.<id>`; "
     "сборка: `blender --background --python tools/blender/build_gliders.py -- <id>` (модель пишется в `assets/models/glider_<id>.glb`, исходник — "
     "`assets/source/`); затем `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import` и "
-    "`godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/models.md`: ноды `Sail`, `Frame`, "
+    "`godot --headless --path . --script res://scenes/models_preview/check_models.gd` (контракт имён — `docs/guide/models.md`: ноды `Sail`, `Frame`, "
     "`ControlFrame`, `HangPoint`, `BaseBar`, `InstrumentMount`, `VarioMount`, `WingTipL/R`; оси, бюджет ≤ 14 тыс. треугольников на крыло). "
     "Размах берётся из `configs/wings/<id>.json` (если конфига ещё нет — из `span_m` записи `glider_params.json`); площадь в плане проверить "
     "скриптом `python3 tools/research/data/wing_passports/wings3d_geometry.py` (допуск ±2 % от паспортной). Названий брендов и логотипов на модели и "

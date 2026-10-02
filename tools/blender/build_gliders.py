@@ -5,7 +5,7 @@
 
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
 (нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).
-Контракт имён (docs/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
+Контракт имён (docs/guide/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
 координат), BaseBar, InstrumentMount (центр базовой штанги, −Z Godot смотрит на глаза пилота),
 VarioMount (на базовой штанге слева от планшета), WingTipL, WingTipR. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
 """

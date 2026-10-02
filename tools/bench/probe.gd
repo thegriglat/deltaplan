@@ -1,5 +1,5 @@
 extends Node
-## Проба FPS/времени загрузки (карточка docs/plan/build/03-zamery-fps-zagruzka.md, tools/bench/).
+## Проба FPS/времени загрузки (карточка docs/archive/plan/build/03-zamery-fps-zagruzka.md, tools/bench/).
 ## Не игровой код: инстанцирует scenes/main.tscn как обычный запуск (--autostart --autopilot),
 ## сама переключает камеру по отметкам симуляционного времени полёта и печатает метрики.
 ## Управляют tools/bench/frame_bench.sh и tools/bench/load_bench.sh.

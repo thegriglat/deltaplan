@@ -15,7 +15,7 @@
 Наборы параметров (прочее — Params() = AirCase.p игры: 1-й порядок, hb, local_k, Pr_t 0,85, k_relax 0,5,
 heat_sweeps 4):
   old       — игра сейчас: λ/h 0,25, α 0,14, z0 0,1 м, max_profile 1,8;
-  new       — перекалибровка Askervein (tools/research/recal, docs/air_model_tune.md): λ/h 0,031, α 0,235,
+  new       — перекалибровка Askervein (tools/research/recal, docs/research/air-model-tune.md): λ/h 0,031, α 0,235,
               z0 0,09 м, max_profile 2,0 (профиль Askervein подогнан при 2,0: пара α–max_profile задаёт
               высоту насыщения z_sat = 10·mp^(1/α) = 191 м; при 1,8 и α 0,235 было бы 122 м);
   lam       — только λ/h 0,031 (α, z0, mp — игры): вклад λ/h отдельно от профиля притока;

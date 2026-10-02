@@ -1,5 +1,5 @@
 extends Node
-## EggPlace (docs/easter_eggs_contracts.md → К8): место и условия пасхалок на реальных локациях.
+## EggPlace (docs/contracts/easter-eggs.md → К8): место и условия пасхалок на реальных локациях.
 ## Запуск — godot --headless --path . res://tests/run_tests.tscn -- --filter=test_egg_place
 ## Рельеф грузится напрямую (без главной сцены), OSM — из data/osm/<id>.json.
 

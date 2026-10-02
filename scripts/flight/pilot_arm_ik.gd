@@ -1,7 +1,7 @@
 class_name PilotArmIK
 extends SkeletonModifier3D
 ## Руки пилота держат трапецию: двухзвенная обратная кинематика (плечо → локоть → точка хвата)
-## поверх анимации pilot.glb (docs/models.md → «Пилот»). Работает как SkeletonModifier3D —
+## поверх анимации pilot.glb (docs/guide/models.md → «Пилот»). Работает как SkeletonModifier3D —
 ## после AnimationPlayer в том же обновлении скелета, поэтому пустышки HandL/HandR
 ## (BoneAttachment3D) уже видят исправленную позу.
 ##

@@ -1,7 +1,7 @@
 class_name CalmAir
 extends Node3D
 ## Запасная модель воздуха, если основная атмосфера (scripts/atmosphere) не загрузилась.
-## Тот же интерфейс, что у Atmosphere (docs/ARCHITECTURE.md): set_weather, set_wind,
+## Тот же интерфейс, что у Atmosphere (docs/guide/architecture.md): set_weather, set_wind,
 ## set_ground, air_velocity_at, step, focus_node. Постоянный ветер из пресета погоды,
 ## фоновое опускание и несколько статичных термиков вокруг старта (configs/game.json → calm_air).
 ## Облаков не рисует. Замена на настоящую атмосферу — строка game.json → air.script.
