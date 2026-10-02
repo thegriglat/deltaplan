@@ -1292,6 +1292,12 @@ def cmd_gc(a):
     here = str(toplevel())
     wt = {b: p for p, b in worktrees()}
     n = 0
+    if a.branches:
+        want = {x if "/" in x else f"feature/{x}" for x in a.branches} | set(a.branches)
+        miss = [x for x in a.branches if x not in merged and f"feature/{x}" not in merged]
+        if miss:
+            raise DpError(f"не влиты в main или нет такой ветки: {', '.join(miss)}")
+        merged = [b for b in merged if b in want]
     for b in merged:
         if gitr("rev-parse", b).stdout.strip() == main_tip:
             continue  # ветка = main (только что заведена или влита fast-forward) — не трогаем
@@ -1554,6 +1560,7 @@ def build():
     q.set_defaults(fn=cmd_merge)
 
     q = sp.add_parser("gc", help="копии и ветки, уже влитые в main (список; --remove — удалить)")
+    q.add_argument("branches", nargs="*", metavar="ВЕТКА|МОДУЛЬ", help="только эти (модуль → feature/<модуль>)")
     q.add_argument("--remove", action="store_true")
     q.set_defaults(fn=cmd_gc)
 
