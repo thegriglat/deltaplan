@@ -70,19 +70,19 @@ estimate:                                    # оценка полного пр�
 
 # Профили: --smoke = профиль smoke; --profile dev — данные разработки P2 (48 случаев air-lite, временные).
 profiles:
-  smoke:                                     # набор smoke NN-P1 (4 случая: ongudai × 2 и p_000 × 2) — проверка конвейера
+  smoke:                                     # набор smoke NN-P1 (15 случаев: ongudai, s_hill, p_000…p_002 × 3) — все ветки отчёта
     paths:
       base: ${AIR_NN_DATA}/pilot/smoke
     dataset:
       name: smoke
-      min_cases: 4
+      min_cases: 10
     split:
       holdout_proc_n: 0
       newcond_frac: 0.34
-      val_frac: 0.0
-      curve_sizes: [1]
+      val_frac: 0.17
+      curve_sizes: [2, 4]
     train:
-      batch: 1
+      batch: 2
       max_epochs: 40
       patience: 40
       ckpt_every_min: 0.5
@@ -92,7 +92,7 @@ profiles:
     eval:
       ort_repeats: 10
       n_slice_figures: {holdout_place: 1, newcond: 1, holdout_proc: 1}
-  dev:                                       # данные разработки P2 (README → «Набор»): 9 мест, 48 случаев
+  dev:                                       # ВРЕМЕННЫЙ, для разработки P2: данные в pilot/tmp/dev_p2 (48 случаев, 9 мест)
     paths:
       base: ${AIR_NN_DATA}/pilot/tmp/dev_p2/pilot
     dataset:
