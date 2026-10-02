@@ -150,7 +150,7 @@ def solve_late(D, max_outer, late, heat):
             mean += s
         mean /= len(snaps)
         r.update(target="late_mean", late_n=len(snaps), late_its=its,
-                 late_spread60_p90=round(late_spread60_p90(snaps, mean, int(late.get("edge_cells", 0))), 5))
+                 late_spread60_p90=float(f"{late_spread60_p90(snaps, mean, int(late.get('edge_cells', 0))):.4g}"))
         out = mean
     else:   # сошлось (или разошлось) — конечное состояние, как v2
         sl = slices(D)

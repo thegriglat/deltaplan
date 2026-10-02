@@ -12,20 +12,20 @@
   300
  ],
  "checks": {
-  "mixed: статусы h=max, m=ok": {
+  "mixed: одно решение max, другое ok": {
    "ok": true,
    "info": {
     "h": [
-     "max",
-     301
+     "ok",
+     181
     ],
     "m": [
-     "ok",
-     221
+     "max",
+     301
     ]
    }
   },
-  "mixed h: метаданные late_mean": {
+  "mixed m: метаданные late_mean": {
    "ok": true,
    "info": {
     "target": "late_mean",
@@ -36,36 +36,36 @@
      251,
      301
     ],
-    "late_spread60_p90": 0.23046
+    "late_spread60_p90": 0.1199
    }
   },
-  "mixed m: метаданные final": {
+  "mixed h: метаданные final": {
    "ok": true
   },
-  "mixed h: d400_h = среднее снимков (≤ 1 ulp fp16)": {
+  "mixed m: d400_m = среднее снимков (≤ 1 ulp fp16)": {
    "ok": true,
    "info": {
     "cells_not_bitwise": 0,
-    "total": 479232
+    "total": 359424
    }
   },
-  "mixed h: late_spread60_p90 = пересчёт": {
+  "mixed m: late_spread60_p90 = пересчёт": {
    "ok": true,
    "info": {
-    "gen": 0.23046,
-    "ref": 0.230461
+    "gen": 0.1199,
+    "ref": 0.119891
    }
   },
-  "mixed h: последний снимок = конечное состояние v2 (побитно)": {
+  "mixed m: последний снимок = конечное состояние v2 (побитно)": {
    "ok": true
   },
-  "mixed h: среднее ≠ конечному состоянию": {
+  "mixed m: среднее ≠ конечному состоянию": {
    "ok": true,
    "info": {
-    "max_abs": 2.2130126953125
+    "max_abs": 0.2666015625
    }
   },
-  "mixed: d400_m побитно как v2": {
+  "mixed: d400_h побитно как v2": {
    "ok": true
   },
   "mixed: d400_hc побитно как v2": {
@@ -80,7 +80,7 @@
   "mixed: статусы/итерации как v2": {
    "ok": true
   },
-  "mixed h: снимок 150 = решение v2 с max_outer=150 (побитно)": {
+  "mixed m: снимок 150 = решение v2 с max_outer=150 (побитно)": {
    "ok": true
   },
   "ok: оба решения final": {
@@ -88,11 +88,11 @@
    "info": {
     "d400_h": [
      "ok",
-     91
+     71
     ],
     "d400_m": [
      "ok",
-     91
+     61
     ]
    }
   },
@@ -107,14 +107,14 @@
   },
   "повтор: npz = файлу набора lm_smoke (побитно)": {
    "ok": true,
-   "info": "/home/greg/air_nn_data/pilot/datasets/s0-1c8c322/lm_smoke/cases/t_0001_000.npz"
+   "info": "/home/greg/air_nn_data/pilot/datasets/s0-1c8c322/lm_smoke/cases/t_0000_000.npz"
   }
  },
  "ok": true,
- "t_s": 88.8,
+ "t_s": 24.4,
  "solver_version": "s0-1c8c322",
  "cases": [
-  "t_0001_000",
-  "t_0002_001"
+  "t_0000_000",
+  "t_0000_001"
  ]
 }

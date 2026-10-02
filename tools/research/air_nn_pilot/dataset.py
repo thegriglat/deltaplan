@@ -135,9 +135,9 @@ def late_spec(cfg, spec):
 
 
 def p6_dir(cfg, root):
-    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига, иначе <root>/pilot/tiles/v1."""
+    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе terrain.p6_dir конфига, иначе <root>/pilot/tiles/v2 (П6 v2)."""
     d = os.environ.get("AIRNN_P6_DIR") or (cfg.get("terrain") or {}).get("p6_dir")
-    return Path(d) if d else Path(root) / "pilot" / "tiles" / "v1"
+    return Path(d) if d else Path(root) / "pilot" / "tiles" / "v2"
 
 
 def load_cfg(path):
@@ -352,7 +352,7 @@ def write_manifest(L, con, extra=None):
                   f"cd tools/research/air_nn_pilot && .venv/bin/python dataset.py run --dataset {L.name}"],
         inputs=dict(solver="tools/research/air3d/*.py (не правится)", places="data/terrain/<место>, configs/locations",
                     airlite="research/air-lite 7cc7e33 tools/research/air_lite/{gen.py, places.py}",
-                    **({"p6": "вырезки П6 v1 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v1), sha256 index.csv — plan.json → p6"}
+                    **({"p6": "вырезки П6 ($AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v2), sha256 index.csv — plan.json → p6"}
                        if L.spec.get("terrain") else {})),
         counts=dict(total=sum(n.values()), **n), size_bytes=size,
         complete=sum(n.values()) > 0 and n.get("done", 0) == sum(n.values()),

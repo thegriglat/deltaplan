@@ -1,313 +1,307 @@
 {
  "n_cases": 16,
  "n_solutions": 32,
- "n_max": 6,
- "frac_max_solutions": 0.188,
+ "n_max": 5,
+ "frac_max_solutions": 0.156,
  "frac_cases_with_max": 0.188,
  "late_n": [
   11
  ],
  "late_spread60_p90_max": {
   "all": {
-   "n": 6,
-   "median": 0.5272,
-   "p90": 0.8602,
-   "mean": 0.566,
-   "max": 1.0113
+   "n": 5,
+   "median": 0.5231,
+   "p90": 0.6635,
+   "mean": 0.3826,
+   "max": 0.6651
   },
   "h": {
    "n": 3,
-   "median": 0.5103,
-   "p90": 0.9111,
-   "mean": 0.641,
-   "max": 1.0113
+   "median": 0.5231,
+   "p90": 0.6367,
+   "mean": 0.3961,
+   "max": 0.6651
   },
   "m": {
-   "n": 3,
-   "median": 0.5441,
-   "p90": 0.6761,
-   "mean": 0.491,
-   "max": 0.7091
+   "n": 2,
+   "median": 0.3623,
+   "p90": 0.6014,
+   "mean": 0.3623,
+   "max": 0.6612
   }
  },
  "per_max": [
   {
-   "case": "t_0098_004",
+   "case": "t_0002_000",
    "sol": "h",
-   "spread": 1.01134,
+   "spread": 0.5231,
    "iters": 1001
   },
   {
-   "case": "t_0098_004",
+   "case": "t_0002_000",
    "sol": "m",
-   "spread": 0.21985,
+   "spread": 0.06339,
    "iters": 1001
   },
   {
-   "case": "t_0132_001",
+   "case": "t_0160_003",
    "sol": "h",
-   "spread": 0.51035,
+   "spread": 2.252e-06,
    "iters": 1001
   },
   {
-   "case": "t_0132_001",
-   "sol": "m",
-   "spread": 0.70914,
-   "iters": 1001
-  },
-  {
-   "case": "t_0258_007",
+   "case": "t_0160_008",
    "sol": "h",
-   "spread": 0.40117,
+   "spread": 0.6651,
    "iters": 1001
   },
   {
-   "case": "t_0258_007",
+   "case": "t_0160_008",
    "sol": "m",
-   "spread": 0.54413,
+   "spread": 0.6612,
    "iters": 1001
   }
  ],
  "time": {
   "ok": {
    "n": 13,
-   "t_wall_v3": 8.26,
-   "t_wall_v2": 8.16,
-   "ratio_wall": 1.012,
-   "t_solve_v3": 6.92,
-   "t_solve_v2": 7.0
+   "t_wall_v3": 6.94,
+   "t_wall_v2": 6.98,
+   "ratio_wall": 0.994,
+   "t_solve_v3": 5.8,
+   "t_solve_v2": 5.85
   },
   "max": {
    "n": 3,
-   "t_wall_v3": 45.53,
-   "t_wall_v2": 45.14,
-   "ratio_wall": 1.009,
-   "t_solve_v3": 42.87,
-   "t_solve_v2": 43.54
+   "t_wall_v3": 42.96,
+   "t_wall_v2": 42.3,
+   "ratio_wall": 1.016,
+   "t_solve_v3": 40.67,
+   "t_solve_v2": 40.59
   }
  },
  "converged_bitwise_v3_eq_v2": true,
  "max_differs_from_v2": true,
  "bitwise": [
   {
-   "case": "t_0018_000",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0018_000",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0018_007",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0018_007",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0022_002",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0022_002",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0022_009",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0022_009",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0098_004",
+   "case": "t_0002_000",
    "sol": "h",
    "status": "max",
    "same_iters": true,
    "bitwise": false
   },
   {
-   "case": "t_0098_004",
+   "case": "t_0002_000",
    "sol": "m",
    "status": "max",
    "same_iters": true,
    "bitwise": false
   },
   {
-   "case": "t_0098_011",
+   "case": "t_0002_007",
    "sol": "h",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0098_011",
+   "case": "t_0002_007",
    "sol": "m",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0132_001",
+   "case": "t_0010_002",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_002",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_009",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_009",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_004",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_004",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_011",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_011",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_001",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_001",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_006",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_006",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0160_003",
    "sol": "h",
    "status": "max",
    "same_iters": true,
    "bitwise": false
   },
   {
-   "case": "t_0132_001",
-   "sol": "m",
-   "status": "max",
-   "same_iters": true,
-   "bitwise": false
-  },
-  {
-   "case": "t_0132_006",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0132_006",
+   "case": "t_0160_003",
    "sol": "m",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0154_005",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0154_005",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0154_010",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0154_010",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0197_003",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0197_003",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0197_008",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0197_008",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0258_000",
-   "sol": "h",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0258_000",
-   "sol": "m",
-   "status": "ok",
-   "same_iters": true,
-   "bitwise": true
-  },
-  {
-   "case": "t_0258_007",
+   "case": "t_0160_008",
    "sol": "h",
    "status": "max",
    "same_iters": true,
    "bitwise": false
   },
   {
-   "case": "t_0258_007",
+   "case": "t_0160_008",
    "sol": "m",
    "status": "max",
    "same_iters": true,
    "bitwise": false
   },
   {
-   "case": "t_0292_002",
+   "case": "t_0250_005",
    "sol": "h",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0292_002",
+   "case": "t_0250_005",
    "sol": "m",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0292_009",
+   "case": "t_0250_010",
    "sol": "h",
    "status": "ok",
    "same_iters": true,
    "bitwise": true
   },
   {
-   "case": "t_0292_009",
+   "case": "t_0250_010",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_000",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_000",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_007",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_007",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_002",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_002",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_009",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_009",
    "sol": "m",
    "status": "ok",
    "same_iters": true,

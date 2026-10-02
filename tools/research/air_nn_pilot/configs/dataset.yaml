@@ -12,7 +12,7 @@ plan:
 
 # Набор terrain (П1 v2, NN-P6): места t_* индекса П6 (NN-P4) × n_cond условий, только область 400 м.
 terrain:
-  p6_dir: null               # null — $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v1
+  p6_dir: null               # null — $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v2 (П6 v2; v1 не используется)
   cond_seed: 20261004        # условия — plan_rows (час × облачность по кругу, каждый 12-й — штиль), своё зерно
   n_cond: 12                 # 12 = все сочетания 4 часов × 3 облачностей, один штиль на место
   max_outer: 1000            # предел внешних итераций решения (main: 3000); замер — tests/out/maxcap.json

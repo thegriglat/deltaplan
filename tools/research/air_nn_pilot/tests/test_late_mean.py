@@ -2,12 +2,12 @@
 """Цель «среднее поздних состояний» (П1 v3, NN-17): проверки генератора на случаях мини-набора lm_smoke.
 
 Условия и предел — из плана lm_smoke (configs/dataset.yaml: max_outer 300, снимки 150, 200, 250, 300; места t_* П6).
-1. Смешанный случай (h не сошлось — max, m сошлось): `solve_case(..., late=…, keep_snaps=…)`:
-   - d400_h = среднее снимков, посчитанное здесь заново (np.mean по стопке), в пределах округления float16 (≤ 1 ulp);
+1. Смешанный случай (одно решение max, другое сошлось): `solve_case(..., late=…, keep_snaps=…)`:
+   - d400_<max> = среднее снимков, посчитанное здесь заново (np.mean по стопке), в пределах округления float16 (≤ 1 ulp);
    - late_spread60_p90 = независимый пересчёт (np.stack, без кода генератора) с точностью 1e-4 м/с;
    - снимки = продолжение счёта: снимок на итерации k побитно (float16) = решению v2 с max_outer = k (k = первый
      и последний снимки); последний снимок — конечное состояние v2;
-   - d400_m (сошлось) и d400_hc/H/hbl — побитно как v2 (`solve_case(..., late=None)`) при том же пределе.
+   - сошедшееся d400_* и d400_hc/H/hbl — побитно как v2 (`solve_case(..., late=None)`) при том же пределе.
 2. Сошедшийся случай (оба ok): все массивы побитно как v2.
 3. Повтор смешанного случая: те же массивы и метаданные побитно; байты npz = файлу набора lm_smoke (если посчитан).
 
@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE))
 import dataset as DS  # noqa: E402
 
 NAME = "lm_smoke"
-MIXED, OK = "t_0001_000", "t_0002_001"   # по счёту lm_smoke 03.10: h max / m ok; оба ok
+MIXED, OK = "t_0000_000", "t_0000_001"   # по счёту lm_smoke 03.10 (tiles/v2): h ok / m max; оба ok
 
 
 def bits(a):
@@ -87,30 +87,32 @@ def main():
         snaps = {}
         res, arr = G.solve_case(c, [], max_outer=mo, late=late, keep_snaps=snaps)
         r2, a2 = G.solve_case(c, [], max_outer=mo)                     # v2 при том же пределе
-        rh, rm = res["runs"]["d400_h"], res["runs"]["d400_m"]
-        check("mixed: статусы h=max, m=ok", rh["status"] == "max" and rm["status"] == "ok",
+        st = {t: res["runs"][f"d400_{t}"]["status"] for t in "hm"}
+        check("mixed: одно решение max, другое ok", sorted(st.values()) == ["max", "ok"],
               {t: (res["runs"][f"d400_{t}"]["status"], res["runs"][f"d400_{t}"]["iters"]) for t in "hm"})
-        check("mixed h: метаданные late_mean", rh["target"] == "late_mean" and rh["late_n"] == len(pts) == len(snaps["d400_h"])
-              and rh["late_its"] == [p + 1 for p in pts],   # итерация снимка: первая проверка с it ≥ k (it = 1 + 10n)
-              {k: rh[k] for k in ("target", "late_n", "late_its", "late_spread60_p90")})
-        check("mixed m: метаданные final", rm["target"] == "final" and rm["late_n"] == 1 and rm["late_spread60_p90"] == 0.0)
-        good, nd = within_ulp(arr["d400_h"], np.mean(np.stack(snaps["d400_h"]), axis=0))
-        check("mixed h: d400_h = среднее снимков (≤ 1 ulp fp16)", good, dict(cells_not_bitwise=nd, total=arr["d400_h"].size))
-        sp = spread_ref(snaps["d400_h"], late["edge_cells"])
-        check("mixed h: late_spread60_p90 = пересчёт", abs(sp - rh["late_spread60_p90"]) < 1e-4,
-              dict(gen=rh["late_spread60_p90"], ref=round(sp, 6)))
-        check("mixed h: последний снимок = конечное состояние v2 (побитно)",
-              eq16(snaps["d400_h"][-1].astype(np.float16), a2["d400_h"]))
-        check("mixed h: среднее ≠ конечному состоянию", not eq16(arr["d400_h"], a2["d400_h"]),
-              dict(max_abs=float(np.max(np.abs(arr["d400_h"].astype(np.float32) - a2["d400_h"].astype(np.float32))))))
-        for k in ("d400_m", "d400_hc", "d400_H", "d400_hbl"):
+        x = "h" if st["h"] == "max" else "m"          # несошедшееся
+        y = "m" if x == "h" else "h"                  # сошедшееся
+        X, rx, ry = f"d400_{x}", res["runs"][f"d400_{x}"], res["runs"][f"d400_{y}"]
+        check(f"mixed {x}: метаданные late_mean", rx["target"] == "late_mean" and rx["late_n"] == len(pts) == len(snaps[X])
+              and rx["late_its"] == [p + 1 for p in pts],   # итерация снимка: первая проверка с it ≥ k (it = 1 + 10n)
+              {k: rx[k] for k in ("target", "late_n", "late_its", "late_spread60_p90")})
+        check(f"mixed {y}: метаданные final", ry["target"] == "final" and ry["late_n"] == 1 and ry["late_spread60_p90"] == 0.0)
+        good, nd = within_ulp(arr[X], np.mean(np.stack(snaps[X]), axis=0))
+        check(f"mixed {x}: {X} = среднее снимков (≤ 1 ulp fp16)", good, dict(cells_not_bitwise=nd, total=arr[X].size))
+        sp = spread_ref(snaps[X], late["edge_cells"])
+        check(f"mixed {x}: late_spread60_p90 = пересчёт", abs(sp - rx["late_spread60_p90"]) < 1e-4,
+              dict(gen=rx["late_spread60_p90"], ref=round(sp, 6)))
+        check(f"mixed {x}: последний снимок = конечное состояние v2 (побитно)", eq16(snaps[X][-1].astype(np.float16), a2[X]))
+        check(f"mixed {x}: среднее ≠ конечному состоянию", not eq16(arr[X], a2[X]),
+              dict(max_abs=float(np.max(np.abs(arr[X].astype(np.float32) - a2[X].astype(np.float32))))))
+        for k in (f"d400_{y}", "d400_hc", "d400_H", "d400_hbl"):
             check(f"mixed: {k} побитно как v2", eq16(arr[k], a2[k]))
         check("mixed: статусы/итерации как v2",
               all((res["runs"][t]["status"], res["runs"][t]["iters"]) == (r2["runs"][t]["status"], r2["runs"][t]["iters"])
                   for t in ("d400_h", "d400_m")))
         _, a1 = G.solve_case(c, [], max_outer=pts[0])                  # продолжение: снимок k = решение с пределом k
-        check(f"mixed h: снимок {pts[0]} = решение v2 с max_outer={pts[0]} (побитно)",
-              eq16(snaps["d400_h"][0].astype(np.float16), a1["d400_h"]))
+        check(f"mixed {x}: снимок {pts[0]} = решение v2 с max_outer={pts[0]} (побитно)",
+              eq16(snaps[X][0].astype(np.float16), a1[X]))
         # 2. сошедшийся случай
         c = conds[OK]
         res_ok, arr_ok = G.solve_case(c, [], max_outer=mo, late=late)
