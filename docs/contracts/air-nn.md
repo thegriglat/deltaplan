@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "air-nn"
+updated: "2026-10-03"
+summary: "Контракты модуля air-nn — Изменение интерфейса — только через координатора: версия +1, что изменилось, уведомление потребителей."
+related: []
+contracts: [{"id": "П1", "version": 2}, {"id": "П2", "version": 4}, {"id": "П3", "version": 2}, {"id": "П6", "version": 1}, {"id": "П4", "version": 1}, {"id": "П5", "version": 2}]
+---
 # Контракты модуля air-nn
 
 План — `docs/plan/air_nn.md`, журнал — `docs/plan/air_nn_progress.md`. Контракты волны 0 и далее (N1–N6, §8.1

@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "wing-physics-check"
+updated: "2026-10-03"
+summary: "Контракты модуля wing-physics-check"
+related: []
+contracts: [{"id": "К1", "version": 2}, {"id": "К2", "version": 1}, {"id": "К3", "version": 1}, {"id": "К4", "version": 2}, {"id": "К5", "version": 1}, {"id": "К6", "version": 1}]
+---
 # Контракты модуля wing-physics-check
 
 План — `docs/archive/plan/wing-physics-check.md`. Контракты К1–К3 фиксируют то, что уже есть в коде (main 3820bda); К4–К6 — новые форматы данных модуля. Менять — только через координатора (версия +1, уведомить потребителей). Контрактный тест — `tests/contracts/test_wing_physics_contracts.gd`.

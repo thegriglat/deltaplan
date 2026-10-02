@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "world"
+updated: "2026-10-03"
+summary: "Объекты мира (world_objects) — VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2."
+related: []
+---
 # Объекты мира (world_objects)
 
 VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Ветроуказатели и ленточки по локальному ветру модели,

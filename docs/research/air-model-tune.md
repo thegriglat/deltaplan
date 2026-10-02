@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "air-model"
+updated: "2026-10-03"
+summary: "Калибровка модели воздуха по схеме Professor (AM-09) — Корреляция λ/h–z0 равна 0 (ρ = −0,00)."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Калибровка модели воздуха по схеме Professor (AM-09)
 
 Задача AM-09 плана `docs/plan/air_model.md` (метод — WF-16 в `docs/plan/wind_field.md`). Модель — `docs/guide/air-model.md`, эталон масштаба 1 — `tools/research/air3d/` (`air.py`, `reference.md`). Скрипты, данные прогонов и картинки — `tools/research/tune/`, воспроизведение описано в конце документа.

@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-09-29"
+summary: "Источники по моделям дельтапланов — Где искать внешний вид и характеристики крыльев (для линейки — docs/plan/wings_lineup.md)."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Источники по моделям дельтапланов
 
 Где искать внешний вид и характеристики крыльев (для линейки — docs/plan/wings_lineup.md).

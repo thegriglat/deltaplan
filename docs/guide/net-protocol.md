@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "net"
+updated: "2026-10-03"
+summary: "Сетевой протокол Deltaplan — Единственный источник правды — server/proto/deltaplan/v1/net.proto (пакет deltaplan.v1)."
+related: []
+---
 # Сетевой протокол Deltaplan
 
 Единственный источник правды — `server/proto/deltaplan/v1/net.proto` (пакет `deltaplan.v1`). Этот документ объясняет его простыми словами, показывает пример каждого сообщения и основные сценарии. Если текст и `.proto` расходятся, прав `.proto`.

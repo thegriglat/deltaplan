@@ -222,7 +222,7 @@ disableKinds = ['taxonomy', 'term']
   [[module.mounts]]
     source = '../docs'
     target = 'content/docs'
-    files = ['/*.md']
+    files = ['! INDEX.md', '/*.md']
 
   [[module.mounts]]
     source = '../docs/guide'

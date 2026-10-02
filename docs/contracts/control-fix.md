@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "control-fix"
+updated: "2026-10-03"
+summary: "Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх)."
+related: []
+contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 3}, {"id": "С3", "version": 3}]
+---
 # Контракты модуля «control-fix»
 
 Внутренний документ. План — `docs/archive/plan/control-fix.md`, журнал — `docs/archive/plan/control-fix-progress.md`. Контрактный тест — `tests/game/test_control_fix_contracts.gd` (форма стыков; ломается при смене формата без правки контракта). v1 — то, что есть в коде на v1.0.0 (3820bda). Менять интерфейс — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге.

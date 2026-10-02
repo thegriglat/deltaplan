@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "net"
+updated: "2026-10-03"
+summary: "Сетевая игра «через itch.io»: что даёт itch и какие есть альтернативы — Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (server/, docs/guide/net-protocol.md, docs/plan/multiplayer.md)."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Сетевая игра «через itch.io»: что даёт itch и какие есть альтернативы
 
 Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (`server/`, `docs/guide/net-protocol.md`, `docs/plan/multiplayer.md`).

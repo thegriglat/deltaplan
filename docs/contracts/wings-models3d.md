@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "wings-models3d"
+updated: "2026-10-03"
+summary: "Контракты направления «3D-модели и конфиги крыльев» — Владелец: tools/blender/build_gliders.py (WingShape, сборка)."
+related: []
+contracts: [{"id": "К1", "version": 1}, {"id": "К2", "version": 1}, {"id": "К3", "version": 2}, {"id": "К4", "version": 2}]
+---
 # Контракты направления «3D-модели и конфиги крыльев»
 
 Ветка `wings/models3d`, координатор — dp-coordinator. План — `docs/archive/plan/wings-models3d.md`, журнал — `docs/archive/plan/wings-models3d-progress.md`. Меняет интерфейс только координатор: версия +1, что изменилось, правка всех потребителей в том же шаге.

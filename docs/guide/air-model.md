@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "air-model"
+updated: "2026-10-03"
+summary: "Модель воздуха в трёх масштабах — Среднее поле воздуха (решение Пикара, масштаб 1) в игре читается на CPU: air_velocity_at зовут физика крыла (3 точки × 120 Гц), боты, птицы, колдун."
+related: []
+---
 # Модель воздуха в трёх масштабах
 
 План и задачи — `docs/plan/air_model.md`; журнал — `docs/archive/plan/air-model-progress.md`. Здесь —

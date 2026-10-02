@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-01"
+summary: "Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py."
+related: []
+conclusion: ""
+data: "tools/research/wind_compare/"
+applied_in: ""
+---
 # Сравнение поля ветра main и feature/air-model (Онгудай)
 
 Выгрузка из игры (`Atmosphere.air_velocity_at` / `mean_wind_at`), не из air.py. Условия: Онгудай, старт kayancha_south,

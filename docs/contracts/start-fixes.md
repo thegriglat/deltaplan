@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "start-fixes"
+updated: "2026-10-03"
+summary: "Контракты модуля «start-fixes»"
+related: []
+contracts: [{"id": "К1", "version": 2}, {"id": "К2", "version": 2}, {"id": "К3", "version": 2}, {"id": "К4", "version": 1}]
+---
 # Контракты модуля «start-fixes»
 
 Внутренний документ. План — `docs/archive/plan/start-fixes.md`, журнал — `docs/archive/plan/start-fixes-progress.md`. Контрактный тест — `tests/game/test_start_fixes_contracts.gd` (форма стыков; ломается при смене формата без правки контракта). Менять интерфейс — только через координатора: версия +1, что изменилось, уведомить потребителей.

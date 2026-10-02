@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "flight"
+updated: "2026-09-28"
+summary: "Референсы: трапеция (control frame) и вид с места пилота — Собрано для повышения реалистичности процедурных Blender-моделей трапеции и деталей, видимых с точки обзора пилота."
+related: []
+conclusion: "1. Мануал Wills Wing T2/T2C — https://www.delta-club-82.com/bible/manuels/t2c-manual_id798.pdf (даёт точные мм/дюймы и текстовые описания узлов апекс-бракета, углов, тросов)."
+data: ""
+applied_in: ""
+---
 # Референсы: трапеция (control frame) и вид с места пилота
 
 Собрано для повышения реалистичности процедурных Blender-моделей трапеции и деталей,

@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-09-30"
+summary: "Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи — Выписка для модели крыла configs/wings/atlas.json и 3D-модели glider_atlas.glb."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи
 
 Выписка для модели крыла `configs/wings/atlas.json` и 3D-модели `glider_atlas.glb`.

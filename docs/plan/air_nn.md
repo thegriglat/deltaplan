@@ -1,3 +1,11 @@
+---
+type: "plan"
+status: "postponed"
+module: "air-nn"
+updated: "2026-10-03"
+summary: "Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m…"
+related: []
+---
 # Нейросеть вместо решателя поля ветра — план
 
 Статус: **план** (направление выбрано пользователем 02.10.2026). Реализацию начинать по команде пользователя.

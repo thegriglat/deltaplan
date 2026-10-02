@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "А1.1 — пробы для плана структурных правок решателя воздуха — Воспроизведение (из этого каталога; venv с CuPy и brotli — tools/research/morris/README.md; здесь использован /home/greg/deltaplan-wf-morris/tools/research/tune/.venv): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune…"
+related: []
+conclusion: ""
+data: "tools/research/a1/"
+applied_in: ""
+---
 # А1.1 — пробы для плана структурных правок решателя воздуха
 
 План — `docs/archive/plan/air-model-a1.md`. Решатель (`tools/research/air3d/air.py`) не правится: правки

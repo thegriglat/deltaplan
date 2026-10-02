@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "game"
+updated: "2026-10-03"
+summary: "Сборка игры (scenes/main, scenes/game, scenes/ui) — Главная сцена собирает модули в играбельный полёт: меню → полёт ⇄ пауза → итог."
+related: []
+---
 # Сборка игры (scenes/main, scenes/game, scenes/ui)
 
 Главная сцена собирает модули в играбельный полёт: меню → полёт ⇄ пауза → итог.

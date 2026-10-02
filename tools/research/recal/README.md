@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json."
+related: []
+conclusion: ""
+data: "tools/research/recal/"
+applied_in: ""
+---
 # Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS
 
 Итог — `docs/research/air-model-tune.md`, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — `out/fit.json`.

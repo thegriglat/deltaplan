@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "terrain"
+updated: "2026-10-03"
+summary: "Рельеф и мир — FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2."
+related: []
+---
 # Рельеф и мир
 
 FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование источников — [research/terrain_sources.md](../research/terrain_sources.md).

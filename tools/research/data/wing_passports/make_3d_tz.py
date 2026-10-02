@@ -23,6 +23,7 @@ import wings3d_geometry as G  # noqa: E402
 
 ROOT = G.ROOT
 OUT = os.path.join(ROOT, "docs", "research", "glider_3d_tz.md")
+FRONT = '---\ntype: "research"\nstatus: "closed"\nmodule: "wings"\nupdated: "2026-10-03"\nsummary: "ТЗ на 3D-модели крыльев по паспортам (DHV, производители): раздел на крыло, самодостаточный для исполнителя."\nrelated: []\nconclusion: ""\ndata: "tools/research/data/wing_passports/out/wings3d_spec.json"\napplied_in: "tools/blender/make_new_wings.py, docs/guide/models.md"\ngenerated: true\n---\n'
 
 MERGED = json.load(open(os.path.join(HERE, "wings_merged.json"), encoding="utf-8"))
 GEOM = {r["key"]: r for r in json.load(open(os.path.join(HERE, "wings_geometry.json"), encoding="utf-8"))}
@@ -909,7 +910,7 @@ def main():
             "совпадают" if old == text else "РАЗЛИЧАЮТСЯ", "совпадают" if olds == spec else "РАЗЛИЧАЮТСЯ",
             "OK" if not errs else "\n" + "\n".join(errs)))
         sys.exit(0 if (old == text and olds == spec and not errs) else 1)
-    open(OUT, "w", encoding="utf-8").write(text)
+    open(OUT, "w", encoding="utf-8").write(FRONT + text)
     with open(SPEC_OUT, "w", encoding="utf-8") as f:
         json.dump(spec, f, ensure_ascii=False, indent=2)
         f.write("\n")

@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-09-30"
+summary: "osm_pack — замер компактного офлайн-пакета (OSM-вектор + рельеф + покров), Словения — Исследование к плану docs/plan/offline_world_data.md (этап 0)."
+related: []
+conclusion: ""
+data: "tools/research/osm_pack/"
+applied_in: ""
+---
 # osm_pack — замер компактного офлайн-пакета (OSM-вектор + рельеф + покров), Словения
 
 Исследование к плану `docs/plan/offline_world_data.md` (этап 0). Итог и выводы —

@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: ""
+updated: "2026-10-03"
+summary: "Архитектура — Godot 4.7.2 (godot в PATH), GDScript, рендер Forward+."
+related: []
+---
 # Архитектура
 
 Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Windows + Linux.

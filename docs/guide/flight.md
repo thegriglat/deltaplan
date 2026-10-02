@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "flight"
+updated: "2026-10-03"
+summary: "Модель полёта (scripts/flight/) — Реализует FR-1…FR-10. Логика — в RefCounted-классах (тестируются headless), нода Glider — тонкая обёртка: время, ввод, визуал."
+related: []
+---
 # Модель полёта (scripts/flight/)
 
 Реализует FR-1…FR-10. Логика — в `RefCounted`-классах (тестируются headless), нода `Glider` —

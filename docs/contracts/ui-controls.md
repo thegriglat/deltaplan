@@ -1,3 +1,12 @@
+---
+type: "contract"
+status: "active"
+module: "ui-controls"
+updated: "2026-10-03"
+summary: "Контракты модуля «ui-controls» — Действия (имена — смысл, не клавиша): pitch_push_out = [Up] — трапеция от себя → pitch +; pitch_pull_in = [Down] — на себя → pitch −."
+related: []
+contracts: [{"id": "У1", "version": 3}, {"id": "У2", "version": 2}]
+---
 # Контракты модуля «ui-controls»
 
 Внутренний документ. План — `docs/archive/plan/ui-controls.md`. Контрактный тест — `tests/game/test_ui_controls_contracts.gd`. Менять — только через координатора модуля: версия +1, что изменилось, потребители правятся в том же шаге.

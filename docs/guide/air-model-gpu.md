@@ -1,3 +1,11 @@
+---
+type: "guide"
+status: "active"
+module: "air-model"
+updated: "2026-10-03"
+summary: "Модель воздуха на GPU: строительные блоки (AM-02) — Эталоны — tools/research/air3d/gpu_block_refs.py (numpy, float64 по формулам ядер и прикидки) → tests/atmosphere/fixtures/air_model/blocks/*.bin + .json (f32 LE, ~2,5 МБ)."
+related: []
+---
 # Модель воздуха на GPU: строительные блоки (AM-02)
 
 План — `docs/plan/air_model.md` (AM-02, AM-03), решатель — `docs/plan/wind_field.md` → «Решатель на

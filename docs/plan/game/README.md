@@ -1,3 +1,11 @@
+---
+type: "plan"
+status: "closed"
+module: "game"
+updated: "2026-09-27"
+summary: "Группа 12 — Сцена игры и управление (game/) — В волне 1 параллельно идут ui/01 и ui/02 (папки UI)."
+related: []
+---
 # Группа 12 — Сцена игры и управление (`game/`)
 Владения группы: `scenes/main.*`, `scenes/game/`, `scripts/game/`, `scripts/core/`, `configs/game.json`,
 `configs/controls.json`, `configs/camera.json`, `tests/game/`. Коммит 768d6db (integration) — «промежуточно»:

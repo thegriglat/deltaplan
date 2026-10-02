@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах — Записка с выводом — docs/archive/plan/air-model-a2pre.md."
+related: []
+conclusion: ""
+data: "tools/research/a2pre/"
+applied_in: ""
+---
 # Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах
 
 Записка с выводом — `docs/archive/plan/air-model-a2pre.md`. Решатель (`tools/research/air3d/air.py`, после А1:

@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "air-nn"
+updated: "2026-10-03"
+summary: "Пилот air-nn (этап П): может ли малая сеть заменить решатель поля ветра — В терминале — только строка этапа и одна обновляемая строка прогресса (единицы этапа, %, сколько осталось): пилот air-nn: прогон 2026-10-02_pilot лог: /home/greg/air_nn_data/pilot/runs/2026-10-02_pilot/pilot.log отчёт будет: /"
+related: []
+conclusion: ""
+data: "tools/research/air_nn_pilot/"
+applied_in: ""
+---
 # Пилот air-nn (этап П): может ли малая сеть заменить решатель поля ветра
 
 План — `docs/plan/air_nn.md` (§8.2, шлюз ШП; правила §3.2–3.4, §4.4–4.6, §5), контракты — `docs/contracts/air-nn.md`

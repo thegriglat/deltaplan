@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена — Записка — docs/archive/plan/air-model-b2.md."
+related: []
+conclusion: ""
+data: "tools/research/b2/"
+applied_in: ""
+---
 # Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена
 
 Записка — `docs/archive/plan/air-model-b2.md`. Функция профиля — `scripts/atmosphere/wind_profile.gd` (игра) и

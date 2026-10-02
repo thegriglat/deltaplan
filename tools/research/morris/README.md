@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md."
+related: []
+conclusion: ""
+data: "tools/research/morris/"
+applied_in: ""
+---
 # Моррис: чувствительность модели воздуха
 
 Итог и выводы — `docs/research/air-model-sensitivity.md`.

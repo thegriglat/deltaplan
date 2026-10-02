@@ -1,3 +1,11 @@
+---
+type: "plan"
+status: "closed"
+module: ""
+updated: "2026-09-27"
+summary: "12-02. Сквозной тест свободного полёта на всех локациях"
+related: []
+---
 # 12-02. Сквозной тест свободного полёта на всех локациях
 **Цель:** «меню → Лететь → разбег W+Shift → полёт → посадка → итог» проходит на altai, askarovo, aushkul, ongudai.
 **Контекст:** tests/game/test_game_flight.gd (образец: `Game.tick`, ErrorCatcher, защёлка), scripts/game/autopilot.gd,

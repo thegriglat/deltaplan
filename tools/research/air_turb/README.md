@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "AM-08: возмущения из поля (масштаб 3) — замеры — Описание модели — docs/guide/air-model.md → «Масштаб 3: возмущения из поля»."
+related: []
+conclusion: ""
+data: "tools/research/air_turb/"
+applied_in: ""
+---
 # AM-08: возмущения из поля (масштаб 3) — замеры
 
 Описание модели — `docs/guide/air-model.md` → «Масштаб 3: возмущения из поля».

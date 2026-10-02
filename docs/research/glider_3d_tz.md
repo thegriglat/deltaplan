@@ -1,3 +1,15 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-10-03"
+summary: "ТЗ на 3D-модели крыльев по паспортам (DHV, производители): раздел на крыло, самодостаточный для исполнителя."
+related: []
+conclusion: ""
+data: "tools/research/data/wing_passports/out/wings3d_spec.json"
+applied_in: "tools/blender/make_new_wings.py, docs/guide/models.md"
+generated: true
+---
 # ТЗ на 3D-модели крыльев по паспортам (DHV, производители)
 
 Сгенерировано `tools/research/data/wing_passports/make_3d_tz.py` из паспортного набора (`tools/research/data/wing_passports/`, 203 записи, 78 семейств), ручной части `tz_curated.py` и `tools/blender/glider_params.json` (2026-10-01). Числа в разделах — паспортные с указанием источника; что не указано числом, в источниках отсутствует (закрутка, кривизна профиля, форма паруса, высота кингпоста, расцветка) — **не выдумывать, оставлять значения базы**.

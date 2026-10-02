@@ -1,3 +1,11 @@
+---
+type: "reference"
+status: "active"
+module: "ui"
+updated: "2026-10-03"
+summary: "Скриншоты ui/01 — меню, «Полёт…», карта, «Управление» — Сняты godot --rendering-method gl_compatibility под xvfb-run (см."
+related: []
+---
 # Скриншоты ui/01 — меню, «Полёт…», карта, «Управление»
 
 Сняты `godot --rendering-method gl_compatibility` под `xvfb-run` (см. `docs/guide/game.md`), два разрешения:
