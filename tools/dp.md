@@ -16,23 +16,34 @@
 (`git add docs/plan/<модуль> && git commit -m "…" -- docs/plan/<модуль>`). `DP_LOCAL=1` — только текущая копия.
 Автор событий — `--by` или `$DP_ROLE` (`main`, `coordinator`, `engineer`, …). `dp` сам ничего не коммитит и индекс git не трогает.
 
+Агенту остаются только задачи, которые детерминированным скриптом не решить, — подумать: спроектировать, решить, разобрать причину, написать текст/код. Всё, что можно сделать скриптом (поиск, сводки, проверки, перенос, слияние, отчёты по числам), — делает `tools/dp` или скрипт задачи; повторяющуюся ручную операцию — оформить командой dp (через обратную связь).
+Детерминированное — командами dp: поиск и работа с планами, журналами, документами, ветками — только через `tools/dp` (`dp search`, `dp search --sem`, `dp plan`, `dp docs …`, `dp log`, `dp status`, `dp task …`, `dp sync/merge`); свои grep/python-скрипты для этого не писать (исключение — код игры и исследовательский код задачи). Не хватило команды — обойти один раз и сразу записать обратную связь (`dp event <модуль> note --note "dp: …"` или поле dp_feedback).
+
+## Версия, перезапуск, ID
+`DP_VERSION` в начале `tools/dp`: если в главной копии (`/home/greg/deltaplan/tools/dp`) версия новее, устаревший dp в копии задачи перезапускается из неё (`os.execv`, те же аргументы и cwd), в stderr — одна строка; `DP_NO_REEXEC=1` — отключить. Поднимать `DP_VERSION` при каждом изменении dp.
+ID задачи — `<КОД>-<n>[буква]` (`^[A-Z]{2,4}-\d+[a-z]?$`: NN-7, NN-7a); КОД — `code` в `module.json` (2–4 заглавные латинские, уникален по модулям, `T` зарезервирован под TODO.md; `dp init <модуль> --code NN`, `dp module new … --code NN`). `dp task new <модуль>` без ID — следующий номер (максимум + 1); ID уникален по всем модулям. Контракты (C1, П1…) — не задачи. Старые ID в журналах не переименовываются.
+
 ## Команды
 ```
 dp task new <модуль> <ID> --type dp-engineer --title "…" --goal "…" [--plan-ref "UC-3"] \
     [--contract У2@1] [--scope путь] [--dont-touch путь] [--test ui_controls] \
     [--check ИМЯ "команда" EXPECT] [--from card.json|-] [--force]
-dp task show <ID> [--json]        # карточка для исполнителя, ~15 строк
+dp task show <ID> [--json] [--full] [--diff]   # карточка для исполнителя; --full — полное задание (пункты по строке, правила, заметки); --diff — как менялась (события edited)
+dp task sync <ID> [--message М] [--trailer Т]  # влить ветку модуля (base) в ветку задачи в её копии
 dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
                                   # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
 dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit h] [--note "…"]
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
 dp decide <модуль> "<вопрос>" --ask      # шлюз: вопрос пользователю → Q1, висит в status до --answers Q1
-dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept] [--no-review]
+dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept] [--no-review] [--bg --timeout СЕК]
+                                  # --dry — пробный прогон исполнителем до отчёта (без события); --only → в конце сводка по всем проверкам карточки
+                                  # (последние результаты для текущего HEAD, build/dp/<ID>/results.json); частичные прогоны складываются в accepted
+                                  # --bg — через tools/job.sh (долгие GPU-проверки): job.sh wait dp-accept-<ID> <сек>
 dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --template
 dp review <ID> --verdict accept|rework --from r.json|- [--note …]  |  --note "итог"  |  dp review <ID> --show [--full]  |  dp review --template
-dp status [<модуль>] [--full] [--stale 40]
-dp log <модуль|ID> [-n 10] [--full]
+dp status [<модуль>] [--full] [--stale 40]   # «⚠тихо» = ни событий, ни коммитов ветки задачи > 40 мин; accepted+merged — одним статусом
+dp log <модуль|ID> [-n 10] [--full] [--no-decisions]   # события и решения; [src] и [unparsed] у записей из миграции
 dp search <текст|regex> [--module М] [--max 30]   # по карточкам, отчётам, событиям, решениям всех модулей; строка на находку
 dp plan <модуль|файл.md> [<номер|начало заголовка>] [--contracts] [--depth 3] [--max 150]
 dp render <модуль> [--out путь|-] [--force]
@@ -40,7 +51,7 @@ dp render <модуль> [--out путь|-] [--force]
 dp plan edit <модуль|файл.md> <раздел> --append "текст" | --replace СТАРОЕ НОВОЕ | --set [ФАЙЛ|-] [--contracts] [--commit]
 dp decide <модуль> "решение" --by user --why "…" [--plan [раздел]]
 dp inbox <модуль> [--by coordinator] [--peek]  |  dp questions  |  dp answer <Qn|модуль/Qn> "ответ"
-dp module new <модуль> [--from main]  |  dp sync <модуль|ветка>  |  dp merge <ветка> [--into main] [--push]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
+dp module new <модуль> [--from main] [--code NN]  |  dp sync <модуль|ветка> [-m М] [--trailer Т]  |  dp merge <ветка> [--into main] [--push] [-m М] [--trailer Т]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
 dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
 
@@ -143,6 +154,9 @@ dp gc --remove                       # git worktree remove (без --force; гр
 dp status --since 30m                # по модулям: события, коммиты веток (не в main), новые вопросы; ≤ 5 событий; + main
 dp digest --since today              # решения пользователя, принятые задачи, правки плана, коммиты main (first-parent)
 ```
+
+Слияния (`sync`, `merge`, `task sync`): незакоммиченный журнал `docs/plan/<модуль>/` в целевой копии перед слиянием коммитится сам своими путями («<модуль>: журнал dp»), остальная «грязь» — отказ. Строка `Claude-Session` в сообщение — из `$DP_SESSION`; `-m/--message` — своё сообщение, `--trailer` — доп. строки.
+`dp init <модуль> --legacy путь` — ссылка на старый журнал (`legacy_journal`); `report` принимает `extra` — свободный объект своих чисел (в `--show` коротко).
 
 ## Обратная связь по dp
 Чего не хватило, что неудобно — в конце работы: исполнитель — поле `dp_feedback` отчёта, координатор —
