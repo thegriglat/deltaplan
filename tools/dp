@@ -525,6 +525,7 @@ REPORT_TEMPLATE = {
     "questions": ["открытый вопрос координатору"],
     "images": ["/home/greg/deltaplan/build/screenshots/<задача>/01_….png"],
     "how_to_check": "команда или dp accept <ID>",
+    "uncertain": [{"where": "файл:строка", "why": "в чём не уверен", "checked": "что уже проверил"}],
     "dp_feedback": "чего не хватило в dp, что неудобно (можно пусто)",
 }
 
@@ -580,6 +581,12 @@ def cmd_report(a):
             L += [f"{t}: {short(x, 200)}" for x in r.get(k, []) or []]
         if r.get("images"):
             L.append(f"картинки: {len(r['images'])} ({rel(Path(r['images'][0]).parent)})")
+        for u in r.get("uncertain", []) or []:
+            if isinstance(u, dict):
+                L.append(f"не уверен: {u.get('where', '')} — {short(u.get('why', ''), 120)}"
+                         + (f" (проверил: {short(u.get('checked', ''), 80)})" if u.get("checked") else ""))
+            else:
+                L.append("не уверен: " + short(str(u), 200))
         if r.get("dp_feedback"):
             L.append("dp: " + short(r["dp_feedback"], 200))
         print("\n".join(L))
