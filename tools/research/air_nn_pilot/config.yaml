@@ -40,6 +40,7 @@ train:
   patience: 30
   ema_decay: 0.999
   grad_clip: 1.0
+  reflect: true                              # П2 v4: отражение поперёк ветра (y′ → −y′), p = 1/2 при каждом показе
   near_ground_weight: 2.0                    # вес потерь на высотах ≤ near_ground_max_m (60 м над стартами)
   near_ground_max_m: 100
   ckpt_every_min: 5

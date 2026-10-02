@@ -10,14 +10,14 @@
   индекс П6: /home/greg/air_nn_data/pilot/tmp/NN-P5_mock/tiles/v1/index.csv — мест в наборах 10 из 10
   деление: обучение 20, проверка 7, (а) 10, (г) 12 (3 мест), (б) 3 ['ongudai'], (б′) 3 ['p_002']; кривая [2, 4, 7] мест П6 (+ 3 прочих)
 этап 2 из 6: подготовка тензоров
-  набор smoke: 15 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_176f0f_p7bea483d
-  набор smoke_terrain: 40 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_terrain_7a1d2c_p7bea483d
+  набор smoke: 15 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_176f0f_p05ea80bf
+  набор smoke_terrain: 40 случаев → /home/greg/air_nn_data/pilot/smoke_p2/prep/s0-3acd749/smoke_terrain_7a1d2c_p05ea80bf
 этап 3 из 6: обучение основной сети
+  эпох 20/40 (50 %) · осталось ~0:23
 этап 4 из 6: кривая (в): обучение по числу рельефов
+  прогонов 0/2 (0 %) · 2 рельефов, эпоха 0.0/5 · осталось: оценка скорости…
 этап 5 из 6: оценка и ONNX
   случаев 1/79 (1 %) · осталось: оценка скорости…
-  случаев 64/79 (81 %) · осталось ~0:13
 этап 6 из 6: отчёт
-  картинок 3/10 (30 %) · осталось: оценка скорости…
 готово: /home/greg/air_nn_data/pilot/smoke_p2/reports/2026-10-02_smoke/report.md
   ШП-2: правим подход

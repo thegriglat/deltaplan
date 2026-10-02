@@ -4,7 +4,7 @@
   {
    "step": "A: непрерванный",
    "rc": 0,
-   "t": 293.7
+   "t": 93.3
   },
   {
    "step": "kill -9 посреди обучения",
@@ -21,7 +21,7 @@
    "step": "kill -9 при записи чекпойнта",
    "at_epoch": 15.1,
    "tmp_files_at_kill": [
-    "last.pt.tmp611918"
+    "last.pt.tmp628795"
    ]
   },
   {
@@ -40,11 +40,11 @@
   {
    "step": "повтор готового прогона",
    "rc": 0,
-   "t": 25.6
+   "t": 28.1
   }
  ],
  "compare": {
-  "n_numbers": 13121,
+  "n_numbers": 13122,
   "n_missing": 0,
   "missing": [],
   "n_different": 0,

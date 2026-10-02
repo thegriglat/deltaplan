@@ -29,7 +29,7 @@ import torch  # noqa: E402
 
 from . import common as C  # noqa: E402
 from . import model as M  # noqa: E402
-from .prep import AGL, N_CH  # noqa: E402
+from .prep import AGL, N_CH, REFLECT_FILM_SIGN, REFLECT_MAP_SIGN, REFLECT_OUT_SIGN  # noqa: E402
 
 CODE_FILES = [Path(__file__), Path(M.__file__), Path(__file__).with_name("prep.py")]
 
@@ -206,6 +206,10 @@ def main(run: Path):
     ema = EMA(model, tc["ema_decay"])
     bs = int(tc["batch"])
     n = len(Xt)
+    reflect_on = bool(tc.get("reflect", False))
+    sx = torch.from_numpy(REFLECT_MAP_SIGN).to(dev)[None, :, None, None]
+    sf = torch.from_numpy(REFLECT_FILM_SIGN).to(dev)[None, :]
+    sy = torch.from_numpy(REFLECT_OUT_SIGN).to(dev)[None, :, None, None]
     spe = max(1, n // bs)                                # шагов на эпоху (неполный хвост отбрасывается)
     E = int(tc["max_epochs"])
     total_steps = E * spe
@@ -252,6 +256,8 @@ def main(run: Path):
         model.train()
         while epoch < E and not stopped:
             perm = np.random.default_rng([seed, epoch]).permutation(n)
+            # П2 v4: отражение поперёк ветра с вероятностью 1/2 при каждом показе — от (зерно, эпоха, индекс примера)
+            flip = (np.random.default_rng([seed, epoch, 4]).random(n) < 0.5) if reflect_on else np.zeros(n, bool)
             t_ep_start[0] = time.time()
             w_start[0] = lock.waited
             if step0 == 0:
@@ -271,6 +277,12 @@ def main(run: Path):
                 xb = torch.from_numpy(Xt[idx]).to(dev, non_blocking=True)
                 fb = torch.from_numpy(Ft[idx]).to(dev)
                 yb = torch.from_numpy(Yt[idx]).to(dev).float()
+                fm = flip[idx]
+                if fm.any():
+                    m = torch.from_numpy(fm).to(dev)
+                    xb = torch.where(m[:, None, None, None], xb.flip(-2) * sx, xb)
+                    fb = torch.where(m[:, None], fb * sf, fb)
+                    yb = torch.where(m[:, None, None, None], yb.flip(-2) * sy, yb)
                 for g in opt.param_groups:
                     g["lr"] = lr_at(gstep, total_steps, warm, tc["lr"])
                 with torch.autocast("cuda", dtype=torch.bfloat16):

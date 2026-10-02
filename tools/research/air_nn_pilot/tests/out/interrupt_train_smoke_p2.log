@@ -1,12 +1,12 @@
-{'step': 'A: непрерванный', 'rc': 0, 't': 293.7}
+{'step': 'A: непрерванный', 'rc': 0, 't': 93.3}
 {'step': 'kill -9 посреди обучения', 'at_epoch': 7, 'rc': -9}
 {'step': 'SIGINT посреди обучения', 'at_epoch': 15, 'rc': 130, 'ckpt': True}
-{'step': 'kill -9 при записи чекпойнта', 'at_epoch': 15.1, 'tmp_files_at_kill': ['last.pt.tmp611918']}
+{'step': 'kill -9 при записи чекпойнта', 'at_epoch': 15.1, 'tmp_files_at_kill': ['last.pt.tmp628795']}
 {'step': 'kill -9 посреди кривой', 'curve': [('curve_002', 2)]}
 {'step': 'повтор до отчёта', 'rc': 0}
-{'step': 'повтор готового прогона', 'rc': 0, 't': 25.6}
+{'step': 'повтор готового прогона', 'rc': 0, 't': 28.1}
 {
- "n_numbers": 13121,
+ "n_numbers": 13122,
  "n_missing": 0,
  "missing": [],
  "n_different": 0,

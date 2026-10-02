@@ -213,6 +213,26 @@ def to_physical(y, meta, agl=AGL):
     return res
 
 
+# ------------------------------------------------------------------ отражение поперёк ветра (П2 v4, аугментация)
+# R: y′ → −y′ на повёрнутом образце — разворот массивов по j и знаки ниже. Точная симметрия решателя (Кориолиса в
+# air3d нет); применяется только в обучении (train.py), оценка/проверка/экспорт — без отражения.
+REFLECT_MAP_SIGN = np.array([-1.0 if n in ("y", "slope_cross") else 1.0 for n in MAP_NAMES], np.float32)
+REFLECT_FILM_SIGN = np.array([-1.0 if n in ("sin_r", "sun_y") else 1.0 for n in FILM_NAMES], np.float32)
+REFLECT_OUT_SIGN = np.repeat(np.array([1, -1, 1, 1, -1, 1, 1], np.float32), len(AGL))   # u⊥ (каналы 1 и 4) — минус
+
+
+def reflect(X=None, F=None, Y=None):
+    """R для массивов [..., C, j, i] (X — карты, Y — цель) и [..., 18] (F); None пропускается. R∘R = тождество."""
+    out = []
+    if X is not None:
+        out.append(np.flip(X, axis=-2) * REFLECT_MAP_SIGN[:, None, None].astype(X.dtype))
+    if F is not None:
+        out.append(F * REFLECT_FILM_SIGN.astype(F.dtype))
+    if Y is not None:
+        out.append(np.flip(Y, axis=-2) * REFLECT_OUT_SIGN[:, None, None].astype(Y.dtype))
+    return out[0] if len(out) == 1 else tuple(out)
+
+
 def prepare_case(z, row, agl=AGL):
     hc = z["d400_hc"].astype(np.float64)
     meta = case_meta(row, hc)
