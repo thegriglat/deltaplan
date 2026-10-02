@@ -45,11 +45,22 @@ def set_determinism(seed):
     torch.use_deterministic_algorithms(True)
 
 
-def load_arrays(prep_dir: Path, ids, with_y=True):
-    """Кеш подготовки → массивы в ОЗУ: X (n,4,96,96) f32, F (n,18) f32, Y (n,91,96,96) f16."""
+def case_file(prep, cid):
+    """Файл кеша случая: prep — каталог кеша или список каталогов (кеш — по набору; id уникальны между наборами)."""
+    dirs = [prep] if isinstance(prep, (str, Path)) else prep
+    for d in dirs:
+        p = Path(d) / "cases" / f"{cid}.npz"
+        if p.exists():
+            return p
+    raise FileNotFoundError(f"нет кеша подготовки случая {cid} в {list(map(str, dirs))}")
+
+
+def load_arrays(prep, ids, with_y=True):
+    """Кеш подготовки (каталог или список каталогов) → массивы в ОЗУ: X (n,9,96,96) f32, F (n,18) f32,
+    Y (n,91,96,96) f16."""
     X, F, Y, metas = [], [], [], []
     for cid in ids:
-        with np.load(prep_dir / "cases" / f"{cid}.npz") as z:
+        with np.load(case_file(prep, cid)) as z:
             X.append(z["X"]); F.append(z["F"])
             if with_y:
                 Y.append(z["Y"])
@@ -181,10 +192,10 @@ def main(run: Path):
     seed = int(tc["seed"])
     set_determinism(seed)
     dev = torch.device("cuda")
-    prep_dir = Path(task["prep_dir"])
+    prep = task["prep_dirs"]
     t0 = time.time()
-    Xt, Ft, Yt, _ = load_arrays(prep_dir, task["train_ids"])
-    Xv, Fv, Yv, _ = load_arrays(prep_dir, task["val_ids"])
+    Xt, Ft, Yt, _ = load_arrays(prep, task["train_ids"])
+    Xv, Fv, Yv, _ = load_arrays(prep, task["val_ids"])
     print(f"данные: обучение {len(Xt)}, проверка {len(Xv)} случаев, загрузка {time.time() - t0:.1f} с", flush=True)
     scale_np = channel_scale(Yt)
     scale = torch.from_numpy(scale_np).to(dev)

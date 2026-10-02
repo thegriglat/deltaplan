@@ -5,24 +5,27 @@ data_root_default: /home/greg/air_nn_data
 paths:
   base: ${AIR_NN_DATA}/pilot                 # runs/, reports/, prep/ — по §4.4 плана
 
-dataset:
-  # Набор П1 (генератор NN-P1, dataset.py): каталог — `dataset.py path --dataset <name>`; досчёт — `dataset.py run`
-  # (с продолжения; если досчёт уже идёт другим процессом — ждём его с прогрессом по `status --json`).
-  name: main
-  gen: true                                  # false — только проверить готовые образцы (без досчёта)
-  root: ""                                   # явный каталог набора (раскладка П1 или air-lite) вместо dataset.py path
+# Наборы П1 (несколько; id случаев уникальны между наборами): main v1 (область + окна, окна пилот не читает) и
+# terrain v2 (только область, места t_* индекса П6). У набора: name — имя для `dataset.py path/run --dataset <name>`;
+# root — явный каталог (раскладка П1) вместо dataset.py path; gen — досчитывать генератором перед подготовкой.
+datasets:
+  - {name: main, gen: true}
+  - {name: terrain, gen: true}
+terrain_index: ${AIR_NN_DATA}/pilot/tiles/v1/index.csv   # индекс мест П6 (part, stratum, system, признаки рельефа)
+
+dataset:                                     # общее для всех наборов
   log_dir: ${AIR_NN_DATA}/pilot/logs         # журнал досчёта: logs/dataset_<name>.log (как у NN-P1)
   allowed_status: [ok, max]                  # статусы решений области, пригодные как цель (max — предел итераций)
   min_cases: 20
 
-split:
+split:                                       # деление v3 (контракт П2 v3, pilotnn/split.py)
   seed: 20261002
   holdout_places: [ongudai]                  # (б): место целиком вне обучения и проверки
-  holdout_proc_prefix: "p_"                  # + отложенные процедурные рельефы (кривая (в) и (б'))
+  holdout_proc_prefix: "p_"                  # (б′): отложенные процедурные рельефы
   holdout_proc_n: 5
   newcond_frac: 0.15                         # (а): «новые условия» на знакомом рельефе
   val_frac: 0.10                             # проверка для ранней остановки
-  curve_sizes: [5, 10, 20, 40]
+  curve_sizes: [25, 50, 100, 200, 300]       # (в): мест П6 пула; точка полного пула = основная сеть
 
 train:
   seed: 1
@@ -46,41 +49,62 @@ curve:
   max_epochs: 150                            # точки кривой — с теми же гиперпараметрами
 
 eval:
-  agl_key_m: 60                              # ключевые числа: 60 м над стартом (между 50 и 75 м)
+  agl_key_m: 60                              # 60 м над рельефом (линейно между 50 и 75 м)
   rms_radius_m: 1000
-  edge_cells: 5                              # край области вне сравнения с air-lite (зона притока/выхода)
+  edge_cells: 5                              # край области вне оценки (зона притока/выхода решателя)
   airlite_metrics: ref/air_lite_fit_metrics.json
   ort_threads: [4, 1]
   ort_repeats: 20
-  n_slice_figures: {holdout_place: 2, newcond: 2, holdout_proc: 1}
-  # ориентиры ШП (план §8.2) — правило вывода в отчёте
-  wind_ok_ms: 0.3
-  lift_ok_ms: 0.1
-  frac_ok: 0.90
-  better_than_baseline: 0.7                  # (б): медиана ошибки сети ≤ 0,7 × лучшей базовой линии
-  curve_drop: 0.9                            # (в): ошибка на max n ≤ 0,9 × ошибки на min n и спад монотонный
+  max_train_eval: 60                         # обучающих случаев в оценке «учится ли»
+  n_slice_figures: {holdout_sys: 2, holdout_place: 1, newcond: 1, holdout_proc: 1}
+  # точки, «ок» и смещение (контракт П3 v2)
+  wind_ok_ms: 0.3                            # ветер «ок»: |Δ(u,v)| ≤ max(wind_ok_ms; wind_ok_rel·|V_решателя|)
+  wind_ok_rel: 0.10
+  lift_ok_ms: 0.1                            # подъём «ок»: |Δw| < lift_ok_ms (без и с нагревом)
+  ridge_pct: 90                              # гребни — клетки с tpi_2k случая ≥ его 90-го процентиля (без края)
+  u10_bins: [0, 2, 4, 6]                     # корзины U10 смещения: 0–2, 2–4, 4–6, ≥ 6 м/с
+  # правило ШП-2 (план §8.2, П3 v2; порог смещения max(0,1 м/с; 2 %) подтверждён пользователем 02.10)
+  shp2:
+    set: holdout_sys                         # главное — отложенные горные системы (г)
+    frac_ok: 0.90                            # доли «ок» ветра и обоих подъёмов (все клетки области на 60 м)
+    bias_abs_ms: 0.1                         # |среднее e| ≤ max(bias_abs_ms; bias_rel · средняя |V_решателя|)
+    bias_rel: 0.02
+    bias_max_agl_m: 300                      # — на высотах ≤ 300 м (по высотам и в каждой корзине U10 × высота)
+    bin_min_cases: 20                        # корзины U10 с меньшим числом случаев (г) — не оцениваются
+    # «отказ от направления»: сеть на (г) не лучше лучшей базовой линии — медиана ошибки ветра сети
+    # ≥ refuse_ratio × медианы лучшей базовой линии (профиль притока / среднее): сжатия решателя нет вовсе
+    refuse_ratio: 1.0
 
-estimate:                                    # оценка полного прогона по замеру этого прогона (в отчёте)
-  n_cases_full: 1890                         # main NN-P1: 690 air-lite + 40 × 30 процедурных
-  pool_frac: 0.862                           # доля случаев вне (б)/(б′): 1 − (110 ongudai + 5 × 30) / 1890
-  pool_places: 43                            # 3 встроенных + 5 синтетик + 35 процедурных
-  curve_sizes: [5, 10, 20, 40]
+estimate:                                    # оценка полного обучения П-2 по замеру (tests/bench_epoch.py) — в отчёте
+  bench: tests/out/bench_epoch.json
+  n_old_pool: 1629                           # main вне (б)/(б′): 1890 − 110 ongudai − 5 × 30
+  n_old_hold: 261
+  p6_pool_places: 300
+  p6_holdout_places: 45                      # 3 системы × ~15 мест (NN-P4)
+  n_cond: 11                                 # условий на место П6 (10–12, NN-P6)
+  newcond_frac: 0.15
+  val_frac: 0.10
+  curve_sizes: [25, 50, 100, 200, 300]
   max_epochs: 150
   curve_max_epochs: 150
 
-# Профили: --smoke = профиль smoke; --profile dev — данные разработки P2 (48 случаев air-lite, временные).
+# Профили: --smoke = профиль smoke (smoke П-2: набор smoke NN-P1 v1 + подставной terrain v2 и индекс П6 из
+# tests/make_mock_p6.py); свои каталоги pilot/smoke_p2 (прежний smoke П-1 в pilot/smoke не трогается).
 profiles:
-  smoke:                                     # набор smoke NN-P1 (15 случаев: ongudai, s_hill, p_000…p_002 × 3) — все ветки отчёта
+  smoke:
     paths:
-      base: ${AIR_NN_DATA}/pilot/smoke
+      base: ${AIR_NN_DATA}/pilot/smoke_p2
+    datasets:
+      - {name: smoke, gen: true}             # 15 случаев: ongudai, s_hill, p_000…p_002 × 3
+      - {name: smoke_terrain, gen: false, root: "${AIR_NN_DATA}/pilot/tmp/NN-P5_mock/datasets/s0-3acd749/smoke_terrain"}
+    terrain_index: ${AIR_NN_DATA}/pilot/tmp/NN-P5_mock/tiles/v1/index.csv
     dataset:
-      name: smoke
       min_cases: 10
     split:
-      holdout_proc_n: 0
-      newcond_frac: 0.34
-      val_frac: 0.17
-      curve_sizes: [2, 4]
+      holdout_proc_n: 1
+      newcond_frac: 0.2
+      val_frac: 0.15
+      curve_sizes: [2, 4, 25]                # 7 мест П6 пула: 2, 4 и полный пул (= основная сеть)
     train:
       batch: 2
       max_epochs: 40
@@ -91,27 +115,6 @@ profiles:
       max_epochs: 5
     eval:
       ort_repeats: 10
-      n_slice_figures: {holdout_place: 1, newcond: 1, holdout_proc: 1}
-  dev:                                       # ВРЕМЕННЫЙ, для разработки P2: данные в pilot/tmp/dev_p2 (48 случаев, 9 мест)
-    paths:
-      base: ${AIR_NN_DATA}/pilot/tmp/dev_p2/pilot
-    dataset:
-      gen: false
-      root: ${AIR_NN_DATA}/pilot/tmp/dev_p2/tools/research/air_lite
-      min_cases: 10
-    split:
-      holdout_proc_prefix: "s_"
-      holdout_proc_n: 1
-      newcond_frac: 0.2
-      val_frac: 0.15
-      curve_sizes: [2, 4, 7]
-    train:
-      batch: 4
-      max_epochs: 150
-      patience: 150
-      ckpt_every_min: 0.5
-      lock_chunk_s: 60
-    curve:
-      max_epochs: 10
-    eval:
-      ort_repeats: 10
+      n_slice_figures: {holdout_sys: 1, holdout_place: 1, newcond: 1, holdout_proc: 1}
+      shp2:
+        bin_min_cases: 3                     # smoke: малый набор — проверка ветки корзин U10
