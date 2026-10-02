@@ -55,6 +55,16 @@ dp module new <модуль> [--from main] [--code NN]  |  dp sync <модуль
 dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
 
+dp index [--full]                                    # смысловой индекс (bge-m3, только CPU); обновляет только изменённое
+dp search --sem "запрос" [--max 10] [--module М|--path ПРЕФИКС]   # оценка путь:строка — заголовок — фрагмент
+
+**Смысловой поиск.** Эмбеддинги — bge-m3 через Ollama (`localhost:11434`, GPU по умолчанию, `keep_alive` 2m; `DP_SEM_CPU=1` — только CPU, `num_gpu: 0`). Один раз: `ollama pull bge-m3`.
+Только stdlib, окружения нет. Корпус (главная копия): `docs/**/*.md`, README/summary/reference в `tools/research`, дневник, CHANGELOG,
+журналы dp (событие/решение/карточка/отчёт = запись). Markdown режется по заголовкам, кусок ≤ ~1500 симв. с перекрытием.
+Индекс общий, вне git: `~/.cache/deltaplan_sem/main/` (`emb.f16` + `meta.jsonl`), работает из любой копии; обновление по хешу текста куска;
+flock на `.lock` (вторая индексация ждёт), файлы заменяются атомарно. `dp search --sem` сам тихо обновляет изменённое.
+Ollama не отвечает/нет модели — ошибка «Ollama не запущен / нет модели: ollama pull bge-m3».
+
 **Перед новой работой — `dp search` по прошлым модулям** (старые журналы `docs/plan/*_progress.md` переведены в dp скриптом `tools/dp_migrate.py`; исходник — поле `legacy_journal` в `module.json`, у записей поле `src` — строка исходника).
 
 ### Карточка (`tasks/<ID>.json`)
@@ -146,7 +156,7 @@ dp answer Q1 "Прибор" [--module air-nn]   # = decide --by user --answers Q
 # ветки и копии (детерминированно; $DP_COPIES — каталог копий вместо ~, для проверок)
 dp module new air-nn [--from main]   # feature/air-nn + git worktree ~/deltaplan-air-nn + module.json/events.jsonl, коммит в ветке
 dp sync air-nn                       # git merge main в копии ветки; конфликт → merge --abort и список файлов; грязная копия → отказ
-dp merge feature/air-nn [--into main] [--push]   # --no-ff в копии, где выписана цель: «main 22d55f2: слияние feature/air-nn, файлов 6»
+dp merge feature/air-nn [--into main] [--push]   # --no-ff в копии, где выписана цель: «main 22d55f2: слияние feature/air-nn, файлов 6; индекс обновляется в фоне» (при слиянии в main запускается `dp index` отвязанно, лог `~/.cache/deltaplan_sem/main/index.log`; `--no-index` — не запускать; нет Ollama — предупреждение, слияние не падает)
 dp gc                                # список копий/веток, уже влитых в main (ветки, совпадающие с main, не считаются)
 dp gc --remove                       # git worktree remove (без --force; грязные пропускаются) + git branch -d
 
