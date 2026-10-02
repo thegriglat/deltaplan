@@ -1,14 +1,10 @@
 {
   "status": "done",
-  "summary": "Пилот читает несколько наборов (main v1 + terrain v2, кеш подготовки по набору, окна v1 не читаются), делит по П2 v3 (ongudai; (г) = part holdout П6; (б′) 5 p_*; кривая 25…300 по слоям stratum по кругу, полная точка = основная сеть), обучает с отражением поперёк ветра (П2 v4), оценивает и пишет отчёт П3 v2 с правилом ШП-2 (область без края на 60 м, гребни tpi_2k ≥ p90, centers; «ок» ветра ≤ max(0,3; 10 %); смещение e по 13 высотам, корзинам U10 и гребням; (г) ещё по системам и корзинам уклона; таблица признаков рельефа из index.csv). Smoke П-2 на подставном П6 + подставном terrain v2 проходит до report.md, проверка отчёта зелёная (вердикт smoke «правим подход» — малые данные). Замер эпохи на объёме П-2: 34,1 с (3697 образцов, 9 карт), полное обучение ≈ 4,6 ч (основная 1,42 ч + кривая 3,07 ч + оценка 0,1 ч, без ранней остановки).",
+  "summary": "Ветка модуля feature/air-nn влита в air-nn/inputs. Единственный конфликт — tests/test_contract_sample.py (NN-P6 тоже дописал П1 v2) — разрешён объединением; подставной terrain v2 приведён к правилу NN-P6 (region_only, solver). dp accept NN-P5 --dry — 6/6 PASS. Числа задачи прежние (деление v3, отражение v4, эпоха П-2 34,1 с, оценка 4,6 ч).",
   "commits": [
-    "50040ea деление v3 + test_split",
-    "c335fc0 несколько наборов, индекс П6, оценка/отчёт П3 v2 с ШП-2, подставные П6/terrain v2, check_report_v2, test_contract_sample v1+v2",
-    "82d3e9e README, замер эпохи П-2, итоги smoke и теста прерываний",
-    "99fef2d отражение поперёк ветра П2 v4 (prep.reflect, train.reflect), test_reflect",
-    "035666d слияние feature/air-nn (П2 v4, NN-P4)",
-    "655d06a (г) по системам и уклону; деление на настоящем индексе П6",
-    "dd61f61 тест прерываний после разбивки (г)"
+    "a8f89f1 слияние feature/air-nn в air-nn/inputs: конфликт test_contract_sample, make_mock_p6 (region_only/solver)",
+    "(следующий) итог теста прерываний после слияния",
+    "прежние: 50040ea, c335fc0, 82d3e9e, 99fef2d, 035666d, 655d06a, dd61f61"
   ],
   "checks": [
     {
@@ -18,93 +14,69 @@
     },
     {
       "name": "test_split",
-      "value": "exit 0 (+ настоящий индекс П6: пул 300, (г) 45 = 15/15/15, кривая 25/50/100/200/300=основная, слои поровну ±1)",
+      "value": "exit 0",
       "pass": true
     },
     {
       "name": "test_reflect",
-      "value": "exit 0: R∘R = тождество; карты/числа/цель отражённого образца = R(исходного) ≤ 1e-5 на горе и 6 случаях smoke",
+      "value": "exit 0",
       "pass": true
     },
     {
       "name": "contract_sample_v2",
-      "value": "exit 0: П1 v1 smoke 15 случаев + П1 v2 подставной smoke_terrain 40 случаев",
+      "value": "П1 v1 smoke 15 случаев + П1 v2 smoke_terrain 40 случаев (--root)",
       "pass": true
     },
     {
       "name": "smoke_report_v2",
-      "value": "ШП-2: правим подход (15 разделов П3 v2, вердикт = правилу из metrics.json)",
+      "value": "ШП-2: правим подход",
       "pass": true
     },
     {
       "name": "interrupt_train",
-      "value": "exit 0: kill -9/SIGINT/kill -9 при записи чекпойнта/kill -9 в кривой → 13788 чисел metrics.json совпали, max rel diff 0",
+      "value": "exit 0 (первый прогон после слияния упал на ожидании прогресса из-за совпавшей по времени нагрузки моими же прогонами make_mock/accept; повтор в тишине — PASS)",
       "pass": true
     },
     {
-      "name": "bench_epoch объём П-2",
-      "value": "эпоха 34,1 с (обучение 33 с + проверка 1,2 с), 9,23 мс/образец, GPU 0,57 ГБ; полное обучение ≈ 4,59 ч",
+      "name": "bench_epoch",
+      "value": "прежний: эпоха П-2 34,1 с, 9,23 мс/образец, GPU 0,57 ГБ",
+      "pass": true
+    },
+    {
+      "name": "test_places_terrain (NN-P6)",
+      "value": "ok: подставной П6 3 места, настоящие вырезки 6 мест",
       "pass": true
     }
   ],
   "not_done": [
-    "Настоящий набор terrain ещё не посчитан — smoke на подставном terrain v2 (случаи main, места переименованы в t_*); подставной П6 без cut/ (sha256 пустой) — пилоту вырезки не нужны.",
-    "run_pilot.sh не трогал (по скоупу). Основной профиль ждёт набор `terrain` в configs/dataset.yaml (NN-P6) и index.csv в pilot/tiles/v1 — до этого `./run_pilot.sh` без --smoke выйдет с кодом 4 на шаге наборов."
+    "Настоящий набор terrain не посчитан — smoke на подставном (как раньше).",
+    "test_region_only (набор NN-P6, GPU) в копии не прогнан: он читает main текущей версии решателя s0-1c8c322, а main есть только в s0-3acd749 (после слияния версия решателя сменилась). Не мой файл, его проверка — NN-P6."
   ],
   "questions": [
-    "Константы карт 4–8 НЕ менял и не предлагаю менять до первого настоящего прогона: на настоящем индексе П6 уклон p95 места — медиана 0,43, максимум 0,92 → slope/0,3 до ~3; tpi2k p95 до 553 м → tpi_2k/300 до ~1,8 — порядок O(1)…3, насыщения нет. Пересмотреть по гистограммам карт после прогона, если понадобится.",
-    "Правило «отказ от направления» в контракте не задано числом — принял: медиана ошибки ветра сети на (г) ≥ refuse_ratio (1,0) × лучшей базовой линии (сжатия решателя нет). Подтвердить или дать своё."
+    "Прежние: константы карт 4–8; правило «отказ от направления» (refuse_ratio=1) — подтвердить."
   ],
-  "images": [
-    "/home/greg/deltaplan/build/screenshots/NN-P5/01_срез_t_0008_000.png",
-    "/home/greg/deltaplan/build/screenshots/NN-P5/06_кривая_рельефов.png",
-    "/home/greg/deltaplan/build/screenshots/NN-P5/07_смещение.png",
-    "/home/greg/deltaplan/build/screenshots/NN-P5/08_распределения_ошибок.png",
-    "/home/greg/deltaplan/build/screenshots/NN-P5/09_признаки_рельефа.png",
-    "/home/greg/deltaplan/build/screenshots/NN-P5/10_кривая_обучения.png"
-  ],
-  "how_to_check": "dp accept NN-P5 (перед smoke_report_v2 и contract_sample_v2 нужны tests/make_mock_p6.py и ./run_pilot.sh --smoke — уже сделаны, данные в $AIR_NN_DATA/pilot/tmp/NN-P5_mock и pilot/smoke_p2). Что нужно от NN-P7: (1) стадии рельефа (terrain_cut.py) и набора terrain (dataset.py run --dataset terrain) перед pilot.py — pilot.py сам досчитывает наборы из config.yaml → datasets с gen: true (main, terrain) через `dataset.py path/run --dataset <name>`; NN-P6 должен завести имя `terrain` в configs/dataset.yaml; (2) индекс П6 — config.yaml → terrain_index (по умолчанию $AIR_NN_DATA/pilot/tiles/v1/index.csv); (3) профиль smoke П-2: заменить в profiles.smoke.datasets подставной root `pilot/tmp/NN-P5_mock/.../smoke_terrain` на настоящий мини-набор terrain (несколько мест t_* × 2 условия, имя в dataset.yaml) и terrain_index — на настоящий индекс; каталоги smoke — pilot/smoke_p2/{runs,reports,prep}; (4) pilot.py вызывать как прежде: `./run_pilot.sh [--smoke] [--name]`, `status`; коды выхода прежние.",
+  "how_to_check": "dp accept NN-P5",
   "uncertain": [
     {
-      "where": "pilotnn/report.py:shp2_rule (корзины U10)",
-      "why": "П3 v2: «|среднее e| ≤ порога на высотах ≤ 300 м, в каждой корзине U10 с ≥ 20 случаями» — трактовал строго: в каждой корзине проверяется каждая высота ≤ 300 м (в таблице правила — худшая высота корзины). Можно было бы трактовать как только 60 м.",
-      "checked": "smoke: корзины с ≥ bin_min_cases (в smoke 3) попадают в правило, таблица корзин × высот в отчёте"
-    },
-    {
-      "where": "pilotnn/report.py:shp2_rule (отказ)",
-      "why": "число для «отказ от направления» выбрано мной (refuse_ratio = 1: сеть не лучше базовой линии на (г))",
-      "checked": "smoke: сеть/база = 0,71 → не отказ"
-    },
-    {
-      "where": "pilotnn/evaluate.py:ridge_mask",
-      "why": "гребни — процентиль tpi_2k по клеткам области без края, считается в исходной системе по hc случая (контракт: «tpi_2k случая ≥ его 90-го процентиля») — у пологого рельефа «гребни» условные",
-      "checked": "tpi инвариантна к повороту на 90° (симметричное ядро), клеток гребней 740 на случай = 10 % от 7396"
-    },
-    {
-      "where": "pilotnn/train.py (отражение)",
-      "why": "отражение делается на GPU через torch.where по маске батча; маска — default_rng([seed, epoch, 4]).random(n)[индекс примера]; в bench_epoch.py отражения нет (стоимость flip пренебрежима, не мерил отдельно)",
-      "checked": "test_reflect (знаки/согласованность) и test_interrupt_train (продолжение = непрерванному, история проверки совпала побитно)"
-    },
-    {
-      "where": "tests/make_mock_p6.py (MAPPING, STRATA)",
-      "why": "подставной П6: lat/lon процедурных мест условные, пороги слоёв свои (0,015/0,03) — только для smoke; формат index.csv сверен со столбцами test_contract_terrain.py, но cut/ нет и sha256 пустой",
-      "checked": "test_contract_sample по v2 проходит на подставном наборе; повтор make_mock_p6 даёт побитно те же npz"
-    },
-    {
-      "where": "pilotnn/report.py:estimate",
-      "why": "оценка 4,6 ч — по эпохе с размноженным кешем smoke (40 исходных случаев) — время не зависит от содержимого, но не учитывает загрузку 8,5 ГБ массивов в ОЗУ (X 1,2 ГБ + Y 6,2 ГБ + проверка ~0,9 ГБ при 32 ГБ) и время оценки (экстраполяция smoke)",
-      "checked": "n_train на настоящем индексе = 3681 ≈ 3697 в замере"
-    },
-    {
       "where": "tests/test_contract_sample.py",
-      "why": "файл принадлежал NN-P1/генератору; дописал вариант v2 и --root, вариант v1 не менял — возможен конфликт слияния с NN-P6, если тот тоже правит тест",
-      "checked": "v1 smoke проходит как прежде"
+      "why": "Конфликт слияния: 8 блоков. Взято: докстринг с v1+v2 и путём docs/contracts/air-nn.md; contract/v2 из manifest; места t_\\d{4} разрешены без условия v2 (оба варианта допускали), centers проверяются для каждого места; nw по region_only (plan.json) вместе с жёстким region_only == v2; из NN-P6 — предел max_outer в plan/manifest/метаданных, utc_offset_h = round(lon/15), ctx/place; из моей версии — запрет ключей окон w<k> и part in (pool, holdout). Автослияние оставило дубль строки v2 — убрал.",
+      "checked": "python tests/test_contract_sample.py: v1 smoke 15 + v2 smoke_terrain 40 — ok; dp accept PASS. Проверка NN-P6 на его собственных наборах probe/terrain (реальные места) не выполнена — таких наборов в копии нет."
+    },
+    {
+      "where": "tests/make_mock_p6.py",
+      "why": "Правило NN-P6 требует region_only и solver.max_outer в plan/manifest/метаданных; подставной набор их не имел. Добавил region_only=true и solver.max_outer=100000 (подставной предел, заведомо выше итераций случаев main).",
+      "checked": "набор пересобран (--src s0-3acd749/main, т.к. main в новой версии решателя s0-1c8c322 нет; вне git, в $AIR_NN_DATA/pilot/tmp/NN-P5_mock), контракт v2 проходит, smoke_report и interrupt_train PASS."
+    },
+    {
+      "where": "tools/research/air_nn_pilot/.venv",
+      "why": "симлинк на восстановленное окружение не коммитился",
+      "checked": "git show --stat: venv в коммите нет"
     }
   ],
-  "dp_feedback": "1) Слияние feature/air-nn в ветку задачи и проверку «28b0ac5 в истории?» делал git-ом вручную (нет `dp task sync`/`dp task base` для исполнителя). 2) Шаблон отчёта и report — пришлось звать dp из копии модуля (/home/greg/deltaplan-air-nn/tools/dp), т.к. dp в моей копии старый — нужен единый путь или проверка версии. 3) Прогон проверок приёмки перед отчётом — по одной командой вручную; не хватает `dp accept NN-P5 --dry` для исполнителя (прогнать проверки карточки без записи в журнал). 4) Карточка менялась во время работы (П2 v4, разбивка (г)) — не было способа увидеть diff карточки (`dp task show --diff`).",
-  "время эпохи и оценка полного обучения (ч) на объёме П-2": "эпоха 34,1 с на 3697 обучающих + 493 проверки (9,23 мс/образец, RTX 4070 SUPER, детерминированный режим, bf16); основная сеть 150 эпох 1,42 ч, кривая 25/50/100/200 (+ прежние места) 3,07 ч, оценка ~0,1 ч — итого ≈ 4,59 ч (верхняя граница без ранней остановки); tests/out/bench_epoch.json",
-  "что нужно от NN-P7 (вызовы pilot.py, профили)": "стадии рельефа (terrain_cut.py) и набора terrain до pilot.py; pilot.py сам досчитывает наборы config.yaml → datasets (main, terrain; `dataset.py path/run --dataset <name>`) — NN-P6 заводит имя terrain в configs/dataset.yaml; индекс П6 — config.yaml → terrain_index ($AIR_NN_DATA/pilot/tiles/v1/index.csv); профиль smoke: заменить подставной root smoke_terrain (pilot/tmp/NN-P5_mock) и terrain_index на настоящий мини-набор terrain и индекс; каталоги smoke — pilot/smoke_p2; вызовы `./run_pilot.sh [--smoke] [--name ИМЯ]`, `status`, коды выхода прежние",
-  "изменил ли константы карт 4–8 (разрешено один раз, с обоснованием — сначала спросить координатора)": "нет, не менял и не предлагаю до первого настоящего прогона (нормированные карты O(1) на настоящем индексе)",
-  "t": "2026-10-03T00:07:02",
+  "dp_feedback": "dp accept --dry при фоновом запуске печатает итог только в конце (буфер) — не видно прогресса; хотелось бы строки по мере прохождения. Нет команды dp task sync для слияния ветки модуля в ветку задачи с разбором конфликтов (делал git merge вручную). Сигнал о смене версии решателя (s0-…) после слияния, из-за которой пропадают прежние main-наборы, нигде не выводится.",
+  "время эпохи и оценка полного обучения (ч) на объёме П-2": "без изменений: эпоха 34,1 с на 3697 обучающих + 493 проверки (9,23 мс/образец), основная сеть 1,42 ч, кривая 3,07 ч, оценка ~0,1 ч — ≈ 4,59 ч; tests/out/bench_epoch.json",
+  "что нужно от NN-P7 (вызовы pilot.py, профили)": "без изменений: стадии terrain_cut.py и набор terrain до pilot.py; имя terrain в configs/dataset.yaml (NN-P6); terrain_index в config.yaml; в профиле smoke заменить подставной root smoke_terrain и индекс на настоящие; вызовы ./run_pilot.sh [--smoke] [--name], status. После слияния версия решателя s0-1c8c322 — наборы нужно досчитать/пересобрать подставной (make_mock_p6.py --src <main>)",
+  "изменил ли константы карт 4–8 (разрешено один раз, с обоснованием — сначала спросить координатора)": "нет, не менял",
+  "t": "2026-10-03T01:17:07",
   "by": "-"
 }

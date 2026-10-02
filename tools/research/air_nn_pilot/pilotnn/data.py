@@ -1,12 +1,15 @@
-"""Доступ к набору (контракт П1 v1): метаданные случаев, образцы npz, точки стартов.
+"""Доступ к наборам (контракт П1 v1/v2) и индексу мест П6: метаданные случаев, образцы npz, точки оценки.
 
-Две раскладки:
+Пилот читает НЕСКОЛЬКО наборов (`config.yaml → datasets`: main v1 + terrain v2) — класс `Datasets`; id случаев
+уникальны между наборами. Из образца читаются только ключи `d400_*` (окна `w<k>_*` набора v1 не читаются).
+Две раскладки набора:
   * «pilot» (П1): <набор>/plan.json, state.sqlite (таблица cases), cases/<id>.npz;
   * «airlite» (данные разработки до слияния P1): <каталог air_lite>/out/plan.json, out/runs.jsonl, fields/<id>.npz.
 Метаданные случаев читает ОДНА функция — `case_rows()`; переключение на `state.sqlite` — только здесь.
 """
 from __future__ import annotations
 
+import csv
 import json
 import sqlite3
 from pathlib import Path
@@ -31,6 +34,8 @@ class Dataset:
             raise FileNotFoundError(f"набор не найден или неизвестная раскладка: {self.root}")
         self.plan = json.loads(self.plan_path.read_text())
         self.agl = tuple(float(a) for a in self.plan["agl"])
+        man = self.root / "manifest.json"
+        self.contract = (json.loads(man.read_text()).get("contract") if man.exists() else None) or "П1 v1"
 
     # ---------------------------------------------------------------- метаданные (единственное место чтения)
     def case_rows(self):
@@ -76,6 +81,78 @@ class Dataset:
         if not c:
             return [(0.0, 0.0)]
         return [(float(p[0]), float(p[1])) for p in c]
+
+
+class Datasets:
+    """Несколько наборов как один: строки случаев с полем `ds` (имя набора), загрузка и точки оценки — по id/месту."""
+
+    def __init__(self, specs):
+        """specs — список (имя, каталог)."""
+        self.sets = {name: Dataset(root) for name, root in specs}
+        agls = {d.agl for d in self.sets.values()}
+        if len(agls) != 1:
+            raise ValueError(f"высоты agl наборов различаются: {agls}")
+        self.agl = agls.pop()
+        self._id_ds, self._loc_ds, self._rows = {}, {}, None
+
+    def case_rows(self):
+        if self._rows is None:
+            rows = []
+            for name, d in self.sets.items():
+                for r in d.case_rows():
+                    if r["id"] in self._id_ds:
+                        raise ValueError(f"id {r['id']} повторяется в наборах {self._id_ds[r['id']]} и {name}")
+                    r["ds"] = name
+                    self._id_ds[r["id"]] = name
+                    if self._loc_ds.setdefault(r["loc"], name) != name:
+                        raise ValueError(f"место {r['loc']} в двух наборах ({self._loc_ds[r['loc']]}, {name})")
+                    rows.append(r)
+            rows.sort(key=lambda r: r["id"])
+            self._rows = rows
+        return self._rows
+
+    def ds_of(self, cid):
+        if not self._id_ds:
+            self.case_rows()
+        return self.sets[self._id_ds[cid]]
+
+    def load(self, cid):
+        return self.ds_of(cid).load(cid)
+
+    def starts(self, loc):
+        if not self._loc_ds:
+            self.case_rows()
+        return self.sets[self._loc_ds[loc]].starts(loc)
+
+
+# ------------------------------------------------------------------------------------------- индекс мест П6
+P6_FLOATS = ("lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m", "slope_p50", "slope_p95",
+             "tpi2k_p95", "sea_frac")
+
+
+def read_p6_index(path):
+    """index.csv П6 → {id: строка} (числа — float, zoom — int). Нет файла → {}."""
+    p = Path(path)
+    if not p.exists():
+        return {}
+    out = {}
+    with open(p, newline="") as f:
+        for r in csv.DictReader(f):
+            for k in P6_FLOATS:
+                r[k] = float(r[k])
+            r["zoom"] = int(r["zoom"])
+            out[r["id"]] = r
+    return out
+
+
+def terrain_features(hc, dx=400.0):
+    """Признаки рельефа клеток 400 м как в индексе П6: уклон |∇hc| центральными разностями без 1 клетки у края
+    (p50, p95), размах, м. Для мест вне П6 (встроенные, синтетика, процедурные) — из `d400_hc` образца."""
+    hc = np.asarray(hc, np.float64)
+    gy, gx = np.gradient(hc, dx)
+    s = np.hypot(gx, gy)[1:-1, 1:-1]
+    return dict(slope_p50=float(np.percentile(s, 50)), slope_p95=float(np.percentile(s, 95)),
+                relief_m=float(hc.max() - hc.min()), h_mean=float(hc.mean()))
 
 
 def solver_status(row):
