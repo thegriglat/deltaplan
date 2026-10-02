@@ -22,6 +22,8 @@ dp task new <модуль> <ID> --type dp-engineer --title "…" --goal "…" [-
     [--contract У2@1] [--scope путь] [--dont-touch путь] [--test ui_controls] \
     [--check ИМЯ "команда" EXPECT] [--from card.json|-] [--force]
 dp task show <ID> [--json]        # карточка для исполнителя, ~15 строк
+dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
+                                  # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
 dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit h] [--note "…"]
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]

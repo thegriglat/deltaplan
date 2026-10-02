@@ -306,6 +306,66 @@ def fmt_check(c):
     return f"{c['name']}: `{c.get('cmd', '')}` → {json.dumps(exp, ensure_ascii=False) if isinstance(exp, dict) else exp}"
 
 
+def _set_value(raw):
+    """Значение поля: JSON, если разбирается (числа, списки, объекты, true/false), иначе строка."""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+
+
+def cmd_task_set(a):
+    """Правка карточки без переписывания JSON: поле=значение, поле+=элемент, поле-=элемент, проверки приёмки."""
+    mod, home = find_task(a.id)
+    p = home / "tasks" / f"{a.id}.json"
+    card = read_json(p)
+    changed = []
+    for op in a.ops or []:
+        m = re.match(r"^([A-Za-z_][\w]*)(\+=|-=|=)(.*)$", op, re.S)
+        if not m:
+            raise DpError(f"«{op}»: ожидалось поле=значение | поле+=элемент | поле-=элемент")
+        key, kind, raw = m.groups()
+        if key == "id":
+            raise DpError("id не меняется")
+        val = _set_value(raw)
+        if kind == "=":
+            card[key] = val
+        else:
+            lst = card.get(key)
+            if lst is None:
+                lst = []
+            if not isinstance(lst, list):
+                raise DpError(f"{key} — не список, «{kind}» неприменимо")
+            if kind == "+=":
+                lst.append(val)
+            else:
+                keep = [x for x in lst if not (x == val or (isinstance(x, dict) and x.get("name") == val))]
+                if len(keep) == len(lst):
+                    raise DpError(f"{key}: «{raw}» не найдено")
+                lst = keep
+            card[key] = lst
+        changed.append(key)
+    acc = card.setdefault("accept", [])
+    for name, cmd, exp in a.check or []:
+        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": exp}]
+        changed.append(f"accept:{name}")
+    for f in a.test or []:
+        acc[:] = [c for c in acc if c.get("name") != f] + [{"name": f, "tests": f}]
+        changed.append(f"accept:{f}")
+    for name in a.drop_check or []:
+        n0 = len(acc)
+        acc[:] = [c for c in acc if c.get("name") != name]
+        if len(acc) == n0:
+            raise DpError(f"проверки «{name}» нет в карточке")
+        changed.append(f"accept:-{name}")
+    if not changed:
+        raise DpError("нечего менять: поле=значение, --check, --test, --drop-check")
+    card["edited"] = now()
+    write_json(p, card)
+    add_event(home, a.id, "edited", by_default(a), note=", ".join(changed))
+    print(f"{a.id}: изменено — {', '.join(changed)}")
+
+
 def cmd_task_show(a):
     mod, home = find_task(a.id)
     card = read_json(home / "tasks" / f"{a.id}.json")
@@ -955,8 +1015,8 @@ def build():
     q.add_argument("--plan"); q.add_argument("--contracts"); q.add_argument("--branch"); q.add_argument("--copy")
     q.set_defaults(fn=cmd_init)
 
-    t = sp.add_parser("task", help="карточка задачи: new | show")
-    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show")
+    t = sp.add_parser("task", help="карточка задачи: new | show | set")
+    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set")
     q = tsp.add_parser("new", help="создать карточку")
     q.add_argument("module"); q.add_argument("id")
     q.add_argument("--type", help="dp-engineer|dp-researcher|dp-writer|dp-mechanic")
@@ -973,6 +1033,13 @@ def build():
     q = tsp.add_parser("show", help="карточка для исполнителя (коротко)")
     q.add_argument("id"); q.add_argument("--json", action="store_true")
     q.set_defaults(fn=cmd_task_show)
+    q = tsp.add_parser("set", help="правка карточки: поле=значение | поле+=элемент | поле-=элемент (JSON или строка)")
+    q.add_argument("id"); q.add_argument("ops", nargs="*", metavar="ПОЛЕ=ЗНАЧ")
+    q.add_argument("--check", action="append", nargs=3, metavar=("ИМЯ", "CMD", "EXPECT"), help="добавить/заменить проверку")
+    q.add_argument("--test", action="append", metavar="ФИЛЬТР", help="добавить/заменить проверку headless-тестов")
+    q.add_argument("--drop-check", dest="drop_check", action="append", metavar="ИМЯ", help="убрать проверку")
+    q.add_argument("--by")
+    q.set_defaults(fn=cmd_task_set)
 
     q = sp.add_parser("event", help="событие задачи (или note модуля) в events.jsonl")
     q.add_argument("target", metavar="ID|модуль"); q.add_argument("kind", choices=EVENT_KINDS)
