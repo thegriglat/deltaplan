@@ -37,8 +37,8 @@ z0 0,03 м.
 ```bash
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 $PY run.py trial                                                   # ~3,5 мин GPU
-/home/greg/deltaplan/tools/job.sh start a2pre 3600 $PY run.py matrix   # 36 сценариев, 18 мин GPU; замок GPU на сценарий
-/home/greg/deltaplan/tools/job.sh wait a2pre 3600
+/home/greg/deltaplan/tools/dp job start a2pre 3600 $PY run.py matrix   # 36 сценариев, 18 мин GPU; замок GPU на сценарий
+/home/greg/deltaplan/tools/dp job wait a2pre 3600
 $PY analyze.py        # только матрица → out/tables.md, out/summary.json, out/fig_*.png
 ```
 Прерванная пачка продолжается повторным запуском (готовые ключи пропускаются).
@@ -66,7 +66,7 @@ air.py (итерации те же, время решений без нагре�
 
 ```bash
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
-/home/greg/deltaplan/tools/job.sh start a2-matrix 7200 $PY run.py a2      # 132 сценария; ~1,5 ч GPU при общем GPU
+/home/greg/deltaplan/tools/dp job start a2-matrix 7200 $PY run.py a2      # 132 сценария; ~1,5 ч GPU при общем GPU
 $PY run.py scan                                                            # 14 сценариев, ~35 мин
 $PY analyze_a2.py
 # игра: GPU-тесты и bench (под замком GPU)

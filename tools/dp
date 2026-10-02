@@ -18,7 +18,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 6  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 7  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -213,7 +213,7 @@ def module_meta(mod, home):
     m = read_json(home / "module.json") or {}
     m.setdefault("module", mod)
     m.setdefault("plan", f"docs/plan/{mod}.md")
-    m.setdefault("contracts", f"docs/{mod}_contracts.md")
+    m.setdefault("contracts", f"docs/contracts/{mod}.md")
     m.setdefault("branch", f"feature/{mod}")
     return m
 
@@ -241,7 +241,7 @@ def ensure_module(mod, home, **kw):
         check_code(kw["code"], mod)
     p = home / "module.json"
     if not p.exists():
-        meta = {"module": mod, "plan": f"docs/plan/{mod}.md", "contracts": f"docs/{mod}_contracts.md",
+        meta = {"module": mod, "plan": f"docs/plan/{mod}.md", "contracts": f"docs/contracts/{mod}.md",
                 "branch": f"feature/{mod}", "copy": f"~/deltaplan-{mod}", "created": now()}
         meta.update({k: v for k, v in kw.items() if v})
         write_json(p, meta)
@@ -474,6 +474,7 @@ def cmd_task_show(a):
     if card.get("notes"):
         L.append(f"Заметки: {card['notes']}")
     L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила» (читать обязательно).")
+    L.append("Долгие запуски — `dp job start <имя> <таймаут_с> <команда…>`, ожидание — `dp job wait <имя>` в фоне (run_in_background), не циклы `until grep`.")
     rx = ", ".join(card.get("report_extra") or [])
     L.append(f"Отчёт: dp report {card['id']} < отчёт.json (dp report --template){'; ещё поля: ' + rx if rx else ''}; "
              f"в конце — обратная связь по dp (поле dp_feedback).")
@@ -656,7 +657,7 @@ def run_check(c, cwd, logdir, idx, tid):
 
 
 def accept_bg(a, cwd):
-    """Фоновый прогон (долгие GPU-проверки) через tools/job.sh; результат — dp accept тем же процессом, событие пишет он."""
+    """Фоновый прогон (долгие GPU-проверки) через dp job; результат — dp accept тем же процессом, событие пишет он."""
     skip = {"--bg"}
     argv, it = [], iter(sys.argv[1:])
     for x in it:
@@ -669,12 +670,12 @@ def accept_bg(a, cwd):
             continue
         argv.append(x)
     name = f"dp-accept-{a.id}"
-    job = "/home/greg/deltaplan/tools/job.sh"
-    r = subprocess.run([job, "start", name, str(a.timeout), sys.executable, str(Path(__file__).resolve()), *argv, "--cwd", str(cwd)],
-                       capture_output=True, text=True)
-    print((r.stdout or r.stderr).strip())
-    print(f"ждать: {job} wait {name} {a.timeout}; итог — в событиях (dp log {a.id}), логи — build/dp/{a.id}")
-    sys.exit(r.returncode)
+    try:
+        job_start(name, a.timeout, [sys.executable, str(Path(__file__).resolve()), *argv, "--cwd", str(cwd)])
+    except DpError as e:
+        die(str(e))
+    print(f"ждать: dp job wait {name} {a.timeout}; итог — в событиях (dp log {a.id}), логи — build/dp/{a.id}")
+    sys.exit(0)
 
 
 def cmd_accept(a):
@@ -1251,7 +1252,7 @@ def cmd_render(a):
         L.append(f"- {e['t'][:16].replace('T', ' ')} {e.get('task') or '—'} **{e['ev']}** ({e.get('by', '-')}){cm}"
                  + (f": {e['note']}" if e.get("note") else ""))
     text = "\n".join(L) + "\n"
-    out = a.out or str(toplevel() / f"docs/plan/{a.module}_progress.md")
+    out = a.out or str(toplevel() / f"docs/plan/{a.module}/journal.md")
     if out == "-":
         sys.stdout.write(text)
         return
@@ -1738,8 +1739,12 @@ def sem_corpus():
     for f in sorted(files):
         rel = str(f.relative_to(top))
         m = re.match(r"docs/plan/([^/]+)/", rel)
-        for st, ti, body in sem_chunks(f, rel, f.read_text(encoding="utf-8", errors="replace")):
-            items.append({"id": f"{rel}#{st}", "path": rel, "line": st, "title": ti, "module": m.group(1) if m else "", "text": body})
+        txt = f.read_text(encoding="utf-8", errors="replace")
+        sm = re.match(r"---\n(?:.*\n)*?status:\s*\"?(\w+)", txt) if txt.startswith("---\n") else None
+        status = sm.group(1) if sm else ("archive" if rel.startswith("docs/archive/") else "")
+        for st, ti, body in sem_chunks(f, rel, txt):
+            items.append({"id": f"{rel}#{st}", "path": rel, "line": st, "title": ti, "module": m.group(1) if m else "", "text": body,
+                          "status": status})
 
     def rec(mod, rel, line, kind, title, text):
         if text.strip():
@@ -1815,7 +1820,7 @@ def sem_sync(quiet=False):
                 rows.append(None)
                 todo.append(len(new_meta))
             new_meta.append({"id": c["id"], "path": c["path"], "line": c["line"], "title": c["title"], "module": c["module"],
-                             "h": h, "snip": " ".join(c["text"].split())[:400],
+                             "h": h, "snip": " ".join(c["text"].split())[:400], "status": c.get("status", ""),
                              "_t": c["title"] + "\n" + c["text"]})
         removed = len(old) - sum(1 for m in new_meta if m["id"] in old)
         t0 = time.time()
@@ -1881,14 +1886,186 @@ def sem_search(a):
             continue
         if a.path and not m["path"].startswith(a.path):
             continue
+        if not a.all and (m["path"].startswith("docs/archive/") or m.get("status") in ("superseded", "closed", "archive")):
+            continue
         res.append((sum(map(operator.mul, q, struct.unpack(f"{SEM_DIM}e", r))), m))
     res.sort(key=lambda x: -x[0])
     for sc, h in res[: a.max]:
         sn = h["snip"][:150] + ("…" if len(h["snip"]) > 150 else "")
-        print(f"{sc:.2f} {h['path']}:{h['line']} — {h['title']} — {sn}")
+        st = f" [{h['status']}]" if h.get("status") else ""
+        print(f"{sc:.2f} {h['path']}:{h['line']}{st} — {h['title']} — {sn}")
     if not res:
         print("ничего не найдено")
     print(f"({time.time() - t0:.0f} с, обновлено кусков: {n})")
+
+
+
+# ---------------------------------------------------------------- job (долгие запуски без опроса по имени процесса)
+
+def job_dir():
+    d = Path(os.environ.get("JOB_DIR") or Path.home() / ".cache" / "deltaplan-jobs")
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def job_files(name):
+    d = job_dir()
+    return d / f"{name}.pid", d / f"{name}.log", d / f"{name}.rc"
+
+
+def job_start(name, limit, cmd):
+    pidf, log, rcf = job_files(name)
+    rcf.unlink(missing_ok=True)
+    d = job_dir()
+    # setsid — своя группа: при таймауте гасится всё дерево; rc пишется всегда (124 — таймаут)
+    pr = subprocess.Popen(["setsid", "bash", "-c", 'timeout -k 30 "$1" "${@:3}" >"$2.log" 2>&1; echo $? >"$2.rc"', "_", str(limit), str(d / name), *cmd],
+                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=False)
+    pidf.write_text(str(pr.pid))
+    print(f"{name}: PID {pr.pid}, лог {log}")
+
+
+def job_alive(pid):
+    try:
+        os.kill(pid, 0)
+        return Path(f"/proc/{pid}").exists() and Path(f"/proc/{pid}/stat").read_text().split()[2] != "Z"
+    except OSError:
+        return False
+
+
+def cmd_job(a):
+    pidf, log, rcf = job_files(a.name) if a.name else (None, None, None)
+    if a.action == "start":
+        if not a.cmd or a.timeout is None:
+            raise DpError("dp job start <имя> <таймаут_с> <команда…>")
+        cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
+        if a.lock:
+            cmd = [sys.executable, str(Path(__file__).resolve()), "lock", a.lock, a.name, "--", *cmd]
+        job_start(a.name, a.timeout, cmd)
+        return
+    if a.action == "status" and not a.name:
+        for f in sorted(job_dir().glob("*.pid")):
+            n = f.stem
+            rc = job_dir() / f"{n}.rc"
+            pid = int(f.read_text() or 0)
+            print(f"{n}: " + (f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if job_alive(pid) else "нет данных"))
+        return
+    if not a.name:
+        raise DpError(f"dp job {a.action} <имя>")
+    if a.action == "wait":
+        try:
+            pid = int(pidf.read_text())
+        except (OSError, ValueError):
+            print(f"{a.name}: не запускался"); sys.exit(2)
+        limit = a.timeout if a.timeout is not None else None
+        if limit is None:
+            raise DpError("dp job wait <имя> <таймаут_с> — таймаут обязателен")
+        r = subprocess.run(["timeout", str(limit), "tail", f"--pid={pid}", "-f", "/dev/null"])
+        if rcf.exists():
+            rc = int(rcf.read_text().strip() or 1)
+            print(f"{a.name}: код {rc}")
+            print("\n".join(log.read_text(errors="replace").splitlines()[-20:]))
+            sys.exit(rc)
+        if not job_alive(pid):
+            print(f"{a.name}: прерван (нет кода выхода — остановлен dp job stop или убит)"); sys.exit(143)
+        print(f"{a.name}: ещё идёт (PID {pid}) — ожидание прервано по таймауту {limit} с")
+        sys.exit(124 if r.returncode == 124 else 3)
+    if a.action == "status":
+        print(f"{a.name}: " + (f"код {rcf.read_text().strip()}" if rcf.exists() else "идёт" if pidf.exists() and job_alive(int(pidf.read_text() or 0)) else "нет данных"))
+        return
+    if a.action == "stop":
+        try:
+            pid = int(pidf.read_text())
+        except (OSError, ValueError):
+            raise DpError(f"{a.name}: не запускался")
+        if not job_alive(pid):
+            print(f"{a.name}: уже не идёт"); return
+        if Path(f"/proc/{pid}").stat().st_uid != os.getuid() or str(job_dir() / a.name) not in Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace"):
+            raise DpError(f"PID {pid} — не наш запуск {a.name}, не трогаю")
+        try:
+            os.killpg(os.getpgid(pid), 15)
+        except OSError:
+            os.kill(pid, 15)
+        print(f"{a.name}: остановлен (PID {pid})")
+
+
+# ---------------------------------------------------------------- lock (общие замки: gpu — один держатель, cpu — N слотов)
+
+GPU_LOCK = "/tmp/heat_ca_gpu.lock"  # тот же файл, что GpuLock пилота (tools/research/air_nn_pilot/dataset.py)
+
+
+def lock_slots(res):
+    if res == "gpu":
+        return [Path(GPU_LOCK)]
+    d = job_dir() / "locks"
+    d.mkdir(parents=True, exist_ok=True)
+    n = int(os.environ.get("DP_CPU_SLOTS") or max(1, (os.cpu_count() or 8) // 8))
+    return [d / f"cpu.{i}.lock" for i in range(n)]
+
+
+def lock_status():
+    import fcntl
+    for res in ("gpu", "cpu"):
+        slots = lock_slots(res)
+        for i, lp in enumerate(slots):
+            f = open(lp, "a")
+            tag = res if res == "gpu" else f"cpu[{i + 1}/{len(slots)}]"
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                print(f"{tag}: свободен")
+            except OSError:
+                try:
+                    x = json.loads(Path(str(lp) + ".info").read_text())
+                    print(f"{tag}: занят — {x['holder']}, PID {x['pid']}, «{x['cmd']}», с {x['since']}, копия {x['cwd']}")
+                except (OSError, ValueError):
+                    print(f"{tag}: занят (держит процесс не через dp lock, например пилот)")
+            finally:
+                f.close()
+
+
+def cmd_lock(a):
+    import fcntl
+    import signal
+    args = list(a.args)
+    if args[:1] == ["status"]:
+        return lock_status()
+    if "--" not in args or len(args) < 4 or args[0] not in ("cpu", "gpu"):
+        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>  |  dp lock status")
+    k = args.index("--")
+    head, cmd = args[:k], args[k + 1:]
+    res, holder, timeout = head[0], head[1], None
+    if "--timeout" in head:
+        timeout = int(head[head.index("--timeout") + 1])
+    if not cmd or len(head) < 2:
+        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>")
+    slots = lock_slots(res)
+    deadline = time.time() + timeout if timeout else None
+    got = None
+    while got is None:
+        for lp in slots:
+            f = open(lp, "a")
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                got = (f, lp)
+                break
+            except OSError:
+                f.close()
+        if got is None:
+            if deadline and time.time() > deadline:
+                print(f"lock {res}: таймаут {timeout} с в ожидании", file=sys.stderr)
+                sys.exit(124)
+            time.sleep(0.2)
+    f, lp = got
+    ip = Path(str(lp) + ".info")
+    ip.write_text(json.dumps({"holder": holder, "pid": os.getpid(), "cmd": " ".join(cmd)[:200], "since": now(), "cwd": os.getcwd()}))
+    child = subprocess.Popen(cmd)
+    for sg in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(sg, lambda sig, _: child.send_signal(sig))
+    try:
+        rc = child.wait()
+    finally:
+        ip.unlink(missing_ok=True)
+        f.close()
+    sys.exit(rc)
 
 
 # ---------------------------------------------------------------- CLI
@@ -1967,7 +2144,7 @@ def build():
     q.add_argument("--no-review", dest="no_review", action="store_true",
                    help="engineer/researcher: accepted без ревью (по умолчанию PASS → checked, ждёт dp-reviewer)")
     q.add_argument("--full", action="store_true", help="пути логов и для PASS"); q.add_argument("--by")
-    q.add_argument("--bg", action="store_true", help="в фоне через tools/job.sh (долгие GPU-проверки); ждать — job.sh wait dp-accept-<ID>")
+    q.add_argument("--bg", action="store_true", help="в фоне через dp job (долгие GPU-проверки); ждать — dp job wait dp-accept-<ID>")
     q.add_argument("--timeout", type=int, default=3600, metavar="СЕК", help="с --bg: общий таймаут фонового прогона (3600)")
     q.set_defaults(fn=cmd_accept)
 
@@ -2053,13 +2230,24 @@ def build():
     q.add_argument("pattern", metavar="текст|regex"); q.add_argument("--module"); q.add_argument("--max", type=int, default=None)
     q.add_argument("--sem", action="store_true", help="по смыслу (bge-m3 через Ollama; нужен dp index); --max по умолчанию 10")
     q.add_argument("--path", help="с --sem: префикс пути")
+    q.add_argument("--all", action="store_true", help="с --sem: и docs/archive/**, и документы status: superseded|closed")
     q.set_defaults(fn=cmd_search)
+
+    q = sp.add_parser("job", help="долгий запуск в фоне: start <имя> <таймаут_с> <команда…> | wait <имя> <таймаут_с> | status [имя] | stop <имя>")
+    q.add_argument("action", choices=["start", "wait", "status", "stop"]); q.add_argument("name", nargs="?")
+    q.add_argument("timeout", nargs="?", type=int); q.add_argument("cmd", nargs=argparse.REMAINDER)
+    q.add_argument("--lock", metavar="cpu|gpu", help="start: выполнять под dp lock cpu|gpu (держатель — имя задачи)")
+    q.set_defaults(fn=cmd_job)
+
+    q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--timeout СЕК] -- <команда…> | lock status; gpu — тот же замок, что у пилота")
+    q.add_argument("args", nargs=argparse.REMAINDER)
+    q.set_defaults(fn=cmd_lock)
 
     q = sp.add_parser("index", help="смысловой индекс проекта для dp search --sem (вне git, ~/.cache/deltaplan_sem)")
     q.add_argument("--full", action="store_true", help="пересчитать всё")
     q.set_defaults(fn=cmd_index)
 
-    q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>_progress.md")
+    q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>/journal.md")
     q.add_argument("module"); q.add_argument("--out", help="путь или - (stdout)"); q.add_argument("--force", action="store_true")
     q.set_defaults(fn=cmd_render)
     return p

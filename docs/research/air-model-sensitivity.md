@@ -184,8 +184,8 @@ applied_in: "исправлено в волне А (air.py и GPU-решател
 `uv venv; uv pip install "cupy-cuda12x[ctk]==14.2.0" numpy matplotlib scipy iminuit zstandard brotli SALib` (`[ctk]` нужен для заголовков CUDA при сборке ядер).
 ```bash
 sh tools/research/morris/run_all.sh 12          # план (r = 12) + пачки «morris» (GPU) и «morris-s3» (Godot)
-/home/greg/deltaplan/tools/job.sh wait morris 28800
-/home/greg/deltaplan/tools/job.sh wait morris-s3 7200
+/home/greg/deltaplan/tools/dp job wait morris 28800
+/home/greg/deltaplan/tools/dp job wait morris-s3 7200
 tools/research/tune/.venv/bin/python tools/research/morris/analyze.py   # все таблицы и картинки
 ```
 Прогоны дописываются в `out/runs/<случай>.jsonl` (по строке на точку, с параметрами, статусом, итерациями, временем и всеми наблюдаемыми). Прерванную серию можно продолжить повторным запуском. Замок GPU `/tmp/heat_ca_gpu.lock` берётся на каждую точку. Поля масштаба 3 (`tools/research/morris/fields/`, ≈ 180 МБ) — вне git, пересоздаются `run_s3.sh`. Для масштаба 3 нужен один раз `godot --headless --import` в новой копии (кеш классов).

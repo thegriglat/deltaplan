@@ -25,7 +25,7 @@ applied_in: ""
 Воспроизведение (из `tools/research/recal`; venv как в `morris/README.md`):
 ```bash
 PY=../tune/.venv/bin/python
-/home/greg/deltaplan/tools/job.sh start recal-grid 9000 $PY run_grid.py grid   # 495 прогонов, 68 мин GPU
+/home/greg/deltaplan/tools/dp job start recal-grid 9000 $PY run_grid.py grid   # 495 прогонов, 68 мин GPU
 $PY run_grid.py test; $PY run_grid.py check25; $PY run_grid.py check12      # AM-09 и проверка сетки 12,5 м
 $PY fit.py > out/fit.log
 ```

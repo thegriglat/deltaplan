@@ -1,6 +1,6 @@
 #!/bin/sh
 # А1.3 (ревью): пробы приёмки (1)–(3) + Онгудай, Askervein (4), диагноз 200 м — подряд, GPU под замком.
-# Запуск: /home/greg/deltaplan/tools/job.sh start a1rev 3600 sh run_all.sh   (из этого каталога)
+# Запуск: /home/greg/deltaplan/tools/dp job start a1rev 3600 sh run_all.sh   (из этого каталога)
 cd "$(dirname "$0")"
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 L="flock /tmp/heat_ca_gpu.lock"

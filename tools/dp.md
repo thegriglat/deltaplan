@@ -39,7 +39,7 @@ dp decide <модуль> "<вопрос>" --ask      # шлюз: вопрос п
 dp accept <ID> [--only ИМЯ] [--here|--cwd DIR] [-j 4] [--commit h] [--dry] [--no-accept] [--no-review] [--bg --timeout СЕК]
                                   # --dry — пробный прогон исполнителем до отчёта (без события); --only → в конце сводка по всем проверкам карточки
                                   # (последние результаты для текущего HEAD, build/dp/<ID>/results.json); частичные прогоны складываются в accepted
-                                  # --bg — через tools/job.sh (долгие GPU-проверки): job.sh wait dp-accept-<ID> <сек>
+                                  # --bg — через dp job (долгие GPU-проверки): dp job wait dp-accept-<ID> <сек>
 dp report <ID> [файл|-]  |  dp report <ID> --show [--full]  |  dp report --template
 dp review <ID> --verdict accept|rework --from r.json|- [--note …]  |  --note "итог"  |  dp review <ID> --show [--full]  |  dp review --template
 dp status [<модуль>] [--full] [--stale 40]   # «⚠тихо» = ни событий, ни коммитов ветки задачи > 40 мин; accepted+merged — одним статусом
@@ -182,3 +182,15 @@ dp docs check                                                # frontmatter, жи
 dp docs index                                                # собрать docs/INDEX.md и docs/registry/{research,contracts,decisions}.md
 dp docs init [--dry]                                         # frontmatter новым файлам (эвристики)
 ```
+
+## Долгие запуски и замки: `dp job`, `dp lock`
+
+```
+dp job start <имя> <таймаут_с> <команда…>     # в фоне (setsid, rc всегда пишется, 124 — таймаут); логи ~/.cache/deltaplan-jobs/<имя>.{pid,log,rc}
+dp job wait <имя> <таймаут_с>                  # ждёт PID (tail --pid), печатает код и хвост лога; таймаут обязателен
+dp job status [имя] | dp job stop <имя>        # stop — по PID, только свой процесс
+dp job --lock cpu|gpu start <имя> <таймаут_с> <команда…>   # фоновая задача под замком (опцию — перед start)
+dp lock gpu|cpu <имя> [--timeout СЕК] -- <команда…>        # под замком, ожидание блокирующее, таймаут → 124
+dp lock status                                 # кто держит: имя, PID, команда, с какого времени, копия
+```
+Замок `gpu` — файл `/tmp/heat_ca_gpu.lock`, тот же, что у `GpuLock` пилота (air_nn_pilot): пилот и `dp lock gpu` видят друг друга. `cpu` — N слотов (`DP_CPU_SLOTS`, по умолчанию max(1, nproc // 8)).

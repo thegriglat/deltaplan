@@ -32,17 +32,17 @@ applied_in: ""
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 (cd ../perdigao && $PY terrain.py --size 9000)        # рельеф 9 км для контроля области (кеш тайлов ~/.cache/deltaplan_terrain)
 $PY inflow.py
-/home/greg/deltaplan/tools/job.sh start b1-probe 1800 $PY ctl.py probe   # 3 прогона, ~1 мин
-/home/greg/deltaplan/tools/job.sh start b1-ctl 5400 $PY ctl.py ctl       # 26 прогонов, ~21 мин GPU (RTX 4070 SUPER)
+/home/greg/deltaplan/tools/dp job start b1-probe 1800 $PY ctl.py probe   # 3 прогона, ~1 мин
+/home/greg/deltaplan/tools/dp job start b1-ctl 5400 $PY ctl.py ctl       # 26 прогонов, ~21 мин GPU (RTX 4070 SUPER)
 $PY analyze1.py; $PY analyze1.py      # второй проход: σ наблюдаемых читают out/grid.json (Δ_уст)
 cd .. && grep '"case": "ask"' b1/out/ctl_runs.jsonl > /tmp/b1_ask.jsonl && grep '"case": "pd"' b1/out/ctl_runs.jsonl > /tmp/b1_pd.jsonl
 $PY check_c10.py askervein /tmp/b1_ask.jsonl; $PY check_c10.py perdigao /tmp/b1_pd.jsonl   # 9 и 20 строк, 0 нарушений
 $PY b1/batch.py plan                   # этап 2: оценка пачки
 cd b1
-/home/greg/deltaplan/tools/job.sh start b1-grid 21600 $PY batch.py run ask pd   # 765 прогонов, 3,9 ч GPU
+/home/greg/deltaplan/tools/dp job start b1-grid 21600 $PY batch.py run ask pd   # 765 прогонов, 3,9 ч GPU
 $PY fit.py                                                                     # ~10 мин CPU
-/home/greg/deltaplan/tools/job.sh start b1-best 3600 $PY best.py run; $PY best.py table   # 12 прогонов, 9 мин
-(cd ../../a2pre && /home/greg/deltaplan/tools/job.sh start b1-a2 7200 $PY run.py b1)       # 48 цепочек, 18 мин
+/home/greg/deltaplan/tools/dp job start b1-best 3600 $PY best.py run; $PY best.py table   # 12 прогонов, 9 мин
+(cd ../../a2pre && /home/greg/deltaplan/tools/dp job start b1-a2 7200 $PY run.py b1)       # 48 цепочек, 18 мин
 $PY a2_table.py
 ```
 Замеры этапа 1: 29 прогонов ctl + 3 probe, решатель 6–112 с на прогон; dx/2 (32–37 млн клеток) — OutOfMemoryError на 12 ГБ.

@@ -78,7 +78,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [tools/research/a1/README.md](/tools/research/a1/README.md) | research | closed |  | А1.1 — пробы для плана структурных правок решателя воздуха — Воспроизведение (из этого каталога; venv с CuPy и brotli — tools/research/morris/README.md; здесь использован /home/greg/deltaplan-wf-morris/tools/research/tune/.venv): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune… |
-| [tools/research/a1/review/README.md](/tools/research/a1/review/README.md) | research | closed |  | А1.3 — ревью структурных правок решателя воздуха (А1.2) — Воспроизведение (из этого каталога; venv с CuPy — tools/research/morris/README.md): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python /home/greg/deltaplan/tools/job.sh start a1rev 3600 sh run_all.sh # … |
+| [tools/research/a1/review/README.md](/tools/research/a1/review/README.md) | research | closed |  | А1.3 — ревью структурных правок решателя воздуха (А1.2) — Воспроизведение (из этого каталога; venv с CuPy — tools/research/morris/README.md): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python /home/greg/deltaplan/tools/dp job start a1rev 3600 sh run_all.sh # … |
 | [tools/research/a2pre/README.md](/tools/research/a2pre/README.md) | research | closed |  | Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах — Записка с выводом — docs/archive/plan/air-model-a2pre.md. |
 | [tools/research/air3d/README.md](/tools/research/air3d/README.md) | research | closed |  | air3d: 3D-Пикар на рельефе Онгудая (оценка для библиотеки опорных полей) — Прикидка к плану docs/plan/air_model.md (масштаб 1 «среднее поле Пикаром», раздел «Библиотека опорных полей»): грубое, но честное 3D-решение на реальном рельефе, чтобы получить числа — время решения, итерации, сходимость, раз |
 | [tools/research/air3d/summary.md](/tools/research/air3d/summary.md) | research | closed |  | 3D-Пикар на рельефе Онгудая: время, сходимость, размер поля — итог прикидки — Эталон AM-01 (29.09.2026) — reference.md. |
@@ -145,7 +145,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (205 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (208 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
