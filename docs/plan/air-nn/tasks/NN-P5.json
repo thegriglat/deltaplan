@@ -2,7 +2,7 @@
   "id": "NN-P5",
   "module": "air-nn",
   "type": "dp-researcher",
-  "title": "Вход П2 v3, деление, оценка и отчёт П3 v2 (поверх 28b0ac5)",
+  "title": "Вход П2 v4, деление, оценка и отчёт П3 v2 (поверх 28b0ac5)",
   "goal": "Пилот читает несколько наборов (main v1 + terrain v2), делит по П2 v3 (отложенные системы, кривая 25…300), считает и пишет отчёт П3 v2 с правилом ШП-2 — проверено smoke на подставном индексе П6.",
   "plan_ref": "8.2. Задачи",
   "contracts": [
@@ -13,7 +13,7 @@
     },
     {
       "name": "П2",
-      "version": "3",
+      "version": "4",
       "ref": "docs/air_nn_contracts.md"
     },
     {
@@ -40,7 +40,8 @@
     "tests/make_mock_p6.py — подставной П6 (index.csv по контракту, t_0000…t_0009 из случаев main, части pool/holdout, stratum, system) и подставной набор terrain v2 (только область) для smoke",
     "tests/check_report_v2.py — проверка report.md/metrics.json: все разделы П3 v2 на месте; печатает строку «ШП-2: <вердикт>»",
     "замер времени обучения на полном объёме (оценка: 1890 + ~3500 случаев terrain) — эпоха, ч на 150 эпох, кривая; число в отчёт",
-    "README пилота — разделы входа, деления, оценки"
+    "README пилота — разделы входа, деления, оценки",
+    "отражение поперёк ветра (П2 v4, решение пользователя): в загрузчике обучения R с вероятностью 1/2 при каждом показе, детерминированно от зерна/эпохи/индекса; оценка, проверка, кривая, экспорт — без отражения; tests/test_reflect.py — R∘R = тождество (вход, числа, цель), prep(отражённый рельеф, −r) = R(карты), знаки по таблице П2 v4"
   ],
   "dont_touch": [
     "dataset.py, airlite_gen.py, configs/dataset.yaml, places.py (NN-P6); terrain_cut.py, configs/terrain.yaml (NN-P4)",
@@ -52,6 +53,11 @@
     {
       "name": "test_prep",
       "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_prep.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_reflect",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_reflect.py",
       "expect": "exit=0"
     },
     {
