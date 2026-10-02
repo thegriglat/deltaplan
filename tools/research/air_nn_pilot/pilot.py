@@ -59,7 +59,7 @@ class UI:
                 cols = os.get_terminal_size().columns
             except OSError:
                 pass
-            sys.stdout.write("\r\033[K" + s[: cols - 1])
+            sys.stdout.write("\r\033[K" + (s[: cols - 1] if cols > 1 else s))
             sys.stdout.flush()
         elif time.time() - self.t_print > 30:
             self.t_print = time.time()
@@ -82,7 +82,10 @@ class Eta:
         if self.t0 is None:
             self.t0, self.d0 = now, done
         rate = (done - self.d0) / (now - self.t0) if now - self.t0 > 3 and done > self.d0 else None
-        eta = f"осталось ~{C.fmt_dur((total - done) / rate)}" if rate else "осталось: оценка…"
+        if total and done >= total:
+            eta = "завершение…"
+        else:
+            eta = f"осталось ~{C.fmt_dur((total - done) / rate)}" if rate else "осталось: оценка скорости…"
         p = 100 * done / total if total else 0
         dd = f"{done:.1f}" if isinstance(done, float) and not float(done).is_integer() else f"{int(done)}"
         return f"  {unit} {dd}/{total} ({p:.0f} %){' · ' + extra if extra else ''} · {eta}"
@@ -392,8 +395,12 @@ def main():
 
 def status(cfg, run, rep):
     print(f"прогон: {run}")
+    ds_root, _ = resolve_dataset(cfg)
+    if ds_root:
+        pr = dataset_progress(cfg)
+        print(f"  набор: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" + (f" ({pr[3]})" if pr[3] else "") if pr else ""))
     if not run.exists():
-        print("  ещё не запускался")
+        print("  прогон ещё не запускался")
         return C.EXIT_OK
     try:
         f = open(run / ".lock", "w")
@@ -403,10 +410,6 @@ def status(cfg, run, rep):
     except BlockingIOError:
         print("  сейчас: идёт (процесс держит замок прогона)")
     info = C.read_json(run / "run_info.json", {})
-    ds_root, _ = resolve_dataset(cfg)
-    if ds_root:
-        pr = dataset_progress(cfg)
-        print(f"  набор: {ds_root}" + (f" — решений {pr[0]}/{pr[1]}" + (f" ({pr[3]})" if pr[3] else "") if pr else ""))
     if info:
         pp = C.read_json(Path(info["prep_dir"]) / "progress.json")
         if pp:

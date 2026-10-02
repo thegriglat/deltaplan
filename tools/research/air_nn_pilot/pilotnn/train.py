@@ -216,6 +216,7 @@ def main(run: Path):
         acc = ck["acc"]
         print(f"продолжение с чекпойнта: эпоха {epoch}, шаг {step0}/{spe}", flush=True)
     prog = Progress(run, E, task["label"])
+    prog.put(min(epoch + step0 / spe, E), "старт", force=True)
     lock = C.GpuLock(sig)
     t_ck = time.time()
     t_ep_start = [time.time()]
@@ -246,6 +247,7 @@ def main(run: Path):
                 acc = dict(loss=0.0, n=0, t=0.0)
             for st in range(step0, spe):
                 if lock.f is None:
+                    prog.put(epoch + st / spe, "ожидание замка GPU", force=True)
                     try:
                         lock.acquire()                    # сигнал во время ожидания → StopRequested ниже
                     except C.StopRequested:
