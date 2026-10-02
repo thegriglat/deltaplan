@@ -4,7 +4,7 @@
   {
    "step": "A: непрерванный",
    "rc": 0,
-   "t": 93.3
+   "t": 93.7
   },
   {
    "step": "kill -9 посреди обучения",
@@ -19,9 +19,9 @@
   },
   {
    "step": "kill -9 при записи чекпойнта",
-   "at_epoch": 15.1,
+   "at_epoch": 16.0,
    "tmp_files_at_kill": [
-    "last.pt.tmp628795"
+    "last.pt.tmp641042"
    ]
   },
   {
@@ -40,11 +40,11 @@
   {
    "step": "повтор готового прогона",
    "rc": 0,
-   "t": 28.1
+   "t": 28.7
   }
  ],
  "compare": {
-  "n_numbers": 13122,
+  "n_numbers": 13788,
   "n_missing": 0,
   "missing": [],
   "n_different": 0,
@@ -59,10 +59,10 @@
  ],
  "layout": {
   "runs": [
-   "2026-10-02_itest_cut"
+   "2026-10-03_itest_cut"
   ],
   "reports": [
-   "2026-10-02_itest_cut"
+   "2026-10-03_itest_cut"
   ],
   "tmp_left": []
  },
