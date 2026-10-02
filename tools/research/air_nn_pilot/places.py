@@ -1,6 +1,7 @@
 """Места набора: встроенные (configs/locations, слой detail 25 м) и синтетика того же формата.
 Перенесено из research/air-lite 7cc7e33 (tools/research/air_lite/places.py); добавлены процедурные рельефы
-p_<NNN> (procedural.py) — тот же класс SynthLocation с другой высотой и стартом, всё остальное без изменений.
+p_<NNN> (procedural.py) — тот же класс SynthLocation с другой высотой и стартом, всё остальное без изменений;
+места t_<NNNN> — вырезки П6 v1 (NN-P4, каталог $AIRNN_P6_DIR или $AIR_NN_DATA/pilot/tiles/v1), класс TerrainLocation.
 
 Синтетика — рельеф 40 × 40 км (1601 × 1601 узлов по 25 м, как detail), база BASE м над морем,
 широта/долгота/часовой пояс — как у Онгудая (тот же климат и солнце, июль), долина — по рельефу.
@@ -11,8 +12,10 @@ p_<NNN> (procedural.py) — тот же класс SynthLocation с другой
 """
 from __future__ import annotations
 
+import csv
 import json
 import math
+import os
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -94,14 +97,87 @@ class SynthLocation:
         return float((1 - b) * ((1 - a) * h[j0, i0] + a * h[j0, i0 + 1]) + b * ((1 - a) * h[j0 + 1, i0] + a * h[j0 + 1, i0 + 1]))
 
 
-@lru_cache(maxsize=None)
+# ------------------------------------------------------------------------------------------- места t_* (П6 v1)
+def p6_dir():
+    """Каталог вырезок П6: $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v1 (по умолчанию /home/greg/air_nn_data)."""
+    d = os.environ.get("AIRNN_P6_DIR")
+    if d:
+        return Path(d)
+    return Path(os.environ.get("AIR_NN_DATA") or "/home/greg/air_nn_data") / "pilot" / "tiles" / "v1"
+
+
+@lru_cache(maxsize=4)
+def p6_index(d=None):
+    """index.csv П6 → {id: строка} (числа — float/int, порядок — как в файле)."""
+    d = Path(d) if d else p6_dir()
+    out = {}
+    with open(d / "index.csv", newline="") as f:
+        for r in csv.DictReader(f):
+            row = dict(r)
+            for k in P6_FLOATS:
+                row[k] = float(row[k])
+            row["zoom"] = int(row["zoom"])
+            out[row["id"]] = row
+    return out
+
+
+P6_FLOATS = ("lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m", "slope_p50", "slope_p95",
+             "tpi2k_p95", "sea_frac")
+
+
+class TerrainLocation:
+    """Место t_<NNNN> из вырезки П6 v1 (`cut/<id>.npz`): h — float32 файла, переведённый в float64 (тогда
+    `R.grid_domain(loc, 400)` = `hc400` файла побитно — то же блочное среднее), оси [j — север, i — восток],
+    узел (800, 800) — центр; x0 = y0 = −20 000 м. Старты — нет (центры окон оценки — window_centers по рельефу),
+    вода — нет (границы пилота: озёра в горах — как суша)."""
+
+    def __init__(self, loc):
+        d = p6_dir()
+        row = p6_index(str(d))[loc]
+        with np.load(d / "cut" / f"{loc}.npz") as z:
+            h = z["h"]
+            self.hc400 = z["hc400"]
+            self.cut_meta = json.loads(str(z["meta"]))
+        assert h.shape == (N_NODES, N_NODES) and h.dtype == np.float32, (loc, h.shape, h.dtype)
+        self.id = loc
+        self.h = h.astype(np.float64)
+        x0 = -(N_NODES - 1) / 2 * SP
+        self.info = dict(spacing=SP, x0=x0, y0=x0)
+        self.water = None
+        self.meta = dict(center_lat=row["lat"], center_lon=row["lon"])
+        self.row = row
+        self.sites = {}
+
+    height_at = SynthLocation.height_at
+
+
+def place_info(loc):
+    """Для метаданных случая: system и part из индекса П6 (у прежних мест — None)."""
+    if not loc.startswith("t_"):
+        return None
+    r = p6_index(str(p6_dir()))[loc]
+    return dict(system=r["system"], part=r["part"])
+
+
+# место держит h 1601² float64 (~20 МБ): кэш ограничен (345 мест П6 в память не влезут; счёт идёт по случаям,
+# соседние случаи плана обычно с разных мест — повторная загрузка вырезки ~0,1 с против секунд решателя)
+@lru_cache(maxsize=8)
 def location(loc):
+    if loc.startswith("t_"):
+        return TerrainLocation(loc)
     return SynthLocation(loc) if loc.startswith(("s_", "p_")) else T.Location(loc)
 
 
 @lru_cache(maxsize=None)
 def context(loc):
     L = location(loc)
+    if loc.startswith("t_"):
+        # П6 v1: дата reference_context (как у игры), lat/lon места, пояс round(lon/15), окрестность — по рельефу
+        rc = W.CFG["reference_context"]
+        ctx = dict(month=rc["month"], day=rc["day"], lat=L.meta["center_lat"], lon=L.meta["center_lon"],
+                   utc_offset_h=round(L.meta["center_lon"] / 15.0))
+        ctx.update(W.ground_context(L.height_at))
+        return ctx
     if not loc.startswith(("s_", "p_")):
         return W.location_ctx(loc, L.height_at)
     ref = json.loads((ROOT / "configs/locations/ongudai.json").read_text())

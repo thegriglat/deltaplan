@@ -10,7 +10,16 @@ plan:
   proc_cond_seed: 20261003   # условия процедурных — тем же распределением, что синтетика air-lite (plan_rows)
   n_proc_cond: 30
 
+# Набор terrain (П1 v2, NN-P6): места t_* индекса П6 (NN-P4) × n_cond условий, только область 400 м.
+terrain:
+  p6_dir: null               # null — $AIRNN_P6_DIR, иначе $AIR_NN_DATA/pilot/tiles/v1
+  cond_seed: 20261004        # условия — plan_rows (час × облачность по кругу, каждый 12-й — штиль), своё зерно
+  n_cond: 12                 # 12 = все сочетания 4 часов × 3 облачностей, один штиль на место
+  max_outer: 1000            # предел внешних итераций решения (main: 3000); замер — tests/out/maxcap.json
+  probe: {n_places: 8, n_cond: 2}   # проба: 8 мест равномерно по рангу крутизны × 2 условия
+
 run:
+  workers: 2                 # воркеров на GPU под одним замком (0 — в процессе); кривая — tests/out/workers_bench.json
   batch_s: 300               # замок GPU (/tmp/heat_ca_gpu.lock) — на пачку случаев не дольше, между пачками отпускается
   max_failures: 3            # упавший случай (исключение) повторяется, пока ошибок < max_failures
   min_free_gb: 5             # свободное место на диске данных перед пачкой; меньше — мягкая остановка (код 3)
@@ -21,3 +30,10 @@ datasets:
   # мини-прогон run_pilot.sh --smoke (не пишет в main): ongudai — (б); s_hill и p_000…p_002 — обучение, (а) и кривая (в) 2/4
   smoke: {places: [ongudai, s_hill, p_000, p_001, p_002], n_cond: 3}
   chaos: {places: [s_hill, s_ridge, p_001, p_002], n_cond: 2}   # тест прерывания (во временном AIR_NN_DATA)
+  # П1 v2 (NN-P6)
+  terrain: {terrain: true}                       # весь индекс П6 × terrain.n_cond
+  probe: {terrain: true, probe: true}            # проба времени (подмножество terrain)
+  chaos_t: {terrain: true, n_places: 4, n_cond: 2}   # тест прерывания воркеров (подставной П6, 8 случаев)
+  # кривая воркеров: 12 случаев main «только область» (4 max + 8 ok), предел terrain.max_outer
+  bench12: {region_only: true, ids: [aushkul_029, aushkul_065, p_011_029, s_valley_003, altai_020, ongudai_020, altai_022,
+                                     aushkul_063, p_000_020, p_015_028, s_saddle_006, s_scarp_008]}
