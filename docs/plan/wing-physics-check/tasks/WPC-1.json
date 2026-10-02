@@ -1,0 +1,19 @@
+{
+  "id": "WPC-1",
+  "module": "wing-physics-check",
+  "type": "dp-researcher",
+  "title": "паспорта против модели",
+  "goal": "паспорта против модели",
+  "plan_ref": "WPC-1",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wing-physics-check",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/wing-physics-check_progress.md:8",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

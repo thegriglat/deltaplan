@@ -1,0 +1,14 @@
+{
+  "status": "done",
+  "summary": "сделано | `training` (масса 22,2), `sport` (ds 92, масса 34,4), `combat` (ds 90), `laminar` (ds 85, масса 30,5 — по аналогу Easy 2 M / Orbiter 14). Поляры, скорости, сваливание не менялись. Источники и противоречия — `docs/research/wings_config_sources.md`",
+  "commits": [],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_passports_progress.md:13",
+  "dp_feedback": "",
+  "t": "2026-10-01T12:00:00",
+  "by": "координатор",
+  "migrated": true
+}

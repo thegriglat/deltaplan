@@ -1,0 +1,14 @@
+{
+  "status": "done",
+  "summary": "принята | `tools/research/data/wing_passports/out/construction/batch_{a,b,c}.json`; 50 семейств (17+13+20); схема у пакета b плоская, у a/c вложенная — генератор приводит к одному виду. Проверка: отметки «kingpost» для WW T2/T2C/T3 неверны (безмачтовые), для F2, Cross Country — не подтверждены цитатой (Eagle подтверждён данными паспорта) — тип принимается только по цитате (`_type_ok`), иначе — предположение координатора с пометкой",
+  "commits": [],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_passports_progress.md:12",
+  "dp_feedback": "",
+  "t": "2026-10-01T12:00:00",
+  "by": "dp-researcher",
+  "migrated": true
+}

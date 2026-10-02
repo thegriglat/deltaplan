@@ -1,0 +1,23 @@
+{"t": "2026-09-30T08:00:00", "by": "coordinator", "task": "SF-1", "ev": "created", "note": "Пустырь", "src": "docs/plan/start_fixes_progress.md:21"}
+{"t": "2026-09-30T08:00:00", "by": "coordinator", "task": "SF-2", "ev": "created", "note": "Трава в лесу", "src": "docs/plan/start_fixes_progress.md:22"}
+{"t": "2026-09-30T08:00:00", "by": "coordinator", "task": "SF-3", "ev": "created", "note": "Рука пилота (+SF-4)", "src": "docs/plan/start_fixes_progress.md:23"}
+{"t": "2026-09-30T08:00:00", "by": "coordinator", "task": "SF-4", "ev": "created", "note": "Касание крылом", "src": "docs/plan/start_fixes_progress.md:24"}
+{"t": "2026-09-30T08:00:01", "by": "coordinator", "task": "SF-1", "ev": "started", "note": "dp-engineer", "src": "docs/plan/start_fixes_progress.md:21"}
+{"t": "2026-09-30T08:00:01", "by": "coordinator", "task": "SF-2", "ev": "started", "note": "dp-engineer", "src": "docs/plan/start_fixes_progress.md:22"}
+{"t": "2026-09-30T08:00:01", "by": "coordinator", "task": "SF-3", "ev": "started", "note": "dp-engineer", "src": "docs/plan/start_fixes_progress.md:23"}
+{"t": "2026-09-30T08:00:01", "by": "coordinator", "task": "SF-4", "ev": "started", "note": "dp-engineer", "src": "docs/plan/start_fixes_progress.md:24"}
+{"t": "2026-09-30T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "План — `docs/plan/start_fixes.md`, контракты — `docs/start_fixes_contracts.md`. Ветка `feature/start-fixes`, копия `~/deltaplan-start`.", "src": "docs/plan/start_fixes_progress.md:3", "unparsed": "без даты/классификации"}
+{"t": "2026-09-30T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "SF-1, SF-2 — приняты и влиты. SF-4 — остановлена, передана SF-3 (ветка `start/sf4` ещё не влита — её вливает исполнитель SF-3 в `start/sf3`).", "src": "docs/plan/start_fixes_progress.md:27", "unparsed": "без даты/классификации"}
+{"t": "2026-09-30T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "SF-3 (+SF-4) — исполнитель работает в `~/deltaplan-start-sf3` / `start/sf3` (промежуточный коммит 800b84e). Задание дополнено: влить `start/sf4` и `feature/start-fixes`; прогнать `wing_clearance_run` по стартам локаций (зазор по видимой земле ≥ 0 при крене 0, иначе шлюз); тело пилота стоя вертикально визуально (К4 v1); `reset_on_ground` — тангаж стоя; раздел «Поза крыла на земле» в `docs/flight.m…", "src": "docs/plan/start_fixes_progress.md:28", "unparsed": "без даты/классификации"}
+{"t": "2026-09-30T12:00:00", "by": "coordinator", "task": null, "ev": "note", "note": "Приёмка SF-3+SF-4: условия SF-3 (1–7) и SF-4 (1–4) плана; перепроверить `--filter=flight`, `game`, `start_`, `test_wing_clearance`; влить `start/sf3` (и через неё `start/sf4`), удалить копию sf3 и ветки `start/sf3`, `start/sf4`; отметить в TODO пункт «Пилот на земле…» и подпункты, CHANGELOG «В работе».", "src": "docs/plan/start_fixes_progress.md:29", "unparsed": "без даты/классификации"}
+{"t": "2026-09-30T15:33:11", "by": "dp-engineer", "task": "SF-2", "ev": "reported", "commits": ["8e97c1a", "c7910e9"], "note": "done", "src": "docs/plan/start_fixes_progress.md:22"}
+{"t": "2026-09-30T15:42:17", "by": "coordinator", "task": "SF-2", "ev": "accepted", "note": "принята (30.09)", "src": "docs/plan/start_fixes_progress.md:22"}
+{"t": "2026-09-30T15:42:17", "by": "coordinator", "task": "SF-2", "ev": "merged", "commits": ["0f7b4b7"], "src": "docs/plan/start_fixes_progress.md:22"}
+{"t": "2026-09-30T15:52:11", "by": "dp-engineer", "task": "SF-3", "ev": "reported", "commits": ["800b84e", "3384aa8", "5f8990e", "143c4b7"], "note": "done", "src": "docs/plan/start_fixes_progress.md:23"}
+{"t": "2026-09-30T15:52:11", "by": "dp-engineer", "task": "SF-4", "ev": "reported", "commits": ["143c4b7"], "note": "done", "src": "docs/plan/start_fixes_progress.md:24"}
+{"t": "2026-09-30T15:52:11", "by": "coordinator", "task": "SF-4", "ev": "accepted", "note": "принята в составе SF-3 (30.09)", "src": "docs/plan/start_fixes_progress.md:24"}
+{"t": "2026-09-30T15:54:05", "by": "dp-engineer", "task": "SF-1", "ev": "reported", "commits": ["6db17c5", "dbdbf59"], "note": "done", "src": "docs/plan/start_fixes_progress.md:21"}
+{"t": "2026-09-30T16:07:00", "by": "coordinator", "task": "SF-1", "ev": "accepted", "note": "принята (30.09)", "src": "docs/plan/start_fixes_progress.md:21"}
+{"t": "2026-09-30T16:07:00", "by": "coordinator", "task": "SF-1", "ev": "merged", "commits": ["a85f78d"], "src": "docs/plan/start_fixes_progress.md:21"}
+{"t": "2026-09-30T16:30:16", "by": "coordinator", "task": "SF-3", "ev": "accepted", "note": "принята (30.09)", "src": "docs/plan/start_fixes_progress.md:23"}
+{"t": "2026-09-30T16:30:16", "by": "coordinator", "task": "SF-3", "ev": "merged", "commits": ["f6db4cc"], "src": "docs/plan/start_fixes_progress.md:23"}

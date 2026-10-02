@@ -1,0 +1,19 @@
+{
+  "id": "WP-5",
+  "module": "wings-passports",
+  "type": "координатор",
+  "title": "Тесты после правок",
+  "goal": "Тесты после правок",
+  "plan_ref": "WP-5",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/wings-passports",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/wings_passports_progress.md:15",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

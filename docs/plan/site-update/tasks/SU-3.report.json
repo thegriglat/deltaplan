@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (01.10) | 277f932, слияние f2e13a1. `tools/blender/render_wings_site.sh` + `wings_site_jpg.py` (обрезка по содержимому, поле 3,5 %), лист-контакт `tools/site/create_contact_sheet.py`. 48 jpg, 41–59 КБ, всего 2,37 МБ; ~12 мин в 4 потока. C1 зелёный (перепроверено)",
+  "commits": [
+    "277f932"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/site_update_progress.md:10",
+  "dp_feedback": "",
+  "t": "2026-10-01T15:52:39",
+  "by": "dp-mechanic",
+  "migrated": true
+}

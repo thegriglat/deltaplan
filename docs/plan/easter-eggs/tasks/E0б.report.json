@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята (30.09) | тесты test_egg 8/8, К7 6/6 (перепроверено); lint чисто; сборка place 0,4–1,0 мс; горы по порогу (>600 м над дном или >25°): altai, ongudai — да; askarovo, aushkul — нет (дно на ~230 м ниже старта); посёлок от старта 1,2–8,1 км; track-дорог 472–2360; стартов: 3/3/3/1 (ongudai — один → E10 там не появится)",
+  "commits": [
+    "c25147d"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/world_easter_eggs_progress.md:11",
+  "dp_feedback": "",
+  "t": "2026-09-30T02:49:56",
+  "by": "dp-engineer",
+  "migrated": true
+}

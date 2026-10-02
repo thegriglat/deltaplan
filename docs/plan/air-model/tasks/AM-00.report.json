@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "принята | headless 609 тестов; GPU-прогон `tools/gpu_tests.sh` (TestCase.needs_gpu, флаг --gpu); air_velocity_at 14,3 мкс; FPS 89–117; подветр. СКО w 1,08–1,27 м/с, рывки 7–26/мин (3 старта); термики сила ≈2,4 м/с, потолок ≈1790 м, сосед ≈590 м; скрипт tools/research/air_model_baseline/probe.gd; docs/plan/air_model_baseline.md",
+  "commits": [
+    "a287b0c"
+  ],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/air_model_progress.md:9",
+  "dp_feedback": "",
+  "t": "2026-09-29T16:43:39",
+  "by": "Sonnet",
+  "migrated": true
+}

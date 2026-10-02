@@ -1,0 +1,19 @@
+{
+  "id": "А1.2",
+  "module": "air-model",
+  "type": "dp-engineer",
+  "title": "Правки air.py + GPU-решатель по плану А1.1",
+  "goal": "Правки air.py + GPU-решатель по плану А1.1",
+  "plan_ref": "А1.2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:25",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

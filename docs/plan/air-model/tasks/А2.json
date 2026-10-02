@@ -1,0 +1,19 @@
+{
+  "id": "А2",
+  "module": "air-model",
+  "type": "dp-engineer",
+  "title": "Сходимость в штиль (новые параметры)",
+  "goal": "Сходимость в штиль (новые параметры)",
+  "plan_ref": "А2",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:29",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

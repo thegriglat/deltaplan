@@ -1,0 +1,19 @@
+{
+  "id": "E10",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "другая группа",
+  "goal": "другая группа",
+  "plan_ref": "E10",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/easter-eggs",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/world_easter_eggs_progress.md:21",
+  "created": "2026-10-01T08:00:00",
+  "migrated": true
+}

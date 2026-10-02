@@ -1,0 +1,19 @@
+{
+  "id": "AM-09б",
+  "module": "air-model",
+  "type": "dp-researcher",
+  "title": "Хвосты калибровки (К1, волна 1 п. 1.2)",
+  "goal": "Хвосты калибровки (К1, волна 1 п. 1.2)",
+  "plan_ref": "AM-09б",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:22",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

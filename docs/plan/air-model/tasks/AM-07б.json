@@ -1,0 +1,19 @@
+{
+  "id": "AM-07б",
+  "module": "air-model",
+  "type": "Opus",
+  "title": "Термики: ядра и широкий подъём по Аллену",
+  "goal": "Термики: ядра и широкий подъём по Аллену",
+  "plan_ref": "AM-07б",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:19",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

@@ -1,0 +1,14 @@
+{
+  "status": "partial",
+  "summary": "не нужны: интерфейсы не меняются (json-поля те же, `glider_params.json` — параметры модели) | `docs/models.md`, `docs/flight.md` — контракт имён 3D",
+  "commits": [],
+  "checks": [],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "историческая запись; исходник docs/plan/wings_passports_progress.md:11",
+  "dp_feedback": "",
+  "t": "2026-10-01T12:00:00",
+  "by": "—",
+  "migrated": true
+}

@@ -1,0 +1,19 @@
+{
+  "id": "AM-03",
+  "module": "air-model",
+  "type": "Opus",
+  "title": "Пикар на GPU",
+  "goal": "Пикар на GPU",
+  "plan_ref": "AM-03",
+  "contracts": [],
+  "copy": "",
+  "branch": "",
+  "base": "feature/air-model",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/air_model_progress.md:12",
+  "created": "2026-09-29T08:00:00",
+  "migrated": true
+}

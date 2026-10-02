@@ -1,0 +1,19 @@
+{
+  "id": "W3-06",
+  "module": "wings-models3d",
+  "type": "dp-engineer",
+  "title": "новые P2, пачка Г: N21–N23, N27, N30, N33–N39",
+  "goal": "новые P2, пачка Г: N21–N23, N27, N30, N33–N39",
+  "plan_ref": "W3-06",
+  "contracts": [],
+  "copy": "",
+  "branch": "wings3d/w3-06",
+  "base": "feature/wings-models3d",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [],
+  "report_extra": [],
+  "notes": "перенесено из docs/plan/wings_models3d_progress.md:14",
+  "created": "2026-10-01T03:31:39",
+  "migrated": true
+}
