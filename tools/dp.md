@@ -22,6 +22,8 @@ dp task new <модуль> <ID> --type dp-engineer --title "…" --goal "…" [-
     [--contract У2@1] [--scope путь] [--dont-touch путь] [--test ui_controls] \
     [--check ИМЯ "команда" EXPECT] [--from card.json|-] [--force]
 dp task show <ID> [--json]        # карточка для исполнителя, ~15 строк
+dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
+                                  # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
 dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit h] [--note "…"]
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
@@ -33,6 +35,12 @@ dp status [<модуль>] [--full] [--stale 40]
 dp log <модуль|ID> [-n 10] [--full]
 dp plan <модуль|файл.md> [<номер|начало заголовка>] [--contracts] [--depth 3] [--max 150]
 dp render <модуль> [--out путь|-] [--force]
+# главная сессия
+dp plan edit <модуль|файл.md> <раздел> --append "текст" | --replace СТАРОЕ НОВОЕ | --set [ФАЙЛ|-] [--contracts] [--commit]
+dp decide <модуль> "решение" --by user --why "…" [--plan [раздел]]
+dp inbox <модуль> [--by coordinator] [--peek]  |  dp questions  |  dp answer <Qn|модуль/Qn> "ответ"
+dp module new <модуль> [--from main]  |  dp sync <модуль|ветка>  |  dp merge <ветка> [--into main] [--push]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
+dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
 
 ### Карточка (`tasks/<ID>.json`)
@@ -103,6 +111,35 @@ tools/dp render ui-controls --out - | less
 ```
 
 Пример переведённого журнала — `docs/plan/ui-controls/` (из `ui-controls_progress.md`).
+
+## Команды главной сессии
+Раздел — как в `dp plan`: номер из оглавления или начало заголовка. Вывод — одна строка.
+```
+# план и контракты по разделам (событие plan в журнале модуля; --commit — только этот файл, строка Claude-Session из $DP_SESSION)
+dp plan edit air-nn "Решения" --append "- Q оставить на камере (2026-10-02)" --commit
+dp plan edit air-nn 4 --replace "шаг 0.1" "шаг 0.05"        # ровно одно вхождение в разделе, иначе ошибка
+dp plan edit air-nn --contracts У2 --set new_body.md         # --set без файла или «-» — stdin; тело раздела заменяется целиком
+
+# решения и вопросы
+dp decide air-nn "Берём Picard" --by user --why "быстрее" --plan   # + строка в «Решения пользователя» плана (--plan "Раздел" — в другой; создаётся, если дефолтного нет)
+dp inbox air-nn                 # новое с прошлого чтения этим читателем (--by, иначе $DP_ROLE, иначе coordinator); «нового нет»
+dp questions                    # открытые вопросы (decide --ask) по всем модулям: «Q1 [модуль] (возраст): текст»
+dp answer Q1 "Прибор" [--module air-nn]   # = decide --by user --answers Q1; попадает в inbox модуля
+```
+Метка чтения inbox — `docs/plan/<модуль>/.read_<читатель>` (в .gitignore: у каждой копии/читателя своя, в git не нужна).
+
+```
+# ветки и копии (детерминированно; $DP_COPIES — каталог копий вместо ~, для проверок)
+dp module new air-nn [--from main]   # feature/air-nn + git worktree ~/deltaplan-air-nn + module.json/events.jsonl, коммит в ветке
+dp sync air-nn                       # git merge main в копии ветки; конфликт → merge --abort и список файлов; грязная копия → отказ
+dp merge feature/air-nn [--into main] [--push]   # --no-ff в копии, где выписана цель: «main 22d55f2: слияние feature/air-nn, файлов 6»
+dp gc                                # список копий/веток, уже влитых в main (ветки, совпадающие с main, не считаются)
+dp gc --remove                       # git worktree remove (без --force; грязные пропускаются) + git branch -d
+
+# наблюдение и дневник
+dp status --since 30m                # по модулям: события, коммиты веток (не в main), новые вопросы; ≤ 5 событий; + main
+dp digest --since today              # решения пользователя, принятые задачи, правки плана, коммиты main (first-parent)
+```
 
 ## Обратная связь по dp
 Чего не хватило, что неудобно — в конце работы: исполнитель — поле `dp_feedback` отчёта, координатор —

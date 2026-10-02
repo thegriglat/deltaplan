@@ -1,0 +1,201 @@
+{
+  "status": "done",
+  "summary": "terrain_cut.py: стадии screen→select→fetch→cut→figures + status, путь рельефа игры (Terrarium, layer_zoom, _plan_layer, HeightLayer.sample, без сглаживания) → 1601² по 25 м → hc400. Полный прогон: tiles/v1 complete — 345 мест (пул 300, отложено 45: Кавказ/Пиренеи/Аппалачи по 15), все проверки карточки пройдены, побитный повтор и kill -9 в fetch/cut — те же sha256.",
+  "commits": [
+    "5f596bc terrain_cut.py, configs/terrain.yaml, tests/test_terrain_cut.py",
+    "6ce8377 README (раздел рельефов), figures/p2_terrain (гистограммы, index.csv, manifest.json, times.json), ASSETS.md"
+  ],
+  "checks": [
+    {
+      "name": "contract_p6",
+      "value": "П6 v1: ок — мест 345 (пул 300, отложено 45), вырезок проверено 345 (полный прогон без --max)",
+      "pass": true
+    },
+    {
+      "name": "pool_n",
+      "value": "300",
+      "pass": true
+    },
+    {
+      "name": "holdout_n",
+      "value": "45",
+      "pass": true
+    },
+    {
+      "name": "steep_p50_04",
+      "value": "n04 44 (max slope_p50 0,497 при размахе ≤ 3000)",
+      "pass": true
+    },
+    {
+      "name": "ongudai_range",
+      "value": "n_ong 147",
+      "pass": true
+    },
+    {
+      "name": "relief_2k",
+      "value": "n2k 135 (max relief 2984 м)",
+      "pass": true
+    },
+    {
+      "name": "status_complete",
+      "value": "итог: готово (complete)",
+      "pass": true
+    },
+    {
+      "name": "repeat_interrupt",
+      "value": "exit 0: 3 места, 149 тайлов; kill -9 fetch (на 32 тайлах) и cut (после 1 вырезки) + повтор → raw, cut/*.npz, index.csv побитно = эталон без прерываний и = основной прогон tiles/v1",
+      "pass": true
+    },
+    {
+      "name": "путь рельефа vs Copernicus",
+      "value": "Онгудай Terrarium−Copernicus hc400: 0,7 ± 6,8 м (max 37); Алтай −2,0 ± 4,0 м (max 22); slope_p50 0,217/0,219, 0,117/0,117",
+      "pass": true
+    }
+  ],
+  "stage_times_s": {
+    "screen": 741,
+    "select": 3.5,
+    "fetch": 1050,
+    "cut": 37,
+    "figures": 39
+  },
+  "tiles": {
+    "z5": 536,
+    "z8": 10037,
+    "z12": 17814,
+    "z11": 495,
+    "fetch_total": 18309,
+    "fetch_mb": 1179,
+    "rate_tiles_s": 17,
+    "missing": 0
+  },
+  "disk_gb": {
+    "raw": 1.9,
+    "tiles_v1": 2.8,
+    "tmp_terrain_v1": 0.44
+  },
+  "screen_select_numbers": {
+    "grid": 302681,
+    "mask_z5": 53048,
+    "after_z8_filters": 45965,
+    "rejected_select": {
+      "sea_gt_5pct": 3398,
+      "relief_lt_200": 2395,
+      "relief_gt_3100_est": 1290,
+      "ongudai_100km": 19,
+      "holdout_zone": 779
+    },
+    "rejected_cut": {
+      "sea": 11,
+      "relief_gt_3000": 0,
+      "nodata": 0,
+      "reserve_unused": 40
+    },
+    "overlap": "0 — сетка без перекрытия по построению + проверка всех пар в select",
+    "candidates_by_stratum_z8": {
+      "0-0.06": 30483,
+      "0.06-0.12": 8087,
+      "0.12-0.2": 4416,
+      "0.2-0.3": 1684,
+      "0.3-0.4": 425,
+      "0.4+": 72
+    }
+  },
+  "strata_pool": {
+    "s0_0.00-0.06": 49,
+    "s1_0.06-0.12": 51,
+    "s2_0.12-0.20": 47,
+    "s3_0.20-0.30": 59,
+    "s4_0.30-0.40": 51,
+    "s5_0.40-inf": 43
+  },
+  "strata_holdout": {
+    "s0": 19,
+    "s1": 11,
+    "s2": 7,
+    "s3": 5,
+    "s4": 2,
+    "s5": 1
+  },
+  "systems_pool_top": {
+    "rockies_cordillera": 32,
+    "himalaya_tibet": 31,
+    "coast_mountains": 26,
+    "siberia_east": 17,
+    "china_east": 16,
+    "other": 16,
+    "andes_central": 13,
+    "alps": 12,
+    "mexico_central_america": 12,
+    "mongolia_baikal": 12,
+    "new_zealand": 10,
+    "прочие 25 систем": 103
+  },
+  "table_stratum_system": "tools/research/air_nn_pilot/figures/p2_terrain/index.csv (+ таблица в тексте отчёта; manifest.json → counts)",
+  "features_compare": {
+    "pool": "slope_p50 p5/50/95 0,017/0,213/0,446 max 0,497; relief p50 1887 max 2984; tpi2k_p95 p50 279",
+    "holdout": "slope_p50 медиана 0,068 max 0,412; relief медиана 1087 max 2813",
+    "ongudai": "slope_p50 0,219, p95 0,390, relief 1963, tpi 254",
+    "altai": "0,117 / 0,288 / 1114",
+    "procedural_40": "slope_p50 медиана 0,016 (max 0,043), relief медиана 719 (max 1367)"
+  },
+  "not_done": [],
+  "questions": [
+    "Высоты мест пула до 5,5 км (Тибет/Анды: h_mean p95 4,4 км, max 5,47 км) — применим ли решатель (плотность, профиль притока, контекст погоды Онгудая) на такой базе? Если нет — добавить в select предел h_mean (например ≤ 3500 м) и перенарезать (каталог v1 complete, перенарезка — через событие).",
+    "Отложенные системы мягче пула (медиана уклона 0,068 против 0,213; Аппалачи все ≤ 0,185, крутых ≥ 0,3 — 3 места из 45): главный показатель ШП-2 будет мерить в основном пологий рельеф — так задумано или добавить крутую отложенную систему (например, Новую Зеландию или Береговые горы)?",
+    "Правка проверки не нужна; предлагаю координатору дополнить контрактный тест проверкой неперекрытия пула (сейчас её делает select, тест не проверяет)."
+  ],
+  "images": [
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/hist_slope_p50.png",
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/hist_relief.png",
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/scatter_slope_relief.png",
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/map_places.png",
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/examples_hc400.png",
+    "/home/greg/air_nn_data/pilot/tiles/v1/figures/hist_slope_p95.png"
+  ],
+  "how_to_check": "dp accept NN-P4 (из ~/deltaplan-air-nn-terrain); полный контракт: cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_terrain.py",
+  "for_nn_p6": "h float32 в npz; hc400 посчитан из h.astype(float64) тем же reshape-mean, что T.block_mean → в places.location приводить h к float64, тогда T.block_mean/R.grid_domain = hc400 побитно (тест: разница 0,0). Сетка x0=y0=−20000, шаг 25, оси [j — север, i — восток], meta — JSON-строка (lat, lon, zoom, src_spacing_m, tiles, origin_m). Читать только при manifest.complete=true; t_* → кандидат сетки — tiles/v1/sources.json. 32 места на z11 (широта > 61,7°: шаг z12 < 18 м).",
+  "uncertain": [
+    {
+      "where": "tools/research/air_nn_pilot/terrain_cut.py:209",
+      "why": "origin слоя округляю до float32 (Vector2 в Godot одинарной точности); если сборка игры double — расхождение ≤ 1e-4 м сдвига узлов",
+      "checked": "по коду terrarium_loader.gd: origin кладётся в Vector2; сборка проекта стандартная (не double) — не проверял флаг сборки явно"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/terrain_cut.py:232",
+      "why": "билинейная выборка повторяет HeightLayer.sample (clamp, lerpf в double), но побитно с выводом Godot не сверял (Godot не запускал)",
+      "checked": "сверка с Copernicus у Онгудая/Алтая (rms 6,8/4,0 м, признаки совпадают до 0,002) — оси и привязка верны; формулы — построчно по height_layer.gd"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/terrain_cut.py:269",
+      "why": "tpi2k_p95 — моё определение: hc400 − гаусс σ = 2 км (mode nearest), p95 без краевой клетки; контракт его не уточняет",
+      "checked": "так же, как window_centers в places.py (gauss_smooth σ 2000 м); процедурные 31 м, Онгудай 254 м — порядок разумный"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/terrain_cut.py:697 (finalize)",
+      "why": "stratum в index — по точному уклону, а квоты слоёв — по оценке z8: 31 из 300 мест пула в другом слое (поэтому 43…59 на слой, а не ровно 50)",
+      "checked": "отношение точного уклона к z8 0,96–1,00 на пробе; совпадение слоя 269/300"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/configs/terrain.yaml:41",
+      "why": "предел оценки размаха 3100 м (выше контрактных 3000) — расчёт на то, что z8 завышает размах; места с точным размахом > 3000 отсеиваются в cut",
+      "checked": "в cut по размаху не отсеялось ни одно место (max 2984 м); медиана точный/оценка 0,98"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/configs/terrain.yaml (systems)",
+      "why": "боксы систем грубые; Береговые горы BC пришлось выделить отдельно (иначе шли в other мимо предела доли) — слой ≥ 0,4 на 18/43 из них",
+      "checked": "система каждого места крутого слоя просмотрена списком координат; доли ≤ 12 % соблюдены (max 32/300)"
+    },
+    {
+      "where": "tools/research/air_nn_pilot/tests/test_terrain_cut.py",
+      "why": "тест прерывания качает через file:// из основного сырья, не по сети",
+      "checked": "сетевой путь (повторы, атомарная запись, продолжение) отработал в основном прогоне: 18 309 тайлов, 0 пропусков"
+    }
+  ],
+  "dp_feedback": "1) dp в рабочей копии старый (нет поля uncertain) — по указанию координатора отчёт и событие через /home/greg/deltaplan-air-nn/tools/dp абсолютным путём; удобно было бы, если бы dp в копии сам предупреждал/перенаправлял на dp модуля. 2) В dp report нет структурированных полей под время стадий/объём данных/таблицы — положил свои ключи в JSON (stage_times_s, tiles, disk_gb, …); если dp их отбрасывает — нужно поле extra. 3) Фоновые запуски — через tools/job.sh (dp этого не покрывает, это ок).",
+  "время стадий screen/select/fetch/cut, число тайлов, ГБ raw и tiles/v1": "screen 741 с, select 3,5 с, fetch 1050 с, cut 37 с (+ figures 39 с); тайлов: z5 536, z8 10 037 (экран, 0,75 ГБ), z12 17 814 + z11 495 (места, 18 309, 1,18 ГБ, ≈17 тайлов/с, 0 пропусков); raw 1,9 ГБ, tiles/v1 2,8 ГБ, tmp/terrain_v1 0,44 ГБ",
+  "таблица слоёв: мест по stratum и system; признаки Онгудая/Алтая/процедурных для сравнения": "пул по stratum (точный уклон p50): 0–0,06: 49, 0,06–0,12: 51, 0,12–0,2: 47, 0,2–0,3: 59, 0,3–0,4: 51, ≥0,4: 43; отложено (по 15 Кавказ/Пиренеи/Аппалачи): 19/11/7/5/2/1. Системы пула: rockies_cordillera 32 (0/0/1/9/13/9), himalaya_tibet 31 (0/5/3/7/14/2), coast_mountains 26 (0/0/0/1/7/18), siberia_east 17, china_east 16, other 16, andes_central 13, alps 12 (1/0/2/1/4/4), mexico 12, mongolia_baikal 12, new_zealand 10 (0/0/0/2/3/5), ещё 25 систем ≤ 9; полная таблица — figures/p2_terrain/index.csv. Признаки: пул slope_p50 p5/50/95 0,017/0,213/0,446 (max 0,497), relief медиана 1887 (max 2984); отложенные 0,068 медиана (max 0,412), relief 1087 (max 2813); Онгудай 0,219 / p95 0,390 / 1963 м (Terrarium-путь: 0,217/0,386/1964); Алтай 0,117/0,288/1114; процедурные (40) медиана 0,016 (max 0,043), relief 719 (max 1367).",
+  "что отсеялось (море, размах > 3000 м, перекрытие) — числа": "сетка 302 681 → маска гор z5 53 048 → после фильтров z8 45 965: море > 5 % — 3398, размах < 200 м — 2395, размах > 3100 м (оценка z8) — 1290; Онгудай < 100 км — 19, зона отложенных систем — 779; в cut по точным признакам: море — 11, размах > 3000 м — 0, нет данных — 0, запас не понадобился — 40; перекрытие — 0 (сетка без перекрытия по построению, все пары проверены в select)",
+  "t": "2026-10-02T23:48:46",
+  "by": "-"
+}

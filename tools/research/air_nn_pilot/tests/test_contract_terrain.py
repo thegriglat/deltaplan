@@ -6,7 +6,7 @@
 Проверяет: manifest.json (contract «П6 v1»), столбцы и типы index.csv, уникальность id, части pool/holdout;
 у каждой строки — файл cut/<id>.npz с той же sha256; ключи h (1601×1601 float32), hc400 (96×96 float64), meta;
 конечность; hc400 = блочное среднее h 16×16 по области [−19 200, 19 200] м (≤ 1e-6 м); признаки индекса
-согласованы с hc400; размах ≤ 3000 м; инварианты расстояний: места пула не ближе 100 км к Онгудаю, отложенные — не ближе 50 км к пулу.
+согласованы с hc400; размах ≤ 3000 м; неперекрытие пула; инварианты расстояний: места пула не ближе 100 км к Онгудаю, отложенные — не ближе 50 км к пулу.
 Владелец (NN-P4) может дополнять проверки; менять формат — только через координатора (версия контракта).
 """
 from __future__ import annotations
@@ -74,6 +74,16 @@ def check(d: Path, max_cut=0):
     hold = [(float(r["lat"]), float(r["lon"])) for r in rows if r["part"] == "holdout"]
     assert pool and hold, "нужны обе части"
     assert min(dist_km(p, og) for p in pool) >= 100.0, "место пула ближе 100 км к Онгудаю"
+    # неперекрытие квадратов пула 38,4 км: |Δx| ≥ 38,4 км или |Δy| ≥ 38,4 км (местная равнопромежуточная метрика,
+    # допуск 1 % на выбор метрики владельцем)
+    lim = 38.4 * 0.99
+    for a in range(len(pool)):
+        for b in range(a + 1, len(pool)):
+            (la1, lo1), (la2, lo2) = pool[a], pool[b]
+            dy = abs(la2 - la1) * math.pi / 180 * R_EARTH / 1000.0
+            dlo = (lo2 - lo1 + 180.0) % 360.0 - 180.0
+            dx = abs(dlo) * math.pi / 180 * R_EARTH / 1000.0 * math.cos(math.radians((la1 + la2) / 2))
+            assert dx >= lim or dy >= lim, f"квадраты пула перекрываются: {pool[a]} {pool[b]}"
     assert min(dist_km(p, q) for p in hold for q in pool) >= 50.0, "отложенное место ближе 50 км к пулу"
     sel = rows if not max_cut else rows[:: max(1, len(rows) // max_cut)]
     for r in sel:

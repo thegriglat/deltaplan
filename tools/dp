@@ -26,6 +26,7 @@ REVIEW_TYPES = {"dp-engineer", "dp-researcher"}  # этим задачам по�
 VERDICTS = ("accept", "rework")
 SEVERITY = {"blocker": "B", "major": "M", "minor": "m"}
 MAX_ISSUES = 7
+DEFAULT_SECTION = "Решения пользователя"
 GODOT_TESTS = "godot --headless --path . res://tests/run_tests.tscn -- --filter={f}"
 
 
@@ -306,6 +307,66 @@ def fmt_check(c):
     return f"{c['name']}: `{c.get('cmd', '')}` → {json.dumps(exp, ensure_ascii=False) if isinstance(exp, dict) else exp}"
 
 
+def _set_value(raw):
+    """Значение поля: JSON, если разбирается (числа, списки, объекты, true/false), иначе строка."""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+
+
+def cmd_task_set(a):
+    """Правка карточки без переписывания JSON: поле=значение, поле+=элемент, поле-=элемент, проверки приёмки."""
+    mod, home = find_task(a.id)
+    p = home / "tasks" / f"{a.id}.json"
+    card = read_json(p)
+    changed = []
+    for op in a.ops or []:
+        m = re.match(r"^([A-Za-z_][\w]*)(\+=|-=|=)(.*)$", op, re.S)
+        if not m:
+            raise DpError(f"«{op}»: ожидалось поле=значение | поле+=элемент | поле-=элемент")
+        key, kind, raw = m.groups()
+        if key == "id":
+            raise DpError("id не меняется")
+        val = _set_value(raw)
+        if kind == "=":
+            card[key] = val
+        else:
+            lst = card.get(key)
+            if lst is None:
+                lst = []
+            if not isinstance(lst, list):
+                raise DpError(f"{key} — не список, «{kind}» неприменимо")
+            if kind == "+=":
+                lst.append(val)
+            else:
+                keep = [x for x in lst if not (x == val or (isinstance(x, dict) and x.get("name") == val))]
+                if len(keep) == len(lst):
+                    raise DpError(f"{key}: «{raw}» не найдено")
+                lst = keep
+            card[key] = lst
+        changed.append(key)
+    acc = card.setdefault("accept", [])
+    for name, cmd, exp in a.check or []:
+        acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": exp}]
+        changed.append(f"accept:{name}")
+    for f in a.test or []:
+        acc[:] = [c for c in acc if c.get("name") != f] + [{"name": f, "tests": f}]
+        changed.append(f"accept:{f}")
+    for name in a.drop_check or []:
+        n0 = len(acc)
+        acc[:] = [c for c in acc if c.get("name") != name]
+        if len(acc) == n0:
+            raise DpError(f"проверки «{name}» нет в карточке")
+        changed.append(f"accept:-{name}")
+    if not changed:
+        raise DpError("нечего менять: поле=значение, --check, --test, --drop-check")
+    card["edited"] = now()
+    write_json(p, card)
+    add_event(home, a.id, "edited", by_default(a), note=", ".join(changed))
+    print(f"{a.id}: изменено — {', '.join(changed)}")
+
+
 def cmd_task_show(a):
     mod, home = find_task(a.id)
     card = read_json(home / "tasks" / f"{a.id}.json")
@@ -362,6 +423,13 @@ def cmd_decide(a):
     ensure_module(a.module, home)
     decs = read_jsonl(home / "decisions.jsonl")
     d = {"t": a.date or now(), "by": a.by or by_default(a), "text": a.text}
+    plan_note = ""
+    if a.plan is not None:
+        if a.ask:
+            raise DpError("--plan — для решений, не для --ask")
+        line = f"- **{a.text}** ({d['t'][:10]})" + (f" — {a.why}" if a.why else "")
+        _, title, _ = plan_edit(a.module, a.plan, append=line, create=a.plan == DEFAULT_SECTION)
+        plan_note = f"; в план: {short(title, 40)}"
     if a.why:
         d["why"] = a.why
     if a.task:
@@ -374,7 +442,7 @@ def cmd_decide(a):
         if a.answers:
             d["answers"] = a.answers
     append_jsonl(home / "decisions.jsonl", d)
-    print(f"{a.module}: {d.get('id', 'решение')} записан{'' if a.ask else 'о'} ({d['by']})")
+    print(f"{a.module}: {d.get('id', 'решение')} записан{'' if a.ask else 'о'} ({d['by']}){plan_note}")
 
 
 def cmd_log(a):
@@ -769,6 +837,8 @@ def module_status(mod, home, a, lines):
 
 
 def cmd_status(a):
+    if a.since:
+        return status_since(a)
     mods = all_modules()
     lines = []
     if a.module:
@@ -804,16 +874,46 @@ def plan_headings(text):
     return lines, out
 
 
+def plan_path(target, contracts=False):
+    if target.endswith(".md") or "/" in target:
+        path = Path(target)
+        return path if path.is_absolute() else toplevel() / path
+    home = all_modules().get(target) or module_home(target)
+    meta = module_meta(target, home)
+    f = meta["contracts"] if contracts else meta["plan"]
+    root = home.parent.parent.parent
+    return root / f if (root / f).exists() else toplevel() / f
+
+
+def find_section(heads, q):
+    """Индекс заголовка по номеру из оглавления или началу/вхождению текста; None, если нет."""
+    q = q.strip()
+    if q.isdigit() and 1 <= int(q) <= len(heads):
+        return int(q) - 1
+    ql = q.lower().lstrip("§").strip()
+    for pref in (True, False):
+        for n, (_, _, t) in enumerate(heads):
+            tl = t.lower().replace("§", "").strip()
+            if (tl.startswith(ql) if pref else ql in tl):
+                return n
+    return None
+
+
+def section_end(lines, heads, sel):
+    i, lvl, _ = heads[sel]
+    for j, l2, _ in heads[sel + 1:]:
+        if l2 <= lvl:
+            return j
+    return len(lines)
+
+
 def cmd_plan(a):
-    if a.target.endswith(".md") or "/" in a.target:
-        path = Path(a.target)
-        path = path if path.is_absolute() else toplevel() / path
-    else:
-        home = all_modules().get(a.target) or module_home(a.target)
-        meta = module_meta(a.target, home)
-        f = meta["contracts"] if a.contracts else meta["plan"]
-        root = home.parent.parent.parent
-        path = root / f if (root / f).exists() else toplevel() / f
+    if a.target == "edit":
+        if not a.section or not a.extra:
+            raise DpError("dp plan edit <модуль|файл.md> <раздел> --append|--replace СТАРОЕ НОВОЕ|--set [ФАЙЛ|-]")
+        a.target, a.section = a.section, a.extra
+        return cmd_plan_edit(a)
+    path = plan_path(a.target, a.contracts)
     if not path.exists():
         raise DpError(f"нет файла {rel(path)}")
     lines, heads = plan_headings(path.read_text())
@@ -823,34 +923,100 @@ def cmd_plan(a):
             if lvl <= a.depth:
                 print(f"{n:>3} {'  ' * (lvl - 1)}{short(t, 90)}  ({_sec_len(lines, heads, n - 1)})")
         return
-    sel = None
-    q = a.section.strip()
-    if q.isdigit() and 1 <= int(q) <= len(heads):
-        sel = int(q) - 1
-    else:
-        ql = q.lower().lstrip("§").strip()
-        for pref in (True, False):
-            for n, (_, _, t) in enumerate(heads):
-                tl = t.lower().replace("§", "").strip()
-                if (tl.startswith(ql) if pref else ql in tl):
-                    sel = n
-                    break
-            if sel is not None:
-                break
+    sel = find_section(heads, a.section)
     if sel is None:
-        raise DpError(f"раздел «{q}» не найден; оглавление — dp plan {a.target}")
-    i, lvl, _ = heads[sel]
-    end = len(lines)
-    for j, l2, _ in heads[sel + 1:]:
-        if l2 <= lvl:
-            end = j
-            break
-    body = lines[i:end]
+        raise DpError(f"раздел «{a.section.strip()}» не найден; оглавление — dp plan {a.target}")
+    i = heads[sel][0]
+    body = lines[i:section_end(lines, heads, sel)]
     while body and not body[-1].strip():
         body.pop()
     if a.max and len(body) > a.max:
         body = body[: a.max] + [f"… ещё {len(body) - a.max} строк (--max 0 — всё)"]
     print("\n".join(body))
+
+
+def session_line():
+    v = os.environ.get("DP_SESSION", "").strip()
+    if not v:
+        return ""
+    return f"Claude-Session: {v if '://' in v else 'https://claude.ai/code/' + v}"
+
+
+def gitr(*args, cwd=None):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+
+
+def gerr(r):
+    return " ".join((r.stderr.strip() or r.stdout.strip()).splitlines()[-2:])
+
+
+def commit_paths(cwd, paths, msg):
+    """git add <пути> && git commit -- <пути>; индекс других путей не трогаем. → короткий хеш."""
+    r = gitr("add", "--", *map(str, paths), cwd=cwd)
+    if r.returncode:
+        raise DpError(f"git add: {gerr(r)}")
+    cm = ["commit", "-m", msg] + (["-m", session_line()] if session_line() else []) + ["--", *map(str, paths)]
+    r = gitr(*cm, cwd=cwd)
+    if r.returncode:
+        raise DpError(f"git commit: {gerr(r)}")
+    return gitr("rev-parse", "--short", "HEAD", cwd=cwd).stdout.strip()
+
+
+def plan_edit(target, section, contracts=False, append=None, replace=None, set_=None, create=False):
+    """Правка тела раздела. → (путь, заголовок, что сделано)."""
+    path = plan_path(target, contracts)
+    if not path.exists():
+        raise DpError(f"нет файла {rel(path)}")
+    lines, heads = plan_headings(path.read_text())
+    sel = find_section(heads, section)
+    if sel is None:
+        if not create:
+            raise DpError(f"раздел «{section.strip()}» не найден; оглавление — dp plan {target}")
+        lines += ["", f"## {section}", ""]
+        lines, heads = plan_headings("\n".join(lines))
+        sel = len(heads) - 1
+    i, _, title = heads[sel]
+    end = section_end(lines, heads, sel)
+    be = end
+    while be > i + 1 and not lines[be - 1].strip():
+        be -= 1
+    if append is not None:
+        new = append.rstrip("\n").splitlines()
+        lines[be:be] = ([""] if be == i + 1 else []) + new
+        what = f"дописано {len(new)} стр."
+    elif replace:
+        old, new = replace
+        body = "\n".join(lines[i + 1:end])
+        n = body.count(old)
+        if n != 1:
+            raise DpError(f"«{short(old, 40)}» в разделе «{short(title, 40)}»: вхождений {n}, нужно ровно одно")
+        lines[i + 1:end] = body.replace(old, new).split("\n")
+        what = f"замена «{short(old, 25)}»"
+    elif set_ is not None:
+        new = set_.rstrip("\n").splitlines()
+        lines[i + 1:be] = ([""] + new) if new else []
+        what = f"тело заменено ({len(new)} стр.)"
+    else:
+        raise DpError("нужно --append, --replace СТАРОЕ НОВОЕ или --set [ФАЙЛ|-]")
+    path.write_text("\n".join(lines) + "\n")
+    return path, title, what
+
+
+def cmd_plan_edit(a):
+    set_ = None
+    if a.set is not None:
+        set_ = sys.stdin.read() if a.set == "-" else Path(a.set).read_text()
+    path, title, what = plan_edit(a.target, a.section, a.contracts, a.append, a.replace, set_)
+    out = f"{a.target}: {short(title, 50)}: {what}"
+    is_mod = not (a.target.endswith(".md") or "/" in a.target)
+    if is_mod:
+        home = all_modules().get(a.target) or module_home(a.target)
+        add_event(home, None, "plan", by_default(a), note=f"{'контракты' if a.contracts else 'план'} {short(title, 50)}: {what}")
+    if a.commit:
+        h = commit_paths(path.parent, [path], f"{a.target if is_mod else path.name}: {'контракты' if a.contracts else 'план'} — "
+                                              f"{short(title.lstrip('§ '), 50)}: {what}")
+        out += f"; коммит {h}"
+    print(out)
 
 
 def _sec_len(lines, heads, n):
@@ -937,6 +1103,334 @@ def cmd_init(a):
     print(f"{a.module}: {rel(home)}")
 
 
+# ---------------------------------------------------------------- inbox, вопросы, ответы
+
+def open_questions(home):
+    decs = read_jsonl(home / "decisions.jsonl")
+    answered = {x.get("answers") for x in decs if x.get("answers")}
+    return [q for q in decs if q.get("kind") == "question" and q.get("id") not in answered]
+
+
+def hm(t):
+    return str(t)[5:16].replace("T", " ")
+
+
+def cmd_inbox(a):
+    mods = all_modules()
+    if a.module not in mods:
+        raise DpError(f"модуль {a.module} не найден (есть: {', '.join(mods) or 'нет'})")
+    home = mods[a.module]
+    reader = a.by or os.environ.get("DP_ROLE") or "coordinator"
+    stamp_p = home / f".read_{reader}"
+    since = stamp_p.read_text().strip() if stamp_p.exists() else ""
+    decs = read_jsonl(home / "decisions.jsonl")
+    qtext = {d.get("id"): d.get("text", "") for d in decs if d.get("kind") == "question"}
+    items = []
+    for d in decs:
+        if d.get("t", "") < since or d.get("by") == reader:
+            continue
+        if d.get("kind") == "question":
+            what = f"вопрос {d['id']}: {d['text']}"
+        elif d.get("answers"):
+            what = f"ответ на {d['answers']} «{short(qtext.get(d['answers'], ''), 60)}»: {d['text']}"
+        else:
+            what = f"решение: {d['text']}"
+        items.append((d["t"], f"{what}" + (f" — {d['why']}" if d.get("why") else "") + f" ({d.get('by', '-')})"))
+    for e in read_jsonl(home / "events.jsonl"):
+        if e.get("t", "") >= since and e.get("ev") in ("plan", "note") and e.get("by") != reader:
+            items.append((e["t"], f"{'правка плана' if e['ev'] == 'plan' else 'заметка'} ({e.get('by', '-')}): {e.get('note', '')}"))
+    items.sort()
+    if not items:
+        print(f"{a.module}: нового нет")
+    else:
+        skipped = max(0, len(items) - a.max)
+        if skipped:
+            print(f"… ещё {skipped} старых")
+        for t, what in items[-a.max:]:
+            print(f"{hm(t)} {short(what, 400 if not a.full else 10000)}")
+    if not a.peek:
+        stamp_p.write_text(now() + "\n")
+
+
+def find_open_question(qid, module=None):
+    """(модуль, дом, вопрос) по Qn или модуль/Qn."""
+    if "/" in qid:
+        module, _, qid = qid.partition("/")
+    mods = all_modules()
+    hits = []
+    for m, h in mods.items():
+        if module and m != module:
+            continue
+        hits += [(m, h, q) for q in open_questions(h) if q.get("id") == qid]
+    if not hits:
+        raise DpError(f"открытого вопроса {qid} нет" + (f" в модуле {module}" if module else "") + " (dp questions)")
+    if len(hits) > 1:
+        raise DpError(f"{qid} открыт в нескольких модулях ({', '.join(m for m, _, _ in hits)}): --module")
+    return hits[0]
+
+
+def cmd_questions(a):
+    n = 0
+    for m, h in all_modules().items():
+        for q in open_questions(h):
+            n += 1
+            print(f"{q['id']} [{m}] ({age(q['t'])}): {short(q['text'], 200 if not a.full else 10000)}")
+    if not n:
+        print("открытых вопросов нет")
+
+
+def cmd_answer(a):
+    mod, home, q = find_open_question(a.qid, a.module)
+    d = {"t": now(), "by": a.by or "user", "kind": "decision", "text": a.text, "answers": q["id"]}
+    append_jsonl(home / "decisions.jsonl", d)
+    print(f"{mod}: ответ на {q['id']} записан ({d['by']}) → dp inbox {mod}")
+
+
+# ---------------------------------------------------------------- ветки и копии
+
+def pretty(p):
+    return str(p).replace(str(Path.home()), "~")
+
+
+def home_base():
+    return Path(os.environ.get("DP_COPIES") or Path.home())
+
+
+def copy_of(branch):
+    for p, b in worktrees():
+        if b == branch:
+            return Path(p)
+    return None
+
+
+def branch_exists(br):
+    return gitr("rev-parse", "--verify", "-q", f"refs/heads/{br}").returncode == 0
+
+
+def resolve_branch(x):
+    """модуль или имя ветки → ветка."""
+    if branch_exists(x):
+        return x
+    if branch_exists(f"feature/{x}"):
+        return f"feature/{x}"
+    raise DpError(f"ветки {x} (или feature/{x}) нет")
+
+
+def dirty(path):
+    return [l for l in gitr("status", "--porcelain", "--untracked-files=no", cwd=path).stdout.splitlines() if l.strip()]
+
+
+def do_merge(path, src, msg, ff=True):
+    """merge src в ветку копии path. → (хеш, файлов, 'up-to-date'|'merged'); конфликт → abort + DpError."""
+    if dirty(path):
+        raise DpError(f"копия {pretty(path)} грязная (изменения в отслеживаемых файлах) — отказ")
+    before = gitr("rev-parse", "HEAD", cwd=path).stdout.strip()
+    args = ["merge", "--no-edit", "-m", msg] + (["-m", session_line()] if session_line() else []) + ([] if ff else ["--no-ff"]) + [src]
+    r = gitr(*args, cwd=path)
+    if r.returncode:
+        files = gitr("diff", "--name-only", "--diff-filter=U", cwd=path).stdout.split()
+        gitr("merge", "--abort", cwd=path)
+        raise DpError(f"конфликт при слиянии {src} в {pretty(path)}, отменено (merge --abort); файлы: {', '.join(files) or gerr(r)}")
+    after = gitr("rev-parse", "HEAD", cwd=path).stdout.strip()
+    if after == before:
+        return after[:7], 0, "up-to-date"
+    nfiles = len(gitr("diff", "--name-only", before, after, cwd=path).stdout.split())
+    return after[:7], nfiles, "merged"
+
+
+def cmd_module_new(a):
+    mod = a.module
+    br = f"feature/{mod}"
+    copy = home_base() / f"deltaplan-{mod}"
+    if branch_exists(br):
+        raise DpError(f"ветка {br} уже есть")
+    if copy.exists():
+        raise DpError(f"{copy} уже существует")
+    if not branch_exists(a.from_):
+        raise DpError(f"базовой ветки {a.from_} нет")
+    r = gitr("worktree", "add", "-b", br, str(copy), a.from_)
+    if r.returncode:
+        raise DpError(f"git worktree add: {gerr(r)}")
+    global _WT
+    _WT = None
+    home = copy / "docs/plan" / mod
+    ensure_module(mod, home, copy=str(copy).replace(str(Path.home()), "~"))
+    add_event(home, None, "note", by_default(a), note=f"модуль заведён от {a.from_}")
+    h = commit_paths(copy, [home], f"{mod}: заведён модуль dp (module.json, events.jsonl)")
+    print(f"{mod}: {br} от {a.from_} @ {str(copy).replace(str(Path.home()), '~')}, коммит {h}")
+
+
+def cmd_sync(a):
+    br = resolve_branch(a.target)
+    path = copy_of(br)
+    if not path:
+        raise DpError(f"у ветки {br} нет рабочей копии")
+    h, n, kind = do_merge(path, "main", f"Слияние main в {br}")
+    print(f"{br}: main уже влит" if kind == "up-to-date" else f"{br}: влит main, {h}, файлов {n}")
+
+
+def cmd_merge(a):
+    br = resolve_branch(a.branch)
+    path = copy_of(a.into)
+    if not path:
+        raise DpError(f"ветка {a.into} нигде не выписана — нужна копия, где она открыта")
+    subj = gitr("log", "-1", "--format=%s", br, "--").stdout.strip()
+    h, n, kind = do_merge(path, br, f"Слияние {br}: {subj}", ff=False)
+    out = f"{a.into}: {br} уже влита" if kind == "up-to-date" else f"{a.into} {h}: слияние {br}, файлов {n}"
+    if a.push:
+        r = gitr("push", "origin", a.into, cwd=path)
+        if r.returncode:
+            raise DpError(f"{out}; push не удался: {gerr(r)}")
+        out += "; pushed"
+    print(out)
+
+
+def cmd_gc(a):
+    main_tip = gitr("rev-parse", "main").stdout.strip()
+    merged = [b for b in gitr("branch", "--merged", "main", "--format=%(refname:short)").stdout.split()
+              if b not in ("main", "master")]
+    here = str(toplevel())
+    wt = {b: p for p, b in worktrees()}
+    n = 0
+    if a.branches:
+        want = {x if "/" in x else f"feature/{x}" for x in a.branches} | set(a.branches)
+        miss = [x for x in a.branches if x not in merged and f"feature/{x}" not in merged]
+        if miss:
+            raise DpError(f"не влиты в main или нет такой ветки: {', '.join(miss)}")
+        merged = [b for b in merged if b in want]
+    for b in merged:
+        if gitr("rev-parse", b).stdout.strip() == main_tip:
+            continue  # ветка = main (только что заведена или влита fast-forward) — не трогаем
+        path = wt.get(b)
+        label = f"{b}" + (f" @ {pretty(path)}" if path else " (без копии)")
+        if not a.remove:
+            print(label)
+            n += 1
+            continue
+        if path and path == here:
+            print(f"пропуск {label}: это текущая копия")
+            continue
+        if path:
+            d = dirty(path)
+            if d:
+                print(f"пропуск {label}: грязная копия ({len(d)} файлов)")
+                continue
+            junk = [l[3:] for l in subprocess.run(["git", "-C", str(path), "status", "--porcelain"], capture_output=True,
+                                                     text=True).stdout.splitlines() if l.startswith("?? ")]
+            other = [f for f in junk if not f.endswith(".uid")]
+            if other:
+                print(f"пропуск {label}: неотслеживаемые файлы ({len(other)}: {', '.join(other[:3])})")
+                continue
+            # только сгенерированные Godot *.uid — не работа, снимаем копию с --force
+            r = gitr("worktree", "remove", *(["--force"] if junk else []), path)
+            if r.returncode:
+                print(f"пропуск {label}: {gerr(r)}")
+                continue
+        r = gitr("branch", "-d", b)
+        print(f"удалено {label}" if r.returncode == 0 else f"копия снята, ветка {b} осталась: {gerr(r)}")
+        n += 1
+    if not n:
+        print("влитых веток нет")
+
+
+# ---------------------------------------------------------------- наблюдение, дневник
+
+def parse_since(s):
+    s = s.strip().lower()
+    t0 = dt.datetime.now()
+    if s == "today":
+        return t0.replace(hour=0, minute=0, second=0, microsecond=0)
+    m = re.fullmatch(r"(\d+)([mhd])", s)
+    if m:
+        return t0 - dt.timedelta(**{{"m": "minutes", "h": "hours", "d": "days"}[m[2]]: int(m[1])})
+    try:
+        return dt.datetime.fromisoformat(s)
+    except ValueError:
+        raise DpError(f"--since «{s}»: ожидалось 30m | 2h | 1d | today | ГГГГ-ММ-ДД")
+
+
+def log_since(cut, ref, *extra):
+    out = gitr("log", f"--since={cut.strftime('%Y-%m-%d %H:%M:%S')}", "--format=%h %s", ref, *extra, "--").stdout
+    return [l for l in out.splitlines() if l.strip()]
+
+
+def status_since(a):
+    cut = parse_since(a.since)
+    iso = cut.isoformat()
+    mods = all_modules()
+    if a.module:
+        if a.module not in mods:
+            raise DpError(f"модуль {a.module} не найден (есть: {', '.join(mods) or 'нет'})")
+        mods = {a.module: mods[a.module]}
+    wt = {b: p for p, b in worktrees()}
+    feats = [b for b in gitr("for-each-ref", "--format=%(refname:short)", "refs/heads/feature/").stdout.split()]
+    seen, L = set(), []
+    for mod, home in mods.items():
+        cards = task_cards(home)
+        brs = [f"feature/{mod}"] + [c["branch"] for c in cards.values() if c and c.get("branch")]
+        evs = [e for e in read_jsonl(home / "events.jsonl") if e.get("t", "") >= iso]
+        qs = [q for q in read_jsonl(home / "decisions.jsonl") if q.get("kind") == "question" and q.get("t", "") >= iso]
+        blines, ncom = [], 0
+        for b in dict.fromkeys(brs):
+            seen.add(b)
+            if branch_exists(b):
+                cs = log_since(cut, b, "--no-merges", "--not", "main")
+                if cs:
+                    ncom += len(cs)
+                    blines.append(f"  {b} {len(cs)}к: {short(cs[0], 70)}" + (f" @ {pretty(wt[b])}" if b in wt else ""))
+        if not (evs or qs or blines):
+            continue
+        L.append(f"{mod}: событий {len(evs)}, коммитов {ncom}, новых вопросов {len(qs)}")
+        L += blines
+        L += [f"  ? {q['id']}: {short(q['text'], 80)}" for q in qs]
+        for e in evs[-5:]:
+            L.append(f"  {str(e['t'])[11:16]} {e.get('task') or '·'} {e['ev']} ({e.get('by', '-')})"
+                     + (f" — {short(e['note'], 80)}" if e.get("note") else ""))
+        if len(evs) > 5:
+            L.append(f"  … ещё {len(evs) - 5} событий (dp log {mod})")
+    if not a.module:
+        for b in feats:
+            if b not in seen:
+                cs = log_since(cut, b, "--no-merges", "--not", "main")
+                if cs:
+                    L.append(f"{b} (без dp): {len(cs)}к: {short(cs[0], 70)}" + (f" @ {pretty(wt[b])}" if b in wt else ""))
+        mc = log_since(cut, "main", "--first-parent")
+        if mc:
+            L.append(f"main: {len(mc)} коммитов, последний {short(mc[0], 80)}")
+    print("\n".join(L) if L else f"с {iso[:16].replace('T', ' ')} тихо")
+
+
+def cmd_digest(a):
+    cut = parse_since(a.since)
+    iso = cut.isoformat()
+    L = [f"# с {iso[:16].replace('T', ' ')}"]
+    dec, acc, plans = [], [], []
+    for mod, home in all_modules().items():
+        for d in read_jsonl(home / "decisions.jsonl"):
+            if d.get("t", "") >= iso and d.get("kind") != "question" and d.get("by") == "user":
+                dec.append(f"- [{mod}] {d['text']}" + (f" — {d['why']}" if d.get("why") else "")
+                           + (f" (ответ на {d['answers']})" if d.get("answers") else ""))
+        cards = task_cards(home)
+        for e in read_jsonl(home / "events.jsonl"):
+            if e.get("t", "") < iso:
+                continue
+            if e.get("ev") == "accepted" and e.get("task"):
+                acc.append(f"- [{mod}] {e['task']} {short((cards.get(e['task']) or {}).get('title', ''), 80)}")
+            elif e.get("ev") == "plan":
+                plans.append(f"- [{mod}] {e.get('note', '')}")
+    for title, items in (("Решения пользователя", dec), ("Принятые задачи", acc), ("Правки плана", plans)):
+        if items:
+            L += ["", f"## {title}"] + list(dict.fromkeys(items))
+    mc = log_since(cut, "main", "--first-parent")
+    if mc:
+        L += ["", f"## Коммиты main ({len(mc)})"] + [f"- {short(c, 120)}" for c in mc[:30]]
+        if len(mc) > 30:
+            L.append(f"- … ещё {len(mc) - 30}")
+    if len(L) == 1:
+        L.append("ничего нового")
+    print("\n".join(L))
+
+
 # ---------------------------------------------------------------- CLI
 
 class Parser(argparse.ArgumentParser):
@@ -955,8 +1449,8 @@ def build():
     q.add_argument("--plan"); q.add_argument("--contracts"); q.add_argument("--branch"); q.add_argument("--copy")
     q.set_defaults(fn=cmd_init)
 
-    t = sp.add_parser("task", help="карточка задачи: new | show")
-    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show")
+    t = sp.add_parser("task", help="карточка задачи: new | show | set")
+    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set")
     q = tsp.add_parser("new", help="создать карточку")
     q.add_argument("module"); q.add_argument("id")
     q.add_argument("--type", help="dp-engineer|dp-researcher|dp-writer|dp-mechanic")
@@ -973,6 +1467,13 @@ def build():
     q = tsp.add_parser("show", help="карточка для исполнителя (коротко)")
     q.add_argument("id"); q.add_argument("--json", action="store_true")
     q.set_defaults(fn=cmd_task_show)
+    q = tsp.add_parser("set", help="правка карточки: поле=значение | поле+=элемент | поле-=элемент (JSON или строка)")
+    q.add_argument("id"); q.add_argument("ops", nargs="*", metavar="ПОЛЕ=ЗНАЧ")
+    q.add_argument("--check", action="append", nargs=3, metavar=("ИМЯ", "CMD", "EXPECT"), help="добавить/заменить проверку")
+    q.add_argument("--test", action="append", metavar="ФИЛЬТР", help="добавить/заменить проверку headless-тестов")
+    q.add_argument("--drop-check", dest="drop_check", action="append", metavar="ИМЯ", help="убрать проверку")
+    q.add_argument("--by")
+    q.set_defaults(fn=cmd_task_set)
 
     q = sp.add_parser("event", help="событие задачи (или note модуля) в events.jsonl")
     q.add_argument("target", metavar="ID|модуль"); q.add_argument("kind", choices=EVENT_KINDS)
@@ -984,6 +1485,8 @@ def build():
     q.add_argument("--by", help="user|coordinator|main"); q.add_argument("--why"); q.add_argument("--task")
     q.add_argument("--ask", action="store_true", help="открыть вопрос (шлюз) → Qn")
     q.add_argument("--answers", metavar="Qn", help="закрывает вопрос")
+    q.add_argument("--plan", nargs="?", const=DEFAULT_SECTION, metavar="РАЗДЕЛ",
+                   help=f"дописать «- **решение** (дата) — почему» в раздел плана (без значения — «{DEFAULT_SECTION}»)")
     q.add_argument("--date", help=argparse.SUPPRESS)
     q.set_defaults(fn=cmd_decide)
 
@@ -1016,6 +1519,7 @@ def build():
     q = sp.add_parser("status", help="сводка: задачи, ветки, тишина, вопросы пользователю")
     q.add_argument("module", nargs="?"); q.add_argument("--full", action="store_true", help="и закрытые задачи")
     q.add_argument("--stale", type=int, default=40, metavar="МИН", help="порог «тихо» (40)")
+    q.add_argument("--since", metavar="30m|2h|today", help="за период: коммиты веток, события, новые вопросы (все модули и копии)")
     q.set_defaults(fn=cmd_status)
 
     q = sp.add_parser("log", help="последние события модуля или задачи")
@@ -1024,11 +1528,52 @@ def build():
     q.set_defaults(fn=cmd_log)
 
     q = sp.add_parser("plan", help="оглавление плана или раздел (номер из оглавления или начало заголовка)")
-    q.add_argument("target", metavar="модуль|файл.md"); q.add_argument("section", nargs="?")
+    q.add_argument("target", metavar="модуль|файл.md|edit"); q.add_argument("section", nargs="?"); q.add_argument("extra", nargs="?")
     q.add_argument("--contracts", action="store_true", help="файл контрактов модуля вместо плана")
+    q.add_argument("--append", metavar="ТЕКСТ", help="edit: дописать в конец раздела")
+    q.add_argument("--replace", nargs=2, metavar=("СТАРОЕ", "НОВОЕ"), help="edit: точная замена в разделе (ровно одно вхождение)")
+    q.add_argument("--set", nargs="?", const="-", metavar="ФАЙЛ", help="edit: заменить тело раздела (ФАЙЛ или stdin)")
+    q.add_argument("--commit", action="store_true", help="edit: закоммитить файл (только его)"); q.add_argument("--by")
     q.add_argument("--depth", type=int, default=3, help="уровни заголовков в оглавлении (3)")
     q.add_argument("--max", type=int, default=150, help="строк раздела (150; 0 — всё)")
     q.set_defaults(fn=cmd_plan)
+
+    q = sp.add_parser("inbox", help="новое для читателя в модуле: решения, ответы, правки плана, заметки")
+    q.add_argument("module"); q.add_argument("--by", help="читатель (по умолчанию $DP_ROLE или coordinator)")
+    q.add_argument("--peek", action="store_true", help="не отмечать прочитанным"); q.add_argument("--max", type=int, default=20)
+    q.add_argument("--full", action="store_true")
+    q.set_defaults(fn=cmd_inbox)
+
+    q = sp.add_parser("questions", help="открытые вопросы пользователю по всем модулям")
+    q.add_argument("--full", action="store_true")
+    q.set_defaults(fn=cmd_questions)
+
+    q = sp.add_parser("answer", help="ответ пользователя на вопрос Qn (попадает в inbox модуля)")
+    q.add_argument("qid", metavar="Qn|модуль/Qn"); q.add_argument("text"); q.add_argument("--module"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_answer)
+
+    m = sp.add_parser("module", help="module new: ветка + копия + журнал")
+    msp = m.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new")
+    q = msp.add_parser("new", help="ветка feature/<модуль> + git worktree ~/deltaplan-<модуль> + module.json/events.jsonl")
+    q.add_argument("module"); q.add_argument("--from", dest="from_", default="main"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_module_new)
+
+    q = sp.add_parser("sync", help="влить main в ветку модуля (в её копии)")
+    q.add_argument("target", metavar="модуль|ветка")
+    q.set_defaults(fn=cmd_sync)
+
+    q = sp.add_parser("merge", help="слияние --no-ff ветки в целевую (в копии, где она выписана)")
+    q.add_argument("branch", metavar="ветка|модуль"); q.add_argument("--into", default="main"); q.add_argument("--push", action="store_true")
+    q.set_defaults(fn=cmd_merge)
+
+    q = sp.add_parser("gc", help="копии и ветки, уже влитые в main (список; --remove — удалить)")
+    q.add_argument("branches", nargs="*", metavar="ВЕТКА|МОДУЛЬ", help="только эти (модуль → feature/<модуль>)")
+    q.add_argument("--remove", action="store_true")
+    q.set_defaults(fn=cmd_gc)
+
+    q = sp.add_parser("digest", help="основа записи дневника: решения, принятые задачи, правки плана, коммиты main")
+    q.add_argument("--since", default="today", metavar="today|ДАТА|2h")
+    q.set_defaults(fn=cmd_digest)
 
     q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>_progress.md")
     q.add_argument("module"); q.add_argument("--out", help="путь или - (stdout)"); q.add_argument("--force", action="store_true")
