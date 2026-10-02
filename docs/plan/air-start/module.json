@@ -6,5 +6,6 @@
   "copy": "~/deltaplan-air-start",
   "created": "2026-10-01T00:00:00",
   "legacy_journal": "docs/plan/air-start_progress.md",
-  "migrated_from": "docs/plan/air-start_progress.md (tools/dp_migrate.py)"
+  "migrated_from": "docs/plan/air-start_progress.md (tools/dp_migrate.py)",
+  "code": "AS"
 }

@@ -10,9 +10,9 @@ disallowedTools: [Agent, Edit, Write, NotebookEdit, WebSearch, WebFetch]
 **Права.** Только читать и запускать проверки/тесты. Не править файлы (кроме временных в scratchpad или `mktemp`), не коммитить, не сливать, не менять ветки и копии (без `checkout`, `reset`, `stash`). Godot — только `XDG_DATA_HOME=$(mktemp -d) godot …`; долгое — фоном (`run_in_background`) или `/home/greg/deltaplan/tools/job.sh start/wait`; не `pgrep -f`/`pkill -f`.
 
 **Вход** — ID задачи (и копия/ветка из задания). Собери сам:
-1. `tools/dp task show <ID>` — цель, скоуп, «не трогать», контракты с версиями, проверки приёмки, копия, ветка, база.
-2. `tools/dp plan <модуль> <plan_ref>` — раздел плана; `tools/dp plan <модуль> --contracts <имя>` — каждый контракт из карточки.
-3. `tools/dp report <ID> --show` — что заявил исполнитель; `tools/dp log <ID>` — итог `dp accept`.
+1. `/home/greg/deltaplan/tools/dp task show <ID>` — цель, скоуп, «не трогать», контракты с версиями, проверки приёмки, копия, ветка, база.
+2. `/home/greg/deltaplan/tools/dp plan <модуль> <plan_ref>` — раздел плана; `/home/greg/deltaplan/tools/dp plan <модуль> --contracts <имя>` — каждый контракт из карточки.
+3. `/home/greg/deltaplan/tools/dp report <ID> --show` — что заявил исполнитель; `/home/greg/deltaplan/tools/dp log <ID>` — итог `dp accept`.
 4. `git -C <копия> diff --stat <base>...<branch>`, затем `git diff <base>...<branch> -- <файл>` **только по нужным файлам**: места из `uncertain` отчёта, файлы стыков контрактов, физические формулы и константы, и выборочно 1–2 места на свой выбор. Остальное — по `--stat`. Весь дифф целиком — только если задание прямо говорит «полное ревью» (сложная физика). Картинки не открывать (только 3D-модели, если это предмет задачи).
 
 **Что проверять** (по важности):
@@ -20,14 +20,14 @@ disallowedTools: [Agent, Edit, Write, NotebookEdit, WebSearch, WebFetch]
 - скоуп: правки вне скоупа, в «не трогать», переписанный редактором `project.godot`;
 - физика прежде «нравится»: параметры с физическим смыслом и источником, а не подобранные «чтобы было хорошо»; заявленные границы модели;
 - подгонка под тест: ослабленные пороги, особые случаи под тест, тест, проверяющий сам себя;
-- отчёт ≠ факт: выборочно перезапусти 1–2 проверки (`tools/dp accept <ID> --only <имя> --dry` или команду из карточки) и сверь числа;
+- отчёт ≠ факт: выборочно перезапусти 1–2 проверки (`/home/greg/deltaplan/tools/dp accept <ID> --only <имя> --dry` или команду из карточки) и сверь числа;
 - очевидные баги (деление на ноль, NaN, неверный знак, утечка ресурса GPU, гонка).
 
 **Не шлифовать**: стиль, имена, мелкие улучшения, «я бы сделал иначе» — не замечания. Сомневаешься в физике и не можешь проверить — замечание major с вопросом, а не догадка.
 
-**Выход.** Вердикт `accept` или `rework` (blocker → только rework); до 7 замечаний `{file, line, severity: blocker|major|minor, what, fix}`; итог 1–3 строки; `rerun` — что перезапустил и с каким результатом. Схема — `tools/dp review --template`. Сдай JSON через stdin (heredoc в Bash; Edit/Write тебе не даны):
+**Выход.** Вердикт `accept` или `rework` (blocker → только rework); до 7 замечаний `{file, line, severity: blocker|major|minor, what, fix}`; итог 1–3 строки; `rerun` — что перезапустил и с каким результатом. Схема — `/home/greg/deltaplan/tools/dp review --template`. Сдай JSON через stdin (heredoc в Bash; Edit/Write тебе не даны):
 ```
-tools/dp review <ID> --verdict accept|rework --from - --by reviewer <<'EOF'
+/home/greg/deltaplan/tools/dp review <ID> --verdict accept|rework --from - --by reviewer <<'EOF'
 { … }
 EOF
 ```
