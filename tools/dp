@@ -1315,7 +1315,14 @@ def cmd_gc(a):
             if d:
                 print(f"пропуск {label}: грязная копия ({len(d)} файлов)")
                 continue
-            r = gitr("worktree", "remove", path)
+            junk = [l[3:] for l in subprocess.run(["git", "-C", str(path), "status", "--porcelain"], capture_output=True,
+                                                     text=True).stdout.splitlines() if l.startswith("?? ")]
+            other = [f for f in junk if not f.endswith(".uid")]
+            if other:
+                print(f"пропуск {label}: неотслеживаемые файлы ({len(other)}: {', '.join(other[:3])})")
+                continue
+            # только сгенерированные Godot *.uid — не работа, снимаем копию с --force
+            r = gitr("worktree", "remove", *(["--force"] if junk else []), path)
             if r.returncode:
                 print(f"пропуск {label}: {gerr(r)}")
                 continue
