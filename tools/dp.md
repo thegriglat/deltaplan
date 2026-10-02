@@ -14,7 +14,7 @@
 **Дом журнала** — рабочая копия ветки `feature/<модуль>`, если в ней есть `docs/plan/<модуль>/`; иначе текущая копия.
 Поэтому `dp` из любой копии (главной, модуля, задачи) читает и пишет один журнал — копию модуля; коммитит его координатор
 (`git add docs/plan/<модуль> && git commit -m "…" -- docs/plan/<модуль>`). `DP_LOCAL=1` — только текущая копия.
-Автор событий — `--by` или `$DP_ROLE` (`main`, `coordinator`, `engineer`, …). `dp` сам ничего не коммитит и индекс git не трогает.
+Автор событий — `--by`, иначе `$DP_ROLE` (`main`, `coordinator`, `engineer`, …), иначе по ветке копии: `main` → main, `feature/*` → coordinator, прочие → executor (вне репозитория «-»). `dp` сам ничего не коммитит и индекс git не трогает.
 
 Агенту остаются только задачи, которые детерминированным скриптом не решить, — подумать: спроектировать, решить, разобрать причину, написать текст/код. Всё, что можно сделать скриптом (поиск, сводки, проверки, перенос, слияние, отчёты по числам), — делает `tools/dp` или скрипт задачи; повторяющуюся ручную операцию — оформить командой dp (через обратную связь).
 Детерминированное — командами dp: поиск и работа с планами, журналами, документами, ветками — только через `tools/dp` (`dp search`, `dp search --sem`, `dp plan`, `dp docs …`, `dp log`, `dp status`, `dp task …`, `dp sync/merge`); свои grep/python-скрипты для этого не писать (исключение — код игры и исследовательский код задачи). Не хватило команды — обойти один раз и сразу записать обратную связь (`dp event <модуль> note --note "dp: …"` или поле dp_feedback).
@@ -33,6 +33,8 @@ dp task sync <ID> [--message М] [--trailer Т]  # влить ветку мод�
 dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
                                   # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
                                   # строка в списочное поле (scope, report_extra…) — список через запятую: report_extra=epoch_s,hours
+dp task note <ID> "правило/заметка"               # дописать в уже выданную задачу: видно в task show («Дополнения после выдачи») и в dp inbox <ID>
+dp task set <ID> --contract У2@4                 # поднять версию контракта в карточке (или добавить)
 dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit h] [--note "…"]
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
@@ -51,7 +53,7 @@ dp render <модуль> [--out путь|-] [--force]
 # главная сессия
 dp plan edit <модуль|файл.md> <раздел> --append "текст" | --replace СТАРОЕ НОВОЕ | --set [ФАЙЛ|-] [--contracts] [--commit]
 dp decide <модуль> "решение" --by user --why "…" [--plan [раздел]]
-dp inbox <модуль> [--by coordinator] [--peek]  |  dp questions  |  dp answer <Qn|модуль/Qn> "ответ"
+dp inbox <модуль|ID> [--by coordinator] [--peek]  |  dp questions  |  dp answer <Qn|модуль/Qn> "ответ"
 dp module new <модуль> [--from main] [--code NN]  |  dp sync <модуль|ветка> [-m М] [--trailer Т]  |  dp merge <ветка> [--into main] [--push] [-m М] [--trailer Т]  |  dp gc [ВЕТКА|МОДУЛЬ…] [--remove]
 dp status --since 30m|2h|today [<модуль>]  |  dp digest --since today|<дата>
 ```
@@ -153,7 +155,7 @@ dp questions                    # открытые вопросы (decide --ask)
 dp questions --all | --module air-nn   # и отвеченные (✓) с текстом ответа
 dp answer Q1 "Прибор" [--module air-nn]   # = decide --by user --answers Q1; попадает в inbox модуля
 ```
-Метка чтения inbox — `docs/plan/<модуль>/.read_<читатель>` (в .gitignore: у каждой копии/читателя своя, в git не нужна).
+`dp inbox <ID>` (читатель по умолчанию executor) — дополнения `task note` и правки карточки с прошлого чтения; исполнителю запускать периодически и перед отчётом. Метка чтения inbox — `docs/plan/<модуль>/.read_<читатель>` (в .gitignore: у каждой копии/читателя своя, в git не нужна).
 
 ```
 # ветки и копии (детерминированно; $DP_COPIES — каталог копий вместо ~, для проверок)
@@ -175,7 +177,7 @@ dp digest --since today              # решения пользователя, 
 
 ## Обратная связь по dp
 Чего не хватило, что неудобно — в конце работы: исполнитель — поле `dp_feedback` отчёта, координатор —
-`dp event <модуль> note --note "dp: …"`. Собрать: `grep -h 'dp_feedback\|"dp: ' docs/plan/*/events.jsonl`.
+`dp event <модуль> note --note "dp: …"`. Собрать: `grep -h 'dp_feedback\|"dp: ' docs/plan/*/events.jsonl docs/plan/*/tasks/*.report.json`; журнал модуля живёт в его копии — `dp log <модуль> --full`.
 
 ## Документация: `dp docs` (tools/dp_docs.py)
 

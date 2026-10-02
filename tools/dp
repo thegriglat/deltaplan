@@ -18,7 +18,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 8  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 9  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -179,8 +179,16 @@ def read_jsonl(p):
     return out
 
 
+def infer_role():
+    """Автор без --by и $DP_ROLE — по ветке копии: main → main, feature/* → coordinator, иначе executor; вне репозитория → «-»."""
+    br = git("branch", "--show-current")
+    if not br:
+        return "-"
+    return "main" if br in ("main", "master") else "coordinator" if br.startswith("feature/") else "executor"
+
+
 def by_default(args):
-    return getattr(args, "by", None) or os.environ.get("DP_ROLE") or "-"
+    return getattr(args, "by", None) or os.environ.get("DP_ROLE") or infer_role()
 
 
 def rel(p):
@@ -419,6 +427,15 @@ def cmd_task_set(a):
                 lst = keep
             card[key] = lst
         changed.append(key)
+    for c in a.contract or []:
+        name, _, ver = c.partition("@")
+        cs = card.setdefault("contracts", [])
+        old = next((x for x in cs if x.get("name") == name), None)
+        if old:
+            old["version"] = ver or old.get("version", "?")
+        else:
+            cs.append({"name": name, "version": ver or "?", "ref": module_meta(mod, home)["contracts"]})
+        changed.append(f"contract:{name}")
     acc = card.setdefault("accept", [])
     for name, cmd, exp in a.check or []:
         acc[:] = [c for c in acc if c.get("name") != name] + [{"name": name, "cmd": cmd, "expect": expect_arg(exp)}]
@@ -433,13 +450,27 @@ def cmd_task_set(a):
             raise DpError(f"проверки «{name}» нет в карточке")
         changed.append(f"accept:-{name}")
     if not changed:
-        raise DpError("нечего менять: поле=значение, --check, --test, --drop-check")
+        raise DpError("нечего менять: поле=значение, --check, --test, --drop-check, --contract")
     card["edited"] = now()
     write_json(p, card)
     diff = {k: [short(json.dumps(before.get(k), ensure_ascii=False), 300), short(json.dumps(card.get(k), ensure_ascii=False), 300)]
             for k in dict.fromkeys(c.split(":")[0] for c in changed)}
     add_event(home, a.id, "edited", by_default(a), note=", ".join(changed), diff=diff)
     print(f"{a.id}: изменено — {', '.join(changed)}")
+
+
+def addenda(home, tid):
+    """Дополнения координатора к уже выданной задаче: события note с addendum."""
+    return [e for e in read_jsonl(home / "events.jsonl") if e.get("task") == tid and e.get("addendum")]
+
+
+def cmd_task_note(a):
+    """Дописать правило/заметку в задачу, уже выданную исполнителю: видно в task show и dp inbox <ID>."""
+    mod, home = find_task(a.id)
+    if not a.text.strip():
+        raise DpError("пустой текст")
+    add_event(home, a.id, "note", by_default(a), note=a.text, addendum=True)
+    print(f"{a.id}: дополнение записано → исполнителю: dp inbox {a.id} (и dp task show {a.id})")
 
 
 def cmd_task_show(a):
@@ -478,6 +509,13 @@ def cmd_task_show(a):
         L += [f"  - {fmt_check(c)}" for c in card["accept"]]
     if card.get("notes"):
         L.append(f"Заметки: {card['notes']}")
+    adds = addenda(home, a.id)
+    if adds:
+        L.append(f"Дополнения после выдачи ({len(adds)}):")
+        L += [f"  ! {hm(e['t'])} ({e.get('by', '-')}): {e['note'] if full else short(e['note'], 300)}" for e in adds[-(len(adds) if full else 5):]]
+    nedit = sum(1 for e in read_jsonl(home / "events.jsonl") if e.get("task") == a.id and e.get("ev") == "edited")
+    if nedit:
+        L.append(f"Карточка правилась {nedit} раз (dp task show {a.id} --diff)")
     L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила» (читать обязательно).")
     L.append("Долгие запуски — `dp job start <имя> <таймаут_с> <команда…>`, ожидание — `dp job wait <имя>` в фоне (run_in_background), не циклы `until grep`.")
     rx = ", ".join(card.get("report_extra") or [])
@@ -1306,8 +1344,32 @@ def hm(t):
     return str(t)[5:16].replace("T", " ")
 
 
+def inbox_task(a):
+    """dp inbox <ID>: дополнения и правки карточки с прошлого чтения (метка — по читателю и задаче)."""
+    mod, home = find_task(a.module)
+    reader = a.by or os.environ.get("DP_ROLE") or "executor"
+    stamp_p = home / f".read_{reader}.{a.module}"
+    since = stamp_p.read_text().strip() if stamp_p.exists() else ""
+    items = []
+    for e in read_jsonl(home / "events.jsonl"):
+        if e.get("task") != a.module or e.get("t", "") <= since or e.get("by") == reader:
+            continue
+        if e.get("addendum"):
+            items.append((e["t"], f"дополнение ({e.get('by', '-')}): {e['note']}"))
+        elif e.get("ev") == "edited":
+            items.append((e["t"], f"карточка правлена ({e.get('by', '-')}): {e.get('note', '')} — dp task show {a.module} --diff"))
+    if not items:
+        print(f"{a.module}: нового нет")
+    for t, what in items[-a.max:]:
+        print(f"{hm(t)} {short(what, 400 if not a.full else 10000)}")
+    if not a.peek:
+        stamp_p.write_text(now() + "\n")
+
+
 def cmd_inbox(a):
     mods = all_modules()
+    if a.module not in mods and ID_RE.match(a.module):
+        return inbox_task(a)
     if a.module not in mods:
         raise DpError(f"модуль {a.module} не найден (есть: {', '.join(mods) or 'нет'})")
     home = mods[a.module]
@@ -2202,8 +2264,8 @@ def build():
     q.add_argument("--legacy", metavar="ПУТЬ", help="ссылка на старый журнал модуля (поле legacy_journal в module.json)")
     q.set_defaults(fn=cmd_init)
 
-    t = sp.add_parser("task", help="карточка задачи: new | show | set")
-    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set|sync")
+    t = sp.add_parser("task", help="карточка задачи: new | show | set | note | sync")
+    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set|note|sync")
     q = tsp.add_parser("new", help="создать карточку")
     q.add_argument("module"); q.add_argument("id", nargs="?", help="<КОД>-[этап]<n>[буква]; без ID — следующий номер модуля")
     q.add_argument("--stage", metavar="БУКВА", help="этап для авто-номера: --stage P → следующий <КОД>-P<n>")
@@ -2231,8 +2293,12 @@ def build():
     q.add_argument("--check", action="append", nargs=3, metavar=("ИМЯ", "CMD", "EXPECT"), help="добавить/заменить проверку")
     q.add_argument("--test", action="append", metavar="ФИЛЬТР", help="добавить/заменить проверку headless-тестов")
     q.add_argument("--drop-check", dest="drop_check", action="append", metavar="ИМЯ", help="убрать проверку")
+    q.add_argument("--contract", action="append", metavar="ИМЯ@ВЕРСИЯ", help="поднять версию контракта (или добавить)")
     q.add_argument("--by")
     q.set_defaults(fn=cmd_task_set)
+    q = tsp.add_parser("note", help="дописать правило/заметку в уже выданную задачу (исполнитель увидит в task show и inbox)")
+    q.add_argument("id"); q.add_argument("text"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_task_note)
 
     q = sp.add_parser("event", help="событие задачи (или note модуля) в events.jsonl")
     q.add_argument("target", metavar="ID|модуль"); q.add_argument("kind", choices=EVENT_KINDS)
@@ -2302,7 +2368,7 @@ def build():
     q.set_defaults(fn=cmd_plan)
 
     q = sp.add_parser("inbox", help="новое для читателя в модуле: решения, ответы, правки плана, заметки")
-    q.add_argument("module"); q.add_argument("--by", help="читатель (по умолчанию $DP_ROLE или coordinator)")
+    q.add_argument("module", metavar="модуль|ID"); q.add_argument("--by", help="читатель (по умолчанию $DP_ROLE или coordinator; для ID — executor)")
     q.add_argument("--peek", action="store_true", help="не отмечать прочитанным"); q.add_argument("--max", type=int, default=20)
     q.add_argument("--full", action="store_true")
     q.set_defaults(fn=cmd_inbox)
