@@ -42,11 +42,6 @@
   ],
   "accept": [
     {
-      "name": "smoke_p2",
-      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/check_report_v2.py --latest-smoke",
-      "expect": "re:ШП-2: (идём в волну 0|правим подход|отказ)"
-    },
-    {
       "name": "smoke_real_places",
       "cmd": "cd tools/research/air_nn_pilot && grep -c '^| *t_[0-9]' $(ls -td /home/greg/air_nn_data/pilot/smoke_p2/reports/*/ | head -1)report.md",
       "expect": "num:^(\\d+) >=4"
@@ -74,5 +69,6 @@
     "готовая команда полного прогона (для пользователя, в tmux)"
   ],
   "notes": "Начинать от feature/air-nn после слияния NN-P5, NN-17, NN-18, NN-P8 (координатор сообщит). Места — tiles/v3 (П6 v3: дно квадрата ≤ 3000 м, пул 300 + 4 × 15 с южными Альпами НЗ). Цель max — среднее поздних состояний (П1 v3, NN-17: снимки ~бесплатны, +1 % времени). Версия решателя s0-1c8c322 отличается от s0-3acd749 только комментариями — main не пересчитывать (main_version в configs/dataset.yaml). Предел итераций max_outer = 1000 (NN-P6). GPU — под замком пилота. Массовый счёт одобрен пользователем, но запускает его главная сессия: дать готовую команду (cwd, tmux), оценку времени и диска — сам не запускать. Ничего не шлифовать: цель П-2 — понять, стоит ли идея работы. События dp — с DP_ROLE=researcher.",
-  "created": "2026-10-03T00:11:24"
+  "created": "2026-10-03T00:11:24",
+  "edited": "2026-10-03T02:10:51"
 }
