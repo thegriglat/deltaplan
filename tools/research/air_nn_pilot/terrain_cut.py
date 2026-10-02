@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Рельефы П-2 (NN-P4, NN-16; контракт П6 v2): выбор, скачивание и нарезка реальных горных квадратов 38,4 км.
+"""Рельефы П-2 (NN-P4, NN-16; контракт П6 v3): выбор, скачивание и нарезка реальных горных квадратов 38,4 км.
 
   .venv/bin/python terrain_cut.py run            # все стадии по порядку (этап n из 5), с продолжения
   .venv/bin/python terrain_cut.py screen|select|fetch|cut|figures
@@ -45,7 +45,7 @@ import yaml
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-CONTRACT = "П6 v2"
+CONTRACT = "П6 v3"
 MERCATOR_R_M = 6378137.0      # web-mercator, как MERCATOR_R_M игры
 R_EARTH = 6371008.8           # сфера для расстояний (как контрактный тест)
 TILE_PX = 256
@@ -465,7 +465,7 @@ def stage_screen(ctx: Ctx, a):
         sl = np.hypot(gx, gy)[1:-1, 1:-1]
         c["z8"] = dict(relief=float(w.max() - w.min()), slope_p50=float(np.percentile(sl, 50)),
                        slope_p95=float(np.percentile(sl, 95)), sea=float((w <= 0.5).mean()),
-                       h_mean=float(w.mean()), spacing=s)
+                       h_mean=float(w.mean()), h_min=float(w.min()), spacing=s)
         pr(k + 1)
     pr.end()
     dt = time.time() - t0
@@ -494,7 +494,7 @@ def stage_select(ctx: Ctx, a):
     edges = [float(e) for e in sel["strata"]]
     labels = [f"s{k}_{edges[k]:.2f}-{edges[k + 1]:.2f}".replace("-inf", "-inf") for k in range(len(edges) - 1)]
     k_slope = float(sel["slope_est_scale"])
-    rej = dict(no_data=0, sea=0, relief_low=0, relief_high=0, exclude=0, holdout_zone=0)
+    rej = dict(no_data=0, sea=0, relief_low=0, relief_high=0, exclude=0, holdout_zone=0, hmin_high=0)
     good = []
     excl = []
     for e in sel.get("exclude", []):
@@ -516,6 +516,11 @@ def stage_select(ctx: Ctx, a):
             continue
         if f["relief"] > sel["relief_max_est_m"]:
             rej["relief_high"] += 1
+            continue
+        if f.get("h_min") is None:
+            raise SystemExit("screen.json без h_min (экран до v3): пересчитать стадию screen в новом work")
+        if f["h_min"] > float(sel["hmin_max_est_m"]):
+            rej["hmin_high"] += 1
             continue
         c = dict(c)
         c["system"] = system_of(cfg, c["lat"], c["lon"])
@@ -701,7 +706,7 @@ def finalize(ctx: Ctx, a, s, pl, dt_cut):
     sel, d = ctx.cfg["select"], ctx.work / "cut_all"
     edges = [float(e) for e in sel["strata"]]
     feats = {p["sid"]: json.loads((d / f"{p['sid']}.json").read_text()) for p in pl}
-    rej = dict(nodata=0, relief_high=0, sea=0, reserve_unused=0)
+    rej = dict(nodata=0, relief_high=0, hmin_high=0, sea=0, reserve_unused=0)
     chosen = []
     groups = {}
     for p in pl:
@@ -720,6 +725,9 @@ def finalize(ctx: Ctx, a, s, pl, dt_cut):
                 continue
             if f["relief_m"] > float(sel["relief_max_m"]):
                 rej["relief_high"] += 1
+                continue
+            if f["h_min"] > float(sel["hmin_max_m"]):
+                rej["hmin_high"] += 1
                 continue
             if f["sea_frac"] > float(sel["sea_max"]):
                 rej["sea"] += 1
