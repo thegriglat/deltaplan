@@ -33,3 +33,11 @@
 - 02.10: полный досчёт main запущен координатором фоном: `tools/job.sh start airnn_gen_main 57600 … dataset.py run --dataset main
   --log /home/greg/air_nn_data/pilot/logs/dataset_main_precompute.log` (PID 79562, 14:16); первые ETA 4–6 ч.
   Прерывание безопасно — `run_pilot.sh` продолжит.
+- 02.10 (пользователь, через главную сессию): параллельно с пилотом — NN-2а (таблица параметров поверхности по
+  литературе, Sonnet) и NN-7а (пробник ORT ↔ Godot GDExtension, Linux + выяснить Windows/macOS); без GPU, пилот
+  приоритетнее. Контракты П4, П5.
+
+| Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Числа, решения |
+|---|---|---|---|---|---|
+| NN-2а — таблица α, β, z0, G/Rn по WorldCover (литература) | в работе (02.10) | `dp-researcher` (Sonnet) | `~/deltaplan-air-nn-nn2a`, `air-nn/nn2a` | | |
+| NN-7а — пробник ORT ↔ Godot (GDExtension), Windows-сборка | в работе (02.10) | `dp-engineer` | `~/deltaplan-air-nn-nn7a`, `air-nn/nn7a` | | |
