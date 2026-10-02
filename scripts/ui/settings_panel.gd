@@ -7,7 +7,9 @@ extends Control
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
 ## (bots.json → names.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
-## загрузки местности).
+## загрузки местности), модель ветра (atmosphere.json → air_model.enabled: auto — расчёт по
+## рельефу, off — упрощённая, решатель на GPU не запускается; со следующей загрузки места;
+## в сети выбор локальный — у каждого клиента свой).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
@@ -37,6 +39,7 @@ var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
 var _grass: HSlider
+var _wind_model: OptionButton
 var _language: OptionButton
 var _language_codes: Array = []
 var _pilot_name: LineEdit
@@ -125,6 +128,10 @@ func _ready() -> void:
 		"%.0f%%"
 	)
 	_graphics.item_selected.connect(_on_graphics_selected)
+	_wind_model = OptionButton.new()
+	_wind_model.add_item(tr("settings_wind_model_calc"))
+	_wind_model.add_item(tr("settings_wind_model_simple"))
+	UiKit.row(box, tr("settings_wind_model"), _wind_model)
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
@@ -193,6 +200,8 @@ func load_values() -> void:
 	_render_scale.editable = not _render_scale_auto.button_pressed
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
+	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
+	_wind_model.select(1 if wm == "off" else 0)
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -264,6 +273,9 @@ func save() -> bool:
 	# густота травы — после пресета (он пишет свою; слайдер при выборе пресета уже показал её)
 	var gp := {"grass": {"density_pct": _grass.value}}
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
+	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
+	var wp := {"air_model": {"enabled": "off" if _wind_model.selected == 1 else "auto"}}
+	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
 	Config.reload()
 	return ok
 
