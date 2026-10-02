@@ -2,7 +2,7 @@ class_name OsmLayer
 extends Node3D
 ## Отрисовка данных OSM (VR-6, VR-9, VR-10): дороги (ленты по рельефу), здания (MultiMesh),
 ## опоры ЛЭП (MultiMesh) и провода (wire.gdshader). Всё — тайлами с дальностью видимости.
-## Реки и озёра не рисуются: вода уже в раскраске рельефа (terrain) — см. docs/world_objects.md.
+## Реки и озёра не рисуются: вода уже в раскраске рельефа (terrain) — см. docs/guide/world-objects.md.
 ## Препятствия (здания, опоры, провода) заносятся в ObstacleIndex.
 
 const DRAPED_SHADER := preload("res://scripts/world_objects/draped.gdshader")

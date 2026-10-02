@@ -10,7 +10,7 @@
   "branch": "ui-controls/UC-2",
   "base": "feature/ui-controls",
   "scope": [
-    "описания раскладки в `docs/game.md`, `docs/flight.md` (если есть), `README.md`, страницы сайта (`site/content/…`, где описано управление), без страниц версий и дневника прошлых дней."
+    "описания раскладки в `docs/guide/game.md`, `docs/guide/flight.md` (если есть), `README.md`, страницы сайта (`site/content/…`, где описано управление), без страниц версий и дневника прошлых дней."
   ],
   "dont_touch": [],
   "accept": [

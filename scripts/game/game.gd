@@ -7,11 +7,11 @@ extends Node3D
 ## Порядок шага физики (tick): воздух → ввод → планер → приборы и звук (по сигналу
 ## telemetry_updated). Физику планера и воздуха ведёт Game, их собственный
 ## _physics_process выключен — порядок явный и одинаковый в игре и в тестах.
-## Подробно — docs/game.md.
+## Подробно — docs/guide/game.md.
 
 ## Полёт закончился: kind — "landed" (info — оценка посадки + сводка FlightStats)
 ## или "takeoff_failed" (info.reason, info.text + сводка).
-## Формат info — docs/game.md → «Итог полёта».
+## Формат info — docs/guide/game.md → «Итог полёта».
 ## Посадку засчитывает FlightStats (is_finished): короткие касания у старта полёт не завершают.
 signal flight_ended(kind: String, info: Dictionary)
 ## Текст о загрузке для меню ("" — готово).
@@ -39,11 +39,11 @@ var stats := FlightStats.new()
 var autopilot: Autopilot
 ## Объекты мира, просеки, столкновения.
 var world_link: WorldLink
-## Столкновения крыла с проводами, препятствиями и кронами (docs/game.md).
+## Столкновения крыла с проводами, препятствиями и кронами (docs/guide/game.md).
 var collisions := CollisionCheck.new()
-## Другие пилоты в небе (configs/bots.json, docs/game.md → «Другие пилоты»).
+## Другие пилоты в небе (configs/bots.json, docs/guide/game.md → «Другие пилоты»).
 var bots: BotPilots
-## Пасхалки мира и неба (чисто визуально, docs/easter_eggs_contracts.md).
+## Пасхалки мира и неба (чисто визуально, docs/contracts/easter-eggs.md).
 var eggs: EasterEggs
 ## Сколько ботов (--bots=N); < 0 — из настроек (bots.json → count).
 var bots_count := -1
@@ -51,7 +51,7 @@ var bots_count := -1
 var sim_time_s: float = 0.0
 ## Управление и приборы в полёте (в меню — выключены).
 var flying_enabled := false
-## Старт в воздухе (--air-start, docs/game.md): в air_start_m м от старта по его курсу, на
+## Старт в воздухе (--air-start, docs/guide/game.md): в air_start_m м от старта по его курсу, на
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
@@ -219,7 +219,7 @@ func start(s: FlightSettings) -> bool:
 		set_physics_process(true)
 		progress.finish()
 		return false
-	# Дальше — порциями между кадрами: экран загрузки живой (docs/game.md → «Загрузка»).
+	# Дальше — порциями между кадрами: экран загрузки живой (docs/guide/game.md → «Загрузка»).
 	progress.stage("weather", tr("loading_weather"))
 	await get_tree().process_frame
 	_weather_ctx = _weather_context()
@@ -831,7 +831,7 @@ func _choose_start() -> void:
 		_start_pos = launch.position
 		_start_heading = float(launch.heading_deg)
 		# Пустырь вокруг старта (≥ 2 длины разбега): в лесу иначе не разбежаться и не набрать
-		# высоту до крон (docs/game.md → «Старт с карты»).
+		# высоту до крон (docs/guide/game.md → «Старт с карты»).
 		terrain.add_start_clearing(_start_pos.x, _start_pos.z, float(cfg.clearing_radius_m))
 		return
 	var sites := terrain.get_start_sites()

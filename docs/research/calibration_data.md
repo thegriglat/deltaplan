@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "flight"
+updated: "2026-09-30"
+summary: "Табличные данные для калибровки атмосферы и поля ветра — Все наборы данных (что где лежит, статус, ограничения) — в каталоге docs/research/experimental_data.md."
+related: []
+conclusion: ""
+data: ""
+applied_in: ""
+---
 # Табличные данные для калибровки атмосферы и поля ветра
 
 > Все наборы данных (что где лежит, статус, ограничения) — в каталоге `docs/research/experimental_data.md`.

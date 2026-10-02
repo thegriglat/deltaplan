@@ -1,4 +1,4 @@
-"""Случай калибровки Askervein (C10 v2, docs/air_model_contracts.md): одиночный холм, нейтраль, TU-03B.
+"""Случай калибровки Askervein (C10 v2, docs/contracts/air-model.md): одиночный холм, нейтраль, TU-03B.
 
 Адаптер к форме C10 поверх прежних скриптов: рельеф — air3d/askervein.py (изолинии WAsP, Zenodo 4095052), наблюдаемые
 разгонов — tune/askervein_runs.py (39 точек AM-09: FSR на 10 м по линиям A, AA, B и профиль на HT; σ данных — из

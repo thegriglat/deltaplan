@@ -3,7 +3,7 @@ extends AirGpuJob
 ## Пикар на GPU, один уровень (AM-03): установившееся среднее поле масштаба 1 по эталону AM-01
 ## (tools/research/air3d/air.py, reference.md → «Дискретизация»), блоками AM-02 (прогонки,
 ## V-цикл, редукции) и ядрами air_picard.glsl. Порциями (AirGpuJob): главный поток не ждёт GPU.
-## Описание, буферы, замеры — docs/air_model_gpu.md → «Пикар».
+## Описание, буферы, замеры — docs/guide/air-model-gpu.md → «Пикар».
 ##
 ##   var job := AirPicardJob.new()
 ##   job.case = c                       # AirCase (prepare() — внутри start)
@@ -11,7 +11,7 @@ extends AirGpuJob
 ##   job.warm = prev.state()            # по желанию: тёплый старт (u, v, w, θ′, θ′_d, p)
 ##   job.finished.connect(...); job.failed.connect(...)
 ##   job.start(); …раз в кадр: job.poll() …
-##   var f := job.field()               # WindField (docs/air_model.md → «Поле на CPU»)
+##   var f := job.field()               # WindField (docs/guide/air-model.md → «Поле на CPU»)
 ##   job.release()
 ##
 ## Шаг задачи (AirGpuJob) — фаза: старт (фон + 30 V-циклов, тёплый — 4), затем по 10 итераций

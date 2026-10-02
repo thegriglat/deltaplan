@@ -3,7 +3,7 @@ extends RefCounted
 ## Данные OpenStreetMap локации (data/osm/<id>.json, готовит tools/osm/fetch_osm.py).
 ## © OpenStreetMap contributors, ODbL. Координаты в файле — мир игры относительно центра файла;
 ## если центр рельефа другой, точки пересчитываются через широту/долготу (TerrainGeo).
-## Формат — docs/world_objects.md.
+## Формат — docs/guide/world-objects.md.
 
 var attribution: String = ""
 var roads: Array = []

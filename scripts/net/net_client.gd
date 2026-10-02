@@ -1,7 +1,7 @@
 extends Node
 ## NetClient (автозагрузка) — одно WebSocket-соединение с сервером сетевой игры.
 ##
-## Протокол: docs/net_protocol.md, контракт — server/proto/deltaplan/v1/net.proto,
+## Протокол: docs/guide/net-protocol.md, контракт — server/proto/deltaplan/v1/net.proto,
 ## кодирование — NetMessages (там же формат данных: ключи lowerCamelCase, умолчания подставлены).
 ##
 ## Адрес: "IP:порт" или "имя:порт" ("192.168.1.5:8080", "fly.example.org:9000"); без порта —

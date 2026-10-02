@@ -3,7 +3,7 @@ extends Node
 ## полёта. События идут через настоящий вьюпорт (Viewport.push_input: GUI → _unhandled_input),
 ## а не прямым вызовом _unhandled_input — так видно, если их съест Control интерфейса полёта
 ## (отладочные слои F1/F5/F6, Debug Menu F2, пасхалки, меню). Шаги физики — Game.tick() вручную.
-## Знаки — контракт С1 (docs/control-fix_contracts.md): roll + вправо (мышь вправо),
+## Знаки — контракт С1 (docs/contracts/control-fix.md): roll + вправо (мышь вправо),
 ## pitch + от себя / нос вверх (мышь вверх по экрану). На земле мышь — тоже трапеция (С2 v2).
 
 const DT := 1.0 / 120.0

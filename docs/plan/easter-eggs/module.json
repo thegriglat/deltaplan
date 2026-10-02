@@ -1,11 +1,11 @@
 {
   "module": "easter-eggs",
-  "plan": "docs/plan/world_easter_eggs.md",
-  "contracts": "docs/easter_eggs_contracts.md",
+  "plan": "docs/archive/plan/world-easter-eggs.md",
+  "contracts": "docs/contracts/easter-eggs.md",
   "branch": "feature/easter-eggs",
   "copy": "~/deltaplan-eggs",
   "created": "2026-09-30T00:00:00",
-  "legacy_journal": "docs/plan/world_easter_eggs_progress.md",
-  "migrated_from": "docs/plan/world_easter_eggs_progress.md (tools/dp_migrate.py)",
+  "legacy_journal": "docs/archive/plan/world-easter-eggs-progress.md",
+  "migrated_from": "docs/archive/plan/world-easter-eggs-progress.md (tools/dp_migrate.py)",
   "code": "EE"
 }

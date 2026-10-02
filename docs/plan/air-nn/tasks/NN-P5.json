@@ -9,22 +9,22 @@
     {
       "name": "П1",
       "version": "2",
-      "ref": "docs/air_nn_contracts.md"
+      "ref": "docs/contracts/air-nn.md"
     },
     {
       "name": "П2",
       "version": "4",
-      "ref": "docs/air_nn_contracts.md"
+      "ref": "docs/contracts/air-nn.md"
     },
     {
       "name": "П3",
       "version": "2",
-      "ref": "docs/air_nn_contracts.md"
+      "ref": "docs/contracts/air-nn.md"
     },
     {
       "name": "П6",
       "version": "1",
-      "ref": "docs/air_nn_contracts.md"
+      "ref": "docs/contracts/air-nn.md"
     }
   ],
   "copy": "~/deltaplan-air-nn-inputs",

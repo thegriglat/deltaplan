@@ -1,5 +1,5 @@
 extends SceneTree
-## Проверка контракта имён моделей (docs/models.md) и ориентации осей.
+## Проверка контракта имён моделей (docs/guide/models.md) и ориентации осей.
 ## godot --headless --path . --script res://scenes/models_preview/check_models.gd
 ## Печатает найденные/отсутствующие ноды, число треугольников; код выхода 1 при ошибке.
 

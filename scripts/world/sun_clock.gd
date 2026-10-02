@@ -10,7 +10,7 @@ extends Node
 ## Потребители подписываются на sun_changed(to_sun) и берут текущее to_sun() при старте:
 ##   sky.clock.sun_changed.connect(func(d: Vector3) -> void: my_node.set_sun(d))
 ## Время идёт только через advance(dt) — его зовёт Game.tick (пауза и меню время не двигают).
-## Параметры — configs/world.json → time. Подробно — docs/game.md → «Время суток».
+## Параметры — configs/world.json → time. Подробно — docs/guide/game.md → «Время суток».
 
 ## Направление НА солнце изменилось (единичный вектор, север −Z, восток +X).
 signal sun_changed(to_sun: Vector3)

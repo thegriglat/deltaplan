@@ -1,7 +1,7 @@
 # gdlint: disable=max-public-methods, max-file-lines
 class_name Terrain
 extends Node3D
-## Рельеф локации (контракт — docs/ARCHITECTURE.md, группа "terrain").
+## Рельеф локации (контракт — docs/guide/architecture.md, группа "terrain").
 ##   height_at(x, z)       — высота земли над уровнем моря, м (билинейно по сетке DEM)
 ##   normal_at(x, z)       — нормаль к поверхности
 ##   get_start_sites()     — стартовые площадки {id, name, position, heading_deg, lat, lon}
@@ -967,7 +967,7 @@ static func start_clearing_radius_m() -> float:
 
 ## Пустырь вокруг произвольного старта после загрузки (К1 v2): лес в круге → луг (кустарник,
 ## трава, камни — как были), маска леса — ноль; синхронно — карта, текстуры рельефа (их же читают
-## трава, импостеры), маска деревьев; деревья и кусты — со следующего кадра (docs/terrain.md).
+## трава, импостеры), маска деревьев; деревья и кусты — со следующего кадра (docs/guide/terrain.md).
 func add_start_clearing(x: float, z: float, radius_m: float) -> void:
 	if radius_m <= 0.0 or surfaces.is_empty():
 		return

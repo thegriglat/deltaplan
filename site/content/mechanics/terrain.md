@@ -118,7 +118,7 @@ ArcticDEM). Открытый HTTPS без ключа и без лимитов, P
 (`WorldClearings`) — ни модель, ни импостер туда не попадают.
 
 Травинки вокруг камеры, их прореживание и качание от ветра — отдельная механика, читайте
-[docs/vegetation.md](/docs/vegetation.md) (параметры и графические пресеты) и раздел «Ветер на земле» ниже.
+[docs/guide/vegetation.md](/docs/guide/vegetation.md) (параметры и графические пресеты) и раздел «Ветер на земле» ниже.
 
 ## Как рельеф строится и подгружается
 
@@ -179,12 +179,12 @@ ArcticDEM). Открытый HTTPS без ключа и без лимитов, P
 
 ## Подробнее
 
-- [docs/terrain.md](/docs/terrain.md) — полное устройство модуля рельефа (файлы, формулы, параметры).
+- [docs/guide/terrain.md](/docs/guide/terrain.md) — полное устройство модуля рельефа (файлы, формулы, параметры).
 - [docs/research/terrain_sources.md](/docs/research/terrain_sources.md) — сравнение источников высот и
   картографических подложек.
-- [docs/world_objects.md](/docs/world_objects.md) — OSM-объекты, посадочные площадки, ветроуказатели,
+- [docs/guide/world-objects.md](/docs/guide/world-objects.md) — OSM-объекты, посадочные площадки, ветроуказатели,
   лагерь и костёр у старта.
-- [docs/vegetation.md](/docs/vegetation.md) — травинки и деревья по кромке леса.
+- [docs/guide/vegetation.md](/docs/guide/vegetation.md) — травинки и деревья по кромке леса.
 - Код: [scripts/terrain/](/scripts/terrain/), [scripts/world_objects/](/scripts/world_objects/).
 - Подготовка данных места: [tools/terrain/fetch_dem.py](/tools/terrain/fetch_dem.py),
   [tools/terrain/fetch_landcover.py](/tools/terrain/fetch_landcover.py),

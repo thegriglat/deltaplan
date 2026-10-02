@@ -2,7 +2,7 @@ extends Node
 ## NetZone (автозагрузка) — зона сетевой игры поверх NetClient: создать/войти/выйти, пилоты
 ## зоны, ведущий, часы зоны и очередь на старт (NET-31).
 ##
-## Протокол: docs/net_protocol.md («Роль ведущего», «Переподключение»); данные сообщений —
+## Протокол: docs/guide/net-protocol.md («Роль ведущего», «Переподключение»); данные сообщений —
 ## словари NetMessages (ключи lowerCamelCase, умолчания подставлены).
 ##
 ## Методы:
@@ -29,7 +29,7 @@ extends Node
 ##       аргументов тоже понимаем), а пока его нет — stub_world_key (v=0-stub).
 ##   static world_hash_of(key) -> String — первые 16 hex SHA-256 ключа (строчные).
 ##   static stub_world_key(settings, world_seed, bots_count) -> String — заглушка ключа
-##       по полям to_zone в формате docs/net_protocol.md («Ключ мира»), v=0-stub.
+##       по полям to_zone в формате docs/guide/net-protocol.md («Ключ мира»), v=0-stub.
 ##   host_local(settings, world_seed, bots_count, pilot_name, port := 8080) — «Создать» без
 ##       адреса сервера (NET-22): запустить встроенный сервер LocalServer (дочерний узел,
 ##       слушает все адреса на port), подключить NetClient к 127.0.0.1:port и создать зону.

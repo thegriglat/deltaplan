@@ -1,7 +1,7 @@
 class_name PilotAnimator
 extends RefCounted
 ## Анимации пилота по фазе полёта (configs/game.json → pilot_animation, контракт —
-## docs/models.md → «Пилот»): stand ⇄ walk → run → отрыв → run_air → climb_in → prone →
+## docs/guide/models.md → «Пилот»): stand ⇄ walk → run → отрыв → run_air → climb_in → prone →
 ## у земли climb_out → flare → касание → stand. Одноразовые анимации идут очередью.
 ## Нет AnimationPlayer или нужной анимации — ничего не делает.
 

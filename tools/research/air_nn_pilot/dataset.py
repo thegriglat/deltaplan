@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Набор пилота air-nn (NN-P1, NN-P6): план, счёт с продолжения, сводка. Контракт — docs/air_nn_contracts.md, П1 v1/v2.
+"""Набор пилота air-nn (NN-P1, NN-P6): план, счёт с продолжения, сводка. Контракт — docs/contracts/air-nn.md, П1 v1/v2.
 
   PY=.venv/bin/python
   $PY dataset.py plan   [--dataset main]                 # план (идемпотентно): plan.json, state.sqlite, manifest.json

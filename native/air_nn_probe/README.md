@@ -2,7 +2,7 @@
 
 **Пробник, не финальный API N5.** Задача — снять риск рантайма до NN-T5/NN-7: GDExtension на
 godot-cpp, который грузит ONNX-модель и гоняет её через ONNX Runtime (CPU) из GDScript.
-Контракт — `docs/air_nn_contracts.md`, П5 v1.
+Контракт — `docs/contracts/air-nn.md`, П5 v1.
 
 ## Состав
 

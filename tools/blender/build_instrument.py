@@ -3,7 +3,7 @@
 
     blender --background --python tools/blender/build_instrument.py
 
-Контракт (docs/models.md): ноды Body (чехол, кнопка, кронштейн, хомут) и Screen (квад экрана,
+Контракт (docs/guide/models.md): ноды Body (чехол, кнопка, кронштейн, хомут) и Screen (квад экрана,
 UV 0..1 на весь экран: в Godot u слева направо, v сверху вниз — туда идёт ViewportTexture).
 Начало координат — ось базовой штанги (маркер InstrumentMount крыла): хомут охватывает штангу
 вдоль X, планшет стоит на ножке над штангой. Экран смотрит в +Y Blender = −Z Godot (маркер

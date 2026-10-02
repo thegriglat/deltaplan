@@ -1,5 +1,5 @@
 extends Node
-## AM-07: замеры термиков из поля (docs/air_model.md → «Масштаб 2: термики из поля»).
+## AM-07: замеры термиков из поля (docs/guide/air-model.md → «Масштаб 2: термики из поля»).
 ## Поля — tools/research/air_thermals/make_fields.py (эталон AM-01, вне git: fields/).
 ##
 ##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . \

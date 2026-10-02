@@ -1,10 +1,21 @@
+---
+type: "research"
+status: "closed"
+module: "wings"
+updated: "2026-10-03"
+summary: "Проверка физики крыльев — данные и инструменты — Модуль wing-physics-check (docs/archive/plan/wing-physics-check.md)."
+related: []
+conclusion: "Аналитика: ветер меню = U на 10 м над землёй на старте — выполняется (1,01–1,05)."
+data: "tools/research/wing_physics_check/"
+applied_in: ""
+---
 # Проверка физики крыльев — данные и инструменты
 
-Модуль wing-physics-check (`docs/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона, WPC-3 — пачка полётов.
+Модуль wing-physics-check (`docs/archive/plan/wing-physics-check.md`). Разделы: WPC-1 — паспорта против модели, WPC-2 — ветер у склона, WPC-3 — пачка полётов.
 
 ## WPC-1: паспорта крыльев против модели полёта
 
-Задача модуля «проверка физики и параметров крыльев» (`docs/plan/wing-physics-check.md`, WPC-1). Выход — контракт К4 v2 (`docs/wing-physics-check_contracts.md`).
+Задача модуля «проверка физики и параметров крыльев» (`docs/archive/plan/wing-physics-check.md`, WPC-1). Выход — контракт К4 v2 (`docs/contracts/wing-physics-check.md`).
 
 ### Воспроизведение (из корня репозитория, ≈ 12 мин на 8 ядрах)
 

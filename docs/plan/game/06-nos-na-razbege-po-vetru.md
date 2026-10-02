@@ -1,8 +1,16 @@
+---
+type: "plan"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "G06. «Нос держится сам» на разбеге учитывает ветер — Цель: игрок, бегущий на W+Shift без подстройки носа, взлетает в любую погоду так же надёжно, как автопилот (F01): автоматический нос держит угол атаки, а не фиксированный угол тангажа."
+related: []
+---
 # G06. «Нос держится сам» на разбеге учитывает ветер
 
 **Цель:** игрок, бегущий на W+Shift без подстройки носа, взлетает в любую погоду так же надёжно, как автопилот (F01): автоматический нос держит угол атаки, а не фиксированный угол тангажа.
 
-**Контекст:** docs/flight.md → «Старт в сильный ветер (F01)»; scripts/game/autopilot.gd (как автопилот оценивает ветер и держит α≈18°); scripts/game/input_controller.gd (`ground.run_nose_neutral` + подстройка ↑/↓ — фиксированный угол ~23°, в сильный ветер близко к срыву 24°); configs/controls.json → ground; REQUIREMENTS FR-30.
+**Контекст:** docs/guide/flight.md → «Старт в сильный ветер (F01)»; scripts/game/autopilot.gd (как автопилот оценивает ветер и держит α≈18°); scripts/game/input_controller.gd (`ground.run_nose_neutral` + подстройка ↑/↓ — фиксированный угол ~23°, в сильный ветер близко к срыву 24°); configs/controls.json → ground; REQUIREMENTS FR-30.
 **Папки-владения:** scripts/game/input_controller.gd, configs/controls.json → ground, tests/game/test_input_launch.gd (новый). game.gd и autopilot.gd не трогать (G05 и F01 закрыты/работают).
 
 ## Шаги

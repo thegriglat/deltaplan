@@ -141,7 +141,7 @@ $$ w_{ridge} = \mathrm{clamp}\Big(0{,}85 \cdot u \cdot (\hat w \cdot \nabla h) \
 
 ## Дальше
 
-Модель воздуха в трёх масштабах ([страница](/mechanics/air-model/), [docs/air_model.md](/docs/air_model.md))
+Модель воздуха в трёх масштабах ([страница](/mechanics/air-model/), [docs/guide/air-model.md](/docs/guide/air-model.md))
 даёт разгон на бровке, седловину, обтекание сопок сбоку и ротор не отдельными формулами для склона,
 а как следствие одного уравнения для всего поля воздуха. Там же — что она пока не умеет:
 например, разгон у бровки занижен на 15–20 %, а седловина даёт ×2,05 вместо ×1,5.
@@ -152,7 +152,7 @@ $$ w_{ridge} = \mathrm{clamp}\Big(0{,}85 \cdot u \cdot (\hat w \cdot \nabla h) \
   сравнение с другими симуляторами, вопросы пилоту.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md) — таблица опорных наблюдаемых
   для калибровки (разгон над гребнем, седловины, ущелья).
-- [docs/atmosphere.md](/docs/atmosphere.md) — устройство модуля атмосферы целиком.
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы целиком.
 - [scripts/atmosphere/atmosphere.gd](/scripts/atmosphere/atmosphere.gd),
   [scripts/atmosphere/ground_field.gd](/scripts/atmosphere/ground_field.gd),
   [scripts/atmosphere/wave_field.gd](/scripts/atmosphere/wave_field.gd) — код.

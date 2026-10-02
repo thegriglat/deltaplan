@@ -24,7 +24,7 @@ func _atmo() -> Atmosphere:
 
 
 ## В термике слабее birds.min_strength_ms птиц нет; birds.min_strength_ms сам заметно ниже
-## того, что нужно дельтаплану (см. thermal_strength_ms для weak-дня в docs/atmosphere.md).
+## того, что нужно дельтаплану (см. thermal_strength_ms для weak-дня в docs/guide/atmosphere.md).
 func test_birds_absent_below_min_strength() -> void:
 	var a := _atmo()
 	var min_ms := float(a.cfg.birds.min_strength_ms)

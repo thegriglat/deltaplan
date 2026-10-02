@@ -1,6 +1,17 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md."
+related: []
+conclusion: ""
+data: "tools/research/morris/"
+applied_in: ""
+---
 # Моррис: чувствительность модели воздуха
 
-Итог и выводы — `docs/air_model_sensitivity.md`.
+Итог и выводы — `docs/research/air-model-sensitivity.md`.
 
 | Файл | Что |
 |---|---|
@@ -8,13 +19,13 @@
 | `plan.py` | план Морриса (SALib, оптимизированные траектории, p = 4) → `out/plan.json` |
 | `run_points.py` | прогоны по траекториям, по строке на (случай, точку) в `out/runs/<случай>.jsonl`, продолжение с места, замок GPU на точку |
 | `s3_plan.py`, `turb_morris.gd`, `run_s3.sh` | масштаб 3: план по параметрам `atmosphere.json`, Godot headless на полях Askervein → `out/s3_runs.json` |
-| `run_all.sh` | план + обе пачки через `tools/job.sh` |
+| `run_all.sh` | план + обе пачки через `dp job` |
 | `analyze.py` | одна пакетная обработка: `out/morris.json`, `out/morris_table.csv`, `out/lists.md`, `out/fig_*.png` |
 
 Воспроизведение (из корня копии; venv `tools/research/tune/.venv`: `uv pip install "cupy-cuda12x[ctk]==14.2.0" numpy matplotlib scipy iminuit zstandard brotli SALib`):
 ```bash
 sh tools/research/morris/run_all.sh 12
-/home/greg/deltaplan/tools/job.sh wait morris 28800; /home/greg/deltaplan/tools/job.sh wait morris-s3 7200
+/home/greg/deltaplan/tools/dp job wait morris 28800; /home/greg/deltaplan/tools/dp job wait morris-s3 7200
 tools/research/tune/.venv/bin/python tools/research/morris/analyze.py
 ```
 Замеры этой серии: 1230 прогонов (205 точек × 6 случаев), 5,3 ч GPU (RTX 4070 SUPER), 7,4 ч по часам.

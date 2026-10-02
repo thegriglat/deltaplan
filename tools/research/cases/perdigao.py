@@ -1,6 +1,6 @@
-"""Случай калибровки Perdigão (C10 v2, docs/air_model_contracts.md): две параллельные гряды, зона рециркуляции.
+"""Случай калибровки Perdigão (C10 v2, docs/contracts/air-model.md): две параллельные гряды, зона рециркуляции.
 
-Постановка — docs/plan/air_model_a4.md (А4) и docs/plan/air_model_b1.md (Б1: приведение к v2 — общая схема
+Постановка — docs/archive/plan/air-model-a4.md (А4) и docs/archive/plan/air-model-b1.md (Б1: приведение к v2 — общая схема
 scheme.py, сетка/область/профиль притока по общим правилам rules.py). Данные и скрипты — tools/research/cases/perdigao/.
 Модуль собирает рельеф (DSM Copernicus GLO-30 конвейером игры + смещение под пологом), входы двух подслучаев
 (NE 27.04.2017 17–19 UTC, SW 11.05.2017 10 UTC), наблюдаемые (профили мачт ISFS и зона рециркуляции Menke 2019)
@@ -44,7 +44,7 @@ H_CANOPY = 18.0
 D_DISP = 0.7 * H_CANOPY
 Z0_FOREST = 0.1 * H_CANOPY       # 1,8 м
 Z0_OPEN = 0.1                    # поле/кустарник (CORINE; README данных)
-NOM = dict(lam_frac=0.031, lam=40.0, alpha=0.235)   # номинал перекалибровки Askervein (docs/air_model_tune.md)
+NOM = dict(lam_frac=0.031, lam=40.0, alpha=0.235)   # номинал перекалибровки Askervein (docs/research/air-model-tune.md)
 MIN_Z_TOWER = 30.0               # уровни мачт ниже — в пологе и подслое шероховатости (2–3 h_c) — не берём
 ZONE_U = 0.5                     # порог обратной скорости Menke, м/с
 ZONE_LMIN = 50.0                 # мин. длина зоны Menke, м

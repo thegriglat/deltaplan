@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-09-29"
+summary: "Опыты 1, 3, 6: линейность, ядра, «ядро струи» — Команды для каждой картинки — README.md. Выходы — в out/, сырые поля — в out/cache/*.npz."
+related: []
+conclusion: ""
+data: "tools/research/heat_ca/exp1_3_6_kernels/"
+applied_in: ""
+---
 # Опыты 1, 3, 6: линейность, ядра, «ядро струи»
 
 Команды для каждой картинки — `README.md`. Выходы — в `out/`, сырые поля — в `out/cache/*.npz`.

@@ -1,9 +1,17 @@
+---
+type: "plan"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "12-03. Геймплей свободного полёта: управление, камеры, приборы, итог"
+related: []
+---
 # 12-03. Геймплей свободного полёта: управление, камеры, приборы, итог
 **Цель:** закрыть «в работе» из TODO этапа 1/4 по сцене: разбег W+Shift, камеры, прибор в углу, пауза/рестарт.
 **Контекст:** REQUIREMENTS.md (FR-21, FR-26, FR-30…FR-33, FR-27), scripts/game/input_controller.gd,
-scripts/game/camera_rig.gd, scripts/game/game.gd, configs/controls.json, docs/game.md.
+scripts/game/camera_rig.gd, scripts/game/game.gd, configs/controls.json, docs/guide/game.md.
 **Владения:** `scripts/game/input_controller.gd`, `scripts/game/camera_rig.gd`, `scripts/game/game.gd`, `scenes/main.gd`,
-`configs/controls.json`, `configs/camera.json`, новый `tests/game/test_gameplay.gd`, docs/game.md.
+`configs/controls.json`, `configs/camera.json`, новый `tests/game/test_gameplay.gd`, docs/guide/game.md.
 **Шаги:**
 1. Разбег (FR-30): W+Shift — бег, нос держится сам; отпустил Shift — шаг; клавиши, зажатые при отрыве, не переходят в
    полёт до отпускания (защёлка); A/D на земле — поворот корпуса.
@@ -12,7 +20,7 @@ scripts/game/camera_rig.gd, scripts/game/game.gd, configs/controls.json, docs/ga
 3. Приборы: клавиши 1–5 листают планшет в любой камере; вариометр 90-х на стойке показывает то же, что звук.
 4. Пауза (Esc) останавливает физику и звук; «Заново» — на тот же старт; после итога «Продолжить» — ходьба по земле.
 5. Итог свободного полёта (без рекордов): в `info` — время, дистанция, след, набор, макс. высота MSL, оценка посадки
-   (мягкая/жёсткая/авария) — формат описать в docs/game.md для группы 11.
+   (мягкая/жёсткая/авария) — формат описать в docs/guide/game.md для группы 11.
 6. Отметить в `docs/screenshots/gameplay/README.md` кадры chase/free/угловой прибор (по 1 на камеру).
 **КРИТЕРИЙ ПРИЁМКИ:** `test_gameplay.gd` ≥ 8 проверок (защёлка, шаг/бег, смена 3 камер, прибор в углу вкл/выкл по
 камере, страницы 1–5, пауза замораживает `Telemetry.time_s`, restart ставит на старт ±1 м, `info` содержит все поля п.5);

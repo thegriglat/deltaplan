@@ -1,6 +1,14 @@
+---
+type: "plan"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "12-01. Приёмка кабины по фиксированным кадрам (VR-11, FR-25a, VR-6)"
+related: []
+---
 # 12-01. Приёмка кабины по фиксированным кадрам (VR-11, FR-25a, VR-6)
 **Цель:** вид из кабины соответствует VR-11 и реальным фото; найденное исправлено в папках группы 12.
-**Контекст:** REQUIREMENTS.md (VR-11, FR-21, FR-25a, FR-31), docs/models.md (раздел «Вид от первого лица», 3 фото
+**Контекст:** REQUIREMENTS.md (VR-11, FR-21, FR-25a, FR-31), docs/guide/models.md (раздел «Вид от первого лица», 3 фото
 Wikimedia: «Deltaplane_au_départ», «Hang_glider_start_hill_aug2004», «Fluegelkamera»), scripts/game/camera_rig.gd,
 scripts/game/pilot_animator.gd, scripts/game/game.gd (`_hide_from_cockpit`, `_mount_instrument`), configs/camera.json.
 **Владения:** `scripts/game/camera_rig.gd`, `scripts/game/pilot_animator.gd`, `scripts/game/game.gd` (только

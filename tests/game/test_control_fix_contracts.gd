@@ -1,5 +1,5 @@
 extends TestCase
-## Контракты модуля control-fix (docs/control-fix_contracts.md): форма стыков С1 v2, С2 v2, К3 v3.
+## Контракты модуля control-fix (docs/contracts/control-fix.md): форма стыков С1 v2, С2 v2, К3 v3.
 ## Ломается, если формат поменяли без правки контракта.
 
 

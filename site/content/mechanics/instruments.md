@@ -105,7 +105,7 @@ Flytec и Brauniger общую схему приборов той эпохи: с
 ## Прочие приборы
 
 Карабин, звук пристёгивания и корпус вариометра — часть общей сборки трапеции, крепление прибора задаёт
-именованная пустышка `InstrumentMount` на модели крыла (контракт узлов — [docs/models.md](/docs/models.md)).
+именованная пустышка `InstrumentMount` на модели крыла (контракт узлов — [docs/guide/models.md](/docs/guide/models.md)).
 Нет файла модели прибора — используется заглушка из примитивов с теми же именами узлов, так же как для
 крыльев.
 
@@ -161,9 +161,9 @@ Flytec и Brauniger общую схему приборов той эпохи: с
 
 ## Подробнее
 
-- [docs/instruments.md](/docs/instruments.md) — полное описание приборов, API, страницы планшета, тесты и
+- [docs/guide/instruments.md](/docs/guide/instruments.md) — полное описание приборов, API, страницы планшета, тесты и
   стенд.
-- [docs/telltale.md](/docs/telltale.md) — устройство ленточки, физика, проверка.
+- [docs/guide/telltale.md](/docs/guide/telltale.md) — устройство ленточки, физика, проверка.
 - [docs/research/vario_sounds.md](/docs/research/vario_sounds.md) — источники по звуку вариометров эпохи.
 - [docs/research/sounds.md](/docs/research/sounds.md) — источники звуков полёта, лицензии, алгоритмы
   синтеза.

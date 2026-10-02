@@ -75,7 +75,7 @@ description: "Другие пилоты в небе: как летают бот�
 
 ## Подробнее
 
-- [docs/game.md](/docs/game.md) — раздел «Другие пилоты» и командная строка (`--bots=<N>`, `--look-at=bots`).
+- [docs/guide/game.md](/docs/guide/game.md) — раздел «Другие пилоты» и командная строка (`--bots=<N>`, `--look-at=bots`).
 - [scripts/game/bot_pilots.gd](/scripts/game/bot_pilots.gd) — управление ботами: появление, очередь на старте, `_start_airborne`.
 - [scripts/game/bot_pilot.gd](/scripts/game/bot_pilot.gd) — «мозги» бота: режимы, центровка, восьмёрка у склона.
 - [scripts/game/wander_pilot.gd](/scripts/game/wander_pilot.gd) — полёт без цели («другие пилоты в небе»).

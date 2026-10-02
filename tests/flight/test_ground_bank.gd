@@ -1,7 +1,7 @@
 extends TestCase
 ## Крен крыла на плечах пилота на земле (SF-3, К3 v3): «рука пилота» ведёт крыло к заданному крену
 ## (input.roll) с пределом ∝ доле веса на ногах; поворот стоя — на месте (input.turn), на бегу —
-## дугой от крена крыла; переход в полёт без рывка. docs/flight.md.
+## дугой от крена крыла; переход в полёт без рывка. docs/guide/flight.md.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
 const FLAT := 500.0

@@ -1,5 +1,5 @@
 extends TestCase
-## Пустырь вокруг точки старта (SF-1, docs/start_fixes_contracts.md → К1 v2):
+## Пустырь вокруг точки старта (SF-1, docs/contracts/start-fixes.md → К1 v2):
 ## радиус R = start_search.clearing_radius_m ≥ 2 × длины разбега (живой прогон GroundRun),
 ## после Terrain.add_start_clearing в круге нет леса и деревьев (лес → луг), кустарник, кусты и
 ## трава — как были, за кругом лес остаётся.

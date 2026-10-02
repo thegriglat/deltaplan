@@ -1,5 +1,5 @@
 extends Node
-## Замер Atmosphere.air_velocity_at, мкс/вызов (AM-05, docs/air_model.md → «Поле на CPU»), и
+## Замер Atmosphere.air_velocity_at, мкс/вызов (AM-05, docs/guide/air-model.md → «Поле на CPU»), и
 ## побитное сравнение с сохранённым эталоном (поле выключено — аналитика не изменилась). Не игровой
 ## код. Мир — AtmoFingerprint.make_world (аналитический рельеф), t = 600 с, 6400 точек (сетка
 ## 40 × 40 × 4 высоты над рельефом), турбулентность включена.
@@ -96,7 +96,7 @@ func _bench(a: Atmosphere, pts: Array[Vector3]) -> float:
 	return best
 
 
-## Способ базы AM-00 (docs/plan/air_model_baseline.md → §3): Онгудай, старт Каянча, 75 м над
+## Способ базы AM-00 (docs/archive/plan/air-model-baseline.md → §3): Онгудай, старт Каянча, 75 м над
 ## землёй, ветер 20 км/ч в склон, 100 000 вызовов в одной точке; без поля и с полем (--field).
 func _kayancha(field_path: String) -> void:
 	var terrain := Terrain.new()

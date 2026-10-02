@@ -1,11 +1,11 @@
 {
   "module": "control-fix",
-  "plan": "docs/plan/control-fix.md",
-  "contracts": "docs/control-fix_contracts.md",
+  "plan": "docs/archive/plan/control-fix.md",
+  "contracts": "docs/contracts/control-fix.md",
   "branch": "feature/control-fix",
   "copy": "~/deltaplan-control-fix",
   "created": "2026-10-01T00:00:00",
-  "legacy_journal": "docs/plan/control-fix_progress.md",
-  "migrated_from": "docs/plan/control-fix_progress.md (tools/dp_migrate.py)",
+  "legacy_journal": "docs/archive/plan/control-fix-progress.md",
+  "migrated_from": "docs/archive/plan/control-fix-progress.md (tools/dp_migrate.py)",
   "code": "CF"
 }

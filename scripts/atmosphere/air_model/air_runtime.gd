@@ -4,7 +4,7 @@ extends Node
 ## и погоде — вход решателя (AirPlace.domain_case, область 400 м по всему месту; в рабочем
 ## потоке), расчёт на GPU (AirPicardJob, mech = true), сборка WindField (field_async, рабочий
 ## поток) и подача в атмосферу (set_air_field). Хранит state() для тёплого старта следующего
-## пересчёта. docs/air_model.md → «Загрузка и пересчёт поля».
+## пересчёта. docs/guide/air-model.md → «Загрузка и пересчёт поля».
 ##
 ##   rt.setup(atmo, {detail = layer, water = img, loc = {...}}, conditions_fn)
 ##   await rt.load_field()        # экран загрузки: порции poll_slice, доля — progress_changed

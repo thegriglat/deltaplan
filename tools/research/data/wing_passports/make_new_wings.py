@@ -297,7 +297,7 @@ def make_config(wid, s, base_cfg, design, params):
     pts = [[round(v * f, 2), round(w * f, 3)] for v, w in base_cfg["polar"]["points_kmh_ms"]]
     cfg["polar"]["points_kmh_ms"] = pts
     cfg["polar"]["_doc"] = (base_cfg["polar"]["_doc"] + ". Своей поляры у прототипа нет: поляра базы %s, перенесённая подобием на нагрузку "
-                            "этого крыла (docs/wings_models3d_contracts.md, К4): скорости и снижения × f = √((m/S)/(m/S)_база) = %s; "
+                            "этого крыла (docs/contracts/wings-models3d.md, К4): скорости и снижения × f = √((m/S)/(m/S)_база) = %s; "
                             "безразмерная поляра CL→CD и качество — как у базы" % (base, fm(f, 4)))
     ref_d = cfg["reference"]
     for k in ("stall_speed_kmh", "min_sink_speed_kmh", "best_glide_speed_kmh"):

@@ -1,6 +1,17 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json."
+related: []
+conclusion: ""
+data: "tools/research/recal/"
+applied_in: ""
+---
 # Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS
 
-Итог — `docs/air_model_tune.md`, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — `out/fit.json`.
+Итог — `docs/research/air-model-tune.md`, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — `out/fit.json`.
 
 | Файл | Что |
 |---|---|
@@ -14,7 +25,7 @@
 Воспроизведение (из `tools/research/recal`; venv как в `morris/README.md`):
 ```bash
 PY=../tune/.venv/bin/python
-/home/greg/deltaplan/tools/job.sh start recal-grid 9000 $PY run_grid.py grid   # 495 прогонов, 68 мин GPU
+/home/greg/deltaplan/tools/dp job start recal-grid 9000 $PY run_grid.py grid   # 495 прогонов, 68 мин GPU
 $PY run_grid.py test; $PY run_grid.py check25; $PY run_grid.py check12      # AM-09 и проверка сетки 12,5 м
 $PY fit.py > out/fit.log
 ```

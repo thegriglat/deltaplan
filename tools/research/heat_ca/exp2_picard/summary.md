@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-09-29"
+summary: "Опыт 2: установившееся без шагов (Пикар + прогонки/многосеточный) — Команды — README.md. Таблицы — out/tables.md, out/results.json; поля — out/runs/*.npz, out/truth/*.npz."
+related: []
+conclusion: ""
+data: "tools/research/heat_ca/exp2_picard/"
+applied_in: ""
+---
 # Опыт 2: установившееся без шагов (Пикар + прогонки/многосеточный)
 
 Команды — `README.md`. Таблицы — `out/tables.md`, `out/results.json`; поля — `out/runs/*.npz`, `out/truth/*.npz`.

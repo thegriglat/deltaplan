@@ -1,4 +1,4 @@
-"""Контрактный тест обновления сайта (docs/plan/site_update.md, «Контракты», v1).
+"""Контрактный тест обновления сайта (docs/archive/plan/site-update.md, «Контракты», v1).
 
     uv run -q --with pillow python tools/site/check_contracts.py [--only=C1,C2,C3]
 

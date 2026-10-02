@@ -22,7 +22,7 @@ extends RefCounted
 ##
 ## z_sat = wind.z_sat_frac·h, h = 0,3·u*/f — толщина нейтрального слоя решателя
 ## (AirCase.NEUTRAL_BL_K), u* = κ·U10/ln(10/z0) — то же правило, что tools/research/cases/rules.py
-## (C10 v3), проверено данными притока Askervein и Perdigão (docs/plan/air_model_b1.md). Для
+## (C10 v3), проверено данными притока Askervein и Perdigão (docs/archive/plan/air-model-b1.md). Для
 ## устойчивых E, F h = min(0,3·u*/f, 0,4·√(u*·L/f)), L — Golder 1972 по классу и z0 (C2 v5).
 
 const CLASSES := "ABCDEF"

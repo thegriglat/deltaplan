@@ -5,7 +5,7 @@
   "branch": "feature/wings-passports",
   "copy": "~/deltaplan-wings",
   "created": "2026-10-01T00:00:00",
-  "legacy_journal": "docs/plan/wings_passports_progress.md",
-  "migrated_from": "docs/plan/wings_passports_progress.md (tools/dp_migrate.py)",
+  "legacy_journal": "docs/archive/plan/wings-passports-progress.md",
+  "migrated_from": "docs/archive/plan/wings-passports-progress.md (tools/dp_migrate.py)",
   "code": "WP"
 }

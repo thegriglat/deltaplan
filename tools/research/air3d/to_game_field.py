@@ -56,7 +56,7 @@ def trilinear(a, meta, x, y, z):
 
 
 def game_sample(ch, hc, g, z0, x, y, z, ground_h=None):
-    """Выборка как в игре (WindField.sample, docs/air_model.md → «Поле на CPU»), независимая
+    """Выборка как в игре (WindField.sample, docs/guide/air-model.md → «Поле на CPU»), независимая
     реализация на numpy: 4 столбца, у каждого высота выборки z_c = z + (hc_c − h)·exp(−agl/dx),
     по вертикали линейно между центрами, ниже центра первой воздушной клетки — лог-профиль к 0
     на z0 (θ′ — значение первой клетки), затем билинейно. ground_h — настоящая земля (None — hc

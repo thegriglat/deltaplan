@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """WPC-4: конфиги крыльев — к паспортам (паспорт — эталон; решение пользователя по шлюзу 1 модуля
-wing-physics-check, docs/plan/wing-physics-check.md).
+wing-physics-check, docs/archive/plan/wing-physics-check.md).
 
 Паспортные цели берутся ровно как в WPC-1 (tools/research/wing_physics_check/wings_audit.py → passport_for:
 приведение к массе √(M/M_паспорта); stall = DHV Vmin VG 0, иначе «stall speed» производителя; full_pull = DHV
@@ -362,7 +362,7 @@ def apply(wid, cfg, tg, src):
     srcs = "; ".join("%s — %s" % (q, src[q]) for q in QS if q in tg)
     new["_doc"] = d + MARK + (
         " скорости и поляра приведены к паспорту при эталонной массе %s кг (паспорт — эталон, решение по шлюзу 1 "
-        "docs/plan/wing-physics-check.md; цели как в WPC-1 tools/research/wing_physics_check/README.md: "
+        "docs/archive/plan/wing-physics-check.md; цели как в WPC-1 tools/research/wing_physics_check/README.md: "
         "√(M/M_паспорта), DHV Vmin/Vmax при VG 0). Источники: %s. Сделано "
         "tools/research/data/wing_passports/fit_passports.py." % (fm(mass, 1), srcs))
     return new, dict(s=s, vs=pts[0][0], m=m, pol=pol, a_st=a_st)

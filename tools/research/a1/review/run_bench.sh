@@ -1,7 +1,7 @@
 #!/bin/sh
 # А1.3, замеры на свободном GPU (после остановки llama-server): цена итерации до/после, bench 200 м целиком
 # (таймаут/segfault), повтор эталона 200 м, 3 м/с с нагревом на 3000 итераций.
-#   BEFORE=<worktree feature/air-model с импортом> /home/greg/deltaplan/tools/job.sh start a1bench 5400 sh run_bench.sh
+#   BEFORE=<worktree feature/air-model с импортом> /home/greg/deltaplan/tools/dp job start a1bench 5400 sh run_bench.sh
 cd "$(dirname "$0")"
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 L="flock /tmp/heat_ca_gpu.lock"

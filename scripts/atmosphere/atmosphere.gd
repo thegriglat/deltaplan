@@ -3,8 +3,8 @@ class_name Atmosphere
 extends Node3D
 ## Атмосфера: ветер с профилем и порывами, термики, фоновое опускание, склоновый подъём,
 ## подветренные зоны и роторы; рисует облака и птиц (дочерние ноды).
-## Контракт — docs/ARCHITECTURE.md, модель — docs/research/thermals.md,
-## описание — docs/atmosphere.md.
+## Контракт — docs/guide/architecture.md, модель — docs/research/thermals.md,
+## описание — docs/guide/atmosphere.md.
 ##
 ## Использование:
 ##   atmo.set_weather("weather/medium")          # или словарь пресета
@@ -45,7 +45,7 @@ var cloud_phys: CloudPhysics
 var storm: StormField
 ## Подветренные волны и роторы (VR-27).
 var wave: WaveField
-## Среднее поле воздуха (масштаб 1, docs/air_model.md → «Поле на CPU»): уровни и плавная подмена.
+## Среднее поле воздуха (масштаб 1, docs/guide/air-model.md → «Поле на CPU»): уровни и плавная подмена.
 ## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
 var air_field: AirFieldSet
 ## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
@@ -749,7 +749,7 @@ func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector
 	return Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
 
 
-## Скорость воздуха с полем (масштабы 1–3 из поля, docs/air_model.md → «Масштаб 3: возмущения
+## Скорость воздуха с полем (масштабы 1–3 из поля, docs/guide/air-model.md → «Масштаб 3: возмущения
 ## из поля»). fw — выборка поля (доля a = fw.w > 0); в полосе края (a < 1) остаток — аналитика с её
 ## линией тени.
 ## - Среднее: горизонталь и w_mech — поле; подветренного опускания и ослабления ветра поверх поля

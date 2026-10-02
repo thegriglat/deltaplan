@@ -1,6 +1,14 @@
+---
+type: "reference"
+status: "active"
+module: "ui"
+updated: "2026-10-03"
+summary: "Скриншоты ui/01 — меню, «Полёт…», карта, «Управление» — Сняты godot --rendering-method gl_compatibility под xvfb-run (см."
+related: []
+---
 # Скриншоты ui/01 — меню, «Полёт…», карта, «Управление»
 
-Сняты `godot --rendering-method gl_compatibility` под `xvfb-run` (см. `docs/game.md`), два разрешения:
+Сняты `godot --rendering-method gl_compatibility` под `xvfb-run` (см. `docs/guide/game.md`), два разрешения:
 1920×1080 и 1280×720. «Карта» — оверлей «Выбрать на карте…» экрана «Полёт…» (алтайская локация,
 рельеф из кеша/сети Terrarium — на скриншотах часть тайлов могла не успеть прогрузиться, это не
 относится к вёрстке экрана).

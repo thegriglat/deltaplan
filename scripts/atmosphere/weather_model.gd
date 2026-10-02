@@ -3,7 +3,7 @@ extends RefCounted
 ## Погода из прогноза (FR-16): температура днём + ветер (+ дата и место) → словарь погоды с теми же
 ## ключами, что у эталонов configs/weather/* (Atmosphere.set_weather принимает словарь).
 ## Только чистые статические функции. Параметры — configs/weather_model.json, описание —
-## docs/atmosphere.md → «Погода из прогноза».
+## docs/guide/atmosphere.md → «Погода из прогноза».
 ##
 ##   var ctx := WeatherModel.ground_context(terrain.height_at, 10000.0, 15, 0.1)
 ##   ctx.merge({"month": 7, "day": 15, "lat": 51.9})

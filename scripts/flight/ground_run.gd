@@ -127,7 +127,7 @@ func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> voi
 ## Трапеция задаёт угол атаки — угол киля к набегающему потоку; пока потока нет (штиль, стоит),
 ## опорное направление — вдоль склона по курсу (поток, который встретит крыло на разбеге), а не
 ## горизонт: иначе стоя на склоне 20° нос задран на 20° выше, чем на первом шаге, и задние концы
-## консолей уходят в склон (docs/flight.md → «Поза крыла на земле»).
+## консолей уходят в склон (docs/guide/flight.md → «Поза крыла на земле»).
 func _aero_force(
 	m: FlightModel, dt: float, input: ControlInput, v_air: Vector3, dir3: Vector3
 ) -> Vector3:
@@ -192,7 +192,7 @@ static func bank_command(m: FlightModel, input: ControlInput) -> float:
 
 ## Крен крыла на плечах: I·φ̈ = M_скольж + M_несимм + M_веса + M_инерц + M_пилота − D·φ̇.
 ## Крен — относительно горизонта (склон не влияет); рука пилота ведёт его к заданному
-## bank_command (input.roll). Подробно — docs/flight.md.
+## bank_command (input.roll). Подробно — docs/guide/flight.md.
 func _ground_bank(m: FlightModel, dt: float, v_air: Vector3, air_fn: Callable) -> void:
 	var gb: Dictionary = m.flight.ground_bank
 	var inertia := roll_inertia(m)

@@ -1,6 +1,6 @@
 class_name SailMaterial
 extends RefCounted
-## Материал паруса (docs/models.md → «Шейдер паруса»). Подключение из визуала планера:
+## Материал паруса (docs/guide/models.md → «Шейдер паруса»). Подключение из визуала планера:
 ##   var mat := SailMaterial.apply(sail_mesh_instance, "glider_sport")   # один раз после загрузки
 ##   SailMaterial.set_flight(mat, airspeed_ms, stall_amount, turbulence)   # каждый кадр
 ## Раскраска берётся из исходного материала .glb, карты — assets/shaders/sail/<модель>_*.png,

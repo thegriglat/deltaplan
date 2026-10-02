@@ -1,5 +1,5 @@
 {
-  "_doc": "Кадры стенда T01 (docs/plan/terrain/01-stend-kadry-zamery.md). tools/terrain/shots.sh снимает каждый кадр 1920x1080 через terrain_preview.gd. rects/strips/profile — доли ширины/высоты кадра [x0,y0,x1,y1] (0,0 — левый верхний угол), читает tools/terrain/compare_ref.py. Разметка выверена по реальным кадрам (не на глаз по args).",
+  "_doc": "Кадры стенда T01 (docs/archive/plan/terrain/01-stend-kadry-zamery.md). tools/terrain/shots.sh снимает каждый кадр 1920x1080 через terrain_preview.gd. rects/strips/profile — доли ширины/высоты кадра [x0,y0,x1,y1] (0,0 — левый верхний угол), читает tools/terrain/compare_ref.py. Разметка выверена по реальным кадрам (не на глаз по args).",
   "size": [1920, 1080],
   "frames": [
     {

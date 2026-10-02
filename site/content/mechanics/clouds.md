@@ -107,7 +107,7 @@ description: "Кучевые облака и их жизненный цикл, �
 
 ## Подробнее
 
-- [docs/atmosphere.md](/docs/atmosphere.md) — полное устройство модуля атмосферы: термики, облака, тени,
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — полное устройство модуля атмосферы: термики, облака, тени,
   опасная погода (грозы, волна, перистая пелена, пыльные вихри).
 - Код облаков и теней: [scripts/atmosphere/cloud_layer.gd](/scripts/atmosphere/cloud_layer.gd),
   [scripts/atmosphere/cloud_shadow_map.gd](/scripts/atmosphere/cloud_shadow_map.gd),

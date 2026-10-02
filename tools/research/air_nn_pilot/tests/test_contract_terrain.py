@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Контрактный тест П6 «Вырезка места» v1 (docs/air_nn_contracts.md) на готовых вырезках.
+"""Контрактный тест П6 «Вырезка места» v1 (docs/contracts/air-nn.md) на готовых вырезках.
 
   .venv/bin/python tests/test_contract_terrain.py [--dir $AIR_NN_DATA/pilot/tiles/v1] [--max N]
 

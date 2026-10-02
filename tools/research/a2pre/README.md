@@ -1,6 +1,17 @@
+---
+type: "research"
+status: "closed"
+module: ""
+updated: "2026-10-03"
+summary: "Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах — Записка с выводом — docs/archive/plan/air-model-a2pre.md."
+related: []
+conclusion: ""
+data: "tools/research/a2pre/"
+applied_in: ""
+---
 # Разведка перед А2: сходимость и цена решателя воздуха на новых параметрах
 
-Записка с выводом — `docs/plan/air_model_a2pre.md`. Решатель (`tools/research/air3d/air.py`, после А1:
+Записка с выводом — `docs/archive/plan/air-model-a2pre.md`. Решатель (`tools/research/air3d/air.py`, после А1:
 Pr_t = 0,85, θ′_d, h при const) не правился: меняются только `A.Params`.
 
 | Файл | Что |
@@ -26,8 +37,8 @@ z0 0,03 м.
 ```bash
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 $PY run.py trial                                                   # ~3,5 мин GPU
-/home/greg/deltaplan/tools/job.sh start a2pre 3600 $PY run.py matrix   # 36 сценариев, 18 мин GPU; замок GPU на сценарий
-/home/greg/deltaplan/tools/job.sh wait a2pre 3600
+/home/greg/deltaplan/tools/dp job start a2pre 3600 $PY run.py matrix   # 36 сценариев, 18 мин GPU; замок GPU на сценарий
+/home/greg/deltaplan/tools/dp job wait a2pre 3600
 $PY analyze.py        # только матрица → out/tables.md, out/summary.json, out/fig_*.png
 ```
 Прерванная пачка продолжается повторным запуском (готовые ключи пропускаются).
@@ -55,7 +66,7 @@ air.py (итерации те же, время решений без нагре�
 
 ```bash
 PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
-/home/greg/deltaplan/tools/job.sh start a2-matrix 7200 $PY run.py a2      # 132 сценария; ~1,5 ч GPU при общем GPU
+/home/greg/deltaplan/tools/dp job start a2-matrix 7200 $PY run.py a2      # 132 сценария; ~1,5 ч GPU при общем GPU
 $PY run.py scan                                                            # 14 сценариев, ~35 мин
 $PY analyze_a2.py
 # игра: GPU-тесты и bench (под замком GPU)

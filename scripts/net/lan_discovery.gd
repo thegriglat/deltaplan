@@ -2,7 +2,7 @@ extends Node
 ## NET-23. Поиск зон в локальной сети (автозагрузка LanDiscovery).
 ##
 ## Контракт — LanAnnounce в server/proto/deltaplan/v1/net.proto, описание и пример —
-## docs/net_protocol.md, «Поиск зон в локальной сети».
+## docs/guide/net-protocol.md, «Поиск зон в локальной сети».
 ##
 ## Объявление (игра со встроенным сервером, NET-22): start_announcing(info_provider) — раз в
 ## секунду (первое — сразу) для каждой зоны из info_provider.call() шлёт UDP-датаграмму с

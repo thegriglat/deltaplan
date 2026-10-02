@@ -1,7 +1,15 @@
+---
+type: "plan"
+status: "postponed"
+module: "air-model"
+updated: "2026-10-03"
+summary: "А2: сходимость в штиль — 01.10.2026. Ветка air/a2: feature/air-model 0788cf7 плюс влитая разведка air/a2-pre."
+related: []
+---
 # А2: сходимость в штиль
 
 01.10.2026. Ветка `air/a2`: `feature/air-model` 0788cf7 плюс влитая разведка `air/a2-pre`. Разведка, наборы old/new
-и матрица описаны в `docs/plan/air_model_a2pre.md`. Код и данные лежат в `tools/research/a2pre/`, команды — в
+и матрица описаны в `docs/archive/plan/air-model-a2pre.md`. Код и данные лежат в `tools/research/a2pre/`, команды — в
 README, раздел «А2». Все таблицы строит один скрипт: `analyze_a2.py` → `out/a2_tables.md`.
 
 ## Итог
