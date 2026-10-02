@@ -216,6 +216,60 @@ ln -s $PWD/../air3d $D/tools/research/air3d; ln -s $PWD/../../../configs $D/conf
 cd $D/tools/research/air_lite && $OLDPWD/.venv/bin/python gen.py plan && $OLDPWD/.venv/bin/python gen.py run --ids <id,…>
 ```
 
+## Генератор П-2: набор terrain (NN-P6, контракт П1 v2)
+
+Места `t_<NNNN>` — вырезки П6 v1 (NN-P4): каталог `$AIRNN_P6_DIR`, иначе `$AIR_NN_DATA/pilot/tiles/v1` (читается
+только при `manifest.json → complete = true`). Загрузчик — `places.location("t_…")` (`TerrainLocation`: h float32 файла
+→ float64, тогда высоты клеток решателя `R.grid_domain(loc, 400)` побитно = `hc400` файла; вода — нет; старты — нет),
+`places.context` — дата `reference_context`, lat/lon индекса, `utc_offset_h = round(lon/15)`, окрестность по рельефу.
+Кэш мест — 8 (место ≈ 20 МБ в float64).
+
+Наборы (`configs/dataset.yaml`):
+- `terrain` — все строки индекса П6 × `terrain.n_cond` = 12 условий (plan_rows: 4 часа × 3 облачности по кругу,
+  каждый 12-й — штиль, зерно `terrain.cond_seed`); **только область** (окна не решаются; `plan.json → centers` —
+  3 точки `window_centers`, только для оценки); в метаданных случая — `ctx`, `place` (system, part), `solver`.
+- `probe` — подмножество terrain: 8 мест равномерно по рангу крутизны (slope_p50) × 2 условия (k = 2i + 7j mod 12).
+- `bench12` — 12 случаев main «только область» (4 max + 8 ok) для кривой воркеров; `chaos_t` — тест прерывания.
+
+**Предел итераций** `terrain.max_outer` = 1000 (main — 3000), пишется в `plan.json`/`manifest.json → solver`.
+Решения со статусом `max` (не сошлись за предел) сохраняются, как в v1. Замер — `tests/bench_maxcap.py` →
+`tests/out/maxcap.json`: на 12 max-случаях main (18 решений) остаток mom_rms у несошедшихся стоит на полке
+(10⁻⁴…10⁻²), поле колеблется — |ΔV| на 60 м между состояниями 1500 и 2000 итераций одного счёта p90 0,90 м/с;
+решение с пределом 1000 против сохранённого (3000) — p90 0,98 м/с, т. е. ×1,09 к собственному «шуму» решения,
+и не убывает с пределом (300 → 1,04; 2000 → 0,87). Сошедшиеся медленные (iters > 500), которые предел обрезает:
+p90 |ΔV| 0,095 м/с, |Δw| 0,004 м/с при 1000 (обрезается 25 из 3406 сошедшихся решений main, 0,7 %). Время решателя
+области на main: 4,11 → 2,04 ч (−50 %), доля несошедшихся во времени 74 % → 53 %.
+
+**Воркеры** (`run.workers` = 2, `--workers N`; 0 — в процессе запуска, как v1): запускающий держит `runner.lock`
+и замок GPU (пачка `batch_s`), воркеры (spawn, PDEATHSIG — умирают вместе с ним, общий `workers.lock` LOCK_SH)
+берут случаи из state.sqlite, пока открыт «шлюз» пачки; подготовка воркеров — до замка. SIGINT/SIGTERM
+запускающему → воркерам SIGUSR1 (бросить случай, вернуть в очередь), с `--finish-on-signal` — дописать. Новый run
+ждёт освобождения `workers.lock` (воркеры прошлого запуска мертвы) и только потом возвращает `running` в очередь.
+Кривая (`tests/bench_workers.py` → `tests/out/workers_bench.json`, 12 случаев, замок на весь прогон N):
+N = 1…4 → 591 / 624 / 619 / 617 случаев/ч, загрузка GPU 86 / 97 / 98 / 99 % — GPU занят уже одним процессом
+(без MPS ядра разных процессов не идут одновременно, выигрыш — только перекрытие CPU-части), выбрано N = 2;
+результаты побитно одинаковы при всех N и равны main у сошедшихся до предела.
+
+```bash
+PY=.venv/bin/python
+$PY dataset.py plan --dataset terrain                 # план по индексу П6 (нужен complete = true)
+$PY dataset.py run  --dataset probe --progress        # проба (16 случаев), затем оценка:
+$PY estimate.py --dataset probe                       # ч GPU и ГБ полного terrain → figures/estimate_probe.json
+$PY dataset.py run  --dataset terrain --progress      # массовый счёт — только после согласования
+# тесты и замеры NN-P6
+$PY tests/test_places_terrain.py                      # загрузчик t_* (подставной П6 + настоящий, если готов)
+$PY tests/test_region_only.py                         # область без окон = d400_* main побитно (GPU ~2 мин)
+$PY tests/test_interrupt.py --workers                 # kill -9 / SIGINT на воркерах → 8/8 побитно (GPU ~6 мин)
+$PY tests/bench_maxcap.py                             # предел итераций (GPU ~25 мин, кэш pilot/tmp/nnp6_maxcap)
+$PY tests/bench_workers.py                            # кривая N = 1…4 (GPU ~6 мин)
+$PY tests/make_fake_p6.py --out DIR --places altai,aushkul,askarovo,ongudai,s_scarp,s_valley,p_000,p_003
+```
+Подставной П6 (`tests/make_fake_p6.py`) — рельефы встроенных мест (data/terrain, слой detail 1601² по 25 м — та же
+сетка, что вырезка П6), синтетики и процедурных с условными координатами; `manifest.json → fake = true`. Проба
+NN-P6 (до готовности NN-P4) — на нём, корень `$AIR_NN_DATA/pilot/tmp/nnp6_probe` (estimate.py находит его сам):
+16 случаев, 431 случай/ч при N = 2 (8,4 с GPU на случай), max 38 %; оценка на 345 мест × 12 = 4140 случаев ≈ 9,5 ч
+GPU, 4,7 ГБ (без предела было бы ×2,6). Реальную пробу на местах П6 делает NN-P7.
+
 ## Вход и выход сети (контракт П2, `pilotnn/prep.py`)
 **Поворот.** `wdir` — откуда дует; куда дует ê = (−sin wdir, −cos wdir). Поле поворачивается против часовой стрелки на
 k·90° так, что угол «куда дует» φ' ∈ [−45°, 45°) (ветер «с запада»); остаток r = φ' — во вход (cos r, sin r). Только

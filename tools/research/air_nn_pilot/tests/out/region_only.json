@@ -1,0 +1,166 @@
+{
+ "ok": true,
+ "cases": [
+  {
+   "case": "altai_000",
+   "max_outer": 3000,
+   "equal": {
+    "d400_h": true,
+    "d400_m": true,
+    "d400_hc": true,
+    "d400_H": true,
+    "d400_hbl": true
+   },
+   "runs": {
+    "h": [
+     "max",
+     3001
+    ],
+    "m": [
+     "max",
+     3001
+    ]
+   },
+   "runs_main": {
+    "h": [
+     "max",
+     3001
+    ],
+    "m": [
+     "max",
+     3001
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "aushkul_000",
+   "max_outer": 3000,
+   "equal": {
+    "d400_h": true,
+    "d400_m": true,
+    "d400_hc": true,
+    "d400_H": true,
+    "d400_hbl": true
+   },
+   "runs": {
+    "h": [
+     "ok",
+     91
+    ],
+    "m": [
+     "ok",
+     111
+    ]
+   },
+   "runs_main": {
+    "h": [
+     "ok",
+     91
+    ],
+    "m": [
+     "ok",
+     111
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "aushkul_000",
+   "max_outer": 1000,
+   "equal": {
+    "d400_h": true,
+    "d400_m": true,
+    "d400_hc": true,
+    "d400_H": true,
+    "d400_hbl": true
+   },
+   "runs": {
+    "h": [
+     "ok",
+     91
+    ],
+    "m": [
+     "ok",
+     111
+    ]
+   },
+   "runs_main": {
+    "h": [
+     "ok",
+     91
+    ],
+    "m": [
+     "ok",
+     111
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "p_007_000",
+   "max_outer": 3000,
+   "equal": {
+    "d400_h": true,
+    "d400_m": true,
+    "d400_hc": true,
+    "d400_H": true,
+    "d400_hbl": true
+   },
+   "runs": {
+    "h": [
+     "ok",
+     421
+    ],
+    "m": [
+     "ok",
+     581
+    ]
+   },
+   "runs_main": {
+    "h": [
+     "ok",
+     421
+    ],
+    "m": [
+     "ok",
+     581
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "p_007_000",
+   "max_outer": 1000,
+   "equal": {
+    "d400_h": true,
+    "d400_m": true,
+    "d400_hc": true,
+    "d400_H": true,
+    "d400_hbl": true
+   },
+   "runs": {
+    "h": [
+     "ok",
+     421
+    ],
+    "m": [
+     "ok",
+     581
+    ]
+   },
+   "runs_main": {
+    "h": [
+     "ok",
+     421
+    ],
+    "m": [
+     "ok",
+     581
+    ]
+   },
+   "ok": true
+  }
+ ],
+ "solver_version": "s0-3acd749"
+}

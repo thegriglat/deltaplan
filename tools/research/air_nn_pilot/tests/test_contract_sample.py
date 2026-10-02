@@ -39,16 +39,21 @@ def check(dataset="smoke", data_root=None, max_cases=0):
     for p in (L.manifest, L.plan, L.db, L.cases):
         assert p.exists(), f"нет {p}"
     man = json.loads(L.manifest.read_text())
-    assert man["contract"] == "П1 v1" and man["solver_version"] == L.dir.parent.name
+    assert man["contract"] in ("П1 v1", "П1 v2") and man["solver_version"] == L.dir.parent.name
     plan = json.loads(L.plan.read_text())
+    v2 = man["contract"] == "П1 v2"
+    region_only = bool(plan.get("region_only"))
+    assert region_only == v2, "П1 v2 — только область (plan.json → region_only)"
+    if v2:
+        assert int(plan["solver"]["max_outer"]) > 0 and man["solver"] == plan["solver"], "предел итераций в plan/manifest"
     assert plan["agl"] == AGL, plan["agl"]
     for loc in plan["places"]:
-        assert loc in REAL or re.fullmatch(r"[sp]_\w+", loc), loc
+        assert loc in REAL or re.fullmatch(r"[sp]_\w+", loc) or (v2 and re.fullmatch(r"t_\d{4}", loc)), loc
     cases = {c["id"]: c for c in plan["cases"]}
     con = sqlite3.connect(f"file:{L.db}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     meta = dict(con.execute("SELECT key, value FROM meta").fetchall())
-    assert meta["contract"] == "П1 v1" and meta["solver_version"] == L.dir.parent.name
+    assert meta["contract"] == man["contract"] and meta["solver_version"] == L.dir.parent.name
     rows = con.execute("SELECT * FROM cases WHERE status='done' ORDER BY ord").fetchall()
     assert rows, "нет готовых случаев"
     assert con.execute("SELECT COUNT(*) FROM cases").fetchone()[0] == len(cases)
@@ -64,7 +69,7 @@ def check(dataset="smoke", data_root=None, max_cases=0):
         assert r["loc"] == c["loc"] and json.loads(r["cond"]) == c
         path = L.case_file(cid)
         assert hashlib.sha256(path.read_bytes()).hexdigest() == r["sha256"], f"{cid}: sha256 файла ≠ базы"
-        nw = len(plan["centers"][c["loc"]])
+        nw = 0 if region_only else len(plan["centers"][c["loc"]])
         with np.load(path, allow_pickle=False) as z:
             want = {"d400_h": (4, 13, 96, 96), "d400_m": (3, 13, 96, 96), "d400_hc": (96, 96), "d400_H": (96, 96),
                     "d400_hbl": (96, 96)}
@@ -89,8 +94,14 @@ def check(dataset="smoke", data_root=None, max_cases=0):
                 assert rr["status"] in ("ok", "max", "diverged") and rr["iters"] > 0
         assert m["d400"]["nx"] == 96 and m["d400"]["dx"] == 400
         assert r["solve_status"] == m["status"]
+        if c["loc"].startswith("t_"):
+            assert set(m["ctx"]) >= {"lat", "lon", "month", "day", "utc_offset_h"} and set(m["place"]) == {"system", "part"}, cid
+            assert m["ctx"]["utc_offset_h"] == round(m["ctx"]["lon"] / 15.0), cid
+        if v2:
+            mo = plan["solver"]["max_outer"]
+            assert m["solver"]["max_outer"] == mo and all(v["iters"] <= mo + 10 for v in m["runs"].values()), cid
     con.close()
-    print(f"ok: контракт П1 v1 — {len(rows)} случаев набора {dataset} ({L.dir})")
+    print(f"ok: контракт {man['contract']} — {len(rows)} случаев набора {dataset} ({L.dir})")
     return len(rows)
 
 
