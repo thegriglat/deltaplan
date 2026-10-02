@@ -1630,6 +1630,7 @@ def build():
 
 
 def main():
+    if sys.argv[1:2] == ["docs"]: sys.path.insert(0, str(Path(__file__).resolve().parent)); import dp_docs; sys.exit(dp_docs.main(sys.argv[2:]))  # dp docs — tools/dp_docs.py
     a = build().parse_args()
     try:
         a.fn(a)

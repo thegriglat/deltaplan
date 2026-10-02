@@ -147,3 +147,14 @@ dp digest --since today              # решения пользователя, 
 ## Обратная связь по dp
 Чего не хватило, что неудобно — в конце работы: исполнитель — поле `dp_feedback` отчёта, координатор —
 `dp event <модуль> note --note "dp: …"`. Собрать: `grep -h 'dp_feedback\|"dp: ' docs/plan/*/events.jsonl`.
+
+## Документация: `dp docs` (tools/dp_docs.py)
+
+```
+dp docs find [--type T] [--status S] [--module M] [текст]   # строка на документ: путь — тип — статус — summary
+dp docs show docs/guide/terrain.md                           # frontmatter + оглавление, без тела
+dp docs findings [текст] [--module M]                        # выдержки из реестра выводов
+dp docs check                                                # frontmatter, живые ссылки, размер > 40 КБ
+dp docs index                                                # собрать docs/INDEX.md и docs/registry/{research,contracts,decisions}.md
+dp docs init [--dry]                                         # frontmatter новым файлам (эвристики)
+```
