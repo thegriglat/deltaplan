@@ -285,6 +285,9 @@ def cmd_plan(cfg, L, quiet=False):
 
 
 # ------------------------------------------------------------------------------------------- счёт
+LOCK_YIELD_S = 2.0
+
+
 class Abandon(BaseException):
     pass
 
@@ -293,6 +296,7 @@ class Stopper:
     def __init__(self, finish):
         self.requested = 0
         self.in_solve = False
+        self.in_lock = False
         self.finish = finish
 
     def __call__(self, sig, frame):
@@ -301,12 +305,12 @@ class Stopper:
             os.write(2, f"второй сигнал {sig} — немедленный выход\n".encode())
             os._exit(128 + sig)
         log(f"сигнал {sig}: мягкая остановка ({'дописать' if self.finish else 'бросить'} текущий случай)")
-        if self.in_solve and not self.finish:
+        if self.in_lock or (self.in_solve and not self.finish):
             raise Abandon()
 
 
 class GpuLock:
-    """flock на /tmp/heat_ca_gpu.lock с опросом (сигнал прерывает ожидание)."""
+    """flock на /tmp/heat_ca_gpu.lock: блокирующее ожидание; сигнал прерывает его (Abandon через stop.in_lock)."""
 
     def __init__(self, stop):
         self.stop = stop
@@ -314,15 +318,16 @@ class GpuLock:
     def __enter__(self):
         self.f = open(GPU_LOCK, "a")
         t0 = time.perf_counter()
-        while True:
-            try:
-                fcntl.flock(self.f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except BlockingIOError:
-                if self.stop.requested:
-                    self.f.close()
-                    raise Abandon()
-                time.sleep(0.5)
+        try:
+            self.stop.in_lock = True
+            if self.stop.requested:
+                raise Abandon()
+            fcntl.flock(self.f, fcntl.LOCK_EX)
+            self.stop.in_lock = False
+        except BaseException:
+            self.stop.in_lock = False
+            self.f.close()  # закрытие снимает замок, если он успел взяться
+            raise
         self.wait = time.perf_counter() - t0
         return self
 
@@ -509,6 +514,8 @@ def cmd_run(cfg, L, a):
             con.execute("INSERT INTO batches (pid, t_start, t_end, lock_wait, n_cases, code) VALUES (?,?,?,?,?,?)",
                         (os.getpid(), t_b, time.time(), lk.wait, n_b, code))
         log(f"  пачка: {n_b} случаев, замок GPU отпущен")
+        if not stop.requested:
+            time.sleep(LOCK_YIELD_S)  # уступить ждущим на замке
     if stop.requested:
         rc = EXIT_SIGNAL
     elif rc == EXIT_OK:
