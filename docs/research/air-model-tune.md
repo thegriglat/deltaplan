@@ -7,7 +7,7 @@ summary: "Калибровка модели воздуха по схеме Profe
 related: []
 conclusion: ""
 data: ""
-applied_in: ""
+applied_in: "параметры AirCase (λ/h, пороги lee.field_*); см. docs/registry/findings.md"
 ---
 # Калибровка модели воздуха по схеме Professor (AM-09)
 

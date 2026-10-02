@@ -7,7 +7,7 @@ summary: "Паспорта крыльев → конфиги configs/wings/*.jso
 related: []
 conclusion: ""
 data: ""
-applied_in: ""
+applied_in: "configs/wings/*.json"
 ---
 # Паспорта крыльев → конфиги `configs/wings/*.json`: что изменено, источники, противоречия
 
