@@ -18,7 +18,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 7  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 8  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -31,7 +31,7 @@ SEVERITY = {"blocker": "B", "major": "M", "minor": "m"}
 MAX_ISSUES = 7
 DEFAULT_SECTION = "Решения пользователя"
 CODE_RE = re.compile(r"^[A-Z]{2,4}$")
-ID_RE = re.compile(r"^([A-Z]{2,4})-(\d+)[a-z]?$")
+ID_RE = re.compile(r"^([A-Z]{2,4})-([A-Z]?)(\d+)[a-z]?$")  # NN-7, NN-7a, этапные NN-P8
 RESERVED_CODES = {"T"}  # T-<n> — реестр TODO.md (всё равно короче 2 букв, но держим явно)
 GODOT_TESTS = "godot --headless --path . res://tests/run_tests.tscn -- --filter={f}"
 
@@ -311,11 +311,14 @@ def cmd_task_new(a):
         code = (read_json(home / "module.json") or {}).get("code")
         if not code:
             raise DpError(f"у модуля {a.module} нет кода: dp init {a.module} --code XX (2–4 заглавные буквы), либо задайте ID явно")
-        nums = [int(m[2]) for t in task_cards(home) if (m := ID_RE.match(t)) and m[1] == code]
-        a.id = f"{code}-{max(nums, default=0) + 1}"
+        stage = (a.stage or "").upper()
+        if stage and not re.fullmatch(r"[A-Z]", stage):
+            raise DpError(f"--stage «{a.stage}»: одна заглавная латинская буква")
+        nums = [int(m[3]) for t in task_cards(home) if (m := ID_RE.match(t)) and m[1] == code and m[2] == stage]
+        a.id = f"{code}-{stage}{max(nums, default=0) + 1}"
     else:
         if not ID_RE.match(a.id) or a.id.startswith("T-"):
-            raise DpError(f"ID «{a.id}»: формат <КОД>-<n>[буква], напр. NN-7 или NN-7a (код — 2–4 заглавные латинские; T — TODO.md); без ID — следующий номер")
+            raise DpError(f"ID «{a.id}»: формат <КОД>-[этап]<n>[буква], напр. NN-7, NN-7a, NN-P8 (код — 2–4 заглавные латинские; T — TODO.md); без ID — следующий номер")
         for m, h in all_modules().items():
             if m != a.module and (h / "tasks" / f"{a.id}.json").exists():
                 raise DpError(f"ID {a.id} уже есть в модуле {m}")
@@ -398,6 +401,8 @@ def cmd_task_set(a):
             raise DpError("id не меняется")
         val = _set_value(raw)
         if kind == "=":
+            if isinstance(val, str) and (isinstance(card.get(key), list) or isinstance(CARD_TEMPLATE.get(key), list)):
+                val = [x.strip() for x in val.split(",") if x.strip()]  # report_extra=a,b → ["a", "b"], а не по символам
             card[key] = val
         else:
             lst = card.get(key)
@@ -1128,11 +1133,21 @@ def commit_paths(cwd, paths, msg):
     return gitr("rev-parse", "--short", "HEAD", cwd=cwd).stdout.strip()
 
 
-def plan_edit(target, section, contracts=False, append=None, replace=None, set_=None, create=False):
-    """Правка тела раздела. → (путь, заголовок, что сделано)."""
+def plan_edit(target, section, contracts=False, append=None, replace=None, set_=None, create=False, all_=False):
+    """Правка тела раздела (раздел «*» — весь файл, только --replace). → (путь, заголовок, что сделано)."""
     path = plan_path(target, contracts)
     if not path.exists():
         raise DpError(f"нет файла {rel(path)}")
+    if section.strip() == "*":
+        if not replace:
+            raise DpError("раздел «*» (весь файл) — только с --replace СТАРОЕ НОВОЕ")
+        old, new = replace
+        text = path.read_text()
+        n = text.count(old)
+        if n == 0 or (n > 1 and not all_):
+            raise DpError(f"«{short(old, 40)}» в файле: вхождений {n}" + ("" if n == 0 else ", нужно ровно одно (--all — все)"))
+        path.write_text(text.replace(old, new))
+        return path, "весь файл", f"замена «{short(old, 25)}» ×{n}"
     lines, heads = plan_headings(path.read_text())
     sel = find_section(heads, section)
     if sel is None:
@@ -1154,10 +1169,11 @@ def plan_edit(target, section, contracts=False, append=None, replace=None, set_=
         old, new = replace
         body = "\n".join(lines[i + 1:end])
         n = body.count(old)
-        if n != 1:
-            raise DpError(f"«{short(old, 40)}» в разделе «{short(title, 40)}»: вхождений {n}, нужно ровно одно")
+        if n == 0 or (n > 1 and not all_):
+            raise DpError(f"«{short(old, 40)}» в разделе «{short(title, 40)}»: вхождений {n}"
+                          + ("" if n == 0 else ", нужно ровно одно (--all — все; раздел «*» — весь файл)"))
         lines[i + 1:end] = body.replace(old, new).split("\n")
-        what = f"замена «{short(old, 25)}»"
+        what = f"замена «{short(old, 25)}»" + (f" ×{n}" if n > 1 else "")
     elif set_ is not None:
         new = set_.rstrip("\n").splitlines()
         lines[i + 1:be] = ([""] + new) if new else []
@@ -1172,7 +1188,7 @@ def cmd_plan_edit(a):
     set_ = None
     if a.set is not None:
         set_ = sys.stdin.read() if a.set == "-" else Path(a.set).read_text()
-    path, title, what = plan_edit(a.target, a.section, a.contracts, a.append, a.replace, set_)
+    path, title, what = plan_edit(a.target, a.section, a.contracts, a.append, a.replace, set_, all_=a.all)
     out = f"{a.target}: {short(title, 50)}: {what}"
     is_mod = not (a.target.endswith(".md") or "/" in a.target)
     if is_mod:
@@ -1344,14 +1360,34 @@ def find_open_question(qid, module=None):
     return hits[0]
 
 
+def question_answers(home):
+    """{Qn: последний ответ (запись decisions)}."""
+    return {d["answers"]: d for d in read_jsonl(home / "decisions.jsonl") if d.get("answers")}
+
+
 def cmd_questions(a):
-    n = 0
-    for m, h in all_modules().items():
-        for q in open_questions(h):
+    n, lim = 0, 200 if not a.full else 10000
+    mods = all_modules()
+    if a.module:
+        if a.module not in mods:
+            raise DpError(f"модуль {a.module} не найден (есть: {', '.join(mods) or 'нет'})")
+        mods = {a.module: mods[a.module]}
+    for m, h in mods.items():
+        if not (a.all or a.module):
+            for q in open_questions(h):
+                n += 1
+                print(f"{q['id']} [{m}] ({age(q['t'])}): {short(q['text'], lim)}")
+            continue
+        ans = question_answers(h)
+        for q in read_jsonl(h / "decisions.jsonl"):
+            if q.get("kind") != "question":
+                continue
             n += 1
-            print(f"{q['id']} [{m}] ({age(q['t'])}): {short(q['text'], 200 if not a.full else 10000)}")
+            d = ans.get(q.get("id"))
+            print(f"{q['id']} [{m}] ({age(q['t'])}) {'✓' if d else '?'} {short(q['text'], lim)}"
+                  + (f"\n    → {short(d['text'], lim)} ({d.get('by', '-')}, {hm(d['t'])})" if d else ""))
     if not n:
-        print("открытых вопросов нет")
+        print("открытых вопросов нет" if not (a.all or a.module) else "вопросов нет")
 
 
 def cmd_answer(a):
@@ -1490,6 +1526,57 @@ def cmd_merge(a):
     print(out)
 
 
+def gc_live_reason(b, merged, mods):
+    """Почему влитую ветку нельзя убирать: у модуля/задачи идёт работа. None — можно."""
+    mod = b[len("feature/"):] if b.startswith("feature/") else b.split("/", 1)[0] if "/" in b else None
+    if not mod or mod not in mods:
+        return None
+    home = mods[mod]
+    st = task_states(home)
+    cards = task_cards(home)
+    if b.startswith("feature/"):
+        live = sorted(t for t in cards if st.get(t, {}).get("status", "created") not in FINAL)
+        if live:
+            return f"у модуля незакрытые задачи ({', '.join(live[:4])}{'…' if len(live) > 4 else ''})"
+        subs = [x for x in gitr("for-each-ref", "--format=%(refname:short)", f"refs/heads/{mod}/").stdout.split() if x not in merged]
+        if subs:
+            return f"живые ветки задач ({', '.join(subs[:3])})"
+        return None
+    for t, c in cards.items():
+        if c and c.get("branch") == b and st.get(t, {}).get("status", "created") not in FINAL:
+            return f"задача {t} не закрыта ({st.get(t, {}).get('status', 'created')})"
+    return None
+
+
+def gc_symlink_reason(path, wt_paths):
+    """Симлинки из других копий внутрь path (например на .venv) — их сломает удаление копии."""
+    root = Path(path).resolve()
+    hits = []
+    for other in wt_paths:
+        if Path(other).resolve() == root:
+            continue
+        out = subprocess.run(["git", "-C", str(other), "status", "--porcelain", "--ignored"], capture_output=True, text=True).stdout
+        for l in out.splitlines():
+            if l[:3] not in ("?? ", "!! "):
+                continue
+            f = Path(other) / l[3:].rstrip("/")
+            if f.is_symlink():
+                try:
+                    tgt = f.resolve()
+                except OSError:
+                    continue
+                if tgt == root or root in tgt.parents:
+                    hits.append(f"{pretty(f)} → {pretty(tgt)}")
+    return f"на неё ссылаются симлинки других копий ({'; '.join(hits[:2])})" if hits else None
+
+
+def ignored_dirs(path):
+    """Игнорируемые git каталоги копии, кроме кешей сборки (их тоже снимет удаление копии)."""
+    out = subprocess.run(["git", "-C", str(path), "status", "--porcelain", "--ignored"], capture_output=True, text=True).stdout
+    return [l[3:] for l in out.splitlines() if l.startswith("!! ") and l.endswith("/")
+            and l[3:].rstrip("/").split("/")[0] not in (".godot", "build", "__pycache__") and "__pycache__" not in l]
+
+
 def cmd_gc(a):
     main_tip = gitr("rev-parse", "main").stdout.strip()
     merged = [b for b in gitr("branch", "--merged", "main", "--format=%(refname:short)").stdout.split()
@@ -1503,13 +1590,19 @@ def cmd_gc(a):
         if miss:
             raise DpError(f"не влиты в main или нет такой ветки: {', '.join(miss)}")
         merged = [b for b in merged if b in want]
+    mods = all_modules()
     for b in merged:
         if gitr("rev-parse", b).stdout.strip() == main_tip:
             continue  # ветка = main (только что заведена или влита fast-forward) — не трогаем
         path = wt.get(b)
         label = f"{b}" + (f" @ {pretty(path)}" if path else " (без копии)")
+        why = gc_live_reason(b, merged, mods) or (path and gc_symlink_reason(path, wt.values()))
+        if why:
+            print(f"пропуск {label}: {why}")
+            continue
         if not a.remove:
-            print(label)
+            ign = ignored_dirs(path) if path else []
+            print(label + (f" (снимет и игнорируемые: {', '.join(ign[:4])})" if ign else ""))
             n += 1
             continue
         if path and path == here:
@@ -1527,12 +1620,14 @@ def cmd_gc(a):
                 print(f"пропуск {label}: неотслеживаемые файлы ({len(other)}: {', '.join(other[:3])})")
                 continue
             # только сгенерированные Godot *.uid — не работа, снимаем копию с --force
+            ign = ignored_dirs(path)
             r = gitr("worktree", "remove", *(["--force"] if junk else []), path)
             if r.returncode:
                 print(f"пропуск {label}: {gerr(r)}")
                 continue
         r = gitr("branch", "-d", b)
-        print(f"удалено {label}" if r.returncode == 0 else f"копия снята, ветка {b} осталась: {gerr(r)}")
+        print((f"удалено {label}" + (f" (с игнорируемыми: {', '.join(ign[:4])})" if path and ign else ""))
+              if r.returncode == 0 else f"копия снята, ветка {b} осталась: {gerr(r)}")
         n += 1
     if not n:
         print("влитых веток нет")
@@ -1585,9 +1680,12 @@ def status_since(a):
                     blines.append(f"  {b} {len(cs)}к: {short(cs[0], 70)}" + (f" @ {pretty(wt[b])}" if b in wt else ""))
         if not (evs or qs or blines):
             continue
-        L.append(f"{mod}: событий {len(evs)}, коммитов {ncom}, новых вопросов {len(qs)}")
+        ans = question_answers(home)
+        nopen = sum(1 for q in qs if q.get("id") not in ans)
+        L.append(f"{mod}: событий {len(evs)}, коммитов {ncom}, новых вопросов {len(qs)}" + (f" (открыто {nopen})" if qs else ""))
         L += blines
-        L += [f"  ? {q['id']}: {short(q['text'], 80)}" for q in qs]
+        L += [f"  {'✓' if q.get('id') in ans else '?'} {q['id']}: {short(q['text'], 80)}"
+              + (f" → {short(ans[q['id']]['text'], 50)}" if q.get("id") in ans else "") for q in qs]
         for e in evs[-5:]:
             L.append(f"  {str(e['t'])[11:16]} {e.get('task') or '·'} {e['ev']} ({e.get('by', '-')})"
                      + (f" — {short(e['note'], 80)}" if e.get("note") else ""))
@@ -1943,11 +2041,27 @@ def cmd_job(a):
         job_start(a.name, a.timeout, cmd)
         return
     if a.action == "status" and not a.name:
-        for f in sorted(job_dir().glob("*.pid")):
+        rows = []
+        for f in job_dir().glob("*.pid"):
             n = f.stem
             rc = job_dir() / f"{n}.rc"
-            pid = int(f.read_text() or 0)
-            print(f"{n}: " + (f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if job_alive(pid) else "нет данных"))
+            try:
+                pid = int(f.read_text() or 0)
+            except ValueError:
+                pid = 0
+            st = f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if job_alive(pid) else "нет данных"
+            mt = max(x.stat().st_mtime for x in (f, rc, job_dir() / f"{n}.log") if x.exists())
+            rows.append((st == "идёт", mt, n, st))
+        rows.sort(key=lambda r: (not r[0], -r[1]))
+        run = [r for r in rows if r[0]]
+        done = [r for r in rows if not r[0]]
+        show = run + (done if a.all or "--all" in (a.cmd or []) else done[:max(0, 10 - len(run))] if done else [])
+        for _, mt, n, st in show:
+            print(f"{n}: {st}" + ("" if st == "идёт" else f" ({age(dt.datetime.fromtimestamp(mt).isoformat(timespec='seconds'))})"))
+        if not rows:
+            print("запусков нет")
+        elif len(show) < len(rows):
+            print(f"… ещё {len(rows) - len(show)} завершённых (--all)")
         return
     if not a.name:
         raise DpError(f"dp job {a.action} <имя>")
@@ -2091,7 +2205,8 @@ def build():
     t = sp.add_parser("task", help="карточка задачи: new | show | set")
     tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show|set|sync")
     q = tsp.add_parser("new", help="создать карточку")
-    q.add_argument("module"); q.add_argument("id", nargs="?", help="<КОД>-<n>[буква]; без ID — следующий номер модуля")
+    q.add_argument("module"); q.add_argument("id", nargs="?", help="<КОД>-[этап]<n>[буква]; без ID — следующий номер модуля")
+    q.add_argument("--stage", metavar="БУКВА", help="этап для авто-номера: --stage P → следующий <КОД>-P<n>")
     q.add_argument("--type", help="dp-engineer|dp-researcher|dp-writer|dp-mechanic")
     q.add_argument("--title"); q.add_argument("--goal"); q.add_argument("--plan-ref", dest="plan_ref", help="раздел плана, напр. §UC-3")
     q.add_argument("--copy"); q.add_argument("--branch")
@@ -2178,7 +2293,8 @@ def build():
     q.add_argument("target", metavar="модуль|файл.md|edit"); q.add_argument("section", nargs="?"); q.add_argument("extra", nargs="?")
     q.add_argument("--contracts", action="store_true", help="файл контрактов модуля вместо плана")
     q.add_argument("--append", metavar="ТЕКСТ", help="edit: дописать в конец раздела")
-    q.add_argument("--replace", nargs=2, metavar=("СТАРОЕ", "НОВОЕ"), help="edit: точная замена в разделе (ровно одно вхождение)")
+    q.add_argument("--replace", nargs=2, metavar=("СТАРОЕ", "НОВОЕ"), help="edit: точная замена в разделе (ровно одно вхождение; --all — все; раздел «*» — весь файл)")
+    q.add_argument("--all", action="store_true", help="edit --replace: заменить все вхождения")
     q.add_argument("--set", nargs="?", const="-", metavar="ФАЙЛ", help="edit: заменить тело раздела (ФАЙЛ или stdin)")
     q.add_argument("--commit", action="store_true", help="edit: закоммитить файл (только его)"); q.add_argument("--by")
     q.add_argument("--depth", type=int, default=3, help="уровни заголовков в оглавлении (3)")
@@ -2191,8 +2307,10 @@ def build():
     q.add_argument("--full", action="store_true")
     q.set_defaults(fn=cmd_inbox)
 
-    q = sp.add_parser("questions", help="открытые вопросы пользователю по всем модулям")
+    q = sp.add_parser("questions", help="открытые вопросы пользователю по всем модулям (--all/--module — с отвеченными и ответами)")
     q.add_argument("--full", action="store_true")
+    q.add_argument("--all", action="store_true", help="и отвеченные, с текстом ответа")
+    q.add_argument("--module", help="только модуль (все его вопросы с ответами)")
     q.set_defaults(fn=cmd_questions)
 
     q = sp.add_parser("answer", help="ответ пользователя на вопрос Qn (попадает в inbox модуля)")
@@ -2237,6 +2355,7 @@ def build():
     q.add_argument("action", choices=["start", "wait", "status", "stop"]); q.add_argument("name", nargs="?")
     q.add_argument("timeout", nargs="?", type=int); q.add_argument("cmd", nargs=argparse.REMAINDER)
     q.add_argument("--lock", metavar="cpu|gpu", help="start: выполнять под dp lock cpu|gpu (держатель — имя задачи)")
+    q.add_argument("--all", action="store_true", help="status без имени: все запуски (по умолчанию идущие + последние 10)")
     q.set_defaults(fn=cmd_job)
 
     q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--timeout СЕК] -- <команда…> | lock status; gpu — тот же замок, что у пилота")

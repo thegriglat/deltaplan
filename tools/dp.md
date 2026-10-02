@@ -21,7 +21,7 @@
 
 ## Версия, перезапуск, ID
 `DP_VERSION` в начале `tools/dp`: если в главной копии (`/home/greg/deltaplan/tools/dp`) версия новее, устаревший dp в копии задачи перезапускается из неё (`os.execv`, те же аргументы и cwd), в stderr — одна строка; `DP_NO_REEXEC=1` — отключить. Поднимать `DP_VERSION` при каждом изменении dp.
-ID задачи — `<КОД>-<n>[буква]` (`^[A-Z]{2,4}-\d+[a-z]?$`: NN-7, NN-7a); КОД — `code` в `module.json` (2–4 заглавные латинские, уникален по модулям, `T` зарезервирован под TODO.md; `dp init <модуль> --code NN`, `dp module new … --code NN`). `dp task new <модуль>` без ID — следующий номер (максимум + 1); ID уникален по всем модулям. Контракты (C1, П1…) — не задачи. Старые ID в журналах не переименовываются.
+ID задачи — `<КОД>-[этап]<n>[буква]` (`^[A-Z]{2,4}-[A-Z]?\d+[a-z]?$`: NN-7, NN-7a, этапные NN-P8); КОД — `code` в `module.json` (2–4 заглавные латинские, уникален по модулям, `T` зарезервирован под TODO.md; `dp init <модуль> --code NN`, `dp module new … --code NN`). `dp task new <модуль>` без ID — следующий номер (максимум + 1; `--stage P` — следующий `<КОД>-P<n>`); ID уникален по всем модулям. Контракты (C1, П1…) — не задачи. Старые ID в журналах не переименовываются.
 
 ## Команды
 ```
@@ -32,6 +32,7 @@ dp task show <ID> [--json] [--full] [--diff]   # карточка для исп�
 dp task sync <ID> [--message М] [--trailer Т]  # влить ветку модуля (base) в ветку задачи в её копии
 dp task set <ID> поле=знач поле+=элем поле-=элем [--check ИМЯ CMD EXPECT] [--test Ф] [--drop-check ИМЯ]
                                   # правка карточки без переписывания JSON (значение — JSON или строка); событие edited
+                                  # строка в списочное поле (scope, report_extra…) — список через запятую: report_extra=epoch_s,hours
 dp event <ID> started|reported|accepted|merged|blocked|cancelled|note [--commit h] [--note "…"]
 dp event <модуль> note --note "…" # событие модуля (не задачи)
 dp decide <модуль> "<решение>" --by user|coordinator|main [--why "…"] [--task ID] [--answers Q1]
@@ -141,13 +142,15 @@ tools/dp render ui-controls --out - | less
 ```
 # план и контракты по разделам (событие plan в журнале модуля; --commit — только этот файл, строка Claude-Session из $DP_SESSION)
 dp plan edit air-nn "Решения" --append "- Q оставить на камере (2026-10-02)" --commit
-dp plan edit air-nn 4 --replace "шаг 0.1" "шаг 0.05"        # ровно одно вхождение в разделе, иначе ошибка
+dp plan edit air-nn 4 --replace "шаг 0.1" "шаг 0.05"        # ровно одно вхождение в разделе, иначе ошибка (--all — все)
+dp plan edit air-nn '*' --replace NN-P8 NN-16 --all           # раздел «*» — весь файл (только --replace)
 dp plan edit air-nn --contracts У2 --set new_body.md         # --set без файла или «-» — stdin; тело раздела заменяется целиком
 
 # решения и вопросы
 dp decide air-nn "Берём Picard" --by user --why "быстрее" --plan   # + строка в «Решения пользователя» плана (--plan "Раздел" — в другой; создаётся, если дефолтного нет)
 dp inbox air-nn                 # новое с прошлого чтения этим читателем (--by, иначе $DP_ROLE, иначе coordinator); «нового нет»
 dp questions                    # открытые вопросы (decide --ask) по всем модулям: «Q1 [модуль] (возраст): текст»
+dp questions --all | --module air-nn   # и отвеченные (✓) с текстом ответа
 dp answer Q1 "Прибор" [--module air-nn]   # = decide --by user --answers Q1; попадает в inbox модуля
 ```
 Метка чтения inbox — `docs/plan/<модуль>/.read_<читатель>` (в .gitignore: у каждой копии/читателя своя, в git не нужна).
@@ -158,10 +161,12 @@ dp module new air-nn [--from main]   # feature/air-nn + git worktree ~/deltaplan
 dp sync air-nn                       # git merge main в копии ветки; конфликт → merge --abort и список файлов; грязная копия → отказ
 dp merge feature/air-nn [--into main] [--push]   # --no-ff в копии, где выписана цель: «main 22d55f2: слияние feature/air-nn, файлов 6; индекс обновляется в фоне» (при слиянии в main запускается `dp index` отвязанно, лог `~/.cache/deltaplan_sem/main/index.log`; `--no-index` — не запускать; нет Ollama — предупреждение, слияние не падает)
 dp gc                                # список копий/веток, уже влитых в main (ветки, совпадающие с main, не считаются)
+                                     # пропуск: у модуля незакрытые задачи или живые ветки <модуль>/*, задача ветки не закрыта,
+                                     # на копию смотрят симлинки других копий (.venv); игнорируемые каталоги, которые снимутся, — в выводе
 dp gc --remove                       # git worktree remove (без --force; грязные пропускаются) + git branch -d
 
 # наблюдение и дневник
-dp status --since 30m                # по модулям: события, коммиты веток (не в main), новые вопросы; ≤ 5 событий; + main
+dp status --since 30m                # по модулям: события, коммиты веток (не в main), новые вопросы (✓ — отвечен, ? — открыт); ≤ 5 событий; + main
 dp digest --since today              # решения пользователя, принятые задачи, правки плана, коммиты main (first-parent)
 ```
 
@@ -188,7 +193,7 @@ dp docs init [--dry]                                         # frontmatter но�
 ```
 dp job start <имя> <таймаут_с> <команда…>     # в фоне (setsid, rc всегда пишется, 124 — таймаут); логи ~/.cache/deltaplan-jobs/<имя>.{pid,log,rc}
 dp job wait <имя> <таймаут_с>                  # ждёт PID (tail --pid), печатает код и хвост лога; таймаут обязателен
-dp job status [имя] | dp job stop <имя>        # stop — по PID, только свой процесс
+dp job status [имя] [--all] | dp job stop <имя>   # без имени — идущие + последние 10 (--all — все); stop — по PID, только свой процесс
 dp job --lock cpu|gpu start <имя> <таймаут_с> <команда…>   # фоновая задача под замком (опцию — перед start)
 dp lock gpu|cpu <имя> [--timeout СЕК] -- <команда…>        # под замком, ожидание блокирующее, таймаут → 124
 dp lock status                                 # кто держит: имя, PID, команда, с какого времени, копия
