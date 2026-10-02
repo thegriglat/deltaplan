@@ -41,7 +41,8 @@ CPU → **6** картинки и `report.md`.
 | кеш подготовки (П2) | `pilot/prep/<версия решателя>/<набор>_<хеш>_p<хеш кода>/cases/<id>.npz` |
 | прогон обучения | `pilot/runs/<дата>_<имя>/`: `pilot.log`, `config.json`, `split.json`, `run_info.json`, `main/`, `curve_NN/` (в каждом `task.json`, `manifest.json`, `history.json`, `ckpt/{last,best}.pt`, `progress.json`); `main/model.onnx` |
 | отчёт | `pilot/reports/<дата>_<имя>/report.md` + `figures/`, `metrics.json`, `eval_fields.npz`, `manifest.json` |
-| smoke | то же под `pilot/smoke/` (основной набор и прогоны не трогает) |
+| журнал досчёта набора | `pilot/logs/dataset_<набор>.log` (как у NN-P1) |
+| smoke | `pilot/smoke/{runs,reports,prep}/` (основной набор и прогоны не трогает); профиль dev — `pilot/tmp/dev_p2/pilot/` |
 
 ### Продолжить, начать с нуля, статус
 - **Продолжить** после Ctrl-C, обрыва, перезагрузки — **та же команда** (`./run_pilot.sh`). Готовые шаги пропускаются
@@ -51,8 +52,10 @@ CPU → **6** картинки и `report.md`.
 - Если входы шага изменились (правка `config.yaml` или кода обучения, набор вырос) — шаг откажется продолжать старый
   прогон (код 1, «входы изменились») — запускать под новым `--name`.
 - **Статус**: `./run_pilot.sh status [--smoke] [--name ИМЯ]` — идёт ли, что готово по шагам, путь к отчёту и вывод.
-- **Мини-прогон**: `./run_pilot.sh --smoke` — данные разработки (`smoke_overrides.dataset` в конфиге; после слияния P1 —
-  его набор `smoke`), несколько эпох, отдельные каталоги; проходит до `report.md`.
+- **Мини-прогон**: `./run_pilot.sh --smoke` — профиль `smoke`: набор `smoke` NN-P1 (4 случая: ongudai × 2 — (б),
+  p_000 × 2 — обучение и (а)), десятки эпох, отдельные каталоги; проходит до `report.md` (проверка конвейера).
+  `./run_pilot.sh --profile dev` — данные разработки P2 (48 случаев, 9 мест; ниже), то же до отчёта, но с кривой из
+  трёх точек и заметным обучением.
 
 ### Коды выхода
 | код | значение |
@@ -69,17 +72,140 @@ CPU → **6** картинки и `report.md`.
 
 ## Конфиг (`config.yaml`)
 Один файл: зёрна (`split.seed`, `train.seed`), размеры сети, эпохи, доли деления, ориентиры ШП, путь к набору
-(`dataset.root_glob`) и команда досчёта (`dataset.gen_cmd`, генератор P1). Путь данных — `AIR_NN_DATA` из окружения.
-Раздел `smoke_overrides` накладывается при `--smoke`. Снимок конфига прогона — `runs/<…>/config.json`.
+(`dataset.name` — набор NN-P1, `dataset.gen` — досчитывать ли, `dataset.root` — явный каталог). Путь данных — `AIR_NN_DATA` из окружения.
+Раздел `profiles.<имя>` накладывается при `--smoke` (= `--profile smoke`) или `--profile dev`. Снимок конфига прогона —
+`runs/<…>/config.json`.
 
-## Набор
-<!-- Раздел — у NN-P1 (генератор набора: plan/run/status). -->
-Пилот читает набор по контракту П1 (`pilotnn/data.py`): `plan.json` (`agl`, `centers` — точки оценки), метаданные
-случаев — одной функцией `Dataset.case_rows()` (`state.sqlite`, таблица `cases`; для данных разработки — `out/runs.jsonl`
-air-lite), образцы `cases/<id>.npz`. Цели — только случаи, у которых решения области `ok` или `max` (предел итераций;
-`dataset.allowed_status`).
+## Набор (NN-P1, контракт П1 v1)
 
-**Данные разработки P2 (временные, не в итоговом наборе)**: генератор `research/air-lite` без правки (`gen.py`,
+Генератор — `dataset.py`; решатель — эталон AM-01 `tools/research/air3d/` (не правится), решательная часть случая —
+перенос air-lite (`research/air-lite` 7cc7e33): `airlite_gen.py` (`solve_case` = `run_case` без записи файла),
+`places.py` (места + процедурные), `procedural.py` (рельефы `p_*`). Конфиг — `configs/dataset.yaml` (зёрна, размеры,
+пачка GPU, предел ошибок, запас диска, наборы).
+
+### Что в наборе
+Случай = место × условия (час 9/12/15/20, U10 0–8 м/с, каждый 12-й штиль, направление 0–360°, t_max 18–34 °C,
+облачность clear/partly/overcast — стратифицированно по часу и облачности, как air-lite), два решения «как игра»:
+с нагревом (`h`) и без (`m`); область 400 м 96² и окна 100 м 64² у стартов; срезы на 13 высотах AGL, float16.
+- **main**: план air-lite — 4 встроенных места × 110 + 5 синтетик × 50 = **690** случаев (тем же зерном 20261001:
+  id, условия и центры окон совпадают с `out/plan.json` ветки — `tests/test_plan_airlite.py`; в плане модуля
+  написано «688» — это опечатка, в air-lite их 690) + **40 процедурных рельефов × 30** условий = 1200; всего **1890**.
+- **smoke**: `ongudai` и `p_000` × 2 первых условия = 4 случая (те же id и файлы, что в main) — для
+  `run_pilot.sh --smoke`; в main не пишет (свой каталог).
+- **chaos**: `s_hill`, `s_ridge`, `p_001`, `p_002` × 2 = 8 случаев — только для теста прерывания (во временном корне).
+
+Процедурные рельефы `p_000…p_039` (`procedural.py`, зерно `proc_seed`): хребет, гора, седловина, долина (два
+хребта), уступ плато; главная форма у центра (сдвиг ≤ 3 км, поворот любой), в половине — ещё 1–2 второстепенные
+(гора/хребет 0,3–0,8 высоты в 2–9 км); высота главной 150–900 м, полуширина 300–2000 м (но ≥ H/1,2 — скат ≤ ~38°),
+длина хребтов 4–18 км, база 600–1600 м над морем; слабая шероховатость (сглаженный шум σ 0–25 м, масштаб
+0,3–1,2 км). Формат — `SynthLocation` air-lite (40 × 40 км, 25 м, климат и солнце Онгудая, июль). «Старт» (центр
+единственного окна и точка ключевых чисел) — вершина/бровка главной формы: середина гребня (у седловины —
+седловина), вершина горы, гребень первого хребта долины, бровка уступа (x′ = 0,658 L). Условия — тем же
+распределением, что синтетика air-lite, своим зерном `proc_cond_seed`. Обзор: `figures/01_рельефы.png`.
+
+**Границы модели** — те же, что у эталона AM-01 «как игра» и air-lite: 1-й порядок, область 400 м и окна 100 м,
+`max` (3000 итераций без сходимости по допускам) — статус решения, а не ошибка (случай `done`, считается в сводке);
+процедурные формы гладкие (аналитические) и без воды и покрова — разнообразие форм, не реализм ландшафта.
+
+### Команды (из этого каталога)
+```
+PY=.venv/bin/python
+$PY dataset.py plan   --dataset main        # план: идемпотентно; другой план под тем же именем — ошибка
+$PY dataset.py run    --dataset main        # счёт с продолжения (после любого обрыва — та же команда)
+$PY dataset.py status --dataset main        # сводка: done/planned/failed/max, время по видам, скорость, ETA, диск
+$PY dataset.py status --dataset main --json # то же одной строкой JSON (для скриптов)
+$PY dataset.py export --dataset main --out cases.jsonl   # метаданные случаев (строка = строка runs.jsonl air-lite)
+$PY dataset.py path   --dataset main        # путь к каталогу набора
+$PY fig_reliefs.py                          # обзор процедурных рельефов → figures/01_рельефы.png (+ build/screenshots)
+$PY tests/test_plan_airlite.py              # план main = план air-lite + процедурные
+$PY tests/test_contract_sample.py --dataset smoke   # контракт П1 на готовых случаях набора
+$PY tests/test_interrupt.py                 # тест прерывания (≈ 5–15 мин, во временном корне pilot/tmp/chaos_<pid>/)
+```
+Общие опции: `--data-root R` (иначе `$AIR_NN_DATA`, иначе `data_root` конфига = `/home/greg/air_nn_data`),
+`--config`. Опции `run`: `--ids a,b` (только эти), `--limit N` (не больше N случаев), `--batch-s` (длина пачки под
+замком GPU, по умолчанию 300 с), `--finish-on-signal` (по первому сигналу дописать текущий случай; по умолчанию —
+бросить и вернуть в очередь), `--log ФАЙЛ`, `--progress`.
+
+**Вызов из `run_pilot.sh`** (интерфейс для NN-P2):
+```
+$PY dataset.py run --dataset main --log "$LOGDIR/dataset_main.log" --progress
+```
+- подробный журнал (строка на случай: id, статус решения, итерации, время, размер, осталось, ETA; пачки и замок GPU;
+  продолжение после обрыва) — дописывается в `--log`, на stdout — ничего, кроме строки прогресса;
+- `--progress`: одна строка на stdout, обновляется через `\r` после каждого случая:
+  `1234/1890 (65.3%), осталось ~1.8 ч[, ошибок N]` — счётчики по всему набору, с учётом посчитанного до прерываний;
+  в конце — перевод строки;
+- `status --json` — одна строка JSON: `total, done, planned, running, failed, failed_final, ok, max, diverged,
+  kinds{real|synth|proc: total, done, mean_s, median_s, max_frac, mean_mb}, eta_h, rate_per_h, cases_gb, n_files,
+  db_mb, events{plan|recovered|abandoned|overwrite|failed: n}, complete, dir, dataset, solver_version`;
+  без базы — `{"total": 0, "done": 0, "complete": false, ...}`.
+- коды выхода `run`: **0** — выбранное посчитано (без `--ids/--limit` — набор готов); **2** — остановлен сигналом
+  (SIGINT/SIGTERM; второй сигнал — немедленный выход, дальше как при обрыве); **3** — на диске меньше
+  `min_free_gb` (проверка перед каждой пачкой); **4** — есть окончательно упавшие случаи (ошибок ≥ `max_failures`);
+  **5** — run этого набора уже идёт; **1** — прочее. `status --check` — 0, только если набор готов.
+
+### Где данные
+`$AIR_NN_DATA/pilot/` (README там же — `data_readme.md`):
+`datasets/s0-<хеш>/<набор>/{manifest.json, plan.json, state.sqlite, cases/<id>.npz}`, временное — `tmp/`.
+`s0-<хеш>` — 7 знаков sha1 от `tools/research/air3d/*.py` (имя + содержимое по порядку имён): правка эталона даёт
+новый каталог, старый не портится. Ключи и оси `cases/<id>.npz` — контракт П1 (раскладка air-lite без изменений);
+файл — zip с фиксированной датой записей, поэтому повтор случая даёт побитно тот же файл.
+
+### Состояние — `state.sqlite` (WAL, synchronous=FULL, busy_timeout 60 с)
+- `meta(key, value)`: `schema_version` (1), `solver_version`, `contract` (`П1 v1`), `plan_sha256`, `dataset`,
+  `created`, `code_at_plan` (коммит);
+- `cases`: `id`, `loc`, `kind` (real/synth/proc), `ord` (порядок счёта: номер условия, затем место — любой префикс
+  покрывает все места), `cond` (JSON условий из plan.json), `status` (planned/running/done/failed), `attempts`
+  (захватов), `failures` (ошибок), `pid`, `host`, `started`, `finished`, `t_wall` (с, без ожидания GPU), `iters`
+  (сумма итераций решений), `solve_status` (ok/max/diverged — худшее из решений), `runs` (JSON: статус, итерации,
+  время каждого решения), `meta` (JSON — строка runs.jsonl air-lite: условия, `day`, `profile`, сетки `d400`/`w<k>`,
+  `runs`, `status`, `t_wall`), `file`, `bytes`, `sha256`, `error`;
+- `events(t, pid, case_id, kind, msg)`: plan, recovered (running мёртвого → planned), abandoned (брошен по сигналу),
+  overwrite (файл был — обрыв между данными и статусом), failed;
+- `batches(pid, t_start, t_end, lock_wait, n_cases, code)` — пачки под замком GPU.
+Захват случая — `UPDATE … RETURNING` в `BEGIN IMMEDIATE`. Базу руками не править; смотреть — `status`/`export`.
+
+### Прерывание и продолжение (§4.6)
+- Запись: массивы → `tmp/<версия>_<набор>/<id>.<pid>.part` → fsync → `rename` в `cases/` → fsync каталога → только
+  затем `done` одной транзакцией. Обрыв до `done` → случай пересчитается и перезапишется тем же файлом.
+- Один `run` на набор (flock `tmp/<версия>_<набор>/runner.lock`); при старте все `running` (их процессы мертвы)
+  → `planned`, недописанные `*.part` удаляются — строка «продолжение: …» в журнале.
+- Замок GPU `/tmp/heat_ca_gpu.lock` — на пачку ≤ `batch_s` (5 мин), между пачками отпускается; ожидание замка
+  прерывается сигналом.
+- Упавший случай (исключение) → `failed`, повтор, пока ошибок < `max_failures` (3).
+- Продолжить: та же команда `run`. С нуля: удалить каталог набора (`dataset.py path --dataset X`) и
+  `$AIR_NN_DATA/pilot/tmp/<версия>_<X>/`, затем `run`.
+
+### Тест прерывания (`tests/test_interrupt.py`)
+Набор `chaos` (8 случаев) считается эталоном без прерываний, затем в другом корне — с `kill -9` в случайный момент,
+между временным файлом и переименованием, между переименованием и `done`, SIGINT (ждём код 2), ещё `kill -9`, и до
+конца. Проверка: файлы побитно = эталону, все `done`, нет дублей, «done без файла», `running`, `*.part`; контрактный
+тест на обоих. Итог — `tests/out/interrupt_result.json`, журнал — `tests/out/interrupt_run.log`. Паузы в узких
+местах записи — переменная `AIRNN_P1_TEST_PAUSE` (только для теста).
+
+### Замеры и оценка полного досчёта (`estimate.py` → `figures/estimate.json`)
+RTX 4070 SUPER, t_wall без ожидания замка GPU; повтор случаев air-lite этим кодом даёт те же итерации
+(altai_000 6668, askarovo_000 808, s_scarp_000 6834, s_valley_000 404, ongudai_000 888, ongudai_001 518).
+
+| вид | замер (с) | оценка на случай | случаев | ч GPU | МБ/случай | ГБ |
+|---|---|---|---|---|---|---|
+| встроенное | askarovo_000 9,5 (ok), altai_000 69,8 (max) | 23,0 с (air-lite: 24 сл., max 21 %) | 440 | 2,8 | 3,1 | 1,4 |
+| синтетика | s_valley_000 5,2 (ok), s_scarp_000 62,2 (max) | 10,4 с (air-lite: 25 сл., max 12 %) | 250 | 0,7 | 1,6 | 0,4 |
+| процедурный | p_005/010/020_000: 4,8 / 3,5 / 3,5 (ok) | 11,9 с (как синтетика air-lite) | 1200 | 4,0 | 1,7 | 2,0 |
+| **итого** | | | **1890** | **≈ 7,5** | | **≈ 3,8** |
+
+Доля «max» у процедурных неизвестна до счёта (оценка взята как у синтетики, 12 %); без «max» случай ~4 с,
+«max» ~60 с — итог по процедурным может быть от ~1,5 до ~6 ч.
+
+### Как пилот читает набор (NN-P2)
+`pilotnn/data.py`: `plan.json` (`agl`, `centers` — точки оценки ключевых чисел), метаданные случаев — одной функцией
+`Dataset.case_rows()` (`state.sqlite → cases.meta`, только `done`; для данных разработки — `out/runs.jsonl` air-lite),
+образцы `cases/<id>.npz`. Цель — случаи с решениями области `ok` или `max` (`dataset.allowed_status`). Досчёт в
+`run_pilot.sh` — `dataset.py run --dataset <name> --log $AIR_NN_DATA/pilot/logs/dataset_<name>.log`, прогресс — по
+`status --json`; код 5 (досчёт уже идёт другим процессом) — пилот ждёт его с прогрессом и повторяет `run`; код 4 —
+продолжает с готовыми случаями (строка в журнале); 2 → 130, 3 → 3.
+
+**Данные разработки P2** (`--profile dev`; временные, не в итоговом наборе): генератор `research/air-lite` без правки (`gen.py`,
 `places.py` из ветки), 48 случаев (ongudai 16, остальные 8 мест по 4), в `$AIR_NN_DATA/pilot/tmp/dev_p2/`:
 ```bash
 D=$AIR_NN_DATA/pilot/tmp/dev_p2; mkdir -p $D/tools/research/air_lite/out
@@ -146,10 +272,11 @@ ONNX opset 17 + ORT ↔ PyTorch (≤ 1e-4) + время ORT на CPU (4 и 1 п�
 ## Тесты
 ```bash
 .venv/bin/python tests/test_prep.py --dataset $AIR_NN_DATA/pilot/tmp/dev_p2/tools/research/air_lite   # П2: поворот, обратное преобразование
-.venv/bin/python tests/test_interrupt.py      # kill -9 / SIGINT / kill -9 при записи чекпойнта / в кривой → как непрерванный
-.venv/bin/python tests/bench_epoch.py $AIR_NN_DATA/pilot/smoke/prep/dev/<кеш>   # время эпохи полного размера
+.venv/bin/python tests/test_interrupt_train.py [--profile dev|smoke]   # kill -9 / SIGINT / kill -9 при записи чекпойнта / в кривой → как непрерванный
+.venv/bin/python tests/bench_epoch.py <каталог кеша подготовки>          # время эпохи полного размера (1220 образцов, батч 8)
 ```
-Результаты — `tests/out/*.json`.
+Результаты — `tests/out/interrupt_train_<профиль>.json`, `tests/out/bench_epoch.json` (отчёт берёт из него оценку
+полного прогона). Тест прерывания набора — `tests/test_interrupt.py` (NN-P1).
 
 ## Границы
 Эталон — решатель AM-01 «как игра» (400 м, 1-й порядок, июль, широта Онгудая), не измерения: пилот меряет, как сеть
