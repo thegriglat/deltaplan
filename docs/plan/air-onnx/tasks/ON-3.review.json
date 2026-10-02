@@ -1,0 +1,7 @@
+{
+  "verdict": "accept",
+  "summary": "Перенос prep.py сверен по коду: rot_scalar/rot_vec (индексы np.rot90), gradient, gaussian (truncate 4, nearest), shelter (20 шагов, clamp = map_coordinates nearest), film с умолчаниями, to_physical (индекс (c·13+a)·nn, обратный поворот -k%4) совпадают; граница ±45° устойчива к разнице roundf/round благодаря коррекции 1e-12. Скоуп чистый, интерфейс O3 соблюдён. rerun: tests_prep 4/4 PASS, fixture_verify exit 0 (побитно). Для O5: maps(9) ~0.4 с на 96² в GDScript — считать не в кадре.",
+  "issues": [],
+  "t": "2026-10-03T04:52:41",
+  "by": "reviewer"
+}

@@ -14,3 +14,12 @@
 {"t": "2026-10-03T04:44:50", "by": "coordinator", "task": "ON-1", "ev": "accepted", "commits": ["6927278"], "note": "5/5 o1_pilot_code=ok:O1: OK; tiny_size=ok:113727; tiny_verify=ok:exit 0; info_pilot1=ok:maps: [1, 4, 96, 96; ckpt_export=ok:deltaplan.p2_version = 2 delt…"}
 {"t": "2026-10-03T04:44:51", "by": "coordinator", "task": "ON-1", "ev": "merged", "commits": ["6927278"]}
 {"t": "2026-10-03T04:45:22", "by": "coordinator", "task": "ON-4", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-air-onnx-ON-4"}
+{"t": "2026-10-03T04:50:42", "by": "main", "task": "ON-3", "ev": "checked", "note": "4/4 tests_prep=ok:4/4; fixture_size=ok:2.76986e+06; fixture_verify=ok:exit 0; o1=ok:O1: OK"}
+{"t": "2026-10-03T04:51:04", "by": "main", "task": "ON-3", "ev": "reported", "commits": ["3120225"], "note": "done: AirNnPrep (rotation_of, case_meta, maps 9|4, film, to_physical) перенесён из prep.py один в один; фикстура из 6 случаев…", "dp_feedback": "Общий scratchpad: чужой агент перезаписал мой rep.json (одинаковое имя) — dp report --template могло бы писать шаблон в уникальный файл. dp report: имена проверок должны совпадать с карточкой — сообщение об этом уже есть, но заранее неочевидно."}
+{"t": "2026-10-03T04:51:33", "by": "executor", "task": "ON-3", "ev": "checked", "note": "4/4 tests_prep=ok:4/4; fixture_size=ok:2.76986e+06; fixture_verify=ok:exit 0; o1=ok:O1: OK"}
+{"t": "2026-10-03T04:51:41", "by": "coordinator", "task": null, "ev": "note", "note": "ON-3 checked 4/4; ревью стыка N1 запущено"}
+{"t": "2026-10-03T04:52:41", "by": "reviewer", "task": "ON-3", "ev": "reviewed", "note": "Перенос prep.py сверен по коду: rot_scalar/rot_vec (индексы np.rot90), gradient, gaussian (truncate 4, nearest), shelter (20 шагов, clamp = map_coordinates nea…", "verdict": "accept", "review": "docs/plan/air-onnx/tasks/ON-3.review.json"}
+{"t": "2026-10-03T04:53:01", "by": "coordinator", "task": "ON-3", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-03T04:53:05", "by": "coordinator", "task": "ON-3", "ev": "checked", "commits": ["8d34065"], "note": "3/4 tests_prep=FAIL:0/0; fixture_size=ok:2.76986e+06; fixture_verify=ok:exit 0; o1=ok:O1: OK"}
+{"t": "2026-10-03T04:53:53", "by": "coordinator", "task": "ON-3", "ev": "accepted", "commits": ["8d34065"], "note": "4/4 tests_prep=ok:4/4; fixture_size=ok:2.76986e+06; fixture_verify=ok:exit 0; o1=ok:O1: OK"}
+{"t": "2026-10-03T04:54:03", "by": "coordinator", "task": "ON-3", "ev": "merged", "commits": ["8d34065"]}
