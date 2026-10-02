@@ -1,0 +1,20 @@
+# Проектные фильтры RTK для Deltaplan. Включить: rtk trust (в корне копии), проверить: rtk verify --filter dp.
+# Основное сжатие делает сам tools/dp (короткий вывод по умолчанию); фильтр — страховка.
+schema_version = 1
+
+[filters.dp]
+description = "Deltaplan tools/dp: без ANSI и пустых строк, не больше 200 строк"
+match_command = "^(\\./)?(tools/)?dp\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 200
+
+[[tests.dp]]
+name = "пустые строки убраны, таблица приёмки цела"
+input = "PASS ok  0.42\n\nFAIL bad exit 3 · hi  [build/dp/S-1/02-bad.log]\n\nS-1: 1/2 в .; логи build/dp/S-1\n"
+expected = "PASS ok  0.42\nFAIL bad exit 3 · hi  [build/dp/S-1/02-bad.log]\nS-1: 1/2 в .; логи build/dp/S-1"
+
+[[tests.dp]]
+name = "ANSI убран"
+input = "\u001b[1mui-controls\u001b[0m: accepted 6"
+expected = "ui-controls: accepted 6"

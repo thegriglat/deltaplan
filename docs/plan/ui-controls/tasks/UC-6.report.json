@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "summary": "`docs/game.md` (кабина, разбег, таблица клавиш, раскладка, настройки), `site/content/mechanics/flight.md` (абзац трапеции, «Крен (мышь вбок, ←/→, стик)»), CHANGELOG «В работе» (пункты этапов 2/UC-4 переписаны под этап 3). hugo собирается. Старый пункт MVP 27.09 («разбег W+Shift») — история, не менялся.",
+  "commits": [
+    "b6ba231"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-6",
+  "t": "2026-10-02T02:18:00",
+  "by": "dp-writer",
+  "migrated": true
+}

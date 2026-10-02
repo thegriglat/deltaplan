@@ -1,0 +1,26 @@
+{
+  "id": "UC-2",
+  "module": "ui-controls",
+  "type": "dp-writer",
+  "title": "Тексты (docs, README, сайт)",
+  "goal": "Тексты (docs, README, сайт)",
+  "plan_ref": "UC-2",
+  "contracts": [],
+  "copy": "~/deltaplan-ui-controls-UC-2",
+  "branch": "ui-controls/UC-2",
+  "base": "feature/ui-controls",
+  "scope": [
+    "описания раскладки в `docs/game.md`, `docs/flight.md` (если есть), `README.md`, страницы сайта (`site/content/…`, где описано управление), без страниц версий и дневника прошлых дней."
+  ],
+  "dont_touch": [],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet -d /tmp/dp-hugo-$$",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "перенесено из ui-controls_progress.md",
+  "created": "2026-10-01T21:23:44"
+}

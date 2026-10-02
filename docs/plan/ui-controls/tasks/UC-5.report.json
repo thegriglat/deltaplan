@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "`controls.json`: трапеция только стрелки, `mouse.mode` убран; `InputController`: `mouse_mode()` и фильтры `GROUND_MOVE_ACTIONS`/`LOOK_ACTIONS` убраны, `keys_look()` = enabled ∧ ¬hands_off ∧ ¬on_ground; `CameraRig` без режима look; пункт «Мышь: Обзор / Трапеция» убран; `ui.json → controls_help` без `mouse_mode`, новая строка `controls_look_keys`; локали ru/en. Сверх скоупа (принято): свободная камера вбок — `turn_*` (A/D; было `roll_*`, стали бы стрелки); в свободной камере мышь не копит смещение трапеции. Перепроверено на ветке модуля после слияния: ui_controls 9/0, contracts 50/0, game 138/0 (1 пропуск GPU), ui 92/1 (`test_net_screen::…embedded_vs_remote` — порт, было и до), flight 129/0. Числа: ↑ +0,75 / ↓ −0,75 за 0,5 с; мышь от себя +1,0, без захвата 0; α (training) трим 10,38°, ↑ 20,77°, ↓ −1,41°; полёт W/S/A/D → pitch/roll 0 (с захватом и без); стоя W walk +1, A turn −1; разбег W/S/A/D → 0, ↑ +0,75; отрыв с W — трапеция 0 до и после; голова за 0,5 с ±45°.",
+  "commits": [
+    "0d001ba"
+  ],
+  "checks": [
+    {
+      "name": "ui_controls",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "contracts",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "ui",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "flight",
+      "value": "см. summary",
+      "pass": true
+    },
+    {
+      "name": "no_mouse_mode",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-5",
+  "t": "2026-10-02T02:24:29",
+  "by": "dp-engineer",
+  "migrated": true
+}

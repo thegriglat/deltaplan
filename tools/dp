@@ -1,0 +1,888 @@
+#!/usr/bin/env python3
+"""dp — журнал, карточки задач и приёмка модулей Deltaplan (только стандартная библиотека).
+
+Хранение: docs/plan/<модуль>/ — module.json, tasks/<ID>.json (карточка), tasks/<ID>.report.json
+(отчёт исполнителя), events.jsonl и decisions.jsonl (только дописывание). Дом журнала модуля —
+рабочая копия ветки feature/<модуль>, если она есть (видно из любой копии), иначе текущая копия.
+Справка с примерами — tools/dp.md. Коды выхода: 0 ок, 1 ошибка/проверка не прошла, 2 аргументы.
+"""
+import argparse
+import concurrent.futures as cf
+import datetime as dt
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+LIFECYCLE = ["created", "started", "reported", "checked", "accepted", "merged", "blocked", "cancelled"]
+EVENT_KINDS = ["started", "reported", "accepted", "merged", "blocked", "cancelled", "note"]
+FINAL = {"accepted", "merged", "cancelled"}
+REPORT_STATUS = {"done", "partial", "blocked", "failed"}
+GODOT_TESTS = "godot --headless --path . res://tests/run_tests.tscn -- --filter={f}"
+
+
+class DpError(Exception):
+    pass
+
+
+def die(msg, code=1):
+    print(f"dp: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def now():
+    return dt.datetime.now().replace(microsecond=0).isoformat()
+
+
+def git(*args, cwd=None, check=False):
+    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+    if check and r.returncode:
+        raise DpError(f"git {' '.join(args)}: {r.stderr.strip().splitlines()[-1:]}")
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+_TOP = None
+
+
+def toplevel():
+    global _TOP
+    if _TOP is None:
+        t = git("rev-parse", "--show-toplevel")
+        if not t:
+            raise DpError("не в рабочей копии git")
+        _TOP = Path(t)
+    return _TOP
+
+
+_WT = None
+
+
+def worktrees():
+    """[(path, branch)] из git worktree list --porcelain."""
+    global _WT
+    if _WT is None:
+        _WT, path = [], None
+        for line in git("worktree", "list", "--porcelain").splitlines():
+            if line.startswith("worktree "):
+                path = line[9:]
+            elif line.startswith("branch "):
+                _WT.append((path, line[7:].removeprefix("refs/heads/")))
+            elif line == "detached" and path:
+                _WT.append((path, "(detached)"))
+    return _WT
+
+
+def module_home(mod):
+    """Каталог журнала модуля: копия feature/<mod>, если есть, иначе текущая."""
+    if not os.environ.get("DP_LOCAL"):
+        for path, br in worktrees():
+            if br == f"feature/{mod}" and is_module_dir(Path(path) / "docs/plan" / mod):
+                return Path(path) / "docs/plan" / mod
+    return toplevel() / "docs/plan" / mod
+
+
+def is_module_dir(d):
+    return (d / "events.jsonl").exists() or (d / "module.json").exists()
+
+
+def all_modules():
+    found = {}
+    roots = [toplevel()] + ([] if os.environ.get("DP_LOCAL") else [Path(p) for p, b in worktrees() if b.startswith("feature/")])
+    for root in roots:
+        base = root / "docs/plan"
+        if base.is_dir():
+            for d in sorted(base.iterdir()):
+                if d.is_dir() and is_module_dir(d) and d.name not in found:
+                    found[d.name] = module_home(d.name)
+    return found
+
+
+def find_task(tid):
+    """(модуль, каталог модуля) по ID задачи."""
+    mods = all_modules()
+    hits = [(m, h) for m, h in mods.items() if (h / "tasks" / f"{tid}.json").exists()]
+    if not hits:
+        raise DpError(f"задача {tid} не найдена (модули: {', '.join(mods) or 'нет'})")
+    if len(hits) > 1:
+        raise DpError(f"{tid} есть в нескольких модулях: {', '.join(m for m, _ in hits)}")
+    return hits[0]
+
+
+def read_json(p):
+    try:
+        return json.loads(Path(p).read_text())
+    except FileNotFoundError:
+        return None
+    except json.JSONDecodeError as e:
+        raise DpError(f"{p}: неверный JSON ({e})")
+
+
+def write_json(p, obj):
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n")
+
+
+def append_jsonl(p, obj):
+    p.parent.mkdir(parents=True, exist_ok=True)
+    line = json.dumps(obj, ensure_ascii=False) + "\n"
+    fd = os.open(p, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+    try:
+        os.write(fd, line.encode())
+    finally:
+        os.close(fd)
+
+
+def read_jsonl(p):
+    out = []
+    try:
+        for i, line in enumerate(Path(p).read_text().splitlines(), 1):
+            if line.strip():
+                try:
+                    out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    print(f"dp: {p}:{i}: пропущена неверная строка", file=sys.stderr)
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def by_default(args):
+    return getattr(args, "by", None) or os.environ.get("DP_ROLE") or "-"
+
+
+def rel(p):
+    try:
+        return str(Path(p).relative_to(toplevel()))
+    except ValueError:
+        return str(p).replace(str(Path.home()), "~")
+
+
+def age(ts):
+    try:
+        s = (dt.datetime.now() - dt.datetime.fromisoformat(ts)).total_seconds()
+    except (TypeError, ValueError):
+        return "?"
+    if s < 3600:
+        return f"{int(s // 60)}м"
+    if s < 86400:
+        return f"{int(s // 3600)}ч"
+    return f"{int(s // 86400)}д"
+
+
+def short(s, n):
+    s = " ".join(str(s).split())
+    return s if len(s) <= n else s[: n - 1] + "…"
+
+
+# ---------------------------------------------------------------- модуль, события
+
+def module_meta(mod, home):
+    m = read_json(home / "module.json") or {}
+    m.setdefault("module", mod)
+    m.setdefault("plan", f"docs/plan/{mod}.md")
+    m.setdefault("contracts", f"docs/{mod}_contracts.md")
+    m.setdefault("branch", f"feature/{mod}")
+    return m
+
+
+def ensure_module(mod, home, **kw):
+    p = home / "module.json"
+    if not p.exists():
+        meta = {"module": mod, "plan": f"docs/plan/{mod}.md", "contracts": f"docs/{mod}_contracts.md",
+                "branch": f"feature/{mod}", "copy": f"~/deltaplan-{mod}", "created": now()}
+        meta.update({k: v for k, v in kw.items() if v})
+        write_json(p, meta)
+    (home / "tasks").mkdir(parents=True, exist_ok=True)
+    (home / "events.jsonl").touch()
+
+
+def add_event(home, task, kind, by, note="", commits=None, **extra):
+    ev = {"t": now(), "by": by, "task": task, "ev": kind}
+    if commits:
+        ev["commits"] = commits
+    if note:
+        ev["note"] = note
+    ev.update({k: v for k, v in extra.items() if v not in (None, "", [], {})})
+    append_jsonl(home / "events.jsonl", ev)
+    return ev
+
+
+def task_states(home):
+    """{ID: {status, t, last_t, commits[], note}} по событиям."""
+    st = {}
+    for ev in read_jsonl(home / "events.jsonl"):
+        tid = ev.get("task")
+        if not tid:
+            continue
+        s = st.setdefault(tid, {"status": "created", "t": ev.get("t"), "last_t": ev.get("t"), "commits": [], "note": ""})
+        s["last_t"] = ev.get("t")
+        k = ev.get("ev")
+        if k in LIFECYCLE and not (k == "checked" and s["status"] in FINAL):
+            s["status"] = k
+            s["t"] = ev.get("t")
+            if k in ("blocked", "checked", "accepted", "cancelled"):
+                s["note"] = ev.get("note", "")
+        for c in ev.get("commits", []):
+            if c not in s["commits"]:
+                s["commits"].append(c)
+    return st
+
+
+# ---------------------------------------------------------------- task
+
+CARD_TEMPLATE = {
+    "id": "", "module": "", "type": "", "title": "", "goal": "",
+    "plan_ref": "", "contracts": [], "copy": "", "branch": "", "base": "",
+    "scope": [], "dont_touch": [], "accept": [], "report_extra": [], "notes": "",
+}
+
+
+def cmd_task_new(a):
+    home = module_home(a.module)
+    p = home / "tasks" / f"{a.id}.json"
+    if p.exists() and not a.force:
+        raise DpError(f"карточка уже есть: {rel(p)} (--force — перезаписать)")
+    card = dict(CARD_TEMPLATE)
+    if a.from_:
+        src = sys.stdin.read() if a.from_ == "-" else Path(a.from_).read_text()
+        try:
+            card.update(json.loads(src))
+        except json.JSONDecodeError as e:
+            raise DpError(f"--from: неверный JSON ({e})")
+    meta = module_meta(a.module, home)
+    card.update({"id": a.id, "module": a.module})
+    for k in ("type", "title", "goal", "plan_ref", "copy", "branch"):
+        v = getattr(a, k, None)
+        if v:
+            card[k] = v
+    card["branch"] = card["branch"] or f"{a.module}/{a.id}"
+    card["copy"] = card["copy"] or f"~/deltaplan-{a.module}-{a.id}"
+    card["base"] = card["base"] or meta["branch"]
+    for c in a.contract or []:
+        name, _, ver = c.partition("@")
+        card["contracts"].append({"name": name, "version": ver or "?", "ref": meta["contracts"]})
+    card["scope"] += a.scope or []
+    card["dont_touch"] += a.dont_touch or []
+    for f in a.test or []:
+        card["accept"].append({"name": f, "tests": f})
+    for name, cmd, exp in a.check or []:
+        card["accept"].append({"name": name, "cmd": cmd, "expect": exp})
+    if not card["type"]:
+        raise DpError("нужен --type (dp-engineer|dp-researcher|dp-writer|dp-mechanic)")
+    ensure_module(a.module, home)
+    card["created"] = card.get("created") or now()
+    write_json(p, card)
+    add_event(home, a.id, "created", by_default(a), note=card.get("title", ""))
+    empty = [k for k in ("goal", "scope", "accept") if not card.get(k)]
+    print(f"{a.id}: {rel(p)}" + (f"; пусто: {', '.join(empty)}" if empty else ""))
+
+
+def fmt_check(c):
+    if c.get("tests"):
+        return f"{c['name']}: тесты --filter={c['tests']} → 0 упало"
+    exp = c.get("expect", "exit=0")
+    return f"{c['name']}: `{c.get('cmd', '')}` → {json.dumps(exp, ensure_ascii=False) if isinstance(exp, dict) else exp}"
+
+
+def cmd_task_show(a):
+    mod, home = find_task(a.id)
+    card = read_json(home / "tasks" / f"{a.id}.json")
+    if a.json:
+        print(json.dumps(card, ensure_ascii=False, indent=2))
+        return
+    meta = module_meta(mod, home)
+    L = [f"{card['id']} [{mod}] {card.get('title', '')} — {card.get('type', '')}"]
+    if card.get("goal"):
+        L.append(f"Цель: {card['goal']}")
+    plan = meta["plan"] + (f" {card['plan_ref']}" if card.get("plan_ref") else "")
+    L.append(f"План: {plan} (dp plan {mod} <раздел>)")
+    L.append(f"Копия: {card.get('copy')}  ветка: {card.get('branch')} от {card.get('base')}")
+    if card.get("contracts"):
+        L.append("Контракты: " + "; ".join(f"{c['name']} v{c.get('version', '?')} ({c.get('ref', '')})" for c in card["contracts"]))
+    if card.get("scope"):
+        L.append("Скоуп: " + ", ".join(card["scope"]))
+    if card.get("dont_touch"):
+        L.append("Не трогать: " + ", ".join(card["dont_touch"]))
+    if card.get("accept"):
+        L.append("Приёмка (dp accept " + card["id"] + "):")
+        L += [f"  - {fmt_check(c)}" for c in card["accept"]]
+    if card.get("notes"):
+        L.append(f"Заметки: {card['notes']}")
+    L.append("Правила: /home/greg/deltaplan/.claude/workflow.md, «Общие правила».")
+    rx = ", ".join(card.get("report_extra") or [])
+    L.append(f"Отчёт: dp report {card['id']} < отчёт.json (dp report --template){'; ещё поля: ' + rx if rx else ''}; "
+             f"в конце — обратная связь по dp (поле dp_feedback).")
+    print("\n".join(L))
+
+
+# ---------------------------------------------------------------- event / decide / log
+
+def resolve_target(x):
+    """ID задачи или имя модуля → (модуль, дом, task|None)."""
+    mods = all_modules()
+    if x in mods:
+        return x, mods[x], None
+    mod, home = find_task(x)
+    return mod, home, x
+
+
+def cmd_event(a):
+    mod, home, task = resolve_target(a.target)
+    if task is None and a.kind != "note":
+        raise DpError("для модуля — только note; для задачи — ID")
+    add_event(home, task, a.kind, by_default(a), note=a.note or "", commits=a.commit)
+    print(f"{task or mod}: {a.kind}")
+
+
+def cmd_decide(a):
+    mods = all_modules()
+    home = mods.get(a.module) or module_home(a.module)
+    ensure_module(a.module, home)
+    decs = read_jsonl(home / "decisions.jsonl")
+    d = {"t": a.date or now(), "by": a.by or by_default(a), "text": a.text}
+    if a.why:
+        d["why"] = a.why
+    if a.task:
+        d["task"] = a.task
+    if a.ask:
+        n = 1 + sum(1 for x in decs if x.get("kind") == "question")
+        d.update({"kind": "question", "id": f"Q{n}"})
+    else:
+        d["kind"] = "decision"
+        if a.answers:
+            d["answers"] = a.answers
+    append_jsonl(home / "decisions.jsonl", d)
+    print(f"{a.module}: {d.get('id', 'решение')} записан{'' if a.ask else 'о'} ({d['by']})")
+
+
+def cmd_log(a):
+    mod, home, task = resolve_target(a.target)
+    evs = [e for e in read_jsonl(home / "events.jsonl") if task is None or e.get("task") == task]
+    for e in evs[-a.n:]:
+        c = (" " + ",".join(e["commits"])) if e.get("commits") else ""
+        n = (" — " + short(e["note"], 100 if not a.full else 10000)) if e.get("note") else ""
+        print(f"{e['t'][5:16].replace('T', ' ')} {e.get('task') or '·'} {e['ev']} ({e.get('by', '-')}){c}{n}")
+
+
+# ---------------------------------------------------------------- accept
+
+def parse_expect(exp):
+    if exp is None:
+        return {"exit": 0}
+    if isinstance(exp, dict):
+        return exp
+    s = str(exp).strip()
+    if s.startswith("exit="):
+        return {"exit": int(s[5:])}
+    if s.startswith("!re:"):
+        return {"not_re": s[4:]}
+    if s.startswith("re:"):
+        return {"re": s[3:]}
+    if s == "tests":
+        return {"tests": True}
+    if s.startswith("num:"):
+        body, _, cond = s[4:].rpartition(" ")
+        m = re.fullmatch(r"(>=|<=|==|<|>)(-?[\d.eE+-]+)", cond)
+        if not m:
+            raise DpError(f"expect «{s}»: ожидалось 'num:<regex> <op><число>'")
+        key = {">=": "min", "<=": "max", "==": "eq", ">": "gt", "<": "lt"}[m[1]]
+        return {"num": body, key: float(m[2])}
+    raise DpError(f"expect «{s}»: не понял (exit=N | re:… | !re:… | num:<regex> <op>N | tests)")
+
+
+def judge(exp, code, out):
+    """(pass, value)."""
+    ok, vals = True, []
+    if "exit" in exp:
+        ok &= code == exp["exit"]
+        vals.append(f"exit {code}")
+    if exp.get("tests"):
+        m = list(re.finditer(r"(\d+) тестов, (\d+) упало(?:, (\d+) пропущено)?", out))
+        if not m:
+            return False, f"нет итога тестов, exit {code}"
+        tot, fail, skip = (int(x or 0) for x in m[-1].groups())
+        ok &= fail == 0 and tot > 0
+        vals.append(f"{tot - fail}/{tot}" + (f" (пропуск {skip})" if skip else ""))
+        if fail:
+            names = re.findall(r"^\s*FAIL (\S+)", out, re.M)
+            vals.append("FAIL " + ",".join(n.split("::")[-1] for n in names[:3]))
+    if exp.get("re"):
+        m = re.search(exp["re"], out, re.M)
+        ok &= bool(m)
+        vals.append(short(m[0], 40) if m else "нет совпадения")
+    if exp.get("not_re"):
+        m = re.search(exp["not_re"], out, re.M)
+        ok &= not m
+        if m:
+            vals.append("есть: " + short(m[0], 40))
+    if exp.get("num"):
+        m = list(re.finditer(exp["num"], out, re.M))
+        if not m:
+            return False, "число не найдено"
+        g = m[-1]
+        try:
+            v = float((g.group(1) if g.groups() else g.group(0)).replace(",", "."))
+        except ValueError:
+            return False, f"не число: {short(g[0], 30)}"
+        for k, f in (("min", lambda x, y: x >= y), ("max", lambda x, y: x <= y), ("eq", lambda x, y: abs(x - y) < 1e-12),
+                     ("gt", lambda x, y: x > y), ("lt", lambda x, y: x < y)):
+            if k in exp:
+                ok &= f(v, float(exp[k]))
+        vals.append(f"{v:g}")
+    return bool(ok), "; ".join(vals) or f"exit {code}"
+
+
+def run_check(c, cwd, logdir, idx, tid):
+    name = c.get("name", f"check{idx}")
+    cmd = c.get("cmd") or (GODOT_TESTS.format(f=c["tests"]) if c.get("tests") else None)
+    if not cmd:
+        return name, False, "нет cmd", "", 0
+    exp = parse_expect({"tests": True} if c.get("tests") and "expect" not in c else c.get("expect"))
+    wd = Path(os.path.expanduser(c.get("cwd") or cwd))
+    if not wd.is_absolute():
+        wd = Path(cwd) / wd
+    env = dict(os.environ, DP_TASK=tid, XDG_DATA_HOME=tempfile.mkdtemp(prefix="dp-xdg-"))
+    safe = re.sub(r"[^\w.-]+", "_", name)
+    log = logdir / f"{idx:02d}-{safe}.log"
+    t0 = time.time()
+    try:
+        r = subprocess.run(["bash", "-c", cmd], cwd=wd, env=env, capture_output=True, text=True,
+                           timeout=c.get("timeout", 900))
+        code, out = r.returncode, r.stdout + ("\n" + r.stderr if r.stderr else "")
+    except subprocess.TimeoutExpired as e:
+        code, out = 124, (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+        out += f"\n[dp] таймаут {c.get('timeout', 900)} с"
+    dur = time.time() - t0
+    log.write_text(f"$ cd {wd}\n$ {cmd}\n[exit {code}, {dur:.0f} с]\n\n{out}")
+    ok, val = judge(exp, code, out) if code != 124 else (False, "таймаут")
+    if not ok and "exit" in val and len(val) < 12:
+        tail = [x for x in out.strip().splitlines() if x.strip()][-1:] or [""]
+        val += " · " + short(tail[0], 60)
+    return name, ok, val, str(log), dur
+
+
+def cmd_accept(a):
+    mod, home = find_task(a.id)
+    card = read_json(home / "tasks" / f"{a.id}.json")
+    checks = [c for c in card.get("accept", []) if not a.only or c.get("name") in a.only]
+    if not checks:
+        raise DpError(f"{a.id}: нет проверок в карточке" + (f" с именами {a.only}" if a.only else ""))
+    cwd = a.cwd
+    if not cwd:
+        cp = Path(os.path.expanduser(card.get("copy", ""))) if card.get("copy") else None
+        cwd = str(cp) if cp and cp.is_dir() and not a.here else str(toplevel())
+    logdir = toplevel() / "build/dp" / a.id
+    logdir.mkdir(parents=True, exist_ok=True)
+    with cf.ThreadPoolExecutor(max_workers=max(1, a.jobs)) as ex:
+        res = list(ex.map(lambda ic: run_check(ic[1], cwd, logdir, ic[0], a.id), enumerate(checks, 1)))
+    w = max(len(r[0]) for r in res)
+    for name, ok, val, log, dur in res:
+        print(f"{'PASS' if ok else 'FAIL'} {name:<{w}} {val}" + (f"  [{rel(log)}]" if (not ok or a.full) else ""))
+    npass = sum(r[1] for r in res)
+    allok = npass == len(res)
+    print(f"{a.id}: {npass}/{len(res)} в {rel(cwd)}" + ("" if allok else "; логи build/dp/" + a.id))
+    if not a.dry:
+        summ = "; ".join(f"{r[0]}={'ok' if r[1] else 'FAIL'}:{short(r[2], 30)}" for r in res)
+        full_set = not a.only and len(checks) == len(card.get("accept", []))
+        kind = "accepted" if allok and full_set and not a.no_accept else "checked"
+        add_event(home, a.id, kind, by_default(a), note=f"{npass}/{len(res)} {summ}", commits=a.commit)
+    sys.exit(0 if allok else 1)
+
+
+# ---------------------------------------------------------------- report
+
+REPORT_TEMPLATE = {
+    "status": "done | partial | blocked | failed",
+    "summary": "1–3 фразы: что сделано",
+    "commits": ["abc1234 короткое описание"],
+    "checks": [{"name": "имя проверки из карточки или своё", "value": "число/итог", "pass": True}],
+    "not_done": ["что не вышло и почему"],
+    "questions": ["открытый вопрос координатору"],
+    "images": ["/home/greg/deltaplan/build/screenshots/<задача>/01_….png"],
+    "how_to_check": "команда или dp accept <ID>",
+    "dp_feedback": "чего не хватило в dp, что неудобно (можно пусто)",
+}
+
+
+def validate_report(r, card):
+    errs = []
+    if not isinstance(r, dict):
+        return ["отчёт должен быть объектом JSON"]
+    if r.get("status") not in REPORT_STATUS:
+        errs.append(f"status ∈ {sorted(REPORT_STATUS)}")
+    if not isinstance(r.get("summary"), str) or not r.get("summary"):
+        errs.append("summary — непустая строка")
+    for k in ("commits", "not_done", "questions", "images"):
+        if k in r and not isinstance(r[k], list):
+            errs.append(f"{k} — список")
+    if r.get("status") == "done" and not r.get("commits"):
+        errs.append("status=done без commits")
+    for i, c in enumerate(r.get("checks", []) or []):
+        if not isinstance(c, dict) or "name" not in c or "pass" not in c:
+            errs.append(f"checks[{i}]: нужны name, value, pass")
+    names = {c.get("name") for c in r.get("checks", []) or [] if isinstance(c, dict)}
+    miss = [c["name"] for c in (card or {}).get("accept", []) if c.get("name") not in names]
+    if miss and r.get("status") == "done":
+        errs.append("нет результатов проверок: " + ", ".join(miss))
+    for k in (card or {}).get("report_extra", []) or []:
+        if k not in r:
+            errs.append(f"нет поля {k} (report_extra)")
+    return errs
+
+
+def cmd_report(a):
+    if a.template:
+        print(json.dumps(REPORT_TEMPLATE, ensure_ascii=False, indent=2))
+        return
+    if not a.id:
+        raise DpError("нужен ID задачи")
+    mod, home = find_task(a.id)
+    card = read_json(home / "tasks" / f"{a.id}.json")
+    p = home / "tasks" / f"{a.id}.report.json"
+    if a.show:
+        r = read_json(p)
+        if not r:
+            raise DpError(f"{a.id}: отчёта нет")
+        if a.full:
+            print(json.dumps(r, ensure_ascii=False, indent=2))
+            return
+        L = [f"{a.id} {r.get('status')}: {short(r.get('summary', ''), 300)}"]
+        if r.get("commits"):
+            L.append("коммиты: " + "; ".join(short(c, 60) for c in r["commits"]))
+        for c in r.get("checks", []) or []:
+            L.append(f"  {'PASS' if c.get('pass') else 'FAIL'} {c.get('name')} {short(c.get('value', ''), 80)}")
+        for k, t in (("not_done", "не вышло"), ("questions", "вопрос")):
+            L += [f"{t}: {short(x, 200)}" for x in r.get(k, []) or []]
+        if r.get("images"):
+            L.append(f"картинки: {len(r['images'])} ({rel(Path(r['images'][0]).parent)})")
+        if r.get("dp_feedback"):
+            L.append("dp: " + short(r["dp_feedback"], 200))
+        print("\n".join(L))
+        return
+    src = sys.stdin.read() if a.file in (None, "-") else Path(a.file).read_text()
+    try:
+        r = json.loads(src)
+    except json.JSONDecodeError as e:
+        raise DpError(f"отчёт: неверный JSON ({e}); схема — dp report --template")
+    errs = validate_report(r, card)
+    if errs:
+        raise DpError(f"{a.id}: отчёт не принят: " + "; ".join(errs))
+    r["t"] = now()
+    r["by"] = by_default(a)
+    write_json(p, r)
+    commits = [c.split()[0] for c in r.get("commits", []) if c]
+    add_event(home, a.id, "reported", r["by"], note=f"{r['status']}: {short(r['summary'], 120)}", commits=commits,
+              dp_feedback=r.get("dp_feedback", ""))
+    print(f"{a.id}: отчёт {r['status']} → {rel(p)}")
+
+
+# ---------------------------------------------------------------- status
+
+def branch_info(br, wt_by_branch):
+    """(копия, «хеш возраст») последнего коммита ветки."""
+    last = git("log", "-1", "--format=%h %ct", br, "--")
+    if not last:
+        return wt_by_branch.get(br, ""), ""
+    h, ts = last.split()
+    return wt_by_branch.get(br, ""), f"{h} {age(dt.datetime.fromtimestamp(int(ts)).isoformat())}"
+
+
+def module_status(mod, home, a, lines):
+    st = task_states(home)
+    cards = {p.stem: read_json(p) for p in sorted((home / "tasks").glob("*.json")) if not p.name.endswith(".report.json")}
+    for tid in cards:
+        st.setdefault(tid, {"status": "created", "t": None, "last_t": None, "commits": [], "note": ""})
+    wt = {b: p for p, b in worktrees()}
+    meta = module_meta(mod, home)
+    cnt = {}
+    for s in st.values():
+        cnt[s["status"]] = cnt.get(s["status"], 0) + 1
+    mwt, mlast = branch_info(meta["branch"], wt)
+    evs = read_jsonl(home / "events.jsonl")
+    last_ev = f" | событие {age(evs[-1]['t'])} назад" if evs else ""
+    lines.append(f"{mod}: " + " ".join(f"{k} {v}" for k, v in sorted(cnt.items())) + last_ev +
+                 (f" | {meta['branch']} {mlast}" if mlast else "") + (f" @ {rel(mwt)}" if mwt else ""))
+    stale_min = a.stale
+    for tid, s in st.items():
+        if s["status"] in FINAL and not a.full:
+            continue
+        card = cards.get(tid) or {}
+        br = card.get("branch", "")
+        bwt, blast = branch_info(br, wt) if br else ("", "")
+        old = ""
+        if s["status"] not in FINAL and s["last_t"]:
+            mins = (dt.datetime.now() - dt.datetime.fromisoformat(s["last_t"])).total_seconds() / 60
+            if mins > stale_min:
+                old = f" ⚠тихо {age(s['last_t'])}"
+        extra = f" {br} {blast}" if blast else ""
+        note = f" — {short(s['note'], 60)}" if s["note"] and s["status"] in ("blocked", "checked") else ""
+        lines.append(f"  {tid} {s['status']} {age(s['t'])} {card.get('type', '').removeprefix('dp-')}{extra}{old}{note}")
+    decs = read_jsonl(home / "decisions.jsonl")
+    answered = {x.get("answers") for x in decs if x.get("answers")}
+    for q in decs:
+        if q.get("kind") == "question" and q.get("id") not in answered:
+            lines.append(f"  ? {q['id']} ждёт решения ({age(q['t'])}): {short(q['text'], 90)}")
+
+
+def cmd_status(a):
+    mods = all_modules()
+    lines = []
+    if a.module:
+        if a.module not in mods:
+            raise DpError(f"модуль {a.module} не найден (есть: {', '.join(mods) or 'нет'})")
+        module_status(a.module, mods[a.module], a, lines)
+    else:
+        for m, h in mods.items():
+            module_status(m, h, a, lines)
+        feats = [(p, b) for p, b in worktrees() if b.startswith("feature/") and b[8:] not in mods]
+        if feats:
+            lines.append("копии без dp: " + ", ".join(b[8:] for p, b in feats))
+        if not lines:
+            lines.append("модулей dp нет")
+    print("\n".join(lines))
+
+
+# ---------------------------------------------------------------- plan
+
+HEAD_RE = re.compile(r"^(#{1,6})\s+(.*)$")
+
+
+def plan_headings(text):
+    out, fence = [], False
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if line.startswith("```"):
+            fence = not fence
+        if not fence:
+            m = HEAD_RE.match(line)
+            if m:
+                out.append((i, len(m[1]), m[2].strip()))
+    return lines, out
+
+
+def cmd_plan(a):
+    if a.target.endswith(".md") or "/" in a.target:
+        path = Path(a.target)
+        path = path if path.is_absolute() else toplevel() / path
+    else:
+        home = all_modules().get(a.target) or module_home(a.target)
+        meta = module_meta(a.target, home)
+        f = meta["contracts"] if a.contracts else meta["plan"]
+        root = home.parent.parent.parent
+        path = root / f if (root / f).exists() else toplevel() / f
+    if not path.exists():
+        raise DpError(f"нет файла {rel(path)}")
+    lines, heads = plan_headings(path.read_text())
+    if not a.section:
+        print(f"{rel(path)} — {len(lines)} строк; dp plan {a.target} <номер|текст>")
+        for n, (i, lvl, t) in enumerate(heads, 1):
+            if lvl <= a.depth:
+                print(f"{n:>3} {'  ' * (lvl - 1)}{short(t, 90)}  ({_sec_len(lines, heads, n - 1)})")
+        return
+    sel = None
+    q = a.section.strip()
+    if q.isdigit() and 1 <= int(q) <= len(heads):
+        sel = int(q) - 1
+    else:
+        ql = q.lower().lstrip("§").strip()
+        for pref in (True, False):
+            for n, (_, _, t) in enumerate(heads):
+                tl = t.lower().replace("§", "").strip()
+                if (tl.startswith(ql) if pref else ql in tl):
+                    sel = n
+                    break
+            if sel is not None:
+                break
+    if sel is None:
+        raise DpError(f"раздел «{q}» не найден; оглавление — dp plan {a.target}")
+    i, lvl, _ = heads[sel]
+    end = len(lines)
+    for j, l2, _ in heads[sel + 1:]:
+        if l2 <= lvl:
+            end = j
+            break
+    body = lines[i:end]
+    while body and not body[-1].strip():
+        body.pop()
+    if a.max and len(body) > a.max:
+        body = body[: a.max] + [f"… ещё {len(body) - a.max} строк (--max 0 — всё)"]
+    print("\n".join(body))
+
+
+def _sec_len(lines, heads, n):
+    i, lvl, _ = heads[n]
+    for j, l2, _ in heads[n + 1:]:
+        if l2 <= lvl:
+            return j - i
+    return len(lines) - i
+
+
+# ---------------------------------------------------------------- render
+
+MARK = "<!-- generated by tools/dp render; не править руками -->"
+
+
+def cmd_render(a):
+    mods = all_modules()
+    if a.module not in mods:
+        raise DpError(f"модуль {a.module} не найден")
+    home = mods[a.module]
+    meta = module_meta(a.module, home)
+    st = task_states(home)
+    cards = {p.stem: read_json(p) for p in sorted((home / "tasks").glob("*.json")) if not p.name.endswith(".report.json")}
+    reps = {p.name[:-12]: read_json(p) for p in (home / "tasks").glob("*.report.json")}
+    evs = read_jsonl(home / "events.jsonl")
+    decs = read_jsonl(home / "decisions.jsonl")
+    L = [MARK, f"# Журнал модуля «{a.module}»", "",
+         f"План — `{meta['plan']}`, контракты — `{meta['contracts']}`. Ветка `{meta['branch']}`, копия `{meta.get('copy', '')}`.",
+         f"Источник — `docs/plan/{a.module}/` (события, решения, карточки, отчёты); файл собран `tools/dp render`.", ""]
+    L += ["## Решения", ""]
+    answered = {x.get("answers") for x in decs if x.get("answers")}
+    for d in decs:
+        tag = {"user": "решение пользователя", "coordinator": "решение координатора", "main": "главная сессия"}.get(d.get("by"), d.get("by", ""))
+        if d.get("kind") == "question":
+            tag = f"вопрос {d['id']}" + (" (закрыт)" if d["id"] in answered else " — **ждёт решения**")
+        why = f" Почему: {d['why']}" if d.get("why") else ""
+        ans = f" (ответ на {d['answers']})" if d.get("answers") else ""
+        L.append(f"- {d['t'][8:10]}.{d['t'][5:7]} — {tag}{ans}: {d['text']}{why}")
+    L += ["", "## Задачи", "", "| Задача | Статус | Исполнитель | Копия / ветка | Коммиты | Итог |", "|---|---|---|---|---|---|"]
+    order = list(cards) + [t for t in st if t not in cards]
+    for tid in order:
+        c = cards.get(tid) or {}
+        s = st.get(tid, {"status": "created", "t": "", "commits": []})
+        r = reps.get(tid) or {}
+        res = r.get("summary", "") or s.get("note", "")
+        if r.get("checks"):
+            res += " Проверки: " + "; ".join(f"{x['name']} {x.get('value', '')}" for x in r["checks"])
+        date = f" ({s['t'][8:10]}.{s['t'][5:7]})" if s.get("t") else ""
+        cell = lambda x: str(x).replace("|", "\\|").replace("\n", " ")
+        L.append(f"| {tid} {cell(c.get('title', ''))} | **{s['status']}**{date} | {c.get('type', '')} | "
+                 f"`{c.get('branch', '')}` | {', '.join(s.get('commits', []))} | {cell(res)} |")
+    L += ["", "## Хронология", ""]
+    for e in evs:
+        cm = f" [{', '.join(e['commits'])}]" if e.get("commits") else ""
+        L.append(f"- {e['t'][:16].replace('T', ' ')} {e.get('task') or '—'} **{e['ev']}** ({e.get('by', '-')}){cm}"
+                 + (f": {e['note']}" if e.get("note") else ""))
+    text = "\n".join(L) + "\n"
+    out = a.out or str(toplevel() / f"docs/plan/{a.module}_progress.md")
+    if out == "-":
+        sys.stdout.write(text)
+        return
+    op = Path(out)
+    if op.exists() and not op.read_text().startswith(MARK) and not a.force:
+        raise DpError(f"{rel(op)} написан руками — не перезаписываю (--out другой путь или --force)")
+    op.write_text(text)
+    print(f"{rel(op)}: {len(L)} строк, задач {len(order)}, событий {len(evs)}, решений {len(decs)}")
+
+
+def cmd_init(a):
+    home = module_home(a.module)
+    ensure_module(a.module, home, plan=a.plan, contracts=a.contracts, branch=a.branch, copy=a.copy)
+    print(f"{a.module}: {rel(home)}")
+
+
+# ---------------------------------------------------------------- CLI
+
+class Parser(argparse.ArgumentParser):
+    def error(self, message):
+        die(f"{message} ({self.prog} -h)", 2)
+
+
+def build():
+    p = Parser(prog="dp", description="Журнал, карточки задач и приёмка модулей Deltaplan. Справка с примерами — tools/dp.md.",
+               formatter_class=argparse.RawDescriptionHelpFormatter,
+               epilog="Автор событий: --by или $DP_ROLE. Коды: 0 ок, 1 ошибка/FAIL, 2 аргументы.")
+    sp = p.add_subparsers(dest="cmd", required=True, parser_class=Parser, metavar="команда")
+
+    q = sp.add_parser("init", help="завести модуль (module.json); task new делает это сам")
+    q.add_argument("module")
+    q.add_argument("--plan"); q.add_argument("--contracts"); q.add_argument("--branch"); q.add_argument("--copy")
+    q.set_defaults(fn=cmd_init)
+
+    t = sp.add_parser("task", help="карточка задачи: new | show")
+    tsp = t.add_subparsers(dest="sub", required=True, parser_class=Parser, metavar="new|show")
+    q = tsp.add_parser("new", help="создать карточку")
+    q.add_argument("module"); q.add_argument("id")
+    q.add_argument("--type", help="dp-engineer|dp-researcher|dp-writer|dp-mechanic")
+    q.add_argument("--title"); q.add_argument("--goal"); q.add_argument("--plan-ref", dest="plan_ref", help="раздел плана, напр. §UC-3")
+    q.add_argument("--copy"); q.add_argument("--branch")
+    q.add_argument("--from", dest="from_", metavar="FILE", help="JSON-карточка (поля поверх шаблона), - = stdin")
+    q.add_argument("--contract", action="append", metavar="ИМЯ@ВЕРСИЯ")
+    q.add_argument("--scope", action="append", metavar="ПУТЬ"); q.add_argument("--dont-touch", dest="dont_touch", action="append", metavar="ПУТЬ")
+    q.add_argument("--test", action="append", metavar="ФИЛЬТР", help="проверка: headless-тесты --filter=ФИЛЬТР, 0 упало")
+    q.add_argument("--check", action="append", nargs=3, metavar=("ИМЯ", "CMD", "EXPECT"),
+                   help="EXPECT: exit=N | re:<regex> | !re:<regex> | num:<regex с группой> <op>N | tests")
+    q.add_argument("--force", action="store_true"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_task_new)
+    q = tsp.add_parser("show", help="карточка для исполнителя (коротко)")
+    q.add_argument("id"); q.add_argument("--json", action="store_true")
+    q.set_defaults(fn=cmd_task_show)
+
+    q = sp.add_parser("event", help="событие задачи (или note модуля) в events.jsonl")
+    q.add_argument("target", metavar="ID|модуль"); q.add_argument("kind", choices=EVENT_KINDS)
+    q.add_argument("--commit", action="append"); q.add_argument("--note"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_event)
+
+    q = sp.add_parser("decide", help="решение (или --ask: вопрос пользователю) в decisions.jsonl")
+    q.add_argument("module"); q.add_argument("text")
+    q.add_argument("--by", help="user|coordinator|main"); q.add_argument("--why"); q.add_argument("--task")
+    q.add_argument("--ask", action="store_true", help="открыть вопрос (шлюз) → Qn")
+    q.add_argument("--answers", metavar="Qn", help="закрывает вопрос")
+    q.add_argument("--date", help=argparse.SUPPRESS)
+    q.set_defaults(fn=cmd_decide)
+
+    q = sp.add_parser("accept", help="прогнать проверки карточки → PASS/FAIL, итог в события")
+    q.add_argument("id"); q.add_argument("--only", action="append", metavar="ИМЯ")
+    q.add_argument("--cwd", help="где запускать (по умолчанию копия задачи, если есть, иначе текущая)")
+    q.add_argument("--here", action="store_true", help="в текущей копии (после слияния в ветку модуля)")
+    q.add_argument("-j", "--jobs", type=int, default=1); q.add_argument("--commit", action="append")
+    q.add_argument("--dry", action="store_true", help="не писать событие")
+    q.add_argument("--no-accept", dest="no_accept", action="store_true", help="записать checked, даже если всё PASS")
+    q.add_argument("--full", action="store_true", help="пути логов и для PASS"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_accept)
+
+    q = sp.add_parser("report", help="отчёт исполнителя: dp report ID < r.json | --show | --template")
+    q.add_argument("id", nargs="?"); q.add_argument("file", nargs="?")
+    q.add_argument("--show", action="store_true"); q.add_argument("--template", action="store_true")
+    q.add_argument("--full", action="store_true"); q.add_argument("--by")
+    q.set_defaults(fn=cmd_report)
+
+    q = sp.add_parser("status", help="сводка: задачи, ветки, тишина, вопросы пользователю")
+    q.add_argument("module", nargs="?"); q.add_argument("--full", action="store_true", help="и закрытые задачи")
+    q.add_argument("--stale", type=int, default=40, metavar="МИН", help="порог «тихо» (40)")
+    q.set_defaults(fn=cmd_status)
+
+    q = sp.add_parser("log", help="последние события модуля или задачи")
+    q.add_argument("target", metavar="ID|модуль"); q.add_argument("-n", type=int, default=10)
+    q.add_argument("--full", action="store_true")
+    q.set_defaults(fn=cmd_log)
+
+    q = sp.add_parser("plan", help="оглавление плана или раздел (номер из оглавления или начало заголовка)")
+    q.add_argument("target", metavar="модуль|файл.md"); q.add_argument("section", nargs="?")
+    q.add_argument("--contracts", action="store_true", help="файл контрактов модуля вместо плана")
+    q.add_argument("--depth", type=int, default=3, help="уровни заголовков в оглавлении (3)")
+    q.add_argument("--max", type=int, default=150, help="строк раздела (150; 0 — всё)")
+    q.set_defaults(fn=cmd_plan)
+
+    q = sp.add_parser("render", help="собрать md-журнал docs/plan/<модуль>_progress.md")
+    q.add_argument("module"); q.add_argument("--out", help="путь или - (stdout)"); q.add_argument("--force", action="store_true")
+    q.set_defaults(fn=cmd_render)
+    return p
+
+
+def main():
+    a = build().parse_args()
+    try:
+        a.fn(a)
+    except DpError as e:
+        die(str(e))
+    except BrokenPipeError:
+        pass
+
+
+if __name__ == "__main__":
+    main()

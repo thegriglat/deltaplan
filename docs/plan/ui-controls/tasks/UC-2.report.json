@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "summary": "`docs/game.md` (таблица клавиш W/↑ — от себя, S/↓ — на себя; мышь; абзац о раскладке и инверсии; геймпад; строка об автопилоте), `docs/flight.md` FR-4, `site/content/mechanics/flight.md` (абзац «Трапеция»). README нет. Hugo собирается. Тексты упоминают «стик вперёд — от себя» — зависит от шлюза по стику.",
+  "commits": [
+    "db8230f"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "см. summary",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept UC-2",
+  "t": "2026-10-01T21:23:44",
+  "by": "dp-writer",
+  "migrated": true
+}

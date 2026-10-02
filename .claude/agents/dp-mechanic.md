@@ -11,4 +11,5 @@ disallowedTools: [Agent, WebSearch, WebFetch]
 - Godot — только `XDG_DATA_HOME=$(mktemp -d) godot …`; `project.godot`, переписанный редактором, не коммитить.
 - Коммиты — только свои файлы, `git commit -- <пути>`, по-русски + строка Claude-Session.
 - Отчёт: что сделано, результаты прогонов (сколько тестов, что упало — дословно строка), пути к файлам.
+- Карточка задачи — `tools/dp task show <ID>`, план — по разделам `tools/dp plan <модуль> <раздел>` (не целиком); отчёт — ещё и `tools/dp report <ID> < отчёт.json` (схема — `tools/dp report --template`, поле `dp_feedback` — что не хватило в dp). Справка — `tools/dp.md`.
 - Долгие запуски — фоном (`run_in_background`) или `/home/greg/deltaplan/tools/job.sh start/wait` (с таймаутом); не ждать и не убивать по `pgrep -f`/`pkill -f` (workflow.md, «Общие правила»).
