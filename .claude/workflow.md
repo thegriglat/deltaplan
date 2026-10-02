@@ -27,7 +27,7 @@
 9. Слияние `feature/<модуль>` в `main` после одобрения пользователя; push — по его команде.
 
 ## Контракты систем (обязательно для координатора)
-Файл `docs/<модуль>_contracts.md` (или раздел плана) — по каждому стыку между задачами/системами:
+Файл `docs/contracts/<модуль>.md` (или раздел плана) — по каждому стыку между задачами/системами:
 - владелец (задача) и потребители;
 - точный интерфейс: сигнатуры, формат данных (поля, единицы, системы координат, порядок осей, тип чисел), поведение при отсутствии данных, инварианты;
 - версия контракта.
@@ -77,6 +77,14 @@
 - В начале каждого шага координатор читает `dp inbox <модуль>` (новые решения пользователя, ответы, правки плана, заметки; метка чтения — `docs/plan/<модуль>/.read_<читатель>`, в .gitignore); пусто — «нового нет».
 - Коммит журнала — координатор, своими путями: `git add docs/plan/<модуль> && git commit -m "…" -- docs/plan/<модуль>`.
 - **Обратная связь по `dp`** — обязательно в конце работы: исполнитель — поле `dp_feedback` отчёта, координатор — `dp event <модуль> note --note "dp: …"` (чего не хватило, что неудобно; можно «нет»).
+
+## Документация: куда что класть (`docs/INDEX.md`)
+
+Точка входа — `docs/INDEX.md` (путь — тип — статус — summary). «Что мы знаем про X»: `dp docs findings X` (реестр выводов `docs/registry/findings.md`), `dp docs find [--type T] [--module M] текст`, `dp search`, `dp search --sem`; не grep.
+- `docs/guide/` — как устроена система (kebab-case), `docs/contracts/<модуль>.md` — контракты стыков, `docs/research/` и `tools/research/<тема>/README.md` — исследования (вывод, данные, где применено), `docs/plan/` — только живые и отложенные планы (`status: idea|postponed`), `docs/archive/plan/` — планы и журналы закрытых работ (не удалять, `git mv`; выводы перед архивированием — в `findings.md`).
+- Каждый md в `docs/`, паспорт `tools/research/**/{README,summary}.md`, TODO.md и REQUIREMENTS.md начинается с frontmatter: `type` (guide|plan|contract|research|reference|journal|registry), `status` (active|idea|postponed|closed|superseded), `module`, `updated`, `summary` (1 строка), `related`; research — ещё `conclusion`, `data`, `applied_in`; contract — `contracts: [{id, version}]`. Новому файлу — `dp docs init`.
+- Перед коммитом docs — `dp docs check` (frontmatter, живые ссылки, файл > 40 КБ — разбить). Реестры `docs/INDEX.md`, `docs/registry/{research,contracts,decisions}.md` генерирует `dp docs index` — руками не править; `findings.md` пишется вручную.
+- Просмотр в Obsidian — `docs/obsidian.md`.
 
 ## Типы агентов (`.claude/agents/`)
 | Тип | Модель / усилие | Для чего |
