@@ -32,3 +32,4 @@
 {"t": "2026-10-03T04:54:53", "by": "coordinator", "task": "ON-4", "ev": "accepted", "note": "по отчёту: тест N3 против Python (3 случая) и страж; c2_* проходят; расхождения — в контракт O4"}
 {"t": "2026-10-03T04:55:03", "by": "coordinator", "task": "ON-4", "ev": "accepted", "commits": ["8e2cb97"], "note": "2/2 tests_input=ok:3/3; fixture_verify=ok:exit 0"}
 {"t": "2026-10-03T04:55:18", "by": "coordinator", "task": "ON-4", "ev": "merged", "commits": ["8e2cb97"]}
+{"t": "2026-10-03T04:56:00", "by": "coordinator", "task": "ON-5", "ev": "created", "note": "AirRuntime engine=nn: поле ветра сетью (O5, O6), пункт настроек «нейросеть»"}

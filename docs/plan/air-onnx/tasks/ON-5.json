@@ -1,0 +1,111 @@
+{
+  "id": "ON-5",
+  "module": "air-onnx",
+  "type": "dp-engineer",
+  "title": "AirRuntime engine=nn: поле ветра сетью (O5, O6), пункт настроек «нейросеть»",
+  "goal": "Сквозной путь в игре: место → вход сети (AirNnInput, AirNnPrep) → AirOnnx → WindField → термики, выбор в настройках, поиск файла сети, отказ без падения",
+  "plan_ref": "ON-5",
+  "contracts": [
+    {
+      "name": "O5",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O6",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O2",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O3",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O4",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "C3",
+      "version": 1,
+      "ref": "docs/contracts/air-model.md"
+    },
+    {
+      "name": "C9",
+      "version": 3,
+      "ref": "docs/contracts/air-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-5",
+  "branch": "air-onnx/ON-5",
+  "base": "feature/air-onnx",
+  "scope": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_nn_field.gd",
+    "scripts/atmosphere/air_model/air_nn_input.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/game.gd",
+    "configs/atmosphere.json",
+    "locale/",
+    "export_presets.cfg",
+    "tests/air_onnx/",
+    "tests/ui/test_wind_model_setting.gd",
+    "tools/air_onnx/nn_load_probe.sh",
+    "tools/air_onnx/nn_load_probe.gd",
+    "tools/air_onnx/nn_load_probe.tscn",
+    "data/air_nn/"
+  ],
+  "dont_touch": [
+    "tools/research/",
+    "tools/air_onnx/test_contract_o1.py",
+    "scripts/atmosphere/air_model/air_nn_prep.gd",
+    "native/",
+    "addons/",
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "scripts/atmosphere/air_model/air_place.gd"
+  ],
+  "accept": [
+    {
+      "name": "tests_nn_runtime",
+      "tests": "air_nn_runtime"
+    },
+    {
+      "name": "tests_air_onnx_all",
+      "tests": "air_onnx"
+    },
+    {
+      "name": "tests_nn",
+      "tests": "air_nn"
+    },
+    {
+      "name": "tests_wind_setting",
+      "tests": "wind_model_setting"
+    },
+    {
+      "name": "tests_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "load_probe_pilot1",
+      "cmd": "/home/greg/deltaplan/tools/dp lock cpu on5-probe -- tools/air_onnx/nn_load_probe.sh /home/greg/air_nn_data/pilot/runs/2026-10-02_pilot/main/model.onnx",
+      "expect": "re:air_model: поле \\(нейросеть",
+      "timeout": 900
+    },
+    {
+      "name": "load_probe_missing",
+      "cmd": "tools/air_onnx/nn_load_probe.sh /nonexistent/model.onnx",
+      "expect": "re:air_model: analytic \\(нейросеть",
+      "timeout": 900
+    }
+  ],
+  "report_extra": [],
+  "notes": "Зависимости уже в ветке: AirOnnx (native/air_onnx, addons/air_onnx — собрать: native/air_onnx/build.sh linux под dp lock cpu, DEPS_DIR=$HOME/.cache/deltaplan-air-onnx-deps — кэш уже скачан ON-2), AirNnPrep (air_nn_prep.gd, O3), AirNnInput (air_nn_input.gd, O4: row_from_case, cond_for, guard, default_domain), малая сеть tests/air_onnx/fixtures/tiny_p2v4.onnx (+ эталон tiny_p2v4_ref.json, формат — tools/air_onnx/README.md). nn_load_probe.sh <модель> — headless (без GPU!) загрузка встроенного места (Онгудай, 12:00, 3 м/с) с engine=nn и указанным файлом (--air-nn-model=…), печатает строку журнала air_model и время этапа «Рассчитываем ветер» с разбивкой (вход места, prep, сеть, сборка поля, термики); код 0 при печати строки. В конфиг — engine, nn_model, nn_threads, nn_domain (с _doc). AtmoFingerprint не трогать. Решатель не ломать: при engine=solver поведение прежнее.",
+  "created": "2026-10-03T04:56:00"
+}
