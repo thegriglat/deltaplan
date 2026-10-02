@@ -75,3 +75,8 @@
 {"t": "2026-10-03T01:55:14", "by": "coordinator", "task": "NN-P5", "ev": "accepted", "note": "по ревью (accept, 3 minor → NN-18)"}
 {"t": "2026-10-03T01:55:38", "by": "coordinator", "task": "NN-P5", "ev": "merged", "note": "a4365f8"}
 {"t": "2026-10-03T01:55:38", "by": "coordinator", "task": "NN-18", "ev": "note", "note": "Замечания ревью NN-P5 — в эту задачу: (1) refuse сравнивает с лучшей из двух базовых линий (профиль притока, среднее) — регрессию air-lite не включать (она на окнах 100 м и старых фолдах), записать это в README и в metrics.json; (2) evaluate.py:502 ridges.setdefault(cid, ridge_mask(...)) считает фильтр каждый раз — заменить на if cid not in ridges. NN-P5 влита в feature/air-nn (a4365f8) — начинать от неё.", "addendum": true}
+{"t": "2026-10-03T01:55:57", "by": "coordinator", "task": "NN-P5", "ev": "checked", "commits": ["a4365f8"], "note": "1/6 test_prep=ok:exit 0"}
+{"t": "2026-10-03T01:55:59", "by": "coordinator", "task": "NN-P5", "ev": "checked", "commits": ["a4365f8"], "note": "2/6 test_prep=ok:exit 0; test_reflect=ok:exit 0"}
+{"t": "2026-10-03T01:56:00", "by": "coordinator", "task": "NN-P5", "ev": "checked", "commits": ["a4365f8"], "note": "3/6 test_prep=ok:exit 0; test_reflect=ok:exit 0; test_split=ok:exit 0"}
+{"t": "2026-10-03T01:56:02", "by": "coordinator", "task": "NN-P5", "ev": "checked", "commits": ["a4365f8"], "note": "4/6 test_prep=ok:exit 0; test_reflect=ok:exit 0; test_split=ok:exit 0; contract_sample_v2=ok:exit 0"}
+{"t": "2026-10-03T01:56:19", "by": "coordinator", "task": "NN-18", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-air-nn-report3"}
