@@ -1,0 +1,85 @@
+# Конфиг пилота air-nn (этап П): один файл — зёрна, размеры, пути. Пути — от $AIR_NN_DATA (по умолчанию ниже).
+# Раздел smoke_overrides накладывается при --smoke (крошечный набор, пара эпох, отдельные каталоги).
+data_root_default: /home/greg/air_nn_data
+
+paths:
+  base: ${AIR_NN_DATA}/pilot                 # runs/, reports/, prep/ — по §4.4 плана
+
+dataset:
+  # Набор П1: $AIR_NN_DATA/pilot/datasets/<версия решателя>/<имя>/ (версия — s0-<хеш>, ищется по шаблону).
+  root_glob: ${AIR_NN_DATA}/pilot/datasets/s0-*/pilot
+  # Досчёт набора (генератор NN-P1, с продолжением). Пусто — шаг только проверяет готовые образцы.
+  gen_cmd: []
+  allowed_status: [ok, max]                  # статусы решений области, пригодные как цель (max — предел итераций)
+  min_cases: 20
+
+split:
+  seed: 20261002
+  holdout_places: [ongudai]                  # (б): место целиком вне обучения и проверки
+  holdout_proc_prefix: "p_"                  # + отложенные процедурные рельефы (кривая (в) и (б'))
+  holdout_proc_n: 5
+  newcond_frac: 0.15                         # (а): «новые условия» на знакомом рельефе
+  val_frac: 0.10                             # проверка для ранней остановки
+  curve_sizes: [5, 10, 20, 40]
+
+train:
+  seed: 1
+  model:
+    channels: [32, 64, 96, 128, 192]         # 4 понижения: 96 → 6 клеток (рецептивное поле — вся область)
+    emb: 128
+  batch: 8
+  lr: 2.0e-3
+  weight_decay: 1.0e-4
+  warmup_frac: 0.03
+  max_epochs: 150
+  patience: 30
+  ema_decay: 0.999
+  grad_clip: 1.0
+  near_ground_weight: 2.0                    # вес потерь на высотах ≤ near_ground_max_m (60 м над стартами)
+  near_ground_max_m: 100
+  ckpt_every_min: 5
+  lock_chunk_s: 240                          # замок GPU — куски ≤ 4 мин (между ними — чужие GPU-тесты)
+
+curve:
+  max_epochs: 150                            # точки кривой — с теми же гиперпараметрами
+
+eval:
+  agl_key_m: 60                              # ключевые числа: 60 м над стартом (между 50 и 75 м)
+  rms_radius_m: 1000
+  edge_cells: 5                              # край области вне сравнения с air-lite (зона притока/выхода)
+  airlite_metrics: ref/air_lite_fit_metrics.json
+  ort_threads: [4, 1]
+  ort_repeats: 20
+  n_slice_figures: {holdout_place: 2, newcond: 2, holdout_proc: 1}
+  # ориентиры ШП (план §8.2) — правило вывода в отчёте
+  wind_ok_ms: 0.3
+  lift_ok_ms: 0.1
+  frac_ok: 0.90
+  better_than_baseline: 0.7                  # (б): медиана ошибки сети ≤ 0,7 × лучшей базовой линии
+  curve_drop: 0.9                            # (в): ошибка на max n ≤ 0,9 × ошибки на min n и спад монотонный
+
+estimate:                                    # оценка полного прогона по замеру (отчёт smoke)
+  n_cases_full: 1890
+
+smoke_overrides:
+  paths:
+    base: ${AIR_NN_DATA}/pilot/smoke
+  dataset:
+    root_glob: ${AIR_NN_DATA}/pilot/tmp/dev_p2/tools/research/air_lite
+    min_cases: 10
+  split:
+    holdout_proc_prefix: "s_"
+    holdout_proc_n: 1
+    newcond_frac: 0.2
+    val_frac: 0.15
+    curve_sizes: [2, 4, 7]
+  train:
+    batch: 4
+    max_epochs: 150
+    patience: 150
+    ckpt_every_min: 0.5
+    lock_chunk_s: 60
+  curve:
+    max_epochs: 10
+  eval:
+    ort_repeats: 10

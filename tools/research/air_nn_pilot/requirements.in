@@ -5,6 +5,7 @@ scipy
 matplotlib
 pillow
 zstandard
+brotli
 cupy-cuda12x
 lightgbm
 pyyaml
