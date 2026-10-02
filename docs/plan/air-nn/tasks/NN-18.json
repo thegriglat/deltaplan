@@ -1,0 +1,56 @@
+{
+  "id": "NN-18",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "Отчёт П3 v3: ШП-2 раздельно по сходимости, вердикт с правилом отказа",
+  "goal": "По решениям пользователя (Q2, Q3) отчёт П-2 даёт все числа раздельно для сошедшихся и несошедшихся решений, а вердикт ШП-2 — правилом П3 v3 (отказ по медиане на (г) → правило на сошедшихся → правим подход).",
+  "plan_ref": "8.2. Задачи",
+  "contracts": [
+    {
+      "name": "П3",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    },
+    {
+      "name": "П1",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "/home/greg/deltaplan-air-nn-report3",
+  "branch": "air-nn/report3",
+  "base": "feature/air-nn",
+  "scope": [
+    "pilotnn/evaluate.py: группа решения по статусу (ветер и w с нагревом — по h, w без нагрева — по m); target (late_mean/final, у v1 max — last); отношение ошибки ветра сети к late_spread60_p90 для несошедшихся",
+    "pilotnn/report.py: все таблицы v2 по наборам и кривой — две группы + число случаев; таблица ШП-2 со строкой «несошедшиеся» (в вердикт не входит); вердикт П3 v3; metrics.json — группы",
+    "config.yaml (пороги, refuse_ratio = 1,0), tests/check_report_v3.py (разделы П3 v3 в smoke-отчёте), tests/test_verdict.py (логика вердикта на синтетических числах: отказ / идём / правим, группы), подставной smoke — с несошедшимися решениями обоих статусов (tests/make_mock_p6.py или метаданные мок-набора)",
+    "README пилота: отчёт П3 v3"
+  ],
+  "dont_touch": [
+    "dataset.py, airlite_gen.py, configs/dataset.yaml (NN-17), terrain_cut.py, configs/terrain.yaml (NN-16), pilot.py/run_pilot.sh (NN-P7)",
+    "prep.py, split.py, train.py — без изменений логики; незакоммиченный симлинк .venv"
+  ],
+  "accept": [
+    {
+      "name": "verdict",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_verdict.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "smoke_report_v3",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/check_report_v3.py --latest-smoke",
+      "expect": "re:ШП-2: (идём в волну 0|правим подход|отказ)"
+    },
+    {
+      "name": "split_still",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_split.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "доли «ок» и медианы на smoke по группам; как строится вердикт по metrics.json"
+  ],
+  "notes": "Начинать от feature/air-nn после слияния NN-P5 (deление/оценка/отчёт П3 v2 уже там — не переделывать, только группы и вердикт). Цель несошедшихся у набора terrain (П1 v3) — late_mean и late_spread60_p90 в метаданных решения (NN-17 делает параллельно; до его слияния — по контракту П1 v3 на подставных метаданных). smoke — на подставном наборе; GPU (обучение smoke) — под замком пилота. Окружение: .venv — симлинк на /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv (не коммитить).",
+  "created": "2026-10-03T00:56:58",
+  "edited": "2026-10-03T00:56:58"
+}
