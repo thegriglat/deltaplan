@@ -21,6 +21,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	var m: StartMenu = _scene("res://scenes/ui/start_menu.tscn")
 	var expected := [
 		tr("menu_fly"),
+		tr("menu_inspect"),
 		tr("menu_flight_setup"),
 		tr("menu_net_game"),
 		tr("menu_controls"),
@@ -33,7 +34,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	for b in buttons:
 		if not (b as Button).flat:
 			texts.append((b as Button).text)
-	check(texts.size() == 7, "ровно 7 кнопок, получили %d: %s" % [texts.size(), texts])
+	check(texts.size() == 8, "ровно 8 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])
 	m.queue_free()
 

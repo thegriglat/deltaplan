@@ -7,6 +7,8 @@ extends Control
 
 signal fly_requested(settings: FlightSettings)
 signal setup_requested
+## «Осмотр карты»: то же место и условия, но без полёта (свободная камера, поле ветра).
+signal inspect_requested(settings: FlightSettings)
 ## «Сетевая игра» (NET-50): открыть экран NetScreen.
 signal net_requested
 signal settings_requested
@@ -17,6 +19,7 @@ signal quit_requested
 signal language_requested(code: String)
 
 var settings: FlightSettings
+var _inspect_btn: Button
 
 var _status: Label
 var _fly_btn: Button
@@ -49,6 +52,7 @@ func set_status(text: String) -> void:
 ## Идёт загрузка полёта: «Лететь» и «Полёт…» недоступны.
 func set_busy(on: bool) -> void:
 	_fly_btn.disabled = on
+	_inspect_btn.disabled = on
 	_setup_btn.disabled = on
 
 
@@ -104,6 +108,9 @@ func _build() -> void:
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
 	_fly_btn = UiKit.menu_button(box, tr("menu_fly"), _on_fly)
+	_inspect_btn = UiKit.menu_button(
+		box, tr("menu_inspect"), func() -> void: inspect_requested.emit(settings)
+	)
 	_summary = UiKit.label(box, summary_text(settings), "HintLabel")
 	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF

@@ -24,6 +24,7 @@ pause_restart,Заново,Restart
 settings_invert_pitch,Инверсия тангажа,Invert pitch
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
 menu_fly,Лететь,Fly
+menu_inspect,Осмотр карты,Map inspection
 menu_fly_from_here,Лететь отсюда,Fly from here
 result_best_thermal,Лучший термик: %.1f м/с,Best thermal: %.1f m/s
 site_altai_sinyukha_summit_east,"Малая Синюха — вершина, восточный склон","Malaya Sinyukha — summit, east slope"
