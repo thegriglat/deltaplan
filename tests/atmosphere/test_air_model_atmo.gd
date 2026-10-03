@@ -98,6 +98,7 @@ func test_off_and_outside_bitwise_analytic() -> void:
 			diff_out += 1
 	check(diff_out == 0, "вне поля — побитно аналитика (%d отличий)" % diff_out)
 	a.set_air_mode("off")
+	ref.set_air_mode("off")  # off — упрощённый профиль 0.8.0; ref без поля — той же аналитики
 	check(not a.is_air_field_on(), "off — поле не используется")
 	var diff_off := 0
 	for p in inside:
