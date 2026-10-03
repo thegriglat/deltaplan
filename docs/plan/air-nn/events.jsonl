@@ -118,3 +118,9 @@
 {"t": "2026-10-03T03:32:22", "by": "main", "task": null, "ev": "plan", "note": "план 8.2. Задачи: замена «| NN-2 | Физика поверхно…»"}
 {"t": "2026-10-03T18:40:33", "by": "coordinator", "task": null, "ev": "plan", "note": "план 8.2. Задачи: дописано 1 стр."}
 {"t": "2026-10-03T18:40:33", "by": "main", "task": null, "ev": "note", "note": "Полёт пользователя на сети П-2 (air-onnx, Аскарово): «в целом даже „летабельно“, совсем чего-то необычного нет». План П-3 — docs/plan/air_nn_p3.md"}
+{"t": "2026-10-03T18:51:31", "by": "coordinator", "task": "NN-P9", "ev": "created", "note": "П3-А: линейная база обтекания (Б1) и кодировка выхода v5"}
+{"t": "2026-10-03T18:51:31", "by": "coordinator", "task": "NN-P10", "ev": "created", "note": "П3-Б: формы профиля по высоте (POD/EOF) целей П-2 и v5"}
+{"t": "2026-10-03T18:51:31", "by": "coordinator", "task": "NN-P11", "ev": "created", "note": "П3-В: входные карты v5 и где сидят ошибки П-2"}
+{"t": "2026-10-03T18:51:44", "by": "coordinator", "task": "NN-P9", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P9"}
+{"t": "2026-10-03T18:51:46", "by": "coordinator", "task": "NN-P10", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P10"}
+{"t": "2026-10-03T18:51:48", "by": "coordinator", "task": "NN-P11", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P11"}
