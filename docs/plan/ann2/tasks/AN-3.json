@@ -1,0 +1,56 @@
+{
+  "id": "AN-3",
+  "module": "ann2",
+  "type": "dp-researcher",
+  "title": "Пилотный прогон обучения «2,5D-оператора» на P2 и оценка против P2",
+  "goal": "Полное, но умеренное обучение сети AN-2 на всём наборе P2 (≈2 ч GPU) и оценка против P2 на тех же отложенных горах по критерию 10–15 % скорости: понять, бьёт ли новая архитектура P2 и куда идти дальше.",
+  "plan_ref": "3. Архитектура «2,5D-оператор» (после пункта 0)",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A3",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    }
+  ],
+  "copy": "~/deltaplan-ann2-AN-3",
+  "branch": "ann2/AN-3",
+  "base": "feature/ann2",
+  "scope": [
+    "tools/research/ann2/"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "run_done",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -c \"import csv;r=list(csv.DictReader(open('/home/greg/air_nn_data/ann2/runs/an3_pilot/train_log.csv')));print('last_step',r[-1]['step'])\"",
+      "expect": "num:last_step ([0-9]+) >=40000"
+    },
+    {
+      "name": "eval_vs_p2",
+      "cmd": "DP_NO_TMUX=1 /home/greg/deltaplan/tools/dp lock gpu an3eval -- /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/evaluate.py --run an3_pilot",
+      "expect": "num:p2_selfcheck_diff ([0-9.,]+) <=0.01"
+    },
+    {
+      "name": "table",
+      "cmd": "test -s tools/research/ann2/out/an3/eval.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-04T03:44:19"
+}

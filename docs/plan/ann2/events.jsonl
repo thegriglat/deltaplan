@@ -13,3 +13,4 @@
 {"t": "2026-10-04T03:43:55", "by": "coordinator", "task": "AN-2", "ev": "accepted", "commits": ["b39b16a"], "note": "4/4 contract=ok:exit 0; params=ok:3.045; smoke_train=ok:0.7212; eval_vs_p2=ok:3e-05"}
 {"t": "2026-10-04T03:44:05", "by": "coordinator", "task": "AN-2", "ev": "merged", "note": "b39b16a"}
 {"t": "2026-10-04T03:44:05", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp accept с проверками через 'dp lock gpu … -- cmd' не видит вывод команды (tmux-окно) — пришлось DP_NO_TMUX=1; accept должен ставить его сам или lock печатать вывод в stdout"}
+{"t": "2026-10-04T03:44:19", "by": "coordinator", "task": "AN-3", "ev": "created", "note": "Пилотный прогон обучения «2,5D-оператора» на P2 и оценка против P2"}
