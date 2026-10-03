@@ -69,7 +69,7 @@ git add data/air_nn/model.onnx && git commit -m "Сеть П-2 (data/air_nn/mode
 mkdir -p ~/.local/share/Deltaplan/air_nn && cp model.onnx ~/.local/share/Deltaplan/air_nn/model.onnx
 ```
 
-Файл из `user://` важнее файла из сборки. Для разовой проверки можно и не копировать: запустить игру с
+Файл из `user://` важнее файла из сборки. Linux-путь проверен на экспортированной сборке (`tools/air_onnx/export_smoke.sh`, шаг 6); Windows-путь следует из `custom_user_dir_name`, запуском не проверен. Для разовой проверки можно и не копировать: запустить игру с
 `--air-nn-model=/полный/путь/model.onnx` (после `--` при запуске из Godot).
 
 ## 3. Собрать расширение и игру
@@ -101,13 +101,13 @@ mkdir -p "$XDG_DATA_HOME/godot" && ln -s "$HOME/.local/share/godot/export_templa
 
 Настройки → «Ветер над рельефом» → «Нейросеть (экспериментально)». Остальные значения — «Расчёт по рельефу»
 (решатель на GPU) и «Упрощённый». Выбор действует со следующей загрузки места. В `configs/atmosphere.json` это
-`air_model.enabled = "auto"` и `air_model.engine = "nn"`; потоков ORT — `air_model.nn_threads` (по умолчанию 4).
+`air_model.enabled = "auto"` и `air_model.engine = "nn"` (без меню — файл `user://configs/atmosphere.json` со словарём `{"air_model": {"engine": "nn"}}`, его же пишет меню); потоков ORT — `air_model.nn_threads` (по умолчанию 4).
 
 ## 5. Что видно в журнале
 
 Строки печатает игра на этапе «Рассчитываем ветер». Журнал — вывод в терминал при запуске игры оттуда; Godot
 по умолчанию пишет его и в файл `user://logs/godot.log` (то есть `~/.local/share/Deltaplan/logs/godot.log` на Linux,
-`%APPDATA%\Deltaplan\logs\godot.log` на Windows; в этой ветке путь запуском не проверялся).
+`%APPDATA%\Deltaplan\logs\godot.log` на Windows; для Linux-сборки проверено запуском: файл создаётся, строка `air_model` в нём есть; Windows запуском не проверялся).
 
 - Работает — `air_model: поле (нейросеть model.onnx, П2 v4) <час> ч, <ветер> м/с с <откуда>°: … с, k …; … мс: вход …, карты …, сеть …, поле …`
   (в начале — имя файла сети и версия П2; в конце — разбивка времени по стадиям).
@@ -124,6 +124,14 @@ tools/air_onnx/nn_load_probe.sh <model.onnx> [место] [час] [ветер �
 ```
 
 Нужно собранное расширение (шаг 3). Скрипт сам берёт временный профиль Godot.
+
+То же на **экспортированной** сборке (как у пилота): сеть кладётся в `user://air_nn/model.onnx` временного профиля,
+включается `engine = nn`, `build/linux/deltaplan.x86_64 --headless -- --smoke` грузит встроенное место и печатает
+строку `air_model`. Код 0 — строка с «(нейросеть …)» есть. Без `build/linux` (или с `--build`) сначала собирает Linux:
+
+```bash
+tools/air_onnx/export_smoke.sh <model.onnx> [--build]
+```
 
 ## 7. Чего пока нет
 

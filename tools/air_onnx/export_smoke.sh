@@ -36,6 +36,6 @@ echo '{"air_model": {"engine": "nn"}}' > "$user/configs/atmosphere.json"
 echo "== запуск build/linux/deltaplan.x86_64 --headless -- --smoke" >&2
 out=$(timeout 300 build/linux/deltaplan.x86_64 --headless -- --smoke 2>&1)
 rc=$?
-echo "$out" | grep -E "air_model|smoke|ERROR|SCRIPT ERROR"
+echo "$out" | grep -E "air_model|smoke: OK|SCRIPT ERROR"
 echo "код выхода игры: $rc" >&2
 echo "$out" | grep -q "air_model: поле (нейросеть"
