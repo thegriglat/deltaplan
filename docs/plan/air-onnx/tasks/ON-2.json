@@ -1,0 +1,65 @@
+{
+  "id": "ON-2",
+  "module": "air-onnx",
+  "type": "dp-engineer",
+  "title": "Расширение AirOnnx (ORT CPU) из пробника: несколько входов, сборка Linux+Windows, экспорт",
+  "goal": "Финальный GDExtension AirOnnx по O2 (из native/air_nn_probe): загрузка .onnx из файла, вызов с входами по именам, сборка Linux и Windows, включение в экспорт игры",
+  "plan_ref": "ON-2",
+  "contracts": [
+    {
+      "name": "O2",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O1",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-2",
+  "branch": "air-onnx/ON-2",
+  "base": "feature/air-onnx",
+  "scope": [
+    "native/air_onnx/",
+    "native/air_nn_probe/",
+    "addons/air_onnx/",
+    "tests/air_onnx/test_air_onnx.gd",
+    "tests/air_nn/",
+    "tools/build.sh",
+    "export_presets.cfg",
+    ".gitignore"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tools/air_onnx/",
+    "tools/research/",
+    "addons/debug_draw_3d/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "build_all",
+      "cmd": "DEPS_DIR=$HOME/.cache/deltaplan-air-onnx-deps /home/greg/deltaplan/tools/dp lock cpu on2-build -- native/air_onnx/build.sh all",
+      "expect": "exit=0",
+      "timeout": 5400
+    },
+    {
+      "name": "artifacts",
+      "cmd": "ls addons/air_onnx/bin/linux/libair_onnx.so addons/air_onnx/bin/linux/libonnxruntime.so.1 addons/air_onnx/bin/windows/air_onnx.dll addons/air_onnx/bin/windows/onnxruntime.dll",
+      "expect": "exit=0"
+    },
+    {
+      "name": "tests_air_onnx",
+      "tests": "air_onnx"
+    },
+    {
+      "name": "probe_removed",
+      "cmd": "test ! -e native/air_nn_probe && test ! -e tests/air_nn/test_air_nn_probe.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Сборка — под dp lock cpu, зависимости — общий кэш DEPS_DIR=$HOME/.cache/deltaplan-air-onnx-deps (не в копии). Пути артефактов — как в проверке artifacts. Тест test_air_onnx: модель-пустышка с ДВУМЯ входами (make_dummy_model.py, эталон ORT Python ≤1e-5) + ошибки без падения; без бинарников — skip. Игра без собранных бинарников не должна падать и сыпать ошибками в каждом headless-тесте. Экспорт: tools/build.sh собирает/проверяет расширение, ORT-библиотека попадает рядом с исполняемым файлом (Linux и Windows). README native/air_onnx/README.md — сборка, VC++ redist для Windows, macOS — способ.",
+  "created": "2026-10-03T04:40:37"
+}

@@ -1,0 +1,4 @@
+# Сборка native/air_onnx/build.sh — не в git (README там)
+/bin/
+/air_onnx.gdextension
+/air_onnx.gdextension.uid

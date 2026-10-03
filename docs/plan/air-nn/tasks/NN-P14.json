@@ -1,0 +1,61 @@
+{
+  "id": "NN-P14",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "П-3: ошибка сети по условиям случая (П-2, затем лучший вариант П-3)",
+  "goal": "Понять, откуда хвосты ошибки сети (запрос пользователя): условия случая, шум целей решателя или ёмкость — разбивкой ошибки П-2 на (г), 60 м по условиям случая и сходимости; тот же скрипт потом применяется к лучшему варианту П-3 (NN-P13).",
+  "plan_ref": "docs/plan/air_nn_p3.md §4 (П3-Д), запрос пользователя 03.10",
+  "contracts": [
+    {
+      "name": "П3",
+      "version": "4",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П1",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-NN-P14",
+  "branch": "air-nn/NN-P14",
+  "base": "feature/air-nn",
+  "scope": [
+    "tools/research/air_nn_pilot/p3/err_by_condition.py: ошибка ветра с нагревом на 60 м (и подъёма w без/с нагревом) по клеткам (г), без края, сошедшиеся и несошедшиеся отдельно; модель — параметр (--onnx/--run, по умолчанию П-2 runs/2026-10-03_p2b/main; кодировка v4 и v5 — через prep.to_physical/enc), можно переиспользовать клетки NN-P11 (~/air_nn_data/pilot/p3/NN-P11/cells_*.npz) и p3/err_by_feature.py",
+    "разбивка по условиям: U10 (корзины), направление ветра относительно главной оси хребта (если дёшево — по тензору уклонов области), stab, heat/t_max/поток тепла H, z_i, час, cap_flag/cap_agl, статус сходимости, невязка в конце, late_spread60_p90 у несошедшихся; по каждому — медиана/p90 ошибки в корзинах и доля дисперсии ошибки (R² по корзинам, как NN-P11); разложение дисперсии ошибки: между случаями против внутри случая; сколько хвоста (клеток с ошибкой > p90) приходится на худшие 10 % случаев",
+    "tools/research/air_nn_pilot/p3/err_by_condition.md (+ .json): таблицы и короткий вывод «условия / шум целей / ёмкость» числами; команда воспроизведения"
+  ],
+  "dont_touch": [
+    "pilotnn/*.py, train.py, evaluate.py, report.py (NN-P12 их меняет)",
+    "наборы, кеш prep, runs/ — только читать; своё — ~/air_nn_data/pilot/p3/NN-P14/",
+    "docs/contracts/*",
+    "~/deltaplan-air-onnx, main",
+    "симлинк .venv",
+    "GPU (занят NN-P12) — только CPU/ORT"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "cat tools/research/air_nn_pilot/p3/err_by_condition.md",
+      "expect": "re:между случаями"
+    },
+    {
+      "name": "conv_split",
+      "cmd": "cat tools/research/air_nn_pilot/p3/err_by_condition.md",
+      "expect": "re:несошедш"
+    },
+    {
+      "name": "spread",
+      "cmd": "cat tools/research/air_nn_pilot/p3/err_by_condition.md",
+      "expect": "re:late_spread60_p90"
+    },
+    {
+      "name": "script",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python p3/err_by_condition.py --help",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T19:22:27"
+}

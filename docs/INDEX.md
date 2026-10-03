@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-03"
+updated: "2026-10-04"
 summary: "Все документы docs/ и паспорта исследований: путь, тип, статус, summary; точка входа."
 related: []
 generated: true
@@ -36,6 +36,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/contracts/air-model.md](/docs/contracts/air-model.md) | contract | active | air-model | Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12). |
+| [docs/contracts/air-nn-p3.md](/docs/contracts/air-nn-p3.md) | contract | active | air-nn | Контракты пилота П-3 air-nn: П2 v5 — физическая кодировка входа (27 карт) и выхода (117 каналов: разгон/поворот к линейной базе, отрыв от склона), линейная база Б1; П3 v4 — таблица вариантов и сводка заменимости |
 | [docs/contracts/air-nn.md](/docs/contracts/air-nn.md) | contract | active | air-nn | Контракты модуля air-nn — Изменение интерфейса — только через координатора: версия +1, что изменилось, уведомление потребителей. |
 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) | contract | active | control-fix | Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх). |
 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) | contract | active | easter-eggs | Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп. |
@@ -113,6 +114,7 @@ generated: true
 | [tools/research/recal/README.md](/tools/research/recal/README.md) | research | closed |  | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json. |
 | [tools/research/tune/README.md](/tools/research/tune/README.md) | research | closed | air-model | AM-09: калибровка масштаба 1 и порогов масштаба 3 по Askervein схемой Professor (полиномы по прогонам, χ², eigentunes). |
 | [tools/research/wind_compare/README.md](/tools/research/wind_compare/README.md) | research | closed |  | Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py. |
+| [tools/research/windninja/README.md](/tools/research/windninja/README.md) | research | closed | air-nn | WindNinja (массосогласованный) как независимый эталон ветра над рельефом против решателя air-nn: на гребнях разгон совпадает (1,19 против 1,13 от притока), направление совпадает (медиана 10°), но решатель в долинах и подветренных склонах держит 0,3 от притока, WindNinja — 0,84–0,97 (торможения массивом у него нет); как запасной вариант игры годится для разгона на гребнях и поворота, не для затенения. |
 | [tools/research/wing_physics_check/README.md](/tools/research/wing_physics_check/README.md) | research | closed | wings | Проверка физики крыльев — данные и инструменты — Модуль wing-physics-check (docs/archive/plan/wing-physics-check.md). |
 
 ## Планы (живые и отложенные)
@@ -123,6 +125,7 @@ generated: true
 | [docs/plan/air_model.md](/docs/plan/air_model.md) | plan | postponed | air-model | План: модель воздуха в трёх масштабах — Документ — для координатора агентов: модули, задачи со скоупом, файлами, приёмкой и оценкой. |
 | [docs/plan/air_model_a2.md](/docs/plan/air_model_a2.md) | plan | postponed | air-model | А2: сходимость в штиль — 01.10.2026. Ветка air/a2: feature/air-model 0788cf7 плюс влитая разведка air/a2-pre. |
 | [docs/plan/air_nn.md](/docs/plan/air_nn.md) | plan | postponed | air-nn | Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m… |
+| [docs/plan/air_nn_p3.md](/docs/plan/air_nn_p3.md) | plan | closed | air-nn | Пилот П-3 air-nn: физическая кодировка входа и выхода сети (база — линейная теория, разгон/поворот, отрыв от склона, уклоны по масштабам, подсеточный рельеф, маска отрыва, формы профиля) на готовых данных П-2; вопрос — что даёт больше: кодировка или ёмкость сети |
 | [docs/plan/air_nn_progress.md](/docs/plan/air_nn_progress.md) | journal | postponed | air-nn | air-nn — журнал хода работ — 02.10 (пользователь, через главную сессию): run_pilot.sh в tmux показывает «этап n из N: название» + одну обновляемую строку «сделано/всего, %, ETA» в единицах этапа; после продолжения счётчики учитывают сделанное; подробный ло… |
 | [docs/plan/game/01-priemka-kabiny.md](/docs/plan/game/01-priemka-kabiny.md) | plan | closed |  | 12-01. Приёмка кабины по фиксированным кадрам (VR-11, FR-25a, VR-6) |
 | [docs/plan/game/02-skvoznoj-test-svobodnyj.md](/docs/plan/game/02-skvoznoj-test-svobodnyj.md) | plan | closed |  | 12-02. Сквозной тест свободного полёта на всех локациях |
@@ -145,7 +148,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (208 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (232 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |

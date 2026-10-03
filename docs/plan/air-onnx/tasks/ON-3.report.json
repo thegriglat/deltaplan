@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "AirNnPrep (rotation_of, case_meta, maps 9|4, film, to_physical) перенесён из prep.py один в один; фикстура из 6 случаев реального рельефа (k=0..3, r у ±45°, пропуски в day/profile) и тест N1/N2 зелёные: карты и числа совпадают с Python до float32-округления, to_physical ≤1e-4.",
+  "commits": [
+    "3120225 AirNnPrep: подготовка входа и выхода сети в GDScript = prep.py (O3), фикстура и тест N1/N2"
+  ],
+  "checks": [
+    {
+      "name": "tests_prep",
+      "value": "4/4, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "fixture_size",
+      "value": "2769857",
+      "pass": true
+    },
+    {
+      "name": "fixture_verify",
+      "value": "exit 0, побитно",
+      "pass": true
+    },
+    {
+      "name": "o1",
+      "value": "O1: OK",
+      "pass": true
+    },
+    {
+      "name": "maps max diff vs python",
+      "value": "7e-12 (после float32); film/meta 1.1e-13",
+      "pass": true
+    },
+    {
+      "name": "maps(9) время 96²",
+      "value": "0.35-0.45 с (headless)",
+      "pass": true
+    },
+    {
+      "name": "maps(4) время",
+      "value": "0.010-0.015 с",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "case_meta/film: при отсутствии wdir/U10/t_max/hour в row беру умолчания 270/10/26/14 (prep.py тут падает KeyError); контракт O3 говорит «умолчания как в film()» — годится?"
+  ],
+  "how_to_check": "dp accept ON-3; XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=air_nn_prep",
+  "uncertain": [
+    {
+      "where": "air_nn_prep.gd:rotation_of",
+      "why": "граница ±45° зависит от ulp libm в Godot и numpy",
+      "checked": "в фикстуре 515 значений wdir с шагом 0.7° плюс 45/135/225/315 и ±0.01 вокруг: k совпадает точно, r ≤1e-9"
+    },
+    {
+      "where": "фикстура",
+      "why": "wdir у 5 из 6 случаев переписан (рельеф и профиль реальные) ради покрытия k и границ",
+      "checked": "случай 6 с пропусками day/profile"
+    },
+    {
+      "where": "to_physical",
+      "why": "в фикстуре сетка 12×12, не 96² (размер)",
+      "checked": "код от размера не зависит; rot_scalar на 96² проверена через maps"
+    }
+  ],
+  "dp_feedback": "Общий scratchpad: чужой агент перезаписал мой rep.json (одинаковое имя) — dp report --template могло бы писать шаблон в уникальный файл. dp report: имена проверок должны совпадать с карточкой — сообщение об этом уже есть, но заранее неочевидно.",
+  "extra": {
+    "maps9_time_s": 0.36,
+    "maps4_time_s": 0.012,
+    "fixture_bytes": 2769857
+  },
+  "t": "2026-10-03T04:51:04",
+  "by": "main"
+}

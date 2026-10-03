@@ -1,0 +1,61 @@
+{
+  "id": "ON-3",
+  "module": "air-onnx",
+  "type": "dp-engineer",
+  "title": "AirNnPrep: вход и выход сети в GDScript = prep.py (тест N1/N2 на фикстуре)",
+  "goal": "Перенести подготовку входа (9|4 карты, 18 чисел FiLM, поворот) и обратное преобразование выхода prep.py в GDScript один в один — главный стык сети с игрой",
+  "plan_ref": "ON-3",
+  "contracts": [
+    {
+      "name": "O3",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O1",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-3",
+  "branch": "air-onnx/ON-3",
+  "base": "feature/air-onnx",
+  "scope": [
+    "scripts/atmosphere/air_model/air_nn_prep.gd",
+    "tools/air_onnx/make_prep_fixture.py",
+    "tests/air_onnx/test_air_nn_prep.gd",
+    "tests/air_onnx/fixtures/prep_*"
+  ],
+  "dont_touch": [
+    "tools/research/",
+    "tools/air_onnx/test_contract_o1.py",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "native/",
+    "addons/"
+  ],
+  "accept": [
+    {
+      "name": "tests_prep",
+      "tests": "air_nn_prep"
+    },
+    {
+      "name": "fixture_size",
+      "cmd": "du -cb tests/air_onnx/fixtures/prep_* | tail -1",
+      "expect": "num:^(\\d+) <=3000000"
+    },
+    {
+      "name": "fixture_verify",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/make_prep_fixture.py --verify",
+      "expect": "exit=0",
+      "timeout": 1200
+    },
+    {
+      "name": "o1",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/test_contract_o1.py",
+      "expect": "re:^O1: OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Эталон — tools/research/air_nn_pilot/pilotnn/prep.py (только читать, не менять). Python — venv пилота только на чтение: CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python (ничего не ставить). Реальный рельеф для фикстуры — образцы набора ~/air_nn_data/pilot/datasets/s0-3acd749/main/cases/*.npz (d400_hc, d400_H) и метаданные строк (plan.json / state.sqlite — только file:...?mode=ro; идёт пилот П-2, ничего там не писать); в фикстуру копировать нужные числа и массивы. ≥4 случаев: k=0..3 и r у границы сектора ±45°; n_maps=9 и 4. --verify пересоздаёт фикстуру во временный каталог и сравнивает с сохранённой побитно. Тест GDScript грузит фикстуру и сравнивает с допусками O3.",
+  "created": "2026-10-03T04:41:00"
+}

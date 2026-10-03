@@ -1,0 +1,45 @@
+--- a/tools/research/air_nn_pilot/pilotnn/train.py
++++ b/tools/research/air_nn_pilot/pilotnn/train.py
+@@ -44,7 +44,22 @@
+     """Кодировка прогона (П2 v5): inputs/outputs v4|v5, gamma (γ_a, dict(m, h)), каталоги кеша v5."""
+     e = dict(task.get("enc") or {})
+     return dict(inputs=e.get("inputs", "v4"), outputs=e.get("outputs", "v4"), pack=int(e.get("pack", 0) or 0),
+-                gamma=e.get("gamma"), prep5_dirs=task.get("prep5_dirs") or [], w_rel_weight=float(e.get("w_rel_weight", 1.0)))
++                gamma=e.get("gamma"), prep5_dirs=task.get("prep5_dirs") or [], w_rel_weight=float(e.get("w_rel_weight", 1.0)),
++                film_bg=e.get("film_bg"))
++
++
++_BG = {}
++
++
++def film_bg_append(F, ids, path):
++    """P3E6: числа фона (pilotnn/film_bg.py, файл film_bg.npz: ids, F (n, 9)) — после 18 чисел П2."""
++    if not path:
++        return F
++    if path not in _BG:
++        with np.load(path) as z:
++            _BG[path] = dict(zip(z["ids"].tolist(), z["F"].astype(np.float32)))
++    E = np.stack([_BG[path][c] for c in ids]).astype(F.dtype)
++    return np.concatenate([F, E], axis=1)
+ 
+ 
+ def set_determinism(seed):
+@@ -94,7 +109,7 @@
+     Массивы выделяются целиком и заполняются по случаю (без двойного пика ОЗУ)."""
+     if enc["inputs"] == "v4" and enc["outputs"] == "v4":
+         X, F, Y, metas = load_arrays(prep, ids, with_y)
+-        return X, F, Y, None, metas
++        return X, film_bg_append(F, ids, enc.get("film_bg")), Y, None, metas
+     from . import prep5 as P5
+     n = len(ids)
+     nx_ = 9 + (P5.N_XE if enc["inputs"] == "v5" else 0)
+@@ -334,7 +349,8 @@
+     n = len(Xt)
+     reflect_on = bool(tc.get("reflect", False))
+     sx = torch.from_numpy(np.ascontiguousarray(rms, np.float32)).to(dev)[None, :, None, None]
+-    sf = torch.from_numpy(REFLECT_FILM_SIGN).to(dev)[None, :]
++    sfn = np.concatenate([REFLECT_FILM_SIGN, np.ones(Ft.shape[1] - len(REFLECT_FILM_SIGN), np.float32)])   # фон P3E6 — скаляры, +1
++    sf = torch.from_numpy(sfn).to(dev)[None, :]
+     sy = torch.from_numpy(np.ascontiguousarray(ros, np.float32)).to(dev)[None, :, None, None]
+     spe = max(1, n // bs)                                # шагов на эпоху (неполный хвост отбрасывается)
+     E = int(tc["max_epochs"])

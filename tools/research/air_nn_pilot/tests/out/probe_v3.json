@@ -1,0 +1,316 @@
+{
+ "n_cases": 16,
+ "n_solutions": 32,
+ "n_max": 5,
+ "frac_max_solutions": 0.156,
+ "frac_cases_with_max": 0.188,
+ "late_n": [
+  11
+ ],
+ "late_spread60_p90_max": {
+  "all": {
+   "n": 5,
+   "median": 0.5231,
+   "p90": 0.6635,
+   "mean": 0.3826,
+   "max": 0.6651
+  },
+  "h": {
+   "n": 3,
+   "median": 0.5231,
+   "p90": 0.6367,
+   "mean": 0.3961,
+   "max": 0.6651
+  },
+  "m": {
+   "n": 2,
+   "median": 0.3623,
+   "p90": 0.6014,
+   "mean": 0.3623,
+   "max": 0.6612
+  }
+ },
+ "per_max": [
+  {
+   "case": "t_0002_000",
+   "sol": "h",
+   "spread": 0.5231,
+   "iters": 1001
+  },
+  {
+   "case": "t_0002_000",
+   "sol": "m",
+   "spread": 0.06339,
+   "iters": 1001
+  },
+  {
+   "case": "t_0160_003",
+   "sol": "h",
+   "spread": 2.252e-06,
+   "iters": 1001
+  },
+  {
+   "case": "t_0160_008",
+   "sol": "h",
+   "spread": 0.6651,
+   "iters": 1001
+  },
+  {
+   "case": "t_0160_008",
+   "sol": "m",
+   "spread": 0.6612,
+   "iters": 1001
+  }
+ ],
+ "time": {
+  "ok": {
+   "n": 13,
+   "t_wall_v3": 6.94,
+   "t_wall_v2": 6.98,
+   "ratio_wall": 0.994,
+   "t_solve_v3": 5.8,
+   "t_solve_v2": 5.85
+  },
+  "max": {
+   "n": 3,
+   "t_wall_v3": 42.96,
+   "t_wall_v2": 42.3,
+   "ratio_wall": 1.016,
+   "t_solve_v3": 40.67,
+   "t_solve_v2": 40.59
+  }
+ },
+ "converged_bitwise_v3_eq_v2": true,
+ "max_differs_from_v2": true,
+ "bitwise": [
+  {
+   "case": "t_0002_000",
+   "sol": "h",
+   "status": "max",
+   "same_iters": true,
+   "bitwise": false
+  },
+  {
+   "case": "t_0002_000",
+   "sol": "m",
+   "status": "max",
+   "same_iters": true,
+   "bitwise": false
+  },
+  {
+   "case": "t_0002_007",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0002_007",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_002",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_002",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_009",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0010_009",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_004",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_004",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_011",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0065_011",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_001",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_001",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_006",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0119_006",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0160_003",
+   "sol": "h",
+   "status": "max",
+   "same_iters": true,
+   "bitwise": false
+  },
+  {
+   "case": "t_0160_003",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0160_008",
+   "sol": "h",
+   "status": "max",
+   "same_iters": true,
+   "bitwise": false
+  },
+  {
+   "case": "t_0160_008",
+   "sol": "m",
+   "status": "max",
+   "same_iters": true,
+   "bitwise": false
+  },
+  {
+   "case": "t_0250_005",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0250_005",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0250_010",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0250_010",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_000",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_000",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_007",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0265_007",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_002",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_002",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_009",
+   "sol": "h",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  },
+  {
+   "case": "t_0281_009",
+   "sol": "m",
+   "status": "ok",
+   "same_iters": true,
+   "bitwise": true
+  }
+ ],
+ "statuses_same_v3_v2": true,
+ "roots": {
+  "v3": "/home/greg/air_nn_data/pilot/datasets/s0-1c8c322/probe",
+  "v2": "/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/557a8537-920a-44d7-b5cc-80a1f0d49032/scratchpad/v2_root/pilot/datasets/s0-1c8c322/probe_v2"
+ }
+}

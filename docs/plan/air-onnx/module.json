@@ -1,0 +1,9 @@
+{
+  "module": "air-onnx",
+  "plan": "docs/plan/air_onnx.md",
+  "contracts": "docs/contracts/air-onnx.md",
+  "branch": "feature/air-onnx",
+  "copy": "~/deltaplan-air-onnx",
+  "created": "2026-10-03T04:29:52",
+  "code": "ON"
+}

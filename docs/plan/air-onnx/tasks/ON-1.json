@@ -1,0 +1,59 @@
+{
+  "id": "ON-1",
+  "module": "air-onnx",
+  "type": "dp-researcher",
+  "title": "Экспорт .onnx из чекпойнта пилота и малая тестовая сеть",
+  "goal": "Скрипт экспорта/осмотра .onnx по O1 (с метаданными) и малая случайная сеть с эталоном ORT — для тестов игры до конца П-2",
+  "plan_ref": "ON-1",
+  "contracts": [
+    {
+      "name": "O1",
+      "version": "1",
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-1",
+  "branch": "air-onnx/ON-1",
+  "base": "feature/air-onnx",
+  "scope": [
+    "tools/air_onnx/",
+    "tests/air_onnx/fixtures/"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot/",
+    "scripts/",
+    "native/",
+    "tools/air_onnx/test_contract_o1.py"
+  ],
+  "accept": [
+    {
+      "name": "o1_pilot_code",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/test_contract_o1.py --model tests/air_onnx/fixtures/tiny_p2v4.onnx",
+      "expect": "re:^O1: OK"
+    },
+    {
+      "name": "tiny_size",
+      "cmd": "stat -c %s tests/air_onnx/fixtures/tiny_p2v4.onnx",
+      "expect": "num:^(\\d+) <=200000"
+    },
+    {
+      "name": "tiny_verify",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/export_onnx.py --verify tests/air_onnx/fixtures/tiny_p2v4.onnx",
+      "expect": "exit=0"
+    },
+    {
+      "name": "info_pilot1",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/export_onnx.py --info /home/greg/air_nn_data/pilot/runs/2026-10-02_pilot/main/model.onnx",
+      "expect": "re:maps.*1, 4, 96, 96"
+    },
+    {
+      "name": "ckpt_export",
+      "cmd": "d=$(mktemp -d) && CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/export_onnx.py --ckpt /home/greg/air_nn_data/pilot/runs/2026-10-02_pilot/main --out $d/m.onnx && CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/export_onnx.py --info $d/m.onnx && CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/test_contract_o1.py --model $d/m.onnx",
+      "expect": "re:deltaplan.p2_version.*2[\\s\\S]*O1: OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T04:40:09",
+  "edited": "2026-10-03T04:40:37"
+}

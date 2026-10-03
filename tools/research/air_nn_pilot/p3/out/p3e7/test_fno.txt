@@ -1,0 +1,10 @@
+SpecDFT vs SpectralConv n=192 modes=24: max|Δ|=2.68e-07, max|y|=5.52e-01
+SpecDFT vs SpectralConv n=96 modes=20: max|Δ|=3.58e-07, max|y|=8.90e-01
+SpecDFT vs SpectralConv n=48 modes=16: max|Δ|=4.77e-07, max|y|=1.32e+00
+SpecDFT vs SpectralConv n=24 modes=12: max|Δ|=4.77e-07, max|y|=2.11e+00
+параметры: 2667963 комплексных весов (вещ.): 1557504
+выход (2, 91, 96, 96) torch vs DFT-копия: 1.7285346984863281e-06
+ONNX МБ: 13.75938
+ORT потоков 4: max|Δ| 2.09e-06, медиана 25.5 мс
+ORT потоков 1: max|Δ| 2.09e-06, медиана 48.6 мс
+ok

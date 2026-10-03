@@ -1,0 +1,27 @@
+{
+  "verdict": "accept",
+  "summary": "API AirOnnx соответствует O2 v1 (коды load 0–4, имена/формы/метаданные, run по именам с {} и last_error); сборка, раскладка экспорта и удаление пробника в скоупе, export_presets.cfg и «не трогать» не задеты. Эталон считает ORT Python, а не само расширение; тест с ошибками проверяет и коды, и пустой ответ.",
+  "issues": [
+    {
+      "file": "addons/air_onnx/.gitignore",
+      "line": 3,
+      "severity": "minor",
+      "what": "После сборки и импорта появляется addons/air_onnx/air_onnx.gdextension.uid: его нет ни в git, ни в .gitignore (в копии он сейчас untracked). Его легко закоммитить вместе со своими файлами, хотя сам .gdextension в git не лежит",
+      "fix": "Добавить /air_onnx.gdextension.uid в addons/air_onnx/.gitignore, а в build.sh clean удалять его тоже"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tests_air_onnx (dp accept --only --dry)",
+      "value": "PASS 2/2",
+      "pass": true
+    },
+    {
+      "name": "run_tests.tscn --filter=air_onnx напрямую",
+      "value": "тесты выполнились (не skip), max|Δ| = 0 при 1 и 4 потоках, 0 упало",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-03T05:11:28",
+  "by": "reviewer"
+}

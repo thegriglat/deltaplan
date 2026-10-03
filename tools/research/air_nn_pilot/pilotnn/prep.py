@@ -1,5 +1,18 @@
-"""Вход и выход сети области (контракт П2 v1): поворот к ветру «с запада», карты, числа FiLM, цель (91 канал)
-и ОДНА функция обратного преобразования выхода в м/с и К исходной системы (`to_physical`).
+"""Вход и выход сети области (контракт П2 v3): поворот к ветру «с запада», 9 карт входа, числа FiLM, цель
+(91 канал) и ОДНА функция обратного преобразования выхода в м/с и К исходной системы (`to_physical`).
+
+Карты (v3, порядок MAP_NAMES, float32, повёрнутая система, фиксированные нормировки — константы ниже):
+  0 terrain      hc′ − mean(hc′)                                 /1000 м
+  1 heat_flux    d400_H                                          /800 Вт/м²
+  2, 3 x, y      центр клетки x′, y′                              /19 200 м
+  4 slope_along  ∇h · ê′, ê′ = (cos r, sin r) — куда дует         /0,3   (> 0 — склон поднимается по ветру)
+  5 slope_cross  ∇h · ê′⊥, ê′⊥ = (−sin r, cos r) — влево от потока /0,3
+  6 tpi_2k       hc′ − G_σ(hc′), σ = 2000 м                       /300 м (> 0 — гребень/вершина)
+  7 tpi_8k       hc′ − G_σ(hc′), σ = 8000 м                       /1000 м
+  8 shelter      Sx (Winstral et al. 2002): max_d atan((h(p − d·ê′) − h(p))/d), d = 200…4000 м шагом 200,
+                 h — билинейно по hc′, вне области — ближайшая клетка   /0,3 рад (> 0 — затенено с наветра)
+∇h — np.gradient(hc′, 400 м) (центральные разности, у края односторонние); G_σ — gaussian_filter(mode="nearest").
+Всё — только из рельефа и потока тепла (есть у игры без решателя).
 
 Системы координат: x — восток (ось i), y — север (ось j), массивы `[..., j, i]`; центр области в (0, 0).
 Ветер `wdir` — откуда дует (метео), куда дует — ê = (−sin wdir, −cos wdir) (как air-lite features.unit).
@@ -22,12 +35,21 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from scipy import ndimage
 
 AGL = (25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000)
 N_MECH, N_HEAT = 3, 4
 N_CH = N_MECH + N_HEAT                 # 7
 Z0 = 0.1
-MAP_NAMES = ("terrain", "heat_flux", "x", "y")
+MAP_NAMES = ("terrain", "heat_flux", "x", "y", "slope_along", "slope_cross", "tpi_2k", "tpi_8k", "shelter")
+# константы карт П2 v3 (нормировки и параметры; менять — только через координатора, запись в контракте)
+NORM_TERRAIN_M = 1000.0
+NORM_HEAT_WM2 = 800.0
+NORM_SLOPE = 0.3
+TPI_SIGMAS_M = (2000.0, 8000.0)
+NORM_TPI_M = (300.0, 1000.0)
+SX_STEP_M, SX_MAX_M = 200.0, 4000.0
+NORM_SX_RAD = 0.3
 FILM_NAMES = ("U10", "cos_r", "sin_r", "alpha", "max_profile", "z_i", "z_lcl", "sun_el", "sun_x", "sun_y", "heat",
               "t_max", "stab", "cap_flag", "cap_agl", "hour", "brk", "t_air")
 STAB = "ABCDEF"
@@ -109,8 +131,35 @@ def film(row, meta):
     return np.asarray(v, np.float32)
 
 
+def tpi(hc, sigma_m, dx=400.0):
+    """Положение в рельефе: h − G_σ(h) (м), гауссово сглаживание с краем «ближайшая клетка». Инвариантно к повороту
+    на 90° (ядро симметрично), поэтому оценка считает его в исходной системе."""
+    hc = np.asarray(hc, np.float64)
+    return hc - ndimage.gaussian_filter(hc, sigma_m / dx, mode="nearest")
+
+
+def slopes(hc_r, r, dx=400.0):
+    """(уклон вдоль ê′, уклон поперёк — по ê′⊥) по повёрнутому рельефу hc_r [j′, i′], безразмерные (м/м)."""
+    gy, gx = np.gradient(np.asarray(hc_r, np.float64), dx)          # ∂/∂y′ (ось j′), ∂/∂x′ (ось i′)
+    c, s = math.cos(r), math.sin(r)
+    return gx * c + gy * s, -gx * s + gy * c
+
+
+def shelter(hc_r, r, dx=400.0, step=SX_STEP_M, dmax=SX_MAX_M):
+    """Sx (Winstral et al. 2002) на повёрнутом рельефе: max по d от atan((h(p − d·ê′) − h(p))/d), рад."""
+    h = np.asarray(hc_r, np.float64)
+    ny, nx = h.shape
+    jj, ii = np.meshgrid(np.arange(ny, dtype=np.float64), np.arange(nx, dtype=np.float64), indexing="ij")
+    c, s = math.cos(r), math.sin(r)
+    best = np.full(h.shape, -np.inf)
+    for d in np.arange(step, dmax + 0.5 * step, step):
+        hu = ndimage.map_coordinates(h, [jj - d * s / dx, ii - d * c / dx], order=1, mode="nearest")
+        np.maximum(best, np.arctan((hu - h) / d), out=best)
+    return best
+
+
 def maps(z, meta, row):
-    """Карты входа (порядок MAP_NAMES) в повёрнутой системе, float32 (4, ny, nx)."""
+    """Карты входа (порядок MAP_NAMES) в повёрнутой системе, float32 (9, ny, nx)."""
     hc = z["d400_hc"].astype(np.float64)
     H = z["d400_H"].astype(np.float64)
     ny, nx = hc.shape
@@ -120,8 +169,13 @@ def maps(z, meta, row):
     x = (np.arange(nx) + 0.5) * dx - half
     y = (np.arange(ny) + 0.5) * dx - half
     X, Y = np.meshgrid(x / half, y / half)
-    k = meta["k"]
-    return np.stack([rot_scalar((hc - hc.mean()) / 1000.0, k), rot_scalar(H / 800.0, k), X, Y]).astype(np.float32)
+    k, r = meta["k"], meta["r"]
+    hr = np.ascontiguousarray(rot_scalar(hc, k))
+    sa, sc = slopes(hr, r, dx)
+    out = [(hr - hr.mean()) / NORM_TERRAIN_M, rot_scalar(H, k) / NORM_HEAT_WM2, X, Y, sa / NORM_SLOPE, sc / NORM_SLOPE]
+    out += [tpi(hr, sg, dx) / nm for sg, nm in zip(TPI_SIGMAS_M, NORM_TPI_M)]
+    out.append(shelter(hr, r, dx) / NORM_SX_RAD)
+    return np.stack(out).astype(np.float32)
 
 
 def target(z, meta, agl=AGL):
@@ -138,9 +192,16 @@ def target(z, meta, agl=AGL):
     return np.concatenate(out, axis=0)
 
 
-def to_physical(y, meta, agl=AGL):
-    """Обратное преобразование выхода сети (91, ny, nx) → dict(m=(3,13,ny,nx) u,v,w; h=(4,13,ny,nx) u,v,w,θ′)
-    в м/с и К исходной системы (x — восток, y — север). Единственная функция; ею пользуются оценка и отчёт."""
+def to_physical(y, meta, agl=AGL, enc=None, base=None):
+    """Обратное преобразование выхода сети → dict(m=(3,13,ny,nx) u,v,w; h=(4,13,ny,nx) u,v,w,θ′) в м/с и К
+    исходной системы (x — восток, y — север). Единственная функция; ею пользуются оценка, отчёт и проверка ONNX.
+    enc — кодировка прогона (П2 v5: dict(outputs="v4"|"v5", gamma=γ_a)); None — v4 (91 канал). Выход v5 (117 каналов)
+    — через `base.to_physical_v5` с базой Б1 случая `base` (`prep5.base_for`) и γ_a из enc."""
+    if enc is not None and enc.get("outputs", "v4") == "v5":
+        from . import base as B
+        if base is None:
+            raise ValueError("выход v5: нужна база Б1 случая (prep5.base_for)")
+        return B.to_physical_v5(y, meta, base, agl, gamma=enc["gamma"] if enc.get("gamma") is not None else 1.0)
     y = np.asarray(y, np.float64)
     nA = len(agl)
     y = y.reshape(N_CH, nA, *y.shape[-2:])
@@ -157,6 +218,26 @@ def to_physical(y, meta, agl=AGL):
             ch.append(rot_scalar(y[c0 + 3], -k % 4))
         res[key] = np.ascontiguousarray(np.stack(ch))
     return res
+
+
+# ------------------------------------------------------------------ отражение поперёк ветра (П2 v4, аугментация)
+# R: y′ → −y′ на повёрнутом образце — разворот массивов по j и знаки ниже. Точная симметрия решателя (Кориолиса в
+# air3d нет); применяется только в обучении (train.py), оценка/проверка/экспорт — без отражения.
+REFLECT_MAP_SIGN = np.array([-1.0 if n in ("y", "slope_cross") else 1.0 for n in MAP_NAMES], np.float32)
+REFLECT_FILM_SIGN = np.array([-1.0 if n in ("sin_r", "sun_y") else 1.0 for n in FILM_NAMES], np.float32)
+REFLECT_OUT_SIGN = np.repeat(np.array([1, -1, 1, 1, -1, 1, 1], np.float32), len(AGL))   # u⊥ (каналы 1 и 4) — минус
+
+
+def reflect(X=None, F=None, Y=None):
+    """R для массивов [..., C, j, i] (X — карты, Y — цель) и [..., 18] (F); None пропускается. R∘R = тождество."""
+    out = []
+    if X is not None:
+        out.append(np.flip(X, axis=-2) * REFLECT_MAP_SIGN[:, None, None].astype(X.dtype))
+    if F is not None:
+        out.append(F * REFLECT_FILM_SIGN.astype(F.dtype))
+    if Y is not None:
+        out.append(np.flip(Y, axis=-2) * REFLECT_OUT_SIGN[:, None, None].astype(Y.dtype))
+    return out[0] if len(out) == 1 else tuple(out)
 
 
 def prepare_case(z, row, agl=AGL):

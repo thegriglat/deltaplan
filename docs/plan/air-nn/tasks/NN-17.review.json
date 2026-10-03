@@ -1,0 +1,39 @@
+{
+  "summary": "П1 v3 выполнен по контракту: снимки поздних итераций берутся через cb в Solver.solve, решатель не тронут. cb срабатывает и на it = max_outer до выхода из цикла, поэтому среднее включает конечное состояние. Тест сверяет снимок k с отдельным решением v2 при max_outer = k, то есть сам себя не проверяет. Блокеров нет.",
+  "issues": [
+    {
+      "file": "tools/research/air_nn_pilot/airlite_gen.py",
+      "line": 160,
+      "severity": "minor",
+      "what": "Для статуса diverged цель — final (конечное, возможно разошедшееся состояние). В контракте П1 v3 про diverged ничего не сказано",
+      "fix": "Координатору: дописать в П1 v3 одну строку про diverged (final или исключить), без смены версии"
+    },
+    {
+      "file": "tools/research/air_nn_pilot/places.py",
+      "line": 106,
+      "severity": "minor",
+      "what": "Путь к П6 по умолчанию переведён на tiles/v2, а в dataset.yaml появились p6_dir и main_version. Это вне скоупа карточки, хотя и согласуется с П6 v2 и указанием координатора",
+      "fix": "Координатору: подтвердить при слиянии, что вырезки tiles/v2 и main_version — общие для ветки feature/air-nn"
+    },
+    {
+      "file": "tools/research/air_nn_pilot/tests/test_contract_sample.py",
+      "line": 120,
+      "severity": "minor",
+      "what": "Граница hc расширена с (0, 6000) до (-450, 9000). Контракт границ не задаёт, но верхний предел 9000 м очень свободный",
+      "fix": "Можно оставить так; при желании сузить до реального максимума П6 с небольшим запасом"
+    },
+    {
+      "file": "tools/research/air_nn_pilot/airlite_gen.py",
+      "line": 136,
+      "severity": "minor",
+      "what": "Снимок берётся на первой проверке с it ≥ k (проверка идёт раз в check_every = 10 итераций). Если step или from не кратны 10, итерации снимков сдвинутся. Фактические итерации пишутся в late_its, а контракт требует точные from + n·step",
+      "fix": "Проверять в late_spec, что from и step кратны 10 (assert)"
+    }
+  ],
+  "rerun": [
+    "dp accept NN-17 --only contract_v3 --dry → PASS exit 0 (совпадает с отчётом)"
+  ],
+  "verdict": "accept",
+  "t": "2026-10-03T02:09:28",
+  "by": "reviewer"
+}

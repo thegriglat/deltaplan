@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Контрактный тест П6 «Вырезка места» v1 (docs/contracts/air-nn.md) на готовых вырезках.
+"""Контрактный тест П6 «Вырезка места» v3 (docs/contracts/air-nn.md) на готовых вырезках.
 
-  .venv/bin/python tests/test_contract_terrain.py [--dir $AIR_NN_DATA/pilot/tiles/v1] [--max N]
+  .venv/bin/python tests/test_contract_terrain.py [--dir <каталог набора; по умолчанию paths.out из configs/terrain.yaml>] [--max N]
 
-Проверяет: manifest.json (contract «П6 v1»), столбцы и типы index.csv, уникальность id, части pool/holdout;
+Проверяет: manifest.json (contract «П6 v3»), столбцы и типы index.csv, уникальность id, части pool/holdout;
 у каждой строки — файл cut/<id>.npz с той же sha256; ключи h (1601×1601 float32), hc400 (96×96 float64), meta;
 конечность; hc400 = блочное среднее h 16×16 по области [−19 200, 19 200] м (≤ 1e-6 м); признаки индекса
-согласованы с hc400; размах ≤ 3000 м; неперекрытие пула; инварианты расстояний: места пула не ближе 100 км к Онгудаю, отложенные — не ближе 50 км к пулу.
+согласованы с hc400; размах ≤ 3000 м; дно h_min ≤ select.hmin_max_m конфига (3000 м, v3); неперекрытие пула; инварианты расстояний: места пула не ближе 100 км к Онгудаю, места пула — не ближе 50 км к местам отложенных систем; отложенные системы и число мест — из
+configs/terrain.yaml (select.holdout: systems × per_system, сейчас 4 × 15), не константа; путь набора — из конфига.
 Владелец (NN-P4) может дополнять проверки; менять формат — только через координатора (версия контракта).
 """
 from __future__ import annotations
@@ -21,6 +22,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import yaml
 
 HERE = Path(__file__).resolve().parents[1]
 ROOT = HERE.parents[2]
@@ -32,6 +34,19 @@ FLOATS = {"lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m",
 N_NODES, SP, N400, DX = 1601, 25.0, 96, 400.0
 R_EARTH = 6371008.8
 RELIEF_MAX_M = 3000.0  # решение пользователя 02.10: предел размаха высот в квадрате
+CONTRACT = "П6 v3"
+HMIN_MAX_M = float(yaml.safe_load((HERE / "configs/terrain.yaml").read_text())["select"]["hmin_max_m"])  # П6 v3
+
+
+def terrain_cfg():
+    return yaml.safe_load((HERE / "configs/terrain.yaml").read_text())
+
+
+def default_dir() -> Path:
+    """Путь набора — из конфига (paths.out), корень данных — $AIR_NN_DATA или data_root конфига."""
+    cfg = terrain_cfg()
+    base = Path(os.environ.get("AIR_NN_DATA") or cfg["data_root"])
+    return base / cfg["paths"]["out"]
 
 
 def block_mean_400(h):
@@ -50,7 +65,8 @@ def dist_km(a, b):
 
 def check(d: Path, max_cut=0):
     man = json.loads((d / "manifest.json").read_text())
-    assert man.get("contract") == "П6 v1", man.get("contract")
+    assert man.get("contract") == CONTRACT, man.get("contract")
+    assert man.get("complete") is True, "manifest.complete != true"
     with open(d / "index.csv", newline="") as f:
         rd = csv.DictReader(f)
         assert rd.fieldnames == COLUMNS, rd.fieldnames
@@ -68,6 +84,7 @@ def check(d: Path, max_cut=0):
         assert int(r["zoom"]) > 0
         assert abs(float(r["relief_m"]) - (float(r["h_max"]) - float(r["h_min"]))) < 1e-2, r["id"]
         assert float(r["relief_m"]) <= RELIEF_MAX_M, ("размах > 3000 м", r["id"])
+        assert float(r["h_min"]) <= HMIN_MAX_M, ("дно квадрата h_min > порога конфига", r["id"], r["h_min"])
     ong = json.loads((ROOT / "configs/locations/ongudai.json").read_text())
     og = (ong["center_lat"], ong["center_lon"])
     pool = [(float(r["lat"]), float(r["lon"])) for r in rows if r["part"] == "pool"]
@@ -84,7 +101,15 @@ def check(d: Path, max_cut=0):
             dlo = (lo2 - lo1 + 180.0) % 360.0 - 180.0
             dx = abs(dlo) * math.pi / 180 * R_EARTH / 1000.0 * math.cos(math.radians((la1 + la2) / 2))
             assert dx >= lim or dy >= lim, f"квадраты пула перекрываются: {pool[a]} {pool[b]}"
-    assert min(dist_km(p, q) for p in hold for q in pool) >= 50.0, "отложенное место ближе 50 км к пулу"
+    assert min(dist_km(p, q) for p in hold for q in pool) >= 50.0, "место пула ближе 50 км к месту отложенной системы"
+    ho = terrain_cfg()["select"]["holdout"]
+    want = {sname: int(ho["per_system"]) for sname in ho["systems"]}
+    got = {}
+    for r in rows:
+        if r["part"] == "holdout":
+            got[r["system"]] = got.get(r["system"], 0) + 1
+    assert got == want, f"отложенные системы/места не как в конфиге: {got} ≠ {want}"
+    assert not any(r["system"] in want for r in rows if r["part"] == "pool"), "в пуле место отложенной системы"
     sel = rows if not max_cut else rows[:: max(1, len(rows) // max_cut)]
     for r in sel:
         p = d / "cut" / f"{r['id']}.npz"
@@ -98,15 +123,16 @@ def check(d: Path, max_cut=0):
         assert np.isfinite(h).all() and np.isfinite(hc).all(), r["id"]
         assert np.abs(hc - block_mean_400(h)).max() <= 1e-6, f"hc400 ≠ block_mean: {r['id']}"
         meta = json.loads(str(z["meta"]))
-        assert meta.get("contract") == "П6 v1", meta.get("contract")
+        assert meta.get("contract") == CONTRACT, meta.get("contract")
         assert abs(meta["lat"] - float(r["lat"])) < 1e-9 and abs(meta["lon"] - float(r["lon"])) < 1e-9
         assert abs(hc.max() - float(r["h_max"])) < 0.01 and abs(hc.min() - float(r["h_min"])) < 0.01, r["id"]
-    print(f"П6 v1: ок — мест {len(rows)} (пул {len(pool)}, отложено {len(hold)}), вырезок проверено {len(sel)}")
+    print(f"пул {len(pool)}, дно max {max(float(r['h_min']) for r in rows):.0f} м")
+    print(f"{CONTRACT}: ок — мест {len(rows)} (пул {len(pool)}, отложено {len(hold)}: {len(want)} систем × {ho['per_system']}), "
+          f"вырезок проверено {len(sel)}")
 
 
 def test_contract_terrain():
-    d = Path(os.environ.get("AIRNN_P6_DIR") or
-             Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")) / "pilot/tiles/v1")
+    d = Path(os.environ.get("AIRNN_P6_DIR") or default_dir())
     if not (d / "index.csv").exists():
         import pytest
         pytest.skip(f"нет вырезок в {d}")
@@ -118,5 +144,5 @@ if __name__ == "__main__":
     ap.add_argument("--dir", default=None)
     ap.add_argument("--max", type=int, default=0, help="проверить не больше N вырезок (равномерно по индексу)")
     a = ap.parse_args()
-    d = Path(a.dir) if a.dir else Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")) / "pilot/tiles/v1"
+    d = Path(a.dir) if a.dir else default_dir()
     check(d, a.max)

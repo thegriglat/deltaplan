@@ -1,12 +1,15 @@
-"""Доступ к набору (контракт П1 v1): метаданные случаев, образцы npz, точки стартов.
+"""Доступ к наборам (контракт П1 v1/v2) и индексу мест П6: метаданные случаев, образцы npz, точки оценки.
 
-Две раскладки:
+Пилот читает НЕСКОЛЬКО наборов (`config.yaml → datasets`: main v1 + terrain v2) — класс `Datasets`; id случаев
+уникальны между наборами. Из образца читаются только ключи `d400_*` (окна `w<k>_*` набора v1 не читаются).
+Две раскладки набора:
   * «pilot» (П1): <набор>/plan.json, state.sqlite (таблица cases), cases/<id>.npz;
   * «airlite» (данные разработки до слияния P1): <каталог air_lite>/out/plan.json, out/runs.jsonl, fields/<id>.npz.
 Метаданные случаев читает ОДНА функция — `case_rows()`; переключение на `state.sqlite` — только здесь.
 """
 from __future__ import annotations
 
+import csv
 import json
 import sqlite3
 from pathlib import Path
@@ -31,6 +34,8 @@ class Dataset:
             raise FileNotFoundError(f"набор не найден или неизвестная раскладка: {self.root}")
         self.plan = json.loads(self.plan_path.read_text())
         self.agl = tuple(float(a) for a in self.plan["agl"])
+        man = self.root / "manifest.json"
+        self.contract = (json.loads(man.read_text()).get("contract") if man.exists() else None) or "П1 v1"
 
     # ---------------------------------------------------------------- метаданные (единственное место чтения)
     def case_rows(self):
@@ -78,8 +83,117 @@ class Dataset:
         return [(float(p[0]), float(p[1])) for p in c]
 
 
+class Datasets:
+    """Несколько наборов как один: строки случаев с полем `ds` (имя набора), загрузка и точки оценки — по id/месту."""
+
+    def __init__(self, specs):
+        """specs — список (имя, каталог)."""
+        self.sets = {name: Dataset(root) for name, root in specs}
+        agls = {d.agl for d in self.sets.values()}
+        if len(agls) != 1:
+            raise ValueError(f"высоты agl наборов различаются: {agls}")
+        self.agl = agls.pop()
+        self._id_ds, self._loc_ds, self._rows = {}, {}, None
+
+    def case_rows(self):
+        if self._rows is None:
+            rows = []
+            for name, d in self.sets.items():
+                for r in d.case_rows():
+                    if r["id"] in self._id_ds:
+                        raise ValueError(f"id {r['id']} повторяется в наборах {self._id_ds[r['id']]} и {name}")
+                    r["ds"] = name
+                    self._id_ds[r["id"]] = name
+                    if self._loc_ds.setdefault(r["loc"], name) != name:
+                        raise ValueError(f"место {r['loc']} в двух наборах ({self._loc_ds[r['loc']]}, {name})")
+                    rows.append(r)
+            rows.sort(key=lambda r: r["id"])
+            self._rows = rows
+        return self._rows
+
+    def ds_of(self, cid):
+        if not self._id_ds:
+            self.case_rows()
+        return self.sets[self._id_ds[cid]]
+
+    def load(self, cid):
+        return self.ds_of(cid).load(cid)
+
+    def starts(self, loc):
+        if not self._loc_ds:
+            self.case_rows()
+        return self.sets[self._loc_ds[loc]].starts(loc)
+
+
+# ------------------------------------------------------------------------------------------- индекс мест П6
+P6_FLOATS = ("lat", "lon", "src_spacing_m", "h_mean", "h_min", "h_max", "relief_m", "slope_p50", "slope_p95",
+             "tpi2k_p95", "sea_frac")
+
+
+def read_p6_index(path):
+    """index.csv П6 → {id: строка} (числа — float, zoom — int). Нет файла → {}."""
+    p = Path(path)
+    if not p.exists():
+        return {}
+    out = {}
+    with open(p, newline="") as f:
+        for r in csv.DictReader(f):
+            for k in P6_FLOATS:
+                r[k] = float(r[k])
+            r["zoom"] = int(r["zoom"])
+            out[r["id"]] = r
+    return out
+
+
+def terrain_features(hc, dx=400.0):
+    """Признаки рельефа клеток 400 м как в индексе П6: уклон |∇hc| центральными разностями без 1 клетки у края
+    (p50, p95), размах, м. Для мест вне П6 (встроенные, синтетика, процедурные) — из `d400_hc` образца."""
+    hc = np.asarray(hc, np.float64)
+    gy, gx = np.gradient(hc, dx)
+    s = np.hypot(gx, gy)[1:-1, 1:-1]
+    return dict(slope_p50=float(np.percentile(s, 50)), slope_p95=float(np.percentile(s, 95)),
+                relief_m=float(hc.max() - hc.min()), h_mean=float(hc.mean()))
+
+
 def solver_status(row):
     """Худший статус решений области (ok < max < diverged)."""
     order = {"ok": 0, "max": 1, "diverged": 2, "error": 3}
     st = [v.get("status", "ok") for k, v in (row.get("runs") or {}).items() if k.startswith("d400")]
     return max(st, key=lambda s: order.get(s, 3)) if st else "ok"
+
+
+def solution_info(row, key):
+    """Статус и цель одного решения случая (П1 v3): key — «d400_h» (с нагревом) или «d400_m» (без).
+    → dict(status, converged, target, late_n, spread). Сошедшееся — status «ok» (цель «final»); у v1 решение «max»
+    без поля target — цель «last» (последнее состояние); спред late_spread60_p90 — только у late_mean (иначе None)."""
+    r = (row.get("runs") or {}).get(key) or {}
+    st = r.get("status", "ok")
+    tg = r.get("target") or ("final" if st == "ok" else "last")
+    sp = r.get("late_spread60_p90")
+    return dict(status=st, converged=(st == "ok"), target=tg, late_n=r.get("late_n"),
+                spread=float(sp) if sp is not None else None)
+
+
+def case_groups(row):
+    """Группы случая для отчёта П3 v3: gh — ветер и w с нагревом (по статусу `h`), gm — w без нагрева (по `m`),
+    gall — «всё ок» (сошёлся и `h`, и `m`); значения «conv» | «nc» (несошедшееся)."""
+    h, m = solution_info(row, "d400_h"), solution_info(row, "d400_m")
+    g = lambda ok: "conv" if ok else "nc"  # noqa: E731
+    return dict(gh=g(h["converged"]), gm=g(m["converged"]), gall=g(h["converged"] and m["converged"]),
+                conf=confident(row),
+                target_h=h["target"], target_m=m["target"], spread_h=h["spread"], spread_m=m["spread"])
+
+
+CONF_ITERS_FRAC = 0.3          # P3E8: «уверенно» — оба решения ok и дошли до критерия не позже 30 % предела итераций
+
+
+def confident(row, frac=CONF_ITERS_FRAC):
+    """P3E8: уверенно сошедшийся случай — решения `h` и `m` со статусом «ok» (критерий решателя выполнен) и
+    iters ≤ frac · max_outer (запас по итерациям: не у самого предела); max_outer — solver.max_outer строки
+    (набор terrain, 1000), у main (v1) — 3000."""
+    mx = float(((row.get("solver") or {}).get("max_outer")) or 3000)
+    for k in ("d400_h", "d400_m"):
+        r = (row.get("runs") or {}).get(k) or {}
+        if r.get("status", "ok") != "ok" or float(r.get("iters", 1e9)) > frac * mx:
+            return False
+    return True

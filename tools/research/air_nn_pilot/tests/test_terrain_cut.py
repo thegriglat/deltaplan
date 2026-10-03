@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Тест вырезки рельефов П6 (NN-P4): побитный повтор и прерывание kill -9.
+"""Тест вырезки рельефов П6 v3 (NN-P4, NN-16): побитный повтор и прерывание kill -9.
 
   .venv/bin/python tests/test_terrain_cut.py        (или pytest)
 
 Во временном корне $AIR_NN_DATA/pilot/tmp/nn_p4_test_<pid>/ (удаляется в конце):
-  1. 3 места из готового индекса tiles/v1 (без индекса — фиксированные точки; разной крутизны) — явный список в
+  1. 3 места из готового индекса набора (paths.out конфига, tiles/v3) (без индекса — фиксированные точки; разной крутизны) — явный список в
      копии configs/terrain.yaml; источник тайлов — file:// из сырья основного прогона (без сети; если сырья нет — сеть).
   2. Эталон A: fetch → cut без прерываний.
   3. Прогон B: fetch с паузой на тайл, kill -9 через ~1,5 с, повтор той же командой; cut, kill -9 посреди нарезки,
      повтор той же командой.
   4. Сравнение: sha256 всех тайлов raw, всех cut/*.npz и index.csv у A и B совпадают; нет временных файлов;
-     вырезки совпадают побитно с файлами основного прогона tiles/v1 (тот же путь → те же байты);
+     вырезки совпадают побитно с файлами основного прогона tiles/v3 (тот же путь → те же байты);
      hc400 = block_mean(h); геометрия пути игры (plan_layer) на известной точке.
 """
 from __future__ import annotations
@@ -35,7 +35,7 @@ import terrain_cut as TC  # noqa: E402
 
 PY = sys.executable
 DATA = Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data"))
-MAIN_OUT = DATA / "pilot/tiles/v1"
+MAIN_OUT = DATA / yaml.safe_load((HERE / "configs/terrain.yaml").read_text())["paths"]["out"]
 MAIN_RAW = DATA / "pilot/raw/terrarium"
 
 
@@ -93,6 +93,15 @@ def test_plan_layer_geometry():
     assert -half - p["spacing"] <= p["origin"][0] <= -half + 1e-6
 
 
+def test_system_of_nz():
+    # v2: Южные Альпы НЗ раньше общего бокса new_zealand; север острова и чужие системы — как раньше
+    cfg = yaml.safe_load((HERE / "configs/terrain.yaml").read_text())
+    assert TC.system_of(cfg, -43.8, 170.1) == "southern_alps_nz"
+    assert TC.system_of(cfg, -38.0, 176.0) == "new_zealand"
+    assert TC.system_of(cfg, 43.0, 44.0) == "caucasus"
+    assert "southern_alps_nz" in cfg["select"]["holdout"]["systems"]
+
+
 def test_repeat_and_kill():
     places, rows = pick_places()
     base = DATA / f"pilot/tmp/nn_p4_test_{os.getpid()}"
@@ -146,4 +155,5 @@ def test_repeat_and_kill():
 
 if __name__ == "__main__":
     test_plan_layer_geometry()
+    test_system_of_nz()
     test_repeat_and_kill()

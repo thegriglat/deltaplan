@@ -1,0 +1,54 @@
+{
+  "id": "ON-4",
+  "module": "air-onnx",
+  "type": "dp-engineer",
+  "title": "AirNnInput: строка входа сети из игры (AirCase, погода) и страж области применимости",
+  "goal": "Собрать из состояния игры ту же строку условий, что видел набор пилота (U10, wdir, t_max, hour, profile, day, hc, heat), сверить с Python air3d и зажимать вход вне области обучения",
+  "plan_ref": "ON-4",
+  "contracts": [
+    {
+      "name": "O4",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O3",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-4",
+  "branch": "air-onnx/ON-4",
+  "base": "feature/air-onnx",
+  "scope": [
+    "scripts/atmosphere/air_model/air_nn_input.gd",
+    "tools/air_onnx/make_input_fixture.py",
+    "tests/air_onnx/test_air_nn_input.gd",
+    "tests/air_onnx/fixtures/input_*"
+  ],
+  "dont_touch": [
+    "tools/research/",
+    "tools/air_onnx/test_contract_o1.py",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "native/",
+    "addons/"
+  ],
+  "accept": [
+    {
+      "name": "tests_input",
+      "tests": "air_nn_input"
+    },
+    {
+      "name": "fixture_verify",
+      "cmd": "CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python -B tools/air_onnx/make_input_fixture.py --verify",
+      "expect": "exit=0",
+      "timeout": 1800
+    }
+  ],
+  "report_extra": [],
+  "notes": "Источник правды набора — tools/research/air_nn_pilot/airlite_gen.py:solve_case (row: U10, wdir, t_max, hour, sky; res.profile = cond.alpha/max_profile/stab_class/sun_elev/sun[0]; res.day = cond.day.summary() из tools/research/air3d/weather.py; d400_hc = D.hc, d400_H = D.H из real.make). Аналоги в игре: AirPlace.domain_case / AirPlace.day / AirCase (meta, heat, hc, z_i), WeatherModel. Эталон Python — только до решения (real.case/real.make без RS.solve), CPU, никакого GPU (CuPy не импортировать — если real.make тянет cupy, подменить/обойти и записать). Внимание: в игре α/max_profile — по ветру меню, а U10 притока = k·меню (C2 v6); в наборе k = 1 — описать, что берём в FiLM, в контракте O4 «Расхождения». Python — venv пилота только на чтение: CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python. Расхождения игры и Python, которые не закрыть, — списком в отчёт (uncertain) — координатор внесёт в контракт.",
+  "created": "2026-10-03T04:42:34",
+  "edited": "2026-10-03T04:54:52"
+}

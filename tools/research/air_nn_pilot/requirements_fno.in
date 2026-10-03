@@ -1,0 +1,3 @@
+# Вторая venv опыта P3E7 (FNO): .venv_fno. Те же версии, что у пилота (-c requirements.lock), плюс neuraloperator.
+-r requirements.in
+neuraloperator

@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Сквозная проверка пройдена: tools/build.sh all собрал расширение и Linux/Windows; экспортированный Linux-бинарник с сетью первого пилота в user://air_nn/model.onnx временного профиля и engine=nn headless грузит место и печатает строку air_model (нейросеть). README ON-6 пройден запуском, поправлен. Новых флагов командной строки не понадобилось.",
+  "commits": [
+    "см. git log air-onnx/ON-7: export_smoke.sh, check.sh AIR_ONNX=0, build.sh clean убирает .gdextension.uid, правки README"
+  ],
+  "checks": [
+    {
+      "name": "export_smoke_linux",
+      "value": "air_model: поле (нейросеть model.onnx, П2 v2) 12:00 ч, 3.0 м/с с 151°: 4.04 с (сеть 55 мс, поле 1094 мс, загрузка модели 195 мс); smoke OK, код 0",
+      "pass": true
+    },
+    {
+      "name": "windows_layout",
+      "value": "air_onnx.dll, onnxruntime.dll, msvcp140*.dll, vcruntime140*.dll рядом с deltaplan.exe",
+      "pass": true
+    },
+    {
+      "name": "check_sh_no_onnx",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clean_uid",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Windows-сборка и путь %APPDATA%\\Deltaplan\\air_nn запуском не проверены (wine нет)",
+    "tools/check.sh целиком не гонял (только правка AIR_ONNX=0)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "/home/greg/deltaplan/tools/dp accept ON-7",
+  "uncertain": [
+    {
+      "where": "data/air_nn/README.md, шаг 2",
+      "why": "Windows-путь user:// выведен из custom_user_dir_name, не запускался",
+      "checked": "Linux-путь ~/.local/share/Deltaplan/air_nn и logs/godot.log проверены на экспортированной сборке"
+    },
+    {
+      "where": "tools/air_onnx/export_smoke.sh",
+      "why": "в сборке smoke играет место 'встроенное' по умолчанию; engine включается через user://configs/atmosphere.json, а не через меню",
+      "checked": "то же, что пишет settings_panel (UserSettings.save_patch air_model.engine)"
+    }
+  ],
+  "dp_feedback": "dp task sync отказывает на грязной копии (пришлось сначала коммитить) — подсказать в сообщении git commit; dp lock cpu -- команда не печатает прогресс, долгие сборки приходится ждать циклом по логу.",
+  "extra": {
+    "README_fixes": [
+      "подтверждён путь logs/godot.log и профиль Linux",
+      "добавлен user://configs/atmosphere.json как способ включить engine=nn без меню",
+      "в шаг 6 добавлен export_smoke.sh",
+      "Windows-пути помечены как непроверенные"
+    ]
+  },
+  "t": "2026-10-03T05:58:13",
+  "by": "executor"
+}

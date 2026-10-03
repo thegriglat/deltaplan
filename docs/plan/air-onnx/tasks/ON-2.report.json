@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "Пробник перенесён в native/air_onnx + addons/air_onnx: класс AirOnnx по O2 (входы по именам, формы и метаданные из модели, несколько выходов, коды ошибок), сборка Linux+Windows из Linux, экспорт кладёт расширение, ORT и app-local VC++ runtime рядом с exe (проверено реальным экспортом Linux и Windows). Пробник и его тест удалены.",
+  "commits": [
+    "95dc6b8 ON-2: расширение AirOnnx (O2) из пробника, сборка Linux+Windows, экспорт; пробник удалён",
+    "3c7076d ON-2: uid теста AirOnnx"
+  ],
+  "checks": [
+    {
+      "name": "build_all",
+      "value": "exit 0 (повтор 6 с, первая сборка с загрузкой ~5 мин)",
+      "pass": true
+    },
+    {
+      "name": "artifacts",
+      "value": "4 файла есть",
+      "pass": true
+    },
+    {
+      "name": "tests_air_onnx",
+      "value": "2/2; max|Δ| к ORT Python = 0 при 1 и 4 потоках (допуск 1e-5)",
+      "pass": true
+    },
+    {
+      "name": "probe_removed",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "без бинарников (build.sh clean)",
+      "value": "тесты air_onnx: 2 ok (skip), 0 строк ERROR",
+      "pass": true
+    },
+    {
+      "name": "экспорт Linux (tools/build.sh linux, headless)",
+      "value": "libair_onnx.so + libonnxruntime.so.1 рядом с exe; smoke OK; мини-проект: в экспортированной сборке AirOnnx load=0, run отдаёт оба выхода",
+      "pass": true
+    },
+    {
+      "name": "экспорт Windows (tools/build.sh windows)",
+      "value": "air_onnx.dll, onnxruntime.dll, msvcp140(_1), vcruntime140(_1) рядом с exe",
+      "pass": true
+    },
+    {
+      "name": "импорты Windows",
+      "value": "air_onnx.dll: KERNEL32 + api-ms-win-crt-*; onnxruntime.dll: системные + 4 VC++ (app-local)",
+      "pass": true
+    },
+    {
+      "name": "lint tests/air_onnx",
+      "value": "0 замечаний",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Запуск на Windows не проверен — wine нет (только импорты DLL и раскладка экспорта).",
+    "macOS не собирается (только способ в README); экспорт macOS проходит с предупреждением, на Mac ожидается ошибка загрузки расширения в логе (не проверено)."
+  ],
+  "questions": [
+    "tools/check.sh зовёт tools/build.sh linux — теперь при отсутствии сборки расширения он его соберёт (первый раз ~5 мин и сеть; кэш ~/.cache/deltaplan-air-onnx-deps общий). Если это мешает — AIR_ONNX=0 в check.sh (не мой скоуп)."
+  ],
+  "images": [],
+  "how_to_check": "/home/greg/deltaplan/tools/dp accept ON-2; без сборки: native/air_onnx/build.sh clean && тесты --filter=air_onnx (skip, без ERROR); экспорт: env -u DISPLAY XDG_DATA_HOME=<tmp с симлинком шаблонов> tools/build.sh linux",
+  "uncertain": [
+    {
+      "where": "native/air_onnx/air_onnx.gdextension.in, native/air_onnx/build.sh (конец)",
+      "why": "Механизм: автоматическая регистрация, но .gdextension не в git — его пишет сборка. Без сборки Godot о расширении не знает (0 ошибок). Минус: импорт Godot не убирает устаревшую запись из .godot/extension_list.cfg, если .gdextension удалить руками — 3 ошибки на каждом старте; для этого build.sh clean.",
+      "checked": "свежее состояние после clean — 0 ERROR в тестах; после сборки+импорта расширение в extension_list, тесты 2/2; стейл-запись воспроизведена и снята clean"
+    },
+    {
+      "where": "native/air_onnx/build.sh (MSVC_RT_*)",
+      "why": "VC++ runtime app-local из колеса PyPI msvc-runtime 14.44.35112 (sha256 закреплён), а не из vc_redist.x64.exe; лицензия — redist Visual Studio разрешает. Версия, нужная ORT 1.30, точно не известна — 14.44 свежая (VS 17.14).",
+      "checked": "FileVersion msvcp140.dll 14.44.35211.0; deltaplan.exe и libdd3d msvcp/vcruntime не импортируют (будут загружены именно наши); запуск на Windows не проверен"
+    },
+    {
+      "where": "native/air_onnx/src/air_onnx.cpp (OrtState, g_env)",
+      "why": "Состояние ORT и Ort::Env создаются при первом load и не удаляются (утечка намеренно): глобальный godot::String ронял загрузку библиотеки (SIGSEGV, найдено при переносе), деструкторы при выгрузке после деинициализации godot-cpp — тот же риск.",
+      "checked": "тесты, smoke экспортированной сборки, выход без падений"
+    },
+    {
+      "where": "первый --import",
+      "why": "Первый импорт проекта, в котором появился новый .gdextension, у Godot 4.7.2 завершается SIGSEGV на выходе (rc 134). Воспроизводится с одним debug_draw_3d в пустом проекте — не от AirOnnx; extension_list при этом записан, второй импорт rc 0. tools/build.sh игнорирует код импорта (|| true).",
+      "checked": "мини-проект: только dd3d — то же падение; без расширений — rc 0"
+    },
+    {
+      "where": "tests/air_onnx/test_air_onnx.gd",
+      "why": "max|Δ| ровно 0 (не ~1e-7): та же версия ORT и те же CPU-ядра на одной машине. Если на другой машине/ЦП ядра разойдутся — допуск 1e-5 останется с запасом.",
+      "checked": "эталон 290 чисел, длины и имена выходов проверяются отдельно; ошибочные входы дают {}"
+    }
+  ],
+  "dp_feedback": "dp job start + dp lock cpu вложенно работают, но длинную строку (env DEPS_DIR=... dp lock cpu ... -- ...) приходится писать руками в каждом месте; хотелось бы, чтобы команда приёмки build_all из карточки запускалась одной dp-командой фоном (dp accept ON-2 --only build_all --bg). Поиск ссылок на старое имя в коде (git grep air_nn_probe) dp search не находит — он ищет только планы/журналы.",
+  "extra": {
+    "bench_pilot_model": "сеть 2026-10-02_pilot (maps [1,4,96,96] -> out [1,91,96,96]), Xeon E5-2666 v3: load 132/86 мс, run 46.2/18.1 мс при 1/4 потоках ORT",
+    "sizes_MB": {
+      "libair_onnx.so": 0.67,
+      "libonnxruntime.so.1": 29.0,
+      "air_onnx.dll": 0.74,
+      "onnxruntime.dll": 16.5,
+      "vc_runtime_4_dll": 0.77
+    }
+  },
+  "t": "2026-10-03T05:04:14",
+  "by": "main"
+}

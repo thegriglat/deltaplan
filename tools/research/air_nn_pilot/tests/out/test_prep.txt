@@ -2,9 +2,8 @@ ok test_rot4_identity
 ok test_rot_physical
 ok test_sector
 ok test_inverse_synthetic
-  ongudai_000: k=0, r=-15.6°, fp16-цель → поле: max|Δ| 5.13e-03
-  ongudai_001: k=2, r=-24.4°, fp16-цель → поле: max|Δ| 2.57e-03
-  p_000_000: k=3, r=-17.8°, fp16-цель → поле: max|Δ| 2.55e-03
-  p_000_001: k=1, r=5.7°, fp16-цель → поле: max|Δ| 3.18e-03
-  образцов набора: 4
-ok test_inverse_dataset
+ok test_map_names
+ok test_maps_plane
+ok test_maps_hill
+ok test_maps_equivariance
+ok test_maps_rot4
