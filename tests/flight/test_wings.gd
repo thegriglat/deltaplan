@@ -1,5 +1,5 @@
 extends TestCase
-## Линейка крыльев (docs/plan/wings_lineup.md): новые поля у всех крыльев, ориентиры поляры,
+## Линейка крыльев (docs/archive/plan/wings-lineup.md): новые поля у всех крыльев, ориентиры поляры,
 ## управляемость «Апогея».
 
 const Sim := preload("res://tests/flight/flight_sim.gd")

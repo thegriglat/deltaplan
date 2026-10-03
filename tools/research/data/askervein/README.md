@@ -26,4 +26,4 @@ applied_in: ""
 
 Скачать заново: `for f in askervein_sensor1.txt askervein_elevation-roughness.map askervein_validation1.txt askervein_inlet1.txt; do curl -sL -o $f https://zenodo.org/api/records/4095052/files/$f/content; done`.
 
-Для калибровки (docs/plan/wind_field.md WF-16, docs/research/calibration_data.md): FSR на вершине на 10 м ≈ 0,8; профиль разгона по высоте на вершине; FSR вдоль линий A и AA через холм — эталон формы и затухания разгона с высотой.
+Для калибровки (docs/archive/plan/wind-field.md WF-16, docs/research/calibration_data.md): FSR на вершине на 10 м ≈ 0,8; профиль разгона по высоте на вершине; FSR вдоль линий A и AA через холм — эталон формы и затухания разгона с высотой.

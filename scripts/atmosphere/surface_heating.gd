@@ -1,6 +1,6 @@
 class_name SurfaceHeating
 extends RefCounted
-## Инерция прогрева поверхности (фаза 2 погоды, docs/plan/weather_by_temperature.md §7.3 п. 2):
+## Инерция прогрева поверхности (фаза 2 погоды, docs/archive/plan/weather-by-temperature.md §7.3 п. 2):
 ## для каждого класса поверхности — направление на солнце с запаздыванием класса (≈ 0,6 τ).
 ## Без состояния: направление — чистая функция часа (перемотка и ускорение времени не ломают).
 ## Terrain.thermal_source_strength_at берёт солнце своего класса (Terrain.set_class_sun).

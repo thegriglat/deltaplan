@@ -2,7 +2,7 @@ extends TestCase
 ## Установившееся планирование совпадает с полярой крыла (FR-1, FR-2).
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
-## Качество крыльев группы по docs/plan/wings_lineup.md §2 (с запасом ±0,3).
+## Качество крыльев группы по docs/archive/plan/wings-lineup.md §2 (с запасом ±0,3).
 const GROUP_GLIDE := {
 	"soviet": Vector2(6.0, 8.5),
 	"trainer": Vector2(7.0, 9.0),

@@ -5,7 +5,7 @@
   "group": "kingpost",
   "group_doc": "Группа (класс) крыла — id из configs/wing_groups.json: soviet | trainer | kingpost | topless. По группе меню «Полёт…» строит список классов",
   "wind_max_ms": 10.0,
-  "wind_max_ms_doc": "Комфортный ветер на старте для опытного пилота на этом крыле, м/с (подсказка в меню, не запрет; docs/plan/wings_lineup.md §3) — как у базы laminar",
+  "wind_max_ms_doc": "Комфортный ветер на старте для опытного пилота на этом крыле, м/с (подсказка в меню, не запрет; docs/archive/plan/wings-lineup.md §3) — как у базы laminar",
   "prototype": "Airborne Sting 3 154, 14,33 м² (паспорт: wings_merged.json («Airborne|Sting 3||154»); DHV 01-0438-08)",
   "prototype_doc": "Реальный прототип: модель, размер, источник данных (справка, в меню не выводится)",
   "era": "2008",

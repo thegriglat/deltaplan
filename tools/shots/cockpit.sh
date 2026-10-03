@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Приёмка кабины (карточка docs/plan/game/01-priemka-kabiny.md): 6 фиксированных кадров на каждое
+# Приёмка кабины (карточка docs/archive/plan/game/01-priemka-kabiny.md): 6 фиксированных кадров на каждое
 # крыло, 1920x1080, имена <крыло>_<кадр>.jpg. Чек-лист и итог — docs/screenshots/cockpit/README.md.
 # tools/shots/cockpit.sh [выход] [крыло...]   (по умолчанию docs/screenshots/cockpit, все 3 крыла)
 # Кадры (Онгудай, старт по умолчанию, синтетический пилот --autopilot, время симуляции):

@@ -228,20 +228,19 @@ disableKinds = ['taxonomy', 'term']
     target = 'content/docs/contracts'
     files = ['! easter-eggs.md', '*.md']
 
-  # --- Планы (живые и отложенные): docs/plan/; README.md — устаревший верхнеуровневый план, на сайт не подключён ---
+  # --- Планы (живые и отложенные): docs/plan/ ---
   [[module.mounts]]
     source = '../docs/plan'
     target = 'content/plans'
     files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
-  [[module.mounts]]
-    source = '../docs/plan/game/README.md'
-    target = 'content/plans/game/_index.md'
-
   # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
   [[module.mounts]]
     source = '../docs/archive/plan'
     target = 'content/plans/archive'
-    files = ['! world-easter-eggs*.md', '*.md', '**/*.md']
+    files = ['! world-easter-eggs*.md', '! game/README.md', '*.md', '**/*.md']
+  [[module.mounts]]
+    source = '../docs/archive/plan/game/README.md'
+    target = 'content/plans/archive/game/_index.md'
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]

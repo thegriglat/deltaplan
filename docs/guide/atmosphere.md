@@ -53,7 +53,7 @@ atmo.load_static_thermals(location.get("thermals", []))  # [{x_m, z_m, strength_
 ## Погода из прогноза (FR-16)
 Пилот задаёт прогноз: температуру днём `T` (дневной максимум у земли в долине), ветер на старте, откуда
 ветер, облачность. `WeatherModel` (`scripts/atmosphere/weather_model.gd`, чистые функции; параметры —
-`configs/weather_model.json`; план и ответы пилота — docs/plan/weather_by_temperature.md) собирает из него
+`configs/weather_model.json`; план и ответы пилота — docs/archive/plan/weather-by-temperature.md) собирает из него
 словарь с теми же ключами, что эталоны `configs/weather/*`:
 - **Место** (`ground_context`): долина `h_v` — нижние 10 % рельефа в радиусе отсчёта кромки, средняя `h_m`;
   дата, широта, пояс. Алтай: 304 / 509 м.

@@ -95,7 +95,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 а если конфига крыла ещё нет — из `span_m`/`area_m2` самой записи; `area_m2` справочная, площадь подгоняют
 `root_chord_m`/`tip_chord_m`):
 `nose_angle_deg` (угол носа, 122/126/132°), `root_chord_m`/`tip_chord_m`, `nose_forward_m` (нос впереди
-подвеса), `dihedral_deg` (поперечное V **в полёте**, кромки уже выгнуты нагрузкой; передняя кромка — прямая, без прежнего «провиса» концов −0,05·a³: советские +2…+2,5°, учебные +1,5°, мачтовые двухобшивочные 0…−1°, безмачтовые −2°; обоснование — docs/plan/wings_lineup.md §9), `washout_deg` (крутка), `camber`
+подвеса), `dihedral_deg` (поперечное V **в полёте**, кромки уже выгнуты нагрузкой; передняя кромка — прямая, без прежнего «провиса» концов −0,05·a³: советские +2…+2,5°, учебные +1,5°, мачтовые двухобшивочные 0…−1°, безмачтовые −2°; обоснование — docs/archive/plan/wings-lineup.md §9), `washout_deg` (крутка), `camber`
 (серп профиля у корня/в середине/на конце), `double_surface`/`lower_cover` (доля хорды под нижней
 обшивкой), `battens_per_side`, `kingpost_m` (0 — безмачтовое), `crossbar_u`, `luff_lines`,
 `basebar_width_m`, `faired_uprights`, `wheels`, цвета труб и `design` (раскраска паруса).

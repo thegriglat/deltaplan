@@ -36,7 +36,7 @@ description: "Исследования Deltaplan по темам: что выя�
 
 - [Пилот air-nn: может ли малая сеть заменить решатель](/tools/research/air_nn_pilot/README.md) — код и отчёты пилотов П-1, П-2, П-3.
 - [WindNinja как независимый эталон](/tools/research/windninja/README.md) — сравнение на 21 случае в 6 местах: разгон на гребнях совпадает, торможение массивом WindNinja не даёт.
-- Планы и итоги — [план air-nn](/docs/plan/air_nn.md), [П-3](/docs/plan/air_nn_p3.md), [air-onnx](/docs/plan/air_onnx.md); разбор — [«Подходы и результаты»](/approaches/).
+- Планы и итоги — [план air-nn](/docs/plan/air_nn.md), [П-3](/docs/archive/plan/air-nn-p3.md), [air-onnx](/docs/archive/plan/air-onnx.md); разбор — [«Подходы и результаты»](/approaches/).
 
 ## Крылья и полёт
 

@@ -1,5 +1,5 @@
 extends Node
-## «Полёт…»: выбор крыла — класс, потом модель, строка описания (docs/plan/wings_lineup.md §6,
+## «Полёт…»: выбор крыла — класс, потом модель, строка описания (docs/archive/plan/wings-lineup.md §6,
 ## приёмка 4). Порядок классов — configs/wing_groups.json, моделей — WingCatalog.
 
 const SCENE := "res://scenes/ui/flight_setup_screen.tscn"

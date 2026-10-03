@@ -153,7 +153,7 @@ related: []
   воздуха, разбег и ошибки, крен крыла на земле, оценка посадки, визуал.
 
 ## Крылья
-Девять крыльев с реальными прототипами (план и источники — docs/plan/wings_lineup.md). Группы —
+Девять крыльев с реальными прототипами (план и источники — docs/archive/plan/wings-lineup.md). Группы —
 `configs/wing_groups.json` (порядок в меню «Полёт…»), модели в группе — по `reference.best_glide`,
 затем `wind_max_ms` (`WingCatalog`, scripts/game/wing_catalog.gd):
 

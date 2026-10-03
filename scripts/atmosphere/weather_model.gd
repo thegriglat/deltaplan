@@ -230,7 +230,7 @@ static func sky_params(sky: String, cfg: Dictionary = {}) -> Dictionary:
 	return sc.get(sky, sc.get("clear", {}))
 
 
-## Суточный ход (фаза 2, docs/plan/weather_by_temperature.md §7): по дневному максимуму t_max
+## Суточный ход (фаза 2, docs/archive/plan/weather-by-temperature.md §7): по дневному максимуму t_max
 ## и часу hour (часы места: ctx.utc_offset_h — пояс, NAN — солнечное время) →
 ## {temperature_c, cap_agl_m (верх утреннего слоя над долиной; INF — инверсия пробита),
 ## break (0..1 — насколько прогрев пробил инверсию: верх термиков от cap к сухому),
