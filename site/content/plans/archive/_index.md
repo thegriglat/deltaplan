@@ -20,6 +20,19 @@ description: "Планы и журналы закрытых работ Deltaplan
 - [А4: Perdigão, лес и границы применимости](/docs/archive/plan/air-model-a4.md).
 - [Б1: совместная калибровка Askervein и Perdigão](/docs/archive/plan/air-model-b1.md) и [Б2: α и λ в игре](/docs/archive/plan/air-model-b2.md).
 
+## Нейросеть ветра и модель воздуха: дополнения
+
+- [Нейросеть в игре (air-onnx)](/docs/archive/plan/air-onnx.md) — ONNX-сеть вместо решателя в игре (выпуск 1.0.5).
+- [Пилот П-3 нейросети](/docs/archive/plan/air-nn-p3.md) — кодировка входа и выхода; итог в разделе «0. Итог P3» — и [журнал air-nn](/docs/archive/plan/air-nn-progress.md) до 02.10.
+- [А2: сходимость в штиль](/docs/archive/plan/air-model-a2.md).
+- [Прототип клеточного автомата тепла и массы](/docs/archive/plan/heat-ca-prototype.md) — карточка; результаты — в [исследованиях](/research/heat_ca/).
+- [Поле ветра, согласованное по массе](/docs/archive/plan/wind-field.md) — заменён планом модели воздуха.
+
+## Погода, крылья, группа «Игра»
+
+- [Погода из прогноза](/docs/archive/plan/weather-by-temperature.md) и [линейка крыльев](/docs/archive/plan/wings-lineup.md) (сборка 0.6.0).
+- Группа «Сцена игры и управление»: [оглавление](/docs/archive/plan/game/README.md), [приёмка кабины](/docs/archive/plan/game/01-priemka-kabiny.md), [сквозной тест](/docs/archive/plan/game/02-skvoznoj-test-svobodnyj.md), [геймплей](/docs/archive/plan/game/03-geimplej-svobodnogo.md), [столкновения](/docs/archive/plan/game/05-stolknoveniya.md), [нос на разбеге](/docs/archive/plan/game/06-nos-na-razbege-po-vetru.md).
+
 ## Воздух у старта и физика взлёта
 
 - [Воздух у старта](/docs/archive/plan/air-start.md) и [журнал](/docs/archive/plan/air-start-progress.md) — жалоба пилота «сдувает»; два прохода поля.
@@ -48,4 +61,5 @@ description: "Планы и журналы закрытых работ Deltaplan
 - Рельеф: [стенд, кадры, замер GPU](/docs/archive/plan/terrain/01-stend-kadry-zamery.md), [лес и кромка 10 м](/docs/archive/plan/terrain/02-les-kromka-10m.md), [реки и озёра из OSM](/docs/archive/plan/terrain/03-reki-ozyora-osm.md), [дымка и контраст](/docs/archive/plan/terrain/04-dymka-kontrast.md), [волны порывов по траве](/docs/archive/plan/terrain/05-veter-volny-poryvov.md), [бюджет GPU (отложено)](/docs/archive/plan/terrain/06-byudzhet-gpu-relefa.md).
 - Растительность: [настройки травинок](/docs/archive/plan/vegetation/01-nastrojki-travinki.md), [деревья по маске и дальний тон](/docs/archive/plan/vegetation/02-derevya-po-maske-dalnij-ton.md).
 - Объекты мира: [провода, заборы, батчинг](/docs/archive/plan/world_objects/01-provoda-zabory-batching.md).
+- Верхнеуровневый список групп (заменён): [groups-top-level](/docs/archive/plan/groups-top-level.md).
 - Задания и тренировки — [отложены](/docs/archive/plan/tasks/README.md): логика готова, в игру не подключена.

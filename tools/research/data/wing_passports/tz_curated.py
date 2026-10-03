@@ -92,23 +92,23 @@ MODELS = [
          base=None, cons="kingpost", group="kingpost",
          cls="соревновательное мачтовое 1980-х (DS 60 %, VG)",
          notes=["В наборе паспортов этого семейства нет: 3D-модель не менять. Источники геометрии — прежние "
-                "(docs/plan/wings_lineup.md §1.3: 15,4 м², 10,26 м, корневая хорда 2,39 м)."],
+                "(docs/archive/plan/wings-lineup.md §1.3: 15,4 м², 10,26 м, корневая хорда 2,39 м)."],
          questions=["Если понадобится уточнение — искать архивные спецификации Airwave (в текущих источниках нет)."]),
     dict(id="atlas", status=E, title="«Атлас» (копия La Mouette Atlas 16)", mfr=None, family=None, version="", size="", also=[],
          base=None, cons="kingpost", group="soviet",
          cls="советское учебное однообшивочное мачтовое, 1979–1980-е",
          notes=["Паспортов нет (La Mouette в наборе отсутствует): 3D-модель не менять. Данные — `docs/plan/atlas_wing.md`, "
-                "`docs/plan/wings_lineup.md` §1.2."],
+                "`docs/archive/plan/wings-lineup.md` §1.2."],
          questions=[]),
     dict(id="slavutich_ut", status=E, title="Славутич-УТ", mfr=None, family=None, version="", size="", also=[],
          base=None, cons="kingpost", group="soviet",
          cls="советское учебное однообшивочное мачтовое, 1979",
-         notes=["Паспортов нет: 3D-модель не менять (данные — `docs/plan/wings_lineup.md` §1.1, `docs/research/wing_sources.md`)."],
+         notes=["Паспортов нет: 3D-модель не менять (данные — `docs/archive/plan/wings-lineup.md` §1.1, `docs/research/wing_sources.md`)."],
          questions=[]),
     dict(id="apogee", status=E, title="«Апогей» (В. В. Мысенко)", mfr=None, family=None, version="", size="", also=[],
          base=None, cons="kingpost", group="soviet",
          cls="советское мачтовое двухобшивочное 80 %, 1986–",
-         notes=["Паспортов нет (данные — со слов пилота): 3D-модель не менять (`docs/plan/wings_lineup.md` §1.2, §9)."],
+         notes=["Паспортов нет (данные — со слов пилота): 3D-модель не менять (`docs/archive/plan/wings-lineup.md` §1.2, §9)."],
          questions=[]),
 
     # ------------------------------------------------------------------ новые: рекреационные / учебные
@@ -327,7 +327,7 @@ MODELS = [
 
 # Семейства, которые в ТЗ отдельными разделами не идут (и почему)
 EXCLUDED = [
-    ("A.I.R. Atos VQ / VR / VRS / VRQ, Aeros Phantom", "жёсткие крылья (Wölbklappen), размах 12–14,5 м — вне рамок модели «гибкое крыло» (docs/plan/wings_lineup.md §1.5)"),
+    ("A.I.R. Atos VQ / VR / VRS / VRQ, Aeros Phantom", "жёсткие крылья (Wölbklappen), размах 12–14,5 м — вне рамок модели «гибкое крыло» (docs/archive/plan/wings-lineup.md §1.5)"),
     ("Icaro Biplace, Icaro PiBi, Icaro RX 2 BIP, Aeros Target 21, Wills Wing Condor (225/330), Bautek BiCo",
      "тандемы/учебные двухместные (нагрузка 120–240 кг) — в игре один пилот"),
     ("Icaro Piuma Trike, Airborne XT", "тележечные (trike/мотор) — не свободный полёт"),

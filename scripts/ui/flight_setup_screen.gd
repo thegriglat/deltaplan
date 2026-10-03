@@ -38,7 +38,7 @@ const COMPASS: PackedStringArray = [
 	"compass_nw",
 ]
 
-## Класс → модель (docs/plan/wings_lineup.md §6): модель, выбранная последней в группе за сеанс.
+## Класс → модель (docs/archive/plan/wings-lineup.md §6): модель, выбранная последней в группе за сеанс.
 static var _last_in_group: Dictionary = {}
 
 var settings: FlightSettings

@@ -99,16 +99,16 @@ MAKER_HOSTS = ("willswing.com", "moyes.com.au", "moyesusa.com", "aeros.com.ua", 
 OLD = {
     "training": {"key": "Wills Wing|Falcon 4||170", "kind": "паспорт",
                  "fields": ["span_m", "area_m2", "wing_mass_kg", "pilot_mass_min_kg", "pilot_mass_max_kg", "cert"],
-                 "note": "не из паспорта: docs/plan/wings_lineup.md",
-                 "notes": {"double_surface_pct": "числа в паспорте нет; однообшивочное учебное (docs/plan/wings_lineup.md)"}},
+                 "note": "не из паспорта: docs/archive/plan/wings-lineup.md",
+                 "notes": {"double_surface_pct": "числа в паспорте нет; однообшивочное учебное (docs/archive/plan/wings-lineup.md)"}},
     "sport": {"key": "Moyes|Litespeed RS||4", "kind": "паспорт",
               "fields": ["span_m", "area_m2", "wing_mass_kg", "double_surface_pct", "cert"],
-              "note": "не из паспорта: docs/plan/wings_lineup.md",
-              "notes": {"pilot_mass_min_kg": "hook-in RS 4 в паспортном наборе нет; у Moyes 74–104 кг по архиву спецификаций (docs/plan/wings_lineup.md §1.4)",
-                        "pilot_mass_max_kg": "hook-in RS 4 в паспортном наборе нет; у Moyes 74–104 кг по архиву спецификаций (docs/plan/wings_lineup.md §1.4)"}},
+              "note": "не из паспорта: docs/archive/plan/wings-lineup.md",
+              "notes": {"pilot_mass_min_kg": "hook-in RS 4 в паспортном наборе нет; у Moyes 74–104 кг по архиву спецификаций (docs/archive/plan/wings-lineup.md §1.4)",
+                        "pilot_mass_max_kg": "hook-in RS 4 в паспортном наборе нет; у Moyes 74–104 кг по архиву спецификаций (docs/archive/plan/wings-lineup.md §1.4)"}},
     "combat": {"key": "Aeros|Combat GT||13.2", "kind": "паспорт",
                "fields": ["span_m", "area_m2", "wing_mass_kg", "pilot_mass_min_kg", "pilot_mass_max_kg", "double_surface_pct", "cert"],
-               "note": "не из паспорта: руководство Combat, docs/plan/wings_lineup.md §1.4"},
+               "note": "не из паспорта: руководство Combat, docs/archive/plan/wings-lineup.md §1.4"},
     "laminar": {"key": "Icaro|Easy 2||M", "also": ["Icaro|Orbiter||14"], "kind": "аналог",
                 "fields": ["wing_mass_kg", "double_surface_pct", "cert", "dhv"],
                 "note": "не паспорт: en.wikipedia Icaro_Laminar, руководство icaro2000.com (прямого паспорта Laminar Easy 14 нет)",
@@ -118,9 +118,9 @@ OLD = {
     "magic": {"note": "не паспорт: thisdayinaviation.com (экземпляр в Смитсоновском музее), topaflyers.com"},
     "atlas": {"note": "не паспорт: статья «Крылья Родины» (Кареткин, Рябцев, Бабкин, ЦК ДОСААФ)"},
     "slavutich_ut": {"note": "не паспорт: delta-nsk.ucoz.ru (ТТХ), ru.wikipedia «Славутич (дельтапланы)»"},
-    "apogee": {"note": "со слов пилота и reaa.ru; остальное — по ровесникам (docs/plan/wings_lineup.md §1.2, §3)",
+    "apogee": {"note": "со слов пилота и reaa.ru; остальное — по ровесникам (docs/archive/plan/wings-lineup.md §1.2, §3)",
                "notes": {"area_m2": "со слов пилота: копия Airwave Magic 155 — 155 кв. фт = 14,4 м²; единичные экземпляры были 16 м², но это редкость",
-                         "span_m": "по ровесникам (docs/plan/wings_lineup.md §3); согласуется с копией Magic 155: при удлинении Magic IV 166 (10,26 м, 15,4 м², λ ≈ 6,8) на 14,4 м² — 9,9 м"}},
+                         "span_m": "по ровесникам (docs/archive/plan/wings-lineup.md §3); согласуется с копией Magic 155: при удлинении Magic IV 166 (10,26 м, 15,4 м², λ ≈ 6,8) на 14,4 м² — 9,9 м"}},
 }
 
 PASSPORT_FIELDS = ("span_m", "area_m2", "wing_mass_kg", "pilot_mass_min_kg", "pilot_mass_max_kg", "double_surface_pct")
@@ -442,7 +442,7 @@ def wing_rows(wid):
         if era == "?":
             et = "в паспортах и выборке нет"
     else:
-        et = "docs/plan/wings_lineup.md"
+        et = "docs/archive/plan/wings-lineup.md"
     rows.append(row("Годы выпуска", "неизвестно" if era == "?" else era, "оценка", et))
     # DHV Vmin / Vmax
     rows += dhv_rows(spec, recs if (old and "dhv" in old.get("fields", [])) else [], kind)
@@ -532,7 +532,7 @@ def model_rows(wid, cfg, spec, base_name):
         m = re.search(r"_база\) = ([\d,]+)", cfg.get("polar", {}).get("_doc", ""))
         how = "модель игры: поляра базы %s подобием по нагрузке на крыло%s" % (base_name, " (f = %s)" % m.group(1) if m else "")
     else:
-        how = "модель игры: поляра — оценка по классу и источникам (docs/plan/wings_lineup.md)"
+        how = "модель игры: поляра — оценка по классу и источникам (docs/archive/plan/wings-lineup.md)"
     out = [
         row("Скорость трима", "%s км/ч" % fm(cfg["trim_speed_kmh"]), "оценка", how),
         row("Скорость, трапеция полностью на себя", "%s км/ч" % fm(cfg["full_pull_speed_kmh"]), "оценка", how),
@@ -541,7 +541,7 @@ def model_rows(wid, cfg, spec, base_name):
         row("Качество", "%s на %s км/ч" % (fm(ref["best_glide"]), fm(ref["best_glide_speed_kmh"])), "оценка",
             how + ("; подобие качество не меняет — как у базы" if spec else "")),
         row("Ветер на старте до", "%s м/с" % fm(cfg["wind_max_ms"]), "оценка",
-            "подсказка меню игры" + (", как у базы %s" % base_name if spec else " (docs/plan/wings_lineup.md §3)")),
+            "подсказка меню игры" + (", как у базы %s" % base_name if spec else " (docs/archive/plan/wings-lineup.md §3)")),
     ]
     out.append(row("Эталонная масса пилота (для поляры)", "%s кг" % fm(cfg["pilot_mass_ref_kg"]), "оценка",
                    "модель игры" + (": то же место в диапазоне, что у базы %s" % base_name if spec else "")))

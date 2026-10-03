@@ -4,13 +4,13 @@ status: "active"
 module: "air-onnx"
 updated: "2026-10-03"
 summary: "Контракты модуля air-onnx: формат .onnx сети области (O1), расширение ONNX Runtime (O2), вход/выход сети в GDScript (O3), вход из игры и страж (O4), AirRuntime engine=nn (O5), файл сети (O6)."
-related: ["docs/plan/air_onnx.md", "docs/contracts/air-nn.md", "docs/contracts/air-model.md"]
+related: ["docs/archive/plan/air-onnx.md", "docs/contracts/air-nn.md", "docs/contracts/air-model.md"]
 contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}]
 ---
 
 # Контракты модуля air-onnx
 
-План — `docs/plan/air_onnx.md`. Источник правды по входу и выходу сети — код пилота
+План — `docs/archive/plan/air-onnx.md`. Источник правды по входу и выходу сети — код пилота
 `tools/research/air_nn_pilot/pilotnn/prep.py` (П2 v4, `docs/contracts/air-nn.md`) и экспорт
 `pilotnn/evaluate.py:export_onnx`; поле в игре — контракты C3, C4, C9 (`docs/contracts/air-model.md`).
 Менять интерфейс — только через координатора: версия +1, запись «что изменилось», правка потребителей в том же шаге.

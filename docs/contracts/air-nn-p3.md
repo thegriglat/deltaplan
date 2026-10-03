@@ -1,15 +1,17 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "air-nn"
-updated: "2026-10-03"
+updated: "2026-10-04"
 summary: "Контракты пилота П-3 air-nn: П2 v5 — физическая кодировка входа (27 карт) и выхода (117 каналов: разгон/поворот к линейной базе, отрыв от склона), линейная база Б1; П3 v4 — таблица вариантов и сводка заменимости"
-related: ["docs/contracts/air-nn.md", "docs/plan/air_nn_p3.md", "docs/plan/air_onnx.md"]
+related: ["docs/contracts/air-nn.md", "docs/archive/plan/air-nn-p3.md", "docs/archive/plan/air-onnx.md"]
 contracts: [{"id": "П2", "version": 5}, {"id": "П3", "version": 4}, {"id": "Б1", "version": 1}]
 ---
 # Контракты пилота П-3 (air-nn)
 
-План — `docs/plan/air_nn_p3.md`; прежние версии П2 (v1–v4) и П3 (v1–v3) — `docs/contracts/air-nn.md` (там же —
+Состояние на 04.10.2026: П-3 закрыт, кодировка П2 v5 в игру не принята (в игре сеть P2 прежней кодировки); контракт сохранён как справка к архиву опыта.
+
+План — `docs/archive/plan/air-nn-p3.md`; прежние версии П2 (v1–v4) и П3 (v1–v3) — `docs/contracts/air-nn.md` (там же —
 П1, П6, их форма не меняется). Код — `tools/research/air_nn_pilot/pilotnn/`. Зафиксировано координатором 03.10 по
 коду `prep.py` (П2 v4) и `evaluate.py` (П3 v3) до запуска исполнителей. Изменение — только через координатора.
 

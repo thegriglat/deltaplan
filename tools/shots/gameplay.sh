@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Геймплей свободного полёта (карточка docs/plan/game/03-geimplej-svobodnogo.md): по кадру на камеру —
+# Геймплей свободного полёта (карточка docs/archive/plan/game/03-geimplej-svobodnogo.md): по кадру на камеру —
 # кабина (угла нет), сзади и свободная (прибор в углу). Чек-лист — docs/screenshots/gameplay/README.md.
 # tools/shots/gameplay.sh [выход]   (по умолчанию docs/screenshots/gameplay)
 # Онгудай, старт по умолчанию, синтетический пилот --autopilot, 20 с симуляции (пилот лёг, 30–50 м над склоном).

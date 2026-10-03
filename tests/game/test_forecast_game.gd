@@ -1,5 +1,5 @@
 extends Node
-## Погода из прогноза в игре (docs/plan/weather_by_temperature.md, карточка 3): Game выводит день
+## Погода из прогноза в игре (docs/archive/plan/weather-by-temperature.md, карточка 3): Game выводит день
 ## из прогноза и рельефа, ветер — встречный или с румба, опора ветра — высота старта.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")

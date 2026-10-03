@@ -86,7 +86,7 @@ generated: true
 
 | Семейства | Почему |
 |---|---|
-| A.I.R. Atos VQ / VR / VRS / VRQ, Aeros Phantom | жёсткие крылья (Wölbklappen), размах 12–14,5 м — вне рамок модели «гибкое крыло» (docs/plan/wings_lineup.md §1.5) |
+| A.I.R. Atos VQ / VR / VRS / VRQ, Aeros Phantom | жёсткие крылья (Wölbklappen), размах 12–14,5 м — вне рамок модели «гибкое крыло» (docs/archive/plan/wings-lineup.md §1.5) |
 | Icaro Biplace, Icaro PiBi, Icaro RX 2 BIP, Aeros Target 21, Wills Wing Condor (225/330), Bautek BiCo | тандемы/учебные двухместные (нагрузка 120–240 кг) — в игре один пилот |
 | Icaro Piuma Trike, Airborne XT | тележечные (trike/мотор) — не свободный полёт |
 | Ellipse Sol'R | сверхлёгкий (Vne 55 км/ч), данных для 3D нет |
@@ -361,11 +361,11 @@ generated: true
 
 Без изменений, подтверждено паспортом: паспортов этого семейства в наборе нет — числа не меняются.
 
-- В наборе паспортов этого семейства нет: 3D-модель не менять. Источники геометрии — прежние (docs/plan/wings_lineup.md §1.3: 15,4 м², 10,26 м, корневая хорда 2,39 м).
+- В наборе паспортов этого семейства нет: 3D-модель не менять. Источники геометрии — прежние (docs/archive/plan/wings-lineup.md §1.3: 15,4 м², 10,26 м, корневая хорда 2,39 м).
 
 ### Источники
 
-- Прежние источники модели — `docs/plan/wings_lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
+- Прежние источники модели — `docs/archive/plan/wings-lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
 - Правки конфига и противоречия данных — `docs/research/wings_config_sources.md`.
 
 ### Открытые вопросы
@@ -389,11 +389,11 @@ generated: true
 
 Без изменений, подтверждено паспортом: паспортов этого семейства в наборе нет — числа не меняются.
 
-- Паспортов нет (La Mouette в наборе отсутствует): 3D-модель не менять. Данные — `docs/plan/atlas_wing.md`, `docs/plan/wings_lineup.md` §1.2.
+- Паспортов нет (La Mouette в наборе отсутствует): 3D-модель не менять. Данные — `docs/plan/atlas_wing.md`, `docs/archive/plan/wings-lineup.md` §1.2.
 
 ### Источники
 
-- Прежние источники модели — `docs/plan/wings_lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
+- Прежние источники модели — `docs/archive/plan/wings-lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
 - Правки конфига и противоречия данных — `docs/research/wings_config_sources.md`.
 
 ### Открытые вопросы
@@ -417,11 +417,11 @@ generated: true
 
 Без изменений, подтверждено паспортом: паспортов этого семейства в наборе нет — числа не меняются.
 
-- Паспортов нет: 3D-модель не менять (данные — `docs/plan/wings_lineup.md` §1.1, `docs/research/wing_sources.md`).
+- Паспортов нет: 3D-модель не менять (данные — `docs/archive/plan/wings-lineup.md` §1.1, `docs/research/wing_sources.md`).
 
 ### Источники
 
-- Прежние источники модели — `docs/plan/wings_lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
+- Прежние источники модели — `docs/archive/plan/wings-lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
 - Правки конфига и противоречия данных — `docs/research/wings_config_sources.md`.
 
 ### Открытые вопросы
@@ -445,11 +445,11 @@ generated: true
 
 Без изменений, подтверждено паспортом: паспортов этого семейства в наборе нет — числа не меняются.
 
-- Паспортов нет (данные — со слов пилота): 3D-модель не менять (`docs/plan/wings_lineup.md` §1.2, §9).
+- Паспортов нет (данные — со слов пилота): 3D-модель не менять (`docs/archive/plan/wings-lineup.md` §1.2, §9).
 
 ### Источники
 
-- Прежние источники модели — `docs/plan/wings_lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
+- Прежние источники модели — `docs/archive/plan/wings-lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.
 - Правки конфига и противоречия данных — `docs/research/wings_config_sources.md`.
 
 ### Открытые вопросы

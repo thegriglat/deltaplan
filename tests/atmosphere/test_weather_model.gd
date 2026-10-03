@@ -1,5 +1,5 @@
 extends TestCase
-## Погода из прогноза (WeatherModel, FR-16; docs/plan/weather_by_temperature.md, карточка 1):
+## Погода из прогноза (WeatherModel, FR-16; docs/archive/plan/weather-by-temperature.md, карточка 1):
 ## опорные прогнозы дают эталоны configs/weather/*, монотонность по температуре и ветру,
 ## голубой день, весна, волна выключена, детерминизм и скорость.
 

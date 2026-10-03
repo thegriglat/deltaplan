@@ -163,7 +163,7 @@ $$
 Данные — площадь, размах, диапазон массы пилота, ориентиры качества и скорости сваливания — сведены из
 паспортов производителей, клубных таблиц, Википедии и (для «Апогея», о котором в открытых источниках
 почти ничего нет) ответов пилота-консультанта; полная таблица источников с пометками достоверности —
-[docs/plan/wings_lineup.md §1](/docs/plan/wings_lineup.md), поляры и параметры каждого крыла —
+[docs/archive/plan/wings-lineup.md §1](/docs/archive/plan/wings-lineup.md), поляры и параметры каждого крыла —
 [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) и `configs/wings/*.json`.
 
 Управляемость у каждого крыла — своя (через существующие параметры `FlightModel`, новых не понадобилось):
@@ -203,7 +203,7 @@ $$
   визуала и тесты.
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — вывод масштабирования поляры по массе и
   проверка на паспортных данных.
-- [docs/plan/wings_lineup.md](/docs/plan/wings_lineup.md) — исследование по каждому крылу (источники,
+- [docs/archive/plan/wings-lineup.md](/docs/archive/plan/wings-lineup.md) — исследование по каждому крылу (источники,
   пометки достоверности), выбор набора и параметров управляемости.
 - [docs/research/wing_sources.md](/docs/research/wing_sources.md) — источники по внешнему виду и
   характеристикам крыльев.

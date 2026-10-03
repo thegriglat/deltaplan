@@ -2,7 +2,7 @@ class_name WingCatalog
 extends RefCounted
 ## Каталог крыльев для меню «Полёт…»: группы из configs/wing_groups.json (в порядке файла),
 ## крылья группы из configs/wings/*.json (по полю group), диапазоны качества и ветра группы.
-## Путь крыла — как в FlightSettings.wing: "wings/<id>". План — docs/plan/wings_lineup.md §2, §6.
+## Путь крыла — как в FlightSettings.wing: "wings/<id>". План — docs/archive/plan/wings-lineup.md §2, §6.
 
 const GROUPS_CONFIG := "wing_groups"
 

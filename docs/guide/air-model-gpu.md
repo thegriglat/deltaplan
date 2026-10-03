@@ -8,7 +8,7 @@ related: []
 ---
 # Модель воздуха на GPU: строительные блоки (AM-02)
 
-План — `docs/plan/air_model.md` (AM-02, AM-03), решатель — `docs/plan/wind_field.md` → «Решатель на
+План — `docs/plan/air_model.md` (AM-02, AM-03), решатель — `docs/archive/plan/wind-field.md` → «Решатель на
 GPU», WF-02/WF-03. Сетка — декартова с маской «под землёй» (решение AM-01,
 `tools/research/air3d/reference.md`). Код — `scripts/atmosphere/air_model/`.
 

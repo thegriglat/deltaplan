@@ -48,7 +48,7 @@ $PY analyze.py        # только матрица → out/tables.md, out/summa
 
 ## А2 — сходимость в штиль (01.10.2026)
 
-Записка — `docs/plan/air_model_a2.md`. Итог: `k_relax` 0,5 → 0,1 (в `air.py → Params` и `AirCase.p`), плюс пропуск
+Записка — `docs/archive/plan/air-model-a2.md`. Итог: `k_relax` 0,5 → 0,1 (в `air.py → Params` и `AirCase.p`), плюс пропуск
 прохода θ′_d у решения без нагрева (air.py и GPU). Решатель в остальном не менялся.
 
 | Файл | Что |

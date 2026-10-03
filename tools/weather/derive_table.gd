@@ -1,5 +1,5 @@
 extends Node
-## Таблица «прогноз → день» (docs/plan/weather_by_temperature.md, карточка 1): для 4 локаций
+## Таблица «прогноз → день» (docs/archive/plan/weather-by-temperature.md, карточка 1): для 4 локаций
 ## замеряет высоту долины и среднюю высоту рельефа (WeatherModel.ground_context) и печатает, что
 ## выводит модель при разных температуре, ветре и месяце. Та же таблица простым языком — в
 ## <out> (по умолчанию tmp_weather_table.md) для пилота.

@@ -5,7 +5,7 @@
   "group": "topless",
   "group_doc": "Группа (класс) крыла — id из configs/wing_groups.json: soviet | trainer | kingpost | topless. По группе меню «Полёт…» строит список классов",
   "wind_max_ms": 12.0,
-  "wind_max_ms_doc": "Комфортный ветер на старте для опытного пилота на этом крыле, м/с (подсказка в меню, не запрет; docs/plan/wings_lineup.md §3) — как у базы combat",
+  "wind_max_ms_doc": "Комфортный ветер на старте для опытного пилота на этом крыле, м/с (подсказка в меню, не запрет; docs/archive/plan/wings-lineup.md §3) — как у базы combat",
   "prototype": "Aeros Combat L 13, 13,7 м² (паспорт: wings_merged.json («Aeros|Combat L||13»); DHV 01-0413-05, DHV 01-0431-08, DHV 01-0451-10)",
   "prototype_doc": "Реальный прототип: модель, размер, источник данных (справка, в меню не выводится)",
   "era": "2003",

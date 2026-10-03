@@ -524,7 +524,7 @@ def section_existing(n, e):
             L.append("- Номера DHV-сертификатов: " + ", ".join(cs))
         L.append("- Сводная таблица и цитаты: `tools/research/data/wing_passports/wings_merged.json` (ключи `%s`)." % "`, `".join(x["key"] for x in recs if x))
     else:
-        L.append("- Прежние источники модели — `docs/plan/wings_lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.")
+        L.append("- Прежние источники модели — `docs/archive/plan/wings-lineup.md`, `docs/research/wing_sources.md`; паспортов в наборе нет.")
     L.append("- Правки конфига и противоречия данных — `docs/research/wings_config_sources.md`.")
     L.append("")
     L.append("### Открытые вопросы")
