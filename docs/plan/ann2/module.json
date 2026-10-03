@@ -1,0 +1,9 @@
+{
+  "module": "ann2",
+  "plan": "docs/plan/ann2.md",
+  "contracts": "docs/contracts/ann2.md",
+  "branch": "feature/ann2",
+  "copy": "~/deltaplan-ann2",
+  "created": "2026-10-04T02:41:21",
+  "code": "AN"
+}
