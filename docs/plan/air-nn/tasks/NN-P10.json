@@ -1,0 +1,57 @@
+{
+  "id": "NN-P10",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "П3-Б: формы профиля по высоте (POD/EOF) целей П-2 и v5",
+  "goal": "Сколько главных форм профиля по 13 высотам хватает, чтобы восстановить цели (кодировки П-2 и v5) с ошибкой ветра на 60 м заметно меньше 0,3 м/с — решение «упаковка по высоте да/нет» для опыта (5).",
+  "plan_ref": "docs/plan/air_nn_p3.md §3 «Упаковка по высоте», §4 П3-Б",
+  "contracts": [
+    {
+      "name": "Б1",
+      "version": "1",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П2",
+      "version": "5",
+      "ref": "docs/contracts/air-nn-p3.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-NN-P10",
+  "branch": "air-nn/NN-P10",
+  "base": "feature/air-nn",
+  "scope": [
+    "tools/research/air_nn_pilot/p3/pod.py: POD по высоте на обучающих случаях П-2 (split.json прогона 2026-10-03_p2b) отдельно по каждой из величин, кодировки v4 (7 каналов) и v5 (9 величин, через pilotnn/base.py после вливания NN-P9); K = 1…8 → доля дисперсии и ошибка восстановления в м/с на 60 м (медиана, p90) на (г) и обучении",
+    "$AIR_NN_DATA/pilot/p3/NN-P10/pod_v5.npz (mean [9,13], phi [9,8,13], float32 — П2 v5 «Упаковка») и pod_v4.npz",
+    "tools/research/air_nn_pilot/p3/pod.md: таблица K → ошибка, строка «упаковка: да|нет» по правилу: да, если при K ≤ 6 p90 ошибки восстановления ветра на 60 м на (г) ≤ 0,1 м/с для v5 (для v4 — справочно); команда воспроизведения"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель не пересчитывать)",
+    "наборы и тайлы в $AIR_NN_DATA (datasets/, tiles/, prep/ П-2, runs/2026-10-03_p2b) — только читать; своё — в $AIR_NN_DATA/pilot/p3/<ID>/",
+    "train.py, evaluate.py, report.py, data.py, model.py (это NN-P12)",
+    "docs/contracts/* (контракт меняет координатор)",
+    "~/deltaplan-air-onnx, main",
+    "симлинк .venv",
+    "pilotnn/*.py (base.py — NN-P9, maps5.py — NN-P11)"
+  ],
+  "accept": [
+    {
+      "name": "verdict",
+      "cmd": "cat tools/research/air_nn_pilot/p3/pod.md",
+      "expect": "re:упаковка: (да|нет)"
+    },
+    {
+      "name": "v5_done",
+      "cmd": "cat tools/research/air_nn_pilot/p3/pod.md",
+      "expect": "re:v5"
+    },
+    {
+      "name": "pod_file",
+      "cmd": "python3 -c \"import numpy as n,os;d=n.load(os.path.expanduser('~/air_nn_data/pilot/p3/NN-P10/pod_v5.npz'));print('shape',d['phi'].shape,d['mean'].shape)\"",
+      "expect": "re:shape \\(9, \\d+, 13\\) \\(9, 13\\)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T18:51:31"
+}
