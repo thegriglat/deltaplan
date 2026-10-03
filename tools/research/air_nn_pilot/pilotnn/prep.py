@@ -192,9 +192,16 @@ def target(z, meta, agl=AGL):
     return np.concatenate(out, axis=0)
 
 
-def to_physical(y, meta, agl=AGL):
-    """Обратное преобразование выхода сети (91, ny, nx) → dict(m=(3,13,ny,nx) u,v,w; h=(4,13,ny,nx) u,v,w,θ′)
-    в м/с и К исходной системы (x — восток, y — север). Единственная функция; ею пользуются оценка и отчёт."""
+def to_physical(y, meta, agl=AGL, enc=None, base=None):
+    """Обратное преобразование выхода сети → dict(m=(3,13,ny,nx) u,v,w; h=(4,13,ny,nx) u,v,w,θ′) в м/с и К
+    исходной системы (x — восток, y — север). Единственная функция; ею пользуются оценка, отчёт и проверка ONNX.
+    enc — кодировка прогона (П2 v5: dict(outputs="v4"|"v5", gamma=γ_a)); None — v4 (91 канал). Выход v5 (117 каналов)
+    — через `base.to_physical_v5` с базой Б1 случая `base` (`prep5.base_for`) и γ_a из enc."""
+    if enc is not None and enc.get("outputs", "v4") == "v5":
+        from . import base as B
+        if base is None:
+            raise ValueError("выход v5: нужна база Б1 случая (prep5.base_for)")
+        return B.to_physical_v5(y, meta, base, agl, gamma=enc["gamma"] if enc.get("gamma") is not None else 1.0)
     y = np.asarray(y, np.float64)
     nA = len(agl)
     y = y.reshape(N_CH, nA, *y.shape[-2:])
