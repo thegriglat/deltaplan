@@ -2,3 +2,4 @@
 __pycache__/
 p3/out/cond_*/cells/
 p3/out/smooth_*/cells/
+.venv_fno/

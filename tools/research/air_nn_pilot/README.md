@@ -628,3 +628,10 @@ AIR_NN_DATA=~/air_nn_data /home/greg/deltaplan/tools/dp job start nnp12_p3 43200
   (`config.yaml → eval.replace`).
 - Зерно всех вариантов П-3 — 2 (`p3.seed`): (0) против `curve_100` П-2 (зерно 1) — разброс от зерна.
 - Упаковка по высоте (5) не делалась: NN-P10 — «нет» (`p3/pod.md`).
+
+## P3E7: U-FNO вместо U-Net (ветка air-nn/fno)
+
+Вторая venv (`.venv_fno`, torch 2.14.1+cu126 как у пилота + neuraloperator 2.0.0, MIT): `uv venv --python 3.12 .venv_fno && uv pip sync --python .venv_fno/bin/python --index-url https://download.pytorch.org/whl/cu126 --extra-index-url https://pypi.org/simple --index-strategy unsafe-best-match requirements_fno.lock`.
+Код: `pilotnn/fno.py` (модель, `arch: ufno` в `train.model`), `p3/run_p3e7.py` (обучение/оценка/обучающие места; конфиг — `config.yaml → p3e7`), `p3/p3e7_table.py`; проверка слоёв и ONNX — `.venv_fno/bin/python tests/test_fno.py --onnx`.
+Запуск: `dp job start p3e7 10800 .venv_fno/bin/python p3/run_p3e7.py --only train` (замок GPU берёт сам train кусками — под `dp job --lock gpu` он бы ждал сам себя), затем `--only eval,train_eval,train_eval_ref,table`.
+Итоги — `p3/out/p3e7/` (p3e7.md, p3e7.json, история обучения, ONNX); данные прогона — `~/air_nn_data/pilot/{runs,reports}/2026-10-04_p3e7_fno`.

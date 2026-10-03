@@ -32,7 +32,8 @@ from . import model as M  # noqa: E402
 from .prep import AGL, N_CH, REFLECT_FILM_SIGN, REFLECT_MAP_SIGN, REFLECT_OUT_SIGN  # noqa: E402
 
 CODE_FILES = [Path(__file__), Path(M.__file__), Path(__file__).with_name("prep.py"),
-              Path(__file__).with_name("prep5.py"), Path(__file__).with_name("base.py")]
+              Path(__file__).with_name("prep5.py"), Path(__file__).with_name("base.py"),
+              Path(__file__).with_name("fno.py")]
 NA = len(AGL)
 # выход v5 (П2 v5): каналы c·13 + a; c: 0 a_m, 1 sd_m, 2 cd_m, 3 wrel_m, 4 a_h, 5 sd_h, 6 cd_h, 7 wrel_h, 8 θ′
 V5_W = ((3 * NA, 4 * NA), (7 * NA, 8 * NA))           # каналы w_rel (m, h)
@@ -185,7 +186,7 @@ def height_weights(cfg):
 class EMA:
     def __init__(self, model, decay):
         self.decay = decay
-        self.shadow = {k: v.detach().clone().float() for k, v in model.state_dict().items()}
+        self.shadow = {k: (v.detach().clone() if v.is_complex() else v.detach().clone().float()) for k, v in model.state_dict().items()}
         self.n = 0
 
     @torch.no_grad()
@@ -193,8 +194,8 @@ class EMA:
         self.n += 1
         d = min(self.decay, (1 + self.n) / (10 + self.n))
         for k, v in model.state_dict().items():
-            if v.dtype.is_floating_point:
-                self.shadow[k].mul_(d).add_(v.detach().float(), alpha=1 - d)
+            if v.dtype.is_floating_point or v.is_complex():           # комплексные веса спектральных слоёв (FNO) — тоже в EMA
+                self.shadow[k].mul_(d).add_(v.detach() if v.is_complex() else v.detach().float(), alpha=1 - d)
             else:
                 self.shadow[k].copy_(v)
 

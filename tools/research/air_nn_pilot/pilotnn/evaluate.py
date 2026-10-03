@@ -231,6 +231,8 @@ def enc_meta(enc):
 def export_onnx(model, X, F, path: Path, n_rep, threads, meta=None):
     import onnxruntime as ort
     m = model.float().cpu().eval()
+    if hasattr(m, "for_export"):                      # U-FNO: БПФ → матрицы ДПФ (ONNX opset 17 без комплексных)
+        m = m.for_export()
     xs, fs = torch.from_numpy(X[:1]), torch.from_numpy(F[:1])
     tmp = path.with_name(path.name + ".tmp")
     torch.onnx.export(m, (xs, fs), str(tmp), opset_version=17, input_names=["maps", "nums"], output_names=["out"],

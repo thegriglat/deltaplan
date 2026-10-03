@@ -92,6 +92,10 @@ class UNetFiLM(nn.Module):
 
 
 def build(cfg_model, n_maps, n_film, n_out):
+    if cfg_model.get("arch", "unet") == "ufno":                  # P3E7: U-FNO (pilotnn/fno.py)
+        from .fno import UFNO
+        return UFNO(n_maps, n_film, n_out, tuple(cfg_model["channels"]), cfg_model["emb"], cfg_model["spec_ch"],
+                    tuple(cfg_model["modes"]))
     return UNetFiLM(n_maps, n_film, n_out, tuple(cfg_model["channels"]), cfg_model["emb"])
 
 

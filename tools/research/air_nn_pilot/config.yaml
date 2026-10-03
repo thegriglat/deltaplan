@@ -173,3 +173,9 @@ profiles:
       n_slice_figures: {holdout_sys: 1, holdout_place: 1, newcond_p6: 1, holdout_proc: 1}
       shp2:
         bin_min_cases: 3                     # smoke: малый набор — проверка ветки корзин U10
+
+# P3E7 (FNO): U-FNO вместо U-Net на тех же данных и в тех же условиях, что P3E0 (v0_ctrl).
+p3e7:
+  run: 2026-10-04_p3e7_fno
+  p3_run: 2026-10-03_p3                      # откуда берём задачу E0 (списки, кеш, гиперпараметры) и отчёты E0/E1
+  model: {arch: ufno, channels: [28, 56, 80, 104, 160], emb: 128, spec_ch: 24, modes: [24, 24, 20, 0, 0]}
