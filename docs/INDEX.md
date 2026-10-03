@@ -123,10 +123,10 @@ generated: true
 
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
-| [docs/plan/air_model.md](/docs/plan/air_model.md) | plan | postponed | air-model | План: модель воздуха в трёх масштабах — Документ — для координатора агентов: модули, задачи со скоупом, файлами, приёмкой и оценкой. |
+| [docs/plan/air_model.md](/docs/plan/air_model.md) | plan | active | air-model | План: модель воздуха в трёх масштабах — Документ — для координатора агентов: модули, задачи со скоупом, файлами, приёмкой и оценкой. |
 | [docs/plan/air_nn.md](/docs/plan/air_nn.md) | plan | active | air-nn | Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m… |
 | [docs/plan/game/04-sled-proshlogo-poleta.md](/docs/plan/game/04-sled-proshlogo-poleta.md) | plan | idea |  | 04. След прошлого полёта (полупрозрачная линия) — ОТЛОЖЕНО (решение пользователя): относится к блоку соревнований (этап 5), пока не делаем. |
-| [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) | plan | postponed | net | План: сетевая игра — роадмап — 1. «Сетевая игра» в главном меню → экран: адрес сервера (IP:порт, запоминается), своё имя пилота (из настроек). |
+| [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) | plan | active | net | План: сетевая игра — роадмап — 1. «Сетевая игра» в главном меню → экран: адрес сервера (IP:порт, запоминается), своё имя пилота (из настроек). |
 | [docs/plan/offline_world_data.md](/docs/plan/offline_world_data.md) | plan | postponed | world | План: офлайн-данные мира — свой пакет региона и подложка поверхности из OSM — 1. Без интернета. Всё нужное для полёта (рельеф, земной покров, OSM) заранее перепаковано в свой компактный формат и лежит рядом с игрой пакетами регионов. |
 | [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | idea |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
 | [docs/plan/osm_vector_pack.md](/docs/plan/osm_vector_pack.md) | plan | postponed |  | Размер офлайн-пакета: вектор OSM + рельеф + покров (замер на Словении) — Замер к плану offline_world_data.md (этапы 0 и 1). |
