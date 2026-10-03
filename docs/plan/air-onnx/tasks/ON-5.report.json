@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "AirRuntime умеет engine=nn: проход сети (вход места, AirNnInput, AirNnPrep, AirOnnx, to_physical, WindField на сетке решателя) в рабочем потоке, два прохода k, термики берут поле как обычно; поиск файла O6, отказы в аналитику, пункт настроек «Нейросеть», конфиг, include_filter *.onnx, nn_load_probe. Решатель не тронут.",
+  "commits": [
+    "a8dfa00 AirRuntime engine=nn: поле ветра сетью (O5, O6), пункт настроек «нейросеть», nn_load_probe, тесты"
+  ],
+  "checks": [
+    {
+      "name": "tests_nn_runtime",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "tests_air_onnx_all",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "tests_nn",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "tests_wind_setting",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "tests_thermals",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "load_probe_pilot1",
+      "value": "этап 3.63 с (2 прохода по ~1.8 с); последний проход, мс: вход места 601, карты 15, сеть 79 (ORT 4 потока), сборка поля 1096; загрузка модели 129; термики (build, проверка вне загрузки) 388 мс",
+      "pass": true
+    },
+    {
+      "name": "load_probe_missing",
+      "value": "air_model: analytic (нейросеть: нет файла сети /nonexistent/model.onnx)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Проверка в полном Game/окне не делалась (GPU занят пилотом П-2); пройден только headless-путь AirRuntime со стабом атмосферы. Пересчёт в полёте (recompute) отдельным тестом не покрыт, идёт тем же _begin с k = inflow_k."
+  ],
+  "questions": [
+    "Сборка поля в GDScript 1.1 с на проход (96x96x50 клеток) — самая дорогая часть; оптимизировать (например, по уровням, а не по столбцам) или пока достаточно?"
+  ],
+  "how_to_check": "dp accept ON-5; tools/air_onnx/nn_load_probe.sh <model.onnx>",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_nn_field.gd:assemble",
+      "why": "выше 2000 м AGL гасятся к 3000 м все отклонения от притока (u, v, w, theta), контракт говорит про w и theta явно и «отклонение (скорости)» двусмысленно",
+      "checked": "юнит-тест assemble: выше 3000 м — чистый приток Ub(a)·ê, 0 для w, theta"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_runtime.gd:_nn_unavailable",
+      "why": "--air-nn-model= с несуществующим путём — отказ, а не переход к следующему месту поиска (O6 говорит «первый существующий»)",
+      "checked": "проба с /nonexistent даёт analytic (нейросеть: нет файла …)"
+    },
+    {
+      "where": "tools/air_onnx/nn_load_probe.gd",
+      "why": "не полный Game: слой Онгудая из data/terrain, стаб атмосферы, старт в (0,0,0); термики — отдельный AirThermals.build на поле, не через ThermalField",
+      "checked": "has_inputs true, 2728 источников"
+    }
+  ],
+  "dp_feedback": "dp lock cpu с тихим ожиданием: при команде >120 с вывод пропадает в фон без прогресса. После добавления новых class_name нужен --import, dp test это не делает сам.",
+  "extra": {
+    "net_ms_pilot1_4threads": 79,
+    "pass_wall_s": 1.8,
+    "stage_s": 3.63,
+    "n_cells": "96x96x50"
+  },
+  "t": "2026-10-03T05:30:31",
+  "by": "executor"
+}
