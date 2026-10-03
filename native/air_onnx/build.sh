@@ -32,13 +32,13 @@ MSVC_RT_DLLS="msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll"
 
 TARGETS="${1:-linux}"
 if [ "$TARGETS" = clean ]; then
-	rm -rf "$BIN_DIR" "$ADDON_DIR/air_onnx.gdextension"
+	rm -rf "$BIN_DIR" "$ADDON_DIR/air_onnx.gdextension" "$ADDON_DIR/air_onnx.gdextension.uid"
 	EL="$ROOT/.godot/extension_list.cfg"
 	if [ -f "$EL" ]; then
 		grep -v '^res://addons/air_onnx/air_onnx.gdextension$' "$EL" > "$EL.tmp" || true
 		mv "$EL.tmp" "$EL"
 	fi
-	echo "убрано: $BIN_DIR, $ADDON_DIR/air_onnx.gdextension, запись в .godot/extension_list.cfg"
+	echo "убрано: $BIN_DIR, $ADDON_DIR/air_onnx.gdextension(.uid), запись в .godot/extension_list.cfg"
 	exit 0
 fi
 [ "$TARGETS" = all ] && TARGETS="linux windows"
