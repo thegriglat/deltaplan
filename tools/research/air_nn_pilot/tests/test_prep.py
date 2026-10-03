@@ -228,12 +228,55 @@ def test_maps_rot4():
         assert np.array_equal(b, m)
 
 
+def test_inverse_v5_enc():
+    """П2 v5: `prep.to_physical(..., enc=v5, base)` — обратное к `base.target_v5` с γ_a по высоте (m и h отдельно),
+    в том числе через хранение цели в f16 и сборку w_rel = Y5(γ=0) − γ·K (как prep5 + train.load_arrays_enc)."""
+    from pilotnn import base as B
+    from pilotnn import prep5 as P5
+    rng = np.random.default_rng(5)
+    X, Y = grid()
+    hc = 1000 + 500 * np.exp(-((X - 3000) ** 2 + Y ** 2) / 5e7)
+    gam = dict(m=rng.uniform(0, 1, 13).tolist(), h=rng.uniform(0, 1, 13).tolist())
+    enc = dict(outputs="v5", gamma=gam)
+    for wdir in (0.0, 135.0, 271.0):
+        for U10 in (0.7, 6.0):
+            m = rng.normal(size=(3, 13, N, N)) + np.array([4.0, 1.0, 0.0])[:, None, None, None]
+            h = rng.normal(size=(4, 13, N, N)) + np.array([4.0, 1.0, 0.0, 0.0])[:, None, None, None]
+            z = dict(d400_m=m, d400_h=h, d400_hc=hc, d400_H=0 * hc)
+            row = fake_row(wdir, U10)
+            meta = P.case_meta(row, hc)
+            base = P5.base_for(hc, meta)
+            y = B.target_v5(z, meta, base, gamma=gam)
+            back = P.to_physical(y, meta, enc=enc, base=base)
+            for key in ("m", "h"):          # ‖V‖ < ε — ошибка ≤ ε (контракт), иначе — точно
+                e = np.abs(back[key] - z[f"d400_{key}"])
+                slow = np.hypot(z[f"d400_{key}"][0], z[f"d400_{key}"][1]) < B.EPS
+                assert e.max() <= B.EPS + 1e-9 and e[:, ~slow].max() < 1e-9, (wdir, U10, key, e.max())
+            d = P5.prepare_case_v5(z, dict(row, loc="t"), None)
+            y16 = d["Y5"].astype(np.float64)
+            g = B.gamma_of(gam)
+            K = d["K"].astype(np.float64)
+            y16[39:52] -= g[0] * K[:13]
+            y16[91:104] -= g[1] * K[13:]
+            back = P.to_physical(y16, meta, enc=enc, base=base)
+            for k in ("m", "h"):           # f16-цель: ошибка — от шага f16 (вне ‖V‖ < ε)
+                fk = z[f"d400_{k}"]
+                slow = np.hypot(fk[0], fk[1]) < B.EPS
+                e = float(np.abs(back[k] - fk)[:, ~slow].max())
+                assert e < 0.02, (wdir, U10, k, e)
+    try:
+        P.to_physical(np.zeros((117, N, N)), meta, enc=enc)
+        raise AssertionError("выход v5 без базы должен падать")
+    except ValueError:
+        pass
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", default="")
     a = ap.parse_args()
     tests = [test_rot4_identity, test_rot_physical, test_sector, test_inverse_synthetic, test_map_names, test_maps_plane,
-             test_maps_hill, test_maps_equivariance, test_maps_rot4]
+             test_maps_hill, test_maps_equivariance, test_maps_rot4, test_inverse_v5_enc]
     for t in tests:
         t()
         print("ok", t.__name__)
