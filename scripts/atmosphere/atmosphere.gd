@@ -443,6 +443,9 @@ func is_air_field_on() -> bool:
 
 
 func _update_air_mode() -> void:
+	# Упрощённый ветер (off): профиль по высоте как в 0.8.0; auto/on — WindProfile (C2 v4).
+	if wind != null and cfg != null and (_air_mode == "off") != wind.simple_profile:
+		wind.set_simple_profile(_air_mode == "off", cfg.get("wind_profile_simple", {}))
 	var reason := ""
 	if _air_mode == "off":
 		reason = "air_model.enabled = off"

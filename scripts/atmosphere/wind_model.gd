@@ -29,6 +29,12 @@ var _alpha: float = 0.24
 var _z0: float = 1.0
 var _max_f: float = 1.0
 
+## Упрощённый режим ветра (air_model.enabled = off): профиль версии 0.8.0 — постоянные α и предел,
+## без зависимости от часа и облачности (configs/atmosphere.json → wind_profile_simple).
+var simple_profile: bool = false
+var _simple_alpha: float = 0.14
+var _simple_max: float = 1.8
+
 var _noise: FastNoiseLite
 var _noise_norm: float = 1.0
 var _inv_scale: float = 1.0
@@ -113,8 +119,21 @@ func set_conditions(sun_elev: float, cover_frac: float) -> void:
 	_update_profile()
 
 
-## α и предел профиля из WindProfile (z0 и f — как у решателя: AirCase.Z0, F_COR).
+## Профиль 0.8.0 для упрощённого режима: cfg — блок wind_profile_simple (alpha, max_factor).
+func set_simple_profile(on: bool, cfg: Dictionary = {}) -> void:
+	_simple_alpha = float(cfg.get("alpha", _simple_alpha))
+	_simple_max = float(cfg.get("max_factor", _simple_max))
+	simple_profile = on
+	_update_profile()
+
+
+## α и предел профиля из WindProfile (z0 и f — как у решателя: AirCase.Z0, F_COR); в упрощённом
+## режиме — постоянные α и предел 0.8.0.
 func _update_profile() -> void:
+	if simple_profile:
+		_alpha = _simple_alpha
+		_max_f = _simple_max
+		return
 	var k := WindProfile.stability_class(speed_ref, sun_elev_deg, cover)
 	_alpha = WindProfile.alpha(speed_ref, sun_elev_deg, cover)
 	_max_f = WindProfile.max_profile(_alpha, speed_ref, AirCase.Z0, AirCase.F_COR, k)
