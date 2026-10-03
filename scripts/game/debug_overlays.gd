@@ -3,7 +3,7 @@ extends Node
 ## Отладочные слои (configs/controls.json → debug; в «Управление» не выводятся):
 ## F1 — производительность простым текстом в левом верхнем углу;
 ## F2 — подробное меню аддона Debug Menu (графики; создаётся при первом нажатии);
-## F5 — ветер вокруг пилота: стрелки Debug Draw 3D на сетке нескольких высот над землёй;
+## F5 — ветер вокруг активной камеры: стрелки Debug Draw 3D на сетке нескольких высот над землёй;
 ## F6 — термики: полупрозрачные наклонённые столбы от источника до верха.
 ## Выключенный слой ничего не считает и не рисует. Воздух — только через публичные функции
 ## (mean_wind_at, air_velocity_at, time_s, field) — годится для любой модели воздуха.
@@ -12,6 +12,8 @@ extends Node
 var air: Node
 ## Пилот (центр сетки ветра и отбора термиков).
 var target: Node3D
+## Активная камера: вокруг неё строится сетка стрелок ветра (в любом режиме).
+var camera: Node3D
 ## Высота рельефа (x, z) → м.
 var height_fn: Callable
 
@@ -268,11 +270,12 @@ func w_color(w: float) -> Color:
 
 func _wind_grid() -> Array[Vector3]:
 	var out: Array[Vector3] = []
-	if target == null or not height_fn.is_valid():
+	var center_node: Node3D = camera if camera != null else target
+	if center_node == null or not height_fn.is_valid():
 		return out
-	var r := float(_cfg.get("wind_radius_m", 1200.0))
+	var r := float(_cfg.get("wind_radius_m", 1800.0))
 	var step := maxf(float(_cfg.get("wind_step_m", 150.0)), 20.0)
-	var p := target.global_position
+	var p := center_node.global_position
 	var cx := roundf(p.x / step) * step
 	var cz := roundf(p.z / step) * step
 	var n := int(r / step)
@@ -315,7 +318,7 @@ func _wind_frame(dt: float) -> void:
 			_dd.call("draw_arrow", pos, pos + v * arrow_s, w_color(v.y), 0.25, false, life)
 		_wind_i = end
 	# Фактический воздух у пилота (с пульсациями) — крупная стрелка над ним, каждый кадр.
-	if target != null:
+	if target != null and target.is_visible_in_tree():
 		var p := target.global_position + Vector3(0, 6, 0)
 		var va: Vector3 = air.call("air_velocity_at", p)
 		var scope2: Object = _dd.call("new_scoped_config")
