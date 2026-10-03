@@ -98,6 +98,7 @@ func _build() -> void:
 	else:
 		UiKit.heading(self, tr("app_title"), 56.0)
 	_add_quote(tr("menu_quote"))
+	_add_version()
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
 	var box := UiKit.snug_panel(self)
 	_status = UiKit.label(box, "", "HintLabel")
@@ -180,6 +181,26 @@ func _add_quote(text: String) -> void:
 	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 	l.add_theme_constant_override("shadow_offset_y", 2)
 	l.add_theme_constant_override("shadow_outline_size", 6)
+	add_child(l)
+
+
+## Версия (и короткий коммит сборки) мелким текстом в правом нижнем углу.
+func _add_version() -> void:
+	var c := BuildInfo.commit()
+	var l := Label.new()
+	l.name = "VersionLabel"
+	l.text = BuildInfo.version() + (" (%s)" % c if c != "" else "")
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	l.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	l.offset_right = -16.0
+	l.offset_bottom = -10.0
+	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	l.add_theme_constant_override("shadow_offset_y", 1)
 	add_child(l)
 
 
