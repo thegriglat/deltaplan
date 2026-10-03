@@ -49,3 +49,6 @@
 {"t": "2026-10-03T05:36:01", "by": "coordinator", "task": "ON-6", "ev": "started", "note": "dp-writer sonnet, ~/deltaplan-air-onnx-ON-6"}
 {"t": "2026-10-03T05:36:32", "by": "coordinator", "task": "ON-7", "ev": "created", "note": "Сквозная проверка: собранная игра Linux грузит сеть из user:// по README; состав Windows"}
 {"t": "2026-10-03T05:36:41", "by": "coordinator", "task": "ON-7", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-air-onnx-ON-7"}
+{"t": "2026-10-03T05:40:37", "by": "executor", "task": "ON-6", "ev": "reported", "commits": ["c95f3c2"], "note": "done: Написан data/air_nn/README.md (7 шагов с точными командами), пункт в CHANGELOG «В работе», ссылка на README в docs/guid…", "dp_feedback": "dp accept: grep -i в проверке не матчит кириллицу заглавной буквы (локаль не UTF-8 в раннере) — пришлось писать слово строчной; хорошо бы запускать проверки с LANG=C.UTF-8. Скоуп включал docs/guide, но README лежит в data/ — dp docs check его подхватывает только если в docs/."}
+{"t": "2026-10-03T05:40:54", "by": "executor", "task": "ON-6", "ev": "accepted", "note": "3/3 readme=ok:25; changelog=ok:нейросет; docs_check=ok:ошибок 0"}
+{"t": "2026-10-03T05:41:04", "by": "coordinator", "task": "ON-6", "ev": "merged", "commits": ["619d6d0"]}
