@@ -1,0 +1,36 @@
+{
+ "path": "/home/greg/air_nn_data/pilot/runs/2026-10-04_p3e7_fno/v7_fno/model.onnx",
+ "opset": 17,
+ "size_mb": 17.329329,
+ "inputs": {
+  "maps": [
+   1,
+   9,
+   96,
+   96
+  ],
+  "nums": [
+   1,
+   18
+  ]
+ },
+ "metadata": {
+  "deltaplan.p2_version": "4",
+  "deltaplan.out_enc": "v4",
+  "deltaplan.in_enc": "v4"
+ },
+ "ort_vs_torch_max_abs": 1.475214958190918e-06,
+ "ort_vs_torch_ok": true,
+ "time_ms": {
+  "4": {
+   "median": 29.057249514153227,
+   "min": 28.71485101059079
+  },
+  "1": {
+   "median": 59.50698850210756,
+   "min": 58.802269981242716
+  }
+ },
+ "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+ "onnxruntime": "1.30.0"
+}

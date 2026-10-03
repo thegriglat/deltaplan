@@ -13,6 +13,14 @@ from pilotnn import common as C  # noqa: E402
 from variants_table import row_of, f  # noqa: E402
 
 
+def row_of_train(rep, nm, r):
+    tc = json.loads((rep / f"{nm}__train" / "metrics.json").read_text())["sets"]["train"]["net"]["conv"]
+    ta = tc["area"]
+    r["train_set"] = dict(n_cases=tc["n_cases"], wind_median=ta["wind"]["median"], wind_p90=ta["wind"]["p90"],
+                          frac_wind_ok=ta["frac_wind_ok"], rho_median=(ta.get("rho") or {}).get("median"))
+    return r
+
+
 def grp(rep, name):
     p = rep / name / "metrics.json"
     m = json.loads(p.read_text())
@@ -47,6 +55,8 @@ def main():
         r = row_of(rp, nm, rc)
         if r is None:
             continue
+        if r.get("train_set") is None and (rep / f"{nm}__train" / "metrics.json").exists():     # E0/E1: оценка на обучающих — в отчёте E7
+            r = row_of_train(rep, nm, r)
         R[k] = r
         G[k], N[k] = grp(rp, nm)
     L = ["# P3E7: U-FNO против U-Net (E0, E1)", "",

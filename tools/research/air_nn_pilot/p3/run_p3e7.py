@@ -61,18 +61,18 @@ def main():
                                         epochs=m.get("epochs"), t_epoch=m.get("t_epoch_median_s"), best=m.get("best")), ensure_ascii=False) + "\n")
             if rc:
                 return rc
-    if a.probe:
+    if a.probe and not a.only:
         return 0
     info2 = json.loads((p2 / "run_info.json").read_text())
     split = json.loads((p2 / "split.json").read_text())
     t100 = json.loads((p2 / "curve_100" / "task.json").read_text())
 
-    def prep_eval(r, sp, onnx):
+    def prep_eval(r, sp, onnx, main_dir=None):
         r.mkdir(parents=True, exist_ok=True)
         C.atomic_write_json(r / "config.json", cfg); C.atomic_write_json(r / "split.json", sp)
         if not (r / "p6.json").exists():
             C.atomic_write_json(r / "p6.json", json.loads((p2 / "p6.json").read_text()))
-        C.atomic_write_json(r / "run_info.json", dict(copy.deepcopy(info2), curve=[], main_dir=str(d), onnx_path=str(onnx), name=r.name))
+        C.atomic_write_json(r / "run_info.json", dict(copy.deepcopy(info2), curve=[], main_dir=str(main_dir or d), onnx_path=str(onnx), name=r.name))
     if "eval" in todo:
         r = run / name
         prep_eval(r, split, r / "model.onnx")
@@ -87,6 +87,14 @@ def main():
         rc = sh(["-m", "pilotnn.evaluate", "eval", r, rep / r.name], log)
         if rc:
             return rc
+    if "train_eval_ref" in todo:                 # E0 и E1: обучающие места (в отчёте P3 их нет) — те же 60 случаев, свой каталог
+        for nm in ("v0_ctrl", "v1_wide"):
+            r = run / f"{nm}__train"
+            prep_eval(r, dict(split, train_ids=t100["train_ids"], **{k: [] for k in EMPTY}), r / "model.onnx", p3run / nm / "net")
+            print(f"оценка на обучающих: {nm}", flush=True)
+            rc = sh(["-m", "pilotnn.evaluate", "eval", r, rep / r.name], log)
+            if rc:
+                return rc
     if "table" in todo:
         rc = sh([HERE / "p3" / "p3e7_table.py", "--rep", rep, "--p3rep", base / "reports" / e7["p3_run"], "--name", name], log)
         print("таблица:", rep / "p3e7.md" if rc == 0 else f"код {rc}", flush=True)
