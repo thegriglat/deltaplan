@@ -1,0 +1,7 @@
+group,subset,best_sigma_by_median,med_gain_pct,p90_gain_pct,ok_gain_pp
+conv,область,0,0,0,0
+conv,гребни,0,0,0,0
+conv,подветренные,0,0,0,0
+nc,область,0,0,0,0
+nc,гребни,0,0,0,0
+nc,подветренные,0,0,0,0
