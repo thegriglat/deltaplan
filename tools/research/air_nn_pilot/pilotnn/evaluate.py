@@ -287,8 +287,8 @@ def bin_label(k, edges):
     return f"{edges[k]:g}–{edges[k + 1]:g}" if k + 1 < len(edges) else f"≥ {edges[k]:g}"
 
 
-GROUPS = ("conv", "nc", "all")             # сошедшиеся / несошедшиеся / все (для вердикта отказа и контроля)
-GROUP_NAMES = dict(conv="сошедшиеся", nc="несошедшиеся", all="все")
+GROUPS = ("conv", "nc", "all", "conf")             # сошедшиеся / несошедшиеся / все (для вердикта отказа и контроля)
+GROUP_NAMES = dict(conv="сошедшиеся", nc="несошедшиеся", all="все", conf="уверенно сошедшиеся")
 
 
 def _cat(l, dtype=np.float64):
@@ -350,7 +350,7 @@ class AreaAcc:
         n = float(E.shape[-1] * E.shape[-2])
         swh, swm = (Ph[2] - Th[2]).sum(axis=(-2, -1)), (Pm[2] - Tm[2]).sum(axis=(-2, -1))
         ub = u10_bin(row["U10"], self.edges)
-        for g in (gr["gh"], "all"):
+        for g in (gr["gh"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.ch += 1
             for k, v in (("wind", f32(dw)), ("lift_h", f32(dlh)), ("okw", okw), ("rho", f32(rho))):
@@ -360,20 +360,20 @@ class AreaAcc:
             q.bias["e"] += se; q.bias["v"] += sv; q.bias["wh"] += swh; q.bias["n"] += n
             b = q.bins.setdefault(ub, dict(cases=0, e=np.zeros(self.nA), v=np.zeros(self.nA), n=0.0))
             b["cases"] += 1; b["e"] += se; b["v"] += sv; b["n"] += n
-        for g in (gr["gm"], "all"):
+        for g in (gr["gm"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.cm += 1
             q.cells["lift_m"].append(f32(dlm).ravel())
             q.ridge["lift_m"].append(f32(dlm[r]))
             q.bias["wm"] += swm; q.bias["nm"] += n
-        for g in (gr["gall"], "all"):
+        for g in (gr["gall"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.cells["allok"].append(allok.ravel())
             q.ridge["allok"].append(allok[r])
         self.cases.append(dict(case=cid, loc=row["loc"], U10=float(row["U10"]), frac_wind_ok=float(okw.mean()),
                                wind_median=float(np.median(dw)), e60=float(ev.mean()), v60=float(vt.mean()),
                                gh=gr["gh"], gm=gr["gm"], target_h=gr["target_h"], target_m=gr["target_m"],
-                               spread_h=gr["spread_h"]))
+                               spread_h=gr["spread_h"], conf=gr["conf"]))
 
     def _res(self, g, with_q):
         q = self.sub[g]
@@ -418,9 +418,9 @@ class AreaAcc:
         res["bias_bins"] = {bin_label(k, self.edges): dict(cases=b["cases"], e=(b["e"] / max(b["n"], 1.0)).tolist(),
                                                             v=(b["v"] / max(b["n"], 1.0)).tolist())
                             for k, b in sorted(q.bins.items())}
-        mine = [c for c in self.cases if g == "all" or c["gh"] == g]
+        mine = [c for c in self.cases if g == "all" or (c["conf"] if g == "conf" else c["gh"] == g)]
         res["targets_h"] = {t: sum(c["target_h"] == t for c in mine) for t in sorted({c["target_h"] for c in mine})}
-        mine_m = [c for c in self.cases if g == "all" or c["gm"] == g]
+        mine_m = [c for c in self.cases if g == "all" or (c["conf"] if g == "conf" else c["gm"] == g)]
         res["targets_m"] = {t: sum(c["target_m"] == t for c in mine_m) for t in sorted({c["target_m"] for c in mine_m})}
         if g == "nc":
             # ошибка ветра сети относительно собственного разброса решения: медиана по случаям (решение h не сошлось,
@@ -449,7 +449,7 @@ def summarize(rows, ec):
     out = {}
     lt = ec["lift_ok_ms"]
     for g in GROUPS:
-        pick = lambda which: [r for r in rows if g == "all" or r[which] == g]  # noqa: E731
+        pick = lambda which: [r for r in rows if g == "all" or (r.get("conf") if g == "conf" else r[which] == g)]  # noqa: E731
         rh, rmm, ra = pick("gh"), pick("gm"), pick("gall")
         if not rh and not rmm:
             out[g] = None
@@ -634,7 +634,7 @@ def run_eval(run: Path, rep: Path):
                     kn = key_numbers(truth, pf, starts, g, lw, ec["rms_radius_m"])
                     for si, k in enumerate(kn):
                         k.update(case=cid, loc=row["loc"], start=si, U10=row["U10"], hour=row["hour"], gh=gr["gh"], gm=gr["gm"],
-                                 gall=gr["gall"])
+                                 gall=gr["gall"], conf=gr["conf"])
                         pts[pn].append(k)
                 if sname == "holdout_sys":
                     for gname in hold_groups(row["loc"], p6, ec):
