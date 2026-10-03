@@ -145,3 +145,6 @@
 {"t": "2026-10-03T19:15:54", "by": "coordinator", "task": "NN-P11", "ev": "merged", "note": "8be0138"}
 {"t": "2026-10-03T19:16:14", "by": "coordinator", "task": "NN-P12", "ev": "created", "note": "П3-Г: опыты кодировки и ёмкости пачкой (100 мест) и лучший вариант на 300 местах"}
 {"t": "2026-10-03T19:16:16", "by": "coordinator", "task": "NN-P12", "ev": "started", "note": "dp-researcher (Opus), ~/deltaplan-air-nn-NN-P12"}
+{"t": "2026-10-03T19:16:38", "by": "coordinator", "task": null, "ev": "note", "note": "dp: симлинк .venv в копии задачи мешает git worktree remove (untracked) — dp task/merge мог бы сам создавать и убирать симлинк venv исследовательского кода; в карточке/шаблоне задания нет синтаксиса dp lock (<имя> --timeout СЕК -- команда) — исполнители спотыкаются"}
+{"t": "2026-10-03T19:22:27", "by": "coordinator", "task": "NN-P14", "ev": "created", "note": "П-3: ошибка сети по условиям случая (П-2, затем лучший вариант П-3)"}
+{"t": "2026-10-03T19:22:29", "by": "coordinator", "task": "NN-P14", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P14; запрос пользователя через главную сессию"}
