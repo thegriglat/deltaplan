@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Написан data/air_nn/README.md (7 шагов с точными командами), пункт в CHANGELOG «В работе», ссылка на README в docs/guide/air-model.md (абзац ON-5).",
+  "commits": [
+    "c95f3c2 ON-6: README «как вставить сеть П-2 и полетать», CHANGELOG, ссылка в guide"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "25",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "нейросет",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept ON-6",
+  "uncertain": [
+    {
+      "where": "data/air_nn/README.md:шаг 5",
+      "why": "путь журнала user://logs/godot.log — умолчание Godot (в project.godot file_logging не задан), запуском не проверялся",
+      "checked": "grep project.godot"
+    },
+    {
+      "where": "data/air_nn/README.md:шаг 2",
+      "why": "пути user:// Linux ~/.local/share/Deltaplan и Windows %APPDATA%\\Deltaplan выведены из custom_user_dir_name=Deltaplan; в контракте O6 стояла форма app_userdata/<проект>, которая при custom_user_dir_name неверна",
+      "checked": "project.godot строки 13-14"
+    },
+    {
+      "where": "data/air_nn/README.md:шаг 3",
+      "why": "блок XDG_DATA_HOME с симлинком export_templates взят из tools/check.sh; для tools/build.sh он не нужен, README подаёт его только для ручного godot",
+      "checked": "tools/check.sh"
+    }
+  ],
+  "dp_feedback": "dp accept: grep -i в проверке не матчит кириллицу заглавной буквы (локаль не UTF-8 в раннере) — пришлось писать слово строчной; хорошо бы запускать проверки с LANG=C.UTF-8. Скоуп включал docs/guide, но README лежит в data/ — dp docs check его подхватывает только если в docs/.",
+  "t": "2026-10-03T05:40:37",
+  "by": "executor"
+}

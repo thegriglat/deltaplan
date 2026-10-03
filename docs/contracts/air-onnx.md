@@ -153,8 +153,8 @@ static func guard(row: Dictionary, domain: Dictionary) -> Dictionary       # {ro
   `air_model.nn_model` (по умолчанию `res://data/air_nn/model.onnx`).
 - `res://data/air_nn/model.onnx` — файл сети в git этой ветки (кладёт пользователь; до П-2 — нет, тесты берут
   `tiny_p2v4.onnx`); экспорт включает `*.onnx` (`export_presets.cfg → include_filter`), ORT читает из памяти.
-- `user://air_nn/model.onnx` — подмена без пересборки (Linux `~/.local/share/godot/app_userdata/<проект>/air_nn/`,
-  Windows `%APPDATA%\Godot\app_userdata\<проект>\air_nn\` — точные пути пишет ON-6).
+- `user://air_nn/model.onnx` — подмена без пересборки (`use_custom_user_dir`, имя `Deltaplan`: Linux
+  `~/.local/share/Deltaplan/air_nn/`, Windows `%APPDATA%\Deltaplan\air_nn\`; инструкция — `data/air_nn/README.md`).
 - Проверка файла до игры: `tools/air_onnx/test_contract_o1.py --model <файл>`.
 
 ## Расхождения

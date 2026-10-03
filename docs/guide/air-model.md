@@ -159,7 +159,7 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
 клеток по высоте, выше 2 км отклонения от притока гаснут к 3 км). Окон нет (один уровень), GPU не нужен, работает
 headless; два прохода k — как у решателя. Файл сети: `--air-nn-model=` → `user://air_nn/model.onnx` →
 `air_model.nn_model`. Отказ (нет расширения, файла, формат ≠ O1, ORT, NaN) — `air_model: analytic (нейросеть: …)`.
-Замер: `tools/air_onnx/nn_load_probe.sh <model.onnx>`. Пункт настроек «Ветер над рельефом»: расчёт / упрощённый / нейросеть.
+Как вставить сеть и полетать — `data/air_nn/README.md`. Замер: `tools/air_onnx/nn_load_probe.sh <model.onnx>`. Пункт настроек «Ветер над рельефом»: расчёт / упрощённый / нейросеть.
 
 **Загрузка.** Этап «Рассчитываем ветер» / "Computing wind" (`LoadProgress`, ключ `wind`, вес в
 `configs/ui.json → loading.stage_weights`) — после этапа «Камни, кусты и дороги», когда известен
