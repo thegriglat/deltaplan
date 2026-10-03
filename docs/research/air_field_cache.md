@@ -313,7 +313,7 @@ RX 5600 XT: пропускная способность памяти 288–336 �
 
 ## 9. Воспроизведение и данные
 
-Исходные данные и скрипты — в рабочем каталоге сессии (не в репозитории): `/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/55d419f6-4839-418d-8f65-ded00754411a/scratchpad/` — копия проекта `dp/` (без `.git`, `build`, `tools/research`) с добавленным каталогом `dp/tools/air_cache/` (дамп `probe.gd`, замеры `decode_bench.gd`, `qdec_bench.gd`, `grids.gd`), правка `dp/tools/loading/load_probe.gd` (ключи `--wind`, `--from`, `--temp`, `--sky`), анализ — `an/*.py`, дампы полей (≈ 4 ГБ) — `out/scan/*.bin`, сводки — `an/all_runs.json`, `an/main*.json`, `out/base/compress_*.json`.
+Исходные данные и скрипты — в рабочем каталоге сессии (не в репозитории): `~/projects/.tmp/claude-1000/-home-greg-deltaplan/55d419f6-4839-418d-8f65-ded00754411a/scratchpad/` — копия проекта `dp/` (без `.git`, `build`, `tools/research`) с добавленным каталогом `dp/tools/air_cache/` (дамп `probe.gd`, замеры `decode_bench.gd`, `qdec_bench.gd`, `grids.gd`), правка `dp/tools/loading/load_probe.gd` (ключи `--wind`, `--from`, `--temp`, `--sky`), анализ — `an/*.py`, дампы полей (≈ 4 ГБ) — `out/scan/*.bin`, сводки — `an/all_runs.json`, `an/main*.json`, `out/base/compress_*.json`.
 
 Суть дампа (в `AirRuntime`-пути, в точности как делает игра):
 

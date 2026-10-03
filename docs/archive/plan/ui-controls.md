@@ -69,7 +69,7 @@
 ### UC-3. Обзор с WASD при трапеции мышью (dp-engineer)
 - **Скоуп**: действия `look_up/look_down/look_left/look_right` = W/S/A/D в `controls.json → keys` (+ `_doc`); `InputController`: при «мышь — трапеция» (bar и мышь захвачена) клавиши обзора не двигают трапецию (в полёте и на разбеге), действия без физической клавиши (автопилот, тесты) — считаются; `CameraRig`: в кабине при том же условии клавиши обзора поворачивают голову (`key_rate_deg_s`), в `chase` — ничего, `free` — без изменений; `camera.json → cockpit.head.key_rate_deg_s`; контрактный тест У2.
 - **Не трогать**: тексты (UC-4), `ground_run.gd`, физику.
-- **Приёмка** (headless): `tests/game/test_ui_controls_contracts.gd` — У2 (ниже) зелёный; У1 без изменений (режим `look`); `--filter=ui_controls`, `contracts`, `game`, `ui`, `flight` без новых падений; скриншоты кабины: взгляд вперёд и после 1 с A / W — в `/home/greg/deltaplan/build/screenshots/UC-3/`.
+- **Приёмка** (headless): `tests/game/test_ui_controls_contracts.gd` — У2 (ниже) зелёный; У1 без изменений (режим `look`); `--filter=ui_controls`, `contracts`, `game`, `ui`, `flight` без новых падений; скриншоты кабины: взгляд вперёд и после 1 с A / W — в `build/screenshots/UC-3/`.
 - Оценка: 2–3 ч.
 
 ### UC-4. Тексты (dp-writer)

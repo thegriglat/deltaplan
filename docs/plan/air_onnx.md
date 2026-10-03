@@ -36,7 +36,7 @@ related: ["docs/contracts/air-onnx.md", "docs/plan/air_nn.md", "docs/guide/air-m
 - macOS-сборка, CI, подпись — по возможности. Запуск на Windows здесь проверить нечем (wine нет) — проверяет пользователь.
 
 ## Задачи
-Python — venv пилота только на чтение: `CUDA_VISIBLE_DEVICES= /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python`
+Python — venv пилота только на чтение: `CUDA_VISIBLE_DEVICES= ~/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python`
 (ничего не ставить; GPU не трогать). Тяжёлые CPU-прогоны (сборка ORT/godot-cpp, пачки тестов) — `dp lock cpu`.
 
 ### ON-1. Экспорт и малая тестовая сеть (dp-researcher, Sonnet, ~1 ч)

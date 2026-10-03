@@ -39,11 +39,11 @@
 
 **W3-01. Существующие крылья по E1–E9** — `dp-engineer` (Opus).
 - Скоуп: `glider_params.json` → `training` (`tip_chord_m` 0,90 → 1,00), `sport` (`battens_per_side` 14 → 11, `nose_forward_m` 1,30 → 1,35, `nose_angle_deg` 132 → 128, `lower_cover` 0,70 → ≈0,9 по К1), `combat` (`battens_per_side` 16 → 12), `laminar` (`battens_per_side` 13 → 9); E2, E6–E9 — без правок. Пересобрать изменённые модели. Убрать жёсткие списки id из `tools/blender/render_all.sh`, `scenes/models_preview/check_models.gd` (брать из `configs/wings/*.json`), строку `kind` в `render_views.py`.
-- Приёмка: `test_wing_models_contract` зелёный; `check_models.gd` — ИТОГ: OK; тесты крыльев (test_wings, test_polar, test_mass, test_wing_catalog, test_wing_picker, test_roll, test_stall, test_landing, test_ground) — без новых падений; рендеры «было/стало» (снизу, 3/4, сбоку) для 4 изменённых крыльев в `/home/greg/deltaplan/build/screenshots/w3-01/`.
+- Приёмка: `test_wing_models_contract` зелёный; `check_models.gd` — ИТОГ: OK; тесты крыльев (test_wings, test_polar, test_mass, test_wing_catalog, test_wing_picker, test_roll, test_stall, test_landing, test_ground) — без новых падений; рендеры «было/стало» (снизу, 3/4, сбоку) для 4 изменённых крыльев в `build/screenshots/w3-01/`.
 
 **W3-02. Шаблон новой модели: спецификация (К3), применяющий скрипт (К1, К2, К4), проба на N1 и N24** — `dp-engineer` (Opus).
 - Скоуп: `make_3d_tz.py` дополнительно пишет `out/wings3d_spec.json` (К3; ТЗ при перегенерации не меняется по числам); новый скрипт `tools/research/data/wing_passports/make_new_wings.py <id…>` — запись `glider_params.json` (копия базы + `params` + своя раскраска), `configs/wings/<id>.json` (копия базового конфига + `config` + поляра по К4 + `_doc` с источниками), строка `locale/ui.csv` (название «Производитель Модель Размер», ru = en); пробно — N1 `icaro_piuma` и N24 `ww_t2c`: модели, конфиги, перевод. Проверить меню выбора крыла при 15–20 крыльях в группе (временно сгенерировать все 39 конфигов, не коммитить): влезает ли список; если нет — прокрутка.
-- Приёмка: спецификация совпадает с таблицами ТЗ (скрипт сверки или тест); для N1/N24 — `test_wing_models_contract` и тесты крыльев зелёные, `check_models.gd` OK, площадь в плане ±2 %, `reference.best_glide` = базе, сваливание поляры против DHV Vmin — числа в отчёте; рендеры N1/N24 (снизу, 3/4, сбоку) и скриншот меню выбора крыла — в `/home/greg/deltaplan/build/screenshots/w3-02/`.
+- Приёмка: спецификация совпадает с таблицами ТЗ (скрипт сверки или тест); для N1/N24 — `test_wing_models_contract` и тесты крыльев зелёные, `check_models.gd` OK, площадь в плане ±2 %, `reference.best_glide` = базе, сваливание поляры против DHV Vmin — числа в отчёте; рендеры N1/N24 (снизу, 3/4, сбоку) и скриншот меню выбора крыла — в `build/screenshots/w3-02/`.
 
 **Шлюз 1**: скриншоты «было/стало», N1/N24, правило К4 — главной сессии.
 
@@ -52,7 +52,7 @@
 После шлюза: пачками по 9–10 крыльев на исполнителя (`dp-engineer`, Sonnet — запуск скрипта, сборка, просмотр; сложности — Opus), до 2 пачек параллельно (общие файлы `glider_params.json`, `locale/ui.csv` — правки в разных местах, слияние без конфликтов проверяет координатор).
 - W3-03: N2, N3, N4, N10, N11, N12, N13, N14, N15 · W3-04: N20, N24*, N25, N26, N28, N29, N31, N32 (*N24 уже в W3-02).
 - W3-05: N5–N9, N16–N19 · W3-06: N21–N23, N27, N30, N33–N39.
-- Приёмка каждой пачки: контрактный тест и тесты крыльев зелёные, `check_models.gd` OK, лист рендеров (3/4 и снизу, по крылу) в `/home/greg/deltaplan/build/screenshots/<задача>/`, особенности вида из «Заметок по виду» — только то, что выражается полями К1 (`wheels`, `faired_uprights`, `tip_round`, `keel_pocket_m`, `short_battens`), не больше 2 попыток; строки в таблицу моделей `docs/guide/models.md`.
+- Приёмка каждой пачки: контрактный тест и тесты крыльев зелёные, `check_models.gd` OK, лист рендеров (3/4 и снизу, по крылу) в `build/screenshots/<задача>/`, особенности вида из «Заметок по виду» — только то, что выражается полями К1 (`wheels`, `faired_uprights`, `tip_round`, `keel_pocket_m`, `short_battens`), не больше 2 попыток; строки в таблицу моделей `docs/guide/models.md`.
 
 ## Риски
 

@@ -244,7 +244,7 @@ headless; два прохода k — как у решателя. Файл се�
 ```bash
 cd tools/research/air3d
 PY=../heat_ca/.venv/bin/python
-F=/home/greg/deltaplan/tools/research/air3d/out/fields   # поля прикидки (вне git)
+F=tools/research/air3d/out/fields   # поля прикидки (вне git)
 $PY to_game_field.py $F/W100_h13_U3_d180.npz $F/W100_noheat_U3_d180.npz fields/game/kayancha_w100_h13_U3_d180
 cd ../../..
 godot --path . -- --location=ongudai --wind=3 --from=180 --hour=12 \

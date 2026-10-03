@@ -12,7 +12,7 @@ applied_in: "configs/wings/*.json (поляры)"
 # Открытые источники характеристик и поляр современных дельтапланов
 
 Разведка от 2026-09-30. Всё, что ниже, проверено скачиванием (кроме помеченного «не проверено»). Сырьё лежит
-вне репозитория: `/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/efb5779e-4595-4d4a-afb9-0460dce6d3a1/scratchpad/raw/`
+вне репозитория: `~/projects/.tmp/claude-1000/-home-greg-deltaplan/efb5779e-4595-4d4a-afb9-0460dce6d3a1/scratchpad/raw/`
 (PolarStore.cpp, .plr, PDF руководств, HTML страниц). Код игры не менялся.
 
 ## 1. Главный вывод
