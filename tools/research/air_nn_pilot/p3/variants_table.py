@@ -46,6 +46,15 @@ def row_of(rep: Path, name, rc):
                                                     rho_p90=rr.get("p90"), wind_median=(cc.get("area") or {}).get("wind", {}).get("median"))
     nrho = ((nc or {}).get("area") or {}).get("rho") or {}
     mm = m["main"]
+    hist = mm.get("history") or []
+    tr = None
+    pt = rep / f"{name}__train" / "metrics.json"
+    if pt.exists():
+        tc = json.loads(pt.read_text())["sets"]["train"]["net"]["conv"]
+        ta = tc["area"]
+        tr = dict(n_cases=tc["n_cases"], wind_median=ta["wind"]["median"], wind_p90=ta["wind"]["p90"],
+                  frac_wind_ok=ta["frac_wind_ok"], frac_lift_m_ok=ta.get("frac_lift_m_ok"), frac_lift_h_ok=ta.get("frac_lift_h_ok"),
+                  rho_median=(ta.get("rho") or {}).get("median"))
     ok = (rho.get("median") is not None and rho["median"] <= rc["median_max"] and rho["p90"] <= rc["p90_max"])
     return dict(
         name=name, n_cases_conv=c["n_cases"], wind_median=ar["wind"]["median"], wind_p90=ar["wind"]["p90"],
@@ -55,7 +64,8 @@ def row_of(rep: Path, name, rc):
         nc_wind_median=(((nc or {}).get("area") or {}).get("wind") or {}).get("median"),
         hp_wind_median=(hp or {}).get("area", {}).get("wind", {}).get("median") if hp else None,
         systems=groups, t_epoch_s=mm.get("t_epoch_median_s"), epochs=mm.get("epochs"), best_epoch=(mm.get("best") or {}).get("epoch"),
-        n_params=mm.get("n_params"), n_train=mm.get("n_train"), enc=m.get("enc"), channels=(m.get("model_cfg") or {}).get("channels"),
+        n_params=mm.get("n_params"), n_train=mm.get("n_train"), train_set=tr,
+        loss_val_best=(mm.get("best") or {}).get("val"), loss_train_last=hist[-1]["train"] if hist else None, enc=m.get("enc"), channels=(m.get("model_cfg") or {}).get("channels"),
         onnx=dict(path=m["onnx"]["path"], size_mb=m["onnx"]["size_mb"], time_ms_4=m["onnx"]["time_ms"].get("4", {}).get("median"),
                   ort_vs_torch_max_abs=m["onnx"]["ort_vs_torch_max_abs"], ort_vs_torch_ok=m["onnx"]["ort_vs_torch_ok"],
                   inputs=m["onnx"]["inputs"], metadata=m["onnx"].get("metadata", {})))
@@ -83,6 +93,23 @@ def verdict(r):
         lines.append("ни одно правило не выполнено целиком (лучше (0) на ≥ 10 %, но не по условиям «кодировка»/«ёмкость»)")
     lines.append("медианы: " + ", ".join(f"{NUM[k]} {m[k]:.3f}" for k in m) + "; p90: " + ", ".join(f"{NUM[k]} {p[k]:.3f}" for k in p))
     return v, eb, lines
+
+
+def train_lines(r):
+    """Вывод по обучающим: снижает ли ошибку на обучении кодировка (той же ширины) или только ширина, или оба
+    (порог — разброс от зерна по (0) против curve_100 на обучающих)."""
+    t = {k: (r.get(k) or {}).get("train_set") for k in NUM}
+    if not all(t.values()) or not (r.get("p2_c100") or {}).get("train_set"):
+        return ["обучающие: оценок нет"]
+    m = {k: v["wind_median"] for k, v in t.items()}
+    sp = abs(m["v0_ctrl"] - r["p2_c100"]["train_set"]["wind_median"])
+    eb = min(("v2_in5", "v3_out5", "v4_io5"), key=lambda k: m[k])
+    d_enc, d_wide = m["v0_ctrl"] - m[eb], m["v0_ctrl"] - m["v1_wide"]
+    enc_ok, wide_ok = d_enc > max(sp, 0.1 * m["v0_ctrl"]), d_wide > max(sp, 0.1 * m["v0_ctrl"])
+    v = ("оба" if enc_ok and wide_ok else "кодировка" if enc_ok else "ширина (ёмкость)" if wide_ok else "ни то, ни другое")
+    return [f"обучающие, медиана ветра: (0) {m['v0_ctrl']:.3f}, (1) {m['v1_wide']:.3f}, (2) {m['v2_in5']:.3f}, (3) {m['v3_out5']:.3f}, "
+            f"(4) {m['v4_io5']:.3f}; разброс от зерна {sp:.3f}; порог — max(разброс, 10 % от (0))",
+            f"снижает ошибку на обучении: **{v}** (кодировка {NUM[eb]} −{d_enc:.3f}, ширина (1) −{d_wide:.3f} м/с к (0))"]
 
 
 def f(x, nd=3, pct=False):
@@ -139,6 +166,20 @@ def main():
         if r:
             L.append(f"| {labels[n]} | {f(r['rho_median'], 2)} / {f(r['rho_p90'], 2)} | {f(r['rho_frac_le1'], pct=True)} | "
                      f"{f(r['nc_rho_median'], 2)} / {f(r['nc_rho_p90'], 2)} | {f(r['nc_wind_median'])} |")
+    L += ["", "## Обучающие случаи (60 случаев из обучения curve_100 П-2 — в обучении всех строк; сошедшиеся, 60 м)", "",
+          "Ошибка обучения (loss): v4 и v5 считаются по-разному (v5 — ошибка вектора с весом скорости) — сравнимы только внутри "
+          "кодировки выхода.", "",
+          "| вариант | случаев | ветер медиана | p90 | «ок» ветра | «ок» подъёма m / h | ρ медиана | (г) медиана | loss проверки (лучшая) | loss обучения (последняя эпоха) |",
+          "|---|---|---|---|---|---|---|---|---|---|"]
+    for n in order:
+        r = rows.get(n)
+        t = (r or {}).get("train_set")
+        if r and t:
+            L.append(f"| {labels[n]} | {t['n_cases']} | {f(t['wind_median'])} | {f(t['wind_p90'])} | {f(t['frac_wind_ok'], pct=True)} | "
+                     f"{f(t['frac_lift_m_ok'], pct=True)} / {f(t['frac_lift_h_ok'], pct=True)} | {f(t['rho_median'], 2)} | "
+                     f"{f(r['wind_median'])} | {f(r['loss_val_best'], 4)} | {f(r['loss_train_last'], 4)} |")
+    tl = train_lines(rows)
+    L += [""] + [f"- {x}" for x in tl]
     systems = sorted({s for n in order if rows.get(n) for s in rows[n]["systems"]})
     L += ["", "### (г) по горным системам, сошедшиеся: ρ медиана / p90 (ветер медиана, м/с)", "",
           "| вариант | " + " | ".join(systems) + " |", "|---|" + "---|" * len(systems)]
@@ -166,7 +207,7 @@ def main():
     (rep / "variants.md").write_text("\n".join(L) + "\n")
     C.atomic_write_json(rep / "variants.json", dict(
         rows=rows, labels=labels, spread_seed=spread, choice=sel, verdict=dict(rule=v, best_encoding=eb, lines=vlines),
-        replace_rule=rc, best=dict(best, run=a.best300, variant=sel.get("best"))))
+        train_verdict=train_lines(rows), replace_rule=rc, best=dict(best, run=a.best300, variant=sel.get("best"))))
     print("\n".join(L))
     return 0
 
