@@ -261,3 +261,14 @@ func test_loading_screen_follows_progress() -> void:
 	l.close()
 	check(not l.visible, "close прячет экран")
 	l.queue_free()
+
+
+## Версия в правом нижнем углу главного меню: метка есть и содержит версию из ProjectSettings.
+func test_start_menu_shows_version() -> void:
+	var m: StartMenu = _scene("res://scenes/ui/start_menu.tscn")
+	var l := m.get_node_or_null("VersionLabel") as Label
+	check(l != null, "метка версии есть")
+	if l != null:
+		var v := String(ProjectSettings.get_setting("application/config/version"))
+		check(v != "" and l.text.contains(v), "метка содержит версию %s: %s" % [v, l.text])
+	m.queue_free()
