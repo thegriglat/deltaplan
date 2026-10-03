@@ -26,8 +26,11 @@ MAX_KB = 40
 
 
 def root():
-    p = Path(__file__).resolve().parent.parent
-    return p
+    """Рабочая копия из cwd (dp перезапускается из главной копии, но работать должен там, где вызван); вне git — копия скрипта."""
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    if r.returncode == 0 and (Path(r.stdout.strip()) / "docs").is_dir():
+        return Path(r.stdout.strip())
+    return Path(__file__).resolve().parent.parent
 
 
 ROOT = root()
