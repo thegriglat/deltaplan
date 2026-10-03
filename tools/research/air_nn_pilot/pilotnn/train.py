@@ -31,7 +31,21 @@ from . import common as C  # noqa: E402
 from . import model as M  # noqa: E402
 from .prep import AGL, N_CH, REFLECT_FILM_SIGN, REFLECT_MAP_SIGN, REFLECT_OUT_SIGN  # noqa: E402
 
-CODE_FILES = [Path(__file__), Path(M.__file__), Path(__file__).with_name("prep.py")]
+CODE_FILES = [Path(__file__), Path(M.__file__), Path(__file__).with_name("prep.py"),
+              Path(__file__).with_name("prep5.py"), Path(__file__).with_name("base.py"),
+              Path(__file__).with_name("fno.py")]
+NA = len(AGL)
+# выход v5 (П2 v5): каналы c·13 + a; c: 0 a_m, 1 sd_m, 2 cd_m, 3 wrel_m, 4 a_h, 5 sd_h, 6 cd_h, 7 wrel_h, 8 θ′
+V5_W = ((3 * NA, 4 * NA), (7 * NA, 8 * NA))           # каналы w_rel (m, h)
+V5_FLOOR = (0.02, 0.02, 0.02, 0.005, 0.02, 0.02, 0.02, 0.005, 0.05)
+DIR_MIN_MS = 0.5                                      # поворот не учитывается при ‖V‖ < 0,5 м/с (П2 v5)
+
+
+def enc_of(task):
+    """Кодировка прогона (П2 v5): inputs/outputs v4|v5, gamma (γ_a, dict(m, h)), каталоги кеша v5."""
+    e = dict(task.get("enc") or {})
+    return dict(inputs=e.get("inputs", "v4"), outputs=e.get("outputs", "v4"), pack=int(e.get("pack", 0) or 0),
+                gamma=e.get("gamma"), prep5_dirs=task.get("prep5_dirs") or [], w_rel_weight=float(e.get("w_rel_weight", 1.0)))
 
 
 def set_determinism(seed):
@@ -58,21 +72,110 @@ def case_file(prep, cid):
 def load_arrays(prep, ids, with_y=True):
     """Кеш подготовки (каталог или список каталогов) → массивы в ОЗУ: X (n,9,96,96) f32, F (n,18) f32,
     Y (n,91,96,96) f16."""
-    X, F, Y, metas = [], [], [], []
-    for cid in ids:
+    # массивы выделяются сразу целиком и заполняются по случаю: без списка + np.stack (двойной пик ОЗУ)
+    X = F = Y = None
+    metas = []
+    for i, cid in enumerate(ids):
         with np.load(case_file(prep, cid)) as z:
-            X.append(z["X"]); F.append(z["F"])
+            if X is None:
+                X = np.empty((len(ids),) + z["X"].shape, z["X"].dtype)
+                F = np.empty((len(ids),) + z["F"].shape, z["F"].dtype)
+                if with_y:
+                    Y = np.empty((len(ids),) + z["Y"].shape, z["Y"].dtype)
+            X[i] = z["X"]; F[i] = z["F"]
             if with_y:
-                Y.append(z["Y"])
+                Y[i] = z["Y"]
             metas.append(json.loads(str(z["meta"])))
-    return np.stack(X), np.stack(F), (np.stack(Y) if with_y else None), metas
+    return X, F, Y, metas
+
+
+def load_arrays_enc(prep, enc, ids, with_y=True):
+    """Как `load_arrays`, но по кодировке: вход v5 = карты v4 (кеш v4) + карты 9–26 (кеш v5); выход v5 — цель v5
+    (117, f16) с w_rel = Y5[w] − γ_a·K, и вес скорости W = max(‖V‖, ε)/S (26, f16). → X, F, Y, W | None, metas.
+    Массивы выделяются целиком и заполняются по случаю (без двойного пика ОЗУ)."""
+    if enc["inputs"] == "v4" and enc["outputs"] == "v4":
+        X, F, Y, metas = load_arrays(prep, ids, with_y)
+        return X, F, Y, None, metas
+    from . import prep5 as P5
+    n = len(ids)
+    nx_ = 9 + (P5.N_XE if enc["inputs"] == "v5" else 0)
+    v5o = enc["outputs"] == "v5"
+    X = F = Y = W = None
+    metas = []
+    if v5o and with_y:
+        from .base import gamma_of
+        gm = gamma_of(enc["gamma"]).astype(np.float32)            # (2, 13, 1, 1)
+    for i, cid in enumerate(ids):
+        with np.load(case_file(prep, cid)) as z:
+            if X is None:
+                X = np.empty((n, nx_) + z["X"].shape[1:], np.float32)
+                F = np.empty((n,) + z["F"].shape, z["F"].dtype)
+            X[i, :9] = z["X"]; F[i] = z["F"]
+            if with_y and not v5o:
+                if Y is None:
+                    Y = np.empty((n,) + z["Y"].shape, z["Y"].dtype)
+                Y[i] = z["Y"]
+            metas.append(json.loads(str(z["meta"])))
+        if nx_ > 9 or (v5o and with_y):
+            with np.load(P5.case_file5(enc["prep5_dirs"], cid)) as z5:
+                if nx_ > 9:
+                    X[i, 9:] = z5["Xe"]
+                if v5o and with_y:
+                    if Y is None:
+                        Y = np.empty((n,) + z5["Y5"].shape, np.float16)
+                        W = np.empty((n,) + z5["V"].shape, np.float16)
+                    Y[i] = z5["Y5"]
+                    K = z5["K"].astype(np.float32)
+                    for g, (a, b) in enumerate(V5_W):
+                        Y[i, a:b] = (z5["Y5"][a:b].astype(np.float32) - gm[g] * K[g * NA:(g + 1) * NA]).astype(np.float16)
+                    W[i] = z5["V"]
+    return X, F, Y, W, metas
+
+
+def v5_norms(Y, W):
+    """Нормировка ошибки v5 по обучению: σ²_V(g, a) = средн. (‖V‖/S)²·(a² + sin²δ + (1 − cos δ)²) — квадрат
+    «вектора отклонения от базы» (/S), пол 2·0,02²; → (2, 13) f32."""
+    acc = np.zeros((2, NA), np.float64)
+    for i in range(0, len(Y), 32):
+        y = Y[i:i + 32].astype(np.float32).reshape(-1, 9, NA, *Y.shape[-2:])
+        w2 = W[i:i + 32].astype(np.float32).reshape(-1, 2, NA, *Y.shape[-2:]) ** 2
+        for g, c0 in ((0, 0), (1, 4)):
+            q = w2[:, g] * (y[:, c0] ** 2 + y[:, c0 + 1] ** 2 + (1 - y[:, c0 + 2]) ** 2)
+            acc[g] += q.sum(axis=(0, 2, 3), dtype=np.float64)
+    s2 = acc / (len(Y) * Y.shape[-1] * Y.shape[-2])
+    return np.maximum(s2, 2 * 0.02 ** 2).astype(np.float32)
 
 
 def channel_scale(Y):
-    """std каждого из 91 каналов по обучению (масштаб потерь и выхода), не меньше пола канала."""
-    s = np.sqrt(np.mean(Y.astype(np.float32) ** 2, axis=(0, 2, 3)) + 1e-12)   # rms (отклонение от притока, центр 0)
-    floor = np.repeat([0.02, 0.02, 0.005, 0.02, 0.02, 0.005, 0.05], len(AGL)).astype(np.float32)
+    """std каждого из 91 (v4) или 117 (v5) каналов по обучению (масштаб потерь и выхода), не меньше пола канала."""
+    acc = np.zeros(Y.shape[1], np.float64)   # rms по кускам: целиком Y во f32 и его квадрат не влезают в ОЗУ
+    for i in range(0, len(Y), 64):
+        y = Y[i:i + 64].astype(np.float32)
+        acc += np.einsum("nchw,nchw->c", y, y, dtype=np.float64)
+    s = np.sqrt(acc / (len(Y) * Y.shape[2] * Y.shape[3]) + 1e-12).astype(np.float32)   # rms (отклонение от притока, центр 0)
+    fl = [0.02, 0.02, 0.005, 0.02, 0.02, 0.005, 0.05] if Y.shape[1] == N_CH * NA else V5_FLOOR
+    floor = np.repeat(fl, len(AGL)).astype(np.float32)
     return np.maximum(s, floor)
+
+
+def loss_v5(p, y, wv, S, scale, sv2, hw13, w_rel_weight=1.0):
+    """Ошибка выхода v5 (П2 v5, выбор NN-P12): разгон и поворот — с весом скорости, ≈ квадрат ошибки вектора
+    (‖V‖/S)²·(Δa² + Δsin²δ + Δcos²δ) / (σ²_V/2) (считается как 2 канала, как u∥ и u⊥ в v4); поворот не считается
+    при ‖V‖ < 0,5 м/с; w_rel и θ′ — по rms канала (как v4), w_rel × w_rel_weight. Среднее по 7 «каналам» и высотам
+    с весом высоты (как v4: 91 канал = 7 × 13). p, y (B,117,H,W); wv (B,26,H,W) = max(‖V‖,ε)/S; S (B,)."""
+    B_, _, Hh, Ww = p.shape
+    d = (p - y).view(B_, 9, NA, Hh, Ww)
+    wv = wv.view(B_, 2, NA, Hh, Ww)
+    sc = scale.view(9, NA)
+    tot = 0.0
+    for g, c0 in ((0, 0), (1, 4)):
+        v = wv[:, g]
+        m = (v * S[:, None, None, None] >= DIR_MIN_MS).to(d.dtype)
+        th = v * v * (d[:, c0] ** 2 + m * (d[:, c0 + 1] ** 2 + d[:, c0 + 2] ** 2)) / (0.5 * sv2[g])[None, :, None, None]
+        tw = (d[:, c0 + 3] / sc[c0 + 3][None, :, None, None]) ** 2 * w_rel_weight
+        tot = tot + th + tw
+    tot = tot + (d[:, 8] / sc[8][None, :, None, None]) ** 2
+    return tot / 7.0 * hw13[None, :, None, None]
 
 
 def height_weights(cfg):
@@ -83,7 +186,7 @@ def height_weights(cfg):
 class EMA:
     def __init__(self, model, decay):
         self.decay = decay
-        self.shadow = {k: v.detach().clone().float() for k, v in model.state_dict().items()}
+        self.shadow = {k: (v.detach().clone() if v.is_complex() else v.detach().clone().float()) for k, v in model.state_dict().items()}
         self.n = 0
 
     @torch.no_grad()
@@ -91,8 +194,8 @@ class EMA:
         self.n += 1
         d = min(self.decay, (1 + self.n) / (10 + self.n))
         for k, v in model.state_dict().items():
-            if v.dtype.is_floating_point:
-                self.shadow[k].mul_(d).add_(v.detach().float(), alpha=1 - d)
+            if v.dtype.is_floating_point or v.is_complex():           # комплексные веса спектральных слоёв (FNO) — тоже в EMA
+                self.shadow[k].mul_(d).add_(v.detach() if v.is_complex() else v.detach().float(), alpha=1 - d)
             else:
                 self.shadow[k].copy_(v)
 
@@ -157,7 +260,7 @@ class Progress:
 
 
 @torch.no_grad()
-def evaluate_loss(model, X, F, Y, scale, hw, bs, dev):
+def evaluate_loss(model, X, F, Y, scale, hw, bs, dev, lossf=None, W=None):
     model.eval()
     tot, n = 0.0, 0
     for i in range(0, len(X), bs):
@@ -166,7 +269,10 @@ def evaluate_loss(model, X, F, Y, scale, hw, bs, dev):
         yb = torch.from_numpy(Y[i:i + bs]).to(dev).float()
         with torch.autocast("cuda", dtype=torch.bfloat16):
             p = model(xb, fb)
-        e = ((p.float() - yb) / scale[None, :, None, None]) ** 2 * hw[None, :, None, None]
+        if lossf is None:
+            e = ((p.float() - yb) / scale[None, :, None, None]) ** 2 * hw[None, :, None, None]
+        else:
+            e = lossf(p.float(), yb, torch.from_numpy(W[i:i + bs]).to(dev).float(), fb)
         tot += float(e.mean(dim=(1, 2, 3)).sum())
         n += len(xb)
     model.train()
@@ -194,12 +300,33 @@ def main(run: Path):
     dev = torch.device("cuda")
     prep = task["prep_dirs"]
     t0 = time.time()
-    Xt, Ft, Yt, _ = load_arrays(prep, task["train_ids"])
-    Xv, Fv, Yv, _ = load_arrays(prep, task["val_ids"])
-    print(f"данные: обучение {len(Xt)}, проверка {len(Xv)} случаев, загрузка {time.time() - t0:.1f} с", flush=True)
+    enc = enc_of(task)
+    Xt, Ft, Yt, Wt, _ = load_arrays_enc(prep, enc, task["train_ids"])
+    Xv, Fv, Yv, Wv, _ = load_arrays_enc(prep, enc, task["val_ids"])
+    print(f"данные: обучение {len(Xt)}, проверка {len(Xv)} случаев, вход {Xt.shape[1]} карт, выход {Yt.shape[1]} каналов, "
+          f"ОЗУ массивов {(Xt.nbytes + Yt.nbytes + (Wt.nbytes if Wt is not None else 0) + Xv.nbytes + Yv.nbytes + (Wv.nbytes if Wv is not None else 0)) / 2**30:.1f} ГиБ, "
+          f"загрузка {time.time() - t0:.1f} с", flush=True)
     scale_np = channel_scale(Yt)
     scale = torch.from_numpy(scale_np).to(dev)
     hw = torch.from_numpy(height_weights(tc)).to(dev)
+    v5o = enc["outputs"] == "v5"
+    lossf = None
+    if v5o:
+        sv2_np = v5_norms(Yt, Wt)
+        C.atomic_write_json(run / "v5_norms.json", dict(sigma_v2=sv2_np.tolist(), w_rel_weight=enc["w_rel_weight"]))
+        sv2 = torch.from_numpy(sv2_np).to(dev)
+        hw13 = hw[:NA]
+
+        def lossf(p, y, wv, fb):
+            S = torch.clamp(fb[:, 0] * 10.0, min=1.0)              # FiLM 0 = U10/10; S = max(U10, 1 м/с)
+            return loss_v5(p, y, wv, S, scale, sv2, hw13, enc["w_rel_weight"])
+    if enc["inputs"] == "v5" or v5o:
+        from . import base as B
+        from . import maps5 as M5
+        rms = M5.REFLECT_MAP_SIGN_V5 if enc["inputs"] == "v5" else REFLECT_MAP_SIGN
+        ros = B.REFLECT_OUT_SIGN_V5.astype(np.float32) if v5o else REFLECT_OUT_SIGN
+    else:
+        rms, ros = REFLECT_MAP_SIGN, REFLECT_OUT_SIGN
     model = M.build(tc["model"], Xt.shape[1], Ft.shape[1], Yt.shape[1]).to(dev)
     model.out_scale.copy_(scale)
     opt = torch.optim.AdamW(model.parameters(), lr=tc["lr"], weight_decay=tc["weight_decay"], betas=(0.9, 0.99))
@@ -207,9 +334,9 @@ def main(run: Path):
     bs = int(tc["batch"])
     n = len(Xt)
     reflect_on = bool(tc.get("reflect", False))
-    sx = torch.from_numpy(REFLECT_MAP_SIGN).to(dev)[None, :, None, None]
+    sx = torch.from_numpy(np.ascontiguousarray(rms, np.float32)).to(dev)[None, :, None, None]
     sf = torch.from_numpy(REFLECT_FILM_SIGN).to(dev)[None, :]
-    sy = torch.from_numpy(REFLECT_OUT_SIGN).to(dev)[None, :, None, None]
+    sy = torch.from_numpy(np.ascontiguousarray(ros, np.float32)).to(dev)[None, :, None, None]
     spe = max(1, n // bs)                                # шагов на эпоху (неполный хвост отбрасывается)
     E = int(tc["max_epochs"])
     total_steps = E * spe
@@ -277,17 +404,23 @@ def main(run: Path):
                 xb = torch.from_numpy(Xt[idx]).to(dev, non_blocking=True)
                 fb = torch.from_numpy(Ft[idx]).to(dev)
                 yb = torch.from_numpy(Yt[idx]).to(dev).float()
+                wb = torch.from_numpy(Wt[idx]).to(dev).float() if v5o else None
                 fm = flip[idx]
                 if fm.any():
                     m = torch.from_numpy(fm).to(dev)
                     xb = torch.where(m[:, None, None, None], xb.flip(-2) * sx, xb)
                     fb = torch.where(m[:, None], fb * sf, fb)
                     yb = torch.where(m[:, None, None, None], yb.flip(-2) * sy, yb)
+                    if v5o:
+                        wb = torch.where(m[:, None, None, None], wb.flip(-2), wb)
                 for g in opt.param_groups:
                     g["lr"] = lr_at(gstep, total_steps, warm, tc["lr"])
                 with torch.autocast("cuda", dtype=torch.bfloat16):
                     p = model(xb, fb)
-                loss = (((p.float() - yb) / scale[None, :, None, None]) ** 2 * hw[None, :, None, None]).mean()
+                if v5o:
+                    loss = lossf(p.float(), yb, wb, fb).mean()
+                else:
+                    loss = (((p.float() - yb) / scale[None, :, None, None]) ** 2 * hw[None, :, None, None]).mean()
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), tc["grad_clip"])
@@ -312,7 +445,7 @@ def main(run: Path):
                     lock.release()
                     ckpt(epoch, spe)
                     raise
-            vl = evaluate_loss(model, Xv, Fv, Yv, scale, hw, bs, dev)
+            vl = evaluate_loss(model, Xv, Fv, Yv, scale, hw, bs, dev, lossf, Wv)
             if vl < best["val"]:
                 best = dict(val=vl, epoch=epoch)
                 bad = 0

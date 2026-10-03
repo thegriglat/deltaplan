@@ -180,4 +180,20 @@ def case_groups(row):
     h, m = solution_info(row, "d400_h"), solution_info(row, "d400_m")
     g = lambda ok: "conv" if ok else "nc"  # noqa: E731
     return dict(gh=g(h["converged"]), gm=g(m["converged"]), gall=g(h["converged"] and m["converged"]),
+                conf=confident(row),
                 target_h=h["target"], target_m=m["target"], spread_h=h["spread"], spread_m=m["spread"])
+
+
+CONF_ITERS_FRAC = 0.3          # P3E8: «уверенно» — оба решения ok и дошли до критерия не позже 30 % предела итераций
+
+
+def confident(row, frac=CONF_ITERS_FRAC):
+    """P3E8: уверенно сошедшийся случай — решения `h` и `m` со статусом «ok» (критерий решателя выполнен) и
+    iters ≤ frac · max_outer (запас по итерациям: не у самого предела); max_outer — solver.max_outer строки
+    (набор terrain, 1000), у main (v1) — 3000."""
+    mx = float(((row.get("solver") or {}).get("max_outer")) or 3000)
+    for k in ("d400_h", "d400_m"):
+        r = (row.get("runs") or {}).get(k) or {}
+        if r.get("status", "ok") != "ok" or float(r.get("iters", 1e9)) > frac * mx:
+            return False
+    return True

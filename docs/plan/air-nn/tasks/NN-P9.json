@@ -1,0 +1,68 @@
+{
+  "id": "NN-P9",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "П3-А: линейная база обтекания (Б1) и кодировка выхода v5",
+  "goal": "Линейная теория обтекания на сетке 400 м (FFT, 13 высот) как база сети П-3 и кодировка выхода v5 (разгон/поворот к базе, отрыв от склона) с точным обратным преобразованием; сколько разгона решателя база объясняет на данных П-2.",
+  "plan_ref": "docs/plan/air_nn_p3.md §3 «База», §4 П3-А",
+  "contracts": [
+    {
+      "name": "Б1",
+      "version": "1",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П2",
+      "version": "5",
+      "ref": "docs/contracts/air-nn-p3.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-NN-P9",
+  "branch": "air-nn/NN-P9",
+  "base": "feature/air-nn",
+  "scope": [
+    "tools/research/air_nn_pilot/pilotnn/base.py: linear_base, OUT_NAMES_V5, REFLECT_OUT_SIGN_V5, target_v5, to_physical_v5 (контракт Б1, П2 v5 «Выход v5»)",
+    "tools/research/air_nn_pilot/tests/test_base.py: аналитический холм (Аньези 2D, гаусс 3D) против линейного решения, повороты ×4, отражение, плоский рельеф, побитный повтор, обратимость цели v5",
+    "tools/research/air_nn_pilot/p3/base_eval.py: база против решателя на (г) (сошедшиеся) и (б) рядом с профилем притока — ошибка ветра и w на 60 м (медиана, p90), доля разгона решателя, объяснённая базой; время на случай CPU",
+    "tools/research/air_nn_pilot/p3/base_vs_solver.md: таблица + команда воспроизведения; README пилота — короткий раздел «П-3: база»"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель не пересчитывать)",
+    "наборы и тайлы в $AIR_NN_DATA (datasets/, tiles/, prep/ П-2, runs/2026-10-03_p2b) — только читать; своё — в $AIR_NN_DATA/pilot/p3/<ID>/",
+    "train.py, evaluate.py, report.py, data.py, model.py (это NN-P12)",
+    "docs/contracts/* (контракт меняет координатор)",
+    "~/deltaplan-air-onnx, main",
+    "симлинк .venv",
+    "pilotnn/prep.py (кроме импорта, если нужен; функции v4 не менять)"
+  ],
+  "accept": [
+    {
+      "name": "test_base",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_base.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_b1_out5",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_p2v5.py",
+      "expect": "re:Б1 и выход v5: OK"
+    },
+    {
+      "name": "v4_intact",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_prep.py && .venv/bin/python tests/test_reflect.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "cat tools/research/air_nn_pilot/p3/base_vs_solver.md",
+      "expect": "re:профиль притока"
+    },
+    {
+      "name": "time_case",
+      "cmd": "cat tools/research/air_nn_pilot/p3/base_vs_solver.md",
+      "expect": "num:время на случай, мс: ([\\d.]+) <=500"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T18:51:31"
+}

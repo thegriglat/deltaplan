@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-03"
+updated: "2026-10-04"
 summary: "Все исследования docs/research и tools/research: тема, вывод, данные, где применено."
 related: []
 generated: true
@@ -74,4 +74,5 @@ generated: true
 | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json. | tools/research/recal/ |  | [tools/research/recal/README.md](/tools/research/recal/README.md) |
 | Калибровка AM-09 (Professor) | Итог волны 1: ТКЭ Askervein после согласования масштаба 3 χ² 141 → 33; вывод «данные тянут λ/h вверх» оказался артефактом ручного α = 0,17 (см. реестр выводов). | tools/research/tune/out/ | параметры AirCase (λ/h = 0,25, пороги lee.field_*), configs/atmosphere.json | [tools/research/tune/README.md](/tools/research/tune/README.md) |
 | Сравнение поля ветра main и feature/air-model (Онгудай) | Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py. | tools/research/wind_compare/ |  | [tools/research/wind_compare/README.md](/tools/research/wind_compare/README.md) |
+| WindNinja как независимый эталон ветра над рельефом | WindNinja подтверждает гребневой разгон и поворот потока решателя, но торможение горным массивом не воспроизводит (диагностическая модель без импульса); эталоном затенения быть не может, запасным вариантом — условно. | tools/research/windninja/ | docs/plan/air_nn.md#7. Проверка (шлюзы Ш3, Ш4) | [tools/research/windninja/README.md](/tools/research/windninja/README.md) |
 | Проверка физики крыльев — данные и инструменты | Аналитика: ветер меню = U на 10 м над землёй на старте — выполняется (1,01–1,05). | tools/research/wing_physics_check/ |  | [tools/research/wing_physics_check/README.md](/tools/research/wing_physics_check/README.md) |

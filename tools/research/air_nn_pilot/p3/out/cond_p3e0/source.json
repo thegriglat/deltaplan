@@ -1,0 +1,8 @@
+{
+ "run": "/home/greg/air_nn_data/pilot/runs/2026-10-03_p3/v0_ctrl",
+ "onnx": "/home/greg/air_nn_data/pilot/runs/2026-10-03_p3/v0_ctrl/model.onnx",
+ "set": "holdout_sys_ids",
+ "a_key_m": 60.0,
+ "edge": 5,
+ "date": "2026-10-03 23:24:06"
+}

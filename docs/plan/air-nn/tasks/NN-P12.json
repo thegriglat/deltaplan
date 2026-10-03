@@ -1,0 +1,84 @@
+{
+  "id": "NN-P12",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "П3-Г: опыты кодировки и ёмкости пачкой (100 мест) и лучший вариант на 300 местах",
+  "goal": "Ответить на вопрос П-3 числами: что уменьшает ошибку сети на (г) больше — физическая кодировка входа/выхода (П2 v5) или ёмкость сети, на тех же данных П-2; лучший вариант — на 300 местах против П-2.",
+  "plan_ref": "docs/plan/air_nn_p3.md §3, §4 П3-Г, §5",
+  "contracts": [
+    {
+      "name": "Б1",
+      "version": "1",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П2",
+      "version": "5",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П3",
+      "version": "4",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П1",
+      "version": "3",
+      "ref": "docs/contracts/air-nn.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-NN-P12",
+  "branch": "air-nn/NN-P12",
+  "base": "feature/air-nn",
+  "scope": [
+    "pilotnn/prep.py: подготовка по `encoding` (v4 | вход v5 через maps5 | выход v5 через base.target_v5 с γ_a), отдельный кеш на кодировку (кеш П-2 не трогать); `prep.to_physical(y, meta, agl, enc, base)`",
+    "pilotnn/base.py: параметр gamma в target_v5/to_physical_v5 (контракт П2 v5 «γ_a»), подбор γ_a по обучению → enc.json прогона",
+    "pilotnn/train.py, model.py, data.py: число карт/каналов из encoding; ширина сети (каналы ×2) из конфига; ошибка v5 (вес скорости для a и δ, маска ‖V‖<0,5 м/с для δ, свой вес w_rel — запись в README прогона); упаковка pack:K — неподвижный слой распаковки внутри сети (pod_v5.npz NN-P10); ОЗУ ≤ ~20 ГБ без двойных копий (урок ca543b6; при нужде X/Y float16)",
+    "pilotnn/evaluate.py, report.py: оценка по encoding (одна to_physical), ONNX со 117/91 каналами и метаданными, заменимость ρ и таблица вариантов (П3 v4)",
+    "p3/run_p3.py (или режим run_pilot.sh): все варианты (0)–(5) на 100 местах одним скриптом, по строке на вариант, продолжение после прерывания, GPU под замком; затем лучший на 300 местах; итог p3/variants.md + json одним скриптом",
+    "configs/ и config.yaml: варианты П-3 (новое имя прогона на каждое изменение кода обучения), пороги заменимости",
+    "tests: обновить test_prep/test_reflect/test_interrupt_train под encoding; tests/test_contract_p2v5.py — не ослаблять"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель не пересчитывать)",
+    "наборы, тайлы, кеш prep П-2 и runs/2026-10-03_p2b — только читать",
+    "docs/contracts/* (изменения — через координатора, в отчёте)",
+    "~/deltaplan-air-onnx, main",
+    "симлинк .venv"
+  ],
+  "accept": [
+    {
+      "name": "contract_p2v5",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_p2v5.py",
+      "expect": "re:П2 v5: OK"
+    },
+    {
+      "name": "tests_pilot",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_prep.py && .venv/bin/python tests/test_reflect.py && .venv/bin/python tests/test_base.py && .venv/bin/python tests/test_maps5.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "variants_100",
+      "cmd": "cat ~/air_nn_data/pilot/reports/2026-10-03_p3/variants.md",
+      "expect": "re:\\(4\\)"
+    },
+    {
+      "name": "best_300",
+      "cmd": "cat ~/air_nn_data/pilot/reports/2026-10-03_p3/variants.md",
+      "expect": "re:300 мест"
+    },
+    {
+      "name": "replace",
+      "cmd": "cat ~/air_nn_data/pilot/reports/2026-10-03_p3/variants.md",
+      "expect": "re:заменим"
+    },
+    {
+      "name": "onnx_best",
+      "cmd": "python3 -c \"import json,os;d=json.load(open(os.path.expanduser('~/air_nn_data/pilot/reports/2026-10-03_p3/variants.json')));print('ort_ok',d['best']['onnx']['ort_vs_torch_ok'])\"",
+      "expect": "re:ort_ok True"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T19:16:14"
+}

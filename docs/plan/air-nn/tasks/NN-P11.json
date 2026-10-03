@@ -1,0 +1,68 @@
+{
+  "id": "NN-P11",
+  "module": "air-nn",
+  "type": "dp-researcher",
+  "title": "П3-В: входные карты v5 и где сидят ошибки П-2",
+  "goal": "Карты входа v5 (уклоны по 4 масштабам, подсеточные 25 м, маски отрыва и след за кромкой) по контракту П2 v5 и таблица: как ошибка сети П-2 связана с признаками рельефа — чтобы опыты П3-Г начинались с проверенных карт.",
+  "plan_ref": "docs/plan/air_nn_p3.md §3 «Вход», §4 П3-В",
+  "contracts": [
+    {
+      "name": "Б1",
+      "version": "1",
+      "ref": "docs/contracts/air-nn-p3.md"
+    },
+    {
+      "name": "П2",
+      "version": "5",
+      "ref": "docs/contracts/air-nn-p3.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-nn-NN-P11",
+  "branch": "air-nn/NN-P11",
+  "base": "feature/air-nn",
+  "scope": [
+    "tools/research/air_nn_pilot/pilotnn/maps5.py: MAP_NAMES_V5, REFLECT_MAP_SIGN_V5, maps_v5 (карты 0–8 — prep.maps без изменений, 9–23 свои, 24–26 через base.linear_base из NN-P9 — после его вливания)",
+    "tools/research/air_nn_pilot/tests/test_maps5.py: повороты ×4 (карты из повёрнутого рельефа = повёрнутые карты), отражение — знаки по П2 v5 (карты отражённого рельефа и −r = R(карты)), побитный повтор, рельеф 25 м ↔ билинейная подстановка",
+    "tools/research/air_nn_pilot/p3/err_by_feature.py + p3/err_by_feature.md: ошибка ветра сети П-2 (runs/2026-10-03_p2b/main) на 60 м по клеткам (г) и обучения — по корзинам V̂·∇h (масштабы), крутизны, sub_steep_lee, sep_wake, кривизны (седловины: знаки кривизны по осям), Fr (если есть N); строка «без рельефа 25 м: N случаев»; команда воспроизведения",
+    "константы карт 9–23 — можно изменить один раз с обоснованием в p3/err_by_feature.md (координатор внесёт в контракт)"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/*.py (решатель не пересчитывать)",
+    "наборы и тайлы в $AIR_NN_DATA (datasets/, tiles/, prep/ П-2, runs/2026-10-03_p2b) — только читать; своё — в $AIR_NN_DATA/pilot/p3/<ID>/",
+    "train.py, evaluate.py, report.py, data.py, model.py (это NN-P12)",
+    "docs/contracts/* (контракт меняет координатор)",
+    "~/deltaplan-air-onnx, main",
+    "симлинк .venv",
+    "pilotnn/prep.py, pilotnn/base.py (NN-P9)"
+  ],
+  "accept": [
+    {
+      "name": "test_maps5",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_maps5.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_full",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_contract_p2v5.py",
+      "expect": "re:П2 v5: OK"
+    },
+    {
+      "name": "v4_intact",
+      "cmd": "cd tools/research/air_nn_pilot && .venv/bin/python tests/test_prep.py && .venv/bin/python tests/test_reflect.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "cat tools/research/air_nn_pilot/p3/err_by_feature.md",
+      "expect": "re:sub_steep_lee"
+    },
+    {
+      "name": "coverage",
+      "cmd": "cat tools/research/air_nn_pilot/p3/err_by_feature.md",
+      "expect": "re:без рельефа 25 м: \\d+"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-03T18:51:31"
+}

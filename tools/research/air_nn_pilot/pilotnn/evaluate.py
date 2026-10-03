@@ -40,9 +40,10 @@ from . import common as C  # noqa: E402
 from . import model as M  # noqa: E402
 from . import prep as P  # noqa: E402
 from .data import Datasets, case_groups, solver_status, terrain_features  # noqa: E402
-from .train import case_file, load_arrays  # noqa: E402
+from .train import case_file, enc_of, load_arrays, load_arrays_enc  # noqa: E402
 
-CODE_FILES = [Path(__file__), Path(P.__file__), Path(M.__file__)]
+CODE_FILES = [Path(__file__), Path(P.__file__), Path(M.__file__), Path(__file__).with_name("base.py"),
+              Path(__file__).with_name("prep5.py"), Path(__file__).with_name("train.py")]
 SETS = ("holdout_sys", "holdout_place", "holdout_proc", "newcond_p6", "newcond_old", "train")
 SET_NAMES = dict(holdout_sys="(г) отложенные горные системы", holdout_place="(б) Онгудай",
                  holdout_proc="(б′) отложенные процедурные рельефы", newcond_p6="(а) новые условия: места П6 пула",
@@ -82,6 +83,15 @@ def load_net(sub: Path, dev):
     m = M.build(task["train"]["model"], n_maps, n_film, n_out)
     m.load_state_dict(ck["model"])
     return m.to(dev).eval(), task
+
+
+def to_phys_net(y, meta, agl, enc, hc):
+    """Выход сети → поля (м/с, К): одна функция `prep.to_physical` по кодировке; база Б1 — по рельефу случая."""
+    base = None
+    if enc["outputs"] == "v5":
+        from .prep5 import base_for
+        base = base_for(hc, meta, agl)
+    return P.to_physical(y, meta, agl, enc=enc, base=base)
 
 
 @torch.no_grad()
@@ -208,15 +218,35 @@ def agg(rows, key):
 
 
 # ------------------------------------------------------------------------------------------------ ONNX
-def export_onnx(model, X, F, path: Path, n_rep, threads):
+def enc_meta(enc):
+    """Метаданные ONNX по кодировке (П2 v5, «Что меняется для air-onnx»)."""
+    if enc["inputs"] == "v4" and enc["outputs"] == "v4":
+        return {"deltaplan.p2_version": "4", "deltaplan.out_enc": "v4", "deltaplan.in_enc": "v4"}
+    d = {"deltaplan.p2_version": "5", "deltaplan.out_enc": enc["outputs"], "deltaplan.in_enc": enc["inputs"]}
+    if enc["outputs"] == "v5":
+        d["deltaplan.gamma_a"] = json.dumps(enc["gamma"])
+    return d
+
+
+def export_onnx(model, X, F, path: Path, n_rep, threads, meta=None):
     import onnxruntime as ort
     m = model.float().cpu().eval()
+    if hasattr(m, "for_export"):                      # U-FNO: БПФ → матрицы ДПФ (ONNX opset 17 без комплексных)
+        m = m.for_export()
     xs, fs = torch.from_numpy(X[:1]), torch.from_numpy(F[:1])
     tmp = path.with_name(path.name + ".tmp")
     torch.onnx.export(m, (xs, fs), str(tmp), opset_version=17, input_names=["maps", "nums"], output_names=["out"],
                       dynamo=False)
+    if meta:
+        import onnx
+        mo = onnx.load(str(tmp))
+        for k, v in meta.items():
+            e = mo.metadata_props.add()
+            e.key, e.value = k, str(v)
+        onnx.save(mo, str(tmp))
     os.replace(tmp, path)
-    res = dict(path=str(path), opset=17, size_mb=path.stat().st_size / 1e6, inputs=dict(maps=list(xs.shape), nums=list(fs.shape)))
+    res = dict(path=str(path), opset=17, size_mb=path.stat().st_size / 1e6, inputs=dict(maps=list(xs.shape), nums=list(fs.shape)),
+               metadata=meta or {})
     errs = []
     with torch.no_grad():
         for i in range(min(3, len(X))):
@@ -257,8 +287,8 @@ def bin_label(k, edges):
     return f"{edges[k]:g}–{edges[k + 1]:g}" if k + 1 < len(edges) else f"≥ {edges[k]:g}"
 
 
-GROUPS = ("conv", "nc", "all")             # сошедшиеся / несошедшиеся / все (для вердикта отказа и контроля)
-GROUP_NAMES = dict(conv="сошедшиеся", nc="несошедшиеся", all="все")
+GROUPS = ("conv", "nc", "all", "conf")             # сошедшиеся / несошедшиеся / все (для вердикта отказа и контроля)
+GROUP_NAMES = dict(conv="сошедшиеся", nc="несошедшиеся", all="все", conf="уверенно сошедшиеся")
 
 
 def _cat(l, dtype=np.float64):
@@ -270,7 +300,7 @@ class _Sub:
     «всё ок» — по обоим (сошлись и `h`, и `m`)."""
 
     def __init__(self, n_agl):
-        self.cells = {k: [] for k in AREA + ("okw", "allok")}
+        self.cells = {k: [] for k in AREA + ("okw", "allok", "rho")}
         self.ridge = {k: [] for k in AREA + ("okw", "allok", "e", "v")}
         z = lambda: np.zeros(n_agl)  # noqa: E731
         self.bias = dict(e=z(), v=z(), wh=z(), n=0.0, wm=z(), nm=0.0)
@@ -298,6 +328,13 @@ class AreaAcc:
         vt = np.hypot(th[0], th[1])
         dw = np.hypot(ph[0] - th[0], ph[1] - th[1])
         okw = dw <= np.maximum(ec["wind_ok_ms"], ec["wind_ok_rel"] * vt)
+        # заменимость (П3 v4): ρ = ошибка ветра сети / погрешность решателя u; u_ref = max(0,3; 0,15·‖V‖), у
+        # несошедшихся (по h) — не меньше late_spread60_p90 решения
+        rc = ec.get("replace", {})
+        u = np.maximum(rc.get("u_ref_floor_ms", 0.3), rc.get("u_ref_rel", 0.15) * vt)
+        if gr["gh"] == "nc" and gr["spread_h"]:
+            u = np.maximum(u, float(gr["spread_h"]))
+        rho = dw / u
         dlm, dlh = np.abs(pm[2] - tm[2]), np.abs(ph[2] - th[2])
         lt = ec["lift_ok_ms"]
         allok = okw & (dlm < lt) & (dlh < lt)
@@ -313,30 +350,30 @@ class AreaAcc:
         n = float(E.shape[-1] * E.shape[-2])
         swh, swm = (Ph[2] - Th[2]).sum(axis=(-2, -1)), (Pm[2] - Tm[2]).sum(axis=(-2, -1))
         ub = u10_bin(row["U10"], self.edges)
-        for g in (gr["gh"], "all"):
+        for g in (gr["gh"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.ch += 1
-            for k, v in (("wind", f32(dw)), ("lift_h", f32(dlh)), ("okw", okw)):
+            for k, v in (("wind", f32(dw)), ("lift_h", f32(dlh)), ("okw", okw), ("rho", f32(rho))):
                 q.cells[k].append(v.ravel())
             for k, v in (("wind", dw), ("lift_h", dlh), ("okw", okw), ("e", ev), ("v", vt)):
                 q.ridge[k].append(f32(v[r]) if k != "okw" else v[r])
             q.bias["e"] += se; q.bias["v"] += sv; q.bias["wh"] += swh; q.bias["n"] += n
             b = q.bins.setdefault(ub, dict(cases=0, e=np.zeros(self.nA), v=np.zeros(self.nA), n=0.0))
             b["cases"] += 1; b["e"] += se; b["v"] += sv; b["n"] += n
-        for g in (gr["gm"], "all"):
+        for g in (gr["gm"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.cm += 1
             q.cells["lift_m"].append(f32(dlm).ravel())
             q.ridge["lift_m"].append(f32(dlm[r]))
             q.bias["wm"] += swm; q.bias["nm"] += n
-        for g in (gr["gall"], "all"):
+        for g in (gr["gall"], "all") + (("conf",) if gr["conf"] else ()):
             q = self.sub[g]
             q.cells["allok"].append(allok.ravel())
             q.ridge["allok"].append(allok[r])
         self.cases.append(dict(case=cid, loc=row["loc"], U10=float(row["U10"]), frac_wind_ok=float(okw.mean()),
                                wind_median=float(np.median(dw)), e60=float(ev.mean()), v60=float(vt.mean()),
                                gh=gr["gh"], gm=gr["gm"], target_h=gr["target_h"], target_m=gr["target_m"],
-                               spread_h=gr["spread_h"]))
+                               spread_h=gr["spread_h"], conf=gr["conf"]))
 
     def _res(self, g, with_q):
         q = self.sub[g]
@@ -356,6 +393,10 @@ class AreaAcc:
                     if with_q and name == "area":
                         st[k]["q"] = np.percentile(v, np.linspace(0, 100, NQ)).astype(float).round(5).tolist()
                 st["frac_lift_h_ok"] = float(np.mean(_cat(d["lift_h"]) < lt))
+                if name == "area" and d.get("rho"):
+                    v = _cat(d["rho"])
+                    st["rho"] = dict(median=float(np.median(v)), p90=float(np.percentile(v, 90)), mean=float(v.mean()),
+                                     frac_le1=float(np.mean(v <= 1.0)))
                 if name == "ridge":
                     e, v = _cat(d["e"]), _cat(d["v"])
                     st["e_mean"], st["v_mean"] = float(e.mean()), float(v.mean())
@@ -377,9 +418,9 @@ class AreaAcc:
         res["bias_bins"] = {bin_label(k, self.edges): dict(cases=b["cases"], e=(b["e"] / max(b["n"], 1.0)).tolist(),
                                                             v=(b["v"] / max(b["n"], 1.0)).tolist())
                             for k, b in sorted(q.bins.items())}
-        mine = [c for c in self.cases if g == "all" or c["gh"] == g]
+        mine = [c for c in self.cases if g == "all" or (c["conf"] if g == "conf" else c["gh"] == g)]
         res["targets_h"] = {t: sum(c["target_h"] == t for c in mine) for t in sorted({c["target_h"] for c in mine})}
-        mine_m = [c for c in self.cases if g == "all" or c["gm"] == g]
+        mine_m = [c for c in self.cases if g == "all" or (c["conf"] if g == "conf" else c["gm"] == g)]
         res["targets_m"] = {t: sum(c["target_m"] == t for c in mine_m) for t in sorted({c["target_m"] for c in mine_m})}
         if g == "nc":
             # ошибка ветра сети относительно собственного разброса решения: медиана по случаям (решение h не сошлось,
@@ -408,7 +449,7 @@ def summarize(rows, ec):
     out = {}
     lt = ec["lift_ok_ms"]
     for g in GROUPS:
-        pick = lambda which: [r for r in rows if g == "all" or r[which] == g]  # noqa: E731
+        pick = lambda which: [r for r in rows if g == "all" or (r.get("conf") if g == "conf" else r[which] == g)]  # noqa: E731
         rh, rmm, ra = pick("gh"), pick("gm"), pick("gall")
         if not rh and not rmm:
             out[g] = None
@@ -502,8 +543,9 @@ def run_eval(run: Path, rep: Path):
     p6 = (C.read_json(run / "p6.json", {}) or {}).get("places", {})
     dss = Datasets([(d["name"], d["root"]) for d in info["datasets"]])
     prep = info["prep_dirs"]
+    main_dir = Path(info.get("main_dir") or run / "main")
     curve_subs = [run / c["dir"] for c in info["curve"] if not c["is_main"]]
-    subs = [run / "main"] + curve_subs
+    subs = [main_dir] + curve_subs
     inputs_hash = C.sha(dict(ck=[file_sha(s / "ckpt" / "best.pt") for s in subs], split=split, eval=ec,
                              code=C.code_hash(*CODE_FILES)))
     rep.mkdir(parents=True, exist_ok=True)
@@ -545,12 +587,12 @@ def run_eval(run: Path, rep: Path):
         z = dss.load(cid)
         return z, dict(m=z["d400_m"].astype(np.float64), h=z["d400_h"].astype(np.float64))
 
-    def predict_chunks(model, ids):
+    def predict_chunks(model, ids, enc):
         """Предсказания кусками: замок GPU — только на прогон сети (метрики на CPU — без замка)."""
         nonlocal t_gpu
         for i0 in range(0, len(ids), CHUNK):
             part = ids[i0:i0 + CHUNK]
-            X, F, _, metas = load_arrays(prep, part, with_y=False)
+            X, F, _, _, metas = load_arrays_enc(prep, enc, part, with_y=False)
             with lock:
                 t0 = time.perf_counter()
                 Yp = predict(model, X, F, dev)
@@ -559,7 +601,9 @@ def run_eval(run: Path, rep: Path):
             if sig.signum is not None:
                 sig.check()
 
-    model, task = load_net(run / "main", dev)
+    model, task = load_net(main_dir, dev)
+    enc = enc_of(task)
+    y0 = np.zeros((len(ymean),) + (96, 96), np.float32)
     pooled_nc = {g: Pooled() for g in GROUPS[:2]}
     pooled_hp = {g: Pooled() for g in GROUPS[:2]}
     for sname, ids in sets.items():
@@ -570,7 +614,7 @@ def run_eval(run: Path, rep: Path):
         acc = {p: AreaAcc(ec, len(agl)) for p in PREDS}
         gacc = {}                                         # (г): разбивка по системам и уклону (сеть и приток)
         pts = {p: [] for p in PREDS}
-        for part, Yp, metas in predict_chunks(model, ids):
+        for part, Yp, metas in predict_chunks(model, ids, enc):
             for i, cid in enumerate(part):
                 row = rows_by_id[cid]
                 z, truth = truth_of(cid)
@@ -581,15 +625,16 @@ def run_eval(run: Path, rep: Path):
                 gr = case_groups(row)
                 g = grid_of(row, truth["h"].shape)
                 starts = dss.starts(row["loc"])
-                preds = dict(net=P.to_physical(Yp[i], metas[i], agl),
-                             inflow=P.to_physical(np.zeros_like(Yp[i]), metas[i], agl),
-                             mean=P.to_physical(np.broadcast_to(ymean[:, None, None], Yp[i].shape), metas[i], agl))
+                # базовые линии — всегда в кодировке v4 (профиль притока, среднее цели v4 по обучению)
+                preds = dict(net=to_phys_net(Yp[i], metas[i], agl, enc, hc),
+                             inflow=P.to_physical(y0, metas[i], agl),
+                             mean=P.to_physical(np.broadcast_to(ymean[:, None, None], y0.shape), metas[i], agl))
                 for pn, pf in preds.items():
                     acc[pn].add(cid, row, truth, pf, lw, rm, gr)
                     kn = key_numbers(truth, pf, starts, g, lw, ec["rms_radius_m"])
                     for si, k in enumerate(kn):
                         k.update(case=cid, loc=row["loc"], start=si, U10=row["U10"], hour=row["hour"], gh=gr["gh"], gm=gr["gm"],
-                                 gall=gr["gall"])
+                                 gall=gr["gall"], conf=gr["conf"])
                         pts[pn].append(k)
                 if sname == "holdout_sys":
                     for gname in hold_groups(row["loc"], p6, ec):
@@ -623,20 +668,22 @@ def run_eval(run: Path, rep: Path):
         if c["is_main"]:
             for s in curve_sets:
                 ent[s] = trim(result["sets"][s]["net"]) if result["sets"].get(s) else None
-            ent["best"] = json.loads((run / "main" / "manifest.json").read_text()).get("best", {})
+            ent["best"] = json.loads((main_dir / "manifest.json").read_text()).get("best", {})
         else:
-            net_c, _ = load_net(run / c["dir"], dev)
+            net_c, task_c = load_net(run / c["dir"], dev)
+            enc_c = enc_of(task_c)
             for s in curve_sets:
                 ids = sets[s]
                 if not ids:
                     ent[s] = None
                     continue
                 acc = AreaAcc(ec, len(agl))
-                for part, Yp, metas in predict_chunks(net_c, ids):
+                for part, Yp, metas in predict_chunks(net_c, ids, enc_c):
                     for i, cid in enumerate(part):
                         z, truth = truth_of(cid)
-                        acc.add(cid, rows_by_id[cid], truth, P.to_physical(Yp[i], metas[i], agl), lw, ridges[cid],
-                                case_groups(rows_by_id[cid]))
+                        acc.add(cid, rows_by_id[cid], truth,
+                                to_phys_net(Yp[i], metas[i], agl, enc_c, z["d400_hc"].astype(np.float64)), lw,
+                                ridges[cid], case_groups(rows_by_id[cid]))
                         done += 1
                         prog.put(done)
                 ent[s] = trim(acc.result(with_q=False))
@@ -647,14 +694,17 @@ def run_eval(run: Path, rep: Path):
     t_eval = time.time() - t_eval0 - lock.waited          # без ожидания замка GPU
     # ONNX (CPU; замок GPU не нужен)
     src = (sets["holdout_sys"] or sets["holdout_place"] or sets["newcond_p6"] or sets["newcond_old"] or sets["train"])[:3]
-    Xs, Fs, _, _ = load_arrays(prep, src, with_y=False)
-    result["onnx"] = export_onnx(model, Xs, Fs, run / "main" / "model.onnx", ec["ort_repeats"], ec["ort_threads"])
+    Xs, Fs, _, _, _ = load_arrays_enc(prep, enc, src, with_y=False)
+    onnx_path = Path(info.get("onnx_path") or main_dir / "model.onnx")
+    result["onnx"] = export_onnx(model, Xs, Fs, onnx_path, ec["ort_repeats"], ec["ort_threads"], enc_meta(enc))
     done += 1
     prog.put(done, force=True)
-    mm = json.loads((run / "main" / "manifest.json").read_text())
+    mm = json.loads((main_dir / "manifest.json").read_text())
     result["main"] = {k: mm.get(k) for k in ("n_params", "best", "epochs", "n_train", "n_val", "steps_per_epoch",
                                              "t_epoch_median_s", "t_per_sample_ms", "gpu", "torch")}
-    result["main"]["history"] = json.loads((run / "main" / "history.json").read_text())
+    result["main"]["history"] = json.loads((main_dir / "history.json").read_text())
+    result["enc"] = {k: v for k, v in enc.items() if k != "prep5_dirs"}
+    result["model_cfg"] = task["train"]["model"]
     result["t_eval_s"] = t_eval
     result["t_eval_gpu_s"] = t_gpu
     result["gpu_lock_wait_s"] = lock.waited

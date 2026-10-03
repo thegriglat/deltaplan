@@ -591,3 +591,47 @@ late_mean 500…1000/50, 2 воркера; `tests/out/` и `figures/estimate_pro
 данных (вырезки — симлинк на настоящие, наборы и кеш с нуля): непрерванный и с прерыванием SIGINT и kill -9 на каждой стадии 2…7 с
 повтором; сравнение `metrics.json` (все числа), побитно файлов наборов, отсутствие `*.tmp*`. Итог — `tests/out/interrupt_pipeline.json`.
 Стадия 1 (рельеф) при готовом `tiles/v3` пропускается мгновенно; её прерывание — тест NN-P4/NN-P8.
+
+## П-3: база (NN-P9, контракт Б1 и выход v5)
+`pilotnn/base.py` — линейная база обтекания на сетке 400 м: потенциальное течение со скоростью Ub(z_a) вдоль ê′ над рельефом
+с чётным отражением до 2N × 2N и затуханием e^(−|k|z); ∇h_s — спектральный (Найквист обнулён). Применимо при малых уклонах,
+нейтрально, без отрыва и трения. `target_v5` / `to_physical_v5` — кодировка выхода v5 (117 каналов) и точное обратное
+преобразование. Время на случай 96² × 13 высот — десятки мс на одном потоке CPU.
+```bash
+.venv/bin/python tests/test_base.py                 # Аньези 2D (u′, w), гаусс 3D (знаки, div V = 0), повороты ×4, отражение, цель v5
+.venv/bin/python tests/test_contract_p2v5.py        # форма контракта П2 v5 / Б1
+/home/greg/deltaplan/tools/dp lock cpu nnp9 -- .venv/bin/python p3/base_eval.py   # база против решателя → p3/base_vs_solver.{md,json}
+```
+Таблица и выводы — `p3/base_vs_solver.md`. Данные — только чтение `$AIR_NN_DATA` (наборы `s0-1c8c322/terrain`, `s0-3acd749/main`,
+деление `runs/2026-10-03_p2b/split.json`); своё крупное — не создаётся.
+
+## П-3: опыты кодировки и ёмкости (NN-P12, контракты П2 v5 и П3 v4)
+Один скрипт — `p3/run_p3.py` (продолжение с места при повторе; по строке на шаг в `runs/2026-10-03_p3/steps.jsonl`):
+кеш v5 → оценка сетей П-2 (main, curve_100) новым `evaluate` (ρ) → варианты (0)–(4) на 100 местах → лучший из (1)–(4) на
+300 местах → `p3/variants_table.py` → `reports/2026-10-03_p3/variants.{md,json}`.
+```bash
+AIR_NN_DATA=~/air_nn_data /home/greg/deltaplan/tools/dp job start nnp12_p3 43200 .venv/bin/python p3/run_p3.py
+.venv/bin/python p3/run_p3.py --probe      # время эпохи: по 1 эпохе (0), (1), (4) — каталоги runs/…/probe_*
+.venv/bin/python p3/run_p3.py --smoke      # сквозная проверка кода на 24 случаях (каталоги *_p3_smoke)
+```
+- **Кеш v5** (`pilotnn/prep5.py`): `prep/p3/<версия набора>/<набор>_v5_<хеш кода>/cases/<id>.npz` — карты 9–26 (f32), цель v5 при
+  γ = 0 (f16), K = V·∇h_s/S и V = max(‖V‖, ε)/S (f16), суммы Σk², Σk·w для γ_a; ≈ 3,8 МБ на случай, 6210 случаев ≈ 23 ГБ,
+  ≈ 4 мин на 14 процессах. Карты 0–8 и FiLM — из кеша v4 П-2 (только чтение).
+- **γ_a** — наименьшие квадраты w на V·∇h_s по обучающим случаям варианта (m и h, по 13 высотам) → `enc` в `task.json`
+  и `runs/…/<вариант>/enc.json`, в ONNX — `deltaplan.gamma_a`. w_rel собирается при загрузке: Y5[w] − γ_a·K.
+- **Ошибка v5** (`train.loss_v5`): разгон и поворот — (‖V‖/S)²·(Δa² + Δsin²δ + Δcos²δ)/(σ²_V/2), σ²_V — средний квадрат
+  «отклонения от базы» по обучению (`v5_norms.json` прогона), поворот не считается при ‖V‖ < 0,5 м/с; w_rel и θ′ — по rms
+  канала, вес w_rel = 1 (`p3.w_rel_weight`); среднее по 7 «каналам» × 13 высот с весом высоты, как v4 (91 = 7 × 13).
+  Линеаризация: при большом Δa ошибка скорости |V|·(e^Δa − 1) недооценивается.
+- **Оценка**: одна `prep.to_physical(y, meta, agl, enc, base)`; базовые линии (приток, среднее) — в кодировке v4 у всех
+  вариантов. ρ = ошибка ветра / u, u = max(0,3; 0,15·‖V‖), у несошедшихся — не меньше `late_spread60_p90`
+  (`config.yaml → eval.replace`).
+- Зерно всех вариантов П-3 — 2 (`p3.seed`): (0) против `curve_100` П-2 (зерно 1) — разброс от зерна.
+- Упаковка по высоте (5) не делалась: NN-P10 — «нет» (`p3/pod.md`).
+
+## P3E7: U-FNO вместо U-Net (ветка air-nn/fno)
+
+Вторая venv (`.venv_fno`, torch 2.14.1+cu126 как у пилота + neuraloperator 2.0.0, MIT): `uv venv --python 3.12 .venv_fno && uv pip sync --python .venv_fno/bin/python --index-url https://download.pytorch.org/whl/cu126 --extra-index-url https://pypi.org/simple --index-strategy unsafe-best-match requirements_fno.lock`.
+Код: `pilotnn/fno.py` (модель, `arch: ufno` в `train.model`), `p3/run_p3e7.py` (обучение/оценка/обучающие места; конфиг — `config.yaml → p3e7`), `p3/p3e7_table.py`; проверка слоёв и ONNX — `.venv_fno/bin/python tests/test_fno.py --onnx`.
+Запуск: `dp job start p3e7 10800 .venv_fno/bin/python p3/run_p3e7.py --only train` (замок GPU берёт сам train кусками — под `dp job --lock gpu` он бы ждал сам себя), затем `--only eval,train_eval,train_eval_ref,table`.
+Итоги — `p3/out/p3e7/` (p3e7.md, p3e7.json, история обучения, ONNX); данные прогона — `~/air_nn_data/pilot/{runs,reports}/2026-10-04_p3e7_fno`.

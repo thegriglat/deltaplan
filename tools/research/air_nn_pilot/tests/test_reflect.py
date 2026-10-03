@@ -117,6 +117,36 @@ def test_consistency_smoke():
     return len(rows)
 
 
+def test_consistency_v5():
+    """П2 v5: цель v5 (с γ_a) и карты v5 отражённого образца = R(исходных) по знакам контракта (REFLECT_OUT_SIGN_V5,
+    REFLECT_MAP_SIGN_V5); вес скорости V и K prep5 — только разворот по j (V) и без знака (K = V·∇h_s — скаляр)."""
+    from pilotnn import base as B
+    from pilotnn import maps5 as M5
+    from pilotnn import prep5 as P5
+    z = hill_case()
+    for key in ("d400_m", "d400_h"):
+        z[key] = np.array(z[key]) + np.array([4.0, 1.0] + [0.0] * (len(z[key]) - 2))[:, None, None, None]
+    row = dict(id="hill_000", loc="hill", U10=5.0, hour=13.0, t_max=26.0, wdir=270.0,
+               profile=dict(alpha=0.2, max_profile=1.8, stab="C", sun_el=55.0, sun_az=200.0),
+               day=dict(z_i_msl=2500.0, z_lcl_msl=3200.0, heat=0.7, t=24.0))
+    gam = dict(m=np.linspace(0.2, 0.9, 13).tolist(), h=np.linspace(0.3, 1.0, 13).tolist())
+    so = B.REFLECT_OUT_SIGN_V5[:, None, None]
+    for r in (0.0, 0.3, -0.6):
+        meta = dict(id="hill_000", loc="hill", k=0, r=r, U10=5.0, alpha=0.2, mp=1.8, S=5.0, hc_mean=float(np.mean(z["d400_hc"])))
+        meta_r = dict(meta, r=-r)
+        zr = reflected_fields(z)
+        b, br = P5.base_for(z["d400_hc"], meta), P5.base_for(zr["d400_hc"], meta_r)
+        Y, Yr = B.target_v5(z, meta, b, gamma=gam), B.target_v5(zr, meta_r, br, gamma=gam)
+        err = float(np.abs(np.flip(Y, axis=-2) * so - Yr).max())
+        assert err < 1e-6, (r, err)
+        Y2 = np.flip(np.flip(Y, axis=-2) * so, axis=-2) * so
+        assert np.array_equal(Y2, Y), "R∘R ≠ тождество (v5)"
+        row_r = dict(row, profile=dict(row["profile"], sun_az=(180.0 - 200.0) % 360))
+        X, Xr = M5.maps_v5(z, meta, row), M5.maps_v5(zr, meta_r, row_r)
+        dX = float(np.abs(np.flip(X, axis=-2) * M5.REFLECT_MAP_SIGN_V5[:, None, None] - Xr).max())
+        assert dX < 1e-4, (r, dX)
+
+
 def test_training_flag():
     cfg = C.load_config(HERE / "config.yaml")
     assert cfg["train"].get("reflect") is True, "train.reflect не включён"
@@ -134,5 +164,7 @@ if __name__ == "__main__":
     print("ok гора: карты/числа/цель отражённого образца = R(исходного), обратное преобразование")
     n = test_consistency_smoke()
     print(f"ok случаи smoke: {n}")
+    test_consistency_v5()
+    print("ok v5: цель (с γ_a) и карты отражённого образца = R(исходных)")
     test_training_flag()
     print("ok обучение: train.reflect, детерминированно от (зерно, эпоха, индекс)")

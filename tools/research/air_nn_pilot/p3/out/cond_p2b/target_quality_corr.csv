@@ -1,0 +1,13 @@
+group,quality,target,n_cases,spearman,p
+conv,iters,w_mean_err,584,0.04132,0.3189
+conv,iters,l_mean_err,584,-0.007354,0.8592
+conv,iters,w_mean_err_over_S,584,0.5364,8.006e-45
+conv,t_solve,w_mean_err,584,0.05619,0.1751
+conv,t_solve,l_mean_err,584,0.04085,0.3244
+conv,t_solve,w_mean_err_over_S,584,0.5152,6.718e-41
+nc,spread,w_mean_err,136,-0.01539,0.8589
+nc,spread,l_mean_err,136,-0.2996,0.0003954
+nc,spread,w_mean_err_over_S,136,0.2692,0.001527
+nc,t_solve,w_mean_err,136,0.3135,0.0002023
+nc,t_solve,l_mean_err,136,0.4663,1.059e-08
+nc,t_solve,w_mean_err_over_S,136,0.1119,0.1946
