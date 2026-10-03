@@ -1,20 +1,11 @@
 ---
-type: contract
-status: active
-module: air-onnx
-updated: 2026-10-03
+type: "contract"
+status: "active"
+module: "air-onnx"
+updated: "2026-10-03"
 summary: "Контракты модуля air-onnx: формат .onnx сети области (O1), расширение ONNX Runtime (O2), вход/выход сети в GDScript (O3), вход из игры и страж (O4), AirRuntime engine=nn (O5), файл сети (O6)."
-related:
-  - docs/plan/air_onnx.md
-  - docs/contracts/air-nn.md
-  - docs/contracts/air-model.md
-contracts:
-  - {id: O1, version: 1}
-  - {id: O2, version: 1}
-  - {id: O3, version: 1}
-  - {id: O4, version: 1}
-  - {id: O5, version: 1}
-  - {id: O6, version: 1}
+related: ["docs/plan/air_onnx.md", "docs/contracts/air-nn.md", "docs/contracts/air-model.md"]
+contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}]
 ---
 
 # Контракты модуля air-onnx

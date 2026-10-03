@@ -1,13 +1,10 @@
 ---
-type: plan
-status: active
-module: air-onnx
-updated: 2026-10-03
+type: "plan"
+status: "active"
+module: "air-onnx"
+updated: "2026-10-03"
 summary: "Поле ветра в игре считает ONNX-сеть (ORT CPU через GDExtension) вместо GPU-решателя: сквозной путь .onnx → WindField → термики, пункт настроек «нейросеть»."
-related:
-  - docs/contracts/air-onnx.md
-  - docs/plan/air_nn.md
-  - docs/guide/air-model.md
+related: ["docs/contracts/air-onnx.md", "docs/plan/air_nn.md", "docs/guide/air-model.md"]
 ---
 
 # Нейросеть вместо решателя в игре (air-onnx) — план
