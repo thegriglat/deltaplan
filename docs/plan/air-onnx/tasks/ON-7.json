@@ -1,0 +1,70 @@
+{
+  "id": "ON-7",
+  "module": "air-onnx",
+  "type": "dp-engineer",
+  "title": "Сквозная проверка: собранная игра Linux грузит сеть из user:// по README; состав Windows",
+  "goal": "Доказать, что путь пользователя из data/air_nn/README.md работает в экспортированной сборке, а не только в редакторе; поправить мелочи сборки",
+  "plan_ref": "ON-7",
+  "contracts": [
+    {
+      "name": "O2",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O5",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O6",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-7",
+  "branch": "air-onnx/ON-7",
+  "base": "feature/air-onnx",
+  "scope": [
+    "tools/air_onnx/export_smoke.sh",
+    "tools/check.sh",
+    "tools/build.sh",
+    "native/air_onnx/build.sh",
+    "data/air_nn/README.md",
+    "scripts/game/game.gd",
+    "scripts/atmosphere/air_model/air_nn_field.gd"
+  ],
+  "dont_touch": [
+    "tools/research/",
+    "tools/air_onnx/test_contract_o1.py",
+    "scripts/atmosphere/air_model/air_nn_prep.gd",
+    "scripts/atmosphere/air_model/air_nn_input.gd",
+    "native/air_onnx/src/"
+  ],
+  "accept": [
+    {
+      "name": "export_smoke_linux",
+      "cmd": "/home/greg/deltaplan/tools/dp lock cpu on7-smoke -- tools/air_onnx/export_smoke.sh /home/greg/air_nn_data/pilot/runs/2026-10-02_pilot/main/model.onnx",
+      "expect": "re:air_model: поле \\(нейросеть",
+      "timeout": 3600
+    },
+    {
+      "name": "windows_layout",
+      "cmd": "ls build/windows/ | sort",
+      "expect": "re:air_onnx\\.dll[\\s\\S]*onnxruntime\\.dll"
+    },
+    {
+      "name": "check_sh_no_onnx",
+      "cmd": "grep -n 'AIR_ONNX=0' tools/check.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clean_uid",
+      "cmd": "grep -n 'gdextension.uid' native/air_onnx/build.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Сделать по README data/air_nn/README.md (ON-6) буквально, как пользователь: собрать игру tools/build.sh (Linux и Windows; Godot только XDG_DATA_HOME=$(mktemp -d) + симлинк $XDG_DATA_HOME/godot/export_templates → ~/.local/share/godot/export_templates, см. tools/check.sh), положить сеть первого пилота в user://air_nn/model.onnx ВРЕМЕННОГО профиля (project.godot: use_custom_user_dir, name Deltaplan; настоящий профиль пилота ~/.local/share/Deltaplan не трогать), включить engine=nn и запустить ЭКСПОРТИРОВАННЫЙ Linux-бинарник headless так, чтобы загрузилось встроенное место и в журнал попала строка air_model. Если в экспортированной игре нет способа headless-старта места с выбранным engine — добавить минимальный (флаг командной строки в game.gd, например --air-engine=nn, рядом с --air-nn-model) — без шлифовки. export_smoke.sh <модель> — весь путь одной командой, печатает строку журнала. Неверные места README — исправить в README и перечислить в отчёте. Мелочи: tools/check.sh — AIR_ONNX=0 (решение координатора: быстрая проверка без сборки расширения); native/air_onnx/build.sh clean удаляет и addons/air_onnx/air_onnx.gdextension.uid (замечание ревью ON-2). Идёт пилот П-2 на GPU: окна Godot и GPU не трогать (только headless), ~/air_nn_data и ~/deltaplan-air-nn — только читать. Сборка тяжёлая — под dp lock cpu; DEPS_DIR=$HOME/.cache/deltaplan-air-onnx-deps.",
+  "created": "2026-10-03T05:36:32"
+}
