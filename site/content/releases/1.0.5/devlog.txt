@@ -1,0 +1,14 @@
+Deltaplan 1.0.5 — neural network wind and map inspection
+
+Wind over terrain can now be computed by a neural network (experimental). The network was trained on our solver's results over 300 real terrains. It runs on the CPU, so the graphics card is not needed for wind, and the "Computing wind" stage takes a few seconds. The field is smoother than the solver's: no bias on average, but on steep terrain it can be off by 1-2 m/s in places.
+
+Wind:
+- Settings -> "Wind over terrain" -> "Neural network (experimental)"
+- New main menu item "Inspect map": the chosen place, time and wind as for a flight, but without the pilot and glider — free camera with wind arrows (F5); Esc -> menu
+- Wind arrows (F5) are now always drawn around the camera, radius 1800 m instead of 1200
+
+Menu:
+- Game version and short build number in the bottom right corner of the main menu
+
+Known issues:
+- Neural network wind is experimental: on steep terrain it may differ from the "Terrain calculation" mode
