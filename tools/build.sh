@@ -5,6 +5,10 @@
 # нотаризации); build/macos/ — распакованный .app для butler. configs/ рядом не кладём: внутри .app
 # это ломает подпись, а снаружи Config его не ищет — на Mac настройки только встроенные.
 # Рядом с игрой кладётся папка configs/ — пилот правит её без пересборки (NFR-7).
+# Расширение AirOnnx (нейросеть ветра, native/air_onnx): нет собранного для платформы — собирается
+# (native/air_onnx/build.sh, нужна сеть при первом запуске); после экспорта проверяется, что расширение
+# и ONNX Runtime лежат рядом с исполняемым файлом. AIR_ONNX=0 — не собирать и не проверять (игра без
+# расширения работает на упрощённой модели ветра). macOS — расширение не собирается (README там).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 target="${1:-all}"
@@ -16,6 +20,30 @@ commit="$(git rev-parse --short=6 HEAD 2>/dev/null || echo "")"
 [[ -n "$commit" && -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]] && commit="$commit+"
 printf '{"commit": "%s"}\n' "$commit" > data/build_info.json
 
+# Файлы расширения AirOnnx в сборке по платформам (bin/<платформа>/ в addons/air_onnx и рядом с exe).
+air_onnx_files() {
+	case "$1" in
+	linux) echo "libair_onnx.so libonnxruntime.so.1" ;;
+	windows) echo "air_onnx.dll onnxruntime.dll msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll" ;;
+	esac
+}
+air_onnx="${AIR_ONNX:-1}"
+if [[ "$air_onnx" != 0 ]]; then
+	plats=()
+	[[ "$target" == linux || "$target" == all ]] && plats+=(linux)
+	[[ "$target" == windows || "$target" == all ]] && plats+=(windows)
+	for p in "${plats[@]}"; do
+		for f in $(air_onnx_files "$p"); do
+			if [[ ! -f "addons/air_onnx/bin/$p/$f" || ! -f addons/air_onnx/air_onnx.gdextension ]]; then
+				echo "AirOnnx: нет addons/air_onnx/bin/$p/$f — собираю native/air_onnx/build.sh $p"
+				native/air_onnx/build.sh "$p"
+				break
+			fi
+		done
+	done
+fi
+
+# Импорт регистрирует расширение (addons/air_onnx/air_onnx.gdextension → .godot/extension_list.cfg).
 godot --headless --path . --import >/dev/null 2>&1 || true
 
 # Экспорт — с настоящим рендером, не --headless: иначе Shader Baker (shader_baker/enabled в
@@ -37,6 +65,11 @@ build_one() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
+	if [[ "$air_onnx" != 0 ]]; then
+		for f in $(air_onnx_files "$dir"); do
+			[[ -f "build/$dir/$f" ]] || { echo "ОШИБКА: в сборке нет $f (расширение AirOnnx)" >&2; exit 1; }
+		done
+	fi
 	(cd build && rm -f "deltaplan-$dir.zip" && zip -qr "deltaplan-$dir.zip" "$dir")
 	echo "готово: build/$dir/$bin, build/deltaplan-$dir.zip"
 }
