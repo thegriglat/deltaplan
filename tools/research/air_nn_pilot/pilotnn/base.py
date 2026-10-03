@@ -71,38 +71,53 @@ def _base_angle(base, r):
     return sp, ang
 
 
-def target_v5(z, meta, base, agl=AGL):
-    """Цель выхода v5 (117, ny, nx) float64: канал = c·13 + a, повёрнутая система; см. контракт П2 v5."""
+def gamma_of(gamma, nA=len(AGL)):
+    """γ_a (П2 v5) → массив (2, 13, 1, 1): [0] — без нагрева (m), [1] — с нагревом (h). Число — одно на все высоты;
+    dict(m=[13], h=[13]) — как в enc.json прогона."""
+    if isinstance(gamma, dict):
+        g = np.stack([np.asarray(gamma["m"], np.float64), np.asarray(gamma["h"], np.float64)])
+    else:
+        g = np.broadcast_to(np.asarray(gamma, np.float64), (2, nA)) if np.ndim(gamma) < 2 else np.asarray(gamma, np.float64)
+    assert g.shape == (2, nA), g.shape
+    return g[:, :, None, None]
+
+
+def target_v5(z, meta, base, agl=AGL, gamma=1.0):
+    """Цель выхода v5 (117, ny, nx) float64: канал = c·13 + a, повёрнутая система; см. контракт П2 v5.
+    gamma — γ_a (`gamma_of`): w_rel = (w − γ_a·V·∇h_s)/S; γ = 1 — чистая кинематика, γ = 0 — w/S."""
     k, r, S = meta["k"], meta["r"], meta["S"]
+    gm = gamma_of(gamma, len(agl))
     sb, ab = _base_angle(base, r)
     gx, gy = base["gx"], base["gy"]
     out = []
-    for key in ("d400_m", "d400_h"):
+    for ig, key in enumerate(("d400_m", "d400_h")):
         f = np.asarray(z[key], np.float64)
         u, v = P.rot_vec(f[0], f[1], k)
         w = P.rot_scalar(f[2], k)
         sp = np.hypot(u, v)
         d = np.arctan2(v, u) - ab
         out += [np.log(np.maximum(sp, EPS) / np.maximum(sb, EPS)), np.sin(d), np.cos(d),
-                (w - (u * gx + v * gy)) / S]
+                (w - gm[ig] * (u * gx + v * gy)) / S]
     out.append(P.rot_scalar(np.asarray(z["d400_h"], np.float64)[3], k))
     return np.concatenate(out, axis=0)
 
 
-def to_physical_v5(y, meta, base, agl=AGL):
-    """Обратное преобразование выхода v5 (117, ny, nx) → dict(m=(3,13,ny,nx), h=(4,13,ny,nx)), м/с и К, исходная система."""
+def to_physical_v5(y, meta, base, agl=AGL, gamma=1.0):
+    """Обратное преобразование выхода v5 (117, ny, nx) → dict(m=(3,13,ny,nx), h=(4,13,ny,nx)), м/с и К, исходная система.
+    w = w_rel·S + γ_a·V·∇h_s (gamma — как в `target_v5`)."""
     y = np.asarray(y, np.float64)
     nA = len(agl)
     y = y.reshape(9, nA, *y.shape[-2:])
     k, r, S = meta["k"], meta["r"], meta["S"]
     sb, ab = _base_angle(base, r)
     gx, gy = base["gx"], base["gy"]
+    gm = gamma_of(gamma, nA)
     res = {}
-    for key, c0, n in (("m", 0, 3), ("h", 4, 4)):
+    for ig, (key, c0, n) in enumerate((("m", 0, 3), ("h", 4, 4))):
         sp = np.maximum(sb, EPS) * np.exp(y[c0])
         ang = ab + np.arctan2(y[c0 + 1], y[c0 + 2])
         up, vp = sp * np.cos(ang), sp * np.sin(ang)
-        wp = y[c0 + 3] * S + up * gx + vp * gy
+        wp = y[c0 + 3] * S + gm[ig] * (up * gx + vp * gy)
         u, v = P.rot_vec(up, vp, -k % 4)
         ch = [u, v, P.rot_scalar(wp, -k % 4)]
         if n == 4:
