@@ -148,3 +148,4 @@
 {"t": "2026-10-03T19:16:38", "by": "coordinator", "task": null, "ev": "note", "note": "dp: симлинк .venv в копии задачи мешает git worktree remove (untracked) — dp task/merge мог бы сам создавать и убирать симлинк venv исследовательского кода; в карточке/шаблоне задания нет синтаксиса dp lock (<имя> --timeout СЕК -- команда) — исполнители спотыкаются"}
 {"t": "2026-10-03T19:22:27", "by": "coordinator", "task": "NN-P14", "ev": "created", "note": "П-3: ошибка сети по условиям случая (П-2, затем лучший вариант П-3)"}
 {"t": "2026-10-03T19:22:29", "by": "coordinator", "task": "NN-P14", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P14; запрос пользователя через главную сессию"}
+{"t": "2026-10-03T19:23:30", "by": "coordinator", "task": "NN-P14", "ev": "cancelled", "note": "дубль: главная сессия запустила ту же разбивку отдельно (ветка air-nn/cond, копия ~/deltaplan-air-nn-cond); принять её как задачу, скрипт — для лучшего варианта в NN-P13"}
