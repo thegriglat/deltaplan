@@ -2,7 +2,6 @@
 """Карты входа П2 v5 (`pilotnn/maps5.py`, контракт docs/contracts/air-nn-p3.md): имена, знаки отражения, первые 9 карт =
 v4, побитный повтор, эквивариантность (рельеф 25 м и ветер повёрнуты вместе на 90° → те же карты; отражённый образец =
 R(карты)), аналитика (наклонная плоскость, уступ с подветренным следом), тайл 25 м ↔ билинейная подстановка.
-Карты 24–26 (база Б1, NN-P9) — если `pilotnn/base.py` ещё нет, нули (в проверках эквивариантности участвуют как есть).
 
   .venv/bin/python tests/test_maps5.py
 """
@@ -10,7 +9,6 @@ from __future__ import annotations
 
 import math
 import sys
-import warnings
 from pathlib import Path
 
 import numpy as np
@@ -22,7 +20,6 @@ from pilotnn import prep as P  # noqa: E402
 
 N, DX = 96, 400.0
 NAMES = {n: i for i, n in enumerate(M.MAP_NAMES_V5)}
-warnings.simplefilter("ignore", RuntimeWarning)
 
 
 def row_of(wdir, U10=6.0):
@@ -198,6 +195,18 @@ def test_tile_vs_bilinear():
     assert diff[15:20].max() > 1e-2
     # подстановка согласована с блочным средним: среднее блока 16×16 билинейного h25 ≈ hc (линейный рельеф — точно)
     assert np.allclose(c[1:-1, 1:-1].reshape(N, 16, N, 16).mean((1, 3))[4:-4, 4:-4], hc[4:-4, 4:-4], atol=10.0)   # ≤ ~¼ второй разности (гора σ = 1,2 км: 6,5 м)
+
+
+def test_base_maps():
+    """Карты 24–26: плоский рельеф → 0 (V_base = Ub·ê′); на холме нетривиальны; повороты/отражение — в test_rotations/
+    test_reflection (там все 27 карт)."""
+    X, Y = grid()
+    for wdir in (270.0, 250.0, 133.0):
+        Xf, _ = maps_of(dict(d400_hc=0 * X + 1000, d400_H=0 * X + 300), wdir, None)
+        assert np.abs(Xf[24:27]).max() < 1e-6, np.abs(Xf[24:27]).max()
+    Xh, _ = maps_of(hill(), 270.0, None)
+    assert np.abs(Xh[24:27]).max((1, 2)).min() > 1e-3 and np.isfinite(Xh[24:27]).all()
+    assert Xh[24].max() > 0.0 > Xh[24].min(), "разгон на вершине и торможение в лощине ожидаются"
 
 
 if __name__ == "__main__":

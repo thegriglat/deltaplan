@@ -17,12 +17,12 @@
 from __future__ import annotations
 
 import math
-import warnings
 from pathlib import Path
 
 import numpy as np
 from scipy import ndimage
 
+from . import base as B
 from . import prep as P
 
 MAP_NAMES_V5 = P.MAP_NAMES + (
@@ -139,22 +139,12 @@ def terrain_maps(hr, r, dx=400.0):
 
 
 def base_maps(hr, meta, base=None):
-    """Карты 24–26 (Б1); нет модуля `base` — нули и предупреждение (до вливания NN-P9)."""
-    if base is None:
-        try:
-            from . import base as B
-        except ImportError:
-            warnings.warn("pilotnn/base.py нет: карты 24–26 = 0", RuntimeWarning)
-            return np.zeros((3,) + hr.shape)
-        ub = P.ubg(P.AGL, meta["alpha"], meta["mp"], meta["U10"])
-        base = B.linear_base(hr, meta["r"], ub)
+    """Карты 24–26 (Б1): ln(max(‖V_base‖, ε)/max(Ub, ε)) на 25, 150, 600 м."""
     ub = P.ubg(P.AGL, meta["alpha"], meta["mp"], meta["U10"])
+    if base is None:
+        base = B.linear_base(hr, meta["r"], ub)
     vb = np.hypot(base["u"], base["v"])
-    out = []
-    for a in BASE_AGL:
-        i = P.AGL.index(a)
-        out.append(np.log(np.maximum(vb[i], EPS_V) / max(ub[i], EPS_V)))
-    return np.stack(out)
+    return np.stack([np.log(np.maximum(vb[P.AGL.index(a)], EPS_V) / max(ub[P.AGL.index(a)], EPS_V)) for a in BASE_AGL])
 
 
 def maps_v5(z, meta, row, tile=None, base=None):
