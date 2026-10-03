@@ -20,7 +20,7 @@ import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 12  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 13  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -2164,19 +2164,23 @@ exec bash
 """
 
 
+TMUX_SESSION = "dp"  # отдельная сессия для окон задач: сессии пользователя не засоряются
+
+
 def tmux_opts(a):
-    """Сессия tmux или None. Окно — по умолчанию (сессия $DP_TMUX_SESSION, иначе 0); --no-tmux и DP_NO_TMUX (внутри задачи dp) выключают."""
+    """Сессия tmux или None. Окно — по умолчанию (сессия $DP_TMUX_SESSION, иначе dp; нет — создаётся); --no-tmux и DP_NO_TMUX (внутри задачи dp) выключают."""
     if getattr(a, "no_tmux", False) or os.environ.get("DP_NO_TMUX"):
         return None
-    return getattr(a, "tmux_session", None) or os.environ.get("DP_TMUX_SESSION") or "0"
+    return getattr(a, "tmux_session", None) or os.environ.get("DP_TMUX_SESSION") or TMUX_SESSION
 
 
 def tmux_ok(sess):
     why = None
     if not shutil.which("tmux"):
         why = "нет tmux"
-    elif subprocess.run(["tmux", "has-session", "-t", "=" + sess], capture_output=True).returncode:
-        why = f"нет сервера или сессии {sess}"
+    elif subprocess.run(["tmux", "has-session", "-t", "=" + sess], capture_output=True).returncode and \
+            subprocess.run(["tmux", "new-session", "-d", "-s", sess, "-n", "dp", "-c", str(Path.home())], capture_output=True).returncode:
+        why = f"не удалось создать сессию {sess}"
     elif not shutil.which("script"):
         why = "нет script (util-linux)"
     if why:
@@ -2328,7 +2332,7 @@ def cmd_job(a):
         pid = job_stop(a.name)
         print(f"{a.name}: остановлен (PID {pid})" if pid else f"{a.name}: уже не идёт")
     if a.action in ("attach", "tmux"):
-        job_attach(a.name, a.tmux_session or os.environ.get("DP_TMUX_SESSION") or "0")
+        job_attach(a.name, a.tmux_session or os.environ.get("DP_TMUX_SESSION") or TMUX_SESSION)
 
 
 # ---------------------------------------------------------------- lock (общие замки: gpu — один держатель, cpu — N слотов)
@@ -2439,7 +2443,7 @@ class Parser(argparse.ArgumentParser):
 def tmux_args(q):
     q.add_argument("--tmux", action="store_true", help="окно tmux (это и так по умолчанию)")
     q.add_argument("--no-tmux", dest="no_tmux", action="store_true", help="без окна tmux, только фон")
-    q.add_argument("--tmux-session", dest="tmux_session", metavar="S", help="сессия tmux (по умолчанию $DP_TMUX_SESSION, иначе 0)")
+    q.add_argument("--tmux-session", dest="tmux_session", metavar="S", help="сессия tmux (по умолчанию $DP_TMUX_SESSION, иначе dp)")
 
 
 def build():
