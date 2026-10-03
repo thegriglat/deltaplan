@@ -30,7 +30,7 @@ signal fallback(reason: String)
 ## Доля расчёта 0..1 (экран загрузки).
 signal progress_changed(fraction: float)
 
-enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT }
+enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT, NN }
 
 ## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
@@ -95,6 +95,10 @@ var pass_tol := 0.03
 ## прохода 2 и проверить откат к полю прохода 1.
 var timeout_later_pass_s := NAN
 
+## Сеть (engine = nn): открытая модель {onnx, path, n_maps, p2, domain, …} — один раз на файл;
+## её прогон идёт в рабочем потоке (одна сессия — не из двух потоков).
+var _nn_model := {}
+var _nn_out := {}
 var _place := {}
 var _place_key := ""
 var _cfg := {}
@@ -155,7 +159,14 @@ func _ready() -> void:
 	_device()
 
 
+## Движок поля: "solver" (GPU, по умолчанию) | "nn" (нейросеть на CPU, O5).
+func engine() -> String:
+	return "nn" if String(_cfg.get("engine", "solver")) == "nn" else "solver"
+
+
 func _device() -> RuntimeGpu:
+	if engine() == "nn":
+		return null  # сети GPU не нужен
 	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
@@ -229,6 +240,8 @@ func unavailable_reason() -> String:
 	var why := ""
 	if String(_cfg.get("enabled", "auto")) == "off":
 		why = "air_model.enabled = off"
+	elif engine() == "nn":
+		why = _nn_unavailable()
 	elif DisplayServer.get_name() == "headless":
 		why = "нет RenderingDevice: headless"
 	elif Array(OS.get_cmdline_user_args()).any(_is_cmd_field):
@@ -242,6 +255,20 @@ func unavailable_reason() -> String:
 		if g == null or g.rd == null:
 			why = g.error if g != null else "нет RenderingDevice"
 	return why
+
+
+## engine = nn: те же отказы без GPU (поле из файла, нет слоя, атмосфера) + расширение и файл сети.
+func _nn_unavailable() -> String:
+	if Array(OS.get_cmdline_user_args()).any(_is_cmd_field):
+		return CMD_FIELD
+	if _place.get("detail") == null:
+		return "нет слоя рельефа detail"
+	if atmosphere == null or not atmosphere.has_method("set_air_field"):
+		return "атмосфера без поля"
+	var why := AirNnField.extension_why()
+	if why == "":
+		why = String(AirNnField.resolve_path(_cfg).why)
+	return "нейросеть: " + why if why != "" else ""
 
 
 static func _is_cmd_field(a: String) -> bool:
@@ -366,6 +393,8 @@ func _process(_dt: float) -> void:
 			_poll_prep()
 		Stage.SOLVE:
 			_poll_solve()
+		Stage.NN:
+			_poll_nn()
 		Stage.WINDOWS, Stage.SHIFT:
 			if _loading:
 				_clip.poll_slice(LOAD_SLICE_MS)
@@ -407,10 +436,10 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 	var u10 := float(c.u10)
 	if loading:
 		_start_pt = Vector3(NAN, NAN, NAN)
-		if _windows_wanted():
+		if _focus_wanted():
 			_start_pt = focus_fn.call()
 		# штиль (ниже порога трогания анемометра, WindProfile.U10_MIN) — один проход, k = 1
-		var two := _windows_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
+		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
 		_passes = max_passes if two else 1
 		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
 	else:
@@ -426,6 +455,9 @@ func _start_prep() -> void:
 	_t_pass = Time.get_ticks_usec()
 	_t_dom = 0
 	_prep = {}
+	if engine() == "nn":
+		_start_nn()
+		return
 	_stage = Stage.PREP
 	var r := _req
 	_task = WorkerThreadPool.add_task(
@@ -525,6 +557,75 @@ func _poll_solve() -> void:
 	_stage = Stage.BUILD
 
 
+## Сеть (O5): весь проход — в рабочем потоке (вход места, карты, ORT, сборка поля).
+func _start_nn() -> void:
+	var r := AirNnField.resolve_path(_cfg)
+	_nn_out = {}
+	_stage = Stage.NN
+	if String(r.why) != "":
+		_nn_out = {why = String(r.why)}
+		_task = WorkerThreadPool.add_task(_noop, false, "AirRuntime")
+		return
+	var model := _nn_model if String(_nn_model.get("path", "")) == String(r.path) else {}
+	_task = WorkerThreadPool.add_task(
+		_nn_task.bind(model, String(r.path), int(_cfg.get("nn_threads", 4)), _place, _req, _k, _cfg, _nn_out),
+		false,
+		"AirRuntime"
+	)
+
+
+static func _noop() -> void:
+	pass
+
+
+static func _nn_task(
+	model: Dictionary, path: String, threads: int, place: Dictionary, c: Dictionary, k: float,
+	cfg: Dictionary, out: Dictionary
+) -> void:
+	if model.is_empty():
+		var o := AirNnField.open(path, threads)
+		if String(o.why) != "":
+			out.why = String(o.why)
+			return
+		model = o
+		out.model = o
+	var r := AirNnField.run_pass(model, place, c, k, cfg)
+	out.merge(r, true)
+
+
+func _poll_nn() -> void:
+	if not WorkerThreadPool.is_task_completed(_task):
+		return
+	WorkerThreadPool.wait_for_task_completion(_task)
+	_task = -1
+	var why := String(_nn_out.get("why", ""))
+	if why != "":
+		_fail("нейросеть: " + why)
+		return
+	if _nn_out.has("model"):
+		_nn_model = _nn_out.model
+	var f: WindField = _nn_out.field
+	var path := String(_nn_model.path)
+	f.meta.source = "nn:" + path.get_file()
+	f.meta.cond = {wind = snappedf(float(_req.u10), 0.01), wdir = snappedf(float(_req.wdir), 0.1)}
+	var ms: Dictionary = _nn_out.ms
+	if _nn_out.has("model"):
+		_req.nn_load_ms = float(_nn_model.get("load_ms", 0.0))
+	_req.engine = "nn"
+	_req.nn_model = path
+	_req.nn_p2 = String(_nn_model.p2)
+	_req.nn_clamped = _nn_out.clamped
+	_req.nn_ms = float(ms.net)
+	_req.nn_stages = ms
+	_req.iters = []
+	_req.warm = false
+	_req.gpu_s = 0.0
+	_t_dom = Time.get_ticks_usec()
+	_progress(1.0)
+	var one: Array[WindField] = [f]
+	_levels_done(one)
+
+
 ## Проход для журнала: «k → U м/с за с (область с, GPU с)».
 static func _pass_text(e: Dictionary) -> String:
 	return "%.3f → %.2f м/с за %.1f с (область %.1f, GPU %.2f)" % [
@@ -598,7 +699,16 @@ func _start_windows() -> void:
 	_stage = Stage.WINDOWS
 
 
+## Есть точка старта для подстройки k (у сети окон нет, старт — всё равно из focus_fn).
+func _focus_wanted() -> bool:
+	if engine() == "nn":
+		return focus_fn.is_valid()
+	return _windows_wanted()
+
+
 func _windows_wanted() -> bool:
+	if engine() == "nn":
+		return false  # один уровень: область 400 м
 	return focus_fn.is_valid() and not Array(_cfg.get("window_levels_m", [100.0])).is_empty()
 
 
@@ -776,6 +886,13 @@ func _apply(levels: Array[WindField]) -> void:
 	applied_count += 1
 	_ok = true
 	_stage = Stage.IDLE
+	if engine() == "nn":
+		_print_nn()
+		if _loading:
+			progress_changed.emit(1.0)
+		_loading = false
+		field_applied.emit(last_info)
+		return
 	print(
 		(
 			(
@@ -803,6 +920,36 @@ func _apply(levels: Array[WindField]) -> void:
 		progress_changed.emit(1.0)
 	_loading = false
 	field_applied.emit(last_info)
+
+
+func _print_nn() -> void:
+	var st: Dictionary = _req.nn_stages
+	var clamp: Array = _req.nn_clamped
+	print(
+		(
+			"air_model: поле (нейросеть %s, П2 v%s) %s ч, %.1f м/с с %.0f°: %.2f с, k %.3f; "
+			+ "U над стартом на 10 м %.2f м/с (проход 1: %.2f), проходов %d; "
+			+ "мс: вход %.0f, карты %.0f, сеть %.0f, поле %.0f%s%s"
+		)
+		% [
+			String(_req.nn_model).get_file(),
+			_req.nn_p2,
+			_hour_text(float(_req.hour)),
+			float(_req.u10),
+			float(_req.wdir),
+			float(_req.wall_s),
+			_k,
+			float(_req.u_start10),
+			float(_req.u_start10_first),
+			_pass,
+			float(st.input),
+			float(st.prep),
+			float(st.net),
+			float(st.build),
+			", загрузка модели %.0f" % float(_req.nn_load_ms) if _req.has("nn_load_ms") else "",
+			"; вне области: %s" % ", ".join(clamp) if not clamp.is_empty() else "",
+		]
+	)
 
 
 func _fail(reason: String) -> void:
