@@ -79,8 +79,17 @@ def terrain_axis(hr, r, dx=400.0):
     return dict(cross=float(cross), aniso=float(d / tr) if tr > 0 else 0.0, slope=float(math.sqrt(tr)))
 
 
-def _init(onnx, dirs):
+def bg_load(path):
+    """P3E6: числа фона (film_bg.npz) → ({id: F (9,)}, {id: сырые}); None — пусто."""
+    if not path:
+        return {}, {}
+    with np.load(path) as z:
+        return dict(zip(z["ids"].tolist(), z["F"].astype(np.float32))), json.loads(str(z["raw"]))
+
+
+def _init(onnx, dirs, bg=None):
     import onnxruntime as ort
+    _W["bg"] = bg_load(bg)[0] if bg else None
     so = ort.SessionOptions()
     so.intra_op_num_threads = so.inter_op_num_threads = 1
     _W["sess"] = ort.InferenceSession(str(onnx), so, providers=["CPUExecutionProvider"])
@@ -108,6 +117,8 @@ def work(job):
         return cid
     with np.load(case_file(_W["dirs"], cid)) as zc:
         X, F, meta = zc["X"], zc["F"], json.loads(str(zc["meta"]))
+    if _W.get("bg") is not None:                       # P3E6: + числа фона после 18 чисел П2
+        F = np.concatenate([F, _W["bg"][cid]]).astype(np.float32)
     pred = predict_case(_W["sess"], X, F, meta)
     with np.load(root / "cases" / f"{cid}.npz") as zz:
         th4, hc, Hf = zz["d400_h"].astype(np.float64), zz["d400_hc"].astype(np.float64), zz["d400_H"].astype(np.float64)
@@ -129,8 +140,9 @@ def work(job):
     return cid
 
 
-def case_table(run, rows):
-    """Условия случая и качество цели (из строки набора; невязка конца решения в наборах не хранится)."""
+def case_table(run, rows, bg_raw=None):
+    """Условия случая и качество цели (из строки набора; невязка конца решения в наборах не хранится).
+    bg_raw — сырые числа фона P3E6 (N_bl, Fr, gam_300: dθ̄/dz на 300 м над средней высотой рельефа, К/км)."""
     t = []
     for r in rows:
         day, pr, ctx = r.get("day") or {}, r["profile"], r.get("ctx") or {}
@@ -146,6 +158,9 @@ def case_table(run, rows):
             cap_flag=int(capok), cap_agl=float(cap) if capok else None, brk=day.get("brk"), sky=day.get("sky"),
             wdir=float(r["wdir"]), sun_el=pr.get("sun_el"), spread=si["spread"], iters=h.get("iters"),
             late_n=si["late_n"], t_solve=h.get("t_solve")))
+        b = (bg_raw or {}).get(r["id"])
+        if b:
+            t[-1].update(N_bl=b["N_bl"], Fr=b["Fr"], gam_300=b["gam_kkm"][1], gam_1000=b["gam_kkm"][3])
     return t
 
 
@@ -164,11 +179,11 @@ def predict(a):
     print(f"predict: {len(jobs)} случаев, осталось {len(todo)}, модель {onnx}", flush=True)
     t0 = time.time()
     if todo:
-        with mp.Pool(a.procs, _init, (onnx, info["prep_dirs"])) as pool:
+        with mp.Pool(a.procs, _init, (onnx, info["prep_dirs"], a.film_bg if a.bg_input else None)) as pool:
             for i, _ in enumerate(pool.imap_unordered(work, todo, chunksize=2)):
                 if i % 100 == 0:
                     print(f"  {i}/{len(todo)}  {time.time() - t0:.0f} с", flush=True)
-    tab = case_table(run, [rows[c] for c in ids])
+    tab = case_table(run, [rows[c] for c in ids], bg_load(a.film_bg)[1] if a.film_bg else None)
     (out / "case_table.json").write_text(json.dumps(tab, ensure_ascii=False))
     (out / "source.json").write_text(json.dumps(dict(run=str(run), onnx=str(onnx), set=SET, a_key_m=A_KEY, edge=EDGE,
                                                     date=time.strftime("%F %T")), ensure_ascii=False, indent=1))
@@ -243,6 +258,10 @@ def groups_of(tab):
     num("relief", [0, 500, 1000, 1500, 2000, 1e9])
     cat("system")
     cat("sky")
+    if any("N_bl" in t for t in tab):                  # P3E6: фон (N свободной атмосферы 0,01377 1/с)
+        num("N_bl", [0, 0.005, 0.0137, 1], "{:.4f}")
+        num("Fr", [0, 0.25, 0.5, 1, 2, 3.01], "{:.2f}")
+        num("gam_300", [-1, 0.5, 5, 7, 100], "{:g}")
     return G
 
 
@@ -369,7 +388,7 @@ def report(a):
     srows = []
     for gname in ("conv", "nc"):
         m = grp[gname]
-        for k in ("U10", "heat", "t_max", "H_mean", "z_i", "hour", "cap_agl", "cross", "aniso", "slope", "relief", "wdir", "sun_el"):
+        for k in ("U10", "heat", "t_max", "H_mean", "z_i", "hour", "cap_agl", "cross", "aniso", "slope", "relief", "wdir", "sun_el", "N_bl", "Fr", "gam_300"):
             x = col(tab, k)
             ok = m & np.isfinite(x)
             if ok.sum() < 20:
@@ -555,6 +574,8 @@ def main():
     ap.add_argument("--onnx", default=None)
     ap.add_argument("--out", default=str(HERE / "p3/out/cond_p2b"))
     ap.add_argument("--procs", type=int, default=int(os.environ.get("COND_PROCS", "8")))
+    ap.add_argument("--film-bg", default=None, help="P3E6: film_bg.npz — условия фона в таблицы")
+    ap.add_argument("--bg-input", action="store_true", help="P3E6: числа фона — и во вход сети (сеть P3E6)")
     a = ap.parse_args()
     if a.stage in ("predict", "all"):
         predict(a)
