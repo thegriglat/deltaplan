@@ -124,3 +124,5 @@
 {"t": "2026-10-03T18:51:44", "by": "coordinator", "task": "NN-P9", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P9"}
 {"t": "2026-10-03T18:51:46", "by": "coordinator", "task": "NN-P10", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P10"}
 {"t": "2026-10-03T18:51:48", "by": "coordinator", "task": "NN-P11", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-nn-NN-P11"}
+{"t": "2026-10-03T18:56:40", "by": "coordinator", "task": "NN-P10", "ev": "note", "note": "заход 1: POD v4 — 95 % дисперсии при K=3, 99 % при K=5–6; ошибка ветра 60 м на (г) p90 при K=6 = 0,23–0,25 м/с, K=8 — 0,11–0,12 (правило ≤ 0,1 → для v4 «нет»); v5 ждёт NN-P9"}
+{"t": "2026-10-03T18:56:52", "by": "main", "task": null, "ev": "plan", "note": "план 8.2. Задачи: замена «| NN-2 | Физика поверхно…»"}
