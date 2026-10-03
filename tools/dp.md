@@ -200,4 +200,4 @@ dp job --lock cpu|gpu start <имя> <таймаут_с> <команда…>   #
 dp lock gpu|cpu <имя> [--timeout СЕК] -- <команда…>        # под замком, ожидание блокирующее, таймаут → 124
 dp lock status                                 # кто держит: имя, PID, команда, с какого времени, копия
 ```
-Замок `gpu` — файл `/tmp/heat_ca_gpu.lock`, тот же, что у `GpuLock` пилота (air_nn_pilot): пилот и `dp lock gpu` видят друг друга. `cpu` — N слотов (`DP_CPU_SLOTS`, по умолчанию max(1, nproc // 8)).
+Замок `gpu` — файл `/tmp/heat_ca_gpu.lock`, тот же, что у `GpuLock` пилота (air_nn_pilot): пилот и `dp lock gpu` видят друг друга. `cpu` — N слотов (`DP_CPU_SLOTS`, по умолчанию max(1, nproc // 2) — слот на физическое ядро).
