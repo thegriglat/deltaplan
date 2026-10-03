@@ -152,6 +152,7 @@ settings_grass_density,Густота травы,Grass density
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчёт по рельефу,Calculated from terrain
 settings_wind_model_simple,Упрощённый (быстрее и надёжнее),Simplified (lighter and safer)
+settings_wind_model_nn,Нейросеть (экспериментально),Neural network (experimental)
 settings_as_in_preset,Как в пресете,From preset
 recent_title,Недавние места,Recent places
 recent_rename,Переименовать,Rename
