@@ -1,0 +1,7 @@
+group,target,n_cases,n_feat,R2_fit,R2_leave_system_out
+conv,w_mean_err,584,18,0.8242,0.7075
+conv,w_mean_err_over_S,584,18,0.5911,0.4465
+conv,l_mean_err,584,18,0.8001,0.6922
+nc,w_mean_err,136,18,0.756,-0.08228
+nc,w_mean_err_over_S,136,18,0.3504,-3.1
+nc,l_mean_err,136,18,0.8567,0.2854
