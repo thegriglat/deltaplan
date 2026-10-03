@@ -53,13 +53,16 @@ disableKinds = ['taxonomy', 'term']
   # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
   # Порядок важен: сначала более длинные префиксы.
   [[params.repoMap]]
-    content = 'research/archive/plan/'
+    content = 'plans/archive/'
     repo = 'docs/archive/plan/'
   [[params.repoMap]]
-    content = 'research/plan/'
+    content = 'plans/'
     repo = 'docs/plan/'
   [[params.repoMap]]
-    content = 'research/notes/'
+    content = 'research/findings'
+    repo = 'docs/registry/findings'
+  [[params.repoMap]]
+    content = 'research/docs/'
     repo = 'docs/research/'
   [[params.repoMap]]
     content = 'research/heat_ca/'
@@ -81,23 +84,19 @@ disableKinds = ['taxonomy', 'term']
 [[cascade]]
   bookCollapseSection = true
   [cascade.target]
-    path = '{/research/plan,/research/plan/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/notes,/docs}'
+    path = '{/plans/game,/plans/archive,/plans/archive/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/docs,/docs}'
     kind = 'section'
+# Детали подключённых документов не засоряют боковое меню: они доступны из страниц-оглавлений
+[[cascade]]
+  bookHidden = true
+  [cascade.target]
+    path = '{/plans/**,/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
 [[cascade]]
   type = 'posts'
   [cascade.target]
     path = '{/diary,/diary/**}'
 
 # Порядок и заголовки подключённых разделов/таблиц без шапки
-[[cascade]]
-  weight = 1
-  [cascade.target]
-    path = '/research/plan'
-[[cascade]]
-  weight = 2
-  title = 'Исследования и источники'
-  [cascade.target]
-    path = '/research/notes'
 [[cascade]]
   weight = 3
   [cascade.target]
@@ -218,43 +217,41 @@ disableKinds = ['taxonomy', 'term']
     source = 'layouts'
     target = 'layouts'
 
-  # --- Документация модулей: docs/*.md (без подпапок) ---
-  [[module.mounts]]
-    source = '../docs'
-    target = 'content/docs'
-    files = ['! INDEX.md', '/*.md']
-
+  # --- Описания систем и контракты: docs/guide, docs/contracts ---
+  # Не подключены: раздел про пасхалки (в «Объектах мира», контрактах и планах пасхалок) на сайт не выносим.
   [[module.mounts]]
     source = '../docs/guide'
     target = 'content/docs/guide'
-    files = ['*.md']
+    files = ['! world-objects.md', '*.md']
   [[module.mounts]]
     source = '../docs/contracts'
     target = 'content/docs/contracts'
-    files = ['*.md']
+    files = ['! easter-eggs.md', '*.md']
 
-  # --- Планы: docs/plan/ (README.md → _index.md раздела) ---
+  # --- Планы (живые и отложенные): docs/plan/; README.md — устаревший верхнеуровневый план, на сайт не подключён ---
   [[module.mounts]]
     source = '../docs/plan'
-    target = 'content/research/plan'
+    target = 'content/plans'
     files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
   [[module.mounts]]
-    source = '../docs/plan/README.md'
-    target = 'content/research/plan/_index.md'
-  [[module.mounts]]
     source = '../docs/plan/game/README.md'
-    target = 'content/research/plan/game/_index.md'
+    target = 'content/plans/game/_index.md'
 
-  # --- Архив закрытых планов: docs/archive/plan/ ---
+  # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
   [[module.mounts]]
     source = '../docs/archive/plan'
-    target = 'content/research/archive/plan'
-    files = ['*.md', '**/*.md']
+    target = 'content/plans/archive'
+    files = ['! world-easter-eggs*.md', '*.md', '**/*.md']
+
+  # --- Реестр выводов: docs/registry/findings.md ---
+  [[module.mounts]]
+    source = '../docs/registry/findings.md'
+    target = 'content/research/findings.md'
 
   # --- Исследования и источники: docs/research/ ---
   [[module.mounts]]
     source = '../docs/research'
-    target = 'content/research/notes'
+    target = 'content/research/docs'
     files = ['*.md', '**/*.md']
 
   # --- Прототип «нагрев → плавучесть → поток» (2D): tools/research/heat_ca/ ---
