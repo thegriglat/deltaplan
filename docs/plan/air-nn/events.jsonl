@@ -138,3 +138,8 @@
 {"t": "2026-10-03T19:14:04", "by": "executor", "task": "NN-P10", "ev": "checked", "note": "3/3 verdict=ok:упаковка: нет; v5_done=ok:v5; pod_file=ok:shape (9, 8, 13) (9, 13)"}
 {"t": "2026-10-03T19:14:04", "by": "executor", "task": "NN-P10", "ev": "accepted", "note": "по отчёту: упаковка — нет (v5 K=6 p90 0,14/0,21 м/с > 0,1); опыт (5) не ставим"}
 {"t": "2026-10-03T19:14:04", "by": "coordinator", "task": "NN-P10", "ev": "merged", "note": "76046ab"}
+{"t": "2026-10-03T19:14:51", "by": "executor", "task": "NN-P11", "ev": "reported", "commits": ["fd11249", "052c246"], "note": "done: Карты входа v5 (27 карт, maps5.py; 24–26 через base.linear_base) и таблица ошибки сети П-2 по признакам рельефа. Ошибка…", "dp_feedback": "dp lock cpu требует синтаксис «<имя> --timeout СЕК -- команда» (первая попытка без имени упала); в справке задач это не указано."}
+{"t": "2026-10-03T19:15:33", "by": "executor", "task": "NN-P11", "ev": "checked", "note": "5/5 test_maps5=ok:exit 0; contract_full=ok:П2 v5: OK; v4_intact=ok:exit 0; table=ok:sub_steep_lee; coverage=ok:без рельефа 25 м: 0"}
+{"t": "2026-10-03T19:15:33", "by": "executor", "task": "NN-P11", "ev": "accepted", "note": "по отчёту: контрактный тест П2 v5 OK, повороты/отражение по 27 картам; сомнения (привязка блоков тайла, трактовка H) — в пределах тестов"}
+{"t": "2026-10-03T19:15:53", "by": "coordinator", "task": "NN-P11", "ev": "accepted", "commits": ["8be0138"], "note": "5/5 test_maps5=ok:exit 0; contract_full=ok:П2 v5: OK; v4_intact=ok:exit 0; table=ok:sub_steep_lee; coverage=ok:без рельефа 25 м: 0"}
+{"t": "2026-10-03T19:15:54", "by": "coordinator", "task": "NN-P11", "ev": "merged", "note": "8be0138"}
