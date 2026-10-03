@@ -143,3 +143,5 @@
 {"t": "2026-10-03T19:15:33", "by": "executor", "task": "NN-P11", "ev": "accepted", "note": "по отчёту: контрактный тест П2 v5 OK, повороты/отражение по 27 картам; сомнения (привязка блоков тайла, трактовка H) — в пределах тестов"}
 {"t": "2026-10-03T19:15:53", "by": "coordinator", "task": "NN-P11", "ev": "accepted", "commits": ["8be0138"], "note": "5/5 test_maps5=ok:exit 0; contract_full=ok:П2 v5: OK; v4_intact=ok:exit 0; table=ok:sub_steep_lee; coverage=ok:без рельефа 25 м: 0"}
 {"t": "2026-10-03T19:15:54", "by": "coordinator", "task": "NN-P11", "ev": "merged", "note": "8be0138"}
+{"t": "2026-10-03T19:16:14", "by": "coordinator", "task": "NN-P12", "ev": "created", "note": "П3-Г: опыты кодировки и ёмкости пачкой (100 мест) и лучший вариант на 300 местах"}
+{"t": "2026-10-03T19:16:16", "by": "coordinator", "task": "NN-P12", "ev": "started", "note": "dp-researcher (Opus), ~/deltaplan-air-nn-NN-P12"}
