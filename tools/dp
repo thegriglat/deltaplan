@@ -13,13 +13,14 @@ import difflib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
 
-DP_VERSION = 10  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
+DP_VERSION = 14  # поднимать при каждом изменении: старые копии перезапускаются из главной (maybe_reexec)
 MAIN_DP = os.environ.get("DP_MAIN_COPY") or "/home/greg/deltaplan/tools/dp"
 
 LIFECYCLE = ["created", "started", "reported", "checked", "reviewed", "accepted", "merged", "blocked", "cancelled"]
@@ -709,15 +710,17 @@ def accept_bg(a, cwd):
     for x in it:
         if x in skip:
             continue
-        if x == "--timeout":
+        if x in ("--timeout", "--tmux-session"):
             next(it, None)
+            continue
+        if x in ("--tmux", "--no-tmux") or x.startswith("--tmux-session="):
             continue
         if x.startswith("--timeout="):
             continue
         argv.append(x)
     name = f"dp-accept-{a.id}"
     try:
-        job_start(name, a.timeout, [sys.executable, str(Path(__file__).resolve()), *argv, "--cwd", str(cwd)])
+        job_start(name, a.timeout, [sys.executable, str(Path(__file__).resolve()), *argv, "--cwd", str(cwd)], tmux_opts(a))
     except DpError as e:
         die(str(e))
     print(f"ждать: dp job wait {name} {a.timeout}; итог — в событиях (dp log {a.id}), логи — build/dp/{a.id}")
@@ -2106,15 +2109,159 @@ def job_files(name):
     return d / f"{name}.pid", d / f"{name}.log", d / f"{name}.rc"
 
 
-def job_start(name, limit, cmd):
+def job_start(name, limit, cmd, tm=None):
+    """tm — сессия tmux (tmux_opts) или None; нет tmux/сессии → фон с предупреждением `dp: …`."""
     pidf, log, rcf = job_files(name)
     rcf.unlink(missing_ok=True)
     d = job_dir()
+    if tm and tmux_job(name, limit, cmd, tm):
+        return
     # setsid — своя группа: при таймауте гасится всё дерево; rc пишется всегда (124 — таймаут)
     pr = subprocess.Popen(["setsid", "bash", "-c", 'timeout -k 30 "$1" "${@:3}" >"$2.log" 2>&1; echo $? >"$2.rc"', "_", str(limit), str(d / name), *cmd],
-                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=False)
+                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=False,
+                          env={**os.environ, "DP_NO_TMUX": "1"})
     pidf.write_text(str(pr.pid))
     print(f"{name}: PID {pr.pid}, лог {log}")
+
+
+# окно tmux = outer (bash, пишет итог) → runner (PID в .pid, код в .rc) → script (настоящий tty; лог без \r-перерисовок)
+TMUX_RUNNER = r"""#!/bin/bash
+# dp job: runner <таймаут> <база> <команда…>; PID — этого процесса, код — в <база>.rc
+limit=$1; base=$2; shift 2
+echo $$ >"$base.pid"
+rm -f "$base.rc" "$base.cpid" "$base.fifo"
+printf -v c '%q ' "$@"
+c="echo \$\$ >$(printf %q "$base.cpid"); exec timeout -k 30 $limit $c"
+mkfifo "$base.fifo"
+awk '/^Script (started|done) on /{next} {n=split($0,a,"\r"); s=a[n]; if(s==""&&n>1)s=a[n-1]; print s; fflush()}' <"$base.fifo" >"$base.log" &
+ap=$!
+sig=0
+script -qefc "$c" "$base.fifo" <&0 &
+sp=$!
+fw() { sig=$1; [ -s "$base.cpid" ] && kill -TERM "$(cat "$base.cpid")" 2>/dev/null; kill -TERM $sp 2>/dev/null; }
+trap 'fw 143' TERM
+trap 'fw 129' HUP
+while :; do wait $sp; rc=$?; kill -0 $sp 2>/dev/null || break; done
+wait $ap 2>/dev/null
+rm -f "$base.fifo" "$base.cpid"
+[ "$sig" != 0 ] && rc=$sig
+echo $rc >"$base.rc"
+exit $rc
+"""
+TMUX_OUTER = r"""runner=$1; shift; base=$2
+trap : TERM
+export DP_NO_TMUX=1
+bash "$runner" "$@"
+rc=$(cat "$base.rc" 2>/dev/null); rc=${rc:-1}
+echo
+if [ "$rc" = 143 ]; then echo "Задача остановлена (код $rc)"; else echo "Задача выполнена (код $rc)"; fi
+exec bash
+"""
+TMUX_ATTACH = r"""pid=$1; log=$2; rcf=$3
+if [ "$pid" -gt 0 ] && kill -0 "$pid" 2>/dev/null; then tail -n 40 -F --pid="$pid" "$log"; else tail -n 40 "$log"; fi
+sleep 0.3; echo; echo "Задача выполнена (код $(cat "$rcf" 2>/dev/null || echo ?))"
+exec bash
+"""
+
+
+TMUX_SESSION = "dp"  # отдельная сессия для окон задач: сессии пользователя не засоряются
+
+
+def tmux_opts(a):
+    """Сессия tmux или None. Окно — по умолчанию (сессия $DP_TMUX_SESSION, иначе dp; нет — создаётся); --no-tmux и DP_NO_TMUX (внутри задачи dp) выключают."""
+    if getattr(a, "no_tmux", False) or os.environ.get("DP_NO_TMUX"):
+        return None
+    return getattr(a, "tmux_session", None) or os.environ.get("DP_TMUX_SESSION") or TMUX_SESSION
+
+
+def tmux_ok(sess):
+    why = None
+    if not shutil.which("tmux"):
+        why = "нет tmux"
+    elif subprocess.run(["tmux", "has-session", "-t", "=" + sess], capture_output=True).returncode and \
+            subprocess.run(["tmux", "new-session", "-d", "-s", sess, "-n", "dp", "-c", str(Path.home())], capture_output=True).returncode:
+        why = f"не удалось создать сессию {sess}"
+    elif not shutil.which("script"):
+        why = "нет script (util-linux)"
+    if why:
+        print(f"dp: tmux: {why} — запуск в фоне", file=sys.stderr)
+    return why is None
+
+
+def tmux_window(name, sess, argv, env=False):
+    """Новое окно в сессии (имя занято — name-2, name-3…; старые окна не трогаем). → window_id или None."""
+    r = subprocess.run(["tmux", "list-windows", "-t", "=" + sess + ":", "-F", "#{window_name}"], capture_output=True, text=True)
+    used = set(r.stdout.split())
+    wn, i = name, 1
+    while wn in used:
+        i += 1
+        wn = f"{name}-{i}"
+    a = ["tmux", "new-window", "-d", "-P", "-F", "#{window_id}", "-t", "=" + sess + ":", "-n", wn, "-c", os.getcwd()]
+    if env:
+        for k, v in os.environ.items():
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", k) and not k.startswith("TMUX") and k not in ("PWD", "OLDPWD", "SHLVL", "_"):
+                a += ["-e", f"{k}={v}"]
+    r = subprocess.run(a + argv, capture_output=True, text=True)
+    if r.returncode:
+        print(f"dp: tmux: окно не создано ({r.stderr.strip()[:100]}) — запуск в фоне", file=sys.stderr)
+        return None
+    return r.stdout.strip(), wn
+
+
+def tmux_job(name, limit, cmd, sess):
+    if not tmux_ok(sess):
+        return False
+    pidf, log, rcf = job_files(name)
+    d = job_dir()
+    runner = d / ".tmux_runner.sh"
+    if not runner.exists() or runner.read_text() != TMUX_RUNNER:
+        tmp = d / f".tmux_runner.{os.getpid()}"
+        tmp.write_text(TMUX_RUNNER)
+        tmp.rename(runner)
+    pidf.unlink(missing_ok=True)
+    w = tmux_window(name, sess, ["bash", "-c", TMUX_OUTER, "_", str(runner), str(limit), str(d / name), *cmd], env=True)
+    if not w:
+        return False
+    for _ in range(100):
+        if pidf.exists() and pidf.read_text().strip():
+            print(f"{name}: PID {pidf.read_text().strip()}, лог {log}, окно tmux {sess}:{w[1]}")
+            return True
+        time.sleep(0.05)
+    print(f"dp: tmux: окно {sess}:{w[1]} не запустило задачу", file=sys.stderr)
+    return False
+
+
+def job_attach(name, sess):
+    pidf, log, rcf = job_files(name)
+    if not log.exists():
+        raise DpError(f"{name}: журнала нет ({log})")
+    if not tmux_ok(sess):
+        raise DpError("tmux недоступен — окно не открыто")
+    try:
+        pid = int(pidf.read_text())
+    except (OSError, ValueError):
+        pid = 0
+    w = tmux_window(name, sess, ["bash", "-c", TMUX_ATTACH, "_", str(pid), str(log), str(rcf)])
+    if not w:
+        raise DpError("окно не открыто")
+    print(f"{name}: окно tmux {sess}:{w[1]} (tail -F журнала)")
+
+
+def job_stop(name):
+    pidf = job_files(name)[0]
+    try:
+        pid = int(pidf.read_text())
+    except (OSError, ValueError):
+        raise DpError(f"{name}: не запускался")
+    if not job_alive(pid):
+        return False
+    if Path(f"/proc/{pid}").stat().st_uid != os.getuid() or str(job_dir() / name) not in Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace"):
+        raise DpError(f"PID {pid} — не наш запуск {name}, не трогаю")
+    try:
+        os.killpg(os.getpgid(pid), 15)
+    except OSError:
+        os.kill(pid, 15)
+    return pid
 
 
 def job_alive(pid):
@@ -2133,7 +2280,7 @@ def cmd_job(a):
         cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
         if a.lock:
             cmd = [sys.executable, str(Path(__file__).resolve()), "lock", a.lock, a.name, "--", *cmd]
-        job_start(a.name, a.timeout, cmd)
+        job_start(a.name, a.timeout, cmd, tmux_opts(a))
         return
     if a.action == "status" and not a.name:
         rows = []
@@ -2182,19 +2329,10 @@ def cmd_job(a):
         print(f"{a.name}: " + (f"код {rcf.read_text().strip()}" if rcf.exists() else "идёт" if pidf.exists() and job_alive(int(pidf.read_text() or 0)) else "нет данных"))
         return
     if a.action == "stop":
-        try:
-            pid = int(pidf.read_text())
-        except (OSError, ValueError):
-            raise DpError(f"{a.name}: не запускался")
-        if not job_alive(pid):
-            print(f"{a.name}: уже не идёт"); return
-        if Path(f"/proc/{pid}").stat().st_uid != os.getuid() or str(job_dir() / a.name) not in Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace"):
-            raise DpError(f"PID {pid} — не наш запуск {a.name}, не трогаю")
-        try:
-            os.killpg(os.getpgid(pid), 15)
-        except OSError:
-            os.kill(pid, 15)
-        print(f"{a.name}: остановлен (PID {pid})")
+        pid = job_stop(a.name)
+        print(f"{a.name}: остановлен (PID {pid})" if pid else f"{a.name}: уже не идёт")
+    if a.action in ("attach", "tmux"):
+        job_attach(a.name, a.tmux_session or os.environ.get("DP_TMUX_SESSION") or TMUX_SESSION)
 
 
 # ---------------------------------------------------------------- lock (общие замки: gpu — один держатель, cpu — N слотов)
@@ -2207,7 +2345,7 @@ def lock_slots(res):
         return [Path(GPU_LOCK)]
     d = job_dir() / "locks"
     d.mkdir(parents=True, exist_ok=True)
-    n = int(os.environ.get("DP_CPU_SLOTS") or max(1, (os.cpu_count() or 8) // 8))
+    n = int(os.environ.get("DP_CPU_SLOTS") or max(1, (os.cpu_count() or 8) // 2))  # слот на физическое ядро (20 потоков → 10)
     return [d / f"cpu.{i}.lock" for i in range(n)]
 
 
@@ -2238,12 +2376,14 @@ def cmd_lock(a):
     if args[:1] == ["status"]:
         return lock_status()
     if "--" not in args or len(args) < 4 or args[0] not in ("cpu", "gpu"):
-        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>  |  dp lock status")
+        raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] [--no-tmux] [--tmux-session S] -- <команда…>  |  dp lock status")
     k = args.index("--")
     head, cmd = args[:k], args[k + 1:]
     res, holder, timeout = head[0], head[1], None
     if "--timeout" in head:
         timeout = int(head[head.index("--timeout") + 1])
+    tm_args = argparse.Namespace(no_tmux="--no-tmux" in head, tmux_session=head[head.index("--tmux-session") + 1] if "--tmux-session" in head else None)
+    tm = tmux_opts(tm_args)
     if not cmd or len(head) < 2:
         raise DpError("dp lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>")
     slots = lock_slots(res)
@@ -2266,6 +2406,22 @@ def cmd_lock(a):
     f, lp = got
     ip = Path(str(lp) + ".info")
     ip.write_text(json.dumps({"holder": holder, "pid": os.getpid(), "cmd": " ".join(cmd)[:200], "since": now(), "cwd": os.getcwd()}))
+    if tm and re.fullmatch(r"[\w.-]+", holder):  # команда — в окне tmux, замок держим здесь; ждём по PID, код — из .rc
+        job_start(holder, 0, cmd, tm)
+        pidf, _, rcf = job_files(holder)
+        for sg in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sg, lambda sig, _: job_stop(holder))
+        try:
+            pid = int(pidf.read_text())
+            while job_alive(pid):
+                time.sleep(0.3)
+            time.sleep(0.2)
+            rc = int(rcf.read_text().strip()) if rcf.exists() else 143
+        except (OSError, ValueError):
+            rc = 1
+        ip.unlink(missing_ok=True)
+        f.close()
+        sys.exit(rc)
     child = subprocess.Popen(cmd)
     for sg in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sg, lambda sig, _: child.send_signal(sig))
@@ -2282,6 +2438,12 @@ def cmd_lock(a):
 class Parser(argparse.ArgumentParser):
     def error(self, message):
         die(f"{message} ({self.prog} -h)", 2)
+
+
+def tmux_args(q):
+    q.add_argument("--tmux", action="store_true", help="окно tmux (это и так по умолчанию)")
+    q.add_argument("--no-tmux", dest="no_tmux", action="store_true", help="без окна tmux, только фон")
+    q.add_argument("--tmux-session", dest="tmux_session", metavar="S", help="сессия tmux (по умолчанию $DP_TMUX_SESSION, иначе dp)")
 
 
 def build():
@@ -2360,6 +2522,7 @@ def build():
     q.add_argument("--full", action="store_true", help="пути логов и для PASS"); q.add_argument("--by")
     q.add_argument("--bg", action="store_true", help="в фоне через dp job (долгие GPU-проверки); ждать — dp job wait dp-accept-<ID>")
     q.add_argument("--timeout", type=int, default=3600, metavar="СЕК", help="с --bg: общий таймаут фонового прогона (3600)")
+    tmux_args(q)
     q.set_defaults(fn=cmd_accept)
 
     q = sp.add_parser("report", help="отчёт исполнителя: dp report ID < r.json | --show | --template")
@@ -2451,10 +2614,11 @@ def build():
     q.set_defaults(fn=cmd_search)
 
     q = sp.add_parser("job", help="долгий запуск в фоне: start <имя> <таймаут_с> <команда…> | wait <имя> <таймаут_с> | status [имя] | stop <имя>")
-    q.add_argument("action", choices=["start", "wait", "status", "stop"]); q.add_argument("name", nargs="?")
+    q.add_argument("action", choices=["start", "wait", "status", "stop", "attach", "tmux"]); q.add_argument("name", nargs="?")
     q.add_argument("timeout", nargs="?", type=int); q.add_argument("cmd", nargs=argparse.REMAINDER)
     q.add_argument("--lock", metavar="cpu|gpu", help="start: выполнять под dp lock cpu|gpu (держатель — имя задачи)")
     q.add_argument("--all", action="store_true", help="status без имени: все запуски (по умолчанию идущие + последние 10)")
+    tmux_args(q)
     q.set_defaults(fn=cmd_job)
 
     q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--timeout СЕК] -- <команда…> | lock status; gpu — тот же замок, что у пилота")
@@ -2471,10 +2635,30 @@ def build():
     return p
 
 
+def hoist_job_opts(argv):
+    """dp job start --tmux … <имя> <таймаут> <команда…>: опции между действием и командой (REMAINDER их не разбирает) — в начало."""
+    if argv[:1] != ["job"]:
+        return argv
+    rest, hoisted, pos, i = argv[1:], [], 0, 0
+    keep = []
+    while i < len(rest) and pos < 3:
+        t = rest[i]
+        if t in ("--tmux", "--no-tmux", "--all"):
+            hoisted.append(t)
+        elif t in ("--tmux-session", "--lock") and i + 1 < len(rest):
+            hoisted += [t, rest[i + 1]]
+            i += 1
+        else:
+            keep.append(t)
+            pos += not t.startswith("--")
+        i += 1
+    return ["job", *hoisted, *keep, *rest[i:]]
+
+
 def main():
     maybe_reexec()
     if sys.argv[1:2] == ["docs"]: sys.path.insert(0, str(Path(__file__).resolve().parent)); import dp_docs; sys.exit(dp_docs.main(sys.argv[2:]))  # dp docs — tools/dp_docs.py
-    a = build().parse_args()
+    a = build().parse_args(hoist_job_opts(sys.argv[1:]))
     try:
         a.fn(a)
     except DpError as e:

@@ -71,6 +71,10 @@ var queue_walk: Dictionary = {}
 ## Отладочные слои F1/F5/F6 (DebugOverlays).
 var debug_overlays: DebugOverlays
 
+## «Осмотр карты»: мир и ветер как для полёта, но крыло стоит скрытым и ни на что не влияет,
+## камера свободная. Задать до start(); сбрасывается leave_inspect().
+var inspect_mode := false
+
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
@@ -134,6 +138,7 @@ func _ready() -> void:
 	debug_overlays.name = "DebugOverlays"
 	add_child(debug_overlays)
 	debug_overlays.setup(air, glider, terrain.height_at)
+	debug_overlays.camera = camera
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
 	camera.set_mode(camera.mode)  # near по режиму
@@ -175,6 +180,9 @@ func tick(dt: float) -> void:
 		sky.clock.advance(dt)  # время суток идёт (VR-5)
 		air.call("step", dt)
 	_update_day_weather()
+	if inspect_mode:
+		camera.free_keys_enabled = true  # крыло не шагает: ни ввода, ни столкновений, ни итога
+		return
 	var phase := glider.phase()
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
@@ -231,6 +239,7 @@ func start(s: FlightSettings) -> bool:
 		air.set("seed_value", world_seed)
 	if air.has_method("set_day"):
 		air.call("set_day", null)
+	air.set("focus_node", camera if inspect_mode else glider)  # термики — вокруг камеры
 	air.call("set_weather", _derive_weather(_weather_hour))
 	# Новый полёт — часы атмосферы с нуля: порывы и жизнь термиков у старта зависят только от
 	# локации, погоды и сида, а не от того, сколько летали до этого (детерминизм, F01).
@@ -326,7 +335,7 @@ func start(s: FlightSettings) -> bool:
 func _load_air_field(progress: LoadProgress) -> void:
 	var cond := AirRuntime.conditions_of.bind(sky.clock, air, settings)
 	air_runtime.setup(air, AirRuntime.place_of(terrain, _clock_utc_offset()), cond)
-	air_runtime.set_focus(glider, _start_pos)
+	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
 	if air_runtime.unavailable_reason() == "":
 		progress.stage("wind", tr("loading_wind"))
 		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
@@ -515,6 +524,7 @@ func is_paused() -> bool:
 func set_flying(on: bool) -> void:
 	flying_enabled = on
 	_paused = false
+	glider.visible = true
 	set_input_enabled(on)
 	camera.set_mode(
 		(
@@ -528,6 +538,28 @@ func set_flying(on: bool) -> void:
 	if on:
 		flight_audio.play_carabiner()
 	_update_overlay()
+
+
+## Осмотр карты: свободная камера, крыло скрыто и стоит, стрелки ветра включены.
+func enter_inspect() -> void:
+	set_flying(false)
+	inspect_mode = true
+	glider.visible = false
+	camera.locked_free = true
+	camera.set_mode("free")
+	set_input_enabled(true)
+	debug_overlays.enable(PackedStringArray(["wind"]))
+
+
+## Выход из осмотра (в меню): вернуть крыло, режимы камеры и выключить стрелки ветра.
+func leave_inspect() -> void:
+	if not inspect_mode:
+		return
+	inspect_mode = false
+	camera.locked_free = false
+	glider.visible = true
+	if debug_overlays.wind_on:
+		debug_overlays.toggle_wind()
 
 
 ## Ввод игрока и обзор мышью (выключается на паузе и на экране итога).

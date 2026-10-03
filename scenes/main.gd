@@ -117,7 +117,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			State.MENU:
 				if _overlay_open():
 					_close_overlay()
-	elif event.is_action_pressed("restart") and state in [State.FLYING, State.RESULT]:
+	elif (
+		event.is_action_pressed("restart")
+		and state in [State.FLYING, State.RESULT]
+		and not game.inspect_mode
+	):
 		get_viewport().set_input_as_handled()
 		_restart()
 
@@ -132,12 +136,18 @@ func _on_menu_fly(s: FlightSettings) -> void:
 	await _fly(s)
 
 
+## «Осмотр карты»: тот же мир и ветер, но без полёта — сразу свободная камера. Выход — Esc → меню.
+func _on_menu_inspect(s: FlightSettings) -> void:
+	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
+	await _fly(s, true)
+
+
 ## Новый случайный сид мира (0..2^31−1), как у «Создать» на экране сети.
 static func _new_seed() -> int:
 	return randi() & 0x7fffffff
 
 
-func _fly(s: FlightSettings) -> void:
+func _fly(s: FlightSettings, inspect := false) -> void:
 	state = State.LOADING
 	flight = s
 	get_tree().paused = false
@@ -147,7 +157,8 @@ func _fly(s: FlightSettings) -> void:
 	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
 	game.air_start_m = opts.air_start_m
 	game.air_start_agl_m = opts.air_start_agl_m
-	game.bots_count = opts.bots if game.net == null else 0  # боты зоны — NET-44
+	game.inspect_mode = inspect
+	game.bots_count = 0 if inspect else (opts.bots if game.net == null else 0)  # боты зоны — NET-44
 	var ok: bool = await game.start(s)
 	if ok and game.net != null:
 		ok = await game.net.join_world()  # мир — на время зоны, сверка ключа мира
@@ -162,6 +173,10 @@ func _fly(s: FlightSettings) -> void:
 	if not opts.autostart and game.net == null:
 		UserSettings.save_last_flight(s)
 	start_menu.visible = false
+	if inspect:
+		game.enter_inspect()
+		state = State.FLYING
+		return
 	game.set_flying(true)
 	if opts.camera != "":
 		game.camera.set_mode(opts.camera)
@@ -200,6 +215,7 @@ func _show_menu() -> void:
 	]
 	for c: Control in overlays:
 		c.visible = false
+	game.leave_inspect()
 	game.set_flying(false)
 	start_menu.visible = true
 	start_menu.set_settings(flight)
@@ -344,6 +360,7 @@ func _connect_ui() -> void:
 func _connect_screens() -> void:
 	start_menu.language_requested.connect(_on_language_requested)
 	start_menu.fly_requested.connect(_on_menu_fly)
+	start_menu.inspect_requested.connect(_on_menu_inspect)
 	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.net_requested.connect(_open_net_screen)
 	start_menu.settings_requested.connect(_open_settings.bind(start_menu))

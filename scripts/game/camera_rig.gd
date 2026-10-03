@@ -86,7 +86,13 @@ func set_mode(m: String) -> void:
 	mode_changed.emit(mode)
 
 
+## Осмотр карты: режим только «free», переключение камер выключено.
+var locked_free := false
+
+
 func next_mode() -> void:
+	if locked_free:
+		return
 	set_mode(_modes[(_modes.find(mode) + 1) % _modes.size()])
 
 
