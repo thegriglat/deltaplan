@@ -58,19 +58,30 @@ def case_file(prep, cid):
 def load_arrays(prep, ids, with_y=True):
     """Кеш подготовки (каталог или список каталогов) → массивы в ОЗУ: X (n,9,96,96) f32, F (n,18) f32,
     Y (n,91,96,96) f16."""
-    X, F, Y, metas = [], [], [], []
-    for cid in ids:
+    # массивы выделяются сразу целиком и заполняются по случаю: без списка + np.stack (двойной пик ОЗУ)
+    X = F = Y = None
+    metas = []
+    for i, cid in enumerate(ids):
         with np.load(case_file(prep, cid)) as z:
-            X.append(z["X"]); F.append(z["F"])
+            if X is None:
+                X = np.empty((len(ids),) + z["X"].shape, z["X"].dtype)
+                F = np.empty((len(ids),) + z["F"].shape, z["F"].dtype)
+                if with_y:
+                    Y = np.empty((len(ids),) + z["Y"].shape, z["Y"].dtype)
+            X[i] = z["X"]; F[i] = z["F"]
             if with_y:
-                Y.append(z["Y"])
+                Y[i] = z["Y"]
             metas.append(json.loads(str(z["meta"])))
-    return np.stack(X), np.stack(F), (np.stack(Y) if with_y else None), metas
+    return X, F, Y, metas
 
 
 def channel_scale(Y):
     """std каждого из 91 каналов по обучению (масштаб потерь и выхода), не меньше пола канала."""
-    s = np.sqrt(np.mean(Y.astype(np.float32) ** 2, axis=(0, 2, 3)) + 1e-12)   # rms (отклонение от притока, центр 0)
+    acc = np.zeros(Y.shape[1], np.float64)   # rms по кускам: целиком Y во f32 и его квадрат не влезают в ОЗУ
+    for i in range(0, len(Y), 64):
+        y = Y[i:i + 64].astype(np.float32)
+        acc += np.einsum("nchw,nchw->c", y, y, dtype=np.float64)
+    s = np.sqrt(acc / (len(Y) * Y.shape[2] * Y.shape[3]) + 1e-12).astype(np.float32)   # rms (отклонение от притока, центр 0)
     floor = np.repeat([0.02, 0.02, 0.005, 0.02, 0.02, 0.005, 0.05], len(AGL)).astype(np.float32)
     return np.maximum(s, floor)
 
