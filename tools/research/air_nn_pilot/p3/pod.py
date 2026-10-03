@@ -36,6 +36,7 @@ AGL = P.AGL
 NA = len(AGL)
 KMAX = 8
 STRIDE = 3
+GAMMA0 = False
 A_KEY = 60.0
 NAMES = dict(v4=("u_m", "v_m", "w_m", "u_h", "v_h", "w_h", "theta"),
              v5=("a_m", "sd_m", "cd_m", "wrel_m", "a_h", "sd_h", "cd_h", "wrel_h", "theta"))
@@ -81,6 +82,10 @@ def load_case(cid, enc):
         ub = P.ubg(AGL, meta["alpha"], meta["mp"], meta["U10"])
         base = B.linear_base(hr, meta["r"], ub)
         y = np.asarray(B.target_v5(z, meta, base), np.float64)
+        if GAMMA0:        # γ = 0: канал w_rel = w / S (цель w), справочно (контракт П2 v5, «γ_a»)
+            for key, c in (("d400_m", 3), ("d400_h", 7)):
+                w = P.rot_scalar(np.asarray(z[key], np.float64)[2], meta["k"]) / meta["S"]
+                y[c * NA:(c + 1) * NA] = w
     return y.reshape(len(NAMES[enc]), NA, -1), meta, z, base
 
 
@@ -89,7 +94,12 @@ def to_phys(enc, y, meta, base, shape):
     if enc == "v4":
         return P.to_physical(y, meta)
     from pilotnn import base as B
-    return B.to_physical_v5(y, meta, base)
+    res = B.to_physical_v5(y, meta, base)
+    if GAMMA0:
+        yy = y.reshape(9, NA, *shape)
+        for key, c in (("m", 3), ("h", 7)):
+            res[key][2] = P.rot_scalar(yy[c] * meta["S"], -meta["k"] % 4)
+    return res
 
 
 def _cov_job(args):
@@ -179,8 +189,11 @@ def main():
     ap.add_argument("--enc", choices=("v4", "v5"), required=True)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--train-eval", type=int, default=600)
+    ap.add_argument("--gamma0", action="store_true", help="v5: w_rel с γ = 0 (цель w), справочно")
     ap.add_argument("--limit", type=int, default=0, help="отладка: взять первые N случаев в каждом наборе")
     a = ap.parse_args()
+    global GAMMA0
+    GAMMA0 = a.gamma0
     split = json.load(open(RUN / "split.json"))
     train, gsys = list(split["train_ids"]), list(split["holdout_sys_ids"])
     rng = np.random.default_rng(20261003)
@@ -198,7 +211,7 @@ def main():
         tab, nc, nk = evaluate(ids, a.enc, mean, phi, a.workers)
         res[name] = dict(table=tab, n_cells=nc, n_cases=nk)
         print(f"[{a.enc}] {name}: {nk} случаев, {nc} клеток; {time.time()-t0:.0f} с", flush=True)
-    sfx = f"_lim{a.limit}" if a.limit else ""
+    sfx = ("_g0" if a.gamma0 else "") + (f"_lim{a.limit}" if a.limit else "")
     np.savez(OUT / f"pod_{a.enc}{sfx}.npz", mean=mean.astype(np.float32), phi=phi[:, :KMAX, :].astype(np.float32),
              eig=eig.astype(np.float32), vfrac=vfrac.astype(np.float32))
     json.dump(res, open(OUT / f"pod_{a.enc}{sfx}.json", "w"), indent=1)
