@@ -45,3 +45,4 @@
 {"t": "2026-10-03T05:35:00", "by": "reviewer", "task": "ON-5", "ev": "reviewed", "note": "Путь engine=nn сделан по O5/O6. Сборка WindField совпадает с правилами O5: 25 м внизу, линейная интерполяция по AGL, выше 2000 м затухание к 3000 м. Направлени…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/air-onnx/tasks/ON-5.review.json"}
 {"t": "2026-10-03T05:35:20", "by": "coordinator", "task": "ON-5", "ev": "accepted", "note": "по ревью; minor: абзац guide принят здесь, тесты 2000–3000 м/NaN и кеш модели после ошибки — не шлифуем"}
 {"t": "2026-10-03T05:35:32", "by": "coordinator", "task": "ON-5", "ev": "merged", "commits": ["e5f8609"]}
+{"t": "2026-10-03T05:35:52", "by": "coordinator", "task": "ON-6", "ev": "created", "note": "README «как вставить сеть П-2 и полетать», CHANGELOG"}

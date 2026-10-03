@@ -1,0 +1,55 @@
+{
+  "id": "ON-6",
+  "module": "air-onnx",
+  "type": "dp-writer",
+  "title": "README «как вставить сеть П-2 и полетать», CHANGELOG",
+  "goal": "Пользователь по одной странице кладёт .onnx П-2 в ветку (или в user://), собирает игру Linux/Windows и летает на нейросети",
+  "plan_ref": "ON-6",
+  "contracts": [
+    {
+      "name": "O1",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    },
+    {
+      "name": "O6",
+      "version": 1,
+      "ref": "docs/contracts/air-onnx.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-onnx-ON-6",
+  "branch": "air-onnx/ON-6",
+  "base": "feature/air-onnx",
+  "scope": [
+    "data/air_nn/README.md",
+    "CHANGELOG.md",
+    "docs/guide/air-model.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "native/",
+    "tools/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -s data/air_nn/README.md && grep -c 'export_onnx.py\\|test_contract_o1.py\\|build.sh\\|user://\\|model.onnx' data/air_nn/README.md",
+      "expect": "num:^(\\d+) >=5"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -n -i 'нейросет' CHANGELOG.md | head -3",
+      "expect": "re:нейросет"
+    },
+    {
+      "name": "docs_check",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Источники (только факты из них): tools/air_onnx/README.md (export_onnx.py, tiny, замеры ORT), native/air_onnx/README.md (сборка расширения, Windows VC++ app-local, macOS), контракты O1, O6 (`dp plan air-onnx --contracts O6`), tools/air_onnx/nn_load_probe.sh, configs/atmosphere.json (air_model.engine, nn_model…), scripts/ui/settings_panel.gd (пункт «Нейросеть (экспериментально)»), tools/build.sh. Сеть П-2 появится в ~/air_nn_data/pilot/runs/2026-10-03_p2/main/model.onnx (9 карт). README по шагам с точными командами: 1) проверить файл (test_contract_o1.py --model, export_onnx.py --info; если нужен экспорт из чекпойнта — export_onnx.py --ckpt); 2) положить в data/air_nn/model.onnx и закоммитить (или user://air_nn/model.onnx без пересборки — точные пути Linux и Windows; имя проекта — из project.godot config/name и use_custom_user_dir, если есть); 3) собрать расширение и игру (tools/build.sh; Godot — XDG_DATA_HOME=$(mktemp -d) с симлинком export_templates, как tools/check.sh); 4) в игре Настройки → Ветер над рельефом → Нейросеть; 5) что видно в журнале (строки air_model: поле (нейросеть …) / analytic (нейросеть: …)), где лежит журнал; 6) быстрая проверка без игры — nn_load_probe.sh; 7) чего не умеет (окон нет, сеть обучена мало, Windows не проверялась запуском здесь). frontmatter (dp docs init), по-русски, простым языком. CHANGELOG — «В работе», функционально. В guide — ссылка на README, если раздела ещё нет (абзац ON-5 уже есть). Публичные тексты: родители — не упоминать.",
+  "created": "2026-10-03T05:35:52"
+}
