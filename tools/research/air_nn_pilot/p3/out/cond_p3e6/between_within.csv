@@ -1,0 +1,10 @@
+group,y,between,within
+conv,w,0.2717,0.7283
+conv,w_over_S,0.2169,0.7831
+conv,lift,0.1307,0.8693
+nc,w,0.3216,0.6784
+nc,w_over_S,0.1871,0.8129
+nc,lift,0.2011,0.7989
+all,w,0.2937,0.7063
+all,w_over_S,0.3113,0.6887
+all,lift,0.1517,0.8483
