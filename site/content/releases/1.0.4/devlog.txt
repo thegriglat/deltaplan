@@ -1,0 +1,11 @@
+Deltaplan 1.0.4 — simplified wind as in 0.8.0
+
+Simplified wind is back to the 0.8.0 feel. In Settings, "Wind over terrain" set to Simplified now uses the same wind growth with height as version 0.8.0, together with all the new gliders and controls.
+
+Wind:
+- Simplified mode: wind grows with height as in 0.8.0 (power law, at most 1.8 times the 10 m wind), independent of time of day and cloud cover
+- Slope lift, lee zones, thermals and turbulence in Simplified mode are the same as in 0.8.0
+- Calculated from terrain mode is unchanged
+
+Known issues:
+- Mac build is untested
