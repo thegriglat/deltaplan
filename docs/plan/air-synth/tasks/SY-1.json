@@ -1,0 +1,72 @@
+{
+  "id": "SY-1",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Формат корпуса: чтение/запись S1/S2, шарды и индекс, запуск корпуса, контрактный тест",
+  "goal": "Компактный формат корпуса модельных рельефов и условий по контракту (protobuf, шарды с индексом для произвольного доступа) и запуск генерации пачкой: параллельно, детерминированно, с продолжением после прерывания.",
+  "plan_ref": "2. Генератор рельефа",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "2",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S2",
+      "version": "1",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S3",
+      "version": "2",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-1",
+  "branch": "air-synth/SY-1",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/corpus/corpus_io.py",
+    "tools/research/air_synth/corpus/run_corpus.py",
+    "tools/research/air_synth/corpus/proto_generator.py",
+    "tools/research/air_synth/corpus/tests",
+    "tools/research/air_synth/corpus/setup_env.sh",
+    "tools/research/air_synth/corpus/requirements.in",
+    "tools/research/air_synth/corpus/README.md",
+    "tools/research/air_synth/corpus/.gitignore"
+  ],
+  "dont_touch": [
+    "tools/research/air_synth/corpus/proto",
+    "tools/research/air_synth/corpus/gen",
+    "tools/research/air_synth/corpus/generator.py",
+    "tools/research/air_synth/corpus/conditions.py",
+    "tools/research/air3d",
+    "tools/research/air_nn_pilot"
+  ],
+  "accept": [
+    {
+      "name": "contract_tests",
+      "cmd": "cd tools/research/air_synth/corpus && ./setup_env.sh >/dev/null 2>&1 && .venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "no_fail",
+      "cmd": "cd tools/research/air_synth/corpus && .venv/bin/python -m pytest -q tests",
+      "expect": "!re:failed|error"
+    },
+    {
+      "name": "smoke_resume",
+      "cmd": "cd tools/research/air_synth/corpus && .venv/bin/python -m pytest -q tests -k resume",
+      "expect": "re:[1-9]\\d* passed"
+    }
+  ],
+  "report_extra": [
+    "sec_gen_per_relief",
+    "sec_io_per_relief",
+    "bytes_per_relief",
+    "go_needed"
+  ],
+  "notes": "Схема данных — proto/air_synth/v1/corpus.proto и gen/ (готовы, не править; нужна правка схемы — вопрос координатору, версия контракта +1). Окружение — свой .venv в tools/research/air_synth/corpus (uv, python 3.12: numpy scipy numba fastscapelib protobuf>=7.35 pytest; setup_env.sh идемпотентный, .venv в .gitignore). Генератор SY-2 (generator.py) пишется параллельно: запуск берёт генератор по S3 (по умолчанию модуль generator, флаг --generator модуль); для своих тестов — дешёвый поддельный генератор в tests, для замера времени — proto_generator.py: обёртка прототипа tools/research/air_synth/terrain_stats/fastscape_gen.py (TYPES askarovo/ongudai, mix — выбор между ними) по API S3. Замер, где время: генерация против квантования/сериализации/записи на одном рельефе и на 2–3 шардах (report_extra), вывод — нужен ли Go (решение пользователя: только если узкое место — наш Python и Numba не спасает). Тест прерывания: запуск, убить процесс посередине, тем же вызовом продолжить → шарды побитно как у непрерывного (кроме compute_seconds). Данные тестов — во временном каталоге, не в репозитории; AIR_SYNTH_DATA по умолчанию ~/air_synth_data. Массовую генерацию НЕ запускать (это SY-5).",
+  "created": "2026-10-04T22:21:35",
+  "edited": "2026-10-04T22:28:45"
+}
