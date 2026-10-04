@@ -4,7 +4,8 @@ out_h7/cases.jsonl, продолжение (готовые id пропускаю
 (замок держит запуск, воркеры — внутри него, как в dataset.py пилота) либо с --own-lock (flock /tmp/heat_ca_gpu.lock).
 
   dp job --lock gpu start h7 3000 env OMP_NUM_THREADS=1 ../../air_nn_pilot/.venv/bin/python h7_run.py --source proto --workers 2
-Источник рельефа: --source proto [--npz файл] | corpus --corpus-dir D --ids 1,2,3 [--corpus-io-dir папка].
+Источник рельефа: --source proto [--npz файл] | corpus --corpus-dir D --ids 1,2,3|auto5 [--conditions DIR_S2] (auto5 — 5 рельефов
+с разным mix и перепадом; --conditions — условия из набора S2 вместо plan()).
 Условия — как plan_rows P2 (час x облачность по кругу, направление и t_max равномерно), только механический режим:
 U10 ~ U[3, 8] м/с, без штилей; 3 условия на рельеф, глобальный номер n: час HOURS[n % 4], облачность SKIES[(n // 4) % 3]
 (при 4 рельефах x 3 — все 12 сочетаний). Область 96 x 96 x 400 м, решения h (с нагревом) и m (без), предел итераций и
@@ -44,11 +45,61 @@ def plan(names, n_cond, seed):
     return rows
 
 
+def pick_ids(corpus_dir, n=5):
+    """Детерминированный выбор n рельефов корпуса с разным mix и перепадом: цели (квантиль mix, квантиль перепада) —
+    (0,1; 0,1), (0,9; 0,3), (0,5; 0,5), (0,1; 0,9), (0,9; 0,9) (первые n); берётся ближайший по рангам, без повторов."""
+    sys.path.insert(0, str(HERE.parent / "corpus"))
+    import corpus_io as cio
+    c = cio.Corpus(corpus_dir)
+    ids = c.ids()
+    mix = np.array([c.params(i)["mix"] for i in ids]); rel = np.array([c.summary(i)["relief_m"] for i in ids])
+    c.close()
+    rk = lambda x: np.argsort(np.argsort(x)) / (len(x) - 1)
+    rm, rr = rk(mix), rk(rel)
+    out = []
+    for qm, qr in [(0.1, 0.1), (0.9, 0.3), (0.5, 0.5), (0.1, 0.9), (0.9, 0.9)][:n]:
+        d = (rm - qm) ** 2 + (rr - qr) ** 2
+        d[[ids.index(i) for i in out]] = 9
+        out.append(ids[int(np.argmin(d))])
+    return out
+
+
+def plan_from_conditions(names, ids, cond_dir, n_cond):
+    """Условия из набора S2 (conditions.h5, h1_p2: P2 без отбора): n_cond на рельеф — собственные условия рельефа (cond_id 0, 1, …);
+    недостающие добираются условиями следующих по списку рельефов (циклически, из того же набора). Если среди выбранных нет
+    немеханического или слабого ветра (U10 < 2 м/с), последнее место занимает первое такое условие следующих рельефов
+    (цена несошедшихся определяет реальную стоимость набора). Поля решателя: hour_local, sky (код → имя), u10_m_s, wind_from_deg,
+    t_max_c; широта/долгота/дата у модельного места — как у синтетики (model_place), поля S2 lat/lon/month/day здесь не используются."""
+    sys.path.insert(0, str(HERE.parent / "corpus"))
+    import corpus_io as cio
+    T = cio.Conditions(cond_dir)
+    weak = lambda r: (not bool(r["mechanical"])) or float(r["u10_m_s"]) < 2.0
+    rows = []
+    for k, (nm, rid) in enumerate(zip(names, ids)):
+        own = list(T.for_relief(rid))
+        later = [r for d in range(1, len(ids)) for r in T.for_relief(ids[(k + d) % len(ids)])]
+        pick = (own + later)[:n_cond]
+        if not any(weak(r) for r in pick):
+            w = next((r for r in later if weak(r)), None)
+            if w is not None:
+                pick = pick[:n_cond - 1] + [w]
+        for j, r in enumerate(pick):
+            rows.append(dict(id=f"{nm}_{j:03d}", loc=nm, hour=float(r["hour_local"]), sky=SKIES[int(r["sky"])], U10=float(r["u10_m_s"]),
+                             wdir=float(r["wind_from_deg"]), t_max=float(r["t_max_c"]),
+                             src=dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), mechanical=bool(r["mechanical"]),
+                                      froude=float(r["froude"]), w_star_over_u=float(r["w_star_over_u"]))))
+    return rows
+
+
 def load_source(a):
     import reliefs
     if a.source == "proto":
         return reliefs.load_proto(a.npz)
-    return reliefs.load_corpus(a.corpus_dir, [int(x) for x in a.ids.split(",")], a.corpus_io_dir)
+    return reliefs.load_corpus(a.corpus_dir, resolve_ids(a), a.corpus_io_dir)
+
+
+def resolve_ids(a):
+    return pick_ids(a.corpus_dir, 5) if a.ids == "auto5" else [int(x) for x in a.ids.split(",")]
 
 
 def dataset_cfg():
@@ -64,8 +115,9 @@ _W = {}
 def _init(args_ns):
     os.environ.setdefault("OMP_NUM_THREADS", "1")
     import model_place as M
+    base = BASE_M if args_ns.base_m is None and args_ns.source == "proto" else (args_ns.base_m or 0.0)
     for nm, g100, g400, sc in load_source(args_ns):
-        M.register(nm, g100, BASE_M)
+        M.register(nm, g100, base)
     import airlite_gen as G
     _W["G"] = G
     _W["mo"], _W["late"] = dataset_cfg()
@@ -91,6 +143,8 @@ def main():
     ap.add_argument("--source", choices=("proto", "corpus"), default="proto")
     ap.add_argument("--npz")
     ap.add_argument("--corpus-dir"); ap.add_argument("--ids"); ap.add_argument("--corpus-io-dir")
+    ap.add_argument("--conditions", help="каталог набора условий S2 (conditions.h5); без него — условия plan() как у P2")
+    ap.add_argument("--base-m", type=float, default=None, help="добавка к высотам, м; по умолчанию 1000 для proto, 0 для corpus (высоты корпуса уже над морем)")
     ap.add_argument("--n-cond", type=int, default=3)
     ap.add_argument("--seed", type=int, default=20261005)
     ap.add_argument("--workers", type=int, default=2)
@@ -100,8 +154,13 @@ def main():
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     import reliefs
+    if a.source == "corpus":
+        a.ids = ",".join(map(str, resolve_ids(a)))      # auto5 -> явные номера (воркеры не пересчитывают)
     src = load_source(a)
-    rows = plan([s[0] for s in src], a.n_cond, a.seed)
+    if a.conditions:
+        rows = plan_from_conditions([s[0] for s in src], resolve_ids(a), a.conditions, a.n_cond)
+    else:
+        rows = plan([s[0] for s in src], a.n_cond, a.seed)
     if a.limit:
         rows = rows[: a.limit]
     f = out / "cases.jsonl"

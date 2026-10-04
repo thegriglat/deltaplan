@@ -113,9 +113,29 @@ def test_view_equals_parts_and_rebuild_bitwise(corpus):
 
 
 def test_view_survives_move(tmp_path, corpus):
+    ref = cio.Corpus(corpus)
+    want = {r: (ref.h100(r).copy(), ref.summary(r), ref.params(r)) for r in range(5)}
+    ref.close()
     new = str(tmp_path / "moved")
     os.rename(corpus, new)
-    assert np.array_equal(cio.Corpus(new).h100(4), cio.Corpus(new).h100(4)) and cio.Corpus(new).h100(4)[0, 0] > 0
+    v = cio.Corpus(new)
+    assert v._view is not None
+    os.rename(new + "/corpus.h5", new + "/corpus.h5.bak")
+    p = cio.Corpus(new)                           # по частям
+    assert p._view is None
+    for r in range(5):                            # вид после переноса == чтение частей == чтение до переноса
+        assert np.array_equal(v.h100(r), p.h100(r)) and np.array_equal(v.h100(r), want[r][0])
+        assert v.summary(r) == p.summary(r) == want[r][1] and v.params(r) == p.params(r) == want[r][2]
+
+
+def test_clipped_places_attr(tmp_path):
+    d = str(tmp_path / "r")
+    cio.write_reliefs(d, [dict(z100=field(0), place=dict(name="t_0001"))], generator_version="real-test")
+    assert cio.Corpus(d).clipped_places == []
+    for p in (d + "/part-00000.h5", d + "/corpus.h5"):
+        with h5py.File(p, "a") as f:
+            f.attrs["clipped_places"] = "t_0164,t_0165"
+    assert cio.Corpus(d).clipped_places == ["t_0164", "t_0165"]
 
 
 def test_tmp_invisible_and_incomplete(corpus):

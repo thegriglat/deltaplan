@@ -99,6 +99,12 @@ if __name__ == "__main__":
         b = min(curve, key=lambda c: c["sec_per_case_throughput"])
         out["best_workers"] = dict(workers=b["workers"], sec_per_case_throughput=b["sec_per_case_throughput"],
                                    cases_per_day=86400 / b["sec_per_case_throughput"], cases_per_week=7 * 86400 / b["sec_per_case_throughput"])
+    # время отдельно по механическим и прочим условиям (набор S2 из plan.json: src.mechanical)
+    srcs = {c["id"]: c.get("src") for c in plan.get("cases", [])}
+    if any(srcs.values()):
+        grp = {"mechanical": [r for r in rows if (srcs.get(r["id"]) or {}).get("mechanical")],
+               "non_mechanical": [r for r in rows if srcs.get(r["id"]) and not srcs[r["id"]]["mechanical"]]}
+        out["by_regime"] = {k: (dict(stats(v), U10=sorted(r["cond"]["U10"] for r in v), ids=sorted(r["id"] for r in v)) if v else None) for k, v in grp.items()}
     out["converged_fraction"] = 1 - s["nonconverged_solutions_fraction"]
     out["iters"] = dict(median=s["iters_median"], p90=s["iters_p90"], max=s["iters_max"])
     (d / "h7_cost.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
