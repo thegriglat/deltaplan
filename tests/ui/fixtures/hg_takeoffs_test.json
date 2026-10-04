@@ -1,0 +1,23 @@
+{
+ "format": "deltaplan.hg_takeoffs",
+ "version": 1,
+ "source": "Тестовые данные модуля popular-places (не настоящий каталог; в сборку не входят)",
+ "fetch_date_utc": "2026-10-05",
+ "countries": {
+  "AT": {"en": "Austria", "ru": "Австрия"},
+  "RU": {"en": "Russia", "ru": "Россия"},
+  "SI": {"en": "Slovenia", "ru": "Словения"}
+ },
+ "takeoffs": [
+  {"id": "node/1001", "name": "Lijak", "lat": 45.9640, "lon": 13.7250, "country": "SI", "ele": 580.0, "orientation": ["SW", "W"]},
+  {"id": "node/1002", "name": "Kobala", "lat": 46.1760, "lon": 13.6960, "country": "SI", "ele": 1000.0, "orientation": ["S", "SSW", "SW"]},
+  {"id": "node/1003", "name": "Kriška gora", "lat": 46.2900, "lon": 14.3300, "country": "SI", "ele": 1200.0, "orientation": []},
+  {"id": "node/1004", "name": "", "lat": 46.0100, "lon": 13.9000, "country": "SI", "ele": null, "orientation": ["W"]},
+  {"id": "node/2001", "name": "Юца", "lat": 43.9600, "lon": 42.9800, "country": "RU", "ele": 1400.0, "orientation": ["N", "NE", "E"]},
+  {"id": "node/2002", "name": "Ёлочная гора", "lat": 51.4100, "lon": 86.0000, "country": "RU", "ele": null, "orientation": []},
+  {"id": "relation/2003", "name": "Шелковая горка", "lat": 43.9250, "lon": 42.8400, "country": "RU", "ele": 1080.0, "orientation": ["WNW"]},
+  {"id": "way/3001", "name": "Emberger Alm", "lat": 46.7900, "lon": 13.1400, "country": "AT", "ele": 1750.0, "orientation": ["SE", "S", "SW"]},
+  {"id": "node/3002", "name": "Hohe Wand", "lat": 47.8300, "lon": 16.0400, "country": "AT", "ele": 900.0, "orientation": ["E"]},
+  {"id": "node/9001", "name": "Sea Cliff", "lat": 35.0000, "lon": 25.0000, "country": "", "ele": 300.0, "orientation": ["N"]}
+ ]
+}
