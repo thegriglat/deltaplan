@@ -41,3 +41,4 @@
 {"t": "2026-10-05T00:45:07", "by": "main", "task": "AF-3", "ev": "reported", "commits": ["5e43f4c6", "a2806d7e", "(+2"], "note": "done: Стоя: хват на 0,12 выше и 0,33 впереди плеча, локоть 67 градусов; крен не сдвигает ноги; гибкая стропа от HangPoint вме…", "dp_feedback": "Нужен dp test <фильтр> с полным выводом сообщений падений (check.sh печатает только FAIL-строки без причин). dp inbox показывает дополнение обрезанным - полный текст только через task show."}
 {"t": "2026-10-05T00:45:55", "by": "executor", "task": "AF-3", "ev": "checked", "note": "5/5 pilot_arms=ok:6/6; pilot_pose=ok:2/2; aframe_contracts=ok:2/2; test_takeoff=ok:10/10; start_regression=ok:1/1 (пропуск 1)"}
 {"t": "2026-10-05T00:46:04", "by": "coordinator", "task": "AF-3", "ev": "accepted", "note": "по отчёту: 5/5, только визуал (glider_visual, pilot_arm_ik, flight.json, тест)"}
+{"t": "2026-10-05T00:46:05", "by": "coordinator", "task": "AF-3", "ev": "merged", "commits": ["142cec1a"]}
