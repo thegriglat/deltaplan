@@ -1,0 +1,79 @@
+{
+  "id": "WL-7",
+  "module": "wind-limits",
+  "type": "dp-engineer",
+  "title": "Предел ветра классов — везде, где игра смотрит на предельный ветер",
+  "goal": "Числа предела ветра классов (configs/wing_classes.json, WL-К1) реально учитываются везде, где игра ограничивает или показывает предельный ветер; жёсткие и старые значения заменены чтением из конфига.",
+  "plan_ref": "WL-2",
+  "contracts": [
+    {
+      "name": "WL-К1",
+      "version": "2",
+      "ref": "docs/contracts/wind-limits.md"
+    }
+  ],
+  "copy": "~/deltaplan-wind-limits-WL-7",
+  "branch": "wind-limits/WL-7",
+  "base": "feature/wind-limits",
+  "scope": [
+    "scripts/ui/",
+    "scripts/game/",
+    "configs/ui.json",
+    "configs/game.json",
+    "configs/wing_classes.json",
+    "tests/",
+    "locale/ui.csv"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "configs/wings/",
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "wind_limits_contracts",
+      "tests": "wind_limits_contracts"
+    },
+    {
+      "name": "wing_catalog",
+      "tests": "wing_catalog"
+    },
+    {
+      "name": "wing_picker",
+      "tests": "wing_picker"
+    },
+    {
+      "name": "no_hardcoded_12",
+      "cmd": "! grep -rnE 'wind_ms\", \\[0, ?12' scripts",
+      "expect": "exit=0"
+    },
+    {
+      "name": "slider_max",
+      "cmd": "python3 -c \"import json;c=json.load(open('configs/wing_classes.json'));print('hi',max(v['wind_limit_ms'][1] for v in c['classes'].values()))\"",
+      "expect": "num:hi ([0-9.]+) >=25"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "test_ui",
+      "tests": "test_ui"
+    },
+    {
+      "name": "forecast",
+      "tests": "forecast"
+    },
+    {
+      "name": "world_key",
+      "tests": "world_key"
+    }
+  ],
+  "report_extra": [
+    "places"
+  ],
+  "notes": "Решение пользователя (dp inbox / dp log wind-limits): без исследований и без физики — только чтобы числа классов (1: 7–10, 2: 10–12, 3: 12–15, 4: 20–25 м/с; уже в configs/wing_classes.json и wind_class каждого крыла — WL-2) учитывались везде. Известно: (1) слайдер ветра в «Полёт…» — диапазон зашит по умолчанию [0, 12, 1] (scripts/ui/flight_setup_screen.gd:301, scripts/game/flight_settings.gd:72 — clamp настроек), в configs/ui.json ключа wind_ms нет → ветер выше 12 м/с выбрать нельзя, классы 3–4 не проверить. Верх слайдера и clamp — из конфига: наибольший hi классов (через WingCatalog, один источник), шаг 1, низ 0. (2) Подписи класса/предела в меню уже читают конфиг (WL-2) — проверить. Найти и перечислить все остальные места, где игра смотрит на предельный ветер крыла (выбор крыла/условий, сохранённые настройки, --wind в launch_options, сетевые настройки хоста, боты/задачи, предупреждения, тесты с зашитым 12) — заменить жёсткие/старые значения чтением из конфига. НЕ относятся к пределу крыла и не трогать: launch_nose/autopilot/bots strong_wind_ms (техника разбега), пороги пасхалок, звук. Новых предупреждений и подсказок о безопасности НЕ добавлять (правило проекта: опасность учит последствиями). Если поле ветра (нейросеть/решатель) имеет свой верхний предел по ветру меню — не менять, только записать в uncertain с путём и числом. places в отчёте — список: файл:строка — что делает — было → стало (или «уже из конфига»). Тесты: tests/run_tests.tscn -- --filter=X (с «--»); фильтры карточки, которых нет, — сообщи, поправлю карточку.",
+  "created": "2026-10-05T01:21:06",
+  "edited": "2026-10-05T01:25:14"
+}

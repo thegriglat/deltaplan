@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Верх слайдера ветра и зажим настроек читаются из wing_classes.json через новый WingCatalog.wind_menu_range() (0–25, шаг 1); зашитое 12 убрано. Остальные места пределов уже из конфига.",
+  "commits": [
+    "02983864 Предел ветра классов: слайдер и зажим из wing_classes.json"
+  ],
+  "checks": [
+    {
+      "name": "wind_limits_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "wing_catalog",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "wing_picker",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "no_hardcoded_12",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "slider_max",
+      "value": "25",
+      "pass": true
+    },
+    {
+      "name": "flight_settings",
+      "value": "0/0: нет файлов теста с таким именем",
+      "pass": false
+    },
+    {
+      "name": "launch_options",
+      "value": "0/0: нет файлов теста с таким именем",
+      "pass": false
+    },
+    {
+      "name": "start_menu",
+      "value": "0/0: нет файлов теста с таким именем",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Фильтры flight_settings, launch_options, start_menu в карточке ничего не находят — поправить на существующие (например menu_setup 12/12, forecast, world_key, net_screen) или завести тесты."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept WL-7 --dry; godot ... tests/run_tests.tscn -- --filter=wing_catalog",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_nn_input.gd:16 (DEFAULT_DOMAIN U10 [0, 8]); guard() :133-145; вызов air_nn_field.gd; лог air_runtime.gd:927",
+      "why": "Нейросеть обучена до 8 м/с; ветер выше 8 меню не ограничивается",
+      "checked": "guard зажимает U10 только на входе сети (числа FiLM) к 8, выход масштабируется настоящим U10; в лог пишется clamped 'U10 20.0→8.0'; откатов на решатель нет, ограничения слайдера нет. Не менял (scripts/atmosphere вне скоупа)."
+    },
+    {
+      "where": "configs/weather_model.json ui.wind_ms",
+      "why": "Ключ [0,12,1] лежал в configs/weather_model.json (не ui.json), файл вне скоупа задачи",
+      "checked": "Удалил ключ, оставил wind_ms_doc с указанием нового источника; других читателей нет (grep)."
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_runtime.gd INFLOW_K_MAX 3.0",
+      "why": "Не проверял, достаточно ли подстройки k при 25 м/с",
+      "checked": "не запускал полёт на 25 м/с; физика вне задачи"
+    }
+  ],
+  "dp_feedback": "dp accept: фильтры карточки работают по имени файла теста — dp task show не предупреждает, что фильтр пустой (0/0 = FAIL).",
+  "places": [
+    "scripts/ui/flight_setup_screen.gd:301 — слайдер ветра «Полёт…» — ui.get(wind_ms,[0,12,1]) → WingCatalog.wind_menu_range() (0–25, шаг 1)",
+    "scripts/game/flight_settings.gd:72 — clamp_forecast ветра (в т.ч. сохранённые настройки user_settings.gd:71) — [0,12,1] → WingCatalog.wind_menu_range()",
+    "configs/weather_model.json:7 — ui.wind_ms [0,12,1] — удалён",
+    "scripts/game/wing_catalog.gd — новая wind_menu_range(): наибольший hi классов",
+    "scripts/ui/flight_setup_screen.gd:164,224 — подписи класса/предела крыла — уже из конфига (WingCatalog.wind_limit/wind_range)",
+    "scripts/game/launch_options.gd:228 — --wind=<м/с> без своего предела; далее clamp_forecast? в apply_to не вызывается — не зажимается (было и осталось) → ограничений нет",
+    "scripts/net/net_zone.gd:329, net_messages.gd:67, flight_settings.gd:171,194 — ветер хоста в сети передаётся числом без предела — не менялось",
+    "tests/game/test_wing_catalog.gd — добавлен test_wind_menu_range_from_classes (0–25, зажим 22 не зажат, 40→25)",
+    "tests/* — зашитого предела 12 м/с не найдено (12 только в часах)"
+  ],
+  "t": "2026-10-05T01:24:58",
+  "by": "executor"
+}
