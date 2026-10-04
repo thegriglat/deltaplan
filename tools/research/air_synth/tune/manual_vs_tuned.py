@@ -10,9 +10,9 @@ import generator as G, observables as ob  # noqa: E402
 OUT = os.path.join(HERE, "out")
 MANUAL = {
     "askarovo": dict(uplift_max_m_per_yr=2e-4, k0=4e-6, diffusion_m2_per_yr=0.03, m_exp=0.45, k_logsd=0.7, fourier_amp=0.3,
-                     tan_crit=math.tan(math.radians(35)), t_total_yr=4e6),
+                     tan_crit=math.tan(math.radians(35))),
     "ongudai": dict(uplift_max_m_per_yr=7e-4, k0=8e-6, diffusion_m2_per_yr=0.03, m_exp=0.45, k_logsd=0.7, fourier_amp=0.4,
-                    tan_crit=math.tan(math.radians(35)), t_total_yr=4e6),
+                    tan_crit=math.tan(math.radians(35))),
 }
 NS = 6
 

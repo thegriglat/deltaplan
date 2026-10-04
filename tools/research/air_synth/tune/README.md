@@ -14,7 +14,7 @@ related: ["docs/research/terrain_tuning.md"]
 | шаг | команда | выход (`out/`) |
 |---|---|---|
 | 1. эталон: наблюдаемые на 4 detail + 64 far квадратах 384×384 (100 м), сравнение detail/far на одном участке | `../corpus/.venv/bin/python ref_obs.py` | `ref_obs.json` |
-| 2. план (латинский гиперкуб по TUNABLE) и прогоны | `OMP_NUM_THREADS=1 dp job start sy5_runs <с> ../corpus/.venv/bin/python run_design.py --points 150 --seeds 4 --workers 12` (продолжение — той же командой; пробное время `--trial 2 --workers 2 --out /tmp/x`) | `design.json`, `runs.jsonl` |
+| 2. план (латинский гиперкуб по TUNABLE) и прогоны | `OMP_NUM_THREADS=1 dp job start sy5_runs <с> ../corpus/.venv/bin/python run_design.py --points 160 --seeds 4 --workers 12` (продолжение — той же командой; пробное время `--trial 2 --workers 2 --out /tmp/x`) | `design.json`, `runs.jsonl` |
 | 3. полиномы, подгонка к каждому квадрату, облако, eigentunes | `../corpus/.venv/bin/python fit.py` | `theta_cloud.json`, `tune_summary.json` |
 | тесты (восстановление θ по синтетической функции) | `../corpus/.venv/bin/python -m pytest -q tests` | |
 
