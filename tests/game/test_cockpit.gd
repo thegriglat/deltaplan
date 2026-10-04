@@ -84,11 +84,10 @@ func test_cockpit_view_by_head_angle() -> void:
 		await _finish(main)
 
 
-## Первое лицо (A3.3 v4). Взгляд вперёд: трапеция позади глаз (числа — в печать), у краёв кадра
-## с обеих сторон силуэт стоек; стойка в кадре (голова влево на 90°) — силуэт с её стороны
-## не рисуется. Взгляд вниз 85–90°: штанга и руки в кадре. Ленточки: при взгляде вверх-вперёд
+## Первое лицо (A3.3 v5). Взгляд вперёд: трапеция позади глаз (числа — в печать). Взгляд вниз 85–90°: штанга и руки в кадре.
+## Ленточки: при взгляде вверх-вперёд
 ## (наклон ≤ 55°) обе в кадре; углы от оси взгляда вперёд — в печать.
-func test_trapezoid_silhouette_and_telltales() -> void:
+func test_trapezoid_and_telltales() -> void:
 	for wing in ["apogee", "training", "sport", "laminar"]:
 		var main := await _fly(wing)
 		if main == null:
@@ -96,37 +95,14 @@ func test_trapezoid_silhouette_and_telltales() -> void:
 		var game: Game = main.get_node("Game")
 		var v := game.glider.visual
 		var cam := game.camera
-		var sil: UprightSilhouette = cam.get_node("UprightSilhouette")
-		var cfg := sil.params()
-		check(bool(cfg.get("enabled", false)), "%s: силуэт стоек включён по умолчанию" % wing)
 		cam.fov = VIEW_FOV_DEG
 		_look(game, 0.0, 0.0)
-		cam.fov = VIEW_FOV_DEG
-		sil._process(0.0)
-		var draws := sil.frame_draws(cam, ASPECT, cfg)
-		var edges := []
-		for d in draws:
-			edges.append(snappedf(d.edge.x, 0.01))
-		check(draws.size() == 2, "%s F: силуэт с обеих сторон (%d)" % [wing, draws.size()])
-		if draws.size() == 2:
-			check(draws[0].alpha > 0.05 and draws[1].alpha > 0.05, "%s F: силуэт заметен" % wing)
-			check(
-				draws[0].edge.x < 0.5 and draws[1].edge.x > 0.5,
-				"%s F: левая слева, правая справа %s" % [wing, edges]
-			)
 		print(
 			(
-				"         %s FOV %.0f вперёд: от оси, °: %s; ленточки %s; силуэт alpha %s, край x %s"
-				% [wing, VIEW_FOV_DEG, _bar_angles(v, cam), _telltale_angles(v, cam),
-					draws.map(func(d): return snappedf(d.alpha, 0.01)), edges]
+				"         %s FOV %.0f вперёд: от оси, °: %s; ленточки %s"
+				% [wing, VIEW_FOV_DEG, _bar_angles(v, cam), _telltale_angles(v, cam)]
 			)
 		)
-		# стойка в кадре — не рисуется
-		_look(game, 90.0, 0.0)
-		var yaw_draws := sil.frame_draws(cam, ASPECT, cfg)
-		check(yaw_draws.size() == 1, "%s: голова влево 90° — левая стойка в кадре, рисуется одна (%d)" % [wing, yaw_draws.size()])
-		if yaw_draws.size() == 1:
-			check(yaw_draws[0].side == 1, "%s: осталась правая сторона" % wing)
 		# взгляд вниз: штанга и руки в кадре
 		_look(game, 0.0, -90.0)
 		var bl := game.glider.get_marker("UprightBottomL").global_position
