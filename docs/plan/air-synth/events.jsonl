@@ -170,3 +170,4 @@
 {"t": "2026-10-05T04:23:19", "by": "coordinator", "task": "SY-9", "ev": "accepted", "note": "по отчёту: 684 старта дельтаплана, 363 места, 3173 неясных (Норвегия 2310), 958 только параплан; выжимка для игры 684 старта, 92 КБ; проверки 3/3"}
 {"t": "2026-10-05T04:23:20", "by": "coordinator", "task": "SY-9", "ev": "accepted", "commits": ["5a2ed468"], "note": "3/3 catalog_tests=ok:4 passed; sites=ok:363; summary=ok:\"by_country\""}
 {"t": "2026-10-05T04:23:31", "by": "coordinator", "task": "SY-9", "ev": "merged", "commits": ["5a2ed468"]}
+{"t": "2026-10-05T04:23:33", "by": "coordinator", "task": "SY-10", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-synth-SY-10"}
