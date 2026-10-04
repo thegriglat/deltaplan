@@ -439,10 +439,10 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
             w0 = F.add_wire_end(mb, wa, e, bax, wire_r, "Steel")
             mb.add_tube([w0, e], wire_r, "Wire", sides=8, cap=False)
     # хомут приборов на левой стойке (A3.3 v6): точка оси стойки на доле t от штанги к вершине,
-    # прибор чуть внутрь (к пилоту) на коротком кронштейне
+    # прибор на коротком кронштейне внутрь (к пилоту) и вперёд
     ub = Vector((-w, y_bb, z_bb))
     ut = Vector((-top_x, apex_y, top_z))
-    inw = Vector((cf["instrument_inward_m"], 0, 0))
+    inw = Vector((cf["instrument_inward_m"], cf["instrument_forward_m"], 0))
     mounts = {}
     for name, key in (("InstrumentMount", "instrument_upright_t"), ("VarioMount", "vario_upright_t")):
         pu = ub.lerp(ut, cf[key])

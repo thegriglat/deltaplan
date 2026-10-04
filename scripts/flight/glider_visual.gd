@@ -709,10 +709,10 @@ func _fallback_frame() -> Node3D:
 	_add_marker(frame, "UprightBottomR", bar + w)
 	_add_rod(frame, "BaseBarTube", bar - w, bar + w, m)
 	_add_marker(frame, "BaseBar", bar)
-	# приборы на хомуте левой стойки, как в build_gliders.py (instrument_upright_t 0,22 /
-	# vario_upright_t 0,4 от штанги к вершине, instrument_inward_m 0,06); экран (+Z маркера) к глазам
-	for spec in [["InstrumentMount", 0.22], ["VarioMount", 0.4]]:
-		var mount := (bar - w).lerp(top_l, float(spec[1])) + Vector3(0.06, 0, 0)
+	# приборы на хомуте левой стойки, как в build_gliders.py (instrument_upright_t 0,3 /
+	# vario_upright_t 0,42 от штанги к вершине, instrument_inward_m 0,1, instrument_forward_m 0,3); экран (+Z маркера) к глазам
+	for spec in [["InstrumentMount", 0.3], ["VarioMount", 0.42]]:
+		var mount := (bar - w).lerp(top_l, float(spec[1])) + Vector3(0.1, 0, -0.3)
 		var im := _add_marker(frame, String(spec[0]), mount)
 		im.basis = Basis.looking_at(_head_local() - mount, Vector3.UP, true)
 	return frame
