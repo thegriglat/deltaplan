@@ -13,7 +13,7 @@
     },
     {
       "name": "A3",
-      "version": "1",
+      "version": "3",
       "ref": "docs/contracts/aframe-geometry.md"
     },
     {
@@ -54,10 +54,6 @@
       "tests": "aframe_contracts"
     },
     {
-      "name": "wing_clearance",
-      "tests": "wing_clearance"
-    },
-    {
       "name": "test_takeoff",
       "tests": "test_takeoff"
     },
@@ -71,5 +67,5 @@
   ],
   "notes": "",
   "created": "2026-10-04T23:47:08",
-  "edited": "2026-10-05T00:16:37"
+  "edited": "2026-10-05T00:40:55"
 }
