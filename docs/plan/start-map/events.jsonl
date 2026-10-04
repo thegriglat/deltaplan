@@ -1,2 +1,3 @@
 {"t": "2026-10-05T03:15:56", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-05T03:18:16", "by": "coordinator", "task": "SM-1", "ev": "created", "note": "Растровая топокарта и высота точки на экране выбора старта"}
+{"t": "2026-10-05T03:18:28", "by": "coordinator", "task": "SM-1", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-start-map-SM-1"}
