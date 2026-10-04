@@ -1,6 +1,6 @@
 ---
 type: "research"
-status: "active"
+status: "closed"
 module: "ann2"
 updated: "2026-10-04"
 summary: "AN-1: ошибка сети P2 против шума цели решателя — шум цели на 1–3 порядка меньше ошибки, дело в сети (вариант б)."

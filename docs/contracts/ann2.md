@@ -1,8 +1,8 @@
 ---
 type: "contract"
-status: "active"
+status: "postponed"
 module: "ann2"
-updated: "2026-10-04"
+updated: "2026-10-05"
 summary: "Контракты модуля ann2 (сеть ветра «2,5D-оператор»): данные и деление из P2, вход/выход сети, оценка против P2 по критерию 10–15 % скорости."
 related: ["docs/plan/ann2.md", "docs/contracts/air-nn.md", "docs/contracts/air-nn-p3.md"]
 contracts: [{"id": "A1", "version": 2}, {"id": "A2", "version": 2}, {"id": "A3", "version": 2}]
