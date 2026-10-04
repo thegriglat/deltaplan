@@ -302,11 +302,20 @@ def make(corpus_dir, out_dir, k, seed, name=None, command=""):
             tabs.append(rows)
             tr += tries
         rej = 1 - len(tr) / sum(tr)
-        cio.write_conditions_part(out_dir, part, np.concatenate(tabs), dict(base, reject_fraction=rej))
+        cio.write_conditions_part(out_dir, part, np.concatenate(tabs), dict(base, reject_fraction=rej, sum_tries=int(sum(tr))))
     cor.close()
     info = cio.build_view(out_dir, "conditions")
-    t = cio.Conditions(out_dir)
-    man.update(info, reject_fraction_note="по частям — атрибут reject_fraction каждой части; общий — см. dist_v1.json")
+    # общая доля отказов набора = 1 − Σ(условий) / Σ(просмотренных кандидатов) по всем частям -> корень вида и manifest
+    import h5py
+    n_ok = n_tries = 0
+    for p in cio.list_parts(out_dir):
+        with h5py.File(cio.part_path(out_dir, p), "r") as f:
+            n_ok += int(f.attrs["n_records"])
+            n_tries += int(f.attrs["sum_tries"])
+    rej = 1 - n_ok / n_tries
+    with h5py.File(os.path.join(out_dir, cio.VIEW_NAME["conditions"]), "a") as f:
+        f.attrs["reject_fraction"] = rej
+    man.update(info, reject_fraction=rej, reject_fraction_note="1 − Σ условий / Σ кандидатов по всем частям; по частям — атрибут reject_fraction")
     cio.write_manifest(out_dir, man)
     return info
 

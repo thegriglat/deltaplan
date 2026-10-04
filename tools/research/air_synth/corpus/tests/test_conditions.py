@@ -138,6 +138,13 @@ def test_make_cli(tmp_path):
     assert c.attrs["contract"] == "S2 v2" and c.attrs["kind"] == "conditions" and c.attrs["mechanical_only"]
     assert c.attrs["k_per_relief"] == 2 and c.attrs["cond_seed"] == 123 and 0 <= c.attrs["reject_fraction"] < 1
     assert c.validate_refs()
+    import h5py, json
+    tot_ok = tot_tr = 0
+    for p in cio.list_parts(out):
+        with h5py.File(cio.part_path(out, p), "r") as f:
+            tot_ok += int(f.attrs["n_records"]); tot_tr += int(f.attrs["sum_tries"])
+    want = 1 - tot_ok / tot_tr
+    assert abs(c.attrs["reject_fraction"] - want) < 1e-12 and abs(json.load(open(out + "/manifest.json"))["reject_fraction"] - want) < 1e-12
     t = c.table
     assert [(r, k) for r, k in zip(t["relief_id"], t["cond_id"])] == [(r, k) for r in range(9) for k in range(2)]
     assert t["mechanical"].all() and np.isfinite(t["froude"]).all()
