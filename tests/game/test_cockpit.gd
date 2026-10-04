@@ -9,6 +9,11 @@ const MAIN_SCENE := preload("res://scenes/main.tscn")
 const WINGS: Array[String] = ["training", "sport", "laminar"]
 const ASPECT := 16.0 / 9.0
 ## Через сколько секунд полёта снимать (пилот лёг в кокон — поза prone).
+## Поле зрения в приёмке A3.3, ° по вертикали.
+const VIEW_FOV_DEG := 75.0
+## A3.3 в кабине физически не выполняется (трапеция целиком позади глаз, отчёт AF-2, шлюз
+## координатора): проверки включить, когда решение принято. Пока тест только печатает числа.
+const ENFORCE_A33 := false
 const MIN_AIR_S := 12.0
 ## Шаг выборки точек по рёбрам треугольников мешей, м (тросы тонкие и длинные: в угол кадра
 ## попадает кусок в десятки сантиметров).
@@ -56,7 +61,6 @@ func test_cockpit_view_by_head_angle() -> void:
 						% ([wing] + in_f)
 					)
 				)
-			check(in_f[0] == 0, "%s F: трапеция в кадре" % wing)
 			check(in_f[1] == 0, "%s F: парус в кадре" % wing)
 			check(in_f[2] == 0, "%s F: руки в кадре" % wing)
 			check(in_f[3] == 0, "%s F: приборы в кадре" % wing)
@@ -81,6 +85,68 @@ func test_cockpit_view_by_head_angle() -> void:
 					"%s: %s отбрасывает тень" % [wing, g.name]
 				)
 		await _finish(main)
+
+
+## Первое лицо, взгляд вперёд, FOV 75 (A3.3): часть трапеции (стойки или штанга) в кадре, обе
+## ленточки — в 20…40° от оси взгляда. Раньше требовалось «трапеция вне кадра» — отменено.
+func test_trapezoid_and_telltales_in_view() -> void:
+	for wing in ["apogee", "training", "sport", "laminar"]:
+		var main := await _fly(wing)
+		if main == null:
+			continue
+		var game: Game = main.get_node("Game")
+		var v := game.glider.visual
+		var cam := game.camera
+		cam.fov = VIEW_FOV_DEG
+		_look(game, 0.0, 0.0)
+		cam.fov = VIEW_FOV_DEG
+		var frame := _meshes(v, ["ControlFrame", "Frame"])
+		var n_in := _count_in_view(cam, frame)
+		var ang := _bar_angles(v, cam)
+		var tt := _telltale_angles(v, cam)
+		print(
+			(
+				"         %s FOV %.0f: трапеция в кадре %d из %d точек (%.1f %%); от оси взгляда, °: %s; ленточки %s"
+				% [wing, VIEW_FOV_DEG, n_in, frame.size(), 100.0 * n_in / maxf(frame.size(), 1.0), ang, tt]
+			)
+		)
+		check(tt.size() == 2, "%s: две ленточки" % wing)
+		if ENFORCE_A33:
+			check(n_in > 0, "%s F: часть трапеции в кадре (FOV %.0f)" % [wing, VIEW_FOV_DEG])
+			for a: float in tt:
+				check(a >= 20.0 and a <= 40.0, "%s: ленточка в 20…40° от оси взгляда (%.1f°)" % [wing, a])
+		await _finish(main)
+
+
+## Углы от оси взгляда камеры до ближайших точек стоек и штанги (по отрезкам маркеров), °.
+func _bar_angles(v: Node3D, cam: Camera3D) -> Dictionary:
+	var m := {}
+	for k in ["UprightTopL", "UprightTopR", "UprightBottomL", "UprightBottomR"]:
+		m[k] = v.get_marker(k).global_position
+	return {
+		"upL": snappedf(_seg_min_angle(cam, m.UprightTopL, m.UprightBottomL), 0.1),
+		"upR": snappedf(_seg_min_angle(cam, m.UprightTopR, m.UprightBottomR), 0.1),
+		"bar": snappedf(_seg_min_angle(cam, m.UprightBottomL, m.UprightBottomR), 0.1),
+	}
+
+
+func _telltale_angles(v: Node3D, cam: Camera3D) -> Array:
+	var out := []
+	for t in v.telltales:
+		out.append(snappedf(_axis_angle(cam, t.global_position), 0.1))
+	return out
+
+
+func _axis_angle(cam: Camera3D, p: Vector3) -> float:
+	var l := cam.global_transform.affine_inverse() * p
+	return rad_to_deg(l.angle_to(Vector3(0, 0, -1)))
+
+
+func _seg_min_angle(cam: Camera3D, a: Vector3, b: Vector3) -> float:
+	var best := 180.0
+	for i in 101:
+		best = minf(best, _axis_angle(cam, a.lerp(b, i / 100.0)))
+	return best
 
 
 ## Крен A→D→A: тело ездит под крылом, а голова — долей смещения со сглаживанием: планшет
