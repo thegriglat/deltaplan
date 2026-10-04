@@ -12,3 +12,13 @@
 {"t": "2026-10-05T01:14:06", "by": "coordinator", "task": "WL-2", "ev": "merged", "commits": ["459cc217"]}
 {"t": "2026-10-05T01:14:38", "by": "coordinator", "task": "WL-5", "ev": "created", "note": "Метка источника доли обшивки и генератор страницы крыльев"}
 {"t": "2026-10-05T01:14:38", "by": "coordinator", "task": "WL-5", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Контракт WL-К1 v2 (docs/contracts/wind-limits.md, «История»). В WL-2 значения 60–92 % у спортивных крыльев без паспорта (apogee, magic, ww_cross_country, ww_eagle, ww_super_sport, ww_ultra_sport, combat, laminar, moyes_litesport, sport, ww_talon) оставлены из прежних конфигов (ими задан lower_cove…"]}}
+{"t": "2026-10-05T01:14:42", "by": "coordinator", "task": "WL-5", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-wind-limits-WL-5"}
+{"t": "2026-10-05T01:14:52", "by": "coordinator", "task": "WL-1", "ev": "note", "note": "WL-2 влита в feature/wind-limits (459cc217): wind_class есть во всех конфигах — dp task sync WL-1 и брать класс из конфига вместо временной разметки по group.", "addendum": true}
+{"t": "2026-10-05T01:16:55", "by": "executor", "task": "WL-5", "ev": "reported", "commits": ["3a5fe2ec"], "note": "done: 11 крыльев перепомечены config_prior; gen_wings.py на классе и пределе ветра класса, без подписей одно-/двухобшивочное;…", "dp_feedback": "нет"}
+{"t": "2026-10-05T01:17:12", "by": "executor", "task": "WL-5", "ev": "checked", "note": "4/4 wind_limits_contracts=ok:5/5; wing_models_contract=ok:4/4; gen_ok=ok:exit 0; src_values=ok:0"}
+{"t": "2026-10-05T01:17:19", "by": "coordinator", "task": "WL-5", "ev": "accepted", "note": "по отчёту: метки и генератор сайта, без физики"}
+{"t": "2026-10-05T01:17:20", "by": "coordinator", "task": "WL-5", "ev": "accepted", "commits": ["30453d55"], "note": "4/4 wind_limits_contracts=ok:5/5; wing_models_contract=ok:4/4; gen_ok=ok:exit 0; src_values=ok:0"}
+{"t": "2026-10-05T01:17:21", "by": "coordinator", "task": "WL-5", "ev": "merged", "commits": ["30453d55"]}
+{"t": "2026-10-05T01:17:35", "by": "coordinator", "task": "WL-6", "ev": "created", "note": "Убрать «одно-/двухобшивочное» из сайта и описаний крыльев"}
+{"t": "2026-10-05T01:17:35", "by": "coordinator", "task": "WL-6", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решения пользователя — dp plan wind-limits 1 (классы по поперечине: учебный / жёсткая поперечина / плавающая поперечина / безмачтовый; доля двойной обшивки — в %, «одно-/двухобшивочное» не говорить). Где сейчас: site/content/wings/_index.md (строка 10), site/content/wings/kingpost/_index.md (загол…"]}}
+{"t": "2026-10-05T01:17:39", "by": "coordinator", "task": "WL-6", "ev": "started", "note": "dp-writer, ~/deltaplan-wind-limits-WL-6"}

@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "11 крыльев перепомечены config_prior; gen_wings.py на классе и пределе ветра класса, без подписей одно-/двухобшивочное; страницы сайта перегенерированы.",
+  "commits": [
+    "3a5fe2ec WL-5: config_prior, gen_wings, страницы крыльев"
+  ],
+  "checks": [
+    {
+      "name": "wind_limits_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "gen_ok",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "src_values",
+      "value": "bad 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "site/content/wings/kingpost/_index.md (заголовок «Мачтовые двухобшивочные») генератор не пишет — не тронут"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept WL-5",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_wind_limits_contracts.gd:15",
+      "why": "тест требовал (v1) в заголовке контракта, а контракт уже v2 — поправил на (v2)",
+      "checked": "тесты 5/5"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-05T01:16:55",
+  "by": "executor"
+}
