@@ -4,7 +4,8 @@ extends SceneTree
 ## Печатает найденные/отсутствующие ноды, число треугольников; код выхода 1 при ошибке.
 
 const WING_NODES: Array[String] = ["Sail", "Frame", "ControlFrame", "HangPoint", "BaseBar",
-	"InstrumentMount", "VarioMount", "WingTipL", "WingTipR"]
+	"InstrumentMount", "VarioMount", "WingTipL", "WingTipR", "UprightTopL", "UprightTopR",
+	"UprightBottomL", "UprightBottomR", "WingCG"]
 ## Модели не крыльев; крылья — по одному glider_<id>.glb на каждый configs/wings/<id>.json.
 const OTHER := {
 	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR",
@@ -71,12 +72,20 @@ func _check_axes(path: String, root: Node3D) -> void:
 		var hang := _pos(root, "HangPoint")
 		_expect(path, "WingTipR справа (+X)", tip_r.x > 4.0 and tip_l.x < -4.0)
 		_expect(path, "HangPoint в начале координат", hang.length() < 0.01)
-		_expect(path, "BaseBar впереди (−Z) и ниже (−Y)", bar.z < -0.3 and bar.y < -1.0)
+		_expect(path, "BaseBar впереди (−Z) и ниже (−Y)", bar.z < -0.1 and bar.y < -1.0)
+		var cg := _pos(root, "WingCG")
+		_expect(path, "WingCG позади подвески на киле (подвеска впереди ЦМ на 1–2 см)",
+			cg.z > 0.009 and cg.z < 0.021 and absf(cg.x) < 0.001 and cg.y > 0.0)
+		for side in ["L", "R"]:
+			var top := _pos(root, "UprightTop" + side)
+			var bot := _pos(root, "UprightBottom" + side)
+			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
 		_expect(path, "InstrumentMount в центре базовой штанги",
 			absf(im.origin.x) < 0.01 and im.origin.distance_to(bar) < 0.08)
-		_expect(path, "InstrumentMount −Z смотрит назад-вверх на пилота",
-			(-im.basis.z).z > 0.3 and (-im.basis.z).y > 0.3)
+		# база теперь под плечами (AF-1, A3.1), глаза пилота при лёжа чуть впереди неё: взгляд на
+		# глаза — вверх (вперёд или назад — не проверяем)
+		_expect(path, "InstrumentMount −Z смотрит вверх на пилота", (-im.basis.z).y > 0.6)
 		var vm := _xform(root, "VarioMount")
 		_expect(
 			path,
@@ -84,8 +93,8 @@ func _check_axes(path: String, root: Node3D) -> void:
 			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - bar.y) < 0.05
 			and absf(vm.origin.z - bar.z) < 0.05
 		)
-		_expect(path, "VarioMount −Z смотрит на пилота (вправо-назад)",
-			(-vm.basis.z).x > 0.3 and (-vm.basis.z).z > 0.2)
+		_expect(path, "VarioMount −Z смотрит на пилота (вправо-вверх)",
+			(-vm.basis.z).x > 0.3 and (-vm.basis.z).y > 0.6)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])

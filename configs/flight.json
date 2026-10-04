@@ -139,14 +139,6 @@
         0.0
       ],
       "bar_grip_offset_m_doc": "Сдвиг точек хвата от оси штанги (маркер BaseBar), м: x вправо, y вверх, z назад",
-      "upright_top_m": [
-        0.055,
-        -0.02,
-        -0.25
-      ],
-      "upright_top_m_doc": "Верх правой стойки относительно HangPoint, м (левая — зеркально по X); по tools/blender/glider_params.json → control_frame.apex_forward_m, upright_top_x_m, upright_top_z_m (ось стоек в узле под килем)",
-      "upright_bottom_half_width_m": 0.71,
-      "upright_bottom_half_width_m_doc": "Низ стоек: маркер BaseBar ± это по X, м (полуширина штанги 1,36–1,5 м у трёх крыльев)",
       "upright_above_shoulder_m": 0.1,
       "upright_above_shoulder_m_doc": "На земле хват на стойке выше плечевого сустава (кость UpperArm) на столько, м",
       "flare_above_shoulder_m": 0.25,
