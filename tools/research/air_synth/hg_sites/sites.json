@@ -1,0 +1,11087 @@
+[
+ {
+  "site_id": "hg_0000",
+  "name": "Puy brunet - crete du plomb 2",
+  "lat": 45.061102,
+  "lon": 2.760551,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 713995606
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 713995928
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 713996379
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 713996380
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 713996381
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 714426013
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 714433927
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 714739717
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232775663
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232776184
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232873541
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232873823
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233248587
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233250703
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238408071
+   }
+  ],
+  "n_takeoffs": 15,
+  "ele_max_m": 1812.0,
+  "site_orientation": "N;W;NW;E;SE;S,SE;SW;NE;S",
+  "relief_m": 1228.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.50591,
+    44.88124,
+    3.01519,
+    45.24097
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0001",
+  "name": "Ed Levin 1750 ft launch #2",
+  "lat": 37.474417,
+  "lon": -121.859519,
+  "country": "US",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1422612941
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 1422613214
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 1422616033
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 1765734867
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11932373657
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11932373658
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11932408844
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11932408845
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 13293470713
+   }
+  ],
+  "n_takeoffs": 9,
+  "ele_max_m": 705.0,
+  "site_orientation": "SSE-S;S-W;SW;SSW-NNW;SW-W;S-SW;E",
+  "relief_m": 1320.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -122.08616,
+    37.29455,
+    -121.63288,
+    37.65428
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0002",
+  "name": "La rosiere - la sevoliere",
+  "lat": 45.644024,
+  "lon": 6.855384,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232851416
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233091778
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233243298
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233243640
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235134600
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235262463
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235294988
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238112510
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238112746
+   }
+  ],
+  "n_takeoffs": 9,
+  "ele_max_m": 2095.0,
+  "site_orientation": "W;NW;S;SW;E;SE",
+  "relief_m": 3690.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.59811,
+    45.46416,
+    7.11266,
+    45.82389
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0003",
+  "name": "Décollage du Petit Mont Rond",
+  "lat": 46.358417,
+  "lon": 6.018186,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 248783156
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 248783852
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 248783854
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252319109
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 713602307
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232244822
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232254923
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232987305
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1423910242
+   }
+  ],
+  "n_takeoffs": 9,
+  "ele_max_m": 1534.0,
+  "site_orientation": "NE;E;SE;S;SW;NW;N;W",
+  "relief_m": 1359.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.75757,
+    46.17855,
+    6.2788,
+    46.53828
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0004",
+  "name": "Déco de la Dent de Vaulion",
+  "lat": 46.684132,
+  "lon": 6.350772,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 248618336
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252622406
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252622411
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252622412
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252629843
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252629844
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 255531002
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232981983
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1370484388
+   }
+  ],
+  "n_takeoffs": 9,
+  "ele_max_m": 1480.0,
+  "site_orientation": "E;SE;S;W;NW;N;NO;NE;SW",
+  "relief_m": 1275.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.08859,
+    46.50427,
+    6.61296,
+    46.864
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0005",
+  "name": "Ballon d'alsace - roches de morteville",
+  "lat": 47.824544,
+  "lon": 6.845045,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1227641951
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232753249
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232753346
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232753569
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232753740
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232754133
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232765677
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232769737
+   }
+  ],
+  "n_takeoffs": 8,
+  "ele_max_m": 1242.0,
+  "site_orientation": "S;SW;W;NW;N;E;NE",
+  "relief_m": 1106.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.57715,
+    47.64468,
+    7.11294,
+    48.00441
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0006",
+  "name": "Sederon-mevouillon : bergies - bergies - sud",
+  "lat": 44.203092,
+  "lon": 5.510413,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 37079178
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232757880
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232758898
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232760626
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232761166
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235626791
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1341000195
+   }
+  ],
+  "n_takeoffs": 7,
+  "ele_max_m": 1318.0,
+  "site_orientation": "W;NW;S;N;SE;E",
+  "relief_m": 1511.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.25951,
+    44.02323,
+    5.76131,
+    44.38296
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0007",
+  "name": "Vedetta",
+  "lat": 45.881319,
+  "lon": 11.841406,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 6786491682
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 6786491683
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 42647032
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 226035092
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 226035093
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 226038184
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 800152388
+   }
+  ],
+  "n_takeoffs": 7,
+  "ele_max_m": 1476.0,
+  "site_orientation": "SSE;SW;S;SE;E;W;E,SE",
+  "relief_m": 1727.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.58304,
+    45.70145,
+    12.09978,
+    46.06118
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0008",
+  "name": "Décollage FFVL \"la Kedeusaz\"",
+  "lat": 46.031536,
+  "lon": 6.67044,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 294842498
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 715573866
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 790534640
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 790537853
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 790786777
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233285095
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233330920
+   }
+  ],
+  "n_takeoffs": 7,
+  "ele_max_m": 1800.0,
+  "site_orientation": "S;SW;N;NW;W",
+  "relief_m": 3723.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.41137,
+    45.85167,
+    6.92951,
+    46.2114
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0009",
+  "name": "Décollage FFVL la Charmante",
+  "lat": 46.138127,
+  "lon": 5.85606,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 664780113
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 664780114
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 664785320
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 930978852
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232942945
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235465937
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1288609897
+   }
+  ],
+  "n_takeoffs": 7,
+  "ele_max_m": 1348.0,
+  "site_orientation": "S;SW;W;NW;E;N,NW,W;SE",
+  "relief_m": 1439.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.59649,
+    45.95826,
+    6.11563,
+    46.31799
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0010",
+  "name": "Startplatz Kandel",
+  "lat": 48.065104,
+  "lon": 8.015171,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2448308146
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2475081359
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2475081363
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2475081366
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2475081370
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2484651346
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2484651347
+   }
+  ],
+  "n_takeoffs": 7,
+  "ele_max_m": 1200.0,
+  "site_orientation": "SW-NW;NO;S-SW;S;W",
+  "relief_m": 1150.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.74603,
+    47.88524,
+    8.28431,
+    48.24497
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0011",
+  "name": "Diedamskopf Gipfel Startplatz",
+  "lat": 47.346212,
+  "lon": 10.025963,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 528790571
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2282036384
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2484711265
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2484727698
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2484727700
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 5122354365
+   }
+  ],
+  "n_takeoffs": 6,
+  "ele_max_m": 2077.0,
+  "site_orientation": "W-O;SO-SW;S-SWW;O-W;S",
+  "relief_m": 2174.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.76051,
+    47.16635,
+    10.29142,
+    47.52608
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0012",
+  "name": "Fluggelände Jägerkamp/Nagelspitz",
+  "lat": 47.679141,
+  "lon": 11.905103,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3632129875
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 3632129877
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 9911173431
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 9953255729
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 295964050
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1080986173
+   }
+  ],
+  "n_takeoffs": 6,
+  "ele_max_m": 1560.0,
+  "site_orientation": "N,NO,O;SW,W;NE;NW;WNW,W,O",
+  "relief_m": 1570.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.63796,
+    47.49928,
+    12.17225,
+    47.85901
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0013",
+  "name": "Vallee du louron - cap de pales",
+  "lat": 42.772328,
+  "lon": 0.45125,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 437962445
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232881324
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232930971
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232931727
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232932059
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 2121.0,
+  "site_orientation": "E;N;W;SW",
+  "relief_m": 2824.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.20622,
+    42.59246,
+    0.69628,
+    42.95219
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0014",
+  "name": "Pic d'Anie",
+  "lat": 42.943633,
+  "lon": -0.720249,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 14102664703
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 315645478
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232988990
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232989335
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232989551
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 2387.0,
+  "site_orientation": "E;N;W;NW;S",
+  "relief_m": 2356.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.96596,
+    42.76377,
+    -0.47454,
+    43.1235
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0015",
+  "name": "La sainte baume - le grand vallon",
+  "lat": 43.314888,
+  "lon": 5.709496,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 685085772
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238122559
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238274806
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238274929
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238275487
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 984.0,
+  "site_orientation": "E;SE;S;SW;W",
+  "relief_m": 1560.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.46229,
+    43.13502,
+    5.9567,
+    43.49475
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0016",
+  "name": "Chabre - top - nord",
+  "lat": 44.297571,
+  "lon": 5.76297,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 414778514
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 414778515
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 414778516
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1063394558
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235136001
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 1330.0,
+  "site_orientation": "SE;S;N;NE;NW",
+  "relief_m": 1358.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.51167,
+    44.11771,
+    6.01427,
+    44.47744
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0017",
+  "name": "Saint pierre de chartreuse - la scia - lucheron",
+  "lat": 45.344142,
+  "lon": 5.845274,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 231771568
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 235577605
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 417139388
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 619261601
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232952084
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 1639.0,
+  "site_orientation": "E,SE;E;SE;S;SW;NE;W",
+  "relief_m": 2660.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.58937,
+    45.16428,
+    6.10118,
+    45.52401
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0018",
+  "name": "Décollage des Plagnes",
+  "lat": 45.385427,
+  "lon": 6.147794,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 27237403
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 135152363
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1164800973
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1227438395
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232954983
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 2068.0,
+  "site_orientation": "N;W;NW;NE,E;S;SW",
+  "relief_m": 2588.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.8917,
+    45.20556,
+    6.40389,
+    45.56529
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0019",
+  "name": "Bisanne - sud",
+  "lat": 45.746869,
+  "lon": 6.507256,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 627370360
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232751906
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232875285
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235466384
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238340065
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 1933.0,
+  "site_orientation": "SE;S;SW;NW;W;N;NE",
+  "relief_m": 2795.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.24951,
+    45.567,
+    6.765,
+    45.92673
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0020",
+  "name": "Mont-poupet S",
+  "lat": 46.969261,
+  "lon": 5.876276,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 268517377
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 268517378
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 268517380
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 442014653
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232985176
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 817.0,
+  "site_orientation": "N;NW;S;NE;W,SW",
+  "relief_m": 712.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.6127,
+    46.7894,
+    6.13986,
+    47.14913
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0021",
+  "name": "Montfaucon",
+  "lat": 47.240938,
+  "lon": 6.082016,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232839893
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232840345
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235129455
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235131036
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235473573
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": 591.0,
+  "site_orientation": "SW;NW;N;NE",
+  "relief_m": 675.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.81709,
+    47.06107,
+    6.34694,
+    47.4208
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0022",
+  "name": "Nord-Rampe",
+  "lat": 47.730752,
+  "lon": 12.666725,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 288475674
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 294809863
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 294809965
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 294814236
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 294814761
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": null,
+  "site_orientation": "N;E;SE;NW;N,NW;S",
+  "relief_m": 2187.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.39932,
+    47.55089,
+    12.93414,
+    47.91062
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0023",
+  "name": "S1",
+  "lat": 51.317648,
+  "lon": 8.544967,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5527813587
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 781513122
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 781513123
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 781513126
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 781513127
+   }
+  ],
+  "n_takeoffs": 5,
+  "ele_max_m": null,
+  "site_orientation": "W;SW",
+  "relief_m": 581.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.25719,
+    51.13778,
+    8.83275,
+    51.49751
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0024",
+  "name": "",
+  "lat": -30.677669,
+  "lon": 150.611587,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1082594078
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1082594079
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1082594081
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1082594082
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 813.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    150.40246,
+    -30.85753,
+    150.82072,
+    -30.49781
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0025",
+  "name": "Col de la core",
+  "lat": 42.862562,
+  "lon": 1.10819,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232252384
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232253537
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232253913
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232254220
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1466.0,
+  "site_orientation": "N;NE;E;NW",
+  "relief_m": 2478.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.86281,
+    42.6827,
+    1.35357,
+    43.04243
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0026",
+  "name": "Lachens nord - nord",
+  "lat": 43.745435,
+  "lon": 6.653062,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 344255433
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 344255435
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 344255437
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 344268499
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1652.0,
+  "site_orientation": "SE;S;SW;N",
+  "relief_m": 1870.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.40409,
+    43.56557,
+    6.90204,
+    43.9253
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0027",
+  "name": "Millau - Puncho d'Agast - Sud",
+  "lat": 44.109881,
+  "lon": 3.103217,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 183238511
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 183238516
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 280446358
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 438408852
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 838.0,
+  "site_orientation": "S;W;N;NW;SE",
+  "relief_m": 836.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.85271,
+    43.93002,
+    3.35372,
+    44.28975
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0028",
+  "name": "Contras - saim buguet",
+  "lat": 44.11649,
+  "lon": 5.723597,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232755409
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232757369
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233866492
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238312159
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1629.0,
+  "site_orientation": "E;SE;S;SW;W;NW",
+  "relief_m": 1442.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.47306,
+    43.93663,
+    5.97413,
+    44.29635
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0029",
+  "name": "Douelle",
+  "lat": 44.463623,
+  "lon": 1.372296,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232981214
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232981660
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233478251
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238242746
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 304.0,
+  "site_orientation": "SE;S;N;NE;NW;SW",
+  "relief_m": 380.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.12028,
+    44.28376,
+    1.62431,
+    44.64349
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0030",
+  "name": "Montagne de la lance - la lance sud",
+  "lat": 44.464254,
+  "lon": 5.084376,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233868697
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233868864
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233870517
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233870698
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1162.0,
+  "site_orientation": "S;SW;N;NE;NW;SE",
+  "relief_m": 1481.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.83236,
+    44.28439,
+    5.3364,
+    44.64412
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0031",
+  "name": "La Sausse",
+  "lat": 44.89796,
+  "lon": 5.227357,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 323000074
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1422867088
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1422867089
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1423669183
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1311.0,
+  "site_orientation": "N;NW;S;SW;W;SE",
+  "relief_m": 1879.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.97344,
+    44.7181,
+    5.48127,
+    45.07782
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0032",
+  "name": "Saurier-creste - plateau-de-lachaux",
+  "lat": 45.553003,
+  "lon": 3.06121,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232856200
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232857139
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232941826
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1372702592
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 840.0,
+  "site_orientation": "N;S;SW;SE;W;NW;E",
+  "relief_m": 1481.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.80435,
+    45.37314,
+    3.31807,
+    45.73287
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0033",
+  "name": "Job-ambert - le-mont-chouve",
+  "lat": 45.630304,
+  "lon": 3.781839,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232975025
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232975028
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232975475
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232977594
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1437.0,
+  "site_orientation": "SW;W;S",
+  "relief_m": 1316.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.52463,
+    45.45044,
+    4.03905,
+    45.81017
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0034",
+  "name": "Amisbühl Oben",
+  "lat": 46.708833,
+  "lon": 7.825437,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 684702985
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1173887473
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1174923569
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1450209634
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1440.0,
+  "site_orientation": "W;SE;S",
+  "relief_m": 3474.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.56313,
+    46.52897,
+    8.08774,
+    46.8887
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0035",
+  "name": "Mont chateleu",
+  "lat": 46.989552,
+  "lon": 6.572829,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232982895
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232983995
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232985462
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235636550
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 1297.0,
+  "site_orientation": "W;SE;N;NW",
+  "relief_m": 1146.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.30915,
+    46.80969,
+    6.83651,
+    47.16942
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0036",
+  "name": "Startplatz Fulpmes Kreuzjoch",
+  "lat": 47.133341,
+  "lon": 11.311644,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 6551785945
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 6551785947
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 6551785948
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 295809673
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": null,
+  "site_orientation": "NE,E,SE,S;E,SE;N,NE",
+  "relief_m": 2831.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.04725,
+    46.95348,
+    11.57604,
+    47.31321
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0037",
+  "name": "Décollage Savigny sous Mâlin",
+  "lat": 47.339495,
+  "lon": 4.751422,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238113054
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238113055
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238337563
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238338170
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 576.0,
+  "site_orientation": "NE;E;W;NW;SW;S",
+  "relief_m": 439.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.486,
+    47.15963,
+    5.01684,
+    47.51936
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0038",
+  "name": "Champeaux",
+  "lat": 48.732572,
+  "lon": -1.539618,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232990547
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232991125
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238124135
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238125022
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 55.0,
+  "site_orientation": "W;NW;S;N",
+  "relief_m": 788.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.81232,
+    48.55271,
+    -1.26692,
+    48.91244
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0039",
+  "name": "Décollage : Clécy Saint-Omer Ouest",
+  "lat": 48.926195,
+  "lon": -0.466189,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 173207893
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 176392346
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 364690003
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232263571
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 223.0,
+  "site_orientation": "S;W;NE;E;SE",
+  "relief_m": 343.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.73994,
+    48.74633,
+    -0.19244,
+    49.10606
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0040",
+  "name": "Pierres-pouquelees",
+  "lat": 49.649809,
+  "lon": -1.856102,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 122725501
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232932506
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232991491
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232992865
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 130.0,
+  "site_orientation": "N;SW;NE;E;W",
+  "relief_m": 250.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -2.1339,
+    49.46994,
+    -1.5783,
+    49.82967
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0041",
+  "name": "Toftum - Launch",
+  "lat": 56.545441,
+  "lon": 8.532635,
+  "country": "DK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11407202300
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11407202302
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11407202306
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11486114566
+   }
+  ],
+  "n_takeoffs": 4,
+  "ele_max_m": 32.0,
+  "site_orientation": "",
+  "relief_m": 124.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.20637,
+    56.36558,
+    8.8589,
+    56.72531
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0042",
+  "name": "Déco Maido",
+  "lat": -21.05916,
+  "lon": 55.381755,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 443056873
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 711229878
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233861791
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 2002.0,
+  "site_orientation": "NW;SE;S;SW;W;E",
+  "relief_m": 4679.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.18902,
+    -21.23902,
+    55.57449,
+    -20.8793
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0043",
+  "name": "سایت پرواز پاراگلایدر کوه سفید جناح",
+  "lat": 26.93554,
+  "lon": 54.386994,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 10807654994
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 10807654995
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1162979935
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1385.0,
+  "site_orientation": "E,SE,S,SW,W",
+  "relief_m": 1403.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    54.18524,
+    26.75568,
+    54.58874,
+    27.1154
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0044",
+  "name": "سایت پرواز پاراگلایدر گنو- شاهی",
+  "lat": 27.39739,
+  "lon": 56.169012,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1160647770
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1160672943
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1176440701
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1540.0,
+  "site_orientation": "E,SE,S;S,SW,W",
+  "relief_m": 2299.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.96643,
+    27.21753,
+    56.3716,
+    27.57725
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0045",
+  "name": "L'arrech (guzet) - pic de l'arrech",
+  "lat": 42.771048,
+  "lon": 1.302304,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 233625360
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232254717
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232254908
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1738.0,
+  "site_orientation": "NW;SE;N;NE;E;W",
+  "relief_m": 2638.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.05728,
+    42.59118,
+    1.54733,
+    42.95091
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0046",
+  "name": "Парадром Ушконыр (Верхняя площадка)",
+  "lat": 43.130928,
+  "lon": 76.486121,
+  "country": "KZ",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1719139778
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 13159751394
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 13159751395
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 3261.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    76.23966,
+    42.95106,
+    76.73258,
+    43.31079
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0047",
+  "name": "Le cousson",
+  "lat": 44.053684,
+  "lon": 6.239636,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232768206
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232769222
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232974180
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1484.0,
+  "site_orientation": "E;SW;W",
+  "relief_m": 1883.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.98937,
+    43.87382,
+    6.4899,
+    44.23355
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0048",
+  "name": "Décollage vol libre (nord-est)",
+  "lat": 44.14352,
+  "lon": 1.772245,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 438410608
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 438410609
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 438410611
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 349.0,
+  "site_orientation": "N;NE;W;SE;S",
+  "relief_m": 424.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.5216,
+    43.96366,
+    2.02289,
+    44.32338
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0049",
+  "name": "Montagne d'oule ouest",
+  "lat": 44.511367,
+  "lon": 5.831562,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 248782610
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 248782611
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238410689
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1562.0,
+  "site_orientation": "SW;SE;S;W;NW",
+  "relief_m": 2157.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.57934,
+    44.3315,
+    6.08379,
+    44.69123
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0050",
+  "name": "Chaudeyrolles",
+  "lat": 44.935909,
+  "lon": 4.191575,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232845510
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1236681371
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238113553
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1387.0,
+  "site_orientation": "N;S",
+  "relief_m": 1292.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.93749,
+    44.75604,
+    4.44566,
+    45.11577
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0051",
+  "name": "Monceaux-sur-dordogne - bros",
+  "lat": 45.066625,
+  "lon": 1.899809,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 641990311
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232865909
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232867593
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 450.0,
+  "site_orientation": "NE;SW;S",
+  "relief_m": 605.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.64515,
+    44.88676,
+    2.15447,
+    45.24649
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0052",
+  "name": "Alpe d'huez - bourg d'oisans - le signal",
+  "lat": 45.09898,
+  "lon": 6.05977,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238274168
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238406442
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238406443
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 2104.0,
+  "site_orientation": "SW;W;NW;N;NE;E;S",
+  "relief_m": 3454.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.80496,
+    44.91912,
+    6.31458,
+    45.27884
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0053",
+  "name": "Décollage Puy de la Monédière",
+  "lat": 45.485892,
+  "lon": 1.839692,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 360607273
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 456635534
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 456635535
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 899.0,
+  "site_orientation": "N;NW;S;SW;SE",
+  "relief_m": 742.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.58314,
+    45.30603,
+    2.09624,
+    45.66576
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0054",
+  "name": "Chamoux - Montendry",
+  "lat": 45.529368,
+  "lon": 6.252474,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 51057534
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 497269013
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233333346
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1283.0,
+  "site_orientation": "N;NE;SE;S;W",
+  "relief_m": 2503.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.99572,
+    45.3495,
+    6.50922,
+    45.70923
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0055",
+  "name": "Le sire - sud",
+  "lat": 45.630752,
+  "lon": 5.96614,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "relation",
+    "osm_id": 10059814
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 26587569
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 26587570
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1500.0,
+  "site_orientation": "SW;W;NW;N;SE;S",
+  "relief_m": 1889.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.70893,
+    45.45089,
+    6.22335,
+    45.81062
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0056",
+  "name": "Decollo Foraoro",
+  "lat": 45.789396,
+  "lon": 11.484028,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 448837185
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 4708672867
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 535046750
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1275.0,
+  "site_orientation": "S;SE",
+  "relief_m": 2125.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.22608,
+    45.60953,
+    11.74197,
+    45.96926
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0057",
+  "name": "Grand cret",
+  "lat": 46.126511,
+  "lon": 4.582556,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232949827
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233247225
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235468397
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 685.0,
+  "site_orientation": "N;NW;NE",
+  "relief_m": 816.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.32304,
+    45.94665,
+    4.84207,
+    46.30638
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0058",
+  "name": "Signal de soi",
+  "lat": 46.185051,
+  "lon": 6.916487,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 347973295
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 368349102
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 368402279
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1930.0,
+  "site_orientation": "",
+  "relief_m": 2758.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.65669,
+    46.00519,
+    7.17628,
+    46.36492
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0059",
+  "name": "Décollage Crêt-du-Midi Est",
+  "lat": 46.239196,
+  "lon": 7.529111,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 888440227
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 888443730
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 888443731
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": null,
+  "site_orientation": "W,NW;SW,W,NW,N;NE,E,SE",
+  "relief_m": 3906.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.26906,
+    46.05933,
+    7.78916,
+    46.41906
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0060",
+  "name": "Décollage FFVL des Mémises \"le Lanvanchy\"",
+  "lat": 46.381223,
+  "lon": 6.727913,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 456552238
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 456552458
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 456552717
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1621.0,
+  "site_orientation": "",
+  "relief_m": 2003.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.46719,
+    46.20136,
+    6.98864,
+    46.56109
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0061",
+  "name": "Décollage de Jaman",
+  "lat": 46.441745,
+  "lon": 6.976085,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 61316675
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 80270173
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 290475657
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1750.0,
+  "site_orientation": "W",
+  "relief_m": 2820.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.71507,
+    46.26188,
+    7.2371,
+    46.62161
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0062",
+  "name": "Hohmattli",
+  "lat": 46.66979,
+  "lon": 7.318206,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1869760763
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 1869760765
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 252578062
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 1780.0,
+  "site_orientation": "E,N,W;N,NW;NE,N",
+  "relief_m": 2166.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.05609,
+    46.48993,
+    7.58032,
+    46.84965
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0063",
+  "name": "Uchon",
+  "lat": 46.806901,
+  "lon": 4.253137,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232268832
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232269328
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232988033
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 650.0,
+  "site_orientation": "W;NW;N;NE",
+  "relief_m": 634.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.99035,
+    46.62704,
+    4.51592,
+    46.98677
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0064",
+  "name": "Startrampe Hängegleiter",
+  "lat": 47.585661,
+  "lon": 11.102191,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3885156491
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 5997401875
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 8814983157
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2261.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    10.83552,
+    47.4058,
+    11.36886,
+    47.76553
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0065",
+  "name": "Chariez - camp de cesar sud-ouest",
+  "lat": 47.622302,
+  "lon": 6.089862,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 708312169
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 708316886
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232243620
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 366.0,
+  "site_orientation": "E;SW;SO;O",
+  "relief_m": 279.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.82301,
+    47.44244,
+    6.35672,
+    47.80217
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0066",
+  "name": "Breitenbach - pelage - sud-est",
+  "lat": 48.383142,
+  "lon": 7.283026,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 737097143
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 794430206
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233253355
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 946.0,
+  "site_orientation": "E;SE;S;NE;SW",
+  "relief_m": 992.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.01221,
+    48.20328,
+    7.55385,
+    48.56301
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0067",
+  "name": "Milepat",
+  "lat": 48.762515,
+  "lon": -2.986178,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238334683
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238336910
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238337346
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": 64.0,
+  "site_orientation": "N;W;NW;NE;E",
+  "relief_m": 540.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -3.25904,
+    48.58265,
+    -2.71332,
+    48.94238
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0068",
+  "name": "Flugplatz",
+  "lat": 50.498927,
+  "lon": 9.936026,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5641818267
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 5641818268
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 5641818269
+   }
+  ],
+  "n_takeoffs": 3,
+  "ele_max_m": null,
+  "site_orientation": "N;W;S",
+  "relief_m": 683.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.65326,
+    50.31906,
+    10.21879,
+    50.67879
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0069",
+  "name": "AGVL - Rampa Sudoeste",
+  "lat": -29.605421,
+  "lon": -50.97021,
+  "country": "BR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1981105398
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 6838163099
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 576.0,
+  "site_orientation": "SE",
+  "relief_m": 879.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -51.17708,
+    -29.78529,
+    -50.76334,
+    -29.42556
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0070",
+  "name": "Plaine des gregues",
+  "lat": -21.320701,
+  "lon": 55.593197,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233862468
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233863396
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 916.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 4873.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.40012,
+    -21.50057,
+    55.78628,
+    -21.14084
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0071",
+  "name": "Saint-leu - 1400",
+  "lat": -21.150989,
+  "lon": 55.342299,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 137134886
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233495682
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1395.0,
+  "site_orientation": "SW;W;NW",
+  "relief_m": 5401.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.14944,
+    -21.33085,
+    55.53516,
+    -20.97112
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0072",
+  "name": "Déco Le piton des neiges - West",
+  "lat": -21.0997,
+  "lon": 55.480815,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12293952963
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 12293952965
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 3034.0,
+  "site_orientation": "W",
+  "relief_m": 4287.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.28803,
+    -21.27956,
+    55.6736,
+    -20.91984
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0073",
+  "name": "Du Magalhães",
+  "lat": -18.886582,
+  "lon": -41.9159,
+  "country": "BR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1466490691
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1466490692
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1548.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -42.106,
+    -19.06645,
+    -41.7258,
+    -18.70672
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0074",
+  "name": "سایت پرواز پاراگلایدر پردی",
+  "lat": 27.463582,
+  "lon": 54.304559,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 10860272913
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1160644155
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1690.0,
+  "site_orientation": "E,SE,S,SW,W",
+  "relief_m": 1788.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    54.10185,
+    27.28372,
+    54.50727,
+    27.64345
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0075",
+  "name": "سایت پرواز پاراگلایدر سغ",
+  "lat": 27.816825,
+  "lon": 56.390688,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 10792758842
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1169252502
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1240.0,
+  "site_orientation": "SE,S,SW",
+  "relief_m": 2895.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    56.18732,
+    27.63696,
+    56.59405,
+    27.99669
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0076",
+  "name": "سایت پرواز پاراگلایدر آذرخش- داراب",
+  "lat": 28.851329,
+  "lon": 54.573302,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11016656547
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1186070568
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2340.0,
+  "site_orientation": "S,SW,SE",
+  "relief_m": 1937.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    54.36795,
+    28.67146,
+    54.77866,
+    29.03119
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0077",
+  "name": "",
+  "lat": 29.082923,
+  "lon": -13.60597,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3001813519
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 3001819769
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "NW;N",
+  "relief_m": 2271.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -13.81178,
+    28.90306,
+    -13.40016,
+    29.26279
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0078",
+  "name": "سایت پرواز پاراگلایدر کرند-غرب",
+  "lat": 34.280999,
+  "lon": 46.256233,
+  "country": "IR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11041841051
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1189100856
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2020.0,
+  "site_orientation": "SE,S,SW",
+  "relief_m": 1506.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    46.03856,
+    34.10113,
+    46.47391,
+    34.46086
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0079",
+  "name": "Levante SE",
+  "lat": 36.89827,
+  "lon": -5.393714,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1159897397
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1159897398
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "SE;SW",
+  "relief_m": 1510.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -5.61863,
+    36.71841,
+    -5.1688,
+    37.07813
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0080",
+  "name": "Rampa de vôo livre",
+  "lat": 39.017525,
+  "lon": -9.226501,
+  "country": "PT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 451041544
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 451078884
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 709.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -9.458,
+    38.83766,
+    -8.995,
+    39.19739
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0081",
+  "name": "Krusevo - Mechkin Kamen East",
+  "lat": 41.348674,
+  "lon": 21.255063,
+  "country": "MK",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1420203254
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1551415954
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "NE;E;SE",
+  "relief_m": 1448.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    21.01547,
+    41.16881,
+    21.49466,
+    41.52854
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0082",
+  "name": "Puigmal - Pic d'Estaques",
+  "lat": 42.411936,
+  "lon": 1.945385,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232767721
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232767991
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1137.0,
+  "site_orientation": "S;SW",
+  "relief_m": 2155.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.70177,
+    42.23207,
+    2.189,
+    42.5918
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0083",
+  "name": "Céret - Fontfrede",
+  "lat": 42.45009,
+  "lon": 2.764468,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232949626
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232950265
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1023.0,
+  "site_orientation": "N;NE;SE",
+  "relief_m": 2085.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.52071,
+    42.27023,
+    3.00823,
+    42.62995
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0084",
+  "name": "Décollage de l'Esquerus",
+  "lat": 42.758542,
+  "lon": 1.512488,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1236676647
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1236676840
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1393.0,
+  "site_orientation": "N;SW;W;NW",
+  "relief_m": 2632.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.26752,
+    42.57868,
+    1.75746,
+    42.93841
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0085",
+  "name": "Monts d'olmes - galinat",
+  "lat": 42.826015,
+  "lon": 1.74358,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232250095
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232995643
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1999.0,
+  "site_orientation": "W",
+  "relief_m": 2445.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.49834,
+    42.64615,
+    1.98882,
+    43.00588
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0086",
+  "name": "Montjoux sud",
+  "lat": 43.672352,
+  "lon": 3.195655,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235131364
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235131365
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 594.0,
+  "site_orientation": "S;W;NW",
+  "relief_m": 1120.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.94698,
+    43.49249,
+    3.44433,
+    43.85222
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0087",
+  "name": "Kennedy",
+  "lat": 43.704115,
+  "lon": 6.980932,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3390881641
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232773487
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 643.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 2980.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.73213,
+    43.52425,
+    7.22974,
+    43.88398
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0088",
+  "name": "Décollage Bleine parapente",
+  "lat": 43.813821,
+  "lon": 6.811248,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3629226393
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233082305
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1501.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1777.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.56199,
+    43.63396,
+    7.06051,
+    43.99369
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0089",
+  "name": "Saint Côme",
+  "lat": 43.835132,
+  "lon": 4.197559,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1214637661
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232997917
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 192.0,
+  "site_orientation": "SE;S;SW;N;W;NW",
+  "relief_m": 447.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.94821,
+    43.65527,
+    4.44691,
+    44.015
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0090",
+  "name": "Saint jean - latour de durfort",
+  "lat": 44.041256,
+  "lon": 5.403512,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237878984
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1525506327
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1004.0,
+  "site_orientation": "W;NW;NE,E",
+  "relief_m": 1753.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.1533,
+    43.86139,
+    5.65373,
+    44.22112
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0091",
+  "name": "Cordes saint marcel campes - cordes 2",
+  "lat": 44.064223,
+  "lon": 1.975696,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232242960
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235128867
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 296.0,
+  "site_orientation": "N;NE;NW",
+  "relief_m": 503.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.72538,
+    43.88436,
+    2.22601,
+    44.24409
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0092",
+  "name": "La colmiane - veillos",
+  "lat": 44.096032,
+  "lon": 7.190593,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233079978
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233079992
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2052.0,
+  "site_orientation": "S;SW;W",
+  "relief_m": 3027.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.94015,
+    43.91617,
+    7.44104,
+    44.2759
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0093",
+  "name": "Mont bouquet - la vierge",
+  "lat": 44.131947,
+  "lon": 4.285496,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 442083374
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 442083375
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 617.0,
+  "site_orientation": "SE;S;SW;NE;E",
+  "relief_m": 620.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.0349,
+    43.95208,
+    4.53609,
+    44.31181
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0094",
+  "name": "Mont ventoux nord",
+  "lat": 44.174257,
+  "lon": 5.278567,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237883364
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1237883812
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1859.0,
+  "site_orientation": "N;NE;NW;SE;S",
+  "relief_m": 1801.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.02779,
+    43.99439,
+    5.52935,
+    44.35412
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0095",
+  "name": "Chabanon selonnet",
+  "lat": 44.334661,
+  "lon": 6.295591,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238114526
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238114527
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1768.0,
+  "site_orientation": "N;S",
+  "relief_m": 2266.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.04413,
+    44.1548,
+    6.54705,
+    44.51453
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0096",
+  "name": "Le single",
+  "lat": 44.357801,
+  "lon": 3.540278,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232938545
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232938554
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1041.0,
+  "site_orientation": "N;NW;SE",
+  "relief_m": 1353.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.28872,
+    44.17794,
+    3.79184,
+    44.53767
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0097",
+  "name": "Décollage Soubeyrand",
+  "lat": 44.375556,
+  "lon": 5.333136,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1230709046
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1230709051
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1212.0,
+  "site_orientation": "N;NE;NW;S;SW;W",
+  "relief_m": 1366.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.0815,
+    44.19569,
+    5.58477,
+    44.55542
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0098",
+  "name": "Dreuilh",
+  "lat": 44.48043,
+  "lon": 1.794773,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235139882
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1237882922
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 297.0,
+  "site_orientation": "SE;S;E",
+  "relief_m": 410.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.54268,
+    44.30057,
+    2.04686,
+    44.66029
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0099",
+  "name": "Lesches-en-diois - la montagne du puy",
+  "lat": 44.609072,
+  "lon": 5.541998,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232955641
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232956550
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1501.0,
+  "site_orientation": "N;SE;S;SW",
+  "relief_m": 1850.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.28935,
+    44.42921,
+    5.79465,
+    44.78894
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0100",
+  "name": "Aurel - clot du ciel",
+  "lat": 44.671365,
+  "lon": 5.320712,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232972316
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232972832
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1132.0,
+  "site_orientation": "N;NW",
+  "relief_m": 1819.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.06779,
+    44.4915,
+    5.57363,
+    44.85123
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0101",
+  "name": "Orcieres - cairn ouest",
+  "lat": 44.698106,
+  "lon": 6.304438,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 820181388
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232268123
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2071.0,
+  "site_orientation": "SW;W;NW;S",
+  "relief_m": 2863.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.0514,
+    44.51824,
+    6.55747,
+    44.87797
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0102",
+  "name": "Mont mercou",
+  "lat": 44.911571,
+  "lon": 1.58252,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 650168678
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232933485
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 308.0,
+  "site_orientation": "W;NW;SE",
+  "relief_m": 466.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.32855,
+    44.73171,
+    1.83649,
+    45.09144
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0103",
+  "name": "Jas d'oris - les fond plaines",
+  "lat": 44.927843,
+  "lon": 5.886897,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232754273
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232780336
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1724.0,
+  "site_orientation": "SW;NW",
+  "relief_m": 3102.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.63285,
+    44.74798,
+    6.14094,
+    45.10771
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0104",
+  "name": "La foret - la foret",
+  "lat": 45.116805,
+  "lon": 1.255919,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1073569370
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1073569371
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 219.0,
+  "site_orientation": "NE,N,NO;N",
+  "relief_m": 343.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.00103,
+    44.93694,
+    1.51081,
+    45.29667
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0105",
+  "name": "Aussois - angle bellecote",
+  "lat": 45.253896,
+  "lon": 6.736982,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1227672537
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232945009
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2340.0,
+  "site_orientation": "E;SE;S",
+  "relief_m": 3072.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.48148,
+    45.07403,
+    6.99248,
+    45.43376
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0106",
+  "name": "Saint-francois-longchamp - telesiege du soleil rouge",
+  "lat": 45.410635,
+  "lon": 6.392436,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238405306
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238405307
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 2249.0,
+  "site_orientation": "N;NE;S;SW",
+  "relief_m": 3186.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.13623,
+    45.23077,
+    6.64865,
+    45.5905
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0107",
+  "name": "Décollage FFVL du Chat",
+  "lat": 45.663014,
+  "lon": 5.821356,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 25610651
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 791149071
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1456.0,
+  "site_orientation": "SW;W;NW;N",
+  "relief_m": 1635.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.56399,
+    45.48315,
+    6.07872,
+    45.84288
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0108",
+  "name": "Décollage : Le Puy de Dôme",
+  "lat": 45.771004,
+  "lon": 2.960418,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 361464897
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232870462
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1450.0,
+  "site_orientation": "N,NE,E,SE,S,SW,W,NW;N;NE;E;SE;S;SW;W;NW",
+  "relief_m": 1257.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.70256,
+    45.59114,
+    3.21828,
+    45.95087
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0109",
+  "name": "Innimond - la table d'orientation",
+  "lat": 45.784883,
+  "lon": 5.591922,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 472469232
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 232786124
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1027.0,
+  "site_orientation": "N;NE;E",
+  "relief_m": 1303.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.334,
+    45.60502,
+    5.84985,
+    45.96475
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0110",
+  "name": "Sapenay - le belvedere - delta",
+  "lat": 45.811022,
+  "lon": 5.864233,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12288727876
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 923528606
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 864.0,
+  "site_orientation": "S;SW;W;NW",
+  "relief_m": 1760.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.60619,
+    45.63116,
+    6.12228,
+    45.99089
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0111",
+  "name": "Décollage deltaplane de Montmin",
+  "lat": 45.813429,
+  "lon": 6.245933,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 300402095
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 497269015
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1280.0,
+  "site_orientation": "SE",
+  "relief_m": 2192.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.98788,
+    45.63356,
+    6.50399,
+    45.99329
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0112",
+  "name": "Saint-Sorlin - Souclin",
+  "lat": 45.880381,
+  "lon": 5.410618,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233491907
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233492860
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 763.0,
+  "site_orientation": "N;NE;NW;S",
+  "relief_m": 1035.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.15225,
+    45.70052,
+    5.66898,
+    46.06025
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0113",
+  "name": "Colombier - la croix",
+  "lat": 45.906207,
+  "lon": 5.761144,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11952285696
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 12288762611
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1522.0,
+  "site_orientation": "W;SW;NW",
+  "relief_m": 1275.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.50266,
+    45.72634,
+    6.01963,
+    46.08607
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0114",
+  "name": "Décollage Les Ruinettes",
+  "lat": 46.089904,
+  "lon": 7.253299,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 352273229
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 352273339
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 3848.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.99395,
+    45.91004,
+    7.51265,
+    46.26977
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0115",
+  "name": "Décollage FFVL Mieussy Platière",
+  "lat": 46.144431,
+  "lon": 6.547561,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 790541955
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 790651733
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1654.0,
+  "site_orientation": "SW;W;W, SW, S, SE",
+  "relief_m": 2236.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.28796,
+    45.96457,
+    6.80716,
+    46.3243
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0116",
+  "name": "Gueret - le maupuy",
+  "lat": 46.163762,
+  "lon": 1.837735,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 385912397
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 385921361
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 594.0,
+  "site_orientation": "NE;E;N",
+  "relief_m": 459.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.57804,
+    45.9839,
+    2.09743,
+    46.34363
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0117",
+  "name": "Décollage FFVL de Très-le-mont",
+  "lat": 46.285522,
+  "lon": 6.489135,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 517767152
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 790527929
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1359.0,
+  "site_orientation": "N;NW;NW, W",
+  "relief_m": 1739.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.22886,
+    46.10566,
+    6.74941,
+    46.46539
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0118",
+  "name": "Chez Marcel",
+  "lat": 46.296778,
+  "lon": 7.022084,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 251885717
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 251885718
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "S-SW",
+  "relief_m": 2820.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.76176,
+    46.11691,
+    7.28241,
+    46.47664
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0119",
+  "name": "Roche-Coche - Berzé la Ville",
+  "lat": 46.367568,
+  "lon": 4.704699,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12673066999
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232856132
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 450.0,
+  "site_orientation": "SE;S;SW;N;NW",
+  "relief_m": 813.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.44404,
+    46.1877,
+    4.96536,
+    46.54743
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0120",
+  "name": "Raimeux Sud",
+  "lat": 47.335377,
+  "lon": 7.452278,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1130739803
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1190155425
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "N",
+  "relief_m": 1110.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.18688,
+    47.15551,
+    7.71768,
+    47.51524
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0121",
+  "name": "Boécourt",
+  "lat": 47.371164,
+  "lon": 7.261094,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1108293558
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1144448135
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "S;SE",
+  "relief_m": 1071.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.99551,
+    47.1913,
+    7.52668,
+    47.55103
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0122",
+  "name": "Autrey les cerre - mont moiran",
+  "lat": 47.622572,
+  "lon": 6.349162,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232847440
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235776279
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 375.0,
+  "site_orientation": "N;NE;E",
+  "relief_m": 442.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.08231,
+    47.44271,
+    6.61602,
+    47.80244
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0123",
+  "name": "Startplatz Süd",
+  "lat": 47.802641,
+  "lon": 13.110855,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1607342146
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 13030612229
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 1529.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.84308,
+    47.62278,
+    13.37864,
+    47.9825
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0124",
+  "name": "Startplatz Ost",
+  "lat": 47.829773,
+  "lon": 16.043658,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 82212175
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1329935298
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "ESE;SSE",
+  "relief_m": 1842.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    15.77574,
+    47.64991,
+    16.31158,
+    48.00964
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0125",
+  "name": "Altmatt gaschney",
+  "lat": 48.03502,
+  "lon": 7.033349,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232770779
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233084852
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1179.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1206.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.76436,
+    47.85516,
+    7.30233,
+    48.21488
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0126",
+  "name": "Chevre roche",
+  "lat": 48.038665,
+  "lon": 6.708271,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1157662272
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232847354
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 824.0,
+  "site_orientation": "SW;SE;S",
+  "relief_m": 913.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.43927,
+    47.8588,
+    6.97728,
+    48.21853
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0127",
+  "name": "Bonhomme - la-closerie",
+  "lat": 48.187194,
+  "lon": 7.095665,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232770819
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232771240
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 1060.0,
+  "site_orientation": "SE;W;NW",
+  "relief_m": 1171.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.82588,
+    48.00733,
+    7.36545,
+    48.36706
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0128",
+  "name": "Roocourt la cote sud - roocourt la cote le denot",
+  "lat": 48.214155,
+  "lon": 5.152801,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235638707
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235639251
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 358.0,
+  "site_orientation": "SE;S;SW;W",
+  "relief_m": 273.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.88288,
+    48.03429,
+    5.42273,
+    48.39402
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0129",
+  "name": "Menez-hom",
+  "lat": 48.220607,
+  "lon": -4.236369,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1079290015
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1238313316
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 308.0,
+  "site_orientation": "N;NW;S",
+  "relief_m": 454.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -4.50633,
+    48.04074,
+    -3.96641,
+    48.40047
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0130",
+  "name": "La-pointe-du-roselier - sud",
+  "lat": 48.553551,
+  "lon": -2.714907,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235624650
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235624651
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 65.0,
+  "site_orientation": "N;NE;SE;S",
+  "relief_m": 339.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -2.98664,
+    48.37369,
+    -2.44318,
+    48.73342
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0131",
+  "name": "Startplatz Rabenfelsen",
+  "lat": 48.613777,
+  "lon": 9.796287,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 4006512754
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 4006536742
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 680.0,
+  "site_orientation": "O;E",
+  "relief_m": 610.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.52423,
+    48.43391,
+    10.06834,
+    48.79364
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0132",
+  "name": "",
+  "lat": 48.821464,
+  "lon": 17.824585,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2981031250
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2981031254
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "N,NE,NW;SE,S,SW",
+  "relief_m": 866.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    17.5514,
+    48.6416,
+    18.09776,
+    49.00133
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0133",
+  "name": "",
+  "lat": 48.926501,
+  "lon": 18.287371,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2135001949
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2135001950
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "SE,S,SW",
+  "relief_m": 953.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.01362,
+    48.74664,
+    18.56113,
+    49.10637
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0134",
+  "name": "",
+  "lat": 48.947328,
+  "lon": 18.529376,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2135001952
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 2135001953
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "NW;N",
+  "relief_m": 1083.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.25551,
+    48.76746,
+    18.80325,
+    49.12719
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0135",
+  "name": "Décollage : Banc des Deux Amants",
+  "lat": 49.319104,
+  "lon": 1.246087,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 173155561
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 173155562
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 140.0,
+  "site_orientation": "N,NW,NNW;SW;W",
+  "relief_m": 211.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.97016,
+    49.13924,
+    1.52202,
+    49.49897
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0136",
+  "name": "Site de décollage de Commes",
+  "lat": 49.346172,
+  "lon": -0.725825,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 508150353
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1235139472
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 68.0,
+  "site_orientation": "NE",
+  "relief_m": 188.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.00191,
+    49.16631,
+    -0.44974,
+    49.52604
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0137",
+  "name": "Carteret - le semaphore - sud",
+  "lat": 49.372852,
+  "lon": -1.805734,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232992305
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233086183
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 63.0,
+  "site_orientation": "NW;S",
+  "relief_m": 1017.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -2.08197,
+    49.19299,
+    -1.5295,
+    49.55272
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0138",
+  "name": "Marais vernier - panorama (soumis a autorisation )",
+  "lat": 49.402569,
+  "lon": 0.467355,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232998199
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233278161
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 102.0,
+  "site_orientation": "SW;NE",
+  "relief_m": 206.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.19096,
+    49.2227,
+    0.74375,
+    49.58243
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0139",
+  "name": "Le-rozel",
+  "lat": 49.475112,
+  "lon": -1.843605,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232978438
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1232992590
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 57.0,
+  "site_orientation": "W;NW",
+  "relief_m": 1017.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -2.12041,
+    49.29525,
+    -1.5668,
+    49.65498
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0140",
+  "name": "Stonne",
+  "lat": 49.550468,
+  "lon": 4.929285,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 625099821
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 1233085142
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 318.0,
+  "site_orientation": "NE;E;N",
+  "relief_m": 301.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.65205,
+    49.3706,
+    5.20652,
+    49.73033
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0141",
+  "name": "",
+  "lat": 49.727581,
+  "lon": 9.247796,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 948786215
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 950001014
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": null,
+  "site_orientation": "WNW;S",
+  "relief_m": 476.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.96955,
+    49.54772,
+    9.52604,
+    49.90744
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0142",
+  "name": "Startowisko lotniowo-paralotniowe",
+  "lat": 50.673049,
+  "lon": 16.20964,
+  "country": "PL",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3813560342
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 222518983
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 545.0,
+  "site_orientation": "S;S,SW",
+  "relief_m": 753.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    15.92583,
+    50.49318,
+    16.49345,
+    50.85291
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0143",
+  "name": "Henne - Launch",
+  "lat": 55.745287,
+  "lon": 8.17416,
+  "country": "DK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 6432534249
+   },
+   {
+    "osm_type": "node",
+    "osm_id": 11385334767
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 7.0,
+  "site_orientation": "",
+  "relief_m": 66.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.85461,
+    55.56542,
+    8.49371,
+    55.92515
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0144",
+  "name": "Västhanget Ålleberg",
+  "lat": 58.136301,
+  "lon": 13.597285,
+  "country": "SE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 631572751
+   },
+   {
+    "osm_type": "way",
+    "osm_id": 631585406
+   }
+  ],
+  "n_takeoffs": 2,
+  "ele_max_m": 327.0,
+  "site_orientation": "WNW;E",
+  "relief_m": 259.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    13.25657,
+    57.95644,
+    13.938,
+    58.31617
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0145",
+  "name": "Flinders Golf Course Paraglider/Hang Glider Launch",
+  "lat": -38.478964,
+  "lon": 145.01266,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 231787307
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 392.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    144.7829,
+    -38.65883,
+    145.24242,
+    -38.2991
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0146",
+  "name": "Lanyon",
+  "lat": -35.483614,
+  "lon": 149.107599,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9932810524
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W",
+  "relief_m": 1103.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    148.88671,
+    -35.66348,
+    149.32849,
+    -35.30375
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0147",
+  "name": "Honeysuckle (HG)",
+  "lat": -35.130124,
+  "lon": 148.316562,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9932813012
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W;SW",
+  "relief_m": 1019.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    148.09664,
+    -35.30999,
+    148.53649,
+    -34.95026
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0148",
+  "name": "Lake George",
+  "lat": -35.103727,
+  "lon": 149.375334,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9932809129
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 730.0,
+  "site_orientation": "E",
+  "relief_m": 454.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    149.15548,
+    -35.28359,
+    149.59519,
+    -34.92386
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0149",
+  "name": "Spring Hill",
+  "lat": -35.094167,
+  "lon": 149.083356,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9932786121
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 870.0,
+  "site_orientation": "NW",
+  "relief_m": 670.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    148.86353,
+    -35.27403,
+    149.30318,
+    -34.9143
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0150",
+  "name": "Collector",
+  "lat": -34.970185,
+  "lon": 149.37507,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9932788705
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "E",
+  "relief_m": 458.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    149.15558,
+    -35.15005,
+    149.59456,
+    -34.79032
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0151",
+  "name": "",
+  "lat": -33.694271,
+  "lon": 151.310948,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 871780488
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 4064.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    151.09477,
+    -33.87414,
+    151.52713,
+    -33.51441
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0152",
+  "name": "",
+  "lat": -32.961095,
+  "lon": 151.41421,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 7178952828
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W",
+  "relief_m": 697.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    151.19984,
+    -33.14096,
+    151.62858,
+    -32.78123
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0153",
+  "name": "",
+  "lat": -31.702167,
+  "lon": 152.678525,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 614188662
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1124.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    152.46712,
+    -31.88203,
+    152.88993,
+    -31.5223
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0154",
+  "name": "",
+  "lat": -28.807501,
+  "lon": 153.603456,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 342073425
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 405.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    153.39819,
+    -28.98737,
+    153.80872,
+    -28.62764
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0155",
+  "name": "Morro da Asa Delta",
+  "lat": -23.964828,
+  "lon": -46.362326,
+  "country": "BR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2062530015
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1541.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -46.55916,
+    -24.14469,
+    -46.16549,
+    -23.78496
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0156",
+  "name": "Le dimitile",
+  "lat": -21.190158,
+  "lon": 55.484541,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233864796
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1741.0,
+  "site_orientation": "SE;S",
+  "relief_m": 5181.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.29163,
+    -21.37002,
+    55.67745,
+    -21.01029
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0157",
+  "name": "Décollage Piton Textor",
+  "lat": -21.187505,
+  "lon": 55.635078,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1202814391
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 2127.0,
+  "site_orientation": "N",
+  "relief_m": 8594.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    55.44217,
+    -21.36737,
+    55.82798,
+    -21.00764
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0158",
+  "name": "Zone ndt24 - mont marau",
+  "lat": -17.608825,
+  "lon": -149.532817,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237892607
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1387.0,
+  "site_orientation": "E",
+  "relief_m": 4736.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -149.72152,
+    -17.78869,
+    -149.34411,
+    -17.42896
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0159",
+  "name": "",
+  "lat": -16.646656,
+  "lon": 145.565456,
+  "country": "AU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2105700607
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1114.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    145.37772,
+    -16.82652,
+    145.75319,
+    -16.46679
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0160",
+  "name": "",
+  "lat": 28.95221,
+  "lon": -13.712458,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 301111071
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2449.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -13.91801,
+    28.77235,
+    -13.5069,
+    29.13207
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0161",
+  "name": "",
+  "lat": 29.220061,
+  "lon": -13.47172,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3001934722
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2370.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -13.67781,
+    29.0402,
+    -13.26563,
+    29.39993
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0162",
+  "name": "עמדת מצנחי רחיפה הר תבור",
+  "lat": 32.688719,
+  "lon": 35.381961,
+  "country": "IL",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11349774173
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE;S;SW;W;NW",
+  "relief_m": 845.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    35.16825,
+    32.50885,
+    35.59567,
+    32.86858
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0163",
+  "name": "",
+  "lat": 36.968029,
+  "lon": 128.381078,
+  "country": "KR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 722196649
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W;NW,N",
+  "relief_m": 1383.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    128.15596,
+    36.78816,
+    128.6062,
+    37.14789
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0164",
+  "name": "Fort Funston Launch Zone",
+  "lat": 37.713763,
+  "lon": -122.502876,
+  "country": "US",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12540363929
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 660.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -122.73024,
+    37.5339,
+    -122.27551,
+    37.89363
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0165",
+  "name": "Rampa de voo livre",
+  "lat": 38.462266,
+  "lon": -9.192591,
+  "country": "PT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 300268537
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2400.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -9.4223,
+    38.2824,
+    -8.96288,
+    38.64213
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0166",
+  "name": "Pedro Bernardo - Despegue Oeste",
+  "lat": 40.256717,
+  "lon": -4.905456,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 283082050
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W;SW",
+  "relief_m": 1865.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -5.14114,
+    40.07685,
+    -4.66977,
+    40.43658
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0167",
+  "name": "Полетување Галичица",
+  "lat": 40.957431,
+  "lon": 20.814468,
+  "country": "MK",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1551711845
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W",
+  "relief_m": 1648.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    20.5763,
+    40.77757,
+    21.05264,
+    41.1373
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0168",
+  "name": "Rampa de vôo livre de Parapente de Caldelas",
+  "lat": 41.65874,
+  "lon": -8.35909,
+  "country": "PT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5981460603
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1404.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -8.59983,
+    41.47888,
+    -8.11835,
+    41.8386
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0169",
+  "name": "Sortida de Parapent i Ala Delta",
+  "lat": 42.04655,
+  "lon": 0.745735,
+  "country": "ES",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 581872848
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1407.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.50353,
+    41.86669,
+    0.98794,
+    42.22641
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0170",
+  "name": "Calacuccia - bocca-a-sforssi",
+  "lat": 42.309962,
+  "lon": 9.044876,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233000194
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1527.0,
+  "site_orientation": "NW",
+  "relief_m": 2421.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.80166,
+    42.1301,
+    9.2881,
+    42.48983
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0171",
+  "name": "Mauroux",
+  "lat": 42.510278,
+  "lon": 1.989506,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235136045
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 2055.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 2050.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.74551,
+    42.33041,
+    2.2335,
+    42.69014
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0172",
+  "name": "Sommet de la Força Réal",
+  "lat": 42.726592,
+  "lon": 2.701617,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235469285
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 459.0,
+  "site_orientation": "S;SE;E",
+  "relief_m": 1982.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.45677,
+    42.54673,
+    2.94646,
+    42.90646
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0173",
+  "name": "Luchon-superbagneres - la chapelle",
+  "lat": 42.767704,
+  "lon": 0.580156,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232892907
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1754.0,
+  "site_orientation": "N;NE;E;SE;S;SW",
+  "relief_m": 2824.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.33515,
+    42.58784,
+    0.82516,
+    42.94757
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0174",
+  "name": "",
+  "lat": 42.79233,
+  "lon": -76.043126,
+  "country": "US",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 156573954
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 509.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -76.28823,
+    42.61247,
+    -75.79802,
+    42.97219
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0175",
+  "name": "Nonza - pointe-de-solaru",
+  "lat": 42.794743,
+  "lon": 9.351743,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232996924
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 280.0,
+  "site_orientation": "W",
+  "relief_m": 3554.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.10663,
+    42.61488,
+    9.59686,
+    42.97461
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0176",
+  "name": "Belesta - roc de la grenouille",
+  "lat": 42.900219,
+  "lon": 1.963578,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237877738
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 824.0,
+  "site_orientation": "W;NW",
+  "relief_m": 2099.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.71804,
+    42.72035,
+    2.20911,
+    43.08008
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0177",
+  "name": "Pujo de gery",
+  "lat": 42.919619,
+  "lon": 0.667471,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233080926
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 604.0,
+  "site_orientation": "N",
+  "relief_m": 2461.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.42186,
+    42.73975,
+    0.91308,
+    43.09948
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0178",
+  "name": "Prat d'albis",
+  "lat": 42.921802,
+  "lon": 1.581858,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 233633200
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1184.0,
+  "site_orientation": "N;NE;NW",
+  "relief_m": 2167.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.33624,
+    42.74194,
+    1.82748,
+    43.10167
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0179",
+  "name": "Hautacam argeles-gazost - la moulata",
+  "lat": 42.968975,
+  "lon": -0.003094,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237880588
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1684.0,
+  "site_orientation": "W;NW",
+  "relief_m": 2821.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.2489,
+    42.78911,
+    0.24272,
+    43.14884
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0180",
+  "name": "Arbas - planot de loubat",
+  "lat": 42.970155,
+  "lon": 0.886223,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232952362
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1090.0,
+  "site_orientation": "N;NE;E",
+  "relief_m": 2485.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.64041,
+    42.79029,
+    1.13204,
+    43.15002
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0181",
+  "name": "Val d'azun couraduque - le soc",
+  "lat": 42.990495,
+  "lon": -0.196527,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 138986969
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1390.0,
+  "site_orientation": "SE;S",
+  "relief_m": 2755.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.44242,
+    42.81063,
+    0.04937,
+    43.17036
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0182",
+  "name": "Col de la courade - niclade",
+  "lat": 42.997901,
+  "lon": 0.168183,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233087004
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1282.0,
+  "site_orientation": "N",
+  "relief_m": 2658.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.07774,
+    42.81804,
+    0.41411,
+    43.17777
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0183",
+  "name": "Grange des cinq monts",
+  "lat": 43.002815,
+  "lon": -0.433778,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232994190
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 946.0,
+  "site_orientation": "NE;E",
+  "relief_m": 2803.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.67972,
+    42.82295,
+    -0.18783,
+    43.18268
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0184",
+  "name": "Dausse",
+  "lat": 43.048016,
+  "lon": 0.791818,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233254911
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 554.0,
+  "site_orientation": "NE;NW",
+  "relief_m": 1868.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.54569,
+    42.86815,
+    1.03794,
+    43.22788
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0185",
+  "name": "",
+  "lat": 43.114184,
+  "lon": 77.111521,
+  "country": "KZ",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12218088648
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 4224.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    76.86513,
+    42.93432,
+    77.35791,
+    43.29405
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0186",
+  "name": "Chapelle de la madeleine",
+  "lat": 43.147639,
+  "lon": -0.844133,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232994619
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 556.0,
+  "site_orientation": "N;NE;E;SE;S;SW;W;NW",
+  "relief_m": 1926.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.09066,
+    42.96777,
+    -0.59761,
+    43.3275
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0187",
+  "name": "Décollage Gensac",
+  "lat": 43.212589,
+  "lon": 1.131159,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235137706
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 314.0,
+  "site_orientation": "NW",
+  "relief_m": 560.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.88437,
+    43.03272,
+    1.37795,
+    43.39245
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0188",
+  "name": "Baigura",
+  "lat": 43.292,
+  "lon": -1.292067,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232881137
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 774.0,
+  "site_orientation": "N;NE;E;SE;W;NW",
+  "relief_m": 1255.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.53918,
+    43.11214,
+    -1.04496,
+    43.47186
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0189",
+  "name": "Signes - agnis - agnis - se et sw",
+  "lat": 43.302129,
+  "lon": 5.872902,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1197650444
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 711.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1206.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.62575,
+    43.12226,
+    6.12005,
+    43.48199
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0190",
+  "name": "Argeliers",
+  "lat": 43.31533,
+  "lon": 2.884304,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1202310670
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 209.0,
+  "site_orientation": "E;SE",
+  "relief_m": 863.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.6371,
+    43.13547,
+    3.13151,
+    43.49519
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0191",
+  "name": "",
+  "lat": 43.357327,
+  "lon": 12.750206,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 835614696
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1514.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.50283,
+    43.17746,
+    12.99758,
+    43.53719
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0192",
+  "name": "La capelette",
+  "lat": 43.479615,
+  "lon": 2.163133,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232940254
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 535.0,
+  "site_orientation": "N;NE",
+  "relief_m": 883.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.91526,
+    43.29975,
+    2.41101,
+    43.65948
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0193",
+  "name": "Vesole - la grande plaine",
+  "lat": 43.560489,
+  "lon": 2.82532,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232940314
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1060.0,
+  "site_orientation": "SE;S",
+  "relief_m": 1207.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.57711,
+    43.38062,
+    3.07353,
+    43.74035
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0194",
+  "name": "Bargemon - table d'orientation",
+  "lat": 43.638549,
+  "lon": 6.561287,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238127681
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1017.0,
+  "site_orientation": "SE;S",
+  "relief_m": 1671.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.31276,
+    43.45868,
+    6.80982,
+    43.81841
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0195",
+  "name": "Décollage de Roquebrune Cap-Martin Mont-Gros",
+  "lat": 43.765481,
+  "lon": 7.442698,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 93225425
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 678.0,
+  "site_orientation": "E;SE;S;SW",
+  "relief_m": 3851.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.19364,
+    43.58562,
+    7.69176,
+    43.94535
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0196",
+  "name": "Greolieres - 600",
+  "lat": 43.809161,
+  "lon": 6.960741,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233079840
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1445.0,
+  "site_orientation": "S",
+  "relief_m": 2171.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.7115,
+    43.6293,
+    7.20998,
+    43.98903
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0197",
+  "name": "Moustiers-sainte-marie - courchon",
+  "lat": 43.84301,
+  "lon": 6.230226,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233331762
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 904.0,
+  "site_orientation": "S;SW;W",
+  "relief_m": 1523.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.98084,
+    43.66315,
+    6.47961,
+    44.02287
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0198",
+  "name": "La seranne - sud",
+  "lat": 43.868922,
+  "lon": 3.640688,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1043854988
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 899.0,
+  "site_orientation": "N;S;SW;NW",
+  "relief_m": 1368.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.3912,
+    43.68906,
+    3.89018,
+    44.04879
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0199",
+  "name": "Saint-pancrace - le relais",
+  "lat": 43.899582,
+  "lon": 5.920943,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 385776122
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 536.0,
+  "site_orientation": "SW;W",
+  "relief_m": 1005.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.67132,
+    43.71972,
+    6.17056,
+    44.07945
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0200",
+  "name": "Rustrel - beausses",
+  "lat": 43.94187,
+  "lon": 5.476319,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232754744
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 942.0,
+  "site_orientation": "W",
+  "relief_m": 1475.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.22652,
+    43.76201,
+    5.72611,
+    44.12173
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0201",
+  "name": "Cezas",
+  "lat": 43.965438,
+  "lon": 3.795811,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232999892
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 633.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1512.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.54592,
+    43.78557,
+    4.04571,
+    44.1453
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0202",
+  "name": "Malijai - blanchon",
+  "lat": 44.066222,
+  "lon": 6.037678,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237884245
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 766.0,
+  "site_orientation": "E;SE;S;SW;W",
+  "relief_m": 1486.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.78736,
+    43.88636,
+    6.288,
+    44.24609
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0203",
+  "name": "Sumiou",
+  "lat": 44.138272,
+  "lon": 5.862701,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232840722
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1241.0,
+  "site_orientation": "N;NE;NW",
+  "relief_m": 1496.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.61208,
+    43.95841,
+    6.11333,
+    44.31814
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0204",
+  "name": "Arfuyen",
+  "lat": 44.191303,
+  "lon": 5.101947,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235466963
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 560.0,
+  "site_orientation": "E;SE",
+  "relief_m": 1838.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.8511,
+    44.01144,
+    5.3528,
+    44.37117
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0205",
+  "name": "Saint-geniez - les rayes",
+  "lat": 44.249163,
+  "lon": 6.066516,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 414779842
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1363.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1723.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.81542,
+    44.0693,
+    6.31761,
+    44.42903
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0206",
+  "name": "Saint sebastien",
+  "lat": 44.313714,
+  "lon": 4.145235,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232779399
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 429.0,
+  "site_orientation": "N;NE",
+  "relief_m": 1426.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.89386,
+    44.13385,
+    4.39661,
+    44.49358
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0207",
+  "name": "Nicole - pech de berre - sud",
+  "lat": 44.32412,
+  "lon": 0.347338,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233251328
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 82.0,
+  "site_orientation": "S;SW",
+  "relief_m": 199.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.09592,
+    44.14426,
+    0.59876,
+    44.50398
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0208",
+  "name": "Nyons - garde-grosse",
+  "lat": 44.336656,
+  "lon": 5.154205,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 278796571
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 918.0,
+  "site_orientation": "W;NW",
+  "relief_m": 1787.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.90273,
+    44.15679,
+    5.40568,
+    44.51652
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0209",
+  "name": "Penne-d'agenais",
+  "lat": 44.390541,
+  "lon": 0.823488,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232988415
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 218.0,
+  "site_orientation": "N;NW",
+  "relief_m": 239.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.57178,
+    44.21068,
+    1.07519,
+    44.57041
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0210",
+  "name": "Serre de barre - les taillades",
+  "lat": 44.401995,
+  "lon": 4.075616,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232779117
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 842.0,
+  "site_orientation": "NE;E",
+  "relief_m": 1573.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.82386,
+    44.22213,
+    4.32737,
+    44.58186
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0211",
+  "name": "",
+  "lat": 44.434036,
+  "lon": 2.400423,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 844820939
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S-E",
+  "relief_m": 636.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.14853,
+    44.25417,
+    2.65231,
+    44.6139
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0212",
+  "name": "Décollage de Saint-Vincent-les-Forts",
+  "lat": 44.443286,
+  "lon": 6.371567,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 37080026
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1275.0,
+  "site_orientation": "W;NW",
+  "relief_m": 2260.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.11964,
+    44.26342,
+    6.6235,
+    44.62315
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0213",
+  "name": "Colombis",
+  "lat": 44.492426,
+  "lon": 6.215759,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232949203
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1711.0,
+  "site_orientation": "SW;W",
+  "relief_m": 2360.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.96362,
+    44.31256,
+    6.4679,
+    44.67229
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0214",
+  "name": "Barjac",
+  "lat": 44.502102,
+  "lon": 3.41857,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 337268033
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 985.0,
+  "site_orientation": "SW;W",
+  "relief_m": 1107.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.16639,
+    44.32224,
+    3.67075,
+    44.68197
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0215",
+  "name": "Pyla gaillouneys",
+  "lat": 44.567809,
+  "lon": -1.231775,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233891659
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 24.0,
+  "site_orientation": "N;W;NW",
+  "relief_m": 238.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.48424,
+    44.38794,
+    -0.97931,
+    44.74767
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0216",
+  "name": "Décollage du Mont Guillaume",
+  "lat": 44.568498,
+  "lon": 6.432535,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 433982183
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1603.0,
+  "site_orientation": "SW",
+  "relief_m": 2449.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.18006,
+    44.38863,
+    6.68501,
+    44.74836
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0217",
+  "name": "La batie neuve",
+  "lat": 44.584059,
+  "lon": 6.235503,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 414780323
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1595.0,
+  "site_orientation": "S;SW;W",
+  "relief_m": 2555.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.98296,
+    44.40419,
+    6.48804,
+    44.76392
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0218",
+  "name": "",
+  "lat": 44.592581,
+  "lon": -86.222566,
+  "country": "US",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 837190473
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1386.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -86.47514,
+    44.41272,
+    -85.96999,
+    44.77245
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0219",
+  "name": "Roynac - col du deves",
+  "lat": 44.65761,
+  "lon": 4.936686,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232976953
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 434.0,
+  "site_orientation": "S;SW",
+  "relief_m": 1288.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.68383,
+    44.47775,
+    5.18955,
+    44.83747
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0220",
+  "name": "Chabanet - cote du baron",
+  "lat": 44.712084,
+  "lon": 4.601904,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233083009
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 528.0,
+  "site_orientation": "N",
+  "relief_m": 1281.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.34881,
+    44.53222,
+    4.855,
+    44.89195
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0221",
+  "name": "Décollage parapente de Courtet",
+  "lat": 44.770178,
+  "lon": 5.798118,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 790740952
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1365.0,
+  "site_orientation": "N;NW",
+  "relief_m": 2326.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.54477,
+    44.59031,
+    6.05147,
+    44.95004
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0222",
+  "name": "Le Roc Ouest",
+  "lat": 44.8735,
+  "lon": 1.450564,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 705548743
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 279.0,
+  "site_orientation": "W",
+  "relief_m": 368.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.19676,
+    44.69364,
+    1.70437,
+    45.05336
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0223",
+  "name": "Le pas du Serpaton",
+  "lat": 44.910371,
+  "lon": 5.590766,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 417141502
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1573.0,
+  "site_orientation": "E;SE;S",
+  "relief_m": 2410.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.3368,
+    44.73051,
+    5.84474,
+    45.09024
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0224",
+  "name": "Pre valet la sarna - rocher de courba",
+  "lat": 44.97699,
+  "lon": 5.453635,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1330933419
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 885.0,
+  "site_orientation": "W",
+  "relief_m": 2135.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.19937,
+    44.79713,
+    5.7079,
+    45.15685
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0225",
+  "name": "Vic-sur-cere - le-bruget",
+  "lat": 44.982068,
+  "lon": 2.658567,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232777017
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1113.0,
+  "site_orientation": "SW;W;NW",
+  "relief_m": 1352.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.40428,
+    44.8022,
+    2.91285,
+    45.16193
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0226",
+  "name": "Décollage de Saint Jean en Royans",
+  "lat": 45.006688,
+  "lon": 5.317263,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 306205753
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 860.0,
+  "site_orientation": "NW",
+  "relief_m": 2149.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.06287,
+    44.82682,
+    5.57166,
+    45.18655
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0227",
+  "name": "Côte de Jor",
+  "lat": 45.017126,
+  "lon": 1.070676,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1041990389
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 222.0,
+  "site_orientation": "SE",
+  "relief_m": 302.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.81623,
+    44.83726,
+    1.32512,
+    45.19699
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0228",
+  "name": "северный \"Дальний\"",
+  "lat": 45.020948,
+  "lon": 35.222166,
+  "country": "RU",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2390045280
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "N",
+  "relief_m": 924.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    34.96771,
+    44.84108,
+    35.47663,
+    45.20081
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0229",
+  "name": "Décollage de l'Aigle",
+  "lat": 45.118359,
+  "lon": 5.597346,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 24231903
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1278.0,
+  "site_orientation": "SW;W;NW",
+  "relief_m": 2081.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.34245,
+    44.93849,
+    5.85224,
+    45.29822
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0230",
+  "name": "déco de l'alevoux",
+  "lat": 45.122258,
+  "lon": 5.37908,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 305796239
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 841.0,
+  "site_orientation": "N;SW;W;NW",
+  "relief_m": 1938.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.12417,
+    44.94239,
+    5.63399,
+    45.30212
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0231",
+  "name": "L'Aiguille",
+  "lat": 45.129952,
+  "lon": 5.883509,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233247505
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1801.0,
+  "site_orientation": "N;NE;E;SE;S;SW;W;NW",
+  "relief_m": 3192.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.62856,
+    44.95009,
+    6.13845,
+    45.30982
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0232",
+  "name": "Col-d'aulac",
+  "lat": 45.194167,
+  "lon": 2.587233,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232774296
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1190.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1484.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.332,
+    45.0143,
+    2.84247,
+    45.37403
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0233",
+  "name": "Roche-en-Régnier",
+  "lat": 45.212373,
+  "lon": 3.931758,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1508038215
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 857.0,
+  "site_orientation": "S",
+  "relief_m": 957.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.67644,
+    45.03251,
+    4.18707,
+    45.39224
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0234",
+  "name": "Décollage FFVL de Montaud",
+  "lat": 45.244721,
+  "lon": 5.574772,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 816168066
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1290.0,
+  "site_orientation": "N;NW",
+  "relief_m": 1834.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.31931,
+    45.06486,
+    5.83023,
+    45.42459
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0235",
+  "name": "Saint-desirat - chatelet",
+  "lat": 45.253842,
+  "lon": 4.796871,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233255120
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 307.0,
+  "site_orientation": "N;NE;E;NW",
+  "relief_m": 1303.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.54137,
+    45.07398,
+    5.05237,
+    45.43371
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0236",
+  "name": "Saint-jean-de-maurienne - la balme",
+  "lat": 45.291868,
+  "lon": 6.319367,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235295327
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1570.0,
+  "site_orientation": "S",
+  "relief_m": 3103.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.0637,
+    45.112,
+    6.57504,
+    45.47173
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0237",
+  "name": "La-jasserie",
+  "lat": 45.385125,
+  "lon": 4.56785,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232269337
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1374.0,
+  "site_orientation": "N;W;NW",
+  "relief_m": 1291.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.31176,
+    45.20526,
+    4.82394,
+    45.56499
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0238",
+  "name": "",
+  "lat": 45.395607,
+  "lon": 2.462119,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 788538184
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 811.0,
+  "site_orientation": "E;SE;S",
+  "relief_m": 991.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.20598,
+    45.21574,
+    2.71826,
+    45.57547
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0239",
+  "name": "Courchevel - bouc blanc",
+  "lat": 45.410902,
+  "lon": 6.614801,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232970113
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1563.0,
+  "site_orientation": "W;NW",
+  "relief_m": 3363.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.35859,
+    45.23104,
+    6.87101,
+    45.59077
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0240",
+  "name": "Valbeleix - la roche-nite",
+  "lat": 45.467353,
+  "lon": 2.997299,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232857297
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1180.0,
+  "site_orientation": "SW;W",
+  "relief_m": 1458.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.74083,
+    45.28749,
+    3.25377,
+    45.64722
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0241",
+  "name": "Roche parstire",
+  "lat": 45.671262,
+  "lon": 6.597577,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232850189
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 2047.0,
+  "site_orientation": "W;NW",
+  "relief_m": 4104.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.34018,
+    45.4914,
+    6.85498,
+    45.85113
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0242",
+  "name": "Montagne de parves",
+  "lat": 45.739287,
+  "lon": 5.72805,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 935906717
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 595.0,
+  "site_orientation": "SW;W;NW",
+  "relief_m": 1362.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.47034,
+    45.55942,
+    5.98576,
+    45.91915
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0243",
+  "name": "Leyrieu - les cottes",
+  "lat": 45.758545,
+  "lon": 5.270156,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238125840
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 300.0,
+  "site_orientation": "NW",
+  "relief_m": 832.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.01235,
+    45.57868,
+    5.52796,
+    45.93841
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0244",
+  "name": "Semnoz-delta",
+  "lat": 45.78715,
+  "lon": 6.094012,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233085551
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1608.0,
+  "site_orientation": "W",
+  "relief_m": 2078.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.83608,
+    45.60729,
+    6.35195,
+    45.96701
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0245",
+  "name": "Megeve - rochebrune",
+  "lat": 45.832385,
+  "lon": 6.613942,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232524413
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1733.0,
+  "site_orientation": "N;NE;SW;W;NW",
+  "relief_m": 4414.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.3558,
+    45.65252,
+    6.87209,
+    46.01225
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0246",
+  "name": "Croix Rampau",
+  "lat": 45.867777,
+  "lon": 4.801229,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1268220826
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 454.0,
+  "site_orientation": "N;NW",
+  "relief_m": 740.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.54292,
+    45.68791,
+    5.05954,
+    46.04764
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0247",
+  "name": "Saint gervais - mont lachat",
+  "lat": 45.868277,
+  "lon": 6.796181,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233324139
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 2073.0,
+  "site_orientation": "",
+  "relief_m": 4261.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.53787,
+    45.68841,
+    7.05449,
+    46.04814
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0248",
+  "name": "Parapendio Monte Nudo",
+  "lat": 45.922079,
+  "lon": 8.673916,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 120136791
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1117.0,
+  "site_orientation": "SE,S,SW",
+  "relief_m": 2015.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.41536,
+    45.74221,
+    8.93248,
+    46.10194
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0249",
+  "name": "",
+  "lat": 45.932452,
+  "lon": 11.173755,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 324985186
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2205.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    10.91515,
+    45.75259,
+    11.43236,
+    46.11232
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0250",
+  "name": "",
+  "lat": 45.984808,
+  "lon": 3.923811,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 238631357
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 811.0,
+  "site_orientation": "N;NE;E;SE;S",
+  "relief_m": 1014.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.66496,
+    45.80494,
+    4.18266,
+    46.16467
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0251",
+  "name": "",
+  "lat": 45.998304,
+  "lon": 15.092532,
+  "country": "SI",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 845659978
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S",
+  "relief_m": 1040.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    14.83362,
+    45.81844,
+    15.35145,
+    46.17817
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0252",
+  "name": "",
+  "lat": 46.002342,
+  "lon": 12.207843,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 113144142
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2147.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.94891,
+    45.82248,
+    12.46678,
+    46.18221
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0253",
+  "name": "Monte Lema",
+  "lat": 46.040045,
+  "lon": 8.831753,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3940146240
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1967.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.57264,
+    45.86018,
+    9.09087,
+    46.21991
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0254",
+  "name": "",
+  "lat": 46.041841,
+  "lon": 11.31612,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 301613650
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S",
+  "relief_m": 2359.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.057,
+    45.86198,
+    11.57524,
+    46.22171
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0255",
+  "name": "Andey nord",
+  "lat": 46.047019,
+  "lon": 6.394681,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233284198
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1115.0,
+  "site_orientation": "NW",
+  "relief_m": 2176.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.13554,
+    45.86715,
+    6.65383,
+    46.22688
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0256",
+  "name": "Aire de décollage du bois des Échelles",
+  "lat": 46.048389,
+  "lon": 1.448984,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 385912398
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 564.0,
+  "site_orientation": "N;NE",
+  "relief_m": 504.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.18983,
+    45.86852,
+    1.70814,
+    46.22825
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0257",
+  "name": "Décollage FFVL de la Table d'Orientation",
+  "lat": 46.148641,
+  "lon": 6.189164,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 55739901
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1196.0,
+  "site_orientation": "N;NW",
+  "relief_m": 1743.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.92954,
+    45.96878,
+    6.44879,
+    46.32851
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0258",
+  "name": "",
+  "lat": 46.154184,
+  "lon": 10.955238,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 36772636
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S,SE",
+  "relief_m": 2973.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    10.69559,
+    45.97432,
+    11.21489,
+    46.33405
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0259",
+  "name": "",
+  "lat": 46.191782,
+  "lon": 12.352545,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 63344609
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 2559.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.09272,
+    46.01192,
+    12.61237,
+    46.37165
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0260",
+  "name": "Pedana di decollo Giulio Ravelli",
+  "lat": 46.193309,
+  "lon": 9.385645,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 370498349
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S",
+  "relief_m": 3045.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.12581,
+    46.01344,
+    9.64548,
+    46.37317
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0261",
+  "name": "Decollo Monte Valinis",
+  "lat": 46.230365,
+  "lon": 12.806829,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 438469527
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 975.0,
+  "site_orientation": "SW,S,SE",
+  "relief_m": 2270.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.54682,
+    46.0505,
+    13.06684,
+    46.41023
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0262",
+  "name": "Vzletišče Stol",
+  "lat": 46.273047,
+  "lon": 13.473342,
+  "country": "SI",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 4198152694
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1400.0,
+  "site_orientation": "SE-SW",
+  "relief_m": 2484.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    13.21313,
+    46.09318,
+    13.73355,
+    46.45291
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0263",
+  "name": "Mont myon - pressiat",
+  "lat": 46.330921,
+  "lon": 5.397669,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 13481426821
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 633.0,
+  "site_orientation": "SW;W;NW",
+  "relief_m": 832.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.13718,
+    46.15106,
+    5.65816,
+    46.51079
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0264",
+  "name": "La Roche",
+  "lat": 46.339245,
+  "lon": 5.659034,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232984063
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 657.0,
+  "site_orientation": "S;W",
+  "relief_m": 1254.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.39851,
+    46.15938,
+    5.91956,
+    46.51911
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0265",
+  "name": "Butte de suin",
+  "lat": 46.434143,
+  "lon": 4.475579,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235643053
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 592.0,
+  "site_orientation": "NE",
+  "relief_m": 569.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.2146,
+    46.25428,
+    4.73656,
+    46.61401
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0266",
+  "name": "Décollage du Mont Saint-Romain",
+  "lat": 46.496193,
+  "lon": 4.750743,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 158603807
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 539.0,
+  "site_orientation": "W",
+  "relief_m": 557.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.48947,
+    46.31633,
+    5.01202,
+    46.67606
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0267",
+  "name": "Decollo Col Rodella E",
+  "lat": 46.497209,
+  "lon": 11.753177,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 10142097045
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "N;NE;E;SE",
+  "relief_m": 2788.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.49189,
+    46.31734,
+    12.01446,
+    46.67707
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0268",
+  "name": "Lezat - belvedere",
+  "lat": 46.503299,
+  "lon": 5.936809,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232243917
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 899.0,
+  "site_orientation": "SE;S",
+  "relief_m": 1330.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.6755,
+    46.32343,
+    6.19812,
+    46.68316
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0269",
+  "name": "",
+  "lat": 46.529482,
+  "lon": 11.59968,
+  "country": "IT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1312794556
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1935.0,
+  "site_orientation": "NW",
+  "relief_m": 2983.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.33824,
+    46.34962,
+    11.86112,
+    46.70935
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0270",
+  "name": "Grandvillard",
+  "lat": 46.544151,
+  "lon": 7.113119,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 346370249
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2498.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.85161,
+    46.36429,
+    7.37463,
+    46.72402
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0271",
+  "name": "Startplatz Radsberg",
+  "lat": 46.573428,
+  "lon": 14.403004,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 404988028
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1795.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    14.14135,
+    46.39356,
+    14.66465,
+    46.75329
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0272",
+  "name": "Roche d'aujoux - mancey - nord-ouest",
+  "lat": 46.581288,
+  "lon": 4.818143,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 319268906
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 483.0,
+  "site_orientation": "NW",
+  "relief_m": 428.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.55646,
+    46.40142,
+    5.07983,
+    46.76115
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0273",
+  "name": "Charezier - motte de gourdaine",
+  "lat": 46.620286,
+  "lon": 5.731897,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 427594235
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 562.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 1071.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.47002,
+    46.44042,
+    5.99377,
+    46.80015
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0274",
+  "name": "Mont dardon sud - uxeau",
+  "lat": 46.675792,
+  "lon": 4.035819,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232268658
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 482.0,
+  "site_orientation": "S",
+  "relief_m": 460.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.77367,
+    46.49593,
+    4.29796,
+    46.85566
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0275",
+  "name": "Pannessieres - roches aigues",
+  "lat": 46.705317,
+  "lon": 5.603373,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232987173
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 523.0,
+  "site_orientation": "W",
+  "relief_m": 924.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.34109,
+    46.52545,
+    5.86566,
+    46.88518
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0276",
+  "name": "Startplatz Planplatten",
+  "lat": 46.735791,
+  "lon": 8.25497,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 105407954
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "NE,E,SE,S,SW,W,NW",
+  "relief_m": 3543.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.99253,
+    46.55593,
+    8.51741,
+    46.91566
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0277",
+  "name": "Startrampe Falkenflue",
+  "lat": 46.824003,
+  "lon": 7.636838,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 797025637
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1005.0,
+  "site_orientation": "W,NW",
+  "relief_m": 1782.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.37397,
+    46.64414,
+    7.8997,
+    47.00387
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0278",
+  "name": "Startplatz Ebenerfeld",
+  "lat": 46.85277,
+  "lon": 12.794631,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 9672263592
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S-SW",
+  "relief_m": 2630.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.53162,
+    46.67291,
+    13.05764,
+    47.03263
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0279",
+  "name": "Mauborget",
+  "lat": 46.854082,
+  "lon": 6.612055,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 248783857
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1146.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.34904,
+    46.67422,
+    6.87507,
+    47.03395
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0280",
+  "name": "Gotschnagrat Nord",
+  "lat": 46.858922,
+  "lon": 9.843938,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1863725862
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "NW,N,NE",
+  "relief_m": 2756.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.5809,
+    46.67906,
+    10.10698,
+    47.03879
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0281",
+  "name": "Arc sous cicon - grand bois bannal",
+  "lat": 47.037523,
+  "lon": 6.382601,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235775965
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 916.0,
+  "site_orientation": "N",
+  "relief_m": 1195.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.11868,
+    46.85766,
+    6.64652,
+    47.21739
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0282",
+  "name": "Echevannes - longeville - les doues",
+  "lat": 47.067224,
+  "lon": 6.234305,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1065141931
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 703.0,
+  "site_orientation": "W",
+  "relief_m": 1069.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.97024,
+    46.88736,
+    6.49837,
+    47.24709
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0283",
+  "name": "Durschlegi",
+  "lat": 47.146202,
+  "lon": 9.119292,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 6035466011
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "E,SE,S,SW",
+  "relief_m": 2477.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.85484,
+    46.96634,
+    9.38375,
+    47.32607
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0284",
+  "name": "Gschwänd (Delta)",
+  "lat": 47.155497,
+  "lon": 8.875001,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5713972752
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1080.0,
+  "site_orientation": "N",
+  "relief_m": 2475.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.6105,
+    46.97563,
+    9.1395,
+    47.33536
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0285",
+  "name": "Décollage Corgémont",
+  "lat": 47.173123,
+  "lon": 7.138265,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5076881190
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1177.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.87368,
+    46.99326,
+    7.40285,
+    47.35299
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0286",
+  "name": "Alp Scheidegg",
+  "lat": 47.303918,
+  "lon": 8.942985,
+  "country": "CH",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 620734423
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW,W,NW",
+  "relief_m": 1457.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.67774,
+    47.12405,
+    9.20823,
+    47.48378
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0287",
+  "name": "",
+  "lat": 47.306058,
+  "lon": 11.379111,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1307092690
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2248.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.11386,
+    47.12619,
+    11.64437,
+    47.48592
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0288",
+  "name": "Le-piquet - beaulieu-sur-layon",
+  "lat": 47.309766,
+  "lon": -0.599717,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235136372
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 75.0,
+  "site_orientation": "SW",
+  "relief_m": 209.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.86499,
+    47.1299,
+    -0.33444,
+    47.48963
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0289",
+  "name": "Montlandon - Saussi",
+  "lat": 47.310925,
+  "lon": 6.844922,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232985831
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 747.0,
+  "site_orientation": "NE",
+  "relief_m": 1284.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.57964,
+    47.13106,
+    7.1102,
+    47.49079
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0290",
+  "name": "Grenois - la montagne",
+  "lat": 47.324916,
+  "lon": 3.537907,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233083160
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 339.0,
+  "site_orientation": "SE;S;SW",
+  "relief_m": 304.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.27256,
+    47.14505,
+    3.80326,
+    47.50478
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0291",
+  "name": "Les-chaintres - Caves-de-la-mignonne",
+  "lat": 47.329831,
+  "lon": 2.828315,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1236677510
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 238.0,
+  "site_orientation": "N",
+  "relief_m": 303.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.56294,
+    47.14997,
+    3.09369,
+    47.5097
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0292",
+  "name": "",
+  "lat": 47.333474,
+  "lon": 11.565275,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 719984998
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2209.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.29988,
+    47.15361,
+    11.83067,
+    47.51334
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0293",
+  "name": "",
+  "lat": 47.431374,
+  "lon": 6.795801,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 457366001
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 793.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.52992,
+    47.25151,
+    7.06169,
+    47.61124
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0294",
+  "name": "",
+  "lat": 47.441573,
+  "lon": 11.76259,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1312648049
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2143.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.49665,
+    47.26171,
+    12.02853,
+    47.62144
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0295",
+  "name": "",
+  "lat": 47.567148,
+  "lon": 15.230504,
+  "country": "AT",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 505983973
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S",
+  "relief_m": 1755.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    14.96393,
+    47.38728,
+    15.49708,
+    47.74701
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0296",
+  "name": "Arcy sur cure",
+  "lat": 47.600309,
+  "lon": 3.776636,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232269872
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 231.0,
+  "site_orientation": "S;SW",
+  "relief_m": 303.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.50989,
+    47.42044,
+    4.04338,
+    47.78017
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0297",
+  "name": "Mont de vannes - nord-ouest",
+  "lat": 47.758553,
+  "lon": 6.620644,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232779729
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 600.0,
+  "site_orientation": "NW",
+  "relief_m": 975.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.35309,
+    47.57869,
+    6.8882,
+    47.93842
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0298",
+  "name": "Drachenflugrampe Oststart",
+  "lat": 47.7674,
+  "lon": 12.420976,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 295962637
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1017.0,
+  "site_orientation": "NO",
+  "relief_m": 1524.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.15338,
+    47.58754,
+    12.68857,
+    47.94726
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0299",
+  "name": "Stettelberg",
+  "lat": 47.813596,
+  "lon": 9.075631,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 724328371
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 590.0,
+  "site_orientation": "SE;W",
+  "relief_m": 488.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.80779,
+    47.63373,
+    9.34347,
+    47.99346
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0300",
+  "name": "Sainte marie en chanois - st colomban",
+  "lat": 47.837793,
+  "lon": 6.527954,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232779582
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 477.0,
+  "site_orientation": "S;SW",
+  "relief_m": 973.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.25999,
+    47.65793,
+    6.79592,
+    48.01766
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0301",
+  "name": "Décollage - Saint-Martin-sur-Armançon",
+  "lat": 47.873792,
+  "lon": 4.05688,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233477978
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 249.0,
+  "site_orientation": "SE",
+  "relief_m": 245.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.78873,
+    47.69393,
+    4.32503,
+    48.05366
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0302",
+  "name": "Plateau de chauffourt",
+  "lat": 47.977141,
+  "lon": 5.422935,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232994959
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 478.0,
+  "site_orientation": "NE;E",
+  "relief_m": 288.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.15425,
+    47.79728,
+    5.69162,
+    48.15701
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0303",
+  "name": "Sainte colombe",
+  "lat": 48.120883,
+  "lon": 3.904435,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232263375
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 261.0,
+  "site_orientation": "W",
+  "relief_m": 227.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.635,
+    47.94102,
+    4.17387,
+    48.30075
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0304",
+  "name": "Décollage : Sainte-Germaine",
+  "lat": 48.21912,
+  "lon": 4.699071,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 175706107
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 340.0,
+  "site_orientation": "ENE",
+  "relief_m": 277.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.42912,
+    48.03926,
+    4.96902,
+    48.39898
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0305",
+  "name": "Saint-Dié - Kemberg",
+  "lat": 48.256638,
+  "lon": 6.932125,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1159021790
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 681.0,
+  "site_orientation": "NE;E",
+  "relief_m": 1047.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.66198,
+    48.07677,
+    7.20227,
+    48.4365
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0306",
+  "name": "",
+  "lat": 48.342623,
+  "lon": 18.105249,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11521904593
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "E,SE,S",
+  "relief_m": 714.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    17.83464,
+    48.16276,
+    18.37585,
+    48.52249
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0307",
+  "name": "Houeville - la friche",
+  "lat": 48.371651,
+  "lon": 5.804214,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238273601
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 402.0,
+  "site_orientation": "NE",
+  "relief_m": 274.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.53346,
+    48.19179,
+    6.07497,
+    48.55152
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0308",
+  "name": "Tuchenn-ar-kador",
+  "lat": 48.373273,
+  "lon": -3.95252,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232747031
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 375.0,
+  "site_orientation": "E;SE",
+  "relief_m": 419.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -4.22329,
+    48.19341,
+    -3.68175,
+    48.55314
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0309",
+  "name": "Socourt",
+  "lat": 48.388014,
+  "lon": 6.249047,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233872366
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 348.0,
+  "site_orientation": "E",
+  "relief_m": 310.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.9782,
+    48.20815,
+    6.51989,
+    48.56788
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0310",
+  "name": "Sion - vaudemont - barres",
+  "lat": 48.408858,
+  "lon": 6.068956,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232875326
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 533.0,
+  "site_orientation": "S;SW",
+  "relief_m": 311.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.798,
+    48.22899,
+    6.33991,
+    48.58872
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0311",
+  "name": "Fluggelände Oppenau Nordost - Ibacher Holzplatz",
+  "lat": 48.447711,
+  "lon": 8.146407,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 27391211
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 740.0,
+  "site_orientation": "NE",
+  "relief_m": 1030.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.87524,
+    48.26785,
+    8.41757,
+    48.62758
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0312",
+  "name": "Le-trie",
+  "lat": 48.543943,
+  "lon": 5.708038,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233286021
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 347.0,
+  "site_orientation": "SE;S",
+  "relief_m": 291.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.43636,
+    48.36408,
+    5.97972,
+    48.72381
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0313",
+  "name": "Reinhardsmunster - spillberg",
+  "lat": 48.677476,
+  "lon": 7.311953,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 306594651
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 505.0,
+  "site_orientation": "NE;E;SE",
+  "relief_m": 852.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.03955,
+    48.49761,
+    7.58435,
+    48.85734
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0314",
+  "name": "",
+  "lat": 48.688814,
+  "lon": 18.639738,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1525820343
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 1146.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.36728,
+    48.50895,
+    18.9122,
+    48.86868
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0315",
+  "name": "",
+  "lat": 48.701457,
+  "lon": 17.73704,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2981031248
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE,E",
+  "relief_m": 814.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    17.46451,
+    48.52159,
+    18.00957,
+    48.88132
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0316",
+  "name": "",
+  "lat": 48.735106,
+  "lon": 18.424008,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 4264196837
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE",
+  "relief_m": 1167.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.1513,
+    48.55524,
+    18.69672,
+    48.91497
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0317",
+  "name": "Startplatz NW",
+  "lat": 48.758516,
+  "lon": 8.405539,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 96370808
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "NW",
+  "relief_m": 1055.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.1327,
+    48.57865,
+    8.67838,
+    48.93838
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0318",
+  "name": "Bihit - ouest",
+  "lat": 48.761018,
+  "lon": -3.577207,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1238413203
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 49.0,
+  "site_orientation": "W",
+  "relief_m": 278.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -3.85006,
+    48.58115,
+    -3.30436,
+    48.94088
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0319",
+  "name": "",
+  "lat": 48.762559,
+  "lon": 18.033408,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 4283706228
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 873.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    17.76055,
+    48.58269,
+    18.30627,
+    48.94242
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0320",
+  "name": "Büchelstein Hängegleiter Startrampe",
+  "lat": 48.808166,
+  "lon": 13.175529,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 227055598
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 831.0,
+  "site_orientation": "",
+  "relief_m": 1120.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.90242,
+    48.6283,
+    13.44864,
+    48.98803
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0321",
+  "name": "",
+  "lat": 48.888625,
+  "lon": 19.229965,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3381859965
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE,S,SW,W",
+  "relief_m": 1588.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.95642,
+    48.70876,
+    19.50351,
+    49.06849
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0322",
+  "name": "Grauves",
+  "lat": 48.982604,
+  "lon": 3.963723,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232255546
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 225.0,
+  "site_orientation": "SW",
+  "relief_m": 239.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.68966,
+    48.80274,
+    4.23779,
+    49.16247
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0323",
+  "name": "Startplatz",
+  "lat": 48.989527,
+  "lon": 11.44343,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 7637311496
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "NW",
+  "relief_m": 272.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    11.16933,
+    48.80966,
+    11.71753,
+    49.16939
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0324",
+  "name": "Notre-dame-de-la-mer - les-grandes-bruyeres",
+  "lat": 49.036085,
+  "lon": 1.539314,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233258660
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 128.0,
+  "site_orientation": "NE",
+  "relief_m": 215.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.26496,
+    48.85622,
+    1.81367,
+    49.21595
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0325",
+  "name": "Mont-saint-pere - dessus-les-toits-du-ru-dollond",
+  "lat": 49.071317,
+  "lon": 3.474954,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1237873798
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 165.0,
+  "site_orientation": "SE",
+  "relief_m": 217.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.2004,
+    48.89145,
+    3.74951,
+    49.25118
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0326",
+  "name": "Port a binson",
+  "lat": 49.072576,
+  "lon": 3.762458,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232256407
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 204.0,
+  "site_orientation": "N",
+  "relief_m": 231.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.4879,
+    48.89271,
+    4.03702,
+    49.25244
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0327",
+  "name": "Absprungrampe Einkorn",
+  "lat": 49.090007,
+  "lon": 9.775476,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 585733709
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 451.0,
+  "site_orientation": "W",
+  "relief_m": 369.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.50082,
+    48.91014,
+    10.05013,
+    49.26987
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0328",
+  "name": "Gleitschirm Startplatz Hörnle",
+  "lat": 49.101187,
+  "lon": 9.073221,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 12683743959
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "S,SE",
+  "relief_m": 337.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.7985,
+    48.92132,
+    9.34794,
+    49.28105
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0329",
+  "name": "",
+  "lat": 49.117796,
+  "lon": 18.492156,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2135001981
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE",
+  "relief_m": 1063.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.21735,
+    48.93793,
+    18.76696,
+    49.29766
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0330",
+  "name": "Chamery",
+  "lat": 49.164867,
+  "lon": 3.953399,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235627967
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 254.0,
+  "site_orientation": "NE",
+  "relief_m": 241.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    3.67833,
+    48.985,
+    4.22847,
+    49.34473
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0331",
+  "name": "Dewdney Grind Hanggliding Launch",
+  "lat": 49.19409,
+  "lon": -122.172443,
+  "country": "CA",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11970749071
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 580.0,
+  "site_orientation": "NE",
+  "relief_m": 1446.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -122.44768,
+    49.01423,
+    -121.89721,
+    49.37395
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0332",
+  "name": "Straník",
+  "lat": 49.236575,
+  "lon": 18.825547,
+  "country": "SK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 1250840189
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE,S,SW,W",
+  "relief_m": 1351.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    18.55008,
+    49.05671,
+    19.10102,
+    49.41644
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0333",
+  "name": "Mount Woodside",
+  "lat": 49.243488,
+  "lon": -121.887551,
+  "country": "CA",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1064461127
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2202.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -122.16306,
+    49.06362,
+    -121.61204,
+    49.42335
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0334",
+  "name": "Barneville sur seine - moulin de la jalousie",
+  "lat": 49.387997,
+  "lon": 0.848461,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232764060
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 136.0,
+  "site_orientation": "N;NW",
+  "relief_m": 197.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    0.57214,
+    49.20813,
+    1.12478,
+    49.56786
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0335",
+  "name": "Startplatz Schriesheim",
+  "lat": 49.46453,
+  "lon": 8.678968,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 29156464
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 526.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.40222,
+    49.28467,
+    8.95572,
+    49.64439
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0336",
+  "name": "La-heve",
+  "lat": 49.511122,
+  "lon": 0.067924,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233274476
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 80.0,
+  "site_orientation": "SW",
+  "relief_m": 227.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.20909,
+    49.33126,
+    0.34494,
+    49.69099
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0337",
+  "name": "",
+  "lat": 49.568919,
+  "lon": 6.615556,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 255238580
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 596.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.33822,
+    49.38905,
+    6.8929,
+    49.74878
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0338",
+  "name": "Nordbayrische Drachenflieger",
+  "lat": 49.724373,
+  "lon": 11.15082,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3176364061
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 374.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    10.87259,
+    49.54451,
+    11.42905,
+    49.90424
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0339",
+  "name": "Osmoy-saint-valery - combe-sur-mont-blanc",
+  "lat": 49.787627,
+  "lon": 1.294031,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232260453
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 154.0,
+  "site_orientation": "NE",
+  "relief_m": 266.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.01544,
+    49.60776,
+    1.57262,
+    49.96749
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0340",
+  "name": "Haulme - liry",
+  "lat": 49.862727,
+  "lon": 4.778639,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232257734
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 350.0,
+  "site_orientation": "NE;E",
+  "relief_m": 373.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.49962,
+    49.68286,
+    5.05766,
+    50.04259
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0341",
+  "name": "Drachenfliegerplatz Neumagen-Dhron",
+  "lat": 49.877418,
+  "lon": 6.887712,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 888146090
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE-NE",
+  "relief_m": 709.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.6086,
+    49.69755,
+    7.16682,
+    50.05728
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0342",
+  "name": "Mont-de-la-clique - pente-ouest-monchy",
+  "lat": 49.891084,
+  "lon": 1.676997,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232261067
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 169.0,
+  "site_orientation": "W",
+  "relief_m": 246.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.39781,
+    49.71122,
+    1.95618,
+    50.07095
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0343",
+  "name": "",
+  "lat": 49.912934,
+  "lon": -123.264945,
+  "country": "CA",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 10563743739
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 2545.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -123.54426,
+    49.73307,
+    -122.98563,
+    50.0928
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0344",
+  "name": "Startplatz Kalbenstein",
+  "lat": 49.994637,
+  "lon": 9.757005,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2995672988
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 414.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.47722,
+    49.81477,
+    10.03679,
+    50.1745
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0345",
+  "name": "Criel - les-mouettes",
+  "lat": 50.028693,
+  "lon": 1.300104,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1235136830
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 92.0,
+  "site_orientation": "N;W;NW",
+  "relief_m": 244.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    1.02012,
+    49.84883,
+    1.58009,
+    50.20856
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0346",
+  "name": "Vireux",
+  "lat": 50.087958,
+  "lon": 4.701026,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1232257343
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 189.0,
+  "site_orientation": "S",
+  "relief_m": 401.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    4.42069,
+    49.90809,
+    4.98136,
+    50.26782
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0347",
+  "name": "Mt. McKenzie Upper Launch",
+  "lat": 50.365772,
+  "lon": -122.786526,
+  "country": "CA",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1173551903
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 1252.0,
+  "site_orientation": "225",
+  "relief_m": 2367.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -123.0685,
+    50.18591,
+    -122.50456,
+    50.54564
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0348",
+  "name": "Mont de la comte",
+  "lat": 50.41508,
+  "lon": 2.514007,
+  "country": "FR",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 1233867030
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 159.0,
+  "site_orientation": "W;NW",
+  "relief_m": 176.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    2.23174,
+    50.23522,
+    2.79627,
+    50.59494
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0349",
+  "name": "Stachelberg",
+  "lat": 50.780991,
+  "lon": 7.376767,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 7878705614
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SSW",
+  "relief_m": 341.7,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.0923,
+    50.60113,
+    7.66123,
+    50.96086
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0350",
+  "name": "Butser West Take Off",
+  "lat": 50.976787,
+  "lon": -0.987834,
+  "country": "GB",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 8568730077
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W",
+  "relief_m": 260.2,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -1.2735,
+    50.79692,
+    -0.70217,
+    51.15665
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0351",
+  "name": "Gleitschirmstartplatz Wenholthausen Südwest",
+  "lat": 51.303126,
+  "lon": 8.190867,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3134692292
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 651.8,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.90318,
+    51.12326,
+    8.47856,
+    51.48299
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0352",
+  "name": "Paragliding Takeoff",
+  "lat": 51.869716,
+  "lon": -0.537645,
+  "country": "GB",
+  "takeoffs": [
+   {
+    "osm_type": "way",
+    "osm_id": 376671380
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 231.6,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    -0.82895,
+    51.68985,
+    -0.24634,
+    52.04958
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0353",
+  "name": "",
+  "lat": 52.050732,
+  "lon": 8.410085,
+  "country": "DE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2494919170
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 235.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.11761,
+    51.87087,
+    8.70256,
+    52.2306
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0354",
+  "name": "Gulebjerg - Launch",
+  "lat": 55.549423,
+  "lon": 8.316108,
+  "country": "DK",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 6432534248
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 11.0,
+  "site_orientation": "",
+  "relief_m": 61.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    7.99816,
+    55.36956,
+    8.63406,
+    55.72929
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0355",
+  "name": "",
+  "lat": 58.6454,
+  "lon": 5.859908,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 3090610344
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1048.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.51424,
+    58.46554,
+    6.20558,
+    58.82526
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0356",
+  "name": "Gjesdal, Øksnanuten",
+  "lat": 58.761124,
+  "lon": 5.980876,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2829889966
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 385.0,
+  "site_orientation": "",
+  "relief_m": 920.1,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.63405,
+    58.58126,
+    6.3277,
+    58.94099
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0357",
+  "name": "Veraland sør",
+  "lat": 58.873243,
+  "lon": 5.945165,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2760113383
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "",
+  "relief_m": 1492.9,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.59722,
+    58.69338,
+    6.29311,
+    59.05311
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0358",
+  "name": "Nicostarten",
+  "lat": 59.175121,
+  "lon": 6.145585,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2754339060
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "W, NW",
+  "relief_m": 1393.4,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    5.79457,
+    58.99526,
+    6.4966,
+    59.35499
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0359",
+  "name": "",
+  "lat": 59.978983,
+  "lon": 13.087608,
+  "country": "SE",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 11077642275
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SW",
+  "relief_m": 373.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    12.72811,
+    59.79912,
+    13.44711,
+    60.15885
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0360",
+  "name": "Sundvollen",
+  "lat": 60.053239,
+  "lon": 10.322549,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "relation",
+    "osm_id": 10272042
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "NW",
+  "relief_m": 691.3,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    9.96224,
+    59.87337,
+    10.68286,
+    60.2331
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0361",
+  "name": "Lofthus, Byrkjeflot",
+  "lat": 60.326891,
+  "lon": 6.689098,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 5408076209
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": 700.0,
+  "site_orientation": "W;SW",
+  "relief_m": 2321.0,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    6.32577,
+    60.14703,
+    7.05242,
+    60.50676
+   ]
+  }
+ },
+ {
+  "site_id": "hg_0362",
+  "name": "Vole",
+  "lat": 61.893133,
+  "lon": 9.140694,
+  "country": "NO",
+  "takeoffs": [
+   {
+    "osm_type": "node",
+    "osm_id": 2397385559
+   }
+  ],
+  "n_takeoffs": 1,
+  "ele_max_m": null,
+  "site_orientation": "SE,S,SW",
+  "relief_m": 1596.5,
+  "tile_hint": {
+   "source": "terrarium",
+   "zoom": 12,
+   "bbox": [
+    8.75891,
+    61.71327,
+    9.52248,
+    62.073
+   ]
+  }
+ }
+]
