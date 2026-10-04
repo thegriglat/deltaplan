@@ -1,4 +1,5 @@
 """Запуск корпуса (S3): детерминизм по числу процессов, продолжение после прерывания (resume), sample."""
+import glob
 import os
 import signal
 import subprocess
@@ -22,16 +23,14 @@ def gen_args(out, n, workers, shard_size=2, seed=5, cloud=None):
 
 
 def shards_normalized(d):
-    """Шарды с обнулённым compute_seconds -> байты (побитное сравнение кроме compute_seconds)."""
+    """Части -> байты наборов relief/*, gen/params, summary без compute_seconds (побитное сравнение кроме compute_seconds)."""
+    import h5py
     out = {}
-    for sh in cio.list_shards(d, "relief"):
-        data = open(cio.shard_path(d, "relief", sh), "rb").read()
-        recs = []
-        for _, _, b in cio.iter_shard_bytes(data):
-            r = cio.pb.Relief.FromString(b)
-            r.summary.compute_seconds = 0.0
-            recs.append(r.SerializeToString(deterministic=True))
-        out[sh] = recs
+    for k in cio.list_parts(d):
+        with h5py.File(cio.part_path(d, k), "r") as f:
+            s = f["summary"][:]
+            s["compute_seconds"] = 0.0
+            out[k] = [f["relief/id"][:].tobytes(), f["relief/h100"][:].tobytes(), f["relief/h400"][:].tobytes(), f["gen/params"][:].tobytes(), s.tobytes()]
     return out
 
 
@@ -41,8 +40,9 @@ def test_workers_independent(tmp_path):
     assert run(gen_args(b, 7, 3)).wait(180) == 0
     assert shards_normalized(a) == shards_normalized(b)
     c = cio.Corpus(a)
-    assert len(c) == 7 and c.manifest.complete and c.manifest.n_records == 7 and cio.list_shards(a, "relief") == [0, 1, 2, 3]
-    assert os.path.exists(a + "/manifest.txt")
+    assert len(c) == 7 and c.attrs["complete"] and c.attrs["n_records"] == 7 and cio.list_parts(a) == [0, 1, 2, 3]
+    assert os.path.exists(a + "/manifest.json") and os.path.exists(a + "/corpus.h5")
+    assert c.attrs["generator_version"] == "fake-1" and c.params(5)["corpus_seed"] == 5
 
 
 def test_resume_after_kill(tmp_path):
@@ -52,20 +52,21 @@ def test_resume_after_kill(tmp_path):
     env = {"FAKEGEN_SLEEP": "0.4"}
     p = run(gen_args(out, n, 2), env, start_new_session=True)
     deadline = time.time() + 120
-    while time.time() < deadline and not (os.path.isdir(out) and len(cio.list_shards(out, "relief")) >= 2):
+    while time.time() < deadline and not (os.path.isdir(out) and len(cio.list_parts(out)) >= 2):
         time.sleep(0.1)
     os.killpg(p.pid, signal.SIGKILL)
     p.wait()
     time.sleep(1.5)                                       # осиротевшие рабочие дописывают свой шард или падают
-    part = len(cio.list_shards(out, "relief"))
+    part = len(cio.list_parts(out))
     assert 1 <= part < n // 2, part                        # прервали посередине
-    assert not cio.read_manifest(out).complete
+    assert not cio.read_manifest(out).get("complete") and not os.path.exists(out + "/corpus.h5")
     assert run(gen_args(out, n, 2)).wait(300) == 0         # тем же вызовом
-    assert cio.read_manifest(out).complete
+    assert cio.read_manifest(out)["complete"] and cio.Corpus(out).attrs["complete"]
     assert shards_normalized(out) == shards_normalized(ref)
     a, b = cio.Corpus(out), cio.Corpus(ref)
-    assert a.index.SerializeToString(deterministic=True) == b.index.SerializeToString(deterministic=True)
-    assert not os.listdir(out + "/tmp") if os.path.isdir(out + "/tmp") else True
+    assert a.ids() == b.ids() == list(range(n))
+    assert all(np.array_equal(a.h100(i), b.h100(i)) for i in range(n))
+    assert not glob.glob(out + "/*.tmp")
 
 
 def test_resume_mismatch_refused(tmp_path):
@@ -94,10 +95,11 @@ def test_theta_cloud(tmp_path):
     assert shards_normalized(a) == shards_normalized(b)
     c = cio.Corpus(a)
     pts = []
-    for r in c:
-        k = int(r.params.extra["cloud_point"])
+    for rid in range(6):
+        p = c.params(rid)
+        k = p["cloud_point"]
         pts.append(k)
-        assert r.params.extra["theta_shift"] == [10.0, 50.0, 90.0][k] and r.params.extra["theta_a"] == [0.1, 0.2, 0.3][k]
+        assert p["shift"] == [10.0, 50.0, 90.0][k] and p["a"] == [0.1, 0.2, 0.3][k]
     assert len(set(pts)) > 1
-    assert c.manifest.notes["theta_cloud_sha1"]
+    assert "sha1:" in c.attrs["theta_cloud"]
     assert run(gen_args(a, 6, 1)).wait(120) != 0          # продолжение без облака у корпуса с облаком — отказ

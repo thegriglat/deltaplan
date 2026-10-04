@@ -12,7 +12,6 @@ sys.path.insert(0, TS)
 import corpus_io as cio  # noqa: E402
 import fastscape_gen as fg  # noqa: E402
 
-pb = cio.pb
 SC = float(np.tan(np.radians(35)))
 BASE = dict(n=512, dx=100.0, m=0.45, n_exp=1.0, T=4e6, dt=5e4, Sc=SC, D=0.03, K_logsd=0.7, K_beta=2.0, U_floor=0.1, noise=2.0)
 TYPES = {  # как terrain_stats/run_fastscape.py
@@ -25,7 +24,6 @@ GENERATOR_VERSION = "proto-" + hashlib.sha1(open(os.path.abspath(__file__), "rb"
 # имена theta (поля GenParams) -> ключи прототипа
 THETA_MAP = dict(uplift_max_m_per_yr="U0", k0="K", diffusion_m2_per_yr="D", m_exp="m", k_logsd="K_logsd", fourier_amp="fourier_amp",
                  t_total_yr="T", tan_crit="Sc")
-TUNABLE = {k: (0.0, float("inf"), None) for k in THETA_MAP}
 _INT = ("n_ridges", "n_blobs")
 
 
@@ -45,6 +43,24 @@ def _mix_params(mix):
     return p
 
 
+def _params(p, mix):
+    """Словарь параметров по PARAM_NAMES (float64)."""
+    d = dict(mix=mix, n_compute=p["n"], dx_compute_m=p["dx"], uplift_max_m_per_yr=p["U0"], uplift_floor=p["U_floor"],
+             fourier_amp=p["fourier_amp"], fourier_beta=p.get("fourier_beta", 2.0), strike_rad=float(np.radians(p["strike_deg"])),
+             k0=p["K"], k_logsd=p["K_logsd"], k_beta=p["K_beta"], m_exp=p["m"], n_exp=p["n_exp"], diffusion_m2_per_yr=p["D"],
+             tan_crit=p["Sc"], thermal_passes=5, t_total_yr=p["T"], dt_yr=p["dt"], noise_m=p["noise"], base_elevation_m=0.0,
+             n_ridges=p["n_ridges"], n_blobs=p["n_blobs"], strike_spread_deg=p["strike_spread_deg"], pos_spread_km=p.get("pos_spread_km", 8.0))
+    for k in ("ridge_H", "ridge_L_km", "ridge_sigma_km", "blob_sigma_km", "blob_H"):
+        d[k + "_lo"], d[k + "_hi"] = p[k]
+    return {k: float(v) for k, v in d.items()}
+
+
+PARAM_NAMES = tuple(_params(_mix_params(0.0), 0.0))
+_TLIM = dict(uplift_max_m_per_yr=(5e-5, 2e-3), k0=(1e-6, 3e-5), diffusion_m2_per_yr=(0.005, 0.2), m_exp=(0.3, 0.6),
+             k_logsd=(0.0, 1.5), fourier_amp=(0.0, 1.0), t_total_yr=(5e5, 1e7), tan_crit=(0.4, 1.0))
+TUNABLE = {k: (_TLIM[k][0], _TLIM[k][1], _params(_mix_params(0.0), 0.0)[k]) for k in THETA_MAP}
+
+
 def generate(corpus_seed, relief_id, theta=None):
     ss = np.random.SeedSequence([corpus_seed, relief_id])
     mix = float(np.random.default_rng(ss.spawn(1)[0]).uniform())
@@ -52,19 +68,6 @@ def generate(corpus_seed, relief_id, theta=None):
     for k, v in (theta or {}).items():
         if k not in THETA_MAP:
             raise KeyError(f"неизвестный параметр theta: {k}")
-        p[THETA_MAP[k]] = float(v)
-    r = fg.gen(p, np.random.default_rng(ss))  # gen() вызывает default_rng(Generator) -> тот же генератор
-    named = dict(n_compute=p["n"], dx_compute_m=p["dx"], uplift_max_m_per_yr=p["U0"], uplift_floor=p["U_floor"],
-                 fourier_amp=p["fourier_amp"], fourier_beta=p.get("fourier_beta", 2.0), strike_rad=float(np.radians(p["strike_deg"])),
-                 k0=p["K"], k_logsd=p["K_logsd"], k_beta=p["K_beta"], m_exp=p["m"], n_exp=p["n_exp"], diffusion_m2_per_yr=p["D"],
-                 tan_crit=p["Sc"], thermal_passes=5, t_total_yr=p["T"], dt_yr=p["dt"], noise_m=p["noise"], base_elevation_m=0.0)
-    extra = {}
-    for k, v in p.items():
-        if k in ("n_ridges", "n_blobs", "strike_spread_deg", "pos_spread_km"):
-            extra[k] = float(v)
-        elif isinstance(v, tuple):
-            extra[k + "_lo"], extra[k + "_hi"] = float(v[0]), float(v[1])
-    for k, v in (theta or {}).items():
-        extra["theta_" + k] = float(v)
-    params = pb.GenParams(mix=mix, extra=extra, **named)
-    return params, r["z100"]
+        p[THETA_MAP[k]] = float(np.clip(v, *TUNABLE[k][:2]))
+    r = fg.gen(p, np.random.default_rng(ss))
+    return _params(p, mix), r["z100"]
