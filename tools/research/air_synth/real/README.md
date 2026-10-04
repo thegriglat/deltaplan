@@ -1,3 +1,11 @@
+---
+type: "reference"
+status: "active"
+module: "air-synth"
+updated: "2026-10-05"
+summary: "Реальные места air-nn v3 (360 + 4 места игры) в корпусе S1 v3 (HDF5): конвейер П6, упаковка, команды воспроизведения"
+related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md"]
+---
 # SY-6: реальные места air-nn v3 в корпусе S1 v3 (HDF5)
 
 Только рельеф, решатель не запускался. Конвейер П6 пилота air-nn (`tools/research/air_nn_pilot/terrain_cut.py`, код не правился)

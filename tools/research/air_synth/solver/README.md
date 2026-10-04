@@ -1,3 +1,11 @@
+---
+type: "reference"
+status: "active"
+module: "air-synth"
+updated: "2026-10-05"
+summary: "H7: цена случая решателя P2 на модельном рельефе (S4) — скрипты, данные замера, команды воспроизведения"
+related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md"]
+---
 # SY-4 / H7: цена случая решателя P2 на модельном рельефе
 
 Решатель — `tools/research/air3d` (код не правится), обрамление — `air_nn_pilot/airlite_gen.solve_case` (область 96×96×400 м,
