@@ -193,6 +193,8 @@ def cmd_stats(a):
         V = np.array(pool.map(_obs_job, [(a.dir, r) for r in pick], chunksize=1))
     tune_out = os.path.join(HERE, "..", "tune", "out")
     sq = json.load(open(os.path.join(tune_out, "ref_obs.json")))["squares"] + json.load(open(os.path.join(tune_out, "ref_obs_pool.json")))["squares"]
+    keep = set(json.load(open(os.path.join(tune_out, "theta_cloud_meta.json")))["squares"])     # те 367 квадратов, по которым настроено облако
+    sq = [r for r in sq if r["name"] in keep]
     R = np.array([[np.nan if r["obs"][n] is None else r["obs"][n] for n in ob.NAMES] for r in sq], float)
     table, n_out = [], 0
     q = lambda x, p: float(np.nanpercentile(x, p))
@@ -207,7 +209,7 @@ def cmd_stats(a):
         n_out += row["out"]
         table.append(row)
     res = dict(corpus=a.dir, generator_version=man.get("generator_version"), n=len(pick), seed=a.seed, ids=pick, n_real=len(sq),
-               real_source="tune/out/ref_obs.json + ref_obs_pool.json (4 detail, 64 far, 299 pool)", out_of_range=int(n_out),
+               real_source="tune/out/ref_obs.json + ref_obs_pool.json (квадраты облака theta_cloud_meta.json: 4 detail, 64 far, 299 pool)", out_of_range=int(n_out),
                rule="out: медиана выборки вне [p5, p95] реальных квадратов", seconds=round(time.time() - t0, 1), table=table)
     print(f"{'наблюдаемая':16s} {'выборка p10/мед/p90':26s} {'реальные p5/мед/p95':26s} вне  доля вне [min,max]")
     for r in table:
