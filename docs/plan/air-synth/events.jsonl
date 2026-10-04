@@ -87,3 +87,6 @@
 {"t": "2026-10-04T22:53:10", "by": "coordinator", "task": "SY-3", "ev": "accepted", "note": "по ревью; minor reject_fraction в корне вида (из части 0) — исправить в SY-7 после build_view; Fr при N=0 = 1000 — записано в S2"}
 {"t": "2026-10-04T22:53:13", "by": "coordinator", "task": "SY-3", "ev": "accepted", "commits": ["617ba8b9"], "note": "2/2 cond_tests=ok:10 passed; dist_report=ok:\"w_star_over_u\""}
 {"t": "2026-10-04T22:53:22", "by": "coordinator", "task": "SY-3", "ev": "merged", "commits": ["617ba8b9"]}
+{"t": "2026-10-04T22:53:29", "by": "coordinator", "task": "SY-4", "ev": "checked", "note": "1/2 s4_test=ok:7 passed"}
+{"t": "2026-10-04T22:53:37", "by": "coordinator", "task": "SY-4", "ev": "accepted", "note": "2/2 s4_test=ok:7 passed; h7_table=ok:\"sec_per_case_median\""}
+{"t": "2026-10-04T22:53:38", "by": "coordinator", "task": "SY-4", "ev": "note", "note": "s4_test на ветке модуля сначала FAIL — в копии модуля не было .venv пилота (окружение, не код); после setup_env.sh — 2/2"}
