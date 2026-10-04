@@ -100,7 +100,8 @@ func test_config_names_are_keys() -> void:
 	for k: String in presets:
 		if presets[k] is Dictionary:
 			names.append(String(presets[k].get("title", "")))
-	names.append(String(Config.value("world", "map_picker.attribution", "")))
+	for m: Dictionary in Config.value("world", "map_picker.basemaps", []):
+		names.append(String(m.get("name_key", "")))
 	check(names.size() > 30, "собраны названия: %d" % names.size())
 	for n in names:
 		check(rows.has(n), "название из конфига не ключ ui.csv: «%s»" % n)

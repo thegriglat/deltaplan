@@ -904,47 +904,13 @@
     }
   },
   "map_picker": {
-    "_doc": "Карта выбора места старта (scripts/terrain/map_picker.gd): отмывка рельефа из тех же тайлов Terrarium, без внешних карт.",
+    "_doc": "Карта выбора места старта (scripts/terrain/map_picker.gd): растровые подложки OpenTopoMap / OSM с дисковым кешем, высота точки из Terrarium.",
     "start_zoom": 9,
     "start_zoom_doc": "Начальный масштаб (уровень тайлов web-mercator)",
     "min_zoom": 3,
     "min_zoom_doc": "Минимальный масштаб карты (уровень тайлов web-mercator), безразмерный",
-    "max_zoom": 13,
-    "max_zoom_doc": "Максимальный масштаб карты (уровень тайлов web-mercator), безразмерный",
     "zoom_step": 0.5,
     "zoom_step_doc": "Шаг масштаба на щелчок колеса",
-    "light_azimuth_deg": 315,
-    "light_azimuth_deg_doc": "Откуда свет для отмывки (315 — северо-запад, картографическая традиция)",
-    "light_elevation_deg": 40,
-    "exaggeration": 2.0,
-    "exaggeration_doc": "Во сколько раз усилить крутизну для отмывки",
-    "low_color": [
-      0.55,
-      0.68,
-      0.45
-    ],
-    "low_color_doc": "Цвет низин (гипсометрия)",
-    "high_color": [
-      0.85,
-      0.78,
-      0.62
-    ],
-    "high_color_doc": "Цвет на высоте high_height_m",
-    "snow_color": [
-      0.97,
-      0.97,
-      0.97
-    ],
-    "snow_color_doc": "Цвет выше snow_height_m",
-    "low_height_m": 0,
-    "high_height_m": 2500,
-    "snow_height_m": 3800,
-    "water_color": [
-      0.62,
-      0.75,
-      0.88
-    ],
-    "water_color_doc": "Цвет моря (высота ≤ 0)",
     "marker_color": [
       0.9,
       0.1,
@@ -956,7 +922,37 @@
     "max_tiles_in_memory_doc": "Сколько тайлов карты держать в памяти (≈ 0.2 МБ каждый)",
     "click_max_drag_px": 5,
     "click_max_drag_px_doc": "Если мышь сдвинулась больше — это перетаскивание, а не выбор точки",
-    "attribution": "map_attribution"
+    "max_zoom": 17,
+    "max_zoom_doc": "Максимальный масштаб карты (уровень тайлов web-mercator), безразмерный; слой выше своего max_zoom растягивает тайл",
+    "basemaps": [
+      {
+        "id": "opentopomap",
+        "name_key": "map_layer_opentopomap",
+        "url_template": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "subdomains": [
+          "a",
+          "b",
+          "c"
+        ],
+        "max_zoom": 17,
+        "attribution": "Map data © OpenStreetMap contributors, SRTM | Map style © OpenTopoMap (CC-BY-SA)",
+        "_doc": "OpenTopoMap — подложка по умолчанию"
+      },
+      {
+        "id": "osm",
+        "name_key": "map_layer_osm",
+        "url_template": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "subdomains": [],
+        "max_zoom": 19,
+        "attribution": "© OpenStreetMap contributors",
+        "_doc": "OpenStreetMap standard"
+      }
+    ],
+    "tile_cache_dir": "user://map_cache",
+    "user_agent": "deltaplan-sim/1.1 (hang gliding simulator; non-commercial open source)",
+    "max_parallel_requests": 4,
+    "timeout_s": 20.0,
+    "elevation_zoom": 12
   },
   "terrain_textures": {
     "_doc": "Необязательные текстуры поверхностей рельефа (заменяемые ассеты). albedo — путь (res://… или файл на диске); пусто — процедурная раскраска. Текстура видна вблизи и растворяется к terrain_look.detail_fade_m. Новые текстуры вносить в ASSETS.md.",
