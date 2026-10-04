@@ -2124,7 +2124,7 @@ def job_start(name, limit, cmd, tm=None):
     print(f"{name}: PID {pr.pid}, лог {log}")
 
 
-# окно tmux = outer (bash, пишет итог) → runner (PID в .pid, код в .rc) → script (настоящий tty; лог без \r-перерисовок)
+# окно tmux = outer (bash; по завершении окно закрывается) → runner (PID в .pid, код в .rc) → script (настоящий tty; лог без \r-перерисовок)
 TMUX_RUNNER = r"""#!/bin/bash
 # dp job: runner <таймаут> <база> <команда…>; PID — этого процесса, код — в <база>.rc
 limit=$1; base=$2; shift 2
@@ -2152,14 +2152,10 @@ TMUX_OUTER = r"""runner=$1; shift; base=$2
 trap : TERM
 export DP_NO_TMUX=1
 bash "$runner" "$@"
-rc=$(cat "$base.rc" 2>/dev/null); rc=${rc:-1}
-echo
-if [ "$rc" = 143 ]; then echo "Задача остановлена (код $rc)"; else echo "Задача выполнена (код $rc)"; fi
-exec bash
 """
 TMUX_ATTACH = r"""pid=$1; log=$2; rcf=$3
-if [ "$pid" -gt 0 ] && kill -0 "$pid" 2>/dev/null; then tail -n 40 -F --pid="$pid" "$log"; else tail -n 40 "$log"; fi
-sleep 0.3; echo; echo "Задача выполнена (код $(cat "$rcf" 2>/dev/null || echo ?))"
+if [ "$pid" -gt 0 ] && kill -0 "$pid" 2>/dev/null; then tail -n 40 -F --pid="$pid" "$log"; exit; fi
+tail -n 40 "$log"; echo; echo "Задача выполнена (код $(cat "$rcf" 2>/dev/null || echo ?))"
 exec bash
 """
 
