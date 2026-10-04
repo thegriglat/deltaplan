@@ -139,8 +139,10 @@
         0.0
       ],
       "bar_grip_offset_m_doc": "Сдвиг точек хвата от оси штанги (маркер BaseBar), м: x вправо, y вверх, z назад",
-      "upright_above_shoulder_m": 0.1,
+      "upright_above_shoulder_m": 0.12,
       "upright_above_shoulder_m_doc": "На земле хват на стойке выше плечевого сустава (кость UpperArm) на столько, м",
+      "upright_ahead_of_shoulder_m": 0.33,
+      "upright_ahead_of_shoulder_m_doc": "На земле стоящий пилот стоит под крылом так, что хват на стойке впереди плечевого сустава по горизонтали на столько, м (визуал пилота сдвигается вдоль курса; физика и поза крыла не меняются)",
       "flare_above_shoulder_m": 0.25,
       "flare_above_shoulder_m_doc": "При выравнивании (flare) руки на стойках выше плеча на столько, м",
       "elbow_pole": [

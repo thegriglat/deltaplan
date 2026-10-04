@@ -49,6 +49,8 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+## Рисуется ли жёсткая стропа модели пилота (на земле скрыта, вместо неё гибкая лента — A3.7).
+var strap_rigid_visible := true
 
 var _cfg: Dictionary = {}  ## flight.json → visual
 var _pcfg: Dictionary = {}  ## pilot.json → visual
@@ -66,6 +68,15 @@ var _buzz_time := 0.0
 var _buzz_amp := 0.0
 var _buzz_kick := 0.0
 var _arms_snap := true
+## Стропа пилота на земле (A3.7): жёсткая стропа модели скрыта, вместо неё гибкая лента от HangPoint
+## крыла до точки подвесной системы на груди пилота (растягивается, провисает при слабине).
+var _strap_mesh: MeshInstance3D  ## PilotBody
+var _strap_surface := -1  ## поверхность материала Strap в PilotBody
+var _strap_ribbon: MeshInstance3D  ## лента (ImmediateMesh) в осях визуала
+var _strap_hidden_mat: ShaderMaterial
+var _strap_anchor_bone := -1  ## кость, к которой привязана нижняя точка стропы
+var _strap_anchor_local := Vector3.ZERO  ## нижняя точка стропы в осях этой кости
+var _strap_rest_len := 0.9  ## длина стропы модели (карабин → подвесная система), м
 
 
 ## wing_cfg — конфиг крыла, pilot_cfg — конфиг пилота, vis_cfg — flight.json → visual.
@@ -117,6 +128,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		_animated_stand = _animated_stand or ap.has_animation("stand")
 		_anim = ap
 	_build_arms(pm)
+	_build_strap(pm)
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
 	head_marker = Marker3D.new()
@@ -124,6 +136,101 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(head_marker)
 	_pose = _flight_pose(Vector3.ZERO)
 	set_pose(0.0, 0.0, true, 1.0e6)
+
+
+## Стропа пилота: поверхность Strap в PilotBody (прячется на земле), нижняя точка подвесной
+## системы (центр самых нижних вершин стропы) в осях кости, лента на земле — вместо жёсткой.
+func _build_strap(pm: Node3D) -> void:
+	_strap_mesh = null
+	_strap_surface = -1
+	_strap_anchor_bone = -1
+	_strap_ribbon = null
+	strap_rigid_visible = true
+	var mi := pm.find_child("PilotBody", true, false) as MeshInstance3D
+	if mi == null or mi.mesh == null or _skeleton == null:
+		return
+	for i in mi.mesh.get_surface_count():
+		var m := mi.mesh.surface_get_material(i)
+		if m != null and m.resource_name == "Strap":
+			_strap_surface = i
+	if _strap_surface < 0:
+		return
+	_strap_mesh = mi
+	var verts: PackedVector3Array = mi.mesh.surface_get_arrays(_strap_surface)[Mesh.ARRAY_VERTEX]
+	var low := INF
+	for v in verts:
+		low = minf(low, v.y)
+	var sum := Vector3.ZERO
+	var n := 0
+	for v in verts:
+		if v.y < low + 0.05:
+			sum += v
+			n += 1
+	var bottom := sum / maxf(n, 1)
+	_strap_rest_len = absf(bottom.y)
+	var ci := _skeleton.find_bone("Chest")
+	if ci < 0:
+		return
+	_strap_anchor_bone = ci
+	# вершины меша — в покое скелета (осях меша); кость Chest в покое → локальная точка
+	var to_sk := _relative_xform(_skeleton, mi)
+	_strap_anchor_local = _skeleton.get_bone_global_rest(ci).affine_inverse() * (to_sk * bottom)
+	_strap_hidden_mat = ShaderMaterial.new()
+	var sh := Shader.new()
+	sh.code = "shader_type spatial;\nvoid fragment() { discard; }\n"
+	_strap_hidden_mat.shader = sh
+	_strap_ribbon = MeshInstance3D.new()
+	_strap_ribbon.name = "GroundStrap"
+	_strap_ribbon.mesh = ImmediateMesh.new()
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.12, 0.12, 0.14)
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_strap_ribbon.material_override = mat
+	_strap_ribbon.visible = false
+	add_child(_strap_ribbon)
+
+
+## Нижняя точка стропы пилота (подвесная система) в осях визуала по текущей позе.
+func strap_bottom() -> Vector3:
+	if _strap_anchor_bone < 0 or pilot == null:
+		return _hang
+	var bp := _skeleton.get_bone_global_pose(_strap_anchor_bone)
+	return pilot.transform * (_relative_xform(pilot, _skeleton) * (bp * _strap_anchor_local))
+
+
+## Верх гибкой стропы на земле — всегда HangPoint крыла (A3.7), оси визуала.
+func strap_top() -> Vector3:
+	return _marker_pos("HangPoint")
+
+
+## На земле рисуем гибкую стропу от HangPoint до подвесной системы, жёсткую скрываем; когда
+## карабин пилота вернулся на HangPoint (полёт), показываем жёсткую (без скачка).
+func _update_strap() -> void:
+	if _strap_mesh == null or _strap_ribbon == null:
+		return
+	var top := strap_top()
+	var rigid := pilot.transform.origin.distance_to(top) < 0.03
+	if rigid != strap_rigid_visible:
+		strap_rigid_visible = rigid
+		_strap_mesh.set_surface_override_material(
+			_strap_surface, null if rigid else _strap_hidden_mat
+		)
+	_strap_ribbon.visible = not rigid
+	if rigid:
+		return
+	var bottom := strap_bottom()
+	var chord := top.distance_to(bottom)
+	var sag := 0.5 * sqrt(maxf(_strap_rest_len * _strap_rest_len - chord * chord, 0.0))
+	var half := Vector3(0.02, 0.0, 0.0)
+	var im := _strap_ribbon.mesh as ImmediateMesh
+	im.clear_surfaces()
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+	for i in 9:
+		var t := i / 8.0
+		var pt := top.lerp(bottom, t) + Vector3.DOWN * (sag * 4.0 * t * (1.0 - t))
+		im.surface_add_vertex(pt - half)
+		im.surface_add_vertex(pt + half)
+	im.surface_end()
 
 
 ## Руки: модификатор PilotArmIK на скелете пилота (кости UpperArm/Forearm/Hand, пустышки хвата).
@@ -210,6 +317,7 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 		head_marker.transform = _pose * Transform3D(Basis.IDENTITY, _head_local())
 	_update_buzz(flying, dt)
 	_update_arms(flying, dt)
+	_update_strap()
 
 
 # ---------------------------------------------------------------- руки
@@ -249,9 +357,15 @@ func bar_grip(side: int) -> Vector3:
 	return bb * (Vector3(side * float(a.get("bar_grip_half_width_m", 0.33)), 0.0, 0.0) + off)
 
 
-## Точка хвата на стойке трапеции на уровне плеча (+ arms.upright_above_shoulder_m, при
-## выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
+## Точка хвата на стойке трапеции выше плеча по вертикали мира (+ arms.upright_above_shoulder_m,
+## при выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
 func upright_grip(side: int) -> Vector3:
+	return _upright_point(side, shoulder(side))
+
+
+## Точка на оси стойки, поднятая над плечом sh (оси визуала) на заданное arms-конфигом число метров
+## по вертикали мира: визуал наклонён на тангаж крыла, поэтому высоту считаем не по его Y.
+func _upright_point(side: int, sh: Vector3) -> Vector3:
 	var a: Dictionary = _cfg.get("arms", {})
 	var apex := _marker_pos("UprightTopL" if side < 0 else "UprightTopR")
 	var end := _marker_pos("UprightBottomL" if side < 0 else "UprightBottomR")
@@ -260,9 +374,14 @@ func upright_grip(side: int) -> Vector3:
 		float(a.get("flare_above_shoulder_m", 0.25)),
 		arm_flare
 	)
-	var y := shoulder(side).y + above
+	var th := _frame_pitch()
+	var c := cos(th)
+	var sn := sin(th)
+	var y_apex := apex.y * c - apex.z * sn
+	var y_end := end.y * c - end.z * sn
+	var y := sh.y * c - sh.z * sn + above
 	var t := (
-		clampf(inverse_lerp(apex.y, end.y, y), 0.05, 0.95) if absf(apex.y - end.y) > 1e-3 else 0.5
+		clampf(inverse_lerp(y_apex, y_end, y), 0.05, 0.95) if absf(y_apex - y_end) > 1e-3 else 0.5
 	)
 	return apex.lerp(end, t)
 
@@ -433,7 +552,7 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 		var lean := Basis(Vector3.RIGHT, deg_to_rad(GROUND_LEAN_BACK_DEG))
 		var o := GROUND_GRIP - lean * GROUND_GRIP  # хват на месте
 		o.y += GROUND_FEET.y - (lean * GROUND_FEET + o).y  # ступни на прежней высоте
-		pose = Transform3D(lean, _hang + o + Vector3(shift.x, 0.0, 0.0))
+		pose = Transform3D(lean, _hang + o)
 		feet = pose * GROUND_FEET
 	else:
 		var c := _body_center()
@@ -442,7 +561,55 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 		pose = Transform3D(r, g - r * c)
 		feet = Vector3(shift.x, 0.0, 0.0)
 	var level := Basis(Vector3.RIGHT, -_frame_pitch())
-	return Transform3D(level, feet - level * feet) * pose
+	var out := Transform3D(level, feet - level * feet) * pose
+	if _animated_stand and arm_ik != null and wing != null:
+		out.origin += _ground_slide(out, feet)
+	return out
+
+
+## Горизонталь мира «вперёд вдоль курса крыла» в осях визуала (визуал наклонён на тангаж).
+func _ground_fwd() -> Vector3:
+	var th := _frame_pitch()
+	return Vector3(0.0, -sin(th), -cos(th))
+
+
+## На сколько сдвинуть стоящего пилота вдоль горизонтали вперёд (м), чтобы стойки были впереди его
+## плеч на arms.upright_ahead_of_shoulder_m. Тангаж крыла поворачивается вокруг ступней (К4), а
+## HangPoint в 1,9 м над ними — при тангаже 16° он уходит на ~0,5 м назад, стойки вместе с ним:
+## если ставить пилота по ступням, стойки оказываются позади плеч, руки тянутся назад, плечи
+## «выламываются». Пилот держит крыло за стойки и стоит под ним. Вбок ноги остаются на месте
+## (крыло качается у него в руках), по высоте ступни на земле. Физика и точка поворота К4 не
+## меняются — сдвигается только визуал пилота (его карабин при этом не на HangPoint: в позе stand
+## модели плечи на ~0,35 м впереди карабина, а стойки на высоте плеч — под HangPoint).
+func _ground_slide(pose: Transform3D, feet: Vector3) -> Vector3:
+	if _skeleton == null:
+		return Vector3.ZERO
+	var ahead := float(_cfg.get("arms", {}).get("upright_ahead_of_shoulder_m", 0.3))
+	var fv := _ground_fwd()
+	var th := _frame_pitch()
+	var upv := Vector3(0.0, cos(th), -sin(th))  # вертикаль мира в осях визуала
+	var d := 0.0
+	var dy := 0.0
+	for i in 3:
+		var diff := 0.0
+		for side in [-1, 1]:
+			var sh: Vector3 = pose * _shoulder_local(side) + fv * d + upv * dy
+			diff += (_upright_point(side, sh) - sh).dot(fv) * 0.5
+		d += diff - ahead
+		dy = _feet_sink(feet + fv * d)
+	return fv * clampf(d, -1.5, 1.5) + upv * dy
+
+
+## На сколько поднять стопы (м, по вертикали мира), чтобы они стояли на земле под собой, а не на
+## плоскости через ступни планера: сдвинутый назад пилот на склоне 20° иначе уходит в землю.
+## Нет земли (ground_fn) — 0. feet_vis — точка ступней в осях визуала до подъёма.
+func _feet_sink(feet_vis: Vector3) -> float:
+	var g := get_parent() as Glider
+	if g == null or not g.ground_fn.is_valid() or not is_inside_tree():
+		return 0.0
+	var w := global_transform * feet_vis
+	var h := float(g.ground_fn.call(w.x, w.z))
+	return clampf(h - w.y, -0.5, 0.5)
 
 
 ## Тангаж обёртки (крыла) к горизонту, рад: + нос вверх (Telemetry.basis = from_euler(θ, …)).
