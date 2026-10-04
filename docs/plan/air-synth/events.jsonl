@@ -142,3 +142,4 @@
 {"t": "2026-10-05T02:50:05", "by": "coordinator", "task": "SY-8", "ev": "note", "note": "счёт sy8-solve остановлен главной сессией (код 143) по решению пользователя: готово 3 части p6v3 (300 случаев); продолжение — та же команда"}
 {"t": "2026-10-05T02:50:37", "by": "executor", "task": "SY-8", "ev": "checked", "note": "3/3 s5_tests=ok:7 passed; no_fail=ok:exit 0; progress=ok:\"stage_done\""}
 {"t": "2026-10-05T02:50:49", "by": "coordinator", "task": "SY-8", "ev": "accepted", "note": "по отчёту: код S5 v2 (s5_io, solve_corpus, make_p2c12), тесты 3/3; счёт остановлен по решению пользователя (300 случаев p6v3 готово), код переиспользуется для мест дельтаплана"}
+{"t": "2026-10-05T02:50:50", "by": "coordinator", "task": "SY-8", "ev": "merged", "commits": ["b2fd25ef"]}
