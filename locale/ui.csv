@@ -403,3 +403,28 @@ result_continue_near,Продолжить рядом,Continue nearby
 result_to_start,На старт,Back to launch
 map_layer_opentopomap,OpenTopoMap (топокарта),OpenTopoMap (topographic)
 map_layer_osm,OpenStreetMap,OpenStreetMap
+setup_popular_places,Популярные места…,Popular places…
+places_title,Популярные места,Popular places
+places_search_hint,Поиск по названию,Search by name
+places_country_row,%s — %d,%s — %d
+places_country_unknown,Страна не указана,Country not specified
+places_unnamed,"Старт без названия (%.3f, %.3f)","Unnamed launch (%.3f, %.3f)"
+places_no_results,Ничего не найдено,Nothing found
+places_ele,%d м,%d m
+places_wind,"ветер: %s","wind: %s"
+places_dir_n,С,N
+places_dir_nne,ССВ,NNE
+places_dir_ne,СВ,NE
+places_dir_ene,ВСВ,ENE
+places_dir_e,В,E
+places_dir_ese,ВЮВ,ESE
+places_dir_se,ЮВ,SE
+places_dir_sse,ЮЮВ,SSE
+places_dir_s,Ю,S
+places_dir_ssw,ЮЮЗ,SSW
+places_dir_sw,ЮЗ,SW
+places_dir_wsw,ЗЮЗ,WSW
+places_dir_w,З,W
+places_dir_wnw,ЗСЗ,WNW
+places_dir_nw,СЗ,NW
+places_dir_nnw,ССЗ,NNW

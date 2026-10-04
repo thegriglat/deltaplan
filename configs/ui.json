@@ -2,6 +2,8 @@
   "_doc": "Интерфейс: меню, пауза, настройки, итог полёта, «Об игре». Цвета и шрифты — в scenes/ui/theme.tres",
   "panel_width_px": 560,
   "panel_width_px_doc": "Ширина панели меню, пикселей",
+  "popular_places_path": "res://data/places/hg_takeoffs.json",
+  "popular_places_path_doc": "Каталог стартов дельтаплана для окна «Популярные места» (PP-К1); файла нет — кнопка скрыта",
   "menu_background": "res://assets/ui/menu_background.jpg",
   "menu_background_doc": "Фон главного меню (статичная картинка на весь экран); пусто — сплошной тёмный фон",
   "menu_logo": "res://assets/logo.png",
