@@ -1,0 +1,8 @@
+{
+  "module": "air-synth",
+  "plan": "docs/plan/air-synth.md",
+  "contracts": "docs/contracts/air-synth.md",
+  "branch": "feature/air-synth",
+  "copy": "~/deltaplan-air-synth",
+  "created": "2026-10-04T21:03:07"
+}
