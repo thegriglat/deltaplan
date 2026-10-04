@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -66,19 +67,27 @@ class Store:
             list(ex.map(one, range(n)))
         self.par = np.stack([phys.case_par(m) for m in self.metas])
         self.prof = np.stack([phys.profile_input(p, phys.bg_theta_of(m)) for p, m in zip(self.par, self.metas)])
+        self.N = np.array([phys_N(m) for m in self.metas], np.float32)      # N случая (A2 v2)
 
     def __len__(self):
         return len(self.ids)
 
 
-def inputs_from(X, F, par, prof, heated, device, reflect=None):
+def phys_N(meta):
+    """N случая, 1/с (A2 v2): regime.n_bl; env AN4_OLD_N=1 — фон 3 К/км, как в AN-3 (проба «что даёт Fr случая»)."""
+    import os
+    import regime
+    return math.sqrt(phys.N2_BG) if os.environ.get("AN4_OLD_N") else regime.n_bl(meta)
+
+
+def inputs_from(X, F, par, prof, heated, device, N=None):
     """Вход сети из кеша П2 (после поворота; опционально — после отражения, делает вызывающий). X (B,9,H,W), F (B,18),
     heated (B,) bool → dict maps (B,7,H,W), scal (B,21), prof (B,3,13), par (B,4) — float32 на device.
     heated=False: карта потока тепла = 0 и числа нагрева = 0 (решение без нагрева, A2)."""
     maps = np.ascontiguousarray(X[:, list(phys.MAP_IDX)])
     hi = phys.MAP_NAMES.index("heat_flux")
     maps[~np.asarray(heated, bool), hi] = 0.0
-    scal = np.stack([phys.scalars(F[i], bool(heated[i])) for i in range(len(F))])
+    scal = np.stack([phys.scalars(F[i], bool(heated[i]), N=None if N is None else N[i]) for i in range(len(F))])
     t = lambda a: torch.from_numpy(np.ascontiguousarray(a, np.float32)).to(device, non_blocking=True)  # noqa: E731
     return dict(maps=t(maps), scal=t(scal), prof=t(prof), par=t(par))
 
@@ -108,11 +117,13 @@ def sample_batch(st: Store, idx, rng, device, crop=64, K=4, Kd=2, reflect=True, 
         if fl.any():
             X[fl], F[fl], Y[fl] = P.reflect(X[fl], F[fl], Y[fl])
     heated = rng.random(B) < p_heat
-    inp = inputs_from(X, F, st.par[idx], st.prof[idx], heated, device)
+    inp = inputs_from(X, F, st.par[idx], st.prof[idx], heated, device, N=st.N[idx])
     # высоты и цель
     lo_, hi_ = np.log(eta_range[0]), np.log(eta_range[1])
-    eta = np.exp(rng.uniform(lo_, hi_, (B, K, crop, crop))).astype(np.float32) if fixed_eta is None else \
-        np.broadcast_to(np.asarray(fixed_eta, np.float32)[None, :, None, None], (B, len(fixed_eta), crop, crop)).copy()
+    # A2 v2: высота общая для всех клеток окна (ветвь по η разложенной головы считается один раз на высоту)
+    e1 = np.exp(rng.uniform(lo_, hi_, (B, K, 1, 1))).astype(np.float32) if fixed_eta is None else \
+        np.broadcast_to(np.asarray(fixed_eta, np.float32)[None, :, None, None], (B, len(fixed_eta), 1, 1))
+    eta = np.ascontiguousarray(np.broadcast_to(e1, (B, e1.shape[1], crop, crop)))
     eta_div = np.exp(rng.uniform(np.log(30.0), np.log(1400.0), (B, Kd, 1))).astype(np.float32)
     eta_div = np.concatenate([eta_div, eta_div * 1.15], -1)
     dev = device
@@ -139,6 +150,6 @@ def sample_batch(st: Store, idx, rng, device, crop=64, K=4, Kd=2, reflect=True, 
     return inp
 
 
-def eval_inputs(X, F, par, prof, heated, device):
-    """Вход сети на полной карте (без вырезок, без отражения): X (B,9,H,W) из кеша П2."""
-    return inputs_from(X, F, par, prof, np.full(len(X), heated), device)
+def eval_inputs(X, F, par, prof, heated, device, N=None):
+    """Вход сети на полной карте (без вырезок, без отражения): X (B,9,H,W) из кеша П2; N (B,) — N случая."""
+    return inputs_from(X, F, par, prof, np.full(len(X), heated), device, N=N)

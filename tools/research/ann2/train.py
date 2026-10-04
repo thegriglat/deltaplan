@@ -12,6 +12,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import queue
 import subprocess
 import threading
@@ -23,6 +24,7 @@ import torch
 
 import data as D
 import losses as L
+import regime as RG
 import model as M
 
 
@@ -59,8 +61,12 @@ class Ema:
 
 
 def pick_ids(split, args):
-    rng = np.random.default_rng(args.seed)
+    rng = np.random.default_rng(1)          # выбор подмножеств — не зависит от зерна обучения (одинаковая проверка у проб)
     tr, va = list(split["train_ids"]), list(split["val_ids"])
+    # A1 v2: проверка — всегда механические случаи; обучение — механические (--regime mech) или все (проба «что даёт режим»)
+    va = [i for i in va if RG.regime(i) == "mech"]
+    if args.regime == "mech":
+        tr = [i for i in tr if RG.regime(i) == "mech"]
     if args.max_train and args.max_train < len(tr):
         tr = sorted(rng.choice(tr, args.max_train, replace=False).tolist())
     if args.n_val < len(va):
@@ -103,7 +109,7 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--wd", type=float, default=0.05)
     ap.add_argument("--warmup", type=int, default=0, help="шагов разогрева lr (0 — 3 %% шагов, не меньше 10)")
-    ap.add_argument("--K", type=int, default=4, help="высот на колонку за шаг")
+    ap.add_argument("--K", type=int, default=8, help="высот на колонку за шаг")
     ap.add_argument("--Kd", type=int, default=2, help="пар высот для штрафа дивергенции")
     ap.add_argument("--div_w", type=float, default=0.02, help="вес штрафа дивергенции массового потока")
     ap.add_argument("--crop", type=int, default=64)
@@ -116,10 +122,16 @@ def main():
     ap.add_argument("--val_every", type=int, default=500)
     ap.add_argument("--save_every", type=int, default=1000)
     ap.add_argument("--fresh", action="store_true")
+    ap.add_argument("--head", default="deeponet", choices=("deeponet", "mlp"), help="голова колонки (A2 v2: deeponet)")
+    ap.add_argument("--regime", default="mech", choices=("mech", "all"), help="случаи обучения (A1 v2: mech)")
+    ap.add_argument("--fr_old", type=int, default=0, help="1 — N фона 3 К/км (как AN-3) вместо N случая (проба)")
+    ap.add_argument("--patience", type=int, default=0, help="остановка, если проверка не улучшалась столько проверок подряд (0 — нет)")
     args = ap.parse_args()
     if args.smoke:
         args.max_train, args.n_val, args.val_batches, args.val_every, args.fresh = args.max_train or 64, 16, 2, 20, True
         args.batch = min(args.batch, 8)
+    if args.fr_old:
+        os.environ["AN4_OLD_N"] = "1"
     args.warmup = args.warmup or max(10, int(0.03 * args.steps))
     dev = torch.device("cuda")
     run = D.RUNS / args.run
@@ -130,16 +142,17 @@ def main():
     tst, vst = D.Store(tr_ids), D.Store(va_ids)
     print(f"данные: обучение {len(tst)} случаев, проверка {len(vst)}, загрузка {time.time() - t0:.0f} с", flush=True)
     torch.manual_seed(args.seed)
-    model = M.Ann2().to(dev)
+    model = M.Ann2(head=args.head).to(dev)
     ema = Ema(model, args.ema)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd, betas=(0.9, 0.99))
     cfg = dict(vars(args), params=M.count_params(model), split_seed=split["seed"], p2_run=str(D.P2_RUN),
-               n_train=len(tst), n_val=len(vst), commit=git_head(), model="Ann2()", torch=torch.__version__,
+               n_train=len(tst), n_val=len(vst), commit=git_head(), model=f"Ann2(head={args.head})", wsu_thr=RG.WSU_THR, torch=torch.__version__,
                gpu=torch.cuda.get_device_name(0))
     cfg["config_hash"] = hashlib.sha256(json.dumps({k: v for k, v in cfg.items() if k not in ("steps", "commit")},
                                                    sort_keys=True, default=str).encode()).hexdigest()[:12]
     (run / "config.json").write_text(json.dumps(cfg, ensure_ascii=False, indent=1))
     step, t_prev, log_rows = 0, 0.0, []
+    best, best_step, bad = float("inf"), 0, 0
     ck = run / "ckpt.pt"
     if ck.exists() and not args.fresh:
         s = torch.load(ck, map_location=dev, weights_only=False)
@@ -147,6 +160,7 @@ def main():
             raise SystemExit("ckpt.pt от другой конфигурации; --fresh — начать заново")
         model.load_state_dict(s["model"]); ema.m.load_state_dict(s["ema"]); ema.n = s["ema_n"]
         opt.load_state_dict(s["opt"]); step, t_prev = s["step"], s["time"]
+        best, best_step, bad = s.get("best", best), s.get("best_step", 0), s.get("bad", 0)
         print(f"продолжение с шага {step}", flush=True)
     logf = run / "train_log.csv"
     if not (logf.exists() and step > 0):
@@ -169,7 +183,7 @@ def main():
     losses, t_start = [], time.time()
     def save(final=False):
         st = dict(model=model.state_dict(), ema=ema.m.state_dict(), ema_n=ema.n, opt=opt.state_dict(), step=step,
-                  time=t_prev + time.time() - t_start, config_hash=cfg["config_hash"])
+                  time=t_prev + time.time() - t_start, config_hash=cfg["config_hash"], best=best, best_step=best_step, bad=bad)
         torch.save(st, ck.with_suffix(".tmp")); ck.with_suffix(".tmp").replace(ck)
         torch.save(dict(state_dict=ema.m.state_dict(), config=cfg, step=step), run / "model.pt")
     model.train()
@@ -190,7 +204,12 @@ def main():
         losses.append(lv)
         vl = ""
         if step % args.val_every == 0 or step == args.steps:
-            ema.m.eval(); vl = f"{validate(ema.m, vst, args, dev, amp):.5f}"
+            ema.m.eval(); v = validate(ema.m, vst, args, dev, amp); vl = f"{v:.5f}"
+            if v < best:      # A2 v2: лучшая точка по проверке (ранняя остановка) — best.pt рядом с model.pt
+                best, best_step, bad = v, step, 0
+                torch.save(dict(state_dict=ema.m.state_dict(), config=cfg, step=step, val_loss=v), run / "best.pt")
+            else:
+                bad += 1
         if vl or step % 10 == 0 or step <= 10:
             with open(logf, "a") as f:
                 f.write(f"{step},{lv:.5f},{float(nll):.5f},{float(div):.5f},{vl},{lr:.3e},{t_prev + time.time() - t_start:.1f}\n")
@@ -200,8 +219,12 @@ def main():
                   f"val {vl or '-'} {el / max(1, len(losses)) * 1000:.0f} мс/шаг", flush=True)
         if step % args.save_every == 0 and step < args.steps:
             save()
+        if args.patience and vl and bad >= args.patience:
+            print(f"ранняя остановка: проверка не улучшалась {bad} проверок; лучший шаг {best_step} ({best:.4f})", flush=True)
+            break
     stop.set()
     save(True)
+    print(f"best_step {best_step} best_val {best:.4f}")
     el = time.time() - t_start
     print(f"время шага {el / max(1, len(losses)) * 1000:.0f} мс (батч {args.batch}, вырезка {args.crop}², K {args.K}); "
           f"пик памяти GPU {torch.cuda.max_memory_allocated() / 2**30:.2f} ГБ")
