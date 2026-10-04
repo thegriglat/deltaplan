@@ -206,12 +206,14 @@ def _ctx(lat, lon, utc, hc_or_none, summary):
     return ctx, hc
 
 
-def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None):
+def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, place=None):
     """→ (list[pb.Conditions], tries): k условий на рельеф, только механический режим; tries — сколько кандидатов
     просмотрено на каждое (для доли отказов); extras — список, куда кладутся полные словари derive() (с Hs, U, z_i AGL). Детерминированно: ГСЧ — SeedSequence([cond_seed, relief_id]), место
     (lat, lon, пояс) — одно на рельеф, как место P2 с n_cond условиями."""
     rng = np.random.Generator(np.random.PCG64(np.random.SeedSequence([int(cond_seed), int(relief_id)])))
     lat, lon, utc = draw_place(rng)
+    if place is not None and place.name:      # S1 v2: реальное место — его координаты, а не условная точка
+        lat, lon, utc = float(place.lat_deg), float(place.lon_deg), float(round(place.lon_deg / 15.0))
     ctx, hc = _ctx(lat, lon, utc, hc400, relief_summary)
     out, tries = [], []
     for c in range(k):
@@ -235,9 +237,9 @@ def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None):
     return out, tries
 
 
-def sample(cond_seed, relief_id, relief_summary, k, hc400=None):
+def sample(cond_seed, relief_id, relief_summary, k, hc400=None, place=None):
     """Контракт S2: k условий (cond_id 0 … k−1) на рельеф, механический режим, детерминированно."""
-    return sample_ex(cond_seed, relief_id, relief_summary, k, hc400)[0]
+    return sample_ex(cond_seed, relief_id, relief_summary, k, hc400, place=place)[0]
 
 
 # ----------------------------------------------------------------- CLI make
@@ -273,7 +275,7 @@ def make(corpus_dir, out_dir, k, seed, name=None, command=""):
         recs = []
         for rel in rels:
             hc = cio.to_float(rel.g400).astype(np.float64)
-            conds, tries = sample_ex(seed, rel.id, rel.summary, k, hc)
+            conds, tries = sample_ex(seed, rel.id, rel.summary, k, hc, place=rel.place if rel.HasField("place") else None)
             n_cand += sum(tries)
             n_cond += len(tries)
             recs += [cio.encode_record(c) for c in conds]
