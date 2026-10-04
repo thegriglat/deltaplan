@@ -68,6 +68,9 @@ var _pick_label: Label
 var _done_btn: Button
 var _map_layer: Control
 var _map: MapPicker
+var _pick_elev_m: float = NAN
+var _elev_asked := Vector2(NAN, NAN)
+var _elev_loader: TerrariumLoader
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
 var _recent_edit_id: int = -1  ## запись, для которой сейчас открыт LineEdit переименования
@@ -439,6 +442,7 @@ func _build_map() -> void:
 	var ok := UiKit.button(bar, tr("map_pick_this_point"), _on_map_ok)
 	ok.disabled = true
 	_map.point_picked.connect(func(_la: float, _lo: float) -> void: ok.disabled = false)
+	_map.elevation_ready.connect(_on_map_elevation)
 	UiKit.button(bar, tr("common_cancel"), func() -> void: _map_layer.visible = false)
 
 
@@ -448,20 +452,47 @@ func _on_map_ok() -> void:
 	settings = _collect()
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
+	_pick_elev_m = _map.picked_elevation_m
 	_map_layer.visible = false
 	_update_pick_label()
+
+
+## Высота пришла после «Выбрать эту точку» — обновить подпись, если точка та же.
+func _on_map_elevation(lat: float, lon: float, h_m: float) -> void:
+	if settings.has_pick() and is_equal_approx(settings.pick_lat, lat) and is_equal_approx(settings.pick_lon, lon):
+		_pick_elev_m = h_m
+		_update_pick_label()
 
 
 func _clear_pick() -> void:
 	settings.pick_lat = NAN
 	settings.pick_lon = NAN
+	_pick_elev_m = NAN
 	_update_pick_label()
+
+
+## Высота точки из recent/сохранённых настроек: запрос по Terrarium (сеть/кеш), устаревший ответ отбрасывается.
+func _lookup_pick_elevation() -> void:
+	var ll := Vector2(settings.pick_lat, settings.pick_lon)
+	_elev_asked = ll
+	if _elev_loader == null:
+		_elev_loader = TerrariumLoader.new()
+		add_child(_elev_loader)
+	var h: float = await _elev_loader.elevation_at(ll.x, ll.y)
+	if _elev_asked == ll and settings.has_pick() and Vector2(settings.pick_lat, settings.pick_lon) == ll:
+		_pick_elev_m = h
+		_update_pick_label()
 
 
 func _update_pick_label() -> void:
 	_update_dir_hint()
+	if settings.has_pick() and is_nan(_pick_elev_m) and _elev_asked != Vector2(settings.pick_lat, settings.pick_lon):
+		_lookup_pick_elevation()
 	if settings.has_pick():
-		_pick_label.text = tr("setup_map_point") % [settings.pick_lat, settings.pick_lon]
+		_pick_label.text = (
+			tr("setup_map_point")
+			% [settings.pick_lat, settings.pick_lon, MapPicker.elevation_text(_pick_elev_m)]
+		)
 	else:
 		_pick_label.text = ""
 
@@ -522,6 +553,7 @@ func _build_recent_row(p: Dictionary) -> Control:
 
 
 func _select_recent(p: Dictionary) -> void:
+	_pick_elev_m = NAN
 	settings.pick_lat = float(p.get("lat", 0.0))
 	settings.pick_lon = float(p.get("lon", 0.0))
 	_update_pick_label()

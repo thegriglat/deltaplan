@@ -63,7 +63,7 @@ settings_mouse_sensitivity,Чувствительность мыши,Mouse sensi
 map_hint,"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. The launch is placed on the nearest slope, facing downhill."
 unit_db,дБ,dB
 unit_kg,кг,kg
-setup_map_point,"точка на карте: %.4f, %.4f","map point: %.4f, %.4f"
+setup_map_point,"точка на карте: %.4f, %.4f · %s","map point: %.4f, %.4f · %s"
 map_coords_placeholder,"широта, долгота","latitude, longitude"
 settings_vario_sound,Звук вариометра,Vario sound
 controls_in_flight,В полёте,In flight
@@ -273,7 +273,6 @@ loc_ongudai,Алтай — Онгудай,Altai — Ongudai
 site_ongudai_south,Онгудайский ретранслятор — южный старт (перевал Каянча),Ongudai relay mast — south launch (Kayancha pass)
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
-map_attribution,"Высоты: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 и др.)","Elevation: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 et al.)"
 err_no_location_config,нет конфига локации %s,no location config %s
 err_no_location_data,нет данных рельефа %s,no terrain data %s
 err_layer_read,ошибка чтения слоя %s,error reading layer %s
@@ -402,3 +401,5 @@ net_err_port_busy,Порт занят,Port is busy
 net_err_server_failed,Не удалось запустить сервер,Couldn't start the server
 result_continue_near,Продолжить рядом,Continue nearby
 result_to_start,На старт,Back to launch
+map_layer_opentopomap,OpenTopoMap (топокарта),OpenTopoMap (topographic)
+map_layer_osm,OpenStreetMap,OpenStreetMap

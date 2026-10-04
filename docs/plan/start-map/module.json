@@ -1,0 +1,9 @@
+{
+  "module": "start-map",
+  "plan": "docs/plan/start-map.md",
+  "contracts": "docs/contracts/start-map.md",
+  "branch": "feature/start-map",
+  "copy": "~/deltaplan-start-map",
+  "created": "2026-10-05T03:15:56",
+  "code": "SM"
+}
