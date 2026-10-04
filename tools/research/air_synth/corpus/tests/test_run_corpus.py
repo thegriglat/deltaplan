@@ -161,3 +161,17 @@ def test_stats_subcommand(tmp_path):
     d = json.load(open(js))
     assert d["n"] == 3 and len(d["table"]) == 17 and isinstance(d["out_of_range"], int) and d["n_real"] == 367
     assert all({"sample", "real", "out", "frac_outside"} <= set(t) for t in d["table"])
+
+
+def test_out_of_range_relief_regenerated(tmp_path):
+    import json
+    a, b = str(tmp_path / "a"), str(tmp_path / "b")
+    env = {"FAKEGEN_BAD_IDS": "3,4"}
+    assert run(gen_args(a, 6, 1, seed=1), env).wait(120) == 0
+    assert run(gen_args(b, 6, 3, seed=1), env).wait(120) == 0
+    assert shards_normalized(a) == shards_normalized(b)
+    c = cio.Corpus(a)
+    assert c.ids() == list(range(6))
+    assert [c.params(i)["corpus_seed"] for i in range(6)] == [1, 1, 1, 10 ** 9 + 1, 10 ** 9 + 1, 1]
+    m = json.load(open(a + "/manifest.json"))
+    assert m["range_rejected_n"] == 2 and m["range_rejected_ids"] == {"3": 1, "4": 1}

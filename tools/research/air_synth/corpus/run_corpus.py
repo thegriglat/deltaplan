@@ -19,6 +19,9 @@ import sys
 import tempfile
 import time
 
+MAX_ATTEMPTS = 20
+RETRY_STRIDE = 10 ** 9      # зерно повторной попытки: corpus_seed + попытка·RETRY_STRIDE
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import corpus_io as cio  # noqa: E402
@@ -75,25 +78,39 @@ def make_shard(task):
     dt = np.dtype([("id", "<i8"), ("corpus_seed", "<u8"), ("cloud_point", "<i4")] + [(n, "<f8") for n in names])
     t_gen = t_q = 0.0
     q100, q400, summ, pa = [], [], [], np.zeros(hi - lo, dt)
+    rej = {}
     for j, rid in enumerate(range(lo, hi)):
-        t0 = time.perf_counter()
-        k = -1
-        if cloud is None:
-            params, z100 = gen.generate(seed, rid)
+        for attempt in range(MAX_ATTEMPTS):
+            # рельеф вне диапазона int16 (S1 v3) — не обрезается: перегенерация с зерном seed + attempt·RETRY_STRIDE;
+            # эффективное зерно записано в gen/params.corpus_seed, по строке (corpus_seed, id, cloud_point) рельеф воспроизводится
+            seff = seed + attempt * RETRY_STRIDE
+            t0 = time.perf_counter()
+            k = -1
+            if cloud is None:
+                params, z100 = gen.generate(seff, rid)
+            else:
+                k, theta = cloud_point(cloud, seff, rid, wmode)
+                params, z100 = gen.generate(seff, rid, theta=theta)
+            t1 = time.perf_counter()
+            if not np.all(np.isfinite(z100)):
+                raise ValueError(f"рельеф {rid}: высоты не конечны")
+            lo_m, hi_m = cio.OFFSET_M - 32768 * cio.SCALE_M, cio.OFFSET_M + 32767 * cio.SCALE_M
+            if z100.min() >= lo_m and z100.max() <= hi_m:
+                break
+            rej[rid] = rej.get(rid, 0) + 1
+            t_gen += t1 - t0
         else:
-            k, theta = cloud_point(cloud, seed, rid, wmode)
-            params, z100 = gen.generate(seed, rid, theta=theta)
-        t1 = time.perf_counter()
+            raise ValueError(f"рельеф {rid}: {MAX_ATTEMPTS} попыток вне диапазона int16")
         a, b, s = cio.encode_relief(rid, z100, t1 - t0)
         q100.append(a); q400.append(b); summ.append(s)
-        pa[j]["id"], pa[j]["corpus_seed"], pa[j]["cloud_point"] = rid, seed, k
+        pa[j]["id"], pa[j]["corpus_seed"], pa[j]["cloud_point"] = rid, seff, k
         for n in names:
             pa[j][n] = params[n]
         t_gen += t1 - t0; t_q += time.perf_counter() - t1
     t0 = time.perf_counter()
     nbytes = cio.write_part(out, shard, np.arange(lo, hi), np.stack(q100), np.stack(q400), np.array(summ), params=pa, attrs=attrs, columns=names)
     t_w = time.perf_counter() - t0
-    return dict(shard=shard, n=hi - lo, sec_gen=t_gen, sec_quant=t_q, sec_write=t_w, bytes=nbytes)
+    return dict(shard=shard, n=hi - lo, range_rejected=rej, sec_gen=t_gen, sec_quant=t_q, sec_write=t_w, bytes=nbytes)
 
 
 def _git_commit():
@@ -155,6 +172,17 @@ def gen_corpus(out, n, seed, workers, shard_size, gen_name, quiet=False, theta_c
                 if not quiet:
                     print(f"часть {st['shard']:05d} готова ({len(stats)}/{len(todo)}), {time.time() - t0:.0f} с", flush=True)
     cio.build_view(out, "relief")
+    tf = os.path.join(out, "timing.jsonl")
+    if os.path.exists(tf):
+        allrej = {}
+        for l in open(tf):
+            if l.strip():
+                allrej.update({int(k): v for k, v in json.loads(l).get("range_rejected", {}).items()})
+        man = cio.read_manifest(out)
+        man.update(range_rejected_n=len(allrej), range_rejected_attempts=sum(allrej.values()),
+                   range_rejected_ids={str(k): v for k, v in sorted(allrej.items())},
+                   range_rejected_note="рельефы вне int16 (S1 v3) перегенерированы с зерном corpus_seed + попытка·1e9; эффективное зерно — gen/params.corpus_seed")
+        cio.write_manifest(out, man)
     return stats
 
 
