@@ -18,7 +18,7 @@
     },
     {
       "name": "A3",
-      "version": "5",
+      "version": "6",
       "ref": "docs/contracts/aframe-geometry.md"
     }
   ],
@@ -82,5 +82,5 @@
   ],
   "notes": "",
   "created": "2026-10-05T01:49:34",
-  "edited": "2026-10-05T01:49:34"
+  "edited": "2026-10-05T01:56:22"
 }
