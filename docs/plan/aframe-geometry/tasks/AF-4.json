@@ -18,7 +18,7 @@
     },
     {
       "name": "A3",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/aframe-geometry.md"
     }
   ],
@@ -69,10 +69,6 @@
       "tests": "pilot_arms"
     },
     {
-      "name": "pilot_pose",
-      "tests": "pilot_pose"
-    },
-    {
       "name": "test_glider",
       "tests": "test_glider"
     },
@@ -84,6 +80,14 @@
       "name": "models",
       "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
       "expect": "exit=0"
+    },
+    {
+      "name": "wing_clearance",
+      "tests": "wing_clearance"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
     }
   ],
   "report_extra": [
@@ -92,5 +96,5 @@
   ],
   "notes": "",
   "created": "2026-10-05T00:26:18",
-  "edited": "2026-10-05T00:26:18"
+  "edited": "2026-10-05T00:40:55"
 }
