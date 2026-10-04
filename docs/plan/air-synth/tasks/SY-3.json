@@ -13,7 +13,7 @@
     },
     {
       "name": "S1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/air-synth.md"
     }
   ],
@@ -56,5 +56,5 @@
   ],
   "notes": "Восстановить распределения условий P2 по коду и документам (данных air_nn_data больше нет): tools/research/air_nn_pilot/airlite_gen.py → plan_rows (час 9/12/15/20, облачность clear/partly/overcast, U10 0,5–8 м/с, направление 0–360°, t_max 18–34 °C), places.context / reference_context (дата, lat/lon, utc), dataset.py и configs/dataset.yaml (набор terrain, n_cond, cond_seed); README пилота — разделы «Наборы», «Числа FiLM» (18 чисел — какие производные нужны сети: α, max_profile, z_i, z_lcl, heat, brk, класс устойчивости, cap, солнце, t). Определение w*/U и порог механического режима — как в AN-4 (dp search AN-4, dp plan ann2, docs/contracts/ann2.md). Производные считать кодом решателя (tools/research/air3d: weather.py, real.py, ref_study.py — только импорт, не править), N над слоем перемешивания и Fr = U10·max_profile/(N·relief_m) — по S2. Модельный рельеф без координат: lat/lon — из распределения мест P2 (обосновать), сдвиг UTC — как places.context. conditions.py: sample(cond_seed, relief_id, relief_summary, k) → list[Conditions] (детерминированно, перевыбор до mechanical=true, штиль не брать), CLI make --corpus <каталог S1> --out <каталог S2> --k 2 --seed S (шарды и индекс — через corpus_io.py из SY-1: он пишется параллельно; до его вливания разработать и проверить sample на поддельных сводках, затем dp task sync SY-1 вливает ветку модуля — когда координатор сообщит, что SY-1 влит). out_conditions/dist_v1.json — распределения (гистограммы/квантили) исходных и производных на 10 000 поддельных или реальных сводках, доля отказов по механическому режиму; коммитить (небольшой). strat_override не заполнять (H5 позже). Текст для контракта S2 (lat/lon, формула w*/U, что ещё уточнить) — в отчёт (contract_text_s2), контракт правит координатор. Массовый набор на корпусе 10⁴ НЕ запускать до вливания корпуса (это SY-5).",
   "created": "2026-10-04T22:22:44",
-  "edited": "2026-10-04T22:22:44"
+  "edited": "2026-10-04T22:28:45"
 }
