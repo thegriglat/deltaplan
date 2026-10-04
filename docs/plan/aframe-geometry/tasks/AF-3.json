@@ -2,8 +2,8 @@
   "id": "AF-3",
   "module": "aframe-geometry",
   "type": "dp-engineer",
-  "title": "Поза на старте и кадры профиля",
-  "goal": "На старте руки на стойках на уровне плеч или чуть выше, стойки чуть впереди плеч, локти согнуты (A3.2) — плечи не «выламываются назад»; инструмент бокового кадра в tools/shots и кадры профиля apogee на земле и в полёте.",
+  "title": "Поза на старте",
+  "goal": "На старте руки на стойках на уровне плеч или чуть выше, стойки чуть впереди плеч, локти согнуты (A3.2) — плечи не «выламываются назад»; в полёте локоть у хвата на штанге (pilot_arms) и зазор крыла на земле (wing_clearance) — зелёные. Кадры не снимать.",
   "plan_ref": "Задачи",
   "contracts": [
     {
@@ -31,8 +31,7 @@
     "configs/flight.json",
     "tests/flight/test_pilot_arms.gd",
     "tests/flight/test_pilot_pose.gd",
-    "tests/game/test_aframe_contracts.gd",
-    "tools/shots/"
+    "tests/game/test_aframe_contracts.gd"
   ],
   "dont_touch": [
     "tools/blender",
@@ -68,10 +67,9 @@
     }
   ],
   "report_extra": [
-    "apogee_ground_numbers",
-    "images"
+    "apogee_ground_numbers"
   ],
   "notes": "",
   "created": "2026-10-04T23:47:08",
-  "edited": "2026-10-05T00:05:48"
+  "edited": "2026-10-05T00:16:37"
 }
