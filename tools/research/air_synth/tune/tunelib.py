@@ -38,21 +38,30 @@ def lhs(dim, n, seed=0):
     return 2 * qmc.LatinHypercube(d=dim, seed=seed, optimization="random-cd").random(n) - 1
 
 
-def fit_one(sur, y_ref, sigma, dim, starts=24, seed=0):
-    """argmin_u Σ ((sur(u) − y_ref)/σ)² по u ∈ [-1,1]^dim, несколько стартов. nan в y_ref/σ — наблюдаемая пропущена.
-    Возвращает (u, χ², остатки/σ, ndf)."""
+def fit_one(sur, y_ref, sigma, dim, starts=24, seed=0, fixed=None):
+    """argmin_u Σ ((sur(u) − y_ref)/σ)² по u ∈ [-1,1]^dim, несколько стартов; fixed = {индекс: u} — закреплённые координаты.
+    nan в y_ref/σ — наблюдаемая пропущена. Возвращает (u, χ², остатки/σ, ndf)."""
+    fixed = fixed or {}
+    free = [k for k in range(dim) if k not in fixed]
     ok = np.isfinite(y_ref) & np.isfinite(sigma) & (sigma > 0)
-    f = lambda u: ((sur(u)[0] - y_ref) / sigma)[ok]
+
+    def full(x):
+        u = np.zeros(dim)
+        u[free] = x
+        for k, v in fixed.items():
+            u[k] = v
+        return u
+    f = lambda x: ((sur(full(x))[0] - y_ref) / sigma)[ok]
     rng = np.random.default_rng(seed)
     best = None
     for s in range(starts):
-        u0 = np.zeros(dim) if s == 0 else rng.uniform(-1, 1, dim)
-        r = least_squares(f, u0, bounds=(-1, 1))
+        x0 = np.zeros(len(free)) if s == 0 else rng.uniform(-1, 1, len(free))
+        r = least_squares(f, x0, bounds=(-1, 1))
         if best is None or r.cost < best.cost:
             best = r
     res = np.full(len(y_ref), np.nan)
     res[ok] = best.fun
-    return best.x, float(2 * best.cost), res, int(ok.sum() - dim)
+    return full(best.x), float(2 * best.cost), res, int(ok.sum() - len(free))
 
 
 def chi2_cov(sur, u, sigma, ok, eps=1e-3):
