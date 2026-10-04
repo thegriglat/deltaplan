@@ -41,6 +41,9 @@ func _ready() -> void:
 	if _only == "wings":
 		_run_wings()
 		return
+	if _only == "map":
+		_run_map()
+		return
 	_run()
 
 
@@ -181,6 +184,49 @@ func _run_wings() -> void:
 	wing_opt.get_popup().hide()
 	print("ui_shot: OK")
 	await _quit(0)
+
+
+## SM-1: оверлей карты выбора старта на Алтае (сеть нужна), точка выбрана, высота получена.
+## Кадры map_osm, map_osm, map_setup (подпись точки на экране «Полёт…»).
+func _run_map() -> void:
+	var main: Node = MAIN_SCENE.instantiate()
+	_main = main
+	add_child(main)
+	for i in 4:
+		await get_tree().process_frame
+	main.get_node("UI/StartMenu").visible = false
+	var setup: FlightSetupScreen = main.get_node("UI/FlightSetupScreen")
+	setup.visible = true
+	setup.call("_open_map")
+	var map: MapPicker = setup.get("_map")
+	map.center_on(50.75, 86.13, 13.0)
+	map.pick(50.752, 86.135)
+	await _wait_map(map)
+	await _shoot("map_osm")
+	map.call("_on_layer_selected", 1)
+	await _wait_map(map)
+	await _shoot("map_otm")
+	map.call("_on_layer_selected", 0)
+	setup.call("_on_map_ok")
+	await _wait_map(map)
+	await _shoot("map_setup")
+	print("ui_shot: OK")
+	await _quit(0)
+
+
+## Ждать прогрузки тайлов (все ячейки загружены) и высоты точки, до 20 с.
+func _wait_map(map: MapPicker) -> void:
+	var t := 0.0
+	while t < 20.0:
+		await get_tree().create_timer(0.5, true).timeout
+		t += 0.5
+		var loading := false
+		for k in map._tiles:
+			if map._tiles[k] == null:
+				loading = true
+		if not loading and not is_nan(map.picked_elevation_m) and t > 2.0:
+			break
+	await get_tree().create_timer(0.5, true).timeout
 
 
 func _soft_landing_info() -> Dictionary:

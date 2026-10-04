@@ -97,6 +97,48 @@ func fetch_tile(z: int, x: int, y: int) -> Image:
 	return await _fetch_tile(z, x, y)
 
 
+## Высота, м над уровнем моря, из цвета пикселя Terrarium (каналы 0..1 в Color).
+static func decode_height(c: Color) -> float:
+	return roundf(c.r * 255.0) * 256.0 + roundf(c.g * 255.0) + roundf(c.b * 255.0) / 256.0 - 32768.0
+
+
+## Высота билинейно по 4 соседним пикселям; px — в пикселях тайла (центр пикселя i — i + 0,5).
+static func height_in_image(img: Image, px: Vector2) -> float:
+	var w := img.get_width()
+	var h := img.get_height()
+	var fx := px.x - 0.5
+	var fy := px.y - 0.5
+	var x0 := floori(fx)
+	var y0 := floori(fy)
+	var tx := fx - x0
+	var ty := fy - y0
+	var xa := clampi(x0, 0, w - 1)
+	var xb := clampi(x0 + 1, 0, w - 1)
+	var ya := clampi(y0, 0, h - 1)
+	var yb := clampi(y0 + 1, 0, h - 1)
+	var top := lerpf(decode_height(img.get_pixel(xa, ya)), decode_height(img.get_pixel(xb, ya)), tx)
+	var bot := lerpf(decode_height(img.get_pixel(xa, yb)), decode_height(img.get_pixel(xb, yb)), tx)
+	return lerpf(top, bot, ty)
+
+
+## Высота точки, м над уровнем моря (тайл z — по умолчанию map_picker.elevation_zoom, общий кеш).
+## NAN — нет данных.
+func elevation_at(lat: float, lon: float, z: int = -1) -> float:
+	_ensure_cfg()
+	if z < 0:
+		z = int(Config.get_config("world").get("map_picker", {}).get("elevation_zoom", 12))
+	if absf(lat) > 85.0:
+		return NAN
+	var wp := MapPicker.latlon_to_world_px(lat, lon, z)
+	var n := 1 << z
+	var tx := clampi(floori(wp.x / TILE_PX), 0, n - 1)
+	var ty := clampi(floori(wp.y / TILE_PX), 0, n - 1)
+	var img: Image = await _fetch_tile(z, tx, ty)
+	if img == null:
+		return NAN
+	return height_in_image(img, wp - Vector2(tx, ty) * TILE_PX)
+
+
 ## Путь к тайлу в кеше.
 func cache_path(z: int, x: int, y: int) -> String:
 	return String(_cfg.get("cache_dir", "user://terrain_cache")).path_join(
