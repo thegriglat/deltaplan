@@ -82,3 +82,5 @@
 {"t": "2026-10-04T22:52:20", "by": "executor", "task": "SY-4", "ev": "checked", "note": "2/2 s4_test=ok:7 passed; h7_table=ok:\"sec_per_case_median\""}
 {"t": "2026-10-04T22:52:40", "by": "reviewer", "task": "SY-3", "ev": "reviewed", "note": "Скоуп чист (3 файла в скоупе). Поля и определения S2 v2 совпадают: w* по ann2/regime.py, N и Fr по film_bg.bg_raw без обрезки, H = solar_flux с lag none и гаше…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/air-synth/tasks/SY-3.review.json"}
 {"t": "2026-10-04T22:52:44", "by": "coordinator", "task": "SY-4", "ev": "accepted", "note": "по отчёту: замер, проверки PASS, uncertain разумны (шум кривой воркеров, база 1000 м); слабый ветер не нужен — H1 только механический режим без штиля; перезамер на рельефах корпуса — после SY-7"}
+{"t": "2026-10-04T22:52:44", "by": "coordinator", "task": "SY-4", "ev": "checked", "commits": ["54c551ea"], "note": "1/2 s4_test=FAIL:нет совпадения; h7_table=ok:\"sec_per_case_median\""}
+{"t": "2026-10-04T22:52:45", "by": "coordinator", "task": "SY-4", "ev": "merged", "commits": ["54c551ea"]}
