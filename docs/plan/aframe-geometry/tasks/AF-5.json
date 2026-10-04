@@ -26,7 +26,9 @@
     "scenes/models_preview/check_models.gd",
     "scripts/flight/glider_visual.gd (только _fallback_wing)",
     "assets/models/glider_*.glb (пересборка — только после вливания AF-6 и dp task sync)",
-    "tests/instruments"
+    "tests/instruments",
+    "configs/controls.json (только _doc look_instrument)",
+    "configs/ui.json, locale/ui.csv (только текст про взгляд на прибор, если там «вниз»)"
   ],
   "dont_touch": [
     "configs/pilot.json",
@@ -58,5 +60,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-05T01:49:34",
-  "edited": "2026-10-05T01:56:22"
+  "edited": "2026-10-05T01:56:49"
 }
