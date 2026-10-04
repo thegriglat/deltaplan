@@ -100,7 +100,7 @@ OLD = {
     "training": {"key": "Wills Wing|Falcon 4||170", "kind": "паспорт",
                  "fields": ["span_m", "area_m2", "wing_mass_kg", "pilot_mass_min_kg", "pilot_mass_max_kg", "cert"],
                  "note": "не из паспорта: docs/archive/plan/wings-lineup.md",
-                 "notes": {"double_surface_pct": "числа в паспорте нет; однообшивочное учебное (docs/archive/plan/wings-lineup.md)"}},
+                 "notes": {"double_surface_pct": "числа в паспорте нет; учебное, ≈ 30 % по отзыву пилота (docs/archive/plan/wings-lineup.md)"}},
     "sport": {"key": "Moyes|Litespeed RS||4", "kind": "паспорт",
               "fields": ["span_m", "area_m2", "wing_mass_kg", "double_surface_pct", "cert"],
               "note": "не из паспорта: docs/archive/plan/wings-lineup.md",
@@ -233,12 +233,28 @@ def data():
     return DATA
 
 
+def _classes():
+    with open(os.path.join(ROOT, "configs", "wing_classes.json"), encoding="utf-8") as f:
+        return json.load(f)["classes"]
+
+
+def class_limit(cfg):
+    """Предел ветра класса крыла (м/с, от и до) из configs/wing_classes.json."""
+    lim = _classes()[str(int(cfg["wind_class"]))]["wind_limit_ms"]
+    return float(lim[0]), float(lim[1])
+
+
+def class_name(cfg):
+    """Название класса по поперечине (locale/ui.csv, ключ wing_class_N)."""
+    return data()["loc"][_classes()[str(int(cfg["wind_class"]))]["name_key"]]
+
+
 def order_in_group(gid):
-    """Порядок меню игры (scripts/game/wing_catalog.gd): best_glide, затем wind_max_ms, затем путь."""
+    """Порядок меню игры (scripts/game/wing_catalog.gd): best_glide, затем верхний предел ветра класса, затем путь."""
     cfgs = data()["cfgs"]
     ids = [w for w, c in cfgs.items() if c.get("group") == gid]
     return sorted(ids, key=lambda w: (float(cfgs[w].get("reference", {}).get("best_glide", 0.0)),
-                                      float(cfgs[w].get("wind_max_ms", 0.0)), "wings/" + w))
+                                      class_limit(cfgs[w])[1], "wings/" + w))
 
 
 # --------------------------------------------------------------------------------------------- источники значений
@@ -422,7 +438,7 @@ def wing_rows(wid):
         rows.append(row("Масса пилота с подвеской, макс.", "%s кг" % fm(cfg["pilot_mass_max_kg"]), k2, t2))
     ds = cfg["double_surface_pct"]
     k, t = num_prov("double_surface_pct")
-    rows.append(row("Двойная обшивка", "нет (однообшивочное)" if not ds else "%s %% размаха" % fm(ds), k, t))
+    rows.append(row("Двойная обшивка", "%s %% размаха" % fm(ds), k, t))
     k, t = kingpost_prov(wid, cfg, tz, ov, spec, recs)
     rows.append(row("Мачта", "есть (мачтовое)" if cfg["kingpost"] else "нет (безмачтовое)", k, t))
     # класс / сертификат
@@ -540,8 +556,8 @@ def model_rows(wid, cfg, spec, base_name):
         row("Минимальное снижение", "%s м/с на %s км/ч" % (fm(ref["min_sink_ms"]), fm(ref["min_sink_speed_kmh"])), "оценка", how),
         row("Качество", "%s на %s км/ч" % (fm(ref["best_glide"]), fm(ref["best_glide_speed_kmh"])), "оценка",
             how + ("; подобие качество не меняет — как у базы" if spec else "")),
-        row("Ветер на старте до", "%s м/с" % fm(cfg["wind_max_ms"]), "оценка",
-            "подсказка меню игры" + (", как у базы %s" % base_name if spec else " (docs/archive/plan/wings-lineup.md §3)")),
+        row("Ветер на старте", "%s, %s–%s м/с" % (class_name(cfg), fm(class_limit(cfg)[0]), fm(class_limit(cfg)[1])), "оценка",
+            "класс — по поперечине, предел класса — со слов пилота (configs/wing_classes.json); подсказка меню игры, в физике не участвует"),
     ]
     out.append(row("Эталонная масса пилота (для поляры)", "%s кг" % fm(cfg["pilot_mass_ref_kg"]), "оценка",
                    "модель игры" + (": то же место в диапазоне, что у базы %s" % base_name if spec else "")))

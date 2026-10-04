@@ -12,7 +12,7 @@ func test_k1_version_in_doc() -> void:
 	check(not text.is_empty(), "нет " + DOC)
 	var at := text.find("## WL-К1.")
 	var line := text.substr(at, text.find("\n", at) - at) if at >= 0 else ""
-	check(line.contains("(v1)"), "WL-К1 v1 в документе: %s" % line)
+	check(line.contains("(v2)"), "WL-К1 v2 в документе: %s" % line)
 
 
 func test_class_table_complete() -> void:
@@ -51,7 +51,7 @@ func test_every_wing_has_class() -> void:
 		var ds := float(cfg.get("double_surface_pct", -1.0))
 		check(ds >= 0.0 and ds <= 100.0, "%s: double_surface_pct %s" % [w, ds])
 		var src := String(cfg.get("double_surface_src", ""))
-		check(src == "passport" or src == "pilot_estimate", "%s: double_surface_src %s" % [w, src])
+		check(src in ["passport", "pilot_estimate", "config_prior"], "%s: double_surface_src %s" % [w, src])
 		var doc := String(cfg.get("wind_class_doc", "")) + String(cfg.get("double_surface_pct_doc", ""))
 		check(doc.contains("двойной обшивки"), "%s: источник доли обшивки в doc" % w)
 	for i in counts:

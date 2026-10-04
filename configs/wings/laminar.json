@@ -13,7 +13,7 @@
   "kingpost": true,
   "kingpost_doc": "Мачта с верхними тросами: true — мачтовое, false — безмачтовое (topless)",
   "double_surface_pct": 85,
-  "double_surface_src": "pilot_estimate",
+  "double_surface_src": "config_prior",
   "double_surface_pct_doc": "Доля двойной обшивки, % размаха (внутреннее поле, в меню не выводится): оценка со слов пилота 05.10.2026 (0 % — только Славутич и Рогалло, учебные ≈ 30 %, спортивные 70–80 %); в паспорте нет",
   "area_m2": 14.5,
   "area_m2_doc": "Площадь крыла, м² (Laminar Easy 14 — 14,5)",
