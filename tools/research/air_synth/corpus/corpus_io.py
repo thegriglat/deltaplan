@@ -266,6 +266,9 @@ class Corpus:
             self._ids = np.concatenate(ids)
             self._src = src
         self.contract = self.attrs["contract"]
+        cp = self.attrs.get("clipped_places", "")
+        cp = cp.decode() if isinstance(cp, bytes) else str(cp)
+        self.clipped_places = [x for x in cp.split(",") if x]     # реальные места с обрезанными узлами (S1 v3), иначе []
 
     def _f(self, p):
         if p not in self._files:

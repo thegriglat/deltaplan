@@ -36,14 +36,27 @@ def load_cloud(path):
         raise ValueError("облако: points не согласованы с names")
     if "weights" in c and c["weights"] is not None and len(c["weights"]) != len(c["points"]):
         raise ValueError("облако: weights не по числу points")
+    if not np.all(np.isfinite(np.asarray(c["points"], float))):
+        raise ValueError("облако: в points есть NaN/inf")
+    if c.get("weights") is not None and not np.all(np.isfinite(np.asarray(c["weights"], float))):
+        raise ValueError("облако: в weights есть NaN/inf")
+    # T (t_total_yr) — одно для всего облака: столбец t_total_yr с разными значениями или поле t_total_yr-списком — отказ
+    tt = []
+    if "t_total_yr" in c["names"]:
+        k = c["names"].index("t_total_yr")
+        tt += [p[k] for p in c["points"]]
+    if isinstance(c.get("t_total_yr"), (list, tuple)):
+        tt += list(c["t_total_yr"])
+    if len(set(tt)) > 1:
+        raise ValueError("облако: разные t_total_yr в точках")
     return c
 
 
-def cloud_point(c, seed, rid):
+def cloud_point(c, seed, rid, weights="equal"):
     """Точка облака для рельефа: детерминированно из SeedSequence([corpus_seed, id, 1]). -> (номер, theta-словарь)."""
     import numpy as np
     rng = np.random.default_rng(np.random.SeedSequence([seed, rid, 1]))
-    w = c.get("weights")
+    w = c.get("weights") if weights == "file" else None
     if w:
         w = np.asarray(w, float)
         k = int(rng.choice(len(w), p=w / w.sum()))
@@ -54,7 +67,7 @@ def cloud_point(c, seed, rid):
 
 def make_shard(task):
     """Рабочий процесс: рельефы части [lo, hi) -> part-{k}.h5. Возвращает тайминги и размер."""
-    gen_name, out, seed, shard, lo, hi, cloud_path, attrs = task
+    gen_name, out, seed, shard, lo, hi, cloud_path, attrs, wmode = task
     gen = importlib.import_module(gen_name)
     cloud = load_cloud(cloud_path) if cloud_path else None
     names = list(gen.PARAM_NAMES)
@@ -67,7 +80,7 @@ def make_shard(task):
         if cloud is None:
             params, z100 = gen.generate(seed, rid)
         else:
-            k, theta = cloud_point(cloud, seed, rid)
+            k, theta = cloud_point(cloud, seed, rid, wmode)
             params, z100 = gen.generate(seed, rid, theta=theta)
         t1 = time.perf_counter()
         a, b, s = cio.encode_relief(rid, z100, t1 - t0)
@@ -89,7 +102,7 @@ def _git_commit():
         return ""
 
 
-def gen_corpus(out, n, seed, workers, shard_size, gen_name, quiet=False, theta_cloud=None):
+def gen_corpus(out, n, seed, workers, shard_size, gen_name, quiet=False, theta_cloud=None, cloud_weights="equal"):
     _single_thread()
     gen = importlib.import_module(gen_name)
     cloud_id = ""
@@ -100,8 +113,21 @@ def gen_corpus(out, n, seed, workers, shard_size, gen_name, quiet=False, theta_c
     os.makedirs(out, exist_ok=True)
     cio.clean_tmp(out)
     want = dict(contract=cio.CONTRACT["relief"], kind="relief", n_total=n, corpus_seed=seed, shard_size=shard_size,
-                generator_version=gen.GENERATOR_VERSION, theta_cloud=cloud_id)
+                generator_version=gen.GENERATOR_VERSION, theta_cloud=cloud_id,
+                cloud_weights=cloud_weights if theta_cloud else "")
     man = cio.read_manifest(out)
+    if not man and cio.list_parts(out):
+        # части без manifest.json: сверка по атрибутам корня первой части или отказ
+        import h5py
+        with h5py.File(cio.part_path(out, cio.list_parts(out)[0]), "r") as f0:
+            ra = dict(f0.attrs)
+        bad = [k for k in ("contract", "kind", "n_total", "corpus_seed", "shard_size", "generator_version", "theta_cloud", "cloud_weights")
+               if str(ra.get(k, "")) != str(want.get(k, ""))]
+        if bad:
+            raise SystemExit("части без manifest.json, атрибуты первой части не совпадают с запуском: " + ", ".join(bad))
+        man = dict(want, command=str(ra.get("command", "")), git_commit=str(ra.get("git_commit", "")),
+                   created=str(ra.get("created", "")), complete=False, manifest_restored=True)
+        cio.write_manifest(out, man)
     if man:
         for k, v in want.items():
             if man.get(k) != v:
@@ -110,11 +136,11 @@ def gen_corpus(out, n, seed, workers, shard_size, gen_name, quiet=False, theta_c
         man = dict(want, command=" ".join(sys.argv), git_commit=_git_commit(), created=datetime.datetime.now().isoformat(timespec="seconds"),
                    complete=False)
         cio.write_manifest(out, man)
-    attrs = dict(shard_size=shard_size, n_total=n, generator_version=gen.GENERATOR_VERSION, corpus_seed=np.uint64(seed), theta_cloud=cloud_id,
+    attrs = dict(shard_size=shard_size, n_total=n, generator_version=gen.GENERATOR_VERSION, corpus_seed=np.uint64(seed), theta_cloud=cloud_id, cloud_weights=want["cloud_weights"],
                  command=man["command"], git_commit=man["git_commit"])
     nshards = (n + shard_size - 1) // shard_size
     have = set(cio.list_parts(out))
-    todo = [(gen_name, out, seed, k, k * shard_size, min(n, (k + 1) * shard_size), theta_cloud, attrs) for k in range(nshards) if k not in have]
+    todo = [(gen_name, out, seed, k, k * shard_size, min(n, (k + 1) * shard_size), theta_cloud, attrs, cloud_weights) for k in range(nshards) if k not in have]
     if not quiet:
         print(f"частей {nshards}, готово {len(have & set(range(nshards)))}, осталось {len(todo)}", flush=True)
     stats = []
@@ -174,6 +200,7 @@ def main(argv=None):
     g.add_argument("--out", required=True); g.add_argument("--n", type=int, required=True)
     g.add_argument("--corpus-seed", type=int, required=True); g.add_argument("--workers", type=int, default=os.cpu_count())
     g.add_argument("--shard-size", type=int, default=100); g.add_argument("--generator", default="generator")
+    g.add_argument("--cloud-weights", choices=("equal", "file"), default="equal", help="равные веса точек облака (по умолчанию; решение 10-05) или поле weights файла")
     g.add_argument("--theta-cloud", help="облако настроек .json (S3 v2); без него theta=None")
     i = sub.add_parser("view"); i.add_argument("dir")
     s = sub.add_parser("sample"); s.add_argument("dir"); s.add_argument("--n", type=int, default=50); s.add_argument("--seed", type=int, default=1)
@@ -183,7 +210,7 @@ def main(argv=None):
     b.add_argument("--warmup", action="store_true"); b.add_argument("--json")
     a = ap.parse_args(argv)
     if a.cmd == "gen":
-        gen_corpus(a.out, a.n, a.corpus_seed, a.workers, a.shard_size, a.generator, theta_cloud=a.theta_cloud)
+        gen_corpus(a.out, a.n, a.corpus_seed, a.workers, a.shard_size, a.generator, theta_cloud=a.theta_cloud, cloud_weights=a.cloud_weights)
     elif a.cmd == "view":
         print(cio.build_view(a.dir))
     elif a.cmd == "sample":

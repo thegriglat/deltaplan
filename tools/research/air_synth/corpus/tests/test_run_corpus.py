@@ -103,3 +103,49 @@ def test_theta_cloud(tmp_path):
     assert len(set(pts)) > 1
     assert "sha1:" in c.attrs["theta_cloud"]
     assert run(gen_args(a, 6, 1)).wait(120) != 0          # продолжение без облака у корпуса с облаком — отказ
+
+
+def _cloud(tmp_path, **kw):
+    import json
+    c = {"names": ["shift", "a"], "points": [[10.0, 0.1], [50.0, 0.2], [90.0, 0.3]], "weights": [1, 1, 2], "source": "test"}
+    c.update(kw)
+    cl = str(tmp_path / "cloud.json")
+    json.dump(c, open(cl, "w"))
+    return cl
+
+
+def test_cloud_bad_values_refused(tmp_path):
+    import json
+    cl = _cloud(tmp_path, points=[[10.0, 0.1], [float("nan"), 0.2]], weights=[1, 1])
+    assert run(gen_args(str(tmp_path / "a"), 4, 1) + ["--theta-cloud", cl]).wait(120) != 0
+    cl = _cloud(tmp_path, points=[[10.0, 0.1], [float("inf"), 0.2]], weights=[1, 1])
+    assert run(gen_args(str(tmp_path / "b"), 4, 1) + ["--theta-cloud", cl]).wait(120) != 0
+    cl = _cloud(tmp_path, names=["shift", "t_total_yr"], points=[[10.0, 1e6], [20.0, 2e6]], weights=[1, 1])
+    assert run(gen_args(str(tmp_path / "c"), 4, 1) + ["--theta-cloud", cl]).wait(120) != 0
+    assert not os.path.exists(str(tmp_path / "c" / "part-00000.h5"))
+
+
+def test_cloud_equal_weights_by_default(tmp_path):
+    import json
+    cl = _cloud(tmp_path, points=[[10.0, 0.1], [20.0, 0.2], [30.0, 0.3]], weights=[1e-9, 1e-9, 1.0])      # по весам файла почти всегда точка 2
+    a = str(tmp_path / "a")
+    assert run(gen_args(a, 40, 2, shard_size=10, seed=1) + ["--theta-cloud", cl]).wait(300) == 0
+    c = cio.Corpus(a)
+    ks = [c.params(r)["cloud_point"] for r in range(40)]
+    assert set(ks) == {0, 1, 2} and c.attrs["cloud_weights"] == "equal"
+    assert json.load(open(a + "/manifest.json"))["cloud_weights"] == "equal"
+    b = str(tmp_path / "b")
+    assert run(gen_args(b, 40, 2, shard_size=10, seed=1) + ["--theta-cloud", cl, "--cloud-weights", "file"]).wait(300) == 0
+    kb = [cio.Corpus(b).params(r)["cloud_point"] for r in range(40)]
+    assert set(kb) == {2}
+    assert run(gen_args(b, 40, 2, shard_size=10, seed=1) + ["--theta-cloud", cl]).wait(120) != 0   # смена режима весов при продолжении — отказ
+
+
+def test_resume_without_manifest(tmp_path):
+    out = str(tmp_path / "o")
+    assert run(gen_args(out, 6, 1)).wait(120) == 0
+    os.remove(out + "/manifest.json")
+    assert run(gen_args(out, 6, 1)).wait(120) == 0                 # атрибуты первой части совпали — манифест восстановлен
+    assert cio.read_manifest(out)["n_total"] == 6
+    os.remove(out + "/manifest.json")
+    assert run(gen_args(out, 8, 1)).wait(120) != 0                 # не совпали — отказ
