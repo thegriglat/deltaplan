@@ -1,0 +1,100 @@
+{
+  "id": "AF-1",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Геометрия трапеции и центровка крыла",
+  "goal": "Стойки почти перпендикулярно килю (4–13° низом вперёд, параметр крыла), подвеска = центр масс по трубам + 1–2 см вперёд (офлайн-параметр), вершина относительно подвески по типу крыла, база под плечами в полёте на балансировке; маркеры стоек в .glb — единственный источник для игры; все 48 .glb пересобраны; физика не меняется.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A3",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-1",
+  "branch": "aframe-geometry/AF-1",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "tools/blender/glider_params.json",
+    "tools/blender/build_gliders.py",
+    "tools/blender/frame_parts.py",
+    "tools/blender/<новый скрипт центровки>",
+    "assets/models/glider_*.glb",
+    "configs/flight.json",
+    "scripts/flight/glider_visual.gd",
+    "tests/game/test_aframe_contracts.gd",
+    "tests/game/test_wing_models_contract.gd",
+    "scenes/models_preview/check_models.gd",
+    "docs/guide/models.md"
+  ],
+  "dont_touch": [
+    "configs/camera.json",
+    "configs/instruments.json",
+    "tests/game/test_cockpit.gd",
+    "scripts/flight/flight_model.gd",
+    "configs/wings/*.json",
+    "glider_visual.gd: _ground_pose, GROUND_*, upright_grip (AF-3)"
+  ],
+  "accept": [
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "test_polar",
+      "tests": "test_polar"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "wing_clearance",
+      "tests": "wing_clearance"
+    },
+    {
+      "name": "test_glider",
+      "tests": "test_glider"
+    },
+    {
+      "name": "test_mass",
+      "tests": "test_mass"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "apogee_before_after",
+    "all_wings_base_vs_shoulder",
+    "physics_check"
+  ],
+  "notes": "",
+  "created": "2026-10-04T23:45:35",
+  "edited": "2026-10-04T23:45:39"
+}
