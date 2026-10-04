@@ -249,9 +249,15 @@ func bar_grip(side: int) -> Vector3:
 	return bb * (Vector3(side * float(a.get("bar_grip_half_width_m", 0.33)), 0.0, 0.0) + off)
 
 
-## Точка хвата на стойке трапеции на уровне плеча (+ arms.upright_above_shoulder_m, при
-## выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
+## Точка хвата на стойке трапеции выше плеча по вертикали мира (+ arms.upright_above_shoulder_m,
+## при выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
 func upright_grip(side: int) -> Vector3:
+	return _upright_point(side, shoulder(side))
+
+
+## Точка на оси стойки, поднятая над плечом sh (оси визуала) на заданное arms-конфигом число метров
+## по вертикали мира: визуал наклонён на тангаж крыла, поэтому высоту считаем не по его Y.
+func _upright_point(side: int, sh: Vector3) -> Vector3:
 	var a: Dictionary = _cfg.get("arms", {})
 	var apex := _marker_pos("UprightTopL" if side < 0 else "UprightTopR")
 	var end := _marker_pos("UprightBottomL" if side < 0 else "UprightBottomR")
@@ -260,9 +266,14 @@ func upright_grip(side: int) -> Vector3:
 		float(a.get("flare_above_shoulder_m", 0.25)),
 		arm_flare
 	)
-	var y := shoulder(side).y + above
+	var th := _frame_pitch()
+	var c := cos(th)
+	var sn := sin(th)
+	var y_apex := apex.y * c - apex.z * sn
+	var y_end := end.y * c - end.z * sn
+	var y := sh.y * c - sh.z * sn + above
 	var t := (
-		clampf(inverse_lerp(apex.y, end.y, y), 0.05, 0.95) if absf(apex.y - end.y) > 1e-3 else 0.5
+		clampf(inverse_lerp(y_apex, y_end, y), 0.05, 0.95) if absf(y_apex - y_end) > 1e-3 else 0.5
 	)
 	return apex.lerp(end, t)
 
@@ -433,7 +444,7 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 		var lean := Basis(Vector3.RIGHT, deg_to_rad(GROUND_LEAN_BACK_DEG))
 		var o := GROUND_GRIP - lean * GROUND_GRIP  # хват на месте
 		o.y += GROUND_FEET.y - (lean * GROUND_FEET + o).y  # ступни на прежней высоте
-		pose = Transform3D(lean, _hang + o + Vector3(shift.x, 0.0, 0.0))
+		pose = Transform3D(lean, _hang + o)
 		feet = pose * GROUND_FEET
 	else:
 		var c := _body_center()
@@ -442,7 +453,39 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 		pose = Transform3D(r, g - r * c)
 		feet = Vector3(shift.x, 0.0, 0.0)
 	var level := Basis(Vector3.RIGHT, -_frame_pitch())
-	return Transform3D(level, feet - level * feet) * pose
+	var out := Transform3D(level, feet - level * feet) * pose
+	if _animated_stand and arm_ik != null and wing != null:
+		out.origin += _ground_fwd() * _ground_slide(out)
+	return out
+
+
+## Горизонталь мира «вперёд вдоль курса крыла» в осях визуала (визуал наклонён на тангаж).
+func _ground_fwd() -> Vector3:
+	var th := _frame_pitch()
+	return Vector3(0.0, -sin(th), -cos(th))
+
+
+## На сколько сдвинуть стоящего пилота вдоль горизонтали вперёд (м), чтобы стойки были впереди его
+## плеч на arms.upright_ahead_of_shoulder_m. Тангаж крыла поворачивается вокруг ступней (К4), а
+## HangPoint в 1,9 м над ними — при тангаже 16° он уходит на ~0,5 м назад, стойки вместе с ним:
+## если ставить пилота по ступням, стойки оказываются позади плеч, руки тянутся назад, плечи
+## «выламываются». Пилот держит крыло за стойки и стоит под ним. Вбок ноги остаются на месте
+## (крыло качается у него в руках), по высоте ступни на земле. Физика и точка поворота К4 не
+## меняются — сдвигается только визуал пилота (его карабин при этом не на HangPoint: в позе stand
+## модели плечи на ~0,35 м впереди карабина, а стойки на высоте плеч — под HangPoint).
+func _ground_slide(pose: Transform3D) -> float:
+	if _skeleton == null:
+		return 0.0
+	var ahead := float(_cfg.get("arms", {}).get("upright_ahead_of_shoulder_m", 0.3))
+	var fv := _ground_fwd()
+	var d := 0.0
+	for i in 3:
+		var diff := 0.0
+		for side in [-1, 1]:
+			var sh: Vector3 = pose * _shoulder_local(side) + fv * d
+			diff += (_upright_point(side, sh) - sh).dot(fv) * 0.5
+		d += diff - ahead
+	return clampf(d, -1.5, 1.5)
 
 
 ## Тангаж обёртки (крыла) к горизонту, рад: + нос вверх (Telemetry.basis = from_euler(θ, …)).
