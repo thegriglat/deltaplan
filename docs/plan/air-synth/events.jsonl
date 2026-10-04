@@ -119,3 +119,4 @@
 {"t": "2026-10-05T00:09:03", "by": "coordinator", "task": "SY-5", "ev": "merged", "commits": ["4295383e"]}
 {"t": "2026-10-05T00:09:03", "by": "coordinator", "task": "SY-7", "ev": "note", "note": "Решение: облако сэмплировать с РАВНЫМИ весами (поле weights в theta_cloud.json игнорировать; в run_corpus — флаг или отказ от весов, записать в manifest).", "addendum": true}
 {"t": "2026-10-05T00:09:17", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp docs check находит README.md в неотслеживаемых .pytest_cache (ошибка frontmatter) — исключать каталоги из .gitignore / кеши"}
+{"t": "2026-10-05T00:09:29", "by": "coordinator", "task": "SY-7", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-synth-SY-7"}
