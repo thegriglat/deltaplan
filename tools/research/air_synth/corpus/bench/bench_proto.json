@@ -1,0 +1,24 @@
+{
+ "generator": "proto_generator",
+ "version": "proto-7bc0b0e",
+ "one_relief": {
+  "sec_gen": 15.829359774012119,
+  "sec_quant": 0.01021978902281262,
+  "sec_serialize": 8.248098311014473e-05,
+  "sec_write": 0.00647856600699015,
+  "bytes": 314047
+ },
+ "shards": {
+  "n_shards": 3,
+  "shard_size": 1,
+  "workers": 3,
+  "wall_s": 16.1016583442688,
+  "per_relief": {
+   "sec_gen": 15.543399506335845,
+   "sec_quant": 0.009740333325074365,
+   "sec_serialize": 9.781400634286304e-05,
+   "sec_write": 0.00923226200393401,
+   "bytes": 314048.3333333333
+  }
+ }
+}
