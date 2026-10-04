@@ -1,0 +1,6 @@
+threads 6 params_M 3.045 head mlp
+encoder_ms 34.5
+head_ms 139.7
+total_ms 167.3
+p2_ms 19.7
+ratio_to_p2 8.49   (по минимумам 8.49)

@@ -25,7 +25,8 @@ N_MAPS = len(MAP_IDX)
 # фоновая стратификация решателя (air3d/solver.py, Cond): dθ̄/dz = 3 К/км ниже 3500 м над морем, 6 К/км выше
 GAM_LOW, GAM_HIGH, Z_BREAK = 3.0e-3, 6.0e-3, 3500.0
 N_PROF_CH = 3                                  # каналы 1D профиля: U/10, θ̄/5, log(η/25)/log(80)
-N_SCAL = 18 + 3                                # 18 чисел FiLM П2 + dx, heated, Fr⁻¹
+N_SCAL = 18 + 4                                # 18 чисел FiLM П2 + dx, heated, Fr⁻¹, N_случая/0,02 (A2 v2)
+NORM_N = 0.02                                  # 1/с, нормировка N в скалярах
 HEAT_ZERO = (5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)   # числа F, обнуляемые у решения без нагрева (m)
 G, TH0 = 9.81, 300.0
 N2_BG = G / TH0 * GAM_LOW                      # N² фона, 1/с²
@@ -110,7 +111,7 @@ def profile_input(par, th13):
     return np.stack([u / 10.0, th / 5.0, log_eta(AGL)]).astype(np.float32)
 
 
-def scalars(F, heated, dx=400.0):
+def scalars(F, heated, dx=400.0, N=None):
     """Скаляры условий (N_SCAL,) из чисел FiLM П2 (18, уже после отражения, если оно было) + dx/400 − 1, heated.
     Fr⁻¹ добавляет сеть из карты рельефа окна (см. model.condition_scalars). Без нагрева (heated=0) числа нагрева —
     нули, кроме устойчивости."""
@@ -120,13 +121,16 @@ def scalars(F, heated, dx=400.0):
         s[list(HEAT_ZERO)] = 0.0
     s[18] = dx / 400.0 - 1.0
     s[19] = 1.0 if heated else 0.0
-    return s            # s[20] — Fr⁻¹, заполняет model.condition_scalars
+    s[21] = (math.sqrt(N2_BG) if N is None else float(N)) / NORM_N      # N случая (A2 v2); None — фон 3 К/км (AN-3)
+    return s            # s[20] — Fr⁻¹, заполняет model.condition
 
 
-def fr_inv(terrain_map, U10):
-    """Fr⁻¹ = N·σ_h / max(U10, 1) окна: σ_h — СКО рельефа окна (карта terrain, нормировка /1000 м); torch (B,1|…,H,W)."""
+def fr_inv(terrain_map, U10, N=None):
+    """Fr⁻¹ = N·σ_h / max(U10, 1) окна: σ_h — СКО рельефа окна (карта terrain, нормировка /1000 м); torch (B,1|…,H,W).
+    N — N случая, 1/с (B,) (A2 v2: из Day.gamma случая, regime.n_bl); None — фон 3 К/км (AN-3)."""
     sd = terrain_map.float().flatten(1).std(dim=1) * P.NORM_TERRAIN_M
-    return (math.sqrt(N2_BG) * sd / U10.clamp(min=U_FLOOR)).clamp(max=5.0)
+    n = math.sqrt(N2_BG) if N is None else N
+    return (n * sd / U10.clamp(min=U_FLOOR)).clamp(max=5.0)
 
 
 # ------------------------------------------------------------------------------------------ выход → физика

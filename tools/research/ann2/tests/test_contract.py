@@ -1,4 +1,4 @@
-"""AN-2: контрактный тест A2 (формы и dtype батча и выхода, карты 64² и 96², поворот ×4, R∘R = тождество, обратное
+"""AN-2/AN-4: контрактный тест A2 v2 (+ режим A1 v2, N случая, разложенная голова) (формы и dtype батча и выхода, карты 64² и 96², поворот ×4, R∘R = тождество, обратное
 преобразование выхода против `prep.to_physical` П2, конечность). Запуск: `python tests/test_contract.py`, код выхода 0/≠0.
 Нужны данные пилота (кеш подготовки П2, только чтение); GPU не нужен."""
 import sys
@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import data as D  # noqa: E402
 import model as M  # noqa: E402
 import phys  # noqa: E402
+import regime as RG  # noqa: E402
 from phys import P  # noqa: E402
 
 fails = []
@@ -37,6 +38,9 @@ def main():
         for k, s in shp.items():
             check(f"batch[{k}] {crop}² форма", tuple(b[k].shape) == s, f"{tuple(b[k].shape)} ожидалось {s}")
             check(f"batch[{k}] {crop}² float32 конечный", b[k].dtype == torch.float32 and bool(torch.isfinite(b[k]).all()))
+        check(f"η общая для всех клеток окна {crop}² (разложенная голова)", bool((b["eta"] == b["eta"][:, :, :1, :1]).all()))
+        check(f"скаляр N = N случая {crop}²", np.allclose(b["scal"][:, 21].numpy() * phys.NORM_N,
+                                                          [RG.n_bl(m) for m in st.metas[:4]], atol=1e-6))
         check("η в [25, 2000]", float(b["eta"].min()) >= 25 - 1e-3 and float(b["eta"].max()) <= 2000 + 1e-3)
     # --- выход сети, карты 64² и 96² без смены кода
     m = M.Ann2().eval()
@@ -46,6 +50,26 @@ def main():
             o = m(b["maps"], b["scal"], b["prof"], b["par"], b["eta"])
         check(f"выход сети {H}²", tuple(o.shape) == (2, 2, 8, H, H) and o.dtype == torch.float32 and bool(torch.isfinite(o).all()),
               str(tuple(o.shape)))
+    # --- голова: выход = скалярное произведение базиса по η и коэффициентов по клетке (A2 v2)
+    b = D.sample_batch(st, np.arange(2), rng, cpu, crop=64, K=3, Kd=1)
+    with torch.no_grad():
+        Fm, c = m.features(b["maps"], b["scal"], b["prof"])
+        pf = M.point_feats(b["par"], b["eta"][:, :, :1, :1], b["prof"])[:, :, 0, 0]
+        a = m.head.coef(Fm).view(2, 8, m.head.kb, 64, 64)
+        phi, bias = m.head.basis(c, pf)
+        ref = (a[:, None] * phi[..., None, None]).sum(3) / np.sqrt(m.head.kb) + bias[..., None, None]   # (B,K,8,H,W)
+        o = m.decode(Fm, c, b["par"], b["eta"], b["prof"])
+    ok = torch.allclose(o[:, :, :4], ref[:, :, :4], atol=1e-5) and m.head_kind == "deeponet" and m.head.kb == 16
+    check("голова разложена: выход = Σ_k a_k(x,y)·φ_k(η) + b(η), K = 16 базисных профилей на канал", ok)
+    check("ветвь по η не видит карту: базис не зависит от клетки", phi.shape == (2, 3, 8, 16))
+    # --- режим и N случая
+    ids_all = split["train_ids"][:200]
+    rg = [RG.regime(i) for i in ids_all]
+    check("regime(): mech|conv, и то и другое встречается", set(rg) <= {"mech", "conv"} and len(set(rg)) == 2)
+    check("N случая отличается от фона 3 К/км не у всех одинаково", len({round(RG.n_bl(i), 5) for i in ids_all}) > 1)
+    check("Fr⁻¹ по N случая ≠ по фону", abs(float(phys.fr_inv(b["maps"][:1, 0], b["scal"][:1, 0] * 10, b["scal"][:1, 21] * phys.NORM_N))
+                                          - float(phys.fr_inv(b["maps"][:1, 0], b["scal"][:1, 0] * 10))) > 0 or
+          abs(RG.n_bl(st.metas[0]["id"]) - phys.N2_BG ** 0.5) < 1e-9)
     # --- поворот ×4 и R∘R
     X = st.X[:2]; F = st.F[:2]; Y = st.Y[:2]
     a = X[:, :1].copy()
