@@ -19,3 +19,5 @@
 {"t": "2026-10-05T00:16:37", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: замена «- **AF-3** (dp-engineer,…»"}
 {"t": "2026-10-05T00:16:37", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: замена «Проверочное крыло — `apo…»"}
 {"t": "2026-10-05T00:16:37", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: замена «камера, ленточки, `test_…»"}
+{"t": "2026-10-05T00:17:07", "by": "coordinator", "task": "AF-2", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-aframe-geometry-AF-2"}
+{"t": "2026-10-05T00:17:29", "by": "coordinator", "task": "AF-3", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-aframe-geometry-AF-3"}
