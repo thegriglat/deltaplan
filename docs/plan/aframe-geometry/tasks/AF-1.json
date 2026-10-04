@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "A1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/aframe-geometry.md"
     },
     {
@@ -64,16 +64,8 @@
       "tests": "test_polar"
     },
     {
-      "name": "pilot_arms",
-      "tests": "pilot_arms"
-    },
-    {
       "name": "pilot_pose",
       "tests": "pilot_pose"
-    },
-    {
-      "name": "wing_clearance",
-      "tests": "wing_clearance"
     },
     {
       "name": "test_glider",
@@ -96,5 +88,5 @@
   ],
   "notes": "",
   "created": "2026-10-04T23:45:35",
-  "edited": "2026-10-04T23:45:39"
+  "edited": "2026-10-05T00:05:48"
 }

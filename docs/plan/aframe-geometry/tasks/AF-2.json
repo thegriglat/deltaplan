@@ -15,6 +15,11 @@
       "name": "A3",
       "version": "1",
       "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A1",
+      "version": "2",
+      "ref": "docs/contracts/aframe-geometry.md"
     }
   ],
   "copy": "~/deltaplan-aframe-geometry-AF-2",
@@ -60,5 +65,5 @@
   ],
   "notes": "",
   "created": "2026-10-04T23:47:16",
-  "edited": "2026-10-04T23:47:16"
+  "edited": "2026-10-05T00:05:48"
 }

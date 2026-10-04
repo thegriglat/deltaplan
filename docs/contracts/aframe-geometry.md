@@ -5,7 +5,7 @@ module: "aframe-geometry"
 updated: "2026-10-04"
 summary: "Контракты модуля «aframe-geometry»: параметры трапеции и центровки крыла (A1), маркеры стоек в модели крыла (A2), инварианты позы пилота и вида от первого лица (A3)."
 related: ["docs/plan/aframe-geometry.md", "docs/contracts/wings-models3d.md", "docs/guide/models.md"]
-contracts: [{"id": "A1", "version": 1}, {"id": "A2", "version": 1}, {"id": "A3", "version": 1}]
+contracts: [{"id": "A1", "version": 2}, {"id": "A2", "version": 1}, {"id": "A3", "version": 1}]
 ---
 # Контракты модуля «aframe-geometry»
 
@@ -13,7 +13,9 @@ contracts: [{"id": "A1", "version": 1}, {"id": "A2", "version": 1}, {"id": "A3",
 
 Оси: в `glider_params.json` и Blender — X вправо, +Y нос, Z вверх, начало — HangPoint; в Godot (модель `.glb`, `GliderVisual`) — +X вправо, +Y вверх, −Z вперёд, начало — HangPoint. Метры, градусы. «Наклон стоек» — угол оси стойки в виде сбоку (проекция на плоскость киля) от нормали к килю; плюс — низ стойки впереди верха.
 
-## A1. Параметры трапеции и центровки — `tools/blender/glider_params.json` — версия 1
+## A1. Параметры трапеции и центровки — `tools/blender/glider_params.json` — версия 2
+
+v2 (2026-10-05, по итогам AF-1): в `wings.<id>` добавлено `crossbar_from_nose_m` — узел поперечины на киле от носа (иначе поперечина уезжала бы с носом при пересчёте `nose_forward_m`); наклон стоек — в проекции на плоскость симметрии, длина — 3D; офлайн-скрипты — `tools/blender/aframe_geom.py` (геометрия, без bpy), `tools/blender/aframe_cg.py` (центровка, `--pick-tilt` — подбор наклона под A3.1 по тангажу киля на триме из `tools/blender/aframe_trim.json`, замер — `tools/flight/aframe_trim.tscn`). Потребители не меняются (AF-2, AF-3 ещё не начаты).
 
 Владелец: AF-1 (`tools/blender/build_gliders.py` + офлайн-скрипт центровки). Потребители: сборка `.glb`, `render_views.py`, `tools/research/data/wing_passports/wings3d_geometry.py` и `make_new_wings.py` (поле `nose_forward_m` из К1 — смысл прежний), тесты крыльев.
 
@@ -26,7 +28,8 @@ contracts: [{"id": "A1", "version": 1}, {"id": "A2", "version": 1}, {"id": "A3",
   - `mass_model` — погонные массы труб, кг/м: `keel`, `leading_edge`, `crossbar`, `kingpost`, `upright`, `basebar` (с `_doc`: «оценка»); `sail_mass_kg` — резерв под ткань: `null`/отсутствует → ткань не учитывается. Добавить ткань позже = задать число и пересчитать скрипт, без смены формата.
 - В `wings.<id>` (обязательные после AF-1, пишет офлайн-скрипт, руками не править):
   - `cg_from_nose_m` — центр масс крыла вдоль киля от носа, м (грубая оценка по трубам; ткань не учтена);
-  - `nose_forward_m` (поле К1, смысл прежний — нос впереди HangPoint) = `cg_from_nose_m − hang_cg_offset_m`.
+  - `nose_forward_m` (поле К1, смысл прежний — нос впереди HangPoint) = `cg_from_nose_m − hang_cg_offset_m`;
+  - `crossbar_from_nose_m` — узел поперечины на киле от носа, м (v2).
 - В рантайме центр масс не считается. Пересчёт — один скрипт (команда — в `docs/guide/models.md`), повторный запуск без изменений входа даёт те же числа.
 - Инварианты (контрактный тест, все крылья): наклон стоек в модели = `upright_tilt_deg` ±0,5°, в 4…13; длина стоек 1,6…1,75; HangPoint впереди `WingCG` на 0,01…0,02 по килю; подвеска относительно вершины = `hang_from_apex_m` ±0,01.
 
