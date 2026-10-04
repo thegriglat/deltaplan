@@ -1,12 +1,11 @@
 {
- "note": "trial",
+ "updated": "2026-10-05 02:27:10",
  "stage_done": [
   "fs1_360__p2c12__s0-939a467__trial:holdout",
   "fs1_360__p2c12__s0-939a467__trial:train",
   "p6v3__p6v3_p2c12__s0-939a467__trial:holdout",
   "p6v3__p6v3_p2c12__s0-939a467__trial:train"
  ],
- "updated": "2026-10-05 02:13:13",
  "dirs": {
   "p6v3__p6v3_p2c12__s0-939a467__trial": {
    "n_plan": 12,
@@ -59,6 +58,30 @@
     "holdout": {
      "planned": 2,
      "done": 2
+    }
+   }
+  },
+  "p6v3__p2c12__s0-939a467": {
+   "n_plan": 4320,
+   "cases_done": 100,
+   "parts_done": 1,
+   "bytes": 103734386,
+   "gb_per_1000_cases": 1.037,
+   "nonconverged_fraction": 0.21,
+   "diverged_fraction": 0.0,
+   "seconds_per_case_mean": 16.4,
+   "seconds_per_case_calm": 25.0,
+   "seconds_per_case_other": 15.6,
+   "eta_hours_if_workers_same": 6.4,
+   "stage_done": [],
+   "by_group": {
+    "train": {
+     "planned": 3600,
+     "done": 100
+    },
+    "holdout": {
+     "planned": 720,
+     "done": 0
     }
    }
   }
