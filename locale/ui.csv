@@ -349,24 +349,26 @@ wing_ww_talon,Wills Wing Talon 150,Wills Wing Talon 150
 wing_ww_cross_country,Wills Wing Cross Country 155,Wills Wing Cross Country 155
 wing_group_soviet,Советские 1980-х,Soviet 1980s
 wing_group_soviet_hint,Устойчивые и прощающие крылья 1980-х,"Stable, forgiving wings of the 1980s"
-wing_group_trainer,Учебные однообшивочные,Single-surface trainers
+wing_group_trainer,Учебные,Trainers
 wing_group_trainer_hint,Мягкие и медленные — для первых полётов,Soft and slow — for first flights
-wing_group_kingpost,Мачтовые двухобшивочные,Double-surface kingpost
-wing_group_kingpost_hint,С мачтой и двойной обшивкой — быстрее и дальше,Kingpost and double surface — faster and farther
+wing_group_kingpost,Мачтовые,Kingpost
+wing_group_kingpost_hint,С мачтой — быстрее и дальше учебных,Kingpost — faster and farther than trainers
 wing_group_topless,Безмачтовые,Topless
 wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"
 setup_wing_class,Класс крыла,Wing class
 setup_wing_model,Модель,Model
 setup_wing_class_item,"%s — %s, %s","%s — %s, %s"
 setup_wing_glide,качество %s,glide %s
-setup_wing_wind_max,ветер до %s %s,wind up to %s %s
+setup_wing_wind_limit,ветер %s %s,wind %s %s
+wing_class_1,учебный,trainer
+wing_class_2,жёсткая поперечина,rigid crossbar
+wing_class_3,плавающая поперечина,floating crossbar
+wing_class_4,безмачтовый,topless
 setup_wing_area,%s м²,%s m²
 setup_wing_pilot,пилот %s–%s %s,pilot %s–%s %s
 setup_wing_decade_suffix,-е,s
 setup_wing_kingpost,мачтовое,kingpost
 setup_wing_topless,безмачтовое,topless
-setup_wing_single_surface,однообшивочное,single surface
-setup_wing_double_surface,двухобшивочное,double surface
 setup_decimal_point,",","."
 menu_net_game,Сетевая игра,Multiplayer
 net_server,Сервер,Server
