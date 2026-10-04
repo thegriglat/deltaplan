@@ -19,6 +19,7 @@ related: ["docs/contracts/start-map.md", "docs/plan/on_demand_location.md", "doc
 - Офлайн-пакет данных (`docs/plan/offline_world_data.md`, `osm_vector_pack.md`) отложен — не начинать; карта — из сети с кешем на диске.
 - Лицензии: некоммерческий open source; атрибуция — в `ASSETS.md` и подписью на карте.
 - Не шлифовать; визуальные мелочи — максимум 2 попытки.
+- **На карте выбора старта обязательно видны названия населённых пунктов; подложка — OSM-подобная карта с подписями; в приёмке — подписи сёл/городов видны на скриншоте** (2026-10-05) — пилоты узнают местность по названиям сёл
 
 ## Что есть (05.10.2026)
 - `scripts/terrain/map_picker.gd` (`MapPicker`) — панорама/масштаб web-mercator, тайлы Terrarium через `TerrariumLoader.fetch_tile`, шейдер отмывки `map_hillshade.gdshader`, поле «широта, долгота», сигнал `point_picked`. Конфиг — `configs/world.json` → `map_picker`.
@@ -27,10 +28,11 @@ related: ["docs/contracts/start-map.md", "docs/plan/on_demand_location.md", "doc
 - Экран: `scripts/ui/flight_setup_screen.gd` (оверлей карты, `_on_map_ok`, подпись `setup_map_point`); скриншоты — `tools/shots/ui.sh` (кадр `map_*`).
 
 ## Выбор подложки (координатор, 05.10.2026)
-- **OpenTopoMap** (`https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png`, z ≤ 17, CC-BY-SA; данные © участники OpenStreetMap, SRTM) — по умолчанию: топографическая карта с горизонталями и отмывкой, пилоту привычна.
+- **OpenTopoMap** (второй слой с 05.10, см. ниже; `https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png`, z ≤ 17, CC-BY-SA; данные © участники OpenStreetMap, SRTM) — по умолчанию: топографическая карта с горизонталями и отмывкой, пилоту привычна.
 - **OpenStreetMap standard** (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`, z ≤ 19, «© OpenStreetMap contributors», ODbL) — второй слой переключателем (если OpenTopoMap медлит/недоступен).
 - Обе политики допускают редкий интерактивный просмотр с честным User-Agent и кешем; массовой предзагрузки нет. Esri/Google — нет (условия).
 - Отмывка высот как слой убирается (совместимость не нужна); Terrarium остаётся источником высоты точки.
+- 05.10.2026, решение пользователя: обязательны названия населённых пунктов → по умолчанию **OSM standard**, OpenTopoMap — второй слой; start_zoom ≥ 11 (SM-К1 v2).
 
 ## Границы модели
 - Высота точки — Terrarium z12 (шаг ≈ 38 м·cos φ), билинейно; ошибка до десятков метров на крутых склонах; не высота детального слоя локации (Copernicus 25 м).
@@ -45,6 +47,7 @@ related: ["docs/contracts/start-map.md", "docs/plan/on_demand_location.md", "doc
 - в коде нет `map_hillshade` и Terrarium-слоя в отрисовке карты;
 - скриншот оверлея карты (Алтай, точка выбрана, видна высота) — `/home/greg/deltaplan/build/screenshots/SM-1/`, 1920×1080, карта прогружена (сеть есть).
 Оценка: 0,5 дня.
+- 05.10.2026 (SM-К1 v2): по умолчанию слой OSM; на скриншоте (OSM, место с сёлами, напр. Онгудай/Чемал) видны названия населённых пунктов — проверяет координатор по скриншоту.
 
 ## Риски
 - Тайловый сервер OpenTopoMap медленный → второй слой OSM; таймаут из конфига.
