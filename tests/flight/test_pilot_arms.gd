@@ -239,15 +239,18 @@ func test_ground_strap_and_feet_under_wing() -> void:
 		check(uprights > 0.1, "%s: глаза не в стойке (%.2f м)" % [tag, uprights])
 		print(
 			(
-				"         apogee стоя, %s: стопы позади HangPoint %.2f, над землёй %+.3f; глаза %.2f, до стойки %.2f; стропа %.2f"
-				% [
-					tag,
-					behind,
-					above,
-					eye_dist,
-					uprights,
-					v.strap_bottom().distance_to(v.strap_top())
-				]
+				"         apogee стоя, %s: стопы позади HangPoint %.2f, над землёй %+.3f; "
+				+ (
+					"глаза %.2f, до стойки %.2f; стропа %.2f"
+					% [
+						tag,
+						behind,
+						above,
+						eye_dist,
+						uprights,
+						v.strap_bottom().distance_to(v.strap_top())
+					]
+				)
 			)
 		)
 		check(absf(above - 0.09) < 0.1, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])
