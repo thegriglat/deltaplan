@@ -94,12 +94,20 @@ contracts: [{"id": "S1", "version": 3}, {"id": "S2", "version": 2}, {"id": "S3",
     float64; `sky` int8 (0 clear, 1 partly, 2 overcast; соответствие — атрибут `sky_codes`), `month`, `day` int8;
   - производные (как их вычисляет код решателя при построении случая): `alpha`, `max_profile`, `z_i_m`, `z_lcl_m`
     (над морем), `heat`, `brk`, `cap_agl_m`, `sun_el_deg`, `sun_az_deg`, `t_c`, `n_bv_s`, `froude`, `w_star_m_s`,
-    `w_star_over_u` — float64; `stability_class` int8 (A…F → 0…5), `has_cap`, `mechanical` — bool;
+    `w_star_over_u`, `hs_w_m2` (средний поток тепла, по которому считался w*), `u_sat_m_s` (= U10·max_profile) —
+    float64; `stability_class` int8 (A…F → 0…5), `has_cap`, `mechanical` — bool;
   - H5 (сейчас не заполняется): `strat_override` bool (False), `n_bv_override_s`, `z_i_override_agl_m` float64 (NaN).
     Решатель, получивший `strat_override = True`, обязан применить или отказать — не игнорировать молча.
-- Определения: `froude` = U_sat / (N·H), U_sat = U10·max_profile (`air3d/air.py → wind_profile`), H = `summary.relief_m`
-  рельефа; `w_star_*` — определение AN-4 (ann2), владелец записывает формулу сюда при сдаче; `mechanical` = w*/U < 0,5.
-  lat/lon модельного рельефа — условная точка из распределения мест P2 (обоснование — владелец, запись сюда).
+- Определения: `n_bv_s` и `froude` — как `air_nn_pilot/pilotnn/film_bg.bg_raw`, но **без обрезки** (в P2 Fr обрезан
+  на 3), хранится как есть (логарифм и обрезка — дело потребителя/сети): `froude` = U_sat / (N·H), U_sat = U10·max_profile
+  (`air3d/air.py → wind_profile`), H = `summary.relief_m` рельефа. `w_star_m_s` = (g/θ₀ · Hs/(ρ·c_p) · z_i)^(1/3)
+  (AN-4, ann2 `regime.py`), θ₀ = 300 К, ρ·c_p = 1206 Дж/(м³·К), Hs = среднее по области max(H, 0), H — поток тепла
+  `air.solar_flux` с гашением у края (`heat_taper_m`), z_i — над средней высотой области; `w_star_over_u` = w*/U_sat;
+  `mechanical` = w*/U_sat < 0,5.
+- lat/lon модельного рельефа — точка в боксе горной системы из конфига П6 (`terrain.yaml`): вес бокса ∝ площади, на
+  систему ≤ 12 %, широта равномерна по площади; **только северное полушарие** (южные боксы — зеркально по широте), дата
+  15 июля для всех, как в P2 (лето); utc = round(lon/15). У реальных мест — lat/lon места; места южного полушария —
+  дата 15 января (лето). Распределение мест P2 точно не восстановить (индекс П6 удалён) — это приближение.
 - Для H1 (сейчас): 1–2 условия на рельеф из распределения P2, только механический режим (перевыбор с тем же зерном,
   детерминированно); штиль не входит.
 - Инварианты: один конфиг и зерно → побитно те же части; на каждый `relief_id` — `cond_id` 0 … k−1 без пропусков;
