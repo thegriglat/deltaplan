@@ -1,0 +1,72 @@
+{
+  "id": "AF-3",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Поза на старте и кадры профиля",
+  "goal": "На старте руки на стойках на уровне плеч или чуть выше, стойки чуть впереди плеч, локти согнуты (A3.2) — плечи не «выламываются назад»; инструмент бокового кадра в tools/shots и кадры профиля apogee на земле и в полёте.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A3",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-3",
+  "branch": "aframe-geometry/AF-3",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "scripts/flight/glider_visual.gd",
+    "scripts/flight/pilot_arm_ik.gd",
+    "configs/flight.json",
+    "tests/flight/test_pilot_arms.gd",
+    "tests/flight/test_pilot_pose.gd",
+    "tests/game/test_aframe_contracts.gd",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "tools/blender",
+    "assets/models/*.glb",
+    "configs/camera.json",
+    "configs/instruments.json",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "wing_clearance",
+      "tests": "wing_clearance"
+    },
+    {
+      "name": "test_takeoff",
+      "tests": "test_takeoff"
+    },
+    {
+      "name": "start_regression",
+      "tests": "start_regression"
+    }
+  ],
+  "report_extra": [
+    "apogee_ground_numbers",
+    "images"
+  ],
+  "notes": "",
+  "created": "2026-10-04T23:47:08",
+  "edited": "2026-10-04T23:47:08"
+}

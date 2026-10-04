@@ -1,0 +1,64 @@
+{
+  "id": "AF-2",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Трапеция и ленточки в кадре от первого лица",
+  "goal": "От первого лица (FOV ~75, взгляд вперёд) часть трапеции видна хотя бы по краю кадра, обе ленточки — в 20–40° от оси взгляда; требование «трапеция вне кадра» отменено.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A3",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-2",
+  "branch": "aframe-geometry/AF-2",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "configs/camera.json",
+    "configs/instruments.json",
+    "scripts/instruments/telltale.gd",
+    "scripts/instruments/telltale_model.gd",
+    "tests/game/test_cockpit.gd",
+    "tests/instruments/test_telltale.gd",
+    "tests/game/test_aframe_contracts.gd",
+    "tools/shots/cockpit.sh"
+  ],
+  "dont_touch": [
+    "tools/blender",
+    "assets/models/glider_*.glb",
+    "scripts/flight/glider_visual.gd (нужна правка — сообщить координатору)",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "telltale",
+      "tests": "telltale"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "camera_bar_look",
+      "tests": "camera_bar_look"
+    }
+  ],
+  "report_extra": [
+    "apogee_view_numbers",
+    "images"
+  ],
+  "notes": "",
+  "created": "2026-10-04T23:47:16",
+  "edited": "2026-10-04T23:47:16"
+}
