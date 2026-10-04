@@ -709,7 +709,8 @@ func _fallback_frame() -> Node3D:
 	_add_marker(frame, "UprightBottomR", bar + w)
 	_add_rod(frame, "BaseBarTube", bar - w, bar + w, m)
 	_add_marker(frame, "BaseBar", bar)
-	var mount := (bar + w).lerp(Vector3.ZERO, 0.2)
+	# вынос вперёд-вверх от штанги, как в build_gliders.py (instrument_forward_m 0,6 / instrument_up_m 0,12)
+	var mount := bar + Vector3(0, 0.12, -0.6)
 	var im := _add_marker(frame, "InstrumentMount", mount)
 	# экран прибора (+Z маркера) смотрит на глаза пилота
 	im.basis = Basis.looking_at(_head_local() - mount, Vector3.UP, true)
