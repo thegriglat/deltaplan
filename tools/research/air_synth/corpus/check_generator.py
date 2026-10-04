@@ -43,7 +43,7 @@ def work(a):
     sec = time.time() - t0
     z400 = z.reshape(96, 4, 96, 4).mean(axis=(1, 3))
     m = compare.metrics(z, z400)
-    return rid, float(p.mix), sec, m
+    return rid, float(p['mix']), sec, m
 
 
 def real_vals(place, grid, fr):

@@ -1,7 +1,7 @@
 {
  "n": 40,
  "seed": 1,
- "generator_version": "fs1-bc846a5",
+ "generator_version": "fs1-d097596",
  "mix_quantiles": [
   0.012234775902659211,
   0.08813959421762255,
@@ -13,8 +13,8 @@
  ],
  "n_ural": 12,
  "n_ongudai": 15,
- "sec_per_relief_median": 14.324246883392334,
- "sec_per_relief_p90": 15.240533924102783,
+ "sec_per_relief_median": 14.35673201084137,
+ "sec_per_relief_p90": 15.446538782119752,
  "out_of_range": 0,
  "table": [
   {
