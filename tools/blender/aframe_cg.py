@@ -26,6 +26,7 @@ import aframe_geom as G  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PARAMS = os.path.join(ROOT, "tools", "blender", "glider_params.json")
 TRIM = os.path.join(ROOT, "tools", "blender", "aframe_trim.json")
+HANG = os.path.join(ROOT, "tools", "research", "data", "wing_passports", "hang_passports.json")
 TILT_RANGE = (4.0, 13.0)
 LEN_RANGE = (1.6, 1.75)
 
@@ -37,7 +38,7 @@ def set_keys(text: str, wid: str, kv: dict, after: str) -> str:
     end = re.compile(r"^    \},?\n", re.M).search(text, m.end())
     block = text[m.end():end.start()]
     for k, v in kv.items():
-        line = '      "%s": %s,\n' % (k, json.dumps(v))
+        line = '      "%s": %s,\n' % (k, json.dumps(v, ensure_ascii=False))
         pat = re.compile(r'^      "%s": [^\n]*,\n' % re.escape(k), re.M)
         if pat.search(block):
             block = pat.sub(lambda _: line, block, count=1)
@@ -67,6 +68,7 @@ def main() -> None:
     params = json.loads(text)
     cf = params["control_frame"]
     trim = json.load(open(TRIM, encoding="utf-8"))
+    hang = json.load(open(HANG, encoding="utf-8"))["wings"]
     rows = {}
     for wid, p in params["wings"].items():
         upd = {}
@@ -92,11 +94,19 @@ def main() -> None:
                     best = (t, h)
             upd["upright_tilt_deg"] = best[0]
             p["upright_tilt_deg"] = best[0]
+        h = hang.get(wid)
+        if h:  # подвеска по паспорту (A1 v3)
+            upd["hang_source"] = "passport"
+            upd["hang_from_nose_m"] = round(h["hang_from_nose_m"], 3)
+            upd["hang_ref"] = "hang_passports.json:%s — %s (%s)" % (wid, h["quote"], h["url"])
+        else:
+            upd["hang_source"] = "cg"
+        p.update(upd)
         tilt = G.param(p, cf, "upright_tilt_deg")
         cg = round(G.cg_from_nose(p, cf, span, tilt), 3)
         off = G.param(p, cf, "hang_cg_offset_m")
         upd["cg_from_nose_m"] = cg
-        upd["nose_forward_m"] = round(cg - off, 3)
+        upd["nose_forward_m"] = upd["hang_from_nose_m"] if h else round(cg - off, 3)
         old_nf = p["nose_forward_m"]
         p.update(upd)
         text = set_keys(text, wid, upd, "nose_forward_m")

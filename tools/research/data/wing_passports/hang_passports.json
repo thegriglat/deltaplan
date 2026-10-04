@@ -1,0 +1,61 @@
+{
+  "_doc": "Положение подвески (петли/точки подвеса пилота) на киле по паспортам и руководствам производителей (AF-6). Точка отсчёта у всех — нос киля (линия носовых болтов передних кромок / передний торец киля); дельта между этими опорами — единицы сантиметров, не различается. hang_from_nose_m — значение для glider_params.json (середина диапазона, если паспорт даёт диапазон). PDF не храним (README.md, sources.md). Кроме Moyes все цифры — прямое «hang loop / hang point»; у Moyes — «designated CG location» (руководство Litespeed S: «Before changing the trim position of your glider it is best to check where your hang point is in relation to the designated trim»), т.е. проектное положение подвески при штатном триме. Где числа нет (Aeros Discus, Icaro Piuma/Alto/Laminar, Wills Wing кроме T2/T2C и др.) — подвеска не задана, в glider_params hang_source = cg.",
+  "wings": {
+    "air_f2": {
+      "hang_from_nose_m": 1.65, "model": "Airborne F2 190",
+      "source_values": {"hang_loop_fwd_mm": 1625, "hang_loop_rear_mm": 1675},
+      "quote": "The pilot hang loop Fwd 1625 mm / The pilot hang loop Rear 1675 mm",
+      "url": "https://www.airborne.com.au/images/manuals/8439.pdf",
+      "file": "out/haiku/pdf__airborne_8439.json", "note": "середина диапазона регулировки (1625–1675 мм); пересчёта единиц нет"
+    },
+    "air_sting3": {
+      "hang_from_nose_m": 1.615, "model": "Airborne Sting 3 154",
+      "source_values": {"hang_loop_fwd_mm": 1600, "hang_loop_rear_mm": 1630},
+      "quote": "The pilot hang loop Fwd 1600 mm / The pilot hang loop Rear 1630 mm",
+      "url": "https://www.airborne.com.au/images/manuals/108841%20STING%203%20Manual.pdf",
+      "file": "out/haiku/pdf__airborne_sting3.json", "note": "середина 1600–1630 мм"
+    },
+    "ww_t2c": {
+      "hang_from_nose_m": 1.2827, "model": "Wills Wing T2C 144",
+      "source_values": {"hang_loop_in": [49.75, 51.25]},
+      "quote": "distance from the line joining the leading edge nose bolts to: The pilot hang loop 49.75 - 51.25",
+      "url": "http://willswing.com/wp-content/uploads/manuals/T2_5th_September_2012.pdf",
+      "file": "out/haiku/pdf__ww_t2.json", "note": "дюймы → м: середина 50,5 in × 0,0254 = 1,2827 м; отсчёт от линии носовых болтов передних кромок (≈ нос киля). Поперечина по тому же паспорту 31,75–36,25 in (0,81–0,92 м) — ближе к носу, чем в модели (crossbar_from_nose_m не менялся)"
+    },
+    "aeros_combat_l": {
+      "hang_from_nose_m": 1.325, "model": "Aeros Combat L 13",
+      "source_values": {"hang_point_fwd_mm": 1310, "hang_point_aft_mm": 1340},
+      "quote": "The distance from most forward point of keel tube is required: Hang point (effective pivot point) most forward position 1310 mm; Hang point (effective pivot point) most aft position 1340 mm",
+      "url": "https://aeros.com.ua/files/manuals/Combat2-CombatL_new.pdf",
+      "file": null, "note": "BHPA Compliance Verification Specification Sheet в конце руководства Combat-2/Combat L (Combat L 13); середина диапазона; от переднего конца киля. Поперечина там же 760–905 мм"
+    },
+    "moyes_litespeed_rx": {
+      "hang_from_nose_m": 1.353, "model": "Moyes Litespeed RX 4",
+      "source_values": {"cg_front_of_keel_mm": 1353, "inches": 53.3},
+      "quote": "C of G Front of Keel 1353 mm / 53.3 inches",
+      "url": "https://www.moyes.com.au/products/hang-gliders/litespeed-rx/specifications",
+      "file": "out/haiku/moyes__litespeed-rx_spec.json", "note": "designated CG = проектная подвеска (см. _doc); размер 4"
+    },
+    "moyes_litespeed_s": {
+      "hang_from_nose_m": 1.353, "model": "Moyes Litespeed S 4",
+      "source_values": {"cg_front_of_keel_mm": 1353, "inches": 53.3},
+      "quote": "C of G Front of Keel 1353 mm 53.3 inches; The designated CG location is measured from the front of the keel tube (this is the front of the tube exclusive of the end cap)",
+      "url": "https://www.delta-club-82.com/bible/manuels/litespeed-S.pdf",
+      "file": "out/haiku/pdf__moyes_litespeed_s.json", "note": "размер 4; руководство v1.05, стр. спецификаций и «Trim Adjustment»"
+    },
+    "moyes_litesport": {
+      "hang_from_nose_m": 1.39, "model": "Moyes Litesport 4",
+      "source_values": {"cg_front_of_keel_mm": 1390},
+      "quote": "Centre of Gravity (Front of Keel) ** 1390 mm",
+      "url": "https://www.moyes.com.au/products/hang-gliders/litesport/specifications",
+      "file": "out/haiku/moyes__litesport_spec.json", "note": "designated CG; размер 4"
+    },
+    "moyes_malibu2": {
+      "hang_from_nose_m": 1.658, "model": "Moyes Malibu 2 166",
+      "source_values": {"cg_front_of_keel_mm": 1658, "inches": 65.3},
+      "quote": "centre_of_gravity_front_keel: 1658 mm (65.3 inches)",
+      "url": "https://www.moyes.com.au/products/hang-gliders/malibu2/specifications",
+      "file": "out/haiku/moyes__malibu2_spec.json", "note": "designated CG; размер 166"
+    }
+  }
+}

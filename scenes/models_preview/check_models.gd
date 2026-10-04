@@ -74,8 +74,10 @@ func _check_axes(path: String, root: Node3D) -> void:
 		_expect(path, "HangPoint в начале координат", hang.length() < 0.01)
 		_expect(path, "BaseBar впереди (−Z) и ниже (−Y)", bar.z < -0.1 and bar.y < -1.0)
 		var cg := _pos(root, "WingCG")
-		_expect(path, "WingCG позади подвески на киле (подвеска впереди ЦМ на 1–2 см)",
-			cg.z > 0.009 and cg.z < 0.021 and absf(cg.x) < 0.001 and cg.y > 0.0)
+		# подвеска по центру масс — на 1–2 см впереди (точно — tests/game/test_aframe_contracts.gd);
+		# по паспорту (A1 v3) — где даёт производитель, расхождение с ЦМ до ±0,4 м
+		_expect(path, "WingCG на киле рядом с подвеской (по ЦМ: на 1–2 см позади; по паспорту — до 0,4 м)",
+			absf(cg.z) < 0.4 and absf(cg.x) < 0.001 and cg.y > 0.0)
 		for side in ["L", "R"]:
 			var top := _pos(root, "UprightTop" + side)
 			var bot := _pos(root, "UprightBottom" + side)
