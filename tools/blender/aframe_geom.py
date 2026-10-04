@@ -80,8 +80,9 @@ def cg_from_nose(p: dict, cf: dict, span: float, tilt_deg: float = None) -> floa
         # ткань: центр тяжести плоской трапеции — грубо 0,45 корневой хорды от носа
         parts.append((sail, 0.45 * p["root_chord_m"]))
     cg = 0.0
+    fixed = p.get("hang_from_nose_m") if p.get("hang_source") == "passport" else None
     for _ in range(50):
-        d_hang = cg - off
+        d_hang = fixed if fixed is not None else cg - off
         fp = frame_points(p, cf, tilt_deg)
         d_apex = d_hang + hang_from_apex(p, cf)
         d_bb = d_apex - (fp["y_bb"] - fp["apex_y"])
