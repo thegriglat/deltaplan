@@ -1,0 +1,70 @@
+{
+  "id": "PP-2",
+  "module": "popular-places",
+  "type": "dp-engineer",
+  "title": "Настоящий каталог стартов в игре (SY-9 → data/places/hg_takeoffs.json)",
+  "goal": "Детерминированный конвертер выжимки SY-9 в файл каталога по PP-К1; с ним кнопка «Популярные места» появляется в игре с 684 настоящими стартами.",
+  "plan_ref": "PP-2",
+  "contracts": [
+    {
+      "name": "PP-К1",
+      "version": "1",
+      "ref": "docs/contracts/popular-places.md"
+    },
+    {
+      "name": "PP-К2",
+      "version": "1",
+      "ref": "docs/contracts/popular-places.md"
+    }
+  ],
+  "copy": "~/deltaplan-popular-places-PP-2",
+  "branch": "popular-places/PP-2",
+  "base": "feature/popular-places",
+  "scope": [
+    "tools/places/",
+    "data/places/hg_takeoffs.json",
+    "ASSETS.md",
+    "tools/shots/popular_places_shot.gd",
+    "tests/ui/test_popular_places.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/terrain/",
+    "docs/contracts/",
+    "tests/contracts/",
+    "tests/ui/fixtures/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "count_matches",
+      "cmd": "python3 -c \"import json,subprocess;s=json.loads(subprocess.check_output(['git','show','5a2ed468:tools/research/air_synth/hg_sites/takeoffs_game.json']));d=json.load(open('data/places/hg_takeoffs.json'));print('ok' if len(s)==len(d['takeoffs'])==684 and {x['id'] for x in s}=={x['id'] for x in d['takeoffs']} else 'diff', len(s), len(d['takeoffs']))\"",
+      "expect": "re:^ok "
+    },
+    {
+      "name": "deterministic",
+      "cmd": "t=$(mktemp) && python3 tools/places/build_hg_takeoffs.py --out $t && cmp $t data/places/hg_takeoffs.json && echo same",
+      "expect": "re:^same"
+    },
+    {
+      "name": "real_screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/popular-places/ | grep -c '^0[6-9].*каталог'",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T04:25:07"
+}

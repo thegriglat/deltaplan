@@ -3,7 +3,7 @@ extends Node
 ## Запуск (окно нужно; DISPLAY; XDG_DATA_HOME — временный):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/popular_places_shot.tscn -- --out=/home/greg/deltaplan/build/screenshots/popular-places \
-##     --tag=02_1920x1080_страны --size=1920x1080 [--state=countries|country|search] [--country=SI] [--query=гор]
+##     --tag=02_1920x1080_страны --size=1920x1080 [--state=countries|country|search] [--country=SI] [--query=гор] [--real]
 ## Пишет <out>/<tag>.png.
 
 const FIXTURE := "res://tests/ui/fixtures/hg_takeoffs_test.json"
@@ -14,6 +14,7 @@ var _tag := "shot"
 var _state := "countries"
 var _country := "SI"
 var _query := "гор"
+var _real := false  ## --real: настоящий каталог из configs/ui.json вместо тестового
 var _size := Vector2i(1920, 1080)  ## разрешение кадра: рисуется в SubViewport этого размера
 
 
@@ -30,6 +31,8 @@ func _ready() -> void:
 		elif a.begins_with("--size="):
 			var wh := a.substr(7).split("x")
 			_size = Vector2i(int(wh[0]), int(wh[1]))
+		elif a == "--real":
+			_real = true
 		elif a.begins_with("--query="):
 			_query = a.substr(8)
 	if _out == "":
@@ -46,7 +49,8 @@ func _run() -> void:
 		(load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
 	)
 	screen.recent_places_path = TMP_RECENT
-	screen.popular_places_path = FIXTURE
+	if not _real:
+		screen.popular_places_path = FIXTURE
 	screen.settings = FlightSettings.defaults()
 	var vp := SubViewport.new()
 	vp.size = _size
