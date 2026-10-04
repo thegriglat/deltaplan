@@ -73,6 +73,17 @@ static func wind_limit(cfg: Dictionary) -> Vector2:
 	return Vector2(float(lim[0]), float(lim[1])) if lim.size() == 2 else Vector2.ZERO
 
 
+## Диапазон слайдера ветра меню «Полёт…» и зажим настроек: Vector3(мин, макс, шаг), м/с.
+## Низ 0, шаг 1, верх — наибольший hi предела ветра среди классов (configs/wing_classes.json).
+static func wind_menu_range() -> Vector3:
+	var hi := 0.0
+	for c: Dictionary in Config.get_config(CLASSES_CONFIG).get("classes", {}).values():
+		var lim: Array = c.get("wind_limit_ms", [])
+		if lim.size() == 2:
+			hi = maxf(hi, float(lim[1]))
+	return Vector3(0.0, hi, 1.0)
+
+
 static func _class(cfg: Dictionary) -> Dictionary:
 	return Config.get_config(CLASSES_CONFIG).get("classes", {}).get(str(wind_class(cfg)), {})
 
