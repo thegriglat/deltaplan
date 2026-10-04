@@ -18,7 +18,7 @@ GENERATOR_VERSION = "fs1-" + hashlib.sha256(open(__file__, "rb").read()).hexdige
 
 N = 512            # узлов расчёта
 DX = 100.0         # м
-T_TOTAL = 4.0e6    # лет, одинаково для всего корпуса (равновесие не требуется)
+T_TOTAL = 8.0e6    # лет, одинаково для всего корпуса (равновесие не требуется)
 DT = 1.0e5         # лет
 M_EXP, N_EXP = 0.45, 1.0
 TAN_CRIT = float(np.tan(np.radians(35.0)))
@@ -107,14 +107,13 @@ def _loglerp(a, b, t):
 # настраиваемые параметры θ (Professor): имя -> (lo, hi, default); default — середина встроенного распределения mix=0,5
 TUNABLE = {
     "uplift_max_m_per_yr": (1e-4, 1.2e-3, 3.7e-4),
-    "k0": (2e-6, 1.6e-5, 5.7e-6),
+    "k0": (5e-7, 1.6e-5, 5.7e-6),
     "diffusion_m2_per_yr": (0.01, 0.1, 0.03),
     "m_exp": (0.3, 0.6, 0.45),
     "k_logsd": (0.5, 1.8, 1.2),
-    "fourier_amp": (0.1, 0.8, 0.35),
+    "fourier_amp": (0.1, 1.5, 0.35),
     "anisotropy": (0.0, 5.0, 1.7),
-    "tan_crit": (0.5, 0.9, TAN_CRIT),
-    "t_total_yr": (2e6, 8e6, T_TOTAL),
+    "tan_crit": (0.35, 0.9, TAN_CRIT),
 }
 
 
