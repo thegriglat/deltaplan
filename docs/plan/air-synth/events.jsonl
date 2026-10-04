@@ -168,3 +168,5 @@
 {"t": "2026-10-05T04:22:35", "by": "executor", "task": "SY-9", "ev": "reported", "commits": ["18763ea6"], "note": "done: Каталог из OSM: 684 старта дельтаплана, 3173 неясных, 958 только параплан, 363 места (кластеры <10 км) с перепадом рель…", "dp_feedback": "dp job wait в foreground упирается в 600 с и уходит в фон — нет команды «ждать файл/условие»; dp inbox не показывает полный текст дополнений одной строкой без tail."}
 {"t": "2026-10-05T04:23:09", "by": "executor", "task": "SY-9", "ev": "checked", "note": "3/3 catalog_tests=ok:4 passed; sites=ok:363; summary=ok:\"by_country\""}
 {"t": "2026-10-05T04:23:19", "by": "coordinator", "task": "SY-9", "ev": "accepted", "note": "по отчёту: 684 старта дельтаплана, 363 места, 3173 неясных (Норвегия 2310), 958 только параплан; выжимка для игры 684 старта, 92 КБ; проверки 3/3"}
+{"t": "2026-10-05T04:23:20", "by": "coordinator", "task": "SY-9", "ev": "accepted", "commits": ["5a2ed468"], "note": "3/3 catalog_tests=ok:4 passed; sites=ok:363; summary=ok:\"by_country\""}
+{"t": "2026-10-05T04:23:31", "by": "coordinator", "task": "SY-9", "ev": "merged", "commits": ["5a2ed468"]}
