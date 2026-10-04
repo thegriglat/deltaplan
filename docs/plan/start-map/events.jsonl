@@ -3,3 +3,8 @@
 {"t": "2026-10-05T03:18:28", "by": "coordinator", "task": "SM-1", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-start-map-SM-1"}
 {"t": "2026-10-05T03:26:00", "by": "coordinator", "task": null, "ev": "plan", "note": "план Выбор подложки (координатор, 05.10.2026): дописано 1 стр."}
 {"t": "2026-10-05T03:26:00", "by": "coordinator", "task": null, "ev": "plan", "note": "план SM-1. Растровая подложка и высота точки: дописано 1 стр."}
+{"t": "2026-10-05T03:26:08", "by": "executor", "task": "SM-1", "ev": "edited", "note": "contract:SM-К1", "diff": {"contract": ["null", "null"]}}
+{"t": "2026-10-05T03:26:09", "by": "executor", "task": "SM-1", "ev": "note", "note": "SM-К1 v2: basemaps[0] = osm (по умолчанию), opentopomap — второй; map_picker.start_zoom >= 11. Решение пользователя: на карте обязательно видны названия населённых пунктов. Скриншот 01 переснять: слой OSM, место с сёлами (напр. Онгудай 50.75, 86.13 или Чемал), масштаб, где подписи сёл читаются, точка выбрана, высота видна. Координатор проверит подписи по скриншоту.", "addendum": true}
+{"t": "2026-10-05T03:28:55", "by": "executor", "task": "SM-1", "ev": "reported", "commits": ["8a259bc0", "f436aa17"], "note": "done: Подложка карты выбора старта: OSM по умолчанию (названия населённых пунктов видны), OpenTopoMap вторым слоем, переключа…", "dp_feedback": "нет"}
+{"t": "2026-10-05T03:29:17", "by": "executor", "task": "SM-1", "ev": "checked", "note": "7/7 start_map_contracts=ok:6/6; menu_setup=ok:12/12; recent_places=ok:12/12; test_language=ok:6/6; test_ui=ok:15/15; no_hillshade=ok:exit 0; screenshot=ok:3"}
+{"t": "2026-10-05T03:29:30", "by": "coordinator", "task": "SM-1", "ev": "accepted", "note": "по отчёту; подписи населённых пунктов на скриншоте 01 проверены координатором"}

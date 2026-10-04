@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "SM-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/start-map.md"
     },
     {
@@ -73,5 +73,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-05T03:18:16"
+  "created": "2026-10-05T03:18:16",
+  "edited": "2026-10-05T03:26:08"
 }
