@@ -1,9 +1,9 @@
 {
-  "id": "AF-1",
+  "id": "AF-4",
   "module": "aframe-geometry",
   "type": "dp-engineer",
-  "title": "Геометрия трапеции и центровка крыла",
-  "goal": "Стойки почти перпендикулярно килю (4–13° низом вперёд, параметр крыла), подвеска = центр масс по трубам + 1–2 см вперёд (офлайн-параметр), вершина относительно подвески по типу крыла, база под плечами в полёте на балансировке; маркеры стоек в .glb — единственный источник для игры; все 48 .glb пересобраны; физика не меняется.",
+  "title": "Высота пилота под килем и тангаж крыла в полёте",
+  "goal": "Отзыв пилота по сборке AF-1: пилот висит слишком низко (локти торчат вверх) — укоротить подвеску до реальной высоты (A3.5); визуальный тангаж киля в планировании сверить с физикой и починить расхождение (A3.6); затем заново подобрать наклон стоек (A3.1) и пересобрать .glb.",
   "plan_ref": "Задачи",
   "contracts": [
     {
@@ -22,28 +22,29 @@
       "ref": "docs/contracts/aframe-geometry.md"
     }
   ],
-  "copy": "~/deltaplan-aframe-geometry-AF-1",
-  "branch": "aframe-geometry/AF-1",
+  "copy": "~/deltaplan-aframe-geometry-AF-4",
+  "branch": "aframe-geometry/AF-4",
   "base": "feature/aframe-geometry",
   "scope": [
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "configs/pilot.json",
+    "configs/flight.json (visual)",
+    "scripts/flight/glider_visual.gd (полёт: prone, маятник, тангаж визуала)",
+    "scripts/flight/glider.gd",
     "tools/blender/glider_params.json",
-    "tools/blender/build_gliders.py",
-    "tools/blender/frame_parts.py",
-    "tools/blender/<новый скрипт центровки>",
+    "tools/blender/aframe_cg.py",
+    "tools/blender/aframe_trim.json",
+    "tools/flight/aframe_trim.gd",
     "assets/models/glider_*.glb",
-    "configs/flight.json",
-    "scripts/flight/glider_visual.gd",
     "tests/game/test_aframe_contracts.gd",
-    "tests/game/test_wing_models_contract.gd",
-    "scenes/models_preview/check_models.gd",
     "docs/guide/models.md"
   ],
   "dont_touch": [
-    "configs/camera.json",
-    "configs/instruments.json",
-    "tests/game/test_cockpit.gd",
     "scripts/flight/flight_model.gd",
     "configs/wings/*.json",
+    "configs/camera.json",
+    "configs/instruments.json",
     "glider_visual.gd: _ground_pose, GROUND_*, upright_grip (AF-3)"
   ],
   "accept": [
@@ -64,6 +65,10 @@
       "tests": "test_polar"
     },
     {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
       "name": "pilot_pose",
       "tests": "pilot_pose"
     },
@@ -82,11 +87,10 @@
     }
   ],
   "report_extra": [
-    "apogee_before_after",
-    "all_wings_base_vs_shoulder",
+    "apogee_numbers",
     "physics_check"
   ],
   "notes": "",
-  "created": "2026-10-04T23:45:35",
-  "edited": "2026-10-05T00:26:04"
+  "created": "2026-10-05T00:26:18",
+  "edited": "2026-10-05T00:26:18"
 }
