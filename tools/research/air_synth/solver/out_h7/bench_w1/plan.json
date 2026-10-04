@@ -1,0 +1,125 @@
+{
+ "args": {
+  "source": "proto",
+  "npz": null,
+  "corpus_dir": null,
+  "ids": null,
+  "corpus_io_dir": null,
+  "n_cond": 3,
+  "seed": 20261005,
+  "workers": 1,
+  "out": "out_h7/bench_w1",
+  "limit": 0,
+  "own_lock": false
+ },
+ "cases": [
+  {
+   "id": "askarovo_0_000",
+   "loc": "askarovo_0",
+   "hour": 9.0,
+   "sky": "clear",
+   "U10": 4.7,
+   "wdir": 145.1,
+   "t_max": 21.0
+  },
+  {
+   "id": "askarovo_0_001",
+   "loc": "askarovo_0",
+   "hour": 12.0,
+   "sky": "clear",
+   "U10": 5.24,
+   "wdir": 226.1,
+   "t_max": 30.2
+  },
+  {
+   "id": "askarovo_0_002",
+   "loc": "askarovo_0",
+   "hour": 15.0,
+   "sky": "clear",
+   "U10": 5.6,
+   "wdir": 179.0,
+   "t_max": 22.6
+  },
+  {
+   "id": "askarovo_1_000",
+   "loc": "askarovo_1",
+   "hour": 20.0,
+   "sky": "clear",
+   "U10": 4.15,
+   "wdir": 217.4,
+   "t_max": 18.8
+  },
+  {
+   "id": "askarovo_1_001",
+   "loc": "askarovo_1",
+   "hour": 9.0,
+   "sky": "partly",
+   "U10": 4.2,
+   "wdir": 302.8,
+   "t_max": 19.4
+  },
+  {
+   "id": "askarovo_1_002",
+   "loc": "askarovo_1",
+   "hour": 12.0,
+   "sky": "partly",
+   "U10": 7.82,
+   "wdir": 6.5,
+   "t_max": 32.0
+  },
+  {
+   "id": "ongudai_0_000",
+   "loc": "ongudai_0",
+   "hour": 15.0,
+   "sky": "partly",
+   "U10": 6.1,
+   "wdir": 77.5,
+   "t_max": 31.7
+  },
+  {
+   "id": "ongudai_0_001",
+   "loc": "ongudai_0",
+   "hour": 20.0,
+   "sky": "partly",
+   "U10": 4.73,
+   "wdir": 164.0,
+   "t_max": 29.3
+  },
+  {
+   "id": "ongudai_0_002",
+   "loc": "ongudai_0",
+   "hour": 9.0,
+   "sky": "overcast",
+   "U10": 4.68,
+   "wdir": 308.5,
+   "t_max": 18.0
+  },
+  {
+   "id": "ongudai_1_000",
+   "loc": "ongudai_1",
+   "hour": 12.0,
+   "sky": "overcast",
+   "U10": 6.86,
+   "wdir": 51.7,
+   "t_max": 29.6
+  },
+  {
+   "id": "ongudai_1_001",
+   "loc": "ongudai_1",
+   "hour": 15.0,
+   "sky": "overcast",
+   "U10": 3.3,
+   "wdir": 225.6,
+   "t_max": 28.5
+  },
+  {
+   "id": "ongudai_1_002",
+   "loc": "ongudai_1",
+   "hour": 20.0,
+   "sky": "overcast",
+   "U10": 3.34,
+   "wdir": 118.8,
+   "t_max": 28.1
+  }
+ ]
+}

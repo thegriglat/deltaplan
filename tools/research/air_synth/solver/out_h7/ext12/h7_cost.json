@@ -1,0 +1,72 @@
+{
+ "solver_version": "s0-939a467",
+ "device": "RTX 4070 SUPER, 20 потоков CPU",
+ "device_workers": 2,
+ "source": "proto",
+ "sec_per_case_median": 4.902,
+ "sec_per_case_p90": 10.7042,
+ "stats": {
+  "n_cases": 48,
+  "wall_s_median": 4.902,
+  "wall_s_p90": 10.7042,
+  "wall_s_mean": 6.619291666666666,
+  "wall_s_converged_cases_mean": 5.412130434782609,
+  "wall_s_nonconverged_cases_mean": 34.384,
+  "n_solutions": 96,
+  "status_counts": {
+   "max": 2,
+   "ok": 94
+  },
+  "nonconverged_solutions_fraction": 0.020833333333333332,
+  "nonconverged_cases_fraction": 0.041666666666666664,
+  "iters_median": 96.0,
+  "iters_p90": 161.0,
+  "iters_max": 1001
+ },
+ "per_solution": {
+  "d400_h": {
+   "t_solve_median": 2.3545,
+   "t_solve_p90": 4.629500000000005,
+   "iters_median": 86.0,
+   "iters_max": 171,
+   "nonconverged": 0,
+   "n": 48,
+   "late_spread60_p90_max": 0.0
+  },
+  "d400_m": {
+   "t_solve_median": 2.1085000000000003,
+   "t_solve_p90": 4.944700000000002,
+   "iters_median": 106.0,
+   "iters_max": 1001,
+   "nonconverged": 2,
+   "n": 48,
+   "late_spread60_p90_max": 0.1189
+  }
+ },
+ "p2_comparison": {
+  "source": "air_nn_pilot/README.md, раздел «Воркеры» (проба terrain, 10 мест × 2 условия, 2 воркера, RTX 4070 SUPER)",
+  "sec_per_case_converged": 6.94,
+  "sec_per_case_with_max": 43.0,
+  "nonconverged_solutions_fraction": 0.15625,
+  "nonconverged_cases_fraction": 0.1875,
+  "max_outer": 1000
+ },
+ "throughput": {
+  "workers": 2,
+  "run_wall_s": 161.96,
+  "n": 48,
+  "sec_per_case_throughput": 3.374166666666667,
+  "cases_per_day": 25606.322548777473,
+  "cases_per_week": 179244.2578414423
+ },
+ "cases_per_day": 25606.322548777473,
+ "cases_per_week": 179244.2578414423,
+ "gpu_busy_fraction_note": "один GPU под замком; массовый счёт — только после шлюза пользователя",
+ "workers_curve": [],
+ "converged_fraction": 0.9791666666666666,
+ "iters": {
+  "median": 96.0,
+  "p90": 161.0,
+  "max": 1001
+ }
+}
