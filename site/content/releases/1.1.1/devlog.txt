@@ -1,0 +1,12 @@
+Deltaplan 1.1.1 — a readable launch-site map
+
+The map where you pick your launch point used to be a shaded relief picture, and it was hard to tell where anything was. Now it is a regular map with town and village names, roads and rivers, and the picked point shows its altitude.
+
+Launch site map:
+- Regular OpenStreetMap map with place names, roads and rivers instead of the shaded relief
+- A switch for the OpenTopoMap topographic layer with contour lines
+- Map tiles are cached on disk; the map source is credited in the corner
+- The picked point shows its altitude above sea level in metres next to the coordinates, on the map and in the point label on the Flight screen
+
+Known issues:
+- The map needs an internet connection the first time an area is viewed; without network and cache the altitude shows as a dash
