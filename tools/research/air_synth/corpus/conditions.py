@@ -212,9 +212,17 @@ def _g(o, k):
     return o[k] if isinstance(o, dict) else getattr(o, k)
 
 
-def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, place=None):
-    """→ (rows, tries): rows — структурный массив cio.CONDITIONS_DTYPE (k строк, S2 v2), только механический режим;
-    tries — сколько кандидатов просмотрено на каждое (для доли отказов); extras — список, куда кладутся словари с
+def draw_p2(rng, n):
+    """Условие из распределения P2 без отбора (plan_rows): час и облачность по кругу от глобального номера n = relief_id·k + cond_id,
+    каждый 12-й (n % 12 == 5) — штиль (U10 = 0); направление, t_max и U10 — как в P2."""
+    u = float(np.round(rng.uniform(*U10_RANGE), 2))
+    return dict(hour=float(HOURS[n % 4]), sky=SKIES[(n // 4) % 3], U10=0.0 if n % 12 == 5 else u,
+                wdir=float(np.round(rng.uniform(0, 360), 1)), t_max=float(np.round(rng.uniform(*TMAX_RANGE), 1)))
+
+
+def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, place=None, mechanical_only=False):
+    """→ (rows, tries): rows — структурный массив cio.CONDITIONS_DTYPE (k строк, S2 v2), по умолчанию из распределения P2 без отбора (draw_p2, mechanical_only=False; признак mechanical — для оценки),
+    mechanical_only=True — перевыбор только механических без штиля (вариант набора); tries — сколько кандидатов просмотрено на каждое (для доли отказов); extras — список, куда кладутся словари с
     сырыми полями и полным derive() (Hs, U, z_i AGL). relief_summary — dict или объект с h_min_m, h_max_m, relief_m;
     place — dict/объект с name, lat_deg, lon_deg (реальное место S1). Детерминированно: ГСЧ — SeedSequence
     ([cond_seed, relief_id]); место (lat, lon, пояс) — одно на рельеф, как место P2 с n_cond условиями."""
@@ -231,9 +239,9 @@ def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, 
     tries = []
     for c in range(k):
         for t in range(1, MAX_TRIES + 1):
-            raw = draw_raw(rng)
+            raw = draw_raw(rng) if mechanical_only else draw_p2(rng, int(relief_id) * k + c)
             d = derive(raw, ctx, hc, summ.relief_m)
-            if d["mechanical"]:
+            if d["mechanical"] or not mechanical_only:
                 break
         else:
             raise RuntimeError(f"рельеф {relief_id}: нет механического условия за {MAX_TRIES} попыток")
@@ -252,9 +260,9 @@ def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, 
     return rows, tries
 
 
-def sample(cond_seed, relief_id, relief_summary, k, hc400=None, place=None):
-    """Контракт S2 v2: k строк (cond_id 0 … k−1), механический режим, детерминированно."""
-    return sample_ex(cond_seed, relief_id, relief_summary, k, hc400, place=place)[0]
+def sample(cond_seed, relief_id, relief_summary, k, hc400=None, place=None, mechanical_only=False):
+    """Контракт S2 v2: k строк (cond_id 0 … k−1), по умолчанию P2 без отбора, детерминированно."""
+    return sample_ex(cond_seed, relief_id, relief_summary, k, hc400, place=place, mechanical_only=mechanical_only)[0]
 
 
 # ----------------------------------------------------------------- CLI make
@@ -273,7 +281,7 @@ def summary_of(rel):
     return rel.summary
 
 
-def make(corpus_dir, out_dir, k, seed, name=None, command=""):
+def make(corpus_dir, out_dir, k, seed, name=None, command="", mechanical_only=False):
     """Набор условий S2 v2 по корпусу S1: части part-NNNNN.h5 (рельефы id [n·S, (n+1)·S) корпуса), вид conditions.h5,
     manifest.json. Готовые части пропускаются (продолжение той же командой)."""
     cor = cio.Corpus(corpus_dir)
@@ -282,7 +290,7 @@ def make(corpus_dir, out_dir, k, seed, name=None, command=""):
     cio.clean_tmp(out_dir)
     ids_all = cor.ids()
     n_parts = (max(ids_all) // S + 1) if ids_all else 0
-    base = dict(relief_corpus=str(Path(corpus_dir).resolve()), cond_seed=np.uint64(seed), k_per_relief=k, mechanical_only=True,
+    base = dict(relief_corpus=str(Path(corpus_dir).resolve()), cond_seed=np.uint64(seed), k_per_relief=k, mechanical_only=bool(mechanical_only),
                 shard_size=S, generator_version=generator_version(), git_commit=_git_commit(), command=command,
                 wsu_threshold=WSU_THR)
     man = dict(base, contract=CONTRACT, kind="conditions", name=name or Path(out_dir).name, cond_seed=int(seed),
@@ -298,7 +306,7 @@ def make(corpus_dir, out_dir, k, seed, name=None, command=""):
         for rid in ids:
             sm = cor.summary(rid)
             pl = cor.place(rid) if cor._has("place") else None
-            rows, tries = sample_ex(seed, rid, sm, k, cor.h400(rid, np.float64), place=pl)
+            rows, tries = sample_ex(seed, rid, sm, k, cor.h400(rid, np.float64), place=pl, mechanical_only=mechanical_only)
             tabs.append(rows)
             tr += tries
         rej = 1 - len(tr) / sum(tr)
@@ -347,6 +355,32 @@ def _h(a, lo, hi, n=20):
     return dict(edges=[float(x) for x in e], counts=[int(x) for x in c])
 
 
+def summary_cond(cond_dir, out):
+    """Сводка набора S2 -> JSON: доли механических и штилей, распределения (квантили) по полям, разбивка по часу/облачности."""
+    T = cio.Conditions(cond_dir).table
+    f = lambda n: T[n].astype(float)
+    mech = T["mechanical"].astype(bool)
+    res = dict(cond_dir=str(cond_dir), n=len(T), n_reliefs=int(len(np.unique(T["relief_id"]))), attrs={k: (v.item() if hasattr(v, "item") else v) for k, v in
+               cio.Conditions(cond_dir).attrs.items() if k not in ("command",)},
+               mechanical_fraction=float(mech.mean()), calm_fraction=float((T["u10_m_s"] == 0).mean()),
+               weak_wind_fraction_u10_lt2=float((T["u10_m_s"] < 2).mean()),
+               mechanical_by_hour={str(h): float(mech[T["hour_local"] == h].mean()) for h in HOURS},
+               mechanical_by_sky={s_: float(mech[T["sky"] == c].mean()) for s_, c in SKY_CODE.items()},
+               hour_counts={str(h): int((T["hour_local"] == h).sum()) for h in HOURS},
+               sky_counts={s_: int((T["sky"] == c).sum()) for s_, c in SKY_CODE.items()},
+               stability_class_counts={str(c): int((T["stability_class"] == c).sum()) for c in range(6)},
+               has_cap_fraction=float(T["has_cap"].mean()))
+    for n in ("u10_m_s", "wind_from_deg", "t_max_c", "lat_deg", "w_star_over_u", "w_star_m_s", "froude", "n_bv_s", "hs_w_m2", "alpha", "max_profile"):
+        res[n] = _q(f(n))
+        if n in ("w_star_over_u", "froude"):
+            res[n + "_mechanical"] = _q(f(n)[mech]) if mech.any() else None
+            res[n + "_non_mechanical"] = _q(f(n)[~mech]) if (~mech).any() else None
+    res["froude_lt_1_fraction"] = float((f("froude") < 1).mean())
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    json.dump(res, open(out, "w"), indent=1, ensure_ascii=False)
+    return res
+
+
 def dist(n, seed, out):
     rng = np.random.default_rng(seed)
     recs, tries, firstdraw = [], [], []
@@ -354,7 +388,7 @@ def dist(n, seed, out):
     for rid in range(n):
         hc, s = fake_relief(rng)
         ex = []
-        conds, tr = sample_ex(seed, rid, s, 1, hc, ex)
+        conds, tr = sample_ex(seed, rid, s, 1, hc, ex, mechanical_only=True)
         recs.append(dict(ex[0], relief=s['relief_m'], hmin=s['h_min_m'], hmean=float(hc.mean())))
         tries.append(tr[0])
         # безусловное распределение: первый кандидат того же ГСЧ (до перевыбора) — для доли отказов по режимам
@@ -419,13 +453,20 @@ def main(argv=None):
     m.add_argument("--k", type=int, default=2)
     m.add_argument("--seed", type=int, required=True)
     m.add_argument("--name")
+    m.add_argument("--mechanical-only", action="store_true", help="только механические (перевыбор, без штиля); по умолчанию — P2 без отбора")
     d = sub.add_parser("dist", help="распределения на n поддельных рельефах")
     d.add_argument("--n", type=int, default=10000)
     d.add_argument("--seed", type=int, default=1)
     d.add_argument("--out", default=str(HERE / "out_conditions" / "dist_v1.json"))
+    sm = sub.add_parser("summary", help="сводка набора S2 -> JSON")
+    sm.add_argument("--conditions", required=True)
+    sm.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    if a.cmd == "make":
-        man = make(a.corpus, a.out, a.k, a.seed, a.name, command="conditions.py " + " ".join(sys.argv[1:]))
+    if a.cmd == "summary":
+        r = summary_cond(a.conditions, a.out)
+        print(f"{a.out}: n={r['n']} mechanical={r['mechanical_fraction']:.3f} calm={r['calm_fraction']:.3f}")
+    elif a.cmd == "make":
+        man = make(a.corpus, a.out, a.k, a.seed, a.name, mechanical_only=a.mechanical_only, command="conditions.py " + " ".join(sys.argv[1:]))
         print(f"{a.out}: {man}")
     else:
         r = dist(a.n, a.seed, a.out)

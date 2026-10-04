@@ -65,22 +65,29 @@ def pick_ids(corpus_dir, n=5):
 
 
 def plan_from_conditions(names, ids, cond_dir, n_cond):
-    """Условия из набора S2 (conditions.h5): n_cond на рельеф — собственные условия рельефа (cond_id 0, 1, …); если их меньше
-    n_cond, добираются первые условия следующего по списку рельефа (механические, из того же набора). Поля решателя:
-    hour_local, sky (код → имя), u10_m_s, wind_from_deg, t_max_c; широта/долгота/дата у модельного места — как у синтетики
-    (model_place), поля S2 lat/lon/month/day решателем здесь не используются."""
+    """Условия из набора S2 (conditions.h5, h1_p2: P2 без отбора): n_cond на рельеф — собственные условия рельефа (cond_id 0, 1, …);
+    недостающие добираются условиями следующих по списку рельефов (циклически, из того же набора). Если среди выбранных нет
+    немеханического или слабого ветра (U10 < 2 м/с), последнее место занимает первое такое условие следующих рельефов
+    (цена несошедшихся определяет реальную стоимость набора). Поля решателя: hour_local, sky (код → имя), u10_m_s, wind_from_deg,
+    t_max_c; широта/долгота/дата у модельного места — как у синтетики (model_place), поля S2 lat/lon/month/day здесь не используются."""
     sys.path.insert(0, str(HERE.parent / "corpus"))
     import corpus_io as cio
     T = cio.Conditions(cond_dir)
+    weak = lambda r: (not bool(r["mechanical"])) or float(r["u10_m_s"]) < 2.0
     rows = []
     for k, (nm, rid) in enumerate(zip(names, ids)):
         own = list(T.for_relief(rid))
-        borrow = list(T.for_relief(ids[(k + 1) % len(ids)]))
-        pick = (own + borrow)[:n_cond]
+        later = [r for d in range(1, len(ids)) for r in T.for_relief(ids[(k + d) % len(ids)])]
+        pick = (own + later)[:n_cond]
+        if not any(weak(r) for r in pick):
+            w = next((r for r in later if weak(r)), None)
+            if w is not None:
+                pick = pick[:n_cond - 1] + [w]
         for j, r in enumerate(pick):
             rows.append(dict(id=f"{nm}_{j:03d}", loc=nm, hour=float(r["hour_local"]), sky=SKIES[int(r["sky"])], U10=float(r["u10_m_s"]),
                              wdir=float(r["wind_from_deg"]), t_max=float(r["t_max_c"]),
-                             src=dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), froude=float(r["froude"]), w_star_over_u=float(r["w_star_over_u"]))))
+                             src=dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), mechanical=bool(r["mechanical"]),
+                                      froude=float(r["froude"]), w_star_over_u=float(r["w_star_over_u"]))))
     return rows
 
 

@@ -55,9 +55,20 @@ def BOX_OK(p):
     return abs(p.sum() - 1) < 1e-9 and (p > 0).all()
 
 
-def test_raw_ranges_and_mechanical_only():
+def test_p2_unselected_default():
+    """По умолчанию — распределение P2 без отбора: час/облачность по кругу от n = rid·k + cid, каждый 12-й — штиль, есть немеханические."""
     hc, s = fake(2)
     rows = np.concatenate([C.sample(7, rid, s, 2, hc) for rid in range(60)])
+    n = np.arange(120)
+    assert (rows["hour_local"] == np.array(C.HOURS)[n % 4]).all() and (rows["sky"] == (n // 4) % 3).all()
+    assert (rows["u10_m_s"][n % 12 == 5] == 0).all() and ((rows["u10_m_s"][n % 12 != 5] >= 0.5) & (rows["u10_m_s"][n % 12 != 5] <= 8)).all()
+    assert (~rows["mechanical"]).any() and rows["mechanical"].any()
+    assert np.isfinite(rows["w_star_over_u"]).all() and np.isfinite(rows["froude"]).all()
+
+
+def test_raw_ranges_and_mechanical_only():
+    hc, s = fake(2)
+    rows = np.concatenate([C.sample(7, rid, s, 2, hc, mechanical_only=True) for rid in range(60)])
     assert rows.dtype == cio.CONDITIONS_DTYPE
     assert rows["mechanical"].all() and (rows["w_star_over_u"] < C.WSU_THR).all()
     assert set(np.unique(rows["hour_local"])) <= set(C.HOURS) and set(np.unique(rows["sky"])) <= {0, 1, 2}
@@ -73,12 +84,13 @@ def test_raw_ranges_and_mechanical_only():
 
 def test_deterministic_and_ids():
     hc, s = fake(3)
-    a = C.sample(11, 5, s, 3, hc)
-    b = C.sample(11, 5, s, 3, hc)
+    a = C.sample(11, 5, s, 3, hc, mechanical_only=True)
+    b = C.sample(11, 5, s, 3, hc, mechanical_only=True)
+    assert C.sample(11, 5, s, 3, hc).tobytes() == C.sample(11, 5, s, 3, hc).tobytes()
     assert a.tobytes() == b.tobytes()
     assert a["cond_id"].tolist() == [0, 1, 2] and (a["relief_id"] == 5).all()
-    assert a[0].tobytes() != C.sample(11, 6, s, 3, hc)[0].tobytes()
-    assert C.sample(11, 5, s, 2, hc)[1].tobytes() == a[1].tobytes()     # k=2 — префикс k=3 (тот же ГСЧ)
+    assert a[0].tobytes() != C.sample(11, 6, s, 3, hc, mechanical_only=True)[0].tobytes()
+    assert C.sample(11, 5, s, 2, hc, mechanical_only=True)[1].tobytes() == a[1].tobytes()     # k=2 — префикс k=3 (тот же ГСЧ)
     x = C.sample(11, 5, s, 2)                                          # без поля рельефа — конечно
     assert all(np.isfinite(x[n]).all() for n in x.dtype.names if x.dtype[n].kind == "f" and "override" not in n)
 
@@ -135,7 +147,7 @@ def test_make_cli(tmp_path):
     info = C.make(corp, out, 2, 123)
     assert info["n_records"] == 18 and info["complete"] and info["parts"] == 3
     c = cio.Conditions(out)
-    assert c.attrs["contract"] == "S2 v2" and c.attrs["kind"] == "conditions" and c.attrs["mechanical_only"]
+    assert c.attrs["contract"] == "S2 v2" and c.attrs["kind"] == "conditions" and not c.attrs["mechanical_only"]
     assert c.attrs["k_per_relief"] == 2 and c.attrs["cond_seed"] == 123 and 0 <= c.attrs["reject_fraction"] < 1
     assert c.validate_refs()
     import h5py, json
@@ -147,7 +159,7 @@ def test_make_cli(tmp_path):
     assert abs(c.attrs["reject_fraction"] - want) < 1e-12 and abs(json.load(open(out + "/manifest.json"))["reject_fraction"] - want) < 1e-12
     t = c.table
     assert [(r, k) for r, k in zip(t["relief_id"], t["cond_id"])] == [(r, k) for r in range(9) for k in range(2)]
-    assert t["mechanical"].all() and np.isfinite(t["froude"]).all()
+    assert np.isfinite(t["froude"]).all()
     # строки совпадают с sample() на тех же g400 (деквантованных)
     cor = cio.Corpus(corp)
     one = C.sample(123, 5, cor.summary(5), 2, cor.h400(5, np.float64))
@@ -184,3 +196,33 @@ def test_cli_subprocess(tmp_path):
                         "--seed", "5"], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     assert len(cio.Conditions(out)) == 6
+
+
+def test_summary_cli(tmp_path):
+    import json
+    corp, out = str(tmp_path / "relief"), str(tmp_path / "cond")
+    write_mini_corpus(corp, 12, shard_size=4)
+    C.make(corp, out, 2, 5)
+    r = C.summary_cond(out, str(tmp_path / "s.json"))
+    d = json.load(open(tmp_path / "s.json"))
+    assert d["n"] == 24 and abs(d["calm_fraction"] - 2 / 24) < 1e-9 and 0 < d["mechanical_fraction"] < 1 and "froude_non_mechanical" in d
+
+
+def test_h7_plan_from_conditions(tmp_path):
+    """h7_run.plan_from_conditions: 3 условия на рельеф, у каждого рельефа есть немеханическое/слабое, номера из набора."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("h7_run", os.path.join(os.path.dirname(C.__file__), "..", "solver", "h7_run.py"))
+    h7 = importlib.util.module_from_spec(spec); spec.loader.exec_module(h7)
+    corp, out = str(tmp_path / "relief"), str(tmp_path / "cond")
+    write_mini_corpus(corp, 12, shard_size=4)
+    C.make(corp, out, 2, 5)
+    ids = [0, 3, 5, 8, 10]
+    rows = h7.plan_from_conditions([f"c_{i}" for i in ids], ids, out, 3)
+    assert len(rows) == 15 and [r["loc"] for r in rows] == [f"c_{i}" for i in ids for _ in range(3)]
+    T = cio.Conditions(out).table
+    for i in ids:
+        rs = [r for r in rows if r["loc"] == f"c_{i}"]
+        assert any((not r["src"]["mechanical"]) or r["U10"] < 2 for r in rs)
+        for r in rs:
+            t = T[(T["relief_id"] == r["src"]["relief_id"]) & (T["cond_id"] == r["src"]["cond_id"])][0]
+            assert r["U10"] == t["u10_m_s"] and r["hour"] == t["hour_local"]
