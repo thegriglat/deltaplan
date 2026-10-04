@@ -126,9 +126,9 @@ generated: true
 
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
+| [docs/plan/air-synth.md](/docs/plan/air-synth.md) | plan | active | air-synth | air-synth — сеть ветра на корпусе модельных рельефов: рельеф собирается из согласованных форм (гребни, пупыри разной высоты, седловины, пары склонов, уступы), считается решателем; сначала U-Net, затем FFT-сеть; реальные места P2 — только приёмка. Гипотезы H1–H7; задачи формирует координатор |
 | [docs/plan/air_model.md](/docs/plan/air_model.md) | plan | active | air-model | План: модель воздуха в трёх масштабах — Документ — для координатора агентов: модули, задачи со скоупом, файлами, приёмкой и оценкой. |
 | [docs/plan/air_nn.md](/docs/plan/air_nn.md) | plan | active | air-nn | Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m… |
-| [docs/plan/air_synth.md](/docs/plan/air_synth.md) | plan | active | air-synth | air-synth — сеть ветра на корпусе модельных рельефов: рельеф собирается из согласованных форм (гребни, пупыри разной высоты, седловины, пары склонов, уступы), считается решателем; сначала U-Net, затем FFT-сеть; реальные места P2 — только приёмка. Гипотезы H1–H7; задачи формирует координатор |
 | [docs/plan/ann2.md](/docs/plan/ann2.md) | plan | postponed | ann2 | ОТЛОЖЕНО 05.10. ann2 — нейросеть ветра заново (2,5D-оператор: свёрточный энкодер + энкодер профиля + голова по непрерывной высоте, σ). Итог AN-1…AN-4: на 6–10 % лучше P2, критерий 10–15 % скорости не выполнен (≈ 22 %); предел — не архитектура и не шум цели, а постановка или объём данных; разложенная голова — скорость порядка P2 |
 | [docs/plan/game/04-sled-proshlogo-poleta.md](/docs/plan/game/04-sled-proshlogo-poleta.md) | plan | idea |  | 04. След прошлого полёта (полупрозрачная линия) — ОТЛОЖЕНО (решение пользователя): относится к блоку соревнований (этап 5), пока не делаем. |
 | [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) | plan | active | net | План: сетевая игра — роадмап — 1. «Сетевая игра» в главном меню → экран: адрес сервера (IP:порт, запоминается), своё имя пилота (из настроек). |
@@ -141,7 +141,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (246 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (247 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
