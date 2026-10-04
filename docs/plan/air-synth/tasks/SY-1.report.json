@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Формат корпуса S1 v2/S2 v1 (corpus_io.py: квантование, шарды, индекс, чтение через seek, write_reliefs для готовых рельефов с Place), запуск S3 v2 (run_corpus.py gen/index/sample/bench, --theta-cloud, resume), 16 тестов, замер на прототипе.",
+  "commits": [
+    "b2fc6528 формат корпуса, запуск, тесты, замер",
+    "см. git log air-synth/SY-1: S1 v2 Place"
+  ],
+  "checks": [
+    {
+      "name": "contract_tests",
+      "value": "16 passed",
+      "pass": true
+    },
+    {
+      "name": "no_fail",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "smoke_resume",
+      "value": "passed",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SY-1",
+  "uncertain": [
+    {
+      "where": "tests/test_run_corpus.py::test_resume_after_kill",
+      "why": "зависит от времени (kill посередине, sleep 1.5 с для осиротевших рабочих)",
+      "checked": "прошёл несколько раз; kill — killpg всей группы"
+    },
+    {
+      "where": "proto_generator.py",
+      "why": "замер на одном типе по 3 рельефам, mix случайный; побитность прототипа не проверялась",
+      "checked": "только время"
+    }
+  ],
+  "dp_feedback": "Дополнения контрактов приходят сообщениями в процессе; удобно было бы видеть diff контракта командой dp task sync.",
+  "sec_gen_per_relief": 15.5,
+  "sec_io_per_relief": 0.019,
+  "bytes_per_relief": 314048,
+  "go_needed": false,
+  "extra": {
+    "bench": "tools/research/air_synth/corpus/bench/bench_proto.json",
+    "breakdown_s": {
+      "gen": 15.54,
+      "quant_summary": 0.0097,
+      "serialize": 0.0001,
+      "write": 0.0092
+    },
+    "note": "квантование+запись ≈0,1% времени; узкое место — ядро fastscapelib/numba, Go не нужен; 10^4 рельефов ≈ 15.5·10^4/20 ядер ≈ 2,2 ч"
+  },
+  "t": "2026-10-04T22:30:49",
+  "by": "executor"
+}
