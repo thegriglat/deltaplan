@@ -444,8 +444,13 @@ gl_compatibility нет теней сквозь ткань.
 Полный список с прямыми ссылками на картинки — в рабочем `refs/SOURCES.txt` агента (76 строк);
 при необходимости его можно положить сюда.
 
+**Подвеска (A1 v3)** — `wings.<id>.hang_source`: `passport` (положение подвески на киле от носа из паспорта/руководства
+производителя: `hang_from_nose_m`, `hang_ref`; данные и цитаты — `tools/research/data/wing_passports/hang_passports.json`;
+сейчас 8 крыльев: air_f2, air_sting3, ww_t2c, aeros_combat_l, moyes_litespeed_rx/s, moyes_litesport, moyes_malibu2) или `cg`
+(центр масс труб + 1,5 см вперёд). Паспорт добавляется в `hang_passports.json`, затем `aframe_cg.py --pick-tilt`.
+
 **Высота пилота в полёте (A3.5)** — длина подвески `configs/pilot.json → visual.hang_length_m` (карабин — низ
-торса) выводится из модели пилота: низ торса над осью базовой штанги на длину предплечья ±0,05 м. Регулируется
+торса) выводится из модели пилота: низ торса над осью базовой штанги 0,37 ±0,03 м (A3.5 v5). Регулируется
 `pilot_eye[2]` в `glider_params.json` (глаза в позе prone; выше значение — пилот выше); после смены пересобрать
 `build_pilot.py`, обновить `aframe_trim.json`, `aframe_cg.py --pick-tilt`, `build_gliders.py`, `--import`;
 `body_below_hang_m` — центр тела для маятника (визуал; физика его не читает).

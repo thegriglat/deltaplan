@@ -489,7 +489,7 @@ def build_wing(key: str, params: dict) -> None:
     _, tail_y = build_frame(ws, p, cf, mats)
     build_control_frame(ws, p, cf, mats, tail_y)
     U.empty("HangPoint", (0, 0, 0))
-    U.empty("WingCG", (0, -G.param(p, cf, "hang_cg_offset_m"), cf["keel_z_m"]))
+    U.empty("WingCG", (0, p["nose_forward_m"] - p["cg_from_nose_m"], cf["keel_z_m"]))
     U.empty("WingTipL", ws.le(-1.0))
     U.empty("WingTipR", ws.le(1.0))
     U.export(p["out"])

@@ -70,7 +70,7 @@ func test_params_and_markers() -> void:
 	check(cf.has("mass_model") and cf.has("sail_mass_kg"), "control_frame: mass_model, sail_mass_kg")
 	for wid: String in params.wings:
 		var p: Dictionary = params.wings[wid]
-		for k in ["cg_from_nose_m", "nose_forward_m", "upright_tilt_deg", "upright_len_m"]:
+		for k in ["cg_from_nose_m", "nose_forward_m", "upright_tilt_deg", "upright_len_m", "hang_source"]:
 			check(p.has(k), "%s: есть %s" % [wid, k])
 		if not (p.has("cg_from_nose_m") and p.has("upright_tilt_deg") and p.has("upright_len_m")):
 			continue
@@ -84,12 +84,22 @@ func test_params_and_markers() -> void:
 		)
 		check(tilt >= 4.0 and tilt <= 13.0, "%s: наклон %.1f в 4…13" % [wid, tilt])
 		check(length >= 1.6 and length <= 1.75, "%s: длина стоек %.3f в 1,6…1,75" % [wid, length])
-		check(off >= 0.01 and off <= 0.02, "%s: подвеска впереди ЦМ на %.3f в 0,01…0,02" % [wid, off])
+		var src := String(p.get("hang_source", ""))
+		check(src in ["passport", "cg"], "%s: hang_source = passport|cg (%s)" % [wid, src])
+		if src == "passport":
+			check(p.has("hang_from_nose_m") and String(p.get("hang_ref", "")).length() > 10, "%s: passport: hang_from_nose_m и hang_ref" % wid)
+			approx(
+				float(p.nose_forward_m), float(p.get("hang_from_nose_m", -9.0)), 0.01,
+				"%s: nose_forward_m = hang_from_nose_m (паспорт)" % wid
+			)
+		else:
+			check(off >= 0.01 and off <= 0.02, "%s: подвеска впереди ЦМ на %.3f в 0,01…0,02" % [wid, off])
 		check(hfa >= -0.2 and hfa <= 0.2, "%s: hang_from_apex %.2f в −0,20…+0,20" % [wid, hfa])
-		approx(
-			float(p.nose_forward_m), float(p.cg_from_nose_m) - off, 0.0015,
-			"%s: nose_forward_m = cg_from_nose_m − hang_cg_offset_m" % wid
-		)
+		if src == "cg":
+			approx(
+				float(p.nose_forward_m), float(p.cg_from_nose_m) - off, 0.0015,
+				"%s: nose_forward_m = cg_from_nose_m − hang_cg_offset_m" % wid
+			)
 		var mk := _markers(String(p.out))
 		check(mk.size() == MARKERS.size(), "%s: в модели есть все маркеры A2 (%d из %d)" % [wid, mk.size(), MARKERS.size()])
 		if mk.size() != MARKERS.size():
@@ -101,8 +111,8 @@ func test_params_and_markers() -> void:
 			approx(top.distance_to(bot), length, 0.01, "%s %s: длина стойки в модели" % [wid, side])
 			approx(top.z, hfa, 0.01, "%s %s: вершина относительно подвески (hang_from_apex_m)" % [wid, side])
 		approx(
-			(mk["WingCG"] as Vector3).z, off, 0.002,
-			"%s: HangPoint впереди WingCG на hang_cg_offset_m" % wid
+			(mk["WingCG"] as Vector3).z, float(p.cg_from_nose_m) - float(p.nose_forward_m), 0.002,
+			"%s: HangPoint относительно WingCG (cg_from_nose_m − nose_forward_m)" % wid
 		)
 		check((mk["WingCG"] as Vector3).y > 0.0, "%s: WingCG на киле выше подвески" % wid)
 
@@ -218,7 +228,7 @@ func _pilot_dims(v: GliderVisual) -> Dictionary:
 
 
 ## A3.5: в полёте на балансировке локти не выше плечевых суставов (по вертикали мира); низ торса
-## над осью базовой штанги на длину предплечья модели пилота ± 0,05 м; configs/pilot.json →
+## над осью базовой штанги 0,37 ± 0,03 м (A3.5 v5); configs/pilot.json →
 ## visual.hang_length_m (карабин — низ торса) совпадает с моделью ± 0,02 м.
 func test_flight_pilot_height() -> void:
 	var r := await _flight_visual("apogee")
@@ -247,8 +257,8 @@ func test_flight_pilot_height() -> void:
 	var low_local: float = (v.global_transform.affine_inverse() * Vector3(0, float(dims.torso_low_y), 0)).y
 	var meas_len := hang.distance_to(Vector3(hang.x, float(dims.torso_low_y), hang.z))
 	check(
-		absf(above - float(dims.forearm)) <= 0.05,
-		"низ торса над базой %.3f м, предплечье %.3f м (±0,05)" % [above, dims.forearm]
+		absf(above - 0.37) <= 0.03,
+		"низ торса над базой %.3f м (0,37 ±0,03)" % above
 	)
 	approx(hl, meas_len, 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
 	print(

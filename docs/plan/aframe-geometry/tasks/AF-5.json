@@ -2,13 +2,13 @@
   "id": "AF-5",
   "module": "aframe-geometry",
   "type": "dp-engineer",
-  "title": "Убрать силуэт стоек и тёмные пятна снизу",
+  "title": "Убрать силуэт стоек; приборы на левую стойку",
   "goal": "Силуэт стоек (AF-2) удалить совсем — код, настройку в configs/camera.json и проверки (A3.3 v5); убедиться, что тёмные пятна снизу от первого лица пропали; если пятна не от силуэта — найти источник и исправить или описать.",
   "plan_ref": "Решения пользователя",
   "contracts": [
     {
       "name": "A3",
-      "version": "5",
+      "version": "6",
       "ref": "docs/contracts/aframe-geometry.md"
     }
   ],
@@ -20,13 +20,18 @@
     "scripts/game/camera_rig.gd",
     "configs/camera.json",
     "tests/game/test_cockpit.gd",
-    "docs/guide"
+    "docs/guide",
+    "tools/blender/build_gliders.py",
+    "tools/blender/glider_params.json (только control_frame: крепление приборов)",
+    "scenes/models_preview/check_models.gd",
+    "scripts/flight/glider_visual.gd (только _fallback_wing)",
+    "assets/models/glider_*.glb (пересборка — только после вливания AF-6 и dp task sync)",
+    "tests/instruments",
+    "configs/controls.json (только _doc look_instrument)",
+    "configs/ui.json, locale/ui.csv (только текст про взгляд на прибор, если там «вниз»)"
   ],
   "dont_touch": [
-    "tools/blender",
-    "assets/models",
     "configs/pilot.json",
-    "scripts/flight",
     "tests/game/test_aframe_contracts.gd"
   ],
   "accept": [
@@ -37,10 +42,23 @@
     {
       "name": "camera_bar_look",
       "tests": "camera_bar_look"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "telltale",
+      "tests": "telltale"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-05T01:49:34",
-  "edited": "2026-10-05T01:49:46"
+  "edited": "2026-10-05T01:56:49"
 }
