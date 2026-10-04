@@ -1,0 +1,9 @@
+{
+  "module": "popular-places",
+  "plan": "docs/plan/popular-places.md",
+  "contracts": "docs/contracts/popular-places.md",
+  "branch": "feature/popular-places",
+  "copy": "~/deltaplan-popular-places",
+  "created": "2026-10-05T04:03:44",
+  "code": "PP"
+}
