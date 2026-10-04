@@ -187,7 +187,7 @@ func _run_wings() -> void:
 
 
 ## SM-1: оверлей карты выбора старта на Алтае (сеть нужна), точка выбрана, высота получена.
-## Кадры map_opentopomap, map_osm, map_setup (подпись точки на экране «Полёт…»).
+## Кадры map_osm, map_osm, map_setup (подпись точки на экране «Полёт…»).
 func _run_map() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	_main = main
@@ -199,13 +199,13 @@ func _run_map() -> void:
 	setup.visible = true
 	setup.call("_open_map")
 	var map: MapPicker = setup.get("_map")
-	map.center_on(51.1, 85.9, 11.0)
-	map.pick(51.12, 85.95)
-	await _wait_map(map)
-	await _shoot("map_opentopomap")
-	map.call("_on_layer_selected", 1)
+	map.center_on(50.75, 86.13, 13.0)
+	map.pick(50.752, 86.135)
 	await _wait_map(map)
 	await _shoot("map_osm")
+	map.call("_on_layer_selected", 1)
+	await _wait_map(map)
+	await _shoot("map_otm")
 	map.call("_on_layer_selected", 0)
 	setup.call("_on_map_ok")
 	await _wait_map(map)

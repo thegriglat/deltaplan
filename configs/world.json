@@ -905,7 +905,7 @@
   },
   "map_picker": {
     "_doc": "Карта выбора места старта (scripts/terrain/map_picker.gd): растровые подложки OpenTopoMap / OSM с дисковым кешем, высота точки из Terrarium.",
-    "start_zoom": 9,
+    "start_zoom": 12,
     "start_zoom_doc": "Начальный масштаб (уровень тайлов web-mercator)",
     "min_zoom": 3,
     "min_zoom_doc": "Минимальный масштаб карты (уровень тайлов web-mercator), безразмерный",
@@ -926,6 +926,15 @@
     "max_zoom_doc": "Максимальный масштаб карты (уровень тайлов web-mercator), безразмерный; слой выше своего max_zoom растягивает тайл",
     "basemaps": [
       {
+        "id": "osm",
+        "name_key": "map_layer_osm",
+        "url_template": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "subdomains": [],
+        "max_zoom": 19,
+        "attribution": "© OpenStreetMap contributors",
+        "_doc": "OpenStreetMap standard"
+      },
+      {
         "id": "opentopomap",
         "name_key": "map_layer_opentopomap",
         "url_template": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
@@ -937,15 +946,6 @@
         "max_zoom": 17,
         "attribution": "Map data © OpenStreetMap contributors, SRTM | Map style © OpenTopoMap (CC-BY-SA)",
         "_doc": "OpenTopoMap — подложка по умолчанию"
-      },
-      {
-        "id": "osm",
-        "name_key": "map_layer_osm",
-        "url_template": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "subdomains": [],
-        "max_zoom": 19,
-        "attribution": "© OpenStreetMap contributors",
-        "_doc": "OpenStreetMap standard"
       }
     ],
     "tile_cache_dir": "user://map_cache",
