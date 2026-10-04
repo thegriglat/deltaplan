@@ -149,3 +149,15 @@ def test_resume_without_manifest(tmp_path):
     assert cio.read_manifest(out)["n_total"] == 6
     os.remove(out + "/manifest.json")
     assert run(gen_args(out, 8, 1)).wait(120) != 0                 # не совпали — отказ
+
+
+def test_stats_subcommand(tmp_path):
+    import json
+    out, js = str(tmp_path / "o"), str(tmp_path / "s.json")
+    assert run(gen_args(out, 4, 2)).wait(120) == 0
+    r = subprocess.run([sys.executable, os.path.join(CORPUS, "run_corpus.py"), "stats", out, "--n", "3", "--seed", "1", "--workers", "2", "--json", js],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr[-500:]
+    d = json.load(open(js))
+    assert d["n"] == 3 and len(d["table"]) == 17 and isinstance(d["out_of_range"], int) and d["n_real"] == 367
+    assert all({"sample", "real", "out", "frac_outside"} <= set(t) for t in d["table"])

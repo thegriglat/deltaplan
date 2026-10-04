@@ -2,6 +2,7 @@
   run_corpus.py gen --out DIR --n N --corpus-seed S --workers W [--shard-size 100] [--generator МОДУЛЬ] [--theta-cloud облако.json]
   run_corpus.py view DIR
   run_corpus.py sample DIR --n 50 --seed 1
+  run_corpus.py stats DIR --n 60 --seed 1 --json out_corpus/stats_sample.json   # наблюдаемые SY-5 выборки против реальных квадратов
   run_corpus.py bench [--generator МОДУЛЬ] [--shards 2] [--shard-size 2] [--workers W]
 Продолжение после прерывания — той же командой gen: готовые части пропускаются, *.tmp удаляются."""
 import argparse
@@ -165,6 +166,59 @@ def cmd_sample(a):
     print(" ".join(map(str, pick)))
 
 
+def _obs_job(a):
+    path, rid = a
+    sys.path.insert(0, os.path.join(HERE, "..", "tune"))
+    import observables as ob  # noqa: E402  (SY-5: те же наблюдаемые, что в настройке; statistics — terrain_stats/stats.py)
+    c = cio.Corpus(path)
+    z = c.h100(rid, np.float64)
+    c.close()
+    return ob.vec(ob.observables(z))
+
+
+def cmd_stats(a):
+    """Статистики выборки корпуса (n рельефов, seed как у sample) против реальных квадратов настройки SY-5 (4 detail + 64 far + 299 пул):
+    те же 17 наблюдаемых (tune/observables.py). Флаг out: медиана выборки вне [p5, p95] реальных квадратов; frac_outside — доля
+    рельефов выборки вне [min, max] реальных. -> JSON (таблица, out_of_range)."""
+    _single_thread()
+    sys.path.insert(0, os.path.join(HERE, "..", "tune"))
+    import observables as ob  # noqa: E402
+    c = cio.Corpus(a.dir)
+    ids = c.ids()
+    pick = sorted(int(ids[i]) for i in np.random.default_rng(a.seed).choice(len(ids), min(a.n, len(ids)), replace=False))
+    man = dict(cio.read_manifest(a.dir) or {})
+    c.close()
+    t0 = time.time()
+    with mp.get_context("spawn").Pool(max(1, a.workers)) as pool:
+        V = np.array(pool.map(_obs_job, [(a.dir, r) for r in pick], chunksize=1))
+    tune_out = os.path.join(HERE, "..", "tune", "out")
+    sq = json.load(open(os.path.join(tune_out, "ref_obs.json")))["squares"] + json.load(open(os.path.join(tune_out, "ref_obs_pool.json")))["squares"]
+    R = np.array([[np.nan if r["obs"][n] is None else r["obs"][n] for n in ob.NAMES] for r in sq], float)
+    table, n_out = [], 0
+    q = lambda x, p: float(np.nanpercentile(x, p))
+    for j, n in enumerate(ob.NAMES):
+        v, r = V[:, j], R[:, j]
+        row = dict(name=n, n_nan_sample=int(np.isnan(v).sum()), n_nan_real=int(np.isnan(r).sum()),
+                   sample=dict(median=q(v, 50), p10=q(v, 10), p90=q(v, 90), min=float(np.nanmin(v)), max=float(np.nanmax(v))),
+                   real=dict(median=q(r, 50), p5=q(r, 5), p10=q(r, 10), p90=q(r, 90), p95=q(r, 95), min=float(np.nanmin(r)), max=float(np.nanmax(r))),
+                   frac_outside=float(np.nanmean((v < np.nanmin(r)) | (v > np.nanmax(r)))),
+                   shift_in_real_sd=float((q(v, 50) - q(r, 50)) / (np.nanstd(r) + 1e-12)))
+        row["out"] = bool(not (row["real"]["p5"] <= row["sample"]["median"] <= row["real"]["p95"]))
+        n_out += row["out"]
+        table.append(row)
+    res = dict(corpus=a.dir, generator_version=man.get("generator_version"), n=len(pick), seed=a.seed, ids=pick, n_real=len(sq),
+               real_source="tune/out/ref_obs.json + ref_obs_pool.json (4 detail, 64 far, 299 pool)", out_of_range=int(n_out),
+               rule="out: медиана выборки вне [p5, p95] реальных квадратов", seconds=round(time.time() - t0, 1), table=table)
+    print(f"{'наблюдаемая':16s} {'выборка p10/мед/p90':26s} {'реальные p5/мед/p95':26s} вне  доля вне [min,max]")
+    for r in table:
+        s_, r_ = r["sample"], r["real"]
+        print(f"{r['name']:16s} {s_['p10']:8.3g}/{s_['median']:8.3g}/{s_['p90']:8.3g}  {r_['p5']:8.3g}/{r_['median']:8.3g}/{r_['p95']:8.3g}  {'ВНЕ' if r['out'] else '   '} {r['frac_outside']:.2f}")
+    print("out_of_range =", n_out)
+    if a.json:
+        os.makedirs(os.path.dirname(os.path.abspath(a.json)), exist_ok=True)
+        json.dump(res, open(a.json, "w"), indent=1, ensure_ascii=False)
+
+
 def cmd_bench(a):
     """Где время: генерация / квантование+сводки / запись части HDF5; на одном рельефе и на --shards шардах параллельно."""
     _single_thread()
@@ -204,6 +258,8 @@ def main(argv=None):
     g.add_argument("--theta-cloud", help="облако настроек .json (S3 v2); без него theta=None")
     i = sub.add_parser("view"); i.add_argument("dir")
     s = sub.add_parser("sample"); s.add_argument("dir"); s.add_argument("--n", type=int, default=50); s.add_argument("--seed", type=int, default=1)
+    st = sub.add_parser("stats"); st.add_argument("dir"); st.add_argument("--n", type=int, default=60); st.add_argument("--seed", type=int, default=1)
+    st.add_argument("--workers", type=int, default=4); st.add_argument("--json")
     b = sub.add_parser("bench")
     b.add_argument("--generator", default="proto_generator"); b.add_argument("--shards", type=int, default=2)
     b.add_argument("--shard-size", type=int, default=1); b.add_argument("--workers", type=int, default=2)
@@ -211,6 +267,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "gen":
         gen_corpus(a.out, a.n, a.corpus_seed, a.workers, a.shard_size, a.generator, theta_cloud=a.theta_cloud, cloud_weights=a.cloud_weights)
+    elif a.cmd == "stats":
+        cmd_stats(a)
     elif a.cmd == "view":
         print(cio.build_view(a.dir))
     elif a.cmd == "sample":
