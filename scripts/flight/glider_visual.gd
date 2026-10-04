@@ -230,7 +230,9 @@ func _update_arms(flying: bool, dt: float) -> void:
 	var bar_r := bar_grip(1)
 	var up_l := upright_grip(-1)
 	var up_r := upright_grip(1)
-	var pole := _vec3(a.get("elbow_pole", [1.0, -1.0, 0.3]))
+	var pole := _vec3(a.get("elbow_pole", [1.0, -1.0, 0.3])).lerp(
+		_vec3(a.get("elbow_pole_bar", [1.0, -0.3, 0.6])), arm_bar
+	)
 	var bb := _relative_xform(self, get_marker("BaseBar"))
 	arm_ik.set_targets(
 		up_l.lerp(bar_l, arm_bar),

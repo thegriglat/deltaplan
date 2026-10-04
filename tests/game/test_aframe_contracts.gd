@@ -226,6 +226,7 @@ func test_flight_pilot_height() -> void:
 	var sk := v.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
 	var hang: Vector3 = v.global_transform * Vector3(0, float(Config.get_config("flight").visual.hang_height_m), 0)
 	var sh_mid: Vector3 = v.global_transform * ((v.shoulder(-1) + v.shoulder(1)) * 0.5)
+	v.arm_ik._process_modification_with_delta(0.0)  # поза рук после IK
 	var worst_elbow := -1.0e9
 	var dmin := 1.0e9
 	var dmax := -1.0e9

@@ -32,10 +32,12 @@ func test_hands_on_base_bar_in_flight() -> void:
 			"%s: точка хвата = BaseBar − полуширина хвата" % wing
 		)
 		var worst := 0.0
+		v.set_pose(0.0, 0.0, true, 1.0e6)  # руки переходят на штангу (arm_bar → 1) до проверок
+		await _frames(4)
 		for roll in [-1.0, 0.0, 1.0]:
 			for pitch in [-1.0, 0.0, 1.0]:
 				v.set_pose(roll, pitch, true, 1.0e6)
-				await _frames(2)
+				await _frames(4)
 				for side in [-1, 1]:
 					var err := _grip(v, side).distance_to(v.bar_grip(side))
 					worst = maxf(worst, err)
@@ -47,7 +49,7 @@ func test_hands_on_base_bar_in_flight() -> void:
 						)
 					)
 				if roll == 0.0 and pitch == 0.0:
-					_check_elbows(v, wing + " лёжа")
+					_check_elbows_flight(v, wing + " лёжа")
 		print("         %s лёжа: худшее кисть↔штанга %.4f м" % [wing, worst])
 		v.free()
 
@@ -157,3 +159,19 @@ func _check_elbows(v: GliderVisual, what: String) -> void:
 		var mid := (v.shoulder(side) + _grip(v, side)) * 0.5
 		check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
 		check(elbow.y < mid.y, "%s рука %d: локоть вниз" % [what, side])
+
+
+## Лёжа в полёте (A3.5): руки почти вертикальны, локоть — наружу от середины «плечо → хват» и не выше
+## плечевого сустава (по вертикали мира).
+func _check_elbows_flight(v: GliderVisual, what: String) -> void:
+	var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+	v.arm_ik._process_modification_with_delta(0.0)  # поза рук после IK (get_bone_global_pose её не видит)
+	for side in [-1, 1]:
+		var bone := sk.find_bone("Forearm.L" if side < 0 else "Forearm.R")
+		var elbow := v.to_local(sk.to_global(sk.get_bone_global_pose(bone).origin))
+		var mid := (v.shoulder(side) + _grip(v, side)) * 0.5
+		check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
+		check(
+			(v.global_transform * elbow).y <= (v.global_transform * v.shoulder(side)).y + 0.005,
+			"%s рука %d: локоть не выше плеча" % [what, side]
+		)
