@@ -24,7 +24,7 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Взгляд вперёд — только простор мира; вниз — планшет; вверх — парус; тень крыла включена.
+## Взгляд вперёд — только простор мира; вверх — парус; тень крыла включена.
 func test_cockpit_view_by_head_angle() -> void:
 	for wing in WINGS:
 		var main := await _fly(wing)
@@ -61,16 +61,6 @@ func test_cockpit_view_by_head_angle() -> void:
 			check(in_f[1] == 0, "%s F: парус в кадре" % wing)
 			check(in_f[2] == 0, "%s F: руки в кадре" % wing)
 			check(in_f[3] == 0, "%s F: приборы в кадре" % wing)
-
-		_look(game, 0.0, -60.0)
-		var tablet := game.glider.get_marker("InstrumentMount")
-		check(
-			_in_view(cam, tablet.global_position), "%s DF: планшет (InstrumentMount) в кадре" % wing
-		)
-		# Вариометр 90-х — на штанге слева от планшета (карточка models/01): оба в кадре DF.
-		var vario := game.glider.get_marker("VarioMount")
-		if vario != null:
-			check(_in_view(cam, vario.global_position), "%s DF: вариометр 90-х в кадре" % wing)
 
 		_look(game, 0.0, 55.0)
 		check(_count_in_view(cam, _meshes(v, ["Sail"])) > 0, "%s U: парус в кадре" % wing)
@@ -170,7 +160,9 @@ func test_tablet_steady_on_roll() -> void:
 	var game: Game = main.get_node("Game")
 	game.autopilot.release_all()
 	game.autopilot = null
-	_look(game, 0.0, -60.0)
+	_hold_glance(game, true)
+	for i in 120:
+		_step(game)
 	var tablet := game.glider.get_marker("InstrumentMount")
 	var xs := PackedFloat32Array()
 	# Резкие перекладки: тело проходит весь ход вбок, крыло не успевает уйти в глубокий крен.
@@ -197,10 +189,61 @@ func test_tablet_steady_on_roll() -> void:
 			% [_span(calm), amp, _span(xs), max_jump]
 		)
 	)
+	_hold_glance(game, false)
 	check(_span(calm) < 0.02, "без ввода планшет стоит (%.3f)" % _span(calm))
 	check(amp <= 0.15, "амплитуда планшета при A→D→A ≤ 15 %% ширины (%.3f)" % amp)
 	check(max_jump < 0.01, "планшет смещается плавно (скачок %.4f за шаг)" % max_jump)
 	await _finish(main)
+
+
+## Q (look_instrument) — зажата: голова поворачивается влево на планшет на левой стойке (A3.3 v6):
+## планшет и вариометр в кадре при FOV по умолчанию и 75°, рука линию взгляда не загораживает;
+## отпущена — взгляд возвращается ровно в прежнее направление. Угол поворота — в печать.
+func test_glance_instrument_left_upright() -> void:
+	for wing in WINGS:
+		var main := await _fly(wing)
+		if main == null:
+			continue
+		var game: Game = main.get_node("Game")
+		var cam := game.camera
+		var tablet := game.glider.get_marker("InstrumentMount")
+		var vario := game.glider.get_marker("VarioMount")
+		var cfg_fov := cam.fov
+		_look(game, 0.0, 0.0)
+		var head0 := cam.head_look_deg()
+		var dir0 := game.glider.global_basis.inverse() * (-cam.global_basis.z)
+		_hold_glance(game, true)
+		for i in int(0.6 / DT):
+			_step(game)
+		var yaw := _glider_yaw_deg(game)
+		var pitch := _glider_pitch_deg(game)
+		for fov in [cfg_fov, VIEW_FOV_DEG]:
+			cam.fov = fov
+			check(_in_view(cam, tablet.global_position), "%s Q FOV %.0f: планшет в кадре" % [wing, fov])
+			check(_in_view(cam, vario.global_position), "%s Q FOV %.0f: вариометр в кадре" % [wing, fov])
+			check(
+				_axis_angle(cam, tablet.global_position) < 20.0,
+				"%s Q FOV %.0f: планшет около центра (%.1f° от оси)" % [wing, fov, _axis_angle(cam, tablet.global_position)]
+			)
+			var clear := _min_dist_to_sight(cam.global_position, tablet.global_position, _arm_points(game.glider.visual))
+			check(clear > 0.05, "%s Q FOV %.0f: рука не загораживает планшет (%.3f м)" % [wing, fov, clear])
+			var clear_v := _min_dist_to_sight(cam.global_position, vario.global_position, _arm_points(game.glider.visual))
+			check(clear_v > 0.05, "%s Q FOV %.0f: рука не загораживает вариометр (%.3f м)" % [wing, fov, clear_v])
+			print(
+				"         %s Q FOV %.0f: голова влево %.1f°, тангаж %.1f°; планшет %.1f° от оси, вариометр %.1f°; просвет до руки %.2f/%.2f м"
+				% [wing, fov, yaw, pitch, _axis_angle(cam, tablet.global_position), _axis_angle(cam, vario.global_position), clear, clear_v]
+			)
+		cam.fov = cfg_fov
+		_hold_glance(game, false)
+		for i in int(0.4 / DT):
+			_step(game)
+		var head1 := cam.head_look_deg()
+		var dir1 := game.glider.global_basis.inverse() * (-cam.global_basis.z)
+		var back := rad_to_deg(dir0.angle_to(dir1))
+		check(head0.distance_to(head1) < 0.5, "%s: отпустили Q — голова (%s) прежняя (%s)" % [wing, head1, head0])
+		check(back < 1.0, "%s: отпустили Q — взгляд вернулся (расхождение %.2f°)" % [wing, back])
+		print("         %s: возврат после отпускания Q: расхождение %.2f°" % [wing, back])
+		await _finish(main)
 
 
 # ---------------------------------------------------------------- помощники
@@ -328,6 +371,37 @@ func _arm_points(root: Node) -> PackedVector3Array:
 				for s in range(1, 4):
 					out.append(q.lerp(p, s / 4.0))
 	return out
+
+
+func _hold_glance(_game: Game, on: bool) -> void:
+	if on:
+		Input.action_press("look_instrument")
+	else:
+		Input.action_release("look_instrument")
+
+
+## Поворот взгляда относительно курса планера, ° (+ влево).
+func _glider_yaw_deg(game: Game) -> float:
+	var l := game.glider.global_basis.inverse() * (-game.camera.global_basis.z)
+	return rad_to_deg(atan2(-l.x, -l.z))
+
+
+## Наклон взгляда относительно планера, ° (+ вверх).
+func _glider_pitch_deg(game: Game) -> float:
+	var l := game.glider.global_basis.inverse() * (-game.camera.global_basis.z)
+	return rad_to_deg(asin(clampf(l.y, -1.0, 1.0)))
+
+
+## Наименьшее расстояние от точек до отрезка глаз → цель (точки дальше цели не считаем).
+func _min_dist_to_sight(eye: Vector3, target: Vector3, pts: PackedVector3Array) -> float:
+	var best := 1e9
+	var d := target - eye
+	for p in pts:
+		var t := clampf((p - eye).dot(d) / d.length_squared(), 0.0, 1.0)
+		if t >= 1.0:
+			continue
+		best = minf(best, p.distance_to(eye + d * t))
+	return best
 
 
 func _finish(main: Node) -> void:

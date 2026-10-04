@@ -81,22 +81,21 @@ func _check_axes(path: String, root: Node3D) -> void:
 			var bot := _pos(root, "UprightBottom" + side)
 			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
-		# A3.3 v4: прибор на выносе вперёд-вверх от штанги (0,4…0,8 м), по центру
-		_expect(path, "InstrumentMount по центру, на выносе вперёд от штанги",
-			absf(im.origin.x) < 0.01 and im.origin.distance_to(bar) > 0.4
-			and im.origin.distance_to(bar) < 0.8 and im.origin.z < bar.z - 0.3)
-		# база теперь под плечами (AF-1, A3.1), глаза пилота при лёжа чуть впереди неё: взгляд на
-		# глаза — вверх (вперёд или назад — не проверяем)
-		_expect(path, "InstrumentMount −Z смотрит вверх на пилота", (-im.basis.z).y > 0.6)
+		# A3.3 v6: приборы на хомуте левой стойки (рядом с осью стойки, не дальше 0,15 м), планшет
+		# ниже вариометра, оба слева, −Z к глазам
+		var ubl := _pos(root, "UprightBottomL")
+		var utl := _pos(root, "UprightTopL")
 		var vm := _xform(root, "VarioMount")
-		_expect(
-			path,
-			"VarioMount на таком же выносе слева от планшета (между ним и левой рукой)",
-			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - im.origin.y) < 0.05
-			and absf(vm.origin.z - im.origin.z) < 0.05
-		)
-		_expect(path, "VarioMount −Z смотрит на пилота (вправо-вверх)",
-			(-vm.basis.z).x > 0.25 and (-vm.basis.z).y > 0.6)
+		for pair in [["InstrumentMount", im], ["VarioMount", vm]]:
+			var o: Vector3 = pair[1].origin
+			var ax := utl - ubl
+			var t := clampf((o - ubl).dot(ax) / ax.length_squared(), 0.0, 1.0)
+			_expect(path, "%s у левой стойки (≤ 0,15 м от оси)" % pair[0],
+				o.distance_to(ubl + ax * t) < 0.15 and o.x < -0.1 and t > 0.05 and t < 0.7)
+		_expect(path, "VarioMount выше планшета на стойке", vm.origin.y > im.origin.y)
+		# глаза пилота лёжа (pilot_eye): взгляд на них — вправо и вперёд/вверх
+		_expect(path, "InstrumentMount −Z смотрит вправо на пилота", (-im.basis.z).x > 0.3)
+		_expect(path, "VarioMount −Z смотрит вправо на пилота", (-vm.basis.z).x > 0.3)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])
