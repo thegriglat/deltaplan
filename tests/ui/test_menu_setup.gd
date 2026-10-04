@@ -251,6 +251,11 @@ func test_loading_screen_follows_progress() -> void:
 	p.begin()
 	l.open(p, "50.6000, 86.4000")
 	check(l.visible, "open показывает экран")
+	var bg := l.get("_bg") as TextureRect
+	check(bg.texture != null, "фон загрузки — кадр игры")
+	check(bg.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "фон не растягивается")
+	for path: String in LoadingScreen.BACKDROPS:
+		check(ResourceLoader.exists(path), "кадр есть: %s" % path)
 	p.stage("b", tr("loading_dem"))
 	p.sub(1, 2)
 	check(is_equal_approx(p.fraction, 0.25 + 0.75 * 0.5), "доля внутри этапа (%.3f)" % p.fraction)

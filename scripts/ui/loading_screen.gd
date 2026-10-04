@@ -14,6 +14,16 @@ var _time: Label
 var _shown := 0.0
 var _anim := 0.0
 var _t0 := 0
+var _bg: TextureRect
+
+## Кадры игры для фона (случайный на каждую загрузку).
+const BACKDROPS: Array[String] = [
+	"res://assets/ui/loading/chase.jpg",
+	"res://assets/ui/loading/free.jpg",
+	"res://assets/ui/loading/run.jpg",
+	"res://assets/ui/loading/slavutych.jpg",
+	"res://assets/ui/loading/thermal.jpg",
+]
 
 
 func _ready() -> void:
@@ -30,6 +40,7 @@ func open(progress: LoadProgress, place: String) -> void:
 	_progress = progress
 	if progress != null:
 		progress.changed.connect(_on_changed)
+	_bg.texture = load(BACKDROPS[randi() % BACKDROPS.size()]) as Texture2D
 	_place.text = place
 	_place.visible = place != ""
 	set_net_info({})
@@ -68,8 +79,15 @@ func close() -> void:
 
 
 func _build() -> void:
+	# непрозрачный фон на весь экран: пропорции сохраняются, лишнее обрезается по краям
+	_bg = TextureRect.new()
+	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_bg)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.35)
+	dim.color = Color(0, 0, 0, 0.45)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
