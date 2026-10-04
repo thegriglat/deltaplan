@@ -9,7 +9,8 @@ from google.protobuf import text_format
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "gen"))
 from air_synth.v1 import corpus_pb2 as pb  # noqa: E402
 
-CONTRACT = {"relief": "S1 v1", "conditions": "S2 v1"}
+CONTRACT = {"relief": "S1 v2", "conditions": "S2 v1"}          # что пишем
+ACCEPT = {"relief": ("S1 v1", "S1 v2"), "conditions": ("S2 v1",)}  # что читаем
 SHARD_PATTERN = {"relief": "reliefs-{shard:05d}.pb", "conditions": "conditions-{shard:05d}.pb"}
 RECORD = {"relief": pb.Relief, "conditions": pb.Conditions}
 NG100, DX100, X0 = 384, 100.0, -19200.0
@@ -52,7 +53,7 @@ def slopes_deg(z, dx):
     return np.degrees(np.arctan(np.hypot(gx, gy)))[1:-1, 1:-1]
 
 
-def make_relief(corpus_seed, rid, generator_version, params, z100, compute_seconds=0.0):
+def make_relief(corpus_seed, rid, generator_version, params, z100, compute_seconds=0.0, place=None):
     """z100 float64 (384, 384) -> Relief (g100 квантованный, g400 — блочное среднее до квантования, сводки)."""
     z100 = np.asarray(z100, dtype=np.float64)
     if z100.shape != (NG100, NG100):
@@ -64,7 +65,10 @@ def make_relief(corpus_seed, rid, generator_version, params, z100, compute_secon
                          slope_mean_deg_400=float(slopes_deg(z400, DX400).mean()),
                          slope_p95_deg_100=float(np.percentile(slopes_deg(z100, DX100), 95)),
                          compute_seconds=float(compute_seconds))
-    return pb.Relief(id=rid, corpus_seed=corpus_seed, generator_version=generator_version, params=params, g100=g100, g400=g400, summary=s)
+    rel = pb.Relief(id=rid, corpus_seed=corpus_seed, generator_version=generator_version, params=params, g100=g100, g400=g400, summary=s)
+    if place is not None:
+        rel.place.CopyFrom(place)
+    return rel
 
 
 # ------------------------------------------------------------------ шарды
@@ -174,12 +178,32 @@ def read_manifest(corpus_dir):
     if not os.path.exists(p):
         raise FileNotFoundError(f"нет manifest.pb в {corpus_dir}")
     m = pb.CorpusManifest.FromString(open(p, "rb").read())
-    exp = CONTRACT.get(m.kind)
+    exp = ACCEPT.get(m.kind)
     if exp is None:
         raise ValueError(f"неизвестный kind манифеста: {m.kind!r}")
-    if m.contract != exp:
-        raise ValueError(f"контракт корпуса {m.contract!r}, ожидается {exp!r}")
+    if m.contract not in exp:
+        raise ValueError(f"контракт корпуса {m.contract!r}, ожидается один из {exp}")
     return m
+
+
+def write_reliefs(out, reliefs, name=None, shard_size=100, generator_version="", corpus_seed=0, command="", notes=None):
+    """Готовые Relief (id = 0…n−1 по порядку; например реальные места с place) -> корпус: шарды, манифест S1 v2, индекс."""
+    reliefs = list(reliefs)
+    for k, r in enumerate(reliefs):
+        if r.id != k:
+            raise ValueError(f"id рельефов должны идти 0…n−1 подряд: на позиции {k} id {r.id}")
+    os.makedirs(out, exist_ok=True)
+    m = pb.CorpusManifest(contract=CONTRACT["relief"], name=name or os.path.basename(os.path.normpath(out)), kind="relief",
+                          generator_version=generator_version, corpus_seed=corpus_seed, n_records=len(reliefs), shard_size=shard_size,
+                          shard_pattern=SHARD_PATTERN["relief"], complete=False, command=command)
+    for k, v in (notes or {}).items():
+        m.notes[k] = v
+    write_manifest(out, m)
+    for k in range(0, (len(reliefs) + shard_size - 1) // shard_size):
+        write_shard(out, "relief", k, [encode_record(r) for r in reliefs[k * shard_size:(k + 1) * shard_size]])
+    build_index(out, "relief")
+    m.complete = True
+    write_manifest(out, m)
 
 
 # ------------------------------------------------------------------ чтение

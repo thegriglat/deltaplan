@@ -23,7 +23,7 @@ def make_corpus(path, n=5, shard_size=2, kind="relief"):
             r = cio.make_relief(7, rid, "test-1", pb.GenParams(mix=rid / 10, extra={"a": 1.0}), field(rid) + 10 * rid, 0.5)
             recs.append(cio.encode_record(r))
         cio.write_shard(path, "relief", k, recs)
-    m = pb.CorpusManifest(contract="S1 v1", name="t", kind="relief", corpus_seed=7, n_records=n, shard_size=shard_size,
+    m = pb.CorpusManifest(contract="S1 v2", name="t", kind="relief", corpus_seed=7, n_records=n, shard_size=shard_size,
                           shard_pattern=cio.SHARD_PATTERN["relief"], generator_version="test-1", complete=True)
     cio.write_manifest(path, m)
     cio.build_index(path, "relief")
@@ -114,11 +114,14 @@ def test_partial_write_invisible(corpus):
 
 def test_wrong_contract_rejected(corpus):
     m = cio.read_manifest(corpus)
-    m.contract = "S1 v2"
+    m.contract = "S1 v9"
     cio.write_manifest(corpus, m)
     with pytest.raises(ValueError, match="контракт"):
         cio.Corpus(corpus)
-    m.contract = "S2 v1"                      # kind relief требует S1 v1
+    m.contract = "S1 v1"                      # v1 читается
+    cio.write_manifest(corpus, m)
+    assert len(cio.Corpus(corpus)) == 5
+    m.contract = "S2 v1"                      # kind relief требует S1
     cio.write_manifest(corpus, m)
     with pytest.raises(ValueError):
         cio.Corpus(corpus)
@@ -160,3 +163,22 @@ def test_conditions_s2(tmp_path, corpus):
     cio.write_manifest(cd, m)
     with pytest.raises(ValueError):
         cio.Corpus(cd)
+
+
+def test_place_s1v2(tmp_path):
+    """Готовые рельефы с place (реальные места) пишутся write_reliefs и читаются; модельные place не заполняют."""
+    pl = pb.Place(name="t_0007", lat_deg=50.1, lon_deg=86.2, system="altai", part="holdout", stratum="s3", source="terrarium z12",
+                  zoom=12, src_spacing_m=25.0, source_sha256="ab" * 32, extra={"k": "v"})
+    rels = [cio.make_relief(0, 0, "real-p6v3", pb.GenParams(), field(0), 0.0, place=pl),
+            cio.make_relief(0, 1, "real-p6v3", pb.GenParams(), field(1), 0.0, place=pb.Place(name="askarovo", part="game"))]
+    d = str(tmp_path / "real")
+    cio.write_reliefs(d, rels, shard_size=1, generator_version="real-p6v3")
+    c = cio.Corpus(d)
+    assert c.manifest.contract == "S1 v2" and c.manifest.complete and len(c) == 2
+    r = c.get(0)
+    assert r.HasField("place") and r.place.name == "t_0007" and r.place.part == "holdout" and r.place.extra["k"] == "v"
+    assert r.place.source_sha256 == "ab" * 32 and r.generator_version == "real-p6v3" and r.corpus_seed == 0
+    assert c.get(1).place.part == "game"
+    assert not cio.Corpus(make_corpus(str(tmp_path / "m"))).get(0).HasField("place")
+    with pytest.raises(ValueError):
+        cio.write_reliefs(str(tmp_path / "bad"), [rels[1]])
