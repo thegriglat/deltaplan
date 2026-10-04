@@ -84,3 +84,4 @@
 {"t": "2026-10-04T22:52:44", "by": "coordinator", "task": "SY-4", "ev": "accepted", "note": "по отчёту: замер, проверки PASS, uncertain разумны (шум кривой воркеров, база 1000 м); слабый ветер не нужен — H1 только механический режим без штиля; перезамер на рельефах корпуса — после SY-7"}
 {"t": "2026-10-04T22:52:44", "by": "coordinator", "task": "SY-4", "ev": "checked", "commits": ["54c551ea"], "note": "1/2 s4_test=FAIL:нет совпадения; h7_table=ok:\"sec_per_case_median\""}
 {"t": "2026-10-04T22:52:45", "by": "coordinator", "task": "SY-4", "ev": "merged", "commits": ["54c551ea"]}
+{"t": "2026-10-04T22:53:10", "by": "coordinator", "task": "SY-3", "ev": "accepted", "note": "по ревью; minor reject_fraction в корне вида (из части 0) — исправить в SY-7 после build_view; Fr при N=0 = 1000 — записано в S2"}
