@@ -1,0 +1,58 @@
+{
+  "status": "partial",
+  "summary": "Код S5 v2, условия p2c12 и тесты готовы; счёт запущен пользователем (sy8-solve), первая часть реального каталога записана и проверена. Счёт идёт, ожидается около 13 ч и 9 ГБ.",
+  "commits": [
+    "e4fb5303 формат S5 v2, счёт, p2c12, тесты, пробный прогон",
+    "см. git log ветки air-synth/SY-8: progress.json"
+  ],
+  "checks": [
+    {
+      "name": "pytest tests (14, без ожидания замка GPU вне теста)",
+      "value": "14 passed",
+      "pass": true
+    },
+    {
+      "name": "dp accept --dry",
+      "value": "не завершён: тест test_solve_corpus берёт замок GPU, а его держит sy8-solve; остановлен мной",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Счёт не закончен (идёт); dp accept SY-8 --dry — после конца счёта или при свободном замке"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "cd tools/research/air_synth/solver && ../../air_nn_pilot/.venv/bin/python -m pytest -q tests; cat out_solve/progress.json; dp job status sy8-solve",
+  "uncertain": [
+    {
+      "where": "solve_corpus.py:solve_one",
+      "why": "контекст места подменяется условиями S2, южным местам 15 января (решение координатора), у P2 был июль",
+      "checked": "сверка настроек с dataset.py и places.context; различие в доле несошедшихся пробы (3/12 против 3/16) незначимо, Фишер p=0,5"
+    },
+    {
+      "where": "solve_corpus.py:finite_or_diverged",
+      "why": "нечисла разошедшихся решений заменяются нулём",
+      "checked": "разошедшихся в пробе и первой части 0"
+    }
+  ],
+  "dp_feedback": "dp accept --dry вешается на замок GPU, если счёт идёт под dp job --lock gpu; нужен вариант dry без GPU-тестов или явное предупреждение.",
+  "extra": {
+    "trial": "2x12 случаев: 3 воркера, 31-34 с на случай у воркера, 1,2 ГБ/1000 случаев",
+    "first_part_real": "100 случаев за 605 с, несошедшихся 21 %, 1,04 ГБ/1000"
+  },
+  "solve_paths": [
+    "/home/greg/air_synth_data/solve/p6v3__p2c12__s0-939a467",
+    "/home/greg/air_synth_data/solve/fs1_360__p2c12__s0-939a467"
+  ],
+  "conditions_paths": [
+    "/home/greg/air_synth_data/conditions/p6v3_p2c12",
+    "/home/greg/air_synth_data/conditions/fs1_360_p2c12"
+  ],
+  "est_hours": 13,
+  "gb_total": 9,
+  "cases_done": 100,
+  "converged_fraction": 0.79,
+  "job_name": "sy8-solve",
+  "t": "2026-10-05T02:32:59",
+  "by": "executor"
+}
