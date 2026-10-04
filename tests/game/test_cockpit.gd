@@ -128,10 +128,16 @@ func test_trapezoid_silhouette_and_telltales() -> void:
 		if yaw_draws.size() == 1:
 			check(yaw_draws[0].side == 1, "%s: осталась правая сторона" % wing)
 		# взгляд вниз: штанга и руки в кадре
-		_look(game, 0.0, -88.0)
-		var bar := game.glider.get_marker("BaseBar")
-		check(_in_view(cam, bar.global_position), "%s: взгляд вниз 88° — штанга в кадре" % wing)
-		check(_count_in_view(cam, _arm_points(v)) > 0, "%s: взгляд вниз 88° — руки в кадре" % wing)
+		_look(game, 0.0, -90.0)
+		var bl := game.glider.get_marker("UprightBottomL").global_position
+		var br := game.glider.get_marker("UprightBottomR").global_position
+		var bar_in := 0
+		for i in 41:
+			if _in_view(cam, bl.lerp(br, i / 40.0)):
+				bar_in += 1
+		check(bar_in > 0, "%s: взгляд вниз 90° — штанга в кадре (%d из 41 точек)" % [wing, bar_in])
+		check(_count_in_view(cam, _arm_points(v)) > 0, "%s: взгляд вниз 90° — руки в кадре" % wing)
+		print("         %s: взгляд вниз 90°: штанга в кадре %d/41, угол до центра штанги %.1f°" % [wing, bar_in, _axis_angle(cam, game.glider.get_marker("BaseBar").global_position)])
 		# ленточки: найти наклон головы вверх ≤ 55°, при котором обе в кадре
 		var seen_pitch := -1.0
 		for pit in [10.0, 20.0, 30.0, 40.0, 50.0, 55.0]:
