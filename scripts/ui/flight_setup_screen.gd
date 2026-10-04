@@ -44,6 +44,8 @@ static var _last_in_group: Dictionary = {}
 var settings: FlightSettings
 ## Путь к списку недавних мест (RecentPlaces) — переопределяется в тестах/скриншотах.
 var recent_places_path: String = RecentPlaces.PATH
+## Каталог «Популярные места» (PP-К1); файла нет — кнопка скрыта. Тесты подставляют путь до _ready.
+var popular_places_path: String = ""
 
 var _groups: Array[Dictionary] = []
 var _wings: PackedStringArray = []  ## модели выбранного класса ("wings/<id>")
@@ -73,6 +75,10 @@ var _elev_asked := Vector2(NAN, NAN)
 var _elev_loader: TerrariumLoader
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
+var _places_catalog: Dictionary = {}
+var _places_btn: Button
+var _places_window: PopularPlacesWindow
+var _picked_place_name := ""  ## название места из «Популярных мест» — идёт в «Недавние» вместо геокодера
 var _recent_edit_id: int = -1  ## запись, для которой сейчас открыт LineEdit переименования
 
 
@@ -87,6 +93,7 @@ func _ready() -> void:
 ## Показать выбор: settings — последний выбор или значения по умолчанию.
 func set_settings(s: FlightSettings) -> void:
 	settings = s.duplicate()
+	_picked_place_name = ""
 	if is_node_ready():
 		_apply_settings()
 
@@ -119,6 +126,8 @@ func _build() -> void:
 	pick_row.add_theme_constant_override("separation", 12)
 	box.add_child(pick_row)
 	UiKit.button(pick_row, tr("setup_pick_on_map"), _open_map)
+	_places_btn = UiKit.button(pick_row, tr("setup_popular_places"), _open_places)
+	_places_btn.visible = _load_places()
 	_pick_label = UiKit.label(pick_row, "", "HintLabel")
 	_pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -398,7 +407,11 @@ func _collect() -> FlightSettings:
 func _on_done() -> void:
 	settings = _collect()
 	if settings.has_pick():
-		var name := RecentPlaces.resolve_osm_name(settings.pick_lat, settings.pick_lon)
+		var name := (
+			_picked_place_name
+			if _picked_place_name != ""
+			else RecentPlaces.resolve_osm_name(settings.pick_lat, settings.pick_lon)
+		)
 		RecentPlaces.add(settings.pick_lat, settings.pick_lon, name, recent_places_path)
 	done.emit(settings)
 
@@ -452,6 +465,7 @@ func _on_map_ok() -> void:
 	settings = _collect()
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
+	_picked_place_name = ""
 	_pick_elev_m = _map.picked_elevation_m
 	_map_layer.visible = false
 	_update_pick_label()
@@ -465,6 +479,7 @@ func _on_map_elevation(lat: float, lon: float, h_m: float) -> void:
 
 
 func _clear_pick() -> void:
+	_picked_place_name = ""
 	settings.pick_lat = NAN
 	settings.pick_lon = NAN
 	_pick_elev_m = NAN
@@ -553,6 +568,7 @@ func _build_recent_row(p: Dictionary) -> Control:
 
 
 func _select_recent(p: Dictionary) -> void:
+	_picked_place_name = ""
 	_pick_elev_m = NAN
 	settings.pick_lat = float(p.get("lat", 0.0))
 	settings.pick_lon = float(p.get("lon", 0.0))
@@ -577,3 +593,34 @@ func _on_recent_toggle_pin(id: int, pinned: bool) -> void:
 func _on_recent_remove(id: int) -> void:
 	RecentPlaces.remove(id, recent_places_path)
 	_fill_recent()
+
+
+# ------------------------------------------------------- популярные места
+
+
+## Каталог из popular_places_path (пусто — путь из configs/ui.json); true, если в нём есть места.
+func _load_places() -> bool:
+	var path := popular_places_path
+	if path == "":
+		path = String(Config.get_config("ui").get("popular_places_path", ""))
+	_places_catalog = (
+		PopularPlaces.load_catalog(path) if FileAccess.file_exists(path) else {"takeoffs": []}
+	)
+	return not (_places_catalog.get("takeoffs", []) as Array).is_empty()
+
+
+func _open_places() -> void:
+	if _places_window == null:
+		_places_window = PopularPlacesWindow.new()
+		_places_window.place_chosen.connect(_on_place_chosen)
+		add_child(_places_window)
+	_places_window.open(_places_catalog)
+
+
+## Выбор места — та же точка старта, что с карты и из «Недавних мест»; высоту подтянет подпись.
+func _on_place_chosen(p: Dictionary) -> void:
+	_pick_elev_m = NAN
+	settings.pick_lat = float(p.get("lat", 0.0))
+	settings.pick_lon = float(p.get("lon", 0.0))
+	_picked_place_name = String(p.get("name", ""))
+	_update_pick_label()
