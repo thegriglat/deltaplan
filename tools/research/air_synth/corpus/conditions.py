@@ -24,22 +24,23 @@ import os
 import subprocess
 import sys
 import time
+import types
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE / "gen"))
 AIR3D = HERE.parents[1] / "air3d"
 sys.path.insert(0, str(AIR3D))
 
-from air_synth.v1 import corpus_pb2 as pb  # noqa: E402
+import corpus_io as cio  # noqa: E402  (SY-1: HDF5, S2 v2)
 import air as A          # noqa: E402  (код решателя, только импорт; cupy не нужен)
 import weather as W      # noqa: E402
 import wind_prof as WP   # noqa: E402
 
-CONTRACT = "S2 v1"
+CONTRACT = "S2 v2"
+SKY_CODE = {"clear": 0, "partly": 1, "overcast": 2}
 HOURS = (9.0, 12.0, 15.0, 20.0)            # airlite_gen.HOURS
 SKIES = ("clear", "partly", "overcast")    # airlite_gen.SKIES
 U10_RANGE = (0.5, 8.0)                     # plan_rows (без штиля: каждый 12-й случай P2 — штиль, в H1 не входит)
@@ -114,7 +115,7 @@ def draw_place(rng):
     """Условная точка (lat, lon, utc_offset_h): бокс по весам, широта — равномерно по площади, долгота — равномерно."""
     la0, la1, lo0, lo1 = BOXES[int(rng.choice(len(BOXES), p=BOX_P))]
     s = rng.uniform(math.sin(math.radians(la0)), math.sin(math.radians(la1)))
-    lat = float(np.round(math.degrees(math.asin(s)), 3))
+    lat = float(np.round(abs(math.degrees(math.asin(s))), 3))   # только северное полушарие: южные боксы — зеркально
     lon = float(np.round(rng.uniform(lo0, lo1), 3))
     return lat, lon, float(round(lon / 15.0))
 
@@ -171,7 +172,7 @@ def wstar(Hs, zi_agl):
 
 
 def derive(raw, ctx, hc, relief_m):
-    """Производные случая (pb.Derived-словарь) тем же кодом, что строит случай P2: weather.Day, wind_prof.for_hour,
+    """Производные случая (словарь полей Derived) тем же кодом, что строит случай P2: weather.Day, wind_prof.for_hour,
     air.solar_flux; N и Fr — film_bg.bg_raw (без обрезки Fr); w*/U — ann2/regime.py."""
     hour, U10 = raw["hour"], raw["U10"]
     D = W.Day(hour, raw["t_max"], raw["sky"], ctx)
@@ -191,14 +192,15 @@ def derive(raw, ctx, hc, relief_m):
                 brk=float(D.st["brk"]), stability_class=WP.CLASSES.index(cls), has_cap=bool(math.isfinite(cap)),
                 cap_agl_m=float(cap) if math.isfinite(cap) else 0.0, sun_el_deg=float(sun_el), sun_az_deg=float(sun[0]),
                 t_c=float(D.t), n_bv_s=N, froude=float(fr), w_star_m_s=float(ws), w_star_over_u=float(wsu),
-                mechanical=bool(wsu < WSU_THR), hs_w_m2=Hs, u_inflow_m_s=U, z_i_agl_m=zi_agl)
+                mechanical=bool(wsu < WSU_THR), hs_w_m2=Hs, u_sat_m_s=U, z_i_agl_m=zi_agl)
 
 
-def _ctx(lat, lon, utc, hc_or_none, summary):
+def _ctx(lat, lon, utc, hc_or_none, summary, month_day=None):
     rc = W.CFG["reference_context"]
-    ctx = dict(month=rc["month"], day=rc["day"], lat=lat, lon=lon, utc_offset_h=utc)
+    md = month_day or (rc["month"], rc["day"])
+    ctx = dict(month=md[0], day=md[1], lat=lat, lon=lon, utc_offset_h=utc)
     if hc_or_none is None:
-        hc, valley = coarse_hc(summary)
+        hc, valley = coarse_hc(types.SimpleNamespace(**summary) if isinstance(summary, dict) else summary)
         ctx.update(valley_msl_m=float(valley), mean_msl_m=float(hc.mean()))
     else:
         hc = np.asarray(hc_or_none, float)
@@ -206,39 +208,52 @@ def _ctx(lat, lon, utc, hc_or_none, summary):
     return ctx, hc
 
 
+def _g(o, k):
+    return o[k] if isinstance(o, dict) else getattr(o, k)
+
+
 def sample_ex(cond_seed, relief_id, relief_summary, k, hc400=None, extras=None, place=None):
-    """→ (list[pb.Conditions], tries): k условий на рельеф, только механический режим; tries — сколько кандидатов
-    просмотрено на каждое (для доли отказов); extras — список, куда кладутся полные словари derive() (с Hs, U, z_i AGL). Детерминированно: ГСЧ — SeedSequence([cond_seed, relief_id]), место
-    (lat, lon, пояс) — одно на рельеф, как место P2 с n_cond условиями."""
+    """→ (rows, tries): rows — структурный массив cio.CONDITIONS_DTYPE (k строк, S2 v2), только механический режим;
+    tries — сколько кандидатов просмотрено на каждое (для доли отказов); extras — список, куда кладутся словари с
+    сырыми полями и полным derive() (Hs, U, z_i AGL). relief_summary — dict или объект с h_min_m, h_max_m, relief_m;
+    place — dict/объект с name, lat_deg, lon_deg (реальное место S1). Детерминированно: ГСЧ — SeedSequence
+    ([cond_seed, relief_id]); место (lat, lon, пояс) — одно на рельеф, как место P2 с n_cond условиями."""
+    summ = types.SimpleNamespace(**relief_summary) if isinstance(relief_summary, dict) else relief_summary
     rng = np.random.Generator(np.random.PCG64(np.random.SeedSequence([int(cond_seed), int(relief_id)])))
     lat, lon, utc = draw_place(rng)
-    if place is not None and place.name:      # S1 v2: реальное место — его координаты, а не условная точка
-        lat, lon, utc = float(place.lat_deg), float(place.lon_deg), float(round(place.lon_deg / 15.0))
-    ctx, hc = _ctx(lat, lon, utc, hc400, relief_summary)
-    out, tries = [], []
+    md = None
+    if place is not None and _g(place, "name"):      # реальное место — его координаты; юг — 15 января (лето)
+        lat, lon = float(_g(place, "lat_deg")), float(_g(place, "lon_deg"))
+        utc = float(round(lon / 15.0))
+        md = (1, 15) if lat < 0 else None
+    ctx, hc = _ctx(lat, lon, utc, hc400, summ, md)
+    rows = np.zeros(k, cio.CONDITIONS_DTYPE)
+    tries = []
     for c in range(k):
         for t in range(1, MAX_TRIES + 1):
             raw = draw_raw(rng)
-            d = derive(raw, ctx, hc, relief_summary.relief_m)
+            d = derive(raw, ctx, hc, summ.relief_m)
             if d["mechanical"]:
                 break
         else:
             raise RuntimeError(f"рельеф {relief_id}: нет механического условия за {MAX_TRIES} попыток")
         if extras is not None:
-            extras.append(d)
-        m = ctx["month"], ctx["day"]
-        out.append(pb.Conditions(
-            relief_id=int(relief_id), cond_id=c, cond_seed=int(cond_seed), u10_m_s=raw["U10"], wind_from_deg=raw["wdir"],
-            hour_local=raw["hour"], sky=raw["sky"], t_max_c=raw["t_max"], month=m[0], day=m[1], lat_deg=lat, lon_deg=lon,
-            utc_offset_h=utc,
-            derived=pb.Derived(**{k_: v for k_, v in d.items() if k_ in pb.Derived.DESCRIPTOR.fields_by_name}),
-            strat_override=pb.StratOverride(enabled=False)))
+            extras.append(dict(d, u10=raw["U10"], wdir=raw["wdir"], hour=raw["hour"], sky=raw["sky"], tmax=raw["t_max"], lat=lat))
+        r = rows[c]
+        r["relief_id"], r["cond_id"] = int(relief_id), c
+        r["u10_m_s"], r["wind_from_deg"], r["hour_local"], r["t_max_c"] = raw["U10"], raw["wdir"], raw["hour"], raw["t_max"]
+        r["lat_deg"], r["lon_deg"], r["utc_offset_h"] = lat, lon, utc
+        r["sky"], r["month"], r["day"] = SKY_CODE[raw["sky"]], ctx["month"], ctx["day"]
+        for f in rows.dtype.names:
+            if f in d:
+                r[f] = d[f]
+        r["strat_override"], r["n_bv_override_s"], r["z_i_override_agl_m"] = False, np.nan, np.nan
         tries.append(t)
-    return out, tries
+    return rows, tries
 
 
 def sample(cond_seed, relief_id, relief_summary, k, hc400=None, place=None):
-    """Контракт S2: k условий (cond_id 0 … k−1) на рельеф, механический режим, детерминированно."""
+    """Контракт S2 v2: k строк (cond_id 0 … k−1), механический режим, детерминированно."""
     return sample_ex(cond_seed, relief_id, relief_summary, k, hc400, place=place)[0]
 
 
@@ -259,47 +274,41 @@ def summary_of(rel):
 
 
 def make(corpus_dir, out_dir, k, seed, name=None, command=""):
-    """Набор условий S2 по корпусу S1: шарды conditions-NNNNN.pb (id рельефов шарда корпуса), index.pb, manifest.
-    Готовые шарды пропускаются (продолжение той же командой)."""
-    import corpus_io as cio
-    corpus = cio.Corpus(corpus_dir)
-    man = corpus.manifest
-    S = man.shard_size or 100
+    """Набор условий S2 v2 по корпусу S1: части part-NNNNN.h5 (рельефы id [n·S, (n+1)·S) корпуса), вид conditions.h5,
+    manifest.json. Готовые части пропускаются (продолжение той же командой)."""
+    cor = cio.Corpus(corpus_dir)
+    S = int(cor.attrs.get("shard_size", 100)) or 100
     os.makedirs(out_dir, exist_ok=True)
-    done = set(cio.list_shards(out_dir, "conditions"))
-    n_cand = n_cond = 0
-    t0 = time.time()
-    for sh, rels in corpus.iter_shards():
-        if sh in done:
+    cio.clean_tmp(out_dir)
+    ids_all = cor.ids()
+    n_parts = (max(ids_all) // S + 1) if ids_all else 0
+    base = dict(relief_corpus=str(Path(corpus_dir).resolve()), cond_seed=np.uint64(seed), k_per_relief=k, mechanical_only=True,
+                shard_size=S, generator_version=generator_version(), git_commit=_git_commit(), command=command,
+                wsu_threshold=WSU_THR)
+    man = dict(base, contract=CONTRACT, kind="conditions", name=name or Path(out_dir).name, cond_seed=int(seed),
+               n_total=len(ids_all) * k, place_distribution="PLACE_BOXES (terrain.yaml), north only, area-weighted, cap 0.12",
+               date="15 July (model reliefs); real places south: 15 January", strat_override="not filled (H5 later)")
+    cio.write_manifest(out_dir, man)
+    done = set(cio.list_parts(out_dir))
+    for part in range(n_parts):
+        ids = [i for i in ids_all if i // S == part]
+        if part in done or not ids:
             continue
-        recs = []
-        for rel in rels:
-            hc = cio.to_float(rel.g400).astype(np.float64)
-            conds, tries = sample_ex(seed, rel.id, rel.summary, k, hc, place=rel.place if rel.HasField("place") else None)
-            n_cand += sum(tries)
-            n_cond += len(tries)
-            recs += [cio.encode_record(c) for c in conds]
-        cio.write_shard(out_dir, "conditions", sh, recs)
-    cio.build_index(out_dir, "conditions")
-    n_rec = len(pb.ShardIndex.FromString(open(os.path.join(out_dir, "index.pb"), "rb").read()).entries)
-    shards = cio.list_shards(out_dir, "conditions")
-    complete = bool(man.complete) and shards == cio.list_shards(corpus_dir, "relief")
-    notes = {"k": str(k), "wsu_threshold": str(WSU_THR), "max_tries": str(MAX_TRIES),
-             "place_distribution": "PLACE_BOXES (terrain.yaml systems), area-weighted, cap 0.12",
-             "date": "reference_context 15 July (as P2)", "strat_override": "not filled (H5 later)"}
-    if n_cond:
-        notes["reject_fraction_this_run"] = f"{1 - n_cond / n_cand:.4f}"
-        notes["candidates_per_condition_this_run"] = f"{n_cand / n_cond:.3f}"
-        notes["seconds_this_run"] = f"{time.time() - t0:.1f}"
-    m = pb.CorpusManifest(contract=CONTRACT, name=name or Path(out_dir).name, kind="conditions",
-                          generator_version=generator_version(), corpus_seed=int(seed), n_records=n_rec, shard_size=S,
-                          shard_pattern=cio.SHARD_PATTERN["conditions"], complete=complete, command=command,
-                          git_commit=_git_commit(), created=time.strftime("%Y-%m-%dT%H:%M:%S"),
-                          relief_corpus=str(Path(corpus_dir).resolve()))
-    for kk, v in notes.items():
-        m.notes[kk] = v
-    cio.write_manifest(out_dir, m)
-    return m
+        tabs, tr = [], []
+        for rid in ids:
+            sm = cor.summary(rid)
+            pl = cor.place(rid) if cor._has("place") else None
+            rows, tries = sample_ex(seed, rid, sm, k, cor.h400(rid, np.float64), place=pl)
+            tabs.append(rows)
+            tr += tries
+        rej = 1 - len(tr) / sum(tr)
+        cio.write_conditions_part(out_dir, part, np.concatenate(tabs), dict(base, reject_fraction=rej))
+    cor.close()
+    info = cio.build_view(out_dir, "conditions")
+    t = cio.Conditions(out_dir)
+    man.update(info, reject_fraction_note="по частям — атрибут reject_fraction каждой части; общий — см. dist_v1.json")
+    cio.write_manifest(out_dir, man)
+    return info
 
 
 # ----------------------------------------------------------------- распределения (dist_v1.json)
@@ -315,7 +324,7 @@ def fake_relief(rng, n=96):
     relief = float(np.exp(rng.uniform(math.log(300.0), math.log(3000.0))))
     base = float(rng.uniform(200.0, 2500.0))
     hc = base + relief * f
-    s = pb.ReliefSummary(h_min_m=float(hc.min()), h_max_m=float(hc.max()), relief_m=float(hc.max() - hc.min()))
+    s = dict(h_min_m=float(hc.min()), h_max_m=float(hc.max()), relief_m=float(hc.max() - hc.min()))
     return hc, s
 
 
@@ -337,16 +346,14 @@ def dist(n, seed, out):
         hc, s = fake_relief(rng)
         ex = []
         conds, tr = sample_ex(seed, rid, s, 1, hc, ex)
-        c = conds[0]
-        recs.append(dict(u10=c.u10_m_s, wdir=c.wind_from_deg, hour=c.hour_local, sky=c.sky, tmax=c.t_max_c, lat=c.lat_deg,
-                         relief=s.relief_m, hmin=s.h_min_m, hmean=float(hc.mean()), hs_w_m2=ex[0]["hs_w_m2"], u_inflow_m_s=ex[0]["u_inflow_m_s"], z_i_agl_m=ex[0]["z_i_agl_m"], **{f: getattr(c.derived, f) for f in pb.Derived.DESCRIPTOR.fields_by_name}))
+        recs.append(dict(ex[0], relief=s['relief_m'], hmin=s['h_min_m'], hmean=float(hc.mean())))
         tries.append(tr[0])
         # безусловное распределение: первый кандидат того же ГСЧ (до перевыбора) — для доли отказов по режимам
         r2 = np.random.Generator(np.random.PCG64(np.random.SeedSequence([int(seed), int(rid)])))
         lat, lon, utc = draw_place(r2)
         ctx, h2 = _ctx(lat, lon, utc, hc, s)
         raw = draw_raw(r2)
-        d = derive(raw, ctx, h2, s.relief_m)
+        d = derive(raw, ctx, h2, s['relief_m'])
         firstdraw.append(dict(hour=raw["hour"], sky=raw["sky"], u10=raw["U10"], wsu=d["w_star_over_u"], mech=d["mechanical"],
                               froude=d["froude"]))
     col = lambda k_: np.array([r[k_] for r in recs])
@@ -370,7 +377,7 @@ def dist(n, seed, out):
             hour_local={str(h): int(np.sum(col("hour") == h)) for h in HOURS},
             sky={s_: int(sum(1 for r in recs if r["sky"] == s_)) for s_ in SKIES},
             t_max_c=dict(q=_q(col("tmax")), hist=_h(col("tmax"), 18, 34, 16)),
-            lat_deg=dict(q=_q(col("lat")), hist=_h(col("lat"), -60, 70, 26)),
+            lat_deg=dict(q=_q(col("lat")), hist=_h(col("lat"), 0, 70, 14)),
             relief_m=dict(q=_q(col("relief"))),
             alpha=dict(q=_q(col("alpha"))), max_profile=dict(q=_q(col("max_profile"))),
             z_i_m=dict(q=_q(col("z_i_m"))), z_i_agl_m=dict(q=_q(col("z_i_agl_m"))),
@@ -379,7 +386,7 @@ def dist(n, seed, out):
             has_cap=float(np.mean(col("has_cap"))), cap_agl_m=dict(q=_q(col("cap_agl_m")[col("has_cap") > 0]) if np.any(col("has_cap") > 0) else {}),
             sun_el_deg=dict(q=_q(col("sun_el_deg"))), t_c=dict(q=_q(col("t_c"))),
             n_bv_s=dict(q=_q(col("n_bv_s"))), hs_w_m2=dict(q=_q(col("hs_w_m2"))),
-            u_inflow_m_s=dict(q=_q(col("u_inflow_m_s"))),
+            u_sat_m_s=dict(q=_q(col("u_sat_m_s"))),
             froude=dict(q=_q(fr), log10_hist=_h(np.log10(fr), -2.5, 1.5, 16)),
             w_star_m_s=dict(q=_q(col("w_star_m_s"))),
             w_star_over_u=dict(q=_q(col("w_star_over_u")), hist=_h(col("w_star_over_u"), 0, 0.5, 10)),
@@ -410,7 +417,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "make":
         man = make(a.corpus, a.out, a.k, a.seed, a.name, command="conditions.py " + " ".join(sys.argv[1:]))
-        print(f"{a.out}: {man.n_records} условий, complete={man.complete}, notes={dict(man.notes)}")
+        print(f"{a.out}: {man}")
     else:
         r = dist(a.n, a.seed, a.out)
         print(f"{a.out}: reject={r['mechanical_reject_fraction']:.3f} Fr median={r['froude_range']['median']:.3f}")

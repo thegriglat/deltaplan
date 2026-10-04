@@ -1,12 +1,9 @@
 """SY-3: условия S2 — распределения P2, производные решателя, определение w*/U, детерминизм, CLI make.
-Корпус S1 для CLI — временный; если corpus_io (SY-1) ещё не влит, подставляется минимальный писатель/читатель
-из этого файла (тот же формат: шарды varint32 + сообщение, index.pb, manifest.pb)."""
-import importlib
+Корпус S1 для CLI — временный, пишется настоящим corpus_io (SY-1, HDF5)."""
 import math
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -17,135 +14,21 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "air_nn_pilot"))   # pilotnn.film_bg — эталон N, Fr (только импорт)
 
 import conditions as C  # noqa: E402
-from air_synth.v1 import corpus_pb2 as pb  # noqa: E402
-
-
-# ------------------------------------------------------------ минимальный S1 (если нет corpus_io SY-1)
-def _varint(n):
-    out = bytearray()
-    while True:
-        b = n & 0x7F
-        n >>= 7
-        out.append(b | (0x80 if n else 0))
-        if not n:
-            return bytes(out)
-
-
-def _rd_varint(buf, pos):
-    n = sh = 0
-    while True:
-        b = buf[pos]
-        pos += 1
-        n |= (b & 0x7F) << sh
-        sh += 7
-        if not b & 0x80:
-            return n, pos
-
-
-class MiniIO:
-    SHARD_PATTERN = {"relief": "reliefs-{shard:05d}.pb", "conditions": "conditions-{shard:05d}.pb"}
-
-    @staticmethod
-    def encode_record(m):
-        b = m.SerializeToString(deterministic=True)
-        return _varint(len(b)) + b
-
-    @classmethod
-    def list_shards(cls, d, kind):
-        pre = kind + "s-" if kind == "relief" else "conditions-"
-        return sorted(int(f[len(pre):len(pre) + 5]) for f in os.listdir(d) if f.startswith(pre) and f.endswith(".pb"))
-
-    @classmethod
-    def write_shard(cls, d, kind, sh, recs):
-        os.makedirs(os.path.join(d, "tmp"), exist_ok=True)
-        tmp = os.path.join(d, "tmp", f"{sh}.part")
-        open(tmp, "wb").write(b"".join(recs))
-        os.replace(tmp, os.path.join(d, cls.SHARD_PATTERN[kind].format(shard=sh)))
-
-    @classmethod
-    def _read_shard(cls, d, kind, sh, cls_msg):
-        buf = open(os.path.join(d, cls.SHARD_PATTERN[kind].format(shard=sh)), "rb").read()
-        pos, out = 0, []
-        while pos < len(buf):
-            n, pos = _rd_varint(buf, pos)
-            out.append((pos, n, cls_msg.FromString(buf[pos:pos + n])))
-            pos += n
-        return out
-
-    @classmethod
-    def build_index(cls, d, kind=None):
-        idx = pb.ShardIndex(kind=kind)
-        msg = pb.Relief if kind == "relief" else pb.Conditions
-        for sh in cls.list_shards(d, kind):
-            for pos, n, m in cls._read_shard(d, kind, sh, msg):
-                idx.entries.add(id=m.id if kind == "relief" else m.relief_id, shard=sh, offset=pos, length=n,
-                                cond_id=getattr(m, "cond_id", 0))
-        open(os.path.join(d, "index.pb"), "wb").write(idx.SerializeToString(deterministic=True))
-
-    @classmethod
-    def write_manifest(cls, d, m):
-        open(os.path.join(d, "manifest.pb"), "wb").write(m.SerializeToString(deterministic=True))
-
-    @staticmethod
-    def to_float(g):
-        q = np.frombuffer(g.h_i16, "<i2").reshape(g.ny, g.nx)
-        return (g.offset_m + g.scale_m * q).astype(np.float32)
-
-    class Corpus:
-        def __init__(self, d):
-            self.path = d
-            self.manifest = pb.CorpusManifest.FromString(open(os.path.join(d, "manifest.pb"), "rb").read())
-
-        def iter_shards(self):
-            for sh in MiniIO.list_shards(self.path, "relief"):
-                yield sh, [m for _, _, m in MiniIO._read_shard(self.path, "relief", sh, pb.Relief)]
-
-
-def _grid(h, dx):
-    lo, hi = float(h.min()), float(h.max())
-    sc = max(0.05, (hi - lo) / 65000)
-    off = (lo + hi) / 2
-    q = np.round((h - off) / sc).astype("<i2")
-    ny, nx = h.shape
-    return pb.HeightGrid(nx=nx, ny=ny, dx_m=dx, x0_m=-19200.0, y0_m=-19200.0, offset_m=off, scale_m=sc, h_i16=q.tobytes())
+import corpus_io as cio  # noqa: E402
+import h5py  # noqa: E402
 
 
 def write_mini_corpus(d, n, shard_size=4, seed=3):
-    """n искусственных рельефов (g100 из случайного поля, g400 — блочное среднее) в S1-формате."""
-    os.makedirs(d, exist_ok=True)
+    """n искусственных рельефов (g100 из случайного поля, g400 — блочное среднее) через corpus_io SY-1 (S1 v3);
+    рельефы с id % 3 == 2 — «реальные места» с place (одна запись — одна часть формата)."""
     rng = np.random.default_rng(seed)
-    recs = {}
+    rels = []
     for rid in range(n):
         hc, s = C.fake_relief(rng)                         # 96 × 96
-        z100 = np.kron(hc, np.ones((4, 4)))
-        r = pb.Relief(id=rid, corpus_seed=1, generator_version="test", g100=_grid(z100, 100.0), g400=_grid(hc, 400.0),
-                      summary=s)
-        if rid % 3 == 2:
-            r.place.CopyFrom(pb.Place(name=f"t_{rid:04d}", lat_deg=46.5, lon_deg=8.2, part="pool"))
-        recs.setdefault(rid // shard_size, []).append(MiniIO.encode_record(r))
-    for sh, rr in recs.items():
-        MiniIO.write_shard(d, "relief", sh, rr)
-    MiniIO.build_index(d, "relief")
-    m = pb.CorpusManifest(contract="S1 v2", name="t", kind="relief", n_records=n, shard_size=shard_size,
-                          shard_pattern="reliefs-{shard:05d}.pb", complete=True, generator_version="test")
-    MiniIO.write_manifest(d, m)
-
-
-@pytest.fixture(scope="module")
-def cio():
-    try:
-        mod = importlib.import_module("corpus_io")
-        return mod, True
-    except ImportError:
-        return MiniIO, False
-
-
-@pytest.fixture
-def use_io(cio, monkeypatch):
-    mod, real = cio
-    if not real:
-        monkeypatch.setitem(sys.modules, "corpus_io", MiniIO)
-    return real
+        r = dict(z100=np.kron(hc, np.ones((4, 4))))
+        r["params"] = dict(mix=0.5)
+        rels.append(r)
+    cio.write_reliefs(d, rels, shard_size=shard_size, generator_version="test", columns=["mix"])
 
 
 def fake(seed=1):
@@ -174,33 +57,30 @@ def BOX_OK(p):
 
 def test_raw_ranges_and_mechanical_only():
     hc, s = fake(2)
-    recs = []
-    for rid in range(60):
-        recs += C.sample(7, rid, s, 2, hc)
-    assert all(c.derived.mechanical and c.derived.w_star_over_u < C.WSU_THR for c in recs)
-    assert all(c.hour_local in C.HOURS and c.sky in C.SKIES for c in recs)
-    assert all(0.5 <= c.u10_m_s <= 8.0 for c in recs)            # штиль не берём
-    assert all(0 <= c.wind_from_deg <= 360 and 18 <= c.t_max_c <= 34 for c in recs)
-    assert all((c.month, c.day) == (7, 15) for c in recs)
-    assert all(not c.strat_override.enabled for c in recs)
-    assert all(-56 <= c.lat_deg <= 70 for c in recs)
-    for c in recs:
-        assert c.utc_offset_h == round(c.lon_deg / 15)
+    rows = np.concatenate([C.sample(7, rid, s, 2, hc) for rid in range(60)])
+    assert rows.dtype == cio.CONDITIONS_DTYPE
+    assert rows["mechanical"].all() and (rows["w_star_over_u"] < C.WSU_THR).all()
+    assert set(np.unique(rows["hour_local"])) <= set(C.HOURS) and set(np.unique(rows["sky"])) <= {0, 1, 2}
+    assert ((rows["u10_m_s"] >= 0.5) & (rows["u10_m_s"] <= 8.0)).all()            # штиль не берём
+    assert ((rows["wind_from_deg"] >= 0) & (rows["wind_from_deg"] <= 360) & (rows["t_max_c"] >= 18) & (rows["t_max_c"] <= 34)).all()
+    assert ((rows["month"] == 7) & (rows["day"] == 15)).all()                     # модельные — июль, север
+    assert not rows["strat_override"].any() and np.isnan(rows["n_bv_override_s"]).all() and np.isnan(rows["z_i_override_agl_m"]).all()
+    assert ((rows["lat_deg"] >= 0) & (rows["lat_deg"] <= 70)).all()            # только северное полушарие
+    assert (rows["utc_offset_h"] == np.round(rows["lon_deg"] / 15)).all()
+    assert np.allclose(rows["u_sat_m_s"], rows["u10_m_s"] * rows["max_profile"]) and (rows["hs_w_m2"] >= 0).all()
+    assert np.allclose(rows["w_star_over_u"], rows["w_star_m_s"] / np.maximum(rows["u_sat_m_s"], 0.1))
 
 
 def test_deterministic_and_ids():
     hc, s = fake(3)
     a = C.sample(11, 5, s, 3, hc)
     b = C.sample(11, 5, s, 3, hc)
-    assert [x.SerializeToString(deterministic=True) for x in a] == [x.SerializeToString(deterministic=True) for x in b]
-    assert [x.cond_id for x in a] == [0, 1, 2] and all(x.relief_id == 5 and x.cond_seed == 11 for x in a)
-    assert a[0].SerializeToString() != C.sample(11, 6, s, 3, hc)[0].SerializeToString()
-    # k=2 — префикс k=3 (тот же ГСЧ)
-    assert C.sample(11, 5, s, 2, hc)[1].SerializeToString() == a[1].SerializeToString()
-    # без поля рельефа (поддельная сводка) — тоже работает и конечно
-    for x in C.sample(11, 5, s, 2):
-        d = x.derived
-        assert all(math.isfinite(getattr(d, f.name)) for f in d.DESCRIPTOR.fields if f.cpp_type == f.CPPTYPE_DOUBLE)
+    assert a.tobytes() == b.tobytes()
+    assert a["cond_id"].tolist() == [0, 1, 2] and (a["relief_id"] == 5).all()
+    assert a[0].tobytes() != C.sample(11, 6, s, 3, hc)[0].tobytes()
+    assert C.sample(11, 5, s, 2, hc)[1].tobytes() == a[1].tobytes()     # k=2 — префикс k=3 (тот же ГСЧ)
+    x = C.sample(11, 5, s, 2)                                          # без поля рельефа — конечно
+    assert all(np.isfinite(x[n]).all() for n in x.dtype.names if x.dtype[n].kind == "f" and "override" not in n)
 
 
 def test_derived_equal_solver_code():
@@ -214,7 +94,7 @@ def test_derived_equal_solver_code():
     for hour in C.HOURS:
         for sky in C.SKIES:
             raw = dict(hour=hour, sky=sky, U10=3.7, wdir=200.0, t_max=27.0)
-            d = C.derive(raw, ctx, hcf, s.relief_m)
+            d = C.derive(raw, ctx, hcf, s["relief_m"])
             D = W.Day(hour, 27.0, sky, ctx)
             P0 = A.Params()
             al, mp, cls, el = WP.for_hour(ctx, hour, sky, 3.7, P0.z0, P0.f_cor)
@@ -222,7 +102,7 @@ def test_derived_equal_solver_code():
             assert d["z_i_m"] == D.z_i and d["z_lcl_m"] == D.z_lcl and d["heat"] == D.heat and d["brk"] == D.st["brk"]
             bg = FB.bg_raw(D, hcf, 3.7, mp)
             assert d["n_bv_s"] == pytest.approx(bg["N_bl"], rel=1e-12)
-            assert d["u_inflow_m_s"] == pytest.approx(bg["U"])
+            assert d["u_sat_m_s"] == pytest.approx(bg["U"])
             fr = d["froude"]
             assert fr == pytest.approx(min(fr, FB.FR_MAX) if fr <= FB.FR_MAX else fr)
             if bg["Fr"] < FB.FR_MAX:   # где film_bg не обрезал — совпадает
@@ -233,8 +113,8 @@ def test_derived_equal_solver_code():
 def test_night_is_mechanical_noon_clear_is_not():
     hc, s = fake(5)
     ctx, hcf = C._ctx(46.5, 8.2, 1.0, hc, s)
-    n = C.derive(dict(hour=20.0, sky="clear", U10=2.0, wdir=0, t_max=30.0), ctx, hcf, s.relief_m)
-    d = C.derive(dict(hour=12.0, sky="clear", U10=1.0, wdir=0, t_max=30.0), ctx, hcf, s.relief_m)
+    n = C.derive(dict(hour=20.0, sky="clear", U10=2.0, wdir=0, t_max=30.0), ctx, hcf, s["relief_m"])
+    d = C.derive(dict(hour=12.0, sky="clear", U10=1.0, wdir=0, t_max=30.0), ctx, hcf, s["relief_m"])
     assert n["mechanical"] and n["w_star_over_u"] < 0.3 * d["w_star_over_u"]
     assert d["w_star_over_u"] > 0.5 and not d["mechanical"]
     assert d["w_star_m_s"] > 1.0                   # Дирдорф: порядок 1–3 м/с над горным склоном
@@ -242,46 +122,58 @@ def test_night_is_mechanical_noon_clear_is_not():
 
 def test_real_place_overrides_lat_lon():
     hc, s = fake(6)
-    p = pb.Place(name="t_0001", lat_deg=46.5, lon_deg=8.2)
-    for c in C.sample(2, 1, s, 2, hc, place=p):
-        assert (c.lat_deg, c.lon_deg, c.utc_offset_h) == (46.5, 8.2, 1.0)
+    for c in C.sample(2, 1, s, 2, hc, place=dict(name="t_0001", lat_deg=46.5, lon_deg=8.2)):
+        assert (c["lat_deg"], c["lon_deg"], c["utc_offset_h"], c["month"], c["day"]) == (46.5, 8.2, 1.0, 7, 15)
+    for c in C.sample(2, 1, s, 2, hc, place=dict(name="t_0002", lat_deg=-43.5, lon_deg=170.1)):   # юг — 15 января
+        assert (c["lat_deg"], c["month"], c["day"]) == (-43.5, 1, 15) and c["mechanical"]
 
 
-# ------------------------------------------------------------ CLI make
-def test_make_cli(tmp_path, use_io):
+# ------------------------------------------------------------ CLI make (настоящий corpus_io SY-1)
+def test_make_cli(tmp_path):
     corp, out = str(tmp_path / "relief"), str(tmp_path / "cond")
     write_mini_corpus(corp, 9, shard_size=4)
-    man = C.make(corp, out, 2, 123)
-    assert man.contract == "S2 v1" and man.kind == "conditions" and man.relief_corpus == str(Path(corp).resolve())
-    assert man.n_records == 18 and man.complete and "reject_fraction_this_run" in man.notes
-    import corpus_io as cio
-    shards = cio.list_shards(out, "conditions")
-    assert shards == [0, 1, 2]
-    got = []
-    for sh in shards:
-        buf = open(os.path.join(out, f"conditions-{sh:05d}.pb"), "rb").read()
-        pos = 0
-        while pos < len(buf):
-            n, pos = _rd_varint(buf, pos)
-            got.append(pb.Conditions.FromString(buf[pos:pos + n]))
-            pos += n
-    assert [(c.relief_id, c.cond_id) for c in got] == [(r, c) for r in range(9) for c in range(2)]
-    assert all(c.derived.mechanical for c in got)
-    # реальное место (rid % 3 == 2) — координаты места
-    assert all(c.lat_deg == 46.5 for c in got if c.relief_id % 3 == 2)
-    # повтор — побитно те же шарды; продолжение после удаления шарда — тот же шард
-    before = {sh: open(os.path.join(out, f"conditions-{sh:05d}.pb"), "rb").read() for sh in shards}
-    os.remove(os.path.join(out, "conditions-00001.pb"))
+    info = C.make(corp, out, 2, 123)
+    assert info["n_records"] == 18 and info["complete"] and info["parts"] == 3
+    c = cio.Conditions(out)
+    assert c.attrs["contract"] == "S2 v2" and c.attrs["kind"] == "conditions" and c.attrs["mechanical_only"]
+    assert c.attrs["k_per_relief"] == 2 and c.attrs["cond_seed"] == 123 and 0 <= c.attrs["reject_fraction"] < 1
+    assert c.validate_refs()
+    t = c.table
+    assert [(r, k) for r, k in zip(t["relief_id"], t["cond_id"])] == [(r, k) for r in range(9) for k in range(2)]
+    assert t["mechanical"].all() and np.isfinite(t["froude"]).all()
+    # строки совпадают с sample() на тех же g400 (деквантованных)
+    cor = cio.Corpus(corp)
+    one = C.sample(123, 5, cor.summary(5), 2, cor.h400(5, np.float64))
+    assert one.tobytes() == t[t["relief_id"] == 5].tobytes()
+    # повтор — побитно те же части; продолжение после удаления части — та же часть
+    names = ["part-00000.h5", "part-00001.h5", "part-00002.h5"]
+    def table_of(n):
+        with h5py.File(os.path.join(out, n), "r") as f:
+            return f["conditions/table"][:].tobytes()
+    before = [table_of(n) for n in names]
+    os.remove(os.path.join(out, "part-00001.h5"))
     C.make(corp, out, 2, 123)
-    assert {sh: open(os.path.join(out, f"conditions-{sh:05d}.pb"), "rb").read() for sh in shards} == before
-    assert os.path.exists(os.path.join(out, "index.pb"))
+    assert [table_of(n) for n in names] == before
+    assert os.path.exists(os.path.join(out, "conditions.h5"))
 
 
-def test_cli_subprocess(tmp_path, use_io):
-    if not use_io:
-        pytest.skip("CLI в подпроцессе нужен corpus_io SY-1")
+def test_make_real_places(tmp_path):
+    corp, out = str(tmp_path / "real"), str(tmp_path / "cond")
+    rng = np.random.default_rng(9)
+    rels = []
+    for i, (la, lo) in enumerate([(46.5, 8.2), (-43.5, 170.1), (50.7, 86.1)]):
+        hc, s = C.fake_relief(rng)
+        rels.append(dict(z100=np.kron(hc, np.ones((4, 4))), place=dict(name=f"t_{i:04d}", lat_deg=la, lon_deg=lo, system="x", part="pool")))
+    cio.write_reliefs(corp, rels, shard_size=2, generator_version="real-p6v3")
+    C.make(corp, out, 1, 4)
+    t = cio.Conditions(out).table
+    assert t["lat_deg"].tolist() == [46.5, -43.5, 50.7] and t["month"].tolist() == [7, 1, 7]
+
+
+def test_cli_subprocess(tmp_path):
     corp, out = str(tmp_path / "relief"), str(tmp_path / "cond")
     write_mini_corpus(corp, 3, shard_size=4)
     r = subprocess.run([sys.executable, str(HERE / "conditions.py"), "make", "--corpus", corp, "--out", out, "--k", "2",
                         "--seed", "5"], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+    assert len(cio.Conditions(out)) == 6
