@@ -154,3 +154,164 @@ func test_base_bar_under_shoulders() -> void:
 			worst_id = wid
 		check(absf(horiz) <= BASE_TOL_ALL, "%s: база от плеч %+.3f м (≤ %.2f)" % [wid, horiz, BASE_TOL_ALL])
 	print("         по всем крыльям худшее: %s, %+.3f м" % [worst_id, worst])
+
+
+## Визуал apogee в полёте лёжа на балансировке: киль под тангажем трима (нос вверх), трапеция в
+## нейтрали. Возвращает {v, theta, model}; v — в дереве, повёрнут, руки на штанге.
+func _flight_visual(wing: String) -> Dictionary:
+	var m := FlightSim.make(wing)
+	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
+	var v := GliderVisual.new()
+	add_child(v)
+	v.build(
+		Config.get_config("wings/" + wing),
+		Config.get_config("pilot"),
+		Config.get_config("flight").visual
+	)
+	var ap: AnimationPlayer = v.find_children("*", "AnimationPlayer", true, false)[0]
+	ap.play("prone", 0.0)
+	ap.advance(0.5)
+	v.basis = Basis(Vector3.RIGHT, m.theta)
+	v.set_pose(0.0, 0.0, true, 1.0e6)
+	for i in 3:
+		await get_tree().process_frame
+	return {"v": v, "theta": m.theta, "model": m}
+
+
+## Размеры пилота в полёте (мир): низ торса/подвесной системы (вершины PilotBody с главной костью
+## Hips/Spine/Chest — без рук, ног и головы), длина предплечья (локоть — кисть).
+func _pilot_dims(v: GliderVisual) -> Dictionary:
+	var sk := v.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var mi := sk.find_children("PilotBody", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	var skin := mi.skin
+	var torso: Array[String] = ["Hips", "Spine", "Chest"]
+	var low := 1.0e9
+	var mesh := mi.mesh
+	var sk_x := sk.global_transform
+	for s in mesh.get_surface_count():
+		var arr := mesh.surface_get_arrays(s)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var bones: PackedInt32Array = arr[Mesh.ARRAY_BONES]
+		var wts: PackedFloat32Array = arr[Mesh.ARRAY_WEIGHTS]
+		var per := bones.size() / vs.size()
+		for k in vs.size():
+			var best := -1
+			var bw := 0.0
+			var pos := Vector3.ZERO
+			for q in per:
+				var w := wts[k * per + q]
+				if w <= 0.0:
+					continue
+				var bi := skin.get_bind_bone(bones[k * per + q]) if skin.get_bind_bone(bones[k * per + q]) >= 0 else bones[k * per + q]
+				pos += w * (sk.get_bone_global_pose(bi) * skin.get_bind_pose(bones[k * per + q]) * vs[k])
+				if w > bw:
+					bw = w
+					best = bi
+			if best >= 0 and sk.get_bone_name(best) in torso:
+				low = minf(low, (sk_x * pos).y)
+	var fa := 0.0
+	for side in ["L", "R"]:
+		var e := sk.get_bone_global_pose(sk.find_bone("Forearm." + side)).origin
+		var h := sk.get_bone_global_pose(sk.find_bone("Hand." + side)).origin
+		fa += e.distance_to(h) * 0.5
+	return {"torso_low_y": low, "forearm": fa}
+
+
+## A3.5: в полёте на балансировке локти не выше плечевых суставов (по вертикали мира); низ торса
+## над осью базовой штанги на длину предплечья модели пилота ± 0,05 м; configs/pilot.json →
+## visual.hang_length_m (карабин — низ торса) совпадает с моделью ± 0,02 м.
+func test_flight_pilot_height() -> void:
+	var r := await _flight_visual("apogee")
+	var v: GliderVisual = r.v
+	var sk := v.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var hang: Vector3 = v.global_transform * Vector3(0, float(Config.get_config("flight").visual.hang_height_m), 0)
+	var sh_mid: Vector3 = v.global_transform * ((v.shoulder(-1) + v.shoulder(1)) * 0.5)
+	var worst_elbow := -1.0e9
+	var dmin := 1.0e9
+	var dmax := -1.0e9
+	for side in [-1, 1]:
+		var sh: Vector3 = v.global_transform * v.shoulder(side)
+		var bone := sk.find_bone("Forearm.L" if side < 0 else "Forearm.R")
+		var el: Vector3 = sk.to_global(sk.get_bone_global_pose(bone).origin)
+		var hand := v.find_child("HandL" if side < 0 else "HandR", true, false) as Node3D
+		var d := sh.distance_to(hand.global_position)
+		dmin = minf(dmin, d)
+		dmax = maxf(dmax, d)
+		worst_elbow = maxf(worst_elbow, el.y - sh.y)
+		check(el.y <= sh.y + 0.005, "рука %d: локоть не выше плеча (%+.3f м)" % [side, el.y - sh.y])
+	var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
+	var dims := _pilot_dims(v)
+	var above := float(dims.torso_low_y) - bar.y
+	var hl := float(Config.get_config("pilot").visual.hang_length_m)
+	var low_local: float = (v.global_transform.affine_inverse() * Vector3(0, float(dims.torso_low_y), 0)).y
+	var meas_len := hang.distance_to(Vector3(hang.x, float(dims.torso_low_y), hang.z))
+	check(
+		absf(above - float(dims.forearm)) <= 0.05,
+		"низ торса над базой %.3f м, предплечье %.3f м (±0,05)" % [above, dims.forearm]
+	)
+	approx(hl, meas_len, 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
+	print(
+		(
+			"         apogee: плечи над базой %.3f м, плечо—хват %.3f…%.3f м, локоть−плечо max %+.3f м, "
+			+ "карабин—плечо %.3f м, низ торса над базой %.3f м, предплечье %.3f м, карабин—низ торса (по вертикали) %.3f м"
+		)
+		% [sh_mid.y - bar.y, dmin, dmax, worst_elbow, hang.distance_to(sh_mid), above, dims.forearm, meas_len]
+	)
+	v.free()
+
+
+## A3.6: визуальный тангаж киля в установившемся планировании = тангаж из модели полёта
+## (α − угол планирования; установочного угла киля к хорде в модели нет) ± 1°. Тангаж киля
+## в модели крыла — по вершинам трубы киля (нос/хвост на оси симметрии).
+func test_keel_pitch_matches_physics() -> void:
+	for wing in ["apogee", "sport", "ww_t3"]:
+		var cfg: Dictionary = _params().wings
+		var out := ""
+		for wid: String in cfg:
+			if String(cfg[wid].config) == wing:
+				out = String(cfg[wid].out)
+		if out == "":
+			continue
+		var r := await _flight_visual(wing)
+		var v: GliderVisual = r.v
+		var m: FlightModel = r.model
+		var fr := v.wing.find_child("Frame", true, false) as MeshInstance3D
+		var x := GliderVisual._relative_xform(v.wing, fr)
+		var front := Vector3(0, 0, 1.0e9)
+		var back := Vector3(0, 0, -1.0e9)
+		var mesh := fr.mesh
+		var pts: Array[Vector3] = []
+		for s in mesh.get_surface_count():
+			for p: Vector3 in mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]:
+				var w := x * p
+				if absf(w.x) < 0.02:
+					pts.append(w)
+					if w.z < front.z:
+						front = w
+		# наклон киля — МНК по вершинам на оси симметрии на высоте носа (труба киля)
+		var sel: Array[Vector3] = []
+		for w in pts:
+			if absf(w.y - front.y) < 0.12:
+				sel.append(w)
+		var mz := 0.0
+		var my := 0.0
+		for w in sel:
+			mz += w.z
+			my += w.y
+		mz /= sel.size()
+		my /= sel.size()
+		var sxy := 0.0
+		var sxx := 0.0
+		for w in sel:
+			sxy += (w.z - mz) * (w.y - my)
+			sxx += (w.z - mz) * (w.z - mz)
+		var wing_pitch := asin((v.wing.global_transform.basis.orthonormalized() * Vector3.FORWARD).y)
+		var vis := rad_to_deg(wing_pitch + atan2(-sxy / sxx, 1.0))
+		var gamma := rad_to_deg(atan2(m.velocity.y, Vector2(m.velocity.x, m.velocity.z).length()))
+		var phys := rad_to_deg(m.alpha) + gamma
+		approx(vis, phys, 1.0, "%s: тангаж киля на виде %.2f° и в модели %.2f°" % [wing, vis, phys])
+		print(
+			"         %s: тангаж киля на виде %+.2f°, из модели %+.2f° (α %.2f°, угол планирования %+.2f°)"
+			% [wing, vis, phys, rad_to_deg(m.alpha), gamma]
+		)
+		v.free()
