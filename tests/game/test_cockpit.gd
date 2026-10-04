@@ -215,6 +215,7 @@ func test_glance_instrument_left_upright() -> void:
 		_hold_glance(game, true)
 		for i in int(0.6 / DT):
 			_step(game)
+		print("         %s: прибор в осях планера %s, глаза %s" % [wing, game.glider.global_basis.inverse() * (tablet.global_position - game.glider.global_position), game.glider.global_basis.inverse() * (cam.global_position - game.glider.global_position)])
 		var yaw := _glider_yaw_deg(game)
 		var pitch := _glider_pitch_deg(game)
 		for fov in [cfg_fov, VIEW_FOV_DEG]:

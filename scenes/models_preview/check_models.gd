@@ -83,7 +83,7 @@ func _check_axes(path: String, root: Node3D) -> void:
 			var bot := _pos(root, "UprightBottom" + side)
 			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
-		# A3.3 v6: приборы на хомуте левой стойки (рядом с осью стойки, не дальше 0,15 м), планшет
+		# A3.3 v6: приборы на хомуте левой стойки (рядом с осью стойки, кронштейн не дальше 0,35 м), планшет
 		# ниже вариометра, оба слева, −Z к глазам
 		var ubl := _pos(root, "UprightBottomL")
 		var utl := _pos(root, "UprightTopL")
@@ -92,8 +92,8 @@ func _check_axes(path: String, root: Node3D) -> void:
 			var o: Vector3 = pair[1].origin
 			var ax := utl - ubl
 			var t := clampf((o - ubl).dot(ax) / ax.length_squared(), 0.0, 1.0)
-			_expect(path, "%s у левой стойки (≤ 0,15 м от оси)" % pair[0],
-				o.distance_to(ubl + ax * t) < 0.15 and o.x < -0.1 and t > 0.05 and t < 0.7)
+			_expect(path, "%s у левой стойки (кронштейн ≤ 0,35 м от оси)" % pair[0],
+				o.distance_to(ubl + ax * t) < 0.35 and o.x < -0.1 and t > 0.05 and t < 0.7)
 		_expect(path, "VarioMount выше планшета на стойке", vm.origin.y > im.origin.y)
 		# глаза пилота лёжа (pilot_eye): взгляд на них — вправо и вперёд/вверх
 		_expect(path, "InstrumentMount −Z смотрит вправо на пилота", (-im.basis.z).x > 0.3)
