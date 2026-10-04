@@ -11,6 +11,7 @@ var _net_label: Label
 var _stage: Label
 var _bar: ProgressBar
 var _time: Label
+var _note: Label
 var _shown := 0.0
 var _anim := 0.0
 var _t0 := 0
@@ -99,6 +100,8 @@ func _build() -> void:
 	_net_label.visible = false
 	UiKit.separator(box)
 	_stage = UiKit.label(box, "", "HeaderLabel")
+	_note = UiKit.label(box, "", "HintLabel")
+	_note.visible = false
 	_bar = ProgressBar.new()
 	_bar.min_value = 0.0
 	_bar.max_value = 1.0
@@ -140,5 +143,8 @@ func _process(dt: float) -> void:
 	if base == "":
 		base = tr("loading_getting_ready")
 	_stage.text = base + ".".repeat(1 + int(_anim * 2.5) % 3)
+	var note := _progress.note if _progress != null else ""
+	_note.text = note
+	_note.visible = note != ""
 	var s := (Time.get_ticks_msec() - _t0) / 1000
 	_time.text = "%d:%02d" % [s / 60, s % 60]

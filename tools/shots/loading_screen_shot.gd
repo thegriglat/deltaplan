@@ -17,7 +17,7 @@ func _ready() -> void:
 	var p := LoadProgress.new({"a": 1.0, "b": 3.0})
 	p.begin()
 	l.open(p, "50.6000, 86.4000")
-	p.stage("b", tr("loading_dem"))
+	p.stage("b", tr(Game.wind_stage_key("nn")))
 	p.sub(1, 2)
 	for i in 30:
 		await get_tree().process_frame

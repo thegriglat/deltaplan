@@ -269,6 +269,27 @@ func test_loading_screen_follows_progress() -> void:
 	l.queue_free()
 
 
+## Подпись этапа ветра — по фактическому режиму; пропущенный этап — строка-заметка в панели.
+func test_loading_wind_mode_labels() -> void:
+	var k := {}
+	for e in ["solver", "nn", "simple"]:
+		k[e] = tr(Game.wind_stage_key(e))
+	check(k.solver != k.nn and k.nn != k.simple and k.solver != k.simple, "три разные подписи")
+	check(k.nn.contains(tr("loading_wind_nn")) and k.simple == tr("loading_wind_simple"), "ключи")
+	var l: LoadingScreen = _scene("res://scenes/ui/loading_screen.tscn")
+	var p := LoadProgress.new({"a": 1.0})
+	p.begin()
+	l.open(p, "")
+	await get_tree().process_frame
+	check(not (l.get("_note") as Label).visible, "заметки нет")
+	p.note = k.simple
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var n: Label = l.get("_note")
+	check(n.visible and n.text == k.simple, "заметка про упрощённый ветер: %s" % n.text)
+	l.queue_free()
+
+
 ## Версия в правом нижнем углу главного меню: метка есть и содержит версию из ProjectSettings.
 func test_start_menu_shows_version() -> void:
 	var m: StartMenu = _scene("res://scenes/ui/start_menu.tscn")
