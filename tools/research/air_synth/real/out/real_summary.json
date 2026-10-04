@@ -1,0 +1,277 @@
+{
+ "n_places": 360,
+ "n_game": 4,
+ "by_part": {
+  "pool": 300,
+  "holdout": 60
+ },
+ "by_system": {
+  "east_africa": {
+   "pool": 6
+  },
+  "iran": {
+   "pool": 11
+  },
+  "australia": {
+   "pool": 3
+  },
+  "newguinea": {
+   "pool": 1
+  },
+  "arabia": {
+   "pool": 2
+  },
+  "indochina": {
+   "pool": 7
+  },
+  "other": {
+   "pool": 13
+  },
+  "africa_other": {
+   "pool": 3
+  },
+  "mongolia_baikal": {
+   "pool": 12
+  },
+  "india": {
+   "pool": 2
+  },
+  "siberia_east": {
+   "pool": 22
+  },
+  "andes_north": {
+   "pool": 9
+  },
+  "patagonia": {
+   "pool": 10
+  },
+  "altai_sayan": {
+   "pool": 15
+  },
+  "andes_central": {
+   "pool": 8
+  },
+  "tianshan": {
+   "pool": 6
+  },
+  "atlas": {
+   "pool": 2
+  },
+  "china_east": {
+   "pool": 24
+  },
+  "insulindia": {
+   "pool": 7
+  },
+  "brazil_highlands": {
+   "pool": 3
+  },
+  "mexico_central_america": {
+   "pool": 17
+  },
+  "south_africa": {
+   "pool": 3
+  },
+  "himalaya_tibet": {
+   "pool": 19
+  },
+  "new_zealand": {
+   "pool": 2
+  },
+  "carpathians": {
+   "pool": 1
+  },
+  "japan_korea": {
+   "pool": 5
+  },
+  "alaska_yukon": {
+   "pool": 4
+  },
+  "scandinavia": {
+   "pool": 2
+  },
+  "britain": {
+   "pool": 1
+  },
+  "hindukush_pamir": {
+   "pool": 4
+  },
+  "rockies_cordillera": {
+   "pool": 32
+  },
+  "taiwan_philippines": {
+   "pool": 1
+  },
+  "iberia": {
+   "pool": 1
+  },
+  "balkans": {
+   "pool": 1
+  },
+  "coast_mountains": {
+   "pool": 31
+  },
+  "alps": {
+   "pool": 10
+  },
+  "appalachians": {
+   "holdout": 15
+  },
+  "caucasus": {
+   "holdout": 15
+  },
+  "pyrenees": {
+   "holdout": 15
+  },
+  "southern_alps_nz": {
+   "holdout": 15
+  }
+ },
+ "systems_table": [
+  {
+   "group": "пул",
+   "n": 300,
+   "slope_p50_med": 0.20715734286439796,
+   "slope_p50_min": 0.0035077205431162956,
+   "slope_p50_max": 0.4965990640909419,
+   "slope_p95_med": 0.4369825461327748,
+   "relief_med": 1885.698533847928,
+   "relief_min": 157.30000233650208,
+   "relief_max": 2995.8218941688538
+  },
+  {
+   "group": "отложено: appalachians",
+   "n": 15,
+   "slope_p50_med": 0.04676815605881538,
+   "slope_p50_min": 0.011599777777675315,
+   "slope_p50_max": 0.18461530368349605,
+   "slope_p95_med": 0.14701522133792508,
+   "relief_med": 423.01440769433975,
+   "relief_min": 200.0824717283249,
+   "relief_max": 1628.624683856964
+  },
+  {
+   "group": "отложено: caucasus",
+   "n": 15,
+   "slope_p50_med": 0.0900131042652055,
+   "slope_p50_min": 0.005349967946172629,
+   "slope_p50_max": 0.41180397780412614,
+   "slope_p95_med": 0.33104174530339536,
+   "relief_med": 1896.0481820106506,
+   "relief_min": 536.3555763345212,
+   "relief_max": 2813.1583585739136
+  },
+  {
+   "group": "отложено: pyrenees",
+   "n": 15,
+   "slope_p50_med": 0.1025006118104368,
+   "slope_p50_min": 0.02430541762830441,
+   "slope_p50_max": 0.3550279860368921,
+   "slope_p95_med": 0.31314550832289456,
+   "relief_med": 1574.9669605493546,
+   "relief_min": 366.1944337487221,
+   "relief_max": 2715.866515278816
+  },
+  {
+   "group": "отложено: southern_alps_nz",
+   "n": 15,
+   "slope_p50_med": 0.29673076215861266,
+   "slope_p50_min": 0.12290531460722764,
+   "slope_p50_max": 0.4770154590851994,
+   "slope_p95_med": 0.5898833118585645,
+   "relief_med": 1905.945354104042,
+   "relief_min": 1522.5865646079183,
+   "relief_max": 2630.6046621203423
+  }
+ ],
+ "systems_match_v3": true,
+ "clipped_places": [
+  {
+   "name": "t_0164",
+   "cells_g100": 2,
+   "g100_min": -3244.491986513138,
+   "g100_max": 1968.1715698242188,
+   "g400_vs_hc400_max_abs_m": 51.830749157071125
+  }
+ ],
+ "match_v3_details": [
+  {
+   "group": "пул",
+   "n_mine": 300,
+   "n_ref": 300,
+   "max_abs_diff": 0,
+   "match": true
+  },
+  {
+   "group": "отложено: appalachians",
+   "n_mine": 15,
+   "n_ref": 15,
+   "max_abs_diff": 0,
+   "match": true
+  },
+  {
+   "group": "отложено: caucasus",
+   "n_mine": 15,
+   "n_ref": 15,
+   "max_abs_diff": 0,
+   "match": true
+  },
+  {
+   "group": "отложено: pyrenees",
+   "n_mine": 15,
+   "n_ref": 15,
+   "max_abs_diff": 0,
+   "match": true
+  },
+  {
+   "group": "отложено: southern_alps_nz",
+   "n_mine": 15,
+   "n_ref": 15,
+   "max_abs_diff": 0,
+   "match": true
+  }
+ ],
+ "holdout_systems": [
+  "appalachians",
+  "caucasus",
+  "pyrenees",
+  "southern_alps_nz"
+ ],
+ "g400_vs_hc400_max_abs_m": 0.0,
+ "readback_h400_vs_hc400_max_abs_m": 0.0749999999998181,
+ "corpus_path": "/home/greg/air_synth_data/real/p6v3",
+ "game_corpus_path": "/home/greg/air_synth_data/real/game",
+ "corpus_bytes": 73511613,
+ "game_corpus_bytes": 799393,
+ "raw_deleted": true,
+ "cut_manifest": {
+  "commit": "9cf5ed9c2bd20a278f17e51e5b10bd1a341154c4",
+  "code_dirty": false,
+  "config_sha256": "5a658ebc4da4c9ce6d401e10158b6de58bc2ecc1948c32c64a211d880b8ed601",
+  "seeds": {
+   "grid": 20261004,
+   "select": 20261005
+  }
+ },
+ "pack_seconds": 36.6,
+ "ref_cuts_max_abs_diff_vs_pilot": {
+  "askarovo": 0.0,
+  "aushkul": 0.0,
+  "altai": 0.0,
+  "ongudai": 0.0
+ },
+ "raw_freed_bytes_est": 8600110373,
+ "fetch_minutes": 24.0,
+ "screen_minutes": 16.1,
+ "cut_seconds": 61,
+ "pool_selected_before_cut": 341,
+ "holdout_selected_before_cut": 72,
+ "cut_rejected": {
+  "relief_high": 2,
+  "hmin_high": 3,
+  "sea": 8,
+  "reserve_unused": 40
+ },
+ "n_tiles_fetched": 19007,
+ "tiles_bytes": 1210000000.0
+}
