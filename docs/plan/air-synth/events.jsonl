@@ -32,3 +32,4 @@
 {"t": "2026-10-04T22:28:45", "by": "coordinator", "task": "SY-4", "ev": "edited", "note": "contract:S1", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-10-04T22:28:46", "by": "coordinator", "task": "SY-2", "ev": "edited", "note": "contract:S1", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-10-04T22:28:46", "by": "coordinator", "task": "SY-1", "ev": "note", "note": "S1 v2 (04.10): + Relief.place (сообщение Place) для реальных мест; proto и gen/ обновлены в ветке модуля (dp task sync SY-1). Читатель принимает 'S1 v1' и 'S1 v2', пишет 'S1 v2'; контрактный тест — + запись/чтение place. Писатель должен уметь писать готовые рельефы (не только из генератора) — нужен для SY-6 (реальные места).", "addendum": true}
+{"t": "2026-10-04T22:29:00", "by": "coordinator", "task": "SY-6", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-air-synth-SY-6; пятый исполнитель — задача в основном сетевая (скачивание)"}
