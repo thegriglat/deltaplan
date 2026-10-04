@@ -438,22 +438,24 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         for e in ends:
             w0 = F.add_wire_end(mb, wa, e, bax, wire_r, "Steel")
             mb.add_tube([w0, e], wire_r, "Wire", sides=8, cap=False)
+    fwd = Vector((0, cf["instrument_forward_m"], cf["instrument_up_m"]))
+    bar_c = Vector((0, y_bb, z_bb - dip))
+    for xb in (0.0, -cf["vario_bar_offset_m"]):  # кронштейны приборов: трубка от штанги вперёд-вверх
+        b0 = Vector((xb, y_bb, bar_z(xb)))
+        mb.add_tube([b0, b0 + fwd * 0.95], 0.007, "Dark", sides=8)
     obj = mb.build("ControlFrame", mats)
     for s, side in ((-1, "L"), (1, "R")):  # оси стоек: у болта под килем и у штанги в углу
         U.empty("UprightTop" + side, (s * top_x, apex_y, top_z), parent=obj)
         U.empty("UprightBottom" + side, (s * w, y_bb, z_bb), parent=obj)
     U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
     eye = Vector(cf["_eye"])
-    # планшет — на оси базовой штанги в центре, −Z (Godot) маркера смотрит на глаза пилота
-    bar_c = Vector((0, y_bb, z_bb - dip))
-    U.empty("InstrumentMount", None, parent=obj, matrix=U.look_matrix(bar_c, eye))
-    # вариометр 90-х — на оси базовой штанги слева от планшета (между ним и левой рукой), тоже
-    # экраном к глазам: при взгляде вниз (0°, −60°) в кадре штанга только между кулаками
-    # (±0,35 м) — угол трапеции и стойки вне кадра при любой высоте на стойке
+    # планшет и вариометр — на выносе вперёд-вверх от базовой штанги (кронштейн, как у реальных
+    # пилотов): база под плечами, глаза впереди неё (A3.3 v4), на штанге приборы остались бы за
+    # спиной глаз. −Z (Godot) маркера смотрит на глаза пилота
+    U.empty("InstrumentMount", None, parent=obj, matrix=U.look_matrix(bar_c + fwd, eye))
+    # вариометр 90-х — на таком же выносе слева от планшета (между ним и левой рукой), экраном к глазам
     xv = -cf["vario_bar_offset_m"]
-    zv = bar_z(xv)
-    # горизонталь циферблата — вдоль штанги (иначе в кадре сбоку от оси взгляда он «завален»)
-    pv = Vector((xv, y_bb, zv))
+    pv = Vector((xv, y_bb, bar_z(xv))) + fwd
     to_eye = (eye - pv).normalized()
     side = (Vector((-1, 0, 0)) + to_eye * to_eye.x).normalized()
     U.empty("VarioMount", None, parent=obj, matrix=U.look_matrix(pv, eye, up=side.cross(to_eye)))

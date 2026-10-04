@@ -9,6 +9,8 @@ const MAIN_SCENE := preload("res://scenes/main.tscn")
 const WINGS: Array[String] = ["training", "sport", "laminar"]
 const ASPECT := 16.0 / 9.0
 ## Через сколько секунд полёта снимать (пилот лёг в кокон — поза prone).
+## Поле зрения в приёмке A3.3, ° по вертикали.
+const VIEW_FOV_DEG := 75.0
 const MIN_AIR_S := 12.0
 ## Шаг выборки точек по рёбрам треугольников мешей, м (тросы тонкие и длинные: в угол кадра
 ## попадает кусок в десятки сантиметров).
@@ -56,7 +58,6 @@ func test_cockpit_view_by_head_angle() -> void:
 						% ([wing] + in_f)
 					)
 				)
-			check(in_f[0] == 0, "%s F: трапеция в кадре" % wing)
 			check(in_f[1] == 0, "%s F: парус в кадре" % wing)
 			check(in_f[2] == 0, "%s F: руки в кадре" % wing)
 			check(in_f[3] == 0, "%s F: приборы в кадре" % wing)
@@ -81,6 +82,107 @@ func test_cockpit_view_by_head_angle() -> void:
 					"%s: %s отбрасывает тень" % [wing, g.name]
 				)
 		await _finish(main)
+
+
+## Первое лицо (A3.3 v4). Взгляд вперёд: трапеция позади глаз (числа — в печать), у краёв кадра
+## с обеих сторон силуэт стоек; стойка в кадре (голова влево на 90°) — силуэт с её стороны
+## не рисуется. Взгляд вниз 85–90°: штанга и руки в кадре. Ленточки: при взгляде вверх-вперёд
+## (наклон ≤ 55°) обе в кадре; углы от оси взгляда вперёд — в печать.
+func test_trapezoid_silhouette_and_telltales() -> void:
+	for wing in ["apogee", "training", "sport", "laminar"]:
+		var main := await _fly(wing)
+		if main == null:
+			continue
+		var game: Game = main.get_node("Game")
+		var v := game.glider.visual
+		var cam := game.camera
+		var sil: UprightSilhouette = cam.get_node("UprightSilhouette")
+		var cfg := sil.params()
+		check(bool(cfg.get("enabled", false)), "%s: силуэт стоек включён по умолчанию" % wing)
+		cam.fov = VIEW_FOV_DEG
+		_look(game, 0.0, 0.0)
+		cam.fov = VIEW_FOV_DEG
+		sil._process(0.0)
+		var draws := sil.frame_draws(cam, ASPECT, cfg)
+		var edges := []
+		for d in draws:
+			edges.append(snappedf(d.edge.x, 0.01))
+		check(draws.size() == 2, "%s F: силуэт с обеих сторон (%d)" % [wing, draws.size()])
+		if draws.size() == 2:
+			check(draws[0].alpha > 0.05 and draws[1].alpha > 0.05, "%s F: силуэт заметен" % wing)
+			check(
+				draws[0].edge.x < 0.5 and draws[1].edge.x > 0.5,
+				"%s F: левая слева, правая справа %s" % [wing, edges]
+			)
+		print(
+			(
+				"         %s FOV %.0f вперёд: от оси, °: %s; ленточки %s; силуэт alpha %s, край x %s"
+				% [wing, VIEW_FOV_DEG, _bar_angles(v, cam), _telltale_angles(v, cam),
+					draws.map(func(d): return snappedf(d.alpha, 0.01)), edges]
+			)
+		)
+		# стойка в кадре — не рисуется
+		_look(game, 90.0, 0.0)
+		var yaw_draws := sil.frame_draws(cam, ASPECT, cfg)
+		check(yaw_draws.size() == 1, "%s: голова влево 90° — левая стойка в кадре, рисуется одна (%d)" % [wing, yaw_draws.size()])
+		if yaw_draws.size() == 1:
+			check(yaw_draws[0].side == 1, "%s: осталась правая сторона" % wing)
+		# взгляд вниз: штанга и руки в кадре
+		_look(game, 0.0, -90.0)
+		var bl := game.glider.get_marker("UprightBottomL").global_position
+		var br := game.glider.get_marker("UprightBottomR").global_position
+		var bar_in := 0
+		for i in 41:
+			if _in_view(cam, bl.lerp(br, i / 40.0)):
+				bar_in += 1
+		check(bar_in > 0, "%s: взгляд вниз 90° — штанга в кадре (%d из 41 точек)" % [wing, bar_in])
+		check(_count_in_view(cam, _arm_points(v)) > 0, "%s: взгляд вниз 90° — руки в кадре" % wing)
+		print("         %s: взгляд вниз 90°: штанга в кадре %d/41, угол до центра штанги %.1f°" % [wing, bar_in, _axis_angle(cam, game.glider.get_marker("BaseBar").global_position)])
+		# ленточки: найти наклон головы вверх ≤ 55°, при котором обе в кадре
+		var seen_pitch := -1.0
+		for pit in [10.0, 20.0, 30.0, 40.0, 50.0, 55.0]:
+			_look(game, 0.0, pit)
+			var n := 0
+			for t in v.telltales:
+				if _in_view(cam, t.global_position):
+					n += 1
+			if n == 2:
+				seen_pitch = pit
+				break
+		check(seen_pitch > 0.0, "%s: обе ленточки в кадре при взгляде вверх ≤ 55° (%.0f)" % [wing, seen_pitch])
+		print("         %s: ленточки в кадре при наклоне головы вверх %.0f°" % [wing, seen_pitch])
+		await _finish(main)
+
+
+## Углы от оси взгляда камеры до ближайших точек стоек и штанги (по отрезкам маркеров), °.
+func _bar_angles(v: Node3D, cam: Camera3D) -> Dictionary:
+	var m := {}
+	for k in ["UprightTopL", "UprightTopR", "UprightBottomL", "UprightBottomR"]:
+		m[k] = v.get_marker(k).global_position
+	return {
+		"upL": snappedf(_seg_min_angle(cam, m.UprightTopL, m.UprightBottomL), 0.1),
+		"upR": snappedf(_seg_min_angle(cam, m.UprightTopR, m.UprightBottomR), 0.1),
+		"bar": snappedf(_seg_min_angle(cam, m.UprightBottomL, m.UprightBottomR), 0.1),
+	}
+
+
+func _telltale_angles(v: Node3D, cam: Camera3D) -> Array:
+	var out := []
+	for t in v.telltales:
+		out.append(snappedf(_axis_angle(cam, t.global_position), 0.1))
+	return out
+
+
+func _axis_angle(cam: Camera3D, p: Vector3) -> float:
+	var l := cam.global_transform.affine_inverse() * p
+	return rad_to_deg(l.angle_to(Vector3(0, 0, -1)))
+
+
+func _seg_min_angle(cam: Camera3D, a: Vector3, b: Vector3) -> float:
+	var best := 180.0
+	for i in 101:
+		best = minf(best, _axis_angle(cam, a.lerp(b, i / 100.0)))
+	return best
 
 
 ## Крен A→D→A: тело ездит под крылом, а голова — долей смещения со сглаживанием: планшет

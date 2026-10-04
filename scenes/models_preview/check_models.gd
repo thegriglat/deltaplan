@@ -81,17 +81,19 @@ func _check_axes(path: String, root: Node3D) -> void:
 			var bot := _pos(root, "UprightBottom" + side)
 			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
-		_expect(path, "InstrumentMount в центре базовой штанги",
-			absf(im.origin.x) < 0.01 and im.origin.distance_to(bar) < 0.08)
+		# A3.3 v4: прибор на выносе вперёд-вверх от штанги (0,4…0,8 м), по центру
+		_expect(path, "InstrumentMount по центру, на выносе вперёд от штанги",
+			absf(im.origin.x) < 0.01 and im.origin.distance_to(bar) > 0.4
+			and im.origin.distance_to(bar) < 0.8 and im.origin.z < bar.z - 0.3)
 		# база теперь под плечами (AF-1, A3.1), глаза пилота при лёжа чуть впереди неё: взгляд на
 		# глаза — вверх (вперёд или назад — не проверяем)
 		_expect(path, "InstrumentMount −Z смотрит вверх на пилота", (-im.basis.z).y > 0.6)
 		var vm := _xform(root, "VarioMount")
 		_expect(
 			path,
-			"VarioMount на базовой штанге слева от планшета (между ним и левой рукой)",
-			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - bar.y) < 0.05
-			and absf(vm.origin.z - bar.z) < 0.05
+			"VarioMount на таком же выносе слева от планшета (между ним и левой рукой)",
+			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - im.origin.y) < 0.05
+			and absf(vm.origin.z - im.origin.z) < 0.05
 		)
 		_expect(path, "VarioMount −Z смотрит на пилота (вправо-вверх)",
 			(-vm.basis.z).x > 0.25 and (-vm.basis.z).y > 0.6)

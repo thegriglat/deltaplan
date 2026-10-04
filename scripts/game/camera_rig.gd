@@ -63,6 +63,10 @@ func _ready() -> void:
 	fov = float(_cfg.fov_deg)
 	_free_speed = float(_cfg.free.speed_ms)
 	set_mode(String(_cfg.default_mode))
+	var sil := UprightSilhouette.new()
+	sil.name = "UprightSilhouette"
+	sil.rig = self
+	add_child(sil)
 	Config.reloaded.connect(reload_config)
 
 
