@@ -298,9 +298,9 @@ func _build_forecast(box: Control) -> void:
 	)
 	_temp_hint = UiKit.label(box, "", "HintLabel")
 	_temp_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var wr: Array = ui.get("wind_ms", [0, 12, 1])
+	var wr := WingCatalog.wind_menu_range()
 	_wind = UiKit.slider_row(
-		box, tr("setup_wind"), float(wr[0]), float(wr[1]), float(wr[2]), "%.0f"
+		box, tr("setup_wind"), wr.x, wr.y, wr.z, "%.0f"
 	)
 	var wind_label: Label = _wind.get_parent().get_child(1)
 	wind_label.custom_minimum_size.x = 150

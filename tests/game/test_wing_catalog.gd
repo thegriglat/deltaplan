@@ -58,3 +58,15 @@ func test_group_ranges() -> void:
 	approx(t.y, 16.0, 0.3, "безмачтовые: качество до")
 	check(WingCatalog.wind_range("topless") == Vector2(20, 25), "безмачтовые: ветер 20–25")
 	check(WingCatalog.glide_range("no_such_group") == Vector2.ZERO, "пустая группа")
+
+
+func test_wind_menu_range_from_classes() -> void:
+	var r := WingCatalog.wind_menu_range()
+	check(r == Vector3(0, 25, 1), "слайдер ветра 0–25, шаг 1: %s" % r)
+	var s := FlightSettings.new()
+	s.wind_speed_kmh = 22.0 * 3.6
+	s.clamp_forecast()
+	check(is_equal_approx(s.wind_speed_kmh, 22.0 * 3.6), "22 м/с не зажимается до 12")
+	s.wind_speed_kmh = 40.0 * 3.6
+	s.clamp_forecast()
+	check(is_equal_approx(s.wind_speed_kmh, 25.0 * 3.6), "40 м/с зажимается до 25")
