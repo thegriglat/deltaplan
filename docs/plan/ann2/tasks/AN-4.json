@@ -1,0 +1,71 @@
+{
+  "id": "AN-4",
+  "module": "ann2",
+  "type": "dp-researcher",
+  "title": "Проверка данных; прогон с Fr случая, только механическим режимом и разложенной головой",
+  "goal": "Убедиться, что данные обучения и оценки корректны (при расхождении — исправить кеш), и одним прогоном проверить три правки: Fr и N по стратификации случая, обучение/оценка только в механическом режиме (порог w*/U), разложенная голова как DeepONet (скорость инференса порядка P2); лучшая точка по проверке; сравнение с P2 и AN-3 на тех же клетках и явный ответ по критерию 10–15 % скорости.",
+  "plan_ref": "5. Вопросы после AN-3 (обсуждение с пользователем 04.10)",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "2",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A2",
+      "version": "2",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A3",
+      "version": "2",
+      "ref": "docs/contracts/ann2.md"
+    }
+  ],
+  "copy": "~/deltaplan-ann2-AN-4",
+  "branch": "ann2/AN-4",
+  "base": "feature/ann2",
+  "scope": [
+    "tools/research/ann2/"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/tests/test_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "data_check",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/check_data.py",
+      "expect": "num:data_check_errors ([0-9]+) ==0"
+    },
+    {
+      "name": "cpu_speed",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/bench_cpu.py --run an4",
+      "expect": "num:ratio_to_p2 ([0-9.,]+) <=3"
+    },
+    {
+      "name": "best_point",
+      "cmd": "test -s /home/greg/air_nn_data/ann2/runs/an4/best.pt",
+      "expect": "exit=0"
+    },
+    {
+      "name": "eval_vs_p2",
+      "cmd": "DP_NO_TMUX=1 /home/greg/deltaplan/tools/dp lock gpu an4eval -- /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/evaluate.py --run an4 --also an3_pilot",
+      "expect": "num:p2_selfcheck_diff ([0-9.,]+) <=0.01"
+    },
+    {
+      "name": "criterion",
+      "cmd": "cat tools/research/ann2/out/an4/eval.md",
+      "expect": "re:criterion_10_15: (выполнен|нет)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-04T06:03:15"
+}
