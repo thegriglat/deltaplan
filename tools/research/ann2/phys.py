@@ -38,15 +38,6 @@ def u_profile(eta, alpha, mp, U10):
     return U10 * mp * lib.clip((lib.clip(eta, min=P.Z0) / z_sat) ** alpha, max=1.0)
 
 
-def theta_bg(eta, hc_mean):
-    """θ̄(η) − θ̄(0), К: ∫ dθ̄/dz от среднего рельефа hc_mean (м над морем) до hc_mean + η."""
-    lib = _lib(eta)
-    z0, z1 = hc_mean, hc_mean + eta
-    lo = lib.clip(z1, max=Z_BREAK) - min_(z0, Z_BREAK, lib)
-    hi = lib.clip(z1, min=Z_BREAK) - max_(z0, Z_BREAK, lib)
-    return GAM_LOW * lib.clip(lo, min=0.0) + GAM_HIGH * lib.clip(hi, min=0.0)
-
-
 def _lib(x):
     import torch
     return torch if isinstance(x, torch.Tensor) else _NP
@@ -83,11 +74,39 @@ def case_par(meta):
     return np.array([meta["alpha"], meta["mp"], meta["U10"], meta["hc_mean"]], np.float32)
 
 
-def profile_input(par):
-    """Вход 1D энкодера: (N_PROF_CH, 13) на уровнях П1. par — (4,) numpy."""
+_BG = None
+
+
+def bg_theta_of(meta):
+    """θ̄(η) − θ̄(0) решателя случая на 13 уровнях П1, К: `weather.Day.gamma` случая (bg_theta.py → bg_theta.npz).
+    Фон у решателя свой у каждого случая (нейтральный слой перемешивания, инверсия, 5,8 К/км выше), а не 3/6 К/км."""
+    global _BG
+    if _BG is None:
+        import os
+        f = Path(os.environ.get("AIR_NN_DATA", "/home/greg/air_nn_data")) / "ann2" / "bg_theta.npz"
+        z = np.load(f)
+        _BG = dict(zip(z["ids"].tolist(), z["th"]))
+    return _BG[meta["id"]]
+
+
+def theta_interp(eta, th13):
+    """θ̄(η), К: линейно по η между 0 (θ̄ = 0) и уровнями П1; torch. eta (B,...) м, th13 (B,13) К."""
+    import torch
+    nodes = torch.cat([torch.zeros(1), torch.as_tensor(AGL, dtype=torch.float32)]).to(eta.device)
+    y = torch.cat([torch.zeros_like(th13[:, :1]), th13], 1)                       # (B,14)
+    B = eta.shape[0]
+    e = eta.reshape(B, -1).float().clamp(max=float(AGL[-1]))
+    j = torch.searchsorted(nodes, e, right=True).clamp(1, len(nodes) - 1)        # (B,N)
+    x0, x1 = nodes[j - 1], nodes[j]
+    y0, y1 = torch.gather(y, 1, j - 1), torch.gather(y, 1, j)
+    return (y0 + (y1 - y0) * (e - x0) / (x1 - x0)).view(eta.shape)
+
+
+def profile_input(par, th13):
+    """Вход 1D энкодера: (N_PROF_CH, 13) на уровнях П1. par — (4,) numpy, th13 — θ̄ случая (bg_theta_of)."""
     a, mp, U10, hm = (float(x) for x in par)
     u = u_profile(AGL, a, mp, U10)
-    th = theta_bg(AGL, hm)
+    th = np.asarray(th13, np.float64)
     return np.stack([u / 10.0, th / 5.0, log_eta(AGL)]).astype(np.float32)
 
 

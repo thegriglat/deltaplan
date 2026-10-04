@@ -144,12 +144,12 @@ class ProfileEncoder(nn.Module):
         return self.mlp(torch.cat([self.conv(prof).flatten(1), scal], 1))
 
 
-def point_feats(par, eta, nf=6):
-    """Признаки точки (колонка, η): [u, sin/cos(2^k π u)·(k<nf), U(η)/10, θ̄(η)/5, η/1000]; par (B,4), eta (B,K,h,w) → (B,K,h,w,·)."""
+def point_feats(par, eta, prof, nf=6):
+    """Признаки точки (колонка, η): [u, sin/cos(2^k π u)·(k<nf), U(η)/10, θ̄(η)/5, η/1000]; par (B,4), eta (B,K,h,w), prof (B,3,13) (θ̄ — канал 1) → (B,K,h,w,·)."""
     a, mp, U10, hm = (par[:, i].view(-1, 1, 1, 1) for i in range(4))
     u = phys.log_eta(eta)
     U = phys.u_profile(eta, a, mp, U10)
-    th = phys.theta_bg(eta, hm)
+    th = phys.theta_interp(eta, prof[:, 1] * 5.0)
     fr = [u]
     for k in range(nf):
         fr += [torch.sin(math.pi * 2 ** k * u), torch.cos(math.pi * 2 ** k * u)]
@@ -222,9 +222,9 @@ class Ann2(nn.Module):
         y = self.g1(self.u1(y, s1), c)
         return y[..., :H, :W], c
 
-    def decode(self, Fm, c, par, eta):
+    def decode(self, Fm, c, par, eta, prof):
         """Колонки на высотах eta (B,K,H,W) м → (B,K,8,H,W) float32: μ (4: du_par, du_perp, w, θ′) и log σ (4)."""
-        pf = point_feats(par, eta)
+        pf = point_feats(par, eta, prof)
         o = self.head(Fm, c, pf.to(Fm.dtype)).float()
         mu = o[..., :4]
         ls = 0.5 * torch.log(self.floor ** 2 + torch.exp(2 * o[..., 4:].clamp(max=6.0)))
@@ -232,7 +232,7 @@ class Ann2(nn.Module):
 
     def forward(self, maps, scal, prof, par, eta):
         Fm, c = self.features(maps, scal, prof)
-        return self.decode(Fm, c, par, eta)
+        return self.decode(Fm, c, par, eta, prof)
 
 
 def count_params(m):

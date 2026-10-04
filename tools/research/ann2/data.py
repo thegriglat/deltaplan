@@ -65,7 +65,7 @@ class Store:
         with ThreadPoolExecutor(threads) as ex:
             list(ex.map(one, range(n)))
         self.par = np.stack([phys.case_par(m) for m in self.metas])
-        self.prof = np.stack([phys.profile_input(p) for p in self.par])
+        self.prof = np.stack([phys.profile_input(p, phys.bg_theta_of(m)) for p, m in zip(self.par, self.metas)])
 
     def __len__(self):
         return len(self.ids)
