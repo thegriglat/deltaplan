@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "air-synth"
 updated: "2026-10-04"
-summary: "Контракты air-synth: S1 корпус рельефов (модельных и реальных) в HDF5, S2 условия для сети (HDF5), S3 API генератора и запуск корпуса, S4 рельеф → решатель; раздел «потом» — поля решателя"
+summary: "Контракты air-synth: S6 каталог мест дельтаплана из OSM; S1 корпус рельефов (модельных и реальных) в HDF5, S2 условия для сети (HDF5), S3 API генератора и запуск корпуса, S4 рельеф → решатель; раздел «потом» — поля решателя"
 related: ["docs/plan/air-synth.md", "docs/contracts/air-nn.md", "docs/research/terrain_statistics.md"]
-contracts: [{"id": "S1", "version": 3}, {"id": "S2", "version": 2}, {"id": "S3", "version": 3}, {"id": "S4", "version": 2}, {"id": "S5", "version": 2}]
+contracts: [{"id": "S1", "version": 3}, {"id": "S2", "version": 2}, {"id": "S3", "version": 3}, {"id": "S4", "version": 2}, {"id": "S5", "version": 2}, {"id": "S6", "version": 1}]
 ---
 
 # Контракты модуля air-synth
@@ -198,3 +198,38 @@ contracts: [{"id": "S1", "version": 3}, {"id": "S2", "version": 2}, {"id": "S3",
   отсутствующей части; счёт под общим замком GPU (`dp job --lock gpu` / `dp lock gpu`).
 - **Контрактный тест** (`tools/research/air_synth/solver/tests/test_contract_s5.py`): наборы, формы, типы, атрибуты;
   план — явный список, группы по `place.part` / диапазону id; вид VDS = части; запись/чтение на искусственных полях; NaN — ошибка.
+
+## S6. Каталог мест дельтаплана из OSM (версия 1)
+**Владелец:** SY-9. **Потребители:** SY-10 (выбор мест и рельеф), игра позже (старты, `site_orientation`).
+
+Решение пользователя 05.10: сеть ветра — под места, где реально летают на дельтаплане. Каталог — в git (небольшой):
+`tools/research/air_synth/hg_sites/` — `sites.json` (места), `takeoffs.csv` (все старты, строка на старт), `unclear.csv`
+(старты без тега дельтаплана), `summary.json` + `summary.md` (сводка), `README.md` (запрос, дата выгрузки, команды).
+Источник — OSM через Overpass (клиент `tools/osm/fetch_osm.py → overpass()`, зеркала по кругу, кеш
+`~/.cache/deltaplan_osm/`, вежливо — паузы между запросами); лицензия ODbL — атрибуция «© OpenStreetMap contributors»
+в README и `ASSETS.md`. Внешние базы (ParaglidingEarth, DHV) — не трогать.
+
+- **Отбор стартов:** только `free_flying:site` со значением `takeoff` (в т. ч. составные через `;`, напр.
+  `takeoff;toplanding`), точки и полигоны/отношения (координата — центр); старые теги (по вики OSM: `hang_gliding`,
+  `sport=hang_gliding`, `leisure=…`) — только если обозначают старт, с записью правила в README. Посадки, буксировка,
+  учебные площадки, верхние посадки без старта, объекты без `site` — не брать (число отброшенных по видам — в сводке).
+- **Дельтаплан:** `free_flying:hanggliding=yes` (параплан может быть разрешён тоже) → каталог; только параплан
+  (`free_flying:hanggliding=no` или только `free_flying:paragliding=yes`) → не брать (число — в сводке); тега
+  `hanggliding` нет → `unclear.csv` (те же столбцы).
+- `takeoffs.csv` (UTF-8, `,`, заголовок): `osm_type` (node|way|relation), `osm_id`, `osm_url`
+  (`https://www.openstreetmap.org/<type>/<id>`), `name`, `lat`, `lon` (°, WGS84, 6 знаков), `ele_m` (тег `ele`, пусто
+  если нет), `country` (ISO 3166-1 alpha-2, по `is_in`/обратному поиску или границам), `site` (значение
+  `free_flying:site`), `hanggliding`, `paragliding` (значения тегов), `site_orientation` (как в теге: стороны света или
+  градусы), `tags` (JSON всех тегов `free_flying:*`), `site_id` (место, к которому старт отнесён).
+- **Место** (`sites.json`, список объектов): старты ближе ~10 км друг к другу объединяются (односвязная кластеризация,
+  порог 10 км, детерминированно); `site_id` (`hg_0000`… по убыванию числа стартов, затем по координате), `name` (самого
+  высокого старта или самого частого), `lat`, `lon` — центр квадрата = старт с наибольшей `ele_m` (нет высот — центр
+  масс), `country`, `takeoffs` (список osm_type/osm_id), `n_takeoffs`, `ele_max_m`, `site_orientation` (объединение),
+  `relief_m` (перепад в квадрате 40 × 40 км вокруг центра — по грубому рельефу, напр. Terrarium z8–z9, или пусто, если
+  не считали), `tile_hint` (`{"source": "terrarium", "zoom": 12, "bbox": [lon_min, lat_min, lon_max, lat_max]}` —
+  квадрат ±20 км для конвейера П6/SY-6).
+- `summary.json`: всего стартов (по видам отбора), мест, по странам, распределение `relief_m` (квантили, гистограмма),
+  отброшено по видам; дата и запрос Overpass.
+- Инварианты: один запуск по одному кешу → побитно те же файлы; повторный запуск с `--refresh` — новая выгрузка (дата
+  в README).
+
