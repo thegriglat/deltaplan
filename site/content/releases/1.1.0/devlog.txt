@@ -1,0 +1,22 @@
+Deltaplan 1.1.0 — control frame and pilot like a real glider
+
+The control frame, hang point and pilot position were rebuilt to match real hang gliders. The uprights are now close to perpendicular to the keel, the hang point comes from the manufacturer's manual where available (otherwise from the frame's centre of mass), and in trimmed flight the base bar sits under the pilot's shoulders. Instruments moved to the left upright: hold Q to look at them, release to look back.
+
+Glider and pilot:
+- Uprights lean forward 6-13 degrees from the keel normal, individual per glider
+- Hang point from the manual for 8 gliders, otherwise 1.5 cm ahead of the frame's centre of mass
+- Pilot hangs higher: 0.37 m between body and base bar, elbows bent
+- Glider pitch on screen matches the flight model
+- On launch: hands on the uprights at shoulder height, feet stay planted while you roll the wing, the hang strap goes up to the keel
+- First person: look down up to 90 degrees to see the base bar and hands; instruments on a bracket on the left upright; hold Q to look at them; streamers on the front wires closer to the nose
+
+Gliders:
+- Four classes by crossbar type: training, fixed crossbar, floating crossbar, topless; the Flight menu shows the class and its wind limit (7-10, 10-12, 12-15, 20-25 m/s)
+- Wind in the Flight menu goes up to 25 m/s (was 12)
+
+Interface:
+- Loading screen shows a full-screen game frame; the wind stage label shows the actual wind mode
+
+Known issues:
+- The neural network wind is trained up to 8 m/s; above that its field is a rough estimate
+- Turning the head to the instruments takes about 120 degrees; with the mouse it may not reach them on some gliders, use Q
