@@ -1,0 +1,167 @@
+{
+  "status": "done",
+  "summary": "Выбор, скачивание, нарезка П6 v3 заново: 360 мест (пул 300, 4 отложенные системы по 15), состав и признаки совпали с v3 побитно; упаковано в S1 v3 (HDF5) вместе с 4 местами игры; сырьё удалено.",
+  "commits": [
+    "6c3ec8ca air-synth: SY-6 корпус реальных мест"
+  ],
+  "checks": [
+    {
+      "name": "real_tests",
+      "value": "4 passed",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "360",
+      "pass": true
+    },
+    {
+      "name": "match_v3",
+      "value": "true",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SY-6",
+  "uncertain": [
+    {
+      "where": "real/pack_real.py:relief_from",
+      "why": "t_0164 (rockies_cordillera, pool): 2 узла g100 = −3244 м ниже диапазона кодировки S1 v3 (−2415…7415) — обрезаны, g400 места отличается от hc400 до 51,8 м в одной клетке; контракт требует ошибки записи, а не обрезки",
+      "checked": "единственное место из 360; hc400 П6 min −348 м; записано в clipped_places; решение (исключить место/расширить диапазон) — за координатором"
+    },
+    {
+      "where": "места игры",
+      "why": "Terrarium z12, не Copernicus из data/terrain",
+      "checked": "сверка features с пилотом: расхождение 0"
+    }
+  ],
+  "dp_feedback": "Нет команды ожидания завершения job без 600-секундного таймаута Bash (приходилось гонять dp job wait в фоне и Monitor).",
+  "extra": {
+    "by_part": {
+      "pool": 300,
+      "holdout": 60
+    },
+    "cut_rejected": {
+      "relief_high": 2,
+      "hmin_high": 3,
+      "sea": 8,
+      "reserve_unused": 40
+    },
+    "screen_minutes": 16.1,
+    "cut_seconds": 61,
+    "tiles": 19007,
+    "game_corpus": "/home/greg/air_synth_data/real/game",
+    "clipped": [
+      {
+        "name": "t_0164",
+        "cells_g100": 2,
+        "g100_min": -3244.491986513138,
+        "g100_max": 1968.1715698242188,
+        "g400_vs_hc400_max_abs_m": 51.830749157071125
+      }
+    ]
+  },
+  "n_places": 360,
+  "systems_table": [
+    {
+      "group": "пул",
+      "n": 300,
+      "slope_p50_med": 0.20715734286439796,
+      "slope_p50_min": 0.0035077205431162956,
+      "slope_p50_max": 0.4965990640909419,
+      "slope_p95_med": 0.4369825461327748,
+      "relief_med": 1885.698533847928,
+      "relief_min": 157.30000233650208,
+      "relief_max": 2995.8218941688538
+    },
+    {
+      "group": "отложено: appalachians",
+      "n": 15,
+      "slope_p50_med": 0.04676815605881538,
+      "slope_p50_min": 0.011599777777675315,
+      "slope_p50_max": 0.18461530368349605,
+      "slope_p95_med": 0.14701522133792508,
+      "relief_med": 423.01440769433975,
+      "relief_min": 200.0824717283249,
+      "relief_max": 1628.624683856964
+    },
+    {
+      "group": "отложено: caucasus",
+      "n": 15,
+      "slope_p50_med": 0.0900131042652055,
+      "slope_p50_min": 0.005349967946172629,
+      "slope_p50_max": 0.41180397780412614,
+      "slope_p95_med": 0.33104174530339536,
+      "relief_med": 1896.0481820106506,
+      "relief_min": 536.3555763345212,
+      "relief_max": 2813.1583585739136
+    },
+    {
+      "group": "отложено: pyrenees",
+      "n": 15,
+      "slope_p50_med": 0.1025006118104368,
+      "slope_p50_min": 0.02430541762830441,
+      "slope_p50_max": 0.3550279860368921,
+      "slope_p95_med": 0.31314550832289456,
+      "relief_med": 1574.9669605493546,
+      "relief_min": 366.1944337487221,
+      "relief_max": 2715.866515278816
+    },
+    {
+      "group": "отложено: southern_alps_nz",
+      "n": 15,
+      "slope_p50_med": 0.29673076215861266,
+      "slope_p50_min": 0.12290531460722764,
+      "slope_p50_max": 0.4770154590851994,
+      "slope_p95_med": 0.5898833118585645,
+      "relief_med": 1905.945354104042,
+      "relief_min": 1522.5865646079183,
+      "relief_max": 2630.6046621203423
+    }
+  ],
+  "match_v3_details": [
+    {
+      "group": "пул",
+      "n_mine": 300,
+      "n_ref": 300,
+      "max_abs_diff": 0,
+      "match": true
+    },
+    {
+      "group": "отложено: appalachians",
+      "n_mine": 15,
+      "n_ref": 15,
+      "max_abs_diff": 0,
+      "match": true
+    },
+    {
+      "group": "отложено: caucasus",
+      "n_mine": 15,
+      "n_ref": 15,
+      "max_abs_diff": 0,
+      "match": true
+    },
+    {
+      "group": "отложено: pyrenees",
+      "n_mine": 15,
+      "n_ref": 15,
+      "max_abs_diff": 0,
+      "match": true
+    },
+    {
+      "group": "отложено: southern_alps_nz",
+      "n_mine": 15,
+      "n_ref": 15,
+      "max_abs_diff": 0,
+      "match": true
+    }
+  ],
+  "corpus_path": "/home/greg/air_synth_data/real/p6v3",
+  "corpus_bytes": 73511613,
+  "raw_deleted": true,
+  "fetch_minutes": 24.0,
+  "t": "2026-10-04T23:17:12",
+  "by": "executor"
+}

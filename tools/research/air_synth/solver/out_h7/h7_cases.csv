@@ -1,0 +1,13 @@
+id,hour,sky,U10,wall_s,h_status,h_iters,h_t,m_status,m_iters,m_t
+askarovo_0_000,9.0,clear,4.7,12.297,ok,91,8.85,ok,101,1.76
+askarovo_0_001,12.0,clear,5.24,11.318,ok,41,8.35,ok,41,0.86
+askarovo_0_002,15.0,clear,5.6,2.397,ok,41,0.94,ok,51,1.1
+askarovo_1_000,20.0,clear,4.15,3.822,ok,91,1.84,ok,91,1.6
+askarovo_1_001,9.0,partly,4.2,4.08,ok,91,1.97,ok,101,1.73
+askarovo_1_002,12.0,partly,7.82,3.21,ok,71,1.6,ok,61,1.24
+ongudai_0_000,15.0,partly,6.1,4.272,ok,91,2.28,ok,71,1.52
+ongudai_0_001,20.0,partly,4.73,2.929,ok,51,1.35,ok,51,1.12
+ongudai_0_002,9.0,overcast,4.68,7.979,ok,171,4.24,ok,161,3.22
+ongudai_1_000,12.0,overcast,6.86,4.413,ok,81,2.32,ok,71,1.62
+ongudai_1_001,15.0,overcast,3.3,3.285,ok,51,1.53,ok,51,1.31
+ongudai_1_002,20.0,overcast,3.34,12.486,ok,71,0.98,max,1001,10.03

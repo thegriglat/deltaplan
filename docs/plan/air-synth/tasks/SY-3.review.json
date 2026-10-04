@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист (3 файла в скоупе). Поля и определения S2 v2 совпадают: w* по ann2/regime.py, N и Fr по film_bg.bg_raw без обрезки, H = solar_flux с lag none и гашением как в Air.__init__, z_i над средней высотой. dist_v1.json собран текущей версией кода (cond1-9bdeff6), отказы 0,213 совпадают с отчётом. Два мелких замечания, переделка не нужна.",
+  "issues": [
+    {
+      "file": "tools/research/air_synth/corpus/conditions.py",
+      "line": 304,
+      "severity": "minor",
+      "what": "reject_fraction в корневом виде conditions.h5 берётся из части 0 (build_view копирует атрибуты первой части), а S2 требует в корне долю отказов всего набора; если частей несколько, значение неверное (исполнитель сам это отметил)",
+      "fix": "в SY-5 (или при правке make) после build_view записывать в корень и manifest общую долю 1 − Σlen/Σtries по всем частям"
+    },
+    {
+      "file": "tools/research/air_synth/corpus/conditions.py",
+      "line": 189,
+      "severity": "minor",
+      "what": "при N=0 froude ставится заглушкой 1e3, хотя S2 говорит «без обрезки»; заглушка в таблице не помечена (на практике N=0 почти не бывает)",
+      "fix": "записать в контракт S2, что при N=0 froude = 1e3 (или inf), либо отказывать при перевыборе"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept SY-3 --dry (cond_tests, dist_report)",
+      "value": "2/2; 10 passed",
+      "pass": true
+    },
+    {
+      "name": "сверка dist_v1.json с кодом и отчётом",
+      "value": "generator_version=cond1-9bdeff6 = sha текущего conditions.py; reject 0.2127, 1.27 кандидата, медиана Fr 1.005",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-04T22:52:40",
+  "by": "reviewer"
+}

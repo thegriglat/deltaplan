@@ -1,0 +1,82 @@
+{
+  "id": "SY-7",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Корпус 10⁴ модельных рельефов из облака Professor + условия H1 + перезамер H7 на рельефах корпуса",
+  "goal": "Сгенерировать корпус 10 000 рельефов (S1 v3) с θ из облака настроек SY-5, набор условий H1 (S2 v2, 2 механических условия на рельеф), сверить статистики выборки с реальными и перезамерить цену случая решателя на 5 рельефах корпуса.",
+  "plan_ref": "2. Генератор рельефа",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "3",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S2",
+      "version": "2",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S3",
+      "version": "3",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S4",
+      "version": "2",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-7",
+  "branch": "air-synth/SY-7",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/corpus/run_corpus.py",
+    "tools/research/air_synth/corpus/corpus_io.py",
+    "tools/research/air_synth/corpus/conditions.py",
+    "tools/research/air_synth/corpus/tests",
+    "tools/research/air_synth/corpus/out_corpus",
+    "tools/research/air_synth/corpus/README.md",
+    "tools/research/air_synth/solver/out_h7_corpus",
+    "tools/research/air_synth/solver/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/air_synth/corpus/generator.py",
+    "tools/research/air3d",
+    "tools/research/air_nn_pilot"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "cd tools/research/air_synth/corpus && .venv/bin/python -m pytest -q tests",
+      "expect": "!re:failed|error"
+    },
+    {
+      "name": "corpus_n",
+      "cmd": "cd tools/research/air_synth/corpus && .venv/bin/python -c \"import corpus_io as c,os;k=c.Corpus(os.path.expanduser('~/air_synth_data/corpus/fs1_10k'));print('n',len(k))\"",
+      "expect": "num:n (\\d+) >=10000"
+    },
+    {
+      "name": "stats",
+      "cmd": "cd tools/research/air_synth/corpus && cat out_corpus/stats_sample.json",
+      "expect": "re:\"out_of_range\""
+    },
+    {
+      "name": "h7",
+      "cmd": "cd tools/research/air_synth/solver && cat out_h7_corpus/h7_cost.json",
+      "expect": "re:\"sec_per_case_median\""
+    }
+  ],
+  "report_extra": [
+    "corpus_path",
+    "corpus_gb",
+    "gen_hours",
+    "stats_table",
+    "conditions_path",
+    "conditions_summary",
+    "h7_corpus"
+  ],
+  "notes": "Порядок: (0) мелкие правки по ревью SY-1/SY-2/SY-3: run_corpus — части без manifest.json → сверять атрибуты корня первой части или отказ; тест переноса вида — сравнить с чтением частей; θ с NaN/inf — ошибка (проверка в run_corpus перед генератором, generator.py не трогать); облако с разными t_total_yr — отказ; conditions make — после build_view записать в корень вида и manifest общую reject_fraction = 1 − Σlen/Σtries. (1) Корпус: run_corpus.py gen --out ~/air_synth_data/corpus/fs1_10k --n 10000 --corpus-seed 20261004 --workers 16 --theta-cloud <облако SY-5: tools/research/air_synth/tune/out/theta_cloud.json> — dp job start (tmux-сессия dp), оценка ~2,5 ч на 16 ядрах; после — view. (2) Статистики: run_corpus sample --n 60 --seed 1 → статистики stats.py (как check_generator SY-2 / наблюдаемые SY-5) против реальных мест → out_corpus/stats_sample.json (таблица, out_of_range). (3) Условия: conditions.py make --corpus …/fs1_10k --out ~/air_synth_data/conditions/h1_k2 --k 2 --seed 20261005 → сводка распределений в out_corpus/conditions_summary.json. (4) H7 на корпусе: tools/research/air_synth/solver/h7_run.py --source corpus, 5 рельефов (разный mix/перепад) × 3 условия из набора h1_k2, под замком GPU (dp job --lock gpu, решатель внутри замок сам не берёт), 3 воркера → out_h7_corpus/h7_cost.json. Окружения: corpus/.venv (setup_env.sh), решатель — air_nn_pilot/.venv (setup_env.sh + h5py). Массовый счёт решателя НЕ запускать. Картинки не нужны.",
+  "created": "2026-10-04T22:53:59",
+  "edited": "2026-10-04T22:53:59"
+}

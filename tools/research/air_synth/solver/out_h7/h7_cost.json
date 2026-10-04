@@ -1,0 +1,164 @@
+{
+ "solver_version": "s0-939a467",
+ "device": "RTX 4070 SUPER, 20 потоков CPU",
+ "device_workers": 2,
+ "source": "proto",
+ "sec_per_case_median": 4.176,
+ "sec_per_case_p90": 12.199100000000001,
+ "stats": {
+  "n_cases": 12,
+  "wall_s_median": 4.176,
+  "wall_s_p90": 12.199100000000001,
+  "wall_s_mean": 6.040666666666667,
+  "wall_s_converged_cases_mean": 5.454727272727272,
+  "wall_s_nonconverged_cases_mean": 12.486,
+  "n_solutions": 24,
+  "status_counts": {
+   "max": 1,
+   "ok": 23
+  },
+  "nonconverged_solutions_fraction": 0.041666666666666664,
+  "nonconverged_cases_fraction": 0.08333333333333333,
+  "iters_median": 71.0,
+  "iters_p90": 142.99999999999994,
+  "iters_max": 1001
+ },
+ "per_solution": {
+  "d400_h": {
+   "t_solve_median": 1.9055,
+   "t_solve_p90": 7.938700000000001,
+   "iters_median": 76.0,
+   "iters_max": 171,
+   "nonconverged": 0,
+   "n": 12,
+   "late_spread60_p90_max": 0.0
+  },
+  "d400_m": {
+   "t_solve_median": 1.559,
+   "t_solve_p90": 3.0695000000000006,
+   "iters_median": 71.0,
+   "iters_max": 1001,
+   "nonconverged": 1,
+   "n": 12,
+   "late_spread60_p90_max": 0.05111
+  }
+ },
+ "p2_comparison": {
+  "source": "air_nn_pilot/README.md, раздел «Воркеры» (проба terrain, 10 мест × 2 условия, 2 воркера, RTX 4070 SUPER)",
+  "sec_per_case_converged": 6.94,
+  "sec_per_case_with_max": 43.0,
+  "nonconverged_solutions_fraction": 0.15625,
+  "nonconverged_cases_fraction": 0.1875,
+  "max_outer": 1000
+ },
+ "throughput": {
+  "workers": 2,
+  "run_wall_s": 42.87,
+  "n": 12,
+  "sec_per_case_throughput": 3.5725,
+  "cases_per_day": 24184.744576627014,
+  "cases_per_week": 169293.2120363891
+ },
+ "cases_per_day": 24184.744576627014,
+ "cases_per_week": 169293.2120363891,
+ "gpu_busy_fraction_note": "один GPU под замком; массовый счёт — только после шлюза пользователя",
+ "workers_curve": [
+  {
+   "workers": 1,
+   "n": 12,
+   "run_wall_s": 42.91,
+   "sec_per_case_throughput": 3.575833333333333,
+   "sec_per_case_wall_median": 2.697,
+   "ids": [
+    "askarovo_0_000",
+    "askarovo_0_001",
+    "askarovo_0_002",
+    "askarovo_1_000",
+    "askarovo_1_001",
+    "askarovo_1_002",
+    "ongudai_0_000",
+    "ongudai_0_001",
+    "ongudai_0_002",
+    "ongudai_1_000",
+    "ongudai_1_001",
+    "ongudai_1_002"
+   ]
+  },
+  {
+   "workers": 2,
+   "n": 12,
+   "run_wall_s": 42.87,
+   "sec_per_case_throughput": 3.5725,
+   "sec_per_case_wall_median": 4.176,
+   "ids": [
+    "askarovo_0_000",
+    "askarovo_0_001",
+    "askarovo_0_002",
+    "askarovo_1_000",
+    "askarovo_1_001",
+    "askarovo_1_002",
+    "ongudai_0_000",
+    "ongudai_0_001",
+    "ongudai_0_002",
+    "ongudai_1_000",
+    "ongudai_1_001",
+    "ongudai_1_002"
+   ],
+   "note": "основной прогон (холодный старт CuPy)"
+  },
+  {
+   "workers": 3,
+   "n": 12,
+   "run_wall_s": 34.39,
+   "sec_per_case_throughput": 2.8658333333333332,
+   "sec_per_case_wall_median": 6.115500000000001,
+   "ids": [
+    "askarovo_0_000",
+    "askarovo_0_001",
+    "askarovo_0_002",
+    "askarovo_1_000",
+    "askarovo_1_001",
+    "askarovo_1_002",
+    "ongudai_0_000",
+    "ongudai_0_001",
+    "ongudai_0_002",
+    "ongudai_1_000",
+    "ongudai_1_001",
+    "ongudai_1_002"
+   ]
+  },
+  {
+   "workers": 4,
+   "n": 12,
+   "run_wall_s": 34.86,
+   "sec_per_case_throughput": 2.905,
+   "sec_per_case_wall_median": 8.51,
+   "ids": [
+    "askarovo_0_000",
+    "askarovo_0_001",
+    "askarovo_0_002",
+    "askarovo_1_000",
+    "askarovo_1_001",
+    "askarovo_1_002",
+    "ongudai_0_000",
+    "ongudai_0_001",
+    "ongudai_0_002",
+    "ongudai_1_000",
+    "ongudai_1_001",
+    "ongudai_1_002"
+   ]
+  }
+ ],
+ "best_workers": {
+  "workers": 3,
+  "sec_per_case_throughput": 2.8658333333333332,
+  "cases_per_day": 30148.298924105846,
+  "cases_per_week": 211038.0924687409
+ },
+ "converged_fraction": 0.9583333333333334,
+ "iters": {
+  "median": 71.0,
+  "p90": 142.99999999999994,
+  "max": 1001
+ }
+}
