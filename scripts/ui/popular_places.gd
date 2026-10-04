@@ -4,10 +4,16 @@ extends RefCounted
 ## дельтаплана, группировка по странам, поиск по названию, подписи. Только static, без состояния.
 
 const FORMAT := "deltaplan.hg_takeoffs"
-## 16 румбов: «откуда ветер»; ключи перевода — places_dir_<румб в нижнем регистре>.
+## 16 румбов: «откуда ветер»; ключи перевода — DIR_KEYS.
 const DIRS: PackedStringArray = [
 	"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
 ]
+const DIR_KEYS := {
+	"N": "places_dir_n", "NNE": "places_dir_nne", "NE": "places_dir_ne", "ENE": "places_dir_ene",
+	"E": "places_dir_e", "ESE": "places_dir_ese", "SE": "places_dir_se", "SSE": "places_dir_sse",
+	"S": "places_dir_s", "SSW": "places_dir_ssw", "SW": "places_dir_sw", "WSW": "places_dir_wsw",
+	"W": "places_dir_w", "WNW": "places_dir_wnw", "NW": "places_dir_nw", "NNW": "places_dir_nnw",
+}
 
 
 static func _empty() -> Dictionary:
@@ -108,5 +114,6 @@ static func search(places: Array, query: String) -> Array:
 static func orientation_text(p: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for d: Variant in p.get("orientation", []):
-		parts.append(TranslationServer.translate("places_dir_" + String(d).to_lower()))
+		if DIR_KEYS.has(d):
+			parts.append(TranslationServer.translate(DIR_KEYS[d]))
 	return ", ".join(parts)
