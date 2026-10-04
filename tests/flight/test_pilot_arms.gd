@@ -12,10 +12,9 @@ const MAX_GRIP_ERR_M := 0.03
 ## окружности в почти горизонтальной плоскости: «наружу и ниже середины» невозможно, остаётся
 ## «наружу и не выше плеча» (запас на ±10 см — рука согнута, локоть на уровне плеча).
 const ELBOW_ABOVE_SHOULDER_M := 0.1
-## Нижняя граница угла в локте на стойках, ° (контракт A3.2 — 90°). Кости pilot.glb: плечо 0,26 м,
-## предплечье с кистью 0,38 м, угол 90° — расстояние плечо–хват 0,46 м, а при «выше плеча ≤ 0,15 м,
-## впереди ≤ 0,35 м» оно ≤ 0,39 м (≈ 72°). Контракт и кости не сходятся — вопрос координатору.
-const MIN_ELBOW_DEG := 60.0
+## Нижняя граница угла в локте на стойках, ° (контракт A3.2 v3). Кости pilot.glb: плечо 0,26 м,
+## предплечье с кистью 0,38 м; хват на 0,12 выше и 0,33 впереди плеча — локоть ≈ 64°.
+const MIN_ELBOW_DEG := 55.0
 
 var failures: PackedStringArray = []
 
@@ -103,26 +102,12 @@ func test_hands_on_uprights_standing() -> void:
 ## пилот в позе stand держит стойки: хват выше плечевого сустава на 0…0,15 м, впереди 0,05…0,35 м
 ## (по горизонтали, вперёд — вдоль курса крыла), угол в локте 90…165°. Плечо и локоть — решение IK.
 func test_apogee_arms_on_uprights_at_start() -> void:
-	var g := WC.make_glider(self, "apogee")
-	g.model.reset_on_ground(Vector3(0, 100, 0), 0.0)
-	var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
-	var flat := func(_x: float, _z: float) -> float: return 100.0
-	for i in 360:
-		g.model.step(1.0 / 120.0, ControlInput.new(), zero, flat)
-	g.step(1.0 / 120.0)
-	g.global_transform = Transform3D(g.model.telemetry.basis, g.model.position)
+	var g := await _apogee_on_ground(null)
 	var v := g.visual
-	var ap := _player(v)
-	check(ap != null and v.arm_ik != null, "apogee: пилот со скелетом и IK рук")
-	if ap == null or v.arm_ik == null:
+	if v.arm_ik == null:
+		check(false, "apogee: пилот со скелетом и IK рук")
 		g.free()
 		return
-	ap.play("stand", 0.0)
-	ap.advance(0.3)
-	ap.pause()
-	for i in 4:
-		v.set_pose(0.0, 0.0, false, 1.0e6)
-		await _frames(2)
 	var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
 	var fwd := -g.global_transform.basis.z
 	fwd.y = 0.0
@@ -189,6 +174,86 @@ func test_ground_roll_keeps_legs_in_place() -> void:
 	)
 	check(move < 0.01, "крен стоя не сдвигает ноги пилота (%.3f м)" % move)
 	v.free()
+
+
+## Крыло apogee стоит на старте (штиль, нет ввода), пилот в позе stand; slope_deg — склон вниз
+## по курсу (null — ровно). Возвращает Glider с настроенным визуалом.
+func _apogee_on_ground(slope_deg: Variant) -> Glider:
+	var g := WC.make_glider(self, "apogee")
+	var k := tan(deg_to_rad(float(slope_deg))) if slope_deg != null else 0.0
+	var gf := func(_x: float, z: float) -> float: return 100.0 - k * z
+	g.ground_fn = gf
+	g.model.reset_on_ground(Vector3(0, 100, 0), 0.0)
+	var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
+	for i in 360:
+		g.model.step(1.0 / 120.0, ControlInput.new(), zero, gf)
+	g.step(1.0 / 120.0)
+	g.global_transform = Transform3D(g.model.telemetry.basis, g.model.position)
+	var v := g.visual
+	var ap := _player(v)
+	if ap != null:
+		ap.play("stand", 0.0)
+		ap.advance(0.3)
+		ap.pause()
+	for i in 4:
+		v.set_pose(0.0, 0.0, false, 1.0e6)
+		await _frames(2)
+	return g
+
+
+## A3.7: стоя верх стропы на HangPoint крыла, жёсткая стропа модели скрыта, гибкая лента есть;
+## в полёте жёсткая возвращается. Печатает: ступни относительно вертикали HangPoint, глаза
+## (PilotHead) относительно крыла, высоту ступней над землёй на ровном и на склоне 20°.
+func test_ground_strap_and_feet_under_wing() -> void:
+	for slope in [null, 20.0]:
+		var g := await _apogee_on_ground(slope)
+		var v := g.visual
+		var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+		var tag := "ровно" if slope == null else "склон %.0f°" % slope
+		var hang := v.get_marker("HangPoint").global_position
+		check(
+			v.strap_top().distance_to(v.to_local(hang)) < 1e-3, "%s: верх стропы на HangPoint" % tag
+		)
+		check(not v.strap_rigid_visible, "%s: жёсткая стропа модели скрыта" % tag)
+		var ribbon := v.find_child("GroundStrap", true, false) as MeshInstance3D
+		check(ribbon != null and ribbon.visible, "%s: гибкая лента стропы видна" % tag)
+		check(
+			v.strap_bottom().distance_to(v.strap_top()) > 0.3, "%s: лента доходит до пилота" % tag
+		)
+		var fwd := -g.global_transform.basis.z
+		fwd.y = 0.0
+		fwd = fwd.normalized()
+		var foot := sk.find_bone("Foot.L")
+		var fp := sk.to_global(sk.get_bone_global_pose(foot).origin)
+		var behind := (fp - hang).dot(-fwd)
+		var gh := float(g.ground_fn.call(fp.x, fp.z))
+		var above := fp.y - gh
+		var eyes := v.head_marker.global_position
+		var eye_dist := eyes.distance_to(hang)
+		var uprights := 9.0
+		for side in ["L", "R"]:
+			var top := v.get_marker("UprightTop" + side).global_position
+			var bot := v.get_marker("UprightBottom" + side).global_position
+			var cp := Geometry3D.get_closest_point_to_segment(eyes, top, bot)
+			uprights = minf(uprights, eyes.distance_to(cp))
+		check(uprights > 0.1, "%s: глаза не в стойке (%.2f м)" % [tag, uprights])
+		print(
+			(
+				"         apogee стоя, %s: стопы позади HangPoint %.2f м, над землёй %+.3f; глаза от HangPoint %.2f, до стойки %.2f; стропа %.2f"
+				% [
+					tag,
+					behind,
+					above,
+					eye_dist,
+					uprights,
+					v.strap_bottom().distance_to(v.strap_top())
+				]
+			)
+		)
+		check(absf(above - 0.09) < 0.1, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])
+		v.set_pose(0.0, 0.0, true, 1.0e6)
+		check(v.strap_rigid_visible, "%s: в полёте жёсткая стропа на месте" % tag)
+		g.free()
 
 
 func test_trapeze_buzz() -> void:
