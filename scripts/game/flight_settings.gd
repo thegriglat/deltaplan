@@ -69,11 +69,11 @@ func forecast() -> Dictionary:
 func clamp_forecast() -> void:
 	var ui: Dictionary = WeatherModel.config().get("ui", {})
 	var t_range: Array = ui.get("temperature_c", [-10, 40, 1])
-	var wr: Array = ui.get("wind_ms", [0, 12, 1])
+	var wr := WingCatalog.wind_menu_range()
 	temperature_c = _finite_or(temperature_c, 20.0)
 	temperature_c = clampf(temperature_c, float(t_range[0]), float(t_range[1]))
 	wind_speed_kmh = _finite_or(wind_speed_kmh, 11.0)
-	wind_speed_kmh = clampf(wind_speed_kmh, float(wr[0]) * 3.6, float(wr[1]) * 3.6)
+	wind_speed_kmh = clampf(wind_speed_kmh, wr.x * 3.6, wr.y * 3.6)
 	wind_from_deg = fposmod(_finite_or(wind_from_deg, 270.0), 360.0)
 	var skies: Array = WeatherModel.config().get("sky", {}).get("options", ["clear"])
 	if not skies.has(sky):

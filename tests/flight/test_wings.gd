@@ -5,7 +5,7 @@ extends TestCase
 const Sim := preload("res://tests/flight/flight_sim.gd")
 const TP := preload("res://tests/flight/test_polar.gd")
 const TW := preload("res://tests/flight/test_roll_weight_shift.gd")
-const NEW_FIELDS := ["group", "wind_max_ms", "prototype", "era", "kingpost", "double_surface_pct"]
+const NEW_FIELDS := ["group", "wind_class", "prototype", "era", "kingpost", "double_surface_pct"]
 
 
 func test_every_wing_has_new_fields() -> void:
@@ -20,11 +20,13 @@ func test_every_wing_has_new_fields() -> void:
 			check(cfg.has(f), "%s: нет поля %s" % [w, f])
 			check(String(cfg.get(f + "_doc", "")) != "", "%s: нет %s_doc" % [w, f])
 		check(group_ids.has(String(cfg.get("group", ""))), "%s: группа из wing_groups.json" % w)
-		var wind := float(cfg.get("wind_max_ms", 0.0))
-		check(wind >= 5.0 and wind <= 14.0, "%s: ветер до %.0f м/с" % [w, wind])
+		check(not cfg.has("wind_max_ms"), "%s: wind_max_ms убран (WL-К1)" % w)
+		var wc := WingCatalog.wind_class(cfg)
+		check(wc >= 1 and wc <= 4, "%s: класс %d" % [w, wc])
+		check(String(cfg.get("double_surface_src", "")) in ["passport", "pilot_estimate"], "%s: источник доли обшивки" % w)
 		check(cfg.get("kingpost") is bool, "%s: kingpost — bool" % w)
 		var ds := int(cfg.get("double_surface_pct", -1))
-		check(ds >= 0 and ds <= 100, "%s: двухобшивочность %d %%" % [w, ds])
+		check(ds >= 0 and ds <= 100, "%s: доля двойной обшивки %d %%" % [w, ds])
 		check(String(cfg.get("prototype", "")) != "" and String(cfg.get("era", "")) != "", w)
 		var vis := String(cfg.visual.visual_model)
 		check(vis == "res://assets/models/glider_%s.glb" % w, "%s: модель %s" % [w, vis])

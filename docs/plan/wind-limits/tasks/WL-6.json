@@ -1,0 +1,50 @@
+{
+  "id": "WL-6",
+  "module": "wind-limits",
+  "type": "dp-writer",
+  "title": "Убрать «одно-/двухобшивочное» из сайта и описаний крыльев",
+  "goal": "По решению пользователя деления «одно-/двухобшивочное» нет нигде в отображаемых текстах: сайт и описания крыльев говорят о классе по поперечине и доле двойной обшивки в процентах.",
+  "plan_ref": "1. Отзыв пилота",
+  "contracts": [
+    {
+      "name": "WL-К1",
+      "version": "2",
+      "ref": "docs/contracts/wind-limits.md"
+    }
+  ],
+  "copy": "~/deltaplan-wind-limits-WL-6",
+  "branch": "wind-limits/WL-6",
+  "base": "feature/wind-limits",
+  "scope": [
+    "site/content/",
+    "configs/wings/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tools/",
+    "CHANGELOG.md",
+    "site/content/releases/",
+    "site/content/diary/"
+  ],
+  "accept": [
+    {
+      "name": "no_labels",
+      "cmd": "! grep -rniI 'однообшив\\|двухобшив\\|double-surface\\|single-surface' site/content configs/wings --exclude-dir=releases --exclude-dir=diary",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json_ok",
+      "cmd": "for f in configs/wings/*.json; do python3 -m json.tool $f >/dev/null || exit 1; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gen_check",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решения пользователя — dp plan wind-limits 1 (классы по поперечине: учебный / жёсткая поперечина / плавающая поперечина / безмачтовый; доля двойной обшивки — в %, «одно-/двухобшивочное» не говорить). Где сейчас: site/content/wings/_index.md (строка 10), site/content/wings/kingpost/_index.md (заголовок «Мачтовые двухобшивочные» → «Мачтовые», как в меню), site/content/mechanics/flight.md:189, поле _doc в configs/wings/{training,slavutich_ut,atlas,laminar,magic,target}.json и др. (заменить на «мачтовое», «двойная обшивка N %» или убрать слово; числа и остальной текст не трогать). Страницы крыльев генерирует tools/site/gen_wings.py из конфигов — после правки _doc запустить крыльев: 48, файлов: 53; отметки: паспорт 285, аналог 5, оценка 467 и закоммитить изменённое (сам скрипт не править). Выпуски (releases/), дневник и CHANGELOG — история, не трогать. Публичные тексты: родители — только «пилот».",
+  "created": "2026-10-05T01:17:35",
+  "edited": "2026-10-05T01:17:35"
+}

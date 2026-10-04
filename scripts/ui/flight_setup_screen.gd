@@ -161,7 +161,7 @@ func _build_wing(box: Control) -> void:
 			% [
 				tr(String(g.get("name", id))),
 				tr("setup_wing_glide") % _num_range(glide),
-				tr("setup_wing_wind_max") % [_num_range(wind), tr("unit_ms")],
+				tr("setup_wing_wind_limit") % [_num_range(wind), tr("unit_ms")],
 			]
 		)
 	_class_opt.item_selected.connect(_on_class_selected)
@@ -216,11 +216,12 @@ func _on_wing_selected(i: int) -> void:
 	_mass.value_changed.emit(_mass.value)
 
 
-## «качество 13 · ветер до 10 м/с · 14,5 м² · пилот 65–95 кг · ≈ 2003 · мачтовое, двухобшивочное»
+## «жёсткая поперечина · качество 13 · ветер 10–12 м/с · 14,5 м² · пилот 65–95 кг · ≈ 2003 · мачтовое»
 func _wing_info_text(w: Dictionary) -> String:
 	var parts: PackedStringArray = [
+		tr(WingCatalog.class_name_key(w)),
 		tr("setup_wing_glide") % _num(WingCatalog.best_glide(w)),
-		tr("setup_wing_wind_max") % [_num(WingCatalog.wind_max(w)), tr("unit_ms")],
+		tr("setup_wing_wind_limit") % [_num_range(WingCatalog.wind_limit(w)), tr("unit_ms")],
 		tr("setup_wing_area") % _num(float(w.get("area_m2", 0.0))),
 		(
 			tr("setup_wing_pilot")
@@ -235,17 +236,7 @@ func _wing_info_text(w: Dictionary) -> String:
 	if era != "":
 		# «1980-е» в конфиге по-русски; суффикс десятилетия — из перевода («1980s»)
 		parts.append(era.replace("-е", tr("setup_wing_decade_suffix")))
-	parts.append(
-		"%s, %s"
-		% [
-			tr("setup_wing_kingpost" if bool(w.get("kingpost", true)) else "setup_wing_topless"),
-			tr(
-				"setup_wing_double_surface"
-				if float(w.get("double_surface_pct", 0.0)) > 0.0
-				else "setup_wing_single_surface"
-			),
-		]
-	)
+	parts.append(tr("setup_wing_kingpost" if bool(w.get("kingpost", true)) else "setup_wing_topless"))
 	return " · ".join(parts)
 
 
@@ -307,9 +298,9 @@ func _build_forecast(box: Control) -> void:
 	)
 	_temp_hint = UiKit.label(box, "", "HintLabel")
 	_temp_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var wr: Array = ui.get("wind_ms", [0, 12, 1])
+	var wr := WingCatalog.wind_menu_range()
 	_wind = UiKit.slider_row(
-		box, tr("setup_wind"), float(wr[0]), float(wr[1]), float(wr[2]), "%.0f"
+		box, tr("setup_wind"), wr.x, wr.y, wr.z, "%.0f"
 	)
 	var wind_label: Label = _wind.get_parent().get_child(1)
 	wind_label.custom_minimum_size.x = 150

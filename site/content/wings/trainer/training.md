@@ -8,7 +8,7 @@ description: "Wills Wing Falcon 170: мачтовое крыло, прототи
 
 # Wills Wing Falcon 170
 
-**Прототип:** Wills Wing Falcon 4 170 · **годы:** 2009– · **группа:** [Учебные однообшивочные](/wings/trainer/) · **мачтовое**
+**Прототип:** Wills Wing Falcon 4 170 · **годы:** 2009– · **группа:** [Учебные](/wings/trainer/) · **мачтовое**
 
 ![Модель Wills Wing Falcon 170 в игре (рендер Blender)](/docs/models/screenshots/glider_training/iso45.jpg)
 
@@ -22,7 +22,7 @@ description: "Wills Wing Falcon 170: мачтовое крыло, прототи
 | Площадь | 15,8 м² | **паспорт**: [willswing.com: Falcon 4](https://www.willswing.com/hang-gliders/falcon-4/) «Area (ft^2): 170» |
 | Масса крыла | 22,2 кг | **паспорт**: [willswing.com: Falcon 4](https://www.willswing.com/hang-gliders/falcon-4/) «Glider Weight (lbs): 49» |
 | Масса пилота с подвеской | 64–100 кг | **паспорт**: [willswing.com: Falcon 4](https://www.willswing.com/hang-gliders/falcon-4/) «Hook-In Weight (lbs): 140-220» |
-| Двойная обшивка | нет (однообшивочное) | **оценка**: числа в паспорте нет; однообшивочное учебное (docs/archive/plan/wings-lineup.md) |
+| Двойная обшивка | 30 % размаха | **оценка**: числа в паспорте нет; учебное, ≈ 30 % по отзыву пилота (docs/archive/plan/wings-lineup.md) |
 | Мачта | есть (мачтовое) | **оценка**: ТЗ, раздел E1 |
 | Класс / сертификат | класс 2 (страница производителя); HGMA/USHPA II Novice | **паспорт**: [willswing.com: Falcon 4](https://www.willswing.com/hang-gliders/falcon-4/), [willswing.com: плакарды](https://www.willswing.com/hang-glider-placard-specifications/) |
 | Годы выпуска | 2009– | **оценка**: docs/archive/plan/wings-lineup.md |
@@ -31,7 +31,7 @@ description: "Wills Wing Falcon 170: мачтовое крыло, прототи
 | Сваливание (прямой полёт) | 25,3 км/ч | **оценка**: модель игры: поляра — оценка по классу и источникам (docs/archive/plan/wings-lineup.md) |
 | Минимальное снижение | 1,044 м/с на 31,2 км/ч | **оценка**: модель игры: поляра — оценка по классу и источникам (docs/archive/plan/wings-lineup.md) |
 | Качество | 9 на 39,7 км/ч | **оценка**: модель игры: поляра — оценка по классу и источникам (docs/archive/plan/wings-lineup.md) |
-| Ветер на старте до | 8 м/с | **оценка**: подсказка меню игры (docs/archive/plan/wings-lineup.md §3) |
+| Ветер на старте | учебный, 7–10 м/с | **оценка**: класс — по поперечине, предел класса — со слов пилота (configs/wing_classes.json); подсказка меню игры, в физике не участвует |
 | Эталонная масса пилота (для поляры) | 80 кг | **оценка**: модель игры |
 
 ## Ссылки
