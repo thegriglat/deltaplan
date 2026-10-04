@@ -1,3 +1,11 @@
+---
+type: "reference"
+status: "active"
+module: "air-synth"
+updated: "2026-10-04"
+summary: "Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ"
+related: ["docs/research/terrain_tuning.md"]
+---
 # SY-5: настройка параметров генератора рельефа схемой Professor
 
 Метод — `tools/research/tune/professor.py` (копия `professor_core.py`) и `docs/research/air-model-tune.md`. Генератор — `../corpus/generator.py` (S3 v3).
@@ -17,3 +25,7 @@
 Разброс эталона между квадратами района — в `reference_spread` отчёта (`ref_obs.json: far_std`), в χ² отдельного квадрата не входит
 (каждый квадрат подгоняется сам; разброс облака и есть этот разброс).
 Данные эталона: `data/terrain` (Copernicus GLO-30, Terrarium/Mapzen — лицензии в `meta.json` мест и `ASSETS.md`).
+
+Дополнения: эталон пула — `ref_pool.py` (`out/ref_obs_pool.json`, требует `h5py`, `AIR_SYNTH_DATA`), проверка прямыми прогонами — `validate.py`,
+сравнение с ручными наборами — `manual_vs_tuned.py`, сводка — `summarize.py` (`out/cloud_report.md`). Порядок после прогонов:
+`ref_obs.py; ref_pool.py; fit.py; validate.py; manual_vs_tuned.py; summarize.py`. Итог — `docs/research/terrain_tuning.md`.

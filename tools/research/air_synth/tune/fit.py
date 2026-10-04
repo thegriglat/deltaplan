@@ -23,6 +23,25 @@ def load_runs(names):
     return D, pts, [np.array(Y[p], float) for p in pts]
 
 
+G = {}
+
+
+def _fit_chi2(a):
+    y, fx, st = a
+    return T.fit_one(G["sur"], y, G["sigma"], G["dim"], starts=st, fixed=fx)[1]
+
+
+def _fit_full(a):
+    y, fx = a
+    return T.fit_one(G["sur"], y, G["sigma"], G["dim"], fixed=fx)
+
+
+def pmap(fn, args):
+    from multiprocessing import get_context
+    with get_context("fork").Pool(int(os.environ.get("SY5_WORKERS", "12"))) as p:
+        return p.map(fn, args, chunksize=1)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--deg", type=int, default=2)
@@ -61,11 +80,15 @@ def main():
     sur = Sur()
     # диапазон достижимости: min/max средних по точкам
     rmin, rmax = np.nanmin(M, 0), np.nanmax(M, 0)
-    sq = ref["squares"]
+    sq = list(ref["squares"])
+    pp = os.path.join(OUT, "ref_obs_pool.json")
+    if os.path.exists(pp):
+        sq += json.load(open(pp))["squares"]
     dsys = np.array(ref["detail_minus_far_center"]["std"])
     dmean = np.array(ref["detail_minus_far_center"]["mean"])
     dsys = np.sqrt(dsys ** 2 + dmean ** 2)                             # систематика detail/far — в неопределённость эталона
     sigma = np.sqrt(sig_gen ** 2 + loo ** 2 + dsys ** 2 + SIG_FLOOR ** 2)
+    G.update(sur=sur, sigma=sigma, dim=dim)
     fits = []
     # T (t_total_yr) — одно для всего облака: сетка по u_T, на каждом узле подгонка остальных θ к каждому квадрату (мало стартов),
     # выбор u_T с минимальной суммой χ², затем окончательная подгонка при этом T.
@@ -76,21 +99,20 @@ def main():
     if "t_total_yr" in D["names"]:
         kT = D["names"].index("t_total_yr")
         grid = np.linspace(-1, 1, 9)
-        tot = []
-        for uT in grid:
-            tot.append(sum(T.fit_one(sur, y, sigma, dim, starts=4, fixed={kT: uT})[1] for y in Yq))
-            print(f"u_T {uT:+.2f} sum chi2 {tot[-1]:.0f}", flush=True)
+        sub = Yq[::3]                                             # сетка по T — по каждому третьему квадрату (скорость)
+        tot = [sum(pmap(_fit_chi2, [(y, {kT: uT}, 4) for y in sub])) for uT in grid]
+        for uT, t_ in zip(grid, tot):
+            print(f"u_T {uT:+.2f} sum chi2 {t_:.0f}", flush=True)
         i = int(np.argmin(tot)); lo_, hi_ = grid[max(i - 1, 0)], grid[min(i + 1, 8)]
         grid2 = np.linspace(lo_, hi_, 5)
-        tot2 = [sum(T.fit_one(sur, y, sigma, dim, starts=4, fixed={kT: uT})[1] for y in Yq) for uT in grid2]
+        tot2 = [sum(pmap(_fit_chi2, [(y, {kT: uT}, 4) for y in sub])) for uT in grid2]
         uT = float(grid2[int(np.argmin(tot2))])
         fixed = {kT: uT}
-        T_scan = dict(grid=grid.tolist(), sum_chi2=tot, refine_grid=grid2.tolist(), refine_sum_chi2=tot2, u_T=uT)
-    for r, y in zip(squares, Yq):
-        u, chi2, res, ndf = T.fit_one(sur, y, sigma, dim, fixed=fixed)
+        T_scan = dict(grid=grid.tolist(), sum_chi2=tot, refine_grid=grid2.tolist(), refine_sum_chi2=tot2, u_T=uT, n_squares_scan=len(sub))
+    outs = pmap(_fit_full, [(y, fixed) for y in Yq])
+    for r, y, (u, chi2, res, ndf) in zip(squares, Yq, outs):
         fits.append(dict(name=r["name"], kind=r["kind"], place=r["place"], u=u.tolist(), chi2=chi2, ndf=ndf, res=res.tolist(),
                          y=y.tolist(), at_bound=bool((np.abs(u) > 0.999).any())))
-        print(f"{r['name']:20s} chi2/ndf {chi2:7.1f}/{ndf}", flush=True)
     sp = T.Space(dict(zip(D["names"], zip(D["lo"], D["hi"], [1.0] * dim))))
     R = np.array([f["res"] for f in fits])
     chi2_obs = np.nanmean(R ** 2, 0)                                   # средний вклад наблюдаемой в χ² на квадрат (≈1 — хорошо)
@@ -100,19 +122,28 @@ def main():
         ys = np.array([f["y"][j] for f in fits])
         frac_out = float(np.mean((ys < rmin[j] - 2 * sigma[j]) | (ys > rmax[j] + 2 * sigma[j])))
         out_of_range.append(frac_out)
-    res_mean = np.nanmean(R, 0)                                        # знаковое смещение (генератор − эталон)/σ: >0 — у эталона больше... см. README
+    res_mean = np.nanmean(R, 0)                                        # знаковое смещение (генератор − эталон)/σ: >0 — генератор выше эталона
     unreachable = [n for j, n in enumerate(names) if chi2_obs[j] > 3 or out_of_range[j] > 0.1 or abs(res_mean[j]) > 0.5]
     # облако
     ndfs = np.array([f["ndf"] for f in fits]); chis = np.array([f["chi2"] for f in fits])
     pts_theta = [sp.from_u(f["u"]).tolist() for f in fits]
     w = np.clip(ndfs / np.maximum(chis, 1e-9), 0.05, 1.0)
     cloud = dict(names=D["names"], points=pts_theta, weights=w.tolist(),
-                 source=f"SY-5 Professor deg{a.deg}: подгонка к каждому реальному квадрату (4 detail + 64 far), генератор {D['generator']}")
+                 source=f"SY-5 Professor deg{a.deg}: подгонка к каждому реальному квадрату ({sum(f['kind']=='detail' for f in fits)} detail + {sum(f['kind']=='far' for f in fits)} far + {sum(f['kind']=='pool' for f in fits)} пул air-nn v3 part=pool без t_0164), генератор {D['generator']}")
     json.dump(cloud, open(os.path.join(OUT, "theta_cloud.json"), "w"), indent=1)
+    json.dump(dict(squares=[f_["name"] for f_ in fits], kind=[f_["kind"] for f_ in fits], place=[f_["place"] for f_ in fits],
+                   chi2=chis.tolist(), ndf=ndfs.tolist(),
+                   poly=[(np.array(f_['y']) + np.array(f_['res']) * sigma).tolist() for f_ in fits]), open(os.path.join(OUT, "theta_cloud_meta.json"), "w"))
     # eigentunes: подгонка к среднему эталону каждого места, cov по якобиану
     eig = {}
-    for place in sorted({f["place"] for f in fits}):
-        Fp = [f for f in fits if f["place"] == place]
+    groups = {}
+    for f_ in fits:
+        groups.setdefault(f_["place"] if f_["kind"] != "pool" else "pool:" + f_["place"], []).append(f_)
+    groups["pool:ALL"] = [f_ for f_ in fits if f_["kind"] == "pool"]
+    groups["game_far:ALL"] = [f_ for f_ in fits if f_["kind"] == "far"]
+    for place, Fp in sorted(groups.items()):
+        if len(Fp) < 8:
+            continue
         Yp = np.array([f["y"] for f in Fp])
         ym = np.nanmean(Yp, 0)
         sd_place = np.nanstd(Yp, 0, ddof=1)
