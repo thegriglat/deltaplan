@@ -5,7 +5,7 @@ module: "air-synth"
 updated: "2026-10-04"
 summary: "Контракты air-synth: S1 корпус модельных рельефов (protobuf, шарды, индекс), S2 условия для сети, S3 API генератора и запуск корпуса, S4 рельеф → решатель; раздел «потом» — поля решателя"
 related: ["docs/plan/air-synth.md", "docs/contracts/air-nn.md", "docs/research/terrain_statistics.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 1}, {"id": "S4", "version": 1}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 2}, {"id": "S4", "version": 1}]
 ---
 
 # Контракты модуля air-synth
@@ -79,7 +79,7 @@ contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3",
 - Инварианты: один конфиг и зерно → побитно те же шарды; на каждый `relief_id` — `cond_id` 0 … k−1 без пропусков;
   значения конечные.
 
-## S3. API генератора и запуск корпуса (версия 1)
+## S3. API генератора и запуск корпуса (версия 2)
 **Владелец генератора:** SY-2 (`generator.py`). **Владелец запуска:** SY-1 (`run_corpus.py`). **Потребители:** SY-5.
 
 - `generator.GENERATOR_VERSION: str` (напр. `"fs1-<7 знаков хеша файла генератора>"`).
@@ -93,6 +93,16 @@ contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3",
   (продолжение — той же командой; параллельно по шардам, процесс на ядро, `OMP_NUM_THREADS=1`), `run_corpus.py index
   <каталог>` (пересборка индекса), `run_corpus.py sample <каталог> --n 50 --seed 1 → id` (детерминированная выборка
   для проверок). Долгие запуски — `tools/dp job start` (tmux-сессия `dp`).
+- **v2 (04.10, решение пользователя: параметры Fastscape настраиваются схемой Professor, корпус сэмплируется из облака
+  настроек):** настраиваемые параметры θ передаются явно. `generator.TUNABLE: dict[str, (lo, hi, default)]` — имена
+  и допустимые пределы θ (≈ 8–10: `uplift_max_m_per_yr`, `k0`, `diffusion_m2_per_yr`, `m_exp`, `k_logsd`,
+  `fourier_amp`, `anisotropy`, `t_total_yr`, `tan_crit`, …; имена — поля GenParams или ключи `extra`).
+  `generator.generate(corpus_seed, relief_id, theta: dict | None = None)` — θ задаёт настраиваемые параметры (прочие
+  случайные выборы — формы, положения, поля — по-прежнему из `SeedSequence([corpus_seed, relief_id])`); `theta = None`
+  — встроенное распределение генератора (непрерывная смесь, как v1). Настройка (Professor) зовёт генератор с θ точки
+  и зёрнами 0…k−1; корпус — `run_corpus.py gen … --theta-cloud <файл.json>`: для рельефа id точка облака выбирается
+  детерминированно из ГСЧ рельефа (отдельный поток `SeedSequence([corpus_seed, id, 1])`), θ и номер точки пишутся в
+  GenParams (`extra["cloud_point"]`). Формат облака — `{"names": […], "points": [[…], …], "weights": […]?, "source": "…"}`.
 - Go допустим только если замер покажет, что узкое место — наш Python-код (не ядро fastscapelib на C++), и Numba не
   помогает (решение пользователя 04.10).
 
