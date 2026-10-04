@@ -22,3 +22,9 @@
 {"t": "2026-10-05T01:17:35", "by": "coordinator", "task": "WL-6", "ev": "created", "note": "Убрать «одно-/двухобшивочное» из сайта и описаний крыльев"}
 {"t": "2026-10-05T01:17:35", "by": "coordinator", "task": "WL-6", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решения пользователя — dp plan wind-limits 1 (классы по поперечине: учебный / жёсткая поперечина / плавающая поперечина / безмачтовый; доля двойной обшивки — в %, «одно-/двухобшивочное» не говорить). Где сейчас: site/content/wings/_index.md (строка 10), site/content/wings/kingpost/_index.md (загол…"]}}
 {"t": "2026-10-05T01:17:39", "by": "coordinator", "task": "WL-6", "ev": "started", "note": "dp-writer, ~/deltaplan-wind-limits-WL-6"}
+{"t": "2026-10-05T01:17:45", "by": "coordinator", "task": "WL-6", "ev": "note", "note": "Попутно: в _doc laminar.json «летал папа-пилот» — если попадает на сайт, заменить на «летал пилот» (правило публичных текстов).", "addendum": true}
+{"t": "2026-10-05T01:18:25", "by": "executor", "task": "WL-6", "ev": "reported", "commits": ["59012882"], "note": "done: Убраны «одно-/двухобшивочное» из site/content (wings/_index, kingpost, trainer, mechanics/flight) и _doc шести конфигов…"}
+{"t": "2026-10-05T01:18:40", "by": "executor", "task": "WL-6", "ev": "accepted", "note": "3/3 no_labels=ok:exit 0; json_ok=ok:exit 0; gen_check=ok:exit 0"}
+{"t": "2026-10-05T01:18:43", "by": "coordinator", "task": "WL-6", "ev": "accepted", "commits": ["c93f4836"], "note": "3/3 no_labels=ok:exit 0; json_ok=ok:exit 0; gen_check=ok:exit 0"}
+{"t": "2026-10-05T01:18:44", "by": "coordinator", "task": "WL-6", "ev": "merged", "commits": ["c93f4836"]}
+{"t": "2026-10-05T01:18:50", "by": "coordinator", "task": "WL-6", "ev": "accepted", "note": "dp-writer PASS 3/3"}
