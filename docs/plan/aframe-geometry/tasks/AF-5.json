@@ -1,0 +1,46 @@
+{
+  "id": "AF-5",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Убрать силуэт стоек и тёмные пятна снизу",
+  "goal": "Силуэт стоек (AF-2) удалить совсем — код, настройку в configs/camera.json и проверки (A3.3 v5); убедиться, что тёмные пятна снизу от первого лица пропали; если пятна не от силуэта — найти источник и исправить или описать.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "A3",
+      "version": "5",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-5",
+  "branch": "aframe-geometry/AF-5",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "scripts/game/upright_silhouette.gd",
+    "scripts/game/camera_rig.gd",
+    "configs/camera.json",
+    "tests/game/test_cockpit.gd",
+    "docs/guide"
+  ],
+  "dont_touch": [
+    "tools/blender",
+    "assets/models",
+    "configs/pilot.json",
+    "scripts/flight",
+    "tests/game/test_aframe_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "camera_bar_look",
+      "tests": "camera_bar_look"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T01:49:34",
+  "edited": "2026-10-05T01:49:46"
+}
