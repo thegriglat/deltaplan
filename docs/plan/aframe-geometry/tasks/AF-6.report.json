@@ -1,0 +1,155 @@
+{
+  "status": "done",
+  "summary": "Подвеска по паспорту у 8 крыльев (40 остались cg); низ тела над штангой 0,371 м (pilot_eye[2] −1,04→−0,937, hang_length_m 1,211); наклон стоек пересчитан (5,9…13,0°, apogee 11,9°); 48 .glb и pilot.glb пересобраны; dp accept 7/7.",
+  "commits": [
+    "922cb77c AF-6: подвеска по паспортам, высота пилота 0,37 м, наклон стоек, модели"
+  ],
+  "checks": [
+    {
+      "name": "aframe_contracts",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "wing_clearance",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "test_cockpit",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Укорачивание стоек однопоповерхностных не понадобилось (wing_clearance проходит)."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept AF-6",
+  "uncertain": [
+    {
+      "where": "tools/research/data/wing_passports/hang_passports.json (moyes_*)",
+      "why": "У Moyes в паспорте не «hang loop», а «C of G front of keel» (designated CG); руководство Litespeed S связывает его с положением подвески при штатном триме, но прямого «hang loop» нет",
+      "checked": "текст руководства v1.05, раздел Trim Adjustment; взято как подвеска, помечено в _doc"
+    },
+    {
+      "where": "hang_passports.json: ww_t2c, aeros_combat_l",
+      "why": "Отсчёт: WW — от линии носовых болтов передних кромок, Aeros — от переднего конца киля; принято равным «носу» модели. У WW T2C поперечина по паспорту 0,81–0,92 м от носа, в модели crossbar_from_nose_m=1,2 — расхождение осталось, не менял",
+      "checked": "цитаты в файле"
+    },
+    {
+      "where": "glider_params.json cg_from_nose_m (passport-крылья)",
+      "why": "ЦМ по трубам без ткани; у passport-крыльев подвеска позади расчётного ЦМ на 9–30 см (ткань сдвинула бы ЦМ назад, расхождение меньше)",
+      "checked": "расхождения в списке"
+    },
+    {
+      "where": "hang_passports.json URL moyes litesport/malibu2",
+      "why": "URL страниц спецификаций построены по шаблону fetch_makers.py, вручную сейчас не открыты",
+      "checked": "данные взяты из out/haiku/moyes__*_spec.json"
+    },
+    {
+      "where": "scenes/models_preview/check_models.gd:77",
+      "why": "Вне скоупа карточки: проверка «ЦМ на 1–2 см» ослаблена до |z|<0,4 м, иначе падала для passport; точная проверка — в контрактном тесте. AF-5 тоже правит этот файл — возможен конфликт слияния",
+      "checked": "models exit 0"
+    },
+    {
+      "where": "aframe_geom.py / build_gliders.py",
+      "why": "WingCG теперь на y = nose_forward − cg_from_nose; при passport CG может быть впереди подвески",
+      "checked": "контрактный тест"
+    }
+  ],
+  "dp_feedback": "Поиска по полям данных паспортов (имена items в wings_geometry.json, фразы hang/CG) командой dp нет — искал grep/python по json. dp task show не показывает, что check_models.gd входит в приёмку, но не в скоуп.",
+  "passport_hang_list": {
+    "list": [
+      {
+        "id": "air_f2",
+        "hang_from_nose_m": 1.65,
+        "shift_vs_old_m": -0.173,
+        "source": "Airborne F2 190 manual 8439: hang loop Fwd 1625 / Rear 1675 mm (середина)"
+      },
+      {
+        "id": "air_sting3",
+        "hang_from_nose_m": 1.615,
+        "shift_vs_old_m": -0.323,
+        "source": "Airborne Sting 3 154 manual: hang loop 1600–1630 mm",
+        "over_0_2": true
+      },
+      {
+        "id": "ww_t2c",
+        "hang_from_nose_m": 1.283,
+        "shift_vs_old_m": -0.15,
+        "source": "Wills Wing T2 manual 2012: hang loop 49,75–51,25 in от носовых болтов (середина 50,5 in)"
+      },
+      {
+        "id": "aeros_combat_l",
+        "hang_from_nose_m": 1.325,
+        "shift_vs_old_m": -0.148,
+        "source": "Aeros Combat L 13 BHPA sheet: hang point 1310–1340 mm от переднего конца киля"
+      },
+      {
+        "id": "moyes_litespeed_rx",
+        "hang_from_nose_m": 1.353,
+        "shift_vs_old_m": -0.122,
+        "source": "Moyes RX 4 specs: C of G front of keel 1353 mm"
+      },
+      {
+        "id": "moyes_litespeed_s",
+        "hang_from_nose_m": 1.353,
+        "shift_vs_old_m": -0.197,
+        "source": "Moyes Litespeed S manual v1.05: C of G 1353 mm / 53,3 in"
+      },
+      {
+        "id": "moyes_litesport",
+        "hang_from_nose_m": 1.39,
+        "shift_vs_old_m": -0.21,
+        "source": "Moyes Litesport 4 specs: CoG 1390 mm",
+        "over_0_2": true
+      },
+      {
+        "id": "moyes_malibu2",
+        "hang_from_nose_m": 1.658,
+        "shift_vs_old_m": -0.379,
+        "source": "Moyes Malibu 2 166 specs: CoG 1658 mm",
+        "over_0_2": true
+      }
+    ],
+    "remaining_cg": 40,
+    "note": "shift: + вперёд; все passport-подвески оказались позади прежних (ЦМ труб без ткани). Данных нет: Aeros Discus/Fox/Combat C, Icaro (Piuma, Alto, Laminar, Mastr), WW кроме T2C, Seedwings, Bautek (Fizz — на кингпосте, числа нет) и др."
+  },
+  "apogee_numbers": {
+    "torso_bottom_above_basebar_m": 0.371,
+    "shoulder_to_grip_m": 0.569,
+    "elbow_minus_shoulder_vertical_m_max": -0.179,
+    "elbow_angle_deg_approx": 124,
+    "upright_tilt_deg": 11.9,
+    "tilt_range_all_wings_deg": [
+      5.9,
+      13.0
+    ],
+    "base_under_shoulders_horizontal_m": 0.0,
+    "hang_length_m": 1.211,
+    "hang_source": "cg (apogee: 1,297 от носа)"
+  },
+  "t": "2026-10-05T02:16:44",
+  "by": "executor"
+}
