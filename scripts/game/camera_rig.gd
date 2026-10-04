@@ -52,6 +52,7 @@ var _head := Vector2.ZERO  # поворот головы: x — рыскание
 var _recentering := false
 var _snap := true
 var _glance := 0.0  # 0 — свой взгляд, 1 — на прибор
+var _glance_held := false  # look_instrument зажата: голова (_head) заморожена и после отпускания та же
 var _look_locked := false  # голова задана set_look (скриншоты) — мышь её не двигает
 var _head_follow := Vector3.ZERO  # сглаженная доля смещения тела, которую повторяет голова
 
@@ -63,10 +64,6 @@ func _ready() -> void:
 	fov = float(_cfg.fov_deg)
 	_free_speed = float(_cfg.free.speed_ms)
 	set_mode(String(_cfg.default_mode))
-	var sil := UprightSilhouette.new()
-	sil.name = "UprightSilhouette"
-	sil.rig = self
-	add_child(sil)
 	Config.reloaded.connect(reload_config)
 
 
@@ -160,6 +157,8 @@ func _look(rel: Vector2) -> void:
 ## Повернуть голову в кабине на d (рыскание + влево, тангаж + вверх), рад, в пределах cockpit.head
 ## (мышь и клавиши); отменяет плавный возврат вперёд.
 func _turn_head(d: Vector2) -> void:
+	if _glance_held:
+		return  # пока зажат взгляд на прибор, свой поворот не меняется — вернёмся ровно в прежний
 	var h: Dictionary = _cfg.cockpit.head
 	_head += d
 	var yaw_lim := deg_to_rad(float(h.yaw_limit_deg))
@@ -278,7 +277,7 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		eye = t.origin + t.basis * _vec(c.fallback_offset_m)
 	global_position = eye
 	_keys_head(delta, c)
-	if _recentering:
+	if _recentering and not _glance_held:
 		var rt := float(c.head.recenter_time_s)
 		_head = _head.lerp(Vector2.ZERO, 1.0 if rt <= 0.0 else 1.0 - exp(-delta / rt))
 		if _head.length() < 0.001:
@@ -287,10 +286,12 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var look := _head
 	var g: Dictionary = c.get("glance", {})
 	var want := 1.0 if look_enabled and Input.is_action_pressed("look_instrument") else 0.0
+	_glance_held = want > 0.0
 	var gt := float(g.get("time_s", 0.25))
-	_glance = lerpf(_glance, want, 1.0 if gt <= 0.0 else 1.0 - exp(-delta / gt))
+	# за конечное время gt туда и обратно (не экспонента: после отпускания направление ровно прежнее)
+	_glance = move_toward(_glance, want, 1.0 if gt <= 0.0 else delta / gt)
 	if _glance > 0.001 and glance_target != null and is_instance_valid(glance_target):
-		look = look.lerp(_angles_to(glance_target.global_position, eye, c), _glance)
+		look = look.lerp(_angles_to(glance_target.global_position, eye, c), smoothstep(0.0, 1.0, _glance))
 	global_basis = (
 		_head_basis
 		* shake
