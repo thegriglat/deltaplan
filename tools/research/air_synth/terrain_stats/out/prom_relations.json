@@ -1,0 +1,66 @@
+{
+ "askarovo_detail100": {
+  "n": 137,
+  "spearman_prom_dparent": 0.34411931828336667,
+  "dparent_exp": 0.779277136122659,
+  "dparent_at_P100_km": 8.886900587337074,
+  "dsaddle_med_km": 0.7211102550927978,
+  "dsaddle_over_P": 14.484728398237806
+ },
+ "askarovo_far100": {
+  "n": 624,
+  "spearman_prom_dparent": 0.13554717688987336,
+  "dparent_exp": 0.42493991794718755,
+  "dparent_at_P100_km": 12.908704350390641,
+  "dsaddle_med_km": 1.104536101718726,
+  "dsaddle_over_P": 20.60385177920566
+ },
+ "ongudai_detail100": {
+  "n": 219,
+  "spearman_prom_dparent": 0.29115289282259244,
+  "dparent_exp": 0.546421441155997,
+  "dparent_at_P100_km": 6.98588693360275,
+  "dsaddle_med_km": 0.5385164807134504,
+  "dsaddle_over_P": 7.578745000959998
+ },
+ "ongudai_far100": {
+  "n": 1644,
+  "spearman_prom_dparent": 0.3027876993360305,
+  "dparent_exp": 0.5239552917609869,
+  "dparent_at_P100_km": 7.166558817520485,
+  "dsaddle_med_km": 0.8485281374238569,
+  "dsaddle_over_P": 11.714261813274465
+ },
+ "altai_detail100": {
+  "n": 259,
+  "spearman_prom_dparent": 0.24310375850333982,
+  "dparent_exp": 0.43436571503270305,
+  "dparent_at_P100_km": 6.084102383442631,
+  "dsaddle_med_km": 0.7,
+  "dsaddle_over_P": 9.879163551289164
+ },
+ "altai_far100": {
+  "n": 1238,
+  "spearman_prom_dparent": 0.36920531228788817,
+  "dparent_exp": 0.6468038173224343,
+  "dparent_at_P100_km": 6.584545820872898,
+  "dsaddle_med_km": 0.8602325267042626,
+  "dsaddle_over_P": 12.529381858433243
+ },
+ "aushkul_detail100": {
+  "n": 177,
+  "spearman_prom_dparent": 0.2886269977942924,
+  "dparent_exp": 0.6980276370141925,
+  "dparent_at_P100_km": 12.135582464210126,
+  "dsaddle_med_km": 0.8944271909999159,
+  "dsaddle_over_P": 17.95808415279965
+ },
+ "aushkul_far100": {
+  "n": 640,
+  "spearman_prom_dparent": 0.24214910810030568,
+  "dparent_exp": 0.584180306796561,
+  "dparent_at_P100_km": 12.107066841321075,
+  "dsaddle_med_km": 1.2041594578792296,
+  "dsaddle_over_P": 21.77408840442351
+ }
+}

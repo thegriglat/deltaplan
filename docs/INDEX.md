@@ -71,6 +71,7 @@ generated: true
 | [docs/research/sounds.md](/docs/research/sounds.md) | research | closed | instruments | Звук: ассеты и процедурный синтез (FR-28, FR-29) — Итог: 51 файл, 8,2 МБ в assets/sounds/ (ориентир был ≤ 30 МБ). |
 | [docs/research/surface_params.md](/docs/research/surface_params.md) | research | closed | air-model | Параметры поверхности по классам покрова (контракт П4 v1) — Для чего выбраны значения: дневной летний полёт (≈10–16 ч местного, ясно или малооблачно), умеренные широты, Альпы/предгорья. |
 | [docs/research/terrain_sources.md](/docs/research/terrain_sources.md) | research | closed | terrain | Источники рельефа и карт (FR-17 … FR-20) — Дата проверки: 2026-09-27. Всё ниже проверено запросами с этой машины, кроме помеченного «(по документации)». |
+| [docs/research/terrain_statistics.md](/docs/research/terrain_statistics.md) | research | closed | air-synth | Статистика горного рельефа для генератора модельных рельефов air-synth на квадрат 40 × 40 км: плотность вершин по prominence, седловины, степенные законы, спектр, уклоны, дренаж; замеры на 4 реальных местах игры; разложение на формы плана; прототип Fastscape (SPL + диффузия + порог уклона) против суммы форм |
 | [docs/research/thermals.md](/docs/research/thermals.md) | research | closed | air-model | Модели термиков, склонового подъёма и подветренных потоков — Исследование для модуля атмосферы (FR-8, FR-11…FR-16). |
 | [docs/research/vario_sounds.md](/docs/research/vario_sounds.md) | research | closed | instruments | Звук вариометров 1990-х (кратко, FR-25a) — Цель — правдоподобный «звук той эпохи» для пресета classic_90s, без привязки к модели и бренду (решение пользователя: конкретные модели не нужны). |
 | [docs/research/visual_cues.md](/docs/research/visual_cues.md) | research | closed | flight | Визуальные признаки для пилота: что должно быть видно в симуляторе — Исследование к FR-14a, FR-19, FR-20, FR-21, FR-22, FR-26. |
@@ -93,6 +94,7 @@ generated: true
 | [tools/research/air_runtime/README.md](/tools/research/air_runtime/README.md) | research | closed | air-model | AM-06Б: ход среднего поля в точке при пересчёте поля в полёте (плавная подмена уровней, AirRuntime). |
 | [tools/research/air_start/README.md](/tools/research/air_start/README.md) | research | closed | air-start | Воздух у старта (air-start) — данные AS-1 — Жалоба пилота на 1.0.0: при 6 м/с на старте «сдувает». |
 | [tools/research/air_start/as2/README.md](/tools/research/air_start/as2/README.md) | research | closed |  | AS-2: болтанка и разворот ветра у земли (поле GPU) — замеры — Модель — docs/guide/air-model.md → «Масштаб 3: возмущения из поля» (законы «Механическая болтанка», «Сложение механики и конвекции», «Масштаб конвективной горизонтали», «Перенос вихрей у земли»; таблица «У старта, 1,5 м над зем… |
+| [tools/research/air_synth/terrain_stats/README.md](/tools/research/air_synth/terrain_stats/README.md) | reference | active | air-synth | Код и команды воспроизведения статистик рельефа, разложения на формы и генерации (Fastscape, сумма форм) для air-synth |
 | [tools/research/air_thermals/README.md](/tools/research/air_thermals/README.md) | research | closed | air-model | AM-07: термики из поля — замеры — Описание модели — docs/guide/air-model.md → «Масштаб 2: термики из поля». |
 | [tools/research/air_turb/README.md](/tools/research/air_turb/README.md) | research | closed |  | AM-08: возмущения из поля (масштаб 3) — замеры — Описание модели — docs/guide/air-model.md → «Масштаб 3: возмущения из поля». |
 | [tools/research/ann2/README.md](/tools/research/ann2/README.md) | research | postponed | ann2 | Код и команды ann2 (AN-1…AN-4): предел данных, сеть 2,5D-оператор, пилот, AN-4. Отложено 05.10; данные прогонов удалены, таблицы — в out/. |
@@ -141,7 +143,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (247 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (248 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
