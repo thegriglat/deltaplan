@@ -108,6 +108,22 @@ message Relief {
   HeightGrid g400 = 6;              // 96 × 96, dx 400 м = блочное среднее 4 × 4 клеток g100 (до квантования)
   ReliefSummary summary = 7;
   reserved 8 to 15;                 // будущее: ссылки на поля решателя (S1 «потом»)
+  Place place = 16;                 // S1 v2: только у реальных рельефов (у модельных не заполняется)
+}
+
+// S1 v2: реальное место (рельеф из карт, конвейер вырезок П6 air-nn).
+message Place {
+  string name = 1;                  // id места: "t_0000"… (индекс П6 v3) или "askarovo"… (места игры)
+  double lat_deg = 2;               // центр области
+  double lon_deg = 3;
+  string system = 4;                // горная система (ключ конфига П6) или "other"
+  string part = 5;                  // "pool" | "holdout" | "game"
+  string stratum = 6;               // слой стратификации П6
+  string source = 7;                // источник высот, напр. "terrarium z12" / "copernicus glo-30"
+  uint32 zoom = 8;
+  double src_spacing_m = 9;         // шаг исходных узлов, м
+  string source_sha256 = 10;        // хеш исходной вырезки (до упаковки)
+  map<string, string> extra = 11;
 }
 
 // ---------------------------------------------------------------- шарды и индекс

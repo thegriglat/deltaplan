@@ -135,7 +135,7 @@ class ReliefSummary(_message.Message):
     def __init__(self, h_min_m: _Optional[float] = ..., h_max_m: _Optional[float] = ..., relief_m: _Optional[float] = ..., slope_mean_deg_400: _Optional[float] = ..., slope_p95_deg_100: _Optional[float] = ..., compute_seconds: _Optional[float] = ...) -> None: ...
 
 class Relief(_message.Message):
-    __slots__ = ("id", "corpus_seed", "generator_version", "params", "g100", "g400", "summary")
+    __slots__ = ("id", "corpus_seed", "generator_version", "params", "g100", "g400", "summary", "place")
     ID_FIELD_NUMBER: _ClassVar[int]
     CORPUS_SEED_FIELD_NUMBER: _ClassVar[int]
     GENERATOR_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -143,6 +143,7 @@ class Relief(_message.Message):
     G100_FIELD_NUMBER: _ClassVar[int]
     G400_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    PLACE_FIELD_NUMBER: _ClassVar[int]
     id: int
     corpus_seed: int
     generator_version: str
@@ -150,7 +151,41 @@ class Relief(_message.Message):
     g100: HeightGrid
     g400: HeightGrid
     summary: ReliefSummary
-    def __init__(self, id: _Optional[int] = ..., corpus_seed: _Optional[int] = ..., generator_version: _Optional[str] = ..., params: _Optional[_Union[GenParams, _Mapping]] = ..., g100: _Optional[_Union[HeightGrid, _Mapping]] = ..., g400: _Optional[_Union[HeightGrid, _Mapping]] = ..., summary: _Optional[_Union[ReliefSummary, _Mapping]] = ...) -> None: ...
+    place: Place
+    def __init__(self, id: _Optional[int] = ..., corpus_seed: _Optional[int] = ..., generator_version: _Optional[str] = ..., params: _Optional[_Union[GenParams, _Mapping]] = ..., g100: _Optional[_Union[HeightGrid, _Mapping]] = ..., g400: _Optional[_Union[HeightGrid, _Mapping]] = ..., summary: _Optional[_Union[ReliefSummary, _Mapping]] = ..., place: _Optional[_Union[Place, _Mapping]] = ...) -> None: ...
+
+class Place(_message.Message):
+    __slots__ = ("name", "lat_deg", "lon_deg", "system", "part", "stratum", "source", "zoom", "src_spacing_m", "source_sha256", "extra")
+    class ExtraEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    LAT_DEG_FIELD_NUMBER: _ClassVar[int]
+    LON_DEG_FIELD_NUMBER: _ClassVar[int]
+    SYSTEM_FIELD_NUMBER: _ClassVar[int]
+    PART_FIELD_NUMBER: _ClassVar[int]
+    STRATUM_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    ZOOM_FIELD_NUMBER: _ClassVar[int]
+    SRC_SPACING_M_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_SHA256_FIELD_NUMBER: _ClassVar[int]
+    EXTRA_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    lat_deg: float
+    lon_deg: float
+    system: str
+    part: str
+    stratum: str
+    source: str
+    zoom: int
+    src_spacing_m: float
+    source_sha256: str
+    extra: _containers.ScalarMap[str, str]
+    def __init__(self, name: _Optional[str] = ..., lat_deg: _Optional[float] = ..., lon_deg: _Optional[float] = ..., system: _Optional[str] = ..., part: _Optional[str] = ..., stratum: _Optional[str] = ..., source: _Optional[str] = ..., zoom: _Optional[int] = ..., src_spacing_m: _Optional[float] = ..., source_sha256: _Optional[str] = ..., extra: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class IndexEntry(_message.Message):
     __slots__ = ("id", "shard", "offset", "length", "cond_id", "mix", "relief_m")
