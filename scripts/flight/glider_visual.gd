@@ -16,6 +16,13 @@ extends Node3D
 const WING_MARKERS: Array[String] = [
 	"HangPoint", "BaseBar", "InstrumentMount", "WingTipL", "WingTipR"
 ]
+## Маркеры трапеции (контракт A2, docs/contracts/aframe-geometry.md): оси стоек и центр масс крыла.
+## Нет маркера — ошибка в журнал, без запасного числа.
+const FRAME_MARKERS: Array[String] = [
+	"UprightTopL", "UprightTopR", "UprightBottomL", "UprightBottomR", "WingCG"
+]
+## Заглушка крыла: верх стоек относительно HangPoint (правая; левая — зеркально по X), м.
+const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 ## Стоя (stand/walk/run из pilot.glb) ступни на ~0,3 м позади таза, ноги наклонены ~19°, глаза
 ## на ~0,7 м впереди ступней: взгляд вниз не достаёт до ног. Модель на земле чуть отклоняется
 ## назад вокруг хвата рук на стойках (руки остаются на стойках, ступни выходят под корпус).
@@ -89,6 +96,9 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	for mname in WING_MARKERS:
 		if wing.find_child(mname, true, false) == null:
 			push_warning("GliderVisual: в модели %s нет ноды %s" % [wpath, mname])
+	for mname in FRAME_MARKERS:
+		if wing.find_child(mname, true, false) == null:
+			push_error("GliderVisual: в модели %s нет маркера трапеции %s (A2)" % [wpath, mname])
 	telltales = Telltale.build_on(wing)
 
 	pilot = Node3D.new()
@@ -243,12 +253,8 @@ func bar_grip(side: int) -> Vector3:
 ## выравнивании — flare_above_shoulder_m): на отрезке «верх стойки → конец базовой штанги».
 func upright_grip(side: int) -> Vector3:
 	var a: Dictionary = _cfg.get("arms", {})
-	var bb := _relative_xform(self, get_marker("BaseBar"))
-	var hp := _relative_xform(self, get_marker("HangPoint"))
-	var top := _vec3(a.get("upright_top_m", [0.04, 0.0, -0.25]))
-	var apex := hp * Vector3(side * top.x, top.y, top.z)
-	var half := float(a.get("upright_bottom_half_width_m", 0.71))
-	var end := bb * Vector3(side * half, 0.0, 0.0)
+	var apex := _marker_pos("UprightTopL" if side < 0 else "UprightTopR")
+	var end := _marker_pos("UprightBottomL" if side < 0 else "UprightBottomR")
 	var above := lerpf(
 		float(a.get("upright_above_shoulder_m", 0.1)),
 		float(a.get("flare_above_shoulder_m", 0.25)),
@@ -259,6 +265,15 @@ func upright_grip(side: int) -> Vector3:
 		clampf(inverse_lerp(apex.y, end.y, y), 0.05, 0.95) if absf(apex.y - end.y) > 1e-3 else 0.5
 	)
 	return apex.lerp(end, t)
+
+
+## Положение маркера крыла в осях визуала (нет маркера — ошибка, Vector3.ZERO).
+func _marker_pos(marker_name: String) -> Vector3:
+	var m := get_marker(marker_name)
+	if m == null:
+		push_error("GliderVisual: нет маркера %s" % marker_name)
+		return Vector3.ZERO
+	return _relative_xform(self, m).origin
 
 
 ## Плечо (начало кости UpperArm) в осях визуала.
@@ -477,6 +492,7 @@ func _fallback_wing(wing_cfg: Dictionary) -> Node3D:
 	var nose := Vector3(0, 0, -float(wv.root_chord_m) * 0.6)
 	var tip_z := nose.z + float(wv.sweep_m)
 	_add_marker(root, "HangPoint", Vector3.ZERO)
+	_add_marker(root, "WingCG", Vector3(0, 0, 0.015))
 	_add_marker(root, "WingTipL", Vector3(-half, 0, tip_z))
 	_add_marker(root, "WingTipR", Vector3(half, 0, tip_z))
 	root.add_child(_fallback_sail(wing_cfg, nose, half))
@@ -514,8 +530,14 @@ func _fallback_frame() -> Node3D:
 	var bar := Vector3(0, float(_cfg.base_bar_height_m) - hang_h, -float(_cfg.base_bar_forward_m))
 	var w := Vector3(float(_cfg.base_bar_width_m) * 0.5, 0, 0)
 	var m := _mat(Color(0.7, 0.7, 0.75))
-	_add_rod(frame, "DownTubeL", Vector3.ZERO, bar - w, m)
-	_add_rod(frame, "DownTubeR", Vector3.ZERO, bar + w, m)
+	var top_r := FALLBACK_UPRIGHT_TOP
+	var top_l := Vector3(-top_r.x, top_r.y, top_r.z)
+	_add_rod(frame, "DownTubeL", top_l, bar - w, m)
+	_add_rod(frame, "DownTubeR", top_r, bar + w, m)
+	_add_marker(frame, "UprightTopL", top_l)
+	_add_marker(frame, "UprightTopR", top_r)
+	_add_marker(frame, "UprightBottomL", bar - w)
+	_add_marker(frame, "UprightBottomR", bar + w)
 	_add_rod(frame, "BaseBarTube", bar - w, bar + w, m)
 	_add_marker(frame, "BaseBar", bar)
 	var mount := (bar + w).lerp(Vector3.ZERO, 0.2)
