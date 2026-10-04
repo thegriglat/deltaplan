@@ -14,7 +14,7 @@ func _doc_line(head: String) -> String:
 
 
 func test_versions_in_doc() -> void:
-	check(_doc_line("## SM-К1.").contains("(v1)"), "SM-К1 v1 в документе")
+	check(_doc_line("## SM-К1.").contains("(v2)"), "SM-К1 v2 в документе")
 	check(_doc_line("## SM-К2.").contains("(v1)"), "SM-К2 v1 в документе")
 
 
@@ -41,7 +41,8 @@ func test_k1_basemaps() -> void:
 		check(key != "" and tr(key) != key, "%s: перевод %s" % [id, key])
 	check(ids.has("opentopomap") and ids.has("osm"), "слои opentopomap и osm: %s" % [ids.keys()])
 	if maps.size() > 0:
-		check(String(maps[0].get("id", "")) == "opentopomap", "по умолчанию opentopomap")
+		check(String(maps[0].get("id", "")) == "osm", "по умолчанию osm (подписи населённых пунктов)")
+	check(float(mp.get("start_zoom", 0)) >= 11.0, "start_zoom >= 11: %s" % mp.get("start_zoom"))
 	check(String(mp.get("tile_cache_dir", "")) != "", "tile_cache_dir")
 	check(String(mp.get("user_agent", "")) != "", "user_agent")
 	check(int(mp.get("elevation_zoom", 0)) == 12, "elevation_zoom 12")

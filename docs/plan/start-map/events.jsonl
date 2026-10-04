@@ -1,3 +1,5 @@
 {"t": "2026-10-05T03:15:56", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-05T03:18:16", "by": "coordinator", "task": "SM-1", "ev": "created", "note": "Растровая топокарта и высота точки на экране выбора старта"}
 {"t": "2026-10-05T03:18:28", "by": "coordinator", "task": "SM-1", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-start-map-SM-1"}
+{"t": "2026-10-05T03:26:00", "by": "coordinator", "task": null, "ev": "plan", "note": "план Выбор подложки (координатор, 05.10.2026): дописано 1 стр."}
+{"t": "2026-10-05T03:26:00", "by": "coordinator", "task": null, "ev": "plan", "note": "план SM-1. Растровая подложка и высота точки: дописано 1 стр."}
