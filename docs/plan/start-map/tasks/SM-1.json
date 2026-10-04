@@ -1,0 +1,77 @@
+{
+  "id": "SM-1",
+  "module": "start-map",
+  "type": "dp-engineer",
+  "title": "Растровая топокарта и высота точки на экране выбора старта",
+  "goal": "Пилоты не узнают местность по отмывке высот: подложка карты выбора старта — OpenTopoMap (второй слой OSM) с кешем и атрибуцией; у выбранной точки — высота над уровнем моря из Terrarium рядом с координатами.",
+  "plan_ref": "SM-1",
+  "contracts": [
+    {
+      "name": "SM-К1",
+      "version": "1",
+      "ref": "docs/contracts/start-map.md"
+    },
+    {
+      "name": "SM-К2",
+      "version": "1",
+      "ref": "docs/contracts/start-map.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-map-SM-1",
+  "branch": "start-map/SM-1",
+  "base": "feature/start-map",
+  "scope": [
+    "scripts/terrain/map_picker.gd",
+    "scripts/terrain/raster_tile_loader.gd",
+    "scripts/terrain/terrarium_loader.gd",
+    "scripts/terrain/map_hillshade.gdshader",
+    "scripts/ui/flight_setup_screen.gd",
+    "configs/world.json",
+    "locale",
+    "ASSETS.md",
+    "tests/ui",
+    "tools/shots",
+    "docs/guide"
+  ],
+  "dont_touch": [
+    "tests/contracts",
+    "docs/contracts",
+    "docs/plan",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "start_map_contracts",
+      "tests": "start_map_contracts"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "recent_places",
+      "tests": "recent_places"
+    },
+    {
+      "name": "test_language",
+      "tests": "test_language"
+    },
+    {
+      "name": "test_ui",
+      "tests": "test_ui"
+    },
+    {
+      "name": "no_hillshade",
+      "cmd": "grep -rn map_hillshade scripts configs || true",
+      "expect": "!re:map_hillshade"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/SM-1/ | grep -ciE '\\.(jpg|png)$'",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T03:18:16"
+}
