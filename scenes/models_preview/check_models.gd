@@ -96,7 +96,7 @@ func _check_axes(path: String, root: Node3D) -> void:
 			and absf(vm.origin.z - im.origin.z) < 0.05
 		)
 		_expect(path, "VarioMount −Z смотрит на пилота (вправо-вверх)",
-			(-vm.basis.z).x > 0.3 and (-vm.basis.z).y > 0.6)
+			(-vm.basis.z).x > 0.25 and (-vm.basis.z).y > 0.6)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])

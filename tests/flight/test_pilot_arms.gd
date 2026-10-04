@@ -41,10 +41,12 @@ func test_hands_on_base_bar_in_flight() -> void:
 			"%s: точка хвата = BaseBar − полуширина хвата" % wing
 		)
 		var worst := 0.0
+		v.set_pose(0.0, 0.0, true, 1.0e6)  # руки переходят на штангу (arm_bar → 1) до проверок
+		await _frames(4)
 		for roll in [-1.0, 0.0, 1.0]:
 			for pitch in [-1.0, 0.0, 1.0]:
 				v.set_pose(roll, pitch, true, 1.0e6)
-				await _frames(2)
+				await _frames(4)
 				for side in [-1, 1]:
 					var err := _grip(v, side).distance_to(v.bar_grip(side))
 					worst = maxf(worst, err)
