@@ -1,0 +1,30 @@
+{
+  "id": "AN-1",
+  "module": "ann2",
+  "type": "dp-researcher",
+  "title": "Предел данных: ошибка P2 против шума цели решателя",
+  "goal": "Ответить, ошибка сети P2 — неумение сети или шум самой цели (несошедшиеся решения). Таблица ошибка P2 / разброс цели по группам (сошедшиеся/нет, U10, место, обучающие/отложенные), ρ медиана и p90, вывод (а) или (б) по плану §2.",
+  "plan_ref": "§2",
+  "contracts": [],
+  "copy": "/home/greg/deltaplan-ann2-AN-1",
+  "branch": "ann2/AN-1",
+  "base": "feature/ann2",
+  "scope": [
+    "tools/research/ann2/",
+    "docs/research/ann2_data_limit.md"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "report",
+      "cmd": "test -f docs/research/ann2_data_limit.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-04T02:42:16"
+}

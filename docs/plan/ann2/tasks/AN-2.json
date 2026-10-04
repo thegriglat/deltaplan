@@ -1,0 +1,61 @@
+{
+  "id": "AN-2",
+  "module": "ann2",
+  "type": "dp-researcher",
+  "title": "Сеть «2,5D-оператор»: реализация и проверка коротким обучением",
+  "goal": "Реализовать архитектуру §3 (ConvNeXt энкодер-декодер 2D + 1D энкодер профиля с FiLM + внимание по грубым токенам + голова колонки по непрерывной высоте, NLL + штраф дивергенции) с загрузчиком вырезок 64² на данных P2, скрипты обучения и оценки против P2 на тех же отложенных горах; проверить короткой пробой (десятки шагов), что всё работает и потеря падает. Полное обучение — следующая задача AN-3.",
+  "plan_ref": "3. Архитектура «2,5D-оператор» (после пункта 0)",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    },
+    {
+      "name": "A3",
+      "version": "1",
+      "ref": "docs/contracts/ann2.md"
+    }
+  ],
+  "copy": "~/deltaplan-ann2-AN-2",
+  "branch": "ann2/AN-2",
+  "base": "feature/ann2",
+  "scope": [
+    "tools/research/ann2/"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/tests/test_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "params",
+      "cmd": "/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/model.py --count",
+      "expect": "num:params_M ([0-9.,]+) <=4.5"
+    },
+    {
+      "name": "smoke_train",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu an2smoke -- /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/train.py --smoke --steps 60 --run an2_smoke",
+      "expect": "num:loss_ratio ([0-9.,]+) <0.9"
+    },
+    {
+      "name": "eval_vs_p2",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu an2eval -- /home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python tools/research/ann2/evaluate.py --run an2_smoke --smoke",
+      "expect": "num:p2_selfcheck_diff ([0-9.,]+) <=0.01"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-04T03:27:08"
+}
