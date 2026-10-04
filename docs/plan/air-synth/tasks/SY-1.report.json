@@ -1,9 +1,9 @@
 {
   "status": "done",
-  "summary": "Формат корпуса S1 v2/S2 v1 (corpus_io.py: квантование, шарды, индекс, чтение через seek, write_reliefs для готовых рельефов с Place), запуск S3 v2 (run_corpus.py gen/index/sample/bench, --theta-cloud, resume), 16 тестов, замер на прототипе.",
+  "summary": "Переделано на HDF5 по S1 v3/S2 v2/S3 v3: части part-*.h5 (tmp+fsync+replace), вид corpus.h5/conditions.h5 через VDS (детерминированно), кодировка 2500/0,15 с ошибкой вне int16, summary/gen/params/place/conditions-table, write_reliefs для SY-6, Conditions для SY-3; run_corpus gen/view/sample/bench, --theta-cloud, resume; 16 тестов.",
   "commits": [
-    "b2fc6528 формат корпуса, запуск, тесты, замер",
-    "см. git log air-synth/SY-1: S1 v2 Place"
+    "4d5a5ffe формат корпуса на HDF5",
+    "39f4239c (прежний, protobuf — заменён)"
   ],
   "checks": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "name": "smoke_resume",
-      "value": "passed",
+      "value": "2 passed",
       "pass": true
     }
   ],
@@ -28,31 +28,40 @@
   "how_to_check": "dp accept SY-1",
   "uncertain": [
     {
-      "where": "tests/test_run_corpus.py::test_resume_after_kill",
-      "why": "зависит от времени (kill посередине, sleep 1.5 с для осиротевших рабочих)",
-      "checked": "прошёл несколько раз; kill — killpg всей группы"
+      "where": "corpus_io.py build_view",
+      "why": "VDS ссылается на части по относительному имени; проверено только перемещение каталога и чтение h5py 3.16/HDF5 2.0 на этой машине; другие версии HDF5 не пробовал",
+      "checked": "тест test_view_survives_move, чтение вида и частей совпадает"
     },
     {
-      "where": "proto_generator.py",
-      "why": "замер на одном типе по 3 рельефам, mix случайный; побитность прототипа не проверялась",
-      "checked": "только время"
+      "where": "corpus_io.py build_view complete",
+      "why": "complete=True только если в manifest.json есть n_total и части контигуозны от 0; вид без manifest.json всегда complete=False",
+      "checked": "тест неполного корпуса"
+    },
+    {
+      "where": "tests/test_run_corpus.py::test_resume_after_kill",
+      "why": "зависит от времени (kill посередине, пауза 1,5 с для осиротевших рабочих)",
+      "checked": "проходил несколько раз"
+    },
+    {
+      "where": "корни частей",
+      "why": "сверх контракта добавлен атрибут корня n_total",
+      "checked": "читатель его не требует"
     }
   ],
-  "dp_feedback": "Дополнения контрактов приходят сообщениями в процессе; удобно было бы видеть diff контракта командой dp task sync.",
-  "sec_gen_per_relief": 15.5,
-  "sec_io_per_relief": 0.019,
-  "bytes_per_relief": 314048,
+  "dp_feedback": "dp task sync не показывает, что изменилось в контракте; пришлось читать весь файл.",
+  "sec_gen_per_relief": 16.0,
+  "sec_io_per_relief": 0.027,
+  "bytes_per_relief": 218728,
   "go_needed": false,
   "extra": {
     "bench": "tools/research/air_synth/corpus/bench/bench_proto.json",
     "breakdown_s": {
-      "gen": 15.54,
-      "quant_summary": 0.0097,
-      "serialize": 0.0001,
-      "write": 0.0092
+      "gen": 16.0,
+      "quant_summary": 0.009,
+      "write_h5": 0.018
     },
-    "note": "квантование+запись ≈0,1% времени; узкое место — ядро fastscapelib/numba, Go не нужен; 10^4 рельефов ≈ 15.5·10^4/20 ядер ≈ 2,2 ч"
+    "note": "квантование+запись ≈0,17% времени; узкое место — ядро fastscapelib, Go не нужен; 219 КБ/рельеф с gzip → 10^4 ≈ 2,2 ГБ"
   },
-  "t": "2026-10-04T22:30:49",
+  "t": "2026-10-04T22:41:55",
   "by": "executor"
 }
