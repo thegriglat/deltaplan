@@ -2,5 +2,5 @@ numpy
 scipy
 numba
 fastscapelib
-protobuf>=7.35
+h5py
 pytest
