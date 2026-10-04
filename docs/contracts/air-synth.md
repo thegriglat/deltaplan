@@ -258,6 +258,10 @@ contracts: [{"id": "S1", "version": 4}, {"id": "S2", "version": 4}, {"id": "S3",
 `~/.cache/deltaplan_osm/`, вежливо — паузы между запросами); лицензия ODbL — атрибуция «© OpenStreetMap contributors»
 в README и `ASSETS.md`. Внешние базы (ParaglidingEarth, DHV) — не трогать.
 
+- **Уточнение по сдаче SY-9 (без смены версии):** старт — также новая схема вики `free_flying:takeoff=yes` (`site=takeoff`
+  в вики помечен устаревшим; берутся обе); дельтаплан — `free_flying:hanggliding=yes` или `free_flying:rigid=yes`;
+  ориентация — `site_orientation`, иначе `direction`; страна — `is_in` (admin_level=2); «только параплан» хранится в
+  `paraglide_only.csv` (страна пустая), чтобы правило можно было пересмотреть без новой выгрузки; `country_name_ru` есть.
 - **Отбор стартов:** только `free_flying:site` со значением `takeoff` (в т. ч. составные через `;`, напр.
   `takeoff;toplanding`), точки и полигоны/отношения (координата — центр); старые теги (по вики OSM: `hang_gliding`,
   `sport=hang_gliding`, `leisure=…`) — только если обозначают старт, с записью правила в README. Посадки, буксировка,
