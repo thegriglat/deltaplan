@@ -11,9 +11,6 @@ const ASPECT := 16.0 / 9.0
 ## Через сколько секунд полёта снимать (пилот лёг в кокон — поза prone).
 ## Поле зрения в приёмке A3.3, ° по вертикали.
 const VIEW_FOV_DEG := 75.0
-## A3.3 в кабине физически не выполняется (трапеция целиком позади глаз, отчёт AF-2, шлюз
-## координатора): проверки включить, когда решение принято. Пока тест только печатает числа.
-const ENFORCE_A33 := false
 const MIN_AIR_S := 12.0
 ## Шаг выборки точек по рёбрам треугольников мешей, м (тросы тонкие и длинные: в угол кадра
 ## попадает кусок в десятки сантиметров).
@@ -87,9 +84,11 @@ func test_cockpit_view_by_head_angle() -> void:
 		await _finish(main)
 
 
-## Первое лицо, взгляд вперёд, FOV 75 (A3.3): часть трапеции (стойки или штанга) в кадре, обе
-## ленточки — в 20…40° от оси взгляда. Раньше требовалось «трапеция вне кадра» — отменено.
-func test_trapezoid_and_telltales_in_view() -> void:
+## Первое лицо (A3.3 v4). Взгляд вперёд: трапеция позади глаз (числа — в печать), у краёв кадра
+## с обеих сторон силуэт стоек; стойка в кадре (голова влево на 90°) — силуэт с её стороны
+## не рисуется. Взгляд вниз 85–90°: штанга и руки в кадре. Ленточки: при взгляде вверх-вперёд
+## (наклон ≤ 55°) обе в кадре; углы от оси взгляда вперёд — в печать.
+func test_trapezoid_silhouette_and_telltales() -> void:
 	for wing in ["apogee", "training", "sport", "laminar"]:
 		var main := await _fly(wing)
 		if main == null:
@@ -97,24 +96,55 @@ func test_trapezoid_and_telltales_in_view() -> void:
 		var game: Game = main.get_node("Game")
 		var v := game.glider.visual
 		var cam := game.camera
+		var sil: UprightSilhouette = cam.get_node("UprightSilhouette")
+		var cfg := sil.params()
+		check(bool(cfg.get("enabled", false)), "%s: силуэт стоек включён по умолчанию" % wing)
 		cam.fov = VIEW_FOV_DEG
 		_look(game, 0.0, 0.0)
 		cam.fov = VIEW_FOV_DEG
-		var frame := _meshes(v, ["ControlFrame", "Frame"])
-		var n_in := _count_in_view(cam, frame)
-		var ang := _bar_angles(v, cam)
-		var tt := _telltale_angles(v, cam)
+		sil._process(0.0)
+		var draws := sil.frame_draws(cam, ASPECT, cfg)
+		var edges := []
+		for d in draws:
+			edges.append(snappedf(d.edge.x, 0.01))
+		check(draws.size() == 2, "%s F: силуэт с обеих сторон (%d)" % [wing, draws.size()])
+		if draws.size() == 2:
+			check(draws[0].alpha > 0.05 and draws[1].alpha > 0.05, "%s F: силуэт заметен" % wing)
+			check(
+				draws[0].edge.x < 0.5 and draws[1].edge.x > 0.5,
+				"%s F: левая слева, правая справа %s" % [wing, edges]
+			)
 		print(
 			(
-				"         %s FOV %.0f: трапеция в кадре %d из %d точек (%.1f %%); от оси взгляда, °: %s; ленточки %s"
-				% [wing, VIEW_FOV_DEG, n_in, frame.size(), 100.0 * n_in / maxf(frame.size(), 1.0), ang, tt]
+				"         %s FOV %.0f вперёд: от оси, °: %s; ленточки %s; силуэт alpha %s, край x %s"
+				% [wing, VIEW_FOV_DEG, _bar_angles(v, cam), _telltale_angles(v, cam),
+					draws.map(func(d): return snappedf(d.alpha, 0.01)), edges]
 			)
 		)
-		check(tt.size() == 2, "%s: две ленточки" % wing)
-		if ENFORCE_A33:
-			check(n_in > 0, "%s F: часть трапеции в кадре (FOV %.0f)" % [wing, VIEW_FOV_DEG])
-			for a: float in tt:
-				check(a >= 20.0 and a <= 40.0, "%s: ленточка в 20…40° от оси взгляда (%.1f°)" % [wing, a])
+		# стойка в кадре — не рисуется
+		_look(game, 90.0, 0.0)
+		var yaw_draws := sil.frame_draws(cam, ASPECT, cfg)
+		check(yaw_draws.size() == 1, "%s: голова влево 90° — левая стойка в кадре, рисуется одна (%d)" % [wing, yaw_draws.size()])
+		if yaw_draws.size() == 1:
+			check(yaw_draws[0].side == 1, "%s: осталась правая сторона" % wing)
+		# взгляд вниз: штанга и руки в кадре
+		_look(game, 0.0, -88.0)
+		var bar := game.glider.get_marker("BaseBar")
+		check(_in_view(cam, bar.global_position), "%s: взгляд вниз 88° — штанга в кадре" % wing)
+		check(_count_in_view(cam, _arm_points(v)) > 0, "%s: взгляд вниз 88° — руки в кадре" % wing)
+		# ленточки: найти наклон головы вверх ≤ 55°, при котором обе в кадре
+		var seen_pitch := -1.0
+		for pit in [10.0, 20.0, 30.0, 40.0, 50.0, 55.0]:
+			_look(game, 0.0, pit)
+			var n := 0
+			for t in v.telltales:
+				if _in_view(cam, t.global_position):
+					n += 1
+			if n == 2:
+				seen_pitch = pit
+				break
+		check(seen_pitch > 0.0, "%s: обе ленточки в кадре при взгляде вверх ≤ 55° (%.0f)" % [wing, seen_pitch])
+		print("         %s: ленточки в кадре при наклоне головы вверх %.0f°" % [wing, seen_pitch])
 		await _finish(main)
 
 
