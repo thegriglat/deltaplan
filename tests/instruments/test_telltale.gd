@@ -99,10 +99,10 @@ func test_anchor_on_every_wing() -> void:
 			var l := v.to_local(v.telltales[0].global_position)
 			var r := v.to_local(v.telltales[1].global_position)
 			var bb := v.to_local(v.get_marker("BaseBar").global_position)
-			check(l.x < -0.4 and r.x > 0.4, "%s: слева и справа %s %s" % [id, l, r])
+			check(l.x < -0.15 and r.x > 0.15, "%s: слева и справа %s %s" % [id, l, r])
 			check(absf(l.x + r.x) < 0.02 and l.distance_to(Vector3(-r.x, r.y, r.z)) < 0.02,
 				"%s: симметрично" % id)
-			check(l.y > bb.y and l.y < bb.y + 0.6, "%s: над штангой на тросе (%.2f)" % [id, l.y - bb.y])
+			check(l.y > bb.y + 0.8 and l.z < bb.z, "%s: на переднем тросе ближе к носу, над и впереди штанги (%.2f)" % [id, l.y - bb.y])
 		v.free()
 
 

@@ -1,0 +1,166 @@
+{
+  "status": "partial",
+  "summary": "Геометрия трапеции и центровка сделаны: стойки 7,9–12,7° низом вперёд, длина 1,725–1,75 м, подвеска = ЦМ по трубам + 1,5 см, маркеры UprightTop/Bottom L/R и WingCG во всех 48 .glb, геометрия стоек в игре только из маркеров. Физика не затронута. Не проходят 2 из 10 проверок приёмки (pilot_arms: локоть вниз у sport; wing_clearance: зазор трапеции 0,27–0,29 м против порога 0,30) — оба следствия новой геометрии, нужно решение координатора.",
+  "commits": [
+    "09e940b7 Трапеция и центровка крыльев (AF-1)"
+  ],
+  "checks": [
+    {
+      "name": "aframe_contracts",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_wings",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_polar",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "2/3: sport лёжа, локоть вниз (локоть выше середины плечо-хват на 1,2 см; training/laminar/apogee ниже на 0,7–1,6 см)",
+      "pass": false
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "wing_clearance",
+      "value": "0/1: 20 проверок «ровно стоит / склон 20°, нос вниз до упора», группа frame (база), зазор 0,27–0,29 м при пороге 0,30; у 10 крыльев",
+      "pass": false
+    },
+    {
+      "name": "test_glider",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_mass",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "exit 0, ИТОГ: OK",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "pilot_arms::test_hands_on_base_bar_in_flight падает на sport (локоть вниз). Причина: база теперь под плечами, расстояние плечо-хват 0,32-0,37 м (было ≈0,6 м, рука почти прямая), рука согнута, локоть вдоль линии плечо-хват. Пробовал elbow_pole (0.3,-1,0.3) — не помогло, откатил. Варианты: допуск в тесте/проверка 'не выше на N см' (AF-3, файл теста не мой) или иная поза руки.",
+    "wing_clearance::test_wing_above_ground_on_launch падает у крыльев с подвеской на 10 см позади вершины (однопоповерхностные: aeros_fox, air_f2, condor_crex3/flex, fs_funky, fs_space, icaro_piuma, moyes_malibu2, target, training, ww_spectrum): база стала ниже на ≈0,1 м (стойки почти вертикальны при той же длине: z_bb −1,60 вместо −1,49), зазор frame на земле 0,27-0,29 м < 0,30. Файл теста вне скоупа; решить: порог 0,30 → 0,25 или короче стойки (противоречит 'длину сохранить').",
+    "Позу на земле (_ground_pose, GROUND_*) не трогал; upright_grip в glider_visual.gd тронул минимально (две строки: апекс и низ стойки из маркеров вместо flight.json — иначе после удаления ключей ломалась), конфликт с AF-3 возможен только в этих строках.",
+    "build_pilot.py (вне скоупа): убрал чтение удалённых cf.apex_forward_m/basebar_*; подставлены прежние числа 0,25/0,90/1,55 как локальные константы опорных поз. pilot.glb не пересобирал."
+  ],
+  "questions": [
+    "nose_forward_m теперь = центр масс по трубам − 1,5 см (контракт A1), а раньше — паспортное положение ЦТ/петли подвеса. Крылья сдвинулись относительно подвески: от −0,38 м (moyes_malibu2) до +0,08 м (ww_spectrum), средний модуль 0,14 м. Оценка по трубам грубая и паспортные ЦТ перекрывает; смысл поля К1 заявлен 'прежним' — принять? Если нет — вернуть паспортные nose_forward_m и вывести из них cg (без пересчёта по трубам).",
+    "Глаза пилота (pilot_eye y=+0,62 от подвески) теперь впереди базы (y_bb 0,30-0,37): взгляд на планшет — вверх-вперёд, а не вверх-назад. Это следствие A3.1 (база под плечами, голова впереди плеч на 0,27 м). check_models скорректирован (InstrumentMount/VarioMount смотрят вверх, BaseBar впереди ≥0,1 м). Для AF-2 (камера, ленточки) учесть.",
+    "Наклон измеряется как угол стойки к нормали киля в проекции на плоскость симметрии (YZ), длина — полная 3D; в A1 это не уточнено, описал в docs/guide/models.md. Для 3D-угла (с учётом разноса ±0,7 м) значения были бы больше."
+  ],
+  "how_to_check": "dp accept AF-1 --dry; python3 tools/blender/aframe_cg.py --report r.json (идемпотентно); тест: godot --headless --path . res://tests/run_tests.tscn -- --filter=aframe_contracts",
+  "uncertain": [
+    {
+      "where": "tools/blender/aframe_geom.py:cg_from_nose",
+      "why": "погонные массы труб — оценка (киль 0,7, кромки 1,0, поперечина 0,8, кингпост 0,45, стойки 0,55, штанга 0,5 кг/м); ткань не учтена",
+      "checked": "по ТЗ точность не важна; фикс. точка итерации сходится; результат идемпотентен"
+    },
+    {
+      "where": "tools/blender/glider_params.json: wings.*.crossbar_from_nose_m",
+      "why": "добавлено поле вне контракта A1: центр поперечины от носа (прежнее nose_forward_m−0,08), без него поперечина уезжала бы вместе с носом при пересчёте",
+      "checked": "значения перенесены из старого nose_forward_m при первом запуске"
+    },
+    {
+      "where": "tools/blender/aframe_trim.json",
+      "why": "вход скрипта подбора наклона (тангаж киля на трим-скорости 0,8…17,7° и середина плеч (0; −1,305; +0,348) по apogee prone); при смене пилота/физики надо обновить tools/flight/aframe_trim.tscn и пересчитать --pick-tilt",
+      "checked": "плечи и θ сняты из FlightModel и GliderVisual, тест A3.1 использует те же источники"
+    },
+    {
+      "where": "wings.*.upright_len_m",
+      "why": "прежняя длина стоек зависит от полуширины штанги, у крыльев с basebar_width_m 1,5 она равна 1,751 → ограничена 1,75 (контракт)",
+      "checked": "диапазон 1,725–1,750"
+    }
+  ],
+  "dp_feedback": "dp accept --dry без фона занимает ~5 мин (wing_clearance 185 с, polar 80 с) — хотелось бы запускать отдельные пункты (dp accept AF-1 --only pilot_arms). Обновление json с неоднородным форматированием (inline и многострочные массивы) пришлось делать построчным редактором текста.",
+  "extra": {
+    "tilt_range_deg": [
+      7.9,
+      12.7
+    ],
+    "len_range_m": [
+      1.725,
+      1.75
+    ],
+    "cg_from_nose_range_m": [
+      1.13,
+      1.49
+    ],
+    "balance_horizontal_base_minus_shoulders_all_m": [
+      -0.001,
+      0.001
+    ],
+    "balance_vertical_base_minus_shoulders_all_m": [
+      -0.353,
+      -0.282
+    ]
+  },
+  "apogee_before_after": {
+    "before": {
+      "tilt_to_normal_deg": 23.9,
+      "tilt_to_keel_deg": 66.1,
+      "apex_from_nose_m": 1.15,
+      "hang_from_nose_m": 1.4,
+      "cg_from_nose_m": null,
+      "upright_len_m": 1.743,
+      "base_vs_shoulders_horizontal_m": 0.557,
+      "base_vs_shoulders_vertical_m": -0.168,
+      "note": "вершина на 0,25 м впереди подвески, база 0,90 вперёд / 1,49 ниже подвески; плечи (0,348; −1,305), тангаж трима 1,73°"
+    },
+    "after": {
+      "tilt_to_normal_deg": 12.2,
+      "tilt_to_keel_deg": 77.8,
+      "apex_from_nose_m": 1.296,
+      "hang_from_nose_m": 1.296,
+      "cg_from_nose_m": 1.311,
+      "upright_len_m": 1.743,
+      "base_forward_of_hang_m": 0.34,
+      "base_below_hang_m": 1.591,
+      "base_vs_shoulders_horizontal_m": 0.0,
+      "base_vs_shoulders_vertical_m": -0.286,
+      "note": "apogee двухповерхностный: вершина под подвеской (hang_from_apex 0), подвеска на 1,5 см впереди ЦМ, оси стоек у киля и подвеска совпадают по y; тангаж трима 1,73° учтён"
+    }
+  },
+  "all_wings_base_vs_shoulder": {
+    "horizontal_m": {
+      "min": -0.001,
+      "max": 0.001,
+      "worst_wing": "sport (−0,001); подбор угла стоек шагом 0,1° в 4…13°"
+    },
+    "vertical_m": {
+      "min": -0.353,
+      "max": -0.282,
+      "note": "база ниже плеч на 0,28–0,35 м: у faired_uprights/спидбара (дип 5 см) глубже"
+    },
+    "limit_horizontal_m": {
+      "apogee": 0.1,
+      "all": 0.15
+    },
+    "tilt_deg": {
+      "min": 7.9,
+      "max": 12.7
+    },
+    "double_surface": "37 двухповерхностных hang_from_apex_m 0,0; 11 однопоповерхностных −0,10"
+  },
+  "physics_check": "Физика не меняется. flight_model.gd/glider.gd не читают положение трапеции/подвески/пилота; configs/wings/* и параметры физики не тронуты. pilot_bar_m и arms.reach_margin_m — только визуал (glider_visual.gd: сдвиг тела и ограничение досягаемости рук; в flight_model нет ссылок). test_polar 6/6, test_wings 4/4, test_mass 4/4, test_glider 2/2 зелёные; trim/full_pull/full_push не менялись. Шлюз не нужен. Оговорка: масса крыла и центр масс в физике не используются, nose_forward_m влияет только на положение модели крыла относительно подвески.",
+  "t": "2026-10-05T00:04:41",
+  "by": "executor"
+}

@@ -1,0 +1,80 @@
+{
+  "id": "AF-2",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Первое лицо: взгляд вниз, вынос приборов, ленточки, силуэт стоек",
+  "goal": "От первого лица (FOV ~75, взгляд вперёд) часть трапеции видна хотя бы по краю кадра, обе ленточки — в 20–40° от оси взгляда; требование «трапеция вне кадра» отменено.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A3",
+      "version": "4",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A1",
+      "version": "2",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-2",
+  "branch": "aframe-geometry/AF-2",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "configs/camera.json",
+    "configs/instruments.json",
+    "scripts/instruments/telltale.gd",
+    "scripts/instruments/telltale_model.gd",
+    "tests/game/test_cockpit.gd",
+    "tests/instruments/test_telltale.gd",
+    "tests/game/test_aframe_contracts.gd",
+    "tools/shots/cockpit.sh",
+    "tools/blender/build_gliders.py",
+    "tools/blender/glider_params.json",
+    "assets/models/glider_*.glb (пересборка только после вливания AF-4 и dp task sync)",
+    "scenes/models_preview/check_models.gd",
+    "scripts/game (кабинная камера, силуэт)"
+  ],
+  "dont_touch": [
+    "scripts/flight/glider_visual.gd (нужна правка — сообщить координатору)",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "telltale",
+      "tests": "telltale"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "camera_bar_look",
+      "tests": "camera_bar_look"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    }
+  ],
+  "report_extra": [
+    "apogee_view_numbers"
+  ],
+  "notes": "",
+  "created": "2026-10-04T23:47:16",
+  "edited": "2026-10-05T00:58:03"
+}

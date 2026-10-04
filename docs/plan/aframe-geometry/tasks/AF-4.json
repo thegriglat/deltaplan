@@ -1,0 +1,100 @@
+{
+  "id": "AF-4",
+  "module": "aframe-geometry",
+  "type": "dp-engineer",
+  "title": "Высота пилота под килем и тангаж крыла в полёте",
+  "goal": "Отзыв пилота по сборке AF-1: пилот висит слишком низко (локти торчат вверх) — укоротить подвеску до реальной высоты (A3.5); визуальный тангаж киля в планировании сверить с физикой и починить расхождение (A3.6); затем заново подобрать наклон стоек (A3.1) и пересобрать .glb.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "2",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/aframe-geometry.md"
+    },
+    {
+      "name": "A3",
+      "version": "4",
+      "ref": "docs/contracts/aframe-geometry.md"
+    }
+  ],
+  "copy": "~/deltaplan-aframe-geometry-AF-4",
+  "branch": "aframe-geometry/AF-4",
+  "base": "feature/aframe-geometry",
+  "scope": [
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "configs/pilot.json",
+    "configs/flight.json (visual)",
+    "scripts/flight/glider_visual.gd (полёт: prone, маятник, тангаж визуала)",
+    "scripts/flight/glider.gd",
+    "tools/blender/glider_params.json",
+    "tools/blender/aframe_cg.py",
+    "tools/blender/aframe_trim.json",
+    "tools/flight/aframe_trim.gd",
+    "assets/models/glider_*.glb",
+    "tests/game/test_aframe_contracts.gd",
+    "docs/guide/models.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "configs/wings/*.json",
+    "configs/camera.json",
+    "configs/instruments.json",
+    "glider_visual.gd: _ground_pose, GROUND_*, upright_grip (AF-3)"
+  ],
+  "accept": [
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "test_polar",
+      "tests": "test_polar"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "test_glider",
+      "tests": "test_glider"
+    },
+    {
+      "name": "test_mass",
+      "tests": "test_mass"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wing_clearance",
+      "tests": "wing_clearance"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    }
+  ],
+  "report_extra": [
+    "apogee_numbers",
+    "physics_check"
+  ],
+  "notes": "",
+  "created": "2026-10-05T00:26:18",
+  "edited": "2026-10-05T00:58:02"
+}

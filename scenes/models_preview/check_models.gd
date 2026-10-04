@@ -4,7 +4,8 @@ extends SceneTree
 ## Печатает найденные/отсутствующие ноды, число треугольников; код выхода 1 при ошибке.
 
 const WING_NODES: Array[String] = ["Sail", "Frame", "ControlFrame", "HangPoint", "BaseBar",
-	"InstrumentMount", "VarioMount", "WingTipL", "WingTipR"]
+	"InstrumentMount", "VarioMount", "WingTipL", "WingTipR", "UprightTopL", "UprightTopR",
+	"UprightBottomL", "UprightBottomR", "WingCG"]
 ## Модели не крыльев; крылья — по одному glider_<id>.glb на каждый configs/wings/<id>.json.
 const OTHER := {
 	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR",
@@ -71,21 +72,32 @@ func _check_axes(path: String, root: Node3D) -> void:
 		var hang := _pos(root, "HangPoint")
 		_expect(path, "WingTipR справа (+X)", tip_r.x > 4.0 and tip_l.x < -4.0)
 		_expect(path, "HangPoint в начале координат", hang.length() < 0.01)
-		_expect(path, "BaseBar впереди (−Z) и ниже (−Y)", bar.z < -0.3 and bar.y < -1.0)
+		_expect(path, "BaseBar впереди (−Z) и ниже (−Y)", bar.z < -0.1 and bar.y < -1.0)
+		var cg := _pos(root, "WingCG")
+		# подвеска по центру масс — на 1–2 см впереди (точно — tests/game/test_aframe_contracts.gd);
+		# по паспорту (A1 v3) — где даёт производитель, расхождение с ЦМ до ±0,4 м
+		_expect(path, "WingCG на киле рядом с подвеской (по ЦМ: на 1–2 см позади; по паспорту — до 0,4 м)",
+			absf(cg.z) < 0.4 and absf(cg.x) < 0.001 and cg.y > 0.0)
+		for side in ["L", "R"]:
+			var top := _pos(root, "UprightTop" + side)
+			var bot := _pos(root, "UprightBottom" + side)
+			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
-		_expect(path, "InstrumentMount в центре базовой штанги",
-			absf(im.origin.x) < 0.01 and im.origin.distance_to(bar) < 0.08)
-		_expect(path, "InstrumentMount −Z смотрит назад-вверх на пилота",
-			(-im.basis.z).z > 0.3 and (-im.basis.z).y > 0.3)
+		# A3.3 v6: приборы на хомуте левой стойки (рядом с осью стойки, кронштейн не дальше 0,35 м), планшет
+		# ниже вариометра, оба слева, −Z к глазам
+		var ubl := _pos(root, "UprightBottomL")
+		var utl := _pos(root, "UprightTopL")
 		var vm := _xform(root, "VarioMount")
-		_expect(
-			path,
-			"VarioMount на базовой штанге слева от планшета (между ним и левой рукой)",
-			vm.origin.x < -0.1 and vm.origin.x > -0.3 and absf(vm.origin.y - bar.y) < 0.05
-			and absf(vm.origin.z - bar.z) < 0.05
-		)
-		_expect(path, "VarioMount −Z смотрит на пилота (вправо-назад)",
-			(-vm.basis.z).x > 0.3 and (-vm.basis.z).z > 0.2)
+		for pair in [["InstrumentMount", im], ["VarioMount", vm]]:
+			var o: Vector3 = pair[1].origin
+			var ax := utl - ubl
+			var t := clampf((o - ubl).dot(ax) / ax.length_squared(), 0.0, 1.0)
+			_expect(path, "%s у левой стойки (кронштейн ≤ 0,35 м от оси)" % pair[0],
+				o.distance_to(ubl + ax * t) < 0.35 and o.x < -0.1 and t > 0.05 and t < 0.7)
+		_expect(path, "VarioMount выше планшета на стойке", vm.origin.y > im.origin.y)
+		# глаза пилота лёжа (pilot_eye): взгляд на них — вправо и вперёд/вверх
+		_expect(path, "InstrumentMount −Z смотрит вправо на пилота", (-im.basis.z).x > 0.3)
+		_expect(path, "VarioMount −Z смотрит вправо на пилота", (-vm.basis.z).x > 0.3)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])
