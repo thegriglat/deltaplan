@@ -37,11 +37,8 @@ def main():
     torch.set_num_threads(a.threads)
     cpu = torch.device("cpu")
     if a.run and not a.random_init:
-        ck = torch.load(D.RUNS / a.run / "model.pt", map_location="cpu", weights_only=False)
-        for nm in ("best.pt",):
-            if (D.RUNS / a.run / nm).exists():
-                ck = torch.load(D.RUNS / a.run / nm, map_location="cpu", weights_only=False)
-        net = M.Ann2(head=ck["config"].get("head", "mlp")); net.load_state_dict(ck["state_dict"])
+        f = D.RUNS / a.run / ("best.pt" if (D.RUNS / a.run / "best.pt").exists() else "model.pt")
+        net, _ = M.load_run(f)
     else:
         net = M.Ann2(head=a.head)
     net.eval()

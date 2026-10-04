@@ -1,0 +1,6 @@
+threads 6 params_M 3.147 head deeponet
+encoder_ms 33.7
+head_ms 3.8
+total_ms 34.3
+p2_ms 21.7
+ratio_to_p2 1.58   (по минимумам 1.58)
