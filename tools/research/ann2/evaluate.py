@@ -44,7 +44,7 @@ def ubin(u):
 @torch.no_grad()
 def ann2_h60(model, X, F, metas, heated, dev, lw):
     """Предсказание ann2 на 60 м: (B, 4, ny, nx) u, v, w, θ′ в исходной системе."""
-    par = np.stack([phys.case_par(m) for m in metas]); prof = np.stack([phys.profile_input(p) for p in par])
+    par = np.stack([phys.case_par(m) for m in metas]); prof = np.stack([phys.profile_input(p, phys.bg_theta_of(m)) for p, m in zip(par, metas)])
     inp = D.eval_inputs(X, F, par, prof, heated, dev)
     B, _, H, W = inp["maps"].shape
     eta = torch.tensor([50.0, 75.0], device=dev).view(1, 2, 1, 1).expand(B, 2, H, W)

@@ -77,7 +77,7 @@ def loss_fn(model, b, args, amp):
         ed = b["eta_div"]
         ediv = torch.cat([ed[..., 0], ed[..., 1]], 1)[:, :, None, None].expand(B, 2 * Kd, H, W)
         eta = torch.cat([b["eta"], ediv], 1)
-        out = model.decode(Fm, c, b["par"], eta)
+        out = model.decode(Fm, c, b["par"], eta, b["prof"])
     nll, per = L.nll(out[:, :K], b["y"], b["mask"])
     div = L.divergence_penalty(out[:, K:], ed, b["par"]) if args.div_w > 0 else nll.new_zeros(())
     return nll + args.div_w * div, nll, div, per
