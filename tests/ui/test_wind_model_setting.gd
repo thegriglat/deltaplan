@@ -27,6 +27,38 @@ func _atmo_cfg(saved: Dictionary) -> Dictionary:
 	return Config._deep_merge(Config.get_config("atmosphere"), saved)
 
 
+## Тексты пунктов, как их видит пилот: после перевода (локаль ru и en), порядок и подписи.
+func test_wind_model_item_texts_ui() -> void:
+	var dir := ProjectSettings.globalize_path("res://.godot/test_wind_model_texts")
+	DirAccess.make_dir_recursive_absolute(dir)
+	var old := TranslationServer.get_locale()
+	var want := {
+		"ru":
+		[
+			"Нейросеть (поле ветра по рельефу)",
+			"Расчет на GPU (обтекание рельефа)",
+			"Эвристика (профиль ветра без рельефа)"
+		],
+		"en":
+		[
+			"Neural network (wind field over terrain)",
+			"GPU solver (terrain flow)",
+			"Heuristic (wind profile without terrain)"
+		],
+	}
+	for loc in want:
+		TranslationServer.set_locale(loc)
+		var sp := _panel(dir)
+		var opt: OptionButton = sp.get("_wind_model")
+		var got: Array = []
+		for i in opt.item_count:
+			got.append(opt.get_item_text(i))
+		check(got == want[loc], "UI %s: %s" % [loc, got])
+		sp.queue_free()
+	TranslationServer.set_locale(old)
+	DirAccess.remove_absolute(dir)
+
+
 func test_setting_saved_and_applied() -> void:
 	var dir := ProjectSettings.globalize_path(
 		"res://.godot/test_wind_model_%d" % OS.get_process_id()
