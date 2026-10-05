@@ -5,7 +5,7 @@ module: "steam-assets"
 updated: "2026-10-05"
 summary: "Контракты модуля steam-assets: инвентарь сборки (SA-К1), лицензии и атрибуции в сборке (SA-К2), формат ASSETS.md (SA-К3), ассеты страницы Steam (SA-К4)."
 related: ["docs/plan/steam-assets.md", "ASSETS.md"]
-contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id": "SA-К3", "version": 2}, {"id": "SA-К4", "version": 2}]
+contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id": "SA-К3", "version": 2}, {"id": "SA-К4", "version": 3}]
 ---
 # Контракты модуля steam-assets
 
@@ -45,7 +45,7 @@ contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id
 - v2: в колонке «Лицензия» разделов, входящих в сборку, — явное имя лицензии; отсылки «как у …», «то же», «как выше» и одно «открытые данные» запрещены (иначе `commercial_ok` не вычисляется). Лицензия, требующая полного текста, ссылается на `licenses/<имя>.txt` из списка SA-К2.
 - Раздел «Движок и библиотеки» (обязателен): Godot 4.7.2 (`engine`), godot-cpp, `air_onnx`, ONNX Runtime 1.30.0, VC++ runtime (Windows), `debug_draw_3d`, `debug_menu`; строку GodotSteam добавит модуль steam (ST-10).
 
-## SA-К4. Ассеты страницы Steam (v2)
+## SA-К4. Ассеты страницы Steam (v3)
 Владелец: SA-6 (капсулы и иконки), SA-7 (иконки ачивок). Потребители: пользователь (загрузка в Steamworks после регистрации), модуль steam (`steam/partner/README.md`, ST-10 — ссылка на иконки ачивок).
 - Каталог `steam/store/` с `.gdignore` (в сборку не попадает; `steam/partner/` — модуля steam, не трогать). Размеры — по [Steamworks: Graphical Assets](https://partner.steamgames.com/doc/store/assets) на 05.10.2026:
 
@@ -68,10 +68,12 @@ contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id
 | `achievements/<API_NAME>.jpg`, `<API_NAME>_locked.jpg` | 256×256 | JPEG | иконки ачивок (открыта / закрыта) |
 
 - `API_NAME` — ключи ачивок из `configs/achievements.json` модуля steam (контракт S6, `docs/contracts/steam.md` на ветке `feature/steam`); набор иконок = набор ачивок.
+- v3 — иконки ачивок (решение пользователя 05.10): генерируются локальной моделью на NVIDIA (RTX 4070 SUPER, 12 ГБ) пакетно, позже. `tools/store/achievement_icons.py --config <achievements.json> --prompts tools/store/achievements/prompts.json --out steam/store/achievements [--dry]`: список ачивок — **только** из `configs/achievements.json` (S6 модуля steam: `achievements[].api`, `name.en`, `desc.en`); `prompts.json`: `{"version": 1, "model": {"id": "<repo HF>", "revision": "<коммит>", "license": "<SPDX/название>"}, "style": "<общий промпт стиля>", "negative": "…", "steps": int, "guidance": float, "size": 1024, "icons": {"<API>": {"subject": "<что на иконке>", "seed": int}}}`; `--dry` — без GPU и без загрузки модели: печатает по строке на ачивку и `ICONS PLAN ok=<n> missing=<m>` (код 1, если `missing > 0`). Без `--dry`: картинка `size×size` → уменьшение до 256×256 → `<API>.jpg`; `<API>_locked.jpg` — из неё же детерминированно (оттенки серого, затемнение), без модели. Модель — с лицензией, разрешающей коммерческое использование результата (не FLUX.1-dev и прочие NC); запись в ASSETS.md (раздел страницы Steam, «не входит в игру»): модель, лицензия, промпты.
 - Капсулы (кроме hero) содержат название игры (логотип) и ничего больше текстового (правила Steam: без наград, цитат, «скидка»); hero — без текста и логотипа; всё — кадры из игры или наша графика, без сторонних материалов.
 - Генерация — `tools/store/make_store_assets.py` (Pillow) из исходных кадров `steam/store/src/*.jpg` (JPEG q92, 3840×2160; пока скриншотов нет — копия `assets/ui/menu_background.jpg`) и `assets/logo.png`, `assets/icon.png`; повторный запуск даёт те же файлы. `steam/store/README.md` — что куда загружать в Steamworks.
 
 ## История
+- SA-К4 v3 (05.10.2026): иконки ачивок — генератор по `configs/achievements.json` и `prompts.json`, режим `--dry`, модель с коммерческой лицензией. Потребители: SA-7, модуль steam (ST-10).
 - SA-К2 v2, SA-К3 v2 (05.10.2026, по аудиту SA-1): точный набор `licenses/*.txt`; фраза ODbL в THIRD_PARTY_NOTICES; шаблоны `<exe>/…`, `engine`, перечисление через запятую; запрет «как у/то же/открытые данные» в колонке «Лицензия»; раздел «Движок и библиотеки» обязателен. Потребители: SA-3, SA-4, `build_inventory.py`, модуль steam (ST-10).
 - SA-К4 v2 (05.10.2026): скриншоты сняты из модуля (решение пользователя); исходный кадр капсул до скриншотов — `assets/ui/menu_background.jpg`. Потребители: SA-6.
 - v1 (05.10.2026) — заведены до первого исполнителя.
