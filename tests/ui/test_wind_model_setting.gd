@@ -35,15 +35,21 @@ func test_setting_saved_and_applied() -> void:
 	var sp := _panel(dir)
 	var opt: OptionButton = sp.get("_wind_model")
 	check(opt != null and opt.item_count == 3, "в настройках три варианта модели ветра")
-	check(opt.selected == 0, "по умолчанию — расчёт")
+	var want := ["Нейросеть (поле ветра по рельефу)", "Расчет на GPU (обтекание рельефа)", "Эвристика (профиль ветра без рельефа)"]
+	var got: Array = []
+	for i in opt.item_count:
+		got.append(opt.get_item_text(i))
+	check(got == want, "порядок и тексты: %s" % [got])
+	check(opt.get_item_id(0) == 2 and opt.get_item_id(1) == 0 and opt.get_item_id(2) == 1, "id пунктов")
+	check(opt.get_selected_id() == 2 and opt.selected == 0, "по умолчанию — нейросеть, первый пункт")
 	# упрощённый
-	opt.select(1)
+	opt.select(opt.get_item_index(1))
 	check(sp.save(), "сохранилось (упрощённый)")
 	var saved := UserSettings.read_json(dir.path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "off", "записан enabled=off")
 	_check_mode(_atmo_cfg(saved), false)
 	# нейросеть
-	opt.select(2)
+	opt.select(opt.get_item_index(2))
 	check(sp.save(), "сохранилось (нейросеть)")
 	saved = UserSettings.read_json(dir.path_join("atmosphere.json"))
 	var am: Dictionary = saved.get("air_model", {})
@@ -56,7 +62,7 @@ func test_setting_saved_and_applied() -> void:
 	rt.free()
 	Config.reload()
 	# расчёт
-	opt.select(0)
+	opt.select(opt.get_item_index(0))
 	check(sp.save(), "сохранилось (расчёт)")
 	saved = UserSettings.read_json(dir.path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "auto", "записан enabled=auto")
@@ -75,15 +81,15 @@ func test_panel_shows_saved_value() -> void:
 	DirAccess.make_dir_recursive_absolute(dir)
 	Config._cache["atmosphere"] = _atmo_cfg({"air_model": {"enabled": "off"}})
 	var sp := _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).selected == 1, "off → «упрощённый»")
+	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 1, "off → «упрощённый»")
 	sp.queue_free()
 	Config._cache["atmosphere"] = _atmo_cfg({"air_model": {"enabled": "auto", "engine": "nn"}})
 	sp = _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).selected == 2, "nn → «нейросеть»")
+	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 2, "nn → «нейросеть»")
 	sp.queue_free()
 	Config.reload()
 	sp = _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).selected == 0, "по умолчанию → «расчёт»")
+	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 2, "по умолчанию → «нейросеть»")
 	sp.queue_free()
 	DirAccess.remove_absolute(dir)
 
