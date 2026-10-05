@@ -100,3 +100,4 @@
 {"t": "2026-10-05T06:24:17", "by": "main", "task": "SI-3", "ev": "reported", "commits": ["39ec43d0"], "note": "done: Созданы 4 .en.md (главная, docs, research/docs, mechanics); id {#acknowledgements} в обоих файлах главной."}
 {"t": "2026-10-05T06:24:24", "by": "executor", "task": "SI-23", "ev": "accepted", "note": "2/2 en_pages=ok:exit 0; gen_check=ok:exit 0"}
 {"t": "2026-10-05T06:24:24", "by": "coordinator", "task": "SI-23", "ev": "merged", "commits": ["d300aad6"]}
+{"t": "2026-10-05T06:24:26", "by": "coordinator", "task": "SI-6", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-6"}
