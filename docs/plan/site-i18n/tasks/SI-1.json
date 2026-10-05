@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "SI-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/site-i18n.md"
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "name": "SI-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/site-i18n.md"
     }
   ],
@@ -71,5 +71,5 @@
   ],
   "notes": "",
   "created": "2026-10-05T06:08:19",
-  "edited": "2026-10-05T06:08:19"
+  "edited": "2026-10-05T06:16:42"
 }

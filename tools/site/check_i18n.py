@@ -60,8 +60,9 @@ def k1() -> None:
     for m in cfg.get("module", {}).get("mounts", []):
         src, tgt = m.get("source", ""), m.get("target", "")
         if tgt.startswith("content") and src.startswith(".."):
-            if m.get("lang") != "ru":
-                err("K1", f"монтирование {src} → {tgt} без lang = 'ru' (документы репозитория — только ru)")
+            langs_m = (m.get("sites") or {}).get("matrix", {}).get("languages")
+            if langs_m != ["ru"]:
+                err("K1", f"монтирование {src} → {tgt} без sites.matrix.languages = ['ru'] (документы репозитория — только ru)")
 
 
 def page_files() -> list[str]:
@@ -188,7 +189,7 @@ def parse(path: str) -> Links:
 
 
 def build(out: str) -> bool:
-    r = subprocess.run(["hugo", "--quiet", "--logLevel", "warn", "-d", out, "--cleanDestinationDir"],
+    r = subprocess.run(["hugo", "--logLevel", "warn", "-d", out, "--cleanDestinationDir"],
                        cwd=SITE, capture_output=True, text=True)
     log = (r.stdout + r.stderr).strip()
     bad = [l for l in log.splitlines() if re.search(r"\b(WARN|ERROR)\b", l)]
@@ -207,8 +208,16 @@ def k4(out: str, base_path: str) -> None:
             err("K4", f"нет {rel}")
         elif parse(p).lang not in (lang, lang + "-RU", lang + "-US", lang + "-GB"):
             err("K4", f"{rel}: <html lang> = {parse(p).lang!r}, ждали {lang}")
-    if os.path.isdir(os.path.join(out, "en")):
-        err("K4", "есть каталог /en/ — en должен быть в корне")
+    en_dir = os.path.join(out, "en")
+    if os.path.isdir(en_dir):
+        # Hugo всегда пишет /en/index.html (редирект на корень) и /en/sitemap.xml — это допустимо
+        extra = sorted(set(os.listdir(en_dir)) - {"index.html", "sitemap.xml"})
+        if extra:
+            err("K4", f"в /en/ лишнее {extra[:5]} — en должен быть в корне (допустим только редирект Hugo)")
+        else:
+            with open(os.path.join(en_dir, "index.html"), encoding="utf-8", errors="replace") as fh:
+                if "http-equiv=\"refresh\"" not in fh.read().replace("http-equiv=refresh", "http-equiv=\"refresh\""):
+                    err("K4", "/en/index.html — не редирект")
     broken: dict[str, set[str]] = {}
     checked = 0
     for d, _, fs in os.walk(out):

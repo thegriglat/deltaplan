@@ -27,3 +27,8 @@
 {"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-2", "ev": "created", "note": "Генератор страниц крыльев на en и ru"}
 {"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-2", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"uncertain\"]"]}}
 {"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-23", "ev": "created", "note": "Перевод на английский: ручной текст оглавлений «Модели аппаратов»"}
+{"t": "2026-10-05T06:09:59", "by": "executor", "task": "SI-24", "ev": "accepted", "note": "4/4 readme_ru=ok:3; readme_en=ok:1; skill_langs=ok:5; changelog=ok:1"}
+{"t": "2026-10-05T06:10:03", "by": "coordinator", "task": "SI-24", "ev": "merged", "commits": ["cec37771"]}
+{"t": "2026-10-05T06:16:04", "by": "executor", "task": "SI-1", "ev": "reported", "commits": ["23d76df5"], "note": "partial: Hugo двуязычный (en в корне, ru в /ru/), 37 страниц переименованы в .ru.md, строки в i18n, резолвер ищет страницу в язы…", "dp_feedback": "ls/find в Bash фильтруются rtk (пустой вывод) — путает при проверке выходных каталогов; считал через python."}
+{"t": "2026-10-05T06:16:41", "by": "coordinator", "task": "SI-1", "ev": "edited", "note": "contract:SI-К1", "diff": {"contract": ["null", "null"]}}
+{"t": "2026-10-05T06:16:42", "by": "coordinator", "task": "SI-1", "ev": "edited", "note": "contract:SI-К4", "diff": {"contract": ["null", "null"]}}
