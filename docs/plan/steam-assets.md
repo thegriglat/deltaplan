@@ -80,7 +80,8 @@ related: ["docs/contracts/steam-assets.md", "ASSETS.md", "docs/plan/offline_worl
 
 ## Итог на 05.10
 - Приняты и влиты: SA-1 (аудит), SA-2 (правила серверов тайлов), SA-3 (ASSETS.md), SA-4 (licenses/, THIRD_PARTY_NOTICES рядом с exe), SA-6 (капсулы, иконки), SA-7 этап 1 (промпты и генератор иконок ачивок), SA-8 (User-Agent, паузы, параллельность тайлов), SA-9 (VC++ из Redist, инвентарь `<exe>/`), SA-10 (Redist через msvc-wine; DLL совпали побайтно). SA-5 снята.
-- Открыто: SA-7 этап 2 (после финального `configs/achievements.json` модуля steam и освобождения GPU; вход HF и условия FLUX.1-schnell — пользователю); скриншоты и описание — позже, вне модуля; macOS-архив без THIRD_PARTY_NOTICES (если macOS будет раздаваться).
+- SA-11: промпты под финальные 38 ачивок (steam ba0145fa) — `--dry` ok=38.
+- Открыто: SA-7 этап 2 — генерация на GPU (после освобождения GPU; вход HF и условия FLUX.1-schnell — пользователю); скриншоты и описание — позже, вне модуля; macOS-архив без THIRD_PARTY_NOTICES (если macOS будет раздаваться).
 
 ## Волны
 1. SA-1, SA-2, SA-6 (параллельно).
