@@ -31,7 +31,17 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - **Rich Presence**: `SteamPresence` переводит состояние игры (S3) в ключи присутствия; файл локализации токенов для кабинета Steamworks — в репозитории.
 - **Сеть**: лобби Steam (друзья, приглашения через оверлей, «вход к другу») + транспорт Steam Networking Messages, по которому идут те же кадры `Envelope` (proto3 JSON). У хозяина лобби — встроенный сервер игры (`local_server.gd`), к которому Steam-пиры подключаются через мост. Контракт S4 (пиры), S5 (лобби).
 - **Имя пилота**: пусто в настройках → ник Steam (S1).
-- **Steam Cloud**: файлы настроек через API Remote Storage или Auto-Cloud — по итогам ST-1.
+- **Steam Cloud**: рекомендация ST-1 — Auto-Cloud (без кода): корень `All OSes` + переопределения `WinAppDataRoaming/Deltaplan`, `LinuxXdgDataHome/Deltaplan`, `MacAppSupport/Deltaplan` (в проекте уже `custom_user_dir_name="Deltaplan"`); `user://configs/` разделить на общее (имя, управление, язык) и локальное для машины (графика). Remote Storage API на 480 работает, но квота Spacewar 4 КиБ.
+
+## Итоги ST-1 (05.10, `docs/research/steam_godotsteam.md`, `tools/research/steam/`)
+- GodotSteam GDExtension 4.22.1 (`v4.22.1-gde`, Steamworks SDK 1.65), MIT; репозиторий на Codeberg; архив 27 МБ, sha256 закреплён в `tools/research/steam/fetch_godotsteam.sh`; грузится в Godot 4.7.2.
+- Доступ — только `Engine.get_singleton("Steam")` в `Object`, вызовы `.call()`, константы `.get()` (S1.1). `steamInitEx`: 0 — успех, 1 — прочее, 2 — нет клиента, 3 — клиент устарел. `run_callbacks()` каждый кадр. `restartAppIfNecessary` не вызывать.
+- Без расширения — `has_singleton` false; расширение без `libsteam_api` — ERROR в логе, не грузится; без клиента — `status=2`.
+- Сеть: Networking Messages (`sendMessageToUser`, `receiveMessagesOnChannel`, сигналы `network_messages_session_request/failed`), кадр 2 КБ надёжным на канале 0 проходит; лобби create/join на 480 работают; вход по приглашению — сигнал `join_requested(lobby_id, steam_id)` (`lobby_join_requested` нет); закрытая игра запускается с `+connect_lobby <id>`; значение данных лобби < 8192 байт.
+- Rich Presence: ключ ≤ 63 байт, значение ≤ 255, планировать ≤ 20 ключей; `.vdf` формата `lang/<язык>/tokens`.
+- Ачивки: на 480 только ачивки Spacewar; логику тестировать без Steam; массовой загрузки в кабинет нет — таблица для ручного ввода.
+- Сборка: два набора пресетов — Steam (`custom_features=steam`) и itch (`exclude_filter` + `addons/godotsteam/*`: в экспорте нет библиотек, замер `export_check.sh`); `addons/godotsteam/` — в `.gitignore`. Первый `--import` проекта с расширением падает SIGABRT при выходе (импорт выполнен; обход — импортировать дважды).
+- Не проверено: два аккаунта (лобби/сеть/оверлей/`+connect_lobby`), токены присутствия, свои ачивки, Auto-Cloud, загрузка на Windows/macOS, условия Steamworks SDK Access Agreement.
 
 ## Задачи
 
@@ -49,7 +59,7 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Оценка: 0,5 дня.
 
 ### ST-3. Сборка со Steam и без (dp-engineer, Sonnet)
-- Скоуп: `addons/godotsteam/` через `fetch_godotsteam.sh` (ST-1; бинарники не в git), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam. Имена пресетов Steam содержат «Steam» (steam-assets SA-К2 включает по ним строки «(только Steam)» в уведомления); в `tools/build.sh` steam-assets добавит вызов `third_party_notices.py` — конфликт при слиянии тривиальный. `steam/partner/` — с `.gdignore`.
+- Скоуп: `addons/godotsteam/` через `tools/steam/fetch_godotsteam.sh` (перенести из `tools/research/steam/`; бинарники не в git, каталог в `.gitignore`), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam. Имена пресетов Steam содержат «Steam» (steam-assets SA-К2 включает по ним строки «(только Steam)» в уведомления); в `tools/build.sh` steam-assets добавит вызов `third_party_notices.py` — конфликт при слиянии тривиальный. `steam/partner/` — с `.gdignore`.
 - Зависит от: ST-1, ST-2.
 - Приёмка: сборка itch Linux: в каталоге нет `libsteam_api*`/`godotsteam*`, `--smoke` проходит; сборка Steam Linux: библиотеки на месте, `--smoke` без клиента → `inactive (init_failed…)`, код 0; Windows-сборки собираются (запуск не проверить — так и записать).
 - Оценка: 0,5 дня.
