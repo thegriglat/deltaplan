@@ -56,7 +56,7 @@ def test_plan_series_and_ids(tmp_path):
             assert r.series == PB.pb.SEPARATION and r.numerics.dx_m == 100.0 and r.relief_id == ln.relief_id and r.fr_f64 == ln.fr_f64
             assert nm.dx_m == 400.0 and nm.envelope_angle_deg in (8.0, 12.0, 18.0)
         if ln.series == PB.pb.ENVELOPE_REAL:
-            assert ln.conditions and ln.cond_id >= 0 and len(ln.fr_f64) == 8
+            assert ln.conditions and ln.cond_id >= 0 and len(ln.fr_f64) == 8 and ln.heat_flux_wm2 in (-1.0, 0.0)
             if nm.envelope_angle_deg > 0:
                 assert byid[ln.ref_line_id].cond_id == ln.cond_id and byid[ln.ref_line_id].numerics.envelope_angle_deg == 0
         if ln.series == PB.pb.SWEEP:

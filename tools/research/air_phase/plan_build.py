@@ -33,7 +33,7 @@ sys.path.insert(0, str(ROOT / "tools/research/air_synth/corpus"))
 import phase_plan_pb2 as pb  # noqa: E402
 import reliefs as R          # noqa: E402
 
-CONTRACT = "P2 v2"
+CONTRACT = "P2 v3"
 SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")
 SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
                "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL}
@@ -72,7 +72,7 @@ REAL_RELIEFS = "real/hg_v2"
 REAL_CONDITIONS = "conditions/hg_v2_hgw24"
 REAL_SOLVE = "solve/hg_v2__hgw24__s0-939a467"   # SY-12: таблица cases, status_h — решение с нагревом
 REAL_FR_MIN, REAL_SLOPE_MIN = 1.5, 35.0        # froude таблицы > 1,5, уклон p95 (100 м) ≥ 35°
-REAL_N_NONCONV, REAL_N_CONV = 80, 20
+REAL_N_LOWFR, REAL_N_CONV = 60, 20
 ERODED_RELIEF_RANGE = (400.0, 1200.0)   # м: перепад как у идеальных (h = 500); при Fr = 5 U_sat = 5·N·h ≤ 60 м/с
 
 
@@ -185,11 +185,15 @@ def pick_eroded(corpus_dir, n_ideal, n=ERODED_N):
 
 
 # --------------------------------------------------------------------------- план
-def pick_real(solve_dir=None, relief_corpus=REAL_RELIEFS, conditions=REAL_CONDITIONS, n_non=REAL_N_NONCONV, n_conv=REAL_N_CONV):
-    """ENVELOPE_REAL: случаи SY-12 (таблица cases, status_h) с froude таблицы > 1,5 и slope_p95_deg_100 ≥ 35°.
-    Несошедшиеся (status_h = 1): все, если ≤ n_non, иначе n_non равноотстоящих в порядке (froude, relief_id, cond_id).
-    Контроль (status_h = 0): n_conv равноотстоящих по индексу linspace в порядке (slope_p95, relief_id, cond_id)
-    (разброс по крутизне; детерминированно). → [dict(relief_id, cond_id, froude, wind_from_deg, slope_p95, variant)]."""
+def pick_real(solve_dir=None, relief_corpus=REAL_RELIEFS, conditions=REAL_CONDITIONS, n_low=REAL_N_LOWFR, n_conv=REAL_N_CONV):
+    """ENVELOPE_REAL (P2 v3): случаи SY-12 (таблица cases) с slope_p95_deg_100 ≥ 35°.
+    (а) froude таблицы > 1,5: все несошедшиеся «h» (status_h = 1; heat_flux_wm2 = −1, variant nonconv_h) и все несошедшиеся
+        «m» (status_m = 1; heat_flux_wm2 = 0, nonconv_m); сошедшийся не в обоих — по группе на каждое решение;
+    (б) froude ≤ 1,5: n_low = 60 несошедшихся «h» равноотстоящих (linspace по индексу) в порядке (froude, relief_id, cond_id),
+        variant nonconv_lowfr;
+    (в) контроль: n_conv = 20 случаев froude > 1,5, сошедшихся в обоих решениях (оба ok), решение «h», variant conv —
+        равноотстоящие в порядке (slope_p95, relief_id, cond_id).
+    → ([dict(relief_id, cond_id, froude, wind_from_deg, slope_p95, heat, variant)], dict со счётчиками)."""
     import glob
     import h5py
     import corpus_io as cio
@@ -204,21 +208,28 @@ def pick_real(solve_dir=None, relief_corpus=REAL_RELIEFS, conditions=REAL_CONDIT
     rows = []
     for r in cs:
         k = key[(int(r["relief_id"]), int(r["cond_id"]))]
-        fr, s = float(tab["froude"][k]), sl[int(r["relief_id"])]
-        if fr > REAL_FR_MIN and s >= REAL_SLOPE_MIN:
-            rows.append(dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), froude=fr, wind_from_deg=float(tab["wind_from_deg"][k]),
-                             slope_p95=s, status_h=int(r["status_h"])))
-    non = sorted([r for r in rows if r["status_h"] != 0], key=lambda r: (r["froude"], r["relief_id"], r["cond_id"]))
-    conv = sorted([r for r in rows if r["status_h"] == 0], key=lambda r: (r["slope_p95"], r["relief_id"], r["cond_id"]))
-    if len(non) > n_non:
-        non = [non[i] for i in np.unique(np.round(np.linspace(0, len(non) - 1, n_non)).astype(int))]
-    if len(conv) > n_conv:
-        conv = [conv[i] for i in np.unique(np.round(np.linspace(0, len(conv) - 1, n_conv)).astype(int))]
-    for r in non:
-        r["variant"] = "nonconv"
-    for r in conv:
-        r["variant"] = "conv"
-    return non + conv, dict(candidates=len(rows), nonconv_found=sum(r["status_h"] != 0 for r in rows), conv_found=sum(r["status_h"] == 0 for r in rows))
+        s = sl[int(r["relief_id"])]
+        if s >= REAL_SLOPE_MIN:
+            rows.append(dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), froude=float(tab["froude"][k]),
+                             wind_from_deg=float(tab["wind_from_deg"][k]), slope_p95=s, sh=int(r["status_h"]), sm=int(r["status_m"])))
+
+    def spread(lst, n):
+        if len(lst) <= n:
+            return lst
+        return [lst[i] for i in np.unique(np.round(np.linspace(0, len(lst) - 1, n)).astype(int))]
+
+    def pick(rs, heat, variant):
+        return [dict(r, heat=heat, variant=variant) for r in rs]
+    hi = [r for r in rows if r["froude"] > REAL_FR_MIN]
+    lo = sorted([r for r in rows if r["froude"] <= REAL_FR_MIN and r["sh"] != 0], key=lambda r: (r["froude"], r["relief_id"], r["cond_id"]))
+    ctrl = sorted([r for r in hi if r["sh"] == 0 and r["sm"] == 0], key=lambda r: (r["slope_p95"], r["relief_id"], r["cond_id"]))
+    sel = (pick([r for r in hi if r["sh"] != 0], -1.0, "nonconv_h") + pick([r for r in hi if r["sm"] != 0], 0.0, "nonconv_m")
+           + pick(spread(lo, n_low), -1.0, "nonconv_lowfr") + pick(spread(ctrl, n_conv), -1.0, "conv"))
+    info = dict(candidates_slope35=len(rows), hi_fr=len(hi), nonconv_h_hi=sum(r["variant"] == "nonconv_h" for r in sel),
+                nonconv_m_hi=sum(r["variant"] == "nonconv_m" for r in sel), nonconv_h_lowfr_found=len(lo),
+                nonconv_lowfr=sum(r["variant"] == "nonconv_lowfr" for r in sel), conv_found=len(ctrl),
+                conv=sum(r["variant"] == "conv" for r in sel))
+    return sel, info
 
 
 def _numerics(msg, **kw):
@@ -354,10 +365,10 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
         cr.close()
         for p in cases:
             kw = dict(cond=REAL_CONDITIONS, cid=p["cond_id"], variant=p["variant"])
-            base = add_line("envelope_real", pid_of[p["relief_id"]], 0.0, 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD, **kw)
+            base = add_line("envelope_real", pid_of[p["relief_id"]], p["heat"], 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD, **kw)
             for ang in ENV_ANGLES:
                 for wn, wall, z0 in ENV_WALLS:
-                    add_line("envelope_real", pid_of[p["relief_id"]], 0.0, 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD,
+                    add_line("envelope_real", pid_of[p["relief_id"]], p["heat"], 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD,
                              ref=base.line_id, envelope_angle_deg=ang, envelope_wall=wall, envelope_z0_m=z0, **kw)
         real_info["selected"] = cases
         eroded_info = list(eroded_info)
