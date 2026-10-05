@@ -1,0 +1,69 @@
+{
+  "id": "SY-12",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Места дельтаплана по исправленной геометрии игры: рельеф hg_v2 (S1 v5), сверка с игрой из main, условия, счёт решателя",
+  "goal": "Пересобрать рельеф всех мест (обучение, отложенные, места игры) по исправленной геометрии квадрата игры (клетка ровно 400 м, конвейер П6), сверить побитно с игрой из main, построить условия hgw24 и пересчитать решателем — данные для финального переобучения на всём.",
+  "plan_ref": "Решения пользователя (не обсуждаются)",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "5",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S5",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-12",
+  "branch": "air-synth/SY-12",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/hg_real",
+    "tools/research/air_synth/solver"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot",
+    "tools/research/air3d",
+    "scripts",
+    "tools/research/air_synth/train"
+  ],
+  "accept": [
+    {
+      "name": "hg_tests",
+      "cmd": "cd tools/research/air_synth/hg_real && ../corpus/.venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "game_match",
+      "cmd": "cd tools/research/air_synth/hg_real && cat out/game_check_v2.json",
+      "expect": "num:\"max_abs_diff_m\": ([\\d.eE+-]+) <=0.001"
+    },
+    {
+      "name": "progress",
+      "cmd": "cd tools/research/air_synth/solver && cat out_solve_hg2/progress.json",
+      "expect": "re:\"cases_done\""
+    }
+  ],
+  "report_extra": [
+    "n_sites",
+    "n_train",
+    "n_holdout",
+    "excluded",
+    "corpus_path",
+    "game_check",
+    "solve_paths",
+    "est_hours",
+    "job_name"
+  ],
+  "notes": "Новая геометрия — заметка air-square в журнале (dp log air-synth --full; C2 v7 в docs/contracts/air-model.md): конвейер П6 terrain_cut.grid_h + block_mean_400 — как SY-6 (tools/research/air_synth/real/pack_real.py), а не «как игра v6» (SY-10 hg_real/). Места — тот же каталог и то же деление train/holdout, что hg_v1 (те же site_id в тех же частях; правила исключения те же — море > 5 %, перепад > 3000 м; 5 бывших «вне слоя» — теперь без сдвига окна; новые исключения/включения — записать). Корпуса ~/air_synth_data/real/hg_v2 и real/game_hg2 (S1 v5). Сверка с игрой из main (feature/air-synth уже влил main): headless godot — как SY-10 game_block_check.gd, на 4 местах игры + 5 бывших «вне слоя» + 5 случайных: клетки 400 м игры против h400 → out/game_check_v2.json (max_abs_diff_m ≤ 1e-3). Условия — hgw24 тем же зерном (make_hgw24.py; conditions/hg_v2_hgw24, game2_hgw24). Счёт — solve/hg_v2__hgw24__<версия> и solve/game2__hgw24__<версия>, очередь game → holdout → train, dp job --lock gpu start sy12-solve … — ТОЛЬКО после конца sy10-solve (GPU-замок общий; можно поставить в очередь — замок дождётся), сырьё удалить. Godot — только XDG_DATA_HOME=/home/greg/projects/.tmp/tmp.MSAhJ26ON0; project.godot не коммитить. Если разрешения откажут — команду в отчёт. Отчёт после первой готовой части. Обучение НЕ запускать.",
+  "created": "2026-10-05T06:25:44",
+  "edited": "2026-10-05T06:25:44"
+}
