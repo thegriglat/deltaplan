@@ -10,155 +10,155 @@
   "icons": {
     "ACH_FIRST_FLIGHT": {
       "seed": 1000,
-      "prompt_key": "d3bb3aac497acd04"
+      "prompt_key": "cdcc6fe6eaf644e8"
     },
     "ACH_SOFT_LANDING": {
       "seed": 1037,
-      "prompt_key": "ecc1844d053b2d62"
+      "prompt_key": "a06452e074779866"
     },
     "ACH_TOP_LANDING": {
       "seed": 1074,
-      "prompt_key": "734da5a8aa845747"
+      "prompt_key": "870f7b3c1b086ce5"
     },
     "ACH_ABOVE_LAUNCH": {
       "seed": 1111,
-      "prompt_key": "fa2dfa9d60782d0f"
+      "prompt_key": "69cdad7ae069de6a"
     },
     "ACH_KILOMETER_UP": {
       "seed": 1148,
-      "prompt_key": "efb093a6cc45f4b3"
+      "prompt_key": "2b91127ca10e33b0"
     },
     "ACH_CLOUDBASE": {
       "seed": 1185,
-      "prompt_key": "515f523d89657d41"
+      "prompt_key": "482fb7178b3a1319"
     },
     "ACH_STRONG_CLIMB": {
       "seed": 1222,
-      "prompt_key": "7a899f6ba54b73d9"
+      "prompt_key": "833540363851be4c"
     },
     "ACH_SOARING_15": {
       "seed": 1259,
-      "prompt_key": "66c694c11471291a"
+      "prompt_key": "0d6f95b184186eec"
     },
     "ACH_HOUR": {
       "seed": 1296,
-      "prompt_key": "bf1da3a549a885ee"
+      "prompt_key": "8ef65f44e870ad29"
     },
     "ACH_RIDGE_LOW": {
       "seed": 1333,
-      "prompt_key": "a76b37d74b7a5db8"
+      "prompt_key": "03ea9523af4e8f79"
     },
     "ACH_XC_10": {
       "seed": 1370,
-      "prompt_key": "3705b2460b7ada36"
+      "prompt_key": "ddf8a7d4c85e5363"
     },
     "ACH_XC_50": {
       "seed": 1407,
-      "prompt_key": "eb423661848a8042"
+      "prompt_key": "e2ab114bfe820ef3"
     },
     "ACH_UPWIND": {
       "seed": 1444,
-      "prompt_key": "5045d555cd550bf2"
+      "prompt_key": "ff045c731d48565c"
     },
     "ACH_EVENING": {
       "seed": 1481,
-      "prompt_key": "3239aa8d392538ae"
+      "prompt_key": "118534b6f2b3772d"
     },
     "ACH_PLACES_5": {
       "seed": 1518,
-      "prompt_key": "407fcffbb70180b0"
+      "prompt_key": "e767ce357c70ad9e"
     },
     "ACH_TOGETHER": {
       "seed": 1555,
-      "prompt_key": "86836b50b56307b5"
+      "prompt_key": "2edb798f742e1ced"
     },
     "ACH_GAGGLE": {
       "seed": 1592,
-      "prompt_key": "3de0b7b352ef6e2d"
+      "prompt_key": "1ac43c1136c07cf2"
     },
     "ACH_LAST_DOWN": {
       "seed": 1629,
-      "prompt_key": "e1fd2d059518950a"
+      "prompt_key": "5b45a05a571dde85"
     },
     "ACH_PLACES_10": {
       "seed": 1666,
-      "prompt_key": "d6c894fc57c91cd7"
+      "prompt_key": "c6b462dcfa780153"
     },
     "ACH_PLACES_25": {
       "seed": 1703,
-      "prompt_key": "8c8108353ac8c672"
+      "prompt_key": "d7cd1f2f6200f518"
     },
     "ACH_CONTINENTS_3": {
       "seed": 1740,
-      "prompt_key": "599cca32a54fa5c9"
+      "prompt_key": "b575989126510c1a"
     },
     "ACH_CONTINENTS_ALL": {
       "seed": 1777,
-      "prompt_key": "1e2c677bb3e3a6ca"
+      "prompt_key": "cb24cb95a1abcad1"
     },
     "ACH_XC_100": {
       "seed": 1814,
-      "prompt_key": "f1f0d623dcb4e242"
+      "prompt_key": "d488a70f4fcc02e4"
     },
     "ACH_HOURS_3": {
       "seed": 1851,
-      "prompt_key": "7f827e568967e54c"
+      "prompt_key": "4af41f5f38875f4d"
     },
     "ACH_AIRTIME_10H": {
       "seed": 1888,
-      "prompt_key": "1cfc11dcccca3f69"
+      "prompt_key": "3cc040c65578ceb1"
     },
     "ACH_WINGS_5": {
       "seed": 1925,
-      "prompt_key": "e7237e45669167b6"
+      "prompt_key": "f5f2086b08af6e32"
     },
     "ACH_ALT_5000": {
       "seed": 1962,
-      "prompt_key": "caeb4d3bc0bcf262"
+      "prompt_key": "97c0563dca1998bb"
     },
     "ACH_HIGH_LAUNCH": {
       "seed": 1999,
-      "prompt_key": "b8e7bf7aa657c8fe"
+      "prompt_key": "ef13e29193d553c4"
     },
     "ACH_DESCENT_2000": {
       "seed": 2036,
-      "prompt_key": "8a57c4a93d1a3faf"
+      "prompt_key": "1c21e207e90a9ba4"
     },
     "ACH_STORM": {
       "seed": 2073,
-      "prompt_key": "d8305be7660ebff8"
+      "prompt_key": "624a0c516502ac70"
     },
     "ACH_STRONG_WIND": {
       "seed": 2110,
-      "prompt_key": "1f72132c7894c39c"
+      "prompt_key": "3519f2d2727a3f21"
     },
     "ACH_OVERCAST": {
       "seed": 2147,
-      "prompt_key": "85c48894813fda85"
+      "prompt_key": "4958fb64281ee4b2"
     },
     "ACH_WINTER": {
       "seed": 2184,
-      "prompt_key": "c5e750047a1f97b8"
+      "prompt_key": "f08963cc2f6b2946"
     },
     "ACH_EAGLE": {
       "seed": 2221,
-      "prompt_key": "819c8441976b08ee"
+      "prompt_key": "16061f7d443e5b85"
     },
     "ACH_BALLOONS": {
       "seed": 2258,
-      "prompt_key": "804fc9836e7092b9"
+      "prompt_key": "225cfe3aceb6181f"
     },
     "ACH_GLORIA": {
       "seed": 2295,
-      "prompt_key": "ee6ed470242946e5"
+      "prompt_key": "fe7f8caf4d905195"
     },
     "ACH_WATER_LANDING": {
       "seed": 2332,
-      "prompt_key": "5c6be322539a1474"
+      "prompt_key": "4f4e432221ef1c23"
     },
     "ACH_CAMP_LANDING": {
       "seed": 2369,
-      "prompt_key": "0301029e47aaed4c"
+      "prompt_key": "9f641a0b73243875"
     }
   }
 }
