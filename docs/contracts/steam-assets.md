@@ -5,7 +5,7 @@ module: "steam-assets"
 updated: "2026-10-05"
 summary: "Контракты модуля steam-assets: инвентарь сборки (SA-К1), лицензии и атрибуции в сборке (SA-К2), формат ASSETS.md (SA-К3), ассеты страницы Steam (SA-К4)."
 related: ["docs/plan/steam-assets.md", "ASSETS.md"]
-contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 1}, {"id": "SA-К3", "version": 1}, {"id": "SA-К4", "version": 1}]
+contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 1}, {"id": "SA-К3", "version": 1}, {"id": "SA-К4", "version": 2}]
 ---
 # Контракты модуля steam-assets
 
@@ -42,8 +42,8 @@ contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 1}, {"id
 - В разделах, входящих в сборку, в колонке «Лицензия» запрещены: `NC`, «некоммерч», «non-commercial», «personal», «личн» (решение пользователя 05.10.2026). Пометка `⚠ NC` больше не используется.
 - Шаблоны путей в колонке «Файл»: каждый токен в обратных кавычках, похожий на путь, — шаблон относительно корня проекта; `*` — любые символы в имени, `<x>` — один сегмент пути, `{a,b,c}` — варианты, `01…08` — числовой диапазон с той же шириной; токены `user://…` и `$…` — не файлы сборки (данные, скачиваемые на машине игрока). Новый раздел «Движок и библиотеки» — Godot, GDExtension-библиотеки, ONNX Runtime, VC++ runtime (Windows), godot-cpp.
 
-## SA-К4. Ассеты страницы Steam (v1)
-Владелец: SA-6 (капсулы и иконки), SA-5 (скриншоты), SA-7 (иконки ачивок). Потребители: пользователь (загрузка в Steamworks после регистрации), модуль steam (`steam/partner/README.md`, ST-10 — ссылка на иконки ачивок).
+## SA-К4. Ассеты страницы Steam (v2)
+Владелец: SA-6 (капсулы и иконки), SA-7 (иконки ачивок). Потребители: пользователь (загрузка в Steamworks после регистрации), модуль steam (`steam/partner/README.md`, ST-10 — ссылка на иконки ачивок).
 - Каталог `steam/store/` с `.gdignore` (в сборку не попадает; `steam/partner/` — модуля steam, не трогать). Размеры — по [Steamworks: Graphical Assets](https://partner.steamgames.com/doc/store/assets) на 05.10.2026:
 
 | Файл | Размер, px | Формат | Steam |
@@ -61,12 +61,13 @@ contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 1}, {"id
 | `app_icon.jpg` | 184×184 | JPEG | App (Community) Icon |
 | `event_cover.jpg` | 800×450 | JPEG | Event Cover |
 | `event_header.jpg` | 1920×622 | JPEG | Event Header (необяз.) |
-| `screenshots/NN_<имя>.jpg` | 1920×1080 (16:9) или больше, ≥ 5 шт. | JPEG q90 | Screenshots |
+| `screenshots/NN_<имя>.jpg` | 1920×1080 (16:9) или больше, ≥ 5 шт. | JPEG q90 | Screenshots — позже, вне модуля (решение 05.10) |
 | `achievements/<API_NAME>.jpg`, `<API_NAME>_locked.jpg` | 256×256 | JPEG | иконки ачивок (открыта / закрыта) |
 
 - `API_NAME` — ключи ачивок из `configs/achievements.json` модуля steam (контракт S6, `docs/contracts/steam.md` на ветке `feature/steam`); набор иконок = набор ачивок.
 - Капсулы (кроме hero) содержат название игры (логотип) и ничего больше текстового (правила Steam: без наград, цитат, «скидка»); hero — без текста и логотипа; всё — кадры из игры или наша графика, без сторонних материалов.
-- Генерация — `tools/store/make_store_assets.py` (Pillow) из исходных кадров `steam/store/src/*.jpg` (JPEG q92, 3840×2160) и `assets/logo.png`, `assets/icon.png`; повторный запуск даёт те же файлы. `steam/store/README.md` — что куда загружать в Steamworks.
+- Генерация — `tools/store/make_store_assets.py` (Pillow) из исходных кадров `steam/store/src/*.jpg` (JPEG q92, 3840×2160; пока скриншотов нет — копия `assets/ui/menu_background.jpg`) и `assets/logo.png`, `assets/icon.png`; повторный запуск даёт те же файлы. `steam/store/README.md` — что куда загружать в Steamworks.
 
 ## История
+- SA-К4 v2 (05.10.2026): скриншоты сняты из модуля (решение пользователя); исходный кадр капсул до скриншотов — `assets/ui/menu_background.jpg`. Потребители: SA-6.
 - v1 (05.10.2026) — заведены до первого исполнителя.

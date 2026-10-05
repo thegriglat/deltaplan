@@ -5,7 +5,7 @@ extends TestCase
 
 const DOC := "res://docs/contracts/steam-assets.md"
 const ASSETS := "res://ASSETS.md"
-const VERSIONS := {"SA-К1": 1, "SA-К2": 1, "SA-К3": 1, "SA-К4": 1}
+const VERSIONS := {"SA-К1": 1, "SA-К2": 1, "SA-К3": 1, "SA-К4": 2}
 const HEADERS := ["Файл", "Что", "Источник", "Лицензия", "Где используется"]
 const FORBIDDEN := ["nc", "некоммерч", "non-commercial", "personal", "личн"]
 

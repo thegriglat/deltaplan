@@ -26,7 +26,7 @@ generated: true
 | site-i18n | SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 | [docs/contracts/site-i18n.md](/docs/contracts/site-i18n.md) |
 | start-fixes | К1 v2, К2 v2, К3 v2, К4 v1 | [docs/contracts/start-fixes.md](/docs/contracts/start-fixes.md) |
 | start-map | SM-К1 v2, SM-К2 v1 | [docs/contracts/start-map.md](/docs/contracts/start-map.md) |
-| steam-assets | SA-К1 v1, SA-К2 v1, SA-К3 v1, SA-К4 v1 | [docs/contracts/steam-assets.md](/docs/contracts/steam-assets.md) |
+| steam-assets | SA-К1 v1, SA-К2 v1, SA-К3 v1, SA-К4 v2 | [docs/contracts/steam-assets.md](/docs/contracts/steam-assets.md) |
 | ui-controls | У1 v3, У2 v2 | [docs/contracts/ui-controls.md](/docs/contracts/ui-controls.md) |
 | wind-limits | WL-К1 v2, WL-К2 v1 | [docs/contracts/wind-limits.md](/docs/contracts/wind-limits.md) |
 | wing-physics-check | К1 v2, К2 v1, К3 v1, К4 v2, К5 v1, К6 v1 | [docs/contracts/wing-physics-check.md](/docs/contracts/wing-physics-check.md) |
