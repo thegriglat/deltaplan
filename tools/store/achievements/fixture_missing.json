@@ -1,0 +1,290 @@
+{
+  "version": 1,
+  "achievements": [
+    {
+      "api": "ACH_FIRST_FLIGHT",
+      "name": {
+        "ru": "Первый полёт",
+        "en": "First Flight"
+      },
+      "desc": {
+        "ru": "Оторвался от склона и сел.",
+        "en": "Lift off the slope and land safely."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_SOFT_LANDING",
+      "name": {
+        "ru": "На ноги",
+        "en": "On Your Feet"
+      },
+      "desc": {
+        "ru": "Мягкая посадка: тихо и на ноги.",
+        "en": "A soft landing, straight onto your feet."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_TOP_LANDING",
+      "name": {
+        "ru": "Обратно на старт",
+        "en": "Top Landing"
+      },
+      "desc": {
+        "ru": "Вернуться на высоту старта и сесть рядом с ним.",
+        "en": "Come back and land right next to the launch."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_ABOVE_LAUNCH",
+      "name": {
+        "ru": "Выше старта",
+        "en": "Above Launch"
+      },
+      "desc": {
+        "ru": "Набрать 100 м над точкой взлёта.",
+        "en": "Climb 100 m above the launch point."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_KILOMETER_UP",
+      "name": {
+        "ru": "Километр вверх",
+        "en": "Kilometer Up"
+      },
+      "desc": {
+        "ru": "Набрать 1000 м над стартом.",
+        "en": "Climb 1000 m above the launch."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_CLOUDBASE",
+      "name": {
+        "ru": "Под базой",
+        "en": "Cloudbase"
+      },
+      "desc": {
+        "ru": "Долететь до нижней кромки облаков.",
+        "en": "Reach the base of the clouds."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_STRONG_CLIMB",
+      "name": {
+        "ru": "Четвёрка",
+        "en": "Strong Climb"
+      },
+      "desc": {
+        "ru": "Поймать подъём 4 м/с.",
+        "en": "Catch a climb of 4 m/s."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_SOARING_15",
+      "name": {
+        "ru": "Удержался",
+        "en": "Staying Up"
+      },
+      "desc": {
+        "ru": "Продержаться в воздухе 15 минут.",
+        "en": "Stay airborne for 15 minutes."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_HOUR",
+      "name": {
+        "ru": "Час в воздухе",
+        "en": "One Hour Up"
+      },
+      "desc": {
+        "ru": "Провести в воздухе час.",
+        "en": "Spend one hour in the air."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_RIDGE_LOW",
+      "name": {
+        "ru": "Над склоном",
+        "en": "Ridge Soaring"
+      },
+      "desc": {
+        "ru": "10 минут подряд парить над склоном.",
+        "en": "Soar along the ridge for 10 minutes."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_XC_10",
+      "name": {
+        "ru": "Маршрут",
+        "en": "Cross-Country"
+      },
+      "desc": {
+        "ru": "Пролететь 10 км от точки взлёта.",
+        "en": "Fly 10 km from where you took off."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_XC_50",
+      "name": {
+        "ru": "Полсотни",
+        "en": "Fifty"
+      },
+      "desc": {
+        "ru": "Пролететь 50 км от точки взлёта.",
+        "en": "Fly 50 km from where you took off."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_UPWIND",
+      "name": {
+        "ru": "Против ветра",
+        "en": "Upwind"
+      },
+      "desc": {
+        "ru": "Улететь на 5 км против ветра.",
+        "en": "Fly 5 km upwind of your launch."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_EVENING",
+      "name": {
+        "ru": "Вечерний",
+        "en": "Evening Glass-Off"
+      },
+      "desc": {
+        "ru": "Налетать 20 минут при низком солнце.",
+        "en": "Fly for 20 minutes with the sun low."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_PLACES_5",
+      "name": {
+        "ru": "Путешественник",
+        "en": "Traveller"
+      },
+      "desc": {
+        "ru": "Слетать с пяти разных мест.",
+        "en": "Fly from five different sites."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_TOGETHER",
+      "name": {
+        "ru": "Вместе",
+        "en": "Together"
+      },
+      "desc": {
+        "ru": "Слетать в сетевой игре с другим пилотом.",
+        "en": "Fly a network session with another pilot."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_GAGGLE",
+      "name": {
+        "ru": "В одном потоке",
+        "en": "Gaggle"
+      },
+      "desc": {
+        "ru": "Минуту крутить вместе с другим пилотом.",
+        "en": "Circle in a thermal with another pilot for a minute."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_LAST_DOWN",
+      "name": {
+        "ru": "Последний сел",
+        "en": "Last One Down"
+      },
+      "desc": {
+        "ru": "Сесть последним из всех.",
+        "en": "Be the last pilot to land."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    },
+    {
+      "api": "ACH_TEST_NO_PROMPT",
+      "name": {
+        "ru": "Проба",
+        "en": "Test"
+      },
+      "desc": {
+        "ru": "Нет промпта.",
+        "en": "No prompt for this one."
+      },
+      "hidden": false,
+      "rule": {
+        "type": "fixture"
+      }
+    }
+  ]
+}
