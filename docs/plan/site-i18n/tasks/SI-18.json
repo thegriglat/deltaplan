@@ -15,6 +15,11 @@
       "name": "SI-К5",
       "version": "1",
       "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К3",
+      "version": "2",
+      "ref": "docs/contracts/site-i18n.md"
     }
   ],
   "copy": "~/deltaplan-site-i18n-SI-18",
@@ -31,7 +36,9 @@
     "site/content/releases/1.0.4/index.en.md",
     "site/content/releases/1.0.5/index.en.md",
     "site/content/releases/1.1.0/index.en.md",
-    "site/content/releases/1.1.1/index.en.md"
+    "site/content/releases/1.1.1/index.en.md",
+    "site/layouts/_shortcodes/gallery.html",
+    ".claude/skills/new-release/SKILL.md"
   ],
   "dont_touch": [
     "site/content/**/*.ru.md",
@@ -47,5 +54,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-05T06:08:55"
+  "created": "2026-10-05T06:08:55",
+  "edited": "2026-10-05T06:20:51"
 }
