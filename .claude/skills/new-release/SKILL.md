@@ -1,6 +1,6 @@
 ---
 name: new-release
-description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.md, скриншоты, devlog — plain text для itch.io), сборка Linux и Windows, git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
+description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.en.md + index.ru.md, скриншоты, devlog — plain text для itch.io), сборка Linux и Windows, git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
 ---
 
 # new-release — выпуск версии Deltaplan
@@ -22,8 +22,8 @@ description: Выпуск новой версии Deltaplan — версия в 
 - Сверить с `git log <последний тег>..HEAD --oneline`: всё заметное для пилота есть в разделе (функциональные изменения, не список коммитов, по-русски). Недостающее — дописать.
 
 ## 3. site/content/releases/X.Y.Z/ — страница версии на сайте
-Папка — page bundle сайта (Hugo, `site/`); отдельной `releases/` больше нет.
-- `site/content/releases/X.Y.Z/index.md` — страница версии **на русском**:
+Папка — page bundle сайта (Hugo, `site/`); сайт двуязычный: английский — основной (корень), русский — под `/ru/`. В бандле два файла страницы: `index.en.md` (английский, основной) и `index.ru.md` (русский, шаблон ниже; английский — тот же по структуре, текст по-английски). Скриншоты (`screenshots/`) и `devlog.txt` (один, английский, plain text для itch) общие для обоих языков, без суффикса.
+- `site/content/releases/X.Y.Z/index.ru.md` (и парный `index.en.md`) — страница версии:
   ```
   ---
   title: "Deltaplan X.Y.Z"
@@ -54,7 +54,7 @@ description: Выпуск новой версии Deltaplan — версия в 
   - в конце — «Known issues», если есть, тоже списком.
 - `site/content/releases/X.Y.Z/screenshots/` — ключевые кадры принятых за версию изменений (JPEG q88 через `magick`, номера и русские названия по порядку). Если кадры уже лежат в `site/content/releases/next/` или в другой заготовке — перенести.
 - Бинарники в `site/` не класть. Godot папку `site/` не импортирует (`site/.gdignore`) и в экспорт не берёт (`export_presets.cfg` → `site/*`).
-- Проверка сайта: `cd site && ~/.local/bin/hugo --renderToMemory 2>&1 | grep -E "WARN|ERROR"` — пусто.
+- Проверка сайта: `cd site && ~/.local/bin/hugo --renderToMemory 2>&1 | grep -E "WARN|ERROR"` — пусто; и `python3 tools/site/check_i18n.py` (контрактный тест двуязычности) — без ошибок.
 
 Пример `devlog.txt`:
 ```
@@ -70,7 +70,7 @@ Known issues:
 ```
 
 ## 4. Коммит версии
-`git commit -m "Версия X.Y.Z; CHANGELOG и страница версии" -- project.godot CHANGELOG.md site/content/releases/X.Y.Z` (и `git add site/content/releases/X.Y.Z` перед этим). После пуша в main сайт пересобирается сам (`.github/workflows/pages.yml`); пушить — только по просьбе.
+`git commit -m "Версия X.Y.Z; CHANGELOG и страница версии" -- project.godot CHANGELOG.md site/content/releases/X.Y.Z` (и `git add site/content/releases/X.Y.Z` перед этим; в папке оба файла — `index.en.md` и `index.ru.md`). После пуша в main сайт пересобирается сам (`.github/workflows/pages.yml`); пушить — только по просьбе.
 
 ## 5. Сборка
 - `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
@@ -92,4 +92,4 @@ Known issues:
 - Это публикация — выполнять только по явной просьбе выпустить версию (вызов скилла ею и является).
 
 ## 8. Отчёт пользователю
-Коротко: версия, коммит и тег, размеры архивов, итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страница версии (https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ после пуша), что вошло в версию (3–5 пунктов).
+Коротко: версия, коммит и тег, размеры архивов, итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страницы версии после пуша: en https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ и ru https://thegriglat.github.io/deltaplan/ru/releases/X.Y.Z/, что вошло в версию (3–5 пунктов).
