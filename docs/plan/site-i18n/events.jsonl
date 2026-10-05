@@ -37,3 +37,8 @@
 {"t": "2026-10-05T06:17:29", "by": "coordinator", "task": "SI-1", "ev": "accepted", "note": "по отчёту: 4/4 PASS, K4 0 битых ссылок по всему сайту, файлы в скоупе"}
 {"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "accepted", "commits": ["96bd74c8"], "note": "4/4 config_i18n=ok:exit 0; build_links=ok:exit 0; pages_suffix=ok:exit 0; wings_c2=ok:exit 0"}
 {"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "merged", "commits": ["96bd74c8"]}
+{"t": "2026-10-05T06:17:42", "by": "coordinator", "task": "SI-2", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-site-i18n-SI-2"}
+{"t": "2026-10-05T06:17:44", "by": "coordinator", "task": "SI-4", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-4"}
+{"t": "2026-10-05T06:17:46", "by": "coordinator", "task": "SI-8", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-8"}
+{"t": "2026-10-05T06:17:48", "by": "coordinator", "task": "SI-9", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-9"}
+{"t": "2026-10-05T06:17:50", "by": "coordinator", "task": "SI-18", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-18"}
