@@ -1,0 +1,23 @@
+README.md:4:Некоммерческий проект с открытым кодом на Godot 4 для Windows, Linux и macOS.
+README.md:7:type-test data. Free, non-commercial, open source, built with Godot 4. The game and docs are in Russian.*
+README.md:97:лицензиями, список в [ASSETS.md](ASSETS.md); помеченные ⚠ NC нельзя использовать в коммерческих целях.
+CLAUDE.md:3:Симулятор дельтаплана на Godot 4.7.2 (Win/Linux/macOS), некоммерческий open source. Процесс работы с агентами, роли, контракты, правила, типы агентов, набл
+ASSETS.md:5:- проект пока **некоммерческий**: допустимы бесплатные ассеты под любыми открытыми лицензиями, включая некоммерческие (CC-BY-NC, AudioLDM2/AudioGen, B
+ASSETS.md:7:- ассеты с некоммерческой или ограниченной лицензией помечаем **⚠ NC** в колонке «Лицензия». Перед продажей делается отдельный прогон на 
+ASSETS.md:8:- «только для личного использования» и лицензии, запрещающие распространение в составе игры, не берём;
+locale/ui.csv:54:about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of t
+configs/world.json:952:    "user_agent": "deltaplan-sim/1.1 (hang gliding simulator; non-commercial open source)",
+site/content/mechanics/terrain.ru.md:52:нет: FABDEM лицензирован под CC-BY-NC (не подходит для некоммерческого, но свободно раздаваемого проекта),
+site/content/mechanics/terrain.ru.md:163:  использования — только для умеренного, некоммерческого трафика с атрибуцией и без массовой
+site/content/mechanics/terrain.ru.md:174:- **DTM без леса не нашли** с подходящей лицензией (FABDEM — CC-BY-NC), поэтому вместо попытки убрать
+site/content/mechanics/instruments.en.md:154:  the first requires an access token that was not available, the second is under the non-commercial CC-BY-NC-SA licence,
+site/content/mechanics/terrain.en.md:51:for Altai: FABDEM is licensed under CC-BY-NC (not suitable for a non-commercial but freely distributed project),
+site/content/mechanics/terrain.en.md:162:  policy are only for moderate, non-commercial traffic with attribution and no bulk prefetching; for a distributed game
+site/content/mechanics/terrain.en.md:172:- **No forest-free DTM was found** with a suitable license (FABDEM is CC-BY-NC), so instead of trying to remove the
+site/content/mechanics/instruments.ru.md:154:  первая требует токен доступа, которого не было, вторая — под некоммерческой лицензией CC-BY-NC-SA,
+site/content/_index.ru.md:7:Deltaplan — некоммерческий симулятор свободного полёта на дельтаплане с открытым кодом, для Windows, Linux и macOS.
+site/content/_index.ru.md:53:## Открытый код и некоммерческий проект
+site/content/_index.en.md:7:Deltaplan is a non-commercial open-source free-flight hang gliding simulator for Windows, Linux and macOS.
+site/content/_index.en.md:53:## Open source and non-commercial
+site/hugo.toml:23:      description = 'Deltaplan is a non-commercial open-source hang glider simulator: flight, atmosphere, terrain of real places, network play.'
+site/hugo.toml:30:      description = 'Deltaplan — некоммерческий симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
