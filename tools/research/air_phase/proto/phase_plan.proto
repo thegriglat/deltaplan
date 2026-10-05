@@ -1,4 +1,4 @@
-// План опытов air-phase — контракт P2 v1 (docs/contracts/air-phase.md).
+// План опытов air-phase — контракт P2 v2 (docs/contracts/air-phase.md).
 // Владелец .proto — координатор модуля; менять только через контракт (версия +1).
 syntax = "proto3";
 
@@ -20,6 +20,8 @@ enum Series {
   RELAX = 3;
   SEPARATION = 4;
   ERODED = 5;
+  ENVELOPE = 6;       // Пикар 400 м на эффективном рельефе h_eff (идеальные формы)
+  ENVELOPE_REAL = 7;  // то же на реальных крутых местах корпуса (условия S2 по cond_id)
 }
 
 enum Start {
@@ -32,6 +34,13 @@ enum Direction {
   DIR_NONE = 0;
   UP = 1;
   DOWN = 2;
+}
+
+enum EnvelopeWall {      // граница на верхней грани огибающей (над настоящей землёй)
+  WALL_NONE = 0;        // огибающей нет
+  WALL_GROUND = 1;      // обычная стенка: z0 и закон стенки как у земли
+  WALL_LOW_Z0 = 2;      // малая шероховатость envelope_z0_m (слой сдвига, не стенка)
+  WALL_SLIP = 3;        // скольжение (нулевое касательное напряжение)
 }
 
 enum Criterion {
@@ -62,6 +71,7 @@ message Relief {
   double a_m = 6;               // масштаб формы (0 для CORPUS)
   double length_m = 7;          // длина хребта (0 — не хребет)
   string corpus = 8;            // каталог корпуса S1 относительно $AIR_SYNTH_DATA
+  int32 corpus_relief_id = 9;   // id рельефа в этом корпусе (relief_id — уникален в плане, P2 v2)
 }
 
 message Numerics {
@@ -77,6 +87,9 @@ message Numerics {
   int32 snap_step = 10;
   int32 late_from = 11;
   int32 late_step = 12;
+  double envelope_angle_deg = 13;   // угол линии тени от бровки по ветру; 0 — без огибающей
+  EnvelopeWall envelope_wall = 14;
+  double envelope_z0_m = 15;        // для WALL_LOW_Z0
 }
 
 message Line {
@@ -93,11 +106,13 @@ message Line {
   bytes fr_f64 = 11;            // точки Fr в порядке счёта, little-endian float64
   int32 ref_line_id = 12;       // линия GRID той же конфигурации, -1 — нет
   int64 first_case_id = 13;     // case_id = first_case_id + k
-  string variant = 14;          // метка варианта (RELAX: omega|kfloor|rel|calm; SEPARATION: slope|fr|heat|oblique)
+  string variant = 14;          // метка варианта (RELAX: omega|kfloor|rel|calm; SEPARATION: slope|fr|heat|oblique; ENVELOPE_REAL: nonconv|conv)
+  string conditions = 15;       // каталог S2 относительно $AIR_SYNTH_DATA — условия из таблицы (override-поля линии не действуют); "" — override
+  int32 cond_id = 16;           // строка S2 при conditions != ""; иначе -1
 }
 
 message Plan {
-  string contract = 1;          // "P2 v1"
+  string contract = 1;          // "P2 v2"
   string name = 2;              // напр. "ap_v1"
   string created = 3;           // ISO
   string git_commit = 4;

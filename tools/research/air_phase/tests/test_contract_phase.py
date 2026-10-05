@@ -1,4 +1,4 @@
-"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1–P5 v1).
+"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v2, P3 v2, P4 v2, P5 v1).
 
 Без данных проверяется схема (.proto, константы P3); с данными — реальные файлы:
   AP_PLAN_DIR=<$AIR_SYNTH_DATA/phase/<plan>>          — plan.pb (P2)
@@ -18,18 +18,19 @@ import pytest
 HERE = Path(__file__).resolve().parent
 PROTO = HERE.parent / "proto" / "phase_plan.proto"
 
-P2_CONTRACT = "P2 v1"
-P3_CONTRACT = "P3 v1"
+P2_CONTRACT = "P2 v2"
+P3_CONTRACT = "P3 v2"
 AGL_M = [25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000]
 SNAP_LEVELS = [25, 600]
 
 PROTO_FIELDS = {
     "Context": ["lat", "lon", "month", "day", "hour_local", "utc_offset", "alpha", "max_profile", "base_m", "h_m"],
-    "Relief": ["relief_id", "name", "shape", "slope", "h_m", "a_m", "length_m", "corpus"],
+    "Relief": ["relief_id", "name", "shape", "slope", "h_m", "a_m", "length_m", "corpus", "corpus_relief_id"],
     "Numerics": ["dx_m", "advection_order", "omega_u", "omega_k", "k_floor_m2s", "criterion", "tol", "max_outer",
-                 "snap_from", "snap_step", "late_from", "late_step"],
+                 "snap_from", "snap_step", "late_from", "late_step", "envelope_angle_deg", "envelope_wall",
+                 "envelope_z0_m"],
     "Line": ["line_id", "series", "relief_id", "heat_flux_wm2", "h_over_zi", "n_bv_s", "wdir_from_deg", "numerics",
-             "start", "direction", "fr_f64", "ref_line_id", "first_case_id", "variant"],
+             "start", "direction", "fr_f64", "ref_line_id", "first_case_id", "variant", "conditions", "cond_id"],
     "Plan": ["contract", "name", "created", "git_commit", "command", "context", "reliefs", "lines", "n_cases"],
 }
 
@@ -38,13 +39,14 @@ CASES_FIELDS = {
     "u10": "f4", "u_sat": "f4", "wdir_from_deg": "f4", "n_bv": "f4", "z_i_agl_m": "f4", "heat_flux_wm2": "f4",
     "zi_over_L": "f4", "dx_m": "f4", "start_case_id": "i8", "status": "i1", "iters": "i4", "target": "i1",
     "late_n": "i2", "late_spread60_p90": "f4", "resid_final": "f4", "resid_rel_final": "f4", "seconds": "f4",
-    "batch_size": "i2",
+    "batch_size": "i2", "cond_id": "i4", "envelope_angle_deg": "f4", "envelope_wall": "i1",
 }
 BUBBLE_FIELDS = ["has_reverse", "L_over_h", "H_over_h", "urev_over_U", "xc_over_h", "zc_over_h", "area_rev_frac",
                  "shadow_angle_deg", "fr_local", "slope_lee"]
 ROOT_ATTRS = ["contract", "kind", "plan", "plan_sha256", "solver_version", "device", "batch_size", "git_commit",
               "created", "command", "n_records", "agl_m", "snap_levels_agl_m"]
 SERIES_SEPARATION = 4
+SERIES_ENVELOPE = (6, 7)
 
 
 def _messages(text):
@@ -84,6 +86,8 @@ def test_plan_file():
     plan.ParseFromString((Path(os.environ["AP_PLAN_DIR"]) / "plan.pb").read_bytes())
     assert plan.contract == P2_CONTRACT
     ids = {r.relief_id for r in plan.reliefs}
+    assert len(ids) == len(plan.reliefs), "relief_id уникален в плане"
+    assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs)
     expect = 0
     for ln in sorted(plan.lines, key=lambda x: x.first_case_id):
         assert ln.relief_id in ids
@@ -93,7 +97,12 @@ def test_plan_file():
         expect += fr.size
         nm = ln.numerics
         assert nm.dx_m in (100.0, 400.0) and nm.advection_order in (1, 2) and nm.max_outer > 0
-        assert ln.n_bv_s > 0 and ln.h_over_zi > 0 and ln.start in (1, 2)
+        assert ln.start in (1, 2)
+        if ln.conditions:
+            assert ln.cond_id >= 0 and fr.size == 1
+        else:
+            assert ln.n_bv_s > 0 and ln.h_over_zi > 0 and ln.cond_id == -1
+        assert (nm.envelope_angle_deg > 0) == (nm.envelope_wall != 0)
     assert plan.n_cases == expect
 
 
@@ -132,6 +141,8 @@ def test_results_parts():
                 assert "bubble" in h and h["bubble"].shape == (m,)
                 for bf in BUBBLE_FIELDS:
                     assert bf in h["bubble"].dtype.names, bf
+            if np.any(np.isin(c["series"][:], SERIES_ENVELOPE)):
+                assert h["inputs/h_eff"].shape == (m, 96, 96) and h["inputs/h_eff"].dtype == np.float32
             if "window" in h:
                 w = h["window/fields"]
                 assert w.ndim == 5 and w.shape[1] == 4 and w.dtype == np.float16

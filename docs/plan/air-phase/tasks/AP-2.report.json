@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "P1: ideal_relief/load_ideal в reliefs.py + тест; корпус ideal_v1 (33 рельефа, S1 v3); P2: plan_build.py (build_plan + CLI), plan.pb/plan.json ap_v1: 437 линий, 6679 случаев; phase_plan_pb2.py сгенерирован.",
+  "commits": [
+    "505511eb air-phase AP-2: идеальные рельефы P1, построитель плана P2"
+  ],
+  "checks": [
+    {
+      "name": "dp accept AP-2 --dry",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "max|grad z|/s на h100",
+      "value": "0,968–1,000 (s<=0,5 в 3 %; s=0,6 уступ 3,2 %)",
+      "pass": true
+    },
+    {
+      "name": "tests",
+      "value": "exit 0 (25 passed)",
+      "pass": true
+    },
+    {
+      "name": "plan_contract",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "corpus",
+      "value": "S1 v3 33 True",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Relative tol и масштаб a: взят a = h = 500 м, tol_rel = 4e-4 — подтвердить в AP-1",
+    "ERODED ограничен перепадом 400–1200 м"
+  ],
+  "how_to_check": "dp accept AP-2",
+  "uncertain": [
+    {
+      "where": "plan_build.py: TOL_REL",
+      "why": "масштаб a в U²/a контракт не фиксирует",
+      "checked": "взят h=500 м, равен 2e-5 при U_sat=5"
+    },
+    {
+      "where": "plan_build.py: fr_points",
+      "why": "правило 'без повторов' неоднозначно; порог 8 % даёт ровно 30 точек",
+      "checked": "7 % давал 31"
+    },
+    {
+      "where": "plan_build.py: ALPHA/MAX_PROFILE",
+      "why": "постоянные выбраны как класс D, U10=5 (0,24; 2,341)",
+      "checked": "wind_prof.for_hour на 15 июля 12 ч"
+    }
+  ],
+  "dp_feedback": "Нет команды получить версию S1/контракта из corpus_io; protoc в системе нет — нужна общая команда генерации pb2.",
+  "t": "2026-10-06T02:26:28",
+  "by": "executor"
+}
