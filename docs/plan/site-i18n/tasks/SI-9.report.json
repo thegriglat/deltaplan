@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/mechanics/multiplayer.en.md: полный перевод, структура, ссылки, картинки, шорткоды и числа как в оригинале.",
+  "commits": [
+    "ac61e6f4 SI-9 английский перевод страницы Сетевая игра"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "tools/dp accept SI-9 --dry",
+  "uncertain": [
+    {
+      "where": "multiplayer.en.md: ссылка /mechanics/bots/#очередь-на-старт",
+      "why": "якорь оставлен русским как в оригинале; на en-странице bots заголовок будет другим",
+      "checked": "сборка без ошибок; после перевода bots.en.md якорь, возможно, придётся поправить"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:19:20",
+  "by": "executor"
+}

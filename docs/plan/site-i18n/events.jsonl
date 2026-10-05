@@ -37,3 +37,23 @@
 {"t": "2026-10-05T06:17:29", "by": "coordinator", "task": "SI-1", "ev": "accepted", "note": "по отчёту: 4/4 PASS, K4 0 битых ссылок по всему сайту, файлы в скоупе"}
 {"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "accepted", "commits": ["96bd74c8"], "note": "4/4 config_i18n=ok:exit 0; build_links=ok:exit 0; pages_suffix=ok:exit 0; wings_c2=ok:exit 0"}
 {"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "merged", "commits": ["96bd74c8"]}
+{"t": "2026-10-05T06:17:42", "by": "coordinator", "task": "SI-2", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-site-i18n-SI-2"}
+{"t": "2026-10-05T06:17:44", "by": "coordinator", "task": "SI-4", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-4"}
+{"t": "2026-10-05T06:17:46", "by": "coordinator", "task": "SI-8", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-8"}
+{"t": "2026-10-05T06:17:48", "by": "coordinator", "task": "SI-9", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-9"}
+{"t": "2026-10-05T06:17:50", "by": "coordinator", "task": "SI-18", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-18"}
+{"t": "2026-10-05T06:19:20", "by": "executor", "task": "SI-9", "ev": "reported", "commits": ["ac61e6f4"], "note": "done: Создан site/content/mechanics/multiplayer.en.md: полный перевод, структура, ссылки, картинки, шорткоды и числа как в ор…"}
+{"t": "2026-10-05T06:19:30", "by": "executor", "task": "SI-8", "ev": "reported", "commits": ["95c24a88"], "note": "done: Переведена страница air-model на английский: site/content/mechanics/air-model.en.md (структура, ссылки, картинки, форму…"}
+{"t": "2026-10-05T06:19:33", "by": "executor", "task": "SI-9", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:19:33", "by": "coordinator", "task": "SI-9", "ev": "merged", "commits": ["7dd338c3"]}
+{"t": "2026-10-05T06:19:40", "by": "executor", "task": "SI-8", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:19:41", "by": "coordinator", "task": "SI-8", "ev": "merged", "commits": ["f42dcd02"]}
+{"t": "2026-10-05T06:19:43", "by": "coordinator", "task": "SI-7", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-7"}
+{"t": "2026-10-05T06:19:45", "by": "coordinator", "task": "SI-10", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-10"}
+{"t": "2026-10-05T06:20:05", "by": "executor", "task": "SI-18", "ev": "reported", "commits": ["81d7b73a"], "note": "partial: Переведены _index.en.md и index.en.md всех 10 версий (0.7.0–1.1.1), закоммичены. dp accept --dry: K4 (ссылки) чисто, K2…", "dp_feedback": "dp accept --dry не показывает, из какого фрагмента кириллица; пришлось читать check_i18n.py и шорткод."}
+{"t": "2026-10-05T06:20:11", "by": "executor", "task": "SI-4", "ev": "reported", "commits": ["c9538971"], "note": "done: Создан site/content/approaches.en.md (219 строк, структура, ссылки, формулы и таблицы как в оригинале)."}
+{"t": "2026-10-05T06:20:42", "by": "executor", "task": "SI-4", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:20:43", "by": "coordinator", "task": "SI-4", "ev": "merged", "commits": ["55ee2d04"]}
+{"t": "2026-10-05T06:20:51", "by": "main", "task": "SI-18", "ev": "edited", "note": "scope, scope, contract:SI-К3", "diff": {"scope": ["[\"site/content/releases/_index.en.md\", \"site/content/releases/0.7.0/index.en.md\", \"site/content/releases/0.7.1/index.en.md\", \"site/content/releases/0.8.0/index.en.md\", \"site/content/releases/1.0.0/index.en.md\", \"site/content/releases/1.0.2/index.en.md\", \"site/content/releases/1.0.3/index.en.md\", \"s…", "[\"site/content/releases/_index.en.md\", \"site/content/releases/0.7.0/index.en.md\", \"site/content/releases/0.7.1/index.en.md\", \"site/content/releases/0.8.0/index.en.md\", \"site/content/releases/1.0.0/index.en.md\", \"site/content/releases/1.0.2/index.en.md\", \"site/content/releases/1.0.3/index.en.md\", \"s…"], "contract": ["null", "null"]}}
+{"t": "2026-10-05T06:20:51", "by": "main", "task": "SI-18", "ev": "note", "note": "SI-К3 v2: gallery берёт подпись/alt из frontmatter captions (имя файла → подпись), иначе из имени файла. Правка шорткода и строка в скилле new-release (у index.en.md — captions для галереи) — в этой задаче.", "addendum": true}
+{"t": "2026-10-05T06:20:51", "by": "main", "task": "SI-2", "ev": "note", "note": "SI-К4 v3: якоря в ссылках на другие страницы — явные латинские id одинаковые в ru и en. Генератор: ссылка на благодарности главной — /#acknowledgements (в ru и en); сам заголовок {#acknowledgements} на главной поставит задача перевода главной/итоговая. Синхронизируй ветку: dp task sync SI-2.", "addendum": true}

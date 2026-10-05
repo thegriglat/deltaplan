@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/approaches.en.md (219 строк, структура, ссылки, формулы и таблицы как в оригинале).",
+  "commits": [
+    "c9538971 английский перевод страницы «Подходы и результаты»"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-4 --dry",
+  "uncertain": [
+    {
+      "where": "approaches.en.md, п.5 и п.1/6",
+      "why": "Названия режимов взяты из ui.csv; «Упрощённый» в таблице/заголовках — Simplified, в п.5 полная строка «Simplified (lighter and safer)». Названия разделов русских документов оставлены в скобках по-русски. Даты 29.09 → Sep 29. «Обзор / Трапеция» (удалённый режим) нет в csv — переведено как Look / Control frame.",
+      "checked": "csv"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:20:11",
+  "by": "executor"
+}
