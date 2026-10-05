@@ -5,7 +5,7 @@ module: "steam-assets"
 updated: "2026-10-05"
 summary: "Контракты модуля steam-assets: инвентарь сборки (SA-К1), лицензии и атрибуции в сборке (SA-К2), формат ASSETS.md (SA-К3), ассеты страницы Steam (SA-К4)."
 related: ["docs/plan/steam-assets.md", "ASSETS.md"]
-contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id": "SA-К3", "version": 2}, {"id": "SA-К4", "version": 3}]
+contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 3}, {"id": "SA-К3", "version": 2}, {"id": "SA-К4", "version": 3}]
 ---
 # Контракты модуля steam-assets
 
@@ -22,9 +22,12 @@ contracts: [{"id": "SA-К1", "version": 1}, {"id": "SA-К2", "version": 2}, {"id
 - `--check`: код 1 и список, если есть файл сборки без строки `ASSETS.md` и не `own`, или `commercial_ok != true`; иначе 0 и строка `INVENTORY OK files=<n> bytes=<n>`.
 - Инвариант: каждый файл сборки — ровно в одном `item`; после SA-3 `--check` проходит на всех пресетах.
 
-## SA-К2. Лицензии и атрибуции в сборке (v2)
+## SA-К2. Лицензии и атрибуции в сборке (v3)
+
+v3 (2026-10-05, координатор steam после слияния steam-assets в feature/steam, ST-10): в набор `licenses/` добавлен `MIT-godotsteam.txt` (GodotSteam, только сборки Steam).
+
 Владелец: SA-4. Потребители: `tools/build.sh` (одна строка вызова; файл правит и модуль steam, ST-3), модуль steam (строка GodotSteam, ST-10), экран «Об игре» (`scripts/ui/assets_credits.gd`, `about_screen.gd`).
-- Полные тексты лицензий — `licenses/<имя>.txt` в корне репозитория (UTF-8), каталог с `.gdignore`. v2 — точный набор (по аудиту SA-1, `docs/research/steam_license_audit.md`, п. 8): `MIT-deltaplan.txt` (= `LICENSE`), `MIT-godot.txt`, `godot-COPYRIGHT.txt` (сторонние компоненты движка 4.7.2), `MIT-godot-cpp.txt`, `onnxruntime-LICENSE.txt`, `onnxruntime-ThirdPartyNotices.txt` (1.30.0), `MIT-debug_draw_3d.txt`, `MIT-debug_menu.txt`, `OFL-1.1.txt`, `CC-BY-4.0.txt`, `CC0-1.0.txt`, `ODbL-1.0.txt`, `copernicus-dem.txt` (официальный текст, с «all rights reserved»), `msvc-runtime.txt` (уведомление Microsoft Visual C++ Runtime; файл — после решения пользователя о VC++, до того — заглушка с пометкой). Новые — только через координатора (версия +1). Имена — латиницей, `[A-Za-z0-9._-]+`.
+- Полные тексты лицензий — `licenses/<имя>.txt` в корне репозитория (UTF-8), каталог с `.gdignore`. v2 — точный набор (по аудиту SA-1, `docs/research/steam_license_audit.md`, п. 8): `MIT-deltaplan.txt` (= `LICENSE`), `MIT-godot.txt`, `godot-COPYRIGHT.txt` (сторонние компоненты движка 4.7.2), `MIT-godot-cpp.txt`, `onnxruntime-LICENSE.txt`, `onnxruntime-ThirdPartyNotices.txt` (1.30.0), `MIT-debug_draw_3d.txt`, `MIT-debug_menu.txt`, `OFL-1.1.txt`, `CC-BY-4.0.txt`, `CC0-1.0.txt`, `ODbL-1.0.txt`, `copernicus-dem.txt` (официальный текст, с «all rights reserved»), `MIT-godotsteam.txt` (GodotSteam, v3), `msvc-runtime.txt` (уведомление Microsoft Visual C++ Runtime; файл — после решения пользователя о VC++, до того — заглушка с пометкой). Новые — только через координатора (версия +1). Имена — латиницей, `[A-Za-z0-9._-]+`.
 - Строка `ASSETS.md`, требующая текста лицензии, ссылается на него в колонке «Лицензия» ссылкой Markdown `[…](licenses/<имя>.txt)` (или на уже существующий файл лицензии ассета, например `addons/…/LICENSE`).
 - `tools/release/third_party_notices.py --out <каталог сборки> [--preset P]` (стандартная библиотека Python) пишет рядом с исполняемым файлом:
   - `THIRD_PARTY_NOTICES.txt` (UTF-8, LF; англ. заголовки, пункты как в ASSETS.md): название и версия игры, лицензия кода проекта (MIT), затем по разделам ASSETS.md, входящим в сборку, строки «что — источник — лицензия — атрибуция»;
