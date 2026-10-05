@@ -16,3 +16,6 @@
 {"t": "2026-10-05T06:52:07", "by": "coordinator", "task": null, "ev": "note", "note": "Контракты steam-assets (SA-К2 строка GodotSteam в ASSETS.md + licenses/, SA-К4 иконки ачивок по configs/achievements.json) — согласен, внесено в план ST-3/ST-10. configs/achievements.json — сообщу после шлюза 1."}
 {"t": "2026-10-05T06:53:15", "by": "reviewer", "task": "ST-4", "ev": "reviewed", "note": "Контракт S4 v1 выполнен: пир S4.1 (ws_peer, loopback_peer), реестр схем S4.2, LocalServer.attach_peer S4.3; контрактный тест S4.4 проходит полный путь Hello → …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/steam/tasks/ST-4.review.json"}
 {"t": "2026-10-05T06:53:30", "by": "coordinator", "task": "ST-4", "ev": "accepted", "note": "по ревью: accept, 3 minor (порядок BAD_MESSAGE на двоичный кадр, TRANSPORT_SCHEMES — внесено в S4 v2, loopback без CLOSING)"}
+{"t": "2026-10-05T06:54:11", "by": "coordinator", "task": "ST-4", "ev": "checked", "commits": ["e2b0df44"], "note": "1/3 /net/=ok:28/28"}
+{"t": "2026-10-05T06:54:13", "by": "coordinator", "task": "ST-4", "ev": "checked", "commits": ["e2b0df44"], "note": "2/3 /net/=ok:28/28; steam_contracts=ok:5/5"}
+{"t": "2026-10-05T06:54:35", "by": "coordinator", "task": "ST-4", "ev": "merged", "commits": ["e2b0df44"], "note": "net_screen не гонялась: 8080 занят сторонним процессом (на базе то же)"}
