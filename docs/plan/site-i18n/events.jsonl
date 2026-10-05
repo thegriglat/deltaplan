@@ -79,3 +79,5 @@
 {"t": "2026-10-05T06:22:32", "by": "executor", "task": "SI-13", "ev": "reported", "commits": ["33830cb8"], "note": "done: Создан site/content/mechanics/slope-wind.en.md — перевод страницы «Ветер у склона»."}
 {"t": "2026-10-05T06:22:36", "by": "executor", "task": "SI-11", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:22:36", "by": "coordinator", "task": "SI-11", "ev": "merged", "commits": ["fc634895"]}
+{"t": "2026-10-05T06:22:40", "by": "executor", "task": "SI-12", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:22:40", "by": "coordinator", "task": "SI-12", "ev": "merged", "commits": ["56a1a82a"]}
