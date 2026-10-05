@@ -1,0 +1,9 @@
+Microsoft Visual C++ Runtime (Windows build only)
+
+Files distributed next to the executable: msvcp140.dll, msvcp140_1.dll, vcruntime140.dll, vcruntime140_1.dll
+(version 14.44), (c) Microsoft Corporation.
+
+They are redistributed as "Distributable Code" under the Microsoft Software License Terms for
+Microsoft Visual Studio 2022 (Community / Build Tools), copied from the VC\Redist directory
+of the Visual Studio installation. Full license terms:
+https://visualstudio.microsoft.com/license-terms/
