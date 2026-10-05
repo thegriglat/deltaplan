@@ -1,9 +1,9 @@
-extends SceneTree
+extends Node
 ## SY-10: сверка Python-конвейера (pack_hg.py) с кодом игры. Собирает слой detail вокруг точки КОДОМ ИГРЫ (TerrariumLoader._plan_layer +
 ## assemble по тайлам из кеша raw/terrarium/z/x/y.png) и берёт клетки 400 м как AirPlace.block_mean — теми же функциями, что в игре.
-##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path <копия> --script res://tools/research/air_synth/hg_real/game_block_check.gd -- lat lon raw_dir out.f64
+##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path <копия> res://tools/research/air_synth/hg_real/game_block_check.tscn -- lat lon raw_dir out.f64
 ## Выход: out.f64 — 96·96 float64 (j с юга, i с запада) + заголовок в stdout: z, spacing, n, f=round(400/s).
-func _init() -> void:
+func _ready() -> void:
 	var a := OS.get_cmdline_user_args()
 	var lat := float(a[0])
 	var lon := float(a[1])
@@ -24,7 +24,7 @@ func _init() -> void:
 	var r: Dictionary = TerrariumLoader.assemble(plan, raw)
 	if r.has("error"):
 		print("ERROR ", r.error)
-		quit(1)
+		get_tree().quit(1)
 		return
 	var layer: HeightLayer = r.layer
 	var hc := AirPlace.block_mean(layer, -19200.0, -19200.0, 400.0, 96, 96)
@@ -33,4 +33,4 @@ func _init() -> void:
 		var f := FileAccess.open(String(a[3]), FileAccess.WRITE)
 		f.store_buffer(hc.to_byte_array())
 		f.close()
-	quit(0)
+	get_tree().quit(0)

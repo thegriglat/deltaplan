@@ -1,0 +1,38 @@
+{
+ "n_places": 304,
+ "n_game": 4,
+ "corpus_path": "/home/greg/air_synth_data/real/hg_v1",
+ "game_corpus_path": "/home/greg/air_synth_data/real/game_hg",
+ "corpus_bytes": 58996691,
+ "game_corpus_bytes": 799953,
+ "h400_vs_game_blockmean_max_abs_m": 0.07500000000038654,
+ "cell_m_quantiles": {
+  "p0": 384.8,
+  "p10": 390.0,
+  "p25": 394.4,
+  "p50": 400.5,
+  "p75": 407.2,
+  "p90": 410.9,
+  "p100": 413.7
+ },
+ "f_counts": {
+  "11": 2,
+  "12": 8,
+  "13": 9,
+  "14": 38,
+  "15": 160,
+  "16": 75,
+  "17": 10,
+  "18": 1,
+  "20": 2,
+  "21": 2,
+  "22": 1
+ },
+ "zoom_counts": {
+  "12": 308
+ },
+ "raw_deleted": true,
+ "pack_seconds": 62.5,
+ "source": "Terrain Tiles (Mapzen/AWS Open Data, Terrarium)",
+ "raw_freed_mb": 1113
+}
