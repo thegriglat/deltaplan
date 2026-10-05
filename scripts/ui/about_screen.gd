@@ -36,6 +36,7 @@ func _ready() -> void:
 		"HintLabel"
 	)
 	UiKit.label(box, tr("about_thanks_dhv"), "HintLabel")
+	UiKit.label(box, tr("about_trademarks"), "HintLabel")
 	_text = RichTextLabel.new()
 	_text.bbcode_enabled = true
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
