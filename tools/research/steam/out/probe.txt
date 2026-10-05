@@ -1,0 +1,13 @@
+godotsteam 4.22.1 -> /home/greg/projects/.tmp/tmp.1UYRKJndBn/addons/godotsteam
+[A with-ext noinit] STEAM_PROBE loaded=true gs_version=4.22.1 init=skipped args=["noinit"]
+[A with-ext noinit] exit=0
+[B with-ext init-480] STEAM_PROBE loaded=true gs_version=4.22.1 init=2/Cannot_create_IPC_pipe_to_Steam_client_process.__Steam_is_probably_not_running. args=["appid=480"]
+[B with-ext init-480] exit=0
+[D] клиент Steam не запущен — вариант D пропущен
+[E ext-without-libsteam_api] ERROR: Can't open dynamic library: /home/greg/projects/.tmp/tmp.1UYRKJndBn/addons/godotsteam/linux64/libgodotsteam.linux.template_debug.x86_64.so. Error: libsteam_api.so: cannot open shared object file: No such file or directory.
+[E ext-without-libsteam_api] ERROR: Can't open GDExtension dynamic library: 'res://addons/godotsteam/godotsteam.gdextension'.
+[E ext-without-libsteam_api] ERROR: Error loading extension: 'res://addons/godotsteam/godotsteam.gdextension'.
+[E ext-without-libsteam_api] STEAM_PROBE loaded=false init=none args=["appid=480"]
+[E ext-without-libsteam_api] exit=0
+[C no-ext] STEAM_PROBE loaded=false init=none args=["appid=480"]
+[C no-ext] exit=0
