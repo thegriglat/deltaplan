@@ -30,3 +30,5 @@
 {"t": "2026-10-05T07:12:25", "by": "main", "task": "ST-2", "ev": "reported", "commits": ["83311f90"], "note": "done: SteamService (S1) как автозагрузка после Config, configs/steam.json, --steam/--no-steam, +connect_lobby, имя пилота по …"}
 {"t": "2026-10-05T07:13:08", "by": "executor", "task": "ST-2", "ev": "checked", "note": "5/5 steam_contracts=ok:9/9; pilot_name=ok:3/3; /steam/=ok:8/8; smoke_plain=ok:steam: inactive (no_feature); smoke_noext=ok:steam: inactive (no_extension)"}
 {"t": "2026-10-05T07:13:14", "by": "coordinator", "task": "ST-2", "ev": "accepted", "note": "по отчёту: 5/5, скоуп; language() = getCurrentGameLanguage — подтверждаю; живой путь с расширением — в ST-3 (smoke сборки Steam)"}
+{"t": "2026-10-05T07:13:34", "by": "coordinator", "task": "ST-2", "ev": "accepted", "commits": ["2f49f5ff"], "note": "5/5 steam_contracts=ok:9/9; pilot_name=ok:3/3; /steam/=ok:8/8; smoke_plain=ok:steam: inactive (no_feature); smoke_noext=ok:steam: inactive (no_extension)"}
+{"t": "2026-10-05T07:13:35", "by": "coordinator", "task": "ST-2", "ev": "merged", "commits": ["2f49f5ff"]}
