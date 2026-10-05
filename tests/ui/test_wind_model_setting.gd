@@ -39,13 +39,13 @@ func test_setting_saved_and_applied() -> void:
 	# упрощённый
 	opt.select(1)
 	check(sp.save(), "сохранилось (упрощённый)")
-	var saved := UserSettings.read_json(dir.path_join("atmosphere.json"))
+	var saved := UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "off", "записан enabled=off")
 	_check_mode(_atmo_cfg(saved), false)
 	# нейросеть
 	opt.select(2)
 	check(sp.save(), "сохранилось (нейросеть)")
-	saved = UserSettings.read_json(dir.path_join("atmosphere.json"))
+	saved = UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
 	var am: Dictionary = saved.get("air_model", {})
 	check(am.get("enabled") == "auto" and am.get("engine") == "nn", "записаны auto + nn")
 	Config._cache["atmosphere"] = _atmo_cfg(saved)
@@ -58,7 +58,7 @@ func test_setting_saved_and_applied() -> void:
 	# расчёт
 	opt.select(0)
 	check(sp.save(), "сохранилось (расчёт)")
-	saved = UserSettings.read_json(dir.path_join("atmosphere.json"))
+	saved = UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "auto", "записан enabled=auto")
 	check(saved.get("air_model", {}).get("engine") == "solver", "записан engine=solver")
 	_check_mode(_atmo_cfg(saved), true)
@@ -66,6 +66,9 @@ func test_setting_saved_and_applied() -> void:
 	for f in DirAccess.get_files_at(dir):
 		DirAccess.remove_absolute(dir.path_join(f))
 	DirAccess.remove_absolute(dir)
+	# машинные ключи (S7) лежат в соседнем local/configs
+	var ld := UserSettings.local_dir(dir)
+	DirAccess.remove_absolute(ld.path_join("atmosphere.json"))
 	Config.reload()
 
 
