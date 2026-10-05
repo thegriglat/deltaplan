@@ -1,0 +1,30 @@
+{
+  "_doc": "Описание Steam Auto-Cloud для кабинета (S7). Пути — относительно корня платформы + root_subdir (= OS.get_user_data_dir(), user://). Машинные настройки (local_keys) пишутся в user://local/configs и сюда не попадают; кэши (terrain_cache, map_cache, air_nn) и отладочные файлы — тоже. local_keys: «конфиг.путь.через.точку», ключ покрывает поддерево; список дублирует UserSettings.LOCAL_KEYS (тест S7).",
+  "root_subdir": "Deltaplan",
+  "roots": {
+    "windows": "WinAppDataRoaming",
+    "linux": "LinuxXdgDataHome",
+    "macos": "MacAppSupport"
+  },
+  "patterns": [
+    {"path": "configs", "pattern": "*.json", "recursive": true},
+    {"path": "", "pattern": "recent_places.json", "recursive": false},
+    {"path": "", "pattern": "records.json", "recursive": false},
+    {"path": "", "pattern": "achievements.json", "recursive": false},
+    {"path": "", "pattern": "last_flight.json", "recursive": false},
+    {"path": "tasks", "pattern": "*", "recursive": true}
+  ],
+  "quota_files": 100,
+  "quota_bytes": 10485760,
+  "local_keys": [
+    "game.graphics",
+    "game.render_scale_auto",
+    "game.render_scale_pct",
+    "atmosphere.clouds",
+    "atmosphere.air_model",
+    "world.trees",
+    "world.sun",
+    "world.effects",
+    "vegetation.grass"
+  ]
+}
