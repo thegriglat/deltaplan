@@ -126,3 +126,5 @@
 {"t": "2026-10-05T08:51:14", "by": "executor", "task": "ST-11", "ev": "reported", "commits": ["ddea29d1"], "note": "done: Добавлен сквозной тест tests/steam/test_achievements_e2e.gd: настоящий полёт в главной сцене с мягкой посадкой открывае…", "dp_feedback": "нет"}
 {"t": "2026-10-05T08:52:15", "by": "executor", "task": "ST-11", "ev": "checked", "note": "4/4 achievements_e2e=ok:1/1; /steam/=ok:40/40; steam_contracts=ok:29/29; test_achievement_feed=ok:4/4"}
 {"t": "2026-10-05T08:52:15", "by": "coordinator", "task": "ST-11", "ev": "accepted", "note": "по отчёту: тест-только, стык S2→S6 сходится"}
+{"t": "2026-10-05T08:52:52", "by": "coordinator", "task": "ST-11", "ev": "accepted", "commits": ["8e134240"], "note": "4/4 achievements_e2e=ok:1/1; /steam/=ok:40/40; steam_contracts=ok:29/29; test_achievement_feed=ok:4/4"}
+{"t": "2026-10-05T08:52:53", "by": "coordinator", "task": "ST-11", "ev": "merged", "commits": ["8e134240"]}
