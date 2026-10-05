@@ -41,7 +41,7 @@ The server is a pure relay: it computes neither the atmosphere nor the flight ph
 
 ## The leader and leader change
 
-The leader is the live pilot with the lowest join order in the zone; the server decides this, not the players, and for the players a leader change is invisible. The first leader is the creator of the zone. The leader keeps the zone clock (sends `ZoneState.clock` once a second — the others adjust their clocks, compensating for latency) and runs the [start queue](/mechanics/bots/#очередь-на-старт), and also computes the zone's bots: it broadcasts their states the same way as the states of live pilots, only marked "bot". If the leader leaves (quits or the connection drops), the server sends `PeerLeft`, then `LeaderChanged` with the next one in order; the new leader continues the clock and the bots from their last known states, with no jump.
+The leader is the live pilot with the lowest join order in the zone; the server decides this, not the players, and for the players a leader change is invisible. The first leader is the creator of the zone. The leader keeps the zone clock (sends `ZoneState.clock` once a second — the others adjust their clocks, compensating for latency) and runs the [start queue](/mechanics/bots/#start-queue), and also computes the zone's bots: it broadcasts their states the same way as the states of live pilots, only marked "bot". If the leader leaves (quits or the connection drops), the server sends `PeerLeft`, then `LeaderChanged` with the next one in order; the new leader continues the clock and the bots from their last known states, with no jump.
 
 ## "Catch up"
 
