@@ -37,3 +37,6 @@
 {"t": "2026-10-06T03:33:26", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp job status принимает одно имя (несколько — ошибка 'timeout'); нет dp job list; нет кода выхода у status для циклов; нет сводки темпа по progress.jsonl"}
 {"t": "2026-10-06T03:34:12", "by": "coordinator", "task": "AP-5", "ev": "created", "note": "Проверка подмены N и z_i: откуда 89 % несходимости в GRID ap_v1"}
 {"t": "2026-10-06T03:34:15", "by": "coordinator", "task": "AP-5", "ev": "started", "note": "dp-researcher opus, ~/deltaplan-air-phase-AP-5, CPU"}
+{"t": "2026-10-06T03:39:44", "by": "executor", "task": "AP-5", "ev": "reported", "commits": ["e6efe2c4"], "note": "done: Вердикт physics: подмена N, z_i, H в ap_v1 верна (повтор постановки на CPU, 81 линия). Несходимость 87 % — потому что з…", "dp_feedback": "Нет команды сводки частей P3 (доля статусов по осям series/fr/u10 из cases) — писал в скрипте; пригодилась бы `dp phase stats <каталог>`."}
+{"t": "2026-10-06T03:40:22", "by": "executor", "task": "AP-5", "ev": "checked", "note": "1/1 diag=ok:verdict physics"}
+{"t": "2026-10-06T03:40:22", "by": "coordinator", "task": "AP-5", "ev": "accepted", "note": "по отчёту: verdict physics"}
