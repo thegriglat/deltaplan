@@ -12,7 +12,9 @@
   "scope": [
     "scripts/ui/settings_panel.gd",
     "locale/ui.csv",
-    "tests/ui/test_wind_model_setting.gd"
+    "tests/ui/test_wind_model_setting.gd",
+    "tools/shots",
+    "tests/ui"
   ],
   "dont_touch": [
     "data/air_nn",
@@ -31,10 +33,15 @@
       "name": "labels",
       "cmd": "grep -E '^settings_wind_model' locale/ui.csv",
       "expect": "re:Нейросеть \\("
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/SY-13/02_меню_модели_ветра_список.png",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "Решение пользователя 21:24 (dp log air-synth --full): пункты меню модели ветра в настройках — порядок и тексты ровно: 1. «Нейросеть», 2. «Расчет на GPU» (именно «Расчет», без ё), 3. «Эвристика»; слово «экспериментально» убрать; английские — по смыслу (Neural network / GPU simulation / Heuristic); значение по умолчанию и внутренние ключи/значения настройки не менять — только подписи и порядок показа. Тест: порядок и тексты пунктов в tests/ui/test_wind_model_setting.gd. Скриншот меню настроек с раскрытым/видимым выбором модели ветра — готовыми инструментами tools/shots (если есть подходящий сценарий) в /home/greg/deltaplan/build/screenshots/SY-13/ (01_меню_модели_ветра.png); Godot только с XDG_DATA_HOME=$(mktemp -d); переписанный project.godot не коммитить. Замену data/air_nn/model.onnx НЕ делать (отдельно).",
   "created": "2026-10-05T21:24:33",
-  "edited": "2026-10-05T21:32:37"
+  "edited": "2026-10-05T21:36:22"
 }
