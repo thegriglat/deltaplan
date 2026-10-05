@@ -1,0 +1,11 @@
+{
+ "preset": "macOS",
+ "pck_files": 1454,
+ "pck_sources": 805,
+ "emu": 803,
+ "only_in_pck": [
+  "build/pck_linux.json",
+  "build/pck_windows.json"
+ ],
+ "only_in_emulation": []
+}
