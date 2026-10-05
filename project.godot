@@ -24,6 +24,7 @@ buses/default_bus_layout="res://scenes/audio/bus_layout.tres"
 
 Config="*res://scripts/core/config.gd"
 SteamService="*res://scripts/steam/steam_service.gd"
+Achievements="*res://scripts/steam/achievements.gd"
 NetClient="*res://scripts/net/net_client.gd"
 NetZone="*res://scripts/net/net_zone.gd"
 NetPilots="*res://scripts/net/net_pilots.gd"

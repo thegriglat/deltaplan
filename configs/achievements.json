@@ -1,0 +1,631 @@
+{
+ "version": 1,
+ "achievements": [
+  {
+   "api": "ACH_FIRST_FLIGHT",
+   "name": {
+    "ru": "Первый полёт",
+    "en": "First Flight"
+   },
+   "desc": {
+    "ru": "Оторвись от склона и сядь на землю.",
+    "en": "Take off and land safely."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "landed",
+    "grades": [
+     "soft",
+     "hard"
+    ]
+   }
+  },
+  {
+   "api": "ACH_SOFT_LANDING",
+   "name": {
+    "ru": "На ноги",
+    "en": "On Your Feet"
+   },
+   "desc": {
+    "ru": "Мягкая посадка: почти без вертикальной скорости и с малой горизонтальной.",
+    "en": "A soft landing with almost no sink and low ground speed."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "soft_landing",
+    "max_vertical_ms": 0.5,
+    "max_horizontal_ms": 3.0
+   }
+  },
+  {
+   "api": "ACH_TOP_LANDING",
+   "name": {
+    "ru": "Обратно на старт",
+    "en": "Top Landing"
+   },
+   "desc": {
+    "ru": "Полёт от 5 минут и посадка рядом со стартом, не ниже его.",
+    "en": "Fly at least 5 minutes and land back at launch, not below it."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "top_landing",
+    "min_time_s": 300,
+    "max_dist_m": 300,
+    "max_below_m": 30
+   }
+  },
+  {
+   "api": "ACH_ABOVE_LAUNCH",
+   "name": {
+    "ru": "Выше старта",
+    "en": "Above Launch"
+   },
+   "desc": {
+    "ru": "Набери 100 м над точкой отрыва.",
+    "en": "Climb 100 m above your launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "height_gain_m",
+    "min": 100
+   }
+  },
+  {
+   "api": "ACH_KILOMETER_UP",
+   "name": {
+    "ru": "Километр вверх",
+    "en": "Kilometer Up"
+   },
+   "desc": {
+    "ru": "Набери 1000 м над точкой отрыва.",
+    "en": "Climb 1000 m above your launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "height_gain_m",
+    "min": 1000
+   }
+  },
+  {
+   "api": "ACH_CLOUDBASE",
+   "name": {
+    "ru": "Под базой",
+    "en": "Cloudbase"
+   },
+   "desc": {
+    "ru": "Поднимись к нижней кромке облаков.",
+    "en": "Climb up to the cloud base."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "cloudbase",
+    "margin_m": 100
+   }
+  },
+  {
+   "api": "ACH_STRONG_CLIMB",
+   "name": {
+    "ru": "Четвёрка",
+    "en": "Strong Climb"
+   },
+   "desc": {
+    "ru": "Поймай термик с набором 4 м/с.",
+    "en": "Catch a thermal climbing at 4 m/s."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "best_thermal_climb_ms",
+    "min": 4.0
+   }
+  },
+  {
+   "api": "ACH_SOARING_15",
+   "name": {
+    "ru": "Удержался",
+    "en": "Staying Up"
+   },
+   "desc": {
+    "ru": "Продержись в воздухе 15 минут.",
+    "en": "Stay in the air for 15 minutes."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "flight_time_s",
+    "min": 900
+   }
+  },
+  {
+   "api": "ACH_HOUR",
+   "name": {
+    "ru": "Час в воздухе",
+    "en": "One Hour Up"
+   },
+   "desc": {
+    "ru": "Один полёт длиной в час.",
+    "en": "A single flight lasting an hour."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "flight_time_s",
+    "min": 3600
+   }
+  },
+  {
+   "api": "ACH_RIDGE_LOW",
+   "name": {
+    "ru": "Над склоном",
+    "en": "Ridge Soaring"
+   },
+   "desc": {
+    "ru": "10 минут подряд держись у склона ниже 300 м над землёй.",
+    "en": "Stay up for 10 minutes straight below 300 m above the ground."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "ridge",
+    "agl_max_m": 300,
+    "run_s": 600
+   }
+  },
+  {
+   "api": "ACH_XC_10",
+   "name": {
+    "ru": "Маршрут",
+    "en": "Cross-Country"
+   },
+   "desc": {
+    "ru": "Улети на 10 км по прямой.",
+    "en": "Fly 10 km in a straight line from launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "distance_m",
+    "min": 10000
+   }
+  },
+  {
+   "api": "ACH_XC_50",
+   "name": {
+    "ru": "Полсотни",
+    "en": "Fifty"
+   },
+   "desc": {
+    "ru": "Улети на 50 км по прямой.",
+    "en": "Fly 50 km in a straight line from launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "distance_m",
+    "min": 50000
+   }
+  },
+  {
+   "api": "ACH_UPWIND",
+   "name": {
+    "ru": "Против ветра",
+    "en": "Upwind"
+   },
+   "desc": {
+    "ru": "При ветре от 4 м/с сядь в 5 км против ветра от старта.",
+    "en": "With wind of at least 4 m/s, land 5 km upwind of launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "upwind",
+    "min_wind_ms": 4.0,
+    "min_m": 5000
+   }
+  },
+  {
+   "api": "ACH_EVENING",
+   "name": {
+    "ru": "Вечерний",
+    "en": "Evening Glass-Off"
+   },
+   "desc": {
+    "ru": "20 минут полёта при низком солнце.",
+    "en": "Fly 20 minutes with the sun low on the horizon."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "evening",
+    "sun_max_deg": 10,
+    "total_s": 1200
+   }
+  },
+  {
+   "api": "ACH_PLACES_5",
+   "name": {
+    "ru": "Путешественник",
+    "en": "Traveller"
+   },
+   "desc": {
+    "ru": "Полёты с 5 разных мест.",
+    "en": "Fly from 5 different sites."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "places",
+    "count": 5
+   }
+  },
+  {
+   "api": "ACH_TOGETHER",
+   "name": {
+    "ru": "Вместе",
+    "en": "Together"
+   },
+   "desc": {
+    "ru": "Сетевой полёт с посадкой, когда рядом есть другой пилот.",
+    "en": "Complete a multiplayer flight with another pilot in the zone."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "together",
+    "min_peers": 1
+   }
+  },
+  {
+   "api": "ACH_GAGGLE",
+   "name": {
+    "ru": "В одном потоке",
+    "en": "Gaggle"
+   },
+   "desc": {
+    "ru": "Минуту крутить термик вместе с другим пилотом.",
+    "en": "Climb in a thermal together with another pilot for a minute."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "gaggle",
+    "run_s": 60,
+    "vario_min_ms": 0.5,
+    "near_min": 1
+   }
+  },
+  {
+   "api": "ACH_LAST_DOWN",
+   "name": {
+    "ru": "Последний сел",
+    "en": "Last One Down"
+   },
+   "desc": {
+    "ru": "Сядь последним, когда в воздухе были другие.",
+    "en": "Land last, after others had been flying."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "last_down",
+    "min_time_s": 600,
+    "min_others": 3
+   }
+  },
+  {
+   "api": "ACH_PLACES_10",
+   "name": {
+    "ru": "Десять стартов",
+    "en": "Ten Launches"
+   },
+   "desc": {
+    "ru": "Полёты с 10 разных мест.",
+    "en": "Fly from 10 different sites."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "places",
+    "count": 10
+   }
+  },
+  {
+   "api": "ACH_PLACES_25",
+   "name": {
+    "ru": "Двадцать пять стартов",
+    "en": "Twenty-Five Launches"
+   },
+   "desc": {
+    "ru": "Полёты с 25 разных мест.",
+    "en": "Fly from 25 different sites."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "places",
+    "count": 25
+   }
+  },
+  {
+   "api": "ACH_CONTINENTS_3",
+   "name": {
+    "ru": "Через океан",
+    "en": "Overseas"
+   },
+   "desc": {
+    "ru": "Полёты с трёх континентов.",
+    "en": "Fly from three continents."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "continents",
+    "count": 3
+   }
+  },
+  {
+   "api": "ACH_CONTINENTS_ALL",
+   "name": {
+    "ru": "Все континенты",
+    "en": "Every Continent"
+   },
+   "desc": {
+    "ru": "Полёты со всех шести континентов.",
+    "en": "Fly from all six continents."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "continents",
+    "count": 6
+   }
+  },
+  {
+   "api": "ACH_XC_100",
+   "name": {
+    "ru": "Сотня",
+    "en": "Hundred"
+   },
+   "desc": {
+    "ru": "Улети на 100 км по прямой.",
+    "en": "Fly 100 km in a straight line from launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "distance_m",
+    "min": 100000
+   }
+  },
+  {
+   "api": "ACH_AIRTIME_10H",
+   "name": {
+    "ru": "Налёт",
+    "en": "Logbook"
+   },
+   "desc": {
+    "ru": "Суммарно 10 часов в воздухе.",
+    "en": "Ten hours in the air in total."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "airtime",
+    "total_s": 36000
+   }
+  },
+  {
+   "api": "ACH_WINGS_5",
+   "name": {
+    "ru": "Пять крыльев",
+    "en": "Five Wings"
+   },
+   "desc": {
+    "ru": "Полёты на пяти разных крыльях.",
+    "en": "Fly five different wings."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "wings",
+    "count": 5
+   }
+  },
+  {
+   "api": "ACH_ALT_5000",
+   "name": {
+    "ru": "Пять тысяч",
+    "en": "Five Thousand"
+   },
+   "desc": {
+    "ru": "Поднимись выше 5000 м над уровнем моря.",
+    "en": "Climb above 5000 m above sea level."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "sample_max",
+    "key": "alt_msl",
+    "min": 5000
+   }
+  },
+  {
+   "api": "ACH_HIGH_LAUNCH",
+   "name": {
+    "ru": "Высокогорье",
+    "en": "High Launch"
+   },
+   "desc": {
+    "ru": "Взлети с высоты от 3000 м над морем и сядь.",
+    "en": "Launch from 3000 m above sea level or higher and land."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "launch_alt",
+    "min_m": 3000
+   }
+  },
+  {
+   "api": "ACH_DESCENT_2000",
+   "name": {
+    "ru": "С горы",
+    "en": "Downhill"
+   },
+   "desc": {
+    "ru": "Сядь на 2000 м ниже точки отрыва.",
+    "en": "Land 2000 m below your launch."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "descent",
+    "min_m": 2000
+   }
+  },
+  {
+   "api": "ACH_STORM",
+   "name": {
+    "ru": "Под наковальней",
+    "en": "Under the Anvil"
+   },
+   "desc": {
+    "ru": "Взлети в грозовой день и пролетай не меньше 10 минут.",
+    "en": "Launch on a stormy day and stay up at least 10 minutes."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "storm",
+    "cb_min": 0.5,
+    "min_time_s": 600
+   }
+  },
+  {
+   "api": "ACH_STRONG_WIND",
+   "name": {
+    "ru": "Шквал",
+    "en": "Gale"
+   },
+   "desc": {
+    "ru": "Взлети при ветре от 10 м/с и сядь.",
+    "en": "Launch in wind of 10 m/s or more and land."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "launch_wind",
+    "min_ms": 10.0
+   }
+  },
+  {
+   "api": "ACH_OVERCAST",
+   "name": {
+    "ru": "Серый день",
+    "en": "Grey Day"
+   },
+   "desc": {
+    "ru": "Набери 300 м над стартом под сплошной облачностью.",
+    "en": "Gain 300 m over launch under a full overcast."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "overcast",
+    "sky": "overcast",
+    "min_gain_m": 300
+   }
+  },
+  {
+   "api": "ACH_WINTER",
+   "name": {
+    "ru": "Мороз",
+    "en": "Frost"
+   },
+   "desc": {
+    "ru": "Взлети при температуре 0 °C и ниже и пролетай не меньше 10 минут.",
+    "en": "Launch at 0 °C or below and stay up at least 10 minutes."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "winter",
+    "temp_max_c": 0.0,
+    "min_time_s": 600
+   }
+  },
+  {
+   "api": "ACH_EAGLE",
+   "name": {
+    "ru": "Орёл",
+    "en": "Eagle"
+   },
+   "desc": {
+    "ru": "Скрытая ачивка.",
+    "en": "Hidden achievement."
+   },
+   "hidden": true,
+   "rule": {
+    "type": "egg",
+    "ids": [
+     "eagle"
+    ],
+    "max_m": 100
+   }
+  },
+  {
+   "api": "ACH_BALLOONS",
+   "name": {
+    "ru": "Шары",
+    "en": "Balloons"
+   },
+   "desc": {
+    "ru": "Скрытая ачивка.",
+    "en": "Hidden achievement."
+   },
+   "hidden": true,
+   "rule": {
+    "type": "egg",
+    "ids": [
+     "balloon",
+     "balloon_festival"
+    ],
+    "max_m": 150
+   }
+  },
+  {
+   "api": "ACH_GLORIA",
+   "name": {
+    "ru": "Глория",
+    "en": "Glory"
+   },
+   "desc": {
+    "ru": "Скрытая ачивка.",
+    "en": "Hidden achievement."
+   },
+   "hidden": true,
+   "rule": {
+    "type": "egg",
+    "ids": [
+     "gloria"
+    ],
+    "max_m": 0.5
+   }
+  },
+  {
+   "api": "ACH_WATER_LANDING",
+   "name": {
+    "ru": "Посадка на воду",
+    "en": "Splashdown"
+   },
+   "desc": {
+    "ru": "Приводнись.",
+    "en": "Land on water."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "surface",
+    "value": "water"
+   }
+  },
+  {
+   "api": "ACH_CAMP_LANDING",
+   "name": {
+    "ru": "К столу",
+    "en": "Dinner Is Served"
+   },
+   "desc": {
+    "ru": "Скрытая ачивка.",
+    "en": "Hidden achievement."
+   },
+   "hidden": true,
+   "rule": {
+    "type": "camp",
+    "max_m": 10
+   }
+  }
+ ]
+}
