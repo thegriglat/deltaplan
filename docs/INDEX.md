@@ -75,6 +75,7 @@ generated: true
 | [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) | research | closed | flight | Масса пилота и поляра дельтаплана (FR-3) — Исследование для модели полёта: как масса пилота меняет скорости, снижение, качество и реакцию крыла, и какие реальные данные взяты для трёх крыльев. |
 | [docs/research/slope_wind.md](/docs/research/slope_wind.md) | research | closed | air-model | Обтекание склона ветром: что у нас сейчас, как в жизни, что можно сделать — Исследование, без правок кода. Повод — отзыв пилота: «обтекание склона ветром ощущается не физично». |
 | [docs/research/sounds.md](/docs/research/sounds.md) | research | closed | instruments | Звук: ассеты и процедурный синтез (FR-28, FR-29) — Итог: 51 файл, 8,2 МБ в assets/sounds/ (ориентир был ≤ 30 МБ). |
+| [docs/research/steam_tile_policy.md](/docs/research/steam_tile_policy.md) | research | closed | steam-assets | Соответствие карты выбора старта правилам tile.openstreetmap.org и OpenTopoMap: таблица пункт правил → код → вывод → правка; 3 нарушения и 3 замечания. |
 | [docs/research/surface_params.md](/docs/research/surface_params.md) | research | closed | air-model | Параметры поверхности по классам покрова (контракт П4 v1) — Для чего выбраны значения: дневной летний полёт (≈10–16 ч местного, ясно или малооблачно), умеренные широты, Альпы/предгорья. |
 | [docs/research/terrain_sources.md](/docs/research/terrain_sources.md) | research | closed | terrain | Источники рельефа и карт (FR-17 … FR-20) — Дата проверки: 2026-09-27. Всё ниже проверено запросами с этой машины, кроме помеченного «(по документации)». |
 | [docs/research/terrain_statistics.md](/docs/research/terrain_statistics.md) | research | closed | air-synth | Статистика горного рельефа для генератора модельных рельефов air-synth на квадрат 40 × 40 км: плотность вершин по prominence, седловины, степенные законы, спектр, уклоны, дренаж; замеры на 4 реальных местах игры; разложение на формы плана; прототип Fastscape (SPL + диффузия + порог уклона) против суммы форм |
@@ -156,7 +157,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (277 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (279 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |

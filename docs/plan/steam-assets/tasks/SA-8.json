@@ -1,0 +1,63 @@
+{
+  "id": "SA-8",
+  "module": "steam-assets",
+  "type": "dp-engineer",
+  "title": "Карта выбора старта: правила серверов тайлов (User-Agent, паузы после ошибок, параллельность)",
+  "goal": "Игра соблюдает правила tile.openstreetmap.org и OpenTopoMap: честный User-Agent с версией и адресом проекта, без шквала повторов при ошибках и блокировке, не больше 2 запросов к OSM одновременно.",
+  "plan_ref": "SA-8",
+  "contracts": [
+    {
+      "name": "SM-К1",
+      "version": "3",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SM-К2",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-8",
+  "branch": "steam-assets/SA-8",
+  "base": "feature/steam-assets",
+  "scope": [
+    "scripts/terrain/raster_tile_loader.gd",
+    "scripts/ui/map_picker.gd",
+    "configs/world.json",
+    "tests/ui/",
+    "tests/terrain/",
+    "tests/contracts/test_steam_assets_contracts_sa8.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tests/contracts/test_start_map_contracts.gd",
+    "ASSETS.md",
+    "locale/"
+  ],
+  "accept": [
+    {
+      "name": "start_map",
+      "tests": "start_map"
+    },
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "map_picker",
+      "tests": "map_picker"
+    },
+    {
+      "name": "raster_tile",
+      "tests": "raster_tile"
+    },
+    {
+      "name": "no_noncommercial",
+      "cmd": "grep -c non-commercial configs/world.json",
+      "expect": "re:^0$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:56:56"
+}
