@@ -1,0 +1,18 @@
+{
+ "n_places": 305,
+ "n_game": 4,
+ "corpus_path": "/home/greg/air_synth_data/real/hg_v2",
+ "game_corpus_path": "/home/greg/air_synth_data/real/game_hg2",
+ "corpus_bytes": 59176178,
+ "game_corpus_bytes": 799518,
+ "g400_vs_hc400_max_abs_m": 0.0,
+ "readback_h400_vs_hc400_max_abs_m": 0.07500000000004547,
+ "clipped_places": [],
+ "zoom_counts": {
+  "12": 367
+ },
+ "raw_deleted": true,
+ "pack_seconds": 44.3,
+ "source": "Terrain Tiles (Mapzen/AWS Open Data, Terrarium)",
+ "raw_freed_mb": 1230
+}

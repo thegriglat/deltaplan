@@ -98,3 +98,19 @@ func test_guard() -> void:
 	check((ok.clamped as Array).is_empty() and float(ok.row.U10) == 3.0, "внутри области — без зажатия")
 	var low := AirNnInput.guard({U10 = -1.0, hour = 9.0, t_max = 34.0}, dom)
 	check(low.clamped == ["U10 -1.0→0.0"], "нижний край: %s" % [low.clamped])
+
+
+## SY-14: модель игры несёт область обучения в метаданных (hgw24, S2 v4) — страж берёт её, а не умолчание пилота.
+func test_guard_domain_from_model_metadata() -> void:
+	var m := AirNnField.open(AirNnField.DEFAULT_PATH, 1)
+	check(String(m.why) == "", "модель открылась: %s" % m.why)
+	var md: Dictionary = m.domain
+	check(md.has("U10") and md.has("hour") and md.has("t_max"), "в метаданных deltaplan.domain есть U10, hour, t_max: %s" % [md])
+	var dom := AirNnInput.default_domain()
+	for key: String in md:
+		dom[key] = md[key]
+	check(dom.U10 != AirNnInput.DEFAULT_DOMAIN.U10, "U10 не умолчание: %s" % [dom.U10])
+	var g := AirNnInput.guard({U10 = 10.0, hour = 8.0, t_max = 38.0}, dom)
+	check((g.clamped as Array).is_empty(), "условия hgw24 внутри области, не зажаты: %s" % [g.clamped])
+	var hi := AirNnInput.guard({U10 = 15.0, hour = 8.0, t_max = 38.0}, dom)
+	check(hi.clamped == ["U10 15.0→12.0"], "верхний край по метаданным: %s" % [hi.clamped])

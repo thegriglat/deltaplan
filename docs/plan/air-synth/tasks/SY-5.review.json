@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён: generator.py изменён только в пределах TUNABLE и T_TOTAL, как велел координатор. S3 v3 соблюдён: t_total_yr остался в PARAM_NAMES, облако в формате names/points/weights/source, версия генератора fs1-e96b23e совпадает с файлом. Числа отчёта (367 точек, медиана χ²/ndf 1,47, недостижимые наблюдаемые) совпадают с tune_summary.json. Структурные дыры и параметры у границ честно описаны в terrain_tuning.md.",
+  "issues": [
+    {
+      "file": "tools/research/air_synth/tune/fit.py",
+      "line": 125,
+      "severity": "minor",
+      "what": "Веса облака weights = clip(ndf/χ², 0,05, 1) выбраны без физического обоснования. Они смещают корпус к квадратам, которые генератор воспроизводит хорошо, и обедняют трудные места (до 20 раз).",
+      "fix": "При сборке корпуса решить явно: равные веса или эти. Решение записать в terrain_tuning.md §5."
+    },
+    {
+      "file": "tools/research/air_synth/tune/fit.py",
+      "line": 142,
+      "severity": "minor",
+      "what": "В eigentunes групп σ не учитывает разброс между квадратами (0*sd_place), а групповой χ²/ndf равен 13–17. Поэтому σ_u и оси eigentunes занижают неопределённость в разы.",
+      "fix": "Отметить это в документе (или умножить cov на χ²/ndf). Облако от этого не зависит."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tune_tests (pytest)",
+      "value": "4 passed",
+      "pass": true
+    },
+    {
+      "name": "cloud: points/names/пределы",
+      "value": "367 точек, 8 имён, все в пределах TUNABLE",
+      "pass": true
+    },
+    {
+      "name": "сек/рельеф generate(1,i), i=0..3, OMP=1, load ~2",
+      "value": "13,6–14,1 с (порог 20 с)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T00:08:20",
+  "by": "reviewer"
+}

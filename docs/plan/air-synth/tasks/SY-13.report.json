@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Старый текст на скриншоте — устаревший locale/*.translation после моего stash/pop (скриншот снят после него). Добавлен тест текстов пунктов по реальному UI (ru/en), флаг ui_shot --wind-list, новые скриншоты 01 и 02.",
+  "commits": [
+    "beec42f9 ui_shot --wind-list; тест текстов по UI ru/en"
+  ],
+  "checks": [
+    {
+      "name": "wind_model_setting",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "labels",
+      "value": "совпало",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "exit 0, тексты ru/en в логе",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SY-13/01_меню_модели_ветра.png",
+    "/home/greg/deltaplan/build/screenshots/SY-13/02_меню_модели_ветра_список.png"
+  ],
+  "how_to_check": "dp accept SY-13 --dry",
+  "uncertain": [
+    {
+      "where": "причина старого текста",
+      "why": "восстановлена по хронологии, а не по сохранённому артефакту",
+      "checked": "скриншот снят после stash/pop, когда .translation был собран из откаченного CSV; в новой копии после импорта UI даёт новые тексты (лог съёмки)"
+    }
+  ],
+  "dp_feedback": "dp accept не реимпортирует locale; шаг screenshot хорошо бы проверять ещё и текст из лога.",
+  "t": "2026-10-05T21:37:52",
+  "by": "executor"
+}

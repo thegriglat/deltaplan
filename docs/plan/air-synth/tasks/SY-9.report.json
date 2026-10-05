@@ -1,0 +1,100 @@
+{
+  "status": "done",
+  "summary": "Каталог из OSM: 684 старта дельтаплана, 3173 неясных, 958 только параплан, 363 места (кластеры <10 км) с перепадом рельефа и tile_hint; выжимка takeoffs_game.json 91677 байт. Один глобальный запрос Overpass (тайловый вариант упёрся в 504).",
+  "commits": [
+    "18763ea6 air-synth SY-9: каталог стартов дельтаплана из OSM (S6)"
+  ],
+  "checks": [
+    {
+      "name": "catalog_tests",
+      "value": "4 passed",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "363",
+      "pass": true
+    },
+    {
+      "name": "summary",
+      "value": "by_country",
+      "pass": true
+    },
+    {
+      "name": "determinism",
+      "value": "двойной build по кешу — одинаковые md5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "country у paraglide_only.csv пуст (страну считали только для hg и unclear)",
+    "git merge feature/air-synth (dp task sync) не выполнен — система разрешений отказала; доп. S6 (country_name, takeoffs_game.json) реализован по inbox и git show feature/air-synth:docs/contracts/air-synth.md"
+  ],
+  "questions": [
+    "Россия: 1 старт дельтаплана (15 неясных), Алтай почти не размечен — набор мест почти без России; Норвегия 2310 неясных (массовая разметка без hanggliding) — нужен ли их отбор по другому критерию?",
+    "Правило «только paragliding=yes без тега hanggliding → не брать» отсекло 958 стартов; при желании вернуть в неясные — paraglide_only.csv уже есть"
+  ],
+  "how_to_check": "dp accept SY-9",
+  "uncertain": [
+    {
+      "where": "tools/research/air_synth/hg_sites/catalog.py:is_takeoff",
+      "why": "добавлена новая схема тегов free_flying:takeoff=yes (site=takeoff deprecated по вики) и rigid=yes как дельтаплан — отклонение от текста S6",
+      "checked": "вики Tag:sport=free_flying прочитана 05.10; тест на отбор"
+    },
+    {
+      "where": "fetch.py:countries",
+      "why": "первый прогон is_in вернул 6 пачек пустыми при усечённом ответе (Франция 44-45 с.ш. без страны); исправлено проверкой remark и перезапросом",
+      "checked": "после правки неизвестных стран среди hg-мест нет"
+    },
+    {
+      "where": "build.py:relief_for",
+      "why": "перепад по Terrarium z9 (пиксель ~300 м) занижен относительно сетки 100 м",
+      "checked": "квантили 62–8594 м, пропусков нет"
+    }
+  ],
+  "dp_feedback": "dp job wait в foreground упирается в 600 с и уходит в фон — нет команды «ждать файл/условие»; dp inbox не показывает полный текст дополнений одной строкой без tail.",
+  "n_takeoffs_hg": 684,
+  "n_unclear": 3173,
+  "n_paraglide_only": 958,
+  "n_dropped_by_kind": {
+    "landing": 1273,
+    "training": 68,
+    "towing": 34,
+    "toplanding": 22,
+    "other_site": 74,
+    "landing+toplanding+training": 1,
+    "landing+training": 1
+  },
+  "n_sites": 363,
+  "by_country_top": {
+    "FR": 222,
+    "DE": 24,
+    "CH": 20,
+    "IT": 13,
+    "AU": 12,
+    "SK": 11,
+    "AT": 10,
+    "ES": 7,
+    "NO": 7,
+    "IR": 6
+  },
+  "relief_quantiles": {
+    "p0": 61.9,
+    "p10": 301.7,
+    "p25": 672.8,
+    "p50": 1353.0,
+    "p75": 2175.5,
+    "p90": 2824.7,
+    "p100": 8594.0
+  },
+  "old_tags_rule": "По вики OSM site=takeoff deprecated, новая схема free_flying:takeoff=yes — берём обе; sport=hang_gliding/leisure в вики не описаны как старт — не используем; ориентация: site_orientation, иначе direction; дельтаплан: hanggliding=yes или rigid=yes (без hanggliding=no)",
+  "overpass_requests": {
+    "takeoffs_world": 1,
+    "countries_batches": 45,
+    "country_names": 1,
+    "terrarium_tiles": 80
+  },
+  "game_extract_bytes": 91677,
+  "t": "2026-10-05T04:22:35",
+  "by": "executor"
+}

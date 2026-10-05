@@ -1,0 +1,55 @@
+{
+  "id": "SY-6",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Реальные места air-nn v3 (360) заново: выбор/скачивание/нарезка конвейером П6 и упаковка в HDF5 (S1 v3)",
+  "goal": "Набрать заново 360 реальных мест набора air-nn v3 (пул 300 + 4 отложенные системы × 15) — только рельеф, без решателя — и сразу упаковать в HDF5 по S1 v3 (relief/h100, relief/h400 int16 + таблица place): эталон для настройки Professor (пул) и будущая приёмка H4 (отложенные).",
+  "plan_ref": "5. Риски",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "3",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-6",
+  "branch": "air-synth/SY-6",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/real"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot",
+    "tools/research/air3d",
+    "tools/research/air_synth/corpus"
+  ],
+  "accept": [
+    {
+      "name": "real_tests",
+      "cmd": "cd tools/research/air_synth/real && ../corpus/.venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "count",
+      "cmd": "cd tools/research/air_synth/real && cat out/real_summary.json",
+      "expect": "num:\"n_places\": (\\d+) >=360"
+    },
+    {
+      "name": "match_v3",
+      "cmd": "cd tools/research/air_synth/real && cat out/real_summary.json",
+      "expect": "re:\"systems_match_v3\": true"
+    }
+  ],
+  "report_extra": [
+    "n_places",
+    "systems_table",
+    "match_v3_details",
+    "corpus_path",
+    "corpus_bytes",
+    "raw_deleted",
+    "fetch_minutes"
+  ],
+  "notes": "Конвейер — tools/research/air_nn_pilot/ (terrain_cut.py: стадии select/fetch/cut, places.py, configs; контракт П6 v3 — docs/contracts/air-nn.md раздел П6, README пилота раздел про вырезки), окружение пилота — air_nn_pilot/setup_env.sh (свой .venv в копии задачи); код пилота не править — запускать с AIR_NN_DATA во временный/рабочий каталог вне git (напр. /tmp_p6) и своим конфигом при необходимости. Состав v3 — tools/research/air_nn_pilot/figures/p2_terrain_v3/systems_table.json: проверить, что выбор (тот же конфиг и зёрна → тот же index.csv) даёт тот же состав по системам и частям pool/holdout (пул 300, отложенные Кавказ, Пиренеи, Аппалачи, Южные Альпы НЗ по 15) — systems_match_v3 в out/real_summary.json; расхождение — записать, не подгонять. Упаковка: S1 v2 (docs/contracts/air-synth.md; corpus_io.py пишет SY-1 параллельно — координатор сообщит о вливании, тогда dp task sync SY-6; до этого — стадии select/fetch/cut и проверка состава). g100 — блочное среднее 4×4 узлов h (25 м) по области ±19 200 м, g400 — 4×4 клеток g100, проверка g400 = hc400 П6 ≤ 1e-6 до квантования; place — id, lat/lon, system, part, stratum, source, zoom, шаг, sha256 вырезки. Корпус — /real/p6v3/ (по умолчанию ~/air_synth_data); плюс 4 места игры (data/terrain/{askarovo,aushkul,altai,ongudai}/detail — тем же конвейером в /real/game/, part=game) — если удобно. Места на диске мало: после упаковки и проверки удалить сырые тайлы и вырезки (raw/, tiles/), оставить только корпус и небольшие сводки; сначала оценить объём по 2–3 местам. Долгое (fetch ~10 мин по замерам v2) — dp job start, вежливо к серверу тайлов (как в конвейере). Решатель НЕ запускать. out/real_summary.json (n_places, по системам и частям, systems_match_v3, размер корпуса, удалено ли сырьё) — коммитить. Тест: чтение корпуса, число мест, place заполнены, g400 = блочному среднему g100. Картинки не нужны.",
+  "created": "2026-10-04T22:28:35",
+  "edited": "2026-10-04T23:17:05"
+}

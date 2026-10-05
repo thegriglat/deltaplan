@@ -1,0 +1,91 @@
+{
+  "id": "SY-10",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Места дельтаплана: рельеф всех мест каталога (S1 v4), отложенные ~20, условия hgw24 (S2 v3), счёт решателя (S5 v4)",
+  "goal": "Набрать рельеф всех мест каталога дельтаплана в HDF5, отложить ~20 мест из разных регионов и места у мест игры, построить 24 разнообразных условия на место (hgw24) и запустить счёт решателя P2 по всем местам и 4 местам игры — данные для финального обучения.",
+  "plan_ref": "Решения пользователя (не обсуждаются)",
+  "contracts": [
+    {
+      "name": "S6",
+      "version": "1",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S1",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S5",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-10",
+  "branch": "air-synth/SY-10",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/hg_real",
+    "tools/research/air_synth/solver/solve_corpus.py",
+    "tools/research/air_synth/solver/make_p2c12.py",
+    "tools/research/air_synth/solver/s5_io.py",
+    "tools/research/air_synth/solver/tests",
+    "tools/research/air_synth/solver/run_hg.sh",
+    "tools/research/air_synth/solver/out_solve_hg",
+    "tools/research/air_synth/solver/README.md",
+    "tools/research/air_synth/solver/make_hgw24.py"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot",
+    "tools/research/air3d",
+    "tools/research/air_synth/hg_sites",
+    "tools/research/air_synth/corpus/conditions.py"
+  ],
+  "accept": [
+    {
+      "name": "hg_tests",
+      "cmd": "cd tools/research/air_synth/hg_real && ../corpus/.venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "split",
+      "cmd": "cd tools/research/air_synth/hg_real && cat out/split_summary.json",
+      "expect": "re:\"n_holdout\""
+    },
+    {
+      "name": "s5_tests",
+      "cmd": "cd tools/research/air_synth/solver && ../../air_nn_pilot/.venv/bin/python -m pytest -q tests/test_contract_s5.py",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "progress",
+      "cmd": "cd tools/research/air_synth/solver && cat out_solve_hg/progress.json",
+      "expect": "re:\"cases_done\""
+    }
+  ],
+  "report_extra": [
+    "n_sites",
+    "n_train",
+    "n_holdout",
+    "holdout_regions",
+    "relief_quantiles",
+    "corpus_path",
+    "corpus_mb",
+    "raw_deleted",
+    "solve_paths",
+    "est_hours",
+    "job_name",
+    "launch_command",
+    "n_conds_per_site,trial_sec_per_case",
+    "game_square_check"
+  ],
+  "notes": "Вход — каталог SY-9 tools/research/air_synth/hg_sites/sites.json (S6: tile_hint — квадрат ±20 км; координата центра — старт с наибольшей высотой). Рельеф — тем же конвейером, что SY-6 (tools/research/air_synth/real/pack_real.py, terrain_real.yaml; конвейер П6 air_nn_pilot/terrain_cut.py — только запуск, не правка; свой конфиг со списком мест), Terrarium z12 → вырезка 25 м → h100/h400 → ~/air_synth_data/real/hg_v1 (S1 v4: place.name = site_id, system = страна, part = train|holdout, stratum = регион, атрибуты train_order, split_seed); места без рельефа/с морем > порога П6 — исключить с записью причин. Сырьё (тайлы, вырезки) после упаковки удалить. Деление: ~40 отложенных по регионам (напр. по макрорегионам/странам, которых нет в обучении или их части), каждое ≥ 50 км от любого обучающего; остальные — train в порядке зерна (split_seed) с перемешиванием по регионам, чтобы первые 50/100/200 были разнообразны; out/split_summary.json (n_train, n_holdout, регионы, страны, квантили перепада по частям). Условия p2c12 — tools/research/air_synth/solver/make_p2c12.py (как SY-8) → ~/air_synth_data/conditions/hg_v1_p2c12 и game_p2c12. Счёт: solve_corpus.py (S5 v3: группы 0 train / 1 holdout / 2 game, столбец rank) → solve/hg_v1__p2c12__s0-939a467 и solve/game__p2c12__s0-939a467, порядок очереди — game, holdout, train по rank (чтобы оценка была готова первой, а train рос вложенно); 3 воркера, CPU ограничить (генерация SY-7 может ещё идти). Оценка времени перед запуском по замеру SY-8 (~12 с на случай при 3 воркерах): (363 + 4) × 12 ≈ 4400 случаев ≈ 15 ч. Запуск — dp job --lock gpu start sy10-solve <таймаут> run_hg.sh; если система разрешений откажет — НЕ обходить: launch_command в отчёт и отчёт сразу. Не ждать конца счёта: отчёт после первой готовой части (progress.json). Обучение НЕ запускать.",
+  "created": "2026-10-05T03:47:22",
+  "edited": "2026-10-05T04:03:50"
+}

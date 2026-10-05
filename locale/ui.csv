@@ -154,9 +154,9 @@ gfx_high,Высокое (полное),High (full)
 settings_render_scale,Масштаб рендера,Render scale
 settings_grass_density,Густота травы,Grass density
 settings_wind_model,Ветер над рельефом,Wind over terrain
-settings_wind_model_calc,Расчёт по рельефу,Calculated from terrain
-settings_wind_model_simple,Упрощённый (быстрее и надёжнее),Simplified (lighter and safer)
-settings_wind_model_nn,Нейросеть (экспериментально),Neural network (experimental)
+settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
+settings_wind_model_simple,Эвристика (профиль ветра без рельефа),Heuristic (wind profile without terrain)
+settings_wind_model_nn,Нейросеть (поле ветра по рельефу),Neural network (wind field over terrain)
 settings_as_in_preset,Как в пресете,From preset
 recent_title,Недавние места,Recent places
 recent_rename,Переименовать,Rename

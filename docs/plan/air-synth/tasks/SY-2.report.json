@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "generator.py (S3 v2: TUNABLE из 9 параметров, generate(seed,id,theta=None)), check_generator.py, тесты; непрерывная смесь mix~Beta(0.8,0.8); вытянутое поле поднятия и пород; фикс. T=4e6 лет. out_of_range=0 на второй попытке. Доработка S3 v3: PARAM_NAMES (формы как r{i}_*, b{i}_*, до 4 гребней и 40 пупырей, неиспользованные 0), params — dict[str,float], зависимости от corpus_pb2 нет; accept 3/3, версия fs1-d097596.",
+  "commits": [
+    "6f57bad7 генератор корпуса v1",
+    "6d65c6e5 S3 v3: params dict, PARAM_NAMES (0 имён), без corpus_pb2"
+  ],
+  "checks": [
+    {
+      "name": "gen_tests",
+      "value": "3 passed",
+      "pass": true
+    },
+    {
+      "name": "stats_in_range",
+      "value": "out_of_range=0",
+      "pass": true
+    },
+    {
+      "name": "sec_per_relief",
+      "value": "13.8",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Тонкая подгонка не делалась (по заданию); вершины всё ещё на 15-25% ниже медианы реальных."
+  ],
+  "how_to_check": "dp accept SY-2",
+  "uncertain": [
+    {
+      "where": "check_generator.py",
+      "why": "Реальный диапазон конца смеси = min/max по {detail, медиана far16} двух мест; out_of_range считает пары (метрика, конец). Другая трактовка может дать другое число",
+      "checked": "в таблице видно все значения; на первой попытке было 2"
+    },
+    {
+      "where": "generator.py TUNABLE",
+      "why": "Пределы и defaults выбраны грубо, середина распределения mix=0.5",
+      "checked": "тест: default внутри пределов, theta не меняет поток ГСЧ"
+    }
+  ],
+  "dp_feedback": "Сообщение о правке контракта S3 v2 пришло и в inbox, и сообщением агента; dp task sync влил контракт без проблем.",
+  "extra": {},
+  "attempts": "Попытка 1: прототип + анизотропное поле (stretch 1+0.4..3 * U(0.4,1.6)), k_logsd 0.8-1.2, blobs 9-16, dt 1e5 вместо 5e4, T=4e6: out_of_range=2 (peaks100@400 Онгудай, peaks30@100 Урал). Попытка 2: k_logsd 1.0-1.4, blobs 12-20: out_of_range=0.",
+  "stats_table": "См. out_check/check_v1.json. Медианы (Урал mix<0.3, n=12 / Онгудай-Алтай mix>0.7, n=15; реальные мин-макс): peaks>=30@400: 22.2 [26.5-67] / 64 [83-138]; peaks>=100@400: 3.3 [3-16] / 20.6 [26-52]; peaks>=300@400: 1.1/3.3; peaks>=30@100: 35.8 [42-178] / 94.4 [118-260]; перепад: 670 [533-640] / 1700 [1060-1970]; уклон400: 3.2 [2.37-2.85] / 7.1 [6.46-12.4]; вытянутость: 0.66 [0.39-0.58] / 0.38 [0.12-0.31]; beta 1-3км: 2.79 / 2.6; Dd: 0.67 / 0.69.",
+  "mix_distribution": "mix~Beta(0.8,0.8). Параметры: U0 loglerp 2e-4..7e-4 *exp(0.2N); K0 loglerp 4e-6..8e-6 *exp(0.15N); k_logsd U(1.0,1.4); k_beta U(1.2,2.0); fourier_amp lerp 0.3..0.4 *exp(0.25N); D=0.03*exp(0.25N); stretch=1+lerp(3,0.4)*U(0.4,1.6); гребней round(lerp(2,3)+U(-1,1)); пупырей round(lerp(12,20)*exp(0.25N)); разброс простирания 10..40 град; простирание равномерно [0,pi); base_elevation lerp(500,1000)+150N (>=150 м).",
+  "sec_per_relief": "13.8 с медиана (16 процессов при нагрузке соседей)",
+  "t_total_yr": "4e6 (dt=1e5)",
+  "t": "2026-10-04T22:40:03",
+  "by": "executor"
+}

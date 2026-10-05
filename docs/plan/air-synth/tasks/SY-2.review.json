@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "API S3 v3 выполнен: PARAM_NAMES (300 имён: 24 скаляра, 4 гребня, 40 пупырей), params — dict из float, z100 384² float64, весь ГСЧ берётся из SeedSequence([seed, id]), поток ГСЧ от theta не зависит. Скоуп соблюдён, out_of_range=0 подтверждён. Под вопросом t_total_yr в TUNABLE: контракт требует одно T на корпус.",
+  "issues": [
+    {
+      "file": "tools/research/air_synth/corpus/generator.py",
+      "line": 117,
+      "severity": "major",
+      "what": "t_total_yr входит в TUNABLE. В S3 v3 сказано «T — одно для корпуса», в карточке — «фиксированное T». Если в облаке θ разные значения T, то у рельефов корпуса будет разное T. Это противоречит контракту, или так задумано, чтобы Professor подбирал общее T?",
+      "fix": "Координатору решить: либо убрать t_total_yr из TUNABLE, либо записать в S3, что T в облаке θ одинаково для всех точек (тогда run_corpus должен это проверять)."
+    },
+    {
+      "file": "tools/research/air_synth/corpus/generator.py",
+      "line": 126,
+      "severity": "minor",
+      "what": "Если в theta придёт NaN, обрезка min(max(v, lo), hi) его не отсекает: Python max(nan, lo) возвращает nan, и NaN уйдёт в расчёт.",
+      "fix": "Перед обрезкой проверять np.isfinite(v) и отказывать, если значение не конечное."
+    },
+    {
+      "file": "tools/research/air_synth/corpus/out_check/check_v1.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Все метрики проходят по допуску [0,67·мин; 1,5·макс], но смещены систематически. Число вершин ниже реального минимума на обоих концах смеси (Урал: peaks>=30 на 400 м — 22 при реальном диапазоне 26,5–67; Онгудай: 64 при 83–138). Вытянутость выше реального максимума (0,66 против 0,58; 0,38 против 0,31).",
+      "fix": "Ничего не править. Учесть при задании пределов TUNABLE для Professor: anisotropy и fourier_amp должны покрывать эти значения."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "gen_tests (pytest tests/test_generator.py)",
+      "value": "3 passed",
+      "pass": true
+    },
+    {
+      "name": "stats_in_range (check_generator --n 40 --seed 1, --out в scratchpad)",
+      "value": "out_of_range=0, таблица совпадает с отчётом",
+      "pass": true
+    },
+    {
+      "name": "sec_per_relief",
+      "value": "18.8",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-04T22:44:42",
+  "by": "reviewer"
+}

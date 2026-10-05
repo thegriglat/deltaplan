@@ -7,6 +7,8 @@ extends Node
 ## Пишет <out>/{menu,setup,pause,settings,about,result_soft,result_crash}.png. Код выхода 0/1.
 ## --lang=ru|en — язык интерфейса (без записи в профиль); --only=about — только «Об игре»; --only=setup — только «Полёт…»:
 ## setup, setup_kingpost (класс «мачтовые», модель Laminar), setup_classes (список классов открыт).
+## --wind-list (с --net-settings) — ещё settings_wind_list.png с раскрытым списком модели ветра
+## и текст пунктов в лог.
 ## --net-settings (NET-40/К3) — только settings.png, но панель в сетевом режиме
 ## (set_net_mode(true) — строка «Скорость времени» скрыта).
 ## --only=wings — без мира за меню: «Полёт…» с самым многочисленным классом крыльев, список моделей
@@ -19,6 +21,7 @@ var _out := ""
 var _lang := ""
 var _only := ""
 var _net_settings := false
+var _wind_list := false
 var _main: Node = null
 
 
@@ -30,6 +33,8 @@ func _ready() -> void:
 			_lang = a.substr(7)
 		elif a.begins_with("--only="):
 			_only = a.substr(7)
+		elif a == "--wind-list":
+			_wind_list = true
 		elif a == "--net-settings":
 			_net_settings = true
 	if _out == "":
@@ -99,7 +104,15 @@ func _run() -> void:
 		main.get_node("UI/StartMenu").visible = false
 		sp.set_net_mode(true)
 		sp.visible = true
+		var wm: OptionButton = sp.get("_wind_model")
+		var texts: Array = []
+		for i in wm.item_count:
+			texts.append(wm.get_item_text(i))
+		print("ui_shot: wind_model [%s] items=%s" % [_lang, texts])
 		await _shoot("settings")
+		if _wind_list:
+			wm.show_popup()
+			await _shoot("settings_wind_list")
 		print("ui_shot: OK")
 		await _quit(0)
 		return

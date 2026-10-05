@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Переделано на HDF5 по S1 v3/S2 v2/S3 v3: части part-*.h5 (tmp+fsync+replace), вид corpus.h5/conditions.h5 через VDS (детерминированно), кодировка 2500/0,15 с ошибкой вне int16, summary/gen/params/place/conditions-table, write_reliefs для SY-6, Conditions для SY-3; run_corpus gen/view/sample/bench, --theta-cloud, resume; 16 тестов.",
+  "commits": [
+    "4d5a5ffe формат корпуса на HDF5",
+    "39f4239c (прежний, protobuf — заменён)"
+  ],
+  "checks": [
+    {
+      "name": "contract_tests",
+      "value": "16 passed",
+      "pass": true
+    },
+    {
+      "name": "no_fail",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "smoke_resume",
+      "value": "2 passed",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SY-1",
+  "uncertain": [
+    {
+      "where": "corpus_io.py build_view",
+      "why": "VDS ссылается на части по относительному имени; проверено только перемещение каталога и чтение h5py 3.16/HDF5 2.0 на этой машине; другие версии HDF5 не пробовал",
+      "checked": "тест test_view_survives_move, чтение вида и частей совпадает"
+    },
+    {
+      "where": "corpus_io.py build_view complete",
+      "why": "complete=True только если в manifest.json есть n_total и части контигуозны от 0; вид без manifest.json всегда complete=False",
+      "checked": "тест неполного корпуса"
+    },
+    {
+      "where": "tests/test_run_corpus.py::test_resume_after_kill",
+      "why": "зависит от времени (kill посередине, пауза 1,5 с для осиротевших рабочих)",
+      "checked": "проходил несколько раз"
+    },
+    {
+      "where": "корни частей",
+      "why": "сверх контракта добавлен атрибут корня n_total",
+      "checked": "читатель его не требует"
+    }
+  ],
+  "dp_feedback": "dp task sync не показывает, что изменилось в контракте; пришлось читать весь файл.",
+  "sec_gen_per_relief": 16.0,
+  "sec_io_per_relief": 0.027,
+  "bytes_per_relief": 218728,
+  "go_needed": false,
+  "extra": {
+    "bench": "tools/research/air_synth/corpus/bench/bench_proto.json",
+    "breakdown_s": {
+      "gen": 16.0,
+      "quant_summary": 0.009,
+      "write_h5": 0.018
+    },
+    "note": "квантование+запись ≈0,17% времени; узкое место — ядро fastscapelib, Go не нужен; 219 КБ/рельеф с gzip → 10^4 ≈ 2,2 ГБ"
+  },
+  "t": "2026-10-04T22:41:55",
+  "by": "executor"
+}

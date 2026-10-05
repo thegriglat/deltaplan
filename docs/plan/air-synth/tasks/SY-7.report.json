@@ -1,0 +1,78 @@
+{
+  "status": "partial",
+  "summary": "Корпус fs1_10k сгенерирован на 64% (64 из 100 частей, 6400 рельефов, 1,3 ГБ), генерация остановлена по решению пользователя. Сделаны правки по ревью, равные веса облака, перегенерация рельефов вне int16, stats (0 из 17 вне диапазона), условия H1 без отбора (код, не запускалось на корпусе); H7 на корпусе не снят.",
+  "commits": [
+    "dc0340f6 air-synth SY-7: частичный корпус fs1_10k (64/100 частей), статистики выборки, README",
+    "1c8feacf air-synth SY-7: условия H1 без отбора (P2 как plan_rows), сводка набора, H7 из набора с немеханическими",
+    "cb72bdc0 Слияние feature/air-synth в air-synth/SY-7",
+    "2c468340 air-synth: решение — стоп после SY-7",
+    "d33a3b5e air-synth: SY-7 — условия H1 без отбора; заметка об обучении",
+    "81c3fd48 air-synth: S2 — набор H1 по распределению P2 без отбора (обучение на всех случаях, оценка в механическом режиме)"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "78 с, без failed",
+      "pass": true
+    },
+    {
+      "name": "corpus_n",
+      "value": "6400 < 10000 (ожидаемо)",
+      "pass": false
+    },
+    {
+      "name": "stats",
+      "value": "out_of_range 0 из 17",
+      "pass": true
+    },
+    {
+      "name": "h7",
+      "value": "не снят (остановлено)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Генерация остановлена на 64/100 частях (SIGTERM главной сессии по решению пользователя; мой перезапуск остановлен); id 6400..9999 нет.",
+    "conditions h1_p2/h1_mech на корпусе не построены; код готов (conditions.py make [--mechanical-only], summary).",
+    "H7 на корпусе (out_h7_corpus) не снят; h7_run.py доработан (--ids auto5, --conditions, --base-m), на настоящем корпусе не запускался."
+  ],
+  "questions": [
+    "pack_real.py не пишет атрибут clipped_places при перепаковке (вне скоупа); у p6v3 дописан вручную в части, вид и manifest."
+  ],
+  "how_to_check": "cd tools/research/air_synth/corpus && .venv/bin/python -m pytest -q tests; dp accept SY-7 --dry",
+  "uncertain": [
+    {
+      "where": "run_corpus.py:make_shard",
+      "why": "перегенерация вне int16 меняет смысл gen/params.corpus_seed (эффективное зерно seed+попытка·1e9), контракт не менялся",
+      "checked": "тест на fakegen, детерминизм по числу воркеров; 86 из 6400 (1,3 %)"
+    },
+    {
+      "where": "conditions.py:draw_p2",
+      "why": "круг час/облачность по глобальному номеру rid·k+cid; в P2 номер на место",
+      "checked": "тесты распределения; U10=0 проходит derive"
+    },
+    {
+      "where": "run_corpus.py:cmd_stats",
+      "why": "правило out (медиана вне [p5,p95] реальных 367) моё; выборка — 60 из первых 6400",
+      "checked": "смещения в σ реальных до 0,6 (anisotropy -0,6, slope_p90 +0,48); ln_relief +0,33, 8% рельефов выше реального max"
+    },
+    {
+      "where": "solver/h7_run.py",
+      "why": "широта/долгота/дата решателя — Онгудай (model_place), поля S2 не используются; base_m=0 для корпуса",
+      "checked": "только чтение кода"
+    }
+  ],
+  "dp_feedback": "dp job wait по 10 мин для 5-часового счёта неудобен — нужен фоновый wait с уведомлением; нет уведомления, что job убит извне (код 143 заметил случайно).",
+  "extra": {
+    "note": "stats на 60 из частичного корпуса; таблица в out_corpus/stats_sample.json"
+  },
+  "corpus_path": "/home/greg/air_synth_data/corpus/fs1_10k",
+  "corpus_gb": 1.3,
+  "gen_hours": "3,1 ч wall на 16 процессах (48,4 ядро-ч, 27 с/рельеф) для 6400 рельефов",
+  "stats_table": "tools/research/air_synth/corpus/out_corpus/stats_sample.json: out_of_range 0 из 17; ln_relief медиана 7,74 против реальных 7,52 (+0,33σ), anisotropy 0,09 против 0,17",
+  "conditions_path": "не построен",
+  "conditions_summary": "не построена (код: conditions.py summary)",
+  "h7_corpus": "не снят",
+  "t": "2026-10-05T03:53:22",
+  "by": "executor"
+}

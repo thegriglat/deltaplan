@@ -159,9 +159,9 @@ func _ready() -> void:
 	_device()
 
 
-## Движок поля: "solver" (GPU, по умолчанию) | "nn" (нейросеть на CPU, O5).
+## Движок поля: "solver" (GPU) | "nn" (нейросеть на CPU, O5, по умолчанию).
 func engine() -> String:
-	return "nn" if String(_cfg.get("engine", "solver")) == "nn" else "solver"
+	return "solver" if String(_cfg.get("engine", "nn")) == "solver" else "nn"
 
 
 func _device() -> RuntimeGpu:

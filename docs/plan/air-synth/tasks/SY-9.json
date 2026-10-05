@@ -1,0 +1,59 @@
+{
+  "id": "SY-9",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Каталог мест дельтаплана из OSM (S6): старты free_flying takeoff, дельтаплан/неясно, места, сводка",
+  "goal": "Собрать все стартовые площадки дельтаплана из OSM, объединить близкие старты в места с квадратом 40 × 40 км и сводкой (по странам, перепад) — основа набора мест для обучения сети ветра под места, где реально летают.",
+  "plan_ref": "Решения пользователя (не обсуждаются)",
+  "contracts": [
+    {
+      "name": "S6",
+      "version": "1",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-9",
+  "branch": "air-synth/SY-9",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/hg_sites",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "tools/osm",
+    "tools/research/air_nn_pilot",
+    "tools/research/air_synth/corpus"
+  ],
+  "accept": [
+    {
+      "name": "catalog_tests",
+      "cmd": "cd tools/research/air_synth/hg_sites && ../corpus/.venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "sites",
+      "cmd": "cd tools/research/air_synth/hg_sites && ../corpus/.venv/bin/python -c \"import json;s=json.load(open('sites.json'));print('sites',len(s))\"",
+      "expect": "num:sites (\\d+) >=1"
+    },
+    {
+      "name": "summary",
+      "cmd": "cd tools/research/air_synth/hg_sites && cat summary.json",
+      "expect": "re:\"by_country\""
+    }
+  ],
+  "report_extra": [
+    "n_takeoffs_hg",
+    "n_unclear",
+    "n_paraglide_only",
+    "n_dropped_by_kind",
+    "n_sites",
+    "by_country_top",
+    "relief_quantiles",
+    "old_tags_rule",
+    "overpass_requests",
+    "game_extract_bytes"
+  ],
+  "notes": "Что уже есть (переиспользовать): docs/plan/on_demand_location.md §1 — теги free_flying и ограничения (в России разметка редкая, hanggliding часто не указан — список «неясно» обязателен; дубли — одна точка на место); tools/osm/fetch_osm.py → overpass() — готовый клиент (зеркала, User-Agent, кеш ~/.cache/deltaplan_osm/) — импортировать, не писать новый и не править; docs/plan/osm_vector_pack.md — в Словении 31 старт-точка + 8 полигонов (полигоны брать, центр). Уточнение пользователя: ТОЛЬКО старты — free_flying:site=takeoff (и составные со takeoff), точки и полигоны; посадки/буксировка/учебные/верхние посадки без старта/без site — не брать (одной строкой в сводке). Дельтаплан: hanggliding=yes; только параплан — нет; без тега — unclear.csv. Старые теги — проверить вики OSM (wiki.openstreetmap.org Tag:sport=free_flying, Key:free_flying:*, hang_gliding) и описать правило. Запросы Overpass — по миру частями (по регионам/bbox), паузы между запросами (≥ 5–10 с), кеш; страна — по тегам границ (is_in) или обратным запросом к Overpass (is_in по координате), без внешних геокодеров с лимитами. relief_m — по грубому рельефу (Terrarium z8–z9 вокруг центра, вежливо, кеш вне git; или пусто, если дорого — отметить). Объединение стартов < 10 км. Формат и столбцы — строго S6 (docs/contracts/air-synth.md). Тест: кластеризация (известные точки), отбор по тегам (синтетические элементы: takeoff+hg=yes → каталог, hg=no → нет, без тега → unclear, landing → нет, составное takeoff;toplanding → да), стабильность вывода по кешу. Атрибуция ODbL — README и строка в ASSETS.md. Картинки не нужны. После — шлюз к пользователю (координатор), набор мест и рельеф — следующая задача.",
+  "created": "2026-10-05T02:52:43",
+  "edited": "2026-10-05T03:12:58"
+}
