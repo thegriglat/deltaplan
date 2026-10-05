@@ -35,6 +35,8 @@ var air_runtime: AirRuntime
 ## Приборы на трапеции (game.json → mounted_instruments); первый — планшет Instrument3D.
 var mounted: Array[Node3D] = []
 var stats := FlightStats.new()
+## Поток событий полёта для ачивок (контракт S2): отрыв, 1 Гц, итог.
+var feed: AchievementFeed
 ## Синтетический пилот (тесты, --autopilot); null — управляет игрок.
 var autopilot: Autopilot
 ## Объекты мира, просеки, столкновения.
@@ -150,6 +152,9 @@ func _ready() -> void:
 	overlay.use_instrument(instrument)
 	glider.telemetry_updated.connect(_on_telemetry)
 	glider.landed.connect(_on_landed)
+	feed = AchievementFeed.new(self)
+	glider.took_off.connect(_feed_begin)
+	_connect_achievements()
 	glider.takeoff_failed.connect(_on_takeoff_failed)
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
 	apply_user_settings()
@@ -225,6 +230,7 @@ func tick(dt: float) -> void:
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
+	_feed_step(dt)
 	var hit := collisions.check(glider.get_telemetry())
 	if not hit.is_empty():
 		_on_collision(hit)
@@ -495,6 +501,7 @@ func restart() -> void:
 	if autopilot != null:
 		autopilot.reset()
 	tow = null  # «Ещё раз» / «На старт» посреди буксира
+	feed.cancel()  # полёт без посадки не засчитывается
 	camera.tight = false
 	queue_walk = {}
 	if air_start_m >= 0.0:
@@ -556,6 +563,8 @@ func is_paused() -> bool:
 ## В полёте (true) — ввод, прибор в углу, звук; в меню (false) — только вид.
 func set_flying(on: bool) -> void:
 	flying_enabled = on
+	if not on and feed != null:
+		feed.cancel()  # выход в меню из полёта: flight_finished не шлётся
 	_paused = false
 	glider.visible = true
 	set_input_enabled(on)
@@ -793,6 +802,7 @@ func _tow_step(dt: float) -> void:
 ## (у самой земли — стоит), физика и столкновения снова считаются, статистика — с этой точки.
 func _end_catch_up(r: Dictionary) -> void:
 	tow = null
+	feed.cancel()
 	camera.tight = false
 	var pos: Vector3 = r.position
 	var heading_deg := rad_to_deg(float(r.heading))
@@ -1007,6 +1017,33 @@ func _on_telemetry(t: Telemetry) -> void:
 	_animator.update(t.phase, t.altitude_agl, t.vario, glider.model.flare_amount(), _dt)
 
 
+## Отрыв (glider.took_off) и старт в воздухе: начало потока для ачивок.
+func _feed_begin() -> void:
+	if not _ended and tow == null and not inspect_mode:
+		feed.begin(glider.get_telemetry())
+
+
+func _feed_step(dt: float) -> void:
+	var t := glider.get_telemetry()
+	if t.phase == "flying" and not feed.active:
+		_feed_begin()  # старт в воздухе: took_off не было
+	if feed.active and t.phase == "flying":
+		feed.tick(dt, t)
+
+
+## Поток ачивок → автозагрузка Achievements (ST-6); её нет — вызовов нет (тесты игры).
+func _connect_achievements() -> void:
+	var ach := get_node_or_null("/root/Achievements")
+	if ach == null:
+		return
+	if ach.has_method("on_flight_started"):
+		feed.flight_started.connect(Callable(ach, "on_flight_started"))
+	if ach.has_method("on_flight_sample"):
+		feed.flight_sample.connect(Callable(ach, "on_flight_sample"))
+	if ach.has_method("on_flight_finished"):
+		feed.flight_finished.connect(Callable(ach, "on_flight_finished"))
+
+
 ## Касание ногами: звук и оценка сейчас, итог — когда FlightStats засчитает посадку.
 func _on_landed(result: Dictionary) -> void:
 	flight_audio.play_landing(result)
@@ -1039,6 +1076,7 @@ func _emit_end(kind: String, info: Dictionary) -> void:
 	if not info.has("finish_reason"):
 		info["finish_reason"] = kind
 	_ended = true
+	feed.finish(kind, info, glider.get_telemetry())
 	flight_ended.emit(kind, info)
 
 
