@@ -1,4 +1,4 @@
-"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v3, P3 v2, P4 v3, P5 v1).
+"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v4, P3 v2, P4 v3, P5 v1).
 
 Без данных проверяется схема (.proto, константы P3); с данными — реальные файлы:
   AP_PLAN_DIR=<$AIR_SYNTH_DATA/phase/<plan>>          — plan.pb (P2)
@@ -18,7 +18,7 @@ import pytest
 HERE = Path(__file__).resolve().parent
 PROTO = HERE.parent / "proto" / "phase_plan.proto"
 
-P2_CONTRACT = "P2 v3"
+P2_CONTRACT = "P2 v4"
 P3_CONTRACT = "P3 v2"
 AGL_M = [25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000]
 SNAP_LEVELS = [25, 600]
@@ -84,7 +84,7 @@ def test_plan_file():
     pb2 = _plan_pb2()
     plan = pb2.Plan()
     plan.ParseFromString((Path(os.environ["AP_PLAN_DIR"]) / "plan.pb").read_bytes())
-    assert plan.contract == P2_CONTRACT
+    assert plan.contract in (P2_CONTRACT, "P2 v3")   # ap_v1 записан как v3 (без FIXED_U) — читается
     ids = {r.relief_id for r in plan.reliefs}
     assert len(ids) == len(plan.reliefs), "relief_id уникален в плане"
     assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs)

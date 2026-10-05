@@ -1,4 +1,4 @@
-// План опытов air-phase — контракт P2 v3 (docs/contracts/air-phase.md).
+// План опытов air-phase — контракт P2 v4 (docs/contracts/air-phase.md).
 // Владелец .proto — координатор модуля; менять только через контракт (версия +1).
 syntax = "proto3";
 
@@ -22,6 +22,7 @@ enum Series {
   ERODED = 5;
   ENVELOPE = 6;       // Пикар 400 м на эффективном рельефе h_eff (идеальные формы)
   ENVELOPE_REAL = 7;  // то же на реальных крутых местах корпуса (условия S2 по cond_id)
+  FIXED_U = 8;        // Fr через N и h при фиксированном U_sat (план ap_v2): отделить блокирование от штиля
 }
 
 enum Start {
@@ -112,7 +113,7 @@ message Line {
 }
 
 message Plan {
-  string contract = 1;          // "P2 v3"
+  string contract = 1;          // "P2 v4"
   string name = 2;              // напр. "ap_v1"
   string created = 3;           // ISO
   string git_commit = 4;

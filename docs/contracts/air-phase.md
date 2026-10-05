@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы (reliefs.py + корпус S1 ideal_v1), P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель с опциями, P5 интерфейс скрипта прогона run_phase.py"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 3}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 4}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -36,11 +36,11 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
-## P2. План опытов — манифест protobuf (версия 3)
+## P2. План опытов — манифест protobuf (версия 4)
 **Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
 
 - Файлы: `$AIR_SYNTH_DATA/phase/<plan>/plan.pb` (сериализованный `Plan`) + `plan.json` (тот же план в JSON для людей,
-  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v3"`.
+  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v4"` (план ap_v1 записан как "P2 v3" — читается: v4 только добавляет серию).
 - Линия — набор точек Fr при прочих равных; случай = (line_id, k), `case_id = first_case_id + k`, номера сквозные
   и плотные по плану. Порядок точек в линии = порядок счёта (`fr_f64`, little-endian float64 в `bytes`).
 - `start = WARM_PREV`: случай k стартует с полного состояния (float32) случая k − 1 той же линии; k = 0 — холодный.
@@ -57,6 +57,10 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   формы/s/Fr/H/угла ветра (эталон); у ENVELOPE_REAL — линия той же (relief_id, cond_id) без огибающей.
 - **v3 (06.10):** у линий с `conditions` поле `heat_flux_wm2` выбирает решение S5: `−1` — «h» (с нагревом, как S2),
   `0` — «m» (без нагрева); прочие override-поля не действуют. Состав ENVELOPE_REAL — план §3.
+- **v4 (06.10, план ap_v2):** серия `FIXED_U = 8` — Fr меняется при фиксированном U_sat через N и h (отделить
+  блокирование D от штиля H, air_phase.md §5.2). Высота формы — `Relief.h_m` (не `Context.h_m`, тот — значение
+  по умолчанию); всё, что зависит от h (U10 из Fr, z_i = h/h_over_zi, масштаб a относительного критерия, доли h в
+  `bubble`), берётся из рельефа линии. Корпус идеальных форм ap_v2 — `corpus/ideal_v2` (P1, имя `<shape>_s<s>_h<h>`).
   `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
 ## P3. Результаты замеров — HDF5 + jsonl (версия 2)
