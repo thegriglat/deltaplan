@@ -1,0 +1,62 @@
+{
+  "id": "ST-2",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "SteamService: активация, заглушка «Steam нет», конфиг, имя пилота из Steam",
+  "goal": "Единственная точка доступа к GodotSteam по контракту S1: без Steam игра работает как сейчас, в сборке Steam — инициализация, ник Steam как имя пилота по умолчанию.",
+  "plan_ref": "ST-2. SteamService",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-2",
+  "branch": "steam/ST-2",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/steam/",
+    "configs/steam.json",
+    "project.godot",
+    ".gitignore",
+    "scripts/game/user_settings.gd",
+    "scripts/ui/settings_panel.gd",
+    "tests/contracts/test_steam_contracts_s1.gd",
+    "tests/ui/test_pilot_name.gd",
+    "tests/steam/"
+  ],
+  "dont_touch": [
+    "scripts/net/",
+    "docs/contracts/steam.md",
+    "tests/contracts/test_steam_contracts.gd",
+    "export_presets.cfg"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "pilot_name",
+      "tests": "pilot_name"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    },
+    {
+      "name": "smoke_noext",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke --steam 2>&1",
+      "expect": "re:steam: inactive \\(no_extension\\)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:05:42"
+}

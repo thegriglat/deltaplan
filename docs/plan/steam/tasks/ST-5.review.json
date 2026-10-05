@@ -1,0 +1,19 @@
+{
+  "verdict": "accept",
+  "summary": "Доработка 2 закрыта: temp_c считается по профилю weather_model.gd — max(t − dry·(z − h_v), t_u + γ·(z_u − z)). Константы берутся из той же конфигурации, t — из _derived (с учётом суточного хода), месяц и день — из settings, как в _weather_context. Правки только в скоупе, стык S2 v3 не менялся.",
+  "issues": [],
+  "rerun": [
+    {
+      "name": "temp_profile",
+      "value": "4 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "steam_contracts",
+      "value": "25/25",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T08:32:53",
+  "by": "reviewer"
+}

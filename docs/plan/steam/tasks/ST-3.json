@@ -1,0 +1,55 @@
+{
+  "id": "ST-3",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Сборка со Steam и без: пресеты Steam/itch, fetch GodotSteam, build.sh",
+  "goal": "Сборки Steam (Linux, Windows, macOS) несут GodotSteam и метку steam, сборки itch — без единого файла Steam; решения пользователя Q2 и Q6.",
+  "plan_ref": "ST-3. Сборка со Steam и без",
+  "contracts": [
+    {
+      "name": "S1",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-3",
+  "branch": "steam/ST-3",
+  "base": "feature/steam",
+  "scope": [
+    "export_presets.cfg",
+    "tools/build.sh",
+    "tools/steam/",
+    "tools/research/steam/fetch_godotsteam.sh",
+    ".gitignore",
+    "steam/partner/.gdignore",
+    "tools/check.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "docs/contracts/steam.md",
+    "ASSETS.md"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "builds",
+      "cmd": "bash tools/steam/check_builds.sh 2>&1",
+      "expect": "re:ITCH_STEAM_FILES=0 .*STEAM_LIBS_OK=1 .*STEAM_SMOKE=inactive"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:21:46"
+}

@@ -1,0 +1,61 @@
+{
+  "id": "ST-7",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Активность игры (Activity) и Rich Presence Steam",
+  "goal": "Друзья в Steam видят, что пилот делает (меню, на старте, в полёте на какой высоте, сел, сетевая игра), по контракту S3; без Steam — ни одного обращения к Steam.",
+  "plan_ref": "ST-7. Активность и Rich Presence",
+  "contracts": [
+    {
+      "name": "S3",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S1",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-7",
+  "branch": "steam/ST-7",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/core/activity.gd",
+    "project.godot",
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/steam/steam_presence.gd",
+    "steam/partner/",
+    "tests/steam/",
+    "tests/contracts/test_steam_contracts_s3.gd"
+  ],
+  "dont_touch": [
+    "scripts/net/",
+    "scripts/steam/steam_service.gd",
+    "docs/contracts/steam.md",
+    "tests/contracts/test_steam_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "activity",
+      "tests": "activity"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:13:56"
+}

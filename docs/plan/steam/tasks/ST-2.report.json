@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "SteamService (S1) как автозагрузка после Config, configs/steam.json, --steam/--no-steam, +connect_lobby, имя пилота по умолчанию из ника Steam (S1.5) с подсказкой в настройках. dp accept ST-2 --dry: 5/5.",
+  "commits": [
+    "83311f90 Steam ST-2: SteamService (S1), конфиг, имя пилота из Steam, тесты"
+  ],
+  "checks": [
+    {
+      "name": "steam_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "pilot_name",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "smoke_plain",
+      "value": "steam: inactive (no_feature)",
+      "pass": true
+    },
+    {
+      "name": "smoke_noext",
+      "value": "steam: inactive (no_extension)",
+      "pass": true
+    },
+    {
+      "name": "tests ui",
+      "value": "28/28",
+      "pass": true
+    },
+    {
+      "name": "tests net",
+      "value": "88, упал 1 известный (порт 8080)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ручная проверка с настоящим расширением и клиентом Steam не делалась; активный путь проверен подставным синглтоном tests/steam/fake_steam.gd."
+  ],
+  "questions": [
+    "language() использует getCurrentGameLanguage (язык игры в Steam), не getSteamUILanguage; контракт неоднозначен - подтвердить."
+  ],
+  "how_to_check": "dp accept ST-2",
+  "uncertain": [
+    {
+      "where": "scripts/steam/steam_service.gd:configure",
+      "why": "имена методов GodotSteam взяты из api_dump.json, с живым клиентом не вызывались",
+      "checked": "сверка по api_dump.json; fake-синглтон"
+    },
+    {
+      "where": "smoke",
+      "why": "ERROR 'resources still in use at exit' в выводе --smoke",
+      "checked": "на main те же ошибки, не регрессия"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T07:12:25",
+  "by": "main"
+}

@@ -1,0 +1,84 @@
+{
+  "id": "ST-8",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Сеть через Steam: лобби друзей, приглашения, вход к другу, Steam-транспорт",
+  "goal": "Сетевая игра через Steam поверх существующего протокола: хозяин открывает лобби друзей, друзья входят по приглашению/из списка друзей/по +connect_lobby, кадры Envelope идут Steam Networking к встроенному серверу хозяина (S4, S5).",
+  "plan_ref": "ST-8. Сеть через Steam",
+  "contracts": [
+    {
+      "name": "S5",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S4",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S1",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S3",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-8",
+  "branch": "steam/ST-8",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/steam/",
+    "scripts/ui/net_screen.gd",
+    "scripts/ui/net_ui_backend.gd",
+    "scripts/ui/net_ui_client_backend.gd",
+    "scripts/ui/net_ui_fake_backend.gd",
+    "scenes/ui/net_screen.tscn",
+    "locale/",
+    "project.godot",
+    "tests/steam/",
+    "tests/ui/test_net_screen.gd",
+    "tests/contracts/test_steam_contracts_s5.gd",
+    "scenes/main.gd"
+  ],
+  "dont_touch": [
+    "scripts/net/",
+    "server/",
+    "scripts/steam/steam_service.gd",
+    "scripts/steam/steam_presence.gd",
+    "docs/contracts/steam.md",
+    "tests/contracts/test_steam_contracts.gd",
+    "tests/steam/fake_steam.gd"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "/net/",
+      "tests": "/net/"
+    },
+    {
+      "name": "net_screen",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . res://tests/run_tests.tscn -- --filter=net_screen 2>&1",
+      "expect": "num:(\\d+) упало <=1"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:21:46",
+  "edited": "2026-10-05T08:09:05"
+}

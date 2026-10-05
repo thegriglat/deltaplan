@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Добавлен сквозной тест tests/steam/test_achievements_e2e.gd: настоящий полёт в главной сцене с мягкой посадкой открывает ACH_FIRST_FLIGHT; прогресс в user:// обновлён, подставной Steam получил setAchievement и storeStats. Стык S2→S6 не расходится, правок feed/achievements не потребовалось.",
+  "commits": [
+    "ddea29d1 ST-11: сквозной тест ачивок"
+  ],
+  "checks": [
+    {
+      "name": "achievements_e2e",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "40/40",
+      "pass": true
+    },
+    {
+      "name": "steam_contracts",
+      "value": "29/29",
+      "pass": true
+    },
+    {
+      "name": "test_achievement_feed",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept ST-11",
+  "uncertain": [
+    {
+      "where": "tests/steam/test_achievements_e2e.gd (мягкая посадка)",
+      "why": "касание задано через glider.model.velocity=(0,-1,0) на 1,5 м над землёй: носом в гору получался crash (4 м/с верт., 12 гор.), а это не засчитывается; реально выдаётся soft (верт. 4,5, гор. 1,9)",
+      "checked": "в логе grade=soft, ACH_FIRST_FLIGHT открыта"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-05T08:51:14",
+  "by": "executor"
+}

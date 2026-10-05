@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Доработка: ACH_HOURS_3 возвращена (38, hidden 4); по S6 v2 ачивки по сэмплам и времени в воздухе открываются сразу в полёте (Rules.live), остальные в flight_finished при landed. Прогресс сохраняется и уходит в Steam в момент открытия.",
+  "commits": [
+    "доработка ST-6 (см. git log steam/ST-6)"
+  ],
+  "checks": [
+    {
+      "name": "steam_contracts",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "n=38 hidden=4",
+      "pass": true
+    },
+    {
+      "name": "partner",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "smoke_plain",
+      "value": "steam: inactive (no_feature)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept ST-6",
+  "uncertain": [
+    {
+      "where": "scripts/steam/achievement_rules.gd live()",
+      "why": "набор для ABOVE_LAUNCH/KILOMETER_UP/OVERCAST считается по alt_msl − launch_alt_msl сэмпла, а не по height_gain_m итога",
+      "checked": "тесты порог/порог−ε в полёте; на финише по-прежнему проверяется и height_gain_m"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T07:34:50",
+  "by": "executor"
+}

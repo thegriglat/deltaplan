@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Activity (автозагрузка) и SteamPresence (автозагрузка, set_lobby для ST-8) по S3 v2; запись из main.gd (сеттер state) и Game.tick; токены ru/en в steam/partner/rich_presence.vdf; Steam неактивен — ноль обращений.",
+  "commits": [
+    "2846abc2 Steam: Activity и Rich Presence (S3)"
+  ],
+  "checks": [
+    {
+      "name": "steam_contracts",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "activity",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "smoke_plain",
+      "value": "steam: inactive (no_feature)",
+      "pass": true
+    },
+    {
+      "name": "test_game_flight, test_e2e",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "частота Steam",
+      "value": "≤1 вызова-пачки/с, только изменившиеся ключи (тест)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный прогон всех тестов не уложился в 900 с таймаут; прогнаны целевые и game_flight/e2e."
+  ],
+  "questions": [
+    "Формат vdf: взят Valve-формат \"lang\"/\"english\"/\"tokens\" из docs/research (в задании был вариант Language/Tokens) — проверить загрузкой можно только с настоящим App ID."
+  ],
+  "how_to_check": "dp accept ST-7",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_publish_activity",
+      "why": "интерпретация троттлинга высоты: обновление при изменении >=50 м И не раньше 10 с с прошлой публикации",
+      "checked": "логика прочитана; автотеста на Game нет, только Activity/Presence"
+    },
+    {
+      "where": "scripts/steam/steam_presence.gd:build_keys",
+      "why": "alt и peers шлются всегда (Steam не показывает текст при незаданном ключе подстановки); place очищается пустым значением",
+      "checked": "по docs/research/steam_godotsteam.md"
+    }
+  ],
+  "dp_feedback": "Нет команды для запуска полного набора тестов с общим таймаутом в фоне и выводом только упавших.",
+  "t": "2026-10-05T07:54:44",
+  "by": "main"
+}

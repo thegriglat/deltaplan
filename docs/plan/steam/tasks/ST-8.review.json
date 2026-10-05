@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "S5 и S4.1/S4.2/S4.3 соблюдены: данные лобби dp/dp_ver/dp_zone/dp_host/dp_name/dp_place, лобби только друзей на 16 мест, отказ version_mismatch без подключения, адрес steam:<id>, attach_peer, методы NetUiBackend. Правок вне скоупа нет; project.godot — только строка автозагрузки SteamLobby. Проверки совпадают с отчётом. Связь двух машин через реле не проверена — это честно записано в uncertain.",
+  "issues": [
+    {
+      "file": "scripts/steam/steam_transport.gd",
+      "line": 170,
+      "severity": "minor",
+      "what": "Хозяин закрыл пира (forget_locked убирает его из _servers), а кадр DATA_C2S с тем же conn_id ещё в пути. Такой кадр при accepting создаёт новый пир хозяина без Hello; сервер его отклоняет, лишний BYE уходит клиенту.",
+      "fix": "Держать короткий список закрытых (remote, conn_id) и молча отбрасывать их кадры. Можно отложить до проверки на двух машинах."
+    },
+    {
+      "file": "scripts/steam/steam_lobby.gd",
+      "line": 228,
+      "severity": "minor",
+      "what": "Хозяин вышел из лобби, Steam передал владение участнику, но dp_host в лобби остался старым. Пока участники переподключаются и не вышли из зоны, друзья видят это лобби в «Друзья в игре», а вход ведёт к хозяину, который соединения не принимает.",
+      "fix": "При входе участником проверять getLobbyOwner == dp_host (иначе zone_not_found) или скрывать такие лобби в refresh_friends."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "/steam/ (dp accept ST-8 --only /steam/ --dry)",
+      "value": "38/38",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T08:19:08",
+  "by": "reviewer"
+}

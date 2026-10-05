@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Документация Steam, инструкция для Steamworks, ASSETS.md, MIT-godotsteam.txt, CHANGELOG. dp accept --dry 4/4 после слияния SA-К2 v3.",
+  "commits": [
+    "74ea727e Steam: документация, инструкция для Steamworks, ASSETS.md, CHANGELOG (ST-10)",
+    "91cb5058 Слияние feature/steam в steam/ST-10"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "inventory",
+      "value": "INVENTORY OK",
+      "pass": true
+    },
+    {
+      "name": "no_hidden",
+      "value": "hidden=0",
+      "pass": true
+    },
+    {
+      "name": "steam_assets_contracts",
+      "value": "18/18",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept ST-10 (после правки SA-К2/теста)",
+  "uncertain": [
+    {
+      "where": "ASSETS.md, строка Steamworks SDK",
+      "why": "условия Steamworks SDK Access Agreement не читались; лицензия указана названием соглашения",
+      "checked": "нет"
+    },
+    {
+      "where": "docs/guide/steam.md, сценарий друга",
+      "why": "пути/запуск из командной строки на Windows и macOS и работа приглашений вне клиента Steam не проверены; файла журнала игра не пишет",
+      "checked": "project.godot без file_logging"
+    },
+    {
+      "where": "steam/partner/README.md",
+      "why": "иконок ачивок (steam/store/achievements/) в этой копии нет; ST-9 без отчёта — Auto-Cloud описан по auto_cloud.json и S7; порядок экранов кабинета и взнос 100 USD не проверены",
+      "checked": "по docs/research и файлам"
+    }
+  ],
+  "dp_feedback": "dp accept steam_assets_contracts в свежей копии падает с Parse error TestCase до --import (нужна подсказка про импорт); нет команды для добавления файла в список licenses по контракту.",
+  "t": "2026-10-05T08:28:18",
+  "by": "executor"
+}
