@@ -4,5 +4,6 @@
   "contracts": "docs/contracts/air-phase.md",
   "branch": "feature/air-phase",
   "copy": "~/deltaplan-air-phase",
-  "created": "2026-10-06T02:09:22"
+  "created": "2026-10-06T02:09:22",
+  "code": "AP"
 }
