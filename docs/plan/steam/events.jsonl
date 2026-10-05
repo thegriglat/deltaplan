@@ -57,3 +57,6 @@
 {"t": "2026-10-05T07:34:25", "by": "coordinator", "task": "ST-3", "ev": "checked", "commits": ["358d78b4"], "note": "1/4 steam_contracts=ok:9/9"}
 {"t": "2026-10-05T07:34:42", "by": "coordinator", "task": "ST-3", "ev": "checked", "commits": ["358d78b4"], "note": "2/4 steam_contracts=ok:9/9; smoke_plain=ok:steam: inactive (no_feature)"}
 {"t": "2026-10-05T07:34:43", "by": "coordinator", "task": "ST-3", "ev": "merged", "commits": ["358d78b4"], "note": "builds не перегонялась на ветке модуля (долго; PASS в копии задачи)"}
+{"t": "2026-10-05T07:34:50", "by": "executor", "task": "ST-6", "ev": "reported", "commits": ["доработка"], "note": "done: Доработка: ACH_HOURS_3 возвращена (38, hidden 4); по S6 v2 ачивки по сэмплам и времени в воздухе открываются сразу в по…"}
+{"t": "2026-10-05T07:35:28", "by": "executor", "task": "ST-6", "ev": "checked", "note": "5/5 steam_contracts=ok:14/14; /steam/=ok:24/24; partner=ok:exit 0; smoke_plain=ok:steam: inactive (no_feature); count=ok:n=38 hidden=4"}
+{"t": "2026-10-05T07:35:39", "by": "coordinator", "task": "ST-6", "ev": "accepted", "note": "по отчёту после доработки: 5/5, 38 ачивок; achievements.csv.import лишний (до .gdignore) — удалён при слиянии"}
