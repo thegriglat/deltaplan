@@ -1,0 +1,20 @@
+Deltaplan 1.2.0 — a new wind network and popular sites
+
+The wind over terrain is now computed by default with a new neural network trained on real hang gliding sites. On sites it never saw during training it is noticeably more accurate than the previous network, and it now covers winds up to 12 m/s.
+
+You can also pick a launch from a catalogue of 684 hang gliding launches from OpenStreetMap.
+
+Wind over terrain:
+- New neural network trained on 305 hang gliding launches from OpenStreetMap, 24 weather conditions per site (April to September, morning, midday and evening, wind 2 to 12 m/s)
+- Wind error at 60 m above terrain on unseen sites: median 0.69 m/s (previous network 0.92); on the game's sites 0.59 m/s (previous 0.76)
+- Works for winds up to 12 m/s (previously 8)
+- Clear wind model menu: Neural network (wind field over terrain), GPU solver (terrain flow), Heuristic (wind profile without terrain); the neural network is the default
+
+Launch point picker:
+- New Popular sites window on the Flight setup screen: launches grouped by country, with elevation and working wind directions for each site
+- Search by name within a country or across all countries
+- 684 launches from 24 countries (data from OpenStreetMap contributors, ODbL)
+
+Other:
+- The project website is now available in English and Russian
+- A separate Steam build is in preparation; the itch.io build works as before
