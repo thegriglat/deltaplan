@@ -48,7 +48,7 @@ ArcticDEM). Open HTTPS with no key and no limits; the engine itself decodes the 
 **Both Copernicus and SRTM are a surface model (DSM), not a ground model (DTM):** in a forest the "elevation" is the top of the canopy
 (+15…25 m), and at forest edges and clearings you get steps as tall as a tree. So the detailed layer is slightly
 smoothed (σ = 0.8 cell), and the 3D trees are sunk into the surface. There are no open forest-free models
-for Altai: FABDEM is licensed under CC-BY-NC (not suitable for a non-commercial but freely distributed project),
+for Altai: FABDEM is licensed under CC-BY-NC (not suitable for a freely distributed game),
 and national lidar DTMs cover only individual countries.
 
 Each built-in place stores two nested elevation layers: a detailed one (40 km, 25 m step) and a background one (160 km,
@@ -159,7 +159,7 @@ does not respond (timeout on unchanged progress).
 ## What was considered and why it is done this way
 
 - **Map tiles for the place selection screen.** The standard `tile.openstreetmap.org` tiles under their usage
-  policy are only for moderate, non-commercial traffic with attribution and no bulk prefetching; for a distributed game
+  policy are only for moderate traffic with attribution and no bulk prefetching; for a distributed game
   with no guaranteed limit this does not fit. Paid services (MapTiler, Thunderforest) would require embedding an API key
   in open code. Our own OSM tile server is an option for the future but requires infrastructure. The choice was a terrain hillshade
   from the same elevation tiles that are needed for flight anyway: no external services or keys, and mountains and valleys read better

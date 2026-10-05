@@ -4,7 +4,7 @@ title: Deltaplan
 
 # Deltaplan — a hang glider simulator
 
-Deltaplan is a non-commercial open-source free-flight hang gliding simulator for Windows, Linux and macOS.
+Deltaplan is an open-source free-flight hang gliding simulator for Windows, Linux and macOS.
 It is made for those who already fly and want to fly once more at home, and for those who are simply curious what it is like to
 fly a wing in a thermal over real terrain. The flight is the real thing: weight shift, weather from a forecast, thermals, slope
 and rotor wind, real places and real wing models.
@@ -50,9 +50,9 @@ Controls are keyboard, mouse and gamepad; during the launch run the wing's nose 
 
 All versions are on the [Releases](/releases/) page.
 
-## Open source and non-commercial
+## Open source
 
-Deltaplan is a free open-source project ([github.com/thegriglat/deltaplan](https://github.com/thegriglat/deltaplan)).
+Deltaplan is an open-source project ([github.com/thegriglat/deltaplan](https://github.com/thegriglat/deltaplan)).
 It is made for pilots and for those who want to find out what flying a hang glider is like.
 
 ## Where the idea came from

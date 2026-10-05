@@ -20,14 +20,14 @@ disableKinds = ['taxonomy', 'term']
     locale = 'en-US'
     [languages.en.params]
       BookDateFormat = 'Jan 2, 2006'
-      description = 'Deltaplan is a non-commercial open-source hang glider simulator: flight, atmosphere, terrain of real places, network play.'
+      description = 'Deltaplan is an open-source hang glider simulator: flight, atmosphere, terrain of real places, network play.'
   [languages.ru]
     weight = 2
     label = 'Русский'
     locale = 'ru-RU'
     [languages.ru.params]
       BookDateFormat = '02.01.2006'
-      description = 'Deltaplan — некоммерческий симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
+      description = 'Deltaplan — симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
 
 [pagination]
   pagerSize = 20
