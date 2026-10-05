@@ -21,7 +21,7 @@
 
 ## Стиль
 
-Единый общий промпт `style` (плоский векторный значок на круглой эмблеме, толстый контур, 4 цвета: тёмно-синий, голубой, оранжевый, кремовый; один крупный символ по центру; без текста, букв, цифр, логотипов; крыло — обобщённый неподписанный треугольный дельтаплан без узнаваемой марки) + `subject` каждой ачивки. У каждой иконки свой `seed`. FLUX.1-schnell — дистиллированная модель без CFG: `guidance=0.0`, поле `negative` контракта хранится в файле, но моделью не используется (запрет текста и логотипов держится на позитивном промпте). Тема — только дельтапланеризм, без пасхалок. Сразу после первого запуска стиль смотрит пользователь; промпты правятся в `prompts.json`, перегенерация — `--force`.
+Единый общий промпт `style` (плоский векторный значок на круглой эмблеме, толстый контур, 4 цвета: тёмно-синий, голубой, оранжевый, кремовый; один крупный символ по центру; без текста, букв, цифр, логотипов; крыло — обобщённый неподписанный треугольный дельтаплан без узнаваемой марки) + `subject` каждой ачивки. У каждой иконки свой `seed`. FLUX.1-schnell — дистиллированная модель без CFG: `guidance=0.0`, поле `negative` контракта хранится в файле, но моделью не используется (запрет текста и логотипов держится на позитивном промпте). Тема — только дельтапланеризм. Сразу после первого запуска стиль смотрит пользователь; промпты правятся в `prompts.json`, перегенерация — `--force`.
 
 ## Установка и запуск (позже, когда GPU свободен)
 
@@ -41,16 +41,16 @@ flock /tmp/heat_ca_gpu.lock tools/store/achievements/.venv/bin/python tools/stor
 
 ```bash
 python3 tools/store/achievement_icons.py --config tools/store/achievements/fixture_achievements.json \
-  --prompts tools/store/achievements/prompts.json --out /tmp/sa7_icons --dry     # ICONS PLAN ok=18 missing=0
+  --prompts tools/store/achievements/prompts.json --out /tmp/sa7_icons --dry     # ICONS PLAN ok=38 missing=0
 python3 tools/store/achievement_icons.py --config tools/store/achievements/fixture_missing.json \
   --prompts tools/store/achievements/prompts.json --out /tmp/sa7_icons --dry     # missing=1, код 1
 ```
 
 ## Файлы
 
-- `prompts.json` — модель, стиль, 18 промптов черновика (по `docs/plan/steam.md`, ветка `feature/steam`, «Ачивки»).
+- `prompts.json` — модель, стиль, 38 промптов по финальному `configs/achievements.json` модуля steam (коммит ba0145fa); скрытые ачивки — нейтральные короткие subject.
 - `fixture_achievements.json` — подставной конфиг формата S6 (18 ачивок; `name`/`desc` en — наши краткие формулировки, `rule` — заглушка). `fixture_missing.json` — он же + `ACH_TEST_NO_PROMPT`.
-- Настоящий `configs/achievements.json` появится в модуле steam; новые ачивки → дописать `icons` в `prompts.json` (`--dry` покажет `missing`).
+- Финальный `configs/achievements.json` — модуль steam (38 ачивок); новые ачивки → дописать `icons` в `prompts.json` (`--dry` покажет `missing`).
 
 ## Границы и неизвестное
 
