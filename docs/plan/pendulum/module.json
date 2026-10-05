@@ -1,0 +1,9 @@
+{
+  "module": "pendulum",
+  "plan": "docs/plan/pendulum.md",
+  "contracts": "docs/contracts/pendulum.md",
+  "branch": "feature/pendulum",
+  "copy": "~/deltaplan-pendulum",
+  "created": "2026-10-05T10:55:17",
+  "code": "PD"
+}
