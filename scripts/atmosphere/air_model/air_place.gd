@@ -101,45 +101,139 @@ static func context(detail: HeightLayer, loc: Dictionary, cfg: Dictionary) -> Di
 	return ctx
 
 
-## Блочное среднее слоя (узлы 25 м) по клеткам dx: (ny·nx), j — на север.
+const NODE_STEP := 25.0  # шаг решётки мира, на которую берётся слой (C2 v7), м
+
+
+## Узлы решётки мира 25 м вдоль одной оси: x = a0 + 25·m, m = 0 … cnt − 1 → дробный индекс слоя
+## (sign = +1: ось x; −1: ось y на север, строки слоя растут на юг, z = −y; o — начало слоя по оси).
+## Возвращает {} при выходе узла за слой (без экстраполяции), иначе {i0: PackedInt32Array,
+## t: PackedFloat64Array (вес правого узла), f: PackedFloat64Array (дробный индекс)}.
+static func _axis_nodes(a0: float, cnt: int, sign: float, o: float, s: float, n_layer: int) -> Dictionary:
+	var i0 := PackedInt32Array()
+	var t := PackedFloat64Array()
+	var fr := PackedFloat64Array()
+	i0.resize(cnt)
+	t.resize(cnt)
+	fr.resize(cnt)
+	var hi := float(n_layer - 1)
+	for m in cnt:
+		var v := (sign * (a0 + NODE_STEP * m) - o) / s
+		if v < -1.0e-9 or v > hi + 1.0e-9:
+			return {}
+		v = clampf(v, 0.0, hi)
+		var i := mini(int(v), n_layer - 2)
+		i0[m] = i
+		t[m] = v - i
+		fr[m] = v
+	return {i0 = i0, t = t, f = fr}
+
+
+## Проверка кратности: dx, x0, y0 кратны 25 м (иначе решётка мира не ложится на клетки).
+static func _grid_ok(x0: float, y0: float, dx: float) -> bool:
+	for v in [x0, y0, dx]:
+		if absf(v / NODE_STEP - roundf(v / NODE_STEP)) > 1.0e-9:
+			push_error("AirPlace: dx, x0, y0 должны быть кратны 25 м")
+			return false
+	return true
+
+
+## Высота клетки — блочное среднее значений слоя, взятых билинейно (как HeightLayer.sample, без
+## выхода за край) в узлах решётки мира 25 м: x = x0 + 25·m, y = y0 + 25·m′, m, m′ = 0 … dx/25 − 1
+## (C2 v7; как П6 terrain_cut.grid_h + block_mean_400 и air3d/terrain.block_mean). Билинейка
+## сепарабельна, среднее линейно — считаем суммы по узлам клетки по столбцам для каждой строки слоя
+## (float64; от П6 с float32-узлами отличается ≤ 1e-3 м). (ny·nx), j — на север. Узел вне слоя —
+## пусто + push_error.
 static func block_mean(
 	layer: HeightLayer, x0: float, y0: float, dx: float, nx: int, ny: int
 ) -> PackedFloat64Array:
-	var s := layer.spacing
-	var f := roundi(dx / s)
-	var yl := -(layer.origin_z + (layer.height - 1) * s)  # юг слоя в осях решателя
-	var i0 := roundi((x0 - layer.origin_x) / s)
-	var j0 := roundi((y0 - yl) / s)
 	var out := PackedFloat64Array()
-	if i0 < 0 or j0 < 0 or i0 + f * nx > layer.width or j0 + f * ny > layer.height:
+	if not _grid_ok(x0, y0, dx):
+		return out
+	var f := roundi(dx / NODE_STEP)
+	var s := layer.spacing
+	var ax := _axis_nodes(x0, f * nx, 1.0, layer.origin_x, s, layer.width)
+	var ay := _axis_nodes(y0, f * ny, -1.0, layer.origin_z, s, layer.height)
+	if ax.is_empty() or ay.is_empty():
 		push_error("AirPlace: область вне слоя рельефа")
 		return out
-	out.resize(nx * ny)
+	var xi: PackedInt32Array = ax.i0
+	var xt: PackedFloat64Array = ax.t
+	var yi: PackedInt32Array = ay.i0
+	var yt: PackedFloat64Array = ay.t
 	var w := layer.width
 	var h := layer.heights
-	var rows := PackedFloat64Array()
-	rows.resize(nx)
+	# разреженные веса столбцов клетки: Σ узлов клетки (1 − t)·H[c] + t·H[c + 1] → Σ_q cw·H[c0 + q]
+	var cstart := PackedInt32Array()
+	var wlen := PackedInt32Array()
+	var woff := PackedInt32Array()
+	var cw := PackedFloat64Array()
+	for i in nx:
+		var c0 := xi[i * f]
+		var c1 := c0
+		for q in f:
+			c0 = mini(c0, xi[i * f + q])
+			c1 = maxi(c1, xi[i * f + q] + 1)
+		var wts := PackedFloat64Array()
+		wts.resize(c1 - c0 + 1)
+		for q in f:
+			var c := i * f + q
+			wts[xi[c] - c0] += 1.0 - xt[c]
+			wts[xi[c] + 1 - c0] += xt[c]
+		cstart.append(c0)
+		wlen.append(wts.size())
+		woff.append(cw.size())
+		cw.append_array(wts)
+	var inv_n := 1.0 / (f * f)
+	out.resize(nx * ny)
+	var cache := {}  # номер строки слоя → суммы по узлам клетки (nx)
+	var acc := PackedFloat64Array()
+	acc.resize(nx)
 	for j in ny:
-		rows.fill(0.0)
-		for jf in range(j0 + f * j, j0 + f * (j + 1)):
-			var base := (layer.height - 1 - jf) * w + i0  # строка слоя растёт на юг
-			for i in nx:
-				var b := base + f * i
-				var acc := 0.0
-				for q in f:
-					acc += h[b + q]
-				rows[i] += acc
+		acc.fill(0.0)
+		for m in f:
+			var node := j * f + m
+			var r0 := yi[node]
+			var tz := yt[node]
+			for rr in 2:
+				var r := r0 + rr
+				var wr := tz if rr == 1 else 1.0 - tz
+				if wr == 0.0:
+					continue
+				var rs: PackedFloat64Array
+				if cache.has(r):
+					rs = cache[r]
+				else:
+					rs = PackedFloat64Array()
+					rs.resize(nx)
+					var base := r * w
+					for i in nx:
+						var sum := 0.0
+						var k := base + cstart[i]
+						var wo := woff[i]
+						for q in wlen[i]:
+							sum += cw[wo + q] * h[k + q]
+						rs[i] = sum
+					cache[r] = rs
+				for i in nx:
+					acc[i] += wr * rs[i]
 		for i in nx:
-			out[j * nx + i] = rows[i] / (f * f)
+			out[j * nx + i] = acc[i] * inv_n
+		# строки слоя убывают к северу: у следующей клетки максимальна первая строка узлов
+		if j + 1 < ny:
+			var keep := yi[(j + 1) * f] + 1
+			for r in cache.keys():
+				if r > keep:
+					cache.erase(r)
 	return out
 
 
-## Доля воды по клеткам (маска слоя: светлое — вода; как terrain.py), null — нет маски.
+## Доля воды по клеткам: по тем же узлам решётки 25 м, что и block_mean; маска — ближайший к
+## узлу пиксель слоя (светлое — вода; как terrain.py), доля узлов клетки. Пусто — нет маски.
 static func water_fraction(
 	img: Image, layer: HeightLayer, x0: float, y0: float, dx: float, nx: int, ny: int
 ) -> PackedFloat64Array:
 	var out := PackedFloat64Array()
-	if img == null:
+	if img == null or not _grid_ok(x0, y0, dx):
 		return out
 	if img.is_compressed() or img.get_format() != Image.FORMAT_L8:
 		img = img.duplicate()
@@ -148,22 +242,30 @@ static func water_fraction(
 		img.convert(Image.FORMAT_L8)
 	var px_data := img.get_data()
 	var s := layer.spacing
-	var f := roundi(dx / s)
-	var yl := -(layer.origin_z + (layer.height - 1) * s)
-	var i0 := roundi((x0 - layer.origin_x) / s)
-	var j0 := roundi((y0 - yl) / s)
+	var f := roundi(dx / NODE_STEP)
+	var ax := _axis_nodes(x0, f * nx, 1.0, layer.origin_x, s, layer.width)
+	var ay := _axis_nodes(y0, f * ny, -1.0, layer.origin_z, s, layer.height)
+	if ax.is_empty() or ay.is_empty():
+		return out
 	var iw := img.get_width()
 	var ih := img.get_height()
+	var cols := PackedInt32Array()
+	cols.resize(f * nx)
+	for c in f * nx:
+		cols[c] = int(roundi(ax.f[c]) * iw / layer.width)
+	var rows := PackedInt32Array()
+	rows.resize(f * ny)
+	for r in f * ny:
+		# строка маски: ближайший к узлу пиксель слоя (слой перевёрнут на север)
+		rows[r] = (ih - 1 - int((layer.height - 1 - roundi(ay.f[r])) * ih / layer.height)) * iw
 	out.resize(nx * ny)
 	for j in ny:
 		for i in nx:
 			var cnt := 0
-			for jf in range(j0 + f * j, j0 + f * (j + 1)):
-				# строка маски: ближайшая к узлу слоя (слой перевёрнут на север)
-				var py := ih - 1 - int(jf * ih / layer.height)
+			for m in f:
+				var rb := rows[j * f + m]
 				for q in f:
-					var px := int((i0 + f * i + q) * iw / layer.width)
-					if px_data[py * iw + px] > 127:
+					if px_data[rb + cols[i * f + q]] > 127:
 						cnt += 1
 			out[j * nx + i] = float(cnt) / (f * f)
 	return out

@@ -5,8 +5,8 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
-const CONTRACTS := {C1 = 2, C2 = 6, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
-const DOC := "res://docs/air_model_contracts.md"
+const CONTRACTS := {C1 = 2, C2 = 7, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
+const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
 const GAME_FIELDS := [
@@ -334,6 +334,83 @@ func test_c2_air_case_grid() -> void:
 ## C2 v6 (air-start): ветер меню — на 10 м над стартом; приток области/окна умножен на inflow_k, а
 ## α, класс устойчивости и max_profile — по ветру меню; k = 1 — прежний случай. Вызов через callv —
 ## файл разбирается и без нового аргумента (тогда проверка падает, а не весь набор).
+## C2 v7: клетка ровно dx на земле — билинейно на решётку 25 м мира (x = x0 + 25·m, y — север) и блочное
+## среднее f = dx/25 узлов; линейное поле на слое с «чужим» шагом даёт точное среднее по узлам.
+static func _linear_layer(s: float, n: int, dox: float, doz: float) -> HeightLayer:
+	var ox := -0.5 * (n - 1) * s + dox
+	var oz := -0.5 * (n - 1) * s + doz
+	var hs := PackedFloat32Array()
+	hs.resize(n * n)
+	for j in n:
+		for i in n:
+			var x := ox + i * s
+			var y := -(oz + j * s)  # строка слоя растёт на юг (z игры = −y)
+			hs[j * n + i] = 1000.0 + 0.01 * x + 0.02 * y
+	return HeightLayer.from_heights("detail", n, n, s, ox, oz, hs)
+
+
+func _check_linear_cells(
+	l: HeightLayer, x0: float, y0: float, dx: float, n: int, tag: String
+) -> void:
+	var hc := AirPlace.block_mean(l, x0, y0, dx, n, n)
+	check(hc.size() == n * n, "%s: клеток n·n" % tag)
+	if hc.size() != n * n:
+		return
+	var off := 0.5 * (dx - 25.0)  # средний узел клетки относительно её юго-западного узла
+	var worst := 0.0
+	for j in n:
+		for i in n:
+			var e := 1000.0 + 0.01 * (x0 + dx * i + off) + 0.02 * (y0 + dx * j + off)
+			worst = maxf(worst, absf(hc[j * n + i] - e))
+	check(worst <= 1.0e-3, "%s: клетка = среднее узлов решётки 25 м, max|Δ| = %s м" % [tag, worst])
+
+
+func test_c2_cell_geometry() -> void:
+	# Слой рантайма на ~51° (s ≈ 24,05 м, f·s прежде 408,9 м), начало сдвинуто на долю пикселя.
+	var l := _linear_layer(24.05, 1665, 7.3, -5.1)
+	_check_linear_cells(l, -19200.0, -19200.0, 400.0, 96, "область 400 м, s 24,05")
+	# Южное полушарие −33,7° (s ≈ 31,8 м, прежде f·s 413 м).
+	_check_linear_cells(_linear_layer(31.8, 1281, -11.0, 9.4), -19200.0, -19200.0, 400.0, 96, "s 31,8")
+	# Окно AM-04: dx 200, угол кратен 25 м.
+	_check_linear_cells(l, -3125.0, 4100.0, 200.0, 64, "окно 200 м")
+	# domain_case: dx решателя = 400, область ровно 38,4 км вокруг центра мира, hc — те же клетки.
+	var loc := {id = "geom", center_lat = 50.79, center_lon = 86.13, utc_offset_h = 7}
+	var c := AirPlace.domain_case(l, null, loc, 400.0, 12.0, 3.0, 150.0, NAN, "clear", false)
+	check(c != null, "domain_case на слое рантайма ~51° не пустой")
+	if c != null:
+		check(c.nx == 96 and c.ny == 96, "96 × 96 клеток")
+		approx(c.dx, 400.0, 0.0, "dx решателя = 400 = клетка на земле")
+		approx(c.x0, -19200.0, 0.0, "x0 = −DOMAIN_L/2")
+		approx(c.y0, -19200.0, 0.0, "y0 = −DOMAIN_L/2")
+		var hb := AirPlace.block_mean(l, -19200.0, -19200.0, 400.0, 96, 96)
+		check(c.hc == hb, "domain_case.hc = block_mean той же области")
+	# Встроенный формат data/terrain (25 м, начало −20 000, 1601²): прямое среднее 16 × 16 узлов слоя.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var nb := 1601
+	var hs := PackedFloat32Array()
+	hs.resize(nb * nb)
+	for k in hs.size():
+		hs[k] = rng.randf_range(200.0, 2500.0)
+	var lb := HeightLayer.from_heights("detail", nb, nb, 25.0, -20000.0, -20000.0, hs)
+	var hc := AirPlace.block_mean(lb, -19200.0, -19200.0, 400.0, 96, 96)
+	check(hc.size() == 96 * 96, "встроенный слой: 96 × 96")
+	if hc.size() == 96 * 96:
+		var worst := 0.0
+		for j in [0, 17, 48, 95]:
+			for i in [0, 31, 64, 95]:
+				var acc := 0.0
+				for jn in range(32 + 16 * j, 48 + 16 * j):
+					var row := (nb - 1 - jn) * nb  # строка слоя растёт на юг
+					for inode in range(32 + 16 * i, 48 + 16 * i):
+						acc += hs[row + inode]
+				worst = maxf(worst, absf(hc[j * 96 + i] - acc / 256.0))
+		check(worst <= 1.0e-6, "встроенный слой: как прямое среднее 16 × 16, max|Δ| = %s м" % worst)
+	# Вне слоя — пусто.
+	var small := _linear_layer(24.05, 1201, 0.0, 0.0)
+	check(AirPlace.block_mean(small, -19200.0, -19200.0, 400.0, 96, 96).is_empty(), "вне слоя → пусто")
+
+
 func test_c2_inflow_scale() -> void:
 	var lw := TestAirPlace.load_detail("ongudai")
 	check(lw.size() == 2, "слой detail Онгудая")
