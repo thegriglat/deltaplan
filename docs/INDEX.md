@@ -44,6 +44,7 @@ generated: true
 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) | contract | active | control-fix | Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх). |
 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) | contract | active | easter-eggs | Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп. |
 | [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) | contract | active | popular-places | Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2). |
+| [docs/contracts/site-i18n.md](/docs/contracts/site-i18n.md) | contract | active | site-i18n | Контракты модуля site-i18n: языки и URL-схема сайта (en в корне, ru под /ru/), файлы переводов по суффиксу, ключи i18n, ссылки между языками, правила английских текстов, генератор крыльев на два языка. |
 | [docs/contracts/start-fixes.md](/docs/contracts/start-fixes.md) | contract | active | start-fixes | Контракты модуля «start-fixes» |
 | [docs/contracts/start-map.md](/docs/contracts/start-map.md) | contract | active | start-map | Контракты модуля start-map: растровые подложки карты выбора старта в конфиге (SM-К1), высота точки по Terrarium и интерфейс MapPicker (SM-К2). |
 | [docs/contracts/ui-controls.md](/docs/contracts/ui-controls.md) | contract | active | ui-controls | Контракты модуля «ui-controls» — Действия (имена — смысл, не клавиша): pitch_push_out = [Up] — трапеция от себя → pitch +; pitch_pull_in = [Down] — на себя → pitch −. |
@@ -139,11 +140,13 @@ generated: true
 | [docs/plan/air_nn.md](/docs/plan/air_nn.md) | plan | active | air-nn | Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m… |
 | [docs/plan/ann2.md](/docs/plan/ann2.md) | plan | postponed | ann2 | ОТЛОЖЕНО 05.10. ann2 — нейросеть ветра заново (2,5D-оператор: свёрточный энкодер + энкодер профиля + голова по непрерывной высоте, σ). Итог AN-1…AN-4: на 6–10 % лучше P2, критерий 10–15 % скорости не выполнен (≈ 22 %); предел — не архитектура и не шум цели, а постановка или объём данных; разложенная голова — скорость порядка P2 |
 | [docs/plan/game/04-sled-proshlogo-poleta.md](/docs/plan/game/04-sled-proshlogo-poleta.md) | plan | idea |  | 04. След прошлого полёта (полупрозрачная линия) — ОТЛОЖЕНО (решение пользователя): относится к блоку соревнований (этап 5), пока не делаем. |
+| [docs/plan/game/05-vr.md](/docs/plan/game/05-vr.md) | plan | idea |  | 05. VR (OpenXR): голова — шлем, ручка — джойстик. ИДЕЯ (решение пользователя 05.10): записать в планы, не в работу. Главный риск — производительность, первый шаг — дешёвый замер. |
 | [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) | plan | active | net | План: сетевая игра — роадмап — 1. «Сетевая игра» в главном меню → экран: адрес сервера (IP:порт, запоминается), своё имя пилота (из настроек). |
 | [docs/plan/offline_world_data.md](/docs/plan/offline_world_data.md) | plan | postponed | world | План: офлайн-данные мира — свой пакет региона и подложка поверхности из OSM — 1. Без интернета. Всё нужное для полёта (рельеф, земной покров, OSM) заранее перепаковано в свой компактный формат и лежит рядом с игрой пакетами регионов. |
 | [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | idea |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
 | [docs/plan/osm_vector_pack.md](/docs/plan/osm_vector_pack.md) | plan | postponed |  | Размер офлайн-пакета: вектор OSM + рельеф + покров (замер на Словении) — Замер к плану offline_world_data.md (этапы 0 и 1). |
 | [docs/plan/popular-places.md](/docs/plan/popular-places.md) | plan | active | popular-places | Кнопка «Популярные места» в меню полёта: стартовые площадки дельтаплана из OSM списком по странам, поиск по названию, выбор места = точка старта (как точка с карты). |
+| [docs/plan/site-i18n.md](/docs/plan/site-i18n.md) | plan | active | site-i18n | Сайт проекта на двух языках: en — основной (корень), ru — /ru/; перевод страниц site/content, переключатель языка, README и скилл выпуска. |
 | [docs/plan/start-map.md](/docs/plan/start-map.md) | plan | active | start-map | Экран выбора точки старта: растровая топокарта (OpenTopoMap/OSM) вместо отмывки высот и высота выбранной точки над уровнем моря рядом с координатами. |
 | [docs/plan/wind-limits.md](/docs/plan/wind-limits.md) | plan | active | wind-limits | Предельный ветер по классам крыльев: почему при 6 м/с сдувает за гору, исправление физики, классы 48 крыльев, замер «до/после». |
 
@@ -152,7 +155,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (248 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (271 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
