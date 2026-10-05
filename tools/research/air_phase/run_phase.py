@@ -273,6 +273,7 @@ class Runner:
                         w.update(held=c.k, status=st, state=state)
                         if c.k == len(self.by_line[c.line_id]) - 1:
                             drops.append(c.line_id)
+                            w["state"] = None            # линия досчитана — состояние не нужно (память)
                         else:
                             ckpts.append((c.line_id, c.case_id, c.k, st, None if state is None else IO.state_to_dict(state)))
                     if phantom:
