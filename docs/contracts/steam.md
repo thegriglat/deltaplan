@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 2}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 2}, {"id": "S7", "version": 1}]
 ---
 # Контракты модуля steam
 
@@ -174,6 +174,12 @@ v2 (2026-10-05, по итогам ST-6): в `user://achievements.json` — ещ�
 - `steam/partner/achievements.csv` (генерирует скрипт `tools/steam/partner_files.py` из конфига): `api,name_en,desc_en,name_ru,desc_ru,hidden` — для ручного ввода в кабинет.
 - На App ID 480 свои ачивки не существуют: разблокировка проверяется на заглушке/логе, не в Steam.
 
-## S7. Steam Cloud (версия 0) — до решения по итогам ST-1
+## S7. Steam Cloud — Auto-Cloud (версия 1)
 
-Набор файлов для облака: `user://configs/*.json`, `user://recent_places.json`, `user://records.json`, `user://achievements.json`, `user://last_flight.json`, `user://tasks/`. Кэши (`terrain_cache`, `map_cache`, `air_nn`) — никогда. Способ (Auto-Cloud или Remote Storage API) — после ST-1 и ответа пользователя; тогда версия 1.
+v1 (2026-10-05, решение пользователя Q5: Auto-Cloud). Владелец — ST-9. Потребители — ST-10 (`steam/partner/README.md`), пользователь (настройка в кабинете при регистрации).
+
+- Кода Steam API для облака нет: Steam сам синхронизирует файлы до запуска и после выхода. Каталог `user://` стабилен: `application/config/use_custom_user_dir=true`, `custom_user_dir_name="Deltaplan"` (уже в `project.godot`; не менять).
+- Описание для кабинета — `steam/partner/auto_cloud.json`: `{"root_subdir": "Deltaplan", "roots": {"windows": "WinAppDataRoaming", "linux": "LinuxXdgDataHome", "macos": "MacAppSupport"}, "patterns": [{"path": "<подкаталог или \"\">", "pattern": "<маска>", "recursive": bool}], "quota_files": int, "quota_bytes": int}`.
+- В облако — общее для пилота: `configs/*.json` (имя, управление, язык, звук и прочие настройки, кроме машинных), `recent_places.json`, `records.json`, `achievements.json`, `last_flight.json`, `tasks/*`. Никогда: кэши (`terrain_cache/`, `map_cache/`, `air_nn/`), отладочные файлы, машинные настройки.
+- Машинные настройки (графика, окно/разрешение, прочее, что зависит от компьютера — список ключей фиксирует ST-9 в `auto_cloud.json → local_keys` и в отчёте) хранятся в `user://local/configs/<имя>.json` и в облако не попадают; `Config` накладывает их поверх `user://configs/` (порядок: `res://configs` → `user://configs` → `user://local/configs`). Запись: `UserSettings.save_patch` раскладывает ключи сам по списку `local_keys`.
+- Инварианты (тест): все пути, которые пишет игра в `user://`, кроме кэшей и `local/`, покрыты `patterns`; ни один ключ из `local_keys` не пишется в `user://configs/`; `OS.get_user_data_dir()` кончается на `/Deltaplan`.

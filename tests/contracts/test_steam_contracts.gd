@@ -5,7 +5,7 @@ extends TestCase
 ## проверки формы своих стыков (S2…S6). Правка контракта (версия +1) — вместе с этим файлом.
 
 const DOC := "res://docs/contracts/steam.md"
-const VERSIONS := {"S1": 1, "S2": 3, "S3": 2, "S4": 2, "S5": 1, "S6": 2, "S7": 0}
+const VERSIONS := {"S1": 1, "S2": 3, "S3": 2, "S4": 2, "S5": 1, "S6": 2, "S7": 1}
 const SCAN_DIRS := ["res://scripts", "res://scenes", "res://tests"]
 
 
