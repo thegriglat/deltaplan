@@ -65,6 +65,7 @@ build_one() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
+	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
 	if [[ "$air_onnx" != 0 ]]; then
 		for f in $(air_onnx_files "$dir"); do
 			[[ -f "build/$dir/$f" ]] || { echo "ОШИБКА: в сборке нет $f (расширение AirOnnx)" >&2; exit 1; }
@@ -85,6 +86,7 @@ build_macos() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	(cd build/macos && unzip -q ../deltaplan-macos.zip)
+	python3 tools/release/third_party_notices.py --out build/macos --preset macOS
 	echo "готово: build/macos/$(ls build/macos), build/deltaplan-macos.zip"
 }
 [[ "$target" == macos || "$target" == all ]] && build_macos

@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""THIRD_PARTY_NOTICES.txt и licenses/ рядом с исполняемым файлом (контракт SA-К2 v2, docs/contracts/steam-assets.md).
+
+    tools/release/third_party_notices.py --out <каталог сборки> [--preset Linux|Windows|macOS|<имя со steam>] [--root DIR]
+
+Пишет в <каталог сборки>: THIRD_PARTY_NOTICES.txt (UTF-8, LF) и licenses/*.txt. Берёт строки ASSETS.md разделов,
+входящих в сборку (SA-К3; разбор — build_inventory.parse_assets), строки с пометкой «(только Steam)» — только если
+в имени пресета есть «steam». Тексты лицензий: все `licenses/<имя>.txt`, на которые ссылаются строки; плюс по
+названию лицензии в колонке (MIT, OFL, CC BY, CC0, ODbL, Copernicus); плюс всегда MIT-deltaplan, MIT-godot,
+godot-COPYRIGHT, ODbL-1.0; msvc-runtime — для пресетов Windows. Только стандартная библиотека Python, без сети.
+"""
+import argparse
+import os
+import re
+import shutil
+import sys
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from build_inventory import parse_assets  # noqa: E402  (разбор ASSETS.md — одна логика с SA-К1)
+
+ODBL_PHRASE = ("Derived OpenStreetMap data (data/osm/, data/places/) is available under the ODbL 1.0 "
+               "in the project repository: https://github.com/thegriglat/deltaplan")
+ALWAYS = ["MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT", "ODbL-1.0"]
+# Название лицензии в колонке «Лицензия» -> файл(ы) licenses/.
+BY_NAME = [
+    (r"\bmit\b", None),  # MIT: см. ссылки; общий текст не подменяем (у каждого проекта свой автор)
+    (r"\bofl\b", "OFL-1.1"),
+    (r"cc[- ]?by(?![- ]?(sa|nc))\s*4", "CC-BY-4.0"),
+    (r"\bcc0\b", "CC0-1.0"),
+    (r"odbl", "ODbL-1.0"),
+    (r"copernicus", "copernicus-dem"),
+]
+# Подстрока в строке ASSETS.md (нижний регистр) -> файлы licenses/.
+BY_COMPONENT = [
+    ("godot-cpp", ["MIT-godot-cpp"]),
+    ("onnx runtime", ["onnxruntime-LICENSE", "onnxruntime-ThirdPartyNotices"]),
+    ("onnxruntime", ["onnxruntime-LICENSE", "onnxruntime-ThirdPartyNotices"]),
+    ("debug_draw_3d", ["MIT-debug_draw_3d"]),
+    ("debug draw 3d", ["MIT-debug_draw_3d"]),
+    ("debug_menu", ["MIT-debug_menu"]),
+    ("debug menu", ["MIT-debug_menu"]),
+]
+LINK = re.compile(r"\[([^\]]*)\]\(([^)]*)\)")
+REF = re.compile(r"licenses/([A-Za-z0-9._-]+)\.txt")
+
+
+def plain(s):
+    return LINK.sub(r"\1 (\2)", s).replace("`", "").replace("**", "").replace("<br>", " ").strip()
+
+
+def project_version(root):
+    try:
+        for line in open(os.path.join(root, "project.godot"), encoding="utf-8"):
+            m = re.match(r'config/version="([^"]*)"', line)
+            if m:
+                return m.group(1)
+    except OSError:
+        pass
+    return "?"
+
+
+def select_rows(root, preset):
+    steam = "steam" in preset.lower()
+    out = []
+    for r in parse_assets(os.path.join(root, "ASSETS.md")):
+        if not r["in_build"] or len(r["cells"]) < 5:
+            continue
+        if "только steam" in r["cells"][4].lower() and not steam:
+            continue
+        out.append(r)
+    return out
+
+
+def needed_licenses(rows, preset):
+    names = list(ALWAYS)
+    if "windows" in preset.lower():
+        names.append("msvc-runtime")
+    for r in rows:
+        lic = r["cells"][3]
+        names += REF.findall(lic)
+        for pat, name in BY_NAME:
+            if name and re.search(pat, lic, re.I):
+                names.append(name)
+    for r in rows:  # компоненты по названию в строке (пока SA-3 не расставила ссылки)
+        text = " ".join(r["cells"]).lower()
+        for key, files in BY_COMPONENT:
+            if key in text:
+                names += files
+    for r in rows:  # ссылки в других колонках (напр. «Источник») тоже считаются
+        for c in r["cells"]:
+            names += REF.findall(c)
+    seen, res = set(), []
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            res.append(n)
+    return res
+
+
+def render(root, rows, lic_names, preset):
+    L = []
+    L.append("THIRD-PARTY NOTICES")
+    L.append("")
+    L.append("Deltaplan %s (hang glider simulator)" % project_version(root))
+    L.append("Project code and data: MIT License, (c) the Deltaplan authors (licenses/MIT-deltaplan.txt).")
+    L.append("Source: https://github.com/thegriglat/deltaplan")
+    L.append("")
+    L.append(ODBL_PHRASE)
+    L.append("")
+    L.append("Full license texts are in the licenses/ folder next to this file: " + ", ".join(n + ".txt" for n in lic_names) + ".")
+    L.append("The same list is shown in the game: Menu -> About.")
+    section = None
+    for r in rows:
+        if r["section"] != section:
+            section = r["section"]
+            L += ["", "=" * 72, section, "=" * 72]
+        f, what, src, lic, where = (plain(c) for c in r["cells"][:5])
+        L.append("")
+        L.append("* " + (what if what and what != "—" else f))
+        if f and f != "—" and what and what != "—":
+            L.append("  Files: " + f)
+        if src and src != "—":
+            L.append("  Source: " + src)
+        L.append("  License / attribution: " + (lic if lic and lic != "—" else "generated by the project (no third-party material)"))
+        if where and where != "—":
+            L.append("  Used in: " + where)
+    L.append("")
+    return "\n".join(L)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--out", required=True, help="каталог сборки (рядом с исполняемым файлом)")
+    ap.add_argument("--preset", default="Linux")
+    ap.add_argument("--root", default=ROOT)
+    a = ap.parse_args()
+    rows = select_rows(a.root, a.preset)
+    names = needed_licenses(rows, a.preset)
+    lic_dir = os.path.join(a.out, "licenses")
+    os.makedirs(lic_dir, exist_ok=True)
+    missing = []
+    for n in names:
+        src = os.path.join(a.root, "licenses", n + ".txt")
+        if os.path.isfile(src):
+            shutil.copyfile(src, os.path.join(lic_dir, n + ".txt"))
+        else:
+            missing.append(n)
+    with open(os.path.join(a.out, "THIRD_PARTY_NOTICES.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(render(a.root, rows, names, a.preset))
+    print("NOTICES: %d строк, %d лицензий -> %s" % (len(rows), len(names) - len(missing), a.out))
+    if missing:
+        print("ОШИБКА: нет licenses/*.txt: " + ", ".join(missing), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
