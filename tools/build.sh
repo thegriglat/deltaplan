@@ -4,6 +4,8 @@
 # macOS: Godot сам пакует Deltaplan.app в zip (универсальный x86_64+arm64, подпись ad-hoc без
 # нотаризации); build/macos/ — распакованный .app для butler. configs/ рядом не кладём: внутри .app
 # это ломает подпись, а снаружи Config его не ищет — на Mac настройки только встроенные.
+# Steam: linux-steam|windows-steam|macos-steam — пресеты «… Steam» (метка steam, GodotSteam из
+# tools/steam/fetch_godotsteam.sh), каталог build/<платформа>-steam; в «all» не входят. itch-сборки без GodotSteam.
 # Рядом с игрой кладётся папка configs/ — пилот правит её без пересборки (NFR-7).
 # Расширение AirOnnx (нейросеть ветра, native/air_onnx): нет собранного для платформы — собирается
 # (native/air_onnx/build.sh, нужна сеть при первом запуске); после экспорта проверяется, что расширение
@@ -28,10 +30,11 @@ air_onnx_files() {
 	esac
 }
 air_onnx="${AIR_ONNX:-1}"
+[[ "$target" == *-steam ]] && tools/steam/fetch_godotsteam.sh
 if [[ "$air_onnx" != 0 ]]; then
 	plats=()
-	[[ "$target" == linux || "$target" == all ]] && plats+=(linux)
-	[[ "$target" == windows || "$target" == all ]] && plats+=(windows)
+	[[ "$target" == linux* || "$target" == all ]] && plats+=(linux)
+	[[ "$target" == windows* || "$target" == all ]] && plats+=(windows)
 	for p in "${plats[@]}"; do
 		for f in $(air_onnx_files "$p"); do
 			if [[ ! -f "addons/air_onnx/bin/$p/$f" || ! -f addons/air_onnx/air_onnx.gdextension ]]; then
@@ -65,8 +68,9 @@ build_one() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
+	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
 	if [[ "$air_onnx" != 0 ]]; then
-		for f in $(air_onnx_files "$dir"); do
+		for f in $(air_onnx_files "${dir%-steam}"); do
 			[[ -f "build/$dir/$f" ]] || { echo "ОШИБКА: в сборке нет $f (расширение AirOnnx)" >&2; exit 1; }
 		done
 	fi
@@ -77,15 +81,21 @@ build_one() {
 [[ "$target" == linux || "$target" == all ]] && build_one Linux linux deltaplan.x86_64
 [[ "$target" == windows || "$target" == all ]] && build_one Windows windows deltaplan.exe
 
+[[ "$target" == linux-steam ]] && build_one "Linux Steam" linux-steam deltaplan.x86_64
+[[ "$target" == windows-steam ]] && build_one "Windows Steam" windows-steam deltaplan.exe
+
 build_macos() {
-	rm -rf build/macos build/deltaplan-macos.zip
-	mkdir -p build/macos
+	local preset="${1:-macOS}" dir="${2:-macos}"
+	rm -rf "build/$dir" "build/deltaplan-$dir.zip"
+	mkdir -p "build/$dir"
 	cp project.godot "build/.project.godot.bak"
-	godot "${export_flags[@]}" --path . "$mode" macOS build/deltaplan-macos.zip
+	godot "${export_flags[@]}" --path . "$mode" "$preset" "build/deltaplan-$dir.zip"
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
-	(cd build/macos && unzip -q ../deltaplan-macos.zip)
-	echo "готово: build/macos/$(ls build/macos), build/deltaplan-macos.zip"
+	(cd "build/$dir" && unzip -q "../deltaplan-$dir.zip")
+	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
+	echo "готово: build/$dir/$(ls build/$dir), build/deltaplan-$dir.zip"
 }
 [[ "$target" == macos || "$target" == all ]] && build_macos
+[[ "$target" == macos-steam ]] && build_macos "macOS Steam" macos-steam
 exit 0  # иначе «build.sh linux» возвращает 1 от последней проверки [[ windows ]]

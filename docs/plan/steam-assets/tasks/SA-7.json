@@ -1,0 +1,60 @@
+{
+  "id": "SA-7",
+  "module": "steam-assets",
+  "type": "dp-researcher",
+  "title": "Иконки ачивок: промпты и скрипт генерации на локальной модели",
+  "goal": "Готовый к запуску на локальной NVIDIA генератор иконок ачивок в едином стиле по списку из configs/achievements.json, на модели с коммерческой лицензией; запуск позже.",
+  "plan_ref": "SA-7",
+  "contracts": [
+    {
+      "name": "SA-К4",
+      "version": "3",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-7",
+  "branch": "steam-assets/SA-7",
+  "base": "feature/steam-assets",
+  "scope": [
+    "tools/store/achievement_icons.py",
+    "tools/store/achievements/",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "steam/partner/",
+    "tools/store/make_store_assets.py",
+    "tools/store/check_sizes.sh",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "dry",
+      "cmd": "python3 tools/store/achievement_icons.py --config tools/store/achievements/fixture_achievements.json --prompts tools/store/achievements/prompts.json --out /tmp/sa7_icons --dry",
+      "expect": "re:ICONS PLAN ok=18 missing=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "dry_missing",
+      "cmd": "bash -c 'python3 tools/store/achievement_icons.py --config tools/store/achievements/fixture_missing.json --prompts tools/store/achievements/prompts.json --out /tmp/sa7_icons --dry; echo code=$?'",
+      "expect": "re:missing=1[\\s\\S]*code=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:21:02",
+  "edited": "2026-10-05T07:21:18"
+}

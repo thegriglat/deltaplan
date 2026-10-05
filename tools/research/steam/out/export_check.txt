@@ -1,0 +1,28 @@
+godotsteam 4.22.1 -> /home/greg/projects/.tmp/tmp.oQiXDPLikI/addons/godotsteam
+export_check.sh: строка 48: 1402008 Аварийный останов         XDG_DATA_HOME="$XD" timeout 120 "$GODOT" --headless --path "$P" --import > /dev/null 2>&1
+== steam: файлы экспорта
+game.pck 18088
+game.x86_64 73519416
+libgodotsteam.linux.template_release.x86_64.so 4594136
+libsteam_api.so 385840
+STEAM_EXPORT loaded=true gs_version=4.22.1 init=2 feature_steam=true args=[]
+== plain: файлы экспорта
+game.pck 2500
+game.x86_64 73519416
+STEAM_EXPORT loaded=false init=none feature_steam=false args=[]
+== noexcl: файлы экспорта
+game.pck 18056
+game.x86_64 73519416
+libgodotsteam.linux.template_release.x86_64.so 4594136
+libsteam_api.so 385840
+STEAM_EXPORT loaded=true gs_version=4.22.1 init=2 feature_steam=false args=[]
+== win: файлы экспорта
+game.exe 109127680
+game.pck 18088
+libgodotsteam.windows.template_release.x86_64.dll 3961344
+steam_api64.dll 319128
+== mac: файлы в zip
+steam_export_probe.app/Contents/Info.plist 1800
+steam_export_probe.app/Contents/Frameworks/libsteam_api.dylib 461728
+steam_export_probe.app/Contents/Frameworks/libgodotsteam.macos.template_release.universal.dylib 6081136
+steam_export_probe.app/Contents/MacOS/steam_export_probe 170963648

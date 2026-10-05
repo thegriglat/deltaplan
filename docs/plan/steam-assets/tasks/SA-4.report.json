@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "licenses/ (14 текстов + .gdignore), tools/release/third_party_notices.py, вызов в tools/build.sh (linux/windows и macOS), экран «Об игре» скрывает разделы «не входит», контрактный тест SA-4. tools/build.sh linux: THIRD_PARTY_NOTICES.txt и licenses/ (10 файлов) лежат рядом с exe.",
+  "commits": [
+    "c53002f9 SA-4: тексты лицензий, генератор, build.sh, тест"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "licenses_set",
+      "value": "LICENSES OK",
+      "pass": true
+    },
+    {
+      "name": "notices",
+      "value": "NOTICES OK",
+      "pass": true
+    },
+    {
+      "name": "build_hook",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "game_logic",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "build linux",
+      "value": "THIRD_PARTY_NOTICES.txt 30.6K + licenses/ 10 файлов рядом с exe",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "configs/ui.json license_files (в «Об игре» полные тексты) не менял: вне скоупа; экран показывает строки атрибуции, полные тексты — в licenses/ рядом с exe"
+  ],
+  "questions": [
+    "Нужно ли в «Об игре» показывать полные тексты из licenses/? Сейчас license_files в ui.json — только звуки и шрифты"
+  ],
+  "how_to_check": "/home/greg/deltaplan/tools/dp accept SA-4 --dry",
+  "uncertain": [
+    {
+      "where": "licenses/copernicus-dem.txt",
+      "why": "официальный отдельный документ лицензии не найден; текст — дословный раздел User Obligations и ссылка на ESA User License со страницы Copernicus Data Space",
+      "checked": "страница dataspace.copernicus.eu COP-DEM, 05.10.2026"
+    },
+    {
+      "where": "licenses/msvc-runtime.txt",
+      "why": "полный текст Microsoft не включён (по указанию координатора): уведомление + URL https://visualstudio.microsoft.com/license-terms/",
+      "checked": "-"
+    },
+    {
+      "where": "licenses/OFL-1.1.txt, ODbL-1.0.txt",
+      "why": "взяты из SPDX license-list-data (первоисточники scripts.sil.org и opendatacommons.org вернули 403/404)",
+      "checked": "текст ODbL/OFL совпадает по заголовкам"
+    },
+    {
+      "where": "tools/release/third_party_notices.py",
+      "why": "licenses/ определяются ссылками в ASSETS.md плюс по названию лицензии/компонента (пока SA-3 не расставила ссылки); после SA-3 стоит перезапустить тест",
+      "checked": "Linux 8-10 файлов, Windows 11 (с msvc-runtime), в сборке Linux onnxruntime/godot-cpp не вошли, т.к. раздела «Движок и библиотеки» в ASSETS.md ещё нет"
+    }
+  ],
+  "dp_feedback": "dp job wait с длинным выводом: хотелось бы --tail N.",
+  "t": "2026-10-05T07:20:14",
+  "by": "executor"
+}

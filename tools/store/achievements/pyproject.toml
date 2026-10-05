@@ -1,0 +1,17 @@
+[project]
+name = "deltaplan-achievement-icons"
+version = "0.1.0"
+description = "Генерация иконок ачивок Steam (SA-7): FLUX.1-schnell, nf4, 12 ГБ"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "torch==2.14.1",
+  "diffusers==0.40.0",
+  "transformers==5.18.0",
+  "accelerate==1.15.0",
+  "bitsandbytes==0.50.2",
+  "sentencepiece==0.2.2",
+  "protobuf==7.36.2",
+  "safetensors==0.8.0",
+  "pillow==12.3.0",
+  "numpy==2.5.3",
+]

@@ -23,10 +23,15 @@ buses/default_bus_layout="res://scenes/audio/bus_layout.tres"
 [autoload]
 
 Config="*res://scripts/core/config.gd"
+SteamService="*res://scripts/steam/steam_service.gd"
+Achievements="*res://scripts/steam/achievements.gd"
+Activity="*res://scripts/core/activity.gd"
+SteamPresence="*res://scripts/steam/steam_presence.gd"
 NetClient="*res://scripts/net/net_client.gd"
 NetZone="*res://scripts/net/net_zone.gd"
 NetPilots="*res://scripts/net/net_pilots.gd"
 LanDiscovery="*res://scripts/net/lan_discovery.gd"
+SteamLobby="*res://scripts/steam/steam_lobby.gd"
 
 [debug]
 

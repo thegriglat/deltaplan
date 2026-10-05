@@ -1,0 +1,59 @@
+{
+  "id": "SA-1",
+  "module": "steam-assets",
+  "type": "dp-researcher",
+  "title": "Аудит лицензий сборки и инвентарь файлов",
+  "goal": "Точно знать, что попадает в сборки (pck и рядом с exe) и разрешает ли каждая часть коммерческое использование; список правок для ASSETS.md и атрибуций.",
+  "plan_ref": "SA-1",
+  "contracts": [
+    {
+      "name": "SA-К1",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-1",
+  "branch": "steam-assets/SA-1",
+  "base": "feature/steam-assets",
+  "scope": [
+    "tools/release/build_inventory.py",
+    "docs/research/steam_license_audit.md",
+    "tools/research/steam_license/"
+  ],
+  "dont_touch": [
+    "ASSETS.md",
+    "export_presets.cfg",
+    "scripts/",
+    "configs/",
+    "docs/contracts/steam-assets.md"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "inventory",
+      "cmd": "python3 tools/release/build_inventory.py --preset all --out build/inventory",
+      "expect": "exit=0"
+    },
+    {
+      "name": "inventory_json",
+      "cmd": "python3 -c \"import json,glob;fs=sorted(glob.glob('build/inventory/*.json'));assert len(fs)>=2,fs;[(lambda d:(d['version']==1 and d['items'] and all(set(i)>={'path','kind','bytes','assets_md','license','commercial_ok','attribution'} for i in d['items'])) or exit(1))(json.load(open(f))) for f in fs];print('JSON OK',len(fs))\"",
+      "expect": "re:JSON OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:50:10"
+}

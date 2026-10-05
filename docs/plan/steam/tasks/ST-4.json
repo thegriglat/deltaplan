@@ -1,0 +1,47 @@
+{
+  "id": "ST-4",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Транспорт сети: подключаемые пиры (WebSocket, loopback), реестр схем, LocalServer.attach_peer",
+  "goal": "Отвязать NetClient и встроенный сервер от WebSocketPeer, чтобы Steam-транспорт (ST-8) подключался как ещё один пир, а протокол и поведение сети не менялись.",
+  "plan_ref": "ST-4. Транспорт сети",
+  "contracts": [
+    {
+      "name": "S4",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-4",
+  "branch": "steam/ST-4",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/net/",
+    "tests/net/",
+    "tests/contracts/test_steam_contracts_s4.gd"
+  ],
+  "dont_touch": [
+    "server/",
+    "scripts/ui/",
+    "scripts/game/",
+    "docs/contracts/steam.md"
+  ],
+  "accept": [
+    {
+      "name": "/net/",
+      "tests": "/net/"
+    },
+    {
+      "name": "net_screen",
+      "tests": "net_screen"
+    },
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:43:25",
+  "edited": "2026-10-05T06:51:52"
+}

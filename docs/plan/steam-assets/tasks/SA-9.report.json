@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "build.sh берёт VC++ DLL из каталога Redist Visual Studio 2022 (MSVC_REDIST_DIR) с обязательным MSVC_ACCEPT_LICENSE=yes и sha256 на каждую DLL; build_inventory.py сопоставляет файлы рядом с exe по <exe>/-шаблонам, лицензия Microsoft Software License Terms = commercial_ok+attribution.",
+  "commits": [
+    "1a81421f SA-9: контрактный тест",
+    "(см. git log) SA-9: build.sh/README/build_inventory"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "inv_all",
+      "value": "INVENTORY OK files=2606",
+      "pass": true
+    },
+    {
+      "name": "no_pypi",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скачивание из манифеста Visual Studio не реализовано (только каталог MSVC_REDIST_DIR; выбор из двух вариантов задания)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SA-9",
+  "uncertain": [
+    {
+      "where": "native/air_onnx/build.sh: MSVC_RT_SHA256",
+      "why": "хэши сняты с DLL из колеса PyPI (14.44.35112); совпадут ли они побайтно с файлами из VS Redist автора — не проверено (нет VS)",
+      "checked": "функция copy_msvc_runtime прогнана на копии DLL: без согласия/каталога/при чужом хэше — понятная ошибка rc=1, на верных — rc=0; при несовпадении выводит фактический хэш для обновления закрепления"
+    }
+  ],
+  "dp_feedback": "Тест в GDScript: обратные кавычки внутри строки уходят в никуда при запуске через dp accept/раннер — пришлось заменить на @ и chr(96). Тестовый .gdextension и bin/ не в git — нет команды dp для подтягивания игнорируемых артефактов из основной копии.",
+  "t": "2026-10-05T07:19:36",
+  "by": "executor"
+}

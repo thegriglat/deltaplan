@@ -1,0 +1,55 @@
+{
+  "id": "SA-9",
+  "module": "steam-assets",
+  "type": "dp-engineer",
+  "title": "VC++ DLL из официального VC Redist и инвентарь <exe>/ по контракту",
+  "goal": "Сборка Windows кладёт VC++ runtime из официального Visual Studio VC\\Redist (решение пользователя А), а build_inventory.py проверяет файлы рядом с exe по шаблонам <exe>/… и признаёт лицензию Microsoft — --check проходит на всех пресетах.",
+  "plan_ref": "SA-9",
+  "contracts": [
+    {
+      "name": "SA-К1",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-9",
+  "branch": "steam-assets/SA-9",
+  "base": "feature/steam-assets",
+  "scope": [
+    "native/air_onnx/build.sh",
+    "native/air_onnx/README.md",
+    "tools/release/build_inventory.py",
+    "tests/contracts/test_steam_assets_contracts_sa9.gd"
+  ],
+  "dont_touch": [
+    "ASSETS.md",
+    "tools/build.sh",
+    "export_presets.cfg",
+    "docs/contracts/",
+    "licenses/"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "inv_all",
+      "cmd": "python3 tools/release/build_inventory.py --preset all --check",
+      "expect": "re:INVENTORY OK"
+    },
+    {
+      "name": "no_pypi",
+      "cmd": "grep -c pythonhosted native/air_onnx/build.sh",
+      "expect": "re:^0$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:15:39"
+}
