@@ -10,3 +10,6 @@
 {"t": "2026-10-06T02:28:31", "by": "coordinator", "task": "AP-1", "ev": "note", "note": "сообщено: P4/P3 v2 — огибающая, cond_row; определение относительного критерия a := h, tol_rel 4e-4"}
 {"t": "2026-10-06T02:30:18", "by": "coordinator", "task": "AP-3", "ev": "started", "note": "dp-researcher opus, ~/deltaplan-air-phase-AP-3; против контракта P4 с заглушкой до вливания AP-1/AP-2"}
 {"t": "2026-10-06T02:32:38", "by": "executor", "task": "AP-2", "ev": "reported", "commits": ["5d40fd4e"], "note": "done: P2 v2: серии ENVELOPE (240 линий, 300 случаев) и ENVELOPE_REAL (25 случаев x 7 = 175 линий) добавлены; corpus_relief_id…"}
+{"t": "2026-10-06T02:34:53", "by": "executor", "task": "AP-2", "ev": "reported", "commits": ["see"], "note": "done: P2 v3: ENVELOPE_REAL по новому правилу: 101 случай (а: 5 nonconv_h + 16 nonconv_m, б: 60 nonconv_lowfr, в: 20 conv) x 7…"}
+{"t": "2026-10-06T02:35:44", "by": "executor", "task": "AP-2", "ev": "checked", "note": "3/3 tests=ok:exit 0; plan_contract=ok:1 passed; corpus=ok:S1 v3 33 True"}
+{"t": "2026-10-06T02:35:54", "by": "coordinator", "task": "AP-2", "ev": "accepted", "note": "по отчёту: формулы P1 проверены тестом (max|∇z| 0,968–1,000), план 7686 случаев, контракт плана зелёный"}

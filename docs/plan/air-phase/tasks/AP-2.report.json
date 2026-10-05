@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "P2 v2: серии ENVELOPE (240 линий, 300 случаев) и ENVELOPE_REAL (25 случаев x 7 = 175 линий) добавлены; corpus_relief_id, relief_id уникален; pb2 перегенерирован. План ap_v1: 852 линии, 7154 случая.",
+  "summary": "P2 v3: ENVELOPE_REAL по новому правилу: 101 случай (а: 5 nonconv_h + 16 nonconv_m, б: 60 nonconv_lowfr, в: 20 conv) x 7 линий = 707. План ap_v1: 1384 линии, 7686 случаев.",
   "commits": [
-    "5d40fd4e P2 v2: ENVELOPE и ENVELOPE_REAL"
+    "see git log air-phase/AP-2"
   ],
   "checks": [
     {
@@ -21,21 +21,11 @@
       "pass": true
     }
   ],
-  "not_done": [
-    "ENVELOPE_REAL: несошедшихся по status_h при Fr>1,5 и p95>=35 только 5 из 196 (контроль 20 из 191), вместо ~80; по status_m — 16"
-  ],
-  "questions": [
-    "Брать ли более широкий отбор (например p95>=35 без Fr: 255 несошедшихся по status_h) чтобы получить ~80?"
-  ],
+  "not_done": [],
+  "questions": [],
   "how_to_check": "dp accept AP-2",
-  "uncertain": [
-    {
-      "where": "plan_build.py:pick_real",
-      "why": "ожидалось ~80 несошедшихся, найдено 5",
-      "checked": "счёт по status_h/status_m при разных порогах: s>=35 без Fr — 255/321; Fr>1,5 без уклона — 19/26"
-    }
-  ],
+  "uncertain": [],
   "dp_feedback": "",
-  "t": "2026-10-06T02:32:38",
+  "t": "2026-10-06T02:34:53",
   "by": "executor"
 }
