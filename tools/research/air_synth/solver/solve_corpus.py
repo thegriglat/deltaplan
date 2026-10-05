@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SY-8: счёт решателя P2 по корпусу рельефов × набору условий -> S5 v2 (docs/contracts/air-synth.md).
+"""SY-8/SY-10: счёт решателя P2 по корпусу рельефов × набору условий -> S5 v2/v4 (docs/contracts/air-synth.md).
 Решатель и обрамление — как замер H7 (model_place.py S4 + air_nn_pilot/airlite_gen.solve_case: только область 96x96x400 м, решения
 h и m, max_outer и цель «среднее поздних» из configs/dataset.yaml). Условия случая — из таблицы S2 (час, облачность, U10, направление,
 t_max, lat/lon, пояс, месяц/день) — контекст места решателя подменяется на условия случая. Решатель замок GPU сам не берёт:
@@ -70,9 +70,11 @@ def solve_one(task):
     ctx = M.context(name)           # горные поправки (ground_context) — по рельефу; остальное — условия случая (S2)
     ctx.update(month=int(c["month"]), day=int(c["day"]), lat=float(c["lat_deg"]), lon=float(c["lon_deg"]),
                utc_offset_h=float(c["utc_offset_h"]))
+    cfg = S5.cfg_from_row(c)        # S2 v4 (hgw24): возмущения погоды — подмена конфига Day на время случая; v2/v3 — None, как раньше
     cs = dict(id=f"{name}_{c['cond_id']:03d}", loc=name, hour=float(c["hour_local"]), U10=float(c["u10_m_s"]),
-              wdir=float(c["wind_from_deg"]), t_max=float(c["t_max_c"]), sky=SKY[int(c["sky"])])
-    res, arr = G.solve_case(cs, [], max_outer=_W["mo"], late=_W["late"])
+              wdir=float(c["wind_from_deg"]), t_max=float(c["t_max_c"]), sky=SKY[int(c["sky"])] if cfg is None else S5.HG_SKY)
+    with S5.weather_override(cfg):
+        res, arr = G.solve_case(cs, [], max_outer=_W["mo"], late=_W["late"])
     _, hc = G.R.grid_domain(name, 400)      # hc float32 (arrays от solve_case — float16)
     out = dict(case=case, runs=res["runs"], hc=np.asarray(hc, np.float32), m=arr["d400_m"], h=arr["d400_h"],
                H=arr["d400_H"], hbl=arr["d400_hbl"], seconds=time.perf_counter() - t0)
@@ -81,6 +83,8 @@ def solve_one(task):
 
 # ------------------------------------------------------------------ план и источники
 def build_plan(plan_kind, corpus, k_cond, n_train=300, n_holdout=60):
+    if plan_kind == "hg":      # места дельтаплана (S5 v4): game, holdout, train по part
+        return S5.plan_hg([(i, corpus.place(i)["part"]) for i in corpus.ids()], k_cond)
     if plan_kind == "real":
         rows = [(i, corpus.place(i)["part"]) for i in corpus.ids()]
         return S5.plan_real(rows, k_cond)
@@ -97,6 +101,7 @@ def case_row(case, plan_row, runs, seconds):
         r[f"target_{s}"] = S5.TARGET[rr.get("target", "final")]
         r[f"late_n_{s}"], r[f"late_spread60_p90_{s}"] = rr.get("late_n", 1), rr.get("late_spread60_p90", 0.0)
     r["seconds"] = seconds
+    r["rank"] = -1
     return r
 
 
@@ -118,6 +123,23 @@ def assemble(items, plan_rows):
         fm.append(finite_or_diverged("fields/m", it["m"], dv)); fh.append(finite_or_diverged("fields/h", it["h"], dv))
         hc.append(it["hc"]); hf.append(finite_or_diverged("heat_flux", it["H"], dv)); hb.append(finite_or_diverged("hbl", it["hbl"], dv))
     return np.concatenate(cases) if False else np.array(cases, S5.CASES_DTYPE), np.stack(fm), np.stack(fh), np.stack(hc), np.stack(hf), np.stack(hb)
+
+
+def trial_indices(plan, cmap, n):
+    """n случаев плана: корзины (утро < 11 ч / день / вечер ≥ 17 ч) × (U10 < 4 / ≥ 4 м/с), по кругу по корзинам, внутри — равномерно по плану."""
+    buckets = {}
+    for i, (rid, cid, _) in enumerate(plan):
+        r = cmap[(rid, cid)]
+        h, u = float(r["hour_local"]), float(r["u10_m_s"])
+        buckets.setdefault((0 if h < 11 else (1 if h < 17 else 2), 0 if u < 4 else 1), []).append(i)
+    keys = sorted(buckets)
+    out, k = [], 0
+    while len(out) < n and any(buckets.values()):
+        b = buckets[keys[k % len(keys)]]
+        k += 1
+        if b:
+            out.append(b.pop(len(b) // 2 if k <= len(keys) else 0))
+    return sorted(out)
 
 
 # ------------------------------------------------------------------ сводка
@@ -184,11 +206,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--relief-corpus", required=True)
     ap.add_argument("--conditions", required=True)
-    ap.add_argument("--plan", choices=("real", "model"), required=True)
+    ap.add_argument("--plan", choices=("real", "model", "hg"), required=True)
     ap.add_argument("--name", help="имя корпуса в имени каталога (по умолчанию p6v3 / fs1_360)")
     ap.add_argument("--out", help="каталог результата (по умолчанию $AIR_SYNTH_DATA/solve/<имя>)")
     ap.add_argument("--workers", type=int, default=3)
-    ap.add_argument("--k-cond", type=int, default=12)
+    ap.add_argument("--k-cond", type=int, default=12, help="условий на рельеф (hgw24: 24)")
     ap.add_argument("--n-train", type=int, default=300, help="--plan model: id 0…n-1 — train")
     ap.add_argument("--n-holdout", type=int, default=60, help="--plan model: следующие n — holdout")
     ap.add_argument("--trial", type=int, default=0, help="N случаев равномерно по плану -> <out>__trial")
@@ -209,11 +231,14 @@ def main(argv=None):
     cset = cset[len(cname) + 1:] if cset.startswith(cname + "_") else cset      # p6v3_p2c12 -> p2c12
     out = a.out or os.path.join(cio.data_root(), "solve", f"{cname}__{cset}__{ver}")
     if a.trial:
-        idx = np.unique(np.linspace(0, len(plan) - 1, a.trial).round().astype(int))
-        # штиль (cond_id 5) и ясный/тёплый час в пробном — по равномерному шагу попадают; добавить один штиль, если нет
-        if not any(plan[i][1] == 5 for i in idx):
-            idx[-1] = next(i for i, p in enumerate(plan) if p[1] == 5)
-        plan = [plan[i] for i in sorted(set(idx.tolist()))]
+        if "dt_upper_k" in conds.table.dtype.names:    # hgw24: пробные случаи по корзинам час (утро/день/вечер) × ветер (слабый/сильный), по кругу
+            plan = [plan[i] for i in trial_indices(plan, cmap, a.trial)]
+        else:
+            idx = np.unique(np.linspace(0, len(plan) - 1, a.trial).round().astype(int))
+            # штиль (cond_id 5) и ясный/тёплый час в пробном — по равномерному шагу попадают; добавить один штиль, если нет
+            if not any(plan[i][1] == 5 for i in idx):
+                idx[-1] = next(i for i, p in enumerate(plan) if p[1] == 5)
+            plan = [plan[i] for i in sorted(set(idx.tolist()))]
         out += "__trial"
     os.makedirs(out, exist_ok=True)
     S5.write_plan(out, plan, dict(relief_corpus=a.relief_corpus, conditions=a.conditions))
@@ -239,7 +264,7 @@ def main(argv=None):
                 if len(rcache) > 64:
                     rcache.clear()
                 rcache[rid] = corpus.h100(rid, np.float32)
-            return (c, rid, rcache[rid], cio._dec(cmap[(rid, cid)], cio.CONDITIONS_DTYPE))
+            return (c, rid, rcache[rid], cio._dec(cmap[(rid, cid)], cmap[(rid, cid)].dtype))
         lk = None
         if a.own_lock:
             lk = open(LOCK, "w"); fcntl.flock(lk, fcntl.LOCK_EX)

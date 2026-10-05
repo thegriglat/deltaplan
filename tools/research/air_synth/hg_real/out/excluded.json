@@ -1,0 +1,713 @@
+[
+ {
+  "site_id": "hg_0002",
+  "name": "La rosiere - la sevoliere",
+  "country": "FR",
+  "lat": 45.644024,
+  "lon": 6.855384,
+  "reasons": [
+   "перепад 3222 м > 3000"
+  ],
+  "relief_m": 3221.9,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0008",
+  "name": "Décollage FFVL \"la Kedeusaz\"",
+  "country": "FR",
+  "lat": 46.031536,
+  "lon": 6.67044,
+  "reasons": [
+   "перепад 3535 м > 3000"
+  ],
+  "relief_m": 3535.0,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0015",
+  "name": "La sainte baume - le grand vallon",
+  "country": "FR",
+  "lat": 43.314888,
+  "lon": 5.709496,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.065 > 0.05"
+  ],
+  "relief_m": 1090.8,
+  "sea_frac": 0.065
+ },
+ {
+  "site_id": "hg_0034",
+  "name": "Amisbühl Oben",
+  "country": "CH",
+  "lat": 46.708833,
+  "lon": 7.825437,
+  "reasons": [
+   "перепад 3417 м > 3000"
+  ],
+  "relief_m": 3417.5,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0038",
+  "name": "Champeaux",
+  "country": "FR",
+  "lat": 48.732572,
+  "lon": -1.539618,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.406 > 0.05"
+  ],
+  "relief_m": 194.6,
+  "sea_frac": 0.4061
+ },
+ {
+  "site_id": "hg_0040",
+  "name": "Pierres-pouquelees",
+  "country": "FR",
+  "lat": 49.649809,
+  "lon": -1.856102,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.689 > 0.05"
+  ],
+  "relief_m": 182.6,
+  "sea_frac": 0.6885
+ },
+ {
+  "site_id": "hg_0041",
+  "name": "Toftum - Launch",
+  "country": "DK",
+  "lat": 56.545441,
+  "lon": 8.532635,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.299 > 0.05"
+  ],
+  "relief_m": 128.3,
+  "sea_frac": 0.299
+ },
+ {
+  "site_id": "hg_0042",
+  "name": "Déco Maido",
+  "country": "FR",
+  "lat": -21.05916,
+  "lon": 55.381755,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.199 > 0.05"
+  ],
+  "relief_m": 2993.9,
+  "sea_frac": 0.1991
+ },
+ {
+  "site_id": "hg_0046",
+  "name": "Парадром Ушконыр (Верхняя площадка)",
+  "country": "KZ",
+  "lat": 43.130928,
+  "lon": 76.486121,
+  "reasons": [
+   "перепад 3053 м > 3000"
+  ],
+  "relief_m": 3052.8,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0052",
+  "name": "Alpe d'huez - bourg d'oisans - le signal",
+  "country": "FR",
+  "lat": 45.09898,
+  "lon": 6.05977,
+  "reasons": [
+   "перепад 3441 м > 3000"
+  ],
+  "relief_m": 3440.7,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0059",
+  "name": "Décollage Crêt-du-Midi Est",
+  "country": "CH",
+  "lat": 46.239196,
+  "lon": 7.529111,
+  "reasons": [
+   "перепад 3820 м > 3000"
+  ],
+  "relief_m": 3819.5,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0067",
+  "name": "Milepat",
+  "country": "FR",
+  "lat": 48.762515,
+  "lon": -2.986178,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.546 > 0.05"
+  ],
+  "relief_m": 159.8,
+  "sea_frac": 0.546
+ },
+ {
+  "site_id": "hg_0070",
+  "name": "Plaine des gregues",
+  "country": "FR",
+  "lat": -21.320701,
+  "lon": 55.593197,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.371 > 0.05"
+  ],
+  "relief_m": 2584.5,
+  "sea_frac": 0.3714
+ },
+ {
+  "site_id": "hg_0071",
+  "name": "Saint-leu - 1400",
+  "country": "FR",
+  "lat": -21.150989,
+  "lon": 55.342299,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.341 > 0.05",
+   "перепад 3003 м > 3000"
+  ],
+  "relief_m": 3003.0,
+  "sea_frac": 0.3411
+ },
+ {
+  "site_id": "hg_0077",
+  "name": "",
+  "country": "ES",
+  "lat": 29.082923,
+  "lon": -13.60597,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.516 > 0.05"
+  ],
+  "relief_m": 636.3,
+  "sea_frac": 0.5159
+ },
+ {
+  "site_id": "hg_0080",
+  "name": "Rampa de vôo livre",
+  "country": "PT",
+  "lat": 39.017525,
+  "lon": -9.226501,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.085 > 0.05"
+  ],
+  "relief_m": 641.5,
+  "sea_frac": 0.0846
+ },
+ {
+  "site_id": "hg_0087",
+  "name": "Kennedy",
+  "country": "FR",
+  "lat": 43.704115,
+  "lon": 6.980932,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.081 > 0.05"
+  ],
+  "relief_m": 1721.8,
+  "sea_frac": 0.081
+ },
+ {
+  "site_id": "hg_0103",
+  "name": "Jas d'oris - les fond plaines",
+  "country": "FR",
+  "lat": 44.927843,
+  "lon": 5.886897,
+  "reasons": [
+   "перепад 3003 м > 3000"
+  ],
+  "relief_m": 3003.5,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0106",
+  "name": "Saint-francois-longchamp - telesiege du soleil rouge",
+  "country": "FR",
+  "lat": 45.410635,
+  "lon": 6.392436,
+  "reasons": [
+   "перепад 3150 м > 3000"
+  ],
+  "relief_m": 3150.2,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0114",
+  "name": "Décollage Les Ruinettes",
+  "country": "CH",
+  "lat": 46.089904,
+  "lon": 7.253299,
+  "reasons": [
+   "перепад 3734 м > 3000"
+  ],
+  "relief_m": 3733.9,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0129",
+  "name": "Menez-hom",
+  "country": "FR",
+  "lat": 48.220607,
+  "lon": -4.236369,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.218 > 0.05"
+  ],
+  "relief_m": 313.8,
+  "sea_frac": 0.2181
+ },
+ {
+  "site_id": "hg_0130",
+  "name": "La-pointe-du-roselier - sud",
+  "country": "FR",
+  "lat": 48.553551,
+  "lon": -2.714907,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.351 > 0.05"
+  ],
+  "relief_m": 258.3,
+  "sea_frac": 0.3508
+ },
+ {
+  "site_id": "hg_0136",
+  "name": "Site de décollage de Commes",
+  "country": "FR",
+  "lat": 49.346172,
+  "lon": -0.725825,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.470 > 0.05"
+  ],
+  "relief_m": 146.3,
+  "sea_frac": 0.4699
+ },
+ {
+  "site_id": "hg_0137",
+  "name": "Carteret - le semaphore - sud",
+  "country": "FR",
+  "lat": 49.372852,
+  "lon": -1.805734,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.575 > 0.05"
+  ],
+  "relief_m": 154.8,
+  "sea_frac": 0.575
+ },
+ {
+  "site_id": "hg_0139",
+  "name": "Le-rozel",
+  "country": "FR",
+  "lat": 49.475112,
+  "lon": -1.843605,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.548 > 0.05"
+  ],
+  "relief_m": 178.5,
+  "sea_frac": 0.5479
+ },
+ {
+  "site_id": "hg_0143",
+  "name": "Henne - Launch",
+  "country": "DK",
+  "lat": 55.745287,
+  "lon": 8.17416,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.544 > 0.05"
+  ],
+  "relief_m": 70.4,
+  "sea_frac": 0.5436
+ },
+ {
+  "site_id": "hg_0145",
+  "name": "Flinders Golf Course Paraglider/Hang Glider Launch",
+  "country": "AU",
+  "lat": -38.478964,
+  "lon": 145.01266,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.646 > 0.05"
+  ],
+  "relief_m": 309.0,
+  "sea_frac": 0.6456
+ },
+ {
+  "site_id": "hg_0151",
+  "name": "",
+  "country": "AU",
+  "lat": -33.694271,
+  "lon": 151.310948,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.549 > 0.05"
+  ],
+  "relief_m": 233.6,
+  "sea_frac": 0.5494
+ },
+ {
+  "site_id": "hg_0153",
+  "name": "",
+  "country": "AU",
+  "lat": -31.702167,
+  "lon": 152.678525,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.213 > 0.05"
+  ],
+  "relief_m": 613.2,
+  "sea_frac": 0.2135
+ },
+ {
+  "site_id": "hg_0154",
+  "name": "",
+  "country": "AU",
+  "lat": -28.807501,
+  "lon": 153.603456,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.551 > 0.05"
+  ],
+  "relief_m": 369.6,
+  "sea_frac": 0.5506
+ },
+ {
+  "site_id": "hg_0155",
+  "name": "Morro da Asa Delta",
+  "country": "BR",
+  "lat": -23.964828,
+  "lon": -46.362326,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.361 > 0.05"
+  ],
+  "relief_m": 1014.3,
+  "sea_frac": 0.3613
+ },
+ {
+  "site_id": "hg_0156",
+  "name": "Le dimitile",
+  "country": "FR",
+  "lat": -21.190158,
+  "lon": 55.484541,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.091 > 0.05"
+  ],
+  "relief_m": 2974.2,
+  "sea_frac": 0.0909
+ },
+ {
+  "site_id": "hg_0157",
+  "name": "Décollage Piton Textor",
+  "country": "FR",
+  "lat": -21.187505,
+  "lon": 55.635078,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.071 > 0.05",
+   "перепад 3077 м > 3000"
+  ],
+  "relief_m": 3077.2,
+  "sea_frac": 0.0705
+ },
+ {
+  "site_id": "hg_0158",
+  "name": "Zone ndt24 - mont marau",
+  "country": "FR",
+  "lat": -17.608825,
+  "lon": -149.532817,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.496 > 0.05",
+   "перепад 4220 м > 3000"
+  ],
+  "relief_m": 4219.5,
+  "sea_frac": 0.4964
+ },
+ {
+  "site_id": "hg_0159",
+  "name": "",
+  "country": "AU",
+  "lat": -16.646656,
+  "lon": 145.565456,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.470 > 0.05"
+  ],
+  "relief_m": 1003.6,
+  "sea_frac": 0.4704
+ },
+ {
+  "site_id": "hg_0160",
+  "name": "",
+  "country": "ES",
+  "lat": 28.95221,
+  "lon": -13.712458,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.565 > 0.05"
+  ],
+  "relief_m": 641.6,
+  "sea_frac": 0.5649
+ },
+ {
+  "site_id": "hg_0161",
+  "name": "",
+  "country": "ES",
+  "lat": 29.220061,
+  "lon": -13.47172,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.799 > 0.05"
+  ],
+  "relief_m": 636.1,
+  "sea_frac": 0.7993
+ },
+ {
+  "site_id": "hg_0162",
+  "name": "עמדת מצנחי רחיפה הר תבור",
+  "country": "IL",
+  "lat": 32.688719,
+  "lon": 35.381961,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.184 > 0.05"
+  ],
+  "relief_m": 825.1,
+  "sea_frac": 0.1842
+ },
+ {
+  "site_id": "hg_0164",
+  "name": "Fort Funston Launch Zone",
+  "country": "US",
+  "lat": 37.713763,
+  "lon": -122.502876,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.691 > 0.05"
+  ],
+  "relief_m": 641.1,
+  "sea_frac": 0.6908
+ },
+ {
+  "site_id": "hg_0165",
+  "name": "Rampa de voo livre",
+  "country": "PT",
+  "lat": 38.462266,
+  "lon": -9.192591,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.725 > 0.05"
+  ],
+  "relief_m": 461.2,
+  "sea_frac": 0.7253
+ },
+ {
+  "site_id": "hg_0175",
+  "name": "Nonza - pointe-de-solaru",
+  "country": "FR",
+  "lat": 42.794743,
+  "lon": 9.351743,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.585 > 0.05"
+  ],
+  "relief_m": 1217.0,
+  "sea_frac": 0.5848
+ },
+ {
+  "site_id": "hg_0185",
+  "name": "",
+  "country": "KZ",
+  "lat": 43.114184,
+  "lon": 77.111521,
+  "reasons": [
+   "перепад 4018 м > 3000"
+  ],
+  "relief_m": 4018.5,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0195",
+  "name": "Décollage de Roquebrune Cap-Martin Mont-Gros",
+  "country": "FR",
+  "lat": 43.765481,
+  "lon": 7.442698,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.436 > 0.05"
+  ],
+  "relief_m": 1443.5,
+  "sea_frac": 0.436
+ },
+ {
+  "site_id": "hg_0215",
+  "name": "Pyla gaillouneys",
+  "country": "FR",
+  "lat": 44.567809,
+  "lon": -1.231775,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.552 > 0.05"
+  ],
+  "relief_m": 77.9,
+  "sea_frac": 0.5516
+ },
+ {
+  "site_id": "hg_0228",
+  "name": "северный \"Дальний\"",
+  "country": "RU",
+  "lat": 45.020948,
+  "lon": 35.222166,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.246 > 0.05"
+  ],
+  "relief_m": 715.8,
+  "sea_frac": 0.2464
+ },
+ {
+  "site_id": "hg_0231",
+  "name": "L'Aiguille",
+  "country": "FR",
+  "lat": 45.129952,
+  "lon": 5.883509,
+  "reasons": [
+   "перепад 3089 м > 3000"
+  ],
+  "relief_m": 3089.3,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0239",
+  "name": "Courchevel - bouc blanc",
+  "country": "FR",
+  "lat": 45.410902,
+  "lon": 6.614801,
+  "reasons": [
+   "перепад 3297 м > 3000"
+  ],
+  "relief_m": 3297.0,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0241",
+  "name": "Roche parstire",
+  "country": "FR",
+  "lat": 45.671262,
+  "lon": 6.597577,
+  "reasons": [
+   "перепад 3920 м > 3000"
+  ],
+  "relief_m": 3919.6,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0245",
+  "name": "Megeve - rochebrune",
+  "country": "FR",
+  "lat": 45.832385,
+  "lon": 6.613942,
+  "reasons": [
+   "перепад 4203 м > 3000"
+  ],
+  "relief_m": 4203.4,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0247",
+  "name": "Saint gervais - mont lachat",
+  "country": "FR",
+  "lat": 45.868277,
+  "lon": 6.796181,
+  "reasons": [
+   "перепад 4192 м > 3000"
+  ],
+  "relief_m": 4192.2,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0276",
+  "name": "Startplatz Planplatten",
+  "country": "CH",
+  "lat": 46.735791,
+  "lon": 8.25497,
+  "reasons": [
+   "перепад 3391 м > 3000"
+  ],
+  "relief_m": 3390.8,
+  "sea_frac": 0.0
+ },
+ {
+  "site_id": "hg_0318",
+  "name": "Bihit - ouest",
+  "country": "FR",
+  "lat": 48.761018,
+  "lon": -3.577207,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.519 > 0.05"
+  ],
+  "relief_m": 176.1,
+  "sea_frac": 0.5189
+ },
+ {
+  "site_id": "hg_0336",
+  "name": "La-heve",
+  "country": "FR",
+  "lat": 49.511122,
+  "lon": 0.067924,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.614 > 0.05"
+  ],
+  "relief_m": 872.3,
+  "sea_frac": 0.6144
+ },
+ {
+  "site_id": "hg_0345",
+  "name": "Criel - les-mouettes",
+  "country": "FR",
+  "lat": 50.028693,
+  "lon": 1.300104,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.436 > 0.05"
+  ],
+  "relief_m": 237.8,
+  "sea_frac": 0.436
+ },
+ {
+  "site_id": "hg_0354",
+  "name": "Gulebjerg - Launch",
+  "country": "DK",
+  "lat": 55.549423,
+  "lon": 8.316108,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.438 > 0.05"
+  ],
+  "relief_m": 63.3,
+  "sea_frac": 0.4383
+ },
+ {
+  "site_id": "hg_0355",
+  "name": "",
+  "country": "NO",
+  "lat": 58.6454,
+  "lon": 5.859908,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.133 > 0.05"
+  ],
+  "relief_m": 1066.7,
+  "sea_frac": 0.1334
+ },
+ {
+  "site_id": "hg_0357",
+  "name": "Veraland sør",
+  "country": "NO",
+  "lat": 58.873243,
+  "lon": 5.945165,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.172 > 0.05"
+  ],
+  "relief_m": 815.7,
+  "sea_frac": 0.1721
+ },
+ {
+  "site_id": "hg_0358",
+  "name": "Nicostarten",
+  "country": "NO",
+  "lat": 59.175121,
+  "lon": 6.145585,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.300 > 0.05"
+  ],
+  "relief_m": 963.0,
+  "sea_frac": 0.3002
+ },
+ {
+  "site_id": "hg_0361",
+  "name": "Lofthus, Byrkjeflot",
+  "country": "NO",
+  "lat": 60.326891,
+  "lon": 6.689098,
+  "reasons": [
+   "море: доля узлов ≤ 0,5 м 0.138 > 0.05"
+  ],
+  "relief_m": 1657.3,
+  "sea_frac": 0.1382
+ }
+]

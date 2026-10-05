@@ -17,7 +17,8 @@ if str(CORPUS_DIR) not in sys.path:
     sys.path.insert(0, str(CORPUS_DIR))
 import corpus_io as cio  # noqa: E402
 
-CONTRACT = "S5 v2"
+CONTRACT = "S5 v4"
+CONTRACT_OK = ("S5 v2", "S5 v4")     # v4 (SY-10): группа game, столбец rank, условия hgw24 (S2 v4)
 VIEW = "solve.h5"
 AGL_M = (25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000)
 NY = NX = 96
@@ -25,7 +26,7 @@ STATUS = {"ok": 0, "max": 1, "diverged": 2}
 TARGET = {"final": 0, "late_mean": 1}
 CASES_DTYPE = np.dtype([("case", "<i8"), ("relief_id", "<i8"), ("cond_id", "<i4"), ("group", "i1"), ("status_m", "i1"), ("status_h", "i1"),
                         ("iters_m", "<i4"), ("iters_h", "<i4"), ("target_m", "i1"), ("target_h", "i1"), ("late_n_m", "<i2"), ("late_n_h", "<i2"),
-                        ("late_spread60_p90_m", "<f4"), ("late_spread60_p90_h", "<f4"), ("seconds", "<f4")])
+                        ("late_spread60_p90_m", "<f4"), ("late_spread60_p90_h", "<f4"), ("seconds", "<f4"), ("rank", "<i4")])
 DATASETS = {"fields/m": ((3, 13, NY, NX), "<f2"), "fields/h": ((4, 13, NY, NX), "<f2"), "inputs/hc": ((NY, NX), "<f4"),
             "inputs/heat_flux": ((NY, NX), "<f2"), "inputs/hbl": ((NY, NX), "<f2"), "cases": ((), CASES_DTYPE)}
 REQUIRED_ATTRS = ("contract", "kind", "created", "git_commit", "command", "shard_size", "n_records", "complete", "relief_corpus", "conditions",
@@ -33,8 +34,8 @@ REQUIRED_ATTRS = ("contract", "kind", "created", "git_commit", "command", "shard
 
 
 # ------------------------------------------------------------------ план
-GROUPS = {"train": 0, "holdout": 1}
-GROUP_CODES = "0=train,1=holdout"
+GROUPS = {"train": 0, "holdout": 1, "game": 2}
+GROUP_CODES = "0=train,1=holdout,2=game"
 
 
 def make_plan(train_ids, holdout_ids, k_cond=12):
@@ -53,6 +54,13 @@ def plan_real(place_rows, k_cond=12):
     tr = sorted(i for i, p in place_rows if p == "pool")
     ho = sorted(i for i, p in place_rows if p == "holdout")
     return make_plan(tr, ho, k_cond)
+
+
+def plan_hg(place_rows, k_cond=24):
+    """Места дельтаплана (S5 v4): place_rows — [(id, part)]; очередь holdout, затем train (id по возрастанию); part game -> группа game
+    (корпус игры считается отдельным каталогом). rank не используется (−1)."""
+    ids = lambda part: sorted(i for i, p in place_rows if p == part)
+    return [[int(r), c, g] for g, part in (("game", "game"), ("holdout", "holdout"), ("train", "train")) for r in ids(part) for c in range(k_cond)]
 
 
 def group_bounds(plan):
@@ -123,7 +131,7 @@ def build_view(d, n_total=None):
     counts, root = [], None
     for k in parts:
         with h5py.File(cio.part_path(d, k), "r") as f:
-            if f.attrs["contract"] != CONTRACT:
+            if f.attrs["contract"] not in CONTRACT_OK:
                 raise ValueError(f"{cio.part_path(d, k)}: контракт {f.attrs['contract']!r}")
             root = root or dict(f.attrs)
             counts.append(int(f["cases"].shape[0]))
@@ -170,7 +178,7 @@ class Solve:
         self._off = [0]
         for p in files:
             f = h5py.File(p, "r")
-            if f.attrs.get("contract") != CONTRACT or f.attrs.get("kind") != "solve":
+            if f.attrs.get("contract") not in CONTRACT_OK or f.attrs.get("kind") != "solve":
                 got = f.attrs.get("contract")
                 f.close()
                 raise ValueError(f"контракт {got!r}, ожидается {CONTRACT!r}")
@@ -194,3 +202,70 @@ class Solve:
         for f in self._files:
             f.close()
         self._files = []
+
+
+# ------------------------------------------------------------------ погода hgw24 (S2 v4): подмена конфига Day, код air3d не правится
+HG_SKY = "hgw"         # ключ облачности в подменённом конфиге (cover непрерывно, heat = 1 − 0,75·cover)
+HG_COLUMNS = ("dt_surface_k", "dt_upper_k", "lapse_k_per_km", "inv_depth_m", "inv_range_k", "cloud_cover")
+_MONTHLY = (("typical_max_c",), ("dew_point_c",), ("upper_air", "temp_c"), ("diurnal", "range_k"))
+
+
+def _air3d_weather():
+    p = str(Path(__file__).resolve().parents[3] / "air3d")
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    import weather as W
+    return W
+
+
+def weather_cfg(base, lat, dt_upper_k, lapse_k_per_km, inv_depth_f, inv_range_f, cloud_cover):
+    """Копия конфига погоды (weather_model.json) с возмущениями дня hgw24 (S2 v4): t_u (верхний уровень) += dt_upper, градиент
+    свободной атмосферы gam = lapse, глубина приземной инверсии и суточная амплитуда range_k — множители, облачность — своя запись
+    sky[HG_SKY] (cover, heat = 1 − 0,75·cover; её читают weather.Day и wind_prof.for_hour). dt_surface — сдвиг t_max (в столбце t_max_c).
+    Южное полушарие: месячные таблицы (северные) сдвигаются на 6 месяцев, чтобы дата (месяц + 6) давала тот же сезон."""
+    import copy
+    cfg = copy.deepcopy(base)
+    if lat < 0:
+        for path in _MONTHLY:
+            d = cfg
+            for k in path[:-1]:
+                d = d[k]
+            a = list(d[path[-1]])
+            d[path[-1]] = a[6:] + a[:6]
+    ua = cfg["upper_air"]
+    lat_shift = -0.5 * (abs(float(lat)) - 50.0)    # S2 v4 (уточнение по ревью): климатология t_u — тот же широтный сдвиг, что у t_max
+    ua["temp_c"] = [float(t) + float(dt_upper_k) + lat_shift for t in ua["temp_c"]]
+    ua["lapse_k_per_km"] = float(lapse_k_per_km)
+    dn = cfg["diurnal"]
+    dn["inversion_depth_m"] = float(dn["inversion_depth_m"]) * float(inv_depth_f)
+    dn["range_k"] = [float(r) * float(inv_range_f) for r in dn["range_k"]]
+    cc = float(cloud_cover)
+    cfg["sky"][HG_SKY] = dict(cover=cc, heat=1.0 - 0.75 * cc, soft=min(cc / 0.85, 1.0), duty_k=1.0, cb_k=1.0)
+    return cfg
+
+
+class weather_override:
+    """with weather_override(cfg): ... — подменяет weather.CFG (и возвращает прежний). cfg None — ничего не делает (побитно как раньше)."""
+
+    def __init__(self, cfg):
+        self.cfg, self.W, self.old = cfg, None, None
+
+    def __enter__(self):
+        if self.cfg is not None:
+            self.W = _air3d_weather()
+            self.old, self.W.CFG = self.W.CFG, self.cfg
+        return self
+
+    def __exit__(self, *a):
+        if self.W is not None:
+            self.W.CFG = self.old
+
+
+def cfg_from_row(row):
+    """Подменённый конфиг по строке условий S2 v4 (dict/структурная запись) или None, если столбцов hgw24 нет (v2/v3 — как раньше)."""
+    names = row.dtype.names if hasattr(row, "dtype") and row.dtype.names else tuple(row)
+    if "dt_upper_k" not in names:
+        return None
+    W = _air3d_weather()
+    g = lambda k: float(row[k])
+    return weather_cfg(W.CFG, g("lat_deg"), g("dt_upper_k"), g("lapse_k_per_km"), g("inv_depth_m"), g("inv_range_k"), g("cloud_cover"))

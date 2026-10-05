@@ -10,6 +10,7 @@ import numpy as np
 import h5py
 
 CONTRACT = {"relief": "S1 v3", "conditions": "S2 v2"}
+CONTRACT_OK = {"relief": ("S1 v3", "S1 v4"), "conditions": ("S2 v2", "S2 v4")}   # v4: места дельтаплана (SY-10), условия hgw24 с погодой
 VIEW_NAME = {"relief": "corpus.h5", "conditions": "conditions.h5"}
 NG100, DX100, X0 = 384, 100.0, -19200.0
 NG400, DX400 = 96, 400.0
@@ -145,7 +146,7 @@ def write_part(d, k, ids, q100, q400, summary, params=None, place=None, attrs=No
 def write_conditions_part(d, k, table, attrs=None):
     """Часть условий k: table (M,) CONDITIONS_DTYPE по (relief_id, cond_id)."""
     os.makedirs(d, exist_ok=True)
-    table = np.asarray(table, CONDITIONS_DTYPE)
+    table = np.asarray(table, table.dtype if set(CONDITIONS_DTYPE.names) <= set(getattr(table, "dtype", np.dtype([])).names or ()) else CONDITIONS_DTYPE)
     key = list(zip(table["relief_id"], table["cond_id"]))
     if key != sorted(key):
         raise ValueError("строки условий должны идти по (relief_id, cond_id)")
@@ -192,7 +193,7 @@ def build_view(d, kind=None):
     for k in parts:
         with h5py.File(part_path(d, k), "r") as f:
             counts.append(int(f["relief/id" if kind == "relief" else "conditions/table"].shape[0]))
-            if f.attrs["contract"] != CONTRACT[kind]:
+            if f.attrs["contract"] not in CONTRACT_OK[kind]:
                 raise ValueError(f"{part_path(d, k)}: контракт {f.attrs['contract']!r}")
     total = sum(counts)
     man = read_manifest(d) or {}
@@ -225,7 +226,7 @@ def build_view(d, kind=None):
 # ------------------------------------------------------------------ чтение
 def _check_contract(f, kind):
     c = f.attrs.get("contract")
-    if c != CONTRACT[kind] or f.attrs.get("kind") != kind:
+    if c not in CONTRACT_OK[kind] or f.attrs.get("kind") != kind:
         raise ValueError(f"контракт {c!r} (kind {f.attrs.get('kind')!r}), ожидается {CONTRACT[kind]!r}")
 
 
@@ -382,7 +383,7 @@ class Conditions:
         return True
 
 
-def write_reliefs(out, reliefs, shard_size=100, generator_version="", corpus_seed=0, command="", git_commit="", theta_cloud="", columns=None):
+def write_reliefs(out, reliefs, shard_size=100, generator_version="", corpus_seed=0, command="", git_commit="", theta_cloud="", columns=None, extra_attrs=None):
     """Готовые рельефы -> корпус (части + вид + manifest.json). reliefs — список dict(z100 float64 (384,384), compute_seconds?,
     place=dict по PLACE_DTYPE (реальные) или params=dict (модельные)); id — порядковый номер 0…n−1."""
     reliefs = list(reliefs)
@@ -390,7 +391,8 @@ def write_reliefs(out, reliefs, shard_size=100, generator_version="", corpus_see
     clean_tmp(out)
     attrs = dict(shard_size=shard_size, n_total=len(reliefs), generator_version=generator_version, corpus_seed=np.uint64(corpus_seed),
                  theta_cloud=theta_cloud, command=command, git_commit=git_commit)
-    write_manifest(out, dict(attrs, contract=CONTRACT["relief"], kind="relief", n_total=len(reliefs), corpus_seed=int(corpus_seed)))
+    attrs.update(extra_attrs or {})
+    write_manifest(out, dict(attrs, contract=attrs.get("contract", CONTRACT["relief"]), kind="relief", n_total=len(reliefs), corpus_seed=int(corpus_seed)))
     for k in range((len(reliefs) + shard_size - 1) // shard_size):
         chunk = reliefs[k * shard_size:(k + 1) * shard_size]
         ids = list(range(k * shard_size, k * shard_size + len(chunk)))

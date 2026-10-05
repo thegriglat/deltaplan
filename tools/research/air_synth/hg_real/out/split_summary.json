@@ -1,0 +1,297 @@
+{
+ "n_catalog": 363,
+ "n_excluded": 59,
+ "n_sites": 304,
+ "n_train": 284,
+ "n_holdout": 20,
+ "n_holdout_regional": 20,
+ "n_near_game": 0,
+ "split_seed": 20261005,
+ "sep_km": 50.0,
+ "near_game_km": 20.0,
+ "min_dist_holdout_to_train_km": 51.3,
+ "holdout_regions": [
+  "FR_alps_jura",
+  "FR_corsica",
+  "FR_east",
+  "FR_overseas",
+  "FR_pyrenees",
+  "FR_west_north",
+  "IT_south",
+  "alps_AT_CH_SI_IT",
+  "brazil",
+  "britain",
+  "east_asia",
+  "iberia",
+  "iran",
+  "north_america",
+  "scandinavia"
+ ],
+ "holdout_countries": [
+  "BR",
+  "CA",
+  "CH",
+  "ES",
+  "FR",
+  "GB",
+  "IR",
+  "IT",
+  "KR",
+  "NO"
+ ],
+ "train_countries": {
+  "AT": 10,
+  "AU": 7,
+  "BR": 1,
+  "CA": 3,
+  "CH": 15,
+  "DE": 24,
+  "ES": 3,
+  "FR": 181,
+  "GB": 1,
+  "IR": 5,
+  "IT": 10,
+  "MK": 2,
+  "NO": 2,
+  "PL": 1,
+  "PT": 1,
+  "SE": 2,
+  "SI": 2,
+  "SK": 11,
+  "US": 3
+ },
+ "train_regions": {
+  "FR_alps_jura": 73,
+  "FR_east": 15,
+  "FR_pyrenees": 24,
+  "FR_west_north": 69,
+  "alps_AT_CH_SI_IT": 37,
+  "australia": 7,
+  "balkans": 2,
+  "brazil": 1,
+  "britain": 1,
+  "central_europe": 36,
+  "iberia": 4,
+  "iran": 5,
+  "north_america": 6,
+  "scandinavia": 4
+ },
+ "holdout_sites": [
+  {
+   "site_id": "hg_0043",
+   "name": "سایت پرواز پاراگلایدر کوه سفید جناح",
+   "country": "IR",
+   "region": "iran",
+   "lat": 26.93554,
+   "lon": 54.386994,
+   "relief_m": 1375.7
+  },
+  {
+   "site_id": "hg_0069",
+   "name": "AGVL - Rampa Sudoeste",
+   "country": "BR",
+   "region": "brazil",
+   "lat": -29.605421,
+   "lon": -50.97021,
+   "relief_m": 867.6
+  },
+  {
+   "site_id": "hg_0072",
+   "name": "Déco Le piton des neiges - West",
+   "country": "FR",
+   "region": "FR_overseas",
+   "lat": -21.0997,
+   "lon": 55.480815,
+   "relief_m": 2991.4
+  },
+  {
+   "site_id": "hg_0116",
+   "name": "Gueret - le maupuy",
+   "country": "FR",
+   "region": "FR_west_north",
+   "lat": 46.163762,
+   "lon": 1.837735,
+   "relief_m": 439.5
+  },
+  {
+   "site_id": "hg_0128",
+   "name": "Roocourt la cote sud - roocourt la cote le denot",
+   "country": "FR",
+   "region": "FR_east",
+   "lat": 48.214155,
+   "lon": 5.152801,
+   "relief_m": 262.7
+  },
+  {
+   "site_id": "hg_0163",
+   "name": "",
+   "country": "KR",
+   "region": "east_asia",
+   "lat": 36.968029,
+   "lon": 128.381078,
+   "relief_m": 1247.1
+  },
+  {
+   "site_id": "hg_0166",
+   "name": "Pedro Bernardo - Despegue Oeste",
+   "country": "ES",
+   "region": "iberia",
+   "lat": 40.256717,
+   "lon": -4.905456,
+   "relief_m": 1781.9
+  },
+  {
+   "site_id": "hg_0170",
+   "name": "Calacuccia - bocca-a-sforssi",
+   "country": "FR",
+   "region": "FR_corsica",
+   "lat": 42.309962,
+   "lon": 9.044876,
+   "relief_m": 2386.1
+  },
+  {
+   "site_id": "hg_0189",
+   "name": "Signes - agnis - agnis - se et sw",
+   "country": "FR",
+   "region": "FR_alps_jura",
+   "lat": 43.302129,
+   "lon": 5.872902,
+   "relief_m": 1079.1
+  },
+  {
+   "site_id": "hg_0191",
+   "name": "",
+   "country": "IT",
+   "region": "IT_south",
+   "lat": 43.357327,
+   "lon": 12.750206,
+   "relief_m": 1411.6
+  },
+  {
+   "site_id": "hg_0192",
+   "name": "La capelette",
+   "country": "FR",
+   "region": "FR_pyrenees",
+   "lat": 43.479615,
+   "lon": 2.163133,
+   "relief_m": 874.9
+  },
+  {
+   "site_id": "hg_0248",
+   "name": "Parapendio Monte Nudo",
+   "country": "IT",
+   "region": "alps_AT_CH_SI_IT",
+   "lat": 45.922079,
+   "lon": 8.673916,
+   "relief_m": 1877.8
+  },
+  {
+   "site_id": "hg_0253",
+   "name": "Monte Lema",
+   "country": "CH",
+   "region": "alps_AT_CH_SI_IT",
+   "lat": 46.040045,
+   "lon": 8.831753,
+   "relief_m": 1922.5
+  },
+  {
+   "site_id": "hg_0256",
+   "name": "Aire de décollage du bois des Échelles",
+   "country": "FR",
+   "region": "FR_west_north",
+   "lat": 46.048389,
+   "lon": 1.448984,
+   "relief_m": 490.2
+  },
+  {
+   "site_id": "hg_0260",
+   "name": "Pedana di decollo Giulio Ravelli",
+   "country": "IT",
+   "region": "alps_AT_CH_SI_IT",
+   "lat": 46.193309,
+   "lon": 9.385645,
+   "relief_m": 2949.4
+  },
+  {
+   "site_id": "hg_0302",
+   "name": "Plateau de chauffourt",
+   "country": "FR",
+   "region": "FR_east",
+   "lat": 47.977141,
+   "lon": 5.422935,
+   "relief_m": 273.3
+  },
+  {
+   "site_id": "hg_0304",
+   "name": "Décollage : Sainte-Germaine",
+   "country": "FR",
+   "region": "FR_west_north",
+   "lat": 48.21912,
+   "lon": 4.699071,
+   "relief_m": 266.3
+  },
+  {
+   "site_id": "hg_0343",
+   "name": "",
+   "country": "CA",
+   "region": "north_america",
+   "lat": 49.912934,
+   "lon": -123.264945,
+   "relief_m": 2547.8
+  },
+  {
+   "site_id": "hg_0350",
+   "name": "Butser West Take Off",
+   "country": "GB",
+   "region": "britain",
+   "lat": 50.976787,
+   "lon": -0.987834,
+   "relief_m": 259.1
+  },
+  {
+   "site_id": "hg_0360",
+   "name": "Sundvollen",
+   "country": "NO",
+   "region": "scandinavia",
+   "lat": 60.053239,
+   "lon": 10.322549,
+   "relief_m": 688.0
+  }
+ ],
+ "near_game_sites": [],
+ "relief_quantiles_m": {
+  "train": {
+   "p0": 148.6,
+   "p10": 297.8,
+   "p25": 614.7,
+   "p50": 1262.0,
+   "p75": 1934.8,
+   "p90": 2453.8,
+   "p100": 2999.3
+  },
+  "holdout": {
+   "p0": 259.1,
+   "p10": 266.0,
+   "p25": 477.5,
+   "p50": 1163.1,
+   "p75": 1889.0,
+   "p90": 2587.9,
+   "p100": 2991.4
+  },
+  "all": {
+   "p0": 148.6,
+   "p10": 285.6,
+   "p25": 595.3,
+   "p50": 1259.8,
+   "p75": 1924.9,
+   "p90": 2457.3,
+   "p100": 2999.3
+  }
+ },
+ "excluded_by_reason": {
+  "море": 43,
+  "перепад": 19,
+  "дно": 0,
+  "нет данных": 0
+ }
+}

@@ -1,4 +1,4 @@
-"""Контрактный тест S5 v2 (без GPU): наборы, формы, типы, атрибуты; план; вид VDS = части; запись/чтение; NaN — ошибка."""
+"""Контрактный тест S5 v4 (v2 читается) (без GPU): наборы, формы, типы, атрибуты; план; вид VDS = части; запись/чтение; NaN — ошибка."""
 import sys
 from pathlib import Path
 
@@ -47,7 +47,7 @@ def test_part_schema_and_view(tmp_path):
     r = S5.build_view(tmp_path, n)
     assert r == dict(n_records=8, complete=True, parts=3)
     with h5py.File(tmp_path / "part-00000.h5") as f:
-        assert f.attrs["contract"] == "S5 v2" and f.attrs["kind"] == "solve" and f.attrs["complete"]
+        assert f.attrs["contract"] == "S5 v4" and f.attrs["kind"] == "solve" and f.attrs["complete"]
         for a in S5.REQUIRED_ATTRS:
             assert a in f.attrs, a
         for name, (tail, dt) in S5.DATASETS.items():
@@ -76,7 +76,7 @@ def test_roundtrip_values(tmp_path):
     S5.write_part(tmp_path, 0, cs, fm, fh, hc, hf, hb, ATTRS)
     s = S5.Solve(tmp_path)
     assert np.array_equal(s.get("fields/m", 1), fm[1].astype("f2")) and np.array_equal(s.get("inputs/hc", 2), hc[2])
-    assert s.attrs["group_codes"] == "0=train,1=holdout"
+    assert s.attrs["group_codes"] == "0=train,1=holdout,2=game" and S5.GROUPS == {"train": 0, "holdout": 1, "game": 2}
     s.close()
 
 
@@ -105,3 +105,14 @@ def test_tmp_invisible_and_unknown_contract(tmp_path):
         f.attrs["contract"] = "S5 v9"
     with pytest.raises(ValueError):
         S5.Solve(tmp_path)
+
+
+def test_plan_hg_and_rank_column():
+    """S5 v4: очередь game -> holdout -> train по id; столбец rank int32 (−1) есть в cases; места game в плане групп 2."""
+    rows = [(0, "train"), (1, "holdout"), (2, "train"), (3, "game"), (4, "holdout")]
+    p = S5.plan_hg(rows, 2)
+    assert p == [[3, 0, "game"], [3, 1, "game"], [1, 0, "holdout"], [1, 1, "holdout"], [4, 0, "holdout"], [4, 1, "holdout"],
+                 [0, 0, "train"], [0, 1, "train"], [2, 0, "train"], [2, 1, "train"]]
+    assert "rank" in S5.CASES_DTYPE.names and S5.CASES_DTYPE["rank"] == np.dtype("<i4")
+    assert S5.group_bounds(p) == {"game": (0, 2), "holdout": (2, 6), "train": (6, 10)}
+    assert S5.plan_hg([(0, "game")], 24)[-1] == [0, 23, "game"]
