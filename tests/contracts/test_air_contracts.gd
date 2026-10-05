@@ -774,6 +774,8 @@ func test_c4_atmosphere_api_and_analytic() -> void:
 	check(b.is_air_field_on(), "поле включено (auto)")
 	b.set_air_mode("off")
 	check(not b.is_air_field_on(), "set_air_mode(off) — аналитика")
+	# off включает упрощённый профиль ветра (как в 0.8.0): эталон — аналитика без поля в том же режиме
+	a.set_air_mode("off")
 	for q in [p, Vector3(500.0, 80.0, -300.0), Vector3(-900.0, 900.0, 400.0)]:
 		check(b.air_velocity_at(q) == a.air_velocity_at(q), "off = аналитика побитно в %s" % q)
 		check(b.mean_wind_at(q) == a.mean_wind_at(q), "off: mean_wind_at = аналитика в %s" % q)

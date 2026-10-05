@@ -5,7 +5,9 @@ extends TestCase
 
 const LOBBY := preload("res://scripts/steam/steam_lobby.gd")
 const PEER := preload("res://scripts/steam/steam_peer.gd")
-const BACKEND_METHODS := ["steam_available", "invite_friends", "friends_zones", "connect_and_join_lobby"]
+const BACKEND_METHODS := [
+	"steam_available", "invite_friends", "friends_zones", "connect_and_join_lobby"
+]
 const PEER_METHODS := ["poll", "get_state", "pop_text", "send_text", "close", "get_close_code"]
 
 
@@ -19,7 +21,8 @@ func test_s5_lobby_keys_and_type() -> void:
 	)
 	check(c.LOBBY_TYPE_FRIENDS_ONLY == 1 and c.MAX_MEMBERS == 16, "лобби «только друзья» на 16")
 	check(c.MAX_MEMBERS == LocalServer.MAX_MEMBERS, "как предел зоны сервера")
-	check(c.SCHEME == "steam" and preload("res://scripts/net/net_client.gd").TRANSPORT_SCHEMES.has("steam"), "адрес steam:<id>")
+	var schemes: Variant = preload("res://scripts/net/net_client.gd").TRANSPORT_SCHEMES
+	check(c.SCHEME == "steam" and schemes.has("steam"), "адрес steam:<id>")
 
 
 func test_s5_backend_interface() -> void:

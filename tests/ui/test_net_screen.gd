@@ -469,6 +469,16 @@ func test_client_backend_maps_signals() -> void:
 ## NET-53/NET-22: «Создать» без адреса — на встроенном сервере в этой же игре (LocalServer):
 ## сквозной путь без внешнего сервера — подключение и создание зоны проходят по-настоящему.
 ## С адресом — обычное подключение (без встроенного сервера).
+## Свободный TCP-порт: пробуем подряд с 38000.
+func _free_port() -> int:
+	for port in range(38000, 38200):
+		var srv := TCPServer.new()
+		if srv.listen(port, "127.0.0.1") == OK:
+			srv.stop()
+			return port
+	return 0
+
+
 func test_client_backend_create_embedded_vs_remote() -> void:
 	var client: Node = NET_CLIENT_SCRIPT.new()
 	add_child(client)
@@ -476,6 +486,7 @@ func test_client_backend_create_embedded_vs_remote() -> void:
 	zone.setup(client)
 	add_child(zone)
 	var b := NetUiClientBackend.new(client, zone)
+	b.embedded_port = _free_port()  # 8080 на машине может быть занят посторонним процессом
 	var got: Array = []
 	b.failed.connect(func(k: String) -> void: got.append(k))
 	var joined: Array = []
