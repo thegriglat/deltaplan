@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Созданы 4 .en.md (главная, docs, research/docs, mechanics); id {#acknowledgements} в обоих файлах главной.",
+  "commits": [
+    "39ec43d0 site-i18n SI-3"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-3 --dry",
+  "uncertain": [
+    {
+      "where": "mechanics/_index.en.md",
+      "why": "фраза \"Model limits\" — перевод заголовка «Границы модели»; сверить с en-страницами механик",
+      "checked": "нет"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:24:17",
+  "by": "main"
+}
