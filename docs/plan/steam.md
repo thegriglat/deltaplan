@@ -49,7 +49,7 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Оценка: 0,5 дня.
 
 ### ST-3. Сборка со Steam и без (dp-engineer, Sonnet)
-- Скоуп: `addons/godotsteam/` через `fetch_godotsteam.sh` (ST-1; бинарники не в git), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam.
+- Скоуп: `addons/godotsteam/` через `fetch_godotsteam.sh` (ST-1; бинарники не в git), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam. Имена пресетов Steam содержат «Steam» (steam-assets SA-К2 включает по ним строки «(только Steam)» в уведомления); в `tools/build.sh` steam-assets добавит вызов `third_party_notices.py` — конфликт при слиянии тривиальный. `steam/partner/` — с `.gdignore`.
 - Зависит от: ST-1, ST-2.
 - Приёмка: сборка itch Linux: в каталоге нет `libsteam_api*`/`godotsteam*`, `--smoke` проходит; сборка Steam Linux: библиотеки на месте, `--smoke` без клиента → `inactive (init_failed…)`, код 0; Windows-сборки собираются (запуск не проверить — так и записать).
 - Оценка: 0,5 дня.
@@ -91,6 +91,7 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Оценка: 0,25–1 день.
 
 ### ST-10. Документация и файлы для Steamworks (dp-writer, Sonnet)
+- Стык с модулем steam-assets (`docs/contracts/steam-assets.md` на `feature/steam-assets`): строка GodotSteam в `ASSETS.md`, раздел «Движок и библиотеки», пометка «(только Steam)», MIT + распространяемые библиотеки Steamworks SDK, текст лицензии — `licenses/<имя>.txt` (SA-К2/SA-К3); иконки ачивок `steam/store/achievements/<API>.jpg` делает steam-assets по `configs/achievements.json` (SA-К4) — в `steam/partner/README.md` ссылка на них.
 - Скоуп: `docs/guide/steam.md` (как устроено, как включить/выключить, тест на 480, ручной тест на двух аккаунтах), `steam/partner/README.md` — что сделать пользователю в Steamworks (регистрация, App ID → `configs/steam.json`, ачивки из csv, токены присутствия из vdf, Cloud, депо Linux/Windows), строка GodotSteam в `ASSETS.md`, CHANGELOG.
 - Зависит от: ST-3, ST-6, ST-7, ST-8, ST-9.
 - Оценка: 0,5 дня.

@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "S4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/steam.md"
     }
   ],
@@ -43,5 +43,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-05T06:43:25",
-  "edited": "2026-10-05T06:43:42"
+  "edited": "2026-10-05T06:51:52"
 }
