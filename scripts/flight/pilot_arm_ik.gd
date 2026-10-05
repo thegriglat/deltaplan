@@ -90,6 +90,14 @@ func _process_modification_with_delta(_delta: float) -> void:
 	_solve(sk, _arms[1], to_sk * target_r, (to_sk.basis * pole_r).normalized(), reach)
 
 
+## Плечо и локоть, посчитанные IK в последнем кадре, в осях скелета: [плечо, локоть]
+## (Skeleton3D.get_bone_global_pose отдаёт позу анимации, без правок модификатора — для тестов).
+func solved_joints(side: int) -> Array[Vector3]:
+	if side >= _arms.size() or not _arms[side].has("solved"):
+		return [Vector3.ZERO, Vector3.ZERO]
+	return _arms[side].solved
+
+
 ## Точка хвата руки в осях скелета при текущей позе (для тестов и отладки).
 func grip_point(side: int) -> Vector3:
 	var sk := get_skeleton()
@@ -143,6 +151,7 @@ static func _solve(
 	# предплечье: повернуть вокруг локтя, чтобы хват встал в цель
 	var q2 := _arc(g1 - f1.origin, s + n * d - f1.origin)
 	var f2 := Transform3D(q2 * f1.basis, f1.origin)
+	a.solved = [s, e2] as Array[Vector3]
 	sk.set_bone_global_pose(up_i, u2)
 	sk.set_bone_global_pose(fo_i, f2)
 

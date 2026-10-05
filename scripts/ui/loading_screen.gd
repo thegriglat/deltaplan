@@ -11,9 +11,20 @@ var _net_label: Label
 var _stage: Label
 var _bar: ProgressBar
 var _time: Label
+var _note: Label
 var _shown := 0.0
 var _anim := 0.0
 var _t0 := 0
+var _bg: TextureRect
+
+## Кадры игры для фона (случайный на каждую загрузку).
+const BACKDROPS: Array[String] = [
+	"res://assets/ui/loading/chase.jpg",
+	"res://assets/ui/loading/free.jpg",
+	"res://assets/ui/loading/run.jpg",
+	"res://assets/ui/loading/slavutych.jpg",
+	"res://assets/ui/loading/thermal.jpg",
+]
 
 
 func _ready() -> void:
@@ -30,6 +41,7 @@ func open(progress: LoadProgress, place: String) -> void:
 	_progress = progress
 	if progress != null:
 		progress.changed.connect(_on_changed)
+	_bg.texture = load(BACKDROPS[randi() % BACKDROPS.size()]) as Texture2D
 	_place.text = place
 	_place.visible = place != ""
 	set_net_info({})
@@ -68,8 +80,15 @@ func close() -> void:
 
 
 func _build() -> void:
+	# непрозрачный фон на весь экран: пропорции сохраняются, лишнее обрезается по краям
+	_bg = TextureRect.new()
+	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_bg)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.35)
+	dim.color = Color(0, 0, 0, 0.45)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
@@ -81,6 +100,8 @@ func _build() -> void:
 	_net_label.visible = false
 	UiKit.separator(box)
 	_stage = UiKit.label(box, "", "HeaderLabel")
+	_note = UiKit.label(box, "", "HintLabel")
+	_note.visible = false
 	_bar = ProgressBar.new()
 	_bar.min_value = 0.0
 	_bar.max_value = 1.0
@@ -122,5 +143,8 @@ func _process(dt: float) -> void:
 	if base == "":
 		base = tr("loading_getting_ready")
 	_stage.text = base + ".".repeat(1 + int(_anim * 2.5) % 3)
+	var note := _progress.note if _progress != null else ""
+	_note.text = note
+	_note.visible = note != ""
 	var s := (Time.get_ticks_msec() - _t0) / 1000
 	_time.text = "%d:%02d" % [s / 60, s % 60]

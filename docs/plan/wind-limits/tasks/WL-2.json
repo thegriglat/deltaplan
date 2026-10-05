@@ -1,0 +1,78 @@
+{
+  "id": "WL-2",
+  "module": "wind-limits",
+  "type": "dp-engineer",
+  "title": "Классы крыльев 1–4 по поперечине и предел ветра класса в меню",
+  "goal": "Каждому из 48 крыльев — класс по поперечине (учебный / жёсткая поперечина / плавающая поперечина / безмачтовый) с долей двойной обшивки во внутренних данных; меню показывает класс и предел ветра класса со слов пилота вместо прежней подсказки.",
+  "plan_ref": "WL-2",
+  "contracts": [
+    {
+      "name": "WL-К1",
+      "version": "1",
+      "ref": "docs/contracts/wind-limits.md"
+    }
+  ],
+  "copy": "~/deltaplan-wind-limits-WL-2",
+  "branch": "wind-limits/WL-2",
+  "base": "feature/wind-limits",
+  "scope": [
+    "configs/wing_classes.json",
+    "configs/wings/",
+    "scripts/game/wing_catalog.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_wind_limits_contracts.gd",
+    "tests/game/test_wing_catalog.gd",
+    "tests/ui/test_wing_picker.gd",
+    "tests/flight/test_wings.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "wind_limits_contracts",
+      "tests": "wind_limits_contracts"
+    },
+    {
+      "name": "wing_catalog",
+      "tests": "wing_catalog"
+    },
+    {
+      "name": "wing_picker",
+      "tests": "wing_picker"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "wing_physics_contracts",
+      "tests": "wing_physics_contracts"
+    },
+    {
+      "name": "no_wind_max",
+      "cmd": "! grep -rn 'wind_max_ms\\|wind_max(' configs/wings scripts/game scripts/ui",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_surface_labels",
+      "cmd": "! grep -rni 'обшив\\|single.surface\\|double.surface' scripts/ui locale",
+      "expect": "exit=0"
+    },
+    {
+      "name": "all_classes",
+      "cmd": "python3 -c \"import json,glob;b=[f for f in glob.glob('configs/wings/*.json') if json.load(open(f)).get('wind_class') not in (1,2,3,4) or json.load(open(f)).get('double_surface_src') not in ('passport','pilot_estimate')];print('bad',len(b),b)\"",
+      "expect": "num:bad (\\d+) ==0"
+    }
+  ],
+  "report_extra": [
+    "class_table",
+    "doubtful"
+  ],
+  "notes": "Классы и названия — по поперечине (решения пользователя в «1. Отзыв пилота» плана: dp plan wind-limits 1). Доля двойной обшивки — double_surface_pct + double_surface_src (passport|pilot_estimate) в конфиге, только внутренние данные; в меню и списках не выводить; подписи «одно-/двухобшивочное» убрать отовсюду в UI и locale (сейчас — строка-описание крыла в flight_setup_screen.gd ~219 и, вероятно, ключи в locale/ui.csv). Источники: tools/research/data/wing_passports/wings_merged.json (поля двойной обшивки, мачты), docs/research/glider_models.md, _doc конфигов. Поперечина плавающая/жёсткая — по паспорту или описанию производителя; нет данных — по году/типу с пометкой в wind_class_doc и в doubtful (список крыльев с доводами — вопрос пилоту). class_table в отчёте — строка на класс: число крыльев и их id. Физику и поляры не трогать; group (меню-группы) не трогать. Тесты — headless tests/run_tests.tscn --filter; известное падение порта 8080 в ui/ — не регрессия.",
+  "created": "2026-10-05T00:59:11",
+  "edited": "2026-10-05T00:59:12"
+}

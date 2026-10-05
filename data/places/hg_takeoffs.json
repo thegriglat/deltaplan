@@ -1,0 +1,8042 @@
+{
+ "countries": {
+  "AT": {
+   "en": "Austria",
+   "ru": "Австрия"
+  },
+  "AU": {
+   "en": "Australia",
+   "ru": "Австралия"
+  },
+  "BR": {
+   "en": "Brazil",
+   "ru": "Бразилия"
+  },
+  "CA": {
+   "en": "Canada",
+   "ru": "Канада"
+  },
+  "CH": {
+   "en": "Switzerland",
+   "ru": "Швейцария"
+  },
+  "DE": {
+   "en": "Germany",
+   "ru": "Германия"
+  },
+  "DK": {
+   "en": "Denmark",
+   "ru": "Дания"
+  },
+  "ES": {
+   "en": "Spain",
+   "ru": "Испания"
+  },
+  "FR": {
+   "en": "France",
+   "ru": "Франция"
+  },
+  "GB": {
+   "en": "United Kingdom",
+   "ru": "Соединённое Королевство"
+  },
+  "IL": {
+   "en": "Israel",
+   "ru": "Израиль"
+  },
+  "IR": {
+   "en": "Iran",
+   "ru": "Иран"
+  },
+  "IT": {
+   "en": "Italy",
+   "ru": "Италия"
+  },
+  "KR": {
+   "en": "South Korea",
+   "ru": "Республика Корея"
+  },
+  "KZ": {
+   "en": "Kazakhstan",
+   "ru": "Казахстан"
+  },
+  "MK": {
+   "en": "North Macedonia",
+   "ru": "Северная Македония"
+  },
+  "NO": {
+   "en": "Norway",
+   "ru": "Норвегия"
+  },
+  "PL": {
+   "en": "Poland",
+   "ru": "Польша"
+  },
+  "PT": {
+   "en": "Portugal",
+   "ru": "Португалия"
+  },
+  "RU": {
+   "en": "Russia",
+   "ru": "Россия"
+  },
+  "SE": {
+   "en": "Sweden",
+   "ru": "Швеция"
+  },
+  "SI": {
+   "en": "Slovenia",
+   "ru": "Словения"
+  },
+  "SK": {
+   "en": "Slovakia",
+   "ru": "Словакия"
+  },
+  "US": {
+   "en": "United States",
+   "ru": "Соединённые Штаты Америки"
+  }
+ },
+ "fetch_date_utc": "2026-10-04",
+ "format": "deltaplan.hg_takeoffs",
+ "source": "© OpenStreetMap contributors, ODbL 1.0; каталог SY-9 (air-synth), коммит 5a2ed468",
+ "takeoffs": [
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "node/10142097045",
+   "lat": 46.497209,
+   "lon": 11.753177,
+   "name": "Decollo Col Rodella E",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "CA",
+   "ele": null,
+   "id": "node/10563743739",
+   "lat": 49.912934,
+   "lon": -123.264945,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "IR",
+   "ele": 1228.0,
+   "id": "node/10792758842",
+   "lat": 27.816658,
+   "lon": 56.391003,
+   "name": "سایت پرواز پاراگلایدر سغ",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1385.0,
+   "id": "node/10807654994",
+   "lat": 26.935586,
+   "lon": 54.38694,
+   "name": "سایت پرواز پاراگلایدر کوه سفید جناح",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1385.0,
+   "id": "node/10807654995",
+   "lat": 26.93554,
+   "lon": 54.386994,
+   "name": "سایت پرواز پاراگلایدر کوه سفید جناح",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1690.0,
+   "id": "node/10860272913",
+   "lat": 27.463865,
+   "lon": 54.304803,
+   "name": "سایت پرواز پاراگلایدر پردی",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 2340.0,
+   "id": "node/11016656547",
+   "lat": 28.851811,
+   "lon": 54.573368,
+   "name": "سایت پرواز پاراگلایدر آذرخش- داراب",
+   "orientation": [
+    "S",
+    "SW",
+    "SE"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 2020.0,
+   "id": "node/11041841051",
+   "lat": 34.281253,
+   "lon": 46.256834,
+   "name": "سایت پرواز پاراگلایدر کرند-غرب",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "SE",
+   "ele": null,
+   "id": "node/11077642275",
+   "lat": 59.978983,
+   "lon": 13.087608,
+   "name": "",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "IL",
+   "ele": null,
+   "id": "node/11349774173",
+   "lat": 32.688719,
+   "lon": 35.381961,
+   "name": "עמדת מצנחי רחיפה הר תבור",
+   "orientation": [
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "DK",
+   "ele": 7.0,
+   "id": "node/11385334767",
+   "lat": 55.745287,
+   "lon": 8.17416,
+   "name": "Henne - Launch",
+   "orientation": []
+  },
+  {
+   "country": "DK",
+   "ele": 10.0,
+   "id": "node/11407202300",
+   "lat": 56.539926,
+   "lon": 8.622364,
+   "name": "Firbjerge - Launch",
+   "orientation": []
+  },
+  {
+   "country": "DK",
+   "ele": 15.0,
+   "id": "node/11407202302",
+   "lat": 56.56907,
+   "lon": 8.629306,
+   "name": "Venøborg - Launch",
+   "orientation": []
+  },
+  {
+   "country": "DK",
+   "ele": 12.0,
+   "id": "node/11407202306",
+   "lat": 56.525984,
+   "lon": 8.738181,
+   "name": "Ejsingholm - Launch",
+   "orientation": []
+  },
+  {
+   "country": "DK",
+   "ele": 32.0,
+   "id": "node/11486114566",
+   "lat": 56.545441,
+   "lon": 8.532635,
+   "name": "Toftum - Launch",
+   "orientation": []
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/11521904593",
+   "lat": 48.342623,
+   "lon": 18.105249,
+   "name": "",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 345.0,
+   "id": "node/11932373657",
+   "lat": 37.461197,
+   "lon": -121.860563,
+   "name": "Ed Levin 600 ft launch #1",
+   "orientation": [
+    "SW",
+    "WSW",
+    "W"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 340.0,
+   "id": "node/11932373658",
+   "lat": 37.461021,
+   "lon": -121.860501,
+   "name": "Ed Levin 600 ft launch #2",
+   "orientation": [
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 705.0,
+   "id": "node/11932408844",
+   "lat": 37.474417,
+   "lon": -121.859519,
+   "name": "Ed Levin 1750 ft launch #2",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 670.0,
+   "id": "node/11932408845",
+   "lat": 37.474534,
+   "lon": -121.857889,
+   "name": "Ed Levin 1750 ft launch #3 (\"backside\")",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1522.0,
+   "id": "node/11952285696",
+   "lat": 45.906207,
+   "lon": 5.761144,
+   "name": "Colombier - la croix",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "CA",
+   "ele": 580.0,
+   "id": "node/11970749071",
+   "lat": 49.19409,
+   "lon": -122.172443,
+   "name": "Dewdney Grind Hanggliding Launch",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "KZ",
+   "ele": null,
+   "id": "node/12218088648",
+   "lat": 43.114184,
+   "lon": 77.111521,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 767.0,
+   "id": "node/12288727876",
+   "lat": 45.799674,
+   "lon": 5.867798,
+   "name": "Decollage FFVL Sapenay SW Bouilloux",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1437.0,
+   "id": "node/12288762611",
+   "lat": 45.882577,
+   "lon": 5.756637,
+   "name": "Colombier - radiophare",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 3034.0,
+   "id": "node/12293952963",
+   "lat": -21.097801,
+   "lon": 55.479967,
+   "name": "Déco Le piton des neiges - Est",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 3034.0,
+   "id": "node/12293952965",
+   "lat": -21.0997,
+   "lon": 55.480815,
+   "name": "Déco Le piton des neiges - West",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/1250840189",
+   "lat": 49.236575,
+   "lon": 18.825547,
+   "name": "Straník",
+   "orientation": [
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": null,
+   "id": "node/12540363929",
+   "lat": 37.713763,
+   "lon": -122.502876,
+   "name": "Fort Funston Launch Zone",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 450.0,
+   "id": "node/12673066999",
+   "lat": 46.367568,
+   "lon": 4.704699,
+   "name": "Roche-Coche - Berzé la Ville",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/12683743959",
+   "lat": 49.101187,
+   "lon": 9.073221,
+   "name": "Gleitschirm Startplatz Hörnle",
+   "orientation": [
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/13030612229",
+   "lat": 47.802176,
+   "lon": 13.112192,
+   "name": "Startplatz Süd",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "KZ",
+   "ele": null,
+   "id": "node/13159751394",
+   "lat": 43.133325,
+   "lon": 76.493343,
+   "name": "Парадром Ушконыр (Средняя площадка)",
+   "orientation": []
+  },
+  {
+   "country": "KZ",
+   "ele": null,
+   "id": "node/13159751395",
+   "lat": 43.13269,
+   "lon": 76.496957,
+   "name": "Парадром Ушконыр (Нижняя площадка)",
+   "orientation": []
+  },
+  {
+   "country": "US",
+   "ele": 690.0,
+   "id": "node/13293470713",
+   "lat": 37.475375,
+   "lon": -121.861353,
+   "name": "Ed Levin 1750 ft launch #1 (\"HG\")",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 633.0,
+   "id": "node/13481426821",
+   "lat": 46.330921,
+   "lon": 5.397669,
+   "name": "Mont myon - pressiat",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2387.0,
+   "id": "node/14102664703",
+   "lat": 42.943633,
+   "lon": -0.720249,
+   "name": "Pic d'Anie",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 350.0,
+   "id": "node/1422612941",
+   "lat": 37.461314,
+   "lon": -121.859794,
+   "name": "Ed Levin 600 ft launch #3",
+   "orientation": [
+    "SSE",
+    "S"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 265.0,
+   "id": "node/1422613214",
+   "lat": 37.461062,
+   "lon": -121.86431,
+   "name": "Ed Levin 300 ft launch",
+   "orientation": [
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": 690.0,
+   "id": "node/1422616033",
+   "lat": 37.475633,
+   "lon": -121.861382,
+   "name": "Ed Levin 1750 ft launch #1",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/1607342146",
+   "lat": 47.803105,
+   "lon": 13.109519,
+   "name": "Startplatz West",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "KZ",
+   "ele": null,
+   "id": "node/1719139778",
+   "lat": 43.126768,
+   "lon": 76.468062,
+   "name": "Парадром Ушконыр (Верхняя площадка)",
+   "orientation": []
+  },
+  {
+   "country": "US",
+   "ele": 585.0,
+   "id": "node/1765734867",
+   "lat": 37.517672,
+   "lon": -121.89218,
+   "name": "Mission Ridge Hang Gliding and Paragliding Launch",
+   "orientation": [
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "node/1863725862",
+   "lat": 46.858922,
+   "lon": 9.843938,
+   "name": "Gotschnagrat Nord",
+   "orientation": [
+    "NW",
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1780.0,
+   "id": "node/1869760763",
+   "lat": 46.66979,
+   "lon": 7.318206,
+   "name": "Hohmattli",
+   "orientation": [
+    "E",
+    "N",
+    "W"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1420.0,
+   "id": "node/1869760765",
+   "lat": 46.731187,
+   "lon": 7.329411,
+   "name": "Pfiffe",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "BR",
+   "ele": 576.0,
+   "id": "node/1981105398",
+   "lat": -29.605421,
+   "lon": -50.97021,
+   "name": "AGVL - Rampa Sudoeste",
+   "orientation": []
+  },
+  {
+   "country": "BR",
+   "ele": null,
+   "id": "node/2062530015",
+   "lat": -23.964828,
+   "lon": -46.362326,
+   "name": "Morro da Asa Delta",
+   "orientation": []
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "node/2105700607",
+   "lat": -16.646656,
+   "lon": 145.565456,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2135001949",
+   "lat": 48.925824,
+   "lon": 18.291971,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2135001950",
+   "lat": 48.927178,
+   "lon": 18.28277,
+   "name": "",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2135001952",
+   "lat": 48.946975,
+   "lon": 18.528178,
+   "name": "",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2135001953",
+   "lat": 48.947682,
+   "lon": 18.530575,
+   "name": "",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2135001981",
+   "lat": 49.117796,
+   "lon": 18.492156,
+   "name": "",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": 1672.0,
+   "id": "node/2282036384",
+   "lat": 47.398826,
+   "lon": 9.944658,
+   "name": "Niedere Bezau Startplatz",
+   "orientation": [
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "id": "node/2390045280",
+   "lat": 45.020948,
+   "lon": 35.222166,
+   "name": "северный \"Дальний\"",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "NO",
+   "ele": null,
+   "id": "node/2397385559",
+   "lat": 61.893133,
+   "lon": 9.140694,
+   "name": "Vole",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1200.0,
+   "id": "node/2448308146",
+   "lat": 48.065104,
+   "lon": 8.015171,
+   "name": "Startplatz Kandel",
+   "orientation": [
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 870.0,
+   "id": "node/2475081359",
+   "lat": 48.129419,
+   "lon": 8.03878,
+   "name": "Startplatz Hörnleberg Nord-Ost Startplatz",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 760.0,
+   "id": "node/2475081363",
+   "lat": 48.127264,
+   "lon": 8.044252,
+   "name": "Startplatz Hörnleberg Süd-Startplatz",
+   "orientation": [
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1070.0,
+   "id": "node/2475081366",
+   "lat": 48.127913,
+   "lon": 8.083817,
+   "name": "Startplatz Tafelbühl Süd",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1020.0,
+   "id": "node/2475081370",
+   "lat": 48.128729,
+   "lon": 8.081094,
+   "name": "Startplatz Tafelbühl West",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1150.0,
+   "id": "node/2484651346",
+   "lat": 48.058805,
+   "lon": 8.015875,
+   "name": "oberer Gummen-Hütte Startplatz Süd",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 1150.0,
+   "id": "node/2484651347",
+   "lat": 48.058377,
+   "lon": 8.01268,
+   "name": "unterer Gummen-Hütte Startplatz Süd",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": 1571.0,
+   "id": "node/2484711265",
+   "lat": 47.398954,
+   "lon": 9.934572,
+   "name": "Niedere Bezau Startplatz Alte Bahn",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": 2077.0,
+   "id": "node/2484727698",
+   "lat": 47.346212,
+   "lon": 10.025963,
+   "name": "Diedamskopf Gipfel Startplatz",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": 1979.0,
+   "id": "node/2484727700",
+   "lat": 47.344927,
+   "lon": 10.030043,
+   "name": "Diedamskopf Rampe Startplatz",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/2494919170",
+   "lat": 52.050732,
+   "lon": 8.410085,
+   "name": "",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "NO",
+   "ele": null,
+   "id": "node/2754339060",
+   "lat": 59.175121,
+   "lon": 6.145585,
+   "name": "Nicostarten",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "NO",
+   "ele": null,
+   "id": "node/2760113383",
+   "lat": 58.873243,
+   "lon": 5.945165,
+   "name": "Veraland sør",
+   "orientation": []
+  },
+  {
+   "country": "NO",
+   "ele": 385.0,
+   "id": "node/2829889966",
+   "lat": 58.761124,
+   "lon": 5.980876,
+   "name": "Gjesdal, Øksnanuten",
+   "orientation": []
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2981031248",
+   "lat": 48.701457,
+   "lon": 17.73704,
+   "name": "",
+   "orientation": [
+    "SE",
+    "E"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2981031250",
+   "lat": 48.807652,
+   "lon": 17.832814,
+   "name": "",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/2981031254",
+   "lat": 48.835275,
+   "lon": 17.816355,
+   "name": "",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/2995672988",
+   "lat": 49.994637,
+   "lon": 9.757005,
+   "name": "Startplatz Kalbenstein",
+   "orientation": []
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "node/3001813519",
+   "lat": 29.08019,
+   "lon": -13.557876,
+   "name": "",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "node/3001819769",
+   "lat": 29.085657,
+   "lon": -13.654063,
+   "name": "",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "node/3001934722",
+   "lat": 29.220061,
+   "lon": -13.47172,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "node/301111071",
+   "lat": 28.95221,
+   "lon": -13.712458,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "NO",
+   "ele": null,
+   "id": "node/3090610344",
+   "lat": 58.6454,
+   "lon": 5.859908,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/3134692292",
+   "lat": 51.303126,
+   "lon": 8.190867,
+   "name": "Gleitschirmstartplatz Wenholthausen Südwest",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/3176364061",
+   "lat": 49.724373,
+   "lon": 11.15082,
+   "name": "Nordbayrische Drachenflieger",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/3381859965",
+   "lat": 48.888625,
+   "lon": 19.229965,
+   "name": "",
+   "orientation": [
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 591.0,
+   "id": "node/3390881641",
+   "lat": 43.704131,
+   "lon": 6.981178,
+   "name": "Kennedy",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "node/3629226393",
+   "lat": 43.813548,
+   "lon": 6.809359,
+   "name": "Décollage Delta Bleine",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 1115.0,
+   "id": "node/3632129875",
+   "lat": 47.744791,
+   "lon": 12.062707,
+   "name": "Startplatz (GS)",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1336.0,
+   "id": "node/3632129877",
+   "lat": 47.725848,
+   "lon": 12.184421,
+   "name": "Startplatz (GS)",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "PL",
+   "ele": 545.0,
+   "id": "node/3813560342",
+   "lat": 50.673049,
+   "lon": 16.20964,
+   "name": "Startowisko lotniowo-paralotniowe",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/3885156491",
+   "lat": 47.584894,
+   "lon": 11.099857,
+   "name": "Startrampe Hängegleiter",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "node/3940146240",
+   "lat": 46.040045,
+   "lon": 8.831753,
+   "name": "Monte Lema",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 680.0,
+   "id": "node/4006512754",
+   "lat": 48.613777,
+   "lon": 9.796287,
+   "name": "Startplatz Rabenfelsen",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 670.0,
+   "id": "node/4006536742",
+   "lat": 48.612651,
+   "lon": 9.724199,
+   "name": "Startplatz Sommerberg Deggingen",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "SI",
+   "ele": 1400.0,
+   "id": "node/4198152694",
+   "lat": 46.273047,
+   "lon": 13.473342,
+   "name": "Vzletišče Stol",
+   "orientation": [
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/4264196837",
+   "lat": 48.735106,
+   "lon": 18.424008,
+   "name": "",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "node/4283706228",
+   "lat": 48.762559,
+   "lon": 18.033408,
+   "name": "",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 1275.0,
+   "id": "node/448837185",
+   "lat": 45.789396,
+   "lon": 11.484028,
+   "name": "Decollo Foraoro",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "node/457366001",
+   "lat": 47.431374,
+   "lon": 6.795801,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "IT",
+   "ele": 1254.0,
+   "id": "node/4708672867",
+   "lat": 45.8043,
+   "lon": 11.438594,
+   "name": "Decollo Ceresana",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "node/472469232",
+   "lat": 45.801041,
+   "lon": 5.472927,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "node/5076881190",
+   "lat": 47.173123,
+   "lon": 7.138265,
+   "name": "Décollage Corgémont",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/5122354365",
+   "lat": 47.403719,
+   "lon": 9.937295,
+   "name": "Startrampe hang-gliding",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": 1552.0,
+   "id": "node/528790571",
+   "lat": 47.403899,
+   "lon": 9.938593,
+   "name": "Niedere Andelsbuch Startplatz Leo",
+   "orientation": []
+  },
+  {
+   "country": "NO",
+   "ele": 700.0,
+   "id": "node/5408076209",
+   "lat": 60.326891,
+   "lon": 6.689098,
+   "name": "Lofthus, Byrkjeflot",
+   "orientation": [
+    "W",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/5527813587",
+   "lat": 51.316102,
+   "lon": 8.54872,
+   "name": "",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/5641818267",
+   "lat": 50.502583,
+   "lon": 9.940026,
+   "name": "",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/5641818268",
+   "lat": 50.49709,
+   "lon": 9.931293,
+   "name": "",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/5641818269",
+   "lat": 50.497107,
+   "lon": 9.936758,
+   "name": "Flugplatz",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1080.0,
+   "id": "node/5713972752",
+   "lat": 47.155497,
+   "lon": 8.875001,
+   "name": "Gschwänd (Delta)",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "PT",
+   "ele": null,
+   "id": "node/5981460603",
+   "lat": 41.65874,
+   "lon": -8.35909,
+   "name": "Rampa de vôo livre de Parapente de Caldelas",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/5997401875",
+   "lat": 47.586143,
+   "lon": 11.103526,
+   "name": "Startplatz Gleitschirm/Hängegleiter",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "node/6035466011",
+   "lat": 47.146202,
+   "lon": 9.119292,
+   "name": "Durschlegi",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "DK",
+   "ele": 11.0,
+   "id": "node/6432534248",
+   "lat": 55.549423,
+   "lon": 8.316108,
+   "name": "Gulebjerg - Launch",
+   "orientation": []
+  },
+  {
+   "country": "DK",
+   "ele": 6.0,
+   "id": "node/6432534249",
+   "lat": 55.826557,
+   "lon": 8.169986,
+   "name": "Bjerregaard - Launch",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/6551785945",
+   "lat": 47.145079,
+   "lon": 11.307773,
+   "name": "Startplatz Fulpmes Kreuzjoch",
+   "orientation": [
+    "NE",
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/6551785947",
+   "lat": 47.144732,
+   "lon": 11.30722,
+   "name": "Startrampe Fulpmes Kreuzjoch",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/6551785948",
+   "lat": 47.098806,
+   "lon": 11.324279,
+   "name": "Startplatz Neustift Elfer",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 1440.0,
+   "id": "node/6786491682",
+   "lat": 45.883029,
+   "lon": 11.850042,
+   "name": "Vedetta 2",
+   "orientation": [
+    "SSE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 1476.0,
+   "id": "node/6786491683",
+   "lat": 45.881319,
+   "lon": 11.841406,
+   "name": "Vedetta",
+   "orientation": [
+    "SW",
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "BR",
+   "ele": 558.0,
+   "id": "node/6838163099",
+   "lat": -29.603969,
+   "lon": -50.968268,
+   "name": "AGVL - Rampa Sudeste",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "node/7178952828",
+   "lat": -32.961095,
+   "lon": 151.41421,
+   "name": "",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/7637311496",
+   "lat": 48.989527,
+   "lon": 11.44343,
+   "name": "Startplatz",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/7878705614",
+   "lat": 50.780991,
+   "lon": 7.376767,
+   "name": "Stachelberg",
+   "orientation": [
+    "SSW"
+   ]
+  },
+  {
+   "country": "GB",
+   "ele": null,
+   "id": "node/8568730077",
+   "lat": 50.976787,
+   "lon": -0.987834,
+   "name": "Butser West Take Off",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/8814983157",
+   "lat": 47.585946,
+   "lon": 11.10319,
+   "name": "Startrampe Hängegleiter",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "node/9672263592",
+   "lat": 46.85277,
+   "lon": 12.794631,
+   "name": "Startplatz Ebenerfeld",
+   "orientation": [
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/9911173431",
+   "lat": 47.663235,
+   "lon": 12.035439,
+   "name": "Vogelsang Ost",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": 870.0,
+   "id": "node/9932786121",
+   "lat": -35.094167,
+   "lon": 149.083356,
+   "name": "Spring Hill",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "node/9932788705",
+   "lat": -34.970185,
+   "lon": 149.37507,
+   "name": "Collector",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": 730.0,
+   "id": "node/9932809129",
+   "lat": -35.103727,
+   "lon": 149.375334,
+   "name": "Lake George",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "node/9932810524",
+   "lat": -35.483614,
+   "lon": 149.107599,
+   "name": "Lanyon",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "node/9932813012",
+   "lat": -35.130124,
+   "lon": 148.316562,
+   "name": "Honeysuckle (HG)",
+   "orientation": [
+    "W",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "node/9953255729",
+   "lat": 47.664605,
+   "lon": 12.03517,
+   "name": "Vogelsang West",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1491.0,
+   "id": "relation/10059814",
+   "lat": 45.683253,
+   "lon": 5.974776,
+   "name": "Décollage FFVL du Belvédère du Revard",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "NO",
+   "ele": null,
+   "id": "relation/10272042",
+   "lat": 60.053239,
+   "lon": 10.322549,
+   "name": "Sundvollen",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 222.0,
+   "id": "way/1041990389",
+   "lat": 45.017126,
+   "lon": 1.070676,
+   "name": "Côte de Jor",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 899.0,
+   "id": "way/1043854988",
+   "lat": 43.868922,
+   "lon": 3.640688,
+   "name": "La seranne - sud",
+   "orientation": [
+    "N",
+    "S",
+    "SW",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/105407954",
+   "lat": 46.735791,
+   "lon": 8.25497,
+   "name": "Startplatz Planplatten",
+   "orientation": [
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1330.0,
+   "id": "way/1063394558",
+   "lat": 44.298597,
+   "lon": 5.766733,
+   "name": "Chabre Sud 1",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "CA",
+   "ele": null,
+   "id": "way/1064461127",
+   "lat": 49.243488,
+   "lon": -121.887551,
+   "name": "Mount Woodside",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 703.0,
+   "id": "way/1065141931",
+   "lat": 47.067224,
+   "lon": 6.234305,
+   "name": "Echevannes - longeville - les doues",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 195.0,
+   "id": "way/1073569370",
+   "lat": 45.088585,
+   "lon": 1.215156,
+   "name": "Aubas",
+   "orientation": [
+    "NE",
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 219.0,
+   "id": "way/1073569371",
+   "lat": 45.116805,
+   "lon": 1.255919,
+   "name": "La foret - la foret",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 308.0,
+   "id": "way/1079290015",
+   "lat": 48.220607,
+   "lon": -4.236369,
+   "name": "Menez-hom",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 1560.0,
+   "id": "way/1080986173",
+   "lat": 47.679141,
+   "lon": 11.905103,
+   "name": "Fluggelände Jägerkamp/Nagelspitz",
+   "orientation": [
+    "WNW",
+    "W"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/1082594078",
+   "lat": -30.679169,
+   "lon": 150.611581,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/1082594079",
+   "lat": -30.679593,
+   "lon": 150.610148,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/1082594081",
+   "lat": -30.679107,
+   "lon": 150.608756,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/1082594082",
+   "lat": -30.672808,
+   "lon": 150.615863,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1108293558",
+   "lat": 47.379511,
+   "lon": 7.315744,
+   "name": "Delémont",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1130739803",
+   "lat": 47.299319,
+   "lon": 7.425146,
+   "name": "Raimeux Sud",
+   "orientation": []
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/113144142",
+   "lat": 46.002342,
+   "lon": 12.207843,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1144448135",
+   "lat": 47.362816,
+   "lon": 7.206444,
+   "name": "Boécourt",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 776.0,
+   "id": "way/1157662272",
+   "lat": 48.036153,
+   "lon": 6.615655,
+   "name": "Poele sauvage",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 681.0,
+   "id": "way/1159021790",
+   "lat": 48.256638,
+   "lon": 6.932125,
+   "name": "Saint-Dié - Kemberg",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "way/1159897397",
+   "lat": 36.898434,
+   "lon": -5.393221,
+   "name": "Levante SE",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "way/1159897398",
+   "lat": 36.898106,
+   "lon": -5.394207,
+   "name": "Levante SW",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1690.0,
+   "id": "way/1160644155",
+   "lat": 27.463582,
+   "lon": 54.304559,
+   "name": "سایت پرواز پاراگلایدر پردی",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 580.0,
+   "id": "way/1160647770",
+   "lat": 27.362506,
+   "lon": 56.154777,
+   "name": "سایت پرواز پاراگلایدر گنو- مدرسه",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 650.0,
+   "id": "way/1160672943",
+   "lat": 27.362128,
+   "lon": 56.162732,
+   "name": "سایت پرواز پاراگلایدر گنو- نیوی",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1385.0,
+   "id": "way/1162979935",
+   "lat": 26.935631,
+   "lon": 54.386962,
+   "name": "سایت پرواز پاراگلایدر کوه سفید جناح",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 984.0,
+   "id": "way/1164800973",
+   "lat": 45.38513,
+   "lon": 6.038603,
+   "name": "Décollage FFVL d'Allevard - Bajin, La Chapelle Saint Christophe",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1240.0,
+   "id": "way/1169252502",
+   "lat": 27.816825,
+   "lon": 56.390688,
+   "name": "سایت پرواز پاراگلایدر سغ",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "CA",
+   "ele": 1252.0,
+   "id": "way/1173551903",
+   "lat": 50.365772,
+   "lon": -122.786526,
+   "name": "Mt. McKenzie Upper Launch",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1340.0,
+   "id": "way/1173887473",
+   "lat": 46.702416,
+   "lon": 7.822284,
+   "name": "Amisbühl",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1174923569",
+   "lat": 46.690908,
+   "lon": 7.810322,
+   "name": "Gleitschirmstartplatz Luegibrüggli",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 1540.0,
+   "id": "way/1176440701",
+   "lat": 27.39739,
+   "lon": 56.169012,
+   "name": "سایت پرواز پاراگلایدر گنو- شاهی",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 2340.0,
+   "id": "way/1186070568",
+   "lat": 28.851329,
+   "lon": 54.573302,
+   "name": "سایت پرواز پاراگلایدر آذرخش- داراب",
+   "orientation": [
+    "S",
+    "SW",
+    "SE"
+   ]
+  },
+  {
+   "country": "IR",
+   "ele": 2020.0,
+   "id": "way/1189100856",
+   "lat": 34.280999,
+   "lon": 46.256233,
+   "name": "سایت پرواز پاراگلایدر کرند-غرب",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1190155425",
+   "lat": 47.371436,
+   "lon": 7.479409,
+   "name": "Startplatz Fringeliflüe",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 711.0,
+   "id": "way/1197650444",
+   "lat": 43.302129,
+   "lon": 5.872902,
+   "name": "Signes - agnis - agnis - se et sw",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 1117.0,
+   "id": "way/120136791",
+   "lat": 45.922079,
+   "lon": 8.673916,
+   "name": "Parapendio Monte Nudo",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 209.0,
+   "id": "way/1202310670",
+   "lat": 43.31533,
+   "lon": 2.884304,
+   "name": "Argeliers",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2127.0,
+   "id": "way/1202814391",
+   "lat": -21.187505,
+   "lon": 55.635078,
+   "name": "Décollage Piton Textor",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 192.0,
+   "id": "way/1214637661",
+   "lat": 43.835132,
+   "lon": 4.197559,
+   "name": "Saint Côme",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 86.0,
+   "id": "way/122725501",
+   "lat": 49.678688,
+   "lon": -1.774481,
+   "name": "Site de parapente de Landemer",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2068.0,
+   "id": "way/1227438395",
+   "lat": 45.385427,
+   "lon": 6.147794,
+   "name": "Décollage des Plagnes",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1216.0,
+   "id": "way/1227641951",
+   "lat": 47.925359,
+   "lon": 7.011402,
+   "name": "Décollage du Treh-Markstein SW",
+   "orientation": [
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2340.0,
+   "id": "way/1227672537",
+   "lat": 45.253896,
+   "lon": 6.736982,
+   "name": "Aussois - angle bellecote",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 770.0,
+   "id": "way/1230709046",
+   "lat": 44.311107,
+   "lon": 5.281691,
+   "name": "Col d'Ey - principal",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1212.0,
+   "id": "way/1230709051",
+   "lat": 44.375556,
+   "lon": 5.333136,
+   "name": "Décollage Soubeyrand",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 291.0,
+   "id": "way/1232242960",
+   "lat": 44.06379,
+   "lon": 1.97013,
+   "name": "Cordes saint marcel campes test",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 351.0,
+   "id": "way/1232243620",
+   "lat": 47.626419,
+   "lon": 6.089408,
+   "name": "Chariez - camp de cesar nord",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 899.0,
+   "id": "way/1232243917",
+   "lat": 46.503299,
+   "lon": 5.936809,
+   "name": "Lezat - belvedere",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1213.0,
+   "id": "way/1232244822",
+   "lat": 46.485034,
+   "lon": 6.098041,
+   "name": "Noirmont - junior n°3",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1045.0,
+   "id": "way/1232250095",
+   "lat": 42.790518,
+   "lon": 1.706058,
+   "name": "Verdun - crouzille",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 840.0,
+   "id": "way/1232252384",
+   "lat": 42.952007,
+   "lon": 1.100686,
+   "name": "Char de moulis",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 866.0,
+   "id": "way/1232253537",
+   "lat": 42.983869,
+   "lon": 1.036371,
+   "name": "Cazavet - cazeaux",
+   "orientation": [
+    "N",
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1466.0,
+   "id": "way/1232253913",
+   "lat": 42.862562,
+   "lon": 1.10819,
+   "name": "Col de la core",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 899.0,
+   "id": "way/1232254220",
+   "lat": 42.943402,
+   "lon": 1.014688,
+   "name": "Arrout - sapiniere d'arront",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1738.0,
+   "id": "way/1232254717",
+   "lat": 42.771048,
+   "lon": 1.302304,
+   "name": "L'arrech (guzet) - pic de l'arrech",
+   "orientation": [
+    "SE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1675.0,
+   "id": "way/1232254908",
+   "lat": 42.798428,
+   "lon": 1.231089,
+   "name": "Peyre mensongere",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1026.0,
+   "id": "way/1232254923",
+   "lat": 46.37097,
+   "lon": 5.898609,
+   "name": "Septmoncel",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 225.0,
+   "id": "way/1232255546",
+   "lat": 48.982604,
+   "lon": 3.963723,
+   "name": "Grauves",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 204.0,
+   "id": "way/1232256407",
+   "lat": 49.072576,
+   "lon": 3.762458,
+   "name": "Port a binson",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 189.0,
+   "id": "way/1232257343",
+   "lat": 50.087958,
+   "lon": 4.701026,
+   "name": "Vireux",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 350.0,
+   "id": "way/1232257734",
+   "lat": 49.862727,
+   "lon": 4.778639,
+   "name": "Haulme - liry",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 154.0,
+   "id": "way/1232260453",
+   "lat": 49.787627,
+   "lon": 1.294031,
+   "name": "Osmoy-saint-valery - combe-sur-mont-blanc",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 169.0,
+   "id": "way/1232261067",
+   "lat": 49.891084,
+   "lon": 1.676997,
+   "name": "Mont-de-la-clique - pente-ouest-monchy",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 261.0,
+   "id": "way/1232263375",
+   "lat": 48.120883,
+   "lon": 3.904435,
+   "name": "Sainte colombe",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 112.0,
+   "id": "way/1232263571",
+   "lat": 48.993299,
+   "lon": -0.49879,
+   "name": "La Roche-à-Busnel (décollage)",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1537.0,
+   "id": "way/1232268123",
+   "lat": 44.681173,
+   "lon": 6.231291,
+   "name": "Les richards",
+   "orientation": [
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 482.0,
+   "id": "way/1232268658",
+   "lat": 46.675792,
+   "lon": 4.035819,
+   "name": "Mont dardon sud - uxeau",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 650.0,
+   "id": "way/1232268832",
+   "lat": 46.806901,
+   "lon": 4.253137,
+   "name": "Uchon",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 594.0,
+   "id": "way/1232269328",
+   "lat": 46.853089,
+   "lon": 4.281787,
+   "name": "La Certenue - Mesvres",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1374.0,
+   "id": "way/1232269337",
+   "lat": 45.385125,
+   "lon": 4.56785,
+   "name": "La-jasserie",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 231.0,
+   "id": "way/1232269872",
+   "lat": 47.600309,
+   "lon": 3.776636,
+   "name": "Arcy sur cure",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1733.0,
+   "id": "way/1232524413",
+   "lat": 45.832385,
+   "lon": 6.613942,
+   "name": "Megeve - rochebrune",
+   "orientation": [
+    "N",
+    "NE",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 375.0,
+   "id": "way/1232747031",
+   "lat": 48.373273,
+   "lon": -3.95252,
+   "name": "Tuchenn-ar-kador",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1783.0,
+   "id": "way/1232751906",
+   "lat": 45.606601,
+   "lon": 6.379822,
+   "name": "L'Ébaudiaz",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1242.0,
+   "id": "way/1232753249",
+   "lat": 47.824544,
+   "lon": 6.845045,
+   "name": "Ballon d'alsace - roches de morteville",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1237.0,
+   "id": "way/1232753346",
+   "lat": 47.82532,
+   "lon": 6.839898,
+   "name": "Ballon d'alsace - jeanne d'arc",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1030.0,
+   "id": "way/1232753569",
+   "lat": 47.870945,
+   "lon": 6.865944,
+   "name": "La bouloie - la bouloie",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 957.0,
+   "id": "way/1232753740",
+   "lat": 47.894145,
+   "lon": 6.846965,
+   "name": "La tete des revolles - est",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 952.0,
+   "id": "way/1232754133",
+   "lat": 47.892085,
+   "lon": 6.845267,
+   "name": "La tete des revolles - revolles sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1724.0,
+   "id": "way/1232754273",
+   "lat": 44.927843,
+   "lon": 5.886897,
+   "name": "Jas d'oris - les fond plaines",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 942.0,
+   "id": "way/1232754744",
+   "lat": 43.94187,
+   "lon": 5.476319,
+   "name": "Rustrel - beausses",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1048.0,
+   "id": "way/1232755409",
+   "lat": 44.049835,
+   "lon": 5.635554,
+   "name": "Grou de bane - la croix",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 864.0,
+   "id": "way/1232757369",
+   "lat": 44.010542,
+   "lon": 5.654526,
+   "name": "Dauban - dauban",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1197.0,
+   "id": "way/1232757880",
+   "lat": 44.213061,
+   "lon": 5.478248,
+   "name": "Sederon-mevouillon : buc - buc ouest",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1133.0,
+   "id": "way/1232758898",
+   "lat": 44.253043,
+   "lon": 5.50634,
+   "name": "Sederon-mevouillon : la trappe",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1280.0,
+   "id": "way/1232760626",
+   "lat": 44.203715,
+   "lon": 5.510579,
+   "name": "Sederon-mevouillon : bergies - bergies - nord",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1318.0,
+   "id": "way/1232761166",
+   "lat": 44.203092,
+   "lon": 5.510413,
+   "name": "Sederon-mevouillon : bergies - bergies - sud",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 136.0,
+   "id": "way/1232764060",
+   "lat": 49.387997,
+   "lon": 0.848461,
+   "name": "Barneville sur seine - moulin de la jalousie",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 533.0,
+   "id": "way/1232765677",
+   "lat": 47.887291,
+   "lon": 7.02593,
+   "name": "Stockenberg",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": 1096.0,
+   "id": "way/1232767721",
+   "lat": 42.400841,
+   "lon": 1.913836,
+   "name": "Puigmal - cotze",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": 1137.0,
+   "id": "way/1232767991",
+   "lat": 42.411936,
+   "lon": 1.945385,
+   "name": "Puigmal - Pic d'Estaques",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1198.0,
+   "id": "way/1232768206",
+   "lat": 44.115399,
+   "lon": 6.213583,
+   "name": "Digne-les-bains - l'andran",
+   "orientation": [
+    "E",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1484.0,
+   "id": "way/1232769222",
+   "lat": 44.053684,
+   "lon": 6.239636,
+   "name": "Le cousson",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1182.0,
+   "id": "way/1232769737",
+   "lat": 47.898667,
+   "lon": 6.918747,
+   "name": "Le Drumont;Le Drumont take-off E-SE",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1179.0,
+   "id": "way/1232770779",
+   "lat": 48.03502,
+   "lon": 7.033349,
+   "name": "Altmatt gaschney",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1060.0,
+   "id": "way/1232770819",
+   "lat": 48.187194,
+   "lon": 7.095665,
+   "name": "Bonhomme - la-closerie",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1042.0,
+   "id": "way/1232771240",
+   "lat": 48.218415,
+   "lon": 7.192964,
+   "name": "Sainte-marie-aux-mines - tertre-de-la-fille-morte",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 643.0,
+   "id": "way/1232773487",
+   "lat": 43.704115,
+   "lon": 6.980932,
+   "name": "Kennedy",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1190.0,
+   "id": "way/1232774296",
+   "lat": 45.194167,
+   "lon": 2.587233,
+   "name": "Col-d'aulac",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1314.0,
+   "id": "way/1232775663",
+   "lat": 45.168971,
+   "lon": 2.794533,
+   "name": "Pierre-de-labro - nozieres",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1287.0,
+   "id": "way/1232776184",
+   "lat": 45.007552,
+   "lon": 2.81486,
+   "name": "Brezons - rocher de la boyle",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1113.0,
+   "id": "way/1232777017",
+   "lat": 44.982068,
+   "lon": 2.658567,
+   "name": "Vic-sur-cere - le-bruget",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 842.0,
+   "id": "way/1232779117",
+   "lat": 44.401995,
+   "lon": 4.075616,
+   "name": "Serre de barre - les taillades",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 429.0,
+   "id": "way/1232779399",
+   "lat": 44.313714,
+   "lon": 4.145235,
+   "name": "Saint sebastien",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 477.0,
+   "id": "way/1232779582",
+   "lat": 47.837793,
+   "lon": 6.527954,
+   "name": "Sainte marie en chanois - st colomban",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 600.0,
+   "id": "way/1232779729",
+   "lat": 47.758553,
+   "lon": 6.620644,
+   "name": "Mont de vannes - nord-ouest",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1669.0,
+   "id": "way/1232780336",
+   "lat": 44.869278,
+   "lon": 5.9308,
+   "name": "Colombiers",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 480.0,
+   "id": "way/1232839893",
+   "lat": 47.204526,
+   "lon": 5.977381,
+   "name": "La planoise - planoise sud ouest",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 591.0,
+   "id": "way/1232840345",
+   "lat": 47.240938,
+   "lon": 6.082016,
+   "name": "Montfaucon",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1241.0,
+   "id": "way/1232840722",
+   "lat": 44.138272,
+   "lon": 5.862701,
+   "name": "Sumiou",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1387.0,
+   "id": "way/1232845510",
+   "lat": 44.935909,
+   "lon": 4.191575,
+   "name": "Chaudeyrolles",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 824.0,
+   "id": "way/1232847354",
+   "lat": 48.038665,
+   "lon": 6.708271,
+   "name": "Chevre roche",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 351.0,
+   "id": "way/1232847440",
+   "lat": 47.669691,
+   "lon": 6.253987,
+   "name": "Villers poz - cote rouge",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2047.0,
+   "id": "way/1232850189",
+   "lat": 45.671262,
+   "lon": 6.597577,
+   "name": "Roche parstire",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1436.0,
+   "id": "way/1232851416",
+   "lat": 45.537809,
+   "lon": 6.672441,
+   "name": "Bourg-saint-maurice - les charmettes",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 403.0,
+   "id": "way/1232856132",
+   "lat": 46.343925,
+   "lon": 4.707431,
+   "name": "Monsard haut",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 780.0,
+   "id": "way/1232856200",
+   "lat": 45.632146,
+   "lon": 3.116237,
+   "name": "Déco NORD Saint-Sandoux",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 840.0,
+   "id": "way/1232857139",
+   "lat": 45.553003,
+   "lon": 3.06121,
+   "name": "Saurier-creste - plateau-de-lachaux",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1180.0,
+   "id": "way/1232857297",
+   "lat": 45.467353,
+   "lon": 2.997299,
+   "name": "Valbeleix - la roche-nite",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 402.0,
+   "id": "way/1232865909",
+   "lat": 45.049403,
+   "lon": 1.925502,
+   "name": "Monceaux-sur-dordogne - le temple",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 352.0,
+   "id": "way/1232867593",
+   "lat": 45.081449,
+   "lon": 1.921035,
+   "name": "Monceaux sur dordogne - puy du tour",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1440.0,
+   "id": "way/1232870462",
+   "lat": 45.77217,
+   "lon": 2.96372,
+   "name": "Le-puy-de-dome",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1803.0,
+   "id": "way/1232873541",
+   "lat": 45.063241,
+   "lon": 2.759777,
+   "name": "Plomb du cantal",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1812.0,
+   "id": "way/1232873823",
+   "lat": 45.061102,
+   "lon": 2.760551,
+   "name": "Puy brunet - crete du plomb 2",
+   "orientation": [
+    "N",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1432.0,
+   "id": "way/1232875285",
+   "lat": 45.650206,
+   "lon": 6.466007,
+   "name": "Fenetre 7",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 533.0,
+   "id": "way/1232875326",
+   "lat": 48.408858,
+   "lon": 6.068956,
+   "name": "Sion - vaudemont - barres",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 774.0,
+   "id": "way/1232881137",
+   "lat": 43.292,
+   "lon": -1.292067,
+   "name": "Baigura",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1251.0,
+   "id": "way/1232881324",
+   "lat": 42.798806,
+   "lon": 0.396085,
+   "name": "Vallee du louron - ble 300",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1754.0,
+   "id": "way/1232892907",
+   "lat": 42.767704,
+   "lon": 0.580156,
+   "name": "Luchon-superbagneres - la chapelle",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1870.0,
+   "id": "way/1232930971",
+   "lat": 42.778486,
+   "lon": 0.443361,
+   "name": "Vallee du louron - restaurant altitude",
+   "orientation": [
+    "N",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2121.0,
+   "id": "way/1232931727",
+   "lat": 42.772328,
+   "lon": 0.45125,
+   "name": "Vallee du louron - cap de pales",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1437.0,
+   "id": "way/1232932059",
+   "lat": 42.801248,
+   "lon": 0.388303,
+   "name": "Vallee du louron - 500",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 130.0,
+   "id": "way/1232932506",
+   "lat": 49.649809,
+   "lon": -1.856102,
+   "name": "Pierres-pouquelees",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 308.0,
+   "id": "way/1232933485",
+   "lat": 44.911571,
+   "lon": 1.58252,
+   "name": "Mont mercou",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1041.0,
+   "id": "way/1232938545",
+   "lat": 44.357801,
+   "lon": 3.540278,
+   "name": "Le single",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 932.0,
+   "id": "way/1232938554",
+   "lat": 44.376616,
+   "lon": 3.510772,
+   "name": "Ispagnac-paros",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 535.0,
+   "id": "way/1232940254",
+   "lat": 43.479615,
+   "lon": 2.163133,
+   "name": "La capelette",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1060.0,
+   "id": "way/1232940314",
+   "lat": 43.560489,
+   "lon": 2.82532,
+   "name": "Vesole - la grande plaine",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 607.0,
+   "id": "way/1232941826",
+   "lat": 45.660698,
+   "lon": 3.177549,
+   "name": "Puy-de-corent",
+   "orientation": [
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1199.0,
+   "id": "way/1232942945",
+   "lat": 46.214828,
+   "lon": 5.814411,
+   "name": "Décollage FFVL le Haut Lan",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2114.0,
+   "id": "way/1232945009",
+   "lat": 45.245659,
+   "lon": 6.735467,
+   "name": "Aussois - le djoin",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1711.0,
+   "id": "way/1232949203",
+   "lat": 44.492426,
+   "lon": 6.215759,
+   "name": "Colombis",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 828.0,
+   "id": "way/1232949626",
+   "lat": 42.458635,
+   "lon": 2.767658,
+   "name": "Céret - Col de la Brousse",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 438.0,
+   "id": "way/1232949827",
+   "lat": 46.107403,
+   "lon": 4.617764,
+   "name": "Ramiers",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1023.0,
+   "id": "way/1232950265",
+   "lat": 42.45009,
+   "lon": 2.764468,
+   "name": "Céret - Fontfrede",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1639.0,
+   "id": "way/1232952084",
+   "lat": 45.344142,
+   "lon": 5.845274,
+   "name": "Saint pierre de chartreuse - la scia - lucheron",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1090.0,
+   "id": "way/1232952362",
+   "lat": 42.970155,
+   "lon": 0.886223,
+   "name": "Arbas - planot de loubat",
+   "orientation": [
+    "N",
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1675.0,
+   "id": "way/1232954983",
+   "lat": 45.391478,
+   "lon": 6.123935,
+   "name": "Collet d'allevard - nid d'aigle",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1069.0,
+   "id": "way/1232955641",
+   "lat": 44.603203,
+   "lon": 5.441239,
+   "name": "Clamontard - luc-en-diois",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1501.0,
+   "id": "way/1232956550",
+   "lat": 44.609072,
+   "lon": 5.541998,
+   "name": "Lesches-en-diois - la montagne du puy",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1563.0,
+   "id": "way/1232970113",
+   "lat": 45.410902,
+   "lon": 6.614801,
+   "name": "Courchevel - bouc blanc",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 920.0,
+   "id": "way/1232972316",
+   "lat": 44.703716,
+   "lon": 5.317584,
+   "name": "Aurel - butte de l'aigle",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1132.0,
+   "id": "way/1232972832",
+   "lat": 44.671365,
+   "lon": 5.320712,
+   "name": "Aurel - clot du ciel",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1003.0,
+   "id": "way/1232974180",
+   "lat": 44.07615,
+   "lon": 6.241145,
+   "name": "Villevieille",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1437.0,
+   "id": "way/1232975025",
+   "lat": 45.631046,
+   "lon": 3.781348,
+   "name": "Job-ambert - le-mont-chouve",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1437.0,
+   "id": "way/1232975028",
+   "lat": 45.630304,
+   "lon": 3.781839,
+   "name": "Job-ambert - le-mont-chouve",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1130.0,
+   "id": "way/1232975475",
+   "lat": 45.637944,
+   "lon": 3.752807,
+   "name": "Le Cornillon",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 434.0,
+   "id": "way/1232976953",
+   "lat": 44.65761,
+   "lon": 4.936686,
+   "name": "Roynac - col du deves",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1039.0,
+   "id": "way/1232977594",
+   "lat": 45.623547,
+   "lon": 3.760556,
+   "name": "Job-ambert - le bien",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 37.0,
+   "id": "way/1232978438",
+   "lat": 49.557609,
+   "lon": -1.850757,
+   "name": "Le-plate",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 268.0,
+   "id": "way/1232981214",
+   "lat": 44.492522,
+   "lon": 1.286793,
+   "name": "Luzech",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 304.0,
+   "id": "way/1232981660",
+   "lat": 44.463623,
+   "lon": 1.372296,
+   "name": "Douelle",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1437.0,
+   "id": "way/1232981983",
+   "lat": 46.729816,
+   "lon": 6.357454,
+   "name": "Mont d'or",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1297.0,
+   "id": "way/1232982895",
+   "lat": 46.989552,
+   "lon": 6.572829,
+   "name": "Mont chateleu",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1106.0,
+   "id": "way/1232983995",
+   "lat": 47.072852,
+   "lon": 6.604301,
+   "name": "Morteau - mont vouillot",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 657.0,
+   "id": "way/1232984063",
+   "lat": 46.339245,
+   "lon": 5.659034,
+   "name": "La Roche",
+   "orientation": [
+    "S",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 817.0,
+   "id": "way/1232985176",
+   "lat": 46.969309,
+   "lon": 5.874627,
+   "name": "Mont-poupet W SW",
+   "orientation": [
+    "W",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1286.0,
+   "id": "way/1232985462",
+   "lat": 47.033379,
+   "lon": 6.671811,
+   "name": "Morteau - meix musy",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 747.0,
+   "id": "way/1232985831",
+   "lat": 47.310925,
+   "lon": 6.844922,
+   "name": "Montlandon - Saussi",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 523.0,
+   "id": "way/1232987173",
+   "lat": 46.705317,
+   "lon": 5.603373,
+   "name": "Pannessieres - roches aigues",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 865.0,
+   "id": "way/1232987305",
+   "lat": 46.424207,
+   "lon": 5.872942,
+   "name": "Les cheneviers",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 588.0,
+   "id": "way/1232988033",
+   "lat": 46.934315,
+   "lon": 4.287472,
+   "name": "Autun - croix de la liberation",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 218.0,
+   "id": "way/1232988415",
+   "lat": 44.390541,
+   "lon": 0.823488,
+   "name": "Penne-d'agenais",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1863.0,
+   "id": "way/1232988990",
+   "lat": 42.960657,
+   "lon": -0.659596,
+   "name": "Mail d'eygarry",
+   "orientation": [
+    "N",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1542.0,
+   "id": "way/1232989335",
+   "lat": 43.02019,
+   "lon": -0.645167,
+   "name": "Le layens",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 652.0,
+   "id": "way/1232989551",
+   "lat": 42.90773,
+   "lon": -0.573856,
+   "name": "Pic de labigouer",
+   "orientation": [
+    "E",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 35.0,
+   "id": "way/1232990547",
+   "lat": 48.755781,
+   "lon": -1.572819,
+   "name": "Carolles - croix-paquerey",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 55.0,
+   "id": "way/1232991125",
+   "lat": 48.732572,
+   "lon": -1.539618,
+   "name": "Champeaux",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 81.0,
+   "id": "way/1232991491",
+   "lat": 49.695194,
+   "lon": -1.832406,
+   "name": "Omonville - la-rogue",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 57.0,
+   "id": "way/1232992305",
+   "lat": 49.37452,
+   "lon": -1.80782,
+   "name": "Carteret - le semaphore - nord-ouest",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 57.0,
+   "id": "way/1232992590",
+   "lat": 49.475112,
+   "lon": -1.843605,
+   "name": "Le-rozel",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 110.0,
+   "id": "way/1232992865",
+   "lat": 49.694075,
+   "lon": -1.933156,
+   "name": "Ecalgrain",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 946.0,
+   "id": "way/1232994190",
+   "lat": 43.002815,
+   "lon": -0.433778,
+   "name": "Grange des cinq monts",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 556.0,
+   "id": "way/1232994619",
+   "lat": 43.147639,
+   "lon": -0.844133,
+   "name": "Chapelle de la madeleine",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 478.0,
+   "id": "way/1232994959",
+   "lat": 47.977141,
+   "lon": 5.422935,
+   "name": "Plateau de chauffourt",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1999.0,
+   "id": "way/1232995643",
+   "lat": 42.826015,
+   "lon": 1.74358,
+   "name": "Monts d'olmes - galinat",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 280.0,
+   "id": "way/1232996924",
+   "lat": 42.794743,
+   "lon": 9.351743,
+   "name": "Nonza - pointe-de-solaru",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 180.0,
+   "id": "way/1232997917",
+   "lat": 43.79903,
+   "lon": 4.22389,
+   "name": "Saint dionisy - st dionisy",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 65.0,
+   "id": "way/1232998199",
+   "lat": 49.420834,
+   "lon": 0.427011,
+   "name": "Saint samson de la roque",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 633.0,
+   "id": "way/1232999892",
+   "lat": 43.965438,
+   "lon": 3.795811,
+   "name": "Cezas",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1527.0,
+   "id": "way/1233000194",
+   "lat": 42.309962,
+   "lon": 9.044876,
+   "name": "Calacuccia - bocca-a-sforssi",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1445.0,
+   "id": "way/1233079840",
+   "lat": 43.809161,
+   "lon": 6.960741,
+   "name": "Greolieres - 600",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2052.0,
+   "id": "way/1233079978",
+   "lat": 44.096032,
+   "lon": 7.190593,
+   "name": "La colmiane - veillos",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1772.0,
+   "id": "way/1233079992",
+   "lat": 44.058068,
+   "lon": 7.217647,
+   "name": "La colmiane - le pic",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 604.0,
+   "id": "way/1233080926",
+   "lat": 42.919619,
+   "lon": 0.667471,
+   "name": "Pujo de gery",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1501.0,
+   "id": "way/1233082305",
+   "lat": 43.813821,
+   "lon": 6.811248,
+   "name": "Décollage Bleine parapente",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 528.0,
+   "id": "way/1233083009",
+   "lat": 44.712084,
+   "lon": 4.601904,
+   "name": "Chabanet - cote du baron",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 339.0,
+   "id": "way/1233083160",
+   "lat": 47.324916,
+   "lon": 3.537907,
+   "name": "Grenois - la montagne",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 920.0,
+   "id": "way/1233084852",
+   "lat": 48.069222,
+   "lon": 7.130615,
+   "name": "Hohrodberg-barrenkopf",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 318.0,
+   "id": "way/1233085142",
+   "lat": 49.550468,
+   "lon": 4.929285,
+   "name": "Stonne",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1608.0,
+   "id": "way/1233085551",
+   "lat": 45.78715,
+   "lon": 6.094012,
+   "name": "Semnoz-delta",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 63.0,
+   "id": "way/1233086183",
+   "lat": 49.372852,
+   "lon": -1.805734,
+   "name": "Carteret - le semaphore - sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1282.0,
+   "id": "way/1233087004",
+   "lat": 42.997901,
+   "lon": 0.168183,
+   "name": "Col de la courade - niclade",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2095.0,
+   "id": "way/1233091778",
+   "lat": 45.644024,
+   "lon": 6.855384,
+   "name": "La rosiere - la sevoliere",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1653.0,
+   "id": "way/1233243298",
+   "lat": 45.559708,
+   "lon": 6.766704,
+   "name": "Bourg saint maurice - vallandry",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1906.0,
+   "id": "way/1233243640",
+   "lat": 45.547534,
+   "lon": 6.788685,
+   "name": "Le plan de l'ours",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 416.0,
+   "id": "way/1233247225",
+   "lat": 46.108392,
+   "lon": 4.619009,
+   "name": "Fayolle",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1801.0,
+   "id": "way/1233247505",
+   "lat": 45.129952,
+   "lon": 5.883509,
+   "name": "L'Aiguille",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1648.0,
+   "id": "way/1233248587",
+   "lat": 45.125294,
+   "lon": 2.672898,
+   "name": "Puy-de-la-tourte-ouest",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 871.0,
+   "id": "way/1233250703",
+   "lat": 45.116487,
+   "lon": 2.670784,
+   "name": "Puy-mary - nord-est - pas-de-peyrol",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 82.0,
+   "id": "way/1233251328",
+   "lat": 44.32412,
+   "lon": 0.347338,
+   "name": "Nicole - pech de berre - sud",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 928.0,
+   "id": "way/1233253355",
+   "lat": 48.383028,
+   "lon": 7.280007,
+   "name": "Breitenbach - pelage - sud-ouest",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 554.0,
+   "id": "way/1233254911",
+   "lat": 43.048016,
+   "lon": 0.791818,
+   "name": "Dausse",
+   "orientation": [
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 307.0,
+   "id": "way/1233255120",
+   "lat": 45.253842,
+   "lon": 4.796871,
+   "name": "Saint-desirat - chatelet",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 128.0,
+   "id": "way/1233258660",
+   "lat": 49.036085,
+   "lon": 1.539314,
+   "name": "Notre-dame-de-la-mer - les-grandes-bruyeres",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 80.0,
+   "id": "way/1233274476",
+   "lat": 49.511122,
+   "lon": 0.067924,
+   "name": "La-heve",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 102.0,
+   "id": "way/1233278161",
+   "lat": 49.402569,
+   "lon": 0.467355,
+   "name": "Marais vernier - panorama (soumis a autorisation )",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1115.0,
+   "id": "way/1233284198",
+   "lat": 46.047019,
+   "lon": 6.394681,
+   "name": "Andey nord",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1454.0,
+   "id": "way/1233285095",
+   "lat": 46.111609,
+   "lon": 6.707866,
+   "name": "Samoens - la bourgeoise delta",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 347.0,
+   "id": "way/1233286021",
+   "lat": 48.543943,
+   "lon": 5.708038,
+   "name": "Le-trie",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2073.0,
+   "id": "way/1233324139",
+   "lat": 45.868277,
+   "lon": 6.796181,
+   "name": "Saint gervais - mont lachat",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1697.0,
+   "id": "way/1233330920",
+   "lat": 45.946914,
+   "lon": 6.682645,
+   "name": "Varan - verdun",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 904.0,
+   "id": "way/1233331762",
+   "lat": 43.84301,
+   "lon": 6.230226,
+   "name": "Moustiers-sainte-marie - courchon",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1250.0,
+   "id": "way/1233333346",
+   "lat": 45.510569,
+   "lon": 6.210104,
+   "name": "Chamoux - champlaurent",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 249.0,
+   "id": "way/1233477978",
+   "lat": 47.873792,
+   "lon": 4.05688,
+   "name": "Décollage - Saint-Martin-sur-Armançon",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 262.0,
+   "id": "way/1233478251",
+   "lat": 44.502942,
+   "lon": 1.321125,
+   "name": "Crayssac",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 555.0,
+   "id": "way/1233491907",
+   "lat": 45.910999,
+   "lon": 5.397362,
+   "name": "Torcieu - antenne relais",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 763.0,
+   "id": "way/1233492860",
+   "lat": 45.880381,
+   "lon": 5.410618,
+   "name": "Saint-Sorlin - Souclin",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1395.0,
+   "id": "way/1233495682",
+   "lat": -21.150989,
+   "lon": 55.342299,
+   "name": "Saint-leu - 1400",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2002.0,
+   "id": "way/1233861791",
+   "lat": -21.05916,
+   "lon": 55.381755,
+   "name": "Déco Maido",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 916.0,
+   "id": "way/1233862468",
+   "lat": -21.320701,
+   "lon": 55.593197,
+   "name": "Plaine des gregues",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 430.0,
+   "id": "way/1233863396",
+   "lat": -21.356736,
+   "lon": 55.614503,
+   "name": "Piton de l'entonnoir",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1741.0,
+   "id": "way/1233864796",
+   "lat": -21.190158,
+   "lon": 55.484541,
+   "name": "Le dimitile",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1629.0,
+   "id": "way/1233866492",
+   "lat": 44.11649,
+   "lon": 5.723597,
+   "name": "Contras - saim buguet",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 159.0,
+   "id": "way/1233867030",
+   "lat": 50.41508,
+   "lon": 2.514007,
+   "name": "Mont de la comte",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1162.0,
+   "id": "way/1233868697",
+   "lat": 44.464254,
+   "lon": 5.084376,
+   "name": "Montagne de la lance - la lance sud",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 960.0,
+   "id": "way/1233868864",
+   "lat": 44.508212,
+   "lon": 5.157766,
+   "name": "Montagne de ruy - ruy nord",
+   "orientation": [
+    "N",
+    "NE",
+    "S",
+    "SW",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 885.0,
+   "id": "way/1233870517",
+   "lat": 44.564055,
+   "lon": 5.075661,
+   "name": "Saint maurice",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 810.0,
+   "id": "way/1233870698",
+   "lat": 44.502068,
+   "lon": 5.009846,
+   "name": "Mont rachas - rachas sud",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 348.0,
+   "id": "way/1233872366",
+   "lat": 48.388014,
+   "lon": 6.249047,
+   "name": "Socourt",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 24.0,
+   "id": "way/1233891659",
+   "lat": 44.567809,
+   "lon": -1.231775,
+   "name": "Pyla gaillouneys",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 296.0,
+   "id": "way/1235128867",
+   "lat": 44.064223,
+   "lon": 1.975696,
+   "name": "Cordes saint marcel campes - cordes 2",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 574.0,
+   "id": "way/1235129455",
+   "lat": 47.318824,
+   "lon": 6.059899,
+   "name": "Belvedere fort de la dame blanche",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 430.0,
+   "id": "way/1235131036",
+   "lat": 47.208401,
+   "lon": 5.983868,
+   "name": "Décollage Planoise Nord Est",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 594.0,
+   "id": "way/1235131364",
+   "lat": 43.672352,
+   "lon": 3.195655,
+   "name": "Montjoux sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 594.0,
+   "id": "way/1235131365",
+   "lat": 43.672623,
+   "lon": 3.19495,
+   "name": "Montjoux O-NO",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1750.0,
+   "id": "way/1235134600",
+   "lat": 45.633387,
+   "lon": 6.750098,
+   "name": "Fort du Truc",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1330.0,
+   "id": "way/1235136001",
+   "lat": 44.297571,
+   "lon": 5.76297,
+   "name": "Chabre - top - nord",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2055.0,
+   "id": "way/1235136045",
+   "lat": 42.510278,
+   "lon": 1.989506,
+   "name": "Mauroux",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 75.0,
+   "id": "way/1235136372",
+   "lat": 47.309766,
+   "lon": -0.599717,
+   "name": "Le-piquet - beaulieu-sur-layon",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 92.0,
+   "id": "way/1235136830",
+   "lat": 50.028693,
+   "lon": 1.300104,
+   "name": "Criel - les-mouettes",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 314.0,
+   "id": "way/1235137706",
+   "lat": 43.212589,
+   "lon": 1.131159,
+   "name": "Décollage Gensac",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 41.0,
+   "id": "way/1235139472",
+   "lat": 49.34287,
+   "lon": -0.635689,
+   "name": "Arromanches - Tracy",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 297.0,
+   "id": "way/1235139882",
+   "lat": 44.48043,
+   "lon": 1.794773,
+   "name": "Dreuilh",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2082.0,
+   "id": "way/1235262463",
+   "lat": 45.576658,
+   "lon": 6.621534,
+   "name": "Macot-la-plagne - pra plan",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1988.0,
+   "id": "way/1235294988",
+   "lat": 45.553003,
+   "lon": 6.549239,
+   "name": "Naves - lac des Bozons",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1570.0,
+   "id": "way/1235295327",
+   "lat": 45.291868,
+   "lon": 6.319367,
+   "name": "Saint-jean-de-maurienne - la balme",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 977.0,
+   "id": "way/1235465937",
+   "lat": 46.160863,
+   "lon": 5.835982,
+   "name": "Décollage de Charmy",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1929.0,
+   "id": "way/1235466384",
+   "lat": 45.747166,
+   "lon": 6.504123,
+   "name": "Bisanne nord ouest",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 560.0,
+   "id": "way/1235466963",
+   "lat": 44.191303,
+   "lon": 5.101947,
+   "name": "Arfuyen",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 685.0,
+   "id": "way/1235468397",
+   "lat": 46.126511,
+   "lon": 4.582556,
+   "name": "Grand cret",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 459.0,
+   "id": "way/1235469285",
+   "lat": 42.726592,
+   "lon": 2.701617,
+   "name": "Sommet de la Força Réal",
+   "orientation": [
+    "S",
+    "SE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 468.0,
+   "id": "way/1235473573",
+   "lat": 47.194281,
+   "lon": 5.989628,
+   "name": "Décollage La Maltournée Nord",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 65.0,
+   "id": "way/1235624650",
+   "lat": 48.554567,
+   "lon": -2.715283,
+   "name": "La-pointe-du-roselier - nord",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 65.0,
+   "id": "way/1235624651",
+   "lat": 48.553551,
+   "lon": -2.714907,
+   "name": "La-pointe-du-roselier - sud",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1223.0,
+   "id": "way/1235626791",
+   "lat": 44.216402,
+   "lon": 5.477948,
+   "name": "Buc est - la taniere",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 254.0,
+   "id": "way/1235627967",
+   "lat": 49.164867,
+   "lon": 3.953399,
+   "name": "Chamery",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 941.0,
+   "id": "way/1235636550",
+   "lat": 47.061163,
+   "lon": 6.637981,
+   "name": "Les frenelots",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 358.0,
+   "id": "way/1235638707",
+   "lat": 48.214155,
+   "lon": 5.152801,
+   "name": "Roocourt la cote sud - roocourt la cote le denot",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 341.0,
+   "id": "way/1235639251",
+   "lat": 48.21865,
+   "lon": 5.149593,
+   "name": "Roocourt la cote ouest - roocourt la cote le plein chien",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 592.0,
+   "id": "way/1235643053",
+   "lat": 46.434143,
+   "lon": 4.475579,
+   "name": "Butte de suin",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 916.0,
+   "id": "way/1235775965",
+   "lat": 47.037523,
+   "lon": 6.382601,
+   "name": "Arc sous cicon - grand bois bannal",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 375.0,
+   "id": "way/1235776279",
+   "lat": 47.622572,
+   "lon": 6.349162,
+   "name": "Autrey les cerre - mont moiran",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1337.0,
+   "id": "way/1236676647",
+   "lat": 42.763551,
+   "lon": 1.508909,
+   "name": "Décollage de Risoul",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1393.0,
+   "id": "way/1236676840",
+   "lat": 42.758542,
+   "lon": 1.512488,
+   "name": "Décollage de l'Esquerus",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 238.0,
+   "id": "way/1236677510",
+   "lat": 47.329831,
+   "lon": 2.828315,
+   "name": "Les-chaintres - Caves-de-la-mignonne",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1164.0,
+   "id": "way/1236681371",
+   "lat": 44.951263,
+   "lon": 4.259404,
+   "name": "Saint-Clément - Lachamp",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 165.0,
+   "id": "way/1237873798",
+   "lat": 49.071317,
+   "lon": 3.474954,
+   "name": "Mont-saint-pere - dessus-les-toits-du-ru-dollond",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 824.0,
+   "id": "way/1237877738",
+   "lat": 42.900219,
+   "lon": 1.963578,
+   "name": "Belesta - roc de la grenouille",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1004.0,
+   "id": "way/1237878984",
+   "lat": 44.041256,
+   "lon": 5.403512,
+   "name": "Saint jean - latour de durfort",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1684.0,
+   "id": "way/1237880588",
+   "lat": 42.968975,
+   "lon": -0.003094,
+   "name": "Hautacam argeles-gazost - la moulata",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 276.0,
+   "id": "way/1237882922",
+   "lat": 44.482227,
+   "lon": 1.835104,
+   "name": "La plogne",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1859.0,
+   "id": "way/1237883364",
+   "lat": 44.174257,
+   "lon": 5.278567,
+   "name": "Mont ventoux nord",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1821.0,
+   "id": "way/1237883812",
+   "lat": 44.173957,
+   "lon": 5.264369,
+   "name": "Mont ventoux sud - les cretes",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 766.0,
+   "id": "way/1237884245",
+   "lat": 44.066222,
+   "lon": 6.037678,
+   "name": "Malijai - blanchon",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1387.0,
+   "id": "way/1237892607",
+   "lat": -17.608825,
+   "lon": -149.532817,
+   "name": "Zone ndt24 - mont marau",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1289.0,
+   "id": "way/1238112510",
+   "lat": 45.595325,
+   "lon": 6.734962,
+   "name": "Les chapelles - chapelles village",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2033.0,
+   "id": "way/1238112746",
+   "lat": 45.607805,
+   "lon": 6.711916,
+   "name": "Les chapelles - chapelle superieur - vaugelaz",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 546.0,
+   "id": "way/1238113054",
+   "lat": 47.301537,
+   "lon": 4.900465,
+   "name": "Aire de décollage parapente et deltaplane Velars Est",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 546.0,
+   "id": "way/1238113055",
+   "lat": 47.302139,
+   "lon": 4.900004,
+   "name": "Décollage Velars Ouest",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1331.0,
+   "id": "way/1238113553",
+   "lat": 44.937523,
+   "lon": 4.201182,
+   "name": "Tyrolienne - Cascade du Salin",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1768.0,
+   "id": "way/1238114526",
+   "lat": 44.335241,
+   "lon": 6.295642,
+   "name": "Chabanon selonnet",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1768.0,
+   "id": "way/1238114527",
+   "lat": 44.334661,
+   "lon": 6.295591,
+   "name": "Chabanon selonnet",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 408.0,
+   "id": "way/1238122559",
+   "lat": 43.282135,
+   "lon": 5.694364,
+   "name": "Cuges les pins - pierre blanche",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 31.0,
+   "id": "way/1238124135",
+   "lat": 48.835285,
+   "lon": -1.611334,
+   "name": "Le Roc Granville",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 25.0,
+   "id": "way/1238125022",
+   "lat": 48.84505,
+   "lon": -1.591464,
+   "name": "Donville-les-bains - cimetiere",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 300.0,
+   "id": "way/1238125840",
+   "lat": 45.758545,
+   "lon": 5.270156,
+   "name": "Leyrieu - les cottes",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1017.0,
+   "id": "way/1238127681",
+   "lat": 43.638549,
+   "lon": 6.561287,
+   "name": "Bargemon - table d'orientation",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 230.0,
+   "id": "way/1238242746",
+   "lat": 44.502345,
+   "lon": 1.211806,
+   "name": "Castelfranc",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 402.0,
+   "id": "way/1238273601",
+   "lat": 48.371651,
+   "lon": 5.804214,
+   "name": "Houeville - la friche",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1747.0,
+   "id": "way/1238274168",
+   "lat": 45.08683,
+   "lon": 6.064305,
+   "name": "Alpe d'huez - bourg d'oisans - eclose",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 478.0,
+   "id": "way/1238274806",
+   "lat": 43.280565,
+   "lon": 5.670034,
+   "name": "Cuges-les-pins - les gypieres",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 984.0,
+   "id": "way/1238274929",
+   "lat": 43.314888,
+   "lon": 5.709496,
+   "name": "La sainte baume - le grand vallon",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 535.0,
+   "id": "way/1238275487",
+   "lat": 43.286444,
+   "lon": 5.697768,
+   "name": "Cuges-les-pins - la tete de bourdon",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 905.0,
+   "id": "way/1238312159",
+   "lat": 44.054705,
+   "lon": 5.68276,
+   "name": "Décollage de Gamby",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 140.0,
+   "id": "way/1238313316",
+   "lat": 48.262849,
+   "lon": -4.214166,
+   "name": "Belvedere-de-rosnoen",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 64.0,
+   "id": "way/1238334683",
+   "lat": 48.762515,
+   "lon": -2.986178,
+   "name": "Milepat",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 58.0,
+   "id": "way/1238336910",
+   "lat": 48.765677,
+   "lon": -2.954336,
+   "name": "Décollage Bilfot Nord",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 59.0,
+   "id": "way/1238337346",
+   "lat": 48.706031,
+   "lon": -2.922909,
+   "name": "Bonaparte",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 562.0,
+   "id": "way/1238337563",
+   "lat": 47.348933,
+   "lon": 4.801636,
+   "name": "Baulme la roche",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 576.0,
+   "id": "way/1238338170",
+   "lat": 47.339495,
+   "lon": 4.751422,
+   "name": "Décollage Savigny sous Mâlin",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1300.0,
+   "id": "way/1238340065",
+   "lat": 45.678314,
+   "lon": 6.435401,
+   "name": "Fort du mont - le grebau",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2249.0,
+   "id": "way/1238405306",
+   "lat": 45.411315,
+   "lon": 6.393142,
+   "name": "Saint-francois-longchamp - telesiege du soleil rouge",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2249.0,
+   "id": "way/1238405307",
+   "lat": 45.410635,
+   "lon": 6.392436,
+   "name": "Saint-francois-longchamp - telesiege du soleil rouge",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2104.0,
+   "id": "way/1238406442",
+   "lat": 45.100972,
+   "lon": 6.06079,
+   "name": "Alpe d'huez - bourg d'oisans - le signal",
+   "orientation": [
+    "N",
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2104.0,
+   "id": "way/1238406443",
+   "lat": 45.09898,
+   "lon": 6.05977,
+   "name": "Alpe d'huez - bourg d'oisans - le signal",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1447.0,
+   "id": "way/1238408071",
+   "lat": 45.132992,
+   "lon": 2.789117,
+   "name": "Engolneuf",
+   "orientation": [
+    "N",
+    "NE",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1562.0,
+   "id": "way/1238410689",
+   "lat": 44.511367,
+   "lon": 5.831562,
+   "name": "Montagne d'oule ouest",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 49.0,
+   "id": "way/1238413203",
+   "lat": 48.761018,
+   "lon": -3.577207,
+   "name": "Bihit - ouest",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 454.0,
+   "id": "way/1268220826",
+   "lat": 45.867777,
+   "lon": 4.801229,
+   "name": "Croix Rampau",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1046.0,
+   "id": "way/1288609897",
+   "lat": 46.157813,
+   "lon": 5.839803,
+   "name": "Décollage FFVL Boge",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/1307092690",
+   "lat": 47.306058,
+   "lon": 11.379111,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/1312648049",
+   "lat": 47.441573,
+   "lon": 11.76259,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "IT",
+   "ele": 1935.0,
+   "id": "way/1312794556",
+   "lat": 46.529482,
+   "lon": 11.59968,
+   "name": "",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/1329935298",
+   "lat": 47.83017,
+   "lon": 16.046364,
+   "name": "Startplatz Süd",
+   "orientation": [
+    "SSE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 885.0,
+   "id": "way/1330933419",
+   "lat": 44.97699,
+   "lon": 5.453635,
+   "name": "Pre valet la sarna - rocher de courba",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1070.0,
+   "id": "way/1341000195",
+   "lat": 44.225059,
+   "lon": 5.473287,
+   "name": "Buc Ouest - L'arbre à Jacques",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1692.0,
+   "id": "way/135152363",
+   "lat": 45.419865,
+   "lon": 6.170641,
+   "name": "Val pelouse",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/1370484388",
+   "lat": 46.772238,
+   "lon": 6.466468,
+   "name": "Suchet \"Sommet sud\"",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 765.0,
+   "id": "way/137134886",
+   "lat": -21.131807,
+   "lon": 55.303332,
+   "name": "Décollage FFVL Colimaçons 800 (parapente)",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 780.0,
+   "id": "way/1372702592",
+   "lat": 45.630264,
+   "lon": 3.116849,
+   "name": "Déco EST Saint-Sandoux",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1390.0,
+   "id": "way/138986969",
+   "lat": 42.990495,
+   "lon": -0.196527,
+   "name": "Val d'azun couraduque - le soc",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "MK",
+   "ele": null,
+   "id": "way/1420203254",
+   "lat": 41.343622,
+   "lon": 21.256881,
+   "name": "Krusevo - Mechkin Kamen East",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1230.0,
+   "id": "way/1422867088",
+   "lat": 44.904301,
+   "lon": 5.2072,
+   "name": "Léoncel déco Ouest",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1200.0,
+   "id": "way/1422867089",
+   "lat": 44.906881,
+   "lon": 5.205395,
+   "name": "Léoncel déco Sud",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1311.0,
+   "id": "way/1423669183",
+   "lat": 44.89796,
+   "lon": 5.227357,
+   "name": "La Sausse",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1395.0,
+   "id": "way/1423910242",
+   "lat": 46.486403,
+   "lon": 6.108339,
+   "name": "Noirmont - piste noire n°1",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1440.0,
+   "id": "way/1450209634",
+   "lat": 46.708833,
+   "lon": 7.825437,
+   "name": "Amisbühl Oben",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "BR",
+   "ele": null,
+   "id": "way/1466490691",
+   "lat": -18.886319,
+   "lon": -41.915937,
+   "name": "Du Magalhães",
+   "orientation": []
+  },
+  {
+   "country": "BR",
+   "ele": null,
+   "id": "way/1466490692",
+   "lat": -18.886845,
+   "lon": -41.915864,
+   "name": "Pepê Lopes",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 857.0,
+   "id": "way/1508038215",
+   "lat": 45.212373,
+   "lon": 3.931758,
+   "name": "Roche-en-Régnier",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 963.0,
+   "id": "way/1525506327",
+   "lat": 44.087574,
+   "lon": 5.36306,
+   "name": "Saint jean - Le Seigneur",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "SK",
+   "ele": null,
+   "id": "way/1525820343",
+   "lat": 48.688814,
+   "lon": 18.639738,
+   "name": "",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "MK",
+   "ele": null,
+   "id": "way/1551415954",
+   "lat": 41.353725,
+   "lon": 21.253246,
+   "name": "",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "MK",
+   "ele": null,
+   "id": "way/1551711845",
+   "lat": 40.957431,
+   "lon": 20.814468,
+   "name": "Полетување Галичица",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "US",
+   "ele": null,
+   "id": "way/156573954",
+   "lat": 42.79233,
+   "lon": -76.043126,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 539.0,
+   "id": "way/158603807",
+   "lat": 46.496193,
+   "lon": 4.750743,
+   "name": "Décollage du Mont Saint-Romain",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 140.0,
+   "id": "way/173155561",
+   "lat": 49.319104,
+   "lon": 1.246087,
+   "name": "Décollage : Banc des Deux Amants",
+   "orientation": [
+    "N",
+    "NW",
+    "NNW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 114.0,
+   "id": "way/173155562",
+   "lat": 49.316073,
+   "lon": 1.243855,
+   "name": "La cote des deux amants - panorama d'anfreville",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 222.0,
+   "id": "way/173207893",
+   "lat": 48.929584,
+   "lon": -0.469843,
+   "name": "Décollage : Clécy Saint-Omer Sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 340.0,
+   "id": "way/175706107",
+   "lat": 48.21912,
+   "lon": 4.699071,
+   "name": "Décollage : Sainte-Germaine",
+   "orientation": [
+    "ENE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 223.0,
+   "id": "way/176392346",
+   "lat": 48.926195,
+   "lon": -0.466189,
+   "name": "Décollage : Clécy Saint-Omer Ouest",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 838.0,
+   "id": "way/183238511",
+   "lat": 44.109881,
+   "lon": 3.103217,
+   "name": "Millau - Puncho d'Agast - Sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 807.0,
+   "id": "way/183238516",
+   "lat": 44.11029,
+   "lon": 3.101203,
+   "name": "Millau - puncho d'agast - ouest",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "PL",
+   "ele": null,
+   "id": "way/222518983",
+   "lat": 50.667731,
+   "lon": 16.204634,
+   "name": "",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/226035092",
+   "lat": 45.827985,
+   "lon": 11.768022,
+   "name": "Decollo Casette",
+   "orientation": [
+    "W",
+    "SW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/226035093",
+   "lat": 45.824438,
+   "lon": 11.771276,
+   "name": "Pedana",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/226038184",
+   "lat": 45.811892,
+   "lon": 11.745026,
+   "name": "Decollo Antenne",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 831.0,
+   "id": "way/227055598",
+   "lat": 48.808166,
+   "lon": 13.175529,
+   "name": "Büchelstein Hängegleiter Startrampe",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 921.0,
+   "id": "way/231771568",
+   "lat": 45.308329,
+   "lon": 5.888257,
+   "name": "Décollage FFVL Est de Saint-Hilaire-du-Touvet",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/231787307",
+   "lat": -38.478964,
+   "lon": 145.01266,
+   "name": "Flinders Golf Course Paraglider/Hang Glider Launch",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1027.0,
+   "id": "way/232786124",
+   "lat": 45.784883,
+   "lon": 5.591922,
+   "name": "Innimond - la table d'orientation",
+   "orientation": [
+    "N",
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1417.0,
+   "id": "way/233625360",
+   "lat": 42.812396,
+   "lon": 1.393677,
+   "name": "Massat - port de lers - courtignou",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1184.0,
+   "id": "way/233633200",
+   "lat": 42.921802,
+   "lon": 1.581858,
+   "name": "Prat d'albis",
+   "orientation": [
+    "N",
+    "NE",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 939.0,
+   "id": "way/235577605",
+   "lat": 45.310247,
+   "lon": 5.890685,
+   "name": "Décollage FFVL Sud de Saint-Hilaire du Touvet",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 811.0,
+   "id": "way/238631357",
+   "lat": 45.984808,
+   "lon": 3.923811,
+   "name": "",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1278.0,
+   "id": "way/24231903",
+   "lat": 45.118359,
+   "lon": 5.597346,
+   "name": "Décollage de l'Aigle",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/248618336",
+   "lat": 46.770071,
+   "lon": 6.467359,
+   "name": "Suchet \"La rampe\"",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1526.0,
+   "id": "way/248782610",
+   "lat": 44.540704,
+   "lon": 5.712889,
+   "name": "Décollage de Longeanne",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1482.0,
+   "id": "way/248782611",
+   "lat": 44.540582,
+   "lon": 5.743277,
+   "name": "Décollage des Antennes Saint-Apôtre",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1534.0,
+   "id": "way/248783156",
+   "lat": 46.358417,
+   "lon": 6.018186,
+   "name": "Décollage du Petit Mont Rond",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1266.0,
+   "id": "way/248783852",
+   "lat": 46.367822,
+   "lon": 6.080545,
+   "name": "Décollage de la Vesancienne",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/248783854",
+   "lat": 46.444942,
+   "lon": 6.175811,
+   "name": "Saint-Cergue La Bosse",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/248783857",
+   "lat": 46.854082,
+   "lon": 6.612055,
+   "name": "Mauborget",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/251885717",
+   "lat": 46.296978,
+   "lon": 7.023822,
+   "name": "Chez Marcel",
+   "orientation": [
+    "S",
+    "SSW",
+    "SW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/251885718",
+   "lat": 46.296577,
+   "lon": 7.020346,
+   "name": "Curnaux d'en bas",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/252319109",
+   "lat": 46.36678,
+   "lon": 6.009159,
+   "name": "Col de la faucille",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1410.0,
+   "id": "way/252578062",
+   "lat": 46.71357,
+   "lon": 7.282836,
+   "name": "Gurli",
+   "orientation": [
+    "NE",
+    "N"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1300.0,
+   "id": "way/252622406",
+   "lat": 46.750343,
+   "lon": 6.343999,
+   "name": "Morond Décollage Ouest",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1361.0,
+   "id": "way/252622411",
+   "lat": 46.748764,
+   "lon": 6.347987,
+   "name": "Morond Décollage Sud",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1251.0,
+   "id": "way/252622412",
+   "lat": 46.761078,
+   "lon": 6.356759,
+   "name": "Morond Décollage Nord",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1480.0,
+   "id": "way/252629843",
+   "lat": 46.684231,
+   "lon": 6.350599,
+   "name": "Déco de la Dent de Vaulion",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1480.0,
+   "id": "way/252629844",
+   "lat": 46.684132,
+   "lon": 6.350772,
+   "name": "Déco de la Dent de Vaulion",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/255238580",
+   "lat": 49.568919,
+   "lon": 6.615556,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/255531002",
+   "lat": 46.77971,
+   "lon": 6.485563,
+   "name": "Côtelette",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1135.0,
+   "id": "way/25610651",
+   "lat": 45.601733,
+   "lon": 5.807184,
+   "name": "Décollage FFVL de Provinces",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 900.0,
+   "id": "way/26587569",
+   "lat": 45.626806,
+   "lon": 5.946252,
+   "name": "Verel-pragondran",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1500.0,
+   "id": "way/26587570",
+   "lat": 45.630752,
+   "lon": 5.96614,
+   "name": "Le sire - sud",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 817.0,
+   "id": "way/268517377",
+   "lat": 46.97157,
+   "lon": 5.877589,
+   "name": "Mont-poupet N-NW",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 817.0,
+   "id": "way/268517378",
+   "lat": 46.970107,
+   "lon": 5.874239,
+   "name": "Mont-poupet NW",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 817.0,
+   "id": "way/268517380",
+   "lat": 46.969261,
+   "lon": 5.876276,
+   "name": "Mont-poupet S",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1398.0,
+   "id": "way/27237403",
+   "lat": 45.393697,
+   "lon": 6.106706,
+   "name": "Décollage de Malatrait",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 740.0,
+   "id": "way/27391211",
+   "lat": 48.447711,
+   "lon": 8.146407,
+   "name": "Fluggelände Oppenau Nordost - Ibacher Holzplatz",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 918.0,
+   "id": "way/278796571",
+   "lat": 44.336656,
+   "lon": 5.154205,
+   "name": "Nyons - garde-grosse",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 736.0,
+   "id": "way/280446358",
+   "lat": 44.073228,
+   "lon": 3.064147,
+   "name": "Millau - Brunas",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "way/283082050",
+   "lat": 40.256717,
+   "lon": -4.905456,
+   "name": "Pedro Bernardo - Despegue Oeste",
+   "orientation": [
+    "W",
+    "SW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/288475674",
+   "lat": 47.733082,
+   "lon": 12.685697,
+   "name": "Nord-Rampe",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/290475657",
+   "lat": 46.558365,
+   "lon": 6.946468,
+   "name": "Prévondes",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/29156464",
+   "lat": 49.46453,
+   "lon": 8.678968,
+   "name": "Startplatz Schriesheim",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/294809863",
+   "lat": 47.733009,
+   "lon": 12.687121,
+   "name": "Südost-Rampe",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/294809965",
+   "lat": 47.733088,
+   "lon": 12.686743,
+   "name": "Nordwest-Startplatz",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/294814236",
+   "lat": 47.728612,
+   "lon": 12.638421,
+   "name": "Nordstartplatz Unternberg",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/294814761",
+   "lat": 47.725969,
+   "lon": 12.635644,
+   "name": "Südstartplatz Unternberg",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1335.0,
+   "id": "way/294842498",
+   "lat": 45.949517,
+   "lon": 6.739527,
+   "name": "Passy - Plaine Joux",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/295809673",
+   "lat": 47.144747,
+   "lon": 11.307306,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 1017.0,
+   "id": "way/295962637",
+   "lat": 47.7674,
+   "lon": 12.420976,
+   "name": "Drachenflugrampe Oststart",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/295964050",
+   "lat": 47.748283,
+   "lon": 12.250735,
+   "name": "Nordoststart",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "PT",
+   "ele": null,
+   "id": "way/300268537",
+   "lat": 38.462266,
+   "lon": -9.192591,
+   "name": "Rampa de voo livre",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 979.0,
+   "id": "way/300402095",
+   "lat": 45.777331,
+   "lon": 6.339554,
+   "name": "Décollage de parapente de Marlens",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/301613650",
+   "lat": 46.041841,
+   "lon": 11.31612,
+   "name": "",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 841.0,
+   "id": "way/305796239",
+   "lat": 45.122258,
+   "lon": 5.37908,
+   "name": "déco de l'alevoux",
+   "orientation": [
+    "N",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 860.0,
+   "id": "way/306205753",
+   "lat": 45.006688,
+   "lon": 5.317263,
+   "name": "Décollage de Saint Jean en Royans",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 505.0,
+   "id": "way/306594651",
+   "lat": 48.677476,
+   "lon": 7.311953,
+   "name": "Reinhardsmunster - spillberg",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1210.0,
+   "id": "way/315645478",
+   "lat": 42.980505,
+   "lon": -0.57275,
+   "name": "Accous - delta",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 483.0,
+   "id": "way/319268906",
+   "lat": 46.581288,
+   "lon": 4.818143,
+   "name": "Roche d'aujoux - mancey - nord-ouest",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 992.0,
+   "id": "way/323000074",
+   "lat": 44.890609,
+   "lon": 5.141592,
+   "name": "décollage des Limouches",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/324985186",
+   "lat": 45.932452,
+   "lon": 11.173755,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 985.0,
+   "id": "way/337268033",
+   "lat": 44.502102,
+   "lon": 3.41857,
+   "name": "Barjac",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/342073425",
+   "lat": -28.807501,
+   "lon": 153.603456,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1206.0,
+   "id": "way/344255433",
+   "lat": 43.736149,
+   "lon": 6.659698,
+   "name": "Lachens sud ecole",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1625.0,
+   "id": "way/344255435",
+   "lat": 43.744656,
+   "lon": 6.65714,
+   "name": "Lachens sud - sud - col du lachens",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1427.0,
+   "id": "way/344255437",
+   "lat": 43.739034,
+   "lon": 6.640888,
+   "name": "Lachens ouest - ouest",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1652.0,
+   "id": "way/344268499",
+   "lat": 43.745435,
+   "lon": 6.653062,
+   "name": "Lachens nord - nord",
+   "orientation": [
+    "N"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/346370249",
+   "lat": 46.544151,
+   "lon": 7.113119,
+   "name": "Grandvillard",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/347973295",
+   "lat": 46.214849,
+   "lon": 6.953791,
+   "name": "Chindonne",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/352273229",
+   "lat": 46.090602,
+   "lon": 7.251639,
+   "name": "Décollage Les Ruinettes Delta",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/352273339",
+   "lat": 46.089206,
+   "lon": 7.254959,
+   "name": "Décollage Les Ruinettes",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 899.0,
+   "id": "way/360607273",
+   "lat": 45.485892,
+   "lon": 1.839692,
+   "name": "Décollage Puy de la Monédière",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1450.0,
+   "id": "way/361464897",
+   "lat": 45.771004,
+   "lon": 2.960418,
+   "name": "Décollage : Le Puy de Dôme",
+   "orientation": [
+    "N",
+    "NE",
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 180.0,
+   "id": "way/364690003",
+   "lat": 48.881835,
+   "lon": -0.445595,
+   "name": "Décollage : Saint-Marc d'Ouilly",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/36772636",
+   "lat": 46.154184,
+   "lon": 10.955238,
+   "name": "",
+   "orientation": [
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1930.0,
+   "id": "way/368349102",
+   "lat": 46.185051,
+   "lon": 6.916487,
+   "name": "Signal de soi",
+   "orientation": []
+  },
+  {
+   "country": "CH",
+   "ele": 1703.0,
+   "id": "way/368402279",
+   "lat": 46.249489,
+   "lon": 6.904494,
+   "name": "Décollage de Bellevue",
+   "orientation": []
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/370498349",
+   "lat": 46.193309,
+   "lon": 9.385645,
+   "name": "Pedana di decollo Giulio Ravelli",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/37079178",
+   "lat": 44.224342,
+   "lon": 5.475662,
+   "name": "",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1275.0,
+   "id": "way/37080026",
+   "lat": 44.443286,
+   "lon": 6.371567,
+   "name": "Décollage de Saint-Vincent-les-Forts",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "GB",
+   "ele": null,
+   "id": "way/376671380",
+   "lat": 51.869716,
+   "lon": -0.537645,
+   "name": "Paragliding Takeoff",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 536.0,
+   "id": "way/385776122",
+   "lat": 43.899582,
+   "lon": 5.920943,
+   "name": "Saint-pancrace - le relais",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 594.0,
+   "id": "way/385912397",
+   "lat": 46.163762,
+   "lon": 1.837735,
+   "name": "Gueret - le maupuy",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 564.0,
+   "id": "way/385912398",
+   "lat": 46.048389,
+   "lon": 1.448984,
+   "name": "Aire de décollage du bois des Échelles",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 590.0,
+   "id": "way/385921361",
+   "lat": 46.170303,
+   "lon": 1.830212,
+   "name": "Gueret - le maupuy - pierres civieres - nord",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/404988028",
+   "lat": 46.573428,
+   "lon": 14.403004,
+   "name": "Startplatz Radsberg",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/414778514",
+   "lat": 44.304336,
+   "lon": 5.779259,
+   "name": "Chabre nord",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/414778515",
+   "lat": 44.303159,
+   "lon": 5.77611,
+   "name": "Chabre nord",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1330.0,
+   "id": "way/414778516",
+   "lat": 44.297611,
+   "lon": 5.763433,
+   "name": "Chabre Sud 2",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1363.0,
+   "id": "way/414779842",
+   "lat": 44.249163,
+   "lon": 6.066516,
+   "name": "Saint-geniez - les rayes",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1595.0,
+   "id": "way/414780323",
+   "lat": 44.584059,
+   "lon": 6.235503,
+   "name": "La batie neuve",
+   "orientation": [
+    "S",
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/417139388",
+   "lat": 45.302751,
+   "lon": 5.885047,
+   "name": "Décollage est sud-est",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1573.0,
+   "id": "way/417141502",
+   "lat": 44.910371,
+   "lon": 5.590766,
+   "name": "Le pas du Serpaton",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/42647032",
+   "lat": 45.861343,
+   "lon": 11.804356,
+   "name": "Decollo Panettone",
+   "orientation": [
+    "E",
+    "SE",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 562.0,
+   "id": "way/427594235",
+   "lat": 46.620286,
+   "lon": 5.731897,
+   "name": "Charezier - motte de gourdaine",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1603.0,
+   "id": "way/433982183",
+   "lat": 44.568498,
+   "lon": 6.432535,
+   "name": "Décollage du Mont Guillaume",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1661.0,
+   "id": "way/437962445",
+   "lat": 42.80751,
+   "lon": 0.376711,
+   "name": "Décollage Valleé du Louron - 700",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 769.0,
+   "id": "way/438408852",
+   "lat": 44.13588,
+   "lon": 3.062637,
+   "name": "Millau - pic d'Andan",
+   "orientation": [
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 349.0,
+   "id": "way/438410608",
+   "lat": 44.14352,
+   "lon": 1.772245,
+   "name": "Décollage vol libre (nord-est)",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 319.0,
+   "id": "way/438410609",
+   "lat": 44.144969,
+   "lon": 1.779948,
+   "name": "Décollage vol libre (nord-ouest)",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 314.0,
+   "id": "way/438410611",
+   "lat": 44.158734,
+   "lon": 1.773031,
+   "name": "Décollage vol libre (sud)",
+   "orientation": [
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 975.0,
+   "id": "way/438469527",
+   "lat": 46.230365,
+   "lon": 12.806829,
+   "name": "Decollo Monte Valinis",
+   "orientation": [
+    "SW",
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 584.0,
+   "id": "way/442014653",
+   "lat": 46.942271,
+   "lon": 5.843833,
+   "name": "Poupet - La Côte",
+   "orientation": [
+    "N",
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 505.0,
+   "id": "way/442083374",
+   "lat": 44.121975,
+   "lon": 4.27861,
+   "name": "Mont bouquet - sud - la verriere",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 617.0,
+   "id": "way/442083375",
+   "lat": 44.131947,
+   "lon": 4.285496,
+   "name": "Mont bouquet - la vierge",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 843.0,
+   "id": "way/443056873",
+   "lat": -20.97741,
+   "lon": 55.368595,
+   "name": "Décollage de Dos D'Ane",
+   "orientation": [
+    "NW"
+   ]
+  },
+  {
+   "country": "PT",
+   "ele": null,
+   "id": "way/451041544",
+   "lat": 39.017752,
+   "lon": -9.226412,
+   "name": "Rampa de vôo livre",
+   "orientation": []
+  },
+  {
+   "country": "PT",
+   "ele": null,
+   "id": "way/451078884",
+   "lat": 39.017298,
+   "lon": -9.226589,
+   "name": "Rampa de vôo livre",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/456552238",
+   "lat": 46.380052,
+   "lon": 6.724839,
+   "name": "Décollage FFVL des Mémises",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1621.0,
+   "id": "way/456552458",
+   "lat": 46.381223,
+   "lon": 6.727913,
+   "name": "Décollage FFVL des Mémises \"le Lanvanchy\"",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/456552717",
+   "lat": 46.398976,
+   "lon": 6.704099,
+   "name": "Décollage FFVL Le Hucel Thollon",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 876.0,
+   "id": "way/456635534",
+   "lat": 45.46784,
+   "lon": 1.851034,
+   "name": "Monedieres - la fournaise",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 896.0,
+   "id": "way/456635535",
+   "lat": 45.471138,
+   "lon": 1.842442,
+   "name": "Monédières - la table d'orientation",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1283.0,
+   "id": "way/497269013",
+   "lat": 45.529368,
+   "lon": 6.252474,
+   "name": "Chamoux - Montendry",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1280.0,
+   "id": "way/497269015",
+   "lat": 45.813429,
+   "lon": 6.245933,
+   "name": "Décollage deltaplane de Montmin",
+   "orientation": []
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/505983973",
+   "lat": 47.567148,
+   "lon": 15.230504,
+   "name": "",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 68.0,
+   "id": "way/508150353",
+   "lat": 49.346172,
+   "lon": -0.725825,
+   "name": "Site de décollage de Commes",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 894.0,
+   "id": "way/51057534",
+   "lat": 45.552941,
+   "lon": 6.104906,
+   "name": "Montlambert",
+   "orientation": [
+    "N",
+    "NE",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1311.0,
+   "id": "way/517767152",
+   "lat": 46.293604,
+   "lon": 6.499006,
+   "name": "Le Couteau",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": 730.0,
+   "id": "way/535046750",
+   "lat": 45.77932,
+   "lon": 11.502344,
+   "name": "Decollo Campanara",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1196.0,
+   "id": "way/55739901",
+   "lat": 46.148641,
+   "lon": 6.189164,
+   "name": "Décollage FFVL de la Table d'Orientation",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "ES",
+   "ele": null,
+   "id": "way/581872848",
+   "lat": 42.04655,
+   "lon": 0.745735,
+   "name": "Sortida de Parapent i Ala Delta",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": 451.0,
+   "id": "way/585733709",
+   "lat": 49.090007,
+   "lon": 9.775476,
+   "name": "Absprungrampe Einkorn",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1300.0,
+   "id": "way/61316675",
+   "lat": 46.483234,
+   "lon": 6.907537,
+   "name": "Décollage parapente Les Pléiades",
+   "orientation": []
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/614188662",
+   "lat": -31.702167,
+   "lon": 152.678525,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 989.0,
+   "id": "way/619261601",
+   "lat": 45.301235,
+   "lon": 5.883682,
+   "name": "Décollage DELTA est sud-est",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/620734423",
+   "lat": 47.303918,
+   "lon": 8.942985,
+   "name": "Alp Scheidegg",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 253.0,
+   "id": "way/625099821",
+   "lat": 49.557145,
+   "lon": 5.060707,
+   "name": "Letanne-beaumont - mont-fort",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1933.0,
+   "id": "way/627370360",
+   "lat": 45.746869,
+   "lon": 6.507256,
+   "name": "Bisanne - sud",
+   "orientation": [
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "SE",
+   "ele": 327.0,
+   "id": "way/631572751",
+   "lat": 58.136301,
+   "lon": 13.597285,
+   "name": "Västhanget Ålleberg",
+   "orientation": [
+    "WNW"
+   ]
+  },
+  {
+   "country": "SE",
+   "ele": 327.0,
+   "id": "way/631585406",
+   "lat": 58.137433,
+   "lon": 13.609736,
+   "name": "Osthanget Ålleberg",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/63344609",
+   "lat": 46.191782,
+   "lon": 12.352545,
+   "name": "",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 450.0,
+   "id": "way/641990311",
+   "lat": 45.066625,
+   "lon": 1.899809,
+   "name": "Monceaux-sur-dordogne - bros",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 252.0,
+   "id": "way/650168678",
+   "lat": 44.897998,
+   "lon": 1.654254,
+   "name": "Soult",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1037.0,
+   "id": "way/664780113",
+   "lat": 46.161038,
+   "lon": 5.839108,
+   "name": "Décollage FFVL le Bouant",
+   "orientation": [
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1348.0,
+   "id": "way/664780114",
+   "lat": 46.138127,
+   "lon": 5.85606,
+   "name": "Décollage FFVL la Charmante",
+   "orientation": [
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1074.0,
+   "id": "way/664785320",
+   "lat": 46.110444,
+   "lon": 5.756796,
+   "name": "Décollage FFVL de Catray",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/684702985",
+   "lat": 46.710069,
+   "lon": 7.773227,
+   "name": "Startrampe Niederhorn Delta",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 443.0,
+   "id": "way/685085772",
+   "lat": 43.271629,
+   "lon": 5.668491,
+   "name": "Cuges-les-pins - pey gros",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 279.0,
+   "id": "way/705548743",
+   "lat": 44.8735,
+   "lon": 1.450564,
+   "name": "Le Roc Ouest",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 363.0,
+   "id": "way/708312169",
+   "lat": 47.600599,
+   "lon": 6.128165,
+   "name": "Echenoz-la-meline - bois de breuleux",
+   "orientation": [
+    "E"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 366.0,
+   "id": "way/708316886",
+   "lat": 47.622302,
+   "lon": 6.089862,
+   "name": "Chariez - camp de cesar sud-ouest",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 733.0,
+   "id": "way/711229878",
+   "lat": -21.022613,
+   "lon": 55.321991,
+   "name": "Bellemene 850",
+   "orientation": [
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/713602307",
+   "lat": 46.429314,
+   "lon": 6.132339,
+   "name": "Les Burnes",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": 1522.0,
+   "id": "way/713995606",
+   "lat": 45.156773,
+   "lon": 2.73264,
+   "name": "Chabraire",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1488.0,
+   "id": "way/713995928",
+   "lat": 45.160346,
+   "lon": 2.732991,
+   "name": "Chabraire Nord",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1600.0,
+   "id": "way/713996379",
+   "lat": 45.147506,
+   "lon": 2.73297,
+   "name": "Niermont Est",
+   "orientation": [
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1560.0,
+   "id": "way/713996380",
+   "lat": 45.148443,
+   "lon": 2.735684,
+   "name": "Niermont Sud, Sud Est",
+   "orientation": [
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1600.0,
+   "id": "way/713996381",
+   "lat": 45.147488,
+   "lon": 2.732048,
+   "name": "Niermont Sud Ouest",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1649.0,
+   "id": "way/714426013",
+   "lat": 45.126573,
+   "lon": 2.674629,
+   "name": "Puy de la Tourte Nord Est",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1262.0,
+   "id": "way/714433927",
+   "lat": 45.148427,
+   "lon": 2.794544,
+   "name": "Rocher-de-laqueuille-ne",
+   "orientation": [
+    "NE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1503.0,
+   "id": "way/714739717",
+   "lat": 45.104282,
+   "lon": 2.661486,
+   "name": "Col de Redondet",
+   "orientation": [
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1548.0,
+   "id": "way/715573866",
+   "lat": 46.191046,
+   "lon": 6.722306,
+   "name": "Super morzine",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/719984998",
+   "lat": 47.333474,
+   "lon": 11.565275,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "KR",
+   "ele": null,
+   "id": "way/722196649",
+   "lat": 36.968029,
+   "lon": 128.381078,
+   "name": "",
+   "orientation": [
+    "W",
+    "NW",
+    "N"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": 590.0,
+   "id": "way/724328371",
+   "lat": 47.813596,
+   "lon": 9.075631,
+   "name": "Stettelberg",
+   "orientation": [
+    "SE",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 946.0,
+   "id": "way/737097143",
+   "lat": 48.383142,
+   "lon": 7.283026,
+   "name": "Breitenbach - pelage - sud-est",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/781513122",
+   "lat": 51.319973,
+   "lon": 8.538572,
+   "name": "S3",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/781513123",
+   "lat": 51.315819,
+   "lon": 8.547446,
+   "name": "S2",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/781513126",
+   "lat": 51.318273,
+   "lon": 8.545162,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/781513127",
+   "lat": 51.318074,
+   "lon": 8.544936,
+   "name": "S1",
+   "orientation": [
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 811.0,
+   "id": "way/788538184",
+   "lat": 45.395607,
+   "lon": 2.462119,
+   "name": "",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1359.0,
+   "id": "way/790527929",
+   "lat": 46.285522,
+   "lon": 6.489135,
+   "name": "Décollage FFVL de Très-le-mont",
+   "orientation": [
+    "NW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1612.0,
+   "id": "way/790534640",
+   "lat": 45.944542,
+   "lon": 6.681788,
+   "name": "Décollage FFVL de Varan",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1588.0,
+   "id": "way/790537853",
+   "lat": 46.054003,
+   "lon": 6.697605,
+   "name": "Décollage FFVL de Samoens les Saix 1600",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1654.0,
+   "id": "way/790541955",
+   "lat": 46.144431,
+   "lon": 6.547561,
+   "name": "Décollage FFVL Mieussy Platière",
+   "orientation": [
+    "SW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1596.0,
+   "id": "way/790651733",
+   "lat": 46.141334,
+   "lon": 6.546093,
+   "name": "Décollage FFVL Mieussy Pertuiset",
+   "orientation": [
+    "W",
+    "SW",
+    "S",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1365.0,
+   "id": "way/790740952",
+   "lat": 44.770178,
+   "lon": 5.798118,
+   "name": "Décollage parapente de Courtet",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1800.0,
+   "id": "way/790786777",
+   "lat": 46.031536,
+   "lon": 6.67044,
+   "name": "Décollage FFVL \"la Kedeusaz\"",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1456.0,
+   "id": "way/791149071",
+   "lat": 45.663014,
+   "lon": 5.821356,
+   "name": "Décollage FFVL du Chat",
+   "orientation": [
+    "N",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 772.0,
+   "id": "way/794430206",
+   "lat": 48.298803,
+   "lon": 7.311844,
+   "name": "Altenberg - rocher-du-coucou",
+   "orientation": [
+    "NE",
+    "E"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1005.0,
+   "id": "way/797025637",
+   "lat": 46.824003,
+   "lon": 7.636838,
+   "name": "Startrampe Falkenflue",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/800152388",
+   "lat": 45.78737,
+   "lon": 11.63589,
+   "name": "Area decollo parapendio Bielli",
+   "orientation": [
+    "E",
+    "SE",
+    "S"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": 1750.0,
+   "id": "way/80270173",
+   "lat": 46.441745,
+   "lon": 6.976085,
+   "name": "Décollage de Jaman",
+   "orientation": [
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1290.0,
+   "id": "way/816168066",
+   "lat": 45.244721,
+   "lon": 5.574772,
+   "name": "Décollage FFVL de Montaud",
+   "orientation": [
+    "N",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 2071.0,
+   "id": "way/820181388",
+   "lat": 44.698106,
+   "lon": 6.304438,
+   "name": "Orcieres - cairn ouest",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "AT",
+   "ele": null,
+   "id": "way/82212175",
+   "lat": 47.829375,
+   "lon": 16.040951,
+   "name": "Startplatz Ost",
+   "orientation": [
+    "ESE"
+   ]
+  },
+  {
+   "country": "IT",
+   "ele": null,
+   "id": "way/835614696",
+   "lat": 43.357327,
+   "lon": 12.750206,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "US",
+   "ele": null,
+   "id": "way/837190473",
+   "lat": 44.592581,
+   "lon": -86.222566,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "FR",
+   "ele": null,
+   "id": "way/844820939",
+   "lat": 44.434036,
+   "lon": 2.400423,
+   "name": "",
+   "orientation": [
+    "S",
+    "SSE",
+    "SE",
+    "ESE",
+    "E"
+   ]
+  },
+  {
+   "country": "SI",
+   "ele": null,
+   "id": "way/845659978",
+   "lat": 45.998304,
+   "lon": 15.092532,
+   "name": "",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "AU",
+   "ele": null,
+   "id": "way/871780488",
+   "lat": -33.694271,
+   "lon": 151.310948,
+   "name": "",
+   "orientation": []
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/888146090",
+   "lat": 49.877418,
+   "lon": 6.887712,
+   "name": "Drachenfliegerplatz Neumagen-Dhron",
+   "orientation": [
+    "SE",
+    "ESE",
+    "E",
+    "ENE",
+    "NE"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/888440227",
+   "lat": 46.259416,
+   "lon": 7.528873,
+   "name": "Décollage Vercorin",
+   "orientation": [
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/888443730",
+   "lat": 46.229307,
+   "lon": 7.528376,
+   "name": "Décollage Crêt-du-Midi Ouest",
+   "orientation": [
+    "SW",
+    "W",
+    "NW",
+    "N"
+   ]
+  },
+  {
+   "country": "CH",
+   "ele": null,
+   "id": "way/888443731",
+   "lat": 46.228864,
+   "lon": 7.530085,
+   "name": "Décollage Crêt-du-Midi Est",
+   "orientation": [
+    "NE",
+    "E",
+    "SE"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 864.0,
+   "id": "way/923528606",
+   "lat": 45.811022,
+   "lon": 5.864233,
+   "name": "Sapenay - le belvedere - delta",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 1163.0,
+   "id": "way/930978852",
+   "lat": 46.142106,
+   "lon": 5.70556,
+   "name": "Décollage FFVL du Poizat-Lalleyriat",
+   "orientation": [
+    "N",
+    "NW",
+    "W"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 678.0,
+   "id": "way/93225425",
+   "lat": 43.765481,
+   "lon": 7.442698,
+   "name": "Décollage de Roquebrune Cap-Martin Mont-Gros",
+   "orientation": [
+    "E",
+    "SE",
+    "S",
+    "SW"
+   ]
+  },
+  {
+   "country": "FR",
+   "ele": 595.0,
+   "id": "way/935906717",
+   "lat": 45.739287,
+   "lon": 5.72805,
+   "name": "Montagne de parves",
+   "orientation": [
+    "SW",
+    "W",
+    "NW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/948786215",
+   "lat": 49.72118,
+   "lon": 9.288382,
+   "name": "",
+   "orientation": [
+    "WNW"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/950001014",
+   "lat": 49.733981,
+   "lon": 9.20721,
+   "name": "",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "DE",
+   "ele": null,
+   "id": "way/96370808",
+   "lat": 48.758516,
+   "lon": 8.405539,
+   "name": "Startplatz NW",
+   "orientation": [
+    "NW"
+   ]
+  }
+ ],
+ "version": 1
+}

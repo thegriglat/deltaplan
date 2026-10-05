@@ -193,8 +193,10 @@ def bone_matrix(head: Vector, y: Vector, zref: Vector, length: float = 1.0) -> M
 def grip_points(cf: dict, eye) -> dict:
     """Точки хвата: на стойке на высоте z (стоя/сваливание) и на базовой штанге (лёжа)."""
     w = 0.71  # полуширина базовой штанги, средняя по крыльям
-    apex = Vector((0.04, cf["apex_forward_m"], cf["keel_z_m"] - 0.05))
-    bar = Vector((w, cf["basebar_forward_m"], cf["keel_z_m"] - cf["basebar_drop_m"]))
+    # прежняя фиксированная трапеция (вершина 0,25 вперёд, база 0,90 вперёд / 1,55 ниже киля):
+    # опорные позы анимации pilot.glb; в игре руки ставит PilotArmIK по маркерам модели крыла (A2)
+    apex = Vector((0.04, 0.25, cf["keel_z_m"] - 0.05))
+    bar = Vector((w, 0.90, cf["keel_z_m"] - 1.55))
 
     def upright(z: float, side: int) -> Vector:
         s = (apex.z - z) / (apex.z - bar.z)

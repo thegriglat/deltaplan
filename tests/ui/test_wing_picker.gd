@@ -88,7 +88,7 @@ func test_change_class_changes_models_and_done() -> void:
 	m.done.connect(func(s: FlightSettings) -> void: got.append(s))
 	var class_opt: OptionButton = m.get("_class_opt")
 	var wing_opt: OptionButton = m.get("_wing_opt")
-	class_opt.select(2)  # мачтовые двухобшивочные
+	class_opt.select(2)  # мачтовые
 	class_opt.item_selected.emit(2)
 	check(_items(wing_opt) == _model_names("kingpost"), "модели мачтовых: %s" % [_items(wing_opt)])
 	wing_opt.select(1)

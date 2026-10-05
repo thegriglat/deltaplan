@@ -63,7 +63,7 @@ settings_mouse_sensitivity,Чувствительность мыши,Mouse sensi
 map_hint,"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. The launch is placed on the nearest slope, facing downhill."
 unit_db,дБ,dB
 unit_kg,кг,kg
-setup_map_point,"точка на карте: %.4f, %.4f","map point: %.4f, %.4f"
+setup_map_point,"точка на карте: %.4f, %.4f · %s","map point: %.4f, %.4f · %s"
 map_coords_placeholder,"широта, долгота","latitude, longitude"
 settings_vario_sound,Звук вариометра,Vario sound
 controls_in_flight,В полёте,In flight
@@ -77,7 +77,7 @@ controls_center,Встать в центр трапеции — крыло вы�
 settings_roll_control,Управление креном,Roll control
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-controls_glance,Держать — посмотреть на прибор на трапеции,Hold — look at the instrument on the control bar
+controls_glance,Держать — посмотреть влево на прибор на стойке,Hold — look left at the instrument on the upright
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
 controls_mouse_bar_look,"Держать правую кнопку мыши — осмотреться мышью, трапеция стоит на месте","Hold the right mouse button — look around with the mouse, the bar stays put"
@@ -120,7 +120,9 @@ loading_trees,Сажаю лес…,Planting trees…
 loading_grass,Трава…,Grass…
 loading_weather,Погода и термики…,Weather and thermals…
 loading_objects,"Камни, кусты и дороги…","Rocks, bushes and roads…"
-loading_wind,Рассчитываем ветер…,Computing wind…
+loading_wind,Рассчитываем ветер по рельефу…,Computing wind from terrain…
+loading_wind_nn,Ветер: нейросеть…,Wind: neural network…
+loading_wind_simple,Ветер: упрощённая модель,Wind: simplified model
 loading_almost,Почти готово…,Almost ready…
 err_sea,Здесь море — выберите точку на суше.,That's the sea — pick a point on land.
 err_no_terrain_data,Для этого места нет данных рельефа.,There is no terrain data for this place.
@@ -271,7 +273,6 @@ loc_ongudai,Алтай — Онгудай,Altai — Ongudai
 site_ongudai_south,Онгудайский ретранслятор — южный старт (перевал Каянча),Ongudai relay mast — south launch (Kayancha pass)
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
-map_attribution,"Высоты: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 и др.)","Elevation: AWS Terrain Tiles (SRTM, GMTED, ETOPO1 et al.)"
 err_no_location_config,нет конфига локации %s,no location config %s
 err_no_location_data,нет данных рельефа %s,no terrain data %s
 err_layer_read,ошибка чтения слоя %s,error reading layer %s
@@ -347,24 +348,26 @@ wing_ww_talon,Wills Wing Talon 150,Wills Wing Talon 150
 wing_ww_cross_country,Wills Wing Cross Country 155,Wills Wing Cross Country 155
 wing_group_soviet,Советские 1980-х,Soviet 1980s
 wing_group_soviet_hint,Устойчивые и прощающие крылья 1980-х,"Stable, forgiving wings of the 1980s"
-wing_group_trainer,Учебные однообшивочные,Single-surface trainers
+wing_group_trainer,Учебные,Trainers
 wing_group_trainer_hint,Мягкие и медленные — для первых полётов,Soft and slow — for first flights
-wing_group_kingpost,Мачтовые двухобшивочные,Double-surface kingpost
-wing_group_kingpost_hint,С мачтой и двойной обшивкой — быстрее и дальше,Kingpost and double surface — faster and farther
+wing_group_kingpost,Мачтовые,Kingpost
+wing_group_kingpost_hint,С мачтой — быстрее и дальше учебных,Kingpost — faster and farther than trainers
 wing_group_topless,Безмачтовые,Topless
 wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"
 setup_wing_class,Класс крыла,Wing class
 setup_wing_model,Модель,Model
 setup_wing_class_item,"%s — %s, %s","%s — %s, %s"
 setup_wing_glide,качество %s,glide %s
-setup_wing_wind_max,ветер до %s %s,wind up to %s %s
+setup_wing_wind_limit,ветер %s %s,wind %s %s
+wing_class_1,учебный,trainer
+wing_class_2,жёсткая поперечина,rigid crossbar
+wing_class_3,плавающая поперечина,floating crossbar
+wing_class_4,безмачтовый,topless
 setup_wing_area,%s м²,%s m²
 setup_wing_pilot,пилот %s–%s %s,pilot %s–%s %s
 setup_wing_decade_suffix,-е,s
 setup_wing_kingpost,мачтовое,kingpost
 setup_wing_topless,безмачтовое,topless
-setup_wing_single_surface,однообшивочное,single surface
-setup_wing_double_surface,двухобшивочное,double surface
 setup_decimal_point,",","."
 menu_net_game,Сетевая игра,Multiplayer
 net_server,Сервер,Server
@@ -398,3 +401,30 @@ net_err_port_busy,Порт занят,Port is busy
 net_err_server_failed,Не удалось запустить сервер,Couldn't start the server
 result_continue_near,Продолжить рядом,Continue nearby
 result_to_start,На старт,Back to launch
+map_layer_opentopomap,OpenTopoMap (топокарта),OpenTopoMap (topographic)
+map_layer_osm,OpenStreetMap,OpenStreetMap
+setup_popular_places,Популярные места…,Popular places…
+places_title,Популярные места,Popular places
+places_search_hint,Поиск по названию,Search by name
+places_country_row,%s — %d,%s — %d
+places_country_unknown,Страна не указана,Country not specified
+places_unnamed,"Старт без названия (%.3f, %.3f)","Unnamed launch (%.3f, %.3f)"
+places_no_results,Ничего не найдено,Nothing found
+places_ele,%d м,%d m
+places_wind,"ветер: %s","wind: %s"
+places_dir_n,С,N
+places_dir_nne,ССВ,NNE
+places_dir_ne,СВ,NE
+places_dir_ene,ВСВ,ENE
+places_dir_e,В,E
+places_dir_ese,ВЮВ,ESE
+places_dir_se,ЮВ,SE
+places_dir_sse,ЮЮВ,SSE
+places_dir_s,Ю,S
+places_dir_ssw,ЮЮЗ,SSW
+places_dir_sw,ЮЗ,SW
+places_dir_wsw,ЗЮЗ,WSW
+places_dir_w,З,W
+places_dir_wnw,ЗСЗ,WNW
+places_dir_nw,СЗ,NW
+places_dir_nnw,ССЗ,NNW

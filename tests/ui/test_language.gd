@@ -100,7 +100,8 @@ func test_config_names_are_keys() -> void:
 	for k: String in presets:
 		if presets[k] is Dictionary:
 			names.append(String(presets[k].get("title", "")))
-	names.append(String(Config.value("world", "map_picker.attribution", "")))
+	for m: Dictionary in Config.value("world", "map_picker.basemaps", []):
+		names.append(String(m.get("name_key", "")))
 	check(names.size() > 30, "собраны названия: %d" % names.size())
 	for n in names:
 		check(rows.has(n), "название из конфига не ключ ui.csv: «%s»" % n)
@@ -121,13 +122,13 @@ func test_switch_locale_translates_and_persists() -> void:
 	check(Language.select("en", TMP_DIR), "запись выбора")
 	check(tr("menu_fly") == "Fly", "en: %s" % tr("menu_fly"))
 	var g_en := tr("wing_group_kingpost")
-	check(g_en == "Double-surface kingpost", "en класс крыла: %s" % g_en)
+	check(g_en == "Kingpost", "en класс крыла: %s" % g_en)
 	var saved := UserSettings.read_json(TMP_DIR.path_join("game.json"))
 	check(String(saved.get("language", "")) == "en", "выбор записан: %s" % saved)
 	Language.apply("ru")
 	check(tr("menu_fly") == "Лететь", "ru: %s" % tr("menu_fly"))
 	var g_ru := tr("wing_group_kingpost")
-	check(g_ru == "Мачтовые двухобшивочные", "ru класс крыла: %s" % g_ru)
+	check(g_ru == "Мачтовые", "ru класс крыла: %s" % g_ru)
 	Language.apply(was)
 	DirAccess.remove_absolute(TMP_DIR.path_join("game.json"))
 	DirAccess.remove_absolute(TMP_DIR)

@@ -91,6 +91,16 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 глаза пилота), `sail_texture.py` (раскраска паруса), `tree_params.json`, `tree_textures.py`,
 `render_views.py` (приёмочные рендеры из готовых .glb), `render_trees.py`, `compress_png.py`.
 
+**Центровка** — офлайн, в рантайме ничего не считается: `python3 tools/blender/aframe_cg.py [--pick-tilt]`
+(грубая оценка по трубам: киль, передние кромки, поперечина, кингпост, стойки, штанга; погонные массы —
+`control_frame.mass_model` (оценка), ткань — резерв `sail_mass_kg`, `null` — не учитывается) пишет в
+`wings.<id>`: `cg_from_nose_m` и `nose_forward_m` = `cg_from_nose_m − hang_cg_offset_m`; `--pick-tilt` —
+ещё и наклон стоек. Входы: `tools/blender/aframe_trim.json` (тангаж киля на трим-скорости и плечи
+пилота в полёте; обновляется `godot --headless --path . res://tools/flight/aframe_trim.tscn -- --out=tools/blender/aframe_trim.json`).
+После пересчёта пересобрать модели (`blender --background --python tools/blender/build_gliders.py`) и
+`godot --headless --import`. `crossbar_from_nose_m` — центр поперечины от носа (вход, прежнее
+`nose_forward_m − 0,08`); `wings.<id>` руками `cg_from_nose_m`/`nose_forward_m` не править.
+
 **Параметры крыла** (`glider_params.json → wings.<id>`; размах и площадь берутся из `configs/wings/<id>.json`,
 а если конфига крыла ещё нет — из `span_m`/`area_m2` самой записи; `area_m2` справочная, площадь подгоняют
 `root_chord_m`/`tip_chord_m`):
@@ -113,14 +123,20 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 цвет строчки; `design.bottom: "panels"` — те же полотнища на нижней обшивке), `laminar` (светлая кромка,
 крупные цветные поля сзади), `combat` (тёмная кромка, контрастный центр). `design.le_band` — ширина полосы
 кромки (доля хорды; по умолчанию 0,28 у `sport`, иначе 0,16). Надписей и логотипов нет.
-**Трапеция** (`control_frame`): верх стоек на 0,25 м впереди подвеса, базовая штанга на 0,9 м впереди и
-1,55 м ниже киля; `vario_bar_offset_m` (0,2) — вариометр на базовой штанге на столько левее центра.
-`upright_top_x_m`/`upright_top_z_m` (±0,055; −0,02) — ось стоек в узле под килем (= `flight.json →
-visual.arms.upright_top_m`, по ней PilotArmIK ставит руки на стойки); `upright_r_m` (0,016),
+**Трапеция** (`control_frame`, контракты A1/A2 — docs/contracts/aframe-geometry.md): у каждого крыла
+свои `upright_tilt_deg` (наклон стоек к нормали киля в плоскости симметрии, низом вперёд, 4…13°; подбирает
+`aframe_cg.py --pick-tilt` так, чтобы в полёте на балансировке середина базовой штанги была под серединой
+плеч пилота), `upright_len_m` (длина стойки по оси от болта под килем до оси штанги в углу, 1,6…1,75 м,
+как у прежней трапеции), `hang_from_apex_m` (подвеска вдоль киля относительно оси стоек, + — впереди;
+умолчание `{single: −0,10, double: 0,0}`) и `hang_cg_offset_m` (подвеска впереди центра масс на 0,015 м);
+`instrument_upright_t` (0,3), `vario_upright_t` (0,42), `instrument_inward_m` (0,1), `instrument_forward_m` (0,3) — хомут планшета и вариометра на левой стойке (доля пути от штанги к вершине, вынос внутрь).
+`upright_top_x_m`/`upright_top_z_m` (±0,055; −0,02) — ось стоек в узле под килем. В игре геометрию стоек
+дают **маркеры** модели (`UprightTopL/R`, `UprightBottomL/R`), PilotArmIK ставит руки по ним; в конфиге
+`flight.json` координат стоек нет. `upright_r_m` (0,016),
 `basebar_r_m` (0,015) — радиусы труб, накладки +2,5 мм (`bar_grip_x_m`: |x| 0,22–0,43), кулак
 перчатки — внутренний радиус 20,5 мм; `fairing_chord_m`/`fairing_thick_m` (0,08/0,029) — обтекатель;
 `speedbar_dip_m` (0,05) и `speedbar_flat_half_m` (0,42) — спидбар безмачтовых: ровная середина
-(хват ±0,33, планшет, вариометр) ниже концов, изгибы к углам. Детали трапеции — `frame_parts.py`.
+(хват ±0,33) ниже концов, изгибы к углам. Детали трапеции — `frame_parts.py`.
 Референсы и приоритеты — docs/research/control_frame_refs.md. `pilot_eye` — глаза пилота
 (общие для пилота, маркеров приборов и кабинного рендера).
 
@@ -143,13 +159,14 @@ visual.arms.upright_top_m`, по ней PilotArmIK ставит руки на с
   сами тросы** (по нему ленточка-telltale ищет угол трапеции и боковой трос, docs/guide/telltale.md);
   её дети-пустышки:
   - `BaseBar` — центр базовой штанги;
-  - `InstrumentMount` — центр базовой штанги (на оси трубы), **−Z смотрит на глаза пилота** — сюда
-    крепится `instrument.glb` без смещения;
-  - `VarioMount` — ось базовой штанги в 0,2 м левее центра (между планшетом и левой рукой), −Z смотрит
-    на глаза пилота, горизонталь циферблата — вдоль штанги — сюда `vario_90s.glb`. При взгляде вниз
-    (0°, −60°) в кадр попадает только штанга между кулаками (±0,35 м): на стойке (даже у угла
-    трапеции) вариометр был бы в ~55–75° влево, вне кадра (карточка plan/models/01);
+  - `UprightTopL/R` — ось стойки у болта под килем, `UprightBottomL/R` — ось стойки у оси штанги в углу
+    (единственный источник геометрии стоек для игры; нет маркера — `push_error`, без запасного числа);
+  - `InstrumentMount` — хомут на **левой стойке**, ≈ на уровне груди лежащего пилота (доля 0,3 пути вдоль оси стойки от штанги к вершине, кронштейн 0,1 м внутрь и 0,3 м вперёд), **−Z смотрит на глаза пилота** — сюда
+    крепится `instrument.glb` без смещения (A3.3 v6; прежний вынос 0,6 м вперёд от штанги убран);
+  - `VarioMount` — на той же стойке выше планшета (доля 0,42), −Z смотрит на глаза пилота — сюда `vario_90s.glb`.
+    Приборы видны при повороте головы влево (клавиша Q — `look_instrument`), при взгляде вперёд и вниз вне кадра;
 - `HangPoint` — точка подвеса (= начало координат), сюда крепится `pilot.glb`;
+- `WingCG` — центр масс крыла на киле (на `hang_cg_offset_m` позади `HangPoint`);
 - `WingTipL`, `WingTipR` — концы передних кромок.
 
 Ноды `Pilot`/`PilotHead` в крыле нет — пилот отдельной моделью.
@@ -426,3 +443,14 @@ gl_compatibility нет теней сквозь ткань.
   Picea abies / Picea obovata).
 Полный список с прямыми ссылками на картинки — в рабочем `refs/SOURCES.txt` агента (76 строк);
 при необходимости его можно положить сюда.
+
+**Подвеска (A1 v3)** — `wings.<id>.hang_source`: `passport` (положение подвески на киле от носа из паспорта/руководства
+производителя: `hang_from_nose_m`, `hang_ref`; данные и цитаты — `tools/research/data/wing_passports/hang_passports.json`;
+сейчас 8 крыльев: air_f2, air_sting3, ww_t2c, aeros_combat_l, moyes_litespeed_rx/s, moyes_litesport, moyes_malibu2) или `cg`
+(центр масс труб + 1,5 см вперёд). Паспорт добавляется в `hang_passports.json`, затем `aframe_cg.py --pick-tilt`.
+
+**Высота пилота в полёте (A3.5)** — длина подвески `configs/pilot.json → visual.hang_length_m` (карабин — низ
+торса) выводится из модели пилота: низ торса над осью базовой штанги 0,37 ±0,03 м (A3.5 v5). Регулируется
+`pilot_eye[2]` в `glider_params.json` (глаза в позе prone; выше значение — пилот выше); после смены пересобрать
+`build_pilot.py`, обновить `aframe_trim.json`, `aframe_cg.py --pick-tilt`, `build_gliders.py`, `--import`;
+`body_below_hang_m` — центр тела для маятника (визуал; физика его не читает).

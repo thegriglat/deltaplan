@@ -139,16 +139,10 @@
         0.0
       ],
       "bar_grip_offset_m_doc": "Сдвиг точек хвата от оси штанги (маркер BaseBar), м: x вправо, y вверх, z назад",
-      "upright_top_m": [
-        0.055,
-        -0.02,
-        -0.25
-      ],
-      "upright_top_m_doc": "Верх правой стойки относительно HangPoint, м (левая — зеркально по X); по tools/blender/glider_params.json → control_frame.apex_forward_m, upright_top_x_m, upright_top_z_m (ось стоек в узле под килем)",
-      "upright_bottom_half_width_m": 0.71,
-      "upright_bottom_half_width_m_doc": "Низ стоек: маркер BaseBar ± это по X, м (полуширина штанги 1,36–1,5 м у трёх крыльев)",
-      "upright_above_shoulder_m": 0.1,
+      "upright_above_shoulder_m": 0.12,
       "upright_above_shoulder_m_doc": "На земле хват на стойке выше плечевого сустава (кость UpperArm) на столько, м",
+      "upright_ahead_of_shoulder_m": 0.33,
+      "upright_ahead_of_shoulder_m_doc": "На земле стоящий пилот стоит под крылом так, что хват на стойке впереди плечевого сустава по горизонтали на столько, м (визуал пилота сдвигается вдоль курса; физика и поза крыла не меняются)",
       "flare_above_shoulder_m": 0.25,
       "flare_above_shoulder_m_doc": "При выравнивании (flare) руки на стойках выше плеча на столько, м",
       "elbow_pole": [
@@ -157,6 +151,12 @@
         0.3
       ],
       "elbow_pole_doc": "Куда смотрит локоть правой руки (левая — зеркально по X), оси крыла: наружу-вниз и чуть назад",
+      "elbow_pole_bar": [
+        1.0,
+        -0.3,
+        0.6
+      ],
+      "elbow_pole_bar_doc": "То же на базовой штанге (arm_bar = 1): предплечья почти вертикальны, поэтому «вниз» не задаёт сгиб — локоть наружу и назад",
       "climb_window": [
         0.2,
         0.8

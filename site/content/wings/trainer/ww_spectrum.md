@@ -8,7 +8,7 @@ description: "Wills Wing Spectrum 165: мачтовое крыло, протот
 
 # Wills Wing Spectrum 165
 
-**Прототип:** Wills Wing Spectrum · **годы:** 1990–2000 · **группа:** [Учебные однообшивочные](/wings/trainer/) · **мачтовое**
+**Прототип:** Wills Wing Spectrum · **годы:** 1990–2000 · **группа:** [Учебные](/wings/trainer/) · **мачтовое**
 
 ![Модель Wills Wing Spectrum 165 в игре (рендер Blender)](/docs/models/screenshots/glider_ww_spectrum/iso45.jpg)
 
@@ -22,7 +22,7 @@ description: "Wills Wing Spectrum 165: мачтовое крыло, протот
 | Площадь | 15,33 м² | **паспорт**: [willswing.com (архив): spectrum](https://www.willswing.com/hang-gliders/archive/spectrum/) «Area (ft²) 165» |
 | Масса крыла | 27,2 кг | **паспорт**: [willswing.com (архив): spectrum](https://www.willswing.com/hang-gliders/archive/spectrum/) «Glider Weight (lbs) 60» |
 | Масса пилота с подвеской | 64–109 кг | **паспорт**: [willswing.com (архив): spectrum](https://www.willswing.com/hang-gliders/archive/spectrum/) «Hook-In Weight (lbs) 140-240» |
-| Двойная обшивка | нет (однообшивочное) | **оценка**: как у базы Wills Wing Falcon 170 (в паспорте нет) |
+| Двойная обшивка | 30 % размаха | **оценка**: как у базы Wills Wing Falcon 170 (в паспорте нет) |
 | Мачта | есть (мачтовое) | **оценка**: по году выпуска и классу, подтверждающей цитаты нет (ТЗ, раздел N23) |
 | Класс / сертификат | HGMA/USHPA II Novice | **паспорт**: [willswing.com (архив): spectrum](https://www.willswing.com/hang-gliders/archive/spectrum/), [willswing.com: плакарды](https://www.willswing.com/hang-glider-placard-specifications/) |
 | Годы выпуска | 1990–2000 | **оценка**: выборка страниц производителя / год сертификации (ТЗ, раздел N23) |
@@ -31,7 +31,7 @@ description: "Wills Wing Spectrum 165: мачтовое крыло, протот
 | Сваливание (прямой полёт) | 25,4 км/ч | **оценка**: модель игры: поляра базы Wills Wing Falcon 170 подобием по нагрузке на крыло (f = 1,059) |
 | Минимальное снижение | 1,059 м/с на 31,8 км/ч | **оценка**: модель игры: поляра базы Wills Wing Falcon 170 подобием по нагрузке на крыло (f = 1,059) |
 | Качество | 9 на 40,2 км/ч | **оценка**: модель игры: поляра базы Wills Wing Falcon 170 подобием по нагрузке на крыло (f = 1,059); подобие качество не меняет — как у базы |
-| Ветер на старте до | 8 м/с | **оценка**: подсказка меню игры, как у базы Wills Wing Falcon 170 |
+| Ветер на старте | учебный, 7–10 м/с | **оценка**: класс — по поперечине, предел класса — со слов пилота (configs/wing_classes.json); подсказка меню игры, в физике не участвует |
 | Эталонная масса пилота (для поляры) | 84 кг | **оценка**: модель игры: то же место в диапазоне, что у базы Wills Wing Falcon 170 |
 
 ## Ссылки

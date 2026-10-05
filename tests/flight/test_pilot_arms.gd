@@ -4,8 +4,17 @@ extends Node
 ## на земле (stand) — на стойках; локоть смотрит наружу-вниз. Тряска крыла (visual.buzz): в
 ## спокойном воздухе нет, в болтанке — миллиметры–сантиметры на 2–8 Гц.
 
+const WC := preload("res://tools/flight/wing_clearance.gd")
 const WINGS: Array[String] = ["training", "sport", "laminar"]
 const MAX_GRIP_ERR_M := 0.03
+## Лёжа на штанге локоть выше плечевого сустава не больше чем на столько, м. База под плечами
+## (плечо–хват 0,32–0,37 м), ось руки почти вертикальна, и локоть, торчащий наружу, лежит на
+## окружности в почти горизонтальной плоскости: «наружу и ниже середины» невозможно, остаётся
+## «наружу и не выше плеча» (запас на ±10 см — рука согнута, локоть на уровне плеча).
+const ELBOW_ABOVE_SHOULDER_M := 0.1
+## Нижняя граница угла в локте на стойках, ° (контракт A3.2 v3). Кости pilot.glb: плечо 0,26 м,
+## предплечье с кистью 0,38 м; хват на 0,12 выше и 0,33 впереди плеча — локоть ≈ 64°.
+const MIN_ELBOW_DEG := 55.0
 
 var failures: PackedStringArray = []
 
@@ -32,10 +41,12 @@ func test_hands_on_base_bar_in_flight() -> void:
 			"%s: точка хвата = BaseBar − полуширина хвата" % wing
 		)
 		var worst := 0.0
+		v.set_pose(0.0, 0.0, true, 1.0e6)  # руки переходят на штангу (arm_bar → 1) до проверок
+		await _frames(4)
 		for roll in [-1.0, 0.0, 1.0]:
 			for pitch in [-1.0, 0.0, 1.0]:
 				v.set_pose(roll, pitch, true, 1.0e6)
-				await _frames(2)
+				await _frames(4)
 				for side in [-1, 1]:
 					var err := _grip(v, side).distance_to(v.bar_grip(side))
 					worst = maxf(worst, err)
@@ -47,7 +58,7 @@ func test_hands_on_base_bar_in_flight() -> void:
 						)
 					)
 				if roll == 0.0 and pitch == 0.0:
-					_check_elbows(v, wing + " лёжа")
+					_check_elbows(v, wing + " лёжа", true)
 		print("         %s лёжа: худшее кисть↔штанга %.4f м" % [wing, worst])
 		v.free()
 
@@ -66,6 +77,8 @@ func test_hands_on_uprights_standing() -> void:
 			for roll in [-1.0, 0.0, 1.0]:
 				v.set_pose(roll, 0.0, false, 1.0e6)
 				await _frames(2)
+				if anim == "stand" and roll == 0.0:
+					_check_elbows(v, wing + " стоя", false)
 				for side in [-1, 1]:
 					var want := v.upright_grip(side)
 					var err := _grip(v, side).distance_to(want)
@@ -84,9 +97,168 @@ func test_hands_on_uprights_standing() -> void:
 							% [wing, anim, want.y, shoulder_y]
 						)
 					)
-			if anim == "stand":
-				_check_elbows(v, wing + " стоя")
 		v.free()
+
+
+## A3.2 (docs/contracts/aframe-geometry.md): крыло apogee стоит на старте (штиль, ровно, ввода нет),
+## пилот в позе stand держит стойки: хват выше плечевого сустава на 0…0,15 м, впереди 0,05…0,35 м
+## (по горизонтали, вперёд — вдоль курса крыла), угол в локте 90…165°. Плечо и локоть — решение IK.
+func test_apogee_arms_on_uprights_at_start() -> void:
+	var g := await _apogee_on_ground(null)
+	var v := g.visual
+	if v.arm_ik == null:
+		check(false, "apogee: пилот со скелетом и IK рук")
+		g.free()
+		return
+	var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+	var fwd := -g.global_transform.basis.z
+	fwd.y = 0.0
+	fwd = fwd.normalized()
+	var theta := rad_to_deg(g.model.theta)
+	var strop := v.to_global(v.pilot.position).distance_to(
+		v.get_marker("HangPoint").global_position
+	)
+	print("         apogee стоя: карабин пилота от HangPoint %.2f м" % strop)
+	for side in [-1, 1]:
+		var j := v.arm_ik.solved_joints(0 if side < 0 else 1)
+		var sh := sk.to_global(j[0])
+		var el := sk.to_global(j[1])
+		var hand := (
+			(v.find_child("HandL" if side < 0 else "HandR", true, false) as Node3D).global_position
+		)
+		var up := hand.y - sh.y
+		var ahead := (hand - sh).dot(fwd)
+		var elbow := rad_to_deg((sh - el).angle_to(hand - el))
+		print(
+			(
+				"         apogee стоя, рука %d: хват над плечом %.3f, впереди %.3f м, локоть %.0f°, киль %.1f°"
+				% [side, up, ahead, elbow, theta]
+			)
+		)
+		check(up >= 0.0 and up <= 0.15, "apogee: хват выше плеча на 0…0,15 м (%.3f)" % up)
+		check(
+			ahead >= 0.05 and ahead <= 0.35, "apogee: хват впереди плеча 0,05…0,35 м (%.3f)" % ahead
+		)
+		check(
+			elbow >= MIN_ELBOW_DEG and elbow <= 165.0,
+			"apogee: угол в локте %.0f…165° (%.0f°)" % [MIN_ELBOW_DEG, elbow]
+		)
+	g.free()
+
+
+## Стоя на земле крен мышью (control.roll) не сдвигает пилота вбок: ноги на месте, крыло качается
+## у него в руках. Печатает смещение ступней при полном крене и расстояние карабина от HangPoint.
+func test_ground_roll_keeps_legs_in_place() -> void:
+	var v := _visual("sport")
+	var ap := _player(v)
+	if ap == null:
+		v.free()
+		return
+	ap.play("stand", 0.0)
+	ap.advance(0.3)
+	ap.pause()
+	var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+	var foot := sk.find_bone("Foot.L")
+	var feet: Array[Vector3] = []
+	for roll in [-1.0, 0.0, 1.0]:
+		v.set_pose(roll, 0.0, false, 1.0e6)
+		await _frames(2)
+		feet.append(v.to_local(sk.to_global(sk.get_bone_global_pose(foot).origin)))
+	var move := maxf(feet[0].distance_to(feet[1]), feet[2].distance_to(feet[1]))
+	var carabiner := v.pilot.position.distance_to(
+		v.to_local(v.get_marker("HangPoint").global_position)
+	)
+	print(
+		(
+			"         стоя, полный крен: ступни сместились на %.3f м; карабин от HangPoint %.2f м"
+			% [move, carabiner]
+		)
+	)
+	check(move < 0.01, "крен стоя не сдвигает ноги пилота (%.3f м)" % move)
+	v.free()
+
+
+## Крыло apogee стоит на старте (штиль, нет ввода), пилот в позе stand; slope_deg — склон вниз
+## по курсу (null — ровно). Возвращает Glider с настроенным визуалом.
+func _apogee_on_ground(slope_deg: Variant) -> Glider:
+	var g := WC.make_glider(self, "apogee")
+	var k := tan(deg_to_rad(float(slope_deg))) if slope_deg != null else 0.0
+	var gf := func(_x: float, z: float) -> float: return 100.0 - k * z
+	g.ground_fn = gf
+	g.model.reset_on_ground(Vector3(0, 100, 0), 0.0)
+	var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
+	for i in 360:
+		g.model.step(1.0 / 120.0, ControlInput.new(), zero, gf)
+	g.step(1.0 / 120.0)
+	g.global_transform = Transform3D(g.model.telemetry.basis, g.model.position)
+	var v := g.visual
+	var ap := _player(v)
+	if ap != null:
+		ap.play("stand", 0.0)
+		ap.advance(0.3)
+		ap.pause()
+	for i in 4:
+		v.set_pose(0.0, 0.0, false, 1.0e6)
+		await _frames(2)
+	return g
+
+
+## A3.7: стоя верх стропы на HangPoint крыла, жёсткая стропа модели скрыта, гибкая лента есть;
+## в полёте жёсткая возвращается. Печатает: ступни относительно вертикали HangPoint, глаза
+## (PilotHead) относительно крыла, высоту ступней над землёй на ровном и на склоне 20°.
+func test_ground_strap_and_feet_under_wing() -> void:
+	for slope in [null, 20.0]:
+		var g := await _apogee_on_ground(slope)
+		var v := g.visual
+		var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+		var tag := "ровно" if slope == null else "склон %.0f°" % slope
+		var hang := v.get_marker("HangPoint").global_position
+		check(
+			v.strap_top().distance_to(v.to_local(hang)) < 1e-3, "%s: верх стропы на HangPoint" % tag
+		)
+		check(not v.strap_rigid_visible, "%s: жёсткая стропа модели скрыта" % tag)
+		var ribbon := v.find_child("GroundStrap", true, false) as MeshInstance3D
+		check(ribbon != null and ribbon.visible, "%s: гибкая лента стропы видна" % tag)
+		check(
+			v.strap_bottom().distance_to(v.strap_top()) > 0.3, "%s: лента доходит до пилота" % tag
+		)
+		var fwd := -g.global_transform.basis.z
+		fwd.y = 0.0
+		fwd = fwd.normalized()
+		var foot := sk.find_bone("Foot.L")
+		var fp := sk.to_global(sk.get_bone_global_pose(foot).origin)
+		var behind := (fp - hang).dot(-fwd)
+		var gh := float(g.ground_fn.call(fp.x, fp.z))
+		var above := fp.y - gh
+		var eyes := v.head_marker.global_position
+		var eye_dist := eyes.distance_to(hang)
+		var uprights := 9.0
+		for side in ["L", "R"]:
+			var top := v.get_marker("UprightTop" + side).global_position
+			var bot := v.get_marker("UprightBottom" + side).global_position
+			var cp := Geometry3D.get_closest_point_to_segment(eyes, top, bot)
+			uprights = minf(uprights, eyes.distance_to(cp))
+		check(uprights > 0.1, "%s: глаза не в стойке (%.2f м)" % [tag, uprights])
+		print(
+			(
+				"         apogee стоя, %s: стопы позади HangPoint %.2f, над землёй %+.3f; "
+				+ (
+					"глаза %.2f, до стойки %.2f; стропа %.2f"
+					% [
+						tag,
+						behind,
+						above,
+						eye_dist,
+						uprights,
+						v.strap_bottom().distance_to(v.strap_top())
+					]
+				)
+			)
+		)
+		check(absf(above - 0.09) < 0.1, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])
+		v.set_pose(0.0, 0.0, true, 1.0e6)
+		check(v.strap_rigid_visible, "%s: в полёте жёсткая стропа на месте" % tag)
+		g.free()
 
 
 func test_trapeze_buzz() -> void:
@@ -148,12 +320,25 @@ func _grip(v: GliderVisual, side: int) -> Vector3:
 	return v.to_local(node.global_position)
 
 
-## Локоть наружу-вниз: снаружи и ниже середины отрезка «плечо → хват».
-func _check_elbows(v: GliderVisual, what: String) -> void:
+## Локоть и плечо по решению IK (не поза анимации), в осях визуала: [плечо, локоть].
+func _joints(v: GliderVisual, side: int) -> Array[Vector3]:
 	var sk: Skeleton3D = v.find_children("*", "Skeleton3D", true, false)[0]
+	var j := v.arm_ik.solved_joints(0 if side < 0 else 1)
+	return [v.to_local(sk.to_global(j[0])), v.to_local(sk.to_global(j[1]))]
+
+
+## Локоть наружу; стоя — ниже середины отрезка «плечо → хват» (кисти выше плеч, локти вниз),
+## лёжа — не выше плеча больше чем на ELBOW_ABOVE_SHOULDER_M.
+func _check_elbows(v: GliderVisual, what: String, prone: bool) -> void:
 	for side in [-1, 1]:
-		var bone := sk.find_bone("Forearm.L" if side < 0 else "Forearm.R")
-		var elbow := v.to_local(sk.to_global(sk.get_bone_global_pose(bone).origin))
-		var mid := (v.shoulder(side) + _grip(v, side)) * 0.5
+		var j := _joints(v, side)
+		var elbow := j[1]
+		var mid := (j[0] + _grip(v, side)) * 0.5
 		check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
-		check(elbow.y < mid.y, "%s рука %d: локоть вниз" % [what, side])
+		if prone:
+			check(
+				elbow.y < j[0].y + ELBOW_ABOVE_SHOULDER_M,
+				"%s рука %d: локоть не выше плеча (%.3f)" % [what, side, elbow.y - j[0].y]
+			)
+		else:
+			check(elbow.y < mid.y, "%s рука %d: локоть вниз" % [what, side])

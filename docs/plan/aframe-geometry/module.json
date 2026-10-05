@@ -1,0 +1,9 @@
+{
+  "module": "aframe-geometry",
+  "plan": "docs/plan/aframe-geometry.md",
+  "contracts": "docs/contracts/aframe-geometry.md",
+  "branch": "feature/aframe-geometry",
+  "copy": "~/deltaplan-aframe-geometry",
+  "created": "2026-10-04T23:43:24",
+  "code": "AF"
+}
