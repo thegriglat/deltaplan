@@ -101,7 +101,7 @@ func _make_ctx(tel: Telemetry) -> Dictionary:
 		"wind_from_deg": wind.y,
 		"lat": ll.x,
 		"lon": ll.y,
-		"temp_c": _derived_weather("temperature_c"),
+		"temp_c": _temp_at(tel.altitude_msl),
 		"cb_chance": _weather_value("cb_chance"),
 		"sky": _sky_name(s.sky),
 	}
@@ -170,6 +170,17 @@ func _weather_value(key: String) -> float:
 	return NAN
 
 
+## Температура на высоте отрыва: долинная (weather._derived) минус градиент модели погоды
+## (weather_model.json → upper_air.lapse_k_per_km) на разность высот; NAN — погоды нет.
+func _temp_at(alt_msl: float) -> float:
+	var t_valley := _derived_weather("temperature_c")
+	var h_valley := _derived_weather("valley_msl_m")
+	if is_nan(t_valley) or is_nan(h_valley):
+		return t_valley
+	var lapse := float(WeatherModel.config().get("upper_air", {}).get("lapse_k_per_km", 0.0))
+	return t_valley - lapse * (alt_msl - h_valley) / 1000.0
+
+
 func _derived_weather(key: String) -> float:
 	var air := _game.air
 	if air == null:
@@ -186,8 +197,12 @@ func _derived_weather(key: String) -> float:
 func _surface_name(pos: Vector3) -> String:
 	if _game.terrain == null or not _game.terrain.has_method("surface_at"):
 		return ""
+	if _game.terrain.has_method("_surface_layer_at") and _game.terrain.call("_surface_layer_at", pos.x, pos.z) == null:
+		return ""  # карты поверхности в точке нет
 	var c: int = _game.terrain.surface_at(pos.x, pos.z)
-	if c == SurfaceLayer.NONE or c < 0 or c >= SurfaceLayer.CLASS_NAMES.size():
+	if c == SurfaceLayer.NONE:
+		return "ground"  # карта есть, класса в точке нет
+	if c < 0 or c >= SurfaceLayer.CLASS_NAMES.size():
 		return ""
 	return SurfaceLayer.CLASS_NAMES[c]
 
