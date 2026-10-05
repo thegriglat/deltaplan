@@ -1,0 +1,79 @@
+---
+type: "plan"
+status: "active"
+module: "steam-assets"
+updated: "2026-10-05"
+summary: "План модуля steam-assets: лицензии всего, что в сборке, под платную продажу в Steam; подложка карты без бесплатных серверов OSM/OpenTopoMap; атрибуции в игре и файлом рядом с exe; ассеты страницы Steam."
+related: ["docs/contracts/steam-assets.md", "ASSETS.md", "docs/plan/offline_world_data.md", "docs/contracts/start-map.md"]
+---
+# План модуля steam-assets — ассеты и лицензии для Steam
+
+Ветка `feature/steam-assets`, копия `~/deltaplan-steam-assets`. Журнал — `docs/plan/steam-assets/` (`dp status steam-assets`). Контракты — `docs/contracts/steam-assets.md` (SA-К1…SA-К4).
+
+## Цель
+Игра продаётся в Steam ($5), на itch — бесплатно, код открыт. Всё, что входит в сборку, должно разрешать коммерческое использование; обязательные атрибуции — в игре и файлом рядом с exe; страница Steam — готовые файлы (капсулы, иконки, скриншоты) к регистрации.
+
+## Решения пользователя (не обсуждаются)
+- 05.10: схема распространения — код открыт; itch бесплатно; Steam платно, $5. Всё в сборке — с коммерческим использованием.
+- 05.10: настоящие названия крыльев и производителей оставляем (не переименовывать); абзац о торговых марках в «Об игре» — отдельная ветка `feature/about-trademarks`.
+- 05.10: регистрации в Steamworks нет — всё для кабинета готовим файлами.
+- 05.10: описание для Steam и посты продвижения — не в этом модуле (позже отдельно).
+
+## Что найдено при разборе (координатор, 05.10)
+- В ASSETS.md пометок ⚠ NC нет; правило «проект некоммерческий, NC допустимы» устарело → SA-3.
+- `export_filter="all_resources"`: в `.pck` попадает **всё** в проекте, кроме `tests/ tools/ docs/ site/ data/terrain/reference/` и каталогов с `.gdignore` (+ `include_filter`: `data/**`, `*.onnx`, `configs/**` …). ASSETS.md может не покрывать всё — нужен инвентарь по файлам (SA-1).
+- Рядом с exe — нативные библиотеки: `air_onnx` + ONNX Runtime 1.30.0 (MIT, к ней `ThirdPartyNotices`), 4 DLL VC++ runtime (Windows; условия распространения Microsoft), `libdd3d` (MIT), godot-cpp (MIT), сам Godot (MIT + `COPYRIGHT.txt` сторонних компонентов). В ASSETS.md раздела про движок и библиотеки нет.
+- `data/air_nn/model.onnx` (12 МБ) — в сборке; происхождение обучающих данных в ASSETS.md не записано.
+- Тексты «некоммерческий»: `locale/ui.csv` `about_intro` («Некоммерческий проект» / «A non-commercial project»), `configs/world.json` `map_picker.user_agent` («non-commercial open source»).
+- Подложка карты: `configs/world.json → map_picker.basemaps` — `tile.openstreetmap.org` и OpenTopoMap (контракт start-map SM-К1 v2); инвариант пользователя — на карте видны названия населённых пунктов, `start_zoom ≥ 11`.
+- В ASSETS.md строка OpenTopoMap содержала `\|` — ломала таблицу и экран «Об игре» (5 колонок); исправлено координатором (`·`), контрактный тест SA-К3 это ловит.
+- Скачивание в игре Terrarium (AWS Open Data) и WorldCover (ESA, S3) — открытые данные с коммерческим использованием и атрибуцией; проверить в SA-1.
+
+## Задачи
+
+### SA-1. Аудит лицензий сборки и инвентарь (dp-researcher, Sonnet)
+- Скоуп: `tools/release/build_inventory.py` по SA-К1 (эмуляция фильтров экспорта + одна сверка с настоящим `--export-pack`); `docs/research/steam_license_audit.md` (frontmatter research): по группам — что, лицензия, коммерческое использование, атрибуция, есть ли строка в ASSETS.md; выборочная проверка первоисточников (sounds/LICENSES.md, freesound-страницы CC-BY, MakeHuman/MPFB, ambientCG, Kenney, Copernicus DEM, Terrarium/Mapzen-список, WorldCover, ODbL, OFL, ONNX Runtime, VC++ runtime, debug_draw_3d, godot-cpp, Godot), **происхождение `model.onnx`** (на каких рельефах/данных обучена, чьи данные), сгенерированные звуки (чем сгенерированы, лицензия модели и её выходов), файлы в сборке без строки ASSETS.md, история ASSETS.md (удалённые строки NC — убраны ли файлы), тексты «некоммерческий» в игре/README/сайте. Итог — список правок: что, почему, в какую задачу (SA-3/SA-4/новая).
+- Не трогать: ASSETS.md, код игры, `export_presets.cfg` (правки — предложить в отчёте).
+- Приёмка: `dp docs check` чист; `python3 tools/release/build_inventory.py --preset all` → коды 0, JSON по SA-К1; в документе — таблица групп, решение по каждому `commercial_ok != true`, ответ про `model.onnx` и VC++ runtime.
+
+### SA-2. Подложка карты: варианты (dp-researcher, Sonnet) → шлюз 1
+- Скоуп: `docs/research/steam_basemap_options.md`. (а) Поставщики с ключом: MapTiler, Thunderforest, Stadia, Mapbox, ArcGIS Location Platform, Geoapify, Tracestrack и др. — цена на 10.2026 при нашем масштабе (оценить тайлы в месяц: десятки–сотни игроков), разрешено ли в платной настольной игре, ключ в открытом коде (ограничение, ротация), кеширование на диске, атрибуция, стиль с рельефом и названиями сёл, max_zoom. (б) Свой растр: отмывка из Terrarium + цвета WorldCover (уже скачиваются) + подписи населённых пунктов — источник подписей (GeoNames CC-BY 4.0, пакет точек `place=*` из OSM ODbL, Overpass в игре — политика), размер и трудоёмкость; прототип 2–3 тайлов z11–13 по Алтаю (Python, файлы картинок для пользователя — агент их не открывает). (в) Оставить OSM/OpenTopoMap — точные цитаты правил и риск. (г) Смешанные.
+- Приёмка: `dp docs check` чист; таблица вариантов (цена, трудоёмкость, риски), рекомендация; прототип воспроизводим одной командой.
+
+### SA-3. ASSETS.md под новую схему (dp-writer, Sonnet) — после SA-1
+- Скоуп: правила в шапке ASSETS.md (NC и «личное» запрещены для всего в сборке; сайт и исследования — отдельно), раздел «Движок и библиотеки», правки строк по аудиту, ссылки на тексты `licenses/*.txt` (SA-К2 — тексты кладёт SA-4; если SA-4 позже — ссылки по списку из контракта), тексты «некоммерческий» (`about_intro` ru/en, `user_agent`).
+- Приёмка: `build_inventory.py --preset all --check` → 0; тесты `steam_assets_contracts`, `assets_credits` → 0 упало; `dp docs check` чист.
+
+### SA-4. Атрибуции в игре и файл лицензий рядом с exe (dp-engineer, Sonnet) — после SA-1
+- Скоуп: SA-К2: `licenses/*.txt`, `tools/release/third_party_notices.py`, одна строка в `tools/build.sh`, проверка экрана «Об игре» (все обязательные атрибуции видны), контрактный тест `tests/contracts/test_steam_assets_contracts_sa4.gd`.
+- Приёмка: сборка Linux (`tools/build.sh linux`) кладёт `THIRD_PARTY_NOTICES.txt` и `licenses/` рядом с exe; тест: каждая строка с атрибуцией — в тексте «Об игре» и в файле; `steam_assets_contracts` → 0 упало.
+
+### SA-5. Скриншоты для Steam (dp-mechanic, Sonnet)
+- Скоуп: готовыми инструментами `tools/shots` (в первую очередь `itch_shot`): 8–10 кадров 1920×1080 из игры (полёт, старт, облака/термики, разные места, прибор, сеть — без отладочного интерфейса) + 3 кадра 3840×2160 без интерфейса (фон для капсул и hero). Сырые — `/home/greg/deltaplan/build/screenshots/SA-5/`; отобранные — `steam/store/screenshots/NN_<имя>.jpg` (q90) и `steam/store/src/*.jpg` (q92), `steam/store/.gdignore`.
+- Приёмка: размеры и количество по SA-К4 (скрипт проверки), пасхалок в кадре нет.
+
+### SA-6. Капсулы и иконки (dp-engineer, Sonnet) — после SA-5
+- Скоуп: `tools/store/make_store_assets.py` (Pillow) по SA-К4: все капсулы, library hero/logo/capsule/header, shortcut icon (PNG+ICO 256), app icon 184, event cover/header; `steam/store/README.md` (что куда грузить). Визуально — не больше двух попыток.
+- Приёмка: скрипт воспроизводит файлы; размеры и форматы точно по SA-К4 (скрипт проверки); пользователь смотрит файлы на шлюзе.
+
+### SA-7. Иконки ачивок (dp-engineer, Sonnet) — после шлюза модуля steam (список ачивок) и SA-6
+- Скоуп: 256×256 открыта/закрыта на каждую `API_NAME` из `configs/achievements.json` (S6 модуля steam), тем же генератором (кадры из игры + пиктограмма/подпись без текста).
+- Приёмка: набор иконок = набор ачивок (скрипт), размеры по SA-К4.
+
+### SA-8. Подложка карты: реализация — по решению шлюза 1
+- Скоуп и тип — после решения. Меняет контракт start-map SM-К1 (v3) — через координатора.
+
+## Волны
+1. SA-1, SA-2, SA-5 (параллельно).
+2. SA-3, SA-4 (после SA-1), SA-6 (после SA-5). Шлюз 1 — по итогу SA-2 (подложка) + вопросы аудита.
+3. SA-7 (после списка ачивок модуля steam), SA-8 (после шлюза 1).
+
+## Шлюз 1 — вопросы пользователю (готовятся)
+1. Подложка карты: вариант (по SA-2).
+2. Вопросы аудита SA-1 (если будут).
+3. Капсулы и иконки — посмотреть файлы (после SA-6).
+
+## Риски
+- `tools/build.sh` правит и модуль steam (ST-3) — у нас одна строка, конфликт слияния тривиальный.
+- Список ачивок модуля steam ещё на шлюзе — SA-7 ждёт.
+- Бинарники страницы Steam в git: только финальные JPEG/PNG (~15–25 МБ всего), сырые кадры — вне git.
