@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Меню модели ветра: порядок Нейросеть, Расчет на GPU, Эвристика; подписи уточнены по коду, без «экспериментально»; по умолчанию нейросеть (configs/atmosphere.json engine=nn, AirRuntime.engine(), панель). Внутренние значения (enabled auto/off, engine nn/solver) не менялись, пункты имеют id 2/0/1.",
+  "commits": [
+    "0171ed28 Меню модели ветра: Нейросеть, Расчет на GPU, Эвристика; умолчание нейросеть"
+  ],
+  "checks": [
+    {
+      "name": "wind_model_setting",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "labels",
+      "value": "устарел: ждёт «Нейросеть,», теперь «Нейросеть (поле ветра по рельефу),» — поправьте проверку в карточке",
+      "pass": false
+    },
+    {
+      "name": "check.sh --filter=air_contracts",
+      "value": "1 упал test_c4_atmosphere_api_and_analytic — падает и без моих правок",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Скриншот показывает закрытый список (умолчание — «Нейросеть…»); раскрытого списка в ui_shot нет."
+  ],
+  "questions": [
+    "Умолчание теперь nn: если model.onnx/расширения AirOnnx нет — аналитика с записью в журнал; проверить в полном прогоне (gpu/air тесты) вам."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SY-13/01_меню_модели_ветра.png"
+  ],
+  "how_to_check": "dp accept SY-13 --dry (labels править)",
+  "uncertain": [
+    {
+      "where": "configs/atmosphere.json: air_model.engine",
+      "why": "смена умолчания на nn может влиять на другие тесты/детерминизм",
+      "checked": "прогнал --filter=air (71 тест, единственный упавший падает и до правок)"
+    }
+  ],
+  "dp_feedback": "dp accept: после правки locale/ui.csv нужен реимпорт, иначе тест видит старый перевод; запятая в тексте CSV без кавычек ломает подпись.",
+  "t": "2026-10-05T21:32:18",
+  "by": "executor"
+}
