@@ -46,3 +46,5 @@
 {"t": "2026-10-05T06:19:30", "by": "executor", "task": "SI-8", "ev": "reported", "commits": ["95c24a88"], "note": "done: Переведена страница air-model на английский: site/content/mechanics/air-model.en.md (структура, ссылки, картинки, форму…"}
 {"t": "2026-10-05T06:19:33", "by": "executor", "task": "SI-9", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:19:33", "by": "coordinator", "task": "SI-9", "ev": "merged", "commits": ["7dd338c3"]}
+{"t": "2026-10-05T06:19:40", "by": "executor", "task": "SI-8", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:19:41", "by": "coordinator", "task": "SI-8", "ev": "merged", "commits": ["f42dcd02"]}
