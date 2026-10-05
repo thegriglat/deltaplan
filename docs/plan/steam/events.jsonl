@@ -78,3 +78,5 @@
 {"t": "2026-10-05T07:54:44", "by": "main", "task": "ST-7", "ev": "reported", "commits": ["2846abc2"], "note": "done: Activity (автозагрузка) и SteamPresence (автозагрузка, set_lobby для ST-8) по S3 v2; запись из main.gd (сеттер state) и…", "dp_feedback": "Нет команды для запуска полного набора тестов с общим таймаутом в фоне и выводом только упавших."}
 {"t": "2026-10-05T07:55:19", "by": "executor", "task": "ST-7", "ev": "checked", "note": "4/4 steam_contracts=ok:12/12; /steam/=ok:16/16; activity=ok:8/8; smoke_plain=ok:steam: inactive (no_feature)"}
 {"t": "2026-10-05T07:55:30", "by": "coordinator", "task": "ST-7", "ev": "accepted", "note": "по отчёту: 4/4; vdf формата lang/english/tokens (по ST-1) — проверка только с настоящим App ID"}
+{"t": "2026-10-05T07:56:03", "by": "coordinator", "task": "ST-7", "ev": "accepted", "commits": ["e9890bef"], "note": "4/4 steam_contracts=ok:23/23; /steam/=ok:32/32; activity=ok:8/8; smoke_plain=ok:steam: inactive (no_feature)"}
+{"t": "2026-10-05T07:56:11", "by": "coordinator", "task": "ST-7", "ev": "merged", "commits": ["e9890bef"], "note": "конфликт автозагрузок project.godot — объединены"}
