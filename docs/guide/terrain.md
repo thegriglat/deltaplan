@@ -29,7 +29,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/terrain.gdshader` + `terrain_common.gdshaderinc` | высоты в вершинном шейдере, раскраска (трава, лес, поля, скалы, снег, реки) |
 | `scripts/terrain/terrain_trees.gd` + `trees.gdshader` (`TerrainTrees`) | запасные процедурные кроны (если нет моделей) |
 | `scripts/terrain/terrarium_loader.gd` (`TerrariumLoader`) | рантайм-загрузка рельефа по lat/lon (FR-17), кеш `user://terrain_cache` |
-| `scripts/terrain/map_picker.gd` + `map_hillshade.gdshader` (`MapPicker`) | карта выбора точки: отмывка из Terrarium, щелчок / ввод координат → `point_picked(lat, lon)` |
+| `scripts/terrain/map_picker.gd` + `raster_tile_loader.gd` (`MapPicker`, `RasterTileLoader`) | карта выбора точки: растровая топокарта (OpenTopoMap / OSM, кеш `user://map_cache`), высота точки из Terrarium z12, щелчок / ввод координат → `point_picked(lat, lon)`, `elevation_ready` |
 | `scripts/world/sky_environment.gd` (`SkyEnvironment`), `haze.gdshader`, `scenes/world/environment.tscn` | небо, солнце с мягкими тенями, голубая дымка, мутный слой под инверсией (VR-3), glow |
 | `scenes/terrain/terrain_preview.tscn`, `map_picker_preview.tscn` | отдельный запуск модуля |
 | `tools/terrain/fetch_dem.py`, `rivers.py`, `fetch_landcover.py`, `cog.py` | подготовка данных встроенной локации (высоты, реки, карта поверхности) |

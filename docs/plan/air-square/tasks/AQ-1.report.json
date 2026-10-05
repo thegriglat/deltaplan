@@ -1,0 +1,88 @@
+{
+  "status": "done",
+  "summary": "AirPlace.block_mean и water_fraction переписаны по C2 v7: клетка = среднее билинейных значений слоя в узлах решётки мира 25 м (x = x0+25m, y = y0+25m', f = dx/25), область 38,4 км всегда в слое либо пусто+push_error. dp accept AQ-1: 9/9.",
+  "commits": [
+    "53e054a2 air-square AQ-1: клетка ровно dx на земле"
+  ],
+  "checks": [
+    {
+      "name": "dp accept AQ-1",
+      "value": "9/9 PASS (test_air_square 3/3, test_c2_cell_geometry ok)",
+      "pass": true
+    },
+    {
+      "name": "мин. запас области до края слоя detail, свип -70..70 + 82..84 + 50.79",
+      "value": "806,9 м (на 51,0°)",
+      "pass": true
+    },
+    {
+      "name": "block_mean 96x96 на слое 1665^2 (s 24,05), до/после",
+      "value": "0,14 с -> 0,23 с (1,7x)",
+      "pass": true
+    },
+    {
+      "name": "test_air_place",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_air_window_case",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_air_nn_input",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_terrain",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_start_map_contracts",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_air_model_atmo",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "test_air_square",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "c2_geometry",
+      "value": "PASS (dp accept)",
+      "pass": true
+    },
+    {
+      "name": "contracts_no_new_fail",
+      "value": "PASS (dp accept)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept AQ-1",
+  "uncertain": [
+    {
+      "where": "air_place.gd block_mean",
+      "why": "узлы float64, не float32 как П6; допуск контракта 1e-3 м",
+      "checked": "линейное поле даёт точное среднее (test_c2_cell_geometry); встроенный слой = прямое среднее 16x16"
+    },
+    {
+      "where": "water_fraction",
+      "why": "маска — пиксель ближайшего узла слоя, отдельного теста против эталона нет",
+      "checked": "test_air_place (вода) зелёный"
+    }
+  ],
+  "dp_feedback": "Для before/after замера старой версии пришлось вручную подменять файл через git checkout; команды dp для бенча нет.",
+  "t": "2026-10-05T06:18:55",
+  "by": "executor"
+}

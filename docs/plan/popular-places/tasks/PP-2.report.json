@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Конвертер tools/places/build_hg_takeoffs.py (stdlib, источник из git 5a2ed468) пишет data/places/hg_takeoffs.json: 684 старта, 24 страны, 591 с ориентацией; кнопка «Популярные места» видна. Добавлены unittest, строка ASSETS, флаг --real в скрипте кадров, три кадра на настоящих данных.",
+  "commits": [
+    "9db5da2a popular-places PP-2: конвертер каталога стартов SY-9"
+  ],
+  "checks": [
+    {
+      "name": "popular_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "count_matches",
+      "value": "ok 684",
+      "pass": true
+    },
+    {
+      "name": "deterministic",
+      "value": "same",
+      "pass": true
+    },
+    {
+      "name": "real_screenshot",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/popular-places/06_1920x1080_каталог_страны.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/07_1920x1080_каталог_страна.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/08_1280x720_каталог_поиск.png"
+  ],
+  "how_to_check": "dp accept PP-2; python3 tools/places/test_build_hg_takeoffs.py",
+  "uncertain": [
+    {
+      "where": "tools/places/build_hg_takeoffs.py: parse_orientation",
+      "why": "токен S-SWW (опечатка в OSM) отброшен целиком; числовые диапазоны с градусами поддержаны, но в данных их нет",
+      "checked": "сводка: отброшено 7 токенов: O x4, S-SWW, O-W, W-O"
+    }
+  ],
+  "dp_feedback": "Нет команды dp для запуска кадров с готовым XDG_DATA_HOME. dp accept --dry с тестами Godot удобен.",
+  "extra": {
+    "стартов": 684,
+    "стран": 24,
+    "с_ориентацией": 591,
+    "без_ориентации": 93,
+    "отброшено_токенов": 7,
+    "примеры_отброшенных": "O (4), S-SWW, O-W, W-O",
+    "франция_стартов": 441,
+    "поиск": "кадр 08: запрос alpe (на «гора» ничего не находилось: названия французские)"
+  },
+  "t": "2026-10-05T04:30:03",
+  "by": "main"
+}

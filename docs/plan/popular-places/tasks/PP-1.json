@@ -1,0 +1,77 @@
+{
+  "id": "PP-1",
+  "module": "popular-places",
+  "type": "dp-engineer",
+  "title": "Окно «Популярные места» в меню полёта (тестовые данные)",
+  "goal": "Кнопка рядом с «Выбрать на карте»: список стартов дельтаплана по странам, поиск, выбор места = точка старта как с карты. Пока на тестовом каталоге; без настоящего файла кнопка скрыта.",
+  "plan_ref": "PP-1",
+  "contracts": [
+    {
+      "name": "PP-К1",
+      "version": "1",
+      "ref": "docs/contracts/popular-places.md"
+    },
+    {
+      "name": "PP-К2",
+      "version": "1",
+      "ref": "docs/contracts/popular-places.md"
+    }
+  ],
+  "copy": "~/deltaplan-popular-places-PP-1",
+  "branch": "popular-places/PP-1",
+  "base": "feature/popular-places",
+  "scope": [
+    "scripts/ui/popular_places.gd",
+    "scripts/ui/popular_places_window.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "configs/ui.json",
+    "locale/",
+    "tests/ui/test_popular_places.gd",
+    "tests/ui/fixtures/",
+    "tests/contracts/test_popular_places_contracts.gd",
+    "tools/shots/",
+    "docs/guide/game.md"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/terrain/",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "recent_places",
+      "tests": "recent_places"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "screens",
+      "tests": "screens"
+    },
+    {
+      "name": "no_fixture_in_data",
+      "cmd": "! test -e data/places/hg_takeoffs.json || ! grep -q 'Тестовые данные' data/places/hg_takeoffs.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "screenshots",
+      "cmd": "find /home/greg/deltaplan/build/screenshots/popular-places -maxdepth 1 \\( -name '*.png' -o -name '*.jpg' \\) | wc -l",
+      "expect": "num:(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T04:08:44"
+}

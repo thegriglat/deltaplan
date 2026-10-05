@@ -1,0 +1,53 @@
+{
+  "id": "WL-5",
+  "module": "wind-limits",
+  "type": "dp-engineer",
+  "title": "Метка источника доли обшивки и генератор страницы крыльев",
+  "goal": "Честная метка double_surface_src (config_prior для значений из прежних конфигов, WL-К1 v2) и генератор сайта tools/site/gen_wings.py на новых полях класса и предела ветра, без подписей «одно-/двухобшивочное».",
+  "plan_ref": "WL-2",
+  "contracts": [
+    {
+      "name": "WL-К1",
+      "version": "2",
+      "ref": "docs/contracts/wind-limits.md"
+    }
+  ],
+  "copy": "~/deltaplan-wind-limits-WL-5",
+  "branch": "wind-limits/WL-5",
+  "base": "feature/wind-limits",
+  "scope": [
+    "configs/wings/",
+    "tests/contracts/test_wind_limits_contracts.gd",
+    "tools/site/gen_wings.py",
+    "site/content/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tools/flight/",
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "wind_limits_contracts",
+      "tests": "wind_limits_contracts"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "gen_ok",
+      "cmd": "grep -q . tools/site/gen_wings.py && ! grep -n 'wind_max_ms\\|однообшив\\|двухобшив' tools/site/gen_wings.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "src_values",
+      "cmd": "python3 -c \"import json,glob;b=[f for f in glob.glob('configs/wings/*.json') if json.load(open(f)).get('double_surface_src') not in ('passport','pilot_estimate','config_prior')];print('bad',len(b))\"",
+      "expect": "num:bad (\\d+) ==0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Контракт WL-К1 v2 (docs/contracts/wind-limits.md, «История»). В WL-2 значения 60–92 % у спортивных крыльев без паспорта (apogee, magic, ww_cross_country, ww_eagle, ww_super_sport, ww_ultra_sport, combat, laminar, moyes_litesport, sport, ww_talon) оставлены из прежних конфигов (ими задан lower_cover 3D-модели) и ошибочно помечены pilot_estimate — перепометить config_prior, откуда значение — в wind_class_doc; сами числа не менять (3D). Контрактный тест — принимать config_prior. gen_wings.py: порядок как WingCatalog (best_glide, затем верхний предел класса), строка «Ветер на старте до» → класс (по поперечине: учебный / жёсткая поперечина / плавающая поперечина / безмачтовый) и предел класса «от–до м/с» из configs/wing_classes.json; строку «Двойная обшивка» — без «однообшивочное»/«двухобшивочное» (можно «N % размаха» или убрать). Запустить генератор и закоммитить результат в site/content/ (только то, что он меняет). После правки locale — не нужно. Тесты: tests/run_tests.tscn -- --filter=X (с «--»).",
+  "created": "2026-10-05T01:14:38",
+  "edited": "2026-10-05T01:14:38"
+}

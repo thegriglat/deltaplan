@@ -1,0 +1,79 @@
+{
+  "id": "WL-1",
+  "module": "wind-limits",
+  "type": "dp-researcher",
+  "title": "Диагностика: почему крыло сносит при 6 м/с",
+  "goal": "Найти в числах, почему при ветре 6 м/с крылья (даже класса 3) сносит за гору, и сделать инструмент замера ветра сноса/удержания по всем крыльям (таблица «до»), с рекомендацией физических правок.",
+  "plan_ref": "WL-1",
+  "contracts": [
+    {
+      "name": "WL-К2",
+      "version": "1",
+      "ref": "docs/contracts/wind-limits.md"
+    },
+    {
+      "name": "WL-К1",
+      "version": "1",
+      "ref": "docs/contracts/wind-limits.md"
+    },
+    {
+      "name": "К3",
+      "version": "1",
+      "ref": "docs/contracts/wind-limits.md"
+    },
+    {
+      "name": "К6",
+      "version": "1",
+      "ref": "docs/contracts/wind-limits.md"
+    }
+  ],
+  "copy": "~/deltaplan-wind-limits-WL-1",
+  "branch": "wind-limits/WL-1",
+  "base": "feature/wind-limits",
+  "scope": [
+    "tools/research/wind_limits/",
+    "tools/flight/wind_penetration_run.gd",
+    "tools/flight/cf3_ground_control.gd",
+    "tools/flight/wind_penetration_table.py"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/wind_limits/check_contract.py tools/research/wind_limits/out/before",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings_limits",
+      "cmd": "python3 -c \"import csv;print('wings',len({r['wing'] for r in csv.DictReader(open('tools/research/wind_limits/out/before/limits.csv'))}))\"",
+      "expect": "num:wings (\\d+) >=48"
+    },
+    {
+      "name": "wings_hold",
+      "cmd": "python3 -c \"import csv;print('wings',len({r['wing'] for r in csv.DictReader(open('tools/research/wind_limits/out/before/ground_hold.csv'))}))\"",
+      "expect": "num:wings (\\d+) >=48"
+    },
+    {
+      "name": "class_table",
+      "cmd": "test -s tools/research/wind_limits/out/before/class_table.md && test -s tools/research/wind_limits/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [
+    "default_mode",
+    "causes",
+    "fixes"
+  ],
+  "notes": "Раздел плана WL-1 и «3. Что уже известно» — не повторять WPC-2/WPC-3, переиспользовать их инструменты (wind_penetration_run.gd: --mode --sites --wings --winds --pitches; cf3_ground_control.gd; wind_audit_run.sh). Режимы: analytic, nn (ONNX, как в игре 1.0.5 — добавить в инструмент), field (GPU — только под dp lock gpu, если быстро; иначе пропустить с пометкой). Главный режим — тот, что по умолчанию у игрока (выяснить: default_mode). Сетка ветров для limits — не реже 2 м/с в 4…30 м/с; старты — сколько влезает в ≤ ~60 мин на режим (оценка по 1–2 точкам), все 48 крыльев хотя бы на 3 стартах разных мест. Класс крыла в таблицах — из конфига wind_class (WL-К1, делает WL-2 параллельно); пока его нет — временно по group (trainer→1, soviet — по паспорту, kingpost→3, topless→4) с пометкой «временно»; сводку пересчитаем после слияния WL-2 одной командой (обеспечь её: build_tables.py <каталог>). causes — разложение причины сноса при 6 м/с с числами (α, altitude_factor, профиль от местной земли над гребнем, ошибка сети, full_pull по VG 0, удержание на земле, болтанка, вынос вверх динамиком); fixes — правки с физическим обоснованием и источниками и ожидаемым эффектом на ветер сноса по классам. Цифры пилота по классам — ориентир, не цель подгонки. Код игры (scripts/, configs/) не меняешь. Картинки не открывать; графики — только в файлы. Пачки — одним фоновым прогоном с продолжением, под dp lock cpu / dp job.",
+  "created": "2026-10-05T00:58:18",
+  "edited": "2026-10-05T00:58:29"
+}

@@ -251,6 +251,11 @@ func test_loading_screen_follows_progress() -> void:
 	p.begin()
 	l.open(p, "50.6000, 86.4000")
 	check(l.visible, "open показывает экран")
+	var bg := l.get("_bg") as TextureRect
+	check(bg.texture != null, "фон загрузки — кадр игры")
+	check(bg.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "фон не растягивается")
+	for path: String in LoadingScreen.BACKDROPS:
+		check(ResourceLoader.exists(path), "кадр есть: %s" % path)
 	p.stage("b", tr("loading_dem"))
 	p.sub(1, 2)
 	check(is_equal_approx(p.fraction, 0.25 + 0.75 * 0.5), "доля внутри этапа (%.3f)" % p.fraction)
@@ -261,6 +266,27 @@ func test_loading_screen_follows_progress() -> void:
 	check((l.get("_bar") as ProgressBar).value > 0.0, "полоса двинулась")
 	l.close()
 	check(not l.visible, "close прячет экран")
+	l.queue_free()
+
+
+## Подпись этапа ветра — по фактическому режиму; пропущенный этап — строка-заметка в панели.
+func test_loading_wind_mode_labels() -> void:
+	var k := {}
+	for e in ["solver", "nn", "simple"]:
+		k[e] = tr(Game.wind_stage_key(e))
+	check(k.solver != k.nn and k.nn != k.simple and k.solver != k.simple, "три разные подписи")
+	check(k.nn.contains(tr("loading_wind_nn")) and k.simple == tr("loading_wind_simple"), "ключи")
+	var l: LoadingScreen = _scene("res://scenes/ui/loading_screen.tscn")
+	var p := LoadProgress.new({"a": 1.0})
+	p.begin()
+	l.open(p, "")
+	await get_tree().process_frame
+	check(not (l.get("_note") as Label).visible, "заметки нет")
+	p.note = k.simple
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var n: Label = l.get("_note")
+	check(n.visible and n.text == k.simple, "заметка про упрощённый ветер: %s" % n.text)
 	l.queue_free()
 
 

@@ -3,7 +3,7 @@ extends TestCase
 ## данных на стыках К1–К6. Без GPU. Правка контракта (версия +1) — вместе с правкой этого файла.
 
 const CONTRACTS := {"К1": 2, "К2": 1, "К3": 1, "К4": 2, "К5": 1, "К6": 1}
-const DOC := "res://docs/wing-physics-check_contracts.md"
+const DOC := "res://docs/contracts/wing-physics-check.md"
 const OUT := "res://tools/research/wing_physics_check/out/"
 const K4_HEADER := (
 	"wing,group,mass_case,pilot_mass_kg,total_mass_kg,src_key,quantity,unit,model,config,"

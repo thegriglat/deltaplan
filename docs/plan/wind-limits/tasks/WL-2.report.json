@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "Всем 48 крыльям проставлены wind_class 1–4 (по поперечине), double_surface_src и wind_class_doc; wind_max_ms удалён; добавлены configs/wing_classes.json, WingCatalog.wind_class/wind_limit/class_name_key, контрактный тест; меню показывает класс и предел «от–до», подписи об обшивке убраны из UI и locale.",
+  "commits": [
+    "1a3dde24 Классы крыльев 1–4 по поперечине, предел ветра класса в меню (WL-К1)"
+  ],
+  "checks": [
+    {
+      "name": "wind_limits_contracts",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "wing_catalog",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "wing_picker",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "test_wings",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "wing_physics_contracts",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "no_wind_max",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "no_surface_labels",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "all_classes",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "dp accept WL-2 --dry",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "test_language, test_wing_models_contract",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tools/site/gen_wings.py (вне скоупа, в «Не трогать: tools/») читает cfg['wind_max_ms'] и подписи «однообшивочное» — упадёт при генерации страницы крыльев; нужна правка отдельной задачей"
+  ],
+  "questions": [
+    "Поперечина (жёсткая/плавающая) в паспортах и wings_merged.json не записана вообще: классы 2 и 3 разнесены по эпохе (старые мачтовые 1980–2000-х = 2, современные мачтовые = 3). Нужна проверка пилота по списку doubtful.",
+    "Оценки долей обшивки со слов пилота (спортивные 70–80 %) не применены к крыльям, у которых прежнее значение (60–92 %) связано с lower_cover 3D-модели (тест test_wing_models_contract); прежние значения оставлены с пометкой pilot_estimate."
+  ],
+  "how_to_check": "tools/dp accept WL-2",
+  "uncertain": [
+    {
+      "where": "configs/wings/*.json wind_class (классы 2 и 3)",
+      "why": "признак поперечины в данных отсутствует",
+      "checked": "features в wings_merged.json — только VG/закрылок; glider_models.md поперечину не описывает"
+    },
+    {
+      "where": "tests/contracts/test_wing_physics_contracts.gd:6",
+      "why": "вне скоупа: путь DOC указывал на несуществующий docs/wing-physics-check_contracts.md (тест падал до меня), исправлен на docs/contracts/wing-physics-check.md",
+      "checked": "тест 5/5"
+    },
+    {
+      "where": "tests/ui/test_language.gd",
+      "why": "вне скоупа: ожидал «Мачтовые двухобшивочные»/Double-surface kingpost; обновлён на «Мачтовые»/Kingpost",
+      "checked": "6/6"
+    }
+  ],
+  "dp_feedback": "Фильтр тестов: в карточке написано --filter=…, но голый запуск без «--» перед ним фильтр игнорирует (запускает всё) — нужна подсказка в dp.md. Также locale/ui.ru.translation — игнорируемый артефакт, после правки ui.csv нужен --import, иначе тесты видят старые строки.",
+  "class_table": {
+    "1 учебный (7–10 м/с), 13": "aeros_fox air_f2 atlas condor_crex3 condor_flex fs_funky fs_space icaro_piuma moyes_malibu2 slavutich_ut target training ww_spectrum",
+    "2 жёсткая поперечина (10–12), 6": "apogee magic ww_cross_country ww_eagle ww_super_sport ww_ultra_sport",
+    "3 плавающая поперечина (12–15), 14": "aeros_discus air_sting3 bautek_astir bautek_fizz bautek_kite fs_crossover icaro_alto icaro_mastr laminar moyes_gecko moyes_litesport seed_skyrunner_xr ww_sport3 ww_u2",
+    "4 безмачтовый (20–25), 15": "aeros_combat_c aeros_combat_l air_c4 air_rev combat dp_she1 icaro_laminar_z9 moyes_litespeed_rx moyes_litespeed_s seed_spyder sport ww_fusion ww_t2c ww_t3 ww_talon"
+  },
+  "doubtful": {
+    "atlas, slavutich_ut": "Рогалло-подобные советские, паспорта нет; класс 1 (учебный), доля 0 % со слов пилота",
+    "apogee": "советское 1986–1990-х, нет паспорта; класс 2 по эпохе, доля 80 %: по пилоту возможен 3",
+    "fs_space": "в группе учебных, но обшивка 72 % (паспорт) — ближе к промежуточным",
+    "condor_crex3": "учебное, обшивка 60 % (паспорт), поперечина неизвестна",
+    "magic, ww_super_sport": "1983–1997, жёсткая по эпохе",
+    "ww_cross_country, ww_eagle, ww_ultra_sport": "1995–2005: жёсткая по эпохе, возможна плавающая",
+    "ww_u2, laminar, moyes_litesport": "≈2003+, плавающая по эпохе, паспорта поперечины нет",
+    "icaro_mastr": "мачтовое с обшивкой 94 % — класс 3 по мачте",
+    "ww_fusion": "безмачтовое 1997–2001, обшивка 88 % — класс 4 по мачте"
+  },
+  "t": "2026-10-05T01:12:22",
+  "by": "executor"
+}

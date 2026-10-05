@@ -337,12 +337,24 @@ func _load_air_field(progress: LoadProgress) -> void:
 	air_runtime.setup(air, AirRuntime.place_of(terrain, _clock_utc_offset()), cond)
 	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
 	if air_runtime.unavailable_reason() == "":
-		progress.stage("wind", tr("loading_wind"))
+		progress.stage("wind", tr(wind_stage_key(air_runtime.engine())))
 		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
+	elif air_runtime.unavailable_reason() != AirRuntime.CMD_FIELD:
+		progress.note = tr(wind_stage_key("simple"))  # выбранный режим недоступен или «упрощённый»
 	await air_runtime.load_field()
 	if air_runtime.progress_changed.is_connected(_on_air_progress):
 		air_runtime.progress_changed.disconnect(_on_air_progress)
 	air_runtime.recompute_enabled = true
+
+
+## Ключ подписи ветра на экране загрузки по фактическому режиму: "nn" | "solver" | иначе упрощённый.
+static func wind_stage_key(engine: String) -> String:
+	match engine:
+		"nn":
+			return "loading_wind_nn"
+		"solver":
+			return "loading_wind"
+	return "loading_wind_simple"
 
 
 func _on_air_progress(f: float, progress: LoadProgress) -> void:

@@ -1,0 +1,9 @@
+{
+  "module": "wind-limits",
+  "plan": "docs/plan/wind-limits.md",
+  "contracts": "docs/contracts/wind-limits.md",
+  "branch": "feature/wind-limits",
+  "copy": "~/deltaplan-wind-limits",
+  "created": "2026-10-05T00:56:02",
+  "code": "WL"
+}

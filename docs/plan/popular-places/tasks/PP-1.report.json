@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Кнопка «Популярные места…» и окно PopularPlacesWindow (страны → места, поиск, прокрутка), данные PopularPlaces; выбор = точка старта как с карты, название места идёт в «Недавние». Без каталога кнопка скрыта; тестовых данных в data/ нет.",
+  "commits": [
+    "6e429536 popular-places PP-1: ключи румбов через таблицу (проверка языка)",
+    "d26c2688 popular-places PP-1: окно «Популярные места» в меню полёта (тестовый каталог), тесты, кадр;"
+  ],
+  "checks": [
+    {
+      "name": "popular_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "recent_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "screens",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "no_fixture_in_data",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "screenshots",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/popular-places/01_1280x720_страны.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/02_1920x1080_страны.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/03_2560x1440_место.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/04_640x800_страны.png",
+    "/home/greg/deltaplan/build/screenshots/popular-places/05_1920x1080_поиск.png"
+  ],
+  "how_to_check": "dp accept PP-1; кадр: XDG_DATA_HOME=$(mktemp -d) godot --path . res://tools/shots/popular_places_shot.tscn -- --out=<dir> --tag=<имя> --size=1920x1080 [--state=country --country=SI | --state=search --query=гор]",
+  "uncertain": [
+    {
+      "where": "tools/shots/popular_places_shot.gd",
+      "why": "кадры разных разрешений рисуются в SubViewport нужного размера (экран 1920x1080 не даёт окно 2560x1440)",
+      "checked": "размеры PNG точные; окно внутри области — тест test_window_inside_area для 4 разрешений"
+    },
+    {
+      "where": "scripts/ui/popular_places_window.gd:_layout",
+      "why": "размер окна считается кодом (макс 760x820, 92% области), а не контейнерами; в игре при масштабе интерфейса поведение не проверял",
+      "checked": "тест и скриншоты при 4 размерах"
+    },
+    {
+      "where": "scripts/ui/popular_places_window.gd",
+      "why": "кнопка «Назад» на уровне стран закрывает окно (всегда видна по инварианту)",
+      "checked": "решение моё, контракт этого не уточняет"
+    }
+  ],
+  "dp_feedback": "dp inbox показывает дополнение одной длинной строкой; румбы-ключи через tr(\"prefix\"+x) ловит test_language — стоило бы упомянуть в справке.",
+  "t": "2026-10-05T04:16:32",
+  "by": "executor"
+}

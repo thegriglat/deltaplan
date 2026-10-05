@@ -10,6 +10,8 @@ signal changed(text: String, fraction: float)
 
 var text: String = ""
 var fraction: float = 0.0
+## Доп. строка под этапом (например, какой ветер выбран, если его этап пропущен); "" — нет.
+var note: String = ""
 var trace: bool = false
 ## [{key, text, s}] — завершённые этапы с длительностью.
 var timings: Array[Dictionary] = []
@@ -33,6 +35,7 @@ func _init(weights: Dictionary = {}) -> void:
 ## Начать заново (новая загрузка).
 func begin() -> void:
 	timings.clear()
+	note = ""
 	_key = ""
 	_t0 = Time.get_ticks_usec()
 	_stage_t0 = _t0

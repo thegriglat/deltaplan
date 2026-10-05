@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "Подложка карты выбора старта: OSM по умолчанию (названия населённых пунктов видны), OpenTopoMap вторым слоем, переключатель, дисковый кеш, атрибуция; высота точки из Terrarium z12 на карте и в подписи «Полёт…». SM-К1 v2: basemaps[0]=osm, start_zoom 12.",
+  "commits": [
+    "8a259bc0 SM-1: растровая топокарта и высота точки",
+    "f436aa17 SM-1: OSM по умолчанию, start_zoom 12"
+  ],
+  "checks": [
+    {
+      "name": "start_map_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "recent_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_ui",
+      "value": "15/15",
+      "pass": true
+    },
+    {
+      "name": "no_hillshade",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SM-1/01_карта_OSM_Онгудай_высота.png",
+    "/home/greg/deltaplan/build/screenshots/SM-1/02_карта_OpenTopoMap_Онгудай.png",
+    "/home/greg/deltaplan/build/screenshots/SM-1/03_подпись_точки_Полёт.png"
+  ],
+  "how_to_check": "dp accept SM-1",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/raster_tile_loader.gd",
+      "why": "растяжение тайла выше max_zoom слоя и лимит 4 запросов не имеют отдельного теста",
+      "checked": "сетевой прогон кадров OSM и OpenTopoMap z13 прошёл"
+    },
+    {
+      "where": "tests/ui/test_language.gd",
+      "why": "ключ map_picker.attribution заменён на name_key слоёв",
+      "checked": "тест зелёный"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-05T03:28:55",
+  "by": "executor"
+}

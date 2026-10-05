@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "Стоя: хват на 0,12 выше и 0,33 впереди плеча, локоть 67 градусов; крен не сдвигает ноги; гибкая стропа от HangPoint вместо жёсткой; стопы на земле на ровном и на склоне 20. dp accept AF-3 --dry: 5/5.",
+  "commits": [
+    "5e43f4c6",
+    "a2806d7e",
+    "(+2 мелких коммита теста)"
+  ],
+  "checks": [
+    {
+      "name": "pilot_arms",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_takeoff",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "start_regression",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Карабин модели пилота стоя не на HangPoint (0,60 м на apogee): корпус не наклонял, анимацию не трогал; верх гибкой стропы - на HangPoint (A3.7), жёсткая стропа модели скрыта (шейдер discard на поверхности Strap меша PilotBody; отдельной ноды нет), в полёте показывается снова при расстоянии карабин-HangPoint меньше 3 см."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept AF-3 --dry; тесты --filter=pilot_arms (печатает числа)",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider_visual.gd:_ground_slide",
+      "why": "Пилот визуально смещён от физических ступеней вдоль курса (на apogee около 0,9 м назад при тангаже 16 градусов): влияет на кабинную камеру на земле (AF-2) и ступни на склоне (высота ступней считается по плоскому миру).",
+      "checked": "pilot_pose и test_takeoff зелёные; камеру и склон не смотрел"
+    },
+    {
+      "where": "tests/flight/test_pilot_arms.gd",
+      "why": "Тесты локтей раньше читали позу анимации, а не решение IK (Skeleton3D.get_bone_global_pose не отдаёт правки модификатора) - прежняя проверка 'локоть вниз' ничего не проверяла. Добавил PilotArmIK.solved_joints.",
+      "checked": "числа локтей совпали с длинами костей"
+    },
+    {
+      "where": "tests/flight/test_pilot_arms.gd",
+      "why": "Один запуск через мой скрипт показал другие падения (кисть-хват 0,09 м, 3 теста), повторные и dp accept - зелёные; возможно флак от параллельных godot.",
+      "checked": "5 прогонов подряд зелёные"
+    }
+  ],
+  "dp_feedback": "Нужен dp test <фильтр> с полным выводом сообщений падений (check.sh печатает только FAIL-строки без причин). dp inbox показывает дополнение обрезанным - полный текст только через task show.",
+  "extra": {
+    "ground_roll_legs_shift_m": 0.0,
+    "carabiner_to_hangpoint_m_apogee_pitch16": 0.69,
+    "carabiner_to_hangpoint_m_sport_pitch0": 0.78,
+    "note": "при полном крене стоя ступни пилота не сдвигаются (0,000 м); до модуля крен сдвигал тело на pilot_shift_m=0,35 м",
+    "feet_behind_hangpoint_vertical_m": {
+      "flat": 0.23,
+      "slope20": -0.08
+    },
+    "foot_bone_above_ground_m": {
+      "flat": 0.005,
+      "slope20": 0.091,
+      "note": "кость стопы стоит ~0,09 над подошвой по анимации: на склоне стопы на земле в пределах 0,1"
+    },
+    "eyes_from_hangpoint_m": {
+      "flat": 0.47,
+      "slope20": 0.64
+    },
+    "eyes_to_upright_axis_m": {
+      "flat": 0.24,
+      "slope20": 0.29
+    },
+    "flexible_strap_length_m": {
+      "flat": 0.98,
+      "slope20": 1.01
+    },
+    "strap_top_to_hangpoint_m": 0.0,
+    "wing_clearance": "снят с AF-3 (AF-4)"
+  },
+  "apogee_ground_numbers": {
+    "before": {
+      "hand_above_shoulder_m": -0.074,
+      "hand_ahead_of_shoulder_m": -0.621,
+      "elbow_deg": 173,
+      "keel_pitch_deg": 16.0
+    },
+    "after": {
+      "hand_above_shoulder_m": 0.12,
+      "hand_ahead_of_shoulder_m": 0.33,
+      "elbow_deg": 67,
+      "keel_pitch_deg": 16.0
+    }
+  },
+  "t": "2026-10-05T00:45:07",
+  "by": "main"
+}

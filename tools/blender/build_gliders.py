@@ -6,8 +6,11 @@
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
 (нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).
 Контракт имён (docs/guide/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
-координат), BaseBar, InstrumentMount (центр базовой штанги, −Z Godot смотрит на глаза пилота),
-VarioMount (на базовой штанге слева от планшета), WingTipL, WingTipR. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
+координат), BaseBar, InstrumentMount (хомут на левой стойке, −Z Godot смотрит на глаза пилота),
+VarioMount (на той же стойке выше планшета), WingTipL, WingTipR; маркеры трапеции (контракт
+A2, docs/contracts/aframe-geometry.md): UprightTopL/R, UprightBottomL/R (концы осей стоек у болта
+под килем и у оси штанги в углу), WingCG (центр масс крыла на киле). Геометрия трапеции — по
+параметрам крыла (aframe_geom.frame_points), центр масс и нос — aframe_cg.py. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
 """
 import math
 import os
@@ -18,6 +21,7 @@ from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
+import aframe_geom as G  # noqa: E402
 import frame_parts as F  # noqa: E402
 import sail_maps  # noqa: E402
 import sail_texture  # noqa: E402
@@ -247,7 +251,7 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
     mb.add_tube([(0, ws.y_nose, kz), (0, tail_y, kz)], 0.025, "Tube", sides=10)
     mb.add_ellipsoid((0, ws.y_nose + 0.01, kz + 0.02), (0.06, 0.09, 0.05), "Dark", 10, 6)
     # поперечина
-    cb_center = Vector((0, 0.08, kz + 0.04))
+    cb_center = Vector((0, ws.y_nose - p["crossbar_from_nose_m"], kz + 0.04))
     for s in (-1, 1):
         j = le_tube_point(ws, s * p["crossbar_u"], r_le)
         c = cb_center + Vector((s * 0.03, 0, 0))
@@ -262,7 +266,7 @@ def build_frame(ws: WingShape, p: dict, cf: dict, mats: dict):
             add_antidive_tube(ws, s, p["antidive_tube"], r_le, mb)
     top = None
     if p["kingpost_m"] > 0:
-        apex_y = cf["apex_forward_m"]
+        apex_y = G.frame_points(p, cf)["apex_y"]
         top = Vector((0, apex_y, kz + p["kingpost_m"]))
         mb.add_tube([(0, apex_y, kz), top], 0.022, "Tube", sides=8)
         mb.add_ellipsoid(top, (0.03, 0.03, 0.04), "Dark", 8, 5)
@@ -353,11 +357,10 @@ def add_corner(mb, c: Vector, top: Vector, s: int, r_up: float, r_bar: float) ->
 def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: float):
     mb = U.MeshBuilder()
     kz = cf["keel_z_m"]
-    apex_y = cf["apex_forward_m"]
-    top_x, top_z = cf["upright_top_x_m"], cf["upright_top_z_m"]
-    w = p["basebar_width_m"] * 0.5
-    y_bb = cf["basebar_forward_m"]
-    z_bb = kz - cf["basebar_drop_m"]
+    fp = G.frame_points(p, cf)
+    apex_y, top_x, top_z = fp["apex_y"], fp["top_x"], fp["top_z"]
+    w = fp["w"]
+    y_bb, z_bb = fp["y_bb"], fp["z_bb"]
     faired = p["faired_uprights"]
     r_up, r_bar = cf["upright_r_m"], cf["basebar_r_m"]
     wire_r = p.get("wire_r_m", WIRE_R)
@@ -435,22 +438,25 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         for e in ends:
             w0 = F.add_wire_end(mb, wa, e, bax, wire_r, "Steel")
             mb.add_tube([w0, e], wire_r, "Wire", sides=8, cap=False)
+    # хомут приборов на левой стойке (A3.3 v6): точка оси стойки на доле t от штанги к вершине,
+    # прибор на коротком кронштейне внутрь (к пилоту) и вперёд
+    ub = Vector((-w, y_bb, z_bb))
+    ut = Vector((-top_x, apex_y, top_z))
+    inw = Vector((cf["instrument_inward_m"], cf["instrument_forward_m"], 0))
+    mounts = {}
+    for name, key in (("InstrumentMount", "instrument_upright_t"), ("VarioMount", "vario_upright_t")):
+        pu = ub.lerp(ut, cf[key])
+        mb.add_tube([pu, pu + inw], 0.008, "Dark", sides=8)
+        mounts[name] = pu + inw
     obj = mb.build("ControlFrame", mats)
+    for s, side in ((-1, "L"), (1, "R")):  # оси стоек: у болта под килем и у штанги в углу
+        U.empty("UprightTop" + side, (s * top_x, apex_y, top_z), parent=obj)
+        U.empty("UprightBottom" + side, (s * w, y_bb, z_bb), parent=obj)
     U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
     eye = Vector(cf["_eye"])
-    # планшет — на оси базовой штанги в центре, −Z (Godot) маркера смотрит на глаза пилота
-    bar_c = Vector((0, y_bb, z_bb - dip))
-    U.empty("InstrumentMount", None, parent=obj, matrix=U.look_matrix(bar_c, eye))
-    # вариометр 90-х — на оси базовой штанги слева от планшета (между ним и левой рукой), тоже
-    # экраном к глазам: при взгляде вниз (0°, −60°) в кадре штанга только между кулаками
-    # (±0,35 м) — угол трапеции и стойки вне кадра при любой высоте на стойке
-    xv = -cf["vario_bar_offset_m"]
-    zv = bar_z(xv)
-    # горизонталь циферблата — вдоль штанги (иначе в кадре сбоку от оси взгляда он «завален»)
-    pv = Vector((xv, y_bb, zv))
-    to_eye = (eye - pv).normalized()
-    side = (Vector((-1, 0, 0)) + to_eye * to_eye.x).normalized()
-    U.empty("VarioMount", None, parent=obj, matrix=U.look_matrix(pv, eye, up=side.cross(to_eye)))
+    # планшет и вариометр — на хомуте левой стойки (см. выше), экраном (−Z маркера) к глазам
+    for name, pos in mounts.items():
+        U.empty(name, None, parent=obj, matrix=U.look_matrix(pos, eye))
     return obj
 
 
@@ -483,6 +489,7 @@ def build_wing(key: str, params: dict) -> None:
     _, tail_y = build_frame(ws, p, cf, mats)
     build_control_frame(ws, p, cf, mats, tail_y)
     U.empty("HangPoint", (0, 0, 0))
+    U.empty("WingCG", (0, p["nose_forward_m"] - p["cg_from_nose_m"], cf["keel_z_m"]))
     U.empty("WingTipL", ws.le(-1.0))
     U.empty("WingTipR", ws.le(1.0))
     U.export(p["out"])

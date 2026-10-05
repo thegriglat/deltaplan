@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Убраны «одно-/двухобшивочное» из site/content (wings/_index, kingpost, trainer, mechanics/flight) и _doc шести конфигов крыльев; «папа-пилот» → «пилот». gen_wings.py не менял страницы (_doc на сайт не попадает).",
+  "commits": [
+    "59012882 Крылья: убраны одно-/двухобшивочное"
+  ],
+  "checks": [
+    {
+      "name": "no_labels",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "json_ok",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gen_check",
+      "value": "48 крыльев, 53 файла",
+      "pass": true
+    },
+    {
+      "name": "hugo --minify",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "how_to_check": "dp accept WL-6",
+  "dp_feedback": "",
+  "t": "2026-10-05T01:18:25",
+  "by": "executor"
+}

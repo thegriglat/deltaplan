@@ -1,0 +1,90 @@
+{
+  "status": "done",
+  "summary": "A3 v4 по вариантам 1+4: предел головы вниз 90°; планшет и вариометр на выносе (0,6 м вперёд, 0,12 м вверх от штанги, кронштейн-трубка) в build_gliders.py, 48 .glb пересобраны после AF-4; ленточки на переднем тросе в 0,6 м от носа; силуэт стоек у края кадра (scripts/game/upright_silhouette.gd, camera.json -> cockpit.silhouette, включён); тесты v4.",
+  "commits": [
+    "847677c4 силуэт, ленточки, вынос приборов, предел 90°",
+    "следующий: пересборка .glb и проверка штанги 90°"
+  ],
+  "checks": [
+    {
+      "name": "test_cockpit",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "telltale",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "camera_bar_look",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "амплитуда планшета A→D→A",
+      "value": "0,085 при пороге 0,15",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Процедурная заглушка крыла в scripts/flight/glider_visual.gd (_fallback_wing) всё ещё ставит InstrumentMount на штанге — нужна правка координатором (мой скоуп её не включает)."
+  ],
+  "questions": [],
+  "how_to_check": "tools/dp accept AF-2",
+  "uncertain": [
+    {
+      "where": "scripts/game/upright_silhouette.gd",
+      "why": "внешний вид полосы (непрозрачность 0,25 при взгляде вперёд, глубина 0,12 высоты кадра) не смотрел — кадры по решению пользователя не снимались",
+      "checked": "только числа: с обеих сторон при взгляде вперёд, alpha 0,25, край x 0,2/0,8; при повороте головы влево на 90° левая не рисуется"
+    },
+    {
+      "where": "configs/instruments.json telltale.from_top_m",
+      "why": "ленточки у носа далеко от оси при взгляде вперёд (70–80°), в кадре только при взгляде вверх 30–40° (sport/training/laminar 40, apogee 30)",
+      "checked": "тест проверяет наличие обеих в кадре при наклоне ≤55°"
+    }
+  ],
+  "dp_feedback": "dp task sync не говорит причину отказа (неотслеживаемые .uid блокируют слияние) — пришлось сливать вручную. check.sh --filter молча даёт 0 тестов при имени без test_.",
+  "apogee_view_numbers": {
+    "fov_vertical_deg": 75,
+    "look_forward_angles_from_axis_deg": {
+      "upright_left": 112.0,
+      "upright_right": 112.7,
+      "base_bar": 112.0
+    },
+    "telltales_before_deg": [
+      112.6,
+      113.4
+    ],
+    "telltales_after_deg": [
+      70.6,
+      71.0
+    ],
+    "telltales_in_frame_at_head_up_deg": 30,
+    "trapezoid_in_frame_forward": "0 (позади глаз, A3.3 v4)",
+    "silhouette_forward": "обе стороны, alpha 0,25, край кадра x 0,20 и 0,80",
+    "look_down_90": "штанга 41/41 точек в кадре, угол до центра штанги 36,2°, руки в кадре",
+    "other_wings_forward": {
+      "training": "стойки 112,7/112,8; ленточки 75,8/75,8",
+      "sport": "112,1/112,7; 79,7/80,1",
+      "laminar": "111,9/112,6; 77,6/78,1"
+    }
+  },
+  "t": "2026-10-05T01:18:11",
+  "by": "executor"
+}
