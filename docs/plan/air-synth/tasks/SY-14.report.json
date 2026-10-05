@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "В model_hg.onnx дописан deltaplan.domain (JSON {U10,hour,t_max}, формат стража), копия в data/air_nn/model.onnx, граф не менялся. Добавлен тест стража с метаданными модели; s7_export.py умеет --add-domain.",
+  "commits": [
+    "27a1ab40 Новая сеть ветра SY-11 в игре: область обучения hgw24 в метаданных ONNX"
+  ],
+  "checks": [
+    {
+      "name": "domain_meta",
+      "value": "{U10:[0.5,12.0],hour:[7.0,20.0],t_max:[10.2,40.0]}",
+      "pass": true
+    },
+    {
+      "name": "same_net",
+      "value": "same_graph True",
+      "pass": true
+    },
+    {
+      "name": "air_nn/air_onnx/air_contracts (до сокращения задачи)",
+      "value": "12/12, 14/14, 30/30",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пункт 4 заметок (s7_compare, eval_compare_old) не делался по решению пользователя"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SY-14 --dry",
+  "uncertain": [
+    {
+      "where": "s7_export.py:domain_from_conditions",
+      "why": "U10 в области — u10_m_s таблиц условий; у игры строка U10 = приток k*меню, может выйти за 12",
+      "checked": "U10 в кеше обучения 0.5–12 совпадает с таблицей"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-05T23:06:41",
+  "by": "executor"
+}

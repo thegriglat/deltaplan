@@ -1,3 +1,14 @@
+---
+type: "research"
+status: "closed"
+module: "site"
+updated: "2026-10-05"
+summary: "Каталог мест дельтаплана из OSM — сводка — Выгрузка Overpass: 2026-10-04. © OpenStreetMap contributors, ODbL."
+related: []
+conclusion: ""
+data: "tools/research/air_synth/hg_sites/"
+applied_in: ""
+---
 # Каталог мест дельтаплана из OSM — сводка
 
 Выгрузка Overpass: 2026-10-04. © OpenStreetMap contributors, ODbL.

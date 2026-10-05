@@ -27,18 +27,6 @@
   ],
   "accept": [
     {
-      "name": "air_nn",
-      "tests": "air_nn"
-    },
-    {
-      "name": "air_onnx",
-      "tests": "air_onnx"
-    },
-    {
-      "name": "air_contracts",
-      "tests": "air_contracts"
-    },
-    {
       "name": "domain_meta",
       "cmd": "cd tools/research/air_synth/train && ../../air_nn_pilot/.venv/bin/python -c \"import onnx;m=onnx.load('../../../../data/air_nn/model.onnx');print({p.key:p.value for p in m.metadata_props})\"",
       "expect": "re:deltaplan.domain"
@@ -52,5 +40,5 @@
   "report_extra": [],
   "notes": "Контекст: SY-11 принята (ревью accept), финальная сеть — tools/research/air_synth/train/out/model_hg.onnx (ep130 финального обучения на всех местах; снимки ~/air_synth_data/train/hgw24_p2/final/ckpt/). Найдено при приёмке: в model_hg.onnx нет метаданных deltaplan.domain; страж игры (scripts/atmosphere/air_model/air_nn_field.gd → AirNnInput.guard) без них берёт границы по умолчанию старой сети (U10 [0,8], hour [9,20], t_max [18,34]) и зажмёт FiLM, хотя новая сеть обучена на условиях hgw24 (S2 v4: ветер 2–12 м/с, апрель–сентябрь, утро/день/вечер). Сделать: (1) границы области обучения — из фактических условий набора (conditions/hg_v2_hgw24 + game2_hgw24, S2 v4; min/max тех величин, которые зажимает страж, в его единицах) — в метаданные ONNX deltaplan.domain в формате, который читает игра (сверить с кодом AirNnInput/air_nn_field и тестами); экспорт через s7_export.py (без переобучения, из того же снимка ep130 финала; граф должен совпасть побитно — проверка same_graph); (2) скопировать в data/air_nn/model.onnx; (3) тесты игры: air_nn, air_onnx, air_contracts зелёные + тест, что страж с новой моделью берёт область из метаданных (не умолчание), если такого нет; (4) minor ревью SY-11: в s7_compare.py старой сети FiLM зажимать как AirNnInput.guard (по умолчанию), пересчитать out/eval_compare_old.{json,md} и записать в md, что 16–25 % случаев SY-12 вне области обучения старой сети; в итоговых цифрах рядом с ep130 давать ep102 (0,692/2,25/0,171) как несмещённую. GPU для пересчёта старой сети не обязателен (onnxruntime CPU). Godot — только XDG_DATA_HOME=$(mktemp -d); переписанный project.godot не коммитить. Если формат domain в игре не позволяет описать область новой сети — стоп и вопрос координатору.",
   "created": "2026-10-05T22:59:25",
-  "edited": "2026-10-05T22:59:39"
+  "edited": "2026-10-05T23:06:16"
 }
