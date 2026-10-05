@@ -1,0 +1,45 @@
+{
+  "id": "SA-5",
+  "module": "steam-assets",
+  "type": "dp-mechanic",
+  "title": "Скриншоты для страницы Steam готовыми инструментами",
+  "goal": "Кадры из игры для страницы Steam (≥5 шт. 1920×1080) и исходные кадры 3840×2160 без интерфейса для капсул и library hero.",
+  "plan_ref": "SA-5",
+  "contracts": [
+    {
+      "name": "SA-К4",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-5",
+  "branch": "steam-assets/SA-5",
+  "base": "feature/steam-assets",
+  "scope": [
+    "steam/store/screenshots/",
+    "steam/store/src/",
+    "steam/store/.gdignore"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/shots/",
+    "steam/partner/"
+  ],
+  "accept": [
+    {
+      "name": "gdignore",
+      "cmd": "test -f steam/store/.gdignore",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sizes",
+      "cmd": "bash -c 'n=0; for f in steam/store/screenshots/*.jpg; do read w h < <(identify -format \"%w %h\" \"$f\"); [ $w -ge 1920 ] && [ $((w*9-h*16)) -le 16 ] && [ $((h*16-w*9)) -le 16 ] || { echo BAD $f $w $h; exit 1; }; n=$((n+1)); done; m=0; for f in steam/store/src/*.jpg; do [ \"$(identify -format %wx%h \"$f\")\" = 3840x2160 ] || { echo BAD $f; exit 1; }; m=$((m+1)); done; [ $n -ge 5 ] && [ $m -ge 3 ] && echo SIZES OK $n $m'",
+      "expect": "re:SIZES OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:50:11",
+  "edited": "2026-10-05T06:50:27"
+}
