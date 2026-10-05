@@ -5,13 +5,13 @@ bookCollapseSection: false
 description: "All Deltaplan wings by group: prototype, dimensions, masses, class and where each number comes from — passport, analog or estimate."
 ---
 
-# Модели аппаратов
+# Wing models
 
-Здесь все 48 крыльев игры — в тех же четырёх группах, что и в меню «Полёт…»: советские, учебные, мачтовые и безмачтовые. У каждого крыла своя страница: прототип, размеры, массы, класс и параметры полёта.
+Here are all 48 wings of the game, in the same four groups as in the “Flight setup…” menu: Soviet, trainer, kingposted and topless. Each wing has its own page: prototype, dimensions, masses, class and flight parameters.
 
-Данные взяты из паспортов производителей и карточек типовых испытаний DHV; где паспорта той же модели и размера не нашлось, число оценено по близкой модели. Числа на страницах — ровно те, с которыми крыло летает в игре, и у каждого стоит отметка «паспорт», «аналог» или «оценка» ([что они значат](#отметки-происхождения)). Картинки — рендеры 3D-моделей игры. Спасибо DHV за открытые данные — [благодарность на главной](/#благодарности).
+The data come from manufacturers' passports and DHV type-test cards; where no passport for the same model and size was found, the number is estimated from a close model. The numbers on the pages are exactly those the wing flies with in the game, and each carries a mark: “passport”, “analog” or “estimate” ([what they mean](#provenance-marks)). Pictures are renders of the game's 3D models. Thanks to DHV for the open data — [acknowledgment on the home page](/#acknowledgements).
 
-Подробности: как паспорта легли в конфиги и где источники расходятся — [wings_config_sources.md](/docs/research/wings_config_sources.md); как построены 3D-модели — [glider_3d_tz.md](/docs/research/glider_3d_tz.md) и [models.md](/docs/guide/models.md).
+Details: how the passports went into the configs and where the sources disagree — [wings_config_sources.md](/docs/research/wings_config_sources.md); how the 3D models are built — [glider_3d_tz.md](/docs/research/glider_3d_tz.md) and [models.md](/docs/guide/models.md).
 
 <!-- gen:begin tools/site/gen_wings.py -->
 ## [Soviet 1980s](/wings/soviet/)
