@@ -321,7 +321,10 @@ def bubble_of(item):
         xs = x0 + dx / 2 + dx * np.arange(nx)
         ys = y0 + dx / 2 + dx * np.arange(ny)
         X, Y = np.meshgrid(xs, ys)
-        ground = B.bilinear(item["g100"], -19200.0, -19200.0, 100.0, X.ravel(), Y.ravel()).reshape(ny, nx)
+        if w.get("hc") is not None and np.asarray(w["hc"]).shape == (ny, nx):
+            ground = np.asarray(w["hc"], np.float64)            # земля окна (блочное среднее h100 решателя)
+        else:
+            ground = B.bilinear(item["g100"], -19200.0, -19200.0, 100.0, X.ravel(), Y.ravel()).reshape(ny, nx)
         return B.bubble(wf, w["agl_m"], x0, y0, dx, ground, e, item["h_m"], item["u_sat"], item["n_bv"], up, edge=0)
     return B.bubble(f400, AGL_M, -19200.0, -19200.0, 400.0, item["hc"], e, item["h_m"], item["u_sat"], item["n_bv"],
                     up, edge=EDGE)
@@ -413,6 +416,18 @@ def write_batch(job):
                 h.create_dataset("window/x0_m", data=np.array([w["x0_m"] for _, w in win], np.float64))
                 h.create_dataset("window/y0_m", data=np.array([w["y0_m"] for _, w in win], np.float64))
                 h.create_dataset("window/shape", data=np.array([np.asarray(w["fields"]).shape for _, w in win], np.int32))
+                if all(w.get("hc") is not None for _, w in win):
+                    hw = np.zeros((len(win),) + tuple(shp[-2:]), np.float32)
+                    for q, (_, w) in enumerate(win):
+                        a = np.asarray(w["hc"], np.float32)
+                        hw[q, : a.shape[0], : a.shape[1]] = a
+                    _ds(h, "window/hc", hw).attrs["what"] = "земля окна, м н. у. м."
+                st = {"ok": 0, "converged": 0, "max": 1, "diverged": 2}
+                h.create_dataset("window/status", data=np.array([st.get(w.get("status"), -1) if isinstance(w.get("status"), str)
+                                                                 else int(w.get("status", -1)) for _, w in win], np.int8))
+                h.create_dataset("window/iters", data=np.array([int(w.get("iters", -1)) for _, w in win], np.int32))
+                for key in ("brink_x_m", "brink_y_m", "downwind_fit_over_h"):
+                    h.create_dataset(f"window/{key}", data=np.array([float(w.get(key, np.nan)) for _, w in win], np.float32))
         _replace_fsync(tmp, path)
     for (line_id, case_id, k, status, st) in job["ckpts"]:
         write_ckpt(d, line_id, case_id, k, status, st)

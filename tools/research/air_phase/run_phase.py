@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import collections
 import concurrent.futures as cf
+import inspect
 import json
 import multiprocessing as mp
 import os
@@ -42,6 +43,7 @@ import phase_io as IO  # noqa: E402
 
 pb = IO.pb
 MAX_PENDING = 2
+CHUNK_MULT = 4      # solve_batch (AP-1) держит B случаев одновременно скользящим окном: вызов из 4B случаев почти без простоя хвоста
 
 
 def get_solver():
@@ -87,7 +89,7 @@ def _host(a, dtype=None):
 # ------------------------------------------------------------------ прогон
 class Runner:
     def __init__(self, plan_dir, out=None, series=None, batch=None, limit=None, solver=None, only=None, trial=False,
-                 inline_writer=False, command=""):
+                 inline_writer=False, command="", chunk=None):
         self.plan_dir = Path(plan_dir)
         self.plan, self.sha, self.lines, self.rel, self.cases = IO.load_plan(plan_dir)
         self.solver = solver if solver is not None else get_solver()
@@ -95,6 +97,11 @@ class Runner:
         self.out = Path(out) if out else IO.data_root() / "phase"
         self.dir = results_dir(self.out, self.plan, self.version, trial)
         self.batch = int(batch or default_batch(self.solver))
+        self.chunk = int(chunk or CHUNK_MULT * self.batch)     # случаев на вызов solve_batch (= на часть P3)
+        try:
+            self._batch_kw = "batch" in inspect.signature(self.solver.solve_batch).parameters
+        except (TypeError, ValueError):
+            self._batch_kw = False
         self.limit = limit
         self.sel = IO.series_filter(series)
         self.only = set(only) if only is not None else None
@@ -156,7 +163,7 @@ class Runner:
         if not tasks:
             return []
         dx = self.lines[tasks[0][1].line_id].numerics.dx_m
-        return [t for t in tasks if self.lines[t[1].line_id].numerics.dx_m == dx][: self.batch]
+        return [t for t in tasks if self.lines[t[1].line_id].numerics.dx_m == dx][: self.chunk]
 
     # --- решатель
     def _spec(self, c):
@@ -180,6 +187,10 @@ class Runner:
 
     def _item(self, c, res, ph, start_cid, sec, m):
         ln = self.lines[c.line_id]
+        for k in ("u_sat", "n_bv", "z_i_agl_m", "heat_flux_wm2"):     # величины, выведенные решателем (P4), если он их даёт
+            v = _r(res, k)
+            if v is not None and np.isfinite(v):
+                ph = dict(ph, **{k: float(v)})
         st = IO.STATUS[_r(res, "status")] if isinstance(_r(res, "status"), str) else int(_r(res, "status"))
         tg = _r(res, "target", "final")
         rec = dict(case_id=c.case_id, line_id=c.line_id, k=c.k, series=c.series, relief_id=ln.relief_id, fr=c.fr,
@@ -201,8 +212,10 @@ class Runner:
         trace["fields"] = _host(tr["fields"], np.float32) if trace["iter"].size else np.zeros((0, 3, 2, 96, 96), np.float32)
         win = _r(res, "window")
         if win is not None:
-            win = {k: (_host(v, np.float32) if hasattr(v, "shape") else v) for k, v in
-                   (win.items() if isinstance(win, dict) else vars(win).items())}
+            win = dict(win.items() if isinstance(win, dict) else vars(win).items())
+            for k, v in (win.pop("meta", None) or {}).items():     # AP-1: x0_m, y0_m, dx_m, brink_*, fits_15h — в meta
+                win.setdefault(k, v)
+            win = {k: (_host(v, np.float32) if hasattr(v, "shape") else v) for k, v in win.items()}
         item = dict(rec=rec, fields=_host(_r(res, "fields"), np.float32), hc=_host(_r(res, "hc"), np.float32),
                     heat_flux=_host(_r(res, "heat_flux"), np.float32), hbl=_host(_r(res, "hbl"), np.float32),
                     h_eff=_host(_r(res, "h_eff"), np.float32) if ln.numerics.envelope_angle_deg > 0 else None,
@@ -218,6 +231,7 @@ class Runner:
         runlog = self.dir / "run.jsonl"
         dev = device_name()
         IO.jsonl(runlog, dict(event="start", plan=str(self.plan_dir), solver_version=self.version, batch=self.batch,
+                              chunk=self.chunk,
                               device=dev, done=len(self.done), command=self.command, git_commit=IO.git_commit()))
         attrs = dict(plan=str(self.plan_dir), plan_sha256=self.sha, solver_version=self.version, device=dev,
                      batch_size=self.batch, git_commit=IO.git_commit(), command=self.command)
@@ -245,12 +259,13 @@ class Runner:
                     st, sc = self._init_for(c)
                     specs.append(s); nums.append(n); phs.append(ph); inits.append(st); starts.append(sc)
                 t0 = time.perf_counter()
-                results = self.solver.solve_batch(specs, nums, inits)
+                kw = dict(batch=self.batch) if self._batch_kw else {}
+                results = self.solver.solve_batch(specs, nums, inits, **kw)
                 wall = time.perf_counter() - t0
                 m = len(batch)
                 items, ckpts, drops = [], [], []
                 for (_, c, phantom), res, ph, sc in zip(batch, results, phs, starts):
-                    it = self._item(c, res, ph, sc, wall / m, m)
+                    it = self._item(c, res, ph, sc, wall / m, self.batch)
                     st = it["rec"]["status"]
                     if self.lines[c.line_id].start == pb.WARM_PREV:
                         w = self.warm[c.line_id]
@@ -265,7 +280,7 @@ class Runner:
                     items.append(it)
                     self.done[c.case_id] = st
                     n_real += 1
-                job = dict(dir=str(self.dir), part=part, attrs=dict(attrs, batch_size=m), items=items, ckpts=ckpts,
+                job = dict(dir=str(self.dir), part=part, attrs=dict(attrs, chunk=m), items=items, ckpts=ckpts,
                            drops=drops)
                 IO.jsonl(runlog, dict(event="batch", part=part if items else None, size=m, n_write=len(items),
                                       phantoms=m - len(items), wall_s=round(wall, 3),
@@ -297,6 +312,7 @@ class Runner:
 
 # ------------------------------------------------------------------ пробный прогон и оценка
 def trial_cases(plan_dir, batch, series=None):
+    # batch здесь — число случаев на группу (= chunk полного счёта)
     """Малый набор: на группу (серия, dx) — B случаев, равномерно по отсортированному Fr (холодные линии); у тёплых —
     B линий равномерно × k = 0, 1."""
     plan, _, lines, _, cases = IO.load_plan(plan_dir)
@@ -369,12 +385,13 @@ def estimate(plan_dir, rdir, batch):
 def cmd_trial(a):
     solver = get_solver()
     B = int(a.batch or default_batch(solver))
-    only = trial_cases(a.plan, B, a.series)
-    r = Runner(a.plan, a.out, a.series, B, None, solver, only=only, trial=True, command=" ".join(sys.argv))
+    chunk = int(a.chunk or CHUNK_MULT * B)
+    only = trial_cases(a.plan, chunk, a.series)
+    r = Runner(a.plan, a.out, a.series, B, None, solver, only=only, trial=True, command=" ".join(sys.argv), chunk=chunk)
     t0 = time.time()
     rc = r.run()
     est = estimate(a.plan, r.dir, B)
-    est.update(solver_version=r.version, batch_size=B, device=device_name(), plan=str(a.plan), results=str(r.dir),
+    est.update(solver_version=r.version, batch_size=B, chunk=chunk, device=device_name(), plan=str(a.plan), results=str(r.dir),
                trial_cases=len(only), trial_wall_s=round(time.time() - t0, 1), rc=rc,
                disk_free_gb=round(shutil.disk_usage(r.dir).free / 1e9, 1),
                note="full_estimate_hours — сумма по группам (серия, dx) «стенное время пробного пакета / M» × число "
@@ -480,8 +497,9 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("plan"); p.add_argument("--name", default="ap_v1"); p.add_argument("--series"); p.add_argument("--out")
     p = sub.add_parser("run"); p.add_argument("--plan", required=True); p.add_argument("--series"); p.add_argument("--batch", type=int)
-    p.add_argument("--limit", type=int); p.add_argument("--out")
+    p.add_argument("--limit", type=int); p.add_argument("--out"); p.add_argument("--chunk", type=int)
     p = sub.add_parser("trial"); p.add_argument("--plan", required=True); p.add_argument("--out"); p.add_argument("--batch", type=int)
+    p.add_argument("--chunk", type=int)
     p.add_argument("--series")
     p = sub.add_parser("bench"); p.add_argument("--plan"); p.add_argument("--batch", default="1,2,4,8,16,32")
     p.add_argument("--n", type=int, default=32); p.add_argument("--out"); p.add_argument("--own", action="store_true")
@@ -490,7 +508,7 @@ def main(argv=None):
     if a.cmd == "plan":
         return cmd_plan(a)
     if a.cmd == "run":
-        return Runner(a.plan, a.out, a.series, a.batch, a.limit, command=" ".join(sys.argv)).run()
+        return Runner(a.plan, a.out, a.series, a.batch, a.limit, command=" ".join(sys.argv), chunk=a.chunk).run()
     if a.cmd == "trial":
         return cmd_trial(a)
     if a.cmd == "bench":

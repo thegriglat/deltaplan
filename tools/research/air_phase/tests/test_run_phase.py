@@ -98,8 +98,11 @@ def make_stub(fail_at=None):
             if nm.envelope_angle_deg > 0:
                 r["h_eff"] = g400.astype(np.float32) + 1.0
             if sp.dx_m == 100.0:
-                r["window"] = dict(fields=np.ones((4, 13, 40, 120), np.float32), dx_m=100.0, x0_m=-3000.0,
-                                   y0_m=-2000.0, agl_m=np.array(IO.AGL_M, np.float32))
+                ny = 40 if sp.u10 < 5 else 48      # окна разной величины в одной части
+                r["window"] = dict(meta=dict(dx_m=100.0, x0_m=-3000.0, y0_m=-2000.0, brink_x_m=0.0, brink_y_m=0.0,
+                                             downwind_fit_over_h=15.5),
+                                   fields=np.ones((4, 13, ny, 120), np.float32), status="ok", iters=200,
+                                   agl_m=list(IO.AGL_M), hc=np.full((ny, 120), 1200.0, np.float32))
             out.append(r)
         return out
 
@@ -173,18 +176,18 @@ def plan_dir(tmp_path, monkeypatch):
 
 def test_run_and_resume_bitwise(plan_dir, tmp_path):
     plan, _, _, _, cases = IO.load_plan(plan_dir)
-    ra = RP.Runner(plan_dir, tmp_path / "A", batch=3, solver=make_stub(), inline_writer=True)
+    ra = RP.Runner(plan_dir, tmp_path / "A", batch=3, chunk=3, solver=make_stub(), inline_writer=True)
     assert ra.run() == 0
     fa = fields_by_case(ra.dir)
     assert sorted(fa) == [c.case_id for c in cases]
     check_contract(ra.dir)
     # обрыв на 4-м пакете, затем ckpt отстаёт (как при убийстве между частью и ckpt) и один пропадает совсем
-    rb = RP.Runner(plan_dir, tmp_path / "B", batch=3, solver=make_stub(fail_at=4), inline_writer=False)
+    rb = RP.Runner(plan_dir, tmp_path / "B", batch=3, chunk=3, solver=make_stub(fail_at=4), inline_writer=False)
     assert rb.run() == 1
     ck = sorted((rb.dir / "ckpt").glob("*.h5")) if (rb.dir / "ckpt").exists() else []
     for p in ck[:1]:
         p.unlink()
-    rb2 = RP.Runner(plan_dir, tmp_path / "B", batch=3, solver=make_stub(), inline_writer=False)
+    rb2 = RP.Runner(plan_dir, tmp_path / "B", batch=3, chunk=3, solver=make_stub(), inline_writer=False)
     assert rb2.run() == 0
     fb = fields_by_case(rb2.dir)
     assert sorted(fb) == sorted(fa), "без потерь и дублей"
@@ -196,21 +199,21 @@ def test_run_and_resume_bitwise(plan_dir, tmp_path):
     # повтор — ничего не считает
     n_parts = len(IO.parts(rb2.dir))
     st = make_stub()
-    assert RP.Runner(plan_dir, tmp_path / "B", batch=3, solver=st, inline_writer=True).run() == 0
+    assert RP.Runner(plan_dir, tmp_path / "B", batch=3, chunk=3, solver=st, inline_writer=True).run() == 0
     assert st.calls["n"] == 0 and len(IO.parts(rb2.dir)) == n_parts
 
 
 def test_warm_chain_and_lost_part(plan_dir, tmp_path):
     """Тёплая цепочка: пропала последняя часть, ckpt новее нужного → пересчёт от холодного k = 0 (фантомы), поля те же."""
-    ref = RP.Runner(plan_dir, tmp_path / "R", series="sweep", batch=2, solver=make_stub(), inline_writer=True)
+    ref = RP.Runner(plan_dir, tmp_path / "R", series="sweep", batch=2, chunk=2, solver=make_stub(), inline_writer=True)
     assert ref.run() == 0
     fr = fields_by_case(ref.dir)
-    r = RP.Runner(plan_dir, tmp_path / "C", series="sweep", batch=2, limit=4, solver=make_stub(), inline_writer=True)
+    r = RP.Runner(plan_dir, tmp_path / "C", series="sweep", batch=2, chunk=2, limit=4, solver=make_stub(), inline_writer=True)
     assert r.run() == 0
     last = IO.parts(r.dir)[-1]
     last.unlink()
     st = make_stub()
-    r2 = RP.Runner(plan_dir, tmp_path / "C", series="sweep", batch=2, solver=st, inline_writer=True)
+    r2 = RP.Runner(plan_dir, tmp_path / "C", series="sweep", batch=2, chunk=2, solver=st, inline_writer=True)
     assert r2.run() == 0
     fc = fields_by_case(r2.dir)
     assert sorted(fc) == sorted(fr)
@@ -221,7 +224,7 @@ def test_warm_chain_and_lost_part(plan_dir, tmp_path):
 
 
 def test_series_order_and_batches(plan_dir, tmp_path):
-    r = RP.Runner(plan_dir, tmp_path / "O", batch=2, solver=make_stub(), inline_writer=True)
+    r = RP.Runner(plan_dir, tmp_path / "O", batch=2, chunk=2, solver=make_stub(), inline_writer=True)
     assert r.run() == 0
     import json
     first = []
@@ -286,7 +289,7 @@ def test_real_solver_mini(tmp_path, monkeypatch):
         pytest.skip("batch_solver (AP-1) нет")
     pdir = mini_plan(tmp_path / "plan" / "ap_real", per_series={pb.GRID: 2, pb.SWEEP: 1, pb.SEPARATION: 1,
                                                                  pb.ENVELOPE: 1}, npts=2, max_outer=150)
-    r = RP.Runner(pdir, tmp_path / "res", batch=2, solver=S)
+    r = RP.Runner(pdir, tmp_path / "res", batch=2, chunk=2, solver=S)
     assert r.run() == 0
     check_contract(r.dir)
     plan, _, _, _, cases = IO.load_plan(pdir)
