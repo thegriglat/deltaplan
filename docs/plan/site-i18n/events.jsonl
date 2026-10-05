@@ -23,3 +23,7 @@
 {"t": "2026-10-05T06:08:56", "by": "coordinator", "task": "SI-21", "ev": "created", "note": "Перевод на английский: дневник 03.10"}
 {"t": "2026-10-05T06:08:56", "by": "coordinator", "task": "SI-22", "ev": "created", "note": "Перевод на английский: дневник 04.10"}
 {"t": "2026-10-05T06:09:11", "by": "coordinator", "task": "SI-24", "ev": "created", "note": "README, скилл new-release и CHANGELOG под двуязычный сайт"}
+{"t": "2026-10-05T06:09:13", "by": "coordinator", "task": "SI-24", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-24"}
+{"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-2", "ev": "created", "note": "Генератор страниц крыльев на en и ru"}
+{"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-2", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"uncertain\"]"]}}
+{"t": "2026-10-05T06:09:46", "by": "coordinator", "task": "SI-23", "ev": "created", "note": "Перевод на английский: ручной текст оглавлений «Модели аппаратов»"}

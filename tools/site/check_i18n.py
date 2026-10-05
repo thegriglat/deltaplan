@@ -9,6 +9,7 @@ K4 — сборка: hugo без WARN/ERROR, корни / (en) и /ru/ (ru), в�
 K5 — английский текст: в en-страницах из site/content почти нет кириллицы, правила публичных текстов.
 --pages=a,b — K2 и K5 только для страниц, чья база (путь в site/content без .en.md/.ru.md) начинается с a или b
   (напр. --pages=mechanics/flight,releases/); задача перевода проверяет свои страницы.
+--k5-skip=a,b — K5 не проверять у страниц с этими префиксами базы (ручной текст ещё не переведён другой задачей).
 --allow-missing — не считать ошибкой ru-страницы без en-перевода (промежуточные этапы), только печатать число.
 Код выхода 0 — всё по контракту, 1 — нарушения (список в выводе).
 """
@@ -34,6 +35,7 @@ FORBIDDEN_EN = re.compile(r"\b(mom|mum|mother|dad|father|easter[- ]eggs?)\b", re
 errors: list[str] = []
 allow_missing = False
 pages: list[str] = []
+k5_skip: list[str] = []
 
 
 def err(k: str, msg: str) -> None:
@@ -241,6 +243,8 @@ def k5(out: str) -> None:
         if not f.endswith(".en.md"):
             continue
         b = f[: -len(".en.md")]
+        if any(b.startswith(x) for x in k5_skip):
+            continue
         if b.endswith("/_index") or b == "_index":
             rel = b[: -len("_index")]
         elif b.endswith("/index"):
@@ -270,6 +274,8 @@ def main() -> int:
             only = set(a.split("=", 1)[1].split(","))
         elif a == "--allow-missing":
             allow_missing = True
+        elif a.startswith("--k5-skip="):
+            k5_skip.extend(x for x in a.split("=", 1)[1].split(",") if x)
         elif a.startswith("--pages="):
             pages.extend(x for x in a.split("=", 1)[1].split(",") if x)
         elif a.startswith("--keep="):
