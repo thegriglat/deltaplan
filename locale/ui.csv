@@ -92,6 +92,7 @@ controls_camera,Вид: из кабины → сзади → свободная 
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
 controls_pause,Пауза и меню,Pause and menu
 controls_mouse_capture,Отпустить или снова захватить мышь; отпущенная мышь крыло не двигает,Release or recapture the mouse; a released mouse does not move the wing
+about_trademarks,"Названия дельтапланов и производителей принадлежат их владельцам и используются только чтобы назвать моделируемые крылья. Игра не связана с производителями и не одобрена ими. Если вы производитель и против упоминания своей продукции — напишите нам на GitHub, и мы уберём название. https://github.com/thegriglat/deltaplan","Hang glider and manufacturer names are trademarks of their respective owners and are used only to identify the simulated wings. This game is not affiliated with or endorsed by them. If you are a manufacturer and object to your product being mentioned, please contact us on GitHub and we will remove it. https://github.com/thegriglat/deltaplan"
 about_dedication,В благодарность родителям-дельтапланеристам.,With gratitude to my hang glider pilot parents.
 setup_start_time,Время старта,Start time
 setup_date,Дата,Date
