@@ -1,4 +1,4 @@
-// План опытов air-phase — контракт P2 v2 (docs/contracts/air-phase.md).
+// План опытов air-phase — контракт P2 v3 (docs/contracts/air-phase.md).
 // Владелец .proto — координатор модуля; менять только через контракт (версия +1).
 syntax = "proto3";
 
@@ -96,7 +96,7 @@ message Line {
   int32 line_id = 1;
   Series series = 2;
   int32 relief_id = 3;
-  double heat_flux_wm2 = 4;     // однородный поток явного тепла (override)
+  double heat_flux_wm2 = 4;     // однородный поток явного тепла (override); при conditions: -1 — решение h, 0 — решение m
   double h_over_zi = 5;         // z_i = h / h_over_zi над базой (override)
   double n_bv_s = 6;            // N над z_i (override)
   double wdir_from_deg = 7;     // откуда дует; 270 — поперёк форм
@@ -112,7 +112,7 @@ message Line {
 }
 
 message Plan {
-  string contract = 1;          // "P2 v2"
+  string contract = 1;          // "P2 v3"
   string name = 2;              // напр. "ap_v1"
   string created = 3;           // ISO
   string git_commit = 4;
