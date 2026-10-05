@@ -2,8 +2,8 @@
   "id": "SA-2",
   "module": "steam-assets",
   "type": "dp-researcher",
-  "title": "Подложка карты выбора старта: варианты для платной игры",
-  "goal": "Заменить бесплатные серверы tile.openstreetmap.org и OpenTopoMap, правила которых не подходят распространяемой платной игре: варианты (поставщик с ключом, свой растр из Terrarium+WorldCover с подписями сёл, смешанный) с ценой и трудоёмкостью — для решения пользователя.",
+  "title": "Подложка карты: соответствие правилам серверов тайлов OSM и OpenTopoMap",
+  "goal": "Подложку не меняем (решение пользователя 05.10); проверить, что игра соблюдает правила tile.openstreetmap.org и OpenTopoMap — честный User-Agent, видимая атрибуция, кэш на диске, без массовой предзагрузки, адрес сервера в конфиге — и составить список правок.",
   "plan_ref": "SA-2",
   "contracts": [
     {
@@ -16,8 +16,7 @@
   "branch": "steam-assets/SA-2",
   "base": "feature/steam-assets",
   "scope": [
-    "docs/research/steam_basemap_options.md",
-    "tools/research/basemap/"
+    "docs/research/steam_tile_policy.md"
   ],
   "dont_touch": [
     "configs/",
@@ -33,11 +32,12 @@
     },
     {
       "name": "doc_exists",
-      "cmd": "test -s docs/research/steam_basemap_options.md && test -s tools/research/basemap/README.md",
+      "cmd": "test -s docs/research/steam_tile_policy.md",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-05T06:50:11"
+  "created": "2026-10-05T06:50:11",
+  "edited": "2026-10-05T06:53:26"
 }
