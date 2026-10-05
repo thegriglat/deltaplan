@@ -1,0 +1,38 @@
+{
+ "updated": "2026-10-05 05:10:08",
+ "stage_done": [
+  "game__hgw24__s0-939a467:game"
+ ],
+ "dirs": {
+  "game__hgw24__s0-939a467": {
+   "n_plan": 96,
+   "cases_done": 96,
+   "parts_done": 1,
+   "bytes": 111923969,
+   "gb_per_1000_cases": 1.166,
+   "nonconverged_fraction": 0.0833,
+   "diverged_fraction": 0.0,
+   "seconds_per_case_mean": 10.8,
+   "seconds_per_case_calm": 20.5,
+   "seconds_per_case_other": 10.3,
+   "eta_hours_if_workers_same": 0.0,
+   "stage_done": [
+    "game"
+   ],
+   "by_group": {
+    "train": {
+     "planned": 0,
+     "done": 0
+    },
+    "holdout": {
+     "planned": 0,
+     "done": 0
+    },
+    "game": {
+     "planned": 96,
+     "done": 96
+    }
+   }
+  }
+ }
+}
