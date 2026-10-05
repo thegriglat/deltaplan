@@ -4,7 +4,7 @@ extends TestCase
 ## словари); каждый вариант Envelope из NetMessages.ENVELOPE должен быть среди примеров.
 ## Плюс подстановка умолчаний proto3, мусор и незнакомые варианты.
 
-const DOC_PATH := "res://docs/net_protocol.md"
+const DOC_PATH := "res://docs/guide/net-protocol.md"
 
 
 func test_doc_examples_round_trip() -> void:
