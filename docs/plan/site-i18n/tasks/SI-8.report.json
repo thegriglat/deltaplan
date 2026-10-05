@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Переведена страница air-model на английский: site/content/mechanics/air-model.en.md (структура, ссылки, картинки, формулы, числа как в оригинале).",
+  "commits": [
+    "95c24a88 site-i18n SI-8: английский перевод страницы «Модель воздуха»"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS 1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-8 --dry",
+  "uncertain": [
+    {
+      "where": "air-model.en.md, абзац «Loading»",
+      "why": "название этапа загрузки взято из locale/ui.csv (loading_wind: «Computing wind from terrain…»), хотя в ru-тексте кавычки «Рассчитываем ветер» без «по рельефу…»",
+      "checked": "locale/ui.csv строка 123"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:19:30",
+  "by": "executor"
+}

@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/mechanics/flight.en.md — полный перевод страницы (структура, формулы, таблица, шорткоды, ссылки как в оригинале).",
+  "commits": [
+    "71aeeea3 site-i18n SI-7: английский перевод страницы «Крыло и полёт»"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept SI-7 --dry",
+  "uncertain": [
+    {
+      "where": "flight.en.md, раздел «Крен и трапеция»",
+      "why": "«Смещение веса» и «Как раньше» (режимы) в ui.csv не совпадают дословно (там «Смещение веса (как на настоящем крыле)»), оставил «Weight shift» / «As before»; «Полёт…» → «Flight setup…», «Инверсия тангажа» → «Invert pitch», «Управление креном» → «Roll control» из csv",
+      "checked": "grep locale/ui.csv"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:21:06",
+  "by": "executor"
+}

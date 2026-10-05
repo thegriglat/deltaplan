@@ -1,0 +1,75 @@
+{
+  "id": "SI-1",
+  "module": "site-i18n",
+  "type": "dp-engineer",
+  "title": "Многоязычность Hugo: en (корень) + ru (/ru/), i18n, резолвер ссылок между языками",
+  "goal": "Инфраструктура двуязычного сайта по контрактам SI-К1…К4: конфиг языков, переименование страниц в .ru.md, строки интерфейса через i18n, ссылки между языками, переключатель. Переводы делают другие задачи.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SI-К1",
+      "version": "2",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К2",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К3",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "2",
+      "ref": "docs/contracts/site-i18n.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-i18n-SI-1",
+  "branch": "site-i18n/SI-1",
+  "base": "feature/site-i18n",
+  "scope": [
+    "site/hugo.toml",
+    "site/i18n",
+    "site/layouts",
+    "site/content (git mv *.md → *.ru.md, кроме wings/)",
+    ".github/workflows/pages.yml"
+  ],
+  "dont_touch": [
+    "site/content/wings",
+    "tools/site/gen_wings.py",
+    "tools/site/check_i18n.py",
+    "site/themes",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "config_i18n",
+      "cmd": "python3 tools/site/check_i18n.py --only=K1,K3",
+      "expect": "exit=0"
+    },
+    {
+      "name": "build_links",
+      "cmd": "python3 tools/site/check_i18n.py --only=K4",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pages_suffix",
+      "cmd": "python3 tools/site/check_i18n.py --only=K2 --allow-missing --pages=_index,approaches,diary/,docs/,mechanics/,plans/,releases/,research/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings_c2",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-05T06:08:19",
+  "edited": "2026-10-05T06:16:42"
+}

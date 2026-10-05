@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан terrain.en.md — перевод страницы «Рельеф и места».",
+  "commits": [
+    "d27de83e site-i18n SI-10: английский перевод"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-10 --dry",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/terrain.en.md",
+      "why": "ссылка /mechanics/clouds/ названа Clouds and shadows (en-страницы нет); раздел «Ветер на земле» в оригинале отсутствует — оставлено как в оригинале",
+      "checked": "структура и ссылки как у ru"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:20:54",
+  "by": "executor"
+}

@@ -1,0 +1,22 @@
+{
+  "status": "done",
+  "summary": "Создан clouds.en.md, перевод страницы Облака и тени.",
+  "commits": [
+    "87119fbd SI-17 clouds.en.md"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-17 --dry",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:24:11",
+  "by": "executor"
+}

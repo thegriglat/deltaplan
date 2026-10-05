@@ -2,6 +2,9 @@
   Разбор ссылки/картинки из markdown (без вложенных partial — в Hugo 0.167 они падают из render-хуков).
   Вход: dict "Page" <страница> "Destination" <ссылка> "Image" <bool>
   Выход: dict "url" <адрес> "kind" ("external"|"fragment"|"page"|"resource"|"github"|"missing") "repo" <путь в репозитории>
+         "lang" <язык найденной страницы или "">; "foreign" true — страница найдена не в языке текущей (SI-К4)
+  Страница ищется в языке текущей страницы, затем в остальных языках (hugo.Sites).
+  Суффикс языка в имени файла (.ru.md/.en.md) при расчёте пути в репозитории отбрасывается.
 
   - абсолютный URL (http:, mailto:) и якорь (#…) — как есть;
   - «/путь» — сначала страница сайта (/mechanics/flight/) или ресурс бандла (/releases/0.8.0/screenshots/x.jpg),
@@ -15,6 +18,12 @@
 {{- $u := urls.Parse $dest -}}
 {{- $res := dict "url" $dest "kind" "external" "repo" "" -}}
 {{- $maxBytes := 10000000 -}}
+{{- $lang := "" -}}
+{{- $foreign := false -}}
+{{- $cur := $page.Language.Lang -}}
+{{- /* сайты: сначала язык текущей страницы, затем остальные */ -}}
+{{- $sites := slice $page.Site -}}
+{{- range hugo.Sites -}}{{- if ne .Language.Lang $cur -}}{{- $sites = $sites | append . -}}{{- end -}}{{- end -}}
 
 {{- if or $u.IsAbs (strings.HasPrefix $dest "#") (eq $dest "") -}}
   {{- if strings.HasPrefix $dest "#" -}}{{- $res = merge $res (dict "kind" "fragment") -}}{{- end -}}
@@ -25,10 +34,19 @@
   {{- $kind := "" -}}
   {{- $repo := "" -}}
 
+  {{- /* 0. «/» — главная страницы в её языке */ -}}
+  {{- if and (eq $p "/") (not $isImage) -}}
+    {{- $found = true -}}{{- $url = $page.Site.Home.RelPermalink -}}{{- $kind = "page" -}}{{- $lang = $cur -}}
+  {{- end -}}
+
   {{- /* 1. Страница сайта от корня */ -}}
   {{- if and (strings.HasPrefix $p "/") (not $isImage) (ne $p "/") -}}
-    {{- with site.GetPage (strings.TrimSuffix "/" (strings.TrimSuffix ".md" $p)) -}}
-      {{- $found = true -}}{{- $url = .RelPermalink -}}{{- $kind = "page" -}}
+    {{- range $sites -}}
+      {{- if not $found -}}
+        {{- with .GetPage (strings.TrimSuffix "/" (strings.TrimSuffix ".md" $p)) -}}
+          {{- $found = true -}}{{- $url = .RelPermalink -}}{{- $kind = "page" -}}{{- $lang = .Language.Lang -}}
+        {{- end -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 
@@ -37,9 +55,13 @@
     {{- $r := false -}}
     {{- if strings.HasPrefix $p "/" -}}
       {{- $cp := strings.TrimPrefix "/" $p -}}
-      {{- with site.GetPage (path.Dir $cp) -}}{{- $r = .Resources.Get (path.Base $cp) -}}{{- end -}}
-      {{- if not $r -}}
-        {{- with site.GetPage (path.Dir (path.Dir $cp)) -}}{{- $r = .Resources.Get (path.Join (path.Base (path.Dir $cp)) (path.Base $cp)) -}}{{- end -}}
+      {{- range $sites -}}
+        {{- if not $r -}}
+          {{- with .GetPage (path.Dir $cp) -}}{{- $r = .Resources.Get (path.Base $cp) -}}{{- end -}}
+        {{- end -}}
+        {{- if not $r -}}
+          {{- with .GetPage (path.Dir (path.Dir $cp)) -}}{{- $r = .Resources.Get (path.Join (path.Base (path.Dir $cp)) (path.Base $cp)) -}}{{- end -}}
+        {{- end -}}
       {{- end -}}
     {{- else -}}
       {{- $r = $page.Resources.Get (strings.TrimPrefix "./" $p) -}}
@@ -57,7 +79,7 @@
       {{- /* путь файла текущей страницы в репозитории */ -}}
       {{- $self := "" -}}
       {{- with $page.File -}}
-        {{- $cpath := .Path | replaceRE `\\` "/" -}}
+        {{- $cpath := .Path | replaceRE `\\` "/" | replaceRE `\.(ru|en)\.md$` ".md" -}}
         {{- $done := false -}}
         {{- range site.Params.repoMap -}}
           {{- if and (not $done) (strings.HasPrefix $cpath .content) -}}
@@ -90,21 +112,31 @@
         {{- end -}}
       {{- end -}}
       {{- with $cpage -}}
-        {{- with site.GetPage . -}}
-          {{- $found = true -}}{{- $url = .RelPermalink -}}{{- $kind = "page" -}}
+        {{- $cp := . -}}
+        {{- range $sites -}}
+          {{- if not $found -}}
+            {{- with .GetPage $cp -}}
+              {{- $found = true -}}{{- $url = .RelPermalink -}}{{- $kind = "page" -}}{{- $lang = .Language.Lang -}}
+            {{- end -}}
+          {{- end -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
 
     {{- /* 2b. файл репозитория: картинка/HTML до 10 МБ — публикуем, остальное — на GitHub */ -}}
     {{- if not $found -}}
-      {{- with resources.Get (printf "repo/%s" $repo) -}}
+      {{- /* «/путь» к ресурсу бандла, у которого нет страницы в этом языке (перевод ещё не сделан): файл лежит в site/content */ -}}
+      {{- $rp := $repo -}}
+      {{- if and (strings.HasPrefix $p "/") (not (resources.Get (printf "repo/%s" $repo))) (resources.Get (printf "repo/site/content/%s" $repo)) -}}
+        {{- $rp = printf "site/content/%s" $repo -}}
+      {{- end -}}
+      {{- with resources.Get (printf "repo/%s" $rp) -}}
         {{- $found = true -}}
         {{- $ext := path.Ext $repo | lower -}}
         {{- if and (in (slice ".png" ".jpg" ".jpeg" ".svg" ".gif" ".webp" ".html") $ext) (lt (len .Content) $maxBytes) -}}
           {{- $url = .RelPermalink -}}{{- $kind = "resource" -}}
         {{- else -}}
-          {{- $url = printf "%s%s" site.Params.repoBlob $repo -}}{{- $kind = "github" -}}
+          {{- $url = printf "%s%s" site.Params.repoBlob $rp -}}{{- $kind = "github" -}}
         {{- end -}}
       {{- else -}}
         {{- /* папка репозитория */ -}}
@@ -118,7 +150,8 @@
   {{- if $found -}}
     {{- with $u.RawQuery -}}{{- $url = print $url "?" . -}}{{- end -}}
     {{- with $u.Fragment -}}{{- $url = print $url "#" . -}}{{- end -}}
-    {{- $res = dict "url" $url "kind" $kind "repo" $repo -}}
+    {{- if and (eq $kind "page") (ne $lang $cur) -}}{{- $foreign = true -}}{{- end -}}
+    {{- $res = dict "url" $url "kind" $kind "repo" $repo "lang" $lang "foreign" $foreign -}}
   {{- else -}}
     {{- $res = dict "url" $dest "kind" "missing" "repo" $repo -}}
   {{- end -}}

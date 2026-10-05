@@ -1,6 +1,6 @@
 {{- /* «Исходник на GitHub» — файл страницы в репозитории (по params.repoMap) */ -}}
 {{- with .File -}}
-  {{- $cpath := .Path | replaceRE `\\` "/" -}}
+  {{- $cpath := .Path | replaceRE `\\` "/" | replaceRE `\.(ru|en)\.md$` ".md" -}}
   {{- $repo := "" -}}
   {{- $done := false -}}
   {{- range site.Params.repoMap -}}
@@ -12,6 +12,6 @@
     {{- end -}}
   {{- end -}}
   {{- with $repo -}}
-<p class="source-link">Исходник страницы: <a href="{{ site.Params.repoBlob }}{{ . }}" rel="noopener"><code>{{ . }}</code></a></p>
+<p class="source-link">{{ i18n "dpPageSource" }}: <a href="{{ site.Params.repoBlob }}{{ . }}" rel="noopener"><code>{{ . }}</code></a></p>
   {{- end -}}
 {{- end -}}

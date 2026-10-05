@@ -1,5 +1,5 @@
 {{- /* Ссылка на коммит: {{< commit 08c614f >}} */ -}}
 {{- $h := .Get 0 -}}
-{{- if not (findRE `^[0-9a-f]{7,40}$` $h) -}}{{- errorf "commit: неверный хеш %q на %s" $h .Page.File.Path -}}{{- end -}}
+{{- if not (findRE `^[0-9a-f]{7,40}$` $h) -}}{{- errorf "commit: invalid hash %q on %s" $h .Page.File.Path -}}{{- end -}}
 <a class="commit" href="{{ site.Params.repoCommit }}{{ $h }}" rel="noopener"><code>{{ substr $h 0 7 }}</code></a>
 {{- /**/ -}}
