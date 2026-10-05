@@ -297,7 +297,7 @@ func _fetch_tile_bytes(z: int, x: int, y: int) -> Dictionary:
 	add_child(req)
 	_requests.append(req)
 	var err := req.request(
-		url, PackedStringArray(["User-Agent: " + String(_cfg.get("user_agent", "deltaplan-sim"))])
+		url, PackedStringArray(["User-Agent: " + RasterTileLoader.expand_user_agent(String(_cfg.get("user_agent", "deltaplan/{version}")))])
 	)
 	if err != OK:
 		_requests.erase(req)
