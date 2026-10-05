@@ -8,7 +8,9 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 ---
 # План модуля steam — подготовка игры к Steam
 
-Ветка `feature/steam`, копия `~/deltaplan-steam`, код задач `ST`. Контракты стыков — `docs/contracts/steam.md`.
+Ветка `feature/steam`, копия `~/deltaplan-steam`, код задач `ST`.
+
+**Состояние 05.10.2026:** ST-1…ST-11 приняты и влиты в `feature/steam`; влит модуль steam-assets. Ждёт: решения пользователя о слиянии в main; регистрации в Steamworks (после onnx) — шаги в `steam/partner/README.md`; ручной проверки на двух аккаунтах и у друга на Windows/macOS — `docs/guide/steam.md`. Известные ограничения: поздние кадры закрытого Steam-соединения (ревью ST-8, minor), PilotState надёжными кадрами, приватные поля чужих модулей в потоке ачивок (`_fade` у глории, `_surface_layer_at`). Контракты стыков — `docs/contracts/steam.md`.
 
 ## Цель
 1. Сетевая игра через Steam: лобби, друзья (приглашения, вход к другу), совместная игра — поверх существующего сетевого кода (протокол `docs/guide/net-protocol.md` не меняется, Steam — лобби и транспорт).
