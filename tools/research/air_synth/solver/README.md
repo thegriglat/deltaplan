@@ -64,3 +64,8 @@ tools/dp job --lock gpu start sy10-solve 200000 $PWD/run_hg.sh                  
 Распределение условий hgw24 (7296 условий) — `out_solve_hg_conditions_summary.json`: утро/день/вечер 33/34/33 %, слабый ветер (< 2 м/с) 9,7 %, механический режим (w*/U < 0,5) 87,7 %,
 классы устойчивости A…F: 171/1292/1605/3481/359/388. **Оговорка:** при градиенте свободной атмосферы 8–9 К/км и тёплом дне z_i над землёй > 3000 м в 20 % условий (до 11 км) —
 выше потолка области решателя (максимум рельефа + 3000 м); это следствие распределения S2 v4, не ошибка кода.
+
+# SY-12: счёт по hg_v2 (геометрия C2 v7)
+`run_trial_hg2.sh` (пробные 20 случаев, `out_solve_hg2/progress.json`), `run_hg2.sh` (весь счёт: game2 → holdout → train; ставить только по команде координатора после первого обучения SY-11):
+`tools/dp job --lock gpu start sy12-solve 200000 tools/research/air_synth/solver/run_hg2.sh`. Условия: `make_hgw24.py --relief-corpus ~/air_synth_data/real/hg_v2 --out ~/air_synth_data/conditions/hg_v2_hgw24`
+(и `game_hg2` → `game2_hgw24`). Результат: `solve/game2__hgw24__<версия>`, `solve/hg_v2__hgw24__<версия>`. Оценка полного счёта — по пробному прогону (см. журнал SY-12).

@@ -52,3 +52,24 @@ XDG_DATA_HOME=$(mktemp -d) godot --headless --path <копия> res://tools/rese
 ```
 Выходы: `out/hg_summary.json` (пути, размеры, `h400_vs_game_blockmean_max_abs_m` = 0,075 — шаг квантования/2, клетки f·s, `raw_deleted`), `out/split_summary.json`,
 `out/excluded.json`, `out/geometry.json` (на место: z, s, f, клетка, область, сдвиг центра, clamped_px).
+
+# SY-12: те же места по исправленной геометрии игры (S1 v5, `real/hg_v2`)
+
+После air-square (main b3e9228, C2 v7) квадрат игры = конвейер П6: Terrarium z12 билинейно в узлах решётки мира 25 м от центра = точка старта, клетка ровно 400 м
+(среднее 16 × 16 узлов), область ровно 38,4 км, всегда в слое 40 км (сдвигов окна нет). Строит `pack_hg2.py` (`terrain_cut.place_plan/grid_h/block_mean_400` без правок),
+места/деление/правила исключения — из `pack_hg.py`/`split_hg.py` без изменений. h100 = среднее 4 × 4 узлов, h400 = среднее 4 × 4 h100 = `hc400` П6.
+`hg_v1`/`game_hg` (геометрия игры v6, клетка f·s) остаются только для первого обучения SY-11.
+```bash
+cd tools/research/air_synth/hg_real; PY=../../air_nn_pilot/.venv/bin/python
+$PY pack_hg2.py plan && $PY pack_hg2.py fetch          # 12 072 тайла z12, 1,2 ГБ, ~45 мин -> ~/sy12_data/raw
+$PY pack_hg2.py pack --workers 8                       # real/hg_v2 (305), real/game_hg2 (4), out/*_v2.json, ~40 с
+XDG_DATA_HOME=$(mktemp -d) $PY check_game.py           # godot headless (нужен `godot --headless --path <копия> --import` один раз) -> out/game_check_v2.json
+$PY pack_hg2.py clean                                  # сырьё удалить
+../corpus/.venv/bin/python -m pytest -q tests
+```
+Результат: **305 мест** (hg_v1: 304) = 285 train + 20 holdout (те же 20 site_id, что в hg_v1; min расстояние отложенное–обучающее 51,3 км); исключено 58 (море 43, перепад 18; 3 — по обоим):
+отличие от hg_v1 одно — `hg_0231` теперь входит (перепад h400 ≤ 3000 м при 38,4 км области; `out/split_summary_v2.json → vs_hg_v1`), новых исключений нет.
+Обрезанных выбросов Terrarium у мест корпуса нет. Сверка с игрой из main (`out/game_check_v2.json`): 4 места игры + 4 бывших «вне слоя» (hg_0142, hg_0349, hg_0350 и hg_0151 — последнее
+исключено как море, но h400 сверен) + 5 случайных — **max |h400 П6 − игра| = 1,9e-5 м** (float64 игры против float32 П6). Условия hgw24 тем же зерном: `conditions/hg_v2_hgw24` (7320 = 305 × 24),
+`conditions/game2_hgw24` (96). Данные: Terrain Tiles (Mapzen/AWS Open Data), условия — `real/terrain_real.yaml`, ASSETS.md.
+**Формат:** атрибут `contract` корпуса = "S1 v4" (формат S1 v5 тот же; `corpus_io.CONTRACT_OK` вне скоупа SY-12 знает только v3/v4), геометрия — атрибуты `generator_version="real-hg-v2"` и `geometry`.
