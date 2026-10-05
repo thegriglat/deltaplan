@@ -1,0 +1,46 @@
+{
+  "id": "ST-5",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Поток событий полёта для ачивок (AchievementFeed)",
+  "goal": "Дать трекеру ачивок (ST-6) полёт в виде словарей по контракту S2, чтобы логика ачивок не зависела от Game и тестировалась на синтетике.",
+  "plan_ref": "ST-5. Поток событий полёта",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-5",
+  "branch": "steam/ST-5",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/game/achievement_feed.gd",
+    "scripts/game/game.gd",
+    "tests/game/",
+    "tests/contracts/test_steam_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/net/",
+    "scripts/ui/",
+    "docs/contracts/steam.md"
+  ],
+  "accept": [
+    {
+      "name": "achievement_feed",
+      "tests": "achievement_feed"
+    },
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/game/",
+      "tests": "/game/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:43:26"
+}

@@ -1,3 +1,7 @@
 {"t": "2026-10-05T06:32:52", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-05T06:35:51", "by": "coordinator", "task": "ST-1", "ev": "created", "note": "Исследование GodotSteam: версия, лицензия, сборка, поведение без Steam, App ID 480, сеть, Cloud"}
 {"t": "2026-10-05T06:35:58", "by": "coordinator", "task": "ST-1", "ev": "started", "note": "dp-researcher (sonnet), ~/deltaplan-steam-ST-1"}
+{"t": "2026-10-05T06:43:25", "by": "coordinator", "task": "ST-4", "ev": "created", "note": "Транспорт сети: подключаемые пиры (WebSocket, loopback), реестр схем, LocalServer.attach_peer"}
+{"t": "2026-10-05T06:43:26", "by": "coordinator", "task": "ST-5", "ev": "created", "note": "Поток событий полёта для ачивок (AchievementFeed)"}
+{"t": "2026-10-05T06:43:26", "by": "coordinator", "task": "ST-4", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-steam-ST-4"}
+{"t": "2026-10-05T06:43:26", "by": "coordinator", "task": "ST-5", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-steam-ST-5"}
