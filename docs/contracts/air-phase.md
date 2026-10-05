@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы (reliefs.py + корпус S1 ideal_v1), P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель с опциями, P5 интерфейс скрипта прогона run_phase.py"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 1}, {"id": "P3", "version": 1}, {"id": "P4", "version": 1}, {"id": "P5", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 2}, {"id": "P3", "version": 2}, {"id": "P4", "version": 2}, {"id": "P5", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -36,11 +36,11 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
-## P2. План опытов — манифест protobuf (версия 1)
+## P2. План опытов — манифест protobuf (версия 2)
 **Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
 
 - Файлы: `$AIR_SYNTH_DATA/phase/<plan>/plan.pb` (сериализованный `Plan`) + `plan.json` (тот же план в JSON для людей,
-  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v1"`.
+  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v2"`.
 - Линия — набор точек Fr при прочих равных; случай = (line_id, k), `case_id = first_case_id + k`, номера сквозные
   и плотные по плану. Порядок точек в линии = порядок счёта (`fr_f64`, little-endian float64 в `bytes`).
 - `start = WARM_PREV`: случай k стартует с полного состояния (float32) случая k − 1 той же линии; k = 0 — холодный.
@@ -49,8 +49,14 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
 - Значения по умолчанию (поле 0 в proto3) не используются как «не задано»: построитель заполняет все поля `Numerics`
   явно; `n_bv_s`, `h_over_zi`, `heat_flux_wm2` — всегда заданы (override), `wdir_from_deg` — всегда задан.
 - Серии и состав — план модуля §3; построитель печатает число линий и случаев по сериям.
+- **v2 (06.10, решение пользователя — огибающая «линии тени» как склон для Пикара):** серии `ENVELOPE` (идеальные формы)
+  и `ENVELOPE_REAL` (реальные места); `Numerics.envelope_angle_deg` (0 — без огибающей), `envelope_wall`
+  (`WALL_GROUND` | `WALL_LOW_Z0` | `WALL_SLIP`), `envelope_z0_m`; `Line.conditions` + `cond_id` — случай из строки таблицы
+  S2 (override-поля линии не действуют, `fr_f64` — одна точка = `froude` таблицы), иначе `""` и −1. Инвариант:
+  `envelope_angle_deg > 0` ⇔ `envelope_wall != WALL_NONE`. `ref_line_id` у ENVELOPE — линия SEPARATION с dx = 100 той же
+  формы/s/Fr/H/угла ветра (эталон); у ENVELOPE_REAL — линия той же (relief_id, cond_id) без огибающей.
 
-## P3. Результаты замеров — HDF5 + jsonl (версия 1)
+## P3. Результаты замеров — HDF5 + jsonl (версия 2)
 **Владелец:** AP-3. **Потребители:** разбор (следующий этап), отчёт на шлюзе.
 
 - Каталог: `$AIR_SYNTH_DATA/phase/<plan>__<solver_version>/`: `part-{n:05d}.h5` (одна часть = один посчитанный пакет,
@@ -58,16 +64,17 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   part, batch_size, t` ISO), `run.jsonl` (строка на пакет/запуск: время, размер, устройство, ошибки), `ckpt/line-<id>.h5`
   (float32 состояние последнего случая незавершённой линии с тёплым стартом; удаляется, когда линия досчитана),
   `trial.json`, `bench.json`.
-- Атрибуты корня части: `contract = "P3 v1"`, `kind = "phase"`, `plan` (путь), `plan_sha256`, `solver_version`
+- Атрибуты корня части: `contract = "P3 v2"`, `kind = "phase"`, `plan` (путь), `plan_sha256`, `solver_version`
   (`s<n>-<7 знаков хеша air3d/*.py и batch-модуля>`), `device`, `batch_size`, `git_commit`, `created`, `command`,
   `n_records`, `agl_m` (13 высот S5), `snap_levels_agl_m` = [25, 600].
 - Наборы части (M — случаев в части, ось 0 — случай):
 
   | набор | форма, тип | что |
   |---|---|---|
-  | `cases` | (M,) составной | `case_id` i8, `line_id` i4, `k` i4, `series` i1 (enum P2), `relief_id` i4, `fr` f4 (цель), `froude_table` f4 (`conditions.derive`), `u10` f4, `u_sat` f4, `wdir_from_deg` f4, `n_bv` f4, `z_i_agl_m` f4, `heat_flux_wm2` f4, `zi_over_L` f4 (−z_i/L), `dx_m` f4, `start_case_id` i8 (−1 — холодный), `status` i1 (0 ok, 1 max, 2 diverged), `iters` i4, `target` i1 (0 final, 1 late_mean), `late_n` i2, `late_spread60_p90` f4 (м/с), `resid_final` f4, `resid_rel_final` f4, `seconds` f4 (стенное время пакета / M), `batch_size` i2 |
+  | `cases` | (M,) составной | `case_id` i8, `line_id` i4, `k` i4, `series` i1 (enum P2), `relief_id` i4, `fr` f4 (цель), `froude_table` f4 (`conditions.derive`), `u10` f4, `u_sat` f4, `wdir_from_deg` f4, `n_bv` f4, `z_i_agl_m` f4, `heat_flux_wm2` f4, `zi_over_L` f4 (−z_i/L), `dx_m` f4, `start_case_id` i8 (−1 — холодный), `status` i1 (0 ok, 1 max, 2 diverged), `iters` i4, `target` i1 (0 final, 1 late_mean), `late_n` i2, `late_spread60_p90` f4 (м/с), `resid_final` f4, `resid_rel_final` f4, `seconds` f4 (стенное время пакета / M), `batch_size` i2, `cond_id` i4 (−1 — override), `envelope_angle_deg` f4, `envelope_wall` i1 |
   | `fields/f` | (M, 4, 13, 96, 96) f2 | итог: u, v, w (м/с), θ′ (К) на 13 высотах S5 |
-  | `inputs/hc`, `inputs/heat_flux`, `inputs/hbl` | (M, 96, 96) f4, f2, f2 | как S5 |
+  | `inputs/hc`, `inputs/heat_flux`, `inputs/hbl` | (M, 96, 96) f4, f2, f2 | как S5 (`hc` — настоящая земля) |
+  | `inputs/h_eff` | (M, 96, 96) f4 | только ENVELOPE / ENVELOPE_REAL: верх огибающей, м н. у. м. (= `hc` вне тени); высоты `fields/f` — над h_eff |
   | `trace/iter` | (M, T) i4 | итерации снимков 100, 150, … ≤ max_outer; −1 — снимка нет (сошлось раньше) |
   | `trace/resid`, `trace/du_max` | (M, T) f4 | метрика сходимости; max\|u_t − u_{t−50}\| (м/с) |
   | `trace/fields` | (M, T, 3, 2, 96, 96) f2 | u, v, w на 25 и 600 м в моменты снимков |
@@ -81,7 +88,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (`progress.jsonl` — для людей и ETA, не источник правды); дублей `case_id` нет; повтор случая на том же устройстве и
   версии с тем же составом пакета — побитно. Бюджет диска на весь счёт — ≤ 20 ГБ (иначе — шлюз).
 
-## P4. Решатель: пакетный вызов и опции (версия 1)
+## P4. Решатель: пакетный вызов и опции (версия 2)
 **Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
 **Потребители:** AP-3.
 
@@ -93,11 +100,13 @@ class CaseSpec:            # один случай
     u10: float; wdir_from_deg: float; alpha: float; max_profile: float
     n_bv_s: float | None; z_i_agl_m: float | None; heat_flux_wm2: float | None   # None — путь S2/решателя как есть
     dx_m: float = 400.0    # 100.0 — окно 100 м вокруг формы (SEPARATION), область 400 м — как есть
+    cond_row: dict | None = None   # строка S2 (ENVELOPE_REAL): условия как solve_corpus; override тогда None
 @dataclass
 class Numerics:            # как P2 Numerics
     advection_order: int = 1; omega_u: float = 1.0; omega_k: float = 1.0; k_floor_m2s: float | None = None
     criterion: str = "abs"; tol: float | None = None; max_outer: int = 1000
     snap_from: int = 100; snap_step: int = 50; late_from: int = 500; late_step: int = 50
+    envelope_angle_deg: float = 0.0; envelope_wall: str = "none"; envelope_z0_m: float | None = None  # none|ground|low_z0|slip
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
@@ -119,6 +128,14 @@ def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
   u ← u + ω(u* − u), K ← K + ω(K* − K).
 - Окно 100 м — вложенное окно решателя (`init_nest`/`set_nest_bc`) с переносом 2-го порядка; размер и положение (по ветру
   от бровки должно влезать ≥ 15 h) — атрибуты результата.
+- **Огибающая (v2):** h_eff = max(h, линия тени), линия тени — от каждой бровки по ветру вниз под углом
+  `envelope_angle_deg` к горизонту (марш по направлению ветра на сетке 400 м; бровка — клетка, за которой склон по ветру
+  круче угла). Объём под огибающей — твёрдое тело для решателя (терренный σ-уровень по h_eff или маска `active` — на выбор
+  исполнителя, способ — в docstring); на верхней грани огибающей — граница `envelope_wall` (ground — как земля; low_z0 —
+  z0 = `envelope_z0_m`; slip — нулевое касательное напряжение; если решатель slip не умеет — реализовать или вернуть
+  отказ `NotImplementedError` с записью в отчёт), вне тени — земля как есть. Поток тепла клетки — с настоящей земли
+  (солнце по уклону/азимуту настоящего h) и подаётся на верх огибающей. Без огибающей — побитно как v1. Результат
+  дополнительно: `h_eff` (96, 96).
 - Замер батча: `bench.json` — пропускная способность (случаев/ч) по B (и, для сравнения, по числу процессов на GPU),
   пик памяти GPU; выбранный B по умолчанию — константа в `batch_solver.py`.
 
