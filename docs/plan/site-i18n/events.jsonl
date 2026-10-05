@@ -70,3 +70,4 @@
 {"t": "2026-10-05T06:21:44", "by": "executor", "task": "SI-2", "ev": "reported", "commits": ["5e81166e"], "note": "done: gen_wings.py пишет ru и en по SI-К6; wings/** переименованы в .ru.md, сгенерированы .en.md (48 крыльев, 106 файлов); сс…", "dp_feedback": "dp task sync отказывает при грязной копии — пришлось сначала коммитить."}
 {"t": "2026-10-05T06:21:49", "by": "executor", "task": "SI-18", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:21:50", "by": "coordinator", "task": "SI-18", "ev": "merged", "commits": ["b5684139"]}
+{"t": "2026-10-05T06:21:55", "by": "coordinator", "task": "SI-14", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-14"}
