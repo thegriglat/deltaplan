@@ -17,6 +17,8 @@ signal zone_joined(code: String)
 signal peers_changed
 ## Изменился список зон рядом (NET-23: появилась/пропала/обновилась).
 signal nearby_changed
+## Изменился список «Друзья в игре» (S5, только при активном Steam).
+signal friends_changed
 
 const ERROR_KINDS: PackedStringArray = [
 	"unreachable",
@@ -80,6 +82,30 @@ func start_nearby() -> void:
 
 func stop_nearby() -> void:
 	pass
+
+
+# ---------------------------------------------------------------- Steam (контракт S5)
+# Сам этот класс — Steam неактивен: пусто/false, вход в лобби — "unreachable".
+
+
+## Steam активен: показывать «Пригласить друзей» и «Друзья в игре».
+func steam_available() -> bool:
+	return false
+
+
+## Оверлей Steam «Пригласить друзей» в лобби текущей зоны.
+func invite_friends() -> void:
+	pass
+
+
+## Зоны друзей Steam: {lobby_id, friend_name, zone_code, place, same_version}.
+func friends_zones() -> Array:
+	return []
+
+
+## Вступить в лобби друга и войти в его зону (как connect_and_join, адрес и код — из лобби).
+func connect_and_join_lobby(_lobby_id: int, _name: String) -> void:
+	_fail_later.call_deferred("unreachable")
 
 
 func _fail_later(kind: String) -> void:

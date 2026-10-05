@@ -26,6 +26,12 @@ var stop_nearby_calls := 0
 ## Зоны «рядом» (NET-53), подменяется тестами/скриншотами через set_nearby().
 var fake_nearby: Array = []
 
+## Steam (S5): активен ли, «Друзья в игре» (set_friends), счётчик приглашений, последнее лобби.
+var fake_steam := false
+var fake_friends: Array = []
+var invite_calls := 0
+var last_lobby := 0
+
 var _busy := false
 var _in_zone := false
 var _params: FlightSettings
@@ -109,6 +115,36 @@ func set_nearby(list: Array) -> void:
 
 func stop_nearby() -> void:
 	stop_nearby_calls += 1
+
+
+func steam_available() -> bool:
+	return fake_steam
+
+
+func invite_friends() -> void:
+	invite_calls += 1
+
+
+func friends_zones() -> Array:
+	return fake_friends if fake_steam else []
+
+
+## Подменить «Друзья в игре».
+func set_friends(list: Array) -> void:
+	fake_friends = list
+	friends_changed.emit()
+
+
+## Вход через лобби: как connect_and_join, код — из списка друзей (или code_value).
+func connect_and_join_lobby(lobby_id: int, name: String) -> void:
+	last_lobby = lobby_id
+	var zone_code := code_value
+	for f: Dictionary in fake_friends:
+		if int(f.get("lobby_id", 0)) == lobby_id:
+			zone_code = String(f.get("zone_code", code_value))
+	_start("steam:lobby", name, zone_code)
+	created = false
+	_params = FlightSettings.defaults()
 
 
 func _start(address: String, name: String, zone_code: String) -> void:

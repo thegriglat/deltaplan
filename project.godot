@@ -28,6 +28,7 @@ NetClient="*res://scripts/net/net_client.gd"
 NetZone="*res://scripts/net/net_zone.gd"
 NetPilots="*res://scripts/net/net_pilots.gd"
 LanDiscovery="*res://scripts/net/lan_discovery.gd"
+SteamLobby="*res://scripts/steam/steam_lobby.gd"
 
 [debug]
 
