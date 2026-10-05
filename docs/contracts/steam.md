@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 1}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
 ---
 # Контракты модуля steam
 
@@ -91,7 +91,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 Инварианты: `flight_started` раньше любых `flight_sample`; `flight_finished` — ровно один раз на `flight_started` (выход в меню из полёта без посадки — `flight_finished` не шлётся, полёт не засчитывается); неизвестное — NAN, а не 0.
 
-## S3. Активность игры и Rich Presence (версия 1)
+## S3. Активность игры и Rich Presence (версия 2)
+
+v2 (2026-10-05, до запуска ST-7): лобби сообщается присутствию вызовом `SteamPresence.set_lobby(lobby_id: int)` (0 — лобби нет); вызывает ST-8.
 
 Владелец — ST-7. Потребители — `SteamPresence` (ST-7), лобби (ST-8: ключи `connect`, группа).
 

@@ -32,3 +32,5 @@
 {"t": "2026-10-05T07:13:14", "by": "coordinator", "task": "ST-2", "ev": "accepted", "note": "по отчёту: 5/5, скоуп; language() = getCurrentGameLanguage — подтверждаю; живой путь с расширением — в ST-3 (smoke сборки Steam)"}
 {"t": "2026-10-05T07:13:34", "by": "coordinator", "task": "ST-2", "ev": "accepted", "commits": ["2f49f5ff"], "note": "5/5 steam_contracts=ok:9/9; pilot_name=ok:3/3; /steam/=ok:8/8; smoke_plain=ok:steam: inactive (no_feature); smoke_noext=ok:steam: inactive (no_extension)"}
 {"t": "2026-10-05T07:13:35", "by": "coordinator", "task": "ST-2", "ev": "merged", "commits": ["2f49f5ff"]}
+{"t": "2026-10-05T07:13:56", "by": "coordinator", "task": "ST-7", "ev": "created", "note": "Активность игры (Activity) и Rich Presence Steam"}
+{"t": "2026-10-05T07:13:56", "by": "coordinator", "task": "ST-7", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-steam-ST-7"}
