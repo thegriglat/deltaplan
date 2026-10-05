@@ -33,9 +33,9 @@ def test_orientation_parser():
 
 def test_neutral_override_is_bitwise_baseline():
     """Нулевые возмущения (северное полушарие, cover 0) = исходный конфиг: Day и условия случая побитно те же; override(None) ничего не меняет."""
-    ctx = dict(month=7, day=15, lat=51.0, lon=86.0, utc_offset_h=6.0, valley_msl_m=800.0, mean_msl_m=1000.0)
+    ctx = dict(month=7, day=15, lat=50.0, lon=86.0, utc_offset_h=6.0, valley_msl_m=800.0, mean_msl_m=1000.0)
     base = W.CFG
-    neutral = S5.weather_cfg(base, 51.0, 0.0, base["upper_air"]["lapse_k_per_km"], 1.0, 1.0, 0.0)
+    neutral = S5.weather_cfg(base, 50.0, 0.0, base["upper_air"]["lapse_k_per_km"], 1.0, 1.0, 0.0)
     for hour in (8.0, 13.0, 18.5):
         D0 = W.Day(hour, 24.0, "clear", ctx)
         with S5.weather_override(neutral):
@@ -69,7 +69,7 @@ def test_perturbation_reaches_solver_inputs():
             c1 = R.case("t_hg", G, hc, 13.0, 6.0, 270.0, 25.0, S5.HG_SKY, True)
         assert W.CFG is base
         if "dt_upper" in kw:      # теплее наверху на 3 К: θ_fa выше на 3 К, свободная атмосфера устойчивее — слой перемешивания ниже
-            assert abs(float(c1.day.theta_fa(4.0) - c0.day.theta_fa(4.0)) - 3.0) < 1e-9
+            assert abs(float(c1.day.theta_fa(4.0) - c0.day.theta_fa(4.0)) - (3.0 - 0.5 * (45.0 - 50.0))) < 1e-9
             assert c1.z_i < c0.z_i
         if "lapse" in kw:         # gam 8 К/км вместо 4: dθ/dz = Γd − γ = 1,8 К/км вместо 5,8 над слоем
             assert abs(float(c1.gam(np.array([9000.0]))[0]) * 1000 - (9.8 - 8.0)) < 1e-6 and abs(float(c0.gam(np.array([9000.0]))[0]) * 1000 - (9.8 - lapse0)) < 1e-6
@@ -85,10 +85,18 @@ def test_perturbation_reaches_solver_inputs():
             assert not np.array_equal(c1.gam(z), c0.gam(z)) or "dt_upper" in kw     # dt_upper: профиль θ сдвинут, градиент выше z_i тот же
 
 
+def test_upper_air_latitude_shift():
+    base = W.CFG
+    for lat in (50.0, 40.0, -30.0, 60.0):
+        c = S5.weather_cfg(base, lat, 2.0, 4.0, 1.0, 1.0, 0.0)
+        r = base["upper_air"]["temp_c"] if lat > 0 else base["upper_air"]["temp_c"][6:] + base["upper_air"]["temp_c"][:6]
+        assert abs(c["upper_air"]["temp_c"][3] - (r[3] + 2.0 - 0.5 * (abs(lat) - 50.0))) < 1e-12
+
+
 def test_south_shift_tables():
     base = W.CFG
     cfg = S5.weather_cfg(base, -30.0, 0.0, 4.0, 1.0, 1.0, 0.0)
-    assert cfg["upper_air"]["temp_c"][0] == base["upper_air"]["temp_c"][6] and cfg["typical_max_c"][3] == base["typical_max_c"][9]
+    assert abs(cfg["upper_air"]["temp_c"][0] - base["upper_air"]["temp_c"][6] - 10.0) < 1e-12 and cfg["typical_max_c"][3] == base["typical_max_c"][9]
     assert S5.weather_cfg(base, 30.0, 0.0, 4.0, 1.0, 1.0, 0.0)["typical_max_c"] == base["typical_max_c"]
 
 

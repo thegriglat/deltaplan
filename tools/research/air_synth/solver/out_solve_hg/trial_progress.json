@@ -1,0 +1,40 @@
+{
+ "updated": "2026-10-05 05:03:20",
+ "stage_done": [
+  "hg_v1__hgw24__s0-939a467__trial:holdout",
+  "hg_v1__hgw24__s0-939a467__trial:train"
+ ],
+ "dirs": {
+  "hg_v1__hgw24__s0-939a467__trial": {
+   "n_plan": 24,
+   "cases_done": 24,
+   "parts_done": 1,
+   "bytes": 27976789,
+   "gb_per_1000_cases": 1.166,
+   "nonconverged_fraction": 0.125,
+   "diverged_fraction": 0.0,
+   "seconds_per_case_mean": 13.0,
+   "seconds_per_case_calm": 10.7,
+   "seconds_per_case_other": 13.1,
+   "eta_hours_if_workers_same": 0.0,
+   "stage_done": [
+    "train",
+    "holdout"
+   ],
+   "by_group": {
+    "train": {
+     "planned": 6,
+     "done": 6
+    },
+    "holdout": {
+     "planned": 18,
+     "done": 18
+    },
+    "game": {
+     "planned": 0,
+     "done": 0
+    }
+   }
+  }
+ }
+}

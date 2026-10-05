@@ -23,7 +23,7 @@ def hill():
 def _row(over=None):
     g = hill()
     summ = dict(relief_m=float(g.max() - g.min()), h_min_m=float(g.min()), h_max_m=float(g.max()))
-    r = H.rows_for(H.SEED, 1, "hg_t", 47.0, 10.0, g, summ, "W")[5]
+    r = H.rows_for(H.SEED, 1, "hg_t", 50.0, 10.0, g, summ, "W")[5]
     d = {n: (r[n].item() if hasattr(r[n], "item") else r[n]) for n in r.dtype.names}
     d.update(month=6, day=15, hour_local=13.0, u10_m_s=6.0, wind_from_deg=270.0, t_max_c=24.0, sky=0, cond_id=0)
     d.update(over or {})

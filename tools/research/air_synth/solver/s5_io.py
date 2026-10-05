@@ -233,7 +233,8 @@ def weather_cfg(base, lat, dt_upper_k, lapse_k_per_km, inv_depth_f, inv_range_f,
             a = list(d[path[-1]])
             d[path[-1]] = a[6:] + a[:6]
     ua = cfg["upper_air"]
-    ua["temp_c"] = [float(t) + float(dt_upper_k) for t in ua["temp_c"]]
+    lat_shift = -0.5 * (abs(float(lat)) - 50.0)    # S2 v4 (уточнение по ревью): климатология t_u — тот же широтный сдвиг, что у t_max
+    ua["temp_c"] = [float(t) + float(dt_upper_k) + lat_shift for t in ua["temp_c"]]
     ua["lapse_k_per_km"] = float(lapse_k_per_km)
     dn = cfg["diurnal"]
     dn["inversion_depth_m"] = float(dn["inversion_depth_m"]) * float(inv_depth_f)
