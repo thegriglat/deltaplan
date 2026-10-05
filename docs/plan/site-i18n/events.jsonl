@@ -1,3 +1,25 @@
 {"t": "2026-10-05T06:02:45", "by": "user", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-05T06:08:19", "by": "coordinator", "task": "SI-1", "ev": "created", "note": "Многоязычность Hugo: en (корень) + ru (/ru/), i18n, резолвер ссылок между языками"}
 {"t": "2026-10-05T06:08:19", "by": "coordinator", "task": "SI-1", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"uncertain\"]"]}}
+{"t": "2026-10-05T06:08:29", "by": "coordinator", "task": "SI-1", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-site-i18n-SI-1"}
+{"t": "2026-10-05T06:08:53", "by": "coordinator", "task": "SI-3", "ev": "created", "note": "Перевод на английский: главная и оглавления разделов"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-4", "ev": "created", "note": "Перевод на английский: подходы (approaches)"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-5", "ev": "created", "note": "Перевод на английский: исследования (research/_index)"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-6", "ev": "created", "note": "Перевод на английский: планы (plans/_index, plans/archive/_index)"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-7", "ev": "created", "note": "Перевод на английский: механика flight"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-8", "ev": "created", "note": "Перевод на английский: механика air-model"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-9", "ev": "created", "note": "Перевод на английский: механика multiplayer"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-10", "ev": "created", "note": "Перевод на английский: механика terrain"}
+{"t": "2026-10-05T06:08:54", "by": "coordinator", "task": "SI-11", "ev": "created", "note": "Перевод на английский: механика instruments"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-12", "ev": "created", "note": "Перевод на английский: механика weather"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-13", "ev": "created", "note": "Перевод на английский: механика slope-wind"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-14", "ev": "created", "note": "Перевод на английский: механика bots"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-15", "ev": "created", "note": "Перевод на английский: механика visual-cues"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-16", "ev": "created", "note": "Перевод на английский: механика thermals"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-17", "ev": "created", "note": "Перевод на английский: механика clouds"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-18", "ev": "created", "note": "Перевод на английский: страницы версий"}
+{"t": "2026-10-05T06:08:55", "by": "coordinator", "task": "SI-19", "ev": "created", "note": "Перевод на английский: дневник: раздел, 27–29.09"}
+{"t": "2026-10-05T06:08:56", "by": "coordinator", "task": "SI-20", "ev": "created", "note": "Перевод на английский: дневник 02.10"}
+{"t": "2026-10-05T06:08:56", "by": "coordinator", "task": "SI-21", "ev": "created", "note": "Перевод на английский: дневник 03.10"}
+{"t": "2026-10-05T06:08:56", "by": "coordinator", "task": "SI-22", "ev": "created", "note": "Перевод на английский: дневник 04.10"}
+{"t": "2026-10-05T06:09:11", "by": "coordinator", "task": "SI-24", "ev": "created", "note": "README, скилл new-release и CHANGELOG под двуязычный сайт"}
