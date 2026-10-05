@@ -125,3 +125,5 @@
 {"t": "2026-10-05T06:26:20", "by": "coordinator", "task": "SI-22", "ev": "merged", "commits": ["d067c821"]}
 {"t": "2026-10-05T06:26:25", "by": "executor", "task": "SI-19", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:26:25", "by": "coordinator", "task": "SI-19", "ev": "merged", "commits": ["bad21711"]}
+{"t": "2026-10-05T06:26:51", "by": "coordinator", "task": null, "ev": "note", "note": "Модуль готов: 24 задачи accepted+merged; check_i18n.py --fragments — 0 нарушений (K1–K5, 44828 ссылок), gen_wings --check и C2 ок, hugo без WARN. Расхождение с main: CHANGELOG.md (1 строка в main после ответвления) — dp sync перед слиянием."}
+{"t": "2026-10-05T06:26:52", "by": "coordinator", "task": null, "ev": "note", "note": "dp: не хватило (1) одной команды «принять+влить+удалить копию+merged+коммит журнала» для writer/mechanic задач (dp accept --merge?) — писал скрипт; (2) запуска задачи одной командой (worktree от base + started + коммит журнала: dp task start <ID>); (3) пакетного task new по шаблону (20 однотипных карточек переводов); (4) dp task sync отказывает на грязной копии — исполнителю пришлось коммитить незаконченное."}
