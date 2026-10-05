@@ -1,0 +1,177 @@
+{
+  "status": "partial",
+  "summary": "Рельеф 304 мест дельтаплана (из 363; 59 исключены: море/перепад) собран квадратом как в игре и сверен с кодом игры побитно; train 284 / holdout 20 (15 регионов, ≥ 51 км); условия hgw24 (S2 v4, 24 на место, погода через подмену конфига Day без правки air3d); счёт (S5 v4) запущен под замком GPU, часть game (96 случаев) готова, остальное (≈ 9–10 ч) идёт.",
+  "commits": [
+    "170040e9 конвейер рельефа как в игре, деление, hgw24, S5 v4, тесты",
+    "5bbc25e8 корпус 304 мест, README, пробный счёт",
+    "см. git log air-synth/SY-10 — снимок progress.json"
+  ],
+  "checks": [
+    {
+      "name": "hg_tests",
+      "value": "5 passed (venv корпуса; 8 passed в venv air_nn_pilot с PIL/yaml)",
+      "pass": true
+    },
+    {
+      "name": "s5_tests",
+      "value": "7 passed (S5 v4)",
+      "pass": true
+    },
+    {
+      "name": "hgw24 тесты",
+      "value": "6 passed; GPU-тест (3 настоящих решения) passed — нулевые возмущения побитно как без них, возмущения меняют H и θ′",
+      "pass": true
+    },
+    {
+      "name": "сверка с кодом игры (godot)",
+      "value": "hc400 Python − игра = 0,0 м на 4 точках (f = 12…22)",
+      "pass": true
+    },
+    {
+      "name": "corpus tests (corpus_io изменён)",
+      "value": "38 passed",
+      "pass": true
+    },
+    {
+      "name": "dp accept SY-10 --dry",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Счёт train и holdout ещё идёт (game готов): отчёт по плану — после первой готовой части; обучение не запускалось."
+  ],
+  "questions": [
+    "Сжатые места: 43 места каталога исключены как «море > 5 %» (Франция 32, побережья) — это порог П6 при решателе без воды; если нужно больше обучающих мест, можно ослабить порог (рельеф и счёт пересоберутся за ~20 мин + счёт).",
+    "Решить по найденному расхождению игры: клетка = f·s (385–414 м), а решатель в игре получает dx = 400; плюс «область вне слоя» на 5 точках (50,7–51,0° с. ш. и −33,7°) — в игре это пустой случай. Код игры не правился."
+  ],
+  "how_to_check": "dp accept SY-10; cd tools/research/air_synth/hg_real && ../../air_nn_pilot/.venv/bin/python -m pytest -q tests; tools/dp job status sy10-solve; cat tools/research/air_synth/solver/out_solve_hg/progress.json",
+  "uncertain": [
+    {
+      "where": "tools/research/air_synth/corpus/corpus_io.py",
+      "why": "вне скоупа карточки, но без правки нельзя писать S2 v4 (доп. столбцы) и S1 v4 (extra_attrs, contract): добавлены CONTRACT_OK (v3/v4 и v2/v4), extra_attrs в write_reliefs, dtype таблицы по входу в write_conditions_part",
+      "checked": "38 тестов корпуса проходят; старые каталоги читаются"
+    },
+    {
+      "where": "tools/research/air_synth/solver/s5_io.py",
+      "why": "S5 теперь v4: столбец rank (−1), группа game=2; прежние каталоги v2 читаются, но их dtype без rank",
+      "checked": "test_contract_s5.py 7 passed"
+    },
+    {
+      "where": "make_hgw24.py:t_clim",
+      "why": "формула климата t_max из S2 v3 неоднозначна (амплитуда косинуса, широтный наклон от 50° в обе стороны): взято 26 − 8·(1 − cos(2π(m−7)/12)) − 0,5·(|φ|−50), обрезка 0…36 до dt_surface и 0…40 после (меню). Шум ±4 К v3 заменён dt_surface v4 (не суммируются)",
+      "checked": "t_max_c по набору 9–40, медиана 25,2 °C"
+    },
+    {
+      "where": "make_hgw24.py: южное полушарие",
+      "why": "дата +6 месяцев и сдвиг месячных таблиц погоды на 6 месяцев (в игре таблиц по полушариям нет и дата всегда 15 июля)",
+      "checked": "тест test_south_shift_tables; месяцы 10–3 у южных мест"
+    },
+    {
+      "where": "S2 v4 inv_depth_m / inv_range_k",
+      "why": "по контракту в столбцах множители (имена похожи на метры/К) — записано в README и manifest",
+      "checked": "test_hgw24_gpu: нейтральные множители 1 = исходный путь"
+    },
+    {
+      "where": "условия hgw24: z_i",
+      "why": "при градиенте 8–9 К/км и тёплом дне z_i над землёй > 3000 м в 20 % условий (до 11 км) — выше потолка области решателя (max рельефа + 3000 м); следствие распределения S2 v4",
+      "checked": "out_solve_hg_conditions_summary.json; решения в пробе и в game сошлись без расхождений, но влияние потолка на поля не изучалось"
+    },
+    {
+      "where": "производные условий",
+      "why": "считаются под подменённым Day и контекстом места как у решателя (model_place.context по h100), а не по hc400 как в p2c12",
+      "checked": "совпадение z_i/θ с решателем по построению; прямого сравнения с solve_one нет"
+    },
+    {
+      "where": "корпус игры real/game_hg",
+      "why": "места игры пересобраны тем же путём (Terrarium, как игра для точки по координатам), а не Copernicus из data/terrain (там сглаживание σ 0,8 и своя область) — как в SY-6; старый real/game не тронут (Δh400 среднее 7–90 м, Онгудай — окно сдвинуто)",
+      "checked": "out/game_block_check.txt"
+    },
+    {
+      "where": "near_game",
+      "why": "в каталоге нет мест ближе 20 км к четырём местам игры — ветка near_game не сработала (тест на искусственных данных есть)",
+      "checked": "split_summary.json n_near_game = 0"
+    }
+  ],
+  "dp_feedback": "dp job wait/lock gpu выдают только строку «PID, лог» — нет флага ждать до конца в одной команде (пришлось dp job wait отдельно). Нет команды «сколько случаев готово по progress» и «venv копии модуля» (venv лежит в копии модуля, в копии задачи пришлось делать симлинки; карточка приёмки ссылается на ../corpus/.venv). dp docs check ругается на .pytest_cache/README.md и README без frontmatter в hg_sites (не мои).",
+  "extra": {
+    "excluded_sites": 59,
+    "excluded_by_reason": {
+      "sea_gt_5pct": 43,
+      "relief_gt_3000": 19,
+      "both": 3
+    },
+    "split": {
+      "n_catalog": 363,
+      "n_sites": 304,
+      "n_train": 284,
+      "n_holdout": 20,
+      "n_near_game": 0,
+      "min_dist_holdout_to_train_km": 51.3,
+      "seed": 20261005
+    },
+    "game_corpus_path": "/home/greg/air_synth_data/real/game_hg",
+    "conditions_paths": [
+      "/home/greg/air_synth_data/conditions/hg_v1_hgw24 (7296)",
+      "/home/greg/air_synth_data/conditions/game_hgw24 (96)"
+    ],
+    "n_cases_total": 7392,
+    "progress": "game 96/96 готово; holdout 480 и train 6816 в очереди",
+    "worktree_note": "run_hg.sh запущен из ~/deltaplan-air-synth-SY-10 и пишет progress.json туда — копию не удалять до конца счёта; продолжение после обрыва — той же командой dp job --lock gpu start sy10-solve 200000 <путь>/run_hg.sh"
+  },
+  "n_sites": 304,
+  "n_train": 284,
+  "n_holdout": "20 (+ 4 места игры отдельным корпусом); near_game 0",
+  "holdout_regions": [
+    "FR_alps_jura",
+    "FR_corsica",
+    "FR_east",
+    "FR_overseas",
+    "FR_pyrenees",
+    "FR_west_north",
+    "IT_south",
+    "alps_AT_CH_SI_IT",
+    "brazil",
+    "britain",
+    "east_asia",
+    "iberia",
+    "iran",
+    "north_america",
+    "scandinavia"
+  ],
+  "relief_quantiles": {
+    "unit": "перепад h400, м (p0/p10/p25/p50/p75/p90/p100)",
+    "train": [
+      148.6,
+      297.8,
+      614.7,
+      1262.0,
+      1934.8,
+      2453.8,
+      2999.3
+    ],
+    "holdout": [
+      259.1,
+      266.0,
+      477.5,
+      1163.1,
+      1889.0,
+      2587.9,
+      2991.4
+    ]
+  },
+  "corpus_path": "/home/greg/air_synth_data/real/hg_v1",
+  "corpus_mb": "57 (hg_v1) + 0,8 (game_hg); условия 1,4",
+  "raw_deleted": true,
+  "solve_paths": [
+    "/home/greg/air_synth_data/solve/game__hgw24__s0-939a467",
+    "/home/greg/air_synth_data/solve/hg_v1__hgw24__s0-939a467"
+  ],
+  "est_hours": "≈ 9–10 (7392 случая × 4,3–4,8 с по стенному времени; 1,17 ГБ на 1000 случаев ≈ 8,6 ГБ)",
+  "job_name": "sy10-solve",
+  "launch_command": "tools/dp job --lock gpu start sy10-solve 200000 /home/greg/deltaplan-air-synth-SY-10/tools/research/air_synth/solver/run_hg.sh   (запущено, разрешения не отказали)",
+  "n_conds_per_site,trial_sec_per_case": "24 условия на место; проба 24 случая: 13,0 с воркера, ≈ 4,3 с по стенному времени при 3 воркерах (утро 18, день 7, вечер 14; слабый ветер 8, сильный 18 с воркера); 87 % решений с нагревом сошлись, разошедшихся 0",
+  "game_square_check": "Игра для точки (build_location: слой вокруг самой координаты старта) строит Terrarium z12 (z11 при шаге < 18 м, т.е. > ~62° с. ш.), узлы = пиксели web-mercator с шагом s = 2πR·cosφ/(256·2^z) = 18–38 м, без сглаживания (сглаживание σ 0,8 — только у встроенных мест из data/terrain/Copernicus) и без передискретизации; AirPlace.block_mean берёт f = round(400/s) узлов — клетка f·s = 385–414 м (медиана 400,5; Аскарово 388,6 м), не ровно 400; область 96·f·s = 36,9–39,7 км от x0 = −19 200 м (центр сдвинут до ~0,5 км); солверу в игре dx = 400 подаётся как есть. Совпадает: центр = старт, z12, шаг узлов, блочное среднее без сглаживания, 96×96, x0. Не совпадает с SY-6/П6 (билинейно на 25 м, клетка точно 400 м) — набор SY-10 строится как игра (pack_hg.py), сверка кодом игры (godot headless: TerrariumLoader._plan_layer + assemble + AirPlace.block_mean) даёт hc400 побитно (0,0 м) на 4 точках, f = 12…22. Расхождения игры (код не правился): (1) клетка f·s ≠ 400 м (±4 %), решатель этого не знает; (2) на 5 из 367 точек (широты 50,7–51,0° и −33,7°, f·s > 400) область не помещается в слой 40 км: «AirPlace: область вне слоя рельефа», пустой случай (проверено запуском в 50,673; 16,210; Онгудай 50,79° — среди них) — в наборе окно сдвинуто внутрь слоя до 7 узлов (флаг clamped_px); (3) h100 в игре нет — для S1 перебинировано площадно, блочное среднее h100 4×4 = клетки игры; (4) вода: игра берёт маску воды, решатель обучающего набора без воды, поэтому прибрежные квадраты (море > 5 %) исключены. Места игры пересобраны тем же путём в real/game_hg (старый real/game не тронут). Подробно — tools/research/air_synth/hg_real/README.md, out/game_block_check.txt.",
+  "t": "2026-10-05T05:11:13",
+  "by": "executor"
+}

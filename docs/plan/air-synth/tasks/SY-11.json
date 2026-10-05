@@ -1,0 +1,75 @@
+{
+  "id": "SY-11",
+  "module": "air-synth",
+  "type": "dp-researcher",
+  "title": "Обучение P2 на местах дельтаплана (S7): цифра ошибки на отложенных и местах игры, финальная сеть на всех местах",
+  "goal": "Обучить сеть архитектуры P2 без изменений на счёте решателя по местам дельтаплана: первое обучение — цифра ошибки на 20 отложенных и 4 местах игры (м/с и относительная, механический режим и устойчивость отдельно), затем финальное переобучение на всех местах → ONNX для игры.",
+  "plan_ref": "Решения пользователя (не обсуждаются)",
+  "contracts": [
+    {
+      "name": "S7",
+      "version": "1",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S5",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    },
+    {
+      "name": "S1",
+      "version": "4",
+      "ref": "docs/contracts/air-synth.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-synth-SY-11",
+  "branch": "air-synth/SY-11",
+  "base": "feature/air-synth",
+  "scope": [
+    "tools/research/air_synth/train"
+  ],
+  "dont_touch": [
+    "tools/research/air_nn_pilot",
+    "tools/research/air3d",
+    "data/air_nn",
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "train_tests",
+      "cmd": "cd tools/research/air_synth/train && ../../air_nn_pilot/.venv/bin/python -m pytest -q tests",
+      "expect": "re:\\d+ passed"
+    },
+    {
+      "name": "eval",
+      "cmd": "cd tools/research/air_synth/train && cat out/eval_holdout.json",
+      "expect": "re:\"median_60m\""
+    },
+    {
+      "name": "onnx",
+      "cmd": "cd tools/research/air_synth/train && ls out/model_hg.onnx",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "train_hours",
+    "steps",
+    "holdout_median_ms",
+    "holdout_p90_ms",
+    "holdout_rel",
+    "game_median_ms",
+    "game_rel",
+    "mechanical",
+    "stability_groups",
+    "onnx_path",
+    "onnx_io_match"
+  ],
+  "notes": "Код P2 — tools/research/air_nn_pilot/pilotnn (model.py, train.py, prep.py — карты и FILM_NAMES, evaluate.py — метрики на 60 м, film_bg.py) и README пилота (разделы «Числа FiLM», «Выход», «Сеть и обучение»): импортировать, не править; свой загрузчик S5 v4 → тензоры в tools/research/air_synth/train/. FiLM — из profile/day, восстановленных по таблице условий S2 v4 тем же кодом, что строил случай (solver/make_hgw24.py + подмена weather.CFG как в solve_corpus.py SY-10); тест: для 3 случаев числа FiLM и heat_flux из восстановления = тем, что видел решатель (inputs/heat_flux). Ускорение цикла (обязательно, на результат не влияет): выборку держать на GPU и индексировать там (или DataLoader + pin_memory), loss копить на GPU и читать раз в N шагов, EMA через torch._foreach_*, без синхронизации каждый шаг; проверить загрузку GPU (nvidia-smi) и записать. Гиперпараметры — как P2 (README пилота), ранняя остановка по проверке (10 % случаев train по хешу места — по месту, не по случаю). Два обучения по S7; оценка — S7 (holdout и места игры отдельно; механический режим, конвективный, терцили Fr и dθ/dz, с нагревом/без) → out/eval_holdout.json (+ md-таблица); ONNX финальной сети out/model_hg.onnx, тест совпадения имён/форм/dtype входов-выходов с data/air_nn/model.onnx (onnxruntime) — onnx_io_match. Сначала оценка времени по 200 шагам. Запуск — dp job --lock gpu start …; при отказе разрешений — команду в отчёт, не обходить. Данные — после конца счёта SY-10 (координатор сообщит). Игру не трогать (замена model.onnx — решение пользователя). Картинки не нужны.",
+  "created": "2026-10-05T05:12:50",
+  "edited": "2026-10-05T05:12:50"
+}
