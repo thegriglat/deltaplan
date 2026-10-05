@@ -64,23 +64,50 @@ def save_pair(src, out_dir, api):
     locked_from(img).save(out_dir / f"{api}_locked.jpg", quality=92, subsampling=0)
 
 
-def load_pipeline(model):
-    """FLUX.1-schnell на 12 ГБ: transformer и T5 в nf4 (bitsandbytes), остальное — с выгрузкой на CPU."""
+def _flux_imports():
     import torch
-    from diffusers import BitsAndBytesConfig as DiffBnb, FluxPipeline, FluxTransformer2DModel
-    from transformers import BitsAndBytesConfig as TfBnb, T5EncoderModel
     if not torch.cuda.is_available():
         sys.exit("CUDA недоступна — генерация только на NVIDIA GPU (проверка: --dry)")
-    dt = torch.bfloat16
-    tr = FluxTransformer2DModel.from_pretrained(
-        model["id"], revision=model["revision"], subfolder="transformer", torch_dtype=dt,
-        quantization_config=DiffBnb(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=dt))
+    return torch, torch.bfloat16
+
+
+def encode_prompts(model, texts):
+    """Стадия 1: только CLIP + T5 (nf4) на GPU; эмбеддинги всех промптов — на CPU, модели выгружаются."""
+    torch, dt = _flux_imports()
+    from diffusers import FluxPipeline
+    from transformers import BitsAndBytesConfig as TfBnb, T5EncoderModel
     t5 = T5EncoderModel.from_pretrained(
         model["id"], revision=model["revision"], subfolder="text_encoder_2", torch_dtype=dt,
         quantization_config=TfBnb(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=dt))
-    pipe = FluxPipeline.from_pretrained(model["id"], revision=model["revision"], transformer=tr,
+    pipe = FluxPipeline.from_pretrained(model["id"], revision=model["revision"], transformer=None, vae=None,
                                         text_encoder_2=t5, torch_dtype=dt)
-    pipe.enable_model_cpu_offload()
+    pipe.text_encoder.to("cuda:0")
+    out = {}
+    with torch.no_grad():
+        for t in texts:
+            pe, pooled, _ = pipe.encode_prompt(prompt=t, prompt_2=None, device="cuda:0", max_sequence_length=256)
+            out[t] = (pe.cpu(), pooled.cpu())
+    del pipe, t5
+    import gc
+    gc.collect()
+    torch.cuda.empty_cache()
+    return out
+
+
+def load_pipeline(model):
+    """Стадия 2: transformer в nf4 (bitsandbytes) + VAE целиком на GPU; текстовых кодировщиков нет."""
+    torch, dt = _flux_imports()
+    from diffusers import BitsAndBytesConfig as DiffBnb, FluxPipeline, FluxTransformer2DModel
+    tr = FluxTransformer2DModel.from_pretrained(
+        model["id"], revision=model["revision"], subfolder="transformer", torch_dtype=dt,
+        quantization_config=DiffBnb(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=dt))
+    pipe = FluxPipeline.from_pretrained(model["id"], revision=model["revision"], transformer=tr,
+                                        text_encoder=None, tokenizer=None, text_encoder_2=None,
+                                        tokenizer_2=None, torch_dtype=dt)
+    pipe.to("cuda:0")  # nf4 transformer ≈ 6 ГБ + VAE помещаются; выгрузка на CPU ломает 4-битный gemv bnb
+    # декодирование 1024² целиком не влезает рядом с transformer; порог тайла у VAE FLUX — 1024, снижаем
+    pipe.vae.enable_tiling()
+    pipe.vae.tile_sample_min_size, pipe.vae.tile_latent_min_size = 512, 64
     return pipe
 
 
@@ -115,19 +142,26 @@ def main():
     pipe = None
     manifest = {"model": prompts["model"], "steps": prompts["steps"], "guidance": prompts["guidance"],
                 "size": size, "icons": {}}
+    def key_of(prompt, seed):
+        return hashlib.sha256(f"{prompts['model']['revision']}|{prompt}|{seed}|{size}|{prompts['steps']}"
+                              .encode()).hexdigest()[:16]
+    todo = [prompt for api, _, seed, prompt in plan
+            if args.force or not (cache / f"{api}_{key_of(prompt, seed)}.png").exists()]
+    # 12 ГБ: кодировщики и transformer на GPU не одновременно — сначала все эмбеддинги, потом генерация
+    embeds = encode_prompts(prompts["model"], sorted(set(todo))) if todo else {}
     for api, _, seed, prompt in plan:
-        key = hashlib.sha256(f"{prompts['model']['revision']}|{prompt}|{seed}|{size}|{prompts['steps']}"
-                             .encode()).hexdigest()[:16]
+        key = key_of(prompt, seed)
         png = cache / f"{api}_{key}.png"
-        if args.force or not png.exists():
+        if prompt in embeds and (args.force or not png.exists()):
             if pipe is None:
                 pipe = load_pipeline(prompts["model"])
             import torch
             gen = torch.Generator("cpu").manual_seed(seed)
+            pe, pooled = (t.to("cuda:0") for t in embeds[prompt])  # пайплайн сам не переносит
             # FLUX.1-schnell — distilled, без CFG: поле negative контракта не используется моделью
-            img = pipe(prompt=prompt, height=size, width=size, num_inference_steps=int(prompts["steps"]),
-                       guidance_scale=float(prompts["guidance"]), max_sequence_length=256,
-                       generator=gen).images[0]
+            img = pipe(prompt_embeds=pe, pooled_prompt_embeds=pooled, height=size, width=size,
+                       num_inference_steps=int(prompts["steps"]),
+                       guidance_scale=float(prompts["guidance"]), generator=gen).images[0]
             img.save(png)
         save_pair(Image.open(png), out, api)
         manifest["icons"][api] = {"seed": seed, "prompt_key": key}
