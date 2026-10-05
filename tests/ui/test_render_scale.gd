@@ -42,6 +42,10 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("game.json")
 	var backup := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 
+	var lpath0 := UserSettings.local_dir().path_join("game.json")
+	var lbackup := FileAccess.get_file_as_string(lpath0) if FileAccess.file_exists(lpath0) else ""
+	if FileAccess.file_exists(lpath0):
+		DirAccess.remove_absolute(lpath0)
 	# Полная перезапись: пресет без масштабирования и render_scale_auto=true — чтобы проверить
 	# именно независимый оверрайд, без влияния прежних значений в реальном user-конфиге.
 	_write(path, {"graphics": "medium"})
@@ -58,7 +62,9 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	slider.value = 50.0
 	check(sp.save(), "сохранилось")
 
-	var gj := UserSettings.read_json(path)
+	# render_scale_* — машинные ключи (S7): лежат в user://local/configs
+	var lpath := UserSettings.local_dir().path_join("game.json")
+	var gj := UserSettings.read_json(lpath)
 	check(not bool(gj.get("render_scale_auto", true)), "render_scale_auto записан")
 	check(
 		is_equal_approx(float(gj.get("render_scale_pct", 0.0)), 50.0),
@@ -92,6 +98,7 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 
 	sp.queue_free()
 	_restore(path, backup)
+	_restore(lpath0, lbackup)
 	Config.reload()
 
 
