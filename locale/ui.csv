@@ -51,7 +51,7 @@ result_track_length,Пройдено по следу: %.2f км,Distance flown (
 menu_free_flight,Свободный полёт,Free flight
 result_avg_glide,Среднее качество: %.1f,Average glide ratio: %.1f
 result_avg_ground_speed,Средняя путевая скорость: %.0f км/ч,Average ground speed: %.0f km/h
-about_intro,Симулятор дельтаплана. Некоммерческий проект. Ниже — авторы и лицензии материалов.,A hang gliding simulator. A non-commercial project. Authors and licenses of the materials are listed below.
+about_intro,Симулятор дельтаплана. Проект с открытым кодом. Ниже — авторы и лицензии материалов.,A hang gliding simulator. An open source project. Authors and licenses of the materials are listed below.
 about_thanks_dhv,"Спасибо DHV (Deutscher Hängegleiterverband, www.dhv.de) за открытые данные паспортов и типовых испытаний крыльев: паспорта, геометрия и характеристики.","Thanks to the DHV (Deutscher Hängegleiterverband, www.dhv.de) for the open data on wing datasheets and type tests: datasheets, geometry and characteristics."
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
 common_save,Сохранить,Save
