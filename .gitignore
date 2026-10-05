@@ -34,3 +34,6 @@ docs/plan/*/.read_*
 docs/**/*.import
 docs/**/.gdignore
 .obsidian/
+
+# Steam: расширение GodotSteam подкладывается скриптом, бинарники не храним
+addons/godotsteam/
