@@ -32,3 +32,8 @@
 {"t": "2026-10-05T06:16:04", "by": "executor", "task": "SI-1", "ev": "reported", "commits": ["23d76df5"], "note": "partial: Hugo двуязычный (en в корне, ru в /ru/), 37 страниц переименованы в .ru.md, строки в i18n, резолвер ищет страницу в язы…", "dp_feedback": "ls/find в Bash фильтруются rtk (пустой вывод) — путает при проверке выходных каталогов; считал через python."}
 {"t": "2026-10-05T06:16:41", "by": "coordinator", "task": "SI-1", "ev": "edited", "note": "contract:SI-К1", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-10-05T06:16:42", "by": "coordinator", "task": "SI-1", "ev": "edited", "note": "contract:SI-К4", "diff": {"contract": ["null", "null"]}}
+{"t": "2026-10-05T06:17:09", "by": "executor", "task": "SI-1", "ev": "reported", "commits": ["23d76df5", "sites.matrix"], "note": "done: Контракт v2: монтирования документов через sites.matrix languages=['ru'], влит новый чекер; hugo без WARN; все 4 провер…"}
+{"t": "2026-10-05T06:17:22", "by": "executor", "task": "SI-1", "ev": "checked", "note": "4/4 config_i18n=ok:exit 0; build_links=ok:exit 0; pages_suffix=ok:exit 0; wings_c2=ok:exit 0"}
+{"t": "2026-10-05T06:17:29", "by": "coordinator", "task": "SI-1", "ev": "accepted", "note": "по отчёту: 4/4 PASS, K4 0 битых ссылок по всему сайту, файлы в скоупе"}
+{"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "accepted", "commits": ["96bd74c8"], "note": "4/4 config_i18n=ok:exit 0; build_links=ok:exit 0; pages_suffix=ok:exit 0; wings_c2=ok:exit 0"}
+{"t": "2026-10-05T06:17:33", "by": "coordinator", "task": "SI-1", "ev": "merged", "commits": ["96bd74c8"]}
