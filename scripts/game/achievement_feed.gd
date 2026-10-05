@@ -170,15 +170,31 @@ func _weather_value(key: String) -> float:
 	return NAN
 
 
-## Температура на высоте отрыва: долинная (weather._derived) минус градиент модели погоды
-## (weather_model.json → upper_air.lapse_k_per_km) на разность высот; NAN — погоды нет.
+## Температура на высоте отрыва по профилю модели погоды (weather_model.gd): ниже z_dry —
+## сухая адиабата от долины, выше — верхний воздух: T = max(t − dry·(z − h_v), t_u + γ·(z_u − z)).
+## NAN — погоды нет.
 func _temp_at(alt_msl: float) -> float:
-	var t_valley := _derived_weather("temperature_c")
-	var h_valley := _derived_weather("valley_msl_m")
-	if is_nan(t_valley) or is_nan(h_valley):
-		return t_valley
-	var lapse := float(WeatherModel.config().get("upper_air", {}).get("lapse_k_per_km", 0.0))
-	return t_valley - lapse * (alt_msl - h_valley) / 1000.0
+	var air := _game.air
+	var w: Variant = air.get("weather") if air != null else null
+	if not (w is Dictionary) or (w as Dictionary).get("_derived") == null:
+		return NAN
+	return temp_at_altitude(w, alt_msl, _game.settings.month, _game.settings.day)
+
+
+## Чистая функция профиля: w — погода WeatherModel.derive (с _derived), высота в м над морем.
+static func temp_at_altitude(w: Dictionary, alt_msl: float, month: int, day: int) -> float:
+	var d: Dictionary = w.get("_derived", {})
+	if not d.has("temperature_c") or not d.has("valley_msl_m"):
+		return NAN
+	var c := WeatherModel.config()
+	var ua: Dictionary = c.upper_air
+	var dry := float(c.get("dry_adiabat_k_per_km", 9.8))
+	var gam := float(ua.lapse_k_per_km)
+	var t_u := WeatherModel.monthly(ua.temp_c, clampi(month, 1, 12), day)
+	var z_u := float(ua.z_msl_m) / 1000.0
+	var h_v := float(d.valley_msl_m) / 1000.0
+	var z := alt_msl / 1000.0
+	return maxf(float(d.temperature_c) - dry * (z - h_v), t_u + gam * (z_u - z))
 
 
 func _derived_weather(key: String) -> float:
