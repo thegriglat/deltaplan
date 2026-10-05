@@ -113,3 +113,4 @@
 {"t": "2026-10-05T06:24:52", "by": "coordinator", "task": "SI-21", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-21"}
 {"t": "2026-10-05T06:25:24", "by": "executor", "task": "SI-5", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:25:24", "by": "coordinator", "task": "SI-5", "ev": "merged", "commits": ["87c5fb1e"]}
+{"t": "2026-10-05T06:25:26", "by": "coordinator", "task": "SI-22", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-22"}
