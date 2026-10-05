@@ -60,3 +60,6 @@
 {"t": "2026-10-05T06:20:54", "by": "executor", "task": "SI-10", "ev": "reported", "commits": ["d27de83e"], "note": "done: Создан terrain.en.md — перевод страницы «Рельеф и места»."}
 {"t": "2026-10-05T06:21:05", "by": "executor", "task": "SI-10", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:21:05", "by": "coordinator", "task": "SI-10", "ev": "merged", "commits": ["dadac6d5"]}
+{"t": "2026-10-05T06:21:06", "by": "executor", "task": "SI-7", "ev": "reported", "commits": ["71aeeea3"], "note": "done: Создан site/content/mechanics/flight.en.md — полный перевод страницы (структура, формулы, таблица, шорткоды, ссылки как…"}
+{"t": "2026-10-05T06:21:07", "by": "coordinator", "task": "SI-11", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-11"}
+{"t": "2026-10-05T06:21:09", "by": "coordinator", "task": "SI-12", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-12"}
