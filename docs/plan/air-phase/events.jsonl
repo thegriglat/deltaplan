@@ -29,3 +29,6 @@
 {"t": "2026-10-06T03:25:11", "by": "coordinator", "task": "AP-3", "ev": "merged", "note": "копия ~/deltaplan-air-phase-AP-3 оставлена до конца счёта (air-phase-run, ap1-resume)"}
 {"t": "2026-10-06T03:26:00", "by": "coordinator", "task": "AP-4", "ev": "created", "note": "План ap_v2: серия FIXED_U (Fr через N и h при фиксированном ветре) и постановка в очередь GPU"}
 {"t": "2026-10-06T03:26:02", "by": "coordinator", "task": "AP-4", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-air-phase-AP-4"}
+{"t": "2026-10-06T03:31:51", "by": "executor", "task": "AP-4", "ev": "reported", "commits": ["3eabe409"], "note": "done: План ap_v2 (серия FIXED_U, 296 случаев, 62 рельефа ideal_v2) собран; h везде берётся из Relief.h_m (в коде Context.h_m …", "dp_feedback": "dp job list нет (есть status); оценку времени по progress.jsonl пришлось считать своим скриптом."}
+{"t": "2026-10-06T03:33:11", "by": "executor", "task": "AP-4", "ev": "checked", "note": "3/3 tests=ok:exit 0; plan_v2=ok:1 passed; queued=ok:идёт"}
+{"t": "2026-10-06T03:33:11", "by": "coordinator", "task": "AP-4", "ev": "accepted", "note": "по отчёту: 296 случаев FIXED_U, h из Relief.h_m проверено тестом; ap2-run в очереди за ap1-resume"}
