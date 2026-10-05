@@ -86,3 +86,4 @@
 {"t": "2026-10-05T06:23:03", "by": "executor", "task": "SI-14", "ev": "reported", "commits": ["ffc734d6"], "note": "done: Создан bots.en.md; заголовку «Очередь на старт» добавлен {#start-queue} в обоих файлах; якорь в multiplayer.ru/en испра…", "dp_feedback": "Ссылок с русскими якорями на другие страницы в bots.ru.md нет."}
 {"t": "2026-10-05T06:23:07", "by": "executor", "task": "SI-13", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:23:07", "by": "coordinator", "task": "SI-13", "ev": "merged", "commits": ["30ad305e"]}
+{"t": "2026-10-05T06:23:09", "by": "coordinator", "task": "SI-17", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-17"}
