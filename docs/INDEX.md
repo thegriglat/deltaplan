@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-04"
+updated: "2026-10-05"
 summary: "Все документы docs/ и паспорта исследований: путь, тип, статус, summary; точка входа."
 related: []
 generated: true
@@ -35,6 +35,7 @@ generated: true
 
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
+| [docs/contracts/aframe-geometry.md](/docs/contracts/aframe-geometry.md) | contract | active | aframe-geometry | Контракты модуля «aframe-geometry»: параметры трапеции и центровки крыла (A1), маркеры стоек в модели крыла (A2), инварианты позы пилота и вида от первого лица (A3). |
 | [docs/contracts/air-model.md](/docs/contracts/air-model.md) | contract | active | air-model | Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12). |
 | [docs/contracts/air-nn-p3.md](/docs/contracts/air-nn-p3.md) | contract | closed | air-nn | Контракты пилота П-3 air-nn: П2 v5 — физическая кодировка входа (27 карт) и выхода (117 каналов: разгон/поворот к линейной базе, отрыв от склона), линейная база Б1; П3 v4 — таблица вариантов и сводка заменимости |
 | [docs/contracts/air-nn.md](/docs/contracts/air-nn.md) | contract | active | air-nn | Контракты модуля air-nn — Изменение интерфейса — только через координатора: версия +1, что изменилось, уведомление потребителей. |
@@ -42,8 +43,11 @@ generated: true
 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) | contract | postponed | ann2 | Контракты модуля ann2 (сеть ветра «2,5D-оператор»): данные и деление из P2, вход/выход сети, оценка против P2 по критерию 10–15 % скорости. |
 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) | contract | active | control-fix | Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх). |
 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) | contract | active | easter-eggs | Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп. |
+| [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) | contract | active | popular-places | Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2). |
 | [docs/contracts/start-fixes.md](/docs/contracts/start-fixes.md) | contract | active | start-fixes | Контракты модуля «start-fixes» |
+| [docs/contracts/start-map.md](/docs/contracts/start-map.md) | contract | active | start-map | Контракты модуля start-map: растровые подложки карты выбора старта в конфиге (SM-К1), высота точки по Terrarium и интерфейс MapPicker (SM-К2). |
 | [docs/contracts/ui-controls.md](/docs/contracts/ui-controls.md) | contract | active | ui-controls | Контракты модуля «ui-controls» — Действия (имена — смысл, не клавиша): pitch_push_out = [Up] — трапеция от себя → pitch +; pitch_pull_in = [Down] — на себя → pitch −. |
+| [docs/contracts/wind-limits.md](/docs/contracts/wind-limits.md) | contract | active | wind-limits | Контракты модуля wind-limits: класс крыла и предел ветра в конфигах (WL-К1), таблицы ветра сноса и удержания на старте (WL-К2). |
 | [docs/contracts/wing-physics-check.md](/docs/contracts/wing-physics-check.md) | contract | active | wing-physics-check | Контракты модуля wing-physics-check |
 | [docs/contracts/wings-models3d.md](/docs/contracts/wings-models3d.md) | contract | active | wings-models3d | Контракты направления «3D-модели и конфиги крыльев» — Владелец: tools/blender/build_gliders.py (WingShape, сборка). |
 
@@ -128,6 +132,8 @@ generated: true
 
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
+| [docs/plan/aframe-geometry.md](/docs/plan/aframe-geometry.md) | plan | active | aframe-geometry | Геометрия трапеции и пилота: угол стоек к килю, подвеска от центра масс, база под плечами, трапеция и ленточки в кадре от первого лица, поза на старте. |
+| [docs/plan/air-square.md](/docs/plan/air-square.md) | plan | active | air-square | Исправление геометрии квадрата воздуха: клетка решателя ровно 400 м на земле (как П6/эталон), область 38,4 км вокруг старта всегда внутри слоя рельефа — ветер над рельефом считается на всех местах. |
 | [docs/plan/air-synth.md](/docs/plan/air-synth.md) | plan | active | air-synth | air-synth — сеть ветра на корпусе модельных рельефов: рельеф собирается из согласованных форм (гребни, пупыри разной высоты, седловины, пары склонов, уступы), считается решателем; сначала U-Net, затем FFT-сеть; реальные места P2 — только приёмка. Гипотезы H1–H7; задачи формирует координатор |
 | [docs/plan/air_model.md](/docs/plan/air_model.md) | plan | active | air-model | План: модель воздуха в трёх масштабах — Документ — для координатора агентов: модули, задачи со скоупом, файлами, приёмкой и оценкой. |
 | [docs/plan/air_nn.md](/docs/plan/air_nn.md) | plan | active | air-nn | Нейросеть вместо решателя поля ветра — план — Связанное: модель воздуха — docs/guide/air-model.md, контракты — docs/contracts/air-model.md (C1–C10), код игры — scripts/atmosphere/air_model/; эталонный решатель на CuPy — tools/research/air3d/ (solver.py, air.py, reference.m… |
@@ -137,6 +143,9 @@ generated: true
 | [docs/plan/offline_world_data.md](/docs/plan/offline_world_data.md) | plan | postponed | world | План: офлайн-данные мира — свой пакет региона и подложка поверхности из OSM — 1. Без интернета. Всё нужное для полёта (рельеф, земной покров, OSM) заранее перепаковано в свой компактный формат и лежит рядом с игрой пакетами регионов. |
 | [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | idea |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
 | [docs/plan/osm_vector_pack.md](/docs/plan/osm_vector_pack.md) | plan | postponed |  | Размер офлайн-пакета: вектор OSM + рельеф + покров (замер на Словении) — Замер к плану offline_world_data.md (этапы 0 и 1). |
+| [docs/plan/popular-places.md](/docs/plan/popular-places.md) | plan | active | popular-places | Кнопка «Популярные места» в меню полёта: стартовые площадки дельтаплана из OSM списком по странам, поиск по названию, выбор места = точка старта (как точка с карты). |
+| [docs/plan/start-map.md](/docs/plan/start-map.md) | plan | active | start-map | Экран выбора точки старта: растровая топокарта (OpenTopoMap/OSM) вместо отмывки высот и высота выбранной точки над уровнем моря рядом с координатами. |
+| [docs/plan/wind-limits.md](/docs/plan/wind-limits.md) | plan | active | wind-limits | Предельный ветер по классам крыльев: почему при 6 м/с сдувает за гору, исправление физики, классы 48 крыльев, замер «до/после». |
 
 ## Реестры
 

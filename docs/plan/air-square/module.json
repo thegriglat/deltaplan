@@ -1,7 +1,7 @@
 {
   "module": "air-square",
   "plan": "docs/plan/air-square.md",
-  "contracts": "docs/contracts/air-square.md",
+  "contracts": "docs/contracts/air-model.md",
   "branch": "feature/air-square",
   "copy": "~/deltaplan-air-square",
   "created": "2026-10-05T06:08:20",
