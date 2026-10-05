@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Переведён ручной текст вне GEN-блоков в 5 файлах wings (_index.en.md и 4 группы): заголовки H1, вводные абзацы, числа с точкой.",
+  "commits": [
+    "c0c9277b site-i18n SI-23: английский текст раздела и групп крыльев"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gen_check",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept SI-23 --dry",
+  "uncertain": [
+    {
+      "where": "site/content/wings/_index.en.md:~12",
+      "why": "якоря: #отметки-происхождения -> #provenance-marks (внутр.), /#благодарности -> /#acknowledgements по SI-К4",
+      "checked": "соответствует явному id в заголовке и ссылке из GEN-блока"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:24:02",
+  "by": "executor"
+}

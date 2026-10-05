@@ -1,0 +1,93 @@
+{
+  "status": "done",
+  "summary": "Сеть через Steam: Steam-пир S4.1 поверх Networking Messages (scripts/steam/steam_peer.gd, steam_transport.gd), автозагрузка SteamLobby (S5: лобби «только друзья» хозяина встроенного сервера, мост в LocalServer.attach_peer, вход по лобби с проверкой версии, приглашения/+connect_lobby/«Присоединиться», «Друзья в игре», SteamPresence.set_lobby). NetUiBackend получил методы S5; экран «Сетевая игра» показывает «Друзья в игре» и «Пригласить друзей» только при активном Steam. Дополнение: scenes/main.gd — принятое приглашение/«Присоединиться»/запуск с +connect_lobby сами открывают «Сетевая игра» (из полёта/паузы/итога — выход в меню) и начинают вход; ветка модуля (ST-7) влита, автозагрузки объединены.",
+  "commits": [
+    "8df82bb8 steam ST-8: сеть через Steam — транспорт Networking Messages, лобби друзей, приглашения, «Друзья в игре»",
+    "a474eac1 слияние feature/steam (ST-7 и др.), автозагрузки SteamPresence + SteamLobby",
+    "93a261f4 steam ST-8: приглашение и +connect_lobby сами открывают «Сетевая игра» и входят",
+    "f45055a2 steam ST-8: лобби со сменившимся владельцем — не в списке друзей, вход zone_not_found"
+  ],
+  "checks": [
+    {
+      "name": "steam_contracts",
+      "value": "27/27",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "39/39 (в т.ч. test_owner_changed_lobby_hidden — владелец лобби сменился → скрыто, вход zone_not_found)",
+      "pass": true
+    },
+    {
+      "name": "/net/",
+      "value": "28/28",
+      "pass": true
+    },
+    {
+      "name": "net_screen",
+      "value": "17 тестов, 1 упало (порт 8080 занят посторонним — допустимо)",
+      "pass": true
+    },
+    {
+      "name": "smoke_plain",
+      "value": "steam: inactive (no_feature)",
+      "pass": true
+    },
+    {
+      "name": "main.tscn-тесты после правки main.gd",
+      "value": "test_language 6/6, test_net_flight 7/7, test_e2e 1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншоты не сняты: новые элементы видны только при активном Steam (у агентов нет клиента); UI без Steam не изменился (тест test_steam_ui_hidden_without_steam).",
+    "Известное ограничение (minor 1 ревью, отложено координатором): кадры уже закрытого соединения в транспорте не отбрасываются особо — поздний кадр данных от старого номера соединения у хозяина создаёт новое соединение (или пропускается при совпадении); на практике кадры одного канала идут по порядку, и BYE приходит раньше."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept ST-8. Ручной сценарий на двух аккаунтах Steam (App ID 480, у агентов нет): 1) собрать игру с GodotSteam (или запустить с `-- --steam`) на двух компьютерах с разными аккаунтами Steam, аккаунты — друзья; 2) A: «Сетевая игра» → «Создать» (без адреса): в логе `steam: lobby <id> for zone <код>`; в зоне видна кнопка «Пригласить друзей»; 3) B: открыть «Сетевая игра» — в «Друзья в игре» строка «<ник A> — <место>, зона <код>» (обновление раз в 5 с); Enter/двойной клик — вход, в зоне двое, видны друг друга в полёте; 4) B выйти из зоны, A: «Пригласить друзей» → оверлей → пригласить B; B принимает в чате Steam при запущенной игре и открытом экране — вход сам; при закрытой игре — Steam запускает игру с +connect_lobby, B открывает «Сетевая игра» — вход сам; 5) «Присоединиться» в списке друзей Steam (после ST-7, ключ connect) — то же; 6) другая версия игры у B — строка тусклая, вход «У вас другая версия игры»; 7) A выходит из зоны — у B обрыв («Связь пропала»), лобби пропадает из списка.",
+  "uncertain": [
+    {
+      "where": "scripts/steam/steam_lobby.gd: refresh_friends",
+      "why": "Ключи словаря getFriendGamePlayed ('id' — App ID, 'lobby') взяты из документации GodotSteam, не замерены; если имена другие, список «Друзья в игре» будет пуст (вход по приглашению это не затрагивает).",
+      "checked": "сигнатура getFriendGamePlayed(steam_id) в api_dump.json; поведение — только на подставном API"
+    },
+    {
+      "where": "scripts/steam/steam_lobby.gd: lobby_info/refresh_friends",
+      "why": "Данные чужого лобби до вступления читаются только после requestLobbyData → lobby_data_update; на настоящем Steam задержка/доступность для лобби «только друзья» не проверена.",
+      "checked": "путь requestLobbyData есть; на 480 ST-1 проверил данные только своего лобби"
+    },
+    {
+      "where": "scripts/steam/steam_transport.gd: pump/_on_session_request",
+      "why": "Двое на разных машинах через реле Steam не проверены: время установления сессии, приход network_messages_session_request у хозяина, сессия принимается всегда (не-хозяин отвечает кадром «закрыть»). Steam вызывается только из главного потока — пока хозяин грузит мир, кадры ждут в очереди Steam (сессия живёт).",
+      "checked": "на подставном API: сессия, принятие, кадры в обе стороны, переподключение, обрыв (session_failed → 1006), отказ без хозяина"
+    },
+    {
+      "where": "scripts/steam/steam_lobby.gd: _on_join_game_requested/_on_join_requested",
+      "why": "Сигналы приглашения и «Присоединиться» и запуск +connect_lobby — без двух аккаунтов не проверить; оверлей приглашения работает только в игре, запущенной из клиента Steam.",
+      "checked": "тест эмулирует join_requested и join_game_requested('+connect_lobby <id>') на подставном API"
+    },
+    {
+      "where": "scripts/steam/steam_transport.gd: SEND_FLAGS",
+      "why": "Все кадры надёжные (RELIABLE_NO_NAGLE|AUTORESTART), канал 0 — как TCP у WebSocket, порядок важен протоколу; PilotState 10 Гц надёжным — при потерях возможны задержки (а не пропуски).",
+      "checked": "трафик ~20 КБ/с на пира по оценке ST-1"
+    },
+    {
+      "where": "scripts/ui/net_ui_client_backend.gd: _init",
+      "why": "Нашёл и исправил утечку: лямбды, подписанные на сигналы автозагрузок (было и раньше у LanDiscovery.zones_changed), держали бэкенд после закрытия экрана; теперь методы + NetScreen._exit_tree → stop_nearby. Полёт из главной сцены (приглашение во время полёта → меню) тестом не покрыт — логика та же _show_menu().",
+      "checked": "test_steam_main_join (меню), test_net_screen, test_net_flight"
+    },
+    {
+      "where": "scripts/steam/steam_lobby.gd: _owner_changed",
+      "why": "По документации Steam getLobbyOwner для лобби, где ты не участник, может вернуть 0; тогда в списке друзей смену владельца не видно, и отказ zone_not_found придёт уже после joinLobby (проверка в _on_lobby_joined).",
+      "checked": "тест на подставном Steam: смена владельца → скрыто и zone_not_found; владелец 0 не считается сменой"
+    }
+  ],
+  "dp_feedback": "Нет команды ожидания произвольного фонового процесса без dp job (запускал тесты Bash-фоном); scratchpad общий с другими задачами — удобно было бы dp-шаблон пути для отчёта задачи.",
+  "extra": {
+    "transport_choice": "Networking Messages, а не Sockets: проверено ST-1 (кадр 2 КБ надёжным), нет своих соединений/состояний — сессию открывает первый кадр, обрыв — session_failed; своё «соединение» — номер в рамке кадра (вид 1–4 + u32), этого хватает отличить переподключение от старых кадров. Протокол не меняется.",
+    "new_files": "scripts/steam/steam_peer.gd, steam_transport.gd, steam_lobby.gd (автозагрузка SteamLobby), tests/steam/fake_steam_net.gd, tests/steam/test_steam_net.gd, tests/contracts/test_steam_contracts_s5.gd"
+  },
+  "t": "2026-10-05T08:21:54",
+  "by": "main"
+}

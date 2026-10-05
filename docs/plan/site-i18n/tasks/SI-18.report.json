@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "summary": "Переведены _index.en.md и index.en.md всех 10 версий; по SI-К3 v2 добавлены captions во frontmatter en-страниц, шорткод gallery берёт подпись и alt из captions (ключ в нижнем регистре, т.к. Hugo так хранит Params), строка в скилле new-release.",
+  "commits": [
+    "site-i18n SI-18: captions в en-страницах, gallery из captions"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "how_to_check": "tools/dp accept SI-18 --dry",
+  "dp_feedback": "",
+  "t": "2026-10-05T06:21:38",
+  "by": "executor"
+}

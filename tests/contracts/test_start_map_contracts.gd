@@ -14,7 +14,7 @@ func _doc_line(head: String) -> String:
 
 
 func test_versions_in_doc() -> void:
-	check(_doc_line("## SM-К1.").contains("(v2)"), "SM-К1 v2 в документе")
+	check(_doc_line("## SM-К1.").contains("(v3)"), "SM-К1 v3 в документе")
 	check(_doc_line("## SM-К2.").contains("(v1)"), "SM-К2 v1 в документе")
 
 

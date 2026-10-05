@@ -1,5 +1,14 @@
 extends Node
-## NetClient (автозагрузка) — одно WebSocket-соединение с сервером сетевой игры.
+## NetClient (автозагрузка) — одно соединение с сервером сетевой игры.
+##
+## Транспорт (контракт S4.2, docs/contracts/steam.md): соединение — пир S4.1 (ws_peer.gd,
+## loopback_peer.gd, Steam — ST-8), адрес → пир через реестр схем:
+##   NetClient.register_transport(scheme, factory) — factory(address) -> пир или null
+##   (Callable() — убрать схему). Схема адреса — до "://" или, если она зарегистрирована,
+##   до первого ":" ("steam:<steam_id64>"). Остальное — WebSocket (ws/wss и адрес без схемы,
+##   make_url ниже). Незарегистрированная схема ("xxx://…" или из TRANSPORT_SCHEMES) —
+##   сразу error("CONNECT_FAILED") и disconnected(false), connect_to_server -> false.
+##   Фабрика вернула null — неудачная попытка (повторы, как при недоступном сервере).
 ##
 ## Протокол: docs/guide/net-protocol.md, контракт — server/proto/deltaplan/v1/net.proto,
 ## кодирование — NetMessages (там же формат данных: ключи lowerCamelCase, умолчания подставлены).
@@ -67,6 +76,15 @@ const WS_PATH := "/v1/ws"
 const NAME_MAX_LEN := 20
 ## Pong дольше этого (RTT, с) не учитывается в задержке и часах сервера.
 const MAX_PONG_RTT_S := 3.0
+## Схемы транспортов без "://", которые не путать с "имя:порт" (регистрирует ST-8).
+const TRANSPORT_SCHEMES := ["steam"]
+const WS_PEER := preload("res://scripts/net/ws_peer.gd")
+## Состояния пира (S4.1, как WebSocketPeer.State).
+const PEER_OPEN := 1
+const PEER_CLOSED := 3
+
+## Реестр транспортов: схема → factory(address) -> пир или null. Общий на все экземпляры.
+static var _transports: Dictionary = {}
 
 ## Настройки (тесты меняют их для скорости).
 var ping_interval_s := 2.0
@@ -91,10 +109,13 @@ var address := ""
 var pilot_name := ""
 var state := State.IDLE
 
+## Адрес для пира: ws://… для WebSocket, иначе адрес как есть (для фабрики и сообщений).
 var _url := ""
-var _ws: WebSocketPeer
-## Закрываемые сокеты: опрашиваются, пока не закроются вежливо.
-var _closing: Array[WebSocketPeer] = []
+## Фабрика пира текущей сессии: factory(_url) -> пир или null.
+var _factory: Callable
+var _peer: RefCounted
+## Закрываемые пиры: опрашиваются, пока не закроются вежливо.
+var _closing: Array[RefCounted] = []
 var _timer := 0.0
 var _ping_timer := 0.0
 ## Номер текущего повтора: 0 — первое подключение, 1..N — повторы после обрыва.
@@ -114,11 +135,22 @@ func connect_to_server(p_address: String, p_pilot_name: String) -> bool:
 		disconnect_from_server()
 	address = p_address
 	pilot_name = p_pilot_name.strip_edges().left(NAME_MAX_LEN)
-	_url = make_url(p_address)
-	if _url == "":
-		error.emit("BAD_ADDRESS", "cannot parse address '%s'" % p_address)
+	var scheme := _scheme_of(p_address)
+	if scheme != "" and _transports.has(scheme):
+		_url = p_address.strip_edges()
+		_factory = _transports[scheme]
+	elif scheme != "" and scheme != "ws" and scheme != "wss":
+		_url = p_address.strip_edges()
+		error.emit("CONNECT_FAILED", "no transport for '%s' (%s)" % [scheme, _url])
 		disconnected.emit(false)
 		return false
+	else:
+		_url = make_url(p_address)
+		_factory = _transports.get("ws", Callable(WS_PEER, "connect_to"))
+		if _url == "":
+			error.emit("BAD_ADDRESS", "cannot parse address '%s'" % p_address)
+			disconnected.emit(false)
+			return false
 	_attempt = 0
 	_had_welcome = false
 	_first_connect_at = now()
@@ -138,6 +170,30 @@ func send(type: String, data: Dictionary = {}) -> bool:
 	if state != State.ONLINE:
 		return false
 	return _send_raw(type, data)
+
+
+## Зарегистрировать транспорт схемы (S4.2): factory(address: String) -> пир S4.1 или null.
+## Callable() — убрать. Действует на подключения после вызова.
+static func register_transport(scheme: String, factory: Callable) -> void:
+	if factory.is_valid():
+		_transports[scheme.to_lower()] = factory
+	else:
+		_transports.erase(scheme.to_lower())
+
+
+## Схема адреса: до "://"; без него — до первого ":", если она зарегистрирована или из
+## TRANSPORT_SCHEMES; иначе "" (WebSocket, "имя:порт").
+static func _scheme_of(p_address: String) -> String:
+	var a := p_address.strip_edges()
+	var sep := a.find("://")
+	if sep > 0:
+		return a.substr(0, sep).to_lower()
+	var colon := a.find(":")
+	if colon > 0:
+		var s := a.substr(0, colon).to_lower()
+		if _transports.has(s) or TRANSPORT_SCHEMES.has(s):
+			return s
+	return ""
 
 
 func now() -> float:
@@ -193,21 +249,22 @@ func _process(delta: float) -> void:
 			if _timer <= 0.0:
 				_open()
 			return
-	_ws.poll()
-	var ws_state := _ws.get_ready_state()
-	if ws_state == WebSocketPeer.STATE_OPEN and state == State.CONNECTING:
+	_peer.poll()
+	if _peer.get_state() == PEER_OPEN and state == State.CONNECTING:
 		state = State.HANDSHAKE
 		_send_raw("hello", {"gameVersion": _game_version(), "name": pilot_name})
-	while state != State.IDLE and _ws != null and _ws.get_available_packet_count() > 0:
-		var pkt := _ws.get_packet()
-		if _ws.was_string_packet():
-			_on_text(pkt.get_string_from_utf8())
-	if state == State.IDLE or state == State.WAIT_RETRY or _ws == null:
+	while state != State.IDLE and _peer != null:
+		var text: Variant = _peer.pop_text()
+		if text == null:
+			break
+		_on_text(text)
+	if state == State.IDLE or state == State.WAIT_RETRY or _peer == null:
 		return
-	if _ws.get_ready_state() == WebSocketPeer.STATE_CLOSED:
-		_on_socket_closed(
-			"closed: code %d %s" % [_ws.get_close_code(), _ws.get_close_reason()]
-		)
+	if _peer.get_state() == PEER_CLOSED:
+		var reason := "closed: code %d" % _peer.get_close_code()
+		if _peer.has_method("get_close_reason"):
+			reason += " " + _peer.get_close_reason()
+		_on_socket_closed(reason)
 		return
 	if state == State.ONLINE:
 		_ping_timer -= delta
@@ -221,12 +278,10 @@ func _process(delta: float) -> void:
 
 
 func _open() -> void:
-	_ws = WebSocketPeer.new()
-	var err := _ws.connect_to_url(_url)
-	if err != OK:
-		_ws = null
+	_peer = _factory.call(_url)
+	if _peer == null:
 		state = State.CONNECTING  # чтобы _on_attempt_failed считал это попыткой
-		_on_attempt_failed("connect_to_url %s: error %d" % [_url, err])
+		_on_attempt_failed("cannot open connection to %s" % _url)
 		return
 	state = State.CONNECTING
 	_timer = connect_timeout_s
@@ -290,17 +345,17 @@ func _send_ping() -> void:
 
 
 func _send_raw(type: String, data: Dictionary) -> bool:
-	if _ws == null or _ws.get_ready_state() != WebSocketPeer.STATE_OPEN:
+	if _peer == null or _peer.get_state() != PEER_OPEN:
 		return false
 	var text := NetMessages.encode(type, data)
 	if text == "":
 		return false
-	return _ws.send_text(text) == OK
+	return _peer.send_text(text) == OK
 
 
 ## Сокет закрылся сам (сервер, сеть).
 func _on_socket_closed(reason: String) -> void:
-	_ws = null
+	_peer = null
 	if state == State.ONLINE:
 		my_id = ""
 		if reconnect_delays_s.is_empty():
@@ -345,11 +400,11 @@ func _fail(reason: String) -> void:
 
 
 func _close_socket() -> void:
-	if _ws != null:
-		if _ws.get_ready_state() != WebSocketPeer.STATE_CLOSED:
-			_ws.close(1000, "bye")
-			_closing.append(_ws)
-		_ws = null
+	if _peer != null:
+		if _peer.get_state() != PEER_CLOSED:
+			_peer.close(1000)
+			_closing.append(_peer)
+		_peer = null
 
 
 func _reset_session() -> void:
@@ -360,9 +415,9 @@ func _reset_session() -> void:
 
 func _poll_closing() -> void:
 	for i in range(_closing.size() - 1, -1, -1):
-		var ws := _closing[i]
-		ws.poll()
-		if ws.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		var p := _closing[i]
+		p.poll()
+		if p.get_state() == PEER_CLOSED:
 			_closing.remove_at(i)
 
 

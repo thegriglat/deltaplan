@@ -1,0 +1,49 @@
+{
+  "id": "ST-10",
+  "module": "steam",
+  "type": "dp-writer",
+  "title": "Документация Steam, инструкция для Steamworks, ручные проверки, ASSETS.md, CHANGELOG",
+  "goal": "Пользователь и его друг-тестер по шагам знают, как включить/проверить Steam-часть и что сделать в Steamworks при регистрации; лицензии GodotSteam и Steamworks SDK учтены в ASSETS.md (SA-К2/SA-К3).",
+  "plan_ref": "ST-10. Документация и файлы для Steamworks",
+  "contracts": [],
+  "copy": "~/deltaplan-steam-ST-10",
+  "branch": "steam/ST-10",
+  "base": "feature/steam",
+  "scope": [
+    "docs/guide/steam.md",
+    "steam/partner/README.md",
+    "ASSETS.md",
+    "licenses/",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "inventory",
+      "cmd": "python3 tools/release/build_inventory.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_hidden",
+      "cmd": "grep -ciE 'орёл|орел|воздушн.. шар|balloon|глори|gloria|camp_landing|пасхал|к столу' docs/guide/steam.md | awk '{print \"hidden=\" $1}'",
+      "expect": "re:hidden=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T08:22:58",
+  "edited": "2026-10-05T08:27:59"
+}

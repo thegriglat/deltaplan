@@ -1,0 +1,74 @@
+{
+  "id": "ST-9",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Steam Cloud через Auto-Cloud: машинные настройки отдельно, описание для кабинета",
+  "goal": "Настройки и прогресс пилота синхронизируются Steam Auto-Cloud без кода Steam API, а машинные настройки (графика, окно) — нет (S7, решение Q5).",
+  "plan_ref": "ST-9. Steam Cloud",
+  "contracts": [
+    {
+      "name": "S7",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-9",
+  "branch": "steam/ST-9",
+  "base": "feature/steam",
+  "scope": [
+    "scripts/core/config.gd",
+    "scripts/game/user_settings.gd",
+    "steam/partner/auto_cloud.json",
+    "tests/steam/",
+    "tests/contracts/test_steam_contracts_s7.gd",
+    "tests/core/"
+  ],
+  "dont_touch": [
+    "scripts/net/",
+    "scripts/steam/",
+    "project.godot",
+    "docs/contracts/steam.md",
+    "tests/contracts/test_steam_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "config",
+      "tests": "config"
+    },
+    {
+      "name": "pilot_name",
+      "tests": "pilot_name"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    },
+    {
+      "name": "cloud_json",
+      "cmd": "python3 -c \"import json;d=json.load(open('steam/partner/auto_cloud.json'));print('roots=%d patterns=%d local=%d'%(len(d['roots']),len(d['patterns']),len(d['local_keys'])))\"",
+      "expect": "re:roots=3 patterns=\\d+ local=[1-9]"
+    },
+    {
+      "name": "ui",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 900 godot --headless --path . res://tests/run_tests.tscn -- --filter=/ui/ 2>&1",
+      "expect": "num:(\\d+) упало <=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:36:55",
+  "edited": "2026-10-05T07:42:14"
+}

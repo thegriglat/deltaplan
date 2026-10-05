@@ -1,0 +1,53 @@
+{
+  "id": "ST-11",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Сквозная проверка ачивок: полёт → S2 → Achievements → прогресс/Steam",
+  "goal": "Стык S2→S6 ни разу не проверялся целиком: короткий настоящий полёт должен открыть ACH_FIRST_FLIGHT локально и в подставном Steam.",
+  "plan_ref": "ST-11. Сквозная проверка ачивок",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "3",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S6",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-11",
+  "branch": "steam/ST-11",
+  "base": "feature/steam",
+  "scope": [
+    "tests/steam/test_achievements_e2e.gd",
+    "scripts/game/achievement_feed.gd",
+    "scripts/steam/achievements.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/steam.md",
+    "configs/achievements.json"
+  ],
+  "accept": [
+    {
+      "name": "achievements_e2e",
+      "tests": "achievements_e2e"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "test_achievement_feed",
+      "tests": "test_achievement_feed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T08:44:17"
+}

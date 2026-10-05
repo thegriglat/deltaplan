@@ -1,0 +1,19 @@
+Copernicus DEM (GLO-30 / GLO-90): licensing and user obligations
+Source: https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM
+(retrieved 2026-10-05). Licence terms: ESA User License and the relevant Mission Specific Annex, see the page above.
+
+The GLO-30 and GLO-90 datasets are available worldwide with a free license.
+
+User Obligations (verbatim from the page above)
+
+When communicating to the General Public or distributing the Copernicus WorldDEM-30 (GLO-30), the User shall inform the General Public of the source by using the following notice:
+(c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved
+
+Where the Copernicus WorldDEM-30 (GLO-30) data have been adapted or modified, the User shall provide the following notice:
+"produced using Copernicus WorldDEM-30 (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"
+
+Where the Copernicus data have been adapted or modified, the User shall provide the following notice:
+"produced using Copernicus WorldDEM-90 (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"
+
+Deltaplan terrain heights (data/terrain/) are resampled and smoothed from Copernicus DEM GLO-30, i.e. modified data:
+produced using Copernicus WorldDEM-30 (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved

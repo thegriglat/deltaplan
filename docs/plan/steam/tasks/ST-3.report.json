@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Пресеты Linux/Windows/macOS Steam (метка steam), itch-пресеты исключают addons/godotsteam/*, build.sh linux-steam|windows-steam|macos-steam, fetch_godotsteam.sh перенесён в tools/steam/ (в research — обёртка), check_builds.sh, steam/partner/.gdignore. dp accept ST-3 --dry: 4/4.",
+  "commits": [
+    "6879e9bf ST-3: пресеты Steam, itch без GodotSteam, build.sh *-steam, check_builds.sh"
+  ],
+  "checks": [
+    {
+      "name": "steam_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "/steam/",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "builds",
+      "value": "ITCH_STEAM_FILES=0 STEAM_LIBS_OK=1 STEAM_SMOKE=inactive (init_failed…)",
+      "pass": true
+    },
+    {
+      "name": "smoke_plain",
+      "value": "steam: inactive (no_feature), smoke OK",
+      "pass": true
+    },
+    {
+      "name": "Windows/macOS Steam",
+      "value": "собираются (libgodotsteam+steam_api64.dll в build/windows-steam; macOS .app + 2 файла steam в zip), запуск не проверен",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Запуск Windows/macOS-сборок Steam не проверен (нет машин)",
+    "steam_appid.txt в репозитории нет, исключения в пресетах не добавлял"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept ST-3",
+  "uncertain": [
+    {
+      "where": "tools/steam/check_builds.sh",
+      "why": "smoke Steam-сборки идёт с временным HOME, иначе запущенный клиент Steam на машине (он запущен) даёт active",
+      "checked": "с обычным HOME — STEAM_SMOKE=active (клиент запущен), с временным — inactive (init_failed)"
+    },
+    {
+      "where": "export_presets.cfg",
+      "why": "build/* в itch-пресетах взят из коммита 42f3d4b6 (cherry-pick d0f4221c) — при слиянии с feature/steam-assets возможен тривиальный конфликт в exclude_filter",
+      "checked": "правки идентичны"
+    }
+  ],
+  "dp_feedback": "dp job wait из фонового вызова даёт пустой вывод до конца; удобнее dp job wait в foreground с таймаутом.",
+  "t": "2026-10-05T07:32:27",
+  "by": "executor"
+}

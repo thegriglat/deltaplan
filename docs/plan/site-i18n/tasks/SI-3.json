@@ -1,0 +1,44 @@
+{
+  "id": "SI-3",
+  "module": "site-i18n",
+  "type": "dp-writer",
+  "title": "Перевод на английский: главная и оглавления разделов",
+  "goal": "Английский перевод страниц сайта по фактам русского оригинала (рядом, файл .en.md) по контракту SI-К5; русский текст не менять.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SI-К2",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-i18n-SI-3",
+  "branch": "site-i18n/SI-3",
+  "base": "feature/site-i18n",
+  "scope": [
+    "site/content/_index.en.md",
+    "site/content/docs/_index.en.md",
+    "site/content/research/docs/_index.en.md",
+    "site/content/mechanics/_index.en.md"
+  ],
+  "dont_touch": [
+    "site/content/**/*.ru.md",
+    "site/layouts",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "en_pages",
+      "cmd": "python3 tools/site/check_i18n.py --only=K2,K4,K5 --pages=_index,docs/_index,research/docs/_index,mechanics/_index",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:08:53"
+}

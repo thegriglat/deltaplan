@@ -9,7 +9,10 @@ enum State { MENU, LOADING, FLYING, PAUSED, RESULT }
 const SMOKE_STEPS := 300
 const SMOKE_TIMEOUT_S := 90.0
 
-var state: State = State.MENU
+var state: State = State.MENU:
+	set(v):
+		state = v
+		_publish_activity()
 var opts: LaunchOptions
 var flight: FlightSettings
 ## Папка user-конфигов для выбора языка (тесты подменяют, чтобы не трогать профиль).
@@ -27,6 +30,10 @@ var _net_pause_timer: Timer  ## обновление списка пилотов
 var _flight_before_net: FlightSettings
 ## Сеть: полёт кончился, пока открыта пауза (мир идёт) — итог покажем после «Продолжить».
 var _pending_result: Array = []
+## Лобби Steam (ST-8, S5): автозагрузка SteamLobby; тесты подставляют свой экземпляр до add_child.
+var steam_lobby: Node
+## Вход по приглашению Steam уже ждёт конца загрузки (не запускать второй раз).
+var _steam_join_scheduled := false
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -56,6 +63,10 @@ func _ready() -> void:
 	_connect_ui()
 	_setup_catch_up_menu()
 	NetZone.zone_left.connect(_on_zone_left)
+	if steam_lobby == null:
+		steam_lobby = get_node_or_null("/root/SteamLobby")
+	if steam_lobby != null:
+		steam_lobby.join_lobby_requested.connect(_on_steam_join_requested)
 	var overlays: Array[Control] = [
 		pause_menu,
 		settings_panel,
@@ -85,6 +96,9 @@ func _ready() -> void:
 		await _fly(flight)
 	else:
 		await _show_menu()
+		# запуск Steam с «+connect_lobby <id>»: сразу экран «Сетевая игра» и вход
+		if steam_lobby != null and int(steam_lobby.pending_lobby) > 0:
+			_on_steam_join_requested(int(steam_lobby.pending_lobby))
 	if opts.smoke:
 		_smoke_test()
 	elif opts.perf_s > 0.0:
@@ -196,6 +210,24 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 		game.camera.glance_target = _look_target
 		Input.action_press("look_instrument")
 	state = State.FLYING
+
+
+## Состояние экрана → Activity (S3). В полёте режим по фазе пилота ведёт Game; здесь — начальный.
+func _publish_activity() -> void:
+	if game == null:
+		return
+	match state:
+		State.MENU:
+			Activity.set_state({"mode": "menu", "place": "", "net": false, "zone_code": "", "peers": 0})
+		State.LOADING:
+			Activity.set_state({"mode": "loading", "place": Activity.place_name(flight)})
+		State.PAUSED:
+			Activity.set_state({"mode": "paused"})
+		State.RESULT:
+			Activity.set_state({"mode": "landed"})
+		State.FLYING:
+			var phase: String = game.glider.phase() if game.glider != null else "standing"
+			Activity.set_state({"mode": Activity.mode_for_phase(phase)})
 
 
 func _show_menu() -> void:
@@ -456,6 +488,8 @@ func _open_net_screen() -> void:
 	if net_screen == null:
 		net_screen = (load("res://scenes/ui/net_screen.tscn") as PackedScene).instantiate()
 		net_screen.settings = flight.duplicate()
+		if steam_lobby != null:
+			net_screen.backend = NetUiClientBackend.new(null, null, null, steam_lobby)
 		net_screen.visible = false
 		$UI.add_child(net_screen)
 		net_screen.closed.connect(_close_overlay)
@@ -503,6 +537,29 @@ func _end_net() -> void:
 	if _flight_before_net != null:
 		flight = _flight_before_net
 		_flight_before_net = null
+
+
+## Приглашение Steam принято (оверлей, «Присоединиться», «+connect_lobby», ST-8/S5): пилот сам
+## выбрал — из полёта/паузы/итога выйти в меню (из зоны тоже), открыть «Сетевая игра»; вход
+## в лобби начинает её клиент (ждущее лобби SteamLobby.pending_lobby). Отложенно: открытый
+## экран ввода успевает войти сам, тогда ничего не трогаем.
+func _on_steam_join_requested(_lobby_id: int) -> void:
+	if _steam_join_scheduled:
+		return
+	_steam_join_scheduled = true
+	await get_tree().process_frame
+	while state == State.LOADING and is_inside_tree():
+		await get_tree().process_frame
+	_steam_join_scheduled = false
+	if not is_inside_tree() or steam_lobby == null or int(steam_lobby.pending_lobby) <= 0:
+		return  # уже вошёл открытый экран (или вход отменён)
+	if state != State.MENU:
+		_show_menu()
+	if net_screen != null:
+		net_screen.go_back()  # старая зона/подключение экрана — выйти, экран закрывается
+	_overlay_back = start_menu  # не пауза/итог, из которых могли открыть настройки
+	_close_overlay()
+	_open_net_screen()
 
 
 ## Зона закрылась или связь пропала насовсем — в главное меню.

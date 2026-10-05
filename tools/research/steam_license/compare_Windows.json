@@ -1,0 +1,8 @@
+{
+ "preset": "Windows",
+ "pck_files": 1452,
+ "pck_sources": 803,
+ "emu": 803,
+ "only_in_pck": [],
+ "only_in_emulation": []
+}

@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "SA-К2 v2 выполнен: 14 текстов + .gdignore, генератор пишет THIRD_PARTY_NOTICES.txt (фраза ODbL есть) и licenses/, а при отсутствии текста возвращает rc=1, и build.sh с set -e прерывает сборку. Экран «Об игре» скрывает разделы «не входит» по SA-К3. Скоуп соблюдён, интерфейсы не менялись. Замечания мелкие.",
+  "issues": [
+    {
+      "file": "tools/build.sh",
+      "line": 89,
+      "severity": "minor",
+      "what": "macOS: notices и licenses/ попадают только в build/macos/, а build/deltaplan-macos.zip упакован раньше и их не содержит; кроме того, `ls build/macos` в сообщении «готово» теперь выводит и их",
+      "fix": "если zip распространяется, дописать в него notices (zip -r) или зафиксировать, что для macOS распространяется только build/macos"
+    },
+    {
+      "file": "tests/contracts/test_steam_assets_contracts_sa4.gd",
+      "line": 11,
+      "severity": "minor",
+      "what": "инвариант SA-К2 говорит о строках с attribution=true по SA-К1, а тест отбирает строки своим регулярным выражением ATTR, а не флагом attribution из build_inventory (SA-К1); определения могут разойтись",
+      "fix": "брать attribution из build_inventory (например, вызвать inventory JSON или функцию классификации) вместо собственного ATTR"
+    },
+    {
+      "file": "tools/release/third_party_notices.py",
+      "line": 79,
+      "severity": "minor",
+      "what": "в сборку Linux попадает licenses/msvc-runtime.txt: строка VC++ в ASSETS.md ссылается на него, и фильтр по платформе есть только для «(только Steam)»; файл безвреден, но лишний",
+      "fix": "по желанию: при отборе пропускать строки, все файлы которых лежат в bin/windows или помечены (Windows), для пресетов не-Windows; иначе оставить как есть"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "notices (dp accept --only notices --dry)",
+      "value": "NOTICES OK",
+      "pass": true
+    },
+    {
+      "name": "steam_assets_contracts (dp accept --only --dry)",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "third_party_notices.py --preset Linux вручную",
+      "value": "79 строк, 14 лицензий, rc=0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T07:21:58",
+  "by": "reviewer"
+}

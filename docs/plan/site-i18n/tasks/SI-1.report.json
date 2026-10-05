@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Контракт v2: монтирования документов через sites.matrix languages=['ru'], влит новый чекер; hugo без WARN; все 4 проверки PASS.",
+  "commits": [
+    "23d76df5 двуязычный Hugo, .ru.md, i18n, резолвер",
+    "sites.matrix вместо lang"
+  ],
+  "checks": [
+    {
+      "name": "config_i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_links",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pages_suffix",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wings_c2",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-1",
+  "uncertain": "Прежнее: ресурсы бандла у ru-страницы без en-пары Hugo не привязывает — в resolve.html фолбэк через assets/repo/site/content (после появления переводов не нужен); gallery на реальных страницах и переключатель языка визуально не проверены; резолвер проверен временной en-страницей (удалена). Изменилось: sites.matrix вместо lang — документы по-прежнему только в /ru/ (ссылки с en ведут на /ru/... с пометкой), WARN нет (проверено сборкой без --quiet).",
+  "dp_feedback": "",
+  "t": "2026-10-05T06:17:09",
+  "by": "executor"
+}

@@ -1,0 +1,76 @@
+{
+  "id": "ST-6",
+  "module": "steam",
+  "type": "dp-engineer",
+  "title": "Ачивки: 37 правил по потоку S2, локальный прогресс, разблокировка в Steam, файл для кабинета",
+  "goal": "Пилот получает 37 утверждённых ачивок: логика по словарям S2 (без Game), прогресс в user://achievements.json, в Steam — setAchievement; в itch — молча локально (Q4).",
+  "plan_ref": "ST-6. Ачивки",
+  "contracts": [
+    {
+      "name": "S6",
+      "version": "2",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S2",
+      "version": "3",
+      "ref": "docs/contracts/steam.md"
+    },
+    {
+      "name": "S1",
+      "version": "1",
+      "ref": "docs/contracts/steam.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-ST-6",
+  "branch": "steam/ST-6",
+  "base": "feature/steam",
+  "scope": [
+    "configs/achievements.json",
+    "scripts/steam/achievements.gd",
+    "scripts/steam/achievement_rules.gd",
+    "scripts/steam/continents.gd",
+    "project.godot",
+    "tools/steam/partner_files.py",
+    "steam/partner/achievements.csv",
+    "tests/steam/",
+    "tests/contracts/test_steam_contracts_s6.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/net/",
+    "scripts/steam/steam_service.gd",
+    "docs/contracts/steam.md",
+    "tests/contracts/test_steam_contracts.gd",
+    "tests/steam/fake_steam.gd"
+  ],
+  "accept": [
+    {
+      "name": "steam_contracts",
+      "tests": "steam_contracts"
+    },
+    {
+      "name": "/steam/",
+      "tests": "/steam/"
+    },
+    {
+      "name": "partner",
+      "cmd": "python3 tools/steam/partner_files.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "smoke_plain",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . -- --smoke 2>&1",
+      "expect": "re:steam: inactive \\(no_feature\\)"
+    },
+    {
+      "name": "count",
+      "cmd": "python3 -c \"import json;a=json.load(open('configs/achievements.json'))['achievements'];print('n=%d hidden=%d'%(len(a),sum(x['hidden'] for x in a)))\"",
+      "expect": "re:n=38 hidden=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:26:01",
+  "edited": "2026-10-05T07:32:22"
+}

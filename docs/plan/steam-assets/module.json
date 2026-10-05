@@ -1,0 +1,9 @@
+{
+  "module": "steam-assets",
+  "plan": "docs/plan/steam-assets.md",
+  "contracts": "docs/contracts/steam-assets.md",
+  "branch": "feature/steam-assets",
+  "copy": "~/deltaplan-steam-assets",
+  "created": "2026-10-05T06:42:03",
+  "code": "SA"
+}

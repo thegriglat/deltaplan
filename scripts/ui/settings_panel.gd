@@ -186,7 +186,7 @@ func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
 	var saved_name := String(Config.value("game", "net.pilot_name", ""))
 	_pilot_name.text = UserSettings.sanitize_pilot_name(saved_name)
-	_pilot_name.placeholder_text = tr("net_pilot_name_default")
+	_pilot_name.placeholder_text = UserSettings.default_pilot_name()
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	_volume.value = float(va.get("volume_db", -6.0))
 	_volume.value_changed.emit(_volume.value)

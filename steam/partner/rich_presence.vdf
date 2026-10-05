@@ -1,0 +1,39 @@
+"lang"
+{
+	"english"
+	{
+		"tokens"
+		{
+			"#St_Menu"	"In the menu"
+			"#St_Loading"	"Loading: %place%"
+			"#St_Launch"	"At the launch: %place%"
+			"#St_Flying"	"Flying at %alt% m: %place%"
+			"#St_Landed"	"Landed: %place%"
+			"#St_Paused"	"Paused: %place%"
+			"#St_Menu_Net"	"In the menu (network)"
+			"#St_Loading_Net"	"Loading: %place% (%peers% pilots)"
+			"#St_Launch_Net"	"At the launch: %place% (%peers% pilots)"
+			"#St_Flying_Net"	"Flying at %alt% m: %place% (%peers% pilots)"
+			"#St_Landed_Net"	"Landed: %place% (%peers% pilots)"
+			"#St_Paused_Net"	"Paused: %place% (%peers% pilots)"
+		}
+	}
+	"russian"
+	{
+		"tokens"
+		{
+			"#St_Menu"	"В меню"
+			"#St_Loading"	"Загрузка: %place%"
+			"#St_Launch"	"На старте: %place%"
+			"#St_Flying"	"В полёте на %alt% м: %place%"
+			"#St_Landed"	"Приземлился: %place%"
+			"#St_Paused"	"Пауза: %place%"
+			"#St_Menu_Net"	"В меню (сетевая игра)"
+			"#St_Loading_Net"	"Загрузка: %place% (пилотов: %peers%)"
+			"#St_Launch_Net"	"На старте: %place% (пилотов: %peers%)"
+			"#St_Flying_Net"	"В полёте на %alt% м: %place% (пилотов: %peers%)"
+			"#St_Landed_Net"	"Приземлился: %place% (пилотов: %peers%)"
+			"#St_Paused_Net"	"Пауза: %place% (пилотов: %peers%)"
+		}
+	}
+}

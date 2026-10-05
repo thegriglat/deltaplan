@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/research/_index.en.md, перевод страницы «Исследования».",
+  "commits": [
+    "26f91631 site-i18n SI-5: английский перевод"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS en_pages",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-5 --dry",
+  "uncertain": [
+    {
+      "where": "_index.en.md, блок bash",
+      "why": "комментарии в примерах кода переведены",
+      "checked": "команды не менялись"
+    },
+    {
+      "where": "_index.en.md",
+      "why": "П-1..П-3, А2, Б1 в тексте ссылок записаны латиницей (P-1.., A2, B1) ради инварианта кириллицы",
+      "checked": "ссылки как в оригинале"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:24:51",
+  "by": "executor"
+}

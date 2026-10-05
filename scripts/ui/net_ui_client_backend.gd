@@ -20,7 +20,11 @@ const ERROR_MAP := {
 var client: Node
 var zone: Node
 var lan: Node  ## LanDiscovery (NET-23): автозагрузка или переданный экземпляр (тесты).
+## SteamLobby (S5): автозагрузка или переданный экземпляр (тесты); Steam неактивен — пусто.
+var steam: Node
 
+## Порт встроенного сервера («Создать» без адреса); 0 — по умолчанию (LocalServer.DEFAULT_PORT).
+var embedded_port := 0
 var _mode := ""  ## "create" | "join" — что сделать после Welcome
 var _params: FlightSettings  ## создание: параметры зоны; вход: свои крыло и масса
 var _join_code := ""
@@ -29,14 +33,20 @@ var _in_zone := false
 ## «Создать» без адреса — зона на встроенном сервере (zone.host_local, NET-22): не звать
 ## _send_request() по client.connected — host_local сам подключает и создаёт зону.
 var _using_embedded := false
+## Вход через лобби Steam (S5): ждём lobby_ready этого лобби, потом обычный вход по адресу.
+var _lobby := 0
+var _lobby_name := ""
+## Экран открыт (start_nearby): приглашения Steam входят сразу.
+var _watching := false
 
 
 ## client/zone/p_lan — экземпляры для тестов; по умолчанию — автозагрузки NetClient/NetZone/
 ## LanDiscovery.
-func _init(p_client: Node = null, p_zone: Node = null, p_lan: Node = null) -> void:
+func _init(p_client: Node = null, p_zone: Node = null, p_lan: Node = null, p_steam: Node = null) -> void:
 	client = p_client
 	zone = p_zone
 	lan = p_lan
+	steam = p_steam
 	var tree := Engine.get_main_loop() as SceneTree
 	if client == null and tree != null:
 		client = tree.root.get_node_or_null("NetClient")
@@ -45,7 +55,15 @@ func _init(p_client: Node = null, p_zone: Node = null, p_lan: Node = null) -> vo
 	if lan == null and tree != null:
 		lan = tree.root.get_node_or_null("LanDiscovery")
 	if lan != null:
-		lan.zones_changed.connect(func() -> void: nearby_changed.emit())
+		# методом, не лямбдой: лямбда держит ссылку на бэкенд, и он жил бы после экрана
+		lan.zones_changed.connect(_on_lan_zones_changed)
+	if steam == null and tree != null:
+		steam = tree.root.get_node_or_null("SteamLobby")
+	if steam != null:
+		steam.friends_changed.connect(_on_steam_friends_changed)
+		steam.lobby_ready.connect(_on_lobby_ready)
+		steam.lobby_failed.connect(_on_lobby_failed)
+		steam.join_lobby_requested.connect(_on_steam_join_requested)
 	if client == null or zone == null:
 		return
 	client.connected.connect(_on_connected)
@@ -75,7 +93,10 @@ func connect_and_create(address: String, name: String, zone_params: FlightSettin
 		_busy = true
 		state_changed.emit()
 		var bots := int(Config.value("bots", "count", 0))
-		zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name)
+		if embedded_port > 0:
+			zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name, embedded_port)
+		else:
+			zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name)
 	else:
 		_using_embedded = false
 		_start(address, name)
@@ -97,7 +118,10 @@ func leave() -> void:
 	_busy = false
 	_in_zone = false
 	_mode = ""
+	_lobby = 0
 	_using_embedded = false
+	if steam_available():
+		steam.leave_lobby()
 	if zone != null:
 		zone.leave_zone()  # был встроенный сервер (host_local) — NetZone его тоже останавливает
 	if client != null:
@@ -213,6 +237,9 @@ func _on_zone_left() -> void:
 func _fail(kind: String) -> void:
 	_busy = false
 	_mode = ""
+	_lobby = 0
+	if steam_available():
+		steam.leave_lobby()  # вступили в лобби, а в зону не вошли — из лобби выйти
 	_disconnect_later()
 	failed.emit(kind)
 	state_changed.emit()
@@ -222,11 +249,13 @@ func _fail(kind: String) -> void:
 ## если к тому времени уже подключаемся заново — не трогать.
 func _disconnect_later() -> void:
 	if client != null:
-		NetUiClientBackend._drop_if_idle.bind(client, weakref(self)).call_deferred()
+		_drop_if_idle.bind(client, weakref(self)).call_deferred()
 
 
+## Без ссылок класса на само себя по имени (NetUiClientBackend.… / тип переменной): у Godot они
+## дают цикл скриптов — при выходе «ObjectDB instances were leaked», «resources still in use».
 static func _drop_if_idle(c: Node, me: WeakRef) -> void:
-	var b: NetUiClientBackend = me.get_ref()
+	var b: Object = me.get_ref()
 	if not is_instance_valid(c):
 		return
 	if b == null or (not b._busy and not b._in_zone):
@@ -247,9 +276,79 @@ func nearby() -> Array:
 func start_nearby() -> void:
 	if lan != null and lan.has_method("start_listening"):
 		lan.start_listening()
+	_watching = true
+	if steam_available():
+		steam.start_watching()
+		_join_pending()
 
 
 ## Экран закрылся — перестать слушать (список внутри LanDiscovery очищается сам).
 func stop_nearby() -> void:
 	if lan != null and lan.has_method("stop_listening"):
 		lan.stop_listening()
+	_watching = false
+	if steam_available():
+		steam.stop_watching()
+
+
+# ---------------------------------------------------------------- S5: Steam (SteamLobby)
+
+
+func steam_available() -> bool:
+	return steam != null and steam.available()
+
+
+func invite_friends() -> void:
+	if steam_available():
+		steam.invite()
+
+
+func friends_zones() -> Array:
+	return steam.friends_zones() if steam_available() else []
+
+
+## Вступить в лобби (SteamLobby.join_lobby) → lobby_ready → connect_and_join("steam:<хозяин>",
+## name, код зоны из лобби); lobby_failed — ошибка экрана ("version_mismatch" — без подключения).
+func connect_and_join_lobby(lobby_id: int, name: String) -> void:
+	if client == null or zone == null or not steam_available():
+		super.connect_and_join_lobby(lobby_id, name)
+		return
+	_mode = "lobby"
+	_lobby = lobby_id
+	_lobby_name = name
+	_using_embedded = false
+	_in_zone = false
+	_busy = true
+	state_changed.emit()
+	steam.join_lobby(lobby_id)
+
+
+func _on_lan_zones_changed() -> void:
+	nearby_changed.emit()
+
+
+func _on_steam_friends_changed() -> void:
+	friends_changed.emit()
+
+
+func _on_steam_join_requested(_lobby_id: int) -> void:
+	_join_pending()
+
+
+func _on_lobby_ready(lobby_id: int, address: String, zone_code: String) -> void:
+	if _busy and _mode == "lobby" and lobby_id == _lobby:
+		connect_and_join(address, _lobby_name, zone_code)
+
+
+func _on_lobby_failed(lobby_id: int, kind: String) -> void:
+	if _busy and _mode == "lobby" and lobby_id == _lobby:
+		_fail(kind)
+
+
+## Ждущее приглашение/запуск по лобби: войти, если экран открыт и мы свободны.
+func _join_pending() -> void:
+	if not _watching or _busy or _in_zone or not steam_available():
+		return
+	var lobby_id: int = steam.take_pending()
+	if lobby_id > 0:
+		connect_and_join_lobby(lobby_id, UserSettings.pilot_name())

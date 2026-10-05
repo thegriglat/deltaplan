@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/diary/2026-10-02.en.md — перевод записи дневника.",
+  "commits": [
+    "07e1e639 английский перевод записи дневника 2026-10-02"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-20 --dry",
+  "uncertain": [
+    {
+      "where": "site/content/diary/2026-10-02.en.md:~28",
+      "why": "этап «Рассчитываем ветер» дан как строка UI «Computing wind from terrain…» (loading_wind)",
+      "checked": "locale/ui.csv строка 123"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:25:53",
+  "by": "executor"
+}

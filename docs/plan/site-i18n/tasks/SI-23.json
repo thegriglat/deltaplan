@@ -1,0 +1,46 @@
+{
+  "id": "SI-23",
+  "module": "site-i18n",
+  "type": "dp-writer",
+  "title": "Перевод на английский: ручной текст оглавлений «Модели аппаратов»",
+  "goal": "Перевести ручной текст (вне блоков GEN_BEGIN/GEN_END) в wings/_index.en.md и wings/<группа>/_index.en.md по русским _index.ru.md; блоки GEN не трогать (их пишет gen_wings.py).",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К6",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-i18n-SI-23",
+  "branch": "site-i18n/SI-23",
+  "base": "feature/site-i18n",
+  "scope": [
+    "site/content/wings/_index.en.md",
+    "site/content/wings/*/_index.en.md"
+  ],
+  "dont_touch": [
+    "site/content/**/*.ru.md",
+    "tools/site/gen_wings.py"
+  ],
+  "accept": [
+    {
+      "name": "en_pages",
+      "cmd": "python3 tools/site/check_i18n.py --only=K2,K4,K5 --pages=wings/_index,wings/kingpost/_index,wings/topless/_index,wings/trainer/_index,wings/soviet/_index",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gen_check",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:09:46"
+}

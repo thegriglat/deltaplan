@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "GodotSteam GDExtension 4.22.1 (MIT, SDK 1.65) загружается в Godot 4.7.2 headless; проверены безопасный доступ к синглтону Steam, init-коды, экспорт Linux/Windows/macOS со Steam и без, живые вызовы на App ID 480 (Rich Presence, Cloud, лобби, Networking Messages на себя). Документ docs/research/steam_godotsteam.md, скрипты tools/research/steam/.",
+  "commits": [
+    "c5cdeb41 ST-1: исследование GodotSteam 4.22.1: документ, прототип, скрипты",
+    "b0dfd556 ST-1: живые замеры на App ID 480"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "dp docs check exit 0",
+      "pass": true
+    },
+    {
+      "name": "probe",
+      "value": "STEAM_PROBE loaded=true (A,B), loaded=false при отсутствии расширения/библиотеки, игра не падает",
+      "pass": true
+    },
+    {
+      "name": "doc_keys",
+      "value": "15 разделов ##",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Лобби/сеть между двумя аккаунтами, оверлей приглашений, +connect_lobby из Steam, токены Rich Presence и свои ачивки, Auto-Cloud: нужен свой App ID или второй аккаунт",
+    "Загрузка расширения на Windows и macOS не запускалась (проверен только состав экспорта)"
+  ],
+  "questions": [
+    "addons/godotsteam/ нужно добавить в .gitignore и в exclude_filter itch-пресетов (ST-3): addons/ и .gitignore вне скоупа ST-1",
+    "ASSETS.md: добавить строку GodotSteam MIT + Steamworks SDK redistributable (вне скоупа ST-1; ST-3/ST-10)"
+  ],
+  "images": [],
+  "how_to_check": "dp accept ST-1; bash tools/research/steam/probe.sh; bash tools/research/steam/export_check.sh; bash tools/research/steam/live.sh 60 (нужен запущенный клиент Steam)",
+  "uncertain": [
+    {
+      "where": "docs/research/steam_godotsteam.md, Rich Presence",
+      "why": "лимит числа ключей: принято 28 при константе 30 и документации 20; getFriendRichPresenceKeyCount показал 44 без объяснения",
+      "checked": "замер live.sh; решено проектировать под 20"
+    },
+    {
+      "where": "docs/research/steam_godotsteam.md, macOS",
+      "why": "цена Apple Developer Program 99 USD/год, ненужность нотаризации для Steam, поведение Gatekeeper взяты из памяти и документации, не из замера",
+      "checked": "экспорт macOS с Linux проходит, dylib лежат в Contents/Frameworks, ad-hoc подпись"
+    },
+    {
+      "where": "docs/research/steam_godotsteam.md, формат .vdf токенов",
+      "why": "кабинет не доступен; формат взят из документации Valve (lang/english/tokens), в документации GodotSteam другой вариант (Language/Tokens)",
+      "checked": "сверка двух документов"
+    },
+    {
+      "where": "docs/research/steam_godotsteam.md, лицензия steam_api",
+      "why": "условия Steamworks SDK Access Agreement не читал; вывод 'не класть в itch' — осторожность",
+      "checked": "нет"
+    },
+    {
+      "where": "tools/research/steam/probe.sh",
+      "why": "первый --import свежего проекта с расширением падает SIGABRT при выходе (причина не найдена: не из-за editor-плагина); обход — импорт дважды",
+      "checked": "6 повторов, с плагином и без"
+    },
+    {
+      "where": "out/live.txt",
+      "why": "Networking Messages проверены только на себя: session_failed 'remote host closed' после доставки; на двух машинах поведение, реле и задержка неизвестны",
+      "checked": "доставка кадра 2020 байт на канале 0 подтверждена"
+    }
+  ],
+  "dp_feedback": "dp docs check ругался на ссылку related на docs/contracts/steam.md до dp task sync — подсказка в сообщении 'сделайте dp task sync' была бы полезна. Нет команды для проверки наличия клиента Steam и общего замка на него (live.sh ждёт pgrep).",
+  "extra": {
+    "godotsteam": "4.22.1-gde",
+    "sha256": "2b12b3499434c50da16104a0d22b725aee15cc5cd41223c1cea825bae59bfa8f",
+    "api_methods": 798,
+    "api_signals": 188,
+    "max_message_bytes": 524288,
+    "cloud_quota_480_bytes": 4096
+  },
+  "t": "2026-10-05T07:04:05",
+  "by": "executor"
+}

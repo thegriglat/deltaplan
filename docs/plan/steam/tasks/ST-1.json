@@ -1,0 +1,41 @@
+{
+  "id": "ST-1",
+  "module": "steam",
+  "type": "dp-researcher",
+  "title": "Исследование GodotSteam: версия, лицензия, сборка, поведение без Steam, App ID 480, сеть, Cloud",
+  "goal": "Ответить фактами на вопросы скоупа ST-1 и дать прототип загрузки GodotSteam в Godot 4.7.2 headless, чтобы контракты S1/S4 и задачи модуля опирались на проверенное, а не на догадки.",
+  "plan_ref": "ST-1. Исследование GodotSteam",
+  "contracts": [],
+  "copy": "~/deltaplan-steam-ST-1",
+  "branch": "steam/ST-1",
+  "base": "feature/steam",
+  "scope": [
+    "docs/research/steam_godotsteam.md",
+    "tools/research/steam/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "project.godot",
+    "addons/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "probe",
+      "cmd": "bash tools/research/steam/probe.sh",
+      "expect": "re:STEAM_PROBE loaded=true"
+    },
+    {
+      "name": "doc_keys",
+      "cmd": "grep -c -E '^## ' docs/research/steam_godotsteam.md",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:35:51"
+}

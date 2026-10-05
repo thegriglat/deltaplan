@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Доработка 2: temp_c по профилю модели погоды: max(t − dry·(z−h_v), t_u + γ·(z_u−z)); чистая функция AchievementFeed.temp_at_altitude + тест.",
+  "commits": [
+    "доработка temp_c/land_surface"
+  ],
+  "checks": [
+    {
+      "name": "achievement_feed",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "steam_contracts",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "/game/",
+      "value": "151/151, 1 пропуск",
+      "pass": true
+    },
+    {
+      "name": "temp_profile",
+      "value": "4 тестов, 0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept ST-5",
+  "uncertain": [
+    {
+      "where": "achievement_feed.gd:_surface_name",
+      "why": "вызов приватного Terrain._surface_layer_at через call",
+      "checked": "метод есть"
+    },
+    {
+      "where": "achievement_feed.gd:_eggs_near",
+      "why": "gloria по приватному _fade оставлено, публичного признака нет",
+      "checked": "gloria.gd"
+    }
+  ],
+  "dp_feedback": "easter-eggs: нет публичного признака видимости gloria; terrain: нет публичного 'есть ли карта поверхности в точке'",
+  "t": "2026-10-05T08:31:31",
+  "by": "main"
+}
