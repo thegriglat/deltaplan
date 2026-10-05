@@ -222,11 +222,13 @@ func _fail(kind: String) -> void:
 ## если к тому времени уже подключаемся заново — не трогать.
 func _disconnect_later() -> void:
 	if client != null:
-		NetUiClientBackend._drop_if_idle.bind(client, weakref(self)).call_deferred()
+		_drop_if_idle.bind(client, weakref(self)).call_deferred()
 
 
+## Без ссылок класса на само себя по имени (NetUiClientBackend.… / тип переменной): у Godot они
+## дают цикл скриптов — при выходе «ObjectDB instances were leaked», «resources still in use».
 static func _drop_if_idle(c: Node, me: WeakRef) -> void:
-	var b: NetUiClientBackend = me.get_ref()
+	var b: Object = me.get_ref()
 	if not is_instance_valid(c):
 		return
 	if b == null or (not b._busy and not b._in_zone):
