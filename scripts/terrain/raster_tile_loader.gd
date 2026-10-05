@@ -104,8 +104,13 @@ func _now() -> float:
 ## Заголовок User-Agent: шаблон map_picker.user_agent, {version} — application/config/version.
 func user_agent() -> String:
 	_ensure_cfg()
+	return expand_user_agent(String(_cfg.get("user_agent", "deltaplan/{version}")))
+
+
+## Подставляет {version} (application/config/version) в шаблон User-Agent; общая для всех загрузчиков.
+static func expand_user_agent(template: String) -> String:
 	var ver := String(ProjectSettings.get_setting("application/config/version", "0"))
-	return String(_cfg.get("user_agent", "deltaplan/{version}")).replace("{version}", ver)
+	return template.replace("{version}", ver)
 
 
 func _download(basemap: Dictionary, z: int, x: int, y: int) -> PackedByteArray:

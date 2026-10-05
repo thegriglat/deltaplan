@@ -111,3 +111,10 @@ func test_retry_after_header_longer() -> void:
 	await l.fetch_tile(_osm(), 8, 2, 2)
 	check(_calls == 2, "после Retry-After запрос уходит: %d" % _calls)
 	l.free()
+
+
+func test_expand_user_agent_shared() -> void:
+	var ua := RasterTileLoader.expand_user_agent(String(Config.get_config("world").map_picker.user_agent))
+	check(not ua.contains("{version}"), "нет литерала {version}: " + ua)
+	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrarium_loader.gd")
+	check(src.contains("RasterTileLoader.expand_user_agent"), "terrarium_loader использует общую функцию")
