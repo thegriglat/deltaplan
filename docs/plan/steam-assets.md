@@ -22,6 +22,7 @@ related: ["docs/contracts/steam-assets.md", "ASSETS.md", "docs/plan/offline_worl
 - 05.10: VC++ runtime — DLL из VC\\Redist по лицензии Visual Studio Community автора (Q1 = А, SA-9).
 - 05.10: тексты — «проект с открытым кодом», без «некоммерческий» и без упоминания продажи/бесплатности.
 - 05.10: скриншоты для Steam не делать (SA-5 снята) — позже вместе с описанием.
+- **VC++ runtime: вариант А через msvc-wine (vsdownload.py --accept-license, лицензия VS Build Tools принята пользователем), скачивание вне репозитория, 4 DLL из VC/Redist/MSVC/<ver>/x64/Microsoft.VC14x.CRT** (2026-10-05) — решение пользователя 07:22, уточнение Q1
 
 ## Что найдено при разборе (координатор, 05.10)
 - В ASSETS.md пометок ⚠ NC нет; правило «проект некоммерческий, NC допустимы» устарело → SA-3.
