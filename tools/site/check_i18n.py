@@ -10,6 +10,7 @@ K5 — английский текст: в en-страницах из site/conte
 --pages=a,b — K2 и K5 только для страниц, чья база (путь в site/content без .en.md/.ru.md) начинается с a или b
   (напр. --pages=mechanics/flight,releases/); задача перевода проверяет свои страницы.
 --k5-skip=a,b — K5 не проверять у страниц с этими префиксами базы (ручной текст ещё не переведён другой задачей).
+--fragments — K4 проверяет и якоря (#…) ссылок на страницы сайта: у цели есть элемент с таким id.
 --allow-missing — не считать ошибкой ru-страницы без en-перевода (промежуточные этапы), только печатать число.
 Код выхода 0 — всё по контракту, 1 — нарушения (список в выводе).
 """
@@ -20,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from urllib.parse import unquote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SITE = os.path.join(ROOT, "site")
@@ -36,6 +38,7 @@ errors: list[str] = []
 allow_missing = False
 pages: list[str] = []
 k5_skip: list[str] = []
+fragments = False
 
 
 def err(k: str, msg: str) -> None:
@@ -152,6 +155,7 @@ class Links(html.parser.HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.urls: list[str] = []
+        self.ids: set[str] = set()
         self.lang = None
         self.text: list[str] = []
         self._art = 0
@@ -159,6 +163,8 @@ class Links(html.parser.HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
+        if a.get("id"):
+            self.ids.add(a["id"])
         if tag == "html":
             self.lang = a.get("lang")
         for k in ("href", "src"):
@@ -220,16 +226,17 @@ def k4(out: str, base_path: str) -> None:
                     err("K4", "/en/index.html — не редирект")
     broken: dict[str, set[str]] = {}
     checked = 0
+    ids_cache: dict[str, set[str]] = {}
     for d, _, fs in os.walk(out):
         for f in fs:
             if not f.endswith(".html"):
                 continue
             p = os.path.join(d, f)
-            for u in parse(p).urls:
-                u = u.split("#")[0].split("?")[0]
+            for u0 in parse(p).urls:
+                frag = unquote(u0.split("#", 1)[1]) if "#" in u0 else ""
+                u = u0.split("#")[0].split("?")[0]
                 if not u or re.match(r"^[a-z]+:", u) or u.startswith("//"):
                     continue
-                from urllib.parse import unquote
                 if u.startswith("/"):
                     if not u.startswith(base_path):
                         broken.setdefault(u, set()).add(os.path.relpath(p, out))
@@ -240,6 +247,13 @@ def k4(out: str, base_path: str) -> None:
                 checked += 1
                 if not (os.path.isfile(t) or os.path.isfile(os.path.join(t, "index.html"))):
                     broken.setdefault(u, set()).add(os.path.relpath(p, out))
+                elif fragments and frag:
+                    tf = t if os.path.isfile(t) else os.path.join(t, "index.html")
+                    if tf.endswith(".html"):
+                        if tf not in ids_cache:
+                            ids_cache[tf] = parse(tf).ids
+                        if frag not in ids_cache[tf]:
+                            broken.setdefault(u + "#" + frag, set()).add(os.path.relpath(p, out))
     print(f"K4: проверено внутренних ссылок {checked}, битых адресов {len(broken)}")
     for u, ps in sorted(broken.items())[:30]:
         err("K4", f"битая ссылка {u} (на {len(ps)} стр., напр. {sorted(ps)[0]})")
@@ -275,7 +289,7 @@ def k5(out: str) -> None:
 
 
 def main() -> int:
-    global allow_missing
+    global allow_missing, fragments
     only = {"K1", "K2", "K3", "K4", "K5"}
     keep = None
     for a in sys.argv[1:]:
@@ -283,6 +297,8 @@ def main() -> int:
             only = set(a.split("=", 1)[1].split(","))
         elif a == "--allow-missing":
             allow_missing = True
+        elif a == "--fragments":
+            fragments = True
         elif a.startswith("--k5-skip="):
             k5_skip.extend(x for x in a.split("=", 1)[1].split(",") if x)
         elif a.startswith("--pages="):
