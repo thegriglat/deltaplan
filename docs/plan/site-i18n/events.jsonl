@@ -119,3 +119,5 @@
 {"t": "2026-10-05T06:25:53", "by": "executor", "task": "SI-20", "ev": "reported", "commits": ["07e1e639"], "note": "done: Создан site/content/diary/2026-10-02.en.md — перевод записи дневника."}
 {"t": "2026-10-05T06:26:04", "by": "executor", "task": "SI-21", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:26:04", "by": "coordinator", "task": "SI-21", "ev": "merged", "commits": ["2a96fd75"]}
+{"t": "2026-10-05T06:26:09", "by": "executor", "task": "SI-20", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:26:09", "by": "coordinator", "task": "SI-20", "ev": "merged", "commits": ["efbdbee9"]}
