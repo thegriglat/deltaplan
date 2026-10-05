@@ -1,0 +1,85 @@
+{
+ "n_checked": 13,
+ "n_failed": 0,
+ "max_abs_diff_m": 1.8640203506947728e-05,
+ "places": [
+  {
+   "site_id": "askarovo",
+   "group": "game",
+   "header": "HEADER z=12 spacing=22.861732186 n=1793 empty=false",
+   "max_abs_diff_m": 4.498920475271007e-06
+  },
+  {
+   "site_id": "aushkul",
+   "group": "game",
+   "header": "HEADER z=12 spacing=22.073970534 n=1921 empty=false",
+   "max_abs_diff_m": 4.01411966777232e-06
+  },
+  {
+   "site_id": "altai",
+   "group": "game",
+   "header": "HEADER z=12 spacing=23.597938576 n=1793 empty=false",
+   "max_abs_diff_m": 7.033111614873633e-06
+  },
+  {
+   "site_id": "ongudai",
+   "group": "game",
+   "header": "HEADER z=12 spacing=24.160389656 n=1665 empty=false",
+   "max_abs_diff_m": 1.8640203506947728e-05
+  },
+  {
+   "site_id": "hg_0142",
+   "group": "was_out_of_layer",
+   "header": "HEADER z=12 spacing=24.220784768 n=1665 empty=false",
+   "max_abs_diff_m": 4.310422013986681e-06
+  },
+  {
+   "site_id": "hg_0349",
+   "group": "was_out_of_layer",
+   "header": "HEADER z=12 spacing=24.165045609 n=1665 empty=false",
+   "max_abs_diff_m": 2.43204772232275e-06
+  },
+  {
+   "site_id": "hg_0350",
+   "group": "was_out_of_layer",
+   "header": "HEADER z=12 spacing=24.063721599 n=1665 empty=false",
+   "max_abs_diff_m": 9.75501251332389e-07
+  },
+  {
+   "site_id": "hg_0151",
+   "group": "was_out_of_layer",
+   "header": "HEADER z=12 spacing=31.798170543 n=1281 empty=false",
+   "max_abs_diff_m": 1.6048149973357795e-06
+  },
+  {
+   "site_id": "hg_0293",
+   "group": "random",
+   "header": "HEADER z=12 spacing=25.853785139 n=1665 empty=false",
+   "max_abs_diff_m": 3.5352584291103994e-06
+  },
+  {
+   "site_id": "hg_0179",
+   "group": "random",
+   "header": "HEADER z=12 spacing=27.965361566 n=1537 empty=false",
+   "max_abs_diff_m": 1.6596609839325538e-05
+  },
+  {
+   "site_id": "hg_0322",
+   "group": "random",
+   "header": "HEADER z=12 spacing=25.082357628 n=1665 empty=false",
+   "max_abs_diff_m": 1.6655143895150104e-06
+  },
+  {
+   "site_id": "hg_0224",
+   "group": "random",
+   "header": "HEADER z=12 spacing=27.035421412 n=1537 empty=false",
+   "max_abs_diff_m": 7.83290806793957e-06
+  },
+  {
+   "site_id": "hg_0090",
+   "group": "random",
+   "header": "HEADER z=12 spacing=27.472974655 n=1537 empty=false",
+   "max_abs_diff_m": 7.254017418745207e-06
+  }
+ ]
+}
