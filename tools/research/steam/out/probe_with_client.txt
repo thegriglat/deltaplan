@@ -1,0 +1,3 @@
+# Вывод probe.sh 2026-10-05 ~06:55 (клиент Steam на этой машине в этот момент был запущен и залогинен; через минуты закрыт)
+[B with-ext init-480] STEAM_PROBE loaded=true gs_version=4.22.1 init=0/ persona=<ник> steam_id=<64-бит id> lang=english logged_on=true args=["appid=480"]
+[D client-480] STEAM_PROBE loaded=true gs_version=4.22.1 init=0/ persona=<ник> steam_id=<64-бит id> lang=english logged_on=true args=["appid=480"]
