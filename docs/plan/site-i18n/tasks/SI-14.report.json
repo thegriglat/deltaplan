@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан bots.en.md; заголовку «Очередь на старт» добавлен {#start-queue} в обоих файлах; якорь в multiplayer.ru/en исправлен.",
+  "commits": [
+    "ffc734d6 site-i18n SI-14"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS en_pages",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-14",
+  "uncertain": [
+    {
+      "where": "bots.en.md",
+      "why": "«ЛП» переведено как flight incident; «Апогей» — Apogey (транслитерация)",
+      "checked": "ui.csv: Other pilots in the sky, Pilot names, Settings, Catch up"
+    }
+  ],
+  "dp_feedback": "Ссылок с русскими якорями на другие страницы в bots.ru.md нет.",
+  "t": "2026-10-05T06:23:03",
+  "by": "executor"
+}
