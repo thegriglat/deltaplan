@@ -1,1 +1,3 @@
 {"t": "2026-10-05T06:32:52", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-05T06:35:51", "by": "coordinator", "task": "ST-1", "ev": "created", "note": "Исследование GodotSteam: версия, лицензия, сборка, поведение без Steam, App ID 480, сеть, Cloud"}
+{"t": "2026-10-05T06:35:58", "by": "coordinator", "task": "ST-1", "ev": "started", "note": "dp-researcher (sonnet), ~/deltaplan-steam-ST-1"}
