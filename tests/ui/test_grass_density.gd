@@ -37,7 +37,7 @@ func test_grass_density_saved_and_applied() -> void:
 	# слайдер переопределяет пресет
 	slider.value = 70.0
 	check(sp.save(), "сохранилось")
-	var saved := UserSettings.read_json(dir.path_join("vegetation.json"))
+	var saved := UserSettings.read_json(UserSettings.local_dir(dir).path_join("vegetation.json"))
 	var pct := float(saved.get("grass", {}).get("density_pct", -1.0))
 	check(is_equal_approx(pct, 70.0), "density_pct записан: %s" % pct)
 	# применение: конфиг травы с правкой пилота → шаг пучков 1/√0,7
@@ -51,11 +51,14 @@ func test_grass_density_saved_and_applied() -> void:
 	# 0 % — трава выключена
 	slider.value = 0.0
 	check(sp.save(), "сохранилось (0 %)")
-	saved = UserSettings.read_json(dir.path_join("vegetation.json"))
+	saved = UserSettings.read_json(UserSettings.local_dir(dir).path_join("vegetation.json"))
 	cfg = Config._deep_merge(cfg, saved.get("grass", {}))
 	check(not GrassField.is_enabled(cfg), "0 % — трава выключена")
 	sp.queue_free()
 	for f in DirAccess.get_files_at(dir):
 		DirAccess.remove_absolute(dir.path_join(f))
 	DirAccess.remove_absolute(dir)
+	# машинные ключи (S7) лежат в соседнем local/configs
+	var ld := UserSettings.local_dir(dir)
+	DirAccess.remove_absolute(ld.path_join("vegetation.json"))
 	Config.reload()

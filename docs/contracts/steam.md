@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 2}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 2}, {"id": "S7", "version": 1}]
 ---
 # Контракты модуля steam
 
@@ -46,7 +46,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 **S1.5. Имя пилота по умолчанию.** `UserSettings.pilot_name()`: пусто (после `strip_edges`) в `net.pilot_name` → `SteamService.persona_name()`, обрезанный до `PILOT_NAME_MAX`, если не пусто → иначе `tr("net_pilot_name_default")`. Ник Steam в настройки не записывается. Поле имени в настройках показывает его подсказкой (placeholder).
 
-## S2. Поток событий полёта для ачивок (версия 2)
+## S2. Поток событий полёта для ачивок (версия 3)
+
+v3 (2026-10-05, ответ пользователя на Q7 — ещё 2 ачивки: посадка на воду, посадка в лагерь у старта; ST-5 дописывает в той же задаче): в `fin` — `land_surface`, `land_camp_m`.
 
 v2 (2026-10-05, ответ пользователя на Q1 — добавить одиночные ачивки: карта, погода, скрытые, спуск; ST-5 дописывает в той же задаче): в `ctx` — `lat`, `lon`, `temp_c`, `cb_chance`, `sky`; в `sample` — `eggs`. Остальное без изменений.
 
@@ -94,6 +96,8 @@ v2 (2026-10-05, ответ пользователя на Q1 — добавить
 | `land_alt_msl` | float | м |
 | `others_total` | int | сколько других пилотов (живые + боты) отрывались за этот полёт |
 | `others_airborne` | int | сколько из них в воздухе в момент посадки |
+| `land_surface` | String | поверхность в точке посадки: `"water"` — вода по маске воды рельефа (`SurfaceClassifier`/маска рек и озёр), иначе класс поверхности или `"ground"`; `""` — неизвестно |
+| `land_camp_m` | float | расстояние по горизонтали от точки посадки до ближайшей палатки лагеря у старта (`TentCamp`), м; NAN — лагеря нет |
 | `live_peers` | int | живых пилотов в зоне в момент посадки, кроме себя (не сеть — 0) |
 
 Инварианты: `flight_started` раньше любых `flight_sample`; `flight_finished` — ровно один раз на `flight_started` (выход в меню из полёта без посадки — `flight_finished` не шлётся, полёт не засчитывается); неизвестное — NAN, а не 0.
@@ -159,7 +163,9 @@ func attach_peer(peer, label: String) -> int    # принять внешнее 
 - Steam-пиры и LAN/WebSocket-пиры в одной зоне допустимы (сервер один).
 - `NetUiBackend` получает (неактивный Steam — пустые/false): `steam_available() -> bool`, `invite_friends()`, `friends_zones() -> Array` (`{lobby_id, friend_name, zone_code, place, same_version}`), `connect_and_join_lobby(lobby_id: int, name: String)`, сигнал `friends_changed`; фальшивый бэкенд тестов — тоже.
 
-## S6. Ачивки: описание и локальный прогресс (версия 1)
+## S6. Ачивки: описание и локальный прогресс (версия 2)
+
+v2 (2026-10-05, по итогам ST-6): в `user://achievements.json` — ещё `continents: [String]`, `wings: [String]`, `airtime_s: float`; у `Achievements` — сигнал `unlocked(api: String)`. Когда открывается: условие только по сэмплам и времени в воздухе — сразу в полёте, как только выполнено; условие с посадкой, дистанцией до посадки или итогом полёта — в `flight_finished` при `kind == "landed"`. Всего ачивок 38 (18 + 18 + 2; «37» на шлюзе — ошибка счёта координатора, утверждённые пункты все).
 
 Владелец — ST-6. Потребители — ST-10 (файлы для кабинета, документация), отдел ассетов (иконки по `api`).
 
@@ -168,6 +174,12 @@ func attach_peer(peer, label: String) -> int    # принять внешнее 
 - `steam/partner/achievements.csv` (генерирует скрипт `tools/steam/partner_files.py` из конфига): `api,name_en,desc_en,name_ru,desc_ru,hidden` — для ручного ввода в кабинет.
 - На App ID 480 свои ачивки не существуют: разблокировка проверяется на заглушке/логе, не в Steam.
 
-## S7. Steam Cloud (версия 0) — до решения по итогам ST-1
+## S7. Steam Cloud — Auto-Cloud (версия 1)
 
-Набор файлов для облака: `user://configs/*.json`, `user://recent_places.json`, `user://records.json`, `user://achievements.json`, `user://last_flight.json`, `user://tasks/`. Кэши (`terrain_cache`, `map_cache`, `air_nn`) — никогда. Способ (Auto-Cloud или Remote Storage API) — после ST-1 и ответа пользователя; тогда версия 1.
+v1 (2026-10-05, решение пользователя Q5: Auto-Cloud). Владелец — ST-9. Потребители — ST-10 (`steam/partner/README.md`), пользователь (настройка в кабинете при регистрации).
+
+- Кода Steam API для облака нет: Steam сам синхронизирует файлы до запуска и после выхода. Каталог `user://` стабилен: `application/config/use_custom_user_dir=true`, `custom_user_dir_name="Deltaplan"` (уже в `project.godot`; не менять).
+- Описание для кабинета — `steam/partner/auto_cloud.json`: `{"root_subdir": "Deltaplan", "roots": {"windows": "WinAppDataRoaming", "linux": "LinuxXdgDataHome", "macos": "MacAppSupport"}, "patterns": [{"path": "<подкаталог или \"\">", "pattern": "<маска>", "recursive": bool}], "quota_files": int, "quota_bytes": int}`.
+- В облако — общее для пилота: `configs/*.json` (имя, управление, язык, звук и прочие настройки, кроме машинных), `recent_places.json`, `records.json`, `achievements.json`, `last_flight.json`, `tasks/*`. Никогда: кэши (`terrain_cache/`, `map_cache/`, `air_nn/`), отладочные файлы, машинные настройки.
+- Машинные настройки (графика, окно/разрешение, прочее, что зависит от компьютера — список ключей фиксирует ST-9 в `auto_cloud.json → local_keys` и в отчёте) хранятся в `user://local/configs/<имя>.json` и в облако не попадают; `Config` накладывает их поверх `user://configs/` (порядок: `res://configs` → `user://configs` → `user://local/configs`). Запись: `UserSettings.save_patch` раскладывает ключи сам по списку `local_keys`.
+- Инварианты (тест): все пути, которые пишет игра в `user://`, кроме кэшей и `local/`, покрыты `patterns`; ни один ключ из `local_keys` не пишется в `user://configs/`; `OS.get_user_data_dir()` кончается на `/Deltaplan`.
