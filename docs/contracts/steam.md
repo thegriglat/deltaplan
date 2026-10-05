@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 2}, {"id": "S7", "version": 0}]
 ---
 # Контракты модуля steam
 
@@ -163,7 +163,9 @@ func attach_peer(peer, label: String) -> int    # принять внешнее 
 - Steam-пиры и LAN/WebSocket-пиры в одной зоне допустимы (сервер один).
 - `NetUiBackend` получает (неактивный Steam — пустые/false): `steam_available() -> bool`, `invite_friends()`, `friends_zones() -> Array` (`{lobby_id, friend_name, zone_code, place, same_version}`), `connect_and_join_lobby(lobby_id: int, name: String)`, сигнал `friends_changed`; фальшивый бэкенд тестов — тоже.
 
-## S6. Ачивки: описание и локальный прогресс (версия 1)
+## S6. Ачивки: описание и локальный прогресс (версия 2)
+
+v2 (2026-10-05, по итогам ST-6): в `user://achievements.json` — ещё `continents: [String]`, `wings: [String]`, `airtime_s: float`; у `Achievements` — сигнал `unlocked(api: String)`. Когда открывается: условие только по сэмплам и времени в воздухе — сразу в полёте, как только выполнено; условие с посадкой, дистанцией до посадки или итогом полёта — в `flight_finished` при `kind == "landed"`. Всего ачивок 38 (18 + 18 + 2; «37» на шлюзе — ошибка счёта координатора, утверждённые пункты все).
 
 Владелец — ST-6. Потребители — ST-10 (файлы для кабинета, документация), отдел ассетов (иконки по `api`).
 
