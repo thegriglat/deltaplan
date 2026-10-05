@@ -67,6 +67,8 @@ func finish(kind: String, info: Dictionary, tel: Telemetry) -> void:
 	fin["kind"] = kind
 	fin["land_pos"] = tel.position
 	fin["land_alt_msl"] = tel.altitude_msl
+	fin["land_surface"] = _surface_name(tel.position)
+	fin["land_camp_m"] = _camp_distance(tel.position)
 	_scan_others()
 	var others := _others_now()
 	fin["others_total"] = _seen_others.size()
@@ -178,6 +180,31 @@ func _derived_weather(key: String) -> float:
 		if d is Dictionary and (d as Dictionary).has(key):
 			return float((d as Dictionary)[key])
 	return NAN
+
+
+## "water" по классу поверхности рельефа (маска воды), иначе имя класса; "" — нет данных.
+func _surface_name(pos: Vector3) -> String:
+	if _game.terrain == null or not _game.terrain.has_method("surface_at"):
+		return ""
+	var c: int = _game.terrain.surface_at(pos.x, pos.z)
+	if c == SurfaceLayer.NONE or c < 0 or c >= SurfaceLayer.CLASS_NAMES.size():
+		return ""
+	return SurfaceLayer.CLASS_NAMES[c]
+
+
+## Горизонтальное расстояние до ближайшей палатки лагеря у старта, м; NAN — лагеря нет.
+func _camp_distance(pos: Vector3) -> float:
+	var wl := _game.world_link
+	if wl == null or wl.objects == null:
+		return NAN
+	var camp: Variant = wl.objects.get("camp")
+	if not (camp is Array) or (camp as Array).is_empty():
+		return NAN
+	var best := INF
+	for t: Dictionary in camp:
+		var p: Vector3 = t.position
+		best = minf(best, Vector2(p.x - pos.x, p.z - pos.z).length())
+	return best
 
 
 static func _sky_name(v: String) -> String:

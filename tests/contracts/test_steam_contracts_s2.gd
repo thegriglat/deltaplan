@@ -40,6 +40,8 @@ const FIN_KEYS := {
 	"others_total": TYPE_INT,
 	"others_airborne": TYPE_INT,
 	"live_peers": TYPE_INT,
+	"land_surface": TYPE_STRING,
+	"land_camp_m": TYPE_FLOAT,
 	"grade": TYPE_STRING,
 	"vertical_speed_ms": TYPE_FLOAT,
 	"flight_time_s": TYPE_FLOAT,
