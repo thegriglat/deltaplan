@@ -9,7 +9,9 @@ import pytest
 
 import s7_data as D
 
-TRIAL = Path(os.path.expanduser("~/air_synth_data/solve/hg_v1__hgw24__s0-939a467__trial"))
+_CAND = [Path(os.path.expanduser(f"~/air_synth_data/solve/{n}")) for n in
+         ("hg_v2__hgw24__s0-939a467__trial", "hg_v2__hgw24__s0-939a467", "hg_v1__hgw24__s0-939a467__trial")]
+TRIAL = next((p for p in _CAND if (p / "solve.h5").exists()), _CAND[0])
 pytestmark = pytest.mark.skipif(not (TRIAL / "solve.h5").exists(), reason="нет пробного счёта SY-10")
 
 

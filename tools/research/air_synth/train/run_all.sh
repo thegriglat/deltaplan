@@ -7,8 +7,8 @@ PY=../../air_nn_pilot/.venv/bin/python
 NAME=${NAME:-hgw24_p2}
 ROOT=${AIR_SYNTH_DATA:-$HOME/air_synth_data}
 RUN=$ROOT/train/$NAME
-GAME=$RUN/cache/game__hgw24__s0-939a467
-HG=$RUN/cache/hg_v1__hgw24__s0-939a467
+GAME=$RUN/cache/game2__hgw24__s0-939a467
+HG=$RUN/cache/hg_v2__hgw24__s0-939a467
 export OMP_NUM_THREADS=4
 $PY s7_cache.py --name "$NAME" --workers 8
 # (1) обучение на train с ранней остановкой по проверке (10 % мест)

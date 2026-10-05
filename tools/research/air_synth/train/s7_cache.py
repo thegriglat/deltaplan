@@ -9,7 +9,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import s7_data as D  # noqa: E402
 
-SETS = ("game__hgw24__s0-939a467", "hg_v1__hgw24__s0-939a467")
+SETS = ("game2__hgw24__s0-939a467", "hg_v2__hgw24__s0-939a467")
 
 
 def main():

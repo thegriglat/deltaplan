@@ -10,7 +10,7 @@ related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md", "tools/resear
 
 Сеть, вход, выход, потери и гиперпараметры — P2 без изменений (`air_nn_pilot/pilotnn`, импортируется, не правится): U-Net 96→6 с FiLM, 3,2 млн параметров,
 9 карт + 18 чисел → 91 канал; AdamW lr 2e-3, wd 1e-4, прогрев 3 % + косинус, bf16, EMA 0,999, клип 1, batch 8, ≤ 150 эпох, терпение 30, отражение поперёк ветра.
-Меняются только данные (S5 v4: `hg_v1__hgw24` — 284 обучающих места × 24 условия = 6816 случаев, 20 отложенных мест = 480, и `game__hgw24` — 4 места игры = 96).
+Меняются только данные (S5 v4: `hg_v2__hgw24` — 284 обучающих места × 24 условия = 6816 случаев, 20 отложенных мест = 480, и `game2__hgw24` — 4 места игры = 96).
 
 ## Файлы
 | файл | что |
@@ -54,7 +54,7 @@ fused AdamW; `.item()` на шаге нет. Строгая детерминир
 cd tools/research/air_synth/train; PY=../../air_nn_pilot/.venv/bin/python        # venv пилота (torch, onnxruntime, h5py)
 $PY -m pytest -q tests                                                           # тесты (CPU; test_recover — на пробном каталоге SY-10)
 $PY s7_cache.py --name hgw24_p2 --workers 8                                      # кеш по готовым частям счёта (повторять по ходу счёта)
-$PY s7_train.py --mode val --cache $AIR_SYNTH_DATA/train/hgw24_p2/cache/hg_v1__hgw24__s0-939a467 --run $AIR_SYNTH_DATA/train/hgw24_p2/val --bench 200   # оценка времени по 200 шагам
+$PY s7_train.py --mode val --cache $AIR_SYNTH_DATA/train/hgw24_p2/cache/hg_v2__hgw24__s0-939a467 --run $AIR_SYNTH_DATA/train/hgw24_p2/val --bench 200   # оценка времени по 200 шагам
 tools/dp job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh                                    # весь конвейер (после конца счёта)
 ```
 Результат: `$AIR_SYNTH_DATA/train/hgw24_p2/{cache,val,final}` (веса, журнал, история); в git — `out/` (оценка json/md, ONNX, отчёт ONNX).
