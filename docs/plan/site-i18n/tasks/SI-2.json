@@ -1,0 +1,62 @@
+{
+  "id": "SI-2",
+  "module": "site-i18n",
+  "type": "dp-engineer",
+  "title": "Генератор страниц крыльев на en и ru",
+  "goal": "gen_wings.py пишет страницы крыльев на двух языках по SI-К6 (те же числа и источники), wings/** переименованы в .ru.md + сгенерированные .en.md; ручной текст оглавлений wings переводит SI-23.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SI-К2",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К6",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-i18n-SI-2",
+  "branch": "site-i18n/SI-2",
+  "base": "feature/site-i18n",
+  "scope": [
+    "tools/site/gen_wings.py",
+    "site/content/wings",
+    "tools/site/check_contracts.py"
+  ],
+  "dont_touch": [
+    "site/layouts",
+    "site/hugo.toml",
+    "tools/site/check_i18n.py",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "gen_check",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "c2",
+      "cmd": "uv run -q --with pillow python tools/site/check_contracts.py --only=C2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings_i18n",
+      "cmd": "python3 tools/site/check_i18n.py --only=K2,K4,K5 --pages=wings/ --k5-skip=wings/_index,wings/kingpost/_index,wings/topless/_index,wings/trainer/_index,wings/soviet/_index",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-05T06:09:46",
+  "edited": "2026-10-05T06:09:46"
+}

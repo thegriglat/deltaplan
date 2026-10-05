@@ -1,0 +1,57 @@
+{
+  "id": "SI-24",
+  "module": "site-i18n",
+  "type": "dp-writer",
+  "title": "README, скилл new-release и CHANGELOG под двуязычный сайт",
+  "goal": "README: ссылки на обе версии сайта (en — https://thegriglat.github.io/deltaplan/, ru — https://thegriglat.github.io/deltaplan/ru/), ссылки на разделы русского README — на ru-адреса. Скилл new-release: страница версии сразу на двух языках по SI-К2 (index.en.md основной + index.ru.md, общие скриншоты, один английский devlog.txt), адреса страницы версии в отчёте скилла по SI-К1 (en и ru). CHANGELOG: строка в «В работе».",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SI-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    },
+    {
+      "name": "SI-К2",
+      "version": "1",
+      "ref": "docs/contracts/site-i18n.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-i18n-SI-24",
+  "branch": "site-i18n/SI-24",
+  "base": "feature/site-i18n",
+  "scope": [
+    "README.md",
+    ".claude/skills/new-release/SKILL.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "site",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "readme_ru",
+      "cmd": "grep -c 'https://thegriglat.github.io/deltaplan/ru/' README.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "readme_en",
+      "cmd": "grep -c 'https://thegriglat.github.io/deltaplan/)' README.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "skill_langs",
+      "cmd": "grep -c 'index\\.en\\.md\\|index\\.ru\\.md\\|/ru/releases/' .claude/skills/new-release/SKILL.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "changelog",
+      "cmd": "sed -n '/^## В работе/,/^## [0-9]/p' CHANGELOG.md | grep -ci 'англ'",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:09:11"
+}

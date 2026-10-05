@@ -9,6 +9,7 @@ K4 — сборка: hugo без WARN/ERROR, корни / (en) и /ru/ (ru), в�
 K5 — английский текст: в en-страницах из site/content почти нет кириллицы, правила публичных текстов.
 --pages=a,b — K2 и K5 только для страниц, чья база (путь в site/content без .en.md/.ru.md) начинается с a или b
   (напр. --pages=mechanics/flight,releases/); задача перевода проверяет свои страницы.
+--k5-skip=a,b — K5 не проверять у страниц с этими префиксами базы (ручной текст ещё не переведён другой задачей).
 --allow-missing — не считать ошибкой ru-страницы без en-перевода (промежуточные этапы), только печатать число.
 Код выхода 0 — всё по контракту, 1 — нарушения (список в выводе).
 """
@@ -34,6 +35,7 @@ FORBIDDEN_EN = re.compile(r"\b(mom|mum|mother|dad|father|easter[- ]eggs?)\b", re
 errors: list[str] = []
 allow_missing = False
 pages: list[str] = []
+k5_skip: list[str] = []
 
 
 def err(k: str, msg: str) -> None:
@@ -58,8 +60,9 @@ def k1() -> None:
     for m in cfg.get("module", {}).get("mounts", []):
         src, tgt = m.get("source", ""), m.get("target", "")
         if tgt.startswith("content") and src.startswith(".."):
-            if m.get("lang") != "ru":
-                err("K1", f"монтирование {src} → {tgt} без lang = 'ru' (документы репозитория — только ru)")
+            langs_m = (m.get("sites") or {}).get("matrix", {}).get("languages")
+            if langs_m != ["ru"]:
+                err("K1", f"монтирование {src} → {tgt} без sites.matrix.languages = ['ru'] (документы репозитория — только ru)")
 
 
 def page_files() -> list[str]:
@@ -186,7 +189,7 @@ def parse(path: str) -> Links:
 
 
 def build(out: str) -> bool:
-    r = subprocess.run(["hugo", "--quiet", "--logLevel", "warn", "-d", out, "--cleanDestinationDir"],
+    r = subprocess.run(["hugo", "--logLevel", "warn", "-d", out, "--cleanDestinationDir"],
                        cwd=SITE, capture_output=True, text=True)
     log = (r.stdout + r.stderr).strip()
     bad = [l for l in log.splitlines() if re.search(r"\b(WARN|ERROR)\b", l)]
@@ -205,8 +208,16 @@ def k4(out: str, base_path: str) -> None:
             err("K4", f"нет {rel}")
         elif parse(p).lang not in (lang, lang + "-RU", lang + "-US", lang + "-GB"):
             err("K4", f"{rel}: <html lang> = {parse(p).lang!r}, ждали {lang}")
-    if os.path.isdir(os.path.join(out, "en")):
-        err("K4", "есть каталог /en/ — en должен быть в корне")
+    en_dir = os.path.join(out, "en")
+    if os.path.isdir(en_dir):
+        # Hugo всегда пишет /en/index.html (редирект на корень) и /en/sitemap.xml — это допустимо
+        extra = sorted(set(os.listdir(en_dir)) - {"index.html", "sitemap.xml"})
+        if extra:
+            err("K4", f"в /en/ лишнее {extra[:5]} — en должен быть в корне (допустим только редирект Hugo)")
+        else:
+            with open(os.path.join(en_dir, "index.html"), encoding="utf-8", errors="replace") as fh:
+                if "http-equiv=\"refresh\"" not in fh.read().replace("http-equiv=refresh", "http-equiv=\"refresh\""):
+                    err("K4", "/en/index.html — не редирект")
     broken: dict[str, set[str]] = {}
     checked = 0
     for d, _, fs in os.walk(out):
@@ -241,6 +252,8 @@ def k5(out: str) -> None:
         if not f.endswith(".en.md"):
             continue
         b = f[: -len(".en.md")]
+        if any(b.startswith(x) for x in k5_skip):
+            continue
         if b.endswith("/_index") or b == "_index":
             rel = b[: -len("_index")]
         elif b.endswith("/index"):
@@ -270,6 +283,8 @@ def main() -> int:
             only = set(a.split("=", 1)[1].split(","))
         elif a == "--allow-missing":
             allow_missing = True
+        elif a.startswith("--k5-skip="):
+            k5_skip.extend(x for x in a.split("=", 1)[1].split(",") if x)
         elif a.startswith("--pages="):
             pages.extend(x for x in a.split("=", 1)[1].split(",") if x)
         elif a.startswith("--keep="):
