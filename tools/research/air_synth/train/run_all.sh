@@ -15,9 +15,6 @@ $PY s7_cache.py --name "$NAME" --workers 8
 [ -f "$RUN/val/result_val.json" ] || $PY s7_train.py --mode val --cache "$HG" --run "$RUN/val"
 # оценка: holdout + места игры (CPU)
 $PY s7_eval.py --weights "$RUN/val/best.pt" --train-cache "$HG" --holdout-cache "$HG" --game-cache "$GAME" --out out
-# (2) финальное: все места, то же число шагов по тому же расписанию
-read -r STOP SCHED < <($PY -c "
-import json; r=json.load(open('$RUN/val/result_val.json')); b=r['best']
-print(b['gstep'], r['hp']['max_epochs']*r['spe'])")
-[ -f "$RUN/final/result_final.json" ] || $PY s7_train.py --mode final --cache "$HG" "$GAME" --run "$RUN/final" --stop-steps "$STOP" --schedule-steps "$SCHED"
-$PY s7_export.py --weights "$RUN/final/final.pt" --cache "$HG" --out out
+# решение пользователя 05.10: только первое обучение; финальное переобучение (s7_train.py --mode final) — позже, на пересчитанном наборе.
+# ONNX — первой сети (best.pt, EMA лучшей эпохи)
+$PY s7_export.py --weights "$RUN/val/best.pt" --cache "$HG" --out out

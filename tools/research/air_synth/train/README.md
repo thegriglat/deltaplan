@@ -20,7 +20,7 @@ related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md", "tools/resear
 | `s7_train.py` | ускоренный цикл (режимы `val` и `final`) |
 | `s7_eval.py` | метрики S7 (60 м) по срезам, `out/eval_holdout.{json,md}`; функции ONNX |
 | `s7_export.py` | ONNX финальной сети `out/model_hg.onnx` + `out/onnx_report.json` (совпадение интерфейса с `data/air_nn/model.onnx`) |
-| `run_all.sh` | весь конвейер (кеш → обучение (1) → оценка → обучение (2) → ONNX) |
+| `run_all.sh` | весь конвейер (кеш → обучение (1) → оценка → ONNX первой сети; финальное переобучение `--mode final` по решению пользователя 05.10 отложено на пересчитанный набор) |
 | `tests/` | `test_recover.py` (FiLM и поток тепла против решателя), `test_train.py`, `test_eval.py`, `test_onnx.py` (`onnx_io_match`) |
 
 ## Как восстанавливаются числа FiLM и карты
