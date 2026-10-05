@@ -28,3 +28,20 @@ func getPersonaName() -> String:
 
 func getCurrentGameLanguage() -> String:
 	return "russian"
+
+
+## Присутствие: журнал вызовов setRichPresence/clearRichPresence.
+var rp_calls: Array = []
+var rp: Dictionary = {}
+var rp_cleared := 0
+
+
+func setRichPresence(key: String, value: String) -> bool:
+	rp_calls.append([key, value])
+	rp[key] = value
+	return true
+
+
+func clearRichPresence() -> void:
+	rp_cleared += 1
+	rp.clear()

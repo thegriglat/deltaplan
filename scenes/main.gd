@@ -9,7 +9,10 @@ enum State { MENU, LOADING, FLYING, PAUSED, RESULT }
 const SMOKE_STEPS := 300
 const SMOKE_TIMEOUT_S := 90.0
 
-var state: State = State.MENU
+var state: State = State.MENU:
+	set(v):
+		state = v
+		_publish_activity()
 var opts: LaunchOptions
 var flight: FlightSettings
 ## Папка user-конфигов для выбора языка (тесты подменяют, чтобы не трогать профиль).
@@ -196,6 +199,24 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 		game.camera.glance_target = _look_target
 		Input.action_press("look_instrument")
 	state = State.FLYING
+
+
+## Состояние экрана → Activity (S3). В полёте режим по фазе пилота ведёт Game; здесь — начальный.
+func _publish_activity() -> void:
+	if game == null:
+		return
+	match state:
+		State.MENU:
+			Activity.set_state({"mode": "menu", "place": "", "net": false, "zone_code": "", "peers": 0})
+		State.LOADING:
+			Activity.set_state({"mode": "loading", "place": Activity.place_name(flight)})
+		State.PAUSED:
+			Activity.set_state({"mode": "paused"})
+		State.RESULT:
+			Activity.set_state({"mode": "landed"})
+		State.FLYING:
+			var phase: String = game.glider.phase() if game.glider != null else "standing"
+			Activity.set_state({"mode": Activity.mode_for_phase(phase)})
 
 
 func _show_menu() -> void:
