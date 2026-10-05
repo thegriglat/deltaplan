@@ -71,3 +71,7 @@
 {"t": "2026-10-05T06:21:49", "by": "executor", "task": "SI-18", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:21:50", "by": "coordinator", "task": "SI-18", "ev": "merged", "commits": ["b5684139"]}
 {"t": "2026-10-05T06:21:55", "by": "coordinator", "task": "SI-14", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-14"}
+{"t": "2026-10-05T06:22:14", "by": "executor", "task": "SI-2", "ev": "checked", "note": "3/3 gen_check=ok:exit 0; c2=ok:exit 0; wings_i18n=ok:exit 0"}
+{"t": "2026-10-05T06:22:20", "by": "coordinator", "task": "SI-2", "ev": "accepted", "note": "по отчёту: 3/3 PASS, файлы в скоупе; формулировки en генератора — по смыслу ru"}
+{"t": "2026-10-05T06:22:26", "by": "coordinator", "task": "SI-2", "ev": "accepted", "commits": ["882eb3f2"], "note": "3/3 gen_check=ok:exit 0; c2=ok:exit 0; wings_i18n=ok:exit 0"}
+{"t": "2026-10-05T06:22:26", "by": "coordinator", "task": "SI-2", "ev": "merged", "commits": ["882eb3f2"]}
