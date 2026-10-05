@@ -20,3 +20,5 @@
 {"t": "2026-10-06T02:48:07", "by": "executor", "task": "AP-1", "ev": "checked", "note": "4/4 contract=ok:exit 0; batch_invariants=ok:exit 0; s5_s2_unchanged=ok:exit 0; bench=ok:2.07"}
 {"t": "2026-10-06T02:55:54", "by": "reviewer", "task": "AP-1", "ev": "reviewed", "note": "P4 v3 выполнен: пакет на потоках CUDA, порядок ядер тот же, поэтому совпадение с одиночным счётом побитное. Правки air3d (cd_map, omega_u, K в state) при значе…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/air-phase/tasks/AP-1.review.json"}
 {"t": "2026-10-06T02:56:21", "by": "coordinator", "task": "AP-1", "ev": "accepted", "note": "по ревью (accept, minor): invariants.json — артефакт исследования, принять; окно 100 м без огибающей — в плане не сочетаются; снимки 101… — записано в P3"}
+{"t": "2026-10-06T02:56:55", "by": "coordinator", "task": "AP-1", "ev": "accepted", "commits": ["02bbd4d5"], "note": "4/4 contract=ok:exit 0; batch_invariants=ok:exit 0; s5_s2_unchanged=ok:exit 0; bench=ok:2.07"}
+{"t": "2026-10-06T02:56:55", "by": "coordinator", "task": "AP-1", "ev": "merged"}
