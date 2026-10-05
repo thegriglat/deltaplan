@@ -5,9 +5,9 @@ bookCollapseSection: true
 description: "Topless: no kingpost — best glide, demanding handling. The wings of the group, their prototypes and data."
 ---
 
-# Безмачтовые
+# Topless
 
-Без мачты — лучшее качество, строже в управлении. В игре у них качество 15–16, сваливание на 25,6–28,2 км/ч, комфортный ветер на старте — до 12 м/с. Это числа модели игры — откуда каждое, видно на странице крыла.
+No kingpost — best glide, more demanding handling. In the game their glide ratio is 15–16, stall at 25.6–28.2 km/h, comfortable launch wind up to 12 m/s. These are the game model's numbers; where each one comes from is shown on the wing's page.
 
 <!-- gen:begin tools/site/gen_wings.py -->
 | Model | Prototype, years | Area, m² | Span, m | Mass, kg | Pilot, kg | Class |

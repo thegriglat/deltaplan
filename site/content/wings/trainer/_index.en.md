@@ -5,9 +5,9 @@ bookCollapseSection: true
 description: "Trainers: soft and slow — for first flights. The wings of the group, their prototypes and data."
 ---
 
-# Учебные
+# Trainers
 
-Мягкие и медленные — для первых полётов. В игре у них качество 7,3–9, сваливание на 22–26 км/ч, комфортный ветер на старте — до 8 м/с. Это числа модели игры — откуда каждое, видно на странице крыла.
+Soft and slow — for first flights. In the game their glide ratio is 7.3–9, stall at 22–26 km/h, comfortable launch wind up to 8 m/s. These are the game model's numbers; where each one comes from is shown on the wing's page.
 
 <!-- gen:begin tools/site/gen_wings.py -->
 | Model | Prototype, years | Area, m² | Span, m | Mass, kg | Pilot, kg | Class |

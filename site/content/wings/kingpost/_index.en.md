@@ -5,9 +5,9 @@ bookCollapseSection: true
 description: "Kingpost: kingpost — faster and farther than trainers. The wings of the group, their prototypes and data."
 ---
 
-# Мачтовые
+# Kingpost
 
-С мачтой и двойной обшивкой — быстрее и дальше. В игре у них качество 10,6–16, сваливание на 25–30 км/ч, комфортный ветер на старте — 10–12 м/с. Это числа модели игры — откуда каждое, видно на странице крыла.
+With a kingpost and double surface — faster and farther. In the game their glide ratio is 10.6–16, stall at 25–30 km/h, comfortable launch wind 10–12 m/s. These are the game model's numbers; where each one comes from is shown on the wing's page.
 
 <!-- gen:begin tools/site/gen_wings.py -->
 | Model | Prototype, years | Area, m² | Span, m | Mass, kg | Pilot, kg | Class |

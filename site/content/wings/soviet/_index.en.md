@@ -5,9 +5,9 @@ bookCollapseSection: true
 description: "Soviet 1980s: stable, forgiving wings of the 1980s. The wings of the group, their prototypes and data."
 ---
 
-# Советские 1980-х
+# Soviet 1980s
 
-Устойчивые и прощающие крылья 1980-х. В игре у них качество 6,2–8,4, сваливание на 23,5–31 км/ч, комфортный ветер на старте — 7–10 м/с; «Апогей» — самое устойчивое по крену крыло набора. Это числа модели игры — откуда каждое, видно на странице крыла.
+Stable, forgiving wings of the 1980s. In the game their glide ratio is 6.2–8.4, stall at 23.5–31 km/h, comfortable launch wind 7–10 m/s; Apogee is the most roll-stable wing of the set. These are the game model's numbers; where each one comes from is shown on the wing's page.
 
 <!-- gen:begin tools/site/gen_wings.py -->
 | Model | Prototype, years | Area, m² | Span, m | Mass, kg | Pilot, kg | Class |
