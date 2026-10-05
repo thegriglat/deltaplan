@@ -1,0 +1,77 @@
+{
+  "id": "SA-4",
+  "module": "steam-assets",
+  "type": "dp-engineer",
+  "title": "Тексты лицензий и THIRD_PARTY_NOTICES рядом с exe",
+  "goal": "Обязательные атрибуции и полные тексты лицензий лежат рядом с exe в каждой сборке и видны на экране «Об игре».",
+  "plan_ref": "SA-4",
+  "contracts": [
+    {
+      "name": "SA-К2",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К1",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-4",
+  "branch": "steam-assets/SA-4",
+  "base": "feature/steam-assets",
+  "scope": [
+    "licenses/",
+    "tools/release/third_party_notices.py",
+    "tools/build.sh",
+    "scripts/ui/assets_credits.gd",
+    "scripts/ui/about_screen.gd",
+    "tests/contracts/test_steam_assets_contracts_sa4.gd",
+    "tests/ui/"
+  ],
+  "dont_touch": [
+    "ASSETS.md",
+    "locale/",
+    "export_presets.cfg",
+    "docs/contracts/",
+    "tools/release/build_inventory.py"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "licenses_set",
+      "cmd": "bash -c 'for f in MIT-deltaplan MIT-godot godot-COPYRIGHT MIT-godot-cpp onnxruntime-LICENSE onnxruntime-ThirdPartyNotices MIT-debug_draw_3d MIT-debug_menu OFL-1.1 CC-BY-4.0 CC0-1.0 ODbL-1.0 copernicus-dem msvc-runtime; do test -s licenses/$f.txt || { echo MISSING $f; exit 1; }; done; test -f licenses/.gdignore && echo LICENSES OK'",
+      "expect": "re:LICENSES OK"
+    },
+    {
+      "name": "notices",
+      "cmd": "bash -c 'd=$(mktemp -d); python3 tools/release/third_party_notices.py --out $d --preset Linux && test -s $d/THIRD_PARTY_NOTICES.txt && test -s $d/licenses/ODbL-1.0.txt && grep -q \"available under the ODbL 1.0\" $d/THIRD_PARTY_NOTICES.txt && echo NOTICES OK'",
+      "expect": "re:NOTICES OK"
+    },
+    {
+      "name": "build_hook",
+      "cmd": "grep -c third_party_notices.py tools/build.sh",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "game_logic",
+      "tests": "game_logic"
+    },
+    {
+      "name": "test_screens",
+      "tests": "test_screens"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:09:11",
+  "edited": "2026-10-05T07:09:24"
+}
