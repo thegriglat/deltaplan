@@ -117,3 +117,6 @@
 {"t": "2026-10-05T08:32:54", "by": "main", "task": null, "ev": "note", "note": "dp: 'dp review ST-5 --show' падает: AttributeError в cmd_review (строка 975), когда rerun — список строк, а не словарей; нужна проверка входа при записи или терпимость при показе"}
 {"t": "2026-10-05T08:42:30", "by": "executor", "task": "ST-5", "ev": "checked", "note": "4/4 achievement_feed=ok:4/4; steam_contracts=ok:25/25; /game/=ok:151/151 (пропуск 1); temp_profile=ok:4 тестов, 0 упало"}
 {"t": "2026-10-05T08:42:42", "by": "coordinator", "task": "ST-5", "ev": "accepted", "note": "по ревью (3-й круг): accept; temp_c по профилю модели погоды"}
+{"t": "2026-10-05T08:42:53", "by": "coordinator", "task": "ST-5", "ev": "checked", "commits": ["504877c2"], "note": "1/4 steam_contracts=ok:27/27"}
+{"t": "2026-10-05T08:42:54", "by": "coordinator", "task": "ST-5", "ev": "checked", "commits": ["504877c2"], "note": "2/4 steam_contracts=ok:27/27; temp_profile=ok:0 тестов, 0 упало"}
+{"t": "2026-10-05T08:43:28", "by": "coordinator", "task": "ST-5", "ev": "merged", "commits": ["504877c2"], "note": "на ветке модуля: steam_contracts, temp_profile, /steam/; /game/ — в копии задачи 151/151"}
