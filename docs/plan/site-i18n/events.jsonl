@@ -90,3 +90,7 @@
 {"t": "2026-10-05T06:23:23", "by": "executor", "task": "SI-14", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:23:23", "by": "coordinator", "task": "SI-14", "ev": "merged", "commits": ["0ffb71a2"]}
 {"t": "2026-10-05T06:23:26", "by": "coordinator", "task": "SI-3", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-3"}
+{"t": "2026-10-05T06:23:50", "by": "executor", "task": "SI-15", "ev": "reported", "commits": ["d153c958"], "note": "done: Создан visual-cues.en.md, структура/ссылки/картинки как в оригинале."}
+{"t": "2026-10-05T06:24:02", "by": "executor", "task": "SI-23", "ev": "reported", "commits": ["c0c9277b"], "note": "done: Переведён ручной текст вне GEN-блоков в 5 файлах wings (_index.en.md и 4 группы): заголовки H1, вводные абзацы, числа с…"}
+{"t": "2026-10-05T06:24:06", "by": "executor", "task": "SI-15", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:24:07", "by": "coordinator", "task": "SI-15", "ev": "merged", "commits": ["f025e73e"]}
