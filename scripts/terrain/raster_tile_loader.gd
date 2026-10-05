@@ -6,8 +6,16 @@ extends Node
 ## Параметры — configs/world.json → map_picker.
 
 var _cfg: Dictionary = {}
-var _active := 0
+var _active := {}  ## id слоя → число запросов в полёте
 var _next_sub := 0
+var _failed_until := {}  ## "id/z/x/y" → момент (с), раньше которого тайл не запрашивается снова
+var _blocked_until := {}  ## id слоя → момент (с), раньше которого слой не запрашивается (403/429)
+
+## Шов для тестов (без сети): Callable(url: String, headers: PackedStringArray) -> Array в формате
+## request_completed [result, код, заголовки, тело]; допускается await внутри. Пусто — реальный HTTP.
+var http_hook: Callable = Callable()
+## Шов для тестов: Callable() -> float, секунды. Пусто — Time.get_ticks_msec().
+var clock_hook: Callable = Callable()
 
 
 func _ensure_cfg() -> void:
@@ -41,15 +49,24 @@ func fetch_tile(basemap: Dictionary, z: int, x: int, y: int) -> Image:
 		if img.load_png_from_buffer(FileAccess.get_file_as_bytes(path)) == OK:
 			img.convert(Image.FORMAT_RGB8)
 			return img
-	var max_par := int(_cfg.get("max_parallel_requests", 4))
-	while _active >= max_par:
+	var id := String(basemap.id)
+	var fail_key := "%s/%d/%d/%d" % [id, z, x, y]
+	var now := _now()
+	if now < float(_blocked_until.get(id, 0.0)) or now < float(_failed_until.get(fail_key, 0.0)):
+		return null
+	var max_par := mini(int(_cfg.get("max_parallel_requests", 4)), int(basemap.get("max_parallel", 1 << 30)))
+	max_par = maxi(max_par, 1)
+	while int(_active.get(id, 0)) >= max_par:
 		await get_tree().process_frame
 		if not is_inside_tree():
 			return null
-	_active += 1
+		if _now() < float(_blocked_until.get(id, 0.0)):
+			return null
+	_active[id] = int(_active.get(id, 0)) + 1
 	var data := await _download(basemap, z, x, y)
-	_active -= 1
+	_active[id] = int(_active[id]) - 1
 	if data.is_empty():
+		_failed_until[fail_key] = _now() + float(_cfg.get("retry_after_s", 60.0))
 		return null
 	var im := Image.new()
 	if im.load_png_from_buffer(data) != OK:
@@ -78,20 +95,49 @@ func tile_url(basemap: Dictionary, z: int, x: int, y: int) -> String:
 	return String(basemap.url_template).format({"z": z, "x": x, "y": y, "s": s})
 
 
+func _now() -> float:
+	if clock_hook.is_valid():
+		return float(clock_hook.call())
+	return Time.get_ticks_msec() / 1000.0
+
+
+## Заголовок User-Agent: шаблон map_picker.user_agent, {version} — application/config/version.
+func user_agent() -> String:
+	_ensure_cfg()
+	var ver := String(ProjectSettings.get_setting("application/config/version", "0"))
+	return String(_cfg.get("user_agent", "deltaplan/{version}")).replace("{version}", ver)
+
+
 func _download(basemap: Dictionary, z: int, x: int, y: int) -> PackedByteArray:
-	var req := HTTPRequest.new()
-	req.timeout = float(_cfg.get("timeout_s", 20.0))
-	req.use_threads = true
-	add_child(req)
-	var err := req.request(
-		tile_url(basemap, z, x, y),
-		PackedStringArray(["User-Agent: " + String(_cfg.get("user_agent", "deltaplan-sim"))])
-	)
-	if err != OK:
+	var url := tile_url(basemap, z, x, y)
+	var headers := PackedStringArray(["User-Agent: " + user_agent()])
+	var res: Array
+	if http_hook.is_valid():
+		res = await http_hook.call(url, headers)
+	else:
+		var req := HTTPRequest.new()
+		req.timeout = float(_cfg.get("timeout_s", 20.0))
+		req.use_threads = true
+		add_child(req)
+		if req.request(url, headers) != OK:
+			req.queue_free()
+			return PackedByteArray()
+		res = await req.request_completed
 		req.queue_free()
-		return PackedByteArray()
-	var res: Array = await req.request_completed
-	req.queue_free()
-	if int(res[0]) != HTTPRequest.RESULT_SUCCESS or int(res[1]) != 200:
+	var code := int(res[1])
+	if int(res[0]) == HTTPRequest.RESULT_SUCCESS and (code == 403 or code == 429):
+		var pause := float(_cfg.get("blocked_backoff_s", 600.0))
+		pause = maxf(pause, _retry_after(res[2]))
+		_blocked_until[String(basemap.id)] = _now() + pause
+	if int(res[0]) != HTTPRequest.RESULT_SUCCESS or code != 200:
 		return PackedByteArray()
 	return res[3]
+
+
+## Retry-After (секунды, целое) из заголовков ответа; 0 — нет или не число.
+func _retry_after(headers: PackedStringArray) -> float:
+	for h in headers:
+		if h.to_lower().begins_with("retry-after:"):
+			var v := h.substr(12).strip_edges()
+			return float(v) if v.is_valid_int() else 0.0
+	return 0.0
