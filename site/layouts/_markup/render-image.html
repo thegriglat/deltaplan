@@ -1,6 +1,6 @@
 {{- $r := partial "repo/resolve" (dict "Page" .Page "Destination" .Destination "Image" true) -}}
 {{- if eq $r.kind "missing" "github" -}}
-  {{- errorf "Картинка %q не найдена на странице %s (путь в репозитории: %q)" .Destination .Page.File.Path $r.repo -}}
+  {{- errorf "Image %q not found on page %s (repository path: %q)" .Destination .Page.File.Path $r.repo -}}
 {{- end -}}
 {{- if .IsBlock -}}
 <figure>

@@ -18,3 +18,9 @@
   translation: Миниатюра
 - id: bookSearchConfig
   translation: '{}'
+
+- id: dpInRussian
+  translation: на русском
+
+- id: dpPageSource
+  translation: Исходник страницы

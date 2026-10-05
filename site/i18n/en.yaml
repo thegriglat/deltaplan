@@ -1,0 +1,26 @@
+- id: Search
+  translation: Search
+- id: Edit this page
+  translation: Edit on GitHub
+- id: Last modified by
+  translation: Last modified
+- id: Breadcrumbs
+  translation: Breadcrumbs
+- id: Link
+  translation: Link
+- id: Logo
+  translation: Logo
+- id: Menu
+  translation: Menu
+- id: Table of Contents
+  translation: Table of Contents
+- id: Thumbnail
+  translation: Thumbnail
+- id: bookSearchConfig
+  translation: '{}'
+
+- id: dpInRussian
+  translation: in Russian
+
+- id: dpPageSource
+  translation: Page source

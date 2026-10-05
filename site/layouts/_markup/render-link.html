@@ -1,6 +1,6 @@
 {{- $r := partial "repo/resolve" (dict "Page" .Page "Destination" .Destination) -}}
 {{- if eq $r.kind "missing" -}}
-  {{- errorf "Битая ссылка %q на странице %s (путь в репозитории: %q)" .Destination .Page.File.Path $r.repo -}}
+  {{- errorf "Broken link %q on page %s (repository path: %q)" .Destination .Page.File.Path $r.repo -}}
 {{- end -}}
-<a href="{{ $r.url | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if eq $r.kind "external" "github" }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>
+<a href="{{ $r.url | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if eq $r.kind "external" "github" }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>{{ if and $r.foreign (eq $r.lang "ru") }} <span class="muted">({{ i18n "dpInRussian" }})</span>{{ end }}
 {{- /**/ -}}
