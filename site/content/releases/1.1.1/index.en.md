@@ -3,6 +3,10 @@ title: "Deltaplan 1.1.1"
 date: 2026-10-05
 description: "An ordinary map with village and town names in the launch point picker, and the elevation of the selected point above sea level."
 cover: screenshots/01_карта_OSM_с_названиями_и_высотой_точки.jpg
+captions:
+  "01_карта_OSM_с_названиями_и_высотой_точки.jpg": "OSM map with names and the point's elevation"
+  "02_топокарта_OpenTopoMap.jpg": "OpenTopoMap topographic map"
+  "03_высота_точки_в_меню_полёта.jpg": "Point elevation in the flight setup menu"
 ---
 
 # Deltaplan 1.1.1 — a clear launch picker map

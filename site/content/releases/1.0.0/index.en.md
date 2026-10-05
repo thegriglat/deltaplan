@@ -3,6 +3,15 @@ title: "Deltaplan 1.0.0"
 date: 2026-10-01
 description: "Wind and thermals are computed from the terrain for every flight, 48 wings from DHV datasheets."
 cover: screenshots/01_в_термике.jpg
+captions:
+  "01_в_термике.jpg": "In a thermal"
+  "02_разбег.jpg": "Launch run"
+  "03_у_кромки_облаков.jpg": "At the cloud base"
+  "04_все_48_крыльев.jpg": "All 48 wings"
+  "05_славутич_ут.jpg": "Slavutych UT"
+  "06_icaro_piuma.jpg": "Icaro Piuma"
+  "07_wills_wing_t2c.jpg": "Wills Wing T2C"
+  "08_над_долиной.jpg": "Over the valley"
 ---
 
 # Deltaplan 1.0.0 — terrain-based air and 48 wings

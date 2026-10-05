@@ -3,6 +3,8 @@ title: "Deltaplan 1.0.3"
 date: 2026-10-03
 description: "Choice of wind model in settings: calculated from terrain or simplified; the Apogee with its real dimensions."
 cover: screenshots/01_ветер_над_рельефом_в_настройках.jpg
+captions:
+  "01_ветер_над_рельефом_в_настройках.jpg": "Wind over terrain in settings"
 ---
 
 # Deltaplan 1.0.3 — choice of wind model

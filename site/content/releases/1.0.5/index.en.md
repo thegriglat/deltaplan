@@ -3,6 +3,8 @@ title: "Deltaplan 1.0.5"
 date: 2026-10-04
 description: "Wind over terrain by a neural network (experimental) and a \"Map inspection\" mode with wind arrows around the camera."
 cover: screenshots/01_осмотр_карты_стрелки_ветра.jpg
+captions:
+  "01_осмотр_карты_стрелки_ветра.jpg": "Map inspection, wind arrows"
 ---
 
 # Deltaplan 1.0.5 — neural-network wind and map inspection

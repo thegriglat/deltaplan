@@ -3,6 +3,14 @@ title: "Deltaplan 0.8.0"
 date: 2026-09-29
 description: "Multiplayer: fly with friends in the same sky — shared weather, thermals and clouds."
 cover: screenshots/01_сетевая_игра_рядом.jpg
+captions:
+  "01_сетевая_игра_рядом.jpg": "Multiplayer, nearby"
+  "02_сетевая_игра_зона_код.jpg": "Multiplayer, zone code"
+  "03_чужие_пилоты_в_термике.jpg": "Other pilots in a thermal"
+  "04_меню_догнать.jpg": "Catch up menu"
+  "05_догнать_перелёт.jpg": "Catch up, the flight to the pilot"
+  "06_догнать_прибытие.jpg": "Catch up, arrival"
+  "07_очередь_на_старт.jpg": "Launch queue"
 ---
 
 # Deltaplan 0.8.0 — multiplayer

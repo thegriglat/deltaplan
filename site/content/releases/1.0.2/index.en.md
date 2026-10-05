@@ -3,6 +3,11 @@ title: "Deltaplan 1.0.2"
 date: 2026-10-02
 description: "The mouse is always the wing, W/S/A/D — the pilot on the ground and the head in flight; wind from the menu — over the launch."
 cover: screenshots/03_крыло_на_земле.jpg
+captions:
+  "01_взгляд_вперёд_из_кабины.jpg": "Looking forward from the cockpit"
+  "02_голова_вверх.jpg": "Head up"
+  "03_крыло_на_земле.jpg": "Wing on the ground"
+  "04_крыло_на_склоне.jpg": "Wing on the slope"
 ---
 
 # Deltaplan 1.0.2 — wing control and wind over the launch

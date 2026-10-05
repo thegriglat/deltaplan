@@ -3,6 +3,8 @@ title: "Deltaplan 1.1.0"
 date: 2026-10-05
 description: "A control frame and pilot like a real wing's, instruments on the left upright, wing classes by crossbar and wind up to 25 m/s."
 cover: screenshots/01_экран_загрузки.jpg
+captions:
+  "01_экран_загрузки.jpg": "Loading screen"
 ---
 
 # Deltaplan 1.1.0 — a control frame and pilot like a real wing's

@@ -3,6 +3,9 @@ title: "Deltaplan 0.7.1"
 date: 2026-09-28T20:42:28+05:00
 description: "Shadows inside the sail's shade no longer shimmer with grain."
 cover: screenshots/134_рябь_тени_облачно_до_после.jpg
+captions:
+  "133_рябь_тени_до_после.jpg": "Shadow shimmer, before and after"
+  "134_рябь_тени_облачно_до_после.jpg": "Shadow shimmer, overcast, before and after"
 ---
 
 # Deltaplan 0.7.1 — clean shadows under the sail
