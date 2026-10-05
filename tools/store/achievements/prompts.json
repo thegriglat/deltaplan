@@ -5,142 +5,142 @@
     "revision": "741f7c3ce8b383c54771c7003378a50191e9efe9",
     "license": "Apache-2.0"
   },
-  "style": "flat vector game achievement badge icon, one bold centered symbol on a round emblem, thick clean outlines, simple geometric shapes, limited palette of deep navy blue, sky blue, warm orange and cream white, soft gradient sky background inside the circle, high contrast, readable at small size, no text, no letters, no numbers, no logos, generic plain triangular delta-wing hang glider with an unbranded plain sail, subject: ",
+  "style": "flat vector game achievement badge icon, one bold centered symbol on a round emblem, thick clean outlines, simple geometric shapes, limited palette of deep navy blue, sky blue, warm orange and cream white, soft gradient sky background inside the circle, high contrast, readable at small size, no text, no letters, no numbers, no logos, subject: ",
   "negative": "text, letters, numbers, words, logo, watermark, brand, photo, realistic, blurry, cluttered, small details, extra limbs",
   "steps": 4,
   "guidance": 0.0,
   "size": 1024,
   "icons": {
     "ACH_FIRST_FLIGHT": {
-      "subject": "a hang glider just leaving a green grassy launch slope, small figure running, sun rising behind",
+      "subject": "a green grassy hilltop at sunrise, a single soaring bird lifting off the slope into open sky",
       "seed": 1000
     },
     "ACH_SOFT_LANDING": {
-      "subject": "a pilot standing upright on green meadow touching down gently under a hang glider wing, tiny dust puffs at feet",
+      "subject": "a soft white feather gently resting on green meadow grass, small curved motion lines above it",
       "seed": 1037
     },
     "ACH_TOP_LANDING": {
-      "subject": "a hang glider descending to land on a hilltop launch ramp, a windsock beside the ramp",
+      "subject": "a hilltop summit with an orange windsock on a pole, a bird landing on the very top",
       "seed": 1074
     },
     "ACH_ABOVE_LAUNCH": {
-      "subject": "a hang glider high above a small hill, a vertical dashed arrow pointing up from the hilltop to the glider",
+      "subject": "a small green hill with a bold upward arrow rising from its top high into the sky",
       "seed": 1111
     },
     "ACH_KILOMETER_UP": {
-      "subject": "a hang glider far above a tiny mountain, a tall vertical arrow with many tick marks pointing up",
+      "subject": "a tall vertical arrow with many tick marks rising from a tiny mountain far below into high sky",
       "seed": 1148
     },
     "ACH_CLOUDBASE": {
-      "subject": "a hang glider just under the flat grey base of a big white cumulus cloud",
+      "subject": "a big white cumulus cloud with a flat grey base, a bird circling just below the flat base",
       "seed": 1185
     },
     "ACH_STRONG_CLIMB": {
-      "subject": "a hang glider circling in a tight spiral inside a rising column of warm air shown as stacked upward curved arrows",
+      "subject": "a rising column of warm air shown as stacked upward swirling arrows from sunlit ground to a cloud",
       "seed": 1222
     },
     "ACH_SOARING_15": {
-      "subject": "a hang glider hovering along a ridge with a quarter-filled clock face next to it",
+      "subject": "an eagle soaring with spread wings along a ridge, a quarter-filled clock face beside it",
       "seed": 1259
     },
     "ACH_HOUR": {
-      "subject": "a hang glider in the sky and a simple round analog clock face showing one full hour, hands at twelve and one",
+      "subject": "a simple round analog clock face floating among white clouds in a blue sky, hands at twelve and one",
       "seed": 1296
     },
     "ACH_RIDGE_LOW": {
-      "subject": "a hang glider flying low along a long ridge slope with wind arrows rising up the slope",
+      "subject": "a long mountain ridge with wind arrows flowing up the slope, a bird skimming low along the crest",
       "seed": 1333
     },
     "ACH_XC_10": {
-      "subject": "a hang glider flying over a winding path from a small hill toward a distant flag on the horizon",
+      "subject": "a winding dotted path from a small hill across fields to a distant orange flag on the horizon",
       "seed": 1370
     },
     "ACH_XC_50": {
-      "subject": "a hang glider flying far across a wide landscape of many hills toward a distant flag, long dotted route behind it",
+      "subject": "a long dotted route across a wide landscape of many hills to a distant orange flag",
       "seed": 1407
     },
     "ACH_UPWIND": {
-      "subject": "a hang glider flying left against strong wind shown as long horizontal streaks flowing right, a windsock blowing right",
+      "subject": "strong wind shown as long horizontal streaks, a bird pushing forward against the wind, a windsock blowing straight",
       "seed": 1444
     },
     "ACH_EVENING": {
-      "subject": "a hang glider silhouette against a big low orange sunset sun over a calm valley",
+      "subject": "a big low orange sunset sun over a calm valley, a bird silhouette in the evening sky",
       "seed": 1481
     },
     "ACH_PLACES_5": {
-      "subject": "five small hills in a row each with a tiny map pin, a hang glider above them",
+      "subject": "five small hills in a row, each topped with an orange map pin",
       "seed": 1518
     },
     "ACH_TOGETHER": {
-      "subject": "two hang gliders flying side by side in formation, one blue sail and one orange sail",
+      "subject": "two eagles soaring side by side in the sky with spread wings",
       "seed": 1555
     },
     "ACH_GAGGLE": {
-      "subject": "three hang gliders circling together in one rising spiral of warm air",
+      "subject": "three birds circling together in one rising spiral of warm air under a cumulus cloud",
       "seed": 1592
     },
     "ACH_LAST_DOWN": {
-      "subject": "a single hang glider landing at dusk on a meadow where several other folded gliders already lie on the grass",
+      "subject": "a quiet meadow at dusk, a single bird gliding down to land as the first stars appear",
       "seed": 1629
     },
     "ACH_PLACES_10": {
-      "subject": "a hang glider above ten small hills in two rows, each hill with a tiny map pin",
+      "subject": "ten small hills in two rows, each topped with an orange map pin",
       "seed": 1666
     },
     "ACH_PLACES_25": {
-      "subject": "a hang glider above a wide field of many small hills dotted with map pins",
+      "subject": "a wide field of many small hills dotted with orange map pins",
       "seed": 1703
     },
     "ACH_CONTINENTS_3": {
-      "subject": "a hang glider above a globe with three separate land shapes, a dotted arc over the sea between them",
+      "subject": "a globe with three highlighted land shapes connected by dotted arcs over the sea",
       "seed": 1740
     },
     "ACH_CONTINENTS_ALL": {
-      "subject": "a hang glider above a whole globe with six land shapes around it",
+      "subject": "a whole globe with all continents highlighted, a ring of dotted arcs around it",
       "seed": 1777
     },
     "ACH_XC_100": {
-      "subject": "a hang glider flying far over a vast landscape toward a distant flag, very long dotted route behind it, a wide road-like trail across many hills",
+      "subject": "a very long dotted route winding across a vast landscape of many hills and valleys to a distant orange flag",
       "seed": 1814
     },
     "ACH_HOURS_3": {
-      "subject": "a hang glider in the sky and a simple round analog clock face with three marked hour sectors filled",
+      "subject": "a simple round analog clock face with three hour sectors filled orange, floating among clouds",
       "seed": 1851
     },
     "ACH_AIRTIME_10H": {
-      "subject": "a hang glider and an open logbook page with many neat horizontal lines and a bold check mark",
+      "subject": "an open pilot logbook with many neat lines and a bold check mark, a feather quill beside it",
       "seed": 1888
     },
     "ACH_WINGS_5": {
-      "subject": "five hang glider wings of different colors fanned out in a row",
+      "subject": "five feathered wings of different colors fanned out in a row",
       "seed": 1925
     },
     "ACH_ALT_5000": {
-      "subject": "a hang glider high above a snowy mountain peak among thin high clouds, deep dark blue sky above",
+      "subject": "a snowy mountain peak among thin high clouds under a deep dark blue sky, a tall upward arrow beside it",
       "seed": 1962
     },
     "ACH_HIGH_LAUNCH": {
-      "subject": "a hang glider launching from a high rocky snow-capped mountain ridge, thin clear air",
+      "subject": "a high rocky snow-capped mountain ridge in thin clear air, an eagle taking off from the summit",
       "seed": 1999
     },
     "ACH_DESCENT_2000": {
-      "subject": "a hang glider landing in a green valley far below a tall mountain, a long downward arrow from the peak to the valley",
+      "subject": "a tall mountain with a long bold downward arrow from the peak to a green valley far below",
       "seed": 2036
     },
     "ACH_STORM": {
-      "subject": "a hang glider under a dark anvil-shaped thunderstorm cloud with a bold yellow lightning bolt",
+      "subject": "a dark anvil-shaped thunderstorm cloud with a bold yellow lightning bolt",
       "seed": 2073
     },
     "ACH_STRONG_WIND": {
-      "subject": "a hang glider launching in very strong wind shown as thick bent streaks, grass and a windsock flattened and straight",
+      "subject": "very strong wind shown as thick bent streaks, grass flattened and a windsock blowing straight out",
       "seed": 2110
     },
     "ACH_OVERCAST": {
-      "subject": "a hang glider climbing under a uniform thick grey cloud ceiling that covers the whole sky",
+      "subject": "a uniform thick grey cloud ceiling covering the whole sky above dim green hills",
       "seed": 2147
     },
     "ACH_WINTER": {
-      "subject": "a hang glider over a snowy hill with a big snowflake and a thermometer",
+      "subject": "a snowy hill with a big snowflake and a thermometer",
       "seed": 2184
     },
     "ACH_EAGLE": {
@@ -156,7 +156,7 @@
       "seed": 2295
     },
     "ACH_WATER_LANDING": {
-      "subject": "a hang glider touching down on calm blue water with a ring of splash ripples",
+      "subject": "calm blue water with a ring of splash ripples in the center",
       "seed": 2332
     },
     "ACH_CAMP_LANDING": {

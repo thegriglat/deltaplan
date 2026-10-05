@@ -15,3 +15,12 @@ dependencies = [
   "pillow==12.3.0",
   "numpy==2.5.3",
 ]
+
+# Драйвер 550 (CUDA 12.4): сборка torch с PyPI — cu130, не запускается; cu126 идёт по совместимости 12.x.
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
