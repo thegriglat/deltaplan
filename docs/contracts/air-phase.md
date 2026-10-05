@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы (reliefs.py + корпус S1 ideal_v1), P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель с опциями, P5 интерфейс скрипта прогона run_phase.py"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 2}, {"id": "P3", "version": 2}, {"id": "P4", "version": 2}, {"id": "P5", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 3}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -36,11 +36,11 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
-## P2. План опытов — манифест protobuf (версия 2)
+## P2. План опытов — манифест protobuf (версия 3)
 **Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
 
 - Файлы: `$AIR_SYNTH_DATA/phase/<plan>/plan.pb` (сериализованный `Plan`) + `plan.json` (тот же план в JSON для людей,
-  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v2"`.
+  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v3"`.
 - Линия — набор точек Fr при прочих равных; случай = (line_id, k), `case_id = first_case_id + k`, номера сквозные
   и плотные по плану. Порядок точек в линии = порядок счёта (`fr_f64`, little-endian float64 в `bytes`).
 - `start = WARM_PREV`: случай k стартует с полного состояния (float32) случая k − 1 той же линии; k = 0 — холодный.
@@ -55,6 +55,8 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   S2 (override-поля линии не действуют, `fr_f64` — одна точка = `froude` таблицы), иначе `""` и −1. Инвариант:
   `envelope_angle_deg > 0` ⇔ `envelope_wall != WALL_NONE`. `ref_line_id` у ENVELOPE — линия SEPARATION с dx = 100 той же
   формы/s/Fr/H/угла ветра (эталон); у ENVELOPE_REAL — линия той же (relief_id, cond_id) без огибающей.
+- **v3 (06.10):** у линий с `conditions` поле `heat_flux_wm2` выбирает решение S5: `−1` — «h» (с нагревом, как S2),
+  `0` — «m» (без нагрева); прочие override-поля не действуют. Состав ENVELOPE_REAL — план §3.
   `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
 ## P3. Результаты замеров — HDF5 + jsonl (версия 2)
@@ -89,7 +91,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (`progress.jsonl` — для людей и ETA, не источник правды); дублей `case_id` нет; повтор случая на том же устройстве и
   версии с тем же составом пакета — побитно. Бюджет диска на весь счёт — ≤ 20 ГБ (иначе — шлюз).
 
-## P4. Решатель: пакетный вызов и опции (версия 2)
+## P4. Решатель: пакетный вызов и опции (версия 3)
 **Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
 **Потребители:** AP-3.
 
@@ -101,7 +103,8 @@ class CaseSpec:            # один случай
     u10: float; wdir_from_deg: float; alpha: float; max_profile: float
     n_bv_s: float | None; z_i_agl_m: float | None; heat_flux_wm2: float | None   # None — путь S2/решателя как есть
     dx_m: float = 400.0    # 100.0 — окно 100 м вокруг формы (SEPARATION), область 400 м — как есть
-    cond_row: dict | None = None   # строка S2 (ENVELOPE_REAL): условия как solve_corpus; override тогда None
+    cond_row: dict | None = None   # строка S2 (ENVELOPE_REAL): условия как solve_corpus; n_bv_s/z_i None;
+                                   # heat_flux_wm2: None — решение «h» (нагрев по S2), 0.0 — решение «m» (v3)
 @dataclass
 class Numerics:            # как P2 Numerics
     advection_order: int = 1; omega_u: float = 1.0; omega_k: float = 1.0; k_floor_m2s: float | None = None

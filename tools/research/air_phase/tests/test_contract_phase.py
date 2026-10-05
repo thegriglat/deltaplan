@@ -1,4 +1,4 @@
-"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v2, P3 v2, P4 v2, P5 v1).
+"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v3, P3 v2, P4 v3, P5 v1).
 
 Без данных проверяется схема (.proto, константы P3); с данными — реальные файлы:
   AP_PLAN_DIR=<$AIR_SYNTH_DATA/phase/<plan>>          — plan.pb (P2)
@@ -18,7 +18,7 @@ import pytest
 HERE = Path(__file__).resolve().parent
 PROTO = HERE.parent / "proto" / "phase_plan.proto"
 
-P2_CONTRACT = "P2 v2"
+P2_CONTRACT = "P2 v3"
 P3_CONTRACT = "P3 v2"
 AGL_M = [25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000]
 SNAP_LEVELS = [25, 600]
@@ -99,7 +99,7 @@ def test_plan_file():
         assert nm.dx_m in (100.0, 400.0) and nm.advection_order in (1, 2) and nm.max_outer > 0
         assert ln.start in (1, 2)
         if ln.conditions:
-            assert ln.cond_id >= 0 and fr.size == 1
+            assert ln.cond_id >= 0 and fr.size == 1 and ln.heat_flux_wm2 in (-1.0, 0.0)
         else:
             assert ln.n_bv_s > 0 and ln.h_over_zi > 0 and ln.cond_id == -1
         assert (nm.envelope_angle_deg > 0) == (nm.envelope_wall != 0)
