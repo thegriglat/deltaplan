@@ -23,6 +23,8 @@ var lan: Node  ## LanDiscovery (NET-23): автозагрузка или пер�
 ## SteamLobby (S5): автозагрузка или переданный экземпляр (тесты); Steam неактивен — пусто.
 var steam: Node
 
+## Порт встроенного сервера («Создать» без адреса); 0 — по умолчанию (LocalServer.DEFAULT_PORT).
+var embedded_port := 0
 var _mode := ""  ## "create" | "join" — что сделать после Welcome
 var _params: FlightSettings  ## создание: параметры зоны; вход: свои крыло и масса
 var _join_code := ""
@@ -91,7 +93,10 @@ func connect_and_create(address: String, name: String, zone_params: FlightSettin
 		_busy = true
 		state_changed.emit()
 		var bots := int(Config.value("bots", "count", 0))
-		zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name)
+		if embedded_port > 0:
+			zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name, embedded_port)
+		else:
+			zone.host_local(_params, randi() & 0x7fffffff, maxi(bots, 0), name)
 	else:
 		_using_embedded = false
 		_start(address, name)
