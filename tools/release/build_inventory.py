@@ -50,8 +50,8 @@ GODOT_GENERATED = ["project.binary", ".godot/extension_list.cfg", ".godot/global
 RESOURCE_EXT = {".ico", ".json", ".gd", ".tscn", ".tres", ".gdshader", ".gdshaderinc", ".res", ".scn", ".gdextension"}
 
 NEG = re.compile(r"\bnc\b|некоммерч|non-commercial|personal|личн", re.I)
-POS = re.compile(r"cc0|cc[- ]?by|\bofl\b|\bmit\b|bsd|apache|odbl|copernicus|собственн", re.I)
-ATTR = re.compile(r"cc[- ]?by|odbl|\bofl\b|\bmit\b|bsd|apache|copernicus|атрибуц", re.I)
+POS = re.compile(r"cc0|cc[- ]?by|\bofl\b|\bmit\b|bsd|apache|odbl|copernicus|собственн|microsoft software license", re.I)
+ATTR = re.compile(r"cc[- ]?by|odbl|\bofl\b|\bmit\b|bsd|apache|copernicus|атрибуц|microsoft software license", re.I)
 
 
 # --- export_presets.cfg ---------------------------------------------------------------------------------
@@ -248,6 +248,9 @@ def token_regex(tok):
             j = t.index("}", i)
             out += "(?:" + "|".join(re.escape(x) for x in t[i + 1:j].split(",")) + ")"
             i = j + 1
+        elif t.startswith("<exe>", i):  # SA-К3 v2: буквальный префикс «файл рядом с exe», не сегмент пути
+            out += re.escape("<exe>")
+            i += 5
         elif c == "<":
             j = t.index(">", i)
             out += "[^/]+"
@@ -329,7 +332,8 @@ def make_item(path, kind, nbytes, src, matcher):
     if src == "<godot-generated>" or src in GODOT_GENERATED:
         it.update(assets_md="own", license="MIT (own)", commercial_ok=True)
         return it
-    row = matcher(src)
+    row = matcher(path) if path.startswith("<exe>/") else None  # SA-К3 v2: сначала шаблоны <exe>/<имя>
+    row = row or matcher(src)
     if row is not None:
         lic = row["cells"][3] if len(row["cells"]) > 3 else ""
         ok, at = judge(lic)

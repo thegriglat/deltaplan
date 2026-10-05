@@ -23,12 +23,47 @@ GODOT_CPP_TAG=10.0.0-stable         # godot-cpp v10 версируется от�
 GODOT_CPP_COMMIT=507ed9d840c01a3c5b2a39af8bb4000bfac30bf5
 GODOT_API=4.7
 LLVM_MINGW_VER=20260922
-# VC++ runtime для onnxruntime.dll (MSVC) — app-local рядом с ним (README, «Windows»). Источник —
-# колесо PyPI msvc-runtime (те же DLL, что в vc_redist.x64.exe), закреплено по sha256.
+# VC++ runtime для onnxruntime.dll (MSVC) — app-local рядом с ним (README, «Windows»). Источник — официальный
+# распространяемый пакет Visual Studio 2022 (VC\Redist\MSVC\<ver>\x64\Microsoft.VC143.CRT), который автор
+# берёт со своей машины с бесплатной Visual Studio Community / Build Tools. Раздача DLL — по условиям лицензии
+# Visual Studio (Distributable Code), автор принимает её сам: сборка Windows требует явного согласия
+# MSVC_ACCEPT_LICENSE=yes (молча не принимается). Версия и sha256 каждой DLL закреплены.
+#   MSVC_REDIST_DIR=<каталог>  — Microsoft.VC143.CRT или любой выше (…\VC\Redist\MSVC\<ver>\x64), скопированный с
+#                                 машины с VS; DLL ищутся рекурсивно.
 MSVC_RT_VER=14.44.35112
-MSVC_RT_URL="https://files.pythonhosted.org/packages/21/3b/134d04268ab8e35853cd007582076429b45d60d6abb1036d159be9c50342/msvc_runtime-$MSVC_RT_VER-cp312-cp312-win_amd64.whl"
-MSVC_RT_SHA256=32f9c706009e16ccc319d6947ce3bffe20e5192bee52b18cf48313f9e7bedfbe
+MSVC_RT_SHA256="msvcp140.dll=0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9
+msvcp140_1.dll=bfad5aef4c63a669e3c140655cdfdf395b6c979b400a447bd5dcb65ed8826c3d
+vcruntime140.dll=d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066
+vcruntime140_1.dll=1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"
 MSVC_RT_DLLS="msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll"
+
+# Копирует VC++ runtime из $MSVC_REDIST_DIR в каталог $1 с проверкой sha256; без источника или согласия — ошибка.
+copy_msvc_runtime() { # каталог_назначения
+	local dest="$1" d f want got
+	if [ "${MSVC_ACCEPT_LICENSE:-}" != yes ]; then
+		echo "Windows: VC++ runtime $MSVC_RT_VER берётся из Visual Studio 2022 (VC\\Redist) и раздаётся по лицензии Visual Studio" >&2
+		echo "(Microsoft Software License Terms, Distributable Code). Принять её — решение автора: задайте MSVC_ACCEPT_LICENSE=yes." >&2
+		return 1
+	fi
+	if [ -z "${MSVC_REDIST_DIR:-}" ] || [ ! -d "$MSVC_REDIST_DIR" ]; then
+		echo "Windows: не задан MSVC_REDIST_DIR (каталог VC\\Redist\\MSVC\\<ver>\\x64 или Microsoft.VC143.CRT," >&2
+		echo "скопированный с машины с Visual Studio 2022 Community / Build Tools; см. native/air_onnx/README.md)." >&2
+		return 1
+	fi
+	for d in $MSVC_RT_DLLS; do
+		f="$(find "$MSVC_REDIST_DIR" -ipath '*x64*' -iname "$d" -print -quit)"
+		[ -n "$f" ] || f="$(find "$MSVC_REDIST_DIR" -iname "$d" -print -quit)"
+		[ -n "$f" ] || { echo "в $MSVC_REDIST_DIR нет $d" >&2; return 1; }
+		want="$(printf '%s\n' "$MSVC_RT_SHA256" | sed -n "s/^$d=//p")"
+		got="$(sha256sum "$f" | cut -d' ' -f1)"
+		if [ "$got" != "$want" ]; then
+			echo "$f: sha256 $got не совпадает с закреплённым для VC++ runtime $MSVC_RT_VER ($want)." >&2
+			echo "Нужна именно эта версия Redist; если автор сознательно обновляет — поменять MSVC_RT_VER и хэши здесь и в ASSETS.md." >&2
+			return 1
+		fi
+		cp "$f" "$dest/$d"
+	done
+}
 
 TARGETS="${1:-linux}"
 if [ "$TARGETS" = clean ]; then
@@ -86,26 +121,13 @@ for T in $TARGETS; do
 		LM="$DEPS_DIR/llvm-mingw-$LLVM_MINGW_VER-ucrt-ubuntu-22.04-x86_64"
 		fetch "https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_VER/llvm-mingw-$LLVM_MINGW_VER-ucrt-ubuntu-22.04-x86_64.tar.xz" "$DEPS_DIR/llvm-mingw-$LLVM_MINGW_VER.tar.xz"
 		unpack "$LM" tar -xJf "$DEPS_DIR/llvm-mingw-$LLVM_MINGW_VER.tar.xz" -C
-		RT_WHL="$DEPS_DIR/msvc-runtime-$MSVC_RT_VER.whl"
-		RT_DIR="$DEPS_DIR/msvc-runtime-$MSVC_RT_VER"
-		fetch "$MSVC_RT_URL" "$RT_WHL"
-		echo "$MSVC_RT_SHA256  $RT_WHL" | sha256sum -c --quiet
-		if [ ! -d "$RT_DIR" ]; then
-			rm -rf "$RT_DIR.part"; mkdir -p "$RT_DIR.part"
-			python3 -m zipfile -e "$RT_WHL" "$RT_DIR.part"
-			mv "$RT_DIR.part" "$RT_DIR"
-		fi
 		mkdir -p "$BIN_DIR/windows"
+		copy_msvc_runtime "$BIN_DIR/windows"   # до сборки: без источника DLL падаем сразу
 		cmake -S "$HERE" -B "$BUILD_DIR/windows" -DCMAKE_BUILD_TYPE=Release -DDEPS_DIR="$DEPS_DIR" \
 			-DCMAKE_TOOLCHAIN_FILE="$HERE/cmake/llvm-mingw.cmake" -DLLVM_MINGW="$LM" \
 			-DGODOTCPP_API_VERSION="$GODOT_API" -DORT_DIR="$ORT_DIR" -DAIR_ONNX_BIN_DIR="$BIN_DIR/windows"
 		cmake --build "$BUILD_DIR/windows" -j "$JOBS"
 		cp "$ORT_DIR/lib/onnxruntime.dll" "$BIN_DIR/windows/"
-		for d in $MSVC_RT_DLLS; do
-			f="$(find "$RT_DIR" -iname "$d" -print -quit)"
-			[ -n "$f" ] || { echo "в msvc-runtime нет $d"; exit 1; }
-			cp "$f" "$BIN_DIR/windows/$d"
-		done
 		;;
 	*) echo "неизвестная цель $T"; exit 2 ;;
 	esac
