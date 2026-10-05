@@ -1,0 +1,9 @@
+{
+  "module": "site-i18n",
+  "plan": "docs/plan/site-i18n.md",
+  "contracts": "docs/contracts/site-i18n.md",
+  "branch": "feature/site-i18n",
+  "copy": "~/deltaplan-site-i18n",
+  "created": "2026-10-05T06:02:45",
+  "code": "SI"
+}
