@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "P2 без изменений обучена на счёте SY-12 по 285 местам дельтаплана. Первое обучение (ep130 / best ep102): holdout медиана 0,688 / 0,692 м/с, p90 2,24 / 2,25, отн. 0,170 / 0,171; места игры 0,590 м/с, отн. 0,150. Старая сеть игры: 0,925 / 2,87 / 0,225 на holdout, 0,759 / 0,191 на играх. Финал на всех местах (130 эпох) → out/model_hg.onnx, onnx_io_match=true.",
+  "commits": [
+    "b7fa63fc air-synth SY-11: обучение P2, оценка, кривая по эпохам, сравнение со старой сетью, финальный ONNX"
+  ],
+  "checks": [
+    {
+      "name": "train_tests",
+      "value": "16 passed",
+      "pass": true
+    },
+    {
+      "name": "eval",
+      "value": "median_60m",
+      "pass": true
+    },
+    {
+      "name": "onnx",
+      "value": "out/model_hg.onnx",
+      "pass": true
+    },
+    {
+      "name": "compare_old",
+      "value": "overlap_old_training",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Загрузка GPU ~26 % (batch 8, малые ядра) — не подбиралась, гиперпараметры как P2."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "tools/dp accept SY-11",
+  "uncertain": [
+    {
+      "where": "s7_compare.py: старая сеть",
+      "why": "вход старой сети — те же 9 карт и 18 чисел в кодировке v4 (prep P2), но она обучалась на своём наборе и, возможно, чуть иной версии подготовки",
+      "checked": "интерфейс ONNX совпадает по именам/формам; ошибка старой сети на играх 0,76 м/с против профиля притока 2,2+ — сеть работает осмысленно"
+    },
+    {
+      "where": "overlap_old_training",
+      "why": "пул обучения старой сети взят из README пилота (P6 part=pool + встроенные места кроме ongudai), не из манифеста самого model.onnx",
+      "checked": "координаты: holdout не совпадает ни с одним центром пула (<1 км); ближайший hg_0253 в 11 км (области частично перекрываются); три места игры (askarovo, aushkul, altai) в пуле старой сети по имени"
+    },
+    {
+      "where": "выбор эпохи 130",
+      "why": "holdout-медиана убывает монотонно до последнего снимка ep130; val-лучшая — 102; разница 0,5 %, тест на holdout не использовался для остановки, но эпоха финала выбрана по нему",
+      "checked": "кривая out/eval_curve.json"
+    }
+  ],
+  "dp_feedback": "dp job wait в фоне: оболочка отправляет ожидание >600 с в фон, приходится крутить until-циклы по tmux has-session; хотелось бы dp job wait, блокирующий до конца без лимита вызова.",
+  "extra": {
+    "gpu_util_percent_mean": 26,
+    "ms_per_step": 62,
+    "val_run": {
+      "epochs": 132,
+      "best_val_epoch": 102,
+      "train_hours": 1.856
+    },
+    "final_run": {
+      "epochs": 130,
+      "steps": 120510,
+      "train_hours": 2.123
+    },
+    "old_net_holdout": {
+      "median": 0.925,
+      "p90": 2.866,
+      "rel": 0.225
+    },
+    "old_net_game": {
+      "median": 0.759,
+      "p90": 2.55,
+      "rel": 0.191
+    },
+    "curve": "tools/research/air_synth/train/out/eval_curve.json",
+    "compare": "tools/research/air_synth/train/out/eval_compare_old.md",
+    "snapshots": "/home/greg/air_synth_data/train/hgw24_p2/{val,final}/ckpt"
+  },
+  "train_hours": {
+    "first": 1.86,
+    "final": 2.12
+  },
+  "steps": {
+    "first": 101772,
+    "final": 120510
+  },
+  "holdout_median_ms": 0.688,
+  "holdout_p90_ms": 2.241,
+  "holdout_rel": 0.1705,
+  "game_median_ms": 0.59,
+  "game_rel": 0.1504,
+  "mechanical": {
+    "holdout_median": 0.754,
+    "holdout_rel": 0.168,
+    "game_median": 0.656,
+    "note": "best ep102; конвективный: holdout 0,370 (отн. 0,199), игра 0,336"
+  },
+  "stability_groups": "Fr low/mid/high holdout медиана 0,529/0,751/0,923; dθ/dz low/mid/high 0,741/0,634/0,715 (best ep102; полно в out/eval_holdout.json)",
+  "onnx_path": "tools/research/air_synth/train/out/model_hg.onnx",
+  "onnx_io_match": true,
+  "t": "2026-10-05T22:54:27",
+  "by": "executor"
+}
