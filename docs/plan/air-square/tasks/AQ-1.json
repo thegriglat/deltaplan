@@ -1,0 +1,75 @@
+{
+  "id": "AQ-1",
+  "module": "air-square",
+  "type": "dp-engineer",
+  "title": "Клетка воздуха ровно dx на земле, область 38,4 км всегда в слое (C2 v7)",
+  "goal": "Решателю, окнам и сети — клетки ровно 400 м вокруг точки старта (как П6, на чём обучена П2) вместо f·s = 385–414 м; заодно область перестаёт вылезать за слой рельефа рантайма (5 мест из 367, в т. ч. Онгудай, — пустой случай без ветра над рельефом).",
+  "plan_ref": "AQ-1. Клетка ровно dx и область в слое",
+  "contracts": [
+    {
+      "name": "C2",
+      "version": "7",
+      "ref": "docs/contracts/air-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-square-AQ-1",
+  "branch": "air-square/AQ-1",
+  "base": "feature/air-square",
+  "scope": [
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/air_window_case.gd",
+    "tests/atmosphere/",
+    "tests/air_onnx/"
+  ],
+  "dont_touch": [
+    "tests/contracts/test_air_contracts.gd",
+    "docs/contracts/",
+    "scripts/atmosphere/air_model/shaders/",
+    "tools/research/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_air_place",
+      "tests": "test_air_place"
+    },
+    {
+      "name": "test_air_window_case",
+      "tests": "test_air_window_case"
+    },
+    {
+      "name": "test_air_nn_input",
+      "tests": "test_air_nn_input"
+    },
+    {
+      "name": "test_terrain",
+      "tests": "test_terrain"
+    },
+    {
+      "name": "test_start_map_contracts",
+      "tests": "test_start_map_contracts"
+    },
+    {
+      "name": "test_air_model_atmo",
+      "tests": "test_air_model_atmo"
+    },
+    {
+      "name": "test_air_square",
+      "tests": "test_air_square"
+    },
+    {
+      "name": "c2_geometry",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=test_air_contracts 2>&1",
+      "expect": "re:ok   test_air_contracts.gd::test_c2_cell_geometry"
+    },
+    {
+      "name": "contracts_no_new_fail",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=test_air_contracts 2>&1",
+      "expect": "!re:FAIL test_air_contracts.gd::test_(?!c4_atmosphere_api_and_analytic\\b)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:12:58",
+  "edited": "2026-10-05T06:13:08"
+}
