@@ -80,3 +80,18 @@ def test_eroded_deterministic():
     a, b = PB.pick_eroded(str(FS1), 33), PB.pick_eroded(str(FS1), 33)
     assert a == b and len(a) == 6 and len({x["id"] for x in a}) == 6
     assert all(PB.ERODED_RELIEF_RANGE[0] <= x["relief_m"] <= PB.ERODED_RELIEF_RANGE[1] and x["id"] >= 33 for x in a)
+
+
+def test_fixed_u_composition():
+    pts = PB.fixed_u_points()
+    assert len(pts) == 74 and len(PB.fixed_u_relief_specs(pts)) == 62
+    for p in pts:
+        assert p["u_sat"] in (3.0, 6.0) and 0.15 * 0.99 <= p["fr"] <= 3.0 * 1.01
+        assert p["fr"] * p["n_bv"] * p["h_m"] == pytest.approx(p["u_sat"])        # U_sat фиксирован точно
+        if p["variant"] == "n_axis":
+            assert PB.FU_N_RANGE[0] - 1e-12 <= p["n_bv"] <= PB.FU_N_RANGE[1] + 1e-12 and p["h_m"] in (250.0, 500.0, 1000.0, 1500.0)
+        else:
+            assert p["n_bv"] == 0.01 and PB.FU_H_RANGE[0] <= p["h_m"] <= PB.FU_H_RANGE[1] and p["h_m"] == round(p["h_m"])
+    # ближайшее к 500 запасное h: Fr = 0,15 при U_sat = 3 → h = 1000 (250 даёт N = 0,08)
+    p0 = [p for p in pts if p["variant"] == "n_axis" and p["u_sat"] == 3.0][0]
+    assert p0["h_m"] == 1000.0 and abs(p0["fr"] - 0.15) < 1e-9

@@ -33,10 +33,11 @@ sys.path.insert(0, str(ROOT / "tools/research/air_synth/corpus"))
 import phase_plan_pb2 as pb  # noqa: E402
 import reliefs as R          # noqa: E402
 
-CONTRACT = "P2 v3"
-SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")
+CONTRACT = "P2 v4"
+SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")   # план ap_v1 (по умолчанию)
+SERIES_KNOWN = SERIES_ALL + ("fixed_u",)    # fixed_u — только явно (--series fixed_u, план ap_v2)
 SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
-               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL}
+               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL, "fixed_u": pb.FIXED_U}
 SHAPE_ENUM = {"hill": pb.HILL, "ridge": pb.RIDGE, "step_up": pb.STEP_UP, "step_down": pb.STEP_DOWN}
 
 # --- постоянные плана (план §2)
@@ -74,6 +75,51 @@ REAL_SOLVE = "solve/hg_v2__hgw24__s0-939a467"   # SY-12: таблица cases, s
 REAL_FR_MIN, REAL_SLOPE_MIN = 1.5, 35.0        # froude таблицы > 1,5, уклон p95 (100 м) ≥ 35°
 REAL_N_LOWFR, REAL_N_CONV = 60, 20
 ERODED_RELIEF_RANGE = (400.0, 1200.0)   # м: перепад как у идеальных (h = 500); при Fr = 5 U_sat = 5·N·h ≤ 60 м/с
+
+
+# --- FIXED_U (план ap_v2, P2 v4): Fr через N и h при фиксированном U_sat
+FU_USAT = (3.0, 6.0)
+FU_N_FR = 24
+FU_FR_RANGE = (0.15, 3.0)
+FU_N_RANGE = (0.003, 0.025)
+FU_H_RANGE = (250.0, 1500.0)
+FU_H_ALT = (250.0, 1000.0, 1500.0)     # запасные h для оси N (ближайшее к 500, при котором N в диапазоне)
+FU_SHAPES = ("ridge", "hill")
+FU_S = 0.3
+FU_HEATS = (0.0, 250.0)
+CORPUS_V2 = "corpus/ideal_v2"
+
+
+def fixed_u_points():
+    """→ [dict(variant, u_sat, fr, n_bv, h_m)] — точки FIXED_U (без формы и H). h — целое число метров (корпус ideal_v2: имя с h,
+    округлённым до 1 м); при округлении h Fr пересчитывается из U_sat (U_sat точно 3 и 6 м/с): fr = U_sat/(N·h)."""
+    out = []
+    for u in FU_USAT:
+        for fr0 in np.logspace(np.log10(FU_FR_RANGE[0]), np.log10(FU_FR_RANGE[1]), FU_N_FR):
+            n = u / (fr0 * H_M)
+            if FU_N_RANGE[0] <= n <= FU_N_RANGE[1]:
+                out.append(dict(variant="n_axis", u_sat=u, fr=u / (n * H_M), n_bv=float(n), h_m=H_M))
+            else:
+                for h in sorted(FU_H_ALT, key=lambda x: abs(x - H_M)):
+                    n = u / (fr0 * h)
+                    if FU_N_RANGE[0] <= n <= FU_N_RANGE[1]:
+                        out.append(dict(variant="n_axis", u_sat=u, fr=u / (n * h), n_bv=float(n), h_m=float(h)))
+                        break
+            h = round(u / (N_BV * fr0))
+            if FU_H_RANGE[0] <= h <= FU_H_RANGE[1]:
+                out.append(dict(variant="h_axis", u_sat=u, fr=u / (N_BV * h), n_bv=N_BV, h_m=float(h)))
+    return out
+
+
+def fixed_u_relief_specs(points=None):
+    """Рельефы ideal_v2: [(shape, s, h_m)] в порядке (shape, h); id в корпусе = номер."""
+    points = points or fixed_u_points()
+    hs = sorted({p["h_m"] for p in points})
+    return [(sh, FU_S, h) for sh in FU_SHAPES for h in hs]
+
+
+def ideal_v2_name(sh, s, h):
+    return f"{R.ideal_name(sh, s, LENGTH_M)}_h{int(round(h))}"
 
 
 def u10_from_fr(fr, h_m=H_M, n_bv=N_BV, max_profile=MAX_PROFILE):
@@ -148,6 +194,28 @@ def write_ideal_corpus(out=None, force=False):
                                               source_sha256=hashlib.sha256(g100.tobytes()).hexdigest())))
     cio.write_reliefs(out, rel, shard_size=100, generator_version="ideal-v1", command="plan_build.py", git_commit=git_commit(),
                       extra_attrs=dict(h_m=H_M, base_m=BASE_M, length_m=LENGTH_M))
+    return out
+
+
+def write_ideal_v2_corpus(specs, out=None, force=False):
+    """Корпус S1 ideal_v2: формы (shape, s, h) с перепадом h (имя `<shape>_s<s>_h<h>`); существует и совпадает по именам — не трогает."""
+    import corpus_io as cio
+    out = out or os.path.join(data_root(), CORPUS_V2)
+    names = [ideal_v2_name(*sp) for sp in specs]
+    if os.path.exists(os.path.join(out, "corpus.h5")) and not force:
+        c = cio.Corpus(out)
+        ok = len(c) == len(specs) and [c.place(i)["name"] for i in range(len(specs))] == names
+        c.close()
+        if ok:
+            return out
+    rel = []
+    for (sh, s, h), nm in zip(specs, names):
+        g100, _ = R.ideal_relief(sh, s, h, LENGTH_M, BASE_M)
+        rel.append(dict(z100=g100, place=dict(name=nm, lat_deg=0.0, lon_deg=0.0, system="ideal", part="", stratum=sh,
+                                              source="ideal-v2", zoom=0, src_spacing_m=100.0,
+                                              source_sha256=hashlib.sha256(g100.tobytes()).hexdigest())))
+    cio.write_reliefs(out, rel, shard_size=100, generator_version="ideal-v2", command="plan_build.py", git_commit=git_commit(),
+                      extra_attrs=dict(base_m=BASE_M, length_m=LENGTH_M))
     return out
 
 
@@ -242,9 +310,9 @@ def _numerics(msg, **kw):
 def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, eroded_corpus="corpus/fs1_10k", write=True, quiet=False):
     """Строит Plan (protobuf); write — пишет plan.pb/plan.json в `<out>/<name>/` и корпус ideal_v1. → (plan, table)."""
     series = [s.strip() for s in (series.split(",") if isinstance(series, str) else series) if s.strip()]
-    bad = [s for s in series if s not in SERIES_ALL]
+    bad = [s for s in series if s not in SERIES_KNOWN]
     if bad:
-        raise ValueError(f"неизвестные серии {bad}; допустимо {SERIES_ALL}")
+        raise ValueError(f"неизвестные серии {bad}; допустимо {SERIES_KNOWN}")
     out = out or os.path.join(data_root(), "phase")
     plan = pb.Plan(contract=CONTRACT, name=name, created=datetime.datetime.now().isoformat(timespec="seconds"),
                    git_commit=git_commit(), command=" ".join(["plan_build.py"] + sys.argv[1:]))
@@ -254,7 +322,8 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
 
     specs = ideal_specs()
     rid = {sp: i for i, sp in enumerate(specs)}
-    for (sh, s), i in ((sp, rid[sp]) for sp in specs):
+    need_v1 = any(s != "fixed_u" for s in series)    # только fixed_u (ap_v2) — рельефов ideal_v1 в плане нет
+    for (sh, s), i in ((sp, rid[sp]) for sp in (specs if need_v1 else [])):
         r = plan.reliefs.add()
         r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = i, i, R.ideal_name(sh, s, LENGTH_M), SHAPE_ENUM[sh], s, H_M
         r.a_m = float(R.ideal_scale_a(sh, s, H_M))
@@ -265,10 +334,10 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     state = dict(next_line=0, next_case=0)
     lines_by_cfg = {}   # (shape, s, H, hz, wdir) -> line_id GRID
 
-    def add_line(ser, relief_id, H, hz, wdir, fr, start, direction=pb.DIR_NONE, ref=-1, variant="", cond="", cid=-1, **num):
+    def add_line(ser, relief_id, H, hz, wdir, fr, start, direction=pb.DIR_NONE, ref=-1, variant="", cond="", cid=-1, n_bv=N_BV, **num):
         ln = plan.lines.add()
         ln.line_id, ln.series, ln.relief_id = state["next_line"], SERIES_ENUM[ser], relief_id
-        ln.heat_flux_wm2, ln.h_over_zi, ln.n_bv_s, ln.wdir_from_deg = H, hz, N_BV, wdir
+        ln.heat_flux_wm2, ln.h_over_zi, ln.n_bv_s, ln.wdir_from_deg = H, hz, n_bv, wdir
         _numerics(ln.numerics, **num)
         ln.conditions, ln.cond_id = cond, cid
         ln.start, ln.direction, ln.ref_line_id, ln.variant = start, direction, ref, variant
@@ -372,6 +441,27 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
                              ref=base.line_id, envelope_angle_deg=ang, envelope_wall=wall, envelope_z0_m=z0, **kw)
         real_info["selected"] = cases
         eroded_info = list(eroded_info)
+    fixed_info = []
+    if "fixed_u" in series:
+        pts = fixed_u_points()
+        fspecs = fixed_u_relief_specs(pts)
+        fid = {sp: i for i, sp in enumerate(fspecs)}
+        pid_fu = {}
+        for sp in fspecs:
+            sh, s, h = sp
+            r = plan.reliefs.add()
+            pid_fu[sp] = len(plan.reliefs) - 1
+            r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = pid_fu[sp], fid[sp], ideal_v2_name(*sp), SHAPE_ENUM[sh], s, h
+            r.a_m = float(R.ideal_scale_a(sh, s, h))
+            r.length_m = LENGTH_M if sh == "ridge" else 0.0
+            r.corpus = CORPUS_V2
+        for sh in FU_SHAPES:
+            for H in FU_HEATS:
+                for p in pts:
+                    add_line("fixed_u", pid_fu[(sh, FU_S, p["h_m"])], H, 1.0, WDIR, [p["fr"]], pb.COLD, variant=p["variant"], n_bv=p["n_bv"])
+                    fixed_info.append(dict(shape=sh, H=H, line_id=state["next_line"] - 1, **p))
+        if write:
+            write_ideal_v2_corpus(fspecs)
     plan.n_cases = state["next_case"]
 
     table = {}
@@ -383,13 +473,14 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     if write:
         d = Path(out) / name
         d.mkdir(parents=True, exist_ok=True)
-        write_ideal_corpus(corpus_out)
+        if need_v1:
+            write_ideal_corpus(corpus_out)
         for fn, data, mode in (("plan.pb", plan.SerializeToString(), "wb"),):
             tmp = d / (fn + ".tmp")
             tmp.write_bytes(data)
             os.replace(tmp, d / fn)
         tmp = d / "plan.json.tmp"
-        tmp.write_text(json.dumps(plan_to_json(plan, eroded_info, real_info), ensure_ascii=False, indent=1))
+        tmp.write_text(json.dumps(plan_to_json(plan, eroded_info, real_info, fixed_info), ensure_ascii=False, indent=1))
         os.replace(tmp, d / "plan.json")
     if not quiet:
         print(f"план {name}: линий {len(plan.lines)}, случаев {plan.n_cases}")
@@ -398,7 +489,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     return plan, table
 
 
-def plan_to_json(plan, eroded_info=(), real_info=None):
+def plan_to_json(plan, eroded_info=(), real_info=None, fixed_info=()):
     from google.protobuf import json_format
     d = json_format.MessageToDict(plan, preserving_proto_field_name=True, always_print_fields_with_no_presence=True)
     for ln, m in zip(d["lines"], plan.lines):
@@ -408,6 +499,8 @@ def plan_to_json(plan, eroded_info=(), real_info=None):
         d["eroded_selection"] = list(eroded_info)
     if real_info:
         d["envelope_real_selection"] = real_info
+    if fixed_info:
+        d["fixed_u_selection"] = list(fixed_info)
     return d
 
 

@@ -294,3 +294,47 @@ def test_real_solver_mini(tmp_path, monkeypatch):
     check_contract(r.dir)
     plan, _, _, _, cases = IO.load_plan(pdir)
     assert len(IO.done_cases(r.dir)) == len(cases)
+
+
+# ------------------------------------------------------------------ AP-4: FIXED_U — всё, что зависит от h, берётся из рельефа линии
+def test_fixed_u_h_from_relief(tmp_path, monkeypatch):
+    """Линия с h = 1000 (Context.h_m = 500): u10, z_i, N, a, relief_m решателя, h в bubble — от 1000, не от 500."""
+    monkeypatch.setenv("AIR_SYNTH_DATA", str(tmp_path))
+    import plan_build as PB
+    plan, tab = PB.build_plan("fu", tmp_path / "phase", series="fixed_u", quiet=True)
+    assert plan.context.h_m == 500.0 and plan.contract == "P2 v4"
+    assert tab == {"FIXED_U": [296, 296]}
+    plan_dir = tmp_path / "phase" / "fu"
+    lines = {ln.line_id: ln for ln in plan.lines}
+    rel = {r.relief_id: r for r in plan.reliefs}
+    cand = [ln for ln in plan.lines if rel[ln.relief_id].h_m == 1000.0 and ln.variant == "n_axis"]
+    assert cand
+    ln = cand[0]
+    r = rel[ln.relief_id]
+    fr = float(np.frombuffer(ln.fr_f64, "<f8")[0])
+    u_sat = 3.0 if abs(fr * ln.n_bv_s * 1000.0 - 3.0) < 1e-9 else 6.0
+    assert fr * ln.n_bv_s * 1000.0 == pytest.approx(u_sat)
+    assert r.a_m == pytest.approx(PB.R.ideal_scale_a(PB.pb.Shape.Name(r.shape).lower(), 0.3, 1000.0))
+    assert ln.h_over_zi == 1.0 and ln.numerics.criterion == PB.pb.ABSOLUTE
+    seen = []
+    stub = make_stub()
+    inner = stub.solve_batch
+
+    def spy(specs, nums, init=None):
+        seen.extend(specs)
+        return inner(specs, nums, init)
+    stub.solve_batch = spy
+    only = [ln.first_case_id]
+    run = RP.Runner(plan_dir, tmp_path / "out", batch=1, chunk=1, only=only, solver=stub, inline_writer=True)
+    assert run.run() == 0
+    sp = seen[0]
+    assert sp.u10 == pytest.approx(u_sat / plan.context.max_profile)
+    assert sp.z_i_agl_m == pytest.approx(1000.0)            # h/h_over_zi, h из рельефа, не 500
+    assert sp.n_bv_s == pytest.approx(ln.n_bv_s)
+    assert sp.g100.max() - sp.g100.min() == pytest.approx(1000.0, rel=0.01)   # настоящий рельеф h = 1000 из ideal_v2
+    ph = IO.case_physics(plan, ln, r, fr, run.src)
+    assert ph["h_m"] == 1000.0 and ph["u_sat"] == pytest.approx(u_sat)
+    # froude_table = Fr ± 1 % (заглушка считает Fr = u10·max_profile/5, поэтому сверяем физику входа)
+    assert ph["u_sat"] / (ph["n_bv"] * ph["h_m"]) == pytest.approx(fr, rel=0.01)
+    with h5py.File(IO.parts(run.dir)[0], "r") as h:
+        assert float(h["cases"]["z_i_agl_m"][0]) == pytest.approx(1000.0)
