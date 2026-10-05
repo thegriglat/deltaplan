@@ -57,4 +57,6 @@ $PY s7_cache.py --name hgw24_p2 --workers 8                                     
 $PY s7_train.py --mode val --cache $AIR_SYNTH_DATA/train/hgw24_p2/cache/hg_v2__hgw24__s0-939a467 --run $AIR_SYNTH_DATA/train/hgw24_p2/val --bench 200   # оценка времени по 200 шагам
 tools/dp job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh                                    # весь конвейер (после конца счёта)
 ```
+Снимки весов: `ckpt/ep{NNN}.pt` каждые 5 эпох (EMA-веса, val и train loss в файле и в `history.json`), не перезаписываются; рядом `ckpt/best.pt`, `ckpt/last.pt`.
+Финальное (позже): `s7_train.py --mode final --cache <hg_v2> <game2> --run .../final --max-epochs <лучшая эпоха, 1-based> --schedule-epochs 150`.
 Результат: `$AIR_SYNTH_DATA/train/hgw24_p2/{cache,val,final}` (веса, журнал, история); в git — `out/` (оценка json/md, ONNX, отчёт ONNX).

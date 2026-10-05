@@ -80,7 +80,7 @@ def test_val_and_early_stop(tmp_path):
     c = make_cache(tmp_path / "c")
     t = T.Trainer(c, np.arange(8), np.arange(8, 12), tmp_path / "r", hp=dict(HP, patience=1), device="cpu", strict=False, log=lambda *a: None)
     r = t.run_steps(max_epochs=6)
-    assert (tmp_path / "r" / "best.pt").exists()
+    assert (tmp_path / "r" / "ckpt" / "best.pt").exists()
     assert all("val" in h for h in t.hist) and np.isfinite(t.best["val"])
 
 
@@ -89,3 +89,14 @@ def test_stop_steps(tmp_path):
     t = T.Trainer(c, np.arange(12), None, tmp_path / "r", hp=HP, device="cpu", strict=False, log=lambda *a: None)
     t.run_steps(stop_steps=5, schedule_steps=30)
     assert t.gstep == 5
+
+
+def test_periodic_snapshots_not_overwritten(tmp_path):
+    c = make_cache(tmp_path / "c")
+    t = T.Trainer(c, np.arange(8), np.arange(8, 12), tmp_path / "r", hp=dict(HP, snap_every=2, patience=99), device="cpu", strict=False, log=lambda *a: None)
+    t.run_steps(max_epochs=5)
+    ck = tmp_path / "r" / "ckpt"
+    assert sorted(p.name for p in ck.glob("ep*.pt")) == ["ep002.pt", "ep004.pt"]
+    a = torch.load(ck / "ep002.pt", weights_only=False)
+    assert a["epoch"] == 1 and a["val"] is not None and "model" in a
+    assert (ck / "last.pt").exists() and (ck / "best.pt").exists()

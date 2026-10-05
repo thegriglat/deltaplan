@@ -7,9 +7,9 @@ bf16, EMA 0,999 (с прогревом (1+n)/(10+n)), клип градиент�
 сумма потерь копится на GPU и читается раз в `log_every` шагов; EMA — torch._foreach_*; fused AdamW; без `.item()` на шаге.
 
 Режимы:
-  val   — обучение на group train (минус 10 % мест по хешу — проверка) с ранней остановкой; пишет best.pt (EMA лучшей эпохи), history.json;
-  final — обучение на всех группах без проверки ровно `--stop-steps` шагов (число шагов лучшей эпохи режима val) по тому же расписанию
-          (`--schedule-steps` = полное число шагов расписания режима val); пишет final.pt (EMA).
+  val   — обучение на group train (минус 10 % мест по хешу — проверка) с ранней остановкой; пишет ckpt/best.pt (EMA лучшей эпохи), снимки ckpt/ep{NNN}.pt каждые 5 эпох (EMA, без перезаписи), history.json;
+  final — обучение на всех группах без проверки `--max-epochs` эпох (= лучшая эпоха режима val) по расписанию в `--schedule-epochs` (150) эпох;
+          пишет ckpt/final.pt (EMA) и снимки каждые 5 эпох (ONNX — из снимка/final лучшей эпохи).
 Продолжение после прерывания — тем же вызовом (last.pt: веса, AdamW, EMA, позиция; порядок данных — от (зерно, эпоха)).
 """
 from __future__ import annotations
@@ -146,6 +146,7 @@ class Trainer:
         self.spe = max(1, len(self.tr) // self.bs)
         self.gstep = 0
         self.epoch = 0
+        self.snap_every = int(self.hp.get("snap_every", 5))
         self.hist, self.best, self.bad = [], dict(val=math.inf, epoch=-1, gstep=0), 0
 
     # --- состояние
@@ -199,7 +200,8 @@ class Trainer:
         E = int(max_epochs or hp["max_epochs"])
         total = int(schedule_steps or E * self.spe)
         warm = max(1, int(hp["warmup_frac"] * total))
-        last = self.run / "last.pt"
+        (self.run / "ckpt").mkdir(exist_ok=True)
+        last = self.run / "ckpt" / "last.pt"
         if last.exists() and not bench_steps:
             self.load(last)
             self.log(f"продолжение: эпоха {self.epoch}, шаг {self.gstep}")
@@ -274,7 +276,7 @@ class Trainer:
                 if vl < self.best["val"]:
                     self.best = dict(val=vl, epoch=self.epoch, gstep=self.gstep)
                     self.bad = 0
-                    self.save(self.run / "best.pt", dict(model=self.ema_model.state_dict(), epoch=self.epoch, val=vl, gstep=self.gstep,
+                    self.save(self.run / "ckpt" / "best.pt", dict(model=self.ema_model.state_dict(), epoch=self.epoch, val=vl, gstep=self.gstep,
                                                          scale=self.scale_np))
                 else:
                     self.bad += 1
@@ -287,6 +289,9 @@ class Trainer:
                 self.log(f"эпоха {self.epoch + 1}/{E}: train {tl:.5f}, {rec['t_epoch_s']:.0f} с")
             self.hist.append(rec)
             self.epoch += 1
+            if self.epoch % self.snap_every == 0:          # периодический снимок EMA-весов (требование пользователя 05.10), без перезаписи
+                self.save(self.run / "ckpt" / f"ep{self.epoch:03d}.pt", dict(model=self.ema_model.state_dict(), epoch=self.epoch - 1, gstep=self.gstep,
+                                                                           val=rec.get("val"), train=rec["train"], scale=self.scale_np))
             t_epoch0 = time.time()
             self.save(last, self.state()); t_ck = time.time()
             (self.run / "history.json").write_text(json.dumps(self.hist))
@@ -315,7 +320,9 @@ def main():
     ap.add_argument("--stop-steps", type=int, default=0)
     ap.add_argument("--schedule-steps", type=int, default=0)
     ap.add_argument("--bench", type=int, default=0, help="только N шагов (оценка времени), без записи чекпойнтов")
-    ap.add_argument("--max-epochs", type=int, default=0)
+    ap.add_argument("--max-epochs", type=int, default=0, help="final: число эпох = лучшая эпоха первого обучения (1-based)")
+    ap.add_argument("--schedule-epochs", type=int, default=0, help="длина расписания lr в эпохах (final: 150, как у первого обучения)")
+    ap.add_argument("--snap-every", type=int, default=5)
     ap.add_argument("--val-frac", type=float, default=0.10)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--fast", action="store_true", help="без строгой детерминированности (замер)")
@@ -330,9 +337,9 @@ def main():
     if a.bench:
         # замер цикла: обучающие данные — первые 3000 случаев (хватает на 200 шагов), масштабы по ним же
         tr = tr[:max(a.bench * 8, 64)]
-    T = Trainer(cache, tr, va, a.run, device=a.device, strict=not a.fast)
+    T = Trainer(cache, tr, va, a.run, hp=dict(snap_every=a.snap_every), device=a.device, strict=not a.fast)
     t0 = time.time()
-    res = T.run_steps(stop_steps=a.stop_steps or None, schedule_steps=a.schedule_steps or None, max_epochs=a.max_epochs or None,
+    res = T.run_steps(stop_steps=a.stop_steps or None, schedule_steps=(a.schedule_epochs * T.spe) if a.schedule_epochs else (a.schedule_steps or None), max_epochs=a.max_epochs or None,
                       bench_steps=a.bench)
     dt = time.time() - t0
     if a.bench:
@@ -340,7 +347,7 @@ def main():
         return
     run = Path(a.run)
     if a.mode == "final":
-        T.save(run / "final.pt", dict(model=T.ema_model.state_dict(), gstep=T.gstep, scale=T.scale_np))
+        T.save(run / "ckpt" / "final.pt", dict(model=T.ema_model.state_dict(), gstep=T.gstep, scale=T.scale_np))
     info = dict(mode=a.mode, train_seconds=dt, steps=T.gstep, spe=T.spe, n_train=int(len(tr)), n_val=0 if va is None else int(len(va)),
                 best=T.best, epochs=len(T.hist), hp=T.hp)
     (run / f"result_{a.mode}.json").write_text(json.dumps(info, indent=1, default=str))

@@ -14,7 +14,7 @@ $PY s7_cache.py --name "$NAME" --workers 8
 # (1) обучение на train с ранней остановкой по проверке (10 % мест)
 [ -f "$RUN/val/result_val.json" ] || $PY s7_train.py --mode val --cache "$HG" --run "$RUN/val"
 # оценка: holdout + места игры (CPU)
-$PY s7_eval.py --weights "$RUN/val/best.pt" --train-cache "$HG" --holdout-cache "$HG" --game-cache "$GAME" --out out
+$PY s7_eval.py --weights "$RUN/val/ckpt/best.pt" --train-cache "$HG" --holdout-cache "$HG" --game-cache "$GAME" --out out
 # решение пользователя 05.10: только первое обучение; финальное переобучение (s7_train.py --mode final) — позже, на пересчитанном наборе.
 # ONNX — первой сети (best.pt, EMA лучшей эпохи)
-$PY s7_export.py --weights "$RUN/val/best.pt" --cache "$HG" --out out
+$PY s7_export.py --weights "$RUN/val/ckpt/best.pt" --cache "$HG" --out out
