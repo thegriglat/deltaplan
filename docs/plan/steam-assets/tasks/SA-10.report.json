@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Redist из VS Build Tools 2022 (17.14.41) через msvc-wine скачан скриптом tools/release/fetch_msvc_redist.sh; 4 DLL побайтно совпали с текущими (sha256), замена не понадобилась. Исправлена метка версии: файловая версия 14.44.35211 (35112 - имя каталога Redist). Windows-сборка собралась, exe под wine загружает air_onnx.dll.",
+  "commits": [
+    "31b5a23c SA-10: VC++ runtime из VS Build Tools через msvc-wine"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "fetch_script",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "redist_hashes",
+      "value": "PINNED OK",
+      "pass": true
+    },
+    {
+      "name": "inv_all",
+      "value": "INVENTORY OK",
+      "pass": true
+    },
+    {
+      "name": "win_build",
+      "value": "tools/build.sh windows собрано",
+      "pass": true
+    },
+    {
+      "name": "wine_air_onnx",
+      "value": "air_onnx.dll Loaded, без ошибок расширения",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замена DLL в главной копии не потребовалась (идентичны); old_pypi не создавался."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept SA-10; MSVC_ACCEPT_LICENSE=yes tools/release/fetch_msvc_redist.sh",
+  "uncertain": [
+    {
+      "where": "wine-проверка",
+      "why": "load()=0 напрямую не напечатан; onnxruntime.dll под wine не подгружался (грузится при создании сети)",
+      "checked": "в логе wine loaddll загружена air_onnx.dll, ошибок расширения нет; это не запуск инференса"
+    },
+    {
+      "where": "tools/release/fetch_msvc_redist.sh",
+      "why": "пакет выбирается регэкспом 14.44.* из манифеста 17.14 (channel меняется во времени), msvc-wine закреплён на 514f8ea3",
+      "checked": "прогнан с нуля, 3.1 МБ, результат воспроизводим"
+    }
+  ],
+  "dp_feedback": "tools/build.sh windows под временным XDG_DATA_HOME не находит export templates - нужен симлинк на ~/.local/share/godot/export_templates; хорошо бы dp-обёртка.",
+  "t": "2026-10-05T07:30:50",
+  "by": "executor"
+}

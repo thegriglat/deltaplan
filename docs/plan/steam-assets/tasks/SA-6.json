@@ -1,0 +1,51 @@
+{
+  "id": "SA-6",
+  "module": "steam-assets",
+  "type": "dp-engineer",
+  "title": "Капсулы и иконки страницы Steam",
+  "goal": "Все графические файлы страницы и библиотеки Steam по SA-К4 (кроме скриншотов) — генератором из кадра игры и логотипа, чтобы позже заменить фон перезапуском.",
+  "plan_ref": "SA-6",
+  "contracts": [
+    {
+      "name": "SA-К4",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-6",
+  "branch": "steam-assets/SA-6",
+  "base": "feature/steam-assets",
+  "scope": [
+    "tools/store/",
+    "steam/store/"
+  ],
+  "dont_touch": [
+    "steam/partner/",
+    "assets/",
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "tools/store/check_sizes.sh"
+  ],
+  "accept": [
+    {
+      "name": "generate",
+      "cmd": "uv run -q --no-project --with pillow python tools/store/make_store_assets.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sizes",
+      "cmd": "bash tools/store/check_sizes.sh",
+      "expect": "re:STORE SIZES OK"
+    },
+    {
+      "name": "reproducible",
+      "cmd": "bash -c 'md5sum steam/store/*.jpg steam/store/*.png > /tmp/sa6_a.md5; uv run -q --no-project --with pillow python tools/store/make_store_assets.py && md5sum -c --quiet /tmp/sa6_a.md5 && echo SAME'",
+      "expect": "re:SAME"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T06:52:33",
+  "edited": "2026-10-05T06:52:41"
+}

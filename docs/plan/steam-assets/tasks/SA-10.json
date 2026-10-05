@@ -1,0 +1,61 @@
+{
+  "id": "SA-10",
+  "module": "steam-assets",
+  "type": "dp-engineer",
+  "title": "VC++ DLL из VS Build Tools через msvc-wine: скачать, заменить, сверить",
+  "goal": "Четыре DLL VC++ runtime в сборке Windows — из официального VS Build Tools Redist (лицензия принята пользователем), воспроизводимо скриптом; сборка Windows собирается и air_onnx грузится.",
+  "plan_ref": "SA-9",
+  "contracts": [
+    {
+      "name": "SA-К2",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-10",
+  "branch": "steam-assets/SA-10",
+  "base": "feature/steam-assets",
+  "scope": [
+    "tools/release/fetch_msvc_redist.sh",
+    "native/air_onnx/build.sh",
+    "native/air_onnx/README.md",
+    "ASSETS.md",
+    "licenses/msvc-runtime.txt",
+    "tests/contracts/test_steam_assets_contracts_sa10.gd"
+  ],
+  "dont_touch": [
+    "tools/build.sh",
+    "export_presets.cfg",
+    "docs/contracts/",
+    "tools/release/build_inventory.py"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "fetch_script",
+      "cmd": "bash -n tools/release/fetch_msvc_redist.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "redist_hashes",
+      "cmd": "bash -c 'cd /home/greg/deltaplan/addons/air_onnx/bin/windows && sha256sum msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll > /tmp/sa10.sha && for h in $(cut -d\" \" -f1 /tmp/sa10.sha); do grep -q $h $OLDPWD/native/air_onnx/build.sh || { echo NOPIN $h; exit 1; }; done; echo PINNED OK'",
+      "expect": "re:PINNED OK"
+    },
+    {
+      "name": "inv_all",
+      "cmd": "python3 tools/release/build_inventory.py --preset all --check",
+      "expect": "re:INVENTORY OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:23:09"
+}

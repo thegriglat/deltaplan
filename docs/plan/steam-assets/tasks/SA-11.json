@@ -1,0 +1,43 @@
+{
+  "id": "SA-11",
+  "module": "steam-assets",
+  "type": "dp-writer",
+  "title": "Промпты иконок для финального списка ачивок (38)",
+  "goal": "Генератор иконок готов к запуску на GPU для всех 38 ачивок финального configs/achievements.json модуля steam.",
+  "plan_ref": "SA-7",
+  "contracts": [
+    {
+      "name": "SA-К4",
+      "version": "3",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-11",
+  "branch": "steam-assets/SA-11",
+  "base": "feature/steam-assets",
+  "scope": [
+    "tools/store/achievements/prompts.json",
+    "tools/store/achievements/README.md"
+  ],
+  "dont_touch": [
+    "tools/store/achievement_icons.py",
+    "configs/",
+    "docs/contracts/",
+    "ASSETS.md"
+  ],
+  "accept": [
+    {
+      "name": "dry_final",
+      "cmd": "bash -c 'git -C /home/greg/deltaplan show ba0145fa:configs/achievements.json > /tmp/sa11_ach.json && python3 tools/store/achievement_icons.py --config /tmp/sa11_ach.json --prompts tools/store/achievements/prompts.json --out /tmp/sa11_icons --dry'",
+      "expect": "re:ICONS PLAN ok=38 missing=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/store/achievements/prompts.json'));s=[v['seed'] for v in d['icons'].values()];assert len(s)==len(set(s));print('SEEDS OK',len(s))\"",
+      "expect": "re:SEEDS OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:36:37"
+}

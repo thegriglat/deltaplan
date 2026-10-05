@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Дописаны 20 промптов (seed 1000+37*i, уникальны), 18 прежних сверены с финальными названиями — совпали, лишних ключей нет; README обновлён (38, --dry ok=38). Скрытые (EAGLE, BALLOONS, GLORIA, CAMP_LANDING) — короткие нейтральные subject.",
+  "commits": [
+    "b79b32ba Иконки ачивок: промпты для финального списка (38)"
+  ],
+  "checks": [
+    {
+      "name": "dry_final",
+      "value": "ICONS PLAN ok=38 missing=0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "SEEDS OK 38",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SA-11",
+  "uncertain": [
+    {
+      "where": "prompts.json ACH_EAGLE/ACH_GLORIA/ACH_CAMP_LANDING",
+      "why": "образы (птица, звезда с венком, палатка со столом) — мои догадки о смысле скрытых ачивок, у которых нет описаний",
+      "checked": "в subject нет описания условий"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T07:37:24",
+  "by": "executor"
+}

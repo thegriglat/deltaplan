@@ -1,0 +1,73 @@
+{
+  "id": "SA-3",
+  "module": "steam-assets",
+  "type": "dp-writer",
+  "title": "ASSETS.md под коммерческую схему: правила, движок и библиотеки, правки по аудиту",
+  "goal": "ASSETS.md честно описывает всё, что в сборке, с явными лицензиями, разрешающими коммерческое использование; тексты «некоммерческий» в игре и README убраны.",
+  "plan_ref": "SA-3",
+  "contracts": [
+    {
+      "name": "SA-К1",
+      "version": "1",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К2",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "2",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-steam-assets-SA-3",
+  "branch": "steam-assets/SA-3",
+  "base": "feature/steam-assets",
+  "scope": [
+    "ASSETS.md",
+    "assets/sounds/LICENSES.md",
+    "locale/ui.csv",
+    "README.md"
+  ],
+  "dont_touch": [
+    "CLAUDE.md",
+    ".claude/",
+    "site/",
+    "configs/",
+    "scripts/",
+    "licenses/",
+    "tools/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "inventory_linux",
+      "cmd": "python3 tools/release/build_inventory.py --preset Linux --check",
+      "expect": "re:INVENTORY OK"
+    },
+    {
+      "name": "no_nc_texts",
+      "cmd": "bash -c 'grep -ciE \"некоммерч|non-commercial\" ASSETS.md locale/ui.csv README.md | awk -F: \"{s+=\\$NF} END{print \\\"nc=\\\" s}\"'",
+      "expect": "re:nc=0"
+    },
+    {
+      "name": "game_logic",
+      "tests": "game_logic"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-05T07:09:11",
+  "edited": "2026-10-05T07:09:24"
+}

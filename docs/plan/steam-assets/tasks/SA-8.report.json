@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "RasterTileLoader: User-Agent из шаблона {version} (project.godot) с адресом проекта, пауза повторов тайла (retry_after_s 60) и пауза слоя после 403/429 (blocked_backoff_s 600, Retry-After если больше), max_parallel на слой (osm=2). Тесты без сети через http_hook/clock_hook. Terrarium-загрузчик тоже подставляет {version} через общую RasterTileLoader.expand_user_agent.",
+  "commits": [
+    "456562a7 Карта выбора старта: User-Agent, паузы, max_parallel (SA-8)",
+    "Terrarium: общая подстановка {version}"
+  ],
+  "checks": [
+    {
+      "name": "start_map",
+      "value": "6/6 0 упало",
+      "pass": true
+    },
+    {
+      "name": "steam_assets_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "map_picker",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "raster_tile",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "no_noncommercial",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пункт 4 (ссылка в атрибуции, отмена ушедших запросов, срок кеша) — по заданию не делался"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SA-8",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/map_picker.gd",
+      "why": "Скоуп называет scripts/ui/map_picker.gd, файл лежит в scripts/terrain/; правок в нём не потребовалось (null от загрузчика и так стирает запись, повтор отсекает загрузчик)",
+      "checked": "чтение кода, тесты map_picker"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T07:00:24",
+  "by": "executor"
+}

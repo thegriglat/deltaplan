@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Генератор tools/store/make_store_assets.py делает все 13 файлов SA-К4 (капсулы, library hero/logo/capsule/header, иконки PNG/ICO/JPG, event cover/header) из steam/store/src/menu_background.jpg, логотипа и иконки; steam/store/ с .gdignore и README.md.",
+  "commits": [
+    "aaf77852 steam-assets SA-6: генератор капсул и иконок Steam"
+  ],
+  "checks": [
+    {
+      "name": "generate",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sizes",
+      "value": "STORE SIZES OK",
+      "pass": true
+    },
+    {
+      "name": "reproducible",
+      "value": "SAME",
+      "pass": true
+    },
+    {
+      "name": "ico",
+      "value": "16,32,48,64,128,256",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншоты и иконки ачивок — вне задачи (README это описывает)."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SA-6/contact_sheet.jpg"
+  ],
+  "how_to_check": "dp accept SA-6",
+  "uncertain": [
+    {
+      "where": "tools/store/make_store_assets.py: логотип",
+      "why": "логотип в assets/ тёмно-синий, на тёмном кадре нечитаем, поэтому на капсулах и в library_logo он перекрашен в белый с тенью",
+      "checked": "смотрел контактный лист; на capsule_small (462x174) читается, одна поправка позиции"
+    },
+    {
+      "where": "app_icon.jpg",
+      "why": "иконка со скруглёнными углами, в JPEG углы белые",
+      "checked": "визуально"
+    }
+  ],
+  "dp_feedback": "check_sizes.sh читает README/.gdignore из cwd=steam/store, а accept запускает из корня — работает; замечаний нет.",
+  "extra": {
+    "steam_store_size": "6.4M"
+  },
+  "t": "2026-10-05T06:55:43",
+  "by": "executor"
+}

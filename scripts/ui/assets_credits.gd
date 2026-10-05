@@ -36,10 +36,17 @@ static func plain(s: String) -> String:
 	return t.replace("`", "").replace("**", "").replace("<br>", " ").strip_edges()
 
 
+## Раздел входит в сборку (SA-К3): в названии нет «не вход».
+static func in_build(title: String) -> bool:
+	return not title.to_lower().contains("не вход")
+
+
 ## BBCode для RichTextLabel: разделы, строки «что — источник — лицензия», тексты лицензий.
 static func to_bbcode(tables: Array[Dictionary], licenses: Dictionary) -> String:
 	var lines: PackedStringArray = []
 	for t in tables:
+		if not in_build(String(t.title)):
+			continue
 		lines.append("[font_size=22][color=#f2c77f]%s[/color][/font_size]" % _esc(t.title))
 		var hdr: Array = t.headers
 		var i_what := _col(hdr, ["Что"], 1)

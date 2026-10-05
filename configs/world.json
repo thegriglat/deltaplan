@@ -932,6 +932,7 @@
         "subdomains": [],
         "max_zoom": 19,
         "attribution": "© OpenStreetMap contributors",
+        "max_parallel": 2,
         "_doc": "OpenStreetMap standard"
       },
       {
@@ -949,8 +950,13 @@
       }
     ],
     "tile_cache_dir": "user://map_cache",
-    "user_agent": "deltaplan-sim/1.1 (hang gliding simulator; non-commercial open source)",
+    "user_agent": "deltaplan/{version} (+https://github.com/thegriglat/deltaplan)",
+    "user_agent_doc": "User-Agent запросов тайлов (политика OSM): {version} подставляется из application/config/version, адрес проекта обязателен",
     "max_parallel_requests": 4,
+    "retry_after_s": 60.0,
+    "retry_after_s_doc": "Пауза, с, прежде чем снова запрашивать тайл, на который пришла ошибка или нет сети",
+    "blocked_backoff_s": 600.0,
+    "blocked_backoff_s_doc": "Пауза всех запросов слоя после ответа 403/429, с (Retry-After, если больше)",
     "timeout_s": 20.0,
     "elevation_zoom": 12
   },

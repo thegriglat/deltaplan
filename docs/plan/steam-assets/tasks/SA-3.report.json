@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "ASSETS.md переписан под правило «всё в сборке разрешает коммерческое использование»: новые правила, раздел «Движок и библиотеки», строки для крыльев (48), экранов загрузки, model.onnx, ONNX Runtime, VC++ runtime, движка; явные лицензии вместо «как у/то же/открытые данные»; ссылки на licenses/*.txt по списку SA-К2 v2. «Некоммерческий» убран из locale/ui.csv, README.md, assets/sounds/LICENSES.md.",
+  "commits": [
+    "d56124f7 steam-assets SA-3: ASSETS.md под коммерческую схему",
+    "доп. коммит: VC++ по решению А, правила без упоминания продажи"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "inventory_linux",
+      "value": "INVENTORY OK files=894",
+      "pass": true
+    },
+    {
+      "name": "no_nc_texts",
+      "value": "nc=0",
+      "pass": true
+    },
+    {
+      "name": "game_logic",
+      "value": "14/14",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "configs/world.json map_picker.user_agent («non-commercial open source», аудит п. 6) — вне скоупа SA-3 (configs/ запрещён), нужна отдельная правка",
+    "CLAUDE.md:3 («некоммерческий open source») и сайт (site/content/_index.*, hugo.toml, mechanics/terrain.*) — не трогал по карточке",
+    "licenses/*.txt — задача SA-4; ссылки в ASSETS.md пока висячие"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept SA-3; python3 tools/release/build_inventory.py --preset Linux --check",
+  "uncertain": [
+    {
+      "where": "ASSETS.md, строка VC++ runtime",
+      "why": "версия 14.44.35112 из аудита; по решению А DLL берутся из VC\\Redist - в build.sh/README native/air_onnx источник пока прежний (колесо PyPI)",
+      "checked": "Windows --check даёт 4 не-true (лицензия Microsoft не распознаётся скриптом как разрешающая)"
+    },
+    {
+      "where": "ASSETS.md, строка godot-cpp",
+      "why": "написано «нужны для сборки air_onnx, тег 10.0.0-stable» (build.sh); не проверял, статически ли линкуется в библиотеку",
+      "checked": "native/air_onnx/build.sh"
+    },
+    {
+      "where": "ASSETS.md, строка крыльев",
+      "why": "«названия моделей даны по изделиям, на моделях нет логотипов» - из аудита п. 7.2; охватывает ли абзац о торговых марках в «Об игре» названия крыльев - решение пользователя",
+      "checked": "аудит; configs/wings (48)"
+    },
+    {
+      "where": "ASSETS.md, строка model.onnx",
+      "why": "данные обучения (~/air_nn_data) на машине не проверялись, вывод по аудиту п. 4.1",
+      "checked": "аудит"
+    },
+    {
+      "where": "ASSETS.md, строка Terrarium (far.f32.br и др.)",
+      "why": "лицензия записана как «Public domain / CC BY / OGL по источникам, список Mapzen» - по аудиту п. 5, без отдельного файла в licenses/",
+      "checked": "аудит п. 3, 5"
+    }
+  ],
+  "dp_feedback": "build_inventory.py сопоставляет файлы рядом с exe по пути в проекте (addons/air_onnx/bin/<платф>/...), а не по <exe>/...: токен <exe>/x превращается в [^/]+/x и не совпадает. Пришлось в одной ячейке писать оба шаблона (<exe>/... и addons/air_onnx/bin/*/...). Скрипт не правил. Также в копии нет addons/air_onnx/bin (gitignored), поэтому --check на Linux в копии эти файлы не видит; проверял временным копированием из основной копии (убрал). dp task не сообщает о неотслеживаемых .uid после import.",
+  "extra": {
+    "inventory_windows": "4 не-true: VC++ DLL (ожидаемо)",
+    "inventory_macos": "INVENTORY OK files=809"
+  },
+  "t": "2026-10-05T07:13:56",
+  "by": "executor"
+}

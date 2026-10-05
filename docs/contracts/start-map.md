@@ -5,19 +5,21 @@ module: "start-map"
 updated: "2026-10-05"
 summary: "Контракты модуля start-map: растровые подложки карты выбора старта в конфиге (SM-К1), высота точки по Terrarium и интерфейс MapPicker (SM-К2)."
 related: ["docs/plan/start-map.md"]
-contracts: [{"id": "SM-К1", "version": 2}, {"id": "SM-К2", "version": 1}]
+contracts: [{"id": "SM-К1", "version": 3}, {"id": "SM-К2", "version": 1}]
 ---
 # Контракты модуля start-map
 
 План — `docs/plan/start-map.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей). Контрактный тест — `tests/contracts/test_start_map_contracts.gd` (без сети и GPU).
 
-## SM-К1. Растровые подложки карты (v2)
+## SM-К1. Растровые подложки карты (v3)
 Владелец: SM-1. Потребители: `MapPicker`, `RasterTileLoader`, `ASSETS.md`, контрактный тест.
 - `configs/world.json` → `map_picker.basemaps`: непустой массив; первый элемент — слой по умолчанию. Элемент:
   `{"id": String (латиница, [a-z0-9_]+, уникален), "name_key": String (ключ перевода), "url_template": String (содержит {z}, {x}, {y}; необязательно {s}), "subdomains": Array[String] (может быть пустым; если в шаблоне {s} — непустой), "max_zoom": int (1..19), "attribution": String (непустая, показывается на карте), "_doc": String}`.
   v2: `osm` (OpenStreetMap standard, max_zoom 19, «© OpenStreetMap contributors») — **первый, по умолчанию**: подписи населённых пунктов крупные и с малых масштабов; `opentopomap` (OpenTopoMap, max_zoom 17, «Map data © OpenStreetMap contributors, SRTM | Map style © OpenTopoMap (CC-BY-SA)») — второй.
 - Инвариант (решение пользователя 05.10.2026): на карте видны названия населённых пунктов; `map_picker.start_zoom` — не меньше 11 (на OSM standard подписи сёл появляются с z≈11–12).
-- `map_picker.tile_cache_dir`: String, кеш `<tile_cache_dir>/<id>/<z>/<x>/<y>.png` (по умолчанию `user://map_cache`); `map_picker.user_agent` — честный User-Agent игры (политика OSM).
+- `map_picker.tile_cache_dir`: String, кеш `<tile_cache_dir>/<id>/<z>/<x>/<y>.png` (по умолчанию `user://map_cache`); `map_picker.user_agent` — честный User-Agent игры (политика OSM): шаблон с `{version}` (подставляется `application/config/version` из project.godot) и адресом проекта (`https://github.com/thegriglat/deltaplan`), без «non-commercial»; например `deltaplan/{version} (+https://github.com/thegriglat/deltaplan)`.
+- v3: у слоя необязательное `max_parallel: int` (≥1) — предел одновременных запросов к этому серверу (меньшее из него и `map_picker.max_parallel_requests`); у `osm` — 2.
+- v3: повторы при ошибках: тайл, на который пришла ошибка/нет сети, не запрашивается снова раньше `map_picker.retry_after_s` (по умолчанию 60 с, `fetch_tile` до тех пор сразу отдаёт `null`); ответ 403 или 429 — пауза всех запросов к этому слою на `map_picker.blocked_backoff_s` (по умолчанию 600 с; `Retry-After`, если больше). В пределах сеанса, без записи на диск.
 - Ключи отмывки (`light_*`, `exaggeration`, `*_color`, `*_height_m`) из `map_picker` удаляются; шейдера `map_hillshade.gdshader` нет.
 - `RasterTileLoader` (`scripts/terrain/raster_tile_loader.gd`, Node): `fetch_tile(basemap: Dictionary, z: int, x: int, y: int) -> Image` (await; `null` — нет сети/ошибка, без падений), кеш на диске, не больше `map_picker.max_parallel_requests` (по умолчанию 4) запросов одновременно; запрошенный z ≤ `max_zoom` слоя (выше — растягивается тайл max_zoom).
 - Инвариант: атрибуция текущего слоя видна на карте всегда; в `ASSETS.md` — строка про оба слоя (источник, лицензия, атрибуция).
@@ -32,5 +34,6 @@ contracts: [{"id": "SM-К1", "version": 2}, {"id": "SM-К2", "version": 1}]
 - Инвариант: высота — подсказка в меню, в физике не участвует (рельеф полёта строится как прежде).
 
 ## История
+- SM-К1 v3 (05.10.2026, модуль steam-assets, SA-8 — по проверке правил серверов SA-2, `docs/research/steam_tile_policy.md`): `user_agent` — шаблон `{version}` + адрес проекта, без «non-commercial»; `max_parallel` у слоя; паузы после ошибок и 403/429. Потребители: RasterTileLoader, MapPicker, контрактный тест.
 - SM-К1 v2 (05.10.2026): по умолчанию `osm` (был `opentopomap`); `start_zoom` ≥ 11 — названия населённых пунктов обязательны (решение пользователя). Потребители: MapPicker (порядок слоёв из конфига), контрактный тест.
 - v1 (05.10.2026) — заведены до первого исполнителя.
