@@ -1,0 +1,50 @@
+# live.sh 2026-10-05 07:02, клиент Steam запущен, App ID 480; ник/Steam ID вырезаны
+[S_API] SteamAPI_Init(): Loaded '/home/greg/.steam/debian-installation/linux64/steamclient.so' OK.
+LIVE init=0/
+LIVE launch_cmdline=''
+LIVE app_owner_is_me_subscribed=true/true
+LIVE build_id=0
+LIVE ui_lang=russian
+LIVE rp_set_key=true
+LIVE rp_set_steam_display_unknown_token=true
+LIVE rp_set_key_too_long=false
+LIVE rp_set_value_too_long=false
+LIVE rp_set_value_256=false
+LIVE rp_keys_accepted_total=29
+LIVE rp_own_key_count=44
+LIVE rp_own_read_st1probe=1
+LIVE rp_after_clear_count=0
+LIVE ach_count=5
+LIVE ach_names_480=["ACH_TRAVEL_FAR_ACCUM", "ACH_TRAVEL_FAR_SINGLE", "ACH_WIN_100_GAMES", "ACH_WIN_ONE_GAME", "NEW_ACHIEVEMENT_0_4"]
+LIVE ach_win_one_game_state={ "ret": true, "achieved": false }
+LIVE stat_NumGames=0
+LIVE fake_ach_state={ "ret": false, "achieved": false }
+LIVE cloud_enabled_account=true
+LIVE cloud_enabled_app=true
+LIVE cloud_quota={ "total_bytes": 4096, "available_bytes": 4096 }
+LIVE cloud_file_count_before=0
+LIVE cloud_write=true
+LIVE cloud_exists=true
+LIVE cloud_read={ "ret": 15, "buf": [115, 116, 49, 32, 99, 108, 111, 117, 100, 32, 112, 114, 111, 98, 101] }
+LIVE cloud_delete=true
+LIVE cloud_file_count_after=0
+LIVE lobby_created=result=1 id=109775244009210678
+LIVE lobby_set_data=true
+LIVE lobby_set_data_big_8192=false
+LIVE lobby_set_data_big_8193=false
+LIVE lobby_get_data=st1
+LIVE lobby_set_member_data=<null>
+LIVE lobby_get_member_data=pilot
+LIVE lobby_members=1
+LIVE lobby_owner_is_me=true
+LIVE lobby_member_limit=4
+LIVE nm_frame_bytes=2020
+LIVE nm_send_to_self_result=1
+LIVE sig_lobby_joined=lobby=109775244009210678 resp=1
+LIVE sig_lobby_data_update=ok=true
+LIVE sig_nm_session_request=<steam_id>
+LIVE sig_nm_session_failed=reason=0 state=4 The remote host closed the connection.
+LIVE sig_lobby_data_update=ok=true
+LIVE nm_received=size=2020 from_me=true flags=8 channel=0
+LIVE nm_session_info={ "connection_state": 4, "state": 4, "ping": -1, "local_quality": -1.0, "remote_quality": -1.0, "packets_out_per_second": 0.0, "bytes_out_per_second": 0.0, "packets_in_per_second": 0.0, "bytes_in_per_second": 0.0, "send_rate": 104857600, "pending_unreliable": 0, "pending_reliable": 0, "sent_unacknowledged_reliable": 0, "queue_time": 9223372036854775807 }
+LIVE lobby_left=true

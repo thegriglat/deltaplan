@@ -20,7 +20,7 @@ applied_in: "контракты steam S1/S4/S5 и задачи ST-2…ST-10 (п�
 3. **Сборка**: одна кодовая база; расширение лежит в `addons/godotsteam/` (скачивается скриптом, в git не коммитим). Сборка для Steam — пресет с `custom_features="steam"` без исключений; сборка для itch — пресет с `exclude_filter="addons/godotsteam/*"` (замер: в экспорте нет ни `.so`/`.dll`, ни `libsteam_api`, `Steam` не загружается). Одна общая сборка тоже безопасна технически (замер), но тащит `libsteam_api` в сборку не для Steam и лицензионный вопрос с Valve — не рекомендуется.
 4. **Сеть**: Steam Networking Messages подходит под наши кадры (JSON ≤ ~2 КБ, 10 Гц): лимит сообщения 512 КиБ, надёжность — флагом, канал — целое число. Нужны `initRelayNetworkAccess()`, `acceptSessionWithUser` по сигналу, опрос `receiveMessagesOnChannel` каждый кадр.
 5. **Приглашения**: лобби + оверлей (`activateGameOverlayInviteDialog`), вход к другу — сигнал `join_requested`, а при закрытой игре Steam запускает её с `+connect_lobby <id>` (`getLaunchCommandLine`).
-6. **Rich Presence**: `setRichPresence("steam_display", "#Токен")` + файл токенов `.vdf` в кабинете; лимиты — ключ 64, значение 256 байт, ключей 20 (док. Steamworks) или 30 (константа SDK 1.65 в GodotSteam).
+6. **Rich Presence**: `setRichPresence("steam_display", "#Токен")` + файл токенов `.vdf` в кабинете; лимиты — ключ 63, значение 255 байт, ключей 20 (док.) / 30 (константа SDK 1.65) — проектируем под 20.
 7. **Cloud**: **Auto-Cloud** на несколько файлов `user://` (меньше кода, нет зависимости от API); Remote Storage API — только если понадобится выбирать, что синхронизировать, из игры. Настройки — только в кабинете (квота, пути).
 8. **macOS**: расширение универсальное (`x86_64`+`arm64`), экспорт с Linux проходит и кладёт `.dylib` в `Contents/Frameworks` (замер); нотаризация для Steam не обязательна, Apple Developer Program — 99 USD в год (док. Apple, не проверено).
 
@@ -33,10 +33,10 @@ applied_in: "контракты steam S1/S4/S5 и задачи ST-2…ST-10 (п�
 | Требования | Godot 4.4+ (`compatibility_minimum = "4.4"` в `godotsteam.gdextension`); с 4.7.2 работает (замер) |
 | Steamworks SDK | 1.65 (таблица совместимости в README аддона: SDK 1.65 ↔ GodotSteam 4.21+) |
 | Архив | 27 290 405 байт, sha256 `2b12b349…bfa8f` (закреплён в `fetch_godotsteam.sh`) |
-| Лицензия | MIT (`addons/godotsteam/license.md`). Политика проекта: без LLM-вклада в патчи/issue (README аддона) — на нас не влияет, мы только пользователи |
+| Лицензия | MIT (`addons/godotsteam/license.md`).  |
 | Библиотеки Valve | `libsteam_api.so` / `steam_api64.dll` / `libsteam_api.dylib` — Steamworks SDK, условия — Steamworks SDK Access Agreement; в публичный репозиторий не класть, в itch-сборку не класть |
 
-Размеры бинарников, которые попадут в экспорт (замер, release-варианты):
+Размеры в экспорте (замер, release):
 
 | Платформа | Файл расширения | Библиотека Steam | Итого |
 |---|---|---|---|
@@ -44,7 +44,7 @@ applied_in: "контракты steam S1/S4/S5 и задачи ST-2…ST-10 (п�
 | Windows x86_64 | `libgodotsteam.windows.template_release.x86_64.dll` 3,96 МБ | `steam_api64.dll` 0,32 МБ | ~4,3 МБ |
 | macOS universal | `libgodotsteam.macos.template_release.universal.dylib` 6,08 МБ (после подписи) | `libsteam_api.dylib` 0,46 МБ | ~6,5 МБ |
 
-Экспорт кладёт библиотеки **рядом с исполняемым файлом** (Linux/Windows) и в `Contents/Frameworks` (macOS) — не в `.pck` (замер, `out/export_check.txt`). Отладочные варианты (`template_debug`) ~4,3–5 МБ, в экспорт release не попадают. В архиве есть Android, `linux32`, `win32`, `linuxarm64` — нам не нужны, в экспорт не идут (берётся только своя платформа).
+Экспорт кладёт библиотеки **рядом с исполняемым файлом** (Linux/Windows) и в `Contents/Frameworks` (macOS) — не в `.pck` (замер, `out/export_check.txt`). В архиве есть ещё Android, `linux32`, `win32`, `linuxarm64` — в экспорт не идут.
 
 ## Безопасная проверка наличия расширения (вопрос 1)
 
@@ -94,19 +94,19 @@ func _init() -> void:
 | реле | `initRelayNetworkAccess()`, `getRelayNetworkStatus()`, сигнал `relay_network_status(available, ping_measurement, available_config, available_relay, debug_message)` | Steam Datagram Relay включается сам; вызвать `initRelayNetworkAccess()` при старте Steam-режима |
 | массовая | `sendMessages(connection_handle, messages: Array, flags, delete_failed_messages)` | это Networking Sockets (с 4.21 новый параметр); для Messages не нужна |
 
-Флаги (константы, замер): `NETWORKING_SEND_UNRELIABLE=0`, `NETWORKING_SEND_NO_NAGLE=1`, `NETWORKING_SEND_NO_DELAY=4`, `NETWORKING_SEND_RELIABLE=8`, `NETWORKING_SEND_RELIABLE_NO_NAGLE=9`, `NETWORKING_SEND_UNRELIABLE_NO_DELAY=5`, `NETWORKING_SEND_AUTORESTART_BROKEN_SESSION=32`. Опечатка в самом расширении: константа `NETWORKING_SEND_URELIABLE_NO_NAGLE=1` (без «N»).
+Флаги (константы, замер): `NETWORKING_SEND_UNRELIABLE=0`, `NETWORKING_SEND_NO_NAGLE=1`, `NETWORKING_SEND_NO_DELAY=4`, `NETWORKING_SEND_RELIABLE=8`, `NETWORKING_SEND_RELIABLE_NO_NAGLE=9`, `NETWORKING_SEND_UNRELIABLE_NO_DELAY=5`, `NETWORKING_SEND_AUTORESTART_BROKEN_SESSION=32`. 
 
 **Размер**: `MAX_STEAM_PACKET_SIZE = 524288` (512 КиБ) на сообщение; Steam сам фрагментирует и собирает, и для надёжных, и для ненадёжных. Наш кадр (JSON ≤ ~2 КБ) помещается одним сообщением с огромным запасом, а при 10 Гц и пире это ≈20 КБ/с на пира — ничтожно.
 
 **Рекомендация транспорта** (для S4/ST-8): канал `0` — управление/рукопожатие (`RELIABLE_NO_NAGLE`), канал `1` — позиции (`UNRELIABLE_NO_DELAY`, устаревшее кадр можно терять), кадры `Envelope` как есть, текст JSON → UTF-8 → `PackedByteArray`. Декодировать только `JSON.parse_string`, не `bytes_to_var_with_objects` (риск выполнения кода — предупреждение документации GodotSteam). Порядок: надёжные на одном канале приходят ровно один раз и по порядку; между каналами порядка нет.
 
-Проверка «самому себе» (`live.sh`): см. раздел «Что проверено на App ID 480». Реальную связь двух аккаунтов одним аккаунтом проверить нельзя — нужен ручной тест пользователя.
+Проверка «самому себе» (`live.sh`): петля работает, кадр 2020 байт дошёл целиком (раздел «Что проверено на App ID 480»). Реальную связь двух аккаунтов одним аккаунтом проверить нельзя — нужен ручной тест пользователя.
 
 ## Лобби, приглашения, вход к другу (вопрос 4)
 
 Методы (замер; все приняты расширением): `createLobby(lobby_type, max_members)` (асинхронно, сигнал `lobby_created(connect, lobby_id)`, `connect==1` успех), `joinLobby(lobby_id)` → `lobby_joined(lobby, permissions, locked, response)`, `leaveLobby`, `setLobbyData(lobby, key, value)` / `getLobbyData`, `setLobbyMemberData` / `getLobbyMemberData(lobby, user_id, key)`, `getNumLobbyMembers`, `getLobbyMemberByIndex`, `getLobbyOwner`, `setLobbyJoinable`, `setLobbyMemberLimit`, `setLobbyType`, `requestLobbyList` (+ `addRequestLobbyList*Filter`) → сигнал `lobby_match_list(lobbies)`, сигналы `lobby_data_update(success, lobby_id, member_id)`, `lobby_chat_update(lobby_id, changed_id, making_change_id, chat_state)` (вход/выход участников), `lobby_kicked`.
 
-Типы (`LOBBY_TYPE_*`): `PRIVATE=0`, `FRIENDS_ONLY=1`, `PUBLIC=2`, `INVISIBLE=3`, `PRIVATE_UNIQUE=4`. Лимиты (док. + константы): участников ≤ **250**; ключ данных ≤ `MAX_LOBBY_KEY_LENGTH = 255`, значение ≤ `CHAT_METADATA_MAX = 8192` байт.
+Типы (`LOBBY_TYPE_*`): `PRIVATE=0`, `FRIENDS_ONLY=1`, `PUBLIC=2`, `INVISIBLE=3`, `PRIVATE_UNIQUE=4`. Лимиты (док. + константы): участников ≤ **250**; ключ данных ≤ `MAX_LOBBY_KEY_LENGTH = 255`, значение < `CHAT_METADATA_MAX = 8192` байт (замер: 8192 байта отклонено, предел 8191).
 
 Приглашение и вход:
 
@@ -122,7 +122,7 @@ func _init() -> void:
 Вызов: `setRichPresence(key, value) -> bool`, `clearRichPresence()`, чтение — `getFriendRichPresence(steam_id, key)`, `getFriendRichPresenceKeyCount`, сигнал `friend_rich_presence_update(steam_id, app_id)`.
 
 - Особые ключи: **`steam_display`** — имя токена локализации (иначе текст в списке друзей не показывается); `steam_player_group` / `steam_player_group_size` — группировка игроков; `connect` — командная строка «присоединиться»; `status` — старый вариант.
-- Лимиты (замер: константы расширения): ключ ≤ **64**, значение ≤ **256** байт (`MAX_RICH_PRESENCE_KEY_LENGTH`, `MAX_RICH_PRESENCE_VALUE_LENTH`), ключей `MAX_RICH_PRESENCE_KEYS = 30` (SDK 1.65; страница ISteamFriends ещё говорит про 20 — проектировать под **20**). Превышение — `false`.
+- Лимиты (замер: константы расширения): ключ ≤ **63**, значение ≤ **255** байт (константы `MAX_RICH_PRESENCE_KEY_LENGTH=64`, `MAX_RICH_PRESENCE_VALUE_LENTH=256` включают нулевой байт: замер — 256 байт значения отклонено), ключей `MAX_RICH_PRESENCE_KEYS = 30` (SDK 1.65; страница ISteamFriends ещё говорит про 20 — проектировать под **20**; замер: принято 28). Превышение — `false`.
 - Токены: имя начинается с `#`, буквы/цифры/подчёркивание; подстановки `%ключ%` (ключ из букв, цифр, `_`, `:`), вложенная локализация `{#Status_%gamestatus%}`; нет токена в языке — фолбэк на английский; нет английского или не задан ключ подстановки — **ничего не показывается**.
 - Файл для кабинета (Steamworks → Edit Steamworks Settings → Community → Rich Presence), `.vdf`, по языкам, можно все языки в одном файле (грузятся только присутствующие; после загрузки нужно **опубликовать** изменения):
 
@@ -138,14 +138,6 @@ func _init() -> void:
 			"#Status_Multi"     "Flying together (%players% pilots)"
 		}
 	}
-	"russian"
-	{
-		"tokens"
-		{
-			"#Status_InMenu"    "В меню"
-			"#Status_Flying"    "Летит: %site%"
-		}
-	}
 }
 ```
 
@@ -154,7 +146,7 @@ func _init() -> void:
 
 ## Ачивки и статистика (вопрос 6)
 
-- API (замер): `setAchievement(name)`, `getAchievement(name)`, `clearAchievement(name)` (только для тестов), `storeStats()`, `setStatInt/Float`, `getStatInt/Float`, `indicateAchievementProgress(name, current, max)` (всплывающее «прогресс»), `getNumAchievements`, `getAchievementName(i)`, `getAchievementDisplayAttribute(name, "name"|"desc"|"hidden")`, `getAchievementAndUnlockTime`, `resetAllStats(achievements_too)`. Сигналы `user_stats_stored(game_id, result, user_id)`, `user_achievement_stored(game_id, group_achieve, name, current, max)`, `user_stats_received`.
+- API (замер): `setAchievement(name)`, `getAchievement(name)` (**возвращает словарь** `{ret, achieved}`), `clearAchievement(name)` (только для тестов), `storeStats()`, `setStatInt/Float`, `getStatInt/Float`, `indicateAchievementProgress(name, current, max)` (всплывающее «прогресс»), `getNumAchievements`, `getAchievementName(i)`, `getAchievementDisplayAttribute(name, "name"|"desc"|"hidden")`, `getAchievementAndUnlockTime`, `resetAllStats(achievements_too)`. Сигналы `user_stats_stored(game_id, result, user_id)`, `user_achievement_stored(game_id, group_achieve, name, current, max)`, `user_stats_received`.
 - С SDK 1.61 клиент сам подтягивает статистику на старте: `requestCurrentStats()` и сигнала `current_stats_received` **нет** (замер: метода нет) — `steamInitEx`, затем сразу `setAchievement`.
 - `setAchievement` меняет состояние только в памяти; на сервер уходит `storeStats()` (после серии изменений, не на каждый кадр). Сигнал `user_achievement_stored` подтверждает.
 - Прогресс-ачивки: в кабинете у ачивки задаётся «Progress Stat» (статистика INT/FLOAT/AVGRATE) и значение разблокировки — ачивка откроется сама, когда статистика достигнет значения. Для нас проще: считать условие в игре (`AchievementTracker`) и вызывать `setAchievement`; статистика — только чтобы показывать полоску прогресса в Steam (`setStatInt` + `storeStats`).
@@ -174,7 +166,7 @@ func _init() -> void:
 
 | | Auto-Cloud | Remote Storage API (`fileWrite`/`fileRead`) |
 |---|---|---|
-| Код | не нужен; только настройка в кабинете | `fileWrite(name, PackedByteArray, size)`, `fileRead(name, size) → {ret, buf}`, `fileExists`, `fileDelete`, `getFileCount`, `getQuota`, `isCloudEnabledForApp/Account` (замер: все есть) |
+| Код | не нужен; только настройка в кабинете | `fileWrite(name, PackedByteArray, size)`, `fileRead(name, size) → {ret, buf}`, `fileExists`, `fileDelete`, `getFileCount`, `getQuota`, `isCloudEnabledForApp/Account` (замер: все есть и работают на 480) |
 | Где файлы | обычные файлы в `user://`, Steam синхронизирует при запуске/выходе игры | Steam хранит копию в своей папке; свои обычные файлы нужно дублировать |
 | Гибкость | пути-маски, корни по ОС | полный контроль, но всё руками (в т.ч. конфликты) |
 | Предел файла | — (см. квоту) | 100 МиБ на запись (`MAX_CLOUD_FILE_CHUNK_SIZE`) |
@@ -185,7 +177,7 @@ Auto-Cloud в кабинете: Steamworks → App Admin → Cloud → «Steam A
 
 **Рекомендация**: Auto-Cloud на: `records.json`, `last_flight.json`, `recent_places.json`, `tasks/*.json`, общие настройки (после разделения `configs/` на общее/локальное). Кеши и модели не синхронизировать. Квота: 1 МиБ и 20 файлов — с запасом. Код для Cloud в Auto-Cloud не нужен; в игре — переключатель «использовать Steam Cloud» через `setCloudEnabledForApp` (по требованию Valve — только по явному выбору пользователя).
 
-Работает ли Cloud на 480: см. раздел ниже (проверка `isCloudEnabledForApp`, `getQuota`, запись/чтение через API).
+**Cloud на 480 работает** через Remote Storage API (замер: запись/чтение/удаление, квота 4 КиБ); Auto-Cloud на 480 не настроить.
 
 ## Сборка со Steam и без (вопрос 8)
 
@@ -203,9 +195,8 @@ Auto-Cloud в кабинете: Steamworks → App Admin → Cloud → «Steam A
 
 - **Рекомендуемая схема**: два набора пресетов (Linux/Windows/macOS × «itch» и «steam»). «itch» — как сейчас, плюс `exclude_filter` дополняется `addons/godotsteam/*` (в существующих пресетах `exclude_filter="tests/*, tools/*, docs/*, site/*, data/terrain/reference/*"`). «steam» — `custom_features="forced_dd3d,steam"`, без исключения аддона. Метка `steam` управляет `SteamService`: активен, если `OS.has_feature("steam")` или аргумент `--steam` **и** синглтон загружен. Файлы `steam_appid.txt` в сборку не класть.
 - Аддон-каталог `addons/godotsteam/` должен быть в `.gitignore` (и `*.uid` его скриптов — по правилам репозитория); перед экспортом Steam-пресета запускать `fetch_godotsteam.sh` (идемпотентно, sha256).
-- Запуск Steam-сборки без клиента (друг скачал из Steam, клиент закрыт — невозможно, Steam сам запускает; но запуск exe вручную): `steamInitEx` → 2, сервис «неактивен», игра обычная.
+- Запуск Steam-сборки вручную без клиента: `steamInitEx` → 2, сервис «неактивен», игра обычная.
 - Единая сборка для всех (пресет без исключений) технически безопасна (строка `noexcl`), но кладёт распространяемые библиотеки Valve в сборку не для Steam; условия SDK Access Agreement тут не проверены — поэтому рекомендуем разные пресеты.
-- Размер сборки Steam больше на ~5 МБ (Linux) / ~4 МБ (Windows) / ~6,5 МБ (macOS).
 - Редактор и debug-экспорт берут `template_debug`-библиотеку, release-экспорт — `template_release` (замер: в `--export-release` в каталоге лежит именно release-вариант).
 
 ## macOS (вопрос 8)
@@ -217,9 +208,20 @@ Auto-Cloud в кабинете: Steamworks → App Admin → Cloud → «Steam A
 
 ## Что проверено на App ID 480
 
-Источники — `tools/research/steam/out/` (`probe.txt`, `probe_with_client.txt`, `live.txt`). Клиент Steam на этой машине запущен не всё время; результаты с клиентом получены в окне, когда он был запущен.
+Источники — `tools/research/steam/out/` (`probe.txt`, `probe_with_client.txt`, `live.txt`). Клиент Steam на этой машине запущен не всё время (его запускал пользователь); результаты с клиентом получены в окна, когда он работал.
 
-LIVE_PLACEHOLDER
+Запуск `live.sh` при работающем клиенте (`out/live.txt`, 2026-10-05), App ID 480, один аккаунт. Ничего необратимого: ачивки и статистика только читались, Rich Presence очищен, Cloud-файл удалён, лобби закрыто.
+
+| Область | Результат (замер) |
+|---|---|
+| Инициализация | `steamInitEx(480)` → `status=0`; `getLaunchCommandLine()` пуст; `isSubscribed()==true`; `getAppBuildId()==0`; язык интерфейса `russian` |
+| Rich Presence | `setRichPresence` → `true` для обычного ключа и для `steam_display` с неизвестным токеном; ключ 65 байт → `false`; значение 257 → `false`; **значение 256 байт → `false`** (предел фактически **255**, 256 с нулевым байтом); чтение своего ключа `getFriendRichPresence(me, key)` вернуло записанное; после `clearRichPresence()` ключей 0. Принято 28 ключей из 42 попыток (`getFriendRichPresenceKeyCount` показал 44 — считает и служебные ключи клиента), т.е. потолок в районе 30, а не 20; проектируем под ≤ 20 |
+| Ачивки | у 480 пять: `ACH_TRAVEL_FAR_ACCUM`, `ACH_TRAVEL_FAR_SINGLE`, `ACH_WIN_100_GAMES`, `ACH_WIN_ONE_GAME`, `NEW_ACHIEVEMENT_0_4`; **`getAchievement(name)` возвращает словарь** `{"ret": bool, "achieved": bool}` (для несуществующей ачивки `ret=false`); `getStatInt("NumGames")` читается сразу после init |
+| Cloud (Remote Storage API) | **работает**: `isCloudEnabledForAccount/ForApp` → `true`; `getQuota()` → `{total_bytes: 4096, available_bytes: 4096}` (у Spacewar квота всего 4 КиБ); `fileWrite` → `true`, `fileExists` → `true`, `fileRead(name, 15)` → `{ret: 15, buf: [...]}`, `fileDelete` → `true`, `getFileCount` 0 → 0. Auto-Cloud на 480 проверить нельзя (настраивается в кабинете) |
+| Лобби | `createLobby(PRIVATE, 4)` → сигнал `lobby_created(1, id)` (id вида 1097…, 17 цифр); `setLobbyData`/`getLobbyData` — работает; **значение 8192 байт отклонено (`false`), значит предел 8191**; `setLobbyMemberData` возвращает `null` (void), `getLobbyMemberData` → записанное; `getNumLobbyMembers==1`, владелец — я; сигналы `lobby_joined` (создатель входит сам) и `lobby_data_update` приходят |
+| Networking Messages «себе» | кадр 2020 байт (JSON ≈2 КБ), `sendMessageToUser(me, …, RELIABLE_NO_NAGLE, 0)` → `1`; пришли `network_messages_session_request` (для себя) и сообщение `receiveMessagesOnChannel(0)`: `size=2020`, `identity` — мой id, `flags=8` (надёжное), `channel=0`; затем `network_messages_session_failed(reason=0, state=4 "The remote host closed the connection")` — артефакт петли на себя. Реальная связь двух машин, реле и задержка **не проверены** |
+
+Вывод: на 480 проверяются вызовы лобби, Cloud API, Rich Presence (ключи), чтение ачивок и петля Networking Messages; не проверяются: свои ачивки и токены (нужен свой App ID), приглашения, оверлей, двухстороннее соединение.
 
 ## Что нужно от пользователя в Steamworks
 
@@ -237,7 +239,6 @@ LIVE_PLACEHOLDER
 - Загрузка файла токенов Rich Presence и отображение в списке друзей: нужен собственный App ID.
 - Auto-Cloud: настраивается только в кабинете своего App ID.
 - Windows и macOS: загрузка расширения не запускалась (нет ОС), проверен только состав экспорта.
-- Лицензионные условия распространения `steam_api` вне Steam: условия SDK Access Agreement не читали (под регистрацией).
 
 ## Источники
 

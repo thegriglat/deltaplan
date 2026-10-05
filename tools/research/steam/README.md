@@ -48,7 +48,7 @@ godot --headless -s dump_api.gd -- out=api_dump.json   # (в проекте с �
 - `live.sh`, `live_check.gd` — проверки при запущенном клиенте на App ID 480 (Rich Presence, Cloud, лобби, Networking Messages «себе»; ачивки и статистика только читаются).
 - `export_check.sh`, `probe_node.gd` — как включать/исключать расширение из экспортов.
 - `dump_api.gd`, `api_dump.json` — список методов (798), сигналов (188), констант (2003) расширения, снят из загруженного `Steam`; точные сигнатуры для контрактов.
-- `out/` — выводы запусков (probe.txt, export_check.txt, live.txt).
+- `out/` — выводы запусков (probe.txt, probe_with_client.txt, live.txt, export_check.txt); ник и Steam ID вырезаны.
 
 ## Известные особенности (проверено)
 

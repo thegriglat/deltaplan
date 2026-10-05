@@ -21,7 +21,7 @@ func _initialize() -> void:
 		quit(2); return
 	me = S.call("getSteamID")
 	L("launch_cmdline", "'%s'" % S.call("getLaunchCommandLine"))
-	L("app_id_owner_subscribed", "%s/%s" % [S.call("getAppOwner"), S.call("isSubscribed")])
+	L("app_owner_is_me_subscribed", "%s/%s" % [S.call("getAppOwner") == me, S.call("isSubscribed")])
 	L("build_id", S.call("getAppBuildId"))
 	L("ui_lang", S.call("getSteamUILanguage") if S.has_method("getSteamUILanguage") else "?")
 	S.connect("lobby_created", _on_lobby_created)
