@@ -25,7 +25,7 @@ SNAP_LEVELS = [25, 600]
 
 PROTO_FIELDS = {
     "Context": ["lat", "lon", "month", "day", "hour_local", "utc_offset", "alpha", "max_profile", "base_m", "h_m"],
-    "Relief": ["relief_id", "name", "shape", "slope", "h_m", "a_m", "length_m", "corpus"],
+    "Relief": ["relief_id", "name", "shape", "slope", "h_m", "a_m", "length_m", "corpus", "corpus_relief_id"],
     "Numerics": ["dx_m", "advection_order", "omega_u", "omega_k", "k_floor_m2s", "criterion", "tol", "max_outer",
                  "snap_from", "snap_step", "late_from", "late_step", "envelope_angle_deg", "envelope_wall",
                  "envelope_z0_m"],
@@ -86,6 +86,8 @@ def test_plan_file():
     plan.ParseFromString((Path(os.environ["AP_PLAN_DIR"]) / "plan.pb").read_bytes())
     assert plan.contract == P2_CONTRACT
     ids = {r.relief_id for r in plan.reliefs}
+    assert len(ids) == len(plan.reliefs), "relief_id уникален в плане"
+    assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs)
     expect = 0
     for ln in sorted(plan.lines, key=lambda x: x.first_case_id):
         assert ln.relief_id in ids

@@ -71,6 +71,7 @@ message Relief {
   double a_m = 6;               // масштаб формы (0 для CORPUS)
   double length_m = 7;          // длина хребта (0 — не хребет)
   string corpus = 8;            // каталог корпуса S1 относительно $AIR_SYNTH_DATA
+  int32 corpus_relief_id = 9;   // id рельефа в этом корпусе (relief_id — уникален в плане, P2 v2)
 }
 
 message Numerics {

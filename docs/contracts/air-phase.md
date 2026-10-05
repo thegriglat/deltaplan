@@ -55,6 +55,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   S2 (override-поля линии не действуют, `fr_f64` — одна точка = `froude` таблицы), иначе `""` и −1. Инвариант:
   `envelope_angle_deg > 0` ⇔ `envelope_wall != WALL_NONE`. `ref_line_id` у ENVELOPE — линия SEPARATION с dx = 100 той же
   формы/s/Fr/H/угла ветра (эталон); у ENVELOPE_REAL — линия той же (relief_id, cond_id) без огибающей.
+  `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
 ## P3. Результаты замеров — HDF5 + jsonl (версия 2)
 **Владелец:** AP-3. **Потребители:** разбор (следующий этап), отчёт на шлюзе.
