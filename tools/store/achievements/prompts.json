@@ -82,6 +82,86 @@
     "ACH_LAST_DOWN": {
       "subject": "a single hang glider landing at dusk on a meadow where several other folded gliders already lie on the grass",
       "seed": 1629
+    },
+    "ACH_PLACES_10": {
+      "subject": "a hang glider above ten small hills in two rows, each hill with a tiny map pin",
+      "seed": 1666
+    },
+    "ACH_PLACES_25": {
+      "subject": "a hang glider above a wide field of many small hills dotted with map pins",
+      "seed": 1703
+    },
+    "ACH_CONTINENTS_3": {
+      "subject": "a hang glider above a globe with three separate land shapes, a dotted arc over the sea between them",
+      "seed": 1740
+    },
+    "ACH_CONTINENTS_ALL": {
+      "subject": "a hang glider above a whole globe with six land shapes around it",
+      "seed": 1777
+    },
+    "ACH_XC_100": {
+      "subject": "a hang glider flying far over a vast landscape toward a distant flag, very long dotted route behind it, a wide road-like trail across many hills",
+      "seed": 1814
+    },
+    "ACH_HOURS_3": {
+      "subject": "a hang glider in the sky and a simple round analog clock face with three marked hour sectors filled",
+      "seed": 1851
+    },
+    "ACH_AIRTIME_10H": {
+      "subject": "a hang glider and an open logbook page with many neat horizontal lines and a bold check mark",
+      "seed": 1888
+    },
+    "ACH_WINGS_5": {
+      "subject": "five hang glider wings of different colors fanned out in a row",
+      "seed": 1925
+    },
+    "ACH_ALT_5000": {
+      "subject": "a hang glider high above a snowy mountain peak among thin high clouds, deep dark blue sky above",
+      "seed": 1962
+    },
+    "ACH_HIGH_LAUNCH": {
+      "subject": "a hang glider launching from a high rocky snow-capped mountain ridge, thin clear air",
+      "seed": 1999
+    },
+    "ACH_DESCENT_2000": {
+      "subject": "a hang glider landing in a green valley far below a tall mountain, a long downward arrow from the peak to the valley",
+      "seed": 2036
+    },
+    "ACH_STORM": {
+      "subject": "a hang glider under a dark anvil-shaped thunderstorm cloud with a bold yellow lightning bolt",
+      "seed": 2073
+    },
+    "ACH_STRONG_WIND": {
+      "subject": "a hang glider launching in very strong wind shown as thick bent streaks, grass and a windsock flattened and straight",
+      "seed": 2110
+    },
+    "ACH_OVERCAST": {
+      "subject": "a hang glider climbing under a uniform thick grey cloud ceiling that covers the whole sky",
+      "seed": 2147
+    },
+    "ACH_WINTER": {
+      "subject": "a hang glider over a snowy hill with a big snowflake and a thermometer",
+      "seed": 2184
+    },
+    "ACH_EAGLE": {
+      "subject": "a bold stylized bird silhouette with wide spread wings",
+      "seed": 2221
+    },
+    "ACH_BALLOONS": {
+      "subject": "three bright round balloons floating in the sky",
+      "seed": 2258
+    },
+    "ACH_GLORIA": {
+      "subject": "a golden star above a laurel wreath",
+      "seed": 2295
+    },
+    "ACH_WATER_LANDING": {
+      "subject": "a hang glider touching down on calm blue water with a ring of splash ripples",
+      "seed": 2332
+    },
+    "ACH_CAMP_LANDING": {
+      "subject": "a small tent and a table on a green meadow",
+      "seed": 2369
     }
   }
 }
