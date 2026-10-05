@@ -32,7 +32,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   - `step_down`: z = h·(1 − tanh(x/a))/2 (спуск по ветру — подветренная бровка).
   s = max|∇z| (тангенс) по формуле — тест: численный max|∇z| на h100 совпадает с s в пределах 3 %
   (на g400 — записывается, но не проверяется: при s = 0,5 форма недоразрешена).
-- Корпус: S1 v5 (`docs/contracts/air-synth.md`) в `$AIR_SYNTH_DATA/corpus/ideal_v1/`, `generator_version = "ideal-v1"`,
+- Корпус: S1 (`docs/contracts/air-synth.md`; запись — `corpus_io.py`, атрибут `contract` как он пишет, сейчас "S1 v3") в `$AIR_SYNTH_DATA/corpus/ideal_v1/`, `generator_version = "ideal-v1"`,
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
