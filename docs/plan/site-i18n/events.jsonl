@@ -81,3 +81,5 @@
 {"t": "2026-10-05T06:22:36", "by": "coordinator", "task": "SI-11", "ev": "merged", "commits": ["fc634895"]}
 {"t": "2026-10-05T06:22:40", "by": "executor", "task": "SI-12", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:22:40", "by": "coordinator", "task": "SI-12", "ev": "merged", "commits": ["56a1a82a"]}
+{"t": "2026-10-05T06:22:42", "by": "coordinator", "task": "SI-15", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-15"}
+{"t": "2026-10-05T06:22:44", "by": "coordinator", "task": "SI-16", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-16"}
