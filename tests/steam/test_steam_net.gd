@@ -273,6 +273,43 @@ func test_friends_zones_and_invites() -> void:
 	_cleanup(net, [a, b])
 
 
+## Хозяин ушёл из лобби, Steam передал владение участнику (getLobbyOwner ≠ dp_host): у друга
+## участника лобби в «Друзья в игре» не показывается, вход — zone_not_found.
+func test_owner_changed_lobby_hidden() -> void:
+	var net := FakeNet.new()
+	var ua := net.user(A_ID, "Хозяин")
+	var ub := net.user(B_ID, "Гость")
+	var uc := net.user(76561198000000003, "Третий")
+	net.befriend(ub, uc)
+	var a := _side(ua, A_ID)
+	var b := _side(ub, B_ID)
+	var c := _side(uc, 76561198000000003)
+	var lid := await _host(a)
+	if lid <= 0:
+		check(false, "лобби не создано")
+		_cleanup(net, [a, b, c])
+		return
+	var ready: Array = []
+	b.lobby.lobby_ready.connect(func(id: int, _ad: String, _z: String) -> void: ready.append(id))
+	b.lobby.join_lobby(lid)
+	await _wait(func() -> bool: return not ready.is_empty())
+	check(ready == [lid] and b.lobby.role == "member", "участник в лобби")
+	c.lobby.start_watching()
+	check(c.lobby.friends_zones().size() == 1, "пока хозяин в лобби — видно: %s" % [c.lobby.friends_zones()])
+	a.lobby.leave_lobby()
+	check(ub.getLobbyOwner(lid) == B_ID, "владелец сменился")
+	c.lobby.refresh_friends()
+	check(c.lobby.friends_zones().is_empty(), "лобби без хозяина скрыто: %s" % [c.lobby.friends_zones()])
+	var errs: Array = []
+	c.lobby.lobby_failed.connect(func(_id: int, k: String) -> void: errs.append(k))
+	c.lobby.join_lobby(lid)
+	await _wait(func() -> bool: return not errs.is_empty())
+	check(errs == ["zone_not_found"] and c.lobby.lobby_id == 0, "вход — zone_not_found: %s" % [errs])
+	check(not net.lobbies.has(lid) or not net.lobbies[lid].members.has(uc.id), "из лобби вышел")
+	c.lobby.stop_watching()
+	_cleanup(net, [a, b, c])
+
+
 ## Steam неактивен (в тестах): автозагрузка SteamLobby молчит, схема steam не зарегистрирована.
 func test_inactive_autoload() -> void:
 	var l: Node = get_node_or_null("/root/SteamLobby")

@@ -249,7 +249,10 @@ func _on_lobby_joined(lobby: int, _permissions: int, _locked: bool, response: in
 		return
 	var info := lobby_info(lobby)
 	var kind := ""
-	if info.game != "1" or info.host <= 0 or info.code == "" or info.host == my_id:
+	if (
+		info.game != "1" or info.host <= 0 or info.code == "" or info.host == my_id
+		or _owner_changed(info)
+	):
 		kind = "zone_not_found"
 	elif info.version != game_version:
 		kind = "version_mismatch"
@@ -287,7 +290,7 @@ func invite() -> void:
 		api.call("activateGameOverlayInviteDialog", lobby_id)
 
 
-## Данные лобби: {game, version, code, host, name, place}.
+## Данные лобби: {game, version, code, host, name, place, owner} (owner — getLobbyOwner, 0 — неизвестен).
 func lobby_info(lobby: int) -> Dictionary:
 	var g := func(k: String) -> String: return String(api.call("getLobbyData", lobby, k))
 	var host_s: String = g.call(KEY_HOST)
@@ -298,7 +301,14 @@ func lobby_info(lobby: int) -> Dictionary:
 		"host": int(host_s) if host_s.is_valid_int() else 0,
 		"name": g.call(KEY_NAME),
 		"place": g.call(KEY_PLACE),
+		"owner": int(api.call("getLobbyOwner", lobby)),
 	}
+
+
+## Хозяин ушёл, Steam передал лобби другому (владелец ≠ dp_host): сервера зоны там нет.
+## Владелец 0 — Steam его не сообщил (не участник лобби): не считаем сменой.
+static func _owner_changed(info: Dictionary) -> bool:
+	return int(info.owner) != 0 and int(info.owner) != int(info.host)
 
 
 # ---------------------------------------------------------------- приглашения
@@ -367,7 +377,7 @@ func refresh_friends() -> void:
 				_requested[lid] = true
 				api.call("requestLobbyData", lid)
 			continue
-		if info.game != "1" or info.code == "":
+		if info.game != "1" or info.code == "" or _owner_changed(info):
 			continue
 		seen[lid] = true
 		list.append(
