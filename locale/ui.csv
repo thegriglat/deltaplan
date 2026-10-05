@@ -379,6 +379,11 @@ net_nearby_empty,"Пока никого. Если друг создал зону
 net_nearby_zone,зона %s — %s,zone %s — %s
 net_nearby_other_version,другая версия,other version
 net_embedded_server,этот компьютер,this computer
+net_friends_title,Друзья в игре,Friends in game
+net_friends_empty,"Друзей Steam в сетевых зонах сейчас нет. Друг создаст зону — она появится здесь; можно и пригласить его из своей зоны.","No Steam friends in multiplayer zones right now. When a friend creates a zone it shows up here; you can also invite them from your zone."
+net_friends_zone,"%s — %s, зона %s","%s — %s, zone %s"
+net_invite_friends,Пригласить друзей,Invite friends
+net_steam_friend,другу в Steam,a Steam friend
 net_create_title,Новая зона,New zone
 net_place,Место,Place
 net_create,Создать,Create

@@ -55,6 +55,12 @@ var _nearby_list: ItemList
 var _nearby_empty: Label
 var _nearby: Array = []
 
+## «Друзья в игре» и «Пригласить друзей» (S5) — только при активном Steam (иначе не создаются).
+var _friends_list: ItemList
+var _friends_empty: Label
+var _friends: Array = []
+var _invite_btn: Button
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -67,9 +73,17 @@ func _ready() -> void:
 	backend.zone_joined.connect(_on_zone_joined)
 	backend.peers_changed.connect(_fill_peers)
 	backend.nearby_changed.connect(_fill_nearby)
+	backend.friends_changed.connect(_fill_friends)
 	_build()
 	_show_view(View.INPUT)
 	visibility_changed.connect(_on_visibility_changed)
+
+
+## Экран убран (закрыт, не отдан в полёт): «Рядом»/«Друзья в игре» больше не слушать — иначе
+## бэкенд, если его ещё кто-то держит, входил бы по приглашениям Steam без экрана.
+func _exit_tree() -> void:
+	if not _handed_over and backend != null:
+		backend.stop_nearby()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -99,6 +113,20 @@ func error_text() -> String:
 
 func code_text() -> String:
 	return _code_label.text
+
+
+## Строки списка «Друзья в игре» (как на экране); Steam неактивен — пусто.
+func friend_lines() -> PackedStringArray:
+	var out: PackedStringArray = []
+	if _friends_list != null:
+		for i in _friends_list.item_count:
+			out.append(_friends_list.get_item_text(i))
+	return out
+
+
+## Есть ли кнопка «Пригласить друзей» (только при активном Steam).
+func has_invite_button() -> bool:
+	return _invite_btn != null
 
 
 ## Строки списка «кто в зоне» (как на экране).
@@ -211,6 +239,16 @@ func _build_input(box: VBoxContainer) -> void:
 	box.add_child(_nearby_list)
 	_nearby_empty = UiKit.label(box, tr("net_nearby_empty"), "HintLabel")
 
+	if backend.steam_available():
+		UiKit.separator(box)
+		UiKit.label(box, tr("net_friends_title"), "HeaderLabel")
+		_friends_list = ItemList.new()
+		_friends_list.custom_minimum_size.y = 72
+		_friends_list.auto_height = false
+		_friends_list.item_activated.connect(_on_friend_activated)
+		box.add_child(_friends_list)
+		_friends_empty = UiKit.label(box, tr("net_friends_empty"), "HintLabel")
+
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_create_title"), "HeaderLabel")
 	_place_opt = OptionButton.new()
@@ -265,6 +303,8 @@ func _build_zone(box: VBoxContainer) -> void:
 	var bar := UiKit.button_bar(box)
 	_fly_btn = UiKit.button(bar, tr("menu_fly"), _on_fly)
 	_fly_btn.custom_minimum_size.x = 170
+	if backend.steam_available():
+		_invite_btn = UiKit.button(bar, tr("net_invite_friends"), backend.invite_friends)
 	UiKit.button(bar, tr("net_leave"), _on_leave)
 
 
@@ -357,6 +397,39 @@ func _on_nearby_activated(index: int) -> void:
 	backend.connect_and_join(addr, UserSettings.pilot_name(), String(z.get("code", "")))
 
 
+## «Друзья в игре» (S5): зоны друзей Steam; другая версия — тускло и не войти.
+func _fill_friends() -> void:
+	if _friends_list == null:
+		return
+	_friends = backend.friends_zones()
+	_friends_list.clear()
+	for f: Dictionary in _friends:
+		var same := bool(f.get("same_version", true))
+		var text := tr("net_friends_zone") % [
+			String(f.get("friend_name", "")), String(f.get("place", "")), String(f.get("zone_code", ""))
+		]
+		if not same:
+			text += "  —  " + tr("net_nearby_other_version")
+		var idx := _friends_list.add_item(text)
+		if not same:
+			_friends_list.set_item_custom_fg_color(idx, Color(1, 1, 1, 0.45))
+	_friends_list.visible = not _friends.is_empty()
+	_friends_empty.visible = _friends.is_empty()
+
+
+## Enter/двойной клик в «Друзья в игре» — вступить в лобби друга и войти в зону.
+func _on_friend_activated(index: int) -> void:
+	if index < 0 or index >= _friends.size():
+		return
+	var f: Dictionary = _friends[index]
+	if not bool(f.get("same_version", true)):
+		return
+	error_kind = ""
+	_connecting_label.text = tr("net_connecting") % String(f.get("friend_name", ""))
+	_show_view(View.CONNECTING)
+	backend.connect_and_join_lobby(int(f.get("lobby_id", 0)), UserSettings.pilot_name())
+
+
 # ---------------------------------------------------------------- состояние
 
 
@@ -369,6 +442,7 @@ func _show_view(v: View) -> void:
 	_error.visible = v == View.INPUT and error_kind != ""
 	if v == View.INPUT:
 		_fill_nearby()
+		_fill_friends()
 	if v == View.ZONE:
 		_code_label.text = backend.code()
 		_fill_peers()
@@ -378,6 +452,8 @@ func _show_view(v: View) -> void:
 				# Список «Рядом» не пуст — в фокус первым: чаще всего сценарий «одна комната».
 				if not _nearby.is_empty():
 					_nearby_list.grab_focus.call_deferred()
+				elif not _friends.is_empty():
+					_friends_list.grab_focus.call_deferred()
 				else:
 					(_server if server_text() == "" else _create_btn).grab_focus.call_deferred()
 			View.ZONE:
@@ -405,6 +481,12 @@ func _on_code_changed(t: String) -> void:
 
 
 func _on_state_changed() -> void:
+	# Подключение начал сам клиент (приглашение Steam, «+connect_lobby») — показать «Подключение…».
+	if view == View.INPUT and backend.is_busy():
+		error_kind = ""
+		_connecting_label.text = tr("net_connecting") % tr("net_steam_friend")
+		_show_view(View.CONNECTING)
+		return
 	# Подключение прервалось без ошибки (leave и т. п.) — назад к вводу.
 	if view == View.CONNECTING and not backend.is_busy() and backend.code() == "":
 		if error_kind == "":

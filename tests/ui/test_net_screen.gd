@@ -585,3 +585,57 @@ func test_client_backend_cancel_during_retries_shows_no_error() -> void:
 	fc.queue_free()
 	fz.queue_free()
 	_restore(raw)
+
+
+## S5 (ST-8): Steam неактивен — экран как был: нет «Друзья в игре» и «Пригласить друзей».
+func test_steam_ui_hidden_without_steam() -> void:
+	var raw: Variant = _backup()
+	for b: NetUiBackend in [NetUiFakeBackend.new(), NetUiBackend.new()]:
+		var s := _screen(b)
+		check(not b.steam_available() and b.friends_zones().is_empty(), "Steam неактивен — пусто")
+		check(s.get("_friends_list") == null and not s.has_invite_button(), "нет Steam-элементов")
+		check(s.friend_lines().is_empty(), "строк друзей нет")
+		s.queue_free()
+	_restore(raw)
+
+
+## S5 (ST-8): Steam активен — «Друзья в игре» (другая версия — тускло, не войти), вход в лобби
+## друга, «Пригласить друзей» в зоне; вход, начатый самим клиентом (приглашение), — «Подключение…».
+func test_steam_friends_and_invite() -> void:
+	var raw: Variant = _backup()
+	var fake := NetUiFakeBackend.new()
+	fake.fake_steam = true
+	fake.auto_resolve = false
+	var s := _screen(fake)
+	var empty_label: Label = s.get("_friends_empty")
+	check(s.friend_lines().is_empty() and empty_label.visible, "друзей нет — подсказка")
+	fake.set_friends(
+		[
+			{"lobby_id": 101, "friend_name": "Мама", "zone_code": "4721", "place": "Юца", "same_version": true},
+			{"lobby_id": 202, "friend_name": "Оля", "zone_code": "1234", "place": "Таганай", "same_version": false},
+		]
+	)
+	var lines := s.friend_lines()
+	check(lines.size() == 2 and not empty_label.visible, "две строки: %s" % [lines])
+	if lines.size() == 2:
+		check(lines[0].contains("Мама") and lines[0].contains("Юца") and lines[0].contains("4721"), lines[0])
+		check(lines[1].contains(tr("net_nearby_other_version")), "другая версия: %s" % lines[1])
+	s.call("_on_friend_activated", 1)
+	check(s.view == NetScreen.View.INPUT and fake.last_lobby == 0, "другая версия — не входим")
+	s.call("_on_friend_activated", 0)
+	check(s.view == NetScreen.View.CONNECTING and fake.last_lobby == 101, "вход в лобби друга")
+	fake.resolve()
+	check(s.view == NetScreen.View.ZONE and s.code_text() == "4721", "в зоне друга: %s" % s.code_text())
+	check(s.has_invite_button(), "кнопка «Пригласить друзей»")
+	var btn: Button = s.get("_invite_btn")
+	btn.pressed.emit()
+	check(fake.invite_calls == 1, "оверлей приглашения")
+	s.call("_on_leave")
+	# Приглашение приняли, пока экран открыт: клиент сам начал вход — экран показывает подключение.
+	fake.connect_and_join_lobby(101, "Я")
+	check(s.view == NetScreen.View.CONNECTING, "вход по приглашению — «Подключение…»")
+	fake.resolve()
+	check(s.view == NetScreen.View.ZONE, "в зоне")
+	s.call("_on_leave")
+	s.queue_free()
+	_restore(raw)
