@@ -33,10 +33,12 @@ def test_plan_series_and_ids(tmp_path):
     plan, tab = PB.build_plan("t", tmp_path, quiet=True, corpus_out=str(tmp_path / "ideal"), write=True)
     assert tab["GRID"] == [81, 2430] and tab["SWEEP"] == [162, 2916] and tab["RELAX"] == [108, 1053]
     assert tab["SEPARATION"] == [80, 100] and tab["ERODED"] == [6, 180]
+    assert tab["ENVELOPE"] == [240, 300] and tab["ENVELOPE_REAL"][1] == tab["ENVELOPE_REAL"][0]
     assert plan.n_cases == sum(t[1] for t in tab.values())
     pos = 0
     ids = {r.relief_id for r in plan.reliefs}
-    assert len(ids) == len(plan.reliefs), "relief_id уникальны (ideal_v1 и fs1_10k не пересекаются)"
+    assert len(ids) == len(plan.reliefs), "relief_id уникальны в плане"
+    assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs)
     byid = {l.line_id: l for l in plan.lines}
     for ln in plan.lines:
         n = len(ln.fr_f64) // 8
@@ -44,10 +46,19 @@ def test_plan_series_and_ids(tmp_path):
         pos += n
         nm = ln.numerics
         assert nm.tol > 0 and nm.k_floor_m2s > 0 and nm.omega_u > 0 and nm.snap_step > 0 and nm.late_step > 0
-        if ln.ref_line_id >= 0:
+        if ln.ref_line_id >= 0 and ln.series in (PB.pb.SWEEP, PB.pb.RELAX, PB.pb.SEPARATION):
             r = byid[ln.ref_line_id]
             assert r.series == PB.pb.GRID and r.relief_id == ln.relief_id and r.heat_flux_wm2 == ln.heat_flux_wm2
             assert r.h_over_zi == ln.h_over_zi and r.wdir_from_deg == ln.wdir_from_deg
+        assert (nm.envelope_angle_deg > 0) == (nm.envelope_wall != 0)
+        if ln.series == PB.pb.ENVELOPE:
+            r = byid[ln.ref_line_id]
+            assert r.series == PB.pb.SEPARATION and r.numerics.dx_m == 100.0 and r.relief_id == ln.relief_id and r.fr_f64 == ln.fr_f64
+            assert nm.dx_m == 400.0 and nm.envelope_angle_deg in (8.0, 12.0, 18.0)
+        if ln.series == PB.pb.ENVELOPE_REAL:
+            assert ln.conditions and ln.cond_id >= 0 and len(ln.fr_f64) == 8
+            if nm.envelope_angle_deg > 0:
+                assert byid[ln.ref_line_id].cond_id == ln.cond_id and byid[ln.ref_line_id].numerics.envelope_angle_deg == 0
         if ln.series == PB.pb.SWEEP:
             fr = np.frombuffer(ln.fr_f64, "<f8")
             assert ln.start == PB.pb.WARM_PREV and ln.ref_line_id >= 0

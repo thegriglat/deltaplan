@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """AP-2: построитель плана опытов air-phase (контракты P1, P2 v1: docs/contracts/air-phase.md; состав — docs/plan/air-phase.md §2–§3).
 
-  plan_build.py --name ap_v1 --out ~/air_synth_data/phase [--series grid,sweep,relax,separation,eroded] [--corpus-out DIR]
+  plan_build.py --name ap_v1 --out ~/air_synth_data/phase [--series grid,sweep,relax,separation,eroded,envelope,envelope_real] [--corpus-out DIR]
 
 Пишет `<out>/<name>/plan.pb` (Plan, proto/phase_plan.proto) + `plan.json` (тот же план для людей) и, если нет,
 корпус идеальных рельефов S1 `$AIR_SYNTH_DATA/corpus/ideal_v1/` (через corpus_io; все рельефы всех серий, независимо от
@@ -33,9 +33,10 @@ sys.path.insert(0, str(ROOT / "tools/research/air_synth/corpus"))
 import phase_plan_pb2 as pb  # noqa: E402
 import reliefs as R          # noqa: E402
 
-CONTRACT = "P2 v1"
-SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded")
-SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED}
+CONTRACT = "P2 v2"
+SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")
+SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
+               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL}
 SHAPE_ENUM = {"hill": pb.HILL, "ridge": pb.RIDGE, "step_up": pb.STEP_UP, "step_down": pb.STEP_DOWN}
 
 # --- постоянные плана (план §2)
@@ -52,7 +53,7 @@ HEATS = (0.0, 100.0, 250.0)        # Вт/м²
 H_OVER_ZI = (0.3, 1.0, 3.0)
 WDIR = 270.0
 # --- Numerics по умолчанию решателя (air3d: Params.k_fa = 1 м²/с; solver.solve / air3d/common.py TOL; airlite_gen: late 500/50)
-NUM_DEF = dict(dx_m=400.0, advection_order=1, omega_u=1.0, omega_k=1.0, k_floor_m2s=1.0, criterion=pb.ABSOLUTE,
+NUM_DEF = dict(envelope_angle_deg=0.0, envelope_wall=pb.WALL_NONE, envelope_z0_m=0.0, dx_m=400.0, advection_order=1, omega_u=1.0, omega_k=1.0, k_floor_m2s=1.0, criterion=pb.ABSOLUTE,
                tol=2e-5, max_outer=1000, snap_from=100, snap_step=50, late_from=500, late_step=50)
 # ABSOLUTE tol = tol_mom (м/с², СКО невязки импульса, air3d/common.py TOL); tol_th = 5e-7 К/с и tol_div = 1e-6 1/с
 # остаются при нём (решатель берёт их фиксированными; P4 масштабирует вместе с tol).
@@ -65,6 +66,13 @@ SEP_S = tuple(round(0.15 + 0.05 * i, 2) for i in range(10))   # 0,15 … 0,60
 SEP_FR = (0.3, 0.5, 1.0, 2.0, 3.0, 5.0)
 FR_SEP = 3.0
 ERODED_N = 6
+ENV_ANGLES = (8.0, 12.0, 18.0)
+ENV_WALLS = (("ground", pb.WALL_GROUND, 0.0), ("lowz0", pb.WALL_LOW_Z0, 0.001))   # z0 верха огибающей, м (WALL_LOW_Z0)
+REAL_RELIEFS = "real/hg_v2"
+REAL_CONDITIONS = "conditions/hg_v2_hgw24"
+REAL_SOLVE = "solve/hg_v2__hgw24__s0-939a467"   # SY-12: таблица cases, status_h — решение с нагревом
+REAL_FR_MIN, REAL_SLOPE_MIN = 1.5, 35.0        # froude таблицы > 1,5, уклон p95 (100 м) ≥ 35°
+REAL_N_NONCONV, REAL_N_CONV = 80, 20
 ERODED_RELIEF_RANGE = (400.0, 1200.0)   # м: перепад как у идеальных (h = 500); при Fr = 5 U_sat = 5·N·h ≤ 60 м/с
 
 
@@ -177,6 +185,42 @@ def pick_eroded(corpus_dir, n_ideal, n=ERODED_N):
 
 
 # --------------------------------------------------------------------------- план
+def pick_real(solve_dir=None, relief_corpus=REAL_RELIEFS, conditions=REAL_CONDITIONS, n_non=REAL_N_NONCONV, n_conv=REAL_N_CONV):
+    """ENVELOPE_REAL: случаи SY-12 (таблица cases, status_h) с froude таблицы > 1,5 и slope_p95_deg_100 ≥ 35°.
+    Несошедшиеся (status_h = 1): все, если ≤ n_non, иначе n_non равноотстоящих в порядке (froude, relief_id, cond_id).
+    Контроль (status_h = 0): n_conv равноотстоящих по индексу linspace в порядке (slope_p95, relief_id, cond_id)
+    (разброс по крутизне; детерминированно). → [dict(relief_id, cond_id, froude, wind_from_deg, slope_p95, variant)]."""
+    import glob
+    import h5py
+    import corpus_io as cio
+    root = data_root()
+    sd = os.path.join(root, solve_dir or REAL_SOLVE)
+    cs = np.concatenate([h5py.File(f, "r")["cases"][:] for f in sorted(glob.glob(os.path.join(sd, "part-*.h5")))])
+    tab = cio.Conditions(os.path.join(root, conditions)).table
+    key = {(int(a), int(b)): i for i, (a, b) in enumerate(zip(tab["relief_id"], tab["cond_id"]))}
+    cr = cio.Corpus(os.path.join(root, relief_corpus))
+    sl = {i: float(cr.summary(i)["slope_p95_deg_100"]) for i in cr.ids()}
+    cr.close()
+    rows = []
+    for r in cs:
+        k = key[(int(r["relief_id"]), int(r["cond_id"]))]
+        fr, s = float(tab["froude"][k]), sl[int(r["relief_id"])]
+        if fr > REAL_FR_MIN and s >= REAL_SLOPE_MIN:
+            rows.append(dict(relief_id=int(r["relief_id"]), cond_id=int(r["cond_id"]), froude=fr, wind_from_deg=float(tab["wind_from_deg"][k]),
+                             slope_p95=s, status_h=int(r["status_h"])))
+    non = sorted([r for r in rows if r["status_h"] != 0], key=lambda r: (r["froude"], r["relief_id"], r["cond_id"]))
+    conv = sorted([r for r in rows if r["status_h"] == 0], key=lambda r: (r["slope_p95"], r["relief_id"], r["cond_id"]))
+    if len(non) > n_non:
+        non = [non[i] for i in np.unique(np.round(np.linspace(0, len(non) - 1, n_non)).astype(int))]
+    if len(conv) > n_conv:
+        conv = [conv[i] for i in np.unique(np.round(np.linspace(0, len(conv) - 1, n_conv)).astype(int))]
+    for r in non:
+        r["variant"] = "nonconv"
+    for r in conv:
+        r["variant"] = "conv"
+    return non + conv, dict(candidates=len(rows), nonconv_found=sum(r["status_h"] != 0 for r in rows), conv_found=sum(r["status_h"] == 0 for r in rows))
+
+
 def _numerics(msg, **kw):
     d = dict(NUM_DEF)
     d.update(kw)
@@ -201,7 +245,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     rid = {sp: i for i, sp in enumerate(specs)}
     for (sh, s), i in ((sp, rid[sp]) for sp in specs):
         r = plan.reliefs.add()
-        r.relief_id, r.name, r.shape, r.slope, r.h_m = i, R.ideal_name(sh, s, LENGTH_M), SHAPE_ENUM[sh], s, H_M
+        r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = i, i, R.ideal_name(sh, s, LENGTH_M), SHAPE_ENUM[sh], s, H_M
         r.a_m = float(R.ideal_scale_a(sh, s, H_M))
         r.length_m = LENGTH_M if sh == "ridge" else 0.0
         r.corpus = "corpus/ideal_v1"
@@ -210,11 +254,12 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     state = dict(next_line=0, next_case=0)
     lines_by_cfg = {}   # (shape, s, H, hz, wdir) -> line_id GRID
 
-    def add_line(ser, relief_id, H, hz, wdir, fr, start, direction=pb.DIR_NONE, ref=-1, variant="", **num):
+    def add_line(ser, relief_id, H, hz, wdir, fr, start, direction=pb.DIR_NONE, ref=-1, variant="", cond="", cid=-1, **num):
         ln = plan.lines.add()
         ln.line_id, ln.series, ln.relief_id = state["next_line"], SERIES_ENUM[ser], relief_id
         ln.heat_flux_wm2, ln.h_over_zi, ln.n_bv_s, ln.wdir_from_deg = H, hz, N_BV, wdir
         _numerics(ln.numerics, **num)
+        ln.conditions, ln.cond_id = cond, cid
         ln.start, ln.direction, ln.ref_line_id, ln.variant = start, direction, ref, variant
         ln.fr_f64 = np.asarray(fr, dtype="<f8").tobytes()
         ln.first_case_id = state["next_case"]
@@ -249,36 +294,73 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
                         add_line("relax", rid[(sh, 0.3)], H, hz, WDIR, rp, pb.COLD, ref=ref, variant=v, **kw)
                     add_line("relax", rid[(sh, 0.3)], H, hz, WDIR, calm, pb.COLD, ref=ref, variant="calm",
                              criterion=pb.RELATIVE, tol=TOL_REL)
+    def sep_configs():
+        """50 конфигураций SEPARATION: (shape, s, fr-точки, H, wdir, variant)."""
+        for sh in ("ridge", "hill", "step_down"):
+            for s in SEP_S:
+                yield sh, s, [FR_SEP], 0.0, WDIR, "slope"
+        for s in (0.3, 0.5):
+            yield "ridge", s, list(SEP_FR), 0.0, WDIR, "fr"
+        for H in (100.0, 250.0):
+            for s in (0.3, 0.5):
+                yield "ridge", s, [FR_SEP], H, WDIR, "heat"
+        for wd in (300.0, 330.0):
+            for s in (0.3, 0.5):
+                yield "ridge", s, [FR_SEP], 0.0, wd, "oblique"
+
+    sep100 = {}   # конфигурация -> line_id окна 100 м (эталон ENVELOPE)
     if "separation" in series:
         for dx, order in ((100.0, 2), (400.0, 1)):
-            def sep(sh, s, fr, H, wdir, variant):
+            for sh, s, fr, H, wdir, variant in sep_configs():
                 ref = grid_ids.get((sh, s, H, 0.3, wdir), -1) if dx == 400.0 else -1
-                add_line("separation", rid[(sh, s)], H, 0.3, wdir, fr, pb.COLD, ref=ref, variant=variant, dx_m=dx,
-                         advection_order=order)
-            for sh in ("ridge", "hill", "step_down"):
-                for s in SEP_S:
-                    sep(sh, s, [FR_SEP], 0.0, WDIR, "slope")
-            for s in (0.3, 0.5):
-                sep("ridge", s, SEP_FR, 0.0, WDIR, "fr")
-            for H in (100.0, 250.0):
-                for s in (0.3, 0.5):
-                    sep("ridge", s, [FR_SEP], H, WDIR, "heat")
-            for wd in (300.0, 330.0):
-                for s in (0.3, 0.5):
-                    sep("ridge", s, [FR_SEP], 0.0, wd, "oblique")
+                ln = add_line("separation", rid[(sh, s)], H, 0.3, wdir, fr, pb.COLD, ref=ref, variant=variant, dx_m=dx,
+                              advection_order=order)
+                if dx == 100.0:
+                    sep100[(sh, s, tuple(fr), H, wdir, variant)] = ln.line_id
+    eroded_info = []
     if "eroded" in series:
         ed = os.path.join(data_root(), eroded_corpus)
         picked = pick_eroded(ed, len(specs))
         for p in picked:
             r = plan.reliefs.add()
-            r.relief_id, r.name, r.shape, r.slope, r.h_m, r.a_m, r.length_m, r.corpus = (
-                p["id"], f"{os.path.basename(eroded_corpus)}_{p['id']:05d}", pb.CORPUS, float(np.tan(np.radians(p["slope_p95_deg_100"]))),
+            pid = len(plan.reliefs) - 1
+            r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m, r.a_m, r.length_m, r.corpus = (
+                pid, p["id"], f"{os.path.basename(eroded_corpus)}_{p['id']:05d}", pb.CORPUS, float(np.tan(np.radians(p["slope_p95_deg_100"]))),
                 p["relief_m"], 0.0, 0.0, eroded_corpus)
+            p["plan_relief_id"] = pid
         for p in picked:
-            add_line("eroded", p["id"], 0.0, 1.0, WDIR, fr_all, pb.COLD)
+            add_line("eroded", p["plan_relief_id"], 0.0, 1.0, WDIR, fr_all, pb.COLD)
         eroded_info = picked
-    else:
-        eroded_info = []
+    if "envelope" in series:
+        for sh, s, fr, H, wdir, variant in sep_configs():
+            ref = sep100.get((sh, s, tuple(fr), H, wdir, variant), -1)
+            for ang in ENV_ANGLES:
+                for wn, wall, z0 in ENV_WALLS:
+                    add_line("envelope", rid[(sh, s)], H, 0.3, wdir, fr, pb.COLD, ref=ref, variant=variant,
+                             envelope_angle_deg=ang, envelope_wall=wall, envelope_z0_m=z0)
+    real_info = {}
+    if "envelope_real" in series:
+        cases, real_info = pick_real()
+        import corpus_io as cio
+        cr = cio.Corpus(os.path.join(data_root(), REAL_RELIEFS))
+        pid_of = {}
+        for p in cases:
+            if p["relief_id"] not in pid_of:
+                sm = cr.summary(p["relief_id"])
+                r = plan.reliefs.add()
+                pid_of[p["relief_id"]] = len(plan.reliefs) - 1
+                r.relief_id, r.corpus_relief_id, r.name, r.shape = pid_of[p["relief_id"]], p["relief_id"], cr.place(p["relief_id"])["name"], pb.CORPUS
+                r.slope, r.h_m, r.a_m, r.length_m, r.corpus = float(np.tan(np.radians(sm["slope_p95_deg_100"]))), float(sm["relief_m"]), 0.0, 0.0, REAL_RELIEFS
+        cr.close()
+        for p in cases:
+            kw = dict(cond=REAL_CONDITIONS, cid=p["cond_id"], variant=p["variant"])
+            base = add_line("envelope_real", pid_of[p["relief_id"]], 0.0, 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD, **kw)
+            for ang in ENV_ANGLES:
+                for wn, wall, z0 in ENV_WALLS:
+                    add_line("envelope_real", pid_of[p["relief_id"]], 0.0, 0.0, p["wind_from_deg"], [p["froude"]], pb.COLD,
+                             ref=base.line_id, envelope_angle_deg=ang, envelope_wall=wall, envelope_z0_m=z0, **kw)
+        real_info["selected"] = cases
+        eroded_info = list(eroded_info)
     plan.n_cases = state["next_case"]
 
     table = {}
@@ -296,7 +378,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
             tmp.write_bytes(data)
             os.replace(tmp, d / fn)
         tmp = d / "plan.json.tmp"
-        tmp.write_text(json.dumps(plan_to_json(plan, eroded_info), ensure_ascii=False, indent=1))
+        tmp.write_text(json.dumps(plan_to_json(plan, eroded_info, real_info), ensure_ascii=False, indent=1))
         os.replace(tmp, d / "plan.json")
     if not quiet:
         print(f"план {name}: линий {len(plan.lines)}, случаев {plan.n_cases}")
@@ -305,7 +387,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     return plan, table
 
 
-def plan_to_json(plan, eroded_info=()):
+def plan_to_json(plan, eroded_info=(), real_info=None):
     from google.protobuf import json_format
     d = json_format.MessageToDict(plan, preserving_proto_field_name=True, always_print_fields_with_no_presence=True)
     for ln, m in zip(d["lines"], plan.lines):
@@ -313,6 +395,8 @@ def plan_to_json(plan, eroded_info=()):
         ln.pop("fr_f64", None)
     if eroded_info:
         d["eroded_selection"] = list(eroded_info)
+    if real_info:
+        d["envelope_real_selection"] = real_info
     return d
 
 
