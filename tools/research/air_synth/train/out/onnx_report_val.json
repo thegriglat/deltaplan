@@ -1,0 +1,108 @@
+{
+ "path": "out/model_hg.onnx",
+ "opset": 17,
+ "size_mb": 13.00976,
+ "inputs": {
+  "maps": [
+   1,
+   9,
+   96,
+   96
+  ],
+  "nums": [
+   1,
+   18
+  ]
+ },
+ "metadata": {
+  "deltaplan.p2_version": "4",
+  "deltaplan.out_enc": "v4",
+  "deltaplan.in_enc": "v4",
+  "deltaplan.contract": "S7 v1",
+  "deltaplan.gstep": "78642"
+ },
+ "ort_vs_torch_max_abs": 5.364418029785156e-06,
+ "ort_vs_torch_ok": true,
+ "time_ms": {
+  "4": {
+   "median": 18.410635500913486,
+   "min": 18.076749984174967
+  },
+  "1": {
+   "median": 46.1327884986531,
+   "min": 45.70331401191652
+  }
+ },
+ "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+ "onnxruntime": "1.30.0",
+ "onnx_io_match": true,
+ "io_new": {
+  "inputs": [
+   [
+    "maps",
+    [
+     1,
+     9,
+     96,
+     96
+    ],
+    "tensor(float)"
+   ],
+   [
+    "nums",
+    [
+     1,
+     18
+    ],
+    "tensor(float)"
+   ]
+  ],
+  "outputs": [
+   [
+    "out",
+    [
+     1,
+     91,
+     96,
+     96
+    ],
+    "tensor(float)"
+   ]
+  ]
+ },
+ "io_ref": {
+  "inputs": [
+   [
+    "maps",
+    [
+     1,
+     9,
+     96,
+     96
+    ],
+    "tensor(float)"
+   ],
+   [
+    "nums",
+    [
+     1,
+     18
+    ],
+    "tensor(float)"
+   ]
+  ],
+  "outputs": [
+   [
+    "out",
+    [
+     1,
+     91,
+     96,
+     96
+    ],
+    "tensor(float)"
+   ]
+  ]
+ },
+ "weights": "/home/greg/air_synth_data/train/hgw24_p2/val/ckpt/best.pt"
+}
