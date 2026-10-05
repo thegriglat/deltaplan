@@ -7,7 +7,7 @@ extends RefCounted
 const DEFAULT_DIR := "user://configs"
 const LAST_FLIGHT := "user://last_flight.json"
 ## Имя пилота (NET-51): user-конфиг game.json → net.pilot_name; пусто/нет — умолчание
-## по языку интерфейса (net_pilot_name_default).
+## ник Steam (S1.5), затем по языку интерфейса (net_pilot_name_default).
 const PILOT_NAME_MAX := 20
 
 
@@ -37,7 +37,17 @@ static func sanitize_pilot_name(s: String) -> String:
 static func pilot_name() -> String:
 	var raw := String(Config.value("game", "net.pilot_name", ""))
 	var name := sanitize_pilot_name(raw)
-	return name if name != "" else String(TranslationServer.translate("net_pilot_name_default"))
+	if name != "":
+		return name
+	return default_pilot_name()
+
+
+## Умолчание (S1.5): ник Steam, если Steam активен, иначе по языку интерфейса.
+static func default_pilot_name() -> String:
+	var persona := sanitize_pilot_name(SteamService.persona_name())
+	if persona != "":
+		return persona
+	return String(TranslationServer.translate("net_pilot_name_default"))
 
 
 static func save_pilot_name(name: String, dir: String = DEFAULT_DIR) -> bool:

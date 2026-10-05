@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 1}, {"id": "S4", "version": 1}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 2}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
 ---
 # Контракты модуля steam
 
@@ -46,7 +46,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 **S1.5. Имя пилота по умолчанию.** `UserSettings.pilot_name()`: пусто (после `strip_edges`) в `net.pilot_name` → `SteamService.persona_name()`, обрезанный до `PILOT_NAME_MAX`, если не пусто → иначе `tr("net_pilot_name_default")`. Ник Steam в настройки не записывается. Поле имени в настройках показывает его подсказкой (placeholder).
 
-## S2. Поток событий полёта для ачивок (версия 1)
+## S2. Поток событий полёта для ачивок (версия 2)
+
+v2 (2026-10-05, ответ пользователя на Q1 — добавить одиночные ачивки: карта, погода, скрытые, спуск; ST-5 дописывает в той же задаче): в `ctx` — `lat`, `lon`, `temp_c`, `cb_chance`, `sky`; в `sample` — `eggs`. Остальное без изменений.
 
 Владелец — ST-5 (игра шлёт). Потребитель — ST-6 (`AchievementTracker`). Трекер о Game/Glider ничего не знает — только эти словари; тесты трекера — на синтетическом потоке.
 
@@ -63,6 +65,10 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 | `launch_alt_msl` | float | высота отрыва над уровнем моря, м |
 | `wind_ms` | float | ветер у старта на высоте 10 м, м/с (NAN — неизвестен) |
 | `wind_from_deg` | float | откуда дует, градусы по компасу (0 — с севера, 90 — с востока; NAN) |
+| `lat`, `lon` | float | точка отрыва, градусы WGS84 (NAN — неизвестна) |
+| `temp_c` | float | температура воздуха у старта (2 м), °C, по погоде полёта (NAN) |
+| `cb_chance` | float | грозовость дня 0…1 — та же величина, что ведёт развитие кучево-дождевых в модели погоды (`weather_model.json → storm`, «× cb_chance»; NAN) |
+| `sky` | String | облачность из прогноза: `"clear"` \| `"partly"` \| `"overcast"` (`""` — неизвестно) |
 
 **`flight_sample(s)`** — 1 Гц, пока в воздухе:
 
@@ -76,6 +82,7 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 | `cloud_base_msl` | float | нижняя кромка кучевых над пилотом/в районе, м (NAN — облаков нет или неизвестно) |
 | `sun_elev_deg` | float | высота солнца, градусы (NAN — неизвестна) |
 | `others_airborne` | int | сколько других пилотов (живых и ботов) сейчас в воздухе |
+| `eggs` | Dictionary | живые пасхалки рядом: id пасхалки (ключ `configs/easter_eggs.json → eggs`) → расстояние по 3D от пилота до ближайшего её объекта, м; явление без объекта (`gloria`) — 0, пока оно видно пилоту; пусто — нет ни одной. Только чтение `EasterEggs.active()` — пасхалки не трогаются (К7 «не трогает физику» модуля easter-eggs) |
 | `near_climbing_live` | int | сколько **живых** других пилотов в пределах 200 м по горизонтали с вариометром > 0,5 м/с (по их последним состояниям; не сетевая игра — 0) |
 
 **`flight_finished(fin)`** — по `Game.flight_ended`: все ключи `info` из `flight_ended` (контракт `FlightStats.summary` + `LandingJudge`: `grade`, `vertical_speed_ms`, `horizontal_speed_ms`, `flight_time_s`, `distance_m`, `height_gain_m`, `best_thermal_climb_ms`, `finish_reason`, …) плюс:
@@ -91,7 +98,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 Инварианты: `flight_started` раньше любых `flight_sample`; `flight_finished` — ровно один раз на `flight_started` (выход в меню из полёта без посадки — `flight_finished` не шлётся, полёт не засчитывается); неизвестное — NAN, а не 0.
 
-## S3. Активность игры и Rich Presence (версия 1)
+## S3. Активность игры и Rich Presence (версия 2)
+
+v2 (2026-10-05, до запуска ST-7): лобби сообщается присутствию вызовом `SteamPresence.set_lobby(lobby_id: int)` (0 — лобби нет); вызывает ST-8.
 
 Владелец — ST-7. Потребители — `SteamPresence` (ST-7), лобби (ST-8: ключи `connect`, группа).
 
@@ -108,7 +117,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 `SteamPresence` (`scripts/steam/steam_presence.gd`) переводит в ключи Steam (лимит Steam — не чаще раза в секунду, только изменившиеся ключи): `steam_display` = `#St_<Mode>` или `#St_<Mode>_Net` (токены `#St_Menu`, `#St_Loading`, `#St_Launch`, `#St_Flying`, `#St_Landed`, `#St_Paused` и `_Net`-варианты; в тексте токенов — `%place%`, `%alt%`, `%peers%`), `place`, `alt`, `peers`; при лобби (S5) — `steam_player_group` = id лобби, `steam_player_group_size` = `peers`, `connect` = `+connect_lobby <id лобби>`; вне лобби эти три ключа очищаются. Файл токенов для кабинета — `steam/partner/rich_presence.vdf` (english + russian). На App ID 480 токены не загружены — проверка только через чтение своих ключей.
 
-## S4. Транспорт сети: подключаемые пиры (версия 1)
+## S4. Транспорт сети: подключаемые пиры (версия 2)
+
+v2 (2026-10-05, по итогам ST-4; потребитель ST-8 ещё не начат): схема без «://» (`steam:<id>`) распознаётся, только если она в `NetClient.TRANSPORT_SCHEMES` (иначе «имя:порт», как было; `h:x` — BAD_ADDRESS); известная схема без фабрики и любая `xxx://` без фабрики — сразу `CONNECT_FAILED` + `disconnected(false)`, `connect_to_server` → false; фабрика вернула null — обычная неудачная попытка с повторами. `register_transport(scheme, Callable())` снимает схему; реестр общий для всех экземпляров `NetClient` (static). `attach_peer` возвращает номер соединения сервера (1, 2, …), не id пилота. Пиру не обязательны методы сверх S4.1 (`WsPeer` имеет ещё `get_requested_url` — путь `/v1/ws` сервер проверяет только у пиров с этим методом, `get_close_reason`, `binary_frames`). CLOSING пир может пропускать (сразу CLOSED).
 
 Владелец — ST-4. Потребители — ST-8 (Steam-транспорт и мост хозяина), существующие тесты `tests/net/`. Протокол (`net.proto`, proto3 JSON) **не меняется**: Steam везёт те же текстовые кадры.
 

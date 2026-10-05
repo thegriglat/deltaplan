@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "S2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/steam.md"
     }
   ],
@@ -19,7 +19,7 @@
     "scripts/game/achievement_feed.gd",
     "scripts/game/game.gd",
     "tests/game/",
-    "tests/contracts/test_steam_contracts.gd"
+    "tests/contracts/test_steam_contracts_s2.gd"
   ],
   "dont_touch": [
     "scripts/net/",
@@ -42,5 +42,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-05T06:43:26"
+  "created": "2026-10-05T06:43:26",
+  "edited": "2026-10-05T07:21:16"
 }

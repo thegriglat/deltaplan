@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт S4 v1 выполнен: пир S4.1 (ws_peer, loopback_peer), реестр схем S4.2, LocalServer.attach_peer S4.3; контрактный тест S4.4 проходит полный путь Hello → CreateZone → JoinZone → PilotState через loopback в серверном потоке. Скоуп соблюдён. Падение net_screen — занятый сторонним процессом порт 8080, на feature/steam то же; к задаче не относится.",
+  "issues": [
+    {
+      "file": "scripts/net/local_server.gd",
+      "line": 303,
+      "severity": "minor",
+      "what": "BAD_MESSAGE на двоичный кадр теперь уходит после того, как пир отдал следующий текстовый кадр (pop_text пропускает двоичные), а не строго по порядку кадров, как раньше. Порядок ответов клиенту немного меняется; тестов на это нет",
+      "fix": "Оставить как есть или отдавать из WsPeer маркер двоичного кадра по порядку; если ST-8 или протокол на порядок не опираются, можно не трогать"
+    },
+    {
+      "file": "scripts/net/net_client.gd",
+      "line": 80,
+      "severity": "minor",
+      "what": "TRANSPORT_SCHEMES = [\"steam\"] прописывает схему ST-8 в NetClient. Это нужно, чтобы 'steam:<id>' без зарегистрированной фабрики давал CONNECT_FAILED, а не BAD_ADDRESS (вопрос исполнителя по S4.2)",
+      "fix": "Координатору: утвердить или записать в S4.2 как уточнение контракта"
+    },
+    {
+      "file": "scripts/net/loopback_peer.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Состояние CLOSING не используется, вторая сторона переходит в CLOSED на своём poll(); для тестов этого хватает",
+      "fix": "Ничего не делать; если ST-8 понадобится вежливое закрытие, сделать в Steam-пире"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept ST-4 --only steam_contracts --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "dp accept ST-4 --only /net/ --dry",
+      "value": "28/28",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T06:53:15",
+  "by": "reviewer"
+}

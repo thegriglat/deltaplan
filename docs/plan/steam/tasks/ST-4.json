@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "S4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/steam.md"
     }
   ],
@@ -18,7 +18,7 @@
   "scope": [
     "scripts/net/",
     "tests/net/",
-    "tests/contracts/test_steam_contracts.gd"
+    "tests/contracts/test_steam_contracts_s4.gd"
   ],
   "dont_touch": [
     "server/",
@@ -42,5 +42,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-05T06:43:25"
+  "created": "2026-10-05T06:43:25",
+  "edited": "2026-10-05T06:51:52"
 }

@@ -3,9 +3,11 @@ extends Node
 ## LocalServer — встроенный сервер сетевой игры (NET-22): тот же контракт, что у Go-сервера
 ## (server/internal/ws, server/internal/zone), для игры в одной комнате без VPS.
 ##
-## Транспорт: TCPServer + серверный WebSocketPeer (accept_stream), путь /v1/ws, порт по
-## умолчанию 8080 (как у NetClient.DEFAULT_PORT и Go -addr :8080). Кадры — proto3 JSON
-## Envelope, кодек — NetMessages.
+## Транспорт: TCPServer + серверный WebSocketPeer (accept_stream, обёртка ws_peer.gd), путь
+## /v1/ws, порт по умолчанию 8080 (как у NetClient.DEFAULT_PORT и Go -addr :8080). Кадры —
+## proto3 JSON Envelope, кодек — NetMessages. Соединение — пир S4.1 (docs/contracts/steam.md):
+## кроме принятых по TCP, attach_peer принимает внешние пиры (loopback_peer.gd, Steam — ST-8);
+## путь /v1/ws проверяется только у пиров с get_requested_url (WebSocket).
 ##
 ## Потоки: по умолчанию (threaded = true) сеть и логика зон крутятся в своём потоке (опрос раз в
 ## LOOP_SLEEP_MS) — сервер отвечает, даже пока главный поток занят (ведущий грузит мир
@@ -43,6 +45,11 @@ extends Node
 ##   stop() — остановить поток, закрыть все соединения (клиенты видят обрыв) и зоны
 ##       (zone_closed на каждую — сразу, вместе с ещё не доставленными событиями потока).
 ##   is_running() -> bool; port — порт, на котором слушает (0 — не запущен).
+##   attach_peer(peer, label) -> int — принять внешнее соединение (пир S4.1, OPEN или
+##       CONNECTING): дальше тот же путь, что у принятого по TCP (Hello первым, срок
+##       рукопожатия, ошибки, зоны, пересылка); сервер сам опрашивает пир. Номер соединения
+##       (1, 2, …; не id пилота из Welcome), -1 — сервер не запущен. Можно звать из главного
+##       потока при threaded = true (под мьютексом сервера). label — для отладки.
 ##   zones_info() -> Array — [{code, host_name, address, port, game_version, pilots_count}]
 ##       по коду — формат LanDiscovery.start_announcing (NET-23): host_name — имя создателя
 ##       зоны, address — "" (LanDiscovery подставит свой IPv4), port — порт WebSocket,
@@ -70,6 +77,10 @@ const OUTBOUND_BUFFER := 256 * 1024
 const SERVER_VERSION := "embedded"
 ## Код закрытия при неверном пути.
 const CLOSE_BAD_PATH := 4404
+const WS_PEER := preload("res://scripts/net/ws_peer.gd")
+## Состояния пира (S4.1, как WebSocketPeer.State).
+const PEER_OPEN := 1
+const PEER_CLOSED := 3
 
 ## Версия игры, обязательная для Hello; "" — любая (проверяется только при входе в зону).
 var game_version := ""
@@ -83,6 +94,8 @@ var _conns: Array[Conn] = []
 ## Зоны: код → {code, params, version, creator_name, members: Array[Conn], next_order}.
 var _zones: Dictionary = {}
 var _next_id := 0
+## Счётчик соединений (номер для attach_peer).
+var _next_conn := 0
 ## Поток опроса (threaded) и мьютекс на всё состояние выше.
 var _thread: Thread
 var _mutex := Mutex.new()
@@ -95,7 +108,13 @@ var _events: Array = []
 ## Одно соединение (после Hello — живой пилот).
 class Conn:
 	extends RefCounted
-	var ws: WebSocketPeer
+	## Пир S4.1 (ws_peer.gd, loopback_peer.gd, Steam).
+	var peer: RefCounted
+	## Номер соединения и метка (attach_peer; у TCP — "tcp").
+	var num := 0
+	var label := ""
+	## Сколько двоичных кадров пира уже обработано (только WebSocket).
+	var binary_seen := 0
 	## Id после Hello; "" — Hello ещё не было.
 	var id := ""
 	var name := ""
@@ -144,12 +163,12 @@ func stop() -> void:
 	# поток стоит — дальше всё в вызывающем (главном) потоке
 	_mutex.lock()
 	for c in _conns:
-		var ws := c.ws
-		if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
-			ws.close(1001, "server stopped")
-			ws.poll()
+		var p := c.peer
+		if p.get_state() == PEER_OPEN:
+			p.close(1001)
+			p.poll()
 		# без вежливого ожидания: сокет рвётся сразу (как у Go при остановке процесса)
-		ws.close(-1)
+		p.close(-1)
 	_conns.clear()
 	var codes := _zones.keys()
 	_zones.clear()
@@ -168,6 +187,27 @@ func is_running() -> bool:
 	var running := _tcp != null and _tcp.is_listening()
 	_mutex.unlock()
 	return running
+
+
+func attach_peer(peer: RefCounted, label: String) -> int:
+	_mutex.lock()
+	if _tcp == null:
+		_mutex.unlock()
+		return -1
+	var c := _new_conn(peer, label)
+	_mutex.unlock()
+	return c.num
+
+
+func _new_conn(peer: RefCounted, label: String) -> Conn:
+	var c := Conn.new()
+	c.peer = peer
+	_next_conn += 1
+	c.num = _next_conn
+	c.label = label
+	c.deadline = Time.get_ticks_msec() + int(HANDSHAKE_TIMEOUT_S * 1000.0)
+	_conns.append(c)
+	return c
 
 
 func zones_info() -> Array:
@@ -234,55 +274,61 @@ func _flush_events() -> void:
 func _step() -> void:
 	while _tcp.is_connection_available():
 		var stream := _tcp.take_connection()
-		var ws := WebSocketPeer.new()
-		ws.inbound_buffer_size = INBOUND_BUFFER
-		ws.outbound_buffer_size = OUTBOUND_BUFFER
-		ws.heartbeat_interval = HEARTBEAT_S
-		if ws.accept_stream(stream) != OK:
+		var p: RefCounted = WS_PEER.accept(stream, INBOUND_BUFFER, OUTBOUND_BUFFER, HEARTBEAT_S)
+		if p == null:
 			continue
-		var c := Conn.new()
-		c.ws = ws
-		c.deadline = Time.get_ticks_msec() + int(HANDSHAKE_TIMEOUT_S * 1000.0)
-		_conns.append(c)
+		_new_conn(p, "tcp")
 	for i in range(_conns.size() - 1, -1, -1):
 		if i < _conns.size():
 			_poll_conn(_conns[i])
 
 
 func _poll_conn(c: Conn) -> void:
-	var ws := c.ws
-	ws.poll()
-	var st := ws.get_ready_state()
+	var p := c.peer
+	p.poll()
+	var st: int = p.get_state()
 	if not c.open:
-		if st == WebSocketPeer.STATE_OPEN:
+		if st == PEER_OPEN:
 			c.open = true
-			if _path_of(ws.get_requested_url()) != WS_PATH:
-				ws.close(CLOSE_BAD_PATH, "not found")
+			if p.has_method("get_requested_url") and _path_of(p.get_requested_url()) != WS_PATH:
+				p.close(CLOSE_BAD_PATH)
 				_drop(c)
 				return
-		elif st == WebSocketPeer.STATE_CLOSED or Time.get_ticks_msec() > c.deadline:
+		elif st == PEER_CLOSED or Time.get_ticks_msec() > c.deadline:
 			_drop(c)
 			return
 		else:
 			return
-	while ws.get_available_packet_count() > 0:
-		var pkt := ws.get_packet()
-		if not ws.was_string_packet():
-			_send_error(c, "BAD_MESSAGE", "binary frames are not supported")
-			continue
-		_on_text(c, pkt.get_string_from_utf8())
+	while true:
+		var text: Variant = p.pop_text()
+		_check_binary(c)
 		if not _conns.has(c):
 			return
-	if ws.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		if text == null:
+			break
+		_on_text(c, text)
+		if not _conns.has(c):
+			return
+	if p.get_state() == PEER_CLOSED:
 		_drop(c)
+
+
+## Двоичные кадры, пропущенные пиром (WebSocket), — BAD_MESSAGE на каждый.
+func _check_binary(c: Conn) -> void:
+	var n: Variant = c.peer.get("binary_frames")
+	if n == null:
+		return
+	while c.binary_seen < int(n):
+		c.binary_seen += 1
+		_send_error(c, "BAD_MESSAGE", "binary frames are not supported")
 
 
 ## Соединение закрыто: выйти из зоны, забыть.
 func _drop(c: Conn) -> void:
 	_leave(c)
-	var ws := c.ws
-	if ws.get_ready_state() != WebSocketPeer.STATE_CLOSED:
-		ws.close(-1)
+	var p := c.peer
+	if p.get_state() != PEER_CLOSED:
+		p.close(-1)
 	_conns.erase(c)
 
 
@@ -476,11 +522,11 @@ func _send_error(c: Conn, err_code: String, text: String) -> void:
 
 
 func _send_text(c: Conn, text: String) -> void:
-	var ws := c.ws
-	if text == "" or ws.get_ready_state() != WebSocketPeer.STATE_OPEN:
+	var p := c.peer
+	if text == "" or p.get_state() != PEER_OPEN:
 		return
 	# не влезло в исходящий буфер — кадр пропадает (клиент безнадёжно отстал)
-	ws.send_text(text)
+	p.send_text(text)
 
 
 static func _unix_now() -> float:

@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "NetClient и LocalServer переведены на пир S4.1: scripts/net/ws_peer.gd (WebSocketPeer, клиент и принятый сервером), scripts/net/loopback_peer.gd (пара в памяти, потокобезопасна), реестр NetClient.register_transport, LocalServer.attach_peer. Протокол и поведение не менялись; контрактный тест S4 (форма пиров, неизвестная схема, Hello → CreateZone → JoinZone → PilotState через loopback при threaded=true) — tests/contracts/test_steam_contracts_s4.gd.",
+  "commits": [
+    "eab24aa9 транспорт сети через пиры S4 (ws_peer, loopback_peer, реестр схем, attach_peer)",
+    "4452147f test_messages — путь к docs/guide/net-protocol.md (документ переехал)"
+  ],
+  "checks": [
+    {
+      "name": "/net/",
+      "value": "28 тестов, 0 упало (после правки DOC_PATH в test_messages)",
+      "pass": true
+    },
+    {
+      "name": "net_screen",
+      "value": "14/15; падает test_client_backend_create_embedded_vs_remote — port_busy: порт 8080 занят сторонним процессом (известная не-регрессия)",
+      "pass": false
+    },
+    {
+      "name": "steam_contracts",
+      "value": "5 тестов, 0 упало (2 общих + 3 S4)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "S4.2: незарегистрированная схема без '://' неотличима от 'имя:порт' ('h:x' обязан остаться BAD_ADDRESS по test_net_client). Сделал константу NetClient.TRANSPORT_SCHEMES = [\"steam\"]: 'steam:<id>' без фабрики — сразу CONNECT_FAILED (+disconnected(false)), как и любое 'xxx://…'; connect_to_server в этом случае возвращает false (синхронно, как BAD_ADDRESS). Фабрика вернула null — обычная неудачная попытка с повторами. Если нужно иначе (например, повторы и для отсутствующей фабрики) — уточнить в контракте.",
+    "S4.1: close(code) без причины. WsPeer ставит причину по коду (1000 bye, 1001 server stopped, 4404 not found) — кадры Close те же, что были. Сверх S4.1 у WsPeer: get_requested_url (проверка пути /v1/ws делается только у пиров с этим методом), get_close_reason, binary_frames (сервер отвечает BAD_MESSAGE на двоичные кадры, как раньше). Steam-пиру (ST-8) их иметь не нужно.",
+    "S4.3: attach_peer возвращает номер соединения (свой счётчик 1, 2, …), а не id пилота из Welcome (его ещё нет). Реестр register_transport — static var, общий для всех экземпляров NetClient; Callable() убирает схему (контракт про удаление молчит)."
+  ],
+  "images": [],
+  "how_to_check": "dp accept ST-4",
+  "uncertain": [
+    {
+      "where": "scripts/net/local_server.gd _poll_conn/_check_binary",
+      "why": "двоичные кадры теперь пропускает WsPeer.pop_text и считает; сервер шлёт BAD_MESSAGE на каждый перед обработкой следующего текстового кадра — порядок как раньше, но путь другой",
+      "checked": "по коду; отдельного теста на двоичные кадры в tests/net нет"
+    },
+    {
+      "where": "tests/net/test_messages.gd:7",
+      "why": "DOC_PATH указывал на res://docs/net_protocol.md (документ переехал в docs/guide/net-protocol.md при переносе docs) — 2 теста /net/ падали и на main, не из-за ST-4. Поправил одну строку (tests/net/ в скоупе), ожидания не трогал",
+      "checked": "main:tests/net/test_messages.gd тоже со старым путём; после правки 7/7 ok"
+    },
+    {
+      "where": "tests/ui/test_net_screen.gd::test_client_backend_create_embedded_vs_remote",
+      "why": "при первом прогоне упал с port_busy: встроенный сервер стартует на 8080, а 8080 занят сторонним процессом (ss -ltn показал LISTEN 0.0.0.0:8080) — известная не-регрессия",
+      "checked": "dp accept --dry: тот же port_busy; ss -ltn: LISTEN 0.0.0.0:8080 и [::]:8080 занят чужим процессом. Тест берёт порт по умолчанию 8080, освободить его я не мог — проверить при свободном 8080"
+    },
+    {
+      "where": "scripts/net/loopback_peer.gd",
+      "why": "закрытие: своя сторона CLOSED сразу, другая — на своём poll(); CLOSING не используется. Для тестов достаточно; если ST-8 возьмёт loopback как образец — Steam-пиру, возможно, нужен CLOSING",
+      "checked": "test_s4_1_peer_shape, test_s4_4: обрыв клиента → PeerLeft/LeaderChanged у второго, stop() сервера рвёт loopback-клиента"
+    }
+  ],
+  "dp_feedback": "В приёмке /net/ падали 2 теста test_messages из-за переезда docs (DOC_PATH) — dp docs move/перенос документов мог бы искать res://-ссылки на старый путь в коде и тестах.",
+  "t": "2026-10-05T06:50:20",
+  "by": "executor"
+}

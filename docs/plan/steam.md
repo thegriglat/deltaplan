@@ -24,6 +24,12 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - 05.10: регистрации в Steamworks пока нет: App ID, ачивки в кабинете, Cloud — заглушки (тест на App ID 480 Spacewar), место под настоящие значения — регистрация позже.
 - 05.10: GodotSteam — выбран, альтернативы не исследовать.
 - 05.10: ассеты под Steam (иконки, капсулы, страница магазина) — не в этом модуле, их ведёт другой координатор. Иконки ачивок — тоже там; здесь — только API-имена, тексты и условия.
+- 05.10 (шлюз 1, Q1): 18 ачивок утверждены; добавить одиночные (азарт для взрослых пилотов, сеть может быть непопулярна; итог ~30–35): карта (ступени по местам, все континенты — через «Популярные места» или свою точку), погода (взлёт в грозу, в шквальный ветер — по факту модели погоды, без подсказок о безопасности), пасхалки (орёл, шары — скрытые в Steam, в публичных текстах не упоминать), спуск (2 км потери высоты за полёт). Дополненный список — короткий шлюз до ST-6.
+- 05.10 (Q2): отдельные пресеты Steam и itch, в itch GodotSteam нет.
+- 05.10 (Q3): лобби — только друзья и приглашения.
+- 05.10 (Q4): в itch ачивки считаются молча локально.
+- 05.10 (Q5): Steam Cloud — Auto-Cloud (S7 → версия 1 в ST-9).
+- 05.10 (Q6): библиотеки GodotSteam — и в сборку macOS, без проверки.
 
 ## Архитектура (контракты — `docs/contracts/steam.md`)
 - **SteamService** (автозагрузка) — единственное место, где трогается синглтон `Steam` из GodotSteam. Активен только в сборке для Steam (пресет с меткой `steam`) или с аргументом `--steam`; нет расширения, клиента или инициализации → «неактивен», все методы — безвредные заглушки. Контракт S1.
@@ -31,7 +37,17 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - **Rich Presence**: `SteamPresence` переводит состояние игры (S3) в ключи присутствия; файл локализации токенов для кабинета Steamworks — в репозитории.
 - **Сеть**: лобби Steam (друзья, приглашения через оверлей, «вход к другу») + транспорт Steam Networking Messages, по которому идут те же кадры `Envelope` (proto3 JSON). У хозяина лобби — встроенный сервер игры (`local_server.gd`), к которому Steam-пиры подключаются через мост. Контракт S4 (пиры), S5 (лобби).
 - **Имя пилота**: пусто в настройках → ник Steam (S1).
-- **Steam Cloud**: файлы настроек через API Remote Storage или Auto-Cloud — по итогам ST-1.
+- **Steam Cloud**: рекомендация ST-1 — Auto-Cloud (без кода): корень `All OSes` + переопределения `WinAppDataRoaming/Deltaplan`, `LinuxXdgDataHome/Deltaplan`, `MacAppSupport/Deltaplan` (в проекте уже `custom_user_dir_name="Deltaplan"`); `user://configs/` разделить на общее (имя, управление, язык) и локальное для машины (графика). Remote Storage API на 480 работает, но квота Spacewar 4 КиБ.
+
+## Итоги ST-1 (05.10, `docs/research/steam_godotsteam.md`, `tools/research/steam/`)
+- GodotSteam GDExtension 4.22.1 (`v4.22.1-gde`, Steamworks SDK 1.65), MIT; репозиторий на Codeberg; архив 27 МБ, sha256 закреплён в `tools/research/steam/fetch_godotsteam.sh`; грузится в Godot 4.7.2.
+- Доступ — только `Engine.get_singleton("Steam")` в `Object`, вызовы `.call()`, константы `.get()` (S1.1). `steamInitEx`: 0 — успех, 1 — прочее, 2 — нет клиента, 3 — клиент устарел. `run_callbacks()` каждый кадр. `restartAppIfNecessary` не вызывать.
+- Без расширения — `has_singleton` false; расширение без `libsteam_api` — ERROR в логе, не грузится; без клиента — `status=2`.
+- Сеть: Networking Messages (`sendMessageToUser`, `receiveMessagesOnChannel`, сигналы `network_messages_session_request/failed`), кадр 2 КБ надёжным на канале 0 проходит; лобби create/join на 480 работают; вход по приглашению — сигнал `join_requested(lobby_id, steam_id)` (`lobby_join_requested` нет); закрытая игра запускается с `+connect_lobby <id>`; значение данных лобби < 8192 байт.
+- Rich Presence: ключ ≤ 63 байт, значение ≤ 255, планировать ≤ 20 ключей; `.vdf` формата `lang/<язык>/tokens`.
+- Ачивки: на 480 только ачивки Spacewar; логику тестировать без Steam; массовой загрузки в кабинет нет — таблица для ручного ввода.
+- Сборка: два набора пресетов — Steam (`custom_features=steam`) и itch (`exclude_filter` + `addons/godotsteam/*`: в экспорте нет библиотек, замер `export_check.sh`); `addons/godotsteam/` — в `.gitignore`. Первый `--import` проекта с расширением падает SIGABRT при выходе (импорт выполнен; обход — импортировать дважды).
+- Не проверено: два аккаунта (лобби/сеть/оверлей/`+connect_lobby`), токены присутствия, свои ачивки, Auto-Cloud, загрузка на Windows/macOS, условия Steamworks SDK Access Agreement.
 
 ## Задачи
 
@@ -49,7 +65,7 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Оценка: 0,5 дня.
 
 ### ST-3. Сборка со Steam и без (dp-engineer, Sonnet)
-- Скоуп: `addons/godotsteam/` через `fetch_godotsteam.sh` (ST-1; бинарники не в git), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam.
+- Скоуп: `addons/godotsteam/` через `tools/steam/fetch_godotsteam.sh` (перенести из `tools/research/steam/`; бинарники не в git, каталог в `.gitignore`), пресеты экспорта «Linux Steam», «Windows Steam» (+ «macOS Steam» — по решению) с меткой `steam` и библиотеками GodotSteam; пресеты itch исключают GodotSteam целиком; `tools/build.sh linux-steam|windows-steam`; `steam_appid.txt` только для разработки (не в сборке Steam); `tools/check.sh` не требует GodotSteam. Имена пресетов Steam содержат «Steam» (steam-assets SA-К2 включает по ним строки «(только Steam)» в уведомления); в `tools/build.sh` steam-assets добавит вызов `third_party_notices.py` — конфликт при слиянии тривиальный. `steam/partner/` — с `.gdignore`. В `exclude_filter` новых пресетов Steam — то же, что у пресетов itch, включая `build/*` (steam-assets, коммит 42f3d4b6 на `feature/steam-assets`).
 - Зависит от: ST-1, ST-2.
 - Приёмка: сборка itch Linux: в каталоге нет `libsteam_api*`/`godotsteam*`, `--smoke` проходит; сборка Steam Linux: библиотеки на месте, `--smoke` без клиента → `inactive (init_failed…)`, код 0; Windows-сборки собираются (запуск не проверить — так и записать).
 - Оценка: 0,5 дня.
@@ -91,6 +107,7 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Оценка: 0,25–1 день.
 
 ### ST-10. Документация и файлы для Steamworks (dp-writer, Sonnet)
+- Стык с модулем steam-assets (`docs/contracts/steam-assets.md` на `feature/steam-assets`): строка GodotSteam в `ASSETS.md`, раздел «Движок и библиотеки», пометка «(только Steam)», MIT + распространяемые библиотеки Steamworks SDK, текст лицензии — `licenses/<имя>.txt` (SA-К2/SA-К3); иконки ачивок `steam/store/achievements/<API>.jpg` делает steam-assets по `configs/achievements.json` (SA-К4) — в `steam/partner/README.md` ссылка на них.
 - Скоуп: `docs/guide/steam.md` (как устроено, как включить/выключить, тест на 480, ручной тест на двух аккаунтах), `steam/partner/README.md` — что сделать пользователю в Steamworks (регистрация, App ID → `configs/steam.json`, ачивки из csv, токены присутствия из vdf, Cloud, депо Linux/Windows), строка GodotSteam в `ASSETS.md`, CHANGELOG.
 - Зависит от: ST-3, ST-6, ST-7, ST-8, ST-9.
 - Оценка: 0,5 дня.
@@ -118,6 +135,32 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 | ACH_TOGETHER | Вместе / Together | сетевая игра: полёт с посадкой, в зоне ≥ 1 живой пилот кроме себя |
 | ACH_GAGGLE | В одном потоке / Gaggle | сетевая игра: 60 с подряд в спирали с набором (`vario` > 0,5) и ≥ 1 живой пилот рядом в наборе (`near_climbing_live` ≥ 1) |
 | ACH_LAST_DOWN | Последний сел / Last One Down | полёт ≥ 10 мин, другие пилоты (боты или живые) отрывались — ≥ 3, в момент посадки ни один не в воздухе |
+
+## Ачивки — дополнение (шлюз 1б, на утверждение)
+Одиночные, к 18 выше; итого 35, из них 3 скрытые. Континент — по координатам точки отрыва (Европа, Азия, Африка, Северная Америка, Южная Америка, Австралия и Океания; Антарктида не считается). «Посадка» — `kind == "landed"`, авария тоже считается, если не сказано иначе.
+
+| API | Название (ru / en) | Условие |
+|---|---|---|
+| ACH_PLACES_10 | Десять стартов / Ten Launches | полёты с 10 разных мест (копится) |
+| ACH_PLACES_25 | Двадцать пять стартов / Twenty-Five Launches | 25 разных мест (копится) |
+| ACH_CONTINENTS_3 | Через океан / Overseas | полёты с 3 континентов (копится) |
+| ACH_CONTINENTS_ALL | Все континенты / Every Continent | полёты со всех 6 континентов (копится) |
+| ACH_XC_100 | Сотня / Hundred | `distance_m` ≥ 100 км |
+| ACH_HOURS_3 | Три часа / Three Hours | полёт ≥ 3 ч |
+| ACH_AIRTIME_10H | Налёт / Logbook | суммарно ≥ 10 ч в воздухе (копится) |
+| ACH_WINGS_5 | Пять крыльев / Five Wings | полёты на 5 разных крыльях (копится) |
+| ACH_ALT_5000 | Пять тысяч / Five Thousand | в полёте `alt_msl` ≥ 5000 м |
+| ACH_HIGH_LAUNCH | Высокогорье / High Launch | взлёт с высоты ≥ 3000 м над морем и посадка |
+| ACH_DESCENT_2000 | С горы / Downhill | `launch_alt_msl − land_alt_msl` ≥ 2000 м |
+| ACH_STORM | Под наковальней / Under the Anvil | взлёт в грозовой день (`cb_chance` ≥ 0,5), полёт ≥ 10 мин и посадка |
+| ACH_STRONG_WIND | Шквал / Gale | взлёт при ветре у старта ≥ 10 м/с (36 км/ч) и посадка |
+| ACH_OVERCAST | Серый день / Grey Day | облачно (`sky == "overcast"`), набор ≥ 300 м над стартом |
+| ACH_WINTER | Мороз / Frost | температура у старта ≤ 0 °C, полёт ≥ 10 мин |
+| ACH_EAGLE (скрытая) | Орёл / Eagle | пасхалка `eagle` ближе 100 м |
+| ACH_BALLOONS (скрытая) | Шары / Balloons | пасхалка `balloon` или `balloon_festival` ближе 150 м |
+| ACH_GLORIA (скрытая) | Глория / Glory | видна глория (пасхалка `gloria`) |
+
+Для них поток S2 расширен до версии 2 (`lat/lon`, `temp_c`, `cb_chance`, `sky`, `eggs`).
 
 ## Волны
 1. Сейчас (без решений пользователя): ST-1 (идёт), ST-4, ST-5.
