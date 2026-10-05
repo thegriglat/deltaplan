@@ -1,0 +1,164 @@
+{
+  "model": {
+    "id": "black-forest-labs/FLUX.1-schnell",
+    "revision": "741f7c3ce8b383c54771c7003378a50191e9efe9",
+    "license": "Apache-2.0"
+  },
+  "steps": 4,
+  "guidance": 0.0,
+  "size": 1024,
+  "icons": {
+    "ACH_FIRST_FLIGHT": {
+      "seed": 1000,
+      "prompt_key": "d3bb3aac497acd04"
+    },
+    "ACH_SOFT_LANDING": {
+      "seed": 1037,
+      "prompt_key": "ecc1844d053b2d62"
+    },
+    "ACH_TOP_LANDING": {
+      "seed": 1074,
+      "prompt_key": "734da5a8aa845747"
+    },
+    "ACH_ABOVE_LAUNCH": {
+      "seed": 1111,
+      "prompt_key": "fa2dfa9d60782d0f"
+    },
+    "ACH_KILOMETER_UP": {
+      "seed": 1148,
+      "prompt_key": "efb093a6cc45f4b3"
+    },
+    "ACH_CLOUDBASE": {
+      "seed": 1185,
+      "prompt_key": "515f523d89657d41"
+    },
+    "ACH_STRONG_CLIMB": {
+      "seed": 1222,
+      "prompt_key": "7a899f6ba54b73d9"
+    },
+    "ACH_SOARING_15": {
+      "seed": 1259,
+      "prompt_key": "66c694c11471291a"
+    },
+    "ACH_HOUR": {
+      "seed": 1296,
+      "prompt_key": "bf1da3a549a885ee"
+    },
+    "ACH_RIDGE_LOW": {
+      "seed": 1333,
+      "prompt_key": "a76b37d74b7a5db8"
+    },
+    "ACH_XC_10": {
+      "seed": 1370,
+      "prompt_key": "3705b2460b7ada36"
+    },
+    "ACH_XC_50": {
+      "seed": 1407,
+      "prompt_key": "eb423661848a8042"
+    },
+    "ACH_UPWIND": {
+      "seed": 1444,
+      "prompt_key": "5045d555cd550bf2"
+    },
+    "ACH_EVENING": {
+      "seed": 1481,
+      "prompt_key": "3239aa8d392538ae"
+    },
+    "ACH_PLACES_5": {
+      "seed": 1518,
+      "prompt_key": "407fcffbb70180b0"
+    },
+    "ACH_TOGETHER": {
+      "seed": 1555,
+      "prompt_key": "86836b50b56307b5"
+    },
+    "ACH_GAGGLE": {
+      "seed": 1592,
+      "prompt_key": "3de0b7b352ef6e2d"
+    },
+    "ACH_LAST_DOWN": {
+      "seed": 1629,
+      "prompt_key": "e1fd2d059518950a"
+    },
+    "ACH_PLACES_10": {
+      "seed": 1666,
+      "prompt_key": "d6c894fc57c91cd7"
+    },
+    "ACH_PLACES_25": {
+      "seed": 1703,
+      "prompt_key": "8c8108353ac8c672"
+    },
+    "ACH_CONTINENTS_3": {
+      "seed": 1740,
+      "prompt_key": "599cca32a54fa5c9"
+    },
+    "ACH_CONTINENTS_ALL": {
+      "seed": 1777,
+      "prompt_key": "1e2c677bb3e3a6ca"
+    },
+    "ACH_XC_100": {
+      "seed": 1814,
+      "prompt_key": "f1f0d623dcb4e242"
+    },
+    "ACH_HOURS_3": {
+      "seed": 1851,
+      "prompt_key": "7f827e568967e54c"
+    },
+    "ACH_AIRTIME_10H": {
+      "seed": 1888,
+      "prompt_key": "1cfc11dcccca3f69"
+    },
+    "ACH_WINGS_5": {
+      "seed": 1925,
+      "prompt_key": "e7237e45669167b6"
+    },
+    "ACH_ALT_5000": {
+      "seed": 1962,
+      "prompt_key": "caeb4d3bc0bcf262"
+    },
+    "ACH_HIGH_LAUNCH": {
+      "seed": 1999,
+      "prompt_key": "b8e7bf7aa657c8fe"
+    },
+    "ACH_DESCENT_2000": {
+      "seed": 2036,
+      "prompt_key": "8a57c4a93d1a3faf"
+    },
+    "ACH_STORM": {
+      "seed": 2073,
+      "prompt_key": "d8305be7660ebff8"
+    },
+    "ACH_STRONG_WIND": {
+      "seed": 2110,
+      "prompt_key": "1f72132c7894c39c"
+    },
+    "ACH_OVERCAST": {
+      "seed": 2147,
+      "prompt_key": "85c48894813fda85"
+    },
+    "ACH_WINTER": {
+      "seed": 2184,
+      "prompt_key": "c5e750047a1f97b8"
+    },
+    "ACH_EAGLE": {
+      "seed": 2221,
+      "prompt_key": "819c8441976b08ee"
+    },
+    "ACH_BALLOONS": {
+      "seed": 2258,
+      "prompt_key": "804fc9836e7092b9"
+    },
+    "ACH_GLORIA": {
+      "seed": 2295,
+      "prompt_key": "ee6ed470242946e5"
+    },
+    "ACH_WATER_LANDING": {
+      "seed": 2332,
+      "prompt_key": "5c6be322539a1474"
+    },
+    "ACH_CAMP_LANDING": {
+      "seed": 2369,
+      "prompt_key": "0301029e47aaed4c"
+    }
+  }
+}
