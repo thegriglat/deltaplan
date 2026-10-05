@@ -1,0 +1,39 @@
+api,name_en,desc_en,name_ru,desc_ru,hidden
+ACH_FIRST_FLIGHT,First Flight,Take off and land safely.,Первый полёт,Оторвись от склона и сядь на землю.,0
+ACH_SOFT_LANDING,On Your Feet,A soft landing with almost no sink and low ground speed.,На ноги,Мягкая посадка: почти без вертикальной скорости и с малой горизонтальной.,0
+ACH_TOP_LANDING,Top Landing,"Fly at least 5 minutes and land back at launch, not below it.",Обратно на старт,"Полёт от 5 минут и посадка рядом со стартом, не ниже его.",0
+ACH_ABOVE_LAUNCH,Above Launch,Climb 100 m above your launch.,Выше старта,Набери 100 м над точкой отрыва.,0
+ACH_KILOMETER_UP,Kilometer Up,Climb 1000 m above your launch.,Километр вверх,Набери 1000 м над точкой отрыва.,0
+ACH_CLOUDBASE,Cloudbase,Climb up to the cloud base.,Под базой,Поднимись к нижней кромке облаков.,0
+ACH_STRONG_CLIMB,Strong Climb,Catch a thermal climbing at 4 m/s.,Четвёрка,Поймай термик с набором 4 м/с.,0
+ACH_SOARING_15,Staying Up,Stay in the air for 15 minutes.,Удержался,Продержись в воздухе 15 минут.,0
+ACH_HOUR,One Hour Up,A single flight lasting an hour.,Час в воздухе,Один полёт длиной в час.,0
+ACH_RIDGE_LOW,Ridge Soaring,Stay up for 10 minutes straight below 300 m above the ground.,Над склоном,10 минут подряд держись у склона ниже 300 м над землёй.,0
+ACH_XC_10,Cross-Country,Fly 10 km in a straight line from launch.,Маршрут,Улети на 10 км по прямой.,0
+ACH_XC_50,Fifty,Fly 50 km in a straight line from launch.,Полсотни,Улети на 50 км по прямой.,0
+ACH_UPWIND,Upwind,"With wind of at least 4 m/s, land 5 km upwind of launch.",Против ветра,При ветре от 4 м/с сядь в 5 км против ветра от старта.,0
+ACH_EVENING,Evening Glass-Off,Fly 20 minutes with the sun low on the horizon.,Вечерний,20 минут полёта при низком солнце.,0
+ACH_PLACES_5,Traveller,Fly from 5 different sites.,Путешественник,Полёты с 5 разных мест.,0
+ACH_TOGETHER,Together,Complete a multiplayer flight with another pilot in the zone.,Вместе,"Сетевой полёт с посадкой, когда рядом есть другой пилот.",0
+ACH_GAGGLE,Gaggle,Climb in a thermal together with another pilot for a minute.,В одном потоке,Минуту крутить термик вместе с другим пилотом.,0
+ACH_LAST_DOWN,Last One Down,"Land last, after others had been flying.",Последний сел,"Сядь последним, когда в воздухе были другие.",0
+ACH_PLACES_10,Ten Launches,Fly from 10 different sites.,Десять стартов,Полёты с 10 разных мест.,0
+ACH_PLACES_25,Twenty-Five Launches,Fly from 25 different sites.,Двадцать пять стартов,Полёты с 25 разных мест.,0
+ACH_CONTINENTS_3,Overseas,Fly from three continents.,Через океан,Полёты с трёх континентов.,0
+ACH_CONTINENTS_ALL,Every Continent,Fly from all six continents.,Все континенты,Полёты со всех шести континентов.,0
+ACH_XC_100,Hundred,Fly 100 km in a straight line from launch.,Сотня,Улети на 100 км по прямой.,0
+ACH_HOURS_3,Three Hours,A single flight lasting three hours.,Три часа,Один полёт длиной в три часа.,0
+ACH_AIRTIME_10H,Logbook,Ten hours in the air in total.,Налёт,Суммарно 10 часов в воздухе.,0
+ACH_WINGS_5,Five Wings,Fly five different wings.,Пять крыльев,Полёты на пяти разных крыльях.,0
+ACH_ALT_5000,Five Thousand,Climb above 5000 m above sea level.,Пять тысяч,Поднимись выше 5000 м над уровнем моря.,0
+ACH_HIGH_LAUNCH,High Launch,Launch from 3000 m above sea level or higher and land.,Высокогорье,Взлети с высоты от 3000 м над морем и сядь.,0
+ACH_DESCENT_2000,Downhill,Land 2000 m below your launch.,С горы,Сядь на 2000 м ниже точки отрыва.,0
+ACH_STORM,Under the Anvil,Launch on a stormy day and stay up at least 10 minutes.,Под наковальней,Взлети в грозовой день и пролетай не меньше 10 минут.,0
+ACH_STRONG_WIND,Gale,Launch in wind of 10 m/s or more and land.,Шквал,Взлети при ветре от 10 м/с и сядь.,0
+ACH_OVERCAST,Grey Day,Gain 300 m over launch under a full overcast.,Серый день,Набери 300 м над стартом под сплошной облачностью.,0
+ACH_WINTER,Frost,Launch at 0 °C or below and stay up at least 10 minutes.,Мороз,Взлети при температуре 0 °C и ниже и пролетай не меньше 10 минут.,0
+ACH_EAGLE,Eagle,Hidden achievement.,Орёл,Скрытая ачивка.,1
+ACH_BALLOONS,Balloons,Hidden achievement.,Шары,Скрытая ачивка.,1
+ACH_GLORIA,Glory,Hidden achievement.,Глория,Скрытая ачивка.,1
+ACH_WATER_LANDING,Splashdown,Land on water.,Посадка на воду,Приводнись.,0
+ACH_CAMP_LANDING,Dinner Is Served,Hidden achievement.,К столу,Скрытая ачивка.,1

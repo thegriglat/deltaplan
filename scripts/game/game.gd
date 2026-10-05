@@ -98,6 +98,7 @@ var _heating := SurfaceHeating.new()
 var _day: AtmoDay
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
+var _alt_pub_at := -1.0  ## sim_time_s последней публикации высоты в Activity (−1 — ещё нет)
 var _paused := false
 
 @onready var sky: SkyEnvironment = $Environment
@@ -173,6 +174,25 @@ func _physics_process(dt: float) -> void:
 	tick(dt)
 
 
+## Activity (S3): режим по фазе, сеть, высота (не чаще раза в 10 с и при изменении ≥ 50 м).
+func _publish_activity(phase: String) -> void:
+	var st: Dictionary = Activity.state()
+	var d := {}
+	if String(st.mode) in Activity.FLIGHT_MODES:
+		d["mode"] = Activity.mode_for_phase(phase)
+	d["net"] = NetZone.in_zone
+	d["zone_code"] = NetZone.code if NetZone.in_zone else ""
+	d["peers"] = NetZone.peer_ids().size() if NetZone.in_zone else 0
+	var t := glider.get_telemetry()
+	if phase == "flying" and (sim_time_s - _alt_pub_at >= 10.0 and absf(t.altitude_msl - float(st.alt_msl)) >= 50.0
+			or _alt_pub_at < 0.0):
+		d["alt_msl"] = roundi(t.altitude_msl)
+		_alt_pub_at = sim_time_s
+	elif phase != "flying":
+		_alt_pub_at = -1.0
+	Activity.set_state(d)
+
+
 ## Один шаг симуляции в явном порядке. Тесты зовут его напрямую.
 func tick(dt: float) -> void:
 	if settings == null:
@@ -189,6 +209,7 @@ func tick(dt: float) -> void:
 		camera.free_keys_enabled = true  # крыло не шагает: ни ввода, ни столкновений, ни итога
 		return
 	var phase := glider.phase()
+	_publish_activity(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
 		autopilot.drive(glider.get_telemetry(), dt)

@@ -5,7 +5,8 @@ extends Node
 ## Файлы ищутся по порядку, каждый следующий поверх предыдущего (глубокое слияние словарей):
 ##   1. res://configs/<name>.json            — значения по умолчанию, лежат в репозитории
 ##   2. <папка exe>/configs/<name>.json      — правки пилота рядом с игрой (только в сборке)
-##   3. user://configs/<name>.json           — правки пилота в профиле пользователя
+##   3. user://configs/<name>.json           — правки пилота в профиле пользователя (в Steam Cloud)
+##   4. user://local/configs/<name>.json     — машинные настройки (графика), в облако не идут (S7)
 ## Ключи, начинающиеся с "_" (например "_doc"), — комментарии, код их игнорирует.
 
 signal reloaded
@@ -85,6 +86,7 @@ func search_dirs() -> PackedStringArray:
 	if not OS.has_feature("editor"):
 		dirs.append(OS.get_executable_path().get_base_dir().path_join("configs"))
 	dirs.append("user://configs")
+	dirs.append("user://local/configs")
 	return dirs
 
 

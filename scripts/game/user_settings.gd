@@ -6,17 +6,84 @@ extends RefCounted
 
 const DEFAULT_DIR := "user://configs"
 const LAST_FLIGHT := "user://last_flight.json"
+## Подкаталог машинных настроек рядом с каталогом конфигов (user://local/configs): в Steam Cloud
+## не попадает (S7). Config накладывает его поверх user://configs.
+const LOCAL_SUBDIR := "local/configs"
+## Машинные ключи (S7): "конфиг.путь.через.точку"; ключ покрывает и всё поддерево.
+## Должен совпадать с steam/partner/auto_cloud.json → local_keys (тест S7).
+const LOCAL_KEYS: PackedStringArray = [
+	"game.graphics",
+	"game.render_scale_auto",
+	"game.render_scale_pct",
+	"atmosphere.clouds",
+	"atmosphere.air_model",
+	"world.trees",
+	"world.sun",
+	"world.effects",
+	"vegetation.grass",
+]
 ## Имя пилота (NET-51): user-конфиг game.json → net.pilot_name; пусто/нет — умолчание
 ## ник Steam (S1.5), затем по языку интерфейса (net_pilot_name_default).
 const PILOT_NAME_MAX := 20
 
 
+## Каталог машинных настроек для каталога конфигов dir.
+static func local_dir(dir: String = DEFAULT_DIR) -> String:
+	return dir.get_base_dir().path_join(LOCAL_SUBDIR)
+
+
+## Ключ (конфиг + путь через точку) машинный: совпал с LOCAL_KEYS или лежит внутри такого.
+static func is_local_key(full_key: String) -> bool:
+	for k in LOCAL_KEYS:
+		if full_key == k or full_key.begins_with(k + "."):
+			return true
+	return false
+
+
+## Ключ — предок какого-то машинного (внутри могут быть и общие, и машинные листья).
+static func _has_local_below(full_key: String) -> bool:
+	for k in LOCAL_KEYS:
+		if k.begins_with(full_key + "."):
+			return true
+	return false
+
+
+## Разделить patch на {"local": …, "cloud": …} по LOCAL_KEYS.
+static func split_patch(config_name: String, patch: Dictionary, prefix: String = "") -> Dictionary:
+	var local := {}
+	var cloud := {}
+	var base := prefix if prefix != "" else config_name
+	for k: String in patch:
+		var full := base + "." + k
+		var v: Variant = patch[k]
+		if is_local_key(full):
+			local[k] = v
+		elif v is Dictionary and _has_local_below(full):
+			var sub := split_patch(config_name, v, full)
+			if not sub["local"].is_empty():
+				local[k] = sub["local"]
+			if not sub["cloud"].is_empty():
+				cloud[k] = sub["cloud"]
+		else:
+			cloud[k] = v
+	return {"local": local, "cloud": cloud}
+
+
 ## Дописать patch (вложенный словарь) в user-конфиг config_name и сбросить кеш Config.
+## Машинные ключи (LOCAL_KEYS) уходят в user://local/configs, остальное — в dir.
 static func save_patch(config_name: String, patch: Dictionary, dir: String = DEFAULT_DIR) -> bool:
-	var path := dir.path_join(config_name + ".json")
+	var parts := split_patch(config_name, patch)
+	var ok := true
+	if not parts["cloud"].is_empty():
+		ok = _write_merged(dir.path_join(config_name + ".json"), parts["cloud"])
+	if not parts["local"].is_empty():
+		ok = _write_merged(local_dir(dir).path_join(config_name + ".json"), parts["local"]) and ok
+	return ok
+
+
+static func _write_merged(path: String, patch: Dictionary) -> bool:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
-	var current := read_json(path)
-	var merged: Dictionary = Config._deep_merge(current, patch)
+	var merged: Dictionary = Config._deep_merge(read_json(path), patch)
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f == null:
 		push_error("UserSettings: не записать %s (%s)" % [path, FileAccess.get_open_error()])
