@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Создан site/content/mechanics/slope-wind.en.md — перевод страницы «Ветер у склона».",
+  "commits": [
+    "33830cb8 SI-13: английский перевод"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SI-13 --dry",
+  "uncertain": [
+    {
+      "where": "slope-wind.en.md, абзац про волну",
+      "why": "«Скорер» переведён как Scorer; в UI взяты Wind / Wind from из ui.csv",
+      "checked": "ui.csv"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-05T06:22:32",
+  "by": "executor"
+}
