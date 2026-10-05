@@ -55,6 +55,27 @@ static func sample(rule: Dictionary, acc: Dictionary, s: Dictionary, dt: float) 
 						acc["min"] = minf(float(acc.get("min", INF)), float(eggs[id]))
 
 
+## Условие, выполнимое прямо в полёте (S6 v2): только по сэмплам и времени в воздухе.
+## Вызывать после sample(); для остальных типов — всегда false (они решаются в check()).
+static func live(rule: Dictionary, acc: Dictionary, ctx: Dictionary, s: Dictionary) -> bool:
+	var t := _f(s, "t")
+	var gain := _f(s, "alt_msl") - _f(ctx, "launch_alt_msl")
+	match String(rule.get("type", "")):
+		"cloudbase", "sample_max", "ridge", "evening", "gaggle", "egg":
+			return check(rule, acc, ctx, {}, {})
+		"fin_min":
+			var key := String(rule.key)
+			if key == "flight_time_s":
+				return t >= float(rule.min)
+			if key == "height_gain_m":
+				return gain >= float(rule.min)
+		"winter":
+			return _f(ctx, "temp_c") <= float(rule.temp_max_c) and t >= float(rule.min_time_s)
+		"overcast":
+			return String(ctx.get("sky", "")) == String(rule.sky) and gain >= float(rule.min_gain_m)
+	return false
+
+
 ## Накопительные счётчики по завершённому полёту (вызывать до check()).
 static func update_progress(prog: Dictionary, ctx: Dictionary, fin: Dictionary) -> void:
 	var places: Array = prog.places

@@ -64,9 +64,15 @@ func on_flight_sample(s: Dictionary) -> void:
 	var t := float(s.get("t", NAN))
 	var dt := 0.0 if (is_nan(_last_t) or is_nan(t)) else maxf(t - _last_t, 0.0)
 	_last_t = t
+	var fresh: Array = []
 	for d: Dictionary in _defs:
-		if not is_unlocked(d.api):
-			Rules.sample(d.rule, _acc[d.api], s, dt)
+		if is_unlocked(d.api):
+			continue
+		Rules.sample(d.rule, _acc[d.api], s, dt)
+		if Rules.live(d.rule, _acc[d.api], _ctx, s):
+			_progress.unlocked[d.api] = int(Time.get_unix_time_from_system())
+			fresh.append(d.api)
+	_announce(fresh)
 
 
 func on_flight_finished(fin: Dictionary) -> void:
@@ -83,6 +89,11 @@ func on_flight_finished(fin: Dictionary) -> void:
 		if Rules.check(d.rule, _acc.get(d.api, {}), _ctx, fin, _progress):
 			_progress.unlocked[d.api] = int(Time.get_unix_time_from_system())
 			fresh.append(d.api)
+	_announce(fresh)
+
+
+## Сохранить прогресс и сообщить об открытых ачивках (локально, Steam, сигнал).
+func _announce(fresh: Array) -> void:
 	_save()
 	for api: String in fresh:
 		print("achievements: unlocked %s" % api)

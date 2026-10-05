@@ -12,7 +12,7 @@ func test_s6_config_shape() -> void:
 	var re := RegEx.create_from_string("^ACH_[A-Z0-9_]+$")
 	var seen := {}
 	var defs := _defs()
-	check(defs.size() == 37, "37 ачивок: %d" % defs.size())
+	check(defs.size() == 38, "38 ачивок: %d" % defs.size())
 	for d: Dictionary in defs:
 		check(re.search(d.api) != null and not seen.has(d.api), "api " + d.api)
 		seen[d.api] = true

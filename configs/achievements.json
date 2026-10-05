@@ -390,6 +390,23 @@
    }
   },
   {
+   "api": "ACH_HOURS_3",
+   "name": {
+    "ru": "Три часа",
+    "en": "Three Hours"
+   },
+   "desc": {
+    "ru": "Один полёт длиной в три часа.",
+    "en": "A single flight lasting three hours."
+   },
+   "hidden": false,
+   "rule": {
+    "type": "fin_min",
+    "key": "flight_time_s",
+    "min": 10800
+   }
+  },
+  {
    "api": "ACH_AIRTIME_10H",
    "name": {
     "ru": "Налёт",

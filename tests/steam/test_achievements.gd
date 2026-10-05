@@ -30,7 +30,7 @@ func _fin(o: Dictionary = {}) -> Dictionary:
 func _series(n: int, over: Dictionary = {}) -> Array:
 	var out: Array = []
 	for i in n + 1:
-		var s := {"t": float(i), "pos": Vector3.ZERO, "alt_msl": 1100.0, "agl": 500.0, "vario": 0.0,
+		var s := {"t": float(i), "pos": Vector3.ZERO, "alt_msl": 1050.0, "agl": 500.0, "vario": 0.0,
 				"circling": false, "cloud_base_msl": NAN, "sun_elev_deg": 45.0, "others_airborne": 0,
 				"eggs": {}, "near_climbing_live": 0}
 		s.merge(over, true)
@@ -92,6 +92,7 @@ func test_flight_rules_threshold_pairs() -> void:
 	_pair("ACH_KILOMETER_UP", {"fin": {"height_gain_m": 1000.0}}, {"fin": {"height_gain_m": 999.9}})
 	_pair("ACH_STRONG_CLIMB", {"fin": {"best_thermal_climb_ms": 4.0}}, {"fin": {"best_thermal_climb_ms": 3.9}})
 	_pair("ACH_SOARING_15", {"fin": {"flight_time_s": 900.0}}, {"fin": {"flight_time_s": 899.0}})
+	_pair("ACH_HOURS_3", {"fin": {"flight_time_s": 10800.0}}, {"fin": {"flight_time_s": 10799.0}})
 	_pair("ACH_HOUR", {"fin": {"flight_time_s": 3600.0}}, {"fin": {"flight_time_s": 3599.0}})
 	_pair("ACH_XC_10", {"fin": {"distance_m": 10000.0}}, {"fin": {"distance_m": 9999.0}})
 	_pair("ACH_XC_50", {"fin": {"distance_m": 50000.0}}, {"fin": {"distance_m": 49999.0}})
@@ -184,7 +185,7 @@ func test_together_and_last_down() -> void:
 func test_not_landed_counts_nothing() -> void:
 	_clean()
 	var t := _tracker()
-	_fly(t, _ctx({"launch_alt_msl": 4000.0}), _series(5, {"alt_msl": 6000.0}), _fin({"kind": "takeoff_failed"}))
+	_fly(t, _ctx({"launch_alt_msl": 4000.0}), _series(5, {"alt_msl": 3999.0}), _fin({"kind": "takeoff_failed"}))
 	check(t.unlocked_count() == 0 and t.progress().flights == 0, "неудачный взлёт не засчитывается")
 	# Вызовы без flight_started игнорируются.
 	t.on_flight_sample(_series(1)[0])
@@ -329,6 +330,81 @@ func test_steam_activates_after_start() -> void:
 	check(fake.set_calls.is_empty(), "неактивный Steam не трогаем")
 	svc.configure(["--steam"], [], true, fake)  # активация шлёт activated
 	check(fake.set_calls == ["ACH_FIRST_FLIGHT"], "активация → синхронизация")
+	t.free()
+	svc.free()
+	fake.free()
+	_clean()
+
+
+## S6 v2: условия по сэмплам и времени в воздухе открываются сразу в полёте (до flight_finished).
+func _live_opens(api: String, ctx: Dictionary, samples: Array) -> bool:
+	_clean()
+	var t := _tracker()
+	t.on_flight_started(_ctx(ctx))
+	for s in samples:
+		t.on_flight_sample(s)
+	var r: bool = t.is_unlocked(api)
+	t.free()
+	_clean()
+	return r
+
+
+func test_live_unlock_in_flight() -> void:
+	var cb := {"cloud_base_msl": 2000.0}
+	check(_live_opens("ACH_CLOUDBASE", {}, _series(2, {"cloud_base_msl": 2000.0, "alt_msl": 1900.0})), "облака сразу")
+	check(not _live_opens("ACH_CLOUDBASE", {}, _series(2, {"cloud_base_msl": 2000.0, "alt_msl": 1899.0})), "облака − ε")
+	check(_live_opens("ACH_ALT_5000", {}, _series(2, {"alt_msl": 5000.0})), "5000 сразу")
+	check(not _live_opens("ACH_ALT_5000", {}, _series(2, {"alt_msl": 4999.0})), "5000 − ε")
+	check(_live_opens("ACH_EAGLE", {}, _series(2, {"eggs": {"eagle": 99.0}})), "орёл сразу")
+	check(_live_opens("ACH_GLORIA", {}, _series(2, {"eggs": {"gloria": 0}})), "глория сразу")
+	check(_live_opens("ACH_RIDGE_LOW", {}, _series(600, {"agl": 100.0})), "склон сразу")
+	check(not _live_opens("ACH_RIDGE_LOW", {}, _series(599, {"agl": 100.0})), "склон − ε")
+	check(_live_opens("ACH_EVENING", {}, _series(1200, {"sun_elev_deg": 5.0})), "вечер сразу")
+	var g := {"circling": true, "vario": 1.0, "near_climbing_live": 1}
+	check(_live_opens("ACH_GAGGLE", {"net": true}, _series(60, g)), "поток сразу")
+	check(not _live_opens("ACH_GAGGLE", {"net": true}, _series(59, g)), "поток − ε")
+	check(_live_opens("ACH_SOARING_15", {}, _series(900)), "15 минут сразу")
+	check(not _live_opens("ACH_SOARING_15", {}, _series(899)), "15 минут − ε")
+	check(_live_opens("ACH_HOUR", {}, _series(3600)) and not _live_opens("ACH_HOUR", {}, _series(3599)), "час")
+	check(_live_opens("ACH_HOURS_3", {}, _series(10800)) and not _live_opens("ACH_HOURS_3", {}, _series(10799)), "три часа")
+	check(_live_opens("ACH_WINTER", {"temp_c": 0.0}, _series(600)), "мороз сразу")
+	check(not _live_opens("ACH_WINTER", {"temp_c": 0.1}, _series(600)), "мороз: тепло")
+	check(not _live_opens("ACH_WINTER", {"temp_c": 0.0}, _series(599)), "мороз − ε")
+	check(_live_opens("ACH_ABOVE_LAUNCH", {}, _series(2, {"alt_msl": 1100.0})), "выше старта сразу")
+	check(not _live_opens("ACH_ABOVE_LAUNCH", {}, _series(2, {"alt_msl": 1099.9})), "выше старта − ε")
+	check(_live_opens("ACH_KILOMETER_UP", {}, _series(2, {"alt_msl": 2000.0})), "километр сразу")
+	check(not _live_opens("ACH_KILOMETER_UP", {}, _series(2, {"alt_msl": 1999.0})), "километр − ε")
+	check(_live_opens("ACH_OVERCAST", {"sky": "overcast"}, _series(2, {"alt_msl": 1300.0})), "серый день сразу")
+	check(not _live_opens("ACH_OVERCAST", {"sky": "clear"}, _series(2, {"alt_msl": 1300.0})), "серый день: ясно")
+	# Посадочные и итоговые — только после посадки.
+	check(not _live_opens("ACH_FIRST_FLIGHT", {}, _series(5)) and not _live_opens("ACH_XC_10", {}, _series(5)), "посадочные не в полёте")
+	cb.clear()
+
+
+func test_live_unlock_survives_non_landed_end() -> void:
+	_clean()
+	var t := _tracker()
+	var got := []
+	t.unlocked.connect(func(api: String) -> void: got.append(api))
+	_fly(t, _ctx(), _series(2, {"alt_msl": 5100.0}), _fin({"kind": "takeoff_failed"}))
+	check(got.has("ACH_ALT_5000") and not got.has("ACH_FIRST_FLIGHT"), "открылось в полёте: %s" % [got])
+	t.free()
+	var t2 := _tracker()
+	check(t2.is_unlocked("ACH_ALT_5000"), "сохранено на диск сразу")
+	t2.free()
+	_clean()
+
+
+func test_live_unlock_goes_to_steam_in_flight() -> void:
+	_clean()
+	var fake := Fake.new()
+	var svc := _active_service(fake)
+	var t := _tracker(svc)
+	t.on_flight_started(_ctx())
+	t.on_flight_sample(_series(0, {"alt_msl": 6000.0})[0])
+	check(fake.set_calls.has("ACH_ALT_5000") and fake.store_calls == 1, "setAchievement в полёте")
+	t.on_flight_sample(_series(0, {"alt_msl": 6000.0, "t": 1.0})[0])
+	check(fake.store_calls == 1, "повторно не шлётся")
 	t.free()
 	svc.free()
 	fake.free()
