@@ -5,7 +5,7 @@ module: "steam"
 updated: "2026-10-05"
 summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
 related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
-contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 1}, {"id": "S4", "version": 1}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
+contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 1}, {"id": "S3", "version": 1}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 1}, {"id": "S7", "version": 0}]
 ---
 # Контракты модуля steam
 
@@ -108,7 +108,9 @@ func launch_lobby_id() -> int              # лобби из аргумента 
 
 `SteamPresence` (`scripts/steam/steam_presence.gd`) переводит в ключи Steam (лимит Steam — не чаще раза в секунду, только изменившиеся ключи): `steam_display` = `#St_<Mode>` или `#St_<Mode>_Net` (токены `#St_Menu`, `#St_Loading`, `#St_Launch`, `#St_Flying`, `#St_Landed`, `#St_Paused` и `_Net`-варианты; в тексте токенов — `%place%`, `%alt%`, `%peers%`), `place`, `alt`, `peers`; при лобби (S5) — `steam_player_group` = id лобби, `steam_player_group_size` = `peers`, `connect` = `+connect_lobby <id лобби>`; вне лобби эти три ключа очищаются. Файл токенов для кабинета — `steam/partner/rich_presence.vdf` (english + russian). На App ID 480 токены не загружены — проверка только через чтение своих ключей.
 
-## S4. Транспорт сети: подключаемые пиры (версия 1)
+## S4. Транспорт сети: подключаемые пиры (версия 2)
+
+v2 (2026-10-05, по итогам ST-4; потребитель ST-8 ещё не начат): схема без «://» (`steam:<id>`) распознаётся, только если она в `NetClient.TRANSPORT_SCHEMES` (иначе «имя:порт», как было; `h:x` — BAD_ADDRESS); известная схема без фабрики и любая `xxx://` без фабрики — сразу `CONNECT_FAILED` + `disconnected(false)`, `connect_to_server` → false; фабрика вернула null — обычная неудачная попытка с повторами. `register_transport(scheme, Callable())` снимает схему; реестр общий для всех экземпляров `NetClient` (static). `attach_peer` возвращает номер соединения сервера (1, 2, …), не id пилота. Пиру не обязательны методы сверх S4.1 (`WsPeer` имеет ещё `get_requested_url` — путь `/v1/ws` сервер проверяет только у пиров с этим методом, `get_close_reason`, `binary_frames`). CLOSING пир может пропускать (сразу CLOSED).
 
 Владелец — ST-4. Потребители — ST-8 (Steam-транспорт и мост хозяина), существующие тесты `tests/net/`. Протокол (`net.proto`, proto3 JSON) **не меняется**: Steam везёт те же текстовые кадры.
 
