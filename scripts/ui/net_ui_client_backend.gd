@@ -53,14 +53,15 @@ func _init(p_client: Node = null, p_zone: Node = null, p_lan: Node = null, p_ste
 	if lan == null and tree != null:
 		lan = tree.root.get_node_or_null("LanDiscovery")
 	if lan != null:
-		lan.zones_changed.connect(func() -> void: nearby_changed.emit())
+		# методом, не лямбдой: лямбда держит ссылку на бэкенд, и он жил бы после экрана
+		lan.zones_changed.connect(_on_lan_zones_changed)
 	if steam == null and tree != null:
 		steam = tree.root.get_node_or_null("SteamLobby")
 	if steam != null:
-		steam.friends_changed.connect(func() -> void: friends_changed.emit())
+		steam.friends_changed.connect(_on_steam_friends_changed)
 		steam.lobby_ready.connect(_on_lobby_ready)
 		steam.lobby_failed.connect(_on_lobby_failed)
-		steam.join_lobby_requested.connect(func(_id: int) -> void: _join_pending())
+		steam.join_lobby_requested.connect(_on_steam_join_requested)
 	if client == null or zone == null:
 		return
 	client.connected.connect(_on_connected)
@@ -313,6 +314,18 @@ func connect_and_join_lobby(lobby_id: int, name: String) -> void:
 	_busy = true
 	state_changed.emit()
 	steam.join_lobby(lobby_id)
+
+
+func _on_lan_zones_changed() -> void:
+	nearby_changed.emit()
+
+
+func _on_steam_friends_changed() -> void:
+	friends_changed.emit()
+
+
+func _on_steam_join_requested(_lobby_id: int) -> void:
+	_join_pending()
 
 
 func _on_lobby_ready(lobby_id: int, address: String, zone_code: String) -> void:

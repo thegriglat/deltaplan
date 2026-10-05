@@ -79,6 +79,13 @@ func _ready() -> void:
 	visibility_changed.connect(_on_visibility_changed)
 
 
+## Экран убран (закрыт, не отдан в полёт): «Рядом»/«Друзья в игре» больше не слушать — иначе
+## бэкенд, если его ещё кто-то держит, входил бы по приглашениям Steam без экрана.
+func _exit_tree() -> void:
+	if not _handed_over and backend != null:
+		backend.stop_nearby()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Esc — как «Назад» (раньше main.gd: экран глубже в дереве и получает ввод первым).
 	var esc := event.is_action_pressed("ui_cancel")
