@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "SM-К1 v3 выполнен: UA из шаблона {version} с адресом проекта и без non-commercial (общая функция и для Terrarium), пауза тайла 60 с, пауза слоя 600 с после 403/429 с учётом Retry-After, у osm max_parallel 2. Скоуп соблюдён, тесты не ходят в сеть. Замечания мелкие.",
+  "issues": [
+    {
+      "file": "scripts/terrain/raster_tile_loader.gd",
+      "line": 59,
+      "severity": "minor",
+      "what": "Счётчик _active ведётся по слою, поэтому max_parallel_requests (4) стал пределом на слой, а не общим, как в SM-К1 («не больше max_parallel_requests одновременно»). При смене слоя в полёте может оказаться до 2+4 запросов.",
+      "fix": "Держать и общий счётчик, ждать пока active_total < max_parallel_requests и active[id] < max_parallel, либо в следующей версии контракта записать, что предел действует на слой."
+    },
+    {
+      "file": "tests/terrain/test_raster_tile_policy.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Нет теста, что к osm одновременно уходит не больше 2 запросов: проверено только значение в конфиге. Цель карточки — именно этот предел.",
+      "fix": "Сделать http_hook, который ждёт кадр/сигнал, запустить 4 fetch_tile без await и проверить, что в полёте одновременно не больше 2."
+    },
+    {
+      "file": "tests/ui/test_map_picker_policy.gd",
+      "line": 21,
+      "severity": "minor",
+      "what": "test_picker_uses_loader_with_policy проверяет только, что MapPicker создаётся. Название обещает больше, чем тест проверяет.",
+      "fix": "Переименовать или убрать."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "raster_tile (dp accept --only --dry)",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "steam_assets_contracts (dp accept --only --dry)",
+      "value": "6/6",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-05T07:02:01",
+  "by": "reviewer"
+}
