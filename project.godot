@@ -23,6 +23,7 @@ buses/default_bus_layout="res://scenes/audio/bus_layout.tres"
 [autoload]
 
 Config="*res://scripts/core/config.gd"
+SteamService="*res://scripts/steam/steam_service.gd"
 NetClient="*res://scripts/net/net_client.gd"
 NetZone="*res://scripts/net/net_zone.gd"
 NetPilots="*res://scripts/net/net_pilots.gd"
