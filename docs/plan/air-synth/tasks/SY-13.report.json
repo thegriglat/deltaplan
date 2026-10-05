@@ -1,13 +1,13 @@
 {
   "status": "done",
-  "summary": "Меню модели ветра: порядок Нейросеть, Расчет на GPU, Эвристика; подписи уточнены по коду, без «экспериментально»; по умолчанию нейросеть (configs/atmosphere.json engine=nn, AirRuntime.engine(), панель). Внутренние значения (enabled auto/off, engine nn/solver) не менялись, пункты имеют id 2/0/1.",
+  "summary": "Старый текст на скриншоте — устаревший locale/*.translation после моего stash/pop (скриншот снят после него). Добавлен тест текстов пунктов по реальному UI (ru/en), флаг ui_shot --wind-list, новые скриншоты 01 и 02.",
   "commits": [
-    "0171ed28 Меню модели ветра: Нейросеть, Расчет на GPU, Эвристика; умолчание нейросеть"
+    "beec42f9 ui_shot --wind-list; тест текстов по UI ru/en"
   ],
   "checks": [
     {
       "name": "wind_model_setting",
-      "value": "2/2",
+      "value": "3/3",
       "pass": true
     },
     {
@@ -17,33 +17,30 @@
     },
     {
       "name": "labels",
-      "value": "устарел: ждёт «Нейросеть,», теперь «Нейросеть (поле ветра по рельефу),» — поправьте проверку в карточке",
-      "pass": false
+      "value": "совпало",
+      "pass": true
     },
     {
-      "name": "check.sh --filter=air_contracts",
-      "value": "1 упал test_c4_atmosphere_api_and_analytic — падает и без моих правок",
-      "pass": false
+      "name": "screenshot",
+      "value": "exit 0, тексты ru/en в логе",
+      "pass": true
     }
   ],
-  "not_done": [
-    "Скриншот показывает закрытый список (умолчание — «Нейросеть…»); раскрытого списка в ui_shot нет."
-  ],
-  "questions": [
-    "Умолчание теперь nn: если model.onnx/расширения AirOnnx нет — аналитика с записью в журнал; проверить в полном прогоне (gpu/air тесты) вам."
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [
-    "/home/greg/deltaplan/build/screenshots/SY-13/01_меню_модели_ветра.png"
+    "/home/greg/deltaplan/build/screenshots/SY-13/01_меню_модели_ветра.png",
+    "/home/greg/deltaplan/build/screenshots/SY-13/02_меню_модели_ветра_список.png"
   ],
-  "how_to_check": "dp accept SY-13 --dry (labels править)",
+  "how_to_check": "dp accept SY-13 --dry",
   "uncertain": [
     {
-      "where": "configs/atmosphere.json: air_model.engine",
-      "why": "смена умолчания на nn может влиять на другие тесты/детерминизм",
-      "checked": "прогнал --filter=air (71 тест, единственный упавший падает и до правок)"
+      "where": "причина старого текста",
+      "why": "восстановлена по хронологии, а не по сохранённому артефакту",
+      "checked": "скриншот снят после stash/pop, когда .translation был собран из откаченного CSV; в новой копии после импорта UI даёт новые тексты (лог съёмки)"
     }
   ],
-  "dp_feedback": "dp accept: после правки locale/ui.csv нужен реимпорт, иначе тест видит старый перевод; запятая в тексте CSV без кавычек ломает подпись.",
-  "t": "2026-10-05T21:32:18",
+  "dp_feedback": "dp accept не реимпортирует locale; шаг screenshot хорошо бы проверять ещё и текст из лога.",
+  "t": "2026-10-05T21:37:52",
   "by": "executor"
 }
