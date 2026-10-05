@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "gen_wings.py пишет ru и en по SI-К6; wings/** переименованы в .ru.md, сгенерированы .en.md (48 крыльев, 106 файлов); ссылки на благодарности — /#acknowledgements, якорь отметок — {#provenance-marks} (SI-К4 v3).",
+  "commits": [
+    "5e81166e site-i18n SI-2: генератор крыльев ru и en"
+  ],
+  "checks": [
+    {
+      "name": "gen_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "c2",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wings_i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hugo build",
+      "value": "без WARN/ERROR",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ручной текст wings/_index.en.md и групповых _index.en.md — копия русского (SI-23)"
+  ],
+  "questions": [
+    "Заголовок {#acknowledgements} на главной должен появиться в переводе главной, иначе якорь из en-страниц крыльев битый."
+  ],
+  "how_to_check": "dp accept SI-2",
+  "uncertain": "Английские формулировки (card DHV, 3D model spec для ТЗ, имена прототипов Atlas/Slavutich-UT/Apogee в PROTO_EN) придуманы мной; проверено K5 (кириллица) и отсутствием кириллицы в сгенерированных en-страницах через check_i18n. Якорь acknowledgements не проверен на реальной странице. Заголовок ru-легенды получил {#provenance-marks}.",
+  "dp_feedback": "dp task sync отказывает при грязной копии — пришлось сначала коммитить.",
+  "t": "2026-10-05T06:21:44",
+  "by": "executor"
+}

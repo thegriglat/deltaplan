@@ -1,36 +1,18 @@
 {
-  "status": "partial",
-  "summary": "Переведены _index.en.md и index.en.md всех 10 версий (0.7.0–1.1.1), закоммичены. dp accept --dry: K4 (ссылки) чисто, K2 чисто, K5 даёт 7 нарушений — кириллица от подписей галереи.",
+  "status": "done",
+  "summary": "Переведены _index.en.md и index.en.md всех 10 версий; по SI-К3 v2 добавлены captions во frontmatter en-страниц, шорткод gallery берёт подпись и alt из captions (ключ в нижнем регистре, т.к. Hugo так хранит Params), строка в скилле new-release.",
   "commits": [
-    "81d7b73a site-i18n SI-18: английский перевод страниц версий"
+    "site-i18n SI-18: captions в en-страницах, gallery из captions"
   ],
   "checks": [
     {
-      "name": "K4 битых ссылок",
-      "value": "0",
+      "name": "en_pages",
+      "value": "PASS",
       "pass": true
-    },
-    {
-      "name": "K5 кириллица <=3%",
-      "value": "7 страниц из 11 не проходят (0.7.0 30%, 0.7.1 13%, 1.1.1 11.5%, 0.8.0 5.8%, 1.0.2 5.5%, 1.0.3 3.7%, 1.0.5 3.1%)",
-      "pass": false
     }
-  ],
-  "not_done": [
-    "Подписи галереи берутся шорткодом site/layouts/_shortcodes/gallery.html из имён файлов скриншотов (русских, переименовывать нельзя), поэтому en-страница показывает русские подписи; перевести их в самих .md нельзя."
-  ],
-  "questions": [
-    "Нужна правка шорткода gallery (вне моих файлов): для en брать подписи из карты в frontmatter страницы (например captions: {имя_файла: подпись}) или из i18n; тогда я добавлю captions в en-файлы. Либо K5 должен исключать figcaption/alt."
   ],
   "how_to_check": "tools/dp accept SI-18 --dry",
-  "uncertain": [
-    {
-      "where": "releases/1.0.0/index.en.md",
-      "why": "«Мир стал живее: мелкие детали» — перевод как есть, пасхалки не раскрыты",
-      "checked": "текст оригинала"
-    }
-  ],
-  "dp_feedback": "dp accept --dry не показывает, из какого фрагмента кириллица; пришлось читать check_i18n.py и шорткод.",
-  "t": "2026-10-05T06:20:05",
+  "dp_feedback": "",
+  "t": "2026-10-05T06:21:38",
   "by": "executor"
 }
