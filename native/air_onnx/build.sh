@@ -29,8 +29,10 @@ LLVM_MINGW_VER=20260922
 # Visual Studio (Distributable Code), автор принимает её сам: сборка Windows требует явного согласия
 # MSVC_ACCEPT_LICENSE=yes (молча не принимается). Версия и sha256 каждой DLL закреплены.
 #   MSVC_REDIST_DIR=<каталог>  — Microsoft.VC143.CRT или любой выше (…\VC\Redist\MSVC\<ver>\x64), скопированный с
-#                                 машины с VS; DLL ищутся рекурсивно.
-MSVC_RT_VER=14.44.35112
+#                                 машины с VS; DLL ищутся рекурсивно. На Linux каталог даёт скрипт
+#                                 tools/release/fetch_msvc_redist.sh (msvc-wine, пакеты VS Build Tools 2022, только Redist).
+# 14.44.35211 — файловая версия DLL (каталог в VC\Redist называется 14.44.35112); хэши сняты с DLL из Build Tools 17.14.
+MSVC_RT_VER=14.44.35211
 MSVC_RT_SHA256="msvcp140.dll=0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9
 msvcp140_1.dll=bfad5aef4c63a669e3c140655cdfdf395b6c979b400a447bd5dcb65ed8826c3d
 vcruntime140.dll=d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066

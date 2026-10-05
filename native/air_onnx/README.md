@@ -61,7 +61,7 @@ native/air_onnx/build.sh clean            # убрать собранное (и 
 
 Версии (закреплены в `build.sh`): ONNX Runtime **1.30.0** (готовые бинарники GitHub, та же версия, что
 в venv пилота), godot-cpp **10.0.0-stable** (`GODOTCPP_API_VERSION=4.7`), llvm-mingw **20260922** (UCRT),
-VC++ runtime **14.44.35112** (официальный Visual Studio 2022 `VC\Redist`, sha256 каждой DLL в `build.sh`).
+VC++ runtime **14.44.35211** (официальный Visual Studio 2022 `VC\Redist`, sha256 каждой DLL в `build.sh`).
 
 ## Как расширение попадает в игру
 
@@ -123,7 +123,7 @@ C-символ `OrtGetApiBase`; C++-обёртка `onnxruntime_cxx_api.h` — �
 | `msvcp140*.dll`, `vcruntime140*.dll` | `KERNEL32`, UCRT и друг друга |
 
 **VC++ runtime — app-local** (решение ON-2): 4 DLL (`msvcp140.dll`, `msvcp140_1.dll`, `vcruntime140.dll`,
-`vcruntime140_1.dll`, 14.44.35112, ~0.8 МБ) лежат рядом с `onnxruntime.dll` и в экспорте — рядом с
+`vcruntime140_1.dll`, 14.44.35211, ~0.8 МБ) лежат рядом с `onnxruntime.dll` и в экспорте — рядом с
 `deltaplan.exe` (они в `[dependencies]` `.gdextension`). Почему не требование «поставьте VC++ Redistributable»:
 пилоту не нужно ничего ставить; и известная ловушка — ORT, собранный свежим MSVC, падает в `std::mutex`
 со **старым** `msvcp140.dll` из системы (VS 17.10+, constexpr-конструктор mutex), а app-local DLL свежие.
@@ -134,12 +134,14 @@ Microsoft разрешает распространять эти DLL вмест�
 Сборка Windows требует явного согласия и каталога-источника:
 
 ```
-# на машине с VS 2022: скопировать …\VC\Redist\MSVC\14.44.35112\x64\Microsoft.VC143.CRT (или весь x64) на сборочную
-MSVC_ACCEPT_LICENSE=yes MSVC_REDIST_DIR=/путь/к/Microsoft.VC143.CRT native/air_onnx/build.sh windows
+# Linux: Redist из пакетов VS Build Tools 2022 через msvc-wine (скачивает только Redist, ~3 МБ, вне репозитория):
+export MSVC_ACCEPT_LICENSE=yes
+MSVC_REDIST_DIR=$(tools/release/fetch_msvc_redist.sh | tail -1) native/air_onnx/build.sh windows
+# или с машины с VS 2022: скопировать …\VC\Redist\MSVC\14.44.35112\x64\Microsoft.VC143.CRT и указать MSVC_REDIST_DIR
 ```
 
 Без `MSVC_ACCEPT_LICENSE=yes` или `MSVC_REDIST_DIR` `build.sh windows` останавливается с пояснением до компиляции.
-Версия 14.44.35112 и sha256 каждой из 4 DLL закреплены в `build.sh`; другая версия Redist — отказ с показом фактического
+Версия 14.44.35211 и sha256 каждой из 4 DLL закреплены в `build.sh`; другая версия Redist — отказ с показом фактического
 хэша (обновление — осознанное: версия и хэши в `build.sh` и строка в `ASSETS.md`). Уже собранные `bin/windows/*.dll`
 побайтно те же (хэши сняты с них). Ни `deltaplan.exe`, ни `libdd3d` msvcp/vcruntime не импортируют — в процессе это будут именно наши DLL. Если DLL всё же не загрузятся — `load()` = 4, текст ошибки подсказывает про VC++ runtime, игра идёт на упрощённой модели.
 
