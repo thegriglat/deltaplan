@@ -236,87 +236,87 @@ disableKinds = ['taxonomy', 'term']
   [[module.mounts]]
     source = '../docs/guide'
     target = 'content/docs/guide'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! world-objects.md', '*.md']
   [[module.mounts]]
     source = '../docs/contracts'
     target = 'content/docs/contracts'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! easter-eggs.md', '*.md']
 
   # --- Планы (живые и отложенные): docs/plan/ ---
   [[module.mounts]]
     source = '../docs/plan'
     target = 'content/plans'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
   # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
   [[module.mounts]]
     source = '../docs/archive/plan'
     target = 'content/plans/archive'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! world-easter-eggs*.md', '! game/README.md', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../docs/archive/plan/game/README.md'
     target = 'content/plans/archive/game/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]
     source = '../docs/registry/findings.md'
     target = 'content/research/findings.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Исследования и источники: docs/research/ ---
   [[module.mounts]]
     source = '../docs/research'
     target = 'content/research/docs'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['*.md', '**/*.md']
 
   # --- Прототип «нагрев → плавучесть → поток» (2D): tools/research/heat_ca/ ---
   [[module.mounts]]
     source = '../tools/research/heat_ca'
     target = 'content/research/heat_ca'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '! out/refs/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../tools/research/heat_ca/README.md'
     target = 'content/research/heat_ca/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp1_3_6_kernels/README.md'
     target = 'content/research/heat_ca/exp1_3_6_kernels/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp2_picard/README.md'
     target = 'content/research/heat_ca/exp2_picard/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp4_transfer_sweeps/README.md'
     target = 'content/research/heat_ca/exp4_transfer_sweeps/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp5_adi/README.md'
     target = 'content/research/heat_ca/exp5_adi/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- 3D-эталон: tools/research/air3d/ ---
   [[module.mounts]]
     source = '../tools/research/air3d'
     target = 'content/research/air3d'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '! fields/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../tools/research/air3d/README.md'
     target = 'content/research/air3d/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Данные Askervein ---
   [[module.mounts]]
     source = '../tools/research/data/askervein/README.md'
     target = 'content/research/askervein/_index.md'
-    lang = 'ru'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Весь репозиторий как assets/repo/<путь>: картинки и 3D-страницы публикуются
   #     только если на них есть ссылка; для остальных файлов — проверка существования,
