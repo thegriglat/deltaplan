@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Инвентарь сборки (build_inventory.py по SA-К1, эмуляция совпала с настоящим --export-pack Linux/Windows до файла) и аудит docs/research/steam_license_audit.md. NC-материалов в сборке нет (16 страниц CC0 и 2 CC-BY на Freesound, Kenney, ambientCG, MPFB, Copernicus, WorldCover, Mapzen, ONNX Runtime проверены по вебу). Пробелы: 95-100 файлов без строки ASSETS.md (крылья, model.onnx, ONNX Runtime, VC++ runtime, движок, экраны загрузки), 13 файлов рельефа с лицензией «как у высот / то же»; главный вопрос - источник VC++ DLL.",
+  "commits": [
+    "b6816242 SA-1: аудит лицензий сборки, build_inventory.py (SA-К1), сверка с настоящим экспортом"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "inventory",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "inventory_json",
+      "value": "JSON OK 3",
+      "pass": true
+    },
+    {
+      "name": "эмуляция vs pck",
+      "value": "Linux/Windows 803 файла, расхождений 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "--check пока падает (ожидаемо до SA-3): без строки ASSETS.md 95/100/96 (Linux/Windows/macOS), commercial_ok != true 13",
+    "macOS-pck сверен по более раннему экспорту (2 временных json аудита в нём), заново не гонял"
+  ],
+  "questions": [
+    "VC++ runtime: DLL из колеса PyPI msvc-runtime (Gohlke); Microsoft разрешает раздавать при действующей лицензии Visual Studio у распространителя. Брать DLL из своей установки VS Community или ставить vc_redist через Steam?",
+    "Нужен ли абзац про торговые марки для названий реальных крыльев (Aeros и др.)?",
+    "SA-К3: описать шаблоны <exe>/... и engine для файлов рядом с exe и движка (сейчас я сопоставляю токены `engine` и пути проекта)"
+  ],
+  "images": [],
+  "how_to_check": "dp accept SA-1; tools/research/steam_license/README.md",
+  "uncertain": [
+    {
+      "where": "docs/research/steam_license_audit.md п.4.1",
+      "why": "происхождение model.onnx выведено по плану/README пилота/коммитам; каталог ~/air_nn_data на машине отсутствует, манифест прогона не читал",
+      "checked": "docs/plan/air_nn.md, air-nn-p3.md, коммит aa136a21, config пилота"
+    },
+    {
+      "where": "docs/research/steam_license_audit.md п.4.2",
+      "why": "юридическая трактовка Microsoft Software License Terms для VC++ DLL - моя, не юриста; сами условия VS Community не читал",
+      "checked": "Learn: Redistribute Visual C++ Files; Distributable Code VS2022; текст LICENSE в колесе"
+    },
+    {
+      "where": "tools/release/build_inventory.py beside_exe",
+      "why": "режим debug/release меняет libdd3d (editor или .enabled); какой режим идёт в релиз - не знаю",
+      "checked": "tools/build.sh по умолчанию --export-debug; новый release - skill new-release"
+    },
+    {
+      "where": "tools/release/build_inventory.py token_regex",
+      "why": "лояльные правила совпадения: имена через запятую и соседние токены наследуют каталог; «dir/*» совпадает во вложенных; это шире строгого SA-К3",
+      "checked": "прогон на текущем ASSETS.md"
+    },
+    {
+      "where": "OFL/MIT fonts, dd3d, debug_menu, godot-cpp",
+      "why": "проверены только локальные тексты лицензий, не вебом",
+      "checked": "файлы лицензий в репозитории"
+    }
+  ],
+  "dp_feedback": "Не хватило: dp-команды «список файлов .pck / сверка с экспортом»; dp job wait на коротких job'ах печатает хвост лога вместо статуса; dp docs check требует frontmatter даже у README в tools/research.",
+  "t": "2026-10-05T07:06:35",
+  "by": "executor"
+}

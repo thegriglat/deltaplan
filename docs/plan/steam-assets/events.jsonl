@@ -34,3 +34,7 @@
 {"t": "2026-10-05T07:02:20", "by": "coordinator", "task": "SA-8", "ev": "accepted", "commits": ["199cec3d"], "note": "5/5 start_map=ok:6/6; steam_assets_contracts=ok:6/6; map_picker=ok:3/3; raster_tile=ok:7/7; no_noncommercial=ok:0"}
 {"t": "2026-10-05T07:02:28", "by": "coordinator", "task": "SA-8", "ev": "merged"}
 {"t": "2026-10-05T07:02:28", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp plan <модуль> --contracts <ID> не находит контракт другого модуля из карточки (SM-К1 в start-map.md) — искать по ID во всех docs/contracts (замечание ревьюера SA-8)"}
+{"t": "2026-10-05T07:06:35", "by": "executor", "task": "SA-1", "ev": "reported", "commits": ["b6816242"], "note": "done: Инвентарь сборки (build_inventory.py по SA-К1, эмуляция совпала с настоящим --export-pack Linux/Windows до файла) и ауд…", "dp_feedback": "Не хватило: dp-команды «список файлов .pck / сверка с экспортом»; dp job wait на коротких job'ах печатает хвост лога вместо статуса; dp docs check требует frontmatter даже у README в tools/research."}
+{"t": "2026-10-05T07:07:16", "by": "executor", "task": "SA-1", "ev": "checked", "note": "4/4 steam_assets_contracts=ok:2/2; docs=ok:ошибок 0; inventory=ok:exit 0; inventory_json=ok:JSON OK"}
+{"t": "2026-10-05T07:07:38", "by": "coordinator", "task": "SA-1", "ev": "accepted", "note": "по отчёту: исследование + скрипт инвентаря, игра не менялась; спорное (VC++ runtime) — на шлюз пользователю"}
+{"t": "2026-10-05T07:07:46", "by": "coordinator", "task": "SA-1", "ev": "merged"}

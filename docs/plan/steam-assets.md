@@ -43,11 +43,11 @@ related: ["docs/contracts/steam-assets.md", "ASSETS.md", "docs/plan/offline_worl
 - Скоуп: `docs/research/steam_tile_policy.md` — проверка кода игры по OSM Tile Usage Policy и условиям OpenTopoMap: честный User-Agent, видимая атрибуция, кэш на диске и срок, без массовой предзагрузки, лимит параллельных запросов, адрес сервера в конфиге; таблица «пункт правил → как в коде → соответствует → правка». Код не правит.
 - Приёмка: `dp docs check` чист; документ есть. Правки — задача SA-8.
 
-### SA-3. ASSETS.md под новую схему (dp-writer, Sonnet) — после SA-1
+### SA-3. ASSETS.md под новую схему (dp-writer, Sonnet) — после SA-1; правки — аудит п. 8, пункты 1–6, 14
 - Скоуп: правила в шапке ASSETS.md (NC и «личное» запрещены для всего в сборке; сайт и исследования — отдельно), раздел «Движок и библиотеки», правки строк по аудиту, ссылки на тексты `licenses/*.txt` (SA-К2 — тексты кладёт SA-4; если SA-4 позже — ссылки по списку из контракта), тексты «некоммерческий» (`about_intro` ru/en, `user_agent`).
 - Приёмка: `build_inventory.py --preset all --check` → 0; тесты `steam_assets_contracts`, `assets_credits` → 0 упало; `dp docs check` чист.
 
-### SA-4. Атрибуции в игре и файл лицензий рядом с exe (dp-engineer, Sonnet) — после SA-1
+### SA-4. Атрибуции в игре и файл лицензий рядом с exe (dp-engineer, Sonnet) — после SA-1; аудит п. 8, пункты 7, 9, 13; `exclude_filter` += `build/*`
 - Скоуп: SA-К2: `licenses/*.txt`, `tools/release/third_party_notices.py`, одна строка в `tools/build.sh`, проверка экрана «Об игре» (все обязательные атрибуции видны), контрактный тест `tests/contracts/test_steam_assets_contracts_sa4.gd`.
 - Приёмка: сборка Linux (`tools/build.sh linux`) кладёт `THIRD_PARTY_NOTICES.txt` и `licenses/` рядом с exe; тест: каждая строка с атрибуцией — в тексте «Об игре» и в файле; `steam_assets_contracts` → 0 упало.
 
@@ -73,7 +73,8 @@ related: ["docs/contracts/steam-assets.md", "ASSETS.md", "docs/plan/offline_worl
 3. SA-7 (после списка ачивок модуля steam), SA-8 (после SA-2).
 
 ## Шлюз 1 — вопросы пользователю (готовятся)
-1. Вопросы аудита SA-1 (если будут).
+1. VC++ runtime (4 DLL рядом с exe на Windows, аудит SA-1 п. 4.2): взяты из PyPI-колеса `msvc-runtime`; Microsoft разрешает раздавать их только держателю лицензии Visual Studio.
+2. `points.png` в корне главной копии (не в git) попадает в сборку, если собирать из главной копии; `build/*.json` тоже — SA-4 исключает `build/*`.
 2. Капсулы и иконки — посмотреть файлы (после SA-6).
 
 ## Риски
