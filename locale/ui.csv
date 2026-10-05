@@ -92,7 +92,7 @@ controls_camera,Вид: из кабины → сзади → свободная 
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
 controls_pause,Пауза и меню,Pause and menu
 controls_mouse_capture,Отпустить или снова захватить мышь; отпущенная мышь крыло не двигает,Release or recapture the mouse; a released mouse does not move the wing
-about_dedication,В благодарность родителям.,With gratitude to my parents.
+about_dedication,В благодарность родителям-дельтапланеристам.,With gratitude to my hang glider pilot parents.
 setup_start_time,Время старта,Start time
 setup_date,Дата,Date
 settings_time_speed,Скорость времени,Time speed
