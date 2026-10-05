@@ -42,3 +42,7 @@
 {"t": "2026-10-05T06:17:46", "by": "coordinator", "task": "SI-8", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-8"}
 {"t": "2026-10-05T06:17:48", "by": "coordinator", "task": "SI-9", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-9"}
 {"t": "2026-10-05T06:17:50", "by": "coordinator", "task": "SI-18", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-18"}
+{"t": "2026-10-05T06:19:20", "by": "executor", "task": "SI-9", "ev": "reported", "commits": ["ac61e6f4"], "note": "done: Создан site/content/mechanics/multiplayer.en.md: полный перевод, структура, ссылки, картинки, шорткоды и числа как в ор…"}
+{"t": "2026-10-05T06:19:30", "by": "executor", "task": "SI-8", "ev": "reported", "commits": ["95c24a88"], "note": "done: Переведена страница air-model на английский: site/content/mechanics/air-model.en.md (структура, ссылки, картинки, форму…"}
+{"t": "2026-10-05T06:19:33", "by": "executor", "task": "SI-9", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
+{"t": "2026-10-05T06:19:33", "by": "coordinator", "task": "SI-9", "ev": "merged", "commits": ["7dd338c3"]}
