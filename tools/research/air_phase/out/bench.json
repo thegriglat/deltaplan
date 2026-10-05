@@ -1,0 +1,139 @@
+{
+ "device": "NVIDIA GeForce RTX 4070 SUPER",
+ "solver_version": "s1-74644c4",
+ "method": "пакет = B решателей в одном процессе, свой поток CUDA и граф у каждого; пропускная способность — при 200 итерациях на случай без проверки сходимости (tol 1e-30), пересчёт на 1000 итераций",
+ "by_batch": [
+  {
+   "B": 1,
+   "n_cases": 8,
+   "iters_total": 1608,
+   "wall_s": 17.06,
+   "ms_per_case_iter": 10.612,
+   "cases_per_h_1000it": 339.2,
+   "peak_mem_mb": 163
+  },
+  {
+   "B": 2,
+   "n_cases": 8,
+   "iters_total": 1608,
+   "wall_s": 11.0,
+   "ms_per_case_iter": 6.838,
+   "cases_per_h_1000it": 526.5,
+   "peak_mem_mb": 326
+  },
+  {
+   "B": 4,
+   "n_cases": 8,
+   "iters_total": 1608,
+   "wall_s": 8.25,
+   "ms_per_case_iter": 5.129,
+   "cases_per_h_1000it": 701.9,
+   "peak_mem_mb": 651
+  },
+  {
+   "B": 8,
+   "n_cases": 16,
+   "iters_total": 3216,
+   "wall_s": 17.1,
+   "ms_per_case_iter": 5.317,
+   "cases_per_h_1000it": 677.0,
+   "peak_mem_mb": 1303
+  },
+  {
+   "B": 16,
+   "n_cases": 32,
+   "iters_total": 6432,
+   "wall_s": 35.29,
+   "ms_per_case_iter": 5.486,
+   "cases_per_h_1000it": 656.2,
+   "peak_mem_mb": 2605
+  },
+  {
+   "B": 32,
+   "n_cases": 64,
+   "iters_total": 12864,
+   "wall_s": 69.47,
+   "ms_per_case_iter": 5.4,
+   "cases_per_h_1000it": 666.6,
+   "peak_mem_mb": 5210
+  }
+ ],
+ "by_processes": [
+  {
+   "processes": 1,
+   "ms_per_case_iter_inner_mean": 10.945,
+   "cases_per_h_1000it_inner": 328.9,
+   "cases_per_h_1000it_wall": 288.3
+  },
+  {
+   "processes": 2,
+   "ms_per_case_iter_inner_mean": 21.768,
+   "cases_per_h_1000it_inner": 330.8,
+   "cases_per_h_1000it_wall": 301.6
+  },
+  {
+   "processes": 4,
+   "ms_per_case_iter_inner_mean": 41.615,
+   "cases_per_h_1000it_inner": 346.0,
+   "cases_per_h_1000it_wall": 321.8
+  }
+ ],
+ "best_batch": 4,
+ "speedup_vs_1": 2.07,
+ "b_default": 4,
+ "case_types_B1": {
+  "strong_fr3_hill_s0.3": {
+   "status": "ok",
+   "iters": 51,
+   "seconds": 0.73
+  },
+  "weak_fr0.2_ridge_s0.3": {
+   "status": "max",
+   "iters": 1001,
+   "seconds": 8.9
+  },
+  "mid_fr0.6_ridge_s0.3_H100": {
+   "status": "ok",
+   "iters": 101,
+   "seconds": 1.31
+  },
+  "window100_fr3_stepdown_s0.3": {
+   "status": "ok",
+   "iters": 61,
+   "seconds": 2.46,
+   "window_status": "ok",
+   "window_iters": 71,
+   "window_cells": [
+    128,
+    88,
+    52
+   ],
+   "downwind_fit_over_h": 18.7
+  },
+  "envelope12_ground_fr3_stepdown_s0.3": {
+   "status": "ok",
+   "iters": 61,
+   "seconds": 0.78
+  }
+ },
+ "stacked_axis_probe": {
+  "note": "прикидка «ось случаев в массивах»: B копий массивов импульса, сложенных по z, одна прогонка x+y (4 запуска line_thomas); GPU-время на случай, мс (одиночный — 0,486). Прогонки x/y — 85 % итерации; выигрыш ≤ 1,9× и падает при B ≥ 16 (кэш), как у потоков — поэтому перепись ядер не делалась",
+  "xy_sweep_ms_per_case": {
+   "1": 0.486,
+   "2": 0.262,
+   "4": 0.259,
+   "8": 0.26,
+   "16": 0.369,
+   "32": 0.661
+  },
+  "iteration_breakdown_single_ms": {
+   "outer_step": 11.0,
+   "mom_step": 3.05,
+   "project": 4.19,
+   "heat_step": 4.13,
+   "vcycle": 3.24,
+   "update_k": 0.03,
+   "build_mom": 0.12
+  }
+ }
+}
