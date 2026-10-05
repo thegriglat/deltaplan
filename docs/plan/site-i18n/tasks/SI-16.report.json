@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "summary": "Создан thermals.en.md, перевод страницы Термики; ru не менялся.",
+  "commits": [
+    "bccb2eb3 site-i18n SI-16: английский перевод страницы Термики"
+  ],
+  "checks": [
+    {
+      "name": "en_pages",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "how_to_check": "dp accept SI-16 --dry",
+  "dp_feedback": "",
+  "t": "2026-10-05T06:24:08",
+  "by": "executor"
+}

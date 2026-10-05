@@ -94,3 +94,5 @@
 {"t": "2026-10-05T06:24:02", "by": "executor", "task": "SI-23", "ev": "reported", "commits": ["c0c9277b"], "note": "done: Переведён ручной текст вне GEN-блоков в 5 файлах wings (_index.en.md и 4 группы): заголовки H1, вводные абзацы, числа с…"}
 {"t": "2026-10-05T06:24:06", "by": "executor", "task": "SI-15", "ev": "accepted", "note": "1/1 en_pages=ok:exit 0"}
 {"t": "2026-10-05T06:24:07", "by": "coordinator", "task": "SI-15", "ev": "merged", "commits": ["f025e73e"]}
+{"t": "2026-10-05T06:24:08", "by": "executor", "task": "SI-16", "ev": "reported", "commits": ["bccb2eb3"], "note": "done: Создан thermals.en.md, перевод страницы Термики; ru не менялся."}
+{"t": "2026-10-05T06:24:09", "by": "coordinator", "task": "SI-5", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-site-i18n-SI-5"}
