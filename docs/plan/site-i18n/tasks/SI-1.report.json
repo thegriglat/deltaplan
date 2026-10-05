@@ -1,0 +1,48 @@
+{
+  "status": "partial",
+  "summary": "Hugo двуязычный (en в корне, ru в /ru/), 37 страниц переименованы в .ru.md, строки в i18n, резолвер ищет страницу в языке страницы, затем в другом с пометкой «in Russian». Проверка K4 не проходит одним пунктом: Hugo 0.167 сам создаёт /en/index.html (редирект на корень).",
+  "commits": [
+    "23d76df5 site-i18n SI-1: двуязычный Hugo, страницы → .ru.md, i18n, резолвер"
+  ],
+  "checks": [
+    {
+      "name": "config_i18n K1,K3",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_links K4",
+      "value": "ссылок 20282, битых 0; единственное нарушение: есть каталог /en/",
+      "pass": false
+    },
+    {
+      "name": "pages_suffix K2",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wings_c2",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "K4: каталог /en/ — это stub-редирект Hugo (en/index.html -> корень), создаётся всегда при двух языках; отключить не удалось (disableAliases, disableKinds sitemap, InSubdir — не помогли; воспроизводится на минимальном сайте). Нужна правка checker: допускать en/ только с редиректом."
+  ],
+  "questions": [
+    "Поправить K4 в check_i18n.py (разрешить /en/index.html-редирект)? mounts.lang в Hugo 0.167 deprecated (WARN скрыт --quiet), контракт требует lang — оставил lang; позже перейти на sites.matrix и поправить K1. languageName заменён на label (languageName deprecated; K1 его не проверяет)."
+  ],
+  "images": [],
+  "how_to_check": "python3 tools/site/check_i18n.py --only=K1,K3; --only=K4; /home/greg/deltaplan/tools/dp accept SI-1",
+  "uncertain": "(1) Ресурсы бандла (screenshots) при отсутствии en-страницы НЕ привязываются к ru-бандлу в Hugo (проверено: 0 ресурсов у ru-страницы без en); добавлен фолбэк в resolve.html — для /путь к ресурсу берётся site/content/<путь> через assets/repo (картинка публикуется в /repo/site/content/...). Когда появятся en-переводы бандлов, ресурсы привяжутся к обоим языкам (проверено временной index.en.md для 0.8.0: у обоих языков по 9), фолбэк станет не нужен для них. Шорткод gallery на ru-бандле без en читает .Page.Resources — у ru-only бандла это 0 картинок, на реальных страницах gallery пока не проверен до появления переводов. (2) Резолвер проверен временной _index.en.md (ссылки /mechanics/flight/, ../../docs/guide/architecture.md, ../../docs/plan/site-i18n.md, /, код, картинка 0.8.0): все ведут на /ru/... с «(in Russian)», картинка и скриншот-ссылка рабочие; файл удалён. Ссылка «/» раньше шла на GitHub — теперь на главную языка. (3) Дата дневника из имени файла 2026-09-28.ru.md работает (проверено по выходу). (4) hreflang alternate у en-главной есть только при наличии перевода — как задумано темой. Переключатель — штатный partial темы, визуально не смотрел.",
+  "dp_feedback": "ls/find в Bash фильтруются rtk (пустой вывод) — путает при проверке выходных каталогов; считал через python.",
+  "extra": {
+    "i18n_keys_dp": [
+      "dpInRussian",
+      "dpPageSource"
+    ],
+    "renamed_pages": 37
+  },
+  "t": "2026-10-05T06:16:04",
+  "by": "executor"
+}
