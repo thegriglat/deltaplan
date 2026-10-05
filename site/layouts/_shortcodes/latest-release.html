@@ -7,7 +7,7 @@
 {{- if not $cover -}}{{- $cover = index ($p.Resources.Match "screenshots/*") 0 -}}{{- end -}}
 <div class="latest-release">
 {{- with $cover -}}<a href="{{ $p.RelPermalink }}"><img src="{{ .RelPermalink }}" alt="{{ $p.Title }}" loading="lazy"></a>{{- end -}}
-<p><a href="{{ $p.RelPermalink }}"><strong>{{ $p.Title }}</strong></a> — {{ $p.Date | time.Format "02.01.2006" }}{{ with $p.Description }}. {{ . }}{{ end }}</p>
+<p><a href="{{ $p.RelPermalink }}"><strong>{{ $p.Title }}</strong></a> — {{ $p.Date | time.Format (site.Params.BookDateFormat | default "2006-01-02") }}{{ with $p.Description }}. {{ . }}{{ end }}</p>
 </div>
 {{- end -}}
 {{- end -}}

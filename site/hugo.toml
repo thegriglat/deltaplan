@@ -2,8 +2,8 @@
 # Документы из docs/ и tools/research/ подключаются как есть через module mounts (не копируются),
 # картинки — через assets/repo/<путь в репозитории> (публикуются только те, на которые есть ссылки).
 baseURL = 'https://thegriglat.github.io/deltaplan/'
-locale = 'ru-RU'
-defaultContentLanguage = 'ru'
+defaultContentLanguage = 'en'
+defaultContentLanguageInSubdir = false
 title = 'Deltaplan'
 theme = 'hugo-book'
 buildFuture = true
@@ -12,6 +12,22 @@ disablePathToLower = true
 enableRobotsTXT = true
 refLinksErrorLevel = 'ERROR'
 disableKinds = ['taxonomy', 'term']
+
+[languages]
+  [languages.en]
+    weight = 1
+    label = 'English'
+    locale = 'en-US'
+    [languages.en.params]
+      BookDateFormat = 'Jan 2, 2006'
+      description = 'Deltaplan is a non-commercial open-source hang glider simulator: flight, atmosphere, terrain of real places, network play.'
+  [languages.ru]
+    weight = 2
+    label = 'Русский'
+    locale = 'ru-RU'
+    [languages.ru.params]
+      BookDateFormat = '02.01.2006'
+      description = 'Deltaplan — некоммерческий симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
 
 [pagination]
   pagerSize = 20
@@ -40,10 +56,8 @@ disableKinds = ['taxonomy', 'term']
   BookSection = '/'
   BookSearch = true
   BookComments = false
-  BookDateFormat = '02.01.2006'
   BookRepo = 'https://github.com/thegriglat/deltaplan'
   BookBreadcrumbs = true
-  description = 'Deltaplan — некоммерческий симулятор дельтаплана с открытым кодом: полёт, атмосфера, рельеф реальных мест, сетевая игра.'
   # Ссылки на файлы репозитория (код, данные) ведут сюда
   repoBlob = 'https://github.com/thegriglat/deltaplan/blob/main/'
   repoCommit = 'https://github.com/thegriglat/deltaplan/commit/'
@@ -222,71 +236,87 @@ disableKinds = ['taxonomy', 'term']
   [[module.mounts]]
     source = '../docs/guide'
     target = 'content/docs/guide'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! world-objects.md', '*.md']
   [[module.mounts]]
     source = '../docs/contracts'
     target = 'content/docs/contracts'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! easter-eggs.md', '*.md']
 
   # --- Планы (живые и отложенные): docs/plan/ ---
   [[module.mounts]]
     source = '../docs/plan'
     target = 'content/plans'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
   # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
   [[module.mounts]]
     source = '../docs/archive/plan'
     target = 'content/plans/archive'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! world-easter-eggs*.md', '! game/README.md', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../docs/archive/plan/game/README.md'
     target = 'content/plans/archive/game/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]
     source = '../docs/registry/findings.md'
     target = 'content/research/findings.md'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Исследования и источники: docs/research/ ---
   [[module.mounts]]
     source = '../docs/research'
     target = 'content/research/docs'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['*.md', '**/*.md']
 
   # --- Прототип «нагрев → плавучесть → поток» (2D): tools/research/heat_ca/ ---
   [[module.mounts]]
     source = '../tools/research/heat_ca'
     target = 'content/research/heat_ca'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '! out/refs/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../tools/research/heat_ca/README.md'
     target = 'content/research/heat_ca/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp1_3_6_kernels/README.md'
     target = 'content/research/heat_ca/exp1_3_6_kernels/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp2_picard/README.md'
     target = 'content/research/heat_ca/exp2_picard/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp4_transfer_sweeps/README.md'
     target = 'content/research/heat_ca/exp4_transfer_sweeps/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
   [[module.mounts]]
     source = '../tools/research/heat_ca/exp5_adi/README.md'
     target = 'content/research/heat_ca/exp5_adi/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- 3D-эталон: tools/research/air3d/ ---
   [[module.mounts]]
     source = '../tools/research/air3d'
     target = 'content/research/air3d'
+    sites = { matrix = { languages = ['ru'] } }
     files = ['! README.md', '! **/README.md', '! fields/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../tools/research/air3d/README.md'
     target = 'content/research/air3d/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Данные Askervein ---
   [[module.mounts]]
     source = '../tools/research/data/askervein/README.md'
     target = 'content/research/askervein/_index.md'
+    sites = { matrix = { languages = ['ru'] } }
 
   # --- Весь репозиторий как assets/repo/<путь>: картинки и 3D-страницы публикуются
   #     только если на них есть ссылка; для остальных файлов — проверка существования,
