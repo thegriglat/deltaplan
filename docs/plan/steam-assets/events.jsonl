@@ -9,3 +9,4 @@
 {"t": "2026-10-05T06:51:55", "by": "coordinator", "task": "SA-5", "ev": "cancelled", "note": "решение пользователя 10-05 06:51: скриншоты позже вместе с описанием; исполнитель остановлен"}
 {"t": "2026-10-05T06:52:33", "by": "coordinator", "task": "SA-6", "ev": "created", "note": "Капсулы и иконки страницы Steam"}
 {"t": "2026-10-05T06:52:41", "by": "coordinator", "task": "SA-6", "ev": "edited", "note": "dont_touch", "diff": {"dont_touch": ["[\"steam/partner/\", \"assets/\", \"scripts/\", \"configs/\", \"docs/contracts/\"]", "[\"steam/partner/\", \"assets/\", \"scripts/\", \"configs/\", \"docs/contracts/\", \"tools/store/check_sizes.sh\"]"]}}
+{"t": "2026-10-05T06:52:52", "by": "coordinator", "task": "SA-6", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-steam-assets-SA-6"}
