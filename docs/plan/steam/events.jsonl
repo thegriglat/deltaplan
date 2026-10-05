@@ -60,3 +60,5 @@
 {"t": "2026-10-05T07:34:50", "by": "executor", "task": "ST-6", "ev": "reported", "commits": ["доработка"], "note": "done: Доработка: ACH_HOURS_3 возвращена (38, hidden 4); по S6 v2 ачивки по сэмплам и времени в воздухе открываются сразу в по…"}
 {"t": "2026-10-05T07:35:28", "by": "executor", "task": "ST-6", "ev": "checked", "note": "5/5 steam_contracts=ok:14/14; /steam/=ok:24/24; partner=ok:exit 0; smoke_plain=ok:steam: inactive (no_feature); count=ok:n=38 hidden=4"}
 {"t": "2026-10-05T07:35:39", "by": "coordinator", "task": "ST-6", "ev": "accepted", "note": "по отчёту после доработки: 5/5, 38 ачивок; achievements.csv.import лишний (до .gdignore) — удалён при слиянии"}
+{"t": "2026-10-05T07:36:06", "by": "coordinator", "task": "ST-6", "ev": "accepted", "commits": ["97d9d4d4"], "note": "5/5 steam_contracts=ok:14/14; /steam/=ok:24/24; partner=ok:exit 0; smoke_plain=ok:steam: inactive (no_feature); count=ok:n=38 hidden=4"}
+{"t": "2026-10-05T07:36:11", "by": "coordinator", "task": "ST-6", "ev": "merged", "commits": ["97d9d4d4"]}
