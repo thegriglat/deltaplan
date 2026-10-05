@@ -14,6 +14,11 @@ const CTX_KEYS := {
 	"launch_alt_msl": TYPE_FLOAT,
 	"wind_ms": TYPE_FLOAT,
 	"wind_from_deg": TYPE_FLOAT,
+	"lat": TYPE_FLOAT,
+	"lon": TYPE_FLOAT,
+	"temp_c": TYPE_FLOAT,
+	"cb_chance": TYPE_FLOAT,
+	"sky": TYPE_STRING,
 }
 const SAMPLE_KEYS := {
 	"t": TYPE_FLOAT,
@@ -25,6 +30,7 @@ const SAMPLE_KEYS := {
 	"cloud_base_msl": TYPE_FLOAT,
 	"sun_elev_deg": TYPE_FLOAT,
 	"others_airborne": TYPE_INT,
+	"eggs": TYPE_DICTIONARY,
 	"near_climbing_live": TYPE_INT,
 }
 const FIN_KEYS := {
@@ -102,6 +108,9 @@ func test_s2_flight_feed() -> void:
 		var ctx: Dictionary = events[0][1]
 		check(String(ctx.place_key).contains("/"), "place_key '%s'" % ctx.place_key)
 		check(not bool(ctx.net), "не сеть")
+		check(not is_nan(float(ctx.lat)) and absf(float(ctx.lat)) <= 90.0, "lat %s" % ctx.lat)
+		check(not is_nan(float(ctx.temp_c)), "temp_c известна")
+		check(ctx.sky in ["clear", "partly", "overcast", ""], "sky '%s'" % ctx.sky)
 	for e in events:
 		if e[0] == "sample":
 			_shape(e[1], SAMPLE_KEYS, "sample")

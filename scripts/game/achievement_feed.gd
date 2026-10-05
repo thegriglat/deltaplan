@@ -86,6 +86,9 @@ func cancel() -> void:
 func _make_ctx(tel: Telemetry) -> Dictionary:
 	var s := _game.settings
 	var wind := _wind_at_launch(tel.position)
+	var ll := Vector2(NAN, NAN)
+	if _game.terrain != null and _game.terrain.has_method("local_to_latlon"):
+		ll = _game.terrain.local_to_latlon(tel.position.x, tel.position.z)
 	return {
 		"place_key": place_key(s),
 		"wing": s.wing,
@@ -94,6 +97,11 @@ func _make_ctx(tel: Telemetry) -> Dictionary:
 		"launch_alt_msl": tel.altitude_msl,
 		"wind_ms": wind.x,
 		"wind_from_deg": wind.y,
+		"lat": ll.x,
+		"lon": ll.y,
+		"temp_c": _derived_weather("temperature_c"),
+		"cb_chance": _weather_value("cb_chance"),
+		"sky": _sky_name(s.sky),
 	}
 
 
@@ -109,6 +117,7 @@ func _make_sample(tel: Telemetry) -> Dictionary:
 		"cloud_base_msl": _cloud_base_msl(),
 		"sun_elev_deg": _sun_elev_deg(),
 		"others_airborne": int(others.airborne),
+		"eggs": _eggs_near(tel.position),
 		"near_climbing_live": _near_climbing_live(tel.position),
 	}
 
@@ -147,6 +156,50 @@ func _cloud_base_msl() -> float:
 	if w is Dictionary and float((w as Dictionary).get("dry_thermal_fraction", 0.0)) >= 0.999:
 		return NAN
 	return float(air.call("get_cloudbase_msl"))
+
+
+func _weather_value(key: String) -> float:
+	var air := _game.air
+	if air == null:
+		return NAN
+	var w: Variant = air.get("weather")
+	if w is Dictionary and (w as Dictionary).has(key):
+		return float((w as Dictionary)[key])
+	return NAN
+
+
+func _derived_weather(key: String) -> float:
+	var air := _game.air
+	if air == null:
+		return NAN
+	var w: Variant = air.get("weather")
+	if w is Dictionary:
+		var d: Variant = (w as Dictionary).get("_derived")
+		if d is Dictionary and (d as Dictionary).has(key):
+			return float((d as Dictionary)[key])
+	return NAN
+
+
+static func _sky_name(v: String) -> String:
+	return v if v in ["clear", "partly", "overcast"] else ""
+
+
+## Живые пасхалки: id → расстояние до ближайшего объекта, м; gloria (экранный эффект) — 0, пока видна.
+## Только чтение EasterEggs.active().
+func _eggs_near(pos: Vector3) -> Dictionary:
+	var out := {}
+	if _game.eggs == null:
+		return out
+	for egg in _game.eggs.active():
+		var d: float
+		if egg.id == "gloria":
+			if float(egg.get("_fade")) <= 0.01:
+				continue
+			d = 0.0
+		else:
+			d = egg.global_position.distance_to(pos)
+		out[egg.id] = minf(float(out.get(egg.id, INF)), d)
+	return out
 
 
 func _sun_elev_deg() -> float:
