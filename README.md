@@ -1,10 +1,10 @@
 # Deltaplan
 
 Симулятор свободного полёта на дельтаплане: термики, склоновый и роторный ветер, реальный рельеф, реальные крылья.
-Некоммерческий проект с открытым кодом на Godot 4 для Windows, Linux и macOS.
+Проект с открытым кодом на Godot 4 для Windows, Linux и macOS.
 
 *Hang glider flight simulator — thermals, ridge lift and rotors over real terrain, wing models based on DHV
-type-test data. Free, non-commercial, open source, built with Godot 4. The game and docs are in Russian.*
+type-test data. Open source, built with Godot 4. The game and docs are in Russian.*
 
 [Скачать на itch.io](https://thegriglat.itch.io/deltaplan) · Сайт проекта: [English](https://thegriglat.github.io/deltaplan/) / [русская версия](https://thegriglat.github.io/deltaplan/ru/) ·
 [Что нового](CHANGELOG.md)
@@ -94,7 +94,7 @@ tools/build.sh all --release      # сборки в build/<платформа>/ 
 ## Лицензия
 
 Код и собственные материалы проекта — [MIT](LICENSE). Сторонние ассеты (звуки, шрифты, текстуры, модели) — под своими
-лицензиями, список в [ASSETS.md](ASSETS.md); помеченные ⚠ NC нельзя использовать в коммерческих целях.
+лицензиями, список в [ASSETS.md](ASSETS.md); всё, что входит в сборку игры, разрешает коммерческое использование (полные тексты лицензий — в [licenses/](licenses/)).
 
 ## Благодарности
 
