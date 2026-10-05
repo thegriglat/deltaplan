@@ -1,1 +1,2 @@
 {"t": "2026-10-05T10:55:17", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-05T11:18:58", "by": "main", "task": null, "ev": "note", "note": "dp: от планировщика — search --sem с фильтром по типу документа; dp contracts show <ID>; соглашение о плане в двух файлах (<модуль>-physics.md) при > 40 КБ; dp plan --template с каркасом разделов"}
