@@ -6,7 +6,7 @@
 *Hang glider flight simulator — thermals, ridge lift and rotors over real terrain, wing models based on DHV
 type-test data. Free, non-commercial, open source, built with Godot 4. The game and docs are in Russian.*
 
-[Скачать на itch.io](https://thegriglat.itch.io/deltaplan) · [Сайт проекта](https://thegriglat.github.io/deltaplan/) ·
+[Скачать на itch.io](https://thegriglat.itch.io/deltaplan) · Сайт проекта: [English](https://thegriglat.github.io/deltaplan/) / [русская версия](https://thegriglat.github.io/deltaplan/ru/) ·
 [Что нового](CHANGELOG.md)
 
 ![Вид сзади в полёте над Алтаем](docs/screenshots/gameplay/chase.jpg)
@@ -35,7 +35,7 @@ type-test data. Free, non-commercial, open source, built with Godot 4. The game 
 - **Сетевая игра** — полёт с друзьями в одном небе (голос — через внешний голосовой чат).
 - **Осмотр карты** — свободная камера над местом со стрелками ветра.
 
-Управление — клавиатура, мышь, геймпад. Подробнее — в разделе [«Механики»](https://thegriglat.github.io/deltaplan/mechanics/)
+Управление — клавиатура, мышь, геймпад. Подробнее — в разделе [«Механики»](https://thegriglat.github.io/deltaplan/ru/mechanics/)
 на сайте.
 
 <p>
@@ -89,7 +89,7 @@ tools/build.sh all --release      # сборки в build/<платформа>/ 
 | `site/` | сайт проекта (Hugo, GitHub Pages) |
 
 Требования к игре — [REQUIREMENTS.md](REQUIREMENTS.md), описание модулей — `docs/guide/`, исследования и откуда
-взяты числа модели — `docs/research/` и раздел [«Исследования»](https://thegriglat.github.io/deltaplan/research/) на сайте.
+взяты числа модели — `docs/research/` и раздел [«Исследования»](https://thegriglat.github.io/deltaplan/ru/research/) на сайте.
 
 ## Лицензия
 
