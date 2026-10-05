@@ -38,10 +38,15 @@
     {
       "name": "/game/",
       "tests": "/game/"
+    },
+    {
+      "name": "temp_profile",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . res://tests/run_tests.tscn -- --filter=test_achievement_feed 2>&1",
+      "expect": "re:\\d+ тестов, 0 упало"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-05T06:43:26",
-  "edited": "2026-10-05T07:25:29"
+  "edited": "2026-10-05T08:18:55"
 }
