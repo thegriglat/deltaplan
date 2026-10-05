@@ -116,6 +116,12 @@ related: ["docs/contracts/steam.md", "docs/guide/net-protocol.md", "docs/plan/mu
 - Зависит от: ST-3, ST-6, ST-7, ST-8, ST-9.
 - Оценка: 0,5 дня.
 
+### ST-11. Сквозная проверка ачивок (dp-engineer, Sonnet)
+- Скоуп: тест «полёт в главной сцене → поток S2 → Achievements → локальный прогресс и подставной Steam»: короткий полёт с посадкой открывает ACH_FIRST_FLIGHT, при подставном активном Steam — `setAchievement`/`storeStats`; правки `achievement_feed.gd`/`achievements.gd` — только если стык S2→S6 расходится.
+- Зависит от: ST-5, ST-6 (влиты).
+- Приёмка: новый тест проходит; `/steam/`, `steam_contracts`, `test_achievement_feed` — без падений.
+- Оценка: 0,25 дня.
+
 ## Ачивки (утверждено пользователем 05.10, Q1)
 Принципы: за то, что делает настоящий пилот (набор, маршрут, посадка, полёт в компании); без подсказок о безопасности; без пасхалок; пороги — в `configs/achievements.json`. Полёт засчитывается, если `flight_finished.kind == "landed"` (включая жёсткую посадку и аварию — если не сказано иначе).
 
