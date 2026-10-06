@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам"
+summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 5}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -105,7 +105,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (`progress.jsonl` — для людей и ETA, не источник правды); дублей `case_id` нет; повтор случая на том же устройстве и
   версии с тем же составом пакета — побитно. Бюджет диска на весь счёт — ≤ 20 ГБ (иначе — шлюз).
 
-## P4. Решатель: пакетный вызов и опции (версия 5)
+## P4. Решатель: пакетный вызов и опции (версия 6)
 **Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
 **Потребители:** AP-3.
 
@@ -127,6 +127,9 @@ class Numerics:            # как P2 Numerics
     envelope_angle_deg: float = 0.0; envelope_wall: str = "none"; envelope_z0_m: float | None = None  # none|ground|low_z0|slip
     top_above_m: float = 3000.0; sponge_top_m: float = 1000.0   # v4: верх области и губка; по умолчанию — побитно как v3
     lam_m: float = 40.0    # v5: λ K-замыкания (air3d Params.lam); λ = max(lam_m, lam_frac·h_bl) как в air3d; 40 — побитно как v4
+    omega_map: np.ndarray | None = None    # v6: (96, 96) f4 — ω_u = ω_k по клеткам (карта фаз); None — скаляры omega_*; побитно как v5
+    freeze_mask: np.ndarray | None = None  # v6: (96, 96) bool — колонны, где поле держится равным init (механизм фазы); None — нет
+    omega_fallback: tuple[int, float] | None = None  # v6: (300, 0.5) — нет сходимости к N итерациям → ω := 0,5 везде
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
@@ -230,3 +233,21 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   Пикар сошёлся**; отдельно — ошибка в полосах швов (клетки с max w_φ < 0,8) против вне швов.
 - Разбор — P7 `analysis/AP-17/`, в `summary.json` обязательно `can_drop_network` = yes | no | partly + числа по фазам.
 - Сеть не учить (решение пользователя 8).
+
+## P9. Прототип «фазы + Пикар» (версия 1)
+**Владелец:** AP-18 (`tools/research/air_phase/assembly/` + `hybrid/`). **Потребители:** шлюз пользователя, AP-19 (перенос в игру).
+
+- Вход — как P8 (SY-12: рельеф, условия; поля Пикара — только для сравнения). Шаги на случай: (1) классификатор → веса фаз
+  `weights` (K, 96, 96) и карта ω (`omega_map`: 0,5 у границ Fr ≈ 0,3–1,1 / U10 0,6–1,5 м/с, 1 — в чистом обтекании) и
+  `freeze_mask` (клетки механизмов H/F/G/сильного D); (2) сборка механизмов (P8 `assemble`, + G — вечерний сток: новый,
+  физически обоснованный, с docstring); (3) тёплый старт Пикара (`solve_batch`, P4 v6: `init` из сборки, `omega_map`,
+  `freeze_mask`, `omega_fallback = (300, 0,5)`), max_outer 1000; (4) проекция-сшивка. Холодный полный Пикар — готовые поля
+  S5 (status, iters — из `cases`) или пересчёт той же версией решателя, если нужна та же схема (оговорить).
+- Выход — `$AIR_SYNTH_DATA/phase/hybrid_<версия>/part-*.h5`: как P8 (`cases` + `iters`, `status`, `seconds_gpu`,
+  `iters_cold`, `status_cold`; `fields/f`, `weights`, `omega_map` u1 ×255, `freeze_mask` u1), атрибуты `contract = "P9 v1"`,
+  `cfg`, `solver_version`.
+- Разбор — P7 `analysis/AP-18/`; `summary.json` обязательно: `iter_reduction` (медиана iters_cold/iters по сошедшимся
+  обоим), `conv_rate_hybrid`, `conv_rate_cold`, `nonconv_closed_frac` (доля несошедшихся холодных, где гибрид сошёлся или
+  клетки закрыты механизмом), `layers_not_worse` = yes | no | partly (метрики слоёв P6 против холодного Пикара там, где
+  он сошёлся: термики, наветренный подъём, подветренные зоны), `gpu_ms_case`, `gpu_ms_rx5600xt_est` (оценка с
+  обоснованием: соотношение пропускной способности памяти/вычислений RTX 4070 SUPER и RX 5600 XT).
