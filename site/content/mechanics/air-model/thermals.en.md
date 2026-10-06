@@ -20,7 +20,7 @@ Every field hour the game builds a **list of thermal sources**. The data for it 
 - **Drift.** The axis is tilted by the wind from the same field: the cloud ends up kilometers downwind of the source.
 - **How many.** The number, radius and strength of cores follow Allen's updraft model from layer thickness and w<sub>\*</sub>; the field only decides **where** there are more. The field's updraft beyond what the cores carry is a broad weak lift "in between".
 
-If there is no field (it could not be computed, or the place is outside the area), the old path works: cells with a deterministic cycle, strength from the table of anchors by cloud base height (the ["Weather"](/mechanics/weather/) page).
+In the "Heuristic" mode the thermal parameters come from simplified formulas instead of the field — see [Heuristic mode](/mechanics/air-model/heuristic/).
 
 **Multiplayer.** The host chooses the sources and sends them to the others; each computes strength, ceiling and drift from its own field, and the differences are vanishingly small (hundredths of a meter per second, tens of centimeters in the axis).
 
@@ -101,7 +101,7 @@ tied to terrain classes.
 
 - **Not CFD.** A thermal is an analytical formula (Gedeon + Allen), not a flow computation: the shape of the core and
   the sink ring is fitted to the feel of an experienced pilot rather than derived from the equations from scratch.
-- **In the fallback path (no field) thermals are generated on a regular grid of cells**, unlike in the real boundary layer, where the number
+- **In the "Heuristic" mode thermals are generated on a regular grid of cells**, unlike in the real boundary layer, where the number
   and positions of thermals are a random but statistically structured process; here it is a deterministic
   generator by cell, cycle and seed.
 - **The upper fall-off of lift at the top** is made adjustable (`top_taper_m`), rather than strictly 10 % of the layer

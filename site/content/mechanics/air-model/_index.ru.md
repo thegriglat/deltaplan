@@ -14,7 +14,7 @@ description: "Почему воздух в игре считается на тр
 | 2. Термики | ядро, край, «промахнулся — провалился», жизнь пузыря | 100–500 м, минуты | [Термики](/mechanics/air-model/thermals/) |
 | 3. Болтанка и ротор | рывки, удары вниз, трясёт за гребнем | менее 50 м, секунды | [Болтанка и ротор](/mechanics/air-model/turbulence/) |
 
-Модель включена по умолчанию. Нейросети в игре нет: поле ветра считается физикой (фазы и Пикар), без обученной сети. Если поле посчитать не удалось, игра остаётся на прежних формулах — [ветер у склона](/mechanics/air-model/slope-wind/); в настройках они называются «Эвристика».
+Модель включена по умолчанию. Нейросети в игре нет: поле ветра считается физикой (фазы и Пикар), без обученной сети. Это описание режима «Расчёт»; простой режим «Эвристика» — на [отдельной странице](/mechanics/air-model/heuristic/).
 
 {{< children >}}
 
@@ -111,4 +111,4 @@ description: "Почему воздух в игре считается на тр
 - Исследования: [3D-эталон на рельефе Онгудая](/tools/research/air3d/README.md), [термики из поля](/tools/research/air_thermals/README.md), [болтанка из поля](/tools/research/air_turb/README.md), [прототип 2D](/tools/research/heat_ca/README.md).
 - [Фазы ветра: исследование](/docs/research/air_phase.md), [результаты замеров на идеальном рельефе](/docs/research/air_phase_results.md), [план](/docs/plan/air-phase.md).
 - [Поле ветра: фазы и Пикар](/mechanics/air-model/wind-phases/), [термики](/mechanics/air-model/thermals/), [болтанка и ротор](/mechanics/air-model/turbulence/).
-- [Ветер у склона](/mechanics/air-model/slope-wind/), [термики](/mechanics/air-model/thermals/), [погода](/mechanics/weather/); [исследования и планы](/research/).
+- [режим Эвристика](/mechanics/air-model/heuristic/), [термики](/mechanics/air-model/thermals/), [погода](/mechanics/weather/); [исследования и планы](/research/).
