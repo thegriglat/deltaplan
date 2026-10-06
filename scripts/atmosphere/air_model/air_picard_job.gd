@@ -66,6 +66,9 @@ var mech := true
 ## Тёплый старт: {u, v, w, th, thd, p} — массивы N с ореолом (state() прошлого решения той же
 ## сетки); нет thd — θ′_d с нуля.
 var warm := {}
+## Тёплый старт решения с нагревом (при паре mech): {u, v, w, th, thd, p} той же раскладки; пусто —
+## как прежде (решение с нагревом — с фона, «reinit»).
+var warm_heat := {}
 ## Критерий (эталон: Air.solve).
 var tol_mom := 2e-5
 var tol_th := 5e-7
@@ -355,8 +358,25 @@ func _setup_nonconv(ncell: int, ncol: int) -> bool:
 	return true
 
 
-## Решение с нагревом после mech: его поле механизма (freeze_field), если для mech было своё.
+func _heat_warm_ok() -> bool:
+	return PackedFloat32Array(warm_heat.get("u", PackedFloat32Array())).size() == _n
+
+
+func _zeros() -> PackedFloat32Array:
+	var z := PackedFloat32Array()
+	z.resize(_n)
+	return z
+
+
+## Решение с нагревом после mech: тёплый старт warm_heat (если задан) и его поле механизма (freeze_field), если для mech было своё.
 func _upload_heated_freeze() -> void:
+	if _heat_warm_ok():
+		for nm in ["u", "v", "w", "th", "thd", "p"]:
+			var a: PackedFloat32Array = warm_heat.get(nm, PackedFloat32Array())
+			if a.size() == _n:
+				gpu.upload(buf[nm], a)
+			elif nm == "thd":
+				gpu.upload(buf.thd, _zeros())
 	if not _freeze:
 		return
 	if not freeze_mask_mech.is_empty():
@@ -802,6 +822,11 @@ func _program(key: String) -> Array:
 		"reinit":
 			a = gpu.record(_rec_reinit)
 			a.append_array(_prog_project(30, false))
+		"reinit_warm":
+			a = gpu.record(func() -> void:
+				_record_setup()
+				_bc(0))
+			a.append_array(_prog_project(4, false))
 		"iters", "iters_nh", "iters_r", "iters_nh_r", "iters_f", "iters_nh_f", "iters_r_f", "iters_nh_r_f":
 			var nh := key.begins_with("iters_nh")
 			if nh:  # тёплое θ′_d без нагрева — к точному решению 0 (заодно и после init)
@@ -834,7 +859,7 @@ func _step_program(_i: int) -> Array:
 	match _phase:
 		Phase.INIT:
 			if _ci > 0:
-				return _program("reinit")
+				return _program("reinit_warm" if _heat_warm_ok() else "reinit")
 			var a: Array = _program("warm" if not warm.is_empty() else "init")
 			return a + _program("fsnap") if _freeze else a
 		Phase.ITER:

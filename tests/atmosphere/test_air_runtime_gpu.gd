@@ -136,8 +136,20 @@ func test_ongudai_runtime() -> void:
 	var ph := pj.run(AirRuntime.PreparedCase.from_case(job.case))
 	pj.release()
 	pg.release()
-	job.warm = ph.get("warm_mech", {})
-	job.omega_map = ph.get("omega", PackedFloat32Array())
+	if bool(AirRuntime.phase_cfg("omega", "use_map")):
+		job.omega_map = ph.get("omega", PackedFloat32Array())
+	var am: Dictionary = Config.get_config("atmosphere").air_model
+	if String(am.picard_start) == "coarse":
+		var cc := AirRuntime.PreparedCase.from_case(
+			AirPlace.domain_case(detail, lw[1], loc, 400.0 * int(am.picard_coarse_factor), 12.0, 3.0, 150.0)
+		)
+		var cj := AirPicardJob.new()
+		cj.case = cc
+		cj.mech = true
+		check(cj.start() and cj.run_blocking(), "грубый старт: %s" % cj.error)
+		job.warm = AirRuntime.coarse_warm(job.case, cc, cj.state(true))
+		job.warm_heat = AirRuntime.coarse_warm(job.case, cc, cj.state(false))
+		cj.release()
 	job.freeze_mask = ph.get("freeze", PackedByteArray())
 	job.freeze_mask_mech = ph.get("freeze_mech", PackedByteArray())
 	job.freeze_field = ph.get("mech_field", {})

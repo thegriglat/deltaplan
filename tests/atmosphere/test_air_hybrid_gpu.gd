@@ -21,6 +21,10 @@ func _cfg() -> Dictionary:
 
 
 ## Фазы на GPU (AirPhaseJob, свой AirGpu): словарь P10 + cpu_ms (стена).
+## Случай грубой сетки текущего места и ветра (множитель клетки) — задаёт test_hybrid_vs_cold.
+var _coarse_src: Callable
+
+
 func _phase(c: AirCase) -> Dictionary:
 	var t0 := Time.get_ticks_usec()
 	var g := AirGpu.new()
@@ -34,6 +38,22 @@ func _phase(c: AirCase) -> Dictionary:
 	check(not ph.has("error") and not ph.is_empty(), "фазы: %s" % ph.get("error", ""))
 	ph.cpu_ms = (Time.get_ticks_usec() - t0) / 1000.0
 	ph.real = true
+	# грубый старт, как AirRuntime при загрузке (air_model.picard_start = coarse)
+	var am: Dictionary = Config.get_config("atmosphere").air_model
+	if String(am.picard_start) == "coarse":
+		var m := int(am.picard_coarse_factor)
+		var cc := AirRuntime.PreparedCase.from_case(_coarse_src.call(m))
+		var cj := AirPicardJob.new()
+		cj.case = cc
+		cj.mech = true
+		check(cj.start() and cj.run_blocking(), "грубый старт: %s" % cj.error)
+		var t1 := Time.get_ticks_usec()
+		ph.coarse_pair = {mech = AirRuntime.coarse_warm(c, cc, cj.state(true)), heat = AirRuntime.coarse_warm(c, cc, cj.state(false))}
+		ph.coarse_interp_ms = (Time.get_ticks_usec() - t1) / 1000.0
+		ph.coarse_iters = cj.results.map(func(r: Dictionary) -> int: return int(r.iters))
+		ph.coarse_gpu_ms = cj.gpu_ms_total
+		ph.coarse_m = m
+		cj.release()
 	return ph
 
 
@@ -42,8 +62,13 @@ func _solve(c: AirCase, ph: Dictionary) -> AirPicardJob:
 	job.case = c
 	job.mech = true
 	if not ph.is_empty():
-		job.warm = ph.get("warm_mech", ph.get("warm", {}))
-		job.omega_map = ph.get("omega", PackedFloat32Array())
+		# как AirRuntime при загрузке: старт по air_model.picard_start, карта ω — по use_map
+		var am: Dictionary = Config.get_config("atmosphere").air_model
+		if String(am.picard_start) == "coarse":
+			job.warm = ph.coarse_pair.mech
+			job.warm_heat = ph.coarse_pair.heat
+		if bool(AirRuntime.phase_cfg("omega", "use_map")):
+			job.omega_map = ph.get("omega", PackedFloat32Array())
 		job.freeze_mask = ph.get("freeze", PackedByteArray())
 		job.freeze_mask_mech = ph.get("freeze_mech", PackedByteArray())
 		job.freeze_field = ph.get("mech_field", {})
@@ -155,6 +180,8 @@ func test_hybrid_vs_cold() -> void:
 			var c_h: AirCase = mk.call()
 			c_h.label = c_cold.label + " гибрид"
 			c_h.prepare()
+			_coarse_src = func(m: int) -> AirCase:
+				return AirPlace.domain_case(lw[0], lw[1], loc, AirRuntime.DX * m, float(cfg.hour), u10, 150.0, NAN, "clear", true, 1.0)
 			var ph := _phase(c_h)
 			var hyb: AirPicardJob = await _solve(c_h, ph)
 			if hyb == null:
@@ -168,12 +195,9 @@ func test_hybrid_vs_cold() -> void:
 				var ok_field := float(row.du_max_u) <= float(cfg.du_max_frac) or float(row.du_mean_u) <= float(cfg.du_mean_frac)
 				check(ok_field, "%s: поле как у холодного (max %.3f U, ср. %.3f U)" % [c_cold.label, row.du_max_u, row.du_mean_u])
 				check(float(row.zone_up_diff) <= float(cfg.zone_frac_tol) and float(row.zone_dn_diff) <= float(cfg.zone_frac_tol), "%s: зоны подъёма/опускания те же %s" % [c_cold.label, [row.zone_up_diff, row.zone_dn_diff]])
-				# тёплый старт от сборки при ω = 1 не хуже холодного; ω < 1 (выбор классификатора у
-				# границ фаз) медленнее по построению — только в лог и timing.json
-				if float(row.omega) >= 1.0:
-					check(int(row.iters_hybrid_sum) <= int(row.iters_cold_sum), "%s: итераций не больше (%d ≤ %d)" % [c_cold.label, row.iters_hybrid_sum, row.iters_cold_sum])
-				else:
-					print("    %s: ω = %.2f — итераций %d против %d холодного" % [c_cold.label, row.omega, row.iters_hybrid_sum, row.iters_cold_sum])
+				# выбранный старт не хуже холодного (P14 v2 после сравнения стартов AP-20): цена гибрида —
+				# итерации доводки + грубой ×1/M²
+				check(float(row.cost_hybrid) <= float(row.iters_cold_sum), "%s: выбранный старт не хуже холодного (%.0f ≤ %d)" % [c_cold.label, row.cost_hybrid, row.iters_cold_sum])
 			else:
 				print("    %s: холодный Пикар не сошёлся (%s) — не эталон (P9 v2)" % [c_cold.label, st_cold])
 			cold.release()
@@ -211,6 +235,10 @@ func _compare(c: AirCase, cold: AirPicardJob, hyb: AirPicardJob, ph: Dictionary,
 		iters_hybrid = hyb.results.map(func(r: Dictionary) -> int: return int(r.iters)),
 		iters_cold_sum = ic,
 		iters_hybrid_sum = ih,
+		cost_hybrid = float(ih) + (float(ph.coarse_iters[0] + ph.coarse_iters[1]) / float(int(ph.coarse_m) ** 2) if ph.has("coarse_iters") else 0.0),
+		coarse_iters = ph.get("coarse_iters", []),
+		coarse_gpu_ms = ph.get("coarse_gpu_ms", 0.0),
+		coarse_interp_ms = ph.get("coarse_interp_ms", 0.0),
 		hybrid_status = hyb.results.map(func(r: Dictionary) -> String: return String(r.status)),
 		omega_fallback_used = bool(hr.omega_fallback_used),
 		frozen_frac = float(hr.frozen_frac),
@@ -232,7 +260,7 @@ func _write_timing(rows: Array, cfg: Dictionary) -> void:
 	var k_hi := float(cfg.bw_ref_gbs) / float(cfg.bw_target_gbs[0])
 	var est := []
 	for r: Dictionary in rows:
-		var t := float(r.ms_phase) + float(r.ms_hybrid.gpu)
+		var t := float(r.ms_phase) + float(r.ms_hybrid.gpu) + float(r.coarse_gpu_ms)
 		est.append({place = r.place, ms_measured = t, ms_rx5600xt = [t * k_lo, t * k_hi]})
 	var out := {
 		device = dev,
@@ -241,7 +269,8 @@ func _write_timing(rows: Array, cfg: Dictionary) -> void:
 		note = (
 			"Оценка RX 5600 XT = замер × %s/%s ГБ/с (пропускная способность памяти); не учтены "
 			% [cfg.bw_ref_gbs, cfg.bw_target_gbs]
-			+ "разница вычислений, кэша, драйвера и что фазы считались на CPU (ms_phase — CPU, не GPU)."
+			+ "разница вычислений, кэша, драйвера; ms_phase — стена фаз (подготовка на CPU + GPU); "
+			+ "в замер входит GPU грубого старта, но не интерполяция на CPU (coarse_interp_ms, рабочий поток)."
 		),
 	}
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TIMING).get_base_dir())
