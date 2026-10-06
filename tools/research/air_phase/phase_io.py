@@ -313,6 +313,8 @@ def bubble_of(item):
     e = (-np.sin(phi), -np.cos(phi))
     f400 = item["fields"]
     up = upstream_profile(f400, item["hc"], item["wdir"])
+    # AP-10: fr_local по невозмущённому профилю притока (колонна у губки при 2-м порядке и Fr ≤ 0,5 несёт выброс)
+    inflow = (item["alpha"], item["max_profile"]) if item.get("alpha") is not None and item.get("max_profile") else None
     w = item.get("window")
     if w is not None:
         wf = np.asarray(w["fields"], np.float32)
@@ -325,9 +327,11 @@ def bubble_of(item):
             ground = np.asarray(w["hc"], np.float64)            # земля окна (блочное среднее h100 решателя)
         else:
             ground = B.bilinear(item["g100"], -19200.0, -19200.0, 100.0, X.ravel(), Y.ravel()).reshape(ny, nx)
-        return B.bubble(wf, w["agl_m"], x0, y0, dx, ground, e, item["h_m"], item["u_sat"], item["n_bv"], up, edge=0)
+        c = (float(w["brink_x_m"]), float(w["brink_y_m"])) if "brink_x_m" in w else None   # AP-10: окно может не содержать (0, 0)
+        return B.bubble(wf, w["agl_m"], x0, y0, dx, ground, e, item["h_m"], item["u_sat"], item["n_bv"], up, center=c,
+                        edge=0, inflow=inflow)
     return B.bubble(f400, AGL_M, -19200.0, -19200.0, 400.0, item["hc"], e, item["h_m"], item["u_sat"], item["n_bv"],
-                    up, edge=EDGE)
+                    up, edge=EDGE, inflow=inflow)
 
 
 def write_batch(job):

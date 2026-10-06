@@ -69,3 +69,23 @@ def test_steepest_lee_point_tie_center():
     x, y = B.steepest_lee_point(g, x0, y0, dx, (1.0, 0.0))
     ys = y0 + dx / 2 + dx * np.arange(ny)
     assert abs(x) <= dx and abs(y - ys.mean()) <= dx / 2 + 1e-6
+
+
+def test_bubble_of_window_brink_and_inflow():
+    """phase_io.bubble_of: сечение окна — через бровку из meta окна (окно без (0, 0)), fr_local — по профилю притока,
+    а не по колонне поля 400 м у губки (там выброс)."""
+    import phase_io as IO
+    phi = np.radians(300.0)
+    e = (-np.sin(phi), -np.cos(phi))
+    x0, y0, dx, nx, ny = -4400.0, -16700.0, 100.0, 152, 136
+    U = 1.5
+    wf, wg = _step_field(x0, y0, dx, nx, ny, e, 2000.0, 160.0, U)
+    f400 = np.zeros((4, AGL.size, 96, 96), np.float32)
+    f400[0], f400[1] = 3.0 * e[0], 3.0 * e[1]                 # «выброс» 3 м/с при U_sat 1,5 по всей области
+    item = dict(wdir=300.0, fields=f400, hc=np.full((96, 96), 1000.0), h_m=500.0, u_sat=U, n_bv=0.01,
+                alpha=0.24, max_profile=2.341,
+                window=dict(fields=wf, dx_m=dx, x0_m=x0, y0_m=y0, hc=wg, agl_m=list(AGL), brink_x_m=-330.0,
+                            brink_y_m=-9000.0))
+    b = IO.bubble_of(item)
+    assert b["has_reverse"] == 1
+    assert b["fr_local"] == pytest.approx(0.3, rel=1e-5)
