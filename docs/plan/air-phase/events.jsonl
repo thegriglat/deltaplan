@@ -184,3 +184,5 @@
 {"t": "2026-10-07T02:41:02", "by": "coordinator", "task": "AP-21", "ev": "started", "note": "dp-engineer sonnet; ветка от feature + влита air-phase/AP-20 (без ссылок на сеть в рантайме), после вливания AP-20 — dp task sync"}
 {"t": "2026-10-07T02:41:42", "by": "coordinator", "task": "AP-22", "ev": "created", "note": "Текст пилоту для облёта, CHANGELOG, руководство air-model"}
 {"t": "2026-10-07T02:41:45", "by": "coordinator", "task": "AP-22", "ev": "started", "note": "dp-writer sonnet"}
+{"t": "2026-10-07T02:43:57", "by": "main", "task": "AP-22", "ev": "reported", "commits": ["5ab6aebf"], "note": "done: Текст пилоту build/pilot/air_phase_check.md, CHANGELOG «В работе» (фазы+Пикар, удаление сети и VC++ Redistributable, ме…", "dp_feedback": "dp task sync не использован; не хватает команды «взять файл из ветки соседней задачи» (git show ветка:путь)."}
+{"t": "2026-10-07T02:44:14", "by": "coordinator", "task": "AP-22", "ev": "note", "note": "отчёт: текст пилоту build/pilot/air_phase_check.md, CHANGELOG, air-model.md (взят из ветки AP-21 и сверен); вливать после AP-20/AP-21, при конфликте air-model.md — версия AP-22"}
