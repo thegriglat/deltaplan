@@ -65,6 +65,9 @@ class Numerics:
     envelope_angle_deg: float = 0.0
     envelope_wall: str = "none"
     envelope_z0_m: float | None = None
+    top_above_m: float = 3000.0
+    sponge_top_m: float = 1000.0
+    lam_m: float = 40.0
 
 
 def make_stub(fail_at=None):
@@ -72,6 +75,7 @@ def make_stub(fail_at=None):
 
     def solve_batch(specs, nums, init=None):
         calls["n"] += 1
+        calls.setdefault("log", []).extend(zip(specs, nums))
         if fail_at is not None and calls["n"] == fail_at:
             raise RuntimeError("обрыв (заглушка)")
         out = []
@@ -302,7 +306,7 @@ def test_fixed_u_h_from_relief(tmp_path, monkeypatch):
     monkeypatch.setenv("AIR_SYNTH_DATA", str(tmp_path))
     import plan_build as PB
     plan, tab = PB.build_plan("fu", tmp_path / "phase", series="fixed_u", quiet=True)
-    assert plan.context.h_m == 500.0 and plan.contract == "P2 v4"
+    assert plan.context.h_m == 500.0 and plan.contract == PB.CONTRACT
     assert tab == {"FIXED_U": [296, 296]}
     plan_dir = tmp_path / "phase" / "fu"
     lines = {ln.line_id: ln for ln in plan.lines}
@@ -338,3 +342,61 @@ def test_fixed_u_h_from_relief(tmp_path, monkeypatch):
     assert ph["u_sat"] / (ph["n_bv"] * ph["h_m"]) == pytest.approx(fr, rel=0.01)
     with h5py.File(IO.parts(run.dir)[0], "r") as h:
         assert float(h["cases"]["z_i_agl_m"][0]) == pytest.approx(1000.0)
+
+
+# ------------------------------------------------------------------ RERUN (P2 v6, AP-14)
+def test_rerun_physics_from_source(tmp_path, monkeypatch):
+    """План RERUN из ap_v1 (несошедшиеся — по поддельной части P3): физика входа — исходного случая, Numerics — свои."""
+    if not (PLAN / "plan.pb").exists():
+        pytest.skip("нет плана ap_v1")
+    import plan_build as PB
+    monkeypatch.setenv("AIR_SYNTH_DATA", str(IO.data_root()))
+    root = tmp_path / "phase"
+    root.mkdir()
+    (root / "ap_v1").symlink_to(PLAN)
+    _, _, lines, _, cases = IO.load_plan(PLAN)
+    want = {}                                    # по 2 случая GRID, ENVELOPE_REAL, SEPARATION dx = 100, ERODED
+    for c in cases:
+        ln = lines[c.line_id]
+        key = (c.series, ln.numerics.dx_m)
+        if c.series in (pb.GRID, pb.ENVELOPE_REAL, pb.SEPARATION, pb.ERODED) and (c.series != pb.SEPARATION or ln.numerics.dx_m == 100.0):
+            if len(want.setdefault(key, [])) < 2:
+                want[key].append(c.case_id)
+    bad = {cid for v in want.values() for cid in v}
+    res = root / "ap_v1__s1-stub000"
+    res.mkdir()
+    with h5py.File(res / "part-00000.h5", "w") as h:
+        h["cases"] = np.array([(c.case_id, 1 if c.case_id in bad else 0) for c in cases],
+                              dtype=[("case_id", "i8"), ("status", "i1")])
+    plan, tab = PB.build_rerun_plan("ap_v1r", ("ap_v1",), root, quiet=True)
+    assert plan.n_cases == len(bad)
+    stub = make_stub()
+    r = RP.Runner(root / "ap_v1r", tmp_path / "out", batch=3, chunk=4, solver=stub, inline_writer=True)
+    assert r.run() == 0
+    check_contract(r.dir)
+    src_plan, _, _, src_rel, _ = IO.load_plan(PLAN)
+    src = IO.Sources(src_plan, src_rel)
+    _, _, rlines, _, rcases = IO.load_plan(root / "ap_v1r")
+    by_src = {c.src_case_id: c for c in rcases}
+    got = {}
+    for p in IO.parts(r.dir):
+        with h5py.File(p, "r") as h:
+            for row in h["cases"][:]:
+                got[int(row["case_id"])] = row
+    assert len(got) == len(bad)
+    for scid in bad:
+        sc = [c for c in cases if c.case_id == scid][0]
+        sln = lines[sc.line_id]
+        ph = IO.case_physics(src_plan, sln, src_rel[sln.relief_id], sc.fr, src)
+        row = got[by_src[scid].case_id]
+        assert row["series"] == pb.RERUN and row["start_case_id"] == -1
+        assert row["u10"] == pytest.approx(ph["u10"], rel=1e-6) and row["wdir_from_deg"] == pytest.approx(ph["wdir"])
+        assert row["dx_m"] == sln.numerics.dx_m and row["cond_id"] == (sln.cond_id if sln.conditions else -1)
+        assert row["envelope_angle_deg"] == pytest.approx(sln.numerics.envelope_angle_deg)
+    for sp, nm in stub.calls["log"]:
+        assert (nm.omega_u, nm.omega_k, nm.max_outer, nm.late_from) == (0.5, 0.5, 2000, 1500)
+    # испорченный план: Fr не совпадает с исходным — отказ
+    ln = rlines[0]
+    with pytest.raises(ValueError):
+        IO.rerun_physics(ln, {x.relief_id: x for x in plan.reliefs}[ln.relief_id], 9.99, rcases[0].src_case_id, src,
+                         IO.RerunSources(root))

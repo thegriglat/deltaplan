@@ -17,6 +17,11 @@ Fr (±1 %), иначе −1. Это даёт: SWEEP, RELAX, SEPARATION dx = 400 
 mech_case_id — «близнец» с H = 0 (та же линия по всем полям, кроме нагрева; холодный старт; тот же Fr): его w —
 w_mech для w_conv термиков и для вертикали склонов/подветра (как в игре). Нет — −1 (th_wconv_src = 2).
 
+RERUN (P2 v6, план ap_v1r): `src_case_id` — случай исходного плана (иначе −1); ref_case_id = −1 (сравнение с исходным
+счётом — в разборе по src_case_id); близнец H = 0 — близнец исходного случая в исходном плане, его поле — из исходного
+счёта, если тот сошёлся, иначе из пересчёта (если близнец пересчитан), иначе исходное позднее среднее; mech_case_id —
+номер близнеца в исходном плане. Результаты исходного плана — `plan_build.find_results` (или --src-results план=каталог).
+
 CPU, пул процессов по частям P3 (часть читается потоково целиком, поля близнецов — точечно из других частей).
 """
 from __future__ import annotations
@@ -61,7 +66,8 @@ PLAN_DESC = {
     "h_m": "высота формы h (план), м", "h_over_zi": "h/z_i линии (0 — из S2), 1", "variant": "вариант линии (план)",
     "relief_name": "имя рельефа (план)", "ref_case_id": "холодный случай той же конфигурации (Line.ref_line_id, тот же Fr ±1 %), −1 — нет",
     "ref400_case_id": "ENVELOPE: SEPARATION dx = 400 без огибающей той же формы/s/Fr, −1 — нет",
-    "mech_case_id": "близнец с H = 0 (w_mech), −1 — нет",
+    "mech_case_id": "близнец с H = 0 (w_mech), −1 — нет; RERUN — номер близнеца в исходном плане",
+    "src_case_id": "RERUN: case_id исходного плана (Line.src_case_ids_i64), иначе −1",
     "ref_iou_th": "IoU карт источников термиков (±1 клетка) с ref_case_id, 1 (NaN — нет ref)",
     "ref_iou_sl": "IoU карт подъёма у склона (w слоя 50–300 м > 1 м/с) с ref_case_id, 1",
     "ref_iou_lee": "IoU карт подветренной зоны (признак ≥ ½ на 25 м) с ref_case_id, 1",
@@ -122,8 +128,27 @@ def build_plan_index(plan_dir):
                 mech = match(lid, c.fr)
                 if mech >= 0:
                     break
-        out[c.case_id] = dict(line=ln, relief=rel[ln.relief_id], fr=c.fr, ref=ref, ref400=ref400, mech=mech)
+        out[c.case_id] = dict(line=ln, relief=rel[ln.relief_id], fr=c.fr, ref=ref, ref400=ref400, mech=mech,
+                              src=c.src_case_id, src_plan=ln.src_plan if ln.series == pb.RERUN else "")
+    src_idx = {}
+    for info in out.values():                   # RERUN: близнец — из исходного плана, ref — нет
+        if info["src_plan"]:
+            sp = info["src_plan"]
+            if sp not in src_idx:
+                src_idx[sp] = build_plan_index(Path(plan_dir).parent / sp)[1]
+            info["ref"], info["ref400"] = -1, -1
+            info["mech"] = src_idx[sp][info["src"]]["mech"]
     return plan, out
+
+
+def rerun_sources(plan, src_results=None, root=None):
+    """RERUN: {src_plan: каталог результатов P3} для всех src_plan плана."""
+    import plan_build
+    got = dict(src_results or {})
+    for ln in plan.lines:
+        if ln.series == pb.RERUN and ln.src_plan not in got:
+            got[ln.src_plan] = str(plan_build.find_results(ln.src_plan, root))
+    return got
 
 
 def scan_results(res_dir):
@@ -141,9 +166,11 @@ def scan_results(res_dir):
 _G = {}
 
 
-def _init(plan_dir, res_dir, index):
+def _init(plan_dir, res_dir, index, src_index=None):
     _G["plan"], _G["pi"] = build_plan_index(plan_dir)
     _G["index"] = index
+    _G["src_index"] = src_index or {}            # RERUN: {src_plan: scan_results исходного счёта}
+    _G["rr_of"] = {(i["src_plan"], i["src"]): cid for cid, i in _G["pi"].items() if i["src_plan"]}
     _G["files"] = {}
 
 
@@ -156,8 +183,17 @@ def _h5(path):
     return fs[path]
 
 
-def _w_of(case_id):
-    p, r, st = _G["index"][case_id]
+def _w_of(case_id, src_plan=""):
+    if src_plan:                                 # RERUN: исходный сошёлся → он, иначе пересчёт (если есть)
+        si = _G["src_index"][src_plan]
+        if case_id not in si:
+            return None
+        p, r, st = si[case_id]
+        rr = _G["rr_of"].get((src_plan, case_id))
+        if st != 0 and rr is not None and rr in _G["index"]:
+            p, r, st = _G["index"][rr]
+    else:
+        p, r, st = _G["index"][case_id]
     if st == 2:
         return None
     return np.asarray(_h5(p)["fields/f"][r, 2], np.float32)
@@ -193,8 +229,8 @@ def process_part(path):
                 case["h_eff"] = np.asarray(heff_all[r], np.float64)
             f = np.asarray(F[r], np.float32)
             wm = None
-            if info["mech"] >= 0 and info["mech"] in _G["index"]:
-                wm = _w_of(info["mech"])
+            if info["mech"] >= 0 and (info["src_plan"] or info["mech"] in _G["index"]):
+                wm = _w_of(info["mech"], info["src_plan"])
             mech_used = info["mech"] if wm is not None else -1
             met = LM.layer_metrics(f, hc_all[r], hf_all[r], hbl_all[r], case, w_mech=wm)
             masks = LM.layer_masks(f, hc_all[r], hf_all[r], case, w_mech=wm) if case["status"] != 2 else None
@@ -218,7 +254,7 @@ def process_part(path):
                     row["w100_" + k] = v
             row.update(shape=case["shape"], slope=case["slope"], h_m=case["h_m"], h_over_zi=float(ln.h_over_zi),
                        variant=ln.variant, relief_name=rl.name, ref_case_id=info["ref"],
-                       ref400_case_id=info["ref400"], mech_case_id=mech_used)
+                       ref400_case_id=info["ref400"], mech_case_id=mech_used, src_case_id=info["src"])
             pk = None if masks is None else {k: _pack(v) for k, v in masks.items()}
             rows.append((cid, row, pk))
     return rows
@@ -253,7 +289,7 @@ def build_table(rows, case_dtype, order_names, bub_names):
     fields += [("bub_" + n, "f4") for n in bub_names]
     fields += [(n, "f4") for n in met_names + win_names]
     fields += [("shape", "S12"), ("slope", "f4"), ("h_m", "f4"), ("h_over_zi", "f4"), ("variant", "S16"),
-               ("relief_name", "S32"), ("ref_case_id", "i8"), ("ref400_case_id", "i8"), ("mech_case_id", "i8"),
+               ("relief_name", "S32"), ("ref_case_id", "i8"), ("ref400_case_id", "i8"), ("mech_case_id", "i8"), ("src_case_id", "i8"),
                ("ref_iou_th", "f4"), ("ref_iou_sl", "f4"), ("ref_iou_lee", "f4")]
     dt = np.dtype(fields)
     tab = np.zeros(len(rows), dt)
@@ -274,11 +310,14 @@ def main(argv=None):
     ap.add_argument("--out", default=None, help="по умолчанию $AIR_SYNTH_DATA/phase/features_<plan>.h5 (P6 v2)")
     ap.add_argument("--workers", type=int, default=max(1, min(16, (os.cpu_count() or 2) - 2)))
     ap.add_argument("--limit-parts", type=int, default=0, help="только первые N частей (проба)")
+    ap.add_argument("--src-results", action="append", default=[], help="RERUN: план=каталог результатов исходного плана")
     a = ap.parse_args(argv)
     t0 = time.time()
     plan_dir, res_dir = Path(a.plan).expanduser(), Path(a.results).expanduser()
     plan, pi = build_plan_index(plan_dir)
     index = scan_results(res_dir)
+    srcs = rerun_sources(plan, dict(x.split("=", 1) for x in a.src_results), plan_dir.parent)
+    src_index = {k: scan_results(v) for k, v in srcs.items()}
     parts = [str(p) for p in PIO.parts(res_dir)]
     if a.limit_parts:
         parts = parts[:a.limit_parts]
@@ -288,7 +327,7 @@ def main(argv=None):
     bub_names = ["has_reverse", "L_over_h", "H_over_h", "urev_over_U", "xc_over_h", "zc_over_h", "area_rev_frac",
                  "shadow_angle_deg", "fr_local", "slope_lee"]
     rows = []
-    with mp.get_context("fork").Pool(a.workers, initializer=_init, initargs=(plan_dir, res_dir, index)) as pool:
+    with mp.get_context("fork").Pool(a.workers, initializer=_init, initargs=(plan_dir, res_dir, index, src_index)) as pool:
         for n, got in enumerate(pool.imap_unordered(process_part, parts, chunksize=1)):
             rows.extend(got)
             if (n + 1) % 50 == 0:
@@ -316,6 +355,7 @@ def main(argv=None):
         h.attrs.update(contract="P6 v2", plan=str(plan_dir), results=str(res_dir), git_commit=git_commit(),
                        p6_names=json.dumps(desc, ensure_ascii=False), created=datetime.datetime.now().isoformat(timespec="seconds"),
                        command="features.py " + " ".join(argv if argv is not None else sys.argv[1:]),
+                       src_results=json.dumps(srcs, ensure_ascii=False),
                        n_cases=len(tab), n_parts=len(parts), seconds=round(time.time() - t0, 1))
     os.replace(tmp, out)
     print(json.dumps(dict(out=str(out), n=len(tab), n_ref_iou=n_ref, n_ref=int((tab["ref_case_id"] >= 0).sum()),
