@@ -32,7 +32,7 @@ signal fallback(reason: String)
 ## Доля расчёта 0..1 (экран загрузки).
 signal progress_changed(fraction: float)
 
-enum Stage { IDLE, PREP, PHASE, COARSE, SOLVE, BUILD, WINDOWS, SHIFT }
+enum Stage { IDLE, PREP, PHASE, COARSE, NEXT, SOLVE, BUILD, WINDOWS, SHIFT }
 
 ## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
@@ -110,6 +110,9 @@ var _t_phase := 0
 ## Грубый Пикар (старт загрузки, air_model.picard_start = coarse): задача, её итог и старт-пара.
 var _coarse_job: AirPicardJob
 var _coarse := {}
+## Стадия NEXT: следующий шаг конвейера — в следующем кадре (итог задачи и запуск следующей в одном
+## кадре давали 115–125 мс главного потока).
+var _next: Callable
 var _place := {}
 var _place_key := ""
 var _cfg := {}
@@ -409,6 +412,10 @@ func _process(_dt: float) -> void:
 			_poll_phase()
 		Stage.COARSE:
 			_poll_coarse()
+		Stage.NEXT:
+			var fn := _next
+			_next = Callable()
+			fn.call()
 		Stage.BUILD:
 			_read_mech_state()
 		Stage.WINDOWS, Stage.SHIFT:
@@ -591,7 +598,7 @@ func _poll_phase() -> void:
 	if _phase_job.has_method("release"):
 		_phase_job.call("release")
 	_phase_job = null
-	_after_phases()
+	_defer(_after_phases)
 
 
 ## Множитель клетки грубого старта (1 — без него): air_model.picard_start = coarse.
@@ -643,7 +650,13 @@ func _poll_coarse() -> void:
 	}
 	_coarse_job.release()
 	_coarse_job = null
-	_start_picard(_prep.case)
+	_defer(_start_picard.bind(_prep.case))
+
+
+## Шаг конвейера — следующим кадром.
+func _defer(fn: Callable) -> void:
+	_next = fn
+	_stage = Stage.NEXT
 
 
 ## Кадр после готовности: состояние решения без нагрева (тёплый старт) и освобождение задачи.

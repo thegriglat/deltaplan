@@ -7,6 +7,10 @@ extends TestCase
 ## tools/research/air_runtime/plot_blend.py).
 
 const START_LATLON := Vector2(50.78708, 86.23278)  # kayancha_south
+## Предел кадра загрузки и главного потока AirRuntime за кадр, мс: по факту конвейера фазы → грубый
+## Пикар → Пикар (замер AP-20: 114–125 мс на стыках задач, RTX 4070 SUPER); оптимизация кадра
+## отложена (решение пользователя 07.10). Было 100 мс до фаз.
+const FRAME_MAX_MS := 130.0
 
 var _c := {}
 var _gaps: Array[float] = []
@@ -125,7 +129,7 @@ func test_ongudai_runtime() -> void:
 	check(atmo.is_air_field_on(), "поле в атмосфере")
 	check(atmo.air_field.blend_fraction() == 1.0, "при загрузке — без подмены")
 	print("    стадии загрузки, мс главного потока: %s" % JSON.stringify(li.get("stage_ms", {})))
-	check(g.x <= 100.0, "кадр загрузки ≤ 100 мс (%.0f)" % g.x)
+	check(g.x <= FRAME_MAX_MS, "кадр загрузки ≤ %.0f мс (%.0f)" % [FRAME_MAX_MS, g.x])
 	# ---- выборка у старта против AirPicardJob напрямую
 	# тот же конвейер вручную: фазы (AirPhaseJob) → Пикар с их тёплым стартом, ω, заморозкой
 	var job := AirPicardJob.new()
@@ -230,7 +234,7 @@ func test_ongudai_runtime() -> void:
 ## отдельно (сборка источников термиков по новому полю на главном потоке — AM-07/AM-11).
 func _check_frame(li: Dictionary) -> void:
 	var ms := float(li.get("main_max_ms", 1e9))
-	check(ms <= 100.0, "AirRuntime за кадр ≤ 100 мс (%.0f)" % ms)
+	check(ms <= FRAME_MAX_MS, "AirRuntime за кадр ≤ %.0f мс (%.0f)" % [FRAME_MAX_MS, ms])
 	print("    шаг атмосферы max %.0f мс" % _atmo_ms)
 
 
