@@ -334,6 +334,10 @@ GDScript — без магических чисел (кроме математи
   в его незамороженных клетках с весом H/D (до заморозки) > `air_phase.nonconv_mech_w` берётся поле механизма H/D (P10
   `mech_field`), остальное — late_mean Пикара; затем проекция. Ошибка «блуждание отправлено в Пикар» стоит только времени
   GPU. `last_info` + `nonconv_fallback` (bool, доля клеток).
+- **Ключи конфига (06.10, единый источник):** классификатор — `air_phase.classifier` (имена = `recommended_config` AP-23),
+  механизмы — `air_phase.{a,b,d,f,g,h}`, ω и запасное правило — `air_phase.omega.{fallback_iters, fallback_omega}`, запасной
+  путь по сходимости — `air_phase.nonconv.{mech_w, late_from}`, допуски проверок — `air_phase.checks`. В `air_model` эти
+  ключи не дублируются (временные `omega_fallback_*`, `nonconv_*` AP-20 убираются после вливания AP-19).
 - Конфиг `air_model`: ключи `engine`, `nn_*` удаляются; `enabled` auto/on/off — как было. Настройки «Ветер над рельефом»:
   «расчёт» / «упрощённый».
 - `last_info` + `phase_frac` (доли фаз), `phase_ms`, `omega_fallback_used`, `frozen_frac`, `iters`; строка журнала
