@@ -6,3 +6,5 @@ D=${AIR_SYNTH_DATA:-$HOME/air_synth_data}/phase
 cd "$(dirname "$0")"
 $PY run_assembly.py --out $D/assembly_v1 --workers 16
 $PY run_assembly.py --out $D/assembly_v1_noana --workers 16 --cfg '{"slope_len_m": 0.0, "version": "assembly_v1_noana"}'
+$PY ../analysis/AP-17/oracle.py --data $D/assembly_v1 --workers 16
+$PY ../analysis/AP-17/run.py --data $D/assembly_v1 --variant $D/assembly_v1_noana
