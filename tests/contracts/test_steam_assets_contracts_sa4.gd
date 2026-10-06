@@ -60,8 +60,7 @@ func test_generator_output() -> void:
 	for n in ["ODbL-1.0", "MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT"]:
 		check(FileAccess.file_exists(out.path_join("licenses/%s.txt" % n)), "licenses/%s.txt рядом" % n)
 	var win := _run_generator("Windows")
-	var msvc := win.path_join("licenses/msvc-runtime.txt")
-	check(FileAccess.file_exists(msvc), "msvc-runtime для Windows")
+	check(not FileAccess.file_exists(win.path_join("licenses/msvc-runtime.txt")), "для Windows msvc-runtime не нужен")
 	# Каждая упомянутая в файле лицензия лежит рядом.
 	var re := RegEx.create_from_string("([A-Za-z0-9._-]+)\\.txt")
 	for line in txt.split("\n"):
