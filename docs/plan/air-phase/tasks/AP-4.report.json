@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "План ap_v2 (серия FIXED_U, 296 случаев, 62 рельефа ideal_v2) собран; h везде берётся из Relief.h_m (в коде Context.h_m не использовался нигде, кроме записи в план); тест на заглушке; счёт ap2-run в очереди за ap1-resume.",
+  "commits": [
+    "3eabe409 air-phase AP-4: серия FIXED_U (план ap_v2), рельефы ideal_v2 с h из линии, порядок счёта и status, тесты"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "plan_v2",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "queued",
+      "value": "идёт",
+      "pass": true
+    },
+    {
+      "name": "dp accept AP-4 --dry",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "тесты plan_build+run_phase+contract",
+      "value": "13 passed, 2 skipped",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept AP-4",
+  "uncertain": [
+    {
+      "where": "plan_build.py fixed_u_points",
+      "why": "h_axis округляет h до 1 м (по заданию: имя корпуса и Relief.h_m — целые), поэтому Fr пересчитан как U_sat/(N·h) — отличается от логсетки до ~0,2 %; U_sat точно 3 и 6",
+      "checked": "тест fr·N·h == U_sat"
+    },
+    {
+      "where": "batch_solver relief_m",
+      "why": "решатель берёт relief_m = max−min g100 (для холма/хребта ≈0,998·h из-за узлов ±50 м, плюс квантование int16 корпуса), froude_table отличается от Fr ~0,2 % — в пределах ±1 %",
+      "checked": "тест: перепад g100 = 1000 ±1 %"
+    },
+    {
+      "where": "оценка времени",
+      "why": "в ap_v1 пока посчитано 464 случаев GRID при Fr 0,5–1,5 — все 1001 итераций (не сошлись), 4,2 с/случай",
+      "checked": "progress.jsonl ap_v1__s1-74644c4"
+    }
+  ],
+  "dp_feedback": "dp job list нет (есть status); оценку времени по progress.jsonl пришлось считать своим скриптом.",
+  "t": "2026-10-06T03:31:51",
+  "by": "executor"
+}

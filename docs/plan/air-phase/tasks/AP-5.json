@@ -1,0 +1,45 @@
+{
+  "id": "AP-5",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Проверка подмены N и z_i: откуда 89 % несходимости в GRID ap_v1",
+  "goal": "В GRID ap_v1 456 из 512 случаев не сошлись (в SY-12 ~10 %), в т.ч. при Fr 0,5–1,5 и U_sat 2,5–7,5. Нужно на CPU по записанным частям решить: ошибка подмены стратификации (тогда счёт останавливаем и пересчитываем) или физика.",
+  "plan_ref": "6. Риски",
+  "contracts": [
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P4",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-5",
+  "branch": "air-phase/AP-5",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/diag_override.py",
+    "tools/research/air_phase/out/diag_override.json",
+    "tools/research/air_phase/out/diag_override.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_phase/batch_solver.py",
+    "tools/research/air_phase/run_phase.py",
+    "tools/research/air_phase/phase_io.py"
+  ],
+  "accept": [
+    {
+      "name": "diag",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/out/diag_override.json'));print('verdict', d['verdict'])\"",
+      "expect": "re:verdict (bug|physics|mixed)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T03:34:12"
+}

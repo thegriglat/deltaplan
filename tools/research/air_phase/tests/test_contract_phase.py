@@ -148,3 +148,38 @@ def test_results_parts():
                 assert w.ndim == 5 and w.shape[1] == 4 and w.dtype == np.float16
                 for a in ("dx_m", "x0_m", "y0_m", "agl_m", "case_id"):
                     assert a in w.attrs or a in h["window"], a
+
+
+# --- P6, P7 (этап разбора) ---
+P6_PLAN_FIELDS = ["shape", "slope", "h_m", "h_over_zi", "variant", "ref_case_id", "u10", "fr"]
+P6_GROUPS = ("th_", "sl_", "lee_")
+ANALYSIS = HERE.parent / "analysis"
+
+
+@pytest.mark.skipif(not os.environ.get("AP_FEATURES"), reason="AP_FEATURES не задан")
+def test_features_table():
+    h5py = pytest.importorskip("h5py")
+    import json
+    with h5py.File(os.environ["AP_FEATURES"], "r") as h:
+        for a in ("plan", "results", "git_commit", "p6_names"):
+            assert a in h.attrs, a
+        names = h["features"].dtype.names
+        for f in list(CASES_FIELDS) + P6_PLAN_FIELDS:
+            assert f in names, f
+        for g in P6_GROUPS:
+            assert any(n.startswith(g) for n in names), g
+        desc = json.loads(h.attrs["p6_names"])
+        assert all(n in desc for n in names if n.startswith(P6_GROUPS)), "у метрик слоёв нет описания с единицами"
+
+
+@pytest.mark.parametrize("d", sorted(p for p in ANALYSIS.glob("AP-*") if p.is_dir()) if ANALYSIS.exists() else [])
+def test_analysis_dir(d):
+    import json
+    for f in ("run.py", "summary.json", "section.md"):
+        assert (d / f).exists(), (d.name, f)
+    json.loads((d / "summary.json").read_text(encoding="utf-8"))
+    figs = list(d.glob("fig_*.png"))
+    assert len(figs) <= 6, (d.name, len(figs))
+    text = (d / "section.md").read_text(encoding="utf-8")
+    for m in re.findall(r"\]\((fig_[^)]+\.png)\)", text):
+        assert (d / m).exists(), (d.name, m)

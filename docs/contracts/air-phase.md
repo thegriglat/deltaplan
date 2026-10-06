@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Контракты air-phase: P1 идеальные рельефы (reliefs.py + корпус S1 ideal_v1), P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель с опциями, P5 интерфейс скрипта прогона run_phase.py"
+summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 4}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 4}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}, {"id": "P6", "version": 1}, {"id": "P7", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -167,3 +167,33 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
 - Убийство процесса в любой момент не портит каталог (части атомарны); код выхода 0 — всё посчитано, ≠ 0 — ошибка
   (NaN, исключение) с записью в `run.jsonl`.
 - Без Godot; GPU — только под общим замком (`dp job --lock gpu start air-phase-run <таймаут> …/run_all.sh`).
+
+## P6. Метрики слоёв и таблица признаков (версия 1)
+**Владелец:** AP-6 (`tools/research/air_phase/layer_metrics.py`, `features.py`). **Потребители:** AP-7…AP-11.
+
+- Критерий (решение пользователя 06.10): величины, которые из поля масштаба 1 берут следующие слои игры. Функция
+  `layer_metrics(f: (4, 13, 96, 96) f4 [u, v, w, θ′], hc, heat_flux, hbl: (96, 96), case: dict) -> dict[str, float]`
+  (case — строка `cases` P3 + h, s, форма из плана), только numpy, без GPU. Группы (имена с префиксом):
+  `th_*` — термики (источники: где и сколько — доля площади/число и положение относительно вершины; сила — w* или
+  подъём ядра по формулам масштаба 2 игры; потолок; снос — средний ветер в слое 0…z_i); `sl_*` — динамический подъём
+  у склонов (площадь и средняя сила w > порог у наветренного склона на 50–300 м над землёй); `lee_*` — подветренная
+  зона и ротор (площадь опускания/обратного течения за гребнем, глубина, сила). Формулы и пороги — из кода игры
+  (`scripts/atmosphere/`, `docs/guide/air-model.md`, `docs/guide/atmosphere.md`) со ссылками на строки; чего в игре нет —
+  физически обоснованно, помечено. Плюс разности метрик между двумя полями `layer_diff(a, b) -> dict` (для RELAX,
+  SWEEP, ENVELOPE: «меняет ли решатель то, что видит слой»).
+- Таблица `tools/research/air_phase/out/features_<plan>.h5` — (N,) составной набор `features`: все поля `cases` P3 + `order`
+  P3 + `layer_metrics` + из плана: `shape`, `slope`, `h_m`, `h_over_zi`, `variant`, `ref_case_id` (холодный случай той же
+  конфигурации — для SWEEP/RELAX/ENVELOPE), `u10`, `fr`; атрибуты `plan`, `results`, `git_commit`, `p6_names` (описание
+  полей с единицами, JSON). Таблица пересобирается командой `features.py --plan <dir> --results <dir>` (CPU, пул
+  процессов); файл в out/ не коммитится (в .gitignore), путь — в README.
+- `fit_sigmoid(x, y, *, log=True, n_boot=200) -> {x_c, w_dec, y0, dy, x_c_ci, w_ci, sharp, smooth}` — модель §9 п. 6
+  (y = y₀ + Δy·σ((log x − log x_c)/w)), резкая — w < 0,1 декады или скачок > 3σ шума между стартами, плавная — w > 0,3.
+
+## P7. Выход задач разбора (версия 1)
+**Владелец:** каждая задача AP-7…AP-11. **Потребитель:** AP-12 (сборка `docs/research/air_phase_results.md`).
+
+- Каталог `tools/research/air_phase/analysis/<ID>/`: `run.py` (всё одной командой из `features_*.h5` и частей P3),
+  `summary.json` (числа выводов: пороги, ширины, доли — с единицами в именах), `section.md` (готовый текст раздела по-русски:
+  вывод → числа/таблица → оговорки и границы модели → ссылки на рисунки `fig_*.png` относительными путями; первая строка
+  после заголовка — команда воспроизведения), `fig_*.png` (≤ 6, агенты их не открывают). Всё коммитится (данные
+  исследования), кроме больших промежуточных файлов (> 5 МБ — в out/, не коммитить).
