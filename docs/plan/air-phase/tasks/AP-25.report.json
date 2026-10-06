@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "Раздел mechanics/air-model: _index (общая), подстраницы wind-phases(10), slope-wind(20), thermals(30), turbulence(40); git mv, ссылки по site/content исправлены, в slope-wind строка про часть уровня 1.",
+  "commits": [
+    "c7b51393 Сайт: страницы уровней — подстраницы air-model"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "structure",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept AP-25",
+  "uncertain": [],
+  "dp_feedback": "Нет замечаний.",
+  "t": "2026-10-06T21:52:10",
+  "by": "executor"
+}

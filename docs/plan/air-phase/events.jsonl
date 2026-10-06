@@ -165,3 +165,6 @@
 {"t": "2026-10-06T21:23:45", "by": "coordinator", "task": null, "ev": "note", "note": "Передача: влиты AP-14, AP-18, AP-19, AP-24; AP-20 — подключает AirPhaseJob после вливания AP-19, перевод ключей на air_phase.*, затем отчёт и ревью (GPU/физика, no_magic); AP-23 — доработка по ревью: пересчёт при ω = 0,5 случаев, отданных механизмам, затем выбор порога сильного D (270 против 200–230 м); после AP-20 — AP-21 удаление сети (+README, site approaches), AP-22 текст пилоту; шлюз перед облётом — итог AP-23"}
 {"t": "2026-10-06T21:51:32", "by": "coordinator", "task": "AP-25", "ev": "created", "note": "Сайт: страницы уровней — подстраницы раздела mechanics/air-model (ru/en)"}
 {"t": "2026-10-06T21:51:35", "by": "coordinator", "task": "AP-25", "ev": "started", "note": "dp-writer (тот же, что AP-24)"}
+{"t": "2026-10-06T21:52:10", "by": "executor", "task": "AP-25", "ev": "reported", "commits": ["c7b51393"], "note": "done: Раздел mechanics/air-model: _index (общая), подстраницы wind-phases(10), slope-wind(20), thermals(30), turbulence(40); …", "dp_feedback": "Нет замечаний."}
+{"t": "2026-10-06T21:52:30", "by": "executor", "task": "AP-25", "ev": "accepted", "note": "2/2 hugo=ok:0; structure=ok:exit 0"}
+{"t": "2026-10-06T21:52:31", "by": "coordinator", "task": "AP-25", "ev": "merged"}
