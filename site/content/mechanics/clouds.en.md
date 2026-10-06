@@ -34,7 +34,7 @@ day some of the thermals overdevelop: tall towers, a spreading top (more on this
 the "dangerous weather" section of the atmosphere module, including thunderstorm cells and anvils).
 
 For details on the thermal itself, its strength, the shape of the flow, the updraft speed and how the
-airflow beneath the cloud is born and dies, see the page [Thermals](/mechanics/thermals/); only the
+airflow beneath the cloud is born and dies, see the page [Thermals](/mechanics/air-model/thermals/); only the
 above-ground, visible part is described here.
 
 ## Cloud shadows

@@ -11,9 +11,11 @@ the opposite happens: the air separates, creating a zone of sink and turbulence,
 pilots avoid flying into. Below: how this is computed with formulas (analytics), where they come from
 and what is deliberately simplified in them.
 
+This page is part of level 1 of the [air model](/mechanics/air-model/): slope winds correspond to the F and G mechanisms of the wind-field phases ([phases](/mechanics/air-model/wind-phases/)); here the fallback formulas are described.
+
 > [!NOTE]
 > In the game, slope lift, the acceleration at the brow, the saddle and the rotor are now taken from the physical air field —
-> the [air model](/mechanics/air-model/) ([wind field](/mechanics/wind-phases/), [turbulence and rotor](/mechanics/turbulence/)). The formulas on this page remain as a fallback: the game
+> the [air model](/mechanics/air-model/) ([wind field](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/)). The formulas on this page remain as a fallback: the game
 > switches to them if the field could not be computed, and outside the field's area. The "what the formula cannot do" items below
 > apply to them.
 

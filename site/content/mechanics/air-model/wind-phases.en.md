@@ -1,6 +1,6 @@
 ---
 title: "Wind field: phases and Picard"
-weight: 101
+weight: 10
 description: "Level 1 of the air model: which flow regimes exist over terrain (flow over, separation, waves, blocking, convection, drainage, calm), how each is computed and what the game gets out — mean wind field, phase map, w*, z_i, separation zones."
 ---
 
@@ -10,7 +10,7 @@ This is level 1 of the [air model](/mechanics/air-model/): the mean wind field f
 
 - **the mean wind field** — three velocity components and the temperature deviation on three nested grids (a 400 m area, 100 and 50 m windows around the pilot); from it come slope lift, speed-up at the brow, flow around hills sideways, the saddle, sink behind a ridge;
 - **a phase map** — for every cell, which flow regime is the main one there; in the game it can be turned on as a debug layer next to the wind arrows;
-- **w<sub>\*</sub> and z<sub>i</sub>** — the convective velocity scale (from the heat flux off the ground) and the mixing-layer height; the thermals of [level 2](/mechanics/thermals/) and the convective turbulence of [level 3](/mechanics/turbulence/) stand on them;
+- **w<sub>\*</sub> and z<sub>i</sub>** — the convective velocity scale (from the heat flux off the ground) and the mixing-layer height; the thermals of [level 2](/mechanics/air-model/thermals/) and the convective turbulence of [level 3](/mechanics/air-model/turbulence/) stand on them;
 - **separation zones** — where the flow detaches behind a ridge; level 3 turns their size and position into rotor and jolts.
 
 There is no neural network here: an early variant with a trained network was replaced by physics, because each flow regime has its own understandable mechanism, while the network was a black box.
@@ -58,7 +58,7 @@ Recomputation is every 15 game minutes and when the wind or weather changes: in 
 - **The classifier thresholds come from the literature and our own measurements on ideal terrain.** Behavior near boundaries is an approximation; on real terrain boundaries transfer partially and are blurred wider.
 - **Phases are determined locally, but real flow is nonlocal**: on a 400 m grid the lower and upper layers may be in different regimes, while the classifier looks at the column as a whole.
 - **Calm and evening drainage are the weakest spots.** The nocturnal jet is not reproduced; thin drainage layers (units to tens of meters) are not resolved on the grid; cold pools follow accumulation, not computation.
-- **Convection and thermals are statistics**, not a computation of each thermal; more on the [thermals](/mechanics/thermals/) page.
+- **Convection and thermals are statistics**, not a computation of each thermal; more on the [thermals](/mechanics/air-model/thermals/) page.
 - **The mean field is steady.** Evolution within the hour does not live in it, so between recomputations the field is smoothly replaced by a new one.
 - **Terrain resolution.** Speed-up at the brow is underestimated by 15–20 % (see the [common limits](/mechanics/air-model/)); on the 400 m area separation behind small ridges is not resolved, there the separation zone is set by the level 3 estimate.
 
