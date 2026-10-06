@@ -172,7 +172,8 @@ def test_features_table():
         assert all(n in desc for n in names if n.startswith(P6_GROUPS)), "у метрик слоёв нет описания с единицами"
 
 
-@pytest.mark.parametrize("d", sorted(p for p in ANALYSIS.glob("AP-*") if p.is_dir()) if ANALYSIS.exists() else [])
+@pytest.mark.parametrize("d", sorted(p for p in ANALYSIS.glob("AP-*") if p.is_dir()) if ANALYSIS.exists() else [],
+                         ids=lambda p: p.name)
 def test_analysis_dir(d):
     import json
     for f in ("run.py", "summary.json", "section.md"):
