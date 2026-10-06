@@ -8,7 +8,7 @@ related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "d
 ---
 # air-phase: воспроизведение
 
-Итог и выводы — `docs/research/air_phase.md` (+ `air_phase_experts.md`, `air_phase_refs.md`). Здесь — код. Только CPU, Godot и GPU не нужны.
+Итог и выводы — `docs/research/air_phase.md` (+ `air_phase_experts.md`, `air_phase_refs.md`); итоги опытов на идеальном рельефе (AP-7…AP-13) — `docs/research/air_phase_results.md` (+ `air_phase_results_tables.md`), разбор — `analysis/<ID>/`. Здесь — код. Только CPU, Godot и GPU не нужны.
 
 ```bash
 PY=/home/greg/deltaplan-air-synth-SY-11/tools/research/air_nn_pilot/.venv/bin/python   # numpy, scipy, h5py, matplotlib
