@@ -507,8 +507,13 @@ func _start_prep() -> void:
 			gpu_job = null
 	_phase_job = gpu_job
 	_task = WorkerThreadPool.add_task(
-		_prep_task.bind(_place, r, _k, _prep, cpu_job, _cpu_only()), false, "AirRuntime"
+		_prep_task.bind(_place, r, _k, _prep, cpu_job, _cpu_only(), _limits()), false, "AirRuntime"
 	)
+
+
+## Ограничители поля (max_speed_ms, max_w_ms) — из конфига, для рабочего потока.
+func _limits() -> Vector2:
+	return Vector2(float(_cfg.max_speed_ms), float(_cfg.max_w_ms))
 
 
 ## Задача фаз ведётся порциями на GPU (P10 v2).
@@ -533,7 +538,8 @@ func _progress(x: float) -> void:
 ## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока;
 ## phase_job — фазы на CPU (P10, run(case)); build — без GPU: и поле из сборки фаз (WindField).
 static func _prep_task(
-	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object, build: bool
+	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object, build: bool,
+	limits: Vector2
 ) -> void:
 	var base := AirPlace.domain_case(
 		place.detail,
@@ -559,19 +565,18 @@ static func _prep_task(
 	out.phase = ph
 	out.phase_ms = (Time.get_ticks_usec() - t0) / 1000.0
 	if build:
-		out.field = assembly_field(pc, ph)
+		out.field = assembly_field(pc, ph, limits)
 
 
 ## Поле из сборки фаз без Пикара (P12, нет GPU): warm P10 (раскладка AirPicardJob) → WindField C3;
 ## w_mech — вертикаль сборки (механизмы F держат среднее поле, пузыри термиков — отдельно).
 ## null — нет warm или размеры не сошлись.
-static func assembly_field(c: AirCase, ph: Dictionary) -> WindField:
+static func assembly_field(c: AirCase, ph: Dictionary, limits: Vector2) -> WindField:
 	var warm: Dictionary = ph.get("warm", {})
 	var n := c.dims().x * c.dims().y * c.dims().z
 	for nm in ["u", "v", "w", "th"]:
 		if PackedFloat32Array(warm.get(nm, PackedFloat32Array())).size() != n:
 			return null
-	var cfg: Dictionary = Config.get_config("atmosphere").get("air_model", {})
 	var w: PackedFloat32Array = warm.w
 	return AirPicardJob._build_field(
 		{
@@ -584,8 +589,8 @@ static func assembly_field(c: AirCase, ph: Dictionary) -> WindField:
 			tc = cell_codes(c),
 			hc = c.hc,
 		},
-		float(cfg.max_speed_ms),
-		float(cfg.max_w_ms)
+		limits.x,
+		limits.y
 	)
 
 
