@@ -22,7 +22,8 @@
   и resid_rel = resid·a/U_sat² (< 4e-4 ⇔ rel при пороге по умолчанию).
 
 Опции (Numerics): top_above_m — верх области над max рельефа (как real.TOP_ABOVE, своя grid_domain), sponge_top_m —
-толщина губки у верха (Params.sponge_top_m), P4 v4; omega_u — u ← u + ω(u* − u) после проекции (Params.omega_u); omega_k — K ← K + ω(K* − K), где K* —
+толщина губки у верха (Params.sponge_top_m), P4 v4; lam_m — асимптотическая длина перемешивания Блэкадара λ (Params.lam,
+λ = max(lam_m, lam_frac·h_bl) как в air3d; 40 м по умолчанию — побитно как v4), P4 v5; omega_u — u ← u + ω(u* − u) после проекции (Params.omega_u); omega_k — K ← K + ω(K* − K), где K* —
 обновление замыкания с его собственной нижней релаксацией k_relax = 0,1 (эффективно k_relax·ω; ω = 1 — как было);
 k_floor_m2s — Params.k_fa (K свободной атмосферы и нижний предел K в kloc); advection_order 2 — Params.adv2 (ван Лир).
 
@@ -113,6 +114,7 @@ class Numerics:
     envelope_z0_m: float | None = None
     top_above_m: float = 3000.0        # P4 v4: верх области над max рельефа, м (air3d/real.TOP_ABOVE)
     sponge_top_m: float = 1000.0       # P4 v4: толщина губки у верха, м (Params.sponge_top_m)
+    lam_m: float = 40.0                # P4 v5: асимптотическая длина перемешивания λ, м (Params.lam; λ = max(lam_m, lam_frac·h_bl))
 
 
 @dataclass
@@ -310,6 +312,8 @@ class _Setup:
             prm = replace(prm, omega_u=float(num.omega_u))
         if num.sponge_top_m != prm.sponge_top_m:
             prm = replace(prm, sponge_top_m=float(num.sponge_top_m))
+        if num.lam_m != prm.lam:                         # P4 v5: λ K-замыкания (область и окно)
+            prm = replace(prm, lam=float(num.lam_m))
         if num.advection_order == 2:
             prm = replace(prm, adv2=True, limiter=1)
         elif num.advection_order != 1:

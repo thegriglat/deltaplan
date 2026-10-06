@@ -219,3 +219,15 @@ def test_top_sponge_default_bitwise():
     assert np.array_equal(res[0].fields, res[1].fields) and res[0].iters == res[1].iters
     assert not np.array_equal(res[0].fields, res[2].fields)
     assert BS._Setup(0, sp, nums[2]).prm.sponge_top_m == 2000.0
+
+
+def test_lam_default_bitwise():
+    """P4 v5: lam_m по умолчанию (40 м = Params.lam) — побитно то же поле; другое λ — Params.lam и иной счёт."""
+    sp = spec_fr("ridge", 0.3, 0.6, h_over_zi=1.0)
+    assert BS._Setup(0, sp, BS.Numerics()).prm == A.Params() and BS.Numerics().lam_m == A.Params().lam
+    nums = [BS.Numerics(max_outer=120, late_from=100), BS.Numerics(max_outer=120, late_from=100, lam_m=40.0),
+            BS.Numerics(max_outer=120, late_from=100, lam_m=160.0)]
+    res = [BS.solve_batch([sp], nm)[0] for nm in nums]
+    assert np.array_equal(res[0].fields, res[1].fields) and res[0].iters == res[1].iters
+    assert not np.array_equal(res[0].fields, res[2].fields)
+    assert BS._Setup(0, sp, nums[2]).prm.lam == 160.0
