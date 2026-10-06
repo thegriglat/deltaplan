@@ -121,3 +121,4 @@
 {"t": "2026-10-06T16:43:08", "by": "reviewer", "task": "AP-16", "ev": "reviewed", "note": "Числа lee взяты из AP-10 и литературы, источники записаны в _doc. Формула H = w*³·ρc_p·θ0/(g·z_i) — это верно обращённая формула Дирдорфа. Скоуп и контракты не…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/air-phase/tasks/AP-16.review.json"}
 {"t": "2026-10-06T16:43:22", "by": "coordinator", "task": "AP-17", "ev": "accepted", "note": "по ревью fable (accept, minor): can_drop_network = no"}
 {"t": "2026-10-06T16:43:23", "by": "coordinator", "task": "AP-17", "ev": "merged"}
+{"t": "2026-10-06T16:43:42", "by": "coordinator", "task": "AP-16", "ev": "accepted", "note": "по ревью (accept, minor): lee 0,65/0,6/350/0,08, ослабление с нагревом 1−H/300 (граница модели — грубо, σ ротора не ослабляется); test_performance падает под нагрузкой и на базе — не регрессия; полный atmosphere повторить на свободной машине"}
