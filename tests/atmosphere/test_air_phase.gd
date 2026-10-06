@@ -292,3 +292,18 @@ func test_determinism() -> void:
 		return
 	check(a.weights == b.weights, "веса повторяются побитно")
 	check(a.warm.u == b.warm.u and a.warm.th == b.warm.th, "тёплый старт повторяется побитно")
+
+
+func test_field_without_picard() -> void:
+	# путь без GPU (P12 v3): полное поле WindField из сборки по фазам
+	var c := make_case(400.0, 5.0, 150.0, 1200.0, 0.01)
+	var r := _run(c)
+	if r.has("error"):
+		return
+	var f := AirPhaseCpu.field(c, r)
+	check(f != null, "WindField из сборки")
+	if f == null:
+		return
+	var top := c.hc[(N / 2) * N + N / 2] + 300.0
+	var v := f.sample(Vector3(0.0, top, 0.0))
+	check(v.length() > 0.5, "ветер над вершиной есть (%s)" % v)

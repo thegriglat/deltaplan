@@ -702,3 +702,38 @@ static func faces(p: Dictionary, ctr: PackedFloat64Array, _bad: Array) -> Packed
 		out[2 * n + idx] = fw
 		out[3 * n + idx] = ctr[3 * n + idx]
 	return out
+
+
+# ---------------------------------------------------------------- поле для игры без Пикара (P12 v3)
+
+
+## Полное поле сборки по фазам без Пикара (путь без GPU, P12 v3): все клетки — механизмы
+## (A — линейная теория, B, C → A, D, H, F, G); u, v, θ′ — решение с нагревом, w_mech — без нагрева
+## (C3). r — результат run() того же случая (пусто — посчитать). null — размеры не сошлись.
+static func field(case: AirCase, r := {}, max_speed := 40.0, max_w := 10.0, cfg := {}) -> WindField:
+	if r.is_empty():
+		r = run(case, cfg)
+	if r.has("error"):
+		return null
+	return field_from(case, r, max_speed, max_w)
+
+
+## WindField (C3) из словаря P10 (CPU или GPU — раскладка одна).
+static func field_from(case: AirCase, r: Dictionary, max_speed := 40.0, max_w := 10.0) -> WindField:
+	var d := case.dims()
+	var cell := PackedFloat32Array()
+	cell.resize(d.x * d.y * d.z)
+	for k in range(1, d.z):
+		var z := case.zc(k)
+		for jh in d.y:
+			var j := clampi(jh - 1, 0, case.ny - 1)
+			for ih in d.x:
+				var i := clampi(ih - 1, 0, case.nx - 1)
+				if z >= case.hc[j * case.nx + i]:
+					cell[(k * d.y + jh) * d.x + ih] = 1.0
+	var wh: Dictionary = r.warm
+	var wm: Dictionary = r.warm_mech
+	var f := WindField.from_mac(case.meta(), wh.u, wh.v, wh.w, wm.w, wh.th, cell, AirCase.to_f32(case.hc))
+	if f != null:
+		f.clamp_values(max_speed, max_w)
+	return f
