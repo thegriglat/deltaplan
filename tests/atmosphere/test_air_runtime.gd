@@ -133,8 +133,19 @@ func test_cpu_phase_field() -> void:
 	check(fr.has("A") and fr.has("F"), "доли фаз в last_info: %s" % fr)
 	check(not is_nan(float(li.get("phase_ms", NAN))), "время фаз в last_info")
 	var pm := rt.phase_map
+	check(Array(pm.get("phases", [])) == PHASES, "имена фаз: %s" % [pm.get("phases")])
+	if int(pm.get("nx", 0)) > 0:
+		var img := WindFieldDebug.phase_image(pm)
+		var ny := int(pm.ny)
+		check(_near(img.get_pixel(0, ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
+		check(_near(img.get_pixel(int(pm.nx) - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
 	check(int(pm.get("nx", 0)) > 0 and PackedFloat32Array(pm.get("weights", [])).size() == PHASES.size() * int(pm.nx) * int(pm.ny), "карта фаз для слоя")
 	rt.free()
+
+
+## Цвет после RGB8 (шаг 1/255).
+static func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.02
 
 
 ## Ни GPU, ни кода фаз — аналитика (как C9).

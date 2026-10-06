@@ -49,6 +49,8 @@ const CMD_FIELD := "поле из файла (--air-field)"
 ## Код фаз (air-phase P10, AP-19): классификатор и механизмы; нет файла — Пикар без фаз (GPU) или
 ## аналитика (без GPU).
 const PHASE_JOB_PATH := "res://scripts/atmosphere/air_model/air_phase_job.gd"
+## Порядок фаз в weights (P10: AirPhase.PHASES) — пока кода фаз нет.
+const PHASE_ORDER := ["A", "B", "C", "D", "F", "G", "H"]
 ## Пределы множителя притока k (C9 v3). Над стартами мест игры поле при k = 1 даёт на 10 м
 ## 1,0–2,1 × ветра притока (WPC-2) → k 0,5–1; разгон над холмом в потенциальном обтекании —
 ## не больше ≈ 2–2,5 (Jackson & Hunt 1975; Taylor & Lee 1984: ΔS ≤ 1,6), отсюда нижний предел
@@ -700,7 +702,7 @@ static func _phase_names() -> Array:
 		var v: Variant = (load(path) as Script).get_script_constant_map().get("PHASES", [])
 		if v is Array:
 			return v
-	return []
+	return PHASE_ORDER
 
 
 ## Пикар (P11) с тёплым стартом от сборки фаз, картой ω и заморозкой колонн механизмов.
