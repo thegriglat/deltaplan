@@ -372,7 +372,9 @@ def stage_report(t, D, fits, noise, pairs):
                  n_sharp=sum(b["cls"] == "sharp" for b in bs), n_smooth=sum(b["cls"] == "smooth" for b in bs),
                  n_mid=sum(b["cls"] == "mid" for b in bs), n_unresolved=sum(b["unresolved"] for b in bs),
                  n_calm=sum(b["calm"] for b in bs), dy_sign=int(np.sign(np.median([b["dy"] for b in bs]))),
-                 n_in_gap=sum(b["in_gap"] for b in bs), rejected=rejected.get(p, {}), by={})
+                 n_in_gap=sum(b["in_gap"] for b in bs),
+                 n_sharp_by_w=sum(b["w_dec"] < 0.1 for b in bs),
+                 n_sharp_by_jump=sum(b["cls"] == "sharp" and b["w_dec"] >= 0.1 for b in bs), rejected=rejected.get(p, {}), by={})
         cl = [b for b in bs if not b["calm"] and not b["in_gap"]]
         if cl:
             zl = [b["zi_over_L_at_frc"] for b in cl if b["H"] > 0 and np.isfinite(b["zi_over_L_at_frc"])]
@@ -551,14 +553,15 @@ def stage_report(t, D, fits, noise, pairs):
                              fr_c_up=round(ru["x_c"], 4), fr_c_down=round(rd["x_c"], 4),
                              fr_c_grid=round(rg["x_c"], 4) if okg else None, w_up=round(ru["w_dec"], 4),
                              w_down=round(rd["w_dec"], 4), dlog=round(dl, 4), two_w=round(w2, 4),
-                             ci_separated=bool(ci_sep), hysteresis=bool(dl > w2 and ci_sep)))
+                             ci_separated=bool(ci_sep), hysteresis=bool(dl > w2 and ci_sep),
+                             flat_2w=bool(dl > 2 * max(ru["w_dec"], rd["w_dec"]))))
     hsum = {}
     for p in PARAMS:
         hb = [h for h in hyst if h["param"] == p and h["status"] == "both"]
         if not hb:
             continue
         hsum[p] = dict(n_both=len(hb), n_one_side=sum(1 for h in hyst if h["param"] == p and h["status"] == "one_side"),
-                       n_hysteresis=sum(h["hysteresis"] for h in hb),
+                       n_hysteresis=sum(h["hysteresis"] for h in hb), n_flat_2w=sum(h["flat_2w"] for h in hb),
                        dlog_median=round(float(np.median([h["dlog"] for h in hb])), 4),
                        dlog_max=round(float(np.max([h["dlog"] for h in hb])), 4),
                        two_w_median=round(float(np.median([h["two_w"] for h in hb])), 4),
@@ -578,7 +581,9 @@ def stage_report(t, D, fits, noise, pairs):
     summary = dict(
         task="AP-8", fit_points="conv/spread_rel — все точки GRID; остальные — только сошедшиеся (status 0; AP-13: "
         "несходимость без нагрева — численный цикл решателя, не фаза)", allpoints_compare=allp, inputs=dict(features=str(FEAT), results=str(RES)), n_grid_lines=len(lines),
-        criteria=dict(branch_du_rel=BRANCH_DU, sharp_w_dec=0.1, smooth_w_dec=0.3, accept="x_c и ДИ в диапазоне Fr, |dy| ≥ MIN_DY, R² ≥ 0,5, w ≤ 1 дек",
+        criteria=dict(hysteresis="|lg Fr_c↑ − lg Fr_c↓| > 2·max(w↑, w↓, шаг сетки Fr у x_c, дек) И 95 % бутстрэп-ДИ x_c "
+                      "проходов не перекрываются; для сравнения n_flat_2w — плоский критерий §9 п. 6 (> 2·max(w↑, w↓), без шага и ДИ)",
+                      branch_du_rel=BRANCH_DU, sharp_w_dec=0.1, smooth_w_dec=0.3, accept="x_c и ДИ в диапазоне Fr, |dy| ≥ MIN_DY, R² ≥ 0,5, w ≤ 1 дек",
                       min_dy={p: v[2] for p, v in PARAMS.items()}, calm_fr=CALM_FR,
                       noise="1,4826·MAD (SWEEP тёплый − GRID) при одинаковом статусе, по базовой линии"),
         params={p: dict(group=v[0], lines=v[1], desc=v[3]) for p, v in PARAMS.items()},
@@ -586,7 +591,8 @@ def stage_report(t, D, fits, noise, pairs):
         second_start=dict(pairs=pair_sum, layer_diff=ld, branches=branch_list, conv_by_fr=conv_by_fr,
                           converged_pairs_by_fr=by_fr, up_minus_down_bias=bias),
         hysteresis=dict(summary=hsum, n_param_lines_both=sum(1 for h in hyst if h["status"] == "both"),
-                        n_hysteresis=sum(1 for h in hyst if h.get("hysteresis"))),
+                        n_hysteresis=sum(1 for h in hyst if h.get("hysteresis")),
+                        n_flat_2w=sum(1 for h in hyst if h.get("flat_2w"))),
     )
     (HERE / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1, default=float))
     figures(t, D, fits, boundaries, pairs, cls, ia, hyst, conv_by_fr, lines)
