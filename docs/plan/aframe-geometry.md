@@ -18,7 +18,7 @@ related: ["docs/contracts/aframe-geometry.md", "docs/contracts/wings-models3d.md
 - Ручной дубль геометрии — `configs/flight.json → visual.arms.upright_top_m`, `upright_bottom_half_width_m`.
 - Физика: пилот — точка в HangPoint, трим задан полярой крыла (`trim_speed_kmh`); положение трапеции на физику не влияет (перепроверить в AF-1: досягаемость штанги `arms.reach_margin_m` и ход `pilot_bar_m`).
 - Первое лицо: камера = PilotHead + смещение (`configs/camera.json`), база на 72° ниже горизонта, стойки на азимуте ~95° — вне кадра при любом FOV; это было требованием (`configs/camera.json`, `tests/game/test_cockpit.gd` «трапеция в кадре == 0») — отменяется.
-- Старт: `scripts/flight/glider_visual.gd` (`GROUND_LEAN_BACK_DEG`, `GROUND_GRIP`, `GROUND_FEET`, `_ground_pose`, `upright_grip`), IK `scripts/flight/pilot_arm_ik.gd`; при тангаже киля на земле 14° кисть на 22 см позади плеча.
+- Старт: `scripts/flight/glider_visual.gd` (`pilot.json → visual.run_anim.lean_back_deg`, `GROUND_GRIP`, `GROUND_FEET`, `_ground_pose`, `upright_grip`), IK `scripts/flight/pilot_arm_ik.gd`; при тангаже киля на земле 14° кисть на 22 см позади плеча.
 
 ## Решения пользователя (не обсуждаются)
 1. В стабильном полёте на балансировке (руки без усилия, трапеция в нейтрали) база трапеции примерно под плечами пилота.
