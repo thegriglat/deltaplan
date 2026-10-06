@@ -101,10 +101,10 @@ func test_config_without_nn() -> void:
 		check(not k.begins_with("nn_"), "air_model без nn_*: %s" % k)
 	for k in ["omega_fallback_iters", "omega_fallback_value", "hybrid_checks"]:
 		check(am.has(k), "ключ %s" % k)
-		check(am.has(k + "_doc") or (am.get(k) is Dictionary and am[k].has("_doc")), "_doc у %s" % k)
+		check(am.has(k + "_doc"), "_doc у %s" % k)
 	var hc: Dictionary = am.get("hybrid_checks", {})
 	for k: String in hc:
-		if not k.ends_with("_doc") and k != "_doc":
+		if not k.ends_with("_doc"):
 			check(hc.has(k + "_doc"), "_doc у hybrid_checks.%s" % k)
 	var rt := AirRuntime.new()
 	check(rt.engine() == "solver", "engine() — solver (подпись экрана загрузки)")

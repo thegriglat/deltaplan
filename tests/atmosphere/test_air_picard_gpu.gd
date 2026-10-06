@@ -850,3 +850,106 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 		residual = res,
 		rel = res / scale if scale > 0 else 0.0
 	}
+
+
+# ---------------------------------------------------------------- P11 (air-phase): карта ω, заморозка, запас
+
+
+## Состояние решения байтами (u, v, w, θ′, θ′_d, p).
+static func state_bytes(job: AirPicardJob) -> PackedByteArray:
+	var b := PackedByteArray()
+	for nm in ["u", "v", "w", "th", "thd", "p"]:
+		b.append_array(job.download(nm).to_byte_array())
+	return b
+
+
+## Новые поля пусты (явно) — поле и results побитно как по умолчанию; итог P11 — нули.
+func test_p11_empty_bitwise() -> void:
+	var m := load_fix(FIX + "saddle")
+	var a: AirPicardJob = await _solve(case_from_fixture(m))
+	var job := AirPicardJob.new()
+	job.case = case_from_fixture(m)
+	job.mech = false
+	job.omega_map = PackedFloat32Array()
+	job.freeze_mask = PackedByteArray()
+	job.freeze_field = {}
+	job.omega_fallback = Vector2.ZERO
+	check(job.start(), "старт: %s" % job.error)
+	while not job.is_done() and job.error == "":
+		await Engine.get_main_loop().process_frame
+		job.poll()
+	if a == null or not job.is_done():
+		return
+	check(state_bytes(a) == state_bytes(job), "P11 пусто — побитно")
+	check(a.iterations() == job.iterations(), "итераций столько же")
+	var r: Dictionary = job.results[-1]
+	check(not bool(r.omega_fallback_used) and float(r.frozen_frac) == 0.0, "итог P11 — нули: %s" % r)
+	a.release()
+	job.release()
+
+
+## Карта ω ≡ ½ — та же неподвижная точка, медленнее; запасное правило срабатывает на N; заморозка
+## держит колонны и не ломает сходимость остальных.
+func test_p11_omega_freeze_fallback() -> void:
+	var m := load_fix(FIX + "saddle")
+	var base: AirPicardJob = await _solve(case_from_fixture(m))
+	if base == null:
+		return
+	var c0 := base.case
+	var n2 := c0.nx * c0.ny
+	var u0 := base.download("u")
+	var us := maxf(c0.u_a, 0.1)
+	# ω ≡ ½
+	var half := PackedFloat32Array()
+	half.resize(n2)
+	half.fill(0.5)
+	var j1 := await _solve_p11(case_from_fixture(m), half, PackedByteArray(), Vector2.ZERO)
+	if j1 != null:
+		var d := max_abs_diff(u0, j1.download("u"))
+		print("    ω=½: итераций %d (ω=1: %d), max|Δu| %.2e = %.4f U" % [j1.iterations(), base.iterations(), d, d / us])
+		check(String(j1.results[-1].status) == "ok", "ω=½ сошёлся")
+		check(j1.iterations() > base.iterations(), "ω=½ медленнее")
+		check(d / us < 0.02, "ω=½ — та же неподвижная точка (%.4f U)" % (d / us))
+		j1.release()
+	# запасное правило на 20-й итерации
+	var j2 := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), PackedByteArray(), Vector2(20, 0.5))
+	if j2 != null:
+		var r: Dictionary = j2.results[-1]
+		check(bool(r.omega_fallback_used) and int(r.omega_switch_iter) == 20, "запас сработал на 20: %s" % r)
+		var d2 := max_abs_diff(u0, j2.download("u"))
+		check(String(r.status) == "ok" and d2 / us < 0.02, "запас: сошёлся к той же точке (%.4f U)" % (d2 / us))
+		j2.release()
+	# заморозка угла 4×4 колонны: поле там — от старта
+	var fz := PackedByteArray()
+	fz.resize(n2)
+	for j in 4:
+		for i in 4:
+			fz[j * c0.nx + i] = 1
+	var j3 := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), fz, Vector2.ZERO)
+	if j3 != null:
+		var r3: Dictionary = j3.results[-1]
+		check(absf(float(r3.frozen_frac) - 16.0 / n2) < 1e-6, "доля замороженных: %s" % r3.frozen_frac)
+		check(String(r3.status) == "ok", "заморозка: остальное сошлось (%s, %d)" % [r3.status, j3.iterations()])
+		check(float(r3.div_rms) < 1e-4, "∇·u после сшивки: %.2e" % float(r3.div_rms))
+		print("    заморозка 4×4: итераций %d, div_rms %.2e" % [j3.iterations(), float(r3.div_rms)])
+		j3.release()
+	base.release()
+
+
+func _solve_p11(c: AirCase, om: PackedFloat32Array, fz: PackedByteArray, fb: Vector2) -> AirPicardJob:
+	var job := AirPicardJob.new()
+	job.case = c
+	job.mech = false
+	job.omega_map = om
+	job.freeze_mask = fz
+	job.omega_fallback = fb
+	if not job.start():
+		failures.append("start: " + job.error)
+		return null
+	var frames := 0
+	while not job.is_done() and job.error == "" and frames < 100000:
+		await Engine.get_main_loop().process_frame
+		job.poll()
+		frames += 1
+	check(job.is_done(), "P11: решено (%s)" % job.error)
+	return job if job.is_done() else null

@@ -296,3 +296,37 @@ static func _strongest_w(f: WindField, detail: HeightLayer, st: Vector2) -> Vect
 				bw = w
 				best = p
 	return best
+
+
+## P12: конвейер фазы → Пикар на GPU (фазы — AirPhaseJob AP-19 или заглушка): поле подано,
+## last_info — движок, доли фаз, заморозка, итерации; окна — как раньше.
+func test_phase_picard_pipeline() -> void:
+	var lw := TestAirPlace.load_detail("ongudai")
+	var loc := TestAirPlace.load_loc("ongudai")
+	var detail: HeightLayer = lw[0]
+	var atmo := _atmo(detail)
+	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
+	var rt := AirRuntime.new()
+	var stub: RefCounted = null
+	if not ResourceLoader.exists(AirRuntime.PHASE_JOB_PATH):
+		stub = preload("res://tests/atmosphere/test_air_runtime.gd").PhaseStub.new()
+		rt.phase_factory = func(_g: AirGpu) -> Object: return stub
+	await Engine.get_main_loop().process_frame
+	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
+	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
+	var ok: bool = await rt.load_field()
+	var li := rt.last_info
+	print("  фазы+Пикар: %s" % JSON.stringify({
+		engine = li.get("engine"), iters = li.get("iters"), phase_frac = li.get("phase_frac"),
+		phase_ms = li.get("phase_ms"), frozen_frac = li.get("frozen_frac"),
+		omega_fallback_used = li.get("omega_fallback_used"), picard_ms = li.get("picard_ms"),
+		wall_s = li.get("wall_s"), windows = str(li.get("windows", [])),
+	}))
+	check(ok, "поле посчитано: %s" % rt.last_error)
+	check(String(li.get("engine", "")) == "phase+picard", "движок — фазы+Пикар: %s" % li.get("engine"))
+	check(li.has("phase_frac") and li.has("frozen_frac") and li.has("omega_fallback_used"), "last_info P12")
+	if stub != null:
+		check(float(li.get("frozen_frac", 0.0)) > 0.0, "заморозка заглушки дошла до Пикара")
+	check(not rt.phase_map.is_empty(), "карта фаз для слоя")
+	rt.queue_free()
+	atmo.free()
