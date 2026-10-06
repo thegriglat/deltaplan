@@ -2,9 +2,11 @@ class_name AirRuntime
 extends Node
 ## Жизненный цикл среднего поля (масштаб 1) в игре (AM-06Б, контракт C9): по месту, часу, ветру
 ## и погоде — вход решателя (AirPlace.domain_case, область 400 м по всему месту; в рабочем
-## потоке), расчёт на GPU (AirPicardJob, mech = true), сборка WindField (field_async, рабочий
-## поток) и подача в атмосферу (set_air_field). Хранит state() для тёплого старта следующего
-## пересчёта. docs/guide/air-model.md → «Загрузка и пересчёт поля».
+## потоке), фазы (AirPhaseJob, air-phase P10: веса фаз, карта ω, заморозка колонн механизмов,
+## тёплый старт из сборки), Пикар на GPU с тёплым стартом от сборки (AirPicardJob, P11, mech = true),
+## сборка WindField (field_async, рабочий поток) и подача в атмосферу (set_air_field) — air-phase
+## P12. Без GPU расчёта нет (аналитика, P12 v4). Хранит state() для тёплого старта
+## следующего пересчёта. docs/guide/air-model.md → «Загрузка и пересчёт поля».
 ##
 ##   rt.setup(atmo, {detail = layer, water = img, loc = {...}}, conditions_fn)
 ##   await rt.load_field()        # экран загрузки: порции poll_slice, доля — progress_changed
@@ -30,7 +32,7 @@ signal fallback(reason: String)
 ## Доля расчёта 0..1 (экран загрузки).
 signal progress_changed(fraction: float)
 
-enum Stage { IDLE, PREP, SOLVE, BUILD, WINDOWS, SHIFT, NN }
+enum Stage { IDLE, PREP, PHASE, COARSE, INTERP, SOLVE, BUILD, WINDOWS, SHIFT }
 
 ## Клетка области, м (окна 100/50 м вокруг пилота — AirClipmap, AM-04).
 const DX := 400.0
@@ -95,10 +97,19 @@ var pass_tol := 0.03
 ## прохода 2 и проверить откат к полю прохода 1.
 var timeout_later_pass_s := NAN
 
-## Сеть (engine = nn): открытая модель {onnx, path, n_maps, p2, domain, …} — один раз на файл;
-## её прогон идёт в рабочем потоке (одна сессия — не из двух потоков).
-var _nn_model := {}
-var _nn_out := {}
+## Фазы (P10): (gpu: AirGpu) -> объект с API AirPhaseJob (case; start(gpu)/poll()/is_done()/error/
+## result()). Пусто — AirPhaseJob (тесты могут подставить свою).
+var phase_factory: Callable
+## Карта фаз последнего поданного поля (слой «карта фаз», WindFieldDebug): {weights (K·ny·nx),
+## phases (имена K), nx, ny, dx, x0, y0} ({} — нет).
+var phase_map := {}
+## Задача фаз на GPU (порциями) и итог фаз текущего прохода.
+var _phase_job: Object
+var _phase := {}
+var _t_phase := 0
+## Грубый Пикар (старт загрузки, air_model.picard_start = coarse): задача, её итог и старт-пара.
+var _coarse_job: AirPicardJob
+var _coarse := {}
 var _place := {}
 var _place_key := ""
 var _cfg := {}
@@ -159,22 +170,27 @@ func _ready() -> void:
 	_device()
 
 
-## Движок поля: "solver" (GPU) | "nn" (нейросеть на CPU, O5, по умолчанию).
+## Движок поля — всегда "solver" (фазы + Пикар, P12; подпись экрана загрузки — Game.wind_stage_key).
 func engine() -> String:
-	return "solver" if String(_cfg.get("engine", "nn")) == "solver" else "nn"
+	return "solver"
 
 
 func _device() -> RuntimeGpu:
-	if engine() == "nn":
-		return null  # сети GPU не нужен
 	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
 			if not _gpu.init(
-				AirGpu.SHADERS + AirPicardJob.SHADER_NAMES + AirWindowJob.WINDOW_SHADERS
+				AirGpu.SHADERS + AirPicardJob.SHADER_NAMES + AirWindowJob.WINDOW_SHADERS + AirPhaseJob._names()
 			):
 				last_error = _gpu.error
 	return _gpu
+
+
+## Новая задача фаз на общем RD.
+func _new_phase_job(gpu: AirGpu) -> Object:
+	if phase_factory.is_valid():
+		return phase_factory.call(gpu)
+	return AirPhaseJob.new(gpu)
 
 
 ## Место: detail (HeightLayer, узлы 25 м), water (Image или null), loc ({id, center_lat,
@@ -235,13 +251,11 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 
 
 ## Причина, по которой поле не считается ("" — считается): режим off, headless, поле из файла,
-## нет места.
+## нет места, нет GPU (без GPU расчёта нет — аналитика, P12 v4).
 func unavailable_reason() -> String:
 	var why := ""
 	if String(_cfg.get("enabled", "auto")) == "off":
 		why = "air_model.enabled = off"
-	elif engine() == "nn":
-		why = _nn_unavailable()
 	elif DisplayServer.get_name() == "headless":
 		why = "нет RenderingDevice: headless"
 	elif Array(OS.get_cmdline_user_args()).any(_is_cmd_field):
@@ -255,20 +269,6 @@ func unavailable_reason() -> String:
 		if g == null or g.rd == null:
 			why = g.error if g != null else "нет RenderingDevice"
 	return why
-
-
-## engine = nn: те же отказы без GPU (поле из файла, нет слоя, атмосфера) + расширение и файл сети.
-func _nn_unavailable() -> String:
-	if Array(OS.get_cmdline_user_args()).any(_is_cmd_field):
-		return CMD_FIELD
-	if _place.get("detail") == null:
-		return "нет слоя рельефа detail"
-	if atmosphere == null or not atmosphere.has_method("set_air_field"):
-		return "атмосфера без поля"
-	var why := AirNnField.extension_why()
-	if why == "":
-		why = String(AirNnField.resolve_path(_cfg).why)
-	return "нейросеть: " + why if why != "" else ""
 
 
 static func _is_cmd_field(a: String) -> bool:
@@ -333,6 +333,13 @@ func current_conditions() -> Dictionary:
 
 ## Остановить расчёт и освободить GPU (поле в атмосфере остаётся).
 func stop() -> void:
+	if _coarse_job != null:
+		_coarse_job.release()
+		_coarse_job = null
+	if _phase_job != null:
+		if _phase_job.has_method("release"):
+			_phase_job.call("release")
+		_phase_job = null
 	if _job != null:
 		_job.release()
 		_job = null
@@ -393,8 +400,12 @@ func _process(_dt: float) -> void:
 			_poll_prep()
 		Stage.SOLVE:
 			_poll_solve()
-		Stage.NN:
-			_poll_nn()
+		Stage.PHASE:
+			_poll_phase()
+		Stage.COARSE:
+			_poll_coarse()
+		Stage.INTERP:
+			_poll_interp()
 		Stage.WINDOWS, Stage.SHIFT:
 			if _loading:
 				_clip.poll_slice(LOAD_SLICE_MS)
@@ -455,14 +466,29 @@ func _start_prep() -> void:
 	_t_pass = Time.get_ticks_usec()
 	_t_dom = 0
 	_prep = {}
-	if engine() == "nn":
-		_start_nn()
-		return
+	_phase = {}
+	_phase_job = null
+	_coarse = {}
 	_stage = Stage.PREP
 	var r := _req
+	# фазы: GPU-задача порциями (главный поток); нет порций — run(case) в том же рабочем потоке
+	var cpu_job: Object = null
+	var gpu_job: Object = _new_phase_job(_gpu)
+	if gpu_job != null and not _has_gpu_api(gpu_job):
+		cpu_job = gpu_job
+		gpu_job = null
+	_phase_job = gpu_job
 	_task = WorkerThreadPool.add_task(
-		_prep_task.bind(_place, r, _k, _prep), false, "AirRuntime"
+		_prep_task.bind(_place, r, _k, _prep, cpu_job, _coarse_factor()), false, "AirRuntime"
 	)
+
+
+## Задача фаз ведётся порциями на GPU (P10 v2).
+static func _has_gpu_api(j: Object) -> bool:
+	for m in ["start", "poll", "is_done", "result"]:
+		if not j.has_method(m):
+			return false
+	return true
 
 
 static func _dir_key(wdir: float) -> int:
@@ -476,13 +502,35 @@ func _progress(x: float) -> void:
 	progress_changed.emit(x)
 
 
-## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока.
-static func _prep_task(place: Dictionary, c: Dictionary, k: float, out: Dictionary) -> void:
-	var base := AirPlace.domain_case(
+## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока;
+## phase_job — фазы без порций GPU (P10, run(case)), null — нет; coarse > 1 — ещё случай грубого
+## Пикара (клетка DX·coarse) для старта.
+static func _prep_task(
+	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object, coarse: int
+) -> void:
+	if coarse > 1:
+		var cb := _domain(place, c, k, DX * coarse)
+		if cb != null:
+			out.coarse_case = PreparedCase.from_case(cb)
+	var base := _domain(place, c, k, DX)
+	if base == null:
+		return
+	var pc := PreparedCase.from_case(base)
+	out.case = pc
+	if pc == null or phase_job == null:
+		return
+	var t0 := Time.get_ticks_usec()
+	var ph: Dictionary = phase_job.call("run", pc)
+	out.phase = ph
+	out.phase_ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+static func _domain(place: Dictionary, c: Dictionary, k: float, dx: float) -> AirCase:
+	return AirPlace.domain_case(
 		place.detail,
 		place.get("water"),
 		place.loc,
-		DX,
+		dx,
 		float(c.hour),
 		float(c.u10),
 		float(c.wdir),
@@ -491,8 +539,6 @@ static func _prep_task(place: Dictionary, c: Dictionary, k: float, out: Dictiona
 		true,
 		k
 	)
-	if base != null:
-		out.case = PreparedCase.from_case(base)
 
 
 func _poll_prep() -> void:
@@ -504,19 +550,282 @@ func _poll_prep() -> void:
 	if c == null:
 		_fail("область вне слоя рельефа")
 		return
+	if _prep.has("phase"):
+		_phase = _prep.phase
+		_phase.ms_wall = float(_prep.phase_ms)
+	if _phase_job != null:
+		_t_phase = Time.get_ticks_usec()
+		_phase_job.set("case", c)
+		var ok: Variant = _phase_job.call("start", _gpu)
+		if (ok is bool and not ok) or String(_phase_job.get("error")) != "":
+			print("air_model: фазы на GPU не стартовали (%s) — Пикар без фаз" % _phase_job.get("error"))
+			_phase_job = null
+		else:
+			_stage = Stage.PHASE
+			return
+	_after_phases()
+
+
+## Фазы на GPU порциями (главный поток, как Пикар); ошибка — Пикар без фаз.
+func _poll_phase() -> void:
+	_phase_job.call("poll")
+	var err := String(_phase_job.get("error"))
+	if err != "":
+		print("air_model: фазы на GPU не посчитались (%s) — Пикар без фаз" % err)
+		_phase_job = null
+		_after_phases()
+		return
+	if not bool(_phase_job.call("is_done")):
+		return
+	_phase = _phase_job.call("result")
+	_phase.ms_wall = (Time.get_ticks_usec() - _t_phase) / 1000.0
+	if _phase_job.has_method("release"):
+		_phase_job.call("release")
+	_phase_job = null
+	_after_phases()
+
+
+## Множитель клетки грубого старта (1 — без него): air_model.picard_start = coarse.
+func _coarse_factor() -> int:
+	if String(_cfg.get("picard_start", "cold")) != "coarse":
+		return 1
+	return int(_cfg.get("picard_coarse_factor", 1))
+
+
+## После фаз: нужен старт с грубой сетки (нет прошлого поля этой сетки) — грубый Пикар, иначе сразу
+## Пикар 400 м.
+func _after_phases() -> void:
+	var c: AirCase = _prep.case
+	var n := c.dims().x * c.dims().y * c.dims().z
+	var cc: AirCase = _prep.get("coarse_case")
+	if cc == null or _warm_ok(_prev_pair(), n):
+		_start_picard(c)
+		return
+	_coarse_job = AirPicardJob.new()
+	_coarse_job.case = cc
+	_coarse_job.mech = true
+	_coarse_job.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
+	_coarse_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t_pass) / 1e6, 1.0)
+	if not _coarse_job.start(_gpu):
+		print("air_model: грубый старт не начался (%s) — с фона" % _coarse_job.error)
+		_coarse_job = null
+		_start_picard(c)
+		return
+	_stage = Stage.COARSE
+
+
+func _poll_coarse() -> void:
+	var p := _coarse_job.poll_slice(LOAD_SLICE_MS) if _loading else _coarse_job.poll()
+	if _loading:
+		_progress(0.1 * p)
+	if _coarse_job.error != "" or not _coarse_job.is_done():
+		if _coarse_job.error != "":
+			print("air_model: грубый старт не посчитался (%s) — с фона" % _coarse_job.error)
+			_coarse_job.release()
+			_coarse_job = null
+			_start_picard(_prep.case)
+		return
+	# состояния — с GPU здесь (главный поток), интерполяция на 400 м — в рабочем потоке
+	var st := {mech = _coarse_job.state(true), heat = _coarse_job.state(false)}
+	_coarse = {
+		iters = _coarse_job.results.map(_iters_of),
+		gpu_s = _coarse_job.gpu_ms_total / 1000.0,
+	}
+	_coarse_job.release()
+	_coarse_job = null
+	_coarse.t0 = Time.get_ticks_usec()
+	_task = WorkerThreadPool.add_task(
+		_interp_task.bind(_prep.case, _prep.coarse_case, st, _coarse), false, "AirRuntime"
+	)
+	_stage = Stage.INTERP
+
+
+static func _interp_task(c: AirCase, cc: AirCase, st: Dictionary, out: Dictionary) -> void:
+	out.pair = {mech = coarse_warm(c, cc, st.mech), heat = coarse_warm(c, cc, st.heat)}
+
+
+func _poll_interp() -> void:
+	if not WorkerThreadPool.is_task_completed(_task):
+		return
+	WorkerThreadPool.wait_for_task_completion(_task)
+	_task = -1
+	_coarse.interp_ms = (Time.get_ticks_usec() - int(_coarse.t0)) / 1000.0
+	_start_picard(_prep.case)
+
+
+## Прошлое поле этой сетки — старт пересчёта в полёте и прохода 2 загрузки.
+func _prev_pair() -> Dictionary:
+	if warm_start and not _loading:
+		return _warm
+	if _loading and _pass > 1 and warm_second_pass:
+		return _warm_pass
+	return {}
+
+
+## Решение грубой сетки cc → тёплый старт сетки c (раскладка warm): центры клеток (грани — среднее
+## соседних граней), по горизонтали билинейно, по высоте — уровни со сдвигом z_bot (dz одинаковый,
+## AirPlace.domain_case), грани 400 м — среднее центров; проекция — в старте AirPicardJob.
+static func coarse_warm(c: AirCase, cc: AirCase, st: Dictionary) -> Dictionary:
+	var dc := cc.dims()
+	var nyxc := dc.x * dc.y
+	var df := c.dims()
+	var nyx := df.x * df.y
+	var n := nyx * df.z
+	var cen := {}
+	for nm in ["u", "v", "w", "th", "thd", "p"]:
+		var a: PackedFloat32Array = st.get(nm, PackedFloat32Array())
+		var o := PackedFloat32Array()
+		o.resize(nyxc * dc.z)
+		if a.size() == o.size():
+			var step: int = {u = 1, v = dc.x, w = nyxc}.get(nm, 0)
+			var lim: int = {u = dc.x, v = dc.y, w = dc.z}.get(nm, 0)
+			for g in o.size():
+				var idx: int = [g % dc.x, (g / dc.x) % dc.y, g / nyxc][["u", "v", "w"].find(nm)] if step > 0 else 0
+				o[g] = 0.5 * (a[g] + a[g + step]) if step > 0 and idx < lim - 1 else a[g]
+		cen[nm] = o
+	var kshift := roundi((c.z_bot - cc.z_bot) / c.dz)
+	# веса и индексы билинейной выборки — одни для всех каналов и уровней
+	var bi := PackedInt32Array()
+	var bw := PackedFloat32Array()
+	bi.resize(nyx)
+	bw.resize(2 * nyx)
+	for j in df.y:
+		var jc := clampf((c.y0 + (j - 0.5) * c.dx - cc.y0) / cc.dx + 0.5, 0.0, dc.y - 1.001)
+		for i in df.x:
+			var ic := clampf((c.x0 + (i - 0.5) * c.dx - cc.x0) / cc.dx + 0.5, 0.0, dc.x - 1.001)
+			var q := j * df.x + i
+			bi[q] = int(jc) * dc.x + int(ic)
+			bw[2 * q] = ic - int(ic)
+			bw[2 * q + 1] = jc - int(jc)
+	var fc := {}
+	for nm: String in cen:
+		var src: PackedFloat32Array = cen[nm]
+		var o := PackedFloat32Array()
+		o.resize(n)
+		for k in df.z:
+			var base := clampi(k + kshift, 0, dc.z - 1) * nyxc
+			for q in nyx:
+				var b := base + bi[q]
+				var fx := bw[2 * q]
+				var fy := bw[2 * q + 1]
+				o[k * nyx + q] = (
+					lerpf(lerpf(src[b], src[b + 1], fx), lerpf(src[b + dc.x], src[b + dc.x + 1], fx), fy)
+				)
+		fc[nm] = o
+	var out := {}
+	for nm in ["u", "v", "w"]:
+		var a: PackedFloat32Array = fc[nm]
+		var step: int = {u = 1, v = df.x, w = nyx}[nm]
+		var o := PackedFloat32Array()
+		o.resize(n)
+		for g in n:
+			var idx: int = [g % df.x, (g / df.x) % df.y, g / nyx][["u", "v", "w"].find(nm)]
+			o[g] = 0.5 * (a[g] + a[g - step]) if idx > 0 else a[g]
+		out[nm] = o
+	for nm in ["th", "thd", "p"]:
+		out[nm] = fc[nm]
+	return out
+
+
+## Итог фаз в _req (last_info): доли, время, карта для слоя «карта фаз».
+func _phase_info() -> void:
+	if _phase.is_empty():
+		_req.phase_frac = {}
+		_req.phase_ms = NAN
+		return
+	_req.phase_frac = (_phase.get("stats", {}) as Dictionary).get("phase_frac", {})
+	var ms: Variant = _phase.get("ms", NAN)
+	_req.phase_ms = float(ms) if (ms is float or ms is int) else float(_phase.get("ms_wall", NAN))
+	var c: AirCase = _prep.get("case")
+	_req.phase_map = {
+		weights = _phase.get("weights", PackedFloat32Array()),
+		phases = _phase_names(),
+		nx = c.nx,
+		ny = c.ny,
+		dx = c.dx,
+		x0 = c.x0,
+		y0 = c.y0,
+	}
+
+
+## Имена фаз в порядке weights (P10).
+static func _phase_names() -> Array:
+	return AirPhase.PHASES
+
+
+## Тёплый старт-пара {mech, heat} подходит к сетке из n точек.
+static func _warm_ok(pair: Dictionary, n: int) -> bool:
+	var m: Dictionary = pair.get("mech", {})
+	return PackedFloat32Array(m.get("u", PackedFloat32Array())).size() == n
+
+
+## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv.mech_w.
+static func _nonconv_w() -> float:
+	return float(phase_cfg("nonconv", "mech_w"))
+
+
+## Ключ блока air_phase (контракт P12 «Ключи конфига»): air_phase.<group>.<key>.
+static func phase_cfg(group: String, key: String) -> Variant:
+	return Config.get_config("atmosphere").air_phase[group][key]
+
+
+## Колонны запасного пути (P12 v2): не заморожены и вес H + D > порога (веса до заморозки).
+static func nonconv_mask(ph: Dictionary, thr: float) -> PackedByteArray:
+	var w: PackedFloat32Array = ph.get("weights", PackedFloat32Array())
+	var fz: PackedByteArray = ph.get("freeze", PackedByteArray())
+	var names := _phase_names()
+	var kk := names.size()
+	var out := PackedByteArray()
+	if kk == 0 or w.size() % kk != 0:
+		return out
+	var n2 := w.size() / kk
+	var ih := names.find("H")
+	var id := names.find("D")
+	out.resize(n2)
+	var any := false
+	for q in n2:
+		var hd := (w[ih * n2 + q] if ih >= 0 else 0.0) + (w[id * n2 + q] if id >= 0 else 0.0)
+		var frozen := fz.size() == n2 and fz[q] != 0
+		out[q] = 1 if hd > thr and not frozen else 0
+		any = any or out[q] != 0
+	return out if any else PackedByteArray()
+
+
+## Пикар (P11) с тёплым стартом от сборки фаз, картой ω и заморозкой колонн механизмов.
+func _start_picard(c: AirCase) -> void:
 	_job = AirPicardJob.new()
 	_job.case = c
 	_job.mech = true
 	_job.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
 	_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t_pass) / 1e6, 1.0)
 	var n := c.dims().x * c.dims().y * c.dims().z
-	var warm := {}
-	if warm_start and not _loading:
-		warm = _warm
-	elif _loading and _pass > 1 and warm_second_pass:
-		warm = _warm_pass
-	if not warm.is_empty() and PackedFloat32Array(warm.get("u", PackedFloat32Array())).size() == n:
-		_job.warm = warm
+	# тёплый старт обоих решений {mech, heat} — каждому своё состояние: от прошлого поля (полёт,
+	# проход 2 загрузки), иначе — от грубого Пикара (air_model.picard_start = coarse), иначе с фона
+	var pair := _prev_pair()
+	if not _warm_ok(pair, n):
+		pair = _coarse.get("pair", {})
+	if _warm_ok(pair, n):
+		_job.warm = pair.mech
+		var h: Dictionary = pair.get("heat", {})
+		if PackedFloat32Array(h.get("u", PackedFloat32Array())).size() == n:
+			_job.warm_heat = h
+	if not _phase.is_empty():
+		# карта ω фаз с первой итерации — только по air_phase.omega.use_map (сравнение AP-20: вред)
+		if bool(phase_cfg("omega", "use_map")):
+			_job.omega_map = _phase.get("omega", PackedFloat32Array())
+		_job.freeze_mask = _phase.get("freeze", PackedByteArray())
+		_job.freeze_mask_mech = _phase.get("freeze_mech", PackedByteArray())
+		_job.freeze_field = _phase.get("mech_field", {})
+		_job.freeze_field_mech = _phase.get("mech_field_mech", {})
+	_job.late_from = int(phase_cfg("nonconv", "late_from"))
+	if not _phase.is_empty():
+		_job.nonconv_mask = nonconv_mask(_phase, _nonconv_w())
+		var nf: Dictionary = _phase.get("warm", {}).duplicate()
+		nf.merge(_phase.get("mech_field", {}), true)
+		_job.nonconv_field = nf
+	_job.omega_fallback = Vector2(
+		float(phase_cfg("omega", "fallback_iters")), float(phase_cfg("omega", "fallback_omega"))
+	)
 	var t_start := Time.get_ticks_usec()
 	if not _job.start(_gpu):
 		_fail(_job.error)
@@ -534,14 +843,24 @@ func _poll_solve() -> void:
 		return
 	if not _job.is_done():
 		return
-	_warm_next = _job.state()
+	_warm_next = {mech = _job.state(true), heat = _job.state(false)}
 	var st := {
 		iters = _job.results.map(_iters_of),
 		gpu_s = _job.gpu_ms_total / 1000.0,
 		warm = not _job.warm.is_empty(),
 		poll_max_ms = _job.max_poll_cpu_ms,
 		chunk_max_ms = _job.max_chunk_gpu_ms,
+		engine = "phase+picard" if not _phase.is_empty() else "picard",
+		omega_fallback_used = _job.omega_fallback_used,
+		frozen_frac = _job.frozen_frac,
+		nonconv_fallback = {used = _job.nonconv_fallback, frac = _job.nonconv_frac},
+		picard_ms = _job.phase_gpu_ms.duplicate(),
+		coarse = {
+			iters = _coarse.get("iters", []), gpu_s = _coarse.get("gpu_s", 0.0),
+			interp_ms = _coarse.get("interp_ms", NAN),
+		},
 	}
+	_phase_info()
 	_req.merge(st, true)
 	# окна: поле области как родитель — до освобождения задачи (буферы с GPU)
 	_pd = _job.parent_data() if _windows_wanted() else {}
@@ -555,75 +874,6 @@ func _poll_solve() -> void:
 	)
 	_building.release()
 	_stage = Stage.BUILD
-
-
-## Сеть (O5): весь проход — в рабочем потоке (вход места, карты, ORT, сборка поля).
-func _start_nn() -> void:
-	var r := AirNnField.resolve_path(_cfg)
-	_nn_out = {}
-	_stage = Stage.NN
-	if String(r.why) != "":
-		_nn_out = {why = String(r.why)}
-		_task = WorkerThreadPool.add_task(_noop, false, "AirRuntime")
-		return
-	var model := _nn_model if String(_nn_model.get("path", "")) == String(r.path) else {}
-	_task = WorkerThreadPool.add_task(
-		_nn_task.bind(model, String(r.path), int(_cfg.get("nn_threads", 4)), _place, _req, _k, _cfg, _nn_out),
-		false,
-		"AirRuntime"
-	)
-
-
-static func _noop() -> void:
-	pass
-
-
-static func _nn_task(
-	model: Dictionary, path: String, threads: int, place: Dictionary, c: Dictionary, k: float,
-	cfg: Dictionary, out: Dictionary
-) -> void:
-	if model.is_empty():
-		var o := AirNnField.open(path, threads)
-		if String(o.why) != "":
-			out.why = String(o.why)
-			return
-		model = o
-		out.model = o
-	var r := AirNnField.run_pass(model, place, c, k, cfg)
-	out.merge(r, true)
-
-
-func _poll_nn() -> void:
-	if not WorkerThreadPool.is_task_completed(_task):
-		return
-	WorkerThreadPool.wait_for_task_completion(_task)
-	_task = -1
-	var why := String(_nn_out.get("why", ""))
-	if why != "":
-		_fail("нейросеть: " + why)
-		return
-	if _nn_out.has("model"):
-		_nn_model = _nn_out.model
-	var f: WindField = _nn_out.field
-	var path := String(_nn_model.path)
-	f.meta.source = "nn:" + path.get_file()
-	f.meta.cond = {wind = snappedf(float(_req.u10), 0.01), wdir = snappedf(float(_req.wdir), 0.1)}
-	var ms: Dictionary = _nn_out.ms
-	if _nn_out.has("model"):
-		_req.nn_load_ms = float(_nn_model.get("load_ms", 0.0))
-	_req.engine = "nn"
-	_req.nn_model = path
-	_req.nn_p2 = String(_nn_model.p2)
-	_req.nn_clamped = _nn_out.clamped
-	_req.nn_ms = float(ms.net)
-	_req.nn_stages = ms
-	_req.iters = []
-	_req.warm = false
-	_req.gpu_s = 0.0
-	_t_dom = Time.get_ticks_usec()
-	_progress(1.0)
-	var one: Array[WindField] = [f]
-	_levels_done(one)
 
 
 ## Проход для журнала: «k → U м/с за с (область с, GPU с)».
@@ -699,16 +949,12 @@ func _start_windows() -> void:
 	_stage = Stage.WINDOWS
 
 
-## Есть точка старта для подстройки k (у сети окон нет, старт — всё равно из focus_fn).
+## Есть точка старта для подстройки k.
 func _focus_wanted() -> bool:
-	if engine() == "nn":
-		return focus_fn.is_valid()
 	return _windows_wanted()
 
 
 func _windows_wanted() -> bool:
-	if engine() == "nn":
-		return false  # один уровень: область 400 м
 	return focus_fn.is_valid() and not Array(_cfg.get("window_levels_m", [100.0])).is_empty()
 
 
@@ -886,13 +1132,17 @@ func _apply(levels: Array[WindField]) -> void:
 	applied_count += 1
 	_ok = true
 	_stage = Stage.IDLE
-	if engine() == "nn":
-		_print_nn()
-		if _loading:
-			progress_changed.emit(1.0)
-		_loading = false
-		field_applied.emit(last_info)
-		return
+	phase_map = _req.get("phase_map", {})
+	print(
+		(
+			"air_model: поле (%s) итераций %s, фазы %s (%.0f мс), заморожено %.2f, ω→запас %s"
+			% [
+				"фазы+Пикар" if _req.get("engine", "") == "phase+picard" else "Пикар без фаз",
+				_req.iters, _frac_text(_req.get("phase_frac", {})), float(_req.get("phase_ms", NAN)),
+				float(_req.get("frozen_frac", 0.0)), _req.get("omega_fallback_used", false)
+			]
+		)
+	)
 	print(
 		(
 			(
@@ -920,36 +1170,6 @@ func _apply(levels: Array[WindField]) -> void:
 		progress_changed.emit(1.0)
 	_loading = false
 	field_applied.emit(last_info)
-
-
-func _print_nn() -> void:
-	var st: Dictionary = _req.nn_stages
-	var clamp: Array = _req.nn_clamped
-	print(
-		(
-			"air_model: поле (нейросеть %s, П2 v%s) %s ч, %.1f м/с с %.0f°: %.2f с, k %.3f; "
-			+ "U над стартом на 10 м %.2f м/с (проход 1: %.2f), проходов %d; "
-			+ "мс: вход %.0f, карты %.0f, сеть %.0f, поле %.0f%s%s"
-		)
-		% [
-			String(_req.nn_model).get_file(),
-			_req.nn_p2,
-			_hour_text(float(_req.hour)),
-			float(_req.u10),
-			float(_req.wdir),
-			float(_req.wall_s),
-			_k,
-			float(_req.u_start10),
-			float(_req.u_start10_first),
-			_pass,
-			float(st.input),
-			float(st.prep),
-			float(st.net),
-			float(st.build),
-			", загрузка модели %.0f" % float(_req.nn_load_ms) if _req.has("nn_load_ms") else "",
-			"; вне области: %s" % ", ".join(clamp) if not clamp.is_empty() else "",
-		]
-	)
 
 
 func _fail(reason: String) -> void:
@@ -1019,6 +1239,17 @@ func _exit_tree() -> void:
 		_gpu = null
 
 
+## Доли фаз для журнала: «A 0.62, F 0.30 …» (ненулевые).
+static func _frac_text(fr: Variant) -> String:
+	if not fr is Dictionary:
+		return "—"
+	var parts: PackedStringArray = []
+	for k: Variant in fr:
+		if float(fr[k]) > 0.0:
+			parts.append("%s %.2f" % [k, float(fr[k])])
+	return ", ".join(parts) if not parts.is_empty() else "—"
+
+
 static func _hour_text(h: float) -> String:
 	var m := roundi(h * 60.0)
 	return "%02d:%02d" % [posmod(m / 60, 24), m % 60]
@@ -1067,6 +1298,12 @@ class RuntimeGpu:
 
 	func init(shaders: Array = SHADERS) -> bool:
 		var ok := super.init(shaders)
+		if ok:
+			# конвейеры ядер «по всей сетке» (spec []) — сразу, при запуске игры: первое создание
+			# в задаче фаз стоило ~0,57 с главного потока на экране загрузки (замер AP-20)
+			for s: String in shaders:
+				if s.contains(":") and not s.begins_with("air_line") and not s.begins_with("air_mg"):
+					_pipeline(s, [])
 		_base = _owned.size()
 		return ok
 

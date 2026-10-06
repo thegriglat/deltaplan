@@ -8,6 +8,21 @@ extends Node3D
 ## вызов, что видит пилот); подпись режима — Atmosphere.is_air_field_on().
 ## Узел — сцена, не игровая логика: в game.tscn как самостоятельный ребёнок Game, ссылки на
 ## Air/Glider/Terrain берутся по имени (get_node), поэтому game.gd трогать не нужно.
+## F4 — слой «карта фаз» (air-phase P12): клетки области 400 м цветом главной фазы (наибольший вес
+## AirRuntime.phase_map.weights), точка — пилот; текстура ny×nx собирается один раз на новое поле.
+
+## Цвета фаз A, B, C, D, F, G, H (порядок AirPhase.PHASES) и подписи легенды.
+const PHASE_COLORS := {
+	"A": Color(0.3, 0.8, 0.3),
+	"B": Color(0.95, 0.85, 0.2),
+	"C": Color(0.3, 0.6, 1.0),
+	"D": Color(0.6, 0.35, 0.15),
+	"F": Color(1.0, 0.4, 0.2),
+	"G": Color(0.55, 0.3, 0.8),
+	"H": Color(0.6, 0.6, 0.6),
+}
+## Сторона карты на экране, пикс.
+@export var phase_map_px: float = 288.0
 
 ## Радиус сетки вокруг пилота, м.
 @export var radius_m: float = 1000.0
@@ -35,6 +50,12 @@ var _air: Node
 var _glider: Node3D
 var _terrain: Node
 var _grid_center := Vector2.INF
+var _phase_on := false
+var _phase_canvas: CanvasLayer
+var _phase_rect: TextureRect
+var _phase_dot: ColorRect
+var _phase_label: Label
+var _phase_src: Variant = null
 
 
 func _ready() -> void:
@@ -47,15 +68,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		if (event as InputEventKey).keycode == KEY_F3:
 			_toggle()
 			get_viewport().set_input_as_handled()
+		elif (event as InputEventKey).keycode == KEY_F4:
+			_toggle_phase()
+			get_viewport().set_input_as_handled()
 
 
 func _toggle() -> void:
 	_active = not _active
-	set_process(_active)
+	set_process(_active or _phase_on)
 	if _active:
 		if not _resolve_refs():
 			_active = false
-			set_process(false)
+			set_process(_phase_on)
 			return
 		_ensure_visual()
 		_mm.visible = true
@@ -67,6 +91,88 @@ func _toggle() -> void:
 			_mm.visible = false
 		if _canvas != null:
 			_canvas.visible = false
+
+
+func _toggle_phase() -> void:
+	_phase_on = not _phase_on
+	if _phase_on:
+		_resolve_refs()
+		_ensure_phase_ui()
+		_phase_src = null
+		_update_phase()
+	if _phase_canvas != null:
+		_phase_canvas.visible = _phase_on
+	set_process(_active or _phase_on)
+
+
+func _ensure_phase_ui() -> void:
+	if _phase_canvas != null:
+		return
+	_phase_canvas = CanvasLayer.new()
+	_phase_canvas.name = "PhaseMapUi"
+	add_child(_phase_canvas)
+	_phase_rect = TextureRect.new()
+	_phase_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_phase_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	_phase_rect.position = Vector2(12, 40)
+	_phase_rect.size = Vector2(phase_map_px, phase_map_px)
+	_phase_canvas.add_child(_phase_rect)
+	_phase_dot = ColorRect.new()
+	_phase_dot.color = Color.WHITE
+	_phase_dot.size = Vector2(6, 6)
+	_phase_canvas.add_child(_phase_dot)
+	_phase_label = Label.new()
+	_phase_label.position = Vector2(12, 44 + phase_map_px)
+	_phase_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_phase_label.add_theme_constant_override("outline_size", 3)
+	_phase_canvas.add_child(_phase_label)
+
+
+## Карта фаз из AirRuntime: текстура — при новой карте, точка пилота — каждый раз.
+func _update_phase() -> void:
+	var rt := get_node_or_null("../AirRuntime")
+	var pm: Dictionary = rt.get("phase_map") if rt != null else {}
+	if pm.is_empty():
+		_phase_rect.texture = null
+		_phase_dot.visible = false
+		_phase_label.text = "F4 — карта фаз: нет (поле без фаз)"
+		return
+	var w: PackedFloat32Array = pm.weights
+	if not is_same(_phase_src, w):
+		_phase_src = w
+		_phase_rect.texture = ImageTexture.create_from_image(phase_image(pm))
+		var legend: PackedStringArray = []
+		for nm: String in pm.phases:
+			legend.append(nm)
+		_phase_label.text = "F4 — карта фаз: " + " ".join(legend)
+	_phase_dot.visible = _glider != null and is_instance_valid(_glider)
+	if _phase_dot.visible:
+		var p := _glider.global_position
+		var span := float(pm.dx) * Vector2(float(pm.nx), float(pm.ny))
+		var uv := Vector2((p.x - float(pm.x0)) / span.x, (-p.z - float(pm.y0)) / span.y)
+		# север (+y мира) — вверх карты
+		var px := Vector2(uv.x, 1.0 - uv.y).clamp(Vector2.ZERO, Vector2.ONE) * phase_map_px
+		_phase_dot.position = _phase_rect.position + px - _phase_dot.size * 0.5
+
+
+## Изображение ny×nx: цвет фазы с наибольшим весом (север вверху).
+static func phase_image(pm: Dictionary) -> Image:
+	var nx := int(pm.nx)
+	var ny := int(pm.ny)
+	var w: PackedFloat32Array = pm.weights
+	var names: Array = pm.phases
+	var kk := names.size()
+	var img := Image.create(nx, ny, false, Image.FORMAT_RGB8)
+	for j in ny:
+		for i in nx:
+			var q := j * nx + i
+			var best := 0
+			for k in range(1, kk):
+				if w[k * nx * ny + q] > w[best * nx * ny + q]:
+					best = k
+			var col: Color = PHASE_COLORS.get(names[best] if kk > 0 else "", Color.BLACK)
+			img.set_pixel(i, ny - 1 - j, col)
+	return img
 
 
 func _resolve_refs() -> bool:
@@ -90,7 +196,9 @@ func _process(delta: float) -> void:
 	if _timer < update_interval_s:
 		return
 	_timer = 0.0
-	if not is_instance_valid(_glider) or not is_instance_valid(_air):
+	if _phase_on:
+		_update_phase()
+	if not _active or not is_instance_valid(_glider) or not is_instance_valid(_air):
 		return
 	_rebuild()
 

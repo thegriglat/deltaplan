@@ -9,6 +9,10 @@ heat = "#define K_HEAT";
 div = "#define K_DIV";
 proj = "#define K_PROJ";
 resid = "#define K_RESID";
+relax = "#define K_RELAX";
+freeze = "#define K_FREEZE";
+rmask = "#define K_RMASK";
+fixrow = "#define K_FIXROW";
 
 #[compute]
 #version 450
@@ -544,6 +548,106 @@ void main() {
 		acc += (j > 0 ? c[q + 3] * x[idx - NX] : 0.0) + (j < NY - 1 ? c[q + 4] * x[idx + NX] : 0.0);
 		acc += (k > 0 ? c[q + 5] * x[idx - NYX] : 0.0) + (k < NZ - 1 ? c[q + 6] * x[idx + NYX] : 0.0);
 		r[idx] = c[q + 7] - acc;
+	}
+}
+#endif
+
+// ================================================================ P11: карта ω, заморозка колонн, маска невязки
+// Колонночные карты (omc — ω, frz — 1 у замороженной колонны) — NY·NX с ореолом (AirPicardJob:
+// ореол ω — значение края, ореол заморозки — 0). Вид точки (i0.w): 0 — грань u (колонны i−1, i),
+// 1 — грань v (j−1, j), 2 — центр клетки или грань w (своя колонна), 3 — внутренняя клетка без
+// ореола (раскладка rhs: nx·ny·nz). Числа — только из буферов (конфиг air_model → AirPicardJob).
+#if defined(K_RELAX) || defined(K_FREEZE) || defined(K_RMASK) || defined(K_FIXROW)
+layout(set = 0, binding = 0, std430) readonly buffer BMap { float cmap[]; };
+
+int col_of(int t, int kind) {
+	if (kind == 3) {
+		int nx = NX - 2, ny = NY - 2;
+		return ((t / nx) % ny + 1) * NX + t % nx + 1;
+	}
+	return t % NYX;
+}
+
+// ω грани — среднее двух колонн (research P4 v6: wu, wv); у первого ряда — своя колонна.
+float omega_at(int t, int kind) {
+	int q = col_of(t, kind);
+	int i = q % NX, j = q / NX;
+	if (kind == 0 && i > 0) return 0.5 * (cmap[q] + cmap[q - 1]);
+	if (kind == 1 && j > 0) return 0.5 * (cmap[q] + cmap[q - NX]);
+	return cmap[q];
+}
+
+// Грань заморожена, когда заморожена хотя бы одна из колонн: колонна механизма держит все свои
+// грани, и незамороженная область получает их как условие Дирихле (с «обе колонны», как research
+// P4 v6, общая грань решается прогонкой и сбрасывается заморозкой — неподвижной точки нет).
+bool frozen_at(int t, int kind) {
+	int q = col_of(t, kind);
+	int i = q % NX, j = q / NX;
+	bool f = cmap[q] != 0.0;
+	if (kind == 0) return f || (i > 0 && cmap[q - 1] != 0.0);
+	if (kind == 1) return f || (j > 0 && cmap[q - NX] != 0.0);
+	return f;
+}
+#endif
+
+// x ← x_old + ω (x − x_old) — недорелаксация по колоннам после шага (u, v, w — после проекции; K —
+// после замыкания).
+#ifdef K_RELAX
+layout(set = 0, binding = 1, std430) buffer BX { float x[]; };
+layout(set = 0, binding = 2, std430) readonly buffer BXo { float xo[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	GRID_LOOP(N) {
+		float a = xo[t];
+		x[t] = a + omega_at(t, kind) * (x[t] - a);
+	}
+}
+#endif
+
+// Замороженные колонны: x ← поле механизма (после каждой итерации).
+#ifdef K_FREEZE
+layout(set = 0, binding = 1, std430) buffer BX { float x[]; };
+layout(set = 0, binding = 2, std430) readonly buffer BXf { float xf[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	GRID_LOOP(N) {
+		if (frozen_at(t, kind)) x[t] = xf[t];
+	}
+}
+#endif
+
+// Невязка только по незамороженным: r ← 0 в замороженных точках; i1.x — длина (N или nx·ny·nz).
+#ifdef K_RMASK
+layout(set = 0, binding = 1, std430) buffer BR { float r[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	GRID_LOOP(pc.i1.x) {
+		if (frozen_at(t, kind)) r[t] = 0.0;
+	}
+}
+#endif
+
+// Строка шаблона замороженной точки → тождество x = xf (Дирихле для прогонок: соседние линии видят
+// поле механизма, а не своё решение, которое потом сбросилось бы заморозкой).
+#ifdef K_FIXROW
+layout(set = 0, binding = 1, std430) buffer BC { float c[]; };
+layout(set = 0, binding = 2, std430) readonly buffer BXf { float xf[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	GRID_LOOP(N) {
+		if (!frozen_at(t, kind)) continue;
+		int q = 8 * t;
+		for (int o = 1; o < 7; o++) c[q + o] = 0.0;
+		c[q] = 1.0;
+		c[q + 7] = xf[t];
 	}
 }
 #endif
