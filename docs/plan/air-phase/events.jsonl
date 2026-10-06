@@ -102,3 +102,11 @@
 {"t": "2026-10-06T15:50:19", "by": "coordinator", "task": "AP-12", "ev": "merged"}
 {"t": "2026-10-06T15:50:19", "by": "coordinator", "task": null, "ev": "note", "note": "Этап разбора завершён: AP-6…AP-13 приняты и влиты; итог — docs/research/air_phase_results.md (+ _tables.md). Открыто к главной сессии: числа lee для игры; пересчёт несошедшихся ap_v1/ap_v2 при ω = 0,5 (~2 ч GPU); кандидат в ветви у уступа (6–9 случаев GPU); λ K-замыкания (длинный пузырь)"}
 {"t": "2026-10-06T15:50:19", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp docs init — нужны --module/--status; dp docs index трогает чужие реестры; лимит 40 КБ в байтах (кириллица ×1,9); dp task sync код 2 при успехе и не говорит, что зависимость влита; нет dp log --grep; dp accept: exit 5 pytest (0 выбрано) — отдельное сообщение; git commit -- docs/plan/<модуль> не берёт новые файлы журнала (нужен git add) — стоит, чтобы dp event/report сами делали add"}
+{"t": "2026-10-06T15:57:26", "by": "coordinator", "task": "AP-14", "ev": "created", "note": "Пересчёт несошедшихся ap_v1/ap_v2 при ω = 0,5 и обновление границ"}
+{"t": "2026-10-06T15:57:26", "by": "coordinator", "task": "AP-15", "ev": "created", "note": "Мелкие пробы: ветвь у уступа, du_max по итерациям у порога, λ K-замыкания"}
+{"t": "2026-10-06T15:57:26", "by": "coordinator", "task": "AP-16", "ev": "created", "note": "Калибровка подветренной зоны lee в игре по опытам AP-10"}
+{"t": "2026-10-06T15:57:26", "by": "coordinator", "task": "AP-17", "ev": "created", "note": "Прототип сборки поля по фазам на SY-12 против Пикара (P8)"}
+{"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-14", "ev": "started", "note": "opus, GPU ~2 ч"}
+{"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-15", "ev": "started", "note": "opus, GPU после AP-14"}
+{"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-16", "ev": "started", "note": "dp-engineer sonnet"}
+{"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-17", "ev": "started", "note": "opus, CPU"}

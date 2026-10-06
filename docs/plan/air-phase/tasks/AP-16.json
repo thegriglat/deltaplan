@@ -1,0 +1,43 @@
+{
+  "id": "AP-16",
+  "module": "air-phase",
+  "type": "dp-engineer",
+  "title": "Калибровка подветренной зоны lee в игре по опытам AP-10",
+  "goal": "Параметры полуэмпирики срыва в игре (линия тени, ротор, слой сдвига, опускание) привести к измеренным в AP-10: опасность за гребнем — ротор и болтанка, не провал; опускание 0,7 было в 5–20 раз больше измерений.",
+  "plan_ref": "8. Этап 3",
+  "contracts": [],
+  "copy": "~/deltaplan-air-phase-AP-16",
+  "branch": "air-phase/AP-16",
+  "base": "feature/air-phase",
+  "scope": [
+    "configs/atmosphere.json",
+    "scripts/atmosphere/atmosphere.gd",
+    "tests/atmosphere/test_lee_rotor.gd",
+    "tests/atmosphere/test_hazards.gd",
+    "docs/guide/atmosphere.md",
+    "CHANGELOG.md",
+    "build/pilot/lee_check.md"
+  ],
+  "dont_touch": [
+    "tools/research/",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "lee",
+      "tests": "lee"
+    },
+    {
+      "name": "hazards",
+      "tests": "hazards"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T15:57:26"
+}
