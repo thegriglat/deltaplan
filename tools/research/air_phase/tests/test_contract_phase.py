@@ -1,4 +1,4 @@
-"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v4, P3 v2, P4 v3, P5 v1).
+"""Контрактные тесты air-phase (docs/contracts/air-phase.md, P1 v1, P2 v5, P3 v2, P4 v4, P5 v1).
 
 Без данных проверяется схема (.proto, константы P3); с данными — реальные файлы:
   AP_PLAN_DIR=<$AIR_SYNTH_DATA/phase/<plan>>          — plan.pb (P2)
@@ -18,7 +18,7 @@ import pytest
 HERE = Path(__file__).resolve().parent
 PROTO = HERE.parent / "proto" / "phase_plan.proto"
 
-P2_CONTRACT = "P2 v4"
+P2_CONTRACT = "P2 v5"
 P3_CONTRACT = "P3 v2"
 AGL_M = [25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000]
 SNAP_LEVELS = [25, 600]
@@ -28,7 +28,7 @@ PROTO_FIELDS = {
     "Relief": ["relief_id", "name", "shape", "slope", "h_m", "a_m", "length_m", "corpus", "corpus_relief_id"],
     "Numerics": ["dx_m", "advection_order", "omega_u", "omega_k", "k_floor_m2s", "criterion", "tol", "max_outer",
                  "snap_from", "snap_step", "late_from", "late_step", "envelope_angle_deg", "envelope_wall",
-                 "envelope_z0_m"],
+                 "envelope_z0_m", "top_above_m", "sponge_top_m"],
     "Line": ["line_id", "series", "relief_id", "heat_flux_wm2", "h_over_zi", "n_bv_s", "wdir_from_deg", "numerics",
              "start", "direction", "fr_f64", "ref_line_id", "first_case_id", "variant", "conditions", "cond_id"],
     "Plan": ["contract", "name", "created", "git_commit", "command", "context", "reliefs", "lines", "n_cases"],
@@ -84,7 +84,7 @@ def test_plan_file():
     pb2 = _plan_pb2()
     plan = pb2.Plan()
     plan.ParseFromString((Path(os.environ["AP_PLAN_DIR"]) / "plan.pb").read_bytes())
-    assert plan.contract in (P2_CONTRACT, "P2 v3")   # ap_v1 записан как v3 (без FIXED_U) — читается
+    assert plan.contract in (P2_CONTRACT, "P2 v4", "P2 v3")   # ap_v1 записан как v3 (без FIXED_U) — читается
     ids = {r.relief_id for r in plan.reliefs}
     assert len(ids) == len(plan.reliefs), "relief_id уникален в плане"
     assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs)
@@ -172,7 +172,8 @@ def test_features_table():
         assert all(n in desc for n in names if n.startswith(P6_GROUPS)), "у метрик слоёв нет описания с единицами"
 
 
-@pytest.mark.parametrize("d", sorted(p for p in ANALYSIS.glob("AP-*") if p.is_dir()) if ANALYSIS.exists() else [])
+@pytest.mark.parametrize("d", sorted(p for p in ANALYSIS.glob("AP-*") if p.is_dir()) if ANALYSIS.exists() else [],
+                         ids=lambda p: p.name)
 def test_analysis_dir(d):
     import json
     for f in ("run.py", "summary.json", "section.md"):

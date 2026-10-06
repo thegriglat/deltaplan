@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 4}, {"id": "P3", "version": 2}, {"id": "P4", "version": 3}, {"id": "P5", "version": 1}, {"id": "P6", "version": 1}, {"id": "P7", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 2}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -36,11 +36,11 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
-## P2. План опытов — манифест protobuf (версия 4)
+## P2. План опытов — манифест protobuf (версия 5)
 **Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
 
 - Файлы: `$AIR_SYNTH_DATA/phase/<plan>/plan.pb` (сериализованный `Plan`) + `plan.json` (тот же план в JSON для людей,
-  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v4"` (план ap_v1 записан как "P2 v3" — читается: v4 только добавляет серию).
+  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v5"` (ap_v1 — "P2 v3", ap_v2 — "P2 v4": читаются, новые версии только добавляют поля).
 - Линия — набор точек Fr при прочих равных; случай = (line_id, k), `case_id = first_case_id + k`, номера сквозные
   и плотные по плану. Порядок точек в линии = порядок счёта (`fr_f64`, little-endian float64 в `bytes`).
 - `start = WARM_PREV`: случай k стартует с полного состояния (float32) случая k − 1 той же линии; k = 0 — холодный.
@@ -61,6 +61,8 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   блокирование D от штиля H, air_phase.md §5.2). Высота формы — `Relief.h_m` (не `Context.h_m`, тот — значение
   по умолчанию); всё, что зависит от h (U10 из Fr, z_i = h/h_over_zi, масштаб a относительного критерия, доли h в
   `bubble`), берётся из рельефа линии. Корпус идеальных форм ap_v2 — `corpus/ideal_v2` (P1, имя `<shape>_s<s>_h<h>`).
+- **v5 (06.10, AP-13):** `Numerics.top_above_m` (верх области над max рельефа, по умолчанию 3000 м) и `sponge_top_m`
+  (губка у верха, по умолчанию 1000 м); построитель пишет явно; 0 (старые планы) = значение по умолчанию.
   `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
 ## P3. Результаты замеров — HDF5 + jsonl (версия 2)
@@ -95,7 +97,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (`progress.jsonl` — для людей и ETA, не источник правды); дублей `case_id` нет; повтор случая на том же устройстве и
   версии с тем же составом пакета — побитно. Бюджет диска на весь счёт — ≤ 20 ГБ (иначе — шлюз).
 
-## P4. Решатель: пакетный вызов и опции (версия 3)
+## P4. Решатель: пакетный вызов и опции (версия 4)
 **Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
 **Потребители:** AP-3.
 
@@ -115,6 +117,7 @@ class Numerics:            # как P2 Numerics
     criterion: str = "abs"; tol: float | None = None; max_outer: int = 1000
     snap_from: int = 100; snap_step: int = 50; late_from: int = 500; late_step: int = 50
     envelope_angle_deg: float = 0.0; envelope_wall: str = "none"; envelope_z0_m: float | None = None  # none|ground|low_z0|slip
+    top_above_m: float = 3000.0; sponge_top_m: float = 1000.0   # v4: верх области и губка; по умолчанию — побитно как v3
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
@@ -168,7 +171,7 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   (NaN, исключение) с записью в `run.jsonl`.
 - Без Godot; GPU — только под общим замком (`dp job --lock gpu start air-phase-run <таймаут> …/run_all.sh`).
 
-## P6. Метрики слоёв и таблица признаков (версия 1)
+## P6. Метрики слоёв и таблица признаков (версия 2)
 **Владелец:** AP-6 (`tools/research/air_phase/layer_metrics.py`, `features.py`). **Потребители:** AP-7…AP-11.
 
 - Критерий (решение пользователя 06.10): величины, которые из поля масштаба 1 берут следующие слои игры. Функция
@@ -181,7 +184,8 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   (`scripts/atmosphere/`, `docs/guide/air-model.md`, `docs/guide/atmosphere.md`) со ссылками на строки; чего в игре нет —
   физически обоснованно, помечено. Плюс разности метрик между двумя полями `layer_diff(a, b) -> dict` (для RELAX,
   SWEEP, ENVELOPE: «меняет ли решатель то, что видит слой»).
-- Таблица `tools/research/air_phase/out/features_<plan>.h5` — (N,) составной набор `features`: все поля `cases` P3 + `order`
+- **v2 (06.10):** общая таблица лежит в каталоге данных `$AIR_SYNTH_DATA/phase/features_<plan>.h5` (копии задач удаляются вместе с out/); `features.py --out` пишет туда же. Сравнение ENVELOPE с эталоном 100 м — по самому окну (`window/*`, метрики `w100_*`), не по `fields/f` эталона (это область 400 м).
+- Таблица (v1: `tools/research/air_phase/out/features_<plan>.h5`) — (N,) составной набор `features`: все поля `cases` P3 + `order`
   P3 + `layer_metrics` + из плана: `shape`, `slope`, `h_m`, `h_over_zi`, `variant`, `ref_case_id` (холодный случай той же
   конфигурации — для SWEEP/RELAX/ENVELOPE), `u10`, `fr`; атрибуты `plan`, `results`, `git_commit`, `p6_names` (описание
   полей с единицами, JSON). Таблица пересобирается командой `features.py --plan <dir> --results <dir>` (CPU, пул

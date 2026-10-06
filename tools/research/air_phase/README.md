@@ -2,7 +2,7 @@
 type: "reference"
 status: "active"
 module: "air-model"
-updated: "2026-10-05"
+updated: "2026-10-06"
 summary: "air-phase: код и команды воспроизведения эмпирической фазовой карты по полям решателя SY-12 (признаки на случай, таблицы, рисунки) и схемы фазовой диаграммы"
 related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md"]
 ---
@@ -51,3 +51,32 @@ $PY -m pytest -q tools/research/air_phase/tests                             # к
   `window/shape`), `hc` (земля окна), `case_id`, `x0_m`, `y0_m` (угол окна; центры клеток x0 + 50 + 100·i), `status`,
   `iters`, `brink_x_m/brink_y_m`, `downwind_fit_over_h` — сверх контракта.
 - Данные (не в git): `$AIR_SYNTH_DATA/phase/ap_v1__<solver_version>/` (полный счёт), `…/ap_v1_trial__<v>/` (проба).
+
+## Разбор (этап 2): метрики слоёв, таблица признаков, сигмоиды (AP-6, контракт P6)
+
+Критерий пользователя: качество поля — по тому, что из него берут слои игры (термики масштаба 2, подъём у склонов,
+подветренная зона масштаба 3), а не по м/с. Формулы и пороги — из кода игры, ссылки на файлы/строки — в docstring
+`layer_metrics.py`, описание каждой метрики с единицей и пометкой [игра]/[физика] — `layer_metrics.NAMES` и атрибут
+`p6_names` таблицы.
+
+```bash
+PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
+D=${AIR_SYNTH_DATA:-$HOME/air_synth_data}/phase
+$PY tools/research/air_phase/features.py --plan $D/ap_v1 --results $D/ap_v1__s1-74644c4   # → out/features_ap_v1.h5 (~4 мин, 16 процессов)
+$PY tools/research/air_phase/features.py --plan $D/ap_v2 --results $D/ap_v2__s1-74644c4   # → out/features_ap_v2.h5
+$PY -m pytest -q tools/research/air_phase/tests/test_layer_metrics.py                     # синтетика: подветр, склон, термик, сигмоида
+env AP_FEATURES=tools/research/air_phase/out/features_ap_v1.h5 $PY -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k features_table
+```
+
+- `layer_metrics.py` — `layer_metrics(f, hc, heat_flux, hbl, case, *, w_mech=None)` → dict `th_*` (источники термиков,
+  сила w0 = 1,24 w*, потолок частицы, снос — `air_thermals.gd::build`), `sl_*` (w слоя 50–300 м > 1 м/с над наветренным
+  склоном; порог — min_sink крыльев игры), `lee_*` (признак отрыва поля `field_turbulence.gd::lee`, ΔU слоя смешения,
+  разрешённое обратное течение); `layer_diff(a, b)` — разности; `layer_masks` + `iou` — совпадение карт слоёв.
+- `features.py` — таблица `out/features_<plan>.h5` (не в git, `.gitignore`): все поля `cases`, `order`, `bubble`
+  (bub_*), метрики слоёв, `w100_sl_*`/`w100_lee_*` по окну 100 м (SEPARATION), поля плана; `ref_case_id` (по
+  `Line.ref_line_id`, тот же Fr ±1 %), `ref400_case_id` (ENVELOPE → SEPARATION 400 м без огибающей), `mech_case_id`
+  (близнец H = 0 — w_mech для w_conv и вертикали склонов/подветра), `ref_iou_*` (IoU карт с ref_case_id).
+- `sigmoid.py` — `fit_sigmoid(x, y, *, log=True, n_boot=200, noise=None)`: y = y₀ + Δy·σ((log x − log x_c)/w),
+  бутстрэп-интервалы; резкая — w < 0,1 декады или скачок > 3σ шума стартов, плавная — w > 0,3.
+- Отступления от игры (в P3 нет w_mech и кромки облаков, высоты над землёй решателя, верх поля 2000 м) — шапка
+  `layer_metrics.py`.
