@@ -325,8 +325,7 @@ def stage_prep(workers):
 
 
 # ================================================================== report
-AP14_SUMMARY = Path(os.environ.get("AP14_SUMMARY", os.path.expanduser(
-    "~/deltaplan-air-phase-AP-14/tools/research/air_phase/analysis/AP-14/summary.json")))
+AP14_SUMMARY = Path(os.environ.get("AP14_SUMMARY", str(AP / "analysis" / "AP-14" / "summary.json")))
 PER_CASE = AP / "out" / "per_case.npz"
 RUN_RERUN_DIR = DATA / "phase" / "ap23_rerun"
 TRUTH_RULES = {
