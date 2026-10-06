@@ -709,8 +709,9 @@ static func faces(p: Dictionary, ctr: PackedFloat64Array, _bad: Array) -> Packed
 
 ## Полное поле сборки по фазам без Пикара (путь без GPU, P12 v3): все клетки — механизмы
 ## (A — линейная теория, B, C → A, D, H, F, G); u, v, θ′ — решение с нагревом, w_mech — без нагрева
-## (C3). r — результат run() того же случая (пусто — посчитать). null — размеры не сошлись.
-static func field(case: AirCase, r := {}, max_speed := 40.0, max_w := 10.0, cfg := {}) -> WindField:
+## (C3). r — результат run() того же случая (пусто — посчитать); пределы |u_h|, |w| — C3 (air_model
+## max_speed_ms, max_w_ms). null — размеры не сошлись.
+static func field(case: AirCase, r: Dictionary, max_speed: float, max_w: float, cfg := {}) -> WindField:
 	if r.is_empty():
 		r = run(case, cfg)
 	if r.has("error"):
@@ -719,7 +720,7 @@ static func field(case: AirCase, r := {}, max_speed := 40.0, max_w := 10.0, cfg 
 
 
 ## WindField (C3) из словаря P10 (CPU или GPU — раскладка одна).
-static func field_from(case: AirCase, r: Dictionary, max_speed := 40.0, max_w := 10.0) -> WindField:
+static func field_from(case: AirCase, r: Dictionary, max_speed: float, max_w: float) -> WindField:
 	var d := case.dims()
 	var cell := PackedFloat32Array()
 	cell.resize(d.x * d.y * d.z)

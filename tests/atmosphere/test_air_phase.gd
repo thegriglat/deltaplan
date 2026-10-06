@@ -300,7 +300,7 @@ func test_field_without_picard() -> void:
 	var r := _run(c)
 	if r.has("error"):
 		return
-	var f := AirPhaseCpu.field(c, r)
+	var f := AirPhaseCpu.field(c, r, 40.0, 10.0)
 	check(f != null, "WindField из сборки")
 	if f == null:
 		return
