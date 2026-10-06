@@ -1,4 +1,4 @@
-"""P4 v3 (docs/contracts/air-phase.md): пакетный счёт решателя P2 (tools/research/air3d) с опциями опытов фаз.
+"""P4 v6 (docs/contracts/air-phase.md): пакетный счёт решателя P2 (tools/research/air3d) с опциями опытов фаз.
 
 Пакет — B решателей в одном процессе, у каждого свой поток CUDA и свой граф итерации; графы ставятся в очередь
 вперемешку, и ядра разных случаев идут на GPU одновременно. Ядра решателя мелкие и упираются в задержку памяти
@@ -26,6 +26,23 @@
 λ = max(lam_m, lam_frac·h_bl) как в air3d; 40 м по умолчанию — побитно как v4), P4 v5; omega_u — u ← u + ω(u* − u) после проекции (Params.omega_u); omega_k — K ← K + ω(K* − K), где K* —
 обновление замыкания с его собственной нижней релаксацией k_relax = 0,1 (эффективно k_relax·ω; ω = 1 — как было);
 k_floor_m2s — Params.k_fa (K свободной атмосферы и нижний предел K в kloc); advection_order 2 — Params.adv2 (ван Лир).
+
+Карта ω, заморозка, запасное правило (P4 v6; все три None — побитно как v5, шаг решателя — сам `Air.outer_step`):
+  omega_map (96, 96) — ω_u = ω_k по колоннам: шаг идёт с ω = 1 внутри (Params.omega_u = 1, k_relax как есть), после
+    обновления K — K ← K_old + ω·(K* − K_old) (то же, что скаляр omega_k: k_relax·ω), после проекции — u ← u_old + ω·(u* − u_old)
+    (как скаляр omega_u). На гранях ω — среднее двух соседних колонн. Порядок ядер — копия `Air.outer_step` (`_Job._outer`;
+    при правке air3d держать в согласии). При переменном ω сумма u_old + ω(u* − u_old) не точно бездивергентна (остаток
+    ~ |u* − u_old|·|∇ω|·Δx, → 0 при сходимости; следующая итерация проецирует снова); критерий ∇·u проверяется как обычно.
+    Скаляры omega_u/omega_k при omega_map должны быть 1 (иначе ValueError).
+  freeze_mask (96, 96) bool — колонны механизма: после каждой итерации u, v, w (грани, у которых обе колонны заморожены),
+    θ′, θ′_d, K (центры) возвращаются к значениям после старта (init, спроецированный решателем). Невязки и критерий — только
+    по незамороженным клеткам и граням (`_residuals_masked`): замороженное поле — граничное условие, не решение уравнений.
+  omega_fallback (N, ω_fb) — если к N итерациям нет сходимости, ω := min(ω, ω_fb) везде (граф итерации перезаписывается);
+    итерация переключения — CaseResult.meta["omega_switch_iter"] (−1 — не было).
+Тёплый старт из сборки (P9): элемент init — dict {"agl": (C, 13, 96, 96)} (C = 3 — u, v, w; 4 — и θ′) на высотах AGL над
+  землёй (раскладка S5): фон init_background, затем в воздушных клетках ниже 2000 м над землёй — сборка (линейно по высоте
+  между уровнями, ниже 25 м — значение 25 м, как обратное к `synth.agl`; 1500–2000 м — плавный переход к фону), грани u, v —
+  среднее двух колонн, w — двух клеток по высоте; θ′_d = 0, K — фон; проекция 30 V-циклами, p = 0 (как init_background).
 
 Огибающая (P4 v2): h_eff = max(h, линия тени) — см. `envelope`. Объём под h_eff — твёрдое тело маской клеток решателя
 (Air строится на h_eff: клетки ниже h_eff — земля, высоты срезов — над h_eff). Верхняя грань: ground — закон
@@ -115,6 +132,9 @@ class Numerics:
     top_above_m: float = 3000.0        # P4 v4: верх области над max рельефа, м (air3d/real.TOP_ABOVE)
     sponge_top_m: float = 1000.0       # P4 v4: толщина губки у верха, м (Params.sponge_top_m)
     lam_m: float = 40.0                # P4 v5: асимптотическая длина перемешивания λ, м (Params.lam; λ = max(lam_m, lam_frac·h_bl))
+    omega_map: np.ndarray | None = None      # P4 v6: (96, 96) f4 — ω_u = ω_k по колоннам; None — скаляры omega_*
+    freeze_mask: np.ndarray | None = None    # P4 v6: (96, 96) bool — колонны, где поле держится равным init
+    omega_fallback: tuple | None = None      # P4 v6: (N, ω) — нет сходимости к N итерациям → ω := min(ω, ω_fb) везде
 
 
 @dataclass
@@ -303,6 +323,8 @@ class _Setup:
             self.ov = dict(n_bv_s=spec.n_bv_s, z_i_agl_m=spec.z_i_agl_m, heat_flux_wm2=spec.heat_flux_wm2)
             self.alpha, self.max_profile = spec.alpha, spec.max_profile
         self.ctx = ctx
+        if num.omega_map is not None and (num.omega_u != 1.0 or num.omega_k != 1.0):
+            raise ValueError("omega_map вместе со скалярами omega_u/omega_k ≠ 1")
         prm = A.Params()
         if num.k_floor_m2s is not None:
             prm = replace(prm, k_fa=float(num.k_floor_m2s))
@@ -418,6 +440,8 @@ class _Job:
             S.init_nest()
         elif cold:
             S.init_background()
+        elif isinstance(self.init, dict) and "agl" in self.init:
+            _init_from_agl(S, self.init["agl"])
         else:
             S.init_from(self.init, with_p=True, with_k=True)
         S.t_check = 0.0
@@ -426,20 +450,100 @@ class _Job:
             S.thd[...] = 0
         S.no_thd = no_thd
         S.stream = self.stream
-        S.outer_step()
+        self.ext = None if nest else self._ext_setup(S)
+        step = S.outer_step if self.ext is None else (lambda: self._outer(S))
+        step()
         S.outer += 1
         self.stream.synchronize()
         S._pool = cp.cuda.MemoryPool()
+        self._capture(S, step)
+        self.S = S
+        self.S.launch(CHECK_EVERY)
+
+    def _capture(self, S, step):
+        cp = self.cp
         old = cp.get_default_memory_pool()
         cp.cuda.set_allocator(S._pool.malloc)
         try:
             self.stream.begin_capture()
-            S.outer_step()
+            step()
             S.graph = self.stream.end_capture()
         finally:
             cp.cuda.set_allocator(old.malloc)
-        self.S = S
-        self.S.launch(CHECK_EVERY)
+
+    # --- P4 v6: карта ω, заморозка колонн, запасное правило
+    def _ext_setup(self, S):
+        """→ None (опций v6 нет — шаг решателя как есть, побитно v5) или dict массивов GPU для `_outer`."""
+        num = self.num
+        if num.omega_map is None and num.freeze_mask is None and num.omega_fallback is None:
+            return None
+        cp = self.cp
+        dt = S.dt
+        ny, nx = S.g.ny, S.g.nx
+        om = np.ones((ny, nx)) if num.omega_map is None else np.asarray(num.omega_map, np.float64)
+        assert om.shape == (ny, nx), om.shape
+        ext = dict(relax=num.omega_map is not None, switch=-1)
+        Mp = np.pad(om, 1, mode="edge")
+        wu = Mp.copy(); wu[:, 1:] = 0.5 * (Mp[:, 1:] + Mp[:, :-1])
+        wv = Mp.copy(); wv[1:, :] = 0.5 * (Mp[1:, :] + Mp[:-1, :])
+        ext["wu"], ext["wv"], ext["wc"] = (cp.asarray(a[None], dt) for a in (wu, wv, Mp))
+        for a in ("u", "v", "w", "nuf", "nuh"):
+            ext[a + "_old"] = cp.zeros_like(getattr(S, a))
+        if num.freeze_mask is not None:
+            fz = np.asarray(num.freeze_mask, bool)
+            assert fz.shape == (ny, nx), fz.shape
+            Fp = np.pad(fz, 1, mode="constant", constant_values=False)
+            fu = Fp.copy(); fu[:, 1:] = Fp[:, 1:] & Fp[:, :-1]
+            fv = Fp.copy(); fv[1:, :] = Fp[1:, :] & Fp[:-1, :]
+            ext["fu"], ext["fv"], ext["fc"] = (cp.asarray(np.broadcast_to(a[None], S.shape)) for a in (fu, fv, Fp))
+            ext["frozen"] = {a: getattr(S, a).copy() for a in ("u", "v", "w", "th", "thd", "nuf", "nuh")}
+            keep_f = lambda F: cp.asarray(~F, dt)
+            ext["m_u"] = S.mu_u * keep_f(ext["fu"]); ext["m_v"] = S.mu_v * keep_f(ext["fv"])
+            ext["m_w"] = S.mu_w * keep_f(ext["fc"])
+            ext["fluid"] = S.fluid * keep_f(ext["fc"])
+            ext["n_fluid"] = float(cp.sum(ext["fluid"]))
+            ext["n_frozen_cols"] = int(fz.sum())
+        return ext
+
+    def _outer(self, S):
+        """Итерация Пикара с картой ω и заморозкой: порядок — как `Air.outer_step` (air3d/air.py), ω по колоннам вместо
+        скаляра (Params.omega_u = 1 в этом пути — скалярная ветвь outer_step не срабатывает: шаги вызываются по одному)."""
+        cp = self.cp
+        e = self.ext
+        S.apply_bc()
+        if e["relax"]:
+            cp.copyto(e["nuf_old"], S.nuf); cp.copyto(e["nuh_old"], S.nuh)
+        S.update_k()
+        if e["relax"]:
+            for a, b in ((S.nuf, e["nuf_old"]), (S.nuh, e["nuh_old"])):
+                a -= b; a *= e["wc"]; a += b
+            for a in ("u", "v", "w"):
+                cp.copyto(e[a + "_old"], getattr(S, a))
+        S.adv2_mom()
+        S.build_mom()
+        S.mom_step()
+        S.project(cycles=S.prm.vcycles)
+        if e["relax"]:
+            for a, w in (("u", "wu"), ("v", "wv"), ("w", "wc")):
+                x, b = getattr(S, a), e[a + "_old"]
+                x -= b; x *= e[w]; x += b
+        S.adv2_heat()
+        S.heat_step()
+        if "frozen" in e:
+            for a, m in (("u", "fu"), ("v", "fv"), ("w", "fc"), ("th", "fc"), ("thd", "fc"), ("nuf", "fc"), ("nuh", "fc")):
+                cp.copyto(getattr(S, a), e["frozen"][a], where=e[m])
+
+    def _maybe_fallback(self, S):
+        """Запасное правило: к N итерациям нет сходимости → ω := min(ω, ω_fb) везде, граф перезаписывается."""
+        e, fb = self.ext, self.num.omega_fallback
+        if e is None or fb is None or e["switch"] >= 0 or S.outer < int(fb[0]):
+            return
+        w = float(fb[1])
+        for k in ("wu", "wv", "wc"):
+            self.cp.minimum(e[k], w, out=e[k])
+        e["relax"] = True
+        e["switch"] = int(S.outer)
+        self._capture(S, lambda: self._outer(S))
 
     def _thresholds(self, S):
         num = self.num
@@ -463,7 +567,8 @@ class _Job:
         S = self.S
         with self.stream:
             self.stream.synchronize()
-            r = S.residuals()
+            r = S.residuals() if (self.phase != "domain" or self.ext is None or "frozen" not in self.ext) \
+                else _residuals_masked(S, self.ext)
             r["it"] = S.outer
             self.last = r
             if self.phase == "domain":
@@ -477,6 +582,8 @@ class _Job:
             elif S.outer >= self.num.max_outer:
                 status = "max"
             if status is None:
+                if self.phase == "domain":
+                    self._maybe_fallback(S)
                 S.launch(CHECK_EVERY)
                 return False
             S.status = status
@@ -557,7 +664,9 @@ class _Job:
                                  h_eff=None if self.set.h_eff is None else np.asarray(self.set.h_eff, np.float32),
                                  u_sat=d["u_sat"], n_bv=d["n_bv"], z_i_agl_m=d["z_i_agl_m"], heat_flux_wm2=d["heat_flux_wm2"],
                                  meta=dict(nz=S.g.nz, z_bot_m=S.g.z_bot, alpha=S.prm.alpha, max_profile=S.prm.max_profile,
-                                           relief_m=self.set.relief_m))
+                                           relief_m=self.set.relief_m,
+                                           omega_switch_iter=-1 if self.ext is None else int(self.ext["switch"]),
+                                           n_frozen_cols=0 if self.ext is None else int(self.ext.get("n_frozen_cols", 0))))
 
     def _finish_window(self, status):
         S = self.S
@@ -567,6 +676,82 @@ class _Job:
         self.window.update(fields=out.astype(np.float32), status=status, iters=int(S.outer), agl_m=list(AGL),
                            hc=np.asarray(S.hc, np.float32))
         self.result.window = self.window
+
+
+def _residuals_masked(S, e):
+    """= Air.residuals, но rms/max — только по незамороженным граням и клеткам (P4 v6 freeze_mask)."""
+    cp = S.cp
+    S.apply_bc()
+    S.adv2_mom()
+    S.build_mom()
+    out = {}
+    for name, C, x, b, m in (("u", S.Cu, S.u, S.bu, e["m_u"]), ("v", S.Cv, S.v, S.bv, e["m_v"]), ("w", S.Cw, S.w, S.bw, e["m_w"])):
+        S.lines.resid(C, x, b, S.rr)
+        r = cp.abs(S.rr) * m
+        out[name] = (r.max(), cp.sqrt(cp.sum(r * r) / cp.maximum(cp.sum(m), 1)))
+    S.adv2_heat()
+    S.build_heat()
+    fl, nf = e["fluid"], max(e["n_fluid"], 1.0)
+    S.lines.resid(S.Ct, S.th, S.bt, S.rr)
+    r = cp.abs(S.rr) * fl
+    out["th"] = (r.max(), cp.sqrt(cp.sum(r * r) / nf))
+    S.lines.resid(S.Ctd, S.thd, S.btd, S.rr)
+    r = cp.abs(S.rr) * fl
+    out["thd"] = (r.max(), cp.sqrt(cp.sum(r * r) / nf))
+    d = cp.abs(S.divergence()) * fl[1:-1, 1:-1, 1:-1]
+    out["div"] = (d.max(), cp.sqrt(cp.sum(d * d) / nf))
+    vals = {k: (float(a), float(b)) for k, (a, b) in out.items()}
+    return dict(mom_max=max(vals["u"][0], vals["v"][0], vals["w"][0]),
+                mom_rms=math.sqrt((vals["u"][1] ** 2 + vals["v"][1] ** 2 + vals["w"][1] ** 2) / 3),
+                th_max=max(vals["th"][0], vals["thd"][0]), th_rms=max(vals["th"][1], vals["thd"][1]),
+                thd_max=vals["thd"][0], thd_rms=vals["thd"][1], div_max=vals["div"][0], div_rms=vals["div"][1])
+
+
+AGL_INIT_TOP, AGL_INIT_BLEND = 2000.0, 1500.0
+
+
+def _init_from_agl(S, agl):
+    """Тёплый старт из поля сборки на высотах AGL (P9): см. шапку модуля («Тёплый старт из сборки»)."""
+    cp = S.cp
+    S.init_background()
+    agl = np.asarray(agl, np.float64)
+    C = agl.shape[0]
+    lev = np.asarray(AGL, np.float64)
+    zc = np.asarray(S.zc, np.float64)                               # центры уровней с ореолом (NZ,)
+    hp = np.asarray(S.hp, np.float64)                               # рельеф с ореолом (NY, NX)
+    z = zc[:, None, None] - hp[None]                                # высота центра над землёй
+    zq = np.clip(z, lev[0], lev[-1])
+    k = np.clip(np.searchsorted(lev, zq) - 1, 0, len(lev) - 2)
+    t = (zq - lev[k]) / (lev[k + 1] - lev[k])
+    blend = np.clip((z - AGL_INIT_BLEND) / (AGL_INIT_TOP - AGL_INIT_BLEND), 0.0, 1.0)   # 0 — сборка, 1 — фон
+    jj, ii = np.indices(hp.shape)
+    cen = []
+    for c in range(C):
+        F = np.pad(agl[c], ((0, 0), (1, 1), (1, 1)), mode="edge")   # (13, NY, NX)
+        cen.append((1 - t) * F[k, jj[None], ii[None]] + t * F[k + 1, jj[None], ii[None]])
+    uc, vc, wc = cen[:3]
+    ubg, vbg = S.ubg.get().astype(np.float64), S.vbg.get().astype(np.float64)
+    bu = np.zeros_like(uc); bu[:, :, 1:] = 0.5 * (blend[:, :, 1:] + blend[:, :, :-1])
+    bv = np.zeros_like(vc); bv[:, 1:, :] = 0.5 * (blend[:, 1:, :] + blend[:, :-1, :])
+    fu = uc.copy(); fu[:, :, 1:] = 0.5 * (uc[:, :, 1:] + uc[:, :, :-1])
+    fv = vc.copy(); fv[:, 1:, :] = 0.5 * (vc[:, 1:, :] + vc[:, :-1, :])
+    fw = wc.copy(); fw[1:] = 0.5 * (wc[1:] + wc[:-1])
+    bw = blend.copy(); bw[1:] = 0.5 * (blend[1:] + blend[:-1])
+    u = (1 - bu) * fu + bu * ubg
+    v = (1 - bv) * fv + bv * vbg
+    w = (1 - bw) * fw
+    tu, tv, tw = (a.get() for a in (S.tu, S.tv, S.tw))
+    S.u[...] = cp.asarray(np.where(tu == 1, u, S.u.get()), S.dt)
+    S.v[...] = cp.asarray(np.where(tv == 1, v, S.v.get()), S.dt)
+    S.w[...] = cp.asarray(np.where(tw == 1, w, 0.0), S.dt)
+    if C >= 4:
+        th = (1 - blend) * cen[3]
+        S.th[...] = cp.asarray(np.where(S.cell_np == 1, th, 0.0), S.dt)
+    S.thd[...] = 0
+    S.p[...] = 0
+    S.set_ghosts_background()
+    S.project(cycles=30)
+    S.p[...] = 0
 
 
 # ============================================================================== пакет

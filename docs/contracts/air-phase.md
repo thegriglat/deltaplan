@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»; в игре: P10 фазы на GPU/CPU, P11 Пикар с тёплым стартом/ω/маской, P12 AirRuntime без сети, P13 удаление сети, P14 проверки в игре"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 2}, {"id": "P11", "version": 2}, {"id": "P12", "version": 1}, {"id": "P13", "version": 1}, {"id": "P14", "version": 2}, {"id": "P15", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 3}, {"id": "P11", "version": 2}, {"id": "P12", "version": 2}, {"id": "P13", "version": 1}, {"id": "P14", "version": 2}, {"id": "P15", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -130,6 +130,8 @@ class Numerics:            # как P2 Numerics
     omega_map: np.ndarray | None = None    # v6: (96, 96) f4 — ω_u = ω_k по клеткам (карта фаз); None — скаляры omega_*; побитно как v5
     freeze_mask: np.ndarray | None = None  # v6: (96, 96) bool — колонны, где поле держится равным init (механизм фазы); None — нет
     omega_fallback: tuple[int, float] | None = None  # v6: (300, 0.5) — нет сходимости к N итерациям → ω := 0,5 везде
+# v6: init[i] может быть {"agl": (4, 13, 96, 96)} — тёплый старт из сборки на 13 высотах S5 (AP-18); иначе State как раньше.
+# v6 на GPU не прогонялся (AP-18 закрыта как спецификация) — по умолчанию путь кода v5.
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
@@ -276,7 +278,7 @@ GDScript — без магических чисел (кроме математи
 (push-константы / uniform-буфер) из конфига, не литералами. Допуски тестов P14 читаются из конфига (`air_phase.checks`).
 Приёмка каждой задачи переноса и ревью проверяют это отдельно.
 
-## P10. Классификатор и механизмы фаз в игре (версия 2)
+## P10. Классификатор и механизмы фаз в игре (версия 3)
 **Владелец:** AP-19 (`air_phase_job.gd` + `air_phase.glsl` — GPU на каркасе `AirGpu`; `air_phase_cpu.gd` — тот же код на CPU).
 **Потребители:** AP-20 (`AirPicardJob`, `AirRuntime`), отладочный слой «карта фаз».
 
@@ -292,6 +294,12 @@ GDScript — без магических чисел (кроме математи
 - **v2 (06.10) — имена API (согласовано AP-20):** `run(case: AirCase) -> Dictionary` — синхронно (`gpu = null` → CPU-путь);
   порциями (GPU): `start(gpu: AirGpu)`, `poll()` (порция ≤ `air_phase.chunk_ms`), `is_done() -> bool`, `error: String`
   ("" — нет ошибки), `result() -> Dictionary` (тот же словарь, что `run`). Ключи словаря — как выше.
+- **v3 (06.10, AP-23):** оси классификатора — штиль H по **U10** (`h_axis = u10`, порог 0,77 м/с, ширина 0,10 дек), сильное D
+  по **U_sat/N** (`d_strong_axis = u_over_n`, < 270 м; AP-13: 248–290 м), D — только ниже разделяющей линии тока H_c по
+  клеткам (`d_local`), фаза C по клеткам (`c_w_ms`: U_sat·уклон ≥ 1 м/с), B и сглаживание — глубина 50 м, гаусс 1 клетка.
+  Правило «Fr < 0,3 → вся область механизмам» отменено (отдавало механизмам 14 % сходящихся случаев SY-12). Значения и
+  `_doc` — `tools/research/air_phase/analysis/AP-23/summary.json → recommended_config` (имена ключей — в конфиге игры
+  `air_phase`, AP-19 сверяет; эталон — `classifier_ref.py`).
 - Механизмы: H — статистика штиля (среднее + разброс, не неподвижная точка); F — конвекция/термики по подобию (w*, z_i,
   доля восходящих ≈ 0,4 [LS80]); G — вечерний сток (Прандтль, скорость 1–4 м/с [ZW13], накопление холода в долинах;
   по AP-18); сильное D — разделяющая линия тока H_c + слои Лапласа ψ. Формулы и источники — в комментариях ядер.
@@ -314,7 +322,7 @@ GDScript — без магических чисел (кроме математи
   из конфига `air_model` (`omega_fallback_iters`, `omega_fallback_value` с `_doc`) — окна и тесты C9 без изменений поведения.
 - `results[]` + `omega_fallback_used` (bool), `frozen_frac`.
 
-## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 1, заменяет O5)
+## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 2, заменяет O5)
 **Владелец:** AP-20 (`air_runtime.gd`, `settings_panel.gd`, `configs/atmosphere.json → air_model`). **Потребители:** игра.
 
 - Конвейер (загрузка и пересчёт в полёте, сроки и два прохода k — C9 v3 без изменений): `AirPlace.domain_case` →
@@ -322,6 +330,10 @@ GDScript — без магических чисел (кроме математи
   сейчас (C9 v2), тёплый старт окон — от поля области.
 - Без GPU (RD нет / headless / ошибка): поле — **только сборка P10 на CPU** (A — линейная теория DCT как AP-17, без
   Пикара) + строка `air_model: фазы без Пикара (<причина>)`; дальше отказ — аналитика (как C9).
+- **v2 (06.10, AP-23):** запасной путь по сходимости — если Пикар не сошёлся за `max_outer` (с ω по карте и запасным правилом),
+  в его незамороженных клетках с весом H/D (до заморозки) > `air_phase.nonconv_mech_w` берётся поле механизма H/D (P10
+  `mech_field`), остальное — late_mean Пикара; затем проекция. Ошибка «блуждание отправлено в Пикар» стоит только времени
+  GPU. `last_info` + `nonconv_fallback` (bool, доля клеток).
 - Конфиг `air_model`: ключи `engine`, `nn_*` удаляются; `enabled` auto/on/off — как было. Настройки «Ветер над рельефом»:
   «расчёт» / «упрощённый».
 - `last_info` + `phase_frac` (доли фаз), `phase_ms`, `omega_fallback_used`, `frozen_frac`, `iters`; строка журнала
