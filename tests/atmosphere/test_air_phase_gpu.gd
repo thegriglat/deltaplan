@@ -54,6 +54,20 @@ func _compare(lbl: String, g: Dictionary, c: Dictionary, tol: float) -> float:
 			var e := rel(g[wk][k], c[wk][k])
 			rows.append("%s.%s %s" % [wk, k, String.num_scientific(e)])
 			worst = maxf(worst, e)
+	# где расходятся веса: фаза, клетка, значения
+	for key in ["weights", "weights_mech"]:
+		var a: PackedFloat32Array = g[key]
+		var b: PackedFloat32Array = c[key]
+		var n2 := b.size() / AirPhase.K
+		var best := -1.0
+		var at := 0
+		for q in b.size():
+			if absf(a[q] - b[q]) > best:
+				best = absf(a[q] - b[q])
+				at = q
+		print("  %s: max|Δ| %s — фаза %s, клетка %d (j %d, i %d): GPU %.4f CPU %.4f" % [
+			key, String.num_scientific(best), AirPhase.PHASES[at / n2], at % n2, (at % n2) / int(sqrt(n2)), at % int(sqrt(n2)), a[at], b[at]
+		])
 	var fz_ok: bool = g.freeze == c.freeze and g.freeze_mech == c.freeze_mech
 	print("air_phase_gpu %s: max %s; %s; заморозка %s" % [lbl, String.num_scientific(worst), ", ".join(rows), "=" if fz_ok else "≠"])
 	check(worst <= tol, "%s: GPU = CPU (%s ≤ %s)" % [lbl, String.num_scientific(worst), tol])

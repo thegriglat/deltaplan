@@ -116,7 +116,7 @@ func result() -> Dictionary:
 		outv.append(gpu.download(_bufs.outv[v]))
 	var gms := 0.0
 	for e in chunk_log:
-		gms += e.y
+		gms += maxf(e.y, 0.0)
 	var parts := {
 		prepare = _ms_prep,
 		gpu = gms,

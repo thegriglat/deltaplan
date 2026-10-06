@@ -121,10 +121,10 @@ float u_prof(float z) {
 float cosb(int n, int i, int p) { return cos(PI * float((p * (2 * i + 1)) % (4 * n)) / float(2 * n)); }
 float sinb(int n, int i, int p) { return sin(PI * float((p * (2 * i + 1)) % (4 * n)) / float(2 * n)); }
 
+// отражение через полуклетку (scipy «reflect»); % от отрицательного в GLSL не определён — без него
 int refl(int i, int n) {
-	int period = 2 * n;
-	int m = ((i % period) + period) % period;
-	return m < n ? m : period - 1 - m;
+	int m = i < 0 ? -1 - i : i;
+	return m < n ? m : 2 * n - 1 - m;
 }
 
 int widx(int v, int st, int k, int c) { return ((v * NWS + st) * K + k) * n2 + c; }
