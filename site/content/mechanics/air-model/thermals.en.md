@@ -1,6 +1,6 @@
 ---
 title: "Thermals"
-weight: 102
+weight: 30
 description: "Level 2 of the air model — thermals: where sources, strength, ceiling and drift come from (the wind field), how a bubble is built, plus dust devils and thunderstorms."
 ---
 
@@ -8,7 +8,7 @@ description: "Level 2 of the air model — thermals: where sources, strength, ce
 
 A thermal is a column of warm air rising from ground heated by the sun. A hang glider pilot circles
 inside it to gain altitude; around the thermal the air, on the contrary, sinks weakly. Below is how this works
-in the game, where the formulas come from and what the model cannot do. This is level 2 of the [air model](/mechanics/air-model/): the place, strength, ceiling and drift of a thermal come from the [level 1 wind field](/mechanics/wind-phases/), and the shape and life of the bubble from the formulas below; turbulence is [level 3](/mechanics/turbulence/).
+in the game, where the formulas come from and what the model cannot do. This is level 2 of the [air model](/mechanics/air-model/): the place, strength, ceiling and drift of a thermal come from the [level 1 wind field](/mechanics/air-model/wind-phases/), and the shape and life of the bubble from the formulas below; turbulence is [level 3](/mechanics/air-model/turbulence/).
 
 ## What is computed at level 2
 
@@ -64,7 +64,7 @@ speeds up (inside the cloud condensation adds buoyancy: the air there cools more
 adiabat), and for a Cb up to a dangerous "pull-in". Under small, young and decaying clouds there is no suction:
 the thermal weakens toward the top, as without a cloud.
 
-**Wind and turbulence.** The wind profile in the mixing layer is almost constant; fluctuations (gusts, jolts, rotor) are computed by [level 3](/mechanics/turbulence/) — at the thermal edge turbulence is added as an independent component.
+**Wind and turbulence.** The wind profile in the mixing layer is almost constant; fluctuations (gusts, jolts, rotor) are computed by [level 3](/mechanics/air-model/turbulence/) — at the thermal edge turbulence is added as an independent component.
 
 **Background sink** between thermals is −0.3…−1 m/s (−0.5 by default), from mass conservation: what
 rose in the thermals must sink somewhere.
@@ -141,7 +141,7 @@ strength is a rare natural disaster, not an ordinary thunderstorm).
 
 ## Details
 
-- [Wind field: phases and Picard](/mechanics/wind-phases/), [turbulence and rotor](/mechanics/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model.md](/docs/guide/air-model.md) → "Scale 2: thermals from the field".
+- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model.md](/docs/guide/air-model.md) → "Scale 2: thermals from the field".
 - [docs/research/thermals.md](/docs/research/thermals.md): formulas and sources: Gedeon, Allen,
   Lenschow and Stevens, Deardorff.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): the table of observables with

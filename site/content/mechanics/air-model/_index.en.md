@@ -10,11 +10,13 @@ The air in the game is not a set of separate formulas but a physical field: wind
 
 | Level | What it is for a pilot | Scale | Page |
 |---|---|---|---|
-| 1. Mean wind field | where it blows, where a slope holds, where wind separates behind a ridge, where thermals "stand", ceiling, drift | 400 m cell over the area, 100 and 50 m around the pilot; a field per game hour | [Wind field: phases and Picard](/mechanics/wind-phases/) |
-| 2. Thermals | core, edge, "missed and dropped", life of a bubble | 100–500 m, minutes | [Thermals](/mechanics/thermals/) |
-| 3. Turbulence and rotor | jolts, downdrafts, shaking behind a ridge | under 50 m, seconds | [Turbulence and rotor](/mechanics/turbulence/) |
+| 1. Mean wind field | where it blows, where a slope holds, where wind separates behind a ridge, where thermals "stand", ceiling, drift | 400 m cell over the area, 100 and 50 m around the pilot; a field per game hour | [Wind field: phases and Picard](/mechanics/air-model/wind-phases/) |
+| 2. Thermals | core, edge, "missed and dropped", life of a bubble | 100–500 m, minutes | [Thermals](/mechanics/air-model/thermals/) |
+| 3. Turbulence and rotor | jolts, downdrafts, shaking behind a ridge | under 50 m, seconds | [Turbulence and rotor](/mechanics/air-model/turbulence/) |
 
-The model is on by default. There is no neural network in the game: the wind field is computed with physics (phases and Picard), not by a trained network. If the field could not be computed, the game stays on the old formulas — [slope wind](/mechanics/slope-wind/); in the settings they are called "Heuristic".
+The model is on by default. There is no neural network in the game: the wind field is computed with physics (phases and Picard), not by a trained network. If the field could not be computed, the game stays on the old formulas — [slope wind](/mechanics/air-model/slope-wind/); in the settings they are called "Heuristic".
+
+{{< children >}}
 
 ## Why three levels
 
@@ -49,7 +51,7 @@ The computation runs on the graphics card in Vulkan compute shaders, so it works
 
 ## What it is based on
 
-The basis is the conservation of mass, momentum and heat in the Boussinesq approximation: air density is constant except in the buoyancy term. The model looks for a **steady** solution — the mean picture over an hour, rather than a step-by-step time simulation (on a fine grid that would cost minutes per frame). It is solved by the Picard method: approximations are refined until the field stops changing. But "one Picard for everything" has a known limit: in calm, in strong blocking and in convection there is no steady solution, or it is not what is needed. That is why at level 1 a sorting into wind phases stands before Picard — see the [separate page](/mechanics/wind-phases/).
+The basis is the conservation of mass, momentum and heat in the Boussinesq approximation: air density is constant except in the buoyancy term. The model looks for a **steady** solution — the mean picture over an hour, rather than a step-by-step time simulation (on a fine grid that would cost minutes per frame). It is solved by the Picard method: approximations are refined until the field stops changing. But "one Picard for everything" has a known limit: in calm, in strong blocking and in convection there is no steady solution, or it is not what is needed. That is why at level 1 a sorting into wind phases stands before Picard — see the [separate page](/mechanics/air-model/wind-phases/).
 
 The computing method was chosen from several. Time stepping is exact but expensive (7–18 s per 200 m area against 2–5 s for Picard on an RTX 4070 SUPER); linear kernels with superposition are physically wrong — a thermal from a sum of kernels came out three times weaker than the real one. The Picard method gives an error of at most 0.5 % in wind and about 1 % in temperature deviation. More in the [prototype summary](/tools/research/heat_ca/out/summary.md).
 
@@ -97,7 +99,7 @@ Common to the whole model; specific ones are on the level pages.
 - **Saddle ×2.05 instead of ×1.5.** At a Froude number of about 2 the flow goes over the whole range, and the saddle works as a lowered ridge. The day's stability comes from the weather; there is no separate "saddle knob".
 - **The lift band over a steep ridge is higher than "two heights".**
 - **The surface is meadow everywhere.** There are no surface classes (forest, rock, water) in heating, and over forest mechanical turbulence is underestimated.
-- **Evening, night, calm.** The nocturnal jet maximum is not reproduced; stable cases have not been checked against inflow data (the calibration is neutral). In calm the model has no steady solution — the field there comes from statistics (see [phases](/mechanics/wind-phases/)).
+- **Evening, night, calm.** The nocturnal jet maximum is not reproduced; stable cases have not been checked against inflow data (the calibration is neutral). In calm the model has no steady solution — the field there comes from statistics (see [phases](/mechanics/air-model/wind-phases/)).
 
 ## More
 
@@ -108,5 +110,5 @@ Common to the whole model; specific ones are on the level pages.
 - [Catalog of experimental data](/docs/research/experimental_data.md); data of [Askervein](/tools/research/data/askervein/README.md) and [Perdigão](/tools/research/data/perdigao/README.md).
 - Research: [3D reference on Ongudai terrain](/tools/research/air3d/README.md), [thermals from the field](/tools/research/air_thermals/README.md), [turbulence from the field](/tools/research/air_turb/README.md), [2D prototype](/tools/research/heat_ca/README.md).
 - [Wind phases: research](/docs/research/air_phase.md), [measurements on ideal terrain](/docs/research/air_phase_results.md), [plan](/docs/plan/air-phase.md).
-- [Wind field: phases and Picard](/mechanics/wind-phases/), [thermals](/mechanics/thermals/), [turbulence and rotor](/mechanics/turbulence/).
-- [Slope wind](/mechanics/slope-wind/), [thermals](/mechanics/thermals/), [weather](/mechanics/weather/); [research and plans](/research/).
+- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/), [turbulence and rotor](/mechanics/air-model/turbulence/).
+- [Slope wind](/mechanics/air-model/slope-wind/), [thermals](/mechanics/air-model/thermals/), [weather](/mechanics/weather/); [research and plans](/research/).

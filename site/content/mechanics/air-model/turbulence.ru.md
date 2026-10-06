@@ -1,6 +1,6 @@
 ---
 title: "Болтанка и ротор"
-weight: 103
+weight: 40
 description: "Уровень 3 модели воздуха: как из среднего поля получаются порывы, болтанка, удары вниз, ротор и обратный ветер за гребнем; как подветренная зона откалибрована по замерам; где модель ошибается."
 ---
 
@@ -60,4 +60,4 @@ description: "Уровень 3 модели воздуха: как из сред
 - [Модель воздуха в игре](/docs/guide/air-model.md) → «Масштаб 3: возмущения из поля».
 - [Результаты замеров на идеальном рельефе](/docs/research/air_phase_results.md) (срыв за бровкой, огибающая), [исследование болтанки из поля](/tools/research/air_turb/README.md).
 - [Атмосфера](/docs/guide/atmosphere.md) — подветренная зона в запасной аналитике.
-- Страницы: [модель воздуха](/mechanics/air-model/), [поле ветра: фазы и Пикар](/mechanics/wind-phases/), [термики](/mechanics/thermals/), [ветер у склона](/mechanics/slope-wind/).
+- Страницы: [модель воздуха](/mechanics/air-model/), [поле ветра: фазы и Пикар](/mechanics/air-model/wind-phases/), [термики](/mechanics/air-model/thermals/), [ветер у склона](/mechanics/air-model/slope-wind/).

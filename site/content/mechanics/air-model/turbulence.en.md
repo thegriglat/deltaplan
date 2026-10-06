@@ -1,6 +1,6 @@
 ---
 title: "Turbulence and rotor"
-weight: 103
+weight: 40
 description: "Level 3 of the air model: how gusts, turbulence, downdrafts, rotor and reverse wind behind a ridge come out of the mean field; how the lee zone was calibrated against measurements; where the model is wrong."
 ---
 
@@ -60,4 +60,4 @@ For comparison with the field, pilots' words: sinks and downward jolts behind a 
 - [The air model in the game](/docs/guide/air-model.md) → "Scale 3: disturbances from the field".
 - [Measurements on ideal terrain](/docs/research/air_phase_results.md) (separation behind the brow, envelope), [turbulence from the field research](/tools/research/air_turb/README.md).
 - [Atmosphere](/docs/guide/atmosphere.md) — the lee zone in the fallback analytics.
-- Pages: [air model](/mechanics/air-model/), [wind field: phases and Picard](/mechanics/wind-phases/), [thermals](/mechanics/thermals/), [slope wind](/mechanics/slope-wind/).
+- Pages: [air model](/mechanics/air-model/), [wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/), [slope wind](/mechanics/air-model/slope-wind/).

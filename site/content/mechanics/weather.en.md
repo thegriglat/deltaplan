@@ -55,7 +55,7 @@ calibration is preserved), with corrections for the season (solar elevation at n
 
 **Cloudiness from the margin `m`**: the share of dry (cloudless) thermals, the cloud thickness, the
 probability of overdevelopment and the share of thermals that grow into a thunderstorm cell (Cb) all depend
-on the single number `m`. More about thunderstorms is on the page [“Thermals”](/mechanics/thermals/).
+on the single number `m`. More about thunderstorms is on the page [“Thermals”](/mechanics/air-model/thermals/).
 
 ## The daily cycle
 
@@ -119,7 +119,7 @@ spring +15 °C with cold air aloft gives as good a day as July +26 °C.
   field is mentioned as an idea for the future, but is not yet implemented in the model.
 - **The wave is hidden and off by default** (`wave.enabled = false`): the physics of the lee wave (strong
   wind across the ridge plus stable air) exists in the code, but the pilot does not know the word "wave",
-  and by default it is not switched on. More on the page [“Slope wind”](/mechanics/slope-wind/).
+  and by default it is not switched on. More on the page [“Slope wind”](/mechanics/air-model/slope-wind/).
 
 ## What was considered and why this way
 

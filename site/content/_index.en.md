@@ -13,8 +13,8 @@ and rotor wind, real places and real wing models.
 
 - [Flight and controls](/mechanics/flight/) — weight shift like on a real wing, the launch run, stall and crash
 - [Wing models](/wings/) — 48 wings in four groups: prototype, sizes, masses and where each number comes from
-- [Slope wind](/mechanics/slope-wind/) — airflow over terrain, rotor behind a ridge
-- [Thermals](/mechanics/thermals/) — strength and frequency by time of day, the edge, dry thermals
+- [Slope wind](/mechanics/air-model/slope-wind/) — airflow over terrain, rotor behind a ridge
+- [Thermals](/mechanics/air-model/thermals/) — strength and frequency by time of day, the edge, dry thermals
 - [Weather](/mechanics/weather/) — temperature, wind and cloud cover from a forecast; thunderstorms
 - [Clouds](/mechanics/clouds/) — cumulus, cumulonimbus, cloud shadows
 - [Terrain](/mechanics/terrain/) — real places from maps
