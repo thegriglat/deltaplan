@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """AP-15: план малых проб ap_probe (P2 v6, серия PROBE) и его прогон (P3 + трассы каждой итерации).
 
-  probe_build.py plan  [--name ap_probe] [--out $AIR_SYNTH_DATA/phase]
+  probe_build.py plan  [--name ap_probe] [--out $AIR_SYNTH_DATA/phase] [--tight]   # --tight — дозамер ветви (ap_probe_t)
   probe_build.py run   [--plan DIR] [--variant branch,lam,dumax] [--batch B]
   probe_build.py check                    # CHECK_EVERY = 1 не меняет траекторию (побитно против пачек по 10)
 
@@ -48,6 +48,10 @@ BR_FR = (0.85, 0.9, 0.95)
 BR_UP = (0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95)
 BR_DOWN = (1.3, 1.2, 1.1, 1.0, 0.95, 0.9, 0.85)
 BR_NUM = dict(criterion=pb.ABSOLUTE, tol=TOL_STRICT, max_outer=3000, late_from=2000)
+# дозамер (план ap_probe_t, --tight): у s 0,3, Fr 0,9 пара up–down при tol 2e-6 на грани критерия ветви и сжалась против
+# tol 2e-5 лишь в 2,3 раза — ещё в 10 раз строже, Fr 0,9 (цепочки до 0,9): упадёт ли расхождение снова
+TIGHT_NAME = "ap_probe_t"
+BR_TIGHT_NUM = dict(criterion=pb.ABSOLUTE, tol=TOL_STRICT / 10, max_outer=6000, late_from=5000)
 
 DM_POINTS = ((6.0, 0.0167), (6.0, 0.019), (3.0, 0.0105))   # (U_sat, N)
 DM_NUM = dict(max_outer=3000, late_from=2000, snap_step=1)
@@ -64,7 +68,7 @@ def col_index(x):
     return int(round((x + 19000.0) / 400.0))
 
 
-def build_plan(name=NAME, out=None, write=True, quiet=False):
+def build_plan(name=NAME, out=None, write=True, quiet=False, tight=False):
     out = out or os.path.join(PB.data_root(), "phase")
     plan = pb.Plan(contract=CONTRACT, name=name, created=datetime.datetime.now().isoformat(timespec="seconds"),
                    git_commit=PB.git_commit(), command=" ".join(["probe_build.py"] + sys.argv[1:]))
@@ -118,20 +122,27 @@ def build_plan(name=NAME, out=None, write=True, quiet=False):
         state["case"] += len(fr)
         return ln
 
-    for s in BR_S:
+    for s in (BR_S if tight else ()):
+        rid = relief_v1("step_up", s)
+        cold = add(rid, 0.0, 1.0, [0.9], pb.COLD, "branch", **BR_TIGHT_NUM)
+        info.append(dict(variant="branch", line_id=cold.line_id, shape="step_up", s=s, chain="cold"))
+        for fr, dr, nm in ((BR_UP[:-1], pb.UP, "up"), (BR_DOWN[:-1], pb.DOWN, "down")):
+            ln = add(rid, 0.0, 1.0, fr, pb.WARM_PREV, "branch", direction=dr, ref=cold.line_id, **BR_TIGHT_NUM)
+            info.append(dict(variant="branch", line_id=ln.line_id, shape="step_up", s=s, chain=nm))
+    for s in (() if tight else BR_S):
         rid = relief_v1("step_up", s)
         cold = add(rid, 0.0, 1.0, BR_FR, pb.COLD, "branch", **BR_NUM)
         info.append(dict(variant="branch", line_id=cold.line_id, shape="step_up", s=s, chain="cold"))
         for fr, dr, nm in ((BR_UP, pb.UP, "up"), (BR_DOWN, pb.DOWN, "down")):
             ln = add(rid, 0.0, 1.0, fr, pb.WARM_PREV, "branch", direction=dr, ref=cold.line_id, **BR_NUM)
             info.append(dict(variant="branch", line_id=ln.line_id, shape="step_up", s=s, chain=nm))
-    rid = relief_v2("ridge", PB.FU_S, PB.H_M)
-    for u, n in DM_POINTS:
+    for u, n in (() if tight else DM_POINTS):
+        rid = relief_v2("ridge", PB.FU_S, PB.H_M)
         fr = u / (n * PB.H_M)
         ln = add(rid, 0.0, 1.0, [fr], pb.COLD, "dumax", n_bv=n, **DM_NUM)
         info.append(dict(variant="dumax", line_id=ln.line_id, shape="ridge", s=PB.FU_S, u_sat=u, n_bv=n, fr=fr,
                          cols_x_m=list(DM_COLS_X), cols_i=[col_index(x) for x in DM_COLS_X], col_j=DM_COL_J))
-    for sh, s, lams in LAM_CASES:
+    for sh, s, lams in (() if tight else LAM_CASES):
         rid = relief_v1(sh, s)
         ref = -1
         for lam in lams:
@@ -301,12 +312,13 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("plan"); p.add_argument("--name", default=NAME); p.add_argument("--out")
+    p.add_argument("--tight", action="store_true", help=f"дозамер ветви tol 2e-7 (план {TIGHT_NAME})")
     r = sub.add_parser("run"); r.add_argument("--plan"); r.add_argument("--variant", default="branch,lam,dumax")
     r.add_argument("--batch", type=int)
     sub.add_parser("check")
     a = ap.parse_args(argv)
     if a.cmd == "plan":
-        build_plan(a.name, a.out)
+        build_plan(TIGHT_NAME if a.tight and a.name == NAME else a.name, a.out, tight=a.tight)
         return 0
     if a.cmd == "check":
         out = check_every_bitwise()
@@ -315,7 +327,7 @@ def main(argv=None):
         return 0
     plan_dir = a.plan or os.path.join(PB.data_root(), "phase", NAME)
     if not os.path.exists(os.path.join(plan_dir, "plan.pb")):
-        build_plan(os.path.basename(plan_dir), os.path.dirname(plan_dir))
+        build_plan(os.path.basename(plan_dir), os.path.dirname(plan_dir), tight=os.path.basename(plan_dir) == TIGHT_NAME)
     return run(plan_dir, [v.strip() for v in a.variant.split(",") if v.strip()], a.batch)
 
 
