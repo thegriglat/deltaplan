@@ -81,7 +81,7 @@ def merge(src_tab, rr_tab, plan_name, sm):
     """Исходный случай, если сошёлся, иначе пересчёт (любой статус). Новые поля rr_used, rr_case_id, rr_status,
     src_status. ref_iou_* у заменённых — NaN (опорные поля не пересчитывались)."""
     by_src = {sm[int(c)][1]: q for q, c in enumerate(rr_tab["case_id"]) if sm[int(c)][0] == plan_name}
-    dt = np.dtype(src_tab.dtype.descr + [("rr_used", "i1"), ("rr_case_id", "i8"), ("rr_status", "i1"),
+    dt = np.dtype([(n, src_tab.dtype[n]) for n in src_tab.dtype.names] + [("rr_used", "i1"), ("rr_case_id", "i8"), ("rr_status", "i1"),
                                          ("src_status", "i1")])
     out = np.zeros(len(src_tab), dt)
     for n in src_tab.dtype.names:
@@ -151,7 +151,7 @@ def convergence(rr, sm, src_tabs):
         for fac, vals in (("H", rr["heat_flux_wm2"]), ("h_over_zi", rr["h_over_zi"]), ("shape", rr["shape"]),
                           ("variant", rr["variant"]), ("h_m", rr["h_m"]), ("n_bv", np.round(rr["n_bv"], 4))):
             v = np.array([dec(x) if not isinstance(x, (float, np.floating)) else round(float(x), 4) for x in vals])
-            u = sorted(set(v.tolist()), key=str)
+            u = sorted(set(v[m0].tolist()), key=str)
             if 1 < len(u) <= 40:
                 d[fac] = {str(x): frac(m0 & (v == x), ok) for x in u}
         fr = rr["fr"].astype(float)
@@ -164,6 +164,15 @@ def convergence(rr, sm, src_tabs):
     return out, sser
 
 
+def half_fr(fr, frac):
+    """Наименьшее Fr, начиная с которого доля сошедшихся ≥ 0,5 во всех точках выше (граница сходимости по сетке)."""
+    fr, frac = np.asarray(fr), np.asarray(frac)
+    for i in range(len(fr)):
+        if np.all(frac[i:] >= 0.5):
+            return float(fr[i])
+    return None
+
+
 def grid_conv_curve(before, after):
     g = before["series"] == ap8.GRID
     out = {}
@@ -173,6 +182,8 @@ def grid_conv_curve(before, after):
         out[str(H)] = dict(fr=[round(float(f), 4) for f in frs],
                            before=[round(float((before["status"][m & (before["fr"] == f)] == 0).mean()), 3) for f in frs],
                            after=[round(float((after["status"][m & (after["fr"] == f)] == 0).mean()), 3) for f in frs])
+        out[str(H)]["fr_half_before"] = half_fr(frs, out[str(H)]["before"])
+        out[str(H)]["fr_half_after"] = half_fr(frs, out[str(H)]["after"])
     return out
 
 
@@ -284,17 +295,49 @@ def late_vs_fixed(rr, sm, src_tabs, sser, arr):
 
 
 # ------------------------------------------------------------------ 4. подгонки AP-8 до/после
-def fits_for(tab, tag, workers, n_boot, redo):
+def stage_fits_grid(t, D, workers, n_boot, ok, base):
+    """Как ap8.stage_fits, но только линии GRID (меняются только они: SWEEP не пересчитывался); подгонки SWEEP и
+    gridwin (гистерезис) — из `base` (до пересчёта), шум стартов — заново (статусы GRID изменились)."""
+    per, glob = ap8.start_noise(t, D, ok)
+    params = {p: v for p, v in ap8.PARAMS.items() if not (ok and p in ("conv", "spread_rel"))}
+    g = t["series"] == ap8.GRID
+    if ok:
+        g = g & (t["status"] == 0)
+    jobs = []
+    for L in np.unique(t["line_id"][t["series"] == ap8.GRID]):
+        m = g & (t["line_id"] == L)
+        r0 = t[(t["series"] == ap8.GRID) & (t["line_id"] == L)][0]
+        for p, (_, kind, _, _) in params.items():
+            if ap8.line_ok(kind, float(r0["heat_flux_wm2"])):
+                jobs.append((("grid", int(L), p), t["fr"][m], D[p][m], per.get((int(L), p), glob[p]), n_boot, "grid"))
+    pre = "ok:" if ok else ""
+    fits = {k: v for k, v in base.items() if not k.startswith(pre + "grid|")}
+    with mp.get_context("fork").Pool(workers) as pool:
+        for key, r in pool.imap_unordered(ap8._fit_job, jobs, chunksize=4):
+            fits[pre + "|".join(map(str, key))] = r
+    noise = {"per_line": {f"{L}|{p}": v for (L, p), v in per.items()}, "global": glob}
+    (ap8.OUT / ("fits_ok.json" if ok else "fits.json")).write_text(json.dumps({"fits": fits, "noise": noise}, ensure_ascii=False))
+    return fits, noise
+
+
+def fits_for(tab, tag, workers, n_boot, redo, base=None):
+    """base — каталог «до»: тогда пересчитываются только подгонки GRID (stage_fits_grid)."""
     d = OUT / tag
     d.mkdir(parents=True, exist_ok=True)
     ap8.OUT, ap8.HERE = d, d
     D = ap8.derived(tab)
     if redo or not (d / "fits.json").exists():
-        fits, noise = ap8.stage_fits(tab, D, workers, n_boot)
+        if base is not None:
+            fits, noise = stage_fits_grid(tab, D, workers, n_boot, False, json.loads((base / "fits.json").read_text())["fits"])
+        else:
+            fits, noise = ap8.stage_fits(tab, D, workers, n_boot)
     else:
         j = json.loads((d / "fits.json").read_text()); fits, noise = j["fits"], j["noise"]
     if redo or not (d / "fits_ok.json").exists():
-        fo, no = ap8.stage_fits(tab, D, workers, n_boot, ok=True)
+        if base is not None:
+            fo, no = stage_fits_grid(tab, D, workers, n_boot, True, json.loads((base / "fits_ok.json").read_text())["fits"])
+        else:
+            fo, no = ap8.stage_fits(tab, D, workers, n_boot, ok=True)
     else:
         j = json.loads((d / "fits_ok.json").read_text()); fo, no = j["fits"], j["noise"]
     fits.update(fo)
@@ -335,12 +378,78 @@ def compare_bounds(sb, sa):
                                   cls=[kb[k]["cls"], ka[k]["cls"]]) for k in moved][:12],
                       new=[dict(line_id=k[0], shape=ka[k]["shape"], H=ka[k]["H"], h_over_zi=ka[k]["h_over_zi"],
                                 fr_c=ka[k]["fr_c"], w=ka[k]["w_dec"], cls=ka[k]["cls"]) for k in new][:12])
-    tot = dict(n_before=len(kb), n_after=len(ka), n_both=len(both),
+    # переходная полоса Fr 0,45–1,0: границы до/после; судьба границ «в пропуске» сетки (до)
+    band = {}
+    for p in ap8.PARAMS:
+        fb = [b["fr_c"] for b in sb["boundaries"] if b["param"] == p and 0.45 < b["fr_c"] <= 1.0]
+        fa = [b["fr_c"] for b in sa["boundaries"] if b["param"] == p and 0.45 < b["fr_c"] <= 1.0]
+        if fb or fa:
+            band[p] = dict(n_before=len(fb), n_after=len(fa),
+                           fr_c_median_before=round(float(np.median(fb)), 3) if fb else None,
+                           fr_c_median_after=round(float(np.median(fa)), 3) if fa else None)
+    gap = [dict(param=k[1], line_id=k[0], shape=kb[k]["shape"], H=kb[k]["H"], h_over_zi=kb[k]["h_over_zi"],
+                fr_c_before=kb[k]["fr_c"], fr_c_after=ka[k]["fr_c"] if k in ka else None,
+                in_gap_after=ka[k]["in_gap"] if k in ka else None, w_after=ka[k]["w_dec"] if k in ka else None)
+           for k in kb if kb[k]["in_gap"]]
+    calm_new = {p: sum(1 for k in ka if k[1] == p and k not in kb and ka[k]["calm"]) for p in ap8.PARAMS}
+    tot = dict(band_045_10=band, in_gap_fate=gap, new_calm_by_param={p: v for p, v in calm_new.items() if v},
+               n_new_calm=sum(calm_new.values()),
+               n_new_not_calm=sum(1 for k in ka if k not in kb and not ka[k]["calm"]),
+               n_before=len(kb), n_after=len(ka), n_both=len(both),
                n_sharp_w_before=sum(b["w_dec"] < 0.1 for b in sb["boundaries"]),
                n_sharp_w_after=sum(b["w_dec"] < 0.1 for b in sa["boundaries"]),
                n_in_gap_before=sum(b["in_gap"] for b in sb["boundaries"]),
                n_in_gap_after=sum(b["in_gap"] for b in sa["boundaries"]))
     return tot, per
+
+
+def fmt(v, nd=2):
+    if v is None:
+        return "—"
+    return f"{v:.{nd}f}".replace(".", ",")
+
+
+def tables_md(per, conv, lvf, lay):
+    """tables.md: границы AP-8 до/после по параметрам (чистые — не штиль и не в пропуске), сходимость, слои."""
+    L = ["# AP-14: таблицы (генерирует run.py)", "",
+         "## Границы AP-8 до и после пересчёта (GRID; «чистые» — Fr_c > 0,45 и не в пропуске сетки)", "",
+         "| параметр | линий: все до→после (чистые до→после) | Fr_c чистых до → после (25–75 % после) | w, дек до → после | "
+         "резких чистых до→после | общих | медиана Δlg Fr_c | сдвиг > 2w | смена класса | в пропуске до→после |",
+         "|---|---|---|---|---|---|---|---|---|---|"]
+    for p in ap8.PARAMS:
+        v = per.get(p)
+        if not v:
+            continue
+        cb, ca = v["clean_before"], v["clean_after"]
+        iq = ca.get("fr_c_p25_p75") or [None, None]
+        L.append(f"| {p} | {v['n_before']}→{v['n_after']} ({cb.get('n') or 0}→{ca.get('n') or 0}) | "
+                 f"{fmt(cb.get('fr_c_median'))} → {fmt(ca.get('fr_c_median'))} ({fmt(iq[0])}–{fmt(iq[1])}) | "
+                 f"{fmt(cb.get('w_dec_median'), 3)} → {fmt(ca.get('w_dec_median'), 3)} | {cb.get('n_sharp') or 0}→{ca.get('n_sharp') or 0} | "
+                 f"{v['n_both']} | {fmt(v['dlog_frc_median'], 3)} | {v['n_moved_gt_2w']} | {v['n_class_changed']} | "
+                 f"{v['n_in_gap_before']}→{v['n_in_gap_after']} |")
+    L += ["", "## Сходимость пересчёта по исходной серии (ω = 0,5, 2000 итераций, холодный старт)", "",
+          "| серия | случаев | сошлось | доля | доля со строгим относительным критерием |", "|---|---|---|---|---|"]
+    for s_, d in conv["by_series"].items():
+        L.append(f"| {s_} | {d['n']} | {d['conv']} | {fmt(d['frac'], 3)} | {fmt(d.get('frac_rel_strict'), 3)} |")
+    t = conv["total"]
+    L.append(f"| всего | {t['n']} | {t['conv']} | {fmt(t['frac'], 3)} | {fmt(t.get('frac_rel_strict'), 3)} |")
+    for s_, d in conv["by_factor"].items():
+        L += ["", f"### {s_}: по факторам", "", "| фактор | значение | случаев | доля сошедшихся |", "|---|---|---|---|"]
+        for fac, dd in d.items():
+            for k, x in dd.items():
+                if not x["n"]:
+                    continue
+                L.append(f"| {fac} | {k} | {x['n']} | {fmt(x['frac'], 3)} |")
+    L += ["", "## Позднее среднее (ω = 1) против неподвижной точки (сошедшиеся после пересчёта)", "",
+          r"| серия | случаев | p99 \|Δu_h\| / U, медиана | p99 / U, 90 % | доля p99 > 0,1 U | p90 на 50 м / разброс, медиана | внутри разброса |",
+          "|---|---|---|---|---|---|---|"]
+    for s_, d in lvf.items():
+        L.append(f"| {s_} | {d['n']} | {fmt(d['du_p99_rel_median'], 3)} | {fmt(d['du_p99_rel_p90'], 3)} | {fmt(d['frac_p99_gt01'], 3)} | "
+                 f"{fmt(d['du50_p90_over_spread_median'], 2)} | {fmt(d['frac_inside_spread'], 3)} |")
+    L += ["", r"| метрика слоя | случаев | физ. минимум | медиана \|Δ\| | доля \|Δ\| ≥ минимума |", "|---|---|---|---|---|"]
+    for k, d in lay.items():
+        L.append(f"| {k} | {d['n']} | {fmt(d['min_dy'], 1)} | {fmt(d['abs_median'], 3)} | {fmt(d['frac_ge_min'], 3)} |")
+    (HERE / "tables.md").write_text("\n".join(L) + "\n")
 
 
 # ------------------------------------------------------------------ рисунки
@@ -417,7 +526,7 @@ def main(argv=None):
         return
     redo = a.stage in ("all", "fits")
     sb = fits_for(v1, "before", a.workers, a.n_boot, redo and not (OUT / "before" / "fits_ok.json").exists())
-    sa = fits_for(m1, "after", a.workers, a.n_boot, redo)
+    sa = fits_for(m1, "after", a.workers, a.n_boot, redo, base=OUT / "before")
     tot, per = compare_bounds(sb, sa)
     curve = grid_conv_curve(v1, m1)
     g = v1["series"] == ap8.GRID
@@ -437,6 +546,7 @@ def main(argv=None):
         seconds=round(time.time() - t0, 1))
     (HERE / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1, default=float))
     figures(curve, arr, spread, per, lay)
+    tables_md(per, conv, lvf, lay)
     print(json.dumps(dict(total=conv["total"], grid=summary["grid_conv_frac"], bounds=tot), ensure_ascii=False))
 
 
