@@ -1,7 +1,7 @@
 {
  "task": "AP-23",
  "contract": "P15 v1",
- "seconds": 6.8,
+ "seconds": 6.7,
  "inputs": {
   "sy12": "/home/greg/air_synth_data/solve/hg_v2__hgw24__s0-939a467",
   "conditions": "/home/greg/air_synth_data/conditions/hg_v2_hgw24",
@@ -2478,6 +2478,7 @@
    }
   }
  },
+ "rerun_omega05": null,
  "recommended_config": {
   "h_axis": "u10",
   "h_axis_doc": "AP-23: ось штиля — U10 (штиль — слабый ветер). На SY-12 одиночная ось U10 разделяет блуждание Пикара лучше Fr (CV log-loss в summary.json → axes_logistic); по Fr в SY-12 при U10 ≥ 3 м/с и Fr < 0,25 Пикар сходится в 95–100 % случаев.",

@@ -328,6 +328,7 @@ def stage_prep(workers):
 AP14_SUMMARY = Path(os.environ.get("AP14_SUMMARY", os.path.expanduser(
     "~/deltaplan-air-phase-AP-14/tools/research/air_phase/analysis/AP-14/summary.json")))
 PER_CASE = AP / "out" / "per_case.npz"
+RUN_RERUN_DIR = DATA / "phase" / "ap23_rerun"
 TRUTH_RULES = {
     "picard_ok": "status 0 или (status 1 и late_spread60_p90 < 0,05 м/с — «почти сошлось», phase_stats.py); для пересчёта AP-14 (2000 итераций) — ещё и не больше 1000 итераций (бюджет Пикара игры, max_outer 1000, AP-18), иначе — блуждание",
     "nonpicard_hard": "status 1 и late_spread60_p90 ≥ 0,1·U_sat — блуждание, которое ω = 0,5 не лечит (AP-9: 0,39–0,63 U_sat в штиле; после ω у Fr 0,5 — 0,07)",
@@ -436,6 +437,94 @@ def logistic_cv(X, y, k=5, l2=1e-3, iters=60):
         p = 1 / (1 + np.exp(-A @ w))
         w -= np.linalg.solve(A.T @ (A * (p * (1 - p))[:, None]) + l2 * np.eye(len(w)), A.T @ (p - y) + l2 * w)
     return float(np.mean(ll)), w
+
+
+def rerun_block(S, lm, lh, cfg, route, lev):
+    """Метки по пересчёту rerun.py (ω = 0,5, холодный старт, до 2000 итераций) для случаев, которые рекомендованный конфиг
+    отправляет в Пикар: ok — status 0 за ≤ 1000 итераций (бюджет игры) или ≤ 2000; hard — не сошлось и разброс ≥ 0,1·U_sat;
+    иначе — неопределённо. Остальные случаи — метки ω = 1 (сходящиеся при ω = 1 считаются сходящимися и при 0,5: контроль)."""
+    d = RUN_RERUN_DIR
+    parts = sorted(d.glob("part-*.h5")) if d.exists() else []
+    if not parts:
+        return None
+    rec = np.concatenate([h5py.File(p, "r")["cases"][:] for p in parts])
+    sel = json.load(open(HERE / "selection.json"))["cases"]
+    grp = {(r["case"], r["decision"], 1.0 if r["group"] == "repro_omega1" else 0.5): r["group"] for r in sel}
+    idx = {int(c): i for i, c in enumerate(S["case"])}
+    out = dict(n_done=int(len(rec)), n_selected=len(sel), dir=str(d))
+    rep = rec[np.isclose(rec["omega"], 1.0)]
+    if len(rep):
+        out["repro_omega1"] = dict(n=int(len(rep)), still_nonconv=int((rep["status"] != 0).sum()),
+                                   hc_maxdiff_m=float(rep["hc_maxdiff_m"].max()),
+                                   spread_new_vs_s5=[[round(float(r["late_spread60_p90"]), 3), round(float(S["spread_m"][idx[int(r["case"])]]), 3)] for r in rep])
+    r5 = rec[np.isclose(rec["omega"], 0.5)]
+    usat = np.array([S["usat"][idx[int(c)]] for c in r5["case"]])
+    ok1000 = (r5["status"] == 0) & (r5["iters"] <= 1000)
+    ok2000 = r5["status"] == 0
+    hard = (~ok2000) & (r5["late_spread60_p90"] >= HARD_SPREAD_REL * usat)
+    g = np.array([grp.get((int(c), int(dd), 0.5), "?") for c, dd in zip(r5["case"], r5["decision"])])
+    by = {}
+    for gg in np.unique(g):
+        for dd in (0, 1):
+            m = (g == gg) & (r5["decision"] == dd)
+            if m.any():
+                by[f"{gg}_{'mh'[dd]}"] = dict(n=int(m.sum()), conv_le1000=float(ok1000[m].mean()), conv_le2000=float(ok2000[m].mean()),
+                                              hard=float(hard[m].mean()), iters_conv_median=float(np.median(r5["iters"][m & ok2000])) if (m & ok2000).any() else None,
+                                              spread_nonconv_median_rel=float(np.median((r5["late_spread60_p90"] / usat)[m & ~ok2000])) if (m & ~ok2000).any() else None)
+    out["by_group"] = by
+    errs5 = {}
+    for dd, lab0 in ((0, lm), (1, lh)):
+        mech, _, _ = route(cfg, S, "m" if dd == 0 else "h")
+        res = {}
+        for budget, okv in (("1000", ok1000), ("2000", ok2000)):
+            lab = lab0.copy()
+            for c, ddd, o, h_ in zip(r5["case"], r5["decision"], okv, hard):
+                if ddd == dd:
+                    lab[idx[int(c)]] = 0 if o else (2 if h_ else 1)
+            # бюджет игры: сходится только за > 1000 итераций — для игры это блуждание (запасной путь)
+            if budget == "1000":
+                for c, ddd, o2, o1 in zip(r5["case"], r5["decision"], ok2000, ok1000):
+                    if ddd == dd and o2 and not o1:
+                        lab[idx[int(c)]] = 2
+            e = errs(lab, mech)
+            res[f"nonpicard_to_picard_{budget}"] = e["nonpicard_to_picard"]
+            res[f"picard_to_nonpicard_{budget}"] = e["picard_to_nonpicard"]
+            res[f"n_nonpicard_{budget}"] = e["n_nonpicard"]
+            res[f"n_picard_{budget}"] = e["n_picard"]
+            res[f"n_uncertain_left_{budget}"] = int((lab == 1).sum())
+            res[f"n_nonpicard_sent_to_picard_{budget}"] = int(((lab == 2) & ~mech).sum())
+        errs5["mh"[dd]] = res
+    out["errors_omega05"] = errs5
+    out["rule"] = ("ω = 0,5, холодный старт, max_outer 2000; бюджет игры — 1000 итераций (сошедшиеся за 1001–2000 считаются "
+                   "блужданием: в игре их берёт запасной путь P12 v2); неперечитанные случаи — метки ω = 1")
+    # клетки: сошедшиеся при ω = 0,5 решения «m» — местные фазы против рекомендованного классификатора
+    conf = np.zeros((4, 5), np.int64)
+    cond = _sy_cond_table()
+    wh = {}
+    for p in sorted(SY.glob("part-*.h5")):
+        with h5py.File(p, "r") as h:
+            for j, c in enumerate(h["cases"][:]):
+                wh[int(c["case"])] = (str(p), j)
+    for p in parts:
+        with h5py.File(p, "r") as h:
+            cs = h["cases"][:]
+            for k, c in enumerate(cs):
+                if not (np.isclose(c["omega"], 0.5) and c["decision"] == 0 and c["status"] == 0):
+                    continue
+                f = h["fields"][k].astype(np.float64)
+                path, j = wh[int(c["case"])]
+                with h5py.File(path, "r") as g5:
+                    hc = g5["inputs/hc"][j].astype(np.float64)
+                row = dict(cond[(int(c["relief_id"]), int(c["cond_id"]))])
+                tr = cell_truth(f[0, K25], f[1, K25], f[2, K600], hc, row["wind_from_deg"], row["u10_m_s"], row["alpha"], row["max_profile"])
+                r = CR.classify(hc, row, None, "m", cfg)
+                lab = cls_label(r["weights"], r["info"]["full"])
+                np.add.at(conf, (tr[EDGE:-EDGE, EDGE:-EDGE].ravel(), lab[EDGE:-EDGE, EDGE:-EDGE].ravel()), 1)
+    if conf.sum():
+        out["cells_converged_omega05_recommended"] = dict(
+            matrix={p: dict(zip(list(CR.PICARD) + ["mech"], map(int, conf[i]))) for i, p in enumerate(CR.PICARD)},
+            acc_unfrozen=float(np.trace(conf[:, :4]) / max(conf[:, :4].sum(), 1)))
+    return out
 
 
 def stage_report():
@@ -743,6 +832,8 @@ def stage_report():
         dict(boundary="ω-полоса", classifier_ap18="Fr 0,3–1,1 или U10 0,6–1,5 м/с → ω 0,5", recommended="то же",
              measured=dict(ap14="при ω = 0,5 GRID H = 0 сходится весь при Fr ≥ 0,5; ниже — 0,30–0,67")),
     ]
+    # ---------------- пересчёт при ω = 0,5 (rerun.py): метки маршрута «как в игре»
+    rerun_res = rerun_block(S, lm, lh, rec_vals, route, lev)
     # ---------------- вердикт
     e = out_err["recommended"]
     crit = dict(sy12_m_np2p_outside_omega_band_max=0.05, sy12_m_np2p_max=0.15, sy12_m_p2np_max=0.10, ideal_grid_np2p_max=0.15, ideal_grid_p2np_max=0.10, cells_acc_min=0.6, eroded_speck_max=0.01)
@@ -753,6 +844,12 @@ def stage_report():
                   ideal_p2np=(e["ideal"]["ap_v1_grid"]["picard_to_nonpicard"] or 0) <= crit["ideal_grid_p2np_max"],
                   cells_acc=max(c["acc_unfrozen"] for c in cells_out.values()) >= crit["cells_acc_min"],
                   eroded_speck=agg[ero_best]["speck"] <= crit["eroded_speck_max"])
+    if rerun_res and rerun_res.get("errors_omega05"):
+        e5 = rerun_res["errors_omega05"]
+        crit["sy12_m_np2p_omega05_max"] = crit.pop("sy12_m_np2p_max")
+        checks.pop("sy12_m_np2p_omega1")
+        checks["sy12_m_np2p_omega05"] = e5["m"]["nonpicard_to_picard_1000"] <= crit["sy12_m_np2p_omega05_max"]
+        checks["sy12_m_p2np"] = e5["m"]["picard_to_nonpicard_1000"] <= crit["sy12_m_p2np_max"]
     verdict = "ready" if all(checks.values()) else "needs_work"
     # ---------------- рисунки
     fig, ax = plt.subplots(1, 3, figsize=(13, 3.6))
@@ -825,7 +922,7 @@ def stage_report():
         errors_full=out_err, candidates=dict(note="[блуждание → Пикар, Пикар-ok → механизм]; ошибки по случаям; SY-12 — счёт ω = 1, идеальные ap_v1/ap_v2 — после пересчёта AP-14 (ω = 0,5), ap_v3_ctrl — ω = 1, ap_v3_omega — ω = 0,5", table=cand_tab),
         thresholds_derivation=dict(fr50_grid_omega05=fr50, u10_per_fr_grid=k_u, u_over_n_c_omega05_m=unc), axes_logistic=lr, boundaries_vs_measured=bvm, f_heat=f_curve, g_stats=g_stats,
         eroded=dict(truth=truth_speck, best=ero_best, best_metrics=agg[ero_best], ap18_like=agg["b50_s1_d0"], all=agg),
-        recommended_config=rec_cfg, verdict=verdict, verdict_criteria=crit, verdict_checks=checks,
+        rerun_omega05=rerun_res, recommended_config=rec_cfg, verdict=verdict, verdict_criteria=crit, verdict_checks=checks,
     )
     json.dump(summ, open(HERE / "summary.json", "w"), ensure_ascii=False, indent=1, default=float)
     print(json.dumps(dict(verdict=verdict, checks=checks, cand=cand_tab, best=rec_s, fr50=fr50, ero_best=ero_best, lr=lr, meas_u10=meas_u10,
