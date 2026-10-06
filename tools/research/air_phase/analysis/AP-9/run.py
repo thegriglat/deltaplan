@@ -19,8 +19,8 @@
     Fr (те же итерации, что GRID, отличается только остановка; ref_kind = 'rel'), см. section.md «Оговорки».
   * относительный критерий против продолжения GRID: для rel/calm, остановленных раньше 1000, где есть GRID того же Fr,
     — отклонение снимков GRID u,v на 25 м после итерации остановки от итогового поля rel (скрывает ли блуждание).
-  * метрики слоёв P6 (`layer_metrics.layer_diff`, AP-6): если модуль есть — считаются; иначе — заместитель из
-    параметров порядка P3 (`order`: w на 300 м, обратное течение/застой у земли) и пометка в summary.
+  * метрики слоёв P6 — из таблицы AP-6 `features_ap_v1.h5` (--features), разности как `layer_diff`, пороги
+    «слой видит разницу» — LM_KEYS; группы пар — layer_groups. Плюс заместитель из `order` P3 (paired_*).
 """
 from __future__ import annotations
 
@@ -49,11 +49,8 @@ NEAR_MS = 0.05                   # «почти сошлось», м/с (§5.2)
 FIELD_TOL = 0.05                 # §9 п. 4: поле не меняется > 0,05 U
 VARIANTS = ("grid", "omega", "kfloor", "rel", "calm")
 
-try:                             # P6 (AP-6) — если уже влита
-    import layer_metrics as LM   # noqa: E402
-    HAVE_LM = hasattr(LM, "layer_diff") and hasattr(LM, "layer_metrics")
-except Exception:                # noqa: BLE001
-    LM, HAVE_LM = None, False
+# P6 берётся из таблицы features (там w_mech близнеца H = 0, как в AP-6); пересчёт полей здесь не нужен
+LM, HAVE_LM = None, False
 
 
 def load_plan(plan_dir):
@@ -117,6 +114,80 @@ def field_diff(fa, fb, u_sat):
 PROXY = ("f_wmax300", "f_wstd300", "f_rev25", "f_stag25", "f_speed50")
 
 
+# метрики слоёв P6 (AP-6, features_<plan>.h5) и пороги «слой видит разницу» — выбор AP-9 (section.md):
+# 0,2 м/с — четверть наименьшего снижения крыльев игры (0,83 м/с) и порядок разрешения вариометра;
+# 100 м — шаг сетки решателя по высоте (Δz ≈ 105 м); 0,3 м/с — снос/скачок слоя смешения; 800 м — 2 клетки поля;
+# 20 % — площади и числа (с полом: 2 клетки = 0,32 км², 1 источник, 0,05 м/с потока).
+LM_KEYS = {
+    "th_n_src": ("rel", 0.2, 1.0), "th_phi_mean_ms": ("rel", 0.2, 0.05), "th_w0_mean_ms": ("abs", 0.2, 0),
+    "th_ceil_agl_mean_m": ("abs", 100.0, 0), "th_drift_mean_ms": ("abs", 0.3, 0), "th_src_top_dist_m": ("abs", 800.0, 0),
+    "sl_area_km2": ("rel", 0.2, 0.32), "sl_w_max_ms": ("abs", 0.2, 0), "sl_ceil_agl_m": ("abs", 100.0, 0),
+    "lee_area25_km2": ("rel", 0.2, 0.32), "lee_depth_max_m": ("abs", 100.0, 0), "lee_du_max_ms": ("abs", 0.3, 0),
+    "lee_rev_area25_km2": ("abs", 0.32, 0),
+}
+
+
+def load_features(path):
+    if not Path(path).exists():
+        return None
+    with h5py.File(path, "r") as h:
+        t = h["features"][:]
+    return {int(c): r for c, r in zip(t["case_id"], t)}
+
+
+def layer_pair(fa, fb):
+    """Разности P6 a − b (как layer_metrics.layer_diff: NaN у обоих — 0) и признак «слой видит разницу»."""
+    d, sig = {}, {}
+    for k, (kind, thr, floor) in LM_KEYS.items():
+        x, y = float(fa[k]), float(fb[k])
+        if x != x and y != y:
+            d[k], sig[k] = 0.0, False
+        elif x != x or y != y:
+            d[k], sig[k] = np.nan, True          # зона/источники есть только в одном поле
+        else:
+            d[k] = x - y
+            lim = thr * max(abs(y), floor) if kind == "rel" else thr
+            sig[k] = abs(x - y) > lim
+    return d, sig
+
+
+def layer_groups(rows, feat):
+    """Группы пар (вариант, эталон) → медиана/p90 |Δ| метрик P6 и доля случаев, где слой видит разницу."""
+    def P(v, cond):
+        return [(r["case_id"], r["ref_case"]) for r in rows
+                if r["variant"] == v and r.get("ref_kind") == "grid" and cond(r)]
+    groups = {
+        "omega_both_conv": P("omega", lambda r: r["status"] == 0 and r["ref_status"] == 0),
+        "omega_fixed_vs_grid_latemean": P("omega", lambda r: r["status"] == 0 and r["ref_status"] == 1),
+        "omega_all": P("omega", lambda r: True),
+        "kfloor_both_conv": P("kfloor", lambda r: r["status"] == 0 and r["ref_status"] == 0),
+        "kfloor_all": P("kfloor", lambda r: True),
+        "rel_all": P("rel", lambda r: True),
+        "latemean_repro_calm015_vs_grid0151": P("calm", lambda r: abs(r["fr"] - 0.15) < 1e-3),
+    }
+    out = {}
+    for g, pairs in groups.items():
+        pairs = [(a, b) for a, b in pairs if a in feat and b in feat]
+        D = defaultdict(list)
+        S = defaultdict(list)
+        anyg = defaultdict(list)
+        for a, b in pairs:
+            d, sig = layer_pair(feat[a], feat[b])
+            for k in LM_KEYS:
+                D[k].append(abs(d[k]) if d[k] == d[k] else np.nan)
+                S[k].append(sig[k])
+            for pre in ("th_", "sl_", "lee_"):
+                anyg[pre].append(any(sig[k] for k in LM_KEYS if k.startswith(pre)))
+            # без th_src_top_dist_m: argmax Φ перескакивает между равными источниками (шумит и у одинаковых полей)
+            anyg["th_no_topdist"].append(any(sig[k] for k in LM_KEYS if k.startswith("th_") and k != "th_src_top_dist_m"))
+        out[g] = dict(n=len(pairs),
+                      any_sig_frac={pre: float(np.mean(v)) if v else np.nan for pre, v in anyg.items()},
+                      metrics={k: dict(abs_med=_q(D[k], 0.5), abs_p90=_q(D[k], 0.9),
+                                       sig_frac=float(np.mean(S[k])) if S[k] else np.nan,
+                                       ref_med=_q([float(feat[b][k]) for a, b in pairs], 0.5)) for k in LM_KEYS})
+    return out
+
+
 def wilson(k, n):
     if n == 0:
         return (np.nan, np.nan)
@@ -132,6 +203,7 @@ def main(argv=None):
     ap.add_argument("--plan", default=str(root / "phase/ap_v1"))
     ap.add_argument("--results", default=str(root / "phase/ap_v1__s1-74644c4"))
     ap.add_argument("--out", default=str(HERE))
+    ap.add_argument("--features", default=str(root / "phase/features_ap_v1.h5"))
     a = ap.parse_args(argv)
     out = Path(a.out)
 
@@ -298,7 +370,13 @@ def main(argv=None):
             w.writerow({k: v for k, v in r.items() if not k.startswith("_")})
 
     S = summarize(rows, ap5)
-    S["layer_metrics"] = "P6 layer_diff посчитан" if HAVE_LM else "P6 (AP-6) не влита — заместитель по order P3; добавить layer_diff после AP-6"
+    feat = load_features(a.features)
+    if feat is not None:
+        S["layer_metrics"] = f"P6 из {a.features} (AP-6), разности как layer_diff; пороги LM_KEYS"
+        S["layer_thresholds"] = {k: dict(kind=v[0], thr=v[1], floor=v[2]) for k, v in LM_KEYS.items()}
+        S["layer_groups"] = layer_groups(rows, feat)
+    else:
+        S["layer_metrics"] = "features_ap_v1.h5 (AP-6) нет — только заместитель по order P3"
     S["inputs"] = dict(plan=a.plan, results=a.results, n_cases=len(rows))
     (out / "summary.json").write_text(json.dumps(S, ensure_ascii=False, indent=1, default=float))
     figures(rows, out)
