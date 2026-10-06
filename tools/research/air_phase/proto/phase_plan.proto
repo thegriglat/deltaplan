@@ -1,4 +1,4 @@
-// План опытов air-phase — контракт P2 v4 (docs/contracts/air-phase.md).
+// План опытов air-phase — контракт P2 v5 (docs/contracts/air-phase.md).
 // Владелец .proto — координатор модуля; менять только через контракт (версия +1).
 syntax = "proto3";
 
@@ -91,6 +91,8 @@ message Numerics {
   double envelope_angle_deg = 13;   // угол линии тени от бровки по ветру; 0 — без огибающей
   EnvelopeWall envelope_wall = 14;
   double envelope_z0_m = 15;        // для WALL_LOW_Z0
+  double top_above_m = 16;          // верх области над max рельефа, м (3000 по умолчанию; 0 в старых планах = 3000)
+  double sponge_top_m = 17;         // толщина губки у верха, м (1000 по умолчанию; 0 в старых планах = 1000)
 }
 
 message Line {
@@ -113,7 +115,7 @@ message Line {
 }
 
 message Plan {
-  string contract = 1;          // "P2 v4"
+  string contract = 1;          // "P2 v5"
   string name = 2;              // напр. "ap_v1"
   string created = 3;           // ISO
   string git_commit = 4;

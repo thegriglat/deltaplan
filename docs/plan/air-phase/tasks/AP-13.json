@@ -1,0 +1,67 @@
+{
+  "id": "AP-13",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Порог несходимости U/N ≈ 340–440 м: физика или решатель (малая GPU-серия)",
+  "goal": "AP-7: без нагрева несходимость задаётся не Fr, а N при данном ветре (U_sat/N_c ≈ 335–444 м, т. е. вертикальная длина волны 2πU/N ≈ 2–3 км — порядка высоты области над рельефом). Малой серией у порога отличить физику (нестационарные волны/ротор) от решателя (отражение от верха/губки, пол K, схема).",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P2",
+      "version": "5",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P4",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P5",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-13",
+  "branch": "air-phase/AP-13",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-13/",
+    "tools/research/air_phase/plan_build.py",
+    "tools/research/air_phase/batch_solver.py",
+    "tools/research/air_phase/phase_io.py",
+    "tools/research/air_phase/proto/phase_plan_pb2.py",
+    "tools/research/air_phase/tests/test_batch_solver.py"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-13'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "summary",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-13/summary.json'));print('threshold_cause', d['threshold_cause'])\"",
+      "expect": "re:threshold_cause (solver|physics|mixed)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T13:57:26"
+}
