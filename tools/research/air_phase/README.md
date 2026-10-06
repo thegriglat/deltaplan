@@ -62,17 +62,17 @@ $PY -m pytest -q tools/research/air_phase/tests                             # к
 ```bash
 PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
 D=${AIR_SYNTH_DATA:-$HOME/air_synth_data}/phase
-$PY tools/research/air_phase/features.py --plan $D/ap_v1 --results $D/ap_v1__s1-74644c4   # → out/features_ap_v1.h5 (~4 мин, 16 процессов)
-$PY tools/research/air_phase/features.py --plan $D/ap_v2 --results $D/ap_v2__s1-74644c4   # → out/features_ap_v2.h5
+$PY tools/research/air_phase/features.py --plan $D/ap_v1 --results $D/ap_v1__s1-74644c4   # → $D/features_ap_v1.h5 (~4 мин, 16 процессов)
+$PY tools/research/air_phase/features.py --plan $D/ap_v2 --results $D/ap_v2__s1-74644c4   # → $D/features_ap_v2.h5
 $PY -m pytest -q tools/research/air_phase/tests/test_layer_metrics.py                     # синтетика: подветр, склон, термик, сигмоида
-env AP_FEATURES=tools/research/air_phase/out/features_ap_v1.h5 $PY -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k features_table
+env AP_FEATURES=$D/features_ap_v1.h5 $PY -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k features_table
 ```
 
 - `layer_metrics.py` — `layer_metrics(f, hc, heat_flux, hbl, case, *, w_mech=None)` → dict `th_*` (источники термиков,
   сила w0 = 1,24 w*, потолок частицы, снос — `air_thermals.gd::build`), `sl_*` (w слоя 50–300 м > 1 м/с над наветренным
   склоном; порог — min_sink крыльев игры), `lee_*` (признак отрыва поля `field_turbulence.gd::lee`, ΔU слоя смешения,
   разрешённое обратное течение); `layer_diff(a, b)` — разности; `layer_masks` + `iou` — совпадение карт слоёв.
-- `features.py` — таблица `out/features_<plan>.h5` (не в git, `.gitignore`): все поля `cases`, `order`, `bubble`
+- `features.py` — таблица `$AIR_SYNTH_DATA/phase/features_<plan>.h5` (P6 v2: в каталоге данных, не в копии; `--out` — иначе): все поля `cases`, `order`, `bubble`
   (bub_*), метрики слоёв, `w100_sl_*`/`w100_lee_*` по окну 100 м (SEPARATION), поля плана; `ref_case_id` (по
   `Line.ref_line_id`, тот же Fr ±1 %), `ref400_case_id` (ENVELOPE → SEPARATION 400 м без огибающей), `mech_case_id`
   (близнец H = 0 — w_mech для w_conv и вертикали склонов/подветра), `ref_iou_*` (IoU карт с ref_case_id).
@@ -80,3 +80,7 @@ env AP_FEATURES=tools/research/air_phase/out/features_ap_v1.h5 $PY -m pytest -q 
   бутстрэп-интервалы; резкая — w < 0,1 декады или скачок > 3σ шума стартов, плавная — w > 0,3.
 - Отступления от игры (в P3 нет w_mech и кромки облаков, высоты над землёй решателя, верх поля 2000 м) — шапка
   `layer_metrics.py`.
+
+### Разбор AP-8 (границы фаз GRID, второй старт, гистерезис)
+`$PY tools/research/air_phase/analysis/AP-8/run.py --workers 16` (CPU, ≈ 70 мин) → `analysis/AP-8/{summary.json, section.md, fig_*.png, pairs.npz}`;
+кэш подгонок — `out/AP-8/fits.json`, `fits_ok.json` (не в git, ~5,5 МБ; `--stage report` пересобирает сводку из кэша).

@@ -1,4 +1,4 @@
-"""Таблица признаков всех случаев (контракт P6 v1): `out/features_<plan>.h5`, набор `features` (N,) составной.
+"""Таблица признаков всех случаев (контракт P6 v2): `$AIR_SYNTH_DATA/phase/features_<plan>.h5`, набор `features` (N,) составной.
 
     features.py --plan $AIR_SYNTH_DATA/phase/ap_v1 --results $AIR_SYNTH_DATA/phase/ap_v1__s1-74644c4 [--workers 16]
 
@@ -271,7 +271,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--plan", required=True)
     ap.add_argument("--results", required=True)
-    ap.add_argument("--out", default=None, help="по умолчанию out/features_<plan>.h5")
+    ap.add_argument("--out", default=None, help="по умолчанию $AIR_SYNTH_DATA/phase/features_<plan>.h5 (P6 v2)")
     ap.add_argument("--workers", type=int, default=max(1, min(16, (os.cpu_count() or 2) - 2)))
     ap.add_argument("--limit-parts", type=int, default=0, help="только первые N частей (проба)")
     a = ap.parse_args(argv)
@@ -306,13 +306,14 @@ def main(argv=None):
         for g in ("th", "sl", "lee"):
             tab["ref_iou_" + g][q] = LM.iou(np.unpackbits(pk[g]).astype(bool), np.unpackbits(rk[g]).astype(bool))
         n_ref += 1
-    out = Path(a.out) if a.out else HERE / "out" / f"features_{plan.name}.h5"
+    data = Path(os.environ.get("AIR_SYNTH_DATA", os.path.expanduser("~/air_synth_data")))
+    out = Path(a.out) if a.out else data / "phase" / f"features_{plan.name}.h5"
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(".h5.tmp")
     desc = descriptions(tab.dtype.names, order_names, bub_names)
     with h5py.File(tmp, "w") as h:
         h.create_dataset("features", data=tab, compression="gzip", compression_opts=4, shuffle=True)
-        h.attrs.update(contract="P6 v1", plan=str(plan_dir), results=str(res_dir), git_commit=git_commit(),
+        h.attrs.update(contract="P6 v2", plan=str(plan_dir), results=str(res_dir), git_commit=git_commit(),
                        p6_names=json.dumps(desc, ensure_ascii=False), created=datetime.datetime.now().isoformat(timespec="seconds"),
                        command="features.py " + " ".join(argv if argv is not None else sys.argv[1:]),
                        n_cases=len(tab), n_parts=len(parts), seconds=round(time.time() - t0, 1))
