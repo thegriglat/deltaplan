@@ -1,102 +1,104 @@
+**English** | [Русский](README.ru.md)
+
 # Deltaplan
 
-Симулятор свободного полёта на дельтаплане: термики, склоновый и роторный ветер, реальный рельеф, реальные крылья.
-Проект с открытым кодом на Godot 4 для Windows, Linux и macOS.
+A free-flight hang glider simulator: thermals, ridge lift and rotor turbulence, real terrain, real wings.
+Open source, built with Godot 4 for Windows, Linux and macOS.
 
-*Hang glider flight simulator — thermals, ridge lift and rotors over real terrain, wing models based on DHV
-type-test data. Open source, built with Godot 4. The game and docs are in Russian.*
+*The game and part of the documentation are in Russian; the project site has an English version.*
 
-[Скачать на itch.io](https://thegriglat.itch.io/deltaplan) · Сайт проекта: [English](https://thegriglat.github.io/deltaplan/) / [русская версия](https://thegriglat.github.io/deltaplan/ru/) ·
-[Что нового](CHANGELOG.md)
+[Download on itch.io](https://thegriglat.itch.io/deltaplan) · Project site: [English](https://thegriglat.github.io/deltaplan/) / [Russian](https://thegriglat.github.io/deltaplan/ru/) ·
+[What's new](CHANGELOG.md)
 
-![Вид сзади в полёте над Алтаем](docs/screenshots/gameplay/chase.jpg)
+![Chase view in flight over the Altai](docs/screenshots/gameplay/chase.jpg)
 
-## Зачем
+## Why
 
-Игра для тех, кто уже летает и хочет полетать ещё раз дома, — в том числе в «своих» местах, и для тех, кому
-интересно, каково это — вести крыло в термике над настоящими горами. Родители автора — пилоты, с этого проект
-и начался.
+A game for people who already fly and want to fly once more at home, including at "their own" sites, and for those
+curious what it is like to work a wing in a thermal over real mountains.
 
-Принципы: сначала физика (честная модель в пределах её допущений), потом всё остальное; никакого HUD и подсказок —
-информация только от приборов и от того, что пилот видит и чувствует; можно просто летать, без заданий и спешки.
+Principles: physics first (an honest model within its assumptions), everything else second; no HUD and no hints —
+information comes only from the instruments and from what the pilot sees and feels; you can simply fly, with no
+missions and no rush.
 
-## Возможности
+## Features
 
-- **Полёт** — управление смещением веса, разбег и отрыв по физике, срыв, жёсткая посадка и авария.
-- **Крылья** — 48 моделей в четырёх группах, от учебных до спортивных безмачтовых; геометрия и характеристики —
-  из паспортов и типовых испытаний [DHV](https://www.dhv.de), у каждого числа указан источник.
-- **Воздух** — поле ветра над рельефом считается на видеокарте (или нейросетью на процессоре, экспериментально):
-  обтекание склонов, ротор за хребтом; термики по времени дня, сухие и под кучевыми облаками; болтанка.
-- **Погода** — температура, ветер и облачность из прогноза; кучевые и кучево-дождевые облака, их тени, грозы.
-- **Рельеф** — любое место по координатам на карте.
-- **Признаки подъёма** — птицы, пыль, трава на ветру, другие пилоты.
-- **Приборы** — вариометр со звуком, планшет на трапеции.
-- **Боты** — другие пилоты на старте и в воздухе.
-- **Сетевая игра** — полёт с друзьями в одном небе (голос — через внешний голосовой чат).
-- **Осмотр карты** — свободная камера над местом со стрелками ветра.
+- **Flight** — weight-shift control, physically modelled launch run and takeoff, stall, hard landing and crash.
+- **Wings** — 48 models in four groups, from training wings to sport topless gliders; geometry and characteristics
+  come from manufacturer data sheets and [DHV](https://www.dhv.de) type tests, with a source given for every number.
+- **Air** — the wind field over terrain is computed on the GPU (or by a neural network on the CPU, experimental):
+  flow around slopes, rotor behind a ridge; thermals by time of day, dry and under cumulus clouds; turbulence.
+- **Weather** — temperature, wind and cloud cover from a forecast; cumulus and cumulonimbus clouds, their shadows,
+  thunderstorms.
+- **Terrain** — any place by coordinates on the map.
+- **Lift cues** — birds, dust, grass in the wind, other pilots.
+- **Instruments** — variometer with audio, a tablet on the control bar.
+- **Bots** — other pilots at launch and in the air.
+- **Multiplayer** — fly with friends in the same sky (voice via an external voice chat).
+- **Map view** — a free camera over the site with wind arrows.
 
-Управление — клавиатура, мышь, геймпад. Подробнее — в разделе [«Механики»](https://thegriglat.github.io/deltaplan/ru/mechanics/)
-на сайте.
+Controls: keyboard, mouse, gamepad. More in the [Mechanics](https://thegriglat.github.io/deltaplan/mechanics/)
+section of the site.
 
 <p>
-  <img src="docs/screenshots/gameplay/cockpit.jpg" width="49%" alt="Вид из кабины">
-  <img src="docs/screenshots/site/04_у_кромки_облаков.jpg" width="49%" alt="У нижней кромки кучевых облаков">
+  <img src="docs/screenshots/gameplay/cockpit.jpg" width="49%" alt="Cockpit view">
+  <img src="docs/screenshots/site/04_у_кромки_облаков.jpg" width="49%" alt="At the base of cumulus clouds">
 </p>
 
-## Запуск из исходников
+## Running from source
 
-Нужен [Godot 4.7.2](https://godotengine.org/) (стандартная сборка, не .NET).
+You need [Godot 4.7.2](https://godotengine.org/) (standard build, not .NET).
 
 ```bash
 git clone https://github.com/thegriglat/deltaplan.git
 cd deltaplan
-godot --path .          # запустить игру
-godot -e --path .       # открыть в редакторе
+godot --path .          # run the game
+godot -e --path .       # open in the editor
 ```
 
-Нейросеть ветра работает через GDExtension `AirOnnx` (ONNX Runtime, C++) — её нужно собрать отдельно,
-см. [native/air_onnx/README.md](native/air_onnx/README.md). Без расширения игра работает: ветер над рельефом
-считается на видеокарте или по упрощённой модели.
+The wind neural network runs through the `AirOnnx` GDExtension (ONNX Runtime, C++), which has to be built separately,
+see [native/air_onnx/README.md](native/air_onnx/README.md). The game works without the extension: wind over terrain
+is computed on the GPU or with a simplified model.
 
-### Тесты и сборка
+### Tests and build
 
 ```bash
-tools/check.sh                    # линтер, тесты, сборка Linux, пробный запуск
-tools/check.sh --filter=flight    # только тесты с подстрокой в имени
-tools/gpu_tests.sh                # тесты, которым нужна видеокарта (в окне)
-tools/build.sh all --release      # сборки в build/<платформа>/ (linux, windows, macos)
+tools/check.sh                    # linter, tests, Linux build, smoke run
+tools/check.sh --filter=flight    # only tests whose name contains the substring
+tools/gpu_tests.sh                # tests that need a GPU (windowed)
+tools/build.sh all --release      # builds into build/<platform>/ (linux, windows, macos)
 ```
 
-Все скрипты запускают Godot с временным профилем (`XDG_DATA_HOME`), настоящие настройки и сохранения не трогаются.
-Настройки игры — JSON в [configs/](configs/); в сборке папка `configs/` лежит рядом с игрой и правится без пересборки.
+All scripts run Godot with a temporary profile (`XDG_DATA_HOME`), so your real settings and saves are not touched.
+Game settings are JSON files in [configs/](configs/); in a build the `configs/` folder sits next to the game and can be edited without rebuilding.
 
-### Сервер сетевой игры
+### Multiplayer server
 
-Ретранслятор на Go, протокол — protobuf: [server/README.md](server/README.md).
+A relay written in Go, protobuf protocol: [server/README.md](server/README.md).
 
-## Устройство репозитория
+## Repository layout
 
-| Каталог | Что |
+| Directory | Contents |
 |---|---|
-| `scripts/`, `scenes/` | код игры (GDScript) и сцены: полёт, атмосфера, рельеф, приборы, UI, сеть |
-| `configs/` | параметры: крылья, атмосфера, управление, места, задания |
-| `assets/` | модели, текстуры, звуки, шрифты; источники и лицензии — [ASSETS.md](ASSETS.md) |
-| `native/` | GDExtension `AirOnnx` (C++) |
-| `server/` | сервер сетевой игры (Go) |
-| `tests/` | тесты (`godot --headless --path . res://tests/run_tests.tscn`) |
-| `tools/` | сборка, проверки, Blender-генераторы моделей, исследования (Python) |
-| `docs/` | документация: [docs/INDEX.md](docs/INDEX.md) — точка входа |
-| `site/` | сайт проекта (Hugo, GitHub Pages) |
+| `scripts/`, `scenes/` | game code (GDScript) and scenes: flight, atmosphere, terrain, instruments, UI, network |
+| `configs/` | parameters: wings, atmosphere, controls, sites, missions |
+| `assets/` | models, textures, sounds, fonts; sources and licenses — [ASSETS.md](ASSETS.md) |
+| `native/` | `AirOnnx` GDExtension (C++) |
+| `server/` | multiplayer server (Go) |
+| `tests/` | tests (`godot --headless --path . res://tests/run_tests.tscn`) |
+| `tools/` | build, checks, Blender model generators, research (Python) |
+| `docs/` | documentation: [docs/INDEX.md](docs/INDEX.md) is the entry point |
+| `site/` | project site (Hugo, GitHub Pages) |
 
-Требования к игре — [REQUIREMENTS.md](REQUIREMENTS.md), описание модулей — `docs/guide/`, исследования и откуда
-взяты числа модели — `docs/research/` и раздел [«Исследования»](https://thegriglat.github.io/deltaplan/ru/research/) на сайте.
+Game requirements — [REQUIREMENTS.md](REQUIREMENTS.md); module descriptions — `docs/guide/`; research and where the
+model's numbers come from — `docs/research/` and the [Research](https://thegriglat.github.io/deltaplan/research/) section of the site.
 
-## Лицензия
+## License
 
-Код и собственные материалы проекта — [MIT](LICENSE). Сторонние ассеты (звуки, шрифты, текстуры, модели) — под своими
-лицензиями, список в [ASSETS.md](ASSETS.md); всё, что входит в сборку игры, разрешает коммерческое использование (полные тексты лицензий — в [licenses/](licenses/)).
+The code and the project's own materials — [MIT](LICENSE). Third-party assets (sounds, fonts, textures, models) are under their own
+licenses, listed in [ASSETS.md](ASSETS.md); everything included in the game build allows commercial use (full license texts are in [licenses/](licenses/)).
 
-## Благодарности
+## Acknowledgements
 
-[DHV](https://www.dhv.de) (Deutscher Hängegleiterverband) — за открытые данные паспортов и типовых испытаний крыльев.
-Авторам ассетов, шрифтов и звуков — список в [ASSETS.md](ASSETS.md).
+[DHV](https://www.dhv.de) (Deutscher Hängegleiterverband) — for the open data on wing data sheets and type tests.
+The authors of the assets, fonts and sounds — see [ASSETS.md](ASSETS.md).

@@ -46,6 +46,14 @@ if [[ "$air_onnx" != 0 ]]; then
 	done
 fi
 
+# Временный профиль (XDG_DATA_HOME=$(mktemp -d), как у агентов) — без шаблонов экспорта:
+# подложить ссылку на шаблоны из обычного профиля.
+tpl_home="$HOME/.local/share/godot/export_templates"
+if [[ -n "${XDG_DATA_HOME:-}" && ! -e "$XDG_DATA_HOME/godot/export_templates" && -d "$tpl_home" ]]; then
+	mkdir -p "$XDG_DATA_HOME/godot"
+	ln -s "$tpl_home" "$XDG_DATA_HOME/godot/export_templates"
+fi
+
 # Импорт регистрирует расширение (addons/air_onnx/air_onnx.gdextension → .godot/extension_list.cfg).
 godot --headless --path . --import >/dev/null 2>&1 || true
 
