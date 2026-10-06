@@ -231,3 +231,65 @@ def test_lam_default_bitwise():
     assert np.array_equal(res[0].fields, res[1].fields) and res[0].iters == res[1].iters
     assert not np.array_equal(res[0].fields, res[2].fields)
     assert BS._Setup(0, sp, nums[2]).prm.lam == 160.0
+
+
+# ------------------------------------------------------------------ P4 v6: карта ω, заморозка, запасное правило, старт из сборки
+def test_v6_default_bitwise_and_replica():
+    """Опции v6 по умолчанию — побитно v5; путь `_outer` (копия Air.outer_step) без ω и заморозки — побитно тот же счёт."""
+    sp = spec_fr("ridge", 0.3, 0.6, h_over_zi=1.0)
+    nums = [BS.Numerics(max_outer=120, late_from=100),
+            BS.Numerics(max_outer=120, late_from=100, omega_map=None, freeze_mask=None, omega_fallback=None),
+            BS.Numerics(max_outer=120, late_from=100, omega_fallback=(10 ** 6, 0.5))]
+    res = [BS.solve_batch([sp], nm)[0] for nm in nums]
+    for r in res[1:]:
+        assert np.array_equal(res[0].fields, r.fields) and res[0].iters == r.iters and res[0].status == r.status
+    assert res[2].meta["omega_switch_iter"] == -1 and res[0].meta["omega_switch_iter"] == -1
+
+
+def test_v6_omega_map_uniform_matches_scalar():
+    """ω по карте ≡ 0,5 — то же, что скаляры omega_u = omega_k = 0,5 (до округления: K и u релаксируются после шага)."""
+    sp = spec_fr("hill", 0.3, 1.5)
+    a = BS.solve_batch([sp], BS.Numerics(max_outer=600, late_from=400, omega_u=0.5, omega_k=0.5))[0]
+    b = BS.solve_batch([sp], BS.Numerics(max_outer=600, late_from=400, omega_map=np.full((96, 96), 0.5, np.float32)))[0]
+    du = float(np.max(np.abs(a.fields[:3] - b.fields[:3])))
+    _record("v6_omega_map_uniform", dict(iters_scalar=a.iters, iters_map=b.iters, max_du=du, status=[a.status, b.status]))
+    assert a.status == b.status == "ok"
+    assert abs(a.iters - b.iters) <= max(10, 0.05 * a.iters)
+    assert du <= 0.01 * a.u_sat
+    with pytest.raises(ValueError):
+        BS._Setup(0, sp, BS.Numerics(omega_u=0.5, omega_map=np.ones((96, 96))))
+
+
+def test_v6_freeze_and_agl_init():
+    """Старт из поля на высотах AGL: сошедшееся поле как init — сходится быстрее холодного и к тому же полю; замороженные
+    колонны остаются равными init: внутри блока поле одинаково при любом числе итераций (сошедшийся счёт и 200 итераций
+    со строгим порогом), критерий — по остальным клеткам."""
+    sp = spec_fr("hill", 0.15, 3.0)
+    num = BS.Numerics(max_outer=600, late_from=400)
+    cold = BS.solve_batch([sp], num)[0]
+    warm = BS.solve_batch([sp], num, init=[{"agl": cold.fields}])[0]
+    e = 6
+    du = float(np.max(np.abs(warm.fields[:3, :, e:-e, e:-e] - cold.fields[:3, :, e:-e, e:-e])))
+    fz = np.zeros((96, 96), bool)
+    fz[10:30, 10:30] = True
+    fr = BS.solve_batch([sp], BS.Numerics(max_outer=600, late_from=400, freeze_mask=fz), init=[{"agl": cold.fields}])[0]
+    zero = BS.solve_batch([sp], BS.Numerics(max_outer=200, late_from=100, tol=1e-9, freeze_mask=fz), init=[{"agl": cold.fields}])[0]
+    inner = (slice(None), slice(None), slice(11, 29), slice(11, 29))     # грани внутри блока (обе колонны заморожены)
+    dfz = float(np.max(np.abs(fr.fields[inner] - zero.fields[inner])))
+    _record("v6_freeze_agl", dict(iters_cold=cold.iters, iters_warm=warm.iters, max_du_warm=du, iters_freeze=fr.iters,
+                                  frozen_drift=dfz, n_frozen=fr.meta["n_frozen_cols"]))
+    assert cold.status == warm.status == fr.status == "ok"
+    assert warm.iters < cold.iters and du <= 0.02 * cold.u_sat
+    assert fr.meta["n_frozen_cols"] == 400 and dfz <= 1e-5
+
+
+def test_v6_omega_fallback_switches():
+    """Запасное правило (N, 0,5): без сходимости к N итерациям ω переключается, граф перезаписывается."""
+    sp = spec_fr("ridge", 0.3, 0.6, h_over_zi=1.0)
+    r = BS.solve_batch([sp], BS.Numerics(max_outer=200, late_from=150, omega_fallback=(50, 0.5)))[0]
+    ref = BS.solve_batch([sp], BS.Numerics(max_outer=200, late_from=150))[0]
+    _record("v6_fallback", dict(switch=r.meta["omega_switch_iter"], iters=r.iters, status=r.status, iters_ref=ref.iters, status_ref=ref.status))
+    if ref.iters <= 51:
+        pytest.skip("случай сошёлся до N — переключения нет")
+    assert r.meta["omega_switch_iter"] == 51
+    assert not np.array_equal(r.fields, ref.fields)
