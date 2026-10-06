@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "P10",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/air-phase.md"
     },
     {
