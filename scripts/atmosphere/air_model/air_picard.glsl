@@ -13,6 +13,7 @@ relax = "#define K_RELAX";
 freeze = "#define K_FREEZE";
 rmask = "#define K_RMASK";
 fixrow = "#define K_FIXROW";
+prolong = "#define K_PROLONG";
 
 #[compute]
 #version 450
@@ -648,6 +649,37 @@ void main() {
 		for (int o = 1; o < 7; o++) c[q + o] = 0.0;
 		c[q] = 1.0;
 		c[q + 7] = xf[t];
+	}
+}
+#endif
+
+// Старт от грубой сетки (AirPicardJob.warm_coarse): поле грубой сетки (src, NXc·NYc·NZc с ореолом,
+// i1.xyz) → точка мелкой (dst) того же вида (i0.w: 0 грань u, 1 грань v, 2 центр/грань w) —
+// билинейно по горизонтали в непрерывных индексах грубой сетки, по высоте — тот же dz, уровни со
+// сдвигом i1.w. f.x, f.y — (x0 − x0c)/dxc, (y0 − y0c)/dxc; f.z — dx/dxc.
+#ifdef K_PROLONG
+layout(set = 0, binding = 0, std430) readonly buffer BS { float src[]; };
+layout(set = 0, binding = 1, std430) writeonly buffer BD { float dst[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	int nxc = pc.i1.x, nyc = pc.i1.y, nzc = pc.i1.z;
+	float r = pc.f.z;
+	// грань — в узле сетки (смещение 1 от ореола), центр — в середине клетки (½)
+	float sx = kind == 0 ? 1.0 : 0.5;
+	float sy = kind == 1 ? 1.0 : 0.5;
+	GRID_LOOP(N) {
+		int i = t % NX, j = (t / NX) % NY, k = t / NYX;
+		float ic = clamp(pc.f.x + (float(i) - sx) * r + sx, 0.0, float(nxc - 1) - 0.001);
+		float jc = clamp(pc.f.y + (float(j) - sy) * r + sy, 0.0, float(nyc - 1) - 0.001);
+		int kc = clamp(k + pc.i1.w, 0, nzc - 1);
+		int i0 = int(ic), j0 = int(jc);
+		float fx = ic - float(i0), fy = jc - float(j0);
+		int b = (kc * nyc + j0) * nxc + i0;
+		float a0 = mix(src[b], src[b + 1], fx);
+		float a1 = mix(src[b + nxc], src[b + nxc + 1], fx);
+		dst[t] = mix(a0, a1, fy);
 	}
 }
 #endif

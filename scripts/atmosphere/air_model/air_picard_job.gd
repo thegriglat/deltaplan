@@ -37,7 +37,8 @@ const SHADER_NAMES := [
 	"air_picard:relax",
 	"air_picard:freeze",
 	"air_picard:rmask",
-	"air_picard:fixrow"
+	"air_picard:fixrow",
+	"air_picard:prolong"
 ]
 
 ## Вид точки для ядер P11 (air_picard.glsl: relax/freeze/rmask).
@@ -69,6 +70,11 @@ var warm := {}
 ## Тёплый старт решения с нагревом (при паре mech): {u, v, w, th, thd, p} той же раскладки; пусто —
 ## как прежде (решение с нагревом — с фона, «reinit»).
 var warm_heat := {}
+## Старт от грубой сетки (AirRuntime, air_model.picard_start = coarse): {dims (Vector3i, с ореолом),
+## x0, y0, dx, z_bot, mech: {u, v, w, th, thd, p}, heat: {…}} — решения грубой сетки той же
+## области; на GPU интерполируются на эту сетку (air_picard:prolong) и стартуют каждое своё решение.
+## Важнее warm / warm_heat. Пусто — нет.
+var warm_coarse := {}
 ## Критерий (эталон: Air.solve).
 var tol_mom := 2e-5
 var tol_th := 5e-7
@@ -241,6 +247,11 @@ func _setup() -> bool:
 			gpu.upload(buf[nm], a)
 	if not _setup_p11():
 		return false
+	if not warm_coarse.is_empty():
+		var cd: Vector3i = warm_coarse.dims
+		for nm in ["u", "v", "w", "th", "thd", "p"]:
+			buf["c" + nm] = gpu.buffer(cd.x * cd.y * cd.z)
+		_prolong("mech")
 	_phase = Phase.INIT
 	_iters = 0
 	_hist = []
@@ -359,7 +370,38 @@ func _setup_nonconv(ncell: int, ncol: int) -> bool:
 
 
 func _heat_warm_ok() -> bool:
+	if warm_coarse.has("heat"):
+		return true
 	return PackedFloat32Array(warm_heat.get("u", PackedFloat32Array())).size() == _n
+
+
+## Есть тёплый старт первого решения (warm или грубая сетка).
+func _warm_on() -> bool:
+	return not warm.is_empty() or not warm_coarse.is_empty()
+
+
+## Решение грубой сетки (which: mech | heat) → u, v, w, θ′, θ′_d, p этой сетки (сразу в очередь GPU).
+func _prolong(which: String) -> void:
+	var st: Dictionary = warm_coarse.get(which, {})
+	var cd: Vector3i = warm_coarse.dims
+	var nc := cd.x * cd.y * cd.z
+	var d := _pc0()
+	var dxc := float(warm_coarse.dx)
+	var f := [
+		(case.x0 - float(warm_coarse.x0)) / dxc, (case.y0 - float(warm_coarse.y0)) / dxc, case.dx / dxc
+	]
+	var ksh := roundi((case.z_bot - float(warm_coarse.z_bot)) / case.dz)
+	var kinds := {u = KIND_U, v = KIND_V}
+	for nm in ["u", "v", "w", "th", "thd", "p"]:
+		var a: PackedFloat32Array = st.get(nm, PackedFloat32Array())
+		if a.size() != nc:
+			gpu.fill(buf[nm], _n)
+			continue
+		gpu.upload(buf["c" + nm], a)
+		gpu.kernel(
+			"air_picard:prolong", [buf["c" + nm], buf[nm]], _n,
+			[d[0], d[1], d[2], kinds.get(nm, KIND_C)], [cd.x, cd.y, cd.z, ksh], f
+		)
 
 
 func _zeros() -> PackedFloat32Array:
@@ -370,7 +412,9 @@ func _zeros() -> PackedFloat32Array:
 
 ## Решение с нагревом после mech: тёплый старт warm_heat (если задан) и его поле механизма (freeze_field), если для mech было своё.
 func _upload_heated_freeze() -> void:
-	if _heat_warm_ok():
+	if warm_coarse.has("heat"):
+		_prolong("heat")
+	elif _heat_warm_ok():
 		for nm in ["u", "v", "w", "th", "thd", "p"]:
 			var a: PackedFloat32Array = warm_heat.get(nm, PackedFloat32Array())
 			if a.size() == _n:
@@ -860,7 +904,7 @@ func _step_program(_i: int) -> Array:
 		Phase.INIT:
 			if _ci > 0:
 				return _program("reinit_warm" if _heat_warm_ok() else "reinit")
-			var a: Array = _program("warm" if not warm.is_empty() else "init")
+			var a: Array = _program("warm" if _warm_on() else "init")
 			return a + _program("fsnap") if _freeze else a
 		Phase.ITER:
 			if _late_on() and _iters >= late_from and _iters > 0:

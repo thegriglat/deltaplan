@@ -124,6 +124,7 @@ func test_ongudai_runtime() -> void:
 		return
 	check(atmo.is_air_field_on(), "поле в атмосфере")
 	check(atmo.air_field.blend_fraction() == 1.0, "при загрузке — без подмены")
+	print("    стадии загрузки, мс главного потока: %s" % JSON.stringify(li.get("stage_ms", {})))
 	check(g.x <= 100.0, "кадр загрузки ≤ 100 мс (%.0f)" % g.x)
 	# ---- выборка у старта против AirPicardJob напрямую
 	# тот же конвейер вручную: фазы (AirPhaseJob) → Пикар с их тёплым стартом, ω, заморозкой
@@ -147,8 +148,7 @@ func test_ongudai_runtime() -> void:
 		cj.case = cc
 		cj.mech = true
 		check(cj.start() and cj.run_blocking(), "грубый старт: %s" % cj.error)
-		job.warm = AirRuntime.coarse_warm(job.case, cc, cj.state(true))
-		job.warm_heat = AirRuntime.coarse_warm(job.case, cc, cj.state(false))
+		job.warm_coarse = AirRuntime.coarse_start(cc, cj)
 		cj.release()
 	job.freeze_mask = ph.get("freeze", PackedByteArray())
 	job.freeze_mask_mech = ph.get("freeze_mech", PackedByteArray())
@@ -235,6 +235,7 @@ func _check_frame(li: Dictionary) -> void:
 
 
 func _print_recompute(label: String, li: Dictionary, g: Vector2) -> void:
+	print("    стадии, мс главного потока: %s" % JSON.stringify(li.get("stage_ms", {})))
 	print(
 		(
 			(
