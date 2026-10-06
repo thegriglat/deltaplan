@@ -1,0 +1,37 @@
+{
+  "id": "AP-22",
+  "module": "air-phase",
+  "type": "dp-writer",
+  "title": "Текст пилоту для облёта, CHANGELOG, руководство air-model",
+  "goal": "Пилоту — короткий текст простым языком, что поменялось в ветре (фазы + Пикар вместо нейросети, подветренная зона по замерам), на что смотреть в облёте; CHANGELOG и docs/guide/air-model.md — по факту ветки.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [],
+  "copy": "~/deltaplan-air-phase-AP-22",
+  "branch": "air-phase/AP-22",
+  "base": "feature/air-phase",
+  "scope": [
+    "CHANGELOG.md",
+    "docs/guide/air-model.md",
+    "build/pilot/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_text",
+      "cmd": "test -s /home/greg/deltaplan/build/pilot/air_phase_check.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T02:41:42"
+}
