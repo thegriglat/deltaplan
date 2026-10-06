@@ -1,0 +1,59 @@
+{
+  "id": "AP-23",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Проверка классификатора фаз (P15): матрицы ошибок, худшие ошибки, рекомендуемые пороги",
+  "goal": "Главный приоритет пользователя и шлюз перед облётом: классификатор фаз по входам игры против фаз по параметрам порядка решений (идеальный рельеф, SY-12 по случаям и клеткам, эрозия); пороги и ширины — в конфиг.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [
+    {
+      "name": "P15",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P10",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-23",
+  "branch": "air-phase/AP-23",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-23/",
+    "tools/research/air_phase/classifier_ref.py"
+  ],
+  "dont_touch": [
+    "docs/",
+    "scripts/",
+    "configs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-23'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "verdict",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-23/summary.json'));print('verdict', d['verdict'], 'np2p', d['err_nonpicard_to_picard'] is not None, 'cfg', bool(d['recommended_config']))\"",
+      "expect": "re:verdict (ready|needs_work) np2p True cfg True"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T17:58:59"
+}

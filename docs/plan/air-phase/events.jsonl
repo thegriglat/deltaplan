@@ -128,3 +128,9 @@
 {"t": "2026-10-06T16:46:04", "by": "coordinator", "task": "AP-16", "ev": "merged", "note": "полная приёмка 3/3: lee 9/9, hazards 7/7, atmosphere 135/135"}
 {"t": "2026-10-06T16:56:45", "by": "coordinator", "task": "AP-18", "ev": "created", "note": "Прототип «фазы + Пикар» по SY-12 (P9): тёплый старт, ω по карте фаз, механизмы H/F/G/D"}
 {"t": "2026-10-06T16:56:49", "by": "coordinator", "task": "AP-18", "ev": "started", "note": "opus, CPU + GPU в очереди"}
+{"t": "2026-10-06T17:53:48", "by": "coordinator", "task": "AP-19", "ev": "created", "note": "Фазы в игре: классификатор и механизмы H/F/G/D на GPU (AirGpu) + CPU (P10), проверки F/G/H (P14)"}
+{"t": "2026-10-06T17:53:48", "by": "coordinator", "task": "AP-20", "ev": "created", "note": "GPU-Пикар с тёплым стартом, картой ω и заморозкой (P11); AirRuntime фазы → Пикар без сети (P12); A/B/C и время (P14)"}
+{"t": "2026-10-06T17:53:53", "by": "coordinator", "task": "AP-19", "ev": "started", "note": "dp-engineer opus"}
+{"t": "2026-10-06T17:53:53", "by": "coordinator", "task": "AP-20", "ev": "started", "note": "dp-engineer opus"}
+{"t": "2026-10-06T17:58:59", "by": "coordinator", "task": "AP-23", "ev": "created", "note": "Проверка классификатора фаз (P15): матрицы ошибок, худшие ошибки, рекомендуемые пороги"}
+{"t": "2026-10-06T17:59:02", "by": "coordinator", "task": "AP-23", "ev": "started", "note": "dp-researcher opus, CPU"}

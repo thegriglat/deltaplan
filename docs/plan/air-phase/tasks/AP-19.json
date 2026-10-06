@@ -1,0 +1,71 @@
+{
+  "id": "AP-19",
+  "module": "air-phase",
+  "type": "dp-engineer",
+  "title": "Фазы в игре: классификатор и механизмы H/F/G/D на GPU (AirGpu) + CPU (P10), проверки F/G/H (P14)",
+  "goal": "Сборка поля по фазам в игре без сети: классификатор и механизмы фаз в compute на каркасе AirGpu и тот же код на CPU как запасной путь; карта ω, маска заморозки и тёплый старт для Пикара; константы — только в конфиге.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [
+    {
+      "name": "P10",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P14",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "C2",
+      "version": "7",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "C3",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-19",
+  "branch": "air-phase/AP-19",
+  "base": "feature/air-phase",
+  "scope": [
+    "scripts/atmosphere/air_model/air_phase_job.gd",
+    "scripts/atmosphere/air_model/air_phase_cpu.gd",
+    "scripts/atmosphere/air_model/air_phase.gd",
+    "scripts/atmosphere/air_model/air_phase.glsl",
+    "scripts/atmosphere/air_model/air_phase_mg.glsl",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_air_phase.gd",
+    "tests/atmosphere/test_air_phase_gpu.gd",
+    "docs/guide/air-model.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/air_picard.glsl",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "air_phase",
+      "tests": "air_phase"
+    },
+    {
+      "name": "gpu",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap19-gpu -- tools/gpu_tests.sh --filter=air_phase_gpu",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_magic",
+      "cmd": "python3 -c \"import re,glob;fs=glob.glob('scripts/atmosphere/air_model/air_phase*.gd')+glob.glob('scripts/atmosphere/air_model/air_phase*.glsl');lits=[m for f in fs for l in open(f) if not l.lstrip().startswith(('#','//')) for m in re.findall(r'(?<![\\w.])\\d+\\.\\d+(?:e-?\\d+)?',l) if float(m) not in (0.0,0.5,1.0,2.0)];print('files',len(fs),'magic',len(lits))\"",
+      "expect": "num:magic (\\d+) <=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T17:53:48"
+}
