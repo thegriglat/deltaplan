@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»"
+summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»; в игре: P10 фазы на GPU/CPU, P11 Пикар с тёплым стартом/ω/маской, P12 AirRuntime без сети, P13 удаление сети, P14 проверки в игре"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 1}, {"id": "P11", "version": 1}, {"id": "P12", "version": 1}, {"id": "P13", "version": 1}, {"id": "P14", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -261,3 +261,80 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   `nonconv_closed`: сколько случаев SY-12, где холодный Пикар не сошёлся, гибрид закрывает определённым ответом
   (сошёлся тёплый Пикар в A/B/C-клетках и/или клетки отданы механизмам) и физические признаки этого ответа (фаза,
   Fr, U10, w*/U, разброс, что видят слои).
+
+# Перенос в игру (этап 4, решение пользователя 06.10 17:50)
+Общее: код игры — `scripts/atmosphere/air_model/`; сетка, оси, единицы — как `AirCase` (C2 v7) и `AirPicardJob`
+(C3 v1, `docs/contracts/air-model.md`); выход в атмосферу — `WindField` C3 v1 без изменений (каналы u, v, w_mech, w_conv,
+theta, hc; meta с heat, z_i, gam, u10) → потребители C4/C5 не меняются. Спецификация формул — наработки AP-18
+(`tools/research/air_phase/assembly/`, `hybrid/`, `analysis/AP-18/section.md`) и AP-17 (механизмы), пороги — итоги
+`docs/research/air_phase_results.md` §0 (после пересчёта AP-14). Godot — только `XDG_DATA_HOME=$(mktemp -d)`.
+
+## P10. Классификатор и механизмы фаз в игре (версия 1)
+**Владелец:** AP-19 (`air_phase_job.gd` + `air_phase.glsl` — GPU на каркасе `AirGpu`; `air_phase_cpu.gd` — тот же код на CPU).
+**Потребители:** AP-20 (`AirPicardJob`, `AirRuntime`), отладочный слой «карта фаз».
+
+- `AirPhaseJob.new(gpu: AirGpu | null)`; `run(case: AirCase) -> Dictionary` (GPU — порциями через `start()/poll()`, как
+  `AirPicardJob`; CPU — `AirPhaseCpu.run(case)` в рабочем потоке):
+  - `weights`: PackedFloat32Array K·ny·nx (порядок фаз — `AirPhase.PHASES = ["A","B","C","D","F","G","H"]`, Σ = 1 в клетке);
+  - `omega`: PackedFloat32Array ny·nx — ω Пикара по клетке (0,5 у границ Fr ≈ 0,3–1,1 / U10 0,6–1,5 м/с, 1 — чистое
+    обтекание; гладкий переход по весам);
+  - `freeze`: PackedByteArray ny·nx — 1, где колонна отдана механизму (H, F, G, сильное D: вес ≥ порога `freeze_w`);
+  - `warm`: `{u, v, w, th, p}` — начальное состояние Пикара, раскладка и ореол **как `AirPicardJob.warm`** (C3), из
+    сборки механизмов (A/B/C-клетки — профиль притока с поправкой механизма, клетки механизмов — их поле);
+  - `mech_field`: те же каналы для клеток механизмов (для заморозки), `stats`: доли фаз по площади, `ms`.
+- Механизмы: H — статистика штиля (среднее + разброс, не неподвижная точка); F — конвекция/термики по подобию (w*, z_i,
+  доля восходящих ≈ 0,4 [LS80]); G — вечерний сток (Прандтль, скорость 1–4 м/с [ZW13], накопление холода в долинах;
+  по AP-18); сильное D — разделяющая линия тока H_c + слои Лапласа ψ. Формулы и источники — в комментариях ядер.
+- Пороги и ширины — `configs/atmosphere.json → air_phase` (у каждого ключа `_doc` с источником: AP-8/AP-14/AP-11/AP-18).
+- Инварианты: GPU = CPU (max относительная разница ≤ 1e-4 по weights/omega/warm на тестовых местах); Σ weights = 1;
+  детерминизм (повтор — побитно на том же устройстве); NaN → 0 с `push_error`.
+
+## P11. GPU-Пикар: тёплый старт от сборки, карта ω, заморозка колонн (версия 1)
+**Владелец:** AP-20 (`air_picard_job.gd`, `air_picard.glsl`). **Потребители:** `AirRuntime` (P12), проверки P14.
+
+- Новые поля `AirPicardJob`: `omega_map: PackedFloat32Array` (ny·nx; пусто — ω = 1 как сейчас), `freeze_mask:
+  PackedByteArray` (ny·nx; пусто — нет), `freeze_field: Dictionary` (каналы для замороженных колонн, раскладка warm),
+  `omega_fallback := Vector2(300, 0.5)` (нет сходимости к N итерациям → ω := 0,5 во всех незамороженных; (0, 0) — выкл.).
+  `warm` — как сейчас (C3), теперь обычно из P10.
+- Недорелаксация: u ← u + ω(u* − u) по колонне (ω из карты), K — так же (как research P4 v6: omega_k = omega_u); замороженные
+  колонны после каждого шага переписываются `freeze_field`; невязка и критерий сходимости — только по незамороженным.
+- Сшивка — существующая проекция (`AirMultigrid`, finalize V-циклами) после итераций; ∇·u на гранях ≤ округления (C3).
+- Инвариант: все новые поля пусты → поле и `results` побитно как до правки (тест на GPU).
+- `results[]` + `omega_fallback_used` (bool), `frozen_frac`.
+
+## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 1, заменяет O5)
+**Владелец:** AP-20 (`air_runtime.gd`, `settings_panel.gd`, `configs/atmosphere.json → air_model`). **Потребители:** игра.
+
+- Конвейер (загрузка и пересчёт в полёте, сроки и два прохода k — C9 v3 без изменений): `AirPlace.domain_case` →
+  P10 (GPU; нет GPU — CPU) → P11 (`warm`, `omega_map`, `freeze_*`, `mech = true`) → `WindField` (C3). Окна 100/50 м — как
+  сейчас (C9 v2), тёплый старт окон — от поля области.
+- Без GPU (RD нет / headless / ошибка): поле — **только сборка P10 на CPU** (A — линейная теория DCT как AP-17, без
+  Пикара) + строка `air_model: фазы без Пикара (<причина>)`; дальше отказ — аналитика (как C9).
+- Конфиг `air_model`: ключи `engine`, `nn_*` удаляются; `enabled` auto/on/off — как было. Настройки «Ветер над рельефом»:
+  «расчёт» / «упрощённый».
+- `last_info` + `phase_frac` (доли фаз), `phase_ms`, `omega_fallback_used`, `frozen_frac`, `iters`; строка журнала
+  `air_model: поле (фазы+Пикар) …` с итерациями и долями фаз.
+- Отладочный слой «карта фаз» рядом с F3-стрелками (`wind_field_debug.gd`): цвет клетки по фазе с наибольшим весом,
+  включается тем же переключателем/соседней клавишей; дёшево (текстура 96×96 из `weights`).
+
+## P13. Удаление нейросети из игры (версия 1)
+**Владелец:** AP-21. **Потребители:** сборка, пользователь.
+
+- Удалить: `air_nn_input.gd`, `air_nn_field.gd`, `air_nn_prep.gd` и ссылки; расширение ONNX Runtime (GDExtension
+  `AirOnnx`, его библиотеки и `.gdextension`), `data/air_nn/`, `tests/air_onnx/`, фильтр `*.onnx` в `export_presets.cfg`,
+  `--air-nn-model`, ключи `nn_*` в конфигах, пункт меню (если остался после P12). `docs/contracts/air-onnx.md` → status
+  superseded (заметка «удалено, см. air-phase P12/P13»). Пикар и сеть в `tools/research/` остаются (эталон, история).
+- Проверка: `grep -ri "onnx\|air_nn" scripts configs scenes ui project.godot export_presets.cfg` пусто (кроме истории в
+  docs/CHANGELOG); сборка Linux/Windows экспортируется; тесты зелёные.
+
+## P14. Проверки в игре (версия 1)
+**Владелец:** AP-19 (F/G/H против литературы), AP-20 (A/B/C, время). **Потребители:** приёмка, облёт.
+
+- `tests/atmosphere/test_air_phase.gd` (без GPU — CPU-путь P10): Σ weights = 1, пороги из конфига, F — w*, z_i, доля
+  восходящих 0,3–0,5 [LS80] и данные AM-07 (`docs/research/calibration_data.md`), G — скорость стока 1–4 м/с и профиль
+  Прандтля [ZW13], H — статистика (разброс > 0, среднее без направленного дрейфа).
+- `tests/atmosphere/test_air_phase_gpu.gd` (GPU, `tools/gpu_tests.sh`, под `dp lock gpu`): P10 GPU = CPU; на 2–3 местах
+  игры, где холодный Пикар сходится, — поле гибрида совпадает с холодным (max|Δu| ≤ 0,05 U_sat в A/B/C-клетках,
+  метрики слоёв: термики, наветренный подъём, подветренные зоны — в допусках AP-9 `LM_KEYS`) за меньшее число итераций;
+  P11 по умолчанию побитно; время пересчёта (мс: фазы, Пикар, проекция) — в лог теста и `build/dp/<ID>/timing.json`,
+  оценка RX 5600 XT = замер × (пропускная способность памяти RTX 4070 SUPER 504 ГБ/с / RX 5600 XT 288–336 ГБ/с) с оговоркой.
