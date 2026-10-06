@@ -106,6 +106,7 @@ class Runner:
         self.sel = IO.series_filter(series)
         self.only = set(only) if only is not None else None
         self.src = IO.Sources(self.plan, self.rel)
+        self.rsrc = IO.RerunSources(self.plan_dir.parent)       # RERUN (P2 v6): исходные планы — соседние каталоги
         self.inline = inline_writer
         self.command = command
         self.by_id = {c.case_id: c for c in self.cases}
@@ -145,7 +146,8 @@ class Runner:
             if self.lines[c.line_id].start == pb.WARM_PREV:
                 continue
             out.append(c)
-        tasks = [((IO.SERIES_RANK[c.series], c.k, c.case_id), c, False) for c in out]
+        # RERUN: холодные случаи — строго по case_id (построитель нумерует по приоритету исходной серии)
+        tasks = [((IO.SERIES_RANK[c.series], 0 if c.series == pb.RERUN else c.k, c.case_id), c, False) for c in out]
         for lid, w in self.warm.items():
             cs = self.by_line[lid]
             k = w["held"] + 1
@@ -169,7 +171,10 @@ class Runner:
     def _spec(self, c):
         ln = self.lines[c.line_id]
         r = self.rel[ln.relief_id]
-        ph = IO.case_physics(self.plan, ln, r, c.fr, self.src)
+        if c.series == pb.RERUN:
+            ph = IO.rerun_physics(ln, r, c.fr, c.src_case_id, self.src, self.rsrc)
+        else:
+            ph = IO.case_physics(self.plan, ln, r, c.fr, self.src)
         S = self.solver
         spec = S.CaseSpec(g100=self.src.g100(ln.relief_id), ctx=ph["ctx"], u10=ph["u10"], wdir_from_deg=ph["wdir"],
                           alpha=ph["alpha"], max_profile=ph["max_profile"], n_bv_s=ph["ov_n"], z_i_agl_m=ph["ov_zi"],

@@ -95,3 +95,92 @@ def test_fixed_u_composition():
     # ближайшее к 500 запасное h: Fr = 0,15 при U_sat = 3 → h = 1000 (250 даёт N = 0,08)
     p0 = [p for p in pts if p["variant"] == "n_axis" and p["u_sat"] == 3.0][0]
     assert p0["h_m"] == 1000.0 and abs(p0["fr"] - 0.15) < 1e-9
+
+
+# ------------------------------------------------------------------ RERUN (P2 v6, AP-14) — на заглушке
+def _stub_source(root, name, statuses):
+    """Мини-план-источник: GRID (холодная, 3 точки), SWEEP (тёплая, 3), ENVELOPE_REAL (conditions, 1), RELAX (3) +
+    часть P3 только с `cases` (case_id, status)."""
+    import h5py
+    pb = PB.pb
+    plan = pb.Plan(contract="P2 v3", name=name)
+    c = plan.context
+    c.lat, c.lon, c.month, c.day, c.hour_local, c.utc_offset, c.alpha, c.max_profile = 50.0, 86.0, 7, 15, 12.0, 7.0, 0.24, 2.341
+    for i, (corpus, cid) in enumerate((("corpus/ideal_v1", 4), ("real/hg_v2", 17))):
+        r = plan.reliefs.add()
+        r.relief_id, r.corpus, r.corpus_relief_id, r.h_m, r.name = i, corpus, cid, 500.0, f"r{i}"
+    nxt = 0
+    for ser, start, rel, fr, cond, variant, om in ((pb.GRID, pb.COLD, 0, [0.5, 0.7, 1.0], "", "", 1.0),
+                                                   (pb.SWEEP, pb.WARM_PREV, 0, [0.5, 0.7, 1.0], "", "up", 1.0),
+                                                   (pb.ENVELOPE_REAL, pb.COLD, 1, [0.3], "s2/x", "nonconv_lowfr", 1.0),
+                                                   (pb.RELAX, pb.COLD, 0, [0.5, 0.7, 1.0], "", "kfloor", 1.0)):
+        ln = plan.lines.add()
+        ln.line_id, ln.series, ln.relief_id, ln.start, ln.variant = len(plan.lines) - 1, ser, rel, start, variant
+        ln.heat_flux_wm2, ln.h_over_zi, ln.n_bv_s, ln.wdir_from_deg = (-1.0, 0.0, 0.0, 0.0) if cond else (100.0, 1.0, 0.01, 270.0)
+        ln.conditions, ln.cond_id = (cond, 3) if cond else ("", -1)
+        ln.ref_line_id = 0 if ser in (pb.SWEEP, pb.RELAX) else -1
+        PB._numerics(ln.numerics, omega_u=om, omega_k=om, k_floor_m2s=10.0 if variant == "kfloor" else 1.0,
+                     top_above_m=0.0, sponge_top_m=0.0)          # как в старых планах (P2 v3/v4)
+        ln.fr_f64 = np.asarray(fr, "<f8").tobytes()
+        ln.first_case_id = nxt
+        nxt += len(fr)
+    plan.n_cases = nxt
+    d = root / name
+    d.mkdir(parents=True)
+    (d / "plan.pb").write_bytes(plan.SerializeToString())
+    res = root / f"{name}__s1-stub000"
+    res.mkdir()
+    with h5py.File(res / "part-00000.h5", "w") as h:
+        h["cases"] = np.array(list(zip(range(nxt), statuses)), dtype=[("case_id", "i8"), ("status", "i1")])
+    return plan
+
+
+def test_rerun_plan_stub(tmp_path):
+    pb = PB.pb
+    # GRID: 0 ok, 1 max, 2 max; SWEEP 3..5 — все max (пропуск); ENVELOPE_REAL 6 max; RELAX 7 max, 8 ok, 9 diverged
+    src = _stub_source(tmp_path, "src_a", [0, 1, 1, 1, 1, 1, 1, 1, 0, 2])
+    plan, tab = PB.build_rerun_plan("rr", ("src_a",), tmp_path, quiet=True)
+    assert plan.contract == "P2 v6" and plan.context == src.context
+    assert tab == {"GRID": [1, 2], "RELAX": [1, 2], "ENVELOPE_REAL": [1, 1]}
+    lines = list(plan.lines)
+    assert [pb.Series.Name(l.series) for l in lines] == ["RERUN"] * 3
+    # порядок по приоритету исходной серии: GRID → RELAX → ENVELOPE_REAL; case_id сквозные
+    ids = [np.frombuffer(l.src_case_ids_i64, "<i8").tolist() for l in lines]
+    assert ids == [[1, 2], [7, 9], [6]]
+    assert [l.first_case_id for l in lines] == [0, 2, 4] and plan.n_cases == 5
+    srcl = {l.line_id: l for l in src.lines}
+    for l, s in zip(lines, (srcl[0], srcl[3], srcl[2])):
+        assert l.src_plan == "src_a" and l.start == pb.COLD and l.ref_line_id == -1 and l.direction == pb.DIR_NONE
+        fr = np.frombuffer(l.fr_f64, "<f8")
+        sfr = np.frombuffer(s.fr_f64, "<f8")
+        assert np.allclose(fr, sfr[np.asarray(np.frombuffer(l.src_case_ids_i64, "<i8")) - s.first_case_id])
+        nm = l.numerics
+        assert (nm.omega_u, nm.omega_k, nm.max_outer, nm.late_from, nm.late_step) == (0.5, 0.5, 2000, 1500, 50)
+        assert nm.k_floor_m2s == s.numerics.k_floor_m2s and nm.tol == s.numerics.tol      # остальное как у исходной
+        assert nm.top_above_m == 3000.0 and nm.sponge_top_m == 1000.0 and nm.lam_m == 0.0
+        assert (l.heat_flux_wm2, l.h_over_zi, l.n_bv_s, l.conditions, l.cond_id, l.variant) == \
+            (s.heat_flux_wm2, s.h_over_zi, s.n_bv_s, s.conditions, s.cond_id, s.variant)
+        r = {x.relief_id: x for x in plan.reliefs}[l.relief_id]
+        r0 = {x.relief_id: x for x in src.reliefs}[s.relief_id]
+        assert (r.corpus, r.corpus_relief_id) == (r0.corpus, r0.corpus_relief_id)
+    assert len({(r.corpus, r.corpus_relief_id) for r in plan.reliefs}) == len(plan.reliefs) == 2
+    # контрактный тест плана P2 и разбор через phase_io (src_case_id у Case)
+    import os
+    sys.path.insert(0, str(HERE))
+    import test_contract_phase as TC
+    os.environ["AP_PLAN_DIR"] = str(tmp_path / "rr")
+    try:
+        TC.test_plan_file()
+    finally:
+        del os.environ["AP_PLAN_DIR"]
+    import phase_io as PIO
+    _, _, _, _, cases = PIO.load_plan(tmp_path / "rr")
+    assert [c.src_case_id for c in cases] == [1, 2, 7, 9, 6] and all(c.series == pb.RERUN for c in cases)
+    # тёплая линия без пропуска — ошибка; разные контексты источников — ошибка
+    with pytest.raises(ValueError):
+        PB.build_rerun_plan("rr2", ("src_a",), tmp_path, skip=(), write=False, quiet=True)
+    b = _stub_source(tmp_path, "src_b", [1] * 10)
+    b.context.lat = 10.0
+    (tmp_path / "src_b/plan.pb").write_bytes(b.SerializeToString())
+    with pytest.raises(ValueError):
+        PB.build_rerun_plan("rr3", ("src_a", "src_b"), tmp_path, write=False, quiet=True)
