@@ -97,7 +97,7 @@ THR_N = {3.0: (0.0065, 0.0125), 4.5: (0.0085, 0.016), 6.0: (0.010, 0.019)}
 THR_NPTS = 11
 THR_VARIANTS = (
     ("ctrl", dict()),
-    ("long", dict(max_outer=3000, late_from=2000)),
+    ("long", dict(max_outer=3000, late_from=2000, snap_step=10)),   # снимки каждые 10 итераций: поздняя динамика
     ("omega", dict(omega_u=0.5, omega_k=0.5, max_outer=2000, late_from=1000)),
     ("kfloor", dict(k_floor_m2s=K_FLOOR_MIN)),
     ("top4500", dict(top_above_m=4500.0)),
