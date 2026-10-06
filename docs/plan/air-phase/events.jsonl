@@ -178,3 +178,4 @@
 {"t": "2026-10-06T23:23:12", "by": "executor", "task": "AP-23", "ev": "checked", "note": "2/2 p7=ok:1 passed; verdict=ok:verdict needs_work np2p True …"}
 {"t": "2026-10-06T23:23:34", "by": "coordinator", "task": "AP-23", "ev": "accepted", "note": "по координатору после доработки по ревью (замечание закрыто пересчётом всех не-ok при ω = 0,5); verdict needs_work только по GRID — допуск ослаблен решением; порог 250 м → конфиг игры через AP-20; данные ap23_rerun (940 МБ) хранить"}
 {"t": "2026-10-06T23:23:34", "by": "coordinator", "task": "AP-23", "ev": "merged"}
+{"t": "2026-10-06T23:23:58", "by": "coordinator", "task": "AP-21", "ev": "created", "note": "Удаление нейросети из игры (P13 v2)"}

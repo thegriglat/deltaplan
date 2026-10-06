@@ -1,0 +1,64 @@
+{
+  "id": "AP-21",
+  "module": "air-phase",
+  "type": "dp-engineer",
+  "title": "Удаление нейросети из игры (P13 v2)",
+  "goal": "Сети в игре больше нет (решение пользователя): удалить её файлы, расширение ONNX Runtime, данные, тесты, экспорт и упоминания; сеть и Пикар остаются только в tools/research.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [
+    {
+      "name": "P13",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P12",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-21",
+  "branch": "air-phase/AP-21",
+  "base": "feature/air-phase",
+  "scope": [
+    "scripts/atmosphere/air_model/",
+    "addons/",
+    "data/air_nn/",
+    "tests/air_onnx/",
+    "export_presets.cfg",
+    "configs/",
+    "README.md",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "docs/contracts/air-onnx.md",
+    "docs/guide/",
+    "tools/air_onnx/",
+    "project.godot"
+  ],
+  "dont_touch": [
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "air",
+      "tests": "air"
+    },
+    {
+      "name": "no_onnx",
+      "cmd": "sh -c 'grep -rniE \"onnx|air_nn\" scripts configs scenes project.godot export_presets.cfg 2>/dev/null | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T23:23:58"
+}
