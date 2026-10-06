@@ -21,7 +21,7 @@ Fluctuations are not equal in all directions: near the ground along the wind the
 
 **The gust spectrum.** Gusts are a sum of several octaves of noise weighted by the von Kármán spectrum; in the inertial range the spectrum follows the −5/3 law (the old noise had a slope of about −2.9). Near the ground the eddies are carried by the local wind, not the common one, so that a standing pilot sees slow "cycles" of wind, not jolts within seconds.
 
-![Gust spectrum in straight flight: field and the old analytics](/tools/research/air_turb/out/spectrum.png "Spectrum of gusts u and w at 150 and 400 m above the Aushkul launch, straight flight at 12 m/s")
+![Gust spectrum in straight flight: field and the simplified formulas](/tools/research/air_turb/out/spectrum.png "Spectrum of gusts u and w at 150 and 400 m above the Aushkul launch, straight flight at 12 m/s")
 
 **Lee zone and rotor.** The field itself shows the wake behind the ridge: sink and weakened wind. Where the solver resolves the separation bubble (in the 50 and 100 m windows), reverse flow at the ground is taken straight from the field; on the coarse 400 m area and behind low bumps — an estimate from measurements on the Perdigão ridge pair. On top of the field level 3 adds:
 
@@ -29,7 +29,7 @@ Fluctuations are not equal in all directions: near the ground along the wind the
 - **turbulence of this layer** — by measurements of mixing layers it is a small fraction of the velocity jump;
 - **downward jolts** — part of this turbulence with zero mean (the mass flux is already in the field) and reverse flow at the ground.
 
-The zone flag is a velocity deficit against a logarithmic profile together with sinking air: sinking distinguishes a wake from simple braking at the windward foot. The old "shadow line" stays only for the fallback analytics.
+The zone flag is a velocity deficit against a logarithmic profile together with sinking air: sinking distinguishes a wake from simple braking at the windward foot. In the "Heuristic" mode turbulence and rotor parameters come from simplified formulas instead of the field — see [Heuristic mode](/mechanics/air-model/heuristic/).
 
 **Heating kills the rotor.** Over heated ground convection destroys the separation bubble, so rotor and jolts are weakened by heating: slightly at weak heating (an average day), strongly at strong heating (clear noon).
 
@@ -59,5 +59,5 @@ For comparison with the field, pilots' words: sinks and downward jolts behind a 
 
 - [The air model in the game](/docs/guide/air-model.md) → "Scale 3: disturbances from the field".
 - [Measurements on ideal terrain](/docs/research/air_phase_results.md) (separation behind the brow, envelope), [turbulence from the field research](/tools/research/air_turb/README.md).
-- [Atmosphere](/docs/guide/atmosphere.md) — the lee zone in the fallback analytics.
-- Pages: [air model](/mechanics/air-model/), [wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/), [slope wind](/mechanics/air-model/slope-wind/).
+- [Atmosphere](/docs/guide/atmosphere.md) — the lee zone in the simplified formulas.
+- Pages: [air model](/mechanics/air-model/), [wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/).

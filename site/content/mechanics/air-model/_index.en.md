@@ -14,7 +14,7 @@ The air in the game is not a set of separate formulas but a physical field: wind
 | 2. Thermals | core, edge, "missed and dropped", life of a bubble | 100–500 m, minutes | [Thermals](/mechanics/air-model/thermals/) |
 | 3. Turbulence and rotor | jolts, downdrafts, shaking behind a ridge | under 50 m, seconds | [Turbulence and rotor](/mechanics/air-model/turbulence/) |
 
-The model is on by default. There is no neural network in the game: the wind field is computed with physics (phases and Picard), not by a trained network. If the field could not be computed, the game stays on the old formulas — [slope wind](/mechanics/air-model/slope-wind/); in the settings they are called "Heuristic".
+The model is on by default. There is no neural network in the game: the wind field is computed with physics (phases and Picard), not by a trained network. This describes the "Calculation" mode; the simple "Heuristic" mode has a [separate page](/mechanics/air-model/heuristic/).
 
 {{< children >}}
 
@@ -111,4 +111,4 @@ Common to the whole model; specific ones are on the level pages.
 - Research: [3D reference on Ongudai terrain](/tools/research/air3d/README.md), [thermals from the field](/tools/research/air_thermals/README.md), [turbulence from the field](/tools/research/air_turb/README.md), [2D prototype](/tools/research/heat_ca/README.md).
 - [Wind phases: research](/docs/research/air_phase.md), [measurements on ideal terrain](/docs/research/air_phase_results.md), [plan](/docs/plan/air-phase.md).
 - [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/), [turbulence and rotor](/mechanics/air-model/turbulence/).
-- [Slope wind](/mechanics/air-model/slope-wind/), [thermals](/mechanics/air-model/thermals/), [weather](/mechanics/weather/); [research and plans](/research/).
+- [Heuristic mode](/mechanics/air-model/heuristic/), [thermals](/mechanics/air-model/thermals/), [weather](/mechanics/weather/); [research and plans](/research/).

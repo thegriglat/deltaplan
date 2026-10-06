@@ -1,23 +1,26 @@
 ---
-title: "Wind at the slope"
-weight: 20
-description: "Wind at the slope, the lee zone, rotor and wave: how it works, what physics is behind it and what the model cannot do yet."
+title: "Heuristic mode"
+weight: 50
+description: "The simple wind-over-terrain mode: a wind profile and formulas for slope lift, the lee zone, thermals and turbulence instead of a computed field. What is computed, how it is simpler than Calculation, when to choose it."
 ---
 
-# Wind at the slope, the lee zone, rotor and wave
+# Heuristic mode: wind by formulas
 
-A hang glider soars at a mountain because the wind, running into the slope, has to go up. Behind the crest
-the opposite happens: the air separates, creating a zone of sink and turbulence, the "rotor", which hang glider
-pilots avoid flying into. Below: how this is computed with formulas (analytics), where they come from
-and what is deliberately simplified in them.
+The "Wind over terrain" setting has two modes. "Calculation" is the [air model](/mechanics/air-model/) of three levels (phases and Picard on the graphics card); the other pages of this section are about it. "Heuristic" is the simple mode: the wind field is not computed on the graphics card, and the air at each point is given by one function using formulas. This page is only about it.
 
-This page is part of level 1 of the [air model](/mechanics/air-model/): slope winds correspond to the F and G mechanisms of the wind-field phases ([phases](/mechanics/air-model/wind-phases/)); here the fallback formulas are described.
+## What it is and how it is simpler
 
-> [!NOTE]
-> In the game, slope lift, the acceleration at the brow, the saddle and the rotor are now taken from the physical air field —
-> the [air model](/mechanics/air-model/) ([wind field](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/)). The formulas on this page remain as a fallback: the game
-> switches to them if the field could not be computed, and outside the field's area. The "what the formula cannot do" items below
-> apply to them.
+- **One wind for the whole world:** a single direction, speed growing with height above ground by a power law and separately with altitude above sea level. Terrain neither turns nor accelerates the wind — hence the menu label "wind profile without terrain".
+- **Slope lift and the lee zone** are formulas from the terrain slope at the point (below on this page): lift ahead of the slope along the wind, a "shadow line" behind the ridge with sink, jolts and reverse flow.
+- **Thermals** are cells with a deterministic cycle, strength from the table of anchors by cloud base height (the ["Weather"](/mechanics/weather/) page).
+- **Turbulence** is noise from formulas: mechanical, convective, at the thermal edge and the rotor behind a ridge.
+- The GPU solver is not launched, so the place loads without the wind computation stage.
+
+Besides the menu choice, the same formulas work if the field computation failed at load and outside the field's area.
+
+## When to choose it
+
+When a predictable, cheap wind is needed: a weak graphics card, fast loading, comparison with the old behavior. What it loses against "Calculation" is the list of "what the formula cannot do" below: no flow over the brow and speed-up, saddle, flow around hills sideways, phases (blocking, waves, drainage, calm), stability; thermals do not come from a field.
 
 ## How it works
 

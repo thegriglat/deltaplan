@@ -119,7 +119,7 @@ spring +15 °C with cold air aloft gives as good a day as July +26 °C.
   field is mentioned as an idea for the future, but is not yet implemented in the model.
 - **The wave is hidden and off by default** (`wave.enabled = false`): the physics of the lee wave (strong
   wind across the ridge plus stable air) exists in the code, but the pilot does not know the word "wave",
-  and by default it is not switched on. More on the page [“Slope wind”](/mechanics/air-model/slope-wind/).
+  and by default it is not switched on. More on the page [“Slope wind”](/mechanics/air-model/heuristic/).
 
 ## What was considered and why this way
 
