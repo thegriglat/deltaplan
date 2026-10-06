@@ -83,4 +83,4 @@ env AP_FEATURES=$D/features_ap_v1.h5 $PY -m pytest -q tools/research/air_phase/t
 
 ### Разбор AP-8 (границы фаз GRID, второй старт, гистерезис)
 `$PY tools/research/air_phase/analysis/AP-8/run.py --workers 16` (CPU, ≈ 70 мин) → `analysis/AP-8/{summary.json, section.md, fig_*.png, pairs.npz}`;
-кэш подгонок — `out/AP-8/fits.json`, `fits_ok.json` (не в git, ~10 МБ; `--stage report` пересобирает сводку из кэша).
+кэш подгонок — `out/AP-8/fits.json`, `fits_ok.json` (не в git, ~5,5 МБ; `--stage report` пересобирает сводку из кэша).
