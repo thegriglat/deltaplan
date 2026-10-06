@@ -1,0 +1,90 @@
+{
+  "status": "done",
+  "summary": "layer_metrics.py (P6): 40 метрик th_/sl_/lee_ по формулам игры (air_thermals.gd::build, atmosphere.gd:807, field_turbulence.gd::lee) + layer_diff, layer_masks/iou; features.py собрал out/features_ap_v1.h5 (7686 случаев, 190 с, 1,5 МБ) и features_ap_v2.h5 (296, 9 с, 0,12 МБ); sigmoid.fit_sigmoid с бутстрэпом; тесты на синтетике зелёные.",
+  "commits": [
+    "d434182e air-phase AP-6: метрики слоёв P6, таблица признаков, подгонка сигмоид"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "exit 0 (5 passed + контракт)",
+      "pass": true
+    },
+    {
+      "name": "features_v1",
+      "value": "1 passed; 7686 строк, 138 полей, сборка 190 с (16 процессов)",
+      "pass": true
+    },
+    {
+      "name": "features_v2",
+      "value": "1 passed; 296 строк, 9 с",
+      "pass": true
+    },
+    {
+      "name": "dp accept AP-6 --dry",
+      "value": "3/3",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "У ENVELOPE ref_case_id = SEPARATION dx = 100 (по плану), но его fields/f — область 400 м (2-й порядок переноса, без огибающей), а не окно; поэтому есть ref400_case_id (SEPARATION 400 м) и w100_sl_*/w100_lee_* по окну. Сравнение «над огибающей против эталона 100 м» в AP-10 должно идти по w100_* или по окну напрямую. Устраивает?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept AP-6",
+  "uncertain": [
+    {
+      "where": "layer_metrics.py thermal_columns (w_conv)",
+      "why": "в P3 нет w_mech; w_conv = w − w близнеца H = 0 (mech_case_id). Нет близнеца (ENVELOPE_REAL «h» без «m» — 532 из 567, часть SEPARATION/ENVELOPE с нагревом) — w_conv ≈ полный w, Φ завышен над наветренными склонами (th_wconv_src = 2)",
+      "checked": "близнецы найдены у всех нагретых GRID (1620), SWEEP (1944), RELAX (702); всего 4333 в ap_v1, 148 в ap_v2"
+    },
+    {
+      "where": "layer_metrics.py sl_/lee_ при H > 0",
+      "why": "как в игре, вертикаль склонов и s_d подветра — w_mech близнеца, поэтому sl_* нагретого случая = sl_* близнеца (H на них не влияет); u, v — свои",
+      "checked": "GRID ridge s0.30: sl_* одинаковы при H = 0 и 250, lee_* различаются"
+    },
+    {
+      "where": "layer_metrics.py потолок частицы",
+      "why": "поле P3 — до 2000 м над землёй; при h/z_i = 0,3 и H = 250 частица почти всегда упирается (потолок ≈ 1990 м) — th_ceil_* там не информативны, смотреть th_ceil_capped_frac",
+      "checked": "GRID ridge s0.30, h/z_i 0,3, H 250: th_ceil_agl_mean 1935–1994 м"
+    },
+    {
+      "where": "layer_metrics.py θ̄ фона, z_i",
+      "why": "dθ̄/dz = 0 под z_i и θ0N²/g выше (override P4); у ENVELOPE_REAL (строки S2) — та же форма с N, z_i строки, это приближение; z_i над морем = min(hc) + z_i_agl (conditions.override_base)",
+      "checked": "по коду batch_solver.py:357 и conditions.py:187"
+    },
+    {
+      "where": "layer_metrics.py SL_W_THR = 1,0 м/с, SL_SLOPE_MIN = 0,02, LEE_THR = 0,5",
+      "why": "порогов зоны подъёма у склона в игре нет: 1 м/с — min_sink крыльев игры (configs/wings: 0,83–1,24); 0,02 и ½ признака — мои (помечены [физика])",
+      "checked": "синтетика: площадь и сила подъёма, площадь/глубина/опускание зоны восстанавливаются точно"
+    },
+    {
+      "where": "layer_metrics.py select_sources",
+      "why": "доля циклов duty = 1 (по умолчанию кода; в игре из погоды, док ~0,71 живых) — абсолютная густота источников занижена на постоянный множитель; на области 400 м источник почти в каждом столбце (≤ 6,25/км², как в доке игры)",
+      "checked": "th_src_density_km2 1–6,25; число на случай 1000–7400"
+    },
+    {
+      "where": "features.py ref_case_id",
+      "why": "только точное совпадение Fr ±1 %: у RELAX 513 из 1053 без опоры (точек 0,2; 0,25; 0,7023… в GRID нет), у SEPARATION 400 м (Fr = 3) — 92 из 100 без опоры (в GRID нет Fr = 3)",
+      "checked": "по сериям: SWEEP 2916/2916, ENVELOPE 300/300, ENVELOPE_REAL 606/707, RELAX 540/1053"
+    }
+  ],
+  "dp_feedback": "dp lock cpu запускает задание как dp job (лог в ~/.cache/deltaplan-jobs), но в выводе не сказано, что команда возвращается сразу, а ожидание — dp job wait <имя>; первый запуск я ждал как синхронный. Было бы удобно `dp lock cpu --wait`.",
+  "extra": {
+    "metrics_th": "th_wconv_src (код), th_cand_frac (1, игра), th_n_src (шт, игра), th_src_density_km2 (1/км², игра), th_phi_mean_ms (м/с, игра), th_wbar_pos_mean_ms (м/с, игра), th_org_frac (1, игра), th_carried_frac (1, игра), th_wstar_mean_ms (м/с, игра), th_w0_mean_ms / th_w0_max_ms (м/с, игра: 1,24 w*), th_radius_mean_m (м, игра: Аллен), th_ceil_agl_mean_m / th_ceil_msl_mean_m (м, игра: частица), th_ceil_over_zi (1, физика), th_ceil_capped_frac (1), th_drift_mean_ms / along / cross (м/с, игра), th_drift_zi_ms (м/с, P6: слой 0..z_i), th_src_top_dist_m (м), th_src_relief_frac (1), th_src_relief_ratio (1), th_src_x_mean_over_h (1), th_phi_x_over_h (1, физика)",
+    "metrics_sl": "sl_area_km2 (км², порог 1 м/с — min_sink крыльев игры, слой 50–300 м, e·∇h > 0,02), sl_w_mean_ms, sl_w_max_ms (м/с, игра: пилоту w поля), sl_w_max_over_us (1, физика: против U·tg s), sl_x_peak_over_h (1), sl_ceil_agl_m (м)",
+    "metrics_lee": "lee_area25_km2 / lee_area100_km2 (км², игра: признак отрыва ≥ ½), lee_depth_max_m / lee_depth_mean_m (м, игра), lee_len_over_h (1), lee_wmin_ms (м/с), lee_desc_max (1, игра s_d), lee_du_mean_ms / lee_du_max_ms (м/с, игра ΔU), lee_sigw_max_ms (м/с, игра 0,14 ΔU), lee_rev_area25_km2 (км², физика: разрешённое обратное течение), lee_urev_min_over_us (1, физика)",
+    "extra_columns": "w100_sl_*, w100_lee_* (окно 100 м, 50 случаев SEPARATION), ref400_case_id, mech_case_id, ref_iou_th/sl/lee, relief_name, bub_* (P3 bubble)",
+    "build_seconds": {
+      "ap_v1": 189.7,
+      "ap_v2": 9.1
+    },
+    "size_mb": {
+      "ap_v1": 1.53,
+      "ap_v2": 0.12
+    },
+    "tables": "/home/greg/deltaplan-air-phase-AP-6/tools/research/air_phase/out/features_ap_v1.h5, features_ap_v2.h5 (не в git)"
+  },
+  "t": "2026-10-06T14:02:30",
+  "by": "executor"
+}

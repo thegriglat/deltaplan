@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чистый (5 файлов из карточки), контракт P6 v1 выполнен: сигнатуры layer_metrics/layer_diff/fit_sigmoid, поля таблицы, атрибуты. Формулы термиков (w*, w_m, F̄, Φ, потолок частицы, Аллен, водосбор) и признак отрыва совпадают с air_thermals.gd/field_turbulence.gd; отступления и свои пороги помечены. Тесты синтетические, ответ известен заранее, сами себя не проверяют. Таблицы без inf/NaN у сошедшихся случаев.",
+  "issues": [
+    {
+      "file": "tools/research/air_phase/features.py",
+      "line": 196,
+      "severity": "minor",
+      "what": "Близнец H = 0 берётся как w_mech без проверки его status: если близнец разошёлся (status 2), w_conv и sl_/lee_ нагретого случая молча считаются по мусорному полю. Сейчас таких 0 в ap_v1 и ap_v2, но на новых планах может всплыть.",
+      "fix": "Не брать близнеца со status 2 (mech_case_id = −1, th_wconv_src = 2)."
+    },
+    {
+      "file": "tools/research/air_phase/layer_metrics.py",
+      "line": 214,
+      "severity": "minor",
+      "what": "«Вершина» = центроид клеток hc ≥ max − 2 %. Для реального рельефа CORPUS (ENVELOPE_REAL, hg_*) с несколькими гребнями метрики от вершины плохо определены: lee_len_over_h доходит до 12,6 (hg_0231); то же касается th_src_x_mean_over_h, sl_x_peak_over_h, th_src_top_dist_m.",
+      "fix": "Пометить в NAMES/README, что эти метрики осмысленны только для одиночных форм; для CORPUS в разборе AP-8…AP-11 их не использовать (или писать NaN)."
+    },
+    {
+      "file": "tools/research/air_phase/features.py",
+      "line": 274,
+      "severity": "minor",
+      "what": "После ветвления вышел P6 v2 (c8317b2b): таблица должна лежать в $AIR_SYNTH_DATA/phase/features_<plan>.h5. Сейчас --out по умолчанию пишет в out/, а копия задачи удалится вместе с out/. Это не ошибка исполнителя (у него на карточке v1), но при слиянии нужно учесть.",
+      "fix": "Координатору: после dp task sync / слияния перенести обе таблицы в $AIR_SYNTH_DATA/phase/ (или сменить умолчание --out) и поправить путь в README."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tests (dp accept --only tests --dry)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "features_v2 (dp accept --only features_v2 --dry)",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "сверка таблиц ap_v1/ap_v2",
+      "value": "7686/296 строк; status 2: 0; разошедшихся близнецов/опор: 0; inf: 0; th_wconv_src 0/1/2 = 2821/4333/532 (как в отчёте)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-06T14:05:41",
+  "by": "reviewer"
+}
