@@ -54,6 +54,8 @@ class D:
     THIGH, SHIN, FOOT = 0.43, 0.45, 0.15
     SHOULDER_X, SHOULDER_DOWN, SHOULDER_FWD = 0.19, 0.1, 0.0
     HIP_X, HIP_DOWN, HIP_FWD = 0.11, 0.0, 0.0
+    LEG_SPLAY = 6.0                    # ноги врозь в позах на земле, ° (configs/pilot.json → run_anim)
+    RUN_AMP, RUN_KNEE = 42.0, 85.0     # бег: размах бедра, сгиб колена, ° (configs/pilot.json → run_anim)
     SPLAY_TH, SPLAY_SH = 6.0, 6.0      # ноги врозь (от вертикали во фронтальной плоскости), °
     EYE_UP, EYE_FWD = 0.16, 0.09
     ANKLE_H = 0.09                      # голеностоп над подошвой
@@ -221,21 +223,22 @@ def poses(cf: dict, eye: Vector) -> dict:
     feet_z = -1.95
     hip_z = feet_z + D.THIGH + D.SHIN + 0.07
     pole_down = Vector((0, -0.3, -1))
+    sf = min(1.0, D.LEG_SPLAY / max(D.SPLAY_TH, 1e-3))  # доля развода меша MPFB (D.SPLAY_TH — по мешу)
     stand_hands = [up(-0.52, -1), up(-0.52, 1)]
 
     def grounded(hips_y: float, lean: float, head: float, legs: list) -> Pose:
         """Поза на земле: стопы горизонтально, нижняя подошва — на 2,0 м ниже карабина."""
         legs = [(th, kn, 90 + lean - th + kn + ft) for th, kn, ft in legs]
-        p = Pose((0, hips_y, hip_z), lean, head, legs, stand_hands, pole_down, grips=ug)
+        p = Pose((0, hips_y, hip_z), lean, head, legs, stand_hands, pole_down, grips=ug, splay=sf)
         low = min(p.bones()["Foot." + s][0].z for s in ("L", "R"))
         return Pose((0, hips_y, hip_z - 2.0 + D.ANKLE_H - low), lean, head, legs, stand_hands,
-                    pole_down, grips=ug)
+                    pole_down, grips=ug, splay=sf)
 
     def standing(t: float, kind: str) -> Pose:
         ph = 2 * math.pi * t
         if kind == "stand":   # корпус вперёд, колени чуть согнуты, ноги впереди таза
             return grounded(0.12, 32, 34, [(34, 36, 0), (26, 30, 0)])
-        amp, knee, lean = (24, 40, 26) if kind == "walk" else (42, 85, 40)
+        amp, knee, lean = (24, 40, 26) if kind == "walk" else (D.RUN_AMP, D.RUN_KNEE, 40)
         legs = []
         for phase in (0.0, math.pi):
             s_ = math.sin(ph + phase)
@@ -274,7 +277,7 @@ def poses(cf: dict, eye: Vector) -> dict:
             legs.append((8 + 40 * k * s_, 20 + 70 * k * max(0.0, c_) ** 1.5 + 10 * (1 - k),
                          90 - 12 * k * s_))
         run_air.append(Pose((0, 0.2, hip_z - 0.1 + 0.05 * t), 40 + 10 * t, 30, legs,
-                            stand_hands, pole_down, grips=ug))
+                            stand_hands, pole_down, grips=ug, splay=sf))
     out["run_air"] = run_air
     # заползание в кокон: корпус ложится, ноги подтягиваются назад в кокон, руки по очереди
     # перехватывают со стоек на базовую штангу (1,5 с)
@@ -952,6 +955,9 @@ REST_HIPS = Vector((0, 0.2, 0))
 def main() -> None:
     global REST_HIPS
     params = U.load_json("tools/blender/glider_params.json")
+    ra = U.load_json("configs/pilot.json")["visual"]["run_anim"]
+    D.LEG_SPLAY = float(ra["leg_splay_deg"])
+    D.RUN_AMP, D.RUN_KNEE = float(ra["thigh_amp_deg"]), float(ra["knee_flex_deg"])
     cf = params["control_frame"]
     eye = Vector(params["pilot_eye"])
     U.reset_scene()

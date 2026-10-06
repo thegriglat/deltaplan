@@ -26,7 +26,7 @@ const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 ## Стоя (stand/walk/run из pilot.glb) ступни на ~0,3 м позади таза, ноги наклонены ~19°, глаза
 ## на ~0,7 м впереди ступней: взгляд вниз не достаёт до ног. Модель на земле чуть отклоняется
 ## назад вокруг хвата рук на стойках (руки остаются на стойках, ступни выходят под корпус).
-const GROUND_LEAN_BACK_DEG := 15.0
+## Откидывание корпуса назад на земле и наклон на разбеге — pilot.json → visual.run_anim.
 ## Хват рук на стойках в позе stand относительно карабина, м (+Y вверх, −Z вперёд).
 const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
 ## Середина ступней (кости Foot) в позе stand относительно карабина без наклона, м.
@@ -58,6 +58,7 @@ var _hang := Vector3.ZERO  ## точка подвески в координат�
 var _head: Node3D
 var _pose := Transform3D.IDENTITY
 ## Модель сама встаёт анимацией stand (docs/guide/models.md → «Пилот»); иначе (заглушка) — поворот.
+var _run_blend := 0.0  ## 0..1: доля наклона разбега (run_anim.run_lean_back_deg), плавно по времени
 var _animated_stand := false
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
@@ -302,6 +303,7 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 	)
 	if flying:
 		shift *= lerpf(1.0, _reach_scale(shift), arm_bar)
+	_update_run_lean(flying, dt)
 	var target := _flight_pose(shift) if flying else _ground_pose(shift)
 	var k := 1.0 - exp(-dt / float(_cfg.input_smoothing_s))
 	_pose = Transform3D(
@@ -542,7 +544,7 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 
 ## На земле: стоит под крылом, ноги на земле. Модель со скелетом ставит тело вертикально сама
 ## (анимации stand/walk/run: подошвы на hang_height_m ниже карабина) — на 90° не поворачиваем,
-## только сдвиг по крену и небольшой наклон назад вокруг хвата (GROUND_LEAN_BACK_DEG), ступни
+## только сдвиг по крену и небольшой наклон назад вокруг хвата (pilot.json → visual.run_anim.lean_back_deg), ступни
 ## остаются на той же высоте. Заглушка без анимаций лежит — её поворачиваем вокруг центра тела.
 ## Тело стоит вертикально к горизонту, а не к крылу: тангаж крыла (киль задран на угол атаки,
 ## 16–37°) снимается поворотом вокруг ступней — иначе пилот «сидит», отклонившись назад вместе с
@@ -551,7 +553,13 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 	var pose: Transform3D
 	var feet: Vector3
 	if _animated_stand:
-		var lean := Basis(Vector3.RIGHT, deg_to_rad(GROUND_LEAN_BACK_DEG))
+		var ra: Dictionary = _pcfg.get("run_anim", {})
+		var back := lerpf(
+			float(ra.get("lean_back_deg", 15.0)),
+			float(ra.get("run_lean_back_deg", 15.0)),
+			_run_blend
+		)
+		var lean := Basis(Vector3.RIGHT, deg_to_rad(back))
 		var o := GROUND_GRIP - lean * GROUND_GRIP  # хват на месте
 		o.y += GROUND_FEET.y - (lean * GROUND_FEET + o).y  # ступни на прежней высоте
 		pose = Transform3D(lean, _hang + o)
@@ -567,6 +575,16 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 	if _animated_stand and arm_ik != null and wing != null:
 		out.origin += _ground_slide(out, feet)
 	return out
+
+
+## Доля наклона разбега: растёт, пока играет анимация run на земле, и спадает при любой другой
+## (отрыв, остановка); экспонента с run_anim.lean_smooth_s, dt большой — сразу.
+func _update_run_lean(flying: bool, dt: float) -> void:
+	var anim := String(_anim.assigned_animation) if _anim != null else ""
+	var want := 1.0 if anim == "run" and not flying else 0.0
+	var tau := float(_pcfg.get("run_anim", {}).get("lean_smooth_s", 0.6))
+	var k := 1.0 if tau <= 0.0 or dt > 10.0 else 1.0 - exp(-minf(dt, 1.0) / tau)
+	_run_blend = lerpf(_run_blend, want, k)
 
 
 ## Горизонталь мира «вперёд вдоль курса крыла» в осях визуала (визуал наклонён на тангаж).
