@@ -710,11 +710,18 @@ static func _phase_names() -> Array:
 	return PHASE_ORDER
 
 
-## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv_mech_w (AP-19), до него —
+## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv.mech_w (AP-19), до него —
 ## air_model.nonconv_mech_w.
 func _nonconv_w() -> float:
+	return float(phase_cfg("nonconv", "mech_w", _cfg.get("nonconv_mech_w", 1.0)))
+
+
+## Ключ блока air_phase (AP-19, контракт P12 «Ключи конфига»): air_phase.<group>.<key>, нет —
+## временный ключ air_model (fallback).
+static func phase_cfg(group: String, key: String, fallback: Variant) -> Variant:
 	var ap: Dictionary = Config.get_config("atmosphere").get("air_phase", {})
-	return float(ap.get("nonconv_mech_w", _cfg.get("nonconv_mech_w", 1.0)))
+	var g: Variant = ap.get(group, {})
+	return (g as Dictionary).get(key, fallback) if g is Dictionary else fallback
 
 
 ## Колонны запасного пути (P12 v2): не заморожены и вес H + D > порога (веса до заморозки).
@@ -761,14 +768,15 @@ func _start_picard(c: AirCase) -> void:
 		_job.omega_map = _phase.get("omega", PackedFloat32Array())
 		_job.freeze_mask = _phase.get("freeze", PackedByteArray())
 		_job.freeze_field = _phase.get("mech_field", {})
-	_job.late_from = int(_cfg.get("nonconv_late_from", 0))
+	_job.late_from = int(phase_cfg("nonconv", "late_from", _cfg.get("nonconv_late_from", 0)))
 	if not _phase.is_empty():
 		_job.nonconv_mask = nonconv_mask(_phase, _nonconv_w())
 		var nf: Dictionary = _phase.get("warm", {}).duplicate()
 		nf.merge(_phase.get("mech_field", {}), true)
 		_job.nonconv_field = nf
 	_job.omega_fallback = Vector2(
-		float(_cfg.get("omega_fallback_iters", 0)), float(_cfg.get("omega_fallback_value", 1.0))
+		float(phase_cfg("omega", "fallback_iters", _cfg.get("omega_fallback_iters", 0))),
+		float(phase_cfg("omega", "fallback_omega", _cfg.get("omega_fallback_value", 1.0)))
 	)
 	var t_start := Time.get_ticks_usec()
 	if not _job.start(_gpu):
