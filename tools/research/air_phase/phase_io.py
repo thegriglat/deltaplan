@@ -162,7 +162,9 @@ def numerics_kwargs(nm):
                 tol=float(nm.tol) if nm.tol > 0 else None, max_outer=int(nm.max_outer), snap_from=int(nm.snap_from),
                 snap_step=int(nm.snap_step), late_from=int(nm.late_from), late_step=int(nm.late_step),
                 envelope_angle_deg=float(nm.envelope_angle_deg), envelope_wall=WALL[nm.envelope_wall],
-                envelope_z0_m=float(nm.envelope_z0_m) if nm.envelope_z0_m > 0 else None)
+                envelope_z0_m=float(nm.envelope_z0_m) if nm.envelope_z0_m > 0 else None,
+                top_above_m=float(nm.top_above_m) if nm.top_above_m > 0 else 3000.0,      # P2 v5: 0 в старых планах = 3000
+                sponge_top_m=float(nm.sponge_top_m) if nm.sponge_top_m > 0 else 1000.0)
 
 
 # ------------------------------------------------------------------ результаты: чтение

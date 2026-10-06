@@ -200,3 +200,22 @@ def test_window_100m():
     assert abs(m["brink_x_m"] - (-a * math.atanh(1 / math.sqrt(3)))) < 300.0      # бровка tanh-уступа: z'' min при x = −0,658a
     assert w["fields"].shape == (4, 13, m["ny"], m["nx"]) and np.isfinite(w["fields"]).all()
     assert w["status"] in ("ok", "max")
+
+# ------------------------------------------------------------------ P4 v4: верх области и губка
+def test_top_sponge_default_bitwise():
+    """top_above_m / sponge_top_m по умолчанию — та же сетка и побитно то же поле, что без опций; другие — меняют счёт."""
+    import real as R
+    sp = spec_fr("ridge", 0.3, 0.6, h_over_zi=1.0)
+    st = BS._Setup(0, sp, BS.Numerics())
+    g0, h0 = R.grid_domain(st.loc, 400)
+    g1, h1 = BS.grid_domain(st.loc, 400, top_above=BS.Numerics().top_above_m)
+    key = lambda g: (g.dx, g.nx, g.ny, g.dz, g.z_bot, g.nz, g.x0, g.y0)
+    assert key(g0) == key(g1) and np.array_equal(h0, h1) and st.prm == A.Params()
+    g2, _ = BS.grid_domain(st.loc, 400, top_above=4500.0)
+    assert g2.nz > g0.nz and g2.z_bot == g0.z_bot
+    nums = [BS.Numerics(max_outer=120, late_from=100), BS.Numerics(max_outer=120, late_from=100, top_above_m=3000.0, sponge_top_m=1000.0),
+            BS.Numerics(max_outer=120, late_from=100, top_above_m=4500.0, sponge_top_m=2000.0)]
+    res = [BS.solve_batch([sp], nm)[0] for nm in nums]
+    assert np.array_equal(res[0].fields, res[1].fields) and res[0].iters == res[1].iters
+    assert not np.array_equal(res[0].fields, res[2].fields)
+    assert BS._Setup(0, sp, nums[2]).prm.sponge_top_m == 2000.0
