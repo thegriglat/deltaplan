@@ -2,7 +2,7 @@
 type: "guide"
 status: "active"
 module: "air-model"
-updated: "2026-10-03"
+updated: "2026-10-06"
 summary: "Модель воздуха в трёх масштабах — Среднее поле воздуха (решение Пикара, масштаб 1) в игре читается на CPU: air_velocity_at зовут физика крыла (3 точки × 120 Гц), боты, птицы, колдун."
 related: []
 ---
@@ -136,6 +136,8 @@ related: []
 | `recompute_game_min` | 15 | пересчёт поля по игровому времени, мин (и при смене ветра/погоды) |
 | `timeout_s` | 60 | предел одного расчёта поля, с стены; превышен — аналитика (загрузка) / прежнее поле (полёт) |
 | `max_speed_ms`, `max_w_ms` | 40, 10 | ограничители |
+| `omega_fallback_iters`, `omega_fallback_value` | 300, 0,5 | запасное правило ω Пикара (P11): нет сходимости к N итерациям → ω := 0,5 |
+| `hybrid_checks` | — | допуски и места проверки P14 (гибрид против холодного Пикара), до `air_phase.checks` |
 
 API атмосферы: `set_air_field(поле | [уровни] | null, blend_s = -1)` (−1 — `blend_s` из конфига),
 `set_air_mode("auto" | "on" | "off")` (отладка «поле/аналитика», замеры), `is_air_field_on()`,
@@ -153,13 +155,32 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
 (`docs/contracts/air-model.md`). Один уровень — область 400 м (38,4 × 38,4 км вокруг центра
 места); окна 100/50 м вокруг пилота добавит AM-04 тем же путём.
 
-**Нейросеть вместо решателя (`air_model.engine = "nn"`, ON-5, O5/O6).** Тот же узел и те же сроки; проход — одна
-задача рабочего потока (`AirNnField.run_pass`): `AirPlace.domain_case` → `AirNnInput` (строка, страж области) →
-`AirNnPrep` (карты, числа) → `AirOnnx.run` (CPU) → `to_physical` → `WindField` на сетке решателя (13 AGL → центры
-клеток по высоте, выше 2 км отклонения от притока гаснут к 3 км). Окон нет (один уровень), GPU не нужен, работает
-headless; два прохода k — как у решателя. Файл сети: `--air-nn-model=` → `user://air_nn/model.onnx` →
-`air_model.nn_model`. Отказ (нет расширения, файла, формат ≠ O1, ORT, NaN) — `air_model: analytic (нейросеть: …)`.
-Как вставить сеть и полетать — `data/air_nn/README.md`. Замер: `tools/air_onnx/nn_load_probe.sh <model.onnx>`. Пункт настроек «Ветер над рельефом»: расчёт / упрощённый / нейросеть.
+**Конвейер: фазы → Пикар → проекция (air-phase P11/P12, AP-20; сети в игре нет).** Проход: `AirPlace.domain_case`
+(рабочий поток) → фазы `AirPhaseJob` (P10, AP-19: веса фаз A/B/C/D/F/G/H, карта ω, колонны механизмов, тёплый старт
+из сборки; GPU — порциями `start/poll/is_done/result` на главном потоке, нет GPU-пути — `run(case)` в рабочем потоке) →
+`AirPicardJob` (mech = true) с `warm` — от прошлого поля при пересчёте в полёте и от прохода 1 при проходе 2 загрузки
+(дешевле сборки: −56 % итераций, AM-03), иначе от сборки фаз; `omega_map` (ω по колоннам), `freeze_mask` +
+`freeze_field` (колонны H/F/G/сильного D держат поле механизма), `omega_fallback` = (`omega_fallback_iters`,
+`omega_fallback_value`) из конфига → проекция-сшивка (finalize V-циклами) → `WindField` (C3 без изменений) → окна
+100/50 м как раньше (тёплый старт окон — от поля области).
+- **P11 в `AirPicardJob`.** ω — недорелаксация по колоннам, как research P4 v6 (`tools/research/air_phase/batch_solver.py`):
+  перед замыканием K копируется, после — K ← K_old + ω(K* − K_old); перед импульсом копируются u, v, w, после проекции —
+  u ← u_old + ω(u* − u_old); ω на гранях u/v — среднее двух колонн (ядро `air_picard:relax`). Заморозка: после шага
+  тепла u, v (грань — если заморожены обе колонны), w, θ′, θ′_d, K замороженных колонн переписываются полем механизма
+  (`air_picard:freeze`); каналов нет в `freeze_field` — снимок после старта. Невязки и ∇·u критерия — только по
+  незамороженным (`air_picard:rmask`, числа неизвестных пересчитаны на CPU). Запасное правило: к N итерациям решения нет
+  сходимости → ω := min(ω, ω_fb) везде (один раз на задачу). Все новые поля пусты (`omega_fallback = (0, 0)` — по
+  умолчанию) — программы GPU те же, поле побитно прежнее. Итог: `results[]` + `omega_fallback_used`,
+  `omega_switch_iter`, `frozen_frac`; `phase_gpu_ms` = {init, iter, final} — GPU-время старта, итераций, проекции.
+- **Без GPU** (headless, нет RD, ядра не собрались): поле — только сборка фаз на CPU (`AirRuntime.assembly_field`:
+  warm P10 → `WindField`, типы клеток — `cell_codes` на CPU), один уровень, строка `air_model: фазы без Пикара (<причина>)`;
+  кода фаз нет — аналитика.
+- `last_info`: `engine` ("phase+picard" | "picard" — фаз нет | "phase" — без GPU), `phase_frac`, `phase_ms`,
+  `omega_fallback_used`, `frozen_frac`, `iters`, `picard_ms`; журнал — строка `air_model: поле (фазы+Пикар) итераций …,
+  фазы …`. `AirRuntime.phase_map` — карта фаз поданного поля для слоя F4.
+- Проверки: `tests/atmosphere/test_air_runtime.gd` (без GPU), `test_air_runtime_gpu.gd`, `test_air_picard_gpu.gd`
+  (P11), `test_air_hybrid_gpu.gd` (P14: гибрид = холодный Пикар в A/B/C-клетках, время → `build/dp/AP-20/timing.json`).
+  Пункт настроек «Ветер над рельефом»: расчёт / упрощённый.
 
 **Загрузка.** Этап «Рассчитываем ветер» / "Computing wind" (`LoadProgress`, ключ `wind`, вес в
 `configs/ui.json → loading.stage_weights`) — после этапа «Камни, кусты и дороги», когда известен
@@ -265,6 +286,9 @@ godot --path . -- --location=ongudai --wind=3 --from=180 --hour=12 \
   окне поля: 16,8 → 25,4 мкс (×1,5). `tools/bench/air_velocity_bench.gd`.
 
 ### Отладка: срезы и F3 (AM-10)
+- **Карта фаз (F4, AP-20):** `WindFieldDebug` — в углу экрана область 400 м, клетка — цвет фазы с наибольшим весом
+  (`AirRuntime.phase_map`: A зелёный, B жёлтый, C синий, D коричневый, F оранжевый, G фиолетовый, H серый), белая точка —
+  пилот; текстура ny×nx собирается раз на новое поле, выключено — ничего не считается.
 - **Срезы (WF-09):** `tools/wind_field/dump_slices.gd` + `.tscn` — headless-инструмент, без окна.
   Читает поле из файла (`WindField.load_file`, тот же формат, что `--air-field`) и рисует три PNG:
   два горизонтальных среза (20 и 200 м AGL; цвет — разгон |Gₕ|/U₀ − 1, редкая сетка стрелок
