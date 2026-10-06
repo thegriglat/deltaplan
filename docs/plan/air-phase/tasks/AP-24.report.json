@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Сайт (ru+en): общая страница air-model переписана под три уровня и обоснование разделения; новые wind-phases (уровень 1: фазы A–H, Пикар, сшивка) и turbulence (уровень 3: болтанка, ротор, калибровка lee AP-10, границы); thermals обновлена под уровень 2. _index и slope-wind со ссылками. Нейросеть — одной строкой. Пороги и коэффициенты не перечислены.",
+  "commits": [
+    "cd4d9b7e Сайт: модель воздуха — три уровня..."
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "0 WARN/ERROR",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept AP-24",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/wind-phases.*.md",
+      "why": "игровой код фаз (AP-19/20) в копии ещё не влит; описано по контрактам P10–P12 и исследованиям",
+      "checked": "сверено с docs/contracts/air-phase.md, air_phase*.md, плана §9"
+    },
+    {
+      "where": "air-model.*.md (время загрузки)",
+      "why": "прежние 3,3–3,9 с заменены на «несколько секунд»: с фазами не измерялось",
+      "checked": "-"
+    },
+    {
+      "where": "turbulence.*.md",
+      "why": "калибровка lee — по atmosphere.md (AP-10), без чисел конфигурации; 'нагрев гасит ротор' — из того же раздела",
+      "checked": "atmosphere.md"
+    }
+  ],
+  "dp_feedback": "Не хватило: dp docs/plan выдают большие файлы целиком (вывод усекается) — нужен dp docs show <файл> <раздел> с лимитом символов на строку.",
+  "t": "2026-10-06T21:01:49",
+  "by": "executor"
+}
