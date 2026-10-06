@@ -45,6 +45,11 @@ def select():
     pic_m = ~full
     pic_h = ~full & (S["f_frac"] < 0.5)
     sel = []
+    # доработка по ревью: и случаи, которые рекомендованный конфиг отдаёт механизмам (H, сильное D, F) — все не-ok
+    for dec, lab, pic in ((0, lm, pic_m), (1, lh, pic_h)):
+        for i in np.nonzero((lab != 0) & ~pic)[0]:
+            sel.append(dict(case=int(S["case"][i]), decision=dec, group="mech_" + ("hard" if lab[i] == 2 else "uncertain"),
+                            omega_band=bool(om[i] < 1)))
     for dec, lab, pic in ((0, lm, pic_m), (1, lh, pic_h)):
         for grp, m in (("hard", (lab == 2) & pic), ("uncertain", (lab == 1) & pic)):
             for i in np.nonzero(m)[0]:
@@ -56,7 +61,7 @@ def select():
     hard_m = [r for r in sel if r["group"] == "hard" and r["decision"] == 0]
     for r in [hard_m[i] for i in rng.choice(len(hard_m), size=min(8, len(hard_m)), replace=False)]:
         sel.append(dict(r, group="repro_omega1"))           # тот же путь при ω = 1, 1000 итераций: воспроизводит ли S5
-    order = {"repro_omega1": 0, "hard": 1, "ctrl_ok_band": 2, "uncertain": 3}
+    order = {"repro_omega1": 0, "hard": 1, "ctrl_ok_band": 2, "uncertain": 3, "mech_hard": 4, "mech_uncertain": 5}
     sel.sort(key=lambda r: (order[r["group"]], r["case"], r["decision"]))
     from collections import Counter
     info = Counter((r["group"], "mh"[r["decision"]]) for r in sel)

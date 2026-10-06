@@ -1,7 +1,7 @@
 {
  "task": "AP-23",
  "contract": "P15 v1",
- "seconds": 12.2,
+ "seconds": 15.5,
  "inputs": {
   "sy12": "/home/greg/air_synth_data/solve/hg_v2__hgw24__s0-939a467",
   "conditions": "/home/greg/air_synth_data/conditions/hg_v2_hgw24",
@@ -269,17 +269,17 @@
    "ap_v1_grid": {
     "A": {
      "A": 1109,
-     "D": 356,
+     "D": 427,
      "H": 159,
-     "Ds": 243,
+     "Ds": 172,
      "F": 0,
      "G": 0
     },
     "D": {
      "A": 25,
-     "D": 48,
+     "D": 57,
      "H": 2,
-     "Ds": 32,
+     "Ds": 23,
      "F": 0,
      "G": 0
     },
@@ -293,9 +293,9 @@
     },
     "F": {
      "A": 0,
-     "D": 1,
+     "D": 2,
      "H": 79,
-     "Ds": 8,
+     "Ds": 7,
      "F": 0,
      "G": 0
     },
@@ -311,25 +311,25 @@
    "ap_v2": {
     "A": {
      "A": 91,
-     "D": 106,
-     "H": 0,
-     "Ds": 5,
-     "F": 0,
-     "G": 0
-    },
-    "D": {
-     "A": 0,
-     "D": 1,
+     "D": 109,
      "H": 0,
      "Ds": 2,
      "F": 0,
      "G": 0
     },
+    "D": {
+     "A": 0,
+     "D": 2,
+     "H": 0,
+     "Ds": 1,
+     "F": 0,
+     "G": 0
+    },
     "N": {
      "A": 0,
-     "D": 11,
+     "D": 15,
      "H": 0,
-     "Ds": 38,
+     "Ds": 34,
      "F": 0,
      "G": 0
     },
@@ -343,9 +343,9 @@
     },
     "?": {
      "A": 2,
-     "D": 13,
+     "D": 17,
      "H": 0,
-     "Ds": 11,
+     "Ds": 7,
      "F": 0,
      "G": 0
     }
@@ -369,9 +369,9 @@
     },
     "N": {
      "A": 0,
-     "D": 6,
+     "D": 7,
      "H": 0,
-     "Ds": 3,
+     "Ds": 2,
      "F": 0,
      "G": 0
     },
@@ -403,9 +403,9 @@
     },
     "D": {
      "A": 0,
-     "D": 0,
+     "D": 1,
      "H": 0,
-     "Ds": 2,
+     "Ds": 1,
      "F": 0,
      "G": 0
     },
@@ -437,9 +437,9 @@
    "eroded": {
     "A": {
      "A": 81,
-     "D": 38,
+     "D": 41,
      "H": 1,
-     "Ds": 9,
+     "Ds": 6,
      "F": 0,
      "G": 0
     },
@@ -568,26 +568,26 @@
   "recommended": {
    "m": {
     "A": {
-     "A": 2401,
-     "D": 679,
+     "A": 2409,
+     "D": 711,
      "H": 21,
-     "Ds": 173,
+     "Ds": 133,
      "F": 0,
      "G": 0
     },
     "D": {
      "A": 1156,
-     "D": 2168,
+     "D": 2192,
      "H": 9,
-     "Ds": 85,
+     "Ds": 61,
      "F": 0,
      "G": 0
     },
     "N": {
      "A": 2,
-     "D": 95,
-     "H": 91,
-     "Ds": 284,
+     "D": 111,
+     "H": 92,
+     "Ds": 267,
      "F": 0,
      "G": 0
     },
@@ -600,36 +600,36 @@
      "G": 0
     },
     "?": {
-     "A": 18,
-     "D": 98,
+     "A": 19,
+     "D": 106,
      "H": 4,
-     "Ds": 36,
+     "Ds": 27,
      "F": 0,
      "G": 0
     }
    },
    "h": {
     "A": {
-     "A": 2645,
-     "D": 1023,
+     "A": 2653,
+     "D": 1059,
      "H": 21,
-     "Ds": 205,
-     "F": 14,
+     "Ds": 159,
+     "F": 16,
      "G": 0
     },
     "D": {
      "A": 909,
-     "D": 1856,
+     "D": 1876,
      "H": 4,
-     "Ds": 88,
-     "F": 1,
+     "Ds": 67,
+     "F": 2,
      "G": 2
     },
     "N": {
      "A": 2,
-     "D": 75,
-     "H": 86,
-     "Ds": 253,
+     "D": 90,
+     "H": 87,
+     "Ds": 237,
      "F": 1,
      "G": 1
     },
@@ -642,10 +642,10 @@
      "G": 0
     },
     "?": {
-     "A": 7,
-     "D": 66,
+     "A": 8,
+     "D": 72,
      "H": 3,
-     "Ds": 28,
+     "Ds": 21,
      "F": 0,
      "G": 0
     }
@@ -829,6 +829,8 @@
  },
  "err_nonpicard_to_picard": {
   "ap18": {
+   "sy12_m_omega05": 0.12340425531914893,
+   "sy12_h_omega05": 0.12301587301587301,
    "sy12_m_cases": 0.19915254237288135,
    "sy12_h_cases": 0.15625,
    "sy12_m_cells": 0.19915254237288135,
@@ -843,15 +845,17 @@
    }
   },
   "recommended": {
-   "sy12_m_cases": 0.2055084745762712,
-   "sy12_h_cases": 0.19642857142857142,
-   "sy12_m_cells": 0.2055084745762712,
-   "sy12_h_cells": 0.1952359638516865,
-   "in_omega_band": 0.9484536082474226,
+   "sy12_m_omega05": 0.09787234042553192,
+   "sy12_h_omega05": 0.14285714285714285,
+   "sy12_m_cases": 0.23940677966101695,
+   "sy12_h_cases": 0.22991071428571427,
+   "sy12_m_cells": 0.23940677966101695,
+   "sy12_h_cells": 0.22871810670882936,
+   "in_omega_band": 0.9557522123893806,
    "ideal": {
-    "ap_v1_grid": 0.002369668246445498,
-    "ap_v2": 0.4153846153846154,
-    "ap_v3_ctrl": 0.6666666666666666,
+    "ap_v1_grid": 0.004739336492890996,
+    "ap_v2": 0.47692307692307695,
+    "ap_v3_ctrl": 0.7777777777777778,
     "ap_v3_omega": 0.75,
     "eroded": 0.0
    }
@@ -859,6 +863,8 @@
  },
  "err_picard_to_nonpicard": {
   "ap18": {
+   "sy12_m_omega05": 0.15956378246520303,
+   "sy12_h_omega05": 0.1671675969657936,
    "sy12_m_cases": 0.13927077106993424,
    "sy12_h_cases": 0.14819739952718677,
    "sy12_m_cells": 0.13927077106993424,
@@ -872,16 +878,18 @@
    }
   },
   "recommended": {
-   "sy12_m_cases": 0.04303646144650329,
-   "sy12_h_cases": 0.04920212765957447,
-   "sy12_m_cells": 0.04303646144650329,
-   "sy12_h_cells": 0.04878474146104216,
+   "sy12_m_omega05": 0.0482135170038743,
+   "sy12_h_omega05": 0.05381422642049521,
+   "sy12_m_cases": 0.03347280334728033,
+   "sy12_h_cases": 0.03974586288416076,
+   "sy12_m_cells": 0.03347280334728033,
+   "sy12_h_cells": 0.03919705951310908,
    "ideal": {
-    "ap_v1_grid": 0.22087132725430597,
-    "ap_v2": 0.03414634146341464,
+    "ap_v1_grid": 0.18034447821681865,
+    "ap_v2": 0.014634146341463415,
     "ap_v3_ctrl": 0.0,
-    "ap_v3_omega": 0.06896551724137931,
-    "eroded": 0.08
+    "ap_v3_omega": 0.034482758620689655,
+    "eroded": 0.06
    }
   }
  },
@@ -948,69 +956,137 @@
      "cells_nonpicard_to_picard": 0.0,
      "cells_picard_to_nonpicard": 0.04666666666666667
     }
+   },
+   "sy12_omega05": {
+    "m": {
+     "nonpicard_to_picard_1000": 0.12340425531914893,
+     "picard_to_nonpicard_1000": 0.15956378246520303,
+     "n_nonpicard_1000": 235,
+     "n_picard_1000": 6969,
+     "n_uncertain_1000": 116,
+     "n_nonpicard_sent_to_picard_1000": 29,
+     "n_picard_sent_to_mech_1000": 1112,
+     "nonpicard_to_picard_2000": 0.0966183574879227,
+     "picard_to_nonpicard_2000": 0.1616407031584965,
+     "n_nonpicard_2000": 207,
+     "n_picard_2000": 6997,
+     "n_uncertain_2000": 116,
+     "n_nonpicard_sent_to_picard_2000": 20,
+     "n_picard_sent_to_mech_2000": 1131
+    },
+    "h": {
+     "nonpicard_to_picard_1000": 0.12301587301587301,
+     "picard_to_nonpicard_1000": 0.1671675969657936,
+     "n_nonpicard_1000": 252,
+     "n_picard_1000": 6987,
+     "n_uncertain_1000": 81,
+     "n_nonpicard_sent_to_picard_1000": 31,
+     "n_picard_sent_to_mech_1000": 1168,
+     "nonpicard_to_picard_2000": 0.0963302752293578,
+     "picard_to_nonpicard_2000": 0.1697763851303233,
+     "n_nonpicard_2000": 218,
+     "n_picard_2000": 7021,
+     "n_uncertain_2000": 81,
+     "n_nonpicard_sent_to_picard_2000": 21,
+     "n_picard_sent_to_mech_2000": 1192
+    }
    }
   },
   "recommended": {
    "sy12_m": {
     "n_nonpicard": 472,
     "n_picard": 6692,
-    "nonpicard_to_picard": 0.2055084745762712,
-    "picard_to_nonpicard": 0.04303646144650329,
-    "cells_nonpicard_to_picard": 0.2055084745762712,
-    "cells_picard_to_nonpicard": 0.04303646144650329,
-    "nonpicard_to_picard_in_omega_band": 0.9484536082474226,
+    "nonpicard_to_picard": 0.23940677966101695,
+    "picard_to_nonpicard": 0.03347280334728033,
+    "cells_nonpicard_to_picard": 0.23940677966101695,
+    "cells_picard_to_nonpicard": 0.03347280334728033,
+    "nonpicard_to_picard_in_omega_band": 0.9557522123893806,
     "nonpicard_to_picard_outside_omega_band": 0.01059322033898305
    },
    "sy12_h": {
     "n_nonpicard": 448,
     "n_picard": 6768,
-    "nonpicard_to_picard": 0.19642857142857142,
-    "picard_to_nonpicard": 0.04920212765957447,
-    "cells_nonpicard_to_picard": 0.1952359638516865,
-    "cells_picard_to_nonpicard": 0.04878474146104216,
-    "mech_share_with_G": 0.09931693989071039,
+    "nonpicard_to_picard": 0.22991071428571427,
+    "picard_to_nonpicard": 0.03974586288416076,
+    "cells_nonpicard_to_picard": 0.22871810670882936,
+    "cells_picard_to_nonpicard": 0.03919705951310908,
+    "mech_share_with_G": 0.08756830601092896,
     "g_freeze_ge05_cases": 3
    },
    "ideal": {
     "ap_v1_grid": {
      "n_nonpicard": 422,
      "n_picard": 1974,
-     "nonpicard_to_picard": 0.002369668246445498,
-     "picard_to_nonpicard": 0.22087132725430597,
-     "cells_nonpicard_to_picard": 0.002369668246445498,
-     "cells_picard_to_nonpicard": 0.22087132725430597
+     "nonpicard_to_picard": 0.004739336492890996,
+     "picard_to_nonpicard": 0.18034447821681865,
+     "cells_nonpicard_to_picard": 0.004739336492890996,
+     "cells_picard_to_nonpicard": 0.18034447821681865
     },
     "ap_v2": {
      "n_nonpicard": 65,
      "n_picard": 205,
-     "nonpicard_to_picard": 0.4153846153846154,
-     "picard_to_nonpicard": 0.03414634146341464,
-     "cells_nonpicard_to_picard": 0.4153846153846154,
-     "cells_picard_to_nonpicard": 0.03414634146341464
+     "nonpicard_to_picard": 0.47692307692307695,
+     "picard_to_nonpicard": 0.014634146341463415,
+     "cells_nonpicard_to_picard": 0.47692307692307695,
+     "cells_picard_to_nonpicard": 0.014634146341463415
     },
     "ap_v3_ctrl": {
      "n_nonpicard": 9,
      "n_picard": 19,
-     "nonpicard_to_picard": 0.6666666666666666,
+     "nonpicard_to_picard": 0.7777777777777778,
      "picard_to_nonpicard": 0.0,
-     "cells_nonpicard_to_picard": 0.6666666666666666,
+     "cells_nonpicard_to_picard": 0.7777777777777778,
      "cells_picard_to_nonpicard": 0.0
     },
     "ap_v3_omega": {
      "n_nonpicard": 4,
      "n_picard": 29,
      "nonpicard_to_picard": 0.75,
-     "picard_to_nonpicard": 0.06896551724137931,
+     "picard_to_nonpicard": 0.034482758620689655,
      "cells_nonpicard_to_picard": 0.75,
-     "cells_picard_to_nonpicard": 0.06896551724137931
+     "cells_picard_to_nonpicard": 0.034482758620689655
     },
     "eroded": {
      "n_nonpicard": 28,
      "n_picard": 150,
      "nonpicard_to_picard": 0.0,
-     "picard_to_nonpicard": 0.08,
+     "picard_to_nonpicard": 0.06,
      "cells_nonpicard_to_picard": 0.0,
-     "cells_picard_to_nonpicard": 0.08
+     "cells_picard_to_nonpicard": 0.06
+    }
+   },
+   "sy12_omega05": {
+    "m": {
+     "nonpicard_to_picard_1000": 0.09787234042553192,
+     "picard_to_nonpicard_1000": 0.0482135170038743,
+     "n_nonpicard_1000": 235,
+     "n_picard_1000": 6969,
+     "n_uncertain_1000": 116,
+     "n_nonpicard_sent_to_picard_1000": 23,
+     "n_picard_sent_to_mech_1000": 336,
+     "nonpicard_to_picard_2000": 0.057971014492753624,
+     "picard_to_nonpicard_2000": 0.050450192939831356,
+     "n_nonpicard_2000": 207,
+     "n_picard_2000": 6997,
+     "n_uncertain_2000": 116,
+     "n_nonpicard_sent_to_picard_2000": 12,
+     "n_picard_sent_to_mech_2000": 353
+    },
+    "h": {
+     "nonpicard_to_picard_1000": 0.14285714285714285,
+     "picard_to_nonpicard_1000": 0.05381422642049521,
+     "n_nonpicard_1000": 252,
+     "n_picard_1000": 6987,
+     "n_uncertain_1000": 81,
+     "n_nonpicard_sent_to_picard_1000": 36,
+     "n_picard_sent_to_mech_1000": 376,
+     "nonpicard_to_picard_2000": 0.10550458715596331,
+     "picard_to_nonpicard_2000": 0.05654465175900869,
+     "n_nonpicard_2000": 218,
+     "n_picard_2000": 7021,
+     "n_uncertain_2000": 81,
+     "n_nonpicard_sent_to_picard_2000": 23,
+     "n_picard_sent_to_mech_2000": 397
     }
    }
   }
@@ -1025,12 +1101,20 @@
      "d_strong_axis": "fr",
      "d_strong_c": 0.3
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.199,
      0.139
     ],
+    "sy12_m_omega05": [
+     0.123,
+     0.16
+    ],
+    "sy12_h_omega05": [
+     0.123,
+     0.167
+    ],
     "sy12_m_np2p_outside_band": 0.0,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.156,
      0.148
     ],
@@ -1062,12 +1146,20 @@
      "d_strong_axis": "none",
      "d_strong_c": 0.3
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.809,
      0.004
     ],
+    "sy12_m_omega05": [
+     0.689,
+     0.006
+    ],
+    "sy12_h_omega05": [
+     0.536,
+     0.022
+    ],
     "sy12_m_np2p_outside_band": 0.011,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.69,
      0.02
     ],
@@ -1097,36 +1189,44 @@
      "h_axis": "u10",
      "h_c": 0.77,
      "d_strong_axis": "u_over_n",
-     "d_strong_c": 270.0
+     "d_strong_c": 250.0
     },
-    "sy12_m": [
-     0.206,
-     0.043
+    "sy12_m_omega1": [
+     0.25,
+     0.033
+    ],
+    "sy12_m_omega05": [
+     0.102,
+     0.047
+    ],
+    "sy12_h_omega05": [
+     0.147,
+     0.053
     ],
     "sy12_m_np2p_outside_band": 0.011,
-    "sy12_h": [
-     0.196,
-     0.049
+    "sy12_h_omega1": [
+     0.239,
+     0.039
     ],
     "ap_v1_grid": [
      0.005,
      0.18
     ],
     "ap_v2": [
-     0.415,
+     0.477,
      0.015
     ],
     "ap_v3_ctrl": [
-     0.778,
+     0.889,
      0.0
     ],
     "ap_v3_omega": [
-     0.75,
+     1.0,
      0.034
     ],
     "eroded": [
      0.0,
-     0.08
+     0.06
     ]
    },
    "u10+nc_law": {
@@ -1136,12 +1236,20 @@
      "d_strong_axis": "nc_law",
      "d_strong_c": 1.0
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.301,
      0.033
     ],
+    "sy12_m_omega05": [
+     0.123,
+     0.045
+    ],
+    "sy12_h_omega05": [
+     0.155,
+     0.05
+    ],
     "sy12_m_np2p_outside_band": 0.011,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.283,
      0.039
     ],
@@ -1173,12 +1281,20 @@
      "d_strong_axis": "u_over_n",
      "d_strong_c": 350.0
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.14,
      0.095
     ],
+    "sy12_m_omega05": [
+     0.072,
+     0.118
+    ],
+    "sy12_h_omega05": [
+     0.119,
+     0.122
+    ],
     "sy12_m_np2p_outside_band": 0.004,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.132,
      0.101
     ],
@@ -1208,36 +1324,44 @@
      "h_axis": "u10",
      "h_c": 1.26,
      "d_strong_axis": "u_over_n",
-     "d_strong_c": 270.0
+     "d_strong_c": 250.0
     },
-    "sy12_m": [
-     0.184,
-     0.045
+    "sy12_m_omega1": [
+     0.21,
+     0.036
+    ],
+    "sy12_m_omega05": [
+     0.081,
+     0.051
+    ],
+    "sy12_h_omega05": [
+     0.107,
+     0.055
     ],
     "sy12_m_np2p_outside_band": 0.011,
-    "sy12_h": [
-     0.17,
-     0.05
+    "sy12_h_omega1": [
+     0.194,
+     0.04
     ],
     "ap_v1_grid": [
      0.0,
      0.261
     ],
     "ap_v2": [
-     0.323,
-     0.288
+     0.385,
+     0.268
     ],
     "ap_v3_ctrl": [
      0.556,
-     0.105
+     0.053
     ],
     "ap_v3_omega": [
      0.75,
-     0.207
+     0.172
     ],
     "eroded": [
      0.0,
-     0.113
+     0.1
     ]
    },
    "u10+fr0.3": {
@@ -1247,12 +1371,20 @@
      "d_strong_axis": "fr",
      "d_strong_c": 0.3
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.189,
      0.134
     ],
+    "sy12_m_omega05": [
+     0.085,
+     0.154
+    ],
+    "sy12_h_omega05": [
+     0.115,
+     0.16
+    ],
     "sy12_m_np2p_outside_band": 0.0,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.167,
      0.142
     ],
@@ -1284,12 +1416,20 @@
      "d_strong_axis": "u_over_n",
      "d_strong_c": 245.0
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.053,
      0.103
     ],
+    "sy12_m_omega05": [
+     0.03,
+     0.129
+    ],
+    "sy12_h_omega05": [
+     0.044,
+     0.13
+    ],
     "sy12_m_np2p_outside_band": 0.008,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.038,
      0.106
     ],
@@ -1321,12 +1461,20 @@
      "d_strong_axis": "u_over_n",
      "d_strong_c": 219.1
     },
-    "sy12_m": [
+    "sy12_m_omega1": [
      0.087,
      0.169
     ],
+    "sy12_m_omega05": [
+     0.043,
+     0.192
+    ],
+    "sy12_h_omega05": [
+     0.075,
+     0.197
+    ],
     "sy12_m_np2p_outside_band": 0.0,
-    "sy12_h": [
+    "sy12_h_omega1": [
      0.076,
      0.176
     ],
@@ -1359,6 +1507,369 @@
   "u_over_n_c_omega05_m": [
    247.9768133564447,
    290.28699495706354
+  ],
+  "u_over_n_c_ap13_m": 270.0
+ },
+ "threshold_scan": {
+  "note": "SY-12 [блуждание → Пикар, ok → механизм] по меткам ω = 0,5, бюджет 1000; GRID — после AP-14",
+  "table": [
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 180.0,
+    "cost_sy12": 0.2404,
+    "sy12_m": [
+     0.204,
+     0.021
+    ],
+    "sy12_h": [
+     0.226,
+     0.029
+    ],
+    "grid": [
+     0.073,
+     0.085
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 200.0,
+    "cost_sy12": 0.1928,
+    "sy12_m": [
+     0.153,
+     0.025
+    ],
+    "sy12_h": [
+     0.175,
+     0.033
+    ],
+    "grid": [
+     0.047,
+     0.108
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 215.0,
+    "cost_sy12": 0.1919,
+    "sy12_m": [
+     0.145,
+     0.031
+    ],
+    "sy12_h": [
+     0.171,
+     0.038
+    ],
+    "grid": [
+     0.047,
+     0.108
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 230.0,
+    "cost_sy12": 0.1857,
+    "sy12_m": [
+     0.132,
+     0.037
+    ],
+    "sy12_h": [
+     0.159,
+     0.044
+    ],
+    "grid": [
+     0.028,
+     0.145
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 250.0,
+    "cost_sy12": 0.1804,
+    "sy12_m": [
+     0.115,
+     0.046
+    ],
+    "sy12_h": [
+     0.147,
+     0.053
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 270.0,
+    "cost_sy12": 0.1824,
+    "sy12_m": [
+     0.102,
+     0.059
+    ],
+    "sy12_h": [
+     0.139,
+     0.065
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 0.6,
+    "u_over_n_c": 300.0,
+    "cost_sy12": 0.194,
+    "sy12_m": [
+     0.098,
+     0.077
+    ],
+    "sy12_h": [
+     0.131,
+     0.082
+    ],
+    "grid": [
+     0.0,
+     0.261
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 180.0,
+    "cost_sy12": 0.2283,
+    "sy12_m": [
+     0.183,
+     0.022
+    ],
+    "sy12_h": [
+     0.222,
+     0.029
+    ],
+    "grid": [
+     0.073,
+     0.085
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 200.0,
+    "cost_sy12": 0.187,
+    "sy12_m": [
+     0.14,
+     0.026
+    ],
+    "sy12_h": [
+     0.175,
+     0.033
+    ],
+    "grid": [
+     0.047,
+     0.108
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 215.0,
+    "cost_sy12": 0.1841,
+    "sy12_m": [
+     0.128,
+     0.032
+    ],
+    "sy12_h": [
+     0.171,
+     0.038
+    ],
+    "grid": [
+     0.047,
+     0.108
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 230.0,
+    "cost_sy12": 0.1779,
+    "sy12_m": [
+     0.115,
+     0.038
+    ],
+    "sy12_h": [
+     0.159,
+     0.044
+    ],
+    "grid": [
+     0.028,
+     0.145
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 250.0,
+    "cost_sy12": 0.1746,
+    "sy12_m": [
+     0.102,
+     0.047
+    ],
+    "sy12_h": [
+     0.147,
+     0.053
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 270.0,
+    "cost_sy12": 0.1765,
+    "sy12_m": [
+     0.089,
+     0.06
+    ],
+    "sy12_h": [
+     0.139,
+     0.065
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 0.77,
+    "u_over_n_c": 300.0,
+    "cost_sy12": 0.1862,
+    "sy12_m": [
+     0.085,
+     0.078
+    ],
+    "sy12_h": [
+     0.127,
+     0.082
+    ],
+    "grid": [
+     0.0,
+     0.261
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 180.0,
+    "cost_sy12": 0.2101,
+    "sy12_m": [
+     0.166,
+     0.025
+    ],
+    "sy12_h": [
+     0.198,
+     0.031
+    ],
+    "grid": [
+     0.028,
+     0.145
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 200.0,
+    "cost_sy12": 0.1701,
+    "sy12_m": [
+     0.123,
+     0.028
+    ],
+    "sy12_h": [
+     0.155,
+     0.034
+    ],
+    "grid": [
+     0.028,
+     0.145
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 215.0,
+    "cost_sy12": 0.1734,
+    "sy12_m": [
+     0.119,
+     0.034
+    ],
+    "sy12_h": [
+     0.155,
+     0.039
+    ],
+    "grid": [
+     0.028,
+     0.145
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 230.0,
+    "cost_sy12": 0.1606,
+    "sy12_m": [
+     0.102,
+     0.04
+    ],
+    "sy12_h": [
+     0.135,
+     0.044
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 250.0,
+    "cost_sy12": 0.1592,
+    "sy12_m": [
+     0.089,
+     0.049
+    ],
+    "sy12_h": [
+     0.127,
+     0.053
+    ],
+    "grid": [
+     0.005,
+     0.18
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 270.0,
+    "cost_sy12": 0.1651,
+    "sy12_m": [
+     0.081,
+     0.061
+    ],
+    "sy12_h": [
+     0.123,
+     0.065
+    ],
+    "grid": [
+     0.002,
+     0.221
+    ]
+   },
+   {
+    "h_c": 1.0,
+    "u_over_n_c": 300.0,
+    "cost_sy12": 0.1726,
+    "sy12_m": [
+     0.072,
+     0.079
+    ],
+    "sy12_h": [
+     0.111,
+     0.083
+    ],
+    "grid": [
+     0.0,
+     0.261
+    ]
+   }
   ]
  },
  "axes_logistic": {
@@ -1483,7 +1994,7 @@
   {
    "boundary": "сильное D (заморозка)",
    "classifier_ap18": "Fr < 0,3",
-   "recommended": "u_over_n 270.0",
+   "recommended": "u_over_n 250.0",
    "measured": {
     "sy12_best_by_axis": {
      "fr+none": {
@@ -2479,8 +2990,8 @@
   }
  },
  "rerun_omega05": {
-  "n_done": 406,
-  "n_selected": 406,
+  "n_done": 1212,
+  "n_selected": 1212,
   "dir": "/home/greg/air_synth_data/phase/ap23_rerun",
   "repro_omega1": {
    "n": 8,
@@ -2546,6 +3057,38 @@
     "iters_conv_median": 566.0,
     "spread_nonconv_median_rel": 0.15318558184274153
    },
+   "mech_hard_m": {
+    "n": 375,
+    "conv_le1000": 0.256,
+    "conv_le2000": 0.30133333333333334,
+    "hard": 0.5226666666666666,
+    "iters_conv_median": 481.0,
+    "spread_nonconv_median_rel": 0.2950559333975663
+   },
+   "mech_hard_h": {
+    "n": 360,
+    "conv_le1000": 0.25833333333333336,
+    "conv_le2000": 0.31666666666666665,
+    "hard": 0.5444444444444444,
+    "iters_conv_median": 586.0,
+    "spread_nonconv_median_rel": 0.36229775391346575
+   },
+   "mech_uncertain_m": {
+    "n": 40,
+    "conv_le1000": 0.9,
+    "conv_le2000": 0.925,
+    "hard": 0.0,
+    "iters_conv_median": 331.0,
+    "spread_nonconv_median_rel": 0.05060349361134818
+   },
+   "mech_uncertain_h": {
+    "n": 31,
+    "conv_le1000": 1.0,
+    "conv_le2000": 1.0,
+    "hard": 0.0,
+    "iters_conv_median": 321.0,
+    "spread_nonconv_median_rel": null
+   },
    "uncertain_m": {
     "n": 116,
     "conv_le1000": 0.7155172413793104,
@@ -2563,69 +3106,113 @@
     "spread_nonconv_median_rel": 0.009045701127338514
    }
   },
-  "errors_omega05": {
-   "m": {
-    "nonpicard_to_picard_1000": 0.05303030303030303,
-    "picard_to_nonpicard_1000": 0.04212373848179026,
-    "n_nonpicard_1000": 396,
-    "n_picard_1000": 6837,
-    "n_uncertain_left_1000": 87,
-    "n_nonpicard_sent_to_picard_1000": 21,
-    "nonpicard_to_picard_2000": 0.02849740932642487,
-    "picard_to_nonpicard_2000": 0.04206221702935592,
-    "n_nonpicard_2000": 386,
-    "n_picard_2000": 6847,
-    "n_uncertain_left_2000": 87,
-    "n_nonpicard_sent_to_picard_2000": 11
-   },
-   "h": {
-    "nonpicard_to_picard_1000": 0.08860759493670886,
-    "picard_to_nonpicard_1000": 0.04852105493224537,
-    "n_nonpicard_1000": 395,
-    "n_picard_1000": 6863,
-    "n_uncertain_left_1000": 62,
-    "n_nonpicard_sent_to_picard_1000": 35,
-    "nonpicard_to_picard_2000": 0.05759162303664921,
-    "picard_to_nonpicard_2000": 0.04842931937172775,
-    "n_nonpicard_2000": 382,
-    "n_picard_2000": 6876,
-    "n_uncertain_left_2000": 62,
-    "n_nonpicard_sent_to_picard_2000": 22
-   }
+  "n_not_rerun_nonok": {
+   "m_1000": 0,
+   "m_2000": 0,
+   "h_1000": 0,
+   "h_2000": 0
   },
-  "rule": "ω = 0,5, холодный старт, max_outer 2000; бюджет игры — 1000 итераций (сошедшиеся за 1001–2000 считаются блужданием: в игре их берёт запасной путь P12 v2); неперечитанные случаи — метки ω = 1",
+  "rule": "ω = 0,5, холодный старт, max_outer 2000; бюджет игры — 1000 итераций (сошедшиеся за 1001–2000 — блуждание: в игре их берёт запасной путь P12 v2). Все не-ok при ω = 1 случаи пересчитаны (и идущие в Пикар, и идущие механизмам); сошедшиеся при ω = 1 считаются сошедшимися и при ω = 0,5 (контроль 24 из 24). Неперечитанные не-ok (−1) в знаменатели не входят.",
   "cells_converged_omega05_recommended": {
    "matrix": {
     "A": {
-     "A": 170929,
-     "B": 17377,
+     "A": 189569,
+     "B": 18968,
      "C": 11660,
-     "D": 448893,
-     "mech": 0
+     "D": 515082,
+     "mech": 600848
     },
     "B": {
-     "A": 6098,
-     "B": 46872,
+     "A": 6105,
+     "B": 49179,
      "C": 820,
-     "D": 42826,
-     "mech": 0
+     "D": 46723,
+     "mech": 41617
     },
     "C": {
      "A": 10862,
-     "B": 3441,
+     "B": 3523,
      "C": 15441,
-     "D": 6990,
-     "mech": 0
+     "D": 7010,
+     "mech": 142
     },
     "D": {
-     "A": 58781,
-     "B": 104889,
+     "A": 59913,
+     "B": 114789,
      "C": 7883,
-     "D": 370122,
-     "mech": 0
+     "D": 421673,
+     "mech": 311477
     }
    },
-   "acc_unfrozen": 0.4557529209507782
+   "acc_unfrozen": 0.4569104921579232
+  },
+  "errors_omega05": {
+   "m": {
+    "nonpicard_to_picard_1000": 0.09787234042553192,
+    "picard_to_nonpicard_1000": 0.0482135170038743,
+    "n_nonpicard_1000": 235,
+    "n_picard_1000": 6969,
+    "n_uncertain_1000": 116,
+    "n_nonpicard_sent_to_picard_1000": 23,
+    "n_picard_sent_to_mech_1000": 336,
+    "nonpicard_to_picard_2000": 0.057971014492753624,
+    "picard_to_nonpicard_2000": 0.050450192939831356,
+    "n_nonpicard_2000": 207,
+    "n_picard_2000": 6997,
+    "n_uncertain_2000": 116,
+    "n_nonpicard_sent_to_picard_2000": 12,
+    "n_picard_sent_to_mech_2000": 353
+   },
+   "h": {
+    "nonpicard_to_picard_1000": 0.14285714285714285,
+    "picard_to_nonpicard_1000": 0.05381422642049521,
+    "n_nonpicard_1000": 252,
+    "n_picard_1000": 6987,
+    "n_uncertain_1000": 81,
+    "n_nonpicard_sent_to_picard_1000": 36,
+    "n_picard_sent_to_mech_1000": 376,
+    "nonpicard_to_picard_2000": 0.10550458715596331,
+    "picard_to_nonpicard_2000": 0.05654465175900869,
+    "n_nonpicard_2000": 218,
+    "n_picard_2000": 7021,
+    "n_uncertain_2000": 81,
+    "n_nonpicard_sent_to_picard_2000": 23,
+    "n_picard_sent_to_mech_2000": 397
+   }
+  },
+  "errors_omega05_ap18": {
+   "m": {
+    "nonpicard_to_picard_1000": 0.12340425531914893,
+    "picard_to_nonpicard_1000": 0.15956378246520303,
+    "n_nonpicard_1000": 235,
+    "n_picard_1000": 6969,
+    "n_uncertain_1000": 116,
+    "n_nonpicard_sent_to_picard_1000": 29,
+    "n_picard_sent_to_mech_1000": 1112,
+    "nonpicard_to_picard_2000": 0.0966183574879227,
+    "picard_to_nonpicard_2000": 0.1616407031584965,
+    "n_nonpicard_2000": 207,
+    "n_picard_2000": 6997,
+    "n_uncertain_2000": 116,
+    "n_nonpicard_sent_to_picard_2000": 20,
+    "n_picard_sent_to_mech_2000": 1131
+   },
+   "h": {
+    "nonpicard_to_picard_1000": 0.12301587301587301,
+    "picard_to_nonpicard_1000": 0.1671675969657936,
+    "n_nonpicard_1000": 252,
+    "n_picard_1000": 6987,
+    "n_uncertain_1000": 81,
+    "n_nonpicard_sent_to_picard_1000": 31,
+    "n_picard_sent_to_mech_1000": 1168,
+    "nonpicard_to_picard_2000": 0.0963302752293578,
+    "picard_to_nonpicard_2000": 0.1697763851303233,
+    "n_nonpicard_2000": 218,
+    "n_picard_2000": 7021,
+    "n_uncertain_2000": 81,
+    "n_nonpicard_sent_to_picard_2000": 21,
+    "n_picard_sent_to_mech_2000": 1192
+   }
   }
  },
  "recommended_config": {
@@ -2641,8 +3228,8 @@
   "d_strong_nc0_doc": "N_c при U_sat = 3 м/с для nc_law, 1/с (AP-13, ω = 0,5).",
   "d_strong_p": 0.71,
   "d_strong_p_doc": "Показатель N_c ∝ U^p для nc_law (AP-13: 0,70–0,71).",
-  "d_strong_c": 270.0,
-  "d_strong_c_doc": "AP-23: U_sat/N_c при ω = 0,5 (AP-13, хребет: 248, 290 м; среднее геометрическое).",
+  "d_strong_c": 250.0,
+  "d_strong_c_doc": "AP-23: минимум суммы ошибок маршрута на SY-12 по меткам пересчёта ω = 0,5 (бюджет 1000 итераций, все не-ok пересчитаны; summary.json → threshold_scan) — 250 м; для сравнения U_sat/N_c при ω = 0,5 по AP-13 (хребет): 248, 290 м.",
   "d_strong_w_dec": 0.05,
   "d_strong_w_dec_doc": "Ширина сигмоиды сильного D, декады.",
   "d_fr_c": 1.0,
@@ -2691,7 +3278,8 @@
   "ideal_grid_p2np_max": 0.1,
   "cells_acc_min": 0.6,
   "eroded_speck_max": 0.01,
-  "sy12_m_np2p_omega05_max": 0.15
+  "sy12_m_np2p_omega05_max": 0.15,
+  "_status": "утверждены координатором, предварительные (06.10)"
  },
  "verdict_checks": {
   "sy12_m_np2p_outside_band": true,

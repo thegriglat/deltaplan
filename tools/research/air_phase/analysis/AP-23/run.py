@@ -438,6 +438,26 @@ def logistic_cv(X, y, k=5, l2=1e-3, iters=60):
     return float(np.mean(ll)), w
 
 
+def errors05(labs, cfg, route, S):
+    """Ошибки маршрута по меткам ω = 0,5 (rerun_block → _labs) для конфига."""
+    res = {}
+    for d in "mh":
+        mech, _, _ = route(cfg, S, d)
+        r = {}
+        for b in ("1000", "2000"):
+            lab = labs[(d, b)]
+            e = errs(lab, mech)
+            r[f"nonpicard_to_picard_{b}"] = e["nonpicard_to_picard"]
+            r[f"picard_to_nonpicard_{b}"] = e["picard_to_nonpicard"]
+            r[f"n_nonpicard_{b}"] = e["n_nonpicard"]
+            r[f"n_picard_{b}"] = e["n_picard"]
+            r[f"n_uncertain_{b}"] = int((lab == 1).sum())
+            r[f"n_nonpicard_sent_to_picard_{b}"] = int(((lab == 2) & ~mech).sum())
+            r[f"n_picard_sent_to_mech_{b}"] = int(((lab == 0) & mech).sum())
+        res[d] = r
+    return res
+
+
 def rerun_block(S, lm, lh, cfg, route, lev):
     """Метки по пересчёту rerun.py (ω = 0,5, холодный старт, до 2000 итераций) для случаев, которые рекомендованный конфиг
     отправляет в Пикар: ok — status 0 за ≤ 1000 итераций (бюджет игры) или ≤ 2000; hard — не сошлось и разброс ≥ 0,1·U_sat;
@@ -471,31 +491,23 @@ def rerun_block(S, lm, lh, cfg, route, lev):
                                               hard=float(hard[m].mean()), iters_conv_median=float(np.median(r5["iters"][m & ok2000])) if (m & ok2000).any() else None,
                                               spread_nonconv_median_rel=float(np.median((r5["late_spread60_p90"] / usat)[m & ~ok2000])) if (m & ~ok2000).any() else None)
     out["by_group"] = by
-    errs5 = {}
+    labs = {}
     for dd, lab0 in ((0, lm), (1, lh)):
-        mech, _, _ = route(cfg, S, "m" if dd == 0 else "h")
-        res = {}
         for budget, okv in (("1000", ok1000), ("2000", ok2000)):
-            lab = lab0.copy()
-            for c, ddd, o, h_ in zip(r5["case"], r5["decision"], okv, hard):
+            lab = np.where(lab0 == 0, 0, -1)            # ok при ω = 1 → ok при ω = 0,5 (контроль 24 из 24); не-ok — только по пересчёту
+            for c, ddd, o, h_, o2 in zip(r5["case"], r5["decision"], okv, hard, ok2000):
                 if ddd == dd:
-                    lab[idx[int(c)]] = 0 if o else (2 if h_ else 1)
-            # бюджет игры: сходится только за > 1000 итераций — для игры это блуждание (запасной путь)
-            if budget == "1000":
-                for c, ddd, o2, o1 in zip(r5["case"], r5["decision"], ok2000, ok1000):
-                    if ddd == dd and o2 and not o1:
-                        lab[idx[int(c)]] = 2
-            e = errs(lab, mech)
-            res[f"nonpicard_to_picard_{budget}"] = e["nonpicard_to_picard"]
-            res[f"picard_to_nonpicard_{budget}"] = e["picard_to_nonpicard"]
-            res[f"n_nonpicard_{budget}"] = e["n_nonpicard"]
-            res[f"n_picard_{budget}"] = e["n_picard"]
-            res[f"n_uncertain_left_{budget}"] = int((lab == 1).sum())
-            res[f"n_nonpicard_sent_to_picard_{budget}"] = int(((lab == 2) & ~mech).sum())
-        errs5["mh"[dd]] = res
-    out["errors_omega05"] = errs5
-    out["rule"] = ("ω = 0,5, холодный старт, max_outer 2000; бюджет игры — 1000 итераций (сошедшиеся за 1001–2000 считаются "
-                   "блужданием: в игре их берёт запасной путь P12 v2); неперечитанные случаи — метки ω = 1")
+                    lab[idx[int(c)]] = 0 if o else (2 if (h_ or o2) else 1)   # сошлось только за > 1000 — для игры блуждание
+            labs[("mh"[dd], budget)] = lab
+    out["_labs"] = labs
+    out["n_not_rerun_nonok"] = {f"{d}_{b}": int((v == -1).sum()) for (d, b), v in labs.items()}
+    out["rule"] = ("ω = 0,5, холодный старт, max_outer 2000; бюджет игры — 1000 итераций (сошедшиеся за 1001–2000 — блуждание: "
+                   "в игре их берёт запасной путь P12 v2). Все не-ok при ω = 1 случаи пересчитаны (и идущие в Пикар, и идущие "
+                   "механизмам); сошедшиеся при ω = 1 считаются сошедшимися и при ω = 0,5 (контроль 24 из 24). Неперечитанные "
+                   "не-ok (−1) в знаменатели не входят.")
+    if cfg is None:
+        return out
+    out.pop("_labs", None)
     # клетки: сошедшиеся при ω = 0,5 решения «m» — местные фазы против рекомендованного классификатора
     conf = np.zeros((4, 5), np.int64)
     cond = _sy_cond_table()
@@ -567,6 +579,8 @@ def stage_report():
             ph = np.where(~full & (D["f_frac"] >= 0.5), "F", np.where(~full & (D["g_frac"] >= 0.5), "G", ph))
         return mech, frz, ph
 
+    rr0 = rerun_block(S, lm, lh, None, route, lev)
+    labs05 = rr0["_labs"] if rr0 else None
     # подбор порогов: оси и центры, ошибка = np2p + p2np (hard против ok, решение «m»)
     def search(D, lab, axes_h, axes_s):
         res = []
@@ -665,6 +679,23 @@ def stage_report():
     l_c = round(float(np.exp(np.mean(np.log(unc)))), -1)
     nc0 = round(float(ap13["n_c_per_s_by_variant"]["omega"]["3.0"]), 4)
     p_nc = round(float(ap13["exponent_n_c_vs_u"]["omega"]["p"]), 2)
+    # выбор U_sat/N_c по меткам ω = 0,5 (весь SY-12 не-ok пересчитан): минимум средней по «m» и «h» суммы ошибок
+    # (бюджет 1000); центр H — из физики (u_h), для справки — соседние
+    scan, l_c_ap13 = [], l_c
+    if labs05:
+        for hc_ in (0.6, u_h, 1.0):
+            for un in (180.0, 200.0, 215.0, 230.0, 250.0, 270.0, 300.0):
+                cfg_ = dict(cfg18, h_axis="u10", h_c=hc_, d_strong_axis="u_over_n", d_strong_c=un)
+                e5 = errors05(labs05, cfg_, route, S)
+                mi_, _, _ = route(cfg_, I, "h")
+                eg = errs(li[gm], mi_[gm])
+                cost = np.mean([e5[d]["nonpicard_to_picard_1000"] + e5[d]["picard_to_nonpicard_1000"] for d in "mh"])
+                scan.append(dict(h_c=hc_, u_over_n_c=un, cost_sy12=round(float(cost), 4),
+                                 sy12_m=[round(e5["m"]["nonpicard_to_picard_1000"], 3), round(e5["m"]["picard_to_nonpicard_1000"], 3)],
+                                 sy12_h=[round(e5["h"]["nonpicard_to_picard_1000"], 3), round(e5["h"]["picard_to_nonpicard_1000"], 3)],
+                                 grid=[round(eg["nonpicard_to_picard"], 3), round(eg["picard_to_nonpicard"], 3)]))
+        best_un = min((r for r in scan if r["h_c"] == u_h), key=lambda r: r["cost_sy12"])
+        l_c = best_un["u_over_n_c"]
     rec_s = dict(h_axis="u10", h_c=u_h, d_strong_axis="u_over_n", d_strong_c=l_c)
     cand = {
         "ap18": cfg18,
@@ -724,7 +755,7 @@ def stage_report():
         "h_c": rec_s["h_c"], "h_c_doc": f"AP-23: 50 % сходимости Пикара с ω = 0,5 (GRID после пересчёта AP-14, Fr {fr50:.2f} ⇔ U10 {u_h:.2f} м/с; AP-9: при ω = 0,5 сходится 0,41 при U10 < 1 и 0,89 при 1–1,5 м/с). На SY-12 (ω = 1) центр {meas_u10['center']:.2f} м/с — выше на сдвиг ω (AP-13: ×1,4 по N).",
         "h_w_dec": round(min(max(meas_u10["w_dec"], 0.05), 0.3), 2), "h_w_dec_doc": f"AP-23: ширина логистики P(блуждание) по lg U10 на SY-12 — {meas_u10['w_dec']:.2f} дек (граница не резкая: рельеф и N сдвигают её).",
         "d_strong_axis": "u_over_n", "d_strong_axis_doc": "AP-23: сильное D — по U_sat/N (м), не по Fr: на SY-12 при U10 ≥ 3 м/с и Fr 0,15–0,25 Пикар сходится в 95–100 % случаев (заморозка по Fr < 0,3 отдаёт механизмам сходящиеся случаи), а несходимость без штиля следует U/N (AP-7, AP-13). При U/N < 270 м и рельефе h > 270 м Nh/U > 1 — течение у земли блокировано (D), и Пикар с ω = 0,5 его не сводит.",
-        "d_strong_c": l_c, "d_strong_c_doc": f"AP-23: U_sat/N_c при ω = 0,5 (AP-13, хребет: {', '.join(f'{x:.0f}' for x in unc)} м; среднее геометрическое).",
+        "d_strong_c": l_c, "d_strong_c_doc": f"AP-23: минимум суммы ошибок маршрута на SY-12 по меткам пересчёта ω = 0,5 (бюджет 1000 итераций, все не-ok пересчитаны; summary.json → threshold_scan) — {l_c:.0f} м; для сравнения U_sat/N_c при ω = 0,5 по AP-13 (хребет): {', '.join(f'{x:.0f}' for x in unc)} м.",
         "d_local": bool(dloc_better), "d_local_doc": "AP-23: D по клеткам ниже разделяющей линии тока H_c = base + (h_max − base)(1 − Fr) [Sheppard 1956; Snyder 1985] — точность по клеткам SY-12 выше, чем однородное D (summary.json → confusion_sy12_cells).",
         "d_local_ramp_m": float(ero_ov["d_local_ramp_m"]) if ero_ov["d_local"] else 100.0,
         "d_local_ramp_m_doc": "AP-23: переход по H_c − h, м — по ERODED (меньше «шахматки» при той же точности).",
@@ -756,6 +787,8 @@ def stage_report():
         e_h["mech_share_with_G"] = float(mg.mean())
         e_h["g_freeze_ge05_cases"] = int(((S["g_frac"] >= 0.5) & ~mh).sum())
         out_err[name] = dict(sy12_m=e_m, sy12_h=e_h, ideal=ei)
+        if labs05:
+            out_err[name]["sy12_omega05"] = errors05(labs05, cfg, route, S)
     cand_tab = {}
     for name, cfg in cand.items():
         mm, _, _ = route(cfg, S, "m")
@@ -763,9 +796,13 @@ def stage_report():
         mi, _, _ = route(cfg, I, "h")
         om = omega_v(S, cfg)
         row = dict(cfg={k: cfg[k] for k in ("h_axis", "h_c", "d_strong_axis", "d_strong_c")})
-        q = errs(lm, mm); row["sy12_m"] = [round(q["nonpicard_to_picard"], 3), round(q["picard_to_nonpicard"], 3)]
+        q = errs(lm, mm); row["sy12_m_omega1"] = [round(q["nonpicard_to_picard"], 3), round(q["picard_to_nonpicard"], 3)]
+        if labs05:
+            e5 = errors05(labs05, cfg, route, S)
+            row["sy12_m_omega05"] = [round(e5["m"]["nonpicard_to_picard_1000"], 3), round(e5["m"]["picard_to_nonpicard_1000"], 3)]
+            row["sy12_h_omega05"] = [round(e5["h"]["nonpicard_to_picard_1000"], 3), round(e5["h"]["picard_to_nonpicard_1000"], 3)]
         row["sy12_m_np2p_outside_band"] = round(float(((lm == 2) & ~mm & (om >= 1)).sum() / max((lm == 2).sum(), 1)), 3)
-        q = errs(lh, mh); row["sy12_h"] = [round(q["nonpicard_to_picard"], 3), round(q["picard_to_nonpicard"], 3)]
+        q = errs(lh, mh); row["sy12_h_omega1"] = [round(q["nonpicard_to_picard"], 3), round(q["picard_to_nonpicard"], 3)]
         for sname, msk in ideal_sets.items():
             q = errs(li[msk], mi[msk])
             row[sname] = [None if q[k] is None else round(q[k], 3) for k in ("nonpicard_to_picard", "picard_to_nonpicard")]
@@ -833,6 +870,10 @@ def stage_report():
     ]
     # ---------------- пересчёт при ω = 0,5 (rerun.py): метки маршрута «как в игре»
     rerun_res = rerun_block(S, lm, lh, rec_vals, route, lev)
+    if rerun_res:
+        rerun_res.pop("_labs", None)
+        rerun_res["errors_omega05"] = out_err["recommended"]["sy12_omega05"]
+        rerun_res["errors_omega05_ap18"] = out_err["ap18"]["sy12_omega05"]
     # ---------------- вердикт
     e = out_err["recommended"]
     crit = dict(sy12_m_np2p_outside_omega_band_max=0.05, sy12_m_np2p_max=0.15, sy12_m_p2np_max=0.10, ideal_grid_np2p_max=0.15, ideal_grid_p2np_max=0.10, cells_acc_min=0.6, eroded_speck_max=0.01)
@@ -911,17 +952,22 @@ def stage_report():
                sy12_h={k: int((lh == v).sum()) for k, v in (("ok", 0), ("uncertain", 1), ("hard", 2))},
                ideal={s: int(m.sum()) for s, m in ideal_sets.items()}),
         confusion_ideal=conf_ideal, confusion_sy12_cases=conf_cases, confusion_sy12_cells=cells_out, presence_B_C=presence,
-        err_nonpicard_to_picard={k: dict(sy12_m_cases=v["sy12_m"]["nonpicard_to_picard"], sy12_h_cases=v["sy12_h"]["nonpicard_to_picard"],
+        err_nonpicard_to_picard={k: dict(**({"sy12_m_omega05": v["sy12_omega05"]["m"]["nonpicard_to_picard_1000"],
+                                             "sy12_h_omega05": v["sy12_omega05"]["h"]["nonpicard_to_picard_1000"]} if "sy12_omega05" in v else {}),
+                                         sy12_m_cases=v["sy12_m"]["nonpicard_to_picard"], sy12_h_cases=v["sy12_h"]["nonpicard_to_picard"],
                                          sy12_m_cells=v["sy12_m"]["cells_nonpicard_to_picard"], sy12_h_cells=v["sy12_h"]["cells_nonpicard_to_picard"],
                                          in_omega_band=v["sy12_m"]["nonpicard_to_picard_in_omega_band"],
                                          ideal={s: q["nonpicard_to_picard"] for s, q in v["ideal"].items()}) for k, v in out_err.items()},
-        err_picard_to_nonpicard={k: dict(sy12_m_cases=v["sy12_m"]["picard_to_nonpicard"], sy12_h_cases=v["sy12_h"]["picard_to_nonpicard"],
+        err_picard_to_nonpicard={k: dict(**({"sy12_m_omega05": v["sy12_omega05"]["m"]["picard_to_nonpicard_1000"],
+                                             "sy12_h_omega05": v["sy12_omega05"]["h"]["picard_to_nonpicard_1000"]} if "sy12_omega05" in v else {}),
+                                         sy12_m_cases=v["sy12_m"]["picard_to_nonpicard"], sy12_h_cases=v["sy12_h"]["picard_to_nonpicard"],
                                          sy12_m_cells=v["sy12_m"]["cells_picard_to_nonpicard"], sy12_h_cells=v["sy12_h"]["cells_picard_to_nonpicard"],
                                          ideal={s: q["picard_to_nonpicard"] for s, q in v["ideal"].items()}) for k, v in out_err.items()},
         errors_full=out_err, candidates=dict(note="[блуждание → Пикар, Пикар-ok → механизм]; ошибки по случаям; SY-12 — счёт ω = 1, идеальные ap_v1/ap_v2 — после пересчёта AP-14 (ω = 0,5), ap_v3_ctrl — ω = 1, ap_v3_omega — ω = 0,5", table=cand_tab),
-        thresholds_derivation=dict(fr50_grid_omega05=fr50, u10_per_fr_grid=k_u, u_over_n_c_omega05_m=unc), axes_logistic=lr, boundaries_vs_measured=bvm, f_heat=f_curve, g_stats=g_stats,
+        thresholds_derivation=dict(fr50_grid_omega05=fr50, u10_per_fr_grid=k_u, u_over_n_c_omega05_m=unc, u_over_n_c_ap13_m=l_c_ap13),
+        threshold_scan=dict(note="SY-12 [блуждание → Пикар, ok → механизм] по меткам ω = 0,5, бюджет 1000; GRID — после AP-14", table=scan), axes_logistic=lr, boundaries_vs_measured=bvm, f_heat=f_curve, g_stats=g_stats,
         eroded=dict(truth=truth_speck, best=ero_best, best_metrics=agg[ero_best], ap18_like=agg["b50_s1_d0"], all=agg),
-        rerun_omega05=rerun_res, recommended_config=rec_cfg, verdict=verdict, verdict_criteria=crit, verdict_checks=checks,
+        rerun_omega05=rerun_res, recommended_config=rec_cfg, verdict=verdict, verdict_criteria=dict(crit, _status="утверждены координатором, предварительные (06.10)"), verdict_checks=checks,
     )
     json.dump(summ, open(HERE / "summary.json", "w"), ensure_ascii=False, indent=1, default=float)
     print(json.dumps(dict(verdict=verdict, checks=checks, cand=cand_tab, best=rec_s, fr50=fr50, ero_best=ero_best, lr=lr, meas_u10=meas_u10,
