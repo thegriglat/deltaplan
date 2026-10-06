@@ -130,6 +130,8 @@ class Numerics:            # как P2 Numerics
     omega_map: np.ndarray | None = None    # v6: (96, 96) f4 — ω_u = ω_k по клеткам (карта фаз); None — скаляры omega_*; побитно как v5
     freeze_mask: np.ndarray | None = None  # v6: (96, 96) bool — колонны, где поле держится равным init (механизм фазы); None — нет
     omega_fallback: tuple[int, float] | None = None  # v6: (300, 0.5) — нет сходимости к N итерациям → ω := 0,5 везде
+# v6: init[i] может быть {"agl": (4, 13, 96, 96)} — тёплый старт из сборки на 13 высотах S5 (AP-18); иначе State как раньше.
+# v6 на GPU не прогонялся (AP-18 закрыта как спецификация) — по умолчанию путь кода v5.
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
