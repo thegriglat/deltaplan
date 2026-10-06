@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "P10",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/air-phase.md"
     },
     {
       "name": "P14",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/air-phase.md"
     },
     {
