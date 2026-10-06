@@ -63,20 +63,3 @@ func test_roll_sensitivity_report() -> void:
 		var r := run("sport", 3.0, 0.0, roll)
 		print("    ручка крена %.2f (%.1f°): курс за разбег %.1f°, t=%.1f" % [roll, roll * 15.0, r.dh_deg, r.t])
 
-
-## Залипший толчок мыши по крену на земле гаснет (bar_ground_roll_return_per_s), в воздухе — нет.
-func test_ground_mouse_roll_returns() -> void:
-	var ic := InputController.new()
-	ic.reload_config()
-	ic.on_ground = true
-	ic._mouse_offset = Vector2(0.1, 0.1)
-	for i in 240:  # 2 с
-		ic.update(Sim.DT)
-	check(absf(ic._mouse_offset.x) < 0.001, "на земле крен мыши вернулся: %.3f" % ic._mouse_offset.x)
-	check(absf(ic._mouse_offset.y - 0.1) < 0.001, "нос мыши не трогается: %.3f" % ic._mouse_offset.y)
-	ic.on_ground = false
-	ic._mouse_offset = Vector2(0.1, 0.1)
-	for i in 240:
-		ic.update(Sim.DT)
-	check(absf(ic._mouse_offset.x - 0.1) < 0.001, "в воздухе трапеция держит: %.3f" % ic._mouse_offset.x)
-	ic.free()

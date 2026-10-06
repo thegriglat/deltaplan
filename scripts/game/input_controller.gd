@@ -200,11 +200,6 @@ func _update_bar(dt: float, pitch_dir: float, roll_dir: float, allow_center: boo
 		_mouse_offset *= exp(-dt / c_tau)
 	elif ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
-	if not allow_center:
-		# на земле крыло в руках: смещение мыши по крену (случайный толчок) уходит само, рука
-		# держит крыло в горизонте; курс на бегу ведёт крен, залипший толчок — дуга в сторону
-		var g_ret := float(_cfg.mouse.get("bar_ground_roll_return_per_s", 0.0))
-		_mouse_offset.x = move_toward(_mouse_offset.x, 0.0, g_ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
 	var m_roll := _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
 	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
