@@ -1,119 +1,110 @@
 {
-  "status": "partial",
-  "summary": "P11 в AirPicardJob/air_picard.glsl: карта ω, заморозка колонн (условие Дирихле), запасное правило ω, плюс P12 v2: late_mean и поле механизма при несходимости. P12 v4 в AirRuntime: domain_case → AirPhaseJob → тёплый Пикар → WindField, без сети; меню «Расчёт»/«Эвристика»; без GPU — аналитика. Слой «карта фаз» по F4. P14: тест гибрида против холодного Пикара и timing.json. Фазы — заглушка до вливания AP-19, поэтому сокращение итераций на настоящих фазах не измерено.",
+  "status": "done",
+  "summary": "P11: AirPicardJob — карта ω, заморозка колонн как условие Дирихле, запасное правило, warm_heat, warm_coarse (интерполяция на GPU), late_mean (P12 v2). P12 v4: AirRuntime — domain_case → AirPhaseJob (GPU, порциями) → грубый Пикар 1200 м → Пикар 400 м → WindField, без сети; меню «Расчёт»/«Эвристика»; слой «карта фаз» по F4. P14: гибрид = холодный Пикар по полю, выбранный старт (грубый 1200 м) не хуже холодного, timing.json, сравнение стартов. Итог GPU: 58 тестов, 0 упало, 0 пропущено (dp accept AP-20 --dry: 3/3).",
   "commits": [
-    "040c45e8 P11: ω, заморозка, запасное правило (ядра relax/freeze/rmask)",
-    "2aa7dbfb P12: AirRuntime без сети, конфиг без engine/nn_*",
+    "040c45e8 P11: ω, заморозка, запасное правило",
+    "2aa7dbfb P12: AirRuntime без сети",
     "b64d56a2 слой «карта фаз» F4",
-    "2bf4179d P14: test_air_hybrid_gpu, тесты P11, конвейер в test_air_runtime_gpu",
-    "a37386c5 P12 v2: late_mean + поле механизма H/D при несходимости",
-    "e7a370c9 ключи: сначала air_phase.{omega,nonconv}, временно air_model",
-    "a029242d P12 v4: меню «Расчёт»/«Эвристика», CPU-пути в рантайме нет",
-    "dca6712f, f5b7f6c6 заморозка как условие Дирихле (fixrow, грань при одной замороженной колонне, совместность ∇·u)",
-    "bcced242 warm_mech / mech_field_mech для решения без нагрева",
-    "acd48c02, 938eef7f docs/guide/air-model.md — конвейер, P11, F4"
+    "2bf4179d P14: test_air_hybrid_gpu",
+    "a37386c5 P12 v2: late_mean + поле механизма H/D",
+    "a029242d P12 v4: меню «Расчёт»/«Эвристика»",
+    "dca6712f, f5b7f6c6 заморозка как условие Дирихле",
+    "81d7e9f2 настоящий AirPhaseJob (P10 v5), *_mech, ключи air_phase.{omega,nonconv}",
+    "5969de22 d_strong_c 270 → 250",
+    "18766c22 конвейеры ядер при запуске игры",
+    "8ffc7180, c63c0ff7 старт от грубого Пикара 1200 м (warm_heat, warm_coarse, ядро prolong), карта ω выключена, test_air_warmstart_gpu",
+    "4195e470 стыки задач — разными кадрами, предел кадра 130 мс",
+    "e7fdcc60 без магических чисел",
+    "acd48c02, 938eef7f, df32babf docs/guide/air-model.md"
   ],
   "checks": [
     {
-      "name": "air_runtime (dp accept --dry)",
+      "name": "gpu",
+      "value": "58 тестов, 0 упало, 0 пропущено, exit 0. Через tools/gpu_tests.sh (dp accept) три прогона подряд упали по таймаутам: ночью дисплей выключен, окно с vsync идёт около 1 кадра/с (стена 60 с на 61 кадр). На e7fdcc60 (до docs-коммита) dp accept --dry: 3/3, 58/0",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
       "value": "5/5, 2 пропущено (GPU)",
       "pass": true
     },
     {
-      "name": "c9 (dp accept --dry)",
-      "value": "0/0: под фильтр --filter=c9 не попадает ни один файл тестов (условие карточки)",
-      "pass": false
-    },
-    {
-      "name": "gpu --filter=atmosphere/test_air_ (dp accept --dry, 938eef7f, шейдер переимпортирован)",
-      "value": "47 тестов, 0 упало, 0 пропущено; exit 0",
-      "pass": true
-    },
-    {
       "name": "no_magic",
-      "value": "2 (≤ 6)",
+      "value": "3 (≤ 6)",
       "pass": true
     },
     {
       "name": "P11 при пустых полях — побитно",
-      "value": "md5 u,v,w,θ′,θ′_d,p,w_mech кода до и после: saddle 6fb05846…, Онгудай 400 м 3 м/с 1af8df13… — совпали; итерации 470 и 230/190 те же",
+      "value": "md5 решения кода до и после совпали (saddle 470 итераций, Онгудай 230/190); test_p11_empty_bitwise зелёный",
       "pass": true
     },
     {
       "name": "заморозка 4×4 (saddle)",
-      "value": "470 итераций (без заморозки — 470), div_rms 2,4e-9; до правки на Дирихле — 3000 (не сходилась)",
+      "value": "470 итераций, как без заморозки (до перехода на Дирихле — 3000, не сходилась)",
       "pass": true
     },
     {
-      "name": "ω = ½ по карте (saddle)",
-      "value": "470 итераций (ω = 1 — 470), max|Δu| 7,8e-5 м/с",
+      "name": "P14: поле гибрида против холодного (A/B/C, 6 случаев)",
+      "value": "max|Δu_h| ≤ 0,019·U_sat, средняя ≤ 0,0065·U_sat (допуски 0,15 / 0,05), зоны подъёма и опускания совпали",
       "pass": true
     },
     {
-      "name": "запасное правило (20, 0,5)",
-      "value": "переключение на 20-й итерации, сошлось к той же точке",
+      "name": "P14: выбранный старт не хуже холодного (итерации пары; у грубого — плюс итерации грубой ×1/9)",
+      "value": "Онгудай 3 м/с 420 → 200, 6 м/с 250 → 227, Аскарово 3 м/с 120 → 68, 6 м/с 110 → 110, Аушкуль 3 м/с 120 → 78, 6 м/с 120 → 111",
       "pass": true
     },
     {
-      "name": "P12 v2 late_mean (max_outer 60, late_from 30)",
-      "value": "status max, 3 состояния, div_rms 8e-9 после сшивки",
-      "pass": true
-    },
-    {
-      "name": "P14 гибрид (заглушка фаз) против холодного, 6 случаев",
-      "value": "max|Δu_h| ≤ 5,1e-7·U_sat, средняя ≤ 8,5e-8·U_sat, зоны подъёма/опускания расходятся ≤ 1,1e-4 доли (допуски 0,15 / 0,05 / 0,05)",
+      "name": "кадр AirRuntime (Онгудай)",
+      "value": "загрузка: кадр max 102 мс, стена 4,07 с (раньше 4,5); пересчёт: 77–97 мс главного потока; предел — 130 мс по факту (оптимизация отложена, решение пользователя 07.10)",
       "pass": true
     }
   ],
   "not_done": [
-    "Сокращение итераций гибрида на настоящих фазах: AirPhaseJob (AP-19) ещё не влит. Заглушка даёт фазу A везде и тёплый старт однородным притоком, так что итераций столько же, сколько у холодного Пикара (420/420, 250/250, 120/120, 110/120, 120/120, 120/120). Проверка «итераций меньше» включается сама, когда есть air_phase_job.gd. После вливания нужен повторный прогон test_air_hybrid_gpu.",
-    "Перевод временных ключей air_model.{omega_fallback_*, nonconv_*, hybrid_checks} на air_phase.{omega, nonconv, checks} — после вливания AP-19. Код уже читает air_phase первым (AirRuntime.phase_cfg); останется удалить ключи из air_model.",
-    "Приёмка c9: условие карточки --filter=c9 не находит ни одного файла (в путях тестов нет «c9»), dp считает 0/0 провалом. Нужна правка фильтра в карточке.",
-    "После bcced242 (warm_mech / mech_field_mech) GPU не перепрогонялся: путь активен только при *_mech от AP-19, без них поведение прежнее; headless-тесты зелёные."
+    "Оптимизация кадра до 100 мс отложена (решение пользователя): стыки задач (итог фаз или грубого Пикара и запуск следующей) уже разнесены по кадрам; запуск AirPicardJob — 70–90 мс главного потока.",
+    "Карта ω по клеткам выключена (air_phase.omega.use_map = false), но в коде осталась; ω по клеткам от AirPhaseJob пока однородна (P10 v5).",
+    "Сравнение стартов (test_air_warmstart_gpu) включается только по AIR_WARMSTART=1: поле «Эвристики» строится на CPU 10–13 мин на случай."
   ],
   "questions": [
-    "Заморозка расходится с research P4 v6. Грань u/v замораживаю, когда заморожена хотя бы одна колонна (в research — обе), а строки шаблона замороженных точек делаю тождеством. Вариант «обе» на GPU не сходится: общая грань решается прогонкой, потом сбрасывается заморозкой, и неподвижной точки нет (3000 итераций). Согласовать с AP-18/AP-19 и при необходимости поправить текст P11.",
-    "Нужна ли отдельная nonconv_field_mech для решения без нагрева? Сейчас nonconv_field = warm + mech_field (с нагревом) для обоих решений."
+    "Заморозка расходится с research P4 v6: грань u/v замораживаю, когда заморожена хотя бы одна колонна (в research — обе), строки шаблона замороженных точек — тождество. Вариант «обе» не сходится. Поправить текст P11?",
+    "nonconv_field для решения без нагрева берётся из warm + mech_field решения с нагревом. Нужен ли *_mech-вариант?"
   ],
   "images": [],
-  "how_to_check": "cd ~/deltaplan-air-phase-AP-20 && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import && /home/greg/deltaplan/tools/dp accept AP-20 --dry; числа P14 — build/dp/AP-20/timing.json; в игре F4 — карта фаз",
+  "how_to_check": "cd ~/deltaplan-air-phase-AP-20 && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import && /home/greg/deltaplan/tools/dp accept AP-20 --dry; числа — build/dp/AP-20/timing.json и warmstart.json; сравнение стартов — AIR_WARMSTART=1 tools/gpu_tests.sh --filter=air_warmstart; в игре F4 — карта фаз",
   "uncertain": [
     {
-      "where": "scripts/atmosphere/air_model/air_picard.glsl:frozen_at, fixrow; air_picard_job.gd:_rec_project_head(masked)",
-      "why": "Заморозка как Дирихле — моя схема, не схема research. Постоянная совместности ∇·u (поток поля механизма через общие грани) вычитается из критерия. Если поле механизма от AP-19 сильно не бездивергентно, в незамороженной области останется равномерный ∇·u = c до finalize-сшивки",
-      "checked": "saddle 4×4 сходится за те же 470 итераций; конвейер с заглушкой (F 8×8): 210/180 итераций против 230/190 без фаз; finalize даёт div_rms ~1e-8"
+      "where": "air_picard.glsl:frozen_at/fixrow; air_picard_job.gd:_rec_project_head(masked)",
+      "why": "Заморозка как Дирихле — моя схема, не схема research. Постоянная совместности ∇·u вычитается из критерия. Если поле механизма от AirPhaseJob сильно не бездивергентно, до finalize в свободной области останется равномерный ∇·u",
+      "checked": "saddle 4×4 сходится за 470 итераций; на местах игры при ветре заморожено 0 колонн (F замораживается только при w* ≥ U_sat — classifier.f_wstar_over_usat, так задумано AP-19). Заморозка в бою пока почти не проверена: Пикар считает F-клетки сам"
     },
     {
-      "where": "tests/atmosphere/test_air_picard_gpu.gd:test_p11_omega_freeze_fallback (ω = ½)",
-      "why": "На saddle ω = ½ даёт ровно столько же итераций, сколько ω = 1 (470). В research ω = ½ вдвое медленнее (211 против 111)",
-      "checked": "путь включён (ключ программы iters_r, поле отличается на 7,8e-5 м/с). Видимо, на этом случае без нагрева сходимость ограничивает не недорелаксация импульса, а замыкание K (k_relax 0,1) или давление. Проверку «медленнее» убрал из теста"
+      "where": "AirPicardJob.warm_coarse / air_picard:prolong",
+      "why": "Интерполяция грубой сетки: по горизонтали билинейно в индексах своего вида грани, по высоте — целый сдвиг уровней (z_bot кратен dz). Под землёй грубой сетки — нули, их чинит проекция старта (4 V-цикла)",
+      "checked": "поле гибрида совпадает с холодным ≤ 0,019·U_sat на 6 случаях; итерации меньше или равны"
     },
     {
-      "where": "побитный инвариант P11 (md5 до/после)",
-      "why": "Копия «старого кода» сделана rsync вместе с .godot рабочей копии, без --import, так что старый GDScript мог работать с SPIR-V нового air_picard.glsl",
-      "checked": "Старые ядра в шейдере текстом не менялись (новые варианты дописаны в конец), значит различие могло быть только в GDScript-программах, а оно совпало. Отдельно test_p11_empty_bitwise и эталонные тесты test_air_picard_gpu зелёные на свежем шейдере"
+      "where": "время (timing.json)",
+      "why": "RX 5600 XT оценён по пропускной способности памяти (×1,5–1,75), без учёта вычислений и драйвера. Фазы (≈ 0,5 с) — в основном подготовка на CPU в рабочем потоке; на Ryzen 5 4500 может быть дольше",
+      "checked": "RTX 4070 SUPER, GPU пары решений Пикара (+ грубый): Онгудай 3 м/с 777 + 298 мс (холодный 1758), 6 м/с 898 + 262 (1103), Аскарово 222+154 / 347+179 (459 / 427), Аушкуль 263+155 / 330+188 (460 / 456). Оценка RX 5600 XT с фазами и грубым стартом: Онгудай 2,4–3,0 с, остальные 1,3–1,8 с"
     },
     {
-      "where": "scripts/atmosphere/air_model/air_picard_job.gd:_step_program (late_copy/late_add)",
-      "why": "Счётчик late_n увеличивается при выборке программы шага. Это верно, пока max_steps_per_chunk = 1 (шаг не выбирается дважды)",
-      "checked": "AirGpuJob._record_chunk_inner при max_steps_per_chunk = 1 зовёт _step_program один раз на шаг; тест: 3 состояния на итерациях 30, 40, 50"
-    },
-    {
-      "where": "время, build/dp/AP-20/timing.json",
-      "why": "Оценка RX 5600 XT только по пропускной способности памяти (504 / 336–288 ГБ/с, ×1,5–1,75), без учёта вычислений и драйвера. Время фаз — заглушка (1 мс), не AirPhaseJob",
-      "checked": "RTX 4070 SUPER, GPU-время пары решений гибрида: Онгудай 3 м/с 1629 мс (старт 38, итерации 1569, сшивка 22), 6 м/с 1011; Аскарово 418/434; Аушкуль 439/443. Оценка RX 5600 XT: Онгудай 3 м/с 2,4–2,9 с, остальные 0,63–1,8 с"
+      "where": "время по итерациям против GPU-времени",
+      "why": "Выигрыш грубого старта по итерациям с весом клеток (1140 → 793) больше, чем по GPU-времени: мелкая сетка грузит GPU хуже, у задачи постоянные накладные расходы",
+      "checked": "warmstart.json: GPU 4,34 → 3,75 с на 6 случаев; на лёгких случаях при 6 м/с грубый старт по GPU дороже холодного (+50–100 мс), на Онгудае 3 м/с — −40 %"
     }
   ],
-  "dp_feedback": "(1) dp lock gpu вернул 0, хотя gpu_tests.sh упал с exit 139 (segfault при выходе) — код возврата команды под замком теряется. (2) tools/gpu_tests.sh не делает --import: после правки .glsl тесты молча берут старый SPIR-V (у меня — «нет SPIR-V» для нового варианта). Предлагаю --import в gpu_tests.sh или в dp accept перед gpu. (3) dp accept считает 0/0 тестов провалом без подсказки, что фильтр ничего не нашёл. (4) dp job start/lock вывод «PID, лог» вместо вывода команды; итоговую строку тестов приходится искать в ~/.cache/deltaplan-jobs — нужен dp job tail <имя> --grep.",
+  "dp_feedback": "(1) dp lock gpu вернул 0 при exit 139 у gpu_tests.sh. (2) gpu_tests.sh не делает --import: после правки .glsl тесты берут старый SPIR-V или «нет SPIR-V». (3) Таймаут dp job --lock считается вместе с ожиданием замка: задание умерло, не начавшись. (4) Вывод dp lock/job — «PID, лог», итоговую строку тестов приходится искать в ~/.cache/deltaplan-jobs; нужен dp job tail <имя> --grep. (5) dp accept считает 0/0 тестов провалом без подсказки, что фильтр ничего не нашёл. (6) tools/gpu_tests.sh без --disable-vsync: при выключенном дисплее окно идёт с частотой около 1 кадра/с, все задачи на кадрах падают по таймауту (тесты окон, Пикара). Добавить --disable-vsync. (7) dp report требует результатов dp accept для текущего HEAD: docs-коммит после зелёного accept заставляет заново гонять GPU.",
   "extra": {
-    "api": {
-      "AirPicardJob": "omega_map, freeze_mask, freeze_field, freeze_field_mech, omega_fallback (Vector2, по умолчанию 0 — выкл.), late_from, nonconv_mask, nonconv_field; итог omega_fallback_used, omega_switch_iter, frozen_frac, nonconv_fallback, nonconv_frac, phase_gpu_ms {init, iter, final}; results[] + omega_fallback_used, omega_switch_iter, frozen_frac, nonconv_fallback, late_n; const COL_KF, KIND_*; новые ядра air_picard:relax/freeze/rmask/fixrow",
-      "AirRuntime": "phase_factory (заглушка фаз в тестах), phase_map (слой F4), PHASE_JOB_PATH, phase_cfg(group, key, fallback), nonconv_mask(ph, thr); engine() всегда solver; last_info + engine, phase_frac, phase_ms, omega_fallback_used, frozen_frac, nonconv_fallback, picard_ms, phase_map; Stage.NN → Stage.PHASE; ветка сети удалена",
-      "конфиг air_model": "удалены engine, nn_*; добавлены (временно, до air_phase) omega_fallback_iters 300, omega_fallback_value 0,5, nonconv_late_from 500, nonconv_mech_w 0,5, hybrid_checks{…} — у каждого _doc",
-      "меню": "«Расчёт» (auto) / «Эвристика» (off) — исходные тексты; ключи settings_wind_model_nn, loading_wind_nn удалены; Game.wind_stage_key без ветки nn",
-      "удалено": "tests/air_onnx/test_air_nn_runtime.gd (согласовано)"
+    "api": "AirPicardJob: omega_map, freeze_mask(_mech), freeze_field(_mech), omega_fallback (по умолчанию выкл.), late_from, nonconv_mask/field, warm_heat, warm_coarse; итог omega_fallback_used, omega_switch_iter, frozen_frac, nonconv_fallback, phase_gpu_ms; ядра relax/freeze/rmask/fixrow/prolong. AirRuntime: phase_factory, phase_map, phase_cfg(), nonconv_mask(), coarse_start(); last_info + engine, phase_frac, phase_ms, frozen_frac, omega_fallback_used, nonconv_fallback, picard_ms, coarse, stage_ms. Конфиг: air_model — engine/nn_* удалены, + picard_start = coarse, picard_coarse_factor = 3, hybrid_checks; air_phase.omega.use_map = false, classifier.d_strong_c = 250.",
+    "warmstart_iters_sum": {
+      "cold": 1140,
+      "cold_map": 1560,
+      "asm": 1090,
+      "heur": 1140,
+      "coarse2": 850,
+      "coarse3": 793,
+      "prev (только для сведения)": 330
     }
   },
-  "t": "2026-10-06T21:23:44",
+  "t": "2026-10-07T04:20:10",
   "by": "executor"
 }
