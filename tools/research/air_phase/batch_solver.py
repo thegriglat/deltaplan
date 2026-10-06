@@ -21,7 +21,8 @@
   Записывается метрика resid = max(mom_rms, th_rms·40, div_rms·20) (м/с², «эквивалент невязки импульса»: < 2e-5 ⇔ abs)
   и resid_rel = resid·a/U_sat² (< 4e-4 ⇔ rel при пороге по умолчанию).
 
-Опции (Numerics): omega_u — u ← u + ω(u* − u) после проекции (Params.omega_u); omega_k — K ← K + ω(K* − K), где K* —
+Опции (Numerics): top_above_m — верх области над max рельефа (как real.TOP_ABOVE, своя grid_domain), sponge_top_m —
+толщина губки у верха (Params.sponge_top_m), P4 v4; omega_u — u ← u + ω(u* − u) после проекции (Params.omega_u); omega_k — K ← K + ω(K* − K), где K* —
 обновление замыкания с его собственной нижней релаксацией k_relax = 0,1 (эффективно k_relax·ω; ω = 1 — как было);
 k_floor_m2s — Params.k_fa (K свободной атмосферы и нижний предел K в kloc); advection_order 2 — Params.adv2 (ван Лир).
 
@@ -110,6 +111,8 @@ class Numerics:
     envelope_angle_deg: float = 0.0
     envelope_wall: str = "none"
     envelope_z0_m: float | None = None
+    top_above_m: float = 3000.0        # P4 v4: верх области над max рельефа, м (air3d/real.TOP_ABOVE)
+    sponge_top_m: float = 1000.0       # P4 v4: толщина губки у верха, м (Params.sponge_top_m)
 
 
 @dataclass
@@ -237,6 +240,17 @@ def window_geometry(g100, wdir_from_deg, h_rel):
     return x0, y0, nx, ny, meta
 
 
+def grid_domain(loc, dx, dz=None, top_above=R.TOP_ABOVE):
+    """= real.grid_domain с верхом области `top_above` м над max рельефа (P4 v4); по умолчанию — та же сетка."""
+    n = int(round(R.DOMAIN_L / dx))
+    x0 = y0 = -R.DOMAIN_L / 2
+    hc = R.block_mean(loc, x0, y0, dx, n, n)
+    dz = dz or (105.0 if dx >= 200 else dx / 2)
+    zb = math.floor(hc.min() / dz) * dz - dz
+    nz = int(math.ceil((hc.max() + float(top_above) - zb) / dz)); nz += nz % 2
+    return A.Grid(dx, n, n, dz, zb, nz, x0, y0), hc
+
+
 def window_grid(loc, x0, y0, nx, ny, dx=WINDOW_DX, top_above=WINDOW_TOP_ABOVE):
     dz = dx / 2
     hw = R.block_mean(loc, x0, y0, dx, nx, ny)
@@ -294,6 +308,8 @@ class _Setup:
             prm = replace(prm, k_relax=prm.k_relax * float(num.omega_k))
         if num.omega_u != 1.0:
             prm = replace(prm, omega_u=float(num.omega_u))
+        if num.sponge_top_m != prm.sponge_top_m:
+            prm = replace(prm, sponge_top_m=float(num.sponge_top_m))
         if num.advection_order == 2:
             prm = replace(prm, adv2=True, limiter=1)
         elif num.advection_order != 1:
@@ -319,7 +335,7 @@ class _Setup:
 
     def domain(self):
         num = self.num
-        g, hc = R.grid_domain(self.loc, 400)
+        g, hc = grid_domain(self.loc, 400, top_above=num.top_above_m)
         cond = self.case(g, hc)                         # солнце и нагрев — по настоящему рельефу
         h_eff, cd_map = None, None
         hs = hc

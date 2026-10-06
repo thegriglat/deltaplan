@@ -33,11 +33,11 @@ sys.path.insert(0, str(ROOT / "tools/research/air_synth/corpus"))
 import phase_plan_pb2 as pb  # noqa: E402
 import reliefs as R          # noqa: E402
 
-CONTRACT = "P2 v4"
+CONTRACT = "P2 v5"
 SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")   # план ap_v1 (по умолчанию)
-SERIES_KNOWN = SERIES_ALL + ("fixed_u",)    # fixed_u — только явно (--series fixed_u, план ap_v2)
+SERIES_KNOWN = SERIES_ALL + ("fixed_u", "threshold", "calm")    # calm — AP-13 по ревью AP-9 (план ap_v3_calm); fixed_u — только явно (план ap_v2); threshold — AP-13 (план ap_v3, серия FIXED_U)
 SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
-               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL, "fixed_u": pb.FIXED_U}
+               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL, "fixed_u": pb.FIXED_U, "threshold": pb.FIXED_U, "calm": pb.FIXED_U}
 SHAPE_ENUM = {"hill": pb.HILL, "ridge": pb.RIDGE, "step_up": pb.STEP_UP, "step_down": pb.STEP_DOWN}
 
 # --- постоянные плана (план §2)
@@ -55,7 +55,8 @@ H_OVER_ZI = (0.3, 1.0, 3.0)
 WDIR = 270.0
 # --- Numerics по умолчанию решателя (air3d: Params.k_fa = 1 м²/с; solver.solve / air3d/common.py TOL; airlite_gen: late 500/50)
 NUM_DEF = dict(envelope_angle_deg=0.0, envelope_wall=pb.WALL_NONE, envelope_z0_m=0.0, dx_m=400.0, advection_order=1, omega_u=1.0, omega_k=1.0, k_floor_m2s=1.0, criterion=pb.ABSOLUTE,
-               tol=2e-5, max_outer=1000, snap_from=100, snap_step=50, late_from=500, late_step=50)
+               tol=2e-5, max_outer=1000, snap_from=100, snap_step=50, late_from=500, late_step=50,
+               top_above_m=3000.0, sponge_top_m=1000.0)   # P2 v5: верх области над max рельефа и губка (real.TOP_ABOVE, Params)
 # ABSOLUTE tol = tol_mom (м/с², СКО невязки импульса, air3d/common.py TOL); tol_th = 5e-7 К/с и tol_div = 1e-6 1/с
 # остаются при нём (решатель берёт их фиксированными; P4 масштабирует вместе с tol).
 # RELATIVE: невязка импульса / (U_sat²/a) с a = h = 500 м (характерный масштаб, тот же, что в Fr) — порог равен
@@ -88,6 +89,33 @@ FU_SHAPES = ("ridge", "hill")
 FU_S = 0.3
 FU_HEATS = (0.0, 250.0)
 CORPUS_V2 = "corpus/ideal_v2"
+
+# --- THRESHOLD (AP-13, план ap_v3, серия FIXED_U): порог несходимости N_c(U) у хребта (s 0,3, h 500, H 0, h/z_i 1) —
+# физика или решатель. Точки по N у порога AP-7 (N_c 0,0089 при U_sat 3, 0,0135 при 6) + третий ветер 4,5 м/с;
+# варианты: контроль, длинный счёт (поздняя динамика), ω = 0,5, K_min = 10, верх области выше / губка толще (P2 v5).
+THR_N = {3.0: (0.0065, 0.0125), 4.5: (0.0085, 0.016), 6.0: (0.010, 0.019)}
+THR_NPTS = 11
+THR_VARIANTS = (
+    ("ctrl", dict()),
+    ("long", dict(max_outer=3000, late_from=2000, snap_step=10)),   # снимки каждые 10 итераций: поздняя динамика
+    ("omega", dict(omega_u=0.5, omega_k=0.5, max_outer=2000, late_from=1000)),
+    ("kfloor", dict(k_floor_m2s=K_FLOOR_MIN)),
+    ("top4500", dict(top_above_m=4500.0)),
+    ("top6000", dict(top_above_m=6000.0)),
+    ("top4500_sp2000", dict(top_above_m=4500.0, sponge_top_m=2000.0)),
+)
+
+# CALM (AP-13 по ревью AP-9, план ap_v3_calm, серия FIXED_U): штиль GRID (N = 0,01, h = 500, U_sat = 5·Fr), Fr 0,15–0,25,
+# хребет, H = 0, h/z_i = 1 — «при Fr ≤ 0,25 решения нет или сходимость просто очень медленная»: ω = 0,3 и контроль, 2000 итераций.
+CALM_FR = (0.15, 0.175, 0.2, 0.225, 0.25)
+CALM_VARIANTS = (("calm_ctrl", dict(max_outer=2000, late_from=1000)),
+                 ("calm_omega03", dict(omega_u=0.3, omega_k=0.3, max_outer=2000, late_from=1000)))
+
+
+def threshold_points():
+    """→ [dict(u_sat, n_bv, fr, h_m)] — точки THRESHOLD: h = 500, N лог-равномерно в THR_N[U], fr = U_sat/(N·h)."""
+    return [dict(u_sat=u, n_bv=float(n), fr=u / (float(n) * H_M), h_m=H_M)
+            for u, (a, b) in THR_N.items() for n in np.logspace(np.log10(a), np.log10(b), THR_NPTS)]
 
 
 def fixed_u_points():
@@ -322,7 +350,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
 
     specs = ideal_specs()
     rid = {sp: i for i, sp in enumerate(specs)}
-    need_v1 = any(s != "fixed_u" for s in series)    # только fixed_u (ap_v2) — рельефов ideal_v1 в плане нет
+    need_v1 = any(s not in ("fixed_u", "threshold", "calm") for s in series)    # только fixed_u (ap_v2) — рельефов ideal_v1 в плане нет
     for (sh, s), i in ((sp, rid[sp]) for sp in (specs if need_v1 else [])):
         r = plan.reliefs.add()
         r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = i, i, R.ideal_name(sh, s, LENGTH_M), SHAPE_ENUM[sh], s, H_M
@@ -462,6 +490,20 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
                     fixed_info.append(dict(shape=sh, H=H, line_id=state["next_line"] - 1, **p))
         if write:
             write_ideal_v2_corpus(fspecs)
+    if "threshold" in series or "calm" in series:
+        sp = ("ridge", FU_S, H_M)
+        fid = {x: i for i, x in enumerate(fixed_u_relief_specs())}   # id в существующем корпусе ideal_v2 (корпус не пишется)
+        r = plan.reliefs.add()
+        r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = len(plan.reliefs) - 1, fid[sp], ideal_v2_name(*sp), pb.RIDGE, FU_S, H_M
+        r.a_m = float(R.ideal_scale_a("ridge", FU_S, H_M))
+        r.length_m = LENGTH_M
+        r.corpus = CORPUS_V2
+        thr = [(v, kw, p) for v, kw in THR_VARIANTS for p in threshold_points()] if "threshold" in series else []
+        calm = [(v, kw, dict(u_sat=fr * N_BV * H_M, n_bv=N_BV, fr=fr, h_m=H_M)) for v, kw in CALM_VARIANTS for fr in CALM_FR] \
+            if "calm" in series else []
+        for v, kw, p in thr + calm:
+            add_line("threshold", r.relief_id, 0.0, 1.0, WDIR, [p["fr"]], pb.COLD, variant=v, n_bv=p["n_bv"], **kw)
+            fixed_info.append(dict(shape="ridge", H=0.0, line_id=state["next_line"] - 1, variant=v, **p))
     plan.n_cases = state["next_case"]
 
     table = {}
