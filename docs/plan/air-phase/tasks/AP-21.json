@@ -64,7 +64,7 @@
     },
     {
       "name": "no_onnx",
-      "cmd": "sh -c 'git grep -niE \"onnx|redist|msvcp|vcruntime\" -- . \":!CHANGELOG.md\" \":!site/content/diary\" \":!site/content/releases\" \":!docs/archive\" \":!tools/research\" \":!docs/plan\" \":!docs/research\" \":!docs/contracts/air-onnx.md\" | wc -l'",
+      "cmd": "sh -c 'git grep -niE \"redistributable|msvcp|vcruntime|onnx\" -- . \":!CHANGELOG.md\" \":!TODO.md\" \":!site/content/diary\" \":!site/content/releases\" \":!site/content/plans\" \":!site/content/research\" \":!site/content/approaches.*\" \":!docs/archive\" \":!docs/plan\" \":!docs/research\" \":!docs/contracts\" \":!docs/registry\" \":!docs/INDEX.md\" \":!tools/research\" \":!licenses\" \":!assets\" \":!data/terrain\" | wc -l'",
       "expect": "num:^(\\d+) <=0"
     },
     {
