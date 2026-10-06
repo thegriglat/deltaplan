@@ -11,4 +11,6 @@ Each page is one mechanic of the game: how it works in plain words, what physics
 
 A simulation is a model, and every model has limits. That is why every page has a "Model limits" section: what is simplified and where the game's behavior may differ from the real sky.
 
+The air has four linked pages: the [overview of the three scales](/mechanics/air-model/), then one page per level — [wind field](/mechanics/wind-phases/), [thermals](/mechanics/thermals/), [turbulence and rotor](/mechanics/turbulence/).
+
 {{< children >}}
