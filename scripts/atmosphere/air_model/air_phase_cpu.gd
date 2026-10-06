@@ -27,15 +27,11 @@ static func run(case: AirCase, cfg: Dictionary = {}) -> Dictionary:
 
 static func run_prepared(p: Dictionary, parts := {}) -> Dictionary:
 	var t := Time.get_ticks_usec()
-	var pre := []
 	var fin := []
 	var frz := []
 	for v in 2:
-		pre.append(smooth(p, classify(p, v)))
-	for v in 2:
-		var r := finalize(p, v, pre[v])
-		fin.append(r[0])
-		frz.append(r[1])
+		fin.append(smooth(p, classify(p, v)))
+		frz.append(finalize(p, v, fin[v]))
 	parts.classify = _lap(t)
 	t = Time.get_ticks_usec()
 	var aslab := synth(p)
@@ -47,13 +43,13 @@ static func run_prepared(p: Dictionary, parts := {}) -> Dictionary:
 	var th := PackedFloat64Array()
 	th.resize(p.n2)
 	if p.heated:
-		th = theta(p, uml(p, pre[P.V_H], aslab, lap))
+		th = theta(p, uml(p, fin[P.V_H], aslab, lap))
 	parts.theta_f = _lap(t)
 	t = Time.get_ticks_usec()
 	var outv := []
 	var bad := [false]
 	for v in 2:
-		outv.append(faces(p, fill(p, v, pre[v], aslab, lap, th, bad), bad))
+		outv.append(faces(p, fill(p, v, fin[v], aslab, lap, th, bad), bad))
 	parts.fill = _lap(t)
 	var wf := []
 	for v in 2:
@@ -68,7 +64,8 @@ static func _lap(t: int) -> float:
 # ---------------------------------------------------------------- классификатор
 
 
-## Сырые веса (K·n²) варианта v (AP-17 classify + C + G = 0): air_phase.glsl:classify.
+## Сырые веса (K·n²) варианта v — P15 (classifier_ref.classify): H, D (ниже H_c по клеткам), C (волны
+## по U_sat·|e·∇h_s|), A — остальное; B — огибающая срыва; F — по −z_i/L; G — сток (air_phase.glsl:classify).
 static func classify(p: Dictionary, v: int) -> PackedFloat64Array:
 	var a: PackedFloat32Array = p.prm
 	var n2: int = p.n2
@@ -76,20 +73,20 @@ static func classify(p: Dictionary, v: int) -> PackedFloat64Array:
 	var w := PackedFloat64Array()
 	w.resize(P.K * n2)
 	var heated := v == P.V_H and a[P.P_HEATED] > 0.0
-	var fr: float = a[P.P_FR]
-	var inf := fr >= a[P.P_FR_INF]
-	var sh := 0.0 if inf else 1.0 - P.sig_log(fr, a[P.P_FR_H], a[P.P_W_H])
-	var sd := 0.0 if inf else 1.0 - P.sig_log(fr, a[P.P_FR_D], a[P.P_W_D])
-	var cb := P.band(fr, a[P.P_FR_C_LO], a[P.P_FR_C_HI], a[P.P_W_C])
+	var gact := v == P.V_H and a[P.P_GACT] > 0.0
 	var ust: float = a[P.P_USTAR]
 	for c in n2:
-		var wh := sh
-		var wd := (1.0 - sh) * sd
-		var wa := (1.0 - sh) * (1.0 - sd)
-		var wc := (wa + wd) * cb
-		wa *= 1.0 - cb
-		wd *= 1.0 - cb
-		var sl := P.smooth01(0.0, a[P.P_LEE_DEPTH], col[P.CI_HEFF * n2 + c] - col[P.CI_HC * n2 + c])
+		var hc := col[P.CI_HC * n2 + c]
+		var wh: float = a[P.P_WH]
+		var wd: float = a[P.P_WD]
+		if a[P.P_D_LOCAL] > 0.0:
+			wd *= P.smooth01(0.0, a[P.P_D_RAMP], a[P.P_HCD] - hc)
+		var wc := 0.0
+		if a[P.P_C_WMS] > 0.0:
+			var x := maxf(a[P.P_USAT] * col[P.CI_SAL * n2 + c], 1e-6)
+			wc = (1.0 - wh) * (1.0 - wd) * P.sig_log(x, a[P.P_C_WMS], a[P.P_C_WDEC])
+		var wa := maxf(1.0 - wh - wd - wc, 0.0)
+		var sl := P.smooth01(0.0, a[P.P_LEE_DEPTH], col[P.CI_HEFF * n2 + c] - hc)
 		var heat := col[P.CI_HEAT * n2 + c]
 		if heated:
 			var steep := 1.0 if col[P.CI_S * n2 + c] < a[P.P_LEE_STEEP] else float(a[P.P_LEE_HSK])
@@ -110,12 +107,14 @@ static func classify(p: Dictionary, v: int) -> PackedFloat64Array:
 				wfc = P.sig_log(maxf(zil, 1e-6), a[P.P_ZIL_C], a[P.P_W_EF]) if hk > 0.0 else 0.0
 			else:
 				wfc = 1.0 if heat > 0.0 else 0.0
-		var r := 1.0 - wfc
+		var wg := col[P.CI_GW * n2 + c] if gact else 0.0
+		var r := (1.0 - wfc) * (1.0 - wg)
 		w[P.PH_A * n2 + c] = wa * r
 		w[P.PH_B * n2 + c] = wb * r
 		w[P.PH_C * n2 + c] = wc * r
 		w[P.PH_D * n2 + c] = wd * r
-		w[P.PH_F * n2 + c] = wfc
+		w[P.PH_F * n2 + c] = wfc * (1.0 - wg)
+		w[P.PH_G * n2 + c] = wg
 		w[P.PH_H * n2 + c] = wh * r
 	return w
 
@@ -154,28 +153,23 @@ static func smooth(p: Dictionary, raw: PackedFloat64Array) -> PackedFloat64Array
 	return out
 
 
-## Итоговые веса (вариант h: × (1 − w_G), G = w_G) и маска заморозки (air_phase.glsl:final).
-static func finalize(p: Dictionary, v: int, pre: PackedFloat64Array) -> Array:
+## Маска заморозки по итоговым весам (air_phase.glsl:final): вся область — H + сильное D ≥ freeze_w;
+## вариант h — ещё F ≥ freeze_w при w* ≥ k·U_sat и G ≥ freeze_w.
+static func finalize(p: Dictionary, v: int, fin: PackedFloat64Array) -> PackedByteArray:
 	var a: PackedFloat32Array = p.prm
 	var n2: int = p.n2
 	var col: PackedFloat64Array = p.col
-	var fin := pre.duplicate()
 	var frz := PackedByteArray()
 	frz.resize(n2)
-	var low := 1.0 - P.sig_log(a[P.P_FR], a[P.P_FR_FREEZE], a[P.P_FRZ_WDEC])
 	var fw: float = a[P.P_FRZ_W]
-	var full := low >= fw
+	var full := a[P.P_FULL] > 0.0
 	for c in n2:
 		var f := full
 		if v == P.V_H:
-			var wg := col[P.CI_GW * n2 + c] if a[P.P_GACT] > 0.0 else 0.0
-			for k in P.K:
-				fin[k * n2 + c] = pre[k * n2 + c] * (1.0 - wg)
-			fin[P.PH_G * n2 + c] = wg
-			var ff: bool = pre[P.PH_F * n2 + c] >= fw and col[P.CI_WST * n2 + c] >= a[P.P_WS_OVER_U] * a[P.P_USAT]
-			f = f or ff or wg >= fw
+			var ff: bool = fin[P.PH_F * n2 + c] >= fw and col[P.CI_WST * n2 + c] >= a[P.P_WS_OVER_U] * a[P.P_USAT]
+			f = f or ff or fin[P.PH_G * n2 + c] >= fw
 		frz[c] = 1 if f else 0
-	return [fin, frz]
+	return frz
 
 
 # ---------------------------------------------------------------- A: синтез линейной теории
@@ -476,7 +470,7 @@ static func mech(
 	return r
 
 
-## Нормированная смесь механического поля по весам «до G» (A, C → A; D, H → D; B → B).
+## Нормированная смесь механического поля по весам (A, C → A; D, H → D; B → B; F, G — отдельно).
 static func mix(w: PackedFloat64Array, n2: int, c: int, m: PackedFloat64Array) -> Vector3:
 	var wa := w[P.PH_A * n2 + c] + w[P.PH_C * n2 + c]
 	var wd := w[P.PH_D * n2 + c] + w[P.PH_H * n2 + c]
@@ -625,7 +619,8 @@ static func cell(
 	var vv := mn.y
 	var t := 0.0
 	if heated:
-		var wf := w[P.PH_F * n2 + c]
+		# доля F среди «не G» (итоговые веса включают G)
+		var wf := w[P.PH_F * n2 + c] / maxf(1.0 - w[P.PH_G * n2 + c], 1e-12)
 		# анабатика (AP-17 anabatic): u_a = (B_s·L·sin α)^(1/3) вверх по склону, слой δ у земли
 		var s := col[P.CI_S * n2 + c]
 		var sina := s / sqrt(1.0 + s * s)
@@ -642,7 +637,7 @@ static func cell(
 			var gw: float = a[P.P_GAMW] if zmsl > a[P.P_ZI] else 0.0
 			t -= gw * m[3]
 	if gact:
-		var wg := col[P.CI_GW * n2 + c]
+		var wg := w[P.PH_G * n2 + c]
 		var layer := col[P.CI_GLAY * n2 + c] > 0.5
 		var l := col[P.CI_GL * n2 + c]
 		var d := col[P.CI_GD * n2 + c]

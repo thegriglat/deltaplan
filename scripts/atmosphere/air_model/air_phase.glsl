@@ -52,10 +52,10 @@ layout(set = 0, binding = 9, std430) buffer BOut { float outv[]; };
 const int P_DX = 0, P_DZ = 1, P_ZBOT = 2, P_EX = 3, P_EY = 4, P_USAT = 5, P_ZSAT = 6, P_ALPHA = 7;
 const int P_Z0 = 8, P_FR = 9, P_NEFF = 10, P_HCD = 11, P_NL = 12, P_USTAR = 13, P_HEATED = 14;
 const int P_ZI = 15, P_GAMW = 16, P_GACT = 17, P_GDTHC = 18, P_TAU = 19;
-const int P_FR_H = 20, P_W_H = 21, P_FR_D = 22, P_W_D = 23, P_FR_C_LO = 24, P_FR_C_HI = 25;
-const int P_W_C = 26, P_LEE_DEPTH = 27, P_LEE_HLO = 28, P_LEE_HHI = 29, P_LEE_STEEP = 30;
+const int P_WH = 20, P_WDS = 21, P_WD = 22, P_FULL = 23, P_D_LOCAL = 24, P_D_RAMP = 25;
+const int P_C_WMS = 26, P_LEE_DEPTH = 27, P_LEE_HLO = 28, P_LEE_HHI = 29, P_LEE_STEEP = 30;
 const int P_LEE_HSK = 31, P_ZIL_C = 32, P_W_EF = 33, P_FR_INF = 34;
-const int P_FR_FREEZE = 35, P_FRZ_WDEC = 36, P_FRZ_W = 37, P_WS_OVER_U = 38;
+const int P_C_WDEC = 35, P_FRZ_W = 37, P_WS_OVER_U = 38;
 const int P_CAP = 39, P_BUB_R = 40, P_SLOPE_LEN = 41, P_ANA_DMIN = 42, P_ANA_DFRAC = 43;
 const int P_UML_N = 44, P_UML_MIN = 45, P_SOR_OMEGA = 46, P_G_TOPL = 47, P_G_MEMB = 48;
 const int P_GRAV = 49, P_THETA0 = 50, P_KAPPA = 51, P_UREF_MIN = 52, P_GK_R = 53, P_GK0 = 54;
@@ -67,10 +67,10 @@ const int P_ZL0 = P_NLEV + 1;
 // плоскости col — AirPhase.CI_*
 const int CI_HC = 0, CI_HEFF = 1, CI_T = 2, CI_S = 3, CI_GX = 4, CI_GY = 5, CI_HEAT = 6, CI_HK = 7;
 const int CI_HBL = 8, CI_WST = 9, CI_GL = 10, CI_GDTH = 11, CI_GUS = 12, CI_GON = 13, CI_GLAY = 14;
-const int CI_GD = 15, CI_GUC = 16, CI_GDX = 17, CI_GDY = 18, CI_GW = 19;
+const int CI_GD = 15, CI_GUC = 16, CI_GDX = 17, CI_GDY = 18, CI_GW = 19, CI_SAL = 20;
 const int MO_AMP = 0, MO_ELL = 1, MO_S0 = 2;
 const int K = 7, PH_A = 0, PH_B = 1, PH_C = 2, PH_D = 3, PH_F = 4, PH_G = 5, PH_H = 6;
-const int NWS = 4, WS_RAW = 0, WS_TMP = 1, WS_PRE = 2, WS_FIN = 3;
+const int NWS = 4, WS_RAW = 0, WS_TMP = 1, WS_FIN = 3;
 const int O_UML = 0, O_TH0 = 1, O_FRZ_M = 3, O_FRZ_H = 4, O_FLAG = 5;
 const int V_M = 0, V_H = 1;
 const int NCOMP = 4;
@@ -208,11 +208,11 @@ Mech mech(int c, float zmsl) {
 	return m;
 }
 
-// нормированная смесь по весам «до G»: A, C → A; D, H → D; B → B
+// нормированная смесь по весам: A, C → A; D, H → D; B → B (F, G — отдельно)
 vec3 mixw(int v, int c, Mech m) {
-	float wa = wts[widx(v, WS_PRE, PH_A, c)] + wts[widx(v, WS_PRE, PH_C, c)];
-	float wd = wts[widx(v, WS_PRE, PH_D, c)] + wts[widx(v, WS_PRE, PH_H, c)];
-	float wb = wts[widx(v, WS_PRE, PH_B, c)];
+	float wa = wts[widx(v, WS_FIN, PH_A, c)] + wts[widx(v, WS_FIN, PH_C, c)];
+	float wd = wts[widx(v, WS_FIN, PH_D, c)] + wts[widx(v, WS_FIN, PH_H, c)];
+	float wb = wts[widx(v, WS_FIN, PH_B, c)];
 	float sm = max(wa + wb + wd, 1e-12);
 	return (wa * m.a + wb * m.b + wd * m.d) / sm;
 }
@@ -222,24 +222,24 @@ void main() {
 	int v = pc.i0.w;
 
 #ifdef K_CLASSIFY
-	// сырые веса (AP-17 classify + полоса C): H, D, A по Fr; C — доля A + D в полосе Fr;
-	// B — огибающая срыва, нагрев ослабляет; F — по −z_i/L (только вариант с нагревом)
+	// сырые веса P15 (classifier_ref.classify; AirPhaseCpu.classify): H, D (ниже H_c по клеткам), C (волны
+	// по U_sat·|e·∇h_s|), A — остальное; B — огибающая срыва; F — по −z_i/L; G — сток
 	bool heated = v == V_H && prm[P_HEATED] > 0.0;
-	float fr = prm[P_FR];
-	bool inf = fr >= prm[P_FR_INF];
-	float sh = inf ? 0.0 : 1.0 - sig_log(fr, prm[P_FR_H], prm[P_W_H]);
-	float sd = inf ? 0.0 : 1.0 - sig_log(fr, prm[P_FR_D], prm[P_W_D]);
-	float cb = band(fr, prm[P_FR_C_LO], prm[P_FR_C_HI], prm[P_W_C]);
+	bool gact = v == V_H && prm[P_GACT] > 0.0;
 	float ust = prm[P_USTAR];
 	GRID_LOOP(n2) {
 		int c = t;
-		float wh = sh;
-		float wd = (1.0 - sh) * sd;
-		float wa = (1.0 - sh) * (1.0 - sd);
-		float wc = (wa + wd) * cb;
-		wa *= 1.0 - cb;
-		wd *= 1.0 - cb;
-		float sl = smooth01(0.0, prm[P_LEE_DEPTH], C(CI_HEFF, c) - C(CI_HC, c));
+		float hc = C(CI_HC, c);
+		float wh = prm[P_WH];
+		float wd = prm[P_WD];
+		if (prm[P_D_LOCAL] > 0.0) wd *= smooth01(0.0, prm[P_D_RAMP], prm[P_HCD] - hc);
+		float wc = 0.0;
+		if (prm[P_C_WMS] > 0.0) {
+			float x = max(prm[P_USAT] * C(CI_SAL, c), 1e-6);
+			wc = (1.0 - wh) * (1.0 - wd) * sig_log(x, prm[P_C_WMS], prm[P_C_WDEC]);
+		}
+		float wa = max(1.0 - wh - wd - wc, 0.0);
+		float sl = smooth01(0.0, prm[P_LEE_DEPTH], C(CI_HEFF, c) - hc);
 		float heat = C(CI_HEAT, c);
 		if (heated) {
 			float steep = C(CI_S, c) < prm[P_LEE_STEEP] ? 1.0 : prm[P_LEE_HSK];
@@ -261,13 +261,14 @@ void main() {
 				wf = heat > 0.0 ? 1.0 : 0.0;
 			}
 		}
-		float r = 1.0 - wf;
+		float wg = gact ? C(CI_GW, c) : 0.0;
+		float r = (1.0 - wf) * (1.0 - wg);
 		wts[widx(v, WS_RAW, PH_A, c)] = wa * r;
 		wts[widx(v, WS_RAW, PH_B, c)] = wb * r;
 		wts[widx(v, WS_RAW, PH_C, c)] = wc * r;
 		wts[widx(v, WS_RAW, PH_D, c)] = wd * r;
-		wts[widx(v, WS_RAW, PH_F, c)] = wf;
-		wts[widx(v, WS_RAW, PH_G, c)] = 0.0;
+		wts[widx(v, WS_RAW, PH_F, c)] = wf * (1.0 - wg);
+		wts[widx(v, WS_RAW, PH_G, c)] = wg;
 		wts[widx(v, WS_RAW, PH_H, c)] = wh * r;
 	}
 #endif
@@ -299,26 +300,21 @@ void main() {
 			s[k] = max(a, 0.0);
 			tot += s[k];
 		}
-		for (int k = 0; k < K; k++) wts[widx(v, WS_PRE, k, c)] = s[k] / max(tot, 1e-12);
+		for (int k = 0; k < K; k++) wts[widx(v, WS_FIN, k, c)] = s[k] / max(tot, 1e-12);
 	}
 #endif
 
 #ifdef K_FINAL
-	// итог: вариант h — × (1 − w_G), G = w_G; маска заморозки (низкий Fr; F при w* ≥ k·U_sat; G)
-	float low = 1.0 - sig_log(prm[P_FR], prm[P_FR_FREEZE], prm[P_FRZ_WDEC]);
+	// маска заморозки по итоговым весам: вся область — H + сильное D ≥ freeze_w; вариант h — F ≥ freeze_w
+	// при w* ≥ k·U_sat и G ≥ freeze_w (AirPhaseCpu.finalize)
 	float fw = prm[P_FRZ_W];
-	bool full = low >= fw;
+	bool full = prm[P_FULL] > 0.0;
 	GRID_LOOP(n2) {
 		int c = t;
 		bool f = full;
 		if (v == V_H) {
-			float wg = prm[P_GACT] > 0.0 ? C(CI_GW, c) : 0.0;
-			for (int k = 0; k < K; k++) wts[widx(v, WS_FIN, k, c)] = wts[widx(v, WS_PRE, k, c)] * (1.0 - wg);
-			wts[widx(v, WS_FIN, PH_G, c)] = wg;
-			bool ff = wts[widx(v, WS_PRE, PH_F, c)] >= fw && C(CI_WST, c) >= prm[P_WS_OVER_U] * prm[P_USAT];
-			f = f || ff || wg >= fw;
-		} else {
-			for (int k = 0; k < K; k++) wts[widx(v, WS_FIN, k, c)] = wts[widx(v, WS_PRE, k, c)];
+			bool ff = wts[widx(v, WS_FIN, PH_F, c)] >= fw && C(CI_WST, c) >= prm[P_WS_OVER_U] * prm[P_USAT];
+			f = f || ff || wts[widx(v, WS_FIN, PH_G, c)] >= fw;
 		}
 		o2d[(v == V_H ? O_FRZ_H : O_FRZ_M) * n2 + c] = f ? 1.0 : 0.0;
 	}
@@ -529,7 +525,7 @@ void main() {
 			vec3 mn = mixw(v, c, m);
 			float u = mn.x, vv = mn.y, th = 0.0;
 			if (heated) {
-				float wf = wts[widx(v, WS_PRE, PH_F, c)];
+				float wf = wts[widx(v, WS_FIN, PH_F, c)] / max(1.0 - wts[widx(v, WS_FIN, PH_G, c)], 1e-12);
 				float s = C(CI_S, c);
 				float sina = s / sqrt(1.0 + s * s);
 				float bs = prm[P_GRAV] / prm[P_THETA0] * max(C(CI_HK, c), 0.0);
@@ -543,7 +539,7 @@ void main() {
 				if (zmsl >= prm[P_HCD]) th -= (zmsl > prm[P_ZI] ? prm[P_GAMW] : 0.0) * m.eta;
 			}
 			if (gact) {
-				float wg = C(CI_GW, c);
+				float wg = wts[widx(v, WS_FIN, PH_G, c)];
 				bool layer = C(CI_GLAY, c) > 0.5;
 				float l = C(CI_GL, c);
 				float d = C(CI_GD, c);

@@ -39,6 +39,7 @@ enum {
 	CI_GDX,
 	CI_GDY,
 	CI_GW,
+	CI_SAL,
 	NCI
 }
 ## Плоскости мод линейной теории (modes): амплитуда, ℓ, затем по 4 знакам (sk, sl) — Re σ, Re m, Im m.
@@ -54,7 +55,7 @@ const NCOMP := 4
 enum { O_UML, O_TH0, O_TH1, O_FRZ_M, O_FRZ_H, O_FLAG, NO2D }
 ## Варианты: решение без нагрева (m, для w_mech) и с нагревом (h).
 enum { V_M, V_H }
-## Стадии весов: сырые, после прохода по x, «до G» (сглажены, Σ = 1), итог (с G).
+## Стадии весов: сырые, после прохода по x, (резерв), итог (сглажены, Σ = 1, с G).
 enum { WS_RAW, WS_TMP, WS_PRE, WS_FIN, NWS }
 
 ## Слоты параметров ядра (prm, float32) — тот же список в air_phase.glsl.
@@ -79,13 +80,13 @@ enum {
 	P_GACT,
 	P_GDTHC,
 	P_TAU,
-	P_FR_H,
-	P_W_H,
-	P_FR_D,
-	P_W_D,
-	P_FR_C_LO,
-	P_FR_C_HI,
-	P_W_C,
+	P_WH,
+	P_WDS,
+	P_WD,
+	P_FULL,
+	P_D_LOCAL,
+	P_D_RAMP,
+	P_C_WMS,
 	P_LEE_DEPTH,
 	P_LEE_HLO,
 	P_LEE_HHI,
@@ -94,8 +95,8 @@ enum {
 	P_ZIL_C,
 	P_W_EF,
 	P_FR_INF,
-	P_FR_FREEZE,
-	P_FRZ_WDEC,
+	P_C_WDEC,
+	P_RES1,
 	P_FRZ_W,
 	P_WS_OVER_U,
 	P_CAP,
@@ -360,14 +361,15 @@ static func prepare(case: AirCase, cfg: Dictionary) -> Dictionary:
 			zl.append(base + (q + 0.5) * (p.hcd - base) / nl)
 	p.zl = zl
 	# ---- ω по карте фаз (AP-18: Fr, U10 — величины случая, карта однородна)
-	var om: Dictionary = cfg.get("omega", {})
-	var bw := float(om.band_w_dec)
-	p.b_fr = band(p.fr, float(om.fr_band[0]), float(om.fr_band[1]), bw)
-	p.b_u = band(p.u10, float(om.u10_band[0]), float(om.u10_band[1]), bw)
-	var omega := 1.0 - (1.0 - float(om.omega_band)) * maxf(p.b_fr, p.b_u)
-	if omega > 1.0 - float(om.omega_snap):
+	var cl: Dictionary = cfg.get("classifier", {})
+	var bw := float(cl.omega_w_dec)
+	p.b_fr = band(p.fr, float(cl.omega_fr_lo), float(cl.omega_fr_hi), bw)
+	p.b_u = band(p.u10, float(cl.omega_u10_lo), float(cl.omega_u10_hi), bw)
+	var omega := 1.0 - (1.0 - float(cl.omega_band)) * maxf(p.b_fr, p.b_u)
+	if omega > 1.0 - float(cl.omega_snap):
 		omega = 1.0
 	p.omega = omega
+	case_weights(p, cl)
 	# ---- нагрев
 	var heat := case.heat
 	p.heated = false
@@ -391,6 +393,9 @@ static func prepare(case: AirCase, cfg: Dictionary) -> Dictionary:
 	for q in n2:
 		col[CI_HEFF * n2 + q] = heff[q]
 		col[CI_T * n2 + q] = maxf(heff[q], p.hcd) if not zl.is_empty() else heff[q]
+	var sal := s_along(p, hc)
+	for q in n2:
+		col[CI_SAL * n2 + q] = sal[q]
 	p.shadow_frac = 0.0
 	for q in n2:
 		p.shadow_frac += (1.0 if heff[q] > hc[q] + 1.0 else 0.0) / n2
@@ -407,13 +412,48 @@ static func prepare(case: AirCase, cfg: Dictionary) -> Dictionary:
 	return p
 
 
+## Случайные (однородные по области) веса P15 (classifier_ref.case_weights): H по оси h_axis (U10 или
+## Fr), сильное D по d_strong_axis (U_sat/N, Fr, закон N_c(U) AP-13 или нет), D по Fr; заморозка всей
+## области — H + сильное D ≥ freeze_w.
+static func case_weights(p: Dictionary, cl: Dictionary) -> void:
+	var xh: float = p.u10 if String(cl.h_axis) == "u10" else p.fr
+	p.w_h = 1.0 - sig_log(xh, float(cl.h_c), float(cl.h_w_dec))
+	var ax := String(cl.d_strong_axis)
+	var ss := 0.0
+	var nb := maxf(float(p.n_bv), 1e-6)
+	p.u_over_n = p.usat / nb
+	if ax != "none":
+		var xs: float = p.u_over_n
+		if ax == "nc_law":
+			xs = float(cl.d_strong_nc0) * pow(maxf(p.usat, 1e-3) / 3, float(cl.d_strong_p)) / nb
+		elif ax == "fr":
+			xs = p.fr
+		ss = 1.0 - sig_log(xs, float(cl.d_strong_c), float(cl.d_strong_w_dec))
+	p.w_ds = (1.0 - p.w_h) * ss
+	p.w_d = (1.0 - p.w_h) * (1.0 - sig_log(p.fr, float(cl.d_fr_c), float(cl.d_w_dec)))
+	p.full = p.w_h + p.w_ds >= float(cl.freeze_w)
+
+
+## Уклон вдоль ветра |e·∇h_s| (рельеф сглажен на U_sat/N, не меньше клетки) — ось фазы C (P15).
+static func s_along(p: Dictionary, hc: PackedFloat64Array) -> PackedFloat64Array:
+	var cfg: Dictionary = p.cfg
+	var sig := clampf(p.u_over_n / p.dx, 1.0, cf(cfg, "classifier", "c_sigma_max_cells"))
+	var hs := gauss2(hc, p.nx, p.ny, gauss_kernel(sig, cf(cfg, "classifier", "smooth_truncate"), cf(cfg, "classifier", "smooth_min_cells")))
+	var g := grad(hs, p.nx, p.ny, p.dx)
+	var out := PackedFloat64Array()
+	out.resize(p.n2)
+	for q in p.n2:
+		out[q] = absf(g[0][q] * p.ex + g[1][q] * p.ey)
+	return out
+
+
 ## Огибающая срыва h_eff = max(h, линия тени): h_eff(p) = max(h(p), h_eff(p − e·dx) − dx·tg угла),
 ## билинейно (AP-10, AP-17 envelope); проходы Гаусса–Зейделя по ветру до неподвижной точки (та же
 ## наименьшая неподвижная точка, что у прохода Якоби эталона).
 static func envelope(p: Dictionary, hc: PackedFloat64Array) -> PackedFloat64Array:
 	var he := hc.duplicate()
 	var cfg: Dictionary = p.cfg
-	var ang := cf(cfg, "classifier", "lee_angle_deg")
+	var ang := cf(cfg, "classifier", "b_env_angle_deg")
 	if not p.windy or ang <= 0.0:
 		return he
 	var nx: int = p.nx
@@ -682,7 +722,7 @@ static func drainage(p: Dictionary, case: AirCase) -> Dictionary:
 			stats.d.append(d)
 			stats.uc.append(uc)
 		wsum += w / n2
-		wge += 1 if w >= cf(cfg, "freeze", "freeze_w") else 0
+		wge += 1 if w >= cf(cfg, "classifier", "freeze_w") else 0
 	p.col = col
 	diag = {
 		active = true,
@@ -749,7 +789,6 @@ static func params(p: Dictionary) -> PackedFloat32Array:
 	var a := PackedFloat32Array()
 	a.resize(NPRM)
 	var cl: Dictionary = cfg.get("classifier", {})
-	var fz: Dictionary = cfg.get("freeze", {})
 	var f: Dictionary = cfg.get("f", {})
 	var gc: Dictionary = cfg.get("g", {})
 	var vals := {
@@ -773,25 +812,24 @@ static func params(p: Dictionary) -> PackedFloat32Array:
 		P_GACT: 1.0 if p.g.active else 0.0,
 		P_GDTHC: p.g.get("dth_c", 0.0),
 		P_TAU: p.tau,
-		P_FR_H: cl.fr_h,
-		P_W_H: cl.w_h,
-		P_FR_D: cl.fr_d,
-		P_W_D: cl.w_d,
-		P_FR_C_LO: cl.fr_c_lo,
-		P_FR_C_HI: cl.fr_c_hi,
-		P_W_C: cl.w_c,
-		P_LEE_DEPTH: cl.lee_depth_m,
-		P_LEE_HLO: cl.lee_heat_lo_wm2,
-		P_LEE_HHI: cl.lee_heat_hi_wm2,
-		P_LEE_STEEP: cl.lee_steep,
-		P_LEE_HSK: cl.lee_heat_steep_k,
-		P_ZIL_C: cl.zil_c,
-		P_W_EF: cl.w_ef,
+		P_WH: p.w_h,
+		P_WDS: p.w_ds,
+		P_WD: p.w_d,
+		P_FULL: 1.0 if p.full else 0.0,
+		P_D_LOCAL: 1.0 if bool(cl.d_local) else 0.0,
+		P_D_RAMP: cl.d_local_ramp_m,
+		P_C_WMS: cl.c_w_ms,
+		P_C_WDEC: cl.c_w_dec,
+		P_LEE_DEPTH: cl.b_depth_m,
+		P_LEE_HLO: cl.b_heat_lo,
+		P_LEE_HHI: cl.b_heat_hi,
+		P_LEE_STEEP: cl.b_steep,
+		P_LEE_HSK: cl.b_heat_steep_k,
+		P_ZIL_C: cl.f_zil_c,
+		P_W_EF: cl.f_w_dec,
 		P_FR_INF: cl.fr_inf,
-		P_FR_FREEZE: fz.fr_freeze,
-		P_FRZ_WDEC: fz.freeze_w_dec,
-		P_FRZ_W: fz.freeze_w,
-		P_WS_OVER_U: fz.wstar_over_usat,
+		P_FRZ_W: cl.freeze_w,
+		P_WS_OVER_U: cl.f_wstar_over_usat,
 		P_CAP: cf(cfg, "a", "cap_frac"),
 		P_BUB_R: cf(cfg, "b", "bubble_reverse"),
 		P_SLOPE_LEN: f.slope_len_m,
@@ -897,6 +935,11 @@ static func stats(p: Dictionary, w: PackedFloat32Array, frz: Array) -> Dictionar
 		phase_frac = frac,
 		fr = p.fr,
 		n_bv = p.n_bv,
+		u_over_n = p.u_over_n,
+		w_h_case = p.w_h,
+		w_d_strong = p.w_ds,
+		w_d_case = p.w_d,
+		full_mech = p.full,
 		u_sat = p.usat,
 		u10 = p.u10,
 		omega = p.omega,

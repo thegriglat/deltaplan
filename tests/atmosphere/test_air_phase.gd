@@ -105,9 +105,9 @@ func test_contract_and_sum() -> void:
 
 
 func test_phase_axes() -> void:
-	# штиль (Fr < 0,25) → H, вся область — механизм; блокирование (Fr ≈ 0,5) → D, ω = 0,5;
-	# сильный ветер (Fr ≫ 1) → A, ω = 1, без заморозки
-	var rows := [[0.3, "H", true], [1.5, "D", false], [12.0, "A", false]]
+	# штиль (U10 < h_c) → H, вся область — механизм; блокирование (Fr ≈ 0,5, U_sat/N < 270 м) → D,
+	# сильное D — тоже механизм, ω = 0,5; сильный ветер (Fr ≫ 1) → A, ω = 1, без заморозки (P15)
+	var rows := [[0.3, "H", true], [1.5, "D", true], [12.0, "A", false]]
 	for row in rows:
 		var r := _run(make_case(500.0, row[0], 0.0, 0.0, 0.01))
 		if r.has("error"):
@@ -124,7 +124,7 @@ func test_phase_axes() -> void:
 			row[0], r.stats.fr, best, bv, r.stats.omega, fz
 		])
 		check(best == row[1], "U10 %.1f (Fr %.2f): ведущая фаза %s, ожидалась %s" % [row[0], r.stats.fr, best, row[1]])
-		check((fz > 0.99) == row[2], "заморозка всей области при Fr < fr_freeze")
+		check((fz > 0.99) == row[2], "заморозка всей области (H + сильное D ≥ freeze_w)")
 	var r2 := _run(make_case(500.0, 1.5, 0.0, 0.0, 0.01))
 	check(absf(float(r2.stats.omega) - 0.5) < 0.05, "ω у границ ≈ 0,5 (%.2f)" % r2.stats.omega)
 
@@ -132,15 +132,20 @@ func test_phase_axes() -> void:
 func test_thresholds_from_config() -> void:
 	var c := make_case(500.0, 12.0, 0.0, 0.0, 0.01)
 	var conf := cfg()
-	conf.classifier.fr_h = 1000.0
+	conf.classifier.h_c = 1000.0
 	var r := _run(c, conf)
-	check(float(r.stats.phase_frac.H) > 0.9, "fr_h из конфига → H (%.2f)" % r.stats.phase_frac.H)
+	check(float(r.stats.phase_frac.H) > 0.9, "h_c из конфига → H (%.2f)" % r.stats.phase_frac.H)
 	conf = cfg()
-	conf.freeze.fr_freeze = 1000.0
+	conf.classifier.d_strong_c = 1e6
 	r = _run(make_case(500.0, 12.0, 0.0, 0.0, 0.01), conf)
-	check(float(r.stats.frozen_frac) > 0.99, "fr_freeze из конфига → заморозка")
+	check(float(r.stats.frozen_frac) > 0.99, "d_strong_c (ось U_sat/N) из конфига → заморозка")
+	conf.classifier.d_strong_axis = "fr"
+	conf.classifier.d_strong_c = 1000.0
+	conf.classifier.d_fr_c = 1000.0
+	r = _run(make_case(500.0, 12.0, 0.0, 0.0, 0.01), conf)
+	check(float(r.stats.frozen_frac) > 0.99, "d_strong_axis/d_strong_c из конфига → заморозка")
 	conf = cfg()
-	conf.omega.omega_band = 0.7
+	conf.classifier.omega_band = 0.7
 	r = _run(make_case(500.0, 1.5, 0.0, 0.0, 0.01), conf)
 	check(absf(float(r.stats.omega) - 0.7) < 0.05, "omega_band из конфига (%.2f)" % r.stats.omega)
 
@@ -168,9 +173,9 @@ func test_f_similarity() -> void:
 	check(absf(peak / float(chk(conf, "f_sigw_peak")) - 1.0) <= float(chk(conf, "f_sigw_peak_tol")), "σ_w/w* max ≈ 0,6")
 	check(zpk >= pz[0] and zpk <= pz[1], "максимум σ_w на 0,2–0,45 z_i")
 	check(u25.w_up >= float(chk(conf, "f_wmean_peak")), "w_up(0,25 z_i) ≥ ŵ [LS80]")
-	# летний полдень (H 250 Вт/м², z_i 1500 м, ветер 0,8 м/с): w* в годовой статистике Allen 2006,
+	# летний полдень (H 250 Вт/м², z_i 1500 м, ветер 1,2 м/с, N 0,003): w* в годовой статистике Allen 2006,
 	# F ведущая, колонны свободной конвекции (w* ≥ U_sat) — механизму
-	var r := _run(make_case(150.0, 0.8, 250.0, 1500.0, 0.01))
+	var r := _run(make_case(150.0, 1.2, 250.0, 1500.0, 0.003))
 	if r.has("error"):
 		return
 	var wr: Array = chk(conf, "f_wstar_range")
