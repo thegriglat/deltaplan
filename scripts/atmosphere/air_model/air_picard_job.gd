@@ -33,8 +33,19 @@ const SHADER_NAMES := [
 	"air_picard:heat",
 	"air_picard:div",
 	"air_picard:proj",
-	"air_picard:resid"
+	"air_picard:resid",
+	"air_picard:relax",
+	"air_picard:freeze",
+	"air_picard:rmask"
 ]
+
+## Вид точки для ядер P11 (air_picard.glsl: relax/freeze/rmask).
+const KIND_U := 0
+const KIND_V := 1
+const KIND_C := 2  # центр клетки и грань w — своя колонна
+const KIND_IN := 3  # внутренняя клетка без ореола (rhs)
+## Плоскость первой клетки воздуха столбца в AirCase.col (air_picard.glsl: C_KF).
+const COL_KF := 1
 
 # скаляры (AirGpu.scalars)
 const S_RSUM := 0
@@ -60,6 +71,23 @@ var tol_th := 5e-7
 var tol_div := 1e-6
 var check_every := 10
 var max_outer := 3000
+## P11 (air-phase): ω недорелаксации по колоннам, ny·nx без ореола (u ← u + ω(u* − u), K — так же);
+## пусто — ω = 1, шаг как прежде. Обычно — AirPhaseJob.omega (P10).
+var omega_map := PackedFloat32Array()
+## P11: 1 — колонна отдана механизму фазы (ny·nx); её u, v, w, θ′, θ′_d, K после каждой итерации
+## переписываются полем механизма, невязка и критерий — только по остальным. Пусто — нет.
+var freeze_mask := PackedByteArray()
+## P11: поле механизма для замороженных колонн — {u, v, w, th, thd} в раскладке warm (N с ореолом);
+## нет канала — его значение после старта (тёплый старт, спроецированный). K — всегда после старта.
+var freeze_field := {}
+## P11: запасное правило — нет сходимости к x итерациям решения → ω := min(ω, y) во всех колоннах.
+## (0, 0) — выкл. (по умолчанию; игра ставит из configs/atmosphere.json → air_model).
+var omega_fallback := Vector2.ZERO
+## P11, итог: запасное правило сработало (на любом из решений) и итерация переключения (−1 — нет);
+## доля замороженных колонн.
+var omega_fallback_used := false
+var omega_switch_iter := -1
+var frozen_frac := 0.0
 
 ## Итог по решениям (порядок: без нагрева, с нагревом): {label, status, iters, hist, div_rms, …}.
 var results: Array[Dictionary] = []
@@ -82,6 +110,14 @@ var _dims := Vector3i.ZERO
 var _n := 0
 var _ni := 0
 var _cache := {}
+# P11: ω по колоннам включено (карта или сработавшее запасное правило), заморозка, каналы снимка
+# после старта, число неизвестных по незамороженным (как AirCase.n_unk / n_fluid).
+var _relax := false
+var _freeze := false
+var _snap_names: Array[String] = []
+var _omega_cols := PackedFloat32Array()
+var _n_unk_free := PackedInt32Array()
+var _n_fluid_free := 0
 
 
 func _shaders() -> Array:
@@ -175,10 +211,109 @@ func _setup() -> bool:
 				error = "AirPicardJob: тёплый старт другого размера"
 				return false
 			gpu.upload(buf[nm], a)
+	if not _setup_p11():
+		return false
 	_phase = Phase.INIT
 	_iters = 0
 	_hist = []
 	return true
+
+
+## P11: буферы карты ω, заморозки и снимка; проверка размеров. Всё пусто — ничего не заводится.
+func _setup_p11() -> bool:
+	var ncell := case.nx * case.ny
+	omega_fallback_used = false
+	omega_switch_iter = -1
+	frozen_frac = 0.0
+	_relax = not omega_map.is_empty()
+	_freeze = not freeze_mask.is_empty()
+	if _relax and omega_map.size() != ncell:
+		error = "AirPicardJob: omega_map не ny·nx"
+		return false
+	if _freeze and freeze_mask.size() != ncell:
+		error = "AirPicardJob: freeze_mask не ny·nx"
+		return false
+	var ncol := _dims.x * _dims.y
+	if _relax or omega_fallback.x > 0.0:
+		var om := omega_map
+		if om.is_empty():
+			om = PackedFloat32Array()
+			om.resize(ncell)
+			om.fill(1.0)
+		_omega_cols = _pad_cols(om, true)
+		buf.omc = gpu.buffer(ncol, _omega_cols)
+		for nm in ["uo", "vo", "wo", "nuo", "nuho"]:
+			buf[nm] = gpu.buffer(_n)
+	if not _freeze:
+		return true
+	var fz := PackedFloat32Array()
+	fz.resize(ncell)
+	var nfr := 0
+	for q in ncell:
+		fz[q] = 1.0 if freeze_mask[q] != 0 else 0.0
+		nfr += 1 if freeze_mask[q] != 0 else 0
+	frozen_frac = float(nfr) / float(ncell)
+	buf.frz = gpu.buffer(ncol, _pad_cols(fz, false))
+	_snap_names = ["nu", "nuh"]
+	for nm in ["u", "v", "w", "th", "thd"]:
+		buf["f" + nm] = gpu.buffer(_n)
+		var a: PackedFloat32Array = freeze_field.get(nm, PackedFloat32Array())
+		if a.is_empty():
+			_snap_names.append(nm)
+		elif a.size() != _n:
+			error = "AirPicardJob: freeze_field другого размера"
+			return false
+		else:
+			gpu.upload(buf["f" + nm], a)
+	buf.fnu = gpu.buffer(_n)
+	buf.fnuh = gpu.buffer(_n)
+	_count_free()
+	return true
+
+
+## Колонночная карта ny·nx → с ореолом (NY·NX): edge — ореол значением края (ω), иначе 0
+## (заморозка; research P4 v6: pad edge / constant False).
+func _pad_cols(a: PackedFloat32Array, edge: bool) -> PackedFloat32Array:
+	var nx := case.nx
+	var ny := case.ny
+	var out := PackedFloat32Array()
+	out.resize(_dims.x * _dims.y)
+	for j in _dims.y:
+		for i in _dims.x:
+			var inside := i >= 1 and i <= nx and j >= 1 and j <= ny
+			if inside or edge:
+				var src := clampi(j - 1, 0, ny - 1) * nx + clampi(i - 1, 0, nx - 1)
+				out[j * _dims.x + i] = a[src]
+	return out
+
+
+## Неизвестные по незамороженным (как AirCase._count_unknowns; грань u/v заморожена, когда
+## заморожены обе колонны).
+func _count_free() -> void:
+	var nxh := _dims.x
+	var nyh := _dims.y
+	var nzh := _dims.z
+	var cl := case.col
+	var fr := func(j: int, i: int) -> bool:
+		return freeze_mask[(j - 1) * case.nx + (i - 1)] != 0
+	var kf := func(j: int, i: int) -> int:
+		return maxi(int(cl[COL_KF * nxh * nyh + j * nxh + i]), 1)
+	var nf := 0
+	var nw := 0
+	var nu := 0
+	var nv := 0
+	for j in range(1, nyh - 1):
+		for i in range(1, nxh - 1):
+			if not fr.call(j, i):
+				var c := maxi(nzh - 2 - kf.call(j, i) + 1, 0)
+				nf += c
+				nw += maxi(c - 1, 0)
+			if i >= 2 and not (fr.call(j, i) and fr.call(j, i - 1)):
+				nu += maxi(nzh - 2 - maxi(kf.call(j, i), kf.call(j, i - 1)) + 1, 0)
+			if j >= 2 and not (fr.call(j, i) and fr.call(j - 1, i)):
+				nv += maxi(nzh - 2 - maxi(kf.call(j, i), kf.call(j - 1, i)) + 1, 0)
+	_n_unk_free = PackedInt32Array([nu, nv, nw, nf])
+	_n_fluid_free = nf
 
 
 func _upload_case(c: AirCase) -> void:
@@ -376,8 +511,48 @@ func _resid(c: RID, x: RID, which: int, r2_slot := -1, rmax_slot := -1) -> void:
 		[],
 		3.0
 	)
+	if _freeze:
+		_rmask(buf.r, mini(which, KIND_C), _n)
 	gpu.reduce(AirGpu.Red.DOT, buf.r, _n, S_R2 + which if r2_slot < 0 else r2_slot, buf.r)
 	gpu.reduce(AirGpu.Red.MAXABS, buf.r, _n, S_RMAX + which if rmax_slot < 0 else rmax_slot)
+
+
+## P11: x ← x_old + ω(x − x_old) по колоннам (air_picard.glsl:relax).
+func _relax_k(x: RID, xo: RID, kind: int) -> void:
+	var d := _pc0()
+	gpu.kernel("air_picard:relax", [buf.omc, x, xo], _n, [d[0], d[1], d[2], kind])
+
+
+## P11: замороженные точки x ← xf (air_picard.glsl:freeze).
+func _freeze_k(x: RID, xf: RID, kind: int) -> void:
+	var d := _pc0()
+	gpu.kernel("air_picard:freeze", [buf.frz, x, xf], _n, [d[0], d[1], d[2], kind])
+
+
+## P11: невязка в замороженных точках → 0 (n — длина r).
+func _rmask(r: RID, kind: int, n: int) -> void:
+	var d := _pc0()
+	gpu.kernel("air_picard:rmask", [buf.frz, r], n, [d[0], d[1], d[2], kind], [n])
+
+
+func _rec_relax_u() -> void:
+	_relax_k(buf.u, buf.uo, KIND_U)
+	_relax_k(buf.v, buf.vo, KIND_V)
+	_relax_k(buf.w, buf.wo, KIND_C)
+
+
+## Замороженные колонны → поле механизма (u, v, w, θ′, θ′_d, K).
+func _rec_freeze() -> void:
+	_freeze_k(buf.u, buf.fu, KIND_U)
+	_freeze_k(buf.v, buf.fv, KIND_V)
+	for nm in ["w", "th", "thd", "nu", "nuh"]:
+		_freeze_k(buf[nm], buf["f" + nm], KIND_C)
+
+
+## Снимок после старта: каналы заморозки без freeze_field и K.
+func _rec_snap() -> void:
+	for nm in _snap_names:
+		gpu.vec(AirGpu.Vec.COPY, buf[nm], buf["f" + nm], _n)
 
 
 ## Проекция: ∇·u → минус среднее → cycles V-циклов от φ = 0 → φ минус среднее → u −= K∇φ (p += φ).
@@ -407,15 +582,30 @@ func _rec_project_tail(update_p: bool) -> void:
 func _prog_iteration(no_thd := false) -> Array:
 	var a := gpu.record(_rec_momentum)
 	a.append_array(_prog_project(int(case.p.vcycles), true))
+	if _relax:
+		a.append_array(gpu.record(_rec_relax_u))
 	a.append_array(gpu.record(_rec_heat_step.bind(no_thd)))
+	if _freeze:
+		a.append_array(gpu.record(_rec_freeze))
 	return a
 
 
 func _rec_momentum() -> void:
 	var d := case.dims()
 	_bc(0)
-	if bool(case.p.local_k):
+	var lk := bool(case.p.local_k)
+	if _relax and lk:
+		gpu.vec(AirGpu.Vec.COPY, buf.nu, buf.nuo, _n)
+		gpu.vec(AirGpu.Vec.COPY, buf.nuh, buf.nuho, _n)
+	if lk:
 		_kloc()
+	if _relax:
+		if lk:
+			_relax_k(buf.nu, buf.nuo, KIND_C)
+			_relax_k(buf.nuh, buf.nuho, KIND_C)
+		gpu.vec(AirGpu.Vec.COPY, buf.u, buf.uo, _n)
+		gpu.vec(AirGpu.Vec.COPY, buf.v, buf.vo, _n)
+		gpu.vec(AirGpu.Vec.COPY, buf.w, buf.wo, _n)
 	_mom(0)
 	_mom(1)
 	_mom(2)
@@ -454,11 +644,13 @@ func _rec_check() -> void:
 	_resid(buf.Cu, buf.thd, 3, S_R2D, S_RMAXD)
 	_heat(1)
 	_resid(buf.Cu, buf.th, 3)
-	_rec_div_stats()
+	_rec_div_stats(_freeze)
 
 
-func _rec_div_stats() -> void:
+func _rec_div_stats(masked := false) -> void:
 	_div()
+	if masked:
+		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
 	gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
 
@@ -491,8 +683,8 @@ func _program(key: String) -> Array:
 		"reinit":
 			a = gpu.record(_rec_reinit)
 			a.append_array(_prog_project(30, false))
-		"iters", "iters_nh":
-			var nh := key == "iters_nh"
+		"iters", "iters_nh", "iters_r", "iters_nh_r", "iters_f", "iters_nh_f", "iters_r_f", "iters_nh_r_f":
+			var nh := key.begins_with("iters_nh")
 			if nh:  # тёплое θ′_d без нагрева — к точному решению 0 (заодно и после init)
 				a = gpu.record(func() -> void: gpu.fill(buf.thd, _n))
 			var one := _prog_iteration(nh)
@@ -505,6 +697,8 @@ func _program(key: String) -> Array:
 			a.append_array(gpu.record(_rec_div_stats))
 		"mech_done":
 			a = gpu.record(_rec_copy_wmech)
+		"fsnap":
+			a = gpu.record(_rec_snap)
 	_progs[key] = a
 	return a
 
@@ -514,14 +708,35 @@ func _step_program(_i: int) -> Array:
 		Phase.INIT:
 			if _ci > 0:
 				return _program("reinit")
-			return _program("warm" if not warm.is_empty() else "init")
+			var a: Array = _program("warm" if not warm.is_empty() else "init")
+			return a + _program("fsnap") if _freeze else a
 		Phase.ITER:
-			return _program("iters_nh" if _no_thd() else "iters")
+			return _program(_iter_key())
 		Phase.FINAL:
 			if _ci < _cases.size() - 1:
 				return _program("final") + _program("mech_done")
 			return _program("final")
 	return []
+
+
+## Программа пачки итераций: без θ′_d (nh), с картой ω (r), с заморозкой (f).
+func _iter_key() -> String:
+	var k := "iters_nh" if _no_thd() else "iters"
+	if _relax:
+		k += "_r"
+	if _freeze:
+		k += "_f"
+	return k
+
+
+## Запасное правило P11: ω := min(ω, omega_fallback.y) во всех колоннах; дальше — с картой ω.
+func _switch_omega() -> void:
+	for q in _omega_cols.size():
+		_omega_cols[q] = minf(_omega_cols[q], omega_fallback.y)
+	gpu.upload(buf.omc, _omega_cols)
+	_relax = true
+	omega_fallback_used = true
+	omega_switch_iter = _iters
 
 
 ## Решение без θ′_d: нет нагрева (Q ≡ 0) и θ′_d на границах ≡ 0 — тогда уравнение θ′_d однородно,
@@ -553,6 +768,8 @@ func _after_sync() -> bool:
 			elif _iters >= max_outer:
 				_status = "max"
 				_phase = Phase.FINAL
+			elif omega_fallback.x > 0.0 and not omega_fallback_used and _iters >= int(omega_fallback.x):
+				_switch_omega()
 		Phase.FINAL:
 			_finish_result()
 			if _ci < _cases.size() - 1:
@@ -581,6 +798,9 @@ func _finish_result() -> void:
 		div_rms = sqrt(gpu.read_scalar(S_DIV2) / nf),
 		div_max = gpu.read_scalar(S_DIVMAX),
 		heated = not c.heat.is_empty(),
+		omega_fallback_used = omega_fallback_used,
+		omega_switch_iter = omega_switch_iter,
+		frozen_frac = frozen_frac,
 	}
 	results.append(res)
 
@@ -588,10 +808,13 @@ func _finish_result() -> void:
 func _read_residuals() -> Dictionary:
 	var s := gpu.download(gpu.scalars, N_SCALARS)
 	var c := _cases[_ci]
+	# P11: с заморозкой — по незамороженным (типы клеток одни у обоих решений)
+	var n_unk: PackedInt32Array = _n_unk_free if _freeze else c.n_unk
+	var n_fl := _n_fluid_free if _freeze else c.n_fluid
 	var rms := []
 	for q in 4:
-		rms.append(sqrt(s[S_R2 + q] / maxf(float(c.n_unk[q]), 1.0)))
-	var rms_d := sqrt(s[S_R2D] / maxf(float(c.n_unk[3]), 1.0))
+		rms.append(sqrt(s[S_R2 + q] / maxf(float(n_unk[q]), 1.0)))
+	var rms_d := sqrt(s[S_R2D] / maxf(float(n_unk[3]), 1.0))
 	# критерий тепла — по обоим скалярам (θ′ и θ′_d), как Air.residuals
 	return {
 		mom_rms = sqrt((rms[0] * rms[0] + rms[1] * rms[1] + rms[2] * rms[2]) / 3.0),
@@ -600,7 +823,7 @@ func _read_residuals() -> Dictionary:
 		th_max = maxf(s[S_RMAX + 3], s[S_RMAXD]),
 		thd_rms = rms_d,
 		thd_max = s[S_RMAXD],
-		div_rms = sqrt(s[S_DIV2] / maxf(float(c.n_fluid), 1.0)),
+		div_rms = sqrt(s[S_DIV2] / maxf(float(n_fl), 1.0)),
 		div_max = s[S_DIVMAX],
 	}
 
