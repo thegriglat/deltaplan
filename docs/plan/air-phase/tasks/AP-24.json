@@ -1,0 +1,31 @@
+{
+  "id": "AP-24",
+  "module": "air-phase",
+  "type": "dp-writer",
+  "title": "Сайт: страницы модели воздуха — три уровня и по странице на уровень (ru/en)",
+  "goal": "Обновить страницы сайта про модель воздуха под итоговую архитектуру без нейросети: общая страница о трёх уровнях и почему такое разделение приемлемо, и по странице на уровень — какие данные для игры считаются на каждом.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [],
+  "copy": "~/deltaplan-air-phase-AP-24",
+  "branch": "air-phase/AP-24",
+  "base": "feature/air-phase",
+  "scope": [
+    "site/content/mechanics/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "sh -c 'cd site && ~/.local/bin/hugo --renderToMemory 2>&1 | grep -E \"WARN|ERROR\" | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T20:55:26"
+}
