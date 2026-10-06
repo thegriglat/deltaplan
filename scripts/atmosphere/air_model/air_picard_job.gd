@@ -94,6 +94,10 @@ var results: Array[Dictionary] = []
 ## GPU-время всех порций, мс; стена от start() до готовности, мс.
 var gpu_ms_total := 0.0
 var wall_ms := 0.0
+## GPU-время по этапам, мс (P14): init — старт (фон/тёплый + проекция), iter — итерации Пикара с
+## проверками, final — проекция-сшивка (finalize V-циклами) и копии решения без нагрева.
+var phase_gpu_ms := {init = 0.0, iter = 0.0, final = 0.0}
+var _log_i := 0
 ## V-цикл давления и буферы по именам (для замеров и тестов блоков).
 var mg := AirMultigrid.new()
 var buf := {}
@@ -222,6 +226,8 @@ func _setup() -> bool:
 ## P11: буферы карты ω, заморозки и снимка; проверка размеров. Всё пусто — ничего не заводится.
 func _setup_p11() -> bool:
 	var ncell := case.nx * case.ny
+	_log_i = chunk_log.size()
+	phase_gpu_ms = {init = 0.0, iter = 0.0, final = 0.0}
 	omega_fallback_used = false
 	omega_switch_iter = -1
 	frozen_frac = 0.0
@@ -746,6 +752,12 @@ func _no_thd() -> bool:
 
 
 func _after_sync() -> bool:
+	var ms := 0.0
+	for q in range(_log_i, chunk_log.size()):
+		ms += chunk_log[q].y
+	_log_i = chunk_log.size()
+	var pk: String = ["init", "iter", "final", "final"][_phase]
+	phase_gpu_ms[pk] = float(phase_gpu_ms[pk]) + ms
 	match _phase:
 		Phase.INIT:
 			_phase = Phase.ITER

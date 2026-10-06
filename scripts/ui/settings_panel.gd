@@ -8,7 +8,7 @@ extends Control
 ## (bots.json → names.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
 ## загрузки местности), модель ветра (atmosphere.json → air_model.enabled: auto — расчёт по
-## рельефу (engine: solver — решатель на GPU, nn — нейросеть на CPU), off — упрощённая, решатель на GPU не запускается; со следующей загрузки места;
+## рельефу (фазы + Пикар на GPU; без GPU — сборка фаз на CPU), off — упрощённая, расчёт не запускается; со следующей загрузки места;
 ## в сети выбор локальный — у каждого клиента свой).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
@@ -129,8 +129,7 @@ func _ready() -> void:
 	)
 	_graphics.item_selected.connect(_on_graphics_selected)
 	_wind_model = OptionButton.new()
-	# порядок показа: нейросеть, GPU, эвристика; id = прежние значения (0 расчёт, 1 упрощённый, 2 нейросеть)
-	_wind_model.add_item(tr("settings_wind_model_nn"), 2)
+	# id: 0 расчёт (auto), 1 упрощённый (off)
 	_wind_model.add_item(tr("settings_wind_model_calc"), 0)
 	_wind_model.add_item(tr("settings_wind_model_simple"), 1)
 	UiKit.row(box, tr("settings_wind_model"), _wind_model)
@@ -203,8 +202,7 @@ func load_values() -> void:
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
-	var eng := String(Config.value("atmosphere", "air_model.engine", "nn"))
-	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else (2 if eng == "nn" else 0)))
+	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -281,7 +279,6 @@ func save() -> bool:
 		"air_model":
 		{
 			"enabled": "off" if _wind_model.get_selected_id() == 1 else "auto",
-			"engine": "nn" if _wind_model.get_selected_id() == 2 else "solver",
 		}
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
