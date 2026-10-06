@@ -35,9 +35,9 @@ import reliefs as R          # noqa: E402
 
 CONTRACT = "P2 v5"
 SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")   # план ap_v1 (по умолчанию)
-SERIES_KNOWN = SERIES_ALL + ("fixed_u", "threshold")    # fixed_u — только явно (план ap_v2); threshold — AP-13 (план ap_v3, серия FIXED_U)
+SERIES_KNOWN = SERIES_ALL + ("fixed_u", "threshold", "calm")    # calm — AP-13 по ревью AP-9 (план ap_v3_calm); fixed_u — только явно (план ap_v2); threshold — AP-13 (план ap_v3, серия FIXED_U)
 SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
-               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL, "fixed_u": pb.FIXED_U, "threshold": pb.FIXED_U}
+               "envelope": pb.ENVELOPE, "envelope_real": pb.ENVELOPE_REAL, "fixed_u": pb.FIXED_U, "threshold": pb.FIXED_U, "calm": pb.FIXED_U}
 SHAPE_ENUM = {"hill": pb.HILL, "ridge": pb.RIDGE, "step_up": pb.STEP_UP, "step_down": pb.STEP_DOWN}
 
 # --- постоянные плана (план §2)
@@ -104,6 +104,12 @@ THR_VARIANTS = (
     ("top6000", dict(top_above_m=6000.0)),
     ("top4500_sp2000", dict(top_above_m=4500.0, sponge_top_m=2000.0)),
 )
+
+# CALM (AP-13 по ревью AP-9, план ap_v3_calm, серия FIXED_U): штиль GRID (N = 0,01, h = 500, U_sat = 5·Fr), Fr 0,15–0,25,
+# хребет, H = 0, h/z_i = 1 — «при Fr ≤ 0,25 решения нет или сходимость просто очень медленная»: ω = 0,3 и контроль, 2000 итераций.
+CALM_FR = (0.15, 0.175, 0.2, 0.225, 0.25)
+CALM_VARIANTS = (("calm_ctrl", dict(max_outer=2000, late_from=1000)),
+                 ("calm_omega03", dict(omega_u=0.3, omega_k=0.3, max_outer=2000, late_from=1000)))
 
 
 def threshold_points():
@@ -344,7 +350,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
 
     specs = ideal_specs()
     rid = {sp: i for i, sp in enumerate(specs)}
-    need_v1 = any(s not in ("fixed_u", "threshold") for s in series)    # только fixed_u (ap_v2) — рельефов ideal_v1 в плане нет
+    need_v1 = any(s not in ("fixed_u", "threshold", "calm") for s in series)    # только fixed_u (ap_v2) — рельефов ideal_v1 в плане нет
     for (sh, s), i in ((sp, rid[sp]) for sp in (specs if need_v1 else [])):
         r = plan.reliefs.add()
         r.relief_id, r.corpus_relief_id, r.name, r.shape, r.slope, r.h_m = i, i, R.ideal_name(sh, s, LENGTH_M), SHAPE_ENUM[sh], s, H_M
@@ -484,7 +490,7 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
                     fixed_info.append(dict(shape=sh, H=H, line_id=state["next_line"] - 1, **p))
         if write:
             write_ideal_v2_corpus(fspecs)
-    if "threshold" in series:
+    if "threshold" in series or "calm" in series:
         sp = ("ridge", FU_S, H_M)
         fid = {x: i for i, x in enumerate(fixed_u_relief_specs())}   # id в существующем корпусе ideal_v2 (корпус не пишется)
         r = plan.reliefs.add()
@@ -492,10 +498,12 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
         r.a_m = float(R.ideal_scale_a("ridge", FU_S, H_M))
         r.length_m = LENGTH_M
         r.corpus = CORPUS_V2
-        for v, kw in THR_VARIANTS:
-            for p in threshold_points():
-                add_line("threshold", r.relief_id, 0.0, 1.0, WDIR, [p["fr"]], pb.COLD, variant=v, n_bv=p["n_bv"], **kw)
-                fixed_info.append(dict(shape="ridge", H=0.0, line_id=state["next_line"] - 1, variant=v, **p))
+        thr = [(v, kw, p) for v, kw in THR_VARIANTS for p in threshold_points()] if "threshold" in series else []
+        calm = [(v, kw, dict(u_sat=fr * N_BV * H_M, n_bv=N_BV, fr=fr, h_m=H_M)) for v, kw in CALM_VARIANTS for fr in CALM_FR] \
+            if "calm" in series else []
+        for v, kw, p in thr + calm:
+            add_line("threshold", r.relief_id, 0.0, 1.0, WDIR, [p["fr"]], pb.COLD, variant=v, n_bv=p["n_bv"], **kw)
+            fixed_info.append(dict(shape="ridge", H=0.0, line_id=state["next_line"] - 1, variant=v, **p))
     plan.n_cases = state["next_case"]
 
     table = {}
