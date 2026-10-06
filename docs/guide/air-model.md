@@ -172,6 +172,10 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
   сходимости → ω := min(ω, ω_fb) везде (один раз на задачу). Все новые поля пусты (`omega_fallback = (0, 0)` — по
   умолчанию) — программы GPU те же, поле побитно прежнее. Итог: `results[]` + `omega_fallback_used`,
   `omega_switch_iter`, `frozen_frac`; `phase_gpu_ms` = {init, iter, final} — GPU-время старта, итераций, проекции.
+- **Запасной путь по сходимости (P12 v2).** С итерации `nonconv_late_from` состояния проверок копятся в среднее
+  (`AirPicardJob.late_from`); решение упёрлось в `max_outer` — поле := late_mean, в незамороженных колоннах с весом
+  H + D > `nonconv_mech_w` (`AirPicardJob.nonconv_mask`) — поле механизма (`nonconv_field` = warm, поверх — `mech_field`
+  P10), затем проекция-сшивка. `results[]` + `nonconv_fallback`, `late_n`; `last_info.nonconv_fallback` = {used, frac}.
 - **Без GPU** (headless, нет RD, ядра не собрались): поле — только сборка фаз на CPU (`AirRuntime.assembly_field`:
   warm P10 → `WindField`, типы клеток — `cell_codes` на CPU), один уровень, строка `air_model: фазы без Пикара (<причина>)`;
   кода фаз нет — аналитика.

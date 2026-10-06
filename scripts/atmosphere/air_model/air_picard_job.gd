@@ -83,6 +83,16 @@ var freeze_field := {}
 ## P11: запасное правило — нет сходимости к x итерациям решения → ω := min(ω, y) во всех колоннах.
 ## (0, 0) — выкл. (по умолчанию; игра ставит из configs/atmosphere.json → air_model).
 var omega_fallback := Vector2.ZERO
+## P12 v2 (запасной путь по сходимости): с итерации late_from каждое состояние проверки копится
+## в среднее (late_mean; 0 — не копится). Решение упёрлось в max_outer — его поле := late_mean, в
+## колоннах nonconv_mask (ny·nx, 1 — механизм H/D) := nonconv_field ({u, v, w, th, thd}, раскладка
+## warm; нет канала — late_mean), затем проекция-сшивка finalize. Всё пусто — как прежде.
+var late_from := 0
+var nonconv_mask := PackedByteArray()
+var nonconv_field := {}
+## P12 v2, итог: запасной путь сработал (на любом из решений), доля колонн механизма.
+var nonconv_fallback := false
+var nonconv_frac := 0.0
 ## P11, итог: запасное правило сработало (на любом из решений) и итерация переключения (−1 — нет);
 ## доля замороженных колонн.
 var omega_fallback_used := false
@@ -122,6 +132,10 @@ var _snap_names: Array[String] = []
 var _omega_cols := PackedFloat32Array()
 var _n_unk_free := PackedInt32Array()
 var _n_fluid_free := 0
+# P12 v2: состояний в среднем решения, программа применения на FINAL.
+var _late_n := 0
+var _late_ch: Array[String] = ["u", "v", "w", "th", "thd"]
+var _nonconv := false
 
 
 func _shaders() -> Array:
@@ -250,6 +264,8 @@ func _setup_p11() -> bool:
 		buf.omc = gpu.buffer(ncol, _omega_cols)
 		for nm in ["uo", "vo", "wo", "nuo", "nuho"]:
 			buf[nm] = gpu.buffer(_n)
+	if not _setup_nonconv(ncell, ncol):
+		return false
 	if not _freeze:
 		return true
 	var fz := PackedFloat32Array()
@@ -274,6 +290,40 @@ func _setup_p11() -> bool:
 	buf.fnu = gpu.buffer(_n)
 	buf.fnuh = gpu.buffer(_n)
 	_count_free()
+	return true
+
+
+## P12 v2: буферы среднего и поля механизма для запасного пути.
+func _setup_nonconv(ncell: int, ncol: int) -> bool:
+	nonconv_fallback = false
+	nonconv_frac = 0.0
+	_late_n = 0
+	_nonconv = not nonconv_mask.is_empty()
+	if _nonconv and nonconv_mask.size() != ncell:
+		error = "AirPicardJob: nonconv_mask не ny·nx"
+		return false
+	if late_from <= 0 and not _nonconv:
+		return true
+	for nm in _late_ch:
+		buf["l" + nm] = gpu.buffer(_n)
+	if not _nonconv:
+		return true
+	var m := PackedFloat32Array()
+	m.resize(ncell)
+	var cnt := 0
+	for q in ncell:
+		m[q] = 1.0 if nonconv_mask[q] != 0 else 0.0
+		cnt += 1 if nonconv_mask[q] != 0 else 0
+	nonconv_frac = float(cnt) / float(ncell)
+	buf.ncm = gpu.buffer(ncol, _pad_cols(m, false))
+	for nm in _late_ch:
+		var a: PackedFloat32Array = nonconv_field.get(nm, PackedFloat32Array())
+		if a.is_empty():
+			continue
+		if a.size() != _n:
+			error = "AirPicardJob: nonconv_field другого размера"
+			return false
+		buf["n" + nm] = gpu.buffer(_n, a)
 	return true
 
 
@@ -705,6 +755,14 @@ func _program(key: String) -> Array:
 			a = gpu.record(_rec_copy_wmech)
 		"fsnap":
 			a = gpu.record(_rec_snap)
+		"late_copy", "late_add":
+			var add := key == "late_add"
+			a = gpu.record(func() -> void:
+				for nm in _late_ch:
+					if add:
+						gpu.axpy(1.0, buf[nm], buf["l" + nm], _n)
+					else:
+						gpu.vec(AirGpu.Vec.COPY, buf[nm], buf["l" + nm], _n))
 	_progs[key] = a
 	return a
 
@@ -717,12 +775,42 @@ func _step_program(_i: int) -> Array:
 			var a: Array = _program("warm" if not warm.is_empty() else "init")
 			return a + _program("fsnap") if _freeze else a
 		Phase.ITER:
+			if _late_on() and _iters >= late_from and _iters > 0:
+				_late_n += 1
+				return _program("late_copy" if _late_n == 1 else "late_add") + _program(_iter_key())
 			return _program(_iter_key())
 		Phase.FINAL:
+			var pre := _late_apply_program()
 			if _ci < _cases.size() - 1:
-				return _program("final") + _program("mech_done")
-			return _program("final")
+				return pre + _program("final") + _program("mech_done")
+			return pre + _program("final")
 	return []
+
+
+func _late_on() -> bool:
+	return late_from > 0 or _nonconv
+
+
+## P12 v2: решение упёрлось в max_outer — поле := late_mean (+ механизм в колоннах nonconv_mask);
+## иначе пусто. Масштаб 1/n — свой на каждое решение, программа не кэшируется.
+func _late_apply_program() -> Array:
+	if _status != "max" or not _late_on() or _late_n == 0:
+		return []
+	nonconv_fallback = true
+	var inv := 1.0 / float(_late_n)
+	var d := _pc0()
+	return gpu.record(func() -> void:
+		for nm in _late_ch:
+			gpu.vec(AirGpu.Vec.COPY, buf["l" + nm], buf[nm], _n)
+			gpu.vec(AirGpu.Vec.SCALE, RID(), buf[nm], _n, inv)
+		if _nonconv:
+			var kinds := {u = KIND_U, v = KIND_V}
+			for nm in _late_ch:
+				if buf.has("n" + nm):
+					gpu.kernel(
+						"air_picard:freeze", [buf.ncm, buf[nm], buf["n" + nm]], _n,
+						[d[0], d[1], d[2], kinds.get(nm, KIND_C)]
+					))
 
 
 ## Программа пачки итераций: без θ′_d (nh), с картой ω (r), с заморозкой (f).
@@ -788,6 +876,7 @@ func _after_sync() -> bool:
 				_ci += 1
 				_upload_case(_cases[_ci])
 				_phase = Phase.INIT
+				_late_n = 0
 				_iters = 0
 				_hist = []
 				return false
@@ -813,6 +902,8 @@ func _finish_result() -> void:
 		omega_fallback_used = omega_fallback_used,
 		omega_switch_iter = omega_switch_iter,
 		frozen_frac = frozen_frac,
+		nonconv_fallback = _status == "max" and _late_on() and _late_n > 0,
+		late_n = _late_n,
 	}
 	results.append(res)
 

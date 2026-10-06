@@ -953,3 +953,39 @@ func _solve_p11(c: AirCase, om: PackedFloat32Array, fz: PackedByteArray, fb: Vec
 		frames += 1
 	check(job.is_done(), "P11: решено (%s)" % job.error)
 	return job if job.is_done() else null
+
+
+## P12 v2: предел итераций — поле := late_mean (+ механизм в колоннах маски), затем сшивка.
+func test_p12_nonconv_late_mean() -> void:
+	var m := load_fix(FIX + "saddle")
+	var c := case_from_fixture(m)
+	var job := AirPicardJob.new()
+	job.case = c
+	job.mech = false
+	job.max_outer = 60
+	job.late_from = 30
+	c.prepare()
+	var n2 := c.nx * c.ny
+	var mk := PackedByteArray()
+	mk.resize(n2)
+	for j in 4:
+		for i in 4:
+			mk[j * c.nx + i] = 1
+	job.nonconv_mask = mk
+	var d := c.dims()
+	var z := PackedFloat32Array()
+	z.resize(d.x * d.y * d.z)
+	job.nonconv_field = {w = z}
+	check(job.start(), "старт: %s" % job.error)
+	while not job.is_done() and job.error == "":
+		await Engine.get_main_loop().process_frame
+		job.poll()
+	if not job.is_done():
+		return
+	var r: Dictionary = job.results[-1]
+	print("    late_mean: %s" % JSON.stringify({status = r.status, late_n = r.late_n, div = r.div_rms, frac = job.nonconv_frac}))
+	check(String(r.status) == "max" and bool(r.nonconv_fallback), "запасной путь сработал: %s" % r)
+	check(int(r.late_n) == 3, "среднее по 3 проверкам (30, 40, 50): %d" % int(r.late_n))
+	check(absf(job.nonconv_frac - 16.0 / n2) < 1e-6, "доля колонн")
+	check(float(r.div_rms) < 1e-4, "∇·u после сшивки: %.2e" % float(r.div_rms))
+	job.release()

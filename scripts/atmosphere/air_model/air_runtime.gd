@@ -710,6 +710,35 @@ static func _phase_names() -> Array:
 	return PHASE_ORDER
 
 
+## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv_mech_w (AP-19), до него —
+## air_model.nonconv_mech_w.
+func _nonconv_w() -> float:
+	var ap: Dictionary = Config.get_config("atmosphere").get("air_phase", {})
+	return float(ap.get("nonconv_mech_w", _cfg.get("nonconv_mech_w", 1.0)))
+
+
+## Колонны запасного пути (P12 v2): не заморожены и вес H + D > порога (веса до заморозки).
+static func nonconv_mask(ph: Dictionary, thr: float) -> PackedByteArray:
+	var w: PackedFloat32Array = ph.get("weights", PackedFloat32Array())
+	var fz: PackedByteArray = ph.get("freeze", PackedByteArray())
+	var names := _phase_names()
+	var kk := names.size()
+	var out := PackedByteArray()
+	if kk == 0 or w.size() % kk != 0:
+		return out
+	var n2 := w.size() / kk
+	var ih := names.find("H")
+	var id := names.find("D")
+	out.resize(n2)
+	var any := false
+	for q in n2:
+		var hd := (w[ih * n2 + q] if ih >= 0 else 0.0) + (w[id * n2 + q] if id >= 0 else 0.0)
+		var frozen := fz.size() == n2 and fz[q] != 0
+		out[q] = 1 if hd > thr and not frozen else 0
+		any = any or out[q] != 0
+	return out if any else PackedByteArray()
+
+
 ## Пикар (P11) с тёплым стартом от сборки фаз, картой ω и заморозкой колонн механизмов.
 func _start_picard(c: AirCase) -> void:
 	_job = AirPicardJob.new()
@@ -732,6 +761,12 @@ func _start_picard(c: AirCase) -> void:
 		_job.omega_map = _phase.get("omega", PackedFloat32Array())
 		_job.freeze_mask = _phase.get("freeze", PackedByteArray())
 		_job.freeze_field = _phase.get("mech_field", {})
+	_job.late_from = int(_cfg.get("nonconv_late_from", 0))
+	if not _phase.is_empty():
+		_job.nonconv_mask = nonconv_mask(_phase, _nonconv_w())
+		var nf: Dictionary = _phase.get("warm", {}).duplicate()
+		nf.merge(_phase.get("mech_field", {}), true)
+		_job.nonconv_field = nf
 	_job.omega_fallback = Vector2(
 		float(_cfg.get("omega_fallback_iters", 0)), float(_cfg.get("omega_fallback_value", 1.0))
 	)
@@ -762,6 +797,7 @@ func _poll_solve() -> void:
 		engine = "phase+picard" if not _phase.is_empty() else "picard",
 		omega_fallback_used = _job.omega_fallback_used,
 		frozen_frac = _job.frozen_frac,
+		nonconv_fallback = {used = _job.nonconv_fallback, frac = _job.nonconv_frac},
 		picard_ms = _job.phase_gpu_ms.duplicate(),
 	}
 	_phase_info()

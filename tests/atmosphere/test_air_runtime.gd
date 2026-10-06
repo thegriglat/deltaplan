@@ -173,3 +173,24 @@ func test_cell_codes() -> void:
 	for t in tc:
 		air += 1 if int(t) == 1 else 0
 	check(air == c.n_fluid, "клеток воздуха %d = n_fluid %d" % [air, c.n_fluid])
+
+
+## P12 v2: колонны запасного пути — вес H + D выше порога и не заморожены.
+func test_nonconv_mask() -> void:
+	var n2 := 4
+	var w := PackedFloat32Array()
+	w.resize(PHASES.size() * n2)
+	# колонна 0: H 0,6 (да); 1: D 0,3 + H 0,3 (да, > 0,5); 2: H 0,9, заморожена (нет); 3: A (нет)
+	w[6 * n2 + 0] = 0.6
+	w[0 * n2 + 0] = 0.4
+	w[3 * n2 + 1] = 0.3
+	w[6 * n2 + 1] = 0.3
+	w[0 * n2 + 1] = 0.4
+	w[6 * n2 + 2] = 0.9
+	w[0 * n2 + 2] = 0.1
+	w[0 * n2 + 3] = 1.0
+	var fz := PackedByteArray([0, 0, 1, 0])
+	var m := AirRuntime.nonconv_mask({weights = w, freeze = fz}, 0.5)
+	check(m == PackedByteArray([1, 1, 0, 0]), "маска: %s" % m)
+	var none := AirRuntime.nonconv_mask({weights = w, freeze = fz}, 0.95)
+	check(none.is_empty(), "нет колонн — пусто")
