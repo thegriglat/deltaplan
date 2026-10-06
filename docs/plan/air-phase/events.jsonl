@@ -82,3 +82,4 @@
 {"t": "2026-10-06T14:33:16", "by": "executor", "task": "AP-13", "ev": "checked", "note": "2/2 p7=ok:1 passed; summary=ok:threshold_cause solver"}
 {"t": "2026-10-06T14:39:06", "by": "reviewer", "task": "AP-13", "ev": "reviewed", "note": "Скоуп и контракты соблюдены (docs/ не трогались, P2 v5/P4 v4 реализованы, по умолчанию побитно — тест прошёл на GPU). Вердикт solver воспроизведён заново (N_c,…", "verdict": "accept", "issues": {"major": 2, "minor": 1}, "review": "docs/plan/air-phase/tasks/AP-13.review.json"}
 {"t": "2026-10-06T14:41:12", "by": "coordinator", "task": "AP-13", "ev": "accepted", "note": "по ревью fable (accept; формулировки поправлены: решающий довод — ω = 0,5, верх/губка двусмысленны, период на пределе Найквиста)"}
+{"t": "2026-10-06T14:41:13", "by": "coordinator", "task": "AP-13", "ev": "merged"}
