@@ -180,7 +180,7 @@ func engine() -> String:
 
 
 func _device() -> RuntimeGpu:
-	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
+	if _gpu == null and not String(_cfg.get("enabled", "auto")) in ["off", "cpu"]:
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
 			if not _gpu.init(
@@ -284,8 +284,11 @@ func unavailable_reason() -> String:
 	return why
 
 
-## Почему нет Пикара ("" — GPU есть): headless, нет RenderingDevice, ядра не собрались.
+## Почему нет Пикара ("" — GPU есть): выбрано «фазы на CPU», headless, нет RenderingDevice, ядра
+## не собрались.
 func gpu_reason() -> String:
+	if String(_cfg.get("enabled", "auto")) == "cpu":
+		return "air_model.enabled = cpu"
 	if DisplayServer.get_name() == "headless":
 		return "нет RenderingDevice: headless"
 	var g := _device()

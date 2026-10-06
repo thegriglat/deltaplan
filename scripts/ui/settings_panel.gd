@@ -7,8 +7,9 @@ extends Control
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
 ## (bots.json → names.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
-## загрузки местности), модель ветра (atmosphere.json → air_model.enabled: auto — расчёт по
-## рельефу (фазы + Пикар на GPU; без GPU — сборка фаз на CPU), off — упрощённая, расчёт не запускается; со следующей загрузки места;
+## загрузки местности), модель ветра (atmosphere.json → air_model.enabled, air-phase P12 v3: auto —
+## фазы + Пикар на GPU (без GPU — фазы на CPU), cpu — фазы на CPU без Пикара; аналитика (off) — не
+## пункт меню, только аварийный путь и отпечаток детерминизма); со следующей загрузки места;
 ## в сети выбор локальный — у каждого клиента свой).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
@@ -129,7 +130,7 @@ func _ready() -> void:
 	)
 	_graphics.item_selected.connect(_on_graphics_selected)
 	_wind_model = OptionButton.new()
-	# id: 0 расчёт (auto), 1 упрощённый (off)
+	# id: 0 фазы + Пикар на GPU (auto), 1 фазы на CPU (cpu)
 	_wind_model.add_item(tr("settings_wind_model_calc"), 0)
 	_wind_model.add_item(tr("settings_wind_model_simple"), 1)
 	UiKit.row(box, tr("settings_wind_model"), _wind_model)
@@ -202,7 +203,7 @@ func load_values() -> void:
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
-	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
+	_wind_model.select(_wind_model.get_item_index(1 if wm == "cpu" else 0))
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -274,11 +275,11 @@ func save() -> bool:
 	# густота травы — после пресета (он пишет свою; слайдер при выборе пресета уже показал её)
 	var gp := {"grass": {"density_pct": _grass.value}}
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
-	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
+	# модель ветра: «на GPU» = auto (как по умолчанию), «на CPU» = cpu; со следующей загрузки места
 	var wp := {
 		"air_model":
 		{
-			"enabled": "off" if _wind_model.get_selected_id() == 1 else "auto",
+			"enabled": "cpu" if _wind_model.get_selected_id() == 1 else "auto",
 		}
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
