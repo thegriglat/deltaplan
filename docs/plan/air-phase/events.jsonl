@@ -60,3 +60,5 @@
 {"t": "2026-10-06T14:05:41", "by": "reviewer", "task": "AP-6", "ev": "reviewed", "note": "Скоуп чистый (5 файлов из карточки), контракт P6 v1 выполнен: сигнатуры layer_metrics/layer_diff/fit_sigmoid, поля таблицы, атрибуты. Формулы термиков (w*, w_m…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/air-phase/tasks/AP-6.review.json"}
 {"t": "2026-10-06T14:06:13", "by": "coordinator", "task": "AP-6", "ev": "accepted", "note": "по ревью (accept, minor): таблицы перенесены в $AIR_SYNTH_DATA/phase (P6 v2); метрики от вершины для CORPUS не использовать; близнец status 2 — сейчас 0 случаев"}
 {"t": "2026-10-06T14:06:14", "by": "coordinator", "task": "AP-6", "ev": "merged"}
+{"t": "2026-10-06T14:06:23", "by": "coordinator", "task": "AP-8", "ev": "created", "note": "Границы фаз (GRID), резкость, гистерезис и второй старт (SWEEP)"}
+{"t": "2026-10-06T14:06:26", "by": "coordinator", "task": "AP-8", "ev": "started", "note": "dp-researcher opus"}
