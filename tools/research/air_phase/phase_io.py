@@ -28,7 +28,8 @@ P3_CONTRACT = "P3 v2"
 AGL_M = [25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1100, 1500, 2000]
 SNAP_LEVELS = [25, 600]
 EDGE = 5
-SERIES_ORDER = ("GRID", "SEPARATION", "ENVELOPE", "ENVELOPE_REAL", "SWEEP", "RELAX", "ERODED", "FIXED_U")   # порядок счёта (P5 + v2; FIXED_U — P2 v4, последняя)
+SERIES_ORDER = ("GRID", "SEPARATION", "ENVELOPE", "ENVELOPE_REAL", "SWEEP", "RELAX", "ERODED", "FIXED_U", "RERUN",
+                "PROBE")   # порядок счёта (P5 + v2; FIXED_U — P2 v4; RERUN, PROBE — P2 v6)
 SERIES_RANK = {pb.Series.Value(s): i for i, s in enumerate(SERIES_ORDER)}
 STATUS = {"ok": 0, "converged": 0, "max": 1, "diverged": 2}
 TARGET = {"final": 0, "late_mean": 1}
@@ -75,6 +76,7 @@ class Case:
     k: int
     fr: float
     series: int
+    src_case_id: int = -1      # RERUN (P2 v6): case_id исходного плана, иначе −1
 
 
 def load_plan(plan_dir):
@@ -86,8 +88,10 @@ def load_plan(plan_dir):
     rel = {r.relief_id: r for r in plan.reliefs}
     cases = []
     for ln in plan.lines:
+        src = np.frombuffer(ln.src_case_ids_i64, "<i8") if ln.src_case_ids_i64 else None
         for k, fr in enumerate(np.frombuffer(ln.fr_f64, "<f8")):
-            cases.append(Case(int(ln.first_case_id + k), ln.line_id, k, float(fr), int(ln.series)))
+            cases.append(Case(int(ln.first_case_id + k), ln.line_id, k, float(fr), int(ln.series),
+                              int(src[k]) if src is not None else -1))
     cases.sort(key=lambda c: c.case_id)
     return plan, hashlib.sha256(raw).hexdigest(), lines, rel, cases
 
@@ -133,6 +137,39 @@ class Sources:
         return self._cond[conditions][(int(corpus_relief_id), int(cond_id))]
 
 
+class RerunSources:
+    """RERUN (P2 v6): исходные планы `$AIR_SYNTH_DATA/phase/<src_plan>` — лениво, с кэшем. `case(src_plan, cid)` →
+    (Plan, Line, Relief, fr) исходного случая."""
+
+    def __init__(self, root=None):
+        self.root = Path(root) if root else data_root() / "phase"
+        self._p = {}
+
+    def plan(self, name):
+        if name not in self._p:
+            plan, sha, lines, rel, cases = load_plan(self.root / name)
+            self._p[name] = (plan, sha, lines, rel, {c.case_id: c for c in cases})
+        return self._p[name]
+
+    def case(self, name, cid):
+        plan, _, lines, rel, by = self.plan(name)
+        c = by[int(cid)]
+        ln = lines[c.line_id]
+        return plan, ln, rel[ln.relief_id], c.fr
+
+
+def rerun_physics(line, relief, fr, src_case_id, src, rsrc):
+    """RERUN: физика входа — из исходного случая (рельеф, условия, Fr, override N/z_i/H, контекст исходного плана).
+    Сверка: тот же рельеф корпуса и тот же Fr (иначе план испорчен — исключение)."""
+    splan, sln, srel, sfr = rsrc.case(line.src_plan, src_case_id)
+    if (srel.corpus, srel.corpus_relief_id) != (relief.corpus, relief.corpus_relief_id):
+        raise ValueError(f"RERUN: рельеф {relief.corpus}/{relief.corpus_relief_id} ≠ исходного "
+                         f"{srel.corpus}/{srel.corpus_relief_id} (case {src_case_id})")
+    if abs(sfr / fr - 1.0) > 1e-9:
+        raise ValueError(f"RERUN: Fr {fr} ≠ исходного {sfr} (case {src_case_id})")
+    return case_physics(splan, sln, srel, sfr, src)
+
+
 def case_physics(plan, line, relief, fr, src):
     """Физика входа случая (без решателя): dict u10, wdir, alpha, max_profile, u_sat, n_bv, z_i_agl_m, heat_flux_wm2,
     ctx, cond_row, override-поля CaseSpec. Fr → U10: U_sat = Fr·N·h, U10 = U_sat/max_profile (plan_build.u10_from_fr)."""
@@ -164,7 +201,8 @@ def numerics_kwargs(nm):
                 envelope_angle_deg=float(nm.envelope_angle_deg), envelope_wall=WALL[nm.envelope_wall],
                 envelope_z0_m=float(nm.envelope_z0_m) if nm.envelope_z0_m > 0 else None,
                 top_above_m=float(nm.top_above_m) if nm.top_above_m > 0 else 3000.0,      # P2 v5: 0 в старых планах = 3000
-                sponge_top_m=float(nm.sponge_top_m) if nm.sponge_top_m > 0 else 1000.0)
+                sponge_top_m=float(nm.sponge_top_m) if nm.sponge_top_m > 0 else 1000.0,
+                **({"lam_m": float(nm.lam_m)} if nm.lam_m > 0 else {}))                 # P2 v6: 0 = по умолчанию решателя
 
 
 # ------------------------------------------------------------------ результаты: чтение

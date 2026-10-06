@@ -13,7 +13,7 @@ and what is deliberately simplified in them.
 
 > [!NOTE]
 > In the game, slope lift, the acceleration at the brow, the saddle and the rotor are now taken from the physical air field —
-> the [air model](/mechanics/air-model/). The formulas on this page remain as a fallback: the game
+> the [air model](/mechanics/air-model/) ([wind field](/mechanics/wind-phases/), [turbulence and rotor](/mechanics/turbulence/)). The formulas on this page remain as a fallback: the game
 > switches to them if the field could not be computed, and outside the field's area. The "what the formula cannot do" items below
 > apply to them.
 

@@ -2,6 +2,7 @@
 """AP-2: построитель плана опытов air-phase (контракты P1, P2 v1: docs/contracts/air-phase.md; состав — docs/plan/air-phase.md §2–§3).
 
   plan_build.py --name ap_v1 --out ~/air_synth_data/phase [--series grid,sweep,relax,separation,eroded,envelope,envelope_real] [--corpus-out DIR]
+  plan_build.py --name ap_v1r --rerun ap_v1,ap_v2      # серия RERUN (P2 v6, AP-14): несошедшиеся случаи с ω = 0,5, 2000 итераций
 
 Пишет `<out>/<name>/plan.pb` (Plan, proto/phase_plan.proto) + `plan.json` (тот же план для людей) и, если нет,
 корпус идеальных рельефов S1 `$AIR_SYNTH_DATA/corpus/ideal_v1/` (через corpus_io; все рельефы всех серий, независимо от
@@ -33,7 +34,7 @@ sys.path.insert(0, str(ROOT / "tools/research/air_synth/corpus"))
 import phase_plan_pb2 as pb  # noqa: E402
 import reliefs as R          # noqa: E402
 
-CONTRACT = "P2 v5"
+CONTRACT = "P2 v6"
 SERIES_ALL = ("grid", "sweep", "relax", "separation", "eroded", "envelope", "envelope_real")   # план ap_v1 (по умолчанию)
 SERIES_KNOWN = SERIES_ALL + ("fixed_u", "threshold", "calm")    # calm — AP-13 по ревью AP-9 (план ap_v3_calm); fixed_u — только явно (план ap_v2); threshold — AP-13 (план ap_v3, серия FIXED_U)
 SERIES_ENUM = {"grid": pb.GRID, "sweep": pb.SWEEP, "relax": pb.RELAX, "separation": pb.SEPARATION, "eroded": pb.ERODED,
@@ -531,6 +532,115 @@ def build_plan(name="ap_v1", out=None, series=SERIES_ALL, corpus_out=None, erode
     return plan, table
 
 
+# ------------------------------------------------------------------ RERUN (P2 v6, AP-14)
+# Пересчёт несошедшихся (status ≠ 0) случаев других планов с иными Numerics. Решение пользователя 06.10: ω = 0,5,
+# 2000 итераций, позднее окно 1500/50; холодный старт (как RELAX/AP-13 — неподвижная точка от ω не зависит, а
+# состояния 300-й итерации исходного счёта не сохранены: продолжение стоило бы +300 итераций на случай и двухступенчатой
+# схемы, которой нет в P2/P4). SWEEP (тёплые цепочки) пропускаются: холодный пересчёт — это тот же случай GRID
+# (ref_line_id), а честный тёплый — вся цепочка заново.
+RERUN_NUM = dict(omega_u=0.5, omega_k=0.5, max_outer=2000, late_from=1500, late_step=50)
+RERUN_SKIP = ("SWEEP",)
+# порядок счёта (case_id) по исходной серии: сначала то, что нужно границам (AP-8: GRID; AP-9/11: FIXED_U), дорогие
+# ENVELOPE_REAL — последними (счёт можно прервать без потери главного)
+RERUN_PRIORITY = ("GRID", "FIXED_U", "ERODED", "SEPARATION", "ENVELOPE", "RELAX", "ENVELOPE_REAL")
+
+
+def find_results(src_plan, root=None):
+    """Каталог результатов P3 `<root>/<src_plan>__<solver_version>/` с частями (единственный, иначе ошибка)."""
+    root = Path(root or os.path.join(data_root(), "phase"))
+    got = [d for d in sorted(root.glob(f"{src_plan}__*")) if any(d.glob("part-*.h5"))]
+    if len(got) != 1:
+        raise FileNotFoundError(f"результаты {src_plan}: найдено {[str(d) for d in got]}, нужен один каталог")
+    return got[0]
+
+
+def build_rerun_plan(name="ap_v1r", sources=("ap_v1", "ap_v2"), out=None, results=None, num=None, skip=RERUN_SKIP,
+                     write=True, quiet=False):
+    """План серии RERUN: линия на исходную линию (её несошедшиеся точки), всё как у исходной линии, кроме Numerics
+    (`num`, по умолчанию RERUN_NUM), start = COLD, ref_line_id = −1, `src_plan`/`src_case_ids_i64` — исходные случаи.
+    results — {src_plan: каталог P3} (по умолчанию `find_results`). → (plan, table {исходная серия: [линий, случаев]})."""
+    import phase_io as PIO
+    out = Path(out or os.path.join(data_root(), "phase"))
+    num = dict(RERUN_NUM if num is None else num)
+    results = dict(results or {})
+    plan = pb.Plan(contract=CONTRACT, name=name, created=datetime.datetime.now().isoformat(timespec="seconds"),
+                   git_commit=git_commit(), command=" ".join(["plan_build.py"] + sys.argv[1:]))
+    picked, ctx = [], None          # (приоритет, src, Line, [Case]), контекст
+    rel_by_src = {}
+    for src in sources:
+        sp, _, lines, rel, cases = PIO.load_plan(out / src)
+        if ctx is None:
+            ctx = sp.context
+            plan.context.CopyFrom(ctx)
+        elif sp.context.SerializeToString(deterministic=True) != ctx.SerializeToString(deterministic=True):
+            raise ValueError(f"RERUN: контекст {src} отличается от {sources[0]} — один план не годится")
+        rel_by_src[src] = rel
+        done = PIO.done_cases(results.get(src) or find_results(src, out))
+        by_line = {}
+        for c in cases:
+            if c.case_id not in done:
+                raise ValueError(f"RERUN: случай {src}/{c.case_id} не посчитан")
+            if done[c.case_id][0] != 0:
+                by_line.setdefault(c.line_id, []).append(c)
+        for lid, cs in by_line.items():
+            ln = lines[lid]
+            sname = pb.Series.Name(ln.series)
+            if sname in skip:
+                continue
+            if ln.start != pb.COLD:
+                raise ValueError(f"RERUN: тёплая линия {src}/{lid} ({sname}) — добавьте серию в skip")
+            pr = RERUN_PRIORITY.index(sname) if sname in RERUN_PRIORITY else len(RERUN_PRIORITY)
+            picked.append((pr, sources.index(src), lid, src, ln, sorted(cs, key=lambda c: c.k)))
+    picked.sort(key=lambda t: t[:3])
+    rid = {}                        # (corpus, corpus_relief_id) → relief_id нового плана
+    table, nxt = {}, 0
+    for _, _, _, src, sln, cs in picked:
+        r0 = rel_by_src[src][sln.relief_id]
+        key = (r0.corpus, r0.corpus_relief_id)
+        if key not in rid:
+            r = plan.reliefs.add()
+            r.CopyFrom(r0)
+            r.relief_id = rid[key] = len(rid)
+        ln = plan.lines.add()
+        ln.CopyFrom(sln)
+        ln.line_id, ln.series, ln.relief_id = len(plan.lines) - 1, pb.RERUN, rid[key]
+        ln.start, ln.direction, ln.ref_line_id = pb.COLD, pb.DIR_NONE, -1
+        nm = ln.numerics
+        nm.top_above_m = nm.top_above_m or NUM_DEF["top_above_m"]       # P2 v5: явно (0 в старых планах = 3000/1000)
+        nm.sponge_top_m = nm.sponge_top_m or NUM_DEF["sponge_top_m"]
+        nm.lam_m = 0.0                                                   # P2 v6: 0 = по умолчанию решателя (40 м)
+        for k, v in num.items():
+            setattr(nm, k, v)
+        ln.fr_f64 = np.asarray([c.fr for c in cs], "<f8").tobytes()
+        ln.src_plan = src
+        ln.src_case_ids_i64 = np.asarray([c.case_id for c in cs], "<i8").tobytes()
+        ln.first_case_id = nxt
+        nxt += len(cs)
+        t = table.setdefault(pb.Series.Name(sln.series), [0, 0])
+        t[0] += 1
+        t[1] += len(cs)
+    plan.n_cases = nxt
+    if write:
+        d = out / name
+        d.mkdir(parents=True, exist_ok=True)
+        tmp = d / "plan.pb.tmp"
+        tmp.write_bytes(plan.SerializeToString())
+        os.replace(tmp, d / "plan.pb")
+        js = plan_to_json(plan)
+        for ln, m in zip(js["lines"], plan.lines):
+            ln["src_case_ids"] = np.frombuffer(m.src_case_ids_i64, "<i8").tolist()
+            ln.pop("src_case_ids_i64", None)
+        js["rerun_selection"] = dict(sources=list(sources), numerics=num, skip=list(skip), by_src_series=table)
+        tmp = d / "plan.json.tmp"
+        tmp.write_text(json.dumps(js, ensure_ascii=False, indent=1))
+        os.replace(tmp, d / "plan.json")
+    if not quiet:
+        print(f"план {name} (RERUN из {', '.join(sources)}): линий {len(plan.lines)}, случаев {plan.n_cases}")
+        for s, (nl, nc) in table.items():
+            print(f"  {s:<14} линий {nl:>4}  случаев {nc:>5}")
+    return plan, table
+
+
 def plan_to_json(plan, eroded_info=(), real_info=None, fixed_info=()):
     from google.protobuf import json_format
     d = json_format.MessageToDict(plan, preserving_proto_field_name=True, always_print_fields_with_no_presence=True)
@@ -552,7 +662,11 @@ def main(argv=None):
     ap.add_argument("--out", default=os.path.join(data_root(), "phase"))
     ap.add_argument("--series", default=",".join(SERIES_ALL))
     ap.add_argument("--corpus-out", default=None, help="каталог корпуса ideal_v1 (по умолчанию $AIR_SYNTH_DATA/corpus/ideal_v1)")
+    ap.add_argument("--rerun", default=None, help="серия RERUN: исходные планы через запятую (ap_v1,ap_v2) — пересчёт несошедшихся")
     a = ap.parse_args(argv)
+    if a.rerun:
+        build_rerun_plan(a.name, tuple(x.strip() for x in a.rerun.split(",") if x.strip()), os.path.expanduser(a.out))
+        return
     build_plan(a.name, os.path.expanduser(a.out), a.series, a.corpus_out)
 
 

@@ -55,7 +55,9 @@
     "tests/air_onnx/test_air_nn_runtime.gd",
     "tests/ui/test_wind_model_setting.gd",
     "scripts/ui/",
-    "locale/ui.csv"
+    "locale/ui.csv",
+    "scripts/game/game.gd",
+    "tests/ui/"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_model/air_phase_job.gd",

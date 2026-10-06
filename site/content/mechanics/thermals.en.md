@@ -1,16 +1,38 @@
 ---
 title: "Thermals"
-weight: 30
-description: "Thermals, turbulence, dust devils and thunderstorms: how air rises from sun-heated ground and what physics is behind it."
+weight: 102
+description: "Level 2 of the air model — thermals: where sources, strength, ceiling and drift come from (the wind field), how a bubble is built, plus dust devils and thunderstorms."
 ---
 
-# Thermals, turbulence, dust devils, thunderstorms
+# Thermals, dust devils, thunderstorms
 
 A thermal is a column of warm air rising from ground heated by the sun. A hang glider pilot circles
 inside it to gain altitude; around the thermal the air, on the contrary, sinks weakly. Below is how this works
-in the game, where the formulas come from and what the model cannot do.
+in the game, where the formulas come from and what the model cannot do. This is level 2 of the [air model](/mechanics/air-model/): the place, strength, ceiling and drift of a thermal come from the [level 1 wind field](/mechanics/wind-phases/), and the shape and life of the bubble from the formulas below; turbulence is [level 3](/mechanics/turbulence/).
 
-## How it works
+## What is computed at level 2
+
+Every field hour the game builds a **list of thermal sources**. The data for it come from the level 1 wind field — computed for the whole place, the same for all players in a network game:
+
+- **Where.** A source appears where there is more heat flux at the ground and the air converges near the ground: over heated slopes dense, over weakly heated ones sparse, in shade, where there is no heat flux, none at all. This ties sources to the sunny side of a slope rather than to grid nodes.
+- **Strength.** The Deardorff scale w<sub>\*</sub> from the heat flux at the point and the mixing-layer height; the core gains a fraction of w<sub>\*</sub>. In the morning the layer is thin — cores are small and frequent, weaker; toward noon wider and stronger.
+- **Ceiling.** By the inversion, not by the cloud base: a parcel rises until it equals the temperature of the air above.
+- **Drift.** The axis is tilted by the wind from the same field: the cloud ends up kilometers downwind of the source.
+- **How many.** The number, radius and strength of cores follow Allen's updraft model from layer thickness and w<sub>\*</sub>; the field only decides **where** there are more. The field's updraft beyond what the cores carry is a broad weak lift "in between".
+
+If there is no field (it could not be computed, or the place is outside the area), the old path works: cells with a deterministic cycle, strength from the table of anchors by cloud base height (the ["Weather"](/mechanics/weather/) page).
+
+**Multiplayer.** The host chooses the sources and sends them to the others; each computes strength, ceiling and drift from its own field, and the differences are vanishingly small (hundredths of a meter per second, tens of centimeters in the axis).
+
+The strength, ceiling and drift of a thermal are not made up separately but agree with levels 1 and 3: the w<sub>\*</sub> of turbulence at a source point equals the w<sub>\*</sub> of the source itself (ratio 1.001 ± 0.038 at Kayancha, 12:00).
+
+An example result — Ongudai, 12:00 (wind 3 m/s, clear, a typical July): on heated slopes 4.9 sources per km², on weakly heated ones 0.7, in shade 0. On real terrain the thermal column is 575 m in the morning, 1440 m at 12:00, 1640 m at 15:00.
+
+![Where thermals are born: heat flux, air convergence and sources over Kayancha, 12:00](/tools/research/air_thermals/out/fig_sources_kayancha_w100_h12.png "Kayancha, 12:00: heat flux, mean convergence of air in the layer and 109 thermal sources (a dot is proportional to strength)")
+
+**What it cannot do.** The core strength is a single fraction of w<sub>\*</sub> without spread between neighbors; in life the spread is wider. "Strong thermals every 1–1.5 layer thicknesses" the model does not reproduce: the density of all cores matches the literature, the spacing of strong ones does not. There are no "streets" along the wind. The source list is updated once per field hour. Small morning thermals with a column shorter than 300 m are not born. The position of particular thermals is statistics, not a computation.
+
+## Shape and life of the bubble
 
 Every thermal in the game is a bubble (`AtmoThermal`) with a source on the ground, a life cycle of growth → maturity →
 decay and a lift profile over the radius. The world is divided into cells (`thermal_spacing_m`), and each cell has
@@ -42,14 +64,7 @@ speeds up (inside the cloud condensation adds buoyancy: the air there cools more
 adiabat), and for a Cb up to a dangerous "pull-in". Under small, young and decaying clouds there is no suction:
 the thermal weakens toward the top, as without a cloud.
 
-**Wind and turbulence**. The wind profile is a power law with exponent 0.14; in the mixing layer itself it is
-almost constant. Mechanical turbulence is modeled as Taylor's "frozen turbulence": the fluctuation field
-is carried by the wind as a whole rather than recomputed anew; the eddy scale of 30–80 m is comparable to the
-wing span, so the wing halves get different lift and the wing is shaken in roll. The standard deviation of the fluctuations
-is composed of a mechanical component, a convective one (by the Lenschow profile), turbulence at the thermal edge
-and the rotor behind the ridge, as independent random variables:
-
-$$ \sigma_w^2 / w_*^2 = 1.8 \cdot (z/z_i)^{2/3} \cdot (1 - 0.8\,z/z_i)^2, \qquad \sigma_{w,max} \approx 0.6\,w_* \text{ at } z \approx 0.3\,z_i $$
+**Wind and turbulence.** The wind profile in the mixing layer is almost constant; fluctuations (gusts, jolts, rotor) are computed by [level 3](/mechanics/turbulence/) — at the thermal edge turbulence is added as an independent component.
 
 **Background sink** between thermals is −0.3…−1 m/s (−0.5 by default), from mass conservation: what
 rose in the thermals must sink somewhere.
@@ -86,16 +101,12 @@ tied to terrain classes.
 
 - **Not CFD.** A thermal is an analytical formula (Gedeon + Allen), not a flow computation: the shape of the core and
   the sink ring is fitted to the feel of an experienced pilot rather than derived from the equations from scratch.
-- **Thermals are generated on a regular grid of cells**, unlike in the real boundary layer, where the number
+- **In the fallback path (no field) thermals are generated on a regular grid of cells**, unlike in the real boundary layer, where the number
   and positions of thermals are a random but statistically structured process; here it is a deterministic
   generator by cell, cycle and seed.
 - **The upper fall-off of lift at the top** is made adjustable (`top_taper_m`), rather than strictly 10 % of the layer
   height, as follows from Allen's formula — otherwise under a growing cloud the lift would die out unrealistically early.
-- **No direct computation of the heat flux from soil physics** for the thermal strength in the static mode: the strength and
-  the share of sources are taken from the table of anchors by cloud base height (see the page ["Weather"](/mechanics/weather/)),
-  rather than from a measured flux anew each time.
-- **The same turbulence profile** (Lenschow) is used both for convective turbulence and as the
-  amplitude normalization — a simplification of the general picture of wind shear in the real boundary layer.
+- **The heat flux is a model, not a measurement**: it is computed from the sun, slope, weather and surface (meadow everywhere), without soil physics and without land-cover classes.
 - Clouds in detail (shape, shadows, stages) are a separate mechanic: [/mechanics/clouds/](/mechanics/clouds/).
 
 ## What was considered and why this way
@@ -128,17 +139,9 @@ front; the outflows of neighboring cells **are not added up**: previously, witho
 cells summed to 30–60 m/s, which is physically wrong (a real squall of such
 strength is a rare natural disaster, not an ordinary thunderstorm).
 
-## Further
-
-The thermal sources, their strength and ceiling are now taken not from the table of anchors by cloud base height, but from the common
-air field: the maxima of lift and of flow convergence near the ground for that hour, and the Deardorff scale from the
-simulated heat flux and mixing layer height at the specific point. The shape of the bubble itself
-(Gedeon/Allen) and its life stayed the same; more on the page of the [air model](/mechanics/air-model/)
-and in [docs/guide/air-model.md](/docs/guide/air-model.md) → "Scale 2: thermals from the field". The table of anchors described above
-works as a fallback if the field is unavailable.
-
 ## Details
 
+- [Wind field: phases and Picard](/mechanics/wind-phases/), [turbulence and rotor](/mechanics/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model.md](/docs/guide/air-model.md) → "Scale 2: thermals from the field".
 - [docs/research/thermals.md](/docs/research/thermals.md): formulas and sources: Gedeon, Allen,
   Lenschow and Stevens, Deardorff.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): the table of observables with
