@@ -999,11 +999,6 @@ func test_p11_all_and_half_frozen() -> void:
 	var n2 := c0.nx * c0.ny
 	var d := c0.dims()
 	var n := d.x * d.y * d.z
-	var u := PackedFloat32Array()
-	u.resize(n)
-	u.fill(1.5)
-	var z := PackedFloat32Array()
-	z.resize(n)
 	var all := PackedByteArray()
 	all.resize(n2)
 	all.fill(1)
@@ -1011,26 +1006,26 @@ func test_p11_all_and_half_frozen() -> void:
 	job.case = case_from_fixture(m)
 	job.mech = false
 	job.freeze_mask = all
-	job.freeze_field = {u = u, v = z, w = z, th = z, thd = z}
+	# поле механизма — снимок после старта (фон, спроецированный): с притоком согласовано, так что
+	# сшивка его почти не меняет (однородное поле иное, чем приток на границе, проекция вправе менять)
 	check(job.start(), "старт: %s" % job.error)
 	job.run_blocking()
 	var r: Dictionary = job.results[-1] if not job.results.is_empty() else {}
 	var uu := job.download("u")
+	var fu := job.download("fu")
 	var bad := 0
-	var mean := 0.0
-	var cnt := 0
+	var dmax := 0.0
 	var tc := job.download("tcode")
 	for g in n:
 		if not is_finite(uu[g]):
 			bad += 1
 		elif (int(tc[g]) >> 2) & 3 == 1:
-			mean += uu[g]
-			cnt += 1
-	mean /= maxf(cnt, 1)
-	print("    всё заморожено: %s, средняя u %.3f" % [JSON.stringify({status = r.get("status"), iters = r.get("iters"), div = r.get("div_rms")}), mean])
+			dmax = maxf(dmax, absf(uu[g] - fu[g]))
+	var us := maxf(job.case.u_a, 0.1)
+	print("    всё заморожено: %s, max|u − механизм| %.4f U" % [JSON.stringify({status = r.get("status"), iters = r.get("iters"), div = r.get("div_rms")}), dmax / us])
 	check(String(r.get("status", "")) == "ok" and int(r.get("iters", -1)) == 0, "итераций нет: %s" % r)
 	check(bad == 0, "NaN нет (%d)" % bad)
-	check(absf(mean - 1.5) < 0.3, "поле — механизм (u ≈ 1,5: %.3f)" % mean)
+	check(dmax / us < 0.05, "поле — механизм после сшивки (%.4f U)" % (dmax / us))
 	job.release()
 	# половина колонн (западная) заморожена
 	var half := PackedByteArray()
