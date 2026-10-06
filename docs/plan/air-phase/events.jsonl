@@ -173,3 +173,4 @@
 {"t": "2026-10-06T21:59:51", "by": "executor", "task": "AP-26", "ev": "reported", "commits": ["7f59ff11"], "note": "done: slope-wind переименован в heuristic (weight 50, git mv): отдельная страница режима Эвристика по коду (один ветер по про…", "dp_feedback": "Нет замечаний."}
 {"t": "2026-10-06T22:00:06", "by": "executor", "task": "AP-26", "ev": "accepted", "note": "1/1 hugo=ok:0"}
 {"t": "2026-10-06T22:00:06", "by": "coordinator", "task": "AP-26", "ev": "merged"}
+{"t": "2026-10-06T23:00:11", "by": "coordinator", "task": null, "ev": "note", "note": "dp: таймаут dp job --lock gpu включает ожидание замка (AP-20 упал по таймауту 5400 с, простояв в очереди) — нужен отдельный таймаут на счёт"}
