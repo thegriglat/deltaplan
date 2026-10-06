@@ -13,7 +13,7 @@
     },
     {
       "name": "P12",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/air-phase.md"
     },
     {
@@ -53,7 +53,9 @@
     "tests/atmosphere/test_air_runtime.gd",
     "docs/guide/air-model.md",
     "tests/air_onnx/test_air_nn_runtime.gd",
-    "tests/ui/test_wind_model_setting.gd"
+    "tests/ui/test_wind_model_setting.gd",
+    "translations/",
+    "scripts/ui/"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_model/air_phase_job.gd",

@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»; в игре: P10 фазы на GPU/CPU, P11 Пикар с тёплым стартом/ω/маской, P12 AirRuntime без сети, P13 удаление сети, P14 проверки в игре"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 3}, {"id": "P11", "version": 2}, {"id": "P12", "version": 2}, {"id": "P13", "version": 1}, {"id": "P14", "version": 2}, {"id": "P15", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 3}, {"id": "P11", "version": 2}, {"id": "P12", "version": 3}, {"id": "P13", "version": 2}, {"id": "P14", "version": 2}, {"id": "P15", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -322,7 +322,7 @@ GDScript — без магических чисел (кроме математи
   из конфига `air_model` (`omega_fallback_iters`, `omega_fallback_value` с `_doc`) — окна и тесты C9 без изменений поведения.
 - `results[]` + `omega_fallback_used` (bool), `frozen_frac`.
 
-## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 2, заменяет O5)
+## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 3, заменяет O5)
 **Владелец:** AP-20 (`air_runtime.gd`, `settings_panel.gd`, `configs/atmosphere.json → air_model`). **Потребители:** игра.
 
 - Конвейер (загрузка и пересчёт в полёте, сроки и два прохода k — C9 v3 без изменений): `AirPlace.domain_case` →
@@ -334,6 +334,12 @@ GDScript — без магических чисел (кроме математи
   в его незамороженных клетках с весом H/D (до заморозки) > `air_phase.nonconv_mech_w` берётся поле механизма H/D (P10
   `mech_field`), остальное — late_mean Пикара; затем проекция. Ошибка «блуждание отправлено в Пикар» стоит только времени
   GPU. `last_info` + `nonconv_fallback` (bool, доля клеток).
+- **v3 (06.10, решение пользователя — меню источника поля):** пункт «нейросеть» удалён; «Расчёт» = многофазная схема
+  (фазы + Пикар на GPU; без GPU — тот же многофазный код на CPU, P10 `AirPhaseCpu`); отдельного «чисто Пикар» нет. Если
+  в меню остаётся путь без GPU («упрощённый»), это тот же многофазный CPU-код, а не старая аналитика; старая аналитика
+  остаётся только как аварийный путь (ошибка/область вне рельефа) и там, где фазы не покрывают, — если она дублирует
+  фазы, её код выбора удалить. Убрать: пункт меню, ветку конфига и код выбора режима, переводы (`translations`/`.po`/csv),
+  упоминания в справке и документации игры (`docs/guide/`, справка в UI, страницы сайта о настройке — по ссылкам).
 - **Ключи конфига (06.10, единый источник):** классификатор — `air_phase.classifier` (имена = `recommended_config` AP-23),
   механизмы — `air_phase.{a,b,d,f,g,h}`, ω и запасное правило — `air_phase.omega.{fallback_iters, fallback_omega}`, запасной
   путь по сходимости — `air_phase.nonconv.{mech_w, late_from}`, допуски проверок — `air_phase.checks`. В `air_model` эти
@@ -345,13 +351,15 @@ GDScript — без магических чисел (кроме математи
 - Отладочный слой «карта фаз» рядом с F3-стрелками (`wind_field_debug.gd`): цвет клетки по фазе с наибольшим весом,
   включается тем же переключателем/соседней клавишей; дёшево (текстура 96×96 из `weights`).
 
-## P13. Удаление нейросети из игры (версия 1)
+## P13. Удаление нейросети из игры (версия 2)
 **Владелец:** AP-21. **Потребители:** сборка, пользователь.
 
 - Удалить: `air_nn_input.gd`, `air_nn_field.gd`, `air_nn_prep.gd` и ссылки; расширение ONNX Runtime (GDExtension
   `AirOnnx`, его библиотеки и `.gdextension`), `data/air_nn/`, `tests/air_onnx/`, фильтр `*.onnx` в `export_presets.cfg`,
   `--air-nn-model`, ключи `nn_*` в конфигах, пункт меню (если остался после P12). `docs/contracts/air-onnx.md` → status
   superseded (заметка «удалено, см. air-phase P12/P13»). Пикар и сеть в `tools/research/` остаются (эталон, история).
+- **v2 (06.10):** вместе с файлами — переводы и тексты пункта «нейросеть» (ключи перевода, справка в игре, `docs/guide/`),
+  если не убраны в P12 v3.
 - Проверка: `grep -ri "onnx\|air_nn" scripts configs scenes ui project.godot export_presets.cfg` пусто (кроме истории в
   docs/CHANGELOG); сборка Linux/Windows экспортируется; тесты зелёные.
 
