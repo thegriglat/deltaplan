@@ -17,8 +17,14 @@ rotor_height_fraction, depth_scale_m, relief_scale_m) и порогов по к�
   землёй, u·e = 0 у земли) в колоннах обратной зоны;
 - area_rev_frac — доля клеток всей сетки (окна) с u·e < 0 на нижнем уровне (на сетке 400 м — без края EDGE клеток);
 - shadow_angle_deg = atan(Δz/L), Δz — перепад бровка → земля в точке присоединения; −1, если обратного течения нет;
-- fr_local = U притока на высоте бровки над землёй притока / (N·h) (профиль притока — колонна поля 400 м выше по
-  ветру, передаётся вызывающим);
+- fr_local = U невозмущённого профиля притока на высоте h над землёй / (N·h): U(z) = U_sat·min((z/z_sat)^α, 1),
+  z_sat = 10·max_profile^(1/α) (фон решателя `air.wind_profile`, профиль ветра игры) — аргумент `inflow`. AP-10: прежнее
+  определение по колонне поля 400 м у края (`up_profile`, 5 клеток = ширина боковой губки 2 км) брало скорость из
+  возмущённого поля: при Fr ≤ 0,5 и переносе 2-го порядка колонна у губки несёт выброс 2–3 м/с при U_sat = 1,5
+  (fr_local 0,61 вместо 0,30); `up_profile` оставлен только для старых вызовов;
+- сечение — через `center`; None (AP-10) — через точку наибольшего подветренного уклона −∇z·e сетки (при равенстве —
+  ближайшую к центру сетки): окно 100 м при косом ветре лежит у конца хребта и не содержит (0, 0), прежнее сечение
+  через (0, 0) окно не пересекало (slope_lee = 0, has_reverse = 0 у всех косых случаев);
 - slope_lee — max уклон спуска (−dz/ds) по ветру от бровки на сетке случая (тангенс).
 Если обратного течения нет: has_reverse = 0, L, H, xc, zc = 0, urev = min(0, …), shadow = −1.
 Границы: двумерное сечение (у холма и при косом ветре течение трёхмерное — ψ лишь оценка центра); разрешение по
@@ -67,15 +73,40 @@ def inflow_at(agl, along, z):
     return float(np.interp(z, agl, along))
 
 
-def bubble(fields, agl, x0, y0, dx, ground, e, h, u_sat, n_bv, up_profile=None, center=(0.0, 0.0), edge=0):
+def inflow_speed(z, u_sat, alpha, max_profile):
+    """Невозмущённый профиль притока решателя (air.wind_profile): U_sat·min((z/z_sat)^α, 1), z_sat = 10·max_profile^(1/α)."""
+    z_sat = 10.0 * max_profile ** (1.0 / alpha)
+    return u_sat * np.minimum((np.maximum(np.asarray(z, float), 0.1) / z_sat) ** alpha, 1.0)
+
+
+def steepest_lee_point(ground, x0, y0, dx, e):
+    """Центр клетки с наибольшим подветренным уклоном −∇z·e (при равенстве — ближайшая к центру сетки). → (x, y)."""
+    g = np.asarray(ground, np.float64)
+    ny, nx = g.shape
+    gy, gx = np.gradient(g, dx)
+    xs = x0 + dx / 2 + dx * np.arange(nx)
+    ys = y0 + dx / 2 + dx * np.arange(ny)
+    X, Y = np.meshgrid(xs, ys)
+    xm, ym = xs.mean(), ys.mean()
+    lee = -(gx * e[0] + gy * e[1])
+    lee = np.round(lee, 6) - 1e-12 * ((X - xm) ** 2 + (Y - ym) ** 2)
+    j, i = np.unravel_index(int(np.argmax(lee)), lee.shape)
+    return float(xs[i]), float(ys[j])
+
+
+def bubble(fields, agl, x0, y0, dx, ground, e, h, u_sat, n_bv, up_profile=None, center=(0.0, 0.0), edge=0, inflow=None):
     """fields (C ≥ 2, K, ny, nx) — u, v[, w, θ′] на высотах agl (K,) над землёй; ground (ny, nx) — земля, м н. у. м.;
     e — единичный вектор «куда дует»; h — перепад формы, м; u_sat — U насыщения притока, м/с; n_bv — N, 1/с;
-    up_profile = (agl_up, along_up, z_ground_up) — колонна притока для fr_local (None — fr_local = 0);
+    inflow = (alpha, max_profile) — профиль притока для fr_local = U(h)/(N·h) (AP-10);
+    up_profile = (agl_up, along_up, z_ground_up) — старое определение fr_local по колонне поля (если inflow нет;
+    оба None — fr_local = 0); center — точка сечения, None — наибольший подветренный уклон сетки;
     edge — край, не входящий в area_rev_frac (клетки). → запись BUBBLE_DTYPE (np.void)."""
     out = np.zeros((), BUBBLE_DTYPE)
     agl = np.asarray(agl, np.float64)
     f = np.asarray(fields, np.float32)
     ny, nx = f.shape[-2:]
+    if center is None:
+        center = steepest_lee_point(ground, x0, y0, dx, e)
     s, px, py = section(ny, nx, x0, y0, dx, e, center)
     alongs = bilinear(f[0], x0, y0, dx, px, py) * e[0] + bilinear(f[1], x0, y0, dx, px, py) * e[1]   # (K, n)
     zs = bilinear(np.asarray(ground, np.float64), x0, y0, dx, px, py)
@@ -93,7 +124,9 @@ def bubble(fields, agl, x0, y0, dx, ground, e, h, u_sat, n_bv, up_profile=None, 
     ib = int(np.argmin(d2[: i_lee + 1]))
     sb, zb = s[ib], zs[ib]
     out["slope_lee"] = float(max(0.0, -d1[ib:].min()))
-    if up_profile is not None and n_bv > 0 and h > 0:
+    if inflow is not None and n_bv > 0 and h > 0:
+        out["fr_local"] = float(inflow_speed(h, u_sat, *inflow)) / (n_bv * h)
+    elif up_profile is not None and n_bv > 0 and h > 0:
         agl_up, along_up, zg_up = up_profile
         out["fr_local"] = inflow_at(agl_up, along_up, max(zb - zg_up, float(agl_up[0]))) / (n_bv * h)
     a0 = alongs[0]
