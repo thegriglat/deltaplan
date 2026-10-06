@@ -620,7 +620,8 @@ func _after_phases() -> void:
 	var c: AirCase = _prep.case
 	var n := c.dims().x * c.dims().y * c.dims().z
 	var cc: AirCase = _prep.get("coarse_case")
-	if cc == null or _warm_ok(_prev_pair(), n):
+	# вся область — механизмам (штиль H): Пикару решать нечего, грубый старт не нужен
+	if cc == null or _warm_ok(_prev_pair(), n) or all_mech(_phase):
 		_start_picard(c)
 		return
 	_coarse_job = AirPicardJob.new()
@@ -679,6 +680,15 @@ static func coarse_start(cc: AirCase, job: AirPicardJob) -> Dictionary:
 		dims = cc.dims(), x0 = cc.x0, y0 = cc.y0, dx = cc.dx, z_bot = cc.z_bot,
 		mech = job.state(true), heat = job.state(false),
 	}
+
+
+## Карта фаз отдала механизмам все колонны обоих решений (freeze и freeze_mech — все 1).
+static func all_mech(ph: Dictionary) -> bool:
+	for key in ["freeze", "freeze_mech"]:
+		var m: PackedByteArray = ph.get(key, PackedByteArray())
+		if m.is_empty() or m.has(0):
+			return false
+	return true
 
 
 ## Прошлое поле этой сетки — старт пересчёта в полёте и прохода 2 загрузки.

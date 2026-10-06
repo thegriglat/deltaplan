@@ -369,6 +369,11 @@ func _setup_nonconv(ncell: int, ncol: int) -> bool:
 	return true
 
 
+## Заморожены все колонны решения (штиль H по всей области): итераций нет.
+func _all_frozen() -> bool:
+	return _freeze and _n_fluid_free == 0
+
+
 func _heat_warm_ok() -> bool:
 	if warm_coarse.has("heat"):
 		return true
@@ -742,7 +747,7 @@ func _rec_project_head(masked := false) -> void:
 	gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
 	# совместность: среднее — по незамороженным, замороженным — 0 (иначе постоянный источник там
 	# и φ не гаснет: p дрейфует, невязка импульса не сходится)
-	var nf := float(_n_fluid_free) if masked else float(case.n_fluid)
+	var nf := maxf(float(_n_fluid_free) if masked else float(case.n_fluid), 1.0)
 	gpu.axpy(-1.0 / nf, buf.act, buf.rhs, _ni, S_RSUM)
 	if masked:
 		_rmask(buf.rhs, KIND_IN, _ni)
@@ -832,7 +837,7 @@ func _rec_div_stats(masked := false) -> void:
 	if masked:
 		_rmask(buf.rhs, KIND_IN, _ni)
 		gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
-		gpu.axpy(-1.0 / float(_n_fluid_free), buf.act, buf.rhs, _ni, S_RSUM)
+		gpu.axpy(-1.0 / maxf(float(_n_fluid_free), 1.0), buf.act, buf.rhs, _ni, S_RSUM)
 		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
 	gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)
@@ -913,6 +918,8 @@ func _step_program(_i: int) -> Array:
 			return _program(_iter_key())
 		Phase.FINAL:
 			var pre := _late_apply_program()
+			if _all_frozen():
+				pre = gpu.record(_rec_freeze) + pre
 			if _ci < _cases.size() - 1:
 				return pre + _program("final") + _program("mech_done")
 			return pre + _program("final")
@@ -980,7 +987,12 @@ func _after_sync() -> bool:
 	phase_gpu_ms[pk] = float(phase_gpu_ms[pk]) + ms
 	match _phase:
 		Phase.INIT:
-			_phase = Phase.ITER
+			if _all_frozen():
+				# всё отдано механизмам — решать нечего: поле механизма, сшивка finalize
+				_status = "ok"
+				_phase = Phase.FINAL
+			else:
+				_phase = Phase.ITER
 		Phase.ITER:
 			_iters += check_every
 			var r := _read_residuals()
