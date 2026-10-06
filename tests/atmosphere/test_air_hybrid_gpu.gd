@@ -6,11 +6,9 @@ extends TestCase
 ## проекция-сшивка) — в лог и build/dp/AP-20/timing.json; оценка RX 5600 XT — по пропускной
 ## способности памяти (оговорка в timing.json). Допуски и места — configs/atmosphere.json →
 ## air_model.hybrid_checks (до блока air_phase.checks AP-19).
-## Фазы: AirPhaseJob (AP-19), нет — заглушка PhaseStub (test_air_runtime.gd): тогда проверяется
-## только совпадение поля (тёплый старт заглушки — однородный поток, итераций не меньше).
+## Фазы: AirPhaseJob (AP-19) на GPU.
 ## tools/gpu_tests.sh --filter=air_hybrid (под dp lock gpu).
 
-const RuntimeTest := preload("res://tests/atmosphere/test_air_runtime.gd")
 const TIMING := "res://build/dp/AP-20/timing.json"
 
 
@@ -22,19 +20,20 @@ func _cfg() -> Dictionary:
 	return Config.get_config("atmosphere").air_model.hybrid_checks
 
 
+## Фазы на GPU (AirPhaseJob, свой AirGpu): словарь P10 + cpu_ms (стена).
 func _phase(c: AirCase) -> Dictionary:
 	var t0 := Time.get_ticks_usec()
-	var ph := {}
-	var real := ResourceLoader.exists(AirRuntime.PHASE_JOB_PATH)
-	if real:
-		var pj: Object = (load(AirRuntime.PHASE_JOB_PATH) as Script).new(null)
-		ph = pj.call("run", c)
-	else:
-		var st := RuntimeTest.PhaseStub.new()
-		st.block = 0
-		ph = st.run(c)
+	var g := AirGpu.new()
+	if not g.init():
+		check(false, "AirGpu: %s" % g.error)
+		return {}
+	var pj := AirPhaseJob.new(g)
+	var ph := pj.run(c)
+	pj.release()
+	g.release()
+	check(not ph.has("error") and not ph.is_empty(), "фазы: %s" % ph.get("error", ""))
 	ph.cpu_ms = (Time.get_ticks_usec() - t0) / 1000.0
-	ph.real = real
+	ph.real = true
 	return ph
 
 
@@ -46,13 +45,14 @@ func _solve(c: AirCase, ph: Dictionary) -> AirPicardJob:
 		job.warm = ph.get("warm_mech", ph.get("warm", {}))
 		job.omega_map = ph.get("omega", PackedFloat32Array())
 		job.freeze_mask = ph.get("freeze", PackedByteArray())
+		job.freeze_mask_mech = ph.get("freeze_mech", PackedByteArray())
 		job.freeze_field = ph.get("mech_field", {})
 		job.freeze_field_mech = ph.get("mech_field_mech", {})
-		var am: Dictionary = Config.get_config("atmosphere").air_model
 		job.omega_fallback = Vector2(
-			float(AirRuntime.phase_cfg("omega", "fallback_iters", am.get("omega_fallback_iters", 0))),
-			float(AirRuntime.phase_cfg("omega", "fallback_omega", am.get("omega_fallback_value", 1.0)))
+			float(AirRuntime.phase_cfg("omega", "fallback_iters")),
+			float(AirRuntime.phase_cfg("omega", "fallback_omega"))
 		)
+		job.late_from = int(AirRuntime.phase_cfg("nonconv", "late_from"))
 	if not job.start():
 		failures.append("start: " + job.error)
 		return null
@@ -211,7 +211,10 @@ func _compare(c: AirCase, cold: AirPicardJob, hyb: AirPicardJob, ph: Dictionary,
 		omega_fallback_used = bool(hr.omega_fallback_used),
 		frozen_frac = float(hr.frozen_frac),
 		phases_real = bool(ph.real),
-		phase_frac = ph.get("stats", {}),
+		phase_frac = (ph.get("stats", {}) as Dictionary).get("phase_frac", {}),
+		omega = ph.omega[0] if not PackedFloat32Array(ph.get("omega", [])).is_empty() else NAN,
+		frozen_frac_mech = float(hyb.results[0].frozen_frac) if hyb.results.size() > 1 else NAN,
+		nonconv = hr.get("nonconv_fallback", false),
 		ms_phase = float(ph.get("ms", ph.cpu_ms)) if (ph.get("ms") is float or ph.get("ms") is int) else float(ph.cpu_ms),
 		ms_cold = {gpu = cold.gpu_ms_total, wall = cold.wall_ms, stages = cold.phase_gpu_ms},
 		ms_hybrid = {gpu = hyb.gpu_ms_total, wall = hyb.wall_ms, stages = hyb.phase_gpu_ms},

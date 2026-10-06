@@ -307,10 +307,6 @@ func test_phase_picard_pipeline() -> void:
 	var atmo := _atmo(detail)
 	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
 	var rt := AirRuntime.new()
-	var stub: RefCounted = null
-	if not ResourceLoader.exists(AirRuntime.PHASE_JOB_PATH):
-		stub = preload("res://tests/atmosphere/test_air_runtime.gd").PhaseStub.new()
-		rt.phase_factory = func(_g: AirGpu) -> Object: return stub
 	await Engine.get_main_loop().process_frame
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
@@ -325,8 +321,7 @@ func test_phase_picard_pipeline() -> void:
 	check(ok, "поле посчитано: %s" % rt.last_error)
 	check(String(li.get("engine", "")) == "phase+picard", "движок — фазы+Пикар: %s" % li.get("engine"))
 	check(li.has("phase_frac") and li.has("frozen_frac") and li.has("omega_fallback_used"), "last_info P12")
-	if stub != null:
-		check(float(li.get("frozen_frac", 0.0)) > 0.0, "заморозка заглушки дошла до Пикара")
+	check(not (li.get("phase_frac", {}) as Dictionary).is_empty(), "доли фаз от AirPhaseJob")
 	check(not rt.phase_map.is_empty(), "карта фаз для слоя")
 	rt.queue_free()
 	atmo.free()

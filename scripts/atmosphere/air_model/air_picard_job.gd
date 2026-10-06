@@ -78,6 +78,9 @@ var omega_map := PackedFloat32Array()
 ## P11: 1 — колонна отдана механизму фазы (ny·nx); её u, v, w, θ′, θ′_d, K после каждой итерации
 ## переписываются полем механизма, невязка и критерий — только по остальным. Пусто — нет.
 var freeze_mask := PackedByteArray()
+## То же для решения без нагрева (P10 v5 freeze_mech); пусто — freeze_mask для обоих. С ним
+## freeze_mask — только для решения с нагревом.
+var freeze_mask_mech := PackedByteArray()
 ## P11: поле механизма для замороженных колонн — {u, v, w, th, thd} в раскладке warm (N с ореолом);
 ## нет канала — его значение после старта (тёплый старт, спроецированный). K — всегда после старта.
 var freeze_field := {}
@@ -250,13 +253,14 @@ func _setup_p11() -> bool:
 	omega_switch_iter = -1
 	frozen_frac = 0.0
 	_relax = not omega_map.is_empty()
-	_freeze = not freeze_mask.is_empty()
+	_freeze = not freeze_mask.is_empty() or not freeze_mask_mech.is_empty()
 	if _relax and omega_map.size() != ncell:
 		error = "AirPicardJob: omega_map не ny·nx"
 		return false
-	if _freeze and freeze_mask.size() != ncell:
-		error = "AirPicardJob: freeze_mask не ny·nx"
-		return false
+	for m: PackedByteArray in [freeze_mask, freeze_mask_mech]:
+		if not m.is_empty() and m.size() != ncell:
+			error = "AirPicardJob: freeze_mask не ny·nx"
+			return false
 	var ncol := _dims.x * _dims.y
 	if _relax or omega_fallback.x > 0.0:
 		var om := omega_map
@@ -272,14 +276,8 @@ func _setup_p11() -> bool:
 		return false
 	if not _freeze:
 		return true
-	var fz := PackedFloat32Array()
-	fz.resize(ncell)
-	var nfr := 0
-	for q in ncell:
-		fz[q] = 1.0 if freeze_mask[q] != 0 else 0.0
-		nfr += 1 if freeze_mask[q] != 0 else 0
-	frozen_frac = float(nfr) / float(ncell)
-	buf.frz = gpu.buffer(ncol, _pad_cols(fz, false))
+	buf.frz = gpu.buffer(ncol)
+	_use_freeze_mask(_mask_of(0))
 	_snap_names = ["nu", "nuh"]
 	var first := freeze_field_mech if (_cases.size() > 1 and not freeze_field_mech.is_empty()) else freeze_field
 	for nm in ["u", "v", "w", "th", "thd"]:
@@ -294,8 +292,33 @@ func _setup_p11() -> bool:
 			gpu.upload(buf["f" + nm], a)
 	buf.fnu = gpu.buffer(_n)
 	buf.fnuh = gpu.buffer(_n)
-	_count_free()
 	return true
+
+
+## Маска заморозки решения ci (0 — первое: без нагрева при паре).
+func _mask_of(ci: int) -> PackedByteArray:
+	var mech_first := _cases.size() > 1 and ci == 0
+	if mech_first and not freeze_mask_mech.is_empty():
+		return freeze_mask_mech
+	if freeze_mask.is_empty() and not freeze_mask_mech.is_empty():
+		var z := PackedByteArray()
+		z.resize(freeze_mask_mech.size())
+		return z
+	return freeze_mask
+
+
+## Маска на GPU, доля замороженных, числа неизвестных по незамороженным.
+func _use_freeze_mask(m: PackedByteArray) -> void:
+	var ncell := m.size()
+	var fz := PackedFloat32Array()
+	fz.resize(ncell)
+	var nfr := 0
+	for q in ncell:
+		fz[q] = 1.0 if m[q] != 0 else 0.0
+		nfr += 1 if m[q] != 0 else 0
+	frozen_frac = float(nfr) / float(maxi(ncell, 1))
+	gpu.upload(buf.frz, _pad_cols(fz, false))
+	_count_free(m)
 
 
 ## P12 v2: буферы среднего и поля механизма для запасного пути.
@@ -334,7 +357,11 @@ func _setup_nonconv(ncell: int, ncol: int) -> bool:
 
 ## Решение с нагревом после mech: его поле механизма (freeze_field), если для mech было своё.
 func _upload_heated_freeze() -> void:
-	if not _freeze or freeze_field_mech.is_empty():
+	if not _freeze:
+		return
+	if not freeze_mask_mech.is_empty():
+		_use_freeze_mask(_mask_of(_ci))
+	if freeze_field_mech.is_empty():
 		return
 	for nm in ["u", "v", "w", "th", "thd"]:
 		var a: PackedFloat32Array = freeze_field.get(nm, PackedFloat32Array())
@@ -360,13 +387,13 @@ func _pad_cols(a: PackedFloat32Array, edge: bool) -> PackedFloat32Array:
 
 ## Неизвестные по незамороженным (как AirCase._count_unknowns; грань u/v заморожена, когда
 ## заморожена хотя бы одна колонна — air_picard.glsl:frozen_at).
-func _count_free() -> void:
+func _count_free(mask: PackedByteArray) -> void:
 	var nxh := _dims.x
 	var nyh := _dims.y
 	var nzh := _dims.z
 	var cl := case.col
 	var fr := func(j: int, i: int) -> bool:
-		return freeze_mask[(j - 1) * case.nx + (i - 1)] != 0
+		return mask[(j - 1) * case.nx + (i - 1)] != 0
 	var kf := func(j: int, i: int) -> int:
 		return maxi(int(cl[COL_KF * nxh * nyh + j * nxh + i]), 1)
 	var nf := 0

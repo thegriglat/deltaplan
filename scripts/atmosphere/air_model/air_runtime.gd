@@ -45,11 +45,6 @@ const WIND_TOL_MS := 0.05
 const DIR_TOL_DEG := 1.0
 const TMAX_TOL_C := 0.25
 const CMD_FIELD := "поле из файла (--air-field)"
-## Код фаз (air-phase P10, AP-19): классификатор и механизмы; нет файла — Пикар без фаз (GPU) или
-## аналитика (без GPU).
-const PHASE_JOB_PATH := "res://scripts/atmosphere/air_model/air_phase_job.gd"
-## Порядок фаз в weights (P10: AirPhase.PHASES) — пока кода фаз нет.
-const PHASE_ORDER := ["A", "B", "C", "D", "F", "G", "H"]
 ## Пределы множителя притока k (C9 v3). Над стартами мест игры поле при k = 1 даёт на 10 м
 ## 1,0–2,1 × ветра притока (WPC-2) → k 0,5–1; разгон над холмом в потенциальном обтекании —
 ## не больше ≈ 2–2,5 (Jackson & Hunt 1975; Taylor & Lee 1984: ΔS ≤ 1,6), отсюда нижний предел
@@ -102,9 +97,8 @@ var pass_tol := 0.03
 ## прохода 2 и проверить откат к полю прохода 1.
 var timeout_later_pass_s := NAN
 
-## Фазы (P10): (gpu: AirGpu | null) -> объект с API AirPhaseJob (run(case) -> Dictionary; GPU —
-## start(gpu)/poll()/is_done()/error/result()). Пусто — AirPhaseJob из PHASE_JOB_PATH (тесты
-## подставляют заглушку).
+## Фазы (P10): (gpu: AirGpu) -> объект с API AirPhaseJob (case; start(gpu)/poll()/is_done()/error/
+## result()). Пусто — AirPhaseJob (тесты могут подставить свою).
 var phase_factory: Callable
 ## Карта фаз последнего поданного поля (слой «карта фаз», WindFieldDebug): {weights (K·ny·nx),
 ## phases (имена K), nx, ny, dx, x0, y0} ({} — нет).
@@ -183,28 +177,17 @@ func _device() -> RuntimeGpu:
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
 			if not _gpu.init(
-				AirGpu.SHADERS + AirPicardJob.SHADER_NAMES + AirWindowJob.WINDOW_SHADERS + _phase_shaders()
+				AirGpu.SHADERS + AirPicardJob.SHADER_NAMES + AirWindowJob.WINDOW_SHADERS + AirPhaseJob._names()
 			):
 				last_error = _gpu.error
 	return _gpu
 
 
-## Ядра фаз для общего RD (AirPhaseJob.SHADER_NAMES, если есть).
-static func _phase_shaders() -> Array:
-	if not ResourceLoader.exists(PHASE_JOB_PATH):
-		return []
-	var sc: Script = load(PHASE_JOB_PATH)
-	var names: Variant = sc.get_script_constant_map().get("SHADER_NAMES", [])
-	return names if names is Array else []
-
-
-## Новая задача фаз (gpu — для GPU-пути, null — CPU); null — кода фаз нет.
+## Новая задача фаз на общем RD.
 func _new_phase_job(gpu: AirGpu) -> Object:
 	if phase_factory.is_valid():
 		return phase_factory.call(gpu)
-	if not ResourceLoader.exists(PHASE_JOB_PATH):
-		return null
-	return (load(PHASE_JOB_PATH) as Script).new(gpu)
+	return AirPhaseJob.new(gpu)
 
 
 ## Место: detail (HeightLayer, узлы 25 м), water (Image или null), loc ({id, center_lat,
@@ -552,6 +535,7 @@ func _poll_prep() -> void:
 		_phase.ms_wall = float(_prep.phase_ms)
 	if _phase_job != null:
 		_t_phase = Time.get_ticks_usec()
+		_phase_job.set("case", c)
 		var ok: Variant = _phase_job.call("start", _gpu)
 		if (ok is bool and not ok) or String(_phase_job.get("error")) != "":
 			print("air_model: фазы на GPU не стартовали (%s) — Пикар без фаз" % _phase_job.get("error"))
@@ -587,7 +571,7 @@ func _phase_info() -> void:
 		_req.phase_frac = {}
 		_req.phase_ms = NAN
 		return
-	_req.phase_frac = _phase.get("stats", {})
+	_req.phase_frac = (_phase.get("stats", {}) as Dictionary).get("phase_frac", {})
 	var ms: Variant = _phase.get("ms", NAN)
 	_req.phase_ms = float(ms) if (ms is float or ms is int) else float(_phase.get("ms_wall", NAN))
 	var c: AirCase = _prep.get("case")
@@ -602,28 +586,19 @@ func _phase_info() -> void:
 	}
 
 
-## Имена фаз в порядке weights (AirPhase.PHASES, P10).
+## Имена фаз в порядке weights (P10).
 static func _phase_names() -> Array:
-	var path := "res://scripts/atmosphere/air_model/air_phase.gd"
-	if ResourceLoader.exists(path):
-		var v: Variant = (load(path) as Script).get_script_constant_map().get("PHASES", [])
-		if v is Array:
-			return v
-	return PHASE_ORDER
+	return AirPhase.PHASES
 
 
-## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv.mech_w (AP-19), до него —
-## air_model.nonconv_mech_w.
-func _nonconv_w() -> float:
-	return float(phase_cfg("nonconv", "mech_w", _cfg.get("nonconv_mech_w", 1.0)))
+## Порог веса H/D для запасного пути (P12 v2): air_phase.nonconv.mech_w.
+static func _nonconv_w() -> float:
+	return float(phase_cfg("nonconv", "mech_w"))
 
 
-## Ключ блока air_phase (AP-19, контракт P12 «Ключи конфига»): air_phase.<group>.<key>, нет —
-## временный ключ air_model (fallback).
-static func phase_cfg(group: String, key: String, fallback: Variant) -> Variant:
-	var ap: Dictionary = Config.get_config("atmosphere").get("air_phase", {})
-	var g: Variant = ap.get(group, {})
-	return (g as Dictionary).get(key, fallback) if g is Dictionary else fallback
+## Ключ блока air_phase (контракт P12 «Ключи конфига»): air_phase.<group>.<key>.
+static func phase_cfg(group: String, key: String) -> Variant:
+	return Config.get_config("atmosphere").air_phase[group][key]
 
 
 ## Колонны запасного пути (P12 v2): не заморожены и вес H + D > порога (веса до заморозки).
@@ -670,17 +645,17 @@ func _start_picard(c: AirCase) -> void:
 	if not _phase.is_empty():
 		_job.omega_map = _phase.get("omega", PackedFloat32Array())
 		_job.freeze_mask = _phase.get("freeze", PackedByteArray())
+		_job.freeze_mask_mech = _phase.get("freeze_mech", PackedByteArray())
 		_job.freeze_field = _phase.get("mech_field", {})
 		_job.freeze_field_mech = _phase.get("mech_field_mech", {})
-	_job.late_from = int(phase_cfg("nonconv", "late_from", _cfg.get("nonconv_late_from", 0)))
+	_job.late_from = int(phase_cfg("nonconv", "late_from"))
 	if not _phase.is_empty():
 		_job.nonconv_mask = nonconv_mask(_phase, _nonconv_w())
 		var nf: Dictionary = _phase.get("warm", {}).duplicate()
 		nf.merge(_phase.get("mech_field", {}), true)
 		_job.nonconv_field = nf
 	_job.omega_fallback = Vector2(
-		float(phase_cfg("omega", "fallback_iters", _cfg.get("omega_fallback_iters", 0))),
-		float(phase_cfg("omega", "fallback_omega", _cfg.get("omega_fallback_value", 1.0)))
+		float(phase_cfg("omega", "fallback_iters")), float(phase_cfg("omega", "fallback_omega"))
 	)
 	var t_start := Time.get_ticks_usec()
 	if not _job.start(_gpu):

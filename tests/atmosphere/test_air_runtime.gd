@@ -1,7 +1,7 @@
 extends TestCase
 ## AirRuntime без GPU (air-phase P12 v4): без GPU расчёта нет — аналитика (фаз на CPU в рантайме
 ## нет); конфиг air_model без engine/nn_*, новые ключи с _doc; маска запасного пути (P12 v2);
-## картинка слоя «карта фаз». PhaseStub — заглушка AirPhaseJob (P10 v2) для GPU-тестов до AP-19.
+## картинка слоя «карта фаз». PhaseStub — простая карта фаз для слоя (не AirPhaseJob).
 
 const PHASES := ["A", "B", "C", "D", "F", "G", "H"]
 
@@ -98,9 +98,13 @@ func test_config_without_nn() -> void:
 	check(not am.has("engine") and not am.has("engine_doc"), "air_model без engine")
 	for k: String in am:
 		check(not k.begins_with("nn_"), "air_model без nn_*: %s" % k)
-	for k in ["omega_fallback_iters", "omega_fallback_value", "hybrid_checks"]:
-		check(am.has(k), "ключ %s" % k)
-		check(am.has(k + "_doc"), "_doc у %s" % k)
+	for k: String in am:
+		check(not k.begins_with("omega_fallback") and not k.begins_with("nonconv_"), "временный ключ убран: %s" % k)
+	check(am.has("hybrid_checks") and am.has("hybrid_checks_doc"), "hybrid_checks с _doc")
+	for k in ["fallback_iters", "fallback_omega"]:
+		check(AirRuntime.phase_cfg("omega", k) != null, "air_phase.omega.%s" % k)
+	for k in ["mech_w", "late_from"]:
+		check(AirRuntime.phase_cfg("nonconv", k) != null, "air_phase.nonconv.%s" % k)
 	var hc: Dictionary = am.get("hybrid_checks", {})
 	for k: String in hc:
 		if not k.ends_with("_doc"):

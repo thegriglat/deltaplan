@@ -136,7 +136,6 @@ related: []
 | `recompute_game_min` | 15 | пересчёт поля по игровому времени, мин (и при смене ветра/погоды) |
 | `timeout_s` | 60 | предел одного расчёта поля, с стены; превышен — аналитика (загрузка) / прежнее поле (полёт) |
 | `max_speed_ms`, `max_w_ms` | 40, 10 | ограничители |
-| `omega_fallback_iters`, `omega_fallback_value` | 300, 0,5 | запасное правило ω Пикара (P11): нет сходимости к N итерациям → ω := 0,5 |
 | `hybrid_checks` | — | допуски и места проверки P14 (гибрид против холодного Пикара), до `air_phase.checks` |
 
 API атмосферы: `set_air_field(поле | [уровни] | null, blend_s = -1)` (−1 — `blend_s` из конфига),
@@ -158,10 +157,10 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
 **Конвейер: фазы → Пикар → проекция (air-phase P11/P12, AP-20; сети в игре нет).** Проход: `AirPlace.domain_case`
 (рабочий поток) → фазы `AirPhaseJob` (P10, AP-19: веса фаз A/B/C/D/F/G/H, карта ω, колонны механизмов, тёплый старт
 из сборки; GPU — порциями `start/poll/is_done/result` на главном потоке, нет GPU-пути — `run(case)` в рабочем потоке) →
-`AirPicardJob` (mech = true) с `warm` — от прошлого поля при пересчёте в полёте и от прохода 1 при проходе 2 загрузки
+`AirPicardJob` (mech = true; решение без нагрева — `warm_mech`, `freeze_mech`, `mech_field_mech`, с нагревом —
+обычные ключи P10 v5; ω — одно значение на случай) с `warm` — от прошлого поля при пересчёте в полёте и от прохода 1 при проходе 2 загрузки
 (дешевле сборки: −56 % итераций, AM-03), иначе от сборки фаз; `omega_map` (ω по колоннам), `freeze_mask` +
-`freeze_field` (колонны H/F/G/сильного D держат поле механизма), `omega_fallback` = (`omega_fallback_iters`,
-`omega_fallback_value`) из конфига → проекция-сшивка (finalize V-циклами) → `WindField` (C3 без изменений) → окна
+`freeze_field` (колонны H/F/G/сильного D держат поле механизма), `omega_fallback` = `air_phase.omega.{fallback_iters, fallback_omega}` → проекция-сшивка (finalize V-циклами) → `WindField` (C3 без изменений) → окна
 100/50 м как раньше (тёплый старт окон — от поля области).
 - **P11 в `AirPicardJob`.** ω — недорелаксация по колоннам, как research P4 v6 (`tools/research/air_phase/batch_solver.py`):
   перед замыканием K копируется, после — K ← K_old + ω(K* − K_old); перед импульсом копируются u, v, w, после проекции —
@@ -176,9 +175,9 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
   сходимости → ω := min(ω, ω_fb) везде (один раз на задачу). Все новые поля пусты (`omega_fallback = (0, 0)` — по
   умолчанию) — программы GPU те же, поле побитно прежнее. Итог: `results[]` + `omega_fallback_used`,
   `omega_switch_iter`, `frozen_frac`; `phase_gpu_ms` = {init, iter, final} — GPU-время старта, итераций, проекции.
-- **Запасной путь по сходимости (P12 v2).** С итерации `nonconv_late_from` состояния проверок копятся в среднее
+- **Запасной путь по сходимости (P12 v2).** С итерации `air_phase.nonconv.late_from` состояния проверок копятся в среднее
   (`AirPicardJob.late_from`); решение упёрлось в `max_outer` — поле := late_mean, в незамороженных колоннах с весом
-  H + D > `nonconv_mech_w` (`AirPicardJob.nonconv_mask`) — поле механизма (`nonconv_field` = warm, поверх — `mech_field`
+  H + D > `air_phase.nonconv.mech_w` (`AirPicardJob.nonconv_mask`) — поле механизма (`nonconv_field` = warm, поверх — `mech_field`
   P10), затем проекция-сшивка. `results[]` + `nonconv_fallback`, `late_n`; `last_info.nonconv_fallback` = {used, frac}.
 - **Без GPU** (headless, нет RD, ядра не собрались) расчёта нет — аналитика при загрузке, как C9 (P12 v4); фазы без
   порций GPU (`run(case)`) идут в рабочем потоке, но только как часть расчёта с Пикаром.
