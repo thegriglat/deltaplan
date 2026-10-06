@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 2}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 3}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -65,7 +65,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (губка у верха, по умолчанию 1000 м); построитель пишет явно; 0 (старые планы) = значение по умолчанию.
   `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
-## P3. Результаты замеров — HDF5 + jsonl (версия 2)
+## P3. Результаты замеров — HDF5 + jsonl (версия 3)
 **Владелец:** AP-3. **Потребители:** разбор (следующий этап), отчёт на шлюзе.
 
 - Каталог: `$AIR_SYNTH_DATA/phase/<plan>__<solver_version>/`: `part-{n:05d}.h5` (одна часть = один посчитанный пакет,
@@ -91,6 +91,10 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   | `window/fields` | (Mw, 4, Kw, Nyw, Nxw) f2 | только серия SEPARATION с dx = 100 м: поле окна; атрибуты `dx_m`, `x0_m`, `y0_m`, `agl_m` окна, `case_id` (Mw,) |
   | `bubble` | (M,) составной | только SEPARATION (оба dx): `has_reverse` i1, `L_over_h`, `H_over_h` f4 (длина по ветру от бровки до присоединения и высота области u·e < 0 в вертикальном сечении по ветру через центр формы), `urev_over_U` f4 (min u·e у земли / U_sat, ≤ 0), `xc_over_h`, `zc_over_h` f4 (центр вихря — экстремум функции тока ψ в сечении, x от бровки, z над землёй), `area_rev_frac` f4 (доля площади окна с обратным течением на нижнем уровне), `shadow_angle_deg` f4 (угол «линии тени»: atan(Δz/L) от бровки до точки присоединения у земли, Δz — перепад бровка → земля в точке присоединения; −1, если обратного течения нет), `fr_local` f4 (U притока на высоте бровки / (N·h)), `slope_lee` f4 (max уклон подветренного склона на сетке случая) — числа для калибровки `configs/atmosphere.json` → `lee` (shadow_angle_deg, rotor_reverse, rotor_height_fraction, depth_scale_m, relief_scale_m) и порогов по крутизне и местному Fr |
 
+  **v3 (06.10, AP-10):** `bubble.fr_local` = U(h)/(N·h) по невозмущённому профилю притока (α, max_profile), не по колонне
+  поля у края; сечение — через бровку окна (`brink_x_m/brink_y_m`) или наибольший подветренный уклон, а не через (0, 0)
+  (косой ветер). Части ap_v1 записаны по v2 (старые `fr_local`, у косых случаев has_reverse = 0) и поля `bub_*` таблицы
+  признаков — тоже: для SEPARATION брать пересчёт `tools/research/air_phase/analysis/AP-10/out/bubble_v2.csv`.
   T = (max_outer − 100)/50 + 1 (19 при 1000). Чанк — один случай, gzip 4 + shuffle. Значения конечные: NaN — ошибка
   записи; разошедшееся решение — нули и status 2 (как S5).
 - Инварианты: часть пишется только целиком; набор посчитанных случаев = объединение `cases/case_id` по частям
