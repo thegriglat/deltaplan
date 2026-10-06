@@ -1,0 +1,84 @@
+{
+  "id": "AP-18",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Прототип «фазы + Пикар» по SY-12 (P9): тёплый старт, ω по карте фаз, механизмы H/F/G/D",
+  "goal": "Проверить итоговую архитектуру без сети: Пикар с тёплым стартом от сборки и ω по карте фаз для A/B/C плюс механизмы H/F/G/сильного D — против холодного Пикара по итерациям, сходимости и метрикам слоёв; время GPU и оценка для RX 5600 XT. Шлюз пользователя.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [
+    {
+      "name": "P9",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P4",
+      "version": "6",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P8",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-18",
+  "branch": "air-phase/AP-18",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/assembly/",
+    "tools/research/air_phase/hybrid/",
+    "tools/research/air_phase/batch_solver.py",
+    "tools/research/air_phase/tests/test_batch_solver.py",
+    "tools/research/air_phase/tests/test_assembly.py",
+    "tools/research/air_phase/tests/test_hybrid.py",
+    "tools/research/air_phase/analysis/AP-18/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_assembly.py tools/research/air_phase/tests/test_hybrid.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gpu_tests",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap18-accept -- /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_batch_solver.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-18'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "verdict",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-18/summary.json'));print('layers_not_worse', d['layers_not_worse'], 'iter_reduction', d['iter_reduction'])\"",
+      "expect": "re:layers_not_worse (yes|no|partly)"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T16:56:45"
+}
