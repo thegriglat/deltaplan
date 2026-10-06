@@ -1,0 +1,46 @@
+{
+  "verdict": "rework",
+  "summary": "Контракты P11/P12/P14 соблюдены (P11 v3 обновлён координатором), скоуп чист, приёмка повторена: gpu exit 0 (480 с), air_runtime 5/5, no_magic 3. Одна реальная дыра: сплошная заморозка (штиль) → деление на ноль и NaN в Пикаре — починить и добавить короткий тест, после этого принимать.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/air_model/air_picard_job.gd",
+      "line": 745,
+      "severity": "major",
+      "what": "Деление на _n_fluid_free без защиты от нуля (также строка 835). Случай достижим в игре: штиль (U10 < h_c = 0,77 м/с) → H ≥ freeze_w во всей области (air_phase.glsl:308) → freeze_mask сплошь 1 → _n_fluid_free = 0 → axpy(-1/0) даёт inf·0 = NaN в rhs, итерации до max_outer с NaN, поле после sanitize — нули. Пикар при штиле всё равно запускается (air_runtime.gd:474 — один проход, k = 1). Проверить не смог (GPU занят приёмкой) — если AirPhaseJob в штиль не морозит 100 % колонн, снизить до minor, но защиту поставить всё равно.",
+      "fix": "В _setup_p11/_use_freeze_mask: если _n_fluid_free == 0 — не итерировать: поле := freeze_field (мех. поле), status ok, iters 0 (или error с понятной причиной → запасной путь C9); в _rec_project_head/_rec_div_stats — maxf(nf, 1). Короткий GPU-тест: freeze_mask все 1 на фикстуре saddle → нет NaN, статус ok."
+    },
+    {
+      "file": "configs/atmosphere.json",
+      "line": 795,
+      "severity": "minor",
+      "what": "d_strong_c 270 → 250 — совпадает с AP-23 recommended_config (summary.json → threshold_scan), но текст P10 v3 в контракте по-прежнему «< 270 м», а ключ принадлежит классификатору AP-19.",
+      "fix": "Координатору: поправить число в P10 и сообщить AP-19, чтобы не откатили при вливании."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_picard_job.gd",
+      "line": 738,
+      "severity": "minor",
+      "what": "Заморозка как Дирихле: из ∇·u незамороженных вычитается среднее — поток через замороженные грани размазывается по свободным клеткам как однородный источник; на местах игры при ветре заморожено 0 колонн, при штиле — всё, смешанный режим в игре не проверен. Зафиксировано в P11 v3, не блокирует.",
+      "fix": "Ничего сейчас; при частичной заморозке в игре — один прогон на реальном месте с frozen_frac 0,1–0,5 и сравнение div_rms до/после итоговой сшивки."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "gpu",
+      "value": "dp accept --only gpu --dry: exit 0, 480 с",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "5/5, 2 пропуска (GPU)",
+      "pass": true
+    },
+    {
+      "name": "no_magic",
+      "value": "3 ≤ 6",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-07T04:30:46",
+  "by": "reviewer"
+}
