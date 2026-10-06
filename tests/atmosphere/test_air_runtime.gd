@@ -112,6 +112,8 @@ func test_config_without_nn() -> void:
 
 ## Без GPU — аналитика, даже когда код фаз есть (P12 v4).
 func test_no_gpu_analytic() -> void:
+	if DisplayServer.get_name() != "headless":
+		return  # GPU есть — проверка только headless
 	var atmo := StubAtmo.new()
 	var stub := PhaseStub.new()
 	var rt := _runtime(atmo, _place(), stub)

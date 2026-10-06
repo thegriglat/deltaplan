@@ -612,16 +612,21 @@ func _rec_snap() -> void:
 
 
 ## Проекция: ∇·u → минус среднее → cycles V-циклов от φ = 0 → φ минус среднее → u −= K∇φ (p += φ).
-func _prog_project(cycles: int, update_p: bool) -> Array:
-	var a := gpu.record(_rec_project_head)
+## masked (P11, итерации с заморозкой): ∇·u замороженных клеток в правую часть не идёт — поле
+## механизма там граничное условие, проекция его не «чинит» потоком через соседей (иначе вечный
+## источник и нет сходимости); finalize — без маски (сшивка всего поля).
+func _prog_project(cycles: int, update_p: bool, masked := false) -> Array:
+	var a := gpu.record(_rec_project_head.bind(masked))
 	for _c in cycles:
 		a.append_array(mg.program(buf.phi, buf.rhs))
 	a.append_array(gpu.record(_rec_project_tail.bind(update_p)))
 	return a
 
 
-func _rec_project_head() -> void:
+func _rec_project_head(masked := false) -> void:
 	_div()
+	if masked:
+		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
 	gpu.axpy(-1.0 / float(case.n_fluid), buf.act, buf.rhs, _ni, S_RSUM)
 	gpu.fill(buf.phi, _ni)
@@ -637,7 +642,7 @@ func _rec_project_tail(update_p: bool) -> void:
 ## no_thd — без прохода θ′_d (решение без нагрева, _no_thd()).
 func _prog_iteration(no_thd := false) -> Array:
 	var a := gpu.record(_rec_momentum)
-	a.append_array(_prog_project(int(case.p.vcycles), true))
+	a.append_array(_prog_project(int(case.p.vcycles), true, _freeze))
 	if _relax:
 		a.append_array(gpu.record(_rec_relax_u))
 	a.append_array(gpu.record(_rec_heat_step.bind(no_thd)))

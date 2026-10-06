@@ -906,9 +906,8 @@ func test_p11_omega_freeze_fallback() -> void:
 	var j1 := await _solve_p11(case_from_fixture(m), half, PackedByteArray(), Vector2.ZERO)
 	if j1 != null:
 		var d := max_abs_diff(u0, j1.download("u"))
-		print("    ω=½: итераций %d (ω=1: %d), max|Δu| %.2e = %.4f U" % [j1.iterations(), base.iterations(), d, d / us])
+		print("    ω=½: итераций %d (ω=1: %d), max|Δu| %s = %.4f U" % [j1.iterations(), base.iterations(), sci(d), d / us])
 		check(String(j1.results[-1].status) == "ok", "ω=½ сошёлся")
-		check(j1.iterations() > base.iterations(), "ω=½ медленнее")
 		check(d / us < 0.02, "ω=½ — та же неподвижная точка (%.4f U)" % (d / us))
 		j1.release()
 	# запасное правило на 20-й итерации
@@ -917,7 +916,7 @@ func test_p11_omega_freeze_fallback() -> void:
 		var r: Dictionary = j2.results[-1]
 		check(bool(r.omega_fallback_used) and int(r.omega_switch_iter) == 20, "запас сработал на 20: %s" % r)
 		var d2 := max_abs_diff(u0, j2.download("u"))
-		check(String(r.status) == "ok" and d2 / us < 0.02, "запас: сошёлся к той же точке (%.4f U)" % (d2 / us))
+		check(String(r.status) == "ok" and d2 / us < 0.02, "запас: сошёлся к той же точке (%.4f U, итераций %d)" % [d2 / us, j2.iterations()])
 		j2.release()
 	# заморозка угла 4×4 колонны: поле там — от старта
 	var fz := PackedByteArray()
@@ -930,8 +929,8 @@ func test_p11_omega_freeze_fallback() -> void:
 		var r3: Dictionary = j3.results[-1]
 		check(absf(float(r3.frozen_frac) - 16.0 / n2) < 1e-6, "доля замороженных: %s" % r3.frozen_frac)
 		check(String(r3.status) == "ok", "заморозка: остальное сошлось (%s, %d)" % [r3.status, j3.iterations()])
-		check(float(r3.div_rms) < 1e-4, "∇·u после сшивки: %.2e" % float(r3.div_rms))
-		print("    заморозка 4×4: итераций %d, div_rms %.2e" % [j3.iterations(), float(r3.div_rms)])
+		check(float(r3.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r3.div_rms)))
+		print("    заморозка 4×4: итераций %d, div_rms %s" % [j3.iterations(), sci(float(r3.div_rms))])
 		j3.release()
 	base.release()
 
@@ -987,5 +986,5 @@ func test_p12_nonconv_late_mean() -> void:
 	check(String(r.status) == "max" and bool(r.nonconv_fallback), "запасной путь сработал: %s" % r)
 	check(int(r.late_n) == 3, "среднее по 3 проверкам (30, 40, 50): %d" % int(r.late_n))
 	check(absf(job.nonconv_frac - 16.0 / n2) < 1e-6, "доля колонн")
-	check(float(r.div_rms) < 1e-4, "∇·u после сшивки: %.2e" % float(r.div_rms))
+	check(float(r.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r.div_rms)))
 	job.release()

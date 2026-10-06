@@ -985,8 +985,9 @@ func _apply(levels: Array[WindField]) -> void:
 	phase_map = _req.get("phase_map", {})
 	print(
 		(
-			"air_model: поле (фазы+Пикар) итераций %s, фазы %s (%.0f мс), заморожено %.2f, ω→запас %s"
+			"air_model: поле (%s) итераций %s, фазы %s (%.0f мс), заморожено %.2f, ω→запас %s"
 			% [
+				"фазы+Пикар" if _req.get("engine", "") == "phase+picard" else "Пикар без фаз",
 				_req.iters, _frac_text(_req.get("phase_frac", {})), float(_req.get("phase_ms", NAN)),
 				float(_req.get("frozen_frac", 0.0)), _req.get("omega_fallback_used", false)
 			]
