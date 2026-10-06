@@ -930,7 +930,7 @@ func test_p11_omega_freeze_fallback() -> void:
 		check(absf(float(r3.frozen_frac) - 16.0 / n2) < 1e-6, "доля замороженных: %s" % r3.frozen_frac)
 		check(String(r3.status) == "ok", "заморозка: остальное сошлось (%s, %d)" % [r3.status, j3.iterations()])
 		check(float(r3.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r3.div_rms)))
-		print("    заморозка 4×4: итераций %d, div_rms %s" % [j3.iterations(), sci(float(r3.div_rms))])
+		print("    заморозка 4×4: итераций %d, div_rms %s, конец %s" % [j3.iterations(), sci(float(r3.div_rms)), r3.hist[-1]])
 		j3.release()
 	base.release()
 

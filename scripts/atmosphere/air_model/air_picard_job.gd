@@ -36,7 +36,8 @@ const SHADER_NAMES := [
 	"air_picard:resid",
 	"air_picard:relax",
 	"air_picard:freeze",
-	"air_picard:rmask"
+	"air_picard:rmask",
+	"air_picard:fixrow"
 ]
 
 ## Вид точки для ядер P11 (air_picard.glsl: relax/freeze/rmask).
@@ -344,7 +345,7 @@ func _pad_cols(a: PackedFloat32Array, edge: bool) -> PackedFloat32Array:
 
 
 ## Неизвестные по незамороженным (как AirCase._count_unknowns; грань u/v заморожена, когда
-## заморожены обе колонны).
+## заморожена хотя бы одна колонна — air_picard.glsl:frozen_at).
 func _count_free() -> void:
 	var nxh := _dims.x
 	var nyh := _dims.y
@@ -364,9 +365,9 @@ func _count_free() -> void:
 				var c := maxi(nzh - 2 - kf.call(j, i) + 1, 0)
 				nf += c
 				nw += maxi(c - 1, 0)
-			if i >= 2 and not (fr.call(j, i) and fr.call(j, i - 1)):
+			if i >= 2 and not (fr.call(j, i) or fr.call(j, i - 1)):
 				nu += maxi(nzh - 2 - maxi(kf.call(j, i), kf.call(j, i - 1)) + 1, 0)
-			if j >= 2 and not (fr.call(j, i) and fr.call(j - 1, i)):
+			if j >= 2 and not (fr.call(j, i) or fr.call(j - 1, i)):
 				nv += maxi(nzh - 2 - maxi(kf.call(j, i), kf.call(j - 1, i)) + 1, 0)
 	_n_unk_free = PackedInt32Array([nu, nv, nw, nf])
 	_n_fluid_free = nf
@@ -496,6 +497,9 @@ func _mom(comp: int) -> void:
 		[],
 		5.0
 	)
+	if _freeze:
+		var fx: RID = [buf.fu, buf.fv, buf.fw][comp]
+		gpu.kernel("air_picard:fixrow", [buf.frz, c, fx], _n, [d[0], d[1], d[2], [KIND_U, KIND_V, KIND_C][comp]])
 
 
 ## Шаблон тепла в Cu: mode 0 — θ′_d, 1 — полное θ′ (air_picard.glsl:heat).
@@ -526,6 +530,9 @@ func _heat(mode: int) -> void:
 		[],
 		5.0
 	)
+	if _freeze:
+		var fx: RID = buf.fthd if mode == 0 else buf.fth
+		gpu.kernel("air_picard:fixrow", [buf.frz, buf.Cu, fx], _n, [d[0], d[1], d[2], KIND_C])
 
 
 func _div() -> void:
@@ -628,7 +635,12 @@ func _rec_project_head(masked := false) -> void:
 	if masked:
 		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
-	gpu.axpy(-1.0 / float(case.n_fluid), buf.act, buf.rhs, _ni, S_RSUM)
+	# совместность: среднее — по незамороженным, замороженным — 0 (иначе постоянный источник там
+	# и φ не гаснет: p дрейфует, невязка импульса не сходится)
+	var nf := float(_n_fluid_free) if masked else float(case.n_fluid)
+	gpu.axpy(-1.0 / nf, buf.act, buf.rhs, _ni, S_RSUM)
+	if masked:
+		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.fill(buf.phi, _ni)
 
 
@@ -708,9 +720,14 @@ func _rec_check() -> void:
 	_rec_div_stats(_freeze)
 
 
+## masked: ∇·u только незамороженных и за вычетом их среднего — постоянная совместности от поля
+## механизма (его суммарный поток через общие грани) не ошибка решения; она — в S_RSUM.
 func _rec_div_stats(masked := false) -> void:
 	_div()
 	if masked:
+		_rmask(buf.rhs, KIND_IN, _ni)
+		gpu.reduce(AirGpu.Red.SUM, buf.rhs, _ni, S_RSUM)
+		gpu.axpy(-1.0 / float(_n_fluid_free), buf.act, buf.rhs, _ni, S_RSUM)
 		_rmask(buf.rhs, KIND_IN, _ni)
 	gpu.reduce(AirGpu.Red.DOT, buf.rhs, _ni, S_DIV2, buf.rhs)
 	gpu.reduce(AirGpu.Red.MAXABS, buf.rhs, _ni, S_DIVMAX)

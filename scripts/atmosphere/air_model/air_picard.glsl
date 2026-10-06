@@ -12,6 +12,7 @@ resid = "#define K_RESID";
 relax = "#define K_RELAX";
 freeze = "#define K_FREEZE";
 rmask = "#define K_RMASK";
+fixrow = "#define K_FIXROW";
 
 #[compute]
 #version 450
@@ -556,7 +557,7 @@ void main() {
 // ореол ω — значение края, ореол заморозки — 0). Вид точки (i0.w): 0 — грань u (колонны i−1, i),
 // 1 — грань v (j−1, j), 2 — центр клетки или грань w (своя колонна), 3 — внутренняя клетка без
 // ореола (раскладка rhs: nx·ny·nz). Числа — только из буферов (конфиг air_model → AirPicardJob).
-#if defined(K_RELAX) || defined(K_FREEZE) || defined(K_RMASK)
+#if defined(K_RELAX) || defined(K_FREEZE) || defined(K_RMASK) || defined(K_FIXROW)
 layout(set = 0, binding = 0, std430) readonly buffer BMap { float cmap[]; };
 
 int col_of(int t, int kind) {
@@ -576,13 +577,15 @@ float omega_at(int t, int kind) {
 	return cmap[q];
 }
 
-// Грань заморожена, когда заморожены обе колонны (research P4 v6: fu = F & F[-1]).
+// Грань заморожена, когда заморожена хотя бы одна из колонн: колонна механизма держит все свои
+// грани, и незамороженная область получает их как условие Дирихле (с «обе колонны», как research
+// P4 v6, общая грань решается прогонкой и сбрасывается заморозкой — неподвижной точки нет).
 bool frozen_at(int t, int kind) {
 	int q = col_of(t, kind);
 	int i = q % NX, j = q / NX;
 	bool f = cmap[q] != 0.0;
-	if (kind == 0) return f && i > 0 && cmap[q - 1] != 0.0;
-	if (kind == 1) return f && j > 0 && cmap[q - NX] != 0.0;
+	if (kind == 0) return f || (i > 0 && cmap[q - 1] != 0.0);
+	if (kind == 1) return f || (j > 0 && cmap[q - NX] != 0.0);
 	return f;
 }
 #endif
@@ -626,6 +629,25 @@ void main() {
 	int kind = pc.i0.w;
 	GRID_LOOP(pc.i1.x) {
 		if (frozen_at(t, kind)) r[t] = 0.0;
+	}
+}
+#endif
+
+// Строка шаблона замороженной точки → тождество x = xf (Дирихле для прогонок: соседние линии видят
+// поле механизма, а не своё решение, которое потом сбросилось бы заморозкой).
+#ifdef K_FIXROW
+layout(set = 0, binding = 1, std430) buffer BC { float c[]; };
+layout(set = 0, binding = 2, std430) readonly buffer BXf { float xf[]; };
+
+void main() {
+	dims();
+	int kind = pc.i0.w;
+	GRID_LOOP(N) {
+		if (!frozen_at(t, kind)) continue;
+		int q = 8 * t;
+		for (int o = 1; o < 7; o++) c[q + o] = 0.0;
+		c[q] = 1.0;
+		c[q + 7] = xf[t];
 	}
 }
 #endif
