@@ -130,7 +130,7 @@ related: []
 ### Конфиг (`configs/atmosphere.json → air_model`)
 | Ключ | По умолчанию | Смысл |
 |---|---|---|
-| `enabled` | `"auto"` | auto — фазы + Пикар на GPU (без GPU — фазы на CPU), иначе аналитика; cpu — фазы на CPU без Пикара; on — требовать поле (нет — аналитика и предупреждение); off — всегда аналитика (аварийный путь и отпечаток, не пункт меню) |
+| `enabled` | `"auto"` | auto — поле (фазы + Пикар на GPU), если есть, иначе аналитика; on — требовать (нет — аналитика и предупреждение); off — всегда аналитика (пункт «Эвристика») |
 | `edge_blend_cells` | 5 | полоса края, клеток уровня (окно 100 м — 500 м, область 400 м — 2 км, как губки решателя) |
 | `blend_s` | 60 | время плавной подмены поля, с времени атмосферы |
 | `recompute_game_min` | 15 | пересчёт поля по игровому времени, мин (и при смене ветра/погоды) |
@@ -176,16 +176,15 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
   (`AirPicardJob.late_from`); решение упёрлось в `max_outer` — поле := late_mean, в незамороженных колоннах с весом
   H + D > `nonconv_mech_w` (`AirPicardJob.nonconv_mask`) — поле механизма (`nonconv_field` = warm, поверх — `mech_field`
   P10), затем проекция-сшивка. `results[]` + `nonconv_fallback`, `late_n`; `last_info.nonconv_fallback` = {used, frac}.
-- **Без GPU** (headless, нет RD, ядра не собрались): поле — только сборка фаз на CPU (`AirRuntime.assembly_field`:
-  warm P10 → `WindField`, типы клеток — `cell_codes` на CPU), один уровень, строка `air_model: фазы без Пикара (<причина>)`;
-  кода фаз нет — аналитика.
-- `last_info`: `engine` ("phase+picard" | "picard" — фаз нет | "phase" — без GPU), `phase_frac`, `phase_ms`,
+- **Без GPU** (headless, нет RD, ядра не собрались) расчёта нет — аналитика при загрузке, как C9 (P12 v4); фазы без
+  порций GPU (`run(case)`) идут в рабочем потоке, но только как часть расчёта с Пикаром.
+- `last_info`: `engine` ("phase+picard" | "picard" — кода фаз нет), `phase_frac`, `phase_ms`,
   `omega_fallback_used`, `frozen_frac`, `iters`, `picard_ms`; журнал — строка `air_model: поле (фазы+Пикар) итераций …,
   фазы …`. `AirRuntime.phase_map` — карта фаз поданного поля для слоя F4.
 - Проверки: `tests/atmosphere/test_air_runtime.gd` (без GPU), `test_air_runtime_gpu.gd`, `test_air_picard_gpu.gd`
   (P11), `test_air_hybrid_gpu.gd` (P14: гибрид = холодный Пикар в A/B/C-клетках, время → `build/dp/AP-20/timing.json`).
-  Пункт настроек «Ветер над рельефом» (P12 v3): «Расчёт на GPU (фазы + Пикар)» = `enabled: auto`, «Без GPU (фазы на
-  CPU)» = `enabled: cpu`; аналитики и нейросети в меню нет.
+  Пункт настроек «Ветер над рельефом» (P12 v4): «Расчёт» (фазы + Пикар на GPU, `enabled: auto`) / «Эвристика»
+  (аналитика, `enabled: off`); нейросети в меню нет.
 
 **Загрузка.** Этап «Рассчитываем ветер» / "Computing wind" (`LoadProgress`, ключ `wind`, вес в
 `configs/ui.json → loading.stage_weights`) — после этапа «Камни, кусты и дороги», когда известен

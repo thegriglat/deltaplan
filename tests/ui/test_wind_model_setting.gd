@@ -1,7 +1,7 @@
 extends Node
-## Пункт настроек «Ветер над рельефом» (air-phase P12 v3: на GPU / без GPU): пишется в
-## atmosphere.json → air_model.enabled (auto / cpu); «без GPU» — фазы на CPU, RenderingDevice не
-## берётся, но поле есть и атмосфера его использует (аналитика — не пункт меню). Настройки пишутся
+## Пункт настроек «Ветер над рельефом» (расчёт / упрощённый): пишется в atmosphere.json →
+## air_model.enabled (auto / off); «упрощённый» — решатель не создаётся (AirRuntime, RenderingDevice
+## не берётся), поле не используется атмосферой; «расчёт» — прежнее поведение. Настройки пишутся
 ## во временный каталог (SettingsPanel.config_dir), настоящий user://configs не трогаем.
 
 var failures: PackedStringArray = []
@@ -35,13 +35,13 @@ func test_wind_model_item_texts_ui() -> void:
 	var want := {
 		"ru":
 		[
-			"Расчёт на GPU (фазы + Пикар)",
-			"Без GPU (фазы на CPU)"
+			"Расчет на GPU (обтекание рельефа)",
+			"Эвристика (профиль ветра без рельефа)"
 		],
 		"en":
 		[
-			"GPU computation (phases + Picard)",
-			"Without GPU (phases on CPU)"
+			"GPU solver (terrain flow)",
+			"Heuristic (wind profile without terrain)"
 		],
 	}
 	for loc in want:
@@ -65,18 +65,18 @@ func test_setting_saved_and_applied() -> void:
 	var sp := _panel(dir)
 	var opt: OptionButton = sp.get("_wind_model")
 	check(opt != null and opt.item_count == 2, "в настройках два варианта модели ветра")
-	var want := ["Расчёт на GPU (фазы + Пикар)", "Без GPU (фазы на CPU)"]
+	var want := ["Расчет на GPU (обтекание рельефа)", "Эвристика (профиль ветра без рельефа)"]
 	var got: Array = []
 	for i in opt.item_count:
 		got.append(opt.get_item_text(i))
 	check(got == want, "порядок и тексты: %s" % [got])
 	check(opt.get_item_id(0) == 0 and opt.get_item_id(1) == 1, "id пунктов")
 	check(opt.get_selected_id() == 0 and opt.selected == 0, "по умолчанию — расчёт, первый пункт")
-	# без GPU
+	# упрощённый
 	opt.select(opt.get_item_index(1))
-	check(sp.save(), "сохранилось (без GPU)")
+	check(sp.save(), "сохранилось (упрощённый)")
 	var saved := UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
-	check(saved.get("air_model", {}).get("enabled") == "cpu", "записан enabled=cpu")
+	check(saved.get("air_model", {}).get("enabled") == "off", "записан enabled=off")
 	_check_mode(_atmo_cfg(saved), false)
 	# расчёт
 	opt.select(opt.get_item_index(0))
@@ -99,9 +99,9 @@ func test_setting_saved_and_applied() -> void:
 func test_panel_shows_saved_value() -> void:
 	var dir := ProjectSettings.globalize_path("res://.godot/test_wind_model_show")
 	DirAccess.make_dir_recursive_absolute(dir)
-	Config._cache["atmosphere"] = _atmo_cfg({"air_model": {"enabled": "cpu"}})
+	Config._cache["atmosphere"] = _atmo_cfg({"air_model": {"enabled": "off"}})
 	var sp := _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 1, "cpu → «без GPU»")
+	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 1, "off → «упрощённый»")
 	sp.queue_free()
 	Config.reload()
 	sp = _panel(dir)
@@ -110,18 +110,19 @@ func test_panel_shows_saved_value() -> void:
 	DirAccess.remove_absolute(dir)
 
 
-## cfg — конфиг атмосферы с правкой пилота; gpu — «на GPU» (иначе фазы на CPU, GPU не берётся).
-func _check_mode(cfg: Dictionary, gpu: bool) -> void:
+## cfg — конфиг атмосферы с правкой пилота; calc — «расчёт» (иначе решатель не создаётся).
+func _check_mode(cfg: Dictionary, calc: bool) -> void:
 	Config._cache["atmosphere"] = cfg
 	var rt := AirRuntime.new()
 	var why := rt.unavailable_reason()
-	check(why != "air_model.enabled = off", "поле не отключено настройкой (%s)" % why)
-	if not gpu:
-		check(rt.gpu_reason() == "air_model.enabled = cpu", "без GPU: Пикара нет (%s)" % rt.gpu_reason())
-		check(rt._device() == null, "без GPU: RenderingDevice не берётся")
-		check(rt._gpu == null, "без GPU: решатель не создан")
+	if calc:
+		check(why != "air_model.enabled = off", "расчёт: не отключён настройкой (%s)" % why)
+	else:
+		check(why == "air_model.enabled = off", "упрощённый: решатель отключён (%s)" % why)
+		check(rt._device() == null, "упрощённый: RenderingDevice не берётся")
+		check(rt._gpu == null, "упрощённый: решатель не создан")
 	rt.free()
-	# атмосфера: поле используется в обоих режимах
+	# атмосфера: поле используется только в режиме «расчёт»
 	var f := WindField.load_file(FIXTURE)
 	check(f != null, "фикстура читается")
 	if f != null:
@@ -129,6 +130,6 @@ func _check_mode(cfg: Dictionary, gpu: bool) -> void:
 		a.visuals_enabled = false
 		a.configure(cfg, Config.get_config("weather/medium"))
 		a.set_air_field(f, 0.0)
-		check(a.is_air_field_on(), "поле используется")
+		check(a.is_air_field_on() == calc, "поле используется: %s" % calc)
 		a.free()
 	Config.reload()

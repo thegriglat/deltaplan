@@ -5,7 +5,7 @@ extends Node
 ## потоке), фазы (AirPhaseJob, air-phase P10: веса фаз, карта ω, заморозка колонн механизмов,
 ## тёплый старт из сборки), Пикар на GPU с тёплым стартом от сборки (AirPicardJob, P11, mech = true),
 ## сборка WindField (field_async, рабочий поток) и подача в атмосферу (set_air_field) — air-phase
-## P12. Без GPU — только сборка фаз на CPU (без Пикара). Хранит state() для тёплого старта
+## P12. Без GPU расчёта нет (аналитика, P12 v4). Хранит state() для тёплого старта
 ## следующего пересчёта. docs/guide/air-model.md → «Загрузка и пересчёт поля».
 ##
 ##   rt.setup(atmo, {detail = layer, water = img, loc = {...}}, conditions_fn)
@@ -13,8 +13,7 @@ extends Node
 ##   rt.recompute_enabled = true  # полёт: пересчёт каждые recompute_game_min и при смене условий
 ##
 ## Опрос решателя — сам, в _process (RD — только главный поток): при загрузке poll_slice(40 мс),
-## в полёте poll() порциями ≤ 25 мс. Нет GPU — поле из сборки фаз на CPU и строка «air_model:
-## фазы без Пикара (<причина>)»; ошибка/нет фаз и GPU/таймаут: при загрузке — аналитика и строка
+## в полёте poll() порциями ≤ 25 мс. Ошибка/нет GPU/таймаут: при загрузке — аналитика и строка
 ## «air_model: analytic (<причина>)», в полёте — остаётся прежнее поле, следующая попытка — на
 ## следующем сроке. Очереди нет: пересчёт, не успевший до следующего срока, по окончании сразу
 ## сменяется новым — на последний срок.
@@ -180,7 +179,7 @@ func engine() -> String:
 
 
 func _device() -> RuntimeGpu:
-	if _gpu == null and not String(_cfg.get("enabled", "auto")) in ["off", "cpu"]:
+	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
 			if not _gpu.init(
@@ -265,12 +264,14 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 	}
 
 
-## Причина, по которой поле не считается ("" — считается): режим off, поле из файла, нет места;
-## нет ни GPU, ни кода фаз (без GPU поле — сборка фаз на CPU, P12).
+## Причина, по которой поле не считается ("" — считается): режим off, headless, поле из файла,
+## нет места, нет GPU (без GPU расчёта нет — аналитика, P12 v4).
 func unavailable_reason() -> String:
 	var why := ""
 	if String(_cfg.get("enabled", "auto")) == "off":
 		why = "air_model.enabled = off"
+	elif DisplayServer.get_name() == "headless":
+		why = "нет RenderingDevice: headless"
 	elif Array(OS.get_cmdline_user_args()).any(_is_cmd_field):
 		why = CMD_FIELD
 	elif _place.get("detail") == null:
@@ -278,32 +279,10 @@ func unavailable_reason() -> String:
 	elif atmosphere == null or not atmosphere.has_method("set_air_field"):
 		why = "атмосфера без поля"
 	else:
-		why = gpu_reason()
-		if why != "" and _phases_available():
-			why = ""  # без Пикара: сборка фаз на CPU
+		var g := _device()
+		if g == null or g.rd == null:
+			why = g.error if g != null else "нет RenderingDevice"
 	return why
-
-
-## Почему нет Пикара ("" — GPU есть): выбрано «фазы на CPU», headless, нет RenderingDevice, ядра
-## не собрались.
-func gpu_reason() -> String:
-	if String(_cfg.get("enabled", "auto")) == "cpu":
-		return "air_model.enabled = cpu"
-	if DisplayServer.get_name() == "headless":
-		return "нет RenderingDevice: headless"
-	var g := _device()
-	if g == null or g.rd == null:
-		return g.error if g != null else "нет RenderingDevice"
-	return ""
-
-
-func _phases_available() -> bool:
-	return phase_factory.is_valid() or ResourceLoader.exists(PHASE_JOB_PATH)
-
-
-## Поле считается без GPU: только сборка фаз на CPU.
-func _cpu_only() -> bool:
-	return gpu_reason() != ""
 
 
 static func _is_cmd_field(a: String) -> bool:
@@ -498,25 +477,16 @@ func _start_prep() -> void:
 	_phase_job = null
 	_stage = Stage.PREP
 	var r := _req
-	# фазы на CPU — в том же рабочем потоке: без GPU всегда, с GPU — если у задачи нет порций
+	# фазы: GPU-задача порциями (главный поток); нет порций — run(case) в том же рабочем потоке
 	var cpu_job: Object = null
-	var gpu_job: Object = null
-	if _cpu_only():
-		cpu_job = _new_phase_job(null)
-	else:
-		gpu_job = _new_phase_job(_gpu)
-		if gpu_job != null and not _has_gpu_api(gpu_job):
-			cpu_job = _new_phase_job(null)
-			gpu_job = null
+	var gpu_job: Object = _new_phase_job(_gpu)
+	if gpu_job != null and not _has_gpu_api(gpu_job):
+		cpu_job = gpu_job
+		gpu_job = null
 	_phase_job = gpu_job
 	_task = WorkerThreadPool.add_task(
-		_prep_task.bind(_place, r, _k, _prep, cpu_job, _cpu_only(), _limits()), false, "AirRuntime"
+		_prep_task.bind(_place, r, _k, _prep, cpu_job), false, "AirRuntime"
 	)
-
-
-## Ограничители поля (max_speed_ms, max_w_ms) — из конфига, для рабочего потока.
-func _limits() -> Vector2:
-	return Vector2(float(_cfg.max_speed_ms), float(_cfg.max_w_ms))
 
 
 ## Задача фаз ведётся порциями на GPU (P10 v2).
@@ -539,10 +509,9 @@ func _progress(x: float) -> void:
 
 
 ## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока;
-## phase_job — фазы на CPU (P10, run(case)); build — без GPU: и поле из сборки фаз (WindField).
+## phase_job — фазы без порций GPU (P10, run(case)), null — нет.
 static func _prep_task(
-	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object, build: bool,
-	limits: Vector2
+	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object
 ) -> void:
 	var base := AirPlace.domain_case(
 		place.detail,
@@ -567,54 +536,6 @@ static func _prep_task(
 	var ph: Dictionary = phase_job.call("run", pc)
 	out.phase = ph
 	out.phase_ms = (Time.get_ticks_usec() - t0) / 1000.0
-	if build:
-		out.field = assembly_field(pc, ph, limits)
-
-
-## Поле из сборки фаз без Пикара (P12, нет GPU): warm P10 (раскладка AirPicardJob) → WindField C3;
-## w_mech — вертикаль сборки (механизмы F держат среднее поле, пузыри термиков — отдельно).
-## null — нет warm или размеры не сошлись.
-static func assembly_field(c: AirCase, ph: Dictionary, limits: Vector2) -> WindField:
-	var warm: Dictionary = ph.get("warm", {})
-	var n := c.dims().x * c.dims().y * c.dims().z
-	for nm in ["u", "v", "w", "th"]:
-		if PackedFloat32Array(warm.get(nm, PackedFloat32Array())).size() != n:
-			return null
-	var w: PackedFloat32Array = warm.w
-	return AirPicardJob._build_field(
-		{
-			meta = c.meta(),
-			u = warm.u,
-			v = warm.v,
-			w = w,
-			wm = w.duplicate(),
-			th = warm.th,
-			tc = cell_codes(c),
-			hc = c.hc,
-		},
-		limits.x,
-		limits.y
-	)
-
-
-## Типы клеток на CPU (как air_picard.glsl:setup cellt): 0 земля (k = 0 или ниже первой клетки
-## воздуха столбца), 2 ореол, 1 воздух — для WindField без GPU.
-static func cell_codes(c: AirCase) -> PackedFloat32Array:
-	var d := c.dims()
-	var nyx := d.x * d.y
-	var out := PackedFloat32Array()
-	out.resize(nyx * d.z)
-	for k in d.z:
-		for j in d.y:
-			for i in d.x:
-				var kf := c.col[AirPicardJob.COL_KF * nyx + j * d.x + i]
-				var t := 1
-				if k == 0 or float(k) < kf:
-					t = 0
-				elif i == 0 or i == d.x - 1 or j == 0 or j == d.y - 1 or k == d.z - 1:
-					t = 2
-				out[(k * d.y + j) * d.x + i] = float(t)
-	return out
 
 
 func _poll_prep() -> void:
@@ -629,9 +550,6 @@ func _poll_prep() -> void:
 	if _prep.has("phase"):
 		_phase = _prep.phase
 		_phase.ms_wall = float(_prep.phase_ms)
-	if _cpu_only():
-		_on_cpu_field(_prep.get("field"))
-		return
 	if _phase_job != null:
 		_t_phase = Time.get_ticks_usec()
 		var ok: Variant = _phase_job.call("start", _gpu)
@@ -661,25 +579,6 @@ func _poll_phase() -> void:
 		_phase_job.call("release")
 	_phase_job = null
 	_start_picard(_prep.case)
-
-
-## Без GPU: поле — сборка фаз (P12), один уровень; не собралось — отказ (аналитика).
-func _on_cpu_field(f: WindField) -> void:
-	if f == null:
-		_fail("фазы без Пикара: поле не собралось")
-		return
-	f.meta.source = "phase"
-	f.meta.cond = {wind = snappedf(float(_req.u10), 0.01), wdir = snappedf(float(_req.wdir), 0.1)}
-	_req.engine = "phase"
-	_req.no_picard = gpu_reason()
-	_req.iters = []
-	_req.warm = false
-	_req.gpu_s = 0.0
-	_phase_info()
-	_t_dom = Time.get_ticks_usec()
-	_progress(1.0)
-	var one: Array[WindField] = [f]
-	_levels_done(one)
 
 
 ## Итог фаз в _req (last_info): доли, время, карта для слоя «карта фаз».
@@ -900,16 +799,12 @@ func _start_windows() -> void:
 	_stage = Stage.WINDOWS
 
 
-## Есть точка старта для подстройки k (без GPU окон нет, старт — всё равно из focus_fn).
+## Есть точка старта для подстройки k.
 func _focus_wanted() -> bool:
-	if _cpu_only():
-		return focus_fn.is_valid()
 	return _windows_wanted()
 
 
 func _windows_wanted() -> bool:
-	if _cpu_only():
-		return false  # без Пикара окна не считаются: один уровень, область 400 м
 	return focus_fn.is_valid() and not Array(_cfg.get("window_levels_m", [100.0])).is_empty()
 
 
@@ -1088,19 +983,6 @@ func _apply(levels: Array[WindField]) -> void:
 	_ok = true
 	_stage = Stage.IDLE
 	phase_map = _req.get("phase_map", {})
-	if String(_req.get("engine", "")) == "phase":
-		print(
-			"air_model: фазы без Пикара (%s): %s ч, %.1f м/с с %.0f°, %.2f с, фазы %s"
-			% [
-				_req.no_picard, _hour_text(float(_req.hour)), float(_req.u10), float(_req.wdir),
-				float(_req.wall_s), _frac_text(_req.phase_frac)
-			]
-		)
-		if _loading:
-			progress_changed.emit(1.0)
-		_loading = false
-		field_applied.emit(last_info)
-		return
 	print(
 		(
 			"air_model: поле (фазы+Пикар) итераций %s, фазы %s (%.0f мс), заморожено %.2f, ω→запас %s"

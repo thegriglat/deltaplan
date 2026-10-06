@@ -1,8 +1,7 @@
 extends TestCase
-## AirRuntime без GPU (air-phase P12): конвейер без сети; без GPU — поле из сборки фаз (P10) на CPU
-## без Пикара, строка «фазы без Пикара», last_info с долями фаз и карта фаз для отладочного слоя;
-## нет ни GPU, ни кода фаз — аналитика; конфиг air_model без engine/nn_*, новые ключи с _doc.
-## Фазы — заглушка PhaseStub с API AirPhaseJob (P10 v2: run(case) -> Dictionary) до вливания AP-19.
+## AirRuntime без GPU (air-phase P12 v4): без GPU расчёта нет — аналитика (фаз на CPU в рантайме
+## нет); конфиг air_model без engine/nn_*, новые ключи с _doc; маска запасного пути (P12 v2);
+## картинка слоя «карта фаз». PhaseStub — заглушка AirPhaseJob (P10 v2) для GPU-тестов до AP-19.
 
 const PHASES := ["A", "B", "C", "D", "F", "G", "H"]
 
@@ -111,52 +110,35 @@ func test_config_without_nn() -> void:
 	rt.free()
 
 
-## Без GPU и с фазами — поле из сборки фаз на CPU, один уровень, last_info и карта фаз.
-func test_cpu_phase_field() -> void:
+## Без GPU — аналитика, даже когда код фаз есть (P12 v4).
+func test_no_gpu_analytic() -> void:
 	var atmo := StubAtmo.new()
 	var stub := PhaseStub.new()
 	var rt := _runtime(atmo, _place(), stub)
-	check(rt.gpu_reason() != "", "headless: GPU нет (%s)" % rt.gpu_reason())
-	check(rt.unavailable_reason() == "", "с фазами расчёт доступен: %s" % rt.unavailable_reason())
-	_load(rt)
-	var li := rt.last_info
-	check(rt.applied_count == 1, "поле подано: %s" % rt.last_error)
-	check(stub.calls >= 1, "фазы посчитаны (%d)" % stub.calls)
-	check(String(li.get("engine", "")) == "phase", "движок — фазы без Пикара: %s" % li.get("engine"))
-	check(atmo.field is Array and (atmo.field as Array).size() == 1, "один уровень (окон без GPU нет)")
-	if atmo.field is Array and not (atmo.field as Array).is_empty():
-		var f: WindField = atmo.field[0]
-		check(String(f.meta.get("source", "")) == "phase", "источник поля — phase")
-		var s := f.sample(Vector3(0.0, 2500.0, 0.0))
-		check(s.length() > 0.5 and s.length() < 40.0, "ветер сборки над стартом: %s" % s)
-	var fr: Dictionary = li.get("phase_frac", {})
-	check(fr.has("A") and fr.has("F"), "доли фаз в last_info: %s" % fr)
-	check(not is_nan(float(li.get("phase_ms", NAN))), "время фаз в last_info")
-	var pm := rt.phase_map
-	check(Array(pm.get("phases", [])) == PHASES, "имена фаз: %s" % [pm.get("phases")])
-	if int(pm.get("nx", 0)) > 0:
-		var img := WindFieldDebug.phase_image(pm)
-		var ny := int(pm.ny)
-		check(_near(img.get_pixel(0, ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
-		check(_near(img.get_pixel(int(pm.nx) - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
-	check(int(pm.get("nx", 0)) > 0 and PackedFloat32Array(pm.get("weights", [])).size() == PHASES.size() * int(pm.nx) * int(pm.ny), "карта фаз для слоя")
+	check(rt.unavailable_reason() == "нет RenderingDevice: headless", "причина: %s" % rt.unavailable_reason())
 	rt.free()
+
+
+## Слой «карта фаз»: главная фаза клетки (север вверху).
+func test_phase_image() -> void:
+	var p := _place()
+	var c := AirPlace.domain_case(
+		p.detail, p.water, p.loc, AirRuntime.DX, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0
+	)
+	if c == null or not c.prepare():
+		check(false, "случай Онгудая")
+		return
+	var ph := PhaseStub.new().run(c)
+	var pm := {weights = ph.weights, phases = AirRuntime._phase_names(), nx = c.nx, ny = c.ny}
+	check(Array(pm.phases) == PHASES, "имена фаз: %s" % [pm.phases])
+	var img := WindFieldDebug.phase_image(pm)
+	check(_near(img.get_pixel(0, c.ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
+	check(_near(img.get_pixel(c.nx - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
 
 
 ## Цвет после RGB8 (шаг 1/255).
 static func _near(a: Color, b: Color) -> bool:
 	return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.02
-
-
-## Ни GPU, ни кода фаз — аналитика (как C9).
-func test_no_gpu_no_phases_analytic() -> void:
-	if ResourceLoader.exists(AirRuntime.PHASE_JOB_PATH):
-		print("    skip: AirPhaseJob уже есть (AP-19) — без фаз не проверить")
-		return
-	var atmo := StubAtmo.new()
-	var rt := _runtime(atmo, _place(), null)
-	check(rt.unavailable_reason() == "нет RenderingDevice: headless", "причина: %s" % rt.unavailable_reason())
-	rt.free()
 
 
 ## Типы клеток на CPU: воздух — столько же, сколько неизвестных клеток AirCase (n_fluid).
@@ -168,7 +150,7 @@ func test_cell_codes() -> void:
 	check(c != null and c.prepare(), "случай Онгудая")
 	if c == null:
 		return
-	var tc := AirRuntime.cell_codes(c)
+	var tc: PackedFloat32Array = preload("res://tests/atmosphere/test_air_hybrid_gpu.gd").cell_codes(c)
 	var air := 0
 	for t in tc:
 		air += 1 if int(t) == 1 else 0

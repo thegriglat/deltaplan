@@ -70,7 +70,7 @@ static func abc_cells(c: AirCase, ph: Dictionary, cfg: Dictionary) -> PackedInt3
 	var names: Array = AirRuntime._phase_names()
 	var n2 := c.nx * c.ny
 	var out := PackedInt32Array()
-	var tc := AirRuntime.cell_codes(c)
+	var tc := cell_codes(c)
 	var d := c.dims()
 	for j in c.ny:
 		for i in c.nx:
@@ -241,3 +241,23 @@ func _write_timing(rows: Array, cfg: Dictionary) -> void:
 	if f != null:
 		f.store_string(JSON.stringify(out, "  "))
 	print("    timing → %s (%s)" % [TIMING, dev])
+
+
+## Типы клеток на CPU (как air_picard.glsl:setup cellt): 0 земля (k = 0 или ниже первой клетки
+## воздуха столбца), 2 ореол, 1 воздух.
+static func cell_codes(c: AirCase) -> PackedFloat32Array:
+	var d := c.dims()
+	var nyx := d.x * d.y
+	var out := PackedFloat32Array()
+	out.resize(nyx * d.z)
+	for k in d.z:
+		for j in d.y:
+			for i in d.x:
+				var kf := c.col[AirPicardJob.COL_KF * nyx + j * d.x + i]
+				var t := 1
+				if k == 0 or float(k) < kf:
+					t = 0
+				elif i == 0 or i == d.x - 1 or j == 0 or j == d.y - 1 or k == d.z - 1:
+					t = 2
+				out[(k * d.y + j) * d.x + i] = float(t)
+	return out
