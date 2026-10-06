@@ -21,19 +21,29 @@
   "branch": "air-phase/AP-21",
   "base": "feature/air-phase",
   "scope": [
-    "scripts/atmosphere/air_model/",
-    "addons/",
-    "data/air_nn/",
-    "tests/air_onnx/",
-    "export_presets.cfg",
-    "configs/",
+    ".claude/skills/new-release/",
+    ".godot/extension_list.cfg",
+    "ASSETS.md",
+    "NOTICES",
+    "NOTICES.md",
     "README.md",
-    "site/content/approaches.ru.md",
-    "site/content/approaches.en.md",
+    "README.ru.md",
+    "addons/",
+    "configs/",
+    "data/air_nn/",
+    "docs/",
     "docs/contracts/air-onnx.md",
     "docs/guide/",
+    "export_presets.cfg",
+    "native/",
+    "project.godot",
+    "scripts/atmosphere/air_model/",
+    "site/content/",
+    "site/content/approaches.en.md",
+    "site/content/approaches.ru.md",
+    "tests/air_onnx/",
     "tools/air_onnx/",
-    "project.godot"
+    "tools/build.sh"
   ],
   "dont_touch": [
     "tools/research/"
@@ -48,17 +58,32 @@
       "tests": "air"
     },
     {
-      "name": "no_onnx",
-      "cmd": "sh -c 'grep -rniE \"onnx|air_nn\" scripts configs scenes project.godot export_presets.cfg 2>/dev/null | wc -l'",
-      "expect": "num:^(\\d+) <=0"
-    },
-    {
       "name": "docs",
       "cmd": "/home/greg/deltaplan/tools/dp docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "no_onnx",
+      "cmd": "sh -c 'git grep -niE \"onnx|redist|msvcp|vcruntime\" -- . \":!CHANGELOG.md\" \":!site/content/diary\" \":!site/content/releases\" \":!docs/archive\" \":!tools/research\" \":!docs/plan\" \":!docs/research\" \":!docs/contracts/air-onnx.md\" | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "build_linux",
+      "cmd": "tools/build.sh linux",
+      "expect": "exit=0"
+    },
+    {
+      "name": "build_windows",
+      "cmd": "tools/build.sh windows",
+      "expect": "exit=0"
+    },
+    {
+      "name": "smoke",
+      "cmd": "sh -c 'XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke'",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
-  "notes": "",
+  "notes": " Дополнение пользователя: снести GDExtension полностью (addons/air_onnx, native/air_onnx, ONNX Runtime, extension_list.cfg если в git); tools/build.sh — без AirOnnx/AIR_ONNX и dll рядом с exe, Windows-архив = только deltaplan.exe + deltaplan.pck; документация — VC++ Redistributable не нужен (README en/ru, сайт: установка/требования/страницы версий, docs/guide, ASSETS.md/NOTICES, skill new-release).",
   "created": "2026-10-06T23:23:58"
 }
