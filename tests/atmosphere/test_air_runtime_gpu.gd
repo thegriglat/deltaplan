@@ -126,9 +126,30 @@ func test_ongudai_runtime() -> void:
 	check(atmo.air_field.blend_fraction() == 1.0, "при загрузке — без подмены")
 	check(g.x <= 100.0, "кадр загрузки ≤ 100 мс (%.0f)" % g.x)
 	# ---- выборка у старта против AirPicardJob напрямую
+	# тот же конвейер вручную: фазы (AirPhaseJob) → Пикар с их тёплым стартом, ω, заморозкой
 	var job := AirPicardJob.new()
 	job.case = AirPlace.domain_case(detail, lw[1], loc, 400.0, 12.0, 3.0, 150.0)
 	job.mech = true
+	var pg := AirGpu.new()
+	check(pg.init(AirGpu.SHADERS + AirPhaseJob._names()), "RD фаз: %s" % pg.error)
+	var pj := AirPhaseJob.new(pg)
+	var ph := pj.run(AirRuntime.PreparedCase.from_case(job.case))
+	pj.release()
+	pg.release()
+	job.warm = ph.get("warm_mech", {})
+	job.omega_map = ph.get("omega", PackedFloat32Array())
+	job.freeze_mask = ph.get("freeze", PackedByteArray())
+	job.freeze_mask_mech = ph.get("freeze_mech", PackedByteArray())
+	job.freeze_field = ph.get("mech_field", {})
+	job.freeze_field_mech = ph.get("mech_field_mech", {})
+	job.late_from = int(AirRuntime.phase_cfg("nonconv", "late_from"))
+	job.nonconv_mask = AirRuntime.nonconv_mask(ph, AirRuntime._nonconv_w())
+	var nf: Dictionary = ph.get("warm", {}).duplicate()
+	nf.merge(ph.get("mech_field", {}), true)
+	job.nonconv_field = nf
+	job.omega_fallback = Vector2(
+		float(AirRuntime.phase_cfg("omega", "fallback_iters")), float(AirRuntime.phase_cfg("omega", "fallback_omega"))
+	)
 	check(job.start() and job.run_blocking(), "прямой расчёт: %s" % job.error)
 	var fd := job.field()
 	job.release()

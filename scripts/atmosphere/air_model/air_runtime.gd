@@ -1125,6 +1125,12 @@ class RuntimeGpu:
 
 	func init(shaders: Array = SHADERS) -> bool:
 		var ok := super.init(shaders)
+		if ok:
+			# конвейеры ядер «по всей сетке» (spec []) — сразу, при запуске игры: первое создание
+			# в задаче фаз стоило ~0,57 с главного потока на экране загрузки (замер AP-20)
+			for s: String in shaders:
+				if s.contains(":") and not s.begins_with("air_line") and not s.begins_with("air_mg"):
+					_pipeline(s, [])
 		_base = _owned.size()
 		return ok
 
