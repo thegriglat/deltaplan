@@ -16,7 +16,8 @@
     "tests/atmosphere/test_hazards.gd",
     "docs/guide/atmosphere.md",
     "CHANGELOG.md",
-    "build/pilot/lee_check.md"
+    "build/pilot/lee_check.md",
+    "tests/atmosphere/test_ridge_starts.gd"
   ],
   "dont_touch": [
     "tools/research/",

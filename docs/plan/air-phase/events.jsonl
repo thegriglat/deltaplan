@@ -110,3 +110,4 @@
 {"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-15", "ev": "started", "note": "opus, GPU после AP-14"}
 {"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-16", "ev": "started", "note": "dp-engineer sonnet"}
 {"t": "2026-10-06T15:57:38", "by": "coordinator", "task": "AP-17", "ev": "started", "note": "opus, CPU"}
+{"t": "2026-10-06T16:30:14", "by": "executor", "task": "AP-16", "ev": "reported", "commits": ["9db28bc2"], "note": "done: lee в игре откалиброван по AP-10: ротор 0,65 / высота 0,6 / слой сдвига 350 м / опускание 0,08 (было 0,7), угол 12° для…", "dp_feedback": ["dp accept: таймаут 900 с на atmosphere при загрузке машины; хотелось бы разбить по файлам/повторять только упавшие."]}
