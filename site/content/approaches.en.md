@@ -30,7 +30,7 @@ Summary of the approaches in order:
 
 $$ u = u_{ref} \cdot \left(\frac{agl}{10\,\text{m}}\right)^{0.14} \cdot \left(1 + 0.6 \cdot \frac{msl - msl_{start}}{1000\,\text{m}}\right) $$
 
-Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabla h) \cdot e^{-agl_s / 250}, \pm 6\ \text{m/s})$ with the slope point shifted upwind by $0.8\,agl$ (no more than 400 m). The lee zone is the "shadow line": below a line sloping at 12° from the ridge the air is in a rotor (sink $0.25\ldots0.7\,u$, turbulence $0.5\ldots0.9\,u$, downward gusts, reverse flow). Details — [«Slope wind»](/mechanics/slope-wind/).
+Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabla h) \cdot e^{-agl_s / 250}, \pm 6\ \text{m/s})$ with the slope point shifted upwind by $0.8\,agl$ (no more than 400 m). The lee zone is the "shadow line": below a line sloping at 12° from the ridge the air is in a rotor (sink $0.25\ldots0.7\,u$, turbulence $0.5\ldots0.9\,u$, downward gusts, reverse flow). Details — [«Slope wind»](/mechanics/air-model/heuristic/).
 
 **What came out.** The consultant pilot said the flow around terrain is "not physical". The analysis ([research](/docs/research/slope_wind.md)) found three discrepancies with real life: no wind speed-up at the brow, the lift band is a fixed 250 m, and the "pipe" in a saddle works the wrong way round. The pilot's reference points: speed-up up to about two mountain heights from the foot, laminar at 2.5 heights, the steeper the slope the stronger, saddle ×1.5 along the axis even with an oblique wind of 15° ([diary Sep 29](/diary/2026-09-29/)).
 
@@ -165,7 +165,7 @@ There is no bias (the overestimate at Ongudai is gone); on the non-converged one
 | Double counting of heat | The field's vertical component is split into mechanical (goes to the pilot directly) and convective (only through bubbles); strength by Deardorff, $w_*$ of thermals and turbulence agree: ratio 1.001 ± 0.038 |
 | A separate neural network for thermals | Not needed: thermals are computed by formulas from the literature on top of the field, the needed quantities are given by the field network |
 
-What the model does not reproduce: "strong thermals at 1–1.5 layer thicknesses" (the density of all cores N·z<sub>i</sub>/L = 1.4–1.5 against 1.2 ± 0.4 in the literature agrees, the spacing of strong ones does not); "streets" along the wind; the strength scatter between neighbouring thermals is wider than in the model. Sources — [«Thermals»](/mechanics/thermals/), [research](/docs/research/thermals.md), [CHANGELOG](/releases/).
+What the model does not reproduce: "strong thermals at 1–1.5 layer thicknesses" (the density of all cores N·z<sub>i</sub>/L = 1.4–1.5 against 1.2 ± 0.4 in the literature agrees, the spacing of strong ones does not); "streets" along the wind; the strength scatter between neighbouring thermals is wider than in the model. Sources — [«Thermals»](/mechanics/air-model/thermals/), [research](/docs/research/thermals.md), [CHANGELOG](/releases/).
 
 ## Wings: passports and models
 
@@ -215,5 +215,5 @@ The idea is a region pack in our own format instead of downloading over the netw
 - Numbers and sources for closed work — the [findings registry](/research/findings/).
 - Plans and their statuses — [«Plans»](/plans/); closed ones — the [archive](/plans/archive/).
 - Research and prototypes by topic — [«Research»](/research/).
-- How all this works in the game — [«Mechanics»](/mechanics/): [air model](/mechanics/air-model/), [slope wind](/mechanics/slope-wind/), [thermals](/mechanics/thermals/), [flight and wing](/mechanics/flight/).
+- How all this works in the game — [«Mechanics»](/mechanics/): [air model](/mechanics/air-model/), [slope wind](/mechanics/air-model/heuristic/), [thermals](/mechanics/air-model/thermals/), [flight and wing](/mechanics/flight/).
 - Chronology of decisions and pilots' feedback — the [diary](/diary/).

@@ -73,10 +73,6 @@
       "tests": "air_runtime"
     },
     {
-      "name": "c9",
-      "tests": "c9"
-    },
-    {
       "name": "gpu",
       "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap20-gpu -- tools/gpu_tests.sh --filter=atmosphere/test_air_",
       "expect": "exit=0"
