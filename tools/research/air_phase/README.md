@@ -80,3 +80,7 @@ env AP_FEATURES=$D/features_ap_v1.h5 $PY -m pytest -q tools/research/air_phase/t
   бутстрэп-интервалы; резкая — w < 0,1 декады или скачок > 3σ шума стартов, плавная — w > 0,3.
 - Отступления от игры (в P3 нет w_mech и кромки облаков, высоты над землёй решателя, верх поля 2000 м) — шапка
   `layer_metrics.py`.
+
+### Разбор AP-8 (границы фаз GRID, второй старт, гистерезис)
+`$PY tools/research/air_phase/analysis/AP-8/run.py --workers 16` (CPU, ≈ 70 мин) → `analysis/AP-8/{summary.json, section.md, fig_*.png, pairs.npz}`;
+кэш подгонок — `out/AP-8/fits.json`, `fits_ok.json` (не в git, ~10 МБ; `--stage report` пересобирает сводку из кэша).
