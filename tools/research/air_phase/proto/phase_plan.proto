@@ -1,4 +1,4 @@
-// План опытов air-phase — контракт P2 v5 (docs/contracts/air-phase.md).
+// План опытов air-phase — контракт P2 v6 (docs/contracts/air-phase.md).
 // Владелец .proto — координатор модуля; менять только через контракт (версия +1).
 syntax = "proto3";
 
@@ -23,6 +23,8 @@ enum Series {
   ENVELOPE = 6;       // Пикар 400 м на эффективном рельефе h_eff (идеальные формы)
   ENVELOPE_REAL = 7;  // то же на реальных крутых местах корпуса (условия S2 по cond_id)
   FIXED_U = 8;        // Fr через N и h при фиксированном U_sat (план ap_v2): отделить блокирование от штиля
+  RERUN = 9;          // пересчёт случаев другого плана с иными Numerics (ap_v1r: ω = 0,5, 2000 итераций)
+  PROBE = 10;         // малые пробы (ветвь у уступа, du_max по итерациям, λ K-замыкания)
 }
 
 enum Start {
@@ -93,6 +95,7 @@ message Numerics {
   double envelope_z0_m = 15;        // для WALL_LOW_Z0
   double top_above_m = 16;          // верх области над max рельефа, м (3000 по умолчанию; 0 в старых планах = 3000)
   double sponge_top_m = 17;         // толщина губки у верха, м (1000 по умолчанию; 0 в старых планах = 1000)
+  double lam_m = 18;                // асимптотическая длина перемешивания λ, м (air3d Params.lam = 40; 0 = по умолчанию)
 }
 
 message Line {
@@ -112,10 +115,12 @@ message Line {
   string variant = 14;          // метка варианта (RELAX: omega|kfloor|rel|calm; SEPARATION: slope|fr|heat|oblique; ENVELOPE_REAL: nonconv|conv)
   string conditions = 15;       // каталог S2 относительно $AIR_SYNTH_DATA — условия из таблицы (override-поля линии не действуют); "" — override
   int32 cond_id = 16;           // строка S2 при conditions != ""; иначе -1
+  string src_plan = 17;         // RERUN: каталог исходного плана относительно $AIR_SYNTH_DATA/phase (напр. "ap_v1")
+  bytes src_case_ids_i64 = 18;  // RERUN: case_id исходного плана для каждой точки fr_f64 (little-endian int64)
 }
 
 message Plan {
-  string contract = 1;          // "P2 v5"
+  string contract = 1;          // "P2 v6"
   string name = 2;              // напр. "ap_v1"
   string created = 3;           // ISO
   string git_commit = 4;

@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора"
+summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 3}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 5}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -36,11 +36,11 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
-## P2. План опытов — манифест protobuf (версия 5)
+## P2. План опытов — манифест protobuf (версия 6)
 **Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
 
 - Файлы: `$AIR_SYNTH_DATA/phase/<plan>/plan.pb` (сериализованный `Plan`) + `plan.json` (тот же план в JSON для людей,
-  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v5"` (ap_v1 — "P2 v3", ap_v2 — "P2 v4": читаются, новые версии только добавляют поля).
+  генерируется из pb) + `reliefs` — ссылка на корпус P1. `Plan.contract = "P2 v6"` (ap_v1 — "P2 v3", ap_v2 — "P2 v4", ap_v3 — "P2 v5": читаются, новые версии только добавляют поля).
 - Линия — набор точек Fr при прочих равных; случай = (line_id, k), `case_id = first_case_id + k`, номера сквозные
   и плотные по плану. Порядок точек в линии = порядок счёта (`fr_f64`, little-endian float64 в `bytes`).
 - `start = WARM_PREV`: случай k стартует с полного состояния (float32) случая k − 1 той же линии; k = 0 — холодный.
@@ -63,6 +63,10 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   `bubble`), берётся из рельефа линии. Корпус идеальных форм ap_v2 — `corpus/ideal_v2` (P1, имя `<shape>_s<s>_h<h>`).
 - **v5 (06.10, AP-13):** `Numerics.top_above_m` (верх области над max рельефа, по умолчанию 3000 м) и `sponge_top_m`
   (губка у верха, по умолчанию 1000 м); построитель пишет явно; 0 (старые планы) = значение по умолчанию.
+- **v6 (06.10, этап 3):** серии `RERUN = 9` (пересчёт случаев другого плана с иными Numerics: `Line.src_plan` — исходный
+  план, `src_case_ids_i64` — case_id исходного плана на каждую точку; рельеф, условия и Fr — как у исходного случая) и
+  `PROBE = 10` (малые пробы, variant: branch | dumax | lam); `Numerics.lam_m` — асимптотическая длина перемешивания λ
+  (air3d `Params.lam`, 40 м; 0 = по умолчанию).
   `Relief.relief_id` — уникален в плане (на него ссылаются `Line.relief_id` и P3 `cases.relief_id`), id в корпусе — `Relief.corpus_relief_id` (у ideal_v1 совпадает с relief_id), корпус — `Relief.corpus`; пара (corpus, corpus_relief_id) уникальна.
 
 ## P3. Результаты замеров — HDF5 + jsonl (версия 3)
@@ -101,7 +105,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   (`progress.jsonl` — для людей и ETA, не источник правды); дублей `case_id` нет; повтор случая на том же устройстве и
   версии с тем же составом пакета — побитно. Бюджет диска на весь счёт — ≤ 20 ГБ (иначе — шлюз).
 
-## P4. Решатель: пакетный вызов и опции (версия 4)
+## P4. Решатель: пакетный вызов и опции (версия 5)
 **Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
 **Потребители:** AP-3.
 
@@ -122,6 +126,7 @@ class Numerics:            # как P2 Numerics
     snap_from: int = 100; snap_step: int = 50; late_from: int = 500; late_step: int = 50
     envelope_angle_deg: float = 0.0; envelope_wall: str = "none"; envelope_z0_m: float | None = None  # none|ground|low_z0|slip
     top_above_m: float = 3000.0; sponge_top_m: float = 1000.0   # v4: верх области и губка; по умолчанию — побитно как v3
+    lam_m: float = 40.0    # v5: λ K-замыкания (air3d Params.lam); λ = max(lam_m, lam_frac·h_bl) как в air3d; 40 — побитно как v4
 def solve_batch(specs: list[CaseSpec], num: Numerics | list[Numerics],
                 init: list[State | None] | None = None) -> list[CaseResult]
 # CaseResult: status, iters, target, late_n, late_spread60_p90, resid_final, resid_rel_final,
@@ -205,3 +210,23 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   вывод → числа/таблица → оговорки и границы модели → ссылки на рисунки `fig_*.png` относительными путями; первая строка
   после заголовка — команда воспроизведения), `fig_*.png` (≤ 6, агенты их не открывают). Всё коммитится (данные
   исследования), кроме больших промежуточных файлов (> 5 МБ — в out/, не коммитить).
+
+## P8. Прототип сборки поля по фазам (версия 1)
+**Владелец:** AP-17 (`tools/research/air_phase/assembly/`). **Потребители:** шлюз «можно ли убрать сеть», будущий модуль сборки на GPU.
+
+- Вход — готовые случаи SY-12: поля решателя S5 v4 `~/air_synth_data/solve/hg_v2__hgw24__s0-939a467/` (решения «m» и «h»),
+  условия S2 `conditions/hg_v2_hgw24` (по relief_id, cond_id), рельеф S1 `real/hg_v2`. Прототип поле решателя не читает,
+  кроме сравнения: собирает поле только из рельефа и условий.
+- `assemble(hc: (96, 96) м н. у. м., cond: dict (строка S2 + derive), *, cfg) -> dict`: `fields` (4, 13, 96, 96) f4 —
+  u, v, w, θ′ на 13 высотах S5 над землёй, раскладка S5; `weights` (K, 96, 96) f4 — веса фаз в клетке (Σ = 1; порядок
+  и имена фаз — атрибут `phases`, напр. A, D, E/F, H, LEE); `seconds` (CPU) и разбивка по шагам; ∇·u после проекции.
+  Механизмы по air_phase_experts.md §15.2: A — передаточная функция через DCT; D — разделяющая линия тока H_c + слои
+  Лапласа; срыв — огибающая 12° (h_eff) на крутых местах (AP-10); H — статистика (среднее + разброс, не неподвижная
+  точка); E/F — среднее и статистика подобия; один шаг проекции ∇·u = 0 на швах. Классификатор — оси и пороги из
+  air_phase_results.md (Fr, −z_i/L, h/z_i, крутизна), сигмоиды с шириной из AP-8/AP-11.
+- Выход счёта — `$AIR_SYNTH_DATA/phase/assembly_<версия>/part-*.h5`: `cases` (relief_id, cond_id, group, status_h/m
+  Пикара, seconds), `fields/f` (M, 4, 13, 96, 96) f2, `weights` (M, K, 96, 96) u1 (×255), атрибуты `contract = "P8 v1"`,
+  `phases`, `cfg` (JSON), `git_commit`. Метрики — `layer_metrics`/`layer_diff` P6 против поля Пикара **только там, где
+  Пикар сошёлся**; отдельно — ошибка в полосах швов (клетки с max w_φ < 0,8) против вне швов.
+- Разбор — P7 `analysis/AP-17/`, в `summary.json` обязательно `can_drop_network` = yes | no | partly + числа по фазам.
+- Сеть не учить (решение пользователя 8).
