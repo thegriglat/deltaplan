@@ -4,10 +4,10 @@ extends TestCase
 ## Без сети и GPU; нужен python3 (как у build_inventory).
 
 const SET := [
-	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT", "MIT-godot-cpp", "onnxruntime-LICENSE",
-	"onnxruntime-ThirdPartyNotices", "MIT-debug_draw_3d", "MIT-debug_menu", "MIT-godotsteam",
+	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT",
+	"MIT-debug_draw_3d", "MIT-debug_menu", "MIT-godotsteam",
 	"OFL-1.1", "CC-BY-4.0", "CC0-1.0",
-	"ODbL-1.0", "copernicus-dem", "msvc-runtime",
+	"ODbL-1.0", "copernicus-dem",
 ]
 const ODBL := (
 	"Derived OpenStreetMap data (data/osm/, data/places/) is available under the ODbL 1.0 "

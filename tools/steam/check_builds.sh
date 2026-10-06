@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 # Проверка сборок ST-3: itch Linux без файлов Steam, Steam Linux с библиотеками, smoke Steam-сборки.
 # Печатает одну строку: ITCH_STEAM_FILES=<n> STEAM_LIBS_OK=<1|0> STEAM_SMOKE=<inactive (…)|active|…>
-# AIR_ONNX=0 (расширение ветра не собирается). Профиль Godot — временный.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
-export AIR_ONNX=0
 XDG_DATA_HOME=$(mktemp -d); export XDG_DATA_HOME
 real="$HOME/.local/share/godot/export_templates"
 [[ -d "$real" ]] && { mkdir -p "$XDG_DATA_HOME/godot"; ln -s "$real" "$XDG_DATA_HOME/godot/export_templates"; }
