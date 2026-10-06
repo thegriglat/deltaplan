@@ -74,3 +74,4 @@
 {"t": "2026-10-06T14:09:59", "by": "executor", "task": "AP-10", "ev": "checked", "note": "2/2 p7=ok:1 passed; summary=ok:9.88986"}
 {"t": "2026-10-06T14:10:32", "by": "reviewer", "task": "AP-9", "ev": "reviewed", "note": "Скоуп соблюдён (только analysis/AP-9/), P7 выполнен: run.py, summary.json, section.md с командой воспроизведения, 6 рисунков, файлы < 1 МБ. Вывод mixed подкреп…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/air-phase/tasks/AP-9.review.json"}
 {"t": "2026-10-06T14:10:54", "by": "coordinator", "task": "AP-9", "ev": "accepted", "note": "по ревью (accept, minor): формулировка «при ω ≥ 0,5 Пикар стационарного решения не находит»; пороги LM_KEYS предварительные — в AP-12"}
+{"t": "2026-10-06T14:11:06", "by": "coordinator", "task": "AP-9", "ev": "merged"}
