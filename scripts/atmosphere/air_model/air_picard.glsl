@@ -671,10 +671,10 @@ void main() {
 	float sy = kind == 1 ? 1.0 : 0.5;
 	GRID_LOOP(N) {
 		int i = t % NX, j = (t / NX) % NY, k = t / NYX;
-		float ic = clamp(pc.f.x + (float(i) - sx) * r + sx, 0.0, float(nxc - 1) - 0.001);
-		float jc = clamp(pc.f.y + (float(j) - sy) * r + sy, 0.0, float(nyc - 1) - 0.001);
+		float ic = clamp(pc.f.x + (float(i) - sx) * r + sx, 0.0, float(nxc - 1));
+		float jc = clamp(pc.f.y + (float(j) - sy) * r + sy, 0.0, float(nyc - 1));
 		int kc = clamp(k + pc.i1.w, 0, nzc - 1);
-		int i0 = int(ic), j0 = int(jc);
+		int i0 = min(int(ic), nxc - 2), j0 = min(int(jc), nyc - 2);
 		float fx = ic - float(i0), fy = jc - float(j0);
 		int b = (kc * nyc + j0) * nxc + i0;
 		float a0 = mix(src[b], src[b + 1], fx);

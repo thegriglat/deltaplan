@@ -38,6 +38,12 @@ enum Stage { IDLE, PREP, PHASE, COARSE, NEXT, SOLVE, BUILD, WINDOWS, SHIFT }
 const DX := 400.0
 ## Экран загрузки: работа решателя за кадр, мс главного потока.
 const LOAD_SLICE_MS := 40.0
+## Экран загрузки: бюджет GPU-порции задач (Пикар, грубый старт), мс.
+const LOAD_CHUNK_MS := 30.0
+## мс в секунде (перевод замеров времени).
+const MS_PER_S := 1000.0
+## Доля полоски загрузки на грубый старт (ход до Пикара 400 м).
+const COARSE_PROGRESS := 0.1
 ## Полёт: бюджет GPU-порции, мс (кадр не ждёт: poll() раз в кадр).
 const FLIGHT_CHUNK_MS := 25.0
 ## Смена условий, после которой пересчёт — внеочередной (ветер, м/с и °; погода — t_max, °C).
@@ -427,7 +433,7 @@ func _process(_dt: float) -> void:
 	# сдвиг окон — свои пределы у задач окон (AirClipmap.timeout_s)
 	if _stage != Stage.IDLE and _stage != Stage.SHIFT and _timed_out():
 		_fail("таймаут расчёта (%.0f с)" % _timeout_s())
-	var dt := (Time.get_ticks_usec() - t_in) / 1000.0
+	var dt := (Time.get_ticks_usec() - t_in) / MS_PER_S
 	_main_ms = maxf(_main_ms, dt)
 	var sk: String = Stage.keys()[st_in]
 	_stage_ms[sk] = maxf(float(_stage_ms.get(sk, 0.0)), dt)
@@ -538,7 +544,7 @@ static func _prep_task(
 	var t0 := Time.get_ticks_usec()
 	var ph: Dictionary = phase_job.call("run", pc)
 	out.phase = ph
-	out.phase_ms = (Time.get_ticks_usec() - t0) / 1000.0
+	out.phase_ms = (Time.get_ticks_usec() - t0) / MS_PER_S
 
 
 static func _domain(place: Dictionary, c: Dictionary, k: float, dx: float) -> AirCase:
@@ -594,7 +600,7 @@ func _poll_phase() -> void:
 	if not bool(_phase_job.call("is_done")):
 		return
 	_phase = _phase_job.call("result")
-	_phase.ms_wall = (Time.get_ticks_usec() - _t_phase) / 1000.0
+	_phase.ms_wall = (Time.get_ticks_usec() - _t_phase) / MS_PER_S
 	if _phase_job.has_method("release"):
 		_phase_job.call("release")
 	_phase_job = null
@@ -620,7 +626,7 @@ func _after_phases() -> void:
 	_coarse_job = AirPicardJob.new()
 	_coarse_job.case = cc
 	_coarse_job.mech = true
-	_coarse_job.chunk_ms = 30.0 if _loading else FLIGHT_CHUNK_MS
+	_coarse_job.chunk_ms = LOAD_CHUNK_MS if _loading else FLIGHT_CHUNK_MS
 	_coarse_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t_pass) / 1e6, 1.0)
 	if not _coarse_job.start(_gpu):
 		print("air_model: грубый старт не начался (%s) — с фона" % _coarse_job.error)
@@ -633,7 +639,7 @@ func _after_phases() -> void:
 func _poll_coarse() -> void:
 	var p := _coarse_job.poll_slice(LOAD_SLICE_MS) if _loading else _coarse_job.poll()
 	if _loading:
-		_progress(0.1 * p)
+		_progress(COARSE_PROGRESS * p)
 	if _coarse_job.error != "" or not _coarse_job.is_done():
 		if _coarse_job.error != "":
 			print("air_model: грубый старт не посчитался (%s) — с фона" % _coarse_job.error)
@@ -645,7 +651,7 @@ func _poll_coarse() -> void:
 	var cc: AirCase = _prep.coarse_case
 	_coarse = {
 		iters = _coarse_job.results.map(_iters_of),
-		gpu_s = _coarse_job.gpu_ms_total / 1000.0,
+		gpu_s = _coarse_job.gpu_ms_total / MS_PER_S,
 		warm = coarse_start(cc, _coarse_job),
 	}
 	_coarse_job.release()
