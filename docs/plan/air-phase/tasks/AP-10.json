@@ -28,7 +28,8 @@
   "scope": [
     "tools/research/air_phase/analysis/AP-10/",
     "tools/research/air_phase/bubble.py",
-    "tools/research/air_phase/tests/test_bubble.py"
+    "tools/research/air_phase/tests/test_bubble.py",
+    "tools/research/air_phase/phase_io.py"
   ],
   "dont_touch": [
     "docs/",
