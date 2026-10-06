@@ -168,3 +168,5 @@
 {"t": "2026-10-06T21:52:10", "by": "executor", "task": "AP-25", "ev": "reported", "commits": ["c7b51393"], "note": "done: Раздел mechanics/air-model: _index (общая), подстраницы wind-phases(10), slope-wind(20), thermals(30), turbulence(40); …", "dp_feedback": "Нет замечаний."}
 {"t": "2026-10-06T21:52:30", "by": "executor", "task": "AP-25", "ev": "accepted", "note": "2/2 hugo=ok:0; structure=ok:exit 0"}
 {"t": "2026-10-06T21:52:31", "by": "coordinator", "task": "AP-25", "ev": "merged"}
+{"t": "2026-10-06T21:58:15", "by": "coordinator", "task": "AP-26", "ev": "created", "note": "Сайт: разделить режимы «Расчёт» и «Эвристика» на страницах модели воздуха"}
+{"t": "2026-10-06T21:58:18", "by": "coordinator", "task": "AP-26", "ev": "started", "note": "dp-writer (тот же)"}
