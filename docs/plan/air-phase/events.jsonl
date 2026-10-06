@@ -95,3 +95,5 @@
 {"t": "2026-10-06T15:37:28", "by": "executor", "task": "AP-11", "ev": "reported", "commits": ["0ac8ad33"], "note": "done: transfer = partly: 25 из 42 порогов эрозии (8 параметров) внутри объединённого ДИ идеальных форм; подъём у склона и ско…", "dp_feedback": "dp accept --dry не ловит расхождение путей: AP-8 пришлось ждать слияния; хотелось бы dp task sync предупреждать о влитых зависимостях. Нужна команда чтения фрагмента summary.json соседней задачи."}
 {"t": "2026-10-06T15:38:07", "by": "executor", "task": "AP-11", "ev": "checked", "note": "2/2 p7=ok:1 passed; summary=ok:transfer partly"}
 {"t": "2026-10-06T15:38:07", "by": "coordinator", "task": "AP-11", "ev": "accepted", "note": "по отчёту: transfer partly (склон, скорость переносятся; ротор/застой сдвигаются −0,1…−0,3 дек и размываются ×5–10)"}
+{"t": "2026-10-06T15:38:07", "by": "coordinator", "task": "AP-11", "ev": "merged"}
+{"t": "2026-10-06T15:38:10", "by": "coordinator", "task": "AP-12", "ev": "started", "note": "dp-writer sonnet"}
