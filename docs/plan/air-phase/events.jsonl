@@ -120,3 +120,4 @@
 {"t": "2026-10-06T16:42:19", "by": "reviewer", "task": "AP-17", "ev": "reviewed", "note": "Контракт P8 v1 соблюдён (fields/weights/part-*.h5/summary.can_drop_network), скоуп чистый, все три проверки приёмки воспроизведены, числа отчёта совпадают с su…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/air-phase/tasks/AP-17.review.json"}
 {"t": "2026-10-06T16:43:08", "by": "reviewer", "task": "AP-16", "ev": "reviewed", "note": "Числа lee взяты из AP-10 и литературы, источники записаны в _doc. Формула H = w*³·ρc_p·θ0/(g·z_i) — это верно обращённая формула Дирдорфа. Скоуп и контракты не…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/air-phase/tasks/AP-16.review.json"}
 {"t": "2026-10-06T16:43:22", "by": "coordinator", "task": "AP-17", "ev": "accepted", "note": "по ревью fable (accept, minor): can_drop_network = no"}
+{"t": "2026-10-06T16:43:23", "by": "coordinator", "task": "AP-17", "ev": "merged"}
