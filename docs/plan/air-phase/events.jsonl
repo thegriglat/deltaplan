@@ -132,3 +132,5 @@
 {"t": "2026-10-06T17:53:48", "by": "coordinator", "task": "AP-20", "ev": "created", "note": "GPU-Пикар с тёплым стартом, картой ω и заморозкой (P11); AirRuntime фазы → Пикар без сети (P12); A/B/C и время (P14)"}
 {"t": "2026-10-06T17:53:53", "by": "coordinator", "task": "AP-19", "ev": "started", "note": "dp-engineer opus"}
 {"t": "2026-10-06T17:53:53", "by": "coordinator", "task": "AP-20", "ev": "started", "note": "dp-engineer opus"}
+{"t": "2026-10-06T17:58:59", "by": "coordinator", "task": "AP-23", "ev": "created", "note": "Проверка классификатора фаз (P15): матрицы ошибок, худшие ошибки, рекомендуемые пороги"}
+{"t": "2026-10-06T17:59:02", "by": "coordinator", "task": "AP-23", "ev": "started", "note": "dp-researcher opus, CPU"}
