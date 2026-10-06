@@ -1861,7 +1861,1241 @@
    "amp": 0.25392570286005933
   }
  },
- "layer_metrics": "pending_AP-6",
+ "layer_metrics": "added",
+ "layer_metrics_axes": {
+  "th_n_src": {
+   "label": "термики: число источников, шт",
+   "groups": [
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.530506514749294,
+     "adj_r2_N_h": 0.8795395422388229,
+     "coef_ratio_h_over_N": -0.13449885608764744,
+     "pair_absdiff_over_std": 1.2432569708391983,
+     "pair_absdiff_over_std_ok": 1.1515913106972984,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.609079233143722,
+     "adj_r2_N_h": 0.8625823281252236,
+     "coef_ratio_h_over_N": -0.03529260003742442,
+     "pair_absdiff_over_std": 1.0980584747363904,
+     "pair_absdiff_over_std_ok": 1.0100405042851026,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.1920555166588187,
+     "adj_r2_N_h": 0.796395333696552,
+     "coef_ratio_h_over_N": -0.6085721649266598,
+     "pair_absdiff_over_std": 1.587902224600741,
+     "pair_absdiff_over_std_ok": 1.5967473447574578,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.22813887010997447,
+     "adj_r2_N_h": 0.8055028962081008,
+     "coef_ratio_h_over_N": -0.6041952638088157,
+     "pair_absdiff_over_std": 1.4152734508471776,
+     "pair_absdiff_over_std_ok": 1.3477595955574055,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.37932269242963423,
+   "median_adj_r2_N_h": 0.8340426121666622,
+   "median_coef_ratio_h_over_N": -0.3693470599482316,
+   "median_pair_absdiff_over_std": 1.329265210843188,
+   "median_pair_absdiff_over_std_ok": 1.249675453127352
+  },
+  "th_w0_mean_ms": {
+   "label": "термики: сила ядра w0, м/с",
+   "groups": [
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.7136098760690168,
+     "adj_r2_N_h": 0.9974081962529715,
+     "coef_ratio_h_over_N": 66.09134527798071,
+     "pair_absdiff_over_std": 0.8792117077786471,
+     "pair_absdiff_over_std_ok": 0.7906027766669037,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6742758772906274,
+     "adj_r2_N_h": 0.998824801212122,
+     "coef_ratio_h_over_N": -43.29337634011011,
+     "pair_absdiff_over_std": 0.9437706815073069,
+     "pair_absdiff_over_std_ok": 0.5245110318691014,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.7722847497894542,
+     "adj_r2_N_h": 0.997763132643288,
+     "coef_ratio_h_over_N": 16.117714517230286,
+     "pair_absdiff_over_std": 0.8033918259032123,
+     "pair_absdiff_over_std_ok": 0.5485414715354325,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.7400017994194044,
+     "adj_r2_N_h": 0.9985432015690769,
+     "coef_ratio_h_over_N": 37.881223345439146,
+     "pair_absdiff_over_std": 0.8538783462050487,
+     "pair_absdiff_over_std_ok": 0.5555352245484385,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.7268058377442106,
+   "median_adj_r2_N_h": 0.9981531671061825,
+   "median_coef_ratio_h_over_N": 26.999468931334718,
+   "median_pair_absdiff_over_std": 0.8665450269918479,
+   "median_pair_absdiff_over_std_ok": 0.5520383480419355
+  },
+  "th_ceil_over_zi": {
+   "label": "термики: потолок/z_i",
+   "groups": [
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.9191373183597753,
+     "adj_r2_N_h": 0.9810289248099435,
+     "coef_ratio_h_over_N": 1.2505382139905155,
+     "pair_absdiff_over_std": 0.14270910289240452,
+     "pair_absdiff_over_std_ok": 0.18531699851542355,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.9224702200047324,
+     "adj_r2_N_h": 0.9831257384477609,
+     "coef_ratio_h_over_N": 1.2906157496974098,
+     "pair_absdiff_over_std": 0.1104400774969163,
+     "pair_absdiff_over_std_ok": 0.05446234469689983,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.9626142114959263,
+     "adj_r2_N_h": 0.9707619990942661,
+     "coef_ratio_h_over_N": 0.6942894514929865,
+     "pair_absdiff_over_std": 0.18722349290251605,
+     "pair_absdiff_over_std_ok": 0.17911725540107087,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.967059646778239,
+     "adj_r2_N_h": 0.9759381430151944,
+     "coef_ratio_h_over_N": 0.7116829687329829,
+     "pair_absdiff_over_std": 0.15968457091597768,
+     "pair_absdiff_over_std_ok": 0.14924447427018184,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.9425422157503294,
+   "median_adj_r2_N_h": 0.978483533912569,
+   "median_coef_ratio_h_over_N": 0.9811105913617492,
+   "median_pair_absdiff_over_std": 0.1511968369041911,
+   "median_pair_absdiff_over_std_ok": 0.16418086483562636
+  },
+  "th_src_relief_ratio": {
+   "label": "термики: густота источников на рельефе/вне",
+   "groups": [
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.011144651829542829,
+     "adj_r2_N_h": 0.7675254252264367,
+     "coef_ratio_h_over_N": -0.8103041401669903,
+     "pair_absdiff_over_std": 1.3540154220361937,
+     "pair_absdiff_over_std_ok": 0.7656994699089195,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.1715851524892542,
+     "adj_r2_N_h": 0.6391768128950239,
+     "coef_ratio_h_over_N": -0.395519161400392,
+     "pair_absdiff_over_std": 0.8077410869171698,
+     "pair_absdiff_over_std_ok": 1.2698927197743286,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.01222081545900311,
+     "adj_r2_N_h": 0.48701801351629137,
+     "coef_ratio_h_over_N": -1.1776755361580442,
+     "pair_absdiff_over_std": 1.7394047480688106,
+     "pair_absdiff_over_std_ok": 1.5500391359933008,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.030936090900663293,
+     "adj_r2_N_h": 0.5212931475200522,
+     "coef_ratio_h_over_N": -0.8924521384078792,
+     "pair_absdiff_over_std": 1.470210365705242,
+     "pair_absdiff_over_std_ok": 1.265777157877783,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.009895719535560232,
+   "median_adj_r2_N_h": 0.580234980207538,
+   "median_coef_ratio_h_over_N": -0.8513781392874347,
+   "median_pair_absdiff_over_std": 1.412112893870718,
+   "median_pair_absdiff_over_std_ok": 1.2678349388260557
+  },
+  "th_drift_zi_ms": {
+   "label": "снос: ветер слоя 0…z_i, м/с",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7936212649916992,
+     "adj_r2_N_h": 0.9276122209987248,
+     "coef_ratio_h_over_N": 0.5192626959437078,
+     "pair_absdiff_over_std": 0.7064175314783392,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.5156518234061982,
+     "adj_r2_N_h": 0.726385833028804,
+     "coef_ratio_h_over_N": 2.5348736819923166,
+     "pair_absdiff_over_std": 0.6417415559600687,
+     "pair_absdiff_over_std_ok": 0.15894706187933907,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7735019906210269,
+     "adj_r2_N_h": 0.8631514137147471,
+     "coef_ratio_h_over_N": 0.7441038848081136,
+     "pair_absdiff_over_std": 0.6913356393372355,
+     "pair_absdiff_over_std_ok": 0.28806447303362687,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.8562642671178093,
+     "adj_r2_N_h": 0.9063682116876901,
+     "coef_ratio_h_over_N": 0.7643895856802708,
+     "pair_absdiff_over_std": 0.36260755532113276,
+     "pair_absdiff_over_std_ok": 0.30720532152167285,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.920227338827639,
+     "adj_r2_N_h": 0.9794138784638311,
+     "coef_ratio_h_over_N": 2.1808323608677616,
+     "pair_absdiff_over_std": 0.3412126566761546,
+     "pair_absdiff_over_std_ok": 0.2276708680268677,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.8508962782225402,
+     "adj_r2_N_h": 0.9251648591828608,
+     "coef_ratio_h_over_N": 4.882563449244422,
+     "pair_absdiff_over_std": 0.5601551235714466,
+     "pair_absdiff_over_std_ok": 0.42392590459892626,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.9084161714684236,
+     "adj_r2_N_h": 0.9731685378555927,
+     "coef_ratio_h_over_N": 1.492352207414741,
+     "pair_absdiff_over_std": 0.41710183530847006,
+     "pair_absdiff_over_std_ok": 0.39461886161293275,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.5806109865896549,
+     "adj_r2_N_h": 0.6954689116581059,
+     "coef_ratio_h_over_N": 3.761474203230878,
+     "pair_absdiff_over_std": 0.7039491488979538,
+     "pair_absdiff_over_std_ok": 0.7815884679903564,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.8222587716071197,
+   "median_adj_r2_N_h": 0.9157665354352755,
+   "median_coef_ratio_h_over_N": 1.8365922841412514,
+   "median_pair_absdiff_over_std": 0.6009483397657576,
+   "median_pair_absdiff_over_std_ok": 0.30720532152167285
+  },
+  "sl_area_km2": {
+   "label": "склон: площадь w > 1 м/с, км²",
+   "groups": [
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": -0.03798364558964917,
+     "adj_r2_N_h": 0.259717673473559,
+     "coef_ratio_h_over_N": -0.6057303208088433,
+     "pair_absdiff_over_std": 1.6937459762940725,
+     "pair_absdiff_over_std_ok": 1.7588900512386547,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.03798364558964917,
+     "adj_r2_N_h": 0.259717673473559,
+     "coef_ratio_h_over_N": -0.6057303208088433,
+     "pair_absdiff_over_std": 1.6937459762940725,
+     "pair_absdiff_over_std_ok": 1.7564773135430989,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": -0.0316692668145806,
+     "adj_r2_N_h": 0.10065453279197245,
+     "coef_ratio_h_over_N": -1.7096649352590088,
+     "pair_absdiff_over_std": 0.4404761904761904,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": -0.0316692668145806,
+     "adj_r2_N_h": 0.10065453279197245,
+     "coef_ratio_h_over_N": -1.7096649352590088,
+     "pair_absdiff_over_std": 0.4404761904761904,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": -0.034826456202114886,
+   "median_adj_r2_N_h": 0.18018610313276573,
+   "median_coef_ratio_h_over_N": -1.157697628033926,
+   "median_pair_absdiff_over_std": 1.0671110833851314,
+   "median_pair_absdiff_over_std_ok": 0.8782386567715494
+  },
+  "sl_w_max_ms": {
+   "label": "склон: max w 50–300 м, м/с",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.06579545458657865,
+     "adj_r2_N_h": 0.5368471811975646,
+     "coef_ratio_h_over_N": -0.6389100939667571,
+     "pair_absdiff_over_std": 1.396411216540783,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.06579545458657865,
+     "adj_r2_N_h": 0.5368471811975646,
+     "coef_ratio_h_over_N": -0.6389100939667571,
+     "pair_absdiff_over_std": 1.396411216540783,
+     "pair_absdiff_over_std_ok": 1.9111347920470383,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": -0.05460434391717195,
+     "adj_r2_N_h": 0.2777559894362658,
+     "coef_ratio_h_over_N": -1.3632253082532364,
+     "pair_absdiff_over_std": 1.2361216678723859,
+     "pair_absdiff_over_std_ok": 1.7139811686815811,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": -0.05460434391717195,
+     "adj_r2_N_h": 0.2777559894362658,
+     "coef_ratio_h_over_N": -1.3632253082532364,
+     "pair_absdiff_over_std": 1.2361216678723859,
+     "pair_absdiff_over_std_ok": 1.1744982798846944,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": -0.02581596241932438,
+     "adj_r2_N_h": 0.44994382485443507,
+     "coef_ratio_h_over_N": -1.4450329827740966,
+     "pair_absdiff_over_std": 1.5359962177660391,
+     "pair_absdiff_over_std_ok": 1.8058261370695892,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.02581596241932438,
+     "adj_r2_N_h": 0.44994382485443507,
+     "coef_ratio_h_over_N": -1.4450329827740966,
+     "pair_absdiff_over_std": 1.5359962177660391,
+     "pair_absdiff_over_std_ok": 1.6757189380725803,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": -0.05428961586277126,
+     "adj_r2_N_h": 0.7633736253677474,
+     "coef_ratio_h_over_N": -0.9387463881619112,
+     "pair_absdiff_over_std": 1.3770785512745156,
+     "pair_absdiff_over_std_ok": 0.7513200172254428,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": -0.05428961586277126,
+     "adj_r2_N_h": 0.7633736253677474,
+     "coef_ratio_h_over_N": -0.9387463881619112,
+     "pair_absdiff_over_std": 1.3770785512745156,
+     "pair_absdiff_over_std_ok": 0.8004753662546392,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": -0.04005278914104782,
+   "median_adj_r2_N_h": 0.4933955030259998,
+   "median_coef_ratio_h_over_N": -1.1509858482075739,
+   "median_pair_absdiff_over_std": 1.3867448839076493,
+   "median_pair_absdiff_over_std_ok": 1.6757189380725803
+  },
+  "sl_w_max_over_us": {
+   "label": "склон: max w/(U_sat·s)",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.06579546040174333,
+     "adj_r2_N_h": 0.5368471336307878,
+     "coef_ratio_h_over_N": -0.6389100391886168,
+     "pair_absdiff_over_std": 1.3964112321952848,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.06579546040174333,
+     "adj_r2_N_h": 0.5368471336307878,
+     "coef_ratio_h_over_N": -0.6389100391886168,
+     "pair_absdiff_over_std": 1.3964112321952848,
+     "pair_absdiff_over_std_ok": 1.9111348126117584,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": -0.05460434177403872,
+     "adj_r2_N_h": 0.2777559870594637,
+     "coef_ratio_h_over_N": -1.3632253638571,
+     "pair_absdiff_over_std": 1.23612165098076,
+     "pair_absdiff_over_std_ok": 1.7139810816087555,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": -0.05460434177403872,
+     "adj_r2_N_h": 0.2777559870594637,
+     "coef_ratio_h_over_N": -1.3632253638571,
+     "pair_absdiff_over_std": 1.23612165098076,
+     "pair_absdiff_over_std_ok": 1.1744982110452988,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": -0.025815980191469245,
+     "adj_r2_N_h": 0.44994376329623853,
+     "coef_ratio_h_over_N": -1.4450328106107557,
+     "pair_absdiff_over_std": 1.5359963369587821,
+     "pair_absdiff_over_std_ok": 1.8058262603388882,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.025815980191469245,
+     "adj_r2_N_h": 0.44994376329623853,
+     "coef_ratio_h_over_N": -1.4450328106107557,
+     "pair_absdiff_over_std": 1.5359963369587821,
+     "pair_absdiff_over_std_ok": 1.6757190917404101,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": -0.05428961445152147,
+     "adj_r2_N_h": 0.7633736571278575,
+     "coef_ratio_h_over_N": -0.938746356047856,
+     "pair_absdiff_over_std": 1.3770784986613782,
+     "pair_absdiff_over_std_ok": 0.7513199412803175,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": -0.05428961445152147,
+     "adj_r2_N_h": 0.7633736571278575,
+     "coef_ratio_h_over_N": -0.938746356047856,
+     "pair_absdiff_over_std": 1.3770784986613782,
+     "pair_absdiff_over_std_ok": 0.8004752912201445,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": -0.04005279732149536,
+   "median_adj_r2_N_h": 0.4933954484635132,
+   "median_coef_ratio_h_over_N": -1.150985859952478,
+   "median_pair_absdiff_over_std": 1.3867448654283314,
+   "median_pair_absdiff_over_std_ok": 1.6757190917404101
+  },
+  "sl_ceil_agl_m": {
+   "label": "склон: высота w ≥ 1 м/с, м",
+   "groups": [
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": -0.005269849104299951,
+     "adj_r2_N_h": 0.61920254844986,
+     "coef_ratio_h_over_N": -1.5501178920445526,
+     "pair_absdiff_over_std": 1.5169962158503796,
+     "pair_absdiff_over_std_ok": 1.7874231887354137,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": -0.005269849104299951,
+     "adj_r2_N_h": 0.61920254844986,
+     "coef_ratio_h_over_N": -1.5501178920445526,
+     "pair_absdiff_over_std": 1.5169962158503796,
+     "pair_absdiff_over_std_ok": 1.6276397924670547,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.016180780136715867,
+     "adj_r2_N_h": 0.512816014246951,
+     "coef_ratio_h_over_N": -1.6928264949004355,
+     "pair_absdiff_over_std": 0.7381209403339152,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.016180780136715867,
+     "adj_r2_N_h": 0.512816014246951,
+     "coef_ratio_h_over_N": -1.6928264949004355,
+     "pair_absdiff_over_std": 0.7381209403339152,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.005455465516207958,
+   "median_adj_r2_N_h": 0.5660092813484054,
+   "median_coef_ratio_h_over_N": -1.621472193472494,
+   "median_pair_absdiff_over_std": 1.1275585780921473,
+   "median_pair_absdiff_over_std_ok": 0.8138198962335274
+  },
+  "lee_area25_km2": {
+   "label": "подветр.: площадь зоны 25 м, км²",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.013546151984894506,
+     "adj_r2_N_h": 0.353094380263416,
+     "coef_ratio_h_over_N": -1.0709612537717723,
+     "pair_absdiff_over_std": 1.1347759553760768,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.0981056003362959,
+     "adj_r2_N_h": 0.16203799144269593,
+     "coef_ratio_h_over_N": -9.452316137152565,
+     "pair_absdiff_over_std": 1.0564990933955076,
+     "pair_absdiff_over_std_ok": 0.7511048142177132,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.1391576609281424,
+     "adj_r2_N_h": 0.87152943443018,
+     "coef_ratio_h_over_N": -2.5273396854784593,
+     "pair_absdiff_over_std": 1.4511674635132281,
+     "pair_absdiff_over_std_ok": 0.3920635957543078,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.21742522316916912,
+     "adj_r2_N_h": 0.8148923691643413,
+     "coef_ratio_h_over_N": -3.3786736247017655,
+     "pair_absdiff_over_std": 1.405602282430248,
+     "pair_absdiff_over_std_ok": 0.3868840130854485,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.10407805719579166,
+     "adj_r2_N_h": 0.6684419725642132,
+     "coef_ratio_h_over_N": -1.7405268299315702,
+     "pair_absdiff_over_std": 1.5488599459904446,
+     "pair_absdiff_over_std_ok": 1.0610759433990684,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.3794363168071717,
+     "adj_r2_N_h": 0.7393579374901824,
+     "coef_ratio_h_over_N": -4.096566687526936,
+     "pair_absdiff_over_std": 1.1774679891739122,
+     "pair_absdiff_over_std_ok": 0.8672888023621899,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.42911151584447615,
+     "adj_r2_N_h": 0.9540319112516569,
+     "coef_ratio_h_over_N": -5.074969931059414,
+     "pair_absdiff_over_std": 0.9556217258006342,
+     "pair_absdiff_over_std_ok": 0.2448390283913598,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.5230402373418208,
+     "adj_r2_N_h": 0.8916155685064263,
+     "coef_ratio_h_over_N": -9.775187828238076,
+     "pair_absdiff_over_std": 0.8366449712808197,
+     "pair_absdiff_over_std_ok": 0.35157591483217565,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.17829144204865577,
+   "median_adj_r2_N_h": 0.7771251533272618,
+   "median_coef_ratio_h_over_N": -3.7376201561143505,
+   "median_pair_absdiff_over_std": 1.1561219722749945,
+   "median_pair_absdiff_over_std_ok": 0.3920635957543078
+  },
+  "lee_depth_max_m": {
+   "label": "подветр.: глубина зоны, м",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.6117949453542265,
+     "adj_r2_N_h": 0.782618451459477,
+     "coef_ratio_h_over_N": 8.76827127839505,
+     "pair_absdiff_over_std": 0.7933463890633697,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.3902907018561703,
+     "adj_r2_N_h": 0.6689433416403159,
+     "coef_ratio_h_over_N": 265.75741306441154,
+     "pair_absdiff_over_std": 1.0148299869939044,
+     "pair_absdiff_over_std_ok": 1.7101764595638018,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.32028567553421483,
+     "adj_r2_N_h": 0.6175923011342562,
+     "coef_ratio_h_over_N": -5.497632191138056,
+     "pair_absdiff_over_std": 1.3196778497270603,
+     "pair_absdiff_over_std_ok": 0.3840853443235474,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.14842121024109178,
+     "adj_r2_N_h": 0.39051493453081565,
+     "coef_ratio_h_over_N": -3.6019253602874843,
+     "pair_absdiff_over_std": 0.8638794459887359,
+     "pair_absdiff_over_std_ok": 0.45705249758706384,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.42173143622756004,
+     "adj_r2_N_h": 0.7340585020508101,
+     "coef_ratio_h_over_N": -12.872646243761857,
+     "pair_absdiff_over_std": 0.9327064306789266,
+     "pair_absdiff_over_std_ok": 0.5935404558865897,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.36062841813267266,
+     "adj_r2_N_h": 0.7496098918546126,
+     "coef_ratio_h_over_N": -4.569915623166353,
+     "pair_absdiff_over_std": 0.9862730141452142,
+     "pair_absdiff_over_std_ok": 0.5900778717108119,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.5619674493578004,
+     "adj_r2_N_h": 0.8582119792517611,
+     "coef_ratio_h_over_N": -18.837521898563345,
+     "pair_absdiff_over_std": 0.9329524714430752,
+     "pair_absdiff_over_std_ok": 0.3023457083380337,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.3983207179530396,
+     "adj_r2_N_h": 0.4281580947725493,
+     "coef_ratio_h_over_N": 2.2418798211337743,
+     "pair_absdiff_over_std": 0.67986939110066,
+     "pair_absdiff_over_std_ok": 0.5875414490993358,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.39430570990460495,
+   "median_adj_r2_N_h": 0.701500921845563,
+   "median_coef_ratio_h_over_N": -4.0859204917269185,
+   "median_pair_absdiff_over_std": 0.9328294510610009,
+   "median_pair_absdiff_over_std_ok": 0.5875414490993358
+  },
+  "lee_desc_max": {
+   "label": "подветр.: наклон опускания s_d",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.3961953635877391,
+     "adj_r2_N_h": 0.4533903359745758,
+     "coef_ratio_h_over_N": 13.187838414056156,
+     "pair_absdiff_over_std": 0.6550324037527233,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.27627984928041516,
+     "adj_r2_N_h": 0.25711918513245413,
+     "coef_ratio_h_over_N": 2.7508784940859385,
+     "pair_absdiff_over_std": 0.399999325978328,
+     "pair_absdiff_over_std_ok": 0.1344661325556484,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.4941633514504249,
+     "adj_r2_N_h": 0.814265253877046,
+     "coef_ratio_h_over_N": -11.793887800000128,
+     "pair_absdiff_over_std": 0.8870419251191818,
+     "pair_absdiff_over_std_ok": 0.5545771661917046,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6130591870261508,
+     "adj_r2_N_h": 0.7379248366653116,
+     "coef_ratio_h_over_N": 15.506189164705061,
+     "pair_absdiff_over_std": 0.32485310063986844,
+     "pair_absdiff_over_std_ok": 0.16429067949780726,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.3185876785687013,
+     "adj_r2_N_h": 0.5004578716931634,
+     "coef_ratio_h_over_N": -13.868004540625313,
+     "pair_absdiff_over_std": 0.7305707028270376,
+     "pair_absdiff_over_std_ok": 0.35751822789285487,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.24744282653352345,
+     "adj_r2_N_h": 0.41521091966588886,
+     "coef_ratio_h_over_N": -24.880619014932048,
+     "pair_absdiff_over_std": 0.671435493788025,
+     "pair_absdiff_over_std_ok": 0.14271938139517987,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.26405383527940496,
+     "adj_r2_N_h": 0.7385285424275704,
+     "coef_ratio_h_over_N": -4.106811827658011,
+     "pair_absdiff_over_std": 0.8452251450147389,
+     "pair_absdiff_over_std_ok": 0.2962464953749101,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6922144241437388,
+     "adj_r2_N_h": 0.6934958548372794,
+     "coef_ratio_h_over_N": 2.53295553699976,
+     "pair_absdiff_over_std": 0.31172631402846473,
+     "pair_absdiff_over_std_ok": 0.2559119325513801,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.3573915210782202,
+   "median_adj_r2_N_h": 0.5969768632652214,
+   "median_coef_ratio_h_over_N": -0.7869281453291255,
+   "median_pair_absdiff_over_std": 0.6632339487703742,
+   "median_pair_absdiff_over_std_ok": 0.2559119325513801
+  },
+  "lee_rev_area25_km2": {
+   "label": "подветр.: обратное течение 25 м, км²",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.828668709719464,
+     "adj_r2_N_h": 0.901481039930052,
+     "coef_ratio_h_over_N": 0.6423170587204279,
+     "pair_absdiff_over_std": 0.5784650566185132,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.8271399902153599,
+     "adj_r2_N_h": 0.8244939896896524,
+     "coef_ratio_h_over_N": 1.460027240241399,
+     "pair_absdiff_over_std": 0.3835581219678297,
+     "pair_absdiff_over_std_ok": 0.2619749026279865,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7809929013005008,
+     "adj_r2_N_h": 0.8745698150983503,
+     "coef_ratio_h_over_N": 5.269701108462519,
+     "pair_absdiff_over_std": 0.2721747542627914,
+     "pair_absdiff_over_std_ok": 0.03286320492186579,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6422459360070951,
+     "adj_r2_N_h": 0.7054240292197413,
+     "coef_ratio_h_over_N": 1.6503741253677893,
+     "pair_absdiff_over_std": 0.06446380367033952,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.5416679790893627,
+     "adj_r2_N_h": 0.7922762146486263,
+     "coef_ratio_h_over_N": 6.082972198002726,
+     "pair_absdiff_over_std": 0.82398475707778,
+     "pair_absdiff_over_std_ok": 0.4222750511263976,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6141548842446796,
+     "adj_r2_N_h": 0.7757916552207146,
+     "coef_ratio_h_over_N": 5.9927345964221,
+     "pair_absdiff_over_std": 0.48726888562605347,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7831443096266186,
+     "adj_r2_N_h": 0.8161949025468839,
+     "coef_ratio_h_over_N": 2.927534016112505,
+     "pair_absdiff_over_std": 0.3172436688606126,
+     "pair_absdiff_over_std_ok": 0.027464557894564548,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.8055113337409031,
+     "adj_r2_N_h": 0.819114724744662,
+     "coef_ratio_h_over_N": 1.4408083326701804,
+     "pair_absdiff_over_std": 0.0465874149127395,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.7820686054635597,
+   "median_adj_r2_N_h": 0.8176548136457729,
+   "median_coef_ratio_h_over_N": 2.2889540707401475,
+   "median_pair_absdiff_over_std": 0.35040089541422115,
+   "median_pair_absdiff_over_std_ok": 0.027464557894564548
+  },
+  "lee_urev_min_over_us": {
+   "label": "подветр.: min u·e/U_sat (25 м)",
+   "groups": [
+    {
+     "group": "u3_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.6806773235542984,
+     "adj_r2_N_h": 0.9159056824408092,
+     "coef_ratio_h_over_N": 0.22115942164792277,
+     "pair_absdiff_over_std": 0.8100909229923314,
+     "pair_absdiff_over_std_ok": null,
+     "n_pairs_ok": 0
+    },
+    {
+     "group": "u3_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6892369735539405,
+     "adj_r2_N_h": 0.7416656703368267,
+     "coef_ratio_h_over_N": 0.9793047320897589,
+     "pair_absdiff_over_std": 0.3602481006513031,
+     "pair_absdiff_over_std_ok": 0.25580413911526984,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7984364273014464,
+     "adj_r2_N_h": 0.8169308249734138,
+     "coef_ratio_h_over_N": 2.264952377926324,
+     "pair_absdiff_over_std": 0.3359189502611984,
+     "pair_absdiff_over_std_ok": 0.06346341554163609,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u3_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6823479993785909,
+     "adj_r2_N_h": 0.7372925638893575,
+     "coef_ratio_h_over_N": 1.426123756503663,
+     "pair_absdiff_over_std": 0.14391688629909968,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 4
+    },
+    {
+     "group": "u6_ridge_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7558623864748133,
+     "adj_r2_N_h": 0.8107267050121638,
+     "coef_ratio_h_over_N": 1.4541224143076141,
+     "pair_absdiff_over_std": 0.4706026415298172,
+     "pair_absdiff_over_std_ok": 0.15848311835826193,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_ridge_H250",
+     "n": 37,
+     "adj_r2_fr": 0.6271581834576425,
+     "adj_r2_N_h": 0.7020287556971698,
+     "coef_ratio_h_over_N": 4.71639162437097,
+     "pair_absdiff_over_std": 0.42511421450806636,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    },
+    {
+     "group": "u6_hill_H0",
+     "n": 37,
+     "adj_r2_fr": 0.7646809904621745,
+     "adj_r2_N_h": 0.7889189554982973,
+     "coef_ratio_h_over_N": 0.7839753358750602,
+     "pair_absdiff_over_std": 0.2292252861476521,
+     "pair_absdiff_over_std_ok": 0.016213506325760813,
+     "n_pairs_ok": 8
+    },
+    {
+     "group": "u6_hill_H250",
+     "n": 37,
+     "adj_r2_fr": 0.8755619590949636,
+     "adj_r2_N_h": 0.8992077596046618,
+     "coef_ratio_h_over_N": 0.8986566668290851,
+     "pair_absdiff_over_std": 0.1699523433182008,
+     "pair_absdiff_over_std_ok": 0.0,
+     "n_pairs_ok": 9
+    }
+   ],
+   "median_adj_r2_fr": 0.7225496800143769,
+   "median_adj_r2_N_h": 0.7998228302552306,
+   "median_coef_ratio_h_over_N": 1.202714244296711,
+   "median_pair_absdiff_over_std": 0.34808352545625076,
+   "median_pair_absdiff_over_std_ok": 0.016213506325760813
+  }
+ },
+ "layer_metrics_by_fr_ridge": {
+  "ridge_u3_n_axis_fr0.15-0.25": {
+   "th_n_src": 6806.75,
+   "th_w0_mean_ms": 2.2824848294258118,
+   "th_ceil_over_zi": 1.0930148661136627,
+   "sl_w_max_ms": 0.3068328872323036,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 19.600000143051147,
+   "lee_desc_max": 0.2535421811044216,
+   "lee_urev_min_over_us": -1.6259765625
+  },
+  "ridge_u3_n_axis_fr0.25-0.4": {
+   "th_n_src": 7226.0,
+   "th_w0_mean_ms": 1.8553637564182281,
+   "th_ceil_over_zi": 1.2750183939933777,
+   "sl_w_max_ms": 0.55194091796875,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 26.000000476837158,
+   "lee_desc_max": 0.1130828857421875,
+   "lee_urev_min_over_us": -1.24951171875
+  },
+  "ridge_u3_n_axis_fr0.4-0.6": {
+   "th_n_src": 6842.0,
+   "th_w0_mean_ms": 1.84760586420695,
+   "th_ceil_over_zi": 2.0354723930358887,
+   "sl_w_max_ms": 0.4527384440104167,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 52.480000813802086,
+   "lee_desc_max": 0.1161455288529396,
+   "lee_urev_min_over_us": -0.3160875116785367
+  },
+  "ridge_u3_n_axis_fr0.6-0.9": {
+   "th_n_src": 3346.6666666666665,
+   "th_w0_mean_ms": 1.8382001320521038,
+   "th_ceil_over_zi": 3.3894819418589273,
+   "sl_w_max_ms": 0.5292073488235474,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 24.96000035603841,
+   "lee_desc_max": 0.10462421427170436,
+   "lee_urev_min_over_us": -0.029639349629481632
+  },
+  "ridge_u3_n_axis_fr0.9-1.4": {
+   "th_n_src": 2156.75,
+   "th_w0_mean_ms": 1.836797684431076,
+   "th_ceil_over_zi": 4.040534734725952,
+   "sl_w_max_ms": 0.5929321199655533,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 39.68000030517578,
+   "lee_desc_max": 0.10573302395641804,
+   "lee_urev_min_over_us": 0.0
+  },
+  "ridge_u3_n_axis_fr1.4-3.01": {
+   "th_n_src": 2277.3333333333335,
+   "th_w0_mean_ms": 1.6591913501421611,
+   "th_ceil_over_zi": 6.702764431635539,
+   "sl_w_max_ms": 0.3980712940295537,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 33.49333413441976,
+   "lee_desc_max": 0.09721332788467407,
+   "lee_urev_min_over_us": 0.0
+  },
+  "ridge_u3_h_axis_fr0.15-0.25": {
+   "th_n_src": 3286.0,
+   "th_w0_mean_ms": 2.346576452255249,
+   "th_ceil_over_zi": 1.4201384782791138,
+   "sl_w_max_ms": 0.4206176698207855,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 65.91999816894531,
+   "lee_desc_max": 0.15925556421279907,
+   "lee_urev_min_over_us": -0.1494954377412796
+  },
+  "ridge_u3_h_axis_fr0.25-0.4": {
+   "th_n_src": 4041.25,
+   "th_w0_mean_ms": 2.2184395790100098,
+   "th_ceil_over_zi": 1.64410400390625,
+   "sl_w_max_ms": 0.4091644287109375,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 39.920000076293945,
+   "lee_desc_max": 0.12130947969853878,
+   "lee_urev_min_over_us": -0.2281900979578495
+  },
+  "ridge_u3_h_axis_fr0.4-0.6": {
+   "th_n_src": 4948.0,
+   "th_w0_mean_ms": 1.9658205111821492,
+   "th_ceil_over_zi": 2.204297582308451,
+   "sl_w_max_ms": 0.3475789427757263,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 36.053332010904946,
+   "lee_desc_max": 0.10450093944867452,
+   "lee_urev_min_over_us": -0.18166775008042654
+  },
+  "ridge_u3_h_axis_fr0.6-0.9": {
+   "th_n_src": 4924.333333333333,
+   "th_w0_mean_ms": 1.7471490303675334,
+   "th_ceil_over_zi": 3.1212189197540283,
+   "sl_w_max_ms": 0.32389933864275616,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 27.733333587646484,
+   "lee_desc_max": 0.08311984191338222,
+   "lee_urev_min_over_us": -0.016271802713163197
+  },
+  "ridge_u3_h_axis_fr0.9-1.4": {
+   "th_n_src": 4519.0,
+   "th_w0_mean_ms": 1.5930802822113037,
+   "th_ceil_over_zi": 4.409329414367676,
+   "sl_w_max_ms": 0.34192200005054474,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 16.640000343322754,
+   "lee_desc_max": 0.06572292372584343,
+   "lee_urev_min_over_us": 0.0
+  },
+  "ridge_u6_n_axis_fr0.15-0.25": {
+   "th_n_src": 5099.333333333333,
+   "th_w0_mean_ms": 2.5417586962381997,
+   "th_ceil_over_zi": 0.9986987312634786,
+   "sl_w_max_ms": 1.153613309065501,
+   "sl_area_km2": 2.986666679382324,
+   "lee_area25_km2": 68.69333267211914,
+   "lee_desc_max": 0.2480821559826533,
+   "lee_urev_min_over_us": -0.2955729166666667
+  },
+  "ridge_u6_n_axis_fr0.25-0.4": {
+   "th_n_src": 7220.0,
+   "th_w0_mean_ms": 2.295368194580078,
+   "th_ceil_over_zi": 1.0874915570020676,
+   "sl_w_max_ms": 0.8518310636281967,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 52.15999984741211,
+   "lee_desc_max": 0.1466567125171423,
+   "lee_urev_min_over_us": -0.2760416604578495
+  },
+  "ridge_u6_n_axis_fr0.4-0.6": {
+   "th_n_src": 7221.333333333333,
+   "th_w0_mean_ms": 1.9971690972646077,
+   "th_ceil_over_zi": 1.2019309997558594,
+   "sl_w_max_ms": 0.9955647786458334,
+   "sl_area_km2": 2.133333365122477,
+   "lee_area25_km2": 38.826666514078774,
+   "lee_desc_max": 0.10390016933282216,
+   "lee_urev_min_over_us": -0.2549913177887599
+  },
+  "ridge_u6_n_axis_fr0.6-0.9": {
+   "th_n_src": 7320.666666666667,
+   "th_w0_mean_ms": 1.8516995906829834,
+   "th_ceil_over_zi": 1.5209712187449138,
+   "sl_w_max_ms": 1.0745686690012615,
+   "sl_area_km2": 6.293333371480306,
+   "lee_area25_km2": 25.600000381469727,
+   "lee_desc_max": 0.1053932433327039,
+   "lee_urev_min_over_us": -0.05203925228367249
+  },
+  "ridge_u6_n_axis_fr0.9-1.4": {
+   "th_n_src": 6683.75,
+   "th_w0_mean_ms": 1.8467657268047333,
+   "th_ceil_over_zi": 2.359805017709732,
+   "sl_w_max_ms": 1.165881335735321,
+   "sl_area_km2": 6.5599998235702515,
+   "lee_area25_km2": 37.839999198913574,
+   "lee_desc_max": 0.09686435759067535,
+   "lee_urev_min_over_us": -0.004595438600517809
+  },
+  "ridge_u6_n_axis_fr1.4-3.01": {
+   "th_n_src": 2622.3333333333335,
+   "th_w0_mean_ms": 1.8375275333722432,
+   "th_ceil_over_zi": 3.928902784983317,
+   "sl_w_max_ms": 1.1332885424296062,
+   "sl_area_km2": 6.5066665808359785,
+   "lee_area25_km2": 51.84000015258789,
+   "lee_desc_max": 0.11748793348670006,
+   "lee_urev_min_over_us": -0.0035486751148710027
+  },
+  "ridge_u6_h_axis_fr0.4-0.6": {
+   "th_n_src": 4278.333333333333,
+   "th_w0_mean_ms": 2.3615169525146484,
+   "th_ceil_over_zi": 1.426539142926534,
+   "sl_w_max_ms": 1.301293929417928,
+   "sl_area_km2": 8.319999853769938,
+   "lee_area25_km2": 60.42666753133138,
+   "lee_desc_max": 0.28755587339401245,
+   "lee_urev_min_over_us": -0.2149522602558136
+  },
+  "ridge_u6_h_axis_fr0.6-0.9": {
+   "th_n_src": 5039.333333333333,
+   "th_w0_mean_ms": 2.139467795689901,
+   "th_ceil_over_zi": 1.7043073177337646,
+   "sl_w_max_ms": 1.1146240035692851,
+   "sl_area_km2": 2.7733332316080728,
+   "lee_area25_km2": 75.41333516438802,
+   "lee_desc_max": 0.0976480096578598,
+   "lee_urev_min_over_us": -0.23437499503294626
+  },
+  "ridge_u6_h_axis_fr0.9-1.4": {
+   "th_n_src": 6677.25,
+   "th_w0_mean_ms": 1.8819061815738678,
+   "th_ceil_over_zi": 2.36326664686203,
+   "sl_w_max_ms": 0.8243591338396072,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 54.0,
+   "lee_desc_max": 0.09103945456445217,
+   "lee_urev_min_over_us": -0.03559366799890995
+  },
+  "ridge_u6_h_axis_fr1.4-3.01": {
+   "th_n_src": 7396.0,
+   "th_w0_mean_ms": 1.621638000011444,
+   "th_ceil_over_zi": 3.5879202485084534,
+   "sl_w_max_ms": 0.644216924905777,
+   "sl_area_km2": 0.0,
+   "lee_area25_km2": 27.199999809265137,
+   "lee_desc_max": 0.0729081779718399,
+   "lee_urev_min_over_us": 0.0
+  }
+ },
  "axes_distinct": "partly",
- "axes_distinct_reason": "Несходимость (H = 0) задаёт не Fr и не ветер по отдельности, а N при данном U: порог N_c = 0.0089 (U_sat 3) и 0.0135 1/с (U_sat 6), N_c ∝ U_sat^0.59; h почти не влияет (отношение коэффициентов lg h/lg N 0.21, у Fr было бы 1). CV log-loss: lg Fr 0.267, lg Fr + lg U 0.252, lg N + lg U 0.132. При одном Fr и U оси N и h расходятся в 28/108 пар, два ветра при одном Fr — в 38/124. Параметры порядка блокирования (обход, обратное течение) следуют Fr на обеих осях (граница D — по Fr). Итого: Fr (блокирование D) и область несходимости — разные оси, но вторая — не «слабый ветер» U10, а устойчивость относительно ветра (N/U^0,6…0,7) плюс конвекция при w*/U10 ≳ 0,8."
+ "axes_distinct_reason": "Несходимость (H = 0) задаёт не Fr и не ветер по отдельности, а N при данном U: порог N_c = 0.0089 (U_sat 3) и 0.0135 1/с (U_sat 6), N_c ∝ U_sat^0.59; h почти не влияет (отношение коэффициентов lg h/lg N 0.21, у Fr было бы 1). CV log-loss: lg Fr 0.267, lg Fr + lg U 0.252, lg N + lg U 0.132. При одном Fr и U оси N и h расходятся в 28/108 пар, два ветра при одном Fr — в 38/124. Параметры порядка блокирования (обход, обратное течение) следуют Fr на обеих осях (граница D — по Fr). Итого: Fr (блокирование D) и область несходимости — разные оси, но вторая — не «слабый ветер» U10, а устойчивость относительно ветра (N/U^0,6…0,7) плюс конвекция при w*/U10 ≳ 0,8. Метрики слоёв P6: по Fr идёт только разрешённое обратное течение за хребтом; зона отрыва игры, подъём у склонов и термики зависят от h (z_i) и N порознь — одного Fr слоям мало."
 }

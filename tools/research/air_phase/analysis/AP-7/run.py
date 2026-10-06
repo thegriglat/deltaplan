@@ -6,7 +6,7 @@
   $PY tools/research/air_phase/analysis/AP-7/run.py
 Вход: $AIR_SYNTH_DATA/phase/{ap_v2, ap_v2__s1-74644c4, ap_v1, ap_v1__s1-74644c4} (P2, P3),
       tools/research/air_phase/out/per_case.npz (SY-12, признаки phase_stats),
-      tools/research/air_phase/out/features_ap_v2.h5 (P6, если AP-6 уже влита — метрики слоёв).
+      $AIR_SYNTH_DATA/phase/features_ap_v2.h5 (P6 v2, метрики слоёв AP-6; нет — раздел пропускается).
 Выход: summary.json, tables.md, fig_*.png рядом со скриптом.
 """
 import glob
@@ -488,7 +488,7 @@ def main():
         [[k, f3(v.get("r2")), ", ".join(f"{kk} {vv:+.2f}" for kk, vv in v.get("coef", {}).items())] for k, v in reg.items()])
 
     # 8. метрики слоёв (P6) — если AP-6 влита
-    fp = os.path.join(AP, "out", "features_ap_v2.h5")
+    fp = os.path.join(D, "phase", "features_ap_v2.h5")  # P6 v2: таблица в каталоге данных
     OUT["layer_metrics"] = "added" if os.path.exists(fp) else "pending_AP-6"
     if os.path.exists(fp):
         layer_section(fp, a)
@@ -502,28 +502,101 @@ def main():
     print(json.dumps({k: OUT[k] for k in ("axes_distinct", "axes_distinct_reason")}, ensure_ascii=False, indent=1))
 
 
+LAYER_KEYS = {
+    "th_n_src": "термики: число источников, шт", "th_w0_mean_ms": "термики: сила ядра w0, м/с",
+    "th_ceil_over_zi": "термики: потолок/z_i", "th_src_relief_ratio": "термики: густота источников на рельефе/вне",
+    "th_drift_zi_ms": "снос: ветер слоя 0…z_i, м/с",
+    "sl_area_km2": "склон: площадь w > 1 м/с, км²", "sl_w_max_ms": "склон: max w 50–300 м, м/с",
+    "sl_w_max_over_us": "склон: max w/(U_sat·s)", "sl_ceil_agl_m": "склон: высота w ≥ 1 м/с, м",
+    "lee_area25_km2": "подветр.: площадь зоны 25 м, км²", "lee_depth_max_m": "подветр.: глубина зоны, м",
+    "lee_desc_max": "подветр.: наклон опускания s_d", "lee_rev_area25_km2": "подветр.: обратное течение 25 м, км²",
+    "lee_urev_min_over_us": "подветр.: min u·e/U_sat (25 м)",
+}
+
+
+def _adj_r2(X, y):
+    X = np.column_stack([np.ones(len(y)), X])
+    b, *_ = np.linalg.lstsq(X, y, rcond=None)
+    r = y - X @ b
+    ss = np.sum((y - y.mean()) ** 2)
+    if ss <= 0:
+        return None, b
+    r2 = 1 - np.sum(r ** 2) / ss
+    n, k = X.shape
+    return float(1 - (1 - r2) * (n - 1) / max(n - k, 1)), b
+
+
 def layer_section(fp, a):
+    """Метрики слоёв P6 против Fr при фиксированном ветре: Fr ли это или N и h порознь."""
     with h5py.File(fp, "r") as f:
         t = f["features"][:]
-    names = [n for n in t.dtype.names if n.startswith(("th_", "sl_", "lee_"))]
     cid = {int(c): i for i, c in enumerate(t["case_id"])}
     idx = np.array([cid[int(c)] for c in a["case_id"]])
-    res = {}; rows = []
-    for nm in names:
-        y = t[nm][idx].astype(float)
-        if not np.isfinite(y).all() or y.std() == 0:
+    lfr, lN, lh = np.log(a["fr"]), np.log(a["n_bv"]), np.log(a["h"])
+    res = {}; rows = []; prs = {}
+    for nm, lab in LAYER_KEYS.items():
+        if nm not in t.dtype.names:
             continue
+        y_all = t[nm][idx].astype(float)
+        per = []
         for u in (3.0, 6.0):
             for sh in ("ridge", "hill"):
-                m = (a["u_sat"] == u) & (a["shape"] == sh)
-                # согласие осей при одном Fr: корреляция с log Fr и с log N в пределах U
-                cfr = float(np.corrcoef(np.log(a["fr"][m]), y[m])[0, 1])
-                cn = float(np.corrcoef(np.log(a["n_bv"][m]), y[m])[0, 1])
-                ch = float(np.corrcoef(np.log(a["h"][m]), y[m])[0, 1])
-                res[f"{nm}_{sh}_u{u:g}"] = dict(corr_logFr=cfr, corr_logN=cn, corr_logh=ch)
-                rows.append([nm, sh, f"{u:g}", f"{cfr:+.2f}", f"{cn:+.2f}", f"{ch:+.2f}"])
-    OUT["layer_metrics_corr"] = res
-    tab("Метрики слоёв (P6): корреляция с lg Fr, lg N, lg h при фиксированном U_sat", ["метрика", "форма", "U_sat", "lg Fr", "lg N", "lg h"], rows)
+                for H in (0.0, 250.0):
+                    m = (a["u_sat"] == u) & (a["shape"] == sh) & (a["H"] == H) & np.isfinite(y_all)
+                    if m.sum() < 12 or np.std(y_all[m]) == 0:
+                        continue
+                    y = y_all[m]
+                    r_fr, _ = _adj_r2(np.column_stack([lfr[m], lfr[m] ** 2]), y)
+                    r_nh, _ = _adj_r2(np.column_stack([lN[m], lh[m], lN[m] ** 2, lh[m] ** 2, lN[m] * lh[m]]), y)
+                    _, b = _adj_r2(np.column_stack([lN[m], lh[m]]), y)
+                    # пары n/h при одном Fr: |Δ| в долях СКО метрики в группе (все и только обе сошедшиеся)
+                    ia = np.where(m & (a["variant"] == "n_axis"))[0]; ib = np.where(m & (a["variant"] == "h_axis"))[0]
+                    d_all, d_ok = [], []
+                    for i in ia:
+                        for j in ib:
+                            if abs(lfr[i] - lfr[j]) < 0.03:
+                                d = abs(y_all[i] - y_all[j]) / np.std(y)
+                                d_all.append(d)
+                                if a["status"][i] == 0 and a["status"][j] == 0:
+                                    d_ok.append(d)
+                    per.append(dict(group=f"u{u:g}_{sh}_H{H:g}", n=int(m.sum()), adj_r2_fr=r_fr, adj_r2_N_h=r_nh,
+                                    coef_ratio_h_over_N=float(b[2] / b[1]) if abs(b[1]) > 1e-12 else None,
+                                    pair_absdiff_over_std=float(np.mean(d_all)) if d_all else None,
+                                    pair_absdiff_over_std_ok=float(np.mean(d_ok)) if d_ok else None, n_pairs_ok=len(d_ok)))
+        if not per:
+            continue
+        med = lambda k: float(np.nanmedian([p[k] for p in per if p[k] is not None])) if any(p[k] is not None for p in per) else None
+        res[nm] = dict(label=lab, groups=per, median_adj_r2_fr=med("adj_r2_fr"), median_adj_r2_N_h=med("adj_r2_N_h"),
+                       median_coef_ratio_h_over_N=med("coef_ratio_h_over_N"),
+                       median_pair_absdiff_over_std=med("pair_absdiff_over_std"),
+                       median_pair_absdiff_over_std_ok=med("pair_absdiff_over_std_ok"))
+        r = res[nm]
+        rows.append([nm, lab, len(per), f3(r["median_adj_r2_fr"]), f3(r["median_adj_r2_N_h"]), f3(r["median_coef_ratio_h_over_N"]),
+                     f3(r["median_pair_absdiff_over_std"]), f3(r["median_pair_absdiff_over_std_ok"])])
+    OUT["layer_metrics_axes"] = res
+    tab("Метрики слоёв (P6) при фиксированном U_sat, форме и H: Fr или N и h порознь (медианы по группам по 37 случаев; "
+        "R² — скорректированный, квадратичная модель; отношение коэф. lg h/lg N — 1, если только через Fr; "
+        "|Δ| пар n/h при одном Fr в долях СКО метрики — все пары / обе сошлись)",
+        ["метрика", "что", "групп", "R² по lg Fr", "R² по lg N, lg h", "lg h/lg N", "|Δ|/СКО пар", "|Δ|/СКО пар (сошл.)"], rows)
+    # метрики по корзинам Fr (U_sat, ось): хребет; термики — H = 250, остальное — H = 0
+    rows = []; bins = {}
+    show = ["th_n_src", "th_w0_mean_ms", "th_ceil_over_zi", "sl_w_max_ms", "sl_area_km2", "lee_area25_km2", "lee_desc_max", "lee_urev_min_over_us"]
+    for u in (3.0, 6.0):
+        for v in ("n_axis", "h_axis"):
+            for lo, hi in zip(frbins()[:-1], frbins()[1:]):
+                rec = {}
+                for nm in show:
+                    H = 250.0 if nm.startswith("th_") else 0.0
+                    m = (a["shape"] == "ridge") & (a["u_sat"] == u) & (a["variant"] == v) & (a["H"] == H) & (a["fr"] >= lo) & (a["fr"] < hi)
+                    y = t[nm][idx][m].astype(float)
+                    y = y[np.isfinite(y)]
+                    rec[nm] = float(np.mean(y)) if len(y) else None
+                if all(x is None for x in rec.values()):
+                    continue
+                bins[f"ridge_u{u:g}_{v}_fr{lo:g}-{hi:g}"] = rec
+                rows.append([f"{u:g}", v, f"{lo:g}–{hi:g}"] + [f3(rec[k]) for k in show])
+    OUT["layer_metrics_by_fr_ridge"] = bins
+    tab("Метрики слоёв по Fr, хребет (th_* — H = 250, остальные — H = 0; средние)", ["U_sat", "ось", "Fr"] + show, rows)
 
 
 def figures(a, g, sig_res):
@@ -596,7 +669,9 @@ def verdict():
         f"При одном Fr и U оси N и h расходятся в {pv['only_a_nc'] + pv['only_b_nc']}/{pv['n_pairs']} пар, два ветра при одном Fr — "
         f"в {pu['only_a_nc'] + pu['only_b_nc']}/{pu['n_pairs']}. Параметры порядка блокирования (обход, обратное течение) следуют Fr "
         "на обеих осях (граница D — по Fr). Итого: Fr (блокирование D) и область несходимости — разные оси, но вторая — "
-        "не «слабый ветер» U10, а устойчивость относительно ветра (N/U^0,6…0,7) плюс конвекция при w*/U10 ≳ 0,8.")
+        "не «слабый ветер» U10, а устойчивость относительно ветра (N/U^0,6…0,7) плюс конвекция при w*/U10 ≳ 0,8."
+        + (" Метрики слоёв P6: по Fr идёт только разрешённое обратное течение за хребтом; зона отрыва игры, подъём у склонов "
+           "и термики зависят от h (z_i) и N порознь — одного Fr слоям мало." if "layer_metrics_axes" in OUT else ""))
 
 
 if __name__ == "__main__":
