@@ -661,15 +661,17 @@ func _start_picard(c: AirCase) -> void:
 		warm = _warm
 	elif _loading and _pass > 1 and warm_second_pass:
 		warm = _warm_pass
-	# нет тёплого старта от прошлого поля — от сборки фаз (P10 warm)
+	# нет тёплого старта от прошлого поля — от сборки фаз: первое решение — без нагрева (mech), его
+	# старт — warm_mech (AP-19, сверх P10), нет — warm
 	if warm.is_empty() or PackedFloat32Array(warm.get("u", PackedFloat32Array())).size() != n:
-		warm = _phase.get("warm", {})
+		warm = _phase.get("warm_mech", _phase.get("warm", {}))
 	if not warm.is_empty() and PackedFloat32Array(warm.get("u", PackedFloat32Array())).size() == n:
 		_job.warm = warm
 	if not _phase.is_empty():
 		_job.omega_map = _phase.get("omega", PackedFloat32Array())
 		_job.freeze_mask = _phase.get("freeze", PackedByteArray())
 		_job.freeze_field = _phase.get("mech_field", {})
+		_job.freeze_field_mech = _phase.get("mech_field_mech", {})
 	_job.late_from = int(phase_cfg("nonconv", "late_from", _cfg.get("nonconv_late_from", 0)))
 	if not _phase.is_empty():
 		_job.nonconv_mask = nonconv_mask(_phase, _nonconv_w())

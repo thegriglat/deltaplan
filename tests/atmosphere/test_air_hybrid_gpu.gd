@@ -43,10 +43,11 @@ func _solve(c: AirCase, ph: Dictionary) -> AirPicardJob:
 	job.case = c
 	job.mech = true
 	if not ph.is_empty():
-		job.warm = ph.get("warm", {})
+		job.warm = ph.get("warm_mech", ph.get("warm", {}))
 		job.omega_map = ph.get("omega", PackedFloat32Array())
 		job.freeze_mask = ph.get("freeze", PackedByteArray())
 		job.freeze_field = ph.get("mech_field", {})
+		job.freeze_field_mech = ph.get("mech_field_mech", {})
 		var am: Dictionary = Config.get_config("atmosphere").air_model
 		job.omega_fallback = Vector2(
 			float(AirRuntime.phase_cfg("omega", "fallback_iters", am.get("omega_fallback_iters", 0))),

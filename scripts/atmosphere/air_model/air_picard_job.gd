@@ -81,6 +81,9 @@ var freeze_mask := PackedByteArray()
 ## P11: поле механизма для замороженных колонн — {u, v, w, th, thd} в раскладке warm (N с ореолом);
 ## нет канала — его значение после старта (тёплый старт, спроецированный). K — всегда после старта.
 var freeze_field := {}
+## Поле механизма для решения без нагрева (mech; P10 `mech_field_mech`, сверх контракта AP-19);
+## пусто — freeze_field для обоих решений. С ним freeze_field — только для решения с нагревом.
+var freeze_field_mech := {}
 ## P11: запасное правило — нет сходимости к x итерациям решения → ω := min(ω, y) во всех колоннах.
 ## (0, 0) — выкл. (по умолчанию; игра ставит из configs/atmosphere.json → air_model).
 var omega_fallback := Vector2.ZERO
@@ -278,9 +281,10 @@ func _setup_p11() -> bool:
 	frozen_frac = float(nfr) / float(ncell)
 	buf.frz = gpu.buffer(ncol, _pad_cols(fz, false))
 	_snap_names = ["nu", "nuh"]
+	var first := freeze_field_mech if (_cases.size() > 1 and not freeze_field_mech.is_empty()) else freeze_field
 	for nm in ["u", "v", "w", "th", "thd"]:
 		buf["f" + nm] = gpu.buffer(_n)
-		var a: PackedFloat32Array = freeze_field.get(nm, PackedFloat32Array())
+		var a: PackedFloat32Array = first.get(nm, PackedFloat32Array())
 		if a.is_empty():
 			_snap_names.append(nm)
 		elif a.size() != _n:
@@ -326,6 +330,16 @@ func _setup_nonconv(ncell: int, ncol: int) -> bool:
 			return false
 		buf["n" + nm] = gpu.buffer(_n, a)
 	return true
+
+
+## Решение с нагревом после mech: его поле механизма (freeze_field), если для mech было своё.
+func _upload_heated_freeze() -> void:
+	if not _freeze or freeze_field_mech.is_empty():
+		return
+	for nm in ["u", "v", "w", "th", "thd"]:
+		var a: PackedFloat32Array = freeze_field.get(nm, PackedFloat32Array())
+		if a.size() == _n:
+			gpu.upload(buf["f" + nm], a)
 
 
 ## Колонночная карта ny·nx → с ореолом (NY·NX): edge — ореол значением края (ω), иначе 0
@@ -897,6 +911,7 @@ func _after_sync() -> bool:
 			if _ci < _cases.size() - 1:
 				_ci += 1
 				_upload_case(_cases[_ci])
+				_upload_heated_freeze()
 				_phase = Phase.INIT
 				_late_n = 0
 				_iters = 0
