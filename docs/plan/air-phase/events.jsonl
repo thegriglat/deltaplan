@@ -87,3 +87,5 @@
 {"t": "2026-10-06T15:29:49", "by": "executor", "task": "AP-8", "ev": "checked", "note": "2/2 p7=ok:1 passed; summary=ok:733"}
 {"t": "2026-10-06T15:30:01", "by": "coordinator", "task": "AP-11", "ev": "created", "note": "ERODED: переносятся ли границы с идеальных форм на рельеф с эрозией"}
 {"t": "2026-10-06T15:30:04", "by": "coordinator", "task": "AP-11", "ev": "started", "note": "dp-researcher sonnet"}
+{"t": "2026-10-06T15:33:04", "by": "reviewer", "task": "AP-8", "ev": "reviewed", "note": "Скоуп и контракты (P6 v2 путь таблицы, P7 состав каталога) соблюдены, приёмка воспроизводится (p7 1 passed, n_boundaries 733). Отступления от §9 (резкость — ск…", "verdict": "accept", "issues": {"major": 1, "minor": 2}, "review": "docs/plan/air-phase/tasks/AP-8.review.json"}
+{"t": "2026-10-06T15:35:19", "by": "coordinator", "task": "AP-8", "ev": "accepted", "note": "по ревью fable (accept; критерий гистерезиса записан явно, плоский §9 — 51/501, объяснено)"}
