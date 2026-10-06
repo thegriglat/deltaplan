@@ -5,7 +5,7 @@ module: "air-phase"
 updated: "2026-10-06"
 summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора"
 related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
-contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 2}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 1}, {"id": "P7", "version": 1}]
+contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 5}, {"id": "P3", "version": 2}, {"id": "P4", "version": 4}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}]
 ---
 
 # Контракты модуля air-phase
@@ -171,7 +171,7 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   (NaN, исключение) с записью в `run.jsonl`.
 - Без Godot; GPU — только под общим замком (`dp job --lock gpu start air-phase-run <таймаут> …/run_all.sh`).
 
-## P6. Метрики слоёв и таблица признаков (версия 1)
+## P6. Метрики слоёв и таблица признаков (версия 2)
 **Владелец:** AP-6 (`tools/research/air_phase/layer_metrics.py`, `features.py`). **Потребители:** AP-7…AP-11.
 
 - Критерий (решение пользователя 06.10): величины, которые из поля масштаба 1 берут следующие слои игры. Функция
@@ -184,7 +184,8 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
   (`scripts/atmosphere/`, `docs/guide/air-model.md`, `docs/guide/atmosphere.md`) со ссылками на строки; чего в игре нет —
   физически обоснованно, помечено. Плюс разности метрик между двумя полями `layer_diff(a, b) -> dict` (для RELAX,
   SWEEP, ENVELOPE: «меняет ли решатель то, что видит слой»).
-- Таблица `tools/research/air_phase/out/features_<plan>.h5` — (N,) составной набор `features`: все поля `cases` P3 + `order`
+- **v2 (06.10):** общая таблица лежит в каталоге данных `$AIR_SYNTH_DATA/phase/features_<plan>.h5` (копии задач удаляются вместе с out/); `features.py --out` пишет туда же. Сравнение ENVELOPE с эталоном 100 м — по самому окну (`window/*`, метрики `w100_*`), не по `fields/f` эталона (это область 400 м).
+- Таблица (v1: `tools/research/air_phase/out/features_<plan>.h5`) — (N,) составной набор `features`: все поля `cases` P3 + `order`
   P3 + `layer_metrics` + из плана: `shape`, `slope`, `h_m`, `h_over_zi`, `variant`, `ref_case_id` (холодный случай той же
   конфигурации — для SWEEP/RELAX/ENVELOPE), `u10`, `fr`; атрибуты `plan`, `results`, `git_commit`, `p6_names` (описание
   полей с единицами, JSON). Таблица пересобирается командой `features.py --plan <dir> --results <dir>` (CPU, пул
