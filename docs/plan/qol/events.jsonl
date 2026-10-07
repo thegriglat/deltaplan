@@ -107,3 +107,4 @@
 {"t": "2026-10-08T00:01:05", "by": "reviewer", "task": "QL-8", "ev": "reviewed", "note": "Сделано по плану: минимальный размер на экране считается в вершинном шейдере по той же формуле, что и в замере; тени от птиц выключены, так что раздувание в пр…", "verdict": "accept", "issues": {"minor": 5}, "review": "docs/plan/qol/tasks/QL-8.review.json"}
 {"t": "2026-10-08T00:01:24", "by": "coordinator", "task": "QL-8", "ev": "accepted", "note": "по ревью (accept); перенос в QL-8b, min_span_px 3"}
 {"t": "2026-10-08T00:01:30", "by": "coordinator", "task": "QL-8", "ev": "merged", "note": "690aafcf; проверка atmosphere/ на ветке модуля — после QL-15"}
+{"t": "2026-10-08T00:02:21", "by": "coordinator", "task": "QL-2", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-2"}
