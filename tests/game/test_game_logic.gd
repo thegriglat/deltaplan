@@ -202,6 +202,13 @@ func test_assets_credits_parse() -> void:
 
 
 func test_result_texts() -> void:
+	var was_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ru")
+	await _test_result_texts_impl()
+	TranslationServer.set_locale(was_locale)
+
+
+func _test_result_texts_impl() -> void:
 	check(ResultScreen.format_time(65.0) == "1:05", "мм:сс")
 	check(ResultScreen.format_time(3725.0) == "1:02:05", "чч:мм:сс")
 	var info := {"grade": "soft", "vertical_speed_ms": 1.2, "horizontal_speed_ms": 5.0}
