@@ -22,6 +22,8 @@ result_hard_landing,Жёсткая посадка,Hard landing
 status_loading_terrain,Загрузка рельефа…,Loading terrain…
 pause_look_around,Осмотреться,Look around
 pause_restart,Заново,Restart
+pause_wait,Подождать час,Wait an hour
+pause_waiting,Идёт время… — любая клавиша прерывает,Time passes… press any key to stop
 settings_invert_pitch,Инверсия тангажа,Invert pitch
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
 menu_fly,Лететь,Fly

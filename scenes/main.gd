@@ -35,6 +35,7 @@ var _look_prev_mode := ""  ## «Осмотреться» в паузе (Q-18): �
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
+var _wait_label: Label  ## «Идёт время…» на «Подождать час» (Q-17)
 var _net_pause_timer: Timer  ## обновление списка пилотов зоны в паузе (NET-52), 2 Гц
 ## Выбор «Полёт…» до сетевого полёта (мир зоны его подменяет) — вернуть после выхода из зоны.
 var _flight_before_net: FlightSettings
@@ -133,6 +134,10 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _wait_label != null and game.is_waiting() and _is_press(event):
+		get_viewport().set_input_as_handled()  # любая клавиша прерывает «Подождать час» (Q-17)
+		game.stop_wait()
+		return
 	if _skip_on_key(event):
 		return
 	if event.is_action_pressed("screenshot"):
@@ -475,7 +480,41 @@ func _pause() -> void:
 	game.set_paused(true)
 	_refresh_net_pause()
 	_net_pause_timer.start()
+	pause_menu.set_wait_available(game.can_wait())
 	pause_menu.visible = true
+
+
+static func _is_press(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	return (
+		(key != null and key.pressed and not key.echo)
+		or (event is InputEventMouseButton and (event as InputEventMouseButton).pressed)
+		or (event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed)
+	)
+
+
+## «Подождать час» (Q-17): из паузы — меню закрыто, время мира идёт быстро, любая клавиша прерывает.
+func _wait_hour() -> void:
+	if not game.can_wait():
+		return
+	_net_pause_timer.stop()
+	pause_menu.visible = false
+	get_tree().paused = false
+	game.set_paused(false)
+	state = State.FLYING
+	if not game.start_wait():
+		return
+	if _wait_label == null:
+		_wait_label = Label.new()
+		_wait_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_wait_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		_wait_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_wait_label.offset_top = 40
+		_wait_label.add_theme_font_size_override("font_size", 28)
+		$UI.add_child(_wait_label)
+		game.wait_finished.connect(func() -> void: _wait_label.visible = false)
+	_wait_label.text = tr("pause_waiting")
+	_wait_label.visible = true
 
 
 ## Осмотреться в паузе (Q-18): мир стоит, камера обрабатывается (свободная); Esc — назад в меню.
@@ -646,6 +685,7 @@ func _connect_screens() -> void:
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
+	pause_menu.wait_requested.connect(_wait_hour)
 	pause_menu.look_around_requested.connect(_look_around)
 	pause_menu.settings_requested.connect(_open_settings.bind(pause_menu))
 	pause_menu.menu_requested.connect(_show_menu)
