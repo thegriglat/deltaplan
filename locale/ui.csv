@@ -20,6 +20,7 @@ result_distance,Дистанция от старта по прямой: %.2f к�
 result_again,Ещё раз,Again
 result_hard_landing,Жёсткая посадка,Hard landing
 status_loading_terrain,Загрузка рельефа…,Loading terrain…
+pause_look_around,Осмотреться,Look around
 pause_restart,Заново,Restart
 pause_wait,Подождать час,Wait an hour
 pause_waiting,Идёт время… — любая клавиша прерывает,Time passes… press any key to stop

@@ -356,6 +356,47 @@ func test_pause_freezes_time_and_sound() -> void:
 	await _close(main)
 
 
+## QL-7 (Q-18): пауза → «Осмотреться»: камера двигается, физика и время стоят; Esc — меню паузы;
+## «Продолжить» — полёт и прежний режим камеры.
+func test_pause_look_around() -> void:
+	var main: Node = await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	game.process_mode = Node.PROCESS_MODE_PAUSABLE
+	for i in 5:
+		await get_tree().physics_frame
+	var mode0 := game.camera.mode
+	main._unhandled_input(_action("pause"))
+	var pos0 := game.glider.get_telemetry().position
+	var t0 := game.glider.get_telemetry().time_s
+	main.pause_menu.look_around_requested.emit()
+	check(game.camera.mode == "free", "осмотр — свободная камера")
+	check(not main.pause_menu.visible, "меню паузы скрыто на время осмотра")
+	for i in 3:
+		await get_tree().process_frame
+	var c0 := game.camera.global_position
+	Input.action_press("walk_back")
+	for i in 20:
+		await get_tree().process_frame
+	Input.action_release("walk_back")
+	check(game.camera.global_position.distance_to(c0) > 0.5, "камера сдвинулась в паузе")
+	check(game.glider.get_telemetry().position == pos0, "положение пилота не изменилось")
+	check(game.glider.get_telemetry().time_s == t0, "time_s не изменился")
+	main._unhandled_input(_action("pause"))
+	check(main.get("state") == 3 and main.pause_menu.visible, "Esc в осмотре — меню паузы")
+	check(game.camera.mode == mode0, "из осмотра возвращён прежний режим камеры")
+	main.pause_menu.look_around_requested.emit()
+	main._unhandled_input(_action("pause"))
+	main._unhandled_input(_action("pause"))
+	check(main.get("state") == 2, "Esc из меню — полёт")
+	check(game.camera.mode == mode0, "режим камеры прежний после продолжения")
+	for i in 10:
+		await get_tree().physics_frame
+	check(game.glider.get_telemetry().time_s > t0, "после паузы время идёт")
+	await _close(main)
+
+
 ## «Заново» (R) — на тот же старт ±1 м.
 func test_restart_returns_to_start() -> void:
 	var main: Node = await _open()
