@@ -22,6 +22,15 @@ var net_screen: NetScreen = null
 ## «Догнать» (NET-42): меню `=` поверх полёта в сетевой зоне.
 var catch_up_menu: CatchUpMenu
 
+## Подсказка управления на старте каждого полёта (Q-08): слева клавиши, справа мышь.
+var _start_hint: Control
+var _toast: Label  ## строка «Снимок: …»
+var _toast_stamp := 0
+## Каталог снимков экрана по F12 (Q-11); тесты подменяют.
+var screenshot_dir: String = ""  # пусто — UserSettings.screenshot_dir()
+## Откуда брать картинку для F12 (по умолчанию — вьюпорт; тесты без экрана подставляют свою).
+var screenshot_source: Callable = func() -> Image: return get_viewport().get_texture().get_image()
+
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
@@ -107,7 +116,20 @@ func _ready() -> void:
 		_screenshot()
 
 
+func _process(_dt: float) -> void:
+	if _start_hint != null and _start_hint.visible:
+		var phase: String = game.glider.phase() if game.glider != null else ""
+		if state != State.FLYING or not phase in ["standing", "walking", "running"]:
+			_hide_start_hint()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("screenshot"):
+		get_viewport().set_input_as_handled()
+		_screenshot_key()
+		return
+	if _start_hint != null and _start_hint.visible and event.is_action_pressed("walk_forward"):
+		_hide_start_hint()  # первое W — подсказка уходит; клавишу не съедаем
 	# «Догнать» (NET-42): Esc или `=` на буксире — отмена (физика на месте); `=` — меню.
 	if state == State.FLYING and game.is_towing():
 		if event.is_action_pressed("pause") or event.is_action_pressed(CatchUpMenu.ACTION):
@@ -210,6 +232,78 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 		game.camera.glance_target = _look_target
 		Input.action_press("look_instrument")
 	state = State.FLYING
+	_maybe_show_start_hint()
+
+
+func _maybe_show_start_hint() -> void:
+	if not opts.autostart and not game.inspect_mode:
+		_show_start_hint()
+
+
+## Старт полёта: полупрозрачная подсказка слева (клавиши) и справа (мышь), центр свободен.
+func _show_start_hint() -> void:
+	if _start_hint == null:
+		_start_hint = Control.new()
+		_start_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_start_hint.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_start_hint.modulate.a = 0.65
+		for side: String in ["Left", "Right"]:
+			var p := PanelContainer.new()
+			p.name = side
+			p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var left: bool = side == "Left"
+			p.set_anchors_preset(Control.PRESET_BOTTOM_LEFT if left else Control.PRESET_BOTTOM_RIGHT)
+			p.grow_vertical = Control.GROW_DIRECTION_BEGIN
+			p.grow_horizontal = Control.GROW_DIRECTION_END if left else Control.GROW_DIRECTION_BEGIN
+			p.offset_left = 40 if left else -40
+			p.offset_right = p.offset_left
+			p.offset_top = -60
+			p.offset_bottom = -60
+			var l := Label.new()
+			l.name = "Text"
+			l.custom_minimum_size.x = 420
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			p.add_child(l)
+			_start_hint.add_child(p)
+		$UI.add_child(_start_hint)
+	(_start_hint.get_node("Left/Text") as Label).text = ControlsScreen.start_hint_keys_text()
+	(_start_hint.get_node("Right/Text") as Label).text = ControlsScreen.start_hint_mouse_text()
+	_start_hint.visible = true
+
+
+func _hide_start_hint() -> void:
+	if _start_hint != null:
+		_start_hint.visible = false
+
+
+## F12: снимок экрана в screenshot_dir; путь — в журнал.
+func _screenshot_key() -> void:
+	if DisplayServer.get_name() != "headless":  # без окна кадр не рисуется
+		await RenderingServer.frame_post_draw
+	var path := UserSettings.save_screenshot(screenshot_source.call(), screenshot_dir)
+	var shown := ProjectSettings.globalize_path(path) if path != "" else "ошибка записи"
+	print("screenshot: %s" % shown)
+	_show_toast(tr("screenshot_saved") % shown)
+
+
+## Короткая строка внизу экрана (~2 с).
+func _show_toast(text: String) -> void:
+	if _toast == null:
+		_toast = Label.new()
+		_toast.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_toast.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		_toast.offset_bottom = -20
+		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_toast.process_mode = Node.PROCESS_MODE_ALWAYS
+		$UI.add_child(_toast)
+	_toast.text = text
+	_toast.visible = true
+	var my := Time.get_ticks_msec()
+	_toast_stamp = my
+	await get_tree().create_timer(2.0, true).timeout
+	if _toast_stamp == my:
+		_toast.visible = false
 
 
 ## Состояние экрана → Activity (S3). В полёте режим по фазе пилота ведёт Game; здесь — начальный.

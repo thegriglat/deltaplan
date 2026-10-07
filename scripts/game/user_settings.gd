@@ -6,6 +6,13 @@ extends RefCounted
 
 const DEFAULT_DIR := "user://configs"
 const LAST_FLIGHT := "user://last_flight.json"
+## Мелкие запоминаемые пилотом вещи (QL-3): последняя камера.
+## Тесты подменяют путь (state_path), чтобы не трогать профиль.
+const PILOT_STATE := "user://pilot_state.json"
+## Запасной каталог снимков по F12 (QL-3, Q-11), если у системы нет папки «Изображения».
+const SCREENSHOT_DIR_FALLBACK := "user://screenshots"
+## Камеры, которые запоминаются: свободную на старте не восстанавливаем (крыло стоит на земле).
+const REMEMBERED_CAMERAS: PackedStringArray = ["cockpit", "chase"]
 ## Подкаталог машинных настроек рядом с каталогом конфигов (user://local/configs): в Steam Cloud
 ## не попадает (S7). Config накладывает его поверх user://configs.
 const LOCAL_SUBDIR := "local/configs"
@@ -92,6 +99,56 @@ static func _write_merged(path: String, patch: Dictionary) -> bool:
 	f.store_string(JSON.stringify(merged, "  "))
 	f.close()
 	return true
+
+
+static var state_path := PILOT_STATE
+
+
+static func _state_set(key: String, value: Variant) -> void:
+	var d := read_json(state_path)
+	d[key] = value
+	var f := FileAccess.open(state_path, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(d, "  "))
+
+
+## Камера для начала полёта (Q-09): последняя выбранная пилотом, иначе camera.json → default_mode.
+static func start_camera() -> String:
+	var c := String(read_json(state_path).get("camera", ""))
+	if REMEMBERED_CAMERAS.has(c) and (Config.get_config("camera").get("modes", []) as Array).has(c):
+		return c
+	return String(Config.value("camera", "default_mode"))
+
+
+static func save_start_camera(mode: String) -> void:
+	if REMEMBERED_CAMERAS.has(mode):
+		_state_set("camera", mode)
+
+
+## Каталог снимков: «Изображения»/Deltaplan системы, иначе user://screenshots.
+static func screenshot_dir() -> String:
+	var pics := OS.get_system_dir(OS.SYSTEM_DIR_PICTURES)
+	if pics == "" or not DirAccess.dir_exists_absolute(pics):
+		return SCREENSHOT_DIR_FALLBACK
+	return pics.path_join("Deltaplan")
+
+
+## Снимок экрана (Q-11) в каталог dir: deltaplan_ГГГГММДД_ЧЧММСС.png (при совпадении секунды — _2…).
+## Возвращает путь файла или "" при ошибке.
+static func save_screenshot(img: Image, dir: String = "") -> String:
+	if dir == "":
+		dir = screenshot_dir()
+	DirAccess.make_dir_recursive_absolute(dir)
+	var t := Time.get_datetime_dict_from_system()
+	var stem := (
+		"deltaplan_%04d%02d%02d_%02d%02d%02d" % [t.year, t.month, t.day, t.hour, t.minute, t.second]
+	)
+	var path := dir.path_join(stem + ".png")
+	var n := 2
+	while FileAccess.file_exists(path):
+		path = dir.path_join("%s_%d.png" % [stem, n])
+		n += 1
+	return path if img.save_png(path) == OK else ""
 
 
 ## Обрезать по краям и до PILOT_NAME_MAX символов (не байт).
