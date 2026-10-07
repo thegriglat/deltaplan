@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Птицы растут в шейдере до min_span_px=5 (эффективно >=3 px на 800 м), 6 стай впереди по курсу, до 3 хищных птиц выше 700 м; повтор замера QL-5 и скриншоты готовы.",
+  "commits": [
+    "cd6d4ede мин. размер птицы, 6 стай, хищные",
+    "cced6e50 min_span_px 5, повтор замера",
+    "5ae324e8 QL-8: uid скрипта скриншота птиц"
+  ],
+  "checks": [
+    {
+      "name": "dp accept QL-8 --dry",
+      "value": "6/6; bird 7/7, atmosphere 151/151",
+      "pass": true
+    },
+    {
+      "name": "доля секунд с птицей >=2px, мин. по местам, A/B (GPU)",
+      "value": "1.00 / 1.00 (было 0.13 / 0.00)",
+      "pass": true
+    },
+    {
+      "name": "птица на 800 м",
+      "value": "3.0 px (реально 1.87)",
+      "pass": true
+    },
+    {
+      "name": "хищные птицы одновременно (ср/макс)",
+      "value": "2.95 / 3",
+      "pass": true
+    },
+    {
+      "name": "bird",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "atmosphere/",
+      "value": "151/151 (пропуск 29)",
+      "pass": true
+    },
+    {
+      "name": "px800",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "probe",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "qol_md",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-8/birds_500m.png",
+    "/home/greg/deltaplan/build/screenshots/QL-8/birds_800m.png"
+  ],
+  "how_to_check": "dp accept QL-8",
+  "uncertain": [
+    {
+      "where": "tools/research/qol_signs/README.md:153",
+      "why": "метрика >=2px при мин. размере 3 px тривиальна (сводится к наличию птицы в 2 км); без направления взгляда",
+      "checked": "сопоставил с долей без мин. размера: 0.915/0.625 только от стай"
+    },
+    {
+      "where": "бoльшой разрыв min_span_px",
+      "why": "на скриншоте 800 м птицы малы и смазаны дымкой",
+      "checked": "открыл zoom: точки видны"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-07T23:10:18",
+  "by": "executor"
+}
