@@ -37,3 +37,4 @@ docs/**/.gdignore
 
 # Steam: расширение GodotSteam подкладывается скриптом, бинарники не храним
 addons/godotsteam/
+tools/research/qol_signs/out*/
