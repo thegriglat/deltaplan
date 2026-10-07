@@ -80,6 +80,7 @@ var inspect_mode := false
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
+var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
 var _load_error := ""
 var _dt: float = 1.0 / 120.0
 var _whiteout := CloudWhiteout.new()
@@ -315,15 +316,17 @@ func start(s: FlightSettings) -> bool:
 	await get_tree().process_frame
 	world_link.link(terrain, air, glider)
 	_choose_start()
+	_site_heading = _start_heading
 	# Ветер прогноза (пилот): встречный или с заданного румба; выше старта сильнее.
 	air.call(
 		"set_wind",
 		settings.wind_speed_kmh,
-		_start_heading if settings.wind_into_launch else settings.wind_from_deg,
+		_site_heading if settings.wind_into_launch else settings.wind_from_deg,
 		_start_pos.y
 	)
 	# Среднее поле на час старта, ветер и погоду полёта — до термиков (их источники — из поля).
 	await _load_air_field(progress)
+	_align_start_heading()
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
 	# Верх дымки — на высоте инверсии (основание облаков).
@@ -502,6 +505,7 @@ func restart() -> void:
 	feed.cancel()  # полёт без посадки не засчитывается
 	camera.tight = false
 	queue_walk = {}
+	_align_start_heading()
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
 	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
@@ -529,6 +533,37 @@ func restart() -> void:
 		if not bool(n.get_meta("shares_tablet", false)) and n.get("vario90s") != null:
 			(n.get("vario90s") as VarioDisplay90s).reset()
 	camera.snap()
+
+
+## «Встречный» ветер: поле у земли поворачивает поток по рельефу, и на высоте крыла он приходит
+## сбоку — боковой поток кренит крыло на разбеге. Пилот встаёт носом против среднего ветра поля
+## у старта (без пульсаций, по нескольким точкам), но не дальше max_turn_deg от курса площадки.
+## Штиль (< min_speed_ms), аналитика (поля нет), ветер с румба и сеть — курс площадки.
+func _align_start_heading() -> void:
+	if settings == null or net != null or not settings.wind_into_launch:
+		return
+	_start_heading = _site_heading
+	if not air.has_method("is_air_field_on") or not air.call("is_air_field_on"):
+		return
+	var c: Dictionary = _cfg.get("start_wind_align", {})
+	var r := float(c.get("sample_radius_m", 15.0))
+	var hub := float(Config.value("flight", "takeoff.wing_height_m", 1.8))
+	var w := Vector2.ZERO
+	var n := 0
+	for o in [Vector2.ZERO, Vector2(r, 0), Vector2(-r, 0), Vector2(0, r), Vector2(0, -r)]:
+		var x: float = _start_pos.x + o.x
+		var z: float = _start_pos.z + o.y
+		var v: Vector3 = air.call("mean_wind_at", Vector3(x, terrain.height_at(x, z) + hub, z))
+		w += Vector2(v.x, v.z)
+		n += 1
+	w /= float(n)
+	if w.length() < float(c.get("min_speed_ms", 1.0)):
+		return
+	# Курс (0 = −Z, по часовой): вектор курса (sin h, −cos h); против ветра — вектор (−w.x, −w.y).
+	var want := rad_to_deg(atan2(-w.x, w.y))
+	var d := wrapf(want - _site_heading, -180.0, 180.0)
+	var lim := float(c.get("max_turn_deg", 60.0))
+	_start_heading = fposmod(_site_heading + clampf(d, -lim, lim), 360.0)
 
 
 ## Точка старта в воздухе: air_start_m по курсу старта, air_start_agl_m над рельефом там.
