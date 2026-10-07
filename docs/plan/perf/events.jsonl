@@ -1,1 +1,5 @@
 {"t": "2026-10-08T02:35:51", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-08T02:36:06", "by": "coordinator", "task": "PF-1", "ev": "created", "note": "Профиль кадра GPU и проверка настроек рендера"}
+{"t": "2026-10-08T03:44:03", "by": "coordinator", "task": "PF-1", "ev": "reported", "commits": ["04137014"], "note": "done: Замерен кадр CPU/GPU на low/medium/high (ongudai, altai medium) с разбивкой GPU по проходам и опытами-переключениями; п…", "dp_feedback": "dp job stop не убивает внуков (godot под timeout внутри скрипта задачи) — осиротевший godot продолжал писать и делил GPU с новым прогоном; нашёл через /proc вне песочницы (ps в песочнице видит 32 процесса). Нужен stop по группе процессов. dp docs index в копии задачи тянет дрейф реестров других модулей — нужен режим «только мои файлы» или перегенерация только в main."}
+{"t": "2026-10-08T03:44:35", "by": "coordinator", "task": "PF-1", "ev": "checked", "note": "2/2 report_exists=ok:exit 0; docs_ok=ok:exit 0"}
+{"t": "2026-10-08T03:44:42", "by": "coordinator", "task": "PF-1", "ev": "accepted", "note": "по отчёту: замеры, код игры не тронут"}

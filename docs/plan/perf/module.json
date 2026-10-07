@@ -4,5 +4,6 @@
   "contracts": "docs/contracts/perf.md",
   "branch": "feature/perf",
   "copy": "~/deltaplan-perf",
-  "created": "2026-10-08T02:35:51"
+  "created": "2026-10-08T02:35:51",
+  "code": "PF"
 }
