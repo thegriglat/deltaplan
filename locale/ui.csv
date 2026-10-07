@@ -151,6 +151,15 @@ gfx_low,Низкое (лёгкое),Low (light)
 gfx_medium,Среднее,Medium
 gfx_high,Высокое (полное),High (full)
 settings_render_scale,Масштаб рендера,Render scale
+settings_vsync,Вертикальная синхронизация,VSync
+settings_vsync_hint,Включена (кадры по частоте монитора),On (frames follow monitor refresh)
+settings_fps_limit,Предел кадров,Frame rate limit
+settings_fps_unlimited,Без предела,Unlimited
+settings_window_mode,Режим окна,Window mode
+settings_window_windowed,Оконный,Windowed
+settings_window_fullscreen,Полноэкранный,Fullscreen
+settings_resolution,Разрешение окна,Window resolution
+settings_resolution_current,Как есть,As is
 settings_grass_density,Густота травы,Grass density
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
