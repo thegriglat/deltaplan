@@ -35,3 +35,7 @@
 {"t": "2026-10-07T21:20:54", "by": "main", "task": "QL-1", "ev": "reported", "commits": ["b8c5c2cc", "тесты"], "note": "done: Q-01…Q-05 сделаны: Game.flight_no и info.flight_no (QL-К1), итог старого полёта отбрасывается; любая клавиша после каса…", "dp_feedback": "dp accept не делает godot --import после правки locale/*.csv — ложные падения тестов с переводами."}
 {"t": "2026-10-07T21:36:46", "by": "executor", "task": "QL-1", "ev": "checked", "note": "4/5 contracts/test_qol=ok:2/2; game/=FAIL:таймаут; ui/=ok:94/94; docs=ok:exit 0; qol_md=ok:0"}
 {"t": "2026-10-07T21:40:06", "by": "coordinator", "task": "QL-6", "ev": "cancelled", "note": "решение пользователя 07.10: Q-07 не делать в модуле; прогоны остановлены, сделанное сохраняется в qol/QL-6 без доработки"}
+{"t": "2026-10-07T21:40:19", "by": "executor", "task": "QL-6", "ev": "note", "note": "QL-6 отменена (Q-07 отложен): 20/32 замеров, коммит eba1bacc в qol/QL-6"}
+{"t": "2026-10-07T21:40:40", "by": "coordinator", "task": "QL-6", "ev": "note", "commits": ["46c68d8e"], "note": "данные прерванного замера влиты (tools/research/qol_load, 20/32): этап ветра 14–21 с; ветер 1 м/с 9:00 — 49–52 с (3000 ит.); штиль 9:00 Онгудай 37 с; таймаутов нет"}
+{"t": "2026-10-07T21:45:49", "by": "coordinator", "task": "QL-13", "ev": "created", "note": "Предел кадров, VSync, разрешение и режим окна"}
+{"t": "2026-10-07T21:46:18", "by": "coordinator", "task": "QL-13", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-13"}

@@ -1,0 +1,50 @@
+{
+  "id": "QL-13",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Предел кадров, VSync, разрешение и режим окна",
+  "goal": "GPU не должен работать на 100 % без нужды: в настройках графики — VSync и предел FPS, режим окна и разрешение (отзыв игрока с itch).",
+  "plan_ref": "QL-13",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-13",
+  "branch": "qol/QL-13",
+  "base": "feature/qol",
+  "scope": [
+    "scripts/ui/settings_panel.gd",
+    "scenes/ui/settings_panel.tscn",
+    "scripts/game/graphics_presets.gd",
+    "scripts/game/launch_options.gd",
+    "configs/",
+    "locale/",
+    "tests/ui/",
+    "docs/guide/"
+  ],
+  "dont_touch": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/flight/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "graphics",
+      "tests": "graphics"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T21:45:49"
+}
