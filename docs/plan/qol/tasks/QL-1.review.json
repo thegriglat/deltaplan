@@ -1,0 +1,29 @@
+{
+  "verdict": "rework",
+  "summary": "QL-К1 соблюдён (flight_no, info.flight_no, restart(keep_clock), отброс итога в _show_result), скоуп чистый, тесты Q-01…Q-05 содержательные. Но ожидание итога переписано на цикл по process_frame, и в одиночной Esc в первые result_delay_s после посадки теряет итог насовсем. 3 падения game/ те же, что на базе feature/qol (язык и коллизии), это не регрессия.",
+  "issues": [
+    {
+      "file": "scenes/main.gd",
+      "line": 425,
+      "severity": "major",
+      "what": "Регрессия: раньше create_timer(result_delay_s, false) стоял, пока дерево на паузе. Новый цикл `await process_frame; left -= get_process_delta_time()` считает время и на паузе, потому что process_frame приходит при paused дерева. В одиночной: посадка, затем Esc в течение 2 с, цикл доходит до конца при state=PAUSED, а _keep_net_result кладёт итог в _pending_result только при net != null. Итог пропадает, у Game _ended=true, и flight_ended второй раз не придёт. После «Продолжить» пилот стоит на земле без итога.",
+      "fix": "В цикле не уменьшать left, пока get_tree().paused (или state != FLYING в одиночной), либо ждать create_timer(left, false) с проверкой _skip_result. Другой путь: в одиночной тоже класть итог в _pending_result. Нужен тест «посадка → пауза → 3 с → продолжить → итог показан»."
+    },
+    {
+      "file": "scenes/main.gd",
+      "line": 210,
+      "severity": "minor",
+      "what": "Q-02: после ≥0,5 с на земле любая клавиша, в том числе управления, сразу засчитывает посадку (force_finish). Порог landing_skip_min_s=0,5 подобран без обоснования, пилот сам отметил его как сомнительный. Касание с отрывом при 0,5–1,5 с на земле и нажатой клавише станет «посадкой».",
+      "fix": "Принять как решение координатора или исключить из пропуска действия управления крылом. Менять не обязательно."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept QL-1 --only game/ --dry (39ec1711)",
+      "value": "156/159; FAIL test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys — те же 3, что на базе feature/qol (dp search: и в DD-1)",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-07T22:05:07",
+  "by": "reviewer"
+}
