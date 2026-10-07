@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с nan, nan / altai
+[load] classify     0.01 с  (к 0.19 с)
+[load] mesh         0.38 с  (к 0.57 с)
+[load] trees        2.99 с  (к 3.56 с)
+Terrain: локация 'altai' загружена за 3.64 с, чанков 160
+[load] grass        0.08 с  (к 3.64 с)
+[gap] 0.00 с: 3687 мс
+Terrain: поля рельефа за 3.61 с
+[load] weather      0.54 с  (к 4.18 с)
+[gap] 3.69 с: 531 мс
+WorldObjects: 'altai' за 2.52 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.603035, "wait_threads_s": 0.646442, "nodes_s": 0.05318, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+[load] objects      4.93 с  (к 9.11 с)
+[gap] 4.22 с: 4930 мс
+[gap] 9.15 с: 135 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [0, 0], фазы A 0.00, B 0.00, C 0.00, D 0.00, F 1.00, H 0.00 (925 мс), заморожено 1.00, ω→запас false
+air_model: поле 13:00 ч, 1.0 м/с с 276° (загрузка): 17.00 с, итераций [0, 0], тёплый старт, окна ["100 м [60, 160]", "50 м [100, 230]"]; k притока 0.300, U над стартом на 10 м 1.82 м/с (проход 1: 2.84), проходов 2 ["1.000 → 2.84 м/с за 7.9 с (область 3.3, GPU 0.10)", "0.300 → 1.82 м/с за 9.1 с (область 3.8, GPU 0.03)"]
+[load] wind        17.00 с  (к 26.11 с)
+[load] glider       5.23 с  (к 31.34 с)
+[load] всего 31.34 с
+WorldObjects: палаток у старта 3 из 5 за 495 мс
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=13.00&lat=51.82121&lon=85.85361&seed=643625358&sky=clear&temp=26.0&v=1&wind=1.0
+load_probe: итог полёт за 31.88 с, кадров 934
+load_probe: макс. интервал 4930 мс; >100 мс: ["4930@4.2", "3687@0.0", "531@3.7", "135@9.1"]
+load_probe: этап classify     0.01 с
+load_probe: этап mesh         0.38 с
+load_probe: этап trees        2.99 с
+load_probe: этап grass        0.08 с
+load_probe: этап weather      0.54 с
+load_probe: этап objects      4.93 с
+load_probe: этап wind        17.00 с
+load_probe: этап glider       5.23 с
+exit=0
