@@ -7,8 +7,10 @@
 
 layout(local_size_x = 256) in;
 
-layout(constant_id = 0) const int OP = 0;    // 0 — сумма, 1 — max|x|, 2 — Σ x·y
-layout(constant_id = 1) const int PASS = 0;
+layout(constant_id = 0) const uint OP_U = 0u;    // 0 — сумма, 1 — max|x|, 2 — Σ x·y
+#define OP int(OP_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
+layout(constant_id = 1) const uint PASS_U = 0u;
+#define PASS int(PASS_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 
 layout(set = 0, binding = 0, std430) readonly buffer BX { float x[]; };
 layout(set = 0, binding = 1, std430) readonly buffer BY { float y[]; };

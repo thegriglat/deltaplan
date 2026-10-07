@@ -10,7 +10,8 @@
 
 layout(local_size_x = 256) in;
 
-layout(constant_id = 0) const int OP = 0;
+layout(constant_id = 0) const uint OP_U = 0u;
+#define OP int(OP_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 
 layout(set = 0, binding = 0, std430) readonly buffer B0 { float in0[]; };
 layout(set = 0, binding = 1, std430) readonly buffer B1 { float in1[]; };

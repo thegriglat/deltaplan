@@ -38,8 +38,11 @@ layout(push_constant, std430) uniform PC {
 	vec4 f;
 } pc;
 
-// Параметры (AirCase.prm_array): числа одного решения.
+// Параметры (AirCase.prm_array): числа одного решения. Ядрам со своим буфером на привязке 0 — нет:
+// два буфера на одной привязке D3D12 не принимает (CreateComputePipelineState: E_INVALIDARG).
+#if !defined(K_RELAX) && !defined(K_FREEZE) && !defined(K_RMASK) && !defined(K_FIXROW) && !defined(K_PROLONG)
 layout(set = 0, binding = 0, std430) readonly buffer BPrm { float prm[]; };
+#endif
 const int P_DX = 0, P_DZ = 1, P_IDTU = 2, P_CD = 3, P_ZBOT = 4, P_RELAX = 5, P_CSDX2 = 6;
 const int P_IDTTH = 7, P_ITAU = 8, P_UAX = 9, P_UAY = 10, P_Z0 = 11, P_ZSAT = 12, P_ALPHA = 13;
 const int P_USTAR = 14, P_KFA = 15, P_FSC = 16, P_WINDY = 17, P_KAPPA = 18;

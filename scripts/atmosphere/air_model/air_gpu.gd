@@ -20,11 +20,16 @@ const RED_GROUPS := 1024
 const LINE_MAX := 1024
 ## Цена запуска для нарезки порций (AirGpuJob): группы × вес ядра + постоянная часть запуска.
 const LAUNCH_WEIGHT := 600.0
+## Порции легче — не в счёт худшей цены веса (там цену задаёт постоянная часть запуска).
+const WORST_MIN_W := 100000.0
 
 var rd: RenderingDevice
 var error := ""
 var scalars := RID()
 var dispatches := 0
+## Худшая замеченная цена единицы веса запусков на этом устройстве, мс (AirGpuJob.guard_ms);
+## общая для задач на одном RD (RuntimeGpu живёт всю игру). −1 — ещё не мерили.
+var worst_ms_per_w := -1.0
 
 var _shader := {}
 var _pipe := {}
@@ -54,23 +59,32 @@ func init(shaders: Array = SHADERS) -> bool:
 		var path: String = DIR + parts[0] + ".glsl"
 		var file := load(path) as RDShaderFile if ResourceLoader.exists(path) else null
 		if file == null:
-			error = "нет ядра %s.glsl" % parts[0]
-			return false
+			return _init_failed("нет ядра %s.glsl" % parts[0])
 		var spirv := file.get_spirv(StringName(parts[1]) if parts.size() > 1 else &"")
 		if spirv == null or spirv.compile_error_compute != "":
-			error = "ошибка компиляции %s.glsl: %s" % [
+			return _init_failed("ошибка компиляции %s.glsl: %s" % [
 				s, spirv.compile_error_compute if spirv else "нет SPIR-V"
-			]
-			return false
+			])
 		var sh := rd.shader_create_from_spirv(spirv, s)
 		if not sh.is_valid():
-			error = "драйвер не принял ядро %s.glsl" % s
-			return false
+			return _init_failed("драйвер не принял ядро %s.glsl" % s)
 		_shader[s] = sh
 	scalars = buffer(SCALARS)
 	_part = buffer(RED_GROUPS)
 	_dummy = buffer(4)
 	return true
+
+
+## Ядро не собралось: RD без всех ядер не годится (rd = null — «нет GPU», расчёт не начинается;
+## иначе задачи шли бы на устройстве с недостающими ядрами — D3D12 у пилота, 1.3.2).
+func _init_failed(msg: String) -> bool:
+	for sh: RID in _shader.values():
+		rd.free_rid(sh)
+	_shader.clear()
+	rd.free()
+	rd = null
+	error = msg
+	return false
 
 
 ## Освободить всё (буферы, наборы, конвейеры, ядра) и сам RD.
@@ -390,9 +404,18 @@ func zebra(c: RID, x: RID, b: RID, dims: Vector3i, dirs := [2, 0, 1], packed := 
 
 ## sweeps раз зебра по z, x, y одной группой (air_line.glsl MODE 3) — для самого грубого уровня:
 ## один запуск вместо 6·sweeps. Все размеры 2..1024.
+## Вес — по числу пакетов линий (одна группа идёт их подряд, цена — задержка, не объём):
+## ~600 на пакет (замер 07.10, RTX 4070 SUPER: 4×4×90, 20 раз — 200 пакетов, 3,1 мс), иначе
+## порция с этим запуском недооценена в десятки раз.
 func zebra_one_group(c: RID, x: RID, b: RID, dims: Vector3i, sweeps: int) -> void:
 	var pc := _pc([dims.x, dims.y, dims.z], [0, 0, 0, sweeps])
-	_dispatch("air_line:coarse", [3], [c, x, b, _dummy], pc, 1)
+	var batches := 0
+	for dir in [2, 0, 1]:
+		var n1 := dims.y if dir == 0 else dims.x
+		var n2 := dims.y if dir == 2 else dims.z
+		var lpg := 256 / _line_tpl(dims[dir])
+		batches += 2 * ceili(((n1 + 1) / 2) * n2 / float(lpg))
+	_dispatch("air_line:coarse", [3], [c, x, b, _dummy], pc, 1, 600.0 * batches * sweeps)
 
 
 func _scratch_buf(key: String, n: int) -> RID:
