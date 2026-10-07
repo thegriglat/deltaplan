@@ -273,8 +273,8 @@ func _rebuild() -> void:
 func _w_color(w: float) -> Color:
 	var t := clampf(w / w_scale_ms, -1.0, 1.0)
 	if t >= 0.0:
-		return Color(1.0, 1.0, 1.0).lerp(Color(0.15, 0.75, 1.0), t)  # подъём — голубой
-	return Color(1.0, 1.0, 1.0).lerp(Color(1.0, 0.2, 0.15), -t)  # опускание — красный
+		return Color(1.0, 1.0, 1.0).lerp(Color(1.0, 0.15, 0.1), t)  # подъём — красный, как F5
+	return Color(1.0, 1.0, 1.0).lerp(Color(0.1, 0.35, 1.0), -t)  # опускание — синий
 
 
 ## Стрелка вдоль локального +Z, единичной длины (масштаб — в transform экземпляра).
