@@ -1,0 +1,7 @@
+Deltaplan 1.3.2 — log in the game folder
+
+A small service release. When the game is installed through the itch.io app, its log is now written to the game folder, so it is easy to find and send if the game fails to start or crashes.
+
+Build:
+- The log is logs/godot.log next to deltaplan.exe / deltaplan.x86_64
+- Previous runs are kept as godot_<date>.log, the last 5
