@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""QL-5: сводка out/*.json -> table_places.csv, table_px.csv, summary_numbers.json."""
+"""QL-5/QL-8: сводка out/*.json -> table_places.csv, table_px.csv, summary_numbers.json."""
 import csv, glob, json, math, os, statistics as st
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -122,3 +122,82 @@ for kind in ("gpu", "ana"):
 summary["aggregate"] = agg
 json.dump(summary, open(os.path.join(HERE, "summary_numbers.json"), "w"), ensure_ascii=False, indent=1)
 print(json.dumps(agg, ensure_ascii=False, indent=1))
+
+
+# ---- QL-8: повтор замера после правок (мин. размер птицы в шейдере, 6 стай, хищные птицы) ----
+OUT8 = os.path.join(HERE, "out_ql8")
+# пересчёт на тех же данных с другим min_span_px (сим от него не зависит): QL8_MIN_PX=3 python3 summarize.py
+MIN_PX_OVERRIDE = float(os.environ["QL8_MIN_PX"]) if os.environ.get("QL8_MIN_PX") else None
+
+
+def eff_px(span_m, dist_m, min_px):
+    """Размах птицы на экране так же, как bird.gdshader: реальный, но не меньше min_span_px."""
+    return max(px(span_m, max(dist_m, 1.0), FOV), min_px)
+
+
+def any_ge2(d, min_px):
+    """Доля секунд, когда хотя бы одна птица >= 2 px: {точка: доля}."""
+    res = {}
+    for pname, p in d["points"].items():
+        ds = p["bird_distances_per_s"]
+        sp = p.get("bird_spans_per_s") or [[span] * len(x) for x in ds]
+        ok = sum(1 for dd, ss in zip(ds, sp) if any(eff_px(s_, x, min_px) >= 2.0 for x, s_ in zip(dd, ss)))
+        res[pname] = ok / len(ds) if ds else 0.0
+    return res
+
+
+def frac_table(directory, use_min):
+    out = {}
+    for f in sorted(glob.glob(os.path.join(directory, "*_*_*.json"))):
+        d = json.load(open(f))
+        kind = os.path.basename(f).split("_")[0]
+        mp = MIN_PX_OVERRIDE if (use_min and MIN_PX_OVERRIDE is not None) else (d["bird"].get("min_span_px", 0.0) if use_min else 0.0)
+        for pname, fr in any_ge2(d, mp).items():
+            out[(kind, d["location"], int(d["hour"]), pname)] = fr
+    return out
+
+
+if os.path.isdir(OUT8) and glob.glob(os.path.join(OUT8, "*_*_*.json")):
+    runs8 = {}
+    for f in sorted(glob.glob(os.path.join(OUT8, "*_*_*.json"))):
+        d = json.load(open(f))
+        runs8[(os.path.basename(f).split("_")[0], d["location"], int(d["hour"]))] = d
+    min_px = MIN_PX_OVERRIDE if MIN_PX_OVERRIDE is not None else next(iter(runs8.values()))["bird"]["min_span_px"]
+    before = frac_table(OUT, False)           # QL-5: без мин. размера
+    after = frac_table(OUT8, True)            # QL-8: с мин. размером, как в шейдере
+    after_nomin = frac_table(OUT8, False)     # QL-8: новые стаи, но без мин. размера (вклад стай отдельно)
+    q = {"min_span_px": min_px, "fov_v_deg": FOV, "frame_h_px": H,
+         "px_at_800m": round(eff_px(span, 800.0, min_px), 2),
+         "px_at_800m_real": round(px(span, 800.0, FOV), 2),
+         "px_at_300m": round(eff_px(span, 300.0, min_px), 2),
+         "px_at_1500m": round(eff_px(span, 1500.0, min_px), 2)}
+    for tag, tab in (("before_ql5", before), ("after_nomin", after_nomin), ("after", after)):
+        for kind in ("gpu", "ana"):
+            for pt in ("A", "B"):
+                v = [x for k, x in tab.items() if k[0] == kind and k[3].startswith(pt)]
+                if v:
+                    q[f"{tag}_{kind}_{pt}_min"] = round(min(v), 3)
+                    q[f"{tag}_{kind}_{pt}_mean"] = round(sum(v) / len(v), 3)
+    q["any_ge2px_frac_min"] = round(min(x for k, x in after.items() if k[0] == "gpu"), 3)
+    q["any_ge2px_frac_min_ana"] = round(min(x for k, x in after.items() if k[0] == "ana"), 3)
+    q["any_ge2px_frac_by_place_gpu"] = {
+        f"{k[1]}_{k[2]}_{k[3][0]}": round(x, 3) for k, x in after.items() if k[0] == "gpu"}
+    # Стаи и хищные птицы.
+    for kind in ("gpu", "ana"):
+        r = [d for k, d in runs8.items() if k[0] == kind]
+        pts = [p for d in r for p in d["points"].values()]
+        if not pts:
+            continue
+        q[f"{kind}_birds_mean"] = round(st.mean(
+            sum(len(x) for x in p["bird_distances_per_s"]) / len(p["bird_distances_per_s"]) for p in pts), 1)
+        q[f"{kind}_flock_spawns_mean"] = round(st.mean(p["flock_spawns"] for p in pts), 1)
+        rs = [x for p in pts for x in p.get("raptors_per_s", [])]
+        if rs:
+            q[f"{kind}_raptors_mean"] = round(sum(rs) / len(rs), 2)
+            q[f"{kind}_raptors_max"] = max(rs)
+            hs = [p["raptor_min_height_over_src_m"] for p in pts if p.get("raptor_min_height_over_src_m", -1) > 0]
+            q[f"{kind}_raptor_min_height_over_src_m"] = round(min(hs)) if hs else None
+        q[f"{kind}_dist_median_m"] = round(st.median([x for p in pts for s in p["bird_distances_per_s"] for x in s]))
+    summary["qol8"] = q
+    json.dump(summary, open(os.path.join(HERE, "summary_numbers.json"), "w"), ensure_ascii=False, indent=1)
+    print(json.dumps(q, ensure_ascii=False, indent=1))
