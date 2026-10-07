@@ -1,9 +1,8 @@
 {
   "status": "done",
-  "summary": "Q-01…Q-05 сделаны: Game.flight_no и info.flight_no (QL-К1), итог старого полёта отбрасывается; любая клавиша после касания — итог сразу; R в воздухе — удержание restart_hold_s с полоской; в одиночной «На старт» (restart(true), часы идут) и «Продолжить пешком» (после мягкой/жёсткой посадки).",
+  "summary": "Доработка по ревью: итог не теряется на паузе в одиночной (таймер ожидания стоит на паузе); до подтверждения посадки клавиши управления крылом (W/S/A/D, стрелки, Shift) ожидание не пропускают, прочие пропускают, после подтверждения — любая. feature/qol (QL-3, QL-13) влит, конфликты main.gd/ui.csv решены (оба набора сохранены, два _process объединены).",
   "commits": [
-    "b8c5c2cc QL-1: цикл «упал — снова» (Q-01…Q-05)",
-    "тесты game/ под новые кнопки и удержание R"
+    "слияние feature/qol + доработка (main.gd, test_qol_cycle.gd)"
   ],
   "checks": [
     {
@@ -12,18 +11,13 @@
       "pass": true
     },
     {
-      "name": "ui/",
-      "value": "94/94",
-      "pass": true
-    },
-    {
       "name": "game/",
-      "value": "159 тестов, 3 упало: test_collisions_in_real_world (падает и в основной копии), test_result_texts и test_controls_screen_lists_keys (порядок/язык: по отдельности зелёные)",
+      "value": "162/165: 3 базовых падения (язык): test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys",
       "pass": false
     },
     {
-      "name": "новые тесты tests/game/test_qol_cycle.gd",
-      "value": "8/8",
+      "name": "ui/",
+      "value": "97/97",
       "pass": true
     },
     {
@@ -35,26 +29,24 @@
       "name": "docs",
       "value": "exit 0",
       "pass": true
-    }
-  ],
-  "not_done": [
-    "Скриншот не снимал"
-  ],
-  "questions": [],
-  "how_to_check": "dp accept QL-1; godot --headless ... --filter=qol",
-  "uncertain": [
-    {
-      "where": "scenes/main.gd:_skip_on_key",
-      "why": "любая клавиша после касания (≥ landing_skip_min_s=0.5 с на земле) сразу засчитывает посадку; порог 0,5 с выбран мной, чтобы подскок при нажатых стрелках не кончал полёт",
-      "checked": "тест test_key_skips_landing_confirm"
     },
     {
-      "where": "locale/ui.csv",
-      "why": "после правки csv нужен godot --import в копии, иначе переводы пропадают (первый accept дал ложные падения)",
-      "checked": "после импорта зелёно"
+      "name": "новые тесты",
+      "value": "test_pause_does_not_lose_result, test_control_keys_do_not_skip_unconfirmed — зелёные",
+      "pass": true
     }
   ],
-  "dp_feedback": "dp accept не делает godot --import после правки locale/*.csv — ложные падения тестов с переводами.",
-  "t": "2026-10-07T21:20:54",
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept QL-1",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd:_is_wing_control",
+      "why": "список клавиш управления: действия из controls.json (pitch/roll/center/run/walk/turn) плюс W/S/A/D, стрелки, Shift; геймпад и мышь не считаются клавишами и ожидание не пропускают",
+      "checked": "тест на все перечисленные клавиши"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-07T22:20:20",
   "by": "main"
 }

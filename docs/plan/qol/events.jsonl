@@ -67,3 +67,5 @@
 {"t": "2026-10-07T22:07:05", "by": "coordinator", "task": "QL-12", "ev": "accepted", "commits": ["e9115f91"], "note": "4/4 ui/=ok:102/102; menu=ok:22/22; docs=ok:exit 0; qol_md=ok:0"}
 {"t": "2026-10-07T22:07:26", "by": "coordinator", "task": "QL-9", "ev": "created", "note": "Ласточки, стрижи, пух и мусор над источниками (Q-28, T-28)"}
 {"t": "2026-10-07T22:07:51", "by": "coordinator", "task": "QL-9", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-9"}
+{"t": "2026-10-07T22:20:20", "by": "main", "task": "QL-1", "ev": "reported", "commits": ["слияние"], "note": "done: Доработка по ревью: итог не теряется на паузе в одиночной (таймер ожидания стоит на паузе); до подтверждения посадки кл…"}
+{"t": "2026-10-07T22:24:18", "by": "coordinator", "task": "QL-11", "ev": "created", "note": "«Подождать час» на земле (Q-17)"}

@@ -1,0 +1,68 @@
+{
+  "id": "QL-11",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "«Подождать час» на земле (Q-17)",
+  "goal": "На старте можно подождать час: время мира идёт ×60 живьём (солнце, тени, облака, термики, конусы), пересчёт ветра по обычному расписанию; в полёте ускорения нет.",
+  "plan_ref": "QL-11",
+  "contracts": [
+    {
+      "name": "QL-К1",
+      "version": "1",
+      "ref": "docs/contracts/qol.md"
+    }
+  ],
+  "copy": "~/deltaplan-qol-QL-11",
+  "branch": "qol/QL-11",
+  "base": "feature/qol",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/pause_menu.gd",
+    "scenes/ui/pause_menu.tscn",
+    "scripts/world/sun_clock.gd",
+    "scripts/atmosphere/atmo_day.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "configs/game.json",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "tests/atmosphere/",
+    "docs/guide/",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/air_model/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "game/",
+      "tests": "game/",
+      "timeout": 2400
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "atmosphere/",
+      "tests": "atmosphere/",
+      "timeout": 2400
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-17 ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T22:24:18"
+}
