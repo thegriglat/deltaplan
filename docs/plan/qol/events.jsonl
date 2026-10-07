@@ -83,3 +83,5 @@
 {"t": "2026-10-07T22:47:58", "by": "coordinator", "task": "QL-11", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-11; параллельно с QL-7"}
 {"t": "2026-10-07T23:00:38", "by": "coordinator", "task": "QL-8", "ev": "note", "note": "прежний исполнитель остановлен с прежним координатором (без отчёта); новый dp-engineer продолжает в той же копии с cced6e50"}
 {"t": "2026-10-07T23:00:38", "by": "coordinator", "task": "QL-9", "ev": "note", "note": "прежний исполнитель остановлен с прежним координатором (без отчёта, замер s9_gpu_* не закоммичен); новый dp-engineer продолжает в той же копии с 92478639"}
+{"t": "2026-10-07T23:01:17", "by": "coordinator", "task": "QL-1", "ev": "checked", "commits": ["651010ba"], "note": "4/5 contracts/test_qol=ok:2/2; game/=FAIL:162/165 (пропуск 1); FAIL tes…; ui/=ok:103/103; docs=ok:exit 0; qol_md=ok:0"}
+{"t": "2026-10-07T23:01:28", "by": "coordinator", "task": "QL-1", "ev": "merged", "note": "651010ba; на ветке модуля: ui/ 103/103, контракт 2/2, game/ — только 3 базовых падения"}
