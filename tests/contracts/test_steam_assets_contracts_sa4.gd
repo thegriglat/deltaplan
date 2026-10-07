@@ -1,11 +1,11 @@
 extends TestCase
-## SA-4: SA-К2 v3 (docs/contracts/steam-assets.md): набор licenses/*.txt,
+## SA-4: SA-К2 v5 (docs/contracts/steam-assets.md): набор licenses/*.txt,
 ## генератор THIRD_PARTY_NOTICES.txt, строки с атрибуцией есть в файле и в тексте «Об игре».
 ## Без сети и GPU; нужен python3 (как у build_inventory).
 
 const SET := [
 	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT",
-	"MIT-debug_draw_3d", "MIT-debug_menu", "MIT-godotsteam",
+	"MIT-debug_menu", "MIT-godotsteam",
 	"OFL-1.1", "CC-BY-4.0", "CC0-1.0",
 	"ODbL-1.0", "copernicus-dem",
 ]
