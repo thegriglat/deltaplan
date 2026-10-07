@@ -1,0 +1,23 @@
+Deltaplan 1.3.0 — wind by flow regime
+
+Wind over terrain is now computed by flow regime. The game decides where the air flows over a slope, separates behind a ridge, forms lee waves, stays calm, drains down the slopes in the evening or rises in free convection. Where the flow is complex, a GPU solver refines the field; elsewhere a ready regime model gives it directly. Sites load faster.
+
+The wind neural network is gone, so the Windows build no longer needs ONNX Runtime or the Visual C++ Redistributable.
+
+Wind over terrain:
+- Flow regimes: slope flow, ridge separation, lee waves, calm, evening drainage, free convection
+- GPU solver for slope flow, separation and waves; regime models elsewhere
+- Faster site loading (coarse start of the solver)
+- In light wind, when the solver does not converge, the field is averaged over the last iterations
+- The lee of a ridge now behaves like a rotor: reverse flow near the slope, chop and gusts from above
+- Wind menu: Computed (regimes + GPU solver) and Heuristic (no terrain); without a GPU the heuristic is used
+
+Pilot:
+- More natural launch run: feet under the body, smooth forward lean during the run
+
+Interface:
+- English is the default language; Russian is available in the main menu and settings
+
+Debug:
+- Wind arrows (F5) drawn by the game itself; Debug Draw 3D extension removed
+- Wind regime map layer (F4 in wind debug)
