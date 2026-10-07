@@ -1,0 +1,97 @@
+{
+  "id": "DD-1",
+  "module": "debug-draw",
+  "type": "dp-engineer",
+  "title": "Удалить Debug Draw 3D, стрелки ветра F5 — своим кодом",
+  "goal": "Решение пользователя: убрать GDExtension Debug Draw 3D из проекта целиком; отладочные стрелки ветра (F5) рисовать своим кодом на штатных средствах Godot 4.7.2, по смыслу как раньше (направление, величина, цвет).",
+  "plan_ref": "DD-1",
+  "contracts": [
+    {
+      "name": "SA-К1",
+      "version": "3",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К2",
+      "version": "5",
+      "ref": "docs/contracts/steam-assets.md"
+    },
+    {
+      "name": "SA-К3",
+      "version": "4",
+      "ref": "docs/contracts/steam-assets.md"
+    }
+  ],
+  "copy": "~/deltaplan-debug-draw-DD-1",
+  "branch": "debug-draw/DD-1",
+  "base": "feature/debug-draw",
+  "scope": [
+    "addons/debug_draw_3d/",
+    "licenses/MIT-debug_draw_3d.txt",
+    "scripts/game/debug_overlays.gd",
+    "export_presets.cfg",
+    "tools/release/build_inventory.py",
+    "tools/release/third_party_notices.py",
+    "ASSETS.md",
+    "docs/plan/steam-assets.md",
+    "TODO.md",
+    "tests/game/test_debug_overlays.gd",
+    "tools/shots/debug_overlay_shot.gd"
+  ],
+  "dont_touch": [
+    "docs/archive/",
+    "docs/research/",
+    "tools/research/",
+    "docs/plan/*/",
+    "docs/contracts/",
+    "tests/contracts/",
+    "addons/debug_menu/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "debug_overlays",
+      "tests": "debug_overlays"
+    },
+    {
+      "name": "steam_assets_contracts",
+      "tests": "steam_assets_contracts"
+    },
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "no_addon",
+      "cmd": "test ! -e addons/debug_draw_3d && test ! -e licenses/MIT-debug_draw_3d.txt",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_refs",
+      "cmd": "git grep -n -i -E 'debugdraw3d|debug_draw_3d|dd3d' -- . ':!docs/archive' ':!docs/research' ':!tools/research' ':!docs/plan/*/**' ':!*.import' ':!docs/plan/debug-draw.md' ':!docs/contracts/steam-assets.md' ':!tests/contracts/test_steam_assets_contracts_sa3.gd' ':!docs/plan/air_nn.md' ':!docs/contracts/air-nn.md' ':!TODO.md'; test $? -eq 1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/DD-1/",
+      "expect": "re:\\.(png|jpg)"
+    },
+    {
+      "name": "import",
+      "cmd": "out=$(XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --import 2>&1); echo \"$out\" | tail -5; ! echo \"$out\" | grep -qi 'debug_draw\\|dd3d' && ! grep -q debug_draw .godot/extension_list.cfg",
+      "expect": "exit=0"
+    },
+    {
+      "name": "inventory",
+      "cmd": "python3 tools/release/build_inventory.py --preset all --check",
+      "expect": {
+        "exit": 0,
+        "re": "INVENTORY OK"
+      }
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T09:53:23",
+  "edited": "2026-10-07T09:53:31"
+}
