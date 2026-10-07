@@ -4,7 +4,7 @@ extends TestCase
 
 const ASSETS := "res://ASSETS.md"
 const VAGUE := ["как у", "то же", "как выше"]
-const ENGINE_ROWS := ["engine", "onnxruntime", "air_onnx", "godot-cpp", "debug_draw_3d", "debug_menu"]
+const ENGINE_ROWS := ["engine", "debug_draw_3d", "debug_menu"]
 
 
 func _tables() -> Array[Dictionary]:

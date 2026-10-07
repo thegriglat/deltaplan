@@ -4,10 +4,10 @@ extends TestCase
 ## Без сети и GPU; нужен python3 (как у build_inventory).
 
 const SET := [
-	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT", "MIT-godot-cpp", "onnxruntime-LICENSE",
-	"onnxruntime-ThirdPartyNotices", "MIT-debug_draw_3d", "MIT-debug_menu", "MIT-godotsteam",
+	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT",
+	"MIT-debug_draw_3d", "MIT-debug_menu", "MIT-godotsteam",
 	"OFL-1.1", "CC-BY-4.0", "CC0-1.0",
-	"ODbL-1.0", "copernicus-dem", "msvc-runtime",
+	"ODbL-1.0", "copernicus-dem",
 ]
 const ODBL := (
 	"Derived OpenStreetMap data (data/osm/, data/places/) is available under the ODbL 1.0 "
@@ -60,8 +60,7 @@ func test_generator_output() -> void:
 	for n in ["ODbL-1.0", "MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT"]:
 		check(FileAccess.file_exists(out.path_join("licenses/%s.txt" % n)), "licenses/%s.txt рядом" % n)
 	var win := _run_generator("Windows")
-	var msvc := win.path_join("licenses/msvc-runtime.txt")
-	check(FileAccess.file_exists(msvc), "msvc-runtime для Windows")
+	check(not FileAccess.file_exists(win.path_join("licenses/msvc-runtime.txt")), "для Windows msvc-runtime не нужен")
 	# Каждая упомянутая в файле лицензия лежит рядом.
 	var re := RegEx.create_from_string("([A-Za-z0-9._-]+)\\.txt")
 	for line in txt.split("\n"):

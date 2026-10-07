@@ -56,9 +56,8 @@ godot --path .          # run the game
 godot -e --path .       # open in the editor
 ```
 
-The wind neural network runs through the `AirOnnx` GDExtension (ONNX Runtime, C++), which has to be built separately,
-see [native/air_onnx/README.md](native/air_onnx/README.md). The game works without the extension: wind over terrain
-is computed on the GPU or with a simplified model.
+The wind in the game is computed by the solver on the GPU or by a simplified model; there is no neural network in the game
+(the network and its research stay in `tools/research/`).
 
 ### Tests and build
 
@@ -83,7 +82,6 @@ A relay written in Go, protobuf protocol: [server/README.md](server/README.md).
 | `scripts/`, `scenes/` | game code (GDScript) and scenes: flight, atmosphere, terrain, instruments, UI, network |
 | `configs/` | parameters: wings, atmosphere, controls, sites, missions |
 | `assets/` | models, textures, sounds, fonts; sources and licenses — [ASSETS.md](ASSETS.md) |
-| `native/` | `AirOnnx` GDExtension (C++) |
 | `server/` | multiplayer server (Go) |
 | `tests/` | tests (`godot --headless --path . res://tests/run_tests.tscn`) |
 | `tools/` | build, checks, Blender model generators, research (Python) |

@@ -1,6 +1,6 @@
 ---
 type: "contract"
-status: "active"
+status: "superseded"
 module: "air-onnx"
 updated: "2026-10-03"
 summary: "Контракты модуля air-onnx: формат .onnx сети области (O1), расширение ONNX Runtime (O2), вход/выход сети в GDScript (O3), вход из игры и страж (O4), AirRuntime engine=nn (O5), файл сети (O6)."
@@ -9,6 +9,8 @@ contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3",
 ---
 
 # Контракты модуля air-onnx
+
+> Удалено, см. air-phase P12/P13: нейросеть, расширение AirOnnx и ONNX Runtime убраны из игры (AP-21). Документ — история.
 
 План — `docs/archive/plan/air-onnx.md`. Источник правды по входу и выходу сети — код пилота
 `tools/research/air_nn_pilot/pilotnn/prep.py` (П2 v4, `docs/contracts/air-nn.md`) и экспорт

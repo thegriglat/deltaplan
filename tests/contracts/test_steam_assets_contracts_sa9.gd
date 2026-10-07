@@ -35,10 +35,3 @@ func test_exe_templates_and_microsoft_license() -> void:
 	check(text.contains("B True"), "шаблон <exe>/bar.*: %s" % text)
 	check(text.contains("C None"), "<exe> — не любой сегмент пути: %s" % text)
 
-
-func test_build_sh_no_pypi() -> void:
-	var s := FileAccess.get_file_as_string("res://native/air_onnx/build.sh")
-	check(not s.is_empty(), "нет build.sh")
-	check(not s.contains("pythonhosted"), "build.sh ссылается на PyPI")
-	check(s.contains("MSVC_REDIST_DIR"), "build.sh: источник DLL — MSVC_REDIST_DIR")
-	check(s.contains("MSVC_ACCEPT_LICENSE"), "build.sh: явное согласие с лицензией")
