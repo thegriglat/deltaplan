@@ -1052,3 +1052,8 @@ func _create_visuals() -> void:
 			_birds.name = "Birds"
 			add_child(_birds)
 			_birds.call("setup", self)
+	if bool(cfg.thermal_signs.enabled):
+		var signs := ThermalSigns.new()
+		signs.name = "ThermalSigns"
+		add_child(signs)
+		signs.setup(self)
