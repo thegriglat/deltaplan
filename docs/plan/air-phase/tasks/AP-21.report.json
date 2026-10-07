@@ -1,8 +1,9 @@
 {
-  "status": "partial",
-  "summary": "Сеть и GDExtension AirOnnx удалены целиком, build.sh/доки/тесты почищены; Windows-архив без DLL VC++/ONNX. Проверка no_onnx не доходит до 0: остаются слова redistribut* в текстах лицензий и история в контрактах/реестрах.",
+  "status": "done",
+  "summary": "Сеть, GDExtension AirOnnx, ONNX Runtime и VC++ runtime удалены из игры, сборки и доков; Windows-архив без DLL VC++/ONNX. dp accept --dry 7/7.",
   "commits": [
-    "см. git log air-phase/AP-21 (2 коммита: удаление сети; тест лицензий)"
+    "a9fca9fa Сеть удалена из игры (AP-21, P13 v2)",
+    "c9034a1f Тест лицензий: VC++ runtime для Windows не нужен"
   ],
   "checks": [
     {
@@ -21,50 +22,36 @@
       "pass": true
     },
     {
+      "name": "no_onnx",
+      "value": "0",
+      "pass": true
+    },
+    {
       "name": "build_linux",
       "value": "exit 0",
       "pass": true
     },
     {
       "name": "build_windows",
-      "value": "exit 0 (без запекания шейдеров — нет дисплея)",
+      "value": "exit 0 (без запекания шейдеров, нет дисплея)",
       "pass": true
     },
     {
       "name": "smoke",
       "value": "exit 0",
       "pass": true
-    },
-    {
-      "name": "no_onnx",
-      "value": "98",
-      "pass": false
-    },
-    {
-      "name": "check.sh --filter=steam",
-      "value": "84/0 упало",
-      "pass": true
     }
   ],
   "not_done": [
-    "no_onnx=98: ~60 строк — 'redistribut*' в licenses/*.txt, assets/fonts/*.txt (OFL/Apache/Godot), бинарники; остальное — история в docs/contracts/{air-nn,air-nn-p3,air-synth,ann2,steam-assets,air-phase}.md, docs/registry/*, docs/INDEX.md (сводки), site/content/plans и research (ссылки на архивные планы air-onnx). Правил контракты других модулей/реестры решений не трогал. Предлагаю исключить из grep licenses, assets, data/terrain, docs/contracts, docs/registry, docs/INDEX.md, site/content/plans, site/content/research и взять паттерн redistributable|msvcp|vcruntime; в остальном (скрипты, конфиги, README, ASSETS, build, tests) чисто.",
-    "В Windows-архиве кроме deltaplan.exe+deltaplan.pck лежат libdd3d.windows.*.dll (Debug Draw 3D, не связан с сетью; debug: editor.dll, release: template_release.enabled.dll), configs/, licenses/, THIRD_PARTY_NOTICES.txt — как раньше. Не трогал."
+    "steam-assets.md строки 19/30/47 — ждут решения пользователя",
+    "libdd3d dll в Windows-архиве — вопрос пользователю у координатора"
   ],
-  "questions": [
-    "Нужно ли убрать libdd3d dll из Windows-архива (release-экспорт её тоже кладёт)?"
-  ],
-  "how_to_check": "tools/build.sh windows; unzip -l build/deltaplan-windows.zip; dp accept AP-21 --dry",
-  "uncertain": [
-    {
-      "where": "docs/contracts/steam-assets.md:19,30,47,49",
-      "why": "контракт SA ещё называет msvc-runtime/onnxruntime/godot-cpp как компоненты",
-      "checked": "поправил только строку 49 (раздел движок и библиотеки); ASSETS.md, тесты sa3/sa4/sa9 и third_party_notices.py приведены в соответствие; правку остальных строк контракта оставляю координатору"
-    }
-  ],
+  "questions": [],
+  "how_to_check": "dp accept AP-21 --dry",
+  "uncertain": [],
   "dp_feedback": [
-    "Проверка no_onnx с шаблоном 'redist' ловит лицензии (redistribute) — шаблон в карточке надо сузить.",
-    "dp accept --dry идёт >10 мин в foreground, нужен режим по одной проверке (--only build_windows)."
+    "dp accept --dry долгий; --only есть, но не было видно из справки карточки."
   ],
-  "t": "2026-10-07T03:18:02",
+  "t": "2026-10-07T05:12:59",
   "by": "executor"
 }
