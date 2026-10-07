@@ -196,3 +196,4 @@
 {"t": "2026-10-07T05:01:15", "by": "executor", "task": "AP-20", "ev": "checked", "note": "3/3 air_runtime=ok:5/5 (пропуск 2); gpu=ok:exit 0; no_magic=ok:3"}
 {"t": "2026-10-07T05:02:10", "by": "reviewer", "task": "AP-20", "ev": "reviewed", "note": "Повторное ревью после доработки: полная заморозка обработана — 0 итераций, сразу FINAL с _rec_freeze, деления на число свободных клеток защищены maxf(...,1), A…", "verdict": "accept", "review": "docs/plan/air-phase/tasks/AP-20.review.json"}
 {"t": "2026-10-07T05:02:42", "by": "coordinator", "task": "AP-20", "ev": "accepted", "note": "по повторному ревью (accept, замечаний нет): GPU 59/0, no_magic 3; старт — грубый 1200 м, ω = 1 + запасное, заморозка Дирихле, запасной путь по сходимости, меню Эвристика/Расчёт; кадр ≤ ~130 мс (оптимизация отложена)"}
+{"t": "2026-10-07T05:02:52", "by": "coordinator", "task": "AP-20", "ev": "merged"}
