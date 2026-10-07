@@ -43,24 +43,26 @@
     },
     {
       "name": "game/",
-      "tests": "game/"
+      "tests": "game/",
+      "timeout": 2400
     },
     {
       "name": "ui/",
       "tests": "ui/"
     },
     {
-      "name": "qol_md",
-      "cmd": "grep -cE '^- \\[ \\] Q-0[1-5] |^## Расхождения документации' QoL.md || true",
-      "expect": "num:^(\\d+) ==0"
-    },
-    {
       "name": "docs",
       "cmd": "/home/greg/deltaplan/tools/dp docs check",
       "expect": "exit=0"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-0[1-5] |^## Расхождения документации' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-07T20:23:20"
+  "created": "2026-10-07T20:23:20",
+  "edited": "2026-10-07T21:16:57"
 }

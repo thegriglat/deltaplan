@@ -14,6 +14,8 @@ extends Camera3D
 ## Параметры — configs/camera.json. Дальняя плоскость — от мира (SkyEnvironment.setup_camera).
 
 signal mode_changed(mode: String)
+## Пилот сам сменил камеру клавишей (не set_mode из кода) — запомнить выбор.
+signal mode_chosen(mode: String)
 
 ## Порядок _process: после планера (он интерполирует своё положение в _process).
 const PROCESS_PRIORITY := 10
@@ -95,6 +97,7 @@ func next_mode() -> void:
 	if locked_free:
 		return
 	set_mode(_modes[(_modes.find(mode) + 1) % _modes.size()])
+	mode_chosen.emit(mode)
 
 
 func set_head(n: Node3D) -> void:

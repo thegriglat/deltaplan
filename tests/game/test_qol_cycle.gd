@@ -220,3 +220,46 @@ func test_result_buttons_single() -> void:
 	rs.continue_on_foot_requested.emit()
 	check(not rs.visible and main.get("state") == 2 and game.flight_no == n + 1, "пешком: полёт +1")
 	await _stop(main)
+
+
+## Ревью: посадка → пауза → 3 с → продолжить — итог не потерян (таймер на паузе стоит).
+func test_pause_does_not_lose_result() -> void:
+	var main := await _start()
+	var game: Game = main.get_node("Game")
+	var rs: Control = main.get_node("UI/ResultScreen")
+	_drop(game, true)
+	await get_tree().process_frame
+	main.call("_pause")
+	await get_tree().create_timer(float(Config.value("game", "result_delay_s")) + 1.0).timeout
+	check(not rs.visible, "на паузе итог не показан")
+	main.call("_resume")
+	await get_tree().create_timer(float(Config.value("game", "result_delay_s")) + 0.5).timeout
+	check(rs.visible and main.get("state") == 4, "после «Продолжить» итог показан")
+	await _stop(main)
+
+
+## Пока посадка не подтверждена, клавиши управления крылом ожидание не пропускают, прочие — да;
+## после подтверждения любая клавиша — итог сразу.
+func test_control_keys_do_not_skip_unconfirmed() -> void:
+	var main := await _start()
+	var game: Game = main.get_node("Game")
+	var rs: Control = main.get_node("UI/ResultScreen")
+	_drop(game, false)
+	check(game.stats.grounded_pending_s() > 0.6, "касание, посадка не подтверждена")
+	for code in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SHIFT]:
+		_key(main, code)
+	await _settle()
+	check(not rs.visible and main.get("state") == 2, "клавиши управления не пропускают")
+	_key(main, KEY_F5)
+	await _settle()
+	check(rs.visible, "прочая клавиша пропускает")
+	await _stop(main)
+	main = await _start()
+	game = main.get_node("Game")
+	rs = main.get_node("UI/ResultScreen")
+	_drop(game, true)
+	await get_tree().process_frame
+	_key(main, KEY_W)
+	await _settle()
+	check(rs.visible, "после подтверждения любая клавиша — итог сразу")
+	await _stop(main)

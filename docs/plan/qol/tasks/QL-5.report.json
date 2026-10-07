@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Замер на 4 местах x 13/15 ч (поле фазы+Пикар GPU и аналитика): птицы есть всегда (3 стаи, ~10 птиц), но медиана дальности 1,1 км при размахе 1,6 м даёт 1,4 px; главная причина - размер/дальность.",
+  "commits": [
+    "1360b3fc QL-5: замер птиц и признаков термика"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "---",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "json",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept QL-5",
+  "uncertain": [
+    {
+      "where": "tools/research/qol_signs/signs_probe.gd",
+      "why": "наблюдатель неподвижен, направление взгляда не учтено; один сид мира",
+      "checked": "расчёт по 3D-дальности (верхняя оценка), 8 прогонов GPU + 8 аналитика"
+    }
+  ],
+  "dp_feedback": "Нет команды для запуска Godot-пробы с временным профилем и замком gpu одной строкой; писал run.sh вручную.",
+  "extra": {
+    "bird_span_m": 1.6,
+    "px_fov60": {
+      "300": 4.7,
+      "800": 1.8,
+      "1500": 0.94
+    },
+    "dist_2px_m_fov60": 748,
+    "thermals_all_gpu": 1744,
+    "pass_filter_gpu_A": 20.1,
+    "pass_filter_gpu_B": 13.4,
+    "pass_filter_analytic": "7-9",
+    "flocks_10min": 3,
+    "birds_mean": 10,
+    "median_dist_m": 1100,
+    "share_px_ge2_A": 0.243,
+    "share_px_ge2_B": 0.113,
+    "share_px_ge5": "0-0.015",
+    "dust_3km_10min": "4.6-5 (gpu), 1-2 (analytic)",
+    "clouds_5km_max_simult": "78/60 (gpu), 31 (analytic)",
+    "span_x2_time_frac_ge2px": "0.86/1.0",
+    "span_x3": "0.99/1.0"
+  },
+  "t": "2026-10-07T20:52:01",
+  "by": "executor"
+}
