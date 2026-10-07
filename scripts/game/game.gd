@@ -150,6 +150,7 @@ func _ready() -> void:
 	camera.ground_fn = terrain.height_at
 	camera.keys_look_fn = input_controller.keys_look  # У2 v2: W/S/A/D в полёте — обзор головой
 	camera.mode_changed.connect(func(_m: String) -> void: _update_overlay())
+	camera.mode_chosen.connect(_on_camera_chosen)
 	overlay.use_instrument(instrument)
 	glider.telemetry_updated.connect(_on_telemetry)
 	glider.landed.connect(_on_landed)
@@ -603,7 +604,7 @@ func set_flying(on: bool) -> void:
 	set_input_enabled(on)
 	camera.set_mode(
 		(
-			String(Config.value("camera", "default_mode"))
+			UserSettings.start_camera()
 			if on
 			else String(_cfg.get("menu_camera_mode", "chase"))
 		)
@@ -613,6 +614,12 @@ func set_flying(on: bool) -> void:
 	if on:
 		flight_audio.play_carabiner()
 	_update_overlay()
+
+
+## Пилот выбрал камеру клавишей в полёте — следующий полёт начнётся с неё (Q-09).
+func _on_camera_chosen(m: String) -> void:
+	if flying_enabled and not inspect_mode:
+		UserSettings.save_start_camera(m)
 
 
 ## Осмотр карты: свободная камера, крыло скрыто и стоит, стрелки ветра включены.

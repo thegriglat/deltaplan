@@ -18,7 +18,12 @@ func _ready() -> void:
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 24)
 	grid.add_theme_constant_override("v_separation", 6)
-	box.add_child(grid)
+	# Строк много (в т. ч. свободная камера) — список прокручивается, «Назад» всегда на виду.
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size.y = clampf(get_viewport_rect().size.y * 0.68, 300.0, 900.0)
+	box.add_child(scroll)
+	scroll.add_child(grid)
 	for row in rows():
 		if row.has("section"):
 			var h := UiKit.label(grid, String(row.section), "HeaderLabel")
@@ -49,6 +54,23 @@ static func rows() -> Array[Dictionary]:
 			k = key_names(keys.get(String(r.action), []))
 		out.append({"keys": k, "text": TranslationServer.translate(String(r.text))})
 	return out
+
+
+## Подсказка на старте (Q-08), левая часть: клавиши разбега и полёта — из controls.json.
+static func start_hint_keys_text() -> String:
+	var k: Dictionary = Config.get_config("controls").get("keys", {})
+	var nose := key_names(k.get("pitch_push_out", [])) + " / " + key_names(k.get("pitch_pull_in", []))
+	var bank := key_names(k.get("roll_left", [])) + " / " + key_names(k.get("roll_right", []))
+	return (
+		TranslationServer.translate("start_hint_keys")
+		% [key_names(k.get("run", [])), nose, bank, key_names(k.get("walk_forward", []))]
+	)
+
+
+## Правая часть: мышь.
+static func start_hint_mouse_text() -> String:
+	var k: Dictionary = Config.get_config("controls").get("keys", {})
+	return TranslationServer.translate("start_hint_mouse") % key_names(k.get("mouse_capture", []))
 
 
 ## ["W", "Up"] → "W / ↑".

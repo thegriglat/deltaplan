@@ -432,3 +432,10 @@ places_dir_w,З,W
 places_dir_wnw,ЗСЗ,WNW
 places_dir_nw,СЗ,NW
 places_dir_nnw,ССЗ,NNW
+controls_screenshot,Снимок экрана (файл в папке снимков игры),Screenshot (saved to the game screenshots folder)
+controls_free_camera,Свободная камера (C — переключить вид),Free camera (C switches the view)
+controls_free_up,Свободная камера: вверх,Free camera: up
+controls_free_down,Свободная камера: вниз,Free camera: down
+controls_free_move,"Свободная камера: W/S/A/D — движение, Shift — быстрее, мышь — поворот, V — навести на планер","Free camera: W/S/A/D move, Shift faster, mouse turns, V aims at the glider"
+start_hint_keys,"Разбег: держите %s\nНос крыла: %s\nКрен: %s\nШаг вперёд: %s — подсказка уйдёт","Launch run: hold %s\nWing nose: %s\nBank: %s\nStep forward: %s — hint goes away"
+start_hint_mouse,"Мышь: нос и крен крыла (%s — захват мыши); средняя кнопка — взгляд вперёд","Mouse: wing nose and bank (%s captures the mouse); middle button — look ahead"

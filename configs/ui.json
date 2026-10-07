@@ -136,7 +136,26 @@
     {
       "action": "catch_up",
       "text": "controls_catch_up"
+    },
+    {
+      "action": "screenshot",
+      "text": "controls_screenshot"
+    },
+    {
+      "section": "controls_free_camera"
+    },
+    {
+      "action": "free_up",
+      "text": "controls_free_up"
+    },
+    {
+      "action": "free_down",
+      "text": "controls_free_down"
+    },
+    {
+      "text": "controls_free_move"
     }
   ],
+  "start_hint_doc": "Подсказка на старте каждого полёта (Q-08): слева start_hint_keys, справа start_hint_mouse, клавиши из controls.json; уходит на первое W или отрыв",
   "controls_help_doc": "Экран «Управление»: строки по порядку. section — заголовок; action — действие из controls.json (клавиши берутся оттуда); mouse — строка без клавиши, с подписью «Мышь»; text — объяснение простыми словами"
 }
