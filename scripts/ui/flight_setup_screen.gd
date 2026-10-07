@@ -46,6 +46,8 @@ var settings: FlightSettings
 var recent_places_path: String = RecentPlaces.PATH
 ## Каталог «Популярные места» (PP-К1); файла нет — кнопка скрыта. Тесты подставляют путь до _ready.
 var popular_places_path: String = ""
+## Список избранных условий (Favorites) — переопределяется в тестах.
+var favorites_path: String = Favorites.PATH
 
 var _groups: Array[Dictionary] = []
 var _wings: PackedStringArray = []  ## модели выбранного класса ("wings/<id>")
@@ -68,6 +70,7 @@ var _month_opt: OptionButton
 var _day: SpinBox
 var _pick_label: Label
 var _done_btn: Button
+var _fav_btn: Button
 var _map_layer: Control
 var _map: MapPicker
 var _pick_elev_m: float = NAN
@@ -138,6 +141,7 @@ func _build() -> void:
 	var bar := UiKit.button_bar(sp["footer"])
 	_done_btn = UiKit.button(bar, tr("setup_done"), _on_done)
 	_done_btn.custom_minimum_size.x = 160
+	_fav_btn = UiKit.button(bar, tr("setup_add_favorite"), _on_add_favorite)
 	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
 
 
@@ -403,6 +407,12 @@ func _collect() -> FlightSettings:
 		s.location_id = String(_sites[int(k)].location)
 		s.site_id = String(_sites[int(k)].site)
 	return s
+
+
+## «В избранное»: текущие условия экрана — в user://favorites.json (без выхода с экрана).
+func _on_add_favorite() -> void:
+	Favorites.add(_collect(), favorites_path)
+	_fav_btn.text = tr("fav_added")
 
 
 func _on_done() -> void:

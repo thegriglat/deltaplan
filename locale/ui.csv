@@ -451,3 +451,8 @@ controls_free_move,"Свободная камера: W/S/A/D — движени�
 start_hint_keys,"Разбег: держите %s\nНос крыла: %s\nКрен: %s\nШаг вперёд: %s — подсказка уйдёт","Launch run: hold %s\nWing nose: %s\nBank: %s\nStep forward: %s — hint goes away"
 start_hint_mouse,"Мышь: нос и крен крыла (%s — захват мыши); средняя кнопка — взгляд вперёд","Mouse: wing nose and bank (%s captures the mouse); middle button — look ahead"
 screenshot_saved,Снимок: %s,Screenshot: %s
+fav_wind,"%d м/с %s","%d m/s %s"
+menu_favorites,Избранное,Favorites
+setup_add_favorite,В избранное,Add to favorites
+fav_added,В избранном,Added to favorites
+fav_remove,Удалить,Remove
