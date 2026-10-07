@@ -120,7 +120,7 @@ func test_result_screen_net_buttons() -> void:
 	var near: Button = rs.get("_near")
 	var to_start: Button = rs.get("_to_start")
 	var again: Button = rs.get("_again")
-	check(not near.visible and not to_start.visible and again.visible, "одиночная: как раньше")
+	check(not near.visible and to_start.visible and again.visible, "одиночная: «На старт» и «Ещё раз»")
 	rs.set_net_mode(true, false)
 	check(not near.visible and to_start.visible and not again.visible, "сеть, в воздухе никого")
 	rs.set_net_mode(true, true)
@@ -132,7 +132,7 @@ func test_result_screen_net_buttons() -> void:
 	to_start.pressed.emit()
 	check(got == ["near", "start"], "сигналы кнопок (%s)" % [got])
 	rs.set_net_mode(false, true)
-	check(not near.visible and not to_start.visible and again.visible, "снова одиночная")
+	check(not near.visible and to_start.visible and again.visible, "снова одиночная")
 	rs.queue_free()
 
 

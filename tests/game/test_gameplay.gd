@@ -367,7 +367,14 @@ func test_restart_returns_to_start() -> void:
 	far.y = game.terrain.height_at(far.x, far.z) + 200.0
 	game.glider.reset_in_air(far, 90.0)
 	_ticks(game, 1.0)
+	# В воздухе R — удержание (Q-03): нажатие само полёт не стирает, удержание — стирает.
+	var n := game.flight_no
+	Input.action_press("restart")
 	main._unhandled_input(_action("restart"))
+	check(game.flight_no == n, "R в воздухе сразу не рестартует")
+	await get_tree().create_timer(float(Config.value("game", "restart_hold_s")) + 0.4).timeout
+	Input.action_release("restart")
+	check(game.flight_no == n + 1, "удержание R — рестарт")
 	game.tick(DT)
 	var p := game.glider.get_telemetry().position
 	var dh := Vector2(p.x - st.x, p.z - st.z).length()
