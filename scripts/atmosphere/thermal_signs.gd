@@ -60,6 +60,10 @@ func _swallow_mesh() -> Mesh:
 		st.add_vertex(Vector3(0, 0, -0.07 * h * 2.0))
 		st.add_vertex(Vector3(s * h, 0.0, h * 0.35))
 		st.add_vertex(Vector3(0, 0, h * 0.3))
+	# Тело сбоку (вертикальный клин): иначе в профиль, при горизонтальных крыльях, птицы не видно.
+	st.add_vertex(Vector3(0, 0, -0.14 * h))
+	st.add_vertex(Vector3(0, 0.2 * h, 0.35 * h))
+	st.add_vertex(Vector3(0, -0.2 * h, 0.35 * h))
 	# Раздвоенный хвост.
 	st.add_vertex(Vector3(0, 0, 0.1 * h))
 	st.add_vertex(Vector3(-0.25 * h, 0, h * 0.9))
@@ -111,6 +115,13 @@ func kinds_of(th: AtmoThermal) -> Array[String]:
 	return out
 
 
+## Дальность видимости вида признака, м: не дальше, чем глаз различает объект его размера
+## (size / eye_res_mrad) и не дальше radius_m.
+func range_of(kind: String) -> float:
+	var size := float(cfg.swallow_span_m) if kind == "swallow" else float(cfg.fluff_size_m)
+	return minf(float(cfg.radius_m), size / (float(cfg.eye_res_mrad) * 1.0e-3))
+
+
 ## Пересобрать активные источники у точки eye: новые молодые термики с признаками добирают
 ## свободные слоты (ближние первыми), угасшие/далёкие убираются.
 func refresh(eye: Vector3) -> void:
@@ -128,7 +139,8 @@ func refresh(eye: Vector3) -> void:
 		if d2 > r2:
 			continue
 		for k in kinds_of(th):
-			cands.append([d2, int(th.id), k, th])
+			if d2 <= range_of(k) * range_of(k):
+				cands.append([d2, int(th.id), k, th])
 	cands.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var maxn := int(cfg.max_thermals)
 	var keep: Array[Dictionary] = []
@@ -205,20 +217,33 @@ func _swallow(th: AtmoThermal, i: int, t: float) -> Dictionary:
 	return {"pos": p, "vel": (p2 - p) / 0.1, "phase": rng.randf()}
 
 
+## Пух поднимается с воздухом: скорость подъёма w(τ) = сила·огибающая(τ) − оседание пушинки
+## (fluff_settle_ms); высота — интеграл w от момента отрыва (повтор отрыва каждые P с, P своё
+## у каждой частицы). Где w ≤ 0 — пух не поднимается (пустой результат).
 func _fluff(th: AtmoThermal, i: int, t: float) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = th.id * 9931 + i * 17 + 2
-	var life := rng.randf_range(float(cfg.fluff_life_s[0]), float(cfg.fluff_life_s[1]))
-	var u := fposmod((t + rng.randf() * life) / life, 1.0)
+	var period := rng.randf_range(float(cfg.fluff_period_s[0]), float(cfg.fluff_period_s[1]))
+	var off := rng.randf()
+	var t_rel := (floorf(t / period - off) + off) * period
+	var age := t - t_rel
+	var settle := float(cfg.fluff_settle_ms)
+	var h := 0.0
+	for j in 4:
+		var tau := t_rel + (float(j) + 0.5) * 0.25 * age
+		h += maxf(th.strength * th.envelope(tau) - settle, 0.0) * age * 0.25
 	var hmax := float(cfg.fluff_height_agl_m[1])
-	var h := lerpf(float(cfg.fluff_height_agl_m[0]), hmax, u)
+	if h <= 0.05 or h >= hmax:
+		return {}
+	var u := h / hmax
 	var lat := _lateral(th, "fluff_lateral_m", 0.4)
 	var ang := rng.randf() * TAU
 	var rr := lat * sqrt(rng.randf()) * (1.0 - 0.5 * u)
 	var sway := 2.0 * sin(t * rng.randf_range(0.4, 1.0) + ang)
 	var y := th.src.y + 0.5 + h
 	var a := th.axis_at(y)
-	var alpha := smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.7, 1.0, u))
+	var alpha := smoothstep(0.0, 3.0, age) * (1.0 - smoothstep(0.7 * period, period, age)) \
+		* (1.0 - smoothstep(0.7, 1.0, u))
 	return {
 		"pos": Vector3(a.x + cos(ang) * rr + sway, y, a.y + sin(ang) * rr),
 		"alpha": alpha, "debris": 1.0 if rng.randf() < 0.3 else 0.0,

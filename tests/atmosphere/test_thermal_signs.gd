@@ -115,3 +115,36 @@ func test_fluff_rises_and_swallows_darting() -> void:
 	check(v > 5.0 and v < 40.0, "скорость ласточки, м/с: %.1f" % v)
 	s.free()
 	a.free()
+
+
+func test_fluff_rises_with_thermal_air() -> void:
+	var a := _atmo()
+	var id := a.add_static_thermal(0.0, 0.0, 3.0, 150.0)
+	a.set_focus(Vector3(0, 300, 0))
+	a.step(1.0)
+	var s := ThermalSigns.new()
+	s.setup(a)
+	var th: AtmoThermal = a.field.thermals[id]
+	var settle := float(a.cfg.thermal_signs.fluff_settle_ms)
+	var pmax := float(a.cfg.thermal_signs.fluff_period_s[1])
+	var wmax := th.strength - settle
+	var n := 0
+	var bad := 0
+	for k in 300:
+		var d := s._fluff(th, k % 16, 100.0 + k * 1.3)
+		if d.is_empty():
+			continue
+		n += 1
+		if d.pos.y - th.src.y > wmax * pmax + 1.0:
+			bad += 1
+	check(n > 0, "пух виден")
+	check(bad == 0, "пух поднялся быстрее воздуха (w − оседание): %d" % bad)
+	# Слабее оседания — не поднимается.
+	th.strength = settle * 0.5
+	var up := 0
+	for k in 50:
+		if not s._fluff(th, k % 16, 100.0 + k * 1.3).is_empty():
+			up += 1
+	check(up == 0, "при w ≤ оседания пух лежит: %d" % up)
+	s.free()
+	a.free()
