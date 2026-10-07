@@ -92,4 +92,9 @@ static func auto_name(s: FlightSettings) -> String:
 		)
 		wind = t.call("fav_wind") % [ms, dir]
 	place = place.split(" — ")[-1]
-	return "%s, %s, %s, %s" % [place, SunClock.format_hour(s.start_hour), wind, s.wing_id().capitalize()]
+	return "%s, %s, %s, %s" % [place, SunClock.format_hour(s.start_hour), wind, _wing_name(s)]
+
+
+## Название крыла как на экране «Полёт…» (каталог крыльев, configs/wings).
+static func _wing_name(s: FlightSettings) -> String:
+	return TranslationServer.translate(String(Config.get_config(s.wing).get("name", s.wing_id())))

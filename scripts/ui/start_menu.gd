@@ -120,7 +120,8 @@ func _build() -> void:
 	)
 	_summary = UiKit.label(box, summary_text(settings), "HintLabel")
 	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_summary.custom_minimum_size.x = 300.0  # узкая колонка — слева остаётся место под «Избранное»
 	_setup_btn = UiKit.menu_button(
 		box, tr("menu_flight_setup"), func() -> void: setup_requested.emit()
 	)
@@ -139,7 +140,7 @@ func _build_favorites() -> void:
 	panel.name = "FavoritesPanel"
 	panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
 	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	panel.offset_left = 24.0
+	panel.offset_left = 12.0
 	add_child(panel)
 	_fav_box = VBoxContainer.new()
 	_fav_box.add_theme_constant_override("separation", 6)
@@ -168,9 +169,9 @@ func refresh_favorites() -> void:
 		_fav_box.add_child(row)
 		var b := UiKit.button(row, Favorites.auto_name(fs), func() -> void: fly_requested.emit(fs))
 		b.name = "Fly"
-		b.custom_minimum_size = Vector2(280, 36)
+		b.custom_minimum_size = Vector2(210, 36)
 		b.tooltip_text = b.text
-		b.add_theme_font_size_override("font_size", 15)
+		b.add_theme_font_size_override("font_size", 14)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.clip_text = true
 		b.disabled = _fly_btn != null and _fly_btn.disabled

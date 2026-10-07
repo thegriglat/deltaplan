@@ -37,7 +37,7 @@ func test_add_list_roundtrip_and_name() -> void:
 	var back := Favorites.settings_of(id, TMP_PATH)
 	check(back != null and back.to_dict() == s.to_dict(), "настройки те же")
 	var n := Favorites.auto_name(s)
-	check(n.contains("13:00") and n.contains("3 ") and n.contains("Sport"), "автоназвание: " + n)
+	check(n.contains("13:00") and n.contains("3 ") and n.contains(tr(String(Config.get_config("wings/sport").get("name", "sport")))), "автоназвание: " + n)
 	Favorites.add(s, TMP_PATH)
 	check(Favorites.list(TMP_PATH).size() == 1, "дубль не плодится")
 	_clean()
@@ -90,3 +90,38 @@ func test_setup_screen_adds_favorite() -> void:
 		check(is_equal_approx(float(items[0].settings.start_hour), 12.0), "час 12:00")
 	sc.queue_free()
 	_clean()
+
+
+## Окна 1280×720 и 1024×600 с 8 строками: панель «Избранное» не наезжает на колонку кнопок.
+func test_favorites_panel_does_not_overlap_menu_column() -> void:
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 600)]:
+		_clean()
+		for i in 8:
+			var s := _settings(6.0 + i, 10.8 + i)
+			s.sky = ["clear", "partly", "overcast"][i % 3]
+			Favorites.add(s, TMP_PATH, 1000.0 + i)
+		var vp := SubViewport.new()
+		vp.size = size
+		vp.disable_3d = true
+		add_child(vp)
+		var m: StartMenu = (load("res://scenes/ui/start_menu.tscn") as PackedScene).instantiate()
+		m.favorites_path = TMP_PATH
+		vp.add_child(m)
+		for i in 4:
+			await get_tree().process_frame
+		var fav: Control = m.get_node("FavoritesPanel")
+		check(fav.visible, "%s: панель видна" % size)
+		var fav_rect := fav.get_global_rect()
+		check(Rect2(Vector2.ZERO, Vector2(size)).encloses(fav_rect), "%s: панель в экране: %s" % [size, fav_rect])
+		var btns := m.find_children("*", "Button", true, false)
+		for b: Button in btns:
+			if fav.is_ancestor_of(b) or b.flat:
+				continue
+			check(not fav_rect.intersects(b.get_global_rect()), "%s: «%s» не под панелью" % [size, b.text])
+		var panel_rect := Rect2()
+		for pc: PanelContainer in m.find_children("*", "PanelContainer", true, false):
+			if pc != fav and not fav.is_ancestor_of(pc):
+				panel_rect = pc.get_global_rect()
+		check(not fav_rect.intersects(panel_rect), "%s: не наезжает на колонку %s vs %s" % [size, fav_rect, panel_rect])
+		vp.queue_free()
+		_clean()
