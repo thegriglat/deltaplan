@@ -1,0 +1,57 @@
+{
+  "id": "AP-6",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Метрики слоёв (P6), таблица признаков всех случаев, подгонка сигмоид",
+  "goal": "Критерий пользователя: качество поля — по тому, что берут следующие слои игры (термики, подъём у склонов, подветренные зоны и роторы), а не м/с. Нужны функции этих метрик по коду игры и одна таблица признаков всех случаев ap_v1/ap_v2 — вход задач разбора AP-8, AP-9, AP-11.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P6",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-6",
+  "branch": "air-phase/AP-6",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/layer_metrics.py",
+    "tools/research/air_phase/features.py",
+    "tools/research/air_phase/sigmoid.py",
+    "tools/research/air_phase/tests/test_layer_metrics.py",
+    "tools/research/air_phase/README.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/",
+    "configs/",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_layer_metrics.py tools/research/air_phase/tests/test_contract_phase.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "features_v1",
+      "cmd": "env AP_FEATURES=tools/research/air_phase/out/features_ap_v1.h5 /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k features_table",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "features_v2",
+      "cmd": "env AP_FEATURES=tools/research/air_phase/out/features_ap_v2.h5 /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k features_table",
+      "expect": "re:1 passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T13:39:10"
+}

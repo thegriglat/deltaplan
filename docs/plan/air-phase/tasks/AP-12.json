@@ -1,0 +1,46 @@
+{
+  "id": "AP-12",
+  "module": "air-phase",
+  "type": "dp-writer",
+  "title": "Сборка итогов опытов: air_phase_results.md (часть 3) и обновление air_phase.md",
+  "goal": "Собрать выводы задач разбора AP-7…AP-11, AP-13 в один документ исследования с числами, рисунками и командами воспроизведения и обновить вывод air_phase.md — итог модуля для пользователя и сборки по фазам.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-12",
+  "branch": "air-phase/AP-12",
+  "base": "feature/air-phase",
+  "scope": [
+    "docs/research/air_phase_results.md",
+    "docs/research/air_phase.md",
+    "docs/research/air_phase/",
+    "docs/registry/findings.md",
+    "tools/research/air_phase/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/air_phase/analysis/",
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "results_exists",
+      "cmd": "test -f docs/research/air_phase_results.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T15:35:37"
+}

@@ -1,0 +1,63 @@
+{
+  "id": "AP-2",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Идеальные рельефы (P1) и построитель плана опытов (P2)",
+  "goal": "Добавить идеальные формы к существующему источнику рельефов, записать корпус S1 ideal_v1 и собрать план всех серий §3 в protobuf — вход скрипта прогона AP-3.",
+  "plan_ref": "3. Серии",
+  "contracts": [
+    {
+      "name": "P1",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P2",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "S1",
+      "version": "5",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-2",
+  "branch": "air-phase/AP-2",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_synth/solver/reliefs.py",
+    "tools/research/air_synth/solver/tests/test_reliefs_ideal.py",
+    "tools/research/air_phase/plan_build.py",
+    "tools/research/air_phase/proto/phase_plan_pb2.py",
+    "tools/research/air_phase/tests/test_plan_build.py"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/proto/phase_plan.proto",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests tools/research/air_synth/solver/tests/test_reliefs_ideal.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "plan_contract",
+      "cmd": "env AP_PLAN_DIR=/home/greg/air_synth_data/phase/ap_v1 /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k plan_file",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "corpus",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import h5py;h=h5py.File('/home/greg/air_synth_data/corpus/ideal_v1/corpus.h5','r');print(h.attrs['contract'],h.attrs['n_records'],h.attrs['complete'])\"",
+      "expect": "re:S1 v\\d \\d+ True"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T02:18:28"
+}

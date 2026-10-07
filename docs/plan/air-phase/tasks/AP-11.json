@@ -1,0 +1,51 @@
+{
+  "id": "AP-11",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "ERODED: переносятся ли границы с идеальных форм на рельеф с эрозией",
+  "goal": "Проверить, годятся ли пороги AP-8 (идеальные формы) для рельефа с эрозией (6 рельефов fs1_10k × 30 Fr) — мост к реальным местам для классификатора фаз.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-11",
+  "branch": "air-phase/AP-11",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-11/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-11'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "summary",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-11/summary.json'));print('transfer', d['transfer'])\"",
+      "expect": "re:transfer (yes|no|partly)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T15:30:01"
+}

@@ -1,0 +1,19 @@
+{
+ "task": "AP-18",
+ "contract": "P9 v1",
+ "status": "spec_only",
+ "note": "решение пользователя: прототип на Python не доводить; сравнение с холодным Пикаром не считалось (счёт снят из очереди GPU). Поля P9 — заглушки.",
+ "iter_reduction": null,
+ "conv_rate_hybrid": null,
+ "conv_rate_cold": null,
+ "nonconv_closed_frac": null,
+ "layers_not_worse": "not_measured",
+ "gpu_ms_case": null,
+ "gpu_ms_rx5600xt_est": null,
+ "same_fixed_point": null,
+ "mechanisms_vs_reference": null,
+ "nonconv_closed": null,
+ "prep_sy12": {"n_cases": 782, "full_mechanism_fr_lt_0_3": 124, "omega_lt_1_picard": 399, "f_free_freeze_cases": 25, "partial_freeze_h": 7, "g_active": 67, "g_wmean_gt_0_1": 11, "cpu_prep_s_median": 2.9, "g_cpu_ms": 0.5},
+ "budget_estimate_cold_pair_rx5600xt_s": {"median": 1.4, "p90": 5.4, "basis": "S5 медианы iters m 111 / h 101, p90 520 / 290; игровой Пикар 3,3 мс/итер + 0,4 мс/10 итер на RTX 4070 SUPER (AM-03) × 2,0 (1,6–2,6)"},
+ "gpu_tests_v6_run": false
+}

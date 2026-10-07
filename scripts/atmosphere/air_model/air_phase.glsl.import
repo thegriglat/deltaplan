@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://c3o1a1655okkm"
+path="res://.godot/imported/air_phase.glsl-176558f1d7d02c3fbaf6d78c9bf8f5b9.res"
+
+[deps]
+
+source_file="res://scripts/atmosphere/air_model/air_phase.glsl"
+dest_files=["res://.godot/imported/air_phase.glsl-176558f1d7d02c3fbaf6d78c9bf8f5b9.res"]
+
+[params]
+

@@ -1,5 +1,0 @@
-/* Linux: экспортируем только точку входа GDExtension (без шаблонов libstdc++ и прочего). */
-{
-	global: air_onnx_init;
-	local: *;
-};

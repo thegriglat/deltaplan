@@ -5,9 +5,6 @@
 # С --filter: только тесты с подстрокой в имени; сборка и линтер пропускаются (быстрый прогон).
 set -uo pipefail
 cd "$(dirname "$0")/.."
-# Быстрая проверка без сборки расширения AirOnnx (native/air_onnx): tools/build.sh его не собирает и не проверяет.
-# Полная сборка с расширением — tools/build.sh без AIR_ONNX=0.
-export AIR_ONNX=0
 
 no_build=0
 filter=""

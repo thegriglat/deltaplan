@@ -1,0 +1,94 @@
+{
+  "status": "partial",
+  "summary": "По решению пользователя сравнение против Пикара не считалось: ap18-run снят из очереди GPU, hybrid_v1 удалён. Готово: P4 v6 в batch_solver (omega_map, freeze_mask, omega_fallback, старт из сборки init={'agl'}), hybrid/ (классификатор → веса A/D/LEE/EF/H/G, карта ω, маска механизмов; G — вечерний сток заново: Прандтль + гидравлический слой по D8; сшивка проекцией приращения; конвейер prep/gpu/final с сухим прогоном), CPU-тесты, frontmatter assembly/README.md, спецификация для переноса — analysis/AP-18/section.md.",
+  "commits": [
+    "810ab4c3 P4 v6, hybrid/, тесты, frontmatter README сборки",
+    "d8716900 спецификация section.md, summary с заглушками P9, README hybrid"
+  ],
+  "checks": [
+    {
+      "name": "tests (test_assembly + test_hybrid)",
+      "value": "15 passed",
+      "pass": true
+    },
+    {
+      "name": "p7 (test_contract_phase -k 'analysis_dir and AP-18')",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "docs (dp docs check)",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "layers_not_worse = not_measured (координатор снимает проверку)",
+      "pass": false
+    },
+    {
+      "name": "gpu_tests (test_batch_solver, в т.ч. 4 новых -k v6)",
+      "value": "не запускались: GPU занят ap1r-run, dp accept --dry висел на замке и был остановлен",
+      "pass": false
+    },
+    {
+      "name": "сухой прогон конвейера на 50 случаях SY-12 с заглушкой решателя",
+      "value": "prep → gpu --stub → final → run.py прошли",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Счёт гибрида и холодного Пикара по SY-12 и все поля P9 (iter_reduction, conv_rate_*, nonconv_closed, layers_not_worse, same_fixed_point, mechanisms_vs_reference P9 v2, gpu_ms_*) — снято решением пользователя; в summary.json null/not_measured.",
+    "GPU-тесты P4 v6 не запускались: побитность v5 по умолчанию и копия Air.outer_step не подтверждены на GPU."
+  ],
+  "questions": [
+    "Поставить в очередь GPU только тесты (dp lock gpu … pytest test_batch_solver.py, ~5 мин после освобождения GPU), чтобы закрыть gpu_tests приёмки?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept AP-18 (gpu_tests ждут замка GPU); спецификация — tools/research/air_phase/analysis/AP-18/section.md",
+  "uncertain": [
+    {
+      "where": "batch_solver.py _Job._outer",
+      "why": "копия порядка ядер Air.outer_step; при правке air3d разойдётся; побитность пути без ω/заморозки проверяет test_v6_default_bitwise_and_replica, но он не запускался",
+      "checked": "сверка порядка с air.py outer_step по коду"
+    },
+    {
+      "where": "batch_solver.py _init_from_agl",
+      "why": "сборка → состояние решателя: ниже 25 м берётся значение 25 м, K — фон, θ′_d = 0; на GPU не проверено",
+      "checked": "сухой прогон с заглушкой; логика повторяет synth.agl в обратную сторону"
+    },
+    {
+      "where": "hybrid/drainage.py",
+      "why": "K = 0,3 м²/с, C_D = 0,01, потолки Δθ ≤ 6 К, u ≤ 3,5 м/с — оценки порядка; у стока долины потолок 3,5 м/с часто срабатывает (Q завышен на больших водосборах, время стекания не учтено)",
+      "checked": "проба на 5 вечерних случаях: u_max 1,3–2,5 м/с, l 14–41 м, Δθ 1,1–2,6 К — в диапазоне ZW13"
+    },
+    {
+      "where": "hybrid/pipeline.py classify",
+      "why": "Fr и U10 — по случаю, поэтому карта ω однородна на область; заморозка при Fr < 0,3 отдаёт механизмам 124 из 782 случаев целиком, а сборка AP-17 там слаба по склонам и подветру",
+      "checked": "числа подготовки SY-12"
+    },
+    {
+      "where": "analysis/AP-18/section.md, бюджет",
+      "why": "оценка RX 5600 XT ×2 (1,6–2,6) — по пропускной способности памяти и L2, не замер; итерации — S5 холодные, другая версия решателя",
+      "checked": "игровые замеры AM-03 (3,3 мс/итер на 4070S)"
+    }
+  ],
+  "dp_feedback": "1) dp docs init --dry пишет «frontmatter добавлен: 2», хотя ничего не пишет — сбивает с толку. 2) dp docs check проверяет README из .pytest_cache (каталог из .gitignore) — надо его пропускать. 3) dp job status показывает только «идёт» — нет ни позиции в очереди замка, ни хвоста лога. 4) dp accept --dry молча ждёт замок GPU без таймаута — нужен флаг пропуска gpu-проверок или сообщение «жду замок».",
+  "extra": {
+    "prep_sy12": {
+      "n": 782,
+      "full_mechanism_fr_lt_0_3": 124,
+      "omega_lt_1_picard": 399,
+      "partial_freeze_h": 7,
+      "g_active": 67,
+      "g_wmean_gt_0_1": 11,
+      "cpu_prep_s_median": 2.9
+    },
+    "budget_cold_pair_rx5600xt_s": {
+      "median": 1.4,
+      "p90": 5.4
+    }
+  },
+  "t": "2026-10-06T18:04:07",
+  "by": "executor"
+}

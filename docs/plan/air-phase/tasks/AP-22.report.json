@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Текст пилоту build/pilot/air_phase_check.md, CHANGELOG «В работе» (фазы+Пикар, удаление сети и VC++ Redistributable, меню, слой карты фаз; пункт про лее уже был), docs/guide/air-model.md сверен с AP-20/AP-21: старт Пикара, ω = 1, запасные правила.",
+  "commits": [
+    "5ab6aebf AP-22: CHANGELOG, air-model"
+  ],
+  "checks": [
+    {
+      "name": "pilot_text",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Разделы AP-19/AP-20 в air-model.md в моей копии отсутствовали: файл взят целиком из air-phase/AP-21 (содержит AP-20) и поправлен. При слиянии AP-20/AP-21 будет конфликт по этому файлу: брать версию AP-22."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept AP-22",
+  "uncertain": [
+    {
+      "where": "CHANGELOG.md, первая строка про режимы",
+      "why": "формулировка «модель режима даёт поле в штиль/сток/конвекцию» упрощена; на деле механизмы заморожены и подаются как поле механизма",
+      "checked": "сверено с разделом «Фазы»"
+    },
+    {
+      "where": "docs/guide/air-model.md, «Старт Пикара»",
+      "why": "числа 1140→793 и 1560 против 1140 взяты из doc-строк configs/atmosphere.json (AP-20), не перепрогонялись",
+      "checked": "прочитан конфиг ветки AP-21"
+    }
+  ],
+  "dp_feedback": "dp task sync не использован; не хватает команды «взять файл из ветки соседней задачи» (git show ветка:путь).",
+  "t": "2026-10-07T02:43:57",
+  "by": "main"
+}

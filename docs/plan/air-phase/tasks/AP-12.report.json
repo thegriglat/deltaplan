@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "Собрана часть 3 исследования: air_phase_results.md (40,0 КБ) + приложение air_phase_results_tables.md (36,6 КБ), 14 рисунков, обновлены air_phase.md (frontmatter, §9, §10), findings.md (4 записи air-phase), README, индексы.",
+  "commits": [
+    "a98b123c AP-12: итоги опытов фаз — air_phase_results.md (часть 3) + приложение, 14 рисунков, вывод air_phase.md, реестр выводов"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0; air_phase_results.md 40893 Б (< 40 КБ)",
+      "pass": true
+    },
+    {
+      "name": "results_exists",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "рисунков",
+      "value": "14",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Основной файл не вместил все абзацы: часть подробностей AP-7/8/9/10/11/13 вынесена в приложение air_phase_results_tables.md (§1–§10) с указателями из основного текста"
+  ],
+  "questions": [
+    "Числа lee для игры (угол тени 12° или 14–16°, rotor_reverse, shear_layer_m, danger_sink_per_wind) — решение главной сессии; записано в §6 и §9 как открытое"
+  ],
+  "how_to_check": "dp accept AP-12; сверить с analysis/<ID>/section.md числа §0, §2 п.1, §3, §4, §6 (таблица lee), §7",
+  "uncertain": [
+    {
+      "where": "docs/research/air_phase_results.md §0",
+      "why": "сводка по осям и классам собрана из разных разделов; формулировка про Fr ≲ 0,25 совмещает AP-9 («физическая, фаза H») и AP-13 (та же потеря устойчивости итераций глубже) в виде «Пикар стационарного решения модели не находит»",
+      "checked": "формулировки ревью AP-9/AP-13 использованы дословно"
+    },
+    {
+      "where": "docs/research/air_phase.md §9 (добавленная строка)",
+      "why": "«п. 1–6 выполнены» — обобщение по составу серий плана",
+      "checked": "сверено с air-phase.md §3"
+    }
+  ],
+  "dp_feedback": "1) dp docs init пишет status closed и module пустым — пришлось править frontmatter руками; хотелось бы dp docs init --module M --status S. 2) Нужна команда dp docs size/split-hint: показать абзацы по размеру и вынести выбранные в приложение с указателем (делал скриптом). 3) dp docs check считает размер по байтам (Кириллица ×1,9): лимит 40 КБ ≈ 21 тыс. знаков — стоит сказать в workflow.md. 4) dp docs index трогает чужие contracts.md/decisions.md — пришлось откатывать.",
+  "extra": {
+    "main_bytes": 40893,
+    "appendix_bytes": 38095,
+    "figures": 14
+  },
+  "t": "2026-10-06T15:49:41",
+  "by": "executor"
+}

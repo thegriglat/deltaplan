@@ -1,0 +1,84 @@
+{
+  "id": "AP-14",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Пересчёт несошедшихся ap_v1/ap_v2 при ω = 0,5 и обновление границ",
+  "goal": "Границы фаз в переходной полосе — по неподвижным точкам, а не по среднему поздних итераций численного цикла (решение пользователя).",
+  "plan_ref": "8. Этап 3",
+  "contracts": [
+    {
+      "name": "P2",
+      "version": "6",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P5",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-14",
+  "branch": "air-phase/AP-14",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/plan_build.py",
+    "tools/research/air_phase/run_phase.py",
+    "tools/research/air_phase/phase_io.py",
+    "tools/research/air_phase/features.py",
+    "tools/research/air_phase/analysis/AP-14/",
+    "tools/research/air_phase/tests/test_plan_build.py",
+    "tools/research/air_phase/tests/test_run_phase.py",
+    "docs/research/air_phase_results.md",
+    "docs/research/air_phase_results_tables.md",
+    "docs/research/air_phase/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/proto/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/",
+    "tools/research/air_phase/batch_solver.py",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py tools/research/air_phase/tests/test_plan_build.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "plan",
+      "cmd": "env AP_PLAN_DIR=/home/greg/air_synth_data/phase/ap_v1r /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k plan_file",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-14'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T15:57:26"
+}

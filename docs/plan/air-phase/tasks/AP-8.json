@@ -1,0 +1,53 @@
+{
+  "id": "AP-8",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Границы фаз (GRID), резкость, гистерезис и второй старт (SWEEP)",
+  "goal": "Главный продукт опытов §9: пороги, ширины и резкость границ фаз как функции Fr при фиксированных s, −z_i/L, h/z_i — по параметрам порядка и метрикам слоёв; гистерезис и второй старт — для полос ±w классификатора сборки по фазам.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-8",
+  "branch": "air-phase/AP-8",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-8/",
+    "tools/research/air_phase/features.py",
+    "tools/research/air_phase/README.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-8'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "summary",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-8/summary.json'));print('n_boundaries', len(d['boundaries']))\"",
+      "expect": "num:n_boundaries ([0-9]+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T14:06:23"
+}

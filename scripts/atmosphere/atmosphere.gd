@@ -99,6 +99,10 @@ var _lee_burst_width: float = 1.0
 var _lee_reverse: float = 0.9
 var _lee_rotor_h: float = 0.4
 var _lee_rotor_max: float = 7.0
+var _lee_heat_full: float = 0.0
+var _lee_heat_wstar_k: float = 0.6
+var _lee_heat_key: Vector2 = Vector2(-1.0, -1.0)
+var _lee_heat_val: float = 1.0
 var _mech_k: float = 0.14
 var _mech_boost: float = 1.0
 var _mech_h: float = 150.0
@@ -377,6 +381,9 @@ func _cache_coefficients() -> void:
 	_lee_reverse = float(l.get("rotor_reverse", 0.0))
 	_lee_rotor_h = float(l.get("rotor_height_fraction", 0.4))
 	_lee_rotor_max = float(l.get("rotor_max_amplitude_ms", 0.0))
+	_lee_heat_full = float(l.get("heat_kill_wm2", 0.0))
+	_lee_heat_wstar_k = float(l.get("heat_sigma_per_wstar", 0.6))
+	_lee_heat_key = Vector2(-1.0, -1.0)
 	var t: Dictionary = cfg.turbulence
 	_mech_k_base = float(t.mech_per_wind)
 	_mech_k = _mech_k_base * float(weather.get("mech_turbulence_k", 1.0))
@@ -909,11 +916,36 @@ func _lee_burst_g(pos: Vector3, u: float) -> float:
 	return clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
 
 
+## Ослабление ротора нагревом земли 0..1 (1 — нет нагрева). Поток тепла по погоде дня: w* из
+## σ конвективной болтанки (σ ≈ 0,6·w*, weather/*.json), H = w*³·ρc_p/(g/θ0·z_i), z_i — кромка
+## (нижняя граница — ZI_MIN поля); фактор = 1 − H/heat_kill_wm2 (AP-10: нагрев убирает пузырь).
+func _lee_heat_factor() -> float:
+	if _lee_heat_full <= 0.0:
+		return 1.0
+	var key := Vector2(_conv_amp, _cloudbase_agl)
+	if key != _lee_heat_key:
+		_lee_heat_key = key
+		var ws := _conv_amp / maxf(_lee_heat_wstar_k, 0.05)
+		var zi := maxf(_cloudbase_agl, WindField.ZI_MIN)
+		var h := (
+			pow(ws, 3.0) * WindField.RHO_CP / (WindField.G / WindField.THETA0 * zi)
+		)
+		_lee_heat_val = clampf(1.0 - h / _lee_heat_full, 0.0, 1.0)
+	return _lee_heat_val
+
+
+## Поток тепла дня, Вт/м² (по тем же w*, z_i; для тестов).
+func lee_heat_wm2() -> float:
+	var ws := _conv_amp / maxf(_lee_heat_wstar_k, 0.05)
+	var zi := maxf(_cloudbase_agl, WindField.ZI_MIN)
+	return pow(ws, 3.0) * WindField.RHO_CP / (WindField.G / WindField.THETA0 * zi)
+
+
 func _lee_flow(
 	pos: Vector3, agl: float, u: float, lee: float, danger: float, relief: float
 ) -> Vector2:
 	var w := -lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee
-	var hard := lee * danger
+	var hard := lee * danger * _lee_heat_factor()
 	if hard < 1.0e-3:
 		return Vector2(0.0, w)
 	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x

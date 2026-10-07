@@ -1,0 +1,136 @@
+{
+  "status": "done",
+  "summary": "P10: AirPhase (определения, конфиг, подготовка по столбцам), AirPhaseJob + air_phase.glsl (15 ядер на AirGpu, порциями) и AirPhaseCpu (тот же код в float64, плюс field() для полного WindField без Пикара). Классификатор переведён на P15 (AP-23: штиль по U10, сильное D по U_sat/N, D ниже H_c, C по уклону). Механизмы: A (DCT), B, D (слои Лапласа), F, G, H. Конфиг air_phase с _doc у каждого ключа, тесты P14, раздел «Фазы» в руководстве. GPU = CPU до 3,2e-5.",
+  "commits": [
+    "349dca1e фазы в игре — AirPhase/AirPhaseCpu/AirPhaseJob + air_phase.glsl, конфиг, CPU-тесты",
+    "7de1f066 GPU-тест фаз",
+    "6da627a0 docs/guide/air-model.md — раздел «Фазы»",
+    "a4ad9970 классификатор по P15 (AP-23), ключи = recommended_config",
+    "0cdbb6f9 «Фазы» — классификатор по P15",
+    "2af46a6b конфиг air_phase.nonconv (P12 v2)",
+    "8e967be1 AirPhaseCpu.field — полное поле без Пикара",
+    "7ee0c872 пределы поля — аргументами",
+    "fb8582de отражение в ядре без % от отрицательного; диагностика GPU = CPU",
+    "b3e5a0f0 uid тестов"
+  ],
+  "checks": [
+    {
+      "name": "air_phase",
+      "value": "8/8, 2 пропущено (GPU)",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "exit 0; GPU = CPU max отн. 3,2e-5 (Онгудай), синтетика 1,5e-6…1,1e-5 при допуске 1e-4; маска заморозки совпадает; повтор побитно; порциями = подряд побитно",
+      "pass": true
+    },
+    {
+      "name": "no_magic",
+      "value": "0 (порог ≤ 6)",
+      "pass": true
+    },
+    {
+      "name": "Σ weights − 1",
+      "value": "≤ 4,4e-8 (допуск 1e-5)",
+      "pass": true
+    },
+    {
+      "name": "F: доля восходящих на 0,2–0,8 z_i [LS80 0,3–0,5]",
+      "value": "0,41–0,42",
+      "pass": true
+    },
+    {
+      "name": "F: σ_w/w* max [LWP80 0,6 ± 15 % на 0,3 z_i]",
+      "value": "0,68 на 0,31 z_i",
+      "pass": true
+    },
+    {
+      "name": "F: w_up/w* на 0,25 z_i [LS80: не меньше ŵ 0,45]",
+      "value": "0,81",
+      "pass": true
+    },
+    {
+      "name": "F: w* при H 250 Вт/м², z_i 1500 м [Allen 2006 ±2σ: 0,46–5,02]",
+      "value": "2,16 м/с; F ведущая, свободная конвекция заморожена",
+      "pass": true
+    },
+    {
+      "name": "G: Прандтль, N 0,01, sin α 0,1, H −30 Вт/м²",
+      "value": "l 24,5 м, Δθ 2,03 К, u_max 2,14 м/с на 19,2 м = πl/4 (допуск 1e-3)",
+      "pass": true
+    },
+    {
+      "name": "G: скорость стока [ZW13 1–4 м/с]",
+      "value": "4 склона в 1–4; долина 400 м, −40 Вт/м²: медиана u_max 1,18 м/с, слой 66 м, холодное озеро θ′ < 0",
+      "pass": true
+    },
+    {
+      "name": "H: штиль Fr 0,16",
+      "value": "разброс 0,21 м/с > 0; дрейф среднего 0,009 м/с ≤ 0,1·U_sat",
+      "pass": true
+    },
+    {
+      "name": "время фаз GPU, RTX 4070 SUPER",
+      "value": "Онгудай 96×96×50: 36,8 мс GPU + 488 мс подготовки на CPU (рабочий поток) + 14 мс чтения, 5 порций; синтетика 32×32: 12–14 мс; оценка RX 5600 XT 55–64 мс GPU",
+      "pass": true
+    },
+    {
+      "name": "время CPU-пути",
+      "value": "Онгудай 96×96: 66–73 с (синтез A 21 с, слои D 34 с); синтетика 32×32: около 2–3 с",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Проекции ∇·u = 0 внутри P10 нет. Тёплый старт проецирует Пикар (warm-программа AirPicardJob), а вставка G не проецируется (в AP-18 проецировалась).",
+    "Фон сборки — профиль притока решателя, а не столб K-замыкания с разгоном и сопротивлением формы AP-17: упрощение, в A/B/C-клетках это поправляет Пикар.",
+    "A считается одним синтезом на эффективном рельефе T = max(h_eff, H_c), а не тремя (hc, h_eff, срезанный), как в AP-17.",
+    "Подготовка на CPU (DCT мод O(n³), огибающая, D8) — около 0,5 с на 96×96 в рабочем потоке; не переносил в compute.",
+    "Отдельного слоя «карта фаз» нет — по P12 это AP-20."
+  ],
+  "questions": [
+    "API шире P10: кроме weights/omega/freeze/warm/mech_field есть *_mech (решение без нагрева: weights_mech, freeze_mech, warm_mech, mech_field_mech), stats, ms_parts. Решение без нагрева у AP-18 своё, поэтому AP-20 стоит брать warm_mech для прохода mech.",
+    "G включается по среднему потоку тепла игры ≤ mean_heat_max_wm2 (0) вместо «солнце < 5°», а выхолаживание берётся из AirCase.heat < 0 (AirPlace −40·(1 − 0,7·облачность)) вместо −30·(1 − 0,75·c) AP-18. Подходит?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept AP-19 (air_phase + gpu под dp lock gpu + no_magic); после правки air_phase.glsl — сначала XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import, иначе GPU-тест берёт старый импорт шейдера",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_phase.gd: envelope",
+      "why": "Огибающая считается проходами Гаусса–Зейделя в порядке вдоль ветра, а у эталона — проходы Якоби. Неподвижная точка та же, но с Python не сверял.",
+      "checked": "GPU и CPU используют одну и ту же h_eff (подготовка общая); B на крутом хребте (1200 м) есть"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_phase.gd: modes / air_phase.glsl synth0..2",
+      "why": "Перенос linear_a (знаки чётных и нечётных частей, ветвь m) с Python напрямую не сверялся, только GPU против CPU.",
+      "checked": "GPU = CPU 1e-5; поле над холмом разумное (u > 0,5 над вершиной); число эталона на Python не сравнивал"
+    },
+    {
+      "where": "air_phase.glsl / air_phase_cpu.gd: laplace",
+      "why": "Слои Лапласа решаются верхней релаксацией с фиксированными sor_iters 400 вместо прямого решения scipy. На 96×96 сходимость не проверял; для D это главная часть времени CPU.",
+      "checked": "GPU = CPU (те же итерации); D ведущая на холме при Fr 0,49"
+    },
+    {
+      "where": "AirPhase.prepare: Fr",
+      "why": "Fr = U_sat/(N·(max − min)), N — среднее в слое z_i … z_i + 1500 м по gam случая, как derive S2; без z_i слой отсчитывается от min(hc).",
+      "checked": "Онгудай: Fr 0,16, U_sat/N 306 м"
+    },
+    {
+      "where": "AirPhaseJob.result: ms_parts.gpu",
+      "why": "Если работа уложилась в одну порцию, метки времени иногда не читаются, и в случае с 1 порцией выходит 0,2 мс. Время GPU для таких случаев занижено.",
+      "checked": "на 3–5 порциях числа правдоподобны (12–37 мс)"
+    },
+    {
+      "where": "AirPhaseJob._ensure_shaders",
+      "why": "Ядра добавляются к общему AirGpu через приватное поле _shader, а не через API AirGpu (менять air_gpu.gd не стал).",
+      "checked": "test_gpu_equals_cpu идёт на общем AirGpu, test_chunks — на своём"
+    }
+  ],
+  "dp_feedback": "1) Не хватает проверки «шейдер переимпортирован»: gpu_tests.sh не делает --import, и после правки .glsl GPU-тест молча берёт старый SPIR-V — первый GPU-прогон ушёл впустую. Предлагаю --import в gpu_tests.sh или проверку в dp accept. 2) dp search не нашёл определение Fr в коде исследований (derive в conditions.py) — пришлось grep.",
+  "extra": {
+    "api": "AirPhaseJob.new(gpu|null); run(case)->Dictionary; start(gpu), poll(), is_done(), error, result(), release(); AirPhaseCpu.run(case, cfg), AirPhaseCpu.field(case, r, max_speed, max_w), field_from(case, r, max_speed, max_w); AirPhase.PHASES, AirPhase.config(), AirPhase.prandtl(), AirPhase.updraft()",
+    "config": "air_phase: chunk_ms, agl_levels_m; classifier (= recommended_config AP-23 1:1 + b_heat_steep_k, omega_snap, fr_inf, n_layer_m, smooth_truncate, smooth_min_cells, env_max_sweeps, c_sigma_max_cells); omega {fallback_iters, fallback_omega}; nonconv {mech_w, late_from}; a, d, b, h, f, g (механизмы); checks (допуски P14)",
+    "timing_json": "build/dp/AP-19/timing.json (в копии задачи)"
+  },
+  "t": "2026-10-06T21:14:26",
+  "by": "executor"
+}

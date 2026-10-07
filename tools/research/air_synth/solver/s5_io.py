@@ -244,28 +244,75 @@ def weather_cfg(base, lat, dt_upper_k, lapse_k_per_km, inv_depth_f, inv_range_f,
     return cfg
 
 
+class StratCfg(dict):
+    """Конфиг погоды (или пустой — погода как есть) + override стратификации строки S2 (H5: strat_override = True).
+    Его возвращает cfg_from_row, применяет weather_override — так счёт по таблице (solve_corpus) применяет override, а не
+    игнорирует его молча (контракт S2)."""
+
+    def __init__(self, cfg, strat):
+        super().__init__(cfg or {})
+        self.has_weather = cfg is not None
+        self.strat = strat
+
+
+def apply_strat(case, hc, n_bv_s=None, z_i_agl_m=None, heat_flux_wm2=None):
+    """Override условий случая решателя (air.Case из real.case) по P4 / S2 H5, на месте:
+    z_i = база (минимум hc) + z_i_agl_m; N — dθ̄/dz = θ0·N²/g над z_i и 0 под ним (conditions.strat_gamma); H — однородный поток
+    (только у решения с нагревом: case.H не None). None — поле как есть. → case."""
+    import conditions as CN
+    if z_i_agl_m is not None:
+        case.z_i = CN.override_base(hc) + float(z_i_agl_m)
+    if n_bv_s is not None:
+        case.gam = CN.strat_gamma(n_bv_s, case.z_i if case.z_i is not None else CN.override_base(hc))
+    if heat_flux_wm2 is not None and case.H is not None:
+        case.H = CN.uniform_heat(hc, heat_flux_wm2)
+    return case
+
+
 class weather_override:
-    """with weather_override(cfg): ... — подменяет weather.CFG (и возвращает прежний). cfg None — ничего не делает (побитно как раньше)."""
+    """with weather_override(cfg): ... — подменяет weather.CFG (и возвращает прежний). cfg None — ничего не делает (побитно как раньше).
+    cfg — StratCfg: дополнительно real.case на время блока применяет override стратификации (apply_strat)."""
 
     def __init__(self, cfg):
-        self.cfg, self.W, self.old = cfg, None, None
+        self.cfg, self.W, self.old, self.R, self.old_case = cfg, None, None, None, None
 
     def __enter__(self):
-        if self.cfg is not None:
+        if self.cfg is not None and (not isinstance(self.cfg, StratCfg) or self.cfg.has_weather):
             self.W = _air3d_weather()
-            self.old, self.W.CFG = self.W.CFG, self.cfg
+            self.old, self.W.CFG = self.W.CFG, (dict(self.cfg) if isinstance(self.cfg, StratCfg) else self.cfg)
+        if isinstance(self.cfg, StratCfg):
+            import real as R
+            self.R, self.old_case = R, R.case
+            st = self.cfg.strat
+            orig = R.case
+
+            def case(loc, g, hc, *a, **k):
+                return apply_strat(orig(loc, g, hc, *a, **k), hc, st.get("n_bv_s"), st.get("z_i_agl_m"))
+            R.case = case
         return self
 
     def __exit__(self, *a):
         if self.W is not None:
             self.W.CFG = self.old
+        if self.R is not None:
+            self.R.case = self.old_case
 
 
 def cfg_from_row(row):
-    """Подменённый конфиг по строке условий S2 v4 (dict/структурная запись) или None, если столбцов hgw24 нет (v2/v3 — как раньше)."""
+    """Подменённый конфиг по строке условий S2 v4 (dict/структурная запись) или None, если столбцов hgw24 нет (v2/v3 — как раньше).
+    strat_override = True (H5) — StratCfg с n_bv_override_s / z_i_override_agl_m (NaN — не подменять)."""
     names = row.dtype.names if hasattr(row, "dtype") and row.dtype.names else tuple(row)
-    if "dt_upper_k" not in names:
-        return None
-    W = _air3d_weather()
-    g = lambda k: float(row[k])
-    return weather_cfg(W.CFG, g("lat_deg"), g("dt_upper_k"), g("lapse_k_per_km"), g("inv_depth_m"), g("inv_range_k"), g("cloud_cover"))
+    cfg = None
+    if "dt_upper_k" in names:
+        W = _air3d_weather()
+        g = lambda k: float(row[k])
+        cfg = weather_cfg(W.CFG, g("lat_deg"), g("dt_upper_k"), g("lapse_k_per_km"), g("inv_depth_m"), g("inv_range_k"), g("cloud_cover"))
+    if "strat_override" in names and bool(row["strat_override"]):
+        val = lambda k: None if not np.isfinite(float(row[k])) else float(row[k])
+        if cfg is None:     # v2/v3: погода как есть, но облачность под ключом HG_SKY (solve_corpus при cfg ≠ None берёт его)
+            import copy
+            W = _air3d_weather()
+            cfg = copy.deepcopy(W.CFG)
+            cfg["sky"][HG_SKY] = dict(cfg["sky"][("clear", "partly", "overcast")[int(row["sky"])]])
+        return StratCfg(cfg, dict(n_bv_s=val("n_bv_override_s"), z_i_agl_m=val("z_i_override_agl_m")))
+    return cfg

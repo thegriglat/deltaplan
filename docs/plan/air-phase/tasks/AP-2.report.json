@@ -1,0 +1,31 @@
+{
+  "status": "done",
+  "summary": "P2 v3: ENVELOPE_REAL по новому правилу: 101 случай (а: 5 nonconv_h + 16 nonconv_m, б: 60 nonconv_lowfr, в: 20 conv) x 7 линий = 707. План ap_v1: 1384 линии, 7686 случаев.",
+  "commits": [
+    "see git log air-phase/AP-2"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "plan_contract",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "corpus",
+      "value": "S1 v3 33 True",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept AP-2",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-06T02:34:53",
+  "by": "executor"
+}

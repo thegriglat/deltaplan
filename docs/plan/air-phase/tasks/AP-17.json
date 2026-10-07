@@ -1,0 +1,70 @@
+{
+  "id": "AP-17",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Прототип сборки поля по фазам на SY-12 против Пикара (P8)",
+  "goal": "Ответить, можно ли убрать сеть: собрать поле по фазам (классификатор, A, D, огибающая, H, проекция) из рельефа и условий SY-12 и сравнить с Пикаром там, где он сошёлся, по величинам для слоёв игры; время на CPU и оценка GPU.",
+  "plan_ref": "8. Этап 3",
+  "contracts": [
+    {
+      "name": "P8",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "S5",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-17",
+  "branch": "air-phase/AP-17",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/assembly/",
+    "tools/research/air_phase/analysis/AP-17/",
+    "tools/research/air_phase/tests/test_assembly.py"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_assembly.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-17'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "verdict",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-17/summary.json'));print('can_drop_network', d['can_drop_network'])\"",
+      "expect": "re:can_drop_network (yes|no|partly)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T15:57:26"
+}

@@ -1,0 +1,48 @@
+{
+  "verdict": "accept",
+  "summary": "P4 v3 выполнен: пакет на потоках CUDA, порядок ядер тот же, поэтому совпадение с одиночным счётом побитное. Правки air3d (cd_map, omega_u, K в state) при значениях по умолчанию дают тот же код. Override стратификации/z_i/H, огибающая с маской и C_d на её верхней грани, относительный критерий сделаны по контракту. Контракты не менялись, «не трогать» не задето. Замечания мелкие.",
+  "issues": [
+    {
+      "file": "tools/research/air_phase/out/invariants.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Файла нет в скоупе карточки (в скоупе только out/bench.json)",
+      "fix": "Координатору решить: принять как артефакт исследования или убрать из коммита"
+    },
+    {
+      "file": "tools/research/air_phase/batch_solver.py",
+      "line": 395,
+      "severity": "minor",
+      "what": "Окно 100 м строится на настоящем рельефе hw без огибающей и без cd_map. С envelope_angle_deg > 0 и dx_m = 100 окно огибающую не видит, и этот случай нигде не задокументирован",
+      "fix": "Описать в docstring (или запретить сочетание через ValueError), если AP-3 будет запускать окно с огибающей"
+    },
+    {
+      "file": "tools/research/air_synth/solver/s5_io.py",
+      "line": 290,
+      "severity": "minor",
+      "what": "Правка air3d сменила model_place.solver_version (s0-7396265). У solve_corpus этот хеш входит в имя каталога вывода, поэтому дозапуск старого корпуса пойдёт в новый каталог (поля при этом побитно те же)",
+      "fix": "Ничего не править. Учесть координатору при повторных прогонах air_synth"
+    },
+    {
+      "file": "tools/research/air_phase/batch_solver.py",
+      "line": 470,
+      "severity": "minor",
+      "what": "Снимки trace берутся на итерациях 101, 151, …, а в P3 написано 100, 150, … (в отчёте отмечено как uncertain, логика та же, что у solve_late)",
+      "fix": "Координатору поправить формулировку в P3 при следующей версии контракта или принять как есть"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "s5_s2_unchanged (dp accept --only --dry)",
+      "value": "exit 0, 6 с",
+      "pass": true
+    },
+    {
+      "name": "batch_invariants (dp accept --only --dry)",
+      "value": "exit 0, 341 с (с ожиданием блокировки GPU)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-06T02:55:54",
+  "by": "reviewer"
+}

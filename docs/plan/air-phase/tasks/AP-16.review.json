@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "Числа lee взяты из AP-10 и литературы, источники записаны в _doc. Формула H = w*³·ρc_p·θ0/(g·z_i) — это верно обращённая формула Дирдорфа. Скоуп и контракты не нарушены. Провал test_performance есть и в базе feature/air-phase под той же нагрузкой, это не регрессия.",
+  "issues": [
+    {
+      "file": "configs/atmosphere.json",
+      "line": 178,
+      "severity": "minor",
+      "what": "heat_kill_wm2=300 при линейном 1−H/300 — грубая аппроксимация (две крутизны, одно Fr), исполнитель сам это отметил. Множитель гасит и обратный поток, и рывки, а σ роторной болтанки не трогает",
+      "fix": "В отчёте модуля указать как границу модели; уточнить, если появятся опыты AP-10 при других Fr"
+    },
+    {
+      "file": "tests/atmosphere/test_lee_rotor.gd",
+      "line": 100,
+      "severity": "minor",
+      "what": "test_lee_config_from_ap10 проверяет только числа в конфиге, а не поведение поля (тест сверяет конфиг сам с собой)",
+      "fix": "Можно оставить как защиту от регрессии; поведение проверяют test_lee_sink_and_rotor_scale_with_wind и test_rotor_weakens_with_heating"
+    },
+    {
+      "file": "tests/atmosphere/test_ridge_starts.gd",
+      "line": 264,
+      "severity": "minor",
+      "what": "Проверку w<0 заменили на w_lee < w_wind. Это осознанное ослабление: после снижения опускания знак могут перебить фон и термики. Файл в скоупе, вопрос координатору поставлен",
+      "fix": "Координатору утвердить; на sink_per_wind 0,25→0,08 возражений нет: так опускание не убывает с ростом ветра"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept AP-16 --only lee --dry",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "dp accept AP-16 --only hazards --dry",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_atmosphere.gd, база feature/air-phase против AP-16, нагрузка ~34",
+      "value": "air_velocity_at медиана: база 57,9 и 50,5 мкс, AP-16 53,4 и 53,1 мкс; оба падают на пороге 40 — дело в нагрузке, не в задаче; остальные 12/13 PASS",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-06T16:43:08",
+  "by": "reviewer"
+}

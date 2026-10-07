@@ -119,7 +119,7 @@ extern "C" __global__ void build_mom(int comp, const real* u, const real* v, con
         const unsigned char* tu, const unsigned char* tv, const unsigned char* tw,
         const real* p, const real* th, const real* sp, const real* ubg, const real* cplz,
         const real* nu, const real* nuh, const real* corr, real* C, real* b,
-        int NZ, int NY, int NX, real dx, real dz, real inv_dtau, real cd) {
+        int NZ, int NY, int NX, real dx, real dz, real inv_dtau, const real* cdp) {
     long N = (long)NZ * NY * NX;
     long idx = (long)blockDim.x * blockIdx.x + threadIdx.x;
     if (idx >= N) return;
@@ -179,7 +179,7 @@ extern "C" __global__ void build_mom(int comp, const real* u, const real* v, con
     if (comp < 2) {
         if (tt[idx - st[2]] == 0) {             // первая грань над землёй: сопротивление
             real sp2 = a3[0] * a3[0] + a3[1] * a3[1];
-            diag += cd * sqrt(sp2) / dz;
+            diag += cdp[idx % ((long)NX * NY)] * sqrt(sp2) / dz;   // C_d столбца (огибающая: low_z0 / slip)
         }
     } else {
         rhs += (real)(9.81 / 300.0) * (real)0.5 * (th[c0] + th[c1]);
@@ -549,6 +549,7 @@ class Params:
     nest_sponge_cells: float = 4.0    # окно: зона релаксации к родителю у боковых граней, клеток
     nest_sponge_top_m: float = 1000.0 # окно: зона релаксации у потолка, м
     nu_const: float = 30.0
+    omega_u: float = 1.0              # недорелаксирование скорости u ← u + ω(u* − u) после проекции (AP-1, P4); 1 — выкл.
 
 
 @dataclass
@@ -566,7 +567,7 @@ class Air:
     """Решатель. grid: объект с dx, nx, ny, dz, nz, z_bot, x0, y0; hc (ny, nx) — высоты рельефа."""
 
     def __init__(self, grid, hc, case: Case, prm: Params = Params(), nest=None, dtype=np.float32,
-                 taper=True):
+                 taper=True, cd_map=None):
         import cupy as cp
         self.cp = cp
         self.dt = np.dtype(dtype)
@@ -686,6 +687,9 @@ class Air:
             Q[:, 1:-1, 1:-1] = np.where(pos, Qc, Qi)
         self.Q_np = Q
         self.cd = (KAPPA / math.log(0.5 * dz / prm.z0)) ** 2
+        # C_d по столбцам (ny, nx): None — везде self.cd; огибающая (AP-1, P4 v2) — свой z0 или 0 (slip) на её верхней грани
+        cdm = np.full((ny, nx), self.cd) if cd_map is None else np.asarray(cd_map, float)
+        self.cd_np = np.pad(cdm, 1, mode="edge")
         s_th = prm.dtau_th                       # у полного θ′ нет 1/τ в диагонали (τ — только θ′_d)
         gam_w = np.zeros(NZ); gam_w[1:] = 0.5 * (gam_c[1:] + gam_c[:-1])
         cplz = prm.couple * G / THETA0 * np.maximum(gam_w, 0) * s_th
@@ -715,6 +719,7 @@ class Air:
         self.nuh = A(self.nu_np)                 # горизонтальное K_h
         self.thbg = cp.zeros(shape, dt)          # к чему губка тянет θ′ (0; в окне — родитель)
         self.cplz = A(cplz)
+        self.cdp = A(self.cd_np)
         self.u = cp.zeros(shape, dt); self.v = cp.zeros(shape, dt); self.w = cp.zeros(shape, dt)
         self.th = cp.zeros(shape, dt); self.p = cp.zeros(shape, dt)
         # θ′_d — диабатическая часть θ′ (второй переносимый скаляр): поле, цель губки/ореол, шаблон,
@@ -731,6 +736,8 @@ class Air:
         self.bu, self.bv, self.bw, self.bt = (cp.zeros(shape, dt) for _ in range(4))
         self.cu, self.cv, self.cw, self.ct = (cp.zeros(shape, dt) for _ in range(4))   # поправки 2-го порядка
         self.rr = cp.zeros(shape, dt)
+        if prm.omega_u != 1.0:
+            self.u_old, self.v_old, self.w_old = (cp.zeros(shape, dt) for _ in range(3))
         self.lines = Lines(shape, dt)
         self.k = kernels(dt, prm.limiter)
         # --- проекция: K_x,y = 1/(1/Δτ + sp), K_z = 1/(1/Δτ + sp_w + cpl) на гранях
@@ -869,7 +876,10 @@ class Air:
         self.project(cycles=30)
         self.p[...] = 0
 
-    def init_from(self, st, with_p=True, cycles=4):
+    def init_from(self, st, with_p=True, cycles=4, with_k=False):
+        if with_k and "nuf" in st:          # тёплый старт с состоянием замыкания K (AP-1): K — часть состояния Пикара
+            self.nuf[...] = self.cp.asarray(st["nuf"], self.dt)
+            self.nuh[...] = self.cp.asarray(st["nuh"], self.dt)
         for a in ("u", "v", "w", "th"):
             getattr(self, a)[...] = self.cp.asarray(st[a], self.dt)
         self.thd[...] = self.cp.asarray(st["thd"], self.dt) if "thd" in st else 0   # нет — θ′_d с нуля
@@ -881,7 +891,7 @@ class Air:
         self.project(cycles=cycles, update_p=False)
 
     def state(self):
-        return {k: getattr(self, k).copy() for k in ("u", "v", "w", "th", "thd", "p")}
+        return {k: getattr(self, k).copy() for k in ("u", "v", "w", "th", "thd", "p", "nuf", "nuh")}
 
     # ------------------------------------------------------------------ окно: границы от родителя
     def set_nest_bc(self, init=False):
@@ -989,7 +999,7 @@ class Air:
             self.k["build_mom"](gr, bl, (np.int32(comp), self.u, self.v, self.w, self.tu, self.tv, self.tw,
                                          self.p, self.th, sp, bg, self.cplz, self.nuf, self.nuh, corr, C, b,
                                          np.int32(self.NZ), np.int32(self.NY), np.int32(self.NX),
-                                         R(self.dx), R(self.dz), R(1.0 / self.dtau_u), R(self.cd)))
+                                         R(self.dx), R(self.dz), R(1.0 / self.dtau_u), self.cdp))
 
     def adv2_heat(self):
         gr, bl = self._grid1()
@@ -1055,10 +1065,20 @@ class Air:
         """Одна итерация Пикара (порядок — reference.md → «Итерация»)."""
         self.apply_bc()
         self.update_k()
+        om = self.prm.omega_u != 1.0
+        if om:
+            for a, b in ((self.u, self.u_old), (self.v, self.v_old), (self.w, self.w_old)):
+                self.cp.copyto(b, a)
         self.adv2_mom()
         self.build_mom()
         self.mom_step()
         self.project(cycles=self.prm.vcycles)
+        if om:                              # u ← u_old + ω(u* − u_old): оба поля бездивергентны, сумма тоже
+            R = self.dt.type
+            for a, b in ((self.u, self.u_old), (self.v, self.v_old), (self.w, self.w_old)):
+                a -= b
+                a *= R(self.prm.omega_u)
+                a += b
         self.adv2_heat()
         self.heat_step()
 

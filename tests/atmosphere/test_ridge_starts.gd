@@ -256,9 +256,12 @@ func test_lee_zone_all_starts() -> void:
 			var a_wind := _make_atmo(terrain, 20.0, heading)
 			a_wind.set_focus(p)
 			a_wind.step(DT)
+			var w_wind := a_wind.air_velocity_at(p).y
 			var sigma_wind := a_wind.turbulence_intensity_at(p)
 			a_wind.free()
-			check(w_lee < 0.0, "%s: подветренная — среднее w %.2f м/с < 0" % [key, w_lee])
+			# AP-10: опускание за гребнем малое (0,03–0,05 U; lee.danger_sink_per_wind 0,08), фон и
+			# термики могут дать плюс; проверяем, что с подветренной стороны воздух хуже, чем с наветренной
+			check(w_lee < w_wind, "%s: подветренная w %.2f м/с < наветренной %.2f" % [key, w_lee, w_wind])
 			if bool(WEAK_LEE_SITES.get(key, false)):
 				return
 			check(
