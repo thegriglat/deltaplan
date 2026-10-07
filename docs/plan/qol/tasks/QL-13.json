@@ -17,7 +17,8 @@
     "configs/",
     "locale/",
     "tests/ui/",
-    "docs/guide/"
+    "docs/guide/",
+    "scripts/ui/flight_setup_screen.gd,scenes/ui/flight_setup_screen.tscn"
   ],
   "dont_touch": [
     "scenes/main.gd",
@@ -42,9 +43,14 @@
       "name": "docs",
       "cmd": "/home/greg/deltaplan/tools/dp docs check",
       "expect": "exit=0"
+    },
+    {
+      "name": "menu",
+      "tests": "menu"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-07T21:45:49"
+  "created": "2026-10-07T21:45:49",
+  "edited": "2026-10-07T21:47:54"
 }
