@@ -33,8 +33,6 @@ BY_NAME = [
 ]
 # Подстрока в строке ASSETS.md (нижний регистр) -> файлы licenses/.
 BY_COMPONENT = [
-    ("debug_draw_3d", ["MIT-debug_draw_3d"]),
-    ("debug draw 3d", ["MIT-debug_draw_3d"]),
     ("debug_menu", ["MIT-debug_menu"]),
     ("debug menu", ["MIT-debug_menu"]),
 ]

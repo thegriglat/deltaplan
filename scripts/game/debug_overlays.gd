@@ -3,7 +3,7 @@ extends Node
 ## Отладочные слои (configs/controls.json → debug; в «Управление» не выводятся):
 ## F1 — производительность простым текстом в левом верхнем углу;
 ## F2 — подробное меню аддона Debug Menu (графики; создаётся при первом нажатии);
-## F5 — ветер вокруг активной камеры: стрелки Debug Draw 3D на сетке нескольких высот над землёй;
+## F5 — ветер вокруг активной камеры: линии-стрелки (свой ArrayMesh) на сетке нескольких высот над землёй;
 ## F6 — термики: полупрозрачные наклонённые столбы от источника до верха.
 ## Выключенный слой ничего не считает и не рисует. Воздух — только через публичные функции
 ## (mean_wind_at, air_velocity_at, time_s, field) — годится для любой модели воздуха.
@@ -22,7 +22,6 @@ var wind_on := false
 var thermals_on := false
 
 var _cfg: Dictionary = {}
-var _dd: Object  ## синглтон DebugDraw3D (null — аддон не загрузился)
 var _period := 1.0 / 3.0
 
 # F1
@@ -41,6 +40,11 @@ var _menu: CanvasLayer  ## Debug Menu (аддон), F2
 var _wind_pts: Array[Vector3] = []  ## точки текущего прохода сетки
 var _wind_i := 0  ## сколько точек прохода уже нарисовано
 var _wind_t := 0.0
+var _wind_v := PackedVector3Array()  ## вершины линий текущего прохода
+var _wind_c := PackedColorArray()
+var _wind_mesh: MeshInstance3D  ## сетка стрелок (обновляется по завершении прохода)
+var _wind_pilot: MeshInstance3D  ## крупная стрелка над пилотом (каждый кадр)
+var _wind_mat: StandardMaterial3D
 
 # F6
 var _th_mesh: MeshInstance3D
@@ -54,8 +58,6 @@ func _ready() -> void:
 	_cfg = Config.get_config("controls").get("debug", {})
 	InputController.register_actions({"keys": _cfg.get("keys", {})})
 	_period = 1.0 / maxf(float(_cfg.get("update_hz", 3.0)), 0.1)
-	if Engine.has_singleton("DebugDraw3D"):
-		_dd = Engine.get_singleton("DebugDraw3D")
 	set_process(false)
 
 
@@ -129,8 +131,14 @@ func toggle_wind() -> void:
 	_wind_pts.clear()
 	_wind_i = 0
 	_wind_t = _period  # первый проход — сразу
-	if not wind_on and _dd != null:
-		_dd.call("clear_all")
+	_wind_v.clear()
+	_wind_c.clear()
+	if not wind_on:
+		for m in [_wind_mesh, _wind_pilot]:
+			if m != null:
+				(m as MeshInstance3D).queue_free()
+		_wind_mesh = null
+		_wind_pilot = null
 	_update_process()
 
 
@@ -292,38 +300,98 @@ func _wind_grid() -> Array[Vector3]:
 	return out
 
 
-## Сетку рисуем по частям каждый кадр (проход — за _period), стрелка живёт до следующего
-## прохода: нет рывка на кадре обновления.
+## Линии стрелки from→to: древко и четыре «уса» наконечника (долей длины, не длиннее head_m).
+static func arrow_lines(
+	from: Vector3, to: Vector3, col: Color, head_m: float, verts: PackedVector3Array,
+	cols: PackedColorArray
+) -> void:
+	var d := to - from
+	var len := d.length()
+	if len < 1.0e-4:
+		return
+	var dir := d / len
+	var ref := Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT
+	var s1 := dir.cross(ref).normalized()
+	var s2 := dir.cross(s1)
+	var h := minf(head_m, len * 0.4)
+	var back := to - dir * h
+	verts.append(from)
+	verts.append(to)
+	for side: Vector3 in [s1, -s1, s2, -s2]:
+		verts.append(to)
+		verts.append(back + side * h * 0.35)
+	for _i in 10:
+		cols.append(col)
+
+
+func _wind_material() -> StandardMaterial3D:
+	if _wind_mat == null:
+		_wind_mat = StandardMaterial3D.new()
+		_wind_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_wind_mat.vertex_color_use_as_albedo = true
+		_wind_mat.disable_fog = true
+	return _wind_mat
+
+
+func _lines_mesh(verts: PackedVector3Array, cols: PackedColorArray) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	if verts.is_empty():
+		return mesh
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_COLOR] = cols
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arr)
+	mesh.surface_set_material(0, _wind_material())
+	return mesh
+
+
+func _wind_instance() -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.top_level = true
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	return mi
+
+
+## Сетку считаем по частям каждый кадр (проход — за _period); готовая сетка подменяется целиком
+## по окончании прохода: стрелка живёт до следующего прохода, рывка на кадре обновления нет.
 func _wind_frame(dt: float) -> void:
-	if _dd == null or air == null:
+	if air == null:
 		return
 	_wind_t += dt
 	if _wind_i >= _wind_pts.size() and _wind_t >= _period:
 		_wind_t = 0.0
 		_wind_pts = _wind_grid()
 		_wind_i = 0
+		_wind_v.clear()
+		_wind_c.clear()
 	var arrow_s := float(_cfg.get("wind_arrow_s", 6.0))
 	var frames := maxf(_period / maxf(dt, 0.001), 1.0)
 	var chunk := ceili(_wind_pts.size() / frames)
-	var life := _period * 1.5
 	if chunk > 0 and _wind_i < _wind_pts.size():
-		var scope: Object = _dd.call("new_scoped_config")
-		scope.call("set_thickness", 1.2)
 		var end := mini(_wind_i + chunk, _wind_pts.size())
 		for k in range(_wind_i, end):
 			var pos := _wind_pts[k]
 			var v := mean_air_at(pos)
 			if v.length() < 0.05:
 				continue
-			_dd.call("draw_arrow", pos, pos + v * arrow_s, w_color(v.y), 0.25, false, life)
+			arrow_lines(pos, pos + v * arrow_s, w_color(v.y), 0.25 * v.length() * arrow_s, _wind_v, _wind_c)
 		_wind_i = end
+		if _wind_i >= _wind_pts.size():
+			if _wind_mesh == null:
+				_wind_mesh = _wind_instance()
+			_wind_mesh.mesh = _lines_mesh(_wind_v, _wind_c)
 	# Фактический воздух у пилота (с пульсациями) — крупная стрелка над ним, каждый кадр.
 	if target != null and target.is_visible_in_tree():
 		var p := target.global_position + Vector3(0, 6, 0)
 		var va: Vector3 = air.call("air_velocity_at", p)
-		var scope2: Object = _dd.call("new_scoped_config")
-		scope2.call("set_thickness", 0.12)
-		_dd.call("draw_arrow", p, p + va * 0.8, Color(1.0, 0.9, 0.2), 0.3, false, 0.0)
+		var pv := PackedVector3Array()
+		var pc := PackedColorArray()
+		arrow_lines(p, p + va * 0.8, Color(1.0, 0.9, 0.2), 0.3 * va.length() * 0.8, pv, pc)
+		if _wind_pilot == null:
+			_wind_pilot = _wind_instance()
+		_wind_pilot.mesh = _lines_mesh(pv, pc)
 
 
 # ================================================================ F6: термики

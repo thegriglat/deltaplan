@@ -179,17 +179,6 @@ def beside_exe(root, name, mode):
                 src = os.path.relpath(os.path.join(dp, fn), root).replace(os.sep, "/")
                 add("<exe>/" + src, src)
     plat = {"Linux": "linux.x86_64", "Windows": "windows.x86_64"}.get(name)
-    exts = ["addons/debug_draw_3d/debug_draw_3d.gdextension"]
-    feat = {"Linux": "linux.x86_64", "Windows": "windows.x86_64", "macOS": "macos"}[name]
-    for ge in exts:
-        libs = parse_gdextension(root, ge)
-        keys = [feat]
-        if "debug_draw" in ge:  # какая библиотека dd3d: экспорт debug — «editor», release+forced_dd3d — «.enabled»
-            keys = [feat] if mode == "debug" else [feat.replace(".x86_64", "") + ".template_release"
-                                                   + (".x86_64" if "x86_64" in feat else "") + ".forced_dd3d"]
-        for k in keys:
-            for src in libs.get(k, []):
-                add("<exe>/" + os.path.basename(src), src)
     if name == "Linux":
         out.append(("<exe>/deltaplan.sh", "<godot-generated>", 123, True))
     return out
@@ -394,7 +383,7 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "inventory"))
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--mode", default="debug", choices=["debug", "release"],
-                    help="режим экспорта tools/build.sh (debug по умолчанию): какая библиотека dd3d и какой шаблон")
+                    help="режим экспорта tools/build.sh (debug по умолчанию): какой шаблон движка")
     ap.add_argument("--root", default=ROOT)
     a = ap.parse_args()
     rows = parse_assets(os.path.join(a.root, "ASSETS.md"))
