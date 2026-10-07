@@ -62,3 +62,6 @@
 {"t": "2026-10-07T22:05:32", "by": "coordinator", "task": null, "ev": "note", "note": "база main/feature/qol: в game/ 3 падения (test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys) — две проверяют русские тексты, а язык по умолчанию стал английским (по ревью QL-1; то же в DD-1); не задача qol"}
 {"t": "2026-10-07T22:05:53", "by": "main", "task": "QL-12", "ev": "reported", "commits": ["ecc95949", "5ae06f6c"], "note": "done: «В избранное» на «Полёт…», список «Избранное» в меню (до 8, щелчок — лететь, × — удалить), user://favorites.json. Назва…"}
 {"t": "2026-10-07T22:06:22", "by": "executor", "task": "QL-12", "ev": "checked", "note": "4/4 ui/=ok:102/102; menu=ok:22/22; docs=ok:exit 0; qol_md=ok:0"}
+{"t": "2026-10-07T22:06:31", "by": "coordinator", "task": "QL-12", "ev": "accepted", "note": "по отчёту: 4/4; главное меню на 1024×600 не влезало и до задачи (вне скоупа)"}
+{"t": "2026-10-07T22:06:43", "by": "coordinator", "task": "QL-12", "ev": "merged", "commits": ["e9115f91"]}
+{"t": "2026-10-07T22:07:05", "by": "coordinator", "task": "QL-12", "ev": "accepted", "commits": ["e9115f91"], "note": "4/4 ui/=ok:102/102; menu=ok:22/22; docs=ok:exit 0; qol_md=ok:0"}
