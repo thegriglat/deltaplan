@@ -28,7 +28,8 @@
   "accept": [
     {
       "name": "game/",
-      "tests": "game/"
+      "tests": "game/",
+      "timeout": 2400
     },
     {
       "name": "ui/",

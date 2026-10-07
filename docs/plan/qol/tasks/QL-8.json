@@ -32,7 +32,8 @@
     },
     {
       "name": "atmosphere/",
-      "tests": "atmosphere/"
+      "tests": "atmosphere/",
+      "timeout": 2400
     },
     {
       "name": "px800",
