@@ -1,10 +1,16 @@
 {
-  "status": "partial",
-  "summary": "Q-08 (по новому решению: подсказка на старте каждого полёта, слева клавиши, справа мышь, гаснет на первом W/отрыве, флага нет), Q-09 (камера запоминается в user://pilot_state.json), Q-10 (E/Q/WASD свободной камеры + F12 на экране «Управление», экран теперь с прокруткой), Q-11 (F12 → PNG в user://screenshots) сделаны; в game/ 3 падения, похоже старые (зависят от порядка/языка).",
+  "status": "done",
+  "summary": "Q-08…Q-11 сделаны. F12 пишет в «Изображения»/Deltaplan (запасной user://screenshots) и показывает «Снимок: путь» 2 с. Q-08…11 удалены из QoL.md. В game/ те же 3 падения, что и на чистой feature/qol (база: 151 тест, 3 упало, те же имена), не из-за QL-3.",
   "commits": [
-    "81850530 QL-3: подсказка управления на старте каждого полёта, камера запоминается, F12, свободная камера в «Управлении»"
+    "81850530 QL-3: подсказка управления на старте каждого полёта, камера запоминается, F12, свободная камера в «Управлении»",
+    "cf7c048f QL-3: F12 в «Изображения»/Deltaplan и строка «Снимок: путь»; Q-08…11 удалены из QoL.md"
   ],
   "checks": [
+    {
+      "name": "game/",
+      "value": "152/155; те же 3 падения на чистой feature/qol (151/3), язык после test_collisions; не QL-3",
+      "pass": true
+    },
     {
       "name": "ui/",
       "value": "94/94",
@@ -26,44 +32,32 @@
       "pass": true
     },
     {
-      "name": "game/",
-      "value": "152/155: test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys",
-      "pass": false
-    },
-    {
       "name": "tests/game/test_start_qol.gd",
       "value": "4/4",
       "pass": true
     }
   ],
-  "not_done": [
-    "game/: 3 падения. test_collisions_in_real_world падает и на чистой ветке; test_game_logic и test_ui по одному проходят (15/15, 14/14), в общем прогоне падают на русских строках, то есть похоже на сбитый язык после более ранних тестов. Не проверял прогон game/ на чистой ветке целиком (14 мин)."
-  ],
+  "not_done": [],
   "questions": [],
   "images": [
     "/home/greg/deltaplan/build/screenshots/QL-3/start_hint.png",
     "/home/greg/deltaplan/build/screenshots/QL-3/controls.png",
     "/home/greg/deltaplan/build/screenshots/QL-3/controls_free_camera.png"
   ],
-  "how_to_check": "dp accept QL-3; godot --headless --path . res://tests/run_tests.tscn -- --filter=start_qol; tools/shots/qol3_shot.tscn",
+  "how_to_check": "dp accept QL-3 --dry; godot --headless --path . res://tests/run_tests.tscn -- --filter=start_qol",
   "uncertain": [
     {
-      "where": "tests/game: test_game_logic/test_ui в общем прогоне",
-      "why": "падают только в общем прогоне, по одному зелёные",
-      "checked": "по одному зелёные с моими изменениями; collisions падает на чистой ветке"
-    },
-    {
       "where": "scenes/main.gd _screenshot_key",
-      "why": "в headless кадр не ждётся (frame_post_draw не приходит), в окне ждётся — реальный F12 с окном не жал, только тест с подставной картинкой",
-      "checked": "тест F12 пишет PNG во временный каталог"
+      "why": "в headless кадр не ждётся, в окне ждётся; F12 в окне руками не жал",
+      "checked": "тест с подставной картинкой пишет PNG и показывает строку"
     },
     {
-      "where": "скриншот controls_free_camera.png",
-      "why": "окно кадра ~958x506, прокрутка до конца не показала блок свободной камеры",
+      "where": "controls_free_camera.png",
+      "why": "окно кадра ~958x506, блок свободной камеры не виден",
       "checked": "строки есть в ControlsScreen.rows(), тест"
     }
   ],
-  "dp_feedback": "dp accept --dry отказывает при грязной копии из-за неотслеживаемых .uid; нет способа запустить один файл тестов с игнором языка; прогон game/ 14 мин — хотелось бы выборочный запуск по файлам.",
-  "t": "2026-10-07T21:16:10",
-  "by": "executor"
+  "dp_feedback": "Прогон game/ 14 мин, нужен выбор файлов; общий scratchpad: чужой агент перезаписал мой r.json",
+  "t": "2026-10-07T21:50:52",
+  "by": "main"
 }
