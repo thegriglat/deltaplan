@@ -28,6 +28,10 @@ func _ctx(t: float, key := "K") -> EggContext:
 func _eggs(overrides := {}) -> EasterEggs:
 	var e := EasterEggs.new()
 	e.cfg = Config.get_config("easter_eggs").duplicate(true)
+	# только probe: частые настоящие пасхалки не попадают в расписание теста
+	for id in e.cfg.eggs:
+		if e.cfg.eggs[id] is Dictionary and id != "probe":
+			(e.cfg.eggs[id] as Dictionary)["enabled"] = false
 	for k in overrides:
 		(e.cfg.eggs.probe as Dictionary)[k] = overrides[k]
 	add_child(e)
