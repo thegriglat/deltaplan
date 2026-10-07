@@ -441,3 +441,8 @@ places_dir_w,З,W
 places_dir_wnw,ЗСЗ,WNW
 places_dir_nw,СЗ,NW
 places_dir_nnw,ССЗ,NNW
+fav_wind,"%d м/с %s","%d m/s %s"
+menu_favorites,Избранное,Favorites
+setup_add_favorite,В избранное,Add to favorites
+fav_added,В избранном,Added to favorites
+fav_remove,Удалить,Remove
