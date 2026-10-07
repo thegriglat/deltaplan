@@ -77,3 +77,9 @@
 {"t": "2026-10-07T22:38:38", "by": "coordinator", "task": "QL-14", "ev": "accepted", "note": "по отчёту: 4/4; главное меню на 1024×600 — колонка в прокрутке (start_menu.gd — фактический файл главного меню, вне перечня скоупа, принято); tools/shots/scroll_shot — инструмент кадров в окне"}
 {"t": "2026-10-07T22:39:03", "by": "coordinator", "task": "QL-14", "ev": "accepted", "commits": ["59cc21ca"], "note": "4/4 ui/=ok:103/103; menu=ok:23/23; settings=ok:1/1; docs=ok:exit 0"}
 {"t": "2026-10-07T22:39:08", "by": "coordinator", "task": "QL-14", "ev": "merged", "note": "59cc21ca"}
+{"t": "2026-10-07T22:46:34", "by": "reviewer", "task": "QL-1", "ev": "reviewed", "note": "Оба замечания прошлого ревью закрыты: на паузе в одиночной таймер ожидания итога стоит (state PAUSED и net==null — left не уменьшается), неподтверждённую посад…", "verdict": "accept", "review": "docs/plan/qol/tasks/QL-1.review.json"}
+{"t": "2026-10-07T22:46:47", "by": "coordinator", "task": "QL-1", "ev": "accepted", "note": "по ревью (повторное): accept; 3 падения game/ — базовые (язык), есть на feature/qol до задачи"}
+{"t": "2026-10-07T22:47:57", "by": "coordinator", "task": "QL-7", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-7"}
+{"t": "2026-10-07T22:47:58", "by": "coordinator", "task": "QL-11", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-11; параллельно с QL-7"}
+{"t": "2026-10-07T23:00:38", "by": "coordinator", "task": "QL-8", "ev": "note", "note": "прежний исполнитель остановлен с прежним координатором (без отчёта); новый dp-engineer продолжает в той же копии с cced6e50"}
+{"t": "2026-10-07T23:00:38", "by": "coordinator", "task": "QL-9", "ev": "note", "note": "прежний исполнитель остановлен с прежним координатором (без отчёта, замер s9_gpu_* не закоммичен); новый dp-engineer продолжает в той же копии с 92478639"}
