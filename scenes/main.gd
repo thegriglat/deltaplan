@@ -31,6 +31,7 @@ var screenshot_dir: String = ""  # пусто — UserSettings.screenshot_dir()
 ## Откуда брать картинку для F12 (по умолчанию — вьюпорт; тесты без экрана подставляют свою).
 var screenshot_source: Callable = func() -> Image: return get_viewport().get_texture().get_image()
 
+var _look_prev_mode := ""  ## «Осмотреться» в паузе (Q-18): прежний режим камеры, "" — не осматриваемся
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
@@ -156,7 +157,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			State.FLYING:
 				_pause()
 			State.PAUSED:
-				if _overlay_open():
+				if _look_prev_mode != "":
+					_end_look_around()
+				elif _overlay_open():
 					_close_overlay()
 				else:
 					_resume()
@@ -427,6 +430,7 @@ func _show_menu() -> void:
 	catch_up_menu.close()
 	_net_pause_timer.stop()
 	_pending_result = []
+	_end_look_around(false)
 	_end_net()
 	state = State.MENU
 	get_tree().paused = false
@@ -474,7 +478,28 @@ func _pause() -> void:
 	pause_menu.visible = true
 
 
+## Осмотреться в паузе (Q-18): мир стоит, камера обрабатывается (свободная); Esc — назад в меню.
+func _look_around() -> void:
+	_look_prev_mode = game.camera.mode
+	pause_menu.visible = false
+	game.camera.process_mode = Node.PROCESS_MODE_ALWAYS
+	game.camera.look_enabled = true
+	game.camera.set_mode("free")
+
+
+## Вернуть прежний режим камеры; menu — показать меню паузы (Esc), иначе уходим из паузы.
+func _end_look_around(menu := true) -> void:
+	if _look_prev_mode == "":
+		return
+	game.camera.set_mode(_look_prev_mode)
+	_look_prev_mode = ""
+	game.camera.process_mode = Node.PROCESS_MODE_INHERIT
+	game.camera.look_enabled = not game.is_paused()
+	pause_menu.visible = menu
+
+
 func _resume() -> void:
+	_end_look_around(false)
 	_net_pause_timer.stop()
 	pause_menu.visible = false
 	get_tree().paused = false
@@ -621,6 +646,7 @@ func _connect_screens() -> void:
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
+	pause_menu.look_around_requested.connect(_look_around)
 	pause_menu.settings_requested.connect(_open_settings.bind(pause_menu))
 	pause_menu.menu_requested.connect(_show_menu)
 	pause_menu.quit_requested.connect(_quit.bind(0))
