@@ -52,3 +52,4 @@
 {"t": "2026-10-07T21:55:16", "by": "coordinator", "task": "QL-13", "ev": "merged", "commits": ["c335af1e"]}
 {"t": "2026-10-07T21:55:42", "by": "coordinator", "task": "QL-13", "ev": "accepted", "commits": ["c335af1e"], "note": "5/5 ui/=ok:97/97; settings=ok:1/1; graphics=ok:2/2; docs=ok:exit 0; menu=ok:22/22"}
 {"t": "2026-10-07T21:56:15", "by": "coordinator", "task": "QL-12", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-12"}
+{"t": "2026-10-07T22:02:49", "by": "executor", "task": "QL-3", "ev": "checked", "note": "4/5 game/=FAIL:152/155 (пропуск 1); FAIL tes…; ui/=ok:94/94; controls=ok:9/9; docs=ok:exit 0; qol_md=ok:0"}
