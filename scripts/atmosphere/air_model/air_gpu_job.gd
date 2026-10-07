@@ -33,6 +33,14 @@ var max_steps_per_chunk := 0
 var frame_gap_limit := true
 ## Вес первой порции (цена запусков ещё не измерена), единицы AirGpu.LAUNCH_WEIGHT·…
 var first_chunk_weight := 150000.0
+## Одна отправка на GPU должна быть короткой: Windows сбрасывает карту (TDR), если она занята
+## > 2 с (у пилота RX 5600 XT, в разы слабее RTX 4070 SUPER в счёте). Два предела поверх бюджета:
+## вес порции ≤ max_chunk_weight при любой оценке цены (худшая цена веса на RTX 4070 SUPER —
+## 7,3e-5 мс, замер 07.10: ≤ 0,18 с там, ≤ 1,8 с на карте в 10 раз слабее) и ≤ guard_ms по худшей
+## цене веса, замеченной на этом устройстве (AirGpu.worst_ms_per_w: смесь ядер с самой дорогой
+## единицей веса — запас 10× до TDR).
+var max_chunk_weight := 2.5e6
+var guard_ms := 200.0
 var gpu: AirGpu
 var error := ""
 var steps_done := 0
@@ -64,6 +72,11 @@ var _expected_ms := 0.0
 var _t_start := 0
 var _t_poll_end := 0
 var _gap_ms := -1.0
+# замер порций (исследование TDR, docs/research): DP_AIR_CHUNK_LOG=путь.jsonl — строка на порцию;
+# DP_AIR_PROBE=1 — по одному запуску в порции (GPU-цена каждого ядра против его веса)
+var _log_path := OS.get_environment("DP_AIR_CHUNK_LOG")
+var _probe := OS.get_environment("DP_AIR_PROBE") == "1"
+var _chunk_first := 0
 
 
 ## Запуск: RD, ядра, данные. false — error/failed (расчёт не начат).
@@ -118,10 +131,15 @@ func _finish_chunk() -> bool:
 	max_chunk_gpu_ms = maxf(max_chunk_gpu_ms, gpu_ms)
 	max_sync_wait_ms = maxf(max_sync_wait_ms, wait)
 	chunk_log.append(Vector3(_chunk_items, gpu_ms, wait))
+	if _log_path != "":
+		_log_chunk(gpu_ms)
 	if gpu_ms > 0.0:
 		# цена единицы веса запусков (с запасом вверх: рост — сразу, спад — плавно)
 		var per := gpu_ms / _chunk_w
 		_ms_per_w = per if _ms_per_w < 0.0 else maxf(per, 0.7 * _ms_per_w + 0.3 * per)
+		# худшая цена — по порциям не меньше WORST_MIN_W (в мелких цену задаёт сам запуск)
+		if _chunk_w >= AirGpu.WORST_MIN_W:
+			gpu.worst_ms_per_w = maxf(gpu.worst_ms_per_w, per)
 	steps_done += _chunk_steps
 	if _chunk_boundary and _after_sync():
 		_done = true
@@ -215,6 +233,12 @@ func _record_chunk_inner() -> void:
 	if _ms_per_w > 0.0:
 		# цена ещё уточняется по первым порциям — рост не больше чем вдвое за порцию
 		cap = minf(budget_ms() / _ms_per_w, 2.0 * _w_max)
+	cap = minf(cap, max_chunk_weight)
+	if gpu.worst_ms_per_w > 0.0:
+		cap = minf(cap, guard_ms / gpu.worst_ms_per_w)
+	if _probe:
+		cap = 0.0
+	_chunk_first = _cursor
 	var items := 0
 	var steps := 0
 	var wsum := 0.0
@@ -259,6 +283,26 @@ func _record_chunk_inner() -> void:
 	_chunk_w = maxf(wsum, 1.0)
 	_w_max = maxf(_w_max, wsum)
 	_chunk_steps = steps
+
+
+func _log_chunk(gpu_ms: float) -> void:
+	var row := {
+		job = get_script().get_global_name(), items = _chunk_items, w = _chunk_w, gpu_ms = gpu_ms,
+		steps = _chunk_steps, ms_per_w = _ms_per_w,
+	}
+	if _probe and _chunk_items == 1 and _chunk_first < _prog.size():
+		var it: Array = _prog[_chunk_first]
+		for key: String in gpu._pipe:
+			if gpu._pipe[key] == it[0]:
+				row.kernel = key
+		row.groups = int(it[3]) * int(it[4])
+		row.pc = Array((it[2] as PackedByteArray).slice(0, 32).to_int32_array())
+	var f := FileAccess.open(_log_path, FileAccess.READ_WRITE)
+	if f == null:
+		f = FileAccess.open(_log_path, FileAccess.WRITE)
+	if f != null:
+		f.seek_end()
+		f.store_line(JSON.stringify(row))
 
 
 ## Цена программы (сумма весов запусков, AirGpu.LAUNCH_WEIGHT).

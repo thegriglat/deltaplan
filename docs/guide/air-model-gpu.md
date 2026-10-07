@@ -2,7 +2,7 @@
 type: "guide"
 status: "active"
 module: "air-model"
-updated: "2026-10-03"
+updated: "2026-10-07"
 summary: "Модель воздуха на GPU: строительные блоки (AM-02) — Эталоны — tools/research/air3d/gpu_block_refs.py (numpy, float64 по формулам ядер и прикидки) → tests/atmosphere/fixtures/air_model/blocks/*.bin + .json (f32 LE, ~2,5 МБ)."
 related: []
 ---
@@ -104,6 +104,14 @@ job.release()                       # free() у RefCounted в GDScript заня�
   `first_chunk_weight`, дальше рост не больше чем вдвое за порцию; `max_steps_per_chunk` — не
   больше стольких шагов (Пикар: 1). `poll_slice(ms)` — порции подряд в пределах ms за кадр (экран
   загрузки), `run_blocking()` — всё подряд (инструменты).
+- Короткая отправка (TDR Windows: карта занята > 2 с — сброс устройства): вес порции
+  ≤ `max_chunk_weight` (2,5e6; худшая цена веса на RTX 4070 SUPER 7,3e-5 мс — ≤ 0,18 с) и
+  ≤ `guard_ms` (200 мс) по худшей цене веса, замеченной на этом RD (`AirGpu.worst_ms_per_w`, порции
+  ≥ 1e5). В очереди не больше одной порции: следующая записывается только после `sync()` прошлой.
+  Грубый уровень V-цикла одной группой (`zebra_one_group`) весит 600 на пакет линий: одна группа
+  идёт пакеты подряд, цена — задержка (4×4×90, 20 раз — 3,1 мс), а не группы × вес.
+  Замеры порций: `DP_AIR_CHUNK_LOG=путь.jsonl` — строка на порцию (задача, запусков, вес, GPU мс);
+  `DP_AIR_PROBE=1` — по одному запуску в порции (цена каждого ядра против веса).
 - Главный поток не ждёт: `submit()` сразу отдаёт работу GPU (проверено: sync после 80 мс паузы —
   0,05 мс), к следующему poll порция уже готова.
 - Программы (`AirGpu.record` / `run`) нужны из-за цены записи на GDScript: ~24 мкс на запуск при
@@ -184,6 +192,18 @@ poll() зовёт sync() только когда с submit() прошло не �
   V-цикл ×1/×5 — 1,3e-6/8,8e-7), два прогона побитно одинаковы, задача давления сходится; порции
   > 30 мс (один запуск ядра на 192×192×48 — до ~0,6 с на CPU), проверка времени порции на llvmpipe
   пропускается. RADV — AMD-карты нет, не проверено.
+- D3D12 (Godot 4.7: SPIR-V → NIR → DXIL): константы специализации только `uint` (знаковая `int` —
+  «Shader translation (step 1) failed»: так у пилота в 1.3.2 не собирались air_vec, air_reduce,
+  air_stencil, air_line, air_line_mp, air_mg; `#define OP int(OP_U)`); два буфера на одной привязке в
+  одном ядре — нельзя (CreateComputePipelineState E_INVALIDARG: air_picard relax / freeze / rmask /
+  fixrow / prolong объявляли свой буфер на привязке 0 поверх prm). Проверка без Windows —
+  Windows-сборка под wine с vkd3d-proton 3.0.1 (d3d12) и DXVK 2.6.1 (dxgi): все 40 ядер собираются,
+  загрузка Аскарово даёт то же поле, что Vulkan. Ядро не собралось — `AirGpu.init` освобождает RD
+  (расчёт недоступен → аналитика), а не идёт дальше без ядер.
+- GPU-AV (Vulkan validation 1.4.309, `VK_LAYER_SETTINGS_PATH` → `khronos_validation.gpuav_enable =
+  true`, `gpuav_shader_instrumentation`, `gpuav_descriptor_checks`; контроль — заведомый выход за
+  буфер ловится): GPU-тесты ветра и загрузка Аскарово — выходов за границы 0. Godot не включает
+  robustBufferAccess: выход за буфер на GPU — порча памяти/сбой устройства, не ноль.
 
 ---
 
