@@ -94,7 +94,7 @@
     "screenshot": [
       "F12"
     ],
-    "screenshot_doc": "Снимок экрана (Q-11): PNG в user://screenshots/deltaplan_ГГГГММДД_ЧЧММСС.png, путь — в журнале; работает в полёте, на паузе и в меню",
+    "screenshot_doc": "Снимок экрана (Q-11): PNG в «Изображения»/Deltaplan/deltaplan_ГГГГММДД_ЧЧММСС.png (нет папки — user://screenshots), путь — на экране 2 с и в журнале; работает в полёте, на паузе и в меню",
     "catch_up": [
       "Equal"
     ],

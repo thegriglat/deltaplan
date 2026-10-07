@@ -9,8 +9,8 @@ const LAST_FLIGHT := "user://last_flight.json"
 ## Мелкие запоминаемые пилотом вещи (QL-3): последняя камера.
 ## Тесты подменяют путь (state_path), чтобы не трогать профиль.
 const PILOT_STATE := "user://pilot_state.json"
-## Каталог снимков экрана по F12 (QL-3, Q-11); тесты передают свой.
-const SCREENSHOT_DIR := "user://screenshots"
+## Запасной каталог снимков по F12 (QL-3, Q-11), если у системы нет папки «Изображения».
+const SCREENSHOT_DIR_FALLBACK := "user://screenshots"
 ## Камеры, которые запоминаются: свободную на старте не восстанавливаем (крыло стоит на земле).
 const REMEMBERED_CAMERAS: PackedStringArray = ["cockpit", "chase"]
 ## Подкаталог машинных настроек рядом с каталогом конфигов (user://local/configs): в Steam Cloud
@@ -124,9 +124,19 @@ static func save_start_camera(mode: String) -> void:
 		_state_set("camera", mode)
 
 
+## Каталог снимков: «Изображения»/Deltaplan системы, иначе user://screenshots.
+static func screenshot_dir() -> String:
+	var pics := OS.get_system_dir(OS.SYSTEM_DIR_PICTURES)
+	if pics == "" or not DirAccess.dir_exists_absolute(pics):
+		return SCREENSHOT_DIR_FALLBACK
+	return pics.path_join("Deltaplan")
+
+
 ## Снимок экрана (Q-11) в каталог dir: deltaplan_ГГГГММДД_ЧЧММСС.png (при совпадении секунды — _2…).
 ## Возвращает путь файла или "" при ошибке.
-static func save_screenshot(img: Image, dir: String = SCREENSHOT_DIR) -> String:
+static func save_screenshot(img: Image, dir: String = "") -> String:
+	if dir == "":
+		dir = screenshot_dir()
 	DirAccess.make_dir_recursive_absolute(dir)
 	var t := Time.get_datetime_dict_from_system()
 	var stem := (

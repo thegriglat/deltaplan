@@ -24,8 +24,10 @@ var catch_up_menu: CatchUpMenu
 
 ## Подсказка управления на старте каждого полёта (Q-08): слева клавиши, справа мышь.
 var _start_hint: Control
+var _toast: Label  ## строка «Снимок: …»
+var _toast_stamp := 0
 ## Каталог снимков экрана по F12 (Q-11); тесты подменяют.
-var screenshot_dir: String = UserSettings.SCREENSHOT_DIR
+var screenshot_dir: String = ""  # пусто — UserSettings.screenshot_dir()
 ## Откуда брать картинку для F12 (по умолчанию — вьюпорт; тесты без экрана подставляют свою).
 var screenshot_source: Callable = func() -> Image: return get_viewport().get_texture().get_image()
 
@@ -279,7 +281,29 @@ func _screenshot_key() -> void:
 	if DisplayServer.get_name() != "headless":  # без окна кадр не рисуется
 		await RenderingServer.frame_post_draw
 	var path := UserSettings.save_screenshot(screenshot_source.call(), screenshot_dir)
-	print("screenshot: %s" % (ProjectSettings.globalize_path(path) if path != "" else "ошибка записи"))
+	var shown := ProjectSettings.globalize_path(path) if path != "" else "ошибка записи"
+	print("screenshot: %s" % shown)
+	_show_toast(tr("screenshot_saved") % shown)
+
+
+## Короткая строка внизу экрана (~2 с).
+func _show_toast(text: String) -> void:
+	if _toast == null:
+		_toast = Label.new()
+		_toast.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_toast.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		_toast.offset_bottom = -20
+		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_toast.process_mode = Node.PROCESS_MODE_ALWAYS
+		$UI.add_child(_toast)
+	_toast.text = text
+	_toast.visible = true
+	var my := Time.get_ticks_msec()
+	_toast_stamp = my
+	await get_tree().create_timer(2.0, true).timeout
+	if _toast_stamp == my:
+		_toast.visible = false
 
 
 ## Состояние экрана → Activity (S3). В полёте режим по фазе пилота ведёт Game; здесь — начальный.

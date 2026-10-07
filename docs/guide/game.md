@@ -74,8 +74,8 @@ WASD — по взгляду, E/Q — вверх/вниз, Shift — ×`fast_fac
 Последняя выбранная клавишей C камера (кабина или сзади; свободная не запоминается) пишется в
 `user://pilot_state.json` (`UserSettings.start_camera`) — следующий полёт начинается с неё; без выбора — `default_mode`.
 **Старт каждого полёта:** полупрозрачная подсказка (`ControlsScreen.start_hint_keys_text` слева — клавиши, `start_hint_mouse_text` справа — мышь; центр свободен); уходит на первое W или отрыв; `--autostart` её не показывает.
-**F12** (`controls.json → keys.screenshot`) — снимок экрана в `user://screenshots/deltaplan_ГГГГММДД_ЧЧММСС.png`,
-путь в журнале. Клавиши свободной камеры (E/Q, WASD, Shift) и F12 — на экране «Управление».
+**F12** (`controls.json → keys.screenshot`) — снимок экрана в «Изображения»/Deltaplan/`deltaplan_ГГГГММДД_ЧЧММСС.png` (`UserSettings.screenshot_dir`, нет папки —
+`user://screenshots`); на экране ~2 с строка «Снимок: <путь>», путь и в журнале. Клавиши свободной камеры (E/Q, WASD, Shift) и F12 — на экране «Управление».
 Клавиши 1–5 / Tab листают планшет в любой камере. Звук вариометра берётся с прибора
 `game.json → vario_sound_from[пресет]` (classic_90s — вариометр 90-х на стойке), стрелка и писк совпадают.
 

@@ -107,6 +107,9 @@ func test_f12_writes_file() -> void:
 	main.call("_screenshot_key")
 	for i in 30:
 		await get_tree().process_frame
+	var toast: Label = main.get("_toast")
+	check(toast != null and toast.visible and toast.text.contains(".png"), "строка «Снимок: путь»")
+	check(UserSettings.screenshot_dir().ends_with("Deltaplan") or UserSettings.screenshot_dir() == "user://screenshots", "каталог снимков")
 	var dir: String = main.screenshot_dir
 	var files := DirAccess.get_files_at(dir)
 	check(files.size() == 1 and String(files[0]).ends_with(".png"), "файл снимка: %s" % [files])
