@@ -1,0 +1,51 @@
+{
+  "id": "QL-14",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Прокрутка «Настройки» и «Полёт…»: проверка в окне и доводка",
+  "goal": "Экраны «Настройки» и «Полёт…» в окне 1280×720 и 1024×600 при 30+ своих местах и с избранным (QL-12) — всё доступно колесом мыши, кнопки «Лететь/Назад» всегда видны. Прокрутку сделала QL-13 (scripts/ui/scroll_panel.gd), но после неё влита QL-12 (кнопка «В избранное», список «Избранное»), а скриншот QL-13 был масштабирован — проверить в настоящем окне и починить, что не так.",
+  "plan_ref": "QL-13. Предел кадров, VSync, разрешение и режим окна (отзыв игрока, 07.10)",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-14",
+  "branch": "qol/QL-14",
+  "base": "feature/qol",
+  "scope": [
+    "scripts/ui/scroll_panel.gd",
+    "scripts/ui/settings_panel.gd",
+    "scenes/ui/settings_panel.tscn",
+    "scripts/ui/flight_setup_screen.gd",
+    "scenes/ui/flight_setup_screen.tscn",
+    "scripts/ui/main_menu.gd",
+    "scenes/ui/",
+    "tests/ui/",
+    "locale/"
+  ],
+  "dont_touch": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/flight/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "menu",
+      "tests": "menu"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T22:34:04"
+}

@@ -65,6 +65,9 @@ var _focus: Vector3 = Vector3.ZERO
 var _configured: bool = false
 var _refresh_acc: float = 1.0e9
 var _refresh_interval: float = 0.5
+## Во сколько раз реже обновлять список термиков и облака (только «Подождать час», Q-17: мир идёт
+## ×60, а пересчёт — 25–45 мс — не должен падать на каждый шаг). 1 — как обычно.
+var refresh_scale: float = 1.0
 ## Обновления — по сетке времени атмосферы (номер интервала), а не по накопленному dt: набор
 ## термиков в момент t не зависит от шага и от того, с какого момента атмосферу начали.
 var _refresh_slot: int = -(1 << 62)
@@ -342,13 +345,13 @@ func start_at(t: float) -> void:
 ## Обновить набор термиков, облака и сетку поиска на текущий time_s сразу (не ждать интервала).
 func refresh_now() -> void:
 	_update_focus()
-	_refresh_slot = floori(time_s / _refresh_interval)
+	_refresh_slot = floori(time_s / _refresh_dt())
 	_state_slot = floori(time_s / _state_interval)
 	_refresh_acc = 0.0
 	# Ход дня — на начало интервала (чистая функция времени, не шага).
 	if _day_active():
 		_apply_day(_state_slot * _state_interval)
-	field.refresh(time_s, _focus, _refresh_interval)
+	field.refresh(time_s, _focus, _refresh_dt())
 	storm.refresh(field.thermals)
 	cloud_phys.refresh(field.thermals, time_s, _focus, float(cfg.thermal.physics_radius_m))
 
@@ -612,7 +615,7 @@ func step(dt: float) -> void:
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
 	_refresh_acc += dt
-	if _refresh_acc >= 1.0e8 or floori(time_s / _refresh_interval) != _refresh_slot:
+	if _refresh_acc >= 1.0e8 or floori(time_s / _refresh_dt()) != _refresh_slot:
 		refresh_now()
 	else:
 		var slot := floori(time_s / _state_interval)
@@ -622,6 +625,10 @@ func step(dt: float) -> void:
 				_apply_day(slot * _state_interval)
 			field.update_time(time_s)
 	ground.prefetch(_focus)
+
+
+func _refresh_dt() -> float:
+	return _refresh_interval * maxf(refresh_scale, 1.0)
 
 
 func _day_active() -> bool:
@@ -1052,3 +1059,8 @@ func _create_visuals() -> void:
 			_birds.name = "Birds"
 			add_child(_birds)
 			_birds.call("setup", self)
+	if bool(cfg.thermal_signs.enabled):
+		var signs := ThermalSigns.new()
+		signs.name = "ThermalSigns"
+		add_child(signs)
+		signs.setup(self)

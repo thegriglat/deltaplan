@@ -1,0 +1,71 @@
+{
+  "id": "QL-2",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "«С наивысшей точки» (Q-13)",
+  "goal": "После падения или посадки продолжить в воздухе с точки максимальной высоты полёта (то же место, курс, скорость, день; часы идут дальше), чтобы не набирать высоту заново.",
+  "plan_ref": "QL-2",
+  "contracts": [
+    {
+      "name": "QL-К1",
+      "version": "1",
+      "ref": "docs/contracts/qol.md"
+    },
+    {
+      "name": "QL-К2",
+      "version": "1",
+      "ref": "docs/contracts/qol.md"
+    }
+  ],
+  "copy": "~/deltaplan-qol-QL-2",
+  "branch": "qol/QL-2",
+  "base": "feature/qol",
+  "scope": [
+    "scripts/game/flight_snapshot.gd",
+    "scripts/game/game.gd",
+    "scenes/main.gd",
+    "scripts/ui/result_screen.gd",
+    "scripts/ui/pause_menu.gd",
+    "scenes/ui/",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "tests/contracts/test_qol_contracts.gd",
+    "docs/guide/game.md",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "contracts/test_qol",
+      "tests": "contracts/test_qol"
+    },
+    {
+      "name": "game/",
+      "tests": "game/",
+      "timeout": 2400
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-13 ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:25:26",
+  "edited": "2026-10-07T21:16:57"
+}

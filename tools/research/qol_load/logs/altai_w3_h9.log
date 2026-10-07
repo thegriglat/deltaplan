@@ -1,0 +1,50 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с nan, nan / altai
+[load] classify     0.01 с  (к 0.19 с)
+[load] mesh         0.41 с  (к 0.60 с)
+[load] trees        3.32 с  (к 3.92 с)
+Terrain: локация 'altai' загружена за 4.05 с, чанков 160
+[load] grass        0.13 с  (к 4.05 с)
+[gap] 0.00 с: 4133 мс
+Terrain: поля рельефа за 4.06 с
+[load] weather      0.47 с  (к 4.53 с)
+[gap] 4.13 с: 469 мс
+WorldObjects: 'altai' за 2.58 с — ветроуказателей 16, посадок 1, троп к стартам 3, OSM { "wire_tiles": 848, "supports": 1520, "wires": 5409, "road_tiles": 437, "buildings": 27362, "building_tiles": 324, "power_s": 0.84612, "wait_threads_s": 0.768015, "nodes_s": 0.081803, "osm_fence_spans": 402, "osm_fence_tiles": 2 }
+[load] objects      4.39 с  (к 8.92 с)
+[gap] 4.60 с: 4390 мс
+[gap] 11.75 с: 102 мс
+[gap] 12.37 с: 108 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [330, 210], фазы A 0.23, B 0.00, C 0.00, D 0.00, F 0.77, H 0.00 (626 мс), заморожено 0.00, ω→запас true
+air_model: поле 09:00 ч, 3.0 м/с с 276° (загрузка): 17.49 с, итераций [330, 210], тёплый старт, окна ["100 м [90, 90]", "50 м [100, 100]"]; k притока 0.832, U над стартом на 10 м 2.94 м/с (проход 1: 3.33), проходов 2 ["1.000 → 3.33 м/с за 8.4 с (область 4.9, GPU 0.74)", "0.832 → 2.94 м/с за 9.0 с (область 5.3, GPU 2.08)"]
+[load] wind        17.50 с  (к 26.41 с)
+[load] glider       3.41 с  (к 29.83 с)
+[load] всего 29.83 с
+WorldObjects: у старта нет ровного места для палаток
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=9.00&lat=51.82121&lon=85.85361&seed=1221708992&sky=clear&temp=26.0&v=1&wind=3.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:94)
+       [1] set_input_enabled (res://scripts/game/game.gd:648)
+       [2] set_flying (res://scripts/game/game.gd:603)
+       [3] _fly (res://scenes/main.gd:194)
+       [4] start (res://scripts/game/game.gd:359)
+load_probe: итог полёт за 30.51 с, кадров 857
+load_probe: макс. интервал 4390 мс; >100 мс: ["4390@4.6", "4133@0.0", "469@4.1", "108@12.4", "102@11.8"]
+load_probe: этап classify     0.01 с
+load_probe: этап mesh         0.41 с
+load_probe: этап trees        3.32 с
+load_probe: этап grass        0.13 с
+load_probe: этап weather      0.47 с
+load_probe: этап objects      4.39 с
+load_probe: этап wind        17.50 с
+load_probe: этап glider       3.41 с
+exit=0

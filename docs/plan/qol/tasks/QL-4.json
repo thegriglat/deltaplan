@@ -1,0 +1,59 @@
+{
+  "id": "QL-4",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "На старте: сменить крыло и другой день (Q-14, Q-15)",
+  "goal": "Сменить крыло и получить другой день на том же старте прямо из паузы, без выхода в меню.",
+  "plan_ref": "QL-4",
+  "contracts": [
+    {
+      "name": "QL-К1",
+      "version": "1",
+      "ref": "docs/contracts/qol.md"
+    }
+  ],
+  "copy": "~/deltaplan-qol-QL-4",
+  "branch": "qol/QL-4",
+  "base": "feature/qol",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/",
+    "scenes/ui/",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "docs/guide/game.md",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "game/",
+      "tests": "game/",
+      "timeout": 2400
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-1[45] ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:25:26",
+  "edited": "2026-10-07T21:16:58"
+}

@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Q-08…Q-11 сделаны. F12 пишет в «Изображения»/Deltaplan (запасной user://screenshots) и показывает «Снимок: путь» 2 с. Q-08…11 удалены из QoL.md. В game/ те же 3 падения, что и на чистой feature/qol (база: 151 тест, 3 упало, те же имена), не из-за QL-3.",
+  "commits": [
+    "81850530 QL-3: подсказка управления на старте каждого полёта, камера запоминается, F12, свободная камера в «Управлении»",
+    "cf7c048f QL-3: F12 в «Изображения»/Deltaplan и строка «Снимок: путь»; Q-08…11 удалены из QoL.md"
+  ],
+  "checks": [
+    {
+      "name": "game/",
+      "value": "152/155; те же 3 падения на чистой feature/qol (151/3), язык после test_collisions; не QL-3",
+      "pass": true
+    },
+    {
+      "name": "ui/",
+      "value": "94/94",
+      "pass": true
+    },
+    {
+      "name": "controls",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "qol_md",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "tests/game/test_start_qol.gd",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-3/start_hint.png",
+    "/home/greg/deltaplan/build/screenshots/QL-3/controls.png",
+    "/home/greg/deltaplan/build/screenshots/QL-3/controls_free_camera.png"
+  ],
+  "how_to_check": "dp accept QL-3 --dry; godot --headless --path . res://tests/run_tests.tscn -- --filter=start_qol",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd _screenshot_key",
+      "why": "в headless кадр не ждётся, в окне ждётся; F12 в окне руками не жал",
+      "checked": "тест с подставной картинкой пишет PNG и показывает строку"
+    },
+    {
+      "where": "controls_free_camera.png",
+      "why": "окно кадра ~958x506, блок свободной камеры не виден",
+      "checked": "строки есть в ControlsScreen.rows(), тест"
+    }
+  ],
+  "dp_feedback": "Прогон game/ 14 мин, нужен выбор файлов; общий scratchpad: чужой агент перезаписал мой r.json",
+  "t": "2026-10-07T21:50:52",
+  "by": "main"
+}

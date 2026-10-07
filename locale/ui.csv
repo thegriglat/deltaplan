@@ -20,7 +20,10 @@ result_distance,Дистанция от старта по прямой: %.2f к�
 result_again,Ещё раз,Again
 result_hard_landing,Жёсткая посадка,Hard landing
 status_loading_terrain,Загрузка рельефа…,Loading terrain…
+pause_look_around,Осмотреться,Look around
 pause_restart,Заново,Restart
+pause_wait,Подождать час,Wait an hour
+pause_waiting,Идёт время… — любая клавиша прерывает,Time passes… press any key to stop
 settings_invert_pitch,Инверсия тангажа,Invert pitch
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
 menu_fly,Лететь,Fly
@@ -151,6 +154,15 @@ gfx_low,Низкое (лёгкое),Low (light)
 gfx_medium,Среднее,Medium
 gfx_high,Высокое (полное),High (full)
 settings_render_scale,Масштаб рендера,Render scale
+settings_vsync,Вертикальная синхронизация,VSync
+settings_vsync_hint,Включена (кадры по частоте монитора),On (frames follow monitor refresh)
+settings_fps_limit,Предел кадров,Frame rate limit
+settings_fps_unlimited,Без предела,Unlimited
+settings_window_mode,Режим окна,Window mode
+settings_window_windowed,Оконный,Windowed
+settings_window_fullscreen,Полноэкранный,Fullscreen
+settings_resolution,Разрешение окна,Window resolution
+settings_resolution_current,Как есть,As is
 settings_grass_density,Густота травы,Grass density
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
@@ -432,3 +444,18 @@ places_dir_w,З,W
 places_dir_wnw,ЗСЗ,WNW
 places_dir_nw,СЗ,NW
 places_dir_nnw,ССЗ,NNW
+result_continue_on_foot,Продолжить пешком,Continue on foot
+restart_hold,Держите R — заново,Hold R to restart
+controls_screenshot,Снимок экрана (файл в папке снимков игры),Screenshot (saved to the game screenshots folder)
+controls_free_camera,Свободная камера (C — переключить вид),Free camera (C switches the view)
+controls_free_up,Свободная камера: вверх,Free camera: up
+controls_free_down,Свободная камера: вниз,Free camera: down
+controls_free_move,"Свободная камера: W/S/A/D — движение, Shift — быстрее, мышь — поворот, V — навести на планер","Free camera: W/S/A/D move, Shift faster, mouse turns, V aims at the glider"
+start_hint_keys,"Разбег: держите %s\nНос крыла: %s\nКрен: %s\nШаг вперёд: %s — подсказка уйдёт","Launch run: hold %s\nWing nose: %s\nBank: %s\nStep forward: %s — hint goes away"
+start_hint_mouse,"Мышь: нос и крен крыла (%s — захват мыши); средняя кнопка — взгляд вперёд","Mouse: wing nose and bank (%s captures the mouse); middle button — look ahead"
+screenshot_saved,Снимок: %s,Screenshot: %s
+fav_wind,"%d м/с %s","%d m/s %s"
+menu_favorites,Избранное,Favorites
+setup_add_favorite,В избранное,Add to favorites
+fav_added,В избранном,Added to favorites
+fav_remove,Удалить,Remove

@@ -1,0 +1,41 @@
+{
+  "id": "QL-6",
+  "module": "qol",
+  "type": "dp-researcher",
+  "title": "Замер: сколько ждать «Рассчитываем ветер» после air-phase (Q-07)",
+  "goal": "Понять, остались ли долгая загрузка и таймаут на слабом ветре (T-03) после слияния air-phase и нужен ли кеш поля на диске (T-04) — для решения по Q-07.",
+  "plan_ref": "QL-6",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-6",
+  "branch": "qol/QL-6",
+  "base": "feature/qol",
+  "scope": [
+    "tools/research/qol_load/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/qol_load/README.md && head -1 tools/research/qol_load/README.md",
+      "expect": "re:^---"
+    },
+    {
+      "name": "table",
+      "cmd": "ls tools/research/qol_load/*.csv tools/research/qol_load/*.json 2>/dev/null | head -3",
+      "expect": "re:\\.(csv|json)"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:23:32"
+}

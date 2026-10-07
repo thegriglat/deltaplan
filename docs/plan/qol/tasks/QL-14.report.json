@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Прокрутка «Настройки» и «Полёт…» работает в настоящем окне (Xvfb без масштаба, колесо мыши событием) на 1280×720 и 1024×600 при 34 местах и 8 избранных; кнопки видны. Не влезало главное меню на 1024×600 (Выход и язык за экраном) — колонка кнопок теперь в прокрутке.",
+  "commits": [
+    "485cc523 главное меню прокручивается на 1024×600; кадр и тест"
+  ],
+  "checks": [
+    {
+      "name": "ui/",
+      "value": "103/103",
+      "pass": true
+    },
+    {
+      "name": "menu",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "настоящее окно: колесо до конца, кнопки в окне",
+      "value": "Настройки/Полёт/меню × 2 размера — OK",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-14/01_Настройки_1280x720_низ.png",
+    "/home/greg/deltaplan/build/screenshots/QL-14/03_Настройки_1024x600_низ.png",
+    "/home/greg/deltaplan/build/screenshots/QL-14/04_Полёт_1024x600_низ.png",
+    "/home/greg/deltaplan/build/screenshots/QL-14/06_Главное_меню_1024x600_низ.png"
+  ],
+  "how_to_check": "tools/dp accept QL-14; кадры: xvfb-run -a -s '-screen 0 1024x600x24' godot --path . --resolution 1024x600 res://tools/shots/scroll_shot.tscn -- --out=<каталог> (с XDG_DATA_HOME во временный каталог)",
+  "uncertain": [
+    {
+      "where": "scripts/ui/start_menu.gd:_scrolling_column",
+      "why": "логотип на 1024×600 частично перекрыт колонкой меню; текст избранного обрезан (clip_text)",
+      "checked": "смотрел кадр 06 — читаемо, не шлифовал"
+    },
+    {
+      "where": "tools/shots/scroll_shot.gd",
+      "why": "под `--resolution` на реальном рабочем столе с тайловым WM окно получает иной размер, поэтому кадры снимались под xvfb-run с экраном нужного размера",
+      "checked": "в логе окно ровно 1280×720 / 1024×600"
+    }
+  ],
+  "dp_feedback": "Нет команды dp для кадра в окне заданного размера (xvfb-run с экраном нужного размера) — пришлось выдумывать вручную.",
+  "t": "2026-10-07T22:37:54",
+  "by": "executor"
+}

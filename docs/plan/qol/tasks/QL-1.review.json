@@ -1,0 +1,14 @@
+{
+  "verdict": "accept",
+  "summary": "Оба замечания прошлого ревью закрыты: на паузе в одиночной таймер ожидания итога стоит (state PAUSED и net==null — left не уменьшается), неподтверждённую посадку клавиши управления крылом не пропускают (решение координатора). QL-К1 соблюдён, скоуп чистый, project.godot не тронут. 3 падения game/ — те же базовые, что и на feature/qol до задачи.",
+  "issues": [],
+  "rerun": [
+    {
+      "name": "dp accept QL-1 --only game/ --dry (92387ed4)",
+      "value": "162/165 (пропуск 1); FAIL test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys — совпадает с отчётом и базой",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-07T22:46:34",
+  "by": "reviewer"
+}

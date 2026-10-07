@@ -18,7 +18,11 @@ signal quit_requested
 ## Переключатель языка «◀ Русский ▶»: выбран язык code (главная сцена включает и перестраивает UI).
 signal language_requested(code: String)
 
+const REMOVE_MARK := "×"
+
 var settings: FlightSettings
+## Список избранных условий (Favorites) — переопределяется в тестах.
+var favorites_path: String = Favorites.PATH
 var _inspect_btn: Button
 
 var _status: Label
@@ -26,6 +30,7 @@ var _fly_btn: Button
 var _setup_btn: Button
 var _summary: Label
 var _lang_prev: Button
+var _fav_box: VBoxContainer
 
 
 func _ready() -> void:
@@ -41,6 +46,7 @@ func set_settings(s: FlightSettings) -> void:
 	settings = s.duplicate()
 	if _summary != null:
 		_summary.text = summary_text(settings)
+	refresh_favorites()
 
 
 ## Текст о загрузке или ошибке ("" — спрятать).
@@ -54,6 +60,7 @@ func set_busy(on: bool) -> void:
 	_fly_btn.disabled = on
 	_inspect_btn.disabled = on
 	_setup_btn.disabled = on
+	refresh_favorites()
 
 
 ## Выбор двумя строками: «Алтай — Онгудай · <старт>» и «+26 °C · ветер 3 м/с, встречный · 13:00»;
@@ -104,7 +111,7 @@ func _build() -> void:
 	_add_quote(tr("menu_quote"))
 	_add_version()
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
-	var box := UiKit.snug_panel(self)
+	var box := _scrolling_column()
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
 	_fly_btn = UiKit.menu_button(box, tr("menu_fly"), _on_fly)
@@ -113,7 +120,8 @@ func _build() -> void:
 	)
 	_summary = UiKit.label(box, summary_text(settings), "HintLabel")
 	_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_summary.custom_minimum_size.x = 300.0  # узкая колонка — слева остаётся место под «Избранное»
 	_setup_btn = UiKit.menu_button(
 		box, tr("menu_flight_setup"), func() -> void: setup_requested.emit()
 	)
@@ -123,6 +131,82 @@ func _build() -> void:
 	UiKit.menu_button(box, tr("menu_about"), func() -> void: about_requested.emit())
 	UiKit.menu_button(box, tr("menu_quit"), func() -> void: quit_requested.emit())
 	_add_language_selector(box)
+	_build_favorites()
+
+
+## Колонка кнопок на подложке по центру. Не влезает в экран (1024×600) — прокрутка колесом
+## (QL-14): высота прокрутки по содержимому, но не выше экрана.
+func _scrolling_column() -> VBoxContainer:
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(scroll)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	scroll.add_child(box)
+	var fit := func() -> void:
+		var avail := size.y - 2.0 * ScrollPanel.MARGIN_PX - 40.0
+		scroll.custom_minimum_size.y = clampf(box.get_combined_minimum_size().y, 0.0, maxf(avail, 80.0))
+	box.minimum_size_changed.connect(fit)
+	resized.connect(fit)
+	fit.call_deferred()
+	return box
+
+
+## Слева от колонки кнопок — «Избранное» (до 8 строк): щелчок — сразу лететь, × — удалить.
+func _build_favorites() -> void:
+	var panel := PanelContainer.new()
+	panel.name = "FavoritesPanel"
+	panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.offset_left = 12.0
+	add_child(panel)
+	_fav_box = VBoxContainer.new()
+	_fav_box.add_theme_constant_override("separation", 6)
+	panel.add_child(_fav_box)
+	refresh_favorites()
+
+
+## Перечитать user://favorites.json и перестроить строки (пусто — панель скрыта).
+func refresh_favorites() -> void:
+	if _fav_box == null:
+		return
+	for c in _fav_box.get_children():
+		_fav_box.remove_child(c)
+		c.queue_free()
+	var items := Favorites.list(favorites_path)
+	_fav_box.get_parent().visible = not items.is_empty()
+	if items.is_empty():
+		return
+	UiKit.label(_fav_box, tr("menu_favorites"), "HintLabel")
+	for e: Dictionary in items:
+		var fs := FlightSettings.from_dict(e.settings)
+		var id := int(e.id)
+		var row := HBoxContainer.new()
+		row.name = "Fav%d" % id
+		row.add_theme_constant_override("separation", 4)
+		_fav_box.add_child(row)
+		var b := UiKit.button(row, Favorites.auto_name(fs), func() -> void: fly_requested.emit(fs))
+		b.name = "Fly"
+		b.custom_minimum_size = Vector2(210, 36)
+		b.tooltip_text = b.text
+		b.add_theme_font_size_override("font_size", 14)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.clip_text = true
+		b.disabled = _fly_btn != null and _fly_btn.disabled
+		var x := UiKit.button(row, REMOVE_MARK, func() -> void: _remove_favorite(id))
+		x.name = "Remove"
+		x.tooltip_text = tr("fav_remove")
+
+
+func _remove_favorite(id: int) -> void:
+	Favorites.remove(id, favorites_path)
+	refresh_favorites()
 
 
 ## Фокус на переключатель языка (после перестройки UI — чтобы клавиатура осталась на нём).

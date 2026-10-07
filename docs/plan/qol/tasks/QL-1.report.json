@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: итог не теряется на паузе в одиночной (таймер ожидания стоит на паузе); до подтверждения посадки клавиши управления крылом (W/S/A/D, стрелки, Shift) ожидание не пропускают, прочие пропускают, после подтверждения — любая. feature/qol (QL-3, QL-13) влит, конфликты main.gd/ui.csv решены (оба набора сохранены, два _process объединены).",
+  "commits": [
+    "слияние feature/qol + доработка (main.gd, test_qol_cycle.gd)"
+  ],
+  "checks": [
+    {
+      "name": "contracts/test_qol",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "game/",
+      "value": "162/165: 3 базовых падения (язык): test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys",
+      "pass": false
+    },
+    {
+      "name": "ui/",
+      "value": "97/97",
+      "pass": true
+    },
+    {
+      "name": "qol_md",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "новые тесты",
+      "value": "test_pause_does_not_lose_result, test_control_keys_do_not_skip_unconfirmed — зелёные",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept QL-1",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd:_is_wing_control",
+      "why": "список клавиш управления: действия из controls.json (pitch/roll/center/run/walk/turn) плюс W/S/A/D, стрелки, Shift; геймпад и мышь не считаются клавишами и ожидание не пропускают",
+      "checked": "тест на все перечисленные клавиши"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-07T22:20:20",
+  "by": "main"
+}

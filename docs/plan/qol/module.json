@@ -1,0 +1,9 @@
+{
+  "module": "qol",
+  "plan": "docs/plan/qol.md",
+  "contracts": "docs/contracts/qol.md",
+  "branch": "feature/qol",
+  "copy": "~/deltaplan-qol",
+  "created": "2026-10-07T20:14:21",
+  "code": "QL"
+}

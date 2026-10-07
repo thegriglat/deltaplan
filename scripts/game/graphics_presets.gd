@@ -60,6 +60,7 @@ static func select(preset: String, dir: String = UserSettings.DEFAULT_DIR) -> bo
 ## → graphics_presets.*.viewport.scaling_mode). Поверх пресета — «Масштаб рендера» из настроек
 ## (render_scale_auto/render_scale_pct), независимая настройка, тоже через FSR 1.
 static func apply_viewport(vp: Viewport) -> void:
+	apply_display(false)
 	var all: Dictionary = Config.get_config("game").get("graphics_presets", {})
 	var p: Dictionary = all.get(current(), {})
 	var v: Dictionary = p.get("viewport", {})
@@ -92,3 +93,48 @@ static func _apply_scaling(vp: Viewport, mode: String, scale: float, sharpness: 
 	)
 	vp.scaling_3d_scale = scale
 	vp.fsr_sharpness = sharpness
+
+
+## Аргументы Godot, задающие режим/размер окна на этот запуск (перекрывают сохранённое).
+const WINDOW_ARGS: PackedStringArray = ["--resolution", "--fullscreen", "-f", "--windowed", "-w"]
+
+
+static func cmdline_overrides_window() -> bool:
+	for a in OS.get_cmdline_args():
+		if a in WINDOW_ARGS:
+			return true
+	return false
+
+
+## VSync, предел кадров, режим и размер окна из game.json → display (машинные настройки).
+## force=false — при запуске: режим/размер не трогаем, если их задали в командной строке.
+static func apply_display(force: bool = true) -> void:
+	var d: Dictionary = Config.get_config("game").get("display", {})
+	Engine.max_fps = maxi(0, int(d.get("max_fps", 144)))
+	DisplayServer.window_set_vsync_mode(
+		DisplayServer.VSYNC_ENABLED if bool(d.get("vsync", true)) else DisplayServer.VSYNC_DISABLED
+	)
+	if DisplayServer.get_name() == "headless" or (not force and cmdline_overrides_window()):
+		return
+	var fullscreen := String(d.get("window_mode", "windowed")) == "fullscreen"
+	var mode := DisplayServer.window_get_mode()
+	var is_fs := (
+		mode == DisplayServer.WINDOW_MODE_FULLSCREEN
+		or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	)
+	if fullscreen:
+		if not is_fs:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		return
+	if is_fs:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	var sz: Array = d.get("window_size", [0, 0])
+	if sz.size() >= 2 and int(sz[0]) > 0 and int(sz[1]) > 0:
+		var want := Vector2i(int(sz[0]), int(sz[1]))
+		if DisplayServer.window_get_size() != want:
+			DisplayServer.window_set_size(want)
+			var scr := DisplayServer.window_get_current_screen()
+			var origin := DisplayServer.screen_get_position(scr)
+			DisplayServer.window_set_position(
+				origin + (DisplayServer.screen_get_size(scr) - want) / 2
+			)

@@ -19,6 +19,10 @@ var _mmi: MultiMeshInstance3D
 ## pos (мировая позиция кадра), flee_dir, flee_t, glide_from/target/t/total.
 var _flocks: Array = []
 var _acc: float = 1.0e9
+## Размах модели в метрах (aabb.x меша): экземпляр хищной птицы масштабируется до своего span_m.
+var _model_span: float = 1.6
+var _last_eye: Vector3 = Vector3.INF
+## Стаи: 4-й элемент записи — true для одиночной хищной птицы (вне max_flocks).
 
 
 func setup(atmosphere: Atmosphere) -> void:
@@ -28,11 +32,14 @@ func setup(atmosphere: Atmosphere) -> void:
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_custom_data = true
 	_mm.mesh = _load_mesh(String(cfg.model_path))
+	_model_span = maxf(_mm.mesh.get_aabb().size.x, 0.01)
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://scripts/atmosphere/bird.gdshader")
 	var c: Array = cfg.color
 	mat.set_shader_parameter("color", Color(float(c[0]), float(c[1]), float(c[2])))
 	mat.set_shader_parameter("flap_hz", float(cfg.flap_hz))
+	mat.set_shader_parameter("min_span_px", float(cfg.min_span_px))
+	mat.set_shader_parameter("model_span_m", _model_span)
 	_mmi = MultiMeshInstance3D.new()
 	_mmi.multimesh = _mm
 	_mmi.material_override = mat
@@ -92,27 +99,73 @@ func _choose_flocks() -> void:
 	var have: Dictionary = {}
 	for entry in _flocks:
 		have[int(entry[2])] = true
+	var heading := _heading(eye)
+	var n_flocks := 0
+	var n_r := 0
+	var have_r: Dictionary = {}
+	for entry in _flocks:
+		if bool(entry[3]):
+			have_r[int(entry[2])] = true
+			n_r += 1
+		else:
+			n_flocks += 1
 	var cands := near_thermals(
-		atmo.field.thermals, atmo.time_s, eye, float(cfg.radius_m), float(cfg.min_strength_ms), have
+		atmo.field.thermals,
+		atmo.time_s,
+		eye,
+		float(cfg.radius_m),
+		float(cfg.min_strength_ms),
+		have,
+		heading,
+		float(cfg.ahead_bias)
 	)
-	var slots := int(cfg.max_flocks) - _flocks.size()
+	var slots := int(cfg.max_flocks) - n_flocks
 	for i in mini(cands.size(), maxi(slots, 0)):
 		_spawn_flock(cands[i][2], cands[i][1])
+	# Хищные птицы: по одной, в глубоких термиках выше raptor_min_height_m над источником.
+	var r_need := float(cfg.raptor_min_height_m) + float(cfg.top_margin_m)
+	for c in cands:
+		if n_r >= int(cfg.max_raptors):
+			break
+		var th: AtmoThermal = c[2]
+		if have_r.has(int(c[1])) or th.top - th.src.y < r_need:
+			continue
+		_spawn_flock(th, c[1], true)
+		n_r += 1
 	for i in range(_flocks.size() - 1, -1, -1):
 		if (_flocks[i][1] as Array).is_empty():
 			_flocks.remove_at(i)
+	_last_eye = eye
+
+
+## Горизонтальный курс пилота (единичный) по сдвигу фокуса за секунду, иначе по оси −Z узла фокуса;
+## нулевой, если ни того ни другого.
+func _heading(eye: Vector3) -> Vector2:
+	if _last_eye != Vector3.INF:
+		var d := Vector2(eye.x - _last_eye.x, eye.z - _last_eye.z)
+		if d.length() > 2.0:
+			return d.normalized()
+	if atmo.focus_node != null and atmo.focus_node.is_inside_tree():
+		var f := -atmo.focus_node.global_transform.basis.z
+		var h := Vector2(f.x, f.z)
+		if h.length() > 0.1:
+			return h.normalized()
+	return Vector2.ZERO
 
 
 ## Достаточно сильные (≥ min_strength_ms) и зрелые (огибающая ≥ 0,5) термики, чья ось на высоте
 ## eye ближе radius_m по горизонтали, кроме id из skip: [квадрат расстояния, id, термик] от
-## ближнего к дальнему. Только чтение (птицы и орёл-пасхалка E11).
+## ближнего к дальнему (при ненулевых heading и ahead_bias — по «взвешенной» дальности: термик позади
+## дальше в (1 + ahead_bias) раз, впереди — по-честному). Только чтение (птицы и орёл-пасхалка E11).
 static func near_thermals(
 	thermals: Dictionary,
 	time_s: float,
 	eye: Vector3,
 	radius_m: float,
 	min_strength_ms: float,
-	skip: Dictionary = {}
+	skip: Dictionary = {},
+	heading: Vector2 = Vector2.ZERO,
+	ahead_bias: float = 0.0
 ) -> Array:
 	var cands: Array = []
 	var r2 := radius_m * radius_m
@@ -125,30 +178,43 @@ static func near_thermals(
 		var a := th.axis_at(clampf(eye.y, th.src.y, th.top))
 		var d := Vector2(a.x - eye.x, a.y - eye.z).length_squared()
 		if d < r2:
-			cands.append([d, id, th])
-	cands.sort_custom(func(x, y): return x[0] < y[0])
+			var score := d
+			if ahead_bias > 0.0 and heading != Vector2.ZERO and d > 1.0:
+				var cosv := (Vector2(a.x - eye.x, a.y - eye.z) / sqrt(d)).dot(heading)
+				score = d * (1.0 + ahead_bias * (1.0 - cosv) * 0.5)
+			cands.append([d, id, th, score])
+	cands.sort_custom(func(x, y): return x[3] < y[3])
 	return cands
 
 
 ## Новая стая птиц над термиком th (детерминированно от его noise_seed).
-func _spawn_flock(th: AtmoThermal, id: int) -> void:
+func _spawn_flock(th: AtmoThermal, id: int, raptor: bool = false) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = th.noise_seed
-	var n := rng.randi_range(int(cfg.birds_per_flock[0]), int(cfg.birds_per_flock[1]))
+	rng.seed = th.noise_seed + (7919 if raptor else 0)
+	var n := 1 if raptor else rng.randi_range(int(cfg.birds_per_flock[0]), int(cfg.birds_per_flock[1]))
 	var band: Array = cfg.altitude_band_m
 	# Редко пара птиц не боится пилота и кружит рядом с ним в том же термике.
-	var companion_pair := n >= 2 and rng.randf() < float(cfg.companion_chance)
+	var companion_pair := not raptor and n >= 2 and rng.randf() < float(cfg.companion_chance)
 	var birds: Array = []
 	for k in n:
+		var y_top := th.top - float(cfg.top_margin_m)
 		var y0 := clampf(
 			th.src.y + lerpf(float(band[0]), float(band[1]), rng.randf()),
 			th.src.y + float(band[0]),
-			th.top - float(cfg.top_margin_m)
+			y_top
 		)
+		var span := _model_span
+		var rad := rng.randf_range(float(cfg.circle_radius_m[0]), float(cfg.circle_radius_m[1]))
+		if raptor:
+			y0 = lerpf(th.src.y + float(cfg.raptor_min_height_m), y_top, rng.randf())
+			span = rng.randf_range(float(cfg.raptor_span_m[0]), float(cfg.raptor_span_m[1]))
+			rad = rng.randf_range(float(cfg.raptor_circle_radius_m[0]), float(cfg.raptor_circle_radius_m[1]))
 		birds.append(
 			{
 				"phase": rng.randf() * TAU,
-				"radius": rng.randf_range(float(cfg.circle_radius_m[0]), float(cfg.circle_radius_m[1])),
+				"radius": rad,
+				"raptor": raptor,
+				"span_m": span,
 				"dir": 1.0 if rng.randf() < 0.5 else -1.0,
 				"y": y0,
 				"state": "circle",
@@ -164,7 +230,7 @@ func _spawn_flock(th: AtmoThermal, id: int) -> void:
 				"glide_total": 1.0,
 			}
 		)
-	_flocks.append([th, birds, id])
+	_flocks.append([th, birds, id, raptor])
 
 
 ## Другой термик из числа уже занятых птицами (не current) — куда планировать/куда вернуться
@@ -197,7 +263,7 @@ func _start_glide(b: Dictionary, pos: Vector3) -> void:
 	b.state = "glide"
 	b.glide_from = pos
 	b.glide_t = 0.0
-	var target_th := _pick_next_thermal(b.thermal)
+	var target_th := _pick_next_thermal(b.thermal) if not bool(b.raptor) else null
 	if target_th != null:
 		var axis := target_th.axis_at(target_th.src.y)
 		var band: Array = cfg.altitude_band_m
@@ -212,6 +278,8 @@ func _start_glide(b: Dictionary, pos: Vector3) -> void:
 ## Птица закончила отваливать от пилота — снова кружит (в прежнем термике либо в любом другом
 ## занятом стаей), если поблизости вообще есть куда; иначе улетает насовсем (false).
 func _resume_after_flee(b: Dictionary, pos: Vector3) -> bool:
+	if bool(b.raptor):
+		return false
 	var th: AtmoThermal = b.thermal if b.thermal != null else _pick_next_thermal(null)
 	if th == null:
 		th = _pick_next_thermal(null)
@@ -313,6 +381,7 @@ func _place_birds(delta: float = -1.0) -> void:
 			var basis := Basis()
 			if fwd.length_squared() > 1.0e-6:
 				basis = Basis.looking_at(fwd, Vector3.UP).rotated(fwd.normalized(), -bank)
+			basis = basis.scaled(Vector3.ONE * (float(b.span_m) / _model_span))
 			_mm.set_instance_transform(i, Transform3D(basis, pos))
 			var flap := (
 				float(cfg.flap_amplitude)

@@ -1,0 +1,68 @@
+{
+  "id": "QL-1",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Цикл «упал — снова»: Q-01…Q-05",
+  "goal": "Убрать ошибку итога старого полёта поверх нового (Q-01), лишние ожидания после касания (Q-02), случайный R в воздухе (Q-03); в одиночной — продолжить пешком (Q-04) и «На старт» без сброса часов (Q-05).",
+  "plan_ref": "QL-1",
+  "contracts": [
+    {
+      "name": "QL-К1",
+      "version": "1",
+      "ref": "docs/contracts/qol.md"
+    }
+  ],
+  "copy": "~/deltaplan-qol-QL-1",
+  "branch": "qol/QL-1",
+  "base": "feature/qol",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/game/flight_stats.gd",
+    "scripts/ui/result_screen.gd",
+    "scripts/ui/pause_menu.gd",
+    "scenes/ui/result_screen.tscn",
+    "scenes/ui/pause_menu.tscn",
+    "configs/game.json",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "tests/contracts/test_qol_contracts.gd",
+    "docs/guide/game.md",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "contracts/test_qol",
+      "tests": "contracts/test_qol"
+    },
+    {
+      "name": "game/",
+      "tests": "game/",
+      "timeout": 2400
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-0[1-5] |^## Расхождения документации' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:23:20",
+  "edited": "2026-10-07T21:16:57"
+}

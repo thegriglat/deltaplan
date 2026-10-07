@@ -251,6 +251,14 @@ Godot 4 (burley / lambert_wrap, schlick_ggx), солнце × `1 − shadow_stre
 `tg φ = v²/(g·r)`, медленно ходят по высоте, изредка машут. Модель `assets/models/bird.glb`
 (генерируется `tools/blender/bird.py`), путь — `birds.model_path`, без файла — заглушка.
 
+**Ласточки и пух** (`thermal_signs.gd`, `thermal_signs.gdshader`, `configs/atmosphere.json → thermal_signs`, VR-24) —
+признаки МОЛОДОГО термика у источника: стайка ласточек/стрижей (3–6, быстрые рывки на 20–150 м над землёй
+в `swallow_lateral_m` от оси) и столбик пуха/мусора (частицы поднимаются по оси `axis_at(y)`, на 140 м тают).
+Только над `field.thermals`: сила ≥ `min_strength_ms`, возраст от рождения до конца роста + `young_extra_s`,
+не дальше `radius_m` от камеры; шанс признака — от id термика (детерминированно). Положение — функция времени и
+термика, без состояния. Шейдер растит меш до `min_px` пикселей (не больше `max_scale`), иначе 0,3 м с воздуха не видно.
+Замер «до/после» — `tools/research/qol_signs/run9.sh` (раздел `qol9` в `summary_numbers.json`).
+
 ### Заменяемые ассеты
 - `clouds.noise_shape_texture`, `clouds.noise_detail_texture` — бесшовные `Texture3D` (канал R =
   1 − плотность клубов). Сейчас — атласы срезов PNG (импортёр `3d_texture`), сгенерированные

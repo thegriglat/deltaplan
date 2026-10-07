@@ -1,0 +1,66 @@
+{
+  "id": "QL-9",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Ласточки, стрижи, пух и мусор над источниками (Q-28, T-28)",
+  "goal": "Больше честных признаков термика у земли: ласточки/стрижи и поднимающиеся пух и мусор — только над реальными источниками термиков модели.",
+  "plan_ref": "QL-9",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-9",
+  "branch": "qol/QL-9",
+  "base": "feature/qol",
+  "scope": [
+    "scripts/atmosphere/thermal_signs.gd",
+    "scripts/atmosphere/thermal_signs.gdshader",
+    "configs/atmosphere.json",
+    "scripts/atmosphere/atmosphere.gd",
+    "tests/atmosphere/",
+    "tools/research/qol_signs/",
+    "tools/shots/",
+    "TODO.md",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/bird_flock.gd",
+    "scripts/atmosphere/bird.gdshader",
+    "scripts/atmosphere/air_model/",
+    "scripts/bots/",
+    "scripts/flight/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "thermal_signs",
+      "tests": "thermal_signs"
+    },
+    {
+      "name": "atmosphere/",
+      "tests": "atmosphere/",
+      "timeout": 2400
+    },
+    {
+      "name": "off",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/qol_signs/summary_numbers.json'));print('signs_off_thermal', d['qol9']['signs_off_thermal'])\"",
+      "expect": "num:signs_off_thermal ([0-9.]+) ==0"
+    },
+    {
+      "name": "todo",
+      "cmd": "grep -cE '^- \\[.\\] T-28 ' TODO.md || true",
+      "expect": "num:^(\\d+) ==0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "signs",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/qol_signs/summary_numbers.json'));print('signs_per_10min_min', d['qol9']['signs_per_10min_min'])\"",
+      "expect": "num:signs_per_10min_min ([0-9.]+) >=0.5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T22:07:26",
+  "edited": "2026-10-08T00:09:19"
+}

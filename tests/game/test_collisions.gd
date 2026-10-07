@@ -101,6 +101,9 @@ func test_collisions_in_real_world() -> void:
 		return
 	var game: Game = main.get_node("Game")
 	var t := game.terrain
+	# Игра при открытии выставляет язык из настроек — тексты проверяем по-русски.
+	var was_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ru")
 
 	# 1. Сквозь провод ЛЭП — авария crash_wire.
 	var w := _pick_wire(game)
@@ -189,6 +192,7 @@ func test_collisions_in_real_world() -> void:
 		if not r.is_empty():
 			check(r[1].finish_reason == "landed", "finish_reason: %s" % r[1].get("finish_reason"))
 			check(not r[1].has("collision"), "без столкновения: %s" % r[1].get("collision"))
+	TranslationServer.set_locale(was_locale)
 	await _close(main)
 
 
