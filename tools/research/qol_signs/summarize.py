@@ -126,6 +126,8 @@ print(json.dumps(agg, ensure_ascii=False, indent=1))
 
 # ---- QL-8: повтор замера после правок (мин. размер птицы в шейдере, 6 стай, хищные птицы) ----
 OUT8 = os.path.join(HERE, "out_ql8")
+# пересчёт на тех же данных с другим min_span_px (сим от него не зависит): QL8_MIN_PX=3 python3 summarize.py
+MIN_PX_OVERRIDE = float(os.environ["QL8_MIN_PX"]) if os.environ.get("QL8_MIN_PX") else None
 
 
 def eff_px(span_m, dist_m, min_px):
@@ -149,7 +151,7 @@ def frac_table(directory, use_min):
     for f in sorted(glob.glob(os.path.join(directory, "*_*_*.json"))):
         d = json.load(open(f))
         kind = os.path.basename(f).split("_")[0]
-        mp = d["bird"].get("min_span_px", 0.0) if use_min else 0.0
+        mp = MIN_PX_OVERRIDE if (use_min and MIN_PX_OVERRIDE is not None) else (d["bird"].get("min_span_px", 0.0) if use_min else 0.0)
         for pname, fr in any_ge2(d, mp).items():
             out[(kind, d["location"], int(d["hour"]), pname)] = fr
     return out
@@ -160,7 +162,7 @@ if os.path.isdir(OUT8) and glob.glob(os.path.join(OUT8, "*_*_*.json")):
     for f in sorted(glob.glob(os.path.join(OUT8, "*_*_*.json"))):
         d = json.load(open(f))
         runs8[(os.path.basename(f).split("_")[0], d["location"], int(d["hour"]))] = d
-    min_px = next(iter(runs8.values()))["bird"]["min_span_px"]
+    min_px = MIN_PX_OVERRIDE if MIN_PX_OVERRIDE is not None else next(iter(runs8.values()))["bird"]["min_span_px"]
     before = frac_table(OUT, False)           # QL-5: без мин. размера
     after = frac_table(OUT8, True)            # QL-8: с мин. размером, как в шейдере
     after_nomin = frac_table(OUT8, False)     # QL-8: новые стаи, но без мин. размера (вклад стай отдельно)

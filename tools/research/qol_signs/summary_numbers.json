@@ -1132,13 +1132,13 @@
   }
  },
  "qol8": {
-  "min_span_px": 5.0,
+  "min_span_px": 3.0,
   "fov_v_deg": 60.0,
   "frame_h_px": 1080.0,
-  "px_at_800m": 5.0,
+  "px_at_800m": 3.0,
   "px_at_800m_real": 1.87,
-  "px_at_300m": 5.0,
-  "px_at_1500m": 5.0,
+  "px_at_300m": 4.99,
+  "px_at_1500m": 3.0,
   "before_ql5_gpu_A_min": 0.13,
   "before_ql5_gpu_A_mean": 0.515,
   "before_ql5_gpu_B_min": 0.0,

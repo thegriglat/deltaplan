@@ -156,6 +156,8 @@ px = размах / дальность · 540 / tan(fov/2).
 из термика/испуге (планируют вниз), в круге они выше 700 м (тест `test_raptors_high_in_deep_thermals_only`).
 Скриншоты (500 и 800 м, птицы — тёмные точки 2–3 px, смазаны дымкой) — `build/screenshots/QL-8/`, `tools/shots/birds_shot.gd`.
 
+Замер сделан при min_span_px 5, итог пересчитан для 3 (`QL8_MIN_PX=3 python3 summarize.py`; симуляция от размера не зависит).
+
 Сырые данные повтора QL-8 (`out_ql8/*.json`, 16 файлов, ~16 МБ) в git не хранятся (в `.gitignore`); лежат локально в `tools/research/qol_signs/out_ql8/`
 рабочей копии задачи. Воспроизвести: `tools/dp job --lock gpu start ql8 3600 tools/research/qol_signs/run.sh`, затем `summarize.py`
 (сводка — `summary_numbers.json`, раздел `qol8`).
