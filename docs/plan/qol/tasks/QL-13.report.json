@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Предел кадров по умолчанию 144 (VSync вкл). В настройках: VSync (по умолчанию вкл), предел кадров 30/60/120/144/без предела, режим окна, разрешение окна (список по монитору); машинные настройки game.display в user://local/configs, применяются при запуске и при сохранении; --resolution/--fullscreen/--windowed перекрывают режим и размер. «Настройки» и «Полёт…» — в ScrollContainer, кнопки вне прокрутки.",
+  "commits": [
+    "52a54323 QL-13: VSync, предел кадров, режим и разрешение окна; прокрутка экранов",
+    "8b7f845d QL-13: тест настроек окна — в имени graphics (проверка приёмки)"
+  ],
+  "checks": [
+    {
+      "name": "ui/",
+      "value": "97/97",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "graphics",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "menu",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu_tests display (окно)",
+      "value": "2/2, VSYNC_DISABLED проверен в окне",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншот снят в окне 1024x600, но кадр масштабирован; при пустом списке мест экран «Полёт…» помещается без прокрутки (прокрутка проверена тестом с 34 местами)"
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-13/settings.png",
+    "/home/greg/deltaplan/build/screenshots/QL-13/setup.png"
+  ],
+  "how_to_check": "dp accept QL-13; tools/gpu_tests.sh --filter=graphics",
+  "uncertain": [
+    {
+      "where": "tests/ui/test_graphics_display.gd:_vsync_is",
+      "why": "headless DisplayServer всегда отвечает VSYNC_ENABLED, режим не хранит",
+      "checked": "в headless проверяется только Engine.max_fps и конфиг; VSYNC_DISABLED проверяется в оконном прогоне tools/gpu_tests.sh (прошёл)"
+    },
+    {
+      "where": "scripts/ui/scroll_panel.gd",
+      "why": "новый общий помощник (UiKit вне скоупа); высота прокрутки подгоняется по высоте родителя",
+      "checked": "тест 1280x720 и 1024x600, 34 места: кнопки и содержимое доступны"
+    },
+    {
+      "where": "scripts/game/graphics_presets.gd:apply_display",
+      "why": "смена режима окна/размера на реальном окне не проверена вручную (в headless пропускается)",
+      "checked": "оконный прогон ui_shot прошёл без ошибок"
+    }
+  ],
+  "dp_feedback": "Фильтр приёмки graphics матчит по пути файла теста — пришлось назвать тест test_graphics_*. Хорошо бы dp accept предупреждал про 0/0 заранее.",
+  "t": "2026-10-07T21:54:38",
+  "by": "executor"
+}
