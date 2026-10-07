@@ -19,7 +19,7 @@ func _ready() -> void:
 	Favorites.add(s, path, 1.0)
 	s.start_hour = 15.0
 	s.wind_speed_kmh = 18.0
-	s.wing = "wings/trainer"
+	s.wing = "wings/aeros_discus"
 	Favorites.add(s, path, 2.0)
 	s.start_hour = 9.0
 	s.wind_into_launch = true
