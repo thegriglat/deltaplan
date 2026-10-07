@@ -91,3 +91,7 @@
 {"t": "2026-10-07T23:19:04", "by": "executor", "task": "QL-8", "ev": "checked", "note": "6/6 bird=ok:7/7; atmosphere/=ok:151/151 (пропуск 29); px800=ok:5; docs=ok:exit 0; probe=ok:1; qol_md=ok:0"}
 {"t": "2026-10-07T23:27:33", "by": "executor", "task": "QL-9", "ev": "checked", "note": "6/6 thermal_signs=ok:4/4; atmosphere/=ok:152/152 (пропуск 29); signs=ok:11.8; off=ok:0; todo=ok:0; docs=ok:exit 0"}
 {"t": "2026-10-07T23:28:58", "by": "reviewer", "task": "QL-9", "ev": "reviewed", "note": "Подключение, скоуп и контракты в порядке, числа приёмки подтверждаются. Но скорость подъёма пуха задана вручную и с термиком не связана (6–14 м/с у термиков от…", "verdict": "rework", "issues": {"major": 3, "minor": 3}, "review": "docs/plan/qol/tasks/QL-9.review.json"}
+{"t": "2026-10-07T23:33:07", "by": "executor", "task": "QL-7", "ev": "checked", "note": "3/4 game/=FAIL:163/166 (пропуск 1); FAIL tes…; ui/=ok:103/103; docs=ok:exit 0; qol_md=ok:0"}
+{"t": "2026-10-07T23:33:21", "by": "coordinator", "task": "QL-7", "ev": "accepted", "note": "по отчёту: ui/ 103/103, docs, qol_md; game/ — только 3 базовых падения; дифф 6 файлов в скоупе"}
+{"t": "2026-10-07T23:33:40", "by": "coordinator", "task": "QL-7", "ev": "checked", "commits": ["c501a1a2"], "note": "1/4 ui/=ok:103/103"}
+{"t": "2026-10-07T23:33:48", "by": "coordinator", "task": "QL-7", "ev": "merged", "note": "c501a1a2"}
