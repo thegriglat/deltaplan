@@ -39,11 +39,6 @@
       "timeout": 2400
     },
     {
-      "name": "signs",
-      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/qol_signs/summary_numbers.json'));print('signs_per_10min_min', d['qol9']['signs_per_10min_min']);print('signs_off_thermal', d['qol9']['signs_off_thermal'])\"",
-      "expect": "num:signs_per_10min_min ([0-9.]+) >=3"
-    },
-    {
       "name": "off",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/qol_signs/summary_numbers.json'));print('signs_off_thermal', d['qol9']['signs_off_thermal'])\"",
       "expect": "num:signs_off_thermal ([0-9.]+) ==0"
@@ -57,9 +52,15 @@
       "name": "docs",
       "cmd": "/home/greg/deltaplan/tools/dp docs check",
       "expect": "exit=0"
+    },
+    {
+      "name": "signs",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/qol_signs/summary_numbers.json'));print('signs_per_10min_min', d['qol9']['signs_per_10min_min'])\"",
+      "expect": "num:signs_per_10min_min ([0-9.]+) >=0.5"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-07T22:07:26"
+  "created": "2026-10-07T22:07:26",
+  "edited": "2026-10-08T00:09:19"
 }

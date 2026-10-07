@@ -101,6 +101,9 @@ func _bird_info(air: Atmosphere) -> Dictionary:
 	info["node_scale"] = [mi.scale.x, mi.scale.y, mi.scale.z]
 	info["root_scale"] = [root.scale.x, root.scale.y, root.scale.z]
 	info["span_cfg_m"] = float(air.cfg.birds.span_m)
+	info["min_span_px"] = float(air.cfg.birds.get("min_span_px", 0.0))  # шейдер bird.gdshader
+	info["max_flocks"] = int(air.cfg.birds.max_flocks)
+	info["radius_m"] = float(air.cfg.birds.radius_m)
 	root.free()
 	return info
 
@@ -170,6 +173,9 @@ func _observe(air: Atmosphere, eye: Vector3, sim_s: float) -> Dictionary:
 	var prev_ids := {}
 	var seen_birds := {}
 	var bird_samples := []  # на каждую секунду: расстояния до всех птиц, м
+	var span_samples := []  # то же, размах каждой птицы в мире, м (хищные крупнее; QL-8)
+	var raptor_series := []  # на каждую секунду: число хищных птиц
+	var raptor_min_h := 1.0e9  # мин. высота хищной птицы над источником термика, м
 	var pass_series := []
 	var dust_ids := {}
 	var dust_vis_ids := {}
@@ -187,6 +193,8 @@ func _observe(air: Atmosphere, eye: Vector3, sim_s: float) -> Dictionary:
 			continue
 		# Птицы.
 		var ds := []
+		var sp := []
+		var n_rap := 0
 		var cur_ids := {}
 		for entry in birds._flocks:
 			var fid := int(entry[2])
@@ -194,12 +202,18 @@ func _observe(air: Atmosphere, eye: Vector3, sim_s: float) -> Dictionary:
 			if not prev_ids.has(fid):
 				flock_spawns += 1
 			for b: Dictionary in entry[1]:
+				if bool(b.get("raptor", false)):
+					n_rap += 1
+					raptor_min_h = minf(raptor_min_h, float(b.pos.y) - (entry[0] as AtmoThermal).src.y)
+				sp.append(float(b.get("span_m", 1.6)))
 				if not b.has("_pid"):
 					b["_pid"] = seen_birds.size()
 					seen_birds[b["_pid"]] = true
 				ds.append(snappedf(eye.distance_to(b.pos), 0.1))
 		prev_ids = cur_ids
 		bird_samples.append(ds)
+		span_samples.append(sp)
+		raptor_series.append(n_rap)
 		# Фильтр термиков (раз в 10 с).
 		if (i / every) % 10 == 0:
 			var f := _thermal_filter(air, eye)
@@ -239,6 +253,9 @@ func _observe(air: Atmosphere, eye: Vector3, sim_s: float) -> Dictionary:
 	res["flock_spawns"] = flock_spawns
 	res["unique_birds"] = seen_birds.size()
 	res["bird_distances_per_s"] = bird_samples
+	res["bird_spans_per_s"] = span_samples
+	res["raptors_per_s"] = raptor_series
+	res["raptor_min_height_over_src_m"] = raptor_min_h if raptor_min_h < 1.0e8 else -1.0
 	res["pass_series"] = pass_series
 	res["dust_unique_in_3km"] = dust_ids.size()
 	res["dust_unique_visible_cap3"] = dust_vis_ids.size()
