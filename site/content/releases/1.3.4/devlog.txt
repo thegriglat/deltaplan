@@ -5,3 +5,6 @@ A small fix release. In a crosswind the pilot used to veer off course during the
 Launch:
 - While the feet still reach the ground, hops at liftoff no longer turn the pilot (before: 5-10 degrees per hop, up to 40 over the run)
 - Once in the harness, the nose lines up with the airflow smoothly, within half a second
+
+Debug:
+- F3 wind arrows now use the same colours as F5: red for rising air, blue for sinking air
