@@ -432,3 +432,5 @@ places_dir_w,З,W
 places_dir_wnw,ЗСЗ,WNW
 places_dir_nw,СЗ,NW
 places_dir_nnw,ССЗ,NNW
+result_continue_on_foot,Продолжить пешком,Continue on foot
+restart_hold,Держите R — заново,Hold R to restart

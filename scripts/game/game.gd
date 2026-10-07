@@ -89,6 +89,8 @@ var _graphics := ""
 var _terrain_dirty := false
 var _crashed := false  ## врезался в препятствие — планер стоит до «Ещё раз»
 var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
+## Номер текущего отрезка полёта (QL-К1): +1 при start/restart/continue_on_foot; только растёт.
+var flight_no := 0
 ## Погода из прогноза (FR-16): место для WeatherModel.derive, час последнего пересчёта (ход дня),
 ## шаг сетки источников (по разгару дня — весь полёт один), инерция прогрева по классам.
 var _weather_ctx := {}
@@ -241,6 +243,7 @@ func tick(dt: float) -> void:
 ## Новый полёт: загрузить рельеф (если нужно), настроить крыло, погоду и поставить на старт.
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
+	flight_no += 1
 	settings = s.duplicate()
 	eggs.reset()
 	_lock_net_clock()
@@ -495,10 +498,12 @@ func _on_sun_changed(to_sun: Vector3) -> void:
 		terrain.set_class_sun(_heating.directions(sky.clock.hour))
 
 
-## Заново с того же старта (клавиша R, «Ещё раз»).
-func restart() -> void:
+## Заново с того же старта (клавиша R, «Ещё раз», «На старт»). keep_clock = true — одиночная
+## «На старт»: часы и день не сбрасываются (время идёт дальше); в сети часы и так не трогаем.
+func restart(keep_clock: bool = false) -> void:
 	if settings == null:
 		return
+	flight_no += 1
 	if autopilot != null:
 		autopilot.reset()
 	tow = null  # «Ещё раз» / «На старт» посреди буксира
@@ -523,7 +528,7 @@ func restart() -> void:
 	_touchdown = {}
 	_prev_phase = ""
 	sim_time_s = 0.0
-	if net == null:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
+	if net == null and not keep_clock:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
 		sky.clock.reset()
 		if _day != null:
 			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
@@ -576,6 +581,7 @@ func air_start_position() -> Vector3:
 
 ## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.
 func continue_on_foot() -> void:
+	flight_no += 1
 	_ended = false
 	_touchdown = {}
 	stats.reset(glider.get_telemetry().position)
@@ -1103,11 +1109,30 @@ func _check_finished() -> void:
 	_emit_end(kind, info)
 
 
+## Q-02: пилот на земле после полёта и уже не подскок (>= min_s) — подтверждение посадки ещё идёт.
+func landing_pending(min_s: float) -> bool:
+	return not _ended and stats.grounded_pending_s() >= min_s
+
+
+## Q-02: не ждать подтверждения посадки — итог сейчас (false — подтверждать нечего).
+func finish_now() -> bool:
+	if _ended or not stats.force_finish():
+		return false
+	_check_finished()
+	return _ended
+
+
+## В воздухе (не на земле): R в полёте — удержанием (Q-03).
+func is_airborne() -> bool:
+	return glider != null and settings != null and not glider.get_telemetry().on_ground
+
+
 func _emit_end(kind: String, info: Dictionary) -> void:
 	if _ended:
 		return
 	if not info.has("finish_reason"):
 		info["finish_reason"] = kind
+	info["flight_no"] = flight_no
 	_ended = true
 	feed.finish(kind, info, glider.get_telemetry())
 	flight_ended.emit(kind, info)
