@@ -1,0 +1,89 @@
+{
+  "id": "AP-20",
+  "module": "air-phase",
+  "type": "dp-engineer",
+  "title": "GPU-Пикар с тёплым стартом, картой ω и заморозкой (P11); AirRuntime фазы → Пикар без сети (P12); A/B/C и время (P14)",
+  "goal": "Пикар в игре считает фазы A/B/C с тёплым стартом от сборки по фазам и ω по карте фаз, механизмы держат свои колонны; конвейер AirRuntime без нейросети, запасной путь без GPU — сборка; проверки: поле как у холодного Пикара, время пересчёта.",
+  "plan_ref": "9. Этап 4",
+  "contracts": [
+    {
+      "name": "P11",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P12",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P14",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P10",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "C3",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "C9",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-20",
+  "branch": "air-phase/AP-20",
+  "base": "feature/air-phase",
+  "scope": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/air_picard.glsl",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_air_picard_gpu.gd",
+    "tests/atmosphere/test_air_runtime_gpu.gd",
+    "tests/atmosphere/test_air_hybrid_gpu.gd",
+    "tests/atmosphere/test_air_runtime.gd",
+    "docs/guide/air-model.md",
+    "tests/air_onnx/test_air_nn_runtime.gd",
+    "tests/ui/test_wind_model_setting.gd",
+    "scripts/ui/",
+    "locale/ui.csv",
+    "scripts/game/game.gd",
+    "tests/ui/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_phase_job.gd",
+    "scripts/atmosphere/air_model/air_phase_cpu.gd",
+    "scripts/atmosphere/air_model/air_phase.glsl",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "gpu",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap20-gpu -- tools/gpu_tests.sh --filter=atmosphere/test_air_",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_magic",
+      "cmd": "python3 -c \"import re,subprocess;d=subprocess.run(['git','diff','feature/air-phase...HEAD','-U0','--','scripts/atmosphere/air_model/air_picard_job.gd','scripts/atmosphere/air_model/air_picard.glsl','scripts/atmosphere/air_model/air_runtime.gd'],capture_output=True,text=True).stdout;lits=[m for l in d.splitlines() if l.startswith('+') and not l.startswith('+++') and not l[1:].lstrip().startswith(('#','//')) for m in re.findall(r'(?<![\\w.])\\d+\\.\\d+(?:e-?\\d+)?',l) if float(m) not in (0.0,0.5,1.0,2.0)];print('magic',len(lits))\"",
+      "expect": "num:magic (\\d+) <=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T17:53:48"
+}

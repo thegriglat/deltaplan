@@ -1,0 +1,51 @@
+{
+  "id": "AP-7",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "ap_v2: разные ли оси Fr и ветер",
+  "goal": "Главный вопрос air_phase.md §5.2: Fr и слабый ветер — разные оси? В ap_v2 (U_sat 3 и 6 фиксированы, Fr через N и h) 51 % несходимости — разделить вклад Fr и ветра у земли, ось N против оси h.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-7",
+  "branch": "air-phase/AP-7",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-7/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-7'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "summary",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-7/summary.json'));print('axes_distinct', d['axes_distinct'])\"",
+      "expect": "re:axes_distinct (yes|no|partly)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T13:39:10"
+}

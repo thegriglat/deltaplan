@@ -1,0 +1,84 @@
+{
+  "id": "AP-3",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Скрипт прогона всех серий run_phase.py (P5, P3) и пробный прогон с оценкой",
+  "goal": "Один скрипт считает все серии опытов §9 одной командой с продолжением после обрыва, пачками на GPU, и пишет результаты P3; пробный прогон по всем сериям даёт оценку времени и объёма полного счёта для шлюза.",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "P5",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P4",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P2",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P1",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-3",
+  "branch": "air-phase/AP-3",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/run_phase.py",
+    "tools/research/air_phase/phase_io.py",
+    "tools/research/air_phase/bubble.py",
+    "tools/research/air_phase/run_all.sh",
+    "tools/research/air_phase/tests/test_run_phase.py",
+    "tools/research/air_phase/README.md",
+    "tools/research/air_phase/out/trial.json"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/proto/phase_plan.proto",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "contract_schema",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "run_resume",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap3-accept -- /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_run_phase.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "trial_results_contract",
+      "cmd": "sh -c 'AP_RESULTS_DIR=$(ls -d /home/greg/air_synth_data/phase/ap_v1_trial__* | tail -1) /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k results_parts'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "trial_estimate",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/out/trial.json'));print('hours', d['full_estimate_hours'], 'gb', d['full_estimate_gb'])\"",
+      "expect": "num:hours ([0-9.]+) >0"
+    },
+    {
+      "name": "status_cmd",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python tools/research/air_phase/run_phase.py status --plan /home/greg/air_synth_data/phase/ap_v1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T02:19:54"
+}

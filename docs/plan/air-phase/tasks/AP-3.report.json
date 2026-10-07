@@ -1,0 +1,114 @@
+{
+  "status": "done",
+  "summary": "run_phase.py (P5: plan/run/trial/bench/status) + phase_io.py (запись P3 v2 процессом-писателем, ckpt тёплых цепочек) + bubble.py + run_all.sh; продолжение после обрыва проверено (побитно = непрерывный счёт). Пробный прогон 144 случая/340 с: оценка полного счёта 4,7 ч (если пакеты однородны — 2,2 ч), 7,5 ГБ при B = 4. Полный счёт запущен: job air-phase-run (dp job --lock gpu, таймаут 36000 с) из ~/deltaplan-air-phase-AP-3, первые 3 части записаны (48 случаев GRID, ошибок нет).",
+  "commits": [
+    "e291300d run_phase.py (P5), запись P3, продолжение, ckpt, bubble; тесты на заглушке",
+    "55aa10a8 под API AP-1 (окно meta/hc, solve_batch batch=, chunk 4B), README",
+    "a9114857 состояние досчитанной цепочки освобождается",
+    "467d6c65 пробный прогон — trial.json (4,7 ч, 7,5 ГБ, B = 4)"
+  ],
+  "checks": [
+    {
+      "name": "contract_schema",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "run_resume",
+      "value": "exit 0 (вкл. тест с настоящим batch_solver, мини-план max_outer 150)",
+      "pass": true
+    },
+    {
+      "name": "trial_results_contract",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "trial_estimate",
+      "value": "hours 4.68, gb 7.53",
+      "pass": true
+    },
+    {
+      "name": "status_cmd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "полный счёт: первые части",
+      "value": "3 части, 48/7686, ok/max/div 3/45/0 (первая точка Fr = 0,1), 1253 случая/ч на старте",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept AP-3; прогресс: /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python <копия>/tools/research/air_phase/run_phase.py status --plan /home/greg/air_synth_data/phase/ap_v1; dp job status air-phase-run; лог /home/greg/.cache/deltaplan-jobs/air-phase-run.log (tmux dp:air-phase-run); run.jsonl/progress.jsonl в /home/greg/air_synth_data/phase/ap_v1__s1-74644c4/",
+  "uncertain": [
+    {
+      "where": "run_phase.py estimate()",
+      "why": "оценка времени по среднему «стенное время / M» пробы на группу (серия, dx), 16 случаев на группу (SWEEP — 16 линий × k 0,1); у SWEEP тёплый старт на k ≥ 2 может сходиться быстрее/медленнее, чем в пробе",
+      "checked": "проба по всем 8 группам; Fr выбраны равномерно по отсортированному списку, включая самые медленные Fr 0,1–0,3; на старте полного счёта темп 1253 случая/ч на точке Fr = 0,1 (все max) — согласуется"
+    },
+    {
+      "where": "bubble.py",
+      "why": "сечение двумерное через центр формы (0, 0); у холма и при косом ветре это оценка; бровка — max выпуклость рельефа вдоль сечения (как window_geometry AP-1); H разрешается только уровнями S5 (25…2000 м); у окна обратное течение доходит до края — L нижняя оценка",
+      "checked": "аналитический тест (заданные L, H, угол тени, fr_local, slope_lee восстановлены); проба: L/h 4–11, угол тени 5–13° (в игре 12°), slope_lee = s формы (0,15 → 0,15), fr_local ≈ Fr при Fr = 3"
+    },
+    {
+      "where": "phase_io.py bubble_of / upstream_profile",
+      "why": "fr_local — по колонне поля 400 м против ветра в 5 клетках от края на высоте бровки над землёй притока; при Fr 0,3 вышло 0,6 (бровка выше z_i, приток там быстрее среднего по Fr) — определение U притока в контракте не уточнено",
+      "checked": "при Fr 2/3/5 fr_local = 1,98/2,98/4,95"
+    },
+    {
+      "where": "phase_io.py write_batch: window/*",
+      "why": "окна разной величины в одной части дополняются нулями до наибольшего; настоящая форма — window/shape; сверх контракта: window/hc, status, iters, brink_x_m/brink_y_m, downwind_fit_over_h",
+      "checked": "тест на заглушке с окнами разной величины; контрактный тест проходит"
+    },
+    {
+      "where": "order",
+      "why": "префикс имён field_features выбран \"f\" (f_rev25 …) — контракт префикс не задаёт",
+      "checked": "—"
+    },
+    {
+      "where": "окно 100 м + огибающая",
+      "why": "замечание ревьюера AP-1: в плане ap_v1 не сочетаются — все линии ENVELOPE/ENVELOPE_REAL с dx = 400, окно только у SEPARATION без огибающей",
+      "checked": "сводка плана по (серия, dx, вариант)"
+    }
+  ],
+  "dp_feedback": "dp job status для until-цикла: нужен код выхода (0 — идёт, иначе нет) вместо grep по русскому слову «идёт»; dp report --template без выбора AP-3-специфичных полей (как в карточке) — пришлось смотреть схему по общему шаблону. Нет команды «ждать слияния ветки X в модуль» — сделал фоновым циклом git cat-file.",
+  "extra": {
+    "series": {
+      "GRID": "81 линия × 30 = 2430",
+      "SWEEP": "162 × 18 = 2916 (тёплые)",
+      "RELAX": "108 линий, 1053",
+      "SEPARATION": "80 линий, 100 (50 окно 100 м + 50 на 400 м)",
+      "ENVELOPE": "240 линий, 300",
+      "ENVELOPE_REAL": "707 линий × 1 = 707",
+      "ERODED": "6 × 30 = 180",
+      "total": 7686
+    },
+    "sec_per_case_trial": {
+      "GRID": 1.43,
+      "SEPARATION/100": 3.94,
+      "SEPARATION/400": 0.93,
+      "ENVELOPE": 0.91,
+      "ENVELOPE_REAL": 5.12,
+      "SWEEP": 2.12,
+      "RELAX": 2.57,
+      "ERODED": 1.95
+    },
+    "full_estimate_hours": 4.68,
+    "full_estimate_hours_homogeneous": 2.22,
+    "full_estimate_gb": 7.53,
+    "disk_free_gb": 54.1,
+    "batch_B": 4,
+    "chunk_per_part": 16,
+    "solver_version": "s1-74644c4",
+    "job": "air-phase-run (dp job --lock gpu, таймаут 36000 с), запущен из /home/greg/deltaplan-air-phase-AP-3",
+    "resume": "/home/greg/deltaplan/tools/dp job --lock gpu start air-phase-run 36000 /home/greg/deltaplan-air-phase/tools/research/air_phase/run_all.sh (после слияния; та же команда из любой копии с тем же solver_version — продолжит с места)",
+    "results": "/home/greg/air_synth_data/phase/ap_v1__s1-74644c4/",
+    "trial_results": "/home/greg/air_synth_data/phase/ap_v1_trial__s1-74644c4/"
+  },
+  "t": "2026-10-06T03:01:15",
+  "by": "executor"
+}

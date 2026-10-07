@@ -10,7 +10,7 @@ const WRITTEN := [
 ]
 ## Не должны попадать в облако.
 const EXCLUDED := [
-	"terrain_cache/a.png", "map_cache/a.png", "air_nn/model.onnx",
+	"terrain_cache/a.png", "map_cache/a.png",
 	"local/configs/game.json", "atmo_fingerprint.txt",
 ]
 

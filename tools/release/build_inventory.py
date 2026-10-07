@@ -31,14 +31,12 @@ PRESETS = ("Linux", "Windows", "macOS")
 
 # --- Собственные файлы проекта («own», лицензия MIT (own)) -----------------------------------------------
 # Шаблоны путей от корня проекта (fnmatch, `*` пересекает `/`). Под addons/ (сторонние аддоны) правила по
-# расширениям не действуют — только явно перечисленные собственные расширения (addons/air_onnx).
+# расширениям не действуют — только явно перечисленные собственные расширения.
 OWN_PATTERNS = [
     "*.gd", "*.gdshader", "*.gdshaderinc", "*.glsl", "*.tscn", "*.tres",  # код, шейдеры, сцены
     "configs/*", "locale/*", "scenes/*", "scripts/*",                      # настройки, переводы, код игры
     "project.godot", "ASSETS.md", "assets/sounds/LICENSES.md",              # проект и таблица лицензий
-    "data/air_nn/README.md", "data/build_info.json",                        # описание и сведения о сборке
-    "addons/air_onnx/air_onnx.gdextension",                                 # наше расширение (native/air_onnx)
-    "addons/air_onnx/bin/*/libair_onnx.so", "addons/air_onnx/bin/*/air_onnx.dll",
+    "data/build_info.json",                                                 # сведения о сборке
 ]
 # Тексты лицензий сторонних материалов рядом с ними (не материалы сами по себе).
 LICENSE_TEXT_PATTERNS = ["assets/fonts/*.txt", "addons/*/LICENSE*"]
@@ -181,19 +179,6 @@ def beside_exe(root, name, mode):
                 src = os.path.relpath(os.path.join(dp, fn), root).replace(os.sep, "/")
                 add("<exe>/" + src, src)
     plat = {"Linux": "linux.x86_64", "Windows": "windows.x86_64"}.get(name)
-    exts = ["addons/air_onnx/air_onnx.gdextension", "addons/debug_draw_3d/debug_draw_3d.gdextension"]
-    feat = {"Linux": "linux.x86_64", "Windows": "windows.x86_64", "macOS": "macos"}[name]
-    for ge in exts:
-        libs = parse_gdextension(root, ge)
-        keys = [feat]
-        if "debug_draw" in ge:  # какая библиотека dd3d: экспорт debug — «editor», release+forced_dd3d — «.enabled»
-            keys = [feat] if mode == "debug" else [feat.replace(".x86_64", "") + ".template_release"
-                                                   + (".x86_64" if "x86_64" in feat else "") + ".forced_dd3d"]
-        for k in keys:
-            for src in libs.get(k, []):
-                if name == "macOS" and "air_onnx" in ge:
-                    continue
-                add("<exe>/" + os.path.basename(src), src)
     if name == "Linux":
         out.append(("<exe>/deltaplan.sh", "<godot-generated>", 123, True))
     return out
@@ -320,7 +305,7 @@ def git_commit(root):
 
 
 def is_own(path):
-    if path.startswith("addons/") and not path.startswith("addons/air_onnx/"):
+    if path.startswith("addons/"):
         return False
     return fmatch(path, OWN_PATTERNS)
 
@@ -369,7 +354,7 @@ def inventory(root, name, mode, assets_rows):
     for shown, src, size, exists in beside_exe(root, name, mode):
         it = make_item(shown, "beside_exe", size, src, matcher)
         if not exists:
-            it["note"] = "файла нет в рабочей копии (сборка native/air_onnx/build.sh не запускалась)"
+            it["note"] = "файла нет в рабочей копии"
         items.append(it)
     eng = make_item("engine", "engine", engine_size(name, mode), "engine", matcher)
     if eng["assets_md"] is None:
@@ -398,7 +383,7 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "inventory"))
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--mode", default="debug", choices=["debug", "release"],
-                    help="режим экспорта tools/build.sh (debug по умолчанию): какая библиотека dd3d и какой шаблон")
+                    help="режим экспорта tools/build.sh (debug по умолчанию): какой шаблон движка")
     ap.add_argument("--root", default=ROOT)
     a = ap.parse_args()
     rows = parse_assets(os.path.join(a.root, "ASSETS.md"))

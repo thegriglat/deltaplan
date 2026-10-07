@@ -1,0 +1,76 @@
+{
+  "id": "AP-1",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Пакетный решатель с опциями опытов фаз (P4)",
+  "goal": "Решатель P2 должен считать случаи опытов §9 пачкой на GPU (быстрее одиночных) и уметь override N/z_i/H, недорелаксирование, нижний предел K, относительный критерий, тёплый старт, снимки и окно 100 м с переносом 2-го порядка — основа скрипта прогона AP-3.",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "P4",
+      "version": "3",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "S5",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-1",
+  "branch": "air-phase/AP-1",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/batch_solver.py",
+    "tools/research/air_phase/bench_batch.py",
+    "tools/research/air_phase/tests/test_batch_solver.py",
+    "tools/research/air_phase/out/bench.json",
+    "tools/research/air3d/",
+    "tools/research/air_synth/corpus/conditions.py",
+    "tools/research/air_synth/solver/s5_io.py",
+    "tools/research/air_synth/solver/model_place.py"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/proto/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/",
+    "configs/",
+    "tools/research/air_synth/solver/reliefs.py"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "batch_invariants",
+      "cmd": "/home/greg/deltaplan/tools/dp lock gpu ap1-accept -- /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_batch_solver.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "s5_s2_unchanged",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_synth/solver/tests/test_contract_s5.py tools/research/air_synth/solver/tests/test_hgw24.py tools/research/air_synth/corpus/tests/test_conditions.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bench",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/out/bench.json'));print('best_batch', d['best_batch'], 'speedup', d['speedup_vs_1'])\"",
+      "expect": "num:speedup ([0-9.]+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T02:18:28"
+}

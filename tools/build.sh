@@ -7,10 +7,6 @@
 # Steam: linux-steam|windows-steam|macos-steam — пресеты «… Steam» (метка steam, GodotSteam из
 # tools/steam/fetch_godotsteam.sh), каталог build/<платформа>-steam; в «all» не входят. itch-сборки без GodotSteam.
 # Рядом с игрой кладётся папка configs/ — пилот правит её без пересборки (NFR-7).
-# Расширение AirOnnx (нейросеть ветра, native/air_onnx): нет собранного для платформы — собирается
-# (native/air_onnx/build.sh, нужна сеть при первом запуске); после экспорта проверяется, что расширение
-# и ONNX Runtime лежат рядом с исполняемым файлом. AIR_ONNX=0 — не собирать и не проверять (игра без
-# расширения работает на упрощённой модели ветра). macOS — расширение не собирается (README там).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 target="${1:-all}"
@@ -22,39 +18,21 @@ commit="$(git rev-parse --short=6 HEAD 2>/dev/null || echo "")"
 [[ -n "$commit" && -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]] && commit="$commit+"
 printf '{"commit": "%s"}\n' "$commit" > data/build_info.json
 
-# Файлы расширения AirOnnx в сборке по платформам (bin/<платформа>/ в addons/air_onnx и рядом с exe).
-air_onnx_files() {
-	case "$1" in
-	linux) echo "libair_onnx.so libonnxruntime.so.1" ;;
-	windows) echo "air_onnx.dll onnxruntime.dll msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll" ;;
-	esac
-}
-air_onnx="${AIR_ONNX:-1}"
 [[ "$target" == *-steam ]] && tools/steam/fetch_godotsteam.sh
-if [[ "$air_onnx" != 0 ]]; then
-	plats=()
-	[[ "$target" == linux* || "$target" == all ]] && plats+=(linux)
-	[[ "$target" == windows* || "$target" == all ]] && plats+=(windows)
-	for p in "${plats[@]}"; do
-		for f in $(air_onnx_files "$p"); do
-			if [[ ! -f "addons/air_onnx/bin/$p/$f" || ! -f addons/air_onnx/air_onnx.gdextension ]]; then
-				echo "AirOnnx: нет addons/air_onnx/bin/$p/$f — собираю native/air_onnx/build.sh $p"
-				native/air_onnx/build.sh "$p"
-				break
-			fi
-		done
-	done
-fi
-
 # Временный профиль (XDG_DATA_HOME=$(mktemp -d), как у агентов) — без шаблонов экспорта:
 # подложить ссылку на шаблоны из обычного профиля.
 tpl_home="$HOME/.local/share/godot/export_templates"
-if [[ -n "${XDG_DATA_HOME:-}" && ! -e "$XDG_DATA_HOME/godot/export_templates" && -d "$tpl_home" ]]; then
-	mkdir -p "$XDG_DATA_HOME/godot"
-	ln -s "$tpl_home" "$XDG_DATA_HOME/godot/export_templates"
+tpl_tmp="${XDG_DATA_HOME:-}/godot/export_templates"
+if [[ -n "${XDG_DATA_HOME:-}" && -d "$tpl_home" && ! -L "$tpl_tmp" ]]; then
+	# Godot при запуске создаёт пустой каталог шаблонов — его заменить ссылкой.
+	[[ -d "$tpl_tmp" ]] && rmdir "$tpl_tmp" 2>/dev/null
+	if [[ ! -e "$tpl_tmp" ]]; then
+		mkdir -p "$XDG_DATA_HOME/godot"
+		ln -s "$tpl_home" "$tpl_tmp"
+	fi
 fi
 
-# Импорт регистрирует расширение (addons/air_onnx/air_onnx.gdextension → .godot/extension_list.cfg).
+# Импорт регистрирует расширения и ресурсы.
 godot --headless --path . --import >/dev/null 2>&1 || true
 
 # Экспорт — с настоящим рендером, не --headless: иначе Shader Baker (shader_baker/enabled в
@@ -77,11 +55,9 @@ build_one() {
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
-	if [[ "$air_onnx" != 0 ]]; then
-		for f in $(air_onnx_files "${dir%-steam}"); do
-			[[ -f "build/$dir/$f" ]] || { echo "ОШИБКА: в сборке нет $f (расширение AirOnnx)" >&2; exit 1; }
-		done
-	fi
+	# Манифест itch: без него приложение itch считает deltaplan.pck вторым кандидатом на запуск
+	# (godot-pck через wine) и спрашивает, что запускать.
+	printf '[[actions]]\nname = "play"\npath = "%s"\n' "$bin" > "build/$dir/.itch.toml"
 	(cd build && rm -f "deltaplan-$dir.zip" && zip -qr "deltaplan-$dir.zip" "$dir")
 	echo "готово: build/$dir/$bin, build/deltaplan-$dir.zip"
 }

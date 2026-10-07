@@ -1,0 +1,132 @@
+// План опытов air-phase — контракт P2 v6 (docs/contracts/air-phase.md).
+// Владелец .proto — координатор модуля; менять только через контракт (версия +1).
+syntax = "proto3";
+
+package deltaplan.airphase.v1;
+
+enum Shape {
+  SHAPE_UNSPECIFIED = 0;
+  HILL = 1;
+  RIDGE = 2;
+  STEP_UP = 3;     // уступ, подъём по ветру
+  STEP_DOWN = 4;   // уступ, спуск по ветру (подветренная бровка)
+  CORPUS = 5;      // готовый рельеф корпуса S1 (серия ERODED)
+}
+
+enum Series {
+  SERIES_UNSPECIFIED = 0;
+  GRID = 1;
+  SWEEP = 2;
+  RELAX = 3;
+  SEPARATION = 4;
+  ERODED = 5;
+  ENVELOPE = 6;       // Пикар 400 м на эффективном рельефе h_eff (идеальные формы)
+  ENVELOPE_REAL = 7;  // то же на реальных крутых местах корпуса (условия S2 по cond_id)
+  FIXED_U = 8;        // Fr через N и h при фиксированном U_sat (план ap_v2): отделить блокирование от штиля
+  RERUN = 9;          // пересчёт случаев другого плана с иными Numerics (ap_v1r: ω = 0,5, 2000 итераций)
+  PROBE = 10;         // малые пробы (ветвь у уступа, du_max по итерациям, λ K-замыкания)
+}
+
+enum Start {
+  START_UNSPECIFIED = 0;
+  COLD = 1;        // фон (init_background)
+  WARM_PREV = 2;   // полное состояние случая k-1 той же линии
+}
+
+enum Direction {
+  DIR_NONE = 0;
+  UP = 1;
+  DOWN = 2;
+}
+
+enum EnvelopeWall {      // граница на верхней грани огибающей (над настоящей землёй)
+  WALL_NONE = 0;        // огибающей нет
+  WALL_GROUND = 1;      // обычная стенка: z0 и закон стенки как у земли
+  WALL_LOW_Z0 = 2;      // малая шероховатость envelope_z0_m (слой сдвига, не стенка)
+  WALL_SLIP = 3;        // скольжение (нулевое касательное напряжение)
+}
+
+enum Criterion {
+  CRITERION_UNSPECIFIED = 0;
+  ABSOLUTE = 1;
+  RELATIVE = 2;
+}
+
+message Context {        // общий контекст места для всех случаев
+  double lat = 1;
+  double lon = 2;
+  int32 month = 3;
+  int32 day = 4;
+  double hour_local = 5;
+  double utc_offset = 6;
+  double alpha = 7;        // показатель профиля притока (C2)
+  double max_profile = 8;  // насыщение профиля (C2)
+  double base_m = 9;       // база идеального рельефа, м н. у. м.
+  double h_m = 10;         // высота идеальных форм, м
+}
+
+message Relief {
+  int32 relief_id = 1;          // id в корпусе P1 (ideal_v1) или в corpus для CORPUS
+  string name = 2;
+  Shape shape = 3;
+  double slope = 4;             // s = max|grad z| (тангенс); для CORPUS — p95 уклона на 100 м
+  double h_m = 5;               // перепад (для CORPUS — relief_m)
+  double a_m = 6;               // масштаб формы (0 для CORPUS)
+  double length_m = 7;          // длина хребта (0 — не хребет)
+  string corpus = 8;            // каталог корпуса S1 относительно $AIR_SYNTH_DATA
+  int32 corpus_relief_id = 9;   // id рельефа в этом корпусе (relief_id — уникален в плане, P2 v2)
+}
+
+message Numerics {
+  double dx_m = 1;              // 400 — область; 100 — окно (SEPARATION)
+  int32 advection_order = 2;    // 1 | 2
+  double omega_u = 3;
+  double omega_k = 4;
+  double k_floor_m2s = 5;       // нижний предел K; значение решателя по умолчанию записывается явно
+  Criterion criterion = 6;
+  double tol = 7;               // порог в единицах критерия
+  int32 max_outer = 8;
+  int32 snap_from = 9;
+  int32 snap_step = 10;
+  int32 late_from = 11;
+  int32 late_step = 12;
+  double envelope_angle_deg = 13;   // угол линии тени от бровки по ветру; 0 — без огибающей
+  EnvelopeWall envelope_wall = 14;
+  double envelope_z0_m = 15;        // для WALL_LOW_Z0
+  double top_above_m = 16;          // верх области над max рельефа, м (3000 по умолчанию; 0 в старых планах = 3000)
+  double sponge_top_m = 17;         // толщина губки у верха, м (1000 по умолчанию; 0 в старых планах = 1000)
+  double lam_m = 18;                // асимптотическая длина перемешивания λ, м (air3d Params.lam = 40; 0 = по умолчанию)
+}
+
+message Line {
+  int32 line_id = 1;
+  Series series = 2;
+  int32 relief_id = 3;
+  double heat_flux_wm2 = 4;     // однородный поток явного тепла (override); при conditions: -1 — решение h, 0 — решение m
+  double h_over_zi = 5;         // z_i = h / h_over_zi над базой (override)
+  double n_bv_s = 6;            // N над z_i (override)
+  double wdir_from_deg = 7;     // откуда дует; 270 — поперёк форм
+  Numerics numerics = 8;
+  Start start = 9;
+  Direction direction = 10;
+  bytes fr_f64 = 11;            // точки Fr в порядке счёта, little-endian float64
+  int32 ref_line_id = 12;       // линия GRID той же конфигурации, -1 — нет
+  int64 first_case_id = 13;     // case_id = first_case_id + k
+  string variant = 14;          // метка варианта (RELAX: omega|kfloor|rel|calm; SEPARATION: slope|fr|heat|oblique; ENVELOPE_REAL: nonconv|conv)
+  string conditions = 15;       // каталог S2 относительно $AIR_SYNTH_DATA — условия из таблицы (override-поля линии не действуют); "" — override
+  int32 cond_id = 16;           // строка S2 при conditions != ""; иначе -1
+  string src_plan = 17;         // RERUN: каталог исходного плана относительно $AIR_SYNTH_DATA/phase (напр. "ap_v1")
+  bytes src_case_ids_i64 = 18;  // RERUN: case_id исходного плана для каждой точки fr_f64 (little-endian int64)
+}
+
+message Plan {
+  string contract = 1;          // "P2 v6"
+  string name = 2;              // напр. "ap_v1"
+  string created = 3;           // ISO
+  string git_commit = 4;
+  string command = 5;
+  Context context = 6;
+  repeated Relief reliefs = 7;
+  repeated Line lines = 8;
+  int64 n_cases = 9;
+}

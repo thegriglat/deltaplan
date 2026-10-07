@@ -1,0 +1,68 @@
+{
+  "id": "AP-4",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "План ap_v2: серия FIXED_U (Fr через N и h при фиксированном ветре) и постановка в очередь GPU",
+  "goal": "В ap_v1 Fr сцеплен с ветром, и блокирование не отделить от штиля; серия FIXED_U меняет Fr через N и h при U_sat = 3 и 6 м/с. Собрать план, проверить, что скрипт берёт h из рельефа линии, и поставить счёт в очередь после ap_v1.",
+  "plan_ref": "3. Серии",
+  "contracts": [
+    {
+      "name": "P2",
+      "version": "4",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P1",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P5",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-4",
+  "branch": "air-phase/AP-4",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/plan_build.py",
+    "tools/research/air_phase/run_phase.py",
+    "tools/research/air_phase/phase_io.py",
+    "tools/research/air_phase/proto/phase_plan_pb2.py",
+    "tools/research/air_phase/tests/test_plan_build.py",
+    "tools/research/air_phase/tests/test_run_phase.py"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tools/research/air_phase/proto/phase_plan.proto",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "tools/research/air3d/",
+    "tools/research/air_phase/batch_solver.py"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py tools/research/air_phase/tests/test_plan_build.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "plan_v2",
+      "cmd": "env AP_PLAN_DIR=/home/greg/air_synth_data/phase/ap_v2 /home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k plan_file",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "queued",
+      "cmd": "/home/greg/deltaplan/tools/dp job status ap2-run",
+      "expect": "re:идёт|код 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T03:26:00"
+}

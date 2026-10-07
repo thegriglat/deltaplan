@@ -155,7 +155,12 @@ def heat_mean(hc, D, ctx, lat, lon, utc, dx=400.0):
     гасится как в решателе Air.__init__ (heat_taper_m); AN-4 брал это же из d400_H решения с нагревом."""
     doy = W.day_of_year(ctx["month"], ctx["day"])
     H, sun = A.solar_flux(hc, dx, D, lat, lon, utc, doy, water=None, lag_h=W.CFG["heating"]["lag_h"]["none"])
-    ny, nx = hc.shape
+    return _heat_mean_field(hc, H, dx), sun
+
+
+def _heat_mean_field(hc, H, dx=400.0):
+    """Среднее по области max(H, 0) после гашения у края, как Air.__init__ (heat_taper_m)."""
+    ny, nx = np.shape(hc)
     if np.any(H != 0):
         tp = A.Params().heat_taper_m
         xe, ye = (np.arange(nx) + 0.5) * dx, (np.arange(ny) + 0.5) * dx
@@ -163,7 +168,7 @@ def heat_mean(hc, D, ctx, lat, lon, utc, dx=400.0):
         exx = np.clip(np.minimum(xe, Lx - xe) / tp, 0, 1)
         eyy = np.clip(np.minimum(ye, Ly - ye) / tp, 0, 1)
         H = H * (np.sin(0.5 * np.pi * eyy)[:, None] * np.sin(0.5 * np.pi * exx)[None, :]) ** 2
-    return float(np.maximum(H, 0).mean()), sun
+    return float(np.maximum(H, 0).mean())
 
 
 def wstar(Hs, zi_agl):
@@ -171,24 +176,54 @@ def wstar(Hs, zi_agl):
     return (G / TH0 * max(Hs, 0.0) / RHO_CP * max(zi_agl, 0.0)) ** (1 / 3)
 
 
-def derive(raw, ctx, hc, relief_m):
+def strat_gamma(n_bv_s, z_i_msl):
+    """Фон θ̄ при override стратификации (S2 H5, P4 инвариант 3): dθ̄/dz = θ0·N²/g над z_i, 0 под z_i (слой перемешивания).
+    Функция z (м н. у. м., массив) → К/м, как Case.gam решателя."""
+    g_n = TH0 * float(n_bv_s) ** 2 / G
+    zi = float(z_i_msl)
+    return lambda z: np.where(np.asarray(z, float) >= zi, g_n, 0.0)
+
+
+def override_base(hc):
+    """База рельефа для z_i override (м н. у. м.): минимум сетки решателя (g400)."""
+    return float(np.min(hc))
+
+
+def uniform_heat(hc, H):
+    """Однородный поток явного тепла H (Вт/м²) на сетке hc — override нагрева (P4)."""
+    return np.full(np.shape(hc), float(H))
+
+
+def derive(raw, ctx, hc, relief_m, override=None):
     """Производные случая (словарь полей Derived) тем же кодом, что строит случай P2: weather.Day, wind_prof.for_hour,
-    air.solar_flux; N и Fr — film_bg.bg_raw (без обрезки Fr); w*/U — ann2/regime.py."""
+    air.solar_flux; N и Fr — film_bg.bg_raw (без обрезки Fr); w*/U — ann2/regime.py.
+    override (AP-1, P4 инвариант 3) — dict с любыми из: n_bv_s (N над z_i, 1/с), z_i_agl_m (над базой override_base(hc)),
+    heat_flux_wm2 (однородный поток), alpha, max_profile (профиль притока плана вместо wind_prof.for_hour); None — как было."""
+    ov = override or {}
     hour, U10 = raw["hour"], raw["U10"]
     D = W.Day(hour, raw["t_max"], raw["sky"], ctx)
     P0 = A.Params()
     alpha, mp, cls, sun_el = WP.for_hour(ctx, hour, raw["sky"], U10, P0.z0, P0.f_cor)
-    Hs, sun = heat_mean(hc, D, ctx, ctx["lat"], ctx["lon"], ctx["utc_offset_h"])
+    if ov.get("alpha") is not None:
+        alpha, mp = float(ov["alpha"]), float(ov["max_profile"])
+    if ov.get("heat_flux_wm2") is not None:
+        Hs = _heat_mean_field(hc, uniform_heat(hc, ov["heat_flux_wm2"]))
+        doy = W.day_of_year(ctx["month"], ctx["day"])
+        sun = W.solar_position(ctx["lat"], ctx["lon"], doy, hour - W.CFG["heating"]["lag_h"]["none"], ctx["utc_offset_h"])
+    else:
+        Hs, sun = heat_mean(hc, D, ctx, ctx["lat"], ctx["lon"], ctx["utc_offset_h"])
+    z_i = D.z_i if ov.get("z_i_agl_m") is None else override_base(hc) + float(ov["z_i_agl_m"])
+    gamma = D.gamma if ov.get("n_bv_s") is None else strat_gamma(ov["n_bv_s"], z_i)
     hm = float(np.mean(hc))
-    zi_agl = float(D.z_i - hm)
+    zi_agl = float(z_i - hm)
     ws = wstar(Hs, zi_agl)
     U = U10 * mp                                                  # скорость притока выше z_sat (профиль насыщается)
     wsu = ws / max(U, 0.1)
-    z = D.z_i + np.linspace(0.0, N_LAYER_M, 301)
-    N = float(np.mean(np.sqrt(G_OVER_TH0 * np.maximum(np.asarray(D.gamma(z), float), 0.0))))
+    z = z_i + np.linspace(0.0, N_LAYER_M, 301)
+    N = float(np.mean(np.sqrt(G_OVER_TH0 * np.maximum(np.asarray(gamma(z), float), 0.0))))
     fr = U / (N * max(relief_m, 1.0)) if N > 0 else 1e3
     cap = D.st["cap_agl_m"]
-    return dict(alpha=float(alpha), max_profile=float(mp), z_i_m=float(D.z_i), z_lcl_m=float(D.z_lcl), heat=float(D.heat),
+    return dict(alpha=float(alpha), max_profile=float(mp), z_i_m=float(z_i), z_lcl_m=float(D.z_lcl), heat=float(D.heat),
                 brk=float(D.st["brk"]), stability_class=WP.CLASSES.index(cls), has_cap=bool(math.isfinite(cap)),
                 cap_agl_m=float(cap) if math.isfinite(cap) else 0.0, sun_el_deg=float(sun_el), sun_az_deg=float(sun[0]),
                 t_c=float(D.t), n_bv_s=N, froude=float(fr), w_star_m_s=float(ws), w_star_over_u=float(wsu),

@@ -1,0 +1,157 @@
+{
+ "groups": {
+  "ENVELOPE/400": {
+   "n_full": 300,
+   "n_trial": 16,
+   "sec_per_case": 0.91,
+   "iters_mean": 126.0,
+   "status_ok_max_div": [
+    15,
+    1,
+    0
+   ],
+   "mb_per_case": 0.397,
+   "est_hours": 0.08,
+   "est_hours_homogeneous": 0.01,
+   "est_gb": 0.12
+  },
+  "ENVELOPE_REAL/400": {
+   "n_full": 707,
+   "n_trial": 16,
+   "sec_per_case": 5.12,
+   "iters_mean": 671.0,
+   "status_ok_max_div": [
+    7,
+    9,
+    0
+   ],
+   "mb_per_case": 1.849,
+   "est_hours": 1.01,
+   "est_hours_homogeneous": 0.67,
+   "est_gb": 1.31
+  },
+  "ERODED/400": {
+   "n_full": 180,
+   "n_trial": 16,
+   "sec_per_case": 1.95,
+   "iters_mean": 481.0,
+   "status_ok_max_div": [
+    10,
+    6,
+    0
+   ],
+   "mb_per_case": 1.326,
+   "est_hours": 0.1,
+   "est_hours_homogeneous": 0.05,
+   "est_gb": 0.24
+  },
+  "GRID/400": {
+   "n_full": 2430,
+   "n_trial": 16,
+   "sec_per_case": 1.43,
+   "iters_mean": 334.1,
+   "status_ok_max_div": [
+    12,
+    4,
+    0
+   ],
+   "mb_per_case": 0.742,
+   "est_hours": 0.97,
+   "est_hours_homogeneous": 0.32,
+   "est_gb": 1.8
+  },
+  "RELAX/400": {
+   "n_full": 1053,
+   "n_trial": 16,
+   "sec_per_case": 2.57,
+   "iters_mean": 554.8,
+   "status_ok_max_div": [
+    9,
+    7,
+    0
+   ],
+   "mb_per_case": 1.11,
+   "est_hours": 0.75,
+   "est_hours_homogeneous": 0.42,
+   "est_gb": 1.17
+  },
+  "SEPARATION/100": {
+   "n_full": 50,
+   "n_trial": 16,
+   "sec_per_case": 3.94,
+   "iters_mean": 221.6,
+   "status_ok_max_div": [
+    14,
+    2,
+    0
+   ],
+   "mb_per_case": 1.004,
+   "est_hours": 0.05,
+   "est_hours_homogeneous": 0.01,
+   "est_gb": 0.05
+  },
+  "SEPARATION/400": {
+   "n_full": 50,
+   "n_trial": 16,
+   "sec_per_case": 0.93,
+   "iters_mean": 125.4,
+   "status_ok_max_div": [
+    15,
+    1,
+    0
+   ],
+   "mb_per_case": 0.392,
+   "est_hours": 0.01,
+   "est_hours_homogeneous": 0.0,
+   "est_gb": 0.02
+  },
+  "SWEEP/400": {
+   "n_full": 2916,
+   "n_trial": 32,
+   "sec_per_case": 2.12,
+   "iters_mean": 429.8,
+   "status_ok_max_div": [
+    20,
+    12,
+    0
+   ],
+   "mb_per_case": 0.968,
+   "est_hours": 1.72,
+   "est_hours_homogeneous": 0.74,
+   "est_gb": 2.82
+  }
+ },
+ "cases_by_series": {
+  "GRID": 2430,
+  "SWEEP": 2916,
+  "RELAX": 1053,
+  "SEPARATION": 100,
+  "ERODED": 180,
+  "ENVELOPE": 300,
+  "ENVELOPE_REAL": 707
+ },
+ "sec_per_case_by_series": {
+  "GRID": 1.43,
+  "SEPARATION": 2.44,
+  "ENVELOPE": 0.91,
+  "ENVELOPE_REAL": 5.12,
+  "SWEEP": 2.12,
+  "RELAX": 2.57,
+  "ERODED": 1.95
+ },
+ "full_estimate_hours": 4.68,
+ "full_estimate_hours_homogeneous": 2.22,
+ "full_estimate_gb": 7.53,
+ "n_cases": 7686,
+ "solver_version": "s1-74644c4",
+ "batch_size": 4,
+ "chunk": 16,
+ "device": "NVIDIA GeForce RTX 4070 SUPER",
+ "plan": "/home/greg/air_synth_data/phase/ap_v1",
+ "results": "/home/greg/air_synth_data/phase/ap_v1_trial__s1-74644c4",
+ "trial_cases": 144,
+ "trial_wall_s": 340.3,
+ "rc": 0,
+ "disk_free_gb": 54.1,
+ "note": "full_estimate_hours — сумма по группам (серия, dx) «стенное время пробного пакета / M» × число случаев (пробный пакет разнороден по Fr — консервативно); _homogeneous — по итерациям, если пакеты однородны (в полном счёте пакет — точка k многих линий)"
+}

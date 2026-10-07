@@ -82,7 +82,9 @@ func test_lee_sink_and_rotor_scale_with_wind() -> void:
 		)
 		if wind > 4.0:
 			# аналитика: пороги — регрессия эвристики lee.* (не физика)
-			check(lee.x <= -0.5 * lee.y, "%.0f м/с: сильное опускание %.2f" % [wind, lee.x])
+			# AP-10: опускание в полосе у линии тени 0,03–0,05 U, литература 0,06–0,17 U_H; сверху
+			# рывки («бьёт сверху») — опасность за гребнем это ротор и болтанка, не провал
+			check(lee.x < 0.0 and lee.x >= -0.35 * lee.y, "%.0f м/с: опускание %.2f" % [wind, lee.x])
 			# порог — регрессия аналитики, без источника: 0,5·u → 0,45·u по факту 0,47·u при 8 м/с
 			# (профиль притока откалиброван, Б2); эвристика не подгоняется
 			check(lee.z >= 0.45 * lee.y, "%.0f м/с: ротор σ %.2f" % [wind, lee.z])
@@ -91,6 +93,40 @@ func test_lee_sink_and_rotor_scale_with_wind() -> void:
 		else:
 			check(lee.x >= -1.0, "слабый ветер: опускание мягкое %.2f" % lee.x)
 		a.free()
+
+
+## Числа lee взяты из AP-10 (tools/research/air_phase/analysis/AP-10): угол 12°, ротор 0,6–0,7,
+## высота ротора 0,6, слой сдвига 300–400 м, опускание 0,05–0,1.
+func test_lee_config_from_ap10() -> void:
+	var l: Dictionary = Config.get_config("atmosphere").lee
+	check(float(l.shadow_angle_deg) == 12.0, "угол тени 12°")
+	check(float(l.rotor_reverse) >= 0.6 and float(l.rotor_reverse) <= 0.7, "rotor_reverse 0,6–0,7")
+	check(absf(float(l.rotor_height_fraction) - 0.6) < 1e-6, "rotor_height_fraction 0,6")
+	check(float(l.shear_layer_m) >= 300.0 and float(l.shear_layer_m) <= 400.0, "слой сдвига")
+	check(float(l.danger_sink_per_wind) >= 0.05 and float(l.danger_sink_per_wind) <= 0.1, "опускание")
+
+
+## Ротор слабеет с нагревом земли (AP-10: 100–250 Вт/м² убирает пузырь при крутизне 0,3, при
+## 0,5 укорачивает с 9,3 до 4,3–5,4 h): конвективная болтанка погоды → H → множитель ротора.
+func test_rotor_weakens_with_heating() -> void:
+	var a := _atmo(8.0)
+	var p := Vector3(250.0, _ridge(250.0, 0.0) + 8.0, 0.0)
+	var h0 := a.air_velocity_at(p).x
+	check(a.lee_heat_wm2() == 0.0, "без конвекции нагрева нет")
+	var prev := h0
+	for conv in [0.4, 0.8, 1.3, 1.5]:
+		a._conv_amp = conv
+		a._cloudbase_agl = 1700.0
+		var heat := a.lee_heat_wm2()
+		var h := a.air_velocity_at(p).x
+		print("  σ конв. %.1f → H %.0f Вт/м², горизонталь у склона %.2f (без нагрева %.2f)" % [conv, heat, h, h0])
+		check(h >= prev - 1e-6, "сильнее нагрев — слабее обратный поток (%.2f)" % h)
+		prev = h
+	a._conv_amp = 1.5
+	a._cloudbase_agl = 1000.0
+	check(a.lee_heat_wm2() >= 300.0, "H ≥ порога убирает ротор: %.0f" % a.lee_heat_wm2())
+	check(a.air_velocity_at(p).x > 0.0, "ротор убран нагревом")
+	a.free()
 
 
 func test_rotor_reverse_flow_near_slope() -> void:
@@ -306,7 +342,7 @@ func test_field_reverse_only_when_unresolved() -> void:
 			else:
 				var agl := p.y - _ridge(p.x, 0.0)
 				var r := float(z[5])
-				var core := exp(-agl / maxf(0.4 * r, 1.0))
+				var core := exp(-agl / maxf(float(Config.get_config("atmosphere").lee.rotor_height_fraction) * r, 1.0))
 				var want := -0.22 * float(z[3]) * float(z[4]) * core
 				var unres := a.field_turb.reverse_unresolved(r, a.air_field.sample_dx(p, p.y - agl))
 				check(unres > 0.99, "dx 400: пузырь (2,8·%.0f м) не разрешён" % r)

@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Числа lee сняты по смыслу параметров и совпадают с формулами игры (atmosphere.gd: h = u(1 − lee·wr), −rr·u·core, core = exp(−agl/(f·relief))); оговорки и границы модели (K-замыкание, одна высота h, косой ветер, губка) заявлены честно; скоуп соблюдён, в docs/configs/scripts правок нет. Исправления bubble.py покрыты тестами и объяснены физически, не подгонка.",
+  "issues": [
+    {
+      "file": "tools/research/air_phase/bubble.py",
+      "line": 20,
+      "severity": "minor",
+      "what": "Семантика P3 v2 `bubble.fr_local` и точки сечения изменена в коде (невозмущённый профиль U(h)/(N·h); сечение через наибольший подветренный уклон / бровку окна), а текст контракта в docs/contracts/air-phase.md (не трогать по карточке) по-прежнему описывает колонну притока. Уже записанные части ap_v1 хранят старые fr_local и has_reverse=0 для косых случаев; разбор пользуется пересчитанным out/bubble_v2.csv.",
+      "fix": "Координатору: поправить формулировку P3 v2 (fr_local, центр сечения) и решить, нужен ли пересчёт `bubble` в частях/features для потребителей AP-6/AP-8; исполнителю ничего делать не надо."
+    },
+    {
+      "file": "tools/research/air_phase/bubble.py",
+      "line": 90,
+      "severity": "minor",
+      "what": "Разрешение «ничьей» в steepest_lee_point: штраф 1e-12·r² при r ~ 10 км даёт 1e-4, больше округления уклона 1e-6, то есть это слабое смещение к центру, а не чистый тай-брейк. На результат (уклоны 0,2–0,6) не влияет.",
+      "fix": "Можно оставить; при желании — lexsort по (округлённый уклон, расстояние)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept AP-10 --dry: p7",
+      "value": "1 passed",
+      "pass": true
+    },
+    {
+      "name": "dp accept AP-10 --dry: summary",
+      "value": "shadow_angle_deg 9.88986 (отчёт 9.89)",
+      "pass": true
+    },
+    {
+      "name": "pytest tests/test_bubble.py",
+      "value": "4 passed",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-06T14:12:31",
+  "by": "reviewer"
+}

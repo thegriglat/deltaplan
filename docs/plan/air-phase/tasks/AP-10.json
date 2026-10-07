@@ -1,0 +1,55 @@
+{
+  "id": "AP-10",
+  "module": "air-phase",
+  "type": "dp-researcher",
+  "title": "Срыв и огибающая: числа для линии тени, огибающая против несходимости",
+  "goal": "Откалибровать полуэмпирику срыва игры (configs/atmosphere.json → lee) по серии SEPARATION и проверить огибающую h_eff (ENVELOPE, ENVELOPE_REAL): лечит ли несходимость и согласуется ли поле над огибающей с эталоном 100 м.",
+  "plan_ref": "7. Этап 2 — разбор результатов",
+  "contracts": [
+    {
+      "name": "P3",
+      "version": "2",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P7",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    },
+    {
+      "name": "P6",
+      "version": "1",
+      "ref": "docs/contracts/air-phase.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-phase-AP-10",
+  "branch": "air-phase/AP-10",
+  "base": "feature/air-phase",
+  "scope": [
+    "tools/research/air_phase/analysis/AP-10/",
+    "tools/research/air_phase/bubble.py",
+    "tools/research/air_phase/tests/test_bubble.py",
+    "tools/research/air_phase/phase_io.py"
+  ],
+  "dont_touch": [
+    "docs/",
+    "tools/research/air_phase/tests/test_contract_phase.py",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "p7",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -m pytest -q tools/research/air_phase/tests/test_contract_phase.py -k 'analysis_dir and AP-10'",
+      "expect": "re:1 passed"
+    },
+    {
+      "name": "summary",
+      "cmd": "/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python -c \"import json;d=json.load(open('tools/research/air_phase/analysis/AP-10/summary.json'));print('shadow_angle_deg', d['lee']['shadow_angle_deg'])\"",
+      "expect": "num:shadow_angle_deg ([0-9.]+) >0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-06T13:39:10"
+}

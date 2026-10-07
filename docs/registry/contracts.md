@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-05"
+updated: "2026-10-07"
 summary: "Контракты стыков по модулям: идентификаторы и версии из заголовков."
 related: []
 generated: true
@@ -19,6 +19,8 @@ generated: true
 | air-nn | П2 v5, П3 v4, Б1 v1 | [docs/contracts/air-nn-p3.md](/docs/contracts/air-nn-p3.md) |
 | air-nn | П1 v3, П2 v5, П3 v4, П6 v3, П4 v1, П5 v2 | [docs/contracts/air-nn.md](/docs/contracts/air-nn.md) |
 | air-onnx | O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1 | [docs/contracts/air-onnx.md](/docs/contracts/air-onnx.md) |
+| air-phase | P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v2, P12 v4, P13 v2, P14 v2, P15 v1 | [docs/contracts/air-phase.md](/docs/contracts/air-phase.md) |
+| air-synth | S1 v5, S2 v4, S3 v3, S4 v2, S5 v4, S6 v1, S7 v1 | [docs/contracts/air-synth.md](/docs/contracts/air-synth.md) |
 | ann2 | A1 v2, A2 v2, A3 v2 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) |
 | control-fix | С1 v2, С2 v3, С3 v3 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) |
 | easter-eggs | К8 v3, К9 v5 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) |

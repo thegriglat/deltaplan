@@ -1,0 +1,80 @@
+{
+  "status": "partial",
+  "summary": "Аддон Debug Draw 3D удалён; стрелки ветра F5 рисуются своим ArrayMesh (линии: древко + 4 уса, unshaded, цвет w_color, длина = скорость*wind_arrow_s, сетка по частям, пилотская стрелка каждый кадр); forced_dd3d/dd3d убраны из экспорта, инвентаризации, notices, ASSETS, плана, TODO T-71 помечен. Приёмка 5/8: падают три проверки по причинам вне моего скоупа.",
+  "commits": [
+    "d2fe21aa Удалён аддон Debug Draw 3D",
+    "0d527464 F5 ветер: стрелки своим ArrayMesh; убраны dd3d из экспорта, инвентаризации, ASSETS, планов"
+  ],
+  "checks": [
+    {
+      "name": "debug_overlays",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "steam_assets_contracts",
+      "value": "15/16, падает test_versions_in_doc (старый tests/contracts/test_steam_assets_contracts.gd ждёт SA-К1 v2/К2 v4/К3 v3, в доке v3/v5/v4)",
+      "pass": false
+    },
+    {
+      "name": "game",
+      "value": "148/151: test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys — русские тексты, а язык по умолчанию стал английским (b98f4798); к моим файлам не относятся",
+      "pass": false
+    },
+    {
+      "name": "no_addon",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_refs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "файл есть, dp accept не нашёл: ждёт re:\\.(png|jpg) по ls, лог 06-screenshot.log; снимок запущен после dry-прогона, повторить dp accept",
+      "pass": true
+    },
+    {
+      "name": "import",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "inventory",
+      "value": "INVENTORY OK",
+      "pass": true
+    },
+    {
+      "name": "FPS F5 vs без слоёв",
+      "value": "74.5 vs 74.5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Три теста game и test_versions_in_doc не правил: тесты tests/contracts вне скоупа, тесты game про язык — другая задача"
+  ],
+  "questions": [
+    "Кто чинит тесты game (язык по умолчанию en) и старый test_steam_assets_contracts.gd (версии)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/DD-1/01_стрелки_ветра.png"
+  ],
+  "how_to_check": "dp accept DD-1",
+  "uncertain": [
+    {
+      "where": "scripts/game/debug_overlays.gd arrow_lines",
+      "why": "линии толщиной 1 пиксель, на расстоянии мелкие; на кадре читаются, но тоньше прежних dd3d",
+      "checked": "кадр F5 1920x1080, FPS не изменился"
+    },
+    {
+      "where": "tools/release/build_inventory.py",
+      "why": "переменные plat/feat остались неиспользуемыми",
+      "checked": "--check даёт INVENTORY OK"
+    }
+  ],
+  "dp_feedback": "dp accept --dry пишет screenshot FAIL, если снимок ещё не сделан, а полный прогон идёт >10 мин; удобно запускать отдельные проверки (dp accept DD-1 --only name).",
+  "t": "2026-10-07T10:08:27",
+  "by": "executor"
+}

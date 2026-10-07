@@ -1,0 +1,184 @@
+extends TestCase
+## AirRuntime без GPU (air-phase P12 v4): без GPU расчёта нет — аналитика (фаз на CPU в рантайме
+## нет); конфиг air_model без engine/nn_*, новые ключи с _doc; маска запасного пути (P12 v2);
+## картинка слоя «карта фаз». PhaseStub — простая карта фаз для слоя (не AirPhaseJob).
+
+const PHASES := ["A", "B", "C", "D", "F", "G", "H"]
+
+
+class StubAtmo:
+	extends RefCounted
+	var field: Variant = null
+	var calls := 0
+
+	func set_air_field(f: Variant, _blend: float) -> void:
+		field = f
+		calls += 1
+
+
+## Заглушка AirPhaseJob (P10 v2): фаза A везде, кроме квадрата F (заморожен) в углу; ω = 0,5 в
+## полосе у квадрата; warm — однородный поток притока (u_a по направлению ветра), θ′ = 0.
+class PhaseStub:
+	extends RefCounted
+	var calls := 0
+	## Сторона квадрата F, клеток (0 — без механизмов).
+	var block := 8
+
+	func run(c: AirCase) -> Dictionary:
+		calls += 1
+		var nx := c.nx
+		var ny := c.ny
+		var kk := PHASES.size()
+		var w := PackedFloat32Array()
+		w.resize(kk * nx * ny)
+		var om := PackedFloat32Array()
+		om.resize(nx * ny)
+		var fz := PackedByteArray()
+		fz.resize(nx * ny)
+		var nf := 0
+		for j in ny:
+			for i in nx:
+				var q := j * nx + i
+				var in_f := i < block and j < block
+				var ph := 4 if in_f else 0
+				w[ph * nx * ny + q] = 1.0
+				fz[q] = 1 if in_f else 0
+				nf += 1 if in_f else 0
+				om[q] = 0.5 if (i < 2 * block and j < 2 * block and not in_f) else 1.0
+		var d := c.dims()
+		var n := d.x * d.y * d.z
+		var u := PackedFloat32Array()
+		u.resize(n)
+		u.fill(c.u_a * c.ex)
+		var v := PackedFloat32Array()
+		v.resize(n)
+		v.fill(c.u_a * c.ey)
+		var z := PackedFloat32Array()
+		z.resize(n)
+		var fa := float(nf) / float(nx * ny)
+		return {
+			weights = w,
+			omega = om,
+			freeze = fz,
+			warm = {u = u, v = v, w = z, th = z.duplicate(), p = z.duplicate()},
+			mech_field = {},
+			stats = {A = 1.0 - fa, F = fa},
+			ms = 1.0,
+		}
+
+
+func _place() -> Dictionary:
+	var lw := TestAirPlace.load_detail("ongudai")
+	return {detail = lw[0], water = lw[1], loc = TestAirPlace.load_loc("ongudai")}
+
+
+func _runtime(atmo: Object, place: Dictionary, stub: PhaseStub) -> AirRuntime:
+	Config.reload()
+	var rt := AirRuntime.new()
+	if stub != null:
+		rt.phase_factory = func(_g: AirGpu) -> Object: return stub
+	rt.setup(atmo, place, func() -> Dictionary:
+		return {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"})
+	return rt
+
+
+## Загрузка без дерева сцены: тот же конечный автомат, опрос вручную.
+func _load(rt: AirRuntime) -> void:
+	rt.focus_fn = func() -> Vector3: return Vector3.ZERO
+	rt._begin(rt.conditions_fn.call(), "тест", true)
+	var t0 := Time.get_ticks_msec()
+	while rt.busy() and Time.get_ticks_msec() - t0 < 120000:
+		rt._process(0.0)
+		OS.delay_msec(5)
+
+
+func test_config_without_nn() -> void:
+	Config.reload()
+	var am: Dictionary = Config.get_config("atmosphere").get("air_model", {})
+	check(not am.has("engine") and not am.has("engine_doc"), "air_model без engine")
+	for k: String in am:
+		check(not k.begins_with("nn_"), "air_model без nn_*: %s" % k)
+	for k: String in am:
+		check(not k.begins_with("omega_fallback") and not k.begins_with("nonconv_"), "временный ключ убран: %s" % k)
+	check(am.has("hybrid_checks") and am.has("hybrid_checks_doc"), "hybrid_checks с _doc")
+	for k in ["fallback_iters", "fallback_omega"]:
+		check(AirRuntime.phase_cfg("omega", k) != null, "air_phase.omega.%s" % k)
+	for k in ["mech_w", "late_from"]:
+		check(AirRuntime.phase_cfg("nonconv", k) != null, "air_phase.nonconv.%s" % k)
+	var hc: Dictionary = am.get("hybrid_checks", {})
+	for k: String in hc:
+		if not k.ends_with("_doc"):
+			check(hc.has(k + "_doc"), "_doc у hybrid_checks.%s" % k)
+	var rt := AirRuntime.new()
+	check(rt.engine() == "solver", "engine() — solver (подпись экрана загрузки)")
+	rt.free()
+
+
+## Без GPU — аналитика, даже когда код фаз есть (P12 v4).
+func test_no_gpu_analytic() -> void:
+	if DisplayServer.get_name() != "headless":
+		return  # GPU есть — проверка только headless
+	var atmo := StubAtmo.new()
+	var stub := PhaseStub.new()
+	var rt := _runtime(atmo, _place(), stub)
+	check(rt.unavailable_reason() == "нет RenderingDevice: headless", "причина: %s" % rt.unavailable_reason())
+	rt.free()
+
+
+## Слой «карта фаз»: главная фаза клетки (север вверху).
+func test_phase_image() -> void:
+	var p := _place()
+	var c := AirPlace.domain_case(
+		p.detail, p.water, p.loc, AirRuntime.DX, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0
+	)
+	if c == null or not c.prepare():
+		check(false, "случай Онгудая")
+		return
+	var ph := PhaseStub.new().run(c)
+	var pm := {weights = ph.weights, phases = AirRuntime._phase_names(), nx = c.nx, ny = c.ny}
+	check(Array(pm.phases) == PHASES, "имена фаз: %s" % [pm.phases])
+	var img := WindFieldDebug.phase_image(pm)
+	check(_near(img.get_pixel(0, c.ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
+	check(_near(img.get_pixel(c.nx - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
+
+
+## Цвет после RGB8 (шаг 1/255).
+static func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.02
+
+
+## Типы клеток на CPU: воздух — столько же, сколько неизвестных клеток AirCase (n_fluid).
+func test_cell_codes() -> void:
+	var p := _place()
+	var c := AirPlace.domain_case(
+		p.detail, p.water, p.loc, AirRuntime.DX, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0
+	)
+	check(c != null and c.prepare(), "случай Онгудая")
+	if c == null:
+		return
+	var tc: PackedFloat32Array = preload("res://tests/atmosphere/test_air_hybrid_gpu.gd").cell_codes(c)
+	var air := 0
+	for t in tc:
+		air += 1 if int(t) == 1 else 0
+	check(air == c.n_fluid, "клеток воздуха %d = n_fluid %d" % [air, c.n_fluid])
+
+
+## P12 v2: колонны запасного пути — вес H + D выше порога и не заморожены.
+func test_nonconv_mask() -> void:
+	var n2 := 4
+	var w := PackedFloat32Array()
+	w.resize(PHASES.size() * n2)
+	# колонна 0: H 0,6 (да); 1: D 0,3 + H 0,3 (да, > 0,5); 2: H 0,9, заморожена (нет); 3: A (нет)
+	w[6 * n2 + 0] = 0.6
+	w[0 * n2 + 0] = 0.4
+	w[3 * n2 + 1] = 0.3
+	w[6 * n2 + 1] = 0.3
+	w[0 * n2 + 1] = 0.4
+	w[6 * n2 + 2] = 0.9
+	w[0 * n2 + 2] = 0.1
+	w[0 * n2 + 3] = 1.0
+	var fz := PackedByteArray([0, 0, 1, 0])
+	var m := AirRuntime.nonconv_mask({weights = w, freeze = fz}, 0.5)
+	check(m == PackedByteArray([1, 1, 0, 0]), "маска: %s" % m)
+	var none := AirRuntime.nonconv_mask({weights = w, freeze = fz}, 0.95)
+	check(none.is_empty(), "нет колонн — пусто")

@@ -7,7 +7,7 @@
 входящих в сборку (SA-К3; разбор — build_inventory.parse_assets), строки с пометкой «(только Steam)» — только если
 в имени пресета есть «steam». Тексты лицензий: все `licenses/<имя>.txt`, на которые ссылаются строки; плюс по
 названию лицензии в колонке (MIT, OFL, CC BY, CC0, ODbL, Copernicus); плюс всегда MIT-deltaplan, MIT-godot,
-godot-COPYRIGHT, ODbL-1.0; msvc-runtime — для пресетов Windows. Только стандартная библиотека Python, без сети.
+godot-COPYRIGHT, ODbL-1.0. Только стандартная библиотека Python, без сети.
 """
 import argparse
 import os
@@ -33,11 +33,6 @@ BY_NAME = [
 ]
 # Подстрока в строке ASSETS.md (нижний регистр) -> файлы licenses/.
 BY_COMPONENT = [
-    ("godot-cpp", ["MIT-godot-cpp"]),
-    ("onnx runtime", ["onnxruntime-LICENSE", "onnxruntime-ThirdPartyNotices"]),
-    ("onnxruntime", ["onnxruntime-LICENSE", "onnxruntime-ThirdPartyNotices"]),
-    ("debug_draw_3d", ["MIT-debug_draw_3d"]),
-    ("debug draw 3d", ["MIT-debug_draw_3d"]),
     ("debug_menu", ["MIT-debug_menu"]),
     ("debug menu", ["MIT-debug_menu"]),
 ]
@@ -74,8 +69,6 @@ def select_rows(root, preset):
 
 def needed_licenses(rows, preset):
     names = list(ALWAYS)
-    if "windows" in preset.lower():
-        names.append("msvc-runtime")
     for r in rows:
         lic = r["cells"][3]
         names += REF.findall(lic)

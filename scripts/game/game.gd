@@ -374,11 +374,9 @@ func _load_air_field(progress: LoadProgress) -> void:
 	air_runtime.recompute_enabled = true
 
 
-## Ключ подписи ветра на экране загрузки по фактическому режиму: "nn" | "solver" | иначе упрощённый.
+## Ключ подписи ветра на экране загрузки по фактическому режиму: "solver" | иначе упрощённый.
 static func wind_stage_key(engine: String) -> String:
 	match engine:
-		"nn":
-			return "loading_wind_nn"
 		"solver":
 			return "loading_wind"
 	return "loading_wind_simple"
