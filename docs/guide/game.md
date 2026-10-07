@@ -289,6 +289,14 @@ settings.start_hour, utc_offset_h локации)`, `Game.tick` — `sky.clock.a
 Пишутся патчем в `user://configs/audio.json` и `user://configs/controls.json` — `Config` накладывает их
 поверх `res://configs` (третий слой), в файле только изменённые ключи.
 
+**Окно и кадры (QL-13).** В настройках графики: VSync (по умолчанию вкл), предел кадров 30/60/120/144/без предела,
+режим окна (оконный/полноэкранный), разрешение окна (список — что помещается в монитор; «Как есть» — не менять),
+«Масштаб рендера» (FSR) — рядом. Хранится в `game.json → display` как машинная настройка
+(`user://local/configs`, ключ `game.display` в `LOCAL_KEYS` и `auto_cloud.json`). Применяет `GraphicsPresets.apply_display`:
+`Engine.max_fps`, `DisplayServer.window_set_vsync_mode`, режим и размер окна; при запуске (из `apply_viewport`) и сразу при
+сохранении настроек. Аргументы Godot `--resolution`/`--fullscreen`/`--windowed` перекрывают режим и размер на этот запуск
+(VSync и предел кадров применяются всегда). Без VSync и без предела GPU грузится на 100 % — предел кадров для этого и нужен.
+
 ### Как добавить настройку
 1. Параметр уже есть в каком-то `configs/<имя>.json` (NFR-7).
 2. В `scripts/ui/settings_panel.gd`: элемент в `_ready()` (`UiKit.slider_row` / `UiKit.row`), чтение в

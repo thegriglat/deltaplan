@@ -27,6 +27,12 @@ var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
 var _render_scale_auto: CheckBox
 var _render_scale: HSlider
+var _vsync: CheckBox
+var _fps_limit: OptionButton
+var _fps_options: Array = []
+var _window_mode: OptionButton
+var _resolution: OptionButton
+var _resolutions: Array = []
 var _time_speed: OptionButton
 var _time_speed_row: HBoxContainer
 var _speeds: Array = []
@@ -52,7 +58,8 @@ func _ready() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var ui: Dictionary = Config.get_config("ui")
-	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
+	var sp := ScrollPanel.build(self, float(ui.get("panel_width_px", 560)))
+	var box: VBoxContainer = sp["box"]
 	UiKit.label(box, tr("menu_settings"), "TitleLabel")
 	UiKit.separator(box)
 	_language = OptionButton.new()
@@ -117,6 +124,7 @@ func _ready() -> void:
 	_render_scale.value_changed.connect(func(x: float) -> void: rs_value.text = "%.0f%%" % x)
 	_render_scale_auto.toggled.connect(func(on: bool) -> void: _render_scale.editable = not on)
 	UiKit.row(box, tr("settings_render_scale"), rs_box)
+	_build_display_rows(box)
 	var grass_cfg: Dictionary = Config.get_config("vegetation").get("grass", {})
 	var gr: Array = grass_cfg.get("density_range_pct", [0.0, 200.0])
 	_grass = UiKit.slider_row(
@@ -165,11 +173,39 @@ func _ready() -> void:
 	_names.text = tr("settings_pilot_names_hint")
 	UiKit.row(box, tr("settings_pilot_names"), _names)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
-	var bar := UiKit.button_bar(box)
+	var bar := UiKit.button_bar(sp["footer"])
 	UiKit.button(bar, tr("common_save"), _on_save)
 	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
 	visibility_changed.connect(_on_visibility_changed)
 	load_values()
+
+
+## VSync, предел кадров, режим окна, разрешение (game.json → display, машинные настройки).
+func _build_display_rows(box: Control) -> void:
+	_vsync = CheckBox.new()
+	_vsync.text = tr("settings_vsync_hint")
+	UiKit.row(box, tr("settings_vsync"), _vsync)
+	_fps_limit = OptionButton.new()
+	_fps_options = []
+	for v: Variant in Config.value("game", "display_fps_options", [30, 60, 120, 144, 0]):
+		_fps_options.append(int(v))  # JSON даёт float — для find() нужны int
+		_fps_limit.add_item(tr("settings_fps_unlimited") if int(v) <= 0 else "%d" % int(v))
+	UiKit.row(box, tr("settings_fps_limit"), _fps_limit)
+	_window_mode = OptionButton.new()
+	_window_mode.add_item(tr("settings_window_windowed"), 0)
+	_window_mode.add_item(tr("settings_window_fullscreen"), 1)
+	UiKit.row(box, tr("settings_window_mode"), _window_mode)
+	_resolution = OptionButton.new()
+	_resolution.add_item(tr("settings_resolution_current"))
+	_resolutions = [Vector2i.ZERO]
+	var scr := DisplayServer.screen_get_size()
+	for r: Variant in Config.value("game", "display_resolutions", []):
+		var v := Vector2i(int((r as Array)[0]), int((r as Array)[1]))
+		if scr == Vector2i.ZERO or (v.x <= scr.x and v.y <= scr.y):
+			_resolutions.append(v)
+			_resolution.add_item("%d × %d" % [v.x, v.y])
+	UiKit.row(box, tr("settings_resolution"), _resolution)
+	_window_mode.item_selected.connect(func(i: int) -> void: _resolution.disabled = i == 1)
 
 
 ## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
@@ -199,6 +235,15 @@ func load_values() -> void:
 	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
 	_render_scale.value_changed.emit(_render_scale.value)
 	_render_scale.editable = not _render_scale_auto.button_pressed
+	_vsync.button_pressed = bool(Config.value("game", "display.vsync", true))
+	var fps := int(Config.value("game", "display.max_fps", 0))
+	var fi := _fps_options.find(fps)
+	_fps_limit.select(fi if fi >= 0 else _fps_options.find(0))
+	var fs := String(Config.value("game", "display.window_mode", "windowed")) == "fullscreen"
+	_window_mode.select(1 if fs else 0)
+	_resolution.disabled = fs
+	var ws: Array = Config.value("game", "display.window_size", [0, 0])
+	_resolution.select(maxi(_resolutions.find(Vector2i(int(ws[0]), int(ws[1]))), 0))
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
@@ -261,6 +306,17 @@ func save() -> bool:
 		)
 		and ok
 	)
+	var size: Vector2i = _resolutions[maxi(_resolution.selected, 0)]
+	var dp := {
+		"display":
+		{
+			"vsync": _vsync.button_pressed,
+			"max_fps": int(_fps_options[maxi(_fps_limit.selected, 0)]),
+			"window_mode": "fullscreen" if _window_mode.selected == 1 else "windowed",
+			"window_size": [size.x, size.y],
+		}
+	}
+	ok = UserSettings.save_patch("game", dp, config_dir) and ok
 	var bp := {"count": int(_bots.value), "names": {"show": _names.button_pressed}}
 	ok = UserSettings.save_patch("bots", bp, config_dir) and ok
 	if _language.selected >= 0:
@@ -283,6 +339,7 @@ func save() -> bool:
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
 	Config.reload()
+	GraphicsPresets.apply_display(true)
 	return ok
 
 

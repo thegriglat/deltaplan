@@ -104,7 +104,8 @@ func _build() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var ui: Dictionary = Config.get_config("ui")
-	var box := UiKit.centered_panel(self, float(ui.get("panel_width_px", 560)))
+	var sp := ScrollPanel.build(self, float(ui.get("panel_width_px", 560)))
+	var box: VBoxContainer = sp["box"]
 	UiKit.label(box, tr("setup_title"), "TitleLabel")
 	UiKit.separator(box)
 
@@ -133,8 +134,8 @@ func _build() -> void:
 	_pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_build_recent(box)
 
-	UiKit.separator(box)
-	var bar := UiKit.button_bar(box)
+	UiKit.separator(sp["footer"])
+	var bar := UiKit.button_bar(sp["footer"])
 	_done_btn = UiKit.button(bar, tr("setup_done"), _on_done)
 	_done_btn.custom_minimum_size.x = 160
 	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
