@@ -107,13 +107,11 @@ func test_config_names_are_keys() -> void:
 		check(rows.has(n), "название из конфига не ключ ui.csv: «%s»" % n)
 
 
-func test_resolve_default_by_os_locale() -> void:
-	check(Language.resolve("", "ru_RU") == "ru", "ОС по-русски — русский")
-	check(Language.resolve("", "ru") == "ru", "ru — русский")
-	check(Language.resolve("", "en_US") == "en", "ОС по-английски — английский")
-	check(Language.resolve("", "de_DE") == "en", "другая ОС — английский")
-	check(Language.resolve("en", "ru_RU") == "en", "выбор пилота важнее ОС")
-	check(Language.resolve("xx", "ru_RU") == "ru", "неизвестный выбор — по ОС")
+func test_resolve_default_english() -> void:
+	check(Language.resolve("") == "en", "по умолчанию — английский")
+	check(Language.resolve("ru") == "ru", "выбор пилота — русский")
+	check(Language.resolve("en") == "en", "выбор пилота — английский")
+	check(Language.resolve("xx") == "en", "неизвестный выбор — английский")
 	check(Language.neighbour("ru", 1) == "en" and Language.neighbour("en", 1) == "ru", "по кругу")
 
 

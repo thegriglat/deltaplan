@@ -2,7 +2,7 @@ class_name Language
 extends RefCounted
 ## Язык интерфейса (NFR-4): строки — ключи в locale/ui.csv (колонки ru, en), tr() по ключу.
 ## Выбор хранится в configs/game.json → language (правка пилота — user://configs/game.json);
-## пусто — по языку системы: русский, если локаль ОС начинается с "ru", иначе английский.
+## пусто — английский (язык по умолчанию, от локали ОС не зависит).
 ## Список языков — game.json → languages {код: название на этом языке}.
 
 const FALLBACK := "en"
@@ -14,16 +14,14 @@ static func available() -> Dictionary:
 	return langs if langs is Dictionary else {"ru": "Русский", "en": "English"}
 
 
-## Язык по сохранённому выбору и локали ОС (выбор есть и известен — он, иначе по системе).
-static func resolve(saved: String, os_locale: String) -> String:
-	if saved != "" and available().has(saved):
-		return saved
-	return "ru" if os_locale.to_lower().begins_with("ru") else FALLBACK
+## Язык по сохранённому выбору (выбор есть и известен — он, иначе английский).
+static func resolve(saved: String) -> String:
+	return saved if saved != "" and available().has(saved) else FALLBACK
 
 
-## Язык, который должен стоять сейчас (из настроек и локали ОС).
+## Язык, который должен стоять сейчас (из настроек).
 static func configured() -> String:
-	return resolve(String(Config.value("game", "language", "")), OS.get_locale())
+	return resolve(String(Config.value("game", "language", "")))
 
 
 static func current() -> String:

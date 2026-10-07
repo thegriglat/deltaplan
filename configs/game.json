@@ -16,7 +16,7 @@
   "default_sky": "clear",
   "default_sky_doc": "Облачность по умолчанию: clear | partly | overcast (weather_model.json → sky).",
   "language": "",
-  "language_doc": "Язык интерфейса (locale/ui.csv): ru, en; пусто — по языку системы (ru… — русский, иначе английский). Меняется в главном меню и в настройках",
+  "language_doc": "Язык интерфейса (locale/ui.csv): ru, en; пусто — английский. Меняется в главном меню и в настройках",
   "languages": {
     "ru": "Русский",
     "en": "English"

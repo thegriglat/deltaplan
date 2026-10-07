@@ -56,7 +56,7 @@ cycle_debug_menu={
 [internationalization]
 
 locale/translations=PackedStringArray("res://locale/ui.ru.translation", "res://locale/ui.en.translation")
-locale/fallback="ru"
+locale/fallback="en"
 
 [physics]
 
