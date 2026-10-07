@@ -95,3 +95,5 @@
 {"t": "2026-10-07T23:33:21", "by": "coordinator", "task": "QL-7", "ev": "accepted", "note": "по отчёту: ui/ 103/103, docs, qol_md; game/ — только 3 базовых падения; дифф 6 файлов в скоупе"}
 {"t": "2026-10-07T23:33:40", "by": "coordinator", "task": "QL-7", "ev": "checked", "commits": ["c501a1a2"], "note": "1/4 ui/=ok:103/103"}
 {"t": "2026-10-07T23:33:48", "by": "coordinator", "task": "QL-7", "ev": "merged", "note": "c501a1a2"}
+{"t": "2026-10-07T23:34:07", "by": "coordinator", "task": "QL-15", "ev": "created", "note": "Три базовых падения game/ (язык по умолчанию)"}
+{"t": "2026-10-07T23:34:48", "by": "coordinator", "task": "QL-15", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-15"}
