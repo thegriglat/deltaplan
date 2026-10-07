@@ -1,0 +1,53 @@
+{
+  "id": "QL-12",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Избранные условия (Q-16)",
+  "goal": "Сохранить набор условий (место, час, ветер, облачность, крыло) и запускать его одной кнопкой из главного меню.",
+  "plan_ref": "QL-12",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-12",
+  "branch": "qol/QL-12",
+  "base": "feature/qol",
+  "scope": [
+    "scripts/ui/start_menu.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scenes/ui/start_menu.tscn",
+    "scenes/ui/flight_setup_screen.tscn",
+    "scripts/game/user_settings.gd",
+    "scripts/game/favorites.gd",
+    "locale/",
+    "tests/ui/",
+    "docs/guide/",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/flight/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "menu",
+      "tests": "menu"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[ \\] Q-16 ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:31:49"
+}

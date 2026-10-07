@@ -1,0 +1,41 @@
+{
+  "id": "QL-5",
+  "module": "qol",
+  "type": "dp-researcher",
+  "title": "Замер: почему не видно птиц, сколько признаков термика (Q-20, Q-28)",
+  "goal": "Числами выяснить, почему пилоты не видят птиц в термиках, и сколько признаков термика видно с воздуха за 10 минут на каждом встроенном месте — основа для правок QL-8/QL-9.",
+  "plan_ref": "QL-5",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-5",
+  "branch": "qol/QL-5",
+  "base": "feature/qol",
+  "scope": [
+    "tools/research/qol_signs/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/qol_signs/README.md && head -1 tools/research/qol_signs/README.md",
+      "expect": "re:^---"
+    },
+    {
+      "name": "table",
+      "cmd": "ls tools/research/qol_signs/*.csv tools/research/qol_signs/*.json 2>/dev/null | head -3",
+      "expect": "re:\\.(csv|json)"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:23:32"
+}

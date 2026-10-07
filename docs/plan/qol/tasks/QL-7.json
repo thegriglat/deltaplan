@@ -1,0 +1,51 @@
+{
+  "id": "QL-7",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Пауза со свободной камерой (Q-18)",
+  "goal": "В паузе мир стоит, а камерой можно облететь его (облака, рельеф, другие пилоты) и вернуться в полёт с того же места.",
+  "plan_ref": "QL-7",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-7",
+  "branch": "qol/QL-7",
+  "base": "feature/qol",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/ui/pause_menu.gd",
+    "scenes/ui/pause_menu.tscn",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "docs/guide/",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "game/",
+      "tests": "game/"
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[ \\] Q-18 ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:25:27"
+}
