@@ -67,6 +67,7 @@ common/max_physics_steps_per_frame=16
 textures/vram_compression/import_etc2_astc=true
 
 renderer/rendering_method="forward_plus"
+rendering_device/driver.windows="d3d12"
 lights_and_shadows/directional_shadow/size=4096
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=3
