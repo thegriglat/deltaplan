@@ -35,13 +35,11 @@ func test_wind_model_item_texts_ui() -> void:
 	var want := {
 		"ru":
 		[
-			"Нейросеть (поле ветра по рельефу)",
 			"Расчет на GPU (обтекание рельефа)",
 			"Эвристика (профиль ветра без рельефа)"
 		],
 		"en":
 		[
-			"Neural network (wind field over terrain)",
 			"GPU solver (terrain flow)",
 			"Heuristic (wind profile without terrain)"
 		],
@@ -66,39 +64,26 @@ func test_setting_saved_and_applied() -> void:
 	DirAccess.make_dir_recursive_absolute(dir)
 	var sp := _panel(dir)
 	var opt: OptionButton = sp.get("_wind_model")
-	check(opt != null and opt.item_count == 3, "в настройках три варианта модели ветра")
-	var want := ["Нейросеть (поле ветра по рельефу)", "Расчет на GPU (обтекание рельефа)", "Эвристика (профиль ветра без рельефа)"]
+	check(opt != null and opt.item_count == 2, "в настройках два варианта модели ветра")
+	var want := ["Расчет на GPU (обтекание рельефа)", "Эвристика (профиль ветра без рельефа)"]
 	var got: Array = []
 	for i in opt.item_count:
 		got.append(opt.get_item_text(i))
 	check(got == want, "порядок и тексты: %s" % [got])
-	check(opt.get_item_id(0) == 2 and opt.get_item_id(1) == 0 and opt.get_item_id(2) == 1, "id пунктов")
-	check(opt.get_selected_id() == 2 and opt.selected == 0, "по умолчанию — нейросеть, первый пункт")
+	check(opt.get_item_id(0) == 0 and opt.get_item_id(1) == 1, "id пунктов")
+	check(opt.get_selected_id() == 0 and opt.selected == 0, "по умолчанию — расчёт, первый пункт")
 	# упрощённый
 	opt.select(opt.get_item_index(1))
 	check(sp.save(), "сохранилось (упрощённый)")
 	var saved := UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "off", "записан enabled=off")
 	_check_mode(_atmo_cfg(saved), false)
-	# нейросеть
-	opt.select(opt.get_item_index(2))
-	check(sp.save(), "сохранилось (нейросеть)")
-	saved = UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
-	var am: Dictionary = saved.get("air_model", {})
-	check(am.get("enabled") == "auto" and am.get("engine") == "nn", "записаны auto + nn")
-	Config._cache["atmosphere"] = _atmo_cfg(saved)
-	var rt := AirRuntime.new()
-	check(rt.engine() == "nn", "AirRuntime: engine nn")
-	check(rt.unavailable_reason() != "air_model.enabled = off", "нейросеть: не отключена")
-	check(rt._device() == null, "нейросеть: GPU не берётся")
-	rt.free()
-	Config.reload()
 	# расчёт
 	opt.select(opt.get_item_index(0))
 	check(sp.save(), "сохранилось (расчёт)")
 	saved = UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
 	check(saved.get("air_model", {}).get("enabled") == "auto", "записан enabled=auto")
-	check(saved.get("air_model", {}).get("engine") == "solver", "записан engine=solver")
+	check(not saved.get("air_model", {}).has("engine"), "ключа engine нет (P12)")
 	_check_mode(_atmo_cfg(saved), true)
 	sp.queue_free()
 	for f in DirAccess.get_files_at(dir):
@@ -118,13 +103,9 @@ func test_panel_shows_saved_value() -> void:
 	var sp := _panel(dir)
 	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 1, "off → «упрощённый»")
 	sp.queue_free()
-	Config._cache["atmosphere"] = _atmo_cfg({"air_model": {"enabled": "auto", "engine": "nn"}})
-	sp = _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 2, "nn → «нейросеть»")
-	sp.queue_free()
 	Config.reload()
 	sp = _panel(dir)
-	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 2, "по умолчанию → «нейросеть»")
+	check((sp.get("_wind_model") as OptionButton).get_selected_id() == 0, "по умолчанию → «расчёт»")
 	sp.queue_free()
 	DirAccess.remove_absolute(dir)
 

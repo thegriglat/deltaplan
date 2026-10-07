@@ -850,3 +850,193 @@ static func heat_budget(job: AirPicardJob) -> Dictionary:
 		residual = res,
 		rel = res / scale if scale > 0 else 0.0
 	}
+
+
+# ---------------------------------------------------------------- P11 (air-phase): карта ω, заморозка, запас
+
+
+## Состояние решения байтами (u, v, w, θ′, θ′_d, p).
+static func state_bytes(job: AirPicardJob) -> PackedByteArray:
+	var b := PackedByteArray()
+	for nm in ["u", "v", "w", "th", "thd", "p"]:
+		b.append_array(job.download(nm).to_byte_array())
+	return b
+
+
+## Новые поля пусты (явно) — поле и results побитно как по умолчанию; итог P11 — нули.
+func test_p11_empty_bitwise() -> void:
+	var m := load_fix(FIX + "saddle")
+	var a: AirPicardJob = await _solve(case_from_fixture(m))
+	var job := AirPicardJob.new()
+	job.case = case_from_fixture(m)
+	job.mech = false
+	job.omega_map = PackedFloat32Array()
+	job.freeze_mask = PackedByteArray()
+	job.freeze_field = {}
+	job.omega_fallback = Vector2.ZERO
+	check(job.start(), "старт: %s" % job.error)
+	while not job.is_done() and job.error == "":
+		await Engine.get_main_loop().process_frame
+		job.poll()
+	if a == null or not job.is_done():
+		return
+	check(state_bytes(a) == state_bytes(job), "P11 пусто — побитно")
+	check(a.iterations() == job.iterations(), "итераций столько же")
+	var r: Dictionary = job.results[-1]
+	check(not bool(r.omega_fallback_used) and float(r.frozen_frac) == 0.0, "итог P11 — нули: %s" % r)
+	a.release()
+	job.release()
+
+
+## Карта ω ≡ ½ — та же неподвижная точка, медленнее; запасное правило срабатывает на N; заморозка
+## держит колонны и не ломает сходимость остальных.
+func test_p11_omega_freeze_fallback() -> void:
+	var m := load_fix(FIX + "saddle")
+	var base: AirPicardJob = await _solve(case_from_fixture(m))
+	if base == null:
+		return
+	var c0 := base.case
+	var n2 := c0.nx * c0.ny
+	var u0 := base.download("u")
+	var us := maxf(c0.u_a, 0.1)
+	# ω ≡ ½
+	var half := PackedFloat32Array()
+	half.resize(n2)
+	half.fill(0.5)
+	var j1 := await _solve_p11(case_from_fixture(m), half, PackedByteArray(), Vector2.ZERO)
+	if j1 != null:
+		var d := max_abs_diff(u0, j1.download("u"))
+		print("    ω=½: итераций %d (ω=1: %d), max|Δu| %s = %.4f U" % [j1.iterations(), base.iterations(), sci(d), d / us])
+		check(String(j1.results[-1].status) == "ok", "ω=½ сошёлся")
+		check(d / us < 0.02, "ω=½ — та же неподвижная точка (%.4f U)" % (d / us))
+		j1.release()
+	# запасное правило на 20-й итерации
+	var j2 := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), PackedByteArray(), Vector2(20, 0.5))
+	if j2 != null:
+		var r: Dictionary = j2.results[-1]
+		check(bool(r.omega_fallback_used) and int(r.omega_switch_iter) == 20, "запас сработал на 20: %s" % r)
+		var d2 := max_abs_diff(u0, j2.download("u"))
+		check(String(r.status) == "ok" and d2 / us < 0.02, "запас: сошёлся к той же точке (%.4f U, итераций %d)" % [d2 / us, j2.iterations()])
+		j2.release()
+	# заморозка угла 4×4 колонны: поле там — от старта
+	var fz := PackedByteArray()
+	fz.resize(n2)
+	for j in 4:
+		for i in 4:
+			fz[j * c0.nx + i] = 1
+	var j3 := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), fz, Vector2.ZERO)
+	if j3 != null:
+		var r3: Dictionary = j3.results[-1]
+		check(absf(float(r3.frozen_frac) - 16.0 / n2) < 1e-6, "доля замороженных: %s" % r3.frozen_frac)
+		check(String(r3.status) == "ok", "заморозка: остальное сошлось (%s, %d)" % [r3.status, j3.iterations()])
+		check(float(r3.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r3.div_rms)))
+		print("    заморозка 4×4: итераций %d, div_rms %s, конец %s" % [j3.iterations(), sci(float(r3.div_rms)), r3.hist[-1]])
+		j3.release()
+	base.release()
+
+
+func _solve_p11(c: AirCase, om: PackedFloat32Array, fz: PackedByteArray, fb: Vector2) -> AirPicardJob:
+	var job := AirPicardJob.new()
+	job.case = c
+	job.mech = false
+	job.omega_map = om
+	job.freeze_mask = fz
+	job.omega_fallback = fb
+	if not job.start():
+		failures.append("start: " + job.error)
+		return null
+	var frames := 0
+	while not job.is_done() and job.error == "" and frames < 100000:
+		await Engine.get_main_loop().process_frame
+		job.poll()
+		frames += 1
+	check(job.is_done(), "P11: решено (%s)" % job.error)
+	return job if job.is_done() else null
+
+
+## P12 v2: предел итераций — поле := late_mean (+ механизм в колоннах маски), затем сшивка.
+func test_p12_nonconv_late_mean() -> void:
+	var m := load_fix(FIX + "saddle")
+	var c := case_from_fixture(m)
+	var job := AirPicardJob.new()
+	job.case = c
+	job.mech = false
+	job.max_outer = 60
+	job.late_from = 30
+	c.prepare()
+	var n2 := c.nx * c.ny
+	var mk := PackedByteArray()
+	mk.resize(n2)
+	for j in 4:
+		for i in 4:
+			mk[j * c.nx + i] = 1
+	job.nonconv_mask = mk
+	var d := c.dims()
+	var z := PackedFloat32Array()
+	z.resize(d.x * d.y * d.z)
+	job.nonconv_field = {w = z}
+	check(job.start(), "старт: %s" % job.error)
+	while not job.is_done() and job.error == "":
+		await Engine.get_main_loop().process_frame
+		job.poll()
+	if not job.is_done():
+		return
+	var r: Dictionary = job.results[-1]
+	print("    late_mean: %s" % JSON.stringify({status = r.status, late_n = r.late_n, div = r.div_rms, frac = job.nonconv_frac}))
+	check(String(r.status) == "max" and bool(r.nonconv_fallback), "запасной путь сработал: %s" % r)
+	check(int(r.late_n) == 3, "среднее по 3 проверкам (30, 40, 50): %d" % int(r.late_n))
+	check(absf(job.nonconv_frac - 16.0 / n2) < 1e-6, "доля колонн")
+	check(float(r.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r.div_rms)))
+	job.release()
+
+
+## Ревью AP-20: все колонны заморожены (штиль H) — итераций нет, NaN нет, поле = механизм (после
+## сшивки); половина колонн — остальное сходится.
+func test_p11_all_and_half_frozen() -> void:
+	var m := load_fix(FIX + "saddle")
+	var c0 := case_from_fixture(m)
+	c0.prepare()
+	var n2 := c0.nx * c0.ny
+	var d := c0.dims()
+	var n := d.x * d.y * d.z
+	var all := PackedByteArray()
+	all.resize(n2)
+	all.fill(1)
+	var job := AirPicardJob.new()
+	job.case = case_from_fixture(m)
+	job.mech = false
+	job.freeze_mask = all
+	# поле механизма — снимок после старта (фон, спроецированный): с притоком согласовано, так что
+	# сшивка его почти не меняет (однородное поле иное, чем приток на границе, проекция вправе менять)
+	check(job.start(), "старт: %s" % job.error)
+	job.run_blocking()
+	var r: Dictionary = job.results[-1] if not job.results.is_empty() else {}
+	var uu := job.download("u")
+	var fu := job.download("fu")
+	var bad := 0
+	var dmax := 0.0
+	var tc := job.download("tcode")
+	for g in n:
+		if not is_finite(uu[g]):
+			bad += 1
+		elif (int(tc[g]) >> 2) & 3 == 1:
+			dmax = maxf(dmax, absf(uu[g] - fu[g]))
+	var us := maxf(job.case.u_a, 0.1)
+	print("    всё заморожено: %s, max|u − механизм| %.4f U" % [JSON.stringify({status = r.get("status"), iters = r.get("iters"), div = r.get("div_rms")}), dmax / us])
+	check(String(r.get("status", "")) == "ok" and int(r.get("iters", -1)) == 0, "итераций нет: %s" % r)
+	check(bad == 0, "NaN нет (%d)" % bad)
+	check(dmax / us < 0.05, "поле — механизм после сшивки (%.4f U)" % (dmax / us))
+	job.release()
+	# половина колонн (западная) заморожена
+	var half := PackedByteArray()
+	half.resize(n2)
+	for j in c0.ny:
+		for i in c0.nx / 2:
+			half[j * c0.nx + i] = 1
+	var jh := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), half, Vector2.ZERO)
+	if jh != null:
+		var rh: Dictionary = jh.results[-1]
+		print("    половина заморожена: %s" % JSON.stringify({status = rh.status, iters = rh.iters, div = rh.div_rms, frac = rh.frozen_frac}))
+		check(String(rh.status) == "ok", "половина: остальное сошлось (%s, %d)" % [rh.status, rh.iters])
+		check(absf(float(rh.frozen_frac) - 0.5) < 0.02, "доля 0,5: %s" % rh.frozen_frac)
+		jh.release()
