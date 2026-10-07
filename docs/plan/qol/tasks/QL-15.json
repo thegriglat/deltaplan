@@ -1,0 +1,35 @@
+{
+  "id": "QL-15",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Три базовых падения game/ (язык по умолчанию)",
+  "goal": "Проверка game/ у каждой задачи (и в других модулях) падает на трёх тестах, которых задачи не трогали: test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys. Найти причину (две, по журналу, ждут русские тексты, а язык по умолчанию сменился) и починить — тест должен задавать язык сам или сверять по ключам перевода; если падение выявляет настоящую ошибку игры — чинить игру.",
+  "plan_ref": "Задачи",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-15",
+  "branch": "qol/QL-15",
+  "base": "feature/qol",
+  "scope": [
+    "tests/",
+    "locale/",
+    "scripts/ui/"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "game/",
+      "tests": "game/"
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T23:34:07"
+}

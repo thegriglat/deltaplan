@@ -153,6 +153,20 @@ func _update_finish(t: Telemetry, dt: float) -> void:
 		_finish_reason = "landed" if armed else "takeoff_failed"
 
 
+## Сколько секунд пилот на земле после полёта, пока посадка не подтверждена (0 — не ждём).
+func grounded_pending_s() -> float:
+	return _grounded_s if took_off and _was_on_ground and not _finished else 0.0
+
+
+## Q-02: засчитать посадку, не дожидаясь LANDING_CONFIRM_S (по клавише). false — нечего засчитывать.
+func force_finish() -> bool:
+	if _finished or not took_off or not _was_on_ground:
+		return false
+	_finished = true
+	_finish_reason = "landed" if armed else "takeoff_failed"
+	return true
+
+
 ## true, когда полёт можно считать законченным (посадка удержана, а не подскок).
 func is_finished() -> bool:
 	return _finished

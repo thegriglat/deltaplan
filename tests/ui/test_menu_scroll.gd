@@ -91,3 +91,45 @@ func test_scroll_screens() -> void:
 		await _check_screen(fs, size, "flight_setup")
 	if FileAccess.file_exists(TMP_PATH):
 		DirAccess.remove_absolute(TMP_PATH)
+
+
+## QL-14: главное меню с 8 избранными на 1024×600 — колонка кнопок в экране, прокрутка до «Выход».
+func test_start_menu_scroll() -> void:
+	var fp := "user://test_menu_scroll_fav.json"
+	if FileAccess.file_exists(fp):
+		DirAccess.remove_absolute(fp)
+	var s := FlightSettings.defaults()
+	for i in 8:
+		s.start_hour = 8.0 + i
+		Favorites.add(s, fp, float(i + 1))
+	for size in [Vector2i(1280, 720), Vector2i(1024, 600)]:
+		var vp := SubViewport.new()
+		vp.size = size
+		vp.disable_3d = true
+		add_child(vp)
+		var m: StartMenu = (load("res://scenes/ui/start_menu.tscn") as PackedScene).instantiate()
+		m.favorites_path = fp
+		vp.add_child(m)
+		for i in 4:
+			await get_tree().process_frame
+		var sc := _find_scroll(m)
+		check(sc != null, "menu %s: есть прокрутка" % size)
+		if sc != null:
+			check(
+				Rect2(Vector2.ZERO, Vector2(size)).encloses(sc.get_global_rect().grow(-1.0)),
+				"menu %s: колонка в экране: %s" % [size, sc.get_global_rect()]
+			)
+			sc.scroll_vertical = 100000
+			await get_tree().process_frame
+			var content: Control = sc.get_child(0)
+			check(
+				sc.scroll_vertical + sc.size.y >= content.size.y - 2.0,
+				"menu %s: прокрутка до конца" % size
+			)
+		var fav := m.get_node("FavoritesPanel") as Control
+		check(
+			Rect2(Vector2.ZERO, Vector2(size)).encloses(fav.get_global_rect()),
+			"menu %s: «Избранное» в экране: %s" % [size, fav.get_global_rect()]
+		)
+		vp.queue_free()
+	DirAccess.remove_absolute(fp)

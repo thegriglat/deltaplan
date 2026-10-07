@@ -111,7 +111,7 @@ func _build() -> void:
 	_add_quote(tr("menu_quote"))
 	_add_version()
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
-	var box := UiKit.snug_panel(self)
+	var box := _scrolling_column()
 	_status = UiKit.label(box, "", "HintLabel")
 	_status.visible = false
 	_fly_btn = UiKit.menu_button(box, tr("menu_fly"), _on_fly)
@@ -132,6 +132,30 @@ func _build() -> void:
 	UiKit.menu_button(box, tr("menu_quit"), func() -> void: quit_requested.emit())
 	_add_language_selector(box)
 	_build_favorites()
+
+
+## Колонка кнопок на подложке по центру. Не влезает в экран (1024×600) — прокрутка колесом
+## (QL-14): высота прокрутки по содержимому, но не выше экрана.
+func _scrolling_column() -> VBoxContainer:
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(scroll)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	scroll.add_child(box)
+	var fit := func() -> void:
+		var avail := size.y - 2.0 * ScrollPanel.MARGIN_PX - 40.0
+		scroll.custom_minimum_size.y = clampf(box.get_combined_minimum_size().y, 0.0, maxf(avail, 80.0))
+	box.minimum_size_changed.connect(fit)
+	resized.connect(fit)
+	fit.call_deferred()
+	return box
 
 
 ## Слева от колонки кнопок — «Избранное» (до 8 строк): щелчок — сразу лететь, × — удалить.

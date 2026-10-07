@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "Перенос в чистую копию /home/greg/deltaplan-qol-QL-8b, ветка qol/QL-8b (от feature/qol), без сырых данных в git; min_span_px 3 по решению координатора, сводка пересчитана на тех же данных.",
+  "commits": [
+    "f73b1e0b птицы видны издалека, хищные, повтор замера (без out_ql8)",
+    "9684c1ca min_span_px 3, пересчёт сводки"
+  ],
+  "checks": [
+    {
+      "name": "bird",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "atmosphere/",
+      "value": "151/151 (пропуск 29; в общем прогоне один раз test_performance 57 мкс при нагрузке, при повторе зелёный)",
+      "pass": true
+    },
+    {
+      "name": "px800",
+      "value": "3.0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "probe",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "qol_md",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "доля секунд с птицей >=2px, мин. по местам A/B (GPU)",
+      "value": "1.00/1.00 (метрика тривиальна при min 3 px)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "dp accept без --here идёт в копию из карточки (deltaplan-qol-QL-8); поправьте карточку на QL-8b"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-8/birds_500m.png",
+    "/home/greg/deltaplan/build/screenshots/QL-8/birds_800m.png"
+  ],
+  "how_to_check": "cd /home/greg/deltaplan-qol-QL-8b && dp accept QL-8 --dry --here",
+  "uncertain": [
+    {
+      "where": "tools/research/qol_signs/summary_numbers.json qol8",
+      "why": "замер снят при min_span_px 5, пересчитан на 3 по тем же данным (симуляция от размера не зависит)",
+      "checked": "summarize.py с QL8_MIN_PX=3; скриншоты сняты при 5, не переснимал"
+    }
+  ],
+  "dp_feedback": "dp accept без --here берёт копию из карточки; при смене копии нужна команда сменить её в карточке.",
+  "t": "2026-10-07T23:58:57",
+  "by": "executor"
+}

@@ -31,6 +31,7 @@ var screenshot_dir: String = ""  # пусто — UserSettings.screenshot_dir()
 ## Откуда брать картинку для F12 (по умолчанию — вьюпорт; тесты без экрана подставляют свою).
 var screenshot_source: Callable = func() -> Image: return get_viewport().get_texture().get_image()
 
+var _look_prev_mode := ""  ## «Осмотреться» в паузе (Q-18): прежний режим камеры, "" — не осматриваемся
 var _overlay_back: Control  ## экран, к которому вернуться из настроек / «Об игре»
 var _look_target: Node3D  ## --look-at: куда смотреть в кабине (скриншоты)
 var _ui_locale := ""  ## язык, на котором построены экраны (сменился — перестроить)
@@ -39,6 +40,13 @@ var _net_pause_timer: Timer  ## обновление списка пилотов
 var _flight_before_net: FlightSettings
 ## Сеть: полёт кончился, пока открыта пауза (мир идёт) — итог покажем после «Продолжить».
 var _pending_result: Array = []
+## Q-02: итог ждёт result_delay_s после конца полёта — любая клавиша показывает его сразу.
+var _result_waiting := false
+var _skip_result := false
+## Q-03: R в воздухе — удержание restart_hold_s; _restart_hold_s < 0 — не удерживаем.
+var _restart_hold_s := -1.0
+var _hold_bar: ProgressBar
+var _hold_box: Control
 ## Лобби Steam (ST-8, S5): автозагрузка SteamLobby; тесты подставляют свой экземпляр до add_child.
 var steam_lobby: Node
 ## Вход по приглашению Steam уже ждёт конца загрузки (не запускать второй раз).
@@ -116,7 +124,8 @@ func _ready() -> void:
 		_screenshot()
 
 
-func _process(_dt: float) -> void:
+func _process(delta: float) -> void:
+	_restart_hold_step(delta)
 	if _start_hint != null and _start_hint.visible:
 		var phase: String = game.glider.phase() if game.glider != null else ""
 		if state != State.FLYING or not phase in ["standing", "walking", "running"]:
@@ -124,6 +133,8 @@ func _process(_dt: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _skip_on_key(event):
+		return
 	if event.is_action_pressed("screenshot"):
 		get_viewport().set_input_as_handled()
 		_screenshot_key()
@@ -146,7 +157,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			State.FLYING:
 				_pause()
 			State.PAUSED:
-				if _overlay_open():
+				if _look_prev_mode != "":
+					_end_look_around()
+				elif _overlay_open():
 					_close_overlay()
 				else:
 					_resume()
@@ -159,7 +172,96 @@ func _unhandled_input(event: InputEvent) -> void:
 		and not game.inspect_mode
 	):
 		get_viewport().set_input_as_handled()
+		if state == State.FLYING and game.is_airborne():
+			_restart_hold_s = 0.0  # в воздухе — удержание (Q-03), ход — в _process
+		else:
+			_restart()
+
+
+## Q-03: ход удержания R в воздухе — полоска; отпустили, ушли в паузу или сели — отмена.
+func _restart_hold_step(delta: float) -> void:
+	if _restart_hold_s < 0.0:
+		return
+	var need := maxf(float(Config.value("game", "restart_hold_s", 1.0)), 0.01)
+	if (
+		state != State.FLYING
+		or not game.is_airborne()
+		or not Input.is_action_pressed("restart")
+	):
+		_set_restart_hold(-1.0, need)
+		return
+	_restart_hold_s += delta
+	if _restart_hold_s >= need:
+		_set_restart_hold(-1.0, need)
 		_restart()
+		return
+	_set_restart_hold(_restart_hold_s, need)
+
+
+func _set_restart_hold(v: float, need: float) -> void:
+	_restart_hold_s = v
+	if _hold_box == null:
+		if v < 0.0:
+			return
+		_build_hold_bar()
+	_hold_box.visible = v >= 0.0
+	_hold_bar.max_value = need
+	_hold_bar.value = maxf(v, 0.0)
+
+
+func _build_hold_bar() -> void:
+	var box := VBoxContainer.new()
+	box.name = "RestartHold"
+	box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	box.offset_top = -160.0
+	box.custom_minimum_size = Vector2(280, 0)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var lbl := Label.new()
+	lbl.text = tr("restart_hold")
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(lbl)
+	_hold_bar = ProgressBar.new()
+	_hold_bar.show_percentage = false
+	_hold_bar.custom_minimum_size = Vector2(280, 14)
+	_hold_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(_hold_bar)
+	$UI.add_child(box)
+	_hold_box = box
+
+
+func _is_wing_control(event: InputEvent) -> bool:
+	for a in ["pitch_push_out", "pitch_pull_in", "roll_left", "roll_right", "center", "run", "walk_forward", "walk_back", "turn_left", "turn_right"]:
+		if InputMap.has_action(a) and event.is_action_pressed(a):
+			return true
+	var key := event as InputEventKey
+	if key != null:
+		var k := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
+		return k in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SHIFT]
+	return false
+
+
+## Q-02: после касания любая клавиша (кроме R и Esc) не ждёт подтверждения посадки и задержки итога.
+func _skip_on_key(event: InputEvent) -> bool:
+	if state != State.FLYING or game.inspect_mode:
+		return false
+	var key := event as InputEventKey
+	var pressed: bool = (
+		(key != null and key.pressed and not key.echo)
+		or (event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed)
+	)
+	if not pressed or event.is_action_pressed("restart") or event.is_action_pressed("pause"):
+		return false
+	var min_s := float(Config.value("game", "landing_skip_min_s", 0.5))
+	if not _result_waiting:
+		# Посадка ещё не подтверждена: клавиши управления крылом ожидание не пропускают.
+		if not game.landing_pending(min_s) or _is_wing_control(event):
+			return false
+	get_viewport().set_input_as_handled()
+	if not _result_waiting:
+		game.finish_now()  # flight_ended → _on_flight_ended начнёт ожидание
+	_skip_result = true
+	return true
 
 
 # ---------------------------------------------------------------- переходы
@@ -328,6 +430,7 @@ func _show_menu() -> void:
 	catch_up_menu.close()
 	_net_pause_timer.stop()
 	_pending_result = []
+	_end_look_around(false)
 	_end_net()
 	state = State.MENU
 	get_tree().paused = false
@@ -375,7 +478,28 @@ func _pause() -> void:
 	pause_menu.visible = true
 
 
+## Осмотреться в паузе (Q-18): мир стоит, камера обрабатывается (свободная); Esc — назад в меню.
+func _look_around() -> void:
+	_look_prev_mode = game.camera.mode
+	pause_menu.visible = false
+	game.camera.process_mode = Node.PROCESS_MODE_ALWAYS
+	game.camera.look_enabled = true
+	game.camera.set_mode("free")
+
+
+## Вернуть прежний режим камеры; menu — показать меню паузы (Esc), иначе уходим из паузы.
+func _end_look_around(menu := true) -> void:
+	if _look_prev_mode == "":
+		return
+	game.camera.set_mode(_look_prev_mode)
+	_look_prev_mode = ""
+	game.camera.process_mode = Node.PROCESS_MODE_INHERIT
+	game.camera.look_enabled = not game.is_paused()
+	pause_menu.visible = menu
+
+
 func _resume() -> void:
+	_end_look_around(false)
 	_net_pause_timer.stop()
 	pause_menu.visible = false
 	get_tree().paused = false
@@ -387,10 +511,18 @@ func _resume() -> void:
 		_show_result(String(r[0]), r[1])
 
 
+func _cancel_result_wait() -> void:
+	_skip_result = _result_waiting  # ждущий итог проснётся и сам отбросит старый полёт
+	_restart_hold_s = -1.0
+	if _hold_box != null:
+		_hold_box.visible = false
+
+
 func _restart() -> void:
 	catch_up_menu.close()
 	_net_pause_timer.stop()
 	_pending_result = []
+	_cancel_result_wait()
 	result_screen.visible = false
 	pause_menu.visible = false
 	get_tree().paused = false
@@ -420,7 +552,19 @@ func _on_flight_ended(kind: String, info: Dictionary) -> void:
 	if state != State.FLYING:
 		_keep_net_result(kind, info)
 		return
-	await get_tree().create_timer(float(Config.value("game", "result_delay_s", 2.0)), false).timeout
+	_skip_result = false
+	_result_waiting = true
+	var left := float(Config.value("game", "result_delay_s", 2.0))
+	while left > 0.0 and not _skip_result and is_inside_tree():
+		await get_tree().process_frame
+		if state == State.FLYING:
+			left -= get_process_delta_time()
+		elif state != State.PAUSED or game.net != null:
+			break  # сеть на паузе — итог ждёт в _pending_result; одиночная — таймер стоит на паузе
+	_result_waiting = false
+	_skip_result = false
+	if not is_inside_tree():
+		return
 	if state != State.FLYING:
 		_keep_net_result(kind, info)
 		return
@@ -434,6 +578,9 @@ func _keep_net_result(kind: String, info: Dictionary) -> void:
 
 
 func _show_result(kind: String, info: Dictionary) -> void:
+	# QL-К1: итог старого полёта (после R / «Ещё раз» / «Продолжить») отбрасывается молча.
+	if int(info.get("flight_no", game.flight_no)) != game.flight_no:
+		return
 	catch_up_menu.close()
 	state = State.RESULT
 	get_tree().paused = game.net == null  # в сети мир идёт дальше (NET-40)
@@ -499,6 +646,7 @@ func _connect_screens() -> void:
 	start_menu.quit_requested.connect(_quit.bind(0))
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.restart_requested.connect(_restart)
+	pause_menu.look_around_requested.connect(_look_around)
 	pause_menu.settings_requested.connect(_open_settings.bind(pause_menu))
 	pause_menu.menu_requested.connect(_show_menu)
 	pause_menu.quit_requested.connect(_quit.bind(0))
@@ -509,6 +657,7 @@ func _connect_screens() -> void:
 	result_screen.menu_requested.connect(_show_menu)
 	result_screen.continue_near_requested.connect(_on_result_continue_near)
 	result_screen.to_start_requested.connect(_on_result_to_start)
+	result_screen.continue_on_foot_requested.connect(_on_result_continue)
 
 
 func _on_settings_closed(changed: bool) -> void:
@@ -716,7 +865,10 @@ func _on_result_to_start() -> void:
 	result_screen.visible = false
 	pause_menu.visible = false
 	get_tree().paused = false
-	game.return_to_launch()
+	if game.net == null:
+		game.restart(true)  # одиночная: без сброса дня и часов (Q-05)
+	else:
+		game.return_to_launch()
 	game.set_paused(false)
 	state = State.FLYING
 

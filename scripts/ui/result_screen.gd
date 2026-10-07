@@ -10,12 +10,16 @@ signal menu_requested
 ## Сеть (NET-40): «Продолжить рядом» — к другу в воздухе; «На старт» — снова на старт.
 signal continue_near_requested
 signal to_start_requested
+## Одиночная (Q-04): «Продолжить пешком» — после посадки (не после поломки и срыва взлёта).
+signal continue_on_foot_requested
 
 var _title: Label
 var _lines: Label
 var _again: Button
 var _near: Button
 var _to_start: Button
+var _foot: Button
+var _net := false
 
 
 func _ready() -> void:
@@ -29,8 +33,11 @@ func _ready() -> void:
 		bar, tr("result_continue_near"), func() -> void: continue_near_requested.emit()
 	)
 	_near.visible = false
+	_foot = UiKit.button(
+		bar, tr("result_continue_on_foot"), func() -> void: continue_on_foot_requested.emit()
+	)
+	_foot.visible = false
 	_to_start = UiKit.button(bar, tr("result_to_start"), func() -> void: to_start_requested.emit())
-	_to_start.visible = false
 	_again = UiKit.button(bar, tr("result_fly_again"), func() -> void: restart_requested.emit())
 	UiKit.button(bar, tr("result_to_menu"), func() -> void: menu_requested.emit())
 
@@ -39,8 +46,9 @@ func _ready() -> void:
 func show_result(kind: String, info: Dictionary) -> void:
 	_title.text = title_for(kind, info)
 	_lines.text = "\n".join(lines_for(kind, info))
+	_foot.visible = not _net and can_continue_on_foot(kind, info)
 	visible = true
-	if _to_start.visible:
+	if _net:
 		(_near if _near.visible else _to_start).grab_focus.call_deferred()
 
 
@@ -49,13 +57,23 @@ func show_result(kind: String, info: Dictionary) -> void:
 func set_net_mode(on: bool, near: bool) -> void:
 	var lost_focus := _near.has_focus() and not (on and near)
 	var appeared := on and near and not _near.visible
+	_net = on
 	_near.visible = on and near
-	_to_start.visible = on
+	_to_start.visible = true  # «На старт»: в сети — в очередь, в одиночной — без сброса часов (Q-05)
 	_again.visible = not on
 	if lost_focus:
 		_to_start.grab_focus.call_deferred()
 	elif appeared and visible:
 		_near.grab_focus.call_deferred()  # друг взлетел, пока окно открыто — главная кнопка
+
+
+## Q-04: пешком можно продолжить после посадки (мягкой и жёсткой), не после аварии и срыва взлёта.
+static func can_continue_on_foot(kind: String, info: Dictionary) -> bool:
+	return kind == "landed" and String(info.get("grade", "")) in ["soft", "hard"]
+
+
+func is_foot_shown() -> bool:
+	return _foot.visible
 
 
 func is_near_shown() -> bool:

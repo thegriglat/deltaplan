@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "ThermalSigns: ласточки и пух над молодыми термиками, признаки только у источников с силой >= порога; замер на GPU-поле в 4 местах, 13 и 15 ч, 2 точки: минимум по местам 11.8 признаков за 10 мин в 3 км (до 6.2), вне термиков 0.",
+  "commits": [
+    "92478639 ThermalSigns, стенд замера, T-28/Q-28 убраны",
+    "18625e71 итог замера признаков (GPU-поле, 4 места) и стенд скриншота"
+  ],
+  "checks": [
+    {
+      "name": "thermal_signs",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "atmosphere/",
+      "value": "152/152 (пропуск 29)",
+      "pass": true
+    },
+    {
+      "name": "signs",
+      "value": "11.8 (>=3); по местам altai 20.5, askarovo 11.8, aushkul 12, ongudai 18.2; среднее 15.6; до 6.2",
+      "pass": true
+    },
+    {
+      "name": "off",
+      "value": "0 из 581685 проб",
+      "pass": true
+    },
+    {
+      "name": "todo",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншоты не показывают признаки: камера в стенде thermal_signs_shot перебивается atmosphere_preview, look_at не действует; 2 попытки использованы, не доводил."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/QL-9/near.png",
+    "/home/greg/deltaplan/build/screenshots/QL-9/far.png"
+  ],
+  "how_to_check": "dp accept QL-9",
+  "uncertain": [
+    {
+      "where": "tools/shots/thermal_signs_shot.gd",
+      "why": "кадр показывает только небо и землю, признаков в кадре нет (signs=25 в списке, entries=3)",
+      "checked": "2 съёмки с разной дистанцией/высотой; причина, видимо, в управлении камерой стендом preview"
+    },
+    {
+      "where": "summary_numbers.json qol9.share_swallow_native_ge2px",
+      "why": "0.0: родной размер ласточки (1.6 м) нигде не даёт >=2 px; видимость обеспечивает min_px",
+      "checked": "доля ласточек >=4 px при min_px = 0.938"
+    }
+  ],
+  "dp_feedback": "dp accept --dry идёт ~10 мин (atmosphere/) и при тайм-ауте Bash вывод теряется; нужен dp accept --dry в фоне с файлом результата/статусом. Параллельные dp accept от разных задач не различить по pgrep.",
+  "t": "2026-10-07T23:13:41",
+  "by": "main"
+}

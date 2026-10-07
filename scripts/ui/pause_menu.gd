@@ -8,6 +8,7 @@ extends Control
 
 signal resume_requested
 signal restart_requested
+signal look_around_requested
 signal settings_requested
 signal controls_requested
 signal menu_requested
@@ -31,6 +32,7 @@ func _ready() -> void:
 	UiKit.separator(box)
 	_build_net_box(box)
 	UiKit.button(box, tr("common_continue"), func() -> void: resume_requested.emit())
+	UiKit.button(box, tr("pause_look_around"), func() -> void: look_around_requested.emit())
 	UiKit.button(box, tr("pause_restart"), func() -> void: restart_requested.emit())
 	UiKit.button(box, tr("menu_controls"), func() -> void: controls_requested.emit())
 	UiKit.button(box, tr("menu_settings"), func() -> void: settings_requested.emit())

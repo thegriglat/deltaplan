@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "В меню паузы пункт «Осмотреться»: свободная камера, мир стоит (камера в PROCESS_MODE_ALWAYS), Esc — назад в меню паузы, режим камеры возвращается прежним; «Продолжить» — полёт с того же места.",
+  "commits": [
+    "309531f1 QL-7: пауза со свободной камерой («Осмотреться», Q-18)"
+  ],
+  "checks": [
+    {
+      "name": "game/",
+      "value": "163/166, падают только test_collisions_in_real_world, test_result_texts, test_controls_screen_lists_keys (известные базовые)",
+      "pass": false
+    },
+    {
+      "name": "ui/",
+      "value": "103/103",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "qol_md",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "test_pause_look_around",
+      "value": "камера сдвинулась, position и time_s не изменились, режим камеры прежний",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept QL-7; тест tests/game/test_gameplay.gd::test_pause_look_around",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd:_look_around",
+      "why": "в сетевой игре (дерево не на паузе) пункт тоже доступен; камера свободная, мир идёт",
+      "checked": "только одиночная в тесте; сеть не гонял"
+    },
+    {
+      "where": "scenes/main.gd:_end_look_around",
+      "why": "look_enabled после осмотра = not game.is_paused() (в паузе ввод камеры выключен как раньше)",
+      "checked": "логика по set_paused/set_input_enabled"
+    }
+  ],
+  "dp_feedback": "dp accept --dry без --bg в foreground обрывается по таймауту инструмента и печатает только «… game/»; game/ идёт ~15 мин — хорошо бы подсказка про --bg в справке/выводе.",
+  "t": "2026-10-07T23:18:49",
+  "by": "executor"
+}
