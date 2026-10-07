@@ -72,6 +72,9 @@ var _attached: float = 1.0  ## доля присоединённого пото�
 var _flare := LandingFlare.new()
 ## Пилот после отрыва ещё на ногах (не в подвеске): касание — снова разбег (К3 v3, без таймера).
 var _upright := false
+## После отрыва нос ещё не встал по потоку: курс доворачивается к воздушной скорости с
+## постоянной takeoff.yaw_align_s, а не скачком (пока _upright — не доворачивается вовсе).
+var _yaw_align := false
 var _accel_t: float = 0.0  ## касательное ускорение по потоку с прошлого шага, м/с²
 
 
@@ -272,6 +275,7 @@ func _reset_common(pos: Vector3, heading_deg: float) -> void:
 	_accel_t = 0.0
 	_ground.reset()
 	_upright = false
+	_yaw_align = false
 	takeoff_failure = ""
 	landing_result = {}
 
@@ -323,10 +327,20 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	position += velocity * dt
 	_update_roll(dt, input, v, w_l.y - w_r.y)
 
-	# курс — по горизонтальной воздушной скорости (полёт без скольжения)
+	# курс — по горизонтальной воздушной скорости (полёт без скольжения). Пока пилот на ногах
+	# (_upright), курс — направление разбега: пилот держит крыло за стойки и бежит, крыло с ним
+	# не разворачивается по потоку (иначе каждый подскок — скачок курса на угол бокового ветра,
+	# а касание продолжает разбег уже по новому курсу). В подвеске нос встаёт по потоку плавно.
 	var v_air_new := velocity - w_c
-	if Vector2(v_air_new.x, v_air_new.z).length() > min_v:
-		heading = atan2(v_air_new.x, -v_air_new.z)
+	if not _upright and Vector2(v_air_new.x, v_air_new.z).length() > min_v:
+		var target := atan2(v_air_new.x, -v_air_new.z)
+		if _yaw_align:
+			var diff := wrapf(target - heading, -PI, PI)
+			heading += diff * (1.0 - exp(-dt / float(flight.takeoff.yaw_align_s)))
+			if absf(diff) < Units.deg(0.5):
+				_yaw_align = false
+		else:
+			heading = target
 
 	# касание земли (FR-10)
 	var gh := ground_height(ground_fn, position.x, position.z)
@@ -465,6 +479,7 @@ func _step_ground(dt: float, input: ControlInput, air_fn: Callable, ground_fn: C
 		GroundRun.Result.TOOK_OFF:
 			mode = Mode.AIR
 			_upright = true
+			_yaw_align = true
 			_accel_t = 0.0
 			took_off.emit()
 		GroundRun.Result.FAILED:
