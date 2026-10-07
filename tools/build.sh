@@ -55,6 +55,9 @@ build_one() {
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
+	# Манифест itch: без него приложение itch считает deltaplan.pck вторым кандидатом на запуск
+	# (godot-pck через wine) и спрашивает, что запускать.
+	printf '[[actions]]\nname = "play"\npath = "%s"\n' "$bin" > "build/$dir/.itch.toml"
 	(cd build && rm -f "deltaplan-$dir.zip" && zip -qr "deltaplan-$dir.zip" "$dir")
 	echo "готово: build/$dir/$bin, build/deltaplan-$dir.zip"
 }
