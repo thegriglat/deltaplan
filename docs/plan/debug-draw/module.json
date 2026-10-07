@@ -1,0 +1,9 @@
+{
+  "module": "debug-draw",
+  "plan": "docs/plan/debug-draw.md",
+  "contracts": "docs/contracts/debug-draw.md",
+  "branch": "feature/debug-draw",
+  "copy": "~/deltaplan-debug-draw",
+  "created": "2026-10-07T09:51:54",
+  "code": "DD"
+}
