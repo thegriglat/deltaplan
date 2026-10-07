@@ -47,9 +47,7 @@ func _phase(c: AirCase) -> Dictionary:
 		cj.case = cc
 		cj.mech = true
 		check(cj.start() and cj.run_blocking(), "грубый старт: %s" % cj.error)
-		var t1 := Time.get_ticks_usec()
-		ph.coarse_pair = {mech = AirRuntime.coarse_warm(c, cc, cj.state(true)), heat = AirRuntime.coarse_warm(c, cc, cj.state(false))}
-		ph.coarse_interp_ms = (Time.get_ticks_usec() - t1) / 1000.0
+		ph.coarse_start = AirRuntime.coarse_start(cc, cj)
 		ph.coarse_iters = cj.results.map(func(r: Dictionary) -> int: return int(r.iters))
 		ph.coarse_gpu_ms = cj.gpu_ms_total
 		ph.coarse_m = m
@@ -65,8 +63,7 @@ func _solve(c: AirCase, ph: Dictionary) -> AirPicardJob:
 		# как AirRuntime при загрузке: старт по air_model.picard_start, карта ω — по use_map
 		var am: Dictionary = Config.get_config("atmosphere").air_model
 		if String(am.picard_start) == "coarse":
-			job.warm = ph.coarse_pair.mech
-			job.warm_heat = ph.coarse_pair.heat
+			job.warm_coarse = ph.coarse_start
 		if bool(AirRuntime.phase_cfg("omega", "use_map")):
 			job.omega_map = ph.get("omega", PackedFloat32Array())
 		job.freeze_mask = ph.get("freeze", PackedByteArray())
@@ -238,7 +235,6 @@ func _compare(c: AirCase, cold: AirPicardJob, hyb: AirPicardJob, ph: Dictionary,
 		cost_hybrid = float(ih) + (float(ph.coarse_iters[0] + ph.coarse_iters[1]) / float(int(ph.coarse_m) ** 2) if ph.has("coarse_iters") else 0.0),
 		coarse_iters = ph.get("coarse_iters", []),
 		coarse_gpu_ms = ph.get("coarse_gpu_ms", 0.0),
-		coarse_interp_ms = ph.get("coarse_interp_ms", 0.0),
 		hybrid_status = hyb.results.map(func(r: Dictionary) -> String: return String(r.status)),
 		omega_fallback_used = bool(hr.omega_fallback_used),
 		frozen_frac = float(hr.frozen_frac),
@@ -270,7 +266,7 @@ func _write_timing(rows: Array, cfg: Dictionary) -> void:
 			"Оценка RX 5600 XT = замер × %s/%s ГБ/с (пропускная способность памяти); не учтены "
 			% [cfg.bw_ref_gbs, cfg.bw_target_gbs]
 			+ "разница вычислений, кэша, драйвера; ms_phase — стена фаз (подготовка на CPU + GPU); "
-			+ "в замер входит GPU грубого старта, но не интерполяция на CPU (coarse_interp_ms, рабочий поток)."
+			+ "в замер входит GPU грубого старта (интерполяция на 400 м — на GPU, air_picard:prolong)."
 		),
 	}
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TIMING).get_base_dir())

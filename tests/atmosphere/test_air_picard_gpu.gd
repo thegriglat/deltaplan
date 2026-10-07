@@ -988,3 +988,55 @@ func test_p12_nonconv_late_mean() -> void:
 	check(absf(job.nonconv_frac - 16.0 / n2) < 1e-6, "доля колонн")
 	check(float(r.div_rms) < 1e-4, "∇·u после сшивки: %s" % sci(float(r.div_rms)))
 	job.release()
+
+
+## Ревью AP-20: все колонны заморожены (штиль H) — итераций нет, NaN нет, поле = механизм (после
+## сшивки); половина колонн — остальное сходится.
+func test_p11_all_and_half_frozen() -> void:
+	var m := load_fix(FIX + "saddle")
+	var c0 := case_from_fixture(m)
+	c0.prepare()
+	var n2 := c0.nx * c0.ny
+	var d := c0.dims()
+	var n := d.x * d.y * d.z
+	var all := PackedByteArray()
+	all.resize(n2)
+	all.fill(1)
+	var job := AirPicardJob.new()
+	job.case = case_from_fixture(m)
+	job.mech = false
+	job.freeze_mask = all
+	# поле механизма — снимок после старта (фон, спроецированный): с притоком согласовано, так что
+	# сшивка его почти не меняет (однородное поле иное, чем приток на границе, проекция вправе менять)
+	check(job.start(), "старт: %s" % job.error)
+	job.run_blocking()
+	var r: Dictionary = job.results[-1] if not job.results.is_empty() else {}
+	var uu := job.download("u")
+	var fu := job.download("fu")
+	var bad := 0
+	var dmax := 0.0
+	var tc := job.download("tcode")
+	for g in n:
+		if not is_finite(uu[g]):
+			bad += 1
+		elif (int(tc[g]) >> 2) & 3 == 1:
+			dmax = maxf(dmax, absf(uu[g] - fu[g]))
+	var us := maxf(job.case.u_a, 0.1)
+	print("    всё заморожено: %s, max|u − механизм| %.4f U" % [JSON.stringify({status = r.get("status"), iters = r.get("iters"), div = r.get("div_rms")}), dmax / us])
+	check(String(r.get("status", "")) == "ok" and int(r.get("iters", -1)) == 0, "итераций нет: %s" % r)
+	check(bad == 0, "NaN нет (%d)" % bad)
+	check(dmax / us < 0.05, "поле — механизм после сшивки (%.4f U)" % (dmax / us))
+	job.release()
+	# половина колонн (западная) заморожена
+	var half := PackedByteArray()
+	half.resize(n2)
+	for j in c0.ny:
+		for i in c0.nx / 2:
+			half[j * c0.nx + i] = 1
+	var jh := await _solve_p11(case_from_fixture(m), PackedFloat32Array(), half, Vector2.ZERO)
+	if jh != null:
+		var rh: Dictionary = jh.results[-1]
+		print("    половина заморожена: %s" % JSON.stringify({status = rh.status, iters = rh.iters, div = rh.div_rms, frac = rh.frozen_frac}))
+		check(String(rh.status) == "ok", "половина: остальное сошлось (%s, %d)" % [rh.status, rh.iters])
+		check(absf(float(rh.frozen_frac) - 0.5) < 0.02, "доля 0,5: %s" % rh.frozen_frac)
+		jh.release()

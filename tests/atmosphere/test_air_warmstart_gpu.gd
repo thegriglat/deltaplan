@@ -9,8 +9,8 @@ extends TestCase
 ##   asm      — от сборки по фазам (warm_mech / warm);
 ##   heur     — от поля «Эвристики» (аналитика атмосферы: профиль, склоновый подъём, подветренная зона);
 ##   prev     — от решения на 15 игровых минут раньше (только для сведения: при загрузке его нет);
-##   coarseM  — от грубого Пикара (клетка ×M, холодный, ω = 1): центры → 400 м билинейно, уровни по
-##              высоте, грани — среднее; цена = итерации грубой ×1/M² + доводка.
+##   coarseM  — от грубого Пикара (клетка ×M, холодный, ω = 1), на 400 м — AirPicardJob.warm_coarse
+##              (интерполяция на GPU); цена = итерации грубой ×1/M² + доводка.
 ## Итог — в лог и build/dp/AP-20/warmstart.json; проверка — поле каждого старта как у холодного
 ## (допуски P14 v2); итерации — в отчёт и выбор air_model.picard_start.
 ## Запуск: AIR_WARMSTART=1 tools/gpu_tests.sh --filter=air_warmstart (под dp lock gpu).
@@ -34,8 +34,11 @@ func _solve(c: AirCase, ph: Dictionary, warm: Array, omega1: bool) -> AirPicardJ
 	var job := AirPicardJob.new()
 	job.case = c
 	job.mech = true
-	job.warm = warm[0] if warm.size() > 0 else {}
-	job.warm_heat = warm[1] if warm.size() > 1 else {}
+	if warm.size() == 1 and (warm[0] as Dictionary).has("dims"):
+		job.warm_coarse = warm[0]
+	else:
+		job.warm = warm[0] if warm.size() > 0 else {}
+		job.warm_heat = warm[1] if warm.size() > 1 else {}
 	if not ph.is_empty():
 		if not omega1:
 			job.omega_map = ph.get("omega", PackedFloat32Array())
@@ -56,10 +59,6 @@ func _solve(c: AirCase, ph: Dictionary, warm: Array, omega1: bool) -> AirPicardJ
 
 ## Поле «Эвристики» на сетке случая (раскладка warm): аналитика атмосферы в центрах клеток воздуха,
 ## грани — среднее соседних центров; θ′, p = 0.
-static func coarse_warm(c: AirCase, cc: AirCase, st: Dictionary) -> Dictionary:
-	return AirRuntime.coarse_warm(c, cc, st)
-
-
 static func heuristic_warm(c: AirCase, detail: HeightLayer, u10: float, wdir: float) -> Dictionary:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
 	w.wind_speed_kmh = Units.to_kmh(u10)
@@ -147,7 +146,7 @@ func test_warm_start_variants() -> void:
 				var ccase := AirRuntime.PreparedCase.from_case(cc0)
 				var cj := _solve(ccase, {}, [], true)
 				coarse[m] = {
-					warm = [coarse_warm(c0, ccase, cj.state(true)), coarse_warm(c0, ccase, cj.state(false))],
+					warm = [AirRuntime.coarse_start(ccase, cj)],
 					iters = cj.results.map(func(r: Dictionary) -> int: return int(r.iters)),
 					gpu_ms = cj.gpu_ms_total,
 				}

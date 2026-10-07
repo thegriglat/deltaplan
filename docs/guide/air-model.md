@@ -162,6 +162,13 @@ API атмосферы: `set_air_field(поле | [уровни] | null, blend_s
 (дешевле сборки: −56 % итераций, AM-03), иначе от сборки фаз; `omega_map` (ω по колоннам), `freeze_mask` +
 `freeze_field` (колонны H/F/G/сильного D держат поле механизма), `omega_fallback` = `air_phase.omega.{fallback_iters, fallback_omega}` → проекция-сшивка (finalize V-циклами) → `WindField` (C3 без изменений) → окна
 100/50 м как раньше (тёплый старт окон — от поля области).
+- **Старт и ω (сравнение AP-20, решение пользователя 07.10).** При загрузке — грубый Пикар 1200 м (`air_model.picard_start =
+  coarse`, `picard_coarse_factor = 3`), его решения без нагрева и с нагревом интерполируются на 400 м на GPU
+  (`AirPicardJob.warm_coarse`, ядро `air_picard:prolong`) и стартуют каждое своё решение (`warm_heat` — старт решения с
+  нагревом; раньше оно всегда шло с фона). Пересчёт в полёте и проход 2 — от прошлого поля, каждым своим состоянием.
+  Карта ω фаз с первой итерации выключена (`air_phase.omega.use_map = false`: удваивала итерации там, где ω = 1 сходится),
+  ω = 1 + запасное правило. Сравнение стартов — `tests/atmosphere/test_air_warmstart_gpu.gd` (`AIR_WARMSTART=1`),
+  числа — `_doc` ключей и `build/dp/AP-20/warmstart.json`.
 - **P11 в `AirPicardJob`.** ω — недорелаксация по колоннам, как research P4 v6 (`tools/research/air_phase/batch_solver.py`):
   перед замыканием K копируется, после — K ← K_old + ω(K* − K_old); перед импульсом копируются u, v, w, после проекции —
   u ← u_old + ω(u* − u_old); ω на гранях u/v — среднее двух колонн (ядро `air_picard:relax`). Заморозка — условие Дирихле:
