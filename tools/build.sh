@@ -22,9 +22,14 @@ printf '{"commit": "%s"}\n' "$commit" > data/build_info.json
 # Временный профиль (XDG_DATA_HOME=$(mktemp -d), как у агентов) — без шаблонов экспорта:
 # подложить ссылку на шаблоны из обычного профиля.
 tpl_home="$HOME/.local/share/godot/export_templates"
-if [[ -n "${XDG_DATA_HOME:-}" && ! -e "$XDG_DATA_HOME/godot/export_templates" && -d "$tpl_home" ]]; then
-	mkdir -p "$XDG_DATA_HOME/godot"
-	ln -s "$tpl_home" "$XDG_DATA_HOME/godot/export_templates"
+tpl_tmp="${XDG_DATA_HOME:-}/godot/export_templates"
+if [[ -n "${XDG_DATA_HOME:-}" && -d "$tpl_home" && ! -L "$tpl_tmp" ]]; then
+	# Godot при запуске создаёт пустой каталог шаблонов — его заменить ссылкой.
+	[[ -d "$tpl_tmp" ]] && rmdir "$tpl_tmp" 2>/dev/null
+	if [[ ! -e "$tpl_tmp" ]]; then
+		mkdir -p "$XDG_DATA_HOME/godot"
+		ln -s "$tpl_home" "$tpl_tmp"
+	fi
 fi
 
 # Импорт регистрирует расширения и ресурсы.
