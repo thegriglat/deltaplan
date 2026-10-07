@@ -7,7 +7,8 @@
 
 layout(local_size_x = 256) in;
 
-layout(constant_id = 0) const int OP = 0;
+layout(constant_id = 0) const uint OP_U = 0u;
+#define OP int(OP_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 const int OP_FILL = 0;   // Y = f.y
 const int OP_COPY = 1;   // Y = X
 const int OP_SCALE = 2;  // Y = a·Y

@@ -28,11 +28,13 @@ coarse = "#define COARSE";
 
 layout(local_size_x = 256) in;
 
-layout(constant_id = 0) const int MODE = 0;
+layout(constant_id = 0) const uint MODE_U = 0u;
+#define MODE int(MODE_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 // Раскладка шаблона MODE 0: 0 — 7 плоскостей по N + отдельный B; 1 — строка на точку подряд
 // (C0..C6, b — 8 чисел = один сектор 32 Б; B не читается): зебра по z/y читает линии через одну,
 // и в плоской раскладке сектор каждой из 8 плоскостей используется наполовину.
-layout(constant_id = 1) const int PACKED = 0;
+layout(constant_id = 1) const uint PACKED_U = 0u;
+#define PACKED int(PACKED_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 
 layout(set = 0, binding = 0, std430) readonly buffer BC { float cf[]; };
 // Зебра пишет в X на месте. Вариант coarse (MODE 3, всё в одной группе) читает то, что другие

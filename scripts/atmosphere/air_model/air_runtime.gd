@@ -851,8 +851,8 @@ func _poll_solve() -> void:
 
 ## Проход для журнала: «k → U м/с за с (область с, GPU с)».
 static func _pass_text(e: Dictionary) -> String:
-	return "%.3f → %.2f м/с за %.1f с (область %.1f, GPU %.2f)" % [
-		float(e.k), float(e.u), float(e.pass_s), float(e.domain_s), float(e.gpu_s)
+	return "%.3f → %s за %.1f с (область %.1f, GPU %.2f)" % [
+		float(e.k), _u_text(float(e.u)), float(e.pass_s), float(e.domain_s), float(e.gpu_s)
 	]
 
 
@@ -1015,6 +1015,12 @@ func _levels_done(levels: Array[WindField]) -> void:
 	_apply(levels)
 
 
+## U над стартом для журнала: NAN — точки старта нет (focus_fn не задан или окна выключены —
+## подстройки притока нет, один проход), это не ошибка расчёта.
+static func _u_text(u: float) -> String:
+	return "нет точки старта" if is_nan(u) else "%.2f м/с" % u
+
+
 ## Показатель p закона U ∝ k^p для ветра меню u10 (INFLOW_P).
 static func inflow_p(u10: float) -> float:
 	var t: Array = INFLOW_P
@@ -1122,7 +1128,7 @@ func _apply(levels: Array[WindField]) -> void:
 		(
 			(
 				"air_model: поле %s ч, %.1f м/с с %.0f° (%s): %.2f с, итераций %s%s%s; "
-				+ "k притока %.3f, U над стартом на 10 м %.2f м/с (проход 1: %.2f), проходов %d %s"
+				+ "k притока %.3f, U над стартом на 10 м %s (проход 1: %s), проходов %d %s"
 			)
 			% [
 				_hour_text(float(_req.hour)),
@@ -1134,8 +1140,8 @@ func _apply(levels: Array[WindField]) -> void:
 				", тёплый старт" if _req.warm else "",
 				", окна %s" % [_req.windows.map(_window_text)] if _req.has("windows") else "",
 				_k,
-				float(_req.u_start10),
-				float(_req.u_start10_first),
+				_u_text(float(_req.u_start10)),
+				_u_text(float(_req.u_start10_first)),
 				_pass,
 				_pass_log.map(_pass_text),
 			]

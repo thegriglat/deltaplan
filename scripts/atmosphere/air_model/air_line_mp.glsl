@@ -10,7 +10,8 @@
 
 layout(local_size_x = 64) in;
 
-layout(constant_id = 0) const int PASS = 1;
+layout(constant_id = 0) const uint PASS_U = 1u;
+#define PASS int(PASS_U)  // uint: знаковые константы специализации D3D12 в Godot 4.7 не переводит
 
 layout(set = 0, binding = 0, std430) readonly buffer BC { float cf[]; };
 layout(set = 0, binding = 1, std430) buffer BX { float x[]; };  // зебра пишет сюда же
