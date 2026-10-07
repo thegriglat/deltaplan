@@ -1130,5 +1130,202 @@
    "dust_3km": 2.1,
    "clouds_5km": 53.2
   }
+ },
+ "qol9": {
+  "signs_per_10min_min": 11.8,
+  "signs_per_10min_min_run": 6,
+  "signs_per_10min_by_place": {
+   "altai": 20.5,
+   "askarovo": 11.8,
+   "aushkul": 12,
+   "ongudai": 18.2
+  },
+  "signs_per_10min_mean": 15.6,
+  "signs_off_thermal": 0,
+  "samples_total": 581685,
+  "before_signs_per_10min_min": 6.2,
+  "before_dust_per_10min_min": 3.2,
+  "before_note": "до = пылевые вихри в 3 км + новые стаи птиц за 10 мин (QL-5, поле GPU), среднее по часам/точкам, минимум по местам",
+  "dist_median_m": 2205,
+  "share_swallow_ge4px_if_min_px": 0.938,
+  "share_swallow_native_ge2px": 0.0,
+  "rows": [
+   {
+    "location": "altai",
+    "hour": 13,
+    "point": "A_start+300",
+    "signs_new_10min": 20,
+    "swallow_flocks": 9,
+    "fluff_sources": 11,
+    "samples": 41192,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "altai",
+    "hour": 13,
+    "point": "B_valley+1000",
+    "signs_new_10min": 22,
+    "swallow_flocks": 9,
+    "fluff_sources": 13,
+    "samples": 53332,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "altai",
+    "hour": 15,
+    "point": "A_start+300",
+    "signs_new_10min": 18,
+    "swallow_flocks": 9,
+    "fluff_sources": 9,
+    "samples": 44974,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "altai",
+    "hour": 15,
+    "point": "B_valley+1000",
+    "signs_new_10min": 22,
+    "swallow_flocks": 8,
+    "fluff_sources": 14,
+    "samples": 53107,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "askarovo",
+    "hour": 13,
+    "point": "A_start+300",
+    "signs_new_10min": 14,
+    "swallow_flocks": 6,
+    "fluff_sources": 8,
+    "samples": 36314,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "askarovo",
+    "hour": 13,
+    "point": "B_valley+1000",
+    "signs_new_10min": 11,
+    "swallow_flocks": 7,
+    "fluff_sources": 4,
+    "samples": 14195,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "askarovo",
+    "hour": 15,
+    "point": "A_start+300",
+    "signs_new_10min": 14,
+    "swallow_flocks": 7,
+    "fluff_sources": 7,
+    "samples": 33444,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "askarovo",
+    "hour": 15,
+    "point": "B_valley+1000",
+    "signs_new_10min": 8,
+    "swallow_flocks": 5,
+    "fluff_sources": 3,
+    "samples": 21448,
+    "off_thermal_samples": 0,
+    "entries_max": 5
+   },
+   {
+    "location": "aushkul",
+    "hour": 13,
+    "point": "A_start+300",
+    "signs_new_10min": 18,
+    "swallow_flocks": 8,
+    "fluff_sources": 10,
+    "samples": 46903,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "aushkul",
+    "hour": 13,
+    "point": "B_valley+1000",
+    "signs_new_10min": 6,
+    "swallow_flocks": 3,
+    "fluff_sources": 3,
+    "samples": 15268,
+    "off_thermal_samples": 0,
+    "entries_max": 4
+   },
+   {
+    "location": "aushkul",
+    "hour": 15,
+    "point": "A_start+300",
+    "signs_new_10min": 16,
+    "swallow_flocks": 8,
+    "fluff_sources": 8,
+    "samples": 45086,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "aushkul",
+    "hour": 15,
+    "point": "B_valley+1000",
+    "signs_new_10min": 8,
+    "swallow_flocks": 4,
+    "fluff_sources": 4,
+    "samples": 21876,
+    "off_thermal_samples": 0,
+    "entries_max": 4
+   },
+   {
+    "location": "ongudai",
+    "hour": 13,
+    "point": "A_start+300",
+    "signs_new_10min": 21,
+    "swallow_flocks": 9,
+    "fluff_sources": 12,
+    "samples": 50955,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "ongudai",
+    "hour": 13,
+    "point": "B_valley+1000",
+    "signs_new_10min": 16,
+    "swallow_flocks": 8,
+    "fluff_sources": 8,
+    "samples": 32134,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "ongudai",
+    "hour": 15,
+    "point": "A_start+300",
+    "signs_new_10min": 23,
+    "swallow_flocks": 10,
+    "fluff_sources": 13,
+    "samples": 49569,
+    "off_thermal_samples": 0,
+    "entries_max": 8
+   },
+   {
+    "location": "ongudai",
+    "hour": 15,
+    "point": "B_valley+1000",
+    "signs_new_10min": 13,
+    "swallow_flocks": 8,
+    "fluff_sources": 5,
+    "samples": 21888,
+    "off_thermal_samples": 0,
+    "entries_max": 6
+   }
+  ]
  }
 }
