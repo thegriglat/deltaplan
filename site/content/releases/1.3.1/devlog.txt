@@ -1,0 +1,10 @@
+Deltaplan 1.3.1 — a straight launch run
+
+A small fix release for the launch. With a head wind the computed wind field turns the flow along the slope by tens of degrees, so the pilot used to stand along the launch heading with a crosswind that banked the wing and pulled the run off course. Now the pilot faces the actual wind near the ground.
+
+Launch:
+- With a head wind the pilot faces the actual wind at the launch, not the launch heading
+- A stray mouse roll input on the ground returns to neutral, so the run stays straight
+
+Build:
+- itch.io on Linux no longer offers to launch deltaplan.pck instead of the game
