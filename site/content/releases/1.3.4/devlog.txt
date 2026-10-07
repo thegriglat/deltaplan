@@ -1,0 +1,7 @@
+Deltaplan 1.3.4 — a straight launch run in a crosswind
+
+A small fix release. In a crosswind the pilot used to veer off course during the launch run: every little hop at liftoff swung the nose into the wind, and the run went on in the new direction.
+
+Launch:
+- While the feet still reach the ground, hops at liftoff no longer turn the pilot (before: 5-10 degrees per hop, up to 40 over the run)
+- Once in the harness, the nose lines up with the airflow smoothly, within half a second
