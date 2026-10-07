@@ -117,34 +117,61 @@ func test_fluff_rises_and_swallows_darting() -> void:
 	a.free()
 
 
-func test_fluff_rises_with_thermal_air() -> void:
+func test_fluff_rises_with_field_air() -> void:
 	var a := _atmo()
 	var id := a.add_static_thermal(0.0, 0.0, 3.0, 150.0)
 	a.set_focus(Vector3(0, 300, 0))
 	a.step(1.0)
 	var s := ThermalSigns.new()
 	s.setup(a)
+	s.atmo = a
 	var th: AtmoThermal = a.field.thermals[id]
 	var settle := float(a.cfg.thermal_signs.fluff_settle_ms)
-	var pmax := float(a.cfg.thermal_signs.fluff_period_s[1])
-	var wmax := th.strength - settle
 	var n := 0
 	var bad := 0
+	var fast := 0.0
 	for k in 300:
-		var d := s._fluff(th, k % 16, 100.0 + k * 1.3)
-		if d.is_empty():
+		var t := 100.0 + k * 1.3
+		var d1 := s._fluff(th, k % 16, t)
+		var d2 := s._fluff(th, k % 16, t + 0.2)
+		if d1.is_empty() or d2.is_empty() or d2.age <= d1.age:
 			continue
 		n += 1
-		if d.pos.y - th.src.y > wmax * pmax + 1.0:
+		var vy: float = (d2.pos.y - d1.pos.y) / 0.2
+		var wf: float = a.field.sample(d1.pos).x
+		# Мгновенная скорость подъёма — w поля минус оседание (допуск: Эйлер 6 шагов, качание).
+		if vy > (wf - settle) * 1.3 + 0.3:
 			bad += 1
-	check(n > 0, "пух виден")
-	check(bad == 0, "пух поднялся быстрее воздуха (w − оседание): %d" % bad)
-	# Слабее оседания — не поднимается.
-	th.strength = settle * 0.5
+			fast = maxf(fast, vy - (wf - settle))
+	check(n > 20, "пух виден: %d" % n)
+	check(bad == 0, "пух поднимается быстрее w поля − оседание: %d (до +%.2f м/с)" % [bad, fast])
+	# Слабое ядро (w < оседания везде) — пух не поднимается.
+	th.strength = settle * 0.3
+	a.step(1.0)
 	var up := 0
 	for k in 50:
 		if not s._fluff(th, k % 16, 100.0 + k * 1.3).is_empty():
 			up += 1
 	check(up == 0, "при w ≤ оседания пух лежит: %d" % up)
+	s.free()
+	a.free()
+
+
+func test_swallow_speed_matches_config() -> void:
+	var a := _atmo()
+	var id := a.add_static_thermal(0.0, 0.0, 2.5, 150.0)
+	a.step(1.0)
+	var s := ThermalSigns.new()
+	s.setup(a)
+	var th: AtmoThermal = a.field.thermals[id]
+	var v: Array[float] = []
+	for i in 6:
+		for k in 100:
+			var d := s._swallow(th, i, 50.0 + k * 3.7)
+			v.append((d.vel as Vector3).length())
+	v.sort()
+	var med: float = v[v.size() / 2]
+	var want := float(a.cfg.thermal_signs.swallow_speed_ms)
+	check(absf(med - want) <= 0.5 * want, "полная скорость ласточки в медиане %.1f ≈ %.1f ±50%%" % [med, want])
 	s.free()
 	a.free()

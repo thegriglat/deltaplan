@@ -204,7 +204,8 @@ func _swallow(th: AtmoThermal, i: int, t: float) -> Dictionary:
 	# Частота — из скорости рывков: v ≈ lat · ω; вторая гармоника даёт резкие развороты.
 	var w := float(cfg.swallow_speed_ms) / maxf(lat, 1.0) * rng.randf_range(0.7, 1.2)
 	var ph := [rng.randf() * TAU, rng.randf() * TAU, rng.randf() * TAU, rng.randf() * TAU]
-	var w3 := rng.randf_range(0.2, 0.45)
+	# Вертикаль — медленно: частота из вертикальной скорости 2–3 м/с (v_vert = hamp · w3).
+	var w3 := rng.randf_range(2.0, 3.0) / maxf(hamp, 1.0)
 	var f := func(tt: float) -> Vector3:
 		var x := lat * (0.75 * sin(w * tt + ph[0]) + 0.25 * sin(2.7 * w * tt + ph[2]))
 		var z := lat * (0.75 * sin(w * 0.83 * tt + ph[1]) + 0.25 * sin(2.3 * w * tt + ph[3]))
@@ -217,36 +218,47 @@ func _swallow(th: AtmoThermal, i: int, t: float) -> Dictionary:
 	return {"pos": p, "vel": (p2 - p) / 0.1, "phase": rng.randf()}
 
 
-## Пух поднимается с воздухом: скорость подъёма w(τ) = сила·огибающая(τ) − оседание пушинки
-## (fluff_settle_ms); высота — интеграл w от момента отрыва (повтор отрыва каждые P с, P своё
-## у каждой частицы). Где w ≤ 0 — пух не поднимается (пустой результат).
+## Пух поднимается с воздухом: dy/dt = w_поля(точка частицы) − оседание (fluff_settle_ms);
+## w — из ThermalField.sample (профиль (dh/150)^(1/3) у земли и т. д.), высота — численный
+## интеграл по шагам от момента отрыва (повтор отрыва каждые P с, P своё у каждой частицы).
+## Граница модели: огибающая и поле берутся на текущий момент (за прошлые ≤ P секунд не
+## пересчитываются); турбулентности отрыва у земли в модели нет — частица стартует с 1 м.
+## Где w ≤ оседания, пух не поднимается (пустой результат).
 func _fluff(th: AtmoThermal, i: int, t: float) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = th.id * 9931 + i * 17 + 2
 	var period := rng.randf_range(float(cfg.fluff_period_s[0]), float(cfg.fluff_period_s[1]))
 	var off := rng.randf()
-	var t_rel := (floorf(t / period - off) + off) * period
-	var age := t - t_rel
-	var settle := float(cfg.fluff_settle_ms)
-	var h := 0.0
-	for j in 4:
-		var tau := t_rel + (float(j) + 0.5) * 0.25 * age
-		h += maxf(th.strength * th.envelope(tau) - settle, 0.0) * age * 0.25
-	var hmax := float(cfg.fluff_height_agl_m[1])
-	if h <= 0.05 or h >= hmax:
-		return {}
-	var u := h / hmax
+	var age := t - (floorf(t / period - off) + off) * period
 	var lat := _lateral(th, "fluff_lateral_m", 0.4)
 	var ang := rng.randf() * TAU
-	var rr := lat * sqrt(rng.randf()) * (1.0 - 0.5 * u)
-	var sway := 2.0 * sin(t * rng.randf_range(0.4, 1.0) + ang)
-	var y := th.src.y + 0.5 + h
-	var a := th.axis_at(y)
+	var rr0 := lat * sqrt(rng.randf())
+	var sway_k := rng.randf_range(0.4, 1.0)
+	var debris := 1.0 if rng.randf() < 0.3 else 0.0
+	var settle := float(cfg.fluff_settle_ms)
+	var steps := 6
+	var dt := age / float(steps)
+	var h := 1.0
+	var hmax := float(cfg.fluff_height_agl_m[1])
+	for _k in steps:
+		var y := th.src.y + h
+		var a := th.axis_at(y)
+		var w: float = atmo.field.sample(Vector3(a.x + cos(ang) * rr0, y, a.y + sin(ang) * rr0)).x
+		h += (w - settle) * dt
+		if h <= 0.0 or h >= hmax:
+			return {}
+	if age < 0.5 or h < 1.5:
+		return {}
+	var u := h / hmax
+	var rr := rr0 * (1.0 - 0.5 * u)
+	var sway := 2.0 * sin(t * sway_k + ang)
+	var y2 := th.src.y + h
+	var a2 := th.axis_at(y2)
 	var alpha := smoothstep(0.0, 3.0, age) * (1.0 - smoothstep(0.7 * period, period, age)) \
 		* (1.0 - smoothstep(0.7, 1.0, u))
 	return {
-		"pos": Vector3(a.x + cos(ang) * rr + sway, y, a.y + sin(ang) * rr),
-		"alpha": alpha, "debris": 1.0 if rng.randf() < 0.3 else 0.0,
+		"pos": Vector3(a2.x + cos(ang) * rr + sway, y2, a2.y + sin(ang) * rr),
+		"alpha": alpha, "debris": debris, "age": age,
 	}
 
 

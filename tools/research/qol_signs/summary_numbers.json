@@ -1142,11 +1142,11 @@
   },
   "signs_per_10min_mean": 1.2,
   "signs_off_thermal": 0,
-  "samples_total": 28739,
+  "samples_total": 27719,
   "before_signs_per_10min_min": 6.2,
   "before_dust_per_10min_min": 3.2,
   "before_note": "до = пылевые вихри в 3 км + новые стаи птиц за 10 мин (QL-5, поле GPU), среднее по часам/точкам, минимум по местам",
-  "dist_median_m": 645,
+  "dist_median_m": 664,
   "share_swallow_ge4px_if_min_px": 1.0,
   "share_swallow_native_ge2px": 0.0,
   "rows": [
@@ -1289,7 +1289,7 @@
     "signs_new_10min": 4,
     "swallow_flocks": 3,
     "fluff_sources": 1,
-    "samples": 8687,
+    "samples": 8138,
     "off_thermal_samples": 0,
     "entries_max": 3
    },
@@ -1311,7 +1311,7 @@
     "signs_new_10min": 2,
     "swallow_flocks": 1,
     "fluff_sources": 1,
-    "samples": 5720,
+    "samples": 5249,
     "off_thermal_samples": 0,
     "entries_max": 2
    },
