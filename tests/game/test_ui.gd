@@ -86,6 +86,13 @@ func test_pause_and_result_buttons() -> void:
 
 
 func test_controls_screen_lists_keys() -> void:
+	var was_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("ru")
+	await _test_controls_screen_lists_keys_impl()
+	TranslationServer.set_locale(was_locale)
+
+
+func _test_controls_screen_lists_keys_impl() -> void:
 	var c: ControlsScreen = _scene("res://scenes/ui/controls_screen.tscn")
 	var rows := ControlsScreen.rows()
 	var text := ""
