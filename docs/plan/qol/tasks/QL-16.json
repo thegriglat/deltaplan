@@ -1,0 +1,28 @@
+{
+  "id": "QL-16",
+  "module": "qol",
+  "type": "dp-writer",
+  "title": "CHANGELOG модуля qol",
+  "goal": "В CHANGELOG.md, раздел «В работе», блок «Удобство (модуль qol)» — дописать то, что влито после QL-12: QL-1, QL-7, QL-8, QL-9, QL-11, QL-14 (по отчётам dp report <ID> --show и решениям dp log qol), функционально и по-русски, для пилота. QL-15 (тесты) и отменённые QL-2/QL-4/QL-6/QL-10 не упоминать.",
+  "plan_ref": "Задачи",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-16",
+  "branch": "qol/QL-16",
+  "base": "feature/qol",
+  "scope": [
+    "CHANGELOG.md",
+    "QoL.md"
+  ],
+  "dont_touch": [],
+  "accept": [
+    {
+      "name": "changelog",
+      "cmd": "grep -c 'Подождать час' CHANGELOG.md",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T00:58:33",
+  "edited": "2026-10-08T00:58:55"
+}

@@ -129,3 +129,9 @@
 {"t": "2026-10-08T00:47:44", "by": "executor", "task": "QL-9", "ev": "checked", "note": "6/6 thermal_signs=ok:6/6; atmosphere/=ok:157/157 (пропуск 29); off=ok:0; todo=ok:0; docs=ok:exit 0; signs=ok:0.8"}
 {"t": "2026-10-08T00:47:59", "by": "coordinator", "task": "QL-9", "ev": "accepted", "note": "по отчёту после второй доработки: замечания повторного ревью (скорость ласточки, подъём пуха по полю, тесты) закрыты, проверки 6/6; признаки 0,8–1,5 за 10 мин (видимость по разрешению глаза)"}
 {"t": "2026-10-08T00:48:07", "by": "coordinator", "task": "QL-9", "ev": "merged", "note": "337afed4"}
+{"t": "2026-10-08T00:58:10", "by": "executor", "task": "QL-11", "ev": "checked", "note": "5/5 game/=ok:168/168 (пропуск 1); ui/=ok:103/103; atmosphere/=ok:151/151 (пропуск 29); qol_md=ok:0; docs=ok:exit 0"}
+{"t": "2026-10-08T00:58:20", "by": "coordinator", "task": "QL-11", "ev": "accepted", "note": "по отчёту: 5/5 (game/ 168/168, ui/ 103/103, atmosphere/ 151/151); рывки: ×60 — 3 остановки по 3–4 с за час на пересчётах поля (решение координатора: принять, находка для модуля воздуха)"}
+{"t": "2026-10-08T00:58:33", "by": "coordinator", "task": "QL-11", "ev": "merged", "note": "bfa6f8bb"}
+{"t": "2026-10-08T00:58:33", "by": "coordinator", "task": "QL-16", "ev": "created", "note": "CHANGELOG модуля qol"}
+{"t": "2026-10-08T00:58:35", "by": "coordinator", "task": "QL-16", "ev": "started", "note": "dp-writer, ~/deltaplan-qol-QL-16"}
+{"t": "2026-10-08T00:58:55", "by": "coordinator", "task": "QL-16", "ev": "edited", "note": "scope, dont_touch", "diff": {"scope": ["[\"CHANGELOG.md\"]", "[\"CHANGELOG.md\", \"QoL.md\"]"], "dont_touch": ["[\"QoL.md\"]", "[]"]}}
