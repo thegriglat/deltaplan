@@ -236,7 +236,7 @@ func load_values() -> void:
 	_render_scale.value_changed.emit(_render_scale.value)
 	_render_scale.editable = not _render_scale_auto.button_pressed
 	_vsync.button_pressed = bool(Config.value("game", "display.vsync", true))
-	var fps := int(Config.value("game", "display.max_fps", 0))
+	var fps := int(Config.value("game", "display.max_fps", 144))
 	var fi := _fps_options.find(fps)
 	_fps_limit.select(fi if fi >= 0 else _fps_options.find(0))
 	var fs := String(Config.value("game", "display.window_mode", "windowed")) == "fullscreen"

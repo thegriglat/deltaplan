@@ -110,7 +110,7 @@ static func cmdline_overrides_window() -> bool:
 ## force=false — при запуске: режим/размер не трогаем, если их задали в командной строке.
 static func apply_display(force: bool = true) -> void:
 	var d: Dictionary = Config.get_config("game").get("display", {})
-	Engine.max_fps = maxi(0, int(d.get("max_fps", 0)))
+	Engine.max_fps = maxi(0, int(d.get("max_fps", 144)))
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if bool(d.get("vsync", true)) else DisplayServer.VSYNC_DISABLED
 	)

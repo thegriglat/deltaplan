@@ -18,7 +18,7 @@ func test_defaults_vsync_on() -> void:
 		DirAccess.remove_absolute(lpath)
 	Config.reload()
 	check(bool(Config.value("game", "display.vsync", false)), "по умолчанию VSync вкл")
-	check(int(Config.value("game", "display.max_fps", -1)) == 0, "по умолчанию без предела")
+	check(int(Config.value("game", "display.max_fps", -1)) == 144, "по умолчанию предел 144")
 	GraphicsPresets.apply_display(true)
 	check(_vsync_is(DisplayServer.VSYNC_ENABLED), "VSYNC_ENABLED")
 	_restore(lpath, backup)

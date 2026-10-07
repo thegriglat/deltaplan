@@ -136,11 +136,11 @@
   "graphics_doc": "Пресет графики по умолчанию: low / medium / high (правки конфигов из graphics_presets пишутся в user://configs при выборе в настройках)",
   "display": {
     "vsync": true,
-    "max_fps": 0,
+    "max_fps": 144,
     "window_mode": "windowed",
     "window_size": [0, 0]
   },
-  "display_doc": "Окно и частота кадров (машинные настройки, user://local/configs): vsync — вертикальная синхронизация (по умолчанию вкл); max_fps — предел кадров/с (0 — без предела; при включённом VSync частоту держит монитор); window_mode — windowed | fullscreen; window_size — [ширина, высота] окна, [0, 0] — как есть. Аргументы Godot --resolution/--fullscreen/--windowed перекрывают режим и размер на этот запуск",
+  "display_doc": "Окно и частота кадров (машинные настройки, user://local/configs): vsync — вертикальная синхронизация (по умолчанию вкл); max_fps — предел кадров/с (по умолчанию 144; 0 — без предела; VSync на мониторе 300 Гц один не спасает); window_mode — windowed | fullscreen; window_size — [ширина, высота] окна, [0, 0] — как есть. Аргументы Godot --resolution/--fullscreen/--windowed перекрывают режим и размер на этот запуск",
   "display_fps_options": [30, 60, 120, 144, 0],
   "display_resolutions": [[1280, 720], [1600, 900], [1920, 1080], [2560, 1440], [3840, 2160]],
   "display_options_doc": "Список «Предел кадров» (0 — без предела) и разрешения окна в настройках (показываются те, что помещаются в монитор)",
