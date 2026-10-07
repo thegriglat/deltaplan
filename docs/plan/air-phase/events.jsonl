@@ -199,3 +199,6 @@
 {"t": "2026-10-07T05:02:52", "by": "coordinator", "task": "AP-20", "ev": "merged"}
 {"t": "2026-10-07T05:12:59", "by": "executor", "task": "AP-21", "ev": "reported", "commits": ["a9fca9fa", "c9034a1f"], "note": "done: Сеть, GDExtension AirOnnx, ONNX Runtime и VC++ runtime удалены из игры, сборки и доков; Windows-архив без DLL VC++/ONNX…", "dp_feedback": ["dp accept --dry долгий; --only есть, но не было видно из справки карточки."]}
 {"t": "2026-10-07T05:13:56", "by": "coordinator", "task": "AP-21", "ev": "accepted", "note": "по отчёту: --dry 7/7 (no_onnx 0, atmosphere 148/148, air 71/71, docs, сборки linux/windows, smoke); steam-assets строки 19/30/47 — ждут разрешения пользователя (отказ проверки прав исполнителю); libdd3d — оставить (решение пользователя)"}
+{"t": "2026-10-07T05:14:06", "by": "coordinator", "task": "AP-21", "ev": "merged"}
+{"t": "2026-10-07T05:14:29", "by": "coordinator", "task": "AP-22", "ev": "accepted", "note": "writer, --dry 2/2; air-model.md — версия AP-22 при слиянии"}
+{"t": "2026-10-07T05:14:29", "by": "coordinator", "task": "AP-22", "ev": "merged"}
