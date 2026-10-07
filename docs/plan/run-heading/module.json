@@ -1,0 +1,8 @@
+{
+  "module": "run-heading",
+  "plan": "docs/plan/run-heading.md",
+  "contracts": "docs/contracts/run-heading.md",
+  "branch": "feature/run-heading",
+  "copy": "~/deltaplan-run-heading",
+  "created": "2026-10-07T02:05:48"
+}
