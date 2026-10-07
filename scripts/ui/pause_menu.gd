@@ -13,11 +13,13 @@ signal controls_requested
 signal menu_requested
 signal quit_requested
 signal leave_zone_requested
+signal wait_requested
 
 var _net_box: VBoxContainer
 var _net_code_label: Label
 var _net_peers_box: VBoxContainer
 var _net_leave_btn: Button
+var _wait_btn: Button
 
 
 func _ready() -> void:
@@ -31,6 +33,8 @@ func _ready() -> void:
 	UiKit.separator(box)
 	_build_net_box(box)
 	UiKit.button(box, tr("common_continue"), func() -> void: resume_requested.emit())
+	_wait_btn = UiKit.button(box, tr("pause_wait"), func() -> void: wait_requested.emit())
+	_wait_btn.visible = false
 	UiKit.button(box, tr("pause_restart"), func() -> void: restart_requested.emit())
 	UiKit.button(box, tr("menu_controls"), func() -> void: controls_requested.emit())
 	UiKit.button(box, tr("menu_settings"), func() -> void: settings_requested.emit())
@@ -56,6 +60,15 @@ func _build_net_box(box: VBoxContainer) -> void:
 	_net_peers_box.add_theme_constant_override("separation", 4)
 	_net_box.add_child(_net_peers_box)
 	UiKit.separator(_net_box)
+
+
+## «Подождать час» (Q-17): показывать пункт — одиночная игра, пилот стоит на старте.
+func set_wait_available(on: bool) -> void:
+	_wait_btn.visible = on
+
+
+func wait_visible() -> bool:
+	return _wait_btn.visible
 
 
 ## Данные сетевой зоны (NetPauseInfo.build) — {} вне зоны: блок и «Выйти из зоны» скрыты.

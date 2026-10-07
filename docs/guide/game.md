@@ -263,6 +263,11 @@ settings.start_hour, utc_offset_h локации)`, `Game.tick` — `sky.clock.a
 запаздыванием прогрева (`SurfaceHeating` → `Terrain.set_class_sun`: камни и деревни греют и вечером). Сила и
 высота термиков по времени дня — `WeatherModel.derive(…, час)` (фаза 2 плана погоды, пилот: «утром мягкие,
 днём жёсткие, вечером мягкий воздух, термиков мало»).
+«Подождать час» (Q-17): пункт паузы на старте одиночной игры (`Game.can_wait()`: нет сети, фаза `standing`). `Game.start_wait()` —
+`tick` идёт с миром ×`game.json → wait_speed` (60; при рывках поля — 30) в течение `wait_hours` (1 ч): `sky.clock.advance` и `air.step` получают
+`dt·wait_speed`, поле ветра пересчитывается по обычному расписанию (`diurnal.update_s`), крыло, ввод и столкновения не шагают, камера и
+пилот на месте. Конец — по часам, по концу дня или `stop_wait()`: `Main` гасит ожидание любой клавишей, кнопкой мыши или геймпада.
+Множитель `sky.clock.speed` не меняется. Замер кадров — `tools/bench/wait_bench.tscn`. Тест — `tests/game/test_wait_hour.gd`.
 Кадры: `tools/shots/tod_shot.tscn -- --out=<папка> [--hours=7,13,19]`. Тест — `tests/world/test_sun_clock.gd`.
 
 ## Приборы на трапеции

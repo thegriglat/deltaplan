@@ -206,9 +206,13 @@ func tick(dt: float) -> void:
 	if net != null:
 		_net_world_step(dt)
 	else:
-		sky.clock.advance(dt)  # время суток идёт (VR-5)
-		air.call("step", dt)
+		var wdt := dt * (wait_speed() if _wait_left_s > 0.0 else 1.0)
+		sky.clock.advance(wdt)  # время суток идёт (VR-5)
+		air.call("step", wdt)
 	_update_day_weather()
+	if _wait_left_s > 0.0:
+		_wait_step(dt)
+		return
 	if inspect_mode:
 		camera.free_keys_enabled = true  # крыло не шагает: ни ввода, ни столкновений, ни итога
 		return
@@ -245,6 +249,7 @@ func tick(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	flight_no += 1
+	stop_wait()
 	settings = s.duplicate()
 	eggs.reset()
 	_lock_net_clock()
@@ -505,6 +510,7 @@ func restart(keep_clock: bool = false) -> void:
 	if settings == null:
 		return
 	flight_no += 1
+	stop_wait()
 	if autopilot != null:
 		autopilot.reset()
 	tow = null  # «Ещё раз» / «На старт» посреди буксира
@@ -586,6 +592,66 @@ func continue_on_foot() -> void:
 	_ended = false
 	_touchdown = {}
 	stats.reset(glider.get_telemetry().position)
+
+
+## «Подождать час» (Q-17): одиночная игра, пилот стоит на старте. Время мира идёт в wait_speed раз
+## быстрее (солнце, термики, облака, поле ветра — по обычному расписанию), пока не пройдёт
+## wait_hours часов, не упрётся в конец дня или не вызовут stop_wait(). Крыло не шагает.
+signal wait_finished
+
+var _wait_left_s := 0.0  ## осталось мирового времени ожидания, с (0 — не ждём)
+var _wait_frames_ms: PackedFloat32Array = []  ## время кадров во время ожидания, мс (замер рывков)
+var _wait_last_us := 0
+
+
+func can_wait() -> bool:
+	return net == null and settings != null and not inspect_mode and glider != null \
+		and glider.phase() == "standing" and _wait_left_s <= 0.0 and tow == null
+
+
+func wait_speed() -> float:
+	return maxf(float(_cfg.get("wait_speed", 60.0)), 1.0)
+
+
+func is_waiting() -> bool:
+	return _wait_left_s > 0.0
+
+
+func start_wait() -> bool:
+	if not can_wait() or sky.clock.hour >= SunClock.clamp_hour(1.0e9):
+		return false
+	_wait_left_s = float(_cfg.get("wait_hours", 1.0)) * 3600.0
+	_wait_frames_ms = []
+	_wait_last_us = 0
+	set_input_enabled(false)
+	if "refresh_scale" in air:
+		air.set("refresh_scale", float(_cfg.get("wait_refresh_s", 10.0)))
+	return true
+
+
+func stop_wait() -> void:
+	if _wait_left_s <= 0.0:
+		return
+	_wait_left_s = 0.0
+	if "refresh_scale" in air:
+		air.set("refresh_scale", 1.0)
+	set_input_enabled(not _paused)
+	wait_finished.emit()
+
+
+## Время кадров (мс) за последнее ожидание — для замера рывков.
+func wait_frame_times_ms() -> PackedFloat32Array:
+	return _wait_frames_ms
+
+
+func _wait_step(dt: float) -> void:
+	var now := Time.get_ticks_usec()
+	if _wait_last_us > 0:
+		_wait_frames_ms.append(float(now - _wait_last_us) / 1000.0)
+	_wait_last_us = now
+	_wait_left_s -= dt * wait_speed()
+	if _wait_left_s <= 0.0 or sky.clock.hour >= SunClock.clamp_hour(1.0e9):
+		stop_wait()
 
 
 ## Пауза (Esc): физика стоит (дерево на паузе), ввод и звук выключены.
