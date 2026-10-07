@@ -1,32 +1,11 @@
 {
   "status": "done",
-  "summary": "Птицы растут в шейдере до min_span_px=5 (эффективно >=3 px на 800 м), 6 стай впереди по курсу, до 3 хищных птиц выше 700 м; повтор замера QL-5 и скриншоты готовы.",
+  "summary": "Перенос в чистую копию /home/greg/deltaplan-qol-QL-8b, ветка qol/QL-8b (от feature/qol), без сырых данных в git; min_span_px 3 по решению координатора, сводка пересчитана на тех же данных.",
   "commits": [
-    "cd6d4ede мин. размер птицы, 6 стай, хищные",
-    "cced6e50 min_span_px 5, повтор замера",
-    "5ae324e8 QL-8: uid скрипта скриншота птиц"
+    "f73b1e0b птицы видны издалека, хищные, повтор замера (без out_ql8)",
+    "9684c1ca min_span_px 3, пересчёт сводки"
   ],
   "checks": [
-    {
-      "name": "dp accept QL-8 --dry",
-      "value": "6/6; bird 7/7, atmosphere 151/151",
-      "pass": true
-    },
-    {
-      "name": "доля секунд с птицей >=2px, мин. по местам, A/B (GPU)",
-      "value": "1.00 / 1.00 (было 0.13 / 0.00)",
-      "pass": true
-    },
-    {
-      "name": "птица на 800 м",
-      "value": "3.0 px (реально 1.87)",
-      "pass": true
-    },
-    {
-      "name": "хищные птицы одновременно (ср/макс)",
-      "value": "2.95 / 3",
-      "pass": true
-    },
     {
       "name": "bird",
       "value": "7/7",
@@ -34,12 +13,12 @@
     },
     {
       "name": "atmosphere/",
-      "value": "151/151 (пропуск 29)",
+      "value": "151/151 (пропуск 29; в общем прогоне один раз test_performance 57 мкс при нагрузке, при повторе зелёный)",
       "pass": true
     },
     {
       "name": "px800",
-      "value": "5",
+      "value": "3.0",
       "pass": true
     },
     {
@@ -56,28 +35,30 @@
       "name": "qol_md",
       "value": "0",
       "pass": true
+    },
+    {
+      "name": "доля секунд с птицей >=2px, мин. по местам A/B (GPU)",
+      "value": "1.00/1.00 (метрика тривиальна при min 3 px)",
+      "pass": true
     }
   ],
   "not_done": [],
-  "questions": [],
+  "questions": [
+    "dp accept без --here идёт в копию из карточки (deltaplan-qol-QL-8); поправьте карточку на QL-8b"
+  ],
   "images": [
     "/home/greg/deltaplan/build/screenshots/QL-8/birds_500m.png",
     "/home/greg/deltaplan/build/screenshots/QL-8/birds_800m.png"
   ],
-  "how_to_check": "dp accept QL-8",
+  "how_to_check": "cd /home/greg/deltaplan-qol-QL-8b && dp accept QL-8 --dry --here",
   "uncertain": [
     {
-      "where": "tools/research/qol_signs/README.md:153",
-      "why": "метрика >=2px при мин. размере 3 px тривиальна (сводится к наличию птицы в 2 км); без направления взгляда",
-      "checked": "сопоставил с долей без мин. размера: 0.915/0.625 только от стай"
-    },
-    {
-      "where": "бoльшой разрыв min_span_px",
-      "why": "на скриншоте 800 м птицы малы и смазаны дымкой",
-      "checked": "открыл zoom: точки видны"
+      "where": "tools/research/qol_signs/summary_numbers.json qol8",
+      "why": "замер снят при min_span_px 5, пересчитан на 3 по тем же данным (симуляция от размера не зависит)",
+      "checked": "summarize.py с QL8_MIN_PX=3; скриншоты сняты при 5, не переснимал"
     }
   ],
-  "dp_feedback": "",
-  "t": "2026-10-07T23:10:18",
+  "dp_feedback": "dp accept без --here берёт копию из карточки; при смене копии нужна команда сменить её в карточке.",
+  "t": "2026-10-07T23:58:57",
   "by": "executor"
 }
