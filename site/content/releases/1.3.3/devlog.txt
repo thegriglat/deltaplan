@@ -1,0 +1,24 @@
+Deltaplan 1.3.3 — launch and flight comfort
+
+This release is about getting into the air faster and seeing more once you are there. No more waiting after a crash, a controls hint at the launch, a free camera in pause, a frame rate cap, and thermals that are easier to read: birds are visible from afar, and fluff and swallows mark rising air.
+
+Launch and flight:
+- Controls hint at the launch: keys on the left, mouse on the right, hidden by the first W
+- The chosen camera is remembered between flights
+- F12 saves a screenshot to Pictures/Deltaplan
+- After touchdown any key shows the result at once, R starts a new flight at once
+- In the air R must be held for about a second, so a stray press no longer wipes a long flight
+- Single player: continue on foot after landing, or go back to the launch without resetting the clock
+- Pause: Look around with a free camera while the world is stopped
+- Wait an hour at the launch: time runs 60x faster, clouds and thermals change live
+- Favourite conditions: save place, hour, wind, clouds and glider, start with one click
+
+Display and menus:
+- VSync (on by default) and a frame rate cap 30/60/120/144/unlimited (144 by default)
+- Window mode and resolution in the settings
+- Settings, Flight and the main menu scroll on small windows
+
+Sky and world:
+- Birds in thermals are visible from afar, but no farther than the eye can resolve
+- New thermal signs: rising fluff and circling swallows, only where the air really rises
+- An-2, airliners, an eagle, hot-air balloons, cars and other hang gliders appear in almost every flight
