@@ -72,3 +72,8 @@
 {"t": "2026-10-07T22:33:25", "by": "executor", "task": "QL-1", "ev": "checked", "note": "4/5 contracts/test_qol=ok:2/2; game/=FAIL:162/165 (пропуск 1); FAIL tes…; ui/=ok:102/102; docs=ok:exit 0; qol_md=ok:0"}
 {"t": "2026-10-07T22:34:04", "by": "coordinator", "task": "QL-14", "ev": "created", "note": "Прокрутка «Настройки» и «Полёт…»: проверка в окне и доводка"}
 {"t": "2026-10-07T22:34:48", "by": "coordinator", "task": "QL-14", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-14"}
+{"t": "2026-10-07T22:37:54", "by": "executor", "task": "QL-14", "ev": "reported", "commits": ["485cc523"], "note": "done: Прокрутка «Настройки» и «Полёт…» работает в настоящем окне (Xvfb без масштаба, колесо мыши событием) на 1280×720 и 1024…", "dp_feedback": "Нет команды dp для кадра в окне заданного размера (xvfb-run с экраном нужного размера) — пришлось выдумывать вручную."}
+{"t": "2026-10-07T22:38:30", "by": "executor", "task": "QL-14", "ev": "checked", "note": "4/4 ui/=ok:103/103; menu=ok:23/23; settings=ok:1/1; docs=ok:exit 0"}
+{"t": "2026-10-07T22:38:38", "by": "coordinator", "task": "QL-14", "ev": "accepted", "note": "по отчёту: 4/4; главное меню на 1024×600 — колонка в прокрутке (start_menu.gd — фактический файл главного меню, вне перечня скоупа, принято); tools/shots/scroll_shot — инструмент кадров в окне"}
+{"t": "2026-10-07T22:39:03", "by": "coordinator", "task": "QL-14", "ev": "accepted", "commits": ["59cc21ca"], "note": "4/4 ui/=ok:103/103; menu=ok:23/23; settings=ok:1/1; docs=ok:exit 0"}
+{"t": "2026-10-07T22:39:08", "by": "coordinator", "task": "QL-14", "ev": "merged", "note": "59cc21ca"}
