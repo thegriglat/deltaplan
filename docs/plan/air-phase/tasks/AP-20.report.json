@@ -1,6 +1,6 @@
 {
   "status": "done",
-  "summary": "P11: AirPicardJob — карта ω, заморозка колонн как условие Дирихле, запасное правило, warm_heat, warm_coarse (интерполяция на GPU), late_mean (P12 v2). P12 v4: AirRuntime — domain_case → AirPhaseJob (GPU, порциями) → грубый Пикар 1200 м → Пикар 400 м → WindField, без сети; меню «Расчёт»/«Эвристика»; слой «карта фаз» по F4. P14: гибрид = холодный Пикар по полю, выбранный старт (грубый 1200 м) не хуже холодного, timing.json, сравнение стартов. Итог GPU: 58 тестов, 0 упало, 0 пропущено (dp accept AP-20 --dry: 3/3).",
+  "summary": "P11: AirPicardJob — карта ω, заморозка колонн как условие Дирихле, запасное правило, warm_heat, warm_coarse (интерполяция на GPU), late_mean (P12 v2). P12 v4: AirRuntime — domain_case → AirPhaseJob (GPU, порциями) → грубый Пикар 1200 м → Пикар 400 м → WindField, без сети; меню «Расчёт»/«Эвристика»; слой «карта фаз» по F4. P14: гибрид = холодный Пикар по полю, выбранный старт (грубый 1200 м) не хуже холодного, timing.json, сравнение стартов. Итог GPU: 59 тестов, 0 упало, 0 пропущено (dp accept AP-20 --dry на 8170198e: 3/3). По ревью: при полной заморозке (штиль H) — 0 итераций, поле механизма + сшивка, деление на число свободных клеток защищено; AirRuntime в этом случае не запускает грубый старт.",
   "commits": [
     "040c45e8 P11: ω, заморозка, запасное правило",
     "2aa7dbfb P12: AirRuntime без сети",
@@ -15,12 +15,13 @@
     "8ffc7180, c63c0ff7 старт от грубого Пикара 1200 м (warm_heat, warm_coarse, ядро prolong), карта ω выключена, test_air_warmstart_gpu",
     "4195e470 стыки задач — разными кадрами, предел кадра 130 мс",
     "e7fdcc60 без магических чисел",
-    "acd48c02, 938eef7f, df32babf docs/guide/air-model.md"
+    "acd48c02, 938eef7f, df32babf docs/guide/air-model.md",
+    "587ceb40, 8170198e ревью: полная заморозка без итераций, защита деления, тест всё/половина"
   ],
   "checks": [
     {
       "name": "gpu",
-      "value": "58 тестов, 0 упало, 0 пропущено, exit 0. Через tools/gpu_tests.sh (dp accept) три прогона подряд упали по таймаутам: ночью дисплей выключен, окно с vsync идёт около 1 кадра/с (стена 60 с на 61 кадр). На e7fdcc60 (до docs-коммита) dp accept --dry: 3/3, 58/0",
+      "value": "59 тестов, 0 упало, 0 пропущено, exit 0 (dp accept --dry, 8170198e; gpu_tests.sh из main с --import и --disable-vsync)",
       "pass": true
     },
     {
@@ -57,6 +58,11 @@
       "name": "кадр AirRuntime (Онгудай)",
       "value": "загрузка: кадр max 102 мс, стена 4,07 с (раньше 4,5); пересчёт: 77–97 мс главного потока; предел — 130 мс по факту (оптимизация отложена, решение пользователя 07.10)",
       "pass": true
+    },
+    {
+      "name": "ревью: все колонны заморожены / половина",
+      "value": "всё: 0 итераций, status ok, NaN нет, max|u − механизм| < 1e-4·U после сшивки; половина: сошлось, 1050 итераций (без заморозки 470), div_rms 2,8e-9",
+      "pass": true
     }
   ],
   "not_done": [
@@ -90,9 +96,14 @@
       "where": "время по итерациям против GPU-времени",
       "why": "Выигрыш грубого старта по итерациям с весом клеток (1140 → 793) больше, чем по GPU-времени: мелкая сетка грузит GPU хуже, у задачи постоянные накладные расходы",
       "checked": "warmstart.json: GPU 4,34 → 3,75 с на 6 случаев; на лёгких случаях при 6 м/с грубый старт по GPU дороже холодного (+50–100 мс), на Онгудае 3 м/с — −40 %"
+    },
+    {
+      "where": "заморозка половины области (saddle)",
+      "why": "Сходится, но за 1050 итераций против 470 без заморозки: граница замороженной области (поле механизма — снимок старта) замедляет сходимость",
+      "checked": "status ok, div_rms 2,8e-9; в игре при ветре заморожено 0 колонн, поэтому на время пересчёта это пока не влияет"
     }
   ],
-  "dp_feedback": "(1) dp lock gpu вернул 0 при exit 139 у gpu_tests.sh. (2) gpu_tests.sh не делает --import: после правки .glsl тесты берут старый SPIR-V или «нет SPIR-V». (3) Таймаут dp job --lock считается вместе с ожиданием замка: задание умерло, не начавшись. (4) Вывод dp lock/job — «PID, лог», итоговую строку тестов приходится искать в ~/.cache/deltaplan-jobs; нужен dp job tail <имя> --grep. (5) dp accept считает 0/0 тестов провалом без подсказки, что фильтр ничего не нашёл. (6) tools/gpu_tests.sh без --disable-vsync: при выключенном дисплее окно идёт с частотой около 1 кадра/с, все задачи на кадрах падают по таймауту (тесты окон, Пикара). Добавить --disable-vsync. (7) dp report требует результатов dp accept для текущего HEAD: docs-коммит после зелёного accept заставляет заново гонять GPU.",
+  "dp_feedback": "(1) dp lock gpu вернул 0 при exit 139 у gpu_tests.sh. (2) gpu_tests.sh не делает --import: после правки .glsl тесты берут старый SPIR-V или «нет SPIR-V». (3) Таймаут dp job --lock считается вместе с ожиданием замка: задание умерло, не начавшись. (4) Вывод dp lock/job — «PID, лог», итоговую строку тестов приходится искать в ~/.cache/deltaplan-jobs; нужен dp job tail <имя> --grep. (5) dp accept считает 0/0 тестов провалом без подсказки, что фильтр ничего не нашёл. (7) dp report требует результатов dp accept для текущего HEAD: docs-коммит после зелёного accept заставляет заново гонять GPU.",
   "extra": {
     "api": "AirPicardJob: omega_map, freeze_mask(_mech), freeze_field(_mech), omega_fallback (по умолчанию выкл.), late_from, nonconv_mask/field, warm_heat, warm_coarse; итог omega_fallback_used, omega_switch_iter, frozen_frac, nonconv_fallback, phase_gpu_ms; ядра relax/freeze/rmask/fixrow/prolong. AirRuntime: phase_factory, phase_map, phase_cfg(), nonconv_mask(), coarse_start(); last_info + engine, phase_frac, phase_ms, frozen_frac, omega_fallback_used, nonconv_fallback, picard_ms, coarse, stage_ms. Конфиг: air_model — engine/nn_* удалены, + picard_start = coarse, picard_coarse_factor = 3, hybrid_checks; air_phase.omega.use_map = false, classifier.d_strong_c = 250.",
     "warmstart_iters_sum": {
@@ -105,6 +116,6 @@
       "prev (только для сведения)": 330
     }
   },
-  "t": "2026-10-07T04:20:10",
+  "t": "2026-10-07T04:52:32",
   "by": "executor"
 }
