@@ -46,17 +46,18 @@
       "tests": "controls"
     },
     {
-      "name": "qol_md",
-      "cmd": "grep -cE '^- \\[ \\] Q-(08|09|10|11) ' QoL.md || true",
-      "expect": "num:^(\\d+) ==0"
-    },
-    {
       "name": "docs",
       "cmd": "/home/greg/deltaplan/tools/dp docs check",
       "expect": "exit=0"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[.\\] Q-(08|09|10|11) ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-07T20:23:32"
+  "created": "2026-10-07T20:23:32",
+  "edited": "2026-10-07T21:16:57"
 }
