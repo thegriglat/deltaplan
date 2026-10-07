@@ -69,3 +69,6 @@
 {"t": "2026-10-07T22:07:51", "by": "coordinator", "task": "QL-9", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-9"}
 {"t": "2026-10-07T22:20:20", "by": "main", "task": "QL-1", "ev": "reported", "commits": ["слияние"], "note": "done: Доработка по ревью: итог не теряется на паузе в одиночной (таймер ожидания стоит на паузе); до подтверждения посадки кл…"}
 {"t": "2026-10-07T22:24:18", "by": "coordinator", "task": "QL-11", "ev": "created", "note": "«Подождать час» на земле (Q-17)"}
+{"t": "2026-10-07T22:33:25", "by": "executor", "task": "QL-1", "ev": "checked", "note": "4/5 contracts/test_qol=ok:2/2; game/=FAIL:162/165 (пропуск 1); FAIL tes…; ui/=ok:102/102; docs=ok:exit 0; qol_md=ok:0"}
+{"t": "2026-10-07T22:34:04", "by": "coordinator", "task": "QL-14", "ev": "created", "note": "Прокрутка «Настройки» и «Полёт…»: проверка в окне и доводка"}
+{"t": "2026-10-07T22:34:48", "by": "coordinator", "task": "QL-14", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-14"}
