@@ -1,6 +1,6 @@
 ---
 type: "research"
-status: "cancelled"
+status: "postponed"
 module: "qol"
 updated: "2026-10-07"
 summary: "QL-6: замер времени «Рассчитываем ветер» после air-phase — прервано, отменено решением пользователя 07.10 (Q-07 отложен); 20 из 32 строк"
