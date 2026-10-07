@@ -1,1 +1,9 @@
 {"t": "2026-10-07T20:14:21", "by": "user", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-07T20:23:20", "by": "coordinator", "task": "QL-1", "ev": "created", "note": "Цикл «упал — снова»: Q-01…Q-05"}
+{"t": "2026-10-07T20:23:32", "by": "coordinator", "task": "QL-3", "ev": "created", "note": "Мелочи старта: Q-08, Q-09, Q-10, Q-11"}
+{"t": "2026-10-07T20:23:32", "by": "coordinator", "task": "QL-5", "ev": "created", "note": "Замер: почему не видно птиц, сколько признаков термика (Q-20, Q-28)"}
+{"t": "2026-10-07T20:23:32", "by": "coordinator", "task": "QL-6", "ev": "created", "note": "Замер: сколько ждать «Рассчитываем ветер» после air-phase (Q-07)"}
+{"t": "2026-10-07T20:24:45", "by": "coordinator", "task": "QL-1", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-1"}
+{"t": "2026-10-07T20:24:45", "by": "coordinator", "task": "QL-3", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-qol-QL-3"}
+{"t": "2026-10-07T20:24:45", "by": "coordinator", "task": "QL-5", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-qol-QL-5"}
+{"t": "2026-10-07T20:24:46", "by": "coordinator", "task": "QL-6", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-qol-QL-6"}

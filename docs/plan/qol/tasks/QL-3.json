@@ -1,0 +1,62 @@
+{
+  "id": "QL-3",
+  "module": "qol",
+  "type": "dp-engineer",
+  "title": "Мелочи старта: Q-08, Q-09, Q-10, Q-11",
+  "goal": "Подсказка клавиш разбега на первом полёте (Q-08), запоминать камеру (Q-09), клавиши свободной камеры на экране «Управление» (Q-10), снимок экрана по F12 (Q-11).",
+  "plan_ref": "QL-3",
+  "contracts": [],
+  "copy": "~/deltaplan-qol-QL-3",
+  "branch": "qol/QL-3",
+  "base": "feature/qol",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/game/game.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/game/user_settings.gd",
+    "scripts/ui/controls_screen.gd",
+    "scenes/ui/controls_screen.tscn",
+    "configs/controls.json",
+    "configs/ui.json",
+    "configs/camera.json",
+    "locale/",
+    "tests/game/",
+    "tests/ui/",
+    "docs/guide/",
+    "QoL.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "scripts/ui/result_screen.gd",
+    "scripts/ui/pause_menu.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "game/",
+      "tests": "game/"
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "controls",
+      "tests": "controls"
+    },
+    {
+      "name": "qol_md",
+      "cmd": "grep -cE '^- \\[ \\] Q-(08|09|10|11) ' QoL.md || true",
+      "expect": "num:^(\\d+) ==0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-07T20:23:32"
+}
