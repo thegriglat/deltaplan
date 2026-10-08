@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-07"
+updated: "2026-10-08"
 summary: "Все исследования docs/research и tools/research: тема, вывод, данные, где применено."
 related: []
 generated: true
@@ -14,6 +14,7 @@ generated: true
 
 | тема | вывод | данные | применено | путь |
 |---|---|---|---|---|
+| Профиль кадра и настройки рендера (PF-1) | GPU-кадр на medium/high на 56–93 % — облака (compute-raymarch в CompositorEffect), цена ∝ числу пикселей буфера облаков; без облаков кадр medium 5–6 мс, из них трава 2 мс (36 %), рельеф 1,6 мс. Рывки: AirThermals.build на главном потоке 2,1–2,9 с при каждой смене поля воздуха (старт полёта, конец пе | docs/perf/data/pf1_run1.tar.gz (jsonl замеров + report.md); воспроизведение — tools/bench/frame_profile.sh | не применено (только замеры и предложения); tools/bench/probe.gd — VSync снимается для замера | [docs/perf/frame_profile.md](/docs/perf/frame_profile.md) |
 | Чувствительность модели воздуха: отбор по Моррису (все параметры и переключатели) | Модель мягкая по переключателям и α, жёсткая от данных и вырожденная (λ/h ≈ α ≈ порядок переноса ≈ local_k); найдены ошибки pr_t, τ-выхолаживания, closure=const. |  | исправлено в волне А (air.py и GPU-решатель); см. docs/registry/findings.md | [docs/research/air-model-sensitivity.md](/docs/research/air-model-sensitivity.md) |
 | Калибровка модели воздуха по схеме Professor (AM-09) | Калибровка модели воздуха по схеме Professor (AM-09) — Корреляция λ/h–z0 равна 0 (ρ = −0,00). |  | параметры AirCase (λ/h, пороги lee.field_*); см. docs/registry/findings.md | [docs/research/air-model-tune.md](/docs/research/air-model-tune.md) |
 | Размер поля воздуха и кеш вариантов запуска | Размер поля воздуха и кеш вариантов запуска — Вопрос пользователя: сколько весит рассчитанное поле воздуха (GPU-модель scripts/atmosphere/air_model/) и можно ли при сохранении места заранее посчитать поля для всех вариантов запуска и положить их в кеш, чтобы загрузка была … |  | не применено: кеш поля и слабый ветер — в TODO | [docs/research/air_field_cache.md](/docs/research/air_field_cache.md) |
@@ -87,6 +88,8 @@ generated: true
 | Моррис: чувствительность модели воздуха | Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. | tools/research/morris/ |  | [tools/research/morris/README.md](/tools/research/morris/README.md) |
 | Эксперимент: состав OsmAnd OBF региона | Эксперимент: состав OsmAnd OBF региона — К документу docs/plan/offline_world_data.md (раздел «Почему не OsmAnd OBF»). | tools/research/obf_region/ |  | [tools/research/obf_region/README.md](/tools/research/obf_region/README.md) |
 | osm_pack — замер компактного офлайн-пакета (OSM-вектор + рельеф + покров), Словения | osm_pack — замер компактного офлайн-пакета (OSM-вектор + рельеф + покров), Словения — Исследование к плану docs/plan/offline_world_data.md (этап 0). | tools/research/osm_pack/ |  | [tools/research/osm_pack/README.md](/tools/research/osm_pack/README.md) |
+| QL-6: замер времени загрузки поля (прервано) | не сделан; частичные числа в table.csv | table.csv, table.json, logs/ | не применено | [tools/research/qol_load/README.md](/tools/research/qol_load/README.md) |
+| QL-5: почему не видно птиц, сколько признаков термика (Q-20, Q-28) | Птицы есть всегда (3 стаи, 8–13 птиц), но на дальности 1,1 км (медиана) модель 1,6 м даёт ~1,4 px; ≥ 2 px — 11–24 % птице-секунд, ≥ 5 px — 0–1,5 %. Главная причина — размер/дальность, не отсутствие термиков. | локально, не в git: tools/research/qol_signs/out/ (воспроизводится скриптами) |  | [tools/research/qol_signs/README.md](/tools/research/qol_signs/README.md) |
 | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json. | tools/research/recal/ |  | [tools/research/recal/README.md](/tools/research/recal/README.md) |
 | ST-1: прототип GodotSteam (GDExtension) вне игры | см. docs/research/steam_godotsteam.md | tools/research/steam/ | — | [tools/research/steam/README.md](/tools/research/steam/README.md) |
 | steam_license: аудит лицензий сборки (SA-1) | Команды воспроизведения аудита лицензий сборки SA-1: настоящий экспорт, разбор PCK, сверка с эмуляцией, сводки. | tools/research/steam_license/ |  | [tools/research/steam_license/README.md](/tools/research/steam_license/README.md) |
