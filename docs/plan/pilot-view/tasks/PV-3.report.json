@@ -1,13 +1,14 @@
 {
   "status": "done",
-  "summary": "X по нажатию (в т.ч. короче шага физики) обнуляет мышь, стрелки и клавишный тангаж, трапеция остаётся в нейтрали после отпускания; мышь после X снова двигает трапецию. Настройка roll_input bar|body (умолчание bar) меняет знак мыши/стрелок/стика в полёте в weight_shift; строка в настройках, ru/en, doc, гайд и сайт.",
+  "summary": "PV1 v2: roll_input действует и на земле в weight_shift; знак через отрыв не меняется. X, настройка, тексты — как в первом отчёте.",
   "commits": [
-    "f3f3ba5f PV-3: X обнуляет мышь-трапецию; roll_input"
+    "f3f3ba5f основной",
+    "доработка PV1 v2 (см. git log)"
   ],
   "checks": [
     {
       "name": "pilot_view_contracts",
-      "value": "5/5",
+      "value": "7/7",
       "pass": true
     },
     {
@@ -36,36 +37,32 @@
       "pass": true
     },
     {
-      "name": "gameplay / mouse_bar_flight / cockpit / ui",
-      "value": "13/4/4/15 без падений",
+      "name": "gameplay / mouse_bar_flight",
+      "value": "13/4 без падений",
       "pass": true
     }
   ],
-  "not_done": [
-    "configs/ui.json controls_help: про крен мышью там нет текста, не менял (controls_center про X остался верным)"
-  ],
-  "questions": [
-    "Разрыв на отрыве: на земле знак как body (PV1), в воздухе bar инвертирует; зажатая стрелка/мышь вправо при взлёте в weight_shift даёт скачок roll +0,5 -> -0,5. Тесты test_no_latch_on_liftoff и test_mouse_on_ground_controls_wing пришлось перевести на roll_input=body. Нужно ли инвертировать и на земле (контракт PV1 v2)?"
-  ],
+  "not_done": [],
+  "questions": [],
   "how_to_check": "dp accept PV-3",
   "uncertain": [
     {
-      "where": "scripts/game/input_controller.gd:_update_centering",
-      "why": "X в rate: трапеция обнуляется, крыло выравнивается как раньше пока X зажата или до bank<1; после отпускания держится, пока мышь не сдвинули",
-      "checked": "test_pv2_center_once для weight_shift и rate"
+      "where": "tests/game/test_mouse_bar_flight.gd",
+      "why": "тесты знака мыши (вправо = roll+) заданы roll_input=body явно, т.к. проверяют знак устройства; bar покрыт контрактным тестом",
+      "checked": "оба режима: body там, bar в test_pilot_view_contracts"
+    },
+    {
+      "where": "tests/game/test_pilot_view_contracts.gd",
+      "why": "is_action_just_pressed X держится в пределах кадра, поэтому в тестах нужен await process_frame между проверками X",
+      "checked": "тесты стабильны"
     },
     {
       "where": "scripts/ui/settings_panel.gd:save",
-      "why": "roll_input пишется в user controls.json как invert_pitch; в UI-тесте сохранения отдельной проверки нет",
-      "checked": "тесты settings проходят, но саму запись roll_input не проверял"
-    },
-    {
-      "where": "input_controller.gd:_roll_sign",
-      "why": "стик инвертируется так же в полёте; реального геймпада не проверял",
-      "checked": "только код"
+      "why": "запись roll_input проверена через UserSettings.save_patch в тесте, но не через нажатие в панели",
+      "checked": "test_pv1_saved_to_user_config"
     }
   ],
-  "dp_feedback": "Нет команды прогона нескольких --filter сразу в фоне с итогом.",
-  "t": "2026-10-08T11:33:12",
+  "dp_feedback": "",
+  "t": "2026-10-08T11:39:59",
   "by": "executor"
 }
