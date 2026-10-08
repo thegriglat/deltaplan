@@ -1,0 +1,75 @@
+{
+  "id": "PF-5",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Воздух без замираний: AirThermals.build в рабочем потоке, пересчёт мелкими порциями",
+  "goal": "Убрать замирания картинки 2–3,7 с при каждой смене поля воздуха (сборка источников термиков на главном потоке) и снизить прибавку к кадру во время пересчёта поля в полёте.",
+  "plan_ref": "PF-5. Воздух без замираний",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": 1,
+      "ref": "docs/contracts/perf.md"
+    }
+  ],
+  "copy": "~/deltaplan-perf-PF-5",
+  "branch": "perf/PF-5",
+  "base": "feature/perf",
+  "scope": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "tests/contracts/test_perf_contracts.gd",
+    "tests/atmosphere/test_air_thermals.gd",
+    "tests/atmosphere/test_air_runtime.gd"
+  ],
+  "dont_touch": [
+    "физика термиков и поля (числа источников, решатель) — результат сборки байт в байт тот же",
+    "scripts/atmosphere/atmosphere.gd refresh_now и cloud_layer.gd — это PF-8",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tests_air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "tests_air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "tests_atmosphere",
+      "tests": "test_atmosphere"
+    },
+    {
+      "name": "tests_determinism",
+      "tests": "determinism"
+    },
+    {
+      "name": "tests_contract",
+      "tests": "perf_contracts"
+    },
+    {
+      "name": "fly_run",
+      "cmd": "rm -rf build/dp/PF-5/f; MARKS= /home/greg/deltaplan/tools/dp lock gpu PF-5 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-5/f medium ongudai --sample=2 >/dev/null 2>&1; ls build/dp/PF-5/f/medium_ongudai_fly.jsonl",
+      "timeout": 3600
+    },
+    {
+      "name": "hitch_after2s",
+      "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-5/f/medium_ongudai_fly.jsonl')];h=[x['ms'] for r in R if r.get('exp')=='_hitches' for x in r['hitches'] if x['sim_t']>2.0];print('hitch=%.1f'%max(h+[0.0]))\"",
+      "expect": "num:hitch=([0-9.]+) <=300"
+    },
+    {
+      "name": "air_recompute_delta",
+      "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-5/f/medium_ongudai_fly.jsonl')];b=[r['frame_ms'] for r in R if r.get('exp')=='air_busy'];i=[r['frame_ms'] for r in R if r.get('exp')=='air_idle'];print('busy=%d'%len(b));print('airdelta=%.2f'%(sum(b)/len(b)-i[0]))\"",
+      "expect": "num:airdelta=([-0-9.]+) <=4"
+    }
+  ],
+  "report_extra": [
+    "hitch_before_after",
+    "air_busy_idle_before_after",
+    "thread_safety"
+  ],
+  "notes": "",
+  "created": "2026-10-08T11:28:47"
+}

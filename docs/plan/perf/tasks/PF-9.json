@@ -1,0 +1,42 @@
+{
+  "id": "PF-9",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Трава: LOD кольцами",
+  "goal": "Трава — 36–42 % GPU-кадра без облаков (~5 млн треугольников, редение вдали только в шейдере). Дальние кольца реже и проще — та же густота у пилота вблизи.",
+  "plan_ref": "PF-9. Трава: LOD кольцами",
+  "contracts": [],
+  "copy": "~/deltaplan-perf-PF-9",
+  "branch": "perf/PF-9",
+  "base": "feature/perf",
+  "scope": [
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/grass.gdshader",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_field.gd"
+  ],
+  "dont_touch": [
+    "рельеф и его шейдер",
+    "configs/game.json (пресеты)",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tests_grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_cost",
+      "cmd": "rm -rf build/dp/PF-9/g; MARKS=2:cockpit SKIP_FLY=1 TAG_SUFFIX=_nc /home/greg/deltaplan/tools/dp lock gpu PF-9 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-9/g medium ongudai --sample=2 --keep=nocloudfx --exps=base,nograss >/dev/null 2>&1; python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-9/g/medium_ongudai_2_nc.jsonl')];g={r['exp']:r['gpu_ms'] for r in R if r.get('exp') in ('base','nograss')};print('base=%.2f'%g['base']);print('grass=%.2f'%(g['base']-g['nograss']))\"",
+      "expect": "num:grass=([-0-9.]+) <=1.2",
+      "timeout": 2400
+    }
+  ],
+  "report_extra": [
+    "grass_ms_before_after",
+    "primitives_before_after",
+    "screenshots"
+  ],
+  "notes": "",
+  "created": "2026-10-08T11:28:47"
+}

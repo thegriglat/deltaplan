@@ -5,3 +5,9 @@
 {"t": "2026-10-08T03:44:42", "by": "coordinator", "task": "PF-1", "ev": "accepted", "note": "по отчёту: замеры, код игры не тронут"}
 {"t": "2026-10-08T11:21:44", "by": "coordinator", "task": null, "ev": "note", "note": "шлюз: план PF-2…PF-10 и контракты PF-К1…К4 готовы (a56355c1), ждём одобрения и ответа на Q1 (автовыбор пресета); исполнители не запущены. Продолжить: волна 0 — PF-2, PF-3 через start-to-do"}
 {"t": "2026-10-08T11:21:44", "by": "coordinator", "task": null, "ev": "note", "note": "dp: нет — dp plan/docs check/decide --ask хватило; мелочь: docs check мог бы подсказывать формат contracts (JSON-строки в кавычках) в тексте ошибки"}
+{"t": "2026-10-08T11:28:47", "by": "coordinator", "task": "PF-4", "ev": "created", "note": "Облака: дешевле по конфигу и предел пикселей буфера"}
+{"t": "2026-10-08T11:28:47", "by": "coordinator", "task": "PF-5", "ev": "created", "note": "Воздух без замираний: AirThermals.build в рабочем потоке, пересчёт мелкими порциями"}
+{"t": "2026-10-08T11:28:47", "by": "coordinator", "task": "PF-9", "ev": "created", "note": "Трава: LOD кольцами"}
+{"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-4", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-4"}
+{"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-5", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-5"}
+{"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-9", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-9"}
