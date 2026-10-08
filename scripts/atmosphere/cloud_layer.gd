@@ -27,6 +27,7 @@ var _sj_us := 0
 var _sj_shown: Dictionary = {}
 var _sj_keys: Array = []
 var _sj_cand: Array = []
+var _sj_drop: Dictionary = {}
 ## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
 var model: CloudModel
 ## Выбор без памяти о кадрах (только сетевая игра, ставит NetFlight): набор облаков и их
@@ -561,10 +562,22 @@ func _select_pump() -> void:
 		if Time.get_ticks_usec() >= dl:
 			_sj_us += Time.get_ticks_usec() - t0
 			return
-		_apply_selection(model.select_finish(_sj_cand, _sj_shown), _sj_t, _sj_eye)
+		_sj_drop = model.drop_begin(CloudModel.sort_by_score(_sj_cand))
 		_sj_cand = []
 		_sj_ph = 2
 	if _sj_ph == 2:
+		if not model.drop_step(_sj_drop, dl):
+			_sj_us += Time.get_ticks_usec() - t0
+			return
+		_sj_ph = 3
+	if _sj_ph == 3:
+		if Time.get_ticks_usec() >= dl:
+			_sj_us += Time.get_ticks_usec() - t0
+			return
+		_apply_selection(model.select_tail(_sj_drop.out, _sj_shown), _sj_t, _sj_eye)
+		_sj_drop = {}
+		_sj_ph = 4
+	if _sj_ph == 4:
 		if Time.get_ticks_usec() >= dl:
 			_sj_us += Time.get_ticks_usec() - t0
 			return

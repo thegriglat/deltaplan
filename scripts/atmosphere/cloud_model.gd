@@ -183,12 +183,64 @@ func select_entry(th: AtmoThermal, t: float, eye: Vector3, shown: Dictionary) ->
 
 ## Остаток выбора по набранным кандидатам: слияние наложившихся, обрезка по лимиту, порядок по дальности.
 func select_finish(cand: Array, shown: Dictionary = {}) -> Array:
+	var st := drop_begin(sort_by_score(cand))
+	drop_step(st, 1 << 60)
+	return select_tail(st.out, shown)
+
+
+## Кандидаты по очкам убыванию, при равных — по id (родная сортировка по ключу, без вызовов).
+static func sort_by_score(cand: Array) -> Array:
+	var keys: Array = []
+	for i in cand.size():
+		var e: Array = cand[i]
+		keys.append([-float(e[5]), (e[1] as AtmoThermal).id, i])
+	keys.sort()
+	var out: Array = []
+	out.resize(cand.size())
+	for j in keys.size():
+		out[j] = cand[keys[j][2]]
+	return out
+
+
+## Слияние наложившихся порциями (drop_begin / drop_step): состояние — словарь.
+func drop_begin(sorted_cand: Array) -> Dictionary:
+	return {"cand": sorted_cand, "i": 0, "grid": {}, "out": []}
+
+
+## true — просмотрены все кандидаты; работает до момента dl (мкс, Time.get_ticks_usec).
+func drop_step(st: Dictionary, dl: int) -> bool:
+	var k := float(_cfg.merge_overlap)
+	var cell := float(_cfg.width_max_m)
+	var cand: Array = st.cand
+	var grid: Dictionary = st.grid
+	var out: Array = st.out
+	var i: int = st.i
+	var n := cand.size()
+	while i < n:
+		var e: Array = cand[i]
+		i += 1
+		var c: Vector2 = e[3]
+		var gx := floori(c.x / cell)
+		var gz := floori(c.y / cell)
+		if not _overlaps(grid, gx, gz, e, k):
+			out.append(e)
+			var key := Vector2i(gx, gz)
+			if not grid.has(key):
+				grid[key] = []
+			grid[key].append(e)
+		if (i & 15) == 0 and Time.get_ticks_usec() >= dl:
+			break
+	st.i = i
+	return i >= n
+
+
+## Обрезка по лимиту и порядок по дальности.
+func select_tail(list: Array, shown: Dictionary) -> Array:
 	var hyst := float(_cfg.get("select_hysteresis", 1.25))
-	cand.sort_custom(_by_score)
-	var list := _drop_overlaps(cand)
 	var cap := int(_cfg.max_clouds)
 	if list.size() > cap:
 		# Обрезка по лимиту: нарисованные «ближе» в hyst раз — облако у границы не мигает.
+		list = list.duplicate()
 		list.sort_custom(
 			func(a: Array, b: Array) -> bool:
 				return _cap_key(a, shown, hyst) < _cap_key(b, shown, hyst)
