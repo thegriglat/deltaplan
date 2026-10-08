@@ -49,8 +49,8 @@ static func _roll_right(mode: String, roll_input: String, kind: String) -> float
 	return r
 
 
-func test_pv1_default_is_bar() -> void:
-	check(String(Config.get_config("controls").get("roll_input", "")) == "bar", "PV1: умолчание bar")
+func test_pv1_default_is_body() -> void:
+	check(String(Config.get_config("controls").get("roll_input", "")) == "body", "PV1: умолчание body")
 	check(Config.get_config("controls").has("roll_input_doc"), "PV1: roll_input_doc")
 
 

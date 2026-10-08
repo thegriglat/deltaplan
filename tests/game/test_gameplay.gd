@@ -226,7 +226,7 @@ func test_no_latch_on_liftoff() -> void:
 	print("    отрыв: Δpitch %.4f, Δroll %.4f за шаг; roll после %.2f; фаза %s %s, крен %.1f°" % [dp, dr, ic.control.roll, tt.phase, game.glider.model.takeoff_failure, tt.bank_deg])
 	check(flew, "взлетел разбегом Shift")
 	check(dp < 0.02 and dr < 0.02, "на отрыве трапеция без скачка: %.4f / %.4f" % [dp, dr])
-	check(ic.control.roll < -0.05, "зажатая клавиша крена действует и после отрыва (PV1 v2: bar, вправо = roll −): %.2f" % ic.control.roll)
+	check(ic.control.roll > 0.05, "зажатая клавиша крена действует и после отрыва (PV1 v3: body по умолчанию, вправо = roll +): %.2f" % ic.control.roll)
 	check(not ic.has_method("is_latched"), "защёлки нет")
 	await _close(main)
 
