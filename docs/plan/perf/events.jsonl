@@ -16,3 +16,5 @@
 {"t": "2026-10-08T11:37:51", "by": "executor", "task": "PF-11", "ev": "reported", "commits": ["03d73088", "uid"], "note": "done: Автовыбор включён: detect(имя, тип) — чистая функция; встроенная/программная (тип) или имя из списка (+Apple) -> low, и…", "dp_feedback": "нет"}
 {"t": "2026-10-08T11:38:07", "by": "executor", "task": "PF-11", "ev": "checked", "note": "3/3 graphics=ok:6/6; render_scale=ok:2/2; settings=ok:1/1"}
 {"t": "2026-10-08T11:38:15", "by": "coordinator", "task": "PF-11", "ev": "accepted", "note": "по отчёту: тесты 3/3; uncertain — Intel Arc/Vega 56 по подстроке тоже low, принято (малая аудитория)"}
+{"t": "2026-10-08T11:38:24", "by": "coordinator", "task": "PF-11", "ev": "accepted", "commits": ["c5408fa7"], "note": "3/3 graphics=ok:6/6; render_scale=ok:2/2; settings=ok:1/1"}
+{"t": "2026-10-08T11:38:35", "by": "coordinator", "task": "PF-11", "ev": "merged", "note": "c5408fa7"}
