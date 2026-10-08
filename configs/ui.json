@@ -72,10 +72,6 @@
       "text": "controls_center"
     },
     {
-      "action": "look_instrument",
-      "text": "controls_glance"
-    },
-    {
       "mouse": true,
       "text": "controls_mouse_bar"
     },

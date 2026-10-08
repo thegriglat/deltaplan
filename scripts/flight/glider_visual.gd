@@ -743,12 +743,13 @@ func _fallback_frame() -> Node3D:
 	for side in [-1, 1]:
 		_add_marker(frame, "BarGripL" if side < 0 else "BarGripR",
 			bar + w * (side * gu) + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * gu * 0.5), 2)))
-	# приборы на хомуте левой стойки, как в build_gliders.py (instrument_upright_t 0,3 /
-	# vario_upright_t 0,42 от штанги к вершине, instrument_inward_m 0,1, instrument_forward_m 0,3); экран (+Z маркера) к глазам
-	for spec in [["InstrumentMount", 0.3], ["VarioMount", 0.42]]:
-		var mount := (bar - w).lerp(top_l, float(spec[1])) + Vector3(0.1, 0, -0.3)
+	# A3.3 v9: приборы на хомуте базовой штанги, как в build_gliders.py (instrument_bar_x_m 0,
+	# vario_bar_x_m −0,17): маркер на оси изогнутой штанги, −Z маркера к глазам, верх экрана вперёд
+	for spec in [["InstrumentMount", 0.0], ["VarioMount", -0.17]]:
+		var u := float(spec[1]) / w.x
+		var mount := bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * u * 0.5), 2))
 		var im := _add_marker(frame, String(spec[0]), mount)
-		im.basis = Basis.looking_at(_head_local() - mount, Vector3.UP, true)
+		im.basis = Basis.looking_at(_head_local() - mount, Vector3.FORWARD)
 	return frame
 
 

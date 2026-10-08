@@ -17,7 +17,6 @@ extends RefCounted
 ##                         по умолчанию 9/12/15/20 — не произвольное время)
 ##   --latlon=<lat>,<lon>  старт с точки на карте (рельеф грузится из сети)
 ##   --look=<рыскание>,<тангаж>   повернуть голову в кабине, ° (для скриншотов)
-##   --glance              держать клавишу «взгляд на прибор»
 ##   --hold-key=<клавиша>[,<с>]  зажать физическую клавишу (имя Godot: A, W…) за <с> (по умолчанию
 ##                         1) до кадра --time в полёте — кадры обзора с клавиш (У2)
 ##   --helmet=<вид>        каска в кабине: none | open | visor | visor_dark (поверх настройки;
@@ -70,7 +69,6 @@ var time_s := 0.0
 var camera := ""
 var open_screen := ""  ## "pause", "settings", "about", "controls", "setup" или ""
 var look := Vector2.ZERO
-var glance := false  ## держать «взгляд на прибор» (скриншоты)
 var hold_key := ""  ## --hold-key: физическая клавиша, зажимаемая перед кадром
 var hold_key_s := 1.0  ## --hold-key: за сколько секунд до кадра зажать, с
 ## Отладочные слои (--debug=perf,wind,thermals) — включить сразу после старта.
@@ -128,8 +126,6 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.autostart = true
 			"autopilot":
 				o.autopilot = true
-			"glance":
-				o.glance = true
 			"hold-key":
 				var hk := val.split(",")
 				o.hold_key = hk[0]
