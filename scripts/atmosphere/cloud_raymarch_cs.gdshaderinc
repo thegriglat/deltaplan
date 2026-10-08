@@ -8,7 +8,7 @@
 // Выход: цвет с премультипликацией + непрозрачность, расстояние до сцены (для апскейла)
 // и средняя глубина облака (для временного накопления).
 
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout(local_size_x = 8, local_size_y = 4, local_size_z = 1) in;
 
 const int MAX_HITS = 8;
 // Облака с перекрытыми по лучу боксами: длина среза (м и доля дальности), запас проходов.
@@ -30,12 +30,17 @@ Cloud cloud_at(int i, vec3 ro, float pix_a) {
 }
 
 void main() {
-	ivec2 px = ivec2(gl_GlobalInvocationID.xy);
+	// Марш по четвертям (PF-7): поток — ячейка 2×2 буфера, луч — в одном её пикселе
+	// (смещение ofs_x, ofs_y меняется по кадрам, обход за 4 кадра); выход — в буфер четвертей.
+	// Остальные три пикселя дособирает cloud_temporal_cs из истории и свежих соседей.
+	ivec2 qx = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 low = ivec2(sizes.xy);
 	ivec2 full = ivec2(sizes.zw);
-	if (px.x >= low.x || px.y >= low.y) {
+	if (qx.x >= (low.x + 1) / 2 || qx.y >= (low.y + 1) / 2) {
 		return;
 	}
+	// На нечётном краю у ячейки может не быть пикселя со смещением — берём крайний.
+	ivec2 px = min(qx * 2 + ivec2(ofs_x, ofs_y), low - 1);
 	vec2 uv = (vec2(px) + 0.5) / vec2(low);
 	// Ближайшая геометрия в блоке полного разрешения — облако не «наползает» на горы.
 	ivec2 f0 = ivec2(vec2(px) * vec2(full) / vec2(low));
@@ -199,7 +204,8 @@ void main() {
 	float cos_t = dot(rd, sun_dir);
 	vec3 fc = fog_color * (1.0 + fog_sun_scatter * pow(max(cos_t, 0.0), 8.0));
 	col = col * (1.0 - fog) + fc * alpha * fog;
-	imageStore(out_cloud, px, vec4(col, alpha));
-	// r — расстояние до сцены (апскейл), g — средняя глубина облака (перепроекция истории).
-	imageStore(out_depth, px, vec4(scene_t, dist, 0.0, 0.0));
+	imageStore(out_cloud, qx, vec4(col, alpha));
+	// r — расстояние до сцены (вес соседей в cloud_temporal_cs), g — средняя глубина облака
+	// (перепроекция истории).
+	imageStore(out_depth, qx, vec4(scene_t, dist, 0.0, 0.0));
 }

@@ -9,7 +9,9 @@ extends Node
 ##     [--air_s=600] [--series=8]
 ## --yaw — поворот от азимута солнца, град; --air_s — сколько секунд прокрутить атмосферу до
 ## заморозки (облака успевают вырасти); --series=N — ещё N кадров подряд с движением камеры
-## (проверка мерцания), <out>/series_<agl>_NN.png.
+## (проверка мерцания), <out>/series_<agl>_NN.png; с --turn=<град/кадр> камера в серии не
+## сдвигается, а поворачивается по рысканию каждый кадр (проверка шлейфа облаков при развороте),
+## кадр серии — каждый 4-й.
 ## Для каждого ракурса печатает, сколько лучей (сетка 320×180) пересекают боксы облаков
 ## больше чем MAX_HITS раз — такие лучи теряли дальние облака до исправления.
 ## --bench=1 — ещё и среднее GPU-время кадра на каждом ракурсе (120 кадров).
@@ -31,6 +33,7 @@ var _pitch := -3.0
 var _air_s := 600.0
 var _series := 0
 var _bench := false
+var _turn := 0.0
 var _main: Node = null
 ## Кадр рисуется в SubViewport постоянного размера: оконный менеджер может ужать окно
 ## (соседние окна), а кадры до/после должны совпадать. Корневое окно 3D не рисует.
@@ -68,6 +71,8 @@ func _ready() -> void:
 				_series = int(kv[1])
 			"bench":
 				_bench = kv[1] == "1"
+			"turn":
+				_turn = float(kv[1])
 	if _out == "":
 		push_error("cloud_cut_shot: нужен --out=")
 		get_tree().quit(1)
@@ -96,13 +101,9 @@ func _run() -> void:
 	_main = main
 	add_child(main)
 	var game: Game = main.get_node("Game")
-	for i in 600:
-		if game.settings != null:
-			break
+	# Мир за меню: Game.settings теперь появляется только в start() — просто дать меню подняться.
+	for i in 60:
 		await get_tree().process_frame
-	if game.settings == null:
-		_fail("мир за меню не загрузился")
-		return
 	var s := FlightSettings.defaults()
 	s.location_id = _location
 	s.site_id = ""
@@ -164,6 +165,14 @@ func _run() -> void:
 		await _shoot("%s/cloud_%d.png" % [_out, int(agl)])
 		if _bench:
 			await _measure(int(agl))
+		if _turn != 0.0:
+			for k in _series * 4:
+				var a := deg_to_rad(_turn * (k + 1))
+				_place(cam, p, look.rotated(Vector3.UP, a))
+				await RenderingServer.frame_post_draw
+				if k % 4 == 3:
+					await _shoot("%s/turn_%d_%02d.png" % [_out, int(agl), k / 4], 0)
+			continue
 		for k in _series:
 			var q := p + dir.cross(Vector3.UP) * 15.0 * (k + 1)
 			_place(cam, q, look)
