@@ -28,6 +28,7 @@ func check(cond: bool, msg: String = "") -> void:
 func test_cockpit_view_by_head_angle() -> void:
 	for wing in WINGS:
 		var main := await _fly(wing)
+		_use_eye_mode("eyes")  # проверки A3.3 — для камеры в глазах (вариант А)
 		if main == null:
 			continue
 		var game: Game = main.get_node("Game")
@@ -80,6 +81,7 @@ func test_cockpit_view_by_head_angle() -> void:
 func test_trapezoid_and_telltales() -> void:
 	for wing in ["apogee", "training", "sport", "laminar"]:
 		var main := await _fly(wing)
+		_use_eye_mode("eyes")  # проверки A3.3 — для камеры в глазах (вариант А)
 		if main == null:
 			continue
 		var game: Game = main.get_node("Game")
@@ -130,7 +132,7 @@ func test_bar_center_and_nose_cables_v8() -> void:
 	check(float(cc.cockpit.look_down_deg) == 10.0, "взгляд по умолчанию 10° вниз")
 	var off: Array = cc.cockpit.offset_m
 	check(float(off[0]) == 0.0 and float(off[1]) == 0.0 and float(off[2]) == 0.0, "cockpit.offset_m = 0")
-	check(String(cc.cockpit.eye_mode) == "eyes", "камера по умолчанию — глаза")
+	check(String(cc.cockpit.eye_mode) == "back_hands", "камера по умолчанию — сзади, видны руки (Б1)")
 	for wing in ["apogee", "training", "sport", "laminar", "ww_sport3", "bautek_kite", "condor_crex3"]:
 		var main := await _fly(wing)
 		if main == null:
@@ -142,6 +144,7 @@ func test_bar_center_and_nose_cables_v8() -> void:
 		_look(game, 0.0, 0.0)
 		var bar := game.glider.get_marker("BaseBar").global_position
 		var a_bar := _axis_angle(cam, bar)
+		var bar_in_now := _in_view(cam, bar)
 		var cables := _nose_cable_points(v)
 		var best := 180.0
 		var n_in := 0
@@ -160,10 +163,98 @@ func test_bar_center_and_nose_cables_v8() -> void:
 				"         %s v8: взгляд прямо (10° вниз, FOV 90): центр штанги %.1f° от оси (%s), носовые тросы: ближайшая точка %.1f° от оси, в кадре %d из %d точек; "
 				+ "центр штанги в кадре при наклоне головы вниз %.0f° от горизонта"
 			)
-			% [wing, a_bar, "в кадре" if _in_view(cam, bar) else "вне кадра", best, n_in, cables.size(), down_need]
+			% [wing, a_bar, "в кадре" if bar_in_now else "вне кадра", best, n_in, cables.size(), down_need]
 		)
+		if wing in ["apogee", "training"]:
+			check(bar_in_now, "%s: при взгляде по умолчанию центр штанги в кадре (%.1f° от оси)" % [wing, a_bar])
 		check(down_need > 0.0 and down_need <= 90.0, "%s: центр штанги в кадре при наклоне головы ≤ 90° (%.0f)" % [wing, down_need])
 		await _finish(main)
+
+
+## Перебор камеры (A3.3 v8, запрос координатора): точка камеры (глаза / между плечами) × взгляд по
+## умолчанию 0…20° вниз × FOV 75/90/100 → угол центра штанги от оси и виден ли он в кадре — на
+## разбеге (анимация run) и в полёте лёжа (prone). Только печать (таблица в отчёт); горизонт
+## впереди в кадре при L < FOV/2 (при всех этих сочетаниях).
+func test_camera_sweep_v8() -> void:
+	for wing in ["apogee", "training"]:
+		var main: Node = MAIN_SCENE.instantiate()
+		main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart", "--autopilot", "--wing=" + wing])))
+		add_child(main)
+		var game: Game = main.get_node("Game")
+		for i in 600:
+			if main.get("state") == 2:
+				break
+			await get_tree().process_frame
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		game.camera.set_mode("cockpit")
+		var done_run := false
+		var air := 0.0
+		for i in int(60.0 / DT):
+			_step(game)
+			var cur: String = game.get("_animator").current()
+			if not done_run and cur == "run" and game.glider.phase() != "flying":
+				for k in 120:
+					_step(game)
+				_sweep(game, wing, "разбег")
+				done_run = true
+			if game.glider.phase() == "flying":
+				air += DT
+			if air >= MIN_AIR_S and cur == "prone":
+				break
+		check(done_run, "%s: разбег пройден для перебора" % wing)
+		_sweep(game, wing, "полёт")
+		await _finish(main)
+
+
+func _sweep(game: Game, wing: String, stage: String) -> void:
+	var cam := game.camera
+	var cc: Dictionary = Config.get_config("camera").cockpit
+	var old_mode: String = cc.eye_mode
+	var old_down: float = cc.look_down_deg
+	for mode in ["eyes", "between_shoulders"]:
+		for down in [0.0, 5.0, 10.0, 15.0, 20.0]:
+			cc.eye_mode = mode
+			cc.look_down_deg = down
+			game.camera.set_look(0.0, 0.0)
+			for i in 90:
+				_step(game)
+			var bar := game.glider.get_marker("BaseBar").global_position
+			var ang := _axis_angle(cam, bar)
+			var row := ""
+			var old_fov := cam.fov
+			for fov in [75.0, 90.0, 100.0]:
+				cam.fov = fov
+				row += " FOV %.0f: %s;" % [fov, "виден" if _in_view(cam, bar) else "нет"]
+			cam.fov = old_fov
+			print("         [перебор] %s %s камера=%s вниз %.0f°: центр штанги %.1f° от оси;%s" % [wing, stage, mode, down, ang, row])
+	cc.eye_mode = old_mode
+	cc.look_down_deg = old_down
+	# камера назад от глаз (Б1/Б2): смещение (вверх, назад) × FOV → центр штанги, носовые тросы в кадре
+	var old_off: Array = cc.offset_m
+	cc.eye_mode = "eyes"
+	cc.look_down_deg = 10.0
+	for up in [0.0, 0.1]:
+		for back in [0.2, 0.3, 0.4, 0.5, 0.6, 0.8]:
+			cc.offset_m = [0.0, up, back]
+			game.camera.set_look(0.0, 0.0)
+			for i in 90:
+				_step(game)
+			var bar := game.glider.get_marker("BaseBar").global_position
+			var cab := _nose_cable_points(game.glider.visual)
+			var row := ""
+			var old_fov := cam.fov
+			for fov in [75.0, 90.0, 100.0]:
+				cam.fov = fov
+				var n := 0
+				for p in cab:
+					if _in_view(cam, p):
+						n += 1
+				row += " FOV %.0f: штанга %s, тросы %d%%;" % [fov, "да" if _in_view(cam, bar) else "нет", 100 * n / maxi(cab.size(), 1)]
+			cam.fov = old_fov
+			print("         [назад] %s %s вверх %.1f назад %.1f: центр штанги %.1f° от оси;%s" % [wing, stage, up, back, _axis_angle(cam, bar), row])
+	cc.offset_m = old_off
+	cc.eye_mode = old_mode
+	cc.look_down_deg = old_down
 
 
 ## Точки носовых тросов: рёбра ControlFrame/Frame впереди нижних углов трапеции (вдоль курса) и выше них.
@@ -471,7 +562,12 @@ func _min_dist_to_sight(eye: Vector3, target: Vector3, pts: PackedVector3Array) 
 	return best
 
 
+func _use_eye_mode(mode: String) -> void:
+	Config.get_config("camera").cockpit.eye_mode = mode
+
+
 func _finish(main: Node) -> void:
+	_use_eye_mode("back_hands")
 	for a in ["roll_left", "roll_right"]:
 		Input.action_release(a)
 	main.queue_free()
