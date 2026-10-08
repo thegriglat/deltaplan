@@ -11,3 +11,5 @@
 {"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-4", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-4"}
 {"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-5", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-5"}
 {"t": "2026-10-08T11:29:02", "by": "coordinator", "task": "PF-9", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-9"}
+{"t": "2026-10-08T11:36:32", "by": "coordinator", "task": "PF-11", "ev": "created", "note": "Автовыбор «Низкого» пресета на слабом железе при первом запуске"}
+{"t": "2026-10-08T11:36:33", "by": "coordinator", "task": "PF-11", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-11"}
