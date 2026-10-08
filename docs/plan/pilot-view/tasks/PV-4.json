@@ -1,0 +1,81 @@
+{
+  "id": "PV-4",
+  "module": "pilot-view",
+  "type": "dp-engineer",
+  "title": "Подвес 5–7 см над штангой, камера и FOV из кабины",
+  "goal": "Пункты 1–2 отзыва: пилот висит на 0,05–0,07 м над штангой у каждого крыла (длина подвески под крыло), камера в точке глаз без смещения, взгляд 10° вниз, FOV по умолчанию 90°; тесты A3 v8; скриншоты вида из кабины до/после.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A3",
+      "version": "8",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-4",
+  "branch": "pilot-view/PV-4",
+  "base": "feature/pilot-view",
+  "scope": [
+    "configs/pilot.json",
+    "configs/camera.json",
+    "tools/blender/build_pilot.py",
+    "tools/blender/glider_params.json",
+    "scripts/flight/glider_visual.gd",
+    "scripts/game/",
+    "tests/",
+    "tools/research/pilot_view/",
+    "assets/models/pilot*",
+    "scripts/ui/settings_panel.gd",
+    "locale/ui.csv"
+  ],
+  "dont_touch": [
+    "tools/blender/build_gliders.py",
+    "scripts/flight/flight_model.gd",
+    "configs/flight.json"
+  ],
+  "accept": [
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "camera_bar_look",
+      "tests": "camera_bar_look"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -20",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:38:26",
+  "edited": "2026-10-08T11:39:58"
+}
