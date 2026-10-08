@@ -132,7 +132,7 @@ func test_bar_center_and_nose_cables_v8() -> void:
 	check(float(cc.cockpit.look_down_deg) == 10.0, "взгляд по умолчанию 10° вниз")
 	var off: Array = cc.cockpit.offset_m
 	check(float(off[0]) == 0.0 and float(off[1]) == 0.0 and float(off[2]) == 0.0, "cockpit.offset_m = 0")
-	check(String(cc.cockpit.eye_mode) == "back_hands", "камера по умолчанию — сзади, видны руки (Б1)")
+	check(String(cc.cockpit.eye_mode) == "back_hidden", "камера по умолчанию — сзади, без тела и рук (Б2)")
 	for wing in ["apogee", "training", "sport", "laminar", "ww_sport3", "bautek_kite", "condor_crex3"]:
 		var main := await _fly(wing)
 		if main == null:
@@ -579,7 +579,7 @@ func _use_eye_mode(mode: String) -> void:
 
 
 func _finish(main: Node) -> void:
-	_use_eye_mode("back_hands")
+	_use_eye_mode("back_hidden")
 	for a in ["roll_left", "roll_right"]:
 		Input.action_release(a)
 	main.queue_free()

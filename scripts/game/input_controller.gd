@@ -34,7 +34,7 @@ var roll_mode := "rate"
 var run_blocked := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
 ## "body" — тело (вправо = крен вправо). Только в полёте в weight_shift.
-var roll_input := "bar"
+var roll_input := "body"
 
 var _cfg: Dictionary
 var _key_pitch := 0.0  # трапеция по тангажу от клавиш, доля хода (мышь и стик — отдельно)
@@ -55,7 +55,7 @@ func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
 	roll_mode = String(_cfg.get("roll_control_mode", "rate"))
-	roll_input = String(_cfg.get("roll_input", "bar"))
+	roll_input = String(_cfg.get("roll_input", "body"))
 
 
 ## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
