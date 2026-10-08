@@ -12,7 +12,8 @@
   "scope": [
     "docs/perf/frame_profile.md (раздел «После волны исправлений (PF-4…PF-12)», frontmatter conclusion/applied_in)",
     "docs/perf/data/pf10_run1.tar.gz",
-    "tools/bench/frame_profile_report.py (только если нужна таблица сравнения)"
+    "tools/bench/frame_profile_report.py (только если нужна таблица сравнения)",
+    "tools/bench/frame_profile_compare.py"
   ],
   "dont_touch": [
     "код игры, конфиги, шейдеры",
@@ -41,5 +42,6 @@
     "not_verified"
   ],
   "notes": "",
-  "created": "2026-10-08T20:39:32"
+  "created": "2026-10-08T20:39:32",
+  "edited": "2026-10-08T21:29:01"
 }
