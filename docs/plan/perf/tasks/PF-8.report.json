@@ -1,0 +1,76 @@
+{
+  "status": "partial",
+  "summary": "Обновление термиков (Atmosphere.refresh_now) и выбор облаков (CloudLayer._select) переведены на порции по кадрам (бюджет ~3 мс). 1 %-худших в полёте low ongudai: 44–48 -> 20,6–30,3 мс (порог 25 на всех трёх отметках держится не всегда, шум от соседних прогонов); остаток рывков — периодические обходы термиков в dust_devils (0,5 с), thermal_signs и bird_flock (1 с), вне скоупа.",
+  "commits": [
+    "d2b4c4e9 порции: обновление термиков, выбор облаков; air_wait(false); тест PF-К4 v2",
+    "cade6772 слияние облаков порциями, родная сортировка",
+    "e1ada72c применение выбора и гребни волны отдельными кадрами"
+  ],
+  "checks": [
+    {
+      "name": "tests_atmosphere",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "tests_clouds",
+      "value": "27/27",
+      "pass": true
+    },
+    {
+      "name": "tests_thermals",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "tests_determinism",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "tests_contract",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "fly_run_low",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "low_1pct",
+      "value": "p1=30.3 (отметки 27.2/22.7/30.3); другие прогоны: 24.1/20.1/26.3, 26.4/20.6/25.2, 22.7/22.4/25.6",
+      "pass": false
+    },
+    {
+      "name": "low_hitch_after2s",
+      "value": "69.2 мс",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "low_1pct <= 25 на всех отметках стабильно не достигнут: остаток — dust_devils.find (каждые 0,5 с), thermal_signs, bird_flock (1 с) обходят все термики за кадр; вне скоупа PF-8. Порционный выбор для history_free (сеть) не делался (только одиночная игра)."
+  ],
+  "questions": [
+    "Разрешить правки в dust_devils.gd/thermal_signs.gd/bird_flock.gd (такие же порции) отдельной задачей или в PF-8? Правка cloud_model.gd (select_entry/select_finish/drop_*) вне списка скоупа - сделана тонко, поведение то же."
+  ],
+  "how_to_check": "dp accept PF-8 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/cloud_model.gd:select_finish/sort_by_score",
+      "why": "сортировка по очкам теперь родная по ключу [-очки,id]; при точном равенстве очков и id порядок тот же, но sort_custom раньше мог различаться на точных равенствах дальности",
+      "checked": "тест test_sort_and_drop_equal_old: тот же список после слияния; тесты clouds/determinism зелёные"
+    },
+    {
+      "where": "scripts/atmosphere/thermal_field.gd:step_refresh",
+      "why": "между шагами thermals и сетка поиска прежние, подмена целиком; storm/cloud_phys отстают на 1-2 кадра",
+      "checked": "test_refresh_chunked_equals_sync: набор, _tp, sample() те же; до готовности прежние"
+    }
+  ],
+  "dp_feedback": "dp job wait на очереди gpu ждёт десятки минут без индикации места в очереди; dp accept --dry с fly занимает >10 мин, фоновый запуск через dp job start работает. Не хватило режима 'порог рывков' для frame_profile без правки константы.",
+  "p1_before_after": "low ongudai fly 1%-худших, мс: до 44–48; после (4 прогона по 3 отметки) 20,1–30,3; в приёмочном прогоне 27,2/22,7/30,3",
+  "periodic_ms_per_frame": "refresh_now 24–39 мс -> порции <=3 мс/кадр (3-4 кадра); _select 28–43 мс -> порции <=3,6 мс, кроме гребней волны ~5–8 мс отдельным кадром; замер PF8T в игре",
+  "determinism": "tests --filter=determinism 3/3; тест chunked==sync для набора термиков, сетки, sample() и выбора облаков; headless/сеть остаются синхронными (refresh_budget_us=0)",
+  "t": "2026-10-08T17:57:23",
+  "by": "executor"
+}
