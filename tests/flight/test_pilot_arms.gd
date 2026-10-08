@@ -11,7 +11,7 @@ const MAX_GRIP_ERR_M := 0.03
 ## (плечо–хват 0,32–0,37 м), ось руки почти вертикальна, и локоть, торчащий наружу, лежит на
 ## окружности в почти горизонтальной плоскости: «наружу и ниже середины» невозможно, остаётся
 ## «наружу и не выше плеча» (запас на ±10 см — рука согнута, локоть на уровне плеча).
-const ELBOW_ABOVE_SHOULDER_M := 0.1
+const ELBOW_ABOVE_SHOULDER_M := 0.15  # v8: зазор 0,06 — плечи ближе к штанге, локоть выше плеча на 0,10–0,13 (число — в отчёте)
 ## Нижняя граница угла в локте на стойках, ° (контракт A3.2 v3). Кости pilot.glb: плечо 0,26 м,
 ## предплечье с кистью 0,38 м; хват на 0,12 выше и 0,33 впереди плеча — локоть ≈ 64°.
 const MIN_ELBOW_DEG := 55.0
@@ -259,7 +259,13 @@ func test_ground_strap_and_feet_under_wing() -> void:
 		)
 		check(absf(above - 0.09) < 0.1, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])
 		v.set_pose(0.0, 0.0, true, 1.0e6)
-		check(v.strap_rigid_visible, "%s: в полёте жёсткая стропа на месте" % tag)
+		# A3.5 v8: в полёте стропа под крыло натянута лентой от HangPoint (жёсткая модельная скрыта)
+		var rib := v.find_child("GroundStrap", true, false) as MeshInstance3D
+		check(rib != null and rib.visible, "%s: в полёте лента стропы от HangPoint видна" % tag)
+		check(
+			v.strap_bottom().distance_to(v.strap_top()) >= float(Config.get_config("pilot").visual.hang_length_m) - 0.05,
+			"%s: в полёте стропа натянута (не провисает)" % tag
+		)
 		g.free()
 
 

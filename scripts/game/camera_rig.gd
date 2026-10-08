@@ -84,7 +84,8 @@ func set_mode(m: String) -> void:
 	near = float(_cfg.cockpit.near_m) if mode == "cockpit" else float(_cfg.near_m)
 	# Шлем и т. п. вокруг глаз — не рисовать из кабины.
 	var hidden_bit := 1 << (int(_cfg.cockpit.get("hidden_layer", 20)) - 1)
-	cull_mask = (0xFFFFF & ~hidden_bit) if mode == "cockpit" else 0xFFFFF
+	var only_bit := GliderVisual.COCKPIT_ONLY_LAYER
+	cull_mask = (0xFFFFF & ~hidden_bit) if mode == "cockpit" else (0xFFFFF & ~only_bit)
 	_snap = true
 	mode_changed.emit(mode)
 
@@ -272,7 +273,8 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var shake := Basis.IDENTITY
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
 		var jolt := _shake(c)
-		eye = head.global_position + t.basis * (_vec(c.offset_m) + _follow_body(delta, c) + jolt)
+		_apply_body_mode(c)
+		eye = _eye_point(c) + t.basis * (_eye_offset(c) + _follow_body(delta, c) + jolt)
 		var sk: Dictionary = c.get("shake", {})
 		var rot := deg_to_rad(float(sk.get("rotation_deg_per_cm", 0.0))) * 100.0
 		shake = Basis(Vector3.RIGHT, jolt.y * rot) * Basis(Vector3.BACK, -jolt.x * rot)
@@ -301,6 +303,39 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		* Basis(Vector3.UP, look.x)
 		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Точка камеры в кабине (A3.3 v8, camera.json → cockpit.eye_mode): глаза пилота или точка над
+## серединой плечевых суставов на высоте глаз («между плечами»).
+func _eye_point(c: Dictionary) -> Vector3:
+	var em := String(c.get("eye_mode", "eyes"))
+	if em == "between_shoulders":
+		return _between_shoulders()
+	return head.global_position
+
+
+## Смещение камеры от точки: back_* — назад от глаз (cockpit.back_offset_m), иначе offset_m.
+func _eye_offset(c: Dictionary) -> Vector3:
+	return _vec(c.back_offset_m) if String(c.get("eye_mode", "eyes")).begins_with("back_") else _vec(c.offset_m)
+
+
+## Тело пилота в кабине: back_hands (Б1) — только руки, back_hidden (Б2) — ничего, иначе всё.
+func _apply_body_mode(c: Dictionary) -> void:
+	var vis := head.get_parent() as GliderVisual
+	if vis == null:
+		return
+	var em := String(c.get("eye_mode", "eyes"))
+	vis.set_cockpit_body("arms" if em == "back_hands" else "none" if em == "back_hidden" else "full")
+	vis.update_arm_mask()
+
+
+func _between_shoulders() -> Vector3:
+	var vis := head.get_parent() as GliderVisual
+	if vis == null:
+		return head.global_position
+	var m := (vis.shoulder(-1) + vis.shoulder(1)) * 0.5
+	var hl := vis.head_marker.transform.origin
+	return vis.global_transform * Vector3(m.x, hl.y, m.z)
 
 
 ## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,

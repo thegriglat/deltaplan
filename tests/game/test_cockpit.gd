@@ -28,6 +28,7 @@ func check(cond: bool, msg: String = "") -> void:
 func test_cockpit_view_by_head_angle() -> void:
 	for wing in WINGS:
 		var main := await _fly(wing)
+		_use_eye_mode("eyes")  # проверки A3.3 — для камеры в глазах (вариант А)
 		if main == null:
 			continue
 		var game: Game = main.get_node("Game")
@@ -80,6 +81,7 @@ func test_cockpit_view_by_head_angle() -> void:
 func test_trapezoid_and_telltales() -> void:
 	for wing in ["apogee", "training", "sport", "laminar"]:
 		var main := await _fly(wing)
+		_use_eye_mode("eyes")  # проверки A3.3 — для камеры в глазах (вариант А)
 		if main == null:
 			continue
 		var game: Game = main.get_node("Game")
@@ -118,6 +120,161 @@ func test_trapezoid_and_telltales() -> void:
 		check(seen_pitch > 0.0, "%s: обе ленточки в кадре при взгляде вверх ≤ 55° (%.0f)" % [wing, seen_pitch])
 		print("         %s: ленточки в кадре при наклоне головы вверх %.0f°" % [wing, seen_pitch])
 		await _finish(main)
+
+
+## A3.3 v8: камера в глазах без смещения, взгляд 10° вниз, FOV 90° (configs/camera.json). Для
+## каждого крыла (взгляд прямо = по умолчанию): углы от оси до центра штанги и до ближайшей
+## точки носовых тросов, видны ли они в кадре; затем наклон головы вниз (от горизонта), при
+## котором центр штанги в кадре (≤ 90° — предел головы). Все числа — в печать (отчёт).
+func test_bar_center_and_nose_cables_v8() -> void:
+	var cc: Dictionary = Config.get_config("camera")
+	check(float(cc.fov_deg) == 90.0, "fov_deg по умолчанию 90 (%s)" % cc.fov_deg)
+	check(float(cc.cockpit.look_down_deg) == 10.0, "взгляд по умолчанию 10° вниз")
+	var off: Array = cc.cockpit.offset_m
+	check(float(off[0]) == 0.0 and float(off[1]) == 0.0 and float(off[2]) == 0.0, "cockpit.offset_m = 0")
+	check(String(cc.cockpit.eye_mode) == "back_hands", "камера по умолчанию — сзади, видны руки (Б1)")
+	for wing in ["apogee", "training", "sport", "laminar", "ww_sport3", "bautek_kite", "condor_crex3"]:
+		var main := await _fly(wing)
+		if main == null:
+			continue
+		var game: Game = main.get_node("Game")
+		var v := game.glider.visual
+		var cam := game.camera
+		check(is_equal_approx(cam.fov, 90.0), "%s: FOV камеры 90" % wing)
+		_look(game, 0.0, 0.0)
+		var bar := game.glider.get_marker("BaseBar").global_position
+		var a_bar := _axis_angle(cam, bar)
+		var bar_in_now := _in_view(cam, bar)
+		var cables := _nose_cable_points(v)
+		var best := 180.0
+		var n_in := 0
+		for p in cables:
+			best = minf(best, _axis_angle(cam, p))
+			if _in_view(cam, p):
+				n_in += 1
+		var down_need := -1.0
+		for d in range(0, 91, 1):
+			_look_fast(game, -float(d))
+			if _in_view(cam, game.glider.get_marker("BaseBar").global_position):
+				down_need = 10.0 + d
+				break
+		print(
+			(
+				"         %s v8: взгляд прямо (10° вниз, FOV 90): центр штанги %.1f° от оси (%s), носовые тросы: ближайшая точка %.1f° от оси, в кадре %d из %d точек; "
+				+ "центр штанги в кадре при наклоне головы вниз %.0f° от горизонта"
+			)
+			% [wing, a_bar, "в кадре" if bar_in_now else "вне кадра", best, n_in, cables.size(), down_need]
+		)
+		if wing in ["apogee", "training"]:
+			check(bar_in_now, "%s: при взгляде по умолчанию центр штанги в кадре (%.1f° от оси)" % [wing, a_bar])
+		check(down_need > 0.0 and down_need <= 90.0, "%s: центр штанги в кадре при наклоне головы ≤ 90° (%.0f)" % [wing, down_need])
+		await _finish(main)
+
+
+## Перебор камеры (A3.3 v8, запрос координатора): точка камеры (глаза / между плечами) × взгляд по
+## умолчанию 0…20° вниз × FOV 75/90/100 → угол центра штанги от оси и виден ли он в кадре — на
+## разбеге (анимация run) и в полёте лёжа (prone). Только печать (таблица в отчёт); горизонт
+## впереди в кадре при L < FOV/2 (при всех этих сочетаниях).
+func test_camera_sweep_v8() -> void:
+	for wing in ["apogee", "training"]:
+		var main: Node = MAIN_SCENE.instantiate()
+		main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart", "--autopilot", "--wing=" + wing])))
+		add_child(main)
+		var game: Game = main.get_node("Game")
+		for i in 600:
+			if main.get("state") == 2:
+				break
+			await get_tree().process_frame
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		game.camera.set_mode("cockpit")
+		var done_run := false
+		var air := 0.0
+		for i in int(60.0 / DT):
+			_step(game)
+			var cur: String = game.get("_animator").current()
+			if not done_run and cur == "run" and game.glider.phase() != "flying":
+				for k in 120:
+					_step(game)
+				_sweep(game, wing, "разбег")
+				done_run = true
+			if game.glider.phase() == "flying":
+				air += DT
+			if air >= MIN_AIR_S and cur == "prone":
+				break
+		check(done_run, "%s: разбег пройден для перебора" % wing)
+		_sweep(game, wing, "полёт")
+		await _finish(main)
+
+
+func _sweep(game: Game, wing: String, stage: String) -> void:
+	var cam := game.camera
+	var cc: Dictionary = Config.get_config("camera").cockpit
+	var old_mode: String = cc.eye_mode
+	var old_down: float = cc.look_down_deg
+	for mode in ["eyes", "between_shoulders"]:
+		for down in [0.0, 5.0, 10.0, 15.0, 20.0]:
+			cc.eye_mode = mode
+			cc.look_down_deg = down
+			game.camera.set_look(0.0, 0.0)
+			for i in 90:
+				_step(game)
+			var bar := game.glider.get_marker("BaseBar").global_position
+			var ang := _axis_angle(cam, bar)
+			var row := ""
+			var old_fov := cam.fov
+			for fov in [75.0, 90.0, 100.0]:
+				cam.fov = fov
+				row += " FOV %.0f: %s;" % [fov, "виден" if _in_view(cam, bar) else "нет"]
+			cam.fov = old_fov
+			print("         [перебор] %s %s камера=%s вниз %.0f°: центр штанги %.1f° от оси;%s" % [wing, stage, mode, down, ang, row])
+	cc.eye_mode = old_mode
+	cc.look_down_deg = old_down
+	# камера назад от глаз (Б1/Б2): смещение (вверх, назад) × FOV → центр штанги, носовые тросы в кадре
+	var old_off: Array = cc.offset_m
+	cc.eye_mode = "eyes"
+	cc.look_down_deg = 10.0
+	for up in [0.0, 0.1]:
+		for back in [0.2, 0.3, 0.4, 0.5, 0.6, 0.8]:
+			cc.offset_m = [0.0, up, back]
+			game.camera.set_look(0.0, 0.0)
+			for i in 90:
+				_step(game)
+			var bar := game.glider.get_marker("BaseBar").global_position
+			var cab := _nose_cable_points(game.glider.visual)
+			var row := ""
+			var old_fov := cam.fov
+			for fov in [75.0, 90.0, 100.0]:
+				cam.fov = fov
+				var n := 0
+				for p in cab:
+					if _in_view(cam, p):
+						n += 1
+				row += " FOV %.0f: штанга %s, тросы %d%%;" % [fov, "да" if _in_view(cam, bar) else "нет", 100 * n / maxi(cab.size(), 1)]
+			cam.fov = old_fov
+			print("         [назад] %s %s вверх %.1f назад %.1f: центр штанги %.1f° от оси;%s" % [wing, stage, up, back, _axis_angle(cam, bar), row])
+	cc.offset_m = old_off
+	cc.eye_mode = old_mode
+	cc.look_down_deg = old_down
+
+
+## Точки носовых тросов: рёбра ControlFrame/Frame впереди нижних углов трапеции (вдоль курса) и выше них.
+func _nose_cable_points(v: GliderVisual) -> PackedVector3Array:
+	var bl := v.get_marker("UprightBottomL").global_position
+	var br := v.get_marker("UprightBottomR").global_position
+	var fwd := (v.global_transform.basis * Vector3.FORWARD).normalized()
+	var base := (bl + br) * 0.5
+	var out := PackedVector3Array()
+	for p in _meshes(v, ["ControlFrame", "Frame"]):
+		if (p - base).dot(fwd) > 0.15 and p.y > base.y + 0.05:
+			out.append(p)
+	return out
+
+
+## Быстрая смена наклона головы (одна секунда симуляции вместо двух — только сглаживание головы).
+func _look_fast(game: Game, pitch_deg: float) -> void:
+	game.camera.set_look(0.0, pitch_deg)
+	for i in 12:
+		_step(game)
 
 
 ## Углы от оси взгляда камеры до ближайших точек стоек и штанги (по отрезкам маркеров), °.
@@ -210,36 +367,39 @@ func test_instruments_on_bar() -> void:
 			var tablet := game.glider.get_marker("InstrumentMount")
 			var vario := game.glider.get_marker("VarioMount")
 			var cfg_fov := cam.fov
-			for pair in [["планшет", tablet], ["вариометр", vario]]:
-				var m: Node3D = pair[1]
-				# позиции берём заново после каждого _look: планер за это время пролетел вперёд
-				var gl := game.glider.get_marker("BarGripL").global_position
-				var gr := game.glider.get_marker("BarGripR").global_position
-				var bar := game.glider.get_marker("BaseBar").global_position
-				var o := m.global_position
-				var d := minf(_dist_seg(o, gl, bar), _dist_seg(o, bar, gr))
-				var lx: float = (game.glider.global_basis.inverse() * (o - game.glider.global_position)).x
-				check(d < 0.03, "%s %s: %s на оси штанги (%.3f м)" % [wing, stage, pair[0], d])
-				check(absf(lx) < 0.29, "%s %s: %s между хватами (|x| %.2f)" % [wing, stage, pair[0], absf(lx)])
-				_look(game, 0.0, 0.0)
-				var a0 := _axis_angle(cam, m.global_position)
-				var line := "         %s %s: %s %.1f° от оси по умолчанию;" % [wing, stage, pair[0], a0]
-				for fov in [cfg_fov, VIEW_FOV_DEG]:
-					cam.fov = fov
-					var seen := -999.0
-					for pit in range(0, 91, 5):
-						_look(game, 0.0, -float(pit))
-						if _in_view(cam, m.global_position):
-							seen = float(pit)
-							break
-					if seen > -900.0:
-						var clear := _min_dist_to_sight(cam.global_position, m.global_position, _arm_points(game.glider.visual))
-						check(clear > 0.03, "%s %s: рука не перекрывает %s (%.3f м)" % [wing, stage, pair[0], clear])
-						line += " FOV %.0f: в кадре при наклоне головы вниз %.0f° (просвет до руки %.2f м);" % [fov, seen, clear]
-					else:
-						line += " FOV %.0f: не в кадре до 90°;" % fov
-				cam.fov = cfg_fov
-				print(line)
+			for emode in ["eyes", "back_hands", "back_hidden"]:
+				_use_eye_mode(emode)
+				for pair in [["планшет", tablet], ["вариометр", vario]]:
+					var m: Node3D = pair[1]
+					# позиции берём заново после каждого _look: планер за это время пролетел вперёд
+					var gl := game.glider.get_marker("BarGripL").global_position
+					var gr := game.glider.get_marker("BarGripR").global_position
+					var bar := game.glider.get_marker("BaseBar").global_position
+					var o := m.global_position
+					var d := minf(_dist_seg(o, gl, bar), _dist_seg(o, bar, gr))
+					var lx: float = (game.glider.global_basis.inverse() * (o - game.glider.global_position)).x
+					check(d < 0.03, "%s %s: %s на оси штанги (%.3f м)" % [wing, stage, pair[0], d])
+					check(absf(lx) < 0.29, "%s %s: %s между хватами (|x| %.2f)" % [wing, stage, pair[0], absf(lx)])
+					_look(game, 0.0, 0.0)
+					var a0 := _axis_angle(cam, m.global_position)
+					var line := "         %s %s [%s]: %s %.1f° от оси по умолчанию;" % [wing, stage, emode, pair[0], a0]
+					for fov in [cfg_fov, VIEW_FOV_DEG]:
+						cam.fov = fov
+						var seen := -999.0
+						for pit in range(0, 91, 5):
+							_look(game, 0.0, -float(pit))
+							if _in_view(cam, m.global_position):
+								seen = float(pit)
+								break
+						if seen > -900.0:
+							var clear := _min_dist_to_sight(cam.global_position, m.global_position, _arm_points(game.glider.visual))
+							if emode == "eyes":  # Б1: руки рядом с прибором по построению — только число в отчёт
+								check(clear > 0.03, "%s %s: рука не перекрывает %s (%.3f м)" % [wing, stage, pair[0], clear])
+							line += " FOV %.0f: в кадре при наклоне головы вниз %.0f° (просвет до руки %.2f м);" % [fov, seen, clear]
+						else:
+							line += " FOV %.0f: не в кадре до 90°;" % fov
+					cam.fov = cfg_fov
+					print(line)
 			await _finish(main)
 
 
@@ -414,7 +574,12 @@ func _min_dist_to_sight(eye: Vector3, target: Vector3, pts: PackedVector3Array) 
 	return best
 
 
+func _use_eye_mode(mode: String) -> void:
+	Config.get_config("camera").cockpit.eye_mode = mode
+
+
 func _finish(main: Node) -> void:
+	_use_eye_mode("back_hands")
 	for a in ["roll_left", "roll_right"]:
 		Input.action_release(a)
 	main.queue_free()

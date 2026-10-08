@@ -167,6 +167,8 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °"
   },
   "visual": {
+    "hang_drop_m": 0.31,
+    "hang_drop_m_doc": "Длина подвески под крыло (A3.5 v8): на сколько пилот в полёте ниже модельной подвески pilot.json → hang_length_m, м. Даёт зазор низ тела — верх штанги = pilot.json → bar_gap_m у этого крыла; считает tools/flight/hang_drop_fit.gd (пересчитать при смене модели крыла/штанги)",
     "_doc": "Внешний вид. Модель заменяемая: новый .glb + правка пути. root_chord_m, sweep_m, color — для заглушки",
     "visual_model": "res://assets/models/glider_ww_t3.glb",
     "visual_model_doc": "Модель крыла с трапецией (контракт — docs/guide/flight.md): ноды Sail, ControlFrame, маркеры HangPoint (начало координат), BaseBar, InstrumentMount, WingTipL, WingTipR",

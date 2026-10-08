@@ -79,6 +79,7 @@ var _strap_ribbon: MeshInstance3D  ## лента (ImmediateMesh) в осях в�
 var _strap_hidden_mat: ShaderMaterial
 var _strap_anchor_bone := -1  ## кость, к которой привязана нижняя точка стропы
 var _strap_anchor_local := Vector3.ZERO  ## нижняя точка стропы в осях этой кости
+var hang_drop_m := 0.0  ## на сколько пилот в полёте ниже карабина-на-HangPoint: зазор до штанги у этого крыла (A3.5 v8)
 var _strap_rest_len := 0.9  ## длина стропы модели (карабин → подвесная система), м
 
 
@@ -90,6 +91,10 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		remove_child(n)
 		n.queue_free()
 	_hang = Vector3(0, float(vis_cfg.hang_height_m), 0)
+	_body_mode = "full"
+	_body_mi = null
+	_arms_mi = null
+	_arm_mats.clear()
 
 	var wpath := String(wing_cfg.visual.get("visual_model", ""))
 	wing = _load_model(wpath)
@@ -125,6 +130,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	pm.name = "Model"
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
+	hang_drop_m = float(wing_cfg.visual.get("hang_drop_m", _compute_hang_drop()))
 	_animated_stand = false
 	_anim = null
 	for ap: AnimationPlayer in pm.find_children("*", "AnimationPlayer", true, false):
@@ -224,16 +230,17 @@ func _update_strap() -> void:
 	var bottom := strap_bottom()
 	var chord := top.distance_to(bottom)
 	var sag := 0.5 * sqrt(maxf(_strap_rest_len * _strap_rest_len - chord * chord, 0.0))
-	var half := Vector3(0.02, 0.0, 0.0)
 	var im := _strap_ribbon.mesh as ImmediateMesh
 	im.clear_surfaces()
-	im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
-	for i in 9:
-		var t := i / 8.0
-		var pt := top.lerp(bottom, t) + Vector3.DOWN * (sag * 4.0 * t * (1.0 - t))
-		im.surface_add_vertex(pt - half)
-		im.surface_add_vertex(pt + half)
-	im.surface_end()
+	# две перекрёстные ленты (из любой камеры видна)
+	for half: Vector3 in [Vector3(0.012, 0.0, 0.0), Vector3(0.0, 0.0, 0.012)]:
+		im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+		for i in 9:
+			var t := i / 8.0
+			var pt := top.lerp(bottom, t) + Vector3.DOWN * (sag * 4.0 * t * (1.0 - t))
+			im.surface_add_vertex(pt - half)
+			im.surface_add_vertex(pt + half)
+		im.surface_end()
 
 
 ## Руки: модификатор PilotArmIK на скелете пилота (кости UpperArm/Forearm/Hand, пустышки хвата).
@@ -545,7 +552,17 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 		var roll_ang := asin(clampf(shift.x / l, -1.0, 1.0))
 		var pitch_ang := -asin(clampf(shift.z / l, -1.0, 1.0))
 		basis = Basis(Vector3(0, 0, 1), roll_ang) * Basis(Vector3(1, 0, 0), pitch_ang)
-	return Transform3D(basis, _hang)
+	return Transform3D(basis, _hang + basis * Vector3(0, -hang_drop_m, 0))
+
+
+## Подгонка длины подвески под крыло (A3.5 v8): низ торса на pilot.json → visual.bar_gap_m над
+## верхом базовой штанги. Модель пилота запечена с длиной hang_length_m; недостающее — вниз.
+func _compute_hang_drop() -> float:
+	if wing == null or get_marker("BaseBar") == null:
+		return 0.0
+	var depth := _hang.y - _marker_pos("BaseBar").y  # карабин (HangPoint) — ось штанги
+	var top := depth - float(_pcfg.get("bar_radius_m", 0.015))
+	return top - float(_pcfg.get("bar_gap_m", 0.06)) - float(_pcfg.hang_length_m)
 
 
 ## На земле: стоит под крылом, ноги на земле. Модель со скелетом ставит тело вертикально сама
@@ -645,9 +662,92 @@ func _frame_pitch() -> float:
 	return asin(clampf(fwd.y, -1.0, 1.0))
 
 
+## Вид из кабины с камерой позади тела (A3.3 v8, camera.json → cockpit.eye_mode back_*): тело пилота
+## не рисуется для кабинной камеры. "full" — как есть; "arms" — только руки (копия PilotBody на слое
+## «только кабина», фрагменты дальше ARM_MASK_R_M от костей рук отброшены); "none" — и руки скрыты.
+## Для внешних камер тело всегда видно (слой 20 не рисует только кабинная камера).
+const BODY_HIDDEN_LAYER := 1 << 19
+const COCKPIT_ONLY_LAYER := 1 << 18
+const ARM_MASK_R_M := 0.1
+const ARM_MASK_SHADER := """
+shader_type spatial;
+uniform vec4 albedo : source_color = vec4(0.3, 0.3, 0.3, 1.0);
+uniform float rough = 0.7;
+uniform float radius = 0.1;
+uniform vec3 pts[6];
+varying vec3 wpos;
+float seg(vec3 p, vec3 a, vec3 b) {
+	vec3 pa = p - a;
+	vec3 ba = b - a;
+	float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
+	return length(pa - ba * h);
+}
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	float d = min(min(seg(wpos, pts[0], pts[1]), seg(wpos, pts[1], pts[2])),
+		min(seg(wpos, pts[3], pts[4]), seg(wpos, pts[4], pts[5])));
+	if (d > radius) { discard; }
+	ALBEDO = albedo.rgb;
+	ROUGHNESS = rough;
+}
+"""
+var _body_mode := "full"
+var _body_mi: MeshInstance3D
+var _arms_mi: MeshInstance3D
+var _arm_mats: Array[ShaderMaterial] = []
+
+
+func set_cockpit_body(mode: String) -> void:
+	if mode == _body_mode and (_body_mi != null or mode == "full"):
+		return
+	if _body_mi == null:
+		_body_mi = find_child("PilotBody", true, false) as MeshInstance3D
+	if _body_mi == null:
+		return
+	_body_mode = mode
+	_body_mi.layers = 1 if mode == "full" else BODY_HIDDEN_LAYER
+	if _strap_ribbon != null:  # стропа подвески — часть «тела» для кабинной камеры
+		_strap_ribbon.layers = _body_mi.layers
+	if mode == "arms" and _arms_mi == null and _body_mi.mesh != null and _skeleton != null:
+		_arms_mi = MeshInstance3D.new()
+		_arms_mi.name = "CockpitArms"
+		_arms_mi.mesh = _body_mi.mesh
+		_arms_mi.skin = _body_mi.skin
+		_arms_mi.layers = COCKPIT_ONLY_LAYER
+		_arms_mi.transform = _body_mi.transform
+		_body_mi.get_parent().add_child(_arms_mi)
+		_arms_mi.skeleton = _arms_mi.get_path_to(_skeleton)
+		for i in _body_mi.mesh.get_surface_count():
+			var m := ShaderMaterial.new()
+			m.shader = Shader.new()
+			m.shader.code = ARM_MASK_SHADER
+			var src := _body_mi.mesh.surface_get_material(i) as BaseMaterial3D
+			if src != null:
+				m.set_shader_parameter("albedo", src.albedo_color)
+				m.set_shader_parameter("rough", src.roughness)
+			m.set_shader_parameter("radius", ARM_MASK_R_M)
+			_arms_mi.set_surface_override_material(i, m)
+			_arm_mats.append(m)
+	if _arms_mi != null:
+		_arms_mi.visible = mode == "arms"
+
+
+## Положения плечо–локоть–кисть (мир) для маски рук; зовёт кабинная камера каждый кадр.
+func update_arm_mask() -> void:
+	if _body_mode != "arms" or _skeleton == null or _arm_mats.is_empty():
+		return
+	var pts := PackedVector3Array()
+	for side in ["L", "R"]:
+		for b in ["UpperArm.", "Forearm.", "Hand."]:
+			var bi := _skeleton.find_bone(b + side)
+			pts.append(_skeleton.to_global(_skeleton.get_bone_global_pose(bi).origin) if bi >= 0 else Vector3.ZERO)
+	for m in _arm_mats:
+		m.set_shader_parameter("pts", pts)
+
+
 ## Центр тела относительно карабина.
 func _body_center() -> Vector3:
-	return Vector3(0, -float(_pcfg.body_below_hang_m), float(_pcfg.body_back_m))
+	return Vector3(0, -float(_pcfg.body_below_hang_m) - hang_drop_m, float(_pcfg.body_back_m))
 
 
 func _head_local() -> Vector3:
