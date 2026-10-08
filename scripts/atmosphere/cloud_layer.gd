@@ -169,6 +169,7 @@ func set_quality(q: String) -> void:
 	_material.set_shader_parameter("detail_enabled", 1 if bool(p.detail) else 0)
 	if _effect != null:
 		_effect.resolution_scale = float(p.lowres_scale)
+		_effect.max_buffer_px = int(p.get("max_buffer_px", 0))
 	if _shadow_map != null:
 		_shadow_map.set_quality(q)
 
