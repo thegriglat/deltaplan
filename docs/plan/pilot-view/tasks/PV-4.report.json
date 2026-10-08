@@ -1,0 +1,174 @@
+{
+  "status": "done",
+  "summary": "Зазор низ тела — верх штанги 0,060 м у всех 48 крыльев (длина подвески под крыло: visual.hang_drop_m в configs/wings/*.json, параметр пилота bar_gap_m в pilot.json; GliderVisual опускает пилота, стропа лентой от HangPoint). Камера: offset 0, взгляд 10° вниз, FOV 90; режимы камеры в кабине (настройка, ru/en): Б1 «сзади, видны руки» (по умолчанию, предварительно), Б2 «сзади, без тела и рук», А «глаза», «между плечами». Из глаз штанга не видна (центр 115° от оси, в кадре при наклоне головы вниз 68–87°); при Б1 (назад 0,65 м) центр штанги 27–33° от оси и приборы на штанге в кадре и в полёте, и на разбеге. Стропа подвески скрыта от кабинной камеры в Б1/Б2 (как тело), в «глазах» и во внешних камерах видна.",
+  "commits": [
+    "48ec7ea0 зазор 0,06 у каждого крыла, камера в глазах, FOV 90, тесты A3 v8",
+    "(следующий) длина подвески пересчитана на изогнутой штанге",
+    "054499df режимы камеры Б1/Б2, перебор камеры",
+    "7cee1440 после PV-7: приборы по режимам камеры, glance убран",
+    "стропа скрыта от кабинной камеры в Б1/Б2; сброс режима тела при пересборке"
+  ],
+  "checks": [
+    {
+      "name": "dp accept PV-4 --dry",
+      "value": "7/7 (aframe_contracts 5/5, test_cockpit 6/6, pilot_pose 2/2, pilot_arms 6/6, camera_bar_look 2/2, wing_models_contract 4/4, models exit 0)",
+      "pass": true
+    },
+    {
+      "name": "зазор низ тела — верх штанги по 48 крыльям",
+      "value": "мин 0,060 / макс 0,060 м (тест test_gap_every_wing); опускание пилота от модельной подвески 1,211 м: 0,218…0,336 м",
+      "pass": true
+    },
+    {
+      "name": "физика",
+      "value": "flight_model.gd и flight.json не тронуты; физика длину подвески не читает",
+      "pass": true
+    },
+    {
+      "name": "локоть−плечо в полёте (apogee)",
+      "value": "+0,093 м (при зазоре 0,06; было не выше плеча) — порог в тестах 0,15, не блокирует (A3 v8)",
+      "pass": true
+    },
+    {
+      "name": "A3.1 база от плеч (apogee)",
+      "value": "по горизонтали -0,009 м, по вертикали -0,255 м; худшее крыло bautek_kite -0,092",
+      "pass": true
+    },
+    {
+      "name": "А (глаза, 10° вниз, FOV 90): центр штанги от оси взгляда",
+      "value": "apogee 114,9°, training 115,0, sport 113,8, laminar 114,3, ww_sport3 140,1, bautek_kite 108,4, condor_crex3 117,5 (до слияния PV-5 с прямой штангой; cockpit_view.py с bow даёт apogee 117,9°); носовые тросы: ближайшая точка 56–89° от оси, в кадре 0 точек",
+      "pass": true
+    },
+    {
+      "name": "А: наклон головы вниз от горизонта, при котором центр штанги в кадре (FOV 90)",
+      "value": "apogee 82°, training 82, sport 83, laminar 84, ww_sport3 76, bautek_kite 73, condor_crex3 87 (после слияния PV-5: apogee 82, training 82, sport 73, laminar 78, ww_sport3 69, bautek_kite 68, condor_crex3 80); предел головы 90°",
+      "pass": true
+    },
+    {
+      "name": "Б1 (назад 0,65, 10° вниз, FOV 90): центр штанги от оси / в кадре",
+      "value": "apogee 31,1°, training 32,8, sport 26,7, laminar 28,6, bautek_kite 32,8, condor_crex3 26,7 — в кадре; ww_sport3 58,9° — вне кадра (в кадре при взгляде 15° вниз)",
+      "pass": true
+    },
+    {
+      "name": "Приборы на штанге (test_instruments_on_bar), от оси по умолчанию: А / Б1 / Б2",
+      "value": "А: планшет 110–115°, вариометр 112–117° — в кадре при наклоне головы вниз 70–85° (FOV 90) и в полёте, и на разбеге; Б1: планшет 32–34°, вариометр 34–37°, в кадре при взгляде по умолчанию (FOV 90 и 75), просвет до руки 0,02–0,05 м; Б2: планшет 33–36°, вариометр 36–39°, в кадре",
+      "pass": true
+    },
+    {
+      "name": "Перебор камера×взгляд×FOV (центр штанги от оси / виден; apogee, training; полёт и разбег)",
+      "value": "глаза: 104–130° (не виден ни при каком сочетании вниз 0–20°, FOV 75–100); между плечами: 71–91°, вне кадра; назад от глаз (вверх 0): 0,5 м → 49–50° (виден только FOV 100), 0,6 → 37–41° (виден FOV 90 и 100; FOV 75 у apogee нет), 0,8 → 22–25° (виден везде); подъём камеры на 0,1 м ухудшает на 2–8°. Выбрано 0,65 м, горизонт впереди остаётся в кадре (взгляд 10° вниз < FOV/2)",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "test_cockpit",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "camera_bar_look",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Штанга при взгляде вперёд не видна из глаз и из «между плечами» ни при каком разумном сочетании (геометрия A3.1 + A1 не менялись, как велено). Видна только в режимах Б1/Б2 (камера назад на 0,65 м).",
+    "Руки в Б1 — маска по расстоянию до костей рук (0,1 м) на копии PilotBody, выглядят как тёмные «лоскуты» рукавов, не как аккуратные руки; в Б2 скрыты полностью. Визуальную доводку не делал (лимит попыток).",
+    "ww_sport3 в Б1: центр штанги вне кадра при взгляде по умолчанию (58,9°) — нужен наклон головы 15°."
+  ],
+  "questions": [
+    "Режим по умолчанию — Б1 (предварительно, по поручению). Для режимов с телом (А/между плечами) или с вылетающей полосой стропы нужно решение пользователя.",
+    "Смещение Б (назад 0,65 м) в осях планера одно для всех крыльев; нужна ли подгонка по крылу (ww_sport3, штанга глубже)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/PV-4/01_до_прямо_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/02_до_вниз45_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/03_до_прямо_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/04_до_вниз45_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/05_после_прямо_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/06_после_вниз45_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/07_после_прямо_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/08_после_вниз45_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/09_после_полёт_по_умолчанию_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/10_после_разбег_по_умолчанию_apogee.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/11_после_полёт_по_умолчанию_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/12_после_разбег_по_умолчанию_training.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_eyes_полёт.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_eyes_разбег.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_back_hands_полёт.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_back_hands_разбег.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_back_hidden_полёт.jpg",
+    "/home/greg/deltaplan/build/screenshots/PV-4/cmp_back_hidden_разбег.jpg"
+  ],
+  "how_to_check": "dp accept PV-4; пересчёт подвески при смене штанги/модели: godot --headless res://tools/flight/hang_drop_fit.tscn -- --out=drop.json && python3 tools/research/pilot_view/apply_hang_drop.py drop.json; перебор камеры — вывод test_cockpit ([перебор], [назад], v8:)",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider_visual.gd:_compute_hang_drop / configs/wings/*.json hang_drop_m",
+      "why": "зазор измеряется по вертикали мира при тангаже трима; таблица hang_drop_m — результат подгонки, при смене штанги/пилота её надо пересчитывать (формула-запасная при θ=0 даёт зазор мельче)",
+      "checked": "test_gap_every_wing: 48 крыльев, 0,060/0,060; пересчёт после слияния PV-5 и PV-7 — значения не изменились"
+    },
+    {
+      "where": "scripts/flight/glider_visual.gd:set_cockpit_body (маска рук)",
+      "why": "шейдерная копия PilotBody на слое 19, маска по сегментам плечо-локоть-кисть радиусом 0,1 м; внешний вид рук грубый",
+      "checked": "кадры cmp_back_hands_*; слой 20 (скрыт от кабины) оставляет тело видимым во внешних камерах"
+    },
+    {
+      "where": "tests/game/test_cockpit.gd:test_instruments_on_bar",
+      "why": "в Б1 просвет руки до прибора 0,02–0,05 м — проверка на 0,03 м оставлена только для режима «глаза», для Б1 число в печати",
+      "checked": "числа выше"
+    },
+    {
+      "where": "кадры 01–12",
+      "why": "снимки через автопилот; в «до» и «после» момент съёмки (время 6–9 с, разбег 3 с) и поза не идентичны до секунды",
+      "checked": "просмотрено 4 кадра"
+    }
+  ],
+  "dp_feedback": "Фильтр --filter в run_tests работает по имени файла, не метода — тест из файла нельзя запустить отдельно; нет команды dp для пересоздания .godot import (первый import после merge даёт неполный результат, нужен двойной запуск); dp task sync без явного вывода конфликтов — ок.",
+  "extra": {
+    "hang_drop_m_range": [
+      0.218,
+      0.336
+    ],
+    "back_offset_m": [
+      0,
+      0,
+      0.65
+    ],
+    "defaults": {
+      "eye_mode": "back_hands",
+      "look_down_deg": 10,
+      "fov_deg": 90,
+      "offset_m": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "t": "2026-10-08T13:45:33",
+  "by": "executor"
+}
