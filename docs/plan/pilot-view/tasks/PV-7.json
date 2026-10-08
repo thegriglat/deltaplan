@@ -1,0 +1,74 @@
+{
+  "id": "PV-7",
+  "module": "pilot-view",
+  "type": "dp-engineer",
+  "title": "Приборы обратно на нижнюю перекладину",
+  "goal": "Решение пользователя: планшет и вариометр — на базовой штанге (хомут между хватами, к глазам), а не на левой стойке; модели пересобраны, тесты A3 v9.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A3",
+      "version": "9",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "PV3",
+      "version": "2",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-7",
+  "branch": "pilot-view/PV-7",
+  "base": "feature/pilot-view",
+  "scope": [
+    "tools/blender/build_gliders.py",
+    "tools/blender/glider_params.json",
+    "assets/models/glider_*",
+    "assets/source/",
+    "scripts/flight/glider_visual.gd",
+    "scripts/game/",
+    "configs/controls.json",
+    "tests/"
+  ],
+  "dont_touch": [
+    "configs/pilot.json",
+    "configs/camera.json",
+    "tools/blender/build_pilot.py",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "basebar_curve",
+      "tests": "basebar_curve"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "wing_models_contract",
+      "tests": "wing_models_contract"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "models",
+      "cmd": "set -o pipefail; XDG_DATA_HOME=$(mktemp -d) timeout 600 godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -40",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T12:25:01"
+}
