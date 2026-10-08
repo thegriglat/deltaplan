@@ -91,6 +91,10 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		remove_child(n)
 		n.queue_free()
 	_hang = Vector3(0, float(vis_cfg.hang_height_m), 0)
+	_body_mode = "full"
+	_body_mi = null
+	_arms_mi = null
+	_arm_mats.clear()
 
 	var wpath := String(wing_cfg.visual.get("visual_model", ""))
 	wing = _load_model(wpath)
