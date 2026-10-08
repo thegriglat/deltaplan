@@ -367,36 +367,39 @@ func test_instruments_on_bar() -> void:
 			var tablet := game.glider.get_marker("InstrumentMount")
 			var vario := game.glider.get_marker("VarioMount")
 			var cfg_fov := cam.fov
-			for pair in [["планшет", tablet], ["вариометр", vario]]:
-				var m: Node3D = pair[1]
-				# позиции берём заново после каждого _look: планер за это время пролетел вперёд
-				var gl := game.glider.get_marker("BarGripL").global_position
-				var gr := game.glider.get_marker("BarGripR").global_position
-				var bar := game.glider.get_marker("BaseBar").global_position
-				var o := m.global_position
-				var d := minf(_dist_seg(o, gl, bar), _dist_seg(o, bar, gr))
-				var lx: float = (game.glider.global_basis.inverse() * (o - game.glider.global_position)).x
-				check(d < 0.03, "%s %s: %s на оси штанги (%.3f м)" % [wing, stage, pair[0], d])
-				check(absf(lx) < 0.29, "%s %s: %s между хватами (|x| %.2f)" % [wing, stage, pair[0], absf(lx)])
-				_look(game, 0.0, 0.0)
-				var a0 := _axis_angle(cam, m.global_position)
-				var line := "         %s %s: %s %.1f° от оси по умолчанию;" % [wing, stage, pair[0], a0]
-				for fov in [cfg_fov, VIEW_FOV_DEG]:
-					cam.fov = fov
-					var seen := -999.0
-					for pit in range(0, 91, 5):
-						_look(game, 0.0, -float(pit))
-						if _in_view(cam, m.global_position):
-							seen = float(pit)
-							break
-					if seen > -900.0:
-						var clear := _min_dist_to_sight(cam.global_position, m.global_position, _arm_points(game.glider.visual))
-						check(clear > 0.03, "%s %s: рука не перекрывает %s (%.3f м)" % [wing, stage, pair[0], clear])
-						line += " FOV %.0f: в кадре при наклоне головы вниз %.0f° (просвет до руки %.2f м);" % [fov, seen, clear]
-					else:
-						line += " FOV %.0f: не в кадре до 90°;" % fov
-				cam.fov = cfg_fov
-				print(line)
+			for emode in ["eyes", "back_hands", "back_hidden"]:
+				_use_eye_mode(emode)
+				for pair in [["планшет", tablet], ["вариометр", vario]]:
+					var m: Node3D = pair[1]
+					# позиции берём заново после каждого _look: планер за это время пролетел вперёд
+					var gl := game.glider.get_marker("BarGripL").global_position
+					var gr := game.glider.get_marker("BarGripR").global_position
+					var bar := game.glider.get_marker("BaseBar").global_position
+					var o := m.global_position
+					var d := minf(_dist_seg(o, gl, bar), _dist_seg(o, bar, gr))
+					var lx: float = (game.glider.global_basis.inverse() * (o - game.glider.global_position)).x
+					check(d < 0.03, "%s %s: %s на оси штанги (%.3f м)" % [wing, stage, pair[0], d])
+					check(absf(lx) < 0.29, "%s %s: %s между хватами (|x| %.2f)" % [wing, stage, pair[0], absf(lx)])
+					_look(game, 0.0, 0.0)
+					var a0 := _axis_angle(cam, m.global_position)
+					var line := "         %s %s [%s]: %s %.1f° от оси по умолчанию;" % [wing, stage, emode, pair[0], a0]
+					for fov in [cfg_fov, VIEW_FOV_DEG]:
+						cam.fov = fov
+						var seen := -999.0
+						for pit in range(0, 91, 5):
+							_look(game, 0.0, -float(pit))
+							if _in_view(cam, m.global_position):
+								seen = float(pit)
+								break
+						if seen > -900.0:
+							var clear := _min_dist_to_sight(cam.global_position, m.global_position, _arm_points(game.glider.visual))
+							if emode == "eyes":  # Б1: руки рядом с прибором по построению — только число в отчёт
+								check(clear > 0.03, "%s %s: рука не перекрывает %s (%.3f м)" % [wing, stage, pair[0], clear])
+							line += " FOV %.0f: в кадре при наклоне головы вниз %.0f° (просвет до руки %.2f м);" % [fov, seen, clear]
+						else:
+							line += " FOV %.0f: не в кадре до 90°;" % fov
+					cam.fov = cfg_fov
+					print(line)
 			await _finish(main)
 
 
