@@ -201,7 +201,6 @@ func test_no_latch_on_liftoff() -> void:
 		return
 	var game: Game = main.get_node("Game")
 	var ic := game.input_controller
-	ic.roll_input = "body"  # непрерывность на отрыве без PV1-инверсии (см. отчёт PV-3)
 	# крен рукой на малую долю хода (≈ 1,5°): с большим креном бег уходит дугой поперёк склона и
 	# опущенная консоль касается склона (срыв wingtip, на старте по умолчанию уже при ≈ 10°) — это
 	# физика; здесь проверяется только непрерывность трапеции на отрыве
@@ -227,7 +226,7 @@ func test_no_latch_on_liftoff() -> void:
 	print("    отрыв: Δpitch %.4f, Δroll %.4f за шаг; roll после %.2f; фаза %s %s, крен %.1f°" % [dp, dr, ic.control.roll, tt.phase, game.glider.model.takeoff_failure, tt.bank_deg])
 	check(flew, "взлетел разбегом Shift")
 	check(dp < 0.02 and dr < 0.02, "на отрыве трапеция без скачка: %.4f / %.4f" % [dp, dr])
-	check(ic.control.roll > 0.05, "зажатая клавиша крена действует и после отрыва: %.2f" % ic.control.roll)
+	check(ic.control.roll < -0.05, "зажатая клавиша крена действует и после отрыва (PV1 v2: bar, вправо = roll −): %.2f" % ic.control.roll)
 	check(not ic.has_method("is_latched"), "защёлки нет")
 	await _close(main)
 

@@ -189,9 +189,9 @@ func _bar_roll_dir() -> float:
 	return (_strength("roll_right") - _strength("roll_left")) * _roll_sign()
 
 
-## Знак крена от устройства (PV1): −1 при roll_input = bar, только в полёте и weight_shift.
+## Знак крена от устройства (PV1): −1 при roll_input = bar, в полёте и на земле при weight_shift (PV1 v2).
 func _roll_sign() -> float:
-	if roll_input == "bar" and control.weight_shift and not on_ground:
+	if roll_input == "bar" and control.weight_shift:
 		return -1.0
 	return 1.0
 

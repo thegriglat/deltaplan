@@ -65,14 +65,21 @@ func test_pv1_sign_by_device() -> void:
 		check(rb > 0.2 and absf(rb - ro) < 1e-6, "PV1: rate — знак не зависит от roll_input (%.2f/%.2f)" % [rb, ro])
 
 
-func test_pv1_ground_unchanged() -> void:
+func test_pv1_ground_inverts_too() -> void:
 	var ic := _ic("weight_shift", "bar")
 	ic.on_ground = true
 	_mouse(ic, 4000.0, 0.0)
 	var r := 0.0
 	for i in 60:
 		r = ic.update(DT).roll
-	check(r > 0.2, "PV1: на земле bar не инвертирует (%.2f)" % r)
+	check(r < -0.2, "PV1 v2: на земле bar инвертирует, как в полёте (%.2f)" % r)
+	ic.roll_input = "body"
+	ic.update(DT)
+	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле body — вправо (%.2f)" % ic.control.roll)
+	ic.roll_mode = "rate"
+	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле rate — без инверсии")
+	ic.roll_input = "bar"
+	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле rate+bar — без инверсии")
 	_free(ic)
 
 
@@ -121,3 +128,30 @@ func test_pv2_center_once() -> void:
 			ic.update(DT)
 		check(absf(ic.control.roll) > 0.3, "PV2/%s: мышь после X снова двигает трапецию (%.2f)" % [mode, ic.control.roll])
 		_free(ic)
+
+
+## PV1 v2: удержание стрелки вбок через переход земля → воздух не меняет знак roll.
+func test_pv1_sign_through_liftoff() -> void:
+	for ri in ["bar", "body"]:
+		await (Engine.get_main_loop() as SceneTree).process_frame  # just_pressed X прошлых тестов
+		var ic := _ic("weight_shift", ri)
+		ic.on_ground = true
+		Input.action_press("roll_right", 0.3)
+		var ground := 0.0
+		for i in 120:
+			ground = ic.update(DT).roll
+		ic.on_ground = false
+		var air := ic.update(DT).roll
+		Input.action_release("roll_right")
+		check(signf(ground) == signf(air) and absf(air - ground) < 0.05,
+			"PV1 v2: %s, через отрыв roll %.2f -> %.2f" % [ri, ground, air])
+		_free(ic)
+
+
+## PV1: выбор roll_input пишется в пользовательский controls.json и читается обратно.
+func test_pv1_saved_to_user_config() -> void:
+	var dir := "user://test_pv1_cfg"
+	check(UserSettings.save_patch("controls", {"roll_input": "body"}, dir), "PV1: запись roll_input")
+	var f := FileAccess.open(dir + "/controls.json", FileAccess.READ)
+	var d: Variant = JSON.parse_string(f.get_as_text()) if f != null else null
+	check(d is Dictionary and d.get("roll_input") == "body", "PV1: roll_input прочитан из user-конфига")
