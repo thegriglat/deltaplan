@@ -1,0 +1,323 @@
+{
+  "training": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "https://willswing.com/alpha: «standard bar has round downtubes and a straight basetube; a round speedbar basetube is an optional upgrade» (Wills Wing Alpha, учебное) Образец класса: учебное крыло, прямая штанга."
+  },
+  "sport": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Обобщённое безмачтовое «sport» — по образцу WW T2C/Talon. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "slavutich_ut": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "docs/research/control_frame_refs.md §Базовая штанга: у советских крыльев голая прямая труба, спидбар только у современных; штанга Славутича/Атласа — прямая труба (A-frame 1970–80-х, спидбары появились с середины 1990-х: https://forum.hanggliding.org/viewtopic.php?t=35520 «base tube cables became standard once manufacturers started bending tubing to make speed bars»)"
+  },
+  "apogee": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "docs/research/control_frame_refs.md §Базовая штанга: у советских крыльев голая прямая труба, спидбар только у современных; штанга Славутича/Атласа — прямая труба (A-frame 1970–80-х, спидбары появились с середины 1990-х: https://forum.hanggliding.org/viewtopic.php?t=35520 «base tube cables became standard once manufacturers started bending tubing to make speed bars») «Апогей» — российское крыло 1980–90-х."
+  },
+  "atlas": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "docs/research/control_frame_refs.md §Базовая штанга: у советских крыльев голая прямая труба, спидбар только у современных; штанга Славутича/Атласа — прямая труба (A-frame 1970–80-х, спидбары появились с середины 1990-х: https://forum.hanggliding.org/viewtopic.php?t=35520 «base tube cables became standard once manufacturers started bending tubing to make speed bars») Советская копия La Mouette Atlas 1979."
+  },
+  "target": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://aeros.com.ua/files/manuals/Target_en.pdf §2.1.4: «Install the speedbar so that offset of the speedbar is directed forward and upwards to the flight direction» Aeros Target — учебно-тренировочное, но штанга с изгибом по руководству. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "magic": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "docs/research/control_frame_refs.md §Базовая штанга: у советских крыльев голая прямая труба, спидбар только у современных; штанга Славутича/Атласа — прямая труба (A-frame 1970–80-х, спидбары появились с середины 1990-х: https://forum.hanggliding.org/viewtopic.php?t=35520 «base tube cables became standard once manufacturers started bending tubing to make speed bars») Airwave Magic IV, 1983–88: до эпохи спидбаров; оценка по эпохе (уверенность низкая)."
+  },
+  "laminar": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_c.json (Icaro Alto): «Optional competition upgrades including carbon speedbar and aluminum competition A-frame» — стандартная штанга круглая; speedbar в мачтовом классе принят по классу Образец: мачтовый Icaro Laminar Easy ≈2003, класс Alto/Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "combat": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Обобщённый «combat» по Aeros Combat. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "icaro_piuma": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "https://willswing.com/alpha: «standard bar has round downtubes and a straight basetube; a round speedbar basetube is an optional upgrade» (Wills Wing Alpha, учебное) Образец: Icaro Piuma — одноповерхностное учебное, класс Alpha; уверенность низкая."
+  },
+  "moyes_malibu2": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "https://willswing.com/alpha: «standard bar has round downtubes and a straight basetube; a round speedbar basetube is an optional upgrade» (Wills Wing Alpha, учебное) Образец: Moyes Malibu 2 — одноповерхностное учебное, класс Alpha; уверенность низкая."
+  },
+  "air_f2": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_a.json (Airborne F2): «new round down tube knuckle for optional speed bars» — speedbar опция, стандарт прямой"
+  },
+  "aeros_fox": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://aeros.com.ua/files/manuals/Target_en.pdf §2.1.4: «Install the speedbar so that offset of the speedbar is directed forward and upwards to the flight direction» Образец: Aeros Fox (однопов.), тот же производитель и тип штанги, что Target. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "condor_crex3": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое двухповерхностное класса WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "condor_flex": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "https://willswing.com/alpha: «standard bar has round downtubes and a straight basetube; a round speedbar basetube is an optional upgrade» (Wills Wing Alpha, учебное) Образец: однопов. учебное класса Alpha (Condor Flex); уверенность низкая."
+  },
+  "fs_funky": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "https://willswing.com/alpha: «standard bar has round downtubes and a straight basetube; a round speedbar basetube is an optional upgrade» (Wills Wing Alpha, учебное) Образец: однопов. учебное класса Alpha (Flight Design Funky); уверенность низкая."
+  },
+  "fs_space": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое двухповерхностное класса WW Eagle (Flight Design Space). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_eagle": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_sport3": {
+    "shape": "curved",
+    "bow_m": 0.09,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.12,
+    "ref": "https://willswing.org/support/wills-wing-control-bars/: Sport 3 — Litestream (обтекаемый алюминиевый basetube) стандарт; изгиб — по FAQ Slipstream (см. wwalu) Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_u2": {
+    "shape": "curved",
+    "bow_m": 0.09,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.12,
+    "ref": "https://willswing.com/slipstream-downtubescontrol-bars-faq/: алюминиевый обтекаемый basetube WW (Slipstream/Litestream) — «features a deeper bend and better durability than the carbon base tube» WW U2 — Litestream-класс. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "aeros_discus": {
+    "shape": "curved",
+    "bow_m": 0.09,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.12,
+    "ref": "https://willswing.com/slipstream-downtubescontrol-bars-faq/: алюминиевый обтекаемый basetube WW (Slipstream/Litestream) — «features a deeper bend and better durability than the carbon base tube» Aeros Discus C: «Wills Wing basebar with streamlined fittings» (https://en.wikipedia.org/wiki/Aeros_Discus). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "air_sting3": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.airborne.com.au/images/manuals/Sting-3-Rev1-Manual.pdf: «fitted with faired king post, downtubes and speed bar as standard» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "icaro_alto": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_c.json (Icaro Alto): «Optional competition upgrades including carbon speedbar and aluminum competition A-frame» — стандартная штанга круглая; speedbar в мачтовом классе принят по классу Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "icaro_mastr": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Образец: Icaro Laminar MastR — мачтовый, но с карбоновым спидбаром по классу. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "bautek_kite": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_c.json (Bautek Kite): «Optional profiled base tube with split wheel capability» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "bautek_astir": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_c.json (Bautek Kite): «Optional profiled base tube with split wheel capability» Образец: Bautek Kite (тот же производитель). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "fs_crossover": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: класс WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "seed_spyder": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Образец: безмачтовое класса Combat. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "moyes_gecko": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое класса WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_super_sport": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» WW Super Sport — тот же ряд, что Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_ultra_sport": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» WW Ultra Sport — тот же ряд, что Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_spectrum": {
+    "shape": "straight",
+    "bow_m": 0.0,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_a.json (WW Spectrum): «Optional streamline downtubes and speedbar» — speedbar опция, стандарт прямой (однообшивочное)"
+  },
+  "ww_t2c": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_t3": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "moyes_litespeed_rx": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Образец: безмачтовое класса Combat/T2C (руководство Litespeed RX: https://moyes-russia.com/wp-content/uploads/2012/03/Litespeed_RX_Manual_V2.pdf не прочитано). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "moyes_litespeed_s": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Образец: безмачтовое класса Combat/T2C. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "moyes_litesport": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое класса WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "aeros_combat_c": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "aeros_combat_l": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "icaro_laminar_z9": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Icaro Laminar Z9 — безмачтовое, карбоновый speedbar (https://www.icaro2000.com/Products/Hanggliders/Laminar/Laminar.htm: «MR carbon fibre speedbar»). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "bautek_fizz": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "tools/research/data/wing_passports/out/construction/batch_c.json (Bautek Kite): «Optional profiled base tube with split wheel capability» Образец: Bautek Kite. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "air_c4": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Образец: безмачтовое класса Combat. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "air_rev": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf Образец: безмачтовое класса Combat. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "dp_she1": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://aeros.com.ua/files/manuals/CombatC_en.pdf, сборка, п.3: «Install the speedbar so that the offset of the speedbar is directed forward in the direction of flight»; то же https://www.delta-club-82.com/bible/manuels/combat-09-combat-09-gt-manual-en_id828.pdf SHE1: «Profiled uprights and speedbar A-frame base tube» (batch_c.json). Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "seed_skyrunner_xr": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое класса WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_fusion": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_talon": {
+    "shape": "curved",
+    "bow_m": 0.11,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.1,
+    "ref": "https://willswing.org/template/control-bars-section-4-2/: карбоновый speedbar WW (Talon, T2…) — «redesigned planform with a deep offset profile» WW Talon — прямо назван в совместимости карбонового speedbar. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "ww_cross_country": {
+    "shape": "curved",
+    "bow_m": 0.07,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.15,
+    "ref": "https://www.willswing.com/hang-gliders/archive/eagle/ (wings_merged/out/construction/batch_a.json, Eagle): «Speedbar basetube included as standard feature» Образец: мачтовое класса WW Eagle. Величина bow_m — оценка класса (в источнике числа нет): круглый speedbar 0,07; обтекаемый алюминиевый 0,09; карбоновый/безмачтовый 0,11 (±0,03)."
+  },
+  "_default": {
+    "shape": "curved",
+    "bow_m": 0.08,
+    "bow_src": "class_estimate",
+    "straight_len_m": 0.13,
+    "ref": "Умолчание PV-2: среднее по классам (tier A 0,07 / B 0,09 / C 0,11) — для крыльев без данных; сводка и методика — tools/research/basebar_curve/README.md"
+  }
+}
