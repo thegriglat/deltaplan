@@ -85,3 +85,8 @@
 {"t": "2026-10-08T18:55:53", "by": "reviewer", "task": "PF-8", "ev": "reviewed", "note": "Доработка закрывает оба замечания прошлого ревью: abort_refresh после начала генерации сдвигает _gen_stamp, и записи _cell_seen оборванного обхода больше не сч…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/perf/tasks/PF-8.review.json"}
 {"t": "2026-10-08T18:56:12", "by": "coordinator", "task": "PF-8", "ev": "accepted", "note": "по ревью (повторное, accept); low_1pct у порога 32 (30,2/32,9) — шум, итог в PF-10"}
 {"t": "2026-10-08T18:56:13", "by": "coordinator", "task": "PF-8", "ev": "merged", "note": "6e053f6f"}
+{"t": "2026-10-08T18:57:08", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "1/8 tests_atmosphere=ok:15/15"}
+{"t": "2026-10-08T18:57:53", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "2/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27"}
+{"t": "2026-10-08T18:59:16", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "3/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7"}
+{"t": "2026-10-08T18:59:53", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "4/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7; tests_determinism=ok:3/3"}
+{"t": "2026-10-08T19:00:11", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "5/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7; tests_determinism=ok:3/3; tests_contract=ok:10/10"}
