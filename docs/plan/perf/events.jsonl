@@ -61,3 +61,4 @@
 {"t": "2026-10-08T15:23:28", "by": "coordinator", "task": "PF-5", "ev": "merged", "note": "1101f954"}
 {"t": "2026-10-08T15:23:42", "by": "coordinator", "task": "PF-8", "ev": "created", "note": "Периодические работы главного потока порциями"}
 {"t": "2026-10-08T15:23:42", "by": "coordinator", "task": "PF-8", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-8"}
+{"t": "2026-10-08T15:56:22", "by": "coordinator", "task": "PF-5", "ev": "accepted", "commits": ["1101f954"], "note": "8/8 tests_air_thermals=ok:7/7; tests_air_runtime=ok:5/5 (пропуск 2); tests_atmosphere=ok:13/13; tests_determinism=ok:3/3; tests_contract=ok:9/9; fly_run=ok:exit 0; air_recompute_delta=ok:2.09; hitch_after2s=ok:83.6"}
