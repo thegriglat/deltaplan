@@ -140,6 +140,28 @@ func test_pf_k4_old_source_until_ready_and_stale_dropped() -> void:
 	a.free()
 
 
+## Выход из места: air_wait(false) ждёт только идущую сборку, отложенную по последнему ключу не запускает.
+func test_pf_k4_exit_wait_skips_deferred() -> void:
+	var a := _field_atmo(true)
+	a.field._update_air()
+	a.field.air_wait()
+	var old := a.field.air_src
+	var mask := a.field.air_sources_mask()
+	var m2: PackedByteArray = mask.mask.duplicate()
+	m2[0] = m2[0] ^ 1
+	a.field.set_air_forced(String(mask.sig), m2)
+	a.field._update_air()
+	check(a.field.air_building(), "сборка идёт")
+	var m3: PackedByteArray = mask.mask.duplicate()
+	m3[1] = m3[1] ^ 2
+	a.field.set_air_forced(String(mask.sig), m3)
+	a.field._update_air()
+	a.field.air_wait(false)
+	check(not a.field.air_building(), "идущая дождана")
+	check(a.field.air_src == old, "отложенная по последнему ключу не запущена (air_src прежний)")
+	a.free()
+
+
 func test_pf_k4_free_while_building() -> void:
 	var a := _field_atmo(true)
 	a.field._update_air()
@@ -188,6 +210,7 @@ func test_pf_k4_version_in_doc() -> void:
 ## (в т. ч. посчитанные с тенью прежних источников), а новые после подмены — как у свежего поля.
 func test_pf_k4_swap_grid_cycles_before_same_after_like_fresh() -> void:
 	var a := _field_atmo(true)
+	a.field.set_cloudbase(2500.0)  # ниже верха частиц поля: облака над источниками поля, тень
 	a.field._update_air()
 	var mask := a.field.air_sources_mask()
 	a.start_at(3000.0)
@@ -199,6 +222,41 @@ func test_pf_k4_swap_grid_cycles_before_same_after_like_fresh() -> void:
 			before[id] = th
 	var empties_before: Dictionary = a.field._empty_cycles.duplicate()
 	var air_ids_before: Dictionary = a.field._air_ids.duplicate()
+	# Сценарий не пустой: источник поля отбрасывает тень на клетку сетки (тень с источниками поля
+	# больше, чем без них), и среди решённых пустых циклов есть циклы клеток сетки.
+	var shaded := 0
+	var src_keep: AirThermals = a.field.air_src
+	var air_pts: Array[Vector2] = []
+	for id in a.field.thermals:
+		var ath: AtmoThermal = a.field.thermals[id]
+		if ath.cell.x >= ThermalField._AIR_IA:
+			air_pts.append(Vector2(ath.src.x, ath.src.z))
+	var near: Array = []  # [расстояние до ближайшего источника поля, термик сетки]
+	for id in a.field._bare:
+		var bare: AtmoThermal = a.field._bare[id]
+		if bare.cell.x >= ThermalField._AIR_IA:
+			continue
+		var d := INF
+		for q in air_pts:
+			d = minf(d, q.distance_to(Vector2(bare.src.x, bare.src.z)))
+		near.append([d, bare])
+	near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
+	for k in mini(near.size(), 80):
+		var bare: AtmoThermal = near[k][1]
+		var p := Vector2(bare.src.x, bare.src.z)
+		var env: Dictionary = a.field._env_at(bare.t_birth)
+		var with_air: float = a.field._shade_pure(p, bare.t_birth, env)
+		a.field.air_src = null
+		var without_air: float = a.field._shade_pure(p, bare.t_birth, env)
+		a.field.air_src = src_keep
+		if with_air > without_air:
+			shaded += 1
+	check(shaded > 0, "до подмены источник поля затеняет клетки сетки (%d)" % shaded)
+	var grid_empties := 0
+	for id in empties_before:
+		if not air_ids_before.has(id):
+			grid_empties += 1
+	check(grid_empties > 0, "среди пустых циклов до подмены есть циклы клеток сетки (%d)" % grid_empties)
 	var m2: PackedByteArray = mask.mask.duplicate()
 	m2[1] = m2[1] ^ 4
 	a.field.set_air_forced(String(mask.sig), m2)
@@ -219,6 +277,7 @@ func test_pf_k4_swap_grid_cycles_before_same_after_like_fresh() -> void:
 	a.step(4000.0)
 	a.refresh_now()
 	var b := _field_atmo(false)
+	b.field.set_cloudbase(2500.0)
 	b.field.set_air_forced(String(mask.sig), m2)
 	b.start_at(t1)
 	b.refresh_now()
