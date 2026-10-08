@@ -134,7 +134,7 @@
       "enabled": true,
       "enabled_doc": "false — руки идут только за анимацией",
       "bar_grip_half_width_m": 0.33,
-      "bar_grip_half_width_m_doc": "Полуширина хвата на базовой штанге: точки хвата = маркер BaseBar ± это по X, м (в анимации prone ±0,33)",
+      "bar_grip_half_width_m_doc": "Полуширина хвата на базовой штанге: точки хвата = маркеры BarGripL/R на оси изогнутой штанги (PV3), |x| = это, м (в анимации prone ±0,33); без маркеров — BaseBar ± это",
       "bar_grip_offset_m": [
         0.0,
         0.0,
