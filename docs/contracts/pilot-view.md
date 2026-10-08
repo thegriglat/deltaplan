@@ -5,7 +5,7 @@ module: "pilot-view"
 updated: "2026-10-08"
 summary: "Контракты модуля «pilot-view»: PV1 — направление крена (roll_input bar/body), PV2 — X возвращает мышь-трапецию в нейтраль, PV3 — изгиб базовой штанги по крыльям; правка A3 v7 (высота подвеса, вид из кабины) — в aframe-geometry.md."
 related: ["docs/plan/pilot-view.md", "docs/contracts/ui-controls.md", "docs/contracts/aframe-geometry.md", "docs/contracts/wings-models3d.md"]
-contracts: [{"id": "PV1", "version": 2}, {"id": "PV2", "version": 1}, {"id": "PV3", "version": 1}]
+contracts: [{"id": "PV1", "version": 2}, {"id": "PV2", "version": 1}, {"id": "PV3", "version": 2}]
 ---
 # Контракты модуля «pilot-view»
 
@@ -33,7 +33,9 @@ v2 (08.10, по вопросу PV-3: скачок `roll` +0,5 → −0,5 на о
 - Стик — физически возвращается сам; X его не трогает.
 - Инвариант (тест): сместить мышь-трапецию на полный ход вбок и вперёд → нажать и отпустить X (одним кадром) → через 3 с `ControlInput.roll` и `pitch` ≈ 0 (|·| < 0,05), крен крыла < 5° и не растёт; движение мыши после X снова двигает трапецию от нейтрали.
 
-## PV3. Изгиб базовой штанги — `glider_params.json` — версия 1 (дополняет A1 v3 и A2 v1)
+## PV3. Изгиб базовой штанги — `glider_params.json` — версия 2 (дополняет A1 v3 и A2 v1)
+
+v2 (08.10, по итогам PV-5): (1) новые маркеры `BarGripL`, `BarGripR` в `.glb` и в заглушке — точки хвата на оси штанги при |x| = `control_frame.bar_grip_hand_x_m` (= `configs/flight.json → visual.arms.bar_grip_half_width_m`, тест); профиль дуги есть только в сборке, игра берёт хваты из маркеров; нет маркера — `push_error`. (2) `bow_m` — вынос **вперёд** (по горизонтали в плоскости штанги); у безмачтовых провис спидбара вниз (`speedbar_dip_m`) — отдельно, не входит в `bow_m`. (3) Общие функции профиля (`basebar_spec`, `bow_at`) — `tools/blender/aframe_geom.py`, их используют сборка и `cockpit_view.py`. Потребители — `GliderVisual.bar_grip()`, `test_basebar_curve`, `test_pilot_arms`, PV-4 (хват/поза).
 Владелец данных: PV-2 (исследование, числа и источники); владелец геометрии: PV-5 (`tools/blender/build_gliders.py`, заглушка `scripts/flight/glider_visual.gd → _fallback_wing`). Потребители: сборка `.glb`, `GliderVisual` (IK рук, хваты на штанге), камера/вид из кабины (A3.3), `render_views.py`, тесты крыльев.
 
 - `tools/blender/glider_params.json → wings.<id>.basebar` (обязательно у всех 48 крыльев после PV-2):
@@ -44,4 +46,4 @@ v2 (08.10, по вопросу PV-3: скачок `roll` +0,5 → −0,5 на о
 - `control_frame.basebar_default` — умолчание для крыльев без данных (`shape`, `bow_m` — оценка PV-2 по классу).
 - Ось штанги в модели: углы — как сейчас (маркеры `UprightBottomL/R`); середина — вынесена вперёд на `bow_m` (±0,005).
 - Маркер `BaseBar` (A2) — середина **оси штанги на изгибе** (вынесенная точка), не середина хорды между углами. Хваты рук (IK) лежат на оси изогнутой штанги (±0,01 м).
-- Инварианты (тест): у каждого крыла `basebar.shape` задан; `straight` ⇒ `bow_m = 0`; `curved` ⇒ `bow_m` в 0,03…0,25; в `.glb` расстояние `BaseBar` от хорды `UprightBottomL–R` = `bow_m` ±0,005.
+- Инварианты (тест): у каждого крыла `basebar.shape` задан; `straight` ⇒ `bow_m = 0`; `curved` ⇒ `bow_m` в 0,03…0,25; в `.glb` вынос `BaseBar` вперёд от хорды `UprightBottomL–R` = `bow_m` ±0,005 (провис — отдельно = `speedbar_dip_m`); `BarGripL/R` на оси ±0,01.

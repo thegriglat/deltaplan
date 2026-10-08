@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "Базовая штанга изогнута вперёд (PV3): cos²-дуга с прямыми участками у углов (straight_len_m), 11 учебных крыльев прямые; 48 .glb пересобраны. Хваты рук — на оси через новые маркеры BarGripL/R; заглушка и cockpit_view.py учитывают изгиб. dp accept --dry 6/6.",
+  "commits": [
+    "0564c120 PV-5: штанга — меньше сегментов (бюджет треугольников 14000), модели пересобраны",
+    "3a68d236 PV-5: базовая штанга изогнута вперёд в центре (PV3): сборка, заглушка, хваты на оси; модели пересобраны",
+    "a14d9bbf PV-5: тест изгиба базовой штанги (PV3)"
+  ],
+  "checks": [
+    {
+      "name": "basebar_curve",
+      "value": "1/1: 48 крыльев, вынос BaseBar от хорды = bow_m ±0,005 (0/0,07/0,09/0,11), хваты на оси ±0,01",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "4/4, худшее база от плеч ww_talon +0,110 м (≤0,15)",
+      "pass": true
+    },
+    {
+      "name": "wing_models_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_cockpit",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "check_models OK",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "BarGripL/R — новые маркеры в .glb (не в A2): оставить и дописать в A2/PV3? Без них хват на оси в рантайме не вычислить (профиль дуги живёт в build_gliders)."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/PV-5/01_штанга_изогнутая_laminar_и_прямая_training_снизу.png",
+    "/home/greg/deltaplan/build/screenshots/PV-5/02_вид_из_кабины_вниз_laminar.jpg"
+  ],
+  "how_to_check": "tools/dp accept PV-5 --dry",
+  "uncertain": [
+    {
+      "where": "tests/game/test_basebar_curve.gd",
+      "why": "контракт: «расстояние BaseBar от хорды = bow_m»; у безмачтовых (faired) BaseBar ещё провисает на speedbar_dip_m, 3D-расстояние было бы больше bow_m",
+      "checked": "тест меряет вынос вперёд (−Z) = bow_m и провис отдельно = speedbar_dip_m"
+    },
+    {
+      "where": "scripts/flight/glider_visual.gd bar_grip",
+      "why": "flight.json arms.bar_grip_half_width_m дублируется в glider_params control_frame.bar_grip_hand_x_m (0,33); тест проверяет равенство",
+      "checked": "тест basebar_curve"
+    },
+    {
+      "where": "tools/blender/aframe_geom.py",
+      "why": "добавил basebar_spec/bow_at (вне скоупа карточки, общий код для build_gliders и cockpit_view)",
+      "checked": "используются обоими"
+    },
+    {
+      "where": "tests/flight/test_pilot_arms.gd:38",
+      "why": "старое условие «хват = BaseBar ± полуширина» заменено на x = ±полуширина, назад от центра <0,25",
+      "checked": "6/6"
+    }
+  ],
+  "dp_feedback": "dp accept --dry идёт ~2,5 мин; check_models в карточке через tail -20 скрывает причину падения (пришлось запускать вручную). stash чужих веток лежит в общем репозитории.",
+  "extra": {
+    "bow_m_in_models": "0,00 (11 крыльев) / 0,07 (18) / 0,09 (3) / 0,11 (16)",
+    "grip_x_m": 0.33,
+    "triangles": "штанга 16 сегментов, check_models ≤14000 ок"
+  },
+  "t": "2026-10-08T11:59:19",
+  "by": "executor"
+}
