@@ -132,6 +132,20 @@ static func allen_density(zi: float) -> float:
 	return ALLEN_N / (zi * allen_r2(0.5, zi))
 
 
+## Два уровня покрывают одни и те же точки (covers: сетка, верх, рельеф сетки, кромка) — клетки
+## аналитики вне зависимости от смены источников остаются теми же.
+static func same_cover(a: WindField, b: WindField) -> bool:
+	if a == b:
+		return true
+	if a == null or b == null:
+		return false
+	return (
+		a.x0 == b.x0 and a.y0 == b.y0 and a.dx == b.dx and a.nx == b.nx and a.ny == b.ny
+		and a.nz == b.nz and a.dz == b.dz and a.z_bot == b.z_bot
+		and a.edge_cells == b.edge_cells and a.raw_hc() == b.raw_hc()
+	)
+
+
 static func signature(f: WindField) -> String:
 	return "%.3f,%.3f,%.3f,%d,%d" % [f.dx, f.x0, f.y0, f.nx, f.ny]
 

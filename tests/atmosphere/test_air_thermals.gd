@@ -473,6 +473,7 @@ static func _atmo(f: WindField) -> Atmosphere:
 	a.visuals_enabled = false
 	a.seed_value = 7
 	a.configure(Config.get_config("atmosphere"), w)
+	a.field.air_async = false  # тесты — синхронно (поток = синхронно: PF-К4)
 	a.set_ground(f.ground_height, _sun_one)
 	a.turbulence_enabled = false
 	a.wave.enabled = false
