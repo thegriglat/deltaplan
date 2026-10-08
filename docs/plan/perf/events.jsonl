@@ -24,3 +24,4 @@
 {"t": "2026-10-08T12:22:58", "by": "coordinator", "task": "PF-4", "ev": "merged", "note": "15e28399 (+7630372d тест PF-К2 v2)"}
 {"t": "2026-10-08T12:23:15", "by": "coordinator", "task": "PF-7", "ev": "created", "note": "Облака: марш 1 из 4 пикселей за кадр с перепроекцией"}
 {"t": "2026-10-08T12:23:15", "by": "coordinator", "task": "PF-7", "ev": "started", "note": "dp-engineer (Opus), ~/deltaplan-perf-PF-7"}
+{"t": "2026-10-08T12:35:47", "by": "coordinator", "task": "PF-4", "ev": "accepted", "commits": ["7630372d"], "note": "3/3 tests_clouds=ok:23/23; tests_contract=ok:3/3; clouds_medium_cockpit=ok:9.81"}
