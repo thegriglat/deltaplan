@@ -22,6 +22,8 @@ const FRAME_MARKERS: Array[String] = [
 	"UprightTopL", "UprightTopR", "UprightBottomL", "UprightBottomR", "WingCG"
 ]
 ## Заглушка крыла: верх стоек относительно HangPoint (правая; левая — зеркально по X), м.
+## Заглушка: вынос середины базовой штанги вперёд (PV3, среднее по классам), м.
+const FALLBACK_BAR_BOW := 0.08
 const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 ## Стоя (stand/walk/run из pilot.glb) ступни на ~0,3 м позади таза, ноги наклонены ~19°, глаза
 ## на ~0,7 м впереди ступней: взгляд вниз не достаёт до ног. Модель на земле чуть отклоняется
@@ -358,6 +360,10 @@ func bar_grip(side: int) -> Vector3:
 	var a: Dictionary = _cfg.get("arms", {})
 	var bb := _relative_xform(self, get_marker("BaseBar"))
 	var off := _vec3(a.get("bar_grip_offset_m", [0.0, 0.0, 0.0]))
+	# PV3: штанга изогнута вперёд — хват на её оси (маркеры BarGripL/R на |x| = полуширине хвата)
+	var gm := get_marker("BarGripL" if side < 0 else "BarGripR")
+	if gm != null:
+		return _relative_xform(self, gm).origin + bb.basis * off
 	return bb * (Vector3(side * float(a.get("bar_grip_half_width_m", 0.33)), 0.0, 0.0) + off)
 
 
@@ -725,8 +731,18 @@ func _fallback_frame() -> Node3D:
 	_add_marker(frame, "UprightTopR", top_r)
 	_add_marker(frame, "UprightBottomL", bar - w)
 	_add_marker(frame, "UprightBottomR", bar + w)
-	_add_rod(frame, "BaseBarTube", bar - w, bar + w, m)
-	_add_marker(frame, "BaseBar", bar)
+	# PV3: ось штанги изогнута вперёд (cos²) на FALLBACK_BAR_BOW в центре
+	var pts: Array[Vector3] = []
+	for i in 17:
+		var u := -1.0 + 2.0 * i / 16.0
+		pts.append(bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * u * 0.5), 2)))
+	for i in 16:
+		_add_rod(frame, "BaseBarTube%d" % i, pts[i], pts[i + 1], m)
+	_add_marker(frame, "BaseBar", bar + Vector3(0, 0, -FALLBACK_BAR_BOW))
+	var gu := float(_cfg.get("arms", {}).get("bar_grip_half_width_m", 0.33)) / w.x
+	for side in [-1, 1]:
+		_add_marker(frame, "BarGripL" if side < 0 else "BarGripR",
+			bar + w * (side * gu) + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * gu * 0.5), 2)))
 	# приборы на хомуте левой стойки, как в build_gliders.py (instrument_upright_t 0,3 /
 	# vario_upright_t 0,42 от штанги к вершине, instrument_inward_m 0,1, instrument_forward_m 0,3); экран (+Z маркера) к глазам
 	for spec in [["InstrumentMount", 0.3], ["VarioMount", 0.42]]:

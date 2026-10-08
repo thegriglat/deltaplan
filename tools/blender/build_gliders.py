@@ -403,8 +403,8 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     # базовая штанга (у безмачтовых — «спидбар»: ровная середина ниже, плавные изгибы к углам)
     dip = cf["speedbar_dip_m"] if faired else 0.0
     flat = cf["speedbar_flat_half_m"]
-    left = [-(w + 0.035)] + [-w + (w - flat) * i / 6 for i in range(7)]
-    xs = left + [-flat + 2 * flat * i / 4 for i in range(1, 4)] + [-x for x in reversed(left)]
+    bow, straight_len = G.basebar_spec(p, cf)  # PV3: изгиб вперёд в центре
+    xs = [-(w + 0.035)] + [-w + 2 * w * i / 16 for i in range(17)] + [w + 0.035]
 
     def bar_z(x: float) -> float:
         a = abs(x)
@@ -412,15 +412,20 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
             return z_bb - dip
         k = min(1.0, (a - flat) / (w - flat))
         return z_bb - dip * (1 - (3 * k * k - 2 * k ** 3))
-    bar = [Vector((x, y_bb, bar_z(x))) for x in xs]
-    mb.add_tube(bar, r_bar, "Tube", sides=14)
+
+    def bar_y(x: float) -> float:
+        return y_bb + G.bow_at(x, w, bow, straight_len)
+
+    bar = [Vector((x, bar_y(x), bar_z(x))) for x in xs]
+    mb.add_tube(bar, r_bar, "Tube", sides=12)
     for s in (-1, 1):  # заглушки концов штанги
         e = Vector((s * (w + 0.035), y_bb, z_bb))
         mb.add_tube([e, e + Vector((s * 0.012, 0, 0))], r_bar * 1.08, "Dark", sides=12)
     if p.get("bar_grips", True):  # резиновые накладки под руками
         g0, g1 = cf["bar_grip_x_m"]
         for s in (-1, 1):
-            mb.add_tube([Vector((s * g0, y_bb, bar_z(g0))), Vector((s * g1, y_bb, bar_z(g1)))],
+            mb.add_tube([Vector((s * x, bar_y(x), bar_z(x))) for x in
+                         [g0 + (g1 - g0) * i / 2 for i in range(3)]],
                         r_bar + 0.0025, "Grip", sides=16)
     if p["wheels"]:
         for s in (-1, 1):
@@ -452,7 +457,10 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     for s, side in ((-1, "L"), (1, "R")):  # оси стоек: у болта под килем и у штанги в углу
         U.empty("UprightTop" + side, (s * top_x, apex_y, top_z), parent=obj)
         U.empty("UprightBottom" + side, (s * w, y_bb, z_bb), parent=obj)
-    U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
+    U.empty("BaseBar", (0, bar_y(0.0), z_bb - dip), parent=obj)  # середина оси на изгибе (PV3)
+    gx = cf["bar_grip_hand_x_m"]  # точки хвата рук на оси штанги (BarGripL/R, PV3)
+    for s, side in ((-1, "L"), (1, "R")):
+        U.empty("BarGrip" + side, (s * gx, bar_y(gx), bar_z(gx)), parent=obj)
     eye = Vector(cf["_eye"])
     # планшет и вариометр — на хомуте левой стойки (см. выше), экраном (−Z маркера) к глазам
     for name, pos in mounts.items():
