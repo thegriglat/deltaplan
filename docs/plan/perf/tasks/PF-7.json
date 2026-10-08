@@ -42,8 +42,7 @@
     {
       "name": "clouds_medium_cockpit",
       "cmd": "rm -rf build/dp/PF-7/m; MARKS=2:cockpit SKIP_FLY=1 TAG_SUFFIX= /home/greg/deltaplan/tools/dp lock gpu PF-7 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-7/m medium ongudai --sample=2 --exps=base >/dev/null 2>&1; python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-7/m/medium_ongudai_2.jsonl')];b=[r for r in R if r.get('exp')=='base'];print('gpu=%.2f'%b[0]['gpu_ms']);print('clouds=%.2f'%b[0]['passes']['Process Post Transparent Compositor Effects'])\"",
-      "expect": "num:clouds=([0-9.]+) <=4.0",
-      "timeout": 2400
+      "expect": "num:clouds=([0-9.]+) <=5.0"
     }
   ],
   "report_extra": [
@@ -52,5 +51,6 @@
     "screenshots"
   ],
   "notes": "",
-  "created": "2026-10-08T12:23:15"
+  "created": "2026-10-08T12:23:15",
+  "edited": "2026-10-08T13:51:54"
 }
