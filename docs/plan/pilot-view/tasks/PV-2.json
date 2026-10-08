@@ -1,0 +1,47 @@
+{
+  "id": "PV-2",
+  "module": "pilot-view",
+  "type": "dp-researcher",
+  "title": "Изгиб базовой штанги по крыльям",
+  "goal": "Для каждого из 48 крыльев установить по источникам, прямая или изогнутая базовая штанга и насколько вынесена вперёд её середина; записать в glider_params.json по PV3.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "PV3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-2",
+  "branch": "pilot-view/PV-2",
+  "base": "feature/pilot-view",
+  "scope": [
+    "tools/blender/glider_params.json",
+    "tools/research/basebar_curve/"
+  ],
+  "dont_touch": [
+    "tools/blender/build_gliders.py",
+    "assets/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "basebar_data",
+      "cmd": "python3 -c \"import json;p=json.load(open('tools/blender/glider_params.json'));w=p['wings'];bad=[k for k,v in w.items() if 'basebar' not in v or v['basebar'].get('shape') not in ('straight','curved') or (v['basebar']['shape']=='straight')!=(v['basebar'].get('bow_m',-1)==0) or (v['basebar']['shape']=='curved' and not 0.03<=v['basebar']['bow_m']<=0.25) or not v['basebar'].get('ref')];assert 'basebar_default' in p['control_frame'];print(len(w),'bad',bad)\"",
+      "expect": "re:^48 bad \\[\\]"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:21:41"
+}
