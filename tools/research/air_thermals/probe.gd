@@ -50,6 +50,7 @@ func _ready() -> void:
 		var t0 := Time.get_ticks_usec()
 		a.set_air_field(f, 0.0)
 		a.refresh_now()
+		a.field.air_wait()
 		var build_ms := (Time.get_ticks_usec() - t0) * 1.0e-3
 		var s := a.field.air_src
 		_dump_sources(name, f, s, build_ms)
