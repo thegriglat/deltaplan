@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Автовыбор включён: detect(имя, тип) — чистая функция; встроенная/программная (тип) или имя из списка (+Apple) -> low, иначе пусто и ничего не пишется. Выбор пилота не трогается.",
+  "commits": [
+    "03d73088 Автовыбор Низкого на слабом железе",
+    "uid теста"
+  ],
+  "checks": [
+    {
+      "name": "graphics",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "render_scale",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept PF-11",
+  "uncertain": [
+    {
+      "where": "scripts/game/graphics_presets.gd:detect",
+      "why": "подстроки Intel/Vega/Mali шире типа: дискретные Intel Arc и Vega 56 получат low",
+      "checked": "список взят из прежнего конфига по заданию; на живом Apple/iGPU не запускал (RenderingServer в headless не вызывается)"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-08T11:37:51",
+  "by": "executor"
+}

@@ -89,6 +89,8 @@ var _statics: Array[AtmoThermal] = []
 var _cells: Dictionary = {}  ## ключ клетки -> Vector2(период, фаза)
 var _static_next_id: int = -1
 var _air_key: String = ""
+## Ключ последней запущенной сборки (пока идёт прежняя, новая не запускается).
+var _air_launched: String = ""
 ## Идущие и неподобранные сборки источников (AirJob).
 var _air_jobs: Array = []
 ## Собирать источники в рабочем потоке (false — синхронно, как раньше).
@@ -761,20 +763,43 @@ class AirJob:
 ## (на главном потоке), до этого работает прежний; устаревшая сборка отбрасывается.
 func _update_air() -> void:
 	_poll_air_jobs()
-	var f: WindField = null
-	if air != null and not air.levels.is_empty():
-		f = air.levels[air.levels.size() - 1]
-	var key := ""
-	if f != null and AirThermals.has_inputs(f):
-		key = "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
-	if key == _air_key:
+	var f := _air_level()
+	var key := _air_key_of(f)
+	if key == "":
+		if _air_key != "":
+			# поля нет — источников нет (идущие сборки устареют и будут отброшены)
+			_air_key = ""
+			_air_launched = ""
+			air_src = null
+			_clear_dynamic_caches()
 		return
 	_air_key = key
-	if key == "":
-		# поля нет — источников нет (устаревшие сборки отбросит опрос)
-		air_src = null
-		_clear_dynamic_caches()
+	_air_launch(f, key)
+	# Первых источников нет совсем (загрузка места) — ждём: иначе круг генерации сначала
+	# заполнится аналитикой и тут же пересоберётся (рывок вдвое длиннее, термики не те).
+	while air_src == null and not _air_jobs.is_empty():
+		_wait_air_jobs()
+		_air_launch(f, key)
+
+
+func _air_level() -> WindField:
+	if air != null and not air.levels.is_empty():
+		return air.levels[air.levels.size() - 1]
+	return null
+
+
+func _air_key_of(f: WindField) -> String:
+	if f != null and AirThermals.has_inputs(f):
+		return "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
+	return ""
+
+
+## Запустить сборку для ключа key, если её ещё нет и прежняя не идёт: устаревшие не копятся,
+## последний ключ собирается по готовности прежней.
+func _air_launch(f: WindField, key: String) -> void:
+	if key == _air_launched or not _air_jobs.is_empty():
 		return
+	_air_launched = key
 	var job := AirJob.new()
 	job.key = key
 	job.src = AirThermals.new()
@@ -794,10 +819,6 @@ func _update_air() -> void:
 	else:
 		job.run()
 	_poll_air_jobs()
-	# Первых источников нет совсем (загрузка места) — ждём: иначе круг генерации сначала
-	# заполнится аналитикой и тут же пересоберётся (рывок вдвое длиннее, термики не те).
-	if air_src == null and not _air_jobs.is_empty():
-		air_wait()
 
 
 ## Принять готовые сборки: актуальную — подменить air_src, устаревшие — выбросить.
@@ -812,6 +833,8 @@ func _poll_air_jobs() -> void:
 			WorkerThreadPool.wait_for_task_completion(job.task)
 		_air_jobs.remove_at(i)
 		if job.key != _air_key:
+			if job.key == _air_launched:
+				_air_launched = ""
 			continue
 		var prev := air_src
 		air_src = job.src if job.ok else null
@@ -826,6 +849,15 @@ func _poll_air_jobs() -> void:
 
 ## Дождаться всех сборок источников и принять актуальную (тесты, выход из места, рассылка маски).
 func air_wait() -> void:
+	while not _air_jobs.is_empty():
+		_wait_air_jobs()
+		var f := _air_level()
+		var key := _air_key_of(f)
+		if key != "" and key == _air_key:
+			_air_launch(f, key)
+
+
+func _wait_air_jobs() -> void:
 	for job: AirJob in _air_jobs:
 		if job.task >= 0:
 			WorkerThreadPool.wait_for_task_completion(job.task)

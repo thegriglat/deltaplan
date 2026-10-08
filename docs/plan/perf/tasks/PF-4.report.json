@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Облака medium: lowres_scale 0,5 -> 0,33; high: 0,75 -> 0,5 и max_iterations 200 -> 128; новый параметр max_buffer_px (low/medium 240000, high 560000) и статическая CloudCompositorEffect.buffer_size(full, scale, max_px) по PF-К2; CloudLayer.set_quality передаёт предел в эффект. Контрактный тест PF-К2 написан.",
+  "commits": [
+    "c929b4d5 PF-4: облака дешевле по конфигу, предел площади буфера, контракт PF-К2"
+  ],
+  "checks": [
+    {
+      "name": "tests_clouds",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "tests_contract",
+      "value": "3/3 ",
+      "pass": true
+    },
+    {
+      "name": "clouds_medium_cockpit",
+      "value": "clouds=9,9 мс, gpu=14.91 мс (порог <=17)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замер high не делался (приёмки по high нет); ожидание -27...-40 мс не подтверждено числом."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/PF-4/before_0_25.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-4/after_0_25.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-4/before_0_45.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-4/after_0_45.jpg"
+  ],
+  "how_to_check": "dp accept PF-4",
+  "uncertain": [
+    {
+      "where": "configs/atmosphere.json max_buffer_px",
+      "why": "значения подобраны по формуле: low/medium 240000 > 1920*1080*0,33^2=226k; high 560000 > 518k (0,5 на 1080p)",
+      "checked": "тест: на 1920x1080 предел не срабатывает для low/medium; 3024x1964 ограничен, пропорции сохранены. Окно замера 1918x1036."
+    },
+    {
+      "where": "cloud_compositor_effect.gd buffer_size",
+      "why": "контракт описывает buffer_size(full) с одним аргументом, но масштаб и предел нужны; сделал статическую с параметрами scale, max_px (по умолчанию 0,5 и 0)",
+      "checked": "тест вызывает с тремя аргументами; рендер-путь использует её же"
+    }
+  ],
+  "dp_feedback": "dp lock gpu при занятом замке молча ждёт, вывода нет; команда с --timeout короче очереди падает с кодом 124 — хорошо бы показывать в выводе, кто держит. Повторный dp lock с тем же именем PF-4 не писал в лог job PF-4 — запуск через dp job start с другим именем.",
+  "extra": {
+    "clouds_ms_before": "23,0-24,8 (PF-1, medium, кабина)",
+    "clouds_ms_after": 9.91
+  },
+  "clouds_ms_before_after": "23,0-24,8 -> 9,64-9,91 мс (medium, кабина@2)",
+  "gpu_ms_before_after": "28,4-30,3 -> 14,91 мс (medium, кабина@2)",
+  "screenshots": "/home/greg/deltaplan/build/screenshots/PF-4/ before_/after_ 0_25 и 0_45 (взгляд вверх на облака, кабина, training, t=60 с)",
+  "t": "2026-10-08T12:18:16",
+  "by": "executor"
+}

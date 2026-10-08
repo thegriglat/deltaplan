@@ -101,7 +101,7 @@ func test_density_scales_clump_count() -> void:
 
 
 ## Трава под пологом (К2 v2): grass.forest_density/forest_height_m/forest_shade доходят до
-## материала ближнего и дальнего слоя; по умолчанию плотность > 0; при 0 — на FOREST травы нет,
+## материала всех слоёв; по умолчанию плотность > 0; при 0 — на FOREST травы нет,
 ## как до SF-2.
 func test_forest_grass_reaches_material() -> void:
 	var g: Dictionary = Config.get_config("vegetation").grass
@@ -124,7 +124,7 @@ func test_forest_grass_reaches_material() -> void:
 				is_equal_approx(float(m.get_shader_parameter("forest_shade")), float(g.forest_shade)),
 				"uniform forest_shade"
 			)
-		check(gf.materials().size() == 2, "ближний и дальний слой")
+		check(gf.materials().size() == 3, "ближний, средний и дальний слой")
 		gf.free()
 	var sd := float(g.shrub_density)
 	check(GrassField.class_share(SurfaceLayer.FOREST, sd, fd) == fd, "FOREST — forest_density")
@@ -132,6 +132,21 @@ func test_forest_grass_reaches_material() -> void:
 	check(GrassField.class_share(SurfaceLayer.GRASS, sd, 0.0) == 1.0, "луг — все пучки")
 	check(GrassField.class_share(SurfaceLayer.SHRUB, sd, fd) == sd, "кустарник — shrub_density")
 	check(GrassField.class_share(SurfaceLayer.WATER, sd, fd) == 0.0, "вода — нет")
+
+
+## Кольцо слоя (PF-9): пучки только в inner..outer (с запасом), центр пуст, кольцо полно.
+func test_ring_offsets() -> void:
+	var sp := 0.5
+	var ring := GrassField.ring_offsets(sp, 10.0, 20.0)
+	var disc := GrassField.ring_offsets(sp, -1.0, 20.0)
+	check(ring.size() < disc.size() * 0.85, "кольцо меньше круга: %d < %d" % [ring.size(), disc.size()])
+	var ok := true
+	for o in ring:
+		var d := o.length() * sp
+		ok = ok and d >= 10.0 - 2.0 * sp - 1e-3 and d <= 20.0 + 2.0 * sp + 1e-3
+	check(ok, "все смещения в кольце")
+	check(ring.has(Vector2(30, 0)) and ring.has(Vector2(0, -39)), "кольцо покрывает 10..20 м")
+	check(not ring.has(Vector2(0, 0)), "центр кольца пуст")
 
 
 func _make_field(cfg: Dictionary) -> GrassField:

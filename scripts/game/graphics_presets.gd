@@ -19,25 +19,33 @@ static func current() -> String:
 	return String(Config.value("game", "graphics", ""))
 
 
-## Пресет для видеокарты adapter по эвристике из конфига.
-static func detect(adapter: String) -> String:
+## Пресет для видеокарты: "low" — тип встроенная/программная (RenderingDevice.DeviceType) или имя
+## содержит подстроку из конфига; иначе "" (не выбирать). Чистая функция, RenderingServer не трогает.
+static func detect(adapter: String, adapter_type: int = -1) -> String:
+	if (
+		adapter_type == RenderingDevice.DEVICE_TYPE_INTEGRATED_GPU
+		or adapter_type == RenderingDevice.DEVICE_TYPE_CPU
+	):
+		return "low"
 	var ad: Dictionary = Config.get_config("game").get("graphics_autodetect", {})
 	var low := adapter.to_lower()
 	for s: String in ad.get("low_if_adapter_contains", []):
 		if low.contains(s.to_lower()):
 			return "low"
-	return String(ad.get("default", "high"))
+	return ""
 
 
-## Пресет не выбран и автовыбор включён — определить по видеокарте и записать.
-## true — что-то записано.
+## Пресет не выбран и автовыбор включён — определить по видеокарте и записать «Низкое» на слабом
+## железе (иначе ничего не пишем). true — что-то записано.
 static func ensure_detected(dir: String = UserSettings.DEFAULT_DIR) -> bool:
 	var ad: Dictionary = Config.get_config("game").get("graphics_autodetect", {})
 	if current() != "" or not bool(ad.get("enabled", false)):
 		return false
 	var adapter := RenderingServer.get_video_adapter_name()
-	var p := detect(adapter)
-	print("Графика: видеокарта «%s» → пресет %s" % [adapter, p])
+	var p := detect(adapter, int(RenderingServer.get_video_adapter_type()))
+	print("Графика: видеокарта «%s» → пресет %s" % [adapter, p if p != "" else "(не выбран)"])
+	if p == "":
+		return false
 	return select(p, dir)
 
 

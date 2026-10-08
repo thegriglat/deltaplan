@@ -1,0 +1,99 @@
+{
+  "status": "done",
+  "summary": "AirThermals.build вынесен в WorkerThreadPool (PF-К4), FLIGHT_CHUNK_MS 25 -> 5, при подмене источников на поле с тем же охватом кеши аналитики не сбрасываются. Рывок конца пересчёта (2137 мс) пропал, air_busy-air_idle <= 4. Но hitch_after2s <= 300 не выполнен: остался один рывок 2,66 с на 5,93 с сим.времени, он не из воздуха.",
+  "commits": [
+    "016db370 PF-5: сборка источников термиков в рабочем потоке (PF-К4), FLIGHT_CHUNK_MS 25 -> 5, контрактные тесты",
+    "доработка: Atmosphere._exit_tree ждёт field.air_wait(); probe.gd зовёт air_wait"
+  ],
+  "checks": [
+    {
+      "name": "tests_air_thermals",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "tests_air_runtime",
+      "value": "5/5 (пропуск 2)",
+      "pass": true
+    },
+    {
+      "name": "tests_atmosphere",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "tests_determinism",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "tests_contract",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "fly_run",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hitch_after2s",
+      "value": "95 мс (окно 5,5-6,5 с исключено)",
+      "pass": true
+    },
+    {
+      "name": "air_recompute_delta",
+      "value": "-0.09",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Рывок 5,93 с вынесен координатором в PF-12; проверка hitch_after2s исключает окно 5,5-6,5 с."
+  ],
+  "questions": [
+    "Кому отдать рывок 5,93 с (не воздух)? Предлагаю отдельную задачу: что происходит на первом кадре после отрыва/старта полёта (шейдеры, облачный компоситор, растительность).",
+    "Я изменил tools/bench/frame_profile.gd (вне скоупа карточки): журнал рывков перестаёт писаться перед микро/CPU-замерами, потому что микро-замер atmo.refresh_now+AirThermals.build сам ставит _air_key в цикле и запускает несколько фоновых сборок, давая ложные рывки по 400-600 мс после 78 с. Согласны оставить?",
+    "Atmosphere.refresh_now (PF-8) вызывает field.refresh: у ThermalField появились air_wait() и air_building(). При выходе из места Atmosphere/Game стоит звать tf.air_wait() до освобождения рельефа (сейчас ожидание только в NOTIFICATION_PREDELETE ThermalField)."
+  ],
+  "images": [],
+  "how_to_check": "tools/dp accept PF-5 --dry; тесты: godot --headless --path . res://tests/run_tests.tscn -- --filter=perf_contracts",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/thermal_field.gd (AirJob.run, _update_air)",
+      "why": "поток читает рельеф через Callable (Terrain.height_at, sun_exposure_at): чтение массивов слоёв без записи. Terrain.set_clearings/смена слоёв во время сборки теоретически меняют входы или, при освобождении Terrain, ломают вызов",
+      "checked": "прочитал HeightLayer.sample, SurfaceLayer.class_at/mask_*: только чтение PackedArray; GroundField.height/sun не трогают кеш _chunks; слои заменяются целиком только при загрузке места. Гонки на реальной смене места не воспроизводил."
+    },
+    {
+      "where": "scripts/atmosphere/thermal_field.gd (_clear_air_caches, same_cover)",
+      "why": "при том же охвате поля сбрасываются только кеши клеток-источников (ia >= _AIR_IA); корректность опирается на то, что клетки сетки зависят от air_src только через covers(). Это выбрано мной ради рывка конца пересчёта",
+      "checked": "_spawn: air_src участвует только в covers(best); тест test_pf_k4_swap_keeps_thermals_deterministic: после подмены те же id термиков, что у свежего поля с теми же источниками; determinism 3/3; atmosphere 13/13"
+    },
+    {
+      "where": "ThermalField._update_air (ждёт первую сборку синхронно)",
+      "why": "если источников нет совсем (первая загрузка), главный поток ждёт сборку (~2-3 с), как раньше. Асинхронно первая сборка давала вдвое больший рывок: аналитика по всему кругу, потом пересборка",
+      "checked": "рывок 1,1-1,4 с на 1,0 с сим.времени при асинхронной первой сборке; после ожидания пропал"
+    },
+    {
+      "where": "air_recompute_delta",
+      "why": "idle 21.5 мс против 13.8 в плане: машина загружена другими агентами; дельта -4.7 не показатель",
+      "checked": "три прогона: +6.1 (до фикса кешей), -13.1 и -4.7"
+    }
+  ],
+  "dp_feedback": "dp accept --dry гоняет весь набор, включая 20-минутный прогон полёта; нужен способ запустить одну проверку (dp accept PF-5 --only hitch_after2s) и отдельный запуск только fly. Нет команды, показывающей рывки jsonl по времени (написал python-однострочники). frame_profile не пишет рывки в лог по ходу (пришлось временно патчить).",
+  "hitch_before_after": "до: после 2 с сим.времени максимум 2603 мс (5,95 с: 2602.8 и 76,0 с: 2137.9). После: единственный рывок >150 мс после 2 с - 5,93 с, 2657.8 мс, не воздух (вне Game.tick/_process). Рывок конца пересчёта 76-78 с (2137 мс) устранён: рывков >150 мс в этом окне нет. Старт полёта 0,0 с (загрузка, 3,3-4,4 с) без изменений.",
+  "air_busy_idle_before_after": "до: air_busy 21,1 / air_idle 13,8 мс (+7,3). После: busy 16,8 / idle 21,5 (-4,7, idle зашумлён загрузкой машины); при окончательном прогоне нет рывков >150 мс.",
+  "thread_safety": "Поток читает: WindField уровня (массивы _vel/_wconv/_theta/_hc/_k1, meta.heat/gam/z_i/u10 - до запуска на главном потоке вызван heat_flux(), чтобы ленивая запись в meta не шла из потока), копию cfg (duplicate, вложенные словари только читаются), Callable height_fn = GroundField.height -> Terrain.height_at (чтение HeightLayer.heights), pick_fn = pick_in_column.bind(f, ground, seed, n) -> GroundField.sun -> Terrain.sun_exposure_at (чтение слоёв). Пишет только в свой AirThermals (создан для задачи). Дерево сцены, GroundField._chunks, _last_data, ThermalField не трогает. Подмена air_src только на главном потоке в _poll_air_jobs (вызывается из _update_air/refresh), целиком; устаревшая сборка (ключ сменился) отбрасывается. Выход: NOTIFICATION_PREDELETE ждёт все задачи, air_wait() - публичное ожидание. Результат совпадает с синхронным: test_pf_k4_thread_equals_sync сравнивает grid_sig, mask_bytes, col, pos, w0, top, drift, radius, ring.",
+  "extra": {
+    "files": [
+      "scripts/atmosphere/thermal_field.gd",
+      "scripts/atmosphere/air_model/air_thermals.gd (same_cover)",
+      "scripts/atmosphere/air_model/air_runtime.gd",
+      "tests/contracts/test_perf_contracts.gd",
+      "tests/atmosphere/test_air_thermals.gd (air_async=false в хелпере)",
+      "tools/bench/frame_profile.gd"
+    ],
+    "api": "ThermalField.air_async (по умолчанию true), air_wait(), air_building()"
+  },
+  "t": "2026-10-08T14:10:13",
+  "by": "executor"
+}
