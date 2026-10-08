@@ -1,0 +1,72 @@
+{
+  "id": "PV-3",
+  "module": "pilot-view",
+  "type": "dp-engineer",
+  "title": "X — мышь в центр; крен мышью как трапецией",
+  "goal": "Пункты 4–5 отзыва: X одним нажатием возвращает мышь-трапецию в нейтраль и она там остаётся; настройка roll_input (bar/body, по умолчанию bar) меняет направление крена для мыши, стрелок и стика в weight_shift.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "PV1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "PV2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "У1",
+      "version": "3",
+      "ref": "docs/contracts/ui-controls.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-3",
+  "branch": "pilot-view/PV-3",
+  "base": "feature/pilot-view",
+  "scope": [
+    "scripts/game/input_controller.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/controls.json",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tests/",
+    "docs/guide/flight.md",
+    "site/content/mechanics/"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "tools/blender/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_view_contracts",
+      "tests": "pilot_view_contracts"
+    },
+    {
+      "name": "roll_weight_shift",
+      "tests": "roll_weight_shift"
+    },
+    {
+      "name": "ui_controls_contracts",
+      "tests": "ui_controls_contracts"
+    },
+    {
+      "name": "input_launch",
+      "tests": "input_launch"
+    },
+    {
+      "name": "test_roll",
+      "tests": "test_roll"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:21:41"
+}

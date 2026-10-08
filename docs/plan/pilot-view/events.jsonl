@@ -1,1 +1,7 @@
 {"t": "2026-10-08T11:15:36", "by": "user", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-08T11:21:41", "by": "coordinator", "task": "PV-1", "ev": "created", "note": "Реальная геометрия лёжа и вид из кабины"}
+{"t": "2026-10-08T11:21:41", "by": "coordinator", "task": "PV-2", "ev": "created", "note": "Изгиб базовой штанги по крыльям"}
+{"t": "2026-10-08T11:21:41", "by": "coordinator", "task": "PV-3", "ev": "created", "note": "X — мышь в центр; крен мышью как трапецией"}
+{"t": "2026-10-08T11:21:59", "by": "coordinator", "task": "PV-1", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pilot-view-PV-1"}
+{"t": "2026-10-08T11:21:59", "by": "coordinator", "task": "PV-2", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pilot-view-PV-2"}
+{"t": "2026-10-08T11:22:00", "by": "coordinator", "task": "PV-3", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pilot-view-PV-3"}
