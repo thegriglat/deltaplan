@@ -33,3 +33,4 @@
 {"t": "2026-10-08T11:41:58", "by": "coordinator", "task": "PV-3", "ev": "accepted", "note": "по отчёту: 6/6, контрактный тест 7/7 (X сбрасывает мышь/стрелки, roll_input bar|body, знак через отрыв, запись в user-конфиг); диф в скоупе, 12 файлов"}
 {"t": "2026-10-08T11:41:58", "by": "coordinator", "task": "PV-3", "ev": "merged", "commits": ["aacd916b"]}
 {"t": "2026-10-08T11:42:58", "by": "coordinator", "task": "PV-3", "ev": "accepted", "commits": ["aacd916b"], "note": "6/6 pilot_view_contracts=ok:7/7; roll_weight_shift=ok:11/11; ui_controls_contracts=ok:9/9; input_launch=ok:1/1; test_roll=ok:15/15; settings=ok:1/1"}
+{"t": "2026-10-08T11:45:20", "by": "coordinator", "task": "PV-6", "ev": "cancelled", "note": "решение пользователя 08.10: модель полёта точечная, точка подвеса — только вид; разбор ЦД/ЦМ не нужен"}
