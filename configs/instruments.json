@@ -200,7 +200,7 @@
       "sample_interval_s_doc": "Шаг истории, с."
     },
     "mount_3d": {
-      "_doc": "Корпус вариометра 90-х в 3D (на хомуте левой стойки трапеции, docs/guide/models.md → VarioMount). Модель — agent models; если её нет — примитивы.",
+      "_doc": "Корпус вариометра 90-х в 3D (на хомуте нижней перекладины трапеции, docs/guide/models.md → VarioMount). Модель — agent models; если её нет — примитивы.",
       "model_path": "res://assets/models/vario_90s.glb",
       "model_path_doc": "Модель корпуса (.glb): меш «Screen» (круглый циферблат Ø66 мм, UV по описанному квадрату) — на него кладётся текстура. Экран в модели смотрит в −Z, как у instrument.glb.",
       "screen_mesh_name": "Screen",
