@@ -22,7 +22,8 @@
     "scripts/atmosphere/cloud_common.gdshaderinc",
     "scripts/atmosphere/cloud_compositor_effect.gd",
     "configs/atmosphere.json (только новые параметры облаков)",
-    "tests/atmosphere/test_cloud*.gd"
+    "tests/atmosphere/test_cloud*.gd",
+    "tools/shots/cloud_cut_shot.gd (--turn, ожидание мира; принято по ревью)"
   ],
   "dont_touch": [
     "форма и физика облаков (cloud_model.gd, cloud_physics.gd, плотность в cloud_common — не менять вид облака)",
@@ -52,5 +53,5 @@
   ],
   "notes": "",
   "created": "2026-10-08T12:23:15",
-  "edited": "2026-10-08T13:51:54"
+  "edited": "2026-10-08T13:56:21"
 }
