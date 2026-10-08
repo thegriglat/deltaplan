@@ -1,0 +1,56 @@
+{
+  "id": "PF-7",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Облака: марш 1 из 4 пикселей за кадр с перепроекцией",
+  "goal": "После PF-4 облака всё ещё главный проход GPU (medium кабина 7–10 мс из ~15). Считать марш по лучу в одном пикселе из блока 2×2 за кадр, остальное — из истории с перепроекцией.",
+  "plan_ref": "PF-7. Облака: марш 1 из 4",
+  "contracts": [
+    {
+      "name": "PF-К2",
+      "version": 2,
+      "ref": "docs/contracts/perf.md"
+    }
+  ],
+  "copy": "~/deltaplan-perf-PF-7",
+  "branch": "perf/PF-7",
+  "base": "feature/perf",
+  "scope": [
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_temporal_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_composite_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "configs/atmosphere.json (только новые параметры облаков)",
+    "tests/atmosphere/test_cloud*.gd"
+  ],
+  "dont_touch": [
+    "форма и физика облаков (cloud_model.gd, cloud_physics.gd, плотность в cloud_common — не менять вид облака)",
+    "buffer_size и max_buffer_px (PF-К2)",
+    "cloud_layer.gd _select — это PF-8",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tests_clouds",
+      "tests": "cloud"
+    },
+    {
+      "name": "tests_contract",
+      "tests": "perf_contracts"
+    },
+    {
+      "name": "clouds_medium_cockpit",
+      "cmd": "rm -rf build/dp/PF-7/m; MARKS=2:cockpit SKIP_FLY=1 TAG_SUFFIX= /home/greg/deltaplan/tools/dp lock gpu PF-7 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-7/m medium ongudai --sample=2 --exps=base >/dev/null 2>&1; python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-7/m/medium_ongudai_2.jsonl')];b=[r for r in R if r.get('exp')=='base'];print('gpu=%.2f'%b[0]['gpu_ms']);print('clouds=%.2f'%b[0]['passes']['Process Post Transparent Compositor Effects'])\"",
+      "expect": "num:clouds=([0-9.]+) <=4.0",
+      "timeout": 2400
+    }
+  ],
+  "report_extra": [
+    "clouds_ms_before_after",
+    "ghosting_handling",
+    "screenshots"
+  ],
+  "notes": "",
+  "created": "2026-10-08T12:23:15"
+}
