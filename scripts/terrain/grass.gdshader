@@ -14,7 +14,6 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform vec2 grid_center_cell;
-uniform int grid_n;
 uniform float clump_spacing_m = 0.5;
 uniform float area_radius_m = 35.0;
 uniform vec2 blade_height_m = vec2(0.25, 0.55);   // луг, мин/макс
@@ -70,8 +69,7 @@ varying vec3 v_n;
 varying float v_cs_sun;
 
 void vertex() {
-	int id = INSTANCE_ID;
-	vec2 cell = grid_center_cell + vec2(float(id % grid_n), float(id / grid_n)) - float(grid_n / 2);
+	vec2 cell = grid_center_cell + INSTANCE_CUSTOM.xy;   // смещение клетки в кольце слоя
 	vec2 jit = vec2(hash12(cell * 1.37 + 3.1), hash12(cell * 0.71 + 11.3)) - 0.5;
 	vec2 xz = (cell + 0.5 + jit * 0.9) * clump_spacing_m;
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);
