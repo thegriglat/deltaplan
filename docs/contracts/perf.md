@@ -5,14 +5,14 @@ module: "perf"
 updated: "2026-10-08"
 summary: "Контракты модуля perf: размер буфера облаков и параметры качества (PF-К2), источники термиков поля воздуха при сборке в рабочем потоке (PF-К4). PF-К1 и PF-К3 сняты вместе с PF-2/PF-6."
 related: ["docs/plan/perf.md", "docs/perf/frame_profile.md"]
-contracts: [{"id": "PF-К2", "version": 1}, {"id": "PF-К4", "version": 1}]
+contracts: [{"id": "PF-К2", "version": 2}, {"id": "PF-К4", "version": 1}]
 ---
 # Контракты модуля perf
 
 Контрактные тесты — `tests/contracts/test_perf_contracts.gd` (фильтр `perf_contracts`), каждый тест пишет
 задача-владелец; меняются только вместе с контрактом (версия +1, через координатора).
 
-## PF-К2. Буфер облаков и параметры качества — версия 1
+## PF-К2. Буфер облаков и параметры качества — версия 2
 
 - Владелец: PF-4. Потребители: PF-7 (марш по четвертям), PF-8 (`cloud_layer.gd`), PF-10.
 - Где: `configs/atmosphere.json → clouds.quality_presets.<low|medium|high>`; применяет
@@ -21,13 +21,15 @@ contracts: [{"id": "PF-К2", "version": 1}, {"id": "PF-К4", "version": 1}]
   `max_iterations`, `fine_step_per_m`, `fine_step_min_m`, `light_steps`, `detail`, `lowres_scale`
   (доля внутреннего размера 3D по каждой оси, 0 < x ≤ 1), **`max_buffer_px`** (int, пикселей;
   предел площади буфера облаков; 0 — без предела).
-- Размер буфера (единственная функция, `CloudCompositorEffect.buffer_size(full: Vector2i) -> Vector2i`,
-  статическая, без RD): `full = RenderSceneBuffersRD.get_internal_size()` (после `scale_3d`);
+- Размер буфера (единственная функция, `CloudCompositorEffect.buffer_size(full: Vector2i, scale := 0.5, max_px := 0) -> Vector2i`,
+  статическая, без RD; `scale` = `lowres_scale`, `max_px` = `max_buffer_px`): `full = RenderSceneBuffersRD.get_internal_size()` (после `scale_3d`);
   `s = lowres_scale`; если `max_buffer_px > 0` и `full.x·full.y·s² > max_buffer_px` —
   `s = √(max_buffer_px / (full.x·full.y))`; размер = (max(1, ceil(full.x·s)), max(1, ceil(full.y·s))).
   Пропорции сохраняются; площадь ≤ `max_buffer_px` с точностью до округления вверх (≤ +1 строка/столбец).
 - Инварианты: при `full` ≤ 1920×1080 и значениях пресетов предел не срабатывает для low/medium
   (картинка у нас та же, что от одного `lowres_scale`); смена качества на лету пересоздаёт цели.
+- v2 (2026-10-08, PF-4): сигнатура `buffer_size` получила `scale` и `max_px` явными аргументами (статическая
+  функция не видит свойств эффекта); формула та же. Значения: low/medium `max_buffer_px` 240000, high 560000.
 - Замер для приёмки — инструмент PF-1 (`docs/plan/perf.md` → «Замер для приёмки»); PF-К1 и PF-К3 сняты
   (решение пользователя 2026-10-08).
 - Контрактный тест: поля всех трёх качеств есть и нужных типов; `buffer_size` для 1920×1080 и
