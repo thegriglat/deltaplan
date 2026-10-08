@@ -5,3 +5,7 @@
 {"t": "2026-10-08T11:21:59", "by": "coordinator", "task": "PV-1", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pilot-view-PV-1"}
 {"t": "2026-10-08T11:21:59", "by": "coordinator", "task": "PV-2", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pilot-view-PV-2"}
 {"t": "2026-10-08T11:22:00", "by": "coordinator", "task": "PV-3", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pilot-view-PV-3"}
+{"t": "2026-10-08T11:27:53", "by": "executor", "task": "PV-2", "ev": "reported", "commits": ["6fccc5bc"], "note": "done: Для 48 крыльев записан wings.<id>.basebar и control_frame.basebar_default: 37 изогнутых (bow_m 0,07/0,09/0,11), 11 прям…", "dp_feedback": "Нет команды для чтения PDF-руководств/сайтов с кешем и поиском по словам; WebFetch не читает PDF, обходил curl+pdftotext. dp docs init сообщил 'добавлен: 0' без указания, нужен ли frontmatter вручную."}
+{"t": "2026-10-08T11:28:10", "by": "coordinator", "task": "PV-2", "ev": "checked", "note": "2/2 basebar_data=ok:48 bad []; docs=ok:exit 0"}
+{"t": "2026-10-08T11:28:16", "by": "coordinator", "task": "PV-2", "ev": "accepted", "note": "по отчёту: 48/48 basebar; 37 изогнутых (bow 0,07/0,09/0,11 — оценки класса ±0,03), 11 прямых; Falcon — изогнутая, Alpha — прямая (руководства WW)"}
+{"t": "2026-10-08T11:28:17", "by": "coordinator", "task": "PV-2", "ev": "merged", "commits": ["ecdfdaea"]}
