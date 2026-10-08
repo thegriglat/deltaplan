@@ -11,7 +11,9 @@
   "base": "feature/perf",
   "scope": [
     "по находке — согласовать с координатором до правок вне рендера/старта полёта",
-    "tools/bench/frame_profile.gd (метки диагностики)"
+    "tools/bench/frame_profile.gd (метки диагностики)",
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/easter_eggs/uaz.gd"
   ],
   "dont_touch": [
     "физика полёта и воздуха",
@@ -28,6 +30,10 @@
       "name": "hitch_after2s_all",
       "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-12/f/medium_ongudai_fly.jsonl')];h=[x['ms'] for r in R if r.get('exp')=='_hitches' for x in r['hitches'] if x['sim_t']>2.0];print('hitch=%.1f'%max(h+[0.0]))\"",
       "expect": "num:hitch=([0-9.]+) <=300"
+    },
+    {
+      "name": "egg",
+      "tests": "egg"
     }
   ],
   "report_extra": [
@@ -35,5 +41,6 @@
     "hitch_before_after"
   ],
   "notes": "",
-  "created": "2026-10-08T14:27:56"
+  "created": "2026-10-08T14:27:56",
+  "edited": "2026-10-08T16:07:19"
 }

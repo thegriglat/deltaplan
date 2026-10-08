@@ -12,6 +12,7 @@ var _camp: Array[Dictionary] = []
 var _cfg: Dictionary = {}
 var _valley := 0.0
 var _road_cache := {}  ## ключ классов → Array[PackedVector2Array]
+var _road_cells := {}  ## ключ классов → {Vector2i ячейка ROAD_CELL_M: true}, где есть дорога (PF-12)
 var _water_lines: Array = []  ## PackedVector2Array: реки и контуры озёр
 var _water_ready := false
 
@@ -109,6 +110,40 @@ func roads(classes: PackedStringArray) -> Array:
 				out.append(OsmData.points(r.p))
 		_road_cache[key] = out
 	return _road_cache[key]
+
+
+const ROAD_CELL_M := 64.0
+
+
+## Дешёвый отсев (O(1)): false — дороги этих классов в пределах max_m (≤ 16 м) от точки заведомо
+## нет; true — возможно есть (проверить nearest_road_m). Без отсева поиск места для УАЗа гонял
+## по 16 тыс. точек дорог ~500 раз за кадр (рывок 1,7–2,8 с на старте полёта, PF-12).
+func road_maybe_near(x: float, z: float, classes: PackedStringArray) -> bool:
+	if _osm == null:
+		return false
+	var key := ",".join(classes)
+	if not _road_cells.has(key):
+		var cells := {}
+		for line in roads(classes):
+			var pts: PackedVector2Array = line
+			for i in pts.size():
+				_mark_cell(cells, pts[i])
+				if i + 1 < pts.size():
+					var n := int(ceil(pts[i].distance_to(pts[i + 1]) / (ROAD_CELL_M * 0.5)))
+					for k in range(1, n):
+						_mark_cell(cells, pts[i].lerp(pts[i + 1], float(k) / float(n)))
+		_road_cells[key] = cells
+	var cells: Dictionary = _road_cells[key]
+	var c := Vector2i(floori(x / ROAD_CELL_M), floori(z / ROAD_CELL_M))
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			if cells.has(Vector2i(c.x + dx, c.y + dz)):
+				return true
+	return false
+
+
+static func _mark_cell(cells: Dictionary, p: Vector2) -> void:
+	cells[Vector2i(floori(p.x / ROAD_CELL_M), floori(p.y / ROAD_CELL_M))] = true
 
 
 func nearest_road_m(x: float, z: float, classes: PackedStringArray) -> float:
