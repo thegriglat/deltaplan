@@ -66,7 +66,7 @@ aerodynamic damping ∝ V ∝ √M) — a heavy pilot enters and leaves a roll m
 Two roll control modes (`controls.json → roll_control_mode`, the "Roll control" setting); in both, the
 meaning of `ControlInput.roll` in flight is `ControlInput.weight_shift`.
 
-- **"Weight shift"** (`weight_shift`, the default). Roll input (mouse sideways, ←/→, stick) is the
+- **"Weight shift"** (`weight_shift`, the default). Mouse sideways, ←/→ and stick move the pilot's body: right — roll right (the "Roll by mouse and arrows" setting switches to "like the bar": bar right — weight left — roll left); one press of X returns the bar to the centre. Roll input (mouse sideways, ←/→, stick) is the
   pilot's position across the control frame (−1…+1, 0 — centre). The technique is as in real life: swing
   to the right — the wing banks and turns; stand in the centre — the wing levels itself and flies
   straight in the new direction. The roll rate to which the wing settles with the time constant

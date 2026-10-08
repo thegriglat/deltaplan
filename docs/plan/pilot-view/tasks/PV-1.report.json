@@ -1,0 +1,102 @@
+{
+  "status": "done",
+  "summary": "Скрипт cockpit_view.py (сверен с игрой: 0,6-1,8 градуса), предложение A3 v8: зазор 0,06 м, штанга на 0,50 м впереди плеч (наклон стоек 27,7-32,6 градуса - A1 меняется), камера в глазах [0,0,0] вместо [0;0,12;-0,15], взгляд 10 градусов вниз, FOV по вертикали 90. Сейчас штанга на 112-120 градусов от оси взгляда (позади глаз), не видна при любом FOV; один зазор не помогает.",
+  "commits": [
+    "e55b23e8 PV-1: скрипт вида из кабины cockpit_view.py, предложение для A3 v8, README"
+  ],
+  "checks": [
+    {
+      "name": "view_script",
+      "value": "PASS (dp accept PV-1 --dry)",
+      "pass": true
+    },
+    {
+      "name": "all_wings",
+      "value": "PASS (dp accept PV-1 --dry)",
+      "pass": true
+    },
+    {
+      "name": "proposal",
+      "value": "PASS (dp accept PV-1 --dry)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS (dp accept PV-1 --dry)",
+      "pass": true
+    },
+    {
+      "name": "сверка с игрой test_cockpit (apogee/training/sport/laminar, FOV 75)",
+      "value": "хорда штанги от оси, игра/скрипт: 110,8/112,6; 111,5/112,1; 111,0/111,9; 110,9/111,7; взгляд вниз 90 до центра штанги: 29,8/27,8; 29,3/27,7; 25,3/23,9; 27,1/25,9",
+      "pass": true
+    },
+    {
+      "name": "предложение по 48 крыльям",
+      "value": "min_vfov 72-96, медиана 83, 44 из 48 <= 90",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Прямого источника 'штанга на X см впереди плеч' и фото-подтверждения нет: вынос 0,40-0,57 получен из кинематики руки (сегменты 0,26+0,38 из кости pilot.glb)",
+    "Файлы игры не менялись (scope: только tools/research/pilot_view)"
+  ],
+  "questions": [
+    "Решение A3.1 (база под плечами, пользователь 05.10, фото points.png) против кинематики при зазоре 0,06: пересматривать A1 (наклон стоек 28-33 градуса, смещение ЦМ крыла вперёд на 0,05 м) - да/нет? Альтернатива без смены A1: вид без штанги, видны только носовые тросы при FOV ~120-160.",
+    "Зазор: общий hang_length_m даёт 0,011-0,110 вместо 0,06 из-за разной глубины штанги по крыльям (1,56-1,66 м): длина подвески по крылу или выравнивание upright_len_m?",
+    "Зазор 5-7 см ниже руководства CG-1000 (5-10 дюймов = 12,7-25 см): принять как решение пользователя?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept PV-1; python3 tools/research/pilot_view/cockpit_view.py --all",
+  "uncertain": [
+    {
+      "where": "tools/research/pilot_view/proposal.json: bar_fwd_of_shoulder_m",
+      "why": "нет измерения из источников, только кинематика руки и описание 'руки вытянуты (Superman style)'; форум 'basebar is in my face' отдал 403",
+      "checked": "проверил диапазон локтя 90-150 градусов (0,40-0,57) и что A3.2 (локоть 55-165) выдерживается; чувствительность в README"
+    },
+    {
+      "where": "proposal.json: eye_from_shoulder_m",
+      "why": "число модели (pilot_eye минус shoulder_mid), независимого источника лёжа нет; стоя глаз выше плеча на ~0,21 м (коэффициенты Drillis-Contini по памяти, не сверены с первоисточником)",
+      "checked": "сверил с костями pilot.glb"
+    },
+    {
+      "where": "cockpit_view.py vs игра",
+      "why": "систематика 0,6-2 градуса; причина (отклонение позы/тангажа через 12 с полёта, сглаживание) не разделена",
+      "checked": "прогнал tests/game/test_cockpit.gd на текущей ветке, лог game_test_cockpit_current.txt"
+    },
+    {
+      "where": "положение пилота в игре",
+      "why": "оно берётся из pilot.glb (pilot_eye[2], пересборка build_pilot.py); hang_length_m/body_below_hang_m тестом сверяются с моделью и используются визуалом; в физике полёта не читаются (grep по scripts)",
+      "checked": "grep hang_length_m/body_below_hang_m по scripts, tests, tools"
+    },
+    {
+      "where": "источники по зазору",
+      "why": "CG-1000: 5-10 дюймов; Wills Wing: как можно ближе; тестировщик: 2-3 дюйма; базис измерения (до груди или низа подвесной) различается",
+      "checked": "цитаты в proposal.json"
+    }
+  ],
+  "dp_feedback": "Не хватило команды dp для запуска headless-тестов Godot с импортом в свежей копии (пришлось вручную godot --import, иначе 0 тестов без ошибки); dp docs init не нужен было вызывать - frontmatter скопировал вручную по образцу.",
+  "extra": {
+    "proposal": {
+      "gap_body_bar_top_m": 0.06,
+      "bar_fwd_of_shoulder_m": 0.5,
+      "eye_from_shoulder_m": [
+        0.27,
+        0.105
+      ],
+      "camera_offset_m": [
+        0,
+        0,
+        0
+      ],
+      "look_down_deg": 10,
+      "default_vfov_deg": 90,
+      "upright_tilt_needed_deg": "27.7-32.6",
+      "pilot_shift_down_m": "0.275-0.374 (медиана 0.325)",
+      "hang_length_m": 1.536,
+      "body_below_hang_m": 1.462,
+      "pilot_eye_z": -1.262
+    }
+  },
+  "t": "2026-10-08T11:35:51",
+  "by": "executor"
+}

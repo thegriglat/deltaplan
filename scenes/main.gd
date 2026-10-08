@@ -327,8 +327,6 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 		game.camera.fov = opts.fov_deg
 	if opts.look != Vector2.ZERO:
 		game.camera.set_look(opts.look.x, opts.look.y)
-	if opts.glance:
-		Input.action_press("look_instrument")
 	game.debug_overlays.enable(opts.debug_overlays)
 	_force_eggs()
 	if opts.look_at != "":

@@ -1,0 +1,2258 @@
+[
+ {
+  "wing": "training",
+  "upright_tilt_now_deg": 7.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.59,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.315,
+   -1.568
+  ],
+  "gap_body_bar_top_now_m": 0.342,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.033,
+  "bar_below_eye_m": 0.631,
+  "basebar_center_deg": 119.7,
+  "basebar_chord_min_deg": 112.1,
+  "basebar_center_below_axis_deg": 60.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.763,
+   -0.434
+  ],
+  "nosewire_corner_deg": 112.1,
+  "nosewire_nose_deg": 65.7,
+  "nosewire_closest_deg": 65.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 131.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "sport",
+  "upright_tilt_now_deg": 9.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 6.61,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.276,
+   -1.654
+  ],
+  "gap_body_bar_top_now_m": 0.428,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.071,
+  "bar_below_eye_m": 0.717,
+  "basebar_center_deg": 115.9,
+  "basebar_chord_min_deg": 111.9,
+  "basebar_center_below_axis_deg": 64.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.874,
+   -0.425
+  ],
+  "nosewire_corner_deg": 111.0,
+  "nosewire_nose_deg": 69.4,
+  "nosewire_closest_deg": 69.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 138.8,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "slavutich_ut",
+  "upright_tilt_now_deg": 8.0,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 2.35,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.324,
+   -1.61
+  ],
+  "gap_body_bar_top_now_m": 0.384,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.024,
+  "bar_below_eye_m": 0.673,
+  "basebar_center_deg": 119.0,
+  "basebar_chord_min_deg": 112.0,
+  "basebar_center_below_axis_deg": 61.0,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.796,
+   -0.442
+  ],
+  "nosewire_corner_deg": 112.0,
+  "nosewire_nose_deg": 61.7,
+  "nosewire_closest_deg": 61.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 123.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "apogee",
+  "upright_tilt_now_deg": 11.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 1.73,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.331,
+   -1.592
+  ],
+  "gap_body_bar_top_now_m": 0.366,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.016,
+  "bar_below_eye_m": 0.655,
+  "basebar_center_deg": 119.8,
+  "basebar_chord_min_deg": 112.6,
+  "basebar_center_below_axis_deg": 60.2,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.773,
+   -0.442
+  ],
+  "nosewire_corner_deg": 112.6,
+  "nosewire_nose_deg": 61.2,
+  "nosewire_closest_deg": 61.2,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 122.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "atlas",
+  "upright_tilt_now_deg": 7.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 2.64,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.321,
+   -1.612
+  ],
+  "gap_body_bar_top_now_m": 0.386,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.027,
+  "bar_below_eye_m": 0.675,
+  "basebar_center_deg": 118.8,
+  "basebar_chord_min_deg": 112.0,
+  "basebar_center_below_axis_deg": 61.2,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.8,
+   -0.44
+  ],
+  "nosewire_corner_deg": 112.0,
+  "nosewire_nose_deg": 59.8,
+  "nosewire_closest_deg": 72.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 114.5,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "target",
+  "upright_tilt_now_deg": 7.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.98,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.312,
+   -1.568
+  ],
+  "gap_body_bar_top_now_m": 0.342,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.036,
+  "bar_below_eye_m": 0.631,
+  "basebar_center_deg": 119.4,
+  "basebar_chord_min_deg": 111.9,
+  "basebar_center_below_axis_deg": 60.6,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.766,
+   -0.432
+  ],
+  "nosewire_corner_deg": 111.9,
+  "nosewire_nose_deg": 62.0,
+  "nosewire_closest_deg": 62.0,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 124.1,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "magic",
+  "upright_tilt_now_deg": 10.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.69,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.301,
+   -1.598
+  ],
+  "gap_body_bar_top_now_m": 0.372,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.047,
+  "bar_below_eye_m": 0.661,
+  "basebar_center_deg": 118.3,
+  "basebar_chord_min_deg": 111.8,
+  "basebar_center_below_axis_deg": 61.7,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.803,
+   -0.432
+  ],
+  "nosewire_corner_deg": 111.8,
+  "nosewire_nose_deg": 64.3,
+  "nosewire_closest_deg": 64.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 128.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "laminar",
+  "upright_tilt_now_deg": 10.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.3,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.296,
+   -1.6
+  ],
+  "gap_body_bar_top_now_m": 0.374,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.052,
+  "bar_below_eye_m": 0.663,
+  "basebar_center_deg": 117.9,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 62.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.809,
+   -0.428
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 67.8,
+  "nosewire_closest_deg": 67.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 135.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "combat",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.24,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.5,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 73.7,
+  "nosewire_closest_deg": 73.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 147.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "icaro_piuma",
+  "upright_tilt_now_deg": 8.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 0.85,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.339,
+   -1.614
+  ],
+  "gap_body_bar_top_now_m": 0.388,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.009,
+  "bar_below_eye_m": 0.677,
+  "basebar_center_deg": 119.6,
+  "basebar_chord_min_deg": 113.0,
+  "basebar_center_below_axis_deg": 60.4,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.788,
+   -0.447
+  ],
+  "nosewire_corner_deg": 112.3,
+  "nosewire_nose_deg": 58.8,
+  "nosewire_closest_deg": 71.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 111.7,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "moyes_malibu2",
+  "upright_tilt_now_deg": 7.5,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.71,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.304,
+   -1.569
+  ],
+  "gap_body_bar_top_now_m": 0.343,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.044,
+  "bar_below_eye_m": 0.632,
+  "basebar_center_deg": 119.1,
+  "basebar_chord_min_deg": 111.8,
+  "basebar_center_below_axis_deg": 60.9,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.773,
+   -0.43
+  ],
+  "nosewire_corner_deg": 111.8,
+  "nosewire_nose_deg": 49.0,
+  "nosewire_closest_deg": 54.9,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 69.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "air_f2",
+  "upright_tilt_now_deg": 7.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.96,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.301,
+   -1.569
+  ],
+  "gap_body_bar_top_now_m": 0.343,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.047,
+  "bar_below_eye_m": 0.632,
+  "basebar_center_deg": 119.0,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 61.0,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.776,
+   -0.429
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 49.5,
+  "nosewire_closest_deg": 55.6,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 71.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "aeros_fox",
+  "upright_tilt_now_deg": 8.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 1.88,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.328,
+   -1.616
+  ],
+  "gap_body_bar_top_now_m": 0.39,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.02,
+  "bar_below_eye_m": 0.679,
+  "basebar_center_deg": 119.1,
+  "basebar_chord_min_deg": 112.7,
+  "basebar_center_below_axis_deg": 60.9,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.798,
+   -0.443
+  ],
+  "nosewire_corner_deg": 112.0,
+  "nosewire_nose_deg": 59.9,
+  "nosewire_closest_deg": 72.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 116.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "condor_crex3",
+  "upright_tilt_now_deg": 13.0,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": -1.25,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.356,
+   -1.564
+  ],
+  "gap_body_bar_top_now_m": 0.338,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": 0.009,
+  "bar_below_eye_m": 0.627,
+  "basebar_center_deg": 122.2,
+  "basebar_chord_min_deg": 113.6,
+  "basebar_center_below_axis_deg": 57.8,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.722,
+   -0.455
+  ],
+  "nosewire_corner_deg": 113.6,
+  "nosewire_nose_deg": 60.8,
+  "nosewire_closest_deg": 60.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 121.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "condor_flex",
+  "upright_tilt_now_deg": 8.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 1.53,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.334,
+   -1.565
+  ],
+  "gap_body_bar_top_now_m": 0.339,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.014,
+  "bar_below_eye_m": 0.628,
+  "basebar_center_deg": 120.7,
+  "basebar_chord_min_deg": 112.7,
+  "basebar_center_below_axis_deg": 59.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.744,
+   -0.442
+  ],
+  "nosewire_corner_deg": 112.7,
+  "nosewire_nose_deg": 63.9,
+  "nosewire_closest_deg": 63.9,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 127.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "fs_funky",
+  "upright_tilt_now_deg": 7.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.97,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.301,
+   -1.569
+  ],
+  "gap_body_bar_top_now_m": 0.343,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.047,
+  "bar_below_eye_m": 0.632,
+  "basebar_center_deg": 119.0,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 61.0,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.776,
+   -0.429
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 66.8,
+  "nosewire_closest_deg": 66.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 133.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "fs_space",
+  "upright_tilt_now_deg": 11.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.57,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.316,
+   -1.561
+  ],
+  "gap_body_bar_top_now_m": 0.335,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.031,
+  "bar_below_eye_m": 0.624,
+  "basebar_center_deg": 119.8,
+  "basebar_chord_min_deg": 112.1,
+  "basebar_center_below_axis_deg": 60.2,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.756,
+   -0.433
+  ],
+  "nosewire_corner_deg": 112.1,
+  "nosewire_nose_deg": 66.2,
+  "nosewire_closest_deg": 66.2,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 132.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_eagle",
+  "upright_tilt_now_deg": 11.2,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.78,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.312,
+   -1.596
+  ],
+  "gap_body_bar_top_now_m": 0.37,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.036,
+  "bar_below_eye_m": 0.659,
+  "basebar_center_deg": 118.7,
+  "basebar_chord_min_deg": 112.0,
+  "basebar_center_below_axis_deg": 61.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.793,
+   -0.433
+  ],
+  "nosewire_corner_deg": 112.0,
+  "nosewire_nose_deg": 65.7,
+  "nosewire_closest_deg": 65.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 131.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_sport3",
+  "upright_tilt_now_deg": 7.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 13.17,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.215,
+   -1.613
+  ],
+  "gap_body_bar_top_now_m": 0.387,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.132,
+  "bar_below_eye_m": 0.676,
+  "basebar_center_deg": 113.7,
+  "basebar_chord_min_deg": 108.9,
+  "basebar_center_below_axis_deg": 66.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.889,
+   -0.39
+  ],
+  "nosewire_corner_deg": 108.9,
+  "nosewire_nose_deg": 78.0,
+  "nosewire_closest_deg": 78.0,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 155.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_u2",
+  "upright_tilt_now_deg": 9.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.0,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.274,
+   -1.654
+  ],
+  "gap_body_bar_top_now_m": 0.428,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.074,
+  "bar_below_eye_m": 0.717,
+  "basebar_center_deg": 115.7,
+  "basebar_chord_min_deg": 111.3,
+  "basebar_center_below_axis_deg": 64.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.877,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.5,
+  "nosewire_nose_deg": 73.0,
+  "nosewire_closest_deg": 73.0,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 146.0,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "aeros_discus",
+  "upright_tilt_now_deg": 9.5,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 8.25,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.265,
+   -1.606
+  ],
+  "gap_body_bar_top_now_m": 0.38,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.082,
+  "bar_below_eye_m": 0.669,
+  "basebar_center_deg": 116.4,
+  "basebar_chord_min_deg": 110.7,
+  "basebar_center_below_axis_deg": 63.6,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.839,
+   -0.416
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 70.3,
+  "nosewire_closest_deg": 70.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 140.7,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "air_sting3",
+  "upright_tilt_now_deg": 10.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.3,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.29,
+   -1.651
+  ],
+  "gap_body_bar_top_now_m": 0.425,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.058,
+  "bar_below_eye_m": 0.714,
+  "basebar_center_deg": 116.6,
+  "basebar_chord_min_deg": 111.9,
+  "basebar_center_below_axis_deg": 63.4,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.861,
+   -0.431
+  ],
+  "nosewire_corner_deg": 111.1,
+  "nosewire_nose_deg": 51.1,
+  "nosewire_closest_deg": 54.0,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 69.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "icaro_alto",
+  "upright_tilt_now_deg": 11.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.24,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.318,
+   -1.596
+  ],
+  "gap_body_bar_top_now_m": 0.37,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.03,
+  "bar_below_eye_m": 0.659,
+  "basebar_center_deg": 118.9,
+  "basebar_chord_min_deg": 112.3,
+  "basebar_center_below_axis_deg": 61.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.789,
+   -0.435
+  ],
+  "nosewire_corner_deg": 112.3,
+  "nosewire_nose_deg": 67.5,
+  "nosewire_closest_deg": 67.5,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 135.1,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "icaro_mastr",
+  "upright_tilt_now_deg": 10.1,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 6.14,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.282,
+   -1.653
+  ],
+  "gap_body_bar_top_now_m": 0.427,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.066,
+  "bar_below_eye_m": 0.716,
+  "basebar_center_deg": 116.1,
+  "basebar_chord_min_deg": 112.0,
+  "basebar_center_below_axis_deg": 63.9,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.869,
+   -0.426
+  ],
+  "nosewire_corner_deg": 111.1,
+  "nosewire_nose_deg": 71.7,
+  "nosewire_closest_deg": 71.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 143.4,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "bautek_kite",
+  "upright_tilt_now_deg": 5.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 17.67,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.165,
+   -1.619
+  ],
+  "gap_body_bar_top_now_m": 0.393,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.183,
+  "bar_below_eye_m": 0.682,
+  "basebar_center_deg": 111.3,
+  "basebar_chord_min_deg": 107.3,
+  "basebar_center_below_axis_deg": 68.7,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.936,
+   -0.366
+  ],
+  "nosewire_corner_deg": 107.3,
+  "nosewire_nose_deg": 82.0,
+  "nosewire_closest_deg": 82.0,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 164.0,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "bautek_astir",
+  "upright_tilt_now_deg": 6.9,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 14.98,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.193,
+   -1.616
+  ],
+  "gap_body_bar_top_now_m": 0.39,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.155,
+  "bar_below_eye_m": 0.679,
+  "basebar_center_deg": 112.8,
+  "basebar_chord_min_deg": 108.4,
+  "basebar_center_below_axis_deg": 67.2,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.908,
+   -0.383
+  ],
+  "nosewire_corner_deg": 108.4,
+  "nosewire_nose_deg": 79.4,
+  "nosewire_closest_deg": 79.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 158.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "fs_crossover",
+  "upright_tilt_now_deg": 10.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.27,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.296,
+   -1.6
+  ],
+  "gap_body_bar_top_now_m": 0.374,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.052,
+  "bar_below_eye_m": 0.663,
+  "basebar_center_deg": 117.9,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 62.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.809,
+   -0.429
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 69.9,
+  "nosewire_closest_deg": 69.9,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 139.8,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "seed_spyder",
+  "upright_tilt_now_deg": 10.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.55,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.299,
+   -1.65
+  ],
+  "gap_body_bar_top_now_m": 0.424,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.049,
+  "bar_below_eye_m": 0.713,
+  "basebar_center_deg": 117.0,
+  "basebar_chord_min_deg": 112.5,
+  "basebar_center_below_axis_deg": 63.0,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.853,
+   -0.434
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 71.8,
+  "nosewire_closest_deg": 71.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 143.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "moyes_gecko",
+  "upright_tilt_now_deg": 10.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.31,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.296,
+   -1.6
+  ],
+  "gap_body_bar_top_now_m": 0.374,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.052,
+  "bar_below_eye_m": 0.663,
+  "basebar_center_deg": 117.9,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 62.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.809,
+   -0.428
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 66.7,
+  "nosewire_closest_deg": 66.7,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 133.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_super_sport",
+  "upright_tilt_now_deg": 10.2,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 6.39,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.285,
+   -1.601
+  ],
+  "gap_body_bar_top_now_m": 0.375,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.063,
+  "bar_below_eye_m": 0.664,
+  "basebar_center_deg": 117.4,
+  "basebar_chord_min_deg": 111.2,
+  "basebar_center_below_axis_deg": 62.6,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.819,
+   -0.424
+  ],
+  "nosewire_corner_deg": 111.2,
+  "nosewire_nose_deg": 68.3,
+  "nosewire_closest_deg": 68.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 136.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_ultra_sport",
+  "upright_tilt_now_deg": 10.0,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 6.97,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.279,
+   -1.602
+  ],
+  "gap_body_bar_top_now_m": 0.376,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.069,
+  "bar_below_eye_m": 0.665,
+  "basebar_center_deg": 117.0,
+  "basebar_chord_min_deg": 111.0,
+  "basebar_center_below_axis_deg": 63.0,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.825,
+   -0.421
+  ],
+  "nosewire_corner_deg": 111.0,
+  "nosewire_nose_deg": 69.4,
+  "nosewire_closest_deg": 69.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 138.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_spectrum",
+  "upright_tilt_now_deg": 7.4,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.02,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.301,
+   -1.569
+  ],
+  "gap_body_bar_top_now_m": 0.343,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.047,
+  "bar_below_eye_m": 0.632,
+  "basebar_center_deg": 118.9,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 61.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.776,
+   -0.428
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 62.1,
+  "nosewire_closest_deg": 62.1,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 124.1,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_t2c",
+  "upright_tilt_now_deg": 9.1,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 8.64,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.254,
+   -1.658
+  ],
+  "gap_body_bar_top_now_m": 0.432,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.094,
+  "bar_below_eye_m": 0.721,
+  "basebar_center_deg": 114.9,
+  "basebar_chord_min_deg": 111.2,
+  "basebar_center_below_axis_deg": 65.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.895,
+   -0.415
+  ],
+  "nosewire_corner_deg": 110.3,
+  "nosewire_nose_deg": 68.8,
+  "nosewire_closest_deg": 68.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 137.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_t3",
+  "upright_tilt_now_deg": 9.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.01,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.274,
+   -1.654
+  ],
+  "gap_body_bar_top_now_m": 0.428,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.074,
+  "bar_below_eye_m": 0.717,
+  "basebar_center_deg": 115.6,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 64.4,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.877,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.8,
+  "nosewire_nose_deg": 70.9,
+  "nosewire_closest_deg": 70.9,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 141.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "moyes_litespeed_rx",
+  "upright_tilt_now_deg": 9.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.01,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.274,
+   -1.654
+  ],
+  "gap_body_bar_top_now_m": 0.428,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.074,
+  "bar_below_eye_m": 0.717,
+  "basebar_center_deg": 115.7,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 64.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.877,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.8,
+  "nosewire_nose_deg": 63.7,
+  "nosewire_closest_deg": 75.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 124.7,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "moyes_litespeed_s",
+  "upright_tilt_now_deg": 8.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 9.84,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.24,
+   -1.66
+  ],
+  "gap_body_bar_top_now_m": 0.434,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.107,
+  "bar_below_eye_m": 0.723,
+  "basebar_center_deg": 114.3,
+  "basebar_chord_min_deg": 110.8,
+  "basebar_center_below_axis_deg": 65.7,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.907,
+   -0.41
+  ],
+  "nosewire_corner_deg": 109.9,
+  "nosewire_nose_deg": 66.5,
+  "nosewire_closest_deg": 66.5,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 133.1,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "moyes_litesport",
+  "upright_tilt_now_deg": 9.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 8.14,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.268,
+   -1.605
+  ],
+  "gap_body_bar_top_now_m": 0.379,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.08,
+  "bar_below_eye_m": 0.668,
+  "basebar_center_deg": 116.4,
+  "basebar_chord_min_deg": 110.7,
+  "basebar_center_below_axis_deg": 63.6,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.837,
+   -0.415
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 63.1,
+  "nosewire_closest_deg": 75.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 124.0,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "aeros_combat_c",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.24,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.5,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.42
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 74.4,
+  "nosewire_closest_deg": 74.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 148.8,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "aeros_combat_l",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.25,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.5,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.42
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 65.3,
+  "nosewire_closest_deg": 65.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 130.6,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "icaro_laminar_z9",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.23,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.6,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.4,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 76.5,
+  "nosewire_closest_deg": 76.5,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 152.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "bautek_fizz",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.85,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.605
+  ],
+  "gap_body_bar_top_now_m": 0.379,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.668,
+  "basebar_center_deg": 116.5,
+  "basebar_chord_min_deg": 110.8,
+  "basebar_center_below_axis_deg": 63.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.834,
+   -0.416
+  ],
+  "nosewire_corner_deg": 110.8,
+  "nosewire_nose_deg": 73.9,
+  "nosewire_closest_deg": 73.9,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 147.7,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "air_c4",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.27,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.5,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.42
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 74.6,
+  "nosewire_closest_deg": 74.6,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 149.3,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "air_rev",
+  "upright_tilt_now_deg": 9.7,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 7.24,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.271,
+   -1.655
+  ],
+  "gap_body_bar_top_now_m": 0.429,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.077,
+  "bar_below_eye_m": 0.718,
+  "basebar_center_deg": 115.5,
+  "basebar_chord_min_deg": 111.6,
+  "basebar_center_below_axis_deg": 64.5,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.88,
+   -0.421
+  ],
+  "nosewire_corner_deg": 110.7,
+  "nosewire_nose_deg": 74.4,
+  "nosewire_closest_deg": 74.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 148.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "dp_she1",
+  "upright_tilt_now_deg": 11.3,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.01,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.315,
+   -1.647
+  ],
+  "gap_body_bar_top_now_m": 0.421,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.033,
+  "bar_below_eye_m": 0.71,
+  "basebar_center_deg": 117.7,
+  "basebar_chord_min_deg": 113.0,
+  "basebar_center_below_axis_deg": 62.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.837,
+   -0.44
+  ],
+  "nosewire_corner_deg": 112.2,
+  "nosewire_nose_deg": 70.3,
+  "nosewire_closest_deg": 70.3,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 140.5,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "seed_skyrunner_xr",
+  "upright_tilt_now_deg": 10.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 5.3,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.296,
+   -1.6
+  ],
+  "gap_body_bar_top_now_m": 0.374,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.052,
+  "bar_below_eye_m": 0.663,
+  "basebar_center_deg": 117.9,
+  "basebar_chord_min_deg": 111.7,
+  "basebar_center_below_axis_deg": 62.1,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.809,
+   -0.428
+  ],
+  "nosewire_corner_deg": 111.7,
+  "nosewire_nose_deg": 68.6,
+  "nosewire_closest_deg": 68.6,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 137.1,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_fusion",
+  "upright_tilt_now_deg": 11.0,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 3.88,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.307,
+   -1.648
+  ],
+  "gap_body_bar_top_now_m": 0.422,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.041,
+  "bar_below_eye_m": 0.711,
+  "basebar_center_deg": 117.3,
+  "basebar_chord_min_deg": 112.7,
+  "basebar_center_below_axis_deg": 62.7,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.846,
+   -0.436
+  ],
+  "nosewire_corner_deg": 111.9,
+  "nosewire_nose_deg": 67.2,
+  "nosewire_closest_deg": 67.2,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 134.5,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_talon",
+  "upright_tilt_now_deg": 10.6,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.96,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.296,
+   -1.65
+  ],
+  "gap_body_bar_top_now_m": 0.424,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.052,
+  "bar_below_eye_m": 0.713,
+  "basebar_center_deg": 116.7,
+  "basebar_chord_min_deg": 112.3,
+  "basebar_center_below_axis_deg": 63.3,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.857,
+   -0.431
+  ],
+  "nosewire_corner_deg": 111.5,
+  "nosewire_nose_deg": 68.4,
+  "nosewire_closest_deg": 68.4,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 136.9,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ },
+ {
+  "wing": "ww_cross_country",
+  "upright_tilt_now_deg": 10.8,
+  "upright_tilt_needed_deg": null,
+  "trim_pitch_deg": 4.71,
+  "look_down_deg": -2.0,
+  "eye_wing_m": [
+   0.0,
+   0.62,
+   -0.937
+  ],
+  "camera_wing_m": [
+   0.0,
+   0.77,
+   -0.817
+  ],
+  "shoulder_fwd_up_m": [
+   0.348,
+   -1.042
+  ],
+  "basebar_center_wing_m": [
+   0.0,
+   0.301,
+   -1.598
+  ],
+  "gap_body_bar_top_now_m": 0.372,
+  "pilot_shift_down_m": -0.0,
+  "pilot_shift_fwd_m": 0.0,
+  "bar_fwd_of_shoulder_m": -0.047,
+  "bar_below_eye_m": 0.661,
+  "basebar_center_deg": 118.3,
+  "basebar_chord_min_deg": 111.8,
+  "basebar_center_below_axis_deg": 61.7,
+  "basebar_center_cam_m": [
+   0.0,
+   -0.803,
+   -0.431
+  ],
+  "nosewire_corner_deg": 111.8,
+  "nosewire_nose_deg": 64.8,
+  "nosewire_closest_deg": 64.8,
+  "bar_vfov_deg": 180.0,
+  "wire_vfov_deg": 129.7,
+  "min_vfov_deg": 180.0,
+  "visible_at_any_fov": false,
+  "aspect": 1.7778
+ }
+]

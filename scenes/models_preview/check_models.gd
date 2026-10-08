@@ -83,21 +83,21 @@ func _check_axes(path: String, root: Node3D) -> void:
 			var bot := _pos(root, "UprightBottom" + side)
 			_expect(path, "стойка %s: низ впереди и ниже верха" % side, bot.z < top.z and bot.y < top.y)
 		var im := _xform(root, "InstrumentMount")
-		# A3.3 v6: приборы на хомуте левой стойки (рядом с осью стойки, кронштейн не дальше 0,35 м), планшет
-		# ниже вариометра, оба слева, −Z к глазам
-		var ubl := _pos(root, "UprightBottomL")
-		var utl := _pos(root, "UprightTopL")
+		# A3.3 v9: приборы на хомуте нижней перекладины — маркер на оси штанги (ломаная
+		# BarGripL–BaseBar–BarGripR, допуск 3 см на изгиб PV3) между хватами; экран (−Z) к глазам
+		# (вверх), верх экрана (+Y маркера) — вперёд (−Z мира)
 		var vm := _xform(root, "VarioMount")
+		var gl := _pos(root, "BarGripL")
+		var gr := _pos(root, "BarGripR")
 		for pair in [["InstrumentMount", im], ["VarioMount", vm]]:
 			var o: Vector3 = pair[1].origin
-			var ax := utl - ubl
-			var t := clampf((o - ubl).dot(ax) / ax.length_squared(), 0.0, 1.0)
-			_expect(path, "%s у левой стойки (кронштейн ≤ 0,35 м от оси)" % pair[0],
-				o.distance_to(ubl + ax * t) < 0.35 and o.x < -0.1 and t > 0.05 and t < 0.7)
-		_expect(path, "VarioMount выше планшета на стойке", vm.origin.y > im.origin.y)
-		# глаза пилота лёжа (pilot_eye): взгляд на них — вправо и вперёд/вверх
-		_expect(path, "InstrumentMount −Z смотрит вправо на пилота", (-im.basis.z).x > 0.3)
-		_expect(path, "VarioMount −Z смотрит вправо на пилота", (-vm.basis.z).x > 0.3)
+			var d := minf(_dist_seg(o, gl, bar), _dist_seg(o, bar, gr))
+			_expect(path, "%s на оси штанги (%.3f м от оси)" % [pair[0], d], d < 0.03)
+			_expect(path, "%s между хватами (|x| %.2f < %.2f)" % [pair[0], absf(o.x), absf(gl.x) - 0.04],
+				absf(o.x) < absf(gl.x) - 0.04)
+			_expect(path, "%s −Z смотрит вверх на пилота" % pair[0], (-pair[1].basis.z).y > 0.6)
+			_expect(path, "%s верх экрана вперёд" % pair[0], pair[1].basis.y.z < -0.7)
+		_expect(path, "VarioMount слева от планшета", vm.origin.x < im.origin.x - 0.1)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
 		print("  WingTipL %s WingTipR %s BaseBar %s" % [tip_l, tip_r, bar])
@@ -130,6 +130,12 @@ func _pos(root: Node3D, n: String) -> Vector3:
 
 
 ## Трансформ ноды относительно корня сцены (без добавления в дерево).
+func _dist_seg(p: Vector3, a: Vector3, b: Vector3) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 1e-9), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
 func _xform(root: Node3D, n: String) -> Transform3D:
 	var node := root.find_child(n, true, false) as Node3D
 	if node == null:

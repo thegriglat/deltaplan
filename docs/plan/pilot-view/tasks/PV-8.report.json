@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "Умолчания: roll_input=body, cockpit.eye_mode=back_hidden (Б2) в конфигах, запасных значениях кода и панели настроек; тесты и тексты поправлены.",
+  "commits": [
+    "fec7aa12 Умолчания: камера Б2, крен body",
+    "тест отрыва gameplay под body"
+  ],
+  "checks": [
+    {
+      "name": "pilot_view_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "roll_weight_shift",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "ui_controls_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "input_launch",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_roll",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_cockpit",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "mouse_bar_flight",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "gameplay",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept PV-8",
+  "uncertain": [
+    {
+      "where": "scripts/game/camera_rig.gd:311,327",
+      "why": "запасное eye_mode там 'eyes' (при отсутствии ключа), не менял",
+      "checked": "ключ всегда есть в configs/camera.json"
+    }
+  ],
+  "dp_feedback": "dp accept --dry идёт ~10 мин в foreground; удобнее прогресс по частям.",
+  "t": "2026-10-08T15:06:01",
+  "by": "executor"
+}

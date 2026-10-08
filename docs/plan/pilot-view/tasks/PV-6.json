@@ -1,0 +1,42 @@
+{
+  "id": "PV-6",
+  "module": "pilot-view",
+  "type": "dp-researcher",
+  "title": "Точка подвеса: ЦМ крыла, центр давления, трим",
+  "goal": "Разобрать по физике и источникам, где у реального дельтаплана точка подвеса относительно ЦМ крыла и центра давления (трим, смещение ЦД с углом атаки и VG), сверить с нашим «ЦМ + 1–2 см» (A1) и предложить исправление с обоснованием; внедрение — только через шлюз.",
+  "plan_ref": "Итоги исследований",
+  "contracts": [
+    {
+      "name": "A1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-6",
+  "branch": "pilot-view/PV-6",
+  "base": "feature/pilot-view",
+  "scope": [
+    "tools/research/hang_point/"
+  ],
+  "dont_touch": [
+    "tools/blender/glider_params.json",
+    "configs/",
+    "scripts/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "proposal",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/hang_point/proposal.json'));[d[k] for k in ('verdict','model_now','real_physics','per_wing','sources','gate')];print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:40:15"
+}

@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "Для 48 крыльев записан wings.<id>.basebar и control_frame.basebar_default: 37 изогнутых (bow_m 0,07/0,09/0,11), 11 прямых. Форма подтверждена руководствами и страницами производителей, величина выноса в открытых источниках не найдена — оценка класса (bow_src class_estimate).",
+  "commits": [
+    "6fccc5bc PV-2: изгиб базовой штанги по 48 крыльям"
+  ],
+  "checks": [
+    {
+      "name": "basebar_data",
+      "value": "48 bad []",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Числа bow_m не измерены: чертежей/размеров speedbar нет ни в руководствах WW/Aeros/Airborne, ни в паспортах DHV; сайт и руководство Moyes не открылись"
+  ],
+  "questions": [
+    "Если у пилота-тестировщика есть фото/замер реальной штанги (вынос середины от хорды между углами), уточнить 0,07–0,11 одним числом"
+  ],
+  "images": [],
+  "how_to_check": "dp accept PV-2",
+  "uncertain": [
+    {
+      "where": "glider_params.json wings.*.basebar.bow_m (37 изогнутых)",
+      "why": "все bow_m — оценка класса, ±0,03; straight_len_m тоже оценка",
+      "checked": "искал числа в руководствах WW (Falcon, T2, Alpha, Slipstream FAQ), Aeros Target/Combat-C/Combat-09, wings_merged — только направление выноса вперёд"
+    },
+    {
+      "where": "straight: magic, slavutich_ut, apogee, atlas",
+      "why": "по эпохе (1970–80-е, до спидбаров), прямых источников на сами модели нет; пилот мог иметь в виду иначе — уверенность средняя/низкая",
+      "checked": "control_frame_refs.md, форум hanggliding.org про безопасностные тросы speedbar"
+    },
+    {
+      "where": "straight: icaro_piuma, moyes_malibu2, condor_flex, fs_funky",
+      "why": "по образцу Alpha; для Piuma/Malibu/Funky/Flex данных нет — низкая",
+      "checked": "паспорта в wing_passports: нет упоминаний штанги"
+    },
+    {
+      "where": "curved Moyes/Icaro/Bautek/Seedwings/Flight Design/A.I.R.",
+      "why": "образец класса, не руководство самой модели; Aeros Fox/Target и WW Falcon/Eagle/Sting 3/Kite/SHE1 — по прямым цитатам формы (высокая)",
+      "checked": "batch_a/b/c.json"
+    }
+  ],
+  "dp_feedback": "Нет команды для чтения PDF-руководств/сайтов с кешем и поиском по словам; WebFetch не читает PDF, обходил curl+pdftotext. dp docs init сообщил 'добавлен: 0' без указания, нужен ли frontmatter вручную.",
+  "extra": {
+    "curved": 37,
+    "straight": 11,
+    "bow_range_m": [
+      0.07,
+      0.11
+    ],
+    "default": {
+      "shape": "curved",
+      "bow_m": 0.08
+    }
+  },
+  "t": "2026-10-08T11:27:53",
+  "by": "executor"
+}

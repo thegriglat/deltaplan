@@ -21,6 +21,7 @@ var _volume: HSlider
 var _sens: HSlider
 var _invert: CheckBox
 var _roll_mode: OptionButton
+var _roll_input: OptionButton
 var _sound: OptionButton
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
@@ -41,6 +42,8 @@ var _speeds: Array = []
 var _net_mode := false
 var _fov: HSlider
 var _helmet: OptionButton
+var _eye_mode: OptionButton
+var _eye_modes: Array = ["back_hands", "back_hidden", "eyes", "between_shoulders"]
 var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
@@ -85,6 +88,10 @@ func _ready() -> void:
 	_roll_mode.add_item(tr("settings_roll_simple"))
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
 	UiKit.row(box, tr("settings_roll_control"), _roll_mode)
+	_roll_input = OptionButton.new()
+	_roll_input.add_item(tr("settings_roll_input_bar"))
+	_roll_input.add_item(tr("settings_roll_input_body"))
+	UiKit.row(box, tr("settings_roll_input"), _roll_input)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -156,6 +163,12 @@ func _ready() -> void:
 		float(cam.get("fov_step_deg", 5.0)),
 		"%.0f°"
 	)
+	_eye_mode = OptionButton.new()
+	_eye_mode.add_item(tr("camera_eye_back_hands"))
+	_eye_mode.add_item(tr("camera_eye_back_hidden"))
+	_eye_mode.add_item(tr("camera_eye_eyes"))
+	_eye_mode.add_item(tr("camera_eye_shoulders"))
+	UiKit.row(box, tr("settings_eye_mode"), _eye_mode)
 	_helmet = OptionButton.new()
 	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
 	var helmet_names := {
@@ -230,6 +243,7 @@ func load_values() -> void:
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
+	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
 	_render_scale_auto.button_pressed = bool(Config.value("game", "render_scale_auto", true))
 	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
@@ -256,6 +270,8 @@ func load_values() -> void:
 	_time_speed.select(si)
 	_fov.value = float(Config.value("camera", "fov_deg", 60.0))
 	_fov.value_changed.emit(_fov.value)
+	var em := String(Config.value("camera", "cockpit.eye_mode", "back_hidden"))
+	_eye_mode.select(maxi(_eye_modes.find(em), 0))
 	var hm := String(Config.value("helmet", "mode", "none"))
 	_helmet.select(maxi(_helmet_modes.find(hm), 0))
 	_bots.value = float(Config.value("bots", "count", 4))
@@ -281,6 +297,7 @@ func save() -> bool:
 				{
 					"invert_pitch": _invert.button_pressed,
 					"roll_control_mode": "weight_shift" if _roll_mode.selected == 1 else "rate",
+					"roll_input": "body" if _roll_input.selected == 1 else "bar",
 					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
 				},
 				config_dir
@@ -291,7 +308,11 @@ func save() -> bool:
 	if not _net_mode and _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
-	ok = UserSettings.save_patch("camera", {"fov_deg": _fov.value}, config_dir) and ok
+	var cam_patch := {
+		"fov_deg": _fov.value,
+		"cockpit": {"eye_mode": String(_eye_modes[maxi(_eye_mode.selected, 0)])},
+	}
+	ok = UserSettings.save_patch("camera", cam_patch, config_dir) and ok
 	if _helmet.selected >= 0:
 		var hp := {"mode": String(_helmet_modes[_helmet.selected])}
 		ok = UserSettings.save_patch("helmet", hp, config_dir) and ok

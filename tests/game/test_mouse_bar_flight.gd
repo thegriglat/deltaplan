@@ -65,6 +65,7 @@ func _center() -> Vector2:
 func _restart(game: Game) -> void:
 	game.restart()
 	game.input_controller.set_mouse_captured(true)
+	game.input_controller.roll_input = "body"  # проверяется знак устройства «вправо → вправо»; bar — в test_pilot_view_contracts
 
 
 ## Полёт dur секунд с мышью, сдвинутой на rel в начале; возвращает [ControlInput.pitch,

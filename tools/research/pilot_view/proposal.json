@@ -1,0 +1,49 @@
+{
+  "_doc": "PV-1: предложение для A3 v8 (зазор тело-штанга, вынос штанги, глаза, камера, FOV). Числа — для ЗАЩИТЫ/РЕШЕНИЯ координатора; оси камеры — как configs/camera.json cockpit.offset_m (x вправо, y вверх, z НАЗАД). Расчёт: cockpit_view.py (команды — в README.md).",
+  "gap_body_bar_top_m": 0.06,
+  "gap_body_bar_top_range_m": [0.05, 0.07],
+  "bar_fwd_of_shoulder_m": 0.50,
+  "bar_fwd_of_shoulder_range_m": [0.40, 0.57],
+  "bar_fwd_of_shoulder_basis": "кинематика руки при зазоре 0,06: плечевой сустав над осью штанги 0,244 м (низ тела над плечом 0,17 + зазор 0,06 + радиус штанги 0,015); плечо 0,26 + предплечье с кистью 0,38 (кости pilot.glb); локоть 90-150 градусов даёт расстояние плечо-хват 0,46-0,62 и вынос по горизонтали 0,40-0,57; 0,50 = локоть ~120 градусов",
+  "eye_from_shoulder_m": [0.27, 0.105],
+  "eye_from_shoulder_note": "[вперёд, вверх] от середины плечевых суставов, как в текущей модели (pilot_eye минус shoulder_mid); стоя глаз выше акромиона на ~0,21 м (0,936H-0,818H, H=1,75), лёжа с согнутой шеей меньше - число модели оставлено, независимого источника для лёжа нет",
+  "camera_offset_m": [0.0, 0.0, 0.0],
+  "camera_offset_m_now": [0.0, 0.12, -0.15],
+  "camera_offset_note": "камера в точке глаз модели (PilotHead): прежнее смещение поднимало камеру на 0,12 м и выносило её на 0,15 м вперёд, из-за чего штанга уходила за плоскость глаз (дальше на 0,15 + 0,12 по вертикали)",
+  "look_down_deg": 10.0,
+  "look_down_deg_now": -2.0,
+  "default_vfov_deg": 90,
+  "default_vfov_note": "при выносе 0,50, зазоре 0,06, камере в глазах и взгляде 10 градусов вниз центр штанги и носовые тросы видны при FOV 72-96 (медиана 83) по 48 крыльям; 44 из 48 - при FOV <= 90, все 48 - при 100 (предел слайдера). Для сравнения: сейчас штанга позади глаз (112-120 градусов от оси) и не видна ни при каком FOV; носовые тросы - при 78-164 (медиана ~135)",
+  "all_wings_check": {"min_vfov_deg": 72.2, "median_vfov_deg": 83.1, "max_vfov_deg": 96.2, "wings_le_90": 44, "wings_total": 48},
+  "requires_A1_change": {
+    "what": "наклон стоек upright_tilt_deg 27,7-32,6 (сейчас 5,9-13,0, допустимо 4-13) при длине стоек 1,6-1,75; иначе штанга остаётся под плечами/позади глаз и не видна",
+    "why": "пилот лёжа держит плечи на ~0,35 м впереди подвески (центр тяжести под подвеской); при зазоре 0,06 рука не складывается до штанги под плечом (локоть ~40 градусов, A3.2 допускает 55+), поэтому штанга должна быть впереди плеч на 0,4-0,57",
+    "alternative_rejected": "сдвинуть пилота назад на ~0,5 м вместо наклона стоек: центр масс пилота (85 кг) уходит на 0,5 м позади подвески, момент ~ 400 Н*м, трим ломается - физика трима, не годится",
+    "side_effects": "центр масс крыла по трубам (aframe_cg.py) смещается вперёд на 0,046-0,059 м: у cg-крыльев подвеска едет вместе (nose_forward_m), у passport-крыльев ЦМ оказывается на ~5 см впереди подвески (моменты тримa - проверка поляр/тримов, шлюз A3.4); A3.1 (база под плечами +-0,10) отменяется, A3.5 следствие 'локти не выше плеч' - см. README"
+  },
+  "pilot_params_change": {
+    "what": "только положение пилота по вертикали (физика маятника/визуал): сдвиг вниз 0,275-0,374 м в зависимости от крыла (медиана 0,325)",
+    "pilot_eye_z_now": -0.937,
+    "pilot_eye_z_proposed": -1.262,
+    "hang_length_m_now": 1.211,
+    "hang_length_m_proposed": 1.536,
+    "body_below_hang_m_now": 1.137,
+    "body_below_hang_m_proposed": 1.462,
+    "per_wing_spread": "глубина оси штанги под HangPoint 1,56-1,66 м у разных крыльев (длина и наклон стоек, зазор сегодня 0,335-0,434): при одном общем числе зазор будет 0,011-0,110 вместо 0,06 (на AF-крыльях с короткими стойками пилот коснётся штанги); нужна либо длина подвески по крылу (pilot.json - общая для всех), либо общий зазор 0,05-0,07 как допуск +-0,05 (не выдерживается), либо подгонка upright_len_m под одно значение глубины - решение координатора",
+    "note": "положение пилота в игре берётся из pilot.glb (pilot_eye[2] в glider_params.json, пересборка build_pilot.py), а hang_length_m/body_below_hang_m проверяются тестом test_aframe_contracts на согласие с моделью +-0,02 и используются визуалом (_body_center: центр наклонов крена/тангажа); в физике полёта эти ключи не читаются"
+  },
+  "sources": [
+    {"id": "cg1000", "url": "https://delta-club-82.com/bible/doc_harnais/cg-1000-manual_id95.pdf", "quote": "With your body/harness hanging level adjust hang height so that you hang 5 to 10 inches above the base tube. Then place the palms of your hands on the base tube and have your friend raise and lower the nose.", "gives": "руководство подвесной CG-1000: зазор 5-10 дюймов (12,7-25 см) над базовой штангой; расходится с отзывом тестировщика (2-3 дюйма) - тестировщик ниже нижней границы руководства"},
+    {"id": "wills_wing_hang_height", "url": "https://willswing.com/how-to-get-the-right-hang-height-2/", "quote": "we prefer to hang as close to the basetube as possible, as that lengthens the pendulum and thus reduces control pressures ... to make sure your harness clears the basetube all the way through", "gives": "Wills Wing: чем ближе к штанге, тем длиннее маятник и меньше усилия; нужно проверить просвет на всём ходе тангажа; стандарт от точки подвески (карабина) до штанги 55 дюймов (1,40 м), DHV 1,2 м"},
+    {"id": "wills_wing_hang_standard", "url": "https://willswing.com/how-to-get-the-right-hang-height-2/", "quote": "the measurement from clip in point to basetube will be 55 inches ... The DHV standard is 1.2 meters", "gives": "расстояние карабин - штанга 1,2-1,4 м (в игре HangPoint на киле, выше карабина на петлю, поэтому 1,56-1,66 м до оси штанги)"},
+    {"id": "wills_wing_head_up", "url": "https://willswing.com/how-to-get-the-right-hang-height-2/", "quote": "Some pilots prefer a more head up angle, for comfort and / or visibility", "gives": "голова выше (обзор) - вариант, Wills Wing предпочитает уровень или чуть головой вниз"},
+    {"id": "wikipedia_hang_gliding", "url": "https://en.wikipedia.org/wiki/Hang_gliding", "quote": "The pilot lies prone (sometimes supine) within a large, triangular, metal control frame.", "gives": "пилот лёжа внутри треугольной рамы (две стойки и базовая штанга)"},
+    {"id": "hghistory_harnesses", "url": "https://hghistory.to1.uk/hang-gliding-2/harnesses/", "quote": "the difference in base tube position between flying with the 'bar to the knees' and pushed right out is about 48 inches", "gives": "ход штанги в тангаже ~1,2 м - на триме штанга между крайними положениями, руки согнуты частично"},
+    {"id": "hghistory_superman", "url": "https://hghistory.to1.uk/hang-gliding-2/harnesses/", "quote": "flying prone, that is head-first with your arms out holding the control bar Superman style", "gives": "лёжа руки вытянуты вперёд к штанге - штанга впереди плеч (поиск, формулировка цитируется по сводке выдачи)"},
+    {"id": "finsterwalder", "url": "https://finsterwalder-charly.de/en/harnesses/drachengurtzeuge-gb.html", "quote": "Steering happens preferably with the hands on the uprights.", "gives": "руки на стойках; для supine штанга уводится назад на 12-15 см относительно prone"},
+    {"id": "patent_us10604250", "url": "https://patents.google.com/patent/US10604250", "quote": "In the prone position, a pilot is flying head first like superman, above the base tube", "gives": "пилот лёжа над базовой штангой; размеров нет"},
+    {"id": "wikipedia_visual_field", "url": "https://en.wikipedia.org/wiki/Visual_field", "quote": "approximately 70 degrees above ... 80 below the horizontal meridian (monocular)", "gives": "вертикальное поле зрения человека вверх ~70, вниз ~80 градусов: штанга на 45-60 градусов ниже оси укладывается в поле зрения, но не в узкий FOV 60 игры (+-30)"},
+    {"id": "fov_conversion", "url": "https://west-games.com/vertical-fov-calculator/", "quote": "vFOV = 2 x arctan(tan(hFOV/2) x (height/width)); 90 horizontal at 16:9 = 58.7 vertical", "gives": "привычные 90 по горизонтали - это лишь 59 по вертикали; 60 по вертикали (текущий FOV игры) = 91 по горизонтали, 90 по вертикали = 121 по горизонтали (около binocular поля человека)"},
+    {"id": "drillis_contini", "url": "https://ojs.ub.uni-konstanz.de/cpa/article/view/292", "quote": "The most commonly used ratios are those presented in Drillis and Contini's report from 1966.", "gives": "длины сегментов тела как доли роста (плечо 0,186H, предплечье 0,146H, кисть 0,108H, высота плеча 0,818H, глаз 0,936H) - сами коэффициенты в выдаче не видны, взяты по памяти и сверены с костями pilot.glb (0,26 + 0,38): НЕ ПРОВЕРЕНО по первоисточнику"}
+  ]
+}
