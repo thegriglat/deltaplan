@@ -81,11 +81,20 @@ var _bare_empty: Dictionary = {}
 var _prune_t: float = -1.0e18
 ## Клетка -> Vector2i(цикл, номер обновления), когда её последний раз обходили (_generate).
 var _cell_seen: Dictionary = {}
+## id циклов клеток-источников поля (ia ≥ _AIR_IA), что лежат в кешах выше: при подмене источников
+## на поле с тем же охватом забываются только они.
+var _air_ids: Dictionary = {}
 var _gen_stamp: int = 0
 var _statics: Array[AtmoThermal] = []
 var _cells: Dictionary = {}  ## ключ клетки -> Vector2(период, фаза)
 var _static_next_id: int = -1
 var _air_key: String = ""
+## Ключ последней запущенной сборки (пока идёт прежняя, новая не запускается).
+var _air_launched: String = ""
+## Идущие и неподобранные сборки источников (AirJob).
+var _air_jobs: Array = []
+## Собирать источники в рабочем потоке (false — синхронно, как раньше).
+var air_async: bool = true
 
 # Профиль
 var _ring: float = 1.6
@@ -204,11 +213,24 @@ func reset_dynamic() -> void:
 	_active.clear()
 
 
+## Забыть только память о клетках-источниках поля (охват поля не менялся).
+func _clear_air_caches() -> void:
+	for id in _air_ids.keys():
+		_empty_cycles.erase(id)
+		_bare.erase(id)
+		_bare_empty.erase(id)
+	_air_ids.clear()
+	for key in _cell_seen.keys():
+		if int(key) / _KEY_MUL - _KEY_OFFSET >= _AIR_IA:
+			_cell_seen.erase(key)
+
+
 func _clear_dynamic_caches() -> void:
 	_empty_cycles.clear()
 	_bare.clear()
 	_bare_empty.clear()
 	_cell_seen.clear()
+	_air_ids.clear()
 	_prune_t = -1.0e18
 
 
@@ -439,6 +461,8 @@ func _ensure(ia: int, ic: int, cy: int, t_start: float, period: float, t: float)
 	if thermals.has(id) or _empty_cycles.has(id):
 		return
 	var th := _real_thermal(ia, ic, id, t_start, period)
+	if ia >= _AIR_IA:
+		_air_ids[id] = true
 	if th != null and t <= th.t_end() + cloud_linger_s:
 		thermals[id] = th
 	else:
@@ -717,31 +741,142 @@ func _cell_shade(
 # ---------------------------------------------------------------- поле воздуха (AM-07)
 
 
+## Задача сборки источников в рабочем потоке (PF-К4): вход — снимок, выход — готовый AirThermals.
+class AirJob:
+	extends RefCounted
+	var key: String = ""
+	var src: AirThermals
+	var cfg: Dictionary
+	var field: WindField
+	var forced := PackedByteArray()
+	var ok: bool = false
+	var task: int = -1
+
+	## Тело задачи (рабочий поток): только build по снимку; дерево сцены и общие данные не трогает.
+	func run() -> void:
+		ok = src.build(field, cfg, forced)
+
+
 ## Источники поля: пересобрать, если поменялось поле (уровни), маска ведущего или поле пропало.
 ## Грубейший уровень — общий у всех клиентов сети (окна вокруг пилота у каждого свои).
+## Сборка идёт в WorkerThreadPool (PF-К4); air_src меняется целиком и только по готовности
+## (на главном потоке), до этого работает прежний; устаревшая сборка отбрасывается.
 func _update_air() -> void:
-	var f: WindField = null
-	if air != null and not air.levels.is_empty():
-		f = air.levels[air.levels.size() - 1]
-	var key := ""
-	if f != null and AirThermals.has_inputs(f):
-		key = "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
-	if key == _air_key:
+	_poll_air_jobs()
+	var f := _air_level()
+	var key := _air_key_of(f)
+	if key == "":
+		if _air_key != "":
+			# поля нет — источников нет (идущие сборки устареют и будут отброшены)
+			_air_key = ""
+			_air_launched = ""
+			air_src = null
+			_clear_dynamic_caches()
 		return
 	_air_key = key
-	air_src = null
-	if key != "":
-		var src := AirThermals.new()
-		var cfg := _cfg.duplicate()
-		cfg["duty"] = float(_w.thermal_duty)
-		cfg["cloudbase_msl"] = cloudbase_msl
-		cfg["height_fn"] = ground.height
-		cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
-		var forced := air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
-		if src.build(f, cfg, forced):
-			air_src = src
-	# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
-	_clear_dynamic_caches()
+	_air_launch(f, key)
+	# Первых источников нет совсем (загрузка места) — ждём: иначе круг генерации сначала
+	# заполнится аналитикой и тут же пересоберётся (рывок вдвое длиннее, термики не те).
+	while air_src == null and not _air_jobs.is_empty():
+		_wait_air_jobs()
+		_air_launch(f, key)
+
+
+func _air_level() -> WindField:
+	if air != null and not air.levels.is_empty():
+		return air.levels[air.levels.size() - 1]
+	return null
+
+
+func _air_key_of(f: WindField) -> String:
+	if f != null and AirThermals.has_inputs(f):
+		return "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
+	return ""
+
+
+## Запустить сборку для ключа key, если её ещё нет и прежняя не идёт: устаревшие не копятся,
+## последний ключ собирается по готовности прежней.
+func _air_launch(f: WindField, key: String) -> void:
+	if key == _air_launched or not _air_jobs.is_empty():
+		return
+	_air_launched = key
+	var job := AirJob.new()
+	job.key = key
+	job.src = AirThermals.new()
+	job.field = f
+	var cfg := _cfg.duplicate()
+	cfg["duty"] = float(_w.thermal_duty)
+	cfg["cloudbase_msl"] = cloudbase_msl
+	cfg["height_fn"] = ground.height
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
+	job.cfg = cfg
+	job.forced = air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
+	# ленивые записи в meta поля (heat) — здесь, на главном потоке: поток только читает
+	f.heat_flux()
+	_air_jobs.append(job)
+	if air_async:
+		job.task = WorkerThreadPool.add_task(job.run, false, "AirThermals.build")
+	else:
+		job.run()
+	_poll_air_jobs()
+
+
+## Принять готовые сборки: актуальную — подменить air_src, устаревшие — выбросить.
+func _poll_air_jobs() -> void:
+	var i := 0
+	while i < _air_jobs.size():
+		var job: AirJob = _air_jobs[i]
+		if job.task >= 0 and not WorkerThreadPool.is_task_completed(job.task):
+			i += 1
+			continue
+		if job.task >= 0:
+			WorkerThreadPool.wait_for_task_completion(job.task)
+		_air_jobs.remove_at(i)
+		if job.key != _air_key:
+			if job.key == _air_launched:
+				_air_launched = ""
+			continue
+		var prev := air_src
+		air_src = job.src if job.ok else null
+		# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
+		# Охват поля тот же — клетки сетки (аналитика) от списка не зависят, их кеши остаются:
+		# иначе весь круг генерации пересчитывается за один кадр.
+		if prev != null and air_src != null and AirThermals.same_cover(prev.level, air_src.level):
+			_clear_air_caches()
+		else:
+			_clear_dynamic_caches()
+
+
+## Дождаться всех сборок источников и принять актуальную (тесты, выход из места, рассылка маски).
+func air_wait() -> void:
+	while not _air_jobs.is_empty():
+		_wait_air_jobs()
+		var f := _air_level()
+		var key := _air_key_of(f)
+		if key != "" and key == _air_key:
+			_air_launch(f, key)
+
+
+func _wait_air_jobs() -> void:
+	for job: AirJob in _air_jobs:
+		if job.task >= 0:
+			WorkerThreadPool.wait_for_task_completion(job.task)
+			job.task = -1
+	_poll_air_jobs()
+
+
+## Идёт ли сборка источников поля в рабочем потоке.
+func air_building() -> bool:
+	return not _air_jobs.is_empty()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		# выход из места/игры: ждать задачу, не бросать её висеть без владельца
+		for job: AirJob in _air_jobs:
+			if job.task >= 0:
+				WorkerThreadPool.wait_for_task_completion(job.task)
+		_air_jobs.clear()
 
 
 ## Маска источников ведущего (сеть): подпись сетки уровня и биты столбцов; "" — выбирать самим.
@@ -796,6 +931,8 @@ func _bare_thermal(ia: int, ic: int, id: int, t_start: float, period: float) -> 
 	if _bare_empty.has(id):
 		return null
 	var th := _spawn(ia, ic, id, t_start, period, 0.0)
+	if ia >= _AIR_IA:
+		_air_ids[id] = true
 	var forget := t_start + _reach_of(t_start, period)
 	if th == null:
 		_bare_empty[id] = forget
@@ -827,6 +964,9 @@ func _prune(t: float) -> void:
 	for key in _cell_seen.keys():
 		if (_cell_seen[key] as Vector2i).y < _gen_stamp - 1:
 			_cell_seen.erase(key)
+	for id in _air_ids.keys():
+		if not (_empty_cycles.has(id) or _bare.has(id) or _bare_empty.has(id)):
+			_air_ids.erase(id)
 
 
 func _rebuild_buckets(t: float, focus: Vector3, margin_s: float) -> void:

@@ -166,6 +166,12 @@ func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 
 
 ## Полная настройка (для тестов можно передать свои словари).
+## Выход из места/игры: сборка источников в рабочем потоке читает рельеф — дождаться до его освобождения.
+func _exit_tree() -> void:
+	if field != null:
+		field.air_wait()
+
+
 func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	cfg = atmo_cfg
 	weather = weather_cfg.duplicate(true)

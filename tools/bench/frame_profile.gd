@@ -62,6 +62,8 @@ var _game: Node
 var _restore: Array = []  # [[obj, prop, value], ...]
 var _t_last := 0
 var _hitches: Array = []
+## Журнал рывков идёт до замеров микро/CPU (они сами зовут пересчёты в цикле — не геймплей).
+var _hitch_log: bool = true
 
 
 func _ready() -> void:
@@ -157,6 +159,7 @@ func _ready() -> void:
 
 	if _air_t >= 0.0:
 		await _air_run()
+	_hitch_log = false
 	if _cpu_t >= 0.0:
 		await _micro_run()
 		await _cpu_run()
@@ -180,7 +183,7 @@ func _process(_dt: float) -> void:
 	var now := Time.get_ticks_usec()
 	if _t_last > 0 and _game != null:
 		var ms := (now - _t_last) / 1000.0
-		if ms > HITCH_MS:
+		if ms > HITCH_MS and _hitch_log:
 			var rt: Node = _game.get("air_runtime")
 			_hitches.append({
 				ms = snappedf(ms, 0.1), sim_t = snappedf(_game.sim_time_s, 0.01),
