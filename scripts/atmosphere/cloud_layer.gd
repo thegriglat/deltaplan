@@ -28,6 +28,7 @@ var _sj_shown: Dictionary = {}
 var _sj_keys: Array = []
 var _sj_cand: Array = []
 var _sj_drop: Dictionary = {}
+var _sj_crests: Array = []
 ## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
 var model: CloudModel
 ## Выбор без памяти о кадрах (только сетевая игра, ставит NetFlight): набор облаков и их
@@ -577,13 +578,18 @@ func _select_pump() -> void:
 		_apply_selection(model.select_tail(_sj_drop.out, _sj_shown), _sj_t, _sj_eye)
 		_sj_drop = {}
 		_sj_ph = 4
+		_sj_us += Time.get_ticks_usec() - t0
+		return
 	if _sj_ph == 4:
-		if Time.get_ticks_usec() >= dl:
-			_sj_us += Time.get_ticks_usec() - t0
-			return
-		_wave_rec = _wave_clouds(_sj_eye)
-		_sj = false
-		last_rebuild_us = _sj_us + Time.get_ticks_usec() - t0
+		var wf := atmo.wave
+		_sj_crests = _wave_crests(_sj_eye) if wf != null and wf.enabled and wf.ground.has_ground else []
+		_sj_ph = 5
+		_sj_us += Time.get_ticks_usec() - t0
+		return
+	_wave_rec = _wave_clouds(_sj_eye, _sj_crests)
+	_sj_crests = []
+	_sj = false
+	last_rebuild_us = _sj_us + Time.get_ticks_usec() - t0
 
 
 ## Применить выбор (одиночная игра): слоты под выбранные облака, выбывшие тают.
@@ -779,16 +785,14 @@ func _update_drift(t: float) -> void:
 
 ## Облака волны (VR-27) — строго из поля смещения линий тока: лентикулярные в гребнях волн,
 ## шапка на самой высокой точке рельефа против ветра, роторные клочья под первым гребнем.
-func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
+func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat32Array]:
 	var out: Array[PackedFloat32Array] = []
 	var wf := atmo.wave
 	if wf == null or not wf.enabled:
 		return out
 	var w: Dictionary = atmo.cfg.wave
 	var ax: Vector3 = _basis_axes[0]
-	var crests := wf.crests(
-		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
-	)
+	var crests: Array = crests_in if crests_in != null else _wave_crests(eye)
 	var lam := wf.wavelength()
 	var above := float(atmo.weather.get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)
@@ -826,6 +830,15 @@ func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
 				900.0, 2200.0, Vector4(1, 0.2, 0, 523.0), Vector4(0, 0, 0, 2), 0.0, 10.0
 			))
 	return out
+
+
+## Гребни волны вокруг камеры (первая, тяжёлая половина _wave_clouds).
+func _wave_crests(eye: Vector3) -> Array[Dictionary]:
+	var wf := atmo.wave
+	var w: Dictionary = atmo.cfg.wave
+	return wf.crests(
+		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
+	)
 
 
 ## Самая высокая точка рельефа рядом (для шапки): Vector3(x, z, высота) или z < 0.
