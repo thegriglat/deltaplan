@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Трава LOD кольцами: три слоя (ближний r=14 м, шаг 0,21, 3 отрезка; средний 8-36 м, шаг 0,3, 2 отрезка; дальний 26-115 м, шаг 0,85, 1 отрезок). Экземпляры MultiMesh только в клетках своего кольца (смещение в INSTANCE_CUSTOM), не весь квадрат с отсевом в шейдере. density_pct работает как раньше (масштабирует ближний и средний).",
+  "commits": [
+    "d61ffe2f Трава: LOD кольцами"
+  ],
+  "checks": [
+    {
+      "name": "tests_grass",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "grass_cost",
+      "value": "0.92 мс (был 2,24; промежуточный вариант с большим r давал 1,23)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/PF-9/near_before.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-9/near_after.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-9/mid_before.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-9/mid_after.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-9/far_before.jpg",
+    "/home/greg/deltaplan/build/screenshots/PF-9/far_after.jpg"
+  ],
+  "how_to_check": "dp accept PF-9",
+  "uncertain": [
+    {
+      "where": "configs/vegetation.json grass.far (средний слой, радиусы 8,4-14 м)",
+      "why": "шов у перехода ближний-средний на глаз не смотрел (картинки не открывал по заданию); у среднего слоя пучки реже (шаг 0,3 против 0,21), компенсация шириной 0,043 против 0,025",
+      "checked": "полосные яркость/контраст кадров до/после (8 горизонтальных полос, 3 кадра) совпадают в пределах шума; окно 1920x1036 при обоих"
+    },
+    {
+      "where": "число примитивов",
+      "why": "не измерено на GPU, оценка интегралом по формулам шейдера",
+      "checked": "считал плотность по радиусу"
+    },
+    {
+      "where": "grass_cost 0.92",
+      "why": "один прогон; шум замера ±0,2",
+      "checked": "промежуточная конфигурация дала 1,23, итоговая 0,92"
+    }
+  ],
+  "dp_feedback": "Scratchpad общий между агентами: файл shots.sh другого агента перезаписал мой (одноимённый). dp lock/job start с --timeout 900 тихо истёк (код 124) в очереди ожидания замка - хотелось бы отдельный таймаут ожидания. Кадры скриншотов зависят от размера окна (тайлинг менеджера окон: иногда 958 px) - dp-инструмент для снимков с проверкой размера.",
+  "grass_ms_before_after": "2.24 -> 0.92 мс (medium кабина, base-nograss, без облаков)",
+  "primitives_before_after": "оценка по формулам: отправлено в отрисовку 4,85 млн -> 1,56 млн (-68%), видимых 2,07 млн -> 0,84 млн (-59%); экземпляров 199 тыс -> 115 тыс",
+  "screenshots": "/home/greg/deltaplan/build/screenshots/PF-9/ : near/mid/far _before/_after.jpg (кабина на старте, взгляд вниз 35, вниз 12, горизонт 3)",
+  "t": "2026-10-08T13:34:25",
+  "by": "executor"
+}
