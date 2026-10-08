@@ -46,7 +46,7 @@ generated: true
 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) | contract | postponed | ann2 | Контракты модуля ann2 (сеть ветра «2,5D-оператор»): данные и деление из P2, вход/выход сети, оценка против P2 по критерию 10–15 % скорости. |
 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) | contract | active | control-fix | Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх). |
 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) | contract | active | easter-eggs | Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп. |
-| [docs/contracts/perf.md](/docs/contracts/perf.md) | contract | active | perf | Контракты модуля perf: итог короткого замера perf_check (PF-К1), размер буфера облаков и параметры качества (PF-К2), предел пикселей 3D-рендера (PF-К3), источники термиков поля воздуха при сборке в рабочем потоке (PF-К4). |
+| [docs/contracts/perf.md](/docs/contracts/perf.md) | contract | active | perf | Контракты модуля perf: размер буфера облаков и параметры качества (PF-К2), источники термиков поля воздуха при сборке в рабочем потоке (PF-К4). PF-К1 и PF-К3 сняты вместе с PF-2/PF-6. |
 | [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) | contract | active | popular-places | Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2). |
 | [docs/contracts/qol.md](/docs/contracts/qol.md) | contract | active | qol | Контракты модуля qol: номер полёта и перезапуски одиночной игры (QL-К1), снимок состояния полёта для «с наивысшей точки» и сохранения (QL-К2), файл сохранённого полёта (QL-К3). |
 | [docs/contracts/site-i18n.md](/docs/contracts/site-i18n.md) | contract | active | site-i18n | Контракты модуля site-i18n: языки и URL-схема сайта (en в корне, ru под /ru/), файлы переводов по суффиксу, ключи i18n, ссылки между языками, правила английских текстов, генератор крыльев на два языка. |
@@ -178,7 +178,7 @@ generated: true
 | [docs/plan/offline_world_data.md](/docs/plan/offline_world_data.md) | plan | postponed | world | План: офлайн-данные мира — свой пакет региона и подложка поверхности из OSM — 1. Без интернета. Всё нужное для полёта (рельеф, земной покров, OSM) заранее перепаковано в свой компактный формат и лежит рядом с игрой пакетами регионов. |
 | [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | idea |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
 | [docs/plan/osm_vector_pack.md](/docs/plan/osm_vector_pack.md) | plan | postponed |  | Размер офлайн-пакета: вектор OSM + рельеф + покров (замер на Словении) — Замер к плану offline_world_data.md (этапы 0 и 1). |
-| [docs/plan/perf.md](/docs/plan/perf.md) | plan | active | perf | План модуля perf: исправления производительности по замерам PF-1 (облака, рывки главного потока, трава, пересчёт поля) и HiDPI/Retina (Mac M3 ~7 FPS у пилота-тестировщика). |
+| [docs/plan/perf.md](/docs/plan/perf.md) | plan | active | perf | План модуля perf: общая оптимизация по замерам PF-1 — облака (буфер, марш по четвертям), рывки главного потока (AirThermals.build, refresh_now/_select), трава LOD, пересчёт поля мелкими порциями; итоговый замер до/после. |
 | [docs/plan/popular-places.md](/docs/plan/popular-places.md) | plan | active | popular-places | Кнопка «Популярные места» в меню полёта: стартовые площадки дельтаплана из OSM списком по странам, поиск по названию, выбор места = точка старта (как точка с карты). |
 | [docs/plan/qol.md](/docs/plan/qol.md) | plan | active | qol | QoL: цикл «упал — снова» (Q-01…Q-05, Q-13, Q-19), мелочи старта (Q-08…Q-11, Q-14…Q-18), загрузка ветра (Q-07), птицы и признаки термиков (Q-20, Q-28). |
 | [docs/plan/site-i18n.md](/docs/plan/site-i18n.md) | plan | active | site-i18n | Сайт проекта на двух языках: en — основной (корень), ru — /ru/; перевод страниц site/content, переключатель языка, README и скилл выпуска. |
@@ -192,7 +192,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (399 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (429 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
