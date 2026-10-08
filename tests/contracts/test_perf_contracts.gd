@@ -18,7 +18,7 @@ func _presets() -> Dictionary:
 func test_pf_k2_version_in_doc() -> void:
 	var text := FileAccess.get_file_as_string(DOC)
 	var at := text.find("## PF-К2.")
-	check(at >= 0 and text.substr(at, text.find("\n", at) - at).contains("версия 1"), "PF-К2 v1 в документе")
+	check(at >= 0 and text.substr(at, text.find("\n", at) - at).contains("версия 2"), "PF-К2 v2 в документе")
 
 
 func test_pf_k2_preset_fields() -> void:
