@@ -188,9 +188,30 @@ func _process(_dt: float) -> void:
 			_hitches.append({
 				ms = snappedf(ms, 0.1), sim_t = snappedf(_game.sim_time_s, 0.01),
 				paused = get_tree().paused,
+				phase = str(_game.glider.phase()),
+				mon = _mon_snapshot(), mon_prev = _mon_prev,
+				t_process_ms = snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1),
+				t_physics_ms = snappedf(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0, 0.1),
 				air_stage = int(rt.get("_stage")) if rt != null else -1,
 			})
 	_t_last = now
+	_mon_prev = _mon_snapshot()
+
+
+var _mon_prev: Dictionary = {}
+
+
+## Мониторы движка (PF-12): что выросло на кадре рывка — объекты, ресурсы, видеопамять, вызовы.
+func _mon_snapshot() -> Dictionary:
+	return {
+		obj = int(Performance.get_monitor(Performance.OBJECT_COUNT)),
+		res = int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
+		nodes = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
+		vmem = int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)),
+		tmem = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED)),
+		bmem = int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED)),
+		dc = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
+	}
 
 
 func _print_env() -> void:
