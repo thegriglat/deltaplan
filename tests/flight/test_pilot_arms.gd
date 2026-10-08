@@ -36,9 +36,11 @@ func test_hands_on_base_bar_in_flight() -> void:
 		ap.advance(0.5)
 		var half := float(Config.get_config("flight").visual.arms.bar_grip_half_width_m)
 		var bb := v.to_local(v.get_marker("BaseBar").global_position)
+		# PV3: штанга изогнута вперёд — хват на её оси: по X ±полуширина, назад от центра ≤ 0,25 м
+		var gd := v.bar_grip(-1) - bb
 		check(
-			v.bar_grip(-1).distance_to(bb + Vector3(-half, 0, 0)) < 1e-3,
-			"%s: точка хвата = BaseBar − полуширина хвата" % wing
+			absf(gd.x + half) < 1e-3 and gd.z >= -0.001 and gd.z < 0.25 and absf(gd.y) < 0.01,
+			"%s: точка хвата = BaseBar − полуширина хвата (на оси изогнутой штанги)" % wing
 		)
 		var worst := 0.0
 		v.set_pose(0.0, 0.0, true, 1.0e6)  # руки переходят на штангу (arm_bar → 1) до проверок

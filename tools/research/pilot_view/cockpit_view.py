@@ -103,13 +103,14 @@ def scene(cfg, wid, gap=None, bar_fwd=None, cam_off=None, look_down=None, aspect
     dip = cf["speedbar_dip_m"] if faired else 0.0
     r_bar = cf["basebar_r_m"]
     z_axis = fp["z_bb"] - dip  # ось штанги в середине
+    bow, straight_len = G.basebar_spec(p, cf)  # PV3: центр штанги вынесен вперёд
     w = fp["w"]
     y_bb = fp["y_bb"]
 
     body_bottom = -pil["hang_length_m"]  # низ тела под карабином (HangPoint)
     gap_now = body_bottom - (z_axis + r_bar)
     dz = 0.0 if gap is None else (z_axis + r_bar + gap) - body_bottom
-    dy = 0.0 if bar_fwd is None else (y_bb - bar_fwd) - shoulder_y
+    dy = 0.0 if bar_fwd is None else (y_bb + bow - bar_fwd) - shoulder_y
     shoulder_y_orig = shoulder_y
     eye[1] += dy
     eye[2] += dz
@@ -133,8 +134,8 @@ def scene(cfg, wid, gap=None, bar_fwd=None, cam_off=None, look_down=None, aspect
         k = min(1.0, (a - flat) / (w - flat))
         return fp["z_bb"] - dip * (1 - (3 * k * k - 2 * k ** 3))
 
-    bar_c = to_cam((0.0, y_bb, z_axis))
-    chord_min = min(axis_angle(to_cam((w * (2 * i / 100 - 1), y_bb, z_bar_at(w * (2 * i / 100 - 1))))) for i in range(101))
+    bar_c = to_cam((0.0, y_bb + bow, z_axis))
+    chord_min = min(axis_angle(to_cam((w * (2 * i / 100 - 1), y_bb + G.bow_at(w * (2 * i / 100 - 1), w, bow, straight_len), z_bar_at(w * (2 * i / 100 - 1))))) for i in range(101))
     wire_pts = []
     n = 200
     for i in range(n + 1):
@@ -153,7 +154,7 @@ def scene(cfg, wid, gap=None, bar_fwd=None, cam_off=None, look_down=None, aspect
     # наклон стоек, при котором штанга оказалась бы на bar_fwd впереди плеч БЕЗ сдвига пилота (A1)
     tilt_needed = None
     if bar_fwd is not None:
-        sin_t = (shoulder_y_orig + bar_fwd - fp["apex_y"]) / fp["s"]
+        sin_t = (shoulder_y_orig + bar_fwd - bow - fp["apex_y"]) / fp["s"]
         tilt_needed = round(math.degrees(math.asin(sin_t)), 1) if abs(sin_t) <= 1 else None
     return {
         "wing": wid,
@@ -164,11 +165,11 @@ def scene(cfg, wid, gap=None, bar_fwd=None, cam_off=None, look_down=None, aspect
         "eye_wing_m": [round(v, 3) for v in eye],
         "camera_wing_m": [round(v, 3) for v in cam],
         "shoulder_fwd_up_m": [round(v, 3) for v in shoulder],
-        "basebar_center_wing_m": [0.0, round(y_bb, 3), round(z_axis, 3)],
+        "basebar_center_wing_m": [0.0, round(y_bb + bow, 3), round(z_axis, 3)],
         "gap_body_bar_top_now_m": round(gap_now, 3),
         "pilot_shift_down_m": round(-dz, 3),
         "pilot_shift_fwd_m": round(dy, 3),
-        "bar_fwd_of_shoulder_m": round(y_bb - shoulder[0], 3),
+        "bar_fwd_of_shoulder_m": round(y_bb + bow - shoulder[0], 3),
         "bar_below_eye_m": round(eye[2] - z_axis, 3),
         "basebar_center_deg": round(axis_angle(bar_c), 1),
         "basebar_chord_min_deg": round(chord_min, 1),

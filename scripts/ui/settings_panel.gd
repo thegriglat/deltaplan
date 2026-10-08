@@ -21,6 +21,7 @@ var _volume: HSlider
 var _sens: HSlider
 var _invert: CheckBox
 var _roll_mode: OptionButton
+var _roll_input: OptionButton
 var _sound: OptionButton
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
@@ -87,6 +88,10 @@ func _ready() -> void:
 	_roll_mode.add_item(tr("settings_roll_simple"))
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
 	UiKit.row(box, tr("settings_roll_control"), _roll_mode)
+	_roll_input = OptionButton.new()
+	_roll_input.add_item(tr("settings_roll_input_bar"))
+	_roll_input.add_item(tr("settings_roll_input_body"))
+	UiKit.row(box, tr("settings_roll_input"), _roll_input)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -236,6 +241,7 @@ func load_values() -> void:
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
+	_roll_input.select(1 if String(Config.value("controls", "roll_input", "bar")) == "body" else 0)
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
 	_render_scale_auto.button_pressed = bool(Config.value("game", "render_scale_auto", true))
 	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
@@ -289,6 +295,7 @@ func save() -> bool:
 				{
 					"invert_pitch": _invert.button_pressed,
 					"roll_control_mode": "weight_shift" if _roll_mode.selected == 1 else "rate",
+					"roll_input": "body" if _roll_input.selected == 1 else "bar",
 					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
 				},
 				config_dir

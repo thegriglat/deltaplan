@@ -20,6 +20,11 @@
       "name": "A2",
       "version": "1",
       "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "PV3",
+      "version": "2",
+      "ref": "docs/contracts/pilot-view.md"
     }
   ],
   "copy": "~/deltaplan-pilot-view-PV-4",
@@ -77,5 +82,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-08T11:38:26",
-  "edited": "2026-10-08T11:39:58"
+  "edited": "2026-10-08T12:02:05"
 }

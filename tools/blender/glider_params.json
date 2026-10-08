@@ -44,6 +44,8 @@
     "speedbar_dip_m_doc": "Спидбар безмачтовых (faired_uprights): ровная середина |x| ≤ speedbar_flat_half_m ниже концов на speedbar_dip_m, плавные изгибы к углам (хват ±0,33 и вариометр — на ровной части)",
     "basebar_default": {"shape": "curved", "bow_m": 0.08, "bow_src": "class_estimate", "straight_len_m": 0.13, "ref": "Умолчание PV-2: среднее по классам (tier A 0,07 / B 0,09 / C 0,11) — для крыльев без данных; сводка и методика — tools/research/basebar_curve/README.md"},
     "bar_grip_x_m": [0.22, 0.43],
+    "bar_grip_hand_x_m": 0.33,
+    "bar_grip_hand_x_m_doc": "|x| точки хвата рук на оси базовой штанги (маркеры BarGripL/R, PV3); равно configs/flight.json → visual.arms.bar_grip_half_width_m",
     "bar_grip_x_m_doc": "Резиновые накладки на базовой штанге под руками, |x| от–до (у крыльев с bar_grips: false — голая труба)"
   },
   "pilot_eye": [0.0, 0.62, -0.937],
