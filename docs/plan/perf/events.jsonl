@@ -68,3 +68,4 @@
 {"t": "2026-10-08T16:29:26", "by": "coordinator", "task": "PF-12", "ev": "accepted", "note": "по отчёту: причина — поиск места УАЗа (EasterEggs, линейный скан дорог), сетка дорог 64 м; рывок 2,4–2,9 с → 0,21 с; после 2 с без исключений 206,7 мс; яйца 55/55"}
 {"t": "2026-10-08T16:29:27", "by": "coordinator", "task": "PF-12", "ev": "merged", "note": "fa1f8d91"}
 {"t": "2026-10-08T16:29:27", "by": "coordinator", "task": "PF-8", "ev": "note", "note": "Координатор: в feature/perf влиты PF-5 и PF-12 (рывок ~6 с убран — поиск места пасхалки). Сделай dp task sync PF-8; исключение окна 5,5–6,5 с в проверке рывков можно не учитывать — рывка там больше нет.", "addendum": true}
+{"t": "2026-10-08T16:49:15", "by": "coordinator", "task": "PF-12", "ev": "accepted", "commits": ["fa1f8d91"], "note": "3/3 fly_run=ok:exit 0; hitch_after2s_all=ok:225.6; egg=ok:55/55"}
