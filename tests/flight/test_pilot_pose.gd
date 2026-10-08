@@ -67,20 +67,23 @@ func test_flight_pose_swings_around_hang_point() -> void:
 	var vis_cfg: Dictionary = Config.get_config("flight").visual
 	var pilot_cfg: Dictionary = Config.get_config("pilot")
 	var pv: Dictionary = pilot_cfg.visual
-	var c := Vector3(0, -float(pv.body_below_hang_m), float(pv.body_back_m))
-	var l := c.length()
 	var v := GliderVisual.new()
 	add_child(v)
 	v.build(Config.get_config("wings/" + WINGS[0]), pilot_cfg, vis_cfg)
+	# A3.5 v8: пилот подвешен ниже карабина-на-HangPoint на hang_drop_m (длина под крыло)
+	check(v.hang_drop_m > 0.1, "длина подвески под крыло: пилот ниже модельной (%.3f м)" % v.hang_drop_m)
+	var c := Vector3(0, -float(pv.body_below_hang_m), float(pv.body_back_m))  # в осях пилота
+	var l := (c + Vector3(0, -v.hang_drop_m, 0)).length()  # HangPoint → центр масс
+	var drop := Vector3(0, v.hang_drop_m, 0)
 
 	v.set_pose(0.0, 0.0, true, 1.0e6)
-	var hang := v.pilot.transform.origin
+	var hang := v.pilot.transform * drop
 	var com0 := v.pilot.transform * c
 
 	v.set_pose(1.0, 0.0, true, 1.0e6)
 	check(
-		v.pilot.transform.origin.is_equal_approx(hang),
-		"крен: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform.origin, hang]
+		(v.pilot.transform * drop).is_equal_approx(hang),
+		"крен: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform * drop, hang]
 	)
 	var x_axis := v.pilot.transform.basis * Vector3.RIGHT
 	var roll_ang := rad_to_deg(atan2(x_axis.y, x_axis.x))
@@ -100,8 +103,8 @@ func test_flight_pose_swings_around_hang_point() -> void:
 
 	v.set_pose(0.0, 1.0, true, 1.0e6)
 	check(
-		v.pilot.transform.origin.is_equal_approx(hang),
-		"тангаж: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform.origin, hang]
+		(v.pilot.transform * drop).is_equal_approx(hang),
+		"тангаж: карабин остаётся в HangPoint (%s vs %s)" % [v.pilot.transform * drop, hang]
 	)
 	var com2 := v.pilot.transform * c
 	var pitch_shift := com2 - com0

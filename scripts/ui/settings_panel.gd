@@ -41,6 +41,8 @@ var _speeds: Array = []
 var _net_mode := false
 var _fov: HSlider
 var _helmet: OptionButton
+var _eye_mode: OptionButton
+var _eye_modes: Array = ["eyes", "between_shoulders"]
 var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
@@ -156,6 +158,10 @@ func _ready() -> void:
 		float(cam.get("fov_step_deg", 5.0)),
 		"%.0f°"
 	)
+	_eye_mode = OptionButton.new()
+	_eye_mode.add_item(tr("camera_eye_eyes"))
+	_eye_mode.add_item(tr("camera_eye_shoulders"))
+	UiKit.row(box, tr("settings_eye_mode"), _eye_mode)
 	_helmet = OptionButton.new()
 	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
 	var helmet_names := {
@@ -256,6 +262,8 @@ func load_values() -> void:
 	_time_speed.select(si)
 	_fov.value = float(Config.value("camera", "fov_deg", 60.0))
 	_fov.value_changed.emit(_fov.value)
+	var em := String(Config.value("camera", "cockpit.eye_mode", "eyes"))
+	_eye_mode.select(maxi(_eye_modes.find(em), 0))
 	var hm := String(Config.value("helmet", "mode", "none"))
 	_helmet.select(maxi(_helmet_modes.find(hm), 0))
 	_bots.value = float(Config.value("bots", "count", 4))
@@ -291,7 +299,11 @@ func save() -> bool:
 	if not _net_mode and _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
-	ok = UserSettings.save_patch("camera", {"fov_deg": _fov.value}, config_dir) and ok
+	var cam_patch := {
+		"fov_deg": _fov.value,
+		"cockpit": {"eye_mode": String(_eye_modes[maxi(_eye_mode.selected, 0)])},
+	}
+	ok = UserSettings.save_patch("camera", cam_patch, config_dir) and ok
 	if _helmet.selected >= 0:
 		var hp := {"mode": String(_helmet_modes[_helmet.selected])}
 		ok = UserSettings.save_patch("helmet", hp, config_dir) and ok

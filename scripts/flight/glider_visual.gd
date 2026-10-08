@@ -77,6 +77,7 @@ var _strap_ribbon: MeshInstance3D  ## лента (ImmediateMesh) в осях в�
 var _strap_hidden_mat: ShaderMaterial
 var _strap_anchor_bone := -1  ## кость, к которой привязана нижняя точка стропы
 var _strap_anchor_local := Vector3.ZERO  ## нижняя точка стропы в осях этой кости
+var hang_drop_m := 0.0  ## на сколько пилот в полёте ниже карабина-на-HangPoint: зазор до штанги у этого крыла (A3.5 v8)
 var _strap_rest_len := 0.9  ## длина стропы модели (карабин → подвесная система), м
 
 
@@ -123,6 +124,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	pm.name = "Model"
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
+	hang_drop_m = float(wing_cfg.visual.get("hang_drop_m", _compute_hang_drop()))
 	_animated_stand = false
 	_anim = null
 	for ap: AnimationPlayer in pm.find_children("*", "AnimationPlayer", true, false):
@@ -222,16 +224,17 @@ func _update_strap() -> void:
 	var bottom := strap_bottom()
 	var chord := top.distance_to(bottom)
 	var sag := 0.5 * sqrt(maxf(_strap_rest_len * _strap_rest_len - chord * chord, 0.0))
-	var half := Vector3(0.02, 0.0, 0.0)
 	var im := _strap_ribbon.mesh as ImmediateMesh
 	im.clear_surfaces()
-	im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
-	for i in 9:
-		var t := i / 8.0
-		var pt := top.lerp(bottom, t) + Vector3.DOWN * (sag * 4.0 * t * (1.0 - t))
-		im.surface_add_vertex(pt - half)
-		im.surface_add_vertex(pt + half)
-	im.surface_end()
+	# две перекрёстные ленты (из любой камеры видна)
+	for half: Vector3 in [Vector3(0.02, 0.0, 0.0), Vector3(0.0, 0.0, 0.02)]:
+		im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+		for i in 9:
+			var t := i / 8.0
+			var pt := top.lerp(bottom, t) + Vector3.DOWN * (sag * 4.0 * t * (1.0 - t))
+			im.surface_add_vertex(pt - half)
+			im.surface_add_vertex(pt + half)
+		im.surface_end()
 
 
 ## Руки: модификатор PilotArmIK на скелете пилота (кости UpperArm/Forearm/Hand, пустышки хвата).
@@ -539,7 +542,17 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 		var roll_ang := asin(clampf(shift.x / l, -1.0, 1.0))
 		var pitch_ang := -asin(clampf(shift.z / l, -1.0, 1.0))
 		basis = Basis(Vector3(0, 0, 1), roll_ang) * Basis(Vector3(1, 0, 0), pitch_ang)
-	return Transform3D(basis, _hang)
+	return Transform3D(basis, _hang + basis * Vector3(0, -hang_drop_m, 0))
+
+
+## Подгонка длины подвески под крыло (A3.5 v8): низ торса на pilot.json → visual.bar_gap_m над
+## верхом базовой штанги. Модель пилота запечена с длиной hang_length_m; недостающее — вниз.
+func _compute_hang_drop() -> float:
+	if wing == null or get_marker("BaseBar") == null:
+		return 0.0
+	var depth := _hang.y - _marker_pos("BaseBar").y  # карабин (HangPoint) — ось штанги
+	var top := depth - float(_pcfg.get("bar_radius_m", 0.015))
+	return top - float(_pcfg.get("bar_gap_m", 0.06)) - float(_pcfg.hang_length_m)
 
 
 ## На земле: стоит под крылом, ноги на земле. Модель со скелетом ставит тело вертикально сама
@@ -641,7 +654,7 @@ func _frame_pitch() -> float:
 
 ## Центр тела относительно карабина.
 func _body_center() -> Vector3:
-	return Vector3(0, -float(_pcfg.body_below_hang_m), float(_pcfg.body_back_m))
+	return Vector3(0, -float(_pcfg.body_below_hang_m) - hang_drop_m, float(_pcfg.body_back_m))
 
 
 func _head_local() -> Vector3:

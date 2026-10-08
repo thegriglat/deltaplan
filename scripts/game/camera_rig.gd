@@ -272,7 +272,7 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var shake := Basis.IDENTITY
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
 		var jolt := _shake(c)
-		eye = head.global_position + t.basis * (_vec(c.offset_m) + _follow_body(delta, c) + jolt)
+		eye = _eye_point(c) + t.basis * (_vec(c.offset_m) + _follow_body(delta, c) + jolt)
 		var sk: Dictionary = c.get("shake", {})
 		var rot := deg_to_rad(float(sk.get("rotation_deg_per_cm", 0.0))) * 100.0
 		shake = Basis(Vector3.RIGHT, jolt.y * rot) * Basis(Vector3.BACK, -jolt.x * rot)
@@ -301,6 +301,17 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 		* Basis(Vector3.UP, look.x)
 		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Точка камеры в кабине (A3.3 v8, camera.json → cockpit.eye_mode): глаза пилота или точка над
+## серединой плечевых суставов на высоте глаз («между плечами»).
+func _eye_point(c: Dictionary) -> Vector3:
+	var vis := head.get_parent() as GliderVisual
+	if String(c.get("eye_mode", "eyes")) != "between_shoulders" or vis == null:
+		return head.global_position
+	var m := (vis.shoulder(-1) + vis.shoulder(1)) * 0.5
+	var hl := vis.head_marker.transform.origin
+	return vis.global_transform * Vector3(m.x, hl.y, m.z)
 
 
 ## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,

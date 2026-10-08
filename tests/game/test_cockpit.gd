@@ -120,6 +120,72 @@ func test_trapezoid_and_telltales() -> void:
 		await _finish(main)
 
 
+## A3.3 v8: камера в глазах без смещения, взгляд 10° вниз, FOV 90° (configs/camera.json). Для
+## каждого крыла (взгляд прямо = по умолчанию): углы от оси до центра штанги и до ближайшей
+## точки носовых тросов, видны ли они в кадре; затем наклон головы вниз (от горизонта), при
+## котором центр штанги в кадре (≤ 90° — предел головы). Все числа — в печать (отчёт).
+func test_bar_center_and_nose_cables_v8() -> void:
+	var cc: Dictionary = Config.get_config("camera")
+	check(float(cc.fov_deg) == 90.0, "fov_deg по умолчанию 90 (%s)" % cc.fov_deg)
+	check(float(cc.cockpit.look_down_deg) == 10.0, "взгляд по умолчанию 10° вниз")
+	var off: Array = cc.cockpit.offset_m
+	check(float(off[0]) == 0.0 and float(off[1]) == 0.0 and float(off[2]) == 0.0, "cockpit.offset_m = 0")
+	check(String(cc.cockpit.eye_mode) == "eyes", "камера по умолчанию — глаза")
+	for wing in ["apogee", "training", "sport", "laminar", "ww_sport3", "bautek_kite", "condor_crex3"]:
+		var main := await _fly(wing)
+		if main == null:
+			continue
+		var game: Game = main.get_node("Game")
+		var v := game.glider.visual
+		var cam := game.camera
+		check(is_equal_approx(cam.fov, 90.0), "%s: FOV камеры 90" % wing)
+		_look(game, 0.0, 0.0)
+		var bar := game.glider.get_marker("BaseBar").global_position
+		var a_bar := _axis_angle(cam, bar)
+		var cables := _nose_cable_points(v)
+		var best := 180.0
+		var n_in := 0
+		for p in cables:
+			best = minf(best, _axis_angle(cam, p))
+			if _in_view(cam, p):
+				n_in += 1
+		var down_need := -1.0
+		for d in range(0, 91, 1):
+			_look_fast(game, -float(d))
+			if _in_view(cam, game.glider.get_marker("BaseBar").global_position):
+				down_need = 10.0 + d
+				break
+		print(
+			(
+				"         %s v8: взгляд прямо (10° вниз, FOV 90): центр штанги %.1f° от оси (%s), носовые тросы: ближайшая точка %.1f° от оси, в кадре %d из %d точек; "
+				+ "центр штанги в кадре при наклоне головы вниз %.0f° от горизонта"
+			)
+			% [wing, a_bar, "в кадре" if _in_view(cam, bar) else "вне кадра", best, n_in, cables.size(), down_need]
+		)
+		check(down_need > 0.0 and down_need <= 90.0, "%s: центр штанги в кадре при наклоне головы ≤ 90° (%.0f)" % [wing, down_need])
+		await _finish(main)
+
+
+## Точки носовых тросов: рёбра ControlFrame/Frame впереди нижних углов трапеции (вдоль курса) и выше них.
+func _nose_cable_points(v: GliderVisual) -> PackedVector3Array:
+	var bl := v.get_marker("UprightBottomL").global_position
+	var br := v.get_marker("UprightBottomR").global_position
+	var fwd := (v.global_transform.basis * Vector3.FORWARD).normalized()
+	var base := (bl + br) * 0.5
+	var out := PackedVector3Array()
+	for p in _meshes(v, ["ControlFrame", "Frame"]):
+		if (p - base).dot(fwd) > 0.15 and p.y > base.y + 0.05:
+			out.append(p)
+	return out
+
+
+## Быстрая смена наклона головы (одна секунда симуляции вместо двух — только сглаживание головы).
+func _look_fast(game: Game, pitch_deg: float) -> void:
+	game.camera.set_look(0.0, pitch_deg)
+	for i in 12:
+		_step(game)
+
+
 ## Углы от оси взгляда камеры до ближайших точек стоек и штанги (по отрезкам маркеров), °.
 func _bar_angles(v: Node3D, cam: Camera3D) -> Dictionary:
 	var m := {}
