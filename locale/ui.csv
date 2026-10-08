@@ -78,6 +78,9 @@ controls_shift_left,Сместить вес влево — поворот вле
 controls_shift_right,Сместить вес вправо — поворот вправо,Shift weight right — turn right
 controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
 settings_roll_control,Управление креном,Roll control
+settings_roll_input,Крен мышью и стрелками,Roll by mouse and arrows
+settings_roll_input_bar,Как штанга (вправо — крен влево),Like the bar (right — roll left)
+settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
 controls_glance,Держать — посмотреть влево на прибор на стойке,Hold — look left at the instrument on the upright

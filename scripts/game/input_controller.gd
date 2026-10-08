@@ -32,12 +32,16 @@ var telemetry_fn: Callable
 var roll_mode := "rate"
 ## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
+## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
+## "body" — тело (вправо = крен вправо). Только в полёте в weight_shift.
+var roll_input := "bar"
 
 var _cfg: Dictionary
 var _key_pitch := 0.0  # трапеция по тангажу от клавиш, доля хода (мышь и стик — отдельно)
 var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
 var _bar_look_held := false  # правая кнопка зажата — мышь крутит голову, не трапецию
 var _roll_pos := 0.0  # крен от клавиш: смещение веса (до плавной нейтрали) или ручка крена (rate)
+var _center_down := false  # X нажата в прошлом шаге (фронт нажатия, в т.ч. короче шага физики)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
 var _prev_bank := 0.0  # «в центр» в режиме rate: крен прошлого шага, °
 
@@ -51,6 +55,7 @@ func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
 	roll_mode = String(_cfg.get("roll_control_mode", "rate"))
+	roll_input = String(_cfg.get("roll_input", "bar"))
 
 
 ## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
@@ -181,7 +186,14 @@ func _bar_pitch_dir() -> float:
 
 
 func _bar_roll_dir() -> float:
-	return _strength("roll_right") - _strength("roll_left")
+	return (_strength("roll_right") - _strength("roll_left")) * _roll_sign()
+
+
+## Знак крена от устройства (PV1): −1 при roll_input = bar, только в полёте и weight_shift.
+func _roll_sign() -> float:
+	if roll_input == "bar" and control.weight_shift and not on_ground:
+		return -1.0
+	return 1.0
 
 
 ## Трапеция (нос и крен): клавиши + мышь, сумма до упора. Одна и та же на земле и в полёте;
@@ -201,7 +213,7 @@ func _update_bar(dt: float, pitch_dir: float, roll_dir: float, allow_center: boo
 	elif ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
-	var m_roll := _mouse_offset.x if absf(_mouse_offset.x) > dz else 0.0
+	var m_roll := _mouse_offset.x * _roll_sign() if absf(_mouse_offset.x) > dz else 0.0
 	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
 	if _centering:
 		_key_pitch *= exp(-dt / c_tau)
@@ -248,15 +260,26 @@ func _level_wing(kb: Dictionary, dt: float) -> float:
 ## «В центр» (X): включается нажатием, держится, пока клавиша зажата, а после — пока
 ## управление не придёт в нейтраль или игрок не нажмёт клавишу тангажа/крена.
 func _update_centering(pitch_dir: float, roll_dir: float) -> void:
-	var held := InputMap.has_action("center") and Input.is_action_pressed("center")
-	if held:
+	var has := InputMap.has_action("center")
+	var held := has and Input.is_action_pressed("center")
+	var down := held or (has and Input.is_action_just_pressed("center"))
+	var edge := down and not _center_down
+	_center_down = down
+	if edge or held:
 		if not _centering:
 			var t := _telemetry()
 			_prev_bank = t.bank_deg if t != null else 0.0
+		# PV2: одно нажатие обнуляет накопленные положения мыши и стрелок по обеим осям
+		_mouse_offset = Vector2.ZERO
+		_roll_pos = 0.0
+		_key_pitch = 0.0
 		_centering = true
 	elif _centering:
+		# мышь сдвинули после X — трапеция снова слушается (PV2)
+		if _mouse_offset.length() > 0.005:
+			_centering = false
+			return
 		var settled := absf(_roll_pos) < 0.01 and absf(control.pitch) < 0.01
-		settled = settled and _mouse_offset.length() < 0.01
 		var t := _telemetry()
 		if not control.weight_shift and t != null:
 			settled = settled and absf(t.bank_deg) < 1.0
@@ -297,7 +320,7 @@ func _apply_gamepad() -> void:
 	var gy := _stick(Input.get_joy_axis(dev, int(gp.pitch_axis)), gp)
 	if gx != 0.0 or gy != 0.0:
 		# стик — трапеция и в полёте, и на земле (С2 v3): на земле нос и заданный крен крыла
-		control.roll = gx  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
+		control.roll = gx * _roll_sign()  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
 		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v3)
 		control.pitch = -gy * inv
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
