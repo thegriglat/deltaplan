@@ -391,6 +391,9 @@ func _refresh_finish() -> void:
 func _refresh_pump() -> void:
 	var t0 := Time.get_ticks_usec()
 	if _ra_stage == 0:
+		if not field.refresh_pending():
+			# поле само бросило порцию (смена поля воздуха, статичный термик): начать заново
+			_refresh_begin(true)
 		if not field.step_refresh(refresh_budget_us):
 			return
 		_ra_stage = 1

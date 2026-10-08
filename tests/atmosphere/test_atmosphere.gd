@@ -384,3 +384,34 @@ func test_refresh_chunked_equals_sync() -> void:
 	check(steps_total > 4, "обновление действительно разбито на шаги: %d" % steps_total)
 	sync_a.free()
 	chunk_a.free()
+
+
+## PF-8: порция, оборванная на середине генерации, не портит следующее обновление: набор тот же,
+## что у синхронного (чистая функция фокуса и времени).
+func test_refresh_abort_midway_then_sync_equals_sync() -> void:
+	var sync_a := _atmo({}, {}, "weather/strong")
+	var abort_a := _atmo({}, {}, "weather/strong")
+	for a: Atmosphere in [sync_a, abort_a]:
+		a.set_ground(_hills, _sun)
+		a.set_focus(Vector3(500.0, 300.0, -300.0))
+		a.start_at(600.0)
+	var t := 700.0
+	for a: Atmosphere in [sync_a, abort_a]:
+		a.time_s = t
+	abort_a.field.begin_refresh(t, abort_a._focus, abort_a._refresh_dt(), true)
+	var n := 0
+	while n < 2000 and not abort_a.field.step_refresh(100):
+		n += 1
+		if abort_a.field._j_ph == ThermalField._PH_GEN and abort_a.field._j_i > 20:
+			break
+	check(abort_a.field.refresh_pending(), "порция ещё идёт")
+	abort_a.field.abort_refresh()
+	sync_a.refresh_now()
+	abort_a.refresh_now()
+	var ia: Array = sync_a.field.thermals.keys()
+	var ib: Array = abort_a.field.thermals.keys()
+	ia.sort()
+	ib.sort()
+	check(ia == ib and not ia.is_empty(), "набор после обрыва тот же (%d / %d)" % [ia.size(), ib.size()])
+	sync_a.free()
+	abort_a.free()

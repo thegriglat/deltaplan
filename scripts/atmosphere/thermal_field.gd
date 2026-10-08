@@ -436,6 +436,9 @@ func refresh_pending() -> bool:
 
 ## Бросить недоделанное обновление (набор термиков меняют снаружи): thermals не тронут.
 func abort_refresh() -> void:
+	# Обрыв после начала генерации: записи _cell_seen этого обхода не должны сойти за «обошли в прошлый раз».
+	if _job and _j_ph >= _PH_GEN:
+		_gen_stamp += 1
 	_job = false
 	_wt = thermals
 	_j_keys = []
