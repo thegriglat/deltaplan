@@ -59,3 +59,5 @@
 {"t": "2026-10-08T15:23:10", "by": "reviewer", "task": "PF-5", "ev": "reviewed", "note": "PF-К4 v2 выполнен: одна сборка за раз (последний ключ — по готовности прежней, в тот же кадр через _poll→_air_launch), при том же охвате сбрасываются только кл…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/perf/tasks/PF-5.review.json"}
 {"t": "2026-10-08T15:23:28", "by": "coordinator", "task": "PF-5", "ev": "accepted", "note": "по ревью (2-е, accept; 2 minor — тест тени и выход без отложенной сборки — переданы в PF-8)"}
 {"t": "2026-10-08T15:23:28", "by": "coordinator", "task": "PF-5", "ev": "merged", "note": "1101f954"}
+{"t": "2026-10-08T15:23:42", "by": "coordinator", "task": "PF-8", "ev": "created", "note": "Периодические работы главного потока порциями"}
+{"t": "2026-10-08T15:23:42", "by": "coordinator", "task": "PF-8", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-perf-PF-8"}
