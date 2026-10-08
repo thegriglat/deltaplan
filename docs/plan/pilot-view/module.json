@@ -1,0 +1,9 @@
+{
+  "module": "pilot-view",
+  "plan": "docs/plan/pilot-view.md",
+  "contracts": "docs/contracts/pilot-view.md",
+  "branch": "feature/pilot-view",
+  "copy": "~/deltaplan-pilot-view",
+  "created": "2026-10-08T11:15:36",
+  "code": "PV"
+}
