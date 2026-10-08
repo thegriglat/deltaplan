@@ -153,25 +153,37 @@ func size(th: AtmoThermal, st: Vector3) -> Vector4:
 ## max_clouds нарисованные тоже в приоритете (их дальность делится на select_hysteresis).
 ## Выбывшее облако CloudLayer не выключает, а растворяет (step_fade).
 func select(thermals: Dictionary, t: float, eye: Vector3, shown: Dictionary = {}) -> Array:
-	var hyst := float(_cfg.get("select_hysteresis", 1.25))
 	var cand: Array = []
 	for id in thermals:
-		var th: AtmoThermal = thermals[id]
-		if not th.has_cloud:
-			continue
-		var st := stage(th, t)
-		if st.x < 0.0:
-			continue
-		var c := center(th, t)
-		var d := Vector2(eye.x, eye.z).distance_to(c)
-		# Cb видно издалека (башня до тропопаузы) — у них дальность больше.
-		if d > far_m(th):
-			continue
-		var r := size(th, st).x
-		var score := r * st.x * (1.0 - st.y)
-		if shown.has(th.id):
-			score *= hyst
-		cand.append([d, th, st, c, r, score])
+		var e := select_entry(thermals[id], t, eye, shown)
+		if not e.is_empty():
+			cand.append(e)
+	return select_finish(cand, shown)
+
+
+## Кандидат выбора (PF-8: CloudLayer набирает их порциями по кадрам): [расстояние, термик, стадия,
+## центр, полуось, очки] или [], если облако не годится.
+func select_entry(th: AtmoThermal, t: float, eye: Vector3, shown: Dictionary) -> Array:
+	if not th.has_cloud:
+		return []
+	var st := stage(th, t)
+	if st.x < 0.0:
+		return []
+	var c := center(th, t)
+	var d := Vector2(eye.x, eye.z).distance_to(c)
+	# Cb видно издалека (башня до тропопаузы) — у них дальность больше.
+	if d > far_m(th):
+		return []
+	var r := size(th, st).x
+	var score := r * st.x * (1.0 - st.y)
+	if shown.has(th.id):
+		score *= float(_cfg.get("select_hysteresis", 1.25))
+	return [d, th, st, c, r, score]
+
+
+## Остаток выбора по набранным кандидатам: слияние наложившихся, обрезка по лимиту, порядок по дальности.
+func select_finish(cand: Array, shown: Dictionary = {}) -> Array:
+	var hyst := float(_cfg.get("select_hysteresis", 1.25))
 	cand.sort_custom(_by_score)
 	var list := _drop_overlaps(cand)
 	var cap := int(_cfg.max_clouds)

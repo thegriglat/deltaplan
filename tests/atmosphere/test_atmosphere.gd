@@ -331,3 +331,56 @@ func test_performance() -> void:
 	print("         step: %.1f мкс в среднем" % step_us)
 	check(acc.is_finite(), "значения конечны")
 	a.free()
+
+
+## PF-8: обновление порциями даёт тот же набор термиков и сетку поиска, что синхронное; пока оно
+## идёт, набор и сетка прежние (подмена целиком по готовности).
+func test_refresh_chunked_equals_sync() -> void:
+	var sync_a := _atmo({}, {}, "weather/strong")
+	var chunk_a := _atmo({}, {}, "weather/strong")
+	for a: Atmosphere in [sync_a, chunk_a]:
+		a.set_ground(_hills, _sun)
+		a.set_focus(Vector3(500.0, 300.0, -300.0))
+		a.start_at(600.0)
+	var steps_total := 0
+	for round in 4:
+		var t := 600.0 + (round + 1) * 37.0
+		sync_a.time_s = t
+		chunk_a.time_s = t
+		var focus := Vector3(500.0 + round * 4000.0, 300.0, -300.0)
+		sync_a.set_focus(focus)
+		chunk_a.set_focus(focus)
+		sync_a.refresh_now()
+		var before_ids: Array = chunk_a.field.thermals.keys()
+		var before_tp: PackedFloat64Array = chunk_a.field._tp.duplicate()
+		chunk_a.field.begin_refresh(t, focus, chunk_a._refresh_dt(), true)
+		var steps := 0
+		var stable := true
+		while not chunk_a.field.step_refresh(200):
+			steps += 1
+			stable = (
+				stable
+				and chunk_a.field.thermals.keys() == before_ids
+				and chunk_a.field._tp == before_tp
+			)
+		steps_total += steps
+		check(stable, "раунд %d: до готовности набор и сетка прежние" % round)
+		var ia: Array = sync_a.field.thermals.keys()
+		var ib: Array = chunk_a.field.thermals.keys()
+		ia.sort()
+		ib.sort()
+		check(ia == ib, "раунд %d: набор термиков тот же (%d / %d)" % [round, ia.size(), ib.size()])
+		check(
+			sync_a.field._tp == chunk_a.field._tp, "раунд %d: параметры сетки поиска те же" % round
+		)
+		check(
+			sync_a.field._buckets.size() == chunk_a.field._buckets.size(),
+			"раунд %d: ячеек поиска поровну" % round
+		)
+		for p in [Vector3(500, 900, -300), Vector3(5000, 1200, 200), Vector3(9000, 700, -300)]:
+			var va := sync_a.field.sample(p)
+			var vb := chunk_a.field.sample(p)
+			check(va.is_equal_approx(vb), "раунд %d: sample %s совпадает" % [round, p])
+	check(steps_total > 4, "обновление действительно разбито на шаги: %d" % steps_total)
+	sync_a.free()
+	chunk_a.free()

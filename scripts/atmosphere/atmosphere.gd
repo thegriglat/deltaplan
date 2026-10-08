@@ -68,6 +68,13 @@ var _refresh_interval: float = 0.5
 ## Во сколько раз реже обновлять список термиков и облака (только «Подождать час», Q-17: мир идёт
 ## ×60, а пересчёт — 25–45 мс — не должен падать на каждый шаг). 1 — как обычно.
 var refresh_scale: float = 1.0
+## > 0 — обновление термиков/облаков порциями по этому бюджету за шаг, мкс (PF-8); 0 — сразу.
+var refresh_budget_us: int = 0
+var _ra_pending := false
+var _ra_stage := 0
+var _ra_t := 0.0
+var _ra_focus := Vector3.ZERO
+var _ra_finish_us := 3000
 ## Обновления — по сетке времени атмосферы (номер интервала), а не по накопленному dt: набор
 ## термиков в момент t не зависит от шага и от того, с какого момента атмосферу начали.
 var _refresh_slot: int = -(1 << 62)
@@ -146,6 +153,7 @@ func _ready() -> void:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	if visuals_enabled and DisplayServer.get_name() != "headless":
 		_create_visuals()
+		refresh_budget_us = 3000
 
 
 func _physics_process(delta: float) -> void:
@@ -169,11 +177,12 @@ func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 ## Выход из места/игры: сборка источников в рабочем потоке читает рельеф — дождаться до его освобождения.
 func _exit_tree() -> void:
 	if field != null:
-		field.air_wait()
+		field.air_wait(false)
 
 
 func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	cfg = atmo_cfg
+	_ra_pending = false
 	weather = weather_cfg.duplicate(true)
 	var seed_used := seed_value if seed_value >= 0 else int(cfg.seed)
 	var old_ground := ground
@@ -350,6 +359,15 @@ func start_at(t: float) -> void:
 
 ## Обновить набор термиков, облака и сетку поиска на текущий time_s сразу (не ждать интервала).
 func refresh_now() -> void:
+	field.abort_refresh()
+	_ra_pending = false
+	_refresh_begin(false)
+	field.step_refresh(-1)
+	_refresh_finish()
+
+
+## Общее начало обновления (синхронного и порциями): фокус, интервалы, ход дня.
+func _refresh_begin(chunked: bool) -> void:
 	_update_focus()
 	_refresh_slot = floori(time_s / _refresh_dt())
 	_state_slot = floori(time_s / _state_interval)
@@ -357,9 +375,33 @@ func refresh_now() -> void:
 	# Ход дня — на начало интервала (чистая функция времени, не шага).
 	if _day_active():
 		_apply_day(_state_slot * _state_interval)
-	field.refresh(time_s, _focus, _refresh_dt())
+	_ra_t = time_s
+	_ra_focus = _focus
+	field.begin_refresh(time_s, _focus, _refresh_dt(), chunked)
+
+
+func _refresh_finish() -> void:
 	storm.refresh(field.thermals)
-	cloud_phys.refresh(field.thermals, time_s, _focus, float(cfg.thermal.physics_radius_m))
+	cloud_phys.refresh(field.thermals, _ra_t, _ra_focus, float(cfg.thermal.physics_radius_m))
+
+
+## Порциями (PF-8): refresh_budget_us > 0 — обновление растягивается на несколько шагов, по
+## бюджету за шаг; набор термиков и сетка поиска подменяются целиком по готовности, итог для
+## тех же (время, фокус) тот же, что у refresh_now().
+func _refresh_pump() -> void:
+	var t0 := Time.get_ticks_usec()
+	if _ra_stage == 0:
+		if not field.step_refresh(refresh_budget_us):
+			return
+		_ra_stage = 1
+		# Неделимый кусок (бури, физика облаков) — в шаге, где хватает бюджета.
+		if Time.get_ticks_usec() - t0 + _ra_finish_us > refresh_budget_us:
+			return
+	var t1 := Time.get_ticks_usec()
+	_refresh_finish()
+	_ra_finish_us = Time.get_ticks_usec() - t1
+	_ra_stage = 0
+	_ra_pending = false
 
 
 func _cache_coefficients() -> void:
@@ -621,8 +663,18 @@ func step(dt: float) -> void:
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
 	_refresh_acc += dt
-	if _refresh_acc >= 1.0e8 or floori(time_s / _refresh_dt()) != _refresh_slot:
+	if _refresh_acc >= 1.0e8:
 		refresh_now()
+	elif _ra_pending:
+		_refresh_pump()
+	elif floori(time_s / _refresh_dt()) != _refresh_slot:
+		if refresh_budget_us > 0:
+			_ra_pending = true
+			_ra_stage = 0
+			_refresh_begin(true)
+			_refresh_pump()
+		else:
+			refresh_now()
 	else:
 		var slot := floori(time_s / _state_interval)
 		if slot != _state_slot:
@@ -1050,6 +1102,7 @@ func _create_visuals() -> void:
 			_clouds.name = "Clouds"
 			add_child(_clouds)
 			_clouds.call("setup", self)
+			_clouds.set("select_budget_us", 3000)
 	var cirrus := CirrusLayer.new()
 	cirrus.name = "Cirrus"
 	add_child(cirrus)
