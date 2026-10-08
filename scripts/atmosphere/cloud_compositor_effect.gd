@@ -44,6 +44,8 @@ var noise_shape: Texture3D
 var noise_detail: Texture3D
 ## Доля разрешения буфера облаков (0,5 — половина по каждой оси).
 var resolution_scale: float = 0.5
+## Предел площади буфера облаков, пикселей (0 — без предела; PF-К2).
+var max_buffer_px: int = 0
 ## Вес нового кадра во временном накоплении (1 — без истории; меньше — глаже, но дольше догоняет).
 var temporal_weight: float = 0.12
 
@@ -88,6 +90,15 @@ func _notification(what: int) -> void:
 				_rd.free_rid(rid)
 
 
+## Размер буфера облаков по внутреннему размеру кадра (PF-К2): lowres_scale, но площадь не больше max_buffer_px.
+static func buffer_size(full: Vector2i, scale: float = 0.5, max_px: int = 0) -> Vector2i:
+	var s := scale
+	var area := float(full.x) * float(full.y)
+	if max_px > 0 and area * s * s > float(max_px):
+		s = sqrt(float(max_px) / area)
+	return Vector2i(maxi(1, ceili(full.x * s)), maxi(1, ceili(full.y * s)))
+
+
 func _render_callback(_type: int, render_data: RenderData) -> void:
 	if _rd == null or _failed or noise_shape == null or noise_detail == null:
 		return
@@ -101,9 +112,7 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	var full := sb.get_internal_size()
 	if full.x <= 0 or full.y <= 0:
 		return
-	var low := Vector2i(
-		maxi(1, ceili(full.x * resolution_scale)), maxi(1, ceili(full.y * resolution_scale))
-	)
+	var low := buffer_size(full, resolution_scale, max_buffer_px)
 	_ensure_targets(low)
 	var proj := sd.get_view_projection(0)
 	var inv_proj := proj.inverse()
