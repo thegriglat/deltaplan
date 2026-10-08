@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "PV1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-view.md"
     },
     {
@@ -68,5 +68,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-08T11:21:41"
+  "created": "2026-10-08T11:21:41",
+  "edited": "2026-10-08T11:33:37"
 }
