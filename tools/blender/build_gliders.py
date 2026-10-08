@@ -404,7 +404,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     dip = cf["speedbar_dip_m"] if faired else 0.0
     flat = cf["speedbar_flat_half_m"]
     bow, straight_len = G.basebar_spec(p, cf)  # PV3: изгиб вперёд в центре
-    xs = [-(w + 0.035)] + [-w + 2 * w * i / 48 for i in range(49)] + [w + 0.035]
+    xs = [-(w + 0.035)] + [-w + 2 * w * i / 16 for i in range(17)] + [w + 0.035]
 
     def bar_z(x: float) -> float:
         a = abs(x)
@@ -417,7 +417,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         return y_bb + G.bow_at(x, w, bow, straight_len)
 
     bar = [Vector((x, bar_y(x), bar_z(x))) for x in xs]
-    mb.add_tube(bar, r_bar, "Tube", sides=14)
+    mb.add_tube(bar, r_bar, "Tube", sides=12)
     for s in (-1, 1):  # заглушки концов штанги
         e = Vector((s * (w + 0.035), y_bb, z_bb))
         mb.add_tube([e, e + Vector((s * 0.012, 0, 0))], r_bar * 1.08, "Dark", sides=12)
@@ -425,7 +425,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         g0, g1 = cf["bar_grip_x_m"]
         for s in (-1, 1):
             mb.add_tube([Vector((s * x, bar_y(x), bar_z(x))) for x in
-                         [g0 + (g1 - g0) * i / 6 for i in range(7)]],
+                         [g0 + (g1 - g0) * i / 2 for i in range(3)]],
                         r_bar + 0.0025, "Grip", sides=16)
     if p["wheels"]:
         for s in (-1, 1):
