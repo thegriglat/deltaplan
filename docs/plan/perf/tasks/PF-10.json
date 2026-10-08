@@ -1,0 +1,45 @@
+{
+  "id": "PF-10",
+  "module": "perf",
+  "type": "dp-researcher",
+  "title": "Итоговый замер до/после и отчёт",
+  "goal": "Замерить кадр после волны исправлений (PF-4, 5, 7, 8, 9, 11, 12) тем же инструментом, что PF-1, и записать таблицу до/после, что осталось и что не проверено.",
+  "plan_ref": "PF-10. Итоговый замер и отчёт",
+  "contracts": [],
+  "copy": "~/deltaplan-perf-PF-10",
+  "branch": "perf/PF-10",
+  "base": "feature/perf",
+  "scope": [
+    "docs/perf/frame_profile.md (раздел «После волны исправлений (PF-4…PF-12)», frontmatter conclusion/applied_in)",
+    "docs/perf/data/pf10_run1.tar.gz",
+    "tools/bench/frame_profile_report.py (только если нужна таблица сравнения)"
+  ],
+  "dont_touch": [
+    "код игры, конфиги, шейдеры",
+    "tools/bench/frame_profile.gd/.sh (кроме явной ошибки — сначала координатору)"
+  ],
+  "accept": [
+    {
+      "name": "docs_ok",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c 'После волны исправлений' docs/perf/frame_profile.md",
+      "expect": "num:([0-9]+) >=1"
+    },
+    {
+      "name": "data",
+      "cmd": "tar -tzf docs/perf/data/pf10_run1.tar.gz | grep -c jsonl",
+      "expect": "num:([0-9]+) >=6"
+    }
+  ],
+  "report_extra": [
+    "before_after_table",
+    "remaining",
+    "not_verified"
+  ],
+  "notes": "",
+  "created": "2026-10-08T20:39:32"
+}

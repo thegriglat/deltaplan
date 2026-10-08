@@ -90,3 +90,6 @@
 {"t": "2026-10-08T18:59:16", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "3/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7"}
 {"t": "2026-10-08T18:59:53", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "4/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7; tests_determinism=ok:3/3"}
 {"t": "2026-10-08T19:00:11", "by": "coordinator", "task": "PF-8", "ev": "checked", "commits": ["6e053f6f"], "note": "5/8 tests_atmosphere=ok:15/15; tests_clouds=ok:27/27; tests_thermals=ok:7/7; tests_determinism=ok:3/3; tests_contract=ok:10/10"}
+{"t": "2026-10-08T20:39:29", "by": "coordinator", "task": null, "ev": "note", "note": "полный прогон тестов feature/perf 6e053f6f: 994, упал 1 — test_matrix (strong в лоб: взлёт не провален, altai×3 крыла, aushkul×training); на main ff172cfa падает так же — не регрессия perf"}
+{"t": "2026-10-08T20:39:32", "by": "coordinator", "task": "PF-10", "ev": "created", "note": "Итоговый замер до/после и отчёт"}
+{"t": "2026-10-08T20:39:32", "by": "coordinator", "task": "PF-10", "ev": "started", "note": "dp-researcher (Sonnet), ~/deltaplan-perf-PF-10"}
