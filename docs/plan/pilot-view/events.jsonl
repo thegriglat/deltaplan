@@ -42,3 +42,4 @@
 {"t": "2026-10-08T12:02:05", "by": "coordinator", "task": "PV-5", "ev": "merged", "commits": ["035ddc75"]}
 {"t": "2026-10-08T12:02:05", "by": "coordinator", "task": "PV-4", "ev": "edited", "note": "contract:PV3", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-10-08T12:02:06", "by": "coordinator", "task": "PV-4", "ev": "note", "note": "PV-5 влита в feature/pilot-view (изогнутая штанга, маркеры BarGripL/R, PV3 v2, 48 .glb пересобраны): перед отчётом влей ветку модуля — dp task sync PV-4; конфликт возможен в glider_visual.gd (bar_grip(), _fallback_frame()) — сохрани хваты из BarGripL/R.", "addendum": true}
+{"t": "2026-10-08T12:04:16", "by": "coordinator", "task": "PV-5", "ev": "checked", "commits": ["035ddc75"], "note": "5/6 basebar_curve=FAIL:0/1; FAIL test_basebar_curve; aframe_contracts=ok:4/4; wing_models_contract=ok:4/4; pilot_arms=ok:6/6; test_cockpit=ok:4/4; models=ok:exit 0"}
