@@ -702,6 +702,8 @@ func set_cockpit_body(mode: String) -> void:
 		return
 	_body_mode = mode
 	_body_mi.layers = 1 if mode == "full" else BODY_HIDDEN_LAYER
+	if _strap_ribbon != null:  # стропа подвески — часть «тела» для кабинной камеры
+		_strap_ribbon.layers = _body_mi.layers
 	if mode == "arms" and _arms_mi == null and _body_mi.mesh != null and _skeleton != null:
 		_arms_mi = MeshInstance3D.new()
 		_arms_mi.name = "CockpitArms"
