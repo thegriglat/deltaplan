@@ -110,7 +110,9 @@ static func find_anchor(wing: Node3D, sd: int, cfg: Dictionary) -> Dictionary:
 		along = minf(frac * (y_top - y_min) / d.y, wire_len)
 	elif from_top >= 0.0:
 		along = wire_len - from_top
-	return {"point": corner + d * along, "wire_dir": d}
+	# Сдвиг вперёд (к носу, −Z крыла) на долю длины ленточки: корень ленты у самого троса.
+	var shift := float(cfg.get("forward_shift_len", 0.0)) * float(cfg.get("length_m", 0.13))
+	return {"point": corner + d * along + Vector3(0, 0, -shift), "wire_dir": d}
 
 
 static func _rel(root: Node, node: Node3D) -> Transform3D:
