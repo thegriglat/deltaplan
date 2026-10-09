@@ -1,19 +1,14 @@
 {
-  "_doc": "Сгенерировано tools/terrain/fetch_landcover.py — не править руками.",
-  "source": "ESA WorldCover 10 m 2021 v200",
+  "_doc": "Собрано SurfaceStage (scripts/terrain/build/surface_stage.gd) — не править руками.",
+  "attribution": [
+    "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; CC-BY 4.0"
+  ],
   "layers": [
     {
-      "id": "detail",
-      "file": "detail_surface.png",
-      "width": 1601,
-      "height": 1601,
-      "spacing_m": 25.0,
-      "origin_x_m": -20000.0,
-      "origin_z_m": -20000.0,
       "class_fraction": {
         "0": 0.0,
         "1": 0.5121,
-        "2": 0.3869,
+        "2": 0.387,
         "3": 0.0868,
         "4": 0.0,
         "5": 0.0004,
@@ -22,25 +17,25 @@
         "8": 0.0
       },
       "detail10": {
+        "channels": "L — доля леса (0..255, WorldCover), A — доля воды (0..255, OSM; заполняет OsmStage)",
         "file": "detail_detail10.png",
-        "width": 4001,
+        "forest_fraction": 0.5114,
         "height": 4001,
-        "spacing_m": 10.0,
         "origin_x_m": -20000.0,
         "origin_z_m": -20000.0,
-        "channels": "R — доля леса (0..255, T02), G — доля воды (0..255, T03: реки/ручьи/каналы/озёра OSM)",
-        "forest_fraction": 0.5114,
-        "water_fraction": 0.0137
-      }
+        "spacing_m": 10.0,
+        "water_fraction": 0.0,
+        "width": 4001
+      },
+      "file": "detail_surface.png",
+      "height": 1601,
+      "id": "detail",
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "spacing_m": 25.0,
+      "width": 1601
     },
     {
-      "id": "far",
-      "file": "far_surface.png",
-      "width": 1601,
-      "height": 1601,
-      "spacing_m": 100.0,
-      "origin_x_m": -80000.0,
-      "origin_z_m": -80000.0,
       "class_fraction": {
         "0": 0.0,
         "1": 0.5765,
@@ -51,10 +46,15 @@
         "6": 0.0147,
         "7": 0.0075,
         "8": 0.0
-      }
+      },
+      "file": "far_surface.png",
+      "height": 1601,
+      "id": "far",
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "spacing_m": 100.0,
+      "width": 1601
     }
   ],
-  "attribution": [
-    "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; CC-BY 4.0"
-  ]
+  "source": "ESA WorldCover 10 m 2021 v200"
 }

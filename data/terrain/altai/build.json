@@ -1,0 +1,23 @@
+{
+  "builder_version": 1,
+  "built_utc": "2026-10-09T13:41:35Z",
+  "center_lat": 51.87,
+  "center_lon": 85.87,
+  "complete": false,
+  "key": "altai",
+  "missing": [
+    "osm"
+  ],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 5.17,
+    "osm": 0.0,
+    "rivers": 27.36,
+    "surface": 11.78
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

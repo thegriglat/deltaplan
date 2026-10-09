@@ -1,0 +1,23 @@
+{
+  "builder_version": 1,
+  "built_utc": "2026-10-09T13:41:37Z",
+  "center_lat": 54.72,
+  "center_lon": 59.69,
+  "complete": false,
+  "key": "aushkul",
+  "missing": [
+    "osm"
+  ],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 4.87,
+    "osm": 0.0,
+    "rivers": 28.16,
+    "surface": 12.67
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

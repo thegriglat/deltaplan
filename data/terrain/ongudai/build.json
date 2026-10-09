@@ -1,0 +1,23 @@
+{
+  "builder_version": 1,
+  "built_utc": "2026-10-09T13:41:38Z",
+  "center_lat": 50.79,
+  "center_lon": 86.13,
+  "complete": false,
+  "key": "ongudai",
+  "missing": [
+    "osm"
+  ],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 4.63,
+    "osm": 0.0,
+    "rivers": 30.9,
+    "surface": 10.73
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

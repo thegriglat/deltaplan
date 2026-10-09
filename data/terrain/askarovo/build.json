@@ -1,0 +1,23 @@
+{
+  "builder_version": 1,
+  "built_utc": "2026-10-09T13:41:37Z",
+  "center_lat": 53.26,
+  "center_lon": 58.54,
+  "complete": false,
+  "key": "askarovo",
+  "missing": [
+    "osm"
+  ],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 4.77,
+    "osm": 0.0,
+    "rivers": 28.63,
+    "surface": 12.39
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}
