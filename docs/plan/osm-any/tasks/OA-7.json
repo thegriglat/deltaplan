@@ -36,7 +36,11 @@
     "scripts/game/recent_places.gd",
     "tests/",
     "configs/locations/",
-    "configs/world_objects.json"
+    "configs/world_objects.json",
+    "scripts/terrain/build/location_builder.gd",
+    "tools/research/",
+    "tools/terrain/raw_overpass_client.gd",
+    "ASSETS.md"
   ],
   "dont_touch": [
     "docs/",
@@ -94,5 +98,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-09T18:35:16",
-  "edited": "2026-10-09T18:38:19"
+  "edited": "2026-10-09T19:28:17"
 }
