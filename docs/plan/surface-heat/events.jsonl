@@ -93,3 +93,4 @@
 {"t": "2026-10-10T00:27:08", "by": "coordinator", "task": "SH-10", "ev": "started", "note": "dp-writer Sonnet, ~/deltaplan-surface-heat-SH-10"}
 {"t": "2026-10-10T00:28:40", "by": "executor", "task": "SH-10", "ev": "reported", "commits": ["16fbe23d"], "note": "done: Новый раздел «Откуда берётся нагрев» в thermals (ru/en); правки границ в thermals и air-model/_index, воды в terrain, т…"}
 {"t": "2026-10-10T00:29:04", "by": "executor", "task": "SH-10", "ev": "accepted", "note": "4/4 hugo=ok:rc=0; ru=ok:1; en=ok:1; no_parents=ok:0"}
+{"t": "2026-10-10T00:29:04", "by": "coordinator", "task": "SH-10", "ev": "merged", "commits": ["c91376b4"]}
