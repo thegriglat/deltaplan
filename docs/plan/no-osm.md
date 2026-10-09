@@ -91,7 +91,7 @@ OSM у палаток; здания OSM уходят вместе с `OsmLayer` 
 ongudai, aushkul **без OSM** (objects без osm) — место находится в ≥ 80 % сидов (из 10) там, где
 условия места позволяют; со встроенным `osm.json` — не хуже прежнего. Убрать `OsmData.places`.
 
-### NO-5. Чистка osm.json и итоговый grep (dp-mechanic/engineer)
+### NO-5. ~~Чистка osm.json~~ — отменена 10.10: osm.json удаляется целиком в NO-4 (N4 v2)
 Из `data/terrain/*/osm.json` убрать слои без читателей; `OsmData` читает только дороги и воду; grep —
 нет overpass в коде/конфигах, нет ссылок на удалённые слои.
 
