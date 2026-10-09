@@ -62,7 +62,15 @@ func test_terrain_set_sun_recomputes_shadow() -> void:
 	t.location_id = ""
 	var world: Dictionary = Config.get_config("world")
 	t.layers = [_ridges()]
-	t.set_surfaces([], world.get("surface", {}), world.get("terrain_look", {}))
+	var cd := PackedByteArray()
+	cd.resize(N * N)
+	cd.fill(SurfaceLayer.GRASS)
+	var o := -(N - 1) * SPACING * 0.5
+	t.set_surfaces(
+		[SurfaceLayer.from_classes("g", N, N, SPACING, o, o, cd)],
+		world.get("surface", {}),
+		world.get("terrain_look", {})
+	)
 	t._compute_reliefs(_cfg())
 	t.wait_relief()  # поля считаются в фоне
 	check(t.reliefs.size() == 1, "поля посчитаны")
@@ -72,14 +80,13 @@ func test_terrain_set_sun_recomputes_shadow() -> void:
 	t.wait_relief()
 	approx(t.reliefs[0].horizon_azimuth_deg, 90.0, 0.01, "горизонт пересчитан под новый азимут")
 	check(t.relief_horizon_at(750.0, 0.0) > 10.0, "тень за гребнем при солнце с востока")
-	# сырая ложбина — источник термиков слабее (surface.thermal.wet_k)
+	# сырая ложбина — источник термиков слабее (β по влажности, SurfaceHeat): сухой гребень сильнее
 	t.set_sun(Vector3.UP)
 	t.wait_relief()
-	t._thermal_gain = 0.5  # без насыщения до 1
 	var wet := t.thermal_source_strength_at(500.0, 0.0)
-	t._wet_k = 0.0
-	var dry := t.thermal_source_strength_at(500.0, 0.0)
-	check(wet < dry, "сырая ложбина — источник слабее: %.2f против %.2f" % [wet, dry])
+	var dry := t.thermal_source_strength_at(0.0, 0.0)
+	check(t.surface_at(500.0, 0.0) == t.surface_at(0.0, 0.0), "тот же класс у ложбины и гребня")
+	check(wet < dry, "сырая ложбина — источник слабее: %.3f против %.3f" % [wet, dry])
 	t.free()
 
 
