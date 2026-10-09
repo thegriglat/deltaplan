@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "SurfaceStage (порт fetch_landcover.py): классы detail/far (мода k×k по уровню COG), detail10 L (доля леса 10 м, A=0), surface.json (water_fraction=0). Единая мозаика окна пикселей по файлам 3°, счёт в WorkerThreadPool; источник — HTTP range / локальный путь, кеш блоков.",
+  "commits": [
+    "0dfed031 SurfaceStage: покров места из WorldCover"
+  ],
+  "checks": [
+    {
+      "name": "class_detail",
+      "value": "0.99998",
+      "pass": true
+    },
+    {
+      "name": "class_far",
+      "value": "0.99999",
+      "pass": true
+    },
+    {
+      "name": "forest_frac",
+      "value": "0.00000",
+      "pass": true
+    },
+    {
+      "name": "d10_mae",
+      "value": "0.0012",
+      "pass": true
+    },
+    {
+      "name": "time_surface",
+      "value": "4.3 с (кеш прогрет, без сети; холодный через HTTP 15 с, 86 запросов)",
+      "pass": true
+    },
+    {
+      "name": "surface",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "contract_surface",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept OA-3",
+  "uncertain": [
+    {
+      "where": "surface_stage.gd:_prepare",
+      "why": "начало файла по осям берётся из любого существующего файла той же широты/долготы; пиксели считаются в глобальной сетке в предположении одинаковых размеров файлов",
+      "checked": "паритет askarovo (2 файла по долготе/широте) 0.99998"
+    }
+  ],
+  "dp_feedback": "Автозагрузки недоступны при компиляции -s скрипта: пришлось грузить через load() после кадра. Стоит отметить в справке.",
+  "t": "2026-10-09T18:02:24",
+  "by": "executor"
+}
