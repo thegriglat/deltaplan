@@ -97,9 +97,19 @@ static func find_anchor(wing: Node3D, sd: int, cfg: Dictionary) -> Dictionary:
 		return {}
 	var wire_len := d.length()
 	d = d.normalized()
-	# Узел от верхнего конца троса (у носа), если задан; иначе — от угла трапеции.
+	# Узел на доле высоты трапеции над базовой штангой, если задана; иначе от верхнего конца
+	# троса (у носа); иначе — от угла трапеции.
+	var frac := float(cfg.get("height_frac", -1.0))
 	var from_top := float(cfg.get("from_top_m", -1.0))
-	var along := wire_len - from_top if from_top >= 0.0 else float(cfg.get("along_wire_m", 0.35))
+	var along := float(cfg.get("along_wire_m", 0.35))
+	if frac >= 0.0 and d.y > 0.05:
+		var y_top := y_min
+		for si in mesh.get_surface_count():
+			for v: Vector3 in mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+				y_top = maxf(y_top, (xf * v).y)
+		along = minf(frac * (y_top - y_min) / d.y, wire_len)
+	elif from_top >= 0.0:
+		along = wire_len - from_top
 	return {"point": corner + d * along, "wire_dir": d}
 
 
