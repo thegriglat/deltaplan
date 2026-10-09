@@ -5,7 +5,7 @@ module: "air-model"
 updated: "2026-10-05"
 summary: "Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12)."
 related: []
-contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3", "version": 1}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 3}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
+contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 8}, {"id": "C3", "version": 1}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
 ---
 # Модель воздуха: контракты систем
 

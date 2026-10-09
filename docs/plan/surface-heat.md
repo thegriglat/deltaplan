@@ -112,3 +112,4 @@ related: ["docs/research/surface_params.md", "docs/contracts/surface-heat.md", "
 - Фикстуры Пикара сверяют H с эталоном Python — сверку H заменить тестами `SurfaceHeat`, остальное (hc, γ, z_i) оставить.
 - Инструмент «до» для термиков: `tools/research/air_thermals/probe.gd` берёт поля из Python — для до/после нужен путь через
   `AirRuntime` в игре (SH-3).
+- После SH-4: исследовательские скрипты (tools/research/air_start/*, сверки с эталоном Python) зовут domain_case без снимка поверхности — H у них по классу NONE + маска рек, не как в игре (ревью SH-4).

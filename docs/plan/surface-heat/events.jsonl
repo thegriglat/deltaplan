@@ -56,3 +56,4 @@
 {"t": "2026-10-09T23:45:56", "by": "executor", "task": "SH-4", "ev": "checked", "note": "7/7 air_place=ok:5/5; air_window_case=ok:2/2; air_phase=ok:8/8 (пропуск 2); air_contracts=ok:31/31; surface_heat=ok:16/16; gpu_window=ok:0 упало; gpu_picard=ok:0 упало"}
 {"t": "2026-10-09T23:49:18", "by": "reviewer", "task": "SH-4", "ev": "reviewed", "note": "Стык SH3/C2 v8 выполнен: нормаль (−∂h/∂x, 1, ∂h/∂y) в осях игры совпадает с sun_direction (север = −Z) и прежней формулой cos_inc; доли классов/вода/влажность …", "verdict": "accept", "issues": {"major": 1, "minor": 2}, "review": "docs/plan/surface-heat/tasks/SH-4.review.json"}
 {"t": "2026-10-09T23:49:47", "by": "coordinator", "task": "SH-4", "ev": "accepted", "note": "по ревью (fable accept; frontmatter C2/C7 поправлен координатором при слиянии; C7 v4 согласован)"}
+{"t": "2026-10-09T23:49:53", "by": "coordinator", "task": null, "ev": "plan", "note": "план 5. Риски: дописано 1 стр."}
