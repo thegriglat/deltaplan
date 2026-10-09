@@ -1,0 +1,42 @@
+{
+  "id": "SH-1",
+  "module": "surface-heat",
+  "type": "dp-researcher",
+  "title": "Числа к физике H: вода, радиация, влажность рельефа",
+  "goal": "Дать литературные числа и обоснования для configs/surface_heat.json (SH1): C_H озёр, запаздывание T воды, U_min, форма K↓/L* по Stull и доля рассеянной, перцентили поля влажности рельефа на 4 местах → m_dry/m_norm/m_wet; записать раздел «Использование в игре» в surface_params.md",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [
+    {
+      "name": "SH1",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-1",
+  "branch": "surface-heat/SH-1",
+  "base": "feature/surface-heat",
+  "scope": [
+    "docs/research/surface_params.md",
+    "tools/research/surface_heat/moisture/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c 'Использование в игре' docs/research/surface_params.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T22:41:28"
+}

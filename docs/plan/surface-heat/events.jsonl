@@ -1,1 +1,7 @@
 {"t": "2026-10-09T22:28:01", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-09T22:41:28", "by": "coordinator", "task": "SH-1", "ev": "created", "note": "Числа к физике H: вода, радиация, влажность рельефа"}
+{"t": "2026-10-09T22:41:28", "by": "coordinator", "task": "SH-2", "ev": "created", "note": "Ядро SurfaceHeat и конфиг surface_heat.json"}
+{"t": "2026-10-09T22:41:28", "by": "coordinator", "task": "SH-3", "ev": "created", "note": "Инструмент замера до/после и прогон «до»"}
+{"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-1", "ev": "started", "note": "dp-researcher Sonnet, ~/deltaplan-surface-heat-SH-1"}
+{"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-2", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-surface-heat-SH-2"}
+{"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-3", "ev": "started", "note": "dp-researcher Sonnet, ~/deltaplan-surface-heat-SH-3"}

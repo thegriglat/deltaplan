@@ -1,0 +1,52 @@
+{
+  "id": "SH-2",
+  "module": "surface-heat",
+  "type": "dp-engineer",
+  "title": "Ядро SurfaceHeat и конфиг surface_heat.json",
+  "goal": "Одна чистая функция потока тепла с поверхности H по классу покрова (П4) и воде, которую возьмут решатель (SH-4) и термики (SH-5)",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [
+    {
+      "name": "SH1",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "SH2",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-2",
+  "branch": "surface-heat/SH-2",
+  "base": "feature/surface-heat",
+  "scope": [
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/surface_heat.json",
+    "tests/atmosphere/test_surface_heat.gd",
+    "tests/contracts/test_surface_heat_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "scripts/terrain/",
+    "configs/world.json",
+    "docs/research/surface_params.md"
+  ],
+  "accept": [
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "surface_heating",
+      "tests": "surface_heating"
+    },
+    {
+      "name": "air_contracts",
+      "tests": "air_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T22:41:28"
+}
