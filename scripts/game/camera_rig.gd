@@ -55,6 +55,7 @@ var _orbiting := false  # правая кнопка зажата — повор�
 var _bar_look_held := false  # кабина: зажата правая — осмотреться (мышь крутит голову)
 var _head := Vector2.ZERO  # поворот головы: x — рыскание (+ влево), y — тангаж (+ вверх), радианы
 var _recentering := false
+var _keys_was_off := false  ## обзор с клавиш был выключен (земля); зажатая с тех пор клавиша не в счёт
 var _snap := true
 var _glance := 0.0  # 0 — свой взгляд, 1 — на прибор
 var _glance_held := false  # look_instrument зажата: голова (_head) заморожена и после отпускания та же
@@ -116,6 +117,14 @@ func set_look(yaw_deg: float, pitch_deg: float) -> void:
 	_look_locked = true
 
 
+## Голову «по центру» (средняя кнопка мыши, look_center, отрыв от земли): плавный возврат вперёд;
+## свободная камера — на планер.
+func recenter() -> void:
+	_recentering = true
+	if mode == "free":
+		_aim_free_at_target()
+
+
 ## Сбросить сглаживание (после телепорта планера).
 func snap() -> void:
 	_snap = true
@@ -134,9 +143,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		and event.button_index == MOUSE_BUTTON_MIDDLE
 	)
 	if event.is_action_pressed("look_center") or middle_click:
-		_recentering = true
-		if mode == "free":
-			_aim_free_at_target()
+		recenter()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_bar_look_held = event.pressed
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
@@ -179,11 +186,16 @@ func _turn_head(d: Vector2) -> void:
 func _keys_head(delta: float, c: Dictionary) -> void:
 	if not look_enabled or _look_locked or not keys_look_fn.is_valid():
 		return
-	if not bool(keys_look_fn.call()):
+	var active := bool(keys_look_fn.call())
+	if not active:
+		_keys_was_off = true
 		return
 	var dir := Vector2(_key("look_left") - _key("look_right"), _key("look_up") - _key("look_down"))
 	if dir == Vector2.ZERO:
+		_keys_was_off = false
 		return
+	if _keys_was_off:
+		return  # клавиша (W на разбеге) зажата с земли: после отрыва голову не крутит, пока не отпущена
 	_turn_head(dir * deg_to_rad(float(c.head.get("key_rate_deg_s", 90.0))) * delta)
 
 

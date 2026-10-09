@@ -127,6 +127,35 @@ func test_bar_mode_look_center_still_works() -> void:
 	await _close(main)
 
 
+## Отрыв от земли (glider.took_off) возвращает голову по центру; клавиша обзора, зажатая ещё на
+## разбеге (W шагает), после отрыва голову вверх не уводит.
+func test_takeoff_recenters_head_and_ignores_held_key() -> void:
+	var main := await _open_bar()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var cam := game.camera
+	cam._head = Vector2(0.3, 0.9)
+	game.glider.took_off.emit()
+	check(cam._recentering, "отрыв — возврат головы вперёд")
+	# разбег: на земле клавиша обзора вверх зажата, обзор с клавиш выключен
+	var ic := game.input_controller
+	ic.on_ground = true
+	cam._head = Vector2.ZERO
+	Input.action_press("look_up")
+	cam._keys_head(0.1, cam._cfg.cockpit)
+	ic.on_ground = false
+	cam._keys_head(0.5, cam._cfg.cockpit)
+	check(cam._head.y == 0.0, "зажатая с земли клавиша голову не крутит: %.2f" % cam._head.y)
+	Input.action_release("look_up")
+	cam._keys_head(0.1, cam._cfg.cockpit)
+	Input.action_press("look_up")
+	cam._keys_head(0.1, cam._cfg.cockpit)
+	check(cam._head.y > 0.0, "после отпускания и нового нажатия обзор работает")
+	Input.action_release("look_up")
+	await _close(main)
+
+
 ## Q (look_instrument) — взгляд на приборы на трапеции: цель берётся из положения смонтированных
 ## приборов в рантайме; клавиша привязана; в воздухе камера смотрит на середину приборов, отпустил — назад.
 func test_q_glance_looks_at_mounted_instruments() -> void:
