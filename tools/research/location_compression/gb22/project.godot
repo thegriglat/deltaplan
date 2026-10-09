@@ -1,0 +1,8 @@
+config_version=5
+
+[application]
+config/name="b"
+
+[compression]
+
+formats/zstd/compression_level=22
