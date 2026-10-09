@@ -149,6 +149,9 @@ func _ready() -> void:
 	fkey_hint.name = "FKeyHint"
 	fkey_hint.overlays = debug_overlays
 	add_child(fkey_hint)
+	var wfd := get_node_or_null("WindFieldDebug")
+	if wfd != null and wfd.has_signal("toggled"):
+		wfd.connect("toggled", func(on: bool) -> void: debug_overlays.wind_field_on = on)
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
 	camera.set_mode(camera.mode)  # near по режиму

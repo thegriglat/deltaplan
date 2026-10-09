@@ -1,6 +1,6 @@
 class_name WindFieldDebug
 extends Node3D
-## Отладочные стрелки ветра (AM-10, docs/archive/plan/wind-field.md → «Ответы пользователя» п. 4): по F3 — сетка
+## Отладочные стрелки ветра (AM-10, docs/archive/plan/wind-field.md → «Ответы пользователя» п. 4): по F3 (действие debug_wind_field, controls.json → debug.keys) — сетка
 ## стрелок горизонтального ветра вокруг пилота на нескольких высотах, цвет — вертикальная
 ## составляющая (подъём/опускание); повторное F3 — выключить. Выключено — ничего не считается и
 ## не рисуется (_process выключен, MultiMesh скрыт): ноль влияния на FPS.
@@ -58,6 +58,10 @@ var _phase_label: Label
 var _phase_src: Variant = null
 
 
+## Слой включён/выключен (для подсказки по F-клавишам).
+signal toggled(on: bool)
+
+
 func _ready() -> void:
 	set_process(false)
 	set_process_unhandled_input(true)
@@ -65,7 +69,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if (event as InputEventKey).keycode == KEY_F3:
+		if InputMap.has_action("debug_wind_field") and event.is_action_pressed("debug_wind_field"):
 			_toggle()
 			get_viewport().set_input_as_handled()
 		elif (event as InputEventKey).keycode == KEY_F4:
@@ -74,6 +78,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _toggle() -> void:
+	_toggle_impl()
+	toggled.emit(_active)
+
+
+func _toggle_impl() -> void:
 	_active = not _active
 	set_process(_active or _phase_on)
 	if _active:

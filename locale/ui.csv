@@ -40,14 +40,14 @@ settings_mouse,Мышь,Mouse
 result_soft_landing,Мягкая посадка,Soft landing
 result_max_height_over_launch,Макс. высота над стартом: %.0f м,Max height above launch: %.0f m
 common_back,Назад,Back
-menu_settings,Настройки,Settings
+menu_settings,Настройки игры,Game settings
 settings_saved_hint,Настройки сохраняются в профиле пользователя.,Settings are saved to your user profile.
 status_terrain_failed,Не удалось загрузить рельеф: %s,Failed to load terrain: %s
 menu_about,Об игре,About
 common_cancel,Отмена,Cancel
 pause_title,Пауза,Paused
-setup_title,Полёт,Flight
-menu_flight_setup,Полёт…,Flight setup…
+setup_title,Настройки полёта,Flight settings
+menu_flight_setup,Настройки полёта,Flight settings
 result_landing,Посадка,Landing
 common_continue,Продолжить,Continue
 result_track_length,Пройдено по следу: %.2f км,Distance flown (track): %.2f km
@@ -468,5 +468,6 @@ setup_add_favorite,В избранное,Add to favorites
 fav_added,В избранном,Added to favorites
 fav_remove,Удалить,Remove
 fkey_hint_perf,частота кадров,frame rate
-fkey_hint_wind,ветер,wind
+fkey_hint_wind_field,ветер над местностью,wind over terrain
+fkey_hint_wind,ветер вокруг,wind around
 fkey_hint_thermals,термики,thermals
