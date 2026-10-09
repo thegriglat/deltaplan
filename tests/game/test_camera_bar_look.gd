@@ -125,3 +125,42 @@ func test_bar_mode_look_center_still_works() -> void:
 	cam._unhandled_input(ev)
 	check(cam._recentering, "V — начал возврат головы вперёд")
 	await _close(main)
+
+
+## Q (look_instrument) — взгляд на приборы на трапеции: цель берётся из положения смонтированных
+## приборов в рантайме; клавиша привязана; в воздухе камера смотрит на середину приборов, отпустил — назад.
+func test_q_glance_looks_at_mounted_instruments() -> void:
+	var main := await _open_bar()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var cam := game.camera
+	var keys := InputMap.action_get_events("look_instrument")
+	var has_q := false
+	for e in keys:
+		if e is InputEventKey and (e.keycode == KEY_Q or e.physical_keycode == KEY_Q):
+			has_q = true
+	check(has_q, "look_instrument привязана к Q")
+	check(not game.mounted.is_empty(), "приборы смонтированы")
+	check(cam.glance_nodes.size() == game.mounted.size(), "цель взгляда — смонтированные приборы")
+	var p := cam._glance_point()
+	check(p.is_finite(), "точка взгляда определена")
+	var mid := Vector3.ZERO
+	for n in game.mounted:
+		mid += n.global_position
+	check(p.distance_to(mid / game.mounted.size()) < 0.001, "точка взгляда — середина приборов")
+	# сдвиг прибора сдвигает цель (не захардкожено)
+	game.mounted[0].global_position += Vector3(0, 1.0, 0)
+	check(cam._glance_point().distance_to(p) > 0.1, "цель следует за положением приборов")
+	Input.action_press("look_instrument")
+	for i in 40:
+		cam._process(0.05)
+	var look := cam._angles_to(cam._glance_point(), cam.global_position, cam._cfg.cockpit)
+	check(absf(cam._glance - 1.0) < 0.001, "взгляд на приборах выдержан")
+	check(absf(cam.head_look_deg().x) < 0.01, "голова (_head) не тронута взглядом")
+	Input.action_release("look_instrument")
+	for i in 40:
+		cam._process(0.05)
+	check(cam._glance < 0.001, "отпустил — взгляд вернулся")
+	check(look.is_finite(), "углы на цель конечны")
+	await _close(main)

@@ -1056,7 +1056,10 @@ func _setup_glider() -> void:
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
 		_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
-	camera.glance_target = null  # PV-7: на прибор клавиши нет; цель задают кадры (--look-at)
+	camera.glance_target = null  # Q: середина смонтированных приборов; кадры (--look-at) задают свою цель
+	camera.glance_nodes.clear()
+	for inst: Node in mounted:
+		camera.glance_nodes.append(inst as Node3D)
 
 
 ## Шлем и т. п. (camera.json → cockpit.hidden_nodes) — на слой, который кабина не рисует.

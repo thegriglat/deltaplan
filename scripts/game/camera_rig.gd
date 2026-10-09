@@ -30,6 +30,9 @@ var ground_fn: Callable = Callable()
 var look_enabled := true
 ## Куда смотреть по клавише «взгляд на прибор» (маркер прибора на трапеции).
 var glance_target: Node3D
+## Приборы, на которые смотрит клавиша «взгляд на прибор» (Q), когда glance_target не задан:
+## цель — середина их положений в рантайме (правки модели трапеции подхватываются сами).
+var glance_nodes: Array[Node3D] = []
 ## Смещение тела пилота от центра (крен/тангаж ручкой) в осях планера, м: () -> Vector3.
 ## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
 ## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
@@ -295,14 +298,29 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var gt := float(g.get("time_s", 0.25))
 	# за конечное время gt туда и обратно (не экспонента: после отпускания направление ровно прежнее)
 	_glance = move_toward(_glance, want, 1.0 if gt <= 0.0 else delta / gt)
-	if _glance > 0.001 and glance_target != null and is_instance_valid(glance_target):
-		look = look.lerp(_angles_to(glance_target.global_position, eye, c), smoothstep(0.0, 1.0, _glance))
+	if _glance > 0.001:
+		var gp := _glance_point()
+		if gp.is_finite():
+			look = look.lerp(_angles_to(gp, eye, c), smoothstep(0.0, 1.0, _glance))
 	global_basis = (
 		_head_basis
 		* shake
 		* Basis(Vector3.UP, look.x)
 		* Basis(Vector3.RIGHT, look.y - deg_to_rad(float(c.look_down_deg)))
 	)
+
+
+## Куда смотреть по клавише взгляда: glance_target, иначе середина glance_nodes; NaN — цели нет.
+func _glance_point() -> Vector3:
+	if glance_target != null and is_instance_valid(glance_target):
+		return glance_target.global_position
+	var sum := Vector3.ZERO
+	var n := 0
+	for g in glance_nodes:
+		if is_instance_valid(g) and g.is_inside_tree():
+			sum += g.global_position
+			n += 1
+	return sum / n if n > 0 else Vector3(NAN, NAN, NAN)
 
 
 ## Точка камеры в кабине (A3.3 v8, camera.json → cockpit.eye_mode): глаза пилота или точка над
