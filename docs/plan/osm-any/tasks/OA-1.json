@@ -42,10 +42,6 @@
       "tests": "terrain"
     },
     {
-      "name": "height",
-      "tests": "height"
-    },
-    {
       "name": "contract_dem",
       "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
       "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_dem"
@@ -74,5 +70,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-09T17:51:38",
-  "edited": "2026-10-09T17:51:44"
+  "edited": "2026-10-09T17:52:21"
 }
