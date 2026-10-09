@@ -1,0 +1,48 @@
+{
+  "verdict": "rework",
+  "summary": "Контракт SH4 соблюдён: сигнатуры те же, ключи удалены, s = H/H_ref через mix_flux, тесты по инвариантам. Возвращаю из-за одного места: ленивая инициализация _heat_cfg/_heat_onehot в thermal_source_strength_water не потокобезопасна, а функцию вызывают из WorkerThreadPool (AirThermals.pick_in_column -> GroundField.sun -> sun_fn). Правка на 3 строки. Остальное — minor.",
+  "issues": [
+    {
+      "file": "scripts/terrain/terrain.gd",
+      "line": 630,
+      "severity": "major",
+      "what": "Ленивая инициализация при первом вызове: сначала присваивается _heat_cfg, потом идут resize/fill у _heat_onehot. Вызов идёт и из рабочего потока (AirThermals.build -> pick_in_column -> ground.sun -> thermal_source_strength_at). Второй поток видит непустой _heat_cfg при пустом _heat_onehot -> mix_flux читает за границей массива; два потока могут одновременно делать resize. Раньше коэффициенты задавались в set_surfaces на главном потоке",
+      "fix": "Инициализировать _heat_cfg, _h_ref и _heat_onehot заранее на главном потоке (в set_surfaces или _ready), ленивую ветку убрать"
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 514,
+      "severity": "minor",
+      "what": "В контекст воды не передаётся z_m: mix_flux/water_flux берут ρ на уровне моря, хотя T воды и воздуха пересчитаны на valley_msl_m. Для озера на 2 км H завышен примерно на 20 %",
+      "fix": "Добавить \"z_m\": z в словарь (mix_flux его принимает)"
+    },
+    {
+      "file": "configs/world.json",
+      "line": 609,
+      "severity": "minor",
+      "what": "В surface.relief._doc осталась ссылка на удалённый ключ surface.thermal.wet_k",
+      "fix": "Заменить на «термики — β по влажности в SurfaceHeat»"
+    },
+    {
+      "file": "tests/terrain/test_relief.gd",
+      "line": 87,
+      "severity": "minor",
+      "what": "Ложбину и гребень сравнивают в разных точках (500,0 и 0,0), то есть с разными нормалями, хотя инвариант SH4 требует «при прочих равных». При солнце в зените разница наклона может перекрыть влажность",
+      "fix": "Проверить, что нормали обеих точек почти вертикальны (n.y > 0.99), либо сравнивать H одной точки при m = moisture_at и m = 0"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "surface (dp accept --only surface --dry)",
+      "value": "37/37",
+      "pass": true
+    },
+    {
+      "name": "relief (dp accept --only relief --dry)",
+      "value": "5/5",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-09T23:24:02",
+  "by": "reviewer"
+}

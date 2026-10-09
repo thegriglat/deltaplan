@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "s источника термиков = clamp(max(H,0)/h_ref*(1+edge_boost*близость),0,1), H = SurfaceHeat.mix_flux (один класс точки, единичная нормаль, class_sun/to_sun, moisture_at, ясное небо, вода по Terrain.set_water_heat). Удалены class_strength/exposure_*/wet_*. game.gd задаёт контекст воды раз в час игры и в AtmoDay.source_fn по часу.",
+  "commits": [
+    "8dd54cfc сила источника термиков из H",
+    "6b8e63a9 слияние feature/surface-heat (SH-9)"
+  ],
+  "checks": [
+    {
+      "name": "surface",
+      "value": "37/37 (0 упало)",
+      "pass": true
+    },
+    {
+      "name": "relief",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "thermal",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "ridge_starts",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "surface_heat",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "время вызова, Алтай",
+      "value": "68,6 мкс против 67,8",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Лес теперь сильнее луга (s 0,79 против 0,57) - так даёт ядро (альбедо 0,12, g_frac 0,04, beta 0,7). Было 0,44 против 0,77. Это ожидаемо физически или править параметры в SH-1/SH-9? Лес-у-границы теперь не слабее поля: тест границы сравнивает класс с самим собой."
+  ],
+  "how_to_check": "dp accept SH-5",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_water_heat_at",
+      "why": "высота воды z = valley_msl_m (не высота озера), T_воды по климату месяца назад, ветер = ветер меню на 10 м",
+      "checked": "только тесты Terrain; воду в игре не гонял"
+    },
+    {
+      "where": "terrain.gd thermal_source_strength_water",
+      "why": "добавил публичную функцию с явной водой, сигнатуры SH4 не менялись; нужна, чтобы AtmoDay не зависела от текущего состояния Terrain",
+      "checked": "контрактный тест"
+    },
+    {
+      "where": "таблица ниже",
+      "why": "замер до слияния SH-9 (h_ref 362); после — доли чуть другие",
+      "checked": "не перемеряно"
+    }
+  ],
+  "dp_feedback": "dp task sync отказывает при git add -N (грязная копия) - можно подсказать; ничего критичного",
+  "extra": {
+    "table_flat_noon_july_sun61.5_m0.5_was_now": {
+      "none": "0.725/0.572",
+      "forest": "0.435/0.791",
+      "grass": "0.773/0.572",
+      "crop": "0.967/0.566",
+      "shrub": "0.677/0.798",
+      "bare": "0.967/0.832",
+      "water": "0.048/0.000",
+      "built": "0.918/0.865",
+      "snow": "0.097/0.059"
+    },
+    "altai_mean_s": "0.613 / 0.791",
+    "sun_min_0.35": "ровный луг 0.57, лес 0.79, скала 0.83 выше порога 0.35; порог обычный луг не отрезает; вода и снег отрезаются"
+  },
+  "t": "2026-10-09T23:19:29",
+  "by": "executor"
+}
