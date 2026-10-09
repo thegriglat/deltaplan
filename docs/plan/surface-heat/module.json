@@ -1,0 +1,9 @@
+{
+  "module": "surface-heat",
+  "plan": "docs/plan/surface-heat.md",
+  "contracts": "docs/contracts/surface-heat.md",
+  "branch": "feature/surface-heat",
+  "copy": "~/deltaplan-surface-heat",
+  "created": "2026-10-09T22:28:01",
+  "code": "SH"
+}
