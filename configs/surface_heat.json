@@ -1,0 +1,114 @@
+{
+  "_doc": "Параметры потока тепла с поверхности (контракт SH1 v1, docs/contracts/surface-heat.md; ядро scripts/atmosphere/surface_heat.gd). Числа классов (albedo, bowen*, g_frac, z0_m) — строки docs/research/surface_params.csv (П4) по соответствию p4_row (тест сверки). Числа radiation/moisture/water/thermal — ЗАГЛУШКИ ДО SH-1 (исследователь уточнит). Запаздывание прогрева по классам — configs/weather_model.json heating.lag_h, здесь не дублируется.",
+  "classes": {
+    "none": {
+      "p4_row": "grassland",
+      "albedo": 0.2,
+      "bowen": 0.6,
+      "bowen_min": 0.25,
+      "bowen_max": 2.0,
+      "g_frac": 0.15,
+      "z0_m": 0.03
+    },
+    "forest": {
+      "p4_row": "trees",
+      "albedo": 0.12,
+      "bowen": 0.7,
+      "bowen_min": 0.4,
+      "bowen_max": 1.7,
+      "g_frac": 0.04,
+      "z0_m": 1.0
+    },
+    "grass": {
+      "p4_row": "grassland",
+      "albedo": 0.2,
+      "bowen": 0.6,
+      "bowen_min": 0.25,
+      "bowen_max": 2.0,
+      "g_frac": 0.15,
+      "z0_m": 0.03
+    },
+    "crop": {
+      "p4_row": "cropland",
+      "albedo": 0.19,
+      "bowen": 0.6,
+      "bowen_min": 0.2,
+      "bowen_max": 1.9,
+      "g_frac": 0.17,
+      "z0_m": 0.1
+    },
+    "shrub": {
+      "p4_row": "shrubland",
+      "albedo": 0.15,
+      "bowen": 1.0,
+      "bowen_min": 0.5,
+      "bowen_max": 2.4,
+      "g_frac": 0.17,
+      "z0_m": 0.3
+    },
+    "bare": {
+      "p4_row": "bare_rock",
+      "albedo": 0.25,
+      "bowen": 2.0,
+      "bowen_min": 0.4,
+      "bowen_max": 6.0,
+      "g_frac": 0.25,
+      "z0_m": 0.01
+    },
+    "water": {
+      "p4_row": "water",
+      "albedo": 0.07,
+      "bowen": 0.15,
+      "bowen_min": 0.07,
+      "bowen_max": 0.25,
+      "g_frac": 0.5,
+      "z0_m": 0.0002
+    },
+    "built": {
+      "p4_row": "built_up",
+      "albedo": 0.15,
+      "bowen": 1.5,
+      "bowen_min": 0.4,
+      "bowen_max": 6.0,
+      "g_frac": 0.25,
+      "z0_m": 1.0
+    },
+    "snow": {
+      "p4_row": "snow_ice",
+      "albedo": 0.55,
+      "bowen": 2.0,
+      "bowen_min": 1.0,
+      "bowen_max": 3.0,
+      "g_frac": 0.9,
+      "z0_m": 0.001
+    }
+  },
+  "radiation": {
+    "_doc": "До SH-1. K↓ = s0_wm2·T_K·sinψ, T_K = (tk_a + tk_b·sinψ)·sky_heat (Stull 1988 §7.3: (0,6 + 0,2 sinψ); множитель облаков Stull (1 − 0,7·cover) заменён sky_heat погоды игры, чтобы не считать облака дважды). diffuse_frac — доля рассеянной на горизонтали (EST 0,15, ясное небо). L* = l_star_wm2·(1 − l_cloud_k·cover): 98 Вт/м² (Stull, I* ≈ 0,08 К·м/с·ρc_p), l_cloud_k 0,6 (EST).",
+    "s0_wm2": 1370.0,
+    "tk_a": 0.6,
+    "tk_b": 0.2,
+    "diffuse_frac": 0.15,
+    "l_star_wm2": 98.0,
+    "l_cloud_k": 0.6
+  },
+  "moisture": {
+    "_doc": "До SH-1 (EST): узлы влажности рельефа m (0..1) для lnβ: m ≤ m_dry → bowen_max, m_norm → bowen, m ≥ m_wet → bowen_min.",
+    "m_dry": 0.35,
+    "m_norm": 0.5,
+    "m_wet": 0.85
+  },
+  "water": {
+    "_doc": "До SH-1. H воды = rho_cp·c_h·max(U, u_min_ms)·(T_w − T_a). c_h ~1–1,5·10⁻³ (литература, плановое значение 1,3·10⁻³); rho_cp = ρ·c_p воздуха ≈ 1,2 кг/м³·1005 → 1231 Дж/(м³·К) (при ≈ 15 °C); u_min_ms 1 м/с (EST, свободная конвекция). lag_days — запаздывание температуры воды за воздухом (air2water/Livingstone ≈ 1 мес, проверить в SH-1). lapse_k_per_km 6,5 — поправка температуры на высоту относительно долины ctx.valley_msl_m (стандартная атмосфера; в WeatherModel градиента у земли нет). ice_c: T_воды ≤ ice_c → лёд (класс SNOW).",
+    "c_h": 0.0013,
+    "rho_cp": 1231.0,
+    "u_min_ms": 1.0,
+    "lag_days": 30.0,
+    "ice_c": 0.0,
+    "lapse_k_per_km": 6.5
+  },
+  "thermal": {
+    "_doc": "h_ref_wm2 — H голой скалы (bare), β норма, ровно, солнце в зените, ясно: K = 1370·0,8 = 1096; Rn = 0,75·1096 − 98 = 724; (1 − 0,25)·724·2/3 = 362 Вт/м². Пересчитывать при смене чисел (тест сверяет).",
+    "h_ref_wm2": 362.0
+  }
+}
