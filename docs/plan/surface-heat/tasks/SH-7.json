@@ -1,0 +1,42 @@
+{
+  "id": "SH-7",
+  "module": "surface-heat",
+  "type": "dp-mechanic",
+  "title": "Прогон «после» (H по покрову) и таблица до/после",
+  "goal": "Ключевые числа после SH-4/SH-5 на тех же 3 местах и часах, что «до», и таблица сравнения для отчёта",
+  "plan_ref": "2. Задачи",
+  "contracts": [
+    {
+      "name": "SH5",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-7",
+  "branch": "surface-heat/SH-7",
+  "base": "feature/surface-heat",
+  "scope": [
+    "tools/research/surface_heat/out/after/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/research/surface_heat/measure.gd"
+  ],
+  "accept": [
+    {
+      "name": "schema",
+      "cmd": "python3 tools/research/surface_heat/check_schema.py tools/research/surface_heat/out/after",
+      "expect": "exit=0"
+    },
+    {
+      "name": "compare",
+      "cmd": "python3 tools/research/surface_heat/compare.py tools/research/surface_heat/out/before tools/research/surface_heat/out/after",
+      "expect": "re:aushkul"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T23:50:26"
+}
