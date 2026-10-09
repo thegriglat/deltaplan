@@ -3,9 +3,12 @@ extends RefCounted
 ## Разбор заголовка Cloud Optimized GeoTIFF (без сети): уровни (основной + обзорные),
 ## тайлы, геопривязка. Хватает для ESA WorldCover: классический TIFF little-endian, 8 бит,
 ## 1 канал, тайлы, сжатие Deflate или без сжатия. То же на Python — tools/terrain/cog.py.
-## Скачивание тайлов — WorldCoverLoader (HTTP range).
+## Для Copernicus DEM GLO-30 — float32, Deflate, предиктор 3 (floating point), тайлы 1024×1024:
+## decode_tile_f32. Скачивание тайлов — WorldCoverLoader и DemStage (HTTP range или локальный файл).
 
 const _TAG_WIDTH := 256
+const _TAG_BITS := 258
+const _TAG_SAMPLE_FORMAT := 339
 const _TAG_HEIGHT := 257
 const _TAG_COMPRESSION := 259
 const _TAG_PREDICTOR := 317
@@ -81,6 +84,46 @@ func decode_tile(level: int, raw: PackedByteArray) -> PackedByteArray:
 	return PackedByteArray()
 
 
+## Распаковать тайл float32 (raw — байты из файла): Deflate или без сжатия, предиктор 3 (байты float
+## разложены по плоскостям и разностно закодированы по строке). Результат tile_w·tile_h значений,
+## строки сверху вниз. Пустой массив — ошибка. Потокобезопасно (без общего состояния).
+func decode_tile_f32(level: int, raw: PackedByteArray) -> PackedFloat32Array:
+	var lv: Dictionary = levels[level]
+	var tw: int = int(lv.tile_w)
+	var th: int = int(lv.tile_h)
+	var n: int = tw * th * 4
+	if not bool(lv.float32):
+		return PackedFloat32Array()
+	if raw.is_empty():
+		var z := PackedFloat32Array()
+		z.resize(tw * th)
+		return z
+	var comp: int = int(lv.compression)
+	var d: PackedByteArray
+	if comp == 8 or comp == 32946:
+		d = raw.decompress(n, FileAccess.COMPRESSION_DEFLATE)
+	elif comp == 1:
+		d = raw.slice(0, n)
+	if d.size() != n:
+		return PackedFloat32Array()
+	if int(lv.predictor) == 3:
+		var out := PackedByteArray()
+		out.resize(n)
+		var row_bytes: int = tw * 4
+		for r in th:
+			var base: int = r * row_bytes
+			var acc := 0
+			# Плоскость b = 0 — старшие байты; результат little-endian.
+			for b in 4:
+				var src: int = base + b * tw
+				var dst: int = base + 3 - b
+				for k in tw:
+					acc = (acc + d[src + k]) & 255
+					out[dst + k * 4] = acc
+		d = out
+	return d.to_float32_array()
+
+
 func _parse(h: PackedByteArray) -> void:
 	if h.size() < 8 or h[0] != 0x49 or h[1] != 0x49 or h.decode_u16(2) != 42:
 		error = "не little-endian TIFF"
@@ -105,7 +148,10 @@ func _parse(h: PackedByteArray) -> void:
 		if not (tags.has(_TAG_TILE_OFFSETS) and tags.has(_TAG_TILE_W)):
 			error = "TIFF без тайлов"
 			return
-		if tags.has(_TAG_PREDICTOR) and int(tags[_TAG_PREDICTOR][0]) != 1:
+		var bits: int = int(tags.get(_TAG_BITS, [8])[0])
+		var is_float: bool = int(tags.get(_TAG_SAMPLE_FORMAT, [1])[0]) == 3 and bits == 32
+		var predictor: int = int(tags.get(_TAG_PREDICTOR, [1])[0])
+		if predictor != 1 and not (predictor == 3 and is_float):
 			error = "предиктор TIFF не поддержан"
 			return
 		(
@@ -119,6 +165,8 @@ func _parse(h: PackedByteArray) -> void:
 					"offsets": tags[_TAG_TILE_OFFSETS],
 					"counts": tags[_TAG_TILE_COUNTS],
 					"compression": int(tags.get(_TAG_COMPRESSION, [1])[0]),
+					"predictor": predictor,
+					"float32": is_float,
 				}
 			)
 		)

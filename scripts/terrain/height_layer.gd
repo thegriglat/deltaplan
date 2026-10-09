@@ -36,7 +36,8 @@ static func from_heights(
 	return l
 
 
-## Загрузить слой из файла .f32.br (float32 LE, brotli) по описанию из meta.json.
+## Загрузить слой из файла .f32.br (float32 LE, brotli; встроенные места) или .f32.zst (zstd;
+## кеш мест, OA-К1) по описанию из meta.json. Способ распаковки — по расширению.
 static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	var w := int(info.width)
 	var h := int(info.height)
@@ -44,7 +45,8 @@ static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	if packed.is_empty():
 		push_error("HeightLayer: не прочитан %s" % path)
 		return null
-	var raw := packed.decompress(w * h * 4, FileAccess.COMPRESSION_BROTLI)
+	var mode := FileAccess.COMPRESSION_ZSTD if path.ends_with(".zst") else FileAccess.COMPRESSION_BROTLI
+	var raw := packed.decompress(w * h * 4, mode)
 	if raw.size() != w * h * 4:
 		push_error("HeightLayer: неверный размер данных %s: %d" % [path, raw.size()])
 		return null
