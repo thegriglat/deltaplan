@@ -46,7 +46,8 @@ const T_WSTAR := 6
 const T_HMIX := 7
 const T_SIZE := 8
 
-## Шероховатость для лог-профиля у земли, м (как в решателе).
+## Шероховатость области, м: лог-среднее карты meta.z0 (эффективный z0 — термики, масштаб 3); лог-профиль
+## у земли и u* столбца — по z0 столбца (z0_at, SH-6, C3 v2).
 var z0: float = 0.1
 var dx: float = 100.0
 var dz: float = 50.0
@@ -72,6 +73,8 @@ var _theta := PackedFloat32Array()
 var _hc := PackedFloat32Array()
 ## Первая воздушная клетка столбца (nz — столбец целиком в земле).
 var _k1 := PackedInt32Array()
+## Шероховатость столбца, м (meta.z0: карта ny·nx или число — везде одно).
+var _z0c := PackedFloat64Array()
 ## 1 / ln(a1 / z0), a1 — высота центра первой воздушной клетки над hc столбца.
 var _inv_log1 := PackedFloat32Array()
 ## По столбцам (AM-08): u* по лог-закону (м/с); «внешний» ветер над следом U_out (м/с) и его высота
@@ -92,7 +95,7 @@ var _z_top: float = 0.0
 
 
 ## Поле из массивов в центрах клеток (API решателя AM-03 и библиотеки полей AM-06б).
-## m: {dx, dz, x0, y0, z_bot, nx, ny, nz, z0?}; массивы — nz·ny·nx (раскладка выше), hc — ny·nx.
+## m: {dx, dz, x0, y0, z_bot, nx, ny, nz, z0?} (z0 — карта ny·nx или число, по умолчанию 0,1 м); массивы — nz·ny·nx (раскладка выше), hc — ny·nx.
 ## Нечисловые значения (NaN, ∞) → 0; ограничители (clamp_values) — сразу, за тот же проход.
 ## Стоит O(n) в GDScript (~0,2–0,4 с на 64 × 64 × 62) — строить в рабочем потоке (класс не трогает
 ## сцену), в главном — только AirFieldSet.set_field. null — размеры не сходятся.
@@ -117,10 +120,12 @@ static func from_arrays(
 	f.nx = int(m.nx)
 	f.ny = int(m.ny)
 	f.nz = int(m.nz)
-	f.z0 = float(m.get("z0", 0.1))
 	var n := f.nx * f.ny * f.nz
 	if f.nx < 2 or f.ny < 2 or f.nz < 2 or hc.size() != f.nx * f.ny:
 		push_error("WindField: неверные размеры сетки")
+		return null
+	if not f._set_z0(m.get("z0", 0.1)):
+		push_error("WindField: размер карты z0 ≠ nx·ny")
 		return null
 	for a: PackedFloat32Array in [u, v, w_mech, w_conv, theta]:
 		if a.size() != n:
@@ -241,6 +246,33 @@ static func load_file(path: String) -> WindField:
 	return f
 
 
+## meta.z0 → _z0c (ny·nx) и z0 (лог-среднее). false — карта не того размера.
+func _set_z0(v: Variant) -> bool:
+	var nxy := nx * ny
+	_z0c = PackedFloat64Array()
+	if v is PackedFloat32Array or v is PackedFloat64Array or v is Array:
+		if v.size() != nxy:
+			return false
+		_z0c.resize(nxy)
+		var s := 0.0
+		for q in nxy:
+			_z0c[q] = float(v[q])
+			s += log(_z0c[q])
+		z0 = exp(s / nxy)
+	else:
+		z0 = float(v)
+		_z0c.resize(nxy)
+		_z0c.fill(z0)
+	return true
+
+
+## Шероховатость столбца под точкой (ближайший столбец), м.
+func z0_at(pos: Vector3) -> float:
+	var i := clampi(floori((pos.x - x0) * _inv_dx), 0, nx - 1)
+	var j := clampi(floori((-pos.z - y0) * _inv_dx), 0, ny - 1)
+	return _z0c[j * nx + i]
+
+
 static func _finite(x: float) -> float:
 	return x if is_finite(x) else 0.0
 
@@ -256,8 +288,9 @@ func _build_columns() -> void:
 		# под землёй — центр ниже hc: первая воздушная — наименьшая k с z_bot + (k + ½)dz ≥ hc
 		var k1 := clampi(ceili((_hc[c] - z_bot) * _inv_dz - 0.5), 0, nz)
 		_k1[c] = k1
-		var a1 := maxf(z_bot + (k1 + 0.5) * dz - _hc[c], 2.0 * z0)
-		_inv_log1[c] = 1.0 / log(a1 / z0)
+		var zc0 := _z0c[c]
+		var a1 := maxf(z_bot + (k1 + 0.5) * dz - _hc[c], 2.0 * zc0)
+		_inv_log1[c] = 1.0 / log(a1 / zc0)
 
 
 ## Ограничители (на всякий случай — решение без срыва на обрыве может дать лишнее): модуль
@@ -314,7 +347,8 @@ func _build_boundary_layer() -> void:
 			kr = k1 + 1
 			ar += dz
 		var i := (kr * _nxy + c) * 3
-		_ustar[c] = KAPPA * Vector2(_vel[i], _vel[i + 1]).length() / log(maxf(ar, 2.0 * z0) / z0)
+		var zc0 := _z0c[c]
+		_ustar[c] = KAPPA * Vector2(_vel[i], _vel[i + 1]).length() / log(maxf(ar, 2.0 * zc0) / zc0)
 		var u_max := 0.0
 		var a_max := ar
 		var w_min := 0.0
@@ -329,7 +363,7 @@ func _build_boundary_layer() -> void:
 				a_max = a
 			w_min = minf(w_min, _vel[j + 2])
 		_uout[c] = u_max
-		_aout[c] = maxf(a_max, 2.0 * z0)
+		_aout[c] = maxf(a_max, 2.0 * zc0)
 		_desc[c] = -w_min / maxf(u_max, 0.5)
 
 
@@ -438,7 +472,7 @@ func _col_grad(c: int, y: float, sh: Vector2) -> Vector2:
 	if kf >= k1:
 		var du := Vector2(_vel[i2] - _vel[i], _vel[i2 + 1] - _vel[i + 1]).length() * _inv_dz
 		return Vector2(du, n2)
-	var a := maxf(z - hcol, z0)
+	var a := maxf(z - hcol, _z0c[c])
 	var u1 := Vector2(_vel[i], _vel[i + 1]).length()
 	return Vector2(u1 * _inv_log1[c] / a, n2)
 
@@ -611,10 +645,11 @@ func _col_vel(c: int, y: float, sh: Vector2) -> Vector3:
 		return p + (Vector3(_vel[i2], _vel[i2 + 1], _vel[i2 + 2]) - p) * t
 	# ниже центра первой воздушной клетки: лог-профиль к нулю на z0 над землёй сетки
 	var agl := z - hcol
-	if agl <= z0:
+	var zc0 := _z0c[c]
+	if agl <= zc0:
 		return Vector3.ZERO
 	var i1 := ((k1 * _nxy) + c) * 3
-	var f := minf(log(agl / z0) * _inv_log1[c], 1.0)
+	var f := minf(log(agl / zc0) * _inv_log1[c], 1.0)
 	return Vector3(_vel[i1], _vel[i1 + 1], _vel[i1 + 2]) * f
 
 
@@ -659,6 +694,7 @@ func _col_scalar(arr: PackedFloat32Array, c: int, y: float, sh: Vector2, log_pro
 	if not log_prof:
 		return v1
 	var agl := z - hcol
-	if agl <= z0:
+	var zc0 := _z0c[c]
+	if agl <= zc0:
 		return 0.0
-	return v1 * minf(log(agl / z0) * _inv_log1[c], 1.0)
+	return v1 * minf(log(agl / zc0) * _inv_log1[c], 1.0)

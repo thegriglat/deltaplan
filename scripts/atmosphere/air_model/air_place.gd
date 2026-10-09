@@ -63,12 +63,16 @@ static func domain_case(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	var cells := {}
+	if heat or surface != null:
+		cells = cell_surface(surface, water, detail, x0, y0, dx, n, n)
+	if surface != null:
+		c.set_z0_map(cell_z0(cells))  # до set_inflow: α, z_sat — по эффективному z0 области
 	c.set_inflow(u10, inflow_k, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = gamma(d, c.zc(k))
 	if heat:
-		var cells := cell_surface(surface, water, detail, x0, y0, dx, n, n)
 		c.heat = surface_flux(hc, dx, n, n, d, ctx, cfg, cells, u10, t_max)
 	c.label = (
 		"%s %sм %sч U%s%s %s°%s"
@@ -672,6 +676,31 @@ static func cell_surface(
 		fr[q * nc + SurfaceLayer.WATER] = w
 		fr[q * nc + SurfaceLayer.NONE] = 1.0 - w
 	return {fr = fr, m = m}
+
+
+## Шероховатость клеток, м (ny·nx; SH-6, C2 v9): лог-среднее по площади z0 классов клетки
+## (configs/surface_heat.json → classes.<имя>.z0_m, числа П4) — ln z0 = Σ f_c·ln z0_c / Σ f_c
+## (docs/research/surface_params.md §5.4: z0 смеси — логарифмически). cells — cell_surface.
+static func cell_z0(cells: Dictionary) -> PackedFloat64Array:
+	var nc := SurfaceLayer.CLASS_COUNT
+	var classes: Dictionary = SurfaceHeat.config().classes
+	var lz := PackedFloat64Array()
+	lz.resize(nc)
+	for k in nc:
+		lz[k] = log(float(classes[SurfaceLayer.CLASS_NAMES[k]].z0_m))
+	var fr: PackedFloat32Array = cells.get("fr", PackedFloat32Array())
+	var n := fr.size() / nc
+	var out := PackedFloat64Array()
+	out.resize(n)
+	for q in n:
+		var s := 0.0
+		var w := 0.0
+		for k in nc:
+			var f := float(fr[q * nc + k])
+			s += f * lz[k]
+			w += f
+		out[q] = exp(s / w) if w > 0.0 else exp(lz[SurfaceLayer.NONE])
+	return out
 
 
 ## Доли и влажность клеток по снимку: в рабочем потоке — одной полосой, parallel — полосами строк

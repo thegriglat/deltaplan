@@ -2,10 +2,10 @@
 type: "contract"
 status: "active"
 module: "air-model"
-updated: "2026-10-05"
+updated: "2026-10-10"
 summary: "Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12)."
 related: []
-contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 8}, {"id": "C3", "version": 1}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
+contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 9}, {"id": "C3", "version": 2}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
 ---
 # Модель воздуха: контракты систем
 
@@ -86,7 +86,7 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 8}, {"id": "C3",
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
   (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
-## C2 v8 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, поверхность, погода, солнце
+## C2 v9 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, поверхность, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
 
 | Вход | Откуда в игре | Формат |
@@ -217,8 +217,23 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 8}, {"id": "C3",
 - **Тесты:** `test_c2_inflow_scale` (v6: α/max_profile по меню, u10 случая = k·меню, meta);
   `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант
   выше; в v4 — исполнитель Б2 переписывает по новому инварианту в том же коммите, что функцию).
+- **v9 (10.10.2026, surface-heat SH-6) — z0 по покрову, вход по клетке без перестройки схемы.**
+  - `AirCase.z0_map` (ny·nx, м; пусто — `p.z0` во всех столбцах), задаётся `set_z0_map(m)`: `p.z0` = лог-среднее
+    карты (эффективный z0 области — профиль притока, α/z_sat `WindProfile.apply_to_case`, фазы). Со снимком
+    поверхности `domain_case`/`window_at` строят карту `AirPlace.cell_z0(cells)` — z0 клетки = exp(Σ f_c ln z0_c)
+    по долям классов клетки (те же доли, что у H, SH3; z0_c — `configs/surface_heat.json → classes.<имя>.z0_m`,
+    П4; П4 §5.4 — лог-среднее по площади); без снимка карты нет, `p.z0` = `AirCase.Z0` (0,1 м). Окна — по своей сетке.
+  - `AirCase.col` — `NCOL` = 14: плоскости `COL_CD` = 12 — C_d стенки столбца (κ/ln(½dz/z0))², `COL_UST` = 13 —
+    u* замыкания столбца = u*_обл·ln(½dz/z0_обл)/ln(½dz/z0) (тот же ветер на ½dz, что у эффективного z0 области;
+    u*_обл = κ·u10/ln(10/z0_обл) = `AirCase.ustar`). `air_picard.glsl`: `setup` — K_b по u* столбца, `mom` — C_d
+    столбца грани (плоскость col на привязке 13); `prm[P_CD]`, `prm[P_USTAR]` — эффективные области (ядрами не
+    читаются). h_мех и L Обухова в `_closure` — по u* столбца. Без карты — побитно прежнее решение.
+  - `meta()`: `z0` — карта ny·nx float32 (есть карта) или число `p.z0` (нет); `z0_eff` = `p.z0` (→ C3 v2).
+  - Не входит (стоп-условие SH-6): смещение нуля d над лесом, перестройка нижней клетки/стенки (первая клетка
+    ½dz = 52,5 м на 400 м), калибровка Б1/AM-09 (по своим z0 случаев, не z0 игры), сеть/протокол, фазы — эффективный
+    z0 области без карты. `WindModel` (аналитика) — по-прежнему `AirCase.Z0`.
 
-## C3 v1 — выход решателя → `WindField` (AM-05)
+## C3 v2 — выход решателя → `WindField` (AM-05)
 **Владелец:** AM-05 (`scripts/atmosphere/air_model/wind_field.gd`). **Поставщики:** AM-03
 (`AirPicardJob.field()`), AM-06б (библиотека), `to_game_field.py` (прикидка).
 **Потребители:** C4, C5, AM-10.
@@ -234,7 +249,11 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 8}, {"id": "C3",
     C1), в центры — среднее двух граней, клетки `cell == 0` → 0;
   - `WindField.load_file(путь)` — `<путь>.json` + `<путь>.bin`, формат C6-файл ниже;
   - null — размеры не сходятся (`push_error`).
-- `meta` (Dictionary): **обязательно** `dx, dz, x0, y0, z_bot, nx, ny, nz`; `z0` (0,1 м);
+- `meta` (Dictionary): **обязательно** `dx, dz, x0, y0, z_bot, nx, ny, nz`; `z0` — **v2:** карта ny·nx (float32,
+  j·nx + i, м; от `AirCase.meta()` со снимком поверхности) или число (одно на все столбцы; нет ключа — 0,1 м;
+  файлы C6 — число); `z0_eff` — эффективный z0 области (справочно). `WindField.z0` — лог-среднее карты (термики,
+  масштаб 3), `WindField.z0_at(pos)` — z0 столбца; лог-профиль ниже первой воздушной клетки и u* столбца (C4
+  `T_USTAR`) — по z0 своего столбца; карта не того размера — null;
   **для термиков (C4)** — `heat` (ny·nx, Вт/м², как в решении, с гашением у края), `z_i` (м над
   морем; нет — без ключа), `gam` (nz, К/м, без ореола), `u10` (м/с); прочее — `label, wdir, cond,
   source, probes, path` (load_file кладёт `path` без расширения).
@@ -594,3 +613,5 @@ H окна — `AirPlace.surface_flux` (SurfaceHeat по долям классо
 | C9 | v3 | 01.10.2026 | air-start: загрузка в два прохода (k₁ = k₀·(U_меню/U₁)^(1/p), p по ветру; упор в предел итераций или штиль — один проход; неудача прохода 2 — поле прохода 1; timeout_s на проход), `inflow_k`, `last_info.inflow_k/passes/u_start10_first/u_start10`; в полёте — k загрузки |
 | C2 | v5 | 01.10.2026 | К2 по Б2: z_sat по толщине слоя с устойчивостью (h_s = 0,4√(u*L/f), L по Golder 1972 по классу и z0) — `max_profile(…, cls)`; класс F больше не даёт 14·U10 на 300 м |
 | C2 | v8 | 09.10.2026 | surface-heat SH-4 (SH3): H клетки = `SurfaceHeat.mix_flux` по долям классов (снимок поверхности `place.surface`, узлы 25 м: карта + маска 10 м + уклон + маска рек), влажности рельефа и воде с температурой (лёд ≤ 0 °C); убраны H0 = 330 и «вода → 0»; хвостовой `surface` у `domain_case`/`window_case`/`window_at`/`AirClipmap.setup`; источник истины для H — SurfaceHeat, эталон Python по H не сверяется. Потребители: AirRuntime (C9), окна (C7), фазы/термики — формат H прежний |
+| C2 | v9 | 10.10.2026 | surface-heat SH-6: z0 по покрову — `AirCase.z0_map` (лог-среднее по долям классов клетки, `AirPlace.cell_z0`), `p.z0` — эффективный области; C_d стенки и u* замыкания — плоскости `col` по столбцу (`NCOL` 14), чтение в `air_picard.glsl` (setup, mom); без карты — побитно прежнее |
+| C3 | v2 | 10.10.2026 | surface-heat SH-6: `meta.z0` — карта ny·nx или число, `z0_eff`; `WindField` — лог-профиль у земли и u* по z0 столбца (`z0_at`), `z0` — лог-среднее |

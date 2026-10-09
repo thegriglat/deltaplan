@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
-const CONTRACTS := {C1 = 2, C2 = 8, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 4, C8 = 2, C9 = 3, C10 = 3}
+const CONTRACTS := {C1 = 2, C2 = 9, C3 = 2, C4 = 4, C5 = 1, C6 = 1, C7 = 4, C8 = 2, C9 = 3, C10 = 3}
 const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -310,8 +310,20 @@ func test_c2_air_case_grid() -> void:
 	# AirCase.meta(): ключи WindField + вход термиков (C3/C4: heat ny·nx, z_i — ключа нет при NAN,
 	# gam nz без ореола, u10, wdir); поле с этой meta — вход термиков есть.
 	var m := _case_meta(c, 2000.0)
-	for k in ["dx", "dz", "x0", "y0", "z_bot", "nx", "ny", "nz", "z0", "u10", "wdir", "heat", "gam"]:
+	for k in ["dx", "dz", "x0", "y0", "z_bot", "nx", "ny", "nz", "z0", "z0_eff", "u10", "wdir", "heat", "gam"]:
 		check(m.has(k), "AirCase.meta(): ключ " + k)
+	# C2 v9 / C3 v2: без карты z0 — число; с картой — карта ny·nx float32, p.z0 — лог-среднее
+	check(m.z0 is float, "meta.z0 без карты — число")
+	var cz := AirCase.new()
+	cz.set_grid(400.0, 4, 4, 105.0, 420.0, 10)
+	var zm := PackedFloat64Array()
+	zm.resize(16)
+	zm.fill(0.03)
+	zm[0] = 1.0
+	cz.set_z0_map(zm)
+	check(cz.meta().z0 is PackedFloat32Array and (cz.meta().z0 as PackedFloat32Array).size() == 16, "meta.z0 — карта ny·nx")
+	approx(float(cz.p.z0), exp((log(1.0) + 15.0 * log(0.03)) / 16.0), 1e-12, "p.z0 — лог-среднее карты")
+	check(AirCase.NCOL == 14 and AirCase.COL_CD == 12 and AirCase.COL_UST == 13, "col: C_d и u* по столбцу")
 	var mh: Variant = m.get("heat")
 	check(mh is PackedFloat32Array and (mh as PackedFloat32Array).size() == 96 * 80, "heat ny·nx")
 	check(m.get("gam") is PackedFloat32Array and (m.gam as PackedFloat32Array).size() == 50, "gam nz")
