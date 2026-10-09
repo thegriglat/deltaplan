@@ -7,7 +7,7 @@ extends Node3D
 ##   --yaw=<град>       добавка к курсу площадки
 ##   --pitch=<град>     наклон взгляда
 ##   --pos=x,y,z --look=x,y,z  произвольная камера
-##   --latlon=<lat>,<lon> [--size_km=N]  рантайм-загрузка рельефа вокруг точки (FR-17)
+##   --latlon=<lat>,<lon>  место точки: из кеша user://locations или сборка (OA-К4)
 ##   --shot=<файл.png>  снять кадр и выйти
 ##   --shot-series=N[,интервал_с]  с --shot: N кадров через интервал (по умолчанию 1 с),
 ##                      файлы <файл>_0.png … (проверка бегущих волн ветра по траве)
@@ -51,9 +51,7 @@ func _ready() -> void:
 	if _args.has("latlon"):
 		var ll := String(_args.latlon).split(",")
 		_frames = -100000  # не снимать, пока грузится
-		await terrain.load_location_latlon(
-			float(ll[0]), float(ll[1]), float(_args.get("size_km", "-1"))
-		)
+		await terrain.load_point(float(ll[0]), float(ll[1]))
 		_frames = 0
 	terrain.wait_relief()  # поля рельефа (влажность, AO, тень) считаются в фоне — для кадров ждём
 	terrain.renderer.lod_camera = cam

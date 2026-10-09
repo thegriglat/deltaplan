@@ -82,9 +82,8 @@ func build(
 		_build_start(s, height_fn)
 	for site in WorldObjects.landing_specs(cfg.landing, loc_id, landings):
 		_build_landing(site, height_fn, latlon_fn)
-	var path := String(cfg.osm.data_path).replace("{id}", loc_id)
 	if loc_id != "":
-		osm = OsmData.load_file(path, center.x, center.y)
+		osm = OsmData.load_file(Locations.osm_path(loc_id), center.x, center.y)
 	if osm != null:
 		osm_layer = OsmLayer.new()
 		osm_layer.name = "Osm"

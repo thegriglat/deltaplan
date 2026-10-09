@@ -991,9 +991,21 @@ func _load_terrain() -> bool:
 	var what := ""
 	if settings.has_pick():
 		what = "%.4f, %.4f" % [settings.pick_lat, settings.pick_lon]
-		var size := float(_cfg.get("picked_location_size_km", -1.0))
-		await terrain.load_location_latlon(settings.pick_lat, settings.pick_lon, size)
-		ok = _load_error == ""
+		# Точка внутри встроенного места — оно и грузится (старт — в точке); иначе место точки:
+		# из кеша user://locations или сборка (OA-К4), дальше тот же load_location.
+		var builtin := Locations.builtin_at(settings.pick_lat, settings.pick_lon)
+		var id := (
+			builtin if builtin != "" else LocationCache.key_for(settings.pick_lat, settings.pick_lon)
+		)
+		if terrain.location_id == id and not terrain.layers.is_empty() and not _terrain_dirty:
+			return true  # то же место уже стоит
+		if builtin != "":
+			ok = bool(terrain.load_location(builtin)) and not terrain.layers.is_empty()
+			_terrain_dirty = not ok
+		else:
+			await terrain.load_point(settings.pick_lat, settings.pick_lon)
+			ok = _load_error == "" and not terrain.layers.is_empty()
+			_terrain_dirty = not ok
 	elif (
 		terrain.location_id == settings.location_id
 		and not terrain.layers.is_empty()

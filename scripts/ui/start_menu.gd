@@ -70,7 +70,7 @@ static func summary_text(s: FlightSettings) -> String:
 	if s.has_pick():
 		parts.append(TranslationServer.translate("menu_point") % [s.pick_lat, s.pick_lon])
 	else:
-		var loc: Dictionary = Config.get_config("locations/" + s.location_id)
+		var loc: Dictionary = Locations.config(s.location_id)
 		parts.append(TranslationServer.translate(String(loc.get("name", s.location_id))))
 		var starts: Array = loc.get("start_sites", [])
 		for st: Dictionary in starts:

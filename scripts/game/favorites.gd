@@ -80,7 +80,7 @@ static func auto_name(s: FlightSettings) -> String:
 	if s.has_pick():
 		place = t.call("menu_point") % [s.pick_lat, s.pick_lon]
 	else:
-		var loc: Dictionary = Config.get_config("locations/" + s.location_id)
+		var loc: Dictionary = Locations.config(s.location_id)
 		place = t.call(String(loc.get("name", s.location_id)))
 	var ms := roundi(s.wind_speed_kmh / 3.6)
 	var wind: String = t.call("setup_wind_calm")

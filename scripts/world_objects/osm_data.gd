@@ -20,7 +20,7 @@ var load_time_s: float = 0.0
 ## Загрузить файл; center_lat/lon — центр рельефа (NAN — оставить как в файле). null — нет файла.
 static func load_file(path: String, center_lat: float = NAN, center_lon: float = NAN) -> OsmData:
 	if not FileAccess.file_exists(path):
-		push_warning("OsmData: нет %s — запусти tools/osm/fetch_osm.py" % path)
+		push_warning("OsmData: нет %s" % path)
 		return null
 	var t0 := Time.get_ticks_usec()
 	var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
