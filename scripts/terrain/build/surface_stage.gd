@@ -5,8 +5,11 @@ extends RefCounted
 ##   <id>_surface.png — класс игры в каждом узле сетки слоя (мода по k×k подвыборкам клетки,
 ##                      уровень COG и k — spec.surface.layers[id]);
 ##   detail_detail10.png (LA8) — L: доля леса в клетке 10 м (k×k подвыборок уровня 0, без моды),
-##                      A = 0 (воду заполняет OsmStage);
-##   surface.json — описание слоёв (water_fraction = 0).
+##                      A: вода = max(доля воды WorldCover по тем же подвыборкам, маска рек по рельефу
+##                      <id>_water.png на сетке 10 м) (NO-1, N1; OSM в A не пишет);
+##   detail_built10.png (L8) — доля застройки (WorldCover 50) по тем же подвыборкам, built_patches.json —
+##                      связные пятна застройки (N1);
+##   surface.json — описание слоёв (water_fraction — по каналу A, built10).
 ## Классы: configs/world.json → surface.worldcover.classes. Тайлы COG кешируются в
 ## surface.runtime.cache_dir (имена файлов — как у WorldCoverLoader и tools/terrain/cog.py).
 
@@ -50,6 +53,7 @@ func run(ctx: LocationBuildContext) -> Error:
 	DirAccess.make_dir_recursive_absolute(ctx.dir)
 	var scfg: Dictionary = ctx.spec.get("surface", {}).get("layers", {})
 	var d10: Dictionary = Config.get_config("world").get("surface", {}).get("detail10", {})
+	var bcfg: Dictionary = Config.get_config("world").get("surface", {}).get("built", {})
 	var work: Array = []
 	for id in ctx.layers:
 		if scfg.has(id):
@@ -98,7 +102,18 @@ func run(ctx: LocationBuildContext) -> Error:
 			return ERR_SKIP
 
 		if has10:
-			var r10 := await _detail10(ctx, d10, w, h, spacing, ox, oz)
+			var river: Image = null
+			var rpath := ctx.dir.path_join("%s_water.png" % id)
+			if FileAccess.file_exists(rpath):
+				river = Image.load_from_file(rpath)
+				if river != null and (river.get_width() != w or river.get_height() != h):
+					ctx.log_line("surface: %s_water.png не той сетки — реки не учтены" % id)
+					river = null
+				elif river != null and river.get_format() != Image.FORMAT_L8:
+					river.convert(Image.FORMAT_L8)
+			else:
+				ctx.log_line("surface: нет %s_water.png — реки в A не учтены" % id)
+			var r10 := await _detail10(ctx, d10, w, h, spacing, ox, oz, river)
 			if r10.err != OK:
 				return r10.err
 			var name10 := "%s_detail10.png" % id
@@ -111,10 +126,26 @@ func run(ctx: LocationBuildContext) -> Error:
 				"spacing_m": float(d10.cell_m),
 				"origin_x_m": ox,
 				"origin_z_m": oz,
-				"channels": "L — доля леса (0..255, WorldCover), A — доля воды (0..255, OSM; заполняет OsmStage)",
+				"channels": "L — доля леса (0..255, WorldCover), A — вода (0..255): max(доля воды WorldCover 10 м по подвыборкам, маска рек по рельефу)",
 				"forest_fraction": snappedf(r10.forest_fraction, 0.0001),
-				"water_fraction": 0.0,
+				"water_fraction": snappedf(r10.water_fraction, 0.0001),
 			}
+			if r10.built_max > 0:
+				var nameb := "%s_built10.png" % id
+				if not _save(ctx, nameb, r10.w, r10.h, Image.FORMAT_L8, r10.built):
+					return ERR_FILE_CANT_WRITE
+				var pr := extract_patches(
+					r10.built, r10.w, r10.h, ox, oz, float(d10.cell_m), int(d10.subsamples), bcfg
+				)
+				var pname := "built_patches.json"
+				if not _write_json(ctx.dir.path_join(pname), pr.json):
+					return ERR_FILE_CANT_WRITE
+				entry["built10"] = {
+					"file": nameb,
+					"patches_file": pname,
+					"built_fraction": snappedf(r10.built_fraction, 0.0001),
+					"patches": (pr.json.patches as Array).size(),
+				}
 			step_i += 1
 			ctx.report("surface", step_i / nsteps)
 		(out.layers as Array).append(entry)
@@ -174,7 +205,8 @@ func _classes(
 	return {"err": OK, "data": data, "counts": counts}
 
 
-## Маска 10 м: доля леса в клетке (k×k подвыборок уровня 0, без моды), LA8 с A = 0.
+## Маска 10 м (k×k подвыборок уровня 0, без моды): LA8 — L доля леса, A вода = max(доля воды
+## WorldCover, маска рек по рельефу); L8 — доля застройки; считаются за один проход.
 func _detail10(
 	ctx: LocationBuildContext,
 	dcfg: Dictionary,
@@ -182,7 +214,8 @@ func _detail10(
 	h_l: int,
 	spacing: float,
 	ox: float,
-	oz: float
+	oz: float,
+	river: Image
 ) -> Dictionary:
 	var cell := float(dcfg.cell_m)
 	var k := int(dcfg.subsamples)
@@ -194,21 +227,34 @@ func _detail10(
 	var prep := await _prepare(ctx, 0, k, cell, w, h, ox, oz)
 	if prep.err != OK:
 		return {"err": prep.err}
-	var fl := PackedByteArray()
-	fl.resize(256)
+	# по коду WorldCover: лес | вода << 8 | застройка << 16 (суммы по k² подвыборкам не переполняют байт)
+	var pk := PackedInt32Array()
+	pk.resize(256)
 	for code in 256:
-		fl[code] = 1 if _lut[code] == 1 else 0
-	# значение L по числу лесных подвыборок (округление к чётному, как np.round)
+		var c := _lut[code]
+		pk[code] = (1 if c == 1 else 0) | ((1 << 8) if c == 6 else 0) | ((1 << 16) if c == 7 else 0)
+	# значение по числу подвыборок (округление к чётному, как np.round)
 	var rt := PackedByteArray()
 	rt.resize(k * k + 1)
 	for n in k * k + 1:
 		rt[n] = int(roundf_even(n * (255.0 / (k * k))))
+	var rv := PackedByteArray()
+	var rw := 0
+	var rh := 0
+	if river != null:
+		rv = river.get_data()
+		rw = river.get_width()
+		rh = river.get_height()
 	var job := {
 		"mos": prep.mos,
 		"cp": prep.col_px,
 		"rb": prep.row_base,
-		"fl": fl,
+		"pk": pk,
 		"rt": rt,
+		"rv": rv,
+		"rw": rw,
+		"rh": rh,
+		"rs": cell / spacing,
 		"w": w,
 		"h": h,
 		"k": k,
@@ -216,18 +262,30 @@ func _detail10(
 	}
 	var nb := (h + BAND_ROWS - 1) / BAND_ROWS
 	(job.bands as Array).resize(nb)
-	await _run_group(_band_forest.bind(job), nb)
+	await _run_group(_band_detail10.bind(job), nb)
 	var data := PackedByteArray()
+	var built := PackedByteArray()
 	var forest := 0
+	var water := 0
+	var built_cells := 0
+	var built_max := 0
 	for b: Dictionary in job.bands:
 		data.append_array(b.data)
+		built.append_array(b.built)
 		forest += int(b.forest)
+		water += int(b.water)
+		built_cells += int(b.built_cells)
+		built_max = maxi(built_max, int(b.built_max))
 	return {
 		"err": OK,
 		"data": data,
+		"built": built,
+		"built_max": built_max,
 		"w": w,
 		"h": h,
-		"forest_fraction": float(forest) / float(w * h)
+		"forest_fraction": float(forest) / float(w * h),
+		"water_fraction": float(water) / float(w * h),
+		"built_fraction": float(built_cells) / float(w * h),
 	}
 
 
@@ -275,35 +333,207 @@ func _band_classes(bi: int, job: Dictionary) -> void:
 	(job.bands as Array)[bi] = {"data": out, "counts": counts}
 
 
-## Полоса маски леса (рабочий поток): LA8, L — доля леса, A = 0.
-func _band_forest(bi: int, job: Dictionary) -> void:
+## Полоса маски 10 м (рабочий поток): LA8 (L — лес, A — вода) и L8 застройки.
+func _band_detail10(bi: int, job: Dictionary) -> void:
 	var mos: PackedByteArray = job.mos
 	var cp: PackedInt32Array = job.cp
 	var rb: PackedInt32Array = job.rb
-	var fl: PackedByteArray = job.fl
+	var pk: PackedInt32Array = job.pk
 	var rt: PackedByteArray = job.rt
+	var rv: PackedByteArray = job.rv
+	var rw: int = job.rw
+	var rh: int = job.rh
+	var rs: float = job.rs
 	var w: int = job.w
 	var k: int = job.k
 	var j0 := bi * BAND_ROWS
 	var j1 := mini(int(job.h), j0 + BAND_ROWS)
 	var out := PackedByteArray()
 	out.resize((j1 - j0) * w * 2)
-	out.fill(0)
+	var bout := PackedByteArray()
+	bout.resize((j1 - j0) * w)
 	var forest := 0
+	var water := 0
+	var built_cells := 0
+	var built_max := 0
+	# билинейная выборка маски рек (сетка слоя) — индексы и веса столбцов один раз на полосу
+	var rc0 := PackedInt32Array()
+	var rc1 := PackedInt32Array()
+	var rwx := PackedFloat32Array()
+	if rw > 0:
+		rc0.resize(w)
+		rc1.resize(w)
+		rwx.resize(w)
+		for i in w:
+			var fx := minf(i * rs, rw - 1.0)
+			var i0 := mini(int(fx), rw - 1)
+			rc0[i] = i0
+			rc1[i] = mini(i0 + 1, rw - 1)
+			rwx[i] = fx - i0
 	var o := 0
+	var ob := 0
 	for j in range(j0, j1):
+		var r0 := 0
+		var r1 := 0
+		var wy := 0.0
+		if rw > 0:
+			var fy := minf(j * rs, rh - 1.0)
+			r0 = mini(int(fy), rh - 1) * rw
+			r1 = mini(int(fy) + 1, rh - 1) * rw
+			wy = fy - int(fy)
 		for i in w:
 			var n := 0
 			for a in k:
 				var base := rb[j * k + a]
 				for b in k:
-					n += fl[mos[base + cp[i * k + b]]]
-			var r := rt[n]
+					n += pk[mos[base + cp[i * k + b]]]
+			var r := rt[n & 255]
 			out[o] = r
-			o += 2
 			if r >= 128:
 				forest += 1
-	(job.bands as Array)[bi] = {"data": out, "forest": forest}
+			var av := rt[(n >> 8) & 255]
+			if rw > 0:
+				var c0 := rc0[i]
+				var c1 := rc1[i]
+				var wx := rwx[i]
+				var top := rv[r0 + c0] * (1.0 - wx) + rv[r0 + c1] * wx
+				var bot := rv[r1 + c0] * (1.0 - wx) + rv[r1 + c1] * wx
+				av = maxi(av, roundi(top * (1.0 - wy) + bot * wy))
+			out[o + 1] = av
+			if av >= 128:
+				water += 1
+			var bv := rt[(n >> 16) & 255]
+			bout[ob] = bv
+			if bv > 0:
+				built_cells += 1
+				built_max = maxi(built_max, bv)
+			o += 2
+			ob += 1
+	(job.bands as Array)[bi] = {
+		"data": out,
+		"built": bout,
+		"forest": forest,
+		"water": water,
+		"built_cells": built_cells,
+		"built_max": built_max,
+	}
+
+
+# ---------------------------------------------------------------------------------------------
+# Пятна застройки (N1)
+# ---------------------------------------------------------------------------------------------
+
+
+## Связные пятна застройки: 8-связные компоненты клеток с долей ≥ threshold (bcfg.threshold),
+## меньше bcfg.min_area_m2 отбрасываются. built — L8 w×h (значение = round(255·n/k²)).
+## ox, oz — координаты центра клетки (0, 0), м. → {json: содержимое built_patches.json, cells: число
+## клеток выше порога}. Детерминированно:
+## id по порядку обхода строк первой клетки.
+static func extract_patches(
+	built: PackedByteArray,
+	w: int,
+	h: int,
+	ox: float,
+	oz: float,
+	cell: float,
+	k: int,
+	bcfg: Dictionary
+) -> Dictionary:
+	var thr := float(bcfg.get("threshold", 0.5))
+	var min_area := float(bcfg.get("min_area_m2", 0.0))
+	# порог по числу подвыборок: n ≥ ceil(thr·k²), значение L для него — round(255·n/k²)
+	var n_min := ceili(thr * k * k - 1e-9)
+	var l_min := int(roundf_even(n_min * (255.0 / (k * k))))
+	var seen := PackedByteArray()
+	seen.resize(w * h)
+	var patches: Array = []
+	var cells_above := 0
+	var stack := PackedInt32Array()
+	for idx in w * h:
+		if built[idx] < l_min:
+			continue
+		cells_above += 1
+		if seen[idx] != 0:
+			continue
+		seen[idx] = 1
+		stack.clear()
+		stack.append(idx)
+		var cnt := 0
+		var sx := 0.0
+		var sz := 0.0
+		var sw := 0.0
+		var x0 := w
+		var x1 := 0
+		var z0 := h
+		var z1 := 0
+		while not stack.is_empty():
+			var c: int = stack[stack.size() - 1]
+			stack.resize(stack.size() - 1)
+			var cx := c % w
+			var cz := c / w
+			var f := built[c] / 255.0
+			cnt += 1
+			sx += cx * f
+			sz += cz * f
+			sw += f
+			x0 = mini(x0, cx)
+			x1 = maxi(x1, cx)
+			z0 = mini(z0, cz)
+			z1 = maxi(z1, cz)
+			for dz in range(-1, 2):
+				var nz := cz + dz
+				if nz < 0 or nz >= h:
+					continue
+				for dx in range(-1, 2):
+					var nx := cx + dx
+					if nx < 0 or nx >= w:
+						continue
+					var ni := nz * w + nx
+					if seen[ni] == 0 and built[ni] >= l_min:
+						seen[ni] = 1
+						stack.append(ni)
+		if cnt * cell * cell < min_area:
+			continue
+		patches.append(
+			{
+				"id": patches.size(),
+				"x": snappedf(ox + sx / sw * cell, 0.01),
+				"z": snappedf(oz + sz / sw * cell, 0.01),
+				"area_m2": snappedf(cnt * cell * cell, 0.01),
+				"share": snappedf(sw / cnt, 0.0001),
+				"bbox":
+				[
+					ox + (x0 - 0.5) * cell,
+					oz + (z0 - 0.5) * cell,
+					ox + (x1 + 0.5) * cell,
+					oz + (z1 + 0.5) * cell
+				],
+			}
+		)
+	var doc := {
+		"_doc":
+		(
+			"Собрано SurfaceStage (N1, docs/contracts/no-osm.md) — не править руками. Пятно — 8-связная компонента клеток 10 м "
+			+ "с долей застройки WorldCover ≥ threshold, меньше min_area_m2 отброшены. x, z — центр масс (м, начало — центр "
+			+ "места), area_m2 — клеток × 100, share — средняя доля, bbox — x0, z0, x1, z1 по краям клеток."
+		),
+		"version": 1,
+		"source": "worldcover10",
+		"cell_m": cell,
+		"threshold": thr,
+		"min_area_m2": min_area,
+		"patches": patches,
+	}
+	return {"json": doc, "cells": cells_above}
+
+
+static func _write_json(path: String, d: Dictionary) -> bool:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(d, "  ") + "\n")
+	f.close()
+	return true
 
 
 func _run_group(c: Callable, n: int) -> void:

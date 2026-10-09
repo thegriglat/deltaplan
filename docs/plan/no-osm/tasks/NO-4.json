@@ -2,13 +2,13 @@
   "id": "NO-4",
   "module": "no-osm",
   "type": "dp-engineer",
-  "title": "Без Overpass; убрать ЛЭП, заборы, поля, имена посёлков OSM",
+  "title": "Без OSM вообще: Overpass, osm.json, OsmData, дороги, ЛЭП, заборы, поля, имена",
   "goal": "Игра не обращается к Overpass нигде (рантайм и сборка встроенных мест): OSM — не стадия сборки; убраны ЛЭП, заборы у посадок, поля и имена посёлков OSM. Дороги и вода из osm.json, если он есть, работают как раньше.",
   "plan_ref": "NO-4",
   "contracts": [
     {
       "name": "N4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/no-osm.md"
     }
   ],
@@ -32,16 +32,17 @@
     "tools/shots/",
     "assets/models/world/power_*",
     "assets/models/world/fence_segment*",
-    "ASSETS.md"
+    "ASSETS.md",
+    "scripts/world_objects/",
+    "data/terrain/*/osm.json",
+    "data/terrain/*/meta.json",
+    "data/terrain/*/build.json"
   ],
   "dont_touch": [
     "scripts/world_objects/egg_place.gd",
     "scripts/world_objects/easter_eggs/",
     "scripts/world_objects/building_placer.gd",
-    "scripts/world_objects/road_mesher.gd",
-    "scripts/world_objects/start_tracks.gd",
     "scripts/terrain/build/surface_stage.gd",
-    "data/terrain/",
     "docs/contracts/",
     "tests/contracts/test_no_osm_contracts.gd",
     "tests/contracts/test_no_osm_contracts_n1.gd",
@@ -87,10 +88,15 @@
       "name": "no_power_fence",
       "cmd": "! grep -rIlE 'power_line_planner|PowerLinePlanner|build_fences_near|fence_segment|power_tower|power_pole' scripts configs",
       "expect": "exit=0"
+    },
+    {
+      "name": "no_osm_refs",
+      "cmd": "! grep -rIlE 'osm\\.json|OsmData|OsmLayer|RoadMesher|osm_path|[Oo]verpass' scripts configs tests data | grep -v no_osm_contracts_n4",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T03:47:54",
-  "edited": "2026-10-10T03:48:51"
+  "edited": "2026-10-10T04:04:47"
 }
