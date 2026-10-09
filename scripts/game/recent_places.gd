@@ -6,13 +6,14 @@ extends RefCounted
 ## координаты и время обновляются). Закреплённые (pinned) — всегда сверху и не вытесняются;
 ## непристёгнутых хранится не больше MAX_UNPINNED (лишние — самые старые по времени — убираются).
 ## custom_name — своё имя (✎, не трогается автоподписью); osm_name — ближайший населённый пункт
-## из уже закешированных данных (res://data/osm/<id>.json, без сети — resolve_osm_name).
+## из уже закешированных данных (osm.json в папке места, без сети — resolve_osm_name).
 ## display_name: custom_name → osm_name → координаты «50.6000, 86.4000».
 
 const PATH := "user://recent_places.json"
 const MAX_UNPINNED := 8
 const DEDUP_DISTANCE_M := 300.0
-const OSM_DIR := "res://data/osm"
+## Пустой osm_dir = все места (Locations.osm_files()); непустой — папка с *.json (проверки).
+const OSM_DIR := ""
 
 
 static func _load_root(path: String) -> Dictionary:
@@ -154,7 +155,7 @@ static func remove(id: int, path: String = PATH) -> void:
 	_save_root(path, root)
 
 
-## После полёта / когда данные локации закешировались (res://data/osm/<id>.json) — уточнить имя
+## После полёта / когда данные локации закешировались (osm.json в папке места) — уточнить имя
 ## места без сети (не трогает своё имя, custom_name).
 static func update_osm_name(lat: float, lon: float, name: String, path: String = PATH) -> void:
 	if name == "":
@@ -195,39 +196,42 @@ static func display_name(p: Dictionary) -> String:
 	return "%.4f, %.4f" % [float(p.get("lat", 0.0)), float(p.get("lon", 0.0))]
 
 
-## Ближайший населённый пункт по уже закешированным данным локаций (res://data/osm/*.json,
+## Ближайший населённый пункт по уже закешированным данным мест (osm.json встроенных мест и user://locations/*/osm.json,
 ## без сетевых запросов) — только если точка попадает в bbox файла (с небольшим запасом).
 static func resolve_osm_name(lat: float, lon: float, osm_dir: String = OSM_DIR) -> String:
-	var da := DirAccess.open(osm_dir)
-	if da == null:
-		return ""
+	var files := PackedStringArray()
+	if osm_dir == "":
+		files = Locations.osm_files()  # встроенные и кешированные места (user://locations)
+	else:
+		var da := DirAccess.open(osm_dir)
+		if da == null:
+			return ""
+		for f in da.get_files():
+			if f.get_extension() == "json":
+				files.append(osm_dir.path_join(f))
 	var best_name := ""
 	var best_dist := INF
 	const MARGIN_DEG := 0.05
-	da.list_dir_begin()
-	var fname := da.get_next()
-	while fname != "":
-		if not da.current_is_dir() and fname.get_extension() == "json":
-			var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(osm_dir.path_join(fname)))
-			if d is Dictionary:
-				var bbox: Array = d.get("bbox_latlon", [])
-				if (
-					bbox.size() == 4
-					and lat >= float(bbox[0]) - MARGIN_DEG
-					and lat <= float(bbox[2]) + MARGIN_DEG
-					and lon >= float(bbox[1]) - MARGIN_DEG
-					and lon <= float(bbox[3]) + MARGIN_DEG
-				):
-					var clat := float(d.get("center_lat", 0.0))
-					var clon := float(d.get("center_lon", 0.0))
-					for pl: Dictionary in d.get("places", []):
-						var ll := TerrainGeo.local_to_latlon(
-							float(pl.get("x", 0.0)), float(pl.get("z", 0.0)), clat, clon
-						)
-						var dist := distance_m(lat, lon, ll.x, ll.y)
-						if dist < best_dist:
-							best_dist = dist
-							best_name = String(pl.get("n", ""))
-		fname = da.get_next()
-	da.list_dir_end()
+	for path in files:
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not d is Dictionary:
+			continue
+		var bbox: Array = d.get("bbox_latlon", [])
+		if (
+			bbox.size() == 4
+			and lat >= float(bbox[0]) - MARGIN_DEG
+			and lat <= float(bbox[2]) + MARGIN_DEG
+			and lon >= float(bbox[1]) - MARGIN_DEG
+			and lon <= float(bbox[3]) + MARGIN_DEG
+		):
+			var clat := float(d.get("center_lat", 0.0))
+			var clon := float(d.get("center_lon", 0.0))
+			for pl: Dictionary in d.get("places", []):
+				var ll := TerrainGeo.local_to_latlon(
+					float(pl.get("x", 0.0)), float(pl.get("z", 0.0)), clat, clon
+				)
+				var dist := distance_m(lat, lon, ll.x, ll.y)
+				if dist < best_dist:
+					best_dist = dist
+					best_name = String(pl.get("n", ""))
 	return best_name

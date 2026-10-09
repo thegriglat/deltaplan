@@ -1,0 +1,68 @@
+{
+  "id": "OA-2",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Стадия рек по рельефу RiverStage (порт rivers.py)",
+  "goal": "Маски рек *_water.png для любого места тем же расчётом, что rivers.py (priority-flood, водосбор, ширина, привязка к долине).",
+  "plan_ref": "OA-2. Стадия рек",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-2",
+  "branch": "osm-any/OA-2",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/river_stage.gd",
+    "tests/terrain/test_river_stage.gd",
+    "tools/terrain/parity/river_parity.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/game/",
+    "data/",
+    "configs/",
+    "project.godot",
+    "scripts/terrain/cog_reader.gd",
+    "scripts/terrain/height_layer.gd",
+    "tools/terrain/rivers.py"
+  ],
+  "accept": [
+    {
+      "name": "river_stage",
+      "tests": "river_stage"
+    },
+    {
+      "name": "contract_river",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_river"
+    },
+    {
+      "name": "iou_far",
+      "cmd": "mkdir -p build && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/parity/river_parity.gd 2>&1 | tee build/parity_river.txt",
+      "expect": "num:iou_far_min=([\\d.]+) >=0.9"
+    },
+    {
+      "name": "iou_detail",
+      "cmd": "cat build/parity_river.txt",
+      "expect": "num:iou_detail_min=([\\d.]+) >=0.9"
+    },
+    {
+      "name": "time_river",
+      "cmd": "cat build/parity_river.txt",
+      "expect": "num:stage_seconds_max=([\\d.]+) <=120"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T17:52:00"
+}

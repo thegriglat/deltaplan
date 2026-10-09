@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "RiverStage портирован 1:1 с rivers.py (priority-flood на бинарной куче в PackedFloat64/Int32Array с ключом (высота, индекс) как у heapq, accumulate, snap_to_valley, river_segments, rasterize; слои растеризуются параллельно в WorkerThreadPool; run() считает вне главного потока). Маски совпадают с эталоном пиксель в пиксель.",
+  "commits": [
+    "12eb7d6d OA-2: RiverStage — порт rivers.py"
+  ],
+  "checks": [
+    {
+      "name": "iou_far",
+      "value": "1.0000",
+      "pass": true
+    },
+    {
+      "name": "iou_detail",
+      "value": "1.0000",
+      "pass": true
+    },
+    {
+      "name": "time_river",
+      "value": "23.9 с askarovo / 19.4 с altai (в dp accept 19.8)",
+      "pass": true
+    },
+    {
+      "name": "river_stage",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "contract_river",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept OA-2",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/river_stage.gd run()",
+      "why": "ожидание задачи через process_frame ctx.host; без host в дереве — блокирующее ожидание",
+      "checked": "тест run() без host проходит; с реальным host не гонял"
+    },
+    {
+      "where": "river_stage.gd compute",
+      "why": "fine-слой = 'detail' если есть, иначе первый ключ (в Python built[0])",
+      "checked": "совпадает для встроенных"
+    }
+  ],
+  "dp_feedback": "Нет замечаний.",
+  "extra": {
+    "note": "run() без cfg rivers возвращает OK и масок не пишет; в ctx.layers[id].water_file проставляется"
+  },
+  "t": "2026-10-09T17:57:54",
+  "by": "executor"
+}

@@ -1,0 +1,123 @@
+{
+  "status": "done",
+  "summary": "Сборщик места, кеш, реестр Locations, путь точки в игре, build_location.gd и тест готовы; OA-4 подтянута, dp accept --dry 12/12. Исправлена гонка в load_point (715f0b4a).",
+  "commits": [
+    "a30df423 Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (OA-5)",
+    "715f0b4a load_point: ждать маски 10 м до чтения карт поверхности"
+  ],
+  "checks": [
+    {
+      "name": "dp accept OA-5 --dry",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "world_objects/terrain/recent_places/popular_places/menu_setup/world_key/favorites/start_regression/game_logic/e2e",
+      "value": "все зелёные",
+      "pass": true
+    },
+    {
+      "name": "реальная сборка 47.05/11.0 с сетью",
+      "value": "59 с (dem 16.5, rivers 25.2, surface 17.3), 139 запросов, 14.5 МБ, missing=[osm] (OsmStage нет)",
+      "pass": true
+    },
+    {
+      "name": "повтор (47.06/11.01, тот же ключ)",
+      "value": "net_requests 0, 0.3 с, догружается только osm",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "90/90",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "84/84",
+      "pass": true
+    },
+    {
+      "name": "recent_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "world_key",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "favorites",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "start_regression",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "game_logic",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "e2e",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "5/5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Реальная точка с OSM не проверялась (Overpass-зеркала отвергают запрос, чинит OA-9); отказ OSM даёт missing=[osm] и догрузку (проверено на реальной сборке и тестом).",
+    "Экран загрузки глазами не смотрел."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept OA-5; XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/location_builder.gd",
+      "why": "логика догрузки: osm пересобирается при пересборке surface; отказ surface пропускает osm. Без реальной OsmStage не проверено",
+      "checked": "тест на подставных стадиях"
+    },
+    {
+      "where": "scripts/terrain/terrain.gd load_point",
+      "why": "load_location для кеша синхронный setup_async не используется для чтения; setup_async вызывается после ручного чтения слоёв; визуально не смотрел",
+      "checked": "e2e зелёный, headless"
+    },
+    {
+      "where": "configs/ui.json",
+      "why": "добавил этап osm (вес 10) и строку loading_osm в locale",
+      "checked": "menu_setup зелёный"
+    }
+  ],
+  "dp_feedback": [
+    "dp task show не даёт готовой команды 'подтянуть OA-4 когда влита' - проверять вручную git log feature/osm-any."
+  ],
+  "t": "2026-10-09T19:00:47",
+  "by": "executor"
+}

@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "tools" / "osm"))
+sys.path.insert(0, str(ROOT / "tools" / "research" / "_legacy_terrain"))
 import fetch_osm  # noqa: E402
 
 CACHE = Path.home() / ".cache" / "deltaplan_osm" / "hg_sites"

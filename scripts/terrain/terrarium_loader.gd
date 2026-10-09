@@ -1,15 +1,12 @@
 class_name TerrariumLoader
 extends Node
-## Рантайм-загрузка рельефа вокруг произвольной точки (FR-17, прототип).
+## Тайлы Terrarium для карты выбора точки: высота точки (elevation_at). Сборка рельефа места — DemStage.
 ## Источник — открытые тайлы AWS Terrain Tiles (формат Terrarium, PNG 256×256,
 ## высота = R·256 + G + B/256 − 32768 м). Тайлы кешируются на диск (user://terrain_cache/…),
 ## повторная загрузка того же района — без сети.
 ## Слой строится прямо в пикселях web-mercator: на 40–170 км масштаб меняется < 1 %,
 ## поэтому сетка считается метрической с шагом = размер пикселя на широте центра.
 ## Параметры — configs/world.json → runtime_terrain.
-
-## Скачано done тайлов из total (по всем слоям).
-signal progress(done: int, total: int)
 
 ## Экваториальный радиус WGS84 для web-mercator, м (константа проекции).
 const MERCATOR_R_M := 6378137.0
@@ -18,72 +15,6 @@ const TILE_PX := 256
 var _cfg: Dictionary = {}
 var _cancelled := false
 var _requests: Array[HTTPRequest] = []
-var _done_before := 0
-var _total := 0
-
-
-## Скачать тайлы и собрать слои. Возвращает {config, layers} или {error, kind}:
-## kind — "network" (нет связи/таймаут), "nodata" (для места нет тайлов), "cancelled", "config".
-## Сборка слоя из тайлов (PNG → высоты) — в рабочем потоке, главный поток не стоит.
-func build_location(lat: float, lon: float, size_km: float = -1.0) -> Dictionary:
-	_ensure_cfg()
-	_cancelled = false
-	if _cfg.is_empty():
-		return {"error": "нет раздела runtime_terrain в configs/world.json", "kind": "config"}
-	if absf(lat) > float(_cfg.get("max_abs_lat", 84.0)):
-		return {"error": "широта %.1f° — вне проекции тайлов" % lat, "kind": "nodata"}
-	var layer_cfgs: Array = _cfg.layers
-	var built: Array[HeightLayer] = []
-	var render := {}
-	var plans: Array[Dictionary] = []
-	_total = 0
-	_done_before = 0
-	for k in layer_cfgs.size():
-		var lc: Dictionary = layer_cfgs[k]
-		var size := float(lc.size_km) * 1000.0
-		if k == 0 and size_km > 0.0:
-			size = size_km * 1000.0
-		var z := layer_zoom(lc, lat)
-		plans.append(_plan_layer(String(lc.id), lat, lon, z, size, int(lc.chunk_cells)))
-		_total += (plans[k].tiles as Array).size()
-	for k in layer_cfgs.size():
-		var lc: Dictionary = layer_cfgs[k]
-		var r: Dictionary = await _build_layer(plans[k])
-		if _cancelled:
-			return {"error": "отменено", "kind": "cancelled"}
-		if r.has("error"):
-			return r
-		_done_before += (plans[k].tiles as Array).size()
-		built.append(r.layer)
-		render[String(lc.id)] = {
-			"chunk_cells": int(lc.chunk_cells),
-			"lod_distances_m": lc.lod_distances_m,
-			"skirt_depth_m": float(lc.skirt_depth_m),
-		}
-	# Стартовая точка — выбранное место, разбег вниз по склону.
-	var d := built[0]
-	var e := d.spacing
-	var gx := d.sample(e, 0.0) - d.sample(-e, 0.0)
-	var gz := d.sample(0.0, e) - d.sample(0.0, -e)
-	var heading := fposmod(rad_to_deg(atan2(-gx, gz)), 360.0)
-	var config := {
-		"name": "%.4f, %.4f" % [lat, lon],
-		"center_lat": lat,
-		"center_lon": lon,
-		"render": render,
-		"start_sites":
-		[
-			{
-				"id": "picked",
-				"name": "Выбранная точка",
-				"lat": lat,
-				"lon": lon,
-				"heading_deg": heading
-			}
-		],
-		"start_position_agl_m": 0.0,
-	}
-	return {"config": config, "layers": built}
 
 
 func _ensure_cfg() -> void:
@@ -146,7 +77,7 @@ func cache_path(z: int, x: int, y: int) -> String:
 	)
 
 
-## Прервать загрузку: запросы закрываются, build_location вернёт {kind: "cancelled"}.
+## Прервать загрузку: запросы закрываются.
 func cancel() -> void:
 	_cancelled = true
 	for r in _requests:
@@ -203,19 +134,6 @@ func _plan_layer(
 	}
 
 
-## Скачать тайлы слоя и собрать HeightLayer (сборка — в рабочем потоке). {layer} или {error, kind}.
-func _build_layer(plan: Dictionary) -> Dictionary:
-	var raw: Dictionary = await _fetch_all(int(plan.z), plan.tiles)
-	if raw.has("error"):
-		return raw
-	var slot := {}
-	var task := WorkerThreadPool.add_task(func() -> void: slot.merge(assemble(plan, raw)))
-	while not WorkerThreadPool.is_task_completed(task):
-		await get_tree().process_frame
-	WorkerThreadPool.wait_for_task_completion(task)
-	return slot
-
-
 ## Мозаика тайлов → обрезка → высоты → HeightLayer (без сцены, годится для рабочего потока).
 ## raw — {Vector2i тайла: PNG-байты}. {layer} или {error, kind: "nodata"}.
 static func assemble(plan: Dictionary, raw: Dictionary) -> Dictionary:
@@ -246,38 +164,6 @@ static func assemble(plan: Dictionary, raw: Dictionary) -> Dictionary:
 		String(plan.id), n, n, float(plan.spacing), o.x, o.y, heights
 	)
 	return {"layer": layer}
-
-
-## Все тайлы слоя (PNG-байты, из кеша или сети): {Vector2i: PackedByteArray} или {error, kind}.
-func _fetch_all(z: int, tiles: Array[Vector2i]) -> Dictionary:
-	var out := {}
-	var queue := tiles.duplicate()
-	var state := {"done": 0, "failed": "", "kind": ""}
-	var workers := mini(int(_cfg.get("max_parallel_requests", 4)), queue.size())
-	for w in workers:
-		_worker(z, queue, out, state)
-	while int(state.done) < tiles.size() and String(state.failed) == "" and not _cancelled:
-		await get_tree().process_frame
-	if _cancelled:
-		return {"error": "отменено", "kind": "cancelled"}
-	if String(state.failed) != "":
-		return {"error": state.failed, "kind": state.kind}
-	return out
-
-
-func _worker(z: int, queue: Array, out: Dictionary, state: Dictionary) -> void:
-	while not queue.is_empty() and String(state.failed) == "" and not _cancelled:
-		var t: Vector2i = queue.pop_back()
-		var r: Dictionary = await _fetch_tile_bytes(z, t.x, t.y)
-		if _cancelled:
-			return
-		if r.has("error"):
-			state.failed = r.error
-			state.kind = r.kind
-			return
-		out[t] = r.data
-		state.done = int(state.done) + 1
-		progress.emit(_done_before + int(state.done), _total)
 
 
 ## Один тайл Terrarium: {data: PNG-байты} или {error, kind}.

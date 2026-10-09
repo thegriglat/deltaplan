@@ -1,0 +1,102 @@
+{
+  "id": "OA-7",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Встроенные места — тем же сборщиком игры; Python-сборка и data/osm удаляются",
+  "goal": "Одна логика получения данных: встроенные места = заранее собранные игрой папки того же формата; Python-сборка не нужна.",
+  "plan_ref": "OA-7. Встроенные места",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "2",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К2",
+      "version": "2",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К4",
+      "version": "2",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-7",
+  "branch": "osm-any/OA-7",
+  "base": "feature/osm-any",
+  "scope": [
+    "tools/terrain/",
+    "tools/osm/",
+    "data/terrain/",
+    "data/osm/",
+    "scripts/terrain/build/locations.gd",
+    "scripts/terrain/height_layer.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/game/recent_places.gd",
+    "tests/",
+    "configs/locations/",
+    "configs/world_objects.json",
+    "scripts/terrain/build/location_builder.gd",
+    "tools/research/",
+    "tools/terrain/raw_overpass_client.gd",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "scripts/terrain/build/dem_stage.gd",
+    "scripts/terrain/build/river_stage.gd",
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/terrain/build/osm_stage.gd",
+    "scripts/terrain/build/location_build_context.gd",
+    "project.godot",
+    "scripts/instruments/"
+  ],
+  "accept": [
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "locations",
+      "tests": "locations"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "start_tracks",
+      "tests": "start_tracks"
+    },
+    {
+      "name": "egg_place",
+      "tests": "egg_place"
+    },
+    {
+      "name": "recent_places",
+      "tests": "recent_places"
+    },
+    {
+      "name": "start_regression",
+      "tests": "start_regression"
+    },
+    {
+      "name": "size_report",
+      "cmd": "du -sb data/terrain | cut -f1",
+      "expect": "num:^(\\d+) <=80000000"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T18:35:16",
+  "edited": "2026-10-09T19:28:17"
+}

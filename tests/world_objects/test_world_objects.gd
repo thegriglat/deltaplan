@@ -2,7 +2,7 @@ extends TestCase
 ## Объекты мира: godot --headless --path . res://tests/run_tests.tscn -- --filter=world_objects
 
 const LOCATION := "altai"
-const OSM_PATH := "res://data/osm/altai.json"
+const OSM_PATH := "res://data/terrain/altai/osm.json"
 
 static var _terrain: Terrain
 static var _world: WorldObjects
@@ -54,15 +54,9 @@ func test_osm_data_loads() -> void:
 
 
 func test_all_locations_osm_valid() -> void:
-	var d := DirAccess.open("res://data/osm")
-	check(d != null, "нет data/osm")
-	if d == null:
-		return
 	var n := 0
-	for f in d.get_files():
-		if not f.ends_with(".json"):
-			continue
-		var o := OsmData.load_file("res://data/osm/" + f)
+	for f in Locations.builtin_ids():
+		var o := OsmData.load_file(Locations.osm_path(f))
 		check(o != null and o.attribution.contains("OpenStreetMap"), f + ": атрибуция")
 		check(o != null and o.roads.size() > 100 and o.buildings.size() > 100, f + ": данные")
 		n += 1

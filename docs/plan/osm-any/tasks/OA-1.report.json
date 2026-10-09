@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "DemStage собирает detail (Copernicus COG, HTTP range или локальный файл) и far (Terrarium z10) как fetch_dem.py; пишет .f32.zst и meta.json, заполняет ctx.heights/layers. CogReader умеет float32 и предиктор 3, HeightLayer читает .f32.zst. Паритет с встроенными данными побитовый.",
+  "commits": [
+    "89053e28 DemStage: рельеф места в игре, .f32.zst, паритет с fetch_dem.py"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "74/74",
+      "pass": true
+    },
+    {
+      "name": "contract_dem",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "contract_zst",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "rmse_detail",
+      "value": "0.0000 (max_abs 0.000)",
+      "pass": true
+    },
+    {
+      "name": "rmse_far",
+      "value": "0.0000 (max_abs 0.000)",
+      "pass": true
+    },
+    {
+      "name": "time_dem",
+      "value": "2.4 с без сети; онлайн с пустым кешем 11.4 с, 63 запроса, повтор из кеша 0 запросов",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept OA-1; онлайн: godot --headless --path . -s res://tools/terrain/parity/dem_parity.gd -- --online askarovo",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/dem_stage.gd (min/max far)",
+      "why": "min/max_height_m у far считаю после вклейки detail, в Python — до неё",
+      "checked": "на askarovo и altai значения совпадают с эталоном"
+    },
+    {
+      "where": "scripts/terrain/build/dem_stage.gd (_open_cop)",
+      "why": "HTTP 403/404 для Copernicus = тайла нет (море), высота 0, в кеш пишется маркер nodata; на реальном 404 не проверял",
+      "checked": "только логика; ветка локальных/кешированных файлов и 206 проверены"
+    },
+    {
+      "where": "tools/terrain/parity/dem_parity.gd",
+      "why": "автозагрузки недоступны при разборе -s скрипта, поэтому классы грузятся через load()",
+      "checked": "работает"
+    }
+  ],
+  "dp_feedback": "Контекст -s: Config недоступен при разборе. Незакоммиченные чужие .uid в рабочей копии мешают чистоте статуса.",
+  "extra": {
+    "spec_dem_sources": "необязательный ctx.spec.dem_sources {copernicus_dir, terrarium_dir, terrarium_cache_dir} для проверок без сети"
+  },
+  "t": "2026-10-09T18:02:12",
+  "by": "executor"
+}

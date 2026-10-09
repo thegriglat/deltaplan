@@ -531,7 +531,7 @@
   "surface": {
     "_doc": "Карта поверхности (VR-4, VR-0): классы земного покрова. Из неё же берутся цвет земли (шейдер рельефа), деревья (только на «лесе») и сила источников термиков (Terrain.thermal_source_strength_at). Классы: 1 лес, 2 луг/трава, 3 пашня/поля, 4 кустарник, 5 скалы/голый грунт, 6 вода, 7 застройка, 8 снег/лёд; 0 — нет данных.",
     "worldcover": {
-      "_doc": "ESA WorldCover 2021 v200, 10 м (CC-BY 4.0): COG на AWS, читаются только нужные тайлы (HTTP range). Встроенные локации — tools/terrain/fetch_landcover.py, рантайм — scripts/terrain/worldcover_loader.gd.",
+      "_doc": "ESA WorldCover 2021 v200, 10 м (CC-BY 4.0): COG на AWS, читаются только нужные тайлы (HTTP range). Встроенные локации — SurfaceStage (tools/terrain/build_location.gd), рантайм — scripts/terrain/worldcover_loader.gd.",
       "url_template": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_{tile}_Map.tif",
       "url_template_doc": "Адрес файла; {tile} — угол тайла 3°×3°, например N51E084",
       "classes": {
@@ -551,7 +551,7 @@
       "attribution": "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium"
     },
     "detail10": {
-      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит tools/terrain/fetch_landcover.py <id> --only=detail10. Рантайм-локации (FR-17) — прежняя карта классов.",
+      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит SurfaceStage. Рантайм-локации (FR-17) — прежняя карта классов.",
       "layers": [
         "detail"
       ],
@@ -686,6 +686,84 @@
       "patch_scale_m": 700,
       "patch_scale_m_doc": "Размер пятен леса/полей (масштаб шума), м"
     }
+  },
+  "location_builder": {
+    "_doc": "Сборка места для любой точки в игре (osm-any, docs/contracts/osm-any.md OA-К3/OA-К4): те же слои и параметры, что у встроенных мест; кеш user://locations/<ключ>.",
+    "version": 1,
+    "version_doc": "Версия сборщика: место в кеше с другой версией собирается заново",
+    "cache_dir": "user://locations",
+    "snap_deg": 0.05,
+    "snap_deg_doc": "Шаг сетки центра места, градусы: соседние точки берут одно место",
+    "builtin_margin_km": 10,
+    "builtin_margin_km_doc": "Точка не ближе этого к краю детального квадрата встроенного места — грузится встроенное место, км",
+    "template": {
+      "dem": {
+        "layers": [
+          {
+            "id": "detail",
+            "size_km": 40,
+            "spacing_m": 25,
+            "source": "copernicus",
+            "zoom": 12,
+            "quantize_per_m": 32,
+            "smooth_sigma_cells": 0.8
+          },
+          {
+            "id": "far",
+            "size_km": 160,
+            "spacing_m": 100,
+            "source": "terrarium",
+            "zoom": 10,
+            "quantize_per_m": 32,
+            "smooth_sigma_cells": 0
+          }
+        ]
+      },
+      "render": {
+        "detail": {
+          "chunk_cells": 160,
+          "lod_distances_m": [
+            1500,
+            3500,
+            7000,
+            14000
+          ],
+          "skirt_depth_m": 40
+        },
+        "far": {
+          "chunk_cells": 200,
+          "lod_distances_m": [
+            12000,
+            25000,
+            45000
+          ],
+          "skirt_depth_m": 150
+        }
+      },
+      "rivers": {
+        "source_layer": "far",
+        "min_area_km2": 8,
+        "width_k": 2.2,
+        "min_width_m": 6,
+        "max_width_m": 200,
+        "snap_radius_m": 80
+      },
+      "surface": {
+        "layers": {
+          "detail": {
+            "level": 0,
+            "subsamples": 3
+          },
+          "far": {
+            "level": 2,
+            "subsamples": 3
+          }
+        }
+      },
+      "start_clearing_radius_m": 70,
+      "start_position_agl_m": 0.0
+    },
+    "template_doc": "Конфиг места-точки (как configs/locations/<id>.json, значения — как у Аскарово); trees/terrain_look — общие из world.json"
   },
   "runtime_terrain": {
     "_doc": "Рантайм-загрузка рельефа по lat/lon (FR-17, scripts/terrain/terrarium_loader.gd). Тайлы AWS Terrain Tiles (Terrarium), кеш на диске.",

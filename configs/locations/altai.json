@@ -9,9 +9,9 @@
   "utc_offset_h": 7,
   "utc_offset_h_doc": "Часовой пояс места, UTC+N: часы полёта — поясное время (SunClock)",
   "data_dir": "res://data/terrain/altai",
-  "data_dir_doc": "Папка с высотами (генерирует tools/terrain/fetch_dem.py)",
+  "data_dir_doc": "Папка с высотами (собирает tools/terrain/build_location.gd -- --id <id>)",
   "dem": {
-    "_doc": "Параметры подготовки высот (читает только tools/terrain/fetch_dem.py). Слои от детального к грубому; грубый слой рисуется там, где нет детального.",
+    "_doc": "Параметры подготовки высот (читает DemStage). Слои от детального к грубому; грубый слой рисуется там, где нет детального.",
     "layers": [
       {
         "id": "detail",
@@ -88,7 +88,7 @@
   "start_clearing_radius_m": 70,
   "start_clearing_radius_m_doc": "Радиус поляны без леса вокруг стартовой площадки, м (старты — всегда открытые склоны)",
   "rivers": {
-    "_doc": "Реки по рельефу (tools/terrain/rivers.py): сток считается по грубому слою (водосбор из-за края зоны), ширина = width_k·√(площадь водосбора, км²).",
+    "_doc": "Реки по рельефу (RiverStage): сток считается по грубому слою (водосбор из-за края зоны), ширина = width_k·√(площадь водосбора, км²).",
     "source_layer": "far",
     "source_layer_doc": "Слой, по которому считается сток",
     "min_area_km2": 8,
@@ -102,7 +102,7 @@
     "snap_radius_m_doc": "Радиус поиска дна долины в детальном слое, м"
   },
   "surface": {
-    "_doc": "Карта поверхности (VR-4) для tools/terrain/fetch_landcover.py: источник WorldCover (configs/world.json → surface.worldcover), по слоям — уровень COG (0 — 10 м, 1 — 20 м, 2 — 40 м…) и число подвыборок k×k на клетку (класс — самый частый).",
+    "_doc": "Карта поверхности (VR-4) для SurfaceStage: источник WorldCover (configs/world.json → surface.worldcover), по слоям — уровень COG (0 — 10 м, 1 — 20 м, 2 — 40 м…) и число подвыборок k×k на клетку (класс — самый частый).",
     "layers": {
       "detail": {
         "level": 0,

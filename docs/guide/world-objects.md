@@ -18,7 +18,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Ветроуказател�
 | `wind_cloth_model.gd` (`WindClothModel`) | поведение конуса/ленты по воздуху: поворот (пружина с демпфером, жёсткость ∝ напору), наполнение от скорости, наклон от вертикального потока, болтание от СКО порывов. Без нод |
 | `wind_indicator.gd` (`WindIndicator`) + `wind_cloth.gdshader` | ветроуказатель/вешка: визуал из сцены, поворот ноды `Pivot`, ткань гнёт вершинный шейдер (провисание, сужение пустого хвоста, бегущая волна) |
 | `landing_site.gd` (`LandingSite`) | посадка: скошенное поле по рельефу с полосами покоса, лесополосы, забор, коллизии |
-| `osm_data.gd` (`OsmData`) | загрузка `data/osm/<id>.json`, пересчёт координат, если центр рельефа другой |
+| `osm_data.gd` (`OsmData`) | загрузка файла OSM места (`Locations.osm_path`: `osm.json` в папке места — `data/terrain/<id>/` или `user://locations/<ключ>/`), пересчёт координат, если центр рельефа другой |
 | `osm_layer.gd` (`OsmLayer`) | отрисовка OSM: дороги, здания, опоры и провода, заборы у посадок (дороги и здания считаются в пуле потоков) |
 | `road_mesher.gd`, `building_placer.gd`, `power_line_planner.gd` | чистые построители: ленты дорог по тайлам, коробки зданий для MultiMesh, опоры и цепные линии |
 | `start_tracks.gd` (`StartTracks`) | тропы к стартам: OSM track рядом со стартом или процедурная тропа по рельефу (серпантин, обход воды); меш — узкая грунтовая лента с колеёй |
@@ -32,7 +32,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Ветроуказател�
 | `scenes/world_objects/world_objects.tscn` | компонент для главной сцены |
 | `scenes/world_objects/{windsock,streamer}_visual.tscn` | обёртки визуала (маркер `Pivot`, меш `Sock`/`Ribbon`) |
 | `scenes/world_objects/world_objects_preview.tscn` | тестовая сцена с рельефом и атмосферой |
-| `tools/osm/fetch_osm.py` | выгрузка OSM (Overpass API) → `data/osm/<id>.json` |
+| `scripts/terrain/build/osm_stage.gd` (`OsmStage`) | выгрузка OSM (Overpass API) → `osm.json` в папке места, вода 10 м; см. `docs/guide/location-data.md` |
 | `tools/blender/world_objects/build_world_objects.py` | модели: ветроуказатель, вешка с лентой, пролёт забора, опора 110 кВ, столб 10 кВ |
 | `tools/blender/build_tents.py` | палатки: купольная 2-местная, туннельная 3-местная, тент-навес → `assets/models/world/tents.glb` |
 | `tools/shots/tents_shot.tscn` | кадры лагеря в игре (с земли, сбоку, вблизи, сверху) и всех моделей × цветов |
@@ -55,8 +55,7 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 - Рельеф передаёт: `location_id`, `get_start_sites()`, `get_landing_sites()` (если есть), `height_at`,
   `latlon_to_local`, `center_lat/lon`. Атмосфера — `air_velocity_at`.
 - Смена локации: снова `setup(...)` (старые объекты удаляются). Сигнал `built` — всё построено.
-- Для рантайм-точки (`load_location_latlon`, `location_id == ""`) OSM-данных нет: ставятся только
-  ветроуказатели на стартах. Выгрузка OSM в игре — задел (см. questions.md).
+- Для места точки (`location_id` — ключ кеша `pt_…`) OSM берётся из `osm.json` папки места (нет слоя — OSM-объектов нет, ставятся только ветроуказатели на стартах).
 - Проверять столкновение стоит для центра и концов крыла; препятствия без физического движка (`height_at`
   как у полёта), запрос ~мкс (сетка 64 м).
 
@@ -114,8 +113,7 @@ OSM `highway`, не трогаем). Параметры — `configs/world_objec
   от старта к цели (`StartTracks._generate_from`) — прямой шаг, если уклон ≤ `max_slope_deg`, иначе
   отклонение к локальному контуру (перпендикуляр к градиенту рельефа — направление нулевого уклона,
   доля поворота — `contour_fractions`, по возрастанию, до подходящего по уклону); обходит воду (OSM
-  `rivers`/`lakes`, буфер `water_buffer_m`, отсев далёких — `water_search_margin_m`). Без OSM (рантайм-локация по координатам,
-  `load_location_latlon`) — тропа вниз по склону (направление наибольшего спуска у старта),
+  `rivers`/`lakes`, буфер `water_buffer_m`, отсев далёких — `water_search_margin_m`). Без OSM (место точки без слоя OSM) — тропа вниз по склону (направление наибольшего спуска у старта),
   фиксированной длины `no_destination_length_m`.
 - **Отрисовка**: как дороги (лента по рельефу, `draped.gdshader`), но уже и естественнее — ширина
   гуляет вдоль пути `width_min_m`..`width_max_m` (период `width_wave_m`), цвет вытоптанной травы
@@ -194,7 +192,7 @@ terrain, count)`; в игре зовёт `WorldLink`, когда `Game` зако
 `configs/world_objects.json → clearings`.
 
 ```gdscript
-# 1) без нод, по id локации (читает data/osm/<id>.json, configs/locations/<id>.json, посадки из world_objects.json):
+# 1) без нод, по id локации (читает osm.json места, configs/locations/<id>.json, посадки из world_objects.json):
 var c := WorldClearings.build_for(location_id)     # null — нет конфига локации; OSM нет — только посадки
 c.is_clear_at(x, z)          # true — расчищено, дерево не ставить
 c.image                      # Image L8, 255 — расчищено; 40 км / 10 м = 4000² (Алтай: 0,4 с)
@@ -208,11 +206,11 @@ c.origin, c.cell_m           # мир (x, z) угла пикселя (0, 0); п�
   `if (texture(clearing_mask, uv).r > 0.5)` — масштаб экземпляра в 0 (как сейчас с полянами стартов);
 - в раскраске рельефа эту же маску можно использовать, чтобы под просекой ЛЭП был луг, а не лес;
 - на CPU (если деревья расставляются в коде) — `mask.is_clear_at(x, z)`.
-Для рантайм-точки (FR-17) OSM нет — маска содержит только посадки (или null без конфига).
+Если у места точки нет `osm.json` — маска содержит только посадки (или null без конфига).
 Проверка: `godot --headless --path . res://scenes/world_objects/world_objects_preview.tscn -- --location=<id> --mask=out.png`.
 
 ## OSM (VR-9, VR-10)
-**Данные** `data/osm/<id>.json` (© OpenStreetMap contributors, ODbL — строка в ASSETS.md и в файле):
+**Данные** `osm.json` в папке места (встроенного — `data/terrain/<id>/`, точки — `user://locations/<ключ>/`; собирает `OsmStage`, `docs/guide/location-data.md`; © OpenStreetMap contributors, ODbL — строка в ASSETS.md и в файле):
 ```
 {attribution, location, center_lat, center_lon, bbox_latlon,
  roads:     [{t: класс highway, p: [x, z, x, z…]}],
@@ -264,14 +262,13 @@ c.origin, c.cell_m           # мир (x, z) угла пикселя (0, 0); п�
 Рядом в `EggContext` — дата, высота солнца, облачность, ветер и температура прогноза.
 
 ## Как добавить локацию
-1. terrain создаёт `configs/locations/<id>.json` и `data/terrain/<id>/` (центр, старты, `landing_sites`).
-2. `uv run python tools/osm/fetch_osm.py <id>` — квадрат = детальный слой рельефа; кеш сырых ответов
-   `~/.cache/deltaplan_osm/` (`--refresh` — заново). Overpass часто отвечает 504 — скрипт перебирает зеркала
-   из `osm.overpass_urls`; повторный запуск докачивает только недостающие слои.
-3. Посадки: посмотреть поле (уклон, ЛЭП, заборы) — например картой высот + OSM, как в разделе выше;
+1. Создать `configs/locations/<id>.json` и собрать место `build_location.gd -- --id <id>` (рельеф, покров и `osm.json`
+   одним сборщиком — `docs/guide/terrain.md`, `docs/guide/location-data.md`). Overpass часто отвечает 504 — сборщик
+   перебирает зеркала из `world_objects.json → osm.overpass_urls`; не получилось — повторить, место помечено `missing`.
+2. Посадки: посмотреть поле (уклон, ЛЭП, заборы) — например картой высот + OSM, как в разделе выше;
    записать `landing.sites.<id>` в `configs/world_objects.json` (ось, размер, деревья, цвет травы под местность).
-4. `godot --path . res://scenes/world_objects/world_objects_preview.tscn -- --location=<id> --view=landing`.
-5. Строка в ASSETS.md (данные OSM локации).
+3. `godot --path . res://scenes/world_objects/world_objects_preview.tscn -- --location=<id> --view=landing`.
+4. Строка в ASSETS.md (данные OSM локации).
 
 ## Превью, замеры, тесты
 ```

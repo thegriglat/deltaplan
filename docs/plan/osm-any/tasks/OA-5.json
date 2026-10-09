@@ -1,0 +1,122 @@
+{
+  "id": "OA-5",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Сборщик места, кеш user://locations, реестр мест и путь точки в игре",
+  "goal": "Точка с карты/из популярных/недавних грузится как встроенное место: сборка стадиями OA-1…OA-4 в кеш, повторный запуск — из кеша без сети; все потребители конфигов мест и OSM — через реестр Locations.",
+  "plan_ref": "OA-5. Сборщик, кеш и путь в игре",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К2",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К4",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-5",
+  "branch": "osm-any/OA-5",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/location_builder.gd",
+    "scripts/terrain/build/location_cache.gd",
+    "scripts/terrain/build/locations.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrarium_loader.gd",
+    "scripts/terrain/worldcover_loader.gd",
+    "scripts/game/",
+    "scripts/ui/",
+    "scripts/core/activity.gd",
+    "scripts/world_objects/",
+    "scripts/tasks/task_preview.gd",
+    "scripts/terrain/map_picker_preview.gd",
+    "locale/",
+    "tests/terrain/test_location_builder.gd",
+    "tests/",
+    "tools/terrain/build_location.gd",
+    "docs/guide/",
+    "configs/game.json",
+    "configs/ui.json",
+    "scripts/terrain/terrain_preview.gd",
+    "scripts/terrain/terrain_relief.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/terrain/build/dem_stage.gd",
+    "scripts/terrain/build/river_stage.gd",
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/terrain/build/osm_stage.gd",
+    "data/",
+    "project.godot",
+    "tools/osm/",
+    "scripts/instruments/"
+  ],
+  "accept": [
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "recent_places",
+      "tests": "recent_places"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "world_key",
+      "tests": "world_key"
+    },
+    {
+      "name": "favorites",
+      "tests": "favorites"
+    },
+    {
+      "name": "start_regression",
+      "tests": "start_regression"
+    },
+    {
+      "name": "game_logic",
+      "tests": "game_logic"
+    },
+    {
+      "name": "e2e",
+      "tests": "e2e"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T18:05:24",
+  "edited": "2026-10-09T18:38:18"
+}

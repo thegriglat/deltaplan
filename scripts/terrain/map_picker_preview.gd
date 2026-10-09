@@ -15,7 +15,7 @@ func _ready() -> void:
 	mp.point_picked.connect(
 		func(lat: float, lon: float) -> void: print("Выбрано: %.5f, %.5f" % [lat, lon])
 	)
-	var loc: Dictionary = Config.get_config("locations/altai")
+	var loc: Dictionary = Locations.config("altai")
 	mp.center_on(float(loc.center_lat), float(loc.center_lon))
 	mp.pick(float(loc.center_lat), float(loc.center_lon))
 

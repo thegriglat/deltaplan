@@ -140,7 +140,7 @@ func test_osm_water_rings_closed_islands_cut() -> void:
 	# каждый: хорда заливала пойму водой прямо по лесу), острова — дыры
 	var holes := 0
 	for id in _locations():
-		var osm := OsmData.load_file("res://data/osm/%s.json" % id)
+		var osm := OsmData.load_file(Locations.osm_path(id))
 		if osm == null:
 			continue
 		var open := 0

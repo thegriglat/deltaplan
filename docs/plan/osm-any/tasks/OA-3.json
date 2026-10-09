@@ -1,0 +1,79 @@
+{
+  "id": "OA-3",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Стадия покрова SurfaceStage (порт fetch_landcover.py)",
+  "goal": "Классы поверхности 25/100 м и доля леса 10 м (detail10 L) для любого места тем же расчётом, что fetch_landcover.py.",
+  "plan_ref": "OA-3. Стадия покрова",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-3",
+  "branch": "osm-any/OA-3",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/terrain/worldcover_loader.gd",
+    "tests/terrain/test_surface_stage.gd",
+    "tools/terrain/parity/surface_parity.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/game/",
+    "data/",
+    "configs/",
+    "project.godot",
+    "scripts/terrain/cog_reader.gd",
+    "scripts/terrain/height_layer.gd",
+    "tools/terrain/fetch_landcover.py"
+  ],
+  "accept": [
+    {
+      "name": "surface",
+      "tests": "surface"
+    },
+    {
+      "name": "contract_surface",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_surface"
+    },
+    {
+      "name": "class_detail",
+      "cmd": "mkdir -p build && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/parity/surface_parity.gd 2>&1 | tee build/parity_surface.txt",
+      "expect": "num:class_agree_detail=([\\d.]+) >=0.98"
+    },
+    {
+      "name": "class_far",
+      "cmd": "cat build/parity_surface.txt",
+      "expect": "num:class_agree_far=([\\d.]+) >=0.98"
+    },
+    {
+      "name": "forest_frac",
+      "cmd": "cat build/parity_surface.txt",
+      "expect": "num:forest_frac_diff=([\\d.]+) <=0.005"
+    },
+    {
+      "name": "d10_mae",
+      "cmd": "cat build/parity_surface.txt",
+      "expect": "num:detail10_l_mae=([\\d.]+) <=2"
+    },
+    {
+      "name": "time_surface",
+      "cmd": "cat build/parity_surface.txt",
+      "expect": "num:stage_seconds=([\\d.]+) <=120"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T17:52:01"
+}

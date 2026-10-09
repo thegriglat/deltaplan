@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "OverpassClient переписан: 6 запросов по слоям последовательно ([timeout],[maxsize:536870912]), опрос /api/status перед запросом, до 5 попыток на зеркало при 429/504 (и 500 с признаком нагрузки) с растущей паузой/Retry-After, remark runtime error - отказ зеркала, причина в ctx.log_lines, тайлы 2x2 для roads/buildings при полном отказе. Живой прогон Альп (47.05, 11.0) прошёл целиком: 253,7 с, 24 запроса, roads=10246.",
+  "commits": [
+    "67988040 Overpass: запросы по слоям, повторы при 429/504, статус слотов, тайлы для roads/buildings, живая проверка"
+  ],
+  "checks": [
+    {
+      "name": "osm_stage",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "94/94",
+      "pass": true
+    },
+    {
+      "name": "contract_osm",
+      "value": "ok test_k3_osm",
+      "pass": true
+    },
+    {
+      "name": "osm_equal",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "live_report",
+      "value": "live_alps_roads=10246",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Живой прогон askarovo: не завершён (слой power отказали все зеркала после 5 попыток); сравнение чисел объектов с data/osm/askarovo.json не получено. Перед отказом: roads 1,79 МБ и buildings 7,17 МБ получены (в кеше Python 1,5 и 6,2 МБ - близко).",
+    "Тайловый путь на живом сервере не срабатывал успешно (в успешном прогоне Альп все слои целиком); проверен только тестами."
+  ],
+  "questions": [
+    "Живой Overpass сильно нестабилен (504 'open64: 0 Success ... Dispatcher_Client' на первом запросе, 500 на kumi и private.coffee всегда). Принять 5 попыток вместо одной повторной? Для пользователя сборка точки в Альпах - минуты (254 с); нужен прогресс-индикатор в OA-5."
+  ],
+  "how_to_check": "dp accept OA-9; живой прогон: godot --headless --path . -s res://tools/terrain/parity/osm_live.gd (пишет build/osm_live.txt; делать вручную и редко)",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/overpass_client.gd:max_attempts",
+      "why": "отступление от решения 'одна повторная попытка': 3 попытки не хватило, при 5 Альпы прошли",
+      "checked": "4 живых прогона; цифры по слоям в build/osm_live.txt (копия /home/greg/deltaplan/build/osm_live_OA-9.txt)"
+    },
+    {
+      "where": "osm_live.gd",
+      "why": "для живой проверки сделал 5 прогонов (~150 запросов к overpass-api.de), возможно временный троттлинг с моей стороны",
+      "checked": "после паузы 8 мин прогон прошёл; /api/status показывал свободные слоты"
+    }
+  ],
+  "dp_feedback": "Нет команды для живых сетевых проверок с лимитом числа запросов.",
+  "t": "2026-10-09T19:37:56",
+  "by": "executor"
+}

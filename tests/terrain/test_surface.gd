@@ -486,7 +486,7 @@ func test_river_axis_is_water() -> void:
 	# не сплошная вода для surface_at/термиков) — surface_at = вода ≥ 90 %;
 	# те же точки, сдвинутые на 100 м поперёк русла, — не вода ≥ 95 %.
 	var t := _ong()
-	var osm_str := FileAccess.get_file_as_string("res://data/osm/ongudai.json")
+	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("ongudai"))
 	var osm: Dictionary = JSON.parse_string(osm_str)
 	var rivers: Array = []
 	for river: Dictionary in osm.water.rivers:
@@ -552,7 +552,7 @@ func test_lake_iou_aushkul() -> void:
 	check(sl != null, "у Аушкуля есть маска 10 м")
 	if sl == null:
 		return
-	var osm_str := FileAccess.get_file_as_string("res://data/osm/aushkul.json")
+	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("aushkul"))
 	var osm: Dictionary = JSON.parse_string(osm_str)
 	var poly: Array = []
 	for lake in osm.water.lakes:

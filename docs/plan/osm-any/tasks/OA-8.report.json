@@ -1,0 +1,35 @@
+{
+  "status": "done",
+  "summary": "Новый docs/guide/location-data.md (стадии, источники, кеш, ключ, missing/догрузка, точка во встроенном месте, повтор без сети, build_location.gd --id); terrain.md, world-objects.md, vegetation.md, architecture.md приведены к одной картине без ссылок на Python; findings osm-any, CHANGELOG, on_demand_location closed, offline_world_data заметка.",
+  "commits": [
+    "b8a0a7ca Документация: данные места для любой точки и встроенных (osm-any, OA-8)",
+    "Выводы паритета OSM-стадии (OA-4) в findings"
+  ],
+  "checks": [
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Guide описывает OsmStage и build_location.gd --id по контракту v2 — в моей копии их ещё нет"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept OA-8",
+  "uncertain": [
+    {
+      "where": "docs/guide/location-data.md",
+      "why": "утверждения про Overpass/OsmStage/--id и osm.json в data_dir взяты из контракта v2 и плана, кода нет",
+      "checked": "сверено с контрактом OA-К2/К4 v2"
+    },
+    {
+      "where": "docs/guide/terrain.md (рантайм-загрузка)",
+      "why": "удалил абзац про высокие широты/min_spacing_m (mercator-путь заменён); terrarium_loader.layer_zoom в коде ещё есть",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "dp docs index перегенерирует registry/contracts, decisions, research с чужими изменениями — пришлось откатывать git checkout; хотелось бы dp docs index --only INDEX.",
+  "t": "2026-10-09T18:54:48",
+  "by": "executor"
+}
