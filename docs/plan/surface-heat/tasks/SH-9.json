@@ -1,0 +1,47 @@
+{
+  "id": "SH-9",
+  "module": "surface-heat",
+  "type": "dp-engineer",
+  "title": "Числа SH-1 в ядро SurfaceHeat",
+  "goal": "Ядро SurfaceHeat — на литературных числах SH-1 (вместо заглушек): облачность по Stull через cover, рассеянная доля по Эрбсу, влажность 0,25/0,47/0,70, вода C_H 1,4e-3 и ρ по высоте, H_ref",
+  "plan_ref": "2. Задачи",
+  "contracts": [
+    {
+      "name": "SH1",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "SH2",
+      "version": "2",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-9",
+  "branch": "surface-heat/SH-9",
+  "base": "feature/surface-heat",
+  "scope": [
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/surface_heat.json",
+    "tests/atmosphere/test_surface_heat.gd",
+    "tests/contracts/test_surface_heat_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "scripts/terrain/",
+    "docs/research/surface_params.md"
+  ],
+  "accept": [
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "surface_heating",
+      "tests": "surface_heating"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T23:02:50"
+}

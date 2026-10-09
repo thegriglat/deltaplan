@@ -12,3 +12,30 @@
 {"t": "2026-10-09T22:55:28", "by": "coordinator", "task": "SH-2", "ev": "checked", "commits": ["c220ae0a"], "note": "0/3 surface_heat=FAIL:0/0; surface_heating=FAIL:0/0; air_contracts=FAIL:0/0"}
 {"t": "2026-10-09T22:56:14", "by": "coordinator", "task": "SH-2", "ev": "accepted", "commits": ["c220ae0a"], "note": "3/3 surface_heat=ok:13/13; surface_heating=ok:2/2; air_contracts=ok:30/30"}
 {"t": "2026-10-09T22:56:25", "by": "coordinator", "task": "SH-2", "ev": "merged", "commits": ["c220ae0a"]}
+{"t": "2026-10-09T22:56:48", "by": "coordinator", "task": "SH-4", "ev": "created", "note": "Масштаб 1: карта H по классам клетки для Пикара, окон и фаз"}
+{"t": "2026-10-09T22:56:48", "by": "coordinator", "task": "SH-5", "ev": "created", "note": "Масштаб 2: сила источника термиков из H"}
+{"t": "2026-10-09T22:56:54", "by": "coordinator", "task": "SH-5", "ev": "edited", "note": "accept:-atmosphere", "diff": {"accept": ["[{\"name\": \"surface\", \"tests\": \"surface\"}, {\"name\": \"relief\", \"tests\": \"relief\"}, {\"name\": \"thermal\", \"tests\": \"thermal\"}, {\"name\": \"ridge_starts\", \"tests\": \"ridge_starts\"}, {\"name\": \"atmosphere\", \"tests\": \"atmosphere\"}, {\"name\": \"surface_heat\", \"tests\": \"surface_heat\"}]", "[{\"name\": \"surface\", \"tests\": \"surface\"}, {\"name\": \"relief\", \"tests\": \"relief\"}, {\"name\": \"thermal\", \"tests\": \"thermal\"}, {\"name\": \"ridge_starts\", \"tests\": \"ridge_starts\"}, {\"name\": \"surface_heat\", \"tests\": \"surface_heat\"}]"]}}
+{"t": "2026-10-09T22:57:06", "by": "coordinator", "task": "SH-4", "ev": "started", "note": "dp-engineer Opus, ~/deltaplan-surface-heat-SH-4"}
+{"t": "2026-10-09T22:57:06", "by": "coordinator", "task": "SH-5", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-surface-heat-SH-5"}
+{"t": "2026-10-09T22:59:37", "by": "executor", "task": "SH-1", "ev": "reported", "commits": ["cc0a0afe"], "note": "done: Раздел 9 «Использование в игре (surface-heat)» в surface_params.md: K↓/L* по Stull, доля рассеянной по Эрбсу, m_dry/nor…", "dp_feedback": "dp job start с bash -c и аргументом сцены работает; не хватило команды для запуска godot-сцены инструмента с проверкой ошибок компиляции в логе (скрипт SceneTree падал на автозагрузках молча в фоне)."}
+{"t": "2026-10-09T23:00:08", "by": "executor", "task": "SH-1", "ev": "checked", "note": "2/2 docs=ok:ошибок 0; section=ok:1"}
+{"t": "2026-10-09T23:00:20", "by": "coordinator", "task": "SH-1", "ev": "accepted", "note": "по отчёту (литература, числа EST помечены; применит SH-6)"}
+{"t": "2026-10-09T23:00:20", "by": "coordinator", "task": "SH-1", "ev": "accepted", "commits": ["c7031ea0"], "note": "2/2 docs=ok:ошибок 0; section=ok:1"}
+{"t": "2026-10-09T23:00:21", "by": "coordinator", "task": "SH-1", "ev": "merged", "commits": ["c7031ea0"]}
+{"t": "2026-10-09T23:01:42", "by": "executor", "task": "SH-3", "ev": "reported", "commits": ["ee0f0220"], "note": "done: Инструмент tools/research/surface_heat/ (measure.gd/tscn, run.sh, check_schema.py, compare.py, README) снимает SH5 на к…", "dp_feedback": "Не хватило: dp job wait без вывода хвоста лога; в Bash-фоне длинный godot завершился «без вывода» — пришлось использовать dp job. Также удобно было бы dp-команды 'godot-run' (профиль+import+восстановление project.godot)."}
+{"t": "2026-10-09T23:02:08", "by": "executor", "task": "SH-3", "ev": "checked", "note": "2/2 schema=ok:exit 0; compare=ok:altai"}
+{"t": "2026-10-09T23:02:15", "by": "coordinator", "task": "SH-3", "ev": "accepted", "note": "по отчёту (инструмент замера, «до» на 3 местах)"}
+{"t": "2026-10-09T23:02:16", "by": "coordinator", "task": "SH-3", "ev": "accepted", "commits": ["69e8a6f7"], "note": "2/2 schema=ok:exit 0; compare=ok:altai"}
+{"t": "2026-10-09T23:02:16", "by": "coordinator", "task": "SH-3", "ev": "merged", "commits": ["69e8a6f7"]}
+{"t": "2026-10-09T23:02:36", "by": "coordinator", "task": null, "ev": "plan", "note": "план 2. Задачи: замена «| SH-8 | dp-writer |»"}
+{"t": "2026-10-09T23:02:50", "by": "coordinator", "task": "SH-9", "ev": "created", "note": "Числа SH-1 в ядро SurfaceHeat"}
+{"t": "2026-10-09T23:02:50", "by": "coordinator", "task": "SH-9", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-surface-heat-SH-9"}
+{"t": "2026-10-09T23:08:23", "by": "main", "task": "SH-9", "ev": "reported", "commits": ["90b532eb"], "note": "done: Ядро SurfaceHeat и конфиг переведены на числа §9 (Stull через cover, Эрбс, влажность, вода с ρ по высоте, H_ref 360); т…", "dp_feedback": "нет"}
+{"t": "2026-10-09T23:09:01", "by": "executor", "task": "SH-9", "ev": "checked", "note": "2/2 surface_heat=ok:6/6; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:09:14", "by": "coordinator", "task": "SH-9", "ev": "note", "note": "FAIL по сути: test_surface_heat.gd не загрузился (Parse Error), прогон 6/6 без него — на доработку тому же исполнителю"}
+{"t": "2026-10-09T23:09:14", "by": "coordinator", "task": null, "ev": "note", "note": "dp: прогон тестов (--test) считает PASS, когда тестовый скрипт не загрузился (SCRIPT ERROR/Failed to load script) — файл молча выпадает; нужно FAIL при «Failed to load script» в логе"}
+{"t": "2026-10-09T23:09:22", "by": "main", "task": "SH-9", "ev": "reported", "commits": ["90b532eb", "SH-9:"], "note": "done: Ядро SurfaceHeat и конфиг переведены на числа §9 (Stull через cover, Эрбс, влажность, вода с ρ по высоте, H_ref 360); т…", "dp_feedback": "нет"}
+{"t": "2026-10-09T23:10:16", "by": "executor", "task": "SH-9", "ev": "checked", "note": "2/2 surface_heat=ok:15/15; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:10:25", "by": "coordinator", "task": "SH-9", "ev": "accepted", "note": "по отчёту (после доработки: тестовый файл грузится, 15/15)"}
+{"t": "2026-10-09T23:10:26", "by": "coordinator", "task": "SH-9", "ev": "accepted", "commits": ["7c66093b"], "note": "2/2 surface_heat=ok:15/15; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:10:27", "by": "coordinator", "task": "SH-9", "ev": "merged", "commits": ["7c66093b"]}

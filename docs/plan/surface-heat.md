@@ -81,6 +81,7 @@ related: ["docs/research/surface_params.md", "docs/contracts/surface-heat.md", "
 | SH-5 | dp-engineer / Sonnet | масштаб 2: `thermal_source_strength_for` через `SurfaceHeat` (контракт SH4), убрать class_strength/exposure_gain/exposure_power/wet_k/wet_from; H_ref; контекст воды; `test_surface`/`test_relief` по-новому | SH-2 | reviewer (Opus) |
 | SH-6 | dp-engineer / **Opus** | **условно** z0 по клетке (§3) | SH-4 | fable |
 | SH-7 | dp-mechanic | прогон «после» инструментом SH-3, таблица до/после | SH-4, SH-5 (SH-6) | — |
+| SH-9 | dp-engineer / Sonnet | числа SH-1 в ядро: конфиг radiation/moisture/water/thermal из surface_params.md §9; K↓ — облачность по Stull через cover (sky_heat не умножать), доля рассеянной по Эрбсу; ρ воздуха по высоте для воды (SH2 v2, добавочно) | SH-1, SH-2 | по отчёту |
 | SH-8 | dp-writer | `docs/guide/atmosphere.md`, `air-model.md`, findings, CHANGELOG | SH-7 | — |
 
 Волны: 1 — SH-1, SH-2, SH-3; 2 — SH-4, SH-5; 3 — SH-6 (если решено делать), SH-7, SH-8.
