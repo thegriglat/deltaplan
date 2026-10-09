@@ -145,6 +145,10 @@ func _ready() -> void:
 	add_child(debug_overlays)
 	debug_overlays.setup(air, glider, terrain.height_at)
 	debug_overlays.camera = camera
+	var fkey_hint := FKeyHint.new()
+	fkey_hint.name = "FKeyHint"
+	fkey_hint.overlays = debug_overlays
+	add_child(fkey_hint)
 	terrain.load_failed.connect(func(msg: String) -> void: _load_error = msg)
 	SkyEnvironment.setup_camera(camera)
 	camera.set_mode(camera.mode)  # near по режиму
