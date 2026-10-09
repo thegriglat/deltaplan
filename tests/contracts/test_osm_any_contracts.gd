@@ -40,8 +40,9 @@ func _has_keys(d: Dictionary, keys: Array, what: String) -> void:
 
 
 func test_versions_in_doc() -> void:
-	for id in ["OA-К1", "OA-К2", "OA-К3", "OA-К4"]:
-		check(_doc_line("## %s." % id).contains("(v1)"), "%s v1 в документе" % id)
+	var want := {"OA-К1": 2, "OA-К2": 2, "OA-К3": 1, "OA-К4": 2}
+	for id: String in want:
+		check(_doc_line("## %s." % id).contains("(v%d)" % want[id]), "%s v%d в документе" % [id, want[id]])
 
 
 func test_k1_builtin_layout() -> void:
@@ -57,7 +58,7 @@ func test_k1_builtin_layout() -> void:
 		for l: Dictionary in layers:
 			_has_keys(l, ["id", "file", "width", "height", "spacing_m", "origin_x_m", "origin_z_m",
 				"min_height_m", "max_height_m", "source", "water_file"], id + " слой")
-			check(String(l.file) == String(l.id) + ".f32.br", id + ": высоты встроенного — .f32.br")
+			check(String(l.file) == String(l.id) + ".f32.zst", id + ": высоты встроенного — .f32.zst")
 			check(FileAccess.file_exists(dir + "/" + String(l.file)), id + ": файл высот")
 			var w := Image.load_from_file(dir + "/" + String(l.water_file))
 			check(w != null and w.get_format() == Image.FORMAT_L8 and w.get_width() == int(l.width),
@@ -73,6 +74,16 @@ func test_k1_builtin_layout() -> void:
 		var img := Image.load_from_file(dir + "/" + String(d10.get("file", "")))
 		check(img != null and img.get_format() == Image.FORMAT_LA8 and img.get_width() == int(d10.get("width", 0)),
 			id + ": detail10 LA8")
+
+
+func test_k1_no_python_build() -> void:
+	check(not DirAccess.dir_exists_absolute("res://data/osm"), "data/osm/ убран (OSM — в папке места)")
+	for f in ["res://tools/terrain/fetch_dem.py", "res://tools/terrain/fetch_landcover.py", "res://tools/terrain/rivers.py",
+			"res://tools/terrain/osm_water.py", "res://tools/osm/fetch_osm.py"]:
+		check(not FileAccess.file_exists(f), "Python-сборка убрана: " + f)
+	for id: String in _builtin_ids():
+		var loc: Dictionary = Config.get_config("locations/" + id)
+		check(FileAccess.file_exists(String(loc.get("data_dir", "")) + "/build.json"), id + ": build.json встроенного")
 
 
 func test_k1_height_zst() -> void:
@@ -95,7 +106,9 @@ func test_k1_height_zst() -> void:
 
 func test_k2_builtin_osm_schema() -> void:
 	for id: String in _builtin_ids():
-		var path := "res://data/osm/%s.json" % id
+		var loc: Dictionary = Config.get_config("locations/" + id)
+		var path := String(loc.get("data_dir", "")) + "/osm.json"
+		check(FileAccess.file_exists(path), id + ": osm.json в папке места")
 		if not FileAccess.file_exists(path):
 			continue
 		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))

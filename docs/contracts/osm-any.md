@@ -5,7 +5,7 @@ module: "osm-any"
 updated: "2026-10-09"
 summary: "Контракты osm-any: папка места (встроенного и кешированного), файл OSM места, API стадий сборки места в игре, сборщик/кеш/реестр мест."
 related: ["docs/plan/osm-any.md", "docs/guide/world-objects.md", "docs/guide/architecture.md"]
-contracts: [{"id": "OA-К1", "version": 1}, {"id": "OA-К2", "version": 1}, {"id": "OA-К3", "version": 1}, {"id": "OA-К4", "version": 1}]
+contracts: [{"id": "OA-К1", "version": 2}, {"id": "OA-К2", "version": 2}, {"id": "OA-К3", "version": 1}, {"id": "OA-К4", "version": 2}]
 ---
 # Контракты модуля osm-any
 
@@ -17,30 +17,31 @@ contracts: [{"id": "OA-К1", "version": 1}, {"id": "OA-К2", "version": 1}, {"id
 центра, R = 6371008,8 м (как `fetch_dem.py`). Растры — строки с севера, столбцы с запада; узел (i, j) =
 (origin_x + i·spacing, origin_z + j·spacing).
 
-## OA-К1. Папка места (v1)
-Владельцы: Python-сборка (встроенные, `data/terrain/<id>/`), OA-1/OA-2/OA-3/OA-4 (кеш, `user://locations/<ключ>/`).
+## OA-К1. Папка места (v2)
+v2 (OA-7): встроенные места собираются тем же сборщиком игры, что и точки; `.f32.br` и Python-сборка убраны,
+`osm.json` — в папке места.
+Владельцы: OA-1/OA-2/OA-3/OA-4 (стадии), OA-7 (встроенные `data/terrain/<id>/`), OA-5 (кеш `user://locations/<ключ>/`).
 Потребители: `terrain.gd` (`load_location`), `surface_layer.gd`, `world_objects`, `world_clearings`, контрактный тест.
-Набор файлов (одинаков для встроенного и кешированного, кроме расширения высот):
+Набор файлов (одинаков для встроенного и кешированного; `location.json` — только у кеша, у встроенного конфиг —
+`configs/locations/<id>.json`):
 - `meta.json` — `{location, center_lat, center_lon, earth_radius_m, layers:[{id, file, width, height, spacing_m,
   origin_x_m, origin_z_m, min_height_m, max_height_m, source, water_file}], attribution:[String]}`; слои `detail`, `far`
   в этом порядке.
-- высоты слоя `<id>`: встроенные — `<id>.f32.br` (brotli), кеш — `<id>.f32.zst` (сырой кадр zstd от
-  `PackedByteArray.compress(FileAccess.COMPRESSION_ZSTD)`); внутри — float32 LE, width×height, строки с севера,
-  квантованы до 1/`quantize_per_m` м. `HeightLayer.load_from_file` выбирает распаковку по расширению.
+- высоты слоя `<id>`: `<id>.f32.zst` (сырой кадр zstd от `PackedByteArray.compress(FileAccess.COMPRESSION_ZSTD)`);
+  внутри — float32 LE, width×height, строки с севера, квантованы до 1/`quantize_per_m` м.
 - `<id>_water.png` — L8 width×height слоя, 255 — русло (реки по рельефу), 0 — нет.
 - `<id>_surface.png` — L8 width×height слоя, классы 0..8 игры (`configs/world.json → surface.worldcover.classes`).
 - `detail_detail10.png` — LA8, шаг 10 м, квадрат detail (4001×4001 при 40 км): L — доля леса 0..255, A — доля воды
   0..255 (из OSM).
 - `surface.json` — `{source, layers:[{id, file, width, height, spacing_m, origin_x_m, origin_z_m, class_fraction:{"0".."8"},
   detail10?:{file, width, height, spacing_m, origin_x_m, origin_z_m, channels, forest_fraction, water_fraction}}], attribution}`.
-- Только у кеша: `location.json` (конфиг места, OA-К4), `osm.json` (OA-К2), `build.json` (OA-К4).
-После OA-7 встроенные места собираются тем же сборщиком и переходят на формат кеша (`.f32.zst`, `osm.json` в папке;
-`data/osm/` удаляется) — это правка OA-К1/OA-К2 до v2 вместе с OA-7.
+- `osm.json` (OA-К2), `build.json` (OA-К4; у встроенного — тоже, как паспорт сборки); только у кеша — `location.json`.
 Параметры сетки кеша — те же, что у встроенных (`configs/world.json → location_builder.template.dem.layers`):
 detail 40 км / 25 м / copernicus / σ 0,8 / 1/32 м; far 160 км / 100 м / terrarium z10 / вклейка detail.
 
-## OA-К2. Файл OSM места (v1)
-Владельцы: `tools/osm/fetch_osm.py` (встроенные, `data/osm/<id>.json`), OA-4 (кеш, `user://locations/<ключ>/osm.json`).
+## OA-К2. Файл OSM места (v2)
+v2 (OA-7): файл — `<папка места>/osm.json` и у встроенных (`data/osm/` и `fetch_osm.py` убраны).
+Владелец: OA-4 (`OsmStage`). Путь — `Locations.osm_path(id)`.
 Потребители: `OsmData.load_file` и всё за ним (`world_objects`, `osm_layer`, `world_clearings`, `start_tracks`,
 `egg_place`, `recent_places`), OA-4 (канал воды).
 - UTF-8 JSON-объект, ключи: `attribution` (String), `location` (id или ключ кеша), `center_lat`, `center_lon` (float),
@@ -50,7 +51,7 @@ detail 40 км / 25 м / copernicus / σ 0,8 / 1/32 м; far 160 км / 100 м / 
   (`pack_roads/buildings/power/water/places/landuse`): `roads[{t,p}]`, `buildings[[x,z,w,l,угол,высота,крыша]]`,
   `power[{k,v,c,p,s}]`, `rivers[{t,n,p}]`, `lakes[{n,p,h}]`, `places[{n,t,x,z,pop}]`, `fields[{t,p}]`, `fences[{t,p}]`.
 - Квадрат запроса — ±(половина detail) от центра (±20 км). Пустой слой — пустой массив, не отсутствие ключа.
-- Инвариант паритета: упаковщик игры на тех же ответах Overpass даёт тот же JSON, что `fetch_osm.py`.
+- Инвариант паритета (проверен в OA-4 до удаления Python): упаковщик игры на тех же ответах Overpass даёт тот же JSON, что `fetch_osm.py`.
 
 ## OA-К3. API стадий сборки места (v1)
 Владелец: координатор (интерфейс), реализации — OA-1…OA-4, вызывающий — OA-5.
@@ -87,7 +88,10 @@ signal progress(stage: String, fraction: float)   # 0..1 внутри стади
 User-Agent `configs/world.json → runtime_terrain.user_agent`, таймаут, кеш блоков/тайлов в `user://terrain_cache`;
 каждый запрос в сеть — `ctx.net_requests += 1`. Источник COG — URL или локальный путь (для проверок без сети).
 
-## OA-К4. Сборщик, кеш и реестр мест (v1)
+## OA-К4. Сборщик, кеш и реестр мест (v2)
+v2 (OA-7): `tools/terrain/build_location.gd -- --id <id>` собирает встроенное место по `configs/locations/<id>.json`
+(центр и параметры dem/surface/rivers) в его `data_dir` (только из рабочей копии репозитория, не в игре);
+`Locations.osm_path(id)` = `<data_dir>/osm.json` для всех мест.
 Владелец: OA-5. Потребители: `game.gd`, `flight_setup_screen`, `world_link`, `world_objects`, `world_clearings`,
 `recent_places`, `user_settings`, `world_key`, `activity`, `favorites`, `start_menu`, `task_preview`.
 - `LocationCache.key_for(lat, lon) -> String`: центр = округление lat и lon к шагу
