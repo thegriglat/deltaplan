@@ -1,0 +1,9 @@
+{
+  "module": "osm-any",
+  "plan": "docs/plan/osm-any.md",
+  "contracts": "docs/contracts/osm-any.md",
+  "branch": "feature/osm-any",
+  "copy": "~/deltaplan-osm-any",
+  "created": "2026-10-09T17:39:01",
+  "code": "OA"
+}
