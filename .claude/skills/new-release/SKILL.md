@@ -1,6 +1,6 @@
 ---
 name: new-release
-description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.en.md + index.ru.md, скриншоты, devlog — plain text для itch.io), сборка Linux и Windows, git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
+description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.en.md + index.ru.md, скриншоты, devlog — plain text для itch.io), сборка Linux, Windows и macOS (у игры есть пользователи на Mac), git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
 ---
 
 # new-release — выпуск версии Deltaplan
@@ -88,7 +88,7 @@ Known issues:
   butler push build/windows thegriglat/deltaplan:windows --userversion X.Y.Z
   butler push build/macos thegriglat/deltaplan:mac --userversion X.Y.Z
   ```
-- Дождаться обработки: `butler status thegriglat/deltaplan` — у обоих каналов `✓` и версия `X.Y.Z` (ожидать циклом с `sleep 10`, пока есть `•`).
+- Дождаться обработки: `butler status thegriglat/deltaplan` — у всех трёх каналов (linux, windows, mac) `✓` и версия `X.Y.Z` (ожидать циклом с `sleep 10`, пока есть `•`).
 - Это публикация — выполнять только по явной просьбе выпустить версию (вызов скилла ею и является).
 
 ## 8. Отчёт пользователю
