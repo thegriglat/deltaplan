@@ -27,3 +27,4 @@
 {"t": "2026-10-09T18:04:47", "by": "coordinator", "task": "OA-3", "ev": "accepted", "commits": ["beb6148"], "note": "7/7 surface=ok:22/22; contract_surface=ok:ok test_osm_any_contracts.gd:…; class_detail=ok:0.99998; class_far=ok:0.99999; forest_frac=ok:0; d10_mae=ok:0.0012; time_surface=ok:4.16"}
 {"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-1", "ev": "merged"}
 {"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-3", "ev": "merged"}
+{"t": "2026-10-09T18:05:24", "by": "coordinator", "task": "OA-5", "ev": "created", "note": "Сборщик места, кеш user://locations, реестр мест и путь точки в игре"}
