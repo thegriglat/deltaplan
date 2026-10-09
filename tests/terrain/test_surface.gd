@@ -155,38 +155,67 @@ func test_start_clearings_have_no_forest() -> void:
 			check(c != SurfaceLayer.FOREST, "у старта %s лес на расстоянии %.0f м" % [s.id, r])
 
 
+## H класса c на площадке t при заданной нормали (SH2 mix_flux, один класс, ясно, m = 0,5) — эталон порядка.
+func _h_of(t: Terrain, c: int, normal: Vector3) -> float:
+	var fr := PackedFloat32Array()
+	fr.resize(SurfaceLayer.CLASS_COUNT)
+	fr[c] = 1.0
+	var sun := PackedVector3Array()
+	sun.resize(SurfaceLayer.CLASS_COUNT)
+	sun.fill(t.sun_direction())
+	return SurfaceHeat.mix_flux(
+		fr, 0, normal, sun, 0.5, {"cover": 0.0, "sky_heat": 1.0}, {}, SurfaceHeat.config()
+	)
+
+
 func test_thermal_strength_by_class() -> void:
-	# Ровная площадка: слабые источники (вода, снег, лес) < луг < поле/скалы.
-	var order := [
-		SurfaceLayer.WATER,
+	# SH4: на ровном при одном солнце порядок s по классам = порядок H из SurfaceHeat; s = H / H_ref.
+	var h_ref := float(SurfaceHeat.config().thermal.h_ref_wm2)
+	var classes := [
 		SurfaceLayer.SNOW,
 		SurfaceLayer.FOREST,
 		SurfaceLayer.SHRUB,
 		SurfaceLayer.GRASS,
 		SurfaceLayer.CROP,
+		SurfaceLayer.BARE,
+		SurfaceLayer.BUILT,
 	]
-	var prev := -1.0
-	for c: int in order:
+	var hs := []
+	var ss := []
+	for c: int in classes:
 		var t := _plane(c)
 		check(t.surface_at(0, 0) == c, "класс площадки %d" % c)
 		var v := t.thermal_source_strength_at(0.0, 0.0)
+		var h := _h_of(t, c, Vector3.UP)
 		check(v >= 0.0 and v <= 1.0, "0..1: %.3f" % v)
-		check(
-			v > prev,
-			"%s (%.3f) сильнее предыдущего (%.3f)" % [SurfaceLayer.CLASS_NAMES[c], v, prev]
-		)
-		prev = v
+		approx(v, clampf(h / h_ref, 0.0, 1.0), 1e-4, "%s: s = H / H_ref" % SurfaceLayer.CLASS_NAMES[c])
+		hs.append(h)
+		ss.append(v)
 		t.free()
-	var bare := _plane(SurfaceLayer.BARE)
-	check(bare.thermal_source_strength_at(0, 0) >= prev - 1e-6, "скалы не слабее поля")
-	bare.free()
-	var water := _plane(SurfaceLayer.WATER)
-	var sun_min := float(Config.value("atmosphere", "thermal").get("sun_min", 0.35))
-	check(water.thermal_source_strength_at(0, 0) < sun_min, "над водой термики не рождаются")
-	water.free()
+	for i in classes.size():
+		for j in classes.size():
+			if hs[i] < hs[j] - 1e-3 and ss[j] < 1.0:
+				check(
+					ss[i] < ss[j],
+					"порядок H: %s < %s" % [SurfaceLayer.CLASS_NAMES[classes[i]], SurfaceLayer.CLASS_NAMES[classes[j]]]
+				)
 	var field := _plane(SurfaceLayer.CROP)
-	check(field.thermal_source_strength_at(0, 0) > 0.75, "ровное поле — сильный источник")
+	check(field.thermal_source_strength_at(0, 0) > 0.4, "ровное поле — заметный источник")
 	field.free()
+
+
+func test_thermal_water() -> void:
+	# Вода: контекст не задан → 0; днём (T_w < T_a) → 0; вечером/ночью (T_w > T_a) > 0.
+	var water := _plane(SurfaceLayer.WATER)
+	check(water.thermal_source_strength_at(0, 0) == 0.0, "без контекста воды s = 0")
+	water.set_water_heat(12.0, 22.0, 3.0)
+	check(water.thermal_source_strength_at(0, 0) == 0.0, "вода днём (T_w < T_a) — не источник")
+	water.set_water_heat(18.0, 8.0, 3.0)
+	var v := water.thermal_source_strength_at(0, 0)
+	check(v > 0.0 and v < 1.0, "вода теплее воздуха — источник: %.3f" % v)
+	water.clear_water_heat()
+	check(water.thermal_source_strength_at(0, 0) == 0.0, "после clear_water_heat s = 0")
+	water.free()
 
 
 func test_thermal_strength_by_exposure() -> void:
@@ -202,14 +231,14 @@ func test_thermal_strength_by_exposure() -> void:
 		var f := flat.thermal_source_strength_at(0, 0)
 		var w := toward.thermal_source_strength_at(0, 0)
 		check(a < f, "%s: от солнца %.3f < ровно %.3f" % [SurfaceLayer.CLASS_NAMES[c], a, f])
-		check(f <= w, "%s: ровно %.3f ≤ к солнцу %.3f" % [SurfaceLayer.CLASS_NAMES[c], f, w])
+		check(f < w or w >= 1.0, "%s: ровно %.3f ≤ к солнцу %.3f" % [SurfaceLayer.CLASS_NAMES[c], f, w])
 		for t in [flat, toward, away]:
 			t.free()
 
 
 func test_thermal_edge_boost() -> void:
 	# Ровная площадка 1×1 км: запад (x < 0) — поле, восток — лес. Граница — триггер отрыва:
-	# у неё сила выше, чем в середине поля и в середине леса.
+	# у неё сила выше, чем в глубине того же класса (порядок классов теперь по H, не по ручным весам).
 	var n := 101
 	var hs := PackedFloat32Array()
 	hs.resize(n * n)
@@ -236,7 +265,6 @@ func test_thermal_edge_boost() -> void:
 	check(
 		field_edge > field_mid, "граница поля %.3f > середина поля %.3f" % [field_edge, field_mid]
 	)
-	check(field_edge > forest_mid, "граница %.3f > середина леса %.3f" % [field_edge, forest_mid])
 	check(forest_edge > forest_mid, "опушка %.3f > глубь леса %.3f" % [forest_edge, forest_mid])
 	approx(t._edge_proximity(-400.0, 0.0), 0.0, 1e-6, "далеко от границы усиления нет")
 	approx(t._edge_proximity(-30.0, 0.0), 1.0, 1e-6, "у границы — полное")

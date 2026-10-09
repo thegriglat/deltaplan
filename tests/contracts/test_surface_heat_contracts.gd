@@ -118,3 +118,29 @@ func test_signatures() -> void:
 		for a in ms[n].args:
 			names.append(a.name)
 		check(names == order[n], "SH2: %s порядок аргументов %s" % [n, names])
+
+
+func test_sh4_terrain_strength() -> void:
+	# SH4: сигнатуры Terrain, удалённые ключи surface.thermal, источник = H / H_ref.
+	var scr: Script = load("res://scripts/terrain/terrain.gd")
+	var ms := {}
+	for m in scr.get_script_method_list():
+		ms[m.name] = m
+	var want := {
+		"thermal_source_strength_at": ["x", "z"],
+		"thermal_source_strength_for": ["x", "z", "class_sun", "to_sun"],
+		"set_water_heat": ["t_water_c", "t_air_c", "u_ms"],
+	}
+	for n: String in want:
+		check(ms.has(n), "SH4: Terrain.%s" % n)
+		if ms.has(n):
+			var names: Array = []
+			for a in ms[n].args:
+				names.append(a.name)
+			check(names == want[n], "SH4: %s аргументы %s" % [n, names])
+	var th: Dictionary = Config.value("world", "surface").thermal
+	for k: String in ["class_strength", "exposure_gain", "exposure_power", "wet_k", "wet_from"]:
+		check(not th.has(k), "SH4: ключ %s удалён из surface.thermal" % k)
+	for k: String in ["edge_boost", "edge_full_m", "edge_max_m", "edge_pairs"]:
+		check(th.has(k), "SH4: ключ %s остался" % k)
+	check(float(SurfaceHeat.config().thermal.h_ref_wm2) > 0.0, "SH4: h_ref_wm2")

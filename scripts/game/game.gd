@@ -94,6 +94,8 @@ var flight_no := 0
 ## Погода из прогноза (FR-16): место для WeatherModel.derive, час последнего пересчёта (ход дня),
 ## шаг сетки источников (по разгару дня — весь полёт один), инерция прогрева по классам.
 var _weather_ctx := {}
+## Час, на который задан контекст воды Terrain (раз в час игры), NAN — не задан.
+var _water_hour: float = NAN
 var _weather_hour := NAN
 var _peak_spacing := NAN
 var _heating := SurfaceHeating.new()
@@ -321,6 +323,7 @@ func start(s: FlightSettings) -> bool:
 	)
 	if not sky.clock.sun_changed.is_connected(_on_sun_changed):
 		sky.clock.sun_changed.connect(_on_sun_changed)
+	_water_hour = NAN
 	_on_sun_changed(sky.clock.to_sun())
 	if air.has_method("set_day"):
 		_day = _make_day()
@@ -464,13 +467,14 @@ func _make_day() -> AtmoDay:
 	d.sun_fn = sun
 	if terrain.has_method("thermal_source_strength_for"):
 		var heating := _heating
-		var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP}
+		var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP, "water": {}}
 		d.source_fn = func(x: float, z: float, h: float) -> float:
 			if h != float(cache.h):
 				cache.h = h
 				cache.dirs = heating.directions(h)
 				cache.sun = sun.call(h)
-			return terrain.thermal_source_strength_for(x, z, cache.dirs, cache.sun)
+				cache.water = _water_heat_at(h)
+			return terrain.thermal_source_strength_water(x, z, cache.dirs, cache.sun, cache.water)
 	return d
 
 
@@ -505,11 +509,42 @@ func _apply_haze() -> void:
 		sky.set_haze_density(float(air.get("weather").get("haze_k", 1.0)))
 
 
+## Контекст воды для потока тепла (SH-5) в час места hour: T воды (климат месяца назад), T воздуха
+## суточного хода по прогнозу меню, ветер меню на 10 м. Пусто — контекста погоды ещё нет.
+func _water_heat_at(hour: float) -> Dictionary:
+	if _weather_ctx.is_empty():
+		return {}
+	var wcfg: Dictionary = SurfaceHeat.config().water
+	var fc := settings.forecast()
+	var z := float(_weather_ctx.get("valley_msl_m", 0.0))
+	return {
+		"t_water_c": SurfaceHeat.water_temp_c(settings.month, settings.day, z, _weather_ctx, wcfg),
+		"t_air_c":
+		SurfaceHeat.air_temp_c(hour, float(fc.get("temperature_c", 20.0)), z, _weather_ctx, wcfg),
+		"u_ms": float(fc.get("wind_speed_kmh", 0.0)) / 3.6,
+		"z_m": z,
+	}
+
+
+## Раз в час игры — контекст воды для Terrain.set_water_heat.
+func _update_water_heat() -> void:
+	var h: float = sky.clock.hour
+	if absf(h - _water_hour) < 1.0 and not is_nan(_water_hour):
+		return
+	_water_hour = h
+	var w := _water_heat_at(h)
+	if w.is_empty():
+		terrain.clear_water_heat()
+	else:
+		terrain.set_water_heat(w.t_water_c, w.t_air_c, w.u_ms)
+
+
 func _on_sun_changed(to_sun: Vector3) -> void:
 	if air.has_method("set_sun_direction"):
 		air.call("set_sun_direction", to_sun)
 	if terrain.has_method("set_class_sun"):
 		terrain.set_class_sun(_heating.directions(sky.clock.hour))
+		_update_water_heat()
 
 
 ## Заново с того же старта (клавиша R, «Ещё раз», «На старт»). keep_clock = true — одиночная

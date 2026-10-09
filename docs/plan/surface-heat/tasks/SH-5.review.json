@@ -1,0 +1,27 @@
+{
+  "summary": "Повторное ревью после rework (f91d84fb): все 4 замечания закрыты — инициализация _heat_cfg/_h_ref/_heat_onehot перенесена в set_surfaces на главном потоке, z_m передаётся в контексте воды, _doc исправлен, в тесте ложбины проверяется равенство и вертикальность нормалей. Контракты SH2/SH4 не тронуты, скоуп соблюдён.",
+  "issues": [
+    {
+      "file": "scripts/terrain/terrain.gd",
+      "line": 636,
+      "severity": "minor",
+      "what": "После удаления ленивой ветки thermal_source_strength_water до первого set_surfaces обращается к пустому _heat_onehot (индекс c*CLASS_COUNT вне массива). Сейчас все вызывающие работают по загруженной локации, так что это не баг, а хрупкость.",
+      "fix": "По желанию: инициализировать one-hot и конфиг в _ready (тоже главный поток) или вернуть 0 при пустом _heat_onehot"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "relief",
+      "cmd": "dp accept SH-5 --only relief --dry",
+      "result": "PASS 5/5"
+    },
+    {
+      "name": "thermal",
+      "cmd": "dp accept SH-5 --only thermal --dry",
+      "result": "PASS 12/12"
+    }
+  ],
+  "verdict": "accept",
+  "t": "2026-10-09T23:32:28",
+  "by": "reviewer"
+}
