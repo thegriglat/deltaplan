@@ -99,8 +99,8 @@ bowen ∈ [bowen_min, bowen_max], bowen(c, ≤ m_dry) = bowen_max, bowen(c, ≥ 
 
 ## SH5 v1 — замер «до/после» (`tools/research/surface_heat/`)
 Владелец: SH-3. Потребители: SH-7, SH-8, отчёт главной сессии.
-- Запуск: один скрипт, места и часы в аргументах; вывод `build/surface_heat/<метка>/<место>_h<час>.json` и сводка
-  `build/surface_heat/<метка>/summary.csv` (строка на место×час); сравнение двух меток — `compare` → таблица markdown.
+- Запуск: один скрипт, места и часы в аргументах; вывод `tools/research/surface_heat/out/<метка>/<место>_h<час>.json` и сводка
+  `tools/research/surface_heat/out/<метка>/summary.csv` (небольшие, коммитятся — «до» переживает удаление копии) (строка на место×час); сравнение двух меток — `compare` → таблица markdown.
 - Поля JSON (обязательные): `location, hour, commit, h_wm2{mean,p10,p50,p90}, h_by_class{<имя>:{area_frac,mean}}`,
   `sources{n, density_km2, strength_ms{mean,p10,p90}}` (AirThermals по полю), `ceiling_agl_m{p10,p50,p90}`,
   `slope_lift[{start, w_ms}]` (подъём у стартов, поле), `lee[{site, w_min_ms, sigma_w_ms}]`, `water{area_frac, t_water_c, t_air_c, h_mean_wm2}`.
