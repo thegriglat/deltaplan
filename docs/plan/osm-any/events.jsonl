@@ -12,3 +12,4 @@
 {"t": "2026-10-09T17:57:54", "by": "executor", "task": "OA-2", "ev": "reported", "commits": ["12eb7d6d"], "note": "done: RiverStage портирован 1:1 с rivers.py (priority-flood на бинарной куче в PackedFloat64/Int32Array с ключом (высота, инд…", "dp_feedback": "Нет замечаний."}
 {"t": "2026-10-09T17:58:55", "by": "coordinator", "task": "OA-2", "ev": "checked", "note": "5/5 river_stage=ok:3/3; contract_river=ok:ok test_osm_any_contracts.gd:…; iou_far=ok:1; iou_detail=ok:1; time_river=ok:27"}
 {"t": "2026-10-09T17:58:59", "by": "coordinator", "task": "OA-2", "ev": "accepted", "note": "по отчёту: IoU 1.0 обоих слоёв, 20–27 с"}
+{"t": "2026-10-09T17:59:06", "by": "coordinator", "task": "OA-2", "ev": "checked", "commits": ["a4776dd"], "note": "1/5 river_stage=FAIL:0/0; contract_river=ok:ok test_osm_any_contracts.gd:…; iou_far=FAIL:число не найдено; iou_detail=FAIL:число не найдено; time_river=FAIL:число не найдено"}
