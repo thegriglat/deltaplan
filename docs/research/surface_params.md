@@ -7,7 +7,7 @@ summary: "Параметры поверхности по классам покр
 related: []
 conclusion: "Столбцы: α — альбедо коротковолновое (дневное, Солнце высоко); β — отношение Боуэна H/LE «норма» (для сухой/влажной почвы — в скобках; в CSV: bowen = норма, bowen_min = влажно, bowen_max = сухо); z0 — длина шероховатости, м; G/…"
 data: ""
-applied_in: "docs/plan/surface-heat.md; configs/surface_heat.json (раздел 9)"
+applied_in: "docs/plan/surface-heat.md; configs/surface_heat.json; scripts/atmosphere/surface_heat.gd; docs/guide/air-model.md (Вход решателя); docs/guide/atmosphere.md (сила источника термиков)"
 ---
 # Параметры поверхности по классам покрова (контракт П4 v1)
 
