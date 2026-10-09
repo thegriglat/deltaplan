@@ -27,7 +27,8 @@ func _init() -> void:
 ## как real.grid_window — угол окна кратен 25 м, dz = dx/2, z_bot = ⌊h_min/dz⌋·dz − dz, верх —
 ## TOP_ABOVE над максимумом, nz чётное; вход погоды и солнца — как AirPlace.domain_case.
 ## ctx — AirPlace.context (дорогой; передать готовый, если есть). null — окно вне слоя.
-## u10 — ветер меню, inflow_k — множитель притока, как AirPlace.domain_case (C2 v6).
+## u10 — ветер меню, inflow_k — множитель притока, как AirPlace.domain_case (C2 v6); surface —
+## снимок поверхности места (AirPlace.surface_of), H — та же AirPlace.surface_flux на сетке окна (C2 v8).
 static func window_case(
 	detail: HeightLayer,
 	water: Image,
@@ -43,13 +44,14 @@ static func window_case(
 	heat := true,
 	ctx := {},
 	n := N_WINDOW,
-	inflow_k := 1.0
+	inflow_k := 1.0,
+	surface: AirPlace.Surface = null
 ) -> AirWindowCase:
 	var half := 0.5 * n * dx
 	var x0 := roundf((cx - half) / 25.0) * 25.0
 	var y0 := roundf((cy - half) / 25.0) * 25.0
 	return window_at(
-		detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n, inflow_k
+		detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n, inflow_k, surface
 	)
 
 
@@ -69,7 +71,8 @@ static func window_at(
 	heat := true,
 	ctx := {},
 	n := N_WINDOW,
-	inflow_k := 1.0
+	inflow_k := 1.0,
+	surface: AirPlace.Surface = null
 ) -> AirWindowCase:
 	var hc := AirPlace.block_mean(detail, x0, y0, dx, n, n)
 	if hc.is_empty():
@@ -94,14 +97,17 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	var cells := {}
+	if heat or surface != null:
+		cells = AirPlace.cell_surface(surface, water, detail, x0, y0, dx, n, n)
+	if surface != null:
+		c.set_z0_map(AirPlace.cell_z0(cells))  # z0 по своей сетке (SH-6), до set_inflow
 	c.set_inflow(u10, inflow_k, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = AirPlace.gamma(d, c.zc(k))
 	if heat:
-		c.heat = AirPlace.solar_flux(
-			hc, dx, n, n, d, ctx, cfg, AirPlace.water_fraction(water, detail, x0, y0, dx, n, n)
-		)
+		c.heat = AirPlace.surface_flux(hc, dx, n, n, d, ctx, cfg, cells, u10, t_max)
 	c.label = (
 		"%s окно %sм (%s, %s) %sч U%s%s %s°%s"
 		% [
@@ -159,6 +165,7 @@ func without_heat() -> AirCase:
 	c.p = p.duplicate()
 	c.set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)
 	c.hc = hc
+	c.z0_map = z0_map
 	c.gam = gam
 	c.z_i = z_i
 	c.u10 = u10

@@ -1,0 +1,201 @@
+{
+  "ceiling_agl_m": {
+    "mean": 502.81,
+    "p10": 404.04,
+    "p50": 500.09,
+    "p90": 611.79
+  },
+  "cells": {
+    "dx_m": 400.0,
+    "n": 1976,
+    "radius_km": 10.0
+  },
+  "commit": "0d62a8d3",
+  "conditions": {
+    "cover": 0.0,
+    "day": 15,
+    "month": 7,
+    "sky": "clear",
+    "sky_heat": 1.0,
+    "t_air_c": 20.8251212479454,
+    "t_max_c": 26.0,
+    "z_i_msl_m": 791.561128605055
+  },
+  "h_by_class": {
+    "bare": {
+      "area_frac": 0.001,
+      "mean": 58.12,
+      "p10": 56.66,
+      "p90": 59.59
+    },
+    "built": {
+      "area_frac": 0.0066,
+      "mean": 77.11,
+      "p10": 65.93,
+      "p90": 91.27
+    },
+    "crop": {
+      "area_frac": 0.0015,
+      "mean": 94.18,
+      "p10": 88.31,
+      "p90": 98.86
+    },
+    "forest": {
+      "area_frac": 0.7384,
+      "mean": 102.14,
+      "p10": 60.19,
+      "p90": 153.18
+    },
+    "grass": {
+      "area_frac": 0.2242,
+      "mean": 92.63,
+      "p10": 61.31,
+      "p90": 131.76
+    },
+    "water": {
+      "area_frac": 0.0283,
+      "mean": 32.98,
+      "p10": 17.05,
+      "p90": 44.69
+    }
+  },
+  "h_wm2": {
+    "mean": 97.82,
+    "n": 1976,
+    "p10": 57.26,
+    "p50": 93.22,
+    "p90": 148.06
+  },
+  "hour": 9.0,
+  "label": "after",
+  "lee": [
+    {
+      "dist_from_start_m": 180.0,
+      "how": "main",
+      "point_agl_m": 100.0,
+      "series_s": 120.0,
+      "sigma_w_ms": 0.599,
+      "site": "sinyukha_east",
+      "w_mean_series_ms": -0.463,
+      "w_min_ms": -0.612,
+      "wdir_deg": 276.0
+    },
+    {
+      "dist_from_start_m": 1000.0,
+      "how": "main",
+      "point_agl_m": 100.0,
+      "series_s": 120.0,
+      "sigma_w_ms": 0.623,
+      "site": "tugaya_south",
+      "w_mean_series_ms": -0.054,
+      "w_min_ms": -0.118,
+      "wdir_deg": 276.0
+    }
+  ],
+  "location": "altai",
+  "slope_lift": [
+    {
+      "by_point": {
+        "o-150_agl10": 0.234,
+        "o-150_agl30": 0.412,
+        "o-50_agl10": 0.208,
+        "o-50_agl30": 0.331,
+        "o0_agl10": 0.013,
+        "o0_agl30": 0.024
+      },
+      "dwind_deg": 0.0,
+      "heading_deg": 276.0,
+      "start": "sinyukha_west",
+      "w_ms": 0.331,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": true
+    },
+    {
+      "by_point": {
+        "o-150_agl10": -0.193,
+        "o-150_agl30": -0.286,
+        "o-50_agl10": -0.141,
+        "o-50_agl30": -0.216,
+        "o0_agl10": -0.03,
+        "o0_agl30": -0.064
+      },
+      "dwind_deg": 161.0,
+      "heading_deg": 115.0,
+      "start": "sinyukha_east",
+      "w_ms": -0.216,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": false
+    },
+    {
+      "by_point": {
+        "o-150_agl10": -0.019,
+        "o-150_agl30": -0.025,
+        "o-50_agl10": -0.005,
+        "o-50_agl30": -0.006,
+        "o0_agl10": 0.007,
+        "o0_agl30": 0.01
+      },
+      "dwind_deg": 126.0,
+      "heading_deg": 150.0,
+      "start": "tugaya_south",
+      "w_ms": -0.006,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": false
+    }
+  ],
+  "solver": {
+    "chunk_max_ms": 30.313,
+    "engine": "phase+picard",
+    "frozen_frac": 0.0,
+    "gpu_s": 2.889,
+    "hour": 9.0,
+    "inflow_k": 0.841,
+    "loading": true,
+    "main_max_ms": 104.723,
+    "not_converged": false,
+    "omega_fallback_used": true,
+    "passes": 2,
+    "phase_ms": 639.805,
+    "poll_max_ms": 104.694,
+    "reason": "загрузка",
+    "sky": "clear",
+    "solver_err": "",
+    "start_ms": 47.015,
+    "t_max": 26.0,
+    "u10": 3.0,
+    "u_start10": 2.928,
+    "u_start10_first": 3.31,
+    "wall_s": 17.138,
+    "warm": true,
+    "wdir": 276.0
+  },
+  "sources": {
+    "alive_frac": 0.235,
+    "density_km2": 3.533,
+    "n": 1110,
+    "n_all_domain": 4373,
+    "strength_ms": {
+      "mean": 1.22,
+      "p10": 1.05,
+      "p90": 1.39
+    },
+    "wstar_ms": {
+      "mean": 0.98,
+      "n": 1110,
+      "p10": 0.84,
+      "p50": 0.99,
+      "p90": 1.11
+    }
+  },
+  "version": 1,
+  "wall_s": 22.7,
+  "water": {
+    "area_frac": 0.0283,
+    "h_mean_wm2": 33.0,
+    "node_frac": 0.0245,
+    "t_air_c": 20.8251212479454,
+    "t_water_c": null
+  },
+  "wdir_deg": 276.0,
+  "wind_ms": 3.0
+}

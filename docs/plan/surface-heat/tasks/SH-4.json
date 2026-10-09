@@ -1,0 +1,80 @@
+{
+  "id": "SH-4",
+  "module": "surface-heat",
+  "type": "dp-engineer",
+  "title": "Масштаб 1: карта H по классам клетки для Пикара, окон и фаз",
+  "goal": "Решатель (Пикар, окна, фазы) получает H из SurfaceHeat по долям классов клетки, влажности рельефа и воде с температурой — вместо H0=330 и «вода → 0»",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [
+    {
+      "name": "SH2",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "SH3",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "C2",
+      "version": "8",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-4",
+  "branch": "surface-heat/SH-4",
+  "base": "feature/surface-heat",
+  "scope": [
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/air_window_case.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_clipmap.gd",
+    "tests/atmosphere/test_air_place.gd",
+    "tests/atmosphere/test_air_window_case.gd",
+    "tests/contracts/",
+    "docs/contracts/air-model.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/surface_heat.json",
+    "scripts/terrain/terrain.gd",
+    "configs/world.json",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "air_place",
+      "tests": "air_place"
+    },
+    {
+      "name": "air_window_case",
+      "tests": "air_window_case"
+    },
+    {
+      "name": "air_phase",
+      "tests": "air_phase"
+    },
+    {
+      "name": "air_contracts",
+      "tests": "air_contracts"
+    },
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "gpu_window",
+      "cmd": "tools/gpu_tests.sh --filter=air_window",
+      "expect": "re:\\b0 упало"
+    },
+    {
+      "name": "gpu_picard",
+      "cmd": "tools/gpu_tests.sh --filter=air_picard",
+      "expect": "re:\\b0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T22:56:48"
+}

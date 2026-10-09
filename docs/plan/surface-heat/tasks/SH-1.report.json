@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Раздел 9 «Использование в игре (surface-heat)» в surface_params.md: K↓/L* по Stull, доля рассеянной по Эрбсу, m_dry/norm/wet по перцентилям 4 мест, вода (C_H 1,4e-3, U_min 1,0, lag 30 сут), H_ref 360, сверка классов; JSON-блок для SH1.",
+  "commits": [
+    "cc0a0afe SH-1: числа к физике H"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Точное число сдвига Livingstone & Lotter и сдвиг для Верхнего по air2water из статьи не извлечены (PDF — рисунки); lag дан физической оценкой (EST)."
+  ],
+  "questions": [
+    "Облачность: брать только cover (ярус M, 1-0,7·cover) и не умножать на sky.heat — согласны?"
+  ],
+  "how_to_check": "dp accept SH-1",
+  "uncertain": [
+    {
+      "where": "docs/research/surface_params.md §9.5 lag_days, u_min",
+      "why": "оценки EST: lag из тепловой инерции слоя 20–30 м; U_min по одной точке Guseva 2023",
+      "checked": "сверка с ростом C_H при 0,5 м/с (3,1e-3)"
+    },
+    {
+      "where": "§9.1 ярус облаков",
+      "why": "Stull требует три яруса, в игре одно число; взят средний",
+      "checked": "cover 0,3 → 0,79 совпало с sky.partly.heat 0,8; cover 0,85 → 0,405 против heat 0,3"
+    }
+  ],
+  "dp_feedback": "dp job start с bash -c и аргументом сцены работает; не хватило команды для запуска godot-сцены инструмента с проверкой ошибок компиляции в логе (скрипт SceneTree падал на автозагрузках молча в фоне).",
+  "extra": {
+    "moisture_pooled_pct": {
+      "p5": 0.195,
+      "p10": 0.26,
+      "p50": 0.475,
+      "p90": 0.677,
+      "p95": 0.743
+    },
+    "m": {
+      "dry": 0.25,
+      "norm": 0.47,
+      "wet": 0.7
+    },
+    "H_ref_zenith": 359,
+    "H_rock_psi63": 305
+  },
+  "t": "2026-10-09T22:59:37",
+  "by": "executor"
+}

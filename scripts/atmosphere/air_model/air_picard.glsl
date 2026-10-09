@@ -54,6 +54,8 @@ const int P_IPRT = 20;
 // Столбцы (NY·NX на плоскость, с ореолом) и уровни (NZ на плоскость) — AirCase.
 const int C_HP = 0, C_KF = 1, C_HBL = 2, C_WST = 3, C_INVL = 4, C_UNST = 5, C_SIDE = 6;
 const int C_SCS = 7, C_QV = 8, C_QK0 = 9, C_QK1 = 10, C_LAM = 11;
+// C_d стенки и u* замыкания по столбцу (SH-6: z0 клетки по покрову; P_CD, P_USTAR — эффективные области).
+const int C_CD = 12, C_UST = 13;
 const int L_ZC = 0, L_GAM = 1, L_CPL = 2, L_SPZ = 3, L_SPZW = 4;
 const float GTH = 9.81 / 300.0;
 
@@ -153,7 +155,7 @@ void main() {
 		int jj = clamp(j, 1, NY - 2), ii = clamp(i, 1, NX - 2);
 		float h = C(C_HBL, jj, ii);
 		float z = max(zc - C(C_HP, jj, ii), 0.0);
-		float ust = prm[P_USTAR];
+		float ust = C(C_UST, jj, ii);
 		float kap = prm[P_KAPPA];
 		float wm;
 		if (C(C_UNST, jj, ii) != 0.0) {
@@ -323,6 +325,7 @@ layout(set = 0, binding = 9, std430) readonly buffer BBg { float bg[]; };
 layout(set = 0, binding = 10, std430) readonly buffer BNu { float nu[]; };
 layout(set = 0, binding = 11, std430) readonly buffer BNuh { float nuh[]; };
 layout(set = 0, binding = 12, std430) writeonly buffer BC { float C[]; };
+layout(set = 0, binding = 13, std430) readonly buffer BCol { float col[]; };
 
 float F(int a, int q) { return a == 0 ? u[q] : (a == 1 ? v[q] : w[q]); }
 int TT(int comp, float tc) { return comp == 0 ? tu_of(tc) : (comp == 1 ? tv_of(tc) : tw_of(tc)); }
@@ -387,7 +390,7 @@ void main() {
 		if (comp < 2) {
 			if (TT(comp, tcode[idx - st[2]]) == 0) {
 				float sp2 = a3[0] * a3[0] + a3[1] * a3[1];
-				diag += prm[P_CD] * sqrt(sp2) / prm[P_DZ];
+				diag += col[C_CD * NYX + idx % NYX] * sqrt(sp2) / prm[P_DZ];  // C_d столбца грани
 			}
 		} else {
 			rhs += GTH * 0.5 * (th[c0] + th[c1]);

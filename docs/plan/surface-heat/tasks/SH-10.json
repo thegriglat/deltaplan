@@ -1,0 +1,52 @@
+{
+  "id": "SH-10",
+  "module": "surface-heat",
+  "type": "dp-writer",
+  "title": "Сайт: нагрев по покрову, вода и лёд, шероховатость (ru/en)",
+  "goal": "Пилотам на сайте простым языком: откуда теперь берётся нагрев (покров, альбедо, сырые ложбины/сухие гребни), почему над озером днём не тянет, лёд, шероховатость по покрову — ru и en",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [],
+  "copy": "~/deltaplan-surface-heat-SH-10",
+  "branch": "surface-heat/SH-10",
+  "base": "feature/surface-heat",
+  "scope": [
+    "site/content/mechanics/air-model/",
+    "site/content/mechanics/weather.ru.md",
+    "site/content/mechanics/weather.en.md",
+    "site/content/mechanics/terrain.ru.md",
+    "site/content/mechanics/terrain.en.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/",
+    "site/content/releases/",
+    "site/content/diary/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet --destination $(mktemp -d) 2>&1; echo rc=$?",
+      "expect": "re:rc=0"
+    },
+    {
+      "name": "ru",
+      "cmd": "grep -rlis 'альбедо' site/content/mechanics | wc -l",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "en",
+      "cmd": "grep -rlis 'albedo' site/content/mechanics | wc -l",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "no_parents",
+      "cmd": "grep -rniE 'родители|parents' site/content/mechanics | wc -l",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T00:22:36",
+  "edited": "2026-10-10T00:23:37"
+}

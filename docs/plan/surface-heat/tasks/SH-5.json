@@ -1,0 +1,62 @@
+{
+  "id": "SH-5",
+  "module": "surface-heat",
+  "type": "dp-engineer",
+  "title": "Масштаб 2: сила источника термиков из H",
+  "goal": "Сила источника аналитических термиков — нормированный H из SurfaceHeat в точке (класс, склон, влажность, запаздывание, вода) вместо ручного class_strength; граница классов остаётся",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [
+    {
+      "name": "SH2",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "SH4",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-5",
+  "branch": "surface-heat/SH-5",
+  "base": "feature/surface-heat",
+  "scope": [
+    "scripts/terrain/terrain.gd",
+    "configs/world.json",
+    "scripts/game/game.gd",
+    "tests/terrain/test_surface.gd",
+    "tests/terrain/test_relief.gd",
+    "tests/contracts/test_surface_heat_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/surface_heat.json",
+    "scripts/atmosphere/air_model/"
+  ],
+  "accept": [
+    {
+      "name": "surface",
+      "tests": "surface"
+    },
+    {
+      "name": "relief",
+      "tests": "relief"
+    },
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "ridge_starts",
+      "tests": "ridge_starts"
+    },
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T22:56:48",
+  "edited": "2026-10-09T22:56:54"
+}

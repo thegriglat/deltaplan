@@ -91,8 +91,8 @@ roads and wires.
 
 ## Water
 
-The "water" class sets not only the color but also the behavior: over water the thermal sources are weak (0.05 out of 1 in
-strength, versus ≈0.87 for a flat field). Visually the water reacts to the wind: in calm it is a mirror, toward a wind speed of
+The "water" class sets not only the color but also the behavior: over water there are no thermals (on a summer day water is colder
+than the air and cools it; in the evening warm water heats it; see [Thermals](/mechanics/air-model/thermals/)). Visually the water reacts to the wind: in calm it is a mirror, toward a wind speed of
 ≈ full roughness ("matte ripple"); the roughness and the direction of the ripple normals run across the
 wind; in gust patches the ripple is darker ("cat's paws": less reflected sky), and against the sun it sparkles.
 On the side the wind blows from, the water is damped by land and stays a smooth strip (4 samples of the water mask

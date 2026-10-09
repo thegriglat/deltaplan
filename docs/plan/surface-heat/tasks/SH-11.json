@@ -1,0 +1,42 @@
+{
+  "id": "SH-11",
+  "module": "surface-heat",
+  "type": "dp-mechanic",
+  "title": "Прогон «после z0» и таблица до/после",
+  "goal": "Ключевые числа после SH-6 (z0 по покрову) на тех же 3 местах и часах — для отчёта и документации",
+  "plan_ref": "2. Задачи",
+  "contracts": [
+    {
+      "name": "SH5",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-11",
+  "branch": "surface-heat/SH-11",
+  "base": "feature/surface-heat",
+  "scope": [
+    "tools/research/surface_heat/out/after_z0/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/research/surface_heat/measure.gd"
+  ],
+  "accept": [
+    {
+      "name": "schema",
+      "cmd": "python3 tools/research/surface_heat/check_schema.py tools/research/surface_heat/out/after_z0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "compare",
+      "cmd": "python3 tools/research/surface_heat/compare.py tools/research/surface_heat/out/before tools/research/surface_heat/out/after_z0",
+      "expect": "re:aushkul"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T00:16:33"
+}

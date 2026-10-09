@@ -1,0 +1,41 @@
+{
+  "id": "SH-3",
+  "module": "surface-heat",
+  "type": "dp-researcher",
+  "title": "Инструмент замера до/после и прогон «до»",
+  "goal": "Ключевые числа, которые берут следующие слои (H по классам, источники термиков поля, потолок, подъём на склоне, подветренные зоны, вода), на 3 местах — до изменений, чтобы сравнить после SH-4/SH-5",
+  "plan_ref": "2. Задачи",
+  "contracts": [
+    {
+      "name": "SH5",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-3",
+  "branch": "surface-heat/SH-3",
+  "base": "feature/surface-heat",
+  "scope": [
+    "tools/research/surface_heat/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "schema",
+      "cmd": "python3 tools/research/surface_heat/check_schema.py tools/research/surface_heat/out/before",
+      "expect": "exit=0"
+    },
+    {
+      "name": "compare",
+      "cmd": "python3 tools/research/surface_heat/compare.py tools/research/surface_heat/out/before tools/research/surface_heat/out/before",
+      "expect": "re:altai"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T22:41:28"
+}

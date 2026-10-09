@@ -1,0 +1,116 @@
+{
+  "_doc": "Параметры потока тепла с поверхности (контракт SH1 v1/SH2 v2, docs/contracts/surface-heat.md; ядро scripts/atmosphere/surface_heat.gd). Числа классов (albedo, bowen*, g_frac, z0_m) — строки docs/research/surface_params.csv (П4) по соответствию p4_row (тест сверки). Числа radiation/moisture/water/thermal — docs/research/surface_params.md §9 (SH-1, SH-9); у каждого — ссылка на § или EST в _doc секции. Запаздывание прогрева по классам — configs/weather_model.json heating.lag_h, здесь не дублируется.",
+  "classes": {
+    "none": {
+      "p4_row": "grassland",
+      "albedo": 0.2,
+      "bowen": 0.6,
+      "bowen_min": 0.25,
+      "bowen_max": 2.0,
+      "g_frac": 0.15,
+      "z0_m": 0.03
+    },
+    "forest": {
+      "p4_row": "trees",
+      "albedo": 0.12,
+      "bowen": 0.7,
+      "bowen_min": 0.4,
+      "bowen_max": 1.7,
+      "g_frac": 0.04,
+      "z0_m": 1.0
+    },
+    "grass": {
+      "p4_row": "grassland",
+      "albedo": 0.2,
+      "bowen": 0.6,
+      "bowen_min": 0.25,
+      "bowen_max": 2.0,
+      "g_frac": 0.15,
+      "z0_m": 0.03
+    },
+    "crop": {
+      "p4_row": "cropland",
+      "albedo": 0.19,
+      "bowen": 0.6,
+      "bowen_min": 0.2,
+      "bowen_max": 1.9,
+      "g_frac": 0.17,
+      "z0_m": 0.1
+    },
+    "shrub": {
+      "p4_row": "shrubland",
+      "albedo": 0.15,
+      "bowen": 1.0,
+      "bowen_min": 0.5,
+      "bowen_max": 2.4,
+      "g_frac": 0.17,
+      "z0_m": 0.3
+    },
+    "bare": {
+      "p4_row": "bare_rock",
+      "albedo": 0.25,
+      "bowen": 2.0,
+      "bowen_min": 0.4,
+      "bowen_max": 6.0,
+      "g_frac": 0.25,
+      "z0_m": 0.01
+    },
+    "water": {
+      "p4_row": "water",
+      "albedo": 0.07,
+      "bowen": 0.15,
+      "bowen_min": 0.07,
+      "bowen_max": 0.25,
+      "g_frac": 0.5,
+      "z0_m": 0.0002
+    },
+    "built": {
+      "p4_row": "built_up",
+      "albedo": 0.15,
+      "bowen": 1.5,
+      "bowen_min": 0.4,
+      "bowen_max": 6.0,
+      "g_frac": 0.25,
+      "z0_m": 1.0
+    },
+    "snow": {
+      "p4_row": "snow_ice",
+      "albedo": 0.55,
+      "bowen": 2.0,
+      "bowen_min": 1.0,
+      "bowen_max": 3.0,
+      "g_frac": 0.9,
+      "z0_m": 0.001
+    }
+  },
+  "radiation": {
+    "_doc": "Числа — docs/research/surface_params.md §9.1–9.3 (SH-1), Stull 1988. K↓ = s0_wm2·T_r·sinψ, T_r = (tk_a + tk_b·sinψ)·(1 − cloud_sw_k·cover): облака один раз, через cover (средний ярус, cloud_sw_k 0,7 — Stull ур. 2.40; EST выбор яруса, §9.1); sky_heat в H не участвует. s0_wm2 1361 (солнечная постоянная, §9.1). diffuse_frac 0,165 — нижняя граница доли рассеянной при ясном небе (Эрбс ERB82, §9.3); при облаках доля растёт по Эрбсу от k_T = T_r. L* = l_star_wm2·(1 − l_cloud_k·cover): 98,5 Вт/м² (Stull 2.39, §9.2), l_cloud_k 0,3 (средний ярус, §9.2).",
+    "s0_wm2": 1361.0,
+    "tk_a": 0.6,
+    "tk_b": 0.2,
+    "cloud_sw_k": 0.7,
+    "diffuse_frac": 0.165,
+    "l_star_wm2": 98.5,
+    "l_cloud_k": 0.3
+  },
+  "moisture": {
+    "_doc": "Узлы влажности рельефа m (0..1) для lnβ: m ≤ m_dry → bowen_max, m_norm → bowen, m ≥ m_wet → bowen_min. §9.4: квантили TerrainRelief.moisture по четырём местам (p10 ≈ 0,25, медиана 0,47, p90 ≈ 0,70); сопоставление с состояниями «сухо/норма/влажно» — EST.",
+    "m_dry": 0.25,
+    "m_norm": 0.47,
+    "m_wet": 0.70
+  },
+  "water": {
+    "_doc": "H воды = rho_cp·exp(−z/rho_scale_height_m)·c_h·max(U, u_min_ms)·(T_w − T_a). c_h 1,4e-3 — эддикорреляция GUS23 (§9.5). u_min_ms 1 м/с — EST по точке данных GUS23 при 0,5 м/с (§9.5). rho_cp 1206 = 1,2 кг/м³·1005 Дж/(кг·К) на уровне моря (§9.5); rho_scale_height_m 8400 — барометрическая шкала высоты (≈ ×0,89 на км, §9.5; EST упрощение изотермией). lag_days 30 — озёра с эффективной глубиной перемешивания 20–30 м (§9.5, оценка по физике, EST). ice_c 0: T_воды ≤ ice_c → лёд (класс SNOW), §9.5. lapse_k_per_km 6,5 — EST (стандартная атмосфера; в WeatherModel градиента у земли нет): поправка температуры на высоту относительно долины ctx.valley_msl_m; на H воды (T_w и T_a сдвигаются вместе) не влияет, только на порог льда.",
+    "c_h": 0.0014,
+    "rho_cp": 1206.0,
+    "rho_scale_height_m": 8400.0,
+    "u_min_ms": 1.0,
+    "lag_days": 30.0,
+    "ice_c": 0.0,
+    "lapse_k_per_km": 6.5
+  },
+  "thermal": {
+    "_doc": "h_ref_wm2 — H голой скалы (bare), β норма, ровно, солнце в зените, ясно (§9.6): K = 1361·0,8 = 1089; Rn = 0,75·1089 − 98,5 = 718; (1 − 0,25)·718·2/3 = 359 → 360 (рекомендация §9.6). Пересчитывать при смене чисел (тест сверяет, допуск 1 Вт/м²).",
+    "h_ref_wm2": 360.0
+  }
+}

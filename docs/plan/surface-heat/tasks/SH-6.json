@@ -1,0 +1,81 @@
+{
+  "id": "SH-6",
+  "module": "surface-heat",
+  "type": "dp-engineer",
+  "title": "z0 по покрову: вход по клетке (условно)",
+  "goal": "Шероховатость z0 из П4 по долям классов клетки — в трение о землю и u* решателя и в профиль у земли WindField, без перестройки схемы; иначе — остановиться и записать почему",
+  "plan_ref": "3. z0 по покрову",
+  "contracts": [
+    {
+      "name": "SH1",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "SH3",
+      "version": "1",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "C2",
+      "version": "8",
+      "ref": "docs/contracts/surface-heat.md"
+    },
+    {
+      "name": "C3",
+      "version": "?",
+      "ref": "docs/contracts/surface-heat.md"
+    }
+  ],
+  "copy": "~/deltaplan-surface-heat-SH-6",
+  "branch": "surface-heat/SH-6",
+  "base": "feature/surface-heat",
+  "scope": [
+    "scripts/atmosphere/air_model/",
+    "tests/atmosphere/",
+    "tests/contracts/test_air_contracts.gd",
+    "docs/contracts/air-model.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/surface_heat.json",
+    "scripts/terrain/",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "air_place",
+      "tests": "air_place"
+    },
+    {
+      "name": "air_window_case",
+      "tests": "air_window_case"
+    },
+    {
+      "name": "air_phase",
+      "tests": "air_phase"
+    },
+    {
+      "name": "air_contracts",
+      "tests": "air_contracts"
+    },
+    {
+      "name": "wind_field",
+      "tests": "wind_field"
+    },
+    {
+      "name": "gpu_window",
+      "cmd": "tools/gpu_tests.sh --filter=air_window",
+      "expect": "re:\\b0 упало"
+    },
+    {
+      "name": "gpu_picard",
+      "cmd": "tools/gpu_tests.sh --filter=air_picard",
+      "expect": "re:\\b0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T23:50:26",
+  "edited": "2026-10-09T23:50:37"
+}

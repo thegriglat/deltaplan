@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Стык SH3/C2 v8 выполнен: нормаль (−∂h/∂x, 1, ∂h/∂y) в осях игры совпадает с sun_direction (север = −Z) и прежней формулой cos_inc; доли классов/вода/влажность проверены независимыми синтетическими ожиданиями, детерминизм — побитно. Скоуп и «не трогать» соблюдены. Единственная фактическая ошибка — не поднятые версии в frontmatter контракта.",
+  "issues": [
+    {
+      "file": "docs/contracts/air-model.md",
+      "line": 8,
+      "severity": "major",
+      "what": "Frontmatter contracts остался C2 v7, C7 v3, а заголовки разделов и CONTRACTS в test_air_contracts — v8/v4 (в базе frontmatter совпадал с заголовками). Инструменты dp читают версии из frontmatter.",
+      "fix": "Поднять в frontmatter C2 → 8, C7 → 4 (можно при слиянии координатором)."
+    },
+    {
+      "file": "docs/contracts/air-model.md",
+      "line": 416,
+      "severity": "minor",
+      "what": "C7 (владелец AM-04) поднят до v4, хотя в карточке контрактов SH-4 указан только C2 v8. Изменение обратно совместимое (хвостовой surface = null), зафиксировано в истории и тестах.",
+      "fix": "Координатору подтвердить, что смена C7 согласована (второй отчёт fe2758d5, по-видимому, по запросу)."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_place.gd",
+      "line": 23,
+      "severity": "minor",
+      "what": "Без снимка (surface = null) H считается по классу NONE + маска рек — исследовательские скрипты tools/research/air_start/* и сверка с эталоном Python теперь получают другую H, чем игра. Исполнитель это указал.",
+      "fix": "Записать в план/SH-7: передавать снимок в исследовательских прогонах или явно считать их «без карты»."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept SH-4 --only air_place --dry",
+      "value": "PASS 5/5",
+      "pass": true
+    },
+    {
+      "name": "dp accept SH-4 --only air_contracts --dry",
+      "value": "PASS 31/31",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-09T23:49:18",
+  "by": "reviewer"
+}

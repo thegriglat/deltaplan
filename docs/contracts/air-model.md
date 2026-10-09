@@ -2,10 +2,10 @@
 type: "contract"
 status: "active"
 module: "air-model"
-updated: "2026-10-05"
+updated: "2026-10-10"
 summary: "Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12)."
 related: []
-contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3", "version": 1}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 3}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
+contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 9}, {"id": "C3", "version": 2}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
 ---
 # Модель воздуха: контракты систем
 
@@ -86,20 +86,21 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3",
 - **Тесты:** `test_c1_ref_fixture_format`, `test_c1_ref_mask_rule`, `test_c1_ref_solution_div_free`
   (v2: новые массивы — в списках `REF_N`/`REF_STENCIL` теста вместе с пересчётом фикстур).
 
-## C2 v7 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, погода, солнце
+## C2 v9 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, поверхность, погода, солнце
 **Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
 
 | Вход | Откуда в игре | Формат |
 |---|---|---|
 | рельеф `hc` | `HeightLayer` detail (узлы 25 м), `AirPlace.block_mean` — блочное среднее по клетке | (ny, nx) float64, м над морем, j — север |
-| вода | маска слоя (светлое — вода), `AirPlace.water_fraction` → H = 0 над водой | (ny, nx) доля |
+| поверхность (v8) | снимок `AirPlace.surface_of(terrain, detail, water)` → `place.surface`: класс и влажность узлов 25 м; `AirPlace.cell_surface` — доли классов и влажность клетки | (ny, nx, CLASS_COUNT) доли узлов, (ny, nx) m |
+| вода | доля узлов клетки: вода карты/маски 10 м (озёра OSM) **или** маска рек слоя (`detail_water.png`) | класс WATER в долях; H — по T воды (SH3) |
 | погода на час | `WeatherModel.diurnal_state`, `reference_context`, типовой t_max (`typical_max_c`), `sky` | → `z_i` (м над морем, NAN — нет конвекции), `gam` (NZ = nz + 2, К/м, в центрах с ореолом) |
-| солнце | `SunClock` / `AirPlace.solar_flux` (запаздывание прогрева, косинус к склону, рассеянная 0,10, выхолаживание) | `heat` (ny, nx) Вт/м²; пусто — без нагрева |
+| солнце и H (v8) | `AirPlace.surface_flux` = `SurfaceHeat.mix_flux` по клетке (SH2/SH3, `docs/contracts/surface-heat.md`) | `heat` (ny, nx) Вт/м² на горизонтальную площадь; пусто — без нагрева |
 | ветер прогноза | игра (`--wind`, `--from`, погода) | `u10` (м/с на 10 м), `wdir` (откуда, °) |
 | место | `configs/locations/<место>.json` | `center_lat, center_lon, utc_offset_h, id` |
 
 - `AirPlace.domain_case(detail, water, loc, dx, hour, u10, wdir, t_max = NAN, sky = "clear",
-  heat = true) -> AirCase` — квадрат `DOMAIN_L` = 38 400 м вокруг центра мира (x0 = y0 = −19 200),
+  heat = true, inflow_k = 1.0, surface = null) -> AirCase` (v8: хвостовой `surface`) — квадрат `DOMAIN_L` = 38 400 м вокруг центра мира (x0 = y0 = −19 200),
   dz = 105 м (dx ≥ 200) или dx/2, верх — 3000 м над максимумом рельефа, nz чётное; null — область
   вне слоя.
 - `AirCase`: `set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)`, `hc, gam, z_i, heat, u10, wdir, taper,
@@ -178,11 +179,61 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3",
   - Тест: `test_c2_cell_geometry` (линейное поле на слое с нечётным шагом и сдвигом начала: клетка = среднее по
     узлам решётки 25 м ≤ 1e-3 м; встроенный формат 25 м — как прямое среднее 16 × 16; окно dx = 200;
     вне слоя → пусто).
+- **v8 (09.10.2026, модуль surface-heat, SH-4; SH3 `docs/contracts/surface-heat.md`) — H по классам клетки.**
+  Было (v1–v7): `AirPlace.solar_flux` — H0 = 330 Вт/м² × косинус к склону + рассеянная 0,10 − 40 Вт/м² выхолаживания,
+  одно запаздывание (`heating.lag_h.none`), над водой (маска рек) H = 0. Стало:
+  - **Место** (`AirRuntime.place_of`): `{detail, water, surface, loc}`; `surface` — `AirPlace.Surface`, снимок на
+    главном потоке `AirPlace.surface_of(terrain, detail, water, domain_dx)`: ждёт поля рельефа (`terrain.wait_relief()`),
+    звать после полян у стартов (в игре — так: `_choose_start` до `_load_air_field`). Узлы — решётка 25 м мира внутри
+    слоя detail (`origin_x/z`, `width`, `height`, строки на юг); `cls` (PackedByteArray) — класс узла как
+    `Terrain._surface_class`: карта поверхности (покрывающая центр слоя), маска 10 м (вода G ≥ 0,5, лес R ≥ 0,5,
+    «не лес» маски поверх леса карты — `open_class_near`), луг/поле/кустарник/NONE круче `terrain_look.rock_slope_deg`
+    (нормаль по узлам ±25 м, как `normal_at`) → BARE; поверх — WATER по маске рек (ближайший пиксель, как
+    `water_fraction`). `moist` (PackedFloat32Array) — `TerrainRelief.moisture` билинейно (поле, покрывающее центр);
+    пусто — поля нет. Снимок только читается: рабочие потоки Terrain не зовут; доли клеток сеток области
+    (`domain_dx` = DX и DX·coarse) считаются сразу в пуле, остальное — по запросу (кэш для dx ≥ 200, под мьютексом).
+    Нет ни карт, ни полей — `surface = null`.
+  - **Доли клетки** `AirPlace.cell_surface(surface, water, layer, x0, y0, dx, nx, ny)` → `{fr, m}`: те же f×f узлов,
+    что `block_mean`; `fr[(j·nx + i)·CLASS_COUNT + c]` — доля узлов класса c, `m` — среднее `moist` (нет поля → m_norm
+    `configs/surface_heat.json`). Без снимка (тесты без Terrain) — класс NONE, вода — маска рек, m = m_norm.
+  - **H** `AirPlace.surface_flux(hc, dx, nx, ny, d, ctx, cfg, cells, u10, t_max)` = `SurfaceHeat.mix_flux(fr, q·C,
+    (−∂h/∂x, 1, ∂h/∂y), SurfaceHeating.directions(hour), m, {cover, sky_heat}, water, …)`; нормаль — в осях игры
+    (x — восток, y — вверх, z — юг = −y решателя), без нормировки (поток на горизонтальную площадь), градиент как
+    `np.gradient`; water = `{t_water_c = SurfaceHeat.water_temp_c(дата места, hc), t_air_c = air_temp_c(hour, t_max, hc),
+    u_ms = u10 меню, z_m = hc}` (только в клетках с водой). T_воды ≤ ice_c → лёд (SNOW) — в `mix_flux`.
+    `solar_flux`, `H0_WM2`, `DIFFUSE`, `H_LW_WM2`, `LW_CLOUD_K` удалены.
+  - **Окна** — та же функция на своей сетке: `AirWindowCase.window_case/window_at(…, inflow_k, surface = null)`,
+    `AirClipmap.setup(…, inflow_k, surface = null)` (C7 v4). `AirRuntime` передаёт
+    `place.surface` в область и окна.
+  - **Источник истины для H — `SurfaceHeat` (GDScript).** Эталон Python (`air.py solar_flux`) остаётся старым; фикстуры
+    `picard/`, `window/` по H больше не сверяются (сверка hc, γ, z_i, α — как раньше); GPU-тесты Пикара/окон берут H
+    из фикстур (решатель — без изменений). Единицы и раскладка `AirCase.heat`, `meta.heat` (C3), `heat_flux()` (C4),
+    вход фаз (P10) — **прежние**.
+  - Детерминизм: два снимка одного места и две сборки одного случая — побитно одно `heat` (тест).
+  - Тесты: `test_air_place.gd` — `test_cell_fractions_synthetic` (доли, вода карты/маски 10 м/рек, влажность, без
+    снимка, H = mix_flux), `test_steep_grass_is_bare`, `test_water_ice_january`, `test_surface_determinism_ongudai`
+    (снимок = `Terrain.surface_at`/`moisture_at`, побитный детерминизм, вода снимка ⊇ маски рек);
+    `test_c2_surface_input` (контракт: ключ `surface`, хвостовой аргумент).
 - **Тесты:** `test_c2_inflow_scale` (v6: α/max_profile по меню, u10 случая = k·меню, meta);
   `test_c2_air_case_grid` (сетка, zc, dims, `without_heat`); `test_c2_params_match_reference` (инвариант
   выше; в v4 — исполнитель Б2 переписывает по новому инварианту в том же коммите, что функцию).
+- **v9 (10.10.2026, surface-heat SH-6) — z0 по покрову, вход по клетке без перестройки схемы.**
+  - `AirCase.z0_map` (ny·nx, м; пусто — `p.z0` во всех столбцах), задаётся `set_z0_map(m)`: `p.z0` = лог-среднее
+    карты (эффективный z0 области — профиль притока, α/z_sat `WindProfile.apply_to_case`, фазы). Со снимком
+    поверхности `domain_case`/`window_at` строят карту `AirPlace.cell_z0(cells)` — z0 клетки = exp(Σ f_c ln z0_c)
+    по долям классов клетки (те же доли, что у H, SH3; z0_c — `configs/surface_heat.json → classes.<имя>.z0_m`,
+    П4; П4 §5.4 — лог-среднее по площади); без снимка карты нет, `p.z0` = `AirCase.Z0` (0,1 м). Окна — по своей сетке.
+  - `AirCase.col` — `NCOL` = 14: плоскости `COL_CD` = 12 — C_d стенки столбца (κ/ln(½dz/z0))², `COL_UST` = 13 —
+    u* замыкания столбца = u*_обл·ln(½dz/z0_обл)/ln(½dz/z0) (тот же ветер на ½dz, что у эффективного z0 области;
+    u*_обл = κ·u10/ln(10/z0_обл) = `AirCase.ustar`). `air_picard.glsl`: `setup` — K_b по u* столбца, `mom` — C_d
+    столбца грани (плоскость col на привязке 13); `prm[P_CD]`, `prm[P_USTAR]` — эффективные области (ядрами не
+    читаются). h_мех и L Обухова в `_closure` — по u* столбца. Без карты — побитно прежнее решение.
+  - `meta()`: `z0` — карта ny·nx float32 (есть карта) или число `p.z0` (нет); `z0_eff` = `p.z0` (→ C3 v2).
+  - Не входит (стоп-условие SH-6): смещение нуля d над лесом, перестройка нижней клетки/стенки (первая клетка
+    ½dz = 52,5 м на 400 м), калибровка Б1/AM-09 (по своим z0 случаев, не z0 игры), сеть/протокол, фазы — эффективный
+    z0 области без карты. `WindModel` (аналитика) — по-прежнему `AirCase.Z0`.
 
-## C3 v1 — выход решателя → `WindField` (AM-05)
+## C3 v2 — выход решателя → `WindField` (AM-05)
 **Владелец:** AM-05 (`scripts/atmosphere/air_model/wind_field.gd`). **Поставщики:** AM-03
 (`AirPicardJob.field()`), AM-06б (библиотека), `to_game_field.py` (прикидка).
 **Потребители:** C4, C5, AM-10.
@@ -198,7 +249,11 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3",
     C1), в центры — среднее двух граней, клетки `cell == 0` → 0;
   - `WindField.load_file(путь)` — `<путь>.json` + `<путь>.bin`, формат C6-файл ниже;
   - null — размеры не сходятся (`push_error`).
-- `meta` (Dictionary): **обязательно** `dx, dz, x0, y0, z_bot, nx, ny, nz`; `z0` (0,1 м);
+- `meta` (Dictionary): **обязательно** `dx, dz, x0, y0, z_bot, nx, ny, nz`; `z0` — **v2:** карта ny·nx (float32,
+  j·nx + i, м; от `AirCase.meta()` со снимком поверхности) или число (одно на все столбцы; нет ключа — 0,1 м;
+  файлы C6 — число); `z0_eff` — эффективный z0 области (справочно). `WindField.z0` — лог-среднее карты (термики,
+  масштаб 3), `WindField.z0_at(pos)` — z0 столбца; лог-профиль ниже первой воздушной клетки и u* столбца (C4
+  `T_USTAR`) — по z0 своего столбца; карта не того размера — null;
   **для термиков (C4)** — `heat` (ny·nx, Вт/м², как в решении, с гашением у края), `z_i` (м над
   морем; нет — без ключа), `gam` (nz, К/м, без ореола), `u10` (м/с); прочее — `label, wdir, cond,
   source, probes, path` (load_file кладёт `path` без расширения).
@@ -325,7 +380,7 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`,
   версия — `test_c6_field_version`.
 
-## C7 v3 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+## C7 v4 — клипмапы AM-04 → `WindField` / `AirFieldSet`
 **Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
 **Потребители:** C4 (выборка), AM-06Б (`AirRuntime`: загрузка, пересчёт, сдвиг), AM-07 (термики).
 
@@ -377,6 +432,12 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 inflow_k = 1.0)` — окна строятся с тем же множителем притока, что область (C2 v6); граница окна — от родителя,
 как прежде.
 
+**v4 (09.10.2026, surface-heat SH-4, вместе с C2 v8):** хвостовой аргумент `surface` (снимок поверхности места
+`AirPlace.Surface`, `place.surface`; null — без карты) у `AirClipmap.setup(…, inflow_k = 1.0, surface = null)`,
+`AirWindowCase.window_case(…, ctx, n = 64, inflow_k = 1.0, surface = null)`, `window_at(…, ctx, n, inflow_k, surface = null)`;
+H окна — `AirPlace.surface_flux` (SurfaceHeat по долям классов клетки окна), как у области. `AirRuntime` передаёт
+`place.surface`. Сетка, уровни, граница, сдвиг — без изменений.
+
 **Конфиг** `air_model`: `window_levels_m` ([100, 50]), `window_shift_frac` (0,25), у каждого `_doc`.
 - **Тесты:** `test_c7_levels_fine_to_coarse`, `test_c7_window_grid_and_api` (без GPU);
   GPU — `test_air_window_gpu.gd` (сверка с эталоном, побитно, загрузка и сдвиг клипмапа).
@@ -407,7 +468,7 @@ inflow_k = 1.0)` — окна строятся с тем же множителе
 
 | API | Что |
 |---|---|
-| `setup(atmo, place, conditions_fn)` | `atmo` — объект с `set_air_field(поле, blend_s)`; `place = {detail: HeightLayer, water: Image\|null, loc: {id, center_lat, center_lon, utc_offset_h}}` (`AirRuntime.place_of(terrain, utc_offset_h)`); `conditions_fn() -> {hour, u10, wdir, t_max, sky}` (`AirRuntime.conditions_of(clock, atmo, settings)`: час `SunClock`, ветер атмосферы на 10 м, прогноз пилота). Новое место — сброс тёплого старта |
+| `setup(atmo, place, conditions_fn)` | `atmo` — объект с `set_air_field(поле, blend_s)`; `place = {detail: HeightLayer, water: Image\|null, surface: AirPlace.Surface\|null (C2 v8), loc: {id, center_lat, center_lon, utc_offset_h}}` (`AirRuntime.place_of(terrain, utc_offset_h)`); `conditions_fn() -> {hour, u10, wdir, t_max, sky}` (`AirRuntime.conditions_of(clock, atmo, settings)`: час `SunClock`, ветер атмосферы на 10 м, прогноз пилота). Новое место — сброс тёплого старта |
 | `await load_field() -> bool` | экран загрузки: точное поле для `conditions_fn()`, в атмосферу **без подмены** (`blend_s = 0`); те же место и условия — сразу true (поле уже в атмосфере); доля — сигнал `progress_changed` |
 | `recompute_enabled` | пересчёт в полёте: срок — смена номера `floor(hour·60 / recompute_game_min)` (игровое время, ускорение ×N учтено часами), внеочередной — смена ветра (> 0,05 м/с или > 1°) или погоды (`t_max`, `sky`); поле — на **начало срока**; тёплый старт от `state()` текущего поля; подмена `set_air_field(f, −1)` (C8) |
 | `set_focus(node: Node3D, start: Vector3)` / `focus_fn: Callable → Vector3` (v2, AM-04) | центр окон: при загрузке — `start`, в полёте — `node` (когда его родитель шагает физику); не задан — только область. Загрузка: область → окна 100 и 50 м с центром на старте (доля: 0,5 — область, 0,5 — окна), в атмосферу один раз `[окно 50, окно 100, область]`; пересчёт — область, затем окна на прежних местах с тёплого старта, подача одним набором; в покое (`busy()` = false) — сдвиг окон за пилотом (`window_shift_frac`), подача `set_air_field(levels, −1)`, счётчик `shift_count`; ошибка окон — только область. `last_info.windows` — замеры окон. Game: `air_runtime.set_focus(glider, _start_pos)` |
@@ -548,5 +609,9 @@ inflow_k = 1.0)` — окна строятся с тем же множителе
 | C2 | v4 | 01.10.2026 | К2, волна Б п. 2: α по устойчивости (Паскуилл–Тёрнер, отношения Irwin 1979 к D) с α_N 0,24 (Б1), max_profile — правило z_sat = 0,3·0,3u*/f (как rules.py) — одна функция для решателя и WindModel; λ: lam 40, lam_frac 0,0158 (Б1); конфиг `wind.shear_exponent_neutral`, `wind.z_sat_frac` вместо `shear_exponent`/`max_profile_factor` |
 | C2 | v6 | 01.10.2026 | air-start (решение пользователя): ветер меню — на 10 м над стартом; `inflow_k` в `domain_case`/`window_case`/`window_at`; α, класс, z_sat — по меню, приток `AirCase.u10` = k·меню; `u10_menu`, `inflow_k` в `AirCase` и `meta()`. Потребители: AirRuntime (C9), клипмап (C7), термики (`meta.u10` — приток) |
 | C7 | v3 | 01.10.2026 | air-start: `AirClipmap.setup/set_conditions(…, inflow_k)` — окна с тем же множителем притока |
+| C7 | v4 | 09.10.2026 | surface-heat SH-4: хвостовой `surface` (снимок поверхности) у `AirClipmap.setup`, `AirWindowCase.window_case/window_at`; H окна — `AirPlace.surface_flux` (C2 v8) |
 | C9 | v3 | 01.10.2026 | air-start: загрузка в два прохода (k₁ = k₀·(U_меню/U₁)^(1/p), p по ветру; упор в предел итераций или штиль — один проход; неудача прохода 2 — поле прохода 1; timeout_s на проход), `inflow_k`, `last_info.inflow_k/passes/u_start10_first/u_start10`; в полёте — k загрузки |
 | C2 | v5 | 01.10.2026 | К2 по Б2: z_sat по толщине слоя с устойчивостью (h_s = 0,4√(u*L/f), L по Golder 1972 по классу и z0) — `max_profile(…, cls)`; класс F больше не даёт 14·U10 на 300 м |
+| C2 | v8 | 09.10.2026 | surface-heat SH-4 (SH3): H клетки = `SurfaceHeat.mix_flux` по долям классов (снимок поверхности `place.surface`, узлы 25 м: карта + маска 10 м + уклон + маска рек), влажности рельефа и воде с температурой (лёд ≤ 0 °C); убраны H0 = 330 и «вода → 0»; хвостовой `surface` у `domain_case`/`window_case`/`window_at`/`AirClipmap.setup`; источник истины для H — SurfaceHeat, эталон Python по H не сверяется. Потребители: AirRuntime (C9), окна (C7), фазы/термики — формат H прежний |
+| C2 | v9 | 10.10.2026 | surface-heat SH-6: z0 по покрову — `AirCase.z0_map` (лог-среднее по долям классов клетки, `AirPlace.cell_z0`), `p.z0` — эффективный области; C_d стенки и u* замыкания — плоскости `col` по столбцу (`NCOL` 14), чтение в `air_picard.glsl` (setup, mom); без карты — побитно прежнее |
+| C3 | v2 | 10.10.2026 | surface-heat SH-6: `meta.z0` — карта ny·nx или число, `z0_eff`; `WindField` — лог-профиль у земли и u* по z0 столбца (`z0_at`), `z0` — лог-среднее |

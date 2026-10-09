@@ -1,0 +1,172 @@
+{
+  "ceiling_agl_m": {
+    "mean": 505.17,
+    "p10": 400.56,
+    "p50": 514.6,
+    "p90": 591.59
+  },
+  "cells": {
+    "dx_m": 400.0,
+    "n": 1976,
+    "radius_km": 10.0
+  },
+  "commit": "0d62a8d3",
+  "conditions": {
+    "cover": 0.0,
+    "day": 15,
+    "month": 7,
+    "sky": "clear",
+    "sky_heat": 1.0,
+    "t_air_c": 21.3785636207193,
+    "t_max_c": 26.0,
+    "z_i_msl_m": 929.771586754841
+  },
+  "h_by_class": {
+    "forest": {
+      "area_frac": 0.4307,
+      "mean": 120.97,
+      "p10": 92.29,
+      "p90": 152.6
+    },
+    "grass": {
+      "area_frac": 0.5536,
+      "mean": 100.69,
+      "p10": 77.62,
+      "p90": 130.79
+    },
+    "water": {
+      "area_frac": 0.0157,
+      "mean": 13.32,
+      "p10": -16.11,
+      "p90": 43.36
+    }
+  },
+  "h_wm2": {
+    "mean": 108.06,
+    "n": 1976,
+    "p10": 79.92,
+    "p50": 105.75,
+    "p90": 141.61
+  },
+  "hour": 9.0,
+  "label": "after",
+  "lee": [
+    {
+      "dist_from_start_m": 140.0,
+      "how": "main",
+      "point_agl_m": 80.0,
+      "series_s": 120.0,
+      "sigma_w_ms": 1.34,
+      "site": "aushtau_east",
+      "w_mean_series_ms": 0.103,
+      "w_min_ms": -0.922,
+      "wdir_deg": 273.0
+    }
+  ],
+  "location": "aushkul",
+  "slope_lift": [
+    {
+      "by_point": {
+        "o-150_agl10": -0.063,
+        "o-150_agl30": -0.303,
+        "o-50_agl10": -0.227,
+        "o-50_agl30": -0.395,
+        "o0_agl10": -0.148,
+        "o0_agl30": -0.241
+      },
+      "dwind_deg": 154.0,
+      "heading_deg": 119.0,
+      "start": "aushtau_east",
+      "w_ms": -0.395,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": false
+    },
+    {
+      "by_point": {
+        "o-150_agl10": -0.24,
+        "o-150_agl30": -0.377,
+        "o-50_agl10": -0.145,
+        "o-50_agl30": -0.206,
+        "o0_agl10": -0.062,
+        "o0_agl30": -0.052
+      },
+      "dwind_deg": 103.0,
+      "heading_deg": 170.0,
+      "start": "aushtau_south",
+      "w_ms": -0.206,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": false
+    },
+    {
+      "by_point": {
+        "o-150_agl10": 0.348,
+        "o-150_agl30": 0.54,
+        "o-50_agl10": 0.523,
+        "o-50_agl30": 0.861,
+        "o0_agl10": 0.073,
+        "o0_agl30": 0.139
+      },
+      "dwind_deg": 0.0,
+      "heading_deg": 273.0,
+      "start": "ridge_west",
+      "w_ms": 0.861,
+      "w_ms_def": "w_mech, 30 м над землёй, 50 м перед стартом (против ветра меню)",
+      "windward": true
+    }
+  ],
+  "solver": {
+    "chunk_max_ms": 17.909,
+    "engine": "phase+picard",
+    "frozen_frac": 0.0,
+    "gpu_s": 0.557,
+    "hour": 9.0,
+    "inflow_k": 2.123,
+    "loading": true,
+    "main_max_ms": 84.88,
+    "not_converged": false,
+    "omega_fallback_used": false,
+    "passes": 2,
+    "phase_ms": 716.792,
+    "poll_max_ms": 50.551,
+    "reason": "загрузка",
+    "sky": "clear",
+    "solver_err": "",
+    "start_ms": 44.316,
+    "t_max": 26.0,
+    "u10": 3.0,
+    "u_start10": 4.732,
+    "u_start10_first": 1.953,
+    "wall_s": 12.17,
+    "warm": true,
+    "wdir": 273.0
+  },
+  "sources": {
+    "alive_frac": 0.295,
+    "density_km2": 5.971,
+    "n": 1876,
+    "n_all_domain": 7588,
+    "strength_ms": {
+      "mean": 1.36,
+      "p10": 1.23,
+      "p90": 1.47
+    },
+    "wstar_ms": {
+      "mean": 1.09,
+      "n": 1876,
+      "p10": 0.99,
+      "p50": 1.1,
+      "p90": 1.18
+    }
+  },
+  "version": 1,
+  "wall_s": 18.5,
+  "water": {
+    "area_frac": 0.0157,
+    "h_mean_wm2": 13.3,
+    "node_frac": 0.019,
+    "t_air_c": 21.3785636207193,
+    "t_water_c": null
+  },
+  "wdir_deg": 273.0,
+  "wind_ms": 3.0
+}

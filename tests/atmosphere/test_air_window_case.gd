@@ -1,6 +1,7 @@
 extends TestCase
 ## Вход окна клипмапа (AirWindowCase, AM-04) против эталона AM-01 (window_gpu_refs.py →
-## fixtures/air_model/window/): рельеф окна, dθ̄/dz, поток тепла, сетка; зона релаксации. Без GPU.
+## fixtures/air_model/window/): рельеф окна, dθ̄/dz, сетка; зона релаксации. Поток тепла — не по
+## эталону (C2 v8): H клетки окна = SurfaceHeat.mix_flux по её долям (TestAirPlace.expected_heat). Без GPU.
 
 const FIX_W := "res://tests/atmosphere/fixtures/air_model/window/"
 
@@ -45,12 +46,14 @@ func test_window_input_vs_reference() -> void:
 		check(c.z_bot == float(m.z_bot) and c.dz == float(m.dz), "z_bot, dz как в эталоне")
 		var dat: Dictionary = m.data
 		var e_h := TestAirPlace._max_diff(c.hc, dat.hc)
-		var e_q := TestAirPlace._max_diff(c.heat, dat.H)
+		var e_q := TestAirPlace._max_diff_64(
+			c.heat, TestAirPlace.expected_heat(c, lw[0], lw[1], loc, 12.0, 3.0, NAN, null, ctx)
+		)
 		var e_g := TestAirPlace._max_diff(c.gam, dat.gam)
 		print(
 			(
 				(
-					"  %s: вход %.0f мс, подготовка пары %.0f мс; max|Δhc| %s м, max|ΔH| %s Вт/м², "
+					"  %s: вход %.0f мс, подготовка пары %.0f мс; max|Δhc| %s м, max|ΔH − mix_flux| %s Вт/м², "
 					+ "max|Δγ| %s К/м"
 				)
 				% [
@@ -64,7 +67,7 @@ func test_window_input_vs_reference() -> void:
 			)
 		)
 		check(e_h < 1e-3, "рельеф окна")
-		check(e_q < 1e-2, "поток тепла окна")
+		check(e_q < 1e-9, "H окна = SurfaceHeat.mix_flux по долям клетки")
 		check(e_g < 1e-7, "dθ̄/dz окна")
 		# зона релаксации: 4 клетки у боков (для импульса и θ′), потолок 1000 м; фон setup не пишет
 		var nyx := c.nx_h * c.ny_h

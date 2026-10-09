@@ -38,6 +38,7 @@ var timeout_s := 60.0
 var history: Array[Dictionary] = []
 
 var _detail: HeightLayer
+var _surface: AirPlace.Surface = null
 var _water: Image
 var _loc := {}
 var _ctx := {}
@@ -76,7 +77,8 @@ var _retry_at := 0
 
 
 ## Вход места — как AirPlace.domain_case (detail — слой 25 м, water — маска или null, loc —
-## configs/locations/<место>.json; u10 — ветер меню, inflow_k — множитель притока, как у области).
+## configs/locations/<место>.json; u10 — ветер меню, inflow_k — множитель притока, как у области;
+## surface — снимок поверхности места AirPlace.surface_of, C2 v8).
 func setup(
 	detail: HeightLayer,
 	water: Image,
@@ -86,9 +88,11 @@ func setup(
 	wdir: float,
 	t_max := NAN,
 	sky := "clear",
-	inflow_k := 1.0
+	inflow_k := 1.0,
+	surface: AirPlace.Surface = null
 ) -> void:
 	_detail = detail
+	_surface = surface
 	_inflow_k = inflow_k
 	_loc = loc
 	_hour = hour
@@ -305,7 +309,22 @@ func _wait_tasks() -> void:
 ## Рабочий поток: вход окна (рельеф, погода, солнце) и подготовка обоих случаев (K_b, губки).
 func _prepare_case(a: Array, row: Dictionary) -> void:
 	var c := AirWindowCase.window_at(
-		_detail, _water, _loc, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], true, _ctx, cells, a[8]
+		_detail,
+		_water,
+		_loc,
+		a[0],
+		a[1],
+		a[2],
+		a[3],
+		a[4],
+		a[5],
+		a[6],
+		a[7],
+		true,
+		_ctx,
+		cells,
+		a[8],
+		_surface
 	)
 	if c != null and not c.prepare_pair():
 		c = null
