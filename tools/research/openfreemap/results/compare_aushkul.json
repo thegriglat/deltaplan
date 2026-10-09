@@ -1,0 +1,169 @@
+{
+ "roads": {
+  "ref_by_class_km": {
+   "primary": 12.4,
+   "track": 2574.0,
+   "tertiary": 112.0,
+   "secondary": 45.2,
+   "service": 78.3,
+   "unclassified": 115.6,
+   "residential": 116.6
+  },
+  "ofm_by_class_km": {
+   "track": 2702.2,
+   "service": 80.6,
+   "minor": 244.0,
+   "tertiary": 118.6,
+   "rail": 56.6,
+   "secondary": 48.4,
+   "path": 79.4,
+   "primary": 13.2,
+   "pier": 0.0
+  },
+  "compare_10m": {
+   "track": {
+    "ref_km": 2574.0,
+    "ofm_km": 2702.2,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "minor(residential+unclassified)": {
+    "ref_km": 232.2,
+    "ofm_km": 244.0,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "service": {
+    "ref_km": 78.3,
+    "ofm_km": 80.6,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "tertiary": {
+    "ref_km": 112.0,
+    "ofm_km": 118.6,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "secondary": {
+    "ref_km": 45.2,
+    "ofm_km": 48.4,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "primary": {
+    "ref_km": 12.4,
+    "ofm_km": 13.2,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "ALL_vehicle(no track)": {
+    "ref_km": 480.0,
+    "ofm_km": 504.8,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   },
+   "ALL_with_track": {
+    "ref_km": 3054.0,
+    "ofm_km": 3207.0,
+    "ref_covered_by_ofm": 1.0,
+    "ofm_covered_by_ref": 1.0
+   }
+  },
+  "compare_30m_ALL_with_track": {
+   "ref_km": 3054.0,
+   "ofm_km": 3207.0,
+   "ref_covered_by_ofm": 1.0,
+   "ofm_covered_by_ref": 1.0
+  },
+  "ofm_other_km": {
+   "rail": 56.6,
+   "path": 79.4,
+   "pier": 0.0
+  },
+  "vertices_nontrack": {
+   "ref": 7119,
+   "ofm_with_tile_dups": 6782
+  }
+ },
+ "water": {
+  "ref_area_km2": 18.0,
+  "ofm_area_km2": 18.01,
+  "IoU": 0.998,
+  "ref_polygons": 251,
+  "ofm_features": 382,
+  "IoU_gt_1ha": 0.998,
+  "n_gt_1ha": {
+   "ref": 142,
+   "ofm": 143
+  },
+  "waterway_km": {
+   "ref": 505.5,
+   "ofm": 538.5,
+   "ref_by_t_km": {
+    "river": 172.8,
+    "stream": 331.8,
+    "canal": 1.0
+   },
+   "ofm_by_class_km": {
+    "drain": 13.6,
+    "ditch": 0.8,
+    "stream": 342.9,
+    "canal": 1.0,
+    "river": 180.2
+   },
+   "ref_covered_by_ofm_20m": 1.0,
+   "ofm_covered_by_ref_20m": 0.973
+  }
+ },
+ "places": {
+  "ref": 37,
+  "ofm_unique_in_box": 38,
+  "ofm_by_class": {
+   "hamlet": 23,
+   "village": 14,
+   "neighbourhood": 1
+  },
+  "ref_matched_by_name<500m": 37,
+  "ref_missing_in_ofm": [],
+  "ofm_extra_count": 1,
+  "ofm_extra_sample": [
+   [
+    "Косачёво",
+    "neighbourhood"
+   ]
+  ]
+ },
+ "buildings": {
+  "ref_count": 3881,
+  "ofm_features": 126,
+  "ofm_polygons_in_box": 3878,
+  "ref_with_ofm_within_15m": 3881,
+  "ref_area_ha": 50.5,
+  "ofm_area_ha": 47.7,
+  "ofm_housenumber_points_dedup": 579
+ },
+ "power": {
+  "ref_lines": 20,
+  "ofm_layers_with_power": [],
+  "ofm_poi_classes_power": []
+ },
+ "layers_feature_counts_with_tile_dups": {
+  "landcover": 2847,
+  "mountain_peak": 450,
+  "building": 126,
+  "landuse": 75,
+  "poi": 316,
+  "transportation": 1600,
+  "water": 382,
+  "water_name": 204,
+  "waterway": 795,
+  "place": 348,
+  "transportation_name": 438,
+  "housenumber": 620,
+  "boundary": 226,
+  "park": 11,
+  "aerodrome_label": 2,
+  "aeroway": 6
+ }
+}
