@@ -64,10 +64,12 @@ var _class_sun := PackedVector3Array()
 ## terrain_look после переопределений локации (палитра — get_grass_palette).
 var _look: Dictionary = {}
 var _builder: LocationBuilder
-## Коэффициенты источников термиков по классам (configs/world.json → surface.thermal).
-var _thermal_k := PackedFloat32Array()
-var _thermal_gain: float = 1.0
-var _thermal_power: float = 1.0
+## Источник термиков из потока тепла (SH-5): конфиг SurfaceHeat, H_ref, one-hot доли классов, вода.
+const _HEAT_SKY := {"cover": 0.0, "sky_heat": 1.0}
+var _heat_cfg: Dictionary = {}
+var _h_ref: float = 362.0
+var _heat_onehot := PackedFloat32Array()
+var _water_heat: Dictionary = {}
 var _edge_boost: float = 0.0
 var _edge_full: float = 50.0
 var _edge_max: float = 150.0
@@ -75,9 +77,6 @@ var _edge_max: float = 150.0
 var _edge_pair := PackedByteArray()
 ## С этого уклона луг/поле/кустарник считаются скалами (как в шейдере), радианы → cos.
 var _rock_cos: float = -1.0
-## Сырые ложбины — слабее источник термиков (surface.thermal.wet_k / wet_from).
-var _wet_k: float = 0.0
-var _wet_from: float = 0.7
 ## world.json → surface.relief
 var _relief_cfg: Dictionary = {}
 ## Фоновый пересчёт горизонта к солнцу при смене азимута.
@@ -594,13 +593,23 @@ func get_forest_mask() -> Array:
 	return []
 
 
-## Сила источника термиков 0..1 (VR-4, FR-11): класс поверхности × освещённость склона солнцем
-## × усиление у границ классов (поле–лес, луг–лес, пашня–луг — триггеры отрыва):
-## clamp(class_strength[класс] · exposure_gain · sun_exposure^exposure_power
-##       · (1 + edge_boost · edge_proximity), 0, 1)   (configs/world.json → surface.thermal).
+## Сила источника термиков 0..1 (VR-4, FR-11, SH-5): нормированный поток тепла с поверхности
+## clamp(max(H, 0) / h_ref · (1 + edge_boost · близость к границе), 0, 1), H = SurfaceHeat.mix_flux
+## для класса точки (единичная нормаль, класс-солнце, влажность рельефа, ясное небо; вода — по
+## set_water_heat, не задан → 0). Границы классов-триггеров (поле–лес, луг–лес, пашня–луг) усиливают.
 ## Сигнатура как у sun_fn в Atmosphere.set_ground.
 func thermal_source_strength_at(x: float, z: float) -> float:
 	return thermal_source_strength_for(x, z, _class_sun, _sun_dir)
+
+
+## Контекст воды для потока тепла (SurfaceHeat.water_flux): температуры воды и воздуха, °C, ветер, м/с.
+## Не задан (или clear_water_heat) — вода источником не считается (s = 0).
+func set_water_heat(t_water_c: float, t_air_c: float, u_ms: float) -> void:
+	_water_heat = {"t_water_c": t_water_c, "t_air_c": t_air_c, "u_ms": u_ms}
+
+
+func clear_water_heat() -> void:
+	_water_heat = {}
 
 
 ## То же при заданном солнце: class_sun — направления по классам (SurfaceHeating.directions),
@@ -608,16 +617,35 @@ func thermal_source_strength_at(x: float, z: float) -> float:
 func thermal_source_strength_for(
 	x: float, z: float, class_sun: PackedVector3Array, to_sun: Vector3
 ) -> float:
+	return thermal_source_strength_water(x, z, class_sun, to_sun, _water_heat)
+
+
+## То же с явным контекстом воды {t_water_c, t_air_c, u_ms} (пусто — вода 0): для AtmoDay, где вода
+## зависит от часа, а не от текущего состояния Terrain.
+func thermal_source_strength_water(
+	x: float, z: float, class_sun: PackedVector3Array, to_sun: Vector3, water: Dictionary
+) -> float:
 	var n := normal_at(x, z)
 	var c := _surface_class(x, z, n)
-	var sd := class_sun[c] if c < class_sun.size() else to_sun
-	var e := clampf(n.dot(sd), 0.0, 1.0)
-	var k := _thermal_k[c] if c < _thermal_k.size() else 1.0
-	var edge := 1.0 + _edge_boost * _edge_proximity(x, z)
-	var wet := 1.0
-	if _wet_k > 0.0:
-		wet -= _wet_k * smoothstep(_wet_from, 1.0, moisture_at(x, z))
-	return clampf(k * _thermal_gain * pow(e, _thermal_power) * edge * wet, 0.0, 1.0)
+	var sun := class_sun
+	if sun.size() < SurfaceLayer.CLASS_COUNT:
+		sun = PackedVector3Array()
+		sun.resize(SurfaceLayer.CLASS_COUNT)
+		for i in SurfaceLayer.CLASS_COUNT:
+			sun[i] = class_sun[i] if i < class_sun.size() else to_sun
+	var h := SurfaceHeat.mix_flux(
+		_heat_onehot,
+		c * SurfaceLayer.CLASS_COUNT,
+		n,
+		sun,
+		moisture_at(x, z),
+		_HEAT_SKY,
+		water,
+		_heat_cfg
+	)
+	if h <= 0.0:
+		return 0.0
+	return clampf(h / _h_ref * (1.0 + _edge_boost * _edge_proximity(x, z)), 0.0, 1.0)
 
 
 ## Близость к границе классов-триггеров 0..1: 1 ближе edge_full_m, 0 дальше edge_max_m.
@@ -932,18 +960,17 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 		for s in surfaces:
 			s.replace_in_circle(p.x, p.z, site_r, SurfaceLayer.SHRUB, SurfaceLayer.GRASS)
 		_clear_forest(p.x, p.z, clear_r)
+	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
+	_heat_cfg = SurfaceHeat.config()
+	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
+	_heat_onehot.resize(SurfaceLayer.CLASS_COUNT * SurfaceLayer.CLASS_COUNT)
+	_heat_onehot.fill(0.0)
+	for i in SurfaceLayer.CLASS_COUNT:
+		_heat_onehot[i * SurfaceLayer.CLASS_COUNT + i] = 1.0
 	var th: Dictionary = scfg.get("thermal", {})
-	var ks: Dictionary = th.get("class_strength", {})
-	_thermal_k.resize(SurfaceLayer.CLASS_COUNT)
-	for c in SurfaceLayer.CLASS_COUNT:
-		_thermal_k[c] = float(ks.get(SurfaceLayer.CLASS_NAMES[c], 1.0))
-	_thermal_gain = float(th.get("exposure_gain", 1.0))
-	_thermal_power = float(th.get("exposure_power", 1.0))
 	_edge_boost = float(th.get("edge_boost", 0.0))
 	_edge_full = float(th.get("edge_full_m", 50.0))
 	_edge_max = float(th.get("edge_max_m", 150.0))
-	_wet_k = float(th.get("wet_k", 0.0))
-	_wet_from = float(th.get("wet_from", 0.7))
 	var n := SurfaceLayer.CLASS_COUNT
 	_edge_pair = PackedByteArray()
 	_edge_pair.resize(n * n)
