@@ -1,0 +1,51 @@
+{
+  "id": "SH-8",
+  "module": "surface-heat",
+  "type": "dp-writer",
+  "title": "Документация docs/: нагрев по покрову, вода, z0; findings; CHANGELOG",
+  "goal": "Описать в docs/guide, как теперь устроен поток тепла с поверхности (SurfaceHeat), вода и z0, с числами до/после и границами модели; выводы — в реестр findings; строка в CHANGELOG",
+  "plan_ref": "1. Физика и границы модели",
+  "contracts": [],
+  "copy": "~/deltaplan-surface-heat-SH-8",
+  "branch": "surface-heat/SH-8",
+  "base": "feature/surface-heat",
+  "scope": [
+    "docs/guide/air-model.md",
+    "docs/guide/atmosphere.md",
+    "docs/registry/findings.md",
+    "CHANGELOG.md",
+    "docs/research/surface_params.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "site/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "guide",
+      "cmd": "grep -c 'SurfaceHeat' docs/guide/air-model.md docs/guide/atmosphere.md",
+      "expect": "!re::0"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c 'surface-heat' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -ci 'покров' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T00:17:04"
+}

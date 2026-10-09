@@ -76,3 +76,7 @@
 {"t": "2026-10-10T00:16:31", "by": "coordinator", "task": "SH-6", "ev": "merged", "commits": ["ee82e27e"]}
 {"t": "2026-10-10T00:16:33", "by": "coordinator", "task": "SH-11", "ev": "created", "note": "Прогон «после z0» и таблица до/после"}
 {"t": "2026-10-10T00:16:34", "by": "coordinator", "task": "SH-11", "ev": "started", "note": "dp-mechanic, ~/deltaplan-surface-heat-SH-11"}
+{"t": "2026-10-10T00:17:04", "by": "coordinator", "task": "SH-8", "ev": "created", "note": "Документация docs/: нагрев по покрову, вода, z0; findings; CHANGELOG"}
+{"t": "2026-10-10T00:21:11", "by": "main", "task": "SH-11", "ev": "reported", "commits": ["13293fcd"], "note": "done: Импорт в копии выполнен; прогон after_z0 (altai, ongudai, aushkul; часы 9, 12, 15) завершён за 181 с, 9 файлов. Схема и…", "dp_feedback": "dp job wait не отдаёт код возврата задания (при tail в конвейере не видно, завершилось ли успешно); пришлось проверять по наличию 9 json и summary.csv. Команда `dp report --template` без аргумента ID не нужна — работает с SH-11."}
+{"t": "2026-10-10T00:21:44", "by": "executor", "task": "SH-11", "ev": "accepted", "note": "2/2 schema=ok:exit 0; compare=ok:aushkul"}
+{"t": "2026-10-10T00:21:45", "by": "coordinator", "task": "SH-11", "ev": "merged", "commits": ["344386b4"]}
