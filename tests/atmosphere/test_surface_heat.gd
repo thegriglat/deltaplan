@@ -108,7 +108,7 @@ func test_href_consistent() -> void:
 	var h := SurfaceHeat.land_flux(SurfaceLayer.BARE, k, 0.0, cfg.moisture.m_norm, cfg)
 	approx(h, cfg.thermal.h_ref_wm2, 1.0, "h_ref_wm2 = H скалы в зените")
 	var r: Dictionary = cfg.radiation
-	var rn := (1.0 - 0.25) * r.s0_wm2 * (r.tk_a + r.tk_b) - r.l_star_wm2
+	var rn: float = (1.0 - 0.25) * r.s0_wm2 * (r.tk_a + r.tk_b) - r.l_star_wm2
 	var b: float = cfg.classes.bare.bowen
 	approx(rn * (1.0 - 0.25) * b / (1.0 + b), cfg.thermal.h_ref_wm2, 1.0, "h_ref_wm2 по формуле §9.6")
 
