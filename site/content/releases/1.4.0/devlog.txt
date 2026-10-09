@@ -1,0 +1,26 @@
+Deltaplan 1.4.0 — a new cockpit view and faster graphics
+
+This version follows feedback from a hang glider pilot who tested the sim. The cockpit view now shows what a pilot actually uses for reference: the base bar with instruments, the nose wires and the horizon. The pilot hangs at a realistic height above the bar, and most gliders get a curved base bar.
+
+Graphics are also much faster: clouds cost a fraction of what they did, and the long freezes in flight are gone.
+
+Cockpit view and control frame:
+- The pilot hangs 6 cm above the base bar on every glider
+- New default camera: slightly behind the pilot, body and hands hidden; other modes in Settings (hands visible, eyes, between the shoulders)
+- Default field of view 90°, looking 10° below the horizon
+- Flight deck and vario are back on the base bar
+- Curved base bar on 37 of 48 gliders; straight on training and older ones
+
+Controls:
+- X returns the bar to neutral with one press and it stays there
+- New setting to choose roll direction: move your body (default) or move the bar
+
+Performance:
+- Clouds 3 to 10 times cheaper; frames 6 to 7 times faster on High, 1.5 to 3 times faster on Medium
+- Distant grass is sparser, close grass unchanged
+- No more 2 to 3 second freezes in flight
+- Integrated graphics (including Apple) start on Low quality
+
+Known issues:
+- The first frame of a flight can still freeze for 3 to 4 seconds
+- Short stutters of 20 to 30 ms remain now and then
