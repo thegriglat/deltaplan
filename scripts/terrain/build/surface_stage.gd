@@ -710,11 +710,6 @@ func _get_block(
 	if ctx.host == null:
 		ctx.log_line("surface: нет узла host для HTTP")
 		return [ERR_UNCONFIGURED, PackedByteArray()]
-	var req := HTTPRequest.new()
-	req.timeout = _timeout
-	req.use_threads = true
-	ctx.host.add_child(req)
-	_requests.append(req)
 	var headers := PackedStringArray(
 		["User-Agent: " + _ua, "Range: bytes=%d-%d" % [start, start + size - 1]]
 	)
@@ -723,18 +718,17 @@ func _get_block(
 	var ok := false
 	for attempt in 3:
 		ctx.net_requests += 1
-		if req.request(url, headers) != OK:
-			break
-		var res: Array = await req.request_completed
+		var res: Array = await HttpLog.fetch(ctx.host, url, headers,
+			"worldcover %s попытка %d/3" % [name, attempt + 1], HTTPClient.METHOD_GET, "", _timeout, _requests)
 		code = int(res[1])
+		if int(res[0]) == HTTPRequest.RESULT_CANT_CONNECT and code == 0 and (res[3] as PackedByteArray).is_empty():
+			break
 		if int(res[0]) == HTTPRequest.RESULT_SUCCESS and (code == 206 or code == 200):
 			body = res[3]
 			ok = true
 			break
 		if code == 403 or code == 404:
 			break
-	_requests.erase(req)
-	req.queue_free()
 	if not ok:
 		if is_header and (code == 403 or code == 404):  # файла нет (океан)
 			DirAccess.make_dir_recursive_absolute(path.get_base_dir())

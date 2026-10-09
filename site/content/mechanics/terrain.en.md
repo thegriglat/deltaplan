@@ -75,7 +75,7 @@ if there is neither network nor data, a fallback procedural map by elevation, sl
 ## OSM objects: houses, roads, wires, fences
 
 For the built-in places, real OpenStreetMap objects stand on top of the terrain
-(`data/osm/<id>.json`, © OpenStreetMap contributors, ODbL license): roads (a ribbon along the terrain, step
+(`data/terrain/<id>/osm.json`, © OpenStreetMap contributors, ODbL license): roads (a ribbon along the terrain, step
 12 m on main roads / 20 m on the rest, visibility 25 km / 4 km), buildings (wall boxes + roof, following the outline
 from OSM), power lines (lattice towers 110 kV / poles 10 kV, the wire is a parabola with a sag of
 3 % of the span, real thickness 2 cm but never thinner than a pixel; up close it is a line, beyond 500 m it is not drawn, as

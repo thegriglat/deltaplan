@@ -577,16 +577,9 @@ func _http(url: String, extra: PackedStringArray) -> Dictionary:
 	var headers := PackedStringArray(["User-Agent: " + ua])
 	headers.append_array(extra)
 	for attempt in 2:
-		var req := HTTPRequest.new()
-		req.timeout = float(_rt.get("timeout_s", 30.0))
-		req.use_threads = true
-		host.add_child(req)
 		_ctx.net_requests += 1
-		if req.request(url, headers) != OK:
-			req.queue_free()
-			continue
-		var res: Array = await req.request_completed
-		req.queue_free()
+		var res: Array = await HttpLog.fetch(host, url, headers, "dem попытка %d/2" % (attempt + 1),
+			HTTPClient.METHOD_GET, "", float(_rt.get("timeout_s", 30.0)))
 		if int(res[0]) == HTTPRequest.RESULT_SUCCESS:
 			return {"code": int(res[1]), "body": res[3]}
 		if _ctx.cancelled:
