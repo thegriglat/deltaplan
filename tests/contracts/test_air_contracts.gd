@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
-const CONTRACTS := {C1 = 2, C2 = 7, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
+const CONTRACTS := {C1 = 2, C2 = 8, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 4, C8 = 2, C9 = 3, C10 = 3}
 const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -409,6 +409,49 @@ func test_c2_cell_geometry() -> void:
 	# Вне слоя — пусто.
 	var small := _linear_layer(24.05, 1201, 0.0, 0.0)
 	check(AirPlace.block_mean(small, -19200.0, -19200.0, 400.0, 96, 96).is_empty(), "вне слоя → пусто")
+
+
+## C2 v8 (SH3): вход места — снимок поверхности place.surface (AirPlace.Surface: узлы 25 м, cls, moist);
+## cell_surface → {fr: ny·nx·CLASS_COUNT, m: ny·nx}; хвостовой surface у domain_case/window_at;
+## H = SurfaceHeat.mix_flux по клетке; без нагрева — пусто. Вызов через callv (как v6).
+func test_c2_surface_input() -> void:
+	var p := TestAirPlace._syn_place()
+	var layer: HeightLayer = p[0]
+	var sf := AirPlace.surface_of(p[2], layer, p[1])
+	check(sf is AirPlace.Surface, "surface_of → AirPlace.Surface")
+	if sf == null:
+		return
+	check(sf.cls.size() == sf.width * sf.height, "cls — width·height байт")
+	check(sf.moist.size() == sf.width * sf.height, "moist — width·height float32")
+	approx(fposmod(sf.origin_x, 25.0), 0.0, 1e-9, "узлы снимка — решётка 25 м мира (x)")
+	approx(fposmod(sf.origin_z, 25.0), 0.0, 1e-9, "узлы снимка — решётка 25 м мира (z)")
+	var cells := AirPlace.cell_surface(sf, p[1], layer, -800.0, -800.0, 400.0, 4, 4)
+	check(
+		(cells.fr as PackedFloat32Array).size() == 16 * SurfaceLayer.CLASS_COUNT
+		and (cells.m as PackedFloat32Array).size() == 16,
+		"cell_surface: fr ny·nx·CLASS_COUNT, m ny·nx"
+	)
+	var loc := {id = "syn", center_lat = 50.75, center_lon = 86.13, utc_offset_h = 7.0}
+	var wa := Callable(AirWindowCase, "window_at")
+	var w: AirCase = wa.callv(
+		[layer, p[1], loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, sf]
+	)
+	check(w != null and w.heat.size() == 16, "window_at(…, inflow_k, surface)")
+	var ex := TestAirPlace.expected_heat(w, layer, p[1], loc, 12.0, 3.0, NAN, sf)
+	check(w != null and TestAirPlace._max_diff_64(w.heat, ex) < 1e-9, "H = SurfaceHeat.mix_flux по клетке")
+	var wn: AirCase = wa.callv(
+		[layer, p[1], loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", false, {}, 4, 1.0, sf]
+	)
+	check(wn != null and wn.heat.is_empty(), "без нагрева — heat пусто")
+	var args := []
+	for a: Dictionary in AirPlace.new().get_script().get_script_method_list():
+		if String(a.name) == "domain_case":
+			for arg: Dictionary in a.args:
+				args.append(String(arg.name))
+	check(not args.is_empty() and args[args.size() - 1] == "surface", "domain_case: хвостовой аргумент surface")
+	check("solar_flux" not in AirPlace.new().get_script().get_script_method_list().map(
+		func(m: Dictionary) -> String: return String(m.name)
+	), "solar_flux (H0 = 330) удалена")
 
 
 func test_c2_inflow_scale() -> void:
