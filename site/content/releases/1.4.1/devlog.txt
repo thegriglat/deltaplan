@@ -1,0 +1,26 @@
+Deltaplan 1.4.1 — any point, like a built-in place
+
+You can now pick any point on the map and get the same world as in the built-in places: detailed terrain, rivers, land cover, forest and water, plus roads, buildings, power lines, lakes, settlements and fields from OpenStreetMap. The game builds the place itself on the first launch and keeps it in a local cache, so the next flight there needs no network.
+
+The cockpit view got a round of fixes from pilot feedback: the instruments now face the pilot, the telltales sit on the front wires at a sensible height, and haze is back in the chase camera.
+
+Place data:
+- Any point gets 25 m terrain, rivers, WorldCover land cover, 10 m forest and water and OpenStreetMap objects
+- Built places are cached and load offline next time; missing layers are fetched on the next launch
+- Fill the cache in advance: deltaplan --headless -- --prefetch=lat,lon (see README-options.txt next to the game)
+- Network requests are written to the game log
+
+Cockpit view:
+- Flight deck and vario centred on the base bar, tilted 60° towards the pilot
+- Base bar bend like a real one
+- Q looks at the instruments again
+- Key hints at the top of the screen (F1, F3, F5, F6)
+- Red telltales at 30% of the control frame height, starting right at the wire
+- Haze and distant ridges back in third-person views
+- Camera recenters after takeoff instead of swinging up to the wingtip
+
+Menu:
+- "Flight settings" and "Game settings"
+
+Known issues:
+- The first build of a new point takes from one to several minutes; OpenStreetMap servers are often busy and the game retries

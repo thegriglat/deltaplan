@@ -39,7 +39,7 @@ with no external map services and no keys (`scripts/terrain/map_picker.gd`).
 
 For the built-in places the elevations are **Copernicus DEM GLO-30** (1″ resolution, ≈30 m, cloud-hosted
 GeoTIFF, free, no key): the best open quality, newer and cleaner than SRTM. The data is converted to a
-flat format in advance (`tools/terrain/fetch_dem.py`) and enters the game as a ready layer.
+flat format in advance (`scripts/terrain/build/dem_stage.gd`, the same code the game uses for any point) and enters the game as a ready layer.
 
 For runtime places (by coordinates) it is **AWS Terrain Tiles** (Mapzen/Tilezen): on land the base is the same
 SRTM (≈30 m), more accurate for some regions (Europe: EU-DEM, USA: 3DEP 10 m, above 60° N:
@@ -58,7 +58,7 @@ Each built-in place stores two nested elevation layers: a detailed one (40 km, 2
 
 The surface class (forest, meadow, cropland, shrub, rock, water, built-up, snow) comes from **ESA WorldCover 2021**
 (10 m, CC-BY 4.0 license). The same map gives the ground color, the places where trees stand, and the strength of the
-thermal sources: three things from one file. `fetch_landcover.py` reads only the tiles it needs from the COG
+thermal sources: three things from one file. `surface_stage.gd` reads only the tiles it needs from the COG
 (HTTP range requests, no GDAL) and writes the node class as the 3×3 mode of the subsamples.
 
 In addition, for the detailed layer a "10 m detail" mask is built (two channels: R is the forest fraction, G is the water
@@ -83,7 +83,7 @@ in real life), fences at landing fields. Wires have collision.
 
 Rivers and lakes are **not drawn from OSM separately**: the water is already in the terrain coloring (the 10 m mask above);
 the OSM water data is in the file and, if desired, the terrain module can use it to replace the river masks built
-from drainage. OSM data is exported via the Overpass API (`tools/osm/fetch_osm.py`) and stored in the repository,
+from drainage. OSM data is exported via the Overpass API (`scripts/terrain/build/osm_stage.gd`) and stored in the repository,
 not requested by the game in real time.
 
 For runtime places (by coordinates) there is no OSM data: only windsocks at the launches are placed, without houses,
@@ -184,9 +184,9 @@ does not respond (timeout on unchanged progress).
   the camp and campfire at the launch.
 - [docs/guide/vegetation.md](/docs/guide/vegetation.md): grass blades and trees along the forest edge.
 - Code: [scripts/terrain/](/scripts/terrain/), [scripts/world_objects/](/scripts/world_objects/).
-- Place data preparation: [tools/terrain/fetch_dem.py](/tools/terrain/fetch_dem.py),
-  [tools/terrain/fetch_landcover.py](/tools/terrain/fetch_landcover.py),
-  [tools/osm/fetch_osm.py](/tools/osm/fetch_osm.py).
+- Place data preparation: [scripts/terrain/build/dem_stage.gd](/scripts/terrain/build/dem_stage.gd),
+  [scripts/terrain/build/surface_stage.gd](/scripts/terrain/build/surface_stage.gd),
+  [scripts/terrain/build/osm_stage.gd](/scripts/terrain/build/osm_stage.gd).
 
 ![Wind over water: calm, gusts of 3 and 6 m/s](/releases/0.7.0/screenshots/99_вода_ветер_0_3_6.jpg "Wind over water: calm, gusts of 3 and 6 m/s")
 

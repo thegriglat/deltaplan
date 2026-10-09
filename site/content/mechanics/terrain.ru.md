@@ -40,7 +40,7 @@ await terrain.loaded
 
 Для встроенных мест высоты — **Copernicus DEM GLO-30** (разрешение 1″, ≈30 м, облачный
 GeoTIFF, бесплатно, без ключа): лучшее открытое качество, новее и чище SRTM. Данные конвертируются в
-плоский формат заранее (`tools/terrain/fetch_dem.py`), в игру попадают уже готовым слоем.
+плоский формат заранее (`scripts/terrain/build/dem_stage.gd` — тот же код, что игра использует для любой точки), в игру попадают уже готовым слоем.
 
 Для рантайм-мест (по координатам) — **AWS Terrain Tiles** (Mapzen/Tilezen): на суше в основе тот же
 SRTM (≈30 м), для отдельных регионов точнее (Европа — EU-DEM, США — 3DEP 10 м, выше 60° с. ш. —
@@ -59,7 +59,7 @@ ArcticDEM). Открытый HTTPS без ключа и без лимитов, P
 
 Класс поверхности (лес, луг, пашня, кустарник, скалы, вода, застройка, снег) — из **ESA WorldCover 2021**
 (10 м, лицензия CC-BY 4.0). Из этой же карты берётся и цвет земли, и то, где стоят деревья, и сила
-источников термиков — три вещи из одного файла. `fetch_landcover.py` читает только нужные тайлы COG
+источников термиков — три вещи из одного файла. `surface_stage.gd` читает только нужные тайлы COG
 (HTTP range-запросы, без GDAL) и записывает класс узла как моду 3×3 подвыборок.
 
 Дополнительно для детального слоя строится маска «деталь 10 м» (два канала: R — доля леса, G — доля
@@ -84,7 +84,7 @@ ArcticDEM). Открытый HTTPS без ключа и без лимитов, P
 
 Реки и озёра **не рисуются из OSM отдельно** — вода уже есть в раскраске рельефа (маска 10 м выше);
 данные OSM о воде лежат в файле и при желании terrain-модуль может заменить ими маски рек, построенные
-по стоку. Данные OSM выгружаются через Overpass API (`tools/osm/fetch_osm.py`) и хранятся в репозитории,
+по стоку. Данные OSM выгружаются через Overpass API (`scripts/terrain/build/osm_stage.gd`) и хранятся в репозитории,
 а не запрашиваются игрой в реальном времени.
 
 Для рантайм-мест (по координатам) OSM-данных нет — ставятся только ветроуказатели на стартах, без домов,
@@ -186,9 +186,9 @@ ArcticDEM). Открытый HTTPS без ключа и без лимитов, P
   лагерь и костёр у старта.
 - [docs/guide/vegetation.md](/docs/guide/vegetation.md) — травинки и деревья по кромке леса.
 - Код: [scripts/terrain/](/scripts/terrain/), [scripts/world_objects/](/scripts/world_objects/).
-- Подготовка данных места: [tools/terrain/fetch_dem.py](/tools/terrain/fetch_dem.py),
-  [tools/terrain/fetch_landcover.py](/tools/terrain/fetch_landcover.py),
-  [tools/osm/fetch_osm.py](/tools/osm/fetch_osm.py).
+- Подготовка данных места: [scripts/terrain/build/dem_stage.gd](/scripts/terrain/build/dem_stage.gd),
+  [scripts/terrain/build/surface_stage.gd](/scripts/terrain/build/surface_stage.gd),
+  [scripts/terrain/build/osm_stage.gd](/scripts/terrain/build/osm_stage.gd).
 
 ![Ветер по воде: штиль, порывы 3 и 6 м/с](/releases/0.7.0/screenshots/99_вода_ветер_0_3_6.jpg "Ветер по воде: штиль, порывы 3 и 6 м/с")
 
