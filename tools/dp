@@ -644,6 +644,12 @@ def judge(exp, code, out):
             return False, f"нет итога тестов, exit {code}"
         tot, fail, skip = (int(x or 0) for x in m[-1].groups())
         ok &= fail == 0 and tot > 0
+        # тестовый файл не загрузился/не разобрался — тестов из него нет, итог «6/6» обманчив
+        bad = re.search(r"^(?:SCRIPT ERROR|ERROR): (?:Parse Error|Failed to load script|Compile Error)[^\n]*(?:\n\s+at: [^\n]*)?"
+                        r"|^(?:SCRIPT ERROR|ERROR): [^\n]*res://tests/[^\n]*", out, re.M)
+        if bad:
+            ok = False
+            vals.append("тест не загрузился: " + short(" ".join(bad[0].split()), 160))
         vals.append(f"{tot - fail}/{tot}" + (f" (пропуск {skip})" if skip else ""))
         if fail:
             names = re.findall(r"^\s*FAIL (\S+)", out, re.M)

@@ -22,6 +22,11 @@ func _ready() -> void:
 		if filter != "" and not f.contains(filter):
 			continue
 		var script: Script = load(f)
+		if script == null or not script.can_instantiate():
+			total += 1
+			failed += 1
+			print("  FAIL %s::не загрузился" % f.get_file())
+			continue
 		for m in script.get_script_method_list():
 			if not String(m.name).begins_with("test_"):
 				continue
