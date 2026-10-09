@@ -9,3 +9,6 @@
 {"t": "2026-10-09T22:52:45", "by": "executor", "task": "SH-2", "ev": "checked", "note": "3/3 surface_heat=ok:13/13; surface_heating=ok:2/2; air_contracts=ok:30/30"}
 {"t": "2026-10-09T22:55:09", "by": "reviewer", "task": "SH-2", "ev": "reviewed", "note": "Контракты SH1/SH2 соблюдены (сигнатуры, порядок аргументов, оси y-вверх, нормаль без нормировки → поток на горизонталь); скоуп чистый (4 файла); физика по план…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/surface-heat/tasks/SH-2.review.json"}
 {"t": "2026-10-09T22:55:26", "by": "coordinator", "task": "SH-2", "ev": "accepted", "note": "по ревью (fable, accept, 2 minor)"}
+{"t": "2026-10-09T22:55:28", "by": "coordinator", "task": "SH-2", "ev": "checked", "commits": ["c220ae0a"], "note": "0/3 surface_heat=FAIL:0/0; surface_heating=FAIL:0/0; air_contracts=FAIL:0/0"}
+{"t": "2026-10-09T22:56:14", "by": "coordinator", "task": "SH-2", "ev": "accepted", "commits": ["c220ae0a"], "note": "3/3 surface_heat=ok:13/13; surface_heating=ok:2/2; air_contracts=ok:30/30"}
+{"t": "2026-10-09T22:56:25", "by": "coordinator", "task": "SH-2", "ev": "merged", "commits": ["c220ae0a"]}
