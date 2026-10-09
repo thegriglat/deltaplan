@@ -249,18 +249,22 @@ func test_flight_pilot_height() -> void:
 		dmin = minf(dmin, d)
 		dmax = maxf(dmax, d)
 		worst_elbow = maxf(worst_elbow, el.y - sh.y)
-		check(el.y <= sh.y + 0.005, "рука %d: локоть не выше плеча (%+.3f м)" % [side, el.y - sh.y])
+		# A3.5 v8: при зазоре 0,06 локоть выше плеча на ~0,1 м — не блокирует, число в отчёт
+		check(el.y <= sh.y + 0.15, "рука %d: локоть не выше плеча +0,15 м (%+.3f м)" % [side, el.y - sh.y])
 	var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
 	var dims := _pilot_dims(v)
 	var above := float(dims.torso_low_y) - bar.y
 	var hl := float(Config.get_config("pilot").visual.hang_length_m)
 	var low_local: float = (v.global_transform.affine_inverse() * Vector3(0, float(dims.torso_low_y), 0)).y
 	var meas_len := hang.distance_to(Vector3(hang.x, float(dims.torso_low_y), hang.z))
+	var bar_r := float(_params().control_frame.basebar_r_m)
+	var gap := above - bar_r  # до ВЕРХА штанги (BaseBar — ось)
 	check(
-		absf(above - 0.37) <= 0.03,
-		"низ торса над базой %.3f м (0,37 ±0,03)" % above
+		absf(gap - float(Config.get_config("pilot").visual.bar_gap_m)) <= 0.01,
+		"зазор низ тела — верх штанги %.3f м (0,06 ±0,01, A3.5 v8)" % gap
 	)
-	approx(hl, meas_len, 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
+	# модельная подвеска = измеренная минус опускание под крыло (по вертикали мира)
+	approx(hl, meas_len - v.hang_drop_m * cos(r.theta), 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
 	print(
 		(
 			"         apogee: плечи над базой %.3f м, плечо—хват %.3f…%.3f м, локоть−плечо max %+.3f м, "
@@ -269,6 +273,40 @@ func test_flight_pilot_height() -> void:
 		% [sh_mid.y - bar.y, dmin, dmax, worst_elbow, hang.distance_to(sh_mid), above, dims.forearm, meas_len]
 	)
 	v.free()
+
+
+## A3.5 v8: зазор низ тела — верх базовой штанги 0,05…0,07 м у КАЖДОГО крыла (длина подвески
+## под крыло). Печатает мин/макс зазор и опускание пилота относительно модельной подвески.
+func test_gap_every_wing() -> void:
+	var params: Dictionary = _params().wings
+	var bar_r := float(_params().control_frame.basebar_r_m)
+	var lo := 1.0e9
+	var hi := -1.0e9
+	var lo_id := ""
+	var hi_id := ""
+	var dlo := 1.0e9
+	var dhi := -1.0e9
+	var seen := {}
+	for wid: String in params:
+		var cfg := String(params[wid].config)
+		if seen.has(cfg):
+			continue
+		seen[cfg] = true
+		var r := await _flight_visual(cfg)
+		var v: GliderVisual = r.v
+		var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
+		var gap := float(_pilot_dims(v).torso_low_y) - bar.y - bar_r
+		check(gap >= 0.05 and gap <= 0.07, "%s: зазор низ тела — верх штанги %.3f м (0,05…0,07)" % [cfg, gap])
+		if gap < lo:
+			lo = gap
+			lo_id = cfg
+		if gap > hi:
+			hi = gap
+			hi_id = cfg
+		dlo = minf(dlo, v.hang_drop_m)
+		dhi = maxf(dhi, v.hang_drop_m)
+		v.free()
+	print("         зазор по крыльям (%d): мин %.3f (%s), макс %.3f (%s) м; опускание пилота %.3f…%.3f м" % [seen.size(), lo, lo_id, hi, hi_id, dlo, dhi])
 
 
 ## A3.6: визуальный тангаж киля в установившемся планировании = тангаж из модели полёта

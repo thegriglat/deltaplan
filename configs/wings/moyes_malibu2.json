@@ -162,6 +162,8 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °. WPC-4: нейтраль опущена (16,0 → 11,5°), упор «нос вниз» оставлен на прежнем угле -4,0° (геометрия: концы крыла над землёй, tests/flight/test_wing_clearance.gd) — ход 15,5°, упор «нос вверх» 27,0°"
   },
   "visual": {
+    "hang_drop_m": 0.253,
+    "hang_drop_m_doc": "Длина подвески под крыло (A3.5 v8): на сколько пилот в полёте ниже модельной подвески pilot.json → hang_length_m, м. Даёт зазор низ тела — верх штанги = pilot.json → bar_gap_m у этого крыла; считает tools/flight/hang_drop_fit.gd (пересчитать при смене модели крыла/штанги)",
     "_doc": "Внешний вид. Модель заменяемая: новый .glb + правка пути. root_chord_m, sweep_m, color — для заглушки",
     "visual_model": "res://assets/models/glider_moyes_malibu2.glb",
     "visual_model_doc": "Модель крыла с трапецией (контракт — docs/guide/flight.md): ноды Sail, ControlFrame, маркеры HangPoint (начало координат), BaseBar, InstrumentMount, WingTipL, WingTipR",

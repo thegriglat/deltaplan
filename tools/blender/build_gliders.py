@@ -6,8 +6,8 @@
 Параметры формы — tools/blender/glider_params.json, размах и площадь — configs/wings/<id>.json
 (нет конфига — span_m/area_m2 из самой записи glider_params: модель можно строить до конфига).
 Контракт имён (docs/guide/models.md): меши Sail, Frame, ControlFrame; пустышки HangPoint (= начало
-координат), BaseBar, InstrumentMount (хомут на левой стойке, −Z Godot смотрит на глаза пилота),
-VarioMount (на той же стойке выше планшета), WingTipL, WingTipR; маркеры трапеции (контракт
+координат), BaseBar, InstrumentMount (хомут на оси базовой штанги по центру, −Z Godot смотрит на глаза пилота),
+VarioMount (на штанге слева от планшета, между ним и левым хватом), WingTipL, WingTipR; маркеры трапеции (контракт
 A2, docs/contracts/aframe-geometry.md): UprightTopL/R, UprightBottomL/R (концы осей стоек у болта
 под килем и у оси штанги в углу), WingCG (центр масс крыла на киле). Геометрия трапеции — по
 параметрам крыла (aframe_geom.frame_points), центр масс и нос — aframe_cg.py. Оси Blender: X вправо, +Y вперёд (нос), Z вверх.
@@ -403,8 +403,8 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     # базовая штанга (у безмачтовых — «спидбар»: ровная середина ниже, плавные изгибы к углам)
     dip = cf["speedbar_dip_m"] if faired else 0.0
     flat = cf["speedbar_flat_half_m"]
-    left = [-(w + 0.035)] + [-w + (w - flat) * i / 6 for i in range(7)]
-    xs = left + [-flat + 2 * flat * i / 4 for i in range(1, 4)] + [-x for x in reversed(left)]
+    bow, straight_len = G.basebar_spec(p, cf)  # PV3: изгиб вперёд в центре
+    xs = [-(w + 0.035)] + [-w + 2 * w * i / 16 for i in range(17)] + [w + 0.035]
 
     def bar_z(x: float) -> float:
         a = abs(x)
@@ -412,15 +412,20 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
             return z_bb - dip
         k = min(1.0, (a - flat) / (w - flat))
         return z_bb - dip * (1 - (3 * k * k - 2 * k ** 3))
-    bar = [Vector((x, y_bb, bar_z(x))) for x in xs]
-    mb.add_tube(bar, r_bar, "Tube", sides=14)
+
+    def bar_y(x: float) -> float:
+        return y_bb + G.bow_at(x, w, bow, straight_len)
+
+    bar = [Vector((x, bar_y(x), bar_z(x))) for x in xs]
+    mb.add_tube(bar, r_bar, "Tube", sides=12)
     for s in (-1, 1):  # заглушки концов штанги
         e = Vector((s * (w + 0.035), y_bb, z_bb))
         mb.add_tube([e, e + Vector((s * 0.012, 0, 0))], r_bar * 1.08, "Dark", sides=12)
     if p.get("bar_grips", True):  # резиновые накладки под руками
         g0, g1 = cf["bar_grip_x_m"]
         for s in (-1, 1):
-            mb.add_tube([Vector((s * g0, y_bb, bar_z(g0))), Vector((s * g1, y_bb, bar_z(g1)))],
+            mb.add_tube([Vector((s * x, bar_y(x), bar_z(x))) for x in
+                         [g0 + (g1 - g0) * i / 2 for i in range(3)]],
                         r_bar + 0.0025, "Grip", sides=16)
     if p["wheels"]:
         for s in (-1, 1):
@@ -438,25 +443,26 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
         for e in ends:
             w0 = F.add_wire_end(mb, wa, e, bax, wire_r, "Steel")
             mb.add_tube([w0, e], wire_r, "Wire", sides=8, cap=False)
-    # хомут приборов на левой стойке (A3.3 v6): точка оси стойки на доле t от штанги к вершине,
-    # прибор на коротком кронштейне внутрь (к пилоту) и вперёд
-    ub = Vector((-w, y_bb, z_bb))
-    ut = Vector((-top_x, apex_y, top_z))
-    inw = Vector((cf["instrument_inward_m"], cf["instrument_forward_m"], 0))
+    # хомут приборов на нижней перекладине (A3.3 v9): маркер — на оси изогнутой штанги между
+    # хватами (|x| < bar_grip_hand_x_m); сам кронштейн (ножка 0,10–0,12 м, ≤ 0,15) — в моделях
+    # instrument.glb / vario_90s.glb и идёт от штанги вперёд-вниз (у безмачтовых штанга — спидбар:
+    # bar_y/bar_z учитывают вынос вперёд и провис). Экран смотрит на глаза, верх экрана — вперёд
     mounts = {}
-    for name, key in (("InstrumentMount", "instrument_upright_t"), ("VarioMount", "vario_upright_t")):
-        pu = ub.lerp(ut, cf[key])
-        mb.add_tube([pu, pu + inw], 0.008, "Dark", sides=8)
-        mounts[name] = pu + inw
+    for name, key in (("InstrumentMount", "instrument_bar_x_m"), ("VarioMount", "vario_bar_x_m")):
+        xm = cf[key]
+        mounts[name] = Vector((xm, bar_y(xm), bar_z(xm)))
     obj = mb.build("ControlFrame", mats)
     for s, side in ((-1, "L"), (1, "R")):  # оси стоек: у болта под килем и у штанги в углу
         U.empty("UprightTop" + side, (s * top_x, apex_y, top_z), parent=obj)
         U.empty("UprightBottom" + side, (s * w, y_bb, z_bb), parent=obj)
-    U.empty("BaseBar", (0, y_bb, z_bb - dip), parent=obj)
+    U.empty("BaseBar", (0, bar_y(0.0), z_bb - dip), parent=obj)  # середина оси на изгибе (PV3)
+    gx = cf["bar_grip_hand_x_m"]  # точки хвата рук на оси штанги (BarGripL/R, PV3)
+    for s, side in ((-1, "L"), (1, "R")):
+        U.empty("BarGrip" + side, (s * gx, bar_y(gx), bar_z(gx)), parent=obj)
     eye = Vector(cf["_eye"])
-    # планшет и вариометр — на хомуте левой стойки (см. выше), экраном (−Z маркера) к глазам
+    # планшет и вариометр — на хомуте штанги (см. выше), экраном (−Z маркера) к глазам
     for name, pos in mounts.items():
-        U.empty(name, None, parent=obj, matrix=U.look_matrix(pos, eye))
+        U.empty(name, None, parent=obj, matrix=U.look_matrix(pos, eye, up=(0, 1, 0)))
     return obj
 
 

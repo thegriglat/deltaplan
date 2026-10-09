@@ -78,9 +78,11 @@ controls_shift_left,Сместить вес влево — поворот вле
 controls_shift_right,Сместить вес вправо — поворот вправо,Shift weight right — turn right
 controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
 settings_roll_control,Управление креном,Roll control
+settings_roll_input,Крен мышью и стрелками,Roll by mouse and arrows
+settings_roll_input_bar,Как штанга (вправо — крен влево),Like the bar (right — roll left)
+settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-controls_glance,Держать — посмотреть влево на прибор на стойке,Hold — look left at the instrument on the upright
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
 controls_mouse_bar_look,"Держать правую кнопку мыши — осмотреться мышью, трапеция стоит на месте","Hold the right mouse button — look around with the mouse, the bar stays put"
@@ -140,6 +142,11 @@ map_pick_this_point,Выбрать эту точку,Pick this point
 about_version,Версия %s,Version %s
 about_version_build,Версия %s · сборка %s,Version %s · build %s
 settings_fov,Поле зрения (по вертикали),Field of view (vertical)
+settings_eye_mode,Камера в кабине,Cockpit camera
+camera_eye_back_hands,Сзади, видны руки,Behind the body — hands only
+camera_eye_back_hidden,Сзади, без тела и рук,Behind the body — no body or hands
+camera_eye_eyes,Глаза пилота,Pilot's eyes
+camera_eye_shoulders,Между плечами,Between the shoulders
 settings_helmet,Каска (вид из кабины),Helmet (pilot's view)
 helmet_none,Без каски,No helmet
 helmet_open,Открытая,Open face

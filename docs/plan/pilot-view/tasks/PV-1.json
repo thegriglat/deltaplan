@@ -1,0 +1,63 @@
+{
+  "id": "PV-1",
+  "module": "pilot-view",
+  "type": "dp-researcher",
+  "title": "Реальная геометрия лёжа и вид из кабины",
+  "goal": "Получить из источников и расчёта реальные числа для A3 v8: зазор тело—штанга, положение плеч и глаз относительно штанги на триме, углы на центр штанги и носовые тросы и FOV, при котором они видны; офлайн-скрипт углов без пересборки .glb.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "A3",
+      "version": "7",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-1",
+  "branch": "pilot-view/PV-1",
+  "base": "feature/pilot-view",
+  "scope": [
+    "tools/research/pilot_view/",
+    "docs/research/"
+  ],
+  "dont_touch": [
+    "tools/blender/glider_params.json",
+    "configs/",
+    "scripts/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "view_script",
+      "cmd": "python3 tools/research/pilot_view/cockpit_view.py --wing apogee --json",
+      "expect": "re:\"basebar_center_deg\""
+    },
+    {
+      "name": "all_wings",
+      "cmd": "python3 tools/research/pilot_view/cockpit_view.py --all --json",
+      "expect": "re:\"min_vfov_deg\""
+    },
+    {
+      "name": "proposal",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot_view/proposal.json'));[d[k] for k in ('gap_body_bar_top_m','bar_fwd_of_shoulder_m','eye_from_shoulder_m','camera_offset_m','default_vfov_deg','sources')];print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:21:41"
+}

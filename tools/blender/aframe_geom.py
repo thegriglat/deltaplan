@@ -42,6 +42,25 @@ def frame_points(p: dict, cf: dict, tilt_deg: float = None) -> dict:
     }
 
 
+def basebar_spec(p: dict, cf: dict) -> tuple:
+    """(bow_m, straight_len_m) базовой штанги крыла (PV3): wings.<id>.basebar, иначе
+    control_frame.basebar_default; straight => (0, 0)."""
+    b = p.get("basebar") or cf["basebar_default"]
+    if b["shape"] == "straight":
+        return 0.0, 0.0
+    return float(b["bow_m"]), float(b.get("straight_len_m", 0.0))
+
+
+def bow_at(x: float, w: float, bow: float, straight_len: float) -> float:
+    """Вынос оси штанги вперёд в точке x (PV3): гладкая дуга (cos^2) на |x| < w - straight_len,
+    у углов прямые участки; в центре ровно bow."""
+    half = w - straight_len
+    a = abs(x)
+    if bow <= 0.0 or a >= half:
+        return 0.0
+    return bow * math.cos(math.pi * a / (2.0 * half)) ** 2
+
+
 def le_d(p: dict, half: float, a: float) -> float:
     """Расстояние от носа вдоль киля до передней кромки на доле полуразмаха a (WingShape.le)."""
     tan_ha = math.tan(math.radians(p["nose_angle_deg"] * 0.5))

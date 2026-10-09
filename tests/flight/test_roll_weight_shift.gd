@@ -165,6 +165,7 @@ static func _controller() -> InputController:
 	cfg.invert_pitch = false
 	cfg.keyboard.sensitivity = 1.0
 	ic._cfg = cfg
+	ic.roll_input = "body"  # знак стрелок как в проверках ниже (PV1: bar — инверсия)
 	return ic
 
 

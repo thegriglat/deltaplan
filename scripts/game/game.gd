@@ -1052,8 +1052,7 @@ func _setup_glider() -> void:
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
 		_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
-	var gl := String(Config.value("camera", "cockpit.glance.target", "InstrumentMount"))
-	camera.glance_target = glider.get_marker(gl)
+	camera.glance_target = null  # PV-7: на прибор клавиши нет; цель задают кадры (--look-at)
 
 
 ## Шлем и т. п. (camera.json → cockpit.hidden_nodes) — на слой, который кабина не рисует.

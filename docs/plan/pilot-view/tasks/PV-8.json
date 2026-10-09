@@ -1,0 +1,82 @@
+{
+  "id": "PV-8",
+  "module": "pilot-view",
+  "type": "dp-engineer",
+  "title": "Умолчания: камера Б2, крен «тело»",
+  "goal": "Решение пользователя: режим камеры в кабине по умолчанию — Б2 (назад, без тела и рук), направление крена по умолчанию — body; конфиги, тесты и тексты под новые умолчания.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "PV1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-view.md"
+    },
+    {
+      "name": "A3",
+      "version": "11",
+      "ref": "docs/contracts/pilot-view.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-view-PV-8",
+  "branch": "pilot-view/PV-8",
+  "base": "feature/pilot-view",
+  "scope": [
+    "configs/controls.json",
+    "configs/camera.json",
+    "scripts/",
+    "tests/",
+    "locale/ui.csv",
+    "docs/guide/",
+    "site/content/mechanics/"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "tools/blender/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_view_contracts",
+      "tests": "pilot_view_contracts"
+    },
+    {
+      "name": "roll_weight_shift",
+      "tests": "roll_weight_shift"
+    },
+    {
+      "name": "ui_controls_contracts",
+      "tests": "ui_controls_contracts"
+    },
+    {
+      "name": "input_launch",
+      "tests": "input_launch"
+    },
+    {
+      "name": "test_roll",
+      "tests": "test_roll"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "mouse_bar_flight",
+      "tests": "mouse_bar_flight"
+    },
+    {
+      "name": "gameplay",
+      "tests": "gameplay"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T14:47:36"
+}
