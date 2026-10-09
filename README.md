@@ -59,6 +59,20 @@ godot -e --path .       # open in the editor
 The wind in the game is computed by the solver on the GPU or by a simplified model; there is no neural network in the game
 (the network and its research stay in `tools/research/`).
 
+### Preparing a place without flying
+
+The game builds terrain data for any chosen point and caches it in `user://locations`. To fill the cache in advance
+(or just to check it) without starting a flight, from a build or from source:
+
+```bash
+deltaplan.x86_64 --headless -- --prefetch=53.23797,58.51595         # Windows: deltaplan.exe --headless -- ...
+deltaplan.x86_64 --headless -- --prefetch="53.2,58.5;47.05,11.0"    # several points (or repeat the flag)
+deltaplan.x86_64 --headless -- --prefetch=53.23797,58.51595 --offline   # cache only, no network
+```
+
+It prints the stages, the cache path and the result; exit code 0 means every place is complete. All command-line
+options are listed in `README-options.txt` next to the game.
+
 ### Tests and build
 
 ```bash

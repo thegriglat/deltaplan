@@ -2,6 +2,9 @@ class_name LaunchOptions
 extends RefCounted
 ## Аргументы командной строки главной сцены (после «--»):
 ##   --smoke               проверка сборки: автостарт + автопилот, 300 шагов физики, выход (код 0/1)
+##   --prefetch=<lat>,<lon>[;<lat>,<lon>…]  не лететь: собрать данные места в user://locations и выйти
+##                         (флаг можно повторять; код выхода 0 — все места полные); PrefetchCli
+##   --offline             для --prefetch: без сети, только кеш (проверка)
 ##   --autostart           сразу в полёт, без меню
 ##   --autopilot           синтетический пилот (разбег, полёт по курсу) — тесты и скриншоты
 ##   --screenshot=<путь>   снять кадр и выйти
@@ -62,6 +65,11 @@ extends RefCounted
 ##                         (configs/atmosphere.json → air_model.enabled ≠ off), docs/guide/air-model.md
 
 var smoke := false
+## --prefetch: точки [[lat, lon], …], ошибки разбора и --offline.
+var prefetch: Array = []
+var prefetch_errors: PackedStringArray = PackedStringArray()
+var prefetch_requested := false
+var offline := false
 var autostart := false
 var autopilot := false
 var screenshot := ""
@@ -122,6 +130,11 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.smoke = true
 				o.autostart = true
 				o.autopilot = true
+			"prefetch":
+				o.prefetch_requested = true
+				o.prefetch.append_array(PrefetchCli.parse_points(val, o.prefetch_errors))
+			"offline":
+				o.offline = true
 			"autostart":
 				o.autostart = true
 			"autopilot":

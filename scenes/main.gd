@@ -73,6 +73,9 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
+	if opts.prefetch_requested:
+		get_tree().quit(await PrefetchCli.run(self, opts.prefetch, opts.offline, opts.prefetch_errors))
+		return
 	_net_pause_timer = Timer.new()
 	_net_pause_timer.process_mode = Node.PROCESS_MODE_ALWAYS  # пауза дерева его не должна стопорить
 	_net_pause_timer.wait_time = 0.5
