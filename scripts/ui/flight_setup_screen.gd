@@ -356,7 +356,7 @@ func _update_dir_hint() -> void:
 	if k == null:
 		return
 	var e: Dictionary = _sites[int(k)]
-	var loc: Dictionary = Config.get_config("locations/" + String(e.location))
+	var loc: Dictionary = Locations.config(String(e.location))
 	for st: Dictionary in loc.get("start_sites", []):
 		if String(st.get("id", "")) == String(e.site):
 			var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
@@ -434,7 +434,7 @@ func _open_map() -> void:
 	if _map_layer == null:
 		_build_map()
 	settings = _collect()
-	var loc: Dictionary = Config.get_config("locations/" + settings.location_id)
+	var loc: Dictionary = Locations.config(settings.location_id)
 	if settings.has_pick():
 		_map.center_on(settings.pick_lat, settings.pick_lon)
 	else:

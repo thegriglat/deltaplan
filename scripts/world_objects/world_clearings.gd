@@ -2,7 +2,7 @@ class_name WorldClearings
 extends RefCounted
 ## Просеки для расстановки деревьев рельефа: где деревьев быть не должно —
 ## дороги (ширина + обочина), коридоры ЛЭП, здания с отступом, поля посадок.
-## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из data/osm/<id>.json,
+## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из OSM места (Locations.osm_path),
 ## configs/locations/<id>.json (центр, landing_sites) и
 ## configs/world_objects.json (посадки, параметры — раздел clearings).
 ## Без нод, можно звать из terrain.
@@ -20,7 +20,7 @@ var build_time_s: float = 0.0
 
 ## Маска для локации. null — нет конфига локации.
 static func build_for(location_id: String) -> WorldClearings:
-	var loc: Dictionary = Config.get_config("locations/" + location_id)
+	var loc: Dictionary = Locations.config(location_id)
 	if loc.is_empty():
 		return null
 	var cfg := WorldObjects.load_config()
@@ -30,8 +30,7 @@ static func build_for(location_id: String) -> WorldClearings:
 	var layers: Array = loc.get("dem", {}).get("layers", [])
 	if not layers.is_empty():
 		half = float(layers[0].size_km) * 500.0
-	var path := String(cfg.osm.data_path).replace("{id}", location_id)
-	var osm := OsmData.load_file(path, lat0, lon0)
+	var osm := OsmData.load_file(Locations.osm_path(location_id), lat0, lon0)
 	var landings: Array = []
 	for spec in WorldObjects.landing_specs(cfg.landing, location_id, loc.get("landing_sites", [])):
 		var p := TerrainGeo.latlon_to_local(float(spec.lat), float(spec.lon), lat0, lon0)

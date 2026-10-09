@@ -19,7 +19,7 @@ extends Node3D
 ## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
 ## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near,
 ## atmo.air_velocity_at), set_pilot(node).
-## Дополнительно: load_location(id), load_location_latlon(lat, lon, size_km) (рантайм, FR-17),
+## Дополнительно: load_location(id), load_point(lat, lon) (сборка/кеш места точки, OA-К4),
 ## latlon_to_local / local_to_latlon, сигнал loaded.
 ## Координаты: X — восток, −Z — север, Y — высота над уровнем моря; начало X/Z — центр локации.
 
@@ -47,7 +47,7 @@ var impostors: ForestImpostors
 var wind: TerrainWind
 ## Поля рельефа каждого слоя (влажность, AO, горизонт к солнцу) — тот же порядок, что layers.
 var reliefs: Array[TerrainRelief] = []
-## Ход рантайм-загрузки (load_location_latlon): этап и доля — для экрана загрузки.
+## Ход рантайм-загрузки (load_point): этап и доля — для экрана загрузки.
 var progress := LoadProgress.new()
 ## Растёт при правке карты поверхности после сборки (add_start_clearing): сброс кеша кустов/камней.
 var surface_revision: int = 0
@@ -63,8 +63,7 @@ var _sun_dir: Vector3 = Vector3.UP
 var _class_sun := PackedVector3Array()
 ## terrain_look после переопределений локации (палитра — get_grass_palette).
 var _look: Dictionary = {}
-var _loader: TerrariumLoader
-var _wc_loader: WorldCoverLoader
+var _builder: LocationBuilder
 ## Коэффициенты источников термиков по классам (configs/world.json → surface.thermal).
 var _thermal_k := PackedFloat32Array()
 var _thermal_gain: float = 1.0
@@ -99,37 +98,18 @@ func _ready() -> void:
 		load_location(location_id)
 
 
-## Загрузить встроенную локацию (данные в data/terrain/<id>/,
-## подготовленные tools/terrain/fetch_dem.py).
+## Загрузить место: встроенное (configs/locations/<id>.json, data/terrain/<id>/) или собранную
+## точку (user://locations/<ключ>/) — файлы и путь одни (Locations, OA-К4).
 func load_location(id: String) -> bool:
 	var t0 := Time.get_ticks_usec()
-	var cfg: Dictionary = Config.get_config("locations/" + id)
-	if cfg.is_empty():
-		load_failed.emit(tr("err_no_location_config") % id)
+	var r := _read_location(id)
+	if r.is_empty():
 		return false
-	var dir := String(cfg.get("data_dir", "res://data/terrain/" + id))
-	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
-	var meta: Variant = JSON.parse_string(meta_text)
-	if not meta is Dictionary:
-		push_error("Terrain: нет %s/meta.json — запусти tools/terrain/fetch_dem.py %s" % [dir, id])
-		load_failed.emit(tr("err_no_location_data") % id)
-		return false
-	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
-	var masks := _start_mask_decode(dir)
-	var new_layers: Array[HeightLayer] = []
-	for info in meta.layers:
-		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
-		if l == null:
-			load_failed.emit(tr("err_layer_read") % String(info.id))
-			return false
-		if info.has("water_file"):
-			l.water_texture = TerrainRenderer.load_texture(dir.path_join(String(info.water_file)))
-		new_layers.append(l)
 	location_id = id
-	for task_id: int in masks.get("tasks", []):
+	for task_id: int in r.masks.get("tasks", []):
 		WorkerThreadPool.wait_for_task_completion(task_id)
-	var new_surfaces := _load_surfaces(dir, new_layers, masks.get("images", {}))
-	setup(cfg, new_layers, float(meta.center_lat), float(meta.center_lon), new_surfaces)
+	var new_surfaces := _load_surfaces(r.dir, r.layers, r.masks.get("images", {}))
+	setup(r.cfg, r.layers, float(r.meta.center_lat), float(r.meta.center_lon), new_surfaces)
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
 	print(
 		(
@@ -141,71 +121,99 @@ func load_location(id: String) -> bool:
 	return true
 
 
-## Рантайм-загрузка рельефа вокруг точки (FR-17): тайлы Terrarium с кешем в user://terrain_cache.
-## Асинхронно: по готовности — сигнал loaded (или load_failed с понятным текстом для пилота).
-## Ход — progress (этапы и доля для экрана загрузки). Главный поток не стоит: сеть — HTTPRequest
-## в потоках, сборка слоёв и карты поверхности — в рабочих потоках, сборка сцены — порциями
-## между кадрами (setup_async). Сеть замолчала на runtime_terrain.stall_timeout_s — отмена.
-## Параметры — configs/world.json → runtime_terrain.
-func load_location_latlon(lat: float, lon: float, size_km: float = -1.0) -> void:
+## Читает файлы места: {cfg, dir, meta, layers, masks}; пустой словарь — ошибка (load_failed послан).
+func _read_location(id: String) -> Dictionary:
+	var cfg: Dictionary = Locations.config(id)
+	if cfg.is_empty():
+		load_failed.emit(tr("err_no_location_config") % id)
+		return {}
+	var dir := String(cfg.get("data_dir", "res://data/terrain/" + id))
+	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
+	var meta: Variant = JSON.parse_string(meta_text)
+	if not meta is Dictionary:
+		push_error("Terrain: нет %s/meta.json — запусти tools/terrain/fetch_dem.py %s" % [dir, id])
+		load_failed.emit(tr("err_no_location_data") % id)
+		return {}
+	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
+	var masks := _start_mask_decode(dir)
+	var new_layers: Array[HeightLayer] = []
+	for info in meta.layers:
+		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
+		if l == null:
+			load_failed.emit(tr("err_layer_read") % String(info.id))
+			return {}
+		if info.has("water_file"):
+			l.water_texture = TerrainRenderer.load_texture(dir.path_join(String(info.water_file)))
+		new_layers.append(l)
+	return {"cfg": cfg, "dir": dir, "meta": meta, "layers": new_layers, "masks": masks}
+
+
+## Загрузка места для точки с карты (FR-17, OA-К4): сборщик берёт место из кеша
+## user://locations/<ключ> или собирает стадиями (рельеф, реки, покров, OSM), затем обычный путь
+## load_location. Асинхронно: по готовности — loaded (или load_failed с текстом для пилота).
+## Ход — progress (этапы и доля для экрана загрузки); сеть молчит stall_timeout_s — отмена.
+func load_point(lat: float, lon: float) -> void:
 	cancel_load()
 	_load_gen += 1
 	var gen := _load_gen
-	if _loader == null:
-		_loader = TerrariumLoader.new()
-		_loader.name = "TerrariumLoader"
-		add_child(_loader)
-		_loader.progress.connect(func(done: int, total: int) -> void: progress.sub(done, total))
 	var rt: Dictionary = Config.get_config("world").get("runtime_terrain", {})
 	var t0 := Time.get_ticks_usec()
 	progress.begin()
 	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
 	progress.stage("dem", tr("loading_dem"))
-	var result: Dictionary = await _loader.build_location(lat, lon, size_km)
+	var builder := LocationBuilder.new()
+	_builder = builder
+	var shown := {"stage": ""}
+	builder.progress.connect(
+		func(stage: String, f: float) -> void:
+			if gen != _load_gen:
+				return
+			if shown.stage != stage:
+				shown.stage = stage
+				match stage:
+					"surface":
+						progress.stage("landcover", tr("loading_landcover"))
+					"osm":
+						progress.stage("osm", tr("loading_osm"))
+			progress.sub(f, 1.0)
+	)
+	var res: Dictionary = await builder.build(self, lat, lon)
+	if _builder == builder:
+		_builder = null
 	if gen != _load_gen:
 		return  # отменено (cancel_load) — load_failed уже отправлен
-	if result.has("error"):
-		push_error("Terrain: " + String(result.error))
-		_fail(gen, _error_text(String(result.get("kind", ""))))
+	if not bool(res.ok):
+		push_error("Terrain: место %s не собрано: %s" % [res.key, res.error])
+		_fail(gen, _error_text(String(res.error)))
 		return
-	# Карта поверхности: WorldCover по сети (кеш), иначе — процедурная (в setup).
-	if _wc_loader == null:
-		_wc_loader = WorldCoverLoader.new()
-		_wc_loader.name = "WorldCoverLoader"
-		add_child(_wc_loader)
-	var new_layers: Array[HeightLayer] = result.layers
-	var new_surfaces: Array[SurfaceLayer] = []
-	progress.stage("landcover", tr("loading_landcover"))
-	for k in new_layers.size():
-		var l := new_layers[k]
-		var s: SurfaceLayer = await _wc_loader.build_surface(l, lat, lon)
-		if gen != _load_gen:
-			return
-		if s == null:
-			push_warning("Terrain: нет карты WorldCover для слоя %s — процедурная" % l.id)
-		new_surfaces.append(s)
-		progress.sub(k + 1, new_layers.size())
-	if is_sea(new_layers[0], new_surfaces[0], float(rt.get("sea_depth_m", -450.0))):
+	progress.stage("mesh", tr("loading_mesh"))
+	var r := _read_location(String(res.key))
+	if r.is_empty():
+		_fail(gen, tr("err_terrain_failed"))
+		return
+	var new_surfaces := _load_surfaces(r.dir, r.layers, r.masks.get("images", {}))
+	for task_id: int in r.masks.get("tasks", []):
+		WorkerThreadPool.wait_for_task_completion(task_id)
+	var surf0: SurfaceLayer = new_surfaces[0] if not new_surfaces.is_empty() else null
+	if is_sea(r.layers[0], surf0, float(rt.get("sea_depth_m", -450.0))):
 		_fail(gen, tr("err_sea"))
 		return
-	location_id = ""
-	await setup_async(result.config, new_layers, lat, lon, new_surfaces)
+	location_id = String(res.key)
+	await setup_async(r.cfg, r.layers, float(r.meta.center_lat), float(r.meta.center_lon), new_surfaces)
 	if gen != _load_gen:
 		return
 	_load_gen += 1  # загрузка закончена — сторож молчит (progress.finish — у вызывающего: дальше
 	# ещё этапы игры — погода, объекты)
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
-	print("Terrain: рельеф вокруг %.4f, %.4f загружен за %.2f с" % [lat, lon, last_load_time_s])
+	print("Terrain: место %s загружено за %.2f с" % [res.key, last_load_time_s])
 	loaded.emit()
 
 
 ## Прервать рантайм-загрузку (если идёт): сеть закрывается, сигналов не будет.
 func cancel_load() -> void:
 	_load_gen += 1
-	if _loader != null:
-		_loader.cancel()
-	if _wc_loader != null:
-		_wc_loader.cancel()
+	if _builder != null:
+		_builder.cancel()
 
 
 ## Точка — море: ниже sea_depth_m — всегда; не выше нуля (тайлы Terrarium крупного уровня дают

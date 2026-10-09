@@ -2,7 +2,7 @@
 type: "guide"
 status: "active"
 module: "terrain"
-updated: "2026-10-03"
+updated: "2026-10-09"
 summary: "Рельеф и мир — FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2."
 related: []
 ---
@@ -16,7 +16,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/terrain.gd` (`Terrain`, группа `"terrain"`) | нода рельефа: загрузка локации, контракт `height_at / normal_at / get_start_sites / sun_exposure_at`, `surface_at / forest_at / get_forest_mask / thermal_source_strength_at / get_landing_sites` |
 | `scripts/terrain/surface_layer.gd` (`SurfaceLayer`) | карта поверхности (классы земного покрова) на сетке, `class_at`, текстура R8; маска «деталь 10 м» (`forest_at`, `mask_r`) |
 | `scripts/terrain/surface_classifier.gd` (`SurfaceClassifier`) | запасная процедурная карта (нет сети) по высоте/уклону/экспозиции/шуму |
-| `scripts/terrain/cog_reader.gd` (`CogReader`), `worldcover_loader.gd` (`WorldCoverLoader`) | разбор COG GeoTIFF и рантайм-загрузка WorldCover HTTP range-запросами, кеш `user://terrain_cache/worldcover` |
+| `scripts/terrain/cog_reader.gd` (`CogReader`), `worldcover_loader.gd` (`WorldCoverLoader`) | разбор COG GeoTIFF (читают DemStage и SurfaceStage); `WorldCoverLoader` — только имена файлов WorldCover |
 | `scripts/terrain/tree_placer.gd` (`TreePlacer`), `terrain_tree_models.gd` (`TerrainTreeModels`), `tree_model.gdshader` | деревья-модели 5 пород × 3 LOD (MultiMesh), расстановка в рабочем потоке, качание от ветра |
 | `scripts/terrain/forest_impostors.gd` + `.gdshader` (`ForestImpostors`) | средний план леса 0,35–3,5 км: билборды из атласа импостеров |
 | `scripts/terrain/rock_scatter.gd` + `.gdshader` (`RockScatter`) | 3D-камни вокруг камеры (≤ 300 м): глыбы курумника и выходы породы по той же логике, что пятна породы в шейдере, камни на скалах, редкие в траве; не на лесе/воде/полях/просеках/стартах; `configs/world.json → rocks`, подключение `RockScatter.attach(terrain, cam)` |
@@ -28,7 +28,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/terrain_renderer.gd` (`TerrainRenderer`) | чанки + LOD, материалы, текстуры поверхностей |
 | `scripts/terrain/terrain.gdshader` + `terrain_common.gdshaderinc` | высоты в вершинном шейдере, раскраска (трава, лес, поля, скалы, снег, реки) |
 | `scripts/terrain/terrain_trees.gd` + `trees.gdshader` (`TerrainTrees`) | запасные процедурные кроны (если нет моделей) |
-| `scripts/terrain/terrarium_loader.gd` (`TerrariumLoader`) | рантайм-загрузка рельефа по lat/lon (FR-17), кеш `user://terrain_cache` |
+| `scripts/terrain/terrarium_loader.gd` (`TerrariumLoader`) | тайлы Terrarium для высоты точки на карте выбора (`elevation_at`), кеш `user://terrain_cache` |
 | `scripts/terrain/map_picker.gd` + `raster_tile_loader.gd` (`MapPicker`, `RasterTileLoader`) | карта выбора точки: растровая топокарта (OpenTopoMap / OSM, кеш `user://map_cache`), высота точки из Terrarium z12, щелчок / ввод координат → `point_picked(lat, lon)`, `elevation_ready` |
 | `scripts/world/sky_environment.gd` (`SkyEnvironment`), `haze.gdshader`, `scenes/world/environment.tscn` | небо, солнце с мягкими тенями, голубая дымка, мутный слой под инверсией (VR-3), glow |
 | `scenes/terrain/terrain_preview.tscn`, `map_picker_preview.tscn` | отдельный запуск модуля |
@@ -100,7 +100,7 @@ LOD выбирается по расстоянию от камеры до AABB �
 вода 0,05; границы поле–лес, луг–лес, пашня–луг — триггеры (полное усиление ближе 50 м, до 150 м спадает).
 Семантика та же, что у `sun_fn` атмосферы (0..1, ниже `atmosphere.thermal.sun_min` термик не рождается): ровное поле ≈ 0,87,
 поле у опушки 1, лес ≈ 0,38, вода 0.
-**Рантайм (`load_location_latlon`)**: `WorldCoverLoader` берёт обзорный уровень COG с пикселем ≤ шага карты
+**Рантайм (стадия `SurfaceStage`, сборка места точки)**: берётся обзорный уровень COG с пикселем ≤ шага карты
 (шаг = шаг высот × `surface.runtime.cell_factor`), качает 1024² тайлы параллельно (≈ 30–150 КБ каждый), выборка — в потоке.
 Нет сети/данных → `SurfaceClassifier` (высота, уклон, экспозиция, шум, маска рек) — та же форма карты, путь дальше общий.
 
@@ -187,7 +187,7 @@ CC0-текстуры травы и скал (их рисунок, цвет ос�
 `WorldClearings.build_for(id)`) — деревья-модели и импостеры не стоят на дорогах, под ЛЭП, у зданий и на посадках.
 
 **Поля рельефа (влажность, AO, тень рельефа).** `TerrainRelief.compute` для каждого слоя при `setup` (т. е. и
-для `load_location_latlon`), в рабочих потоках: сетка — узлы слоя через шаг (`surface.relief.grid_max` 801/401 →
+для `load_point`), в рабочих потоках: сетка — узлы слоя через шаг (`surface.relief.grid_max` 801/401 →
 50 м / 400 м), Онгудай 1,3–1,7 с + фон 0,3–0,4 с. **Влажность** 0..1 = `base` + `flow_weight` · сток (накопление D8
 по сортировке высот, лог площади водосбора `flow_area_m2`) + `concavity_weight` · вогнутость (лапласиан на 100 и 300 м),
 сглажена `blur_m`. **Экспозиция** — северность, сглаженная на 150 м. **AO** — 8 направлений до 1,2 км (через узел,
@@ -209,19 +209,38 @@ sky.set_inversion_height_msl(atmosphere.get_cloudbase_msl())                  # 
 var site: Dictionary = terrain.get_start_sites()[0]   # {id, name, position, heading_deg, lat, lon}
 glider.reset_on_ground(site.position, site.heading_deg)
 
-# произвольная точка (FR-17): асинхронно, затем сигнал loaded
-terrain.load_location_latlon(43.25, 42.45, 40.0)
+# произвольная точка (FR-17, OA-К4): кеш user://locations или сборка, затем сигнал loaded
+terrain.load_point(43.25, 42.45)
 await terrain.loaded
 
 # карта выбора места
 var picker := MapPicker.new()
-picker.point_picked.connect(func(lat, lon): terrain.load_location_latlon(lat, lon))
+picker.point_picked.connect(func(lat, lon): terrain.load_point(lat, lon))
 ```
 
+## Точка на карте: сборка места и кеш (osm-any, OA-К4)
+Точка (`pick_lat/lon`: карта, «Популярные», «Недавние») грузится как встроенное место (`Game._load_terrain`):
+1. `Locations.builtin_at(lat, lon)` — точка в детальном квадрате встроенного места не ближе
+   `location_builder.builtin_margin_km` (10 км) к краю → грузится оно (`load_location`), старт — в точке.
+2. Иначе `Terrain.load_point(lat, lon)`: `LocationBuilder.build` берёт место `user://locations/<ключ>/` из кеша
+   (ключ — центр, округлённый к сетке `snap_deg` 0,05°: `LocationCache.key_for`, например `pt_+47.050_+011.000`)
+   или собирает его стадиями `DemStage` → `RiverStage` → `SurfaceStage` → `OsmStage` во временной папке
+   `.tmp_<ключ>`, переименовывает и пишет `build.json` последним (`complete`, `missing`, `builder_version`,
+   секунды по стадиям, `net_requests`). Затем обычный `load_location(ключ)` и OSM-объекты как у встроенных.
+3. Полное место (версия сборщика та же) — ноль запросов в сеть. Отказ рек/покрова/OSM — место без слоя, имя
+   стадии в `missing`, следующий запуск догружает только недостающее; отказ рельефа — ошибка в меню.
+
+Все чтения конфига места и пути OSM — через `Locations` (`config`, `osm_path`, `is_builtin`, `builtin_at`):
+встроенные — `configs/locations/<id>.json`, `res://data/osm/<id>.json`; кешированные — `location.json` и `osm.json`
+в папке места. Конфиг кешированного места строится по `world.json → location_builder.template`.
+Ручная сборка без игры: `godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]`
+(печатает ключ, missing, время стадий, `net_requests`, размер папки). Сеть: сторож `stall_timeout_s` не срабатывает,
+пока стадии присылают прогресс.
+
 ## Рантайм-загрузка с карты: ход, фризы, ошибки
-`load_location_latlon` не останавливает главный поток надолго (окно отвечает, экран загрузки живой):
-- тайлы Terrarium и WorldCover — `HTTPRequest` с `use_threads` (TLS и чтение — не в главном потоке);
-- мозаика тайлов → высоты → `HeightLayer` (`TerrariumLoader.assemble`), распаковка тайлов COG и выборка
+`load_point` не останавливает главный поток надолго (окно отвечает, экран загрузки живой):
+- тайлы и блоки COG стадий — `HTTPRequest` с `use_threads` (TLS и чтение — не в главном потоке);
+- распаковка тайлов COG и выборка
   классов WorldCover, процедурная карта поверхности (`SurfaceClassifier`) — в `WorkerThreadPool`;
 - сборка сцены (`setup_async`): меш, деревья, трава — в разных кадрах; пока идёт — `Terrain` не
   обрабатывается (`process_mode`), чтобы дети не видели полусборку. `setup()` (встроенные локации,

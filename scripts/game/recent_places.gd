@@ -195,39 +195,42 @@ static func display_name(p: Dictionary) -> String:
 	return "%.4f, %.4f" % [float(p.get("lat", 0.0)), float(p.get("lon", 0.0))]
 
 
-## Ближайший населённый пункт по уже закешированным данным локаций (res://data/osm/*.json,
+## Ближайший населённый пункт по уже закешированным данным мест (встроенные res://data/osm/*.json и user://locations/*/osm.json,
 ## без сетевых запросов) — только если точка попадает в bbox файла (с небольшим запасом).
 static func resolve_osm_name(lat: float, lon: float, osm_dir: String = OSM_DIR) -> String:
-	var da := DirAccess.open(osm_dir)
-	if da == null:
-		return ""
+	var files := PackedStringArray()
+	if osm_dir == OSM_DIR:
+		files = Locations.osm_files()  # встроенные и кешированные места (user://locations)
+	else:
+		var da := DirAccess.open(osm_dir)
+		if da == null:
+			return ""
+		for f in da.get_files():
+			if f.get_extension() == "json":
+				files.append(osm_dir.path_join(f))
 	var best_name := ""
 	var best_dist := INF
 	const MARGIN_DEG := 0.05
-	da.list_dir_begin()
-	var fname := da.get_next()
-	while fname != "":
-		if not da.current_is_dir() and fname.get_extension() == "json":
-			var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(osm_dir.path_join(fname)))
-			if d is Dictionary:
-				var bbox: Array = d.get("bbox_latlon", [])
-				if (
-					bbox.size() == 4
-					and lat >= float(bbox[0]) - MARGIN_DEG
-					and lat <= float(bbox[2]) + MARGIN_DEG
-					and lon >= float(bbox[1]) - MARGIN_DEG
-					and lon <= float(bbox[3]) + MARGIN_DEG
-				):
-					var clat := float(d.get("center_lat", 0.0))
-					var clon := float(d.get("center_lon", 0.0))
-					for pl: Dictionary in d.get("places", []):
-						var ll := TerrainGeo.local_to_latlon(
-							float(pl.get("x", 0.0)), float(pl.get("z", 0.0)), clat, clon
-						)
-						var dist := distance_m(lat, lon, ll.x, ll.y)
-						if dist < best_dist:
-							best_dist = dist
-							best_name = String(pl.get("n", ""))
-		fname = da.get_next()
-	da.list_dir_end()
+	for path in files:
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not d is Dictionary:
+			continue
+		var bbox: Array = d.get("bbox_latlon", [])
+		if (
+			bbox.size() == 4
+			and lat >= float(bbox[0]) - MARGIN_DEG
+			and lat <= float(bbox[2]) + MARGIN_DEG
+			and lon >= float(bbox[1]) - MARGIN_DEG
+			and lon <= float(bbox[3]) + MARGIN_DEG
+		):
+			var clat := float(d.get("center_lat", 0.0))
+			var clon := float(d.get("center_lon", 0.0))
+			for pl: Dictionary in d.get("places", []):
+				var ll := TerrainGeo.local_to_latlon(
+					float(pl.get("x", 0.0)), float(pl.get("z", 0.0)), clat, clon
+				)
+				var dist := distance_m(lat, lon, ll.x, ll.y)
+				if dist < best_dist:
+					best_dist = dist
+					best_name = String(pl.get("n", ""))
 	return best_name
