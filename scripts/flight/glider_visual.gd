@@ -667,8 +667,11 @@ func _frame_pitch() -> float:
 ## не рисуется для кабинной камеры. "full" — как есть; "arms" — только руки (копия PilotBody на слое
 ## «только кабина», фрагменты дальше ARM_MASK_R_M от костей рук отброшены); "none" — и руки скрыты.
 ## Для внешних камер тело всегда видно (слой 20 не рисует только кабинная камера).
+## «Только кабина» — слой 18: слой 19 занят квадом дымки (atmosphere.json →
+## clouds.shadow_exclude_layer), а внешние камеры слой «только кабина» не рисуют — на 19-м
+## из вида сзади пропадала дымка.
 const BODY_HIDDEN_LAYER := 1 << 19
-const COCKPIT_ONLY_LAYER := 1 << 18
+const COCKPIT_ONLY_LAYER := 1 << 17
 const ARM_MASK_R_M := 0.1
 const ARM_MASK_SHADER := """
 shader_type spatial;

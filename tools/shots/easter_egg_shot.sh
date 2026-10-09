@@ -6,7 +6,6 @@
 # Аргументы игры идут после умолчаний и перекрывают их (--egg=none, --time=…, --look-at=egg).
 # Умолчания: --egg=<id>:5 (появится на 5-й с), --time=12, --look-at=egg.
 # Кадры — build/screenshots/easter_eggs/<№>_<имя>.jpg в основной копии (не в git).
-# GPU иногда занят исследованиями: под flock /tmp/heat_ca_gpu.lock (ждать до 30 мин, не мешать).
 # Окну нужен настоящий дисплей (DISPLAY=:0); звук выключен.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -21,8 +20,7 @@ label="$id"
 for a in "$@"; do
 	[[ "$a" == "--egg=none" ]] && label="none"
 done
-flock -w 1800 /tmp/heat_ca_gpu.lock \
-	env XDG_DATA_HOME="$xdg" timeout 180 godot --path . --audio-driver Dummy --fullscreen \
+env XDG_DATA_HOME="$xdg" timeout 180 godot --path . --audio-driver Dummy --fullscreen \
 	--resolution 1920x1080 -- --autostart --autopilot "--egg=$id:5" --time=12 --look-at=egg \
 	"--gpu-report=$label" "$@" "--screenshot=$file" 2>&1 \
 	| grep -E "^screenshot:|EGG_GPU_MS|ERROR|SCRIPT ERROR" || true

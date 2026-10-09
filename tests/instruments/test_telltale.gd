@@ -102,7 +102,7 @@ func test_anchor_on_every_wing() -> void:
 			check(l.x < -0.15 and r.x > 0.15, "%s: слева и справа %s %s" % [id, l, r])
 			check(absf(l.x + r.x) < 0.02 and l.distance_to(Vector3(-r.x, r.y, r.z)) < 0.02,
 				"%s: симметрично" % id)
-			check(l.y > bb.y + 0.8 and l.z < bb.z, "%s: на переднем тросе ближе к носу, над и впереди штанги (%.2f)" % [id, l.y - bb.y])
+			check(l.y > bb.y + 0.3 and l.y < bb.y + 0.8 and l.z < bb.z, "%s: на переднем тросе, ~30%% высоты трапеции над штангой, впереди неё (%.2f)" % [id, l.y - bb.y])
 		v.free()
 
 

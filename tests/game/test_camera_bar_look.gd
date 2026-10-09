@@ -193,3 +193,20 @@ func test_q_glance_looks_at_mounted_instruments() -> void:
 	check(cam._glance < 0.001, "отпустил — взгляд вернулся")
 	check(look.is_finite(), "углы на цель конечны")
 	await _close(main)
+
+
+## Дымка (квад SkyEnvironment.haze на своём слое) видна из всех режимов камеры: слой «только
+## кабина», который внешние камеры не рисуют, совпадал со слоем дымки — из вида сзади её не было.
+func test_haze_visible_in_every_camera_mode() -> void:
+	var main := await _open_bar()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var haze: MeshInstance3D = game.sky.haze
+	check(haze != null, "дымка включена")
+	if haze != null:
+		for m: String in ["cockpit", "chase", "free"]:
+			game.camera.set_mode(m)
+			check(game.camera.cull_mask & haze.layers != 0, "дымка видна в режиме камеры %s" % m)
+	game.camera.set_mode("cockpit")
+	await _close(main)
