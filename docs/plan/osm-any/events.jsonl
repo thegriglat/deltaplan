@@ -28,3 +28,4 @@
 {"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-1", "ev": "merged"}
 {"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-3", "ev": "merged"}
 {"t": "2026-10-09T18:05:24", "by": "coordinator", "task": "OA-5", "ev": "created", "note": "Сборщик места, кеш user://locations, реестр мест и путь точки в игре"}
+{"t": "2026-10-09T18:05:26", "by": "coordinator", "task": "OA-5", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-osm-any-OA-5; OA-4 ещё идёт — dp task sync"}
