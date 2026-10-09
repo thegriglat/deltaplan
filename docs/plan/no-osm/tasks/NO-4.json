@@ -1,0 +1,96 @@
+{
+  "id": "NO-4",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Без Overpass; убрать ЛЭП, заборы, поля, имена посёлков OSM",
+  "goal": "Игра не обращается к Overpass нигде (рантайм и сборка встроенных мест): OSM — не стадия сборки; убраны ЛЭП, заборы у посадок, поля и имена посёлков OSM. Дороги и вода из osm.json, если он есть, работают как раньше.",
+  "plan_ref": "NO-4",
+  "contracts": [
+    {
+      "name": "N4",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-4",
+  "branch": "no-osm/NO-4",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/terrain/build/",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/world_objects/power_line_planner.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/world_objects/world_objects_preview.gd",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/game/",
+    "scripts/ui/",
+    "scripts/core/activity.gd",
+    "configs/",
+    "tests/",
+    "tools/terrain/",
+    "tools/shots/",
+    "assets/models/world/power_*",
+    "assets/models/world/fence_segment*",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/easter_eggs/",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/road_mesher.gd",
+    "scripts/world_objects/start_tracks.gd",
+    "scripts/terrain/build/surface_stage.gd",
+    "data/terrain/",
+    "docs/contracts/",
+    "tests/contracts/test_no_osm_contracts.gd",
+    "tests/contracts/test_no_osm_contracts_n1.gd",
+    "tests/contracts/test_no_osm_contracts_k8.gd",
+    "tests/terrain/test_surface.gd",
+    "tests/vegetation/test_trees_water.gd"
+  ],
+  "accept": [
+    {
+      "name": "no_osm_contracts_n4",
+      "tests": "no_osm_contracts_n4"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "test_location",
+      "tests": "test_location"
+    },
+    {
+      "name": "test_surface_stage",
+      "tests": "test_surface_stage"
+    },
+    {
+      "name": "ui/",
+      "tests": "ui/"
+    },
+    {
+      "name": "game/",
+      "tests": "game/"
+    },
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    },
+    {
+      "name": "no_overpass",
+      "cmd": "! (grep -rIil overpass scripts configs tests tools/terrain tools/shots | grep -v no_osm_contracts_n4)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_power_fence",
+      "cmd": "! grep -rIlE 'power_line_planner|PowerLinePlanner|build_fences_near|fence_segment|power_tower|power_pole' scripts configs",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T03:47:54",
+  "edited": "2026-10-10T03:48:51"
+}

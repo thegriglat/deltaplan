@@ -1,0 +1,66 @@
+---
+type: "contract"
+status: "active"
+module: "no-osm"
+updated: "2026-10-10"
+summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 место без OSM-стадии; К8 v4 — в easter-eggs.md"
+related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
+contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 1}]
+---
+# Контракты no-osm
+
+План — `docs/plan/no-osm.md`. Менять интерфейс — только через координатора модуля (версия +1, что
+изменилось, правка потребителей в том же шаге). Контрактный тест — `tests/contracts/test_no_osm_contracts.gd`
+(версии — в заголовках ниже, тест сверяет). Координаты — мир места: x на восток, z на юг, м, начало — центр
+места (как у `Terrain`, `surface.json → origin_*_m`). Классы — `SurfaceLayer` (BUILT = 7).
+
+## N1. Файлы застройки места (v1, владелец NO-1; потребители N2)
+В папке места (встроенное `data/terrain/<id>/` и собранное `user://locations/<ключ>/`), пишет SurfaceStage
+вместе с `detail_detail10.png`, только для слоя detail:
+- `detail_detail10.png` — PNG LA8 (как было): L — доля леса; **A — вода** = max(round(255 · n_w / 9), маска рек
+  по рельефу на этой сетке), n_w — подвыборки 3×3 класса water (WorldCover 80). OSM в канал A не пишет.
+  `surface.json → layers[detail].detail10.water_fraction` — доля клеток с A ≥ 128, `channels` — описание.
+- `detail_built10.png` — PNG **L8**, та же сетка, что `detail_detail10.png` (`width`×`height`, `spacing_m` = 10,
+  `origin_x_m/origin_z_m` — центр пикселя (0, 0), как у detail10). Значение = round(255 · n / 9), n — число
+  подвыборок 3×3 (уровень COG 0) класса built (WorldCover 50). Нет покрова — файла нет.
+- `built_patches.json`:
+  ```
+  {"_doc": "...", "version": 1, "source": "worldcover10", "cell_m": 10.0, "threshold": <доля 0..1>,
+   "min_area_m2": <м²>, "patches": [{"id": int, "x": float, "z": float, "area_m2": float,
+   "share": float, "bbox": [x0, z0, x1, z1]}]}
+  ```
+  Пятно — 8-связная компонента клеток с долей ≥ `threshold` (конфиг `world.json → surface.built`);
+  меньше `min_area_m2` — отбрасывается. `x, z` — центр масс клеток пятна (взвешенный долей), `area_m2` —
+  число клеток × 100, `share` — средняя доля 0..1, `bbox` — по краям клеток. Порядок — по `id`, `id` = 0..N−1
+  в порядке обхода строк (z, затем x) первой клетки: детерминированно.
+- `surface.json → layers[detail].built10 = {file, patches_file, built_fraction, patches}`.
+Инварианты: сумма `area_m2` ≤ число клеток built10 с долей ≥ порога × 100; пятна не пересекаются.
+
+## N2. `BuiltPatches` — пятна застройки в игре (v1, владелец NO-1; потребители NO-2, NO-3)
+`class_name BuiltPatches extends RefCounted`, `scripts/terrain/built_patches.gd`. Один на место, только чтение,
+одинаков у всех в сети при одном месте.
+- `static func for_terrain(t: Terrain) -> BuiltPatches` — загруженный для места (кеш на `Terrain`, лениво);
+  `t == null` или нет файлов — пустой (`source == "none"`), без ошибок в логе.
+- `source: String` — `"worldcover10"` | `"none"`.
+- `patches() -> Array[Dictionary]` — копия списка N1 (`{id, x, z, area_m2, share, bbox: Rect2 (x0, z0, w, h)}`).
+- `nearest(x: float, z: float) -> Dictionary` — ближайшее пятно (по центру) + `dist_m`; `{}` — пятен нет.
+- `share_at(x: float, z: float) -> float` — доля застройки 0..1 в клетке 10 м (без интерполяции); 0 — вне сетки
+  или нет файла.
+Цена: `for_terrain` ≤ 20 мс на встроенном месте (JSON + `Image` без попиксельного обхода всего файла);
+`share_at` — O(1).
+
+## N3. Процедурные дома (v1, владелец NO-2; потребители BuildingPlacer, ObstacleIndex, поляны)
+Источник домов — только пятна N2. Запись дома — как прежняя запись здания `osm.json`:
+`[x, z, w, l, угол_град, высота_стен_м, крыша 0 — двускатная / 1 — плоская]`; дальше — прежние
+`BuildingPlacer.place`, `building_obstacles`, штамп в маске полян. Детерминированно: rng от ключа места и `id`
+пятна; плотность — по `share_at`; типы и размеры — `configs/world_objects.json → villages` (с `_doc`).
+Нет пятен — домов нет.
+
+## N4. Место без OSM-стадии (v1, владелец NO-4; потребители сборщик, Locations, WorldObjects)
+- Стадии сборщика: dem → rivers → surface; OSM — не стадия (нет в `build.json`, не `missing`), сеть Overpass
+  не используется нигде.
+- `osm.json` — необязательный файл места (встроенные места; возможный будущий дамп): если есть — читаются
+  только дороги и вода (`OsmData.roads/rivers/lakes`: тропы к стартам, просеки, палатки); в маску воды 10 м и в H
+  вода OSM не идёт; нет файла — дорог и воды OSM нет, тихо.
+- Имя места — `configs/locations/<id>.json → name` (встроенное) или координаты точки.
+- Нет ЛЭП, заборов у посадок, полей, имён посёлков OSM; `OsmStage` (в том числе запись воды OSM в маску) удалён.

@@ -1,0 +1,83 @@
+{
+  "id": "NO-1",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Вода и застройка 10 м из WorldCover, пятна застройки (BuiltPatches)",
+  "goal": "Один источник посёлков и воды без OSM: SurfaceStage пишет воду WorldCover 10 м + реки по рельефу в канал A маски detail10, долю built 10 м и связные пятна застройки; BuiltPatches читает пятна в игре — для домов (NO-2) и пасхалок (NO-3). Встроенные места пересобраны по покрову.",
+  "plan_ref": "NO-1",
+  "contracts": [
+    {
+      "name": "N1",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N2",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-1",
+  "branch": "no-osm/NO-1",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/terrain/built_patches.gd",
+    "scripts/terrain/terrain.gd",
+    "configs/world.json",
+    "data/terrain/*/detail_built10.png",
+    "data/terrain/*/built_patches.json",
+    "data/terrain/*/surface.json",
+    "tests/terrain/",
+    "tools/terrain/",
+    "data/terrain/*/detail_detail10.png",
+    "data/terrain/*/detail_surface.png",
+    "data/terrain/*/far_surface.png",
+    "tests/vegetation/test_trees_water.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build/osm_stage.gd",
+    "scripts/terrain/build/overpass_client.gd",
+    "scripts/terrain/build/location_builder.gd",
+    "scripts/world_objects/",
+    "data/terrain/*/osm.json",
+    "docs/contracts/",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "no_osm_contracts_n1",
+      "tests": "no_osm_contracts_n1"
+    },
+    {
+      "name": "test_surface",
+      "tests": "test_surface"
+    },
+    {
+      "name": "test_location_builder",
+      "tests": "test_location_builder"
+    },
+    {
+      "name": "test_built_patches",
+      "tests": "test_built_patches"
+    },
+    {
+      "name": "area_vs_classes",
+      "cmd": "python3 -c \"import json;s=json.load(open('data/terrain/askarovo/surface.json'));d=[l for l in s['layers'] if l['id']=='detail'][0];p=json.load(open('data/terrain/askarovo/built_patches.json'));a=sum(x['area_m2'] for x in p['patches']);r=a/(d['class_fraction']['7']*(d['width']-1)*(d['height']-1)*d['spacing_m']**2);print('ratio %.3f n %d'%(r,len(p['patches'])));assert 0.6<=r<=1.3\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "aushkul_water",
+      "cmd": "python3 -c \"import json;s=json.load(open('data/terrain/aushkul/surface.json'));d=[l for l in s['layers'] if l['id']=='detail'][0]['detail10'];print('water_fraction',d['water_fraction']);assert d['water_fraction']>=0.010\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_trees_water",
+      "tests": "test_trees_water"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T03:47:45",
+  "edited": "2026-10-10T03:48:45"
+}
