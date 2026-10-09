@@ -1,5 +1,5 @@
 {
-  "_doc": "Параметры потока тепла с поверхности (контракт SH1 v1, docs/contracts/surface-heat.md; ядро scripts/atmosphere/surface_heat.gd). Числа классов (albedo, bowen*, g_frac, z0_m) — строки docs/research/surface_params.csv (П4) по соответствию p4_row (тест сверки). Числа radiation/moisture/water/thermal — ЗАГЛУШКИ ДО SH-1 (исследователь уточнит). Запаздывание прогрева по классам — configs/weather_model.json heating.lag_h, здесь не дублируется.",
+  "_doc": "Параметры потока тепла с поверхности (контракт SH1 v1/SH2 v2, docs/contracts/surface-heat.md; ядро scripts/atmosphere/surface_heat.gd). Числа классов (albedo, bowen*, g_frac, z0_m) — строки docs/research/surface_params.csv (П4) по соответствию p4_row (тест сверки). Числа radiation/moisture/water/thermal — docs/research/surface_params.md §9 (SH-1, SH-9); у каждого — ссылка на § или EST в _doc секции. Запаздывание прогрева по классам — configs/weather_model.json heating.lag_h, здесь не дублируется.",
   "classes": {
     "none": {
       "p4_row": "grassland",
@@ -84,31 +84,33 @@
     }
   },
   "radiation": {
-    "_doc": "До SH-1. K↓ = s0_wm2·T_K·sinψ, T_K = (tk_a + tk_b·sinψ)·sky_heat (Stull 1988 §7.3: (0,6 + 0,2 sinψ); множитель облаков Stull (1 − 0,7·cover) заменён sky_heat погоды игры, чтобы не считать облака дважды). diffuse_frac — доля рассеянной на горизонтали (EST 0,15, ясное небо). L* = l_star_wm2·(1 − l_cloud_k·cover): 98 Вт/м² (Stull, I* ≈ 0,08 К·м/с·ρc_p), l_cloud_k 0,6 (EST).",
-    "s0_wm2": 1370.0,
+    "_doc": "Числа — docs/research/surface_params.md §9.1–9.3 (SH-1), Stull 1988. K↓ = s0_wm2·T_r·sinψ, T_r = (tk_a + tk_b·sinψ)·(1 − cloud_sw_k·cover): облака один раз, через cover (средний ярус, cloud_sw_k 0,7 — Stull ур. 2.40; EST выбор яруса, §9.1); sky_heat в H не участвует. s0_wm2 1361 (солнечная постоянная, §9.1). diffuse_frac 0,165 — нижняя граница доли рассеянной при ясном небе (Эрбс ERB82, §9.3); при облаках доля растёт по Эрбсу от k_T = T_r. L* = l_star_wm2·(1 − l_cloud_k·cover): 98,5 Вт/м² (Stull 2.39, §9.2), l_cloud_k 0,3 (средний ярус, §9.2).",
+    "s0_wm2": 1361.0,
     "tk_a": 0.6,
     "tk_b": 0.2,
-    "diffuse_frac": 0.15,
-    "l_star_wm2": 98.0,
-    "l_cloud_k": 0.6
+    "cloud_sw_k": 0.7,
+    "diffuse_frac": 0.165,
+    "l_star_wm2": 98.5,
+    "l_cloud_k": 0.3
   },
   "moisture": {
-    "_doc": "До SH-1 (EST): узлы влажности рельефа m (0..1) для lnβ: m ≤ m_dry → bowen_max, m_norm → bowen, m ≥ m_wet → bowen_min.",
-    "m_dry": 0.35,
-    "m_norm": 0.5,
-    "m_wet": 0.85
+    "_doc": "Узлы влажности рельефа m (0..1) для lnβ: m ≤ m_dry → bowen_max, m_norm → bowen, m ≥ m_wet → bowen_min. §9.4: квантили TerrainRelief.moisture по четырём местам (p10 ≈ 0,25, медиана 0,47, p90 ≈ 0,70); сопоставление с состояниями «сухо/норма/влажно» — EST.",
+    "m_dry": 0.25,
+    "m_norm": 0.47,
+    "m_wet": 0.70
   },
   "water": {
-    "_doc": "До SH-1. H воды = rho_cp·c_h·max(U, u_min_ms)·(T_w − T_a). c_h ~1–1,5·10⁻³ (литература, плановое значение 1,3·10⁻³); rho_cp = ρ·c_p воздуха ≈ 1,2 кг/м³·1005 → 1231 Дж/(м³·К) (при ≈ 15 °C); u_min_ms 1 м/с (EST, свободная конвекция). lag_days — запаздывание температуры воды за воздухом (air2water/Livingstone ≈ 1 мес, проверить в SH-1). lapse_k_per_km 6,5 — поправка температуры на высоту относительно долины ctx.valley_msl_m (стандартная атмосфера; в WeatherModel градиента у земли нет). ice_c: T_воды ≤ ice_c → лёд (класс SNOW).",
-    "c_h": 0.0013,
-    "rho_cp": 1231.0,
+    "_doc": "H воды = rho_cp·exp(−z/rho_scale_height_m)·c_h·max(U, u_min_ms)·(T_w − T_a). c_h 1,4e-3 — эддикорреляция GUS23 (§9.5). u_min_ms 1 м/с — EST по точке данных GUS23 при 0,5 м/с (§9.5). rho_cp 1206 = 1,2 кг/м³·1005 Дж/(кг·К) на уровне моря (§9.5); rho_scale_height_m 8400 — барометрическая шкала высоты (≈ ×0,89 на км, §9.5; EST упрощение изотермией). lag_days 30 — озёра с эффективной глубиной перемешивания 20–30 м (§9.5, оценка по физике, EST). ice_c 0: T_воды ≤ ice_c → лёд (класс SNOW), §9.5. lapse_k_per_km 6,5 — EST (стандартная атмосфера; в WeatherModel градиента у земли нет): поправка температуры на высоту относительно долины ctx.valley_msl_m; на H воды (T_w и T_a сдвигаются вместе) не влияет, только на порог льда.",
+    "c_h": 0.0014,
+    "rho_cp": 1206.0,
+    "rho_scale_height_m": 8400.0,
     "u_min_ms": 1.0,
     "lag_days": 30.0,
     "ice_c": 0.0,
     "lapse_k_per_km": 6.5
   },
   "thermal": {
-    "_doc": "h_ref_wm2 — H голой скалы (bare), β норма, ровно, солнце в зените, ясно: K = 1370·0,8 = 1096; Rn = 0,75·1096 − 98 = 724; (1 − 0,25)·724·2/3 = 362 Вт/м². Пересчитывать при смене чисел (тест сверяет).",
-    "h_ref_wm2": 362.0
+    "_doc": "h_ref_wm2 — H голой скалы (bare), β норма, ровно, солнце в зените, ясно (§9.6): K = 1361·0,8 = 1089; Rn = 0,75·1089 − 98,5 = 718; (1 − 0,25)·718·2/3 = 359 → 360 (рекомендация §9.6). Пересчитывать при смене чисел (тест сверяет, допуск 1 Вт/м²).",
+    "h_ref_wm2": 360.0
   }
 }
