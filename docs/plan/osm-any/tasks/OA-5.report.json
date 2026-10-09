@@ -1,0 +1,64 @@
+{
+  "status": "partial",
+  "summary": "Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (builtin_at -> встроенное место, иначе Terrain.load_point -> LocationBuilder -> load_location(ключ)), build_location.gd и тест готовы; старый mercator-путь точки удалён. Не зелёный только test_k3_osm: OsmStage (OA-4) ещё не влита.",
+  "commits": [
+    "a30df423 Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (OA-5)"
+  ],
+  "checks": [
+    {
+      "name": "dp accept OA-5 --dry",
+      "value": "11/12; упал только osm_any_contracts::test_k3_osm (нет osm_stage.gd)",
+      "pass": false
+    },
+    {
+      "name": "location_builder",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "world_objects/terrain/recent_places/popular_places/menu_setup/world_key/favorites/start_regression/game_logic/e2e",
+      "value": "все зелёные",
+      "pass": true
+    },
+    {
+      "name": "реальная сборка 47.05/11.0 с сетью",
+      "value": "59 с (dem 16.5, rivers 25.2, surface 17.3), 139 запросов, 14.5 МБ, missing=[osm] (OsmStage нет)",
+      "pass": true
+    },
+    {
+      "name": "повтор (47.06/11.01, тот же ключ)",
+      "value": "net_requests 0, 0.3 с, догружается только osm",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Проверка с OSM на реальной точке и полный osm_any_contracts: ждут OsmStage (OA-4). Без неё стадия osm = заглушка с отказом, место помечается missing=[osm] и не становится complete. После вливания: dp task sync OA-5, повторить dp accept.",
+    "Игру глазами (экран загрузки, старт с точки) не смотрел; только e2e/start_regression."
+  ],
+  "questions": [
+    "Если OsmStage при отсутствии/ошибке surface вернёт OK без detail_detail10.png - ок; я при отказе покрова помечаю и osm как missing."
+  ],
+  "how_to_check": "dp accept OA-5; XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/location_builder.gd",
+      "why": "логика догрузки: osm пересобирается при пересборке surface; отказ surface пропускает osm. Без реальной OsmStage не проверено",
+      "checked": "тест на подставных стадиях"
+    },
+    {
+      "where": "scripts/terrain/terrain.gd load_point",
+      "why": "load_location для кеша синхронный setup_async не используется для чтения; setup_async вызывается после ручного чтения слоёв; визуально не смотрел",
+      "checked": "e2e зелёный, headless"
+    },
+    {
+      "where": "configs/ui.json",
+      "why": "добавил этап osm (вес 10) и строку loading_osm в locale",
+      "checked": "menu_setup зелёный"
+    }
+  ],
+  "dp_feedback": [
+    "dp task show не даёт готовой команды 'подтянуть OA-4 когда влита' - проверять вручную git log feature/osm-any."
+  ],
+  "t": "2026-10-09T18:19:18",
+  "by": "executor"
+}

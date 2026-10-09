@@ -1,0 +1,65 @@
+{
+  "id": "OA-9",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Overpass в игре: запросы по слоям, повтор при 429/504, живая проверка",
+  "goal": "Стадия OSM должна реально получать данные у живого Overpass для любой точки (объединённый запрос отвергнут зеркалами).",
+  "plan_ref": "OA-4. Стадия OSM",
+  "contracts": [
+    {
+      "name": "OA-К2",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-9",
+  "branch": "osm-any/OA-9",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/overpass_client.gd",
+    "scripts/terrain/build/osm_stage.gd",
+    "tests/world_objects/test_osm_stage.gd",
+    "tests/world_objects/fixtures/",
+    "tools/terrain/parity/osm_live.gd"
+  ],
+  "dont_touch": [
+    "docs/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/game/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "osm_stage",
+      "tests": "osm_stage"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "contract_osm",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_osm"
+    },
+    {
+      "name": "osm_equal",
+      "cmd": "mkdir -p build && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/parity/osm_parity.gd 2>&1",
+      "expect": "num:osm_mismatch_total=(\\d+) ==0"
+    },
+    {
+      "name": "live_report",
+      "cmd": "cat build/osm_live.txt",
+      "expect": "num:live_alps_roads=(\\d+) >=100"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T18:54:07"
+}

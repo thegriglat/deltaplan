@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "OsmStage (pack, water_alpha, run) и OverpassClient портированы с fetch_osm.py/osm_water.py; паритет с Python на askarovo и altai: 0 расхождений, IoU воды 0.988, 4.4 с. Живой запрос к Альпам (47.0, 11.0) не удался: все 3 зеркала отказали за 9.5 с (504/500) на объединённый запрос.",
+  "commits": [
+    "71579e28 OsmStage: Overpass в игре, упаковка как fetch_osm.py, вода 10 м как osm_water.py, паритет с Python"
+  ],
+  "checks": [
+    {
+      "name": "osm_stage",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "90/90",
+      "pass": true
+    },
+    {
+      "name": "contract_osm",
+      "value": "test_k3_osm ok",
+      "pass": true
+    },
+    {
+      "name": "osm_equal",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "water_iou",
+      "value": "0.988 (порог бинаризации 128 = 0,5)",
+      "pass": true
+    },
+    {
+      "name": "time_osm",
+      "value": "4.4 (pack+water_alpha, обе локации)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Живой запрос Overpass к 47.0/11.0: все зеркала отказали (overpass-api.de 504, kumi 500, private.coffee 500) за 9.5 с, ответа нет, размера и числа объектов нет. Повторный запрос не делал (задание: один раз)."
+  ],
+  "questions": [
+    "Объединённый запрос на 40x40 км в Альпах отвергнут всеми зеркалами. Разрешить разбивку на 6 запросов по слоям (как QUERIES в Python) с паузой, и/или [maxsize]? Нужна проверка живьём вручную."
+  ],
+  "how_to_check": "dp accept OA-4; живой запрос: build/live_probe.gd (не в коммите)",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/overpass_client.gd",
+      "why": "объединённый запрос не проверен на живом сервере: единственная попытка вернула 504/500",
+      "checked": "HTTP-путь дошёл до серверов (получены коды), на фикстурах через http_hook работает"
+    },
+    {
+      "where": "scripts/terrain/build/osm_stage.gd:_lake_coverage",
+      "why": "заливка озёр по центрам подвыборок, а не PIL.polygon (тот закрашивает и контур) - IoU 0.988, не 1",
+      "checked": "IoU на askarovo 0.998, altai 0.988"
+    },
+    {
+      "where": "tests/world_objects/test_osm_stage.gd",
+      "why": "tests/world_objects/test_osm_stage.gd.uid не создан (тест не импортирован редактором)",
+      "checked": "тесты запускаются раннером"
+    }
+  ],
+  "dp_feedback": "dp job wait по id фонового задачи не подошёл; -s скрипт при ошибке компиляции не завершается (висит до таймаута).",
+  "t": "2026-10-09T18:42:54",
+  "by": "executor"
+}
