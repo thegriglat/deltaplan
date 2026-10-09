@@ -2,7 +2,7 @@ extends SceneTree
 ## Живая проверка стадии OSM (OA-9): один прогон по живому Overpass, вручную (не из dp accept):
 ##   godot --headless --path . -s res://tools/terrain/parity/osm_live.gd
 ## OsmStage.run на точке в Альпах (47.05, 11.0) и на центре askarovo; пишет build/osm_live.txt.
-## Для askarovo — число объектов по слоям против data/osm/askarovo.json (OSM мог обновиться).
+## Для askarovo — число объектов по слоям против data/terrain/askarovo/osm.json (OSM мог обновиться).
 
 const POINTS := [["alps", 47.05, 11.0], ["askarovo", 53.26, 58.54]]
 const OUT := "res://build/osm_live.txt"
@@ -55,7 +55,7 @@ func _run() -> void:
 			lines.append("live_%s_roads=%d" % [name, c.roads])
 			lines.append("%s_counts=%s" % [name, str(c)])
 			if name == "askarovo":
-				var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/osm/askarovo.json"))
+				var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/terrain/askarovo/osm.json"))
 				lines.append("askarovo_ref_counts=%s" % str(_counts(ref)))
 		else:
 			lines.append("live_%s_roads=0" % name)

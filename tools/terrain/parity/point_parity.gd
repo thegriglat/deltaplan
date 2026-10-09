@@ -82,8 +82,6 @@ func _collect(dir: String, builtin: bool) -> Dictionary:
 				r["detail10.лес_доля"] = "%.3f" % float(d.forest_fraction)
 				r["detail10.вода_доля"] = "%.3f" % float(d.water_fraction)
 	var osm_path := dir.path_join("osm.json")
-	if builtin:
-		osm_path = "res://data/osm/%s.json" % dir.get_file()
 	var osm: Variant = _json(osm_path)
 	if osm is Dictionary:
 		for k: String in OSM_LAYERS:

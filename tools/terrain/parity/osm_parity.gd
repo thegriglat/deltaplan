@@ -1,9 +1,9 @@
 extends SceneTree
 ## Паритет стадии OSM (OA-4) с Python без сети:
 ##   godot --headless --path . -s res://tools/terrain/parity/osm_parity.gd
-## 1) сырые ответы Overpass ~/.cache/deltaplan_osm/<id>_<слой>.json → OsmStage.pack → сравнение с data/osm/<id>.json
+## 1) сырые ответы Overpass ~/.cache/deltaplan_osm/<id>_<слой>.json → OsmStage.pack → сравнение с data/terrain/<id>/osm.json
 ##    (без _doc; числа ±0,1 м; порядок элементов — как в ответе);
-## 2) канал воды OsmStage.water_alpha(data/osm/<id>.json) против A в data/terrain/<id>/detail_detail10.png
+## 2) канал воды OsmStage.water_alpha(data/terrain/<id>/osm.json) против A в data/terrain/<id>/detail_detail10.png
 ##    (IoU по порогу 128 = 0,5).
 ## Печатает osm_mismatch_total, water_iou_min, stage_seconds_max.
 
@@ -32,7 +32,7 @@ func _initialize() -> void:
 		var t0 := Time.get_ticks_usec()
 		var packed := OsmStage.pack(elements, float(loc.center_lat), float(loc.center_lon), half)
 		var t_pack := (Time.get_ticks_usec() - t0) / 1.0e6
-		var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/osm/%s.json" % id))
+		var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/terrain/%s/osm.json" % id))
 		# round-trip через JSON — как в файле
 		var got: Dictionary = JSON.parse_string(JSON.stringify(packed))
 		var per := {}
@@ -57,7 +57,7 @@ func _initialize() -> void:
 		print("%s: расхождений %d  %s; элементов: дорог %d, зданий %d, ЛЭП %d, рек %d, озёр %d, мест %d, полей %d, заборов %d" % [
 			id, total, per, got.roads.size(), got.buildings.size(), got.power.size(), got.water.rivers.size(),
 			got.water.lakes.size(), got.places.size(), got.landuse.fields.size(), got.landuse.fences.size()])
-		# вода из data/osm/<id>.json (эталон Python) против A встроенной маски
+		# вода из data/terrain/<id>/osm.json (эталон Python) против A встроенной маски
 		var sj: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/terrain/%s/surface.json" % id))
 		var d10: Dictionary = {}
 		for l: Dictionary in sj.layers:
