@@ -100,7 +100,7 @@ func test_build_then_cache() -> void:
 	check(int(loc.utc_offset_h) == int(roundf(float(loc.center_lon) / 15.0)), "utc_offset_h")
 	check((loc.start_sites as Array).is_empty() and String(loc.data_dir) == dir, "start_sites пусты, data_dir")
 	check(loc.has("render") and loc.has("dem") and loc.has("rivers"), "шаблон конфига места")
-	check(not FileAccess.file_exists(dir.path_join("osm.json")) and not bj.missing.has("osm"), "OSM не стадия: osm.json не пишется")
+	check(not bj.missing.has("osm") and not bj.seconds.has("osm"), "OSM не стадия")
 	check(not Locations.is_builtin(key), "реестр: кеш")
 	# повтор — из кеша
 	_log.clear()
@@ -149,7 +149,7 @@ func test_missing_resume() -> void:
 	_cleanup()
 
 
-## N4: стадии игры — dem → rivers → surface; Overpass/OSM-стадии нет.
+## N4: стадии игры — dem → rivers → surface; OSM-стадии нет.
 func test_default_stages_without_osm() -> void:
 	var names: Array = []
 	for st in LocationBuilder.default_stages():
@@ -173,7 +173,6 @@ func test_dem_failure_is_error() -> void:
 
 func test_registry_builtin() -> void:
 	check(Locations.is_builtin("altai") and not Locations.is_builtin("pt_+01.000_+002.000"), "is_builtin")
-	check(Locations.osm_path("altai") == "res://data/terrain/altai/osm.json", "osm_path встроенного")
 	check(not Locations.config("altai").is_empty() and Locations.config("pt_+09.999_+009.999").is_empty(), "config")
 	var al: Dictionary = Locations.config("altai")
 	check(Locations.builtin_at(float(al.center_lat), float(al.center_lon)) == "altai", "builtin_at центр")

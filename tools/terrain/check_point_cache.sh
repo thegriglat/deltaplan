@@ -39,14 +39,6 @@ off_net=$(field "$log_off" "net_requests:")
 missing=$(field "$log_on" "missing:")
 off_missing=$(field "$log_off" "missing:")
 size=$(field "$log_on" "размер папки:" | sed 's/ МБ//')
-roads=$(python3 -I - "$dir/osm.json" <<'PY' 2>/dev/null || echo 0
-import json, sys
-try:
-    print(len(json.load(open(sys.argv[1])).get("roads", [])))
-except Exception:
-    print(0)
-PY
-)
 complete=false
 if [ "$rc_on" = 0 ] && [ "$rc_off" = 0 ] && [ "${off_net:-1}" = 0 ] \
   && [ "$off_missing" = "$missing" ] \
@@ -61,7 +53,6 @@ fi
   echo "offline_net_requests=${off_net:-?}"
   echo "offline_complete=$complete"
   echo "missing=$missing"
-  echo "osm_roads=$roads"
   echo "size_mb=${size:-?}"
   echo "exit_online=$rc_on"
   echo "exit_offline=$rc_off"

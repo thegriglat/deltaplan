@@ -19,7 +19,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_inventory import parse_assets  # noqa: E402  (разбор ASSETS.md — одна логика с SA-К1)
 
-ODBL_PHRASE = ("Derived OpenStreetMap data (data/terrain/*/osm.json, data/places/, and places the game downloads on demand into user://locations) is available under the ODbL 1.0 "
+ODBL_PHRASE = ("Derived OpenStreetMap data (data/places/, and places the game downloads on demand into user://locations) is available under the ODbL 1.0 "
                "in the project repository: https://github.com/thegriglat/deltaplan")
 ALWAYS = ["MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT", "ODbL-1.0"]
 # Название лицензии в колонке «Лицензия» -> файл(ы) licenses/.

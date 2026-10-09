@@ -10,7 +10,7 @@ const SET := [
 	"ODbL-1.0", "copernicus-dem",
 ]
 const ODBL := (
-	"Derived OpenStreetMap data (data/terrain/*/osm.json, data/places/, and places the game downloads on demand into user://locations) is available under the ODbL 1.0 "
+	"Derived OpenStreetMap data (data/places/, and places the game downloads on demand into user://locations) is available under the ODbL 1.0 "
 	+ "in the project repository: https://github.com/thegriglat/deltaplan"
 )
 const ATTR := "cc[- ]?by|odbl|\\bofl\\b|\\bmit\\b|bsd|apache|copernicus|атрибуц"

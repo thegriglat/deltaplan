@@ -2,7 +2,6 @@ extends TestCase
 ## Объекты мира: godot --headless --path . res://tests/run_tests.tscn -- --filter=world_objects
 
 const LOCATION := "altai"
-const OSM_PATH := "res://data/terrain/altai/osm.json"
 
 static var _terrain: Terrain
 static var _world: WorldObjects
@@ -36,40 +35,6 @@ func _built_world() -> WorldObjects:
 
 static func _cloth_cfg() -> Dictionary:
 	return WorldObjects.load_config().windsock
-
-
-func test_osm_data_loads() -> void:
-	var d := OsmData.load_file(OSM_PATH)
-	check(d != null, "нет " + OSM_PATH)
-	if d == null:
-		return
-	check(d.attribution.contains("OpenStreetMap"), "атрибуция ODbL")
-	check(d.roads.size() > 1000, "дорог %d" % d.roads.size())
-	check(d.buildings.size() > 10000, "зданий %d" % d.buildings.size())
-	check(d.places.size() > 5, "населённых пунктов %d" % d.places.size())
-	var p := OsmData.points(d.roads[0].p)
-	check(absf(p[0].x) < 21000.0 and absf(p[0].y) < 21000.0, "координаты в зоне локации")
-	check(d.load_time_s < 2.0, "загрузка %.2f с" % d.load_time_s)
-
-
-func test_all_locations_osm_valid() -> void:
-	var n := 0
-	for f in Locations.builtin_ids():
-		var o := OsmData.load_file(Locations.osm_path(f))
-		check(o != null and o.attribution.contains("OpenStreetMap"), f + ": атрибуция")
-		check(o != null and o.roads.size() > 100 and o.buildings.size() > 100, f + ": данные")
-		n += 1
-	check(n >= 3, "локаций с OSM: %d" % n)
-
-
-func test_reprojection_keeps_latlon() -> void:
-	# Тот же файл при сдвинутом центре: точка сдвигается на разницу центров.
-	var a := OsmData.load_file(OSM_PATH)
-	var b := OsmData.load_file(OSM_PATH, 51.87 + 0.01, 85.87)
-	var pa := OsmData.points(a.roads[0].p)[0]
-	var pb := OsmData.points(b.roads[0].p)[0]
-	approx(pb.y - pa.y, TerrainGeo.meters_per_deg_lat() * 0.01, 1.0, "сдвиг по z")
-	approx(pb.x, pa.x, 1.0, "x без изменений")
 
 
 func test_windsock_turns_to_wind() -> void:
@@ -136,18 +101,6 @@ func test_objects_on_ground() -> void:
 	for ind in w.indicators:
 		var p := ind.position  # WorldObjects в начале координат
 		approx(p.y, t.height_at(p.x, p.z), 0.05, "%s на земле" % ind.name)
-	var d := OsmData.load_file(OSM_PATH)
-	var bcfg: Dictionary = WorldObjects.load_config().buildings
-	var tiles := BuildingPlacer.place(d.buildings.slice(0, 500), bcfg, t.height_at)
-	var n := 0
-	for k in tiles:
-		for xf: Transform3D in tiles[k].walls:
-			var g := t.height_at(xf.origin.x, xf.origin.z)
-			var bottom := xf.origin.y - xf.basis.get_scale().y * 0.5
-			check(bottom <= g + 0.01, "стены от земли (дно %.1f, земля %.1f)" % [bottom, g])
-			check(bottom > g - 30.0, "стены не уходят глубоко")
-			n += 1
-	check(n == 500, "здания размещены: %d" % n)
 
 
 func test_landing_site() -> void:
@@ -208,7 +161,6 @@ func test_build_time() -> void:
 	check(
 		w.build_time_s < 6.0, "сборка объектов %.2f с (NFR-2: вся загрузка ≤ 10 с)" % w.build_time_s
 	)
-	check(w.osm_layer.stats.get("buildings", 0) > 10000, "здания в MultiMesh")
 
 
 static func _heading(m: WindClothModel) -> float:
@@ -222,11 +174,6 @@ func test_clearings_mask() -> void:
 	if c == null:
 		return
 	check(c.build_time_s < 3.0, "маска за %.2f с" % c.build_time_s)
-	var d := OsmData.load_file(OSM_PATH)
-	var road := OsmData.points(d.roads[0].p)
-	check(c.is_clear_at(road[0].x, road[0].y), "на дороге деревьев нет")
-	var b: Array = d.buildings[0]
-	check(c.is_clear_at(float(b[0]), float(b[1])), "на здании деревьев нет")
 	var t := _altai()
 	var land := t.latlon_to_local(51.83476, 85.81696)
 	check(c.is_clear_at(land.x, land.y), "поле посадки")

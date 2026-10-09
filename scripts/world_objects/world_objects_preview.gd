@@ -3,7 +3,7 @@ extends Node3D
 ##   godot --path . res://scenes/world_objects/world_objects_preview.tscn -- [аргументы]
 ## Аргументы (после --):
 ##   --location=<id>  локация (по умолчанию из сцены — altai)
-##   --view=start|landing|village|sock|track   ракурс (по умолчанию start); sock — крупно
+##   --view=start|landing|sock|track   ракурс (по умолчанию start); sock — крупно
 ##                    конус; track — тропа к старту, вид на склон с 150–400 м (VR-9, тропы старта)
 ##   --wind=<км/ч> --from=<град>   ветер (по умолчанию из пресета погоды)
 ##   --weather=weak|medium|strong
@@ -12,7 +12,7 @@ extends Node3D
 ##   --shot=<png>    снять кадр и выйти;  --bench — GPU-время кадра с объектами и без, выход
 ## Управление: WASD/QE — полёт, Shift — быстрее, ПКМ — обзор, 1–5 — ракурсы.
 
-const VIEWS: PackedStringArray = ["start", "landing", "village", "sock", "track"]
+const VIEWS: PackedStringArray = ["start", "landing", "sock", "track"]
 
 var _args := {}
 var _cfg: Dictionary
@@ -96,25 +96,12 @@ func _set_view(view: String) -> void:
 			var ax := TerrainGeo.heading_vector(float(landing.axis_deg))
 			eye = target - ax * float(_cfg.landing_distance_m)
 			eye.y = terrain.height_at(eye.x, eye.z) + float(_cfg.landing_agl_m)
-		"village":
-			target = _village()
-			target.y = terrain.height_at(target.x, target.z)
-			eye = target + Vector3(0.0, float(_cfg.village_agl_m), float(_cfg.village_back_m))
 	cam.global_position = eye
 	cam.look_at(target)
 	_yaw = rad_to_deg(-cam.rotation.y)
 	_pitch = rad_to_deg(cam.rotation.x)
 	atmo.set_focus(eye)
 	print("Вид '%s': камера %s → %s" % [view, eye.round(), target.round()])
-
-
-## Центр посёлка: из конфига для локации, иначе центр места.
-func _village() -> Vector3:
-	var by_loc: Dictionary = _cfg.village_xz
-	if by_loc.has(terrain.location_id):
-		var p: Array = by_loc[terrain.location_id]
-		return Vector3(float(p[0]), 0.0, float(p[1]))
-	return Vector3.ZERO
 
 
 func _process(delta: float) -> void:
