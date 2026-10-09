@@ -191,9 +191,9 @@ func load_point(lat: float, lon: float) -> void:
 	if r.is_empty():
 		_fail(gen, tr("err_terrain_failed"))
 		return
-	var new_surfaces := _load_surfaces(r.dir, r.layers, r.masks.get("images", {}))
 	for task_id: int in r.masks.get("tasks", []):
 		WorkerThreadPool.wait_for_task_completion(task_id)
+	var new_surfaces := _load_surfaces(r.dir, r.layers, r.masks.get("images", {}))
 	var surf0: SurfaceLayer = new_surfaces[0] if not new_surfaces.is_empty() else null
 	if is_sea(r.layers[0], surf0, float(rt.get("sea_depth_m", -450.0))):
 		_fail(gen, tr("err_sea"))
