@@ -32,13 +32,13 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/map_picker.gd` + `raster_tile_loader.gd` (`MapPicker`, `RasterTileLoader`) | карта выбора точки: растровая топокарта (OpenTopoMap / OSM, кеш `user://map_cache`), высота точки из Terrarium z12, щелчок / ввод координат → `point_picked(lat, lon)`, `elevation_ready` |
 | `scripts/world/sky_environment.gd` (`SkyEnvironment`), `haze.gdshader`, `scenes/world/environment.tscn` | небо, солнце с мягкими тенями, голубая дымка, мутный слой под инверсией (VR-3), glow |
 | `scenes/terrain/terrain_preview.tscn`, `map_picker_preview.tscn` | отдельный запуск модуля |
-| `tools/terrain/fetch_dem.py`, `rivers.py`, `fetch_landcover.py`, `cog.py` | подготовка данных встроенной локации (высоты, реки, карта поверхности) |
+| `scripts/terrain/build/` (`DemStage`, `RiverStage`, `SurfaceStage`, `OsmStage`, `LocationBuilder`, `LocationCache`, `Locations`), `tools/terrain/build_location.gd` | сборка данных места (высоты, реки, карта поверхности, OSM) — одна для встроенных мест и точек; см. `docs/guide/location-data.md` |
 | `configs/locations/<id>.json` | локация: центр, слои DEM, LOD, старты, посадки, реки, карта поверхности, переопределения вида и пород деревьев |
 | `configs/world.json` | солнце, небо, дымка, эффекты, вид рельефа, деревья, текстуры, рантайм-загрузка, карта |
 
 ## Как устроено
 **Данные.** Локация — несколько вложенных квадратных слоёв высот (детальный 40 км / 25 м из Copernicus GLO-30,
-фон 160 км / 100 м из Terrarium). Файл слоя — float32 LE, brotli (`<слой>.f32.br`), строки с севера на юг.
+фон 160 км / 100 м из Terrarium). Файл слоя — float32 LE, zstd (`<слой>.f32.zst`), строки с севера на юг.
 Узлы слоёв выровнены, грубый слой в зоне детального содержит его же высоты → на стыке нет ступеньки.
 Загрузка «Алтая» — 0.2–0.3 с (NFR-2: ≤ 10 с): распаковка + `to_float32_array()` + текстура `FORMAT_RF`.
 
@@ -54,19 +54,18 @@ LOD выбирается по расстоянию от камеры до AABB �
 Щели между LOD закрывает «юбка». Коллизии нет — полёт использует `height_at`.
 
 **Карта поверхности (VR-4, VR-0).** Классы: 1 лес, 2 луг/трава, 3 пашня/поля, 4 кустарник, 5 скалы/голый грунт,
-6 вода, 7 застройка, 8 снег; 0 — нет данных. Источник — ESA WorldCover 2021 (10 м, CC-BY 4.0), `fetch_landcover.py`
+6 вода, 7 застройка, 8 снег; 0 — нет данных. Источник — ESA WorldCover 2021 (10 м, CC-BY 4.0), `SurfaceStage`
 читает только нужные тайлы COG (HTTP range, без GDAL), класс узла — мода 3×3 подвыборок; перевод кодов WorldCover —
 `world.json → surface.worldcover.classes`. Файлы `<слой>_surface.png` (8 бит, значение = класс, та же сетка, что у высот,
 не импортируются Godot: `importer="keep"`) + `surface.json`. Данные: ~0,5 МБ на локацию.
 **Маска «деталь 10 м» (T02/T03)** — `<слой>_detail10.png` детального слоя (40 км → 4001×4001, PNG серый+альфа = RG8,
 1,0–1,7 МБ; вся локация ≤ 15 МБ): R — доля леса в клетке 10 м по 3×3 подвыборкам WorldCover (без моды, T02), G —
-доля воды в клетке 10 м (T03, VR-9). `fetch_landcover.py <id> --only=detail10` (≈ 1 мин, `world.json → surface.detail10`)
-готовит R и обнуляет G; `tools/terrain/osm_water.py <id>` дописывает G поверх — реки/ручьи/каналы из `data/osm/<id>.json
-→ water.rivers` (ширина по типу: river 25 м, canal 6 м, stream 4 м — тег `width` пока не пакует `fetch_osm.py`), сглаженный
-край ~1 клетка (как `rivers.py`), и озёра (`water.lakes`, полигоны, антиалиасинг края супервыборкой 4×4). Ручьи (4 м) уже
+доля воды в клетке 10 м (T03, VR-9). `SurfaceStage` (`world.json → surface.detail10`) готовит R и обнуляет G; `OsmStage` дописывает G поверх — реки/ручьи/каналы из `osm.json
+→ water.rivers` (ширина по типу: river 25 м, canal 6 м, stream 4 м — тег `width` пока не пакуется), сглаженный
+край ~1 клетка (как у масок рек), и озёра (`water.lakes`, полигоны, антиалиасинг края супервыборкой 4×4). Ручьи (4 м) уже
 клетки — покрытие ≤ 0,4, ниже порога 0,5 классификации (в шейдере это берег/затемнение, не сплошная вода); реки и каналы
 (≥ 6 м) выше порога. PNG читается в рабочем потоке, пока распаковываются высоты (загрузка Онгудая 0,44–0,49 с).
-Рантайм-локации (FR-17) — без маски (класс «вода» WorldCover как раньше).
+Точки с карты получают ту же маску (сборщик места, `docs/guide/location-data.md`); если покров не загрузился — без маски (класс «вода» WorldCover/процедурный).
 `forest_at(x, z)` — доля леса 0..1 как кромка в шейдере (маска билинейно + порог 0,5 ± `forest_edge_soft`, без шума):
 0,1→0,9 за ≤ 4 м; без маски — по классу. `get_forest_mask()` → `[Image RG8, origin (угол пикселя (0,0)), 10]`
 для деревьев/импостеров (передаётся им `set_forest_mask`, если метод есть). Поляны у стартов вырезаны и в маске.
@@ -218,24 +217,16 @@ var picker := MapPicker.new()
 picker.point_picked.connect(func(lat, lon): terrain.load_point(lat, lon))
 ```
 
-## Точка на карте: сборка места и кеш (osm-any, OA-К4)
-Точка (`pick_lat/lon`: карта, «Популярные», «Недавние») грузится как встроенное место (`Game._load_terrain`):
-1. `Locations.builtin_at(lat, lon)` — точка в детальном квадрате встроенного места не ближе
-   `location_builder.builtin_margin_km` (10 км) к краю → грузится оно (`load_location`), старт — в точке.
-2. Иначе `Terrain.load_point(lat, lon)`: `LocationBuilder.build` берёт место `user://locations/<ключ>/` из кеша
-   (ключ — центр, округлённый к сетке `snap_deg` 0,05°: `LocationCache.key_for`, например `pt_+47.050_+011.000`)
-   или собирает его стадиями `DemStage` → `RiverStage` → `SurfaceStage` → `OsmStage` во временной папке
-   `.tmp_<ключ>`, переименовывает и пишет `build.json` последним (`complete`, `missing`, `builder_version`,
-   секунды по стадиям, `net_requests`). Затем обычный `load_location(ключ)` и OSM-объекты как у встроенных.
-3. Полное место (версия сборщика та же) — ноль запросов в сеть. Отказ рек/покрова/OSM — место без слоя, имя
-   стадии в `missing`, следующий запуск догружает только недостающее; отказ рельефа — ошибка в меню.
-
-Все чтения конфига места и пути OSM — через `Locations` (`config`, `osm_path`, `is_builtin`, `builtin_at`):
-встроенные — `configs/locations/<id>.json`, `res://data/osm/<id>.json`; кешированные — `location.json` и `osm.json`
-в папке места. Конфиг кешированного места строится по `world.json → location_builder.template`.
-Ручная сборка без игры: `godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]`
-(печатает ключ, missing, время стадий, `net_requests`, размер папки). Сеть: сторож `stall_timeout_s` не срабатывает,
-пока стадии присылают прогресс.
+## Точка на карте: сборка места и кеш (osm-any)
+Точка (`pick_lat/lon`: карта, «Популярные», «Недавние») грузится как встроенное место (`Game._load_terrain`): точка
+внутри встроенного места (≥ 10 км до края детального квадрата) — `load_location` встроенного со стартом в точке; иначе
+`Terrain.load_point(lat, lon)` → `LocationBuilder.build` берёт готовое место из `user://locations/<ключ>/` или собирает
+его стадиями, затем обычный `load_location(ключ)` и OSM-объекты как у встроенных. Стадии, источники, ключ и состав
+кеша, отказ слоёв, догрузка и повтор без сети — `docs/guide/location-data.md`. Все чтения конфига места и пути OSM —
+через `Locations` (`config`, `osm_path`, `is_builtin`, `builtin_at`). Ручная сборка без игры:
+`godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]`
+(встроенное место — `-- --id <id>`; печатает ключ, missing, время стадий, `net_requests`, размер папки). Сеть: сторож
+`stall_timeout_s` не срабатывает, пока стадии присылают прогресс.
 
 ## Рантайм-загрузка с карты: ход, фризы, ошибки
 `load_point` не останавливает главный поток надолго (окно отвечает, экран загрузки живой):
@@ -250,10 +241,6 @@ picker.point_picked.connect(func(lat, lon): terrain.load_point(lat, lon))
 0..1 по весам `configs/ui.json → loading.stage_weights`, внутри скачивания — по тайлам. Экран загрузки
 (`LoadingScreen`) слушает `progress.changed`.
 
-Высокие широты: пиксель web-mercator мельчает как cos(широта), поэтому уровень тайлов слоя понижается,
-пока шаг не станет ≥ `runtime_terrain.layers[].min_spacing_m` (`TerrariumLoader.layer_zoom`): на 72° (Гренландия)
-сетка не в 4 раза больше, чем на Алтае. Дальше `max_abs_lat` тайлов нет.
-
 Ошибки → `load_failed(текст для пилота)`, игра возвращается в меню:
 - нет связи / таймаут → «Нет связи с сервером рельефа…»; тайла нет (403/404) → «Для этого места нет данных рельефа.»;
 - море (`Terrain.is_sea`): высота точки ниже `sea_depth_m` или ≤ 0 (над океаном тайлы дают 0) без карты
@@ -264,18 +251,17 @@ picker.point_picked.connect(func(lat, lon): terrain.load_point(lat, lon))
 этапы с длительностью, самый длинный интервал между кадрами, итог (полёт / меню с сообщением).
 
 ## Как добавить локацию
+Данные места собирает игровой сборщик (одинаково для встроенных мест и точек); подробно — `docs/guide/location-data.md`.
 1. Скопировать `configs/locations/altai.json` в `configs/locations/<id>.json`, поменять `name`, `center_lat/lon`,
    `data_dir` (`res://data/terrain/<id>`), при желании размеры слоёв (сторона/шаг должны давать целое число `chunk_cells`).
-2. `uv run --with numpy --with pillow --with tifffile --with imagecodecs python tools/terrain/fetch_dem.py <id> --preview=/tmp`
-   — скачает Copernicus/Terrarium (кеш `~/.cache/deltaplan_terrain`), сохранит слои, маски рек и `meta.json`
-   (≈ 30 с; отмывки для проверки — в `/tmp`).
-3. `uv run --with numpy --with pillow python tools/terrain/fetch_landcover.py <id>` — карта поверхности WorldCover
-   (раздел `surface` локации: уровень COG и подвыборки по слоям; ≈ 1–3 мин, кеш `~/.cache/deltaplan_terrain/cog`).
-4. Вписать `start_sites` (lat, lon, `heading_deg` — курс разбега вниз по склону, 1–3 старта) и `landing_sites`.
+2. `godot --headless --path . -s res://tools/terrain/build_location.gd -- --id <id>` (нужна сеть) — рельеф Copernicus/
+   Terrarium, маски рек, карта поверхности WorldCover, лес и вода 10 м, `osm.json`, `build.json` в `data_dir`
+   (кеш блоков — `user://terrain_cache`; профиль для проверок — `XDG_DATA_HOME=$(mktemp -d)`).
+3. Вписать `start_sites` (lat, lon, `heading_deg` — курс разбега вниз по склону, 1–3 старта) и `landing_sites`.
    Проверка: `tests/terrain/test_locations.gd` (добавить id в `LOCATIONS`) — старт на склоне 8–35°, вниз по курсу, не в лесу;
    посадка пологая, не лес и не вода. Бюджет данных — ≤ 15 МБ на локацию.
-5. `godot --path . res://scenes/terrain/terrain_preview.tscn -- --location=<id> --site=<id старта>` — посмотреть.
-6. Внести данные в `ASSETS.md`.
+4. `godot --path . res://scenes/terrain/terrain_preview.tscn -- --location=<id> --site=<id старта>` — посмотреть.
+5. Внести данные в `ASSETS.md`.
 
 ## Локации
 | id | Что | Старты |
@@ -303,7 +289,7 @@ false, `trees.impostors.outer_m` 2000, `trees.radius_m` 300, `trees.cast_shadows
 Модели деревьев — `world.json → trees.models` (нет файла → процедурные кроны). Карта поверхности — PNG, можно
 заменить любой другой классификацией (OSM landuse, свой рисунок) с теми же классами.
 Текстуры поверхностей — пути в `configs/world.json → terrain_textures` (пусто — процедурно; нет файла — предупреждение
-и процедурно). Реки (маски `rivers.py`) нужны только запасной карте; при карте WorldCover вода — её класс «вода».
+и процедурно). Реки (маски `RiverStage`) нужны только запасной карте; при карте WorldCover вода — её класс «вода».
 
 
 ## Стенд кадров (T01)
