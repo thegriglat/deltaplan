@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Ядро SurfaceHeat (SH2) и configs/surface_heat.json (SH1) по контрактам без изменений интерфейса; тесты инвариантов и контрактные тесты зелёные. Числа radiation/moisture/water/thermal — заглушки до SH-1.",
+  "commits": [
+    "cc232fbf surface-heat SH-2: ядро SurfaceHeat, конфиг, тесты"
+  ],
+  "checks": [
+    {
+      "name": "surface_heat",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "surface_heating",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "air_contracts",
+      "value": "30/30",
+      "pass": true
+    },
+    {
+      "name": "h_ref_wm2",
+      "value": "362 (скала, β 2,0, зенит, ясно)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "shortwave: cover в K↓ не используется (облака через sky_heat), cover идёт в L*. Устраивает? Иначе подставить (1-0,7·cover) вместо sky_heat."
+  ],
+  "how_to_check": "tools/dp accept SH-2",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/surface_heat.gd:shortwave",
+      "why": "облака: множитель sky_heat игры вместо (1-0,7 cover) Stull, чтобы не считать дважды; доля рассеянной 0,15 постоянна (в облаках на деле растёт)",
+      "checked": "sky_heat overcast 0,3 против Stull 0,4 при cover 0,85 — близко"
+    },
+    {
+      "where": "surface_heat.gd:water_temp_c",
+      "why": "средняя суточная T воздуха = среднее 24 отсчётов diurnal_state (не tmax-амп/2); лаг 30 дней по дню года; поправка высоты 6,5 К/км от valley_msl_m (в WeatherModel градиента у земли нет; t_max считается для долины)",
+      "checked": "июль, опорное место: T_w 17,9 °C; январь 0 (лёд); тест на 6,5 К/км"
+    },
+    {
+      "where": "configs/surface_heat.json",
+      "why": "m_dry/norm/wet 0,35/0,5/0,85, l_cloud_k 0,6, diffuse 0,15, u_min 1 — EST до SH-1; class 'none' = grassland, как SH1",
+      "checked": "тесты порядка и границ"
+    },
+    {
+      "where": "mix_flux",
+      "why": "PackedVector3Array float32: допуск в тестах 1e-3; лёд = SNOW с солнцем класса SNOW; вода без контекста пропускается (H=0)",
+      "checked": "тесты смеси, льда, наклона"
+    }
+  ],
+  "dp_feedback": "godot -s скрипт с class_name зависает в headless; табличные числа снимал временным тестом. dp accept --dry хорош.",
+  "extra": {
+    "H_clear_noon_july_ongudai_m05_Wm2": {
+      "none": 203.6,
+      "forest": 278.2,
+      "grass": 203.6,
+      "crop": 201.7,
+      "shrub": 283.2,
+      "bare": 287.2,
+      "built": 291.7,
+      "snow": 21.1,
+      "old_330_formula_grass": 275.4
+    },
+    "H_night_02h": {
+      "none": -31.2,
+      "forest": -38.7,
+      "grass": -31.2,
+      "crop": -30.5,
+      "shrub": -40.7,
+      "bare": -49.0,
+      "built": -44.1,
+      "snow": -6.5
+    },
+    "water_Tw-Ta=-5K_U3": -24.0
+  },
+  "t": "2026-10-09T22:52:14",
+  "by": "executor"
+}

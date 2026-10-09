@@ -5,3 +5,7 @@
 {"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-1", "ev": "started", "note": "dp-researcher Sonnet, ~/deltaplan-surface-heat-SH-1"}
 {"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-2", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-surface-heat-SH-2"}
 {"t": "2026-10-09T22:41:47", "by": "coordinator", "task": "SH-3", "ev": "started", "note": "dp-researcher Sonnet, ~/deltaplan-surface-heat-SH-3"}
+{"t": "2026-10-09T22:52:14", "by": "executor", "task": "SH-2", "ev": "reported", "commits": ["cc232fbf"], "note": "done: Ядро SurfaceHeat (SH2) и configs/surface_heat.json (SH1) по контрактам без изменений интерфейса; тесты инвариантов и ко…", "dp_feedback": "godot -s скрипт с class_name зависает в headless; табличные числа снимал временным тестом. dp accept --dry хорош."}
+{"t": "2026-10-09T22:52:45", "by": "executor", "task": "SH-2", "ev": "checked", "note": "3/3 surface_heat=ok:13/13; surface_heating=ok:2/2; air_contracts=ok:30/30"}
+{"t": "2026-10-09T22:55:09", "by": "reviewer", "task": "SH-2", "ev": "reviewed", "note": "Контракты SH1/SH2 соблюдены (сигнатуры, порядок аргументов, оси y-вверх, нормаль без нормировки → поток на горизонталь); скоуп чистый (4 файла); физика по план…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/surface-heat/tasks/SH-2.review.json"}
+{"t": "2026-10-09T22:55:26", "by": "coordinator", "task": "SH-2", "ev": "accepted", "note": "по ревью (fable, accept, 2 minor)"}
