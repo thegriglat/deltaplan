@@ -32,6 +32,25 @@ An example result — Ongudai, 12:00 (wind 3 m/s, clear, a typical July): on hea
 
 **What it cannot do.** The core strength is a single fraction of w<sub>\*</sub> without spread between neighbors; in life the spread is wider. "Strong thermals every 1–1.5 layer thicknesses" the model does not reproduce: the density of all cores matches the literature, the spacing of strong ones does not. There are no "streets" along the wind. The source list is updated once per field hour. Small morning thermals with a column shorter than 300 m are not born. The position of particular thermals is statistics, not a computation.
 
+## Where the heating comes from: cover, moisture, water
+
+The source strength and the solver input are computed from one heat flux H (W/m²), and it depends on what lies on the ground: forest, meadow, cropland, shrub, rock, built-up area, water, snow.
+
+- **Albedo.** Light surfaces reflect more sun (meadow 0.20, rock 0.25, snow 0.55), dark ones less (forest 0.12, water 0.07). The rest heats the ground.
+- **Part of the heat goes into the ground.** 4 % for forest, 15 % for meadow, 25 % for rock and built-up areas. What is left is split between heating the air and evaporation.
+- **Wet heats less.** The wetter the soil, the more energy goes into evaporation and the less is left for the air. Wetness comes from the terrain: damp hollows heat the air less, dry ridges and rock more. There is no rain or irrigation in the game, so this is drainage geometry, not weather.
+- **Lag.** The sun for a class is taken with a delay: meadow and field 0.3 h, forest 0.6 h, rock 0.9 h, built-up 1.2 h. Rock and villages start heating later and keep giving heat longer than open fields.
+
+At noon on level ground, clear sky, midsummer (50° N): meadow ≈ 210 W/m², forest ≈ 290, rock ≈ 300, built-up ≈ 320, snow ≈ 20. The previous heating was the same everywhere — 275 for meadow. Averaged over the areas, noon heating is 10–16 % lower, but the spread is wider: southern rocky slopes are stronger, northern slopes and damp hollows weaker. The number of thermal sources stays about the same (within ±8 %); the ceiling is 1–10 % lower.
+
+**Forest heats the air no less than meadow.** By the literature values forest is dark and hides almost no heat in the ground, so the air over it warms more than over meadow. The game used to make forest weaker; now thermal sources can also form over forest. The field–forest boundary is still a place where thermals break off: at a class boundary the source strength gets an extra boost (up to +30 % in a 50–150 m band).
+
+**Water.** On a summer day water is colder than the air, and the air above it is cooled — "the lake sinks you": at Lake Aushkul over open water the flux is about −30 W/m² (3 m/s wind, water 6 K colder than air), and there are no thermals. In the evening warm water heats the air. Water temperature follows the climate a month earlier: the daily mean air temperature 30 days before the date (at the site's altitude). Below zero the water is ice and behaves like snow.
+
+**Roughness.** The wind near the ground accounts for the cover: over forest and a village it is weaker, over meadow and water stronger. At launches this is a few percent: at 30 m over forest about −5 % from before, over meadow about +3…5 %.
+
+**What the model cannot do.** Soil moisture comes from terrain only (no rain, irrigation or moisture forecast). Cold mountain rivers (snowmelt) are treated as warm as lakes. There is no daily cycle of water temperature (0.5–2 K for small lakes), and ice has no thickness or melting. There is no terrain shadowing in the heating.
+
 ## Shape and life of the bubble
 
 Every thermal in the game is a bubble (`AtmoThermal`) with a source on the ground, a life cycle of growth → maturity →
@@ -106,7 +125,7 @@ tied to terrain classes.
   generator by cell, cycle and seed.
 - **The upper fall-off of lift at the top** is made adjustable (`top_taper_m`), rather than strictly 10 % of the layer
   height, as follows from Allen's formula — otherwise under a growing cloud the lift would die out unrealistically early.
-- **The heat flux is a model, not a measurement**: it is computed from the sun, slope, weather and surface (meadow everywhere), without soil physics and without land-cover classes.
+- **The heat flux is a model, not a measurement**: it is computed from the sun, slope, weather and land-cover class (see above), but without soil physics, groundwater depth and terrain shadows.
 - Clouds in detail (shape, shadows, stages) are a separate mechanic: [/mechanics/clouds/](/mechanics/clouds/).
 
 ## What was considered and why this way

@@ -98,7 +98,7 @@ Common to the whole model; specific ones are on the level pages.
 - **Speed-up at the brow is underestimated by 15–20 % at 20–100 m above the slope.** The cause is the numerical diffusion of 1st-order advection and the limited terrain resolution. The way to fix it, if pilots say "weak at the brow": 2nd order in the windows (time ×2–3) or a 25 m window.
 - **Saddle ×2.05 instead of ×1.5.** At a Froude number of about 2 the flow goes over the whole range, and the saddle works as a lowered ridge. The day's stability comes from the weather; there is no separate "saddle knob".
 - **The lift band over a steep ridge is higher than "two heights".**
-- **The surface is meadow everywhere.** There are no surface classes (forest, rock, water) in heating, and over forest mechanical turbulence is underestimated.
+- **Land cover is accounted for in heating and wind roughness** (see [Thermals](/mechanics/air-model/thermals/)), but soil moisture comes from terrain only, and over forest mechanical turbulence is underestimated.
 - **Evening, night, calm.** The nocturnal jet maximum is not reproduced; stable cases have not been checked against inflow data (the calibration is neutral). In calm the model has no steady solution — the field there comes from statistics (see [phases](/mechanics/air-model/wind-phases/)).
 
 ## More
