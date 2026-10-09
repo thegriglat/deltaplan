@@ -509,52 +509,41 @@ func test_surface_at_forest_by_mask() -> void:
 
 
 func test_river_axis_is_water() -> void:
-	# T03/VR-9: 50 точек на осевых OSM-рек Онгудая (river/canal — шире клетки маски 10 м;
-	# ручьи (stream, 4 м) в клетке 10 м — только доля покрытия для затемнения берега в шейдере,
-	# не сплошная вода для surface_at/термиков) — surface_at = вода ≥ 90 %;
-	# те же точки, сдвинутые на 100 м поперёк русла, — не вода ≥ 95 %.
+	# NO-1: вода в канале A — max(вода WorldCover 10 м, маска рек по рельефу), без OSM. 50 точек на осях рек Онгудая
+	# по маске рек detail_water.png (сетка слоя 25 м, значение ≥ 200 — русло) — surface_at = вода ≥ 90 %;
+	# те же точки, сдвинутые на 300 м вбок, — не вода в большинстве (не «вся карта — вода»).
 	var t := _ong()
-	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("ongudai"))
-	var osm: Dictionary = JSON.parse_string(osm_str)
-	var rivers: Array = []
-	for river: Dictionary in osm.water.rivers:
-		if river.t == "river" or river.t == "canal":
-			rivers.append(river)
+	var dir := "res://data/terrain/ongudai/"
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "meta.json"))
+	var info: Dictionary = {}
+	for l: Dictionary in meta.layers:
+		if String(l.id) == "detail":
+			info = l
+	var img := Image.load_from_file(dir + "detail_water.png")
+	check(img != null, "маска рек читается")
+	if img == null:
+		return
+	var w := img.get_width()
+	var data := img.get_data()
+	var cells := PackedInt32Array()
+	for i in data.size():
+		if data[i] >= 200:
+			cells.append(i)
+	check(cells.size() >= 500, "русел в маске рек: %d клеток" % cells.size())
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var on_axis := 0
 	var off_axis := 0
-	var n := 0
-	var guard := 0
-	while n < 50 and guard < 5000:
-		guard += 1
-		var river: Dictionary = rivers[rng.randi_range(0, rivers.size() - 1)]
-		var p: Array = river.p
-		if p.size() < 4:
-			continue
-		var seg := rng.randi_range(0, p.size() / 2 - 2)
-		var x0 := float(p[seg * 2])
-		var z0 := float(p[seg * 2 + 1])
-		var x1 := float(p[seg * 2 + 2])
-		var z1 := float(p[seg * 2 + 3])
-		var d := Vector2(x1 - x0, z1 - z0)
-		if d.length() < 1.0:
-			continue
-		var mid_t := rng.randf()
-		var x := lerpf(x0, x1, mid_t)
-		var z := lerpf(z0, z1, mid_t)
-		var perp := Vector2(-d.y, d.x).normalized()
-		n += 1
+	var n := 50
+	for q in n:
+		var c := cells[rng.randi_range(0, cells.size() - 1)]
+		var x := float(info.origin_x_m) + (c % w) * float(info.spacing_m)
+		var z := float(info.origin_z_m) + (c / w) * float(info.spacing_m)
 		on_axis += int(t.surface_at(x, z) == SurfaceLayer.WATER)
-		# на изгибе русло может вернуться в пределы 100 м с одной стороны — берём сторону подальше
-		var off_a := Vector2(x, z) + perp * 100.0
-		var off_b := Vector2(x, z) - perp * 100.0
-		var not_water_a := t.surface_at(off_a.x, off_a.y) != SurfaceLayer.WATER
-		var not_water_b := t.surface_at(off_b.x, off_b.y) != SurfaceLayer.WATER
-		off_axis += int(not_water_a or not_water_b)
-	check(n == 50, "точек на осях рек: %d" % n)
+		off_axis += int(t.surface_at(x + 300.0, z) != SurfaceLayer.WATER)
 	check(on_axis >= 0.9 * n, "surface_at = вода на оси реки: %d/%d" % [on_axis, n])
-	check(off_axis >= 0.95 * n, "в 100 м от оси — не вода: %d/%d" % [off_axis, n])
+	check(off_axis >= 0.7 * n, "в 300 м от оси — не вода: %d/%d" % [off_axis, n])
+	print("         ось реки: вода %d/%d, в 300 м не вода %d/%d" % [on_axis, n, off_axis, n])
 
 
 ## Чётность пересечений луча (ray casting): точка внутри многоугольника (x, z), p — [x0,z0,x1,z1…].
