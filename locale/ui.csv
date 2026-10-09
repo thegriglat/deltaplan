@@ -466,3 +466,6 @@ menu_favorites,Избранное,Favorites
 setup_add_favorite,В избранное,Add to favorites
 fav_added,В избранном,Added to favorites
 fav_remove,Удалить,Remove
+fkey_hint_perf,частота кадров,frame rate
+fkey_hint_wind,ветер,wind
+fkey_hint_thermals,термики,thermals
