@@ -67,3 +67,4 @@
 {"t": "2026-10-09T23:55:36", "by": "main", "task": "SH-7", "ev": "reported", "commits": ["7acb27dc"], "note": "done: Прогон «после» SH-7 выполнен (9 точек: altai, ongudai, aushkul; часы 9, 12, 15), схема и сравнение с «до» проходят. Ком…"}
 {"t": "2026-10-09T23:55:54", "by": "executor", "task": "SH-7", "ev": "accepted", "note": "2/2 schema=ok:exit 0; compare=ok:aushkul"}
 {"t": "2026-10-09T23:56:25", "by": "coordinator", "task": "SH-7", "ev": "note", "note": "«H вода» в замере — среднее по клеткам с большинством воды (берег+суша); над чистым озером Аушкуль p10 = −31,5 Вт/м² (совпадает с SH-4); t_water_c в meta нет → null. Не дорабатываем."}
+{"t": "2026-10-09T23:56:25", "by": "coordinator", "task": "SH-7", "ev": "merged", "commits": ["58d86d73"]}
