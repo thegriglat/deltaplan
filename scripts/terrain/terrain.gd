@@ -627,13 +627,6 @@ func thermal_source_strength_water(
 ) -> float:
 	var n := normal_at(x, z)
 	var c := _surface_class(x, z, n)
-	if _heat_cfg.is_empty():
-		_heat_cfg = SurfaceHeat.config()
-		_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
-		_heat_onehot.resize(SurfaceLayer.CLASS_COUNT * SurfaceLayer.CLASS_COUNT)
-		_heat_onehot.fill(0.0)
-		for i in SurfaceLayer.CLASS_COUNT:
-			_heat_onehot[i * SurfaceLayer.CLASS_COUNT + i] = 1.0
 	var sun := class_sun
 	if sun.size() < SurfaceLayer.CLASS_COUNT:
 		sun = PackedVector3Array()
@@ -967,6 +960,13 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 		for s in surfaces:
 			s.replace_in_circle(p.x, p.z, site_r, SurfaceLayer.SHRUB, SurfaceLayer.GRASS)
 		_clear_forest(p.x, p.z, clear_r)
+	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
+	_heat_cfg = SurfaceHeat.config()
+	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
+	_heat_onehot.resize(SurfaceLayer.CLASS_COUNT * SurfaceLayer.CLASS_COUNT)
+	_heat_onehot.fill(0.0)
+	for i in SurfaceLayer.CLASS_COUNT:
+		_heat_onehot[i * SurfaceLayer.CLASS_COUNT + i] = 1.0
 	var th: Dictionary = scfg.get("thermal", {})
 	_edge_boost = float(th.get("edge_boost", 0.0))
 	_edge_full = float(th.get("edge_full_m", 50.0))

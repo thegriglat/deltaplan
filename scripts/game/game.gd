@@ -522,6 +522,7 @@ func _water_heat_at(hour: float) -> Dictionary:
 		"t_air_c":
 		SurfaceHeat.air_temp_c(hour, float(fc.get("temperature_c", 20.0)), z, _weather_ctx, wcfg),
 		"u_ms": float(fc.get("wind_speed_kmh", 0.0)) / 3.6,
+		"z_m": z,
 	}
 
 

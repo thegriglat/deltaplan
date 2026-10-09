@@ -86,6 +86,9 @@ func test_terrain_set_sun_recomputes_shadow() -> void:
 	var wet := t.thermal_source_strength_at(500.0, 0.0)
 	var dry := t.thermal_source_strength_at(0.0, 0.0)
 	check(t.surface_at(500.0, 0.0) == t.surface_at(0.0, 0.0), "тот же класс у ложбины и гребня")
+	var nw := t.normal_at(500.0, 0.0)
+	var nd := t.normal_at(0.0, 0.0)
+	check(nw.dot(nd) > 0.9999 and nw.y > 0.99, "нормали ложбины и гребня одинаковы, почти вертикальны")
 	check(wet < dry, "сырая ложбина — источник слабее: %.3f против %.3f" % [wet, dry])
 	t.free()
 
