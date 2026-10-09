@@ -7,3 +7,4 @@
 {"t": "2026-10-10T03:50:09", "by": "coordinator", "task": "NO-4", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-no-osm-NO-4"}
 {"t": "2026-10-10T03:50:28", "by": "coordinator", "task": "NO-3", "ev": "created", "note": "Пасхалки без OSM: места из пятен застройки и рельефа, УАЗ по бездорожью"}
 {"t": "2026-10-10T03:50:28", "by": "coordinator", "task": "NO-2", "ev": "created", "note": "Дома в пятнах застройки вместо зданий OSM"}
+{"t": "2026-10-10T03:55:12", "by": "coordinator", "task": "NO-7", "ev": "created", "note": "Счётчик загрузки данных места «этап: N/M»"}
