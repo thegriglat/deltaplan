@@ -113,6 +113,12 @@ Headless-команда сборки места по id (`configs/locations/<id>
 связанные guide — по-новому. Приёмка: тесты `terrain`, `world_objects`, `locations`, `vegetation`, `osm_any` зелёные;
 `dp docs check`; размер `data/terrain` до/после — в отчёт.
 
+### OA-8. Документация (dp-writer)
+`docs/guide/` — откуда данные места (стадии, источники, кеш `user://locations`, ключ, отказ слоёв, как собрать
+встроенное место командой); `docs/registry/findings.md` — выводы паритета (числа OA-1…OA-4); CHANGELOG «В работе»;
+`on_demand_location.md` → closed со ссылкой сюда, `offline_world_data.md` — заметка, что сеть теперь на шаге сборки
+места. OA-7 и OA-5 документацию дальше не трогают.
+
 ## Риски
 - Copernicus COG: предиктор/сжатие могут отличаться от WorldCover — OA-1 проверяет первым делом.
 - Время первой сборки на GDScript (priority-flood 1601², detail10 4001²) — если > 3 мин без сети, вынос тяжёлого на
