@@ -24,7 +24,6 @@ class FakeAir:
 
 class Objs:
 	extends Node
-	var osm: OsmData
 	var camp: Array[Dictionary] = []
 
 
@@ -213,7 +212,6 @@ func _place() -> EggPlace:
 		t.location_id = ""
 		t.load_location("altai")
 		var o := Objs.new()
-		o.osm = OsmData.load_file(Locations.osm_path("altai"), t.center_lat, t.center_lon)
 		_place_cache = EggPlace.build(t, o)
 	return _place_cache
 

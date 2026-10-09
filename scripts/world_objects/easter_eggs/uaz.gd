@@ -1,7 +1,7 @@
 class_name EggUaz
 extends EasterEgg
-## УАЗик с пылевым шлейфом (чисто картинка): 1–2 машины едут туда-обратно по отрезку грунтовой
-## дороги OSM (track), в сухую погоду за ними висит пыль. Машина — один ArrayMesh из коробок и
+## УАЗик с пылевым шлейфом (чисто картинка): 1–2 машины едут туда-обратно по бездорожью — по
+## ровному открытому грунту низко над дном долины, вдоль долины, в сухую погоду за ними висит пыль. Машина — один ArrayMesh из коробок и
 ## цилиндров; пыль — MultiMesh квадов с шейдером smoke_puff (клубы — функция времени: клуб k
 ## «выпущен» k тактов назад там, где тогда была машина). Всё — функция ctx.t − t0 (К3/К4).
 ## Порядок бросков rng в begin: число машин; на каждую — поиск места (find_point), затем
@@ -26,7 +26,7 @@ var _mat_dust: ShaderMaterial
 var _dusty := true
 
 
-## День, есть грунтовая дорога OSM (track) с годным отрезком вблизи старта, не снег.
+## День, есть годный отрезок ровного открытого грунта вдоль долины вблизи старта, не снег.
 static func can_appear(ctx: EggContext, cfg: Dictionary) -> bool:
 	if ctx.sun_elev_deg <= 0.0:
 		return false
@@ -50,27 +50,76 @@ static func _start_of(ctx: EggContext) -> Vector2:
 	return s
 
 
-static func _classes(cfg: Dictionary) -> PackedStringArray:
-	return PackedStringArray(cfg.get("road_classes", ["track"]))
-
-
-## Ближайшая точка дорог: {line: PackedVector2Array, s: расстояние вдоль линии, d: до дороги, м}.
-static func locate(place: EggPlace, x: float, z: float, classes: PackedStringArray) -> Dictionary:
-	var q := Vector2(x, z)
-	var best := {"d": INF}
-	for line in place.roads(classes):
-		var pts: PackedVector2Array = line
-		var acc := 0.0
-		for i in range(pts.size() - 1):
-			var a := pts[i]
-			var ab := pts[i + 1] - a
-			var l2 := ab.length_squared()
-			var u := 0.0 if l2 < 1.0e-9 else clampf((q - a).dot(ab) / l2, 0.0, 1.0)
-			var d := q.distance_to(a + ab * u)
-			if d < float(best.d):
-				best = {"line": pts, "s": acc + ab.length() * u, "d": d}
-			acc += ab.length()
+## Направление вдоль долины в точке (единичный Vector2): по кругу радиуса r берётся ось, у которой
+## средняя высота двух противоположных точек ниже всего (поперёк долины склоны выше).
+static func valley_dir(place: EggPlace, x: float, z: float, r: float) -> Vector2:
+	var best := Vector2.RIGHT
+	var best_h := INF
+	for k in 8:
+		var a := PI * float(k) / 8.0
+		var d := Vector2(cos(a), sin(a))
+		var h := place.height_at(x + d.x * r, z + d.y * r) + place.height_at(x - d.x * r, z - d.y * r)
+		if h < best_h:
+			best_h = h
+			best = d
 	return best
+
+
+## Точка годна для езды: открытый грунт (луг, поле, кустарник; NONE — нет покрова, решают уклон и
+## высота), не круче max_slope_deg, не выше cap над дном долины.
+static func ground_ok(place: EggPlace, x: float, z: float, cfg: Dictionary, cap: float) -> bool:
+	var s := place.surface_at(x, z)
+	if (
+		s != SurfaceLayer.GRASS
+		and s != SurfaceLayer.CROP
+		and s != SurfaceLayer.SHRUB
+		and s != SurfaceLayer.NONE
+	):
+		return false
+	if place.above_valley_m(x, z) > cap:
+		return false
+	return place.slope_deg_at(x, z) <= float(cfg.get("max_slope_deg", 8.0))
+
+
+## Точка оси маршрута на расстоянии s от якоря: ось вдоль долины плюс плавное боковое покачивание
+## (в якоре смещение 0).
+static func axis_point(anchor: Vector2, dir: Vector2, s: float, wob_m: float, phase: float) -> Vector2:
+	var perp := Vector2(-dir.y, dir.x)
+	var off := wob_m * (sin(s / 120.0 + phase) - sin(phase))
+	return anchor + dir * s + perp * off
+
+
+## Сколько годного грунта по обе стороны якоря: {lo: ≤ 0, hi: ≥ 0} — крайние расстояния s вдоль
+## оси (шаг 30 м, не дальше max_each_m в каждую сторону).
+static func route_run(
+	place: EggPlace, anchor: Vector2, dir: Vector2, phase: float, cfg: Dictionary, cap: float
+) -> Dictionary:
+	var wob := float(cfg.get("wobble_m", 15.0))
+	var max_each := float((cfg.get("route_m", [500.0, 900.0]) as Array)[1])
+	var out := {"lo": 0.0, "hi": 0.0}
+	for sign_i in [-1.0, 1.0]:
+		var s := 0.0
+		while s < max_each:
+			var q := axis_point(anchor, dir, (s + 30.0) * sign_i, wob, phase)
+			if not ground_ok(place, q.x, q.y, cfg, cap):
+				break
+			s += 30.0
+		if sign_i < 0.0:
+			out.lo = -s
+		else:
+			out.hi = s
+	return out
+
+
+## Точки маршрута на отрезке [s0, s1] оси.
+static func route_points(
+	anchor: Vector2, dir: Vector2, s0: float, s1: float, wob: float, phase: float
+) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var n := maxi(int(ceil((s1 - s0) / 30.0)), 1)
+	for i in n + 1:
+		pts.append(axis_point(anchor, dir, lerpf(s0, s1, float(i) / float(n)), wob, phase))
+	return pts
 
 
 static func _line_length(pts: PackedVector2Array) -> float:
@@ -107,23 +156,6 @@ static func _slice(pts: PackedVector2Array, s0: float, s1: float) -> Dictionary:
 	return {"pts": out, "cum": cum, "len": total}
 
 
-static func _route_ok(place: EggPlace, sl: Dictionary, cfg: Dictionary) -> bool:
-	if float(sl.len) < float(cfg.get("min_route_m", 250.0)):
-		return false
-	var pts: PackedVector2Array = sl.pts
-	var cum: PackedFloat32Array = sl.cum
-	var step := 40.0
-	var s := 0.0
-	var snow_ok := true
-	while s <= float(sl.len):
-		var p := _sample(pts, cum, s)
-		if place.surface_at(p.x, p.y) == SurfaceLayer.SNOW:
-			snow_ok = false
-			break
-		s += step
-	return snow_ok
-
-
 static func _sample(pts: PackedVector2Array, cum: PackedFloat32Array, s: float) -> Vector2:
 	var n := pts.size()
 	if n == 1 or s <= 0.0:
@@ -137,7 +169,9 @@ static func _sample(pts: PackedVector2Array, cum: PackedFloat32Array, s: float) 
 	return pts[i].lerp(pts[i + 1], (s - cum[i]) / maxf(l, 1.0e-6))
 
 
-## Подходящее место: Vector3 на дороге, у которого вокруг есть отрезок нужной длины без снега.
+## Подходящее место: {p: Vector3, cap: float, dir: Vector2} — якорь на ровном открытом грунте,
+## вокруг которого вдоль долины есть годный отрезок не короче min_route_m. Допуск высоты над дном
+## растёт от попытки к попытке (above_valley_m: [строго, мягко]). null — места нет.
 static func _find_site(
 	place: EggPlace,
 	start: Vector2,
@@ -145,31 +179,33 @@ static func _find_site(
 	cfg: Dictionary,
 	found: Array[Vector3]
 ) -> Variant:
-	var classes := _classes(cfg)
 	var rad := float(cfg.get("search_radius_m", 4000.0))
 	var gap := float(cfg.get("min_gap_m", 300.0))
-	var half := float(cfg.get("route_m", [500.0, 900.0])[1]) * 0.5
-	var spot := func(x: float, z: float) -> bool:
-		if not place.road_maybe_near(x, z, classes):
-			return false
-		if place.nearest_road_m(x, z, classes) > float(cfg.get("snap_m", 6.0)):
-			return false
-		for f in found:
-			if Vector2(f.x - x, f.z - z).length() < gap:
-				return false
-		if place.is_mountain(x, z):
-			return false
-		var loc := locate(place, x, z, classes)
-		if loc.is_empty() or not loc.has("line"):
-			return false
-		var sl := _slice(loc.line, float(loc.s) - half, float(loc.s) + half)
-		return _route_ok(place, sl, cfg)
+	var min_route := float(cfg.get("min_route_m", 250.0))
+	var cap_r: Array = cfg.get("above_valley_m", [150.0, 400.0])
+	var dir_r := float(cfg.get("valley_dir_radius_m", 500.0))
 	var tries := int(cfg.get("anchor_tries", 4))
 	for k in tries:
 		var r_k := rad * float(k + 1) / float(tries)
+		var cap := lerpf(float(cap_r[0]), float(cap_r[1]), float(k) / maxf(float(tries - 1), 1.0))
+		var res := {}
+		var spot := func(x: float, z: float) -> bool:
+			if not ground_ok(place, x, z, cfg, cap) or place.is_mountain(x, z):
+				return false
+			for f in found:
+				if Vector2(f.x - x, f.z - z).length() < gap:
+					return false
+			var dir := valley_dir(place, x, z, dir_r)
+			var run := route_run(place, Vector2(x, z), dir, 0.0, cfg, cap)
+			if float(run.hi) - float(run.lo) < min_route:
+				return false
+			res["cap"] = cap
+			res["dir"] = dir
+			return true
 		var p: Variant = place.find_point(rng, start, r_k, spot, 64)
 		if p != null:
-			return p
+			res["p"] = p
+			return res
 	return null
 
 
@@ -207,12 +243,24 @@ func _plan_car(
 		var site: Variant = _find_site(place, s0, rng, cfg, found)
 		if site == null:
 			return {}
-		start = site
-		var loc := locate(place, start.x, start.z, _classes(cfg))
+		start = site.p
+		var anchor := Vector2(start.x, start.z)
+		var dir: Vector2 = site.dir
+		var cap: float = site.cap
 		var length := lerpf(float(rr[0]), float(rr[1]), rng.randf())
-		var side := rng.randf()  # где точка внутри отрезка (доля)
-		var lo := float(loc.s) - length * side
-		slice = _slice(loc.line, lo, lo + length)
+		var side := rng.randf()  # где якорь внутри отрезка (доля)
+		var wob := float(cfg.get("wobble_m", 15.0))
+		var phase := rng.randf() * TAU
+		var run := route_run(place, anchor, dir, phase, cfg, cap)
+		if float(run.hi) - float(run.lo) < float(cfg.get("min_route_m", 250.0)):
+			phase = 0.0  # при фазе 0 отрезок проверен поиском места
+			run = route_run(place, anchor, dir, phase, cfg, cap)
+		var lo := maxf(-length * side, float(run.lo))
+		var hi := minf(length * (1.0 - side), float(run.hi))
+		if hi - lo < float(cfg.get("min_route_m", 250.0)):
+			lo = float(run.lo)
+			hi = minf(float(run.hi), lo + length)
+		slice = _slice(route_points(anchor, dir, lo, hi, wob, phase), 0.0, 1.0e6)
 	var speed := lerpf(float(sp[0]), float(sp[1]), rng.randf()) / 3.6
 	var phase := rng.randf()
 	var car := {
@@ -230,7 +278,7 @@ func _plan_car(
 ## Положение вдоль маршрута в момент t: {p: Vector2, fwd: Vector2 (единичный, куда едет)}.
 func state_at(car: Dictionary, t: float) -> Dictionary:
 	var l := float(car.len)
-	var u := fposmod((t - t0) * float(car.speed) + float(car.phase) * 2.0 * l, 2.0 * l)
+	var u := wrapf((t - t0) * float(car.speed) + float(car.phase) * 2.0 * l, 0.0, 2.0 * l)
 	var forward := u < l
 	var d := u if forward else 2.0 * l - u
 	var pts: PackedVector2Array = car.pts
@@ -350,7 +398,7 @@ func _update_dust(car: Dictionary, ctx: EggContext, pos3: Vector3) -> void:
 	var n := mm.instance_count
 	var dt := float(_cfg.get("puff_dt_s", 0.4))
 	var t := ctx.t
-	var f := fposmod(t - t0, dt) / dt
+	var f := wrapf(t - t0, 0.0, dt) / dt
 	var idx0 := int(floor((t - t0) / dt))
 	var life := dt * float(n)
 	var a := deg_to_rad(ctx.wind_from_deg)
@@ -362,8 +410,8 @@ func _update_dust(car: Dictionary, ctx: EggContext, pos3: Vector3) -> void:
 		var age_s := (float(k) + f) * dt
 		var te := t - age_s
 		var seed_i := idx0 - k
-		var rnd := fposmod(sin(float(seed_i) * 12.9898) * 43758.5453, 1.0)
-		var rnd2 := fposmod(sin(float(seed_i) * 78.233) * 12345.678, 1.0)
+		var rnd := wrapf(sin(float(seed_i) * 12.9898) * 43758.5453, 0.0, 1.0)
+		var rnd2 := wrapf(sin(float(seed_i) * 78.233) * 12345.678, 0.0, 1.0)
 		if te < t0:
 			mm.set_instance_transform(k, Transform3D(Basis().scaled(Vector3.ZERO), Vector3.ZERO))
 			mm.set_instance_custom_data(k, Color(0, 1, 0, 0))

@@ -8,10 +8,9 @@ const SEEDS := 8
 static var _cache := {}
 
 
-## Подмена WorldObjects: EggPlace читает только osm и camp.
+## Подмена WorldObjects: EggPlace читает только camp.
 class Objs:
 	extends Node
-	var osm: OsmData
 	var camp: Array[Dictionary] = []
 
 
@@ -25,7 +24,6 @@ func _load(id: String) -> Dictionary:
 		t.location_id = ""
 		t.load_location(id)
 		var o := Objs.new()
-		o.osm = OsmData.load_file(Locations.osm_path(id), t.center_lat, t.center_lon)
 		_cache[id] = {"terrain": t, "place": EggPlace.build(t, o)}
 	return _cache[id]
 
@@ -152,10 +150,12 @@ func test_can_appear() -> void:
 	ctx.wind_ms = 3.0
 	ctx.place = null
 	check(not EggHerds.can_appear(ctx, cfg), "нет места: нет")
-	# рельеф есть, OSM нет — посёлков нет
+	# рельеф есть, пятен застройки нет — посёлки берутся по опорным точкам рельефа (К8 v4)
 	var t: Terrain = _load("aushkul").terrain
 	ctx.place = EggPlace.build(t, null)
-	check(not EggHerds.can_appear(ctx, cfg), "нет посёлков OSM: нет")
+	check(EggHerds.can_appear(ctx, cfg), "посёлки есть (пятна застройки): да")
+	ctx.place = EggPlace.build(null, null)
+	check(not EggHerds.can_appear(ctx, cfg), "рельефа нет — посёлков нет: нет")
 	var e := EggHerds.new()
 	var rng := RandomNumberGenerator.new()
 	e.begin(ctx, cfg, rng, 0.0)
