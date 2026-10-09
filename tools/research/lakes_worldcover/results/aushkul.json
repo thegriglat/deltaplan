@@ -1,0 +1,190 @@
+{
+ "place": "aushkul",
+ "extent_km2": 1600.0,
+ "area_km2": {
+  "worldcover_raw_frac_sum": 18.549,
+  "worldcover_raw_mask05": 18.541,
+  "class25_water": 18.547,
+  "osm_channel_A": 22.349,
+  "osm_lakes_polygons_raster": 18.931,
+  "osm_lakes_polygons_exact": 19.346,
+  "rivers_mask_25m": 4.734
+ },
+ "iou_wc_vs_osm_lakes_whole": 0.6652,
+ "iou_wc_vs_A05_whole": 0.5824,
+ "H_water_frac_disk10km": {
+  "H0_rivers_mask_only(before SH-4)": 0.0022,
+  "H1_rivers+class25(no OSM)": 0.0156,
+  "H2_rivers+class25+A(now)": 0.0207,
+  "H3_rivers+class25+A_without_OSM_lakes": 0.0177,
+  "H4_rivers+WC10m(proposed:A:=WC)": 0.0157,
+  "H5_rivers+class25+WC10m+OSM_rivers_in_A": 0.0179,
+  "class25_only": 0.0136,
+  "A_only": 0.0174,
+  "WC10m_only": 0.0137
+ },
+ "biggest_lakes": [
+  {
+   "name": "Верхнеиремельское водохранилище",
+   "osm_polygon_km2": 4.2152,
+   "wc_raw_km2_in_window": 5.6171,
+   "wc_covers_osm_polygon": 0.994,
+   "iou_wc_osm": 0.753,
+   "class25_km2": 5.6394,
+   "A_km2": 4.2612,
+   "H_nodes_class25_only_km2": 5.6588,
+   "H_nodes_now_km2": 5.7031,
+   "wc_codes_inside_polygon": {
+    "80": 0.994,
+    "30": 0.005,
+    "10": 0.001
+   }
+  },
+  {
+   "name": "Аушкуль",
+   "osm_polygon_km2": 2.3983,
+   "wc_raw_km2_in_window": 2.2024,
+   "wc_covers_osm_polygon": 0.927,
+   "iou_wc_osm": 0.918,
+   "class25_km2": 2.2044,
+   "A_km2": 2.3315,
+   "H_nodes_class25_only_km2": 2.2044,
+   "H_nodes_now_km2": 2.3644,
+   "wc_codes_inside_polygon": {
+    "80": 0.927,
+    "90": 0.041,
+    "30": 0.029
+   }
+  },
+  {
+   "name": "Драга",
+   "osm_polygon_km2": 1.2639,
+   "wc_raw_km2_in_window": 1.2397,
+   "wc_covers_osm_polygon": 0.906,
+   "iou_wc_osm": 0.861,
+   "class25_km2": 1.26,
+   "A_km2": 1.3396,
+   "H_nodes_class25_only_km2": 1.3025,
+   "H_nodes_now_km2": 1.4512,
+   "wc_codes_inside_polygon": {
+    "80": 0.903,
+    "90": 0.056,
+    "10": 0.021
+   }
+  },
+  {
+   "name": "Белое",
+   "osm_polygon_km2": 0.8552,
+   "wc_raw_km2_in_window": 0.059,
+   "wc_covers_osm_polygon": 0.591,
+   "iou_wc_osm": 0.591,
+   "class25_km2": 0.0681,
+   "A_km2": 0.0965,
+   "H_nodes_class25_only_km2": 0.0681,
+   "H_nodes_now_km2": 0.1062,
+   "wc_codes_inside_polygon": {
+    "80": 0.591,
+    "10": 0.211,
+    "90": 0.122
+   }
+  }
+ ],
+ "size_classes": [
+  {
+   "class": "<0.5 га",
+   "n_osm": 67,
+   "n_detected_ge50pct": 6,
+   "osm_area_km2": 0.1399,
+   "wc_inside_osm_km2": 0.0233
+  },
+  {
+   "class": "0.5–2 га",
+   "n_osm": 80,
+   "n_detected_ge50pct": 42,
+   "osm_area_km2": 0.8715,
+   "wc_inside_osm_km2": 0.4899
+  },
+  {
+   "class": "2–10 га",
+   "n_osm": 75,
+   "n_detected_ge50pct": 61,
+   "osm_area_km2": 3.1114,
+   "wc_inside_osm_km2": 2.04
+  },
+  {
+   "class": "10–100 га",
+   "n_osm": 26,
+   "n_detected_ge50pct": 21,
+   "osm_area_km2": 7.3456,
+   "wc_inside_osm_km2": 4.8171
+  },
+  {
+   "class": ">100 га",
+   "n_osm": 3,
+   "n_detected_ge50pct": 3,
+   "osm_area_km2": 7.8775,
+   "wc_inside_osm_km2": 7.5989
+  }
+ ],
+ "wc_water_not_in_osm_km2": 3.447,
+ "largest_osm_lakes_missed_by_wc": [
+  {
+   "name": "",
+   "osm_km2": 0.5372,
+   "wc_cover": 0.041,
+   "wc_codes_inside": {
+    "10": 0.701,
+    "30": 0.255,
+    "80": 0.044
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.0787,
+   "wc_cover": 0.0,
+   "wc_codes_inside": {
+    "40": 0.587,
+    "30": 0.413
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.0641,
+   "wc_cover": 0.019,
+   "wc_codes_inside": {
+    "30": 0.503,
+    "40": 0.311,
+    "10": 0.108
+   }
+  },
+  {
+   "name": "Муктыкуль",
+   "osm_km2": 0.0374,
+   "wc_cover": 0.0,
+   "wc_codes_inside": {
+    "30": 0.702,
+    "90": 0.298
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.0318,
+   "wc_cover": 0.094,
+   "wc_codes_inside": {
+    "90": 0.448,
+    "30": 0.323,
+    "10": 0.135
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.0204,
+   "wc_cover": 0.105,
+   "wc_codes_inside": {
+    "90": 0.632,
+    "30": 0.263,
+    "80": 0.105
+   }
+  }
+ ]
+}

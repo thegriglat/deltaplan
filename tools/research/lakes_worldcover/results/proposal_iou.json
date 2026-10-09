@@ -1,0 +1,37 @@
+{
+ "aushkul": {
+  "iou_proposedA_vs_currentA": 0.7233,
+  "iou_WC_vs_currentA": 0.5824,
+  "iou_WC_vs_osm_lake_polygons": 0.6652,
+  "area_km2_proposedA": 22.133,
+  "area_km2_currentA": 21.812,
+  "figure": {
+   "window_km": [
+    8.0,
+    6.0
+   ],
+   "legend": "белый — оба; красный — только WorldCover; синий — только OSM (канал A); тёмный — нет воды"
+  }
+ },
+ "altai": {
+  "iou_proposedA_vs_currentA": 0.8037,
+  "iou_WC_vs_currentA": 0.5972,
+  "iou_WC_vs_osm_lake_polygons": 0.7366,
+  "area_km2_proposedA": 21.353,
+  "area_km2_currentA": 22.187
+ },
+ "ongudai": {
+  "iou_proposedA_vs_currentA": 0.7486,
+  "iou_WC_vs_currentA": 0.3287,
+  "iou_WC_vs_osm_lake_polygons": 0.526,
+  "area_km2_proposedA": 6.981,
+  "area_km2_currentA": 7.872
+ },
+ "askarovo": {
+  "iou_proposedA_vs_currentA": 0.8365,
+  "iou_WC_vs_currentA": 0.7565,
+  "iou_WC_vs_osm_lake_polygons": 0.8177,
+  "area_km2_proposedA": 32.185,
+  "area_km2_currentA": 36.344
+ }
+}
