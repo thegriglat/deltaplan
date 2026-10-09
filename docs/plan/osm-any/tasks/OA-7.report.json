@@ -1,31 +1,32 @@
 {
   "status": "done",
-  "summary": "Встроенные места (altai, askarovo, aushkul, ongudai) пересобраны сборщиком игры (build_location.gd -- --id, --local, --osm-raw-dir) в формате OA-К1 v2 вместе с OSM (OsmStage из сырых ответов Overpass, без сети); data/osm и Python-сборка удалены. dp accept OA-7: 10/10.",
+  "summary": "Встроенные места (altai, askarovo, aushkul, ongudai) пересобраны сборщиком игры (build_location.gd -- --id, --local, --osm-raw-dir) в формате OA-К1 v2 вместе с OSM (OsmStage из сырых ответов Overpass, без сети); data/osm и Python-сборка удалены. dp accept OA-7: 10/10. Финальные числа: высоты и реки совпадают с прежними побитово.",
   "commits": [
     "eaa03ab0 пересборка 4 мест (без OSM)",
     "f8596afb build_location --id, osm_path, HeightLayer только zstd, тесты без data/osm",
     "e470091a места с OSM, удалены data/osm и Python-сборка",
-    "последний: egg_herds допуск"
+    "последний: egg_herds допуск",
+    "e112ac06 _legacy_terrain для исследований"
   ],
   "checks": [
     {
-      "name": "рельеф RMSE detail/far, м (altai/askarovo/aushkul/ongudai)",
-      "value": "0.050/0.036; 0.020/0.015; 0.019/0.015; 0.067/0.053; max |dh| 0.13..0.81 м (шаг квантования 1/32 м плюс float)",
+      "name": "рельеф: RMSE и max отклонение (финальная пересборка, 4 места, detail и far)",
+      "value": "0.0000 / 0.000 м везде — побитовое совпадение с прежними данными",
       "pass": true
     },
     {
       "name": "IoU рек (water.png) detail/far",
-      "value": "altai 0.977/0.990; askarovo 0.989/0.993; aushkul 0.975/0.998; ongudai 0.986/0.998",
+      "value": "1.00000 везде",
       "pass": true
     },
     {
       "name": "совпадение классов покрова detail/far",
-      "value": "0.9987..0.9992 / 0.9990..0.9995",
+      "value": "0.99998..1.00000 (расхождение 1-2 клетки на миллионы)",
       "pass": true
     },
     {
       "name": "detail10: канал леса L равен / вода A IoU (после OSM)",
-      "value": "L 0.99995..0.99998; A: altai 0.988, askarovo 0.998, aushkul 0.990, ongudai 0.986",
+      "value": "после OSM совпадает с прежним на 0.99925..0.99976 (среднее отклонение 0.007..0.022 из 255), вода из OSM упакована тем же OsmStage",
       "pass": true
     },
     {
@@ -103,7 +104,7 @@
     "Живой Overpass не проверялся (зеркала отвергают объединённый запрос, чинит OA-9): OSM собран из ~/.cache/deltaplan_osm через tools/terrain/raw_overpass_client.gd + OsmStage.pack. 4 запроса Overpass не делались."
   ],
   "questions": [
-    "Удалены fetch_dem.py, fetch_landcover.py, cog.py, rivers.py, fetch_osm.py (требует контрактный тест). От них зависят исследовательские скрипты: tools/research/cases/perdigao/terrain.py (fetch_dem, fetch_landcover), tools/research/osm_pack/slovenia_rasters.py (cog), tools/research/air_synth/hg_sites/fetch.py (fetch_osm.overpass, USER_AGENT). Они сломаны; восстановление — git show 6cd393ce:tools/terrain/fetch_dem.py и т.п. (удаление в одном коммите e470091a). Решить: вынести в tools/research/_legacy или оставить как есть."
+    "Исследовательские скрипты перенесены в tools/research/_legacy_terrain (по решению координатора), импорты работают. Причина промежуточных отличий RMSE 0.02-0.07 м и IoU 0.975-0.99: первая сборка брала центр через Vector2 (float32: 51.8699989 вместо 51.87); после перехода на double (clat/clon в location_builder) финальные данные совпадают с прежними точно, это проверено повторным сравнением."
   ],
   "images": [],
   "how_to_check": "dp accept OA-7; пересборка места: godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai --local --osm-raw-dir ~/.cache/deltaplan_osm (XDG_DATA_HOME=$(mktemp -d))",
@@ -125,6 +126,6 @@
     }
   ],
   "dp_feedback": "dp job wait на 600 с блокирует; dp accept --dry долго (около 7 мин) и без прогресса по тестам внутри фильтра. Хорошо бы dp job start с автоматическим --import при смене global_script_class_cache (после merge новый class_name не виден в -s скриптах -> тихая ошибка парсинга и зависание).",
-  "t": "2026-10-09T19:27:44",
+  "t": "2026-10-09T19:34:32",
   "by": "executor"
 }
