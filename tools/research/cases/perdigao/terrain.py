@@ -19,7 +19,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-sys.path.insert(0, str(ROOT / "tools" / "terrain"))
+sys.path.insert(0, str(ROOT / "tools" / "research" / "_legacy_terrain"))
 import fetch_dem as FD            # noqa: E402
 import fetch_landcover as FL      # noqa: E402
 
