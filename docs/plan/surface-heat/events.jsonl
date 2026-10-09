@@ -88,3 +88,6 @@
 {"t": "2026-10-10T00:26:24", "by": "coordinator", "task": "SH-8", "ev": "edited", "note": "scope, scope", "diff": {"scope": ["[\"docs/guide/air-model.md\", \"docs/guide/atmosphere.md\", \"docs/registry/findings.md\", \"CHANGELOG.md\", \"docs/research/surface_params.md\"]", "[\"docs/guide/air-model.md\", \"docs/guide/atmosphere.md\", \"docs/registry/findings.md\", \"CHANGELOG.md\", \"docs/research/surface_params.md\", \"docs/guide/terrain.md\", \"docs/guide/architecture.md\"]"]}}
 {"t": "2026-10-10T00:26:36", "by": "executor", "task": "SH-8", "ev": "reported", "commits": ["2862642e", "terrain.md,"], "note": "done: Документация SH: раздел «Вход решателя (SurfaceHeat)» в air-model.md (формулы, вода/лёд, z0, таблица до/после, чего не …", "dp_feedback": "нет"}
 {"t": "2026-10-10T00:26:54", "by": "executor", "task": "SH-8", "ev": "accepted", "note": "4/4 docs=ok:ошибок 0; guide=ok:exit 0; findings=ok:6; changelog=ok:6"}
+{"t": "2026-10-10T00:26:54", "by": "coordinator", "task": "SH-8", "ev": "accepted", "commits": ["00f9b5b1"], "note": "4/4 docs=ok:ошибок 0; guide=ok:exit 0; findings=ok:6; changelog=ok:6"}
+{"t": "2026-10-10T00:26:55", "by": "coordinator", "task": "SH-8", "ev": "merged", "commits": ["00f9b5b1"]}
+{"t": "2026-10-10T00:27:08", "by": "coordinator", "task": "SH-10", "ev": "started", "note": "dp-writer Sonnet, ~/deltaplan-surface-heat-SH-10"}
