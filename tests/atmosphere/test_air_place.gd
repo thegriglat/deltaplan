@@ -390,3 +390,110 @@ func test_surface_determinism_ongudai() -> void:
 		check(bad == 0, "вода клетки ⊇ маска рек (нарушений %d)" % bad)
 		print("  доля воды области: маска рек %.4f, снимок %.4f" % [w_riv / wf.size(), w_map / wf.size()])
 	t.free()
+
+
+## z0 по покрову (SH-6, C2 v9): z0 клетки — лог-среднее по долям классов (z0_m П4), p.z0 — лог-среднее
+## карты; C_d стенки и u* замыкания — по столбцу (лес > луг), без карты — прежние скаляры; детерминизм.
+func test_z0_cells_synthetic() -> void:
+	var p := _syn_place()
+	var layer: HeightLayer = p[0]
+	var riv: Image = p[1]
+	var sf := AirPlace.surface_of(p[2], layer, riv)
+	check(sf != null, "снимок построен")
+	if sf == null:
+		return
+	var classes: Dictionary = SurfaceHeat.config().classes
+	var z_for := float(classes.forest.z0_m)
+	var z_gr := float(classes.grass.z0_m)
+	var z_wat := float(classes.water.z0_m)
+	var loc := {id = "syn", center_lat = 50.75, center_lon = 86.13, utc_offset_h = 7.0}
+	var c := AirWindowCase.window_at(
+		layer, riv, loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, sf
+	)
+	check(c != null and c.z0_map.size() == 16, "карта z0 окна ny·nx")
+	if c == null or c.z0_map.size() != 16:
+		return
+	approx(c.z0_map[0], z_for, 1e-9, "клетка (0, 0): лес — z0 леса")
+	approx(c.z0_map[1 * 4 + 1], exp(0.75 * log(z_for) + 0.25 * log(z_gr)), 1e-9, "клетка (1, 1): лог-среднее 3:1")
+	approx(c.z0_map[2 * 4 + 2], z_gr, 1e-9, "клетка (2, 2): луг")
+	approx(c.z0_map[0 * 4 + 3], z_wat, 1e-12, "клетка (3, 0): вода")
+	approx(float(c.p.z0), AirCase.log_mean(c.z0_map), 1e-12, "p.z0 — лог-среднее карты")
+	var m := c.meta()
+	check(m.z0 is PackedFloat32Array and (m.z0 as PackedFloat32Array).size() == 16, "meta.z0 — карта ny·nx")
+	approx(float(m.z0_eff), float(c.p.z0), 1e-12, "meta.z0_eff = p.z0")
+	check(c.prepare(), "prepare с картой z0")
+	var nyx := c.nx_h * c.ny_h
+	var q_for := 1 * c.nx_h + 1  # столбец (0, 0) с ореолом
+	var q_gr := 3 * c.nx_h + 3  # (2, 2)
+	var cd_for := float(c.col[AirCase.COL_CD * nyx + q_for])
+	var cd_gr := float(c.col[AirCase.COL_CD * nyx + q_gr])
+	approx(cd_for, pow(0.4 / log(0.5 * c.dz / z_for), 2.0), 1e-8, "C_d леса = (κ/ln(½dz/z0))²")
+	approx(cd_gr, pow(0.4 / log(0.5 * c.dz / z_gr), 2.0), 1e-8, "C_d луга")
+	var us_for := float(c.col[AirCase.COL_UST * nyx + q_for])
+	var us_gr := float(c.col[AirCase.COL_UST * nyx + q_gr])
+	check(cd_for > 2.0 * cd_gr and us_for > us_gr, "лес: C_d %.4f > луг %.4f; u* %.3f > %.3f" % [cd_for, cd_gr, us_for, us_gr])
+	# u* столбца — из одного ветра на ½dz: u*·ln(½dz/z0) одинаково у всех столбцов и = u*_обл·ln(½dz/z0_обл)
+	var a := 0.5 * c.dz
+	approx(us_for * log(a / z_for), us_gr * log(a / z_gr), 1e-5, "u*·ln(½dz/z0) — общий ветер на ½dz")
+	approx(us_gr * log(a / z_gr), c.ustar * log(a / float(c.p.z0)), 1e-5, "… = u*_обл·ln(½dz/z0_обл)")
+	check(c.h_bl[0] >= c.h_bl[2 * 4 + 2], "h_мех леса ≥ луга")
+	# без нагрева — та же карта; повторная сборка — побитно та же
+	var nh := c.without_heat()
+	check(nh.z0_map == c.z0_map, "without_heat: та же карта z0")
+	var c2 := AirWindowCase.window_at(
+		layer, riv, loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, sf
+	)
+	check(c2.z0_map == c.z0_map and c2.prepare() and c2.col == c.col, "две сборки — побитно одинаковые z0 и col")
+	# без снимка — без карты: прежний скаляр AirCase.Z0, C_d и u* столбцов = скалярам
+	var c0 := AirWindowCase.window_at(
+		layer, riv, loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, null
+	)
+	check(c0.z0_map.is_empty() and float(c0.p.z0) == AirCase.Z0, "без снимка — z0 = AirCase.Z0")
+	check(c0.prepare(), "prepare без карты")
+	var same := true
+	for q in nyx:
+		same = same and c0.col[AirCase.COL_CD * nyx + q] == c0.prm[3]
+		same = same and c0.col[AirCase.COL_UST * nyx + q] == c0.prm[14]
+	check(same, "без карты: C_d и u* столбцов = прежним скалярам prm[P_CD], prm[P_USTAR]")
+	check(c0.meta().z0 is float, "без карты: meta.z0 — число")
+
+
+## WindField с картой z0 (C3 v2): лог-профиль ниже первой клетки и u* — по z0 столбца точки.
+func test_z0_wind_field_map() -> void:
+	var nx := 4
+	var ny := 4
+	var nz := 6
+	var n := nx * ny * nz
+	var u := PackedFloat32Array()
+	u.resize(n)
+	u.fill(5.0)
+	var z := PackedFloat32Array()
+	z.resize(n)
+	var hc := PackedFloat32Array()
+	hc.resize(nx * ny)
+	var zm := PackedFloat32Array()
+	zm.resize(nx * ny)
+	for j in ny:
+		for i in nx:
+			zm[j * nx + i] = 1.0 if i < 2 else 0.03
+	var m := {dx = 100.0, dz = 50.0, x0 = 0.0, y0 = 0.0, z_bot = 0.0, nx = nx, ny = ny, nz = nz, z0 = zm}
+	var f := WindField.from_arrays(m, u, z, z, z, z, hc)
+	check(f != null, "поле с картой z0")
+	if f == null:
+		return
+	approx(f.z0, exp(0.5 * log(1.0) + 0.5 * log(0.03)), 1e-6, "WindField.z0 — лог-среднее карты")
+	var pf := Vector3(50.0, 10.0, -50.0)  # столбец (0, 0): лес
+	var pg := Vector3(350.0, 10.0, -50.0)  # столбец (3, 0): луг
+	approx(f.z0_at(pf), 1.0, 1e-7, "z0_at: лес")
+	approx(f.z0_at(pg), 0.03, 1e-7, "z0_at: луг")
+	# первая воздушная клетка — центр 25 м: U(10 м) = 5·ln(10/z0)/ln(25/z0) по своему z0 столбца
+	var uf := f.sample(pf, 0.0).length()
+	var ug := f.sample(pg, 0.0).length()
+	approx(uf, 5.0 * log(10.0) / log(25.0), 1e-4, "лес: U(10 м) по z0 = 1 м")
+	approx(ug, 5.0 * log(10.0 / 0.03) / log(25.0 / 0.03), 1e-4, "луг: U(10 м) по z0 = 0,03 м")
+	check(uf < ug, "у земли над лесом тише: %.2f < %.2f" % [uf, ug])
+	var tf := f.turb_at(Vector3(50.0, 60.0, -50.0), 0.0)
+	var tg := f.turb_at(Vector3(350.0, 60.0, -50.0), 0.0)
+	check(tf[WindField.T_USTAR] > tg[WindField.T_USTAR], "u* над лесом больше")
+	m.z0 = PackedFloat32Array([0.1])
+	check(WindField.from_arrays(m, u, z, z, z, z, hc) == null, "карта z0 не того размера — отказ")

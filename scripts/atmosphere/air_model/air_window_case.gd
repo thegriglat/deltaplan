@@ -97,12 +97,16 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	var cells := {}
+	if heat or surface != null:
+		cells = AirPlace.cell_surface(surface, water, detail, x0, y0, dx, n, n)
+	if surface != null:
+		c.set_z0_map(AirPlace.cell_z0(cells))  # z0 по своей сетке (SH-6), до set_inflow
 	c.set_inflow(u10, inflow_k, ctx, hour, float(d.cover))
 	c.gam.resize(nz + 2)
 	for k in nz + 2:
 		c.gam[k] = AirPlace.gamma(d, c.zc(k))
 	if heat:
-		var cells := AirPlace.cell_surface(surface, water, detail, x0, y0, dx, n, n)
 		c.heat = AirPlace.surface_flux(hc, dx, n, n, d, ctx, cfg, cells, u10, t_max)
 	c.label = (
 		"%s окно %sм (%s, %s) %sч U%s%s %s°%s"
@@ -161,6 +165,7 @@ func without_heat() -> AirCase:
 	c.p = p.duplicate()
 	c.set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)
 	c.hc = hc
+	c.z0_map = z0_map
 	c.gam = gam
 	c.z_i = z_i
 	c.u10 = u10

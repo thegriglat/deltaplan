@@ -24,7 +24,10 @@ const G := 9.81
 const THETA0 := 300.0
 const RHO_CP := 1.2 * 1005.0
 const KAPPA := 0.4
-const NCOL := 12
+const NCOL := 14
+## Плоскости col (air_picard.glsl: C_CD, C_UST): C_d стенки и u* замыкания по столбцу (SH-6, C2 v9).
+const COL_CD := 12
+const COL_UST := 13
 const NLEV := 5
 
 ## λ/h — асимптотическая длина перемешивания как доля толщины слоя, λ = max(p.lam, LAM_FRAC·h):
@@ -41,7 +44,8 @@ const LAM_FRAC := 0.0158
 const NEUTRAL_BL_K := 0.3
 ## Параметр Кориолиса 51° с. ш., 1/с (air.py Params.f_cor) — только для толщины слоя h.
 const F_COR := 1.13e-4
-## Шероховатость игры, м (air.py Params.z0; луг/кустарник) — решатель и профиль WindModel.
+## Шероховатость без снимка поверхности, м (air.py Params.z0; луг/кустарник) — решатель без карты z0
+## и профиль WindModel. Со снимком поверхности z0 по столбцу — z0_map (SH-6, C2 v9).
 const Z0 := 0.1
 ## Слоты prm (air_picard.glsl): 1 — окно клипмапа (AirWindowCase), 1/Pr_t шаблона тепла.
 const P_NEST := 19
@@ -93,6 +97,10 @@ var hc := PackedFloat64Array()
 var gam := PackedFloat64Array()
 var z_i := NAN
 var heat := PackedFloat64Array()
+## Шероховатость по столбцам, м (ny·nx, j·nx + i; SH-6, C2 v9): эффективная по долям классов клетки
+## (AirPlace.cell_z0, лог-среднее по площади). Пусто — p.z0 во всех столбцах. Задавать set_z0_map:
+## p.z0 = лог-среднее карты (эффективный z0 области — приток, α/z_sat, фазы).
+var z0_map := PackedFloat64Array()
 ## Ветер притока на 10 м, м/с (C2 v6: = inflow_k·u10_menu; амплитуда профиля притока, u* замыкания).
 var u10 := 0.0
 ## Ветер меню на 10 м над стартом, м/с (по нему α, класс устойчивости и max_profile случая).
@@ -130,6 +138,9 @@ var h_bl := PackedFloat64Array()
 var _wst := PackedFloat64Array()
 var _invl := PackedFloat64Array()
 var _unst: Array[bool] = []
+## C_d стенки и u* замыкания по столбцам (ny·nx, SH-6).
+var _cd_col := PackedFloat64Array()
+var _ust_col := PackedFloat64Array()
 ## Сглаженный рельеф (гаусс k_smooth_m) — общий у случая с нагревом и без (without_heat).
 var _hs := PackedFloat64Array()
 
@@ -175,7 +186,9 @@ func meta() -> Dictionary:
 		nx = nx,
 		ny = ny,
 		nz = nz,
-		z0 = float(p.z0),
+		# карта z0 (ny·nx, float32) со снимком поверхности, без неё — число p.z0 (C3 v2)
+		z0 = to_f32(z0_map) if z0_map.size() == nx * ny and nx * ny > 0 else float(p.z0),
+		z0_eff = float(p.z0),
 		label = label,
 		u10 = u10,
 		u10_menu = u10_menu,
@@ -195,6 +208,7 @@ func without_heat() -> AirCase:
 	c.p = p.duplicate()
 	c.set_grid(dx, nx, ny, dz, z_bot, nz, x0, y0)
 	c.hc = hc
+	c.z0_map = z0_map
 	c.gam = gam
 	c.z_i = z_i
 	c.u10 = u10
@@ -218,6 +232,34 @@ func set_inflow(u_menu: float, k: float, ctx: Dictionary, hour: float, cover: fl
 	u10 = k * u_menu
 
 
+## Карта шероховатости (ny·nx, м; пусто — снять): p.z0 = exp(среднее ln z0) — эффективный z0
+## области (П4 §5.4: z0 смеси — логарифмически). Вызывать до set_inflow (α, z_sat — по p.z0).
+func set_z0_map(m: PackedFloat64Array) -> void:
+	z0_map = m
+	if not m.is_empty():
+		p.z0 = log_mean(m)
+
+
+## z0 по столбцам (ny·nx): z0_map или p.z0 везде.
+func z0_columns() -> PackedFloat64Array:
+	if z0_map.size() == nx * ny and nx * ny > 0:
+		return z0_map
+	var out := PackedFloat64Array()
+	out.resize(nx * ny)
+	out.fill(float(p.z0))
+	return out
+
+
+## exp(среднее ln a) — лог-среднее (эффективный z0 смеси); все равны — само значение (побитно).
+static func log_mean(a: PackedFloat64Array) -> float:
+	var s := 0.0
+	var same := true
+	for v in a:
+		s += log(v)
+		same = same and v == a[0]
+	return a[0] if same else exp(s / a.size())
+
+
 ## Всё по столбцам и уровням. false — входы не сходятся по размерам.
 func prepare() -> bool:
 	nx_h = nx + 2
@@ -228,6 +270,9 @@ func prepare() -> bool:
 		return false
 	if not heat.is_empty() and heat.size() != nx * ny:
 		push_error("AirCase: размер потока тепла ≠ nx·ny")
+		return false
+	if not z0_map.is_empty() and z0_map.size() != nx * ny:
+		push_error("AirCase: размер карты z0 ≠ nx·ny")
 		return false
 	var nyx := nx_h * ny_h
 	col = PackedFloat32Array()
@@ -348,6 +393,8 @@ func prepare() -> bool:
 			col[6 * nyx + q] = side[q]
 			col[7 * nyx + q] = scs[q]
 			col[11 * nyx + q] = maxf(lam, lam_frac * h_bl[c])
+			col[COL_CD * nyx + q] = _cd_col[c]
+			col[COL_UST * nyx + q] = _ust_col[c]
 			# нагрев: Q = значение на уровнях [k0, k1] столбца (ореол — нет)
 			var qv := 0.0
 			var k0 := 1.0
@@ -403,7 +450,7 @@ func prepare() -> bool:
 					fin -= minf(nn, 0.0)
 					fout += maxf(nn, 0.0)
 		fixed_scale = fin / fout if fout > 0.0 else 1.0
-	cd = pow(KAPPA / log(0.5 * dz / float(p.z0)), 2.0)
+	cd = cd_of(float(p.z0))
 	var dtu := dtau_u()
 	prm = PackedFloat32Array(
 		[
@@ -447,6 +494,17 @@ func max_profile_used() -> float:
 func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	var n := nx * ny
 	ustar = KAPPA * u10 / log(10.0 / float(p.z0)) if u10 > 0.0 else 0.0
+	# по столбцу (SH-6): C_d = (κ/ln(½dz/z0))² — как стенка решателя; u* — из того же ветра на ½dz,
+	# что у эффективного z0 области: U(½dz) = u*_обл/κ·ln(½dz/z0_обл) → u* = κU(½dz)/ln(½dz/z0).
+	# Без карты — побитно прежние скаляры.
+	var z0c := z0_columns()
+	var lr := log(0.5 * dz / float(p.z0))
+	_cd_col.resize(n)
+	_ust_col.resize(n)
+	for c in n:
+		var lc := log(0.5 * dz / z0c[c])
+		_cd_col[c] = pow(KAPPA / lc, 2.0)
+		_ust_col[c] = ustar * lr / lc if z0c[c] != float(p.z0) else ustar
 	var sig := float(p.k_smooth_m) / dx
 	var hs_heat := gauss2d(hk, nx, ny, sig) if any_heat else PackedFloat64Array()
 	if not any_heat:
@@ -454,7 +512,6 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	if _hs.size() != n:
 		_hs = gauss2d(hc, nx, ny, sig)
 	var hs := _hs
-	var h_mech := NEUTRAL_BL_K * ustar / float(p.f_cor)
 	h_bl = PackedFloat64Array()
 	h_bl.resize(n)
 	_wst.resize(n)
@@ -463,6 +520,8 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 	var wmax := 0.0
 	var hmax := 0.0
 	for c in n:
+		var us := _ust_col[c]
+		var h_mech := NEUTRAL_BL_K * us / float(p.f_cor)
 		var hsv := hs_heat[c]
 		var unst := hsv > 1e-6
 		var h_c := maxf(z_i - hs[c], float(p.zi_min)) if not is_nan(z_i) else float(p.zi_min)
@@ -470,10 +529,10 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 		var ws := pow(G / THETA0 * maxf(hsv, 0.0) * h_u, 1.0 / 3.0) if unst else 0.0
 		var lmo := INF
 		if hsv < -1e-6:
-			lmo = -ustar * ustar * ustar * THETA0 / (KAPPA * G * hsv)
+			lmo = -us * us * us * THETA0 / (KAPPA * G * hsv)
 		var h_s := h_mech
 		if is_finite(lmo):
-			h_s = minf(h_mech, 0.4 * sqrt(ustar * lmo / float(p.f_cor)))
+			h_s = minf(h_mech, 0.4 * sqrt(us * lmo / float(p.f_cor)))
 		var h := maxf(h_u if unst else h_s, 1.0)
 		h_bl[c] = h
 		_wst[c] = ws
@@ -481,7 +540,14 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 		_unst[c] = unst
 		wmax = maxf(wmax, ws)
 		hmax = maxf(hmax, h)
-	closure_info = {ustar = ustar, h_mech = h_mech, wstar_max = wmax, h_max = hmax}
+	closure_info = {
+		ustar = ustar, h_mech = NEUTRAL_BL_K * ustar / float(p.f_cor), wstar_max = wmax, h_max = hmax
+	}
+
+
+## C_d стенки при шероховатости z0: (κ/ln(½dz/z0))² (air.py Air.cd).
+func cd_of(z0: float) -> float:
+	return pow(KAPPA / log(0.5 * dz / z0), 2.0)
 
 
 func _count_unknowns(kf: PackedInt32Array) -> void:
