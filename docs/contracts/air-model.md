@@ -203,7 +203,7 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 7}, {"id": "C3",
     u_ms = u10 меню, z_m = hc}` (только в клетках с водой). T_воды ≤ ice_c → лёд (SNOW) — в `mix_flux`.
     `solar_flux`, `H0_WM2`, `DIFFUSE`, `H_LW_WM2`, `LW_CLOUD_K` удалены.
   - **Окна** — та же функция на своей сетке: `AirWindowCase.window_case/window_at(…, inflow_k, surface = null)`,
-    `AirClipmap.setup(…, inflow_k, surface = null)` (C7 — хвостовой аргумент, без смены смысла). `AirRuntime` передаёт
+    `AirClipmap.setup(…, inflow_k, surface = null)` (C7 v4). `AirRuntime` передаёт
     `place.surface` в область и окна.
   - **Источник истины для H — `SurfaceHeat` (GDScript).** Эталон Python (`air.py solar_flux`) остаётся старым; фикстуры
     `picard/`, `window/` по H больше не сверяются (сверка hc, γ, z_i, α — как раньше); GPU-тесты Пикара/окон берут H
@@ -361,7 +361,7 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Тесты:** `test_c6_start_hours` (часы), формат файла — `test_c3_game_field_files`,
   версия — `test_c6_field_version`.
 
-## C7 v3 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+## C7 v4 — клипмапы AM-04 → `WindField` / `AirFieldSet`
 **Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
 **Потребители:** C4 (выборка), AM-06Б (`AirRuntime`: загрузка, пересчёт, сдвиг), AM-07 (термики).
 
@@ -412,6 +412,12 @@ z_bot = ⌊h_min/dz⌋·dz − dz, верх — h_max + 2000 м, nz чётное
 **v3 (01.10.2026, air-start):** `AirClipmap.setup(…, sky, inflow_k = 1.0)`, `set_conditions(…, sky,
 inflow_k = 1.0)` — окна строятся с тем же множителем притока, что область (C2 v6); граница окна — от родителя,
 как прежде.
+
+**v4 (09.10.2026, surface-heat SH-4, вместе с C2 v8):** хвостовой аргумент `surface` (снимок поверхности места
+`AirPlace.Surface`, `place.surface`; null — без карты) у `AirClipmap.setup(…, inflow_k = 1.0, surface = null)`,
+`AirWindowCase.window_case(…, ctx, n = 64, inflow_k = 1.0, surface = null)`, `window_at(…, ctx, n, inflow_k, surface = null)`;
+H окна — `AirPlace.surface_flux` (SurfaceHeat по долям классов клетки окна), как у области. `AirRuntime` передаёт
+`place.surface`. Сетка, уровни, граница, сдвиг — без изменений.
 
 **Конфиг** `air_model`: `window_levels_m` ([100, 50]), `window_shift_frac` (0,25), у каждого `_doc`.
 - **Тесты:** `test_c7_levels_fine_to_coarse`, `test_c7_window_grid_and_api` (без GPU);
@@ -584,6 +590,7 @@ inflow_k = 1.0)` — окна строятся с тем же множителе
 | C2 | v4 | 01.10.2026 | К2, волна Б п. 2: α по устойчивости (Паскуилл–Тёрнер, отношения Irwin 1979 к D) с α_N 0,24 (Б1), max_profile — правило z_sat = 0,3·0,3u*/f (как rules.py) — одна функция для решателя и WindModel; λ: lam 40, lam_frac 0,0158 (Б1); конфиг `wind.shear_exponent_neutral`, `wind.z_sat_frac` вместо `shear_exponent`/`max_profile_factor` |
 | C2 | v6 | 01.10.2026 | air-start (решение пользователя): ветер меню — на 10 м над стартом; `inflow_k` в `domain_case`/`window_case`/`window_at`; α, класс, z_sat — по меню, приток `AirCase.u10` = k·меню; `u10_menu`, `inflow_k` в `AirCase` и `meta()`. Потребители: AirRuntime (C9), клипмап (C7), термики (`meta.u10` — приток) |
 | C7 | v3 | 01.10.2026 | air-start: `AirClipmap.setup/set_conditions(…, inflow_k)` — окна с тем же множителем притока |
+| C7 | v4 | 09.10.2026 | surface-heat SH-4: хвостовой `surface` (снимок поверхности) у `AirClipmap.setup`, `AirWindowCase.window_case/window_at`; H окна — `AirPlace.surface_flux` (C2 v8) |
 | C9 | v3 | 01.10.2026 | air-start: загрузка в два прохода (k₁ = k₀·(U_меню/U₁)^(1/p), p по ветру; упор в предел итераций или штиль — один проход; неудача прохода 2 — поле прохода 1; timeout_s на проход), `inflow_k`, `last_info.inflow_k/passes/u_start10_first/u_start10`; в полёте — k загрузки |
 | C2 | v5 | 01.10.2026 | К2 по Б2: z_sat по толщине слоя с устойчивостью (h_s = 0,4√(u*L/f), L по Golder 1972 по классу и z0) — `max_profile(…, cls)`; класс F больше не даёт 14·U10 на 300 м |
 | C2 | v8 | 09.10.2026 | surface-heat SH-4 (SH3): H клетки = `SurfaceHeat.mix_flux` по долям классов (снимок поверхности `place.surface`, узлы 25 м: карта + маска 10 м + уклон + маска рек), влажности рельефа и воде с температурой (лёд ≤ 0 °C); убраны H0 = 330 и «вода → 0»; хвостовой `surface` у `domain_case`/`window_case`/`window_at`/`AirClipmap.setup`; источник истины для H — SurfaceHeat, эталон Python по H не сверяется. Потребители: AirRuntime (C9), окна (C7), фазы/термики — формат H прежний |

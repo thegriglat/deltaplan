@@ -5,7 +5,7 @@ extends TestCase
 ## контракта; правка контракта (версия +1) — вместе с правкой этого файла (CONTRACTS ниже).
 
 ## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
-const CONTRACTS := {C1 = 2, C2 = 8, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 3, C8 = 2, C9 = 3, C10 = 3}
+const CONTRACTS := {C1 = 2, C2 = 8, C3 = 1, C4 = 4, C5 = 1, C6 = 1, C7 = 4, C8 = 2, C9 = 3, C10 = 3}
 const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
