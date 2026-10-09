@@ -40,10 +40,15 @@ func _markers(out_name: String) -> Dictionary:
 
 ## Вынос оси вперёд в точке x: тот же закон, что aframe_geom.bow_at.
 static func _bow_at(x: float, w: float, bow: float, straight_len: float) -> float:
-	var half := w - straight_len
-	if bow <= 0.0 or absf(x) >= half:
+	var half := w - maxf(straight_len, 0.45 * w)
+	var flat := 0.2 * w
+	var a := absf(x)
+	if bow <= 0.0 or a >= half:
 		return 0.0
-	return bow * pow(cos(PI * absf(x) / (2.0 * half)), 2)
+	if a <= flat:
+		return bow
+	var k := (half - a) / (half - flat)
+	return bow * (3.0 * k * k - 2.0 * k * k * k)
 
 
 func test_basebar_curve() -> void:

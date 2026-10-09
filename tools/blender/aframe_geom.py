@@ -51,14 +51,23 @@ def basebar_spec(p: dict, cf: dict) -> tuple:
     return float(b["bow_m"]), float(b.get("straight_len_m", 0.0))
 
 
+BAR_STRAIGHT_FRAC = 0.45  # прямые концы штанги у углов, доля полуширины w (по фото гнутой штанги)
+BAR_FLAT_FRAC = 0.2       # прямой участок в центре, доля w
+
+
 def bow_at(x: float, w: float, bow: float, straight_len: float) -> float:
-    """Вынос оси штанги вперёд в точке x (PV3): гладкая дуга (cos^2) на |x| < w - straight_len,
-    у углов прямые участки; в центре ровно bow."""
-    half = w - straight_len
+    """Вынос оси штанги вперёд в точке x (PV3): как у реальной гнутой штанги — прямые концы
+    у углов (не короче BAR_STRAIGHT_FRAC*w), S-образный переход (smoothstep), прямой центр
+    |x| < BAR_FLAT_FRAC*w ровно на bow."""
+    half = w - max(straight_len, BAR_STRAIGHT_FRAC * w)
+    flat = BAR_FLAT_FRAC * w
     a = abs(x)
     if bow <= 0.0 or a >= half:
         return 0.0
-    return bow * math.cos(math.pi * a / (2.0 * half)) ** 2
+    if a <= flat:
+        return bow
+    k = (half - a) / (half - flat)
+    return bow * (3 * k * k - 2 * k ** 3)
 
 
 def le_d(p: dict, half: float, a: float) -> float:

@@ -459,10 +459,13 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     gx = cf["bar_grip_hand_x_m"]  # точки хвата рук на оси штанги (BarGripL/R, PV3)
     for s, side in ((-1, "L"), (1, "R")):
         U.empty("BarGrip" + side, (s * gx, bar_y(gx), bar_z(gx)), parent=obj)
-    eye = Vector(cf["_eye"])
+    # лицевая плоскость приборов — instrument_tilt_deg к горизонту, экран к пилоту (назад-вверх),
+    # без рыскания: приборы соосны штанге (ось X), как не зависящие от положения на ней
+    tilt = math.radians(cf["instrument_tilt_deg"])
+    face = Vector((0.0, -math.sin(tilt), math.cos(tilt)))
     # планшет и вариометр — на хомуте штанги (см. выше), экраном (−Z маркера) к глазам
     for name, pos in mounts.items():
-        U.empty(name, None, parent=obj, matrix=U.look_matrix(pos, eye, up=(0, 1, 0)))
+        U.empty(name, None, parent=obj, matrix=U.look_matrix(pos, pos + face, up=(0, 1, 0)))
     return obj
 
 

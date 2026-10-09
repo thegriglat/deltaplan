@@ -24,6 +24,7 @@ const FRAME_MARKERS: Array[String] = [
 ## Заглушка крыла: верх стоек относительно HangPoint (правая; левая — зеркально по X), м.
 ## Заглушка: вынос середины базовой штанги вперёд (PV3, среднее по классам), м.
 const FALLBACK_BAR_BOW := 0.08
+const FALLBACK_INSTRUMENT_TILT_DEG := 60.0
 const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 ## Стоя (stand/walk/run из pilot.glb) ступни на ~0,3 м позади таза, ноги наклонены ~19°, глаза
 ## на ~0,7 м впереди ступней: взгляд вниз не достаёт до ног. Модель на земле чуть отклоняется
@@ -835,22 +836,38 @@ func _fallback_frame() -> Node3D:
 	var pts: Array[Vector3] = []
 	for i in 17:
 		var u := -1.0 + 2.0 * i / 16.0
-		pts.append(bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * u * 0.5), 2)))
+		pts.append(bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * _bar_profile(u)))
 	for i in 16:
 		_add_rod(frame, "BaseBarTube%d" % i, pts[i], pts[i + 1], m)
 	_add_marker(frame, "BaseBar", bar + Vector3(0, 0, -FALLBACK_BAR_BOW))
 	var gu := float(_cfg.get("arms", {}).get("bar_grip_half_width_m", 0.33)) / w.x
 	for side in [-1, 1]:
 		_add_marker(frame, "BarGripL" if side < 0 else "BarGripR",
-			bar + w * (side * gu) + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * gu * 0.5), 2)))
+			bar + w * (side * gu) + Vector3(0, 0, -FALLBACK_BAR_BOW * _bar_profile(gu)))
 	# A3.3 v9: приборы на хомуте базовой штанги, как в build_gliders.py (instrument_bar_x_m 0,
 	# vario_bar_x_m −0,17): маркер на оси изогнутой штанги, −Z маркера к глазам, верх экрана вперёд
-	for spec in [["InstrumentMount", 0.0], ["VarioMount", -0.17]]:
+	for spec in [["InstrumentMount", 0.05], ["VarioMount", -0.065]]:
 		var u := float(spec[1]) / w.x
-		var mount := bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * pow(cos(PI * u * 0.5), 2))
+		var mount := bar + w * u + Vector3(0, 0, -FALLBACK_BAR_BOW * _bar_profile(u))
 		var im := _add_marker(frame, String(spec[0]), mount)
-		im.basis = Basis.looking_at(_head_local() - mount, Vector3.FORWARD)
+		# лицевая плоскость — 60° к горизонту, экран к пилоту (назад-вверх), без рыскания
+		var tilt := deg_to_rad(FALLBACK_INSTRUMENT_TILT_DEG)
+		im.basis = Basis.looking_at(Vector3(0, sin(PI * 0.5 - tilt), cos(PI * 0.5 - tilt)), Vector3.FORWARD)
 	return frame
+
+
+## Профиль изгиба штанги, u = x/w ∈ [−1, 1] → 0..1: прямые концы, S-переход, плоский центр
+## (тот же закон, что tools/blender/aframe_geom.bow_at).
+static func _bar_profile(u: float) -> float:
+	var a := absf(u)
+	var half := 1.0 - 0.45
+	var flat := 0.2
+	if a >= half:
+		return 0.0
+	if a <= flat:
+		return 1.0
+	var k := (half - a) / (half - flat)
+	return 3.0 * k * k - 2.0 * k * k * k
 
 
 ## Пилот лёжа; начало координат — карабин, голова в −Z.
