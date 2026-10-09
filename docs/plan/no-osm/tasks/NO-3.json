@@ -28,7 +28,10 @@
     "scripts/world_objects/osm_data.gd",
     "tests/world_objects/test_egg*",
     "tests/world_objects/test_easter_eggs.gd",
-    "tests/world_objects/test_world_objects.gd"
+    "tests/world_objects/test_world_objects.gd",
+    "scripts/world_objects/start_tracks.gd",
+    "tests/world_objects/test_start_tracks.gd",
+    "tests/world_objects/test_eggs_no_osm.gd"
   ],
   "dont_touch": [
     "scripts/terrain/",
@@ -68,9 +71,14 @@
       "name": "no_places",
       "cmd": "! grep -nE '\\bplaces\\b' scripts/world_objects/osm_data.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_start_tracks",
+      "tests": "test_start_tracks"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T03:50:28"
+  "created": "2026-10-10T03:50:28",
+  "edited": "2026-10-10T04:01:59"
 }
