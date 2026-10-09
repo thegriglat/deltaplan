@@ -1,0 +1,146 @@
+{
+ "exr half": {
+  "MB": {
+   "altai": 4.129187,
+   "ongudai": 3.890436,
+   "aushkul": 3.4519,
+   "askarovo": 3.257336
+  },
+  "avg_MB": 3.68221475,
+  "write_s": 0.042145249999999995,
+  "read_s": 0.062183249999999995,
+  "maxerr_vs_input": 1.96875
+ },
+ "webp lossless 24bit q1/8": {
+  "MB": {
+   "altai": 4.539672,
+   "ongudai": 5.148928,
+   "aushkul": 3.679552,
+   "askarovo": 3.420372
+  },
+  "avg_MB": 4.197131,
+  "write_s": 1.56971725,
+  "read_s": 0.12107325000000001,
+  "maxerr_vs_input": 0.0
+ },
+ "int q1/8 avg-pred+shuffle+zstd3": {
+  "MB": {
+   "altai": 4.629348,
+   "ongudai": 5.20952,
+   "aushkul": 3.866884,
+   "askarovo": 3.684151
+  },
+  "avg_MB": 4.34747575,
+  "write_s": 2.16579825,
+  "read_s": 1.85013175,
+  "maxerr_vs_input": 0.0625
+ },
+ "int q1/32 avg-pred+shuffle+zstd22": {
+  "MB": {
+   "altai": 5.564629,
+   "ongudai": 5.985413,
+   "aushkul": 4.944988,
+   "askarovo": 4.766826
+  },
+  "avg_MB": 5.315464,
+  "write_s": 7.7084745,
+  "read_s": 2.5655322500000004,
+  "maxerr_vs_input": 0.0
+ },
+ "int q1/32 avg-pred+shuffle+zstd19": {
+  "MB": {
+   "altai": 5.56663,
+   "ongudai": 5.985586,
+   "aushkul": 4.95338,
+   "askarovo": 4.772852
+  },
+  "avg_MB": 5.319612,
+  "write_s": 5.611740500000001,
+  "read_s": 2.0657712499999996,
+  "maxerr_vs_input": 0.0
+ },
+ "webp lossless 24bit q1/32": {
+  "MB": {
+   "altai": 5.744198,
+   "ongudai": 6.062748,
+   "aushkul": 5.165228,
+   "askarovo": 4.877648
+  },
+  "avg_MB": 5.4624555,
+  "write_s": 1.73071525,
+  "read_s": 0.1293695,
+  "maxerr_vs_input": 0.0
+ },
+ "int q1/32 avg-pred+shuffle+zstd3": {
+  "MB": {
+   "altai": 5.910039,
+   "ongudai": 6.337751,
+   "aushkul": 5.226657,
+   "askarovo": 5.073613
+  },
+  "avg_MB": 5.637015,
+  "write_s": 2.3814837499999997,
+  "read_s": 2.2325085,
+  "maxerr_vs_input": 0.0
+ },
+ "png rgb24 q1/32": {
+  "MB": {
+   "altai": 7.91251,
+   "ongudai": 8.572243,
+   "aushkul": 7.062104,
+   "askarovo": 6.821145
+  },
+  "avg_MB": 7.5920005,
+  "write_s": 3.37095175,
+  "read_s": 0.15597999999999998,
+  "maxerr_vs_input": 0.0
+ },
+ "f32 zstd22 (как сейчас при lvl22)": {
+  "MB": {
+   "altai": 8.673221,
+   "ongudai": 9.335451,
+   "aushkul": 7.560453,
+   "askarovo": 7.290436
+  },
+  "avg_MB": 8.21489025,
+  "write_s": 8.3572595,
+  "read_s": 0.0677585,
+  "maxerr_vs_input": 0.0
+ },
+ "f32 zstd19 (как сейчас при lvl19)": {
+  "MB": {
+   "altai": 8.673099,
+   "ongudai": 9.336473,
+   "aushkul": 7.561324,
+   "askarovo": 7.29078
+  },
+  "avg_MB": 8.215419,
+  "write_s": 9.8702765,
+  "read_s": 0.08871899999999999,
+  "maxerr_vs_input": 0.0
+ },
+ "exr float32 (zip)": {
+  "MB": {
+   "altai": 10.078487,
+   "ongudai": 10.377307,
+   "aushkul": 9.260415,
+   "askarovo": 8.959586
+  },
+  "avg_MB": 9.66894875,
+  "write_s": 0.09850575,
+  "read_s": 0.08433249999999999,
+  "maxerr_vs_input": 0.0
+ },
+ "f32 zstd3 (как сейчас при lvl3)": {
+  "MB": {
+   "altai": 11.231917,
+   "ongudai": 12.437471,
+   "aushkul": 10.371951,
+   "askarovo": 10.085743
+  },
+  "avg_MB": 11.0317705,
+  "write_s": 0.3125385,
+  "read_s": 0.04960499999999999,
+  "maxerr_vs_input": 0.0
+ }
+}

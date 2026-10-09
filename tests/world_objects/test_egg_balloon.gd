@@ -13,10 +13,9 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Подмена WorldObjects: EggPlace читает только osm и camp.
+## Подмена WorldObjects: EggPlace читает только camp.
 class Objs:
 	extends Node
-	var osm: OsmData
 	var camp: Array[Dictionary] = []
 
 
@@ -30,7 +29,6 @@ func _place(id: String) -> EggPlace:
 		t.location_id = ""
 		t.load_location(id)
 		var o := Objs.new()
-		o.osm = OsmData.load_file(Locations.osm_path(id), t.center_lat, t.center_lon)
 		_cache[id] = EggPlace.build(t, o)
 	return _cache[id]
 

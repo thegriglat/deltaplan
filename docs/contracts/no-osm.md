@@ -3,9 +3,9 @@ type: "contract"
 status: "active"
 module: "no-osm"
 updated: "2026-10-10"
-summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 место без OSM-стадии; К8 v4 — в easter-eggs.md"
+summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 игра без OSM, N5 файлы места в WebP и версия кеша; К8 v4 — в easter-eggs.md"
 related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}]
+contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}, {"id": "N5", "version": 1}]
 ---
 # Контракты no-osm
 
@@ -65,3 +65,17 @@ v1 → v2 (10.10, решение пользователя): OSM удалён и 
 - Подъезды к стартам (`start_tracks`) — без дорог OSM: процедурно, если это уже умеет код, иначе убраны.
 - Имя места — `configs/locations/<id>.json → name` (встроенное) или координаты точки.
 - Встроенные места собираются и летаются так же, как произвольная точка (те же файлы, кроме `osm.json`).
+
+## N5. Файлы места в WebP и версия кеша (v1, владелец NO-9; потребители HeightLayer, SurfaceLayer, Terrain, сборщик, NO-8)
+Основа — `docs/research/location_compression.md`. Совместимость со старыми файлами не нужна.
+- **Высоты** слоя (`detail`, `far`): `<id>.webp`, WebP lossless, RGB8; код v = (R << 16) | (G << 8) | B,
+  высота h = `height_min_m` + v · `height_step_m`, шаг 1/8 м (0,125), ошибка ≤ 0,0625 м против float32. `height_min_m`,
+  `height_step_m`, имя файла — в описании слоя (`meta.json`/info слоя, там же, где сейчас размер и шаг сетки).
+- **Остальные растры места** (`<id>_surface`, `<id>_water`, `detail_detail10`, `detail_built10`): `.webp` lossless с
+  теми же значениями и каналами, что прежние PNG (L8 / LA8); читатель после загрузки приводит к прежнему формату
+  (`Image.convert`), значения побитово те же. У LA8 (detail10) RGB под нулевой альфой обнуляется перед сохранением.
+- **Версия формата места**: одна константа `Locations.FORMAT_VERSION` (int; комментарий «поднимать при любом изменении
+  файлов места») пишется в `build.json → format_version`. При открытии кеша `user://locations/<ключ>/` несовпадение
+  (или нет поля) → каталог удаляется целиком, место собирается заново (не догрузка стадий). Сейчас — поднята.
+- **Версия источника** сырых блоков (`user://terrain_cache/…`, COG/Terrarium) — отдельная константа; сброс кеша блоков
+  только при её смене (меняется источник или нарезка), не при смене `FORMAT_VERSION`.
