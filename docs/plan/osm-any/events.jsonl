@@ -23,3 +23,7 @@
 {"t": "2026-10-09T18:03:33", "by": "coordinator", "task": "OA-3", "ev": "checked", "note": "7/7 surface=ok:22/22; contract_surface=ok:ok test_osm_any_contracts.gd:…; class_detail=ok:0.99998; class_far=ok:0.99999; forest_frac=ok:0; d10_mae=ok:0.0012; time_surface=ok:3.88"}
 {"t": "2026-10-09T18:03:34", "by": "coordinator", "task": "OA-1", "ev": "accepted", "note": "по отчёту: RMSE 0 обоих слоёв, 2 с офлайн, 11 с онлайн"}
 {"t": "2026-10-09T18:03:34", "by": "coordinator", "task": "OA-3", "ev": "accepted", "note": "по отчёту: совпадение классов 0,99998/0,99999, лес 0, 4 с"}
+{"t": "2026-10-09T18:04:24", "by": "coordinator", "task": "OA-1", "ev": "accepted", "commits": ["ddbc38d"], "note": "6/6 terrain=ok:79/79; contract_dem=ok:ok test_osm_any_contracts.gd:…; contract_zst=ok:ok test_osm_any_contracts.gd:…; rmse_detail=ok:0; rmse_far=ok:0; time_dem=ok:1.8"}
+{"t": "2026-10-09T18:04:47", "by": "coordinator", "task": "OA-3", "ev": "accepted", "commits": ["beb6148"], "note": "7/7 surface=ok:22/22; contract_surface=ok:ok test_osm_any_contracts.gd:…; class_detail=ok:0.99998; class_far=ok:0.99999; forest_frac=ok:0; d10_mae=ok:0.0012; time_surface=ok:4.16"}
+{"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-1", "ev": "merged"}
+{"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-3", "ev": "merged"}
