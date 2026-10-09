@@ -1,0 +1,12 @@
+Deltaplan 1.5.0 — ground heating by land cover
+
+The ground now heats the air the way it does in reality: every kind of surface absorbs sunlight and splits the heat between warming the air and evaporating water in its own way. Sunny rock and dry slopes give strong thermals, wet hollows and north slopes give weak ones, and lakes in the daytime give sinking air instead of lift.
+
+The same heating now feeds both the mean wind over the place and the thermals, so the two layers of the air model agree with each other.
+
+Air and heating:
+- Heating by land cover: forest, meadow, cropland, shrubs, rock, built-up areas and snow (albedo, moisture, heat into the soil)
+- Noon heating is 10-16 % lower on average, with a larger spread between slopes and surfaces
+- Wet hollows heat less, dry ridges more
+- Lakes are colder than the air in the daytime: sinking air, no thermals; frozen lakes in winter behave like snow
+- Wind near the ground depends on land cover: weaker over forest, slightly stronger over meadow
