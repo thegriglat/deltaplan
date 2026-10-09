@@ -144,8 +144,8 @@ about_version,Версия %s,Version %s
 about_version_build,Версия %s · сборка %s,Version %s · build %s
 settings_fov,Поле зрения (по вертикали),Field of view (vertical)
 settings_eye_mode,Камера в кабине,Cockpit camera
-camera_eye_back_hands,Сзади, видны руки,Behind the body — hands only
-camera_eye_back_hidden,Сзади, без тела и рук,Behind the body — no body or hands
+camera_eye_back_hands,"Сзади, видны руки",Behind the body — hands only
+camera_eye_back_hidden,"Сзади, без тела и рук",Behind the body — no body or hands
 camera_eye_eyes,Глаза пилота,Pilot's eyes
 camera_eye_shoulders,Между плечами,Between the shoulders
 settings_helmet,Каска (вид из кабины),Helmet (pilot's view)
