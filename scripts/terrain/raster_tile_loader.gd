@@ -120,15 +120,8 @@ func _download(basemap: Dictionary, z: int, x: int, y: int) -> PackedByteArray:
 	if http_hook.is_valid():
 		res = await http_hook.call(url, headers)
 	else:
-		var req := HTTPRequest.new()
-		req.timeout = float(_cfg.get("timeout_s", 20.0))
-		req.use_threads = true
-		add_child(req)
-		if req.request(url, headers) != OK:
-			req.queue_free()
-			return PackedByteArray()
-		res = await req.request_completed
-		req.queue_free()
+		res = await HttpLog.fetch(self, url, headers, "tile %s %d/%d/%d" % [basemap.id, z, x, y],
+			HTTPClient.METHOD_GET, "", float(_cfg.get("timeout_s", 20.0)))
 	var code := int(res[1])
 	if int(res[0]) == HTTPRequest.RESULT_SUCCESS and (code == 403 or code == 429):
 		var pause := float(_cfg.get("blocked_backoff_s", 600.0))

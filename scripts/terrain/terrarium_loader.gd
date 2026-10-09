@@ -177,21 +177,12 @@ func _fetch_tile_bytes(z: int, x: int, y: int) -> Dictionary:
 		if not cached.is_empty():
 			return {"data": cached}
 	var url := String(_cfg.url_template).format({"z": z, "x": x, "y": y})
-	var req := HTTPRequest.new()
-	req.timeout = float(_cfg.get("timeout_s", 30.0))
-	req.use_threads = true  # TLS и чтение ответа — не в главном потоке
-	add_child(req)
-	_requests.append(req)
-	var err := req.request(
-		url, PackedStringArray(["User-Agent: " + RasterTileLoader.expand_user_agent(String(_cfg.get("user_agent", "deltaplan/{version}")))])
-	)
-	if err != OK:
-		_requests.erase(req)
-		req.queue_free()
-		return {"error": "запрос %s не отправлен (%s)" % [url, error_string(err)], "kind": "network"}
-	var res: Array = await req.request_completed
-	_requests.erase(req)
-	req.queue_free()
+	var res: Array = await HttpLog.fetch(
+		self, url,
+		PackedStringArray(["User-Agent: " + RasterTileLoader.expand_user_agent(String(_cfg.get("user_agent", "deltaplan/{version}")))]),
+		"terrarium %d/%d/%d" % [z, x, y], HTTPClient.METHOD_GET, "", float(_cfg.get("timeout_s", 30.0)), _requests)
+	if int(res[0]) == HTTPRequest.RESULT_CANT_CONNECT and int(res[1]) == 0 and (res[3] as PackedByteArray).is_empty():
+		return {"error": "запрос %s не отправлен" % url, "kind": "network"}
 	var code := int(res[1])
 	if int(res[0]) != HTTPRequest.RESULT_SUCCESS or code != 200:
 		push_warning("TerrariumLoader: %s → %s/%s" % [url, res[0], code])

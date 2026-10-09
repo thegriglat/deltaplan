@@ -35,7 +35,7 @@ v3 (2026-10-05, координатор steam после слияния steam-ass
 - `tools/build.sh` вызывает его после экспорта для каждого пресета (одна строка рядом с копированием `configs/`).
 - Экран «Об игре» показывает все строки разделов ASSETS.md, входящих в сборку, и тексты лицензий (как сейчас — `AssetsCredits`).
 - Строки только для Steam-сборки: в колонке «Где используется» — пометка `(только Steam)`; `third_party_notices.py --preset` с `steam` в имени их включает, иначе — пропускает. Строку GodotSteam (MIT, + распространяемые библиотеки Steamworks SDK) добавляет модуль steam (ST-10) в раздел «Движок и библиотеки» с текстом в `licenses/`.
-- `THIRD_PARTY_NOTICES.txt` содержит фразу о производной базе данных OSM: «Derived OpenStreetMap data (data/osm/, data/places/) is available under the ODbL 1.0 in the project repository: https://github.com/thegriglat/deltaplan» (v2, ODbL 4.3).
+- `THIRD_PARTY_NOTICES.txt` содержит фразу о производной базе данных OSM: «Derived OpenStreetMap data (data/terrain/*/osm.json, data/places/, and places the game downloads on demand into user://locations) is available under the ODbL 1.0 in the project repository: https://github.com/thegriglat/deltaplan» (v2, ODbL 4.3).
 - Инварианты: каждая строка входящего в сборку раздела с `attribution = true` (SA-К1) есть и в `THIRD_PARTY_NOTICES.txt`, и в тексте «Об игре»; каждый упомянутый `licenses/*.txt` существует; без сети.
 
 ## SA-К3. Формат ASSETS.md (v4)
@@ -79,6 +79,7 @@ v3 (2026-10-05, координатор steam после слияния steam-ass
 - SA-К1 v3, SA-К2 v5, SA-К3 v4 (07.10.2026, модуль debug-draw, решение пользователя): аддон Debug Draw 3D (`addons/debug_draw_3d`, `libdd3d`) удалён из проекта — отладочные стрелки рисуются своим кодом; из сборки, ASSETS.md и `licenses/` убраны `debug_draw_3d` и `MIT-debug_draw_3d.txt`. Потребители: `build_inventory.py`, `third_party_notices.py`, ASSETS.md, модуль steam; контрактные тесты `test_steam_assets_contracts_sa3.gd`, `_sa4.gd`.
 - SA-К1 v2, SA-К2 v4, SA-К3 v3 (07.10.2026): после удаления нейросети воздуха из состава сборки и лицензий убраны `air_onnx`, ONNX Runtime, godot-cpp, VC++ runtime (`MIT-godot-cpp.txt`, `onnxruntime-*.txt`, `msvc-runtime.txt`). Потребители: `build_inventory.py`, модуль steam.
 - SA-К4 v3 (05.10.2026): иконки ачивок — генератор по `configs/achievements.json` и `prompts.json`, режим `--dry`, модель с коммерческой лицензией. Потребители: SA-7, модуль steam (ST-10).
-- SA-К2 v2, SA-К3 v2 (05.10.2026, по аудиту SA-1): точный набор `licenses/*.txt`; фраза ODbL в THIRD_PARTY_NOTICES; шаблоны `<exe>/…`, `engine`, перечисление через запятую; запрет «как у/то же/открытые данные» в колонке «Лицензия»; раздел «Движок и библиотеки» обязателен. Потребители: SA-3, SA-4, `build_inventory.py`, модуль steam (ST-10).
+- SA-К2 v5 (09.10.2026, после osm-any): фраза ODbL — «data/terrain/*/osm.json, data/places/, … user://locations»; в ASSETS.md строка `user://locations/<ключ>/…` (Copernicus, Terrarium, WorldCover, OSM для мест, собранных игрой).
+&.2026, по аудиту SA-1): точный набор `licenses/*.txt`; фраза ODbL в THIRD_PARTY_NOTICES; шаблоны `<exe>/…`, `engine`, перечисление через запятую; запрет «как у/то же/открытые данные» в колонке «Лицензия»; раздел «Движок и библиотеки» обязателен. Потребители: SA-3, SA-4, `build_inventory.py`, модуль steam (ST-10).
 - SA-К4 v2 (05.10.2026): скриншоты сняты из модуля (решение пользователя); исходный кадр капсул до скриншотов — `assets/ui/menu_background.jpg`. Потребители: SA-6.
 - v1 (05.10.2026) — заведены до первого исполнителя.

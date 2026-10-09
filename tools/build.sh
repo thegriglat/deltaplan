@@ -54,6 +54,7 @@ build_one() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	cp -r configs "build/$dir/configs"
+	cp tools/release/README-options.txt "build/$dir/README-options.txt"
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
 	# Манифест itch: без него приложение itch считает deltaplan.pck вторым кандидатом на запуск
 	# (godot-pck через wine) и спрашивает, что запускать.
@@ -79,6 +80,7 @@ build_macos() {
 	(cd "build/$dir" && unzip -q "../deltaplan-$dir.zip")
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
 	echo "готово: build/$dir/$(ls build/$dir), build/deltaplan-$dir.zip"
+	cp tools/release/README-options.txt "build/$dir/README-options.txt"  # рядом с .app, не внутри (подпись); в zip Godot — нет
 }
 [[ "$target" == macos || "$target" == all ]] && build_macos
 [[ "$target" == macos-steam ]] && build_macos "macOS Steam" macos-steam

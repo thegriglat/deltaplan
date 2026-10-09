@@ -110,7 +110,8 @@ func _fetch_layer(ctx: LocationBuildContext, urls: Array, layer: String, bbox: A
 			if http_hook.is_valid():
 				res = await http_hook.call(url, headers, form)
 			else:
-				res = await _http(ctx.host, url, headers, form, float(timeout_s + 30))
+				res = await _http(ctx.host, url, headers, form, float(timeout_s + 30),
+					HTTPClient.METHOD_POST, "overpass %s попытка %d/%d" % [layer, attempt + 1, max_attempts])
 			var code := int(res[1])
 			var body: PackedByteArray = res[3]
 			if int(res[0]) == HTTPRequest.RESULT_SUCCESS and code == 200:
@@ -139,7 +140,7 @@ func _wait_slot(ctx: LocationBuildContext, url: String, headers: PackedStringArr
 	if http_hook.is_valid():
 		res = await http_hook.call(status_url, headers, "")
 	else:
-		res = await _http(ctx.host, status_url, headers, "", 20.0, HTTPClient.METHOD_GET)
+		res = await _http(ctx.host, status_url, headers, "", 20.0, HTTPClient.METHOD_GET, "overpass status")
 	if int(res[0]) != HTTPRequest.RESULT_SUCCESS or int(res[1]) != 200:
 		return
 	var wait := slot_wait_s((res[3] as PackedByteArray).get_string_from_utf8())
@@ -193,16 +194,6 @@ static func _has_runtime_error(body: PackedByteArray) -> bool:
 	return head.find("runtime error") >= 0
 
 
-func _http(host: Node, url: String, headers: PackedStringArray, form: String, timeout_s: float, method := HTTPClient.METHOD_POST) -> Array:
-	if host == null or not host.is_inside_tree():
-		return [HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray()]
-	var req := HTTPRequest.new()
-	req.timeout = timeout_s
-	req.use_threads = true
-	host.add_child(req)
-	if req.request(url, headers, method, form) != OK:
-		req.queue_free()
-		return [HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray()]
-	var res: Array = await req.request_completed
-	req.queue_free()
-	return res
+func _http(host: Node, url: String, headers: PackedStringArray, form: String, timeout_s: float,
+		method := HTTPClient.METHOD_POST, label := "overpass") -> Array:
+	return await HttpLog.fetch(host, url, headers, label, method, form, timeout_s)
