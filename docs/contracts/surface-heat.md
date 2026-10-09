@@ -2,7 +2,7 @@
 type: "contract"
 status: "active"
 module: "surface-heat"
-updated: "2026-10-09"
+updated: "2026-10-10"
 summary: "Контракты surface-heat: SH1 конфиг параметров поверхности, SH2 ядро SurfaceHeat (H по классу и воде), SH3 вход решателя по клеткам (доли классов, влажность, вода), SH4 сила источника термиков из H, SH5 замер до/после"
 related: ["docs/plan/surface-heat.md", "docs/research/surface_params.md", "docs/contracts/air-model.md"]
 contracts: [{"id": "SH1", "version": 1}, {"id": "SH2", "version": 2}, {"id": "SH3", "version": 1}, {"id": "SH4", "version": 1}, {"id": "SH5", "version": 1}]
@@ -82,7 +82,8 @@ bowen ∈ [bowen_min, bowen_max], bowen(c, ≤ m_dry) = bowen_max, bowen(c, ≥ 
   (час случая, высота hc), u_ms = u10 случая.
 - Состав `place` (`AirRuntime.place_of`) и сигнатура `AirPlace.domain_case` меняются → **C2 v7 → v8** в
   `docs/contracts/air-model.md` (поля place, источники долей/влажности/воды; убрать «вода → H = 0», «H0 = 330»), правка
-  словаря `CONTRACTS` в `tests/contracts/test_air_contracts.gd` — в той же задаче. P10 (фазы) и C3/C4 — без смены версии
+  словаря `CONTRACTS` в `tests/contracts/test_air_contracts.gd` — в той же задаче.
+  Итог: SH-4 — C2 v8 и C7 v4 (аргумент `surface` у окон); SH-6 — C2 v9 и C3 v2 (карта z0 в meta). P10 (фазы) и C3/C4 — без смены версии
   (смысл и формат H прежние).
 
 ## SH4 v1 — сила источника термиков масштаба 2 (`Terrain`)
