@@ -1,0 +1,78 @@
+{
+  "id": "OA-1",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Стадия рельефа DemStage: Copernicus + Terrarium в сетку места, .f32.zst",
+  "goal": "Сборка рельефа места в игре так же, как fetch_dem.py: detail Copernicus 25 м, far Terrarium z10 100 м — для любой точки и потом для встроенных мест.",
+  "plan_ref": "OA-1. Стадия рельефа",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-1",
+  "branch": "osm-any/OA-1",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/dem_stage.gd",
+    "scripts/terrain/cog_reader.gd",
+    "scripts/terrain/height_layer.gd",
+    "tests/terrain/test_dem_stage.gd",
+    "tools/terrain/parity/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/game/",
+    "data/",
+    "configs/",
+    "project.godot",
+    "tools/terrain/fetch_dem.py"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "height",
+      "tests": "height"
+    },
+    {
+      "name": "contract_dem",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_dem"
+    },
+    {
+      "name": "contract_zst",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k1_height_zst"
+    },
+    {
+      "name": "rmse_detail",
+      "cmd": "mkdir -p build && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/parity/dem_parity.gd 2>&1 | tee build/parity_dem.txt",
+      "expect": "num:rmse_detail_m=([\\d.]+) <=0.5"
+    },
+    {
+      "name": "rmse_far",
+      "cmd": "cat build/parity_dem.txt",
+      "expect": "num:rmse_far_m=([\\d.]+) <=1.0"
+    },
+    {
+      "name": "time_dem",
+      "cmd": "cat build/parity_dem.txt",
+      "expect": "num:stage_seconds=([\\d.]+) <=120"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T17:51:38",
+  "edited": "2026-10-09T17:51:44"
+}

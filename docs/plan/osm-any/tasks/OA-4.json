@@ -1,0 +1,81 @@
+{
+  "id": "OA-4",
+  "module": "osm-any",
+  "type": "dp-engineer",
+  "title": "Стадия OSM OsmStage: Overpass в игре, упаковка как fetch_osm.py, вода 10 м",
+  "goal": "OSM-объекты (дороги, дома, ЛЭП, реки, озёра, посёлки, поля, заборы) и вода 10 м для любого места тем же расчётом, что fetch_osm.py + osm_water.py.",
+  "plan_ref": "OA-4. Стадия OSM",
+  "contracts": [
+    {
+      "name": "OA-К1",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К2",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-any.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-any-OA-4",
+  "branch": "osm-any/OA-4",
+  "base": "feature/osm-any",
+  "scope": [
+    "scripts/terrain/build/osm_stage.gd",
+    "scripts/terrain/build/overpass_client.gd",
+    "tests/world_objects/test_osm_stage.gd",
+    "tests/world_objects/fixtures/",
+    "tools/terrain/parity/osm_parity.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/terrain/build/location_build_context.gd",
+    "scripts/game/",
+    "data/",
+    "configs/",
+    "project.godot",
+    "scripts/terrain/cog_reader.gd",
+    "scripts/terrain/height_layer.gd",
+    "tools/osm/fetch_osm.py",
+    "tools/terrain/osm_water.py",
+    "scripts/world_objects/"
+  ],
+  "accept": [
+    {
+      "name": "osm_stage",
+      "tests": "osm_stage"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "contract_osm",
+      "cmd": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_any_contracts 2>&1",
+      "expect": "re:ok\\s+test_osm_any_contracts.gd::test_k3_osm"
+    },
+    {
+      "name": "osm_equal",
+      "cmd": "mkdir -p build && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/parity/osm_parity.gd 2>&1 | tee build/parity_osm.txt",
+      "expect": "num:osm_mismatch_total=(\\d+) ==0"
+    },
+    {
+      "name": "water_iou",
+      "cmd": "cat build/parity_osm.txt",
+      "expect": "num:water_iou_min=([\\d.]+) >=0.97"
+    },
+    {
+      "name": "time_osm",
+      "cmd": "cat build/parity_osm.txt",
+      "expect": "num:stage_seconds_max=([\\d.]+) <=60"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-09T17:52:01"
+}
