@@ -24,7 +24,43 @@ func test_shortwave_monotone_and_night() -> void:
 	check(SurfaceHeat.shortwave(1.0, 0.0, 0.0, 1.0, cfg) == 0.0, "sin_el = 0 → 0")
 	check(SurfaceHeat.shortwave(0.5, -0.2, 0.0, 1.0, cfg) == 0.0, "солнце под горизонтом → 0")
 	check(SurfaceHeat.shortwave(-0.5, 0.8, 0.0, 1.0, cfg) > 0.0, "тень склона: рассеянная остаётся")
-	approx(SurfaceHeat.shortwave(1.0, 1.0, 0.0, 1.0, cfg), 1096.0, 0.01, "зенит, ясно: 1370·0,8")
+	approx(SurfaceHeat.shortwave(1.0, 1.0, 0.0, 1.0, cfg), 1088.8, 0.01, "зенит, ясно: 1361·0,8")
+
+
+func test_cloud_shortwave() -> void:
+	var cfg := _cfg()
+	var sn := 0.8
+	var clear := SurfaceHeat.shortwave(sn, sn, 0.0, 1.0, cfg)
+	var cloudy := SurfaceHeat.shortwave(sn, sn, 0.85, 1.0, cfg)
+	check(cloudy < clear * 0.5, "cover 0,85 сильно уменьшает K↓: %.0f < %.0f" % [cloudy, clear])
+	approx(cloudy / clear, 1.0 - 0.7 * 0.85, 1e-9, "множитель Stull (1 − 0,7·cover)")
+	check(SurfaceHeat.shortwave(sn, sn, 0.3, 0.2, cfg) == SurfaceHeat.shortwave(sn, sn, 0.3, 1.0, cfg), "sky_heat не используется")
+	var tc := (0.6 + 0.2 * sn)
+	check(
+		SurfaceHeat.diffuse_fraction(tc * (1.0 - 0.7 * 0.85)) > SurfaceHeat.diffuse_fraction(tc) + 0.5,
+		"доля рассеянной растёт с облачностью"
+	)
+	approx(SurfaceHeat.diffuse_fraction(tc), 0.165, 0.05, "ясно: доля рассеянной ≈ 0,165")
+	# Склон от солнца при пасмурном небе: рассеянная остаётся, K > 0.
+	check(SurfaceHeat.shortwave(-0.3, sn, 0.85, 1.0, cfg) > 0.0, "от солнца, пасмурно: K > 0")
+	# Горизонталь: K = K_гор независимо от разложения.
+	approx(clear, cfg.radiation.s0_wm2 * tc * sn, 1e-6, "горизонталь = S₀·T_r·sinψ")
+
+
+func test_water_height() -> void:
+	var cfg := _cfg()
+	var h0 := SurfaceHeat.water_flux(15.0, 10.0, 3.0, cfg)
+	var h1 := SurfaceHeat.water_flux(15.0, 10.0, 3.0, cfg, 1000.0)
+	approx(h1 / h0, exp(-1000.0 / 8400.0), 1e-9, "ρ по высоте")
+	check(h1 < h0 and h1 / h0 > 0.88 and h1 / h0 < 0.9, "≈ ×0,89 на км")
+	var fw := PackedFloat32Array()
+	fw.resize(SurfaceLayer.CLASS_COUNT)
+	fw[SurfaceLayer.WATER] = 1.0
+	var wd := {"t_water_c": 12.0, "t_air_c": 17.0, "u_ms": 3.0, "z_m": 1000.0}
+	approx(
+		SurfaceHeat.mix_flux(fw, 0, Vector3.UP, PackedVector3Array(), 0.5, SKY, wd, cfg),
+		SurfaceHeat.water_flux(12.0, 17.0, 3.0, cfg, 1000.0), 1e-9, "z_m в словаре воды"
+	)
 
 
 func test_bowen() -> void:
@@ -70,7 +106,11 @@ func test_href_consistent() -> void:
 	var cfg := _cfg()
 	var k := SurfaceHeat.shortwave(1.0, 1.0, 0.0, 1.0, cfg)
 	var h := SurfaceHeat.land_flux(SurfaceLayer.BARE, k, 0.0, cfg.moisture.m_norm, cfg)
-	approx(h, cfg.thermal.h_ref_wm2, 0.5, "h_ref_wm2 = H скалы в зените")
+	approx(h, cfg.thermal.h_ref_wm2, 1.0, "h_ref_wm2 = H скалы в зените")
+	var r: Dictionary = cfg.radiation
+	var rn := (1.0 - 0.25) * r.s0_wm2 * (r.tk_a + r.tk_b) - r.l_star_wm2
+	var b: float = cfg.classes.bare.bowen
+	approx(rn * (1.0 - 0.25) * b / (1.0 + b), cfg.thermal.h_ref_wm2, 1.0, "h_ref_wm2 по формуле §9.6")
 
 
 func test_water() -> void:
@@ -78,7 +118,7 @@ func test_water() -> void:
 	check(SurfaceHeat.water_flux(10.0, 15.0, 3.0, cfg) < 0.0, "вода холоднее воздуха → H < 0")
 	check(SurfaceHeat.water_flux(15.0, 10.0, 3.0, cfg) > 0.0, "вода теплее → H > 0")
 	check(SurfaceHeat.water_flux(10.0, 10.0, 3.0, cfg) == 0.0, "равны → 0")
-	approx(SurfaceHeat.water_flux(0.0, 5.0, 0.0, cfg), -1231.0 * 1.3e-3 * 1.0 * 5.0, 1e-6, "u_min")
+	approx(SurfaceHeat.water_flux(0.0, 5.0, 0.0, cfg), -1206.0 * 1.4e-3 * 1.0 * 5.0, 1e-6, "u_min")
 	var ctx := _ctx()
 	var wc: Dictionary = cfg.water
 	var tw := SurfaceHeat.water_temp_c(7, 15, ctx.valley_msl_m, ctx, wc)

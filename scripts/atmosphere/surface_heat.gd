@@ -17,28 +17,45 @@ static func config() -> Dictionary:
 	return Config.get_config(CONFIG)
 
 
-## K↓ на поверхность, Вт/м². Stull (1988, §7.3): на горизонталь K = S₀·T_K·sinψ, T_K = (a + b·sinψ)·sky_heat;
-## доля рассеянной diffuse_frac — по sinψ, прямая (1 − diffuse_frac) — по max(cos_inc, 0).
-## Облака: sky_heat (доля прогрева из погоды игры) заменяет множитель (1 − 0,7·cover) Stull (иначе облачность
-## считалась бы дважды); cover здесь не используется (идёт в L*).
-## cos_inc — скалярное произведение нормали на направление НА солнце (нормаль без нормировки — поток на
-## горизонтальную площадь; единичная — на площадь склона). sin_el ≤ 0 → 0.
+## K↓ на поверхность, Вт/м² (docs/research/surface_params.md §9.1, §9.3). Stull (1988, 2.34–2.40):
+## на горизонталь K = S₀·T_r·sinψ, T_r = (tk_a + tk_b·sinψ)·(1 − cloud_sw_k·cover) — облачность ОДИН раз, через cover
+## (средний ярус Stull); sky_heat в расчёте не используется (аргумент оставлен ради сигнатуры SH2).
+## Разложение: индекс ясности k_T = T_r; доля рассеянной f_d — по Эрбсу (ERB82), при ясном небе ≥ diffuse_frac (0,165).
+## Склон: K = (1 − f_d)·K_гор·cos_inc/sinψ + f_d·K_гор. Прямая = S₀·T_r·(1 − f_d) на площадь, перпендикулярную лучу;
+## cos_inc — скалярное произведение нормали на направление НА солнце. Нормаль без нормировки (−∂h/∂x, −∂h/∂y, 1)
+## даёт поток на горизонтальную площадь (площадь склона больше в |n| раз, как раз компенсируется); единичная —
+## на площадь склона. Горизонталь: cos_inc = sinψ → K = K_гор. Рассеянная от наклона не зависит (по SH2), и в тени
+## склона (cos_inc ≤ 0) остаётся f_d·K_гор. sin_el ≤ 0 → 0.
 static func shortwave(
 	cos_inc: float, sin_el: float, cover: float, sky_heat: float, cfg: Dictionary
 ) -> float:
 	if sin_el <= 0.0:
 		return 0.0
 	var r: Dictionary = cfg.get("radiation", {})
-	var t_k := (float(r.get("tk_a", 0.6)) + float(r.get("tk_b", 0.2)) * sin_el) * sky_heat
-	var s := float(r.get("s0_wm2", 1370.0)) * t_k
-	var f := float(r.get("diffuse_frac", 0.15))
-	return s * ((1.0 - f) * maxf(cos_inc, 0.0) + f * sin_el)
+	var t_r := (float(r.get("tk_a", 0.6)) + float(r.get("tk_b", 0.2)) * sin_el) * (
+		1.0 - float(r.get("cloud_sw_k", 0.7)) * clampf(cover, 0.0, 1.0)
+	)
+	var k_hor := float(r.get("s0_wm2", 1361.0)) * t_r * sin_el
+	var f := diffuse_fraction(t_r, float(r.get("diffuse_frac", 0.165)))
+	return (1.0 - f) * k_hor * maxf(cos_inc, 0.0) / sin_el + f * k_hor
 
 
-## Длинноволновое выхолаживание L*, Вт/м² (> 0): l_star_wm2·(1 − l_cloud_k·cover).
+## Доля рассеянной по Эрбсу (ERB82) от индекса ясности k_T; не меньше f_min (ясное небо).
+static func diffuse_fraction(k_t: float, f_min: float = 0.165) -> float:
+	var f: float
+	if k_t <= 0.22:
+		f = 1.0 - 0.09 * k_t
+	elif k_t <= 0.80:
+		f = 0.9511 - 0.1604 * k_t + 4.388 * k_t * k_t - 16.638 * k_t * k_t * k_t + 12.336 * k_t * k_t * k_t * k_t
+	else:
+		f = 0.165
+	return maxf(f, f_min)
+
+
+## Длинноволновое выхолаживание L*, Вт/м² (> 0): l_star_wm2·(1 − l_cloud_k·cover) (Stull 2.39, средний ярус).
 static func long_wave(cover: float, cfg: Dictionary) -> float:
 	var r: Dictionary = cfg.get("radiation", {})
-	return float(r.get("l_star_wm2", 98.0)) * (1.0 - float(r.get("l_cloud_k", 0.6)) * cover)
+	return float(r.get("l_star_wm2", 98.5)) * (1.0 - float(r.get("l_cloud_k", 0.3)) * cover)
 
 
 ## β по влажности рельефа m ∈ [0, 1] (план §1.4): m ≤ m_dry → bowen_max; m_norm → bowen; m ≥ m_wet → bowen_min;
@@ -49,9 +66,9 @@ static func bowen(cls: int, m: float, cfg: Dictionary) -> float:
 	var lo := float(k.bowen_min)
 	var hi := float(k.bowen_max)
 	var mo: Dictionary = cfg.get("moisture", {})
-	var m_dry := float(mo.get("m_dry", 0.35))
-	var m_norm := float(mo.get("m_norm", 0.5))
-	var m_wet := float(mo.get("m_wet", 0.85))
+	var m_dry := float(mo.get("m_dry", 0.25))
+	var m_norm := float(mo.get("m_norm", 0.47))
+	var m_wet := float(mo.get("m_wet", 0.70))
 	if m <= m_dry:
 		return hi
 	if m >= m_wet:
@@ -103,16 +120,25 @@ static func air_temp_c(
 	return float(st.temperature_c) - _lapse(z_m, ctx, wcfg)
 
 
-## H воды, Вт/м²: ρ·c_p·C_H·max(U, u_min)·(T_w − T_a).
-static func water_flux(t_water_c: float, t_air_c: float, u_ms: float, cfg: Dictionary) -> float:
+## ρ воздуха относительно уровня моря на высоте z_m (м над уровнем моря): барометрически exp(−z/H), H = rho_scale_height_m
+## (8400 м; ≈ ×0,89 на км, §9.5). Изотермия вместо стандартной атмосферы — для озёр до 3 км ошибка < 1 %.
+static func air_density_factor(z_m: float, cfg: Dictionary) -> float:
 	var w: Dictionary = cfg.get("water", {})
-	var rcp := float(w.get("rho_cp", 1231.0))
-	return rcp * float(w.get("c_h", 1.3e-3)) * maxf(u_ms, float(w.get("u_min_ms", 1.0))) * (t_water_c - t_air_c)
+	return exp(-maxf(z_m, 0.0) / float(w.get("rho_scale_height_m", 8400.0)))
+
+
+## H воды, Вт/м²: ρ(z)·c_p·C_H·max(U, u_min)·(T_w − T_a); rho_cp — на уровне моря, z_m — высота воды над уровнем моря.
+static func water_flux(
+	t_water_c: float, t_air_c: float, u_ms: float, cfg: Dictionary, z_m: float = 0.0
+) -> float:
+	var w: Dictionary = cfg.get("water", {})
+	var rcp := float(w.get("rho_cp", 1206.0)) * air_density_factor(z_m, cfg)
+	return rcp * float(w.get("c_h", 1.4e-3)) * maxf(u_ms, float(w.get("u_min_ms", 1.0))) * (t_water_c - t_air_c)
 
 
 ## H клетки/точки: Σ f_c·H_c, веса fracs[off + c] (нормируются; сумма 0 → весь вес NONE).
 ## class_sun[c] — единичный вектор НА солнце класса (нулевой — солнце под горизонтом, K↓ = 0).
-## sky = {cover, sky_heat}; water = {t_water_c, t_air_c, u_ms} (пусто → H воды 0); T_воды ≤ ice_c → вода как SNOW.
+## sky = {cover, sky_heat (не используется)}; water = {t_water_c, t_air_c, u_ms, z_m (необяз., 0)} (пусто → H воды 0); T_воды ≤ ice_c → вода как SNOW.
 static func mix_flux(
 	fracs: PackedFloat32Array,
 	off: int,
@@ -143,7 +169,7 @@ static func mix_flux(
 			if tw <= float(cfg.get("water", {}).get("ice_c", 0.0)):
 				cls = SNOW_CLASS
 			else:
-				h += f * water_flux(tw, float(water.get("t_air_c", tw)), float(water.get("u_ms", 0.0)), cfg)
+				h += f * water_flux(tw, float(water.get("t_air_c", tw)), float(water.get("u_ms", 0.0)), cfg, float(water.get("z_m", 0.0)))
 				continue
 		var sun := class_sun[cls] if cls < class_sun.size() else Vector3.ZERO
 		var k := 0.0

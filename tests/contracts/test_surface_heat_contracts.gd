@@ -4,14 +4,14 @@ extends TestCase
 
 const DOC := "res://docs/contracts/surface-heat.md"
 const CSV := "res://docs/research/surface_params.csv"
-const VERSIONS := {"SH1": 1, "SH2": 1, "SH3": 1, "SH4": 1, "SH5": 1}
+const VERSIONS := {"SH1": 1, "SH2": 2, "SH3": 1, "SH4": 1, "SH5": 1}
 const ROWS := {
 	"none": "grassland", "forest": "trees", "grass": "grassland", "crop": "cropland",
 	"shrub": "shrubland", "bare": "bare_rock", "water": "water", "built": "built_up", "snow": "snow_ice",
 }
 const SIGS := {
 	"config": 0, "shortwave": 5, "bowen": 3, "land_flux": 5, "water_temp_c": 5, "air_temp_c": 5,
-	"water_flux": 4, "mix_flux": 8,
+	"water_flux": 5, "mix_flux": 8,
 }
 
 
@@ -56,7 +56,7 @@ func test_config_keys() -> void:
 		check(c.g_frac >= 0.0 and c.g_frac <= 1.0, "%s: g_frac" % n)
 		check(c.z0_m > 0.0, "%s: z0_m" % n)
 	var r: Dictionary = cfg.radiation
-	for k: String in ["s0_wm2", "tk_a", "tk_b", "diffuse_frac", "l_star_wm2", "l_cloud_k"]:
+	for k: String in ["s0_wm2", "tk_a", "tk_b", "cloud_sw_k", "diffuse_frac", "l_star_wm2", "l_cloud_k"]:
 		check(r.get(k) is float, "radiation.%s" % k)
 	var m: Dictionary = cfg.moisture
 	for k: String in ["m_dry", "m_norm", "m_wet"]:
@@ -108,7 +108,7 @@ func test_signatures() -> void:
 		"land_flux": ["cls", "k_down", "cover", "m", "cfg"],
 		"water_temp_c": ["month", "day", "z_m", "ctx", "wcfg"],
 		"air_temp_c": ["hour", "t_max", "z_m", "ctx", "wcfg"],
-		"water_flux": ["t_water_c", "t_air_c", "u_ms", "cfg"],
+		"water_flux": ["t_water_c", "t_air_c", "u_ms", "cfg", "z_m"],
 		"mix_flux": ["fracs", "off", "normal", "class_sun", "m", "sky", "water", "cfg"],
 	}
 	for n: String in order:
