@@ -72,3 +72,7 @@
 {"t": "2026-10-10T00:10:09", "by": "executor", "task": "SH-6", "ev": "checked", "note": "7/7 air_place=ok:7/7; air_window_case=ok:2/2; air_phase=ok:8/8 (пропуск 2); air_contracts=ok:31/31; wind_field=ok:9/9; gpu_window=ok:0 упало; gpu_picard=ok:0 упало"}
 {"t": "2026-10-10T00:13:16", "by": "reviewer", "task": "SH-6", "ev": "reviewed", "note": "Сделано ровно по §3 плана: C_d и u* — плоскости col по столбцу, карта z0 в meta, выборка по столбцу в WindField, приток/фазы — лог-среднее области; без снимка …", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/surface-heat/tasks/SH-6.review.json"}
 {"t": "2026-10-10T00:13:47", "by": "coordinator", "task": "SH-6", "ev": "accepted", "note": "по ревью (fable accept, 2 minor — решены записью decide)"}
+{"t": "2026-10-10T00:16:31", "by": "coordinator", "task": "SH-6", "ev": "accepted", "commits": ["ee82e27e"], "note": "7/7 air_place=ok:7/7; air_window_case=ok:2/2; air_phase=ok:8/8 (пропуск 2); air_contracts=ok:31/31; wind_field=ok:9/9; gpu_window=ok:0 упало; gpu_picard=ok:0 упало"}
+{"t": "2026-10-10T00:16:31", "by": "coordinator", "task": "SH-6", "ev": "merged", "commits": ["ee82e27e"]}
+{"t": "2026-10-10T00:16:33", "by": "coordinator", "task": "SH-11", "ev": "created", "note": "Прогон «после z0» и таблица до/после"}
+{"t": "2026-10-10T00:16:34", "by": "coordinator", "task": "SH-11", "ev": "started", "note": "dp-mechanic, ~/deltaplan-surface-heat-SH-11"}
