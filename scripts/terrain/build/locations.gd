@@ -1,10 +1,9 @@
 class_name Locations
 extends RefCounted
 ## Реестр мест (OA-К4, docs/contracts/osm-any.md): встроенные (configs/locations/<id>.json,
-## data/terrain/<id>/, data/osm/<id>.json) и кешированные точки (user://locations/<ключ>/).
+## data/terrain/<id>/ с osm.json) и кешированные точки (user://locations/<ключ>/).
 ## Все чтения конфигов мест и OSM места — только через него.
 
-const BUILTIN_OSM := "res://data/osm/%s.json"
 const KEY_PREFIX := "pt_"
 
 static var _cfg_cache: Dictionary = {}
@@ -60,7 +59,7 @@ static func config(id: String) -> Dictionary:
 ## Файл OSM места (может не существовать — места без слоя OSM).
 static func osm_path(id: String) -> String:
 	if is_builtin(id):
-		return BUILTIN_OSM % id
+		return String(config(id).get("data_dir", "res://data/terrain/" + id)).path_join("osm.json")
 	return cache_dir().path_join(id).path_join("osm.json")
 
 
@@ -68,7 +67,7 @@ static func osm_path(id: String) -> String:
 static func osm_files() -> PackedStringArray:
 	var out := PackedStringArray()
 	for id in builtin_ids():
-		out.append(BUILTIN_OSM % id)
+		out.append(osm_path(id))
 	var da := DirAccess.open(cache_dir())
 	if da != null:
 		for sub in da.get_directories():

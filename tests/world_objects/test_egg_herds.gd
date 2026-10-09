@@ -25,7 +25,7 @@ func _load(id: String) -> Dictionary:
 		t.location_id = ""
 		t.load_location(id)
 		var o := Objs.new()
-		o.osm = OsmData.load_file("res://data/osm/%s.json" % id, t.center_lat, t.center_lon)
+		o.osm = OsmData.load_file(Locations.osm_path(id), t.center_lat, t.center_lon)
 		_cache[id] = {"terrain": t, "place": EggPlace.build(t, o)}
 	return _cache[id]
 

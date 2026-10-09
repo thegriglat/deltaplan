@@ -149,7 +149,7 @@ func test_remove() -> void:
 	_after()
 
 
-## Ближайший населённый пункт из уже закешированных данных (data/osm/altai.json, Горно-Алтайск).
+## Ближайший населённый пункт из уже закешированных данных (osm.json места altai, Горно-Алтайск).
 func test_resolve_osm_name_from_cached_data() -> void:
 	var ll := TerrainGeo.local_to_latlon(6429.9, -9760.1, ALTAI_CENTER_LAT, ALTAI_CENTER_LON)
 	var name := RecentPlaces.resolve_osm_name(ll.x, ll.y)

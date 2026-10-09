@@ -1,6 +1,11 @@
 extends SceneTree
 ## Сборка места для точки в user://locations (как в игре, OA-К4):
 ##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]
+## Встроенное место (OA-7, только из рабочей копии):
+##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai [--local] [--offline]
+## собирает по configs/locations/<id>.json (центр, dem, surface, rivers) в его data_dir (data/terrain/<id>/);
+## --local — рельеф и покров сначала из ~/.cache/deltaplan_terrain и ~/.cache/deltaplan_parity (только чтение).
+## location.json не пишется (конфиг встроенного — configs/locations), ручные данные конфига не трогаются.
 ## Печатает ключ, missing, время по стадиям, net_requests, размер папки. Код выхода 1 — ошибка рельефа.
 ## Профиль — user:// текущего XDG_DATA_HOME (для проверок: XDG_DATA_HOME=$(mktemp -d)).
 ## Автозагрузки (Config) в -s-скрипте недоступны при разборе: классы грузим через load() после кадра.
@@ -15,6 +20,8 @@ func _run() -> void:
 	var lat := NAN
 	var lon := NAN
 	var offline := false
+	var id := ""
+	var local := false
 	var args := OS.get_cmdline_user_args()
 	var i := 0
 	while i < args.size():
@@ -27,14 +34,53 @@ func _run() -> void:
 				lon = float(args[i])
 			"--offline":
 				offline = true
+			"--id":
+				i += 1
+				id = args[i]
+			"--local":
+				local = true
 		i += 1
+	var spec: Dictionary = {}
+	if id != "":
+		var path := "res://configs/locations/%s.json" % id
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not d is Dictionary:
+			print("Нет конфига " + path)
+			quit(2)
+			return
+		spec = d
+		lat = float(spec.center_lat)
+		lon = float(spec.center_lon)
 	if is_nan(lat) or is_nan(lon):
-		print("Использование: -- --lat <градусы> --lon <градусы> [--offline]")
+		print("Использование: -- --lat <градусы> --lon <градусы> [--offline]  или  -- --id <id> [--local]")
 		quit(2)
 		return
 	var cache: GDScript = load("res://scripts/terrain/build/location_cache.gd")
 	var builder: Object = (load("res://scripts/terrain/build/location_builder.gd") as GDScript).new()
 	builder.offline = offline
+	if id != "":
+		var home := OS.get_environment("HOME")
+		builder.out_dir = ProjectSettings.globalize_path(String(spec.data_dir))
+		builder.fixed_key = id
+		var keep := {}
+		for k in ["dem", "surface", "rivers", "center_lat", "center_lon"]:
+			keep[k] = spec[k]
+		builder.fixed_spec = keep
+		builder.stages = builder.default_stages()
+		if local:
+			builder.spec_override = {
+				"dem_sources":
+				{
+					"copernicus_dir": home + "/.cache/deltaplan_terrain/copernicus",
+					"terrarium_dir": home + "/.cache/deltaplan_terrain/terrarium",
+					"terrarium_cache_dir": "user://dem_tiles",
+				}
+			}
+			for st in builder.stages:
+				if st.name == "surface":
+					st.obj.extra_cache_dirs = PackedStringArray(
+						[home + "/.cache/deltaplan_terrain/cog", home + "/.cache/deltaplan_parity"]
+					)
 	var last := [""]
 	builder.progress.connect(
 		func(stage: String, f: float) -> void:
@@ -52,7 +98,7 @@ func _run() -> void:
 	print("missing: %s" % str(res.missing))
 	print("стадии, с: %s" % JSON.stringify(builder.seconds))
 	print("net_requests: %d" % builder.net_requests)
-	var dir: String = cache.dir_for(key)
+	var dir: String = cache.dir_for(key) if id == "" else String(spec.data_dir)
 	print("папка: %s" % ProjectSettings.globalize_path(dir))
 	print("размер папки: %.1f МБ" % (cache.dir_size(dir) / 1048576.0))
 	print("всего: %.1f с" % ((Time.get_ticks_usec() - t0) / 1e6))

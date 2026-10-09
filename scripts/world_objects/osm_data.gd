@@ -1,6 +1,6 @@
 class_name OsmData
 extends RefCounted
-## Данные OpenStreetMap локации (data/osm/<id>.json, готовит tools/osm/fetch_osm.py).
+## Данные OpenStreetMap локации (osm.json в папке места, Locations.osm_path; готовит OsmStage).
 ## © OpenStreetMap contributors, ODbL. Координаты в файле — мир игры относительно центра файла;
 ## если центр рельефа другой, точки пересчитываются через широту/долготу (TerrainGeo).
 ## Формат — docs/guide/world-objects.md.
