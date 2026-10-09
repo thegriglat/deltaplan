@@ -29,7 +29,9 @@
     "scripts/world_objects/",
     "data/",
     "docs/contracts/",
-    "tests/contracts/"
+    "tests/contracts/",
+    "assets/",
+    "project.godot"
   ],
   "accept": [
     {
@@ -56,5 +58,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T03:55:12"
+  "created": "2026-10-10T03:55:12",
+  "edited": "2026-10-10T04:22:49"
 }

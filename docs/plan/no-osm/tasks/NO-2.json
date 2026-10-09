@@ -44,7 +44,9 @@
     "scripts/world_objects/easter_eggs/",
     "data/",
     "docs/contracts/",
-    "tests/contracts/"
+    "tests/contracts/",
+    "assets/",
+    "project.godot"
   ],
   "accept": [
     {
@@ -72,5 +74,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T03:50:28",
-  "edited": "2026-10-10T04:05:21"
+  "edited": "2026-10-10T04:22:49"
 }
