@@ -33,7 +33,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 CACHE = Path.home() / ".cache" / "deltaplan_terrain"
 EARTH_R_M = 6371008.8  # средний радиус Земли, м (тот же в geo.gd)
 

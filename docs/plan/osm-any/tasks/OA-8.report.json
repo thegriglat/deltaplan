@@ -1,8 +1,9 @@
 {
-  "status": "partial",
+  "status": "done",
   "summary": "Новый docs/guide/location-data.md (стадии, источники, кеш, ключ, missing/догрузка, точка во встроенном месте, повтор без сети, build_location.gd --id); terrain.md, world-objects.md, vegetation.md, architecture.md приведены к одной картине без ссылок на Python; findings osm-any, CHANGELOG, on_demand_location closed, offline_world_data заметка.",
   "commits": [
-    "b8a0a7ca Документация: данные места для любой точки и встроенных (osm-any, OA-8)"
+    "b8a0a7ca Документация: данные места для любой точки и встроенных (osm-any, OA-8)",
+    "Выводы паритета OSM-стадии (OA-4) в findings"
   ],
   "checks": [
     {
@@ -12,7 +13,6 @@
     }
   ],
   "not_done": [
-    "Паритет и время OSM-стадии (OA-4) не записаны: отчёта OA-4 нет; в findings место отмечено, числа добавить после OA-4",
     "Guide описывает OsmStage и build_location.gd --id по контракту v2 — в моей копии их ещё нет"
   ],
   "questions": [],
@@ -30,6 +30,6 @@
     }
   ],
   "dp_feedback": "dp docs index перегенерирует registry/contracts, decisions, research с чужими изменениями — пришлось откатывать git checkout; хотелось бы dp docs index --only INDEX.",
-  "t": "2026-10-09T18:38:51",
+  "t": "2026-10-09T18:54:48",
   "by": "executor"
 }

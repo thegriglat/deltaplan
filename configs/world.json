@@ -531,7 +531,7 @@
   "surface": {
     "_doc": "Карта поверхности (VR-4, VR-0): классы земного покрова. Из неё же берутся цвет земли (шейдер рельефа), деревья (только на «лесе») и сила источников термиков (Terrain.thermal_source_strength_at). Классы: 1 лес, 2 луг/трава, 3 пашня/поля, 4 кустарник, 5 скалы/голый грунт, 6 вода, 7 застройка, 8 снег/лёд; 0 — нет данных.",
     "worldcover": {
-      "_doc": "ESA WorldCover 2021 v200, 10 м (CC-BY 4.0): COG на AWS, читаются только нужные тайлы (HTTP range). Встроенные локации — tools/terrain/fetch_landcover.py, рантайм — scripts/terrain/worldcover_loader.gd.",
+      "_doc": "ESA WorldCover 2021 v200, 10 м (CC-BY 4.0): COG на AWS, читаются только нужные тайлы (HTTP range). Встроенные локации — SurfaceStage (tools/terrain/build_location.gd), рантайм — scripts/terrain/worldcover_loader.gd.",
       "url_template": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_{tile}_Map.tif",
       "url_template_doc": "Адрес файла; {tile} — угол тайла 3°×3°, например N51E084",
       "classes": {
@@ -551,7 +551,7 @@
       "attribution": "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium"
     },
     "detail10": {
-      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит tools/terrain/fetch_landcover.py <id> --only=detail10. Рантайм-локации (FR-17) — прежняя карта классов.",
+      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит SurfaceStage. Рантайм-локации (FR-17) — прежняя карта классов.",
       "layers": [
         "detail"
       ],

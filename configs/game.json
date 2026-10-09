@@ -101,8 +101,6 @@
   "result_delay_s_doc": "Через сколько секунд после посадки или срыва взлёта показать итог",
   "menu_camera_mode": "chase",
   "menu_camera_mode_doc": "Камера за меню (фон): cockpit, chase, free",
-  "picked_location_size_km": -1.0,
-  "picked_location_size_km_doc": "Размер рельефа при старте с карты, км; −1 — из world.json → runtime_terrain",
   "mounted_instruments": [
     {
       "scene": "res://scenes/instruments/instrument_3d.tscn",

@@ -48,5 +48,5 @@ static func place_name(s: FlightSettings) -> String:
 			if d <= RecentPlaces.DEDUP_DISTANCE_M:
 				return RecentPlaces.display_name(p)
 		return RecentPlaces.display_name({"lat": s.pick_lat, "lon": s.pick_lon})
-	var loc: Dictionary = Config.get_config("locations/" + s.location_id)
+	var loc: Dictionary = Locations.config(s.location_id)
 	return TranslationServer.translate(String(loc.get("name", s.location_id)))

@@ -1,14 +1,15 @@
 {
-  "status": "partial",
-  "summary": "Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (builtin_at -> встроенное место, иначе Terrain.load_point -> LocationBuilder -> load_location(ключ)), build_location.gd и тест готовы; старый mercator-путь точки удалён. Не зелёный только test_k3_osm: OsmStage (OA-4) ещё не влита.",
+  "status": "done",
+  "summary": "Сборщик места, кеш, реестр Locations, путь точки в игре, build_location.gd и тест готовы; OA-4 подтянута, dp accept --dry 12/12. Исправлена гонка в load_point (715f0b4a).",
   "commits": [
-    "a30df423 Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (OA-5)"
+    "a30df423 Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (OA-5)",
+    "715f0b4a load_point: ждать маски 10 м до чтения карт поверхности"
   ],
   "checks": [
     {
       "name": "dp accept OA-5 --dry",
-      "value": "11/12; упал только osm_any_contracts::test_k3_osm (нет osm_stage.gd)",
-      "pass": false
+      "value": "12/12",
+      "pass": true
     },
     {
       "name": "location_builder",
@@ -29,15 +30,73 @@
       "name": "повтор (47.06/11.01, тот же ключ)",
       "value": "net_requests 0, 0.3 с, догружается только osm",
       "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "90/90",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "84/84",
+      "pass": true
+    },
+    {
+      "name": "recent_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "world_key",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "favorites",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "start_regression",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "game_logic",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "e2e",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "5/5",
+      "pass": true
     }
   ],
   "not_done": [
-    "Проверка с OSM на реальной точке и полный osm_any_contracts: ждут OsmStage (OA-4). Без неё стадия osm = заглушка с отказом, место помечается missing=[osm] и не становится complete. После вливания: dp task sync OA-5, повторить dp accept.",
-    "Игру глазами (экран загрузки, старт с точки) не смотрел; только e2e/start_regression."
+    "Реальная точка с OSM не проверялась (Overpass-зеркала отвергают запрос, чинит OA-9); отказ OSM даёт missing=[osm] и догрузку (проверено на реальной сборке и тестом).",
+    "Экран загрузки глазами не смотрел."
   ],
-  "questions": [
-    "Если OsmStage при отсутствии/ошибке surface вернёт OK без detail_detail10.png - ок; я при отказе покрова помечаю и osm как missing."
-  ],
+  "questions": [],
   "how_to_check": "dp accept OA-5; XDG_DATA_HOME=$(mktemp -d) godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0",
   "uncertain": [
     {
@@ -59,6 +118,6 @@
   "dp_feedback": [
     "dp task show не даёт готовой команды 'подтянуть OA-4 когда влита' - проверять вручную git log feature/osm-any."
   ],
-  "t": "2026-10-09T18:19:18",
+  "t": "2026-10-09T19:00:47",
   "by": "executor"
 }

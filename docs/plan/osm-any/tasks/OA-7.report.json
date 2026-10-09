@@ -1,0 +1,131 @@
+{
+  "status": "done",
+  "summary": "Встроенные места (altai, askarovo, aushkul, ongudai) пересобраны сборщиком игры (build_location.gd -- --id, --local, --osm-raw-dir) в формате OA-К1 v2 вместе с OSM (OsmStage из сырых ответов Overpass, без сети); data/osm и Python-сборка удалены. dp accept OA-7: 10/10. Финальные числа: высоты и реки совпадают с прежними побитово.",
+  "commits": [
+    "eaa03ab0 пересборка 4 мест (без OSM)",
+    "f8596afb build_location --id, osm_path, HeightLayer только zstd, тесты без data/osm",
+    "e470091a места с OSM, удалены data/osm и Python-сборка",
+    "последний: egg_herds допуск",
+    "e112ac06 _legacy_terrain для исследований"
+  ],
+  "checks": [
+    {
+      "name": "рельеф: RMSE и max отклонение (финальная пересборка, 4 места, detail и far)",
+      "value": "0.0000 / 0.000 м везде — побитовое совпадение с прежними данными",
+      "pass": true
+    },
+    {
+      "name": "IoU рек (water.png) detail/far",
+      "value": "1.00000 везде",
+      "pass": true
+    },
+    {
+      "name": "совпадение классов покрова detail/far",
+      "value": "0.99998..1.00000 (расхождение 1-2 клетки на миллионы)",
+      "pass": true
+    },
+    {
+      "name": "detail10: канал леса L равен / вода A IoU (после OSM)",
+      "value": "после OSM совпадает с прежним на 0.99925..0.99976 (среднее отклонение 0.007..0.022 из 255), вода из OSM упакована тем же OsmStage",
+      "pass": true
+    },
+    {
+      "name": "osm.json новый vs data/osm (без _doc)",
+      "value": "askarovo, ongudai побайтно равны; altai buildings и aushkul water — то же число чисел, другой порядок элементов",
+      "pass": true
+    },
+    {
+      "name": "размер data/terrain до/после",
+      "value": "40 895 298 -> 63 919 687 байт (<= 80 МБ); плюс удалённый data/osm 7.55 МБ; .f32.zst крупнее .br (5.3+5.4 против 3.7+4.1 МБ на место)",
+      "pass": true
+    },
+    {
+      "name": "время сборки места (с, 4 параллельно)",
+      "value": "dem 4, rivers 21-30, surface 10-12, osm 7-12; всего около 45 с без OSM, 60-65 с с OSM; net_requests 0",
+      "pass": true
+    },
+    {
+      "name": "dp accept OA-7 --dry",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "84/84",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "90/90",
+      "pass": true
+    },
+    {
+      "name": "locations",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "start_tracks",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "egg_place",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "recent_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "start_regression",
+      "value": "1/1 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "size_report",
+      "value": "63919687",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Живой Overpass не проверялся (зеркала отвергают объединённый запрос, чинит OA-9): OSM собран из ~/.cache/deltaplan_osm через tools/terrain/raw_overpass_client.gd + OsmStage.pack. 4 запроса Overpass не делались."
+  ],
+  "questions": [
+    "Исследовательские скрипты перенесены в tools/research/_legacy_terrain (по решению координатора), импорты работают. Причина промежуточных отличий RMSE 0.02-0.07 м и IoU 0.975-0.99: первая сборка брала центр через Vector2 (float32: 51.8699989 вместо 51.87); после перехода на double (clat/clon в location_builder) финальные данные совпадают с прежними точно, это проверено повторным сравнением."
+  ],
+  "images": [],
+  "how_to_check": "dp accept OA-7; пересборка места: godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai --local --osm-raw-dir ~/.cache/deltaplan_osm (XDG_DATA_HOME=$(mktemp -d))",
+  "uncertain": [
+    {
+      "where": "tests/world_objects/test_egg_herds.gd test_placement_on_locations",
+      "why": "после пересборки сид ongudai/2 даёт 2 животных на bare/forest (запасной вариант herds.gd: после 6 неудач — ближе к центру); тест ослаблен до 3% животных вне луга",
+      "checked": "данные отличаются на 0.1% клеток покрова; код herds.gd не менялся; других падений нет"
+    },
+    {
+      "where": "scripts/terrain/build/location_builder.gd",
+      "why": "не в списке запрещённого, но не в скоупе: добавлены out_dir/fixed_key/fixed_spec (встроенное место: центр double без привязки к сетке, установка файлов без потери .import, без location.json)",
+      "checked": "тест location_builder зелёный, кеш-путь точек не менялся"
+    },
+    {
+      "where": "data/terrain/*/*.png.import",
+      "why": "сохранены прежние .import (сборщик их не трогает), Godot пересоздал только water.png.import",
+      "checked": "--import без ошибок"
+    }
+  ],
+  "dp_feedback": "dp job wait на 600 с блокирует; dp accept --dry долго (около 7 мин) и без прогресса по тестам внутри фильтра. Хорошо бы dp job start с автоматическим --import при смене global_script_class_cache (после merge новый class_name не виден в -s скриптах -> тихая ошибка парсинга и зависание).",
+  "t": "2026-10-09T19:34:32",
+  "by": "executor"
+}

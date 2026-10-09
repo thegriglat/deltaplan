@@ -22,7 +22,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parents[1] / "terrain"))
+sys.path.insert(0, str(HERE.parent / "_legacy_terrain"))
 from terrain_cover import COP, CELL, cell_area_km2, job_dem, job_wc  # noqa: E402
 from cog import Cog  # noqa: E402
 

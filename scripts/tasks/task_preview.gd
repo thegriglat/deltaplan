@@ -90,9 +90,9 @@ func _fit() -> void:
 
 
 static func _latlon_for(location: String) -> Callable:
-	if location == "" or not FileAccess.file_exists("res://configs/locations/%s.json" % location):
+	if location == "" or not Locations.exists(location):
 		return Callable()
-	var loc: Dictionary = Config.get_config("locations/" + location)
+	var loc: Dictionary = Locations.config(location)
 	return _centered(float(loc.center_lat), float(loc.center_lon))
 
 

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-08"
+updated: "2026-10-09"
 summary: "Все документы docs/ и паспорта исследований: путь, тип, статус, summary; точка входа."
 related: []
 generated: true
@@ -23,6 +23,7 @@ generated: true
 | [docs/guide/flight.md](/docs/guide/flight.md) | guide | active | flight | Модель полёта (scripts/flight/) — Реализует FR-1…FR-10. Логика — в RefCounted-классах (тестируются headless), нода Glider — тонкая обёртка: время, ввод, визуал. |
 | [docs/guide/game.md](/docs/guide/game.md) | guide | active | game | Сборка игры (scenes/main, scenes/game, scenes/ui) — Главная сцена собирает модули в играбельный полёт: меню → полёт ⇄ пауза → итог. |
 | [docs/guide/instruments.md](/docs/guide/instruments.md) | guide | active | instruments | Приборы и звук вариометра — Instrument3D: экран смотрит в локальную +Z, верх — +Y, начало — центр корпуса, хомут сзади снизу. |
+| [docs/guide/location-data.md](/docs/guide/location-data.md) | guide | active | osm-any | Откуда берутся данные места: стадии сборки (рельеф, реки, покров, лес и вода 10 м, OSM), источники и лицензии, кеш user://locations, точка внутри встроенного места, повтор без сети, как собрать встроенное место. |
 | [docs/guide/models.md](/docs/guide/models.md) | guide | active | wings | Модели (крылья, пилот, приборы, деревья) — Все модели генерируются скриптами Blender 4.3 (воспроизводимо, параметры в JSON рядом со скриптами), исходники .blend и текстуры — в assets/source/ (там .gdignore), готовые .glb — в assets/models/. |
 | [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) | guide | active | net | Сетевой протокол Deltaplan — Единственный источник правды — server/proto/deltaplan/v1/net.proto (пакет deltaplan.v1). |
 | [docs/guide/steam.md](/docs/guide/steam.md) | guide | active | steam | Steam в Deltaplan — как устроено, как включить и выключить, тест на App ID 480, ручные проверки на двух аккаунтах, Windows и macOS, известные ограничения |
@@ -46,7 +47,9 @@ generated: true
 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) | contract | postponed | ann2 | Контракты модуля ann2 (сеть ветра «2,5D-оператор»): данные и деление из P2, вход/выход сети, оценка против P2 по критерию 10–15 % скорости. |
 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) | contract | active | control-fix | Контракты модуля «control-fix» — v1 (до CF-3): pitch: float ∈ [−1, 1] — +1 трапеция от себя (нос вверх), −1 на себя; на земле — угол носа крыла (+ нос вверх). |
 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) | contract | active | easter-eggs | Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп. |
+| [docs/contracts/osm-any.md](/docs/contracts/osm-any.md) | contract | active | osm-any | Контракты osm-any: папка места (встроенного и кешированного), файл OSM места, API стадий сборки места в игре, сборщик/кеш/реестр мест. |
 | [docs/contracts/perf.md](/docs/contracts/perf.md) | contract | active | perf | Контракты модуля perf: размер буфера облаков и параметры качества (PF-К2), источники термиков поля воздуха при сборке в рабочем потоке (PF-К4). PF-К1 и PF-К3 сняты вместе с PF-2/PF-6. |
+| [docs/contracts/pilot-view.md](/docs/contracts/pilot-view.md) | contract | active | pilot-view | Контракты модуля «pilot-view»: PV1 — направление крена (roll_input bar/body), PV2 — X возвращает мышь-трапецию в нейтраль, PV3 — изгиб базовой штанги по крыльям; правка A3 v7 (высота подвеса, вид из кабины) — в aframe-geometry.md. |
 | [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) | contract | active | popular-places | Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2). |
 | [docs/contracts/qol.md](/docs/contracts/qol.md) | contract | active | qol | Контракты модуля qol: номер полёта и перезапуски одиночной игры (QL-К1), снимок состояния полёта для «с наивысшей точки» и сохранения (QL-К2), файл сохранённого полёта (QL-К3). |
 | [docs/contracts/site-i18n.md](/docs/contracts/site-i18n.md) | contract | active | site-i18n | Контракты модуля site-i18n: языки и URL-схема сайта (en в корне, ru под /ru/), файлы переводов по суффиксу, ключи i18n, ссылки между языками, правила английских текстов, генератор крыльев на два языка. |
@@ -131,6 +134,7 @@ generated: true
 | [tools/research/air_turb/README.md](/tools/research/air_turb/README.md) | research | closed |  | AM-08: возмущения из поля (масштаб 3) — замеры — Описание модели — docs/guide/air-model.md → «Масштаб 3: возмущения из поля». |
 | [tools/research/ann2/README.md](/tools/research/ann2/README.md) | research | postponed | ann2 | Код и команды ann2 (AN-1…AN-4): предел данных, сеть 2,5D-оператор, пилот, AN-4. Отложено 05.10; данные прогонов удалены, таблицы — в out/. |
 | [tools/research/b2/README.md](/tools/research/b2/README.md) | research | closed |  | Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена — Записка — docs/archive/plan/air-model-b2.md. |
+| [tools/research/basebar_curve/README.md](/tools/research/basebar_curve/README.md) | research | closed | pilot-view | Изгиб базовой штанги по 48 крыльям: 37 изогнутых (вынос 0,07–0,11 м, оценка класса), 11 прямых; shape — по руководствам, bow_m — оценка |
 | [tools/research/cases/README.md](/tools/research/cases/README.md) | research | closed | air-model | Случаи калибровки модели воздуха (Askervein, Perdigão, Б1): общие правила постановки и схема решателя, контракт C10. |
 | [tools/research/cases/b1/README.md](/tools/research/cases/b1/README.md) | research | closed |  | Б1 — совместная калибровка Askervein + Perdigão (волна Б, контракт C10 v2) — Этап 1 (постановка и сопоставимость) и этап 2 (пачка, совместная подгонка, проверка у лучшей точки, регрессия А2) сделаны; записка — docs/archive/plan/air-model-b1.md. |
 | [tools/research/cases/perdigao/README.md](/tools/research/cases/perdigao/README.md) | research | closed |  | Случай Perdigão (А4) — C10 v1 → v2 (Б1) — Б1 (01.10.2026): модуль приведён к C10 v2 — общая схема ../scheme.py, сетка/область/губки/профиль притока по общим правилам ../rules.py (dx 30 м, область 6 км, потолок 1748 м над нулём, губки 1050 м / от высшей точки рельефа, m… |
@@ -150,6 +154,7 @@ generated: true
 | [tools/research/morris/README.md](/tools/research/morris/README.md) | research | closed |  | Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. |
 | [tools/research/obf_region/README.md](/tools/research/obf_region/README.md) | research | closed |  | Эксперимент: состав OsmAnd OBF региона — К документу docs/plan/offline_world_data.md (раздел «Почему не OsmAnd OBF»). |
 | [tools/research/osm_pack/README.md](/tools/research/osm_pack/README.md) | research | closed |  | osm_pack — замер компактного офлайн-пакета (OSM-вектор + рельеф + покров), Словения — Исследование к плану docs/plan/offline_world_data.md (этап 0). |
+| [tools/research/pilot_view/README.md](/tools/research/pilot_view/README.md) | research | active | pilot-view | PV-1: реальная геометрия пилота лёжа и вид из кабины: зазор тело-штанга, вынос штанги, углы на штангу и носовые тросы, FOV; офлайн-скрипт cockpit_view.py и предложение для A3 v8. |
 | [tools/research/qol_load/README.md](/tools/research/qol_load/README.md) | research | postponed | qol | QL-6: замер времени «Рассчитываем ветер» после air-phase — прервано, отменено решением пользователя 07.10 (Q-07 отложен); 20 из 32 строк |
 | [tools/research/qol_signs/README.md](/tools/research/qol_signs/README.md) | research | closed | qol | QL-5: почему не видно птиц (размер 1,6 м → 1–2 px на типичных 1–1,5 км) и сколько признаков термика за 10 минут на 4 местах × 13:00/15:00. |
 | [tools/research/recal/README.md](/tools/research/recal/README.md) | research | closed |  | Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS — Итог — docs/research/air-model-tune.md, раздел «Перекалибровка (λ/h, α, z0) с профилем RS»; числа — out/fit.json. |
@@ -176,9 +181,11 @@ generated: true
 | [docs/plan/game/05-vr.md](/docs/plan/game/05-vr.md) | plan | idea |  | 05. VR (OpenXR): голова — шлем, ручка — джойстик. ИДЕЯ (решение пользователя 05.10): записать в планы, не в работу. Главный риск — производительность, первый шаг — дешёвый замер. |
 | [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) | plan | active | net | План: сетевая игра — роадмап — 1. «Сетевая игра» в главном меню → экран: адрес сервера (IP:порт, запоминается), своё имя пилота (из настроек). |
 | [docs/plan/offline_world_data.md](/docs/plan/offline_world_data.md) | plan | postponed | world | План: офлайн-данные мира — свой пакет региона и подложка поверхности из OSM — 1. Без интернета. Всё нужное для полёта (рельеф, земной покров, OSM) заранее перепаковано в свой компактный формат и лежит рядом с игрой пакетами регионов. |
-| [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | idea |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
+| [docs/plan/on_demand_location.md](/docs/plan/on_demand_location.md) | plan | closed |  | Идея: список мест полётов из OSM и закачка полных данных по месту — Из OSM брать размеченные места свободных полётов и показывать их списком для выбора старта. |
+| [docs/plan/osm-any.md](/docs/plan/osm-any.md) | plan | active | osm-any | Любая точка старта получает те же данные, что встроенные места (рельеф Copernicus/Terrarium, покров WorldCover, лес и вода 10 м, реки по рельефу, OSM) — сборка в самой игре, кеш в user://locations, повторный запуск без сети. |
 | [docs/plan/osm_vector_pack.md](/docs/plan/osm_vector_pack.md) | plan | postponed |  | Размер офлайн-пакета: вектор OSM + рельеф + покров (замер на Словении) — Замер к плану offline_world_data.md (этапы 0 и 1). |
 | [docs/plan/perf.md](/docs/plan/perf.md) | plan | active | perf | План модуля perf: общая оптимизация по замерам PF-1 — облака (буфер, марш по четвертям), рывки главного потока (AirThermals.build, refresh_now/_select), трава LOD, пересчёт поля мелкими порциями; итоговый замер до/после. |
+| [docs/plan/pilot-view.md](/docs/plan/pilot-view.md) | plan | active | pilot-view | Вид из кабины по отзыву пилота-тестировщика 08.10: высота подвеса над базовой штангой, камера и FOV (видны центр штанги и носовые тросы), изогнутая штанга, X — мышь в центр, крен мышью как трапецией. |
 | [docs/plan/popular-places.md](/docs/plan/popular-places.md) | plan | active | popular-places | Кнопка «Популярные места» в меню полёта: стартовые площадки дельтаплана из OSM списком по странам, поиск по названию, выбор места = точка старта (как точка с карты). |
 | [docs/plan/qol.md](/docs/plan/qol.md) | plan | active | qol | QoL: цикл «упал — снова» (Q-01…Q-05, Q-13, Q-19), мелочи старта (Q-08…Q-11, Q-14…Q-18), загрузка ветра (Q-07), птицы и признаки термиков (Q-20, Q-28). |
 | [docs/plan/site-i18n.md](/docs/plan/site-i18n.md) | plan | active | site-i18n | Сайт проекта на двух языках: en — основной (корень), ru — /ru/; перевод страниц site/content, переключатель языка, README и скилл выпуска. |
@@ -192,7 +199,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (433 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (435 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |

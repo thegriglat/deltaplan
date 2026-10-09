@@ -109,7 +109,7 @@ static func parse(key: String, base: FlightSettings = null) -> Dictionary:
 static func launch_latlon(s: FlightSettings) -> Vector2:
 	if s.has_pick():
 		return Vector2(s.pick_lat, s.pick_lon)
-	var loc: Dictionary = Config.get_config("locations/" + s.location_id)
+	var loc: Dictionary = Locations.config(s.location_id)
 	var sites: Array = loc.get("start_sites", [])
 	for st: Dictionary in sites:
 		if String(st.get("id", "")) == s.site_id:
