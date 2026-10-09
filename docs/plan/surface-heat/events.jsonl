@@ -30,3 +30,10 @@
 {"t": "2026-10-09T23:02:36", "by": "coordinator", "task": null, "ev": "plan", "note": "план 2. Задачи: замена «| SH-8 | dp-writer |»"}
 {"t": "2026-10-09T23:02:50", "by": "coordinator", "task": "SH-9", "ev": "created", "note": "Числа SH-1 в ядро SurfaceHeat"}
 {"t": "2026-10-09T23:02:50", "by": "coordinator", "task": "SH-9", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-surface-heat-SH-9"}
+{"t": "2026-10-09T23:08:23", "by": "main", "task": "SH-9", "ev": "reported", "commits": ["90b532eb"], "note": "done: Ядро SurfaceHeat и конфиг переведены на числа §9 (Stull через cover, Эрбс, влажность, вода с ρ по высоте, H_ref 360); т…", "dp_feedback": "нет"}
+{"t": "2026-10-09T23:09:01", "by": "executor", "task": "SH-9", "ev": "checked", "note": "2/2 surface_heat=ok:6/6; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:09:14", "by": "coordinator", "task": "SH-9", "ev": "note", "note": "FAIL по сути: test_surface_heat.gd не загрузился (Parse Error), прогон 6/6 без него — на доработку тому же исполнителю"}
+{"t": "2026-10-09T23:09:14", "by": "coordinator", "task": null, "ev": "note", "note": "dp: прогон тестов (--test) считает PASS, когда тестовый скрипт не загрузился (SCRIPT ERROR/Failed to load script) — файл молча выпадает; нужно FAIL при «Failed to load script» в логе"}
+{"t": "2026-10-09T23:09:22", "by": "main", "task": "SH-9", "ev": "reported", "commits": ["90b532eb", "SH-9:"], "note": "done: Ядро SurfaceHeat и конфиг переведены на числа §9 (Stull через cover, Эрбс, влажность, вода с ρ по высоте, H_ref 360); т…", "dp_feedback": "нет"}
+{"t": "2026-10-09T23:10:16", "by": "executor", "task": "SH-9", "ev": "checked", "note": "2/2 surface_heat=ok:15/15; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:10:25", "by": "coordinator", "task": "SH-9", "ev": "accepted", "note": "по отчёту (после доработки: тестовый файл грузится, 15/15)"}
