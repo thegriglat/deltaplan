@@ -85,26 +85,45 @@ func _ctx(dir: String) -> LocationBuildContext:
 	return c
 
 
+func _quiet(stage: OsmStage) -> void:
+	stage.client.retry_pause_s = 0.0
+	stage.client.layer_pause_s = 0.0
+	stage.client.use_status = false
+
+
+func _ok(body: PackedByteArray) -> Array:
+	return [HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), body]
+
+
+func _bad(code: int) -> Array:
+	return [HTTPRequest.RESULT_SUCCESS, code, PackedStringArray(), "overpass timeout".to_utf8_buffer()]
+
+
 func test_osm_stage_run() -> void:
 	var dir := _tmp_dir()
 	var ctx := _ctx(dir)
 	var stage := OsmStage.new()
+	_quiet(stage)
 	var calls := []
 	var body := FileAccess.get_file_as_bytes(FIXTURE)
 	stage.client.http_hook = func(url: String, headers: PackedStringArray, form: String) -> Array:
-		calls.append(url)
+		calls.append([url, form.uri_decode()])
 		var ua_ok := false
 		for h in headers:
 			ua_ok = ua_ok or h.begins_with("User-Agent: deltaplan")
 		check(ua_ok and form.begins_with("data="), "User-Agent и тело запроса")
 		if calls.size() == 1:
-			return [HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray()]
-		return [HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), body]
+			return _bad(504)
+		return _ok(body)
 	var err: Error = await stage.run(ctx)
 	check(err == OK, "run OK: %d %s" % [err, ctx.log_lines])
-	check(ctx.net_requests == 2 and calls.size() == 2, "первое зеркало отказало, второе ответило: %d" % ctx.net_requests)
+	check(ctx.net_requests == 7 and calls.size() == 7, "6 слоёв + 1 повтор после 504: %d" % ctx.net_requests)
+	check(calls[0][0] == calls[1][0], "повтор на том же зеркале")
+	check(String(calls[1][1]).contains("highway") and not String(calls[1][1]).contains("building"), "запрос слоя roads")
+	check(String(calls[2][1]).contains('["building"]') and String(calls[2][1]).contains("maxsize"), "запрос слоя buildings, maxsize")
+	check(stage.client.stats.size() == 6, "статистика по слоям")
 	var osm: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("osm.json")))
-	check(osm is Dictionary and osm.location == "pt_test" and osm.roads.size() == 1, "osm.json записан")
+	check(osm is Dictionary and osm.location == "pt_test" and osm.roads.size() == 1, "osm.json записан, дубли слоёв схлопнуты")
 	var img := Image.load_from_file(dir.path_join("detail_detail10.png"))
 	img.convert(Image.FORMAT_LA8)
 	var px := img.get_data()
@@ -119,11 +138,70 @@ func test_osm_stage_run() -> void:
 	check(is_equal_approx(sj.layers[0].detail10.forest_fraction, 0.4), "forest_fraction сохранён")
 
 
+func test_osm_stage_mirror_and_tiles() -> void:
+	var mirrors: int = Config.get_config("world_objects").osm.overpass_urls.size()
+	var dir := _tmp_dir()
+	var ctx := _ctx(dir)
+	var stage := OsmStage.new()
+	_quiet(stage)
+	var body := FileAccess.get_file_as_bytes(FIXTURE)
+	var roads_calls := [0]
+	var n := [0]
+	stage.client.http_hook = func(_u: String, _h: PackedStringArray, form: String) -> Array:
+		n[0] += 1
+		if form.uri_decode().contains('["highway"]'):
+			roads_calls[0] += 1
+			if roads_calls[0] <= mirrors:
+				return _bad(400)  # без повтора: на каждом зеркале по одному запросу
+		return _ok(body)
+	var err: Error = await stage.run(ctx)
+	check(err == OK, "тайлы: run OK %d %s" % [err, ctx.log_lines])
+	check(roads_calls[0] == mirrors + 4, "roads: все зеркала целиком, затем 4 тайла: %d" % roads_calls[0])
+	check(ctx.net_requests == n[0] and n[0] == mirrors + 4 + 5, "всего запросов: %d" % n[0])
+	check(int(stage.client.stats[0].tiles) == 4, "в статистике roads — 4 тайла")
+	var osm: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("osm.json")))
+	check(osm.roads.size() == 1, "дубли тайлов схлопнуты")
+
+
+func test_osm_stage_mirror_retry_after() -> void:
+	var dir := _tmp_dir()
+	var ctx := _ctx(dir)
+	var stage := OsmStage.new()
+	_quiet(stage)
+	var body := FileAccess.get_file_as_bytes(FIXTURE)
+	var urls := []
+	stage.client.http_hook = func(u: String, _h: PackedStringArray, _f: String) -> Array:
+		urls.append(u)
+		if urls.size() <= 5:  # первое зеркало: 429 пять раз подряд -> второе
+			return [HTTPRequest.RESULT_SUCCESS, 429, PackedStringArray(["Retry-After: 0"]), PackedByteArray()]
+		return _ok(body)
+	var err: Error = await stage.run(ctx)
+	check(err == OK and urls[0] == urls[1] and urls[4] == urls[0] and urls[5] != urls[0], "429 пять раз -> следующее зеркало: %s" % [urls.slice(0, 6)])
+
+
+func test_osm_stage_remark_is_refusal() -> void:
+	var dir := _tmp_dir()
+	var ctx := _ctx(dir)
+	var stage := OsmStage.new()
+	_quiet(stage)
+	var body := FileAccess.get_file_as_bytes(FIXTURE)
+	var n := [0]
+	stage.client.http_hook = func(_u: String, _h: PackedStringArray, _f: String) -> Array:
+		n[0] += 1
+		if n[0] == 1:
+			return _ok('{"remark":"runtime error: Query run out of memory","elements":[]}'.to_utf8_buffer())
+		return _ok(body)
+	var err: Error = await stage.run(ctx)
+	check(err == OK and n[0] == 7, "remark: отказ зеркала без повтора, причина в журнале: %d" % n[0])
+	check(str(ctx.log_lines).contains("runtime error"), "причина в ctx.log_lines")
+
+
 func test_osm_stage_offline_and_failure() -> void:
 	var dir := _tmp_dir()
 	var ctx := _ctx(dir)
 	ctx.offline = true
 	var stage := OsmStage.new()
+	_quiet(stage)
 	var n := [0]
 	stage.client.http_hook = func(_u: String, _h: PackedStringArray, _f: String) -> Array:
 		n[0] += 1
@@ -133,5 +211,24 @@ func test_osm_stage_offline_and_failure() -> void:
 	var err: Error = await stage.run(ctx)
 	var mirrors: int = Config.get_config("world_objects").osm.overpass_urls.size()
 	check(err == ERR_CANT_CONNECT, "все зеркала отказали: ошибка")
-	check(ctx.net_requests == mirrors and n[0] == mirrors, "каждое зеркало — один раз без повторов: %d/%d" % [n[0], mirrors])
+	check(ctx.net_requests == n[0] and n[0] == 2 * mirrors, "roads целиком и первый тайл, по зеркалу без повторов: %d" % n[0])
 	check(not FileAccess.file_exists(dir.path_join("osm.json")), "osm.json не создан при отказе")
+
+
+func test_osm_stage_slot_status() -> void:
+	check(OverpassClient.slot_wait_s("Rate limit: 2\n2 slots available now.\n") == 0.0, "слот есть")
+	check(OverpassClient.slot_wait_s("Rate limit: 2\nSlot available after: 2026-10-09T12:00:10Z, in 10 seconds.\nSlot available after: 2026-10-09T12:00:30Z, in 30 seconds.\n") == 11.0, "ждать до ближайшего слота")
+	check(OverpassClient.slot_wait_s("что-то непонятное") == 0.0, "непонятный статус — не ждать")
+	var dir := _tmp_dir()
+	var ctx := _ctx(dir)
+	var stage := OsmStage.new()
+	_quiet(stage)
+	stage.client.use_status = true
+	var body := FileAccess.get_file_as_bytes(FIXTURE)
+	var urls := []
+	stage.client.http_hook = func(u: String, _h: PackedStringArray, _f: String) -> Array:
+		urls.append(u)
+		return _ok(("2 slots available now.").to_utf8_buffer() if u.ends_with("/status") else body)
+	check(await stage.run(ctx) == OK, "run со статусом")
+	check(urls[0].ends_with("/status") and urls[1].ends_with("/interpreter"), "сначала status, затем запрос слоя")
+	check(ctx.net_requests == 12, "6 слоёв + 6 status: %d" % ctx.net_requests)

@@ -41,14 +41,13 @@ func run(ctx: LocationBuildContext) -> Error:
 	var ua := String(world.get("runtime_terrain", {}).get("user_agent", "deltaplan-sim"))
 	var timeout_s := int(cfg.get("timeout_s", 180))
 	ctx.report(STAGE, 0.02)
-	var query := OverpassClient.build_query(bbox, timeout_s)
-	var body := await client.fetch(ctx, cfg.get("overpass_urls", []), query, float(timeout_s + 30), ua)
-	if body.is_empty():
+	var bodies := await client.fetch_all(ctx, cfg.get("overpass_urls", []), bbox, timeout_s, ua)
+	if bodies.is_empty():
 		ctx.log_line("osm: Overpass недоступен (%s)" % client.last_error)
 		return ERR_CANT_CONNECT if not ctx.cancelled else ERR_SKIP
 	ctx.report(STAGE, 0.4)
 	var result := {"err": OK}
-	var job := func() -> void: result.merge(_process(body, ctx.key, ctx.center_lat, ctx.center_lon, half, ctx.dir), true)
+	var job := func() -> void: result.merge(_process(bodies, ctx.key, ctx.center_lat, ctx.center_lon, half, ctx.dir), true)
 	await run_threaded(ctx.host, job)
 	for l: String in result.get("log", []):
 		ctx.log_line(l)
@@ -57,12 +56,15 @@ func run(ctx: LocationBuildContext) -> Error:
 
 
 ## Тяжёлая часть вне главного потока: разбор JSON, упаковка, вода, запись файлов.
-static func _process(body: PackedByteArray, key: String, lat: float, lon: float, half: float, dir: String) -> Dictionary:
+static func _process(bodies: Array, key: String, lat: float, lon: float, half: float, dir: String) -> Dictionary:
 	var log: Array = []
-	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-	if not parsed is Dictionary or not (parsed as Dictionary).has("elements"):
-		return {"err": ERR_PARSE_ERROR, "log": ["osm: ответ Overpass не разобран"]}
-	var osm := pack(parsed.elements, lat, lon, half)
+	var elements: Array = []
+	for body: PackedByteArray in bodies:
+		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+		if not parsed is Dictionary or not (parsed as Dictionary).has("elements"):
+			return {"err": ERR_PARSE_ERROR, "log": ["osm: ответ Overpass не разобран"]}
+		elements.append_array(parsed.elements)
+	var osm := pack(elements, lat, lon, half)
 	osm.location = key
 	var f := FileAccess.open(dir.path_join("osm.json"), FileAccess.WRITE)
 	if f == null:
