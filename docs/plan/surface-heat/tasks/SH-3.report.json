@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Инструмент tools/research/surface_heat/ (measure.gd/tscn, run.sh, check_schema.py, compare.py, README) снимает SH5 на коде игры: AirRuntime.load_field → поле Пикара → AirThermals.build. Прогон «до»: 3 места × 3 часа за 193 с, результаты в out/before/.",
+  "commits": [
+    "ee0f0220 surface-heat SH-3: инструмент замера до/после (SH5) и прогон «до»"
+  ],
+  "checks": [
+    {
+      "name": "schema",
+      "value": "9 файлов, ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "compare",
+      "value": "таблица до→до, re:altai",
+      "pass": true
+    },
+    {
+      "name": "dp accept SH-3 --dry",
+      "value": "2/2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Температура воды (null до SH-4). Подветренный старт ongudai — только на 12 ч отдельным решением с ветром 330° (в 9 и 15 пусто, --lee-hours)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "python3 tools/research/surface_heat/check_schema.py tools/research/surface_heat/out/before",
+  "uncertain": [
+    {
+      "where": "measure.gd:_stats_cells",
+      "why": "H — клетка 400 м грубейшего уровня в круге 10 км вокруг центра; пилот видит поле 100/50 м у себя и точный рельеф",
+      "checked": "окна есть только у первого старта места; подъём у остальных стартов — по полю 400 м (грубее)"
+    },
+    {
+      "where": "measure.gd:_slope_lift",
+      "why": "w — w_mech без шума и термиков, 30 м над землёй в 50 м перед стартом; пилот получает ещё турбулентность, термики, волны, фоновое опускание (в замере 0)",
+      "checked": "в by_point есть 10/30 м на 0/-50/-150 м"
+    },
+    {
+      "where": "measure.gd:_lee",
+      "why": "σ_w — ряд 10 Гц 120 с в точке минимума w (минимум по 10–100 м AGL, ±1 км), статичная точка, не траектория; probe.gd — аналитика, 20 Гц, 180 с — числа несравнимы напрямую",
+      "checked": "w_mean ряда сверен с w_min (совпадают по знаку)"
+    },
+    {
+      "where": "measure.gd:_solve",
+      "why": "термики — один детерминированный набор источников (не живые термики за день); в игре ветер/t_max задаёт пилот, тут 3 м/с, 26 °C, 15 июля; поле — после двух проходов подстройки притока k (altai k 0,43)",
+      "checked": "U над стартом на 10 м 2,93 м/с при меню 3"
+    },
+    {
+      "where": "h_by_class.water",
+      "why": "в «до» H воды — не 0: маска Пикара (detail_water.png) ≠ вода карты поверхности (маска 10 м/OSM), поэтому у озера Аушкуль H ≈ 248 Вт/м² (как у суши)",
+      "checked": "aushkul: вода 1,6 % круга, H воды 245–248; altai: 2,8 %, H воды 94/176/181"
+    }
+  ],
+  "dp_feedback": "Не хватило: dp job wait без вывода хвоста лога; в Bash-фоне длинный godot завершился «без вывода» — пришлось использовать dp job. Также удобно было бы dp-команды 'godot-run' (профиль+import+восстановление project.godot).",
+  "extra": {
+    "wall_s_total": 193.1,
+    "wall_s_per_point": "12–36 (решение поля ~12–16 с)",
+    "water_places": {
+      "aushkul": 0.0157,
+      "altai": 0.0283,
+      "ongudai": 0.0
+    }
+  },
+  "t": "2026-10-09T23:01:42",
+  "by": "executor"
+}
