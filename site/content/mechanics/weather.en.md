@@ -72,7 +72,7 @@ sine from sunrise (0) to the peak (1), after which it declines toward sunset to 
 **Ground heating inertia** works over 9 surface classes (field, rock, forest, built-up area, water, snow…),
 each with its own time constant: `dS/dt = (a·I(t) − S) / τ`. Meadow warms up in ≈ 0.5 h, rocks and scree in
 1.5 h, water in 10 h (it barely changes over a day), and forest gives up heat with a lag of ≈ 0.6·τ. That
-is why "evening thermals from rocks" and warm walls appear later than over open fields.
+is why "evening thermals from rocks" and warm walls appear later than over open fields. The water temperature used for heating the air over lakes comes from the same weather model: the daily mean air temperature a month before the date (below zero it is ice); see [Thermals](/mechanics/air-model/thermals/).
 
 **The morning surface inversion** keeps thermals low until heating breaks through it: the cloud base rises
 all morning rather than standing at the maximum value right away. Thermal strength grows with the heat flux
