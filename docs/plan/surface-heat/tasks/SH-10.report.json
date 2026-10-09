@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Новый раздел «Откуда берётся нагрев» в thermals (ru/en); правки границ в thermals и air-model/_index, воды в terrain, температуры воды в weather.",
+  "commits": [
+    "16fbe23d Сайт: нагрев по покрову, вода, шероховатость"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "rc=0",
+      "pass": true
+    },
+    {
+      "name": "ru",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "en",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "no_parents",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SH-10 --dry",
+  "uncertain": [
+    {
+      "where": "thermals.*.md, новый раздел",
+      "why": "«+3…5 % над лугом» — из замера Алтай/Онгудай (×1,03–1,05)",
+      "checked": "сверено с air-model.md и atmosphere.md"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-10T00:28:40",
+  "by": "executor"
+}
