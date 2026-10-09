@@ -18,10 +18,12 @@ func _keys(dbg: DebugOverlays) -> PackedStringArray:
 
 func test_items_follow_state() -> void:
 	var dbg := DebugOverlays.new()
-	add_child(dbg)  # _ready регистрирует действия F1/F5/F6
-	check(_keys(dbg) == PackedStringArray(["F1", "F5", "F6"]), "всё выключено: %s" % [_keys(dbg)])
+	add_child(dbg)  # _ready регистрирует действия F1/F3/F5/F6
+	check(_keys(dbg) == PackedStringArray(["F1", "F3", "F5", "F6"]), "всё выключено: %s" % [_keys(dbg)])
 	dbg.wind_on = true
-	check(_keys(dbg) == PackedStringArray(["F1", "F6"]), "ветер включён: %s" % [_keys(dbg)])
+	check(_keys(dbg) == PackedStringArray(["F1", "F3", "F6"]), "ветер включён: %s" % [_keys(dbg)])
+	dbg.wind_field_on = true
+	check(_keys(dbg) == PackedStringArray(["F1", "F6"]), "F3 включён: %s" % [_keys(dbg)])
 	dbg.perf_on = true
 	dbg.thermals_on = true
 	check(_keys(dbg).is_empty(), "все включены — пусто")
@@ -42,6 +44,7 @@ func test_label_updates() -> void:
 	check(lbl.visible and lbl.text.contains("F6"), "виден: " + lbl.text)
 	dbg.perf_on = true
 	dbg.wind_on = true
+	dbg.wind_field_on = true
 	dbg.thermals_on = true
 	h.refresh()
 	check(not lbl.visible, "все включены — скрыт")

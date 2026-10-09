@@ -19,6 +19,8 @@ var height_fn: Callable
 
 var perf_on := false
 var wind_on := false
+## F3 (слой WindFieldDebug): состояние сообщает он сам (game.gd подключает сигнал toggled).
+var wind_field_on := false
 var thermals_on := false
 
 var _cfg: Dictionary = {}
