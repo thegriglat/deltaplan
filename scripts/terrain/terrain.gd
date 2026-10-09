@@ -131,7 +131,7 @@ func _read_location(id: String) -> Dictionary:
 	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	var meta: Variant = JSON.parse_string(meta_text)
 	if not meta is Dictionary:
-		push_error("Terrain: нет %s/meta.json — запусти tools/terrain/fetch_dem.py %s" % [dir, id])
+		push_error("Terrain: нет %s/meta.json — собери: godot --headless -s res://tools/terrain/build_location.gd -- --id %s" % [dir, id])
 		load_failed.emit(tr("err_no_location_data") % id)
 		return {}
 	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
@@ -888,7 +888,7 @@ func _start_mask_decode(dir: String) -> Dictionary:
 	return out
 
 
-## Карты поверхности из <data_dir>/surface.json (tools/terrain/fetch_landcover.py); по id слоя.
+## Карты поверхности из <data_dir>/surface.json (SurfaceStage); по id слоя.
 ## mask_images — уже прочитанные маски 10 м: {id слоя: [Image]} (нет — читаются здесь).
 func _load_surfaces(
 	dir: String, new_layers: Array[HeightLayer], mask_images: Dictionary = {}

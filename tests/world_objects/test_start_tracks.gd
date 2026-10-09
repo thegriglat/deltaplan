@@ -23,7 +23,7 @@ func _cfg() -> Dictionary:
 func _osm_data() -> OsmData:
 	if _osm == null:
 		var t := _altai()
-		_osm = OsmData.load_file("res://data/osm/altai.json", t.center_lat, t.center_lon)
+		_osm = OsmData.load_file(Locations.osm_path("altai"), t.center_lat, t.center_lon)
 	return _osm
 
 

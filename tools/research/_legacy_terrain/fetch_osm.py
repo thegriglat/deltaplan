@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 CACHE = Path.home() / ".cache" / "deltaplan_osm"
 EARTH_R_M = 6371008.8  # тот же радиус, что в scripts/terrain/geo.gd
 ATTRIBUTION = "© OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright)"

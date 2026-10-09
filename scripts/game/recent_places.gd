@@ -6,13 +6,14 @@ extends RefCounted
 ## координаты и время обновляются). Закреплённые (pinned) — всегда сверху и не вытесняются;
 ## непристёгнутых хранится не больше MAX_UNPINNED (лишние — самые старые по времени — убираются).
 ## custom_name — своё имя (✎, не трогается автоподписью); osm_name — ближайший населённый пункт
-## из уже закешированных данных (res://data/osm/<id>.json, без сети — resolve_osm_name).
+## из уже закешированных данных (osm.json в папке места, без сети — resolve_osm_name).
 ## display_name: custom_name → osm_name → координаты «50.6000, 86.4000».
 
 const PATH := "user://recent_places.json"
 const MAX_UNPINNED := 8
 const DEDUP_DISTANCE_M := 300.0
-const OSM_DIR := "res://data/osm"
+## Пустой osm_dir = все места (Locations.osm_files()); непустой — папка с *.json (проверки).
+const OSM_DIR := ""
 
 
 static func _load_root(path: String) -> Dictionary:
@@ -154,7 +155,7 @@ static func remove(id: int, path: String = PATH) -> void:
 	_save_root(path, root)
 
 
-## После полёта / когда данные локации закешировались (res://data/osm/<id>.json) — уточнить имя
+## После полёта / когда данные локации закешировались (osm.json в папке места) — уточнить имя
 ## места без сети (не трогает своё имя, custom_name).
 static func update_osm_name(lat: float, lon: float, name: String, path: String = PATH) -> void:
 	if name == "":
@@ -195,11 +196,11 @@ static func display_name(p: Dictionary) -> String:
 	return "%.4f, %.4f" % [float(p.get("lat", 0.0)), float(p.get("lon", 0.0))]
 
 
-## Ближайший населённый пункт по уже закешированным данным мест (встроенные res://data/osm/*.json и user://locations/*/osm.json,
+## Ближайший населённый пункт по уже закешированным данным мест (osm.json встроенных мест и user://locations/*/osm.json,
 ## без сетевых запросов) — только если точка попадает в bbox файла (с небольшим запасом).
 static func resolve_osm_name(lat: float, lon: float, osm_dir: String = OSM_DIR) -> String:
 	var files := PackedStringArray()
-	if osm_dir == OSM_DIR:
+	if osm_dir == "":
 		files = Locations.osm_files()  # встроенные и кешированные места (user://locations)
 	else:
 		var da := DirAccess.open(osm_dir)

@@ -171,7 +171,7 @@ func test_dem_failure_is_error() -> void:
 
 func test_registry_builtin() -> void:
 	check(Locations.is_builtin("altai") and not Locations.is_builtin("pt_+01.000_+002.000"), "is_builtin")
-	check(Locations.osm_path("altai") == "res://data/osm/altai.json", "osm_path встроенного")
+	check(Locations.osm_path("altai") == "res://data/terrain/altai/osm.json", "osm_path встроенного")
 	check(not Locations.config("altai").is_empty() and Locations.config("pt_+09.999_+009.999").is_empty(), "config")
 	var al: Dictionary = Locations.config("altai")
 	check(Locations.builtin_at(float(al.center_lat), float(al.center_lon)) == "altai", "builtin_at центр")

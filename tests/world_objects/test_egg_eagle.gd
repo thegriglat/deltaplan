@@ -213,7 +213,7 @@ func _place() -> EggPlace:
 		t.location_id = ""
 		t.load_location("altai")
 		var o := Objs.new()
-		o.osm = OsmData.load_file("res://data/osm/altai.json", t.center_lat, t.center_lon)
+		o.osm = OsmData.load_file(Locations.osm_path("altai"), t.center_lat, t.center_lon)
 		_place_cache = EggPlace.build(t, o)
 	return _place_cache
 
