@@ -24,3 +24,12 @@ func _methods(path: String) -> Array:
 ## N4: Overpass-клиента нет.
 func test_n4_no_overpass() -> void:
 	check(not ResourceLoader.exists("res://scripts/terrain/build/overpass_client.gd"), "overpass_client.gd удалён")
+
+
+## N4 v2: OSM нет нигде, и у встроенных мест.
+func test_n4_v2_no_osm() -> void:
+	for p in ["res://scripts/world_objects/osm_data.gd", "res://scripts/world_objects/osm_layer.gd",
+			"res://scripts/world_objects/road_mesher.gd", "res://scripts/terrain/build/osm_stage.gd"]:
+		check(not ResourceLoader.exists(p), "%s удалён" % p)
+	for id in PLACES:
+		check(not FileAccess.file_exists("res://data/terrain/%s/osm.json" % id), "%s: osm.json удалён" % id)

@@ -5,7 +5,7 @@ module: "no-osm"
 updated: "2026-10-10"
 summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 место без OSM-стадии; К8 v4 — в easter-eggs.md"
 related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 1}]
+contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}]
 ---
 # Контракты no-osm
 
@@ -56,11 +56,12 @@ contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3",
 пятна; плотность — по `share_at`; типы и размеры — `configs/world_objects.json → villages` (с `_doc`).
 Нет пятен — домов нет.
 
-## N4. Место без OSM-стадии (v1, владелец NO-4; потребители сборщик, Locations, WorldObjects)
-- Стадии сборщика: dem → rivers → surface; OSM — не стадия (нет в `build.json`, не `missing`), сеть Overpass
-  не используется нигде.
-- `osm.json` — необязательный файл места (встроенные места; возможный будущий дамп): если есть — читаются
-  только дороги и вода (`OsmData.roads/rivers/lakes`: тропы к стартам, просеки, палатки); в маску воды 10 м и в H
-  вода OSM не идёт; нет файла — дорог и воды OSM нет, тихо.
+## N4. Игра без OSM (v2, владелец NO-4; потребители сборщик, Locations, WorldObjects, пасхалки)
+v1 → v2 (10.10, решение пользователя): OSM удалён и у встроенных мест — `osm.json` нет нигде.
+- Стадии сборщика: dem → rivers → surface; OSM — не стадия (нет в `build.json`, не `missing`); сеть Overpass не
+  используется нигде.
+- Нет `osm.json`, `OsmData`, `OsmLayer`, `RoadMesher`, `Locations.osm_path`; дорог, ЛЭП, заборов, полей, имён
+  посёлков и воды OSM нет. Вода — только N1 (канал A) и реки по рельефу; здания — только N3.
+- Подъезды к стартам (`start_tracks`) — без дорог OSM: процедурно, если это уже умеет код, иначе убраны.
 - Имя места — `configs/locations/<id>.json → name` (встроенное) или координаты точки.
-- Нет ЛЭП, заборов у посадок, полей, имён посёлков OSM; `OsmStage` (в том числе запись воды OSM в маску) удалён.
+- Встроенные места собираются и летаются так же, как произвольная точка (те же файлы, кроме `osm.json`).
