@@ -49,3 +49,5 @@
 {"t": "2026-10-09T23:29:28", "by": "executor", "task": "SH-5", "ev": "checked", "note": "5/5 surface=ok:37/37; relief=ok:5/5; thermal=ok:12/12; ridge_starts=ok:2/2; surface_heat=ok:16/16"}
 {"t": "2026-10-09T23:32:28", "by": "reviewer", "task": "SH-5", "ev": "reviewed", "note": "Повторное ревью после rework (f91d84fb): все 4 замечания закрыты — инициализация _heat_cfg/_h_ref/_heat_onehot перенесена в set_surfaces на главном потоке, z_m…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/surface-heat/tasks/SH-5.review.json"}
 {"t": "2026-10-09T23:32:43", "by": "coordinator", "task": "SH-5", "ev": "accepted", "note": "по ревью (повторное: accept, 1 minor — хрупкость до set_surfaces)"}
+{"t": "2026-10-09T23:35:18", "by": "coordinator", "task": "SH-5", "ev": "accepted", "commits": ["8a2bbbd0"], "note": "5/5 surface=ok:37/37; relief=ok:5/5; thermal=ok:12/12; ridge_starts=ok:2/2; surface_heat=ok:16/16"}
+{"t": "2026-10-09T23:35:19", "by": "coordinator", "task": "SH-5", "ev": "merged", "commits": ["8a2bbbd0"]}
