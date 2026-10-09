@@ -48,3 +48,4 @@
 {"t": "2026-10-09T18:53:54", "by": "coordinator", "task": "OA-4", "ev": "accepted", "commits": ["453e262"], "note": "6/6 osm_stage=ok:4/4; world_objects=ok:90/90; contract_osm=ok:ok test_osm_any_contracts.gd:…; osm_equal=ok:0; water_iou=ok:0.988; time_osm=ok:4.3"}
 {"t": "2026-10-09T18:54:07", "by": "coordinator", "task": "OA-4", "ev": "merged"}
 {"t": "2026-10-09T18:54:07", "by": "coordinator", "task": "OA-9", "ev": "created", "note": "Overpass в игре: запросы по слоям, повтор при 429/504, живая проверка"}
+{"t": "2026-10-09T18:54:10", "by": "coordinator", "task": "OA-9", "ev": "started", "note": "dp-engineer (тот же исполнитель OA-4, продолжение), ~/deltaplan-osm-any-OA-9"}
