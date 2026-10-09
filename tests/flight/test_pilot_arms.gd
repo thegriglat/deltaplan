@@ -11,7 +11,7 @@ const MAX_GRIP_ERR_M := 0.03
 ## (плечо–хват 0,32–0,37 м), ось руки почти вертикальна, и локоть, торчащий наружу, лежит на
 ## окружности в почти горизонтальной плоскости: «наружу и ниже середины» невозможно, остаётся
 ## «наружу и не выше плеча» (запас на ±10 см — рука согнута, локоть на уровне плеча).
-const ELBOW_ABOVE_SHOULDER_M := 0.15  # v8: зазор 0,06 — плечи ближе к штанге, локоть выше плеча на 0,10–0,13 (число — в отчёте)
+const ELBOW_BELOW_SHOULDER_M := 0.2  # нейтральная поза: плечо 0,258 м вертикально вниз
 ## Нижняя граница угла в локте на стойках, ° (контракт A3.2 v3). Кости pilot.glb: плечо 0,26 м,
 ## предплечье с кистью 0,38 м; хват на 0,12 выше и 0,33 впереди плеча — локоть ≈ 64°.
 const MIN_ELBOW_DEG := 55.0
@@ -336,17 +336,22 @@ func _joints(v: GliderVisual, side: int) -> Array[Vector3]:
 
 
 ## Локоть наружу; стоя — ниже середины отрезка «плечо → хват» (кисти выше плеч, локти вниз),
-## лёжа — не выше плеча больше чем на ELBOW_ABOVE_SHOULDER_M.
+## лёжа — под плечом (ниже на ELBOW_BELOW_SHOULDER_M, у бока).
 func _check_elbows(v: GliderVisual, what: String, prone: bool) -> void:
 	for side in [-1, 1]:
 		var j := _joints(v, side)
 		var elbow := j[1]
 		var mid := (j[0] + _grip(v, side)) * 0.5
-		check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
 		if prone:
+			# нейтраль (arms.elbow_height_frac = 1): локоть под плечом, прижат к боку
 			check(
-				elbow.y < j[0].y + ELBOW_ABOVE_SHOULDER_M,
-				"%s рука %d: локоть не выше плеча (%.3f)" % [what, side, elbow.y - j[0].y]
+				elbow.y < j[0].y - ELBOW_BELOW_SHOULDER_M,
+				"%s рука %d: локоть ниже плеча на ≥ %.2f м (%.3f)" % [what, side, ELBOW_BELOW_SHOULDER_M, j[0].y - elbow.y]
+			)
+			check(
+				absf(elbow.x - j[0].x) < 0.1,
+				"%s рука %d: локоть прижат к боку (в стороне %.3f м)" % [what, side, absf(elbow.x - j[0].x)]
 			)
 		else:
+			check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
 			check(elbow.y < mid.y, "%s рука %d: локоть вниз" % [what, side])
