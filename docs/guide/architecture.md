@@ -49,7 +49,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+. Цели: Window
 - `get_start_sites() -> Array[Dictionary]` — `{id, name, position: Vector3, heading_deg}` стартовые площадки.
 - `sun_exposure_at(x, z) -> float` 0..1 — освещённость склона солнцем (для источников термиков).
 - `surface_at(x, z) -> int` — класс поверхности (WorldCover: лес, луг, пашня, скалы, вода, застройка, снег).
-- `thermal_source_strength_at(x, z) -> float` 0..1 — сила источника термиков (класс × освещённость × усиление у границ поле–лес). Передаётся в `Atmosphere.set_ground` как `sun_fn`.
+- `thermal_source_strength_at(x, z) -> float` 0..1 — сила источника термиков (из потока тепла `SurfaceHeat` по классу, склону и влажности + усиление у границ поле–лес; `atmosphere.md` → «Сила источника аналитических термиков»). Передаётся в `Atmosphere.set_ground` как `sun_fn`.
 - `get_landing_sites() -> Array[Dictionary]` — посадочные площадки.
 
 **Атмосфера** (`scripts/atmosphere/atmosphere.gd`, нода `Atmosphere`, группа `"atmosphere"`):
