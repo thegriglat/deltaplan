@@ -20,3 +20,5 @@
 {"t": "2026-10-09T22:59:37", "by": "executor", "task": "SH-1", "ev": "reported", "commits": ["cc0a0afe"], "note": "done: Раздел 9 «Использование в игре (surface-heat)» в surface_params.md: K↓/L* по Stull, доля рассеянной по Эрбсу, m_dry/nor…", "dp_feedback": "dp job start с bash -c и аргументом сцены работает; не хватило команды для запуска godot-сцены инструмента с проверкой ошибок компиляции в логе (скрипт SceneTree падал на автозагрузках молча в фоне)."}
 {"t": "2026-10-09T23:00:08", "by": "executor", "task": "SH-1", "ev": "checked", "note": "2/2 docs=ok:ошибок 0; section=ok:1"}
 {"t": "2026-10-09T23:00:20", "by": "coordinator", "task": "SH-1", "ev": "accepted", "note": "по отчёту (литература, числа EST помечены; применит SH-6)"}
+{"t": "2026-10-09T23:00:20", "by": "coordinator", "task": "SH-1", "ev": "accepted", "commits": ["c7031ea0"], "note": "2/2 docs=ok:ошибок 0; section=ok:1"}
+{"t": "2026-10-09T23:00:21", "by": "coordinator", "task": "SH-1", "ev": "merged", "commits": ["c7031ea0"]}
