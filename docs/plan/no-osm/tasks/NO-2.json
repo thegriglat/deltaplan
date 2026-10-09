@@ -1,0 +1,75 @@
+{
+  "id": "NO-2",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Дома в пятнах застройки вместо зданий OSM",
+  "goal": "Посёлки видны в любой точке без OSM: дома процедурно внутри пятен застройки WorldCover (плотность по доле, разворот по склону/краю, дом/сарай/баня), той же отрисовкой, препятствиями и полянами, что здания OSM; здания OSM больше не читаются.",
+  "plan_ref": "NO-2",
+  "contracts": [
+    {
+      "name": "N2",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N3",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-2",
+  "branch": "no-osm/NO-2",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/world_objects/village_placer.gd",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/game/collision_check.gd",
+    "configs/world_objects.json",
+    "tests/world_objects/test_villages.gd",
+    "tests/world_objects/test_world_objects.gd",
+    "tests/game/test_collisions.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/easter_eggs/",
+    "data/",
+    "docs/contracts/",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_villages",
+      "tests": "test_villages"
+    },
+    {
+      "name": "test_world_objects",
+      "tests": "test_world_objects"
+    },
+    {
+      "name": "test_collisions",
+      "tests": "test_collisions"
+    },
+    {
+      "name": "no_osm_contracts_n1",
+      "tests": "no_osm_contracts_n1"
+    },
+    {
+      "name": "no_osm_buildings",
+      "cmd": "! grep -nE '\\bbuildings\\b' scripts/world_objects/osm_data.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/NO-2/ | grep -iE 'jpg|png'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T03:50:28"
+}
