@@ -37,3 +37,5 @@
 {"t": "2026-10-09T23:09:22", "by": "main", "task": "SH-9", "ev": "reported", "commits": ["90b532eb", "SH-9:"], "note": "done: Ядро SurfaceHeat и конфиг переведены на числа §9 (Stull через cover, Эрбс, влажность, вода с ρ по высоте, H_ref 360); т…", "dp_feedback": "нет"}
 {"t": "2026-10-09T23:10:16", "by": "executor", "task": "SH-9", "ev": "checked", "note": "2/2 surface_heat=ok:15/15; surface_heating=ok:2/2"}
 {"t": "2026-10-09T23:10:25", "by": "coordinator", "task": "SH-9", "ev": "accepted", "note": "по отчёту (после доработки: тестовый файл грузится, 15/15)"}
+{"t": "2026-10-09T23:10:26", "by": "coordinator", "task": "SH-9", "ev": "accepted", "commits": ["7c66093b"], "note": "2/2 surface_heat=ok:15/15; surface_heating=ok:2/2"}
+{"t": "2026-10-09T23:10:27", "by": "coordinator", "task": "SH-9", "ev": "merged", "commits": ["7c66093b"]}
