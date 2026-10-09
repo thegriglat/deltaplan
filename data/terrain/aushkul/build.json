@@ -1,23 +1,22 @@
 {
   "builder_version": 1,
-  "built_utc": "2026-10-09T13:41:37Z",
+  "built_utc": "2026-10-09T14:08:29Z",
   "center_lat": 54.72,
   "center_lon": 59.69,
-  "complete": false,
+  "complete": true,
   "key": "aushkul",
-  "missing": [
-    "osm"
-  ],
+  "missing": [],
   "net_requests": 0,
   "seconds": {
-    "dem": 4.87,
-    "osm": 0.0,
-    "rivers": 28.16,
-    "surface": 12.67
+    "dem": 3.9,
+    "osm": 7.41,
+    "rivers": 21.83,
+    "surface": 9.83
   },
   "sources": [
     "copernicus",
     "terrarium",
-    "worldcover"
+    "worldcover",
+    "osm"
   ]
 }

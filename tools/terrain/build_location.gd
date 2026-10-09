@@ -2,9 +2,10 @@ extends SceneTree
 ## Сборка места для точки в user://locations (как в игре, OA-К4):
 ##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]
 ## Встроенное место (OA-7, только из рабочей копии):
-##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai [--local] [--offline]
+##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai [--local] [--osm-raw-dir <папка>]
 ## собирает по configs/locations/<id>.json (центр, dem, surface, rivers) в его data_dir (data/terrain/<id>/);
 ## --local — рельеф и покров сначала из ~/.cache/deltaplan_terrain и ~/.cache/deltaplan_parity (только чтение).
+## --osm-raw-dir — вместо запроса Overpass склеить сырые ответы <папка>/<id>_<слой>.json (без сети).
 ## location.json не пишется (конфиг встроенного — configs/locations), ручные данные конфига не трогаются.
 ## Печатает ключ, missing, время по стадиям, net_requests, размер папки. Код выхода 1 — ошибка рельефа.
 ## Профиль — user:// текущего XDG_DATA_HOME (для проверок: XDG_DATA_HOME=$(mktemp -d)).
@@ -22,6 +23,7 @@ func _run() -> void:
 	var offline := false
 	var id := ""
 	var local := false
+	var osm_raw := ""
 	var args := OS.get_cmdline_user_args()
 	var i := 0
 	while i < args.size():
@@ -39,6 +41,9 @@ func _run() -> void:
 				id = args[i]
 			"--local":
 				local = true
+			"--osm-raw-dir":
+				i += 1
+				osm_raw = args[i]
 		i += 1
 	var spec: Dictionary = {}
 	if id != "":
@@ -67,6 +72,13 @@ func _run() -> void:
 			keep[k] = spec[k]
 		builder.fixed_spec = keep
 		builder.stages = builder.default_stages()
+		if osm_raw != "":
+			var rc: Object = (load("res://tools/terrain/raw_overpass_client.gd") as GDScript).new()
+			rc.dir = osm_raw
+			rc.id = id
+			for st in builder.stages:
+				if st.name == "osm":
+					st.obj.client = rc
 		if local:
 			builder.spec_override = {
 				"dem_sources":
