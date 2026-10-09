@@ -29,7 +29,7 @@ sed -e "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=$w/" \
 export XDG_DATA_HOME=${XDG_DATA_HOME:-$(mktemp -d)}
 mkdir -p "$out"
 rm -f "$out"/out*.png "$out/out.wav"
-"$root/tools/dp" lock gpu promo --no-tmux -- xvfb-run -a -s "-screen 0 ${w}x${h}x24" \
+xvfb-run -a -s "-screen 0 ${w}x${h}x24" \
 	godot --path "$proj" --audio-driver Dummy --write-movie "$out/out.png" --fixed-fps "$fps" \
 	--quit-after $((secs * fps)) res://tools/shots/promo/promo.tscn -- "${game_flags[@]}"
 ffmpeg -y -loglevel error -framerate "$fps" -i "$out/out%08d.png" -i "$out/out.wav" \

@@ -8,7 +8,7 @@ tools/shots/promo/promo.sh build/promo/run2 15 1280 720 -- --autostart --camera=
 ```
 
 - `promo.gd` — драйвер съёмки: прячет прибор, отключает CameraRig и ведёт камеру по ключам `[t_с, угол_° (0 — сзади, + вправо, 180 — спереди), радиус_м, высота_м, fov_°]` (Catmull-Rom); курс сглажен в мировых осях, взгляд чуть впереди планера, камера не ниже 3 м над землёй.
-- `promo.sh` — временная копия проекта с нужным разрешением, `dp lock gpu` + xvfb + Movie Maker (PNG + WAV), сборка ffmpeg в mp4 (libx264 crf 15, aac 192k).
+- `promo.sh` — временная копия проекта с нужным разрешением, xvfb + Movie Maker (PNG + WAV), сборка ffmpeg в mp4 (libx264 crf 15, aac 192k).
 
 Что выяснилось:
 - нужен дисплей (xvfb с Vulkan), `--headless` не пишет;
