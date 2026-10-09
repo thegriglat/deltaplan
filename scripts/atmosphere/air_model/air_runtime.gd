@@ -222,8 +222,9 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 	_place_key = key
 
 
-## Место для расчёта по рельефу игры (Terrain): слой detail (25 м), маска воды, координаты,
-## пояс часов (как у неба: NAN — солнечное время).
+## Место для расчёта по рельефу игры (Terrain): слой detail (25 м), маска воды, снимок поверхности
+## (AirPlace.surface_of: классы и влажность узлов 25 м — ждёт поля рельефа; звать после полян у
+## стартов), координаты, пояс часов (как у неба: NAN — солнечное время). C2 v8.
 static func place_of(terrain: Node, utc_offset_h: float) -> Dictionary:
 	var detail: HeightLayer = null
 	for l: HeightLayer in terrain.get("layers"):
@@ -239,6 +240,7 @@ static func place_of(terrain: Node, utc_offset_h: float) -> Dictionary:
 	return {
 		detail = detail,
 		water = water,
+		surface = AirPlace.surface_of(terrain, detail, water, _domain_steps()),
 		loc = {
 			id = String(terrain.get("location_id")),
 			center_lat = float(terrain.get("center_lat")),
@@ -246,6 +248,16 @@ static func place_of(terrain: Node, utc_offset_h: float) -> Dictionary:
 			utc_offset_h = utc_offset_h,
 		},
 	}
+
+
+## Шаги сеток области, которые строит _prep_task: DX и, при грубом старте, DX·picard_coarse_factor.
+static func _domain_steps() -> PackedFloat64Array:
+	var out := PackedFloat64Array([DX])
+	var ac: Dictionary = Config.get_config("atmosphere").get("air_model", {})
+	var k := int(ac.get("picard_coarse_factor", 1))
+	if String(ac.get("picard_start", "cold")) == "coarse" and k > 1:
+		out.append(DX * k)
+	return out
 
 
 ## Условия поля сейчас (Game): час неба (SunClock), ветер атмосферы (на 10 м у старта),
@@ -559,7 +571,8 @@ static func _domain(place: Dictionary, c: Dictionary, k: float, dx: float) -> Ai
 		float(c.get("t_max", NAN)),
 		String(c.get("sky", "clear")),
 		true,
-		k
+		k,
+		place.get("surface")
 	)
 
 
@@ -902,7 +915,8 @@ func _start_windows() -> void:
 			float(_req.wdir),
 			float(_req.get("t_max", NAN)),
 			String(_req.get("sky", "clear")),
-			_k
+			_k,
+			_place.get("surface")
 		)
 		_clip.levels_changed.connect(_on_levels)
 		_clip.failed.connect(_on_windows_failed)
