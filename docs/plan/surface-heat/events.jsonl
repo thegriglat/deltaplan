@@ -27,3 +27,4 @@
 {"t": "2026-10-09T23:02:15", "by": "coordinator", "task": "SH-3", "ev": "accepted", "note": "по отчёту (инструмент замера, «до» на 3 местах)"}
 {"t": "2026-10-09T23:02:16", "by": "coordinator", "task": "SH-3", "ev": "accepted", "commits": ["69e8a6f7"], "note": "2/2 schema=ok:exit 0; compare=ok:altai"}
 {"t": "2026-10-09T23:02:16", "by": "coordinator", "task": "SH-3", "ev": "merged", "commits": ["69e8a6f7"]}
+{"t": "2026-10-09T23:02:36", "by": "coordinator", "task": null, "ev": "plan", "note": "план 2. Задачи: замена «| SH-8 | dp-writer |»"}

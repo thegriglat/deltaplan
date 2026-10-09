@@ -5,7 +5,7 @@ module: "surface-heat"
 updated: "2026-10-09"
 summary: "Контракты surface-heat: SH1 конфиг параметров поверхности, SH2 ядро SurfaceHeat (H по классу и воде), SH3 вход решателя по клеткам (доли классов, влажность, вода), SH4 сила источника термиков из H, SH5 замер до/после"
 related: ["docs/plan/surface-heat.md", "docs/research/surface_params.md", "docs/contracts/air-model.md"]
-contracts: [{"id": "SH1", "version": 1}, {"id": "SH2", "version": 1}, {"id": "SH3", "version": 1}, {"id": "SH4", "version": 1}, {"id": "SH5", "version": 1}]
+contracts: [{"id": "SH1", "version": 1}, {"id": "SH2", "version": 2}, {"id": "SH3", "version": 1}, {"id": "SH4", "version": 1}, {"id": "SH5", "version": 1}]
 ---
 
 # Контракты surface-heat
@@ -36,7 +36,7 @@ water→water, built→built_up, snow→snow_ice. Инварианты: числ
 Каждое число вне П4 — с источником или пометкой EST в `_doc`. Запаздывание прогрева по классам остаётся в
 `configs/weather_model.json → heating.lag_h` (`SurfaceHeating`), не дублируется.
 
-## SH2 v1 — ядро `SurfaceHeat` (`scripts/atmosphere/surface_heat.gd`, `class_name SurfaceHeat`)
+## SH2 v2 — ядро `SurfaceHeat` (`scripts/atmosphere/surface_heat.gd`, `class_name SurfaceHeat`)
 Владелец: SH-2. Потребители: SH-4 (`AirPlace`, `AirWindowCase`), SH-5 (`Terrain`), SH-3/SH-7 (замер).
 Обязательные статические функции (имена и порядок аргументов фиксированы; дополнительные — можно):
 ```
@@ -63,6 +63,7 @@ static func mix_flux(fracs: PackedFloat32Array, off: int, normal: Vector3, class
 ```
 Оси: мир игры x — восток, z — юг (Godot), y — вверх; `class_sun` в тех же осях, что `SurfaceHeating.directions`.
 Вызывающий решатель переводит градиент своей сетки в нормаль в этих осях сам.
+v2 (добавочно, SH-9): `water` в `mix_flux` может содержать `z_m` (высота воды, м; нет — 0) → ρ воздуха по высоте в `water_flux(t_water_c, t_air_c, u_ms, cfg, z_m := 0.0)`; `shortwave` — облачность только через `cover` (Stull), `sky_heat` не используется (аргумент оставлен).
 Инварианты (юнит-тесты): H не убывает по cos_inc; при Rn − G > 0 H не возрастает по m; bowen(c, m_norm) = bowen,
 bowen ∈ [bowen_min, bowen_max], bowen(c, ≤ m_dry) = bowen_max, bowen(c, ≥ m_wet) = bowen_min; солнце под горизонтом → H < 0
 для суши (−L*·…); знак water_flux = знак (T_w − T_a); T_w ≥ 0; одинаковые входы → одинаковый результат (побитно).
