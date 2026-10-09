@@ -4,7 +4,7 @@ extends TestCase
 
 const DOC := "res://docs/contracts/no-osm.md"
 const EGGS_DOC := "res://docs/contracts/easter-eggs.md"
-const VERSIONS := {"N1": 1, "N2": 1, "N3": 1, "N4": 2}
+const VERSIONS := {"N1": 1, "N2": 1, "N3": 1, "N4": 2, "N5": 1}
 const PLACES := ["askarovo", "altai", "aushkul", "ongudai"]
 
 

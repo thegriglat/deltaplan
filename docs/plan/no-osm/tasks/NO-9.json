@@ -1,0 +1,98 @@
+{
+  "id": "NO-9",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Данные места в WebP lossless и версия формата кеша",
+  "goal": "Данные места в 2–3 раза компактнее (высоты 24 бит WebP, шаг 1/8 м; растры WebP lossless) и явная версия формата кеша: старый кеш места удаляется и место собирается заново.",
+  "plan_ref": "NO-9",
+  "contracts": [
+    {
+      "name": "N5",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N1",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-9",
+  "branch": "no-osm/NO-9",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/terrain/",
+    "configs/world.json",
+    "data/terrain/",
+    "tests/terrain/",
+    "tests/vegetation/",
+    "tools/terrain/",
+    "docs/guide/location-data.md"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/",
+    "scripts/ui/",
+    "scripts/core/load_progress.gd",
+    "docs/contracts/",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "no_osm_contracts_n5",
+      "tests": "no_osm_contracts_n5"
+    },
+    {
+      "name": "no_osm_contracts_n1",
+      "tests": "no_osm_contracts_n1"
+    },
+    {
+      "name": "test_terrain",
+      "tests": "test_terrain"
+    },
+    {
+      "name": "test_surface",
+      "tests": "test_surface"
+    },
+    {
+      "name": "test_location",
+      "tests": "test_location"
+    },
+    {
+      "name": "test_built_patches",
+      "tests": "test_built_patches"
+    },
+    {
+      "name": "height_layer",
+      "tests": "height_layer"
+    },
+    {
+      "name": "test_trees_water",
+      "tests": "test_trees_water"
+    },
+    {
+      "name": "webp_parity",
+      "cmd": "bash tools/terrain/parity/webp_parity.sh",
+      "expect": {
+        "num": "max_dh_m ([0-9.]+)",
+        "max": 0.0625,
+        "re": "raster_mismatch 0\\b"
+      }
+    },
+    {
+      "name": "read_time",
+      "cmd": "bash tools/terrain/parity/webp_parity.sh --time",
+      "expect": {
+        "num": "read_ratio ([0-9.]+)",
+        "max": 2.0
+      }
+    },
+    {
+      "name": "doc_version",
+      "cmd": "grep -n FORMAT_VERSION docs/guide/location-data.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T04:21:20"
+}
