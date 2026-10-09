@@ -29,3 +29,7 @@
 {"t": "2026-10-09T18:04:53", "by": "coordinator", "task": "OA-3", "ev": "merged"}
 {"t": "2026-10-09T18:05:24", "by": "coordinator", "task": "OA-5", "ev": "created", "note": "Сборщик места, кеш user://locations, реестр мест и путь точки в игре"}
 {"t": "2026-10-09T18:05:26", "by": "coordinator", "task": "OA-5", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-osm-any-OA-5; OA-4 ещё идёт — dp task sync"}
+{"t": "2026-10-09T18:19:18", "by": "executor", "task": "OA-5", "ev": "reported", "commits": ["a30df423"], "note": "partial: Сборщик места, кеш user://locations, реестр Locations, путь точки в игре (builtin_at -> встроенное место, иначе Terrain…", "dp_feedback": ["dp task show не даёт готовой команды 'подтянуть OA-4 когда влита' - проверять вручную git log feature/osm-any."]}
+{"t": "2026-10-09T18:35:16", "by": "coordinator", "task": "OA-6", "ev": "created", "note": "Проверка в игре: новая точка с сетью, повтор без сети, скриншоты OSM-объектов"}
+{"t": "2026-10-09T18:35:16", "by": "coordinator", "task": "OA-7", "ev": "created", "note": "Встроенные места — тем же сборщиком игры; Python-сборка и data/osm удаляются"}
+{"t": "2026-10-09T18:35:16", "by": "coordinator", "task": "OA-8", "ev": "created", "note": "Документация: данные места для любой точки и встроенных"}
