@@ -26,15 +26,23 @@ import osmpack as op  # noqa: E402
 
 STREAMS = ["roads_main", "roads_tp", "rail", "lakes", "places", "airfields", "flights", "cliffs",
            "names"]
+# detail: дороги — белый список (решение 10.10: path/footway/cycleway/bridleway/steps/pedestrian и
+# мусорные proposed/planned/construction/abandoned/no/... не берём; track оставлен).
+ROAD_KEEP = ["motorway", "trunk", "primary", "secondary", "tertiary", "unclassified",
+             "residential", "living_street", "service", "road", "track",
+             "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"]
+HIGHWAY_TP = {"track"}                         # отдельный поток для отчёта
+import os  # noqa: E402
+if os.environ.get("DP_ROADCLASS"):             # отладочный режим: поток на каждый класс дорог
+    STREAMS[-1:-1] = ["r_" + c for c in ROAD_KEEP]
 op.set_streams(STREAMS)
-HIGHWAY_TP = {"track", "path", "footway"}      # «мелкие» дороги (для отчёта отдельно)
 RIVER_WATER = {"river", "canal", "stream", "ditch", "drain", "riverbank", "stream_pool"}
 WORLD_ROADS = {"motorway", "trunk", "primary", "secondary"}
 WORLD_PLACES = {"city", "town", "village"}
 WORLD_LAKE_KM2 = 1.0
 MASK_M = 10.0
 AERO = ("aerodrome", "airstrip", "helipad")
-NOT_POINT = ("roads_main", "roads_tp", "rail", "lakes", "cliffs")
+NOT_POINT = ("roads_main", "roads_tp", "rail", "lakes", "cliffs")  # r_* не точки
 
 
 def num(v):
@@ -76,8 +84,10 @@ def spec(stream, cls, width=None, name=None, tun=False, br=False):
 def detail_spec(t, gt):
     if gt == "line":
         hw = t.get("highway")
-        if hw and t.get("area") != "yes":
-            return spec("roads_tp" if hw in HIGHWAY_TP else "roads_main", hw, num(t.get("width")),
+        if hw in ROAD_KEEP and t.get("area") != "yes":
+            st = "r_" + hw if os.environ.get("DP_ROADCLASS") else (
+                "roads_tp" if hw in HIGHWAY_TP else "roads_main")
+            return spec(st, hw, num(t.get("width")),
                         None, yes(t.get("tunnel")), yes(t.get("bridge")))
         if t.get("railway") in ("rail", "narrow_gauge"):
             return spec("rail", t["railway"], None, None, yes(t.get("tunnel")), yes(t.get("bridge")))

@@ -1,0 +1,179 @@
+{
+ "place": "slovenia",
+ "center": [
+  46.05,
+  14.55
+ ],
+ "tile_km2": 10000,
+ "build": {
+  "center": [
+   46.05,
+   14.55
+  ],
+  "t_parse_s": 240.8,
+  "t_mask_write_s": 1.1,
+  "only": null,
+  "maxrss_MB": 420,
+  "parts": {
+   "tile_NW": {
+    "roads_main": 126398,
+    "roads_tp": 57026,
+    "rail": 4459,
+    "lakes": 2809,
+    "places": 6053,
+    "airfields": 99,
+    "flights": 55,
+    "cliffs": 1666
+   },
+   "tile_SW": {
+    "roads_main": 117619,
+    "roads_tp": 49037,
+    "rail": 4173,
+    "lakes": 1337,
+    "places": 7466,
+    "airfields": 63,
+    "flights": 24,
+    "cliffs": 981
+   },
+   "tile_NE": {
+    "roads_main": 160775,
+    "roads_tp": 71459,
+    "rail": 4770,
+    "lakes": 5693,
+    "places": 5316,
+    "airfields": 55,
+    "flights": 9,
+    "cliffs": 864
+   },
+   "tile_SE": {
+    "roads_main": 70933,
+    "roads_tp": 25333,
+    "rail": 1356,
+    "lakes": 793,
+    "places": 5553,
+    "airfields": 40,
+    "flights": 6,
+    "cliffs": 199
+   }
+  },
+  "geom_fail": {}
+ },
+ "tiles": {
+  "tile_NE": {
+   "total_zstd": 4802118,
+   "bytes_per_km2": 480.2,
+   "total_br": 4698017,
+   "streams_zstd": {
+    "roads_main": 2787594,
+    "roads_tp": 1659037,
+    "rail": 55538,
+    "lakes": 119391,
+    "places": 185431,
+    "airfields": 912,
+    "flights": 151,
+    "cliffs": 10439,
+    "names": 26557
+   },
+   "lake_mask_zstd": 69564,
+   "lake_px": 388674,
+   "lakes_vector_zstd": 119391,
+   "objects": {
+    "roads_main": 160775,
+    "roads_tp": 71459,
+    "rail": 4770,
+    "lakes": 5693,
+    "places": 5316,
+    "airfields": 55,
+    "flights": 9,
+    "cliffs": 864
+   }
+  },
+  "tile_NW": {
+   "total_zstd": 3944847,
+   "bytes_per_km2": 394.5,
+   "total_br": 3861975,
+   "streams_zstd": {
+    "roads_main": 1827750,
+    "roads_tp": 1821876,
+    "rail": 53797,
+    "lakes": 80049,
+    "places": 110063,
+    "airfields": 1935,
+    "flights": 662,
+    "cliffs": 41207,
+    "names": 33742
+   },
+   "lake_mask_zstd": 51376,
+   "lake_px": 855542,
+   "lakes_vector_zstd": 80049,
+   "objects": {
+    "roads_main": 126398,
+    "roads_tp": 57026,
+    "rail": 4459,
+    "lakes": 2809,
+    "places": 6053,
+    "airfields": 99,
+    "flights": 55,
+    "cliffs": 1666
+   }
+  },
+  "tile_SE": {
+   "total_zstd": 2421849,
+   "bytes_per_km2": 242.2,
+   "total_br": 2361019,
+   "streams_zstd": {
+    "roads_main": 1489315,
+    "roads_tp": 743808,
+    "rail": 26168,
+    "lakes": 28823,
+    "places": 106649,
+    "airfields": 892,
+    "flights": 161,
+    "cliffs": 4734,
+    "names": 25525
+   },
+   "lake_mask_zstd": 24068,
+   "lake_px": 216751,
+   "lakes_vector_zstd": 28823,
+   "objects": {
+    "roads_main": 70933,
+    "roads_tp": 25333,
+    "rail": 1356,
+    "lakes": 793,
+    "places": 5553,
+    "airfields": 40,
+    "flights": 6,
+    "cliffs": 199
+   }
+  },
+  "tile_SW": {
+   "total_zstd": 3249456,
+   "bytes_per_km2": 324.9,
+   "total_br": 3179857,
+   "streams_zstd": {
+    "roads_main": 1662647,
+    "roads_tp": 1289839,
+    "rail": 59344,
+    "lakes": 81528,
+    "places": 130894,
+    "airfields": 1352,
+    "flights": 430,
+    "cliffs": 18343,
+    "names": 37414
+   },
+   "lake_mask_zstd": 46143,
+   "lake_px": 976260,
+   "lakes_vector_zstd": 81528,
+   "objects": {
+    "roads_main": 117619,
+    "roads_tp": 49037,
+    "rail": 4173,
+    "lakes": 1337,
+    "places": 7466,
+    "airfields": 63,
+    "flights": 24,
+    "cliffs": 981
+   }
+  }
+ }
+}

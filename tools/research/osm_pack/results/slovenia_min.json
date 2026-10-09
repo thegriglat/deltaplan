@@ -6,25 +6,25 @@
   "cells_with_data": 65,
   "streams": {
    "roads_main": {
-    "raw": 5910111,
-    "zstd": 4842860,
-    "br": 4794519,
+    "raw": 5665299,
+    "zstd": 4649976,
+    "br": 4603224,
     "cells_nonempty": 63,
     "per_cell_zstd": {
-     "mean": 74505.5,
-     "median": 69985,
-     "max": 268090
+     "mean": 71538.1,
+     "median": 66595,
+     "max": 250679
     }
    },
    "roads_tp": {
-    "raw": 5960733,
-    "zstd": 4823763,
-    "br": 4769387,
+    "raw": 3562246,
+    "zstd": 2937321,
+    "br": 2908505,
     "cells_nonempty": 64,
     "per_cell_zstd": {
-     "mean": 74211.7,
-     "median": 54440,
-     "max": 313368
+     "mean": 45189.6,
+     "median": 35024,
+     "max": 142319
     }
    },
    "rail": {
@@ -122,35 +122,35 @@
     "max": 7240
    }
   },
-  "total_variant_mask_zstd": 10389389,
-  "total_variant_vec_zstd": 10434707,
-  "total_variant_mask_br": 10226242,
-  "total_variant_vec_br": 10273003,
+  "total_variant_mask_zstd": 8314970,
+  "total_variant_vec_zstd": 8361495,
+  "total_variant_mask_br": 8185355,
+  "total_variant_vec_br": 8232119,
   "per_cell_variant_mask_zstd": {
-   "mean": 159836.8,
-   "median": 179346,
-   "max": 579242
+   "mean": 127922.6,
+   "median": 130209,
+   "max": 396649
   },
   "per_cell_variant_vec_zstd": {
-   "mean": 160534.0,
-   "median": 180266,
-   "max": 581871
+   "mean": 128638.4,
+   "median": 131166,
+   "max": 399273
   },
   "per_cell_variant_mask_br": {
-   "mean": 157326.8,
-   "median": 174712,
-   "max": 569143
+   "mean": 125928.5,
+   "median": 128153,
+   "max": 390648
   },
   "per_cell_variant_vec_br": {
-   "mean": 158046.2,
-   "median": 175401,
-   "max": 571286
+   "mean": 126648.0,
+   "median": 128947,
+   "max": 392898
   },
-  "blob_nolakes_zstd": 10317785,
-  "blob_zstd": 10434707,
-  "raw_blob_total": 12853043,
-  "bytes_per_km2_mask": 508.7,
-  "bytes_per_km2_vec": 510.9
+  "blob_nolakes_zstd": 8243366,
+  "blob_zstd": 8361495,
+  "raw_blob_total": 10209743,
+  "bytes_per_km2_mask": 407.1,
+  "bytes_per_km2_vec": 409.4
  },
  "world": {
   "cell_deg": 1.0,
@@ -305,9 +305,9 @@
   "bytes_per_km2_mask": 10.3,
   "bytes_per_km2_vec": 10.3
  },
- "t_analyze_s": 19.3,
+ "t_analyze_s": 16.7,
  "build": {
-  "t_parse_s": 138.2,
+  "t_parse_s": 120.7,
   "geom_fail": {},
   "detail": {
    "deg": 0.25,
@@ -318,8 +318,8 @@
     "places": 11840,
     "airfields": 157,
     "flights": 67,
-    "roads_main": 284871,
-    "roads_tp": 228858,
+    "roads_main": 266615,
+    "roads_tp": 120055,
     "rail": 6683,
     "cliffs": 1190,
     "lakes": 3882
@@ -387,44 +387,21 @@
     "places/yes:point": 1,
     "rail/narrow_gauge:line": 91,
     "rail/rail:line": 6477,
-    "roads_main/abandoned:line": 1,
-    "roads_main/bridleway:line": 50,
-    "roads_main/bus_stop:line": 34,
-    "roads_main/busway:line": 69,
-    "roads_main/construction:line": 290,
-    "roads_main/corridor:line": 38,
-    "roads_main/cycleway:line": 10109,
-    "roads_main/elevator:line": 26,
-    "roads_main/emergency_bay:line": 4,
-    "roads_main/escape:line": 2,
-    "roads_main/ladder:line": 2,
     "roads_main/living_street:line": 3159,
     "roads_main/motorway:line": 2314,
     "roads_main/motorway_link:line": 1317,
-    "roads_main/no:line": 2,
-    "roads_main/pedestrian:line": 1426,
-    "roads_main/planned:line": 12,
-    "roads_main/platform:line": 317,
     "roads_main/primary:line": 5288,
     "roads_main/primary_link:line": 327,
-    "roads_main/proposed:line": 1255,
-    "roads_main/raceway:line": 81,
     "roads_main/residential:line": 48908,
-    "roads_main/rest_area:line": 43,
     "roads_main/road:line": 30,
     "roads_main/secondary:line": 10081,
     "roads_main/secondary_link:line": 308,
     "roads_main/service:line": 127870,
-    "roads_main/services:line": 32,
-    "roads_main/steps:line": 4270,
     "roads_main/tertiary:line": 12465,
     "roads_main/tertiary_link:line": 287,
     "roads_main/trunk:line": 406,
     "roads_main/trunk_link:line": 251,
     "roads_main/unclassified:line": 50511,
-    "roads_main/via_ferrata:line": 72,
-    "roads_tp/footway:line": 50586,
-    "roads_tp/path:line": 57253,
     "roads_tp/track:line": 117824
    },
    "lake_parts_empty_in_mask": 0
@@ -470,6 +447,6 @@
    },
    "lake_parts_empty_in_mask": 0
   },
-  "t_write_mask_s": 0.4
+  "t_write_mask_s": 0.5
  }
 }
