@@ -35,7 +35,8 @@
     "scripts/terrain/terrain.gd",
     "scripts/game/recent_places.gd",
     "tests/",
-    "configs/locations/"
+    "configs/locations/",
+    "configs/world_objects.json"
   ],
   "dont_touch": [
     "docs/",
@@ -92,5 +93,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-09T18:35:16"
+  "created": "2026-10-09T18:35:16",
+  "edited": "2026-10-09T18:38:19"
 }

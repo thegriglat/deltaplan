@@ -1,0 +1,41 @@
+{
+  "verdict": "rework",
+  "summary": "Стыки OA-К1/К3/К4 соблюдены: ключ, snap, build.json последним, tmp→rename, догрузка missing, Locations для всех потребителей игры. Есть одна гонка в load_point, её надо исправить: маски decode_detail10 читаются до того, как дождались задач WorkerThreadPool. Красный test_k3_osm — внешняя причина (нет OA-4), к исполнителю претензий нет.",
+  "issues": [
+    {
+      "file": "scripts/terrain/terrain.gd",
+      "line": 194,
+      "severity": "major",
+      "what": "load_point: _load_surfaces(r.dir, r.layers, r.masks.images) вызывается ДО цикла WorkerThreadPool.wait_for_task_completion (стр. 195-196). Это гонка: slot[0] читается в главном потоке, пока рабочий поток в него пишет. Обычно slot[0] ещё null, и тогда detail10 декодируется второй раз (лишние ~60 мс на каждую маску); если запись и чтение совпадут — гонка на Variant. В load_location порядок правильный.",
+      "fix": "Перенести ожидание задач масок до вызова _load_surfaces, как в load_location."
+    },
+    {
+      "file": "configs/game.json",
+      "line": 101,
+      "severity": "minor",
+      "what": "Правки вне скоупа карточки: configs/game.json (удалён picked_location_size_km), configs/ui.json (этап osm), scripts/terrain/terrain_preview.gd, scripts/terrain/terrain_relief.gd. По смыслу они следуют из удаления mercator-пути, в «не трогать» не входят.",
+      "fix": "Координатору: согласовать задним числом или дописать в скоуп."
+    },
+    {
+      "file": "configs/world_objects.json",
+      "line": 808,
+      "severity": "minor",
+      "what": "osm.data_path (\"res://data/osm/{id}.json\") больше никто не читает: путь теперь даёт Locations.osm_path. Мёртвый ключ может ввести в заблуждение. Кроме того, tools/terrain/parity/dem_parity.gd по-прежнему читает Config.get_config(\"locations/\"…) в обход Locations; для встроенных мест это безвредно.",
+      "fix": "Удалить data_path, можно вместе с OA-7, когда уйдёт data/osm."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept OA-5 --only location_builder --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "dp accept OA-5 --only osm_any_contracts --dry",
+      "value": "11/12, FAIL test_k3_osm (нет osm_stage.gd, ждёт OA-4) — совпадает с отчётом",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-09T18:37:59",
+  "by": "reviewer"
+}

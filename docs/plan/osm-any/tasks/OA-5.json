@@ -47,7 +47,11 @@
     "tests/terrain/test_location_builder.gd",
     "tests/",
     "tools/terrain/build_location.gd",
-    "docs/guide/"
+    "docs/guide/",
+    "configs/game.json",
+    "configs/ui.json",
+    "scripts/terrain/terrain_preview.gd",
+    "scripts/terrain/terrain_relief.gd"
   ],
   "dont_touch": [
     "docs/contracts/",
@@ -113,5 +117,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-09T18:05:24"
+  "created": "2026-10-09T18:05:24",
+  "edited": "2026-10-09T18:38:18"
 }
