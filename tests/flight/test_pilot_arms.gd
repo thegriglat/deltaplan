@@ -11,7 +11,6 @@ const MAX_GRIP_ERR_M := 0.03
 ## (плечо–хват 0,32–0,37 м), ось руки почти вертикальна, и локоть, торчащий наружу, лежит на
 ## окружности в почти горизонтальной плоскости: «наружу и ниже середины» невозможно, остаётся
 ## «наружу и не выше плеча» (запас на ±10 см — рука согнута, локоть на уровне плеча).
-const ELBOW_BELOW_SHOULDER_M := 0.2  # нейтральная поза: плечо 0,258 м вертикально вниз
 ## Нижняя граница угла в локте на стойках, ° (контракт A3.2 v3). Кости pilot.glb: плечо 0,26 м,
 ## предплечье с кистью 0,38 м; хват на 0,12 выше и 0,33 впереди плеча — локоть ≈ 64°.
 const MIN_ELBOW_DEG := 55.0
@@ -336,21 +335,23 @@ func _joints(v: GliderVisual, side: int) -> Array[Vector3]:
 
 
 ## Локоть наружу; стоя — ниже середины отрезка «плечо → хват» (кисти выше плеч, локти вниз),
-## лёжа — под плечом (ниже на ELBOW_BELOW_SHOULDER_M, у бока).
+## лёжа — вариант Б: на полпути между плечом и трапецией, наружу.
 func _check_elbows(v: GliderVisual, what: String, prone: bool) -> void:
 	for side in [-1, 1]:
 		var j := _joints(v, side)
 		var elbow := j[1]
 		var mid := (j[0] + _grip(v, side)) * 0.5
 		if prone:
-			# нейтраль (arms.elbow_height_frac = 1): локоть под плечом, прижат к боку
+			# вариант Б (arms.elbow_height_frac = 0,5): локоть на полпути между плечом и трапецией
+			# (ниже плеча ≈ 0,13 м), разведён наружу
+			var drop := j[0].y - elbow.y
 			check(
-				elbow.y < j[0].y - ELBOW_BELOW_SHOULDER_M,
-				"%s рука %d: локоть ниже плеча на ≥ %.2f м (%.3f)" % [what, side, ELBOW_BELOW_SHOULDER_M, j[0].y - elbow.y]
+				drop > 0.07 and drop < 0.2,
+				"%s рука %d: локоть на полпути к трапеции (ниже плеча на %.3f м)" % [what, side, drop]
 			)
 			check(
-				absf(elbow.x - j[0].x) < 0.1,
-				"%s рука %d: локоть прижат к боку (в стороне %.3f м)" % [what, side, absf(elbow.x - j[0].x)]
+				(elbow.x - j[0].x) * side > 0.1,
+				"%s рука %d: локоть разведён наружу (%.3f м)" % [what, side, (elbow.x - j[0].x) * side]
 			)
 		else:
 			check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
