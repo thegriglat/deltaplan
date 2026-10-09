@@ -165,6 +165,7 @@ func _ready() -> void:
 	glider.landed.connect(_on_landed)
 	feed = AchievementFeed.new(self)
 	glider.took_off.connect(_feed_begin)
+	glider.took_off.connect(camera.recenter)  # после разбега взгляд — по центру (как средняя кнопка)
 	_connect_achievements()
 	glider.takeoff_failed.connect(_on_takeoff_failed)
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
