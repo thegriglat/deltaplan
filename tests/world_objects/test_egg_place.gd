@@ -1,7 +1,7 @@
 extends Node
 ## EggPlace (docs/contracts/easter-eggs.md → К8): место и условия пасхалок на реальных локациях.
 ## Запуск — godot --headless --path . res://tests/run_tests.tscn -- --filter=test_egg_place
-## Рельеф грузится напрямую (без главной сцены), OSM — из data/osm/<id>.json.
+## Рельеф грузится напрямую (без главной сцены); посёлки — пятна застройки WorldCover (BuiltPatches).
 
 const LOCATIONS := ["altai", "askarovo", "aushkul", "ongudai"]
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -16,10 +16,9 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-## Подмена WorldObjects: EggPlace читает только osm и camp.
+## Подмена WorldObjects: EggPlace читает только camp.
 class Objs:
 	extends Node
-	var osm: OsmData
 	var camp: Array[Dictionary] = []
 
 
@@ -29,9 +28,6 @@ func _load(id: String) -> Dictionary:
 		t.location_id = ""
 		t.load_location(id)
 		var o := Objs.new()
-		o.osm = OsmData.load_file(
-			Locations.osm_path(id), t.center_lat, t.center_lon
-		)
 		_cache[id] = {"terrain": t, "objs": o}
 	return _cache[id]
 
@@ -49,7 +45,7 @@ func _start_xz(t: Terrain) -> Vector2:
 
 
 func test_all_locations_table() -> void:
-	print("         loc       h_m  above_m  mount surf  place(dist_km)        track  starts  build_ms")
+	print("         loc       h_m  above_m  mount surf  place(dist_km)        places starts  build_ms")
 	for id in LOCATIONS:
 		var d := _load(id)
 		var t: Terrain = d.terrain
@@ -59,15 +55,11 @@ func test_all_locations_table() -> void:
 		var surf := p.surface_at(s.x, s.y)
 		check(surf >= 0 and surf < SurfaceLayer.CLASS_COUNT, "%s: класс поверхности в списке" % id)
 		check(p.valley_msl() <= p.height_at(s.x, s.y), "%s: дно долины не выше старта" % id)
-		var osm: OsmData = d.objs.osm
-		if osm != null and not osm.places.is_empty():
-			check(not np.is_empty(), "%s: nearest_place не пуст" % id)
-		var tracks := p.roads(PackedStringArray(["track"]))
-		var has_tracks := false
-		if osm != null:
-			for r in osm.roads:
-				has_tracks = has_tracks or String(r.get("t", "")) == "track"
-		check(has_tracks == (not tracks.is_empty()), "%s: roads(track) согласовано с OSM" % id)
+		var pls := p.places()
+		check(not np.is_empty(), "%s: nearest_place не пуст" % id)
+		check(not pls.is_empty() and pls[0].src == "built", "%s: places() — пятна застройки" % id)
+		for pl in pls:
+			check(float(pl.radius_m) > 0.0, "%s: radius_m > 0" % id)
 		print(
 			(
 				"         %-9s %5.0f %8.0f  %-5s %-5s %-22s %5d %7d %8.1f"
@@ -78,11 +70,11 @@ func test_all_locations_table() -> void:
 					str(p.is_mountain(s.x, s.y)),
 					SurfaceLayer.CLASS_NAMES[surf],
 					(
-						"%s (%.1f)" % [np.get("n", "-"), float(np.get("dist_m", 0.0)) / 1000.0]
+						"%s (%.1f)" % [np.get("src", "-"), float(np.get("dist_m", 0.0)) / 1000.0]
 						if not np.is_empty()
 						else "-"
 					),
-					tracks.size(),
+					pls.size(),
 					p.start_sites().size(),
 					p.build_ms
 				]
@@ -99,14 +91,47 @@ func test_mountain_and_valley() -> void:
 	check(p.slope_deg_at(s.x, s.y) >= 0.0, "крутизна считается")
 
 
-func test_roads_and_water() -> void:
+func test_no_roads_api() -> void:
 	var p := _place("altai")
-	var s := _start_xz(_load("altai").terrain)
-	var any := PackedStringArray(["track", "trunk", "primary"])
-	check(p.nearest_road_m(s.x, s.y, any) < INF, "дорога найдена")
-	check(p.near_water_m(s.x, s.y) < INF, "вода найдена")
-	var none := PackedStringArray(["нет_такого_класса"])
-	check(p.nearest_road_m(s.x, s.y, none) == INF, "нет класса — INF")
+	for f in ["roads", "road_maybe_near", "nearest_road_m"]:
+		check(not p.has_method(f), "EggPlace.%s удалён (К8 v4)" % f)
+
+
+func test_water() -> void:
+	var p := _place("altai")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var w: Variant = p.find_point(
+		rng, Vector2.ZERO, 12000.0, func(x: float, z: float) -> bool: return p.surface_at(x, z) == SurfaceLayer.WATER, 4000
+	)
+	check(w is Vector3, "вода в месте есть")
+	if w is Vector3:
+		check(p.near_water_m(w.x, w.z) == 0.0, "в воде — 0")
+		var d := p.near_water_m(w.x + 120.0, w.z)
+		check(d <= 130.0, "в 120 м от воды: %.0f м" % d)
+	# далеко от воды: дальше water_search_m — INF
+	var far := p.near_water_m(0.0, 0.0, 30.0)
+	check(far == INF or far <= 30.0, "поиск ограничен")
+	check(EggPlace.build(null, null).near_water_m(0.0, 0.0) == INF, "без рельефа: INF")
+
+
+func test_places_relief_fallback() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	t.load_location("askarovo")
+	var bp := BuiltPatches.new()  # пятен нет
+	bp._dir = String(t.location.get("data_dir", "res://data/terrain/" + t.location_id))
+	t.set_meta(BuiltPatches.META_KEY, bp)
+	var p := EggPlace.build(t, null)
+	var pls := p.places()
+	var cfg: Dictionary = Config.get_config("easter_eggs").place
+	check(pls.size() >= int(cfg.relief_places_min), "опорных точек %d" % pls.size())
+	for pl in pls:
+		check(pl.src == "relief", "src relief")
+		check(p.above_valley_m(pl.x, pl.z) <= float(cfg.relief_above_valley_m), "низко над дном")
+		check(p.slope_deg_at(pl.x, pl.z) <= float(cfg.relief_slope_deg) + 0.01, "ровно")
+	check(EggPlace.build(t, null).places() == pls, "детерминировано")
+	check(not p.nearest_place(0.0, 0.0).is_empty(), "nearest_place есть")
 
 
 func test_find_point() -> void:
@@ -129,19 +154,17 @@ func test_find_point() -> void:
 	check(p.find_point(a, s, 100.0, never, 5) == null, "никто не подошёл — null")
 
 
-func test_without_osm_and_terrain() -> void:
+func test_without_objects_and_terrain() -> void:
 	var t: Terrain = _load("altai").terrain
-	var p := EggPlace.build(t, null)  # runtime-точка с карты: OSM нет
+	var p := EggPlace.build(t, null)  # runtime-точка с карты: WorldObjects нет
 	var s := _start_xz(t)
-	check(p.nearest_place(s.x, s.y).is_empty(), "без OSM: посёлка нет")
-	check(p.roads(PackedStringArray(["track"])).is_empty(), "без OSM: дорог нет")
-	check(p.nearest_road_m(s.x, s.y, PackedStringArray(["track"])) == INF, "без OSM: INF до дороги")
-	check(p.near_water_m(s.x, s.y) == INF, "без OSM: INF до воды")
+	check(not p.nearest_place(s.x, s.y).is_empty(), "посёлок — по пятнам застройки")
 	check(p.camp().is_empty(), "без лагеря: пусто")
-	check(p.is_mountain(s.x, s.y), "рельеф есть — горы определяются и без OSM")
+	check(p.is_mountain(s.x, s.y), "рельеф есть — горы определяются и без объектов мира")
 	var e := EggPlace.build(null, null)  # рельефа нет совсем
 	check(not e.is_mountain(0, 0), "без рельефа: не горы")
 	check(e.surface_at(0, 0) == SurfaceLayer.NONE, "без рельефа: NONE")
+	check(e.places().is_empty() and e.nearest_place(0, 0).is_empty(), "без рельефа: посёлков нет")
 	check(e.start_sites().is_empty(), "без рельефа: стартов нет")
 	var any: Variant = e.find_point(RandomNumberGenerator.new(), Vector2.ZERO, 10.0, Callable())
 	check(any is Vector3, "без accept — любая точка")

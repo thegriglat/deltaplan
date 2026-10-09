@@ -95,7 +95,7 @@ func _find_track(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator) -
 	var radius := float(cfg.get("search_radius_m", 6000.0))
 	var accept := func(x: float, z: float) -> bool:
 		var s := place.surface_at(x, z)
-		if s != SurfaceLayer.CROP and s != SurfaceLayer.GRASS:
+		if s != SurfaceLayer.CROP and s != SurfaceLayer.GRASS and s != SurfaceLayer.NONE:
 			return false
 		if place.is_mountain(x, z) or place.height_at(x, z) > h_max:
 			return false
