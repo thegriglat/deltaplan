@@ -6,7 +6,7 @@ extends TestCase
 const PLACES := ["altai", "askarovo", "ongudai", "aushkul"]
 const EGGS := ["an2", "herds", "balloon", "uaz"]
 const SEEDS := 10
-## База до правок (встроенный osm.json), найдено из 10 сидов: место → пасхалка → число.
+## База до правок (встроенный файл OSM), найдено из 10 сидов: место → пасхалка → число.
 const BASE := {
 	"altai": {"an2": 0, "herds": 10, "balloon": 10, "uaz": 0},
 	"askarovo": {"an2": 10, "herds": 10, "balloon": 10, "uaz": 10},

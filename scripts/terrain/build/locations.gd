@@ -1,8 +1,7 @@
 class_name Locations
 extends RefCounted
 ## Реестр мест (OA-К4, docs/contracts/osm-any.md): встроенные (configs/locations/<id>.json,
-## data/terrain/<id>/ с osm.json) и кешированные точки (user://locations/<ключ>/).
-## Все чтения конфигов мест и OSM места — только через него.
+## data/terrain/<id>/) и кешированные точки (user://locations/<ключ>/).
 
 const KEY_PREFIX := "pt_"
 
@@ -54,13 +53,6 @@ static func config(id: String) -> Dictionary:
 		return {}
 	_cfg_cache[id] = {"mtime": mtime, "cfg": d}
 	return d
-
-
-## Необязательный файл OSM места (дороги и вода; у кешированных точек и без дампа его нет).
-static func osm_path(id: String) -> String:
-	if is_builtin(id):
-		return String(config(id).get("data_dir", "res://data/terrain/" + id)).path_join("osm.json")
-	return cache_dir().path_join(id).path_join("osm.json")
 
 
 ## Встроенное место, в детальном квадрате которого лежит точка не ближе builtin_margin_km к краю;

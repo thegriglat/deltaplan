@@ -562,52 +562,6 @@ func _point_in_polygon(p: Array, x: float, z: float) -> bool:
 	return inside
 
 
-func test_lake_iou_aushkul() -> void:
-	# T03/VR-9 (U1): контур озера Аушкуль в маске 10 м (канал G) — IoU с полигоном OSM ≥ 0,85.
-	var t := _aush()
-	var sl := _mask_layer(t)
-	check(sl != null, "у Аушкуля есть маска 10 м")
-	if sl == null:
-		return
-	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("aushkul"))
-	var osm: Dictionary = JSON.parse_string(osm_str)
-	var poly: Array = []
-	for lake in osm.water.lakes:
-		if lake.n == "Аушкуль":
-			poly = lake.p
-			break
-	check(poly.size() >= 6, "полигон озера Аушкуль найден")
-	if poly.size() < 6:
-		return
-	var x0 := INF
-	var x1 := -INF
-	var z0 := INF
-	var z1 := -INF
-	for i in range(0, poly.size(), 2):
-		x0 = minf(x0, poly[i])
-		x1 = maxf(x1, poly[i])
-		z0 = minf(z0, poly[i + 1])
-		z1 = maxf(z1, poly[i + 1])
-	var step := 10.0
-	var inter := 0
-	var uni := 0
-	var z := z0
-	while z <= z1:
-		var x := x0
-		while x <= x1:
-			var a := _point_in_polygon(poly, x, z)
-			var b := sl.mask_g(x, z) >= 0.5
-			if a or b:
-				uni += 1
-			if a and b:
-				inter += 1
-			x += step
-		z += step
-	var iou := float(inter) / maxf(float(uni), 1.0)
-	check(iou >= 0.85, "IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
-	print("         IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
-
-
 func test_height_includes_crowns() -> void:
 	# VR-21: height_at над лесом — DSM с кронами (посадка в лес = удар о кроны). На чистых кромках
 	# прямые по высотам снаружи и внутри (50–150 м) расходятся на ступеньку крон.
