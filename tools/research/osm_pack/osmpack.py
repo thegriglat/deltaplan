@@ -247,3 +247,10 @@ def cell_origin(ix: int, iy: int):
 
 def cell_name(ix: int, iy: int) -> str:
     return f"{iy:+04d}_{ix:+04d}"
+
+
+def set_streams(streams: list[str]) -> None:
+    """Подменить набор потоков (build_min.py/analyze_min.py), на месте — SID/decode видят."""
+    STREAMS[:] = streams
+    SID.clear()
+    SID.update({s: i for i, s in enumerate(streams)})

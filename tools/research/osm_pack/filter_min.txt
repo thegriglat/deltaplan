@@ -1,0 +1,12 @@
+# osmium tags-filter: минимальный пакет (озёра, посёлки, аэродромы, старты, обрывы, дороги, ж/д)
+# Реки (water=river, riverbank, waterway=*) исключаются позже в build_min.py.
+w/highway
+w/railway=rail,narrow_gauge
+wr/natural=water
+wr/water
+wr/landuse=reservoir,basin
+nwr/place
+nwr/aeroway=aerodrome,airstrip,runway,helipad
+nwr/sport=free_flying
+nwr/free_flying:*
+w/natural=cliff
