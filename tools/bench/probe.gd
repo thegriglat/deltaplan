@@ -70,6 +70,9 @@ func _ready() -> void:
 		await _quit(0)
 		return
 
+	# игра ставит VSync и предел кадров из game.json → display (QL-13) поверх --disable-vsync
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
 	var game: Game = main.get_node("Game")
 	for m in _marks:
 		var t_mark: float = m[0]

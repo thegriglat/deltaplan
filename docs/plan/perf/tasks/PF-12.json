@@ -1,0 +1,46 @@
+{
+  "id": "PF-12",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Рывок ~6 с после старта полёта",
+  "goal": "Рывок 2,6 с на ~5,9 с сим.времени (есть с PF-1) — не воздух (замер PF-5: Game.tick/_process < 80 мс). Найти причину в движке/рендере/загрузке и убрать, если дёшево.",
+  "plan_ref": "PF-12. Рывок ~6 с после старта полёта",
+  "contracts": [],
+  "copy": "~/deltaplan-perf-PF-12",
+  "branch": "perf/PF-12",
+  "base": "feature/perf",
+  "scope": [
+    "по находке — согласовать с координатором до правок вне рендера/старта полёта",
+    "tools/bench/frame_profile.gd (метки диагностики)",
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/easter_eggs/uaz.gd"
+  ],
+  "dont_touch": [
+    "физика полёта и воздуха",
+    "scripts/atmosphere/atmosphere.gd и cloud_layer.gd _select — это PF-8 (параллельно)",
+    "project.godot (кроме своих строк, если причина там)"
+  ],
+  "accept": [
+    {
+      "name": "fly_run",
+      "cmd": "rm -rf build/dp/PF-12/f; MARKS= /home/greg/deltaplan/tools/dp lock gpu PF-12 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-12/f medium ongudai --sample=2 >/dev/null 2>&1; ls build/dp/PF-12/f/medium_ongudai_fly.jsonl",
+      "timeout": 3600
+    },
+    {
+      "name": "hitch_after2s_all",
+      "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-12/f/medium_ongudai_fly.jsonl')];h=[x['ms'] for r in R if r.get('exp')=='_hitches' for x in r['hitches'] if x['sim_t']>2.0];print('hitch=%.1f'%max(h+[0.0]))\"",
+      "expect": "num:hitch=([0-9.]+) <=300"
+    },
+    {
+      "name": "egg",
+      "tests": "egg"
+    }
+  ],
+  "report_extra": [
+    "cause",
+    "hitch_before_after"
+  ],
+  "notes": "",
+  "created": "2026-10-08T14:27:56",
+  "edited": "2026-10-08T16:07:19"
+}

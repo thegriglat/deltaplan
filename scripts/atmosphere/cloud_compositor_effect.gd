@@ -1,8 +1,9 @@
 class_name CloudCompositorEffect
 extends CompositorEffect
 ## Облака в буфере пониженного разрешения (Forward+/Mobile): compute-raymarch всех облаков
-## за один проход, временное накопление (история с перепроекцией) и билатеральный апскейл
-## поверх кадра до прозрачных объектов.
+## за один проход — за кадр луч в одном пикселе из блока 2×2 (обход за 4 кадра, PF-7), сборка
+## буфера из истории с перепроекцией и свежих соседей и билатеральный апскейл поверх кадра
+## до прозрачных объектов.
 ## Код формы и света — общий с боксовым шейдером (cloud_common.gdshaderinc).
 ## Данные (облака, параметры) выставляет CloudLayer с главного потока.
 
@@ -44,8 +45,20 @@ var noise_shape: Texture3D
 var noise_detail: Texture3D
 ## Доля разрешения буфера облаков (0,5 — половина по каждой оси).
 var resolution_scale: float = 0.5
-## Вес нового кадра во временном накоплении (1 — без истории; меньше — глаже, но дольше догоняет).
-var temporal_weight: float = 0.12
+## Предел площади буфера облаков, пикселей (0 — без предела; PF-К2).
+var max_buffer_px: int = 0
+## Вес свежего луча во временном накоплении (1 — без истории; меньше — глаже, но дольше
+## догоняет). Свежий луч в пикселе — раз в 4 кадра, поэтому вес больше прежних 0,12 за кадр.
+var temporal_weight: float = 0.35
+## Вес оценки по свежим соседям в пикселях без луча в этом кадре (подтягивает их к соседям,
+## пока своего луча нет; 0 — только история).
+var fill_weight: float = 0.06
+## Скачок камеры за кадр, после которого история не берётся: поворот, град, и сдвиг, м.
+const CUT_DEG := 25.0
+const CUT_M := 300.0
+## Смещение свежего пикселя в блоке 2×2 по кадрам: сначала диагональ — за 2 кадра покрыт
+## весь блок «шахматкой».
+const QUARTER_ORDER: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 1), Vector2i(1, 0), Vector2i(0, 1)]
 
 var _rd: RenderingDevice
 var _march: RID
@@ -55,8 +68,10 @@ var _comp_pipe: RID
 var _temp: RID
 var _temp_pipe: RID
 var _temp_ubo: RID
-## История (ping-pong) и что было в прошлом кадре — для перепроекции.
+## История (ping-pong) и что было в прошлом кадре — для перепроекции; глубины (r — до сцены,
+## g — до облака) — тоже ping-pong: прошлые нужны для проверки разрыва по рельефу.
 var _hist: Array[RID] = [RID(), RID()]
+var _hdep: Array[RID] = [RID(), RID()]
 var _hist_i: int = 0
 var _hist_valid: bool = false
 var _prev_proj: Projection = Projection.IDENTITY
@@ -82,10 +97,20 @@ func _init() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE and _rd != null:
 		var rids := [_march, _comp, _temp, _ubo, _temp_ubo, _ssbo, _low_color, _low_depth]
-		rids.append_array([_hist[0], _hist[1], _s_linear_rep, _s_linear_clamp, _s_nearest])
+		rids.append_array([_hist[0], _hist[1], _hdep[0], _hdep[1]])
+		rids.append_array([_s_linear_rep, _s_linear_clamp, _s_nearest])
 		for rid in rids:
 			if rid.is_valid():
 				_rd.free_rid(rid)
+
+
+## Размер буфера облаков по внутреннему размеру кадра (PF-К2): lowres_scale, но площадь не больше max_buffer_px.
+static func buffer_size(full: Vector2i, scale: float = 0.5, max_px: int = 0) -> Vector2i:
+	var s := scale
+	var area := float(full.x) * float(full.y)
+	if max_px > 0 and area * s * s > float(max_px):
+		s = sqrt(float(max_px) / area)
+	return Vector2i(maxi(1, ceili(full.x * s)), maxi(1, ceili(full.y * s)))
 
 
 func _render_callback(_type: int, render_data: RenderData) -> void:
@@ -101,16 +126,15 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	var full := sb.get_internal_size()
 	if full.x <= 0 or full.y <= 0:
 		return
-	var low := Vector2i(
-		maxi(1, ceili(full.x * resolution_scale)), maxi(1, ceili(full.y * resolution_scale))
-	)
+	var low := buffer_size(full, resolution_scale, max_buffer_px)
 	_ensure_targets(low)
 	var proj := sd.get_view_projection(0)
 	var inv_proj := proj.inverse()
 	var cam_t := sd.get_cam_transform()
-	_update_ubo(inv_proj, cam_t, low, full)
-	_update_ssbo()
 	_frame += 1
+	var ofs: Vector2i = QUARTER_ORDER[_frame % 4]
+	_update_ubo(inv_proj, cam_t, low, full, ofs)
+	_update_ssbo()
 	var depth := sb.get_depth_layer(0)
 	var color := sb.get_color_layer(0)
 	var shape_rd := RenderingServer.texture_get_rd_texture(noise_shape.get_rid())
@@ -129,13 +153,14 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	var cl := _rd.compute_list_begin()
 	_rd.compute_list_bind_compute_pipeline(cl, _march_pipe)
 	_rd.compute_list_bind_uniform_set(cl, set0, 0)
-	_rd.compute_list_dispatch(cl, ceili(low.x / 8.0), ceili(low.y / 8.0), 1)
+	var qn := (low + Vector2i.ONE) / 2
+	_rd.compute_list_dispatch(cl, ceili(qn.x / 8.0), ceili(qn.y / 4.0), 1)
 	_rd.compute_list_end()
-	var resolved := _temporal(low, proj, inv_proj, cam_t)
+	var resolved := _temporal(low, full, proj, inv_proj, cam_t, depth, ofs)
 	var set1 := UniformSetCacheRD.get_cache(_comp, 0, [
 		_image_u(0, color),
 		_sampler_u(1, _s_nearest, resolved),
-		_sampler_u(2, _s_nearest, _low_depth),
+		_sampler_u(2, _s_nearest, _hdep[_hist_i]),
 		_sampler_u(3, _s_nearest, depth),
 	])
 	var pc := PackedFloat32Array()
@@ -152,21 +177,33 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	_rd.compute_list_end()
 
 
-## Смешивает кадр с историей (cloud_temporal_cs); возвращает текстуру для апскейла.
-func _temporal(low: Vector2i, proj: Projection, inv_proj: Projection, cam: Transform3D) -> RID:
+## Собирает буфер облаков из марша по четвертям и истории (cloud_temporal_cs); возвращает
+## текстуру для апскейла (глубины для него — _hdep[_hist_i]).
+func _temporal(
+	low: Vector2i, full: Vector2i, proj: Projection, inv_proj: Projection, cam: Transform3D,
+	depth: RID, ofs: Vector2i
+) -> RID:
 	var src := _hist[_hist_i]
+	var src_d := _hdep[_hist_i]
 	_hist_i = 1 - _hist_i
 	var dst := _hist[_hist_i]
-	var w: float = temporal_weight if _hist_valid else 1.0
-	# Вид текущего кадра → клип прошлого (в double на CPU: мировые координаты велики).
-	var reproj := _prev_proj * Projection(_prev_cam.affine_inverse() * cam)
+	var dst_d := _hdep[_hist_i]
+	# Скачок камеры (смена вида, телепорт, рывок больше CUT_DEG за кадр) — истории нет.
+	var fwd_dot := (-_prev_cam.basis.z).normalized().dot((-cam.basis.z).normalized())
+	if fwd_dot < cos(deg_to_rad(CUT_DEG)) or _prev_cam.origin.distance_to(cam.origin) > CUT_M:
+		_hist_valid = false
+	# Вид текущего кадра → вид и клип прошлого (в double на CPU: мировые координаты велики).
+	var to_prev := Projection(_prev_cam.affine_inverse() * cam)
+	var reproj := _prev_proj * to_prev
 	var f := PackedFloat32Array()
-	for m in [inv_proj, reproj]:
+	for m in [inv_proj, reproj, to_prev]:
 		for c in 4:
 			var v: Vector4 = m[c]
 			f.append_array([v.x, v.y, v.z, v.w])
-	f.append_array([low.x, low.y, w, 0.0])
+	f.append_array([low.x, low.y, full.x, full.y])
+	f.append_array([temporal_weight, fill_weight, 1.0 if _hist_valid else 0.0, 0.0])
 	var b := f.to_byte_array()
+	b.append_array(PackedInt32Array([ofs.x, ofs.y, 0, 0]).to_byte_array())
 	_rd.buffer_update(_temp_ubo, 0, b.size(), b)
 	var set2 := UniformSetCacheRD.get_cache(_temp, 0, [
 		_sampler_u(0, _s_nearest, _low_color),
@@ -174,6 +211,9 @@ func _temporal(low: Vector2i, proj: Projection, inv_proj: Projection, cam: Trans
 		_sampler_u(2, _s_linear_clamp, src),
 		_image_u(3, dst),
 		_buffer_u(4, RenderingDevice.UNIFORM_TYPE_UNIFORM_BUFFER, _temp_ubo),
+		_sampler_u(5, _s_nearest, depth),
+		_sampler_u(6, _s_nearest, src_d),
+		_image_u(7, dst_d),
 	])
 	var cl := _rd.compute_list_begin()
 	_rd.compute_list_bind_compute_pipeline(cl, _temp_pipe)
@@ -202,7 +242,7 @@ func _header() -> String:
 		h += "\tfloat %s;\n" % n
 	for n in INT_PARAMS:
 		h += "\tint %s;\n" % n
-	h += "\tint cloud_count;\n\tint frame;\n\tint pad_a;\n\tint pad_b;\n};\n"
+	h += "\tint cloud_count;\n\tint frame;\n\tint ofs_x;\n\tint ofs_y;\n};\n"
 	h += "layout(set = 0, binding = 5, std430) readonly buffer Clouds { vec4 d[]; } clouds;\n"
 	h += "layout(rg32f, set = 0, binding = 6) uniform writeonly image2D out_depth;\n"
 	return h
@@ -252,30 +292,38 @@ func _build() -> bool:
 	var n := RDSamplerState.new()
 	_s_nearest = _rd.sampler_create(n)
 	_ubo = _rd.uniform_buffer_create(_ubo_bytes().size(), _ubo_bytes())
-	_temp_ubo = _rd.uniform_buffer_create(144)
+	_temp_ubo = _rd.uniform_buffer_create(240)
 	return true
 
 
+## Цели: марш — буфер четвертей (_low_color, _low_depth: по пикселю на блок 2×2 буфера
+## облаков), история и её глубины — полный буфер облаков.
 func _ensure_targets(low: Vector2i) -> void:
 	if low == _low_size and _low_color.is_valid():
 		return
-	for rid in [_low_color, _low_depth, _hist[0], _hist[1]]:
+	for rid in [_low_color, _low_depth, _hist[0], _hist[1], _hdep[0], _hdep[1]]:
 		if rid.is_valid():
 			_rd.free_rid(rid)
 	_low_size = low
 	_hist_valid = false
+	var qn := (low + Vector2i.ONE) / 2
 	var f := RDTextureFormat.new()
-	f.width = low.x
-	f.height = low.y
+	f.width = qn.x
+	f.height = qn.y
 	f.format = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT
 	f.usage_bits = (
 		RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT
 	)
 	_low_color = _rd.texture_create(f, RDTextureView.new())
-	_hist[0] = _rd.texture_create(f, RDTextureView.new())
-	_hist[1] = _rd.texture_create(f, RDTextureView.new())
 	f.format = RenderingDevice.DATA_FORMAT_R32G32_SFLOAT
 	_low_depth = _rd.texture_create(f, RDTextureView.new())
+	f.width = low.x
+	f.height = low.y
+	_hdep[0] = _rd.texture_create(f, RDTextureView.new())
+	_hdep[1] = _rd.texture_create(f, RDTextureView.new())
+	f.format = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT
+	_hist[0] = _rd.texture_create(f, RDTextureView.new())
+	_hist[1] = _rd.texture_create(f, RDTextureView.new())
 
 
 # ---------------------------------------------------------------- данные
@@ -284,7 +332,8 @@ func _ubo_bytes(
 	inv_proj: Projection = Projection.IDENTITY,
 	cam: Transform3D = Transform3D.IDENTITY,
 	low: Vector2i = Vector2i.ONE,
-	full: Vector2i = Vector2i.ONE
+	full: Vector2i = Vector2i.ONE,
+	ofs: Vector2i = Vector2i.ZERO
 ) -> PackedByteArray:
 	var f := PackedFloat32Array()
 	for c in 4:
@@ -303,15 +352,17 @@ func _ubo_bytes(
 	var ints := PackedInt32Array()
 	for n in INT_PARAMS:
 		ints.append(int(params.get(n, 0)))
-	ints.append_array([cloud_count, _frame, 0, 0])
+	ints.append_array([cloud_count, _frame, ofs.x, ofs.y])
 	b.append_array(ints.to_byte_array())
 	# Блок std140 округляется до 16 байт.
 	b.resize(ceili(b.size() / 16.0) * 16)
 	return b
 
 
-func _update_ubo(inv_proj: Projection, cam: Transform3D, low: Vector2i, full: Vector2i) -> void:
-	var b := _ubo_bytes(inv_proj, cam, low, full)
+func _update_ubo(
+	inv_proj: Projection, cam: Transform3D, low: Vector2i, full: Vector2i, ofs: Vector2i
+) -> void:
+	var b := _ubo_bytes(inv_proj, cam, low, full, ofs)
 	_rd.buffer_update(_ubo, 0, b.size(), b)
 
 

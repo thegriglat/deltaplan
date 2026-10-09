@@ -45,7 +45,7 @@ const MS_PER_S := 1000.0
 ## Доля полоски загрузки на грубый старт (ход до Пикара 400 м).
 const COARSE_PROGRESS := 0.1
 ## Полёт: бюджет GPU-порции, мс (кадр не ждёт: poll() раз в кадр).
-const FLIGHT_CHUNK_MS := 25.0
+const FLIGHT_CHUNK_MS := 5.0
 ## Смена условий, после которой пересчёт — внеочередной (ветер, м/с и °; погода — t_max, °C).
 const WIND_TOL_MS := 0.05
 const DIR_TOL_DEG := 1.0

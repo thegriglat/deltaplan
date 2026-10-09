@@ -1,0 +1,37 @@
+{
+  "id": "PF-1",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Профиль кадра GPU и проверка настроек рендера",
+  "goal": "Замерить, на что уходит время кадра GPU/CPU в типичных сценах (старт у склона, полёт над лесом, вид на облака) на пресетах low/medium/high, найти узкие места в шейдерах и настройках Godot (project.godot, пресеты графики, тени, эффекты, импорт текстур/мешей, MultiMesh/LOD/visibility_range), выдать отчёт с числами и ранжированным списком предложений (оценка выигрыша, риск для картинки). Код игры не менять, кроме инструментов замера в tools/bench.",
+  "plan_ref": "",
+  "contracts": [],
+  "copy": "/home/greg/deltaplan-perf",
+  "branch": "feature/perf",
+  "base": "feature/perf",
+  "scope": [
+    "tools/bench",
+    "docs/perf"
+  ],
+  "dont_touch": [
+    "scripts",
+    "assets",
+    "configs",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "report_exists",
+      "cmd": "test -s docs/perf/frame_profile.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_ok",
+      "cmd": "tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T02:36:06"
+}

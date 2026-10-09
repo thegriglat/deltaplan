@@ -81,11 +81,43 @@ var _bare_empty: Dictionary = {}
 var _prune_t: float = -1.0e18
 ## Клетка -> Vector2i(цикл, номер обновления), когда её последний раз обходили (_generate).
 var _cell_seen: Dictionary = {}
+## id циклов клеток-источников поля (ia ≥ _AIR_IA), что лежат в кешах выше: при подмене источников
+## на поле с тем же охватом забываются только они.
+var _air_ids: Dictionary = {}
 var _gen_stamp: int = 0
+## Обновление порциями (begin_refresh / step_refresh), PF-8.
+const _PH_ERASE := 0
+const _PH_GEN := 1
+const _PH_BUCKETS := 2
+const _PH_PARAMS := 3
+var _job := false
+var _job_copy := false
+var _j_ph := 0
+var _j_i := 0
+var _j_t := 0.0
+var _j_focus := Vector3.ZERO
+var _j_margin := 0.0
+var _j_fc := Vector2i.ZERO
+var _j_r2 := 0.0
+var _j_gr2 := 0.0
+var _j_cbf := 0.0
+var _j_cut := 0.0
+var _j_keys: Array = []
+var _j_cells: Array[Vector2i] = []
+var _wt: Dictionary = {}  ## набор, с которым работает обновление (thermals или его копия)
+var _nb: Dictionary = {}
+var _na: Array[AtmoThermal] = []
+var _ntp := PackedFloat64Array()
 var _statics: Array[AtmoThermal] = []
 var _cells: Dictionary = {}  ## ключ клетки -> Vector2(период, фаза)
 var _static_next_id: int = -1
 var _air_key: String = ""
+## Ключ последней запущенной сборки (пока идёт прежняя, новая не запускается).
+var _air_launched: String = ""
+## Идущие и неподобранные сборки источников (AirJob).
+var _air_jobs: Array = []
+## Собирать источники в рабочем потоке (false — синхронно, как раньше).
+var air_async: bool = true
 
 # Профиль
 var _ring: float = 1.6
@@ -172,6 +204,7 @@ func _street_for(w: Dictionary) -> Vector2:
 
 ## Пересчитать систему клеток и наклоны под текущий ветер. Динамические термики рождаются заново.
 func update_wind_frame() -> void:
+	abort_refresh()
 	var d := Vector2(wind.dir.x, wind.dir.z)
 	if d.length_squared() < 1.0e-6:
 		d = Vector2(0, 1)
@@ -196,6 +229,7 @@ func update_wind_frame() -> void:
 
 ## Забыть динамические термики и всё, что о них помнили (начать заново с любого момента).
 func reset_dynamic() -> void:
+	abort_refresh()
 	for id in thermals.keys():
 		if not thermals[id].is_static:
 			thermals.erase(id)
@@ -204,11 +238,26 @@ func reset_dynamic() -> void:
 	_active.clear()
 
 
+## Забыть только память о клетках-источниках поля (охват поля не менялся).
+func _clear_air_caches() -> void:
+	abort_refresh()
+	for id in _air_ids.keys():
+		_empty_cycles.erase(id)
+		_bare.erase(id)
+		_bare_empty.erase(id)
+	_air_ids.clear()
+	for key in _cell_seen.keys():
+		if int(key) / _KEY_MUL - _KEY_OFFSET >= _AIR_IA:
+			_cell_seen.erase(key)
+
+
 func _clear_dynamic_caches() -> void:
+	abort_refresh()
 	_empty_cycles.clear()
 	_bare.clear()
 	_bare_empty.clear()
 	_cell_seen.clear()
+	_air_ids.clear()
 	_prune_t = -1.0e18
 
 
@@ -237,6 +286,7 @@ func _apply_wind(th: AtmoThermal, street: float, wcol: Variant = null) -> void:
 
 
 func add_static(x: float, z: float, strength_ms: float, radius_m: float) -> AtmoThermal:
+	abort_refresh()
 	var th := AtmoThermal.new()
 	th.id = _static_next_id
 	_static_next_id -= 1
@@ -258,6 +308,7 @@ func add_static(x: float, z: float, strength_ms: float, radius_m: float) -> Atmo
 
 
 func clear_static() -> void:
+	abort_refresh()
 	for id in thermals.keys():
 		if thermals[id].is_static:
 			thermals.erase(id)
@@ -268,6 +319,7 @@ func clear_static() -> void:
 
 ## Кромка поменялась — верх статичных термиков пересчитать; динамические родятся заново.
 func set_cloudbase(msl: float) -> void:
+	abort_refresh()
 	cloudbase_msl = msl
 	for id in thermals.keys():
 		var th: AtmoThermal = thermals[id]
@@ -353,30 +405,201 @@ func _weather_at(t: float) -> Dictionary:
 
 ## Обновить набор термиков вокруг focus на момент t и перестроить сетку поиска.
 func refresh(t: float, focus: Vector3, margin_s: float) -> void:
+	begin_refresh(t, focus, margin_s, false)
+	step_refresh(-1)
+
+
+## Обновление порциями (PF-8): тот же расчёт, что refresh(), разбитый на шаги step_refresh(бюджет).
+## copy_set — работать с копией набора термиков и подменить набор целиком по готовности (между
+## шагами thermals и сетка поиска не видят половину обновления); false — прямо в thermals.
+func begin_refresh(t: float, focus: Vector3, margin_s: float, copy_set: bool) -> void:
+	abort_refresh()
+	_update_air()
+	_job = true
+	_job_copy = copy_set
+	_wt = thermals.duplicate() if copy_set else thermals
+	_j_t = t
+	_j_focus = focus
+	_j_margin = margin_s
+	_j_keys = _wt.keys()
+	_j_i = 0
+	_j_fc = _focus_cell(focus)
+	_j_r2 = _circle_r2()
+	_j_gr2 = (_gen_r + _spacing) * (_gen_r + _spacing)
+	_j_ph = _PH_ERASE
+
+
+## Идёт ли обновление порциями.
+func refresh_pending() -> bool:
+	return _job
+
+
+## Бросить недоделанное обновление (набор термиков меняют снаружи): thermals не тронут.
+func abort_refresh() -> void:
+	# Обрыв после начала генерации: записи _cell_seen этого обхода не должны сойти за «обошли в прошлый раз».
+	if _job and _j_ph >= _PH_GEN:
+		_gen_stamp += 1
+	_job = false
+	_wt = thermals
+	_j_keys = []
+	_j_cells = []
+	_nb = {}
+	_na = []
+	_ntp = PackedFloat64Array()
+
+
+## Работать не дольше budget_us мкс (< 0 — до конца; хотя бы один элемент за вызов).
+## true — обновление закончено (или его нет).
+func step_refresh(budget_us: int) -> bool:
+	if not _job:
+		return true
+	var dl: int = (1 << 60) if budget_us < 0 else Time.get_ticks_usec() + budget_us
+	while true:
+		match _j_ph:
+			_PH_ERASE:
+				if not _job_erase(dl):
+					return false
+				_j_ph = _PH_GEN
+				_j_i = 0
+				_j_cells = []
+				if mode != "static":
+					_job_gen_begin()
+			_PH_GEN:
+				if mode != "static":
+					if not _job_gen(dl):
+						return false
+					_prune(_j_t)
+				_j_ph = _PH_BUCKETS
+				_job_buckets_begin()
+			_PH_BUCKETS:
+				if not _job_buckets(dl):
+					return false
+				_j_ph = _PH_PARAMS
+				_j_i = 0
+				_ntp.resize(_na.size() * _P_STRIDE)
+			_PH_PARAMS:
+				if not _job_params(dl):
+					return false
+				_job_commit()
+				return true
+	return true
+
+
+func _job_erase(dl: int) -> bool:
 	# Удалить закончившиеся (облако тоже растаяло) и те, чья клетка вышла из круга генерации:
 	# набор термиков — чистая функция (фокус, t), не зависит от пути пилота (сеть, NET-00).
-	_update_air()
 	var linger := cloud_linger_s
-	var fc := _focus_cell(focus)
-	var r2 := _circle_r2()
-	var gr2 := (_gen_r + _spacing) * (_gen_r + _spacing)
-	var f2 := Vector2(focus.x, focus.z)
-	for id in thermals.keys():
-		var th: AtmoThermal = thermals[id]
+	var f2 := Vector2(_j_focus.x, _j_focus.z)
+	var n := _j_keys.size()
+	while _j_i < n:
+		var id: int = _j_keys[_j_i]
+		_j_i += 1
+		var th: AtmoThermal = _wt[id]
 		if th.is_static:
-			continue
-		if t > th.t_end() + linger:
-			thermals.erase(id)
+			pass
+		elif _j_t > th.t_end() + linger:
+			_wt.erase(id)
 			_empty_cycles[id] = th.cycle_forget
 		elif th.cell.x >= _AIR_IA:
-			if Vector2(th.src.x, th.src.z).distance_squared_to(f2) > gr2:
-				thermals.erase(id)
-		elif float((th.cell - fc).length_squared()) > r2:
-			thermals.erase(id)
-	if mode != "static":
-		_generate(t, focus)
-		_prune(t)
-	_rebuild_buckets(t, focus, margin_s)
+			if Vector2(th.src.x, th.src.z).distance_squared_to(f2) > _j_gr2:
+				_wt.erase(id)
+		elif float((th.cell - _j_fc).length_squared()) > _j_r2:
+			_wt.erase(id)
+		if (_j_i & 31) == 0 and Time.get_ticks_usec() >= dl:
+			return _j_i >= n
+	return true
+
+
+## Список клеток круга генерации и источников поля (порядок как в прежнем _generate).
+func _job_gen_begin() -> void:
+	_gen_stamp += 1
+	var n := int(ceil(_gen_r / _spacing))
+	var cells: Array[Vector2i] = []
+	for dc in range(-n, n + 1):
+		for da in range(-n, n + 1):
+			if float(da * da + dc * dc) > _j_r2:
+				continue
+			cells.append(Vector2i(_j_fc.x + da, _j_fc.y + dc))
+	if air_src != null:  # источники поля в круге генерации
+		for s in air_src.sources_in(Vector2(_j_focus.x, _j_focus.z), _gen_r):
+			var c := air_src.col[s]
+			cells.append(Vector2i(_AIR_IA + c / air_src.level.nx, c % air_src.level.nx))
+	_j_cells = cells
+	_j_cbf = _cb_factor()
+	_j_i = 0
+
+
+func _job_gen(dl: int) -> bool:
+	var n := _j_cells.size()
+	while _j_i < n:
+		var c: Vector2i = _j_cells[_j_i]
+		_j_i += 1
+		_gen_cell(c.x, c.y, _j_t, _j_cbf)
+		if Time.get_ticks_usec() >= dl:
+			return _j_i >= n
+	return true
+
+
+func _job_buckets_begin() -> void:
+	_nb = {}
+	_na = []
+	_j_keys = _wt.keys()
+	_j_i = 0
+	_j_cut = sqrt(_cut2)
+
+
+func _job_buckets(dl: int) -> bool:
+	var t := _j_t
+	var focus := _j_focus
+	var n := _j_keys.size()
+	while _j_i < n:
+		var th: AtmoThermal = _wt[_j_keys[_j_i]]
+		_j_i += 1
+		if th.is_static or t <= th.t_end():
+			th.update_time(t)
+			var p0 := th.axis_at(th.src.y)
+			# Поток продолжается внутрь облака (подсос) — столб до верха облака.
+			var p1 := th.axis_at(th.top + th.cloud_depth)
+			# Снос за интервал до следующего обновления — запас.
+			var pad := th.radius * _j_cut + th.drift_vel.length() * _j_margin
+			if not th.is_static and t + _j_margin > th.drift_start():
+				p1 += th.drift_vel * _j_margin
+			var mid := (p0 + p1) * 0.5
+			var near_d := Vector2(focus.x, focus.z).distance_to(mid) - p0.distance_to(p1) * 0.5 - pad
+			if near_d <= _phys_r:
+				var off := _na.size() * _P_STRIDE
+				_na.append(th)
+				_insert_capsule(p0, p1, pad, off)
+		if (_j_i & 15) == 0 and Time.get_ticks_usec() >= dl:
+			return _j_i >= n
+	return true
+
+
+func _job_params(dl: int) -> bool:
+	var n := _na.size()
+	while _j_i < n:
+		var j1 := mini(_j_i + 16, n)
+		_write_params_range(_na, _ntp, _j_t, _j_i, j1)
+		_j_i = j1
+		if Time.get_ticks_usec() >= dl:
+			return _j_i >= n
+	return true
+
+
+func _job_commit() -> void:
+	_buckets = _nb
+	_active = _na
+	_tp = _ntp
+	if _wt != thermals:
+		thermals.clear()
+		thermals.merge(_wt)
+	_job = false
+	_wt = thermals
+	_nb = {}
+	_na = []
+	_ntp = PackedFloat64Array()
+	_j_keys = []
+	_j_cells = []
 
 
 ## Клетка фокуса (a, c).
@@ -388,25 +611,6 @@ func _focus_cell(focus: Vector3) -> Vector2i:
 ## Круг генерации в клетках: (радиус / шаг + 1)².
 func _circle_r2() -> float:
 	return (_gen_r / _spacing + 1.0) * (_gen_r / _spacing + 1.0)
-
-
-func _generate(t: float, focus: Vector3) -> void:
-	_gen_stamp += 1
-	var fc := _focus_cell(focus)
-	var n := int(ceil(_gen_r / _spacing))
-	var ia0 := fc.x
-	var ic0 := fc.y
-	var r2 := _circle_r2()
-	var cbf := _cb_factor()
-	for dc in range(-n, n + 1):
-		for da in range(-n, n + 1):
-			if float(da * da + dc * dc) > r2:
-				continue
-			_gen_cell(ia0 + da, ic0 + dc, t, cbf)
-	if air_src != null:  # источники поля в круге генерации
-		for s in air_src.sources_in(Vector2(focus.x, focus.z), _gen_r):
-			var c := air_src.col[s]
-			_gen_cell(_AIR_IA + c / air_src.level.nx, c % air_src.level.nx, t, cbf)
 
 
 func _gen_cell(ia: int, ic: int, t: float, cbf: float) -> void:
@@ -436,11 +640,13 @@ func _gen_cell(ia: int, ic: int, t: float, cbf: float) -> void:
 ## Термик цикла cy клетки (ia, ic) — в список живых, если он есть и ещё жив в момент t.
 func _ensure(ia: int, ic: int, cy: int, t_start: float, period: float, t: float) -> void:
 	var id := _mix(ia, ic, cy) | 1  # > 0: динамические
-	if thermals.has(id) or _empty_cycles.has(id):
+	if _wt.has(id) or _empty_cycles.has(id):
 		return
 	var th := _real_thermal(ia, ic, id, t_start, period)
+	if ia >= _AIR_IA:
+		_air_ids[id] = true
 	if th != null and t <= th.t_end() + cloud_linger_s:
-		thermals[id] = th
+		_wt[id] = th
 	else:
 		_empty_cycles[id] = t_start + _reach_of(t_start, period)
 
@@ -717,31 +923,146 @@ func _cell_shade(
 # ---------------------------------------------------------------- поле воздуха (AM-07)
 
 
+## Задача сборки источников в рабочем потоке (PF-К4): вход — снимок, выход — готовый AirThermals.
+class AirJob:
+	extends RefCounted
+	var key: String = ""
+	var src: AirThermals
+	var cfg: Dictionary
+	var field: WindField
+	var forced := PackedByteArray()
+	var ok: bool = false
+	var task: int = -1
+
+	## Тело задачи (рабочий поток): только build по снимку; дерево сцены и общие данные не трогает.
+	func run() -> void:
+		ok = src.build(field, cfg, forced)
+
+
 ## Источники поля: пересобрать, если поменялось поле (уровни), маска ведущего или поле пропало.
 ## Грубейший уровень — общий у всех клиентов сети (окна вокруг пилота у каждого свои).
+## Сборка идёт в WorkerThreadPool (PF-К4); air_src меняется целиком и только по готовности
+## (на главном потоке), до этого работает прежний; устаревшая сборка отбрасывается.
 func _update_air() -> void:
-	var f: WindField = null
-	if air != null and not air.levels.is_empty():
-		f = air.levels[air.levels.size() - 1]
-	var key := ""
-	if f != null and AirThermals.has_inputs(f):
-		key = "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
-	if key == _air_key:
+	_poll_air_jobs()
+	var f := _air_level()
+	var key := _air_key_of(f)
+	if key == "":
+		if _air_key != "":
+			# поля нет — источников нет (идущие сборки устареют и будут отброшены)
+			_air_key = ""
+			_air_launched = ""
+			air_src = null
+			_clear_dynamic_caches()
 		return
 	_air_key = key
-	air_src = null
-	if key != "":
-		var src := AirThermals.new()
-		var cfg := _cfg.duplicate()
-		cfg["duty"] = float(_w.thermal_duty)
-		cfg["cloudbase_msl"] = cloudbase_msl
-		cfg["height_fn"] = ground.height
-		cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
-		var forced := air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
-		if src.build(f, cfg, forced):
-			air_src = src
-	# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
-	_clear_dynamic_caches()
+	_air_launch(f, key)
+	# Первых источников нет совсем (загрузка места) — ждём: иначе круг генерации сначала
+	# заполнится аналитикой и тут же пересоберётся (рывок вдвое длиннее, термики не те).
+	while air_src == null and not _air_jobs.is_empty():
+		_wait_air_jobs()
+		_air_launch(f, key)
+
+
+func _air_level() -> WindField:
+	if air != null and not air.levels.is_empty():
+		return air.levels[air.levels.size() - 1]
+	return null
+
+
+func _air_key_of(f: WindField) -> String:
+	if f != null and AirThermals.has_inputs(f):
+		return "%d|%s|%d" % [f.get_instance_id(), air_forced_sig, hash(air_forced)]
+	return ""
+
+
+## Запустить сборку для ключа key, если её ещё нет и прежняя не идёт: устаревшие не копятся,
+## последний ключ собирается по готовности прежней.
+func _air_launch(f: WindField, key: String) -> void:
+	if key == _air_launched or not _air_jobs.is_empty():
+		return
+	_air_launched = key
+	var job := AirJob.new()
+	job.key = key
+	job.src = AirThermals.new()
+	job.field = f
+	var cfg := _cfg.duplicate()
+	cfg["duty"] = float(_w.thermal_duty)
+	cfg["cloudbase_msl"] = cloudbase_msl
+	cfg["height_fn"] = ground.height
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
+	job.cfg = cfg
+	job.forced = air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
+	# ленивые записи в meta поля (heat) — здесь, на главном потоке: поток только читает
+	f.heat_flux()
+	_air_jobs.append(job)
+	if air_async:
+		job.task = WorkerThreadPool.add_task(job.run, false, "AirThermals.build")
+	else:
+		job.run()
+	_poll_air_jobs()
+
+
+## Принять готовые сборки: актуальную — подменить air_src, устаревшие — выбросить.
+func _poll_air_jobs() -> void:
+	var i := 0
+	while i < _air_jobs.size():
+		var job: AirJob = _air_jobs[i]
+		if job.task >= 0 and not WorkerThreadPool.is_task_completed(job.task):
+			i += 1
+			continue
+		if job.task >= 0:
+			WorkerThreadPool.wait_for_task_completion(job.task)
+		_air_jobs.remove_at(i)
+		if job.key != _air_key:
+			if job.key == _air_launched:
+				_air_launched = ""
+			continue
+		var prev := air_src
+		air_src = job.src if job.ok else null
+		# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
+		# Охват поля тот же — клетки сетки (аналитика) от списка не зависят, их кеши остаются:
+		# иначе весь круг генерации пересчитывается за один кадр.
+		if prev != null and air_src != null and AirThermals.same_cover(prev.level, air_src.level):
+			_clear_air_caches()
+		else:
+			_clear_dynamic_caches()
+
+
+## Дождаться всех сборок источников и принять актуальную (тесты, рассылка маски).
+## launch_pending = false (выход из места): ждать только идущую сборку, отложенную по последнему
+## ключу не запускать.
+func air_wait(launch_pending: bool = true) -> void:
+	while not _air_jobs.is_empty():
+		_wait_air_jobs()
+		if not launch_pending:
+			return
+		var f := _air_level()
+		var key := _air_key_of(f)
+		if key != "" and key == _air_key:
+			_air_launch(f, key)
+
+
+func _wait_air_jobs() -> void:
+	for job: AirJob in _air_jobs:
+		if job.task >= 0:
+			WorkerThreadPool.wait_for_task_completion(job.task)
+			job.task = -1
+	_poll_air_jobs()
+
+
+## Идёт ли сборка источников поля в рабочем потоке.
+func air_building() -> bool:
+	return not _air_jobs.is_empty()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		# выход из места/игры: ждать задачу, не бросать её висеть без владельца
+		for job: AirJob in _air_jobs:
+			if job.task >= 0:
+				WorkerThreadPool.wait_for_task_completion(job.task)
+		_air_jobs.clear()
 
 
 ## Маска источников ведущего (сеть): подпись сетки уровня и биты столбцов; "" — выбирать самим.
@@ -796,6 +1117,8 @@ func _bare_thermal(ia: int, ic: int, id: int, t_start: float, period: float) -> 
 	if _bare_empty.has(id):
 		return null
 	var th := _spawn(ia, ic, id, t_start, period, 0.0)
+	if ia >= _AIR_IA:
+		_air_ids[id] = true
 	var forget := t_start + _reach_of(t_start, period)
 	if th == null:
 		_bare_empty[id] = forget
@@ -827,33 +1150,26 @@ func _prune(t: float) -> void:
 	for key in _cell_seen.keys():
 		if (_cell_seen[key] as Vector2i).y < _gen_stamp - 1:
 			_cell_seen.erase(key)
+	for id in _air_ids.keys():
+		if not (_empty_cycles.has(id) or _bare.has(id) or _bare_empty.has(id)):
+			_air_ids.erase(id)
 
 
+## Перестроить сетку поиска синхронно (тесты): без обновления набора.
 func _rebuild_buckets(t: float, focus: Vector3, margin_s: float) -> void:
-	_buckets.clear()
-	_active.clear()
-	var cut := sqrt(_cut2)
-	for id in thermals:
-		var th: AtmoThermal = thermals[id]
-		if not th.is_static and t > th.t_end():
-			continue
-		th.update_time(t)
-		var p0 := th.axis_at(th.src.y)
-		# Поток продолжается внутрь облака (подсос) — столб до верха облака.
-		var p1 := th.axis_at(th.top + th.cloud_depth)
-		# Снос за интервал до следующего обновления — запас.
-		var pad := th.radius * cut + th.drift_vel.length() * margin_s
-		if not th.is_static and t + margin_s > th.drift_start():
-			p1 += th.drift_vel * margin_s
-		var mid := (p0 + p1) * 0.5
-		var near_d := Vector2(focus.x, focus.z).distance_to(mid) - p0.distance_to(p1) * 0.5 - pad
-		if near_d > _phys_r:
-			continue
-		var off := _active.size() * _P_STRIDE
-		_active.append(th)
-		_insert_capsule(p0, p1, pad, off)
-	_tp.resize(_active.size() * _P_STRIDE)
-	_write_params(t)
+	abort_refresh()
+	_job = true
+	_job_copy = false
+	_wt = thermals
+	_j_t = t
+	_j_focus = focus
+	_j_margin = margin_s
+	_job_buckets_begin()
+	_job_buckets(1 << 60)
+	_j_i = 0
+	_ntp.resize(_na.size() * _P_STRIDE)
+	_job_params(1 << 60)
+	_job_commit()
 
 
 ## Вписать отрезок p0–p1 с запасом pad в ячейки поиска: по строкам z находим диапазон x.
@@ -878,33 +1194,38 @@ func _insert_capsule(p0: Vector2, p1: Vector2, pad: float, off: int) -> void:
 		var bx1 := floori((maxf(xa, xb) + pad) * _inv_bucket)
 		for bx in range(bx0, bx1 + 1):
 			var key := (bx + _KEY_OFFSET) * _KEY_MUL + (bz + _KEY_OFFSET)
-			var arr: Variant = _buckets.get(key)
+			var arr: Variant = _nb.get(key)
 			if arr == null:
 				arr = []
-				_buckets[key] = arr
+				_nb[key] = arr
 			arr.append(off)
 
 
 ## Параметры активных термиков — в плоский массив (горячий путь sample() без обращений к объектам).
 func _write_params(t: float) -> void:
-	var o := 0
-	for th in _active:
-		_tp[o] = th.src.x + th.drift.x
-		_tp[o + 1] = th.src.y
-		_tp[o + 2] = th.src.z + th.drift.y
-		_tp[o + 3] = th.top
-		_tp[o + 4] = th.lean.x
-		_tp[o + 5] = th.lean.y
-		_tp[o + 6] = th.radius
-		_tp[o + 7] = th.strength * th.env
-		_tp[o + 8] = th.cut_h
-		_tp[o + 9] = th.env
-		_tp[o + 10] = 1.0 / maxf(th.top - th.src.y, 1.0)
+	_write_params_range(_active, _tp, t, 0, _active.size())
+
+
+func _write_params_range(act: Array[AtmoThermal], tp: PackedFloat64Array, t: float, i0: int, i1: int) -> void:
+	var o := i0 * _P_STRIDE
+	for i in range(i0, i1):
+		var th: AtmoThermal = act[i]
+		tp[o] = th.src.x + th.drift.x
+		tp[o + 1] = th.src.y
+		tp[o + 2] = th.src.z + th.drift.y
+		tp[o + 3] = th.top
+		tp[o + 4] = th.lean.x
+		tp[o + 5] = th.lean.y
+		tp[o + 6] = th.radius
+		tp[o + 7] = th.strength * th.env
+		tp[o + 8] = th.cut_h
+		tp[o + 9] = th.env
+		tp[o + 10] = 1.0 / maxf(th.top - th.src.y, 1.0)
 		# Облачный подсос: усиление у основания и высота потока в облаке (FR-14b).
 		var sk := cloud_phys.suck(th, t) if cloud_phys != null else Vector2(th.suck, 0.0)
-		_tp[o + 11] = sk.x
-		_tp[o + 12] = sk.y
-		_tp[o + 13] = th.ring if th.ring >= 0.0 else _ring
+		tp[o + 11] = sk.x
+		tp[o + 12] = sk.y
+		tp[o + 13] = th.ring if th.ring >= 0.0 else _ring
 		o += _P_STRIDE
 
 

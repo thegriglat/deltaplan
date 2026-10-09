@@ -1,0 +1,39 @@
+{
+  "id": "PF-11",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Автовыбор «Низкого» пресета на слабом железе при первом запуске",
+  "goal": "Слабые машины (встроенная графика, Apple, программный рендер) при первом запуске сразу получают «Низкое» — дешёвая защита без слежения за кадром (решение пользователя 2026-10-08).",
+  "plan_ref": "PF-11. Автовыбор",
+  "contracts": [],
+  "copy": "~/deltaplan-perf-PF-11",
+  "branch": "perf/PF-11",
+  "base": "feature/perf",
+  "scope": [
+    "scripts/game/graphics_presets.gd",
+    "configs/game.json",
+    "tests/ui/test_graphics_autodetect.gd"
+  ],
+  "dont_touch": [
+    "пресеты graphics_presets (состав)",
+    "слежение за временем кадра — не делать",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "graphics",
+      "tests": "graphics"
+    },
+    {
+      "name": "render_scale",
+      "tests": "render_scale"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-08T11:36:32"
+}

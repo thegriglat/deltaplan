@@ -150,6 +150,8 @@ static func _find_site(
 	var gap := float(cfg.get("min_gap_m", 300.0))
 	var half := float(cfg.get("route_m", [500.0, 900.0])[1]) * 0.5
 	var spot := func(x: float, z: float) -> bool:
+		if not place.road_maybe_near(x, z, classes):
+			return false
 		if place.nearest_road_m(x, z, classes) > float(cfg.get("snap_m", 6.0)):
 			return false
 		for f in found:

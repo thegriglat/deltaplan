@@ -16,6 +16,19 @@ var atmo: Atmosphere
 var cfg: Dictionary
 ## Время последнего выбора облаков (CPU), мкс — для замеров.
 var last_rebuild_us: int = 0
+## > 0 — одиночный выбор облаков порциями по этому бюджету за кадр, мкс (PF-8); 0 — сразу.
+var select_budget_us: int = 0
+var _sj := false
+var _sj_ph := 0
+var _sj_i := 0
+var _sj_t := 0.0
+var _sj_eye := Vector3.ZERO
+var _sj_us := 0
+var _sj_shown: Dictionary = {}
+var _sj_keys: Array = []
+var _sj_cand: Array = []
+var _sj_drop: Dictionary = {}
+var _sj_crests: Array = []
 ## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
 var model: CloudModel
 ## Выбор без памяти о кадрах (только сетевая игра, ставит NetFlight): набор облаков и их
@@ -169,6 +182,7 @@ func set_quality(q: String) -> void:
 	_material.set_shader_parameter("detail_enabled", 1 if bool(p.detail) else 0)
 	if _effect != null:
 		_effect.resolution_scale = float(p.lowres_scale)
+		_effect.max_buffer_px = int(p.get("max_buffer_px", 0))
 	if _shadow_map != null:
 		_shadow_map.set_quality(q)
 
@@ -274,9 +288,15 @@ func _process(delta: float) -> void:
 		_attach_effect(cam)
 	_acc += delta
 	# Выбор — на каждом интервале времени атмосферы (и при движении камеры на паузе).
-	if (history_free and floori(t / _interval) != _last_k) or _acc >= _interval:
+	if _sj:
+		_select_pump()
+	elif (history_free and floori(t / _interval) != _last_k) or _acc >= _interval:
 		_acc = 0.0
-		_select(t, eye)
+		if select_budget_us > 0 and not history_free and not _instant:
+			_select_begin(t, eye)
+			_select_pump()
+		else:
+			_select(t, eye)
 	_update_some(t, eye)
 	if not history_free:
 		_update_fades(dt)
@@ -492,11 +512,88 @@ func _select(t: float, eye: Vector3) -> void:
 ## Одиночная игра: нарисованные (не тающие) облака в приоритете при наложении и обрезке по
 ## лимиту (гистерезис); выбывшее тает (_update_fades), слот освобождается при нуле.
 func _select_with_fades(t: float, eye: Vector3) -> void:
+	_apply_selection(model.select(atmo.field.thermals, t, eye, _shown_ids()), t, eye)
+
+
+## Уже нарисованные (не тающие) облака: id -> true.
+func _shown_ids() -> Dictionary:
 	var shown: Dictionary = {}
 	for id in _slot_of:
 		if _want[_slot_of[id]] == 1:
 			shown[id] = true
-	var list := model.select(atmo.field.thermals, t, eye, shown)
+	return shown
+
+
+## Выбор порциями (PF-8): тот же результат, что _select для одиночной игры, но набор кандидатов,
+## слияние и волновые облака — по шагам за кадр (_select_pump); t, камера и «нарисованные» — на начало.
+func _select_begin(t: float, eye: Vector3) -> void:
+	var wd := atmo.wind.dir
+	if wd.length_squared() < 1.0e-6:
+		wd = Vector3(1, 0, 0)
+	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
+	_sj = true
+	_sj_ph = 0
+	_sj_i = 0
+	_sj_t = t
+	_sj_eye = eye
+	_sj_us = 0
+	_sj_shown = _shown_ids()
+	_sj_keys = atmo.field.thermals.keys()
+	_sj_cand = []
+
+
+func _select_pump() -> void:
+	var t0 := Time.get_ticks_usec()
+	var dl := t0 + select_budget_us
+	if _sj_ph == 0:
+		var ths: Dictionary = atmo.field.thermals
+		var n := _sj_keys.size()
+		while _sj_i < n:
+			var th: AtmoThermal = ths.get(_sj_keys[_sj_i])
+			_sj_i += 1
+			if th != null:
+				var e := model.select_entry(th, _sj_t, _sj_eye, _sj_shown)
+				if not e.is_empty():
+					_sj_cand.append(e)
+			if (_sj_i & 7) == 0 and Time.get_ticks_usec() >= dl:
+				_sj_us += Time.get_ticks_usec() - t0
+				return
+		_sj_ph = 1
+	if _sj_ph == 1:
+		if Time.get_ticks_usec() >= dl:
+			_sj_us += Time.get_ticks_usec() - t0
+			return
+		_sj_drop = model.drop_begin(CloudModel.sort_by_score(_sj_cand))
+		_sj_cand = []
+		_sj_ph = 2
+	if _sj_ph == 2:
+		if not model.drop_step(_sj_drop, dl):
+			_sj_us += Time.get_ticks_usec() - t0
+			return
+		_sj_ph = 3
+	if _sj_ph == 3:
+		if Time.get_ticks_usec() >= dl:
+			_sj_us += Time.get_ticks_usec() - t0
+			return
+		_apply_selection(model.select_tail(_sj_drop.out, _sj_shown), _sj_t, _sj_eye)
+		_sj_drop = {}
+		_sj_ph = 4
+		_sj_us += Time.get_ticks_usec() - t0
+		return
+	if _sj_ph == 4:
+		var wf := atmo.wave
+		_sj_crests = _wave_crests(_sj_eye) if wf != null and wf.enabled and wf.ground.has_ground else []
+		_sj_ph = 5
+		_sj_us += Time.get_ticks_usec() - t0
+		return
+	_wave_rec = _wave_clouds(_sj_eye, _sj_crests)
+	_sj_crests = []
+	_sj = false
+	last_rebuild_us = _sj_us + Time.get_ticks_usec() - t0
+
+
+## Применить выбор (одиночная игра): слоты под выбранные облака, выбывшие тают.
+func _apply_selection(list: Array, t: float, eye: Vector3) -> void:
 	var keep: Dictionary = {}
 	for e: Array in list:
 		keep[(e[1] as AtmoThermal).id] = e[1]
@@ -688,16 +785,14 @@ func _update_drift(t: float) -> void:
 
 ## Облака волны (VR-27) — строго из поля смещения линий тока: лентикулярные в гребнях волн,
 ## шапка на самой высокой точке рельефа против ветра, роторные клочья под первым гребнем.
-func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
+func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat32Array]:
 	var out: Array[PackedFloat32Array] = []
 	var wf := atmo.wave
 	if wf == null or not wf.enabled:
 		return out
 	var w: Dictionary = atmo.cfg.wave
 	var ax: Vector3 = _basis_axes[0]
-	var crests := wf.crests(
-		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
-	)
+	var crests: Array = crests_in if crests_in != null else _wave_crests(eye)
 	var lam := wf.wavelength()
 	var above := float(atmo.weather.get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)
@@ -735,6 +830,15 @@ func _wave_clouds(eye: Vector3) -> Array[PackedFloat32Array]:
 				900.0, 2200.0, Vector4(1, 0.2, 0, 523.0), Vector4(0, 0, 0, 2), 0.0, 10.0
 			))
 	return out
+
+
+## Гребни волны вокруг камеры (первая, тяжёлая половина _wave_clouds).
+func _wave_crests(eye: Vector3) -> Array[Dictionary]:
+	var wf := atmo.wave
+	var w: Dictionary = atmo.cfg.wave
+	return wf.crests(
+		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
+	)
 
 
 ## Самая высокая точка рельефа рядом (для шапки): Vector3(x, z, высота) или z < 0.

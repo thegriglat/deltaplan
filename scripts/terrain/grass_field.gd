@@ -43,17 +43,23 @@ func setup(
 	_max_agl = float(cfg.get("max_agl_m", 120.0))
 	_mowed_height_k = float(cfg.get("mowed_height_k", 0.3))
 	var radius := float(cfg.radius_m)
-	var n := int(ceil(2.0 * radius / _spacing)) + 1
+	var inner := float(cfg.get("inner_radius_m", -1.0))
+	var offs := ring_offsets(_spacing, inner, radius)
+	var n := offs.size()
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
 	mm.mesh = clump_mesh(int(cfg.blades_per_clump), float(cfg.blade_width_m), int(cfg.segments))
-	mm.instance_count = n * n
+	mm.instance_count = n
+	# Пучки только в кольце inner..radius: смещение клетки от центральной — в INSTANCE_CUSTOM.xy.
 	var buf := PackedFloat32Array()
-	buf.resize(n * n * 12)
-	for i in n * n:
-		buf[i * 12] = 1.0
-		buf[i * 12 + 5] = 1.0
-		buf[i * 12 + 10] = 1.0
+	buf.resize(n * 16)
+	for i in n:
+		buf[i * 16] = 1.0
+		buf[i * 16 + 5] = 1.0
+		buf[i * 16 + 10] = 1.0
+		buf[i * 16 + 12] = offs[i].x
+		buf[i * 16 + 13] = offs[i].y
 	mm.buffer = buf
 	multimesh = mm
 	material = ShaderMaterial.new()
@@ -64,7 +70,6 @@ func setup(
 	material.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))
 	TerrainRenderer.apply_look_params(material, look)
 	TerrainRenderer.set_surface(material, surface, surface_tex)
-	material.set_shader_parameter("grid_n", n)
 	material.set_shader_parameter("clump_spacing_m", _spacing)
 	material.set_shader_parameter("area_radius_m", radius)
 	material.set_shader_parameter("blade_height_m", _v2(cfg.blade_height_m))
@@ -119,6 +124,21 @@ func setup(
 		far_layer.camera = camera
 		add_child(far_layer)
 		far_layer.setup(layer, height_tex, surface, surface_tex, look, fc, mowed_spots)
+
+
+## Смещения клеток (от центральной) пучков кольца inner..outer, м, при шаге spacing: пучок
+## дрожит в клетке на ±0,45 клетки, камера — в пределах клетки, отсюда запас 2 клетки.
+static func ring_offsets(spacing: float, inner: float, outer: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var m := int(ceil(outer / spacing)) + 2
+	var lo := maxf(inner - 2.0 * spacing, 0.0)
+	var hi := outer + 2.0 * spacing
+	for j in range(-m, m + 1):
+		for i in range(-m, m + 1):
+			var d := Vector2(i, j).length() * spacing
+			if d >= lo and d <= hi:
+				out.append(Vector2(i, j))
+	return out
 
 
 ## Материалы травы (ближний и дальний слой) — для ветра.

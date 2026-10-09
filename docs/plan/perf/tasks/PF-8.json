@@ -1,0 +1,82 @@
+{
+  "id": "PF-8",
+  "module": "perf",
+  "type": "dp-engineer",
+  "title": "Периодические работы главного потока порциями",
+  "goal": "Раз в секунду Atmosphere.refresh_now (24–39 мс) и CloudLayer._select (28–43 мс) дают 1 %-худших кадров 40–50 мс на любом пресете. Разнести работу по кадрам (или в поток), итог цикла тот же.",
+  "plan_ref": "PF-8. Периодические работы главного потока порциями",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": 2,
+      "ref": "docs/contracts/perf.md"
+    },
+    {
+      "name": "PF-К2",
+      "version": 2,
+      "ref": "docs/contracts/perf.md"
+    }
+  ],
+  "copy": "~/deltaplan-perf-PF-8",
+  "branch": "perf/PF-8",
+  "base": "feature/perf",
+  "scope": [
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/cloud_layer.gd (_select и его вызов)",
+    "scripts/atmosphere/thermal_field.gd (вне стыка PF-К4)",
+    "tests/atmosphere/",
+    "tests/contracts/test_perf_contracts.gd (только тест PF-К4 v2)",
+    "scripts/atmosphere/cloud_model.gd (шаги выбора, нативная сортировка)"
+  ],
+  "dont_touch": [
+    "физика термиков/облаков (числа, выбор — итог полного цикла тот же)",
+    "стык PF-К4 (подмена air_src)",
+    "шейдеры облаков, buffer_size",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tests_atmosphere",
+      "tests": "test_atmosphere"
+    },
+    {
+      "name": "tests_clouds",
+      "tests": "cloud"
+    },
+    {
+      "name": "tests_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "tests_determinism",
+      "tests": "determinism"
+    },
+    {
+      "name": "tests_contract",
+      "tests": "perf_contracts"
+    },
+    {
+      "name": "fly_run_low",
+      "cmd": "rm -rf build/dp/PF-8/f; MARKS= /home/greg/deltaplan/tools/dp lock gpu PF-8 --timeout 3600 -- tools/bench/frame_profile.sh build/dp/PF-8/f low ongudai --sample=2 >/dev/null 2>&1; ls build/dp/PF-8/f/low_ongudai_fly.jsonl",
+      "timeout": 3600
+    },
+    {
+      "name": "low_hitch_after2s",
+      "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-8/f/low_ongudai_fly.jsonl')];h=[x['ms'] for r in R if r.get('exp')=='_hitches' for x in r['hitches'] if x['sim_t']>2.0 and not 5.5<=x['sim_t']<=6.5];print('hitch=%.1f'%max(h+[0.0]))\"",
+      "expect": "num:hitch=([0-9.]+) <=150"
+    },
+    {
+      "name": "low_1pct",
+      "cmd": "python3 -c \"import json;R=[json.loads(l) for l in open('build/dp/PF-8/f/low_ongudai_fly.jsonl')];v=[r['frame_ms_1pct'] for r in R if r.get('exp')=='fly'];print('p1=%.1f'%max(v))\"",
+      "expect": "num:p1=([0-9.]+) <=32"
+    }
+  ],
+  "report_extra": [
+    "p1_before_after",
+    "periodic_ms_per_frame",
+    "determinism"
+  ],
+  "notes": "Дополнительно (minor из ревью PF-5): (1) ThermalField.air_wait() при выходе из места — ждать только идущую сборку, отложенную по последнему ключу не запускать (лишние 2–3 с на выходе); (2) тест PF-К4 v2 в tests/contracts/test_perf_contracts.gd усилить: в момент подмены источник поля действительно отбрасывает тень на клетку сетки (тень > 0 у хотя бы одной клетки сетки до подмены, среди empties_before есть циклы клеток сетки).",
+  "created": "2026-10-08T15:23:42",
+  "edited": "2026-10-08T18:17:44"
+}

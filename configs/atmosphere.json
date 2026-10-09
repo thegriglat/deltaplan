@@ -417,7 +417,7 @@
     "quality": "medium",
     "quality_doc": "Качество облаков: low (встроенная графика), medium, high. Параметры — в quality_presets.",
     "quality_presets": {
-      "_doc": "coarse_steps — грубых шагов через бокс (поиск поверхности); max_iterations — предел выборок на пиксель (главный параметр скорости); fine_step_per_m — мелкий шаг = расстояние × множитель, м/м; fine_step_min_m — минимальный мелкий шаг, м; light_steps — шагов к солнцу; detail — мелкая эрозия краёв. lowres_scale — доля разрешения буфера облаков по каждой оси (compute-путь). shadow_map_px — сторона карты теней облаков, пиксели; shadow_steps — шагов луча к солнцу сквозь облако для тени.",
+      "_doc": "coarse_steps — грубых шагов через бокс (поиск поверхности); max_iterations — предел выборок на пиксель (главный параметр скорости); fine_step_per_m — мелкий шаг = расстояние × множитель, м/м; fine_step_min_m — минимальный мелкий шаг, м; light_steps — шагов к солнцу; detail — мелкая эрозия краёв. lowres_scale — доля разрешения буфера облаков по каждой оси (compute-путь); max_buffer_px — предел площади буфера облаков, пикселей (0 — без предела): на больших окнах масштаб уменьшается, цена облаков не растёт с разрешением (PF-К2). shadow_map_px — сторона карты теней облаков, пиксели; shadow_steps — шагов луча к солнцу сквозь облако для тени.",
       "low": {
         "shadow_map_px": 256,
         "shadow_steps": 4,
@@ -427,7 +427,8 @@
         "fine_step_min_m": 6,
         "light_steps": 3,
         "detail": false,
-        "lowres_scale": 0.33
+        "lowres_scale": 0.33,
+        "max_buffer_px": 240000
       },
       "medium": {
         "shadow_map_px": 512,
@@ -438,18 +439,20 @@
         "fine_step_min_m": 3,
         "light_steps": 5,
         "detail": true,
-        "lowres_scale": 0.5
+        "lowres_scale": 0.33,
+        "max_buffer_px": 240000
       },
       "high": {
         "shadow_map_px": 512,
         "shadow_steps": 8,
         "coarse_steps": 80,
-        "max_iterations": 200,
+        "max_iterations": 128,
         "fine_step_per_m": 0.002,
         "fine_step_min_m": 2,
         "light_steps": 6,
         "detail": true,
-        "lowres_scale": 0.75
+        "lowres_scale": 0.5,
+        "max_buffer_px": 560000
       }
     },
     "light_step_m": 10,
