@@ -14,7 +14,9 @@
     "docs/guide/atmosphere.md",
     "docs/registry/findings.md",
     "CHANGELOG.md",
-    "docs/research/surface_params.md"
+    "docs/research/surface_params.md",
+    "docs/guide/terrain.md",
+    "docs/guide/architecture.md"
   ],
   "dont_touch": [
     "scripts/",
@@ -47,5 +49,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T00:17:04"
+  "created": "2026-10-10T00:17:04",
+  "edited": "2026-10-10T00:26:24"
 }

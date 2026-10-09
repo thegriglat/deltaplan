@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Документация SH: раздел «Вход решателя (SurfaceHeat)» в air-model.md (формулы, вода/лёд, z0, таблица до/после, чего не умеет), сила источника термиков из H в atmosphere.md (таблица s было/стало, лес сильнее луга), 6 записей findings, CHANGELOG, applied_in в surface_params.md. Коммит 2862642e.",
+  "commits": [
+    "2862642e SH-8: документация нагрева по покрову, воды, льда и z0; findings; CHANGELOG",
+    "terrain.md, architecture.md: ссылки на SurfaceHeat вместо class_strength"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "guide",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "6",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/contracts/surface-heat.md: SH3 упоминает C2 v8 (журнал SH-6 — v9) — за координатором"
+  ],
+  "questions": [],
+  "how_to_check": "tools/dp accept SH-8",
+  "uncertain": [
+    {
+      "where": "air-model.md, таблица до/после",
+      "why": "взят прогон after_z0 (с z0) против before; вклад z0 отдельно от H не разделён (прогон 'after' без z0 не использовался)",
+      "checked": "числа сверены с compare.md; проценты посчитаны мной из него"
+    },
+    {
+      "where": "air-model.md, вода",
+      "why": "'H вода' в замере — среднее по клеткам с большинством воды, не озеро; чистое озеро p10 −31,5 — из отчёта SH-4",
+      "checked": "оговорено в тексте"
+    },
+    {
+      "where": "air-model.md, время снимка на 6 ядрах",
+      "why": "оценка SH-4 1–1,5 с, не измерено",
+      "checked": "помечено 'не мерили'"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-10T00:26:36",
+  "by": "executor"
+}
