@@ -4,7 +4,7 @@ extends SceneTree
 ## По умолчанию папка точки — dir= из build/point_cache.txt. Читает только файлы папок (meta/surface/osm.json, png).
 ## Пишет build/point_parity.md и печатает те же строки key=value.
 
-const OSM_LAYERS := ["roads", "buildings", "power", "places"]
+const OSM_LAYERS := ["roads", "buildings", "places"]
 
 
 func _initialize() -> void:

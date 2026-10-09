@@ -2,10 +2,10 @@ class_name WorldObjects
 extends Node3D
 ## Объекты мира по данным локации (docs/guide/world-objects.md):
 ##   ветроуказатели на стартах и посадках + ленточки на стартах (VR-7) — анимация по ЛОКАЛЬНОМУ
-##   ветру модели (air_velocity_at у вертлюга), посадочные площадки (VR-12), дороги, здания, ЛЭП
-##   из OSM (VR-6, VR-9, VR-10). Параметры — configs/world_objects.json.
+##   ветру модели (air_velocity_at у вертлюга), посадочные площадки (VR-12), дороги и здания
+##   из OSM (VR-6, VR-9). Параметры — configs/world_objects.json.
 ## Подключение: world_objects.setup(terrain, atmosphere) после загрузки рельефа.
-## Столкновения для интегратора: wire_hit(a, b) -> bool, obstacle_hit(a, b) -> {kind, point}.
+## Столкновения для интегратора: obstacle_hit(a, b) -> {kind, point}.
 
 ## Всё построено (после setup / build).
 signal built
@@ -89,10 +89,6 @@ func build(
 		osm_layer.name = "Osm"
 		add_child(osm_layer)
 		osm_layer.build(osm, cfg, height_fn, obstacles)
-		var centers: Array[Vector3] = []
-		for l in landing_sites:
-			centers.append(l.center)
-		osm_layer.build_fences_near(osm.fences, centers, cfg.landing, height_fn, obstacles)
 	if bool(cfg.start_tracks.get("enabled", true)):
 		start_tracks = StartTracks.plan(start_sites, osm, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
@@ -279,19 +275,14 @@ func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
 	return env
 
 
-## Расчищено ли место в текущей локации (дорога, ЛЭП, застройка, посадка) — деревьев не ставить.
+## Расчищено ли место в текущей локации (дорога, застройка, посадка) — деревьев не ставить.
 func is_clear_at(x: float, z: float) -> bool:
 	if _clearings == null and location_id != "":
 		_clearings = WorldClearings.build_for(location_id)
 	return _clearings != null and _clearings.is_clear_at(x, z)
 
 
-## Путь a→b задел провод ЛЭП?
-func wire_hit(segment_start: Vector3, segment_end: Vector3) -> bool:
-	return obstacles != null and not obstacles.hit(segment_start, segment_end, "wire").is_empty()
-
-
-## Первое препятствие на пути a→b: {kind: wire|tower|building|tree|fence, point} или {}.
+## Первое препятствие на пути a→b: {kind: building|tree, point} или {}.
 func obstacle_hit(segment_start: Vector3, segment_end: Vector3) -> Dictionary:
 	var best := {} if obstacles == null else obstacles.hit(segment_start, segment_end)
 	if osm_layer != null and osm_layer.building_obstacles != null:

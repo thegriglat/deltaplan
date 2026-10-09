@@ -2,18 +2,15 @@ class_name RecentPlaces
 extends RefCounted
 ## Недавние места, выбранные на карте (экран «Полёт…», FR-17) — не встроенные площадки локаций.
 ## Хранится в user://recent_places.json: {next_id, places: [{id, lat, lon, ts, pinned,
-## custom_name, osm_name}]}. Новые — сверху; точки ближе DEDUP_DISTANCE_M считаются одной (её
+## custom_name, place_name}]}. Новые — сверху; точки ближе DEDUP_DISTANCE_M считаются одной (её
 ## координаты и время обновляются). Закреплённые (pinned) — всегда сверху и не вытесняются;
 ## непристёгнутых хранится не больше MAX_UNPINNED (лишние — самые старые по времени — убираются).
-## custom_name — своё имя (✎, не трогается автоподписью); osm_name — ближайший населённый пункт
-## из уже закешированных данных (osm.json в папке места, без сети — resolve_osm_name).
-## display_name: custom_name → osm_name → координаты «50.6000, 86.4000».
+## custom_name — своё имя (✎); place_name — название места из каталога популярных мест (если точку
+## выбрали из него). display_name: custom_name → place_name → координаты «50.6000, 86.4000».
 
 const PATH := "user://recent_places.json"
 const MAX_UNPINNED := 8
 const DEDUP_DISTANCE_M := 300.0
-## Пустой osm_dir = все места (Locations.osm_files()); непустой — папка с *.json (проверки).
-const OSM_DIR := ""
 
 
 static func _load_root(path: String) -> Dictionary:
@@ -66,12 +63,12 @@ static func distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 
 
 ## Добавить точку (или обновить существующую в пределах DEDUP_DISTANCE_M — на верх списка,
-## своё время и координаты). osm_name — если уже известно (resolve_osm_name); "" — подпишется
-## координатами, имя можно дозаполнить позже (refresh_missing_names/update_osm_name).
+## своё время и координаты). place_name — название из каталога популярных мест; "" — подпишется
+## координатами.
 ## Возвращает id записи (для set_pinned/rename/remove). ts_override — своё время (тесты);
 ## < 0 — текущее время.
 static func add(
-	lat: float, lon: float, osm_name: String = "", path: String = PATH, ts_override: float = -1.0
+	lat: float, lon: float, place_name: String = "", path: String = PATH, ts_override: float = -1.0
 ) -> int:
 	var root := _load_root(path)
 	var places: Array = root.places
@@ -86,8 +83,8 @@ static func add(
 		found.lat = lat
 		found.lon = lon
 		found.ts = now
-		if osm_name != "" and String(found.get("osm_name", "")) == "":
-			found.osm_name = osm_name
+		if place_name != "" and String(found.get("place_name", "")) == "":
+			found.place_name = place_name
 		id = int(found.id)
 	else:
 		id = int(root.next_id)
@@ -100,7 +97,7 @@ static func add(
 				"ts": now,
 				"pinned": false,
 				"custom_name": "",
-				"osm_name": osm_name,
+				"place_name": place_name,
 			}
 		)
 	_trim(places)
@@ -128,7 +125,7 @@ static func _find(root: Dictionary, id: int) -> Dictionary:
 	return {}
 
 
-## Своё имя (кнопка «✎») — не трогается автоподписью из OSM.
+## Своё имя (кнопка «✎»).
 static func rename(id: int, name: String, path: String = PATH) -> void:
 	var root := _load_root(path)
 	var p := _find(root, id)
@@ -155,83 +152,12 @@ static func remove(id: int, path: String = PATH) -> void:
 	_save_root(path, root)
 
 
-## После полёта / когда данные локации закешировались (osm.json в папке места) — уточнить имя
-## места без сети (не трогает своё имя, custom_name).
-static func update_osm_name(lat: float, lon: float, name: String, path: String = PATH) -> void:
-	if name == "":
-		return
-	var root := _load_root(path)
-	var changed := false
-	for p: Dictionary in root.places:
-		if distance_m(lat, lon, float(p.get("lat", 0.0)), float(p.get("lon", 0.0))) <= DEDUP_DISTANCE_M:
-			p.osm_name = name
-			changed = true
-	if changed:
-		_save_root(path, root)
-
-
-## Дозаполнить имена мест без имени из уже закешированных OSM-данных (без сети) — вызывать при
-## открытии списка: данные могли появиться позже (другая локация докачалась и закешировалась).
-static func refresh_missing_names(path: String = PATH, osm_dir: String = OSM_DIR) -> void:
-	var root := _load_root(path)
-	var changed := false
-	for p: Dictionary in root.places:
-		if String(p.get("osm_name", "")) == "":
-			var name := resolve_osm_name(float(p.get("lat", 0.0)), float(p.get("lon", 0.0)), osm_dir)
-			if name != "":
-				p.osm_name = name
-				changed = true
-	if changed:
-		_save_root(path, root)
-
-
-## Подпись для показа: своё имя → ближайший посёлок из OSM → координаты.
+## Подпись для показа: своё имя → название из каталога → координаты.
 static func display_name(p: Dictionary) -> String:
 	var custom := String(p.get("custom_name", ""))
 	if custom != "":
 		return custom
-	var osm_name := String(p.get("osm_name", ""))
-	if osm_name != "":
-		return osm_name
+	var place_name := String(p.get("place_name", ""))
+	if place_name != "":
+		return place_name
 	return "%.4f, %.4f" % [float(p.get("lat", 0.0)), float(p.get("lon", 0.0))]
-
-
-## Ближайший населённый пункт по уже закешированным данным мест (osm.json встроенных мест и user://locations/*/osm.json,
-## без сетевых запросов) — только если точка попадает в bbox файла (с небольшим запасом).
-static func resolve_osm_name(lat: float, lon: float, osm_dir: String = OSM_DIR) -> String:
-	var files := PackedStringArray()
-	if osm_dir == "":
-		files = Locations.osm_files()  # встроенные и кешированные места (user://locations)
-	else:
-		var da := DirAccess.open(osm_dir)
-		if da == null:
-			return ""
-		for f in da.get_files():
-			if f.get_extension() == "json":
-				files.append(osm_dir.path_join(f))
-	var best_name := ""
-	var best_dist := INF
-	const MARGIN_DEG := 0.05
-	for path in files:
-		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if not d is Dictionary:
-			continue
-		var bbox: Array = d.get("bbox_latlon", [])
-		if (
-			bbox.size() == 4
-			and lat >= float(bbox[0]) - MARGIN_DEG
-			and lat <= float(bbox[2]) + MARGIN_DEG
-			and lon >= float(bbox[1]) - MARGIN_DEG
-			and lon <= float(bbox[3]) + MARGIN_DEG
-		):
-			var clat := float(d.get("center_lat", 0.0))
-			var clon := float(d.get("center_lon", 0.0))
-			for pl: Dictionary in d.get("places", []):
-				var ll := TerrainGeo.local_to_latlon(
-					float(pl.get("x", 0.0)), float(pl.get("z", 0.0)), clat, clon
-				)
-				var dist := distance_m(lat, lon, ll.x, ll.y)
-				if dist < best_dist:
-					best_dist = dist
-					best_name = String(pl.get("n", ""))
-	return best_name

@@ -266,7 +266,7 @@ func _soft_landing_info() -> Dictionary:
 func _crash_info() -> Dictionary:
 	return {
 		"grade": "crash",
-		"collision": "wire",
+		"collision": "building",
 		"text": TranslationServer.translate("collision"),
 		"vertical_speed_ms": 9.0,
 		"horizontal_speed_ms": 14.0,

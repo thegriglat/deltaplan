@@ -46,7 +46,7 @@ func _quit(code: int) -> void:
 
 
 ## Временный список — своя точка (осталась без имени), закреплённая точка со своим именем,
-## посёлок из уже закешированных данных (Горно-Алтайск, osm.json места altai) и переименованная.
+## место из каталога (Горно-Алтайск) и переименованная.
 func _write_tmp_recent() -> void:
 	if FileAccess.file_exists(TMP_RECENT_PATH):
 		DirAccess.remove_absolute(TMP_RECENT_PATH)

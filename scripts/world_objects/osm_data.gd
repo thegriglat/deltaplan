@@ -1,6 +1,6 @@
 class_name OsmData
 extends RefCounted
-## Данные OpenStreetMap локации (osm.json в папке места, Locations.osm_path; готовит OsmStage).
+## Данные OpenStreetMap локации (osm.json в папке места, Locations.osm_path; необязательный файл места: встроенные места; дороги и вода читаются, ЛЭП, заборы и поля — нет).
 ## © OpenStreetMap contributors, ODbL. Координаты в файле — мир игры относительно центра файла;
 ## если центр рельефа другой, точки пересчитываются через широту/долготу (TerrainGeo).
 ## Формат — docs/guide/world-objects.md.
@@ -8,12 +8,9 @@ extends RefCounted
 var attribution: String = ""
 var roads: Array = []
 var buildings: Array = []
-var power: Array = []
 var rivers: Array = []
 var lakes: Array = []
 var places: Array = []
-var fields: Array = []
-var fences: Array = []
 var load_time_s: float = 0.0
 
 
@@ -31,12 +28,9 @@ static func load_file(path: String, center_lat: float = NAN, center_lon: float =
 	o.attribution = String(d.get("attribution", ""))
 	o.roads = d.get("roads", [])
 	o.buildings = d.get("buildings", [])
-	o.power = d.get("power", [])
 	o.rivers = d.get("water", {}).get("rivers", [])
 	o.lakes = d.get("water", {}).get("lakes", [])
 	o.places = d.get("places", [])
-	o.fields = d.get("landuse", {}).get("fields", [])
-	o.fences = d.get("landuse", {}).get("fences", [])
 	var lat0 := float(d.get("center_lat", 0.0))
 	var lon0 := float(d.get("center_lon", 0.0))
 	if (
@@ -61,7 +55,7 @@ func _reproject(lat0: float, lon0: float, lat1: float, lon1: float) -> void:
 	var f := func(x: float, z: float) -> Vector2:
 		var ll := TerrainGeo.local_to_latlon(x, z, lat0, lon0)
 		return TerrainGeo.latlon_to_local(ll.x, ll.y, lat1, lon1)
-	for arr in [roads, power, rivers, lakes, fields, fences]:
+	for arr in [roads, rivers, lakes]:
 		for item: Dictionary in arr:
 			# у водоёмов ещё острова-дыры h: [[x, z…]…] (мультиполигоны OSM)
 			var rings: Array = [item.p]

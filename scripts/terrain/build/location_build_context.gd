@@ -1,7 +1,7 @@
 class_name LocationBuildContext
 extends RefCounted
 ## Контекст сборки места (контракт OA-К3, docs/contracts/osm-any.md). Стадии (DemStage, RiverStage,
-## SurfaceStage, OsmStage) читают его и пишут файлы в dir. Менять — только через координатора модуля.
+## SurfaceStage) читают его и пишут файлы в dir. Менять — только через координатора модуля.
 
 signal progress(stage: String, fraction: float)
 

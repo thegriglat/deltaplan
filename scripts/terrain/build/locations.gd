@@ -56,26 +56,11 @@ static func config(id: String) -> Dictionary:
 	return d
 
 
-## Файл OSM места (может не существовать — места без слоя OSM).
+## Необязательный файл OSM места (дороги и вода; у кешированных точек и без дампа его нет).
 static func osm_path(id: String) -> String:
 	if is_builtin(id):
 		return String(config(id).get("data_dir", "res://data/terrain/" + id)).path_join("osm.json")
 	return cache_dir().path_join(id).path_join("osm.json")
-
-
-## Все файлы OSM: встроенные и кешированных мест (для поиска имени места без сети).
-static func osm_files() -> PackedStringArray:
-	var out := PackedStringArray()
-	for id in builtin_ids():
-		out.append(osm_path(id))
-	var da := DirAccess.open(cache_dir())
-	if da != null:
-		for sub in da.get_directories():
-			if _is_cache_key(sub):
-				var p := cache_dir().path_join(sub).path_join("osm.json")
-				if FileAccess.file_exists(p):
-					out.append(p)
-	return out
 
 
 ## Встроенное место, в детальном квадрате которого лежит точка не ближе builtin_margin_km к краю;

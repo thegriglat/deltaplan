@@ -46,10 +46,6 @@ class FakeStage:
 					"center_lon": ctx.center_lon, "layers": layers, "attribution": []})
 			"surface":
 				_write(ctx.dir.path_join("surface.json"), {"layers": []})
-			"osm":
-				_write(ctx.dir.path_join("osm.json"), {"places": [
-					{"n": "Далёкая", "t": "village", "x": 4000.0, "z": 0.0, "pop": 10},
-					{"n": "Ближняя", "t": "hamlet", "x": 300.0, "z": -200.0, "pop": 5}]})
 		return OK
 
 	static func _write(path: String, d: Dictionary) -> void:
@@ -61,7 +57,7 @@ class FakeStage:
 func _builder(fails: Array = []) -> LocationBuilder:
 	var b := LocationBuilder.new()
 	b.stages = []
-	for n in ["dem", "rivers", "surface", "osm"]:
+	for n in ["dem", "rivers", "surface"]:
 		var st := FakeStage.new(n, _log)
 		st.fail = fails.has(n)
 		b.stages.append({"name": n, "obj": st})
@@ -90,21 +86,22 @@ func test_build_then_cache() -> void:
 	var b := _builder()
 	var r: Dictionary = await b.build(null, POINT.x, POINT.y)
 	check(bool(r.ok) and r.missing.is_empty(), "сборка прошла без недостающего")
-	check(_log == ["dem", "rivers", "surface", "osm"], "стадии по порядку: %s" % str(_log))
+	check(_log == ["dem", "rivers", "surface"], "стадии по порядку: %s" % str(_log))
 	var key := String(r.key)
 	var dir := LocationCache.dir_for(key)
 	check(LocationCache.is_complete(key), "место полное")
 	check(not DirAccess.dir_exists_absolute(LocationCache.tmp_dir_for(key)), "временной папки нет")
-	for f in ["meta.json", "detail.f32.zst", "far.f32.zst", "surface.json", "osm.json", "location.json", "build.json"]:
+	for f in ["meta.json", "detail.f32.zst", "far.f32.zst", "surface.json", "location.json", "build.json"]:
 		check(FileAccess.file_exists(dir.path_join(f)), "файл " + f)
 	var bj := LocationCache.read_build(dir)
-	check(int(bj.net_requests) == 4 and bj.complete == true, "build.json: запросы и complete")
+	check(int(bj.net_requests) == 3 and bj.complete == true, "build.json: запросы и complete")
 	var loc: Dictionary = Locations.config(key)
-	check(String(loc.name) == "Ближняя", "имя — ближайший посёлок из OSM: %s" % loc.get("name"))
+	check(String(loc.name) == "%.3f, %.3f" % [loc.center_lat, loc.center_lon], "имя места — координаты: %s" % loc.get("name"))
 	check(int(loc.utc_offset_h) == int(roundf(float(loc.center_lon) / 15.0)), "utc_offset_h")
 	check((loc.start_sites as Array).is_empty() and String(loc.data_dir) == dir, "start_sites пусты, data_dir")
 	check(loc.has("render") and loc.has("dem") and loc.has("rivers"), "шаблон конфига места")
-	check(Locations.osm_path(key) == dir.path_join("osm.json") and not Locations.is_builtin(key), "реестр: кеш")
+	check(not FileAccess.file_exists(dir.path_join("osm.json")) and not bj.missing.has("osm"), "OSM не стадия: osm.json не пишется")
+	check(not Locations.is_builtin(key), "реестр: кеш")
 	# повтор — из кеша
 	_log.clear()
 	var b2 := _builder()
@@ -117,7 +114,7 @@ func test_build_then_cache() -> void:
 	_write_json(dir.path_join("build.json"), bad)
 	check(not LocationCache.is_complete(key), "другая версия — не полное")
 	await _builder().build(null, POINT.x, POINT.y)
-	check(LocationCache.is_complete(key) and _log == ["dem", "rivers", "surface", "osm"], "версия: пересборка целиком")
+	check(LocationCache.is_complete(key) and _log == ["dem", "rivers", "surface"], "версия: пересборка целиком")
 	_cleanup()
 
 
@@ -130,29 +127,34 @@ func _write_json(path: String, d: Dictionary) -> void:
 func test_missing_resume() -> void:
 	_cleanup()
 	_log.clear()
-	var r: Dictionary = await _builder(["osm"]).build(null, POINT.x, POINT.y)
+	var r: Dictionary = await _builder(["rivers"]).build(null, POINT.x, POINT.y)
 	var key := String(r.key)
-	check(bool(r.ok) and r.missing == ["osm"], "отказ OSM — место без слоя, missing: %s" % str(r.missing))
+	check(bool(r.ok) and r.missing == ["rivers"], "отказ рек — место без слоя, missing: %s" % str(r.missing))
 	var bj := LocationCache.read_build(LocationCache.dir_for(key))
-	check(bj.complete == false and bj.missing == ["osm"], "build.json: missing")
-	check(not FileAccess.file_exists(LocationCache.dir_for(key).path_join("osm.json")), "osm.json нет")
-	check(String(Locations.config(key).name).contains("."), "имя без OSM — координаты")
+	check(bj.complete == false and bj.missing == ["rivers"], "build.json: missing")
+	check(String(Locations.config(key).name).contains("."), "имя места — координаты")
 	_log.clear()
-	var b2 := _builder()
-	var r2: Dictionary = await b2.build(null, POINT.x, POINT.y)
+	var r2: Dictionary = await _builder().build(null, POINT.x, POINT.y)
 	check(bool(r2.ok) and r2.missing.is_empty(), "догрузка прошла")
-	check(_log == ["osm"], "догружен только OSM: %s" % str(_log))
+	check(_log == ["rivers"], "догружены только реки: %s" % str(_log))
 	check(LocationCache.is_complete(key), "место стало полным")
-	check(String(Locations.config(key).name) == "Ближняя", "имя обновилось после догрузки OSM")
-	# отказ покрова тянет за собой OSM (он дописывает воду в карту покрова)
+	# отказ покрова — только покров в missing (OSM в стадиях нет)
 	_cleanup()
 	_log.clear()
 	var r3: Dictionary = await _builder(["surface"]).build(null, POINT.x, POINT.y)
-	check(bool(r3.ok) and r3.missing == ["surface", "osm"], "отказ покрова: missing %s" % str(r3.missing))
+	check(bool(r3.ok) and r3.missing == ["surface"], "отказ покрова: missing %s" % str(r3.missing))
 	_log.clear()
 	await _builder().build(null, POINT.x, POINT.y)
-	check(_log == ["surface", "osm"], "догружены покров и OSM: %s" % str(_log))
+	check(_log == ["surface"], "догружен покров: %s" % str(_log))
 	_cleanup()
+
+
+## N4: стадии игры — dem → rivers → surface; Overpass/OSM-стадии нет.
+func test_default_stages_without_osm() -> void:
+	var names: Array = []
+	for st in LocationBuilder.default_stages():
+		names.append(st.name)
+	check(names == ["dem", "rivers", "surface"], "стадии игры: %s" % str(names))
 
 
 func test_dem_failure_is_error() -> void:

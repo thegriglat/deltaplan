@@ -418,12 +418,7 @@ func _on_add_favorite() -> void:
 func _on_done() -> void:
 	settings = _collect()
 	if settings.has_pick():
-		var name := (
-			_picked_place_name
-			if _picked_place_name != ""
-			else RecentPlaces.resolve_osm_name(settings.pick_lat, settings.pick_lon)
-		)
-		RecentPlaces.add(settings.pick_lat, settings.pick_lon, name, recent_places_path)
+		RecentPlaces.add(settings.pick_lat, settings.pick_lon, _picked_place_name, recent_places_path)
 	done.emit(settings)
 
 
@@ -538,7 +533,6 @@ func _build_recent(box: Control) -> void:
 
 
 func _fill_recent(reset_edit: bool = true) -> void:
-	RecentPlaces.refresh_missing_names(recent_places_path)
 	if reset_edit:
 		_recent_edit_id = -1
 	for c in _recent_list.get_children():

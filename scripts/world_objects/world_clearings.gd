@@ -1,7 +1,7 @@
 class_name WorldClearings
 extends RefCounted
 ## Просеки для расстановки деревьев рельефа: где деревьев быть не должно —
-## дороги (ширина + обочина), коридоры ЛЭП, здания с отступом, поля посадок.
+## дороги (ширина + обочина), здания с отступом, поля посадок.
 ## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из OSM места (Locations.osm_path),
 ## configs/locations/<id>.json (центр, landing_sites) и
 ## configs/world_objects.json (посадки, параметры — раздел clearings).
@@ -10,6 +10,8 @@ extends RefCounted
 ##   c.is_clear_at(x, z)  /  c.image, c.origin (x, z угла пикселя 0,0), c.cell_m
 
 const CLEAR := 255
+## Половина стороны маски, если у места нет слоёв рельефа, м.
+const DEFAULT_HALF_SIZE_M := 20000.0
 
 var image: Image
 ## Мир (x, z) левого верхнего угла пикселя (0, 0): x растёт вправо (восток), z — вниз (юг).
@@ -26,7 +28,7 @@ static func build_for(location_id: String) -> WorldClearings:
 	var cfg := WorldObjects.load_config()
 	var lat0 := float(loc.center_lat)
 	var lon0 := float(loc.center_lon)
-	var half := float(cfg.osm.half_size_m)
+	var half := DEFAULT_HALF_SIZE_M
 	var layers: Array = loc.get("dem", {}).get("layers", [])
 	if not layers.is_empty():
 		half = float(layers[0].size_km) * 500.0
@@ -84,7 +86,6 @@ func build(
 	image = Image.create_empty(n, n, false, Image.FORMAT_L8)
 	if osm != null:
 		_roads(osm.roads, cfg.roads.classes, float(cc.road_margin_m))
-		_power(osm.power, cfg.power, cc)
 		_buildings(osm.buildings, float(cc.building_margin_m))
 	for l in landings:
 		_landing(l, float(cc.landing_margin_m))
@@ -133,16 +134,6 @@ func _roads(roads: Array, classes: Dictionary, margin: float) -> void:
 	for r in roads:
 		if classes.has(r.t):
 			stamp_line(OsmData.points(r.p), float(classes[r.t][0]) * 0.5 + margin)
-
-
-func _power(lines: Array, pcfg: Dictionary, cc: Dictionary) -> void:
-	for l in lines:
-		var high := (
-			String(l.get("k", "line")) == "line"
-			and (float(l.get("v", 0.0)) <= 0.0 or float(l.v) >= float(pcfg.high_voltage_kv))
-		)
-		var w := float(cc.power_corridor_high_m if high else cc.power_corridor_low_m)
-		stamp_line(OsmData.points(l.p), w * 0.5)
 
 
 func _buildings(buildings: Array, margin: float) -> void:

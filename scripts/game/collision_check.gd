@@ -1,11 +1,11 @@
 class_name CollisionCheck
 extends RefCounted
-## Столкновения крыла за шаг физики (VR-10, VR-12): провода ЛЭП, опоры, здания, заборы, деревья у
+## Столкновения крыла за шаг физики (VR-10, VR-12): здания, деревья у
 ## посадок (WorldObjects.obstacle_hit) и кроны леса (Terrain.forest_at).
 ## Проверяются не только центр, а несколько точек крыла: пилот, трапеция, килевая труба и концы
 ## консолей — отрезок движения каждой от прошлого шага к текущему.
-## Ниже CHECK_BELOW_AGL_M над землёй — провода и препятствия выше не бывают (экономия CPU).
-## Индексы препятствий мира (ObstacleIndex, клетка 64 м) в долинах с ЛЭП дают сотни кандидатов
+## Ниже CHECK_BELOW_AGL_M над землёй — препятствия выше не бывают (экономия CPU).
+## Индексы препятствий мира (ObstacleIndex, клетка 64 м) дают сотни кандидатов
 ## на клетку (~0,8 мс на запрос) — поэтому здесь свой кэш: у клетки 64 м, куда залетел планер,
 ## кандидаты раскладываются по клеткам FINE_M с AABB, за шаг — только те, чей AABB задевает
 ## охват пути крыла; точная проверка — той же геометрией ObstacleIndex.
@@ -31,10 +31,7 @@ const MAX_CACHED_CELLS := 256
 
 ## kind препятствия → finish_reason.
 const REASONS := {
-	"wire": "crash_wire",
-	"tower": "crash_obstacle",
 	"building": "crash_obstacle",
-	"fence": "crash_obstacle",
 	"tree": "crash_trees",
 }
 
@@ -92,7 +89,7 @@ static func crown_height(trees: Dictionary) -> float:
 
 
 ## Столкновение за шаг: {kind, reason, point} или {}. kind — как у obstacle_hit
-## (wire | tower | building | tree | fence), reason — crash_wire | crash_obstacle | crash_trees.
+## (building | tree), reason — crash_obstacle | crash_trees.
 func check(t: Telemetry) -> Dictionary:
 	var had_prev := not _prev.is_empty()
 	# Стоит или идёт пешком — не столкновение (дошёл до забора после посадки).

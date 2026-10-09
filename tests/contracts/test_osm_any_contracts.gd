@@ -160,12 +160,6 @@ func test_k3_surface() -> void:
 	_check_run("surface_stage.gd")
 
 
-func test_k3_osm() -> void:
-	var m := _check_run("osm_stage.gd")
-	check(m.has("pack") and (m.pack.args as Array).size() == 4, "OsmStage.pack(elements, lat, lon, half_m)")
-	check(m.has("water_alpha") and (m.water_alpha.args as Array).size() == 2, "OsmStage.water_alpha(osm, info10)")
-
-
 func test_k4_config() -> void:
 	var lb: Dictionary = Config.get_config("world").get("location_builder", {})
 	_has_keys(lb, ["version", "cache_dir", "snap_deg", "builtin_margin_km", "template"], "location_builder")

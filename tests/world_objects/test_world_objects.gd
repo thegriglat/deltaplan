@@ -46,7 +46,6 @@ func test_osm_data_loads() -> void:
 	check(d.attribution.contains("OpenStreetMap"), "атрибуция ODbL")
 	check(d.roads.size() > 1000, "дорог %d" % d.roads.size())
 	check(d.buildings.size() > 10000, "зданий %d" % d.buildings.size())
-	check(d.power.size() > 10, "ЛЭП %d" % d.power.size())
 	check(d.places.size() > 5, "населённых пунктов %d" % d.places.size())
 	var p := OsmData.points(d.roads[0].p)
 	check(absf(p[0].x) < 21000.0 and absf(p[0].y) < 21000.0, "координаты в зоне локации")
@@ -177,9 +176,9 @@ func test_landing_site() -> void:
 		var c2 := a2 - ls.right * ls.width_m * 1.5 - ls.axis * ls.length_m
 		for seg in [[a2, b2], [a2, c2]]:
 			var r: Dictionary = w.obstacle_hit(seg[0], seg[1])
-			if not r.is_empty() and r.kind in ["tree", "fence"]:
+			if not r.is_empty() and r.kind == "tree":
 				hits += 1
-	check(hits > 0, "деревья/забор вокруг поля — препятствия")
+	check(hits > 0, "деревья вокруг поля — препятствия")
 
 
 func test_landing_specs_merge_terrain_sites() -> void:
@@ -194,33 +193,14 @@ func test_landing_specs_merge_terrain_sites() -> void:
 	check(specs[1].id == "other" and specs[1].has("length_m"), "умолчания для площадки рельефа")
 
 
-func test_catenary_and_wire_hit() -> void:
-	var a := Vector3(0.0, 20.0, 0.0)
-	var b := Vector3(200.0, 20.0, 0.0)
-	var wire := PowerLinePlanner.catenary(a, b, 0.03, 12)
-	approx(wire[6].y, 20.0 - 6.0, 0.01, "провисание в середине = 3 % пролёта")
+func test_obstacle_capsule() -> void:
+	var a := Vector3(0.0, 14.0, 0.0)
+	var b := Vector3(200.0, 14.0, 0.0)
 	var idx := ObstacleIndex.new()
-	for i in wire.size() - 1:
-		idx.add_capsule(wire[i], wire[i + 1], 0.4, "wire")
-	check(not idx.hit(Vector3(100, 14.2, -1), Vector3(100, 14.2, 1)).is_empty(), "сквозь провод")
-	check(idx.hit(Vector3(100, 17.0, -1), Vector3(100, 17.0, 1)).is_empty(), "выше провода")
-	check(idx.hit(Vector3(100, 11.0, -1), Vector3(100, 11.0, 1)).is_empty(), "ниже провода")
-
-
-func test_real_wires_collide() -> void:
-	var w := _built_world()
-	var wires: Array = w.osm_layer.power_plan.wires
-	check(wires.size() > 100, "проводов %d" % wires.size())
-	var wire: PackedVector3Array = wires[0]
-	var mid := wire[wire.size() / 2]
-	var dir := (wire[wire.size() / 2 + 1] - mid).normalized()
-	var across := dir.cross(Vector3.UP).normalized()
-	check(w.wire_hit(mid - across, mid + across), "пролёт сквозь провод — столкновение")
-	check(not w.wire_hit(mid - across + Vector3.UP * 5.0, mid + across + Vector3.UP * 5.0), "выше")
-	var sup: Dictionary = w.osm_layer.power_plan.supports[0]
-	var sp: Vector3 = sup.position
-	var t := _altai()
-	approx(sp.y, t.height_at(sp.x, sp.z), 0.05, "опора на земле")
+	idx.add_capsule(a, b, 0.4, "capsule")
+	check(not idx.hit(Vector3(100, 14.2, -1), Vector3(100, 14.2, 1)).is_empty(), "сквозь капсулу")
+	check(idx.hit(Vector3(100, 17.0, -1), Vector3(100, 17.0, 1)).is_empty(), "выше")
+	check(idx.hit(Vector3(100, 11.0, -1), Vector3(100, 11.0, 1)).is_empty(), "ниже")
 
 
 func test_build_time() -> void:
@@ -229,37 +209,6 @@ func test_build_time() -> void:
 		w.build_time_s < 6.0, "сборка объектов %.2f с (NFR-2: вся загрузка ≤ 10 с)" % w.build_time_s
 	)
 	check(w.osm_layer.stats.get("buildings", 0) > 10000, "здания в MultiMesh")
-
-
-## Заборы OSM у двух далёких площадок: MultiMesh по тайлам, дальность — от центра своего тайла
-## (раньше один MultiMesh с началом в первом пролёте — дальние заборы пропадали вблизи).
-func test_osm_fences_tiled() -> void:
-	var cfg: Dictionary = WorldObjects.load_config().landing
-	var layer := OsmLayer.new()
-	var idx := ObstacleIndex.new()
-	var flat := func(_x: float, _z: float) -> float: return 100.0
-	var fences := [
-		{"p": [0.0, 0.0, 90.0, 0.0]},
-		{"p": [5000.0, 0.0, 5000.0, 60.0]},
-		{"p": [20000.0, 0.0, 20030.0, 0.0]},  # далеко от площадок — нет
-	]
-	var centers: Array[Vector3] = [Vector3(0, 100, 0), Vector3(5000, 100, 0)]
-	layer.build_fences_near(fences, centers, cfg, flat, idx)
-	check(layer.stats.osm_fence_spans == 30 + 20, "пролётов %d" % layer.stats.osm_fence_spans)
-	var root := layer.get_node("OsmFences")
-	check(root.get_child_count() == layer.stats.osm_fence_tiles, "узел на тайл")
-	check(root.get_child_count() >= 2, "тайлов %d" % root.get_child_count())
-	var tile := float(cfg.fence_tile_m)
-	var r_max := WorldTiles.tile_range(float(cfg.fence_visibility_m), tile)
-	for n: MultiMeshInstance3D in root.get_children():
-		approx(n.visibility_range_end, r_max, 0.01, "дальность забора")
-		for i in n.multimesh.instance_count:
-			var o := n.multimesh.get_instance_transform(i).origin
-			check(absf(o.x) <= tile * 0.5 + 0.01 and absf(o.z) <= tile * 0.5 + 0.01, "в тайле")
-	check(
-		not idx.hit(Vector3(45, 100.5, -1), Vector3(45, 100.5, 1)).is_empty(), "забор — препятствие"
-	)
-	layer.free()
 
 
 static func _heading(m: WindClothModel) -> float:
@@ -278,8 +227,6 @@ func test_clearings_mask() -> void:
 	check(c.is_clear_at(road[0].x, road[0].y), "на дороге деревьев нет")
 	var b: Array = d.buildings[0]
 	check(c.is_clear_at(float(b[0]), float(b[1])), "на здании деревьев нет")
-	var ln: Array = d.power[0].p
-	check(c.is_clear_at(float(ln[0]) + 5.0, float(ln[1])), "просека ЛЭП ±5 м")
 	var t := _altai()
 	var land := t.latlon_to_local(51.83476, 85.81696)
 	check(c.is_clear_at(land.x, land.y), "поле посадки")

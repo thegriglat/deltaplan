@@ -4,8 +4,6 @@ extends Node
 ## переименование сохраняется, выбор в UI ставит pick_lat/pick_lon.
 
 const TMP_PATH := "user://test_recent_places_tmp.json"
-const ALTAI_CENTER_LAT := 51.87
-const ALTAI_CENTER_LON := 85.87
 const SETUP_SCREEN := preload("res://scenes/ui/flight_setup_screen.tscn")
 
 var failures: PackedStringArray = []
@@ -29,7 +27,7 @@ func _after() -> void:
 	_clean()
 
 
-## 1) Новая точка — в списке, подпись по умолчанию — координаты (нет osm_name/custom_name).
+## 1) Новая точка — в списке, подпись по умолчанию — координаты (нет place_name/custom_name).
 func test_add_creates_entry_with_coord_label() -> void:
 	_before()
 	var id := RecentPlaces.add(51.6, 86.4, "", TMP_PATH)
@@ -126,20 +124,6 @@ func test_rename_persists() -> void:
 	_after()
 
 
-## Своё имя не переписывается автоподписью из OSM.
-func test_custom_name_not_overwritten_by_osm_name() -> void:
-	_before()
-	var id := RecentPlaces.add(51.6, 86.4, "", TMP_PATH, 1.0)
-	RecentPlaces.rename(id, "Наш старт", TMP_PATH)
-	RecentPlaces.update_osm_name(51.6, 86.4, "Село Тестовое", TMP_PATH)
-	var reloaded := RecentPlaces.list(TMP_PATH)
-	check(
-		RecentPlaces.display_name(reloaded[0]) == "Наш старт",
-		"OSM-имя не затёрло своё имя"
-	)
-	_after()
-
-
 ## 7) Удаление убирает запись из списка.
 func test_remove() -> void:
 	_before()
@@ -147,13 +131,6 @@ func test_remove() -> void:
 	RecentPlaces.remove(id, TMP_PATH)
 	check(RecentPlaces.list(TMP_PATH).is_empty(), "запись удалена")
 	_after()
-
-
-## Ближайший населённый пункт из уже закешированных данных (osm.json места altai, Горно-Алтайск).
-func test_resolve_osm_name_from_cached_data() -> void:
-	var ll := TerrainGeo.local_to_latlon(6429.9, -9760.1, ALTAI_CENTER_LAT, ALTAI_CENTER_LON)
-	var name := RecentPlaces.resolve_osm_name(ll.x, ll.y)
-	check(name == "Горно-Алтайск", "ближайший посёлок у Горно-Алтайска: получено «%s»" % name)
 
 
 ## 8) Выбор недавнего места на экране «Полёт…» ставит pick_lat/pick_lon (клик по месту).
