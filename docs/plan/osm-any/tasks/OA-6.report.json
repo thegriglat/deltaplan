@@ -1,0 +1,67 @@
+{
+  "status": "partial",
+  "summary": "Скрипты OA-6 готовы и прогнаны без OSM (OsmStage ещё не влита): точка Альпы 47.05/11.0 собирается с сетью (60 с, 139 запросов, 14,5 МБ), повтор в unshare -rn --offline — 0 запросов, из кеша. Таблица паритета и 4 кадра игры (рельеф, реки, лес) есть; cache_complete и osm_objects ждут OA-4.",
+  "commits": [
+    "1b742f62 OA-6: проверка точки с сетью и без, таблица паритета, кадры игры на точке"
+  ],
+  "checks": [
+    {
+      "name": "cache_offline",
+      "value": "offline_net_requests=0",
+      "pass": true
+    },
+    {
+      "name": "cache_complete",
+      "value": "offline_complete=false, missing=[osm] (нет OsmStage)",
+      "pass": false
+    },
+    {
+      "name": "osm_objects",
+      "value": "osm_roads=0 (osm.json нет)",
+      "pass": false
+    },
+    {
+      "name": "screenshots",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "online_seconds",
+      "value": "60 с первая сборка (139 запросов); повтор с кешем блоков 61.8 с, 0 запросов — время в основном счёт",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "OSM-объекты (дороги, ЛЭП, дома) на кадрах и в паритете — ждут OA-4",
+    "offline_complete=true невозможно, пока место собирается с missing=[osm]"
+  ],
+  "questions": [
+    "uid для point_parity.gd не создаётся запуском -s — оставить без uid?",
+    "Кадры OSM-объектов: точка 47.05/11.0 — долина Эцталь/Штубай, посёлки по долине; если дома не попадут в кадр, подберу --air-start"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/osm-any/01 Рельеф, реки и лес с высоты.png",
+    "/home/greg/deltaplan/build/screenshots/osm-any/02 Лес и луга у точки.png",
+    "/home/greg/deltaplan/build/screenshots/osm-any/03 Долина в стороне.png",
+    "/home/greg/deltaplan/build/screenshots/osm-any/04 Вид сзади над долиной.png"
+  ],
+  "how_to_check": "bash tools/terrain/check_point_cache.sh; godot --headless --path . -s res://tools/terrain/parity/point_parity.gd (build/point_parity.md); bash tools/shots/point_shots.sh; dp accept OA-6",
+  "uncertain": [
+    {
+      "where": "tools/terrain/check_point_cache.sh",
+      "why": "offline_complete требует build.json complete:true и ту же missing в обоих прогонах",
+      "checked": "сейчас false из-за missing=[osm]; после OA-4 перепроверю"
+    },
+    {
+      "where": "build_location.gd в точке 47.05/11.0",
+      "why": "online_net_requests при повторе проверки =0, так как кеш блоков (build/point_cache_xdg/.../terrain_cache) переиспользуется; первая сборка дала 139",
+      "checked": "оба значения в логе"
+    }
+  ],
+  "dp_feedback": "dp task show --full и plan работают; не хватило команды получить uid для нового -s скрипта без открытия редактора.",
+  "extra": {
+    "parity_vs_askarovo": "сетки/шаги/источники рельефа и покрова, доля леса (0.255 vs 0.252), *_water.png — совпадают; вода detail10 = 0 и osm.* пусто — до OA-4. Файл build/point_parity.md"
+  },
+  "t": "2026-10-09T18:46:04",
+  "by": "executor"
+}
