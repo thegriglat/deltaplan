@@ -74,6 +74,19 @@ func max_reach() -> float:
 	return la + lb + shoulder_reach
 
 
+## Длины звеньев: x — плечо (плечевой сустав → локоть), y — от локтя до точки хвата
+## (предплечье + кисть до центра ладони), м.
+func arm_lengths() -> Vector2:
+	var sk := get_skeleton()
+	if sk == null or _arms.is_empty():
+		return Vector2.ZERO
+	var a: Dictionary = _arms[0]
+	return Vector2(
+		sk.get_bone_rest(a.fore).origin.length(),
+		(sk.get_bone_rest(a.hand) * (a.grip as Vector3)).length()
+	)
+
+
 ## Есть ли кости рук (setup прошёл).
 func ready_to_solve() -> bool:
 	return _arms.size() == 2
