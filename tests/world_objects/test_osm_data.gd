@@ -68,12 +68,13 @@ func test_building_format_angle_height() -> void:
 			b0 = b
 		if absf(float(b[2]) - 30.5) < 0.01:
 			b1 = b
-	check(b0.size() == 7, "формат [x, z, w, l, угол, высота, крыша]")
+	check(b0.size() == 9, "формат L1 [x, z, w, l, угол, высота, крыша, тип, по_правилу]")
+	check(int(b0[7]) == 1 and int(b0[8]) == 1, "house (1), высота из правила: %s" % str(b0))
 	check(absf(float(b0[3]) - 8.0) < 0.01 and absf(float(b0[4])) < 0.01, "w — длинная сторона, l — короткая, угол 0")
 	check(absf(float(b0[5]) - 6.0) < 0.01 and int(b0[6]) == 0, "house: 2 этажа = 6 м, крыша 0: %s" % str(b0))
 	# дом 1: angle 37 (против часовой от востока) → в мире (z на юг) угол −37 ≡ 143
 	check(absf(float(b1[4]) - 143.0) < 0.01, "угол 37° → 143° в соглашении BuildingPlacer: %s" % str(b1))
-	check(absf(float(b1[5]) - 7.0) < 0.01, "своя высота hq=14 → 7 м")
+	check(absf(float(b1[5]) - 7.0) < 0.01 and int(b1[8]) == 0, "своя высота hq=14 → 7 м, по_правилу 0")
 	# направление: длинная сторона вдоль (cos a, sin a) в (x, z) должна быть вдоль (cos 37, −sin 37)
 	var a := deg_to_rad(float(b1[4]))
 	var dot := cos(a) * cos(deg_to_rad(37.0)) - sin(a) * sin(deg_to_rad(37.0))
