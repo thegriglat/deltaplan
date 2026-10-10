@@ -71,3 +71,4 @@
 {"t": "2026-10-11T02:21:51", "by": "coordinator", "task": "PD-3", "ev": "checked", "note": "2/2 pendulum=ok:49/49; test_landing=ok:11/11"}
 {"t": "2026-10-11T02:23:38", "by": "reviewer", "task": "PD-3", "ev": "reviewed", "note": "Скоуп чист, PD-К1 v2 реализован, пороги LandingJudge не ослаблены, числа разбега совпадают с эталоном прототипа; ограничения посадки заявлены честно.", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/pendulum/tasks/PD-3.review.json"}
 {"t": "2026-10-11T02:23:50", "by": "coordinator", "task": "PD-3", "ev": "accepted", "note": "по ревью (sonnet, accept, 3 minor — решены: ground в PD-К2 v3, мягкая посадка в штиль и длина разбега — PD-14 и проверка пилотом)"}
+{"t": "2026-10-11T02:24:01", "by": "coordinator", "task": "PD-14", "ev": "created", "note": "Посадка и отрыв маятника: экранный эффект, мягкая посадка в штиль, скорость отрыва; стоящий пилот"}
