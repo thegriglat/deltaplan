@@ -2,13 +2,19 @@ class_name OsmPilot
 extends RefCounted
 ## Слой OSM «для пилота» (OT-10, контракт O9, docs/contracts/osm-tiles.md): вершины и перевалы с
 ## подписью «<имя> <высота> м» (общий помощник NameTag — как у ботов), ЛЭП (опоры + провода
-## wire.gdshader), мачты/башни/трубы/ветряки, канатные дороги, аэродромы и ВПП. Простые меши;
-## опоры и провода — препятствия (ObstacleIndex). Настройки — world_objects.json → osm_pilot.
+## wire.gdshader), мачты/башни/трубы/ветряки, канатные дороги, аэродромы и ВПП. Опоры ЛЭП, столбы,
+## мачты, телебашни и трубы — модели assets/models/osm (OL-2, контракт L5, MultiMesh по тайлам);
+## ветряки и канатки — простые меши. Опоры и провода — препятствия (ObstacleIndex). Настройки — world_objects.json → osm_pilot.
 ## Данные места (OsmData), конфиг WorldObjects, высота рельефа height_fn(x, z) -> float и индекс
 ## препятствий (OsmLayer передаёт свой). Возвращает Node3D для OsmLayer или null, если строить нечего.
 
 const WIRE_SHADER := preload("res://scripts/world_objects/wire.gdshader")
 const DRAPED_SHADER := preload("res://scripts/world_objects/draped.gdshader")
+
+const MODEL_DIR := "res://assets/models/osm/"
+
+## Кэш мешей моделей: имя → Mesh (null — файла нет, тогда конус).
+static var _models: Dictionary = {}
 
 ## Сколько создано по видам (для тестов и замеров); заполняется последним build().
 static var stats: Dictionary = {}
@@ -135,8 +141,8 @@ static func _power(
 	root.add_child(node)
 	var tile := float(pc.tile_m)
 	var r := WorldTiles.tile_range(float(pc.tower_visibility_m), tile)
-	var meshes := {true: _cone(float(pc.tower_radius_m), float(pc.tower_height_m), pc.tower_color),
-		false: _cone(float(pc.pole_radius_m), float(pc.pole_height_m), pc.pole_color)}
+	var meshes := {true: model_mesh("power_tower", float(pc.tower_radius_m), float(pc.tower_height_m), pc.tower_color),
+		false: model_mesh("power_pole", float(pc.pole_radius_m), float(pc.pole_height_m), pc.pole_color)}
 	var heights := {true: float(pc.tower_height_m), false: float(pc.pole_height_m)}
 	var radii := {true: float(pc.tower_radius_m), false: float(pc.pole_radius_m)}
 	var groups := {}
@@ -221,22 +227,34 @@ static func _verticals(
 	root.add_child(node)
 	var tile := 4000.0
 	var r := WorldTiles.tile_range(float(pc.visibility_m), tile)
-	var unit := {}  # вид → единичный меш (высота 1, основание в нуле)
-	for t: String in OsmData.VERTICAL_CLASSES:
-		unit[t] = _cone(1.0, 1.0, pc.color[t], 0.5 if t != "wind" else 0.6)
+	var skip: Array = pc.get("skip", [])
+	var unit := {}  # модель → меш
+	for m: String in ["mast_lattice", "tv_tower", "chimney"]:
+		unit[m] = model_mesh(m, float(pc.radius_m[m]), float(pc.model_h_m[m]), [0.6, 0.6, 0.6])
+	unit["wind"] = _cone(1.0, 1.0, pc.color.wind, 0.6)
 	var blade := _box_mesh(Vector3(0.5, 1.0, 0.2), pc.color.wind)
-	var groups := {}  # "вид:x:z" → {kind, tile, t}
+	var groups := {}  # "модель:x:z" → {kind, tile, t}
 	var n := 0
 	for v: Dictionary in items:
-		var kind := String(v.t)
-		var h := float(v.h) if float(v.h) > 0.0 else float(pc.default_h_m[kind])
-		var rad: float = float(pc.radius_m[kind])
+		var cls := String(v.t)
+		if cls in skip:
+			continue
+		var h_tag := float(v.h)
+		var h := h_tag if h_tag > 0.0 else float(pc.default_h_m[cls])
+		var kind := vertical_model(cls, bool(v.get("comm", false)), h_tag, pc)
 		var x := float(v.x)
 		var z := float(v.z)
 		var g := float(height_fn.call(x, z))
 		var tk := WorldTiles.key(x, z, tile)
 		var base := Vector3(x, g, z)
-		_group(groups, kind, tk).t.append(Transform3D(Basis.from_scale(Vector3(rad, h, rad)), base))
+		var rad := float(pc.radius_m[kind])
+		if kind == "wind":
+			_group(groups, kind, tk).t.append(Transform3D(Basis.from_scale(Vector3(rad, h, rad)), base))
+		else:
+			var sc := model_scale(h, float(pc.model_h_m[kind]))
+			var yaw := WorldTiles.hash01(int(x * 7.0) ^ int(z * 13.0)) * TAU
+			_group(groups, kind, tk).t.append(Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(sc.x, sc.y, sc.x)), base))
+			rad *= sc.x
 		obstacles.add_cylinder(x, z, maxf(rad, 0.5), g - 1.0, g + h, "tower")
 		if kind == "wind":
 			var yaw := WorldTiles.hash01(int(x * 7.0) ^ int(z * 13.0)) * TAU
@@ -256,6 +274,53 @@ static func _verticals(
 		node.add_child(WorldTiles.multimesh_node(m, gr.t, PackedColorArray(),
 			WorldTiles.center(gr.tile, tile), r, bool(pc.cast_shadows)))
 	stats["verticals"] = n
+
+
+## Модель по классу OSM (L5): mast → mast_lattice; tower → tv_tower при comm или высоте с тега
+## не ниже tv_tower_min_h_m, иначе mast_lattice; chimney → chimney; wind — прежний конус (L6).
+static func vertical_model(cls: String, comm: bool, h_tag: float, pc: Dictionary) -> String:
+	match cls:
+		"tower":
+			return "tv_tower" if comm or h_tag >= float(pc.tv_tower_min_h_m) else "mast_lattice"
+		"mast":
+			return "mast_lattice"
+		"chimney":
+			return "chimney"
+	return cls
+
+
+## Масштаб экземпляра модели высотой model_h под высоту h: x — по XZ, y — по Y (верх = h).
+## По XZ мягче, чем по Y: clamp((h/model_h)^0.75, 0.35, 1) — след не шире radius_m модели.
+static func model_scale(h: float, model_h: float) -> Vector2:
+	var s := h / model_h
+	return Vector2(clampf(pow(s, 0.75), 0.35, 1.0), s)
+
+
+## Меш модели assets/models/osm/<name>.glb (первый MeshInstance3D); нет файла — конус-запасной.
+static func model_mesh(name: String, radius: float, height: float, rgb: Array) -> Mesh:
+	if not _models.has(name):
+		_models[name] = _load_model(name)
+	var m: Mesh = _models[name]
+	return m if m != null else _cone(radius, height, rgb)
+
+
+static func _load_model(name: String) -> Mesh:
+	var path := MODEL_DIR + name + ".glb"
+	if not ResourceLoader.exists(path):
+		return null
+	var scene := load(path) as PackedScene
+	if scene == null:
+		return null
+	var inst := scene.instantiate()
+	var mesh: Mesh = null
+	var stack: Array[Node] = [inst]
+	while not stack.is_empty() and mesh == null:
+		var nd: Node = stack.pop_back()
+		if nd is MeshInstance3D:
+			mesh = (nd as MeshInstance3D).mesh
+		stack.append_array(nd.get_children())
+	inst.free()
+	return mesh
 
 
 static func _group(groups: Dictionary, kind: String, tk: Vector2i) -> Dictionary:
