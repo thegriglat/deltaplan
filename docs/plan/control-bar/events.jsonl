@@ -7,3 +7,4 @@
 {"t": "2026-10-10T18:35:13", "by": "coordinator", "task": "CB-1", "ev": "accepted", "note": "по отчёту: записка, физики нет"}
 {"t": "2026-10-10T18:35:13", "by": "coordinator", "task": "CB-1", "ev": "accepted", "commits": ["57241e49"], "note": "5/5 file=ok:exit 0; urls=ok:17; conclusion=ok:exit 0; recommendation=ok:exit 0; docs=ok:exit 0"}
 {"t": "2026-10-10T18:35:14", "by": "coordinator", "task": "CB-1", "ev": "merged", "commits": ["57241e49"]}
+{"t": "2026-10-10T18:35:30", "by": "coordinator", "task": null, "ev": "note", "note": "dp: модуль не был заведён до запуска координатора — завёл сам (dp module new); task new + worktree add — две команды, удобно было бы dp task new --worktree. Иначе нет."}
