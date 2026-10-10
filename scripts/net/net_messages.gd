@@ -13,6 +13,7 @@ extends RefCounted
 ##     [] / имя нулевого значения перечисления; вложенное сообщение — словарь с умолчаниями.
 ##     Игровому коду не нужен has(). Исключения (есть смысл «не задано»):
 ##       * optional double (Zone.pickLat/pickLon) — NAN, если не задано;
+##       * PilotState.pilotRel — null, если нет (PD-К4: только в режиме «Маятник»)
 ##       * PilotState.colors — null, если нет (родная текстура крыла) — см. NULLABLE;
 ##   - целые поля (int32/uint32/int64/uint64) в данных — int; 64-битные на проводе строками;
 ##   - float/double — float; перечисления — строки-имена ("PILOT_PHASE_FLY"), числа на входе
@@ -117,6 +118,8 @@ const MESSAGES := {
 		"phase": "enum:PilotPhase",
 		"wing": "string",
 		"colors": "msg:WingColors",
+		"controlMode": "enum:ControlMode",
+		"pilotRel": "msg:Vec3",
 	},
 	"ZoneState":
 	{"clock": "double", "queue": "[]string", "thermalSources": "msg:ThermalSources"},
@@ -136,7 +139,11 @@ const MESSAGES := {
 
 ## Вложенные сообщения, у которых «нет» — отдельный смысл: при разборе null вместо умолчаний.
 ## Ключ — "<Сообщение>.<поле>".
-const NULLABLE := {"PilotState.colors": true, "ZoneState.thermalSources": true}
+const NULLABLE := {
+	"PilotState.colors": true,
+	"PilotState.pilotRel": true,
+	"ZoneState.thermalSources": true,
+}
 
 ## Перечисления: имена по порядку номеров (индекс = номер в .proto).
 const ENUMS := {
@@ -158,6 +165,13 @@ const ENUMS := {
 		"PILOT_PHASE_LANDED",
 		"PILOT_PHASE_CRASHED",
 		"PILOT_PHASE_TOW",
+	],
+	"ControlMode":
+	[
+		"CONTROL_MODE_UNSPECIFIED",
+		"CONTROL_MODE_RATE",
+		"CONTROL_MODE_WEIGHT_SHIFT",
+		"CONTROL_MODE_PENDULUM",
 	],
 }
 
