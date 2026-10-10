@@ -1,0 +1,66 @@
+{
+  "id": "MR-3",
+  "module": "motion-rig",
+  "type": "dp-writer",
+  "title": "Документация motion-rig и англ. инструкция игроку (SRS/DOF Reality, generic)",
+  "goal": "Описать вывод движения в docs/guide и дать игроку с DOF Reality H4R короткую английскую инструкцию: что включить в игре и в Sim Racing Studio, оси и знаки, формат generic для самодельных приёмников.",
+  "plan_ref": "MR-3",
+  "contracts": [
+    {
+      "name": "MR-К1",
+      "version": "1",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К2",
+      "version": "1",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К3",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-motion-rig-MR-3",
+  "branch": "motion-rig/MR-3",
+  "base": "feature/motion-rig",
+  "scope": [
+    "docs/guide/motion-rig.md",
+    "tools/motion_rig/README.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts",
+    "tests",
+    "docs/contracts/motion-rig.md",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "guide",
+      "cmd": "test -f docs/guide/motion-rig.md && test -f tools/motion_rig/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme_en",
+      "cmd": "grep -c 'Sim Racing Studio\\|SRS' tools/motion_rig/README.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c -i 'платформ' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:58:40"
+}

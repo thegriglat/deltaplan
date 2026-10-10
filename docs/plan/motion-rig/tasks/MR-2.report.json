@@ -1,13 +1,17 @@
 {
   "status": "done",
-  "summary": "Вывод движения реализован по MR-К1/К2/К3: Telemetry.pilot_*, scripts/motion_rig (MotionSample, MotionSource, MotionPacket, MotionOutput), подключение в Game, конфиг+UI+локаль, recv.py, loop_check.sh, тесты. dp accept MR-2 --dry: 6/6.",
+  "summary": "Реализация MR-К1/К2/К3 v2 + ревью (resolve хоста один раз, частота 1…physics_hz, порог 50 мс) + signs в упаковке/конфиге/UI (сетка 9 флажков, 2 колонки, блок _build_motion_rig) + машиночитаемый контракт (motion_generic.h, motion_formats.py — единственная раскладка, check_layout.py, фикстуры known_*.bin, которые пишет/сверяет GDScript-тест). dp accept MR-2 --dry: 7/7.",
   "commits": [
-    "fae0112a MR-2: вывод движения на платформу — MotionSource, пакеты srs/generic, UDP-отправитель, настройки, приёмник recv.py"
+    "fae0112a основная реализация",
+    "1988a92a ревью: хост резолвится один раз, диапазон частоты, порог 50 мс",
+    "2b8bd488 signs (MR-К3 v2)",
+    "сетка знаков 2 колонки",
+    "машиночитаемый контракт: motion_generic.h, motion_formats.py, check_layout.py, фикстуры"
   ],
   "checks": [
     {
       "name": "motion_rig",
-      "value": "20/20",
+      "value": "25/25",
       "pass": true
     },
     {
@@ -32,12 +36,12 @@
     },
     {
       "name": "loop",
-      "value": "loop OK: generic 180 пакетов, heave ср. 9.742; srs 180 пакетов, vertical ср. -0.0066 g",
+      "value": "loop OK",
       "pass": true
     },
     {
-      "name": "микрозамер 1000×(push+sample+pack srs)",
-      "value": "10-11 мс (лимит 20), headless-редактор",
+      "name": "layout",
+      "value": "layout OK (cc сверил .h с py; фикстуры игры разобраны motion_formats)",
       "pass": true
     }
   ],
@@ -64,11 +68,6 @@
       "checked": "game.gd целиком в тестах не запускался (tests/game не в приёмке); headless проверен MotionOutput напрямую и 8 строк кода в game.gd читаются; tests/ui зелёные."
     },
     {
-      "where": "scripts/motion_rig/motion_output.gd:configure",
-      "why": "применение настроек сразу: Game подписан на Config.reloaded (панель настроек зовёт Config.reload после save). set_dest_address для имени хоста (не IP) резолвит DNS один раз синхронно при открытии сокета.",
-      "checked": "тестами: выключено → сокет не создаётся; неверный адрес → тишина; реальная отправка на loopback (10 пакетов из 40 шагов при every_n=4, seq 0..9)."
-    },
-    {
       "where": "scripts/motion_rig/motion_sample.gd",
       "why": "в MotionSample добавил поля t (время полёта) и on_ground — нужны формату generic (MR-К2: t и бит 1), в MR-К1 их нет в списке полей",
       "checked": "контрактный тест проверяет только перечисленные поля"
@@ -82,6 +81,11 @@
       "where": "tests/motion_rig/test_motion_packet.gd:test_microbench",
       "why": "10–11 мс при лимите 20 — запас всего 2×; на медленной машине может быть флак",
       "checked": "несколько прогонов, 10.2–11.0 мс"
+    },
+    {
+      "where": "settings_panel.gd:_build_motion_rig",
+      "why": "сетка знаков в 3 колонки раздувала панель (ломала test_scroll_screens на 1024×600) — сделал 2 колонки",
+      "checked": "tests/ui 109/109"
     }
   ],
   "dp_feedback": "godot -s скрипт (extends SceneTree) не видит автозагрузки (Config) на этапе компиляции — для headless-петель нужна сцена; стоило бы в tools/dp.md/workflow одной строкой. Фоновый dp accept --dry идёт >2 мин и сам уходит в фон — удобнее был бы dp accept --dry --wait N.",
@@ -122,6 +126,6 @@
     },
     "microbench_ms": 10.2
   },
-  "t": "2026-10-10T17:32:31",
+  "t": "2026-10-10T17:55:11",
   "by": "executor"
 }
