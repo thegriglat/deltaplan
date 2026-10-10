@@ -76,7 +76,7 @@ func _on_game_status(text: String) -> void:
 
 
 ## Столкновение за шаг (отрезок пути от прошлого положения): {kind, point} или {}.
-## kind: wire | tower | building | tree | fence.
+## kind: building | tree.
 func check_hit(pos: Vector3) -> Dictionary:
 	var prev := _prev
 	_prev = pos

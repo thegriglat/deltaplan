@@ -2,8 +2,8 @@ class_name HttpLog
 extends RefCounted
 ## Единая обёртка сетевых запросов игры: HTTPRequest + строка в лог (print → user://logs/godot.log и лог
 ## в папке игры). Две строки на запрос:
-##   HTTP > #12 POST overpass-api.de/api/interpreter [overpass roads 1/5] body=612B "[out:json]…"
-##   HTTP < #12 200 48213B 1.42s [overpass roads 1/5]
+##   HTTP > #12 GET example.org/api/tile [dem tile 1/5]
+##   HTTP < #12 200 48213B 1.42s [dem tile 1/5]
 ##   HTTP < #12 ошибка result=2 (RESULT_CANT_CONNECT) http=0 0B 0.05s [...]
 ## Секреты: query-часть URL и заголовки в лог не попадают (только хост+путь); тело обрезается.
 
@@ -13,7 +13,7 @@ static var _seq: int = 0
 
 
 ## Запрос под узлом host. Возвращает Array как request_completed: [result, код, заголовки, тело].
-## label — короткая метка («overpass roads 1/5», «dem tile»); track — массив, куда кладётся HTTPRequest
+## label — короткая метка («dem tile 1/5», «dem tile»); track — массив, куда кладётся HTTPRequest
 ## (для отмены владельцем). При ошибке отправки/без узла — [RESULT_CANT_CONNECT, 0, [], []].
 static func fetch(host: Node, url: String, headers: PackedStringArray, label: String = "",
 		method: int = HTTPClient.METHOD_GET, body: String = "", timeout_s: float = 30.0,
@@ -89,7 +89,7 @@ static func short_url(url: String) -> String:
 	return s
 
 
-## Тело запроса: Overpass (data=…) — раскодировать и обрезать, прочее — обрезать; ключи маскируются.
+## Тело запроса: форма data=… — раскодировать и обрезать, прочее — обрезать; ключи маскируются.
 static func summarize_body(body: String) -> String:
 	var s := body
 	if s.begins_with("data="):

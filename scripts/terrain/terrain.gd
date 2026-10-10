@@ -148,7 +148,7 @@ func _read_location(id: String) -> Dictionary:
 
 
 ## Загрузка места для точки с карты (FR-17, OA-К4): сборщик берёт место из кеша
-## user://locations/<ключ> или собирает стадиями (рельеф, реки, покров, OSM), затем обычный путь
+## user://locations/<ключ> или собирает стадиями (рельеф, реки, покров), затем обычный путь
 ## load_location. Асинхронно: по готовности — loaded (или load_failed с текстом для пилота).
 ## Ход — progress (этапы и доля для экрана загрузки); сеть молчит stall_timeout_s — отмена.
 func load_point(lat: float, lon: float) -> void:
@@ -172,8 +172,6 @@ func load_point(lat: float, lon: float) -> void:
 				match stage:
 					"surface":
 						progress.stage("landcover", tr("loading_landcover"))
-					"osm":
-						progress.stage("osm", tr("loading_osm"))
 			progress.sub(f, 1.0)
 	)
 	var res: Dictionary = await builder.build(self, lat, lon)

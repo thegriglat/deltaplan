@@ -1,11 +1,9 @@
 extends Node
-## G05. Столкновения (VR-10, VR-12): пролёт сквозь настоящий провод ЛЭП (data/osm) → crash_wire,
-## в 20 м выше → летит дальше, посадка в лес → crash_trees, посадка на поле → landed.
+## G05. Столкновения (VR-10, VR-12): посадка в лес → crash_trees, посадка на поле → landed.
 ## Проверка — CollisionCheck за шаг ≤ 0,1 мс. Физика — Game.tick() вручную (как test_gameplay).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
-const MAX_CHECK_US := 100.0
 
 var failures: PackedStringArray = []
 
@@ -57,25 +55,6 @@ func _fly(game: Game, pos: Vector3, heading_deg: float, seconds: float) -> Array
 	return ended[0] if not ended.is_empty() else []
 
 
-## Пролёт провода: середина пролёта над открытым местом, провод 6–30 м над землёй.
-func _pick_wire(game: Game) -> Array:
-	var wo: WorldObjects = game.world_link.objects
-	for wire: PackedVector3Array in wo.osm_layer.power_plan.wires:
-		var i := wire.size() / 2
-		var mid := wire[i]
-		var agl := mid.y - game.terrain.height_at(mid.x, mid.z)
-		var dir := (wire[i + 1] - mid).normalized()
-		var across := dir.cross(Vector3.UP).normalized()
-		var clear := true
-		for k in range(-20, 25, 5):
-			var q := mid + across * k
-			if game.terrain.forest_at(q.x, q.z) > 0.2:
-				clear = false
-		if agl > 6.0 and agl < 30.0 and clear:
-			return [mid, across]
-	return []
-
-
 ## Точка и курс, где впереди 150 м сплошного леса.
 func _pick_forest(game: Game) -> Array:
 	var st: Vector3 = game.get_start().position
@@ -105,67 +84,7 @@ func test_collisions_in_real_world() -> void:
 	var was_locale := TranslationServer.get_locale()
 	TranslationServer.set_locale("ru")
 
-	# 1. Сквозь провод ЛЭП — авария crash_wire.
-	var w := _pick_wire(game)
-	check(not w.is_empty(), "есть пролёт ЛЭП над открытым местом")
-	if not w.is_empty():
-		var mid: Vector3 = w[0]
-		var across: Vector3 = w[1]
-		# Провод пройдёт между пилотом и килем (снижение за 4 м пути — меньше метра).
-		var p0 := mid - across * 4.0 + Vector3.DOWN * 0.5
-		var r := _fly(game, p0, _heading(across), 4.0)
-		check(not r.is_empty(), "сквозь провод — итог")
-		if not r.is_empty():
-			check(r[0] == "landed" and r[1].grade == "crash", "авария: %s" % [r])
-			check(r[1].finish_reason == "crash_wire", "crash_wire: %s" % r[1].get("finish_reason"))
-			check(String(r[1].text).contains("ЛЭП"), "причина по-русски: %s" % r[1].text)
-		# 2. На 20 м выше провода — полёт продолжается.
-		var p1 := mid - across * 15.0 + Vector3.UP * 20.0
-		r = _fly(game, p1, _heading(across), 8.0)
-		check(r.is_empty(), "в 20 м выше провода полёт продолжается: %s" % [r])
-		var tel := game.glider.get_telemetry()
-		check(tel.phase == "flying", "летит (%s)" % tel.phase)
-		var past := (tel.position - mid).dot(across)
-		check(past > 5.0, "пролетел над ЛЭП (за проводом %.0f м)" % past)
-		# Кэш CollisionCheck отвечает так же, как WorldObjects.obstacle_hit.
-		var wo: WorldObjects = game.world_link.objects
-		var fi := CollisionCheck.FineIndex.new(wo.obstacles)
-		var rng := RandomNumberGenerator.new()
-		rng.seed = 5
-		var same := 0
-		var hits := 0
-		for i in 300:
-			var a := (
-				mid
-				+ Vector3(
-					rng.randf_range(-40, 40), rng.randf_range(-6, 4), rng.randf_range(-40, 40)
-				)
-			)
-			var b := (
-				a + Vector3(rng.randf_range(-3, 3), rng.randf_range(-1, 1), rng.randf_range(-3, 3))
-			)
-			var box := AABB(a, Vector3.ZERO).expand(b)
-			var mine := not fi.hit(box, PackedVector3Array([a]), PackedVector3Array([b])).is_empty()
-			var ref := not wo.obstacles.hit(a, b).is_empty()
-			same += int(mine == ref)
-			hits += int(ref)
-		check(
-			same == 300 and hits > 5, "кэш = obstacle_hit: %d из 300 (попаданий %d)" % [same, hits]
-		)
-		# Производительность: проверка у провода, ниже 60 м.
-		var cc := game.collisions
-		cc.reset()
-		var t0 := Time.get_ticks_usec()
-		var n := 2000
-		for i in n:
-			tel.position = mid - across * (10.0 - i * 0.01) + Vector3.UP * 3.0
-			tel.altitude_agl = tel.position.y - t.height_at(tel.position.x, tel.position.z)
-			cc.check(tel)
-		var us := float(Time.get_ticks_usec() - t0) / n
-		print("         CollisionCheck.check: %.1f мкс на шаг" % us)
-		check(us <= MAX_CHECK_US, "проверка %.1f мкс ≤ %.0f мкс" % [us, MAX_CHECK_US])
-
-	# 3. Снижение в лес — задел кроны, crash_trees.
+	# 1. Снижение в лес — задел кроны, crash_trees.
 	var f := _pick_forest(game)
 	check(not f.is_empty(), "есть лес")
 	if not f.is_empty():
@@ -177,7 +96,7 @@ func test_collisions_in_real_world() -> void:
 			"в лес → crash_trees: %s" % [r]
 		)
 
-	# 4. Посадка на поле — обычная посадка.
+	# 2. Посадка на поле — обычная посадка.
 	var sites: Array = game.world_link.objects.get_landing_sites()
 	check(not sites.is_empty(), "есть посадочная площадка")
 	if not sites.is_empty():

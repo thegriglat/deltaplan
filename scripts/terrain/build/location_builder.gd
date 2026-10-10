@@ -1,9 +1,9 @@
 class_name LocationBuilder
 extends RefCounted
-## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage → OsmStage во
+## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage во
 ## временной папке user://locations/.tmp_<ключ>, затем переименование; build.json — последним.
 ## Полное место (build.json complete, версия сборщика та же) берётся из кеша без стадий и сети.
-## Отказ рельефа — ошибка; отказ рек/покрова/OSM — место без слоя, имя в build.json → missing,
+## Отказ рельефа — ошибка; отказ рек/покрова — место без слоя, имя в build.json → missing,
 ## следующий запуск догружает только недостающее.
 
 signal progress(stage: String, fraction: float)
@@ -55,8 +55,6 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 	if not old.is_empty():
 		todo = (old.get("missing", []) as Array).duplicate()
 		have_dem = true
-		if todo.has("surface") and not todo.has("osm"):
-			todo.append("osm")  # OSM дописывает слой воды в карту покрова, которую пересобирают
 	var snapc := Vector2(lat, lon) if fixed else LocationCache.snap(lat, lon)
 	var clat: float = lat if fixed else snapc.x  # Vector2 — float32; встроенному нужна точность double
 	var clon: float = lon if fixed else snapc.y
@@ -106,19 +104,15 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 				LocationCache.remove_dir(tmp)
 				return result
 			missing.append(st.name)
-			# OSM после отказавшего покрова всё равно можно пробовать — но не без карты покрова
-			if st.name == "surface" and not missing.has("osm"):
-				missing.append("osm")
-				run_names.erase("osm")
 	# недостающие, до которых дело не дошло, остаются недостающими
 	for n in todo:
 		if not run_names.has(n) and not missing.has(n) and n != "dem":
 			missing.append(n)
 	log_lines.append_array(ctx.log_lines)
 	net_requests = ctx.net_requests
-	# конфиг места (имя — ближайший посёлок из OSM) и build.json — последним
+	# конфиг места (имя — координаты) и build.json — последним
 	if not fixed:
-		_write_json(tmp.path_join("location.json"), _location_json(ctx, snapc, key, tmp))
+		_write_json(tmp.path_join("location.json"), _location_json(ctx, snapc, key))
 	var all_seconds := prev_seconds.duplicate()
 	all_seconds.merge(seconds, true)
 	var b := {
@@ -178,7 +172,6 @@ static func default_stages() -> Array:
 		["dem", "dem_stage"],
 		["rivers", "river_stage"],
 		["surface", "surface_stage"],
-		["osm", "osm_stage"],
 	]:
 		var path := "res://scripts/terrain/build/%s.gd" % pair[1]
 		if ResourceLoader.exists(path):
@@ -204,35 +197,20 @@ func _spec(key: String, c: Vector2) -> Dictionary:
 	return spec
 
 
-func _location_json(ctx: LocationBuildContext, c: Vector2, key: String, dir: String) -> Dictionary:
+func _location_json(ctx: LocationBuildContext, c: Vector2, key: String) -> Dictionary:
 	var loc: Dictionary = ctx.spec.duplicate(true)
 	loc.erase("dem_sources")
 	loc.center_lat = c.x
 	loc.center_lon = c.y
 	loc.utc_offset_h = int(roundf(c.y / 15.0))
 	loc.data_dir = LocationCache.dir_for(key)
-	loc.name = _place_name(dir.path_join("osm.json"), c)
+	loc.name = _place_name(c)
 	loc.start_sites = []
 	return loc
 
 
-## Имя места: ближайший к центру посёлок из osm.json, иначе координаты.
-static func _place_name(osm_path: String, c: Vector2) -> String:
-	if FileAccess.file_exists(osm_path):
-		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(osm_path))
-		if d is Dictionary:
-			var best := INF
-			var name := ""
-			for pl: Dictionary in d.get("places", []):
-				var n := String(pl.get("n", ""))
-				if n == "":
-					continue
-				var dist := Vector2(float(pl.get("x", 0.0)), float(pl.get("z", 0.0))).length()
-				if dist < best:
-					best = dist
-					name = n
-			if name != "":
-				return name
+## Имя места точки — её координаты (встроенные места берут имя из своего конфига).
+static func _place_name(c: Vector2) -> String:
 	return "%.3f, %.3f" % [c.x, c.y]
 
 
@@ -244,8 +222,6 @@ func _sources(ctx: LocationBuildContext, missing: Array) -> Array:
 			out.append(s)
 	if not missing.has("surface"):
 		out.append("worldcover")
-	if not missing.has("osm"):
-		out.append("osm")
 	return out
 
 

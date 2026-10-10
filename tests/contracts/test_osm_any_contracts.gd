@@ -104,31 +104,6 @@ func test_k1_height_zst() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
-func test_k2_builtin_osm_schema() -> void:
-	for id: String in _builtin_ids():
-		var loc: Dictionary = Config.get_config("locations/" + id)
-		var path := String(loc.get("data_dir", "")) + "/osm.json"
-		check(FileAccess.file_exists(path), id + ": osm.json в папке места")
-		if not FileAccess.file_exists(path):
-			continue
-		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
-		_has_keys(d, ["attribution", "location", "center_lat", "center_lon", "bbox_latlon", "roads", "buildings",
-			"power", "water", "places", "landuse"], id + " osm")
-		_has_keys(d.get("water", {}), ["rivers", "lakes"], id + " osm.water")
-		_has_keys(d.get("landuse", {}), ["fields", "fences"], id + " osm.landuse")
-		check((d.bbox_latlon as Array).size() == 4, id + ": bbox_latlon[4]")
-		for r: Dictionary in (d.roads as Array).slice(0, 20):
-			_has_keys(r, ["t", "p"], id + " road")
-		for b: Array in (d.buildings as Array).slice(0, 20):
-			check(b.size() == 7, id + ": дом — 7 чисел")
-		for p: Dictionary in d.places:
-			_has_keys(p, ["n", "t", "x", "z"], id + " place")
-		for r: Dictionary in (d.water.rivers as Array).slice(0, 20):
-			_has_keys(r, ["t", "p"], id + " river")
-		for k: Dictionary in (d.water.lakes as Array).slice(0, 20):
-			_has_keys(k, ["p"], id + " lake")
-
-
 func test_k3_context() -> void:
 	var path := BUILD_DIR + "location_build_context.gd"
 	check(ResourceLoader.exists(path), "LocationBuildContext есть")
@@ -160,12 +135,6 @@ func test_k3_surface() -> void:
 	_check_run("surface_stage.gd")
 
 
-func test_k3_osm() -> void:
-	var m := _check_run("osm_stage.gd")
-	check(m.has("pack") and (m.pack.args as Array).size() == 4, "OsmStage.pack(elements, lat, lon, half_m)")
-	check(m.has("water_alpha") and (m.water_alpha.args as Array).size() == 2, "OsmStage.water_alpha(osm, info10)")
-
-
 func test_k4_config() -> void:
 	var lb: Dictionary = Config.get_config("world").get("location_builder", {})
 	_has_keys(lb, ["version", "cache_dir", "snap_deg", "builtin_margin_km", "template"], "location_builder")
@@ -190,7 +159,7 @@ func test_k4_registry() -> void:
 	var b := _methods("res://scripts/terrain/build/location_builder.gd")
 	check(b.has("build") and (b.build.args as Array).size() == 3, "LocationBuilder.build(host, lat, lon)")
 	var r := _methods("res://scripts/terrain/build/locations.gd")
-	for n in ["config", "osm_path", "is_builtin", "builtin_at"]:
+	for n in ["config", "is_builtin", "builtin_at"]:
 		check(r.has(n), "Locations.%s" % n)
 	if r.has("config"):
 		var scr: Script = load("res://scripts/terrain/build/locations.gd")
