@@ -29,6 +29,7 @@ const LOCAL_KEYS: PackedStringArray = [
 	"world.sun",
 	"world.effects",
 	"vegetation.grass",
+	"motion_rig",
 ]
 ## Имя пилота (NET-51): user-конфиг game.json → net.pilot_name; пусто/нет — умолчание
 ## ник Steam (S1.5), затем по языку интерфейса (net_pilot_name_default).

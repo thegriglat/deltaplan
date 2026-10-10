@@ -109,6 +109,8 @@ var _paused := false
 @onready var sky: SkyEnvironment = $Environment
 @onready var terrain: Terrain = $Terrain
 @onready var glider: Glider = $Glider
+## Вывод движения на платформу (MR-К2/К3): по умолчанию выключен, сокета нет.
+var motion: MotionOutput = MotionOutput.new()
 @onready var input_controller: InputController = $InputController
 @onready var camera: CameraRig = $CameraRig
 @onready var instrument: FlightInstrument = $FlightInstrument
@@ -123,6 +125,8 @@ func _ready() -> void:
 		sky.apply_config()
 	GraphicsPresets.apply_viewport(get_viewport())
 	_cfg = Config.get_config("game")
+	motion.configure()
+	Config.reloaded.connect(motion.configure)
 	glider.set_physics_process(false)
 	world_link = WorldLink.new()
 	world_link.name = "WorldLink"
@@ -248,6 +252,10 @@ func tick(dt: float) -> void:
 	if _crashed:
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
+	if glider.phase() == "flying":
+		motion.step(glider.get_telemetry(), dt)  # свой пилот в полёте (MR-К2)
+	else:
+		motion.idle()
 	_feed_step(dt)
 	var hit := collisions.check(glider.get_telemetry())
 	if not hit.is_empty():
@@ -560,6 +568,7 @@ func restart(keep_clock: bool = false) -> void:
 	feed.cancel()  # полёт без посадки не засчитывается
 	camera.tight = false
 	queue_walk = {}
+	motion.reset()
 	_align_start_heading()
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
@@ -961,6 +970,7 @@ func _end_catch_up(r: Dictionary) -> void:
 	camera.tight = false
 	var pos: Vector3 = r.position
 	var heading_deg := rad_to_deg(float(r.heading))
+	motion.reset()
 	_prev_phase = ""
 	if pos.y - terrain.height_at(pos.x, pos.z) < TOW_GROUND_AGL_M:
 		glider.reset_on_ground(pos, heading_deg)
@@ -1092,6 +1102,7 @@ func _choose_start() -> void:
 			site = st
 	_start_pos = site.position
 	_start_heading = float(site.heading_deg)
+	motion.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 
 
 func _setup_glider() -> void:

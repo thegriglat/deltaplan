@@ -24,3 +24,7 @@ var glide_ratio: float = 0.0        ## текущее качество по зе
 var load_factor: float = 1.0      ## перегрузка n = подъёмная сила / вес, сглаженная
 var flare_amount: float = 0.0     ## выравнивание у земли 0..1 (поза пилота, звук)
 var basis: Basis = Basis.IDENTITY   ## ориентация крыла для камер и модели
+## Точка пилота (MR-К1): м, мир; скорость точки относительно земли; ориентация (−Z вперёд, +Y вверх, +X вправо).
+var pilot_position: Vector3 = Vector3.ZERO
+var pilot_velocity: Vector3 = Vector3.ZERO
+var pilot_basis: Basis = Basis.IDENTITY
