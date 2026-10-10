@@ -1,0 +1,62 @@
+{
+  "id": "PD-1",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Параметры маятника: блок pendulum в 48 крыльях и configs/pendulum.json",
+  "goal": "Офлайн-скрипт — порт балансировки прототипа (params/geometry/trim): геометрия полос, ЦМ, инерция, dcm0, cd_scale в каждом крыле; общий конфиг маятника; контракт PD-К2 и его тест.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К2",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-1",
+  "branch": "pendulum/PD-1",
+  "base": "feature/pendulum",
+  "scope": [
+    "tools/flight/pendulum_params.py",
+    "tools/flight/pendulum_params_table.md",
+    "configs/pendulum.json",
+    "configs/wings",
+    "tests/contracts/test_pendulum_contracts_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts",
+    "tools/research/pendulum",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts_k2",
+      "tests": "pendulum_contracts_k2"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "wing_physics_contracts",
+      "tests": "wing_physics_contracts"
+    },
+    {
+      "name": "params_check",
+      "cmd": "/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python tools/flight/pendulum_params.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings_only_added",
+      "cmd": "git diff feature/pendulum --numstat -- configs/wings | awk '$2!=0' | wc -l",
+      "expect": "re:^0\\s*$"
+    },
+    {
+      "name": "wings_count",
+      "cmd": "ls configs/wings/*.json | xargs grep -l '\"PD-К2 v1\"' | wc -l",
+      "expect": "num:(\\d+) >=48"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T00:50:13"
+}
