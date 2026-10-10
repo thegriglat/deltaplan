@@ -781,14 +781,12 @@
       "tv_tower_obstacle_doc": "Препятствия телебашни — цилиндры [доля radius_m, низ, верх (доли высоты)]: конус-основание, ствол с антенной, «тюльпан»; радиус масштабируется по XZ",
       "radius_m": {"mast_lattice": 1.5, "tv_tower": 31.0, "chimney": 4.0, "wind": 2.0},
       "radius_m_doc": "Радиус следа модели при масштабе 1 (он же препятствие, масштабируется на XZ), м",
-      "skip": [],
+      "skip": ["wind"],
       "skip_doc": "Классы OSM (mast, tower, chimney, wind), которые _verticals не рисует (OL-3 ставит wind, когда ветряки рисует сам)",
       "color": {"wind": [0.92, 0.92, 0.9]},
       "blade_frac": 0.4,
       "blade_frac_doc": "Длина лопасти ветряка, доля высоты башни",
-      "cast_shadows": true,
-      "skip": ["wind"],
-      "skip_doc": "Классы, которые OsmPilot._verticals не рисует: ветряки рисует OsmWindTurbines (wind_turbines)"
+      "cast_shadows": true
     },
     "wind_turbines": {
       "_doc": "Ветряки OSM (L6, OsmWindTurbines): модели wind_tower/wind_rotor.glb, масштаб по высоте ступицы (h или verticals.default_h_m.wind). Гондола разворачивается носом на ветер (L4: группа osm_wind, воздух на высоте ступицы), ротор крутится по кривой турбины 2–3 МВт.",
