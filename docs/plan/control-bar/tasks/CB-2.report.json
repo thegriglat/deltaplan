@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "BarAxis (CB-К2), ключи gamepad (CB-К1), _apply_gamepad через BarAxis и устройство по device_guid, раздел «Трапеция / джойстик» во вкладке «Управление», строки ru+en.",
+  "commits": [
+    "c6efe22c CB-2: трапеция/джойстик"
+  ],
+  "checks": [
+    {
+      "name": "control_bar",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "ui_controls",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "control_fix",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "ui_tests",
+      "value": "fails=0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "device_guid/device_name/calibration машинные: добавить gamepad.* в UserSettings.LOCAL_KEYS (и steam/partner/auto_cloud.json)? Вне скоупа, есть тест S7."
+  ],
+  "how_to_check": "dp accept CB-2",
+  "uncertain": [
+    {
+      "where": "scripts/ui/control_bar_settings.gd",
+      "why": "не проверено на реальном железе (get_joy_axis, GUID, живой индикатор, запись краёв)",
+      "checked": "подставные devices_fn/raw_fn в тестах"
+    },
+    {
+      "where": "scripts/ui/control_bar_settings.gd",
+      "why": "раскладка раздела не смотрелась глазами",
+      "checked": "панель собирается headless"
+    }
+  ],
+  "dp_feedback": "dp report CB-2 < файл через stdin повис (>120 с); общий scratchpad перепутал файлы отчётов разных задач",
+  "extra": {},
+  "t": "2026-10-10T18:51:26",
+  "by": "executor"
+}

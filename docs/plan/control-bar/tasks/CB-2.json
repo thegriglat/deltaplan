@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "CB-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/control-bar.md"
     },
     {
@@ -28,7 +28,9 @@
     "scripts/ui/control_bar_settings.gd",
     "locale/ui.csv",
     "tests/game/test_control_bar.gd",
-    "tests/ui/test_control_bar_settings.gd"
+    "tests/ui/test_control_bar_settings.gd",
+    "scripts/game/user_settings.gd",
+    "steam/partner/auto_cloud.json"
   ],
   "dont_touch": [
     "docs/contracts/control-bar.md",
@@ -56,10 +58,14 @@
       "name": "ui_tests",
       "cmd": "out=$(godot --headless --path . res://tests/run_tests.tscn -- --filter=tests/ui/ 2>&1); echo \"$out\" | grep -E \"тестов\"; echo \"$out\" | grep -qE \"[0-9]+ тестов\" || exit 1; echo \"$out\" | grep -E \"Parse Error|Failed to load script\" && exit 1; n=$(echo \"$out\" | grep -E \"^\\s*FAIL\" | grep -vc test_main_menu_selector_rebuilds_ui); echo \"fails=$n\"",
       "expect": "num:fails=(\\d+) ==0"
+    },
+    {
+      "name": "steam_contracts_s7",
+      "tests": "steam_contracts_s7"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T18:41:23",
-  "edited": "2026-10-10T18:41:38"
+  "edited": "2026-10-10T18:51:57"
 }

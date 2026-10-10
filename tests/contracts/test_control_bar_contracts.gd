@@ -23,8 +23,15 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	for id in ["CB-К1", "CB-К2"]:
-		check(found.get(id, 0) == 1, "%s (v1) в заголовках: %s" % [id, found])
+	check(found.get("CB-К1", 0) == 2, "CB-К1 (v2) в заголовках: %s" % found)
+	check(found.get("CB-К2", 0) == 1, "CB-К2 (v1) в заголовках: %s" % found)
+
+
+func test_k1_local_keys() -> void:
+	for k in ["device_guid", "device_name", "roll_axis", "pitch_axis", "invert_roll", "invert_pitch", "calibration"]:
+		check(UserSettings.is_local_key("controls.gamepad." + k), "controls.gamepad.%s — машинный" % k)
+	for k in ["deadzone", "expo", "sensitivity", "run_button"]:
+		check(not UserSettings.is_local_key("controls.gamepad." + k), "controls.gamepad.%s — общий" % k)
 
 
 func test_k1_config_defaults() -> void:

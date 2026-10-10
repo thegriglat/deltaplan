@@ -5,7 +5,7 @@ module: control-bar
 updated: 2026-10-10
 summary: "Контракты модуля control-bar: настройки устройства трапеции в controls.json → gamepad (CB-К1), ход ручки → управление, класс BarAxis (CB-К2)."
 related: ["docs/plan/control-bar.md", "docs/research/control-bar-input.md"]
-contracts: [{"id": "CB-К1", "version": 1}, {"id": "CB-К2", "version": 1}]
+contracts: [{"id": "CB-К1", "version": 2}, {"id": "CB-К2", "version": 1}]
 ---
 # Контракты модуля control-bar
 
@@ -17,7 +17,7 @@ contracts: [{"id": "CB-К1", "version": 1}, {"id": "CB-К2", "version": 1}]
 Основа — уже работающий ввод геймпада (`scripts/game/input_controller.gd`, `_apply_gamepad`, `_stick`): трапеция — это любой
 HID-джойстик (записка CB-1), Godot 4.5+ (SDL3) даёт его оси без маппинга по индексу в −1…1 (`Input.get_joy_axis`).
 
-## CB-К1. Настройки устройства трапеции (v1)
+## CB-К1. Настройки устройства трапеции (v2)
 Владелец: CB-2. Потребители: `input_controller.gd` (CB-2), вкладка «Управление» настроек (CB-2), инструкция (CB-3).
 
 Раздел `gamepad` в `configs/controls.json`; пилот меняет его через настройки — `UserSettings.save_patch("controls", {"gamepad": {…}})`
@@ -31,6 +31,13 @@ HID-джойстик (записка CB-1), Godot 4.5+ (SDL3) даёт его о
   `controls.invert_pitch` (предпочтение пилота для всех способов ввода) остаётся и действует поверх.
 - `calibration: {"roll": [min, center, max], "pitch": [min, center, max]}` — сырые значения оси в единицах Godot (−1…1),
   `min < center < max`; по умолчанию `[-1.0, 0.0, 1.0]` — калибровки нет, поведение геймпада не меняется.
+
+**Машинные ключи (v2).** Устройство, его оси и калибровка привязаны к конкретному компьютеру и железу, в облако (Steam
+Auto-Cloud) не уходят: в `UserSettings.LOCAL_KEYS` (и `local_keys` в `steam/partner/auto_cloud.json`, тест S7) —
+`controls.gamepad.device_guid`, `controls.gamepad.device_name`, `controls.gamepad.roll_axis`, `controls.gamepad.pitch_axis`,
+`controls.gamepad.invert_roll`, `controls.gamepad.invert_pitch`, `controls.gamepad.calibration`. Мёртвая зона, экспонента,
+чувствительность, кнопки — предпочтения пилота, общие.
+Изменения: v2 (10.10) — машинные ключи (вопрос исполнителя CB-2); формат ключей не менялся.
 
 ## CB-К2. Ход ручки → управление (v1)
 Владелец: CB-2. Потребители: `input_controller.gd`, индикатор вкладки «Управление» (тот же расчёт, что в полёте).
