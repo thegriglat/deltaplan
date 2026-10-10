@@ -1,0 +1,72 @@
+{
+  "id": "OT-4",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Склейка регионов на границе Казахстан/Киргизия + автотест сшивки",
+  "goal": "Решение пользователя: на краях регионов дороги/реки/ЛЭП не рвутся и не двоятся, дома не теряются и не двоятся. Проверить O4 на реальной границе и закрепить автотестом, который потом гоняется на итоге оркестратора.",
+  "plan_ref": "OT-4. Склейка регионов на границе",
+  "contracts": [
+    {
+      "name": "O4",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O5",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O3",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-4",
+  "branch": "osm-tiles/OT-4",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/packer/src/finalize.rs",
+    "tools/osm_tiles/packer/tests",
+    "tools/osm_tiles/tests/test_border_stitch.py",
+    "tools/osm_tiles/tests/border_compare.py",
+    "tools/osm_tiles/border_check.sh",
+    "tools/osm_tiles/compare_ref.py,tools/osm_tiles/tests/test_compare_ref.py"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/world.py",
+    "tools/osm_tiles/regions.py",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "cargo_test",
+      "cmd": "cd tools/osm_tiles/packer && cargo test --release 2>&1 | tail -30",
+      "expect": "!re:test result: FAILED|error\\["
+    },
+    {
+      "name": "border_counts",
+      "cmd": "python3 tools/osm_tiles/tests/border_compare.py --a /home/greg/deltaplan_data/osm_tiles/OT-4/sep/tiles --b /home/greg/deltaplan_data/osm_tiles/OT-4/merged/tiles --tiles /home/greg/deltaplan_data/osm_tiles/OT-4/border_tiles.txt",
+      "expect": "num:max_count_diff_pct=([\\d.]+) <=0.5"
+    },
+    {
+      "name": "no_dups",
+      "cmd": "python3 tools/osm_tiles/tests/border_compare.py --a /home/greg/deltaplan_data/osm_tiles/OT-4/sep/tiles --b /home/greg/deltaplan_data/osm_tiles/OT-4/merged/tiles --tiles /home/greg/deltaplan_data/osm_tiles/OT-4/border_tiles.txt",
+      "expect": "re:dup_keys=0\\b"
+    },
+    {
+      "name": "stitch",
+      "cmd": "python3 tools/osm_tiles/tests/test_border_stitch.py --tiles /home/greg/deltaplan_data/osm_tiles/OT-4/sep/tiles --ref-pbf /home/greg/deltaplan_data/osm_tiles/OT-4/kz_kg_merged.osm.pbf --border /home/greg/deltaplan_data/osm_tiles/OT-4/border_tiles.txt",
+      "expect": "re:^PASS"
+    },
+    {
+      "name": "almaty_south",
+      "cmd": "python3 tools/osm_tiles/tests/border_compare.py --almaty-south --a /home/greg/deltaplan_data/osm_tiles/OT-4/sep/tiles --b /home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/tiles",
+      "expect": "re:almaty_south_more=yes"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T16:58:29",
+  "edited": "2026-10-10T16:58:57"
+}

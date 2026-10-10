@@ -1,0 +1,45 @@
+{
+ "center_lat": 46.33,
+ "center_lon": 13.95,
+ "tiles": [
+  [
+   256,
+   745
+  ],
+  [
+   256,
+   746
+  ],
+  [
+   256,
+   747
+  ],
+  [
+   257,
+   743
+  ],
+  [
+   257,
+   744
+  ],
+  [
+   257,
+   745
+  ],
+  [
+   258,
+   740
+  ],
+  [
+   258,
+   741
+  ],
+  [
+   258,
+   742
+  ]
+ ],
+ "source": "slovenia-latest.osm.pbf (Geofabrik), osmtiles pack+finalize OT-2; Бохинь — Блед, Юлийские Альпы",
+ "osm_timestamp": 1791490866,
+ "attribution": "© OpenStreetMap contributors (ODbL)"
+}
