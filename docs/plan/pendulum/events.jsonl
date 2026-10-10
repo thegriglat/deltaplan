@@ -87,3 +87,4 @@
 {"t": "2026-10-11T02:28:40", "by": "coordinator", "task": "PD-7", "ev": "merged", "commits": ["e453a320"]}
 {"t": "2026-10-11T02:32:12", "by": "main", "task": "PD-13", "ev": "reported", "commits": ["3d3fc3fd"], "note": "done: Аппарат хранится по крылу (apparatus={wing_id:{ключ:знач}}), resolved_apparatus(wing_id) с порядком пилот→крыло→общие, …", "dp_feedback": "Нужна команда запуска теста по имени (dp test <фильтр>) вместо check.sh."}
 {"t": "2026-10-11T02:32:42", "by": "coordinator", "task": "PD-13", "ev": "checked", "note": "4/4 pendulum_contracts_k3=ok:4/4; menu_setup=ok:12/12; pendulum_mode=ok:6/6; zone=ok:4/4"}
+{"t": "2026-10-11T02:32:48", "by": "coordinator", "task": "PD-13", "ev": "accepted", "note": "по отчёту: 4/4; умолчания из блока крыла — перепроверить k3 после PD-12"}
