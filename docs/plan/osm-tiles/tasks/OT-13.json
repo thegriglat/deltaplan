@@ -1,0 +1,56 @@
+{
+  "id": "OT-13",
+  "module": "osm-tiles",
+  "type": "dp-mechanic",
+  "title": "Залить тайлы Казахстана+Киргизии в R2 и включить URL R2 в игре",
+  "goal": "Решение пользователя: тестовые тайлы раздаются из Cloudflare R2, игра по умолчанию качает их по HTTP; OT-12 (тестовая сборка) идёт с этим URL.",
+  "plan_ref": "OT-12. Тестовая сборка с тайлами Казахстана",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-13",
+  "branch": "osm-tiles/OT-13",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "configs/osm_tiles.json"
+  ],
+  "dont_touch": [
+    "scripts",
+    "tools",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "rclone_check",
+      "cmd": "rclone check /home/greg/deltaplan_data/osm_tiles/OT-6/out_a/v1 r2:deltaplan-tiles/v1 --one-way 2>&1 | tail -3",
+      "expect": "re:0 differences found"
+    },
+    {
+      "name": "curl_almaty",
+      "cmd": "L=$(stat -c%s /home/greg/deltaplan_data/osm_tiles/OT-6/out_a/v1/240/1038.dpt); R=$(curl -s -o /dev/null -w '%{http_code} %{size_download}' https://pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/240/1038.dpt); echo \"$R local $L\"",
+      "expect": "re:^200 (\\d+) local \\1$"
+    },
+    {
+      "name": "curl_almaty2",
+      "cmd": "L=$(stat -c%s /home/greg/deltaplan_data/osm_tiles/OT-6/out_a/v1/240/1037.dpt); R=$(curl -s -o /dev/null -w '%{http_code} %{size_download}' https://pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/240/1037.dpt); echo \"$R local $L\"",
+      "expect": "re:^200 (\\d+) local \\1$"
+    },
+    {
+      "name": "curl_404",
+      "cmd": "curl -s -o /dev/null -w '%{http_code}' https://pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/0/0.dpt",
+      "expect": "re:^404"
+    },
+    {
+      "name": "config_url",
+      "cmd": "python3 -c \"import json;print(json.load(open('configs/osm_tiles.json'))['base_url'])\"",
+      "expect": "re:^https://pub-eb61309798ee4c4aa6a41388cf8e0a98\\.r2\\.dev/?$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T18:14:09"
+}
