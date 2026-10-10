@@ -14,7 +14,7 @@ generated: true
 
 | модуль | контракты (id vN) | файл |
 |---|---|---|
-| aframe-geometry | A1 v3, A2 v1, A3 v11 | [docs/contracts/aframe-geometry.md](/docs/contracts/aframe-geometry.md) |
+| aframe-geometry | A1 v4, A2 v1, A3 v12 | [docs/contracts/aframe-geometry.md](/docs/contracts/aframe-geometry.md) |
 | air-model | C1 v2, C2 v9, C3 v2, C4 v4, C5 v1, C6 v1, C7 v4, C8 v2, C9 v3, C10 v3 | [docs/contracts/air-model.md](/docs/contracts/air-model.md) |
 | air-nn | П2 v5, П3 v4, Б1 v1 | [docs/contracts/air-nn-p3.md](/docs/contracts/air-nn-p3.md) |
 | air-nn | П1 v3, П2 v5, П3 v4, П6 v3, П4 v1, П5 v2 | [docs/contracts/air-nn.md](/docs/contracts/air-nn.md) |
@@ -24,6 +24,7 @@ generated: true
 | ann2 | A1 v2, A2 v2, A3 v2 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) |
 | control-fix | С1 v2, С2 v3, С3 v3 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) |
 | easter-eggs | К8 v4, К9 v5 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) |
+| motion-rig | MR-К1 v1, MR-К2 v1, MR-К3 v2 | [docs/contracts/motion-rig.md](/docs/contracts/motion-rig.md) |
 | no-osm | N1 v1, N2 v2, N3 v1, N4 v2, N5 v1 | [docs/contracts/no-osm.md](/docs/contracts/no-osm.md) |
 | osm-any | OA-К1 v2, OA-К2 v2, OA-К3 v1, OA-К4 v2 | [docs/contracts/osm-any.md](/docs/contracts/osm-any.md) |
 | perf | PF-К2 v2, PF-К4 v2 | [docs/contracts/perf.md](/docs/contracts/perf.md) |
