@@ -21,12 +21,14 @@ static func scenario(name: String, wing_name: String) -> Dictionary:
 
 
 ## Модель с крылом wing_name; масса пилота ≤ 0 — эталонная крыла. Плотность постоянная 1,225.
-## Блок pendulum — из конфига крыла (PD-1), а если его там нет — эталон прототипа.
+## Блок pendulum — из конфига крыла (PD-1); proto_block — блок, посчитанный прототипом
+## (reference.json → blocks): сверка самого порта там, где отклик чувствителен к трим-у (болтанка).
 static func make(
-	wing_name: String, pilot_mass_kg: float = 0.0, apparatus: Dictionary = {}
+	wing_name: String, pilot_mass_kg: float = 0.0, apparatus: Dictionary = {},
+	proto_block := false
 ) -> PendulumModel:
 	var wing: Dictionary = Config.get_config("wings/" + wing_name).duplicate(true)
-	if not wing.has("pendulum"):
+	if proto_block:
 		wing["pendulum"] = ref().blocks[wing_name]
 	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
 	pilot.mass_kg = pilot_mass_kg if pilot_mass_kg > 0.0 else float(wing.pilot_mass_ref_kg)
