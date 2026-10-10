@@ -4,7 +4,7 @@
 
 Any USB HID joystick with two axes: stick sideways = roll, stick forward/back = pitch. The game reads the raw axes of the device; there is no custom protocol and no driver to install. Launch run and everything else stay on the keyboard.
 
-Nobody has published a standard hang glider control bar controller, so you build or buy a generic joystick board and wire your own sensors to it.
+Nobody has published a standard hang glider control bar controller; the closest found is a [DIY Arduino Micro controller for paragliding games](https://jpralves.net/post/2018/07/03/diy-controller-for-paragliding-games.html). So you build or buy a generic joystick board and wire your own sensors to it.
 
 ## Ways to build one
 
@@ -17,7 +17,7 @@ No step-by-step build here, only starting points.
 Sensors, one per axis:
 
 - **Potentiometers** (linear or slider) are the simplest start; the contact wears out and the travel is limited by the mechanics.
-- **AS5600** (magnetic, contactless, 12 bit) can be programmed to a 18-360 degree angle, so a short stick travel can use the full range; needs a magnet on the axis.
+- **[AS5600](https://www.infineon.com/assets/row/public/documents/24/49/infineon-as5600-datasheet-en.pdf)** (magnetic, contactless, 12 bit) can be programmed to a 18-360 degree angle, so a short stick travel can use the full range; needs a magnet on the axis.
 
 The 10-bit ADC of an ATmega32U4 gives 1024 steps: over a 60 degree stick travel that is about 0.06 degree per step, enough for the game.
 
