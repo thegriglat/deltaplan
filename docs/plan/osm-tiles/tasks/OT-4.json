@@ -30,7 +30,8 @@
     "tools/osm_tiles/packer/tests",
     "tools/osm_tiles/tests/test_border_stitch.py",
     "tools/osm_tiles/tests/border_compare.py",
-    "tools/osm_tiles/border_check.sh"
+    "tools/osm_tiles/border_check.sh",
+    "tools/osm_tiles/compare_ref.py,tools/osm_tiles/tests/test_compare_ref.py"
   ],
   "dont_touch": [
     "tools/osm_tiles/world.py",
@@ -66,5 +67,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T16:58:29"
+  "created": "2026-10-10T16:58:29",
+  "edited": "2026-10-10T16:58:57"
 }
