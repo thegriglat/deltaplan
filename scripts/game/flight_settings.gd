@@ -31,6 +31,40 @@ var pick_lon: float = NAN
 var start_hour: float = 13.0
 var month: int = 7
 var day: int = 15
+## Настройки «Аппарат» (PD-К3): hang_shift_cm, hang_length_m, sail_flex, dihedral_eff_deg.
+## Нет ключа — умолчание (apparatus_defaults); важны только в режиме управления «Маятник».
+var apparatus: Dictionary = apparatus_defaults()
+
+## Ключи PD-К3: [мин, макс, шаг, запасное умолчание] (docs/contracts/pendulum.md).
+const APPARATUS_SPEC := {
+	"hang_shift_cm": [-4.0, 4.0, 0.5, 0.0],
+	"hang_length_m": [1.0, 1.4, 0.05, 1.2],
+	"sail_flex": [0.1, 1.0, 0.05, 0.2],
+	"dihedral_eff_deg": [-2.0, 5.0, 0.5, 1.0],
+}
+
+
+## Умолчания «Аппарат»: configs/pendulum.json → apparatus_defaults (PD-К2), нет файла/ключа — запасные.
+static func apparatus_defaults() -> Dictionary:
+	var file: Dictionary = {}
+	if FileAccess.file_exists("res://configs/pendulum.json"):
+		file = Config.get_config("pendulum").get("apparatus_defaults", {})
+	var d := {}
+	for k: String in APPARATUS_SPEC:
+		d[k] = float(file.get(k, APPARATUS_SPEC[k][3]))
+	return d
+
+
+## Зажать значения в диапазоны PD-К3 и дополнить пропуски умолчаниями; шаг — к ближайшему.
+static func normalize_apparatus(src: Dictionary) -> Dictionary:
+	var def := apparatus_defaults()
+	var d := {}
+	for k: String in APPARATUS_SPEC:
+		var sp: Array = APPARATUS_SPEC[k]
+		var v := _finite_or(float(src.get(k, def[k])), float(def[k]))
+		v = snappedf(clampf(v, float(sp[0]), float(sp[1])), float(sp[2]))
+		d[k] = clampf(v, float(sp[0]), float(sp[1]))
+	return d
 
 
 static func defaults() -> FlightSettings:
@@ -113,6 +147,7 @@ func to_dict() -> Dictionary:
 		"start_hour": start_hour,
 		"month": month,
 		"day": day,
+		"apparatus": apparatus.duplicate(),
 	}
 
 
@@ -134,6 +169,8 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	s.start_hour = float(d.get("start_hour", s.start_hour))
 	s.month = int(d.get("month", s.month))
 	s.day = int(d.get("day", s.day))
+	var ap: Variant = d.get("apparatus")
+	s.apparatus = normalize_apparatus(ap if ap is Dictionary else s.apparatus)
 	return s
 
 

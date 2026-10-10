@@ -157,6 +157,37 @@
     "alpha_range_deg": 9.0,
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °. WPC-4: нейтраль опущена (16,0 → 5,0°), упор «нос вниз» оставлен на прежнем угле -4,0° (геометрия: концы крыла над землёй, tests/flight/test_wing_clearance.gd) — ход 9,0°, упор «нос вверх» 14,0°"
   },
+  "pendulum": {
+    "contract": "PD-К2 v1",
+    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
+    "sweep_deg": 29.0,
+    "root_chord_m": 2.27,
+    "tip_chord_m": 0.89,
+    "washout_deg": 7.0,
+    "keel_len_m": 2.37,
+    "crossbar_from_nose_m": 1.21,
+    "hang_from_nose_m": 1.21,
+    "bar_x_from_nose_m": 0.4327,
+    "bar_z_m": -1.6055,
+    "cg_x_from_nose_m": 1.3206,
+    "cg_z_m": -0.0785,
+    "inertia_kgm2": {
+      "ixx": 115.353,
+      "iyy": 14.866,
+      "izz": 122.613,
+      "ixz": -2.321
+    },
+    "dcm0": 0.1142,
+    "cd_scale": 0.97911,
+    "ref": {
+      "trim_kmh": 38.7,
+      "sink_ms": 1.252,
+      "alpha_trim_deg": 5.36,
+      "neutral_point_from_nose_m": 1.7656,
+      "static_margin": 0.2611,
+      "kmh_per_cm_hang": 0.434
+    }
+  },
   "visual": {
     "_doc": "Внешний вид. Модель заменяемая: новый .glb + правка пути. root_chord_m, sweep_m, color — для заглушки",
     "visual_model": "res://assets/models/glider_condor_crex3.glb",
