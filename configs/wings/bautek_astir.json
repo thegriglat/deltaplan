@@ -162,6 +162,37 @@
     "alpha_range_deg": 20.0,
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °"
   },
+  "pendulum": {
+    "contract": "PD-К2 v1",
+    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
+    "sweep_deg": 25.0,
+    "root_chord_m": 2.32,
+    "tip_chord_m": 0.61,
+    "washout_deg": 11.0,
+    "keel_len_m": 2.42,
+    "crossbar_from_nose_m": 1.24,
+    "hang_from_nose_m": 1.153,
+    "bar_x_from_nose_m": 0.3784,
+    "bar_z_m": -1.6136,
+    "cg_x_from_nose_m": 1.3302,
+    "cg_z_m": -0.0549,
+    "inertia_kgm2": {
+      "ixx": 176.841,
+      "iyy": 16.632,
+      "izz": 185.767,
+      "ixz": -2.565
+    },
+    "dcm0": 0.19169,
+    "cd_scale": 0.97158,
+    "ref": {
+      "trim_kmh": 28.6,
+      "sink_ms": 0.751,
+      "alpha_trim_deg": 20.15,
+      "neutral_point_from_nose_m": 1.432,
+      "static_margin": 0.1574,
+      "kmh_per_cm_hang": 0.57
+    }
+  },
   "visual": {
     "_doc": "Внешний вид. Модель заменяемая: новый .glb + правка пути. root_chord_m, sweep_m, color — для заглушки",
     "visual_model": "res://assets/models/glider_bautek_astir.glb",
