@@ -273,7 +273,9 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 		return
 	if patches == null:
 		patches = WorldClearings.patches_for_location(location_id)
-	houses = VillagePlacer.plan(patches, location_id, cfg.villages, height_fn)
+	houses = VillagePlacer.plan(
+		patches, location_id, cfg.villages, height_fn, osm.buildings if osm != null else []
+	)
 	if houses.is_empty():
 		return
 	village_layer = VillageLayer.new()
