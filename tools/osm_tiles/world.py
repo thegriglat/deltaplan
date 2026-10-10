@@ -12,7 +12,7 @@
 --work продолжает с места остановки. Только stdlib.
 
 Раскладка в --work: regions.json, cover/, poly/ (OT-5); state.json, finalized.jsonl, log.jsonl; dl/ (выгрузки),
-frags/<регион>/<j>/<i>.dpt (фрагменты O4), tmp/, reports/<регион>.pack.json.
+frags/<j>/<i>/<регион>.frag (фрагменты O4), tmp/, reports/<регион>.pack.json.
 """
 import argparse
 import hashlib
@@ -570,8 +570,12 @@ class Ctx:
         rid, w = r["id"], self.w
         pbf = w.p("dl", rid + ".osm.pbf")
         fdir = w.p("frags")
-        for d in (os.path.join(fdir, rid), w.p("tmp", rid)):
-            shutil.rmtree(d, ignore_errors=True)       # перезапуск packing — с чистого листа
+        shutil.rmtree(w.p("tmp", rid), ignore_errors=True)       # перезапуск packing — с чистого листа
+        for (j, i) in self.cover.get(rid, []):
+            try:
+                os.remove(os.path.join(fdir, str(j), str(i), rid + ".frag"))
+            except OSError:
+                pass
         os.makedirs(fdir, exist_ok=True)
         os.makedirs(w.p("tmp", rid), exist_ok=True)
         stale = os.path.join(fdir, rid + ".pack.json")
@@ -652,12 +656,8 @@ class Ctx:
                     self.tiles_bytes += rec["bytes"]
                 f.flush()
                 os.fsync(f.fileno())
-            for (j, i), sel in batch:               # фрагменты склеенных тайлов больше не нужны
-                for x in sel:
-                    try:
-                        os.remove(os.path.join(w.p("frags"), x, str(j), "%d.dpt" % i))
-                    except OSError:
-                        pass
+            for (j, i), _sel in batch:              # фрагменты склеенных тайлов больше не нужны
+                shutil.rmtree(os.path.join(w.p("frags"), str(j), str(i)), ignore_errors=True)
             partial = sorted({x for (t, _s) in batch for x in self.S[t] if x not in self.by_id})
             w.event("finalized", tiles=len(batch), seconds=round(time.time() - t0, 2),
                     **({"partial_outside": partial} if partial else {}))
@@ -665,7 +665,6 @@ class Ctx:
 
     def maybe_done(self, rid):
         if all(t in self.finalized for t in self.cover.get(rid, [])):
-            shutil.rmtree(self.w.p("frags", rid), ignore_errors=True)
             self.w.set(rid, status="done")
             self.w.event("done", region=rid)
 

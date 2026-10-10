@@ -2,7 +2,7 @@
 """Заглушка `osmtiles` (CLI O5) для тестов оркестратора world.py, пока нет настоящих pack/finalize (OT-2).
 
 Вход pack — любой файл; тайлы региона берутся из файла --poly (строки `j i`, как вывод `cover`). Содержимое тайла —
-детерминированная функция (регион, j, i, байты входа). Фрагменты — frags/<регион>/<j>/<i>.dpt (JSON). Склейка берёт
+детерминированная функция (регион, j, i, байты входа). Фрагменты — frags/<j>/<i>/<регион>.frag (JSON). Склейка берёт
 фрагмент с самым длинным payload, при равенстве — из региона с меньшим id (как O4).
 Переменные окружения для сбоев: STUB_PACK_SLEEP=<с> (пауза до записи), STUB_DIE_ONCE=<файл> (первый pack падает
 после половины тайлов и создаёт файл).
@@ -44,7 +44,7 @@ def cmd_pack(a):
             os._exit(7)
         h = hashlib.sha256(("%s/%d/%d/" % (a.region, j, i)).encode() + data).hexdigest()
         payload = h * (1 + int(h[:2], 16) % 4)
-        atomic(os.path.join(a.frag_dir, a.region, str(j), "%d.dpt" % i),
+        atomic(os.path.join(a.frag_dir, str(j), str(i), a.region + ".frag"),
                json.dumps({"region": a.region, "j": j, "i": i, "payload": payload}).encode())
     rep = {"region": a.region, "input": a.input, "input_bytes": len(data), "osm_timestamp": 1760000000,
            "tiles": [[j, i, 1] for j, i in tiles], "seconds_total": 0.0, "peak_rss_mb": 1.0}
@@ -60,7 +60,7 @@ def cmd_finalize(a):
         j, i, regs = int(p[0]), int(p[1]), p[2:]
         frs = []
         for r in sorted(regs):
-            fp = os.path.join(a.frag_dir, r, str(j), "%d.dpt" % i)
+            fp = os.path.join(a.frag_dir, str(j), str(i), r + ".frag")
             if os.path.exists(fp):
                 frs.append(json.load(open(fp)))
         out = os.path.join(a.out, "v1", str(j), "%d.dpt" % i)
