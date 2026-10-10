@@ -2,10 +2,10 @@
 type: "contract"
 status: "active"
 module: "popular-places"
-updated: "2026-10-05"
+updated: "2026-10-10"
 summary: "Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2)."
 related: ["docs/plan/popular-places.md"]
-contracts: [{"id": "PP-К1", "version": 1}, {"id": "PP-К2", "version": 1}]
+contracts: [{"id": "PP-К1", "version": 2}, {"id": "PP-К2", "version": 1}]
 ---
 # Контракты модуля popular-places
 
@@ -13,7 +13,7 @@ contracts: [{"id": "PP-К1", "version": 1}, {"id": "PP-К2", "version": 1}]
 потребителей). Контрактный тест — `tests/contracts/test_popular_places_contracts.gd` (без сети и GPU; фильтр
 `popular_places`).
 
-## PP-К1. Файл каталога стартов (v1)
+## PP-К1. Файл каталога стартов (v2)
 Владелец: PP-2 (настоящий файл), PP-1 (тестовый). Потребители: `PopularPlaces` (PP-К2), контрактный тест.
 - Настоящий каталог — `res://data/places/hg_takeoffs.json` (путь — `configs/ui.json` → `popular_places_path`).
   Файла нет — каталог пуст, кнопка «Популярные места» скрыта. Тестовый — `res://tests/ui/fixtures/hg_takeoffs_test.json`
@@ -21,7 +21,7 @@ contracts: [{"id": "PP-К1", "version": 1}, {"id": "PP-К2", "version": 1}]
 - UTF-8 JSON, объект:
   `{"format": "deltaplan.hg_takeoffs", "version": 1, "source": String (откуда и лицензия, напр. «© OpenStreetMap contributors, ODbL 1.0»), "fetch_date_utc": String (дата выгрузки OSM), "countries": {<код>: {"en": String, "ru": String}}, "takeoffs": [<старт>…]}`.
 - Старт: `{"id": String, "name": String, "lat": float, "lon": float, "country": String, "ele": float|null, "orientation": [String…]}`:
-  - `id` — `^(node|way|relation)/\d+$` (объект OSM), уникален;
+  - `id` — `^(node|way|relation)/\d+$` (объект OSM) или `builtin/<место>/<старт>` (встроенное место игры), уникален;
   - `name` — как в OSM (`name`), может быть пустым `""` (тогда в окне — запасная подпись с координатами);
   - `lat` ∈ [−90, 90], `lon` ∈ [−180, 180] — градусы WGS84, точка старта;
   - `country` — ISO 3166-1 alpha-2 заглавными (`^[A-Z]{2}$`), ключ есть в `countries`; `""` — страна неизвестна
@@ -31,6 +31,10 @@ contracts: [{"id": "PP-К1", "version": 1}, {"id": "PP-К2", "version": 1}]
     `N NNE NE ENE E ESE SE SSE S SSW SW WSW W WNW NW NNW` (заглавные, без повторов, порядок как в OSM);
     `[]` — нет данных. Разбор сырых `free_flying:site_orientation`/`direction` (`"N;NE"`, `"SW-W"`, градусы) — в
     конвертере PP-2, нераспознанное отбрасывается.
+- Встроенное место (v2, 10.10.2026; `tools/places/add_builtin_places.py` берёт старты из `configs/locations/*.json`) —
+  старт с тремя доп. полями: `location` (id встроенного места), `site` (id его старта), `heading_deg` (направление
+  разбега, как в конфиге места); `orientation` — один румб, ближайший к `heading_deg`. Выбор такого места в меню
+  ставит `settings.location_id/site_id` и снимает точку (`pick_*`) — грузится встроенное место с точным стартом.
 - `countries[код]` — названия страны: `en` и `ru` непустые (из OSM `name:en`/`name:ru` границ admin_level=2);
   в `countries` нет кодов, которых нет у стартов.
 - Инварианты: `takeoffs` непустой; файл детерминирован (один вход → те же байты); порядок стартов в файле не важен (сортирует `PopularPlaces`).
@@ -71,4 +75,5 @@ contracts: [{"id": "PP-К1", "version": 1}, {"id": "PP-К2", "version": 1}]
 - Тексты — ключи `locale/ui.csv` (ru, en), простым языком; подсказок о безопасности нет.
 
 ## История
+- v2 (10.10.2026) — старты встроенных мест (Алтай, Онгудай, Аскарово, Аушкуль) в каталоге: id `builtin/…`, поля `location`, `site`, `heading_deg`; отдельный список «Старт» на экране убран.
 - v1 (05.10.2026) — заведены до первого исполнителя.

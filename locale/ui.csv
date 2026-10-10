@@ -58,7 +58,6 @@ about_intro,Симулятор дельтаплана. Проект с откр�
 about_thanks_dhv,"Спасибо DHV (Deutscher Hängegleiterverband, www.dhv.de) за открытые данные паспортов и типовых испытаний крыльев: паспорта, геометрия и характеристики.","Thanks to the DHV (Deutscher Hängegleiterverband, www.dhv.de) for the open data on wing datasheets and type tests: datasheets, geometry and characteristics."
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
 common_save,Сохранить,Save
-setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
@@ -400,7 +399,6 @@ net_friends_zone,"%s — %s, зона %s","%s — %s, zone %s"
 net_invite_friends,Пригласить друзей,Invite friends
 net_steam_friend,другу в Steam,a Steam friend
 net_create_title,Новая зона,New zone
-net_place,Место,Place
 net_create,Создать,Create
 net_join_title,Войти по коду,Join by code
 net_code,Код,Code
@@ -472,3 +470,27 @@ loading_counter_surface,Покров: %d/%d,Land cover: %d/%d
 loading_counter_osm,OSM: %d/%d,OSM: %d/%d
 loading_counter_osm_skipped,OSM: пропущено,OSM: skipped
 loading_counter_total,Всего: %d/%d,Total: %d/%d
+unit_hz,Гц,Hz
+settings_motion_title,Платформа подвижности,Motion platform
+settings_tab_game,Игра,Game
+settings_tab_graphics,Графика и вид,Graphics and view
+settings_tab_controls,Управление,Controls
+settings_tab_sound,Звук,Sound
+settings_tab_motion,Платформа,Motion platform
+settings_motion_on,Вывод движения,Motion output
+settings_motion_on_hint,Слать движение пилота на платформу по UDP (в полёте),Send pilot motion to a platform over UDP (in flight)
+settings_motion_addr,Адрес (хост:порт),Address (host:port)
+settings_motion_rate,Частота,Rate
+settings_motion_format,Формат,Format
+settings_motion_format_srs,SRS (DOF Reality),SRS (DOF Reality)
+settings_motion_format_generic,Generic,Generic
+settings_motion_signs,Инвертировать знак величины,Invert sign of
+settings_motion_sign_surge,Продольная,Surge
+settings_motion_sign_sway,Боковая,Sway
+settings_motion_sign_heave,Вертикальная,Heave
+settings_motion_sign_roll,Крен,Roll
+settings_motion_sign_pitch,Тангаж,Pitch
+settings_motion_sign_yaw,Курс,Yaw
+settings_motion_sign_roll_rate,Скор. крена,Roll rate
+settings_motion_sign_pitch_rate,Скор. тангажа,Pitch rate
+settings_motion_sign_yaw_rate,Скор. курса,Yaw rate

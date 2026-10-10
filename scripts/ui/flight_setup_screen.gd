@@ -41,7 +41,11 @@ const COMPASS: PackedStringArray = [
 ## Класс → модель (docs/archive/plan/wings-lineup.md §6): модель, выбранная последней в группе за сеанс.
 static var _last_in_group: Dictionary = {}
 
-var settings: FlightSettings
+var settings: FlightSettings:
+	set(v):
+		settings = v
+		if _row != null:
+			_row.settings = v
 ## Путь к списку недавних мест (RecentPlaces) — переопределяется в тестах/скриншотах.
 var recent_places_path: String = RecentPlaces.PATH
 ## Каталог «Популярные места» (PP-К1); файла нет — кнопка скрыта. Тесты подставляют путь до _ready.
@@ -54,7 +58,6 @@ var _wings: PackedStringArray = []  ## модели выбранного кла�
 var _class_opt: OptionButton
 var _wing_info: Label
 var _skies: Array = []
-var _sites: Array[Dictionary] = []
 var _wing_opt: OptionButton
 var _mass: HSlider
 var _temp: HSlider
@@ -63,25 +66,37 @@ var _wind: HSlider
 var _dir_opt: OptionButton
 var _dir_hint: Label
 var _sky_opt: OptionButton
-var _site_opt: OptionButton
 var _hour: OptionButton
 var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпадает с пунктами _hour
 var _month_opt: OptionButton
 var _day: SpinBox
-var _pick_label: Label
 var _done_btn: Button
 var _fav_btn: Button
-var _map_layer: Control
-var _map: MapPicker
-var _pick_elev_m: float = NAN
-var _elev_asked := Vector2(NAN, NAN)
-var _elev_loader: TerrariumLoader
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
-var _places_catalog: Dictionary = {}
-var _places_btn: Button
-var _places_window: PopularPlacesWindow
-var _picked_place_name := ""  ## название места из «Популярных мест» — идёт в «Недавние» вместо геокодера
+var _row: PlacePickRow  ## выбор места: карта, «Популярные места», подпись (общий с экраном сети)
+# доступ для тестов и «Недавних»
+var _pick_label: Label:
+	get:
+		return _row.pick_label
+var _pick_elev_m: float:
+	get:
+		return _row.pick_elev_m
+var _places_catalog: Dictionary:
+	get:
+		return _row.catalog
+var _places_btn: Button:
+	get:
+		return _row.places_btn
+var _places_window: PopularPlacesWindow:
+	get:
+		return _row.places_window
+var _picked_place_name: String:
+	get:
+		return _row.picked_place_name if _row != null else ""
+	set(v):
+		if _row != null:
+			_row.picked_place_name = v
 var _recent_edit_id: int = -1  ## запись, для которой сейчас открыт LineEdit переименования
 
 
@@ -122,19 +137,11 @@ func _build() -> void:
 	_build_time(box)
 
 	UiKit.separator(box)
-	_site_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_launch"), _site_opt)
-	_site_opt.item_selected.connect(func(_i: int) -> void: _clear_pick())
-	_site_opt.item_selected.connect(func(_i: int) -> void: _update_dir_hint())
-	var pick_row := HBoxContainer.new()
-	pick_row.add_theme_constant_override("separation", 12)
-	box.add_child(pick_row)
-	UiKit.button(pick_row, tr("setup_pick_on_map"), _open_map)
-	_places_btn = UiKit.button(pick_row, tr("setup_popular_places"), _open_places)
-	_places_btn.visible = _load_places()
-	_pick_label = UiKit.label(pick_row, "", "HintLabel")
-	_pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_row = PlacePickRow.new()
+	_row.settings = settings
+	box.add_child(_row)
+	_row.build(self, popular_places_path)
+	_row.changed.connect(_update_dir_hint)
 	_build_recent(box)
 
 	UiKit.separator(sp["footer"])
@@ -159,8 +166,7 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
-	_fill_sites()
-	_update_pick_label()
+	_row.refresh()
 	_fill_recent()
 
 
@@ -345,46 +351,16 @@ func _build_forecast(box: Control) -> void:
 	UiKit.row(box, tr("setup_sky"), _sky_opt)
 
 
-## Подсказка «встречный для этого старта — З» для выбранной площадки (точка с карты — без неё).
+## Подсказка «встречный для этого старта — З» для выбранного места из встроенных (точка с карты — без неё).
 func _update_dir_hint() -> void:
 	if _dir_hint == null:
 		return
 	_dir_hint.text = ""
-	if settings.has_pick() or _site_opt.selected < 0:
+	var st := _row.builtin_site()
+	if st.is_empty():
 		return
-	var k: Variant = _site_opt.get_item_metadata(_site_opt.selected)
-	if k == null:
-		return
-	var e: Dictionary = _sites[int(k)]
-	var loc: Dictionary = Locations.config(String(e.location))
-	for st: Dictionary in loc.get("start_sites", []):
-		if String(st.get("id", "")) == String(e.site):
-			var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
-			_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
-
-
-## Все старты всех локаций (Config.list_configs("locations")), сгруппированы по локациям.
-func _fill_sites() -> void:
-	_site_opt.clear()
-	_sites.clear()
-	for loc_name in Config.list_configs("locations"):
-		var loc: Dictionary = Config.get_config(loc_name)
-		var starts: Array = loc.get("start_sites", [])
-		if starts.is_empty():
-			continue
-		_site_opt.add_separator(tr(String(loc.get("name", loc_name.get_file()))))
-		for st: Dictionary in starts:
-			_sites.append({"location": loc_name.get_file(), "site": String(st.get("id", ""))})
-			_site_opt.add_item("   " + tr(String(st.get("name", st.get("id")))))
-			_site_opt.set_item_metadata(_site_opt.item_count - 1, _sites.size() - 1)
-	for i in _site_opt.item_count:
-		var k: Variant = _site_opt.get_item_metadata(i)
-		if k == null:
-			continue
-		var e: Dictionary = _sites[int(k)]
-		if e.location == settings.location_id and e.site == settings.site_id:
-			_site_opt.select(i)
-	_update_dir_hint()
+	var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
+	_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
 
 
 func _collect() -> FlightSettings:
@@ -400,12 +376,6 @@ func _collect() -> FlightSettings:
 	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
-	var k: Variant = null
-	if _site_opt.selected >= 0:
-		k = _site_opt.get_item_metadata(_site_opt.selected)
-	if k != null:
-		s.location_id = String(_sites[int(k)].location)
-		s.site_id = String(_sites[int(k)].site)
 	return s
 
 
@@ -420,102 +390,6 @@ func _on_done() -> void:
 	if settings.has_pick():
 		RecentPlaces.add(settings.pick_lat, settings.pick_lon, _picked_place_name, recent_places_path)
 	done.emit(settings)
-
-
-# ---------------------------------------------------------------- карта
-
-
-func _open_map() -> void:
-	if _map_layer == null:
-		_build_map()
-	settings = _collect()
-	var loc: Dictionary = Locations.config(settings.location_id)
-	if settings.has_pick():
-		_map.center_on(settings.pick_lat, settings.pick_lon)
-	else:
-		_map.center_on(float(loc.get("center_lat", 51.87)), float(loc.get("center_lon", 85.87)))
-	_map_layer.visible = true
-
-
-func _build_map() -> void:
-	_map_layer = PanelContainer.new()
-	_map_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_map_layer.offset_left = 40
-	_map_layer.offset_top = 40
-	_map_layer.offset_right = -40
-	_map_layer.offset_bottom = -40
-	add_child(_map_layer)
-	var v := VBoxContainer.new()
-	_map_layer.add_child(v)
-	UiKit.label(
-		v,
-		tr(
-			"map_hint"
-		),
-		"HintLabel"
-	)
-	_map = MapPicker.new()
-	_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(_map)
-	var bar := UiKit.button_bar(v)
-	var ok := UiKit.button(bar, tr("map_pick_this_point"), _on_map_ok)
-	ok.disabled = true
-	_map.point_picked.connect(func(_la: float, _lo: float) -> void: ok.disabled = false)
-	_map.elevation_ready.connect(_on_map_elevation)
-	UiKit.button(bar, tr("common_cancel"), func() -> void: _map_layer.visible = false)
-
-
-func _on_map_ok() -> void:
-	if is_nan(_map.picked.x):
-		return
-	settings = _collect()
-	settings.pick_lat = _map.picked.x
-	settings.pick_lon = _map.picked.y
-	_picked_place_name = ""
-	_pick_elev_m = _map.picked_elevation_m
-	_map_layer.visible = false
-	_update_pick_label()
-
-
-## Высота пришла после «Выбрать эту точку» — обновить подпись, если точка та же.
-func _on_map_elevation(lat: float, lon: float, h_m: float) -> void:
-	if settings.has_pick() and is_equal_approx(settings.pick_lat, lat) and is_equal_approx(settings.pick_lon, lon):
-		_pick_elev_m = h_m
-		_update_pick_label()
-
-
-func _clear_pick() -> void:
-	_picked_place_name = ""
-	settings.pick_lat = NAN
-	settings.pick_lon = NAN
-	_pick_elev_m = NAN
-	_update_pick_label()
-
-
-## Высота точки из recent/сохранённых настроек: запрос по Terrarium (сеть/кеш), устаревший ответ отбрасывается.
-func _lookup_pick_elevation() -> void:
-	var ll := Vector2(settings.pick_lat, settings.pick_lon)
-	_elev_asked = ll
-	if _elev_loader == null:
-		_elev_loader = TerrariumLoader.new()
-		add_child(_elev_loader)
-	var h: float = await _elev_loader.elevation_at(ll.x, ll.y)
-	if _elev_asked == ll and settings.has_pick() and Vector2(settings.pick_lat, settings.pick_lon) == ll:
-		_pick_elev_m = h
-		_update_pick_label()
-
-
-func _update_pick_label() -> void:
-	_update_dir_hint()
-	if settings.has_pick() and is_nan(_pick_elev_m) and _elev_asked != Vector2(settings.pick_lat, settings.pick_lon):
-		_lookup_pick_elevation()
-	if settings.has_pick():
-		_pick_label.text = (
-			tr("setup_map_point")
-			% [settings.pick_lat, settings.pick_lon, MapPicker.elevation_text(_pick_elev_m)]
-		)
-	else:
-		_pick_label.text = ""
 
 
 # ------------------------------------------------------------ недавние места
@@ -573,11 +447,7 @@ func _build_recent_row(p: Dictionary) -> Control:
 
 
 func _select_recent(p: Dictionary) -> void:
-	_picked_place_name = ""
-	_pick_elev_m = NAN
-	settings.pick_lat = float(p.get("lat", 0.0))
-	settings.pick_lon = float(p.get("lon", 0.0))
-	_update_pick_label()
+	_row.set_pick(float(p.get("lat", 0.0)), float(p.get("lon", 0.0)))
 
 
 func _on_recent_rename_start(id: int) -> void:
@@ -600,32 +470,6 @@ func _on_recent_remove(id: int) -> void:
 	_fill_recent()
 
 
-# ------------------------------------------------------- популярные места
-
-
-## Каталог из popular_places_path (пусто — путь из configs/ui.json); true, если в нём есть места.
-func _load_places() -> bool:
-	var path := popular_places_path
-	if path == "":
-		path = String(Config.get_config("ui").get("popular_places_path", ""))
-	_places_catalog = (
-		PopularPlaces.load_catalog(path) if FileAccess.file_exists(path) else {"takeoffs": []}
-	)
-	return not (_places_catalog.get("takeoffs", []) as Array).is_empty()
-
-
-func _open_places() -> void:
-	if _places_window == null:
-		_places_window = PopularPlacesWindow.new()
-		_places_window.place_chosen.connect(_on_place_chosen)
-		add_child(_places_window)
-	_places_window.open(_places_catalog)
-
-
-## Выбор места — та же точка старта, что с карты и из «Недавних мест»; высоту подтянет подпись.
+## Выбор места каталога «Популярные места» (тесты и окно).
 func _on_place_chosen(p: Dictionary) -> void:
-	_pick_elev_m = NAN
-	settings.pick_lat = float(p.get("lat", 0.0))
-	settings.pick_lon = float(p.get("lon", 0.0))
-	_picked_place_name = String(p.get("name", ""))
-	_update_pick_label()
+	_row.choose_place(p)
