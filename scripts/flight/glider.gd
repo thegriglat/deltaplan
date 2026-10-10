@@ -222,7 +222,10 @@ func _build_visual() -> void:
 func _update_pilot(dt: float) -> void:
 	if visual != null:
 		var flying: bool = model.mode == FlightModel.Mode.AIR
-		visual.set_pose(control.roll, control.pitch, flying, dt)
+		if is_pendulum():
+			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
+		else:
+			visual.set_pose(control.roll, control.pitch, flying, dt)
 		# парус: болтанка — средний разброс перегрузки относительно configs/sail.json
 		var full_g := float(Config.value("sail", "turbulence_full_g"))
 		var turb: float = model.load.jitter / full_g
