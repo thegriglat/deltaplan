@@ -47,3 +47,7 @@
 {"t": "2026-10-11T01:38:03", "by": "coordinator", "task": "PD-10", "ev": "accepted", "commits": ["f495335a"], "note": "1/1 pendulum=ok:34/34"}
 {"t": "2026-10-11T01:38:04", "by": "coordinator", "task": "PD-10", "ev": "merged", "commits": ["f495335a"]}
 {"t": "2026-10-11T01:38:12", "by": "coordinator", "task": "PD-11", "ev": "started", "note": "dp-mechanic, ~/deltaplan-pendulum-PD-11"}
+{"t": "2026-10-11T01:42:17", "by": "main", "task": null, "ev": "note", "note": "dp: report PD-11 отклонён «status=done без commits» — у задачи сборки коммитов по заданию нет; нужна возможность отчёта с status=done без commits (или поле для артефактов сборки)"}
+{"t": "2026-10-11T01:42:31", "by": "coordinator", "task": "PD-11", "ev": "accepted", "note": "4/4 linux_exe=ok:ok; windows_exe=ok:ok; mode_pendulum=ok:pendulum\", \"roll_control_mode…; smoke_linux=ok:smoke ok"}
+{"t": "2026-10-11T01:42:31", "by": "coordinator", "task": "PD-11", "ev": "note", "note": "отчёт исполнителя не принят dp (status=done без commits — задача-сборка без коммитов); итог: build/pendulum_test/{linux 134 МБ, windows 160 МБ}, controls.json → pendulum, smoke Linux exit 0 (утечки ObjectDB при выходе — предупреждение)"}
+{"t": "2026-10-11T01:42:31", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp report не принимает status=done без commits — у задач-сборок/прогонов коммитов нет; нужен тип задачи без коммитов (dp-mechanic) или поле no_commits в карточке"}
