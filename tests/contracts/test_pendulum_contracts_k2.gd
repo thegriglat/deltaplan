@@ -65,7 +65,7 @@ func test_doc_heading() -> void:
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v2", "contract")
+	check(c.get("contract") == "PD-К2 v3", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.6, "shift_y_max_m": 0.45,

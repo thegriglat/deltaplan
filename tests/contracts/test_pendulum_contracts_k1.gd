@@ -20,7 +20,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К1\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 2, "заголовок «## PD-К1. … (v2)»")
+	check(m != null and int(m.get_string(1)) == 3, "заголовок «## PD-К1. … (v3)»")
 
 
 func test_surface_members() -> void:
@@ -132,3 +132,18 @@ func test_set_kinematic() -> void:
 	approx(m.theta, 0.05, 1.0e-4, "тангаж задан")
 	check(m.position.distance_to(Vector3(0.0, 500.0, 0.0)) < 1.0e-3, "position задан")
 	check(m.pilot_position.y < m.hang_position.y - 1.0, "пилот под подвеской")
+
+
+## v3: пропуски apparatus в setup — сначала умолчания крыла (wing.pendulum.apparatus_defaults),
+## потом общие (configs/pendulum.json → apparatus_defaults); заданное пилотом — главнее.
+func test_apparatus_defaults_v3() -> void:
+	var wing: Dictionary = Config.get_config("wings/training")
+	var wd: Dictionary = wing.pendulum.apparatus_defaults
+	var gd: Dictionary = Config.get_config("pendulum").apparatus_defaults
+	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
+	var m := PendulumModel.new()
+	m.setup(wing, pilot, {}, {"sail_flex": 0.5})
+	check(float(m.apparatus.dihedral_eff_deg) == float(wd.dihedral_eff_deg), "V — из крыла")
+	check(float(m.apparatus.sail_flex) == 0.5, "заданное пилотом — главнее")
+	check(float(m.apparatus.hang_length_m) == float(gd.hang_length_m), "чего нет у крыла — общее")
+	check(float(m.apparatus.hang_shift_cm) == float(gd.hang_shift_cm), "сдвиг подвески — общее")

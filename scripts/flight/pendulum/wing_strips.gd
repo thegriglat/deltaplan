@@ -6,10 +6,8 @@ extends RefCounted
 ## Оси — связанные B (авиационные): x — вперёд по килю, y — вправо, z — вниз; начало — ЦМ крыла.
 ## У каждой полосы местная скорость v + ω×r − ветер; подъёмная сила ⊥ нормальной к кромке
 ## скорости, сопротивление — поляра игры CD(CL) за вычетом доли пилота, × cd_scale крыла.
-## Сваливание полосы — линейно до cl_max поляры, дальше пластина CN = 2 (смешивание за 4°);
-## по выбору (stall_cp_shift) центр давления сорванной части уходит назад по хорде, как у пластины:
-## x/c = 0,25 + 0,25·sin α (≈ 0,38 при 30°, 0,5 при 90° — Fage & Johansen 1927, ARC R&M 1104;
-## PD-14), у обтекаемой — cp_chord.
+## Сваливание полосы — линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); cl_max полос
+## подобран так, что C_L max всего крыла = поляры (скорость сваливания паспорта, PD-14).
 ## Гибкий парус: антисимметричная часть нагрузки консолей × flex_relief. Флюгерная
 ## устойчивость — «эквивалентный киль» (Cnβ) позади ЦМ. Момент паруса — dcm0 (Cm0).
 ##
@@ -32,13 +30,10 @@ var sxc_b := PackedVector3Array()  ## s × c (для направления по
 var sxn_b := PackedVector3Array()  ## s × n
 var twist := PackedFloat64Array()  ## геометрическая крутка, рад
 var sc := PackedFloat64Array()  ## площадь полосы (хорда × ширина), м²
-var chord := PackedFloat64Array()  ## хорда полосы, м
 var yabs := PackedFloat64Array()  ## |y| / полуразмаха
 var side := PackedFloat64Array()  ## +1 правая, −1 левая
 
 var cos_sweep: float = 1.0
-var cp_chord: float = 0.25  ## точка приложения сил обтекаемой полосы, доля хорды
-var stall_cp_shift := false  ## центр давления сорванной части — назад (pendulum.json → stall_cp_shift)
 var lift_slope: float = 0.0
 var alpha0_root: float = 0.0  ## α нулевой подъёмной силы киля + средняя крутка
 var cl_max: float = 1.0  ## C_L max полосы (поляра или подобранный под неё — match_polar_cl_max)
@@ -67,20 +62,12 @@ var moment_b := Vector3.ZERO
 var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
 
-## Динамический срыв: шаг с прошлого вызова aero, с (0 — статика: балансировка), T₁, T₂ в c/V.
-var dyn_dt: float = 0.0
-var dyn_t1: float = 1.5
-var dyn_t2: float = 0.85
-var dyn_on := false
-var _sep := PackedFloat64Array()
-var _r_prev := PackedFloat64Array()
-
 # рабочие массивы
-var _a_st: float = 1.0  ## α (от нулевой подъёмной) на cl_max
 var _inv_blend: float = 1.0
-## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до cl_max.
+## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до C_L max поляры.
 var _cd_tab := PackedFloat64Array()
 var _cd_lo: float = -2.0
+var _cd_hi: float = 1.0  ## верх таблицы — C_L max поляры (выше — сопротивление как на нём, как прототип)
 var _cd_inv: float = 1.0
 
 
@@ -104,7 +91,6 @@ func setup(
 	var t := tan(sweep)
 	var washout := deg_to_rad(float(blk.washout_deg))
 	var cp := float(st.cp_chord)
-	cp_chord = cp
 	cos_sweep = cos(sweep)
 	var sl := sin(sweep)
 	var sg := sin(dihedral)
@@ -117,7 +103,6 @@ func setup(
 	sxn_b.resize(n)
 	twist.resize(n)
 	sc.resize(n)
-	chord.resize(n)
 	yabs.resize(n)
 	side.resize(n)
 	var i := 0
@@ -141,7 +126,6 @@ func setup(
 			sxn_b[i] = s_vec.cross(n_vec)
 			twist[i] = -washout * y / half
 			sc[i] = c * half / n_side
-			chord[i] = c
 			yabs[i] = y / half
 			side[i] = s
 			i += 1
@@ -165,21 +149,14 @@ func setup(
 	fin_area = float(yaw.cn_beta) * area * span / (fin_slope * fin_arm)
 	r_fin_b = Vector3(-fin_arm, 0.0, 0.0)
 	blend.resize(n)
-	_a_st = cl_max / lift_slope
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
-	stall_cp_shift = bool(pend.get("stall_cp_shift", false))
-	var ds: Dictionary = pend.get("dynamic_stall", {})
-	dyn_on = bool(ds.get("enabled", false))
-	dyn_t1 = float(ds.get("t_sep_c_per_v", 1.5))
-	dyn_t2 = float(ds.get("t_alpha_c_per_v", 0.85))
-	reset_dynamic()
 	var ge: Dictionary = pend.get("ground_effect", {})
 	var e := float(ge.get("span_efficiency", 0.9))
 	ind_k = 1.0 / (PI * e * span * span / area)
 	a0_2d = lift_slope / maxf(1.0 - lift_slope * ind_k, 0.2)
 	build_cd_table()
 	cl_max_wing = wing_cl_max()
-	if bool(pend.get("strip_cl_max_match_polar", false)):
+	if bool(pend.get("strip_cl_max_match_polar", true)):
 		match_polar_cl_max()
 
 
@@ -192,7 +169,7 @@ func wing_cl_max() -> float:
 	var cl_at := func(a: float) -> float:
 		aero(Vector3(1.0, 0.0, 0.0), Basis(Vector3(0, 1, 0), a), Vector3.ZERO, zero, Vector3.ZERO,
 			0.0, 1.0)
-		return -force_b.z / (0.5 * area)
+		return -force.z / (0.5 * area)  # ⊥ потоку (поток вдоль x мира)
 	for ad in range(5, 46):
 		var c: float = cl_at.call(deg_to_rad(ad))
 		if c > best:
@@ -206,7 +183,7 @@ func wing_cl_max() -> float:
 
 ## C_L max полос — так, чтобы C_L max всего крыла был у поляры (скорость сваливания паспорта):
 ## у полос со стреловидностью и круткой корень срывается раньше, чем крыло набирает C_L max
-## поляры. Бисекция по cl_max полос; сопротивление по таблице поляры до нового cl_max.
+## поляры. Бисекция по cl_max полос; сопротивление выше C_L max поляры — как на нём.
 func match_polar_cl_max() -> void:
 	var target := polar.cl_max
 	var lo := target
@@ -224,8 +201,6 @@ func match_polar_cl_max() -> void:
 
 func _set_strip_cl_max(c: float) -> void:
 	cl_max = c
-	_a_st = cl_max / lift_slope
-	build_cd_table()
 
 
 ## Экранный эффект Wieselsberger: σ по высоте над землёй h и размаху b (h ≤ 0 — как h/b = 0,033,
@@ -239,7 +214,8 @@ static func ground_sigma(h: float, b: float) -> float:
 func build_cd_table() -> void:
 	var nt := 512
 	_cd_tab.resize(nt + 1)
-	_cd_inv = nt / (cl_max - _cd_lo)
+	_cd_hi = polar.cl_max
+	_cd_inv = nt / (_cd_hi - _cd_lo)
 	for j in nt + 1:
 		var cl := _cd_lo + j / _cd_inv
 		_cd_tab[j] = cd_scale * (polar.cd_at(cl) - cd_pilot_share)
@@ -298,8 +274,8 @@ func aero(
 			gk = ge[k]
 			sli = a0_2d / (1.0 + (1.0 - gi) * a0_2d * ind_k)
 			slk = a0_2d / (1.0 + (1.0 - gk) * a0_2d * ind_k)
-		var oi := _strip_cl(i, ri, sli, sqrt(uci * uci + uzi * uzi))
-		var ok := _strip_cl(k, rk, slk, sqrt(uck * uck + uzk * uzk))
+		var oi := _strip_cl(i, ri, sli)
+		var ok := _strip_cl(k, rk, slk)
 		var cli := oi.x
 		var clk := ok.x
 		var cdxi := oi.y
@@ -319,8 +295,8 @@ func aero(
 			cli = (mm + dd) / maxf(qi, 1.0e-6)
 			clk = (mm - dd) / maxf(qk, 1.0e-6)
 		# сопротивление: поляра (таблица по CL) + пластина при срыве
-		var xi := (clampf(cli, _cd_lo, cl_max) - _cd_lo) * _cd_inv
-		var xk := (clampf(clk, _cd_lo, cl_max) - _cd_lo) * _cd_inv
+		var xi := (clampf(cli, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
+		var xk := (clampf(clk, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
 		var ii := mini(int(xi), nt2)
 		var ik := mini(int(xk), nt2)
 		var c0i := _cd_tab[ii]
@@ -341,11 +317,6 @@ func aero(
 		var fi: Vector3 = (ldi * (cli / maxf(sqrt(q2i), 1.0e-9)) - ui * (cdi / maxf(ui.length(), 1.0e-9))) * (qi * sc[i])
 		var fk: Vector3 = (ldk * (clk / maxf(sqrt(q2k), 1.0e-9)) - uk * (cdk / maxf(uk.length(), 1.0e-9))) * (qk * sc[k])
 		f_sum += fi + fk
-		if bi > 0.0 and stall_cp_shift:
-			# центр давления сорванной части — назад по хорде (пластина)
-			rbi -= cbi * (bi * chord[i] * (0.25 * absf(sin(ri)) + 0.25 - cp_chord))
-		if bk > 0.0 and stall_cp_shift:
-			rbk -= cbk * (bk * chord[k] * (0.25 * absf(sin(rk)) + 0.25 - cp_chord))
 		m_sum += rbi.cross(fi) + rbk.cross(fk)
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c
@@ -367,44 +338,17 @@ func aero(
 
 
 ## CL полосы j: линейно до cl_max, дальше пластина CN = 2 (смешивание за BLEND_DEG); r — угол
-## атаки от нулевой подъёмной, sl — наклон, un — скорость потока на полосу. Динамический срыв
-## (dyn_dt > 0): степень срыва b отстаёт от статической — τ₁·ḃ = b_ст(r − τ₂·ṙ) − b,
-## τ = T·c/V (Goman & Khrabrov 1994; T₁, T₂ — Leishman & Beddoes); пока срыв запаздывает,
-## обтекаемая часть несёт подъёмную силу по прямой выше cl_max. → (CL, CD пластины, b).
-func _strip_cl(j: int, r: float, sl: float, un: float) -> Vector3:
+## атаки от нулевой подъёмной, sl — наклон (у земли больше). → (CL, CD пластины, доля срыва).
+func _strip_cl(j: int, r: float, sl: float) -> Vector3:
 	var ast := cl_max / sl
-	var b0 := clampf((r - ast) * _inv_blend, 0.0, 1.0)
-	var b := b0
-	var att := -cl_max if r < -ast else minf(sl * r, cl_max)
-	if dyn_dt > 0.0:
-		var rp := _r_prev[j]
-		var rdot := 0.0 if is_nan(rp) else (r - rp) / dyn_dt
-		_r_prev[j] = r
-		var cv := chord[j] / maxf(un, 1.0)
-		var bt := clampf((r - dyn_t2 * cv * rdot - ast) * _inv_blend, 0.0, 1.0)
-		var bs := _sep[j]
-		if is_nan(bs):
-			bs = b0
-		bs = bt + (bs - bt) * exp(-dyn_dt / (dyn_t1 * cv))
-		_sep[j] = bs
-		b = bs
-		if r > ast and b < b0:
-			att = cl_max + sl * (r - ast) * (b0 - b) / b0
+	var b := clampf((r - ast) * _inv_blend, 0.0, 1.0)
 	blend[j] = b
-	var cl := att
+	var cl := -cl_max if r < -ast else minf(sl * r, cl_max)
 	var cdx := 0.0
 	if b > 0.0:
 		cl += b * (sin(2.0 * r) - cl)
 		cdx = b * 2.0 * sin(r) * sin(r)
 	return Vector3(cl, cdx, b)
-
-
-## Сброс динамического срыва (новое состояние модели): степень срыва — статическая.
-func reset_dynamic() -> void:
-	_sep.resize(n)
-	_r_prev.resize(n)
-	_sep.fill(NAN)
-	_r_prev.fill(NAN)
 
 
 ## Доля полос с сорванным потоком.

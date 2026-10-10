@@ -51,6 +51,7 @@ const DEFAULTS := {
 		"fell_cm_height_m": 0.5,
 	},
 	"ground_effect": {"enabled": true, "span_efficiency": 0.9},
+	"strip_cl_max_match_polar": true,
 	"apparatus_defaults": {
 		"hang_shift_cm": 0.0, "hang_length_m": 1.2, "sail_flex": 0.2, "dihedral_eff_deg": 1.0,
 	},
@@ -205,7 +206,11 @@ func setup(
 	pendulum = DEFAULTS.duplicate(true)
 	if FileAccess.file_exists("res://configs/pendulum.json"):
 		pendulum = Config._deep_merge(pendulum, Config.get_config("pendulum"))
-	apparatus = Config._deep_merge(pendulum.apparatus_defaults, apparatus_cfg)
+	# пропуски «Аппарата» (PD-К1 v3): умолчания крыла (класса, PD-К2 v3), потом общие
+	var app_d: Dictionary = pendulum.apparatus_defaults
+	if wing.has("pendulum"):
+		app_d = Config._deep_merge(app_d, wing.pendulum.get("apparatus_defaults", {}))
+	apparatus = Config._deep_merge(app_d, apparatus_cfg)
 	if not wing.has("pendulum"):
 		push_error("PendulumModel: в конфиге крыла нет блока pendulum (PD-К2)")
 		return
@@ -666,9 +671,7 @@ func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 	var ge := PackedFloat64Array()
 	if _ge_on and _ground_effect(ground_fn):
 		ge = _ge
-	strips.dyn_dt = _aero_age if strips.dyn_on and is_finite(_aero_age) else 0.0
 	strips.aero(_vel, R, _w, _air if air_fn.is_valid() else _zero_air, air_c, lam, rho, ge)
-	strips.dyn_dt = 0.0
 	_aero_f_b = strips.force_b
 	_aero_m_b = strips.moment_b
 
@@ -793,7 +796,6 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
-	strips.reset_dynamic()
 	time_s = 0.0
 	_aero_age = INF
 	_w = Vector3.ZERO

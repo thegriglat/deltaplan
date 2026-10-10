@@ -1,7 +1,7 @@
 extends TestCase
 ## Контрактный тест PD-К2 v3 (docs/contracts/pendulum.md), часть земли и посадки: configs/pendulum.json
-## → contract «PD-К2 v3», блок ground.* (PD-3) и ключи PD-14 (экранный эффект, динамический срыв,
-## C_L max полос по поляре). У каждого ключа — <ключ>_doc. Блок pendulum крыльев и прочие ключи —
+## → contract «PD-К2 v3», блок ground.* (PD-3) и ключи PD-14 (экранный эффект, C_L max полос по
+## поляре). У каждого ключа — <ключ>_doc. Блок pendulum крыльев и прочие ключи —
 ## tests/contracts/test_pendulum_contracts_k2.gd.
 
 const DOC := "res://docs/contracts/pendulum.md"
@@ -16,7 +16,6 @@ const GROUND := {
 	"bar_after_liftoff_s": "pos", "fell_cm_height_m": "pos",
 }
 const GROUND_EFFECT := {"enabled": "bool", "span_efficiency": "pos"}
-const DYNAMIC_STALL := {"enabled": "bool", "t_sep_c_per_v": "pos", "t_alpha_c_per_v": "pos"}
 
 
 func _cfg() -> Dictionary:
@@ -64,14 +63,10 @@ func test_ground_keys() -> void:
 
 func test_pd14_keys() -> void:
 	var c := _cfg()
-	for k in ["ground_effect", "dynamic_stall"]:
-		check(c.has(k) and c[k] is Dictionary, "%s есть" % k)
+	check(c.has("ground_effect") and c.ground_effect is Dictionary, "ground_effect есть")
 	if c.has("ground_effect"):
 		_check_block(c.ground_effect, GROUND_EFFECT, "ground_effect")
 		var e := float(c.ground_effect.get("span_efficiency", 0.0))
 		check(e > 0.5 and e <= 1.0, "ground_effect.span_efficiency в (0,5; 1]")
-	if c.has("dynamic_stall"):
-		_check_block(c.dynamic_stall, DYNAMIC_STALL, "dynamic_stall")
-	for k in ["strip_cl_max_match_polar", "stall_cp_shift"]:
-		check(c.get(k) is bool, "%s — bool" % k)
-		check(c.has(k + "_doc"), "%s_doc есть" % k)
+	check(c.get("strip_cl_max_match_polar") is bool, "strip_cl_max_match_polar — bool")
+	check(c.has("strip_cl_max_match_polar_doc"), "strip_cl_max_match_polar_doc есть")
