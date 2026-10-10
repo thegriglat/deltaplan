@@ -492,7 +492,9 @@ func test_touch_near_start_is_not_landing() -> void:
 			break
 	_release()
 	check(game.glider.phase() == "flying", "взлетел")
-	_ticks(game, 1.0)
+	# Без разгона и педалирования отрыв со склона на грани: за 0.1 с крыло может вернуться на землю
+	# («landed» → «standing»), и тогда reset_in_air выглядел бы стартом в воздухе (полёт сразу
+	# «взведён»). Поэтому чирк — в тот же тик, когда фаза стала flying.
 	# «Чирк» по склону: низко, носом в гору.
 	var t := game.glider.get_telemetry()
 	var q := t.position
