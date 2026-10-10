@@ -179,6 +179,8 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 				match stage:
 					"surface":
 						progress.stage("landcover", tr("loading_landcover"))
+					"osm_tiles":
+						progress.stage("osm", tr("loading_osm"))
 			progress.sub(f, 1.0)
 	)
 	builder.counter.connect(

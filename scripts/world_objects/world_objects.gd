@@ -15,6 +15,9 @@ signal built
 var cfg: Dictionary = {}
 var location_id: String = ""
 var obstacles: ObstacleIndex
+## Данные OSM места (тайлы osm-tiles, O9) и каркас слоя; osm не null после build() (пустой — нет тайлов).
+var osm: OsmData
+var osm_layer: OsmLayer
 var landing_sites: Array[LandingSite] = []
 var indicators: Array[WindIndicator] = []
 ## Тропы к стартам (StartTracks.plan) — по одной ломаной (мир x, z) на start_sites[i].
@@ -92,6 +95,7 @@ func build(
 		_build_start(s, height_fn)
 	for site in WorldObjects.landing_specs(cfg.landing, loc_id, landings):
 		_build_landing(site, height_fn, latlon_fn)
+	_build_osm(loc_id, center, height_fn)
 	if bool(cfg.start_tracks.get("enabled", true)):
 		start_tracks = StartTracks.plan(start_sites, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
@@ -100,14 +104,15 @@ func build(
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
 		(
-			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d, домов %d"
+			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d, домов %d, OSM %s"
 			% [
 				loc_id,
 				build_time_s,
 				indicators.size(),
 				landing_sites.size(),
 				start_tracks.size(),
-				houses.size()
+				houses.size(),
+				"тайлов %d/%d" % [osm.tiles_ok, osm.tiles_ok + osm.tiles_missing] if osm != null else "нет"
 			]
 		)
 	)
@@ -122,9 +127,27 @@ func clear() -> void:
 	start_tracks.clear()
 	houses = []
 	village_layer = null
+	osm_layer = null
+	osm = null
 	camp.clear()
 	campfire = null
 	_active.clear()
+
+
+## Данные OSM места (osm_tiles.json в папке места + кеш тайлов) → OsmData и каркас OsmLayer.
+## Нет тайлов — пустой OsmData, слой не создаётся.
+func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
+	var ocfg: Dictionary = Config.get_config("osm_tiles")
+	osm = OsmData.new()
+	if loc_id == "" or not bool(ocfg.get("enabled", true)):
+		return
+	osm = OsmData.load_for(Locations.data_dir(loc_id), center.x, center.y, float(ocfg.get("half_m", 20000.0)))
+	if osm.is_empty():
+		return
+	osm_layer = OsmLayer.new()
+	osm_layer.name = "Osm"
+	add_child(osm_layer)
+	osm_layer.build(osm, cfg, height_fn, obstacles)
 
 
 ## Конфиг с учётом пресета качества (configs/world_objects.json → quality).
@@ -294,6 +317,16 @@ func is_clear_at(x: float, z: float) -> bool:
 ## Первое препятствие на пути a→b: {kind: building|tree, point} или {}.
 func obstacle_hit(segment_start: Vector3, segment_end: Vector3) -> Dictionary:
 	var best := {} if obstacles == null else obstacles.hit(segment_start, segment_end)
+	if osm_layer != null and osm_layer.building_obstacles != null:
+		var ob := osm_layer.building_obstacles.hit(segment_start, segment_end)
+		if (
+			not ob.is_empty()
+			and (
+				best.is_empty()
+				or segment_start.distance_to(ob.point) < segment_start.distance_to(best.point)
+			)
+		):
+			best = ob
 	if village_layer != null and village_layer.building_obstacles != null:
 		var b := village_layer.building_obstacles.hit(segment_start, segment_end)
 		if (

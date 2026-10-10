@@ -73,13 +73,13 @@ func net_line_text() -> String:
 	return _net_label.text if _net_label.visible else ""
 
 
-## Строка счётчика запросов под этапом: «Рельеф: 23/63» / «Покров: 40/86», и «Всего: N/M» при
+## Строка счётчика запросов под этапом: «Рельеф: 23/63» / «Покров: 40/86» / «OSM: 4/9», и «Всего: N/M» при
 ## нескольких стадиях ("" — счётчика нет); для тестов/скриншотов.
 func counter_line() -> String:
 	if _progress == null:
 		return ""
 	var parts: PackedStringArray = []
-	for k: String in ["dem", "surface"]:
+	for k: String in ["dem", "surface", "osm_tiles"]:
 		var t := _progress.counter_text(k)
 		if t != "":
 			parts.append(t)
