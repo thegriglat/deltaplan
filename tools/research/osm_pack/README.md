@@ -66,3 +66,6 @@ $P python slovenia_rasters.py results/slovenia_rasters.json    # ~83 МБ ска
 $P python lc_check.py $D/out_slovenia results/landcover_check.json +185_+055 +184_+055 +184_+058
 python3 summarize.py                                              # results/summary.{json,csv}
 ```
+
+## Тайлы 20 км: дороги, дома, объекты для пилота (10.10.2026)
+Скрипты `build_tiles20.py`, `build_pilot20.py`, `almaty.py`, `summarize_tiles20.py`, `report20.py`, `taginfo_counts.py`, `stage2.py` (этап 2, отменён, проверен на Словении через `test_stage2.py`). Команды и числа — `docs/plan/osm_vector_pack.md` §9; результаты — `results/tiles20_*.json`, `pilot20_slovenia.json`, `report20.json`, `taginfo_counts.json`. Данные OSM — ODbL, выгрузки Geofabrik в `/home/greg/deltaplan_data/osm_pack/` (не коммитятся).

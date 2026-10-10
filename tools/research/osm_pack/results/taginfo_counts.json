@@ -1,0 +1,308 @@
+{
+ "source": "taginfo.openstreetmap.org/api/4",
+ "date": "2026-10-10",
+ "tags": {
+  "highway=motorway": {
+   "all": 1376388,
+   "nodes": 10,
+   "ways": 1376375,
+   "relations": 3
+  },
+  "highway=trunk": {
+   "all": 2017245,
+   "nodes": 10,
+   "ways": 2017224,
+   "relations": 11
+  },
+  "highway=primary": {
+   "all": 4129333,
+   "nodes": 9,
+   "ways": 4129323,
+   "relations": 1
+  },
+  "highway=secondary": {
+   "all": 5877757,
+   "nodes": 41,
+   "ways": 5877033,
+   "relations": 683
+  },
+  "highway=tertiary": {
+   "all": 9182970,
+   "nodes": 86,
+   "ways": 9181601,
+   "relations": 1283
+  },
+  "highway=motorway_link": {
+   "all": 919920,
+   "nodes": 6,
+   "ways": 919914,
+   "relations": 0
+  },
+  "highway=trunk_link": {
+   "all": 591114,
+   "nodes": 1,
+   "ways": 591113,
+   "relations": 0
+  },
+  "highway=primary_link": {
+   "all": 496189,
+   "nodes": 2,
+   "ways": 496187,
+   "relations": 0
+  },
+  "highway=secondary_link": {
+   "all": 385464,
+   "nodes": 1,
+   "ways": 385463,
+   "relations": 0
+  },
+  "highway=tertiary_link": {
+   "all": 280497,
+   "nodes": 2,
+   "ways": 280495,
+   "relations": 0
+  },
+  "highway=unclassified": {
+   "all": 18562012,
+   "nodes": 278,
+   "ways": 18561609,
+   "relations": 125
+  },
+  "highway=residential": {
+   "all": 70004088,
+   "nodes": 226,
+   "ways": 70003766,
+   "relations": 96
+  },
+  "highway=living_street": {
+   "all": 2346430,
+   "nodes": 65,
+   "ways": 2346132,
+   "relations": 233
+  },
+  "highway=road": {
+   "all": 39733,
+   "nodes": 193,
+   "ways": 39539,
+   "relations": 1
+  },
+  "highway=track": {
+   "all": 30084961,
+   "nodes": 689,
+   "ways": 30084071,
+   "relations": 201
+  },
+  "building=no": {
+   "all": 12780,
+   "nodes": 893,
+   "ways": 11705,
+   "relations": 182
+  },
+  "power=line": {
+   "all": 1183374,
+   "nodes": 334,
+   "ways": 1182904,
+   "relations": 136
+  },
+  "power=minor_line": {
+   "all": 1656131,
+   "nodes": 284,
+   "ways": 1655737,
+   "relations": 110
+  },
+  "power=tower": {
+   "all": 18593345,
+   "nodes": 18593059,
+   "ways": 285,
+   "relations": 1
+  },
+  "aerialway=cable_car": {
+   "all": 1158,
+   "nodes": 5,
+   "ways": 1138,
+   "relations": 15
+  },
+  "aerialway=gondola": {
+   "all": 2082,
+   "nodes": 3,
+   "ways": 2052,
+   "relations": 27
+  },
+  "aerialway=chair_lift": {
+   "all": 9042,
+   "nodes": 2,
+   "ways": 9038,
+   "relations": 2
+  },
+  "aerialway=drag_lift": {
+   "all": 4155,
+   "nodes": 4,
+   "ways": 4151,
+   "relations": 0
+  },
+  "aerialway=t-bar": {
+   "all": 2899,
+   "nodes": 1,
+   "ways": 2898,
+   "relations": 0
+  },
+  "aerialway=j-bar": {
+   "all": 217,
+   "nodes": 0,
+   "ways": 217,
+   "relations": 0
+  },
+  "aerialway=platter": {
+   "all": 4529,
+   "nodes": 5,
+   "ways": 4524,
+   "relations": 0
+  },
+  "aerialway=magic_carpet": {
+   "all": 3384,
+   "nodes": 0,
+   "ways": 3384,
+   "relations": 0
+  },
+  "aerialway=mixed_lift": {
+   "all": 109,
+   "nodes": 1,
+   "ways": 108,
+   "relations": 0
+  },
+  "aerialway=rope_tow": {
+   "all": 1837,
+   "nodes": 2,
+   "ways": 1835,
+   "relations": 0
+  },
+  "aerialway=zip_line": {
+   "all": 2852,
+   "nodes": 19,
+   "ways": 2833,
+   "relations": 0
+  },
+  "aerialway=goods": {
+   "all": 2467,
+   "nodes": 0,
+   "ways": 2467,
+   "relations": 0
+  },
+  "aeroway=aerodrome": {
+   "all": 46321,
+   "nodes": 23067,
+   "ways": 21737,
+   "relations": 1517
+  },
+  "aeroway=airstrip": {
+   "all": 5932,
+   "nodes": 4316,
+   "ways": 1603,
+   "relations": 13
+  },
+  "aeroway=helipad": {
+   "all": 70894,
+   "nodes": 9680,
+   "ways": 61054,
+   "relations": 160
+  },
+  "aeroway=runway": {
+   "all": 66679,
+   "nodes": 2,
+   "ways": 66607,
+   "relations": 70
+  },
+  "man_made=mast": {
+   "all": 525915,
+   "nodes": 524432,
+   "ways": 1482,
+   "relations": 1
+  },
+  "man_made=tower": {
+   "all": 460314,
+   "nodes": 350427,
+   "ways": 108799,
+   "relations": 1088
+  },
+  "man_made=chimney": {
+   "all": 118249,
+   "nodes": 101520,
+   "ways": 16660,
+   "relations": 69
+  },
+  "generator:source=wind": {
+   "all": 477059,
+   "nodes": 475509,
+   "ways": 1537,
+   "relations": 13
+  },
+  "tower:type=communication": {
+   "all": 536055,
+   "nodes": 522959,
+   "ways": 13034,
+   "relations": 62
+  },
+  "railway=rail": {
+   "all": 2829952,
+   "nodes": 6,
+   "ways": 2829874,
+   "relations": 72
+  },
+  "railway=narrow_gauge": {
+   "all": 57111,
+   "nodes": 0,
+   "ways": 57087,
+   "relations": 24
+  },
+  "natural=peak": {
+   "all": 1110007,
+   "nodes": 1109873,
+   "ways": 110,
+   "relations": 24
+  },
+  "natural=saddle": {
+   "all": 80643,
+   "nodes": 80576,
+   "ways": 62,
+   "relations": 5
+  },
+  "mountain_pass=yes": {
+   "all": 38405,
+   "nodes": 38194,
+   "ways": 207,
+   "relations": 4
+  },
+  "waterway=river": {
+   "all": 2066689,
+   "nodes": 2613,
+   "ways": 2016253,
+   "relations": 47823
+  },
+  "waterway=canal": {
+   "all": 808080,
+   "nodes": 294,
+   "ways": 804120,
+   "relations": 3666
+  },
+  "waterway=stream": {
+   "all": 29636896,
+   "nodes": 5459,
+   "ways": 29550249,
+   "relations": 81188
+  }
+ },
+ "keys": {
+  "building": {
+   "all": 710783731,
+   "nodes": 1011296,
+   "ways": 708535683,
+   "relations": 1236752
+  },
+  "name": {
+   "all": 116221864,
+   "nodes": 31898003,
+   "ways": 80040374,
+   "relations": 4283487
+  }
+ }
+}
