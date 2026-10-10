@@ -398,7 +398,6 @@ net_friends_zone,"%s — %s, зона %s","%s — %s, zone %s"
 net_invite_friends,Пригласить друзей,Invite friends
 net_steam_friend,другу в Steam,a Steam friend
 net_create_title,Новая зона,New zone
-net_place,Место,Place
 net_create,Создать,Create
 net_join_title,Войти по коду,Join by code
 net_code,Код,Code
