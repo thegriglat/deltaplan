@@ -3,7 +3,7 @@ type: plan
 status: active
 module: motion-rig
 updated: 2026-10-10
-summary: Вывод движения на платформы подвижности (motion rig) — DOF Reality H-серия через SimTools/FlyPT Mover, общий generic UDP
+summary: Вывод движения на платформы подвижности (motion rig) — DOF Reality H-серия через Sim Racing Studio API (UDP), плюс свой generic UDP
 related: ["docs/contracts/motion-rig.md", "docs/research/motion-rig-protocols.md"]
 ---
 
@@ -48,7 +48,7 @@ Professional»). Какие величины ожидают (surge/sway/heave, r
 
 ### MR-2 Отправка движения + настройки + приёмник (dp-engineer)
 По контракту M1–M3: источник величин из состояния физики (M1), упаковка пакета (M2), отправка UDP из physics tick без
-блокировки, настройки (M3) в UI настроек, по умолчанию выключено. Приёмник `tools/motion_rig/recv.py` (stdlib, печать и jsonl).
+блокировки, настройки (M3) в UI настроек, по умолчанию выключено. Приёмник `tools/motion_rig/recv.py` (stdlib, печать и jsonl, оба формата MR-К2).
 Тесты: формат пакета (контрактный), знаки на манёврах — горизонтальный установившийся полёт ≈ +1 g по вертикальной оси
 вверх (heave ≈ +9.81 по контракту), крен вправо — знак roll, разгон вперёд — surge > 0; петля через приёмник
 (игра headless шлёт → recv.py ловит → jsonl проверяется).
@@ -56,10 +56,15 @@ Professional»). Какие величины ожидают (surge/sway/heave, r
 
 ### MR-3 Документация и инструкция игроку (dp-writer)
 `docs/guide/motion-rig.md` (как устроено, контракт, границы); англ. инструкция игроку `docs/guide/motion-rig-setup.en.md`
-(SimTools / FlyPT Mover / DOF Reality: что включить в игре, что выбрать в приёмнике, порядок полей, оси, рекомендуемые
-стартовые настройки фильтров — как в софте платформы); при небольшой работе — файл-пресет для FlyPT Mover/SimTools
-в `tools/motion_rig/`. CHANGELOG — строка в «В работе».
+(DOF Reality через Sim Racing Studio: что включить в игре и в SRS, игра на Linux — SRS на другом ПК; оси и инверсия знаков;
+почему SimTools/FlyPT Mover пока нет; generic — формат для самодельных приёмников). CHANGELOG — строка в «В работе».
 Приёмка: `dp docs check`, файлы есть.
+
+## Итог MR-1 (принят 10.10)
+Родной софт DOF Reality H-серии — Sim Racing Studio (SRS, Windows); вход для своих игр — SRS API v102 (UDP 33001, 236 байт, MIT).
+SimTools 2/3 и FlyPT Mover общего UDP-входа не имеют (нужен свой плагин/код). Решение координатора: формат `srs` (по умолчанию)
++ один свой `generic` (64 байта, честные величины, для самодельных приёмников) — MR-К2. Знаки осей SRS не документированы —
+проверка у игрока, инверсия в SRS.
 
 ## Волны
 1. MR-1 (исследование) параллельно с контрактами M1/M3 (физика и настройки — от кода).
