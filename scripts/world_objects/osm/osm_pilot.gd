@@ -33,7 +33,7 @@ static func build(
 	if bool(pc.power.enabled) and not data.power.is_empty():
 		_power(root, data.power, pc.power, height_fn, obstacles)
 	if bool(pc.verticals.enabled) and not data.verticals.is_empty():
-		_verticals(root, data.verticals, pc.verticals, height_fn, obstacles)
+		_verticals(root, data, pc.verticals, height_fn, obstacles)
 	if bool(pc.aerialways.enabled) and not data.aerialways.is_empty():
 		_aerialways(root, data.aerialways, pc.aerialways, height_fn, obstacles)
 	if bool(pc.aeroways.enabled) and not data.aeroways.is_empty():
@@ -220,8 +220,10 @@ static func _wires(root: Node3D, wires: Array, pc: Dictionary, obstacles: Obstac
 
 
 static func _verticals(
-	root: Node3D, items: Array, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
+	root: Node3D, data: OsmData, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
 ) -> void:
+	var items: Array = data.verticals
+	var landmarks := landmark_towers(items, data.peaks, data.buildings, pc)
 	var node := Node3D.new()
 	node.name = "Verticals"
 	root.add_child(node)
@@ -235,13 +237,17 @@ static func _verticals(
 	var blade := _box_mesh(Vector3(0.5, 1.0, 0.2), pc.color.wind)
 	var groups := {}  # "модель:x:z" → {kind, tile, t}
 	var n := 0
-	for v: Dictionary in items:
+	for idx in items.size():
+		var v: Dictionary = items[idx]
 		var cls := String(v.t)
 		if cls in skip:
 			continue
 		var h_tag := float(v.h)
 		var h := h_tag if h_tag > 0.0 else float(pc.default_h_m[cls])
 		var kind := vertical_model(cls, bool(v.get("comm", false)), h_tag, pc)
+		if landmarks.has(idx):
+			kind = "tv_tower"
+			h = float(pc.landmark.default_h_m)
 		var x := float(v.x)
 		var z := float(v.z)
 		var g := float(height_fn.call(x, z))
@@ -293,6 +299,56 @@ static func vertical_model(cls: String, comm: bool, h_tag: float, pc: Dictionary
 		"chimney":
 			return "chimney"
 	return cls
+
+
+## Телебашни без высоты в OSM (Кок-Тобе и подобные): индексы verticals. Признак — mast/tower с comm и h = 0
+## не дальше landmark.peak_r_m от именованной вершины (телебашни стоят на городской горе) и ≥ landmark.min_buildings
+## домов в landmark.city_r_m (город внизу, не горная глушь); из группы ближе landmark.dedup_r_m — одна (ближайшая к вершине).
+static func landmark_towers(items: Array, peaks: Array, buildings: Array, pc: Dictionary) -> Dictionary:
+	var out := {}
+	var lc: Dictionary = pc.get("landmark", {})
+	if lc.is_empty() or not bool(lc.get("enabled", true)):
+		return out
+	var named: Array = []
+	for p: Dictionary in peaks:
+		if String(p.name) != "":
+			named.append(Vector2(float(p.x), float(p.z)))
+	if named.is_empty():
+		return out
+	var pr := float(lc.peak_r_m)
+	var cand: Array = []  # [расстояние до вершины, индекс, позиция]
+	for i in items.size():
+		var v: Dictionary = items[i]
+		if not bool(v.get("comm", false)) or float(v.h) > 0.0 or not (String(v.t) in ["mast", "tower"]):
+			continue
+		var q := Vector2(float(v.x), float(v.z))
+		var best := INF
+		for p: Vector2 in named:
+			best = minf(best, p.distance_to(q))
+		if best <= pr:
+			cand.append([best, i, q])
+	cand.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	var cr2 := float(lc.city_r_m) * float(lc.city_r_m)
+	var taken: Array = []
+	for c: Array in cand:
+		var q: Vector2 = c[2]
+		var near := false
+		for t: Vector2 in taken:
+			if t.distance_to(q) < float(lc.dedup_r_m):
+				near = true
+				break
+		if near:
+			continue
+		var n := 0
+		for b: Array in buildings:
+			if Vector2(float(b[0]), float(b[1])).distance_squared_to(q) <= cr2:
+				n += 1
+				if n >= int(lc.min_buildings):
+					break
+		if n >= int(lc.min_buildings):
+			out[c[1]] = true
+			taken.append(q)
+	return out
 
 
 ## Масштаб экземпляра модели высотой model_h под высоту h: x — по XZ, y — по Y (верх = h).

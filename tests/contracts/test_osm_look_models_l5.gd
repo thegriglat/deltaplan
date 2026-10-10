@@ -149,6 +149,28 @@ func test_class_to_model_rule() -> void:
 	check(absf(s.y * float(pc.model_h_m.tv_tower) - 372.0) < 0.01 and s.x <= 1.0 and s.x >= 0.35, "масштаб: верх = h, XZ ≤ 1: %s" % [s])
 
 
+func test_landmark_tower() -> void:
+	var pc: Dictionary = _cfg.verticals
+	var items := [
+		{"t": "mast", "comm": true, "x": 6521.0, "z": 3682.0, "h": 0.0},
+		{"t": "mast", "comm": true, "x": 6600.0, "z": 3700.0, "h": 0.0},  # рядом — дубль, не берём
+		{"t": "mast", "comm": true, "x": 9000.0, "z": 9000.0, "h": 0.0},  # не у вершины
+		{"t": "mast", "comm": false, "x": 6510.0, "z": 3660.0, "h": 0.0},  # не связь
+		{"t": "tower", "comm": true, "x": 20000.0, "z": 20000.0, "h": 0.0},  # у вершины, но без города
+	]
+	var peaks := [
+		{"x": 6513.0, "z": 3655.0, "ele": 1130.0, "name": "Кок-Тобе"},
+		{"x": 20010.0, "z": 20010.0, "ele": 2000.0, "name": "Глушь"},
+		{"x": 9000.0, "z": 9100.0, "ele": 900.0, "name": ""},
+	]
+	var bl: Array = []
+	for i in 2100:
+		bl.append([6000.0 + float(i % 50) * 10.0, 3000.0 + float(i / 50) * 10.0, 10.0, 10.0, 0.0, 6.0, 0, 0, 0])
+	var r := OsmPilot.landmark_towers(items, peaks, bl, pc)
+	check(r.size() == 1 and r.has(0), "телебашня только у Кок-Тобе: %s" % [r.keys()])
+	check(OsmPilot.landmark_towers(items, peaks, bl.slice(0, 1000), pc).is_empty(), "мало домов — нет")
+
+
 func test_skip_class() -> void:
 	var d := OsmData.new()
 	d.verticals = [

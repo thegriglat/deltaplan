@@ -863,6 +863,15 @@
       "model_h_m_doc": "Высота моделей assets/models/osm (скрипт Blender читает отсюда). Экземпляр: масштаб по Y = h / model_h_m (верх = h), по XZ = clamp((h / model_h_m)^0.75, 0.35, 1) — след не шире radius_m; решётка растягивается по Y, число пролётов не меняется",
       "tv_tower_min_h_m": 150.0,
       "tv_tower_min_h_m_doc": "Класс tower: телебашня (tv_tower, по образцу Останкинской, 540 м) только при высоте с тега не ниже этой (comm без высоты — сотовая мачта: mast_lattice), иначе решётчатая мачта (mast_lattice), м",
+      "landmark": {
+        "enabled": true,
+        "peak_r_m": 150.0,
+        "city_r_m": 3000.0,
+        "min_buildings": 2000,
+        "dedup_r_m": 1000.0,
+        "default_h_m": 250.0
+      },
+      "landmark_doc": "Телебашня без высоты в OSM (Кок-Тобе): mast/tower с comm и h = 0 не дальше peak_r_m от именованной вершины и при ≥ min_buildings домов в city_r_m; из группы ближе dedup_r_m — одна; высота default_h_m, м",
       "tv_tower_obstacle": [[1.0, 0.0, 0.117], [0.32, 0.117, 1.0], [0.63, 0.58, 0.65]],
       "tv_tower_obstacle_doc": "Препятствия телебашни — цилиндры [доля radius_m, низ, верх (доли высоты)]: конус-основание, ствол с антенной, «тюльпан»; радиус масштабируется по XZ",
       "radius_m": {"mast_lattice": 1.5, "tv_tower": 31.0, "chimney": 4.0, "wind": 2.0},
