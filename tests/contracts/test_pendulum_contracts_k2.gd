@@ -6,7 +6,7 @@ const DOC := "res://docs/contracts/pendulum.md"
 const WINGS_DIR := "res://configs/wings"
 const WING_KEYS := ["contract", "_doc", "sweep_deg", "root_chord_m", "tip_chord_m", "washout_deg",
 		"keel_len_m", "crossbar_from_nose_m", "hang_from_nose_m", "bar_x_from_nose_m", "bar_z_m",
-		"cg_x_from_nose_m", "cg_z_m", "inertia_kgm2", "dcm0", "cd_scale", "ref"]
+		"cg_x_from_nose_m", "cg_z_m", "inertia_kgm2", "dcm0", "cd_scale", "apparatus_defaults", "ref"]
 const REF_KEYS := ["trim_kmh", "sink_ms", "alpha_trim_deg", "neutral_point_from_nose_m",
 		"static_margin", "kmh_per_cm_hang"]
 
@@ -59,7 +59,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 2, "PD-К2 (v2) в заголовках")
+	check(m != null and int(m.get_string(1)) == 3, "PD-К2 (v3) в заголовках")
 
 
 func test_pendulum_config() -> void:
@@ -99,7 +99,7 @@ func test_wings_pendulum_block() -> void:
 		check(not b.is_empty(), "%s: блок pendulum" % id)
 		if b.is_empty():
 			continue
-		check(b.get("contract") == "PD-К2 v1", "%s: contract" % id)
+		check(b.get("contract") == "PD-К2 v3", "%s: contract" % id)
 		for k in WING_KEYS:
 			check(b.has(k), "%s: pendulum.%s" % [id, k])
 		check(_finite(b), "%s: числа конечны" % id)
@@ -117,6 +117,11 @@ func test_wings_pendulum_block() -> void:
 				"%s: трим %.2f vs %.2f" % [id, float(r["trim_kmh"]), float(w["trim_speed_kmh"])])
 		var ps := _polar_sink(w, float(r["trim_kmh"]) / 3.6)
 		check(absf(float(r["sink_ms"]) - ps) <= 0.02, "%s: снижение %.3f vs поляра %.3f" % [id, float(r["sink_ms"]), ps])
+		var ad: Dictionary = b.get("apparatus_defaults", {})
+		check(ad.has("dihedral_eff_deg") and ad.has("sail_flex"), "%s: apparatus_defaults.{dihedral_eff_deg, sail_flex}" % id)
+		if ad.has("dihedral_eff_deg") and ad.has("sail_flex"):
+			check(float(ad["dihedral_eff_deg"]) >= -2.0 and float(ad["dihedral_eff_deg"]) <= 6.0, "%s: V в −2…+6 (PD-К3)" % id)
+			check(float(ad["sail_flex"]) >= 0.1 and float(ad["sail_flex"]) <= 1.0, "%s: гибкость в 0,1…1 (PD-К3)" % id)
 		var I: Dictionary = b["inertia_kgm2"]
 		check(float(I["ixx"]) > 0.0 and float(I["iyy"]) > 0.0 and float(I["izz"]) > 0.0, "%s: инерция > 0" % id)
 		check(float(b["cd_scale"]) > 0.0, "%s: cd_scale > 0" % id)
