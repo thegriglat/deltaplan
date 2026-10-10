@@ -28,3 +28,6 @@
 {"t": "2026-10-10T18:10:03", "by": "coordinator", "task": "MR-2", "ev": "merged", "commits": ["e829d65a"]}
 {"t": "2026-10-10T18:10:32", "by": "coordinator", "task": "MR-3", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-motion-rig-MR-3"}
 {"t": "2026-10-10T18:10:32", "by": "coordinator", "task": "MR-4", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-motion-rig-MR-4"}
+{"t": "2026-10-10T18:11:51", "by": "executor", "task": "MR-3", "ev": "reported", "commits": ["2fdd6d68"], "note": "done: Написаны docs/guide/motion-rig.md (ru), tools/motion_rig/README.md (en, для игрока), строка в CHANGELOG «В работе»; doc…"}
+{"t": "2026-10-10T18:12:17", "by": "executor", "task": "MR-3", "ev": "accepted", "note": "4/4 guide=ok:exit 0; docs_check=ok:exit 0; readme_en=ok:12; changelog=ok:2"}
+{"t": "2026-10-10T18:12:20", "by": "coordinator", "task": "MR-3", "ev": "merged", "commits": ["1ff389cf"]}
