@@ -1,0 +1,41 @@
+{
+  "verdict": "rework",
+  "summary": "Контракт O9 и скоуп в целом соблюдены, числа отчёта сходятся. Но «heap corruption» из uncertain — реальный баг, а не случайность: ArrayMesh создаётся в потоках пула, тест osm_roads падает 1 раз из 6 (SIGSEGV). В игре это то же самое падение при загрузке места.",
+  "issues": [
+    {
+      "file": "scripts/world_objects/road_mesher.gd",
+      "line": 41,
+      "severity": "blocker",
+      "what": "ArrayMesh.new() + add_surface_from_arrays вызываются в WorkerThreadPool (через лямбду в osm_roads.gd:33). Воспроизведено: 1 из 6 прогонов --filter=osm_roads падает с 'The caller thread can't call the function propagate_notification() on this node' в road_mesher.gd:41, затем signal 11. Это и есть heap corruption из первого dp accept. Из того же пути строится место в игре.",
+      "fix": "В потоках собирать только массивы (v/n/c/uv/i, origin, major); ArrayMesh создавать на главном потоке после wait_for_task_completion (в OsmRoads.build или отдельной функцией RoadMesher.to_meshes). После правки прогнать osm_roads раз 10 подряд, падений должно быть 0."
+    },
+    {
+      "file": "scripts/world_objects/osm/osm_roads.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Ширина ленты всегда берётся по классу. Поле w из OsmData (м, тег width, контракт O9) не используется, хотя это физическая величина из данных.",
+      "fix": "Если w > 0, брать w вместо ширины класса (с разумным ограничением сверху). Иначе оставить как есть и записать в отчёте как границу модели."
+    },
+    {
+      "file": "tools/shots/roads_shot.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "tools/shots/roads_shot.gd и .tscn лежат вне скоупа карточки. Это инструмент скриншота, вреда нет, но в отчёте не заявлен.",
+      "fix": "Указать в extra отчёта или согласовать с координатором."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept OT-9 --only world_objects --dry",
+      "value": "114/114, 252 с",
+      "pass": true
+    },
+    {
+      "name": "godot --filter=osm_roads x6 (подсчёт лент: Бохинь 11717 лент, Алматы 29217/872/858 — как в отчёте)",
+      "value": "5 ok, 1 падение SIGSEGV в road_mesher.gd:41 (ArrayMesh в потоке)",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-10T19:12:14",
+  "by": "reviewer"
+}
