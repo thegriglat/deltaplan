@@ -185,12 +185,12 @@ func test_missing_resume() -> void:
 	_cleanup()
 
 
-## N4: стадии игры — dem → rivers → surface; OSM-стадии нет.
+## Стадии игры — dem → rivers → surface → osm_tiles (OT-8); Overpass-стадии нет.
 func test_default_stages_without_osm() -> void:
 	var names: Array = []
 	for st in LocationBuilder.default_stages():
 		names.append(st.name)
-	check(names == ["dem", "rivers", "surface"], "стадии игры: %s" % str(names))
+	check(names == ["dem", "rivers", "surface", "osm_tiles"], "стадии игры: %s" % str(names))
 
 
 func test_dem_failure_is_error() -> void:

@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (23 файла, только разрешённые пути). Сетка O1, контейнер O2 (16 Б, zstd 19/3 с контрольной суммой, предел 64 МиБ), схема protobuf и вид dump совпадают с контрактами. Независимый Python-декодер сверяется с sample_v1.json, выданным Rust-кодом. Блокеров нет.",
+  "issues": [
+    {
+      "file": "tools/osm_tiles/packer/src/cover.rs",
+      "line": 82,
+      "severity": "minor",
+      "what": "cover не режет рёбра по антимеридиану (O1 требует резать при скачке долготы >180°): полигон через 180° даст полосу тайлов через весь пояс",
+      "fix": "до OT-2/оркестратора делить ребро по правилу O1 или явно отказывать с кодом 1 на таком .poly"
+    },
+    {
+      "file": "tools/osm_tiles/tests/test_tile_contract.py",
+      "line": 69,
+      "severity": "minor",
+      "what": "Python-тест сверяет bands и points из grid_golden, а neighbors нет (их проверяет только Rust)",
+      "fix": "добавить сверку neighbors эталонной функцией из make_grid_golden.py; пригодится декодеру GDScript"
+    },
+    {
+      "file": "tools/osm_tiles/tests/_env.py",
+      "line": 8,
+      "severity": "minor",
+      "what": "путь к venv эталона зашит (/home/greg/deltaplan_data/...), переопределяется только через OSM_VENV_PYTHON; на другой машине py_tests падают с ImportError",
+      "fix": "оставить как есть или упомянуть зависимость zstandard в README модуля"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cover_inside",
+      "value": "missing 0 of 28",
+      "pass": true
+    },
+    {
+      "name": "py_tests",
+      "value": "OK",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-10T16:29:02",
+  "by": "reviewer"
+}

@@ -1,0 +1,91 @@
+{
+  "id": "OT-1",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Формат, сетка и инструменты тайла (крейт osmtiles)",
+  "goal": "Общий фундамент упаковщика и клиента: схема protobuf, сетка O1, контейнер и кодек O3, команды dump/stats/cover/manifest, золотые образцы для контрактных тестов Rust/Python/GDScript.",
+  "plan_ref": "OT-1. Формат, сетка и инструменты тайла",
+  "contracts": [
+    {
+      "name": "O1",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O2",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O3",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O5",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O6",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O7",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-1",
+  "branch": "osm-tiles/OT-1",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/packer",
+    "tools/osm_tiles/proto",
+    "tools/osm_tiles/read_tile.py",
+    "tools/osm_tiles/tests",
+    "tests/contracts/osm_tiles",
+    ".gitignore"
+  ],
+  "dont_touch": [
+    "tools/research/osm_pack",
+    "scripts",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "cargo_test",
+      "cmd": "cd tools/osm_tiles/packer && cargo test --release 2>&1 | tail -30",
+      "expect": "!re:test result: FAILED|error\\["
+    },
+    {
+      "name": "cargo_ok",
+      "cmd": "cd tools/osm_tiles/packer && cargo test --release 2>&1 | grep -c 'test result: ok'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "py_tests",
+      "cmd": "python3 -m unittest discover -s tools/osm_tiles/tests -v 2>&1 | tail -5",
+      "expect": "re:^OK"
+    },
+    {
+      "name": "cover_inside",
+      "cmd": "tools/osm_tiles/packer/target/release/osmtiles cover --poly /home/greg/deltaplan_data/osm_pack/slovenia.poly > /tmp/ot1_cover_$DP_TASK.txt && python3 -c \"import json;r=json.load(open('tools/research/osm_pack/results/tiles20_slovenia.json'));ins={k.replace(',',' ') for k,v in r['tiles'].items() if v.get('inside')};c={l.strip() for l in open('/tmp/ot1_cover_$DP_TASK.txt')};print('missing',len(ins-c),'of',len(ins))\"",
+      "expect": "re:^missing 0 of 28"
+    },
+    {
+      "name": "sample_dump",
+      "cmd": "tools/osm_tiles/packer/target/release/osmtiles dump tests/contracts/osm_tiles/sample_v1.dpt | python3 -c \"import json,sys;a=json.load(sys.stdin);b=json.load(open('tests/contracts/osm_tiles/sample_v1.json'));print('equal' if a==b else 'DIFF')\"",
+      "expect": "re:^equal"
+    },
+    {
+      "name": "grid_golden",
+      "cmd": "python3 -c \"import json;g=json.load(open('tests/contracts/osm_tiles/grid_golden.json'));print('bands',len(g['bands']),'points',len(g['points']),'neighbors',len(g['neighbors']))\"",
+      "expect": "re:bands 1000 points ([3-9]\\d\\d|\\d{4,}) neighbors ([2-9]\\d)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T16:20:17"
+}

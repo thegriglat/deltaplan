@@ -1,0 +1,57 @@
+{
+  "id": "OT-9",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Дороги, реки/каналы, ж/д из тайлов OSM (обязательно)",
+  "goal": "Обязательная часть клиента по решению пользователя: дороги (в т. ч. на Шымбулак), реки и каналы, ж/д из наших тайлов — восстановленный RoadMesher, просеки вдоль дорог в лесу, отрезки у палаток.",
+  "plan_ref": "OT-9. Дороги, реки/каналы, ж/д",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-9",
+  "branch": "osm-tiles/OT-9",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "scripts/world_objects/osm/osm_roads.gd",
+    "scripts/world_objects/road_mesher.gd",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/world_objects/world_objects.gd",
+    "configs/world_objects.json",
+    "tests/world_objects",
+    "scripts/world_objects/osm/osm_pilot.gd,scripts/world_objects/osm/osm_buildings.gd,tools/shots/roads_shot.gd,tools/shots/roads_shot.tscn",
+    "tests/contracts/test_no_osm_contracts_n4.gd"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/egg_place.gd",
+    "tools/osm_tiles",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/OT-9/ | grep -ciE '\\.(png|jpg)$'",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "osm_roads_x10",
+      "cmd": "for k in 1 2 3 4 5 6 7 8 9 10; do XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_ 2>&1 | grep -E 'тестов, [0-9]+ упало' | tail -1 || echo CRASH; done | sort | uniq -c",
+      "expect": "!re:CRASH|[1-9]\\d* упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:31:59",
+  "edited": "2026-10-10T19:23:07"
+}

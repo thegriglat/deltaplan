@@ -1,0 +1,25 @@
+{
+  "_doc": "Тайлы OSM (osm-tiles, контракт O9, docs/contracts/osm-tiles.md): загрузка 3x3 тайлов мировой сетки 20 км, разбор и перевод в мир места. Ответственный — стадия OsmTilesStage и OsmData.",
+  "base_url": "https://pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev",
+  "base_url_doc": "Корень без /v1: URL или локальный каталог (абсолютный путь или file://…). Пусто — стадия сразу missing, без сети. Переопределение — переменная окружения DELTAPLAN_OSM_TILES_URL.",
+  "enabled": true,
+  "timeout_s": 5.0,
+  "timeout_s_doc": "Общее ожидание всех недостающих тайлов, с; по истечении тайл — missing, слой пропущен.",
+  "max_parallel": 9,
+  "half_m": 20000.0,
+  "half_m_doc": "Половина стороны квадрата места, м: объекты дальше half_m + margin_m от центра отбрасываются.",
+  "margin_m": 200.0,
+  "cache_dir": "user://osm_tiles/v1",
+  "height_rule": {
+    "_doc": "Высота дома без тегов height/levels (O9): этажи по типу O3 и площади следа. Этаж 3 м. Параметры не подбираются по картинке.",
+    "level_m": 3.0,
+    "groups": {
+      "one_floor": {"types": [9, 7, 8, 20, 21, 14, 22, 25], "levels": 1, "flat": 0},
+      "two_floors": {"types": [1, 10, 11, 18, 19], "levels": 2, "flat": 0},
+      "industrial": {"types": [5, 17], "height_m": 8.0, "flat": 1},
+      "residential": {"types": [2, 3, 16, 15], "area_levels": [[300, 3], [800, 5], [2000, 9], [1e30, 12]], "flat": 1},
+      "other": {"types": [4, 6, 23, 24, 13, 12, 26], "area_levels": [[600, 2], [1e30, 3]], "flat": 1},
+      "yes": {"types": [0], "area_levels": [[200, 2, 0], [600, 4, 1], [2000, 9, 1], [1e30, 3, 1]]}
+    }
+  }
+}

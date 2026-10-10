@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Написан docs/guide/osm-tiles.md (формат кратко, сборка, тест, мир, итог, что делать при падении, диск/ОЗУ/время), tools/osm_tiles/README.md, 4 вывода в findings.md (раздел osm-tiles), обновлён индекс. dp accept OT-7 --dry 3/3.",
+  "commits": [
+    "7161a835 osm-tiles OT-7: руководство, README, выводы в реестр"
+  ],
+  "checks": [
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "guide_cmds",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Мировой прогон не выполнялся: время 3,5–4 ч — оценка координатора"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept OT-7",
+  "uncertain": [
+    {
+      "where": "docs/guide/osm-tiles.md, раздел «Что нужно перед запуском»",
+      "why": "60 ГБ свободного места и пик ≈ 10 ГБ на часть canada — мои оценки: выгрузка×3+20 ГБ из кода, пик = 5,2× × 2 ГБ; не замеры",
+      "checked": "формулу взял из world.py (строка ~345) и отчётов OT-2/OT-6"
+    },
+    {
+      "where": "docs/guide/osm-tiles.md, «Если упало»",
+      "why": "совет --max-region-gb 1.5 и --extract-batch 1 не пробовал",
+      "checked": "флаги есть в world.py run --help"
+    }
+  ],
+  "dp_feedback": "dp docs init не нужен был — писал frontmatter руками; хотелось бы dp docs init <путь> для создания заготовки. dp docs index заодно переписал чужие реестры (decisions) — попали в коммит.",
+  "t": "2026-10-10T17:48:47",
+  "by": "executor"
+}

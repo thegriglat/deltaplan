@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "Дома OSM строятся через BuildingPlacer и MultiMesh по тайлам (OsmBuildings), препятствия — в building_obstacles OsmLayer; пятно с домом OSM не получает процедурных (VillagePlacer.plan с osm_houses). Угол и высота уже переводит OsmData из OT-8 (правило O9), не менял.",
+  "commits": [
+    "a4707fcc OT-11: дома OSM через BuildingPlacer/MultiMesh, пятна без процедурных, тест и замер Алматы 3x3"
+  ],
+  "checks": [
+    {
+      "name": "world_objects",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "osm_tiles",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Маска просек WorldClearings (деревья) по-прежнему строится по процедурным домам: деревья могут расти внутри домов OSM; не в скоупе, WorldClearings не трогал"
+  ],
+  "questions": [
+    "Править ли WorldClearings, чтобы дома OSM расчищали лес (там нужна загрузка OsmData)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/OT-11/almaty_air.png"
+  ],
+  "how_to_check": "systemd-run --user --scope -p MemoryMax=12G -q tools/dp accept OT-11 --dry -j 4",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/village_placer.gd:osm_patch_ids",
+      "why": "в BuiltPatches нет растра номеров пятен, пятно дома определяется по bbox + share_at>0; при пересечении bbox лишнее пятно тоже теряет процедурные дома",
+      "checked": "тест на поддельных пятнах: пятно с домом OSM — 0 процедурных, соседнее — как раньше"
+    },
+    {
+      "where": "scripts/world_objects/world_objects.gd:276",
+      "why": "файл вне скоупа карточки, правка в одну строку (передача osm.buildings в plan)",
+      "checked": "world_objects 105/105"
+    },
+    {
+      "where": "замер Алматы",
+      "why": "высота рельефа в замере плоская (в репозитории нет рельефа Алматы); с настоящим height_at расстановка (5 выборок на дом, ≈1,4 млн вызовов) будет дольше",
+      "checked": "замер на плоской функции; скриншот тоже на плоской земле"
+    }
+  ],
+  "dp_feedback": "Нет способа узнать, есть ли у места данные рельефа/локация для скриншота; dp accept --dry в фоне пишет вывод только в конце.",
+  "extra": {
+    "almaty_place_ms": 3220,
+    "almaty_nodes_ms": 130,
+    "almaty_mem_mb": 76,
+    "almaty_multimesh_tiles": 1088,
+    "bohinj_buildings": 33628,
+    "bohinj_build_ms": 496
+  },
+  "buildings_almaty_3x3": 280412,
+  "build_ms_almaty_3x3": 3359,
+  "procedural_in_osm_patches": 0,
+  "t": "2026-10-10T18:29:27",
+  "by": "main"
+}

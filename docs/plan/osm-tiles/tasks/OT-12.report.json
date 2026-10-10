@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "base_url R2, каталог не пишет .none, to_tile в double, play_local.sh; сборка Linux в build/osm_test; Алматы и Шымбулак: ok=9 none=0 missing=0.",
+  "commits": [
+    "e6bb13f2 OT-12: base_url R2, каталог не пишет .none, to_tile в double, play_local.sh"
+  ],
+  "checks": [
+    {
+      "name": "osm_tiles",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "config_url",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_exists",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "play_script",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "almaty_osm",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "shymbulak_osm",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншот снят не был (отменён координатором)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "Запуск: /home/greg/deltaplan/tools/osm_tiles/play_local.sh ; Алматы: play_local.sh \"\" --latlon=43.24,76.89 ; Шымбулак: play_local.sh \"\" --latlon=43.13,77.08 ; локальные тайлы: play_local.sh /путь/к/тайлам --latlon=...",
+  "uncertain": [
+    {
+      "where": "первый прогон сборки",
+      "why": "я по ошибке запустил два prefetch-прогона без временного XDG_DATA_HOME",
+      "checked": "в реальный профиль попал только кеш тайлов и мест (osm_tiles, locations/pt_*); настройки не затронуты; повторно прогнал с временным профилем"
+    }
+  ],
+  "dp_feedback": [
+    "нет способа дождаться сообщения координатора из исполнителя",
+    "dp: нет команды, пишущей check-файлы osm_tiles из osm_tiles.json места"
+  ],
+  "t": "2026-10-10T19:54:37",
+  "by": "main"
+}

@@ -1,0 +1,30 @@
+[package]
+name = "osmtiles"
+version = "0.1.0"
+edition = "2021"
+description = "Deltaplan: формат тайла OSM 20 км (O1-O7) и инструменты"
+
+[lib]
+name = "osmtiles"
+path = "src/lib.rs"
+
+[[bin]]
+name = "osmtiles"
+path = "src/main.rs"
+
+[dependencies]
+prost = "0.13"
+zstd = "0.13"
+serde_json = "1"
+rayon = "1"
+clap = { version = "4", features = ["derive"] }
+sha2 = "0.10"
+osmpbf = "0.3"
+libc = "0.2"
+
+[build-dependencies]
+prost-build = "0.13"
+protox = "0.7"
+
+[profile.release]
+opt-level = 3

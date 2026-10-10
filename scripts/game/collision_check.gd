@@ -51,9 +51,13 @@ var _cur: PackedVector3Array = []
 func setup(objects: Object, forest_fn: Callable, span_m: float, hang_m: float) -> void:
 	_indexes.clear()
 	if objects != null:
-		var o: Variant = objects.get("obstacles")
-		if o is ObstacleIndex:
-			_indexes.append(FineIndex.new(o))
+		var idx: Array = [objects.get("obstacles")]
+		var osm: Variant = objects.get("osm_layer")
+		if osm is Object:
+			idx.append((osm as Object).get("building_obstacles"))
+		for o: Variant in idx:
+			if o is ObstacleIndex:
+				_indexes.append(FineIndex.new(o))
 	_forest_fn = forest_fn
 	var half := 0.5 * span_m
 	_local = PackedVector3Array()

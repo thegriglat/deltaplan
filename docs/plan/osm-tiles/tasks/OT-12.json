@@ -1,0 +1,72 @@
+{
+  "id": "OT-12",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Тестовая сборка Linux с тайлами Казахстана из R2 — последний шлюз",
+  "goal": "Пользователь сам летает над Алматы (город, дороги на Шымбулак) в тестовой сборке, которая берёт тайлы из R2; это последний шлюз перед мировым прогоном.",
+  "plan_ref": "OT-12. Тестовая сборка с тайлами Казахстана",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O1",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-12",
+  "branch": "osm-tiles/OT-12",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "configs/osm_tiles.json",
+    "tools/osm_tiles/play_local.sh",
+    "scripts/terrain/build/osm_tiles_stage.gd",
+    "scripts/world_objects/osm/osm_grid.gd",
+    "tests/contracts/test_osm_tiles_contracts.gd",
+    "tests/terrain"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/packer",
+    "tools/osm_tiles/world.py",
+    "docs/contracts",
+    "scripts/world_objects/egg_place.gd"
+  ],
+  "accept": [
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "config_url",
+      "cmd": "python3 -c \"import json;print(json.load(open('configs/osm_tiles.json'))['base_url'])\"",
+      "expect": "re:^https://pub-eb61309798ee4c4aa6a41388cf8e0a98\\.r2\\.dev$"
+    },
+    {
+      "name": "build_exists",
+      "cmd": "ls /home/greg/deltaplan/build/osm_test | grep -c '\\.x86_64$'",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "play_script",
+      "cmd": "bash -n tools/osm_tiles/play_local.sh && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "almaty_osm",
+      "cmd": "cat /home/greg/deltaplan/build/osm_test/almaty_check.txt",
+      "expect": "re:missing=0"
+    },
+    {
+      "name": "shymbulak_osm",
+      "cmd": "cat /home/greg/deltaplan/build/osm_test/shymbulak_check.txt",
+      "expect": "re:missing=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T19:06:00",
+  "edited": "2026-10-10T19:51:48"
+}

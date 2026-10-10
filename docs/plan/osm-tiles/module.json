@@ -1,0 +1,9 @@
+{
+  "module": "osm-tiles",
+  "plan": "docs/plan/osm-tiles.md",
+  "contracts": "docs/contracts/osm-tiles.md",
+  "branch": "feature/osm-tiles",
+  "copy": "~/deltaplan-osm-tiles",
+  "created": "2026-10-10T16:07:50",
+  "code": "OT"
+}

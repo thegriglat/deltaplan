@@ -20,23 +20,60 @@ static func patches_for_dir(dir: String) -> BuiltPatches:
 
 ## Дома места. loc_key — ключ места (идёт в rng), height_fn(x, z) -> высота, м.
 ## Результат кешируется по loc_key (место не меняется в процессе).
+## osm_houses — дома OSM места (OsmData.buildings): пятно, в котором есть дом OSM, процедурных не получает (O9).
 static func plan(
-	patches: BuiltPatches, loc_key: String, vcfg: Dictionary, height_fn: Callable
+	patches: BuiltPatches, loc_key: String, vcfg: Dictionary, height_fn: Callable, osm_houses: Array = []
 ) -> Array:
 	if patches == null or patches.source == "none" or not bool(vcfg.get("enabled", true)):
 		return []
-	var ck := loc_key + "|" + str(patches.get_instance_id())
+	var ck := loc_key + "|" + str(patches.get_instance_id()) + "|" + str(osm_houses.size())
 	if _cache.has(ck):
 		return _cache[ck]
-	var out := _plan_uncached(patches, loc_key, vcfg, height_fn)
+	var skip := osm_patch_ids(patches, osm_houses)
+	var out := _plan_uncached(patches, loc_key, vcfg, height_fn, skip)
 	if _cache.size() > 4:
 		_cache.clear()
 	_cache[ck] = out
 	return out
 
 
+## Id пятен, в которых есть хоть один дом OSM (центр дома в пятне: доля застройки > 0 и точка в bbox пятна).
+## Растра номеров пятен нет, поэтому пятно определяется по bbox; при пересечении bbox лишнее пятно
+## тоже теряет процедурные дома (дом OSM рядом — деревни там уже не нужно).
+static func osm_patch_ids(patches: BuiltPatches, osm_houses: Array) -> Dictionary:
+	var ids := {}
+	if osm_houses.is_empty():
+		return ids
+	var cell := 500.0
+	var grid := {}
+	for p in patches.patches():
+		var bb: Rect2 = p.bbox
+		for j in range(floori(bb.position.y / cell), floori(bb.end.y / cell) + 1):
+			for i in range(floori(bb.position.x / cell), floori(bb.end.x / cell) + 1):
+				var k := Vector2i(i, j)
+				if not grid.has(k):
+					grid[k] = []
+				(grid[k] as Array).append(p)
+	for b: Array in osm_houses:
+		var x := float(b[0])
+		var z := float(b[1])
+		var k := Vector2i(floori(x / cell), floori(z / cell))
+		if not grid.has(k):
+			continue
+		var inside: Variant = null
+		for p: Dictionary in grid[k]:
+			if ids.has(int(p.id)):
+				continue
+			if (p.bbox as Rect2).has_point(Vector2(x, z)):
+				if inside == null:
+					inside = patches.share_at(x, z) > 0.0
+				if inside:
+					ids[int(p.id)] = true
+	return ids
+
+
 static func _plan_uncached(
-	patches: BuiltPatches, loc_key: String, vcfg: Dictionary, height_fn: Callable
+	patches: BuiltPatches, loc_key: String, vcfg: Dictionary, height_fn: Callable, skip: Dictionary = {}
 ) -> Array:
 	var out: Array = []
 	var yard := float(vcfg.yard_m2)
@@ -51,6 +88,8 @@ static func _plan_uncached(
 	var list := patches.patches()
 	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.id) < int(b.id))
 	for p in list:
+		if skip.has(int(p.id)):
+			continue
 		var bb: Rect2 = p.bbox
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash([key_hash, int(p.id)])
