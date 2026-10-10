@@ -1,0 +1,57 @@
+{
+  "id": "OT-10",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Вершины и перевалы с подписями, объекты для пилота (вершины обязательны)",
+  "goal": "Обязательная часть клиента: вершины и перевалы с подписью как у ботов (имя + высота); бонусом — ЛЭП с опорами и проводами, мачты/башни/трубы/ветряки, канатки, аэродромы и ВПП как ориентиры и препятствия.",
+  "plan_ref": "OT-10. Вершины с подписями и объекты для пилота",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-10",
+  "branch": "osm-tiles/OT-10",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "scripts/world_objects/osm/osm_pilot.gd",
+    "scripts/world_objects/power_line_planner.gd",
+    "scripts/world_objects/name_tag.gd",
+    "scripts/game/bot_glider.gd",
+    "shaders/wire.gdshader",
+    "configs/world_objects.json",
+    "tests/world_objects",
+    "tests/game"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/osm/osm_roads.gd",
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "scripts/world_objects/egg_place.gd",
+    "tools/osm_tiles",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/OT-10/ | grep -ciE '\\.(png|jpg)$'",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:32:00"
+}
