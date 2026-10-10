@@ -1,0 +1,81 @@
+{
+  "id": "PD-4",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Режим управления «Маятник»: выбор модели, настройка, ввод, автопилот, телеметрия",
+  "goal": "Третий пункт «Маятник» в «Управление креном»; Glider создаёт PendulumModel по настройке и передаёт apparatus; ввод control-bar без изменений; автопилот ПИД крена через положение пилота; MR-К1 и перегрузка — из маятника; до PD-3 старт в воздухе.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К3",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "MR-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "CB-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-4",
+  "branch": "pendulum/PD-4",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/glider.gd",
+    "scripts/flight/flight_telemetry.gd",
+    "scripts/game/game.gd",
+    "scripts/game/input_controller.gd",
+    "scripts/game/autopilot.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/controls.json",
+    "locale/ui.csv",
+    "tests/game",
+    "tests/flight/pendulum/test_pendulum_mode.gd",
+    "tests/flight/pendulum/test_pendulum_autopilot.gd",
+    "tests/flight/pendulum/test_pendulum_hang_shift.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/ground_run.gd",
+    "scripts/flight/landing_flare.gd",
+    "scripts/flight/pendulum",
+    "configs/wings",
+    "scripts/game/bot_agent.gd",
+    "scripts/game/bot_pilot.gd"
+  ],
+  "accept": [
+    {
+      "name": "control_bar",
+      "tests": "control_bar"
+    },
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "autopilot",
+      "tests": "autopilot"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "settings_tabs",
+      "tests": "settings_tabs"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:02:29"
+}

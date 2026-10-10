@@ -13,3 +13,5 @@
 {"t": "2026-10-11T01:00:49", "by": "executor", "task": "PD-1", "ev": "reported", "commits": ["908ac750"], "note": "done: Офлайн-скрипт tools/flight/pendulum_params.py (импортирует модули прототипа) записал блок pendulum в 48 крыльев (вставк…", "dp_feedback": "dp accept --dry показывает тесты за 1 с - не видно, что реально выполнено; хотелось бы число проверок/файл лога в выводе."}
 {"t": "2026-10-11T01:01:51", "by": "coordinator", "task": "PD-1", "ev": "checked", "note": "6/6 pendulum_contracts_k2=ok:3/3; test_wings=ok:4/4; wing_physics_contracts=ok:5/5; params_check=ok:exit 0; wings_only_added=ok:0; wings_count=ok:48"}
 {"t": "2026-10-11T01:01:56", "by": "coordinator", "task": "PD-1", "ev": "accepted", "note": "по отчёту: 6/6, инварианты PD-К2 на 48 крыльях; крутка 7 крыльев уменьшена — решение координатора"}
+{"t": "2026-10-11T01:02:08", "by": "coordinator", "task": "PD-1", "ev": "merged", "commits": ["3bb5493"]}
+{"t": "2026-10-11T01:02:29", "by": "coordinator", "task": "PD-4", "ev": "created", "note": "Режим управления «Маятник»: выбор модели, настройка, ввод, автопилот, телеметрия"}
