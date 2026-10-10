@@ -1,0 +1,126 @@
+{
+  "status": "done",
+  "summary": "apparatus_defaults {dihedral_eff_deg, sail_flex} по group записаны во все 48 крыльев (PD-К2 v3): trainer 5°/0,15, soviet 3°/0,2, kingpost 1°/0,2, topless 0,5°/0,2; перекладка 45→45 опорных крыльев 3,9–4,4 с. hang_from_nose_m не менялся (буквальное «ЦМ + 2–3 см» даёт Kn<=0 у 10 из 15 безмачтовых). Раздел «Ответы пилота 11.10» в docs/research/pendulum.md. Проверка V=6° у trainer: самовыравнивания (<15° за 10 с) нет ни при 0,15/0,2/0,35, умолчания не менялись; записано в research.",
+  "commits": [
+    "dc6ad0c5 pendulum PD-12: умолчания «Аппарата» по классам крыла (PD-К2 v3), калибровка, раздел «Ответы пилота 11.10»",
+    "проверка V=6° и запись расхождения с пилотом (см. git log)"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts_k2",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_wings",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "params_check",
+      "value": "exit 0, 48 крыльев",
+      "pass": true
+    },
+    {
+      "name": "wings_v3",
+      "value": "48",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "--filter=pendulum",
+      "value": "34 теста, 4 упало (2 новых от правок: test_pendulum_autopilot::holds_horizon_in_turbulence, test_pendulum_longitudinal::test_reset_is_trim; 2 прежних: contracts_k1 doc_heading, contracts_k3 header)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Учебный «сам выходит из виража за несколько секунд» двумя числами не получается: у training 30° -> 26° за 20 с (нейтрально/медленно затухает), apogee 30° -> 12° за 20 с. Нужен третий рычаг (Cnβ/боковая сила кармана по классу) — отдельная задача.",
+    "Перекладка учебных медленнее безмачтовых на +0,5 с по медиане, не на +1 с."
+  ],
+  "questions": [
+    "Подтверждено координатором: flex 0,15 у trainer; Cnβ-задачи не будет."
+  ],
+  "images": [],
+  "how_to_check": "dp accept PD-12; python tools/flight/pendulum_params.py --check; таблицы tools/research/pendulum/out/calib_classes.md, calib_verify.md",
+  "uncertain": [
+    {
+      "where": "tools/flight/pendulum_params.py:GROUP_DEFAULTS",
+      "why": "V и flex выбраны по прототипу с оценочными параметрами (cn_beta 0,06, руки), один пилот-источник; внутри класса разброс по крыльям больше, чем между классами (trainer rev 3,3–4,9 с, kingpost phi10 39–66°)",
+      "checked": "проверка умолчаний на всех 48 крыльях: out/calib_verify.md"
+    },
+    {
+      "where": "configs/wings/*.json pendulum.cg_z_m/inertia/dcm0",
+      "why": "поперечное V входит в геометрию массы прототипа, поэтому cg_z и инерция в блоке посчитаны при V класса, а игра пока берёт V=1 из configs/pendulum.json (PD-13 ещё не читает apparatus_defaults крыла): трим/ЦМ в игре расходятся с блоком на доли км/ч",
+      "checked": "сдвиг sport: dcm0 0,0507->0,0489, cg_z -0,048->-0,065; это и есть причина 2 новых падений тестов (reference.json PD-3 пересоздаст)"
+    },
+    {
+      "where": "aeros_discus",
+      "why": "в прототипе расходится (SVD не сходится) при V>=1,5° (Kn 0,38); поэтому у мачтовых V=1,0°",
+      "checked": "V 0,5/1,0/1,25 — ок, 1,5/2/3 — ошибка; причина не выяснена"
+    },
+    {
+      "where": "condor_flex, fs_space",
+      "why": "полным смещением не доходят до 45° за 12 с — 'перекладка 45->45' не определена",
+      "checked": "calib_verify.md"
+    },
+    {
+      "where": "docs/research/pendulum.md, раздел Подвеска",
+      "why": "какой 'ЦМ' имеет в виду пилот — неизвестно; вывод 'не менять' опирается на согласие 'десять см вперёд -> устойчиво' с Kn и на Kn<=0 при буквальной подстановке",
+      "checked": "Kn по 48 крыльям: topless 10 из 15 <=0, kingpost мин 0,008, trainer/soviet > 0"
+    }
+  ],
+  "dp_feedback": "dp accept --dry не показывает список упавших тестов по имени при filter=pendulum; хотелось бы 'dp test <filter>' с сравнением с базой (сейчас stash + два прогона вручную). Запуск тестов Godot: в справке нет готовой команды (res://tests/run_tests.tscn -- --filter=).",
+  "extra": {
+    "classes": {
+      "trainer": {
+        "V": 5.0,
+        "flex": 0.15,
+        "ref_wing": "training",
+        "rev45_s": 4.4,
+        "phi10": 28,
+        "phi20": 26,
+        "F30_N": -13
+      },
+      "soviet": {
+        "V": 3.0,
+        "flex": 0.2,
+        "ref_wing": "apogee",
+        "rev45_s": 4.3,
+        "phi10": 20,
+        "phi20": 12,
+        "F30_N": -6
+      },
+      "kingpost": {
+        "V": 1.0,
+        "flex": 0.2,
+        "ref_wing": "laminar",
+        "rev45_s": 4.4,
+        "phi10": 45,
+        "phi20": 51,
+        "F30_N": -32,
+        "ochi_phi7": 33
+      },
+      "topless": {
+        "V": 0.5,
+        "flex": 0.2,
+        "ref_wing": "sport",
+        "rev45_s": 3.9,
+        "phi10": 47,
+        "phi20": 52,
+        "F30_N": -32
+      }
+    },
+    "tests_pendulum_failed": [
+      "test_pendulum_autopilot::test_autopilot_holds_horizon_in_turbulence (sport СКО крена 15,67° vs порог 11,39°)",
+      "test_pendulum_longitudinal::test_reset_is_trim (training тангаж 3,90 vs 3,57±0,3)",
+      "test_pendulum_contracts_k1::test_doc_heading (прежний)",
+      "test_pendulum_contracts_k3::test_header (прежний)"
+    ]
+  },
+  "t": "2026-10-11T02:43:52",
+  "by": "executor"
+}
