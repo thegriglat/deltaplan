@@ -5,7 +5,7 @@ module: "no-osm"
 updated: "2026-10-10"
 summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 игра без OSM, N5 файлы места в WebP и версия кеша; К8 v4 — в easter-eggs.md"
 related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 2}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}, {"id": "N5", "version": 1}]
+contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 2}, {"id": "N3", "version": 1}, {"id": "N4", "version": 3}, {"id": "N5", "version": 1}]
 ---
 # Контракты no-osm
 
@@ -60,7 +60,12 @@ v1 → v2 (10.10): публичный `static func for_dir(dir: String) -> Built
 пятна; плотность — по `share_at`; типы и размеры — `configs/world_objects.json → villages` (с `_doc`).
 Нет пятен — домов нет.
 
-## N4. Игра без OSM (v2, владелец NO-4; потребители сборщик, Locations, WorldObjects, пасхалки)
+## N4. Игра без OSM (v3, владелец NO-4; потребители сборщик, Locations, WorldObjects, пасхалки)
+v2 → v3 (10.10, решение пользователя, модуль osm-tiles): OSM вернулся — из своих тайлов (`docs/contracts/osm-tiles.md`
+O9): снова есть `OsmData`, `OsmLayer`, `RoadMesher`, `PowerLinePlanner`, стадия `osm_tiles` (последняя, может быть в
+`missing`). По-прежнему нет: Overpass и `OsmStage`, `osm.json` у мест, `Locations.osm_path`, заборов, полей, landuse,
+имён посёлков, воды OSM в маске; пасхалки от OSM не зависят. Пункты ниже про отсутствие `OsmData`/`OsmLayer`/
+`RoadMesher`, дорог и ЛЭП — заменены этим.
 v1 → v2 (10.10, решение пользователя): OSM удалён и у встроенных мест — `osm.json` нет нигде.
 - Стадии сборщика: dem → rivers → surface; OSM — не стадия (нет в `build.json`, не `missing`); сеть Overpass не
   используется нигде.
