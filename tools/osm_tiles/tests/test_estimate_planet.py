@@ -1,5 +1,7 @@
 import json
 import sys
+import contextlib
+import io
 import tempfile
 import unittest
 from pathlib import Path
@@ -53,7 +55,8 @@ class Estimate(unittest.TestCase):
                 p.write_text(json.dumps(ref_to_stats.to_o6(ref_to_stats.load_ref(ref)[0], place=ref)))
                 ps.append(str(p))
             out = Path(d) / "o.json"
-            self.assertEqual(ep.main(ps + ["--out", str(out)]), 0)
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(ep.main(ps + ["--out", str(out)]), 0)
             r = json.loads(out.read_text())
             self.assertLess(r["planet_GB"][0], r["planet_GB"][1])
             self.assertGreater(r["planet_GB"][0], 1)
