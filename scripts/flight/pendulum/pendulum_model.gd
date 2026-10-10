@@ -252,6 +252,7 @@ func reset_in_air(
 	var h := _pos + _R * _r_hang_b
 	chain.place(h, _R * Vector3(st.pilot_dir_b), _vel)
 	mode = FlightModel.Mode.AIR
+	_air_c = ned(wind)  # до первого step воздушная скорость — относительно ветра
 	_update_outputs(Callable(), Callable())
 
 
@@ -273,6 +274,7 @@ func set_kinematic(pos: Vector3, vel: Vector3, heading_: float, bank_: float, th
 	_place_wing(pos)
 	var h := _pos + _R * _r_hang_b
 	chain.place(h, E3, _vel)
+	_air_c = Vector3.ZERO
 	arms.reset()
 	mode = FlightModel.Mode.AIR
 	_update_outputs(Callable(), Callable())
@@ -290,14 +292,16 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var h := dt / n
 	_last_pitch = input.pitch
 	var t_aero := 0.0 if aero_hz <= 0.0 else 1.0 / aero_hz - 1.0e-9
+	var f_sum := Vector3.ZERO  # сила на пилота, усреднённая по подшагам (звено может провиснуть в последнем)
 	for k in n:
 		if _aero_age >= t_aero:
 			_aero_update(air_fn)
 			_aero_age = 0.0
 		_substep(h, input)
+		f_sum += chain.pilot_force + _R * arms.force_b
 		_aero_age += h
 	_R = _R.orthonormalized()
-	var f_p := chain.pilot_force + _R * arms.force_b
+	var f_p := f_sum / n
 	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
 	_update_outputs(air_fn, ground_fn)
 	_check_touchdown(ground_fn)
@@ -553,7 +557,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	hang_position = _world(h_loc)
 	position = _world(p_loc)
 	velocity = game(_vel + _w.cross(p_loc - _pos))
-	var air_c := _air_c if air_fn.is_valid() and mode == FlightModel.Mode.AIR else Vector3.ZERO
+	var air_c := _air_c if mode == FlightModel.Mode.AIR else Vector3.ZERO
 	var vb := R.transposed() * (_vel - air_c)
 	alpha = atan2(vb.z, vb.x)
 	stalled = strips.root_stalled()
