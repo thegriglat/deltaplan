@@ -30,7 +30,7 @@ const DEFAULTS := {
 		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.6,
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
 	},
-	"strips": {"count": 16, "cp_chord": 0.25},
+	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 	"yaw": {"cn_beta": 0.06, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0},
 	"pilot_cda_m2": 0.21,
 	"apparent_roll": true,
@@ -80,9 +80,9 @@ var strap_tension: float = 0.0
 ## усилие рук, Н (+ — пилот вправо; NAN — нет).
 var arms_relaxed := false
 var hands_force_y: float = NAN
-## Частота пересчёта аэродинамики полос и выборки ветра, Гц (≤ 0 — на каждом подшаге, как
-## прототип); между пересчётами сила и момент заморожены в осях крыла. Цепь и руки — на каждом
-## подшаге. Детерминированные сценарии при 60 Гц совпадают с прототипом до 0,5 % (PD-2).
+## Частота пересчёта аэродинамики полос и выборки ветра, Гц — configs/pendulum.json →
+## strips.aero_hz (PD-К2 v2; ≤ 0 — на каждом подшаге, как прототип); между пересчётами сила и
+## момент заморожены в осях крыла. Цепь и руки — на каждом подшаге.
 var aero_hz: float = 60.0
 
 var strips := PendulumWingStrips.new()
@@ -193,6 +193,7 @@ func setup(
 	_head_fwd = float(pendulum.head.forward_m)
 	_head_up = float(pendulum.head.up_m)
 	_pilot_cda = float(pendulum.pilot_cda_m2)
+	aero_hz = float(pendulum.strips.get("aero_hz", 60.0))
 	var ad: Dictionary = flight.air_density
 	_alt_dep = bool(ad.altitude_dependent)
 	_rho_sea = float(ad.sea_level_kgm3)
