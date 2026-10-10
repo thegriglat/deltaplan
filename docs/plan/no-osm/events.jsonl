@@ -47,3 +47,5 @@
 {"t": "2026-10-10T05:33:30", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp accept по фильтру каталога (game/) ждёт 900 с, не показывая, какой файл завис (test_cockpit виснет и на main); нужен таймаут на файл и имя зависшего файла в итоге"}
 {"t": "2026-10-10T05:36:48", "by": "coordinator", "task": "NO-4", "ev": "accepted", "commits": ["6a94ddb"], "note": "9/9 no_osm_contracts_n4=ok:2/2; world_objects=ok:84/84; test_location=ok:7/7; test_surface_stage=ok:2/2; ui/=ok:105/105; osm_any_contracts=ok:11/11; no_overpass=ok:exit 0; no_power_fence=ok:exit 0; test_collisions=ok:2/2"}
 {"t": "2026-10-10T05:36:58", "by": "coordinator", "task": "NO-4", "ev": "merged", "commits": ["6a94ddb"]}
+{"t": "2026-10-10T05:37:13", "by": "coordinator", "task": "NO-7", "ev": "edited", "note": "contract:N4", "diff": {"contract": ["null", "null"]}}
+{"t": "2026-10-10T05:37:13", "by": "coordinator", "task": "NO-7", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-no-osm-NO-7; параллельно NO-9 в стадиях — dp task sync"}
