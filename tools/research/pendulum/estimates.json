@@ -1,0 +1,139 @@
+{
+ "hiway_demon_modes": {
+  "source": "arXiv:2108.02393 Table 2 (model: Cook & Spottiswoode, Aeronaut. J. 2006), dt=0.01 s",
+  "short_period": {
+   "re_1s": -2.01,
+   "im_rads": 2.19,
+   "wn_rads": 2.973,
+   "zeta": 0.676,
+   "period_s": 2.87
+  },
+  "phugoid": {
+   "re_1s": 0.09,
+   "im_rads": 1.16,
+   "wn_rads": 1.163,
+   "zeta": -0.077,
+   "period_s": 5.42
+  },
+  "roll_subsidence": {
+   "re_1s": -22.59,
+   "im_rads": 0.0,
+   "wn_rads": 22.59,
+   "zeta": 1.0,
+   "period_s": null
+  },
+  "spiral": {
+   "re_1s": -0.511,
+   "im_rads": 0.0,
+   "wn_rads": 0.511,
+   "zeta": 1.0,
+   "period_s": null
+  },
+  "dutch_roll": {
+   "re_1s": -0.27,
+   "im_rads": 0.88,
+   "wn_rads": 0.921,
+   "zeta": 0.294,
+   "period_s": 7.14
+  },
+  "note": "4 состояния по тангажу (u,w,q,θ) и 5 по крену — пилот жёстко связан с крылом (controls fixed), отдельной степени маятника нет"
+ },
+ "geometry": {
+  "m_pilot_kg": 85.0,
+  "m_wing_kg": 34.4,
+  "span_m": 10.4,
+  "area_m2": 14.1,
+  "mean_chord_m": 1.356,
+  "strap_m": 1.211,
+  "pilot_cg_below_hang_m": 1.137,
+  "bar_travel_pitch_m": 0.3,
+  "bar_travel_roll_m": 0.35
+ },
+ "pilot_pendulum": {
+  "point_mass_d=strap": {
+   "wn_rads": 2.846,
+   "period_s": 2.208
+  },
+  "point_mass_d=cg": {
+   "wn_rads": 2.937,
+   "period_s": 2.139
+  },
+  "physical_pitch_swing(I_cg=m h^2/12)": {
+   "wn_rads": 2.684,
+   "period_s": 2.341
+  },
+  "physical_roll_swing(I_cg~cylinder)": {
+   "wn_rads": 2.914,
+   "period_s": 2.156
+  },
+  "I_pilot_pitch_kgm2": 21.7,
+  "I_pilot_roll_kgm2": 1.79,
+  "note": "крыло не закреплено: маятник качается относительно общего ЦМ, приведённая длина d·m_w/(m_w+m_p)… см. coupled",
+  "coupled_free_wing_no_aero": {
+   "wn_rads": 5.472,
+   "period_s": 1.148,
+   "note": "верхняя граница частоты: крыло без аэродинамики свободно; в полёте подъёмная сила ~ держит крыло, частота между point_mass и этим"
+  }
+ },
+ "wing_inertia_estimate_sport": {
+  "Ixx_structure": 232.5,
+  "Ixx_added_air": 165.8,
+  "Ixx_total": 398.3,
+  "Iyy_structure": 8.7,
+  "Iyy_added_air": 1.1,
+  "Iyy_total": 9.7,
+  "Izz_structure": 241.2,
+  "pilot_about_hang_point_m_d2": 109.9,
+  "note": "оценки по трубам и присоединённой массе (flight.json → ground_bank); точный расчёт по модели масс Blender — задача PD-1"
+ },
+ "trim_calibration_sport": {
+  "CL_trim": 1.403,
+  "alpha_trim_deg": 11.86,
+  "CL_pull": 0.165,
+  "alpha_pull_deg": -3.9,
+  "CL_push_config": 2.952,
+  "note_push": "CL_push > CL_max: полный ход «от себя» в конфиге лежит за сваливанием — в модели моментов скорость «от себя» задаётся не конфигом, а срывом",
+  "pilot_moment_full_bar_Nm": 250.2,
+  "Cm_alpha_abs_per_rad": 0.095,
+  "M_alpha_at_trim_Nm_per_rad": 107.0,
+  "bar_force_at_full_pull_N(статика, плечо до штанги 1.55 м)": 161.4
+ },
+ "short_period_estimate_sport": {
+  "wing_alone_wn_rads": 3.31,
+  "controls_fixed_wn_rads": 0.95,
+  "note": "без Cm_q и Z_w; реальная связанная мода — между ними; Cook/Spottiswoode (Hiway Demon): 2.97 рад/с, ζ 0.68"
+ },
+ "phugoid_lanchester": {
+  "period_s": 4.45,
+  "V_trim_ms": 9.83
+ },
+ "integrator": {
+  "omega_dt": {
+   "60Hz": {
+    "pendulum": 0.0912,
+    "arm_spring(k=3000)": 0.099,
+    "strap_as_spring(EA=4e5)": 1.039
+   },
+   "120Hz": {
+    "pendulum": 0.0456,
+    "arm_spring(k=3000)": 0.05,
+    "strap_as_spring(EA=4e5)": 0.519
+   },
+   "240Hz": {
+    "pendulum": 0.0228,
+    "arm_spring(k=3000)": 0.025,
+    "strap_as_spring(EA=4e5)": 0.26
+   }
+  },
+  "omega_arm_rads": 5.94,
+  "omega_strap_rads": 62.3,
+  "rule": "полу-неявный Эйлер устойчив при ω·dt < 2; стропа как пружина при 120 Гц ω·dt≈0.5 — на грани (жёсткая), поэтому стропа — ограничение (PBD), не пружина"
+ },
+ "roll_estimate_sport": {
+  "pilot_moment_full_shift_Nm": 291.8,
+  "L_p_Nms_at_trim": -1033.3,
+  "roll_time_constant_s(I/|L_p|)": 0.385,
+  "steady_roll_rate_if_no_restoring_dps": 16.2,
+  "note": "установившейся скорости крена нет: в вираже вес пилота уходит в плоскость симметрии (Takamatsu & Ochi 2022) и крен держит аэродинамика; число — только порядок"
+ }
+}
