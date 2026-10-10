@@ -878,6 +878,7 @@ func _fetch_tiles(
 ) -> Error:
 	var lv: Dictionary = cog.levels[level]
 	var state := {"err": OK, "left": tiles.size()}
+	ctx.plan("surface", tiles.size())
 	var queue: Array[Vector2i] = tiles.duplicate()
 	var workers := maxi(1, mini(max_parallel, queue.size()))
 	for q in workers:
@@ -910,6 +911,7 @@ func _tile_worker(
 				return
 			data = r[1]
 		raw[t] = data
+		ctx.tick("surface")
 		state.left = int(state.left) - 1
 
 

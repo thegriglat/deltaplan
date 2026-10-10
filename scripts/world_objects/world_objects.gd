@@ -26,6 +26,10 @@ var build_time_s: float = 0.0
 var camp: Array[Dictionary] = []
 ## Костёр лагеря (Campfire) или null.
 var campfire: Campfire = null
+## Дома посёлков (VillagePlacer, N3): [x, z, w, l, угол_град, высота_стен_м, крыша].
+var houses: Array = []
+var village_layer: VillageLayer
+
 
 var _air_fn: Callable
 var _height_fn: Callable
@@ -45,6 +49,9 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 	var landings: Array = []
 	if terrain.has_method(&"get_landing_sites"):
 		landings = terrain.call(&"get_landing_sites")
+	var patches: BuiltPatches = null
+	if terrain is Terrain:
+		patches = BuiltPatches.for_terrain(terrain)
 	build(
 		String(terrain.get(&"location_id")),
 		terrain.call(&"get_start_sites"),
@@ -52,7 +59,8 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 		Callable(terrain, &"height_at"),
 		air,
 		Callable(terrain, &"latlon_to_local"),
-		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon")))
+		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon"))),
+		patches
 	)
 
 
@@ -60,6 +68,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 ## start_sites — как Terrain.get_start_sites(); landings — как Terrain.get_landing_sites()
 ## ({id, name, lat, lon}; подробности поля — configs/world_objects.json → landing.sites по id);
 ## latlon_fn(lat, lon) -> Vector2(x, z); center — (lat, lon).
+## patches — пятна застройки места (BuiltPatches) для домов; null — берутся из данных локации по id.
 func build(
 	loc_id: String,
 	start_sites: Array,
@@ -67,7 +76,8 @@ func build(
 	height_fn: Callable,
 	air_fn: Callable,
 	latlon_fn: Callable,
-	center: Vector2
+	center: Vector2,
+	patches: BuiltPatches = null
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	clear()
@@ -85,17 +95,19 @@ func build(
 	if bool(cfg.start_tracks.get("enabled", true)):
 		start_tracks = StartTracks.plan(start_sites, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
+	_build_villages(patches, height_fn)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
 		(
-			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d"
+			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d, домов %d"
 			% [
 				loc_id,
 				build_time_s,
 				indicators.size(),
 				landing_sites.size(),
-				start_tracks.size()
+				start_tracks.size(),
+				houses.size()
 			]
 		)
 	)
@@ -108,6 +120,8 @@ func clear() -> void:
 	indicators.clear()
 	landing_sites.clear()
 	start_tracks.clear()
+	houses = []
+	village_layer = null
 	camp.clear()
 	campfire = null
 	_active.clear()
@@ -229,12 +243,33 @@ func _update_campfire() -> void:
 	_since_fire = 0.0
 
 
+## Дома посёлков по пятнам застройки (VillageLayer) — отрисовка, препятствия.
+func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
+	var bc: Dictionary = cfg.buildings
+	if not bool(bc.get("enabled", true)):
+		return
+	if patches == null:
+		patches = WorldClearings.patches_for_location(location_id)
+	houses = VillagePlacer.plan(patches, location_id, cfg.villages, height_fn)
+	if houses.is_empty():
+		return
+	village_layer = VillageLayer.new()
+	village_layer.name = "Villages"
+	add_child(village_layer)
+	village_layer.build(houses, cfg, height_fn)
+
+
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы), точки (камни, кусты).
 func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
 	var env := {"lines": [], "points": [], "zone": TentCamp.launch_zone(tc)}
 	var tw := float(tc.get("track_margin_m", 4.0))
 	for pts: PackedVector2Array in start_tracks:
 		env.lines.append([pts, tw + float(cfg.start_tracks.get("width_m", 2.0)) * 0.5])
+	var bm := float(tc.get("building_margin_m", 15.0))
+	var reach := float(tc.distance_m[1]) + 60.0
+	for b: Array in houses:
+		if Vector2(float(b[0]) - start.x, float(b[1]) - start.z).length() < reach:
+			env.points.append(Vector3(float(b[0]), float(b[1]), bm))
 	if terrain != null:
 		env.height_fn = Callable(terrain, &"height_at")
 		if terrain.has_method(&"surface_at") and terrain.has_method(&"forest_at"):
@@ -259,6 +294,16 @@ func is_clear_at(x: float, z: float) -> bool:
 ## Первое препятствие на пути a→b: {kind: building|tree, point} или {}.
 func obstacle_hit(segment_start: Vector3, segment_end: Vector3) -> Dictionary:
 	var best := {} if obstacles == null else obstacles.hit(segment_start, segment_end)
+	if village_layer != null and village_layer.building_obstacles != null:
+		var b := village_layer.building_obstacles.hit(segment_start, segment_end)
+		if (
+			not b.is_empty()
+			and (
+				best.is_empty()
+				or segment_start.distance_to(b.point) < segment_start.distance_to(best.point)
+			)
+		):
+			best = b
 	return best
 
 

@@ -15,6 +15,11 @@
       "name": "N1",
       "version": "1",
       "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N2",
+      "version": "2",
+      "ref": "docs/contracts/no-osm.md"
     }
   ],
   "copy": "~/deltaplan-no-osm-NO-9",
@@ -27,7 +32,9 @@
     "tests/terrain/",
     "tests/vegetation/",
     "tools/terrain/",
-    "docs/guide/location-data.md"
+    "docs/guide/location-data.md",
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/world_objects/village_placer.gd"
   ],
   "dont_touch": [
     "scripts/world_objects/",
@@ -97,5 +104,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T04:21:20",
-  "edited": "2026-10-10T04:22:49"
+  "edited": "2026-10-10T05:43:13"
 }

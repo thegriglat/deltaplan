@@ -7,6 +7,8 @@ extends RefCounted
 ## следующий запуск догружает только недостающее.
 
 signal progress(stage: String, fraction: float)
+## Счётчик запросов стадии (NO-7), как LocationBuildContext.counter.
+signal counter(stage: String, done: int, total: int)
 
 ## Стадии по порядку: [{name, obj}] (obj — с методом run(ctx)). Пусто — стадии игры;
 ## тесты подставляют свои. Имя "dem" — обязательная, остальные могут отказать.
@@ -73,6 +75,7 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 	ctx.offline = offline
 	ctx.spec = _spec(key, snapc)
 	ctx.progress.connect(func(stage: String, f: float) -> void: progress.emit(stage, f))
+	ctx.counter.connect(func(stage: String, d: int, t: int) -> void: counter.emit(stage, d, t))
 	var tmp := LocationCache.tmp_dir_for(key)
 	LocationCache.remove_dir(tmp)
 	DirAccess.make_dir_recursive_absolute(tmp)

@@ -69,10 +69,15 @@
       "name": "screenshot",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/NO-2/ | grep -iE 'jpg|png'",
       "expect": "exit=0"
+    },
+    {
+      "name": "no_osm_refs",
+      "cmd": "! grep -rIlE 'osm\\.json|OsmData|OsmLayer|RoadMesher|osm_path|[Oo]verpass' scripts configs tests data | grep -v no_osm_contracts_n4",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T03:50:28",
-  "edited": "2026-10-10T04:22:49"
+  "edited": "2026-10-10T05:32:42"
 }

@@ -5,7 +5,7 @@ module: "no-osm"
 updated: "2026-10-10"
 summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 игра без OSM, N5 файлы места в WebP и версия кеша; К8 v4 — в easter-eggs.md"
 related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}, {"id": "N5", "version": 1}]
+contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 2}, {"id": "N3", "version": 1}, {"id": "N4", "version": 2}, {"id": "N5", "version": 1}]
 ---
 # Контракты no-osm
 
@@ -36,11 +36,15 @@ contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 1}, {"id": "N3",
 - `surface.json → layers[detail].built10 = {file, patches_file, built_fraction, patches}`.
 Инварианты: сумма `area_m2` ≤ число клеток built10 с долей ≥ порога × 100; пятна не пересекаются.
 
-## N2. `BuiltPatches` — пятна застройки в игре (v1, владелец NO-1; потребители NO-2, NO-3)
+## N2. `BuiltPatches` — пятна застройки в игре (v2, владелец NO-1, правка v2 — NO-9; потребители NO-2, NO-3)
+v1 → v2 (10.10): публичный `static func for_dir(dir: String) -> BuiltPatches` — пятна по каталогу места без `Terrain`
+(маска полян, `WorldObjects.build` без рельефа); `VillagePlacer` переходит с приватного `_load` на него.
 `class_name BuiltPatches extends RefCounted`, `scripts/terrain/built_patches.gd`. Один на место, только чтение,
 одинаков у всех в сети при одном месте.
 - `static func for_terrain(t: Terrain) -> BuiltPatches` — загруженный для места (кеш на `Terrain`, лениво);
   `t == null` или нет файлов — пустой (`source == "none"`), без ошибок в логе.
+- `static func for_dir(dir: String) -> BuiltPatches` — то же по каталогу места (`res://data/terrain/<id>/` или
+  `user://locations/<ключ>/`); нет файлов — пустой.
 - `source: String` — `"worldcover10"` | `"none"`.
 - `patches() -> Array[Dictionary]` — копия списка N1 (`{id, x, z, area_m2, share, bbox: Rect2 (x0, z0, w, h)}`).
 - `nearest(x: float, z: float) -> Dictionary` — ближайшее пятно (по центру) + `dist_m`; `{}` — пятен нет.

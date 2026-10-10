@@ -70,7 +70,7 @@ func test_n1_files() -> void:
 func test_n2_interface() -> void:
 	var path := "res://scripts/terrain/built_patches.gd"
 	var m := _methods(path)
-	for f in ["for_terrain", "patches", "nearest", "share_at"]:
+	for f in ["for_terrain", "for_dir", "patches", "nearest", "share_at"]:
 		check(m.has(f), "BuiltPatches.%s" % f)
 	if not ResourceLoader.exists(path):
 		return

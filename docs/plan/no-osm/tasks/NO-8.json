@@ -1,0 +1,95 @@
+{
+  "id": "NO-8",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Встроенные места собираются при первом выборе (не в паке)",
+  "goal": "Пак легче (~60 МБ): у altai, askarovo, aushkul, ongudai в игре только ручные данные (центр, имя, старты, посадки, конфиг); собранные слои строит LocationBuilder при первом выборе в user://locations, дальше — из кеша, как у произвольной точки.",
+  "plan_ref": "NO-8",
+  "contracts": [
+    {
+      "name": "N4",
+      "version": "2",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N5",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-8",
+  "branch": "no-osm/NO-8",
+  "base": "feature/no-osm",
+  "scope": [
+    "data/terrain/",
+    "tests/fixtures/",
+    "scripts/terrain/",
+    "scripts/game/",
+    "scripts/ui/",
+    "configs/locations/",
+    "tests/",
+    "tools/terrain/",
+    "export_presets.cfg",
+    "tools/release/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "project.godot",
+    "docs/contracts/",
+    "tests/contracts/test_no_osm_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_location",
+      "tests": "test_location"
+    },
+    {
+      "name": "test_terrain",
+      "tests": "test_terrain"
+    },
+    {
+      "name": "test_surface",
+      "tests": "test_surface"
+    },
+    {
+      "name": "test_built_patches",
+      "tests": "test_built_patches"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "tests": "test_eggs_no_osm"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_collisions",
+      "tests": "test_collisions"
+    },
+    {
+      "name": "no_osm_contracts",
+      "tests": "no_osm_contracts"
+    },
+    {
+      "name": "no_built_layers",
+      "cmd": "! ls data/terrain/*/ | grep -iE '\\.(webp|png|zst)$|built_patches|surface\\.json'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pck_size",
+      "cmd": "bash tools/release/pck_size.sh",
+      "expect": {
+        "num": "pck_mb ([0-9.]+)",
+        "max": 40
+      }
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T05:37:49"
+}

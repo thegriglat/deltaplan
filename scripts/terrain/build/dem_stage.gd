@@ -232,6 +232,7 @@ func _sample_copernicus(g: Dictionary, prog0: float, prog_span: float) -> Packed
 			for tx in range(int(fd.tx0), int(fd.tx1) + 1):
 				jobs.append({"key": fkey, "tx": tx, "ty": ty})
 	# Скачать/прочитать блоки.
+	_ctx.plan("dem", jobs.size())
 	var queue := jobs.duplicate()
 	var state := {"left": jobs.size()}
 	var workers := mini(int(_rt.get("max_parallel_requests", 8)), jobs.size())
@@ -326,6 +327,7 @@ func _cop_worker(files: Dictionary, queue: Array, state: Dictionary) -> void:
 				_ctx.log_line("DemStage: пустой блок %s" % fd.name)
 				return
 		jb["raw"] = raw
+		_ctx.tick("dem")
 		state.left = int(state.left) - 1
 
 
@@ -443,6 +445,7 @@ func _sample_terrarium(g: Dictionary, z: int, prog0: float, prog_span: float) ->
 		for tx in range(tx0, tx1 + 1):
 			tiles.append(Vector2i(tx, ty))
 	var pngs := {}
+	_ctx.plan("dem", tiles.size())
 	var queue := tiles.duplicate()
 	var state := {"left": tiles.size()}
 	var workers := mini(int(_rt.get("max_parallel_requests", 8)), tiles.size())
@@ -487,6 +490,7 @@ func _tr_worker(z: int, queue: Array, pngs: Dictionary, state: Dictionary) -> vo
 		if _err != OK:
 			return
 		pngs[t] = data
+		_ctx.tick("dem")
 		state.left = int(state.left) - 1
 
 

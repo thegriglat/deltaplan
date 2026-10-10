@@ -174,6 +174,11 @@ func load_point(lat: float, lon: float) -> void:
 						progress.stage("landcover", tr("loading_landcover"))
 			progress.sub(f, 1.0)
 	)
+	builder.counter.connect(
+		func(stage: String, done: int, total: int) -> void:
+			if gen == _load_gen:
+				progress.counter(stage, done, total)
+	)
 	var res: Dictionary = await builder.build(self, lat, lon)
 	if _builder == builder:
 		_builder = null
