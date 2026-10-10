@@ -41,6 +41,7 @@ var _active: Array[WindIndicator] = []
 var _since_update: float = 0.0
 var _since_active: float = INF
 var _since_fire: float = INF
+var _since_osm_wind: float = INF
 var _update_dt: float = 1.0 / 30.0
 
 
@@ -369,6 +370,7 @@ func get_landing_sites() -> Array[Dictionary]:
 
 
 func _physics_process(delta: float) -> void:
+	_update_osm_wind(delta)
 	if campfire != null:
 		_since_fire += delta
 		if _since_fire >= float(cfg.campfire.get("update_s", 0.3)):
@@ -386,6 +388,24 @@ func _physics_process(delta: float) -> void:
 	_since_update = 0.0
 	for ind in _active:
 		ind.update_wind(dt, _air_at(ind.pivot_position()))
+
+
+## L4: ветер слоя OSM (и дым процедурных посёлков) раз в osm_wind.update_s: OsmLayer.update_wind(air_fn, cam).
+func _update_osm_wind(delta: float) -> void:
+	if osm_layer == null and village_layer == null:
+		return
+	_since_osm_wind += delta
+	if _since_osm_wind < float(cfg.get("osm_wind", {}).get("update_s", 0.5)):
+		return
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam == null:
+		return
+	_since_osm_wind = 0.0
+	var air := Callable(self, &"_air_at")
+	if osm_layer != null:
+		osm_layer.update_wind(air, cam.global_position)
+	if village_layer != null:
+		OsmLayer.feed_wind(village_layer, air, cam.global_position)
 
 
 ## Анимировать только ветроуказатели ближе active_radius_m к камере (без камеры — все).
