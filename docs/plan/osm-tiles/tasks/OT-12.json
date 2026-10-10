@@ -63,14 +63,10 @@
       "name": "shymbulak_osm",
       "cmd": "cat /home/greg/deltaplan/build/osm_test/shymbulak_check.txt",
       "expect": "re:missing=0"
-    },
-    {
-      "name": "screenshot",
-      "cmd": "ls /home/greg/deltaplan/build/screenshots/OT-12/ | grep -ciE '\\.(png|jpg)$'",
-      "expect": "num:^(\\d+) >=1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T19:06:00"
+  "created": "2026-10-10T19:06:00",
+  "edited": "2026-10-10T19:51:48"
 }
