@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Дома посёлков процедурно внутри пятен застройки (VillagePlacer по N3, VillageLayer: BuildingPlacer → MultiMesh по тайлам), препятствия building в obstacle_hit, штамп в маске полян, параметры в configs/world_objects.json → villages. Здания OSM нигде не читаются.",
+  "commits": [
+    "NO-2: дома посёлков процедурно в пятнах застройки (VillagePlacer, VillageLayer), препятствия, поляны, тест"
+  ],
+  "checks": [
+    {
+      "name": "dp accept NO-2 --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "домов altai (было ~27 тыс. OSM)",
+      "value": "25167",
+      "pass": true
+    },
+    {
+      "name": "сборка WorldObjects askarovo, с",
+      "value": "0.89 (лимит 6)",
+      "pass": true
+    },
+    {
+      "name": "test_villages",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    },
+    {
+      "name": "test_collisions",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts_n1",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    },
+    {
+      "name": "no_osm_refs",
+      "value": "PASS (dp accept NO-2)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/NO-2/01_askarovo_posyolok.jpg"
+  ],
+  "how_to_check": "dp accept NO-2",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/village_placer.gd:patches_for_dir",
+      "why": "вызывает BuiltPatches._load (частный static из scripts/terrain, который трогать нельзя) — для маски полян и build() без Terrain",
+      "checked": "работает в тестах; лучше бы NO-1 дал публичный BuiltPatches.for_dir(dir)"
+    },
+    {
+      "where": "configs/world_objects.json villages.yard_m2",
+      "why": "1400 м² подобрано, чтобы altai не превысил прежние ~27 тыс.; в диапазоне 600-1500",
+      "checked": "счёт по местам"
+    },
+    {
+      "where": "tools/shots/villages_shot.gd",
+      "why": "на кадре виден прибор и сероватая клетчатая поверхность под застройкой — это слой рельефа, не домов",
+      "checked": "кадр просмотрен"
+    }
+  ],
+  "dp_feedback": "Нет команды dp для перерегистрации class_name после новых скриптов (пришлось godot --import вручную).",
+  "extra": {
+    "houses": {
+      "altai": 25167,
+      "askarovo": 13953,
+      "aushkul": 3962,
+      "ongudai": 3420
+    },
+    "plan_s": {
+      "altai": 0.62,
+      "askarovo": 0.44,
+      "aushkul": 0.21,
+      "ongudai": 0.25
+    },
+    "world_objects_build_s_askarovo": 0.89
+  },
+  "t": "2026-10-10T05:42:04",
+  "by": "main"
+}
