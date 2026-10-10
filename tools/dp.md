@@ -190,6 +190,16 @@ dp docs index                                                # собрать do
 dp docs init [--dry]                                         # frontmatter новым файлам (эвристики)
 ```
 
+## Проверка GDScript: `dp check gd` (хук pre-commit)
+
+```
+dp check gd                  # .gd из индекса (что войдёт в коммит) — разбор, типы, необъявленные имена; ~1 с
+dp check gd --changed        # изменённые против HEAD + новые
+dp check gd a.gd b.gd        # указанные файлы
+```
+
+Грузит скрипты в контексте проекта (`tools/check/gd_check.gd`), поэтому автозагрузки и `class_name` видны — в отличие от `godot --check-only`. Новый `class_name` → сначала `--import` (~10 с). Копия без `.godot` — пропуск. Хук `tools/hooks/pre-commit` (`git config core.hooksPath tools/hooks`, общий для всех рабочих копий) запускает её на каждом коммите с `.gd`; обойти — `git commit --no-verify`. Стиль не проверяет (стиль — `tools/lint.sh`, не обязателен).
+
 ## Долгие запуски и замки: `dp job`, `dp lock`
 
 ```

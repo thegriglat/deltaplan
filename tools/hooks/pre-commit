@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Хук git (core.hooksPath=tools/hooks): разбор/типы .gd, входящих в коммит. Обойти — git commit --no-verify.
+git diff --cached --name-only --diff-filter=ACMR | grep -q '\.gd$' || exit 0
+command -v godot >/dev/null || exit 0
+exec "$(git rev-parse --show-toplevel)/tools/dp" check gd

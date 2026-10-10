@@ -73,6 +73,7 @@ func _ready() -> void:
 	UiKit.separator(box)
 	# Вкладки по смыслу; внешняя прокрутка (ScrollPanel) общая, при смене вкладки — наверх.
 	var tabs := TabContainer.new()
+	tabs.use_hidden_tabs_for_min_size = true  # высота — по самой длинной вкладке, панель не скачет
 	box.add_child(tabs)
 	var box_game := _add_tab(tabs, tr("settings_tab_game"))
 	var box_gfx := _add_tab(tabs, tr("settings_tab_graphics"))
@@ -211,9 +212,12 @@ func _ready() -> void:
 
 ## Вкладка настроек: колонка внутри TabContainer.
 func _add_tab(tabs: TabContainer, title: String) -> VBoxContainer:
+	var m := MarginContainer.new()  # отступ от полоски вкладок
+	m.add_theme_constant_override("margin_top", 12)
+	tabs.add_child(m)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
-	tabs.add_child(v)
+	m.add_child(v)
 	tabs.set_tab_title(tabs.get_tab_count() - 1, title)
 	return v
 
