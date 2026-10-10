@@ -64,6 +64,20 @@ func test_settings_persist_across_panel_reload() -> void:
 	Config.reload()
 
 
+func test_peak_names_setting() -> void:
+	var path := UserSettings.DEFAULT_DIR.path_join("world_objects.json")
+	var backup := _read_raw(path)
+	var a: SettingsPanel = _scene("res://scenes/ui/settings_panel.tscn")
+	check((a.get("_peak_names") as CheckBox).button_pressed, "подписи вершин по умолчанию включены")
+	(a.get("_peak_names") as CheckBox).button_pressed = false
+	check(a.save(), "запись настроек")
+	check(not bool(Config.value("world_objects", "osm_pilot.peaks.show", true)), "подписи выключены в конфиге")
+	a.queue_free()
+	_restore_raw(path, backup)
+	Config.reload()
+	check(bool(Config.value("world_objects", "osm_pilot.peaks.show", false)), "восстановлено")
+
+
 func test_pilot_names_setting() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("bots.json")
 	var backup := _read_raw(path)

@@ -107,6 +107,11 @@ func test_synthetic_layer() -> void:
 	check("Альфа 2000 м" in texts and "Бета" in texts and "Седло 1200 м" in texts, "тексты: %s" % [texts])
 	cam.global_position = Vector3(0, 600, 1.0e6)
 	check(labels.refresh(cam) == 0, "далеко — не видны")
+	cam.global_position = Vector3(0, 600, 0)
+	labels.show_labels = false
+	check(labels.refresh(cam) == 0, "флаг выключен — подписи скрыты")
+	labels.show_labels = true
+	check(labels.refresh(cam) == 3, "флаг включён — видны")
 	node.queue_free()
 	cam.queue_free()
 
