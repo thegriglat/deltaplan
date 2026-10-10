@@ -1,0 +1,30 @@
+{
+ "location": "aushkul",
+ "tile_url": "https://tiles.openfreemap.org/planet/20261004_113936_pt/{z}/{x}/{y}.pbf",
+ "tilejson_version": "3.16.0",
+ "tiles": 841,
+ "grid": [
+  29,
+  29
+ ],
+ "bytes_wire_total": 1089762,
+ "empty_tiles": 6,
+ "failed": 0,
+ "fresh_downloaded": 841,
+ "cold_seconds": 23.8,
+ "retries": 0,
+ "errors": [],
+ "content_encoding": {
+  "gzip": 835,
+  "none": 6
+ },
+ "threads": 3,
+ "x_range": [
+  10894,
+  10922
+ ],
+ "y_range": [
+  5190,
+  5218
+ ]
+}
