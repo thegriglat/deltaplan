@@ -58,3 +58,5 @@
 {"t": "2026-10-11T01:44:58", "by": "coordinator", "task": "PD-6", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-6"}
 {"t": "2026-10-11T01:46:05", "by": "coordinator", "task": "PD-7", "ev": "created", "note": "Сеть: режим управления и положение пилота у чужих (PD-К4)"}
 {"t": "2026-10-11T02:03:37", "by": "coordinator", "task": "PD-12", "ev": "created", "note": "Умолчания «Аппарата» по классам крыла и подвеска — по ответам пилота"}
+{"t": "2026-10-11T02:03:39", "by": "coordinator", "task": "PD-12", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pendulum-PD-12"}
+{"t": "2026-10-11T02:04:19", "by": "coordinator", "task": "PD-13", "ev": "created", "note": "Настройки «Аппарат» у каждого крыла свои (PD-К3 v2)"}
