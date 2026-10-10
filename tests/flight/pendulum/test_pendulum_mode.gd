@@ -38,6 +38,18 @@ func test_apparatus_reaches_model() -> void:
 	g.free()
 
 
+func test_resolved_apparatus_reaches_model() -> void:
+	var st := FlightSettings.defaults()
+	st.apparatus = {"sport": {"hang_shift_cm": 3.0}, "laminar": {"hang_shift_cm": -2.0}}
+	var g := make_glider("pendulum", "sport", st.resolved_apparatus("sport"))
+	approx(float(g.model.apparatus.hang_shift_cm), 3.0, 1e-9, "sport: свой сдвиг")
+	approx(float(g.model.apparatus.hang_length_m), float(st.resolved_apparatus("sport").hang_length_m), 1e-9, "умолчание в модели")
+	g.free()
+	var g2 := make_glider("pendulum", "laminar", st.resolved_apparatus("laminar"))
+	approx(float(g2.model.apparatus.hang_shift_cm), -2.0, 1e-9, "laminar: свой сдвиг")
+	g2.free()
+
+
 func test_start_on_ground_and_telemetry() -> void:
 	var g := make_glider("pendulum")
 	var ground := func(_x: float, z: float) -> float: return 0.2 * z  # склон вниз на север

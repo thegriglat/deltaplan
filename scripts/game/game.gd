@@ -1114,7 +1114,8 @@ func _setup_glider() -> void:
 	for n in mounted:
 		n.queue_free()
 	mounted.clear()
-	glider.setup(settings.wing_id(), settings.pilot_mass_kg, settings.apparatus)
+	var wing_id := settings.wing_id()
+	glider.setup(wing_id, settings.pilot_mass_kg, settings.resolved_apparatus(wing_id))
 	settings.pilot_mass_kg = glider.pilot_mass_kg
 	camera.set_head(glider.get_marker("PilotHead"))
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
@@ -1323,6 +1324,9 @@ func _on_collision(hit: Dictionary) -> void:
 
 
 func _on_takeoff_failed(reason: String) -> void:
-	var info := {"reason": reason, "text": GroundRun.failure_text(reason)}
+	var text := GroundRun.failure_text(reason)
+	if reason in ["nose", "keel", "fell"]:  # причины разбега маятника (PD-3)
+		text = tr("launch_fail_" + reason)
+	var info := {"reason": reason, "text": text}
 	info.merge(stats.summary(glider.get_telemetry().position), true)
 	_emit_end("takeoff_failed", info)

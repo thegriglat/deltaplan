@@ -31,10 +31,10 @@ func test_pendulum_start_on_slope() -> void:
 	check(main.get("state") == 2, "автостарт — в полёте")
 	game.process_mode = Node.PROCESS_MODE_DISABLED
 	check(game.glider.model is PendulumModel, "модель — PendulumModel")
-	check(game.settings.apparatus.has("hang_shift_cm"), "settings.apparatus есть")
+	var res := game.settings.resolved_apparatus(game.settings.wing_id())
 	approx(
 		float(game.glider.model.apparatus.hang_length_m),
-		float(game.settings.apparatus.hang_length_m), 1e-9, "apparatus дошёл до модели"
+		float(res.hang_length_m), 1e-9, "apparatus дошёл до модели"
 	)
 	for round_i in 2:
 		var m: PendulumModel = game.glider.model
