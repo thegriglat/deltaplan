@@ -263,7 +263,7 @@ def retry(fn, tries=4):
 
 
 def atomic_write(path, data):
-    tmp = path + ".tmp"
+    tmp = "%s.%d.tmp" % (path, os.getpid())
     with open(tmp, "wb" if isinstance(data, bytes) else "w") as f:
         f.write(data)
     os.replace(tmp, path)
@@ -303,15 +303,37 @@ class Net:
         atomic_write(self.heads_path, json.dumps(self.heads, indent=0))
         return size
 
-    def poly(self, rid, url):
+    def poly(self, rid, url, geometry=None):
         d = os.path.join(self.work, "poly")
         os.makedirs(d, exist_ok=True)
         p = os.path.join(d, rid + ".poly")
-        if not os.path.exists(p):
+        if not os.path.exists(p) or os.path.getsize(p) == 0:
             log("poly " + url)
             time.sleep(HEAD_DELAY_S)
-            atomic_write(p, retry(lambda: http(url).read()))
+            body = retry(lambda: http(url).read())
+            if b"END" not in body:
+                # у части регионов (japan, ...) Geofabrik отдаёт пустой .poly — берём полигон из index-v1.json
+                if geometry is None:
+                    raise RuntimeError("пустой .poly " + url)
+                log("пустой .poly, беру геометрию индекса: " + rid)
+                body = geometry_to_poly(rid, geometry).encode()
+            atomic_write(p, body)
         return p
+
+
+def geometry_to_poly(name, geometry):
+    """GeoJSON Polygon|MultiPolygon -> текст .poly (Osmosis): кольца, дыры с '!'."""
+    polys = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
+    out = [name]
+    n = 0
+    for poly in polys:
+        for ri, ring in enumerate(poly):
+            n += 1
+            out.append(("!" if ri else "") + str(n))
+            out += ["   %.7E   %.7E" % (x, y) for x, y in ring]
+            out.append("END")
+    out.append("END")
+    return "\n".join(out) + "\n"
 
 
 def safe_id(index_id):
@@ -457,11 +479,12 @@ def cmd_plan(args):
         data["overlaps_listed"] = [[a, b, round(p, 1)] for p, a, b in sorted(overlap_pairs(pm), reverse=True)]
         atomic_write(out_path, json.dumps(data, ensure_ascii=False, indent=1))
     net = Net(work)
+    tree = Tree(net.index())
     os.makedirs(os.path.join(work, "cover"), exist_ok=True)
     changed = False
     for r in data["regions"]:
         cp = os.path.join(work, "cover", r["id"] + ".txt")
-        net.poly(r["id"], r["poly_url"])
+        net.poly(r["id"], r["poly_url"], tree.feat[r["index_id"]]["geometry"])
         if args.recompute_cover and args.osmtiles and os.path.exists(cp):
             os.remove(cp)
         if r.get("tiles") is None or not os.path.exists(cp):
