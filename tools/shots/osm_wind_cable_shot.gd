@@ -78,10 +78,6 @@ func _ready() -> void:
 	var cfg := WorldObjects.load_config()
 	var layer := OsmLayer.new()
 	layer.build(d, cfg, hf, ObstacleIndex.new())
-	# до слияния OL-2 (verticals.skip) старые ветряки OsmPilot убираем вручную
-	var old := layer.get_node_or_null("Pilot/Verticals")
-	if old != null:
-		old.free()
 	var env := WorldEnvironment.new()
 	env.environment = Environment.new()
 	env.environment.background_mode = Environment.BG_COLOR
