@@ -467,3 +467,27 @@ fkey_hint_thermals,термики,thermals
 loading_counter_dem,Рельеф: %d/%d,Terrain: %d/%d
 loading_counter_surface,Покров: %d/%d,Land cover: %d/%d
 loading_counter_total,Всего: %d/%d,Total: %d/%d
+unit_hz,Гц,Hz
+settings_motion_title,Платформа подвижности,Motion platform
+settings_tab_game,Игра,Game
+settings_tab_graphics,Графика и вид,Graphics and view
+settings_tab_controls,Управление,Controls
+settings_tab_sound,Звук,Sound
+settings_tab_motion,Платформа,Motion platform
+settings_motion_on,Вывод движения,Motion output
+settings_motion_on_hint,Слать движение пилота на платформу по UDP (в полёте),Send pilot motion to a platform over UDP (in flight)
+settings_motion_addr,Адрес (хост:порт),Address (host:port)
+settings_motion_rate,Частота,Rate
+settings_motion_format,Формат,Format
+settings_motion_format_srs,SRS (DOF Reality),SRS (DOF Reality)
+settings_motion_format_generic,Generic,Generic
+settings_motion_signs,Инвертировать знак величины,Invert sign of
+settings_motion_sign_surge,Продольная,Surge
+settings_motion_sign_sway,Боковая,Sway
+settings_motion_sign_heave,Вертикальная,Heave
+settings_motion_sign_roll,Крен,Roll
+settings_motion_sign_pitch,Тангаж,Pitch
+settings_motion_sign_yaw,Курс,Yaw
+settings_motion_sign_roll_rate,Скор. крена,Roll rate
+settings_motion_sign_pitch_rate,Скор. тангажа,Pitch rate
+settings_motion_sign_yaw_rate,Скор. курса,Yaw rate

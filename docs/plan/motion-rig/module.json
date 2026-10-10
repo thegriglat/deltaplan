@@ -1,0 +1,9 @@
+{
+  "module": "motion-rig",
+  "plan": "docs/plan/motion-rig.md",
+  "contracts": "docs/contracts/motion-rig.md",
+  "branch": "feature/motion-rig",
+  "copy": "~/deltaplan-motion-rig",
+  "created": "2026-10-10T17:08:02",
+  "code": "MR"
+}

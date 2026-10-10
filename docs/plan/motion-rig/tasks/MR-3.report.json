@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Написаны docs/guide/motion-rig.md (ru), tools/motion_rig/README.md (en, для игрока), строка в CHANGELOG «В работе»; docs index/check 0 ошибок.",
+  "commits": [
+    "2fdd6d68 MR-3: документация вывода движения, инструкция игроку, CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "guide",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "readme_en",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "how_to_check": "dp accept MR-3",
+  "uncertain": [
+    {
+      "where": "tools/motion_rig/README.md",
+      "why": "путь «Settings -> Motion platform» и порядок кнопки Save взяты из кода/контракта, в игре UI не открывал; SRS >=1.43.2 — из записки MR-1",
+      "checked": "имена пунктов сверены с locale/ui.csv"
+    },
+    {
+      "where": "docs/guide/motion-rig.md",
+      "why": "утверждение, что для srs используются 6 из 9 знаков (скорости только в generic) выведено из таблицы MR-К2",
+      "checked": "сверено с контрактом"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-10T18:11:51",
+  "by": "executor"
+}
