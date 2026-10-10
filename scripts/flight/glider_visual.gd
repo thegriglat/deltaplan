@@ -94,8 +94,6 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	_hang = Vector3(0, float(vis_cfg.hang_height_m), 0)
 	_body_mode = "full"
 	_body_mi = null
-	_arms_mi = null
-	_arm_mats.clear()
 
 	var wpath := String(wing_cfg.visual.get("visual_model", ""))
 	wing = _load_model(wpath)
@@ -710,41 +708,15 @@ func _frame_pitch() -> float:
 
 
 ## Вид из кабины с камерой позади тела (A3.3 v8, camera.json → cockpit.eye_mode back_*): тело пилота
-## не рисуется для кабинной камеры. "full" — как есть; "arms" — только руки (копия PilotBody на слое
-## «только кабина», фрагменты дальше ARM_MASK_R_M от костей рук отброшены); "none" — и руки скрыты.
+## не рисуется для кабинной камеры. "full" — как есть; "none" — тело и руки скрыты.
 ## Для внешних камер тело всегда видно (слой 20 не рисует только кабинная камера).
 ## «Только кабина» — слой 18: слой 19 занят квадом дымки (atmosphere.json →
 ## clouds.shadow_exclude_layer), а внешние камеры слой «только кабина» не рисуют — на 19-м
 ## из вида сзади пропадала дымка.
 const BODY_HIDDEN_LAYER := 1 << 19
 const COCKPIT_ONLY_LAYER := 1 << 17
-const ARM_MASK_R_M := 0.1
-const ARM_MASK_SHADER := """
-shader_type spatial;
-uniform vec4 albedo : source_color = vec4(0.3, 0.3, 0.3, 1.0);
-uniform float rough = 0.7;
-uniform float radius = 0.1;
-uniform vec3 pts[6];
-varying vec3 wpos;
-float seg(vec3 p, vec3 a, vec3 b) {
-	vec3 pa = p - a;
-	vec3 ba = b - a;
-	float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
-	return length(pa - ba * h);
-}
-void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
-void fragment() {
-	float d = min(min(seg(wpos, pts[0], pts[1]), seg(wpos, pts[1], pts[2])),
-		min(seg(wpos, pts[3], pts[4]), seg(wpos, pts[4], pts[5])));
-	if (d > radius) { discard; }
-	ALBEDO = albedo.rgb;
-	ROUGHNESS = rough;
-}
-"""
 var _body_mode := "full"
 var _body_mi: MeshInstance3D
-var _arms_mi: MeshInstance3D
-var _arm_mats: Array[ShaderMaterial] = []
 
 
 func set_cockpit_body(mode: String) -> void:
@@ -758,41 +730,6 @@ func set_cockpit_body(mode: String) -> void:
 	_body_mi.layers = 1 if mode == "full" else BODY_HIDDEN_LAYER
 	if _strap_ribbon != null:  # стропа подвески — часть «тела» для кабинной камеры
 		_strap_ribbon.layers = _body_mi.layers
-	if mode == "arms" and _arms_mi == null and _body_mi.mesh != null and _skeleton != null:
-		_arms_mi = MeshInstance3D.new()
-		_arms_mi.name = "CockpitArms"
-		_arms_mi.mesh = _body_mi.mesh
-		_arms_mi.skin = _body_mi.skin
-		_arms_mi.layers = COCKPIT_ONLY_LAYER
-		_arms_mi.transform = _body_mi.transform
-		_body_mi.get_parent().add_child(_arms_mi)
-		_arms_mi.skeleton = _arms_mi.get_path_to(_skeleton)
-		for i in _body_mi.mesh.get_surface_count():
-			var m := ShaderMaterial.new()
-			m.shader = Shader.new()
-			m.shader.code = ARM_MASK_SHADER
-			var src := _body_mi.mesh.surface_get_material(i) as BaseMaterial3D
-			if src != null:
-				m.set_shader_parameter("albedo", src.albedo_color)
-				m.set_shader_parameter("rough", src.roughness)
-			m.set_shader_parameter("radius", ARM_MASK_R_M)
-			_arms_mi.set_surface_override_material(i, m)
-			_arm_mats.append(m)
-	if _arms_mi != null:
-		_arms_mi.visible = mode == "arms"
-
-
-## Положения плечо–локоть–кисть (мир) для маски рук; зовёт кабинная камера каждый кадр.
-func update_arm_mask() -> void:
-	if _body_mode != "arms" or _skeleton == null or _arm_mats.is_empty():
-		return
-	var pts := PackedVector3Array()
-	for side in ["L", "R"]:
-		for b in ["UpperArm.", "Forearm.", "Hand."]:
-			var bi := _skeleton.find_bone(b + side)
-			pts.append(_skeleton.to_global(_skeleton.get_bone_global_pose(bi).origin) if bi >= 0 else Vector3.ZERO)
-	for m in _arm_mats:
-		m.set_shader_parameter("pts", pts)
 
 
 ## Центр тела относительно карабина.

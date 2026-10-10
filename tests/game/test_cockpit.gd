@@ -216,7 +216,7 @@ func _sweep(game: Game, wing: String, stage: String) -> void:
 	var cc: Dictionary = Config.get_config("camera").cockpit
 	var old_mode: String = cc.eye_mode
 	var old_down: float = cc.look_down_deg
-	for mode in ["eyes", "between_shoulders"]:
+	for mode in ["eyes", "back_hidden"]:
 		for down in [0.0, 5.0, 10.0, 15.0, 20.0]:
 			cc.eye_mode = mode
 			cc.look_down_deg = down
@@ -372,7 +372,7 @@ func test_instruments_on_bar() -> void:
 			var tablet := game.glider.get_marker("InstrumentMount")
 			var vario := game.glider.get_marker("VarioMount")
 			var cfg_fov := cam.fov
-			for emode in ["eyes", "back_hands", "back_hidden"]:
+			for emode in ["eyes", "back_hidden"]:
 				_use_eye_mode(emode)
 				for pair in [["планшет", tablet], ["вариометр", vario]]:
 					var m: Node3D = pair[1]

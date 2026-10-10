@@ -43,7 +43,7 @@ var _net_mode := false
 var _fov: HSlider
 var _helmet: OptionButton
 var _eye_mode: OptionButton
-var _eye_modes: Array = ["back_hands", "back_hidden", "eyes", "between_shoulders"]
+var _eye_modes: Array = ["back_hidden", "eyes"]
 var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
@@ -164,10 +164,8 @@ func _ready() -> void:
 		"%.0f°"
 	)
 	_eye_mode = OptionButton.new()
-	_eye_mode.add_item(tr("camera_eye_back_hands"))
 	_eye_mode.add_item(tr("camera_eye_back_hidden"))
 	_eye_mode.add_item(tr("camera_eye_eyes"))
-	_eye_mode.add_item(tr("camera_eye_shoulders"))
 	UiKit.row(box, tr("settings_eye_mode"), _eye_mode)
 	_helmet = OptionButton.new()
 	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
