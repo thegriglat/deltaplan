@@ -89,3 +89,5 @@
 {"t": "2026-10-10T06:13:44", "by": "executor", "task": "NO-10", "ev": "reported", "commits": ["fcd84585"], "note": "done: Дома плотнее (yard_m2 1400→520, новый yard_jitter 0.4, min_share 0.25) и мягкая подложка застройки: detail_built10 сжат…", "dp_feedback": "Нет команды для бенчмарка кадра до/после одной строкой."}
 {"t": "2026-10-10T06:14:38", "by": "executor", "task": "NO-10", "ev": "checked", "note": "6/6 test_villages=ok:6/6; test_world_objects=ok:12/12; test_terrain=ok:15/15; test_surface=ok:36/36; test_collisions=ok:2/2; shots=ok:2"}
 {"t": "2026-10-10T06:14:45", "by": "coordinator", "task": "NO-10", "ev": "accepted", "note": "по отчёту: домов askarovo 13 953 → 36 582 (altai 65 838), подложка — built10 сжат до 50 м, билинейно; кадр 5,25 → 5,37 мс (шум); скриншоты build/screenshots/NO-10/"}
+{"t": "2026-10-10T06:15:32", "by": "coordinator", "task": "NO-10", "ev": "accepted", "commits": ["44bcfc4"], "note": "6/6 test_villages=ok:6/6; test_world_objects=ok:12/12; test_terrain=ok:15/15; test_surface=ok:36/36; test_collisions=ok:2/2; shots=ok:2"}
+{"t": "2026-10-10T06:15:39", "by": "coordinator", "task": "NO-10", "ev": "merged", "commits": ["44bcfc4"]}
