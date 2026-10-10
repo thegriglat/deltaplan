@@ -402,7 +402,7 @@
   },
   "city_ground": {
     "_doc": "L8 (OL-5): земля города — серо-бежевая подложка дворов с пятнами зелени между домами OSM (scripts/world_objects/osm/city_ground.gd). Маска: доля площади под домами по клеткам cell_m (если есть buildings.style.cell_m — он), сглаженная на ~fade_m, порог coverage_min; к краю города подложка плавно угасает, сёла и промзоны вне города остаются травой. Класс WorldCover «застройка» рельеф знает только в местах с картой поверхности, поэтому маска — по домам OSM (работает везде, где есть тайлы). Сетка по рельефу: шаг vertex_m, тайлы tile_m, подъём lift_m; depth_bias_m — сдвиг к камере (меньше, чем у дорог: дороги лежат выше); visibility_m/fade_margin_m — дальность и мягкое угасание тайлов; ground_color/yard_color/green_color — sRGB, green_share — доля зелени, patch_m — размер пятна, м.",
-    "enabled": true,
+    "enabled": false,
     "cell_m": 200.0,
     "coverage_min": 0.12,
     "fade_m": 250.0,
