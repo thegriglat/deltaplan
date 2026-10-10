@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "Экран загрузки показывает счётчик запросов: «Рельеф: N/M», «Покров: N/M», «Всего: N/M» (ru/en); полоса идёт по счётчику, запросы из кеша засчитываются сразу. Оценок времени нет.",
+  "commits": [
+    "a58015e8 NO-7: счётчик запросов загрузки места"
+  ],
+  "checks": [
+    {
+      "name": "screenshot",
+      "value": "01_zagruzka_schetchik.jpg",
+      "pass": true
+    },
+    {
+      "name": "test_load_progress",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_terrain",
+      "value": "15/15",
+      "pass": true
+    },
+    {
+      "name": "test_location_builder",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "холодная сборка (43.2, 76.9, пустой кеш)",
+      "value": "61.5 с, 135 сетевых запросов; счётчики в конце: dem 55/55, surface 119/119; 179 смен строки в логе, пример: Рельеф: 55/55   Покров: 21/42   Всего: 76/97",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/NO-7/01_zagruzka_schetchik.jpg"
+  ],
+  "how_to_check": "dp accept NO-7; кадр: XDG_DATA_HOME=$(mktemp -d) godot --path . res://tools/shots/loading_counter_shot.tscn -- --out=<dir> [--lat= --lon=]",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/surface_stage.gd:_fetch_tiles",
+      "why": "M растёт по мере планирования: покров планирует тайлы пакетами (42 -> 119), поэтому «Всего» и M покрова в ходе сборки увеличиваются; полоса защищена от отката maxf",
+      "checked": "лог холодной сборки: M рельефа 55 известен сразу, M покрова растёт до 119"
+    },
+    {
+      "where": "tests/run_tests.gd",
+      "why": "тест с ошибкой скрипта (parse error в зависимости) печатает «ok», падение видно только по SCRIPT ERROR в выводе",
+      "checked": "поймал так на своём тесте"
+    },
+    {
+      "where": "test_terrain",
+      "why": "SCRIPT ERROR Out of bounds PackedFloat32Array в выводе — есть и без моих правок (проверено git stash), тесты зелёные",
+      "checked": "прогон до/после"
+    }
+  ],
+  "dp_feedback": "dp job wait дольше 120 с уходит в фон инструмента Bash — нужен явный timeout; в рантайме тестов сбой компиляции скрипта не считается падением. Скриншот png->jpg ручным convert: нужна опция в tools/shots.",
+  "t": "2026-10-10T05:43:54",
+  "by": "main"
+}
