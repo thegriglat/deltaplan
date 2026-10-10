@@ -30,12 +30,12 @@ static func for_terrain(t: Terrain) -> BuiltPatches:
 		var cached: BuiltPatches = t.get_meta(META_KEY)
 		if cached._dir == dir:
 			return cached
-	var bp := _load(dir)
+	var bp := for_dir(dir)
 	t.set_meta(META_KEY, bp)
 	return bp
 
 
-static func _load(dir: String) -> BuiltPatches:
+static func for_dir(dir: String) -> BuiltPatches:
 	var bp := BuiltPatches.new()
 	bp._dir = dir
 	var surf: Variant = _json(dir.path_join("surface.json"))

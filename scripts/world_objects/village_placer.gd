@@ -15,7 +15,7 @@ static var _cache: Dictionary = {}
 
 ## Пятна места по каталогу данных (без живой ноды Terrain) — для маски просек и build() без Terrain.
 static func patches_for_dir(dir: String) -> BuiltPatches:
-	return BuiltPatches._load(dir)
+	return BuiltPatches.for_dir(dir)
 
 
 ## Дома места. loc_key — ключ места (идёт в rng), height_fn(x, z) -> высота, м.
