@@ -26,10 +26,14 @@ func test_n4_no_overpass() -> void:
 	check(not ResourceLoader.exists("res://scripts/terrain/build/overpass_client.gd"), "overpass_client.gd удалён")
 
 
-## N4 v2: OSM нет нигде, и у встроенных мест.
+## N4 v3: OSM возвращён из своих тайлов (OsmData, OsmLayer, RoadMesher разрешены); Overpass, OsmStage, osm.json у мест
+## и Locations.osm_path по-прежнему отсутствуют.
 func test_n4_v2_no_osm() -> void:
-	for p in ["res://scripts/world_objects/osm_data.gd", "res://scripts/world_objects/osm_layer.gd",
-			"res://scripts/world_objects/road_mesher.gd", "res://scripts/terrain/build/osm_stage.gd"]:
-		check(not ResourceLoader.exists(p), "%s удалён" % p)
+	check(not ResourceLoader.exists("res://scripts/terrain/build/osm_stage.gd"), "osm_stage.gd удалён")
+	var loc: GDScript = Locations
+	var names: Array = []
+	for m: Dictionary in loc.get_script_method_list():
+		names.append(m.name)
+	check(not names.has("osm_path"), "Locations.osm_path удалён")
 	for id in PLACES:
 		check(not FileAccess.file_exists(Locations.data_dir(id) + "/osm.json"), "%s: osm.json удалён" % id)
