@@ -1,14 +1,17 @@
 {
   "status": "done",
-  "summary": "Дороги, реки/каналы, ж/д из тайлов OSM лентами (восстановлен RoadMesher + OsmRoads), просеки вдоль дорог, ж/д и домов OSM, отрезки дорог/рек/ж/д у палаток; центр места в OsmData.load_for — double. Тоннели не рисуются.",
+  "summary": "Дороги, реки/каналы, ж/д из тайлов OSM лентами (восстановлен RoadMesher + OsmRoads), просеки вдоль дорог, ж/д и домов OSM, отрезки дорог/рек/ж/д у палаток; центр места в OsmData.load_for — double. Тоннели не рисуются. Доработка по ревью: ArrayMesh на главном потоке; ширина ленты из OsmData.w (≤ 2,5 ширины класса и ≤ 40 м).",
   "commits": [
     "b0d1f60c OT-9: дороги, реки/каналы, ж/д из тайлов OSM",
-    "следом коммит uid теста; затем слияние feature/osm-tiles (dp task sync)"
+    "следом коммит uid теста; затем слияние feature/osm-tiles (dp task sync)",
+    "2df7781d ArrayMesh только на главном потоке, ширина ленты из OsmData.w",
+    "0e49a79f тест N4 v3",
+    "коммит: версия N4 v3 в test_no_osm_contracts.gd"
   ],
   "checks": [
     {
       "name": "world_objects",
-      "value": "105/105",
+      "value": "4/4 (world_objects 114/114, osm_tiles 24/24, screenshot 1, osm_roads_x10)",
       "pass": true
     },
     {
@@ -30,6 +33,11 @@
       "name": "Алматы 3x3: время постройки лент (плоская высота, 20 ядер)",
       "value": "731 мс (объектов: дорог 29217, рек 872, ж/д 858; меш-тайлов 1964); до разбивки на куски было 2118-3979 мс",
       "pass": true
+    },
+    {
+      "name": "osm_roads_x10",
+      "value": "10 прогонов --filter=osm_ без падений и упавших тестов",
+      "pass": true
     }
   ],
   "not_done": [
@@ -43,21 +51,22 @@
   "how_to_check": "godot --headless ... -- --filter=test_osm_roads; dp accept OT-9; скрин: tools/shots/roads_shot.tscn",
   "uncertain": [
     {
-      "where": "scripts/world_objects/osm/osm_roads.gd (потоки)",
-      "why": "в первом dp accept world_objects упал heap corruption (malloc_consolidate, exit -6) на первом тесте OsmRoads в полном прогоне; три повтора (1 одиночный + 2 accept) зелёные",
-      "checked": "гонок в коде не нашёл: куски пишут в свои словари, общий конфиг только читается; threaded_build=false даёт последовательный путь"
-    },
-    {
       "where": "configs/world_objects.json rivers/rail",
       "why": "ширины рек (10/4/5 м) и цвета воды выбраны по классу, в тайлах ширины нет",
       "checked": "только числа, картинку не разглядывал"
+    },
+    {
+      "where": "scripts/world_objects/road_mesher.gd",
+      "why": "корень SIGSEGV — ArrayMesh в потоках; перенесён на главный поток",
+      "checked": "10 прогонов filter=osm_ подряд без падения процесса; osm_pilot.gd и osm_buildings.gd рабочих потоков не используют (нет add_task)"
     }
   ],
   "dp_feedback": "После dp task sync новый class_name из слияния давал Parse Error в тестах, пока не сделал godot --import; sync мог бы сам предупреждать/импортировать.",
   "extra": {
     "clearings": "ключи road_margin_m, building_margin_m в clearings; tents.road_margin_m",
-    "configs": "roads/rivers/rail в world_objects.json"
+    "configs": "roads/rivers/rail в world_objects.json",
+    "roads_shot": "tools/shots/roads_shot.gd/.tscn — доп. файлы (вне скоупа карточки), инструмент кадра"
   },
-  "t": "2026-10-10T18:51:32",
+  "t": "2026-10-10T19:33:46",
   "by": "executor"
 }

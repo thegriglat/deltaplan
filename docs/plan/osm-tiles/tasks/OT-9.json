@@ -22,7 +22,8 @@
     "scripts/world_objects/world_objects.gd",
     "configs/world_objects.json",
     "tests/world_objects",
-    "scripts/world_objects/osm/osm_pilot.gd,scripts/world_objects/osm/osm_buildings.gd,tools/shots/roads_shot.gd,tools/shots/roads_shot.tscn"
+    "scripts/world_objects/osm/osm_pilot.gd,scripts/world_objects/osm/osm_buildings.gd,tools/shots/roads_shot.gd,tools/shots/roads_shot.tscn",
+    "tests/contracts/test_no_osm_contracts_n4.gd"
   ],
   "dont_touch": [
     "scripts/world_objects/egg_place.gd",
@@ -52,5 +53,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T17:31:59",
-  "edited": "2026-10-10T19:12:39"
+  "edited": "2026-10-10T19:23:07"
 }
