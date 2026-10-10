@@ -1,0 +1,48 @@
+{
+  "id": "MR-4",
+  "module": "motion-rig",
+  "type": "dp-engineer",
+  "title": "Вкладки в панели настроек игры",
+  "goal": "Разделить панель настроек игры на вкладки (TabContainer) по смыслу, по фактическому содержимому; правки минимальные, сами настройки не переделывать.",
+  "plan_ref": "MR-4",
+  "contracts": [
+    {
+      "name": "MR-К3",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-motion-rig-MR-4",
+  "branch": "motion-rig/MR-4",
+  "base": "feature/motion-rig",
+  "scope": [
+    "scripts/ui/settings_panel.gd",
+    "scenes/ui/settings_panel.tscn",
+    "locale/ui.csv",
+    "tests/ui/"
+  ],
+  "dont_touch": [
+    "scripts/motion_rig/",
+    "configs/",
+    "scripts/game/user_settings.gd",
+    "docs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tests/ui/",
+      "tests": "tests/ui/"
+    },
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "tests/steam/",
+      "tests": "tests/steam/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:58:40"
+}

@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "MR-К3 v2 (signs) применяется только при упаковке, в обоих форматах: SRS vertical считается как −(heave/G−1), yaw приводится к диапазону формата; MotionSample остаётся честным. Раскладки MR-К2 в motion_formats.py совпадают с таблицами контракта, .h сверяется через cc, фикстуры игры разбираются. Скоуп соблюдён, flight_model.gd и project.godot не тронуты. Блокеров нет.",
+  "issues": [
+    {
+      "file": "scripts/motion_rig/motion_output.gd",
+      "line": 104,
+      "severity": "minor",
+      "what": "IP.resolve_hostname — блокирующий вызов. Он выполняется в шаге физики при первом пакете, если host задан именем, а MR-К3 требует, чтобы отправка не блокировала кадр. Вызов делается один раз за configure, поэтому только minor.",
+      "fix": "Разрешать имя в configure() (вне шага) или через IP.resolve_hostname_queue_item и не слать пакеты, пока адрес не готов"
+    },
+    {
+      "file": "tools/motion_rig/check_layout.py",
+      "line": 87,
+      "severity": "minor",
+      "what": "MR-К2 требует сверки .h = motion_formats.py = таблицы контракта, но таблицы из docs/contracts/motion-rig.md скрипт не сверяет. Я сверил их вручную: сейчас совпадают.",
+      "fix": "Разбирать таблицы смещений из docs/contracts/motion-rig.md (MR-К2) и сравнивать с SRS_FIELDS/GENERIC_FIELDS"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "layout: python3 tools/motion_rig/check_layout.py",
+      "value": "layout OK, rc 0",
+      "pass": true
+    },
+    {
+      "name": "recv_selftest: python3 tools/motion_rig/recv.py --selftest",
+      "value": "rc 0",
+      "pass": true
+    },
+    {
+      "name": "dp accept MR-2 --only motion_rig --dry",
+      "value": "25/25",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-10T17:59:35",
+  "by": "reviewer"
+}

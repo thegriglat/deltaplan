@@ -1,0 +1,56 @@
+{
+  "id": "OT-7",
+  "module": "osm-tiles",
+  "type": "dp-writer",
+  "title": "Документация тайлов OSM и запуска мирового прогона",
+  "goal": "Пользователь сам запускает тест и мировой прогон: нужна понятная инструкция (команды, время, место, что при падении) и описание формата/устройства для будущих задач.",
+  "plan_ref": "OT-7. Документация и запуск для пользователя",
+  "contracts": [
+    {
+      "name": "O8",
+      "version": "2",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-7",
+  "branch": "osm-tiles/OT-7",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "docs/guide/osm-tiles.md",
+    "tools/osm_tiles/README.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/world.py",
+    "tools/osm_tiles/packer",
+    "docs/contracts",
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "docs_check",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "guide_cmds",
+      "cmd": "grep -c 'world.py run' docs/guide/osm-tiles.md",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -s tools/osm_tiles/README.md && echo ok",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:45:46"
+}

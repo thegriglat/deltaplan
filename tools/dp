@@ -527,7 +527,7 @@ def cmd_task_show(a):
              f"{'; обязательные поля верхнего уровня отчёта: ' + rx if rx else ''}; в конце — обратная связь по dp (поле dp_feedback).")
     if full:
         L.append("Копия задачи — своя; чужие не трогать; контракты менять только через координатора; коммиты — только свои файлы "
-                 "(git commit -- <пути>), по-русски, со строкой Claude-Session. Свежая работа соседей — git merge ветки модуля в свою "
+                 "(git commit -- <пути>), по-русски. Свежая работа соседей — git merge ветки модуля в свою "
                  f"(dp task sync {card['id']}).")
         L.append(f"Журнал и карточка: docs/plan/{mod}/ (dp log {card['id']}, dp task show {card['id']} --diff).")
     print("\n".join(L))
@@ -1186,13 +1186,6 @@ def cmd_plan(a):
     print("\n".join(body))
 
 
-def session_line():
-    v = os.environ.get("DP_SESSION", "").strip()
-    if not v:
-        return ""
-    return f"Claude-Session: {v if '://' in v else 'https://claude.ai/code/' + v}"
-
-
 def gitr(*args, cwd=None):
     return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
 
@@ -1206,7 +1199,7 @@ def commit_paths(cwd, paths, msg):
     r = gitr("add", "--", *map(str, paths), cwd=cwd)
     if r.returncode:
         raise DpError(f"git add: {gerr(r)}")
-    cm = ["commit", "-m", msg] + (["-m", session_line()] if session_line() else []) + ["--", *map(str, paths)]
+    cm = ["commit", "-m", msg] + ["--", *map(str, paths)]
     r = gitr(*cm, cwd=cwd)
     if r.returncode:
         raise DpError(f"git commit: {gerr(r)}")
@@ -1557,7 +1550,7 @@ def do_merge(path, src, msg, ff=True, trailers=None):
     if dirty(path):
         raise DpError(f"копия {pretty(path)} грязная (изменения в отслеживаемых файлах) — отказ")
     before = gitr("rev-parse", "HEAD", cwd=path).stdout.strip()
-    args = ["merge", "--no-edit", "-m", msg] + (["-m", session_line()] if session_line() else []) + [x for t in trailers or [] for x in ("-m", t)] + ([] if ff else ["--no-ff"]) + [src]
+    args = ["merge", "--no-edit", "-m", msg] + [x for t in trailers or [] for x in ("-m", t)] + ([] if ff else ["--no-ff"]) + [src]
     r = gitr(*args, cwd=path)
     if r.returncode:
         files = gitr("diff", "--name-only", "--diff-filter=U", cwd=path).stdout.split()
