@@ -22,7 +22,7 @@ func test_doc_headings() -> void:
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
 	for id in ["MR-К1", "MR-К2", "MR-К3"]:
-		check(found.get(id, 0) == 1, "%s (v1) в заголовках: %s" % [id, found])
+		check(found.get(id, 0) == (2 if id == "MR-К3" else 1), "%s (v1) в заголовках: %s" % [id, found])
 
 
 func test_k1_telemetry_and_classes() -> void:
@@ -73,3 +73,11 @@ func test_k3_config_defaults() -> void:
 	check(UserSettings.is_local_key("motion_rig.enabled"), "ключи — машинные (LOCAL_KEYS)")
 	var cloud: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://steam/partner/auto_cloud.json"))
 	check("motion_rig" in cloud.get("local_keys", []), "auto_cloud.json local_keys")
+	var signs: Dictionary = c.get("signs", {})
+	var keys: Array = signs.keys()
+	keys.sort()
+	var want: Array = ["pitch", "pitch_rate", "roll", "roll_rate", "surge", "sway", "heave", "yaw", "yaw_rate"]
+	want.sort()
+	check(keys == want, "signs: ключи %s" % [keys])
+	for k: String in signs:
+		check(signs[k] == "direct", "signs.%s = direct по умолчанию" % k)

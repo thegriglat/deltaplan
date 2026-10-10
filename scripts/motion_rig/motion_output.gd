@@ -12,6 +12,7 @@ var every_n: int = 2
 var place: String = ""
 var packets_sent: int = 0
 
+var signs: Dictionary = {}  ## MR-К3 v2: величина → "direct" | "inverse"
 var _source := MotionSource.new()
 var _udp: PacketPeerUDP = null
 var _failed: bool = false  ## адрес не определился: не пытаться снова до configure()
@@ -28,6 +29,8 @@ func configure() -> void:
 	host = String(Config.value("motion_rig", "host", "127.0.0.1")).strip_edges()
 	port = int(Config.value("motion_rig", "port", 33001))
 	format = String(Config.value("motion_rig", "format", "srs"))
+	var sg: Variant = Config.value("motion_rig", "signs", {})
+	signs = (sg as Dictionary).duplicate() if sg is Dictionary else {}
 	var hz := clampi(int(Config.value("motion_rig", "rate_hz", 60)), 1, 100000)
 	every_n = maxi(1, roundi(float(Engine.physics_ticks_per_second) / float(hz)))
 	_close()
@@ -64,9 +67,9 @@ func step(tel: Telemetry, dt: float) -> void:
 func build_packet(s: MotionSample) -> PackedByteArray:
 	var pkt: PackedByteArray
 	if format == "generic":
-		pkt = MotionPacket.pack_generic(s, _seq)
+		pkt = MotionPacket.pack_generic(s, _seq, signs)
 	else:
-		pkt = MotionPacket.pack_srs(s, place)
+		pkt = MotionPacket.pack_srs(s, place, signs)
 	_seq += 1
 	return pkt
 

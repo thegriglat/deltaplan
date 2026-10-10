@@ -13,7 +13,17 @@ const VEHICLE_NAME := "Hang glider"
 const STR_LEN := 50
 
 
-static func pack_srs(s: MotionSample, location: String = "") -> PackedByteArray:
+const SIGN_KEYS: PackedStringArray = [
+	"surge", "sway", "heave", "roll", "pitch", "yaw", "roll_rate", "pitch_rate", "yaw_rate",
+]
+
+
+## −1 для "inverse", иначе +1 (неизвестное — direct), MR-К3 v2.
+static func _sg(signs: Dictionary, key: String) -> float:
+	return -1.0 if String(signs.get(key, "direct")) == "inverse" else 1.0
+
+
+static func pack_srs(s: MotionSample, location: String = "", signs: Dictionary = {}) -> PackedByteArray:
 	var b := PackedByteArray()
 	b.resize(SRS_SIZE)  # нули
 	b.encode_u8(0, 0x61)  # "api"
@@ -24,18 +34,20 @@ static func pack_srs(s: MotionSample, location: String = "") -> PackedByteArray:
 	_put_str(b, 58, VEHICLE_NAME)
 	_put_str(b, 108, location)
 	b.encode_float(160, s.airspeed * 3.6)
-	b.encode_float(176, s.pitch)
-	b.encode_float(180, s.roll)
-	var yaw := s.yaw if s.yaw <= 180.0 else s.yaw - 360.0
+	b.encode_float(176, s.pitch * _sg(signs, "pitch"))
+	b.encode_float(180, s.roll * _sg(signs, "roll"))
+	var yaw := fposmod(s.yaw * _sg(signs, "yaw"), 360.0)
+	if yaw > 180.0:
+		yaw -= 360.0
 	b.encode_float(184, yaw)
 	b.encode_float(188, s.air_lateral)
-	b.encode_float(192, s.sway / Units.G)
-	b.encode_float(196, s.heave / Units.G - 1.0)
-	b.encode_float(200, s.surge / Units.G)
+	b.encode_float(192, s.sway / Units.G * _sg(signs, "sway"))
+	b.encode_float(196, (s.heave / Units.G - 1.0) * _sg(signs, "heave"))
+	b.encode_float(200, s.surge / Units.G * _sg(signs, "surge"))
 	return b
 
 
-static func pack_generic(s: MotionSample, seq: int) -> PackedByteArray:
+static func pack_generic(s: MotionSample, seq: int, signs: Dictionary = {}) -> PackedByteArray:
 	var b := PackedByteArray()
 	b.resize(GENERIC_SIZE)
 	b.encode_u8(0, 0x44)  # "DPMR"
@@ -46,8 +58,10 @@ static func pack_generic(s: MotionSample, seq: int) -> PackedByteArray:
 	b.encode_u32(8, seq & 0xFFFFFFFF)
 	b.encode_u32(12, (1 if s.valid else 0) | (2 if s.on_ground else 0))
 	var vals: Array[float] = [
-		s.t, s.surge, s.sway, s.heave, s.roll, s.pitch, s.yaw,
-		s.roll_rate, s.pitch_rate, s.yaw_rate, s.airspeed, s.air_lateral,
+		s.t, s.surge * _sg(signs, "surge"), s.sway * _sg(signs, "sway"), s.heave * _sg(signs, "heave"),
+		s.roll * _sg(signs, "roll"), s.pitch * _sg(signs, "pitch"), fposmod(s.yaw * _sg(signs, "yaw"), 360.0),
+		s.roll_rate * _sg(signs, "roll_rate"), s.pitch_rate * _sg(signs, "pitch_rate"),
+		s.yaw_rate * _sg(signs, "yaw_rate"), s.airspeed, s.air_lateral,
 	]
 	for i in vals.size():
 		b.encode_float(16 + 4 * i, vals[i])

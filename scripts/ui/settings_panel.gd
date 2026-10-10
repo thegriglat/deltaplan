@@ -56,6 +56,7 @@ var _motion_on: CheckBox
 var _motion_addr: LineEdit
 var _motion_rate: HSlider
 var _motion_format: OptionButton
+var _motion_signs: Dictionary = {}  ## величина → CheckBox «инв.»
 
 
 func _ready() -> void:
@@ -187,6 +188,17 @@ func _ready() -> void:
 	_names = CheckBox.new()
 	_names.text = tr("settings_pilot_names_hint")
 	UiKit.row(box, tr("settings_pilot_names"), _names)
+	_build_motion_rig(box)
+	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
+	var bar := UiKit.button_bar(sp["footer"])
+	UiKit.button(bar, tr("common_save"), _on_save)
+	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
+	visibility_changed.connect(_on_visibility_changed)
+	load_values()
+
+
+## Раздел «Платформа подвижности» (MR-К3): одним блоком, чтобы переносить на вкладку целиком.
+func _build_motion_rig(box: Control) -> void:
 	UiKit.separator(box)
 	UiKit.label(box, tr("settings_motion_title"), "HintLabel")
 	_motion_on = CheckBox.new()
@@ -200,12 +212,15 @@ func _ready() -> void:
 	_motion_format.add_item(tr("settings_motion_format_srs"))
 	_motion_format.add_item(tr("settings_motion_format_generic"))
 	UiKit.row(box, tr("settings_motion_format"), _motion_format)
-	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
-	var bar := UiKit.button_bar(sp["footer"])
-	UiKit.button(bar, tr("common_save"), _on_save)
-	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
-	visibility_changed.connect(_on_visibility_changed)
-	load_values()
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 16)
+	for k in MotionPacket.SIGN_KEYS:
+		var c := CheckBox.new()
+		c.text = "%s: %s" % [tr("settings_motion_sign_" + k), tr("settings_motion_invert")]
+		grid.add_child(c)
+		_motion_signs[k] = c
+	UiKit.row(box, tr("settings_motion_signs"), grid)
 
 
 ## VSync, предел кадров, режим окна, разрешение (game.json → display, машинные настройки).
@@ -299,6 +314,9 @@ func load_values() -> void:
 	_motion_rate.value = float(Config.value("motion_rig", "rate_hz", 60))
 	_motion_rate.value_changed.emit(_motion_rate.value)
 	_motion_format.select(1 if String(Config.value("motion_rig", "format", "srs")) == "generic" else 0)
+	var sg: Variant = Config.value("motion_rig", "signs", {})
+	for k: String in _motion_signs:
+		(_motion_signs[k] as CheckBox).button_pressed = sg is Dictionary and String(sg.get(k, "direct")) == "inverse"
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -411,7 +429,10 @@ func _save_motion() -> bool:
 		"enabled": _motion_on.button_pressed and not addr.is_empty(),
 		"rate_hz": int(_motion_rate.value),
 		"format": "generic" if _motion_format.selected == 1 else "srs",
+		"signs": {},
 	}
+	for k: String in _motion_signs:
+		patch["signs"][k] = "inverse" if (_motion_signs[k] as CheckBox).button_pressed else "direct"
 	if not addr.is_empty():
 		patch["host"] = addr.host
 		patch["port"] = addr.port

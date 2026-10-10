@@ -8,5 +8,11 @@
 	"rate_hz": 60,
 	"rate_hz_doc": "частота пакетов, 1…physics_hz; шлём каждые max(1, round(physics_hz/rate_hz)) шагов физики",
 	"format": "srs",
+	"signs": {
+		"surge": "direct", "sway": "direct", "heave": "direct",
+		"roll": "direct", "pitch": "direct", "yaw": "direct",
+		"roll_rate": "direct", "pitch_rate": "direct", "yaw_rate": "direct"
+	},
+	"signs_doc": "знак величины в пакете: direct | inverse (MR-К3 v2); только при упаковке",
 	"format_doc": "srs — Sim Racing Studio API v102 (DOF Reality), generic — свой 64-байтный (MR-К2)"
 }

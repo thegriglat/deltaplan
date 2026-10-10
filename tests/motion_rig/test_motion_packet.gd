@@ -78,6 +78,56 @@ func test_generic_layout() -> void:
 		approx(b.decode_float(16 + 4 * i), want[i], 1e-5, "generic float #%d @%d" % [i, 16 + 4 * i])
 
 
+func test_signs_default_is_direct() -> void:
+	var s := known()
+	check(MotionPacket.pack_srs(s, "x") == MotionPacket.pack_srs(s, "x", {}), "srs: пусто = direct")
+	var all_direct := {}
+	for k in MotionPacket.SIGN_KEYS:
+		all_direct[k] = "direct"
+	check(MotionPacket.pack_generic(s, 1) == MotionPacket.pack_generic(s, 1, all_direct), "generic: direct")
+	check(MotionPacket.pack_generic(s, 1) == MotionPacket.pack_generic(s, 1, {"surge": "bogus", "x": "inverse"}),
+		"неизвестное значение/ключ — direct")
+
+
+func test_signs_inverse_generic() -> void:
+	var base := MotionPacket.pack_generic(known(), 3)
+	# смещение float в generic по ключу
+	var at := {"surge": 20, "sway": 24, "heave": 28, "roll": 32, "pitch": 36, "yaw": 40,
+		"roll_rate": 44, "pitch_rate": 48, "yaw_rate": 52}
+	for k: String in at:
+		var b := MotionPacket.pack_generic(known(), 3, {k: "inverse"})
+		for other: String in at:
+			var want := base.decode_float(at[other])
+			if other == k:
+				want = fposmod(-want, 360.0) if k == "yaw" else -want
+			approx(b.decode_float(at[other]), want, 1e-4, "generic inverse %s → поле %s" % [k, other])
+	check(MotionPacket.pack_generic(known(), 3, {"yaw": "inverse"}).decode_float(40) == 90.0, "yaw 270 → 90")
+
+
+func test_signs_inverse_srs() -> void:
+	var base := MotionPacket.pack_srs(known(), "x")
+	var at := {"pitch": 176, "roll": 180, "yaw": 184, "sway": 192, "heave": 196, "surge": 200}
+	for k: String in at:
+		var b := MotionPacket.pack_srs(known(), "x", {k: "inverse"})
+		for other: String in at:
+			var want := base.decode_float(at[other])
+			if other == k:
+				want = -want
+			approx(b.decode_float(at[other]), want, 1e-4, "srs inverse %s → поле %s" % [k, other])
+	# vertical: −(heave/G − 1)
+	approx(MotionPacket.pack_srs(known(), "", {"heave": "inverse"}).decode_float(196), -(11.0 / G - 1.0), 1e-5, "vertical")
+	# yaw: обёртка в (−180, 180]
+	var s := known()
+	s.yaw = 180.0
+	approx(MotionPacket.pack_srs(s, "", {"yaw": "inverse"}).decode_float(184), 180.0, 1e-5, "yaw 180 → 180")
+	s.yaw = 10.0
+	approx(MotionPacket.pack_srs(s, "", {"yaw": "inverse"}).decode_float(184), -10.0, 1e-5, "yaw 10 → −10")
+	s.yaw = 350.0
+	approx(MotionPacket.pack_srs(s, "", {"yaw": "inverse"}).decode_float(184), 10.0, 1e-4, "yaw 350 → 10")
+	# поля без знака не меняются
+	check(MotionPacket.pack_srs(known(), "x", {"roll_rate": "inverse"}) == base, "rate-знаки в srs не влияют")
+
+
 func test_output_disabled_has_no_socket() -> void:
 	var o := MotionOutput.new()
 	check(not o.enabled, "по умолчанию выключено")
