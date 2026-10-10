@@ -18,7 +18,7 @@
     },
     {
       "name": "MR-К3",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/motion-rig.md"
     }
   ],
@@ -79,5 +79,5 @@
   "report_extra": [],
   "notes": "flight_model.gd — только заполнение pilot_* в телеметрии (по MR-К1), физику не менять.",
   "created": "2026-10-10T17:16:01",
-  "edited": "2026-10-10T17:16:09"
+  "edited": "2026-10-10T17:39:28"
 }

@@ -5,7 +5,7 @@ module: motion-rig
 updated: 2026-10-10
 summary: "Контракты модуля motion-rig: точка пилота в состоянии полёта (MR-К1), величины движения и знаки (MR-К1), пакет UDP (MR-К2), настройки (MR-К3)."
 related: ["docs/plan/motion-rig.md", "docs/research/motion-rig-protocols.md"]
-contracts: [{"id": "MR-К1", "version": 1}, {"id": "MR-К2", "version": 1}, {"id": "MR-К3", "version": 1}]
+contracts: [{"id": "MR-К1", "version": 1}, {"id": "MR-К2", "version": 1}, {"id": "MR-К3", "version": 2}]
 ---
 # Контракты модуля motion-rig
 
@@ -107,14 +107,23 @@ contracts: [{"id": "MR-К1", "version": 1}, {"id": "MR-К2", "version": 1}, {"id
 Приёмник `tools/motion_rig/recv.py` (Python stdlib): `--port`, `--format srs|generic`, печать строкой и `--jsonl файл`
 (строка на пакет: все поля по именам выше, `t_recv`); понимает оба формата; неверный размер/заголовок — строка-ошибка, не падение.
 
-## MR-К3. Настройки (v1)
+## MR-К3. Настройки (v2)
 Владелец: MR-2. Потребители: панель настроек, отправка, инструкция игроку (MR-3).
 - `configs/motion_rig.json` (слои `Config`): `enabled: bool = false`, `host: String = "127.0.0.1"`,
-  `port: int = 33001` (SRS по умолчанию), `rate_hz: int = 60` (1…physics_hz), `format: String = "srs"` (`srs` | `generic`). Читать — `Config.value("motion_rig", "<ключ>")`.
+  `port: int = 33001` (SRS по умолчанию), `rate_hz: int = 60` (1…physics_hz), `format: String = "srs"` (`srs` | `generic`).
+- `signs: Dictionary` — знак каждой выводимой величины, `"direct"` (по умолчанию) | `"inverse"`, ключи ровно:
+  `surge, sway, heave, roll, pitch, yaw, roll_rate, pitch_rate, yaw_rate`. Применяется в обоих форматах к значению
+  поля пакета после перевода единиц и смещений MR-К2: `inverse` → поле × (−1) (SRS vertical: −(heave/G − 1));
+  yaw — отрицание, затем приведение к диапазону формата (generic [0, 360), srs (−180, 180]). `MotionSample` и MR-К1
+  знаков не меняют (честные величины); инверсия — только при упаковке. Неизвестное значение/ключ — как `direct`.
+  Зачем: знаки SRS не документированы, платформы у нас нет — игрок правит сам без новой сборки (решение пользователя 10.10).
+- История: v1 → v2 (10.10) — добавлен `signs`.
+- Читать — `Config.value("motion_rig", "<ключ>")`.
 - Ключи машинные (не облако Steam): в `UserSettings.LOCAL_KEYS` и `steam/partner/auto_cloud.json` → `local_keys`
   (тест S7 сверяет списки).
 - UI: `scripts/ui/settings_panel.gd`, раздел «Платформа подвижности» / «Motion platform»: флажок «Вывод движения»,
-  поле адреса `host:port`, частота (Гц), формат (`SRS (DOF Reality)` / `Generic`). Сохранение — `UserSettings.save_patch("motion_rig", …)`; применяется сразу,
+  поле адреса `host:port`, частота (Гц), формат (`SRS (DOF Reality)` / `Generic`);
+  знаки `signs` — компактно (флажки «инв.» по 9 величинам) или только в конфиге, если UI раздувается. Сохранение — `UserSettings.save_patch("motion_rig", …)`; применяется сразу,
   без перезапуска полёта. Неверный адрес — отправка выключена, без исключений и без падений.
 - Выключено → сокет не создаётся, на шаг физики — ноль работы сверх одной проверки флага.
 - Отправка не блокирует кадр: `PacketPeerUDP` (неблокирующий `put_packet`), ошибки отправки (нет приёмника) молча
