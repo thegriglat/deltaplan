@@ -15,6 +15,9 @@ extends Control
 signal closed(changed: bool)
 
 ## Папка для user-конфигов (тесты подменяют).
+## Значения controls.roll_control_mode по порядку пунктов списка.
+const ROLL_MODES: Array[String] = ["rate", "weight_shift", "pendulum"]
+
 var config_dir: String = UserSettings.DEFAULT_DIR
 
 var _volume: HSlider
@@ -104,6 +107,7 @@ func _ready() -> void:
 	_roll_mode = OptionButton.new()
 	_roll_mode.add_item(tr("settings_roll_simple"))
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
+	_roll_mode.add_item(tr("settings_roll_pendulum"))
 	UiKit.row(box_ctl, tr("settings_roll_control"), _roll_mode)
 	_roll_input = OptionButton.new()
 	_roll_input.add_item(tr("settings_roll_input_bar"))
@@ -309,7 +313,7 @@ func load_values() -> void:
 	_sens.value_changed.emit(_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
-	_roll_mode.select(1 if rm == "weight_shift" else 0)
+	_roll_mode.select(ROLL_MODES.find(rm) if rm in ROLL_MODES else 0)
 	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
 	_bar_ui.load_values()
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
@@ -375,7 +379,7 @@ func save() -> bool:
 				"controls",
 				{
 					"invert_pitch": _invert.button_pressed,
-					"roll_control_mode": "weight_shift" if _roll_mode.selected == 1 else "rate",
+					"roll_control_mode": ROLL_MODES[clampi(_roll_mode.selected, 0, ROLL_MODES.size() - 1)],
 					"roll_input": "body" if _roll_input.selected == 1 else "bar",
 					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
 				},
