@@ -1,95 +1,90 @@
 {
- "id": "OT-8",
- "module": "osm-tiles",
- "type": "dp-engineer",
- "title": "Клиент: стадия OsmTilesStage, разбор тайла, OsmData, каркас OsmLayer",
- "goal": "Игра снова читает OSM — из наших тайлов: загрузка 3×3 с кешем и таймаутом 5 с как стадия сборки места (missing), разбор O2/O3 в GDScript, восстановленный OsmData и каркас OsmLayer, на который сядут дороги, вершины и дома.",
- "plan_ref": "OT-8. Клиент: загрузка, разбор, OsmData",
- "contracts": [
-  {
-   "name": "O1",
-   "version": "1",
-   "ref": "docs/contracts/osm-tiles.md"
-  },
-  {
-   "name": "O2",
-   "version": "1",
-   "ref": "docs/contracts/osm-tiles.md"
-  },
-  {
-   "name": "O3",
-   "version": "1",
-   "ref": "docs/contracts/osm-tiles.md"
-  },
-  {
-   "name": "O9",
-   "version": "1",
-   "ref": "docs/contracts/osm-tiles.md"
-  },
-  {
-   "name": "OA-К3",
-   "version": "1",
-   "ref": "docs/contracts/osm-tiles.md"
-  },
-  {
-   "name": "OA-К4",
-   "version": "2",
-   "ref": "docs/contracts/osm-tiles.md"
-  }
- ],
- "copy": "~/deltaplan-osm-tiles-OT-8",
- "branch": "osm-tiles/OT-8",
- "base": "feature/osm-tiles",
- "scope": [
-  "scripts/world_objects/osm",
-  "scripts/world_objects/osm_data.gd",
-  "scripts/world_objects/osm_layer.gd",
-  "scripts/world_objects/world_objects.gd",
-  "scripts/terrain/build/osm_tiles_stage.gd",
-  "scripts/terrain/build/location_builder.gd",
-  "configs/osm_tiles.json",
-  "tests/contracts/test_osm_tiles_contracts.gd",
-  "tests/world_objects",
-  "tests/terrain",
-  "scripts/ui,locale/ui.csv,scripts/terrain/build/load_progress.gd,tests/ui"
- ],
- "dont_touch": [
-  "tools/osm_tiles",
-  "tests/contracts/osm_tiles",
-  "docs/contracts",
-  "scripts/world_objects/building_placer.gd",
-  "scripts/world_objects/village_placer.gd",
-  "scripts/world_objects/egg_place.gd"
- ],
- "accept": [
-  {
-   "name": "osm_tiles",
-   "tests": "osm_tiles"
-  },
-  {
-   "name": "terrain",
-   "tests": "terrain"
-  },
-  {
-   "name": "world_objects",
-   "tests": "world_objects"
-  },
-  {
-   "name": "game",
-   "tests": "game",
-   "timeout": 2400
-  },
-  {
-   "name": "no_overpass",
-   "cmd": "grep -ril overpass scripts configs | wc -l",
-   "expect": "num:^(\\d+) ==0"
-  }
- ],
- "report_extra": [
-  "decode_ms_3x3_fixture",
-  "decode_ms_central_almaty"
- ],
- "notes": "",
- "created": "2026-10-10T16:22:59",
- "edited": "2026-10-10T16:37:11"
+  "id": "OT-8",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Клиент: стадия OsmTilesStage, разбор тайла, OsmData, каркас OsmLayer",
+  "goal": "Игра снова читает OSM — из наших тайлов: загрузка 3×3 с кешем и таймаутом 5 с как стадия сборки места (missing), разбор O2/O3 в GDScript, восстановленный OsmData и каркас OsmLayer, на который сядут дороги, вершины и дома.",
+  "plan_ref": "OT-8. Клиент: загрузка, разбор, OsmData",
+  "contracts": [
+    {
+      "name": "O1",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O2",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O3",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "OA-К3",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "OA-К4",
+      "version": "2",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-8",
+  "branch": "osm-tiles/OT-8",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "scripts/world_objects/osm",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/terrain/build/osm_tiles_stage.gd",
+    "scripts/terrain/build/location_builder.gd",
+    "configs/osm_tiles.json",
+    "tests/contracts/test_osm_tiles_contracts.gd",
+    "tests/world_objects",
+    "tests/terrain",
+    "scripts/ui,locale/ui.csv,scripts/terrain/build/load_progress.gd,tests/ui"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles",
+    "tests/contracts/osm_tiles",
+    "docs/contracts",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/village_placer.gd",
+    "scripts/world_objects/egg_place.gd"
+  ],
+  "accept": [
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "no_overpass",
+      "cmd": "grep -ril overpass scripts configs | wc -l",
+      "expect": "num:^(\\d+) ==0"
+    }
+  ],
+  "report_extra": [
+    "decode_ms_3x3_fixture",
+    "decode_ms_central_almaty"
+  ],
+  "notes": "",
+  "created": "2026-10-10T16:22:59",
+  "edited": "2026-10-10T18:20:16"
 }
