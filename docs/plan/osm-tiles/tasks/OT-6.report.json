@@ -1,6 +1,6 @@
 {
-  "status": "partial",
-  "summary": "split_same разобран: тайлы out_a и out_c/out_d совпадают с точностью до поля sources (id частей kazakhstan__pN) и вытекающего raw_len; ждёт правки finalize в OT-4. Нарезка переведена на пачки, потеря osm_timestamp в частях исправлена.",
+  "status": "done",
+  "summary": "dp accept OT-6 --dry: 6/6 PASS (после OT-4 и пересборки). split_same: same 6662 tiles; сшивка на out_a: PASS 74 пограничных тайла.",
   "commits": [
     "b40f9272 OT-6: нарезка пачками (--extract-batch), перенос osmosis-времени в части"
   ],
@@ -11,21 +11,34 @@
       "pass": true
     },
     {
+      "name": "status_done",
+      "value": "regions done 2/2",
+      "pass": true
+    },
+    {
       "name": "resume_same",
       "value": "same 6662 tiles",
       "pass": true
     },
     {
-      "name": "split_same (dump без sources)",
-      "value": "6119 Казахстан: равны без sources (+raw_len); 543 Киргизия равны побайтно; пар с иными отличиями 0",
-      "pass": false
+      "name": "manifest",
+      "value": "300051",
+      "pass": true
+    },
+    {
+      "name": "split_same",
+      "value": "same 6662 tiles",
+      "pass": true
+    },
+    {
+      "name": "stitch_out_a",
+      "value": "PASS 74 тайла: длины тайлы/эталон roads 9459.5/9459.5, track 3937.7/3937.7, powerline 2027.6/2027.6, river 2920.6/2920.5, canal 896.9/896.9, rail 426.3/426.3 км; дома 161647/158930; дублей 0; пик osmium 8260 МБ",
+      "pass": true
     }
   ],
-  "not_done": [
-    "split_same по sha ждёт OT-4: в sources тайла должен быть исходный регион, а не часть"
-  ],
+  "not_done": [],
   "questions": [],
-  "how_to_check": "dp accept OT-6 --dry (после OT-4 + dp task sync OT-6)",
+  "how_to_check": "dp accept OT-6",
   "uncertain": [
     {
       "where": "world.py split (osmium fileinfo/--output-header)",
@@ -34,8 +47,8 @@
     },
     {
       "where": "оценка памяти extract на canada",
-      "why": "память ~3,7 ГБ на выход при Казахстане 0,22 ГБ; от размера входа зависимость не измерена",
-      "checked": "замер 1/2/3 выхода: 3,81/7,49/11,15 ГБ; для родителей >2 ГБ batch=1 принудительно; на canada ожидаю 4-8 ГБ на выход (не проверено)"
+      "why": "память ~3,7 ГБ на выход почти не зависит от размера входа (битовые карты по id), по словам координатора; сам размер входа не варьировал",
+      "checked": "замер 1/2/3 выхода на Казахстане: 3,81/7,49/11,15 ГБ; для родителей >2 ГБ batch 1 — достаточно"
     }
   ],
   "dp_feedback": "dp lock cpu требует имя и '--': в справке по задаче стоит как dp lock cpu <команда>. Хотелось бы dp для сравнения тайлов через osmtiles dump с игнором полей.",
@@ -44,6 +57,6 @@
   "peak_rss_mb": "1151 (pack/finalize, run_a); 7655 (run_d, extract батч 2)",
   "world_eta_hours": "~3,5-4 ч: скачивание 82,7 ГБ при 7-9 МБ/с (замер 6,9 и 9,0 МБ/с) = 2,6-3,3 ч; упаковка ~75 МБ/с = ~0,3 ч (идёт параллельно скачиванию); нарезка 7 исключений-гигантов по ~6 с/выход на 0,22 ГБ, для больших ~десятки минут",
   "osmium_extract_peak_gb": "Казахстан 3 части: 3,8 (1 выход) / 7,5 (2) / 11,2 (3 за проход); по умолчанию батч 2, для родителя >2 ГБ батч 1; canada оценка 4-8 ГБ на выход",
-  "t": "2026-10-10T17:30:39",
+  "t": "2026-10-10T17:39:44",
   "by": "executor"
 }
