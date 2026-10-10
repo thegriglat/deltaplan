@@ -372,6 +372,12 @@ func _shake(c: Dictionary) -> Vector3:
 func _follow_body(delta: float, c: Dictionary) -> Vector3:
 	if not body_shift_fn.is_valid():
 		return Vector3.ZERO
+	# «Маятник» (PD-К5): глаз — маркер PilotHead, он висит на теле по физике; ни доли
+	# head_follow_body, ни сглаживания поверх неё
+	var vis := head.get_parent() as GliderVisual
+	if vis != null and vis.hang_pose_active:
+		_head_follow = Vector3.ZERO
+		return Vector3.ZERO
 	var shift: Vector3 = body_shift_fn.call()
 	var want := shift * float(c.get("head_follow_body", 1.0))
 	var s := float(c.get("head_follow_smoothing_s", 0.0))

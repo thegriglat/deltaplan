@@ -42,6 +42,9 @@ var head_marker: Marker3D  ## PilotHead: следует за Head модели �
 ## камеры (game.gd → camera.body_shift_fn, camera_rig.gd → cockpit.head_follow_body): карабин
 ## пилота больше не сдвигается (маятник вокруг HangPoint), это поле — замена прежнего сдвига.
 var body_shift := Vector3.ZERO
+## Поза сейчас задана маятником (set_hang_pose в полёте, PD-К5): тело — по физике, камера «из глаз»
+## не добавляет к нему сглаженное следование за телом (camera_rig.gd). set_pose сбрасывает.
+var hang_pose_active := false
 var sail_material: ShaderMaterial  ## шейдер паруса (SailMaterial), null — исходный материал
 ## Тряска крыла относительно пилота сейчас (visual.buzz), м, оси визуала; 0 — в спокойном воздухе.
 var buzz := Vector3.ZERO
@@ -304,6 +307,7 @@ func set_flight(airspeed_ms: float, stall_amount: float, turbulence: float) -> v
 func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 	if pilot == null:
 		return
+	hang_pose_active = false
 	var shift := Vector3(
 		clampf(roll, -1.0, 1.0) * float(_cfg.pilot_shift_m),
 		0.0,
@@ -328,6 +332,49 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 	_update_buzz(flying, dt)
 	_update_arms(flying, dt)
 	_update_strap()
+
+
+## Поза пилота по маятнику (PD-К5): pilot_rel — ЦМ пилота относительно HangPoint в осях крыла
+## (оси визуала = оси крыла), м. В полёте тело (нода Pilot) висит вдоль направления HangPoint →
+## пилот и сдвинуто так, что таз (ЦМ) стоит ровно в pilot_rel; без сглаживания (решение 5):
+## голова — таз + 0,75 м вперёд и 0,15 м к подвеске в осях тела, как head_position модели (R9).
+## Руки — IK к штанге, стропа — лента HangPoint → подвесная система (_update_strap).
+## На земле — как set_pose(0, 0, false): стоит под крылом.
+func set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float) -> void:
+	if pilot == null:
+		return
+	if on_ground or not pilot_rel.is_finite() or pilot_rel.length() < 0.1:
+		set_pose(0.0, 0.0, false, dt)
+		return
+	hang_pose_active = true
+	_update_run_lean(true, dt)
+	var rot := Basis(Quaternion(Vector3.DOWN, pilot_rel.normalized()))
+	_pose = Transform3D(rot, _hang + pilot_rel - rot * _hips_local())
+	pilot.transform = _pose
+	# смещение ЦМ от нейтрали (замена прежнего сдвига ручкой) — для внешних потребителей
+	body_shift = pilot_rel - _body_center()
+	if _head != null:
+		head_marker.transform = _relative_xform(self, _head)
+	else:
+		head_marker.transform = _pose * Transform3D(Basis.IDENTITY, _head_local())
+	_update_buzz(true, dt)
+	_update_arms(true, dt)
+	_update_strap()
+
+
+## Таз (ЦМ пилота) в осях ноды Pilot: кость Hips по текущей анимации; нет скелета — центр тела
+## модели (pilot.json → body_below_hang_m) относительно карабина.
+func _hips_local() -> Vector3:
+	if _skeleton != null:
+		var i := _skeleton.find_bone("Hips")
+		if i >= 0:
+			return _relative_xform(pilot, _skeleton) * _skeleton.get_bone_global_pose(i).origin
+	return _body_center() + Vector3(0.0, hang_drop_m, 0.0)
+
+
+## Таз в осях визуала (для проверок).
+func _hips_local_world() -> Vector3:
+	return pilot.transform * _hips_local()
 
 
 # ---------------------------------------------------------------- руки

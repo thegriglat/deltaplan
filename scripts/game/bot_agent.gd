@@ -21,6 +21,10 @@ const SPOT_TOL_M := 2.0
 var id: int = 0
 var model := FlightModel.new()
 var control := ControlInput.new()
+## PD-К5: положение пилота относительно подвески в осях крыла, м (чужой пилот в «Маятнике»; пишет
+## remote_pilots.gd из PilotState.pilot_rel). Боты — false: поза по вводу, как раньше.
+var pilot_rel: Vector3 = Vector3.ZERO
+var pilot_rel_valid: bool = false
 var brain := WanderPilot.new()
 var state: State = State.WAIT
 var wing_id: String = ""
