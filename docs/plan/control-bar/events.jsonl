@@ -35,3 +35,5 @@
 {"t": "2026-10-10T18:58:53", "by": "coordinator", "task": "CB-2", "ev": "accepted", "commits": ["4b530881"], "note": "6/6 control_bar=ok:13/13; input=ok:1/1; ui_controls=ok:9/9; control_fix=ok:3/3; ui_tests=ok:0; steam_contracts_s7=ok:6/6"}
 {"t": "2026-10-10T18:59:49", "by": "coordinator", "task": "CB-2", "ev": "accepted", "note": "6/6 control_bar=ok:13/13; input=ok:1/1; ui_controls=ok:9/9; control_fix=ok:3/3; ui_tests=ok:0; steam_contracts_s7=ok:6/6"}
 {"t": "2026-10-10T18:59:57", "by": "coordinator", "task": "CB-2", "ev": "merged", "commits": ["3aa73fe1"]}
+{"t": "2026-10-10T19:01:00", "by": "coordinator", "task": "CB-2", "ev": "accepted", "commits": ["7a54dd3c"], "note": "6/6 control_bar=ok:13/13; input=ok:1/1; ui_controls=ok:9/9; control_fix=ok:3/3; ui_tests=ok:0; steam_contracts_s7=ok:6/6"}
+{"t": "2026-10-10T19:01:09", "by": "coordinator", "task": null, "ev": "note", "note": "dp: модуль готов к слиянию; без замечаний к dp сверх записанных (зависание dp report через stdin, путаница отчётов в общем scratchpad, url-regex без markdown-скобок, после слияния с новым class_name dp accept --here падает до --import копии модуля — стоит импортировать самому)"}
