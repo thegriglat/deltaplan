@@ -108,3 +108,4 @@
 {"t": "2026-10-10T17:48:55", "by": "executor", "task": "OT-7", "ev": "accepted", "note": "3/3 docs_check=ok:ошибок 0; guide_cmds=ok:2; readme=ok:ok"}
 {"t": "2026-10-10T17:48:55", "by": "coordinator", "task": "OT-7", "ev": "accepted", "commits": ["23831f34"], "note": "3/3 docs_check=ok:ошибок 0; guide_cmds=ok:2; readme=ok:ok"}
 {"t": "2026-10-10T17:48:56", "by": "coordinator", "task": "OT-7", "ev": "merged", "commits": ["23831f34"]}
+{"t": "2026-10-10T18:02:04", "by": "coordinator", "task": "OT-8", "ev": "note", "note": "game-тесты ~22 мин (184 теста) — таймаут проверки 2400 с; раньше game у других модулей 700–920 с — разница, вероятно, от нагрузки машины, проверит ревьюер"}
