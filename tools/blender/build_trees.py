@@ -11,7 +11,7 @@ V{v}_LOD0, V{v}_LOD1, V{v}_LOD2; текстуры коры и хвои/лист�
          слиты в 1 крупный (~150–400 треугольников), средняя дальность;
   LOD2 — импостор: две скрещённые плоскости с запечённой в Blender картинкой (4 треугольника).
 Начало координат — основание ствола, вверх +Y (Godot), высота — реальная (height_m), 1 ед. = 1 м.
-Ещё пишутся картинки-импосторы assets/models/trees/tree_<вид>_v<v>_impostor.png и общий атлас
+Ещё пишутся картинки-импосторы assets/source/trees/tree_<вид>_v<v>_impostor.png (не в паке) и общий атлас
 trees_impostor_atlas.png (вариант 0; ячейки 256×512: pine, cedar, larch, birch / spruce) — для
 шейдера дальних деревьев. Нужен xvfb-run (Eevee запекает импостор).
 """
@@ -405,7 +405,7 @@ def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
         o.hide_render = True
     _backface_fix(mats["Leaf"], True)
     mats["Bark"].node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.0
-    imp_path = os.path.join(OUT, "tree_%s_v%d_impostor.png" % (key, v))
+    imp_path = os.path.join(SRC, "tree_%s_v%d_impostor.png" % (key, v))
     img, w, h = bake_impostor(lod0, sp, tuple(lod_cfg["impostor_px"]), imp_path)
     for o in hidden:
         o.hide_render = False
@@ -426,7 +426,7 @@ def atlas(keys: list, px: tuple) -> None:
     cw, ch = px
     out = np.zeros((1024, 1024, 4), dtype=np.float32)
     for i, key in enumerate(keys):
-        img = bpy.data.images.load(os.path.join(OUT, "tree_%s_v0_impostor.png" % key))
+        img = bpy.data.images.load(os.path.join(SRC, "tree_%s_v0_impostor.png" % key))
         a = np.array(img.pixels[:], dtype=np.float32).reshape(ch, cw, 4)
         col, row = i % 4, 1 - i // 4  # ряд 0 — верхний в картинке
         out[row * ch:(row + 1) * ch, col * cw:(col + 1) * cw] = a
