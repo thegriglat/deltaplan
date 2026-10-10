@@ -10,6 +10,8 @@ extends Node
 ##     --marks=2:cockpit,30:chase,60:chase --sample=2 --out=build/perf/x.jsonl \
 ##     [--exps=base,scale50,noshadow,...] [--air=60]
 ##   --gpu-profile   нужен для разбивки GPU по проходам (метки RenderingDevice движка)
+##   --latlon=lat,lon  место по координатам вместо --location (метка остаётся в журнале);
+##   --game-args=a,b   доп. аргументы игры через запятую (например --air-start=0,400)
 ##   --air=T         после отметок (без паузы): на сим.времени T запросить пересчёт поля воздуха
 ##                   (AirRuntime.request_recompute) и мерить кадры, пока он идёт (не дольше 40 с)
 ## Пишет по строке JSON на опыт в --out (кадр CPU/GPU средн. и 1%-худших, проходы GPU,
@@ -49,6 +51,8 @@ const HIDE_CLASSES := {
 
 var _location := ""
 var _tag := ""
+var _latlon := ""
+var _game_args: Array = []
 var _sample_s := 2.0
 var _marks: Array = []
 var _exps: Array = ALL_EXPS.duplicate()
@@ -71,6 +75,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--location="):
 			_location = a.substr(11)
+		elif a.begins_with("--latlon="):
+			_latlon = a.substr(9)
+		elif a.begins_with("--game-args="):
+			_game_args = Array(a.substr(12).split(",", false))
 		elif a.begins_with("--tag="):
 			_tag = a.substr(6)
 		elif a.begins_with("--sample="):
@@ -99,7 +107,12 @@ func _ready() -> void:
 	get_tree().create_timer(TIMEOUT_S, true).timeout.connect(_fail.bind("таймаут"))
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 
-	var args := PackedStringArray(["--autostart", "--autopilot", "--location=" + _location])
+	var args := PackedStringArray(["--autostart", "--autopilot"])
+	if _latlon != "":
+		args.append("--latlon=" + _latlon)  # место по координатам; --location= тогда только метка в журнале
+	else:
+		args.append("--location=" + _location)
+	args.append_array(PackedStringArray(_game_args))
 	_main = MAIN_SCENE.instantiate()
 	_main.set("opts", LaunchOptions.parse(args))
 	add_child(_main)
@@ -111,6 +124,8 @@ func _ready() -> void:
 		_fail("не долетели до FLYING")
 		return
 	_game = _main.get_node("Game")
+	print("PROFILE osm_buildings %s %s: %s" % [_location, _tag, JSON.stringify(OsmBuildings.last_stats)])
+	_write({loc = _location, tag = _tag, exp = "_osm_buildings", stats = OsmBuildings.last_stats})
 	_no_vsync()
 	_print_env()
 
