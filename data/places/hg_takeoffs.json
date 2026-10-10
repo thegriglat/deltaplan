@@ -8181,8 +8181,8 @@
    "country": "RU",
    "ele": null,
    "id": "manual/yutsa/south",
-   "lat": 43.968,
-   "lon": 43.0226,
+   "lat": 43.96897,
+   "lon": 43.02289,
    "name": "Юца (Пятигорск) — южный склон, высокий старт",
    "orientation": [
     "S"
@@ -8192,8 +8192,8 @@
    "country": "RU",
    "ele": null,
    "id": "manual/yutsa/west",
-   "lat": 43.969,
-   "lon": 43.019,
+   "lat": 43.97157,
+   "lon": 43.04074,
    "name": "Юца (Пятигорск) — западный склон, низкий старт",
    "orientation": [
     "W"
