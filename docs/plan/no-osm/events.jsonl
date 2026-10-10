@@ -68,3 +68,4 @@
 {"t": "2026-10-10T05:45:07", "by": "coordinator", "task": "NO-7", "ev": "merged", "commits": ["eef9932"]}
 {"t": "2026-10-10T05:45:07", "by": "coordinator", "task": null, "ev": "note", "note": "dp: после слияния ветки с новым class_name dp accept --here падает «тест не загрузился», пока вручную не сделать godot --import в копии; dp accept мог бы сам делать --import, если в ветке появились новые class_name/.uid (или dp import <копия>)"}
 {"t": "2026-10-10T05:45:24", "by": "coordinator", "task": "NO-6", "ev": "created", "note": "Документация и CHANGELOG модуля no-osm"}
+{"t": "2026-10-10T05:53:10", "by": "coordinator", "task": "NO-10", "ev": "created", "note": "Плотнее дома и мягкая размытая подложка застройки"}
