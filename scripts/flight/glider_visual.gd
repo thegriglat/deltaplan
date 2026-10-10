@@ -80,7 +80,6 @@ var _strap_ribbon: MeshInstance3D  ## лента (ImmediateMesh) в осях в�
 var _strap_hidden_mat: ShaderMaterial
 var _strap_anchor_bone := -1  ## кость, к которой привязана нижняя точка стропы
 var _strap_anchor_local := Vector3.ZERO  ## нижняя точка стропы в осях этой кости
-var hang_back_m := 0.0  ## на сколько пилот в полёте сдвинут назад от карабина (плечи за хватом на предплечье с кистью)
 var hang_drop_m := 0.0  ## на сколько пилот в полёте ниже карабина-на-HangPoint: зазор до штанги у этого крыла (A3.5 v8)
 var _strap_rest_len := 0.9  ## длина стропы модели (карабин → подвесная система), м
 
@@ -587,24 +586,21 @@ func _flight_pose(shift: Vector3) -> Transform3D:
 		var roll_ang := asin(clampf(shift.x / maxf(absf(bc.y), 0.0001), -1.0, 1.0))
 		var pitch_ang := -asin(clampf(shift.z / l, -1.0, 1.0))
 		basis = Basis(Vector3(0, 0, 1), roll_ang) * Basis(Vector3(1, 0, 0), pitch_ang)
-	return Transform3D(basis, _hang + basis * Vector3(0, -hang_drop_m, hang_back_m))
+	return Transform3D(basis, _hang + basis * Vector3(0, -hang_drop_m, 0))
 
 
-## Нейтральная поза в полёте (без отклонения ручки): плечевой сустав выше хвата на длину плеча
-## (локоть под плечом, плечо вертикально) и позади хвата на длину предплечья с кистью до центра
-## ладони (предплечье горизонтально, угол в локте 90°). Длины — из скелета пилота
-## (PilotArmIK.arm_lengths), положение плеча в модели — pilot.json (shoulder_*_hang_m, проверяет
-## тест). Даёт длину подвески под крыло hang_drop_m и вынос назад hang_back_m (только вид:
-## физика их не читает). Нет рук — по зазору bar_gap_m над штангой, без выноса.
+## Нейтральная поза в полёте (без отклонения ручки): центр масс пилота на вертикали под карабином
+## (модель так собрана), хват — на длину плеча ниже плечевого сустава. Длину подвески под крыло
+## (hang_drop_m) считаем из глубины хвата под HangPoint и длин костей скелета (PilotArmIK.arm_lengths).
+## Хват впереди плеча на предплечье с кистью получается из наклона стоек трапеции (A1: aframe_cg.py
+## --pick-reach, pilot.json → bar_ahead_of_hang_m), а не сдвигом пилота. Только вид: физика не
+## читает. Нет рук — по зазору bar_gap_m над штангой.
 func _fit_neutral_pose() -> void:
-	hang_back_m = 0.0
 	if arm_ik == null or wing == null or get_marker("BaseBar") == null:
 		hang_drop_m = _compute_hang_drop()
 		return
 	var g := (bar_grip(-1) + bar_grip(1)) * 0.5
-	var lens := arm_ik.arm_lengths()
-	hang_drop_m = _hang.y - float(_pcfg.shoulder_below_hang_m) - (g.y + lens.x)
-	hang_back_m = g.z + lens.y + float(_pcfg.shoulder_ahead_of_hang_m)
+	hang_drop_m = _hang.y - float(_pcfg.shoulder_below_hang_m) - (g.y + arm_ik.arm_lengths().x)
 
 
 ## Запасная подгонка без рук: низ торса на pilot.json → visual.bar_gap_m над верхом базовой штанги.
@@ -801,9 +797,7 @@ func update_arm_mask() -> void:
 
 ## Центр тела относительно карабина.
 func _body_center() -> Vector3:
-	return Vector3(
-		0, -float(_pcfg.body_below_hang_m) - hang_drop_m, float(_pcfg.body_back_m) + hang_back_m
-	)
+	return Vector3(0, -float(_pcfg.body_below_hang_m) - hang_drop_m, float(_pcfg.body_back_m))
 
 
 func _head_local() -> Vector3:

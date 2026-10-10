@@ -256,13 +256,13 @@ func test_ground_strap_and_feet_under_wing() -> void:
 				)
 			)
 		)
-		check(absf(above - 0.09) < 0.1, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])
+		check(absf(above - 0.09) < 0.12, "%s: стопы на земле (%+.3f м)" % [tag, above - 0.09])  # A1 v4: стойки наклонены сильнее — стойка на склоне ±0,1 ± 0,02
 		v.set_pose(0.0, 0.0, true, 1.0e6)
 		# A3.5 v8: в полёте стропа под крыло натянута лентой от HangPoint (жёсткая модельная скрыта)
 		var rib := v.find_child("GroundStrap", true, false) as MeshInstance3D
 		check(rib != null and rib.visible, "%s: в полёте лента стропы от HangPoint видна" % tag)
 		check(
-			v.strap_bottom().distance_to(v.strap_top()) >= float(Config.get_config("pilot").visual.hang_length_m) - 0.05,
+			v.strap_bottom().distance_to(v.strap_top()) >= v._strap_rest_len - 0.01,
 			"%s: в полёте стропа натянута (не провисает)" % tag
 		)
 		g.free()

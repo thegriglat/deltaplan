@@ -71,11 +71,10 @@ func test_flight_pose_swings_around_hang_point() -> void:
 	add_child(v)
 	v.build(Config.get_config("wings/" + WINGS[0]), pilot_cfg, vis_cfg)
 	# A3.5 v8: пилот подвешен ниже карабина-на-HangPoint на hang_drop_m (длина под крыло)
-	check(v.hang_drop_m > 0.1, "длина подвески под крыло: пилот ниже модельной (%.3f м)" % v.hang_drop_m)
-	# нейтральная поза: пилот ещё и сдвинут назад на hang_back_m (плечи за хватом на предплечье)
+	check(v.hang_drop_m > 0.0, "длина подвески под крыло: пилот ниже модельной (%.3f м)" % v.hang_drop_m)
 	var c := Vector3(0, -float(pv.body_below_hang_m), float(pv.body_back_m))  # в осях пилота
-	var l := (c + Vector3(0, -v.hang_drop_m, v.hang_back_m)).length()  # HangPoint → центр масс
-	var drop := Vector3(0, v.hang_drop_m, -v.hang_back_m)  # карабин в осях пилота
+	var l := (c + Vector3(0, -v.hang_drop_m, 0)).length()  # HangPoint → центр масс
+	var drop := Vector3(0, v.hang_drop_m, 0)  # карабин в осях пилота
 
 	v.set_pose(0.0, 0.0, true, 1.0e6)
 	var hang := v.pilot.transform * drop

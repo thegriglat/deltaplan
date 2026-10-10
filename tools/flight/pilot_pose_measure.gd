@@ -74,5 +74,37 @@ func _ready() -> void:
 				]
 			)
 		)
+	_print_cg(v, sk)
+	var shl := v.pilot.transform.affine_inverse() * v.shoulder(-1)
+	print("плечо в осях пилота от карабина: вниз %.4f вперёд %.4f; длины плечо %.4f, локоть-хват %.4f" % [-shl.y, -shl.z, ik.arm_lengths().x, ik.arm_lengths().y])
 	print("hang_drop=", v.hang_drop_m, " pilot_xform=", v.pilot.transform)
 	get_tree().quit(0)
+
+
+## Центр масс тела (Winter: масса и положение центра сегмента) в осях пилота (начало — карабин),
+## поза prone по анимации, без IK. Сегмент: [кость, кость-конец (или ""), доля массы, доля длины].
+func _print_cg(v: GliderVisual, sk: Skeleton3D) -> void:
+	var seg := [
+		["Head_2", "", 0.081, 0.0], ["Chest", "", 0.497, 0.0],
+		["UpperArm.L", "Forearm.L", 0.028, 0.436], ["UpperArm.R", "Forearm.R", 0.028, 0.436],
+		["Forearm.L", "Hand.L", 0.022, 0.43], ["Forearm.R", "Hand.R", 0.022, 0.43],
+		["Thigh.L", "Shin.L", 0.1, 0.433], ["Thigh.R", "Shin.R", 0.1, 0.433],
+		["Shin.L", "Foot.L", 0.0465, 0.433], ["Shin.R", "Foot.R", 0.0465, 0.433],
+		["Foot.L", "", 0.0145, 0.0], ["Foot.R", "", 0.0145, 0.0],
+	]
+	var to_p := v.pilot.global_transform.affine_inverse() * sk.global_transform
+	var m := 0.0
+	var c := Vector3.ZERO
+	for sg in seg:
+		var a: Vector3 = to_p * sk.get_bone_global_pose(sk.find_bone(sg[0])).origin
+		var b := a
+		if sg[1] != "":
+			b = to_p * sk.get_bone_global_pose(sk.find_bone(sg[1])).origin
+		elif sg[0] == "Chest":
+			b = to_p * sk.get_bone_global_pose(sk.find_bone("Head_2")).origin
+			a = to_p * sk.get_bone_global_pose(sk.find_bone("Hips")).origin
+		var p := a.lerp(b, sg[3]) if sg[0] != "Chest" else a.lerp(b, 0.5)
+		m += sg[2]
+		c += p * sg[2]
+	c /= m
+	print("CG тела (скелет, Winter), оси пилота от карабина: y=%.3f z=%.3f (z>0 назад)  | body_below_hang_m=%.3f body_back_m=%.3f в конфиге" % [c.y, c.z, float(v._pcfg.body_below_hang_m), float(v._pcfg.body_back_m)])

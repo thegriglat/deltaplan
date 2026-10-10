@@ -350,6 +350,44 @@ def vregion(w: dict) -> str:
     return region(max(w, key=w.get))
 
 
+UPPER_ARM_H = 0.186     # длина плеча (сустав → локоть) / рост: Drillis & Contini 1966 (по Winter,
+                        # Biomechanics and Motor Control of Human Movement: плечо 0,186 H,
+                        # предплечье 0,146 H, кисть 0,108 H)
+
+
+def stretch_upper_arm(me, wts: list, joints: dict) -> None:
+    """Плечо меша MPFB короче нормы (0,258 м при росте 1,78 — 0,145 H): растягивает плечевую часть
+    руки вдоль оси плечо → локоть до UPPER_ARM_H · рост, а всё дальше локтя (предплечье, кисть,
+    перчатка) сдвигает целиком. Суставы lowerarm_l/hand_l двигаются так же. Вершины плеча
+    растягиваются линейно от плечевого сустава (толщина не меняется), туловище не трогается."""
+    zs = [v.co.z for v in me.vertices]
+    height = max(zs) - min(zs)
+    sh, el = joints["upperarm_l"], joints["lowerarm_l"]
+    l0 = (el - sh).length
+    delta = UPPER_ARM_H * height - l0
+    print("PLECHO: рост %.3f, плечо %.3f -> %.3f (+%.3f)" % (height, l0, l0 + delta, delta))
+    for side in (1, -1):  # joints — левая рука; правая зеркально по X
+        mir = Vector((side, 1, 1))
+        shs = sh * mir
+        axis = (el * mir - shs).normalized()
+        suffix = "_l" if side == 1 else "_r"
+        for v, w in zip(me.vertices, wts):
+            if not w:
+                continue
+            nm = max(w, key=w.get)
+            if not nm.endswith(suffix):
+                continue
+            base = nm[:-2]
+            if base.startswith("upperarm"):
+                t = min(max((v.co - shs).dot(axis) / l0, 0.0), 1.0)
+                v.co += axis * (delta * t)
+            elif base.startswith(("lowerarm", "hand")) or base.split("_")[0] in M.FINGERS + ("thumb",):
+                v.co += axis * delta
+    axis_l = (el - sh).normalized()
+    joints["lowerarm_l"] = el + axis_l * delta
+    joints["hand_l"] = joints["hand_l"] + axis_l * delta
+
+
 def mpfb_body():
     """Человек MPFB с кулаками → (объект-меш в наших осях, веса MPFB по вершинам, суставы, оси
     трубы в кулаках, HAND)."""
@@ -377,7 +415,8 @@ def mpfb_body():
         joints[k] = mt @ joints[k]
     joints["eye"] = mt @ eye
     joints["sole"] = -2.0
-    axes = {s: (mt.to_3x3() @ a).normalized() for s, (a, _, _) in fists.items()}
+    stretch_upper_arm(me, wts, joints)
+    axes ={s: (mt.to_3x3() @ a).normalized() for s, (a, _, _) in fists.items()}
     hand = sum(hd for _, hd, _ in fists.values()) / 2
     print("FIST clearance: %s" % {s: round(c, 4) for s, (_, _, c) in fists.items()})
     for uv in me.uv_layers[1:]:

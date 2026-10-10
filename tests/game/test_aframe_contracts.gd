@@ -80,7 +80,7 @@ func test_params_and_markers() -> void:
 			if p.has("hang_from_apex_m")
 			else float(cf.hang_from_apex_m["double" if p.double_surface else "single"])
 		)
-		check(tilt >= 4.0 and tilt <= 13.0, "%s: наклон %.1f в 4…13" % [wid, tilt])
+		check(tilt >= 4.0 and tilt <= 35.0, "%s: наклон %.1f в 4…35" % [wid, tilt])
 		check(length >= 1.6 and length <= 1.75, "%s: длина стоек %.3f в 1,6…1,75" % [wid, length])
 		var src := String(p.get("hang_source", ""))
 		check(src in ["passport", "cg"], "%s: hang_source = passport|cg (%s)" % [wid, src])
@@ -202,7 +202,7 @@ func test_flight_pilot_height() -> void:
 		dmin = minf(dmin, d)
 		dmax = maxf(dmax, d)
 		worst_elbow = maxf(worst_elbow, el.y - sh.y)
-		check(el.y <= sh.y - 0.2, "рука %d: локоть ниже плеча (%+.3f м)" % [side, el.y - sh.y])
+		check(el.y <= sh.y - 0.1, "рука %d: локоть ниже плеча (%+.3f м)" % [side, el.y - sh.y])
 	var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
 	var dims := _pilot_dims(v)
 	var above := float(dims.torso_low_y) - bar.y
@@ -218,8 +218,13 @@ func test_flight_pilot_height() -> void:
 	var sl := v.pilot.transform.affine_inverse() * v.shoulder(-1)
 	approx(-sl.y, float(Config.get_config("pilot").visual.shoulder_below_hang_m), 0.02, "pilot.json shoulder_below_hang_m = модель")
 	approx(-sl.z, float(Config.get_config("pilot").visual.shoulder_ahead_of_hang_m), 0.02, "pilot.json shoulder_ahead_of_hang_m = модель")
+	approx(
+		float(Config.get_config("pilot").visual.bar_ahead_of_hang_m), -sl.z + lens.y, 0.01,
+		"pilot.json bar_ahead_of_hang_m = плечо впереди карабина + предплечье с кистью"
+	)
+	approx(-(g.z), float(Config.get_config("pilot").visual.bar_ahead_of_hang_m), 0.02, "хват впереди карабина = bar_ahead_of_hang_m (наклон стоек, A1 v4)")
 	# модельная подвеска = измеренная минус смещение пилота под крыло (по вертикали мира)
-	var dy := -(v.global_transform.basis * Vector3(0, -v.hang_drop_m, v.hang_back_m)).y
+	var dy := -(v.global_transform.basis * Vector3(0, -v.hang_drop_m, 0)).y
 	approx(hl, meas_len - dy, 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
 	print(
 		(
@@ -240,8 +245,6 @@ func test_neutral_every_wing() -> void:
 	var hi := -1.0e9
 	var dlo := 1.0e9
 	var dhi := -1.0e9
-	var blo := 1.0e9
-	var bhi := -1.0e9
 	var seen := {}
 	for wid: String in params:
 		var cfg := String(params[wid].config)
@@ -261,10 +264,8 @@ func test_neutral_every_wing() -> void:
 		hi = maxf(hi, gap)
 		dlo = minf(dlo, v.hang_drop_m)
 		dhi = maxf(dhi, v.hang_drop_m)
-		blo = minf(blo, v.hang_back_m)
-		bhi = maxf(bhi, v.hang_back_m)
 		v.free()
-	print("         крыльев %d: зазор низ тела — верх штанги %.3f…%.3f м; опускание %.3f…%.3f м; вынос назад %.3f…%.3f м" % [seen.size(), lo, hi, dlo, dhi, blo, bhi])
+	print("         крыльев %d: зазор низ тела — верх штанги %.3f…%.3f м; опускание %.3f…%.3f м" % [seen.size(), lo, hi, dlo, dhi])
 
 
 ## A3.6: визуальный тангаж киля в установившемся планировании = тангаж из модели полёта

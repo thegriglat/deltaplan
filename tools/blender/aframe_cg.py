@@ -8,7 +8,8 @@
 tools/blender/aframe_trim.json (его пишет tools/flight/aframe_trim.gd, физику не меняет).
 Пишет в wings.<id>: cg_from_nose_m (центр масс по трубам, ткань не учтена, пока
 sail_mass_kg не задан) и nose_forward_m = cg_from_nose_m − hang_cg_offset_m. С --pick-tilt
-дополнительно выбирает upright_tilt_deg (4…13°) так, чтобы середина базовой штанги в полёте на
+дополнительно выбирает upright_tilt_deg (4…13°; с --pick-reach — 4…35° так, чтобы хват на штанге был впереди
+HangPoint на pilot.json → visual.bar_ahead_of_hang_m: нейтральная поза рук, A3 v12; запускать без --pick-tilt) так, чтобы середина базовой штанги в полёте на
 балансировке (трапеция в нейтрали, трим-скорость, тангаж киля из aframe_trim.json) оказалась
 под серединой плечевых суставов. Повторный запуск без изменений входа даёт те же числа.
 Первый запуск (нет crossbar_from_nose_m) переносит прежние константы: центр поперечины —
@@ -28,6 +29,8 @@ PARAMS = os.path.join(ROOT, "tools", "blender", "glider_params.json")
 TRIM = os.path.join(ROOT, "tools", "blender", "aframe_trim.json")
 HANG = os.path.join(ROOT, "tools", "research", "data", "wing_passports", "hang_passports.json")
 TILT_RANGE = (4.0, 13.0)
+REACH_TILT_RANGE = (4.0, 35.0)  # --pick-reach: наклон под хват рук (нейтральная поза, A3 v12)
+PILOT = os.path.join(ROOT, "configs", "pilot.json")
 LEN_RANGE = (1.6, 1.75)
 
 
@@ -61,8 +64,17 @@ def balance(p: dict, cf: dict, tilt: float, theta_deg: float, shoulder: list) ->
     return f * math.cos(th) - u * math.sin(th), f * math.sin(th) + u * math.cos(th)
 
 
+def grip_ahead(p: dict, cf: dict, tilt: float) -> float:
+    """Хват рук (маркеры BarGripL/R) впереди HangPoint, м: ось базовой штанги + изгиб в точке хвата."""
+    fp = G.frame_points(p, cf, tilt)
+    bow, straight = G.basebar_spec(p, cf)
+    return fp["y_bb"] + G.bow_at(cf["bar_grip_hand_x_m"], fp["w"], bow, straight)
+
+
 def main() -> None:
     pick = "--pick-tilt" in sys.argv
+    reach = "--pick-reach" in sys.argv
+    bar_target = json.load(open(PILOT, encoding="utf-8"))["visual"]["bar_ahead_of_hang_m"] if reach else 0.0
     report = sys.argv[sys.argv.index("--report") + 1] if "--report" in sys.argv else None
     text = open(PARAMS, encoding="utf-8").read()
     params = json.loads(text)
@@ -92,6 +104,15 @@ def main() -> None:
                 h, _ = balance(p, cf, t, theta, sh)
                 if best is None or abs(h) < abs(best[1]):
                     best = (t, h)
+            upd["upright_tilt_deg"] = best[0]
+            p["upright_tilt_deg"] = best[0]
+        if reach:
+            best = None
+            for i in range(int(REACH_TILT_RANGE[0] * 10), int(REACH_TILT_RANGE[1] * 10) + 1):
+                t = i / 10
+                err = abs(grip_ahead(p, cf, t) - bar_target)
+                if best is None or err < best[1]:
+                    best = (t, err)
             upd["upright_tilt_deg"] = best[0]
             p["upright_tilt_deg"] = best[0]
         h = hang.get(wid)
