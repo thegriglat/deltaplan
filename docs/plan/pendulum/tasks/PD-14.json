@@ -30,9 +30,9 @@
     "configs/pendulum.json",
     "scripts/flight/glider_visual.gd",
     "tests/flight/pendulum",
-    "tests/contracts/test_pendulum_contracts_k2.gd",
     "tests/contracts/test_pendulum_contracts_k5.gd",
-    "tools/research/pendulum/export_reference.py"
+    "tools/research/pendulum/export_reference.py",
+    "tests/contracts/test_pendulum_contracts_k2_ground.gd"
   ],
   "dont_touch": [
     "scripts/flight/flight_model.gd",
@@ -57,5 +57,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T02:24:01"
+  "created": "2026-10-11T02:24:01",
+  "edited": "2026-10-11T02:24:11"
 }
