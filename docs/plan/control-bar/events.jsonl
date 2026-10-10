@@ -1,2 +1,3 @@
 {"t": "2026-10-10T18:31:36", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-10T18:32:12", "by": "coordinator", "task": "CB-1", "ev": "created", "note": "Исследование: протоколы и готовые решения для самодельной трапеции"}
+{"t": "2026-10-10T18:32:52", "by": "coordinator", "task": "CB-1", "ev": "started", "note": "dp-researcher (sonnet), ~/deltaplan-control-bar-CB-1"}
