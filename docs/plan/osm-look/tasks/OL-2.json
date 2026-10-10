@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "L5",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/osm-look.md"
     }
   ],
@@ -61,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T00:36:34"
+  "created": "2026-10-11T00:36:34",
+  "edited": "2026-10-11T00:50:19"
 }
