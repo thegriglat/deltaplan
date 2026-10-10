@@ -471,6 +471,11 @@ loading_counter_surface,Покров: %d/%d,Land cover: %d/%d
 loading_counter_total,Всего: %d/%d,Total: %d/%d
 unit_hz,Гц,Hz
 settings_motion_title,Платформа подвижности,Motion platform
+settings_tab_game,Игра,Game
+settings_tab_graphics,Графика и вид,Graphics and view
+settings_tab_controls,Управление,Controls
+settings_tab_sound,Звук,Sound
+settings_tab_motion,Платформа,Motion platform
 settings_motion_on,Вывод движения,Motion output
 settings_motion_on_hint,Слать движение пилота на платформу по UDP (в полёте),Send pilot motion to a platform over UDP (in flight)
 settings_motion_addr,Адрес (хост:порт),Address (host:port)

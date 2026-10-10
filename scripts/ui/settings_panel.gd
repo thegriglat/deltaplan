@@ -70,33 +70,42 @@ func _ready() -> void:
 	var box: VBoxContainer = sp["box"]
 	UiKit.label(box, tr("menu_settings"), "TitleLabel")
 	UiKit.separator(box)
+	# Вкладки по смыслу; внешняя прокрутка (ScrollPanel) общая, при смене вкладки — наверх.
+	var tabs := TabContainer.new()
+	box.add_child(tabs)
+	var box_game := _add_tab(tabs, tr("settings_tab_game"))
+	var box_gfx := _add_tab(tabs, tr("settings_tab_graphics"))
+	var box_ctl := _add_tab(tabs, tr("settings_tab_controls"))
+	var box_snd := _add_tab(tabs, tr("settings_tab_sound"))
+	var box_rig := _add_tab(tabs, tr("settings_tab_motion"))
+	tabs.tab_changed.connect(func(_i: int) -> void: sp["scroll"].scroll_vertical = 0)
 	_language = OptionButton.new()
 	_language_codes = Language.available().keys()
 	for code: Variant in _language_codes:
 		_language.add_item(String(Language.available()[code]))
-	UiKit.row(box, tr("settings_language"), _language)
+	UiKit.row(box_game, tr("settings_language"), _language)
 	_pilot_name = LineEdit.new()
 	_pilot_name.max_length = UserSettings.PILOT_NAME_MAX
-	UiKit.row(box, tr("settings_pilot_name"), _pilot_name)
+	UiKit.row(box_game, tr("settings_pilot_name"), _pilot_name)
 	var vr: Array = ui.get("vario_volume_range_db", [-40.0, 6.0])
 	_volume = UiKit.slider_row(
-		box, tr("settings_vario_volume"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("unit_db")
+		box_snd, tr("settings_vario_volume"), float(vr[0]), float(vr[1]), 1.0, "%.0f " + tr("unit_db")
 	)
 	var sr: Array = ui.get("look_sensitivity_range", [0.02, 0.5])
 	_sens = UiKit.slider_row(
-		box, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
+		box_ctl, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
 	)
 	_invert = CheckBox.new()
 	_invert.text = tr("settings_invert_pitch_hint")
-	UiKit.row(box, tr("settings_invert_pitch"), _invert)
+	UiKit.row(box_ctl, tr("settings_invert_pitch"), _invert)
 	_roll_mode = OptionButton.new()
 	_roll_mode.add_item(tr("settings_roll_simple"))
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
-	UiKit.row(box, tr("settings_roll_control"), _roll_mode)
+	UiKit.row(box_ctl, tr("settings_roll_control"), _roll_mode)
 	_roll_input = OptionButton.new()
 	_roll_input.add_item(tr("settings_roll_input_bar"))
 	_roll_input.add_item(tr("settings_roll_input_body"))
-	UiKit.row(box, tr("settings_roll_input"), _roll_input)
+	UiKit.row(box_ctl, tr("settings_roll_input"), _roll_input)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -109,13 +118,13 @@ func _ready() -> void:
 			var p: Variant = presets[k]
 			var title := String(p.get("title", k)) if p is Dictionary else k
 			_sound.add_item(tr(title))
-		UiKit.row(box, tr("settings_vario_sound"), _sound)
+		UiKit.row(box_snd, tr("settings_vario_sound"), _sound)
 	_graphics = OptionButton.new()
 	_graphics_names = GraphicsPresets.names()
 	var presets_cfg: Dictionary = Config.get_config("game").get("graphics_presets", {})
 	for g in _graphics_names:
 		_graphics.add_item(tr(String(presets_cfg[g].get("name", g))))
-	UiKit.row(box, tr("settings_graphics"), _graphics)
+	UiKit.row(box_gfx, tr("settings_graphics"), _graphics)
 	var rsr: Array = Config.get_config("game").get("render_scale_range_pct", [50.0, 100.0])
 	var rs_box := HBoxContainer.new()
 	rs_box.add_theme_constant_override("separation", 10)
@@ -135,12 +144,12 @@ func _ready() -> void:
 	rs_box.add_child(rs_value)
 	_render_scale.value_changed.connect(func(x: float) -> void: rs_value.text = "%.0f%%" % x)
 	_render_scale_auto.toggled.connect(func(on: bool) -> void: _render_scale.editable = not on)
-	UiKit.row(box, tr("settings_render_scale"), rs_box)
-	_build_display_rows(box)
+	UiKit.row(box_gfx, tr("settings_render_scale"), rs_box)
+	_build_display_rows(box_gfx)
 	var grass_cfg: Dictionary = Config.get_config("vegetation").get("grass", {})
 	var gr: Array = grass_cfg.get("density_range_pct", [0.0, 200.0])
 	_grass = UiKit.slider_row(
-		box,
+		box_gfx,
 		tr("settings_grass_density"),
 		float(gr[0]),
 		float(gr[1]),
@@ -152,16 +161,16 @@ func _ready() -> void:
 	# id: 0 расчёт (auto), 1 эвристика (off)
 	_wind_model.add_item(tr("settings_wind_model_calc"), 0)
 	_wind_model.add_item(tr("settings_wind_model_simple"), 1)
-	UiKit.row(box, tr("settings_wind_model"), _wind_model)
+	UiKit.row(box_game, tr("settings_wind_model"), _wind_model)
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
 		_time_speed.add_item(tr("settings_time_stopped") if float(v) <= 0.0 else "×%d" % int(v))
-	_time_speed_row = UiKit.row(box, tr("settings_time_speed"), _time_speed)
+	_time_speed_row = UiKit.row(box_game, tr("settings_time_speed"), _time_speed)
 	var cam: Dictionary = Config.get_config("camera")
 	var fr: Array = cam.get("fov_range_deg", [60.0, 110.0])
 	_fov = UiKit.slider_row(
-		box,
+		box_gfx,
 		tr("settings_fov"),
 		float(fr[0]),
 		float(fr[1]),
@@ -171,7 +180,7 @@ func _ready() -> void:
 	_eye_mode = OptionButton.new()
 	_eye_mode.add_item(tr("camera_eye_back_hidden"))
 	_eye_mode.add_item(tr("camera_eye_eyes"))
-	UiKit.row(box, tr("settings_eye_mode"), _eye_mode)
+	UiKit.row(box_gfx, tr("settings_eye_mode"), _eye_mode)
 	_helmet = OptionButton.new()
 	_helmet_modes = Config.value("helmet", "modes", ["none", "open", "visor", "visor_dark"])
 	var helmet_names := {
@@ -182,19 +191,28 @@ func _ready() -> void:
 	}
 	for m: Variant in _helmet_modes:
 		_helmet.add_item(String(helmet_names.get(String(m), String(m))))
-	UiKit.row(box, tr("settings_helmet"), _helmet)
+	UiKit.row(box_gfx, tr("settings_helmet"), _helmet)
 	var bots_max := float(Config.value("bots", "count_max", 20))
-	_bots = UiKit.slider_row(box, tr("settings_bots"), 0.0, bots_max, 1.0, "%.0f")
+	_bots = UiKit.slider_row(box_game, tr("settings_bots"), 0.0, bots_max, 1.0, "%.0f")
 	_names = CheckBox.new()
 	_names.text = tr("settings_pilot_names_hint")
-	UiKit.row(box, tr("settings_pilot_names"), _names)
-	_build_motion_rig(box)
+	UiKit.row(box_game, tr("settings_pilot_names"), _names)
+	_build_motion_rig(box_rig)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(sp["footer"])
 	UiKit.button(bar, tr("common_save"), _on_save)
 	UiKit.button(bar, tr("common_cancel"), func() -> void: closed.emit(false))
 	visibility_changed.connect(_on_visibility_changed)
 	load_values()
+
+
+## Вкладка настроек: колонка внутри TabContainer.
+func _add_tab(tabs: TabContainer, title: String) -> VBoxContainer:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	tabs.add_child(v)
+	tabs.set_tab_title(tabs.get_tab_count() - 1, title)
+	return v
 
 
 ## Раздел «Платформа подвижности» (MR-К3): одним блоком, чтобы переносить на вкладку целиком.
