@@ -8,7 +8,8 @@
 (docs/plan/osm-tiles.md, «Допуски сверки с эталоном (этап 1)»).
 
 Набор тайлов сравнения: без --cover — только тайлы эталона с inside=true (у Алматы флага нет — все 25);
-с --cover (вывод `osmtiles cover`, строки «j i») — тайлы эталона, пересекающие .poly. Сумма — по этому набору
+с --cover (вывод `osmtiles cover`, строки «j i») — тайлы эталона, пересекающие .poly; cover ограничивается
+прямоугольником тайлов эталона (по поясам: j эталона, i от min до max в поясе) (эталон Алматы — окно 5×5 внутри страны). Сумма — по этому набору
 (нет нашего тайла = 0). Расхождение наборов допустимо только для тайлов, не пересекающих .poly: тайл
 эталона (не пустой) без нашего, лежащий в cover, и наш тайл вне эталона, лежащий в cover, — FAIL.
 Без --cover наши «лишние» тайлы только перечисляются (судить нельзя).
@@ -36,6 +37,7 @@ TOL = {
     "tile_min_objects": 200,  # по тайлам: тайлы с >= 200 объектов в потоке ...
     "tile_count_pct": 2.0,    # ... где расхождение числа <= 2 % ...
     "tile_share_min": 95.0,   # ... должны составлять >= 95 %
+    "file_vs_streams": 0.5,   # итоговые файлы (один кадр zstd 19 на тайл) <= сумма zstd потоков + 0,5 %
 }
 LINE = ["roads", "track", "river", "canal", "powerline", "rail", "aerialway"]
 POINT = ["power_tower", "vertical", "peak", "pass", "names", "aeroway"]
@@ -96,6 +98,16 @@ def compare(stats, ref, cover=None, ref_dir=None):
     if cover is None:
         comp = sorted(k for k in rt if inside.get(k, True))
     else:
+        rows = {}   # пояс j -> (min i, max i) тайлов эталона (шаг i в поясах разный)
+        for k in rt:
+            j, i = (int(x) for x in k.split(","))
+            lo, hi = rows.get(j, (i, i))
+            rows[j] = (min(lo, i), max(hi, i))
+
+        def in_rect(k):
+            j, i = (int(x) for x in k.split(","))
+            return j in rows and rows[j][0] <= i <= rows[j][1]
+        cover = {k for k in cover if in_rect(k)}
         comp = sorted(k for k in rt if k in cover)
 
     def nonempty(k):
@@ -148,8 +160,9 @@ def compare(stats, ref, cover=None, ref_dir=None):
     zs = [v.get("zstd") for v in stats.get("totals", {}).values()]
     if fb is not None and zs and all(z is not None for z in zs):
         sz = sum(zs)
-        tb.add("итоговые файлы ≤ сумма zstd потоков, Б", sz, fb, "≤", fb <= sz,
-               (fb - sz) / sz * 100 if sz else 0)
+        lim = sz * (1 + TOL["file_vs_streams"] / 100)
+        tb.add("итоговые файлы ≤ сумма zstd потоков + 0,5 %, Б", sz, fb, f"≤ +{TOL['file_vs_streams']:g} %",
+               fb <= lim + 1e-9, (fb - sz) / sz * 100 if sz else 0)
     return tb
 
 

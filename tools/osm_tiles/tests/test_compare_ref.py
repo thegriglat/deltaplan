@@ -3,6 +3,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 D = Path(__file__).resolve().parents[1]
@@ -70,10 +71,37 @@ class CompareRef(unittest.TestCase):
         s2 = json.loads(json.dumps(s))
         s2["tiles"].pop(out, None)
         self.assertEqual(fails(compare_ref.compare(s2, "slovenia", cover)), [])
-        # лишний наш тайл из cover, которого нет в эталоне — ошибка
+        # наш тайл из cover вне прямоугольника тайлов эталона — не судится
         s3 = json.loads(json.dumps(s))
         s3["tiles"]["1,1"] = {"file_bytes": 1, "streams": {}}
-        self.assertTrue(fails(compare_ref.compare(s3, "slovenia", cover | {"1,1"})))
+        self.assertEqual(fails(compare_ref.compare(s3, "slovenia", cover | {"1,1"})), [])
+        # лишний наш тайл из cover внутри прямоугольника, которого нет в эталоне, — ошибка
+        k = next(k for k in sorted(rt) if ins[k])
+        rt2 = {kk: v for kk, v in rt.items() if kk != k}
+        with mock.patch.object(compare_ref, "load_ref", return_value=(rt2, ins)):
+            f = fails(compare_ref.compare(s, "slovenia", cover))
+        self.assertTrue(any("нет в эталоне" in m for m in f), f)
+
+    def test_cover_limited_to_ref_rect(self):
+        # Алматы: cover всей страны — наши тайлы вне окна эталона не судятся, внутри окна — судятся
+        s = stats("almaty")
+        rt, _ = ref_to_stats.load_ref("almaty")
+        far = "200,900"
+        s["tiles"][far] = {"file_bytes": 1, "streams": {}}
+        cover = set(rt) | {far}
+        self.assertEqual(fails(compare_ref.compare(s, "almaty", cover)), [])
+        s2 = json.loads(json.dumps(s))
+        k = next(k for k in sorted(rt) if rt[k]["roads"]["count"])
+        del s2["tiles"][k]
+        self.assertTrue(any("без наших" in m for m in fails(compare_ref.compare(s2, "almaty", cover))))
+
+    def test_file_vs_streams_tolerance(self):
+        s = stats("slovenia")
+        sz = sum(v["zstd"] for v in s["totals"].values())
+        s["file_bytes_total"] = int(sz * 1.004)
+        self.assertEqual(fails(compare_ref.compare(s, "slovenia")), [])
+        s["file_bytes_total"] = int(sz * 1.006)
+        self.assertTrue(any("итоговые файлы" in m for m in fails(compare_ref.compare(s, "slovenia"))))
 
     def test_cli_codes(self):
         with tempfile.TemporaryDirectory() as d:

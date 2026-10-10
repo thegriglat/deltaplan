@@ -1,0 +1,80 @@
+{
+  "id": "OT-6",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Оркестратор world.py: регионы → тайлы планеты с докачкой и продолжением",
+  "goal": "Один скрипт, который пользователь запускает сам: качает выгрузки Geofabrik, пакует, склеивает границы, удаляет выгрузки, укладываясь в диск; переживает падение и остановку; понятный прогресс; итог — тайлы + манифест для R2.",
+  "plan_ref": "OT-6. Оркестратор world.py",
+  "contracts": [
+    {
+      "name": "O8",
+      "version": "2",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O5",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O4",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O7",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-6",
+  "branch": "osm-tiles/OT-6",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/world.py",
+    "tools/osm_tiles/tests/test_world.py",
+    "tools/osm_tiles/tests/compare_runs.py",
+    "tools/osm_tiles/tests/stub_osmtiles.py"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/packer",
+    "tools/osm_tiles/regions.py",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "unit",
+      "cmd": "python3 -m unittest tools/osm_tiles/tests/test_world.py 2>&1 | tail -3",
+      "expect": "re:^OK"
+    },
+    {
+      "name": "status_done",
+      "cmd": "python3 tools/osm_tiles/world.py status --work /home/greg/deltaplan_data/osm_tiles/OT-6/run_a",
+      "expect": "re:regions done 2/2"
+    },
+    {
+      "name": "resume_same",
+      "cmd": "python3 tools/osm_tiles/tests/compare_runs.py /home/greg/deltaplan_data/osm_tiles/OT-6/out_a /home/greg/deltaplan_data/osm_tiles/OT-6/out_b",
+      "expect": "re:^same \\d+ tiles"
+    },
+    {
+      "name": "manifest",
+      "cmd": "python3 -c \"import os;print('manifest', os.path.getsize('/home/greg/deltaplan_data/osm_tiles/OT-6/out_b/v1/manifest.pb'))\"",
+      "expect": "num:manifest (\\d+) >=100"
+    },
+    {
+      "name": "split_same",
+      "cmd": "python3 tools/osm_tiles/tests/compare_runs.py /home/greg/deltaplan_data/osm_tiles/OT-6/out_a /home/greg/deltaplan_data/osm_tiles/OT-6/out_c",
+      "expect": "re:^same \\d+ tiles"
+    }
+  ],
+  "report_extra": [
+    "seconds_kz_kg",
+    "peak_disk_gb",
+    "peak_rss_mb",
+    "world_eta_hours"
+  ],
+  "notes": "",
+  "created": "2026-10-10T16:37:40",
+  "edited": "2026-10-10T16:56:41"
+}
