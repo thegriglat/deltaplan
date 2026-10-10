@@ -52,6 +52,10 @@ var _wind_model: OptionButton
 var _language: OptionButton
 var _language_codes: Array = []
 var _pilot_name: LineEdit
+var _motion_on: CheckBox
+var _motion_addr: LineEdit
+var _motion_rate: HSlider
+var _motion_format: OptionButton
 
 
 func _ready() -> void:
@@ -183,6 +187,19 @@ func _ready() -> void:
 	_names = CheckBox.new()
 	_names.text = tr("settings_pilot_names_hint")
 	UiKit.row(box, tr("settings_pilot_names"), _names)
+	UiKit.separator(box)
+	UiKit.label(box, tr("settings_motion_title"), "HintLabel")
+	_motion_on = CheckBox.new()
+	_motion_on.text = tr("settings_motion_on_hint")
+	UiKit.row(box, tr("settings_motion_on"), _motion_on)
+	_motion_addr = LineEdit.new()
+	_motion_addr.placeholder_text = "127.0.0.1:33001"
+	UiKit.row(box, tr("settings_motion_addr"), _motion_addr)
+	_motion_rate = UiKit.slider_row(box, tr("settings_motion_rate"), 10.0, 120.0, 5.0, "%.0f " + tr("unit_hz"))
+	_motion_format = OptionButton.new()
+	_motion_format.add_item(tr("settings_motion_format_srs"))
+	_motion_format.add_item(tr("settings_motion_format_generic"))
+	UiKit.row(box, tr("settings_motion_format"), _motion_format)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(sp["footer"])
 	UiKit.button(bar, tr("common_save"), _on_save)
@@ -275,6 +292,13 @@ func load_values() -> void:
 	_bots.value = float(Config.value("bots", "count", 4))
 	_bots.value_changed.emit(_bots.value)
 	_names.button_pressed = bool(Config.value("bots", "names.show", true))
+	_motion_on.button_pressed = bool(Config.value("motion_rig", "enabled", false))
+	_motion_addr.text = "%s:%d" % [
+		String(Config.value("motion_rig", "host", "127.0.0.1")), int(Config.value("motion_rig", "port", 33001))
+	]
+	_motion_rate.value = float(Config.value("motion_rig", "rate_hz", 60))
+	_motion_rate.value_changed.emit(_motion_rate.value)
+	_motion_format.select(1 if String(Config.value("motion_rig", "format", "srs")) == "generic" else 0)
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -357,9 +381,41 @@ func save() -> bool:
 		}
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
+	ok = _save_motion() and ok
 	Config.reload()
 	GraphicsPresets.apply_display(true)
 	return ok
+
+
+## «host:port» → {host, port}; пусто, если адрес неверный (тогда вывод выключен).
+static func parse_motion_address(text: String) -> Dictionary:
+	var t := text.strip_edges()
+	var at := t.rfind(":")
+	if at <= 0 or at == t.length() - 1:
+		return {}
+	var port_text := t.substr(at + 1)
+	if not port_text.is_valid_int():
+		return {}
+	var port := int(port_text)
+	var host := t.substr(0, at).strip_edges()
+	if host.is_empty() or port < 1 or port > 65535:
+		return {}
+	return {"host": host, "port": port}
+
+
+## Вывод движения (MR-К3): неверный адрес — вывод выключен, прежний адрес остаётся. Применяется сразу
+## (Config.reload → Game.motion.configure).
+func _save_motion() -> bool:
+	var addr := parse_motion_address(_motion_addr.text)
+	var patch := {
+		"enabled": _motion_on.button_pressed and not addr.is_empty(),
+		"rate_hz": int(_motion_rate.value),
+		"format": "generic" if _motion_format.selected == 1 else "srs",
+	}
+	if not addr.is_empty():
+		patch["host"] = addr.host
+		patch["port"] = addr.port
+	return UserSettings.save_patch("motion_rig", patch, config_dir)
 
 
 ## Выбран другой пресет графики — слайдер «Густота травы» показывает густоту этого пресета.

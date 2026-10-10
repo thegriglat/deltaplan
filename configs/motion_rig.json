@@ -1,0 +1,12 @@
+{
+	"_doc": "Вывод движения на платформу (MR-К3). Выключено по умолчанию. Ключи машинные (не в облако Steam).",
+	"enabled": false,
+	"enabled_doc": "true — слать пакеты UDP в полёте",
+	"host": "127.0.0.1",
+	"port": 33001,
+	"port_doc": "33001 — порт SRS по умолчанию",
+	"rate_hz": 60,
+	"rate_hz_doc": "частота пакетов, 1…physics_hz; шлём каждые max(1, round(physics_hz/rate_hz)) шагов физики",
+	"format": "srs",
+	"format_doc": "srs — Sim Racing Studio API v102 (DOF Reality), generic — свой 64-байтный (MR-К2)"
+}
