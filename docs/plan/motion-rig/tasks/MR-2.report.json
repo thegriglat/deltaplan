@@ -1,0 +1,127 @@
+{
+  "status": "done",
+  "summary": "Вывод движения реализован по MR-К1/К2/К3: Telemetry.pilot_*, scripts/motion_rig (MotionSample, MotionSource, MotionPacket, MotionOutput), подключение в Game, конфиг+UI+локаль, recv.py, loop_check.sh, тесты. dp accept MR-2 --dry: 6/6.",
+  "commits": [
+    "fae0112a MR-2: вывод движения на платформу — MotionSource, пакеты srs/generic, UDP-отправитель, настройки, приёмник recv.py"
+  ],
+  "checks": [
+    {
+      "name": "motion_rig",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/",
+      "value": "97/97",
+      "pass": true
+    },
+    {
+      "name": "tests/ui/",
+      "value": "109/109",
+      "pass": true
+    },
+    {
+      "name": "tests/steam/",
+      "value": "40/40",
+      "pass": true
+    },
+    {
+      "name": "recv_selftest",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "loop",
+      "value": "loop OK: generic 180 пакетов, heave ср. 9.742; srs 180 пакетов, vertical ср. -0.0066 g",
+      "pass": true
+    },
+    {
+      "name": "микрозамер 1000×(push+sample+pack srs)",
+      "value": "10-11 мс (лимит 20), headless-редактор",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Модель в установившемся планировании держит theta≈+6.6° (нос над горизонтом), поэтому по MR-К1 (оси связаны с pilot_basis) surge≈+1.13 м/с² = g·sin(theta), а не 0; в SRS longitudinal_acceleration ≈ +0.115 g и pitch≈6.6° в горизонтальном полёте. Так и задумано контрактом (платформа получает и угол, и силу), но «surge≈0» из задания неверно — тест проверяет surge = g·sin(theta) и кинематическую часть ≈0. Если нужен surge≈0, контракт должен вычитать проекцию (решение координатора)."
+  ],
+  "images": [],
+  "how_to_check": "dp accept MR-2; руками: bash tools/motion_rig/loop_check.sh; python3 tools/motion_rig/recv.py --selftest",
+  "uncertain": [
+    {
+      "where": "scripts/motion_rig/motion_source.gd (угловые скорости)",
+      "why": "знаки pitch_rate=ω_x, yaw_rate=−ω_y, roll_rate=−ω_z взяты из контракта",
+      "checked": "синтетически (вращение вокруг Y на −10°/с → yaw_rate +10) и на модели: нос вверх → pitch_rate +28; ввод в правый крен → roll_rate +25.6, yaw_rate +7.0; вираж 30° → yaw_rate +26.5. Угловая скорость считается за интервал через кватернион относительного поворота; при интервалах с большим углом (секунды при быстром вираже) это неточно — в игре интервал 1/60 с, нормально."
+    },
+    {
+      "where": "scripts/motion_rig/motion_packet.gd (смещения SRS)",
+      "why": "реальной платформы/SRS нет; знаки SRS не документированы",
+      "checked": "тест разбирает пакет по смещениям из таблицы MR-К2 (236 байт, api/102, game/vehicle/location, float32 @160,176…200); recv.py разбирает независимо (struct); оба согласованы. Строка location обрезается до 49 байт по границе символа."
+    },
+    {
+      "where": "scripts/game/game.gd (tick, restart, _end_catch_up, start-site)",
+      "why": "точка подключения: motion.step сразу после glider.step если glider.phase()==\"flying\", иначе motion.idle() (сброс при выходе из полёта); motion.reset() в restart() и _end_catch_up(); снимков/телепортов отдельных нет, кроме них работает защита 50 g. Тик буксира (_tow_step) и _crashed возвращаются раньше — пакетов нет, платформа уйдёт в нейтраль по таймауту приёмника.",
+      "checked": "game.gd целиком в тестах не запускался (tests/game не в приёмке); headless проверен MotionOutput напрямую и 8 строк кода в game.gd читаются; tests/ui зелёные."
+    },
+    {
+      "where": "scripts/motion_rig/motion_output.gd:configure",
+      "why": "применение настроек сразу: Game подписан на Config.reloaded (панель настроек зовёт Config.reload после save). set_dest_address для имени хоста (не IP) резолвит DNS один раз синхронно при открытии сокета.",
+      "checked": "тестами: выключено → сокет не создаётся; неверный адрес → тишина; реальная отправка на loopback (10 пакетов из 40 шагов при every_n=4, seq 0..9)."
+    },
+    {
+      "where": "scripts/motion_rig/motion_sample.gd",
+      "why": "в MotionSample добавил поля t (время полёта) и on_ground — нужны формату generic (MR-К2: t и бит 1), в MR-К1 их нет в списке полей",
+      "checked": "контрактный тест проверяет только перечисленные поля"
+    },
+    {
+      "where": "первый пакет после reset",
+      "why": "valid=false бывает только если sample() вызван сразу после первого push; при отправке каждые N≥2 шагов первый же пакет уже valid=true (интервал N−1 шагов от первого push)",
+      "checked": "loop_check: valid в потоке; тест reset/первый sample"
+    },
+    {
+      "where": "tests/motion_rig/test_motion_packet.gd:test_microbench",
+      "why": "10–11 мс при лимите 20 — запас всего 2×; на медленной машине может быть флак",
+      "checked": "несколько прогонов, 10.2–11.0 мс"
+    }
+  ],
+  "dp_feedback": "godot -s скрипт (extends SceneTree) не видит автозагрузки (Config) на этапе компиляции — для headless-петель нужна сцена; стоило бы в tools/dp.md/workflow одной строкой. Фоновый dp accept --dry идёт >2 мин и сам уходит в фон — удобнее был бы dp accept --dry --wait N.",
+  "extra": {
+    "steady_level": {
+      "surge": 1.125,
+      "sway": 0.0,
+      "heave": 9.742,
+      "pitch_deg": 6.59,
+      "srs_vertical_g": -0.007,
+      "srs_lateral_g": 0.0
+    },
+    "steady_right_turn_bank30": {
+      "surge": 1.147,
+      "sway": 0.003,
+      "heave": 11.249,
+      "expected_heave_g_over_cos": 11.32,
+      "yaw_rate_dps": 26.5,
+      "roll": 30.0,
+      "note": "вираж координированный: удельная сила целиком по U, sway≈0 (центростремительное ускорение уже включено в наклон силы); sway>0 из формулировки MR-К1 «вираж вправо → sway>0» модель НЕ даёт"
+    },
+    "roll_in_right": {
+      "roll_rate_dps": 25.63,
+      "yaw_rate_dps": 6.98,
+      "sway": -0.245,
+      "air_lateral": 0.3,
+      "note": "при вводе крена кратко скольжение вправо и sway<0 (боковая сила от скольжения)"
+    },
+    "pitch_up_pulse": {
+      "pitch_rate_dps": 28.45
+    },
+    "accel_dive_0.5s": {
+      "surge": -0.38,
+      "surge_minus_g_sin_pitch": 0.72,
+      "pitch_rate_dps": -26.06,
+      "airspeed_gain_ms": 0.41,
+      "note": "полный surge при пикировании меньше, чем в горизонтали, т.к. нос опускается и проекция g на нос уменьшается; кинематическая часть >0"
+    },
+    "microbench_ms": 10.2
+  },
+  "t": "2026-10-10T17:32:31",
+  "by": "executor"
+}
