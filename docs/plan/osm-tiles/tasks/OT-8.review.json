@@ -1,0 +1,57 @@
+{
+  "verdict": "accept",
+  "summary": "Стыки O1/O2/O3/O9 выполнены: разбор DPOT+zstd+protobuf, перевод тайл→мир (то же R, проверено, что аффинная форма эквивалентна TerrainGeo), угол дома −θ mod 180 с длинной стороной вдоль угла (совпадает с прежним _min_area_rect), правило высоты — точно по таблице O9. Замечания не блокируют: карточку задачи в ветке убрать при слиянии, порог сетки в тесте ослаблен из-за float32.",
+  "issues": [
+    {
+      "file": "docs/plan/osm-tiles/tasks/OT-8.json",
+      "line": 79,
+      "severity": "major",
+      "what": "Исполнитель правил карточку задачи в ветке (timeout 2400 у проверки game) — это вне скоупа и файл координатора; в основной копии проверку game уже сняли (accept:-game), при слиянии будет конфликт или проверка вернётся.",
+      "fix": "При слиянии оставить версию координатора (откатить OT-8.json в ветке)."
+    },
+    {
+      "file": "tests/contracts/test_osm_tiles_contracts.gd",
+      "line": 38,
+      "severity": "minor",
+      "what": "Сверка x, y с золотой таблицей O1 идёт с допуском 1e-3 м, а в контракте 1e-6 м: OsmGrid.to_tile возвращает Vector2 (float32). На перевод в мир не влияет (OsmData берёт origin_d в double), но контрактный порог ослаблен.",
+      "fix": "to_tile → PackedFloat64Array/два double, порог 1e-6 как в O1."
+    },
+    {
+      "file": "scripts/world_objects/world_objects.gd",
+      "line": 145,
+      "severity": "minor",
+      "what": "OsmData.load_for получает center из Vector2 (float32): lat/lon центра округляются до ~4e-6° — сдвиг объектов OSM относительно рельефа (TerrainGeo в double) до ~0,3–0,5 м.",
+      "fix": "Передавать центр места в double (как center_lat/center_lon у Terrain)."
+    },
+    {
+      "file": "scripts/world_objects/osm_data.gd",
+      "line": 104,
+      "severity": "minor",
+      "what": "load_for ждёт рабочие потоки на вызывающем (главном) потоке внутри WorldObjects.build: по отчёту Алматы 1,9 с, Бохинь 0,56 с замирания экрана загрузки.",
+      "fix": "Позже (OT-9..11 или perf): запускать load_for в фоне до build и ждать без блокировки кадра."
+    },
+    {
+      "file": "scripts/terrain/build/osm_tiles_stage.gd",
+      "line": 116,
+      "severity": "minor",
+      "what": "Локальный каталог (тестовая сборка): нет файла → метка .none в общем кеше user://osm_tiles/v1; потом при переходе на сервер этот тайл навсегда пустой (кеш не перекачивается).",
+      "fix": "Для file://-источника не писать .none в общий кеш (или отдельный корень кеша)."
+    },
+    {
+      "file": "scripts/game/collision_check.gd",
+      "line": 54,
+      "severity": "minor",
+      "what": "Правки вне перечисленного скоупа: scripts/game/collision_check.gd, scripts/terrain/terrain.gd, scripts/core/load_progress.gd (в карточке путь scripts/terrain/build/load_progress.gd). По смыслу они нужны (стык collision_check из дополнения координатора, строка стадии на экране загрузки), правки малые.",
+      "fix": "Координатору принять как стыки; путь load_progress в карточке поправить."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept OT-8 --only osm_tiles --dry",
+      "value": "24/24",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-10T18:26:52",
+  "by": "reviewer"
+}
