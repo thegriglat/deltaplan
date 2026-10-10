@@ -44,7 +44,9 @@ static func build(
 static func _peaks(root: Node3D, data: OsmData, pc: Dictionary, height_fn: Callable) -> void:
 	var labels := PeakLabels.new()
 	labels.name = "PeakLabels"
-	labels.names_cfg = Config.get_config("bots").get("names", {})
+	# вид — как у имён ботов, но включение отдельное: world_objects.json → osm_pilot.peaks.show
+	labels.names_cfg = (Config.get_config("bots").get("names", {}) as Dictionary).duplicate()
+	labels.show_labels = bool(pc.get("show", true))
 	labels.update_s = float(pc.update_s)
 	var up := float(pc.height_m)
 	var n_peaks := 0
@@ -80,6 +82,8 @@ class PeakLabels:
 
 	var items: Array = []
 	var names_cfg: Dictionary = {}
+	## Показ подписей (настройка «Подписи вершин»); перечитывается из конфига каждые update_s
+	var show_labels := true
 	var update_s := 0.1
 	var tags: Array[Label3D] = []
 	var _t := 1.0e9
@@ -97,12 +101,14 @@ class PeakLabels:
 		if _t < update_s:
 			return
 		_t = 0.0
+		show_labels = bool(Config.value("world_objects", "osm_pilot.peaks.show", show_labels))
 		refresh(get_viewport().get_camera_3d())
 
 	## Обновить все подписи по камере; возвращает, сколько видно.
 	func refresh(cam: Camera3D) -> int:
 		var shown := 0
-		var on := bool(names_cfg.get("show", true))
+		var on := show_labels
+		names_cfg["show"] = true
 		for i in items.size():
 			var tag := tags[i]
 			if cam == null or not on:

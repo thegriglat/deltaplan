@@ -5,7 +5,7 @@ extends Control
 ## инверсия тангажа, режим мыши (обзор / трапеция), скорость времени суток (VR-5),
 ## поле зрения камеры (camera.json → fov_deg), каска в виде из кабины (helmet.json → mode),
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
-## (bots.json → names.show; сразу), густота травы
+## (bots.json → names.show; сразу), подписи вершин (world_objects.json → osm_pilot.peaks.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
 ## загрузки местности), модель ветра (atmosphere.json → air_model.enabled: auto — расчёт по
 ## рельефу (фазы + Пикар на GPU, air-phase P12), off — эвристика, расчёт не запускается; со следующей загрузки места;
@@ -47,6 +47,7 @@ var _eye_modes: Array = ["back_hidden", "eyes"]
 var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
+var _peak_names: CheckBox
 var _grass: HSlider
 var _wind_model: OptionButton
 var _language: OptionButton
@@ -201,6 +202,9 @@ func _ready() -> void:
 	_names = CheckBox.new()
 	_names.text = tr("settings_pilot_names_hint")
 	UiKit.row(box_game, tr("settings_pilot_names"), _names)
+	_peak_names = CheckBox.new()
+	_peak_names.text = tr("settings_peak_names_hint")
+	UiKit.row(box_game, tr("settings_peak_names"), _peak_names)
 	_build_motion_rig(box_rig)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(sp["footer"])
@@ -341,6 +345,7 @@ func load_values() -> void:
 	_bots.value = float(Config.value("bots", "count", 4))
 	_bots.value_changed.emit(_bots.value)
 	_names.button_pressed = bool(Config.value("bots", "names.show", true))
+	_peak_names.button_pressed = bool(Config.value("world_objects", "osm_pilot.peaks.show", true))
 	_motion_on.button_pressed = bool(Config.value("motion_rig", "enabled", false))
 	_motion_addr.text = "%s:%d" % [
 		String(Config.value("motion_rig", "host", "127.0.0.1")), int(Config.value("motion_rig", "port", 33001))
@@ -415,6 +420,8 @@ func save() -> bool:
 	ok = UserSettings.save_patch("game", dp, config_dir) and ok
 	var bp := {"count": int(_bots.value), "names": {"show": _names.button_pressed}}
 	ok = UserSettings.save_patch("bots", bp, config_dir) and ok
+	var pk := {"osm_pilot": {"peaks": {"show": _peak_names.button_pressed}}}
+	ok = UserSettings.save_patch("world_objects", pk, config_dir) and ok
 	if _language.selected >= 0:
 		var code := String(_language_codes[_language.selected])
 		if code != Language.current():
