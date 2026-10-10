@@ -64,3 +64,8 @@
 {"t": "2026-10-10T05:44:31", "by": "coordinator", "task": "NO-2", "ev": "merged", "commits": ["8674268"], "note": "на ветке модуля 5/6; no_osm_contracts_n1 красный ожидаемо — N2 v2 for_dir делает NO-9"}
 {"t": "2026-10-10T05:44:35", "by": "executor", "task": "NO-7", "ev": "checked", "note": "5/5 test_load_progress=ok:4/4; test_menu_setup=ok:12/12; test_terrain=ok:15/15; test_location_builder=ok:6/6; screenshot=ok:exit 0"}
 {"t": "2026-10-10T05:44:43", "by": "coordinator", "task": "NO-7", "ev": "accepted", "note": "по отчёту: «Рельеф: 55/55 Покров: 21/42 Всего: 76/97», холодная точка 61,5 с / 135 запросов; M покрова растёт пакетами — принято (полоса не идёт назад)"}
+{"t": "2026-10-10T05:44:59", "by": "coordinator", "task": "NO-7", "ev": "accepted", "commits": ["eef9932"], "note": "5/5 test_load_progress=ok:4/4; test_menu_setup=ok:12/12; test_terrain=ok:15/15; test_location_builder=ok:6/6; screenshot=ok:exit 0"}
+{"t": "2026-10-10T05:45:07", "by": "coordinator", "task": "NO-7", "ev": "merged", "commits": ["eef9932"]}
+{"t": "2026-10-10T05:45:07", "by": "coordinator", "task": null, "ev": "note", "note": "dp: после слияния ветки с новым class_name dp accept --here падает «тест не загрузился», пока вручную не сделать godot --import в копии; dp accept мог бы сам делать --import, если в ветке появились новые class_name/.uid (или dp import <копия>)"}
+{"t": "2026-10-10T05:45:24", "by": "coordinator", "task": "NO-6", "ev": "created", "note": "Документация и CHANGELOG модуля no-osm"}
+{"t": "2026-10-10T05:53:10", "by": "coordinator", "task": "NO-10", "ev": "created", "note": "Плотнее дома и мягкая размытая подложка застройки"}
