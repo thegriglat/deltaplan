@@ -708,7 +708,7 @@ func _frame_pitch() -> float:
 
 
 ## Вид из кабины с камерой позади тела (A3.3 v8, camera.json → cockpit.eye_mode back_*): тело пилота
-## не рисуется для кабинной камеры. "full" — как есть; "none" — тело и руки скрыты.
+## не рисуется для кабинной камеры. "full" — как есть; "none" — тело и руки скрыты; "hands" — скрыто всё, кроме перчаток.
 ## Для внешних камер тело всегда видно (слой 20 не рисует только кабинная камера).
 ## «Только кабина» — слой 18: слой 19 занят квадом дымки (atmosphere.json →
 ## clouds.shadow_exclude_layer), а внешние камеры слой «только кабина» не рисуют — на 19-м
@@ -717,6 +717,7 @@ const BODY_HIDDEN_LAYER := 1 << 19
 const COCKPIT_ONLY_LAYER := 1 << 17
 var _body_mode := "full"
 var _body_mi: MeshInstance3D
+var _hands_mi: MeshInstance3D
 
 
 func set_cockpit_body(mode: String) -> void:
@@ -730,6 +731,29 @@ func set_cockpit_body(mode: String) -> void:
 	_body_mi.layers = 1 if mode == "full" else BODY_HIDDEN_LAYER
 	if _strap_ribbon != null:  # стропа подвески — часть «тела» для кабинной камеры
 		_strap_ribbon.layers = _body_mi.layers
+	if mode == "hands" and _hands_mi == null:
+		_hands_mi = _make_hands(_body_mi)
+	if _hands_mi != null:
+		_hands_mi.visible = mode == "hands"
+
+
+## «hands»: тело скрыто, кабинная камера видит только перчатки (поверхности Glove*) — копию
+## PilotBody на слое «только кабина», остальные поверхности подменены невидимым материалом.
+func _make_hands(body: MeshInstance3D) -> MeshInstance3D:
+	var hands := body.duplicate() as MeshInstance3D
+	hands.name = "PilotHands"
+	hands.layers = COCKPIT_ONLY_LAYER
+	hands.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var hide := ShaderMaterial.new()
+	var sh := Shader.new()
+	sh.code = "shader_type spatial;\nvoid fragment() { discard; }\n"
+	hide.shader = sh
+	for i in body.mesh.get_surface_count():
+		var m := body.mesh.surface_get_material(i)
+		if m == null or not m.resource_name.begins_with("Glove"):
+			hands.set_surface_override_material(i, hide)
+	body.get_parent().add_child(hands)
+	return hands
 
 
 ## Центр тела относительно карабина.

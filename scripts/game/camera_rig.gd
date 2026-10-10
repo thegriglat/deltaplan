@@ -350,12 +350,12 @@ static func _is_back(c: Dictionary) -> bool:
 	return String(c.get("eye_mode", "back_hidden")) != "eyes"
 
 
-## Тело пилота в кабине: back_hidden — ничего не рисуется, eyes — всё.
+## Тело пилота в кабине: back_hidden — ничего не рисуется, eyes — только руки (перчатки).
 func _apply_body_mode(c: Dictionary) -> void:
 	var vis := head.get_parent() as GliderVisual
 	if vis == null:
 		return
-	vis.set_cockpit_body("full" if not _is_back(c) else "none")
+	vis.set_cockpit_body("hands" if not _is_back(c) else "none")
 
 
 ## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,
