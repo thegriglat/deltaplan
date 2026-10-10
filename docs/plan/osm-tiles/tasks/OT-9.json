@@ -21,11 +21,10 @@
     "scripts/world_objects/world_clearings.gd",
     "scripts/world_objects/world_objects.gd",
     "configs/world_objects.json",
-    "tests/world_objects"
+    "tests/world_objects",
+    "scripts/world_objects/osm/osm_pilot.gd,scripts/world_objects/osm/osm_buildings.gd,tools/shots/roads_shot.gd,tools/shots/roads_shot.tscn"
   ],
   "dont_touch": [
-    "scripts/world_objects/osm/osm_pilot.gd",
-    "scripts/world_objects/osm/osm_buildings.gd",
     "scripts/world_objects/egg_place.gd",
     "tools/osm_tiles",
     "docs/contracts"
@@ -43,10 +42,15 @@
       "name": "screenshot",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/OT-9/ | grep -ciE '\\.(png|jpg)$'",
       "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "osm_roads_x10",
+      "cmd": "for k in 1 2 3 4 5 6 7 8 9 10; do XDG_DATA_HOME=$(mktemp -d) timeout 300 godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_ 2>&1 | grep -E 'тестов, [0-9]+ упало' | tail -1 || echo CRASH; done | sort | uniq -c",
+      "expect": "!re:CRASH|[1-9]\\d* упало"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T17:31:59",
-  "edited": "2026-10-10T18:19:16"
+  "edited": "2026-10-10T19:12:39"
 }
