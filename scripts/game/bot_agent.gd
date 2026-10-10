@@ -47,6 +47,9 @@ var landed_s: float = -1.0
 var queue_hold: bool = true
 ## Сеть (NET-43): место ожидания двигается с очередью зоны — в WAIT идти к spot, если далеко.
 var follow_spot: bool = false
+## Другие наземные боты (положения): обходить их по дороге на старт/место, не заходя в крыло
+## (BotPilots обновляет; свой — не входит).
+var avoid: Array[Vector3] = []
 
 var _cfg: Dictionary = {}
 var _air_fn: Callable
@@ -184,8 +187,7 @@ func go_to_launch() -> void:
 ## Сколько идти от места ожидания до старта (через место в очереди), с — оценка.
 func walk_time_s() -> float:
 	var la: Dictionary = _cfg.get("launch", {})
-	var q := _queue_point()
-	var d := _flat_dist(spot, q) + _flat_dist(q, _ready_point())
+	var d := _flat_dist(spot, _ready_point())
 	return d / float(la.get("walk_speed_est_ms", 0.9)) + float(la.get("walk_margin_s", 8.0))
 
 
@@ -235,15 +237,6 @@ func _ready_point() -> Vector3:
 	return _launch_pos - _launch_fwd() * back
 
 
-## Место в очереди: позади старта и в стороне (чётные — вправо, нечётные — влево).
-func _queue_point() -> Vector3:
-	var la: Dictionary = _cfg.get("launch", {})
-	var f := _launch_fwd()
-	var right := Vector3(-f.z, 0.0, f.x)
-	var side := float(la.get("queue_side_m", 9.0)) * (1.0 if id % 2 == 0 else -1.0)
-	return _ready_point() - f * float(la.get("queue_back_m", 10.0)) + right * side
-
-
 func _stand(t: Telemetry, dt: float) -> void:
 	_nose.observe(t)
 	control.run = false
@@ -253,11 +246,11 @@ func _stand(t: Telemetry, dt: float) -> void:
 	control.pitch = move_toward(control.pitch, _run_nose, dt)
 
 
-## Подход: к месту в очереди (пока предыдущий не побежал) или к точке позади старта;
+## Подход к точке позади старта (BotPilots отпускает бота, только когда на ней и на пути никого
+## нет — общей точки «в стороне» для нескольких ботов нет: она и давала наложение моделей);
 ## там — развернуться по курсу разбега и стоять.
 func _walk(t: Telemetry, dt: float) -> void:
-	var rp := _queue_point() if queue_hold else _ready_point()
-	if _walk_to(t, dt, rp, _launch_heading) and not queue_hold:
+	if _walk_to(t, dt, _ready_point(), _launch_heading) and not queue_hold:
 		state = State.READY
 
 
@@ -265,7 +258,42 @@ func _walk(t: Telemetry, dt: float) -> void:
 func _walk_to(t: Telemetry, dt: float, rp: Vector3, heading_deg: float) -> bool:
 	control.run = false
 	control.pitch = move_toward(control.pitch, _run_nose, dt)
+	var wp := detour(t.position, rp, avoid, float(_cfg.get("launch", {}).get("pass_clear_m", 13.5)))
+	if wp != rp:
+		walk_control(t, wp, heading_deg, control)
+		return false
 	return walk_control(t, rp, heading_deg, control)
+
+
+## Промежуточная точка на пути from → goal в обход ближайшего из obstacles (положения
+## чужих крыльев), если он ближе clear к отрезку: обходит сбоку на расстоянии clear.
+## Нет помех — goal. Препятствие у самой цели (ближе clear) не обходится: там всё равно стоять.
+static func detour(from: Vector3, goal: Vector3, obstacles: Array[Vector3], clear: float) -> Vector3:
+	var a := Vector2(from.x, from.z)
+	var g := Vector2(goal.x, goal.z)
+	var seg := g - a
+	var len := seg.length()
+	if len < 1.0:
+		return goal
+	var dir := seg / len
+	var best := -1
+	var best_t := INF
+	for i in obstacles.size():
+		var o := Vector2(obstacles[i].x, obstacles[i].z)
+		var along := (o - a).dot(dir)
+		if along <= 0.0 or along >= len or o.distance_to(g) < 4.0:
+			continue
+		var perp := (o - a).dot(Vector2(-dir.y, dir.x))
+		if absf(perp) < clear and along < best_t:
+			best = i
+			best_t = along
+	if best < 0:
+		return goal
+	var o2 := Vector2(obstacles[best].x, obstacles[best].z)
+	var n := Vector2(-dir.y, dir.x)
+	var side := -1.0 if (o2 - a).dot(n) > 0.0 else 1.0  # на другую сторону от препятствия
+	var w := o2 + n * side * clear * 1.1
+	return Vector3(w.x, goal.y, w.y)
 
 
 ## Управление ходьбой к точке rp и разворотом на курс heading_deg (боты и очередь на старт

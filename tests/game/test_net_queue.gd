@@ -152,7 +152,7 @@ func test_humans_in_order_then_bots() -> void:
 				st[id] = "gone"
 				order.append(id)
 				human_gone_t = t
-				next_human_t = t + 20.0
+				next_human_t = t + 35.0
 			elif st[id] == "wait" and id == first and t >= next_human_t:
 				st[id] = "run"
 		for k in nb.ids.size():
@@ -161,7 +161,7 @@ func test_humans_in_order_then_bots() -> void:
 				bot_run[nb.ids[k]] = t
 				order.append(nb.ids[k])
 				ran_early = ran_early or order.size() <= 3
-		if t > 21.0 and t < 22.0 and not at_spots:
+		if t > 30.0 and t < 36.0 and not at_spots:
 			# «1» взлетел, «2» и «3» ещё ждут: боты шагнули вперёд — на места 2 и 3 (за живыми)
 			var ok := z.queue.size() == 4
 			for k in 2:

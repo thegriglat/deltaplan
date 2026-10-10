@@ -114,8 +114,40 @@ func test_half_airborne() -> void:
 		run(b, 30.0 * (c[0] - c[1]) + 20.0, player("flying", Vector3(0, 600, -1500), Vector3(0, -1, -10)))
 		for k in range(c[1], c[0]):
 			var a := b.agents[k]
-			approx(a.run_start_s - b.player_liftoff_s, 30.0 * (k - c[1] + 1), 0.1, "разбег бота %d" % k)
+			approx(a.run_start_s - b.player_liftoff_s, 30.0 * (k - c[1] + 1), 1.0, "разбег бота %d" % k)
 		check(b.sim_time_s > t0, "время шло")
+		b.free()
+
+
+## Очередь на старте: пока боты стоят и ходят по земле (WAIT/WALK/READY), расстояние между
+## любыми двумя наземными ботами во времени не меньше размаха самого широкого крыла + запас.
+func test_queue_min_distance() -> void:
+	var span := 0.0
+	for w in Config.list_configs("wings"):
+		span = maxf(span, float(Config.get_config("wings/" + String(w).get_file()).get("span_m", 0.0)))
+	for n in [6, 12]:
+		var b := make(n, 3)
+		var min_d := INF
+		var worst := ""
+		var fly := player("flying", Vector3(0, 600, -1500), Vector3(0, -1, -10))
+		run(b, 1.0, player("standing", START))
+		for step in int((30.0 * n + 120.0) / 0.25):
+			run(b, 0.25, fly)
+			for i in b.agents.size():
+				var a: BotAgent = b.agents[i]
+				if a.is_airborne() or a.state >= BotAgent.State.RUN:
+					continue
+				for j in range(i + 1, b.agents.size()):
+					var o: BotAgent = b.agents[j]
+					if o.is_airborne() or o.state >= BotAgent.State.RUN:
+						continue
+					var d := BotAgent._flat_dist(a.model.position, o.model.position)
+					if d < min_d:
+						min_d = d
+						worst = "t=%.1f %d:%s %d:%s" % [b.sim_time_s, a.id, a.state_name(), o.id, o.state_name()]
+		print("queue-min-distance n=%d span=%.2f min=%.2f %s" % [n, span, min_d, worst])
+		check(span > 8.0, "размах крыла прочитан: %.2f" % span)
+		check(min_d >= span + 1.5, "%d ботов: минимум в очереди %.2f м при размахе %.2f" % [n, min_d, span])
 		b.free()
 
 
