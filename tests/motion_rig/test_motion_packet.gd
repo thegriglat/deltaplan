@@ -128,6 +128,24 @@ func test_signs_inverse_srs() -> void:
 	check(MotionPacket.pack_srs(known(), "x", {"roll_rate": "inverse"}) == base, "rate-знаки в srs не влияют")
 
 
+## Фикстуры пакетов известного сэмпла (tests/motion_rig/fixtures/known_*.bin) = то, что пакует игра;
+## их разбирает tools/motion_rig/check_layout.py через motion_formats.py. Перезаписать:
+## MR_WRITE_FIXTURES=1 godot … --filter=test_motion_packet
+func test_fixtures_match_packer() -> void:
+	var dir := ProjectSettings.globalize_path("res://tests/motion_rig/fixtures")
+	var packs := {
+		"known_srs.bin": MotionPacket.pack_srs(known(), "Altai"),
+		"known_generic.bin": MotionPacket.pack_generic(known(), 42),
+	}
+	for name: String in packs:
+		var path := dir.path_join(name)
+		if OS.get_environment("MR_WRITE_FIXTURES") != "":
+			var f := FileAccess.open(path, FileAccess.WRITE)
+			f.store_buffer(packs[name])
+			f.close()
+		check(FileAccess.get_file_as_bytes(path) == packs[name], "%s совпадает с упаковкой игры" % name)
+
+
 func test_output_disabled_has_no_socket() -> void:
 	var o := MotionOutput.new()
 	check(not o.enabled, "по умолчанию выключено")
