@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -126,10 +126,11 @@ v2 (11.10): настройки — у каждого крыла свои; умо
 
 UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись «Важно только при режиме управления «Маятник»». Строки — `locale/ui.csv`.
 
-## PD-К4. Сеть: режим управления и положение пилота (v1)
+## PD-К4. Сеть: режим управления и положение пилота (v2)
+v2 (11.10, PD-7): прирост `PilotState` в двоичном protobuf — ≤ 20 байт (`pilot_rel` — Vec3 из float32, 17 байт; `control_mode` — 2 байта, только в полном пакете раз в секунду); фактически протокол — JSON, `pilotRel` ≈ +45 байт к пакету ≈ 170 байт.
 Владелец — PD-7; потребители — `remote_pilots.gd`, PD-6 (поза чужих пилотов).
 
-`server/proto/deltaplan/v1/net.proto`, `PilotState`: `ControlMode control_mode = 11;` (`enum ControlMode { CONTROL_MODE_UNSPECIFIED = 0; CONTROL_MODE_RATE = 1; CONTROL_MODE_WEIGHT_SHIFT = 2; CONTROL_MODE_PENDULUM = 3; }`), `Vec3 pilot_rel = 12;` (= `PendulumModel.pilot_rel`, оси крыла, м, округление 1 см; только при PENDULUM). JSON-ключи `net_messages.gd` — `controlMode`, `pilotRel` (оба nullable). Нет поля — поза по вводу, как сейчас. Прирост `PilotState` ≤ 16 байт.
+`server/proto/deltaplan/v1/net.proto`, `PilotState`: `ControlMode control_mode = 11;` (`enum ControlMode { CONTROL_MODE_UNSPECIFIED = 0; CONTROL_MODE_RATE = 1; CONTROL_MODE_WEIGHT_SHIFT = 2; CONTROL_MODE_PENDULUM = 3; }`), `Vec3 pilot_rel = 12;` (= `PendulumModel.pilot_rel`, оси крыла, м, округление 1 см; только при PENDULUM). JSON-ключи `net_messages.gd` — `controlMode`, `pilotRel` (оба nullable). Нет поля — поза по вводу, как сейчас. Прирост `PilotState` ≤ 20 байт (v2).
 
 ## PD-К5. Поза пилота в визуале и у чужих пилотов (v2)
 v2 (11.10, PD-3): на земле узел `Glider` (формула `position` PD-К1) стоит на 0,2–0,3 м выше и впереди ступней (подвеска физики выше ступней на ≈ 2,2 м, у визуала — `hang_height_m`), поэтому стоящий пилот рисуется ступнями в `pilot_position − 1,0 м·pilot_basis.y` (в осях узла), а не от начала узла.
