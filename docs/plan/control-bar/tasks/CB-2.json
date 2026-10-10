@@ -30,7 +30,8 @@
     "tests/game/test_control_bar.gd",
     "tests/ui/test_control_bar_settings.gd",
     "scripts/game/user_settings.gd",
-    "steam/partner/auto_cloud.json"
+    "steam/partner/auto_cloud.json",
+    "tests/contracts/test_steam_contracts_s7.gd"
   ],
   "dont_touch": [
     "docs/contracts/control-bar.md",
@@ -67,5 +68,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T18:41:23",
-  "edited": "2026-10-10T18:51:57"
+  "edited": "2026-10-10T18:55:13"
 }

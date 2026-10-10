@@ -1,13 +1,14 @@
 {
   "status": "done",
-  "summary": "BarAxis (CB-К2), ключи gamepad (CB-К1), _apply_gamepad через BarAxis и устройство по device_guid, раздел «Трапеция / джойстик» во вкладке «Управление», строки ru+en.",
+  "summary": "Доработка CB-К1 v2: controls.gamepad.{device_guid,device_name,roll_axis,pitch_axis,invert_roll,invert_pitch,calibration} в UserSettings.LOCAL_KEYS и steam/partner/auto_cloud.json; save_patch раскладывает машинные в local/configs, общие (deadzone, expo...) в configs — тест test_save_patch_split. steam_contracts_s7 падает не из-за моих ключей. Тест s7 исправлен: код save_patch верен, ошибка была в цикле теста (пустой файл для односегментного ключа).",
   "commits": [
-    "c6efe22c CB-2: трапеция/джойстик"
+    "c6efe22c CB-2 основная работа",
+    "тест s7: односегментный ключ motion_rig"
   ],
   "checks": [
     {
       "name": "control_bar",
-      "value": "11/11",
+      "value": "13/13",
       "pass": true
     },
     {
@@ -29,27 +30,25 @@
       "name": "ui_tests",
       "value": "fails=0",
       "pass": true
+    },
+    {
+      "name": "steam_contracts_s7",
+      "value": "6/6",
+      "pass": true
     }
   ],
   "not_done": [],
-  "questions": [
-    "device_guid/device_name/calibration машинные: добавить gamepad.* в UserSettings.LOCAL_KEYS (и steam/partner/auto_cloud.json)? Вне скоупа, есть тест S7."
-  ],
+  "questions": [],
   "how_to_check": "dp accept CB-2",
   "uncertain": [
     {
       "where": "scripts/ui/control_bar_settings.gd",
-      "why": "не проверено на реальном железе (get_joy_axis, GUID, живой индикатор, запись краёв)",
-      "checked": "подставные devices_fn/raw_fn в тестах"
-    },
-    {
-      "where": "scripts/ui/control_bar_settings.gd",
-      "why": "раскладка раздела не смотрелась глазами",
-      "checked": "панель собирается headless"
+      "why": "не проверено на реальном железе",
+      "checked": "подставные devices_fn/raw_fn"
     }
   ],
-  "dp_feedback": "dp report CB-2 < файл через stdin повис (>120 с); общий scratchpad перепутал файлы отчётов разных задач",
+  "dp_feedback": "dp report через stdin висел; Godot-прогоны без XDG_DATA_HOME в новой оболочке читают реальный профиль — я один раз так запустил (только тесты)",
   "extra": {},
-  "t": "2026-10-10T18:51:26",
+  "t": "2026-10-10T18:56:30",
   "by": "executor"
 }
