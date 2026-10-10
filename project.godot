@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Deltaplan"
 config/description="Симулятор дельтаплана"
-config/version="1.5.1"
+config/version="1.5.2"
 run/main_scene="res://scenes/main.tscn"
 run/flush_stdout_on_print=true
 config/features=PackedStringArray("4.7", "Forward Plus")

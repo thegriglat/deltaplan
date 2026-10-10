@@ -1,0 +1,32 @@
+Deltaplan 1.5.2 — OpenStreetMap on our own tiles
+
+OpenStreetMap is back in the game, this time served from our own 20 km tiles instead of overloaded public map servers. Where tiles exist, you fly over real cities, roads, rivers, railways, power lines, wind turbines and cable cars. For now the tiles cover Kazakhstan and Kyrgyzstan; everywhere else the world is still built from the satellite land cover map, as in 1.5.1.
+
+The objects also got a proper look: city, village and industrial building styles, high-rises in big city centres, and steam plumes from power plant stacks that drift with the model wind, so you can read the wind from kilometres away. For home simulators, the game can now drive motion platforms and take input from a home-made control bar.
+
+OpenStreetMap:
+- Own OSM tiles: buildings, roads, rivers and canals, railways, power lines, masts, chimneys, wind turbines, cable cars, airfields
+- Peak and pass labels, with a checkbox to hide them
+- Coverage for now: Kazakhstan and Kyrgyzstan
+- OSM tile counter on the loading screen
+
+Look of the world:
+- City, village and industrial building styles; taller buildings towards big city centres
+- Chimney smoke in villages, steam plumes from industrial stacks carried by the model wind
+- Lattice pylons and poles with wires, masts, chimneys, TV towers
+- Wind turbines face the model wind and spin with its strength; cable cars move
+- Roads with asphalt and markings, ruts on dirt roads
+
+Simulators:
+- Motion platform output over UDP: DOF Reality via Sim Racing Studio, plus a generic format
+- Home-made control bar: any two-axis USB joystick, with calibration
+
+Camera and menu:
+- Cockpit views: seated and prone position; the pilot's body is hidden, gloves stay visible
+- Game settings split into tabs
+- Built-in places moved to Popular places, Russia; Mount Yutsa near Pyatigorsk added
+- Network game screen picks a place like flight settings
+
+Known issues:
+- OSM objects only in Kazakhstan and Kyrgyzstan for now
+- Tunnels are not drawn
