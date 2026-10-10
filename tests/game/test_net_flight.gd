@@ -37,9 +37,25 @@ class FakePilots:
 	var local := {}
 
 	func set_local_state(
-		pos: Vector3, rot: Quaternion, vel: Vector3, phase: String, wing: String, colors: Variant
+		pos: Vector3,
+		rot: Quaternion,
+		vel: Vector3,
+		phase: String,
+		wing: String,
+		colors: Variant,
+		control_mode: String = "",
+		pilot_rel: Variant = null
 	) -> void:
-		local = {"pos": pos, "rot": rot, "vel": vel, "phase": phase, "wing": wing, "colors": colors}
+		local = {
+			"pos": pos,
+			"rot": rot,
+			"vel": vel,
+			"phase": phase,
+			"wing": wing,
+			"colors": colors,
+			"control_mode": control_mode,
+			"pilot_rel": pilot_rel,
+		}
 
 	func clear_local_state() -> void:
 		local = {}

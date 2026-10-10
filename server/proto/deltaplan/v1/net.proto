@@ -316,6 +316,22 @@ message PilotState {
   string wing = 9;
   // Расцветка паруса; нет — родная текстура крыла.
   WingColors colors = 10;
+  // Режим управления пилота (PD-К4). Нет — старый клиент: поза по вводу.
+  ControlMode control_mode = 11;
+  // Положение пилота относительно точки подвески, оси крыла, метры,
+  // округление 1 см (PendulumModel.pilot_rel). Только при CONTROL_MODE_PENDULUM.
+  Vec3 pilot_rel = 12;
+}
+
+// Режим управления пилота (PD-К4, docs/contracts/pendulum.md).
+enum ControlMode {
+  CONTROL_MODE_UNSPECIFIED = 0;
+  // Упрощённый (скорость крена).
+  CONTROL_MODE_RATE = 1;
+  // Смещение веса.
+  CONTROL_MODE_WEIGHT_SHIFT = 2;
+  // Маятник.
+  CONTROL_MODE_PENDULUM = 3;
 }
 
 // Часы зоны и очередь на старт. Шлёт только ведущий, раз в секунду; сервер

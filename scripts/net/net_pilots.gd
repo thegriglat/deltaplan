@@ -4,7 +4,7 @@ extends Node
 ## RemotePilotState, появление и пропажа пилотов.
 ##
 ## Отправка (игровой код, NET-40/41/44):
-##   set_local_state(pos, rot, vel, phase, wing, colors = null) — своё состояние; звать
+##   set_local_state(pos, rot, vel, phase, wing, colors = null, control_mode = "", pilot_rel = null) — своё состояние; звать
 ##       каждый кадр (или при изменении) — уходит последнее, 10 Гц, пока в зоне и часы зоны
 ##       известны. phase — "FLY" или "PILOT_PHASE_FLY" (STAND WALK RUN FLY LANDED CRASHED
 ##       TOW); wing — конфиг крыла ("wings/sport"); colors — {hueDeg, sat, value} или null
@@ -81,9 +81,25 @@ func _ready() -> void:
 
 
 func set_local_state(
-	pos: Vector3, rot: Quaternion, vel: Vector3, phase: String, wing: String, colors: Variant = null
+	pos: Vector3,
+	rot: Quaternion,
+	vel: Vector3,
+	phase: String,
+	wing: String,
+	colors: Variant = null,
+	control_mode: String = "",
+	pilot_rel: Variant = null
 ) -> void:
-	_local = {"pos": pos, "rot": rot, "vel": vel, "phase": phase, "wing": wing, "colors": colors}
+	_local = {
+		"pos": pos,
+		"rot": rot,
+		"vel": vel,
+		"phase": phase,
+		"wing": wing,
+		"colors": colors,
+		"control_mode": control_mode,
+		"pilot_rel": pilot_rel,
+	}
 
 
 func set_local_provider(fn: Callable) -> void:
@@ -191,6 +207,14 @@ static func build_state(
 				"sat": snappedf(float(c.get("sat", 0.0)), 0.001),
 				"value": snappedf(float(c.get("value", 0.0)), 0.001),
 			}
+	# режим управления и положение пилота (PD-К4): режим — в полных пакетах, pilot_rel — в каждом
+	# и только в режиме «Маятник»; у ботов и в прочих режимах полей нет
+	var cm := str(st.get("control_mode", ""))
+	if full and cm != "":
+		d["controlMode"] = "CONTROL_MODE_" + cm
+	var rel: Variant = st.get("pilot_rel")
+	if cm == "PENDULUM" and rel is Vector3:
+		d["pilotRel"] = _round_vec(rel, 0.01)
 	return d
 
 
@@ -224,7 +248,7 @@ func _send_stream(
 	key: String, pilot_id: String, bot: bool, t: float, st: Dictionary, pilot_name: String
 ) -> void:
 	var s: Dictionary = _streams.get(key, {"meta_at": -INF, "meta_key": null, "phase": ""})
-	var meta_key := [pilot_name, st.get("wing", ""), st.get("colors")]
+	var meta_key := [pilot_name, st.get("wing", ""), st.get("colors"), st.get("control_mode", "")]
 	var full: bool = t - s.meta_at >= META_INTERVAL_S or s.meta_key != meta_key
 	var phase := RemotePilotState.short_phase(str(st.get("phase", "")))
 	if phase != s.phase:

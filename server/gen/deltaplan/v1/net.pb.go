@@ -176,6 +176,62 @@ func (PilotPhase) EnumDescriptor() ([]byte, []int) {
 	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{1}
 }
 
+// Режим управления пилота (PD-К4, docs/contracts/pendulum.md).
+type ControlMode int32
+
+const (
+	ControlMode_CONTROL_MODE_UNSPECIFIED ControlMode = 0
+	// Упрощённый (скорость крена).
+	ControlMode_CONTROL_MODE_RATE ControlMode = 1
+	// Смещение веса.
+	ControlMode_CONTROL_MODE_WEIGHT_SHIFT ControlMode = 2
+	// Маятник.
+	ControlMode_CONTROL_MODE_PENDULUM ControlMode = 3
+)
+
+// Enum value maps for ControlMode.
+var (
+	ControlMode_name = map[int32]string{
+		0: "CONTROL_MODE_UNSPECIFIED",
+		1: "CONTROL_MODE_RATE",
+		2: "CONTROL_MODE_WEIGHT_SHIFT",
+		3: "CONTROL_MODE_PENDULUM",
+	}
+	ControlMode_value = map[string]int32{
+		"CONTROL_MODE_UNSPECIFIED":  0,
+		"CONTROL_MODE_RATE":         1,
+		"CONTROL_MODE_WEIGHT_SHIFT": 2,
+		"CONTROL_MODE_PENDULUM":     3,
+	}
+)
+
+func (x ControlMode) Enum() *ControlMode {
+	p := new(ControlMode)
+	*p = x
+	return p
+}
+
+func (x ControlMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ControlMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_deltaplan_v1_net_proto_enumTypes[2].Descriptor()
+}
+
+func (ControlMode) Type() protoreflect.EnumType {
+	return &file_deltaplan_v1_net_proto_enumTypes[2]
+}
+
+func (x ControlMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ControlMode.Descriptor instead.
+func (ControlMode) EnumDescriptor() ([]byte, []int) {
+	return file_deltaplan_v1_net_proto_rawDescGZIP(), []int{2}
+}
+
 // Конверт: одно сообщение на один текстовый кадр WebSocket, в обе стороны.
 // Установлен ровно один вариант msg. Незнакомый вариант (новее версии клиента)
 // приходит как незнакомый ключ — его пропускают.
@@ -1662,7 +1718,12 @@ type PilotState struct {
 	// Конфиг крыла: "wings/sport".
 	Wing string `protobuf:"bytes,9,opt,name=wing,proto3" json:"wing,omitempty"`
 	// Расцветка паруса; нет — родная текстура крыла.
-	Colors        *WingColors `protobuf:"bytes,10,opt,name=colors,proto3" json:"colors,omitempty"`
+	Colors *WingColors `protobuf:"bytes,10,opt,name=colors,proto3" json:"colors,omitempty"`
+	// Режим управления пилота (PD-К4). Нет — старый клиент: поза по вводу.
+	ControlMode ControlMode `protobuf:"varint,11,opt,name=control_mode,json=controlMode,proto3,enum=deltaplan.v1.ControlMode" json:"control_mode,omitempty"`
+	// Положение пилота относительно точки подвески, оси крыла, метры,
+	// округление 1 см (PendulumModel.pilot_rel). Только при CONTROL_MODE_PENDULUM.
+	PilotRel      *Vec3 `protobuf:"bytes,12,opt,name=pilot_rel,json=pilotRel,proto3" json:"pilot_rel,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1763,6 +1824,20 @@ func (x *PilotState) GetWing() string {
 func (x *PilotState) GetColors() *WingColors {
 	if x != nil {
 		return x.Colors
+	}
+	return nil
+}
+
+func (x *PilotState) GetControlMode() ControlMode {
+	if x != nil {
+		return x.ControlMode
+	}
+	return ControlMode_CONTROL_MODE_UNSPECIFIED
+}
+
+func (x *PilotState) GetPilotRel() *Vec3 {
+	if x != nil {
+		return x.PilotRel
 	}
 	return nil
 }
@@ -2105,7 +2180,7 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\vclient_time\x18\x01 \x01(\x01R\n" +
 	"clientTime\x12\x1f\n" +
 	"\vserver_time\x18\x02 \x01(\x01R\n" +
-	"serverTime\"\xc8\x02\n" +
+	"serverTime\"\xb7\x03\n" +
 	"\n" +
 	"PilotState\x12\x19\n" +
 	"\bpilot_id\x18\x01 \x01(\tR\apilotId\x12\x15\n" +
@@ -2118,7 +2193,9 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x05phase\x18\b \x01(\x0e2\x18.deltaplan.v1.PilotPhaseR\x05phase\x12\x12\n" +
 	"\x04wing\x18\t \x01(\tR\x04wing\x120\n" +
 	"\x06colors\x18\n" +
-	" \x01(\v2\x18.deltaplan.v1.WingColorsR\x06colors\"~\n" +
+	" \x01(\v2\x18.deltaplan.v1.WingColorsR\x06colors\x12<\n" +
+	"\fcontrol_mode\x18\v \x01(\x0e2\x19.deltaplan.v1.ControlModeR\vcontrolMode\x12/\n" +
+	"\tpilot_rel\x18\f \x01(\v2\x12.deltaplan.v1.Vec3R\bpilotRel\"~\n" +
 	"\tZoneState\x12\x14\n" +
 	"\x05clock\x18\x01 \x01(\x01R\x05clock\x12\x14\n" +
 	"\x05queue\x18\x02 \x03(\tR\x05queue\x12E\n" +
@@ -2148,7 +2225,12 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x0fPILOT_PHASE_FLY\x10\x04\x12\x16\n" +
 	"\x12PILOT_PHASE_LANDED\x10\x05\x12\x17\n" +
 	"\x13PILOT_PHASE_CRASHED\x10\x06\x12\x13\n" +
-	"\x0fPILOT_PHASE_TOW\x10\aB/Z-deltaplan/server/gen/deltaplan/v1;deltaplanv1b\x06proto3"
+	"\x0fPILOT_PHASE_TOW\x10\a*|\n" +
+	"\vControlMode\x12\x1c\n" +
+	"\x18CONTROL_MODE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11CONTROL_MODE_RATE\x10\x01\x12\x1d\n" +
+	"\x19CONTROL_MODE_WEIGHT_SHIFT\x10\x02\x12\x19\n" +
+	"\x15CONTROL_MODE_PENDULUM\x10\x03B/Z-deltaplan/server/gen/deltaplan/v1;deltaplanv1b\x06proto3"
 
 var (
 	file_deltaplan_v1_net_proto_rawDescOnce sync.Once
@@ -2162,69 +2244,72 @@ func file_deltaplan_v1_net_proto_rawDescGZIP() []byte {
 	return file_deltaplan_v1_net_proto_rawDescData
 }
 
-var file_deltaplan_v1_net_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_deltaplan_v1_net_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_deltaplan_v1_net_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_deltaplan_v1_net_proto_goTypes = []any{
 	(ErrorCode)(0),         // 0: deltaplan.v1.ErrorCode
 	(PilotPhase)(0),        // 1: deltaplan.v1.PilotPhase
-	(*Envelope)(nil),       // 2: deltaplan.v1.Envelope
-	(*Vec3)(nil),           // 3: deltaplan.v1.Vec3
-	(*Quat)(nil),           // 4: deltaplan.v1.Quat
-	(*Forecast)(nil),       // 5: deltaplan.v1.Forecast
-	(*Zone)(nil),           // 6: deltaplan.v1.Zone
-	(*Peer)(nil),           // 7: deltaplan.v1.Peer
-	(*WingColors)(nil),     // 8: deltaplan.v1.WingColors
-	(*Hello)(nil),          // 9: deltaplan.v1.Hello
-	(*CreateZone)(nil),     // 10: deltaplan.v1.CreateZone
-	(*JoinZone)(nil),       // 11: deltaplan.v1.JoinZone
-	(*LeaveZone)(nil),      // 12: deltaplan.v1.LeaveZone
-	(*Ping)(nil),           // 13: deltaplan.v1.Ping
-	(*Welcome)(nil),        // 14: deltaplan.v1.Welcome
-	(*ZoneCreated)(nil),    // 15: deltaplan.v1.ZoneCreated
-	(*ZoneJoined)(nil),     // 16: deltaplan.v1.ZoneJoined
-	(*PeerJoined)(nil),     // 17: deltaplan.v1.PeerJoined
-	(*PeerLeft)(nil),       // 18: deltaplan.v1.PeerLeft
-	(*LeaderChanged)(nil),  // 19: deltaplan.v1.LeaderChanged
-	(*Error)(nil),          // 20: deltaplan.v1.Error
-	(*Pong)(nil),           // 21: deltaplan.v1.Pong
-	(*PilotState)(nil),     // 22: deltaplan.v1.PilotState
-	(*ZoneState)(nil),      // 23: deltaplan.v1.ZoneState
-	(*ThermalSources)(nil), // 24: deltaplan.v1.ThermalSources
-	(*LanAnnounce)(nil),    // 25: deltaplan.v1.LanAnnounce
+	(ControlMode)(0),       // 2: deltaplan.v1.ControlMode
+	(*Envelope)(nil),       // 3: deltaplan.v1.Envelope
+	(*Vec3)(nil),           // 4: deltaplan.v1.Vec3
+	(*Quat)(nil),           // 5: deltaplan.v1.Quat
+	(*Forecast)(nil),       // 6: deltaplan.v1.Forecast
+	(*Zone)(nil),           // 7: deltaplan.v1.Zone
+	(*Peer)(nil),           // 8: deltaplan.v1.Peer
+	(*WingColors)(nil),     // 9: deltaplan.v1.WingColors
+	(*Hello)(nil),          // 10: deltaplan.v1.Hello
+	(*CreateZone)(nil),     // 11: deltaplan.v1.CreateZone
+	(*JoinZone)(nil),       // 12: deltaplan.v1.JoinZone
+	(*LeaveZone)(nil),      // 13: deltaplan.v1.LeaveZone
+	(*Ping)(nil),           // 14: deltaplan.v1.Ping
+	(*Welcome)(nil),        // 15: deltaplan.v1.Welcome
+	(*ZoneCreated)(nil),    // 16: deltaplan.v1.ZoneCreated
+	(*ZoneJoined)(nil),     // 17: deltaplan.v1.ZoneJoined
+	(*PeerJoined)(nil),     // 18: deltaplan.v1.PeerJoined
+	(*PeerLeft)(nil),       // 19: deltaplan.v1.PeerLeft
+	(*LeaderChanged)(nil),  // 20: deltaplan.v1.LeaderChanged
+	(*Error)(nil),          // 21: deltaplan.v1.Error
+	(*Pong)(nil),           // 22: deltaplan.v1.Pong
+	(*PilotState)(nil),     // 23: deltaplan.v1.PilotState
+	(*ZoneState)(nil),      // 24: deltaplan.v1.ZoneState
+	(*ThermalSources)(nil), // 25: deltaplan.v1.ThermalSources
+	(*LanAnnounce)(nil),    // 26: deltaplan.v1.LanAnnounce
 }
 var file_deltaplan_v1_net_proto_depIdxs = []int32{
-	9,  // 0: deltaplan.v1.Envelope.hello:type_name -> deltaplan.v1.Hello
-	10, // 1: deltaplan.v1.Envelope.create_zone:type_name -> deltaplan.v1.CreateZone
-	11, // 2: deltaplan.v1.Envelope.join_zone:type_name -> deltaplan.v1.JoinZone
-	12, // 3: deltaplan.v1.Envelope.leave_zone:type_name -> deltaplan.v1.LeaveZone
-	13, // 4: deltaplan.v1.Envelope.ping:type_name -> deltaplan.v1.Ping
-	14, // 5: deltaplan.v1.Envelope.welcome:type_name -> deltaplan.v1.Welcome
-	15, // 6: deltaplan.v1.Envelope.zone_created:type_name -> deltaplan.v1.ZoneCreated
-	16, // 7: deltaplan.v1.Envelope.zone_joined:type_name -> deltaplan.v1.ZoneJoined
-	17, // 8: deltaplan.v1.Envelope.peer_joined:type_name -> deltaplan.v1.PeerJoined
-	18, // 9: deltaplan.v1.Envelope.peer_left:type_name -> deltaplan.v1.PeerLeft
-	19, // 10: deltaplan.v1.Envelope.leader_changed:type_name -> deltaplan.v1.LeaderChanged
-	20, // 11: deltaplan.v1.Envelope.error:type_name -> deltaplan.v1.Error
-	21, // 12: deltaplan.v1.Envelope.pong:type_name -> deltaplan.v1.Pong
-	22, // 13: deltaplan.v1.Envelope.pilot_state:type_name -> deltaplan.v1.PilotState
-	23, // 14: deltaplan.v1.Envelope.zone_state:type_name -> deltaplan.v1.ZoneState
-	5,  // 15: deltaplan.v1.Zone.forecast:type_name -> deltaplan.v1.Forecast
-	6,  // 16: deltaplan.v1.CreateZone.zone:type_name -> deltaplan.v1.Zone
-	6,  // 17: deltaplan.v1.ZoneJoined.zone:type_name -> deltaplan.v1.Zone
-	7,  // 18: deltaplan.v1.ZoneJoined.peers:type_name -> deltaplan.v1.Peer
-	7,  // 19: deltaplan.v1.PeerJoined.peer:type_name -> deltaplan.v1.Peer
+	10, // 0: deltaplan.v1.Envelope.hello:type_name -> deltaplan.v1.Hello
+	11, // 1: deltaplan.v1.Envelope.create_zone:type_name -> deltaplan.v1.CreateZone
+	12, // 2: deltaplan.v1.Envelope.join_zone:type_name -> deltaplan.v1.JoinZone
+	13, // 3: deltaplan.v1.Envelope.leave_zone:type_name -> deltaplan.v1.LeaveZone
+	14, // 4: deltaplan.v1.Envelope.ping:type_name -> deltaplan.v1.Ping
+	15, // 5: deltaplan.v1.Envelope.welcome:type_name -> deltaplan.v1.Welcome
+	16, // 6: deltaplan.v1.Envelope.zone_created:type_name -> deltaplan.v1.ZoneCreated
+	17, // 7: deltaplan.v1.Envelope.zone_joined:type_name -> deltaplan.v1.ZoneJoined
+	18, // 8: deltaplan.v1.Envelope.peer_joined:type_name -> deltaplan.v1.PeerJoined
+	19, // 9: deltaplan.v1.Envelope.peer_left:type_name -> deltaplan.v1.PeerLeft
+	20, // 10: deltaplan.v1.Envelope.leader_changed:type_name -> deltaplan.v1.LeaderChanged
+	21, // 11: deltaplan.v1.Envelope.error:type_name -> deltaplan.v1.Error
+	22, // 12: deltaplan.v1.Envelope.pong:type_name -> deltaplan.v1.Pong
+	23, // 13: deltaplan.v1.Envelope.pilot_state:type_name -> deltaplan.v1.PilotState
+	24, // 14: deltaplan.v1.Envelope.zone_state:type_name -> deltaplan.v1.ZoneState
+	6,  // 15: deltaplan.v1.Zone.forecast:type_name -> deltaplan.v1.Forecast
+	7,  // 16: deltaplan.v1.CreateZone.zone:type_name -> deltaplan.v1.Zone
+	7,  // 17: deltaplan.v1.ZoneJoined.zone:type_name -> deltaplan.v1.Zone
+	8,  // 18: deltaplan.v1.ZoneJoined.peers:type_name -> deltaplan.v1.Peer
+	8,  // 19: deltaplan.v1.PeerJoined.peer:type_name -> deltaplan.v1.Peer
 	0,  // 20: deltaplan.v1.Error.code:type_name -> deltaplan.v1.ErrorCode
-	3,  // 21: deltaplan.v1.PilotState.pos:type_name -> deltaplan.v1.Vec3
-	4,  // 22: deltaplan.v1.PilotState.rot:type_name -> deltaplan.v1.Quat
-	3,  // 23: deltaplan.v1.PilotState.vel:type_name -> deltaplan.v1.Vec3
+	4,  // 21: deltaplan.v1.PilotState.pos:type_name -> deltaplan.v1.Vec3
+	5,  // 22: deltaplan.v1.PilotState.rot:type_name -> deltaplan.v1.Quat
+	4,  // 23: deltaplan.v1.PilotState.vel:type_name -> deltaplan.v1.Vec3
 	1,  // 24: deltaplan.v1.PilotState.phase:type_name -> deltaplan.v1.PilotPhase
-	8,  // 25: deltaplan.v1.PilotState.colors:type_name -> deltaplan.v1.WingColors
-	24, // 26: deltaplan.v1.ZoneState.thermal_sources:type_name -> deltaplan.v1.ThermalSources
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	9,  // 25: deltaplan.v1.PilotState.colors:type_name -> deltaplan.v1.WingColors
+	2,  // 26: deltaplan.v1.PilotState.control_mode:type_name -> deltaplan.v1.ControlMode
+	4,  // 27: deltaplan.v1.PilotState.pilot_rel:type_name -> deltaplan.v1.Vec3
+	25, // 28: deltaplan.v1.ZoneState.thermal_sources:type_name -> deltaplan.v1.ThermalSources
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_deltaplan_v1_net_proto_init() }
@@ -2255,7 +2340,7 @@ func file_deltaplan_v1_net_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_deltaplan_v1_net_proto_rawDesc), len(file_deltaplan_v1_net_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
