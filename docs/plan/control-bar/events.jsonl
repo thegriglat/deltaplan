@@ -1,3 +1,9 @@
 {"t": "2026-10-10T18:31:36", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-10T18:32:12", "by": "coordinator", "task": "CB-1", "ev": "created", "note": "Исследование: протоколы и готовые решения для самодельной трапеции"}
 {"t": "2026-10-10T18:32:52", "by": "coordinator", "task": "CB-1", "ev": "started", "note": "dp-researcher (sonnet), ~/deltaplan-control-bar-CB-1"}
+{"t": "2026-10-10T18:34:50", "by": "executor", "task": "CB-1", "ev": "checked", "note": "5/5 file=ok:exit 0; urls=ok:17; conclusion=ok:exit 0; recommendation=ok:exit 0; docs=ok:exit 0"}
+{"t": "2026-10-10T18:34:54", "by": "executor", "task": "CB-1", "ev": "reported", "commits": ["54485faf"], "note": "done: Записка docs/research/control-bar-input.md: рекомендация — стандартный USB HID-джойстик без своего протокола; сборка Pr…", "dp_feedback": "нет"}
+{"t": "2026-10-10T18:35:07", "by": "executor", "task": "CB-1", "ev": "checked", "note": "5/5 file=ok:exit 0; urls=ok:17; conclusion=ok:exit 0; recommendation=ok:exit 0; docs=ok:exit 0"}
+{"t": "2026-10-10T18:35:13", "by": "coordinator", "task": "CB-1", "ev": "accepted", "note": "по отчёту: записка, физики нет"}
+{"t": "2026-10-10T18:35:13", "by": "coordinator", "task": "CB-1", "ev": "accepted", "commits": ["57241e49"], "note": "5/5 file=ok:exit 0; urls=ok:17; conclusion=ok:exit 0; recommendation=ok:exit 0; docs=ok:exit 0"}
+{"t": "2026-10-10T18:35:14", "by": "coordinator", "task": "CB-1", "ev": "merged", "commits": ["57241e49"]}

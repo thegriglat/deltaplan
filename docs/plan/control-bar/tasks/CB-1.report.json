@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Записка docs/research/control-bar-input.md: рекомендация — стандартный USB HID-джойстик без своего протокола; сборка Pro Micro/Leonardo + потенциометры + ArduinoJoystickLibrary.",
+  "commits": [
+    "54485faf записка CB-1"
+  ],
+  "checks": [
+    {
+      "name": "file",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "urls",
+      "value": "17",
+      "pass": true
+    },
+    {
+      "name": "conclusion",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "recommendation",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скетч и порядок осей на железе не проверялись"
+  ],
+  "questions": [
+    "Одобрить CB-2 (вкладка настроек) и нужен ли CB-3 (инструкция)?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept CB-1",
+  "uncertain": [
+    {
+      "where": "docs/research/control-bar-input.md, раздел Godot",
+      "why": "Порядок/число осей нестандартной платы под SDL3 на трёх ОС не проверены",
+      "checked": "прочитан drivers/sdl/joypad_sdl.cpp: сырой джойстик открывается через SDL_OpenJoystick, ось по индексу, нормировка в -1..1"
+    },
+    {
+      "where": "таблица решений, Leo Bodnar",
+      "why": "разрешение осей не подтверждено",
+      "checked": "убрано из текста"
+    },
+    {
+      "where": "ESP32-S3 USB",
+      "why": "оси int8 по заголовку класса, дескриптор не читал",
+      "checked": "только USBHIDGamepad.h"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-10T18:34:54",
+  "by": "executor"
+}
