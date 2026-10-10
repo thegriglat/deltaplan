@@ -44,3 +44,6 @@
 {"t": "2026-10-11T01:36:34", "by": "executor", "task": "PD-10", "ev": "reported", "commits": ["3b8495cd"], "note": "done: load усредняется по подшагам (сила на пилота = chain.pilot_force + руки, сумма/n); reset_in_air кладёт _air_c = ned(win…"}
 {"t": "2026-10-11T01:37:26", "by": "coordinator", "task": "PD-10", "ev": "checked", "note": "1/1 pendulum=ok:34/34"}
 {"t": "2026-10-11T01:37:26", "by": "coordinator", "task": "PD-10", "ev": "accepted", "note": "по отчёту: 34/34, n виража = 1/cos φ ±2 %"}
+{"t": "2026-10-11T01:38:03", "by": "coordinator", "task": "PD-10", "ev": "accepted", "commits": ["f495335a"], "note": "1/1 pendulum=ok:34/34"}
+{"t": "2026-10-11T01:38:04", "by": "coordinator", "task": "PD-10", "ev": "merged", "commits": ["f495335a"]}
+{"t": "2026-10-11T01:38:12", "by": "coordinator", "task": "PD-11", "ev": "started", "note": "dp-mechanic, ~/deltaplan-pendulum-PD-11"}
