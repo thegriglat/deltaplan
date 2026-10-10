@@ -143,6 +143,41 @@ func set_forest_mask(img: Image, step: float, ox: float, oz: float) -> void:
 	_mask_data = img.get_data()
 
 
+## Размытая подложка застройки (NO-10): detail_built10 (L8, 10 м) сжата до клеток ~built_soft_cell_m —
+## билинейная выборка в шейдере даёт мягкое пятно без шахматки 25 м. Пустая — как раньше (класс built).
+var built_soft_image: Image
+var built_soft_spacing: float = 50.0
+var built_soft_origin_x: float = 0.0
+var built_soft_origin_z: float = 0.0
+
+
+## Прочитать detail_built10 по surface.json → built10 + detail10 (сетка) и сжать до клеток built_soft_cell_m.
+func load_built_soft(path: String, d10: Dictionary, soft_cell_m: float) -> bool:
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var img := Image.new()
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
+		return false
+	var w := int(d10.width)
+	var h := int(d10.height)
+	if img.get_width() != w or img.get_height() != h:
+		return false
+	img.convert(Image.FORMAT_L8)
+	var step := float(d10.spacing_m)
+	var k := maxi(1, roundi(soft_cell_m / step))
+	var nw := ceili(float(w) / k)
+	var nh := ceili(float(h) / k)
+	img.resize(nw, nh, Image.INTERPOLATE_TRILINEAR)
+	built_soft_image = img
+	built_soft_spacing = step * float(w - 1) / maxf(float(nw - 1), 1.0)
+	built_soft_origin_x = float(d10.origin_x_m)
+	built_soft_origin_z = float(d10.origin_z_m)
+	return true
+
+
+func make_built_soft_texture() -> ImageTexture:
+	return ImageTexture.create_from_image(built_soft_image) if built_soft_image != null else null
+
+
 func has_forest_mask() -> bool:
 	return mask_width > 0
 

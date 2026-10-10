@@ -18,6 +18,13 @@ uniform vec2 hole_min = vec2(1e9);
 uniform vec2 hole_max = vec2(-1e9);
 // Необязательные текстуры поверхностей (пути — configs/world.json → terrain_textures).
 // Нет текстуры — процедурная раскраска. Текстура видна вблизи и растворяется к detail_fade_m.
+uniform bool use_built_soft = false;
+uniform sampler2D built_soft_tex : filter_linear, repeat_disable;
+uniform vec2 built_soft_origin;
+uniform float built_soft_spacing = 50.0;
+uniform vec2 built_soft_texels = vec2(1.0);
+uniform vec2 built_soft_range = vec2(0.05, 0.45);   // размытая доля → вес подложки (smoothstep)
+uniform float built_soft_max = 0.85;
 uniform sampler2D grass_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D forest_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
@@ -527,6 +534,19 @@ void fragment() {
 	vec4 wa;
 	vec4 wb;
 	surface_weights(wp.xz, wa, wb);
+	// Подложка застройки (NO-10): размытая доля detail_built10 вместо квадратов 25 м класса built.
+	if (use_built_soft) {
+		vec2 buv = ((wp.xz - built_soft_origin) / built_soft_spacing + 0.5) / built_soft_texels;
+		float bs = textureLod(built_soft_tex, buv, 0.0).r;
+		float bn = smoothstep(built_soft_range.x, built_soft_range.y, bs) * built_soft_max;
+		float bo = wb.z;
+		float rest = 1.0 - bo;
+		float kr = (1.0 - bn) / max(rest, 0.02);
+		wa *= kr;
+		wb *= kr;
+		wa.y += (1.0 - bn) - rest * kr;
+		wb.z = bn;
+	}
 	// поля рельефа: влажность (−1 сухо … +1 сыро), AO, сглаженная северность, горизонт к солнцу
 	vec4 rel = vec4(0.5, 1.0, 0.5, 0.0);
 	float hz_deg = 0.0;
@@ -696,10 +716,18 @@ void fragment() {
 	// --- голый грунт / осыпи ---
 	vec3 bcol = bare_color * (0.8 + 0.4 * fbm(wp.xz / 25.0 + vec2(3.3, 8.1), 3));
 	// --- застройка: кварталы (крыши, дворы, дороги) ---
-	vec2 blk = floor(wp.xz / 18.0);
-	float bh = hash12(blk + 3.3);
-	vec3 ucol = built_color * (0.7 + 0.6 * bh);
-	ucol = mix(ucol, gcol * 0.9, step(0.72, bh));   // дворы, сады
+	vec3 ucol;
+	if (use_built_soft) {
+		// плавно: пятна дворов/садов и оттенка крыш без границ квадратов
+		float bn1 = vnoise(wp.xz / 35.0 + vec2(3.3, 7.7));
+		ucol = built_color * (0.85 + 0.3 * vnoise(wp.xz / 14.0));
+		ucol = mix(ucol, gcol * 0.9, 0.2 + 0.5 * smoothstep(0.45, 0.7, bn1));
+	} else {
+		vec2 blk = floor(wp.xz / 18.0);
+		float bh = hash12(blk + 3.3);
+		ucol = built_color * (0.7 + 0.6 * bh);
+		ucol = mix(ucol, gcol * 0.9, step(0.72, bh));   // дворы, сады
+	}
 	// --- снег ---
 	vec3 wcol = snow_color;
 	if (use_snow_tex) {
