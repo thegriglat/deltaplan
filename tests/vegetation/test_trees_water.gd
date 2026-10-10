@@ -19,7 +19,7 @@ func _locations() -> PackedStringArray:
 	var out := PackedStringArray()
 	for f in DirAccess.get_files_at("res://configs/locations"):
 		var id := f.get_basename()
-		if f.ends_with(".json") and DirAccess.dir_exists_absolute("res://data/terrain/" + id):
+		if f.ends_with(".json") and DirAccess.dir_exists_absolute(Locations.data_dir(id)):
 			out.append(id)
 	return out
 

@@ -25,7 +25,7 @@ var _data: PackedByteArray = PackedByteArray()
 static func for_terrain(t: Terrain) -> BuiltPatches:
 	if t == null:
 		return BuiltPatches.new()
-	var dir := String(t.location.get("data_dir", "res://data/terrain/" + t.location_id))
+	var dir := Locations.data_dir(t.location_id)
 	if t.has_meta(META_KEY):
 		var cached: BuiltPatches = t.get_meta(META_KEY)
 		if cached._dir == dir:

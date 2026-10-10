@@ -11,7 +11,7 @@ const FIX := "res://tests/atmosphere/fixtures/air_model/picard/"
 
 
 static func load_detail(loc_id: String) -> Array:
-	var dir := "res://data/terrain/%s" % loc_id
+	var dir := Locations.data_dir(loc_id)
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	)

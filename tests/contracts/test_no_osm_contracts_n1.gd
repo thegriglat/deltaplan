@@ -24,7 +24,7 @@ func _methods(path: String) -> Array:
 ## N1: файлы застройки у встроенных мест, та же сетка, что detail10.
 func test_n1_files() -> void:
 	for id in PLACES:
-		var dir := "res://data/terrain/%s/" % id
+		var dir := Locations.data_dir(id) + "/"
 		var surf: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir + "surface.json"))
 		check(surf is Dictionary, "%s: surface.json" % id)
 		if not surf is Dictionary:
@@ -62,7 +62,7 @@ func test_n1_files() -> void:
 			check(p.get("bbox", []).size() == 4, "%s: bbox из 4 чисел" % id)
 			i += 1
 	# хотя бы у одного равнинного места с посёлками пятна есть
-	var ask: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/terrain/askarovo/built_patches.json"))
+	var ask: Variant = JSON.parse_string(FileAccess.get_file_as_string(Locations.data_dir("askarovo") + "/built_patches.json"))
 	check(ask is Dictionary and ask.get("patches", []).size() > 0, "askarovo: пятна застройки есть")
 
 

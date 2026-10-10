@@ -37,7 +37,10 @@ func _ready() -> void:
 	SkyEnvironment.setup_camera(cam)
 	cam.fov = float(_cfg.fov_deg)
 	if _args.has("location") and _args.location != terrain.location_id:
-		terrain.load_location(String(_args.location))
+		if Locations.is_builtin(String(_args.location)):
+			await terrain.load_builtin(String(_args.location))  # нет в кеше — соберётся (нужна сеть)
+		else:
+			terrain.load_location(String(_args.location))
 	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
 	var from := float(_args.get("from", str(atmo.weather.wind_from_deg)))
 	atmo.set_wind(float(_args.get("wind", str(atmo.weather.wind_speed_kmh))), from)

@@ -65,7 +65,7 @@ func _plane(cls: int, ax: float = 0.0, az: float = 0.0) -> Terrain:
 
 
 func _surface_png(info: Dictionary) -> PackedByteArray:
-	var dir: String = Config.get_config("locations/" + LOCATION).data_dir
+	var dir: String = Locations.data_dir(LOCATION)
 	var img := Image.new()
 	img.load_webp_from_buffer(FileAccess.get_file_as_bytes(dir.path_join(info.file)))
 	img.convert(Image.FORMAT_L8)
@@ -89,7 +89,7 @@ func test_surface_at_matches_data() -> void:
 	var t := _altai()
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(
-			String(Config.get_config("locations/" + LOCATION).data_dir).path_join("surface.json")
+			String(Locations.data_dir(LOCATION)).path_join("surface.json")
 		)
 	)
 	var info: Dictionary = meta.layers[0]
@@ -480,7 +480,7 @@ func test_forest_at_sharp_edge() -> void:
 func test_surface_at_forest_by_mask() -> void:
 	# surface_at = лес там, где доля леса маски 10 м (данные WebP) ≥ 0,5 — не меньше 95 % точек.
 	var t := _ong()
-	var dir: String = Config.get_config("locations/ongudai").data_dir
+	var dir: String = Locations.data_dir("ongudai")
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(dir.path_join("surface.json"))
 	)
@@ -513,7 +513,7 @@ func test_river_axis_is_water() -> void:
 	# по маске рек detail_water.webp (сетка слоя 25 м, значение ≥ 200 — русло) — surface_at = вода ≥ 90 %;
 	# те же точки, сдвинутые на 300 м вбок, — не вода в большинстве (не «вся карта — вода»).
 	var t := _ong()
-	var dir := "res://data/terrain/ongudai/"
+	var dir := Locations.data_dir("ongudai") + "/"
 	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "meta.json"))
 	var info: Dictionary = {}
 	for l: Dictionary in meta.layers:

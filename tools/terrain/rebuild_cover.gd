@@ -1,6 +1,6 @@
 extends SceneTree
 ## Пересборка только покрова встроенного места (NO-1): SurfaceStage поверх готовых высот и маски рек,
-## без DEM, рек и OSM. Пишет в data/terrain/<id>/: detail_detail10.png, detail_built10.png,
+## без DEM, рек и OSM. Пишет в user://locations/<id>/: detail_detail10.png, detail_built10.png,
 ## built_patches.json, surface.json; *_surface.png — только если байты изменились.
 ##   XDG_DATA_HOME=/tmp/no1_xdg godot --headless --path . -s res://tools/terrain/rebuild_cover.gd -- --id askarovo [--local]
 ## --local — блоки COG сначала из ~/.cache/deltaplan_terrain/cog и ~/.cache/deltaplan_parity (только чтение).
@@ -31,7 +31,7 @@ func _run() -> void:
 		print("Нет конфига места " + id)
 		quit(2)
 		return
-	var final_dir := ProjectSettings.globalize_path(String(spec.data_dir))
+	var final_dir := ProjectSettings.globalize_path("user://locations/" + id)
 	var tmp := OS.get_user_data_dir().path_join("rebuild_cover_" + id)
 	DirAccess.make_dir_recursive_absolute(tmp)
 	var da := DirAccess.open(final_dir)

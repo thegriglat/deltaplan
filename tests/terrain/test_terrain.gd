@@ -19,12 +19,12 @@ func _altai() -> Terrain:
 
 
 func _raw_layer(info: Dictionary) -> PackedFloat32Array:
-	var dir: String = Config.get_config("locations/" + LOCATION).data_dir
+	var dir: String = Locations.data_dir(LOCATION)
 	return HeightLayer.load_from_file(dir.path_join(info.file), info).heights
 
 
 func _meta() -> Dictionary:
-	var dir: String = Config.get_config("locations/" + LOCATION).data_dir
+	var dir: String = Locations.data_dir(LOCATION)
 	return JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("meta.json")))
 
 

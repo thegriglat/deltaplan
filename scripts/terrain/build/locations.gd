@@ -10,6 +10,10 @@ const KEY_PREFIX := "pt_"
 ## собирается заново. Версия сырых блоков источника — LocationCache.SOURCE_VERSION (отдельная).
 const FORMAT_VERSION := 2
 
+## Корень готовых мест вместо кеша (только тесты: tests/run_tests.gd ставит tests/fixtures/locations;
+## пустой — настоящий кеш user://locations). Встроенные места в паке не лежат (NO-8).
+static var fixtures_root: String = ""
+
 static var _cfg_cache: Dictionary = {}
 
 
@@ -27,6 +31,14 @@ static func builtin_ids() -> PackedStringArray:
 
 static func is_builtin(id: String) -> bool:
 	return id != "" and Config.list_configs("locations").has("locations/" + id)
+
+
+## Папка файлов места: фикстуры тестов (если заданы и там есть место) или кеш user://locations/<id>
+## (встроенные собираются туда при первом выборе, NO-8; точки — под своим ключом).
+static func data_dir(id: String) -> String:
+	if fixtures_root != "" and is_builtin(id):
+		return fixtures_root.path_join(id)
+	return cache_dir().path_join(id)
 
 
 ## Есть ли такое место: встроенное или кешированное с конфигом.

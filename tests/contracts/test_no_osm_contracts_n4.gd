@@ -32,4 +32,4 @@ func test_n4_v2_no_osm() -> void:
 			"res://scripts/world_objects/road_mesher.gd", "res://scripts/terrain/build/osm_stage.gd"]:
 		check(not ResourceLoader.exists(p), "%s удалён" % p)
 	for id in PLACES:
-		check(not FileAccess.file_exists("res://data/terrain/%s/osm.json" % id), "%s: osm.json удалён" % id)
+		check(not FileAccess.file_exists(Locations.data_dir(id) + "/osm.json"), "%s: osm.json удалён" % id)
