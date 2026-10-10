@@ -42,12 +42,12 @@ static func build_for(location_id: String) -> WorldClearings:
 		for s in loc.get("start_sites", []):
 			var p := TerrainGeo.latlon_to_local(float(s.lat), float(s.lon), lat0, lon0)
 			starts.append({"position": Vector3(p.x, 0.0, p.y)})
-		var dem_dir := String(loc.get("data_dir", "res://data/terrain/" + location_id))
+		var dem_dir := Locations.data_dir(location_id)
 		var height_fn := _load_height_fn(dem_dir)
 		if height_fn.is_valid():
 			tracks = StartTracks.plan(starts, cfg.start_tracks, height_fn)
 	var houses: Array = []
-	var dem_dir2 := String(loc.get("data_dir", "res://data/terrain/" + location_id))
+	var dem_dir2 := Locations.data_dir(location_id)
 	var hf := _load_height_fn(dem_dir2)
 	if hf.is_valid():
 		houses = VillagePlacer.plan(patches_for_location(location_id), location_id, cfg.villages, hf)
@@ -62,7 +62,7 @@ static func patches_for_location(location_id: String) -> BuiltPatches:
 	if loc.is_empty():
 		return BuiltPatches.new()
 	return VillagePlacer.patches_for_dir(
-		String(loc.get("data_dir", "res://data/terrain/" + location_id))
+		Locations.data_dir(location_id)
 	)
 
 

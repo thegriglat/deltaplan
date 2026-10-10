@@ -8,8 +8,6 @@
   "center_lon_doc": "Долгота центра локации, градусы",
   "utc_offset_h": 5,
   "utc_offset_h_doc": "Часовой пояс места, UTC+N: часы полёта — поясное время (SunClock)",
-  "data_dir": "res://data/terrain/aushkul",
-  "data_dir_doc": "Папка с высотами (собирает tools/terrain/build_location.gd -- --id <id>)",
   "dem": {
     "_doc": "Параметры подготовки высот (читает DemStage). Слои от детального к грубому; грубый слой рисуется там, где нет детального.",
     "layers": [

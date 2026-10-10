@@ -31,7 +31,7 @@ func _place(id: String, relief := false) -> EggPlace:
 		t.load_location(id)
 		if relief:
 			var bp := BuiltPatches.new()
-			bp._dir = String(t.location.get("data_dir", "res://data/terrain/" + t.location_id))
+			bp._dir = Locations.data_dir(t.location_id)
 			t.set_meta(BuiltPatches.META_KEY, bp)
 		_cache[key] = EggPlace.build(t, Objs.new())
 	return _cache[key]

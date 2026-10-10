@@ -50,7 +50,7 @@ func test_k1_builtin_layout() -> void:
 	check(ids.size() >= 1, "встроенные места есть")
 	for id: String in ids:
 		var loc: Dictionary = Config.get_config("locations/" + id)
-		var dir := String(loc.get("data_dir", ""))
+		var dir := Locations.data_dir(id)
 		var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "/meta.json"))
 		_has_keys(meta, ["location", "center_lat", "center_lon", "earth_radius_m", "layers", "attribution"], id + " meta")
 		var layers: Array = meta.get("layers", [])
@@ -83,7 +83,7 @@ func test_k1_no_python_build() -> void:
 		check(not FileAccess.file_exists(f), "Python-сборка убрана: " + f)
 	for id: String in _builtin_ids():
 		var loc: Dictionary = Config.get_config("locations/" + id)
-		check(FileAccess.file_exists(String(loc.get("data_dir", "")) + "/build.json"), id + ": build.json встроенного")
+		check(FileAccess.file_exists(Locations.data_dir(id) + "/build.json"), id + ": build.json встроенного")
 
 
 ## test_k1_height_zst снят: высоты — WebP 24 бит (no-osm N5), проверка — tests/terrain/test_height_layer.gd.

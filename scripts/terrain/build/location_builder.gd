@@ -17,9 +17,9 @@ var stages: Array = []
 var offline: bool = false
 ## Правки конфига места поверх шаблона (проверки без сети: dem_sources).
 var spec_override: Dictionary = {}
-## Встроенное место (OA-7): абсолютная папка результата (data/terrain/<id>) и его ключ — id;
-## центр не привязывается к сетке, спецификация — конфиг места целиком (fixed_spec), кеш и
-## location.json не используются. Файлы .import в папке сохраняются.
+## Встроенное место (OA-7, NO-8): абсолютная папка результата (user://locations/<id>, Locations.data_dir)
+## и его ключ — id; центр не привязывается к сетке, спецификация — конфиг места (fixed_spec),
+## location.json не пишется (конфиг — configs/locations/<id>.json). Кеш по build.json — как у точки.
 var out_dir: String = ""
 var fixed_key: String = ""
 var fixed_spec: Dictionary = {}
@@ -29,6 +29,21 @@ var net_requests: int = 0
 var log_lines: PackedStringArray = PackedStringArray()
 
 var _ctx: LocationBuildContext
+
+
+## Сборщик встроенного места: результат в Locations.data_dir(id) (кеш user://locations/<id>), спецификация —
+## из configs/locations/<id>.json. Центр места — build(host, center_lat, center_lon) из конфига.
+static func for_builtin(id: String) -> LocationBuilder:
+	var cfg: Dictionary = Locations.config(id)
+	var b := LocationBuilder.new()
+	b.out_dir = ProjectSettings.globalize_path(Locations.cache_dir().path_join(id))
+	b.fixed_key = id
+	var keep := {}
+	for k in ["dem", "surface", "rivers", "center_lat", "center_lon"]:
+		if cfg.has(k):
+			keep[k] = cfg[k]
+	b.fixed_spec = keep
+	return b
 
 
 ## Собрать (или взять из кеша) место вокруг точки. {ok, key, error, missing}; error —
@@ -44,13 +59,12 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 		result.error = "nodata"
 		return result
 	var final_dir := out_dir if fixed else LocationCache.dir_for(key)
-	var old := {} if fixed else LocationCache.read_build(final_dir)
-	if not fixed:
-		LocationCache.ensure_source_cache(String(Config.value("world", "runtime_terrain.cache_dir", "user://terrain_cache")))
-		# место другой версии формата (или без неё) удаляется целиком, собирается заново
-		if DirAccess.dir_exists_absolute(final_dir) and not LocationCache.is_current(old):
-			LocationCache.remove_dir(final_dir)
-			Locations.invalidate(key)
+	var old := LocationCache.read_build(final_dir)
+	LocationCache.ensure_source_cache(String(Config.value("world", "runtime_terrain.cache_dir", "user://terrain_cache")))
+	# место другой версии формата (или без неё) удаляется целиком, собирается заново
+	if DirAccess.dir_exists_absolute(final_dir) and not LocationCache.is_current(old):
+		LocationCache.remove_dir(final_dir)
+		Locations.invalidate(key)
 	if LocationCache.is_current(old):
 		if bool(old.get("complete", false)):
 			result.ok = true

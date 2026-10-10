@@ -14,7 +14,7 @@ func test_n5_format_version() -> void:
 ## Встроенные места (пока они в пакете, до NO-8): высоты и растры — WebP, старых PNG/zst нет.
 func test_n5_place_files() -> void:
 	for id in PLACES:
-		var dir := "res://data/terrain/%s/" % id
+		var dir := Locations.data_dir(id) + "/"
 		if not DirAccess.dir_exists_absolute(dir):
 			continue
 		for f in DirAccess.get_files_at(dir):

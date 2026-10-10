@@ -3,7 +3,7 @@ extends SceneTree
 ##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --lat 47.05 --lon 11.0 [--offline]
 ## Встроенное место (OA-7, только из рабочей копии):
 ##   godot --headless --path . -s res://tools/terrain/build_location.gd -- --id altai [--local]
-## собирает по configs/locations/<id>.json (центр, dem, surface, rivers) в его data_dir (data/terrain/<id>/);
+## собирает по configs/locations/<id>.json (центр, dem, surface, rivers) в его data_dir (user://locations/<id>/, как при первом выборе в игре);
 ## --local — рельеф и покров сначала из ~/.cache/deltaplan_terrain и ~/.cache/deltaplan_parity (только чтение).
 ## location.json не пишется (конфиг встроенного — configs/locations), ручные данные конфига не трогаются.
 ## Печатает ключ, missing, время по стадиям, net_requests, размер папки. Код выхода 1 — ошибка рельефа.
@@ -60,7 +60,7 @@ func _run() -> void:
 	builder.offline = offline
 	if id != "":
 		var home := OS.get_environment("HOME")
-		builder.out_dir = ProjectSettings.globalize_path(String(spec.data_dir))
+		builder.out_dir = ProjectSettings.globalize_path("user://locations/" + id)
 		builder.fixed_key = id
 		var keep := {}
 		for k in ["dem", "surface", "rivers", "center_lat", "center_lon"]:
@@ -98,7 +98,7 @@ func _run() -> void:
 	print("missing: %s" % str(res.missing))
 	print("стадии, с: %s" % JSON.stringify(builder.seconds))
 	print("net_requests: %d" % builder.net_requests)
-	var dir: String = cache.dir_for(key) if id == "" else String(spec.data_dir)
+	var dir: String = cache.dir_for(key) if id == "" else "user://locations/" + id
 	print("папка: %s" % ProjectSettings.globalize_path(dir))
 	print("размер папки: %.1f МБ" % (cache.dir_size(dir) / 1048576.0))
 	print("всего: %.1f с" % ((Time.get_ticks_usec() - t0) / 1e6))

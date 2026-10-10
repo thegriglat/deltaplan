@@ -47,7 +47,10 @@ func _ready() -> void:
 	SkyEnvironment.setup_camera(cam)
 	cam.fov = float(_cfg.fov_deg)
 	if _args.has("location") and String(_args.location) != terrain.location_id:
-		terrain.load_location(String(_args.location))
+		if Locations.is_builtin(String(_args.location)):
+			await terrain.load_builtin(String(_args.location))  # нет в кеше — соберётся (нужна сеть)
+		else:
+			terrain.load_location(String(_args.location))
 	if _args.has("latlon"):
 		var ll := String(_args.latlon).split(",")
 		_frames = -100000  # не снимать, пока грузится

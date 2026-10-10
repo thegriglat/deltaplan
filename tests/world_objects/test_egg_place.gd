@@ -120,7 +120,7 @@ func test_places_relief_fallback() -> void:
 	t.location_id = ""
 	t.load_location("askarovo")
 	var bp := BuiltPatches.new()  # пятен нет
-	bp._dir = String(t.location.get("data_dir", "res://data/terrain/" + t.location_id))
+	bp._dir = Locations.data_dir(t.location_id)
 	t.set_meta(BuiltPatches.META_KEY, bp)
 	var p := EggPlace.build(t, null)
 	var pls := p.places()

@@ -94,7 +94,12 @@ func _init() -> void:
 
 func _ready() -> void:
 	if location_id != "" and layers.is_empty():
-		load_location(location_id)
+		if Locations.is_builtin(location_id) and Locations.fixtures_root == "":
+			var id := location_id
+			location_id = ""
+			await load_builtin(id)  # нет в кеше — соберётся при первом запуске
+		else:
+			load_location(location_id)
 
 
 ## Загрузить место: встроенное (configs/locations/<id>.json, data/terrain/<id>/) или собранную
@@ -126,11 +131,11 @@ func _read_location(id: String) -> Dictionary:
 	if cfg.is_empty():
 		load_failed.emit(tr("err_no_location_config") % id)
 		return {}
-	var dir := String(cfg.get("data_dir", "res://data/terrain/" + id))
+	var dir := Locations.data_dir(id)
 	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	var meta: Variant = JSON.parse_string(meta_text)
 	if not meta is Dictionary:
-		push_error("Terrain: нет %s/meta.json — собери: godot --headless -s res://tools/terrain/build_location.gd -- --id %s" % [dir, id])
+		push_error("Terrain: нет %s/meta.json — место не собрано (встроенное собирает load_builtin при первом выборе)" % dir)
 		load_failed.emit(tr("err_no_location_data") % id)
 		return {}
 	# маски 10 м (WebP) читаются в рабочем потоке, пока распаковываются высоты
@@ -153,7 +158,7 @@ func _read_location(id: String) -> Dictionary:
 ## user://locations/<ключ> или собирает стадиями (рельеф, реки, покров), затем обычный путь
 ## load_location. Асинхронно: по готовности — loaded (или load_failed с текстом для пилота).
 ## Ход — progress (этапы и доля для экрана загрузки); сеть молчит stall_timeout_s — отмена.
-func load_point(lat: float, lon: float) -> void:
+func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 	cancel_load()
 	_load_gen += 1
 	var gen := _load_gen
@@ -162,7 +167,7 @@ func load_point(lat: float, lon: float) -> void:
 	progress.begin()
 	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
 	progress.stage("dem", tr("loading_dem"))
-	var builder := LocationBuilder.new()
+	var builder := LocationBuilder.for_builtin(builtin_id) if builtin_id != "" else LocationBuilder.new()
 	_builder = builder
 	var shown := {"stage": ""}
 	builder.progress.connect(
@@ -211,6 +216,20 @@ func load_point(lat: float, lon: float) -> void:
 	last_load_time_s = (Time.get_ticks_usec() - t0) / 1e6
 	print("Terrain: место %s загружено за %.2f с" % [res.key, last_load_time_s])
 	loaded.emit()
+
+
+## Встроенное место (NO-8): в паке файлов нет — при первом выборе собирается в user://locations/<id>
+## тем же сборщиком, что и точка, дальше берётся из кеша. Ход и ошибки — как у load_point.
+## В тестах (Locations.fixtures_root) — готовые файлы без сети.
+func load_builtin(id: String) -> void:
+	if Locations.fixtures_root != "":
+		load_location(id)
+		return
+	var cfg: Dictionary = Locations.config(id)
+	if cfg.is_empty():
+		load_failed.emit(tr("err_no_location_config") % id)
+		return
+	await load_point(float(cfg.center_lat), float(cfg.center_lon), id)
 
 
 ## Прервать рантайм-загрузку (если идёт): сеть закрывается, сигналов не будет.

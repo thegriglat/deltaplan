@@ -1035,7 +1035,8 @@ func _load_terrain() -> bool:
 		if terrain.location_id == id and not terrain.layers.is_empty() and not _terrain_dirty:
 			return true  # то же место уже стоит
 		if builtin != "":
-			ok = bool(terrain.load_location(builtin)) and not terrain.layers.is_empty()
+			await terrain.load_builtin(builtin)
+			ok = _load_error == "" and not terrain.layers.is_empty()
 			_terrain_dirty = not ok
 		else:
 			await terrain.load_point(settings.pick_lat, settings.pick_lon)
@@ -1049,7 +1050,11 @@ func _load_terrain() -> bool:
 		return true
 	else:
 		what = settings.location_id
-		ok = bool(terrain.load_location(settings.location_id)) and not terrain.layers.is_empty()
+		if Locations.is_builtin(settings.location_id):
+			await terrain.load_builtin(settings.location_id)
+			ok = _load_error == "" and not terrain.layers.is_empty()
+		else:
+			ok = bool(terrain.load_location(settings.location_id)) and not terrain.layers.is_empty()
 		_terrain_dirty = not ok
 	if not ok:
 		# Рельеф не всегда говорит причину (например, скрипт не собрался) — объясняем сами.

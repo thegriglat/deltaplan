@@ -54,7 +54,7 @@ func test_places() -> void:
 func test_deterministic() -> void:
 	var t := _terrain("askarovo")
 	var a := BuiltPatches.for_terrain(t).patches()
-	var b := BuiltPatches.for_dir(String(t.location.get("data_dir", ""))).patches()
+	var b := BuiltPatches.for_dir(Locations.data_dir(t.location_id)).patches()
 	check(a == b, "повторное чтение даёт тот же список")
 	t.free()
 
