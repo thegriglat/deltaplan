@@ -198,7 +198,7 @@
       "trees": []
     },
     "sites": {
-      "_doc": "id локации → площадки. Поля: id (совпадает с landing_sites локации — тогда lat/lon можно не писать), name, lat, lon (WGS84, °), length_m, width_m, axis_deg, windsock_at, trees, fences. Недостающие поля — из defaults.",
+      "_doc": "id локации → площадки. Поля: id (совпадает с landing_sites локации — тогда lat/lon можно не писать), name, lat, lon (WGS84, °), length_m, width_m, axis_deg, windsock_at, trees. Недостающие поля — из defaults.",
       "altai": [
         {
           "id": "manzherok_katun",
