@@ -42,6 +42,7 @@ static func _plan_uncached(
 	var yard := float(vcfg.yard_m2)
 	var step := sqrt(yard)
 	var min_share := float(vcfg.min_share)
+	var jit := clampf(float(vcfg.get("yard_jitter", 0.7)), 0.0, 1.0)
 	var max_slope := tan(deg_to_rad(float(vcfg.max_slope_deg)))
 	var align_slope := tan(deg_to_rad(float(vcfg.slope_align_deg)))
 	var types: Dictionary = vcfg.types
@@ -71,8 +72,8 @@ static func _plan_uncached(
 				var gk := Vector2i(i, j)
 				if taken.has(gk):
 					continue
-				var x := (i + 0.15 + 0.7 * r_a) * step
-				var z := (j + 0.15 + 0.7 * r_b) * step
+				var x := (i + 0.5 + jit * (r_a - 0.5)) * step
+				var z := (j + 0.5 + jit * (r_b - 0.5)) * step
 				var sh := patches.share_at(x, z)
 				if sh < min_share:
 					continue

@@ -247,6 +247,7 @@ func _make_material(
 	surface_textures.append(stex)
 	set_surface(m, surface, stex)
 	set_forest_mask(m, surface)
+	set_built_soft(m, surface)
 	m.set_shader_parameter("macro_noise_tex", macro_noise_texture())
 	_apply_look(m, look)
 	return m
@@ -337,6 +338,18 @@ static func set_forest_mask(m: ShaderMaterial, surface: SurfaceLayer) -> void:
 	)
 	m.set_shader_parameter("forest_mask_spacing", surface.mask_spacing)
 	m.set_shader_parameter("forest_mask_texels", Vector2(surface.mask_width, surface.mask_height))
+
+
+## Размытая подложка застройки (NO-10) → uniform'ы шейдера; нет — класс built карты поверхности.
+static func set_built_soft(m: ShaderMaterial, surface: SurfaceLayer) -> void:
+	var tex := surface.make_built_soft_texture() if surface != null else null
+	m.set_shader_parameter("use_built_soft", tex != null)
+	if tex == null:
+		return
+	m.set_shader_parameter("built_soft_tex", tex)
+	m.set_shader_parameter("built_soft_origin", Vector2(surface.built_soft_origin_x, surface.built_soft_origin_z))
+	m.set_shader_parameter("built_soft_spacing", surface.built_soft_spacing)
+	m.set_shader_parameter("built_soft_texels", Vector2(surface.built_soft_image.get_width(), surface.built_soft_image.get_height()))
 
 
 func _apply_look(m: ShaderMaterial, look: Dictionary) -> void:

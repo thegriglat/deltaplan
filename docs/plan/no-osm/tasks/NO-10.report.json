@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Дома плотнее (yard_m2 1400→520, новый yard_jitter 0.4, min_share 0.25) и мягкая подложка застройки: detail_built10 сжата до клеток 50 м (билинейно), шейдер рельефа берёт её вместо класса built 25 м; плавный цвет вместо хеш-кварталов 18 м.",
+  "commits": [
+    "fcd84585 NO-10: дома плотнее, мягкая подложка застройки"
+  ],
+  "checks": [
+    {
+      "name": "дома askarovo до/после",
+      "value": "13953 -> 36582 (altai 65838, aushkul 10702, ongudai 8462 после)",
+      "pass": true
+    },
+    {
+      "name": "план домов askarovo, с",
+      "value": "1.03 (сборка WorldObjects 1.66 с, test_build_time проходит)",
+      "pass": true
+    },
+    {
+      "name": "кадр frame_profile medium askarovo chase@5, мс",
+      "value": "до 5.25 (GPU 5.20) / после 5.37 (GPU 5.33) — в шуме",
+      "pass": true
+    },
+    {
+      "name": "dp accept NO-10 --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_villages",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_terrain",
+      "value": "15/15",
+      "pass": true
+    },
+    {
+      "name": "test_surface",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "test_collisions",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Дальний слой (far) без built10 — подложка как была (класс built 25 м)."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/NO-10/01_do.jpg",
+    "/home/greg/deltaplan/build/screenshots/NO-10/02_posle.jpg"
+  ],
+  "how_to_check": "dp accept NO-10",
+  "uncertain": [
+    {
+      "where": "tests/world_objects/test_villages.gd test_counts",
+      "why": "потолок домов поднят 27000→90000 (старый — по числу зданий OSM)",
+      "checked": "altai 65838 максимум"
+    },
+    {
+      "where": "village_placer.gd",
+      "why": "при шаге 23 м соседние дома/сараи могут местами касаться",
+      "checked": "jitter 0.4 даёт ≥14 м между центрами домов; сараи не проверял"
+    }
+  ],
+  "dp_feedback": "Нет команды для бенчмарка кадра до/после одной строкой.",
+  "t": "2026-10-10T06:13:44",
+  "by": "executor"
+}
