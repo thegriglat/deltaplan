@@ -1,6 +1,6 @@
 class_name LocationBuilder
 extends RefCounted
-## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage во
+## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage → OsmTilesStage во
 ## временной папке user://locations/.tmp_<ключ>, затем переименование; build.json — последним.
 ## Полное место (build.json complete, format_version та же) берётся из кеша без стадий и сети.
 ## Отказ рельефа — ошибка; отказ рек/покрова — место без слоя, имя в build.json → missing,
@@ -66,7 +66,7 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 		LocationCache.remove_dir(final_dir)
 		Locations.invalidate(key)
 	if LocationCache.is_current(old):
-		if bool(old.get("complete", false)):
+		if bool(old.get("complete", false)) and _all_ran(old):
 			result.ok = true
 			return result
 	else:
@@ -76,6 +76,11 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 	var have_dem := false
 	if not old.is_empty():
 		todo = (old.get("missing", []) as Array).duplicate()
+		# стадия, которой в этом месте ещё не было (место собрано до её появления) — тоже недостающая
+		var ran: Dictionary = old.get("seconds", {})
+		for n in _all_names():
+			if n != "dem" and not ran.has(n) and not todo.has(n):
+				todo.append(n)
 		have_dem = true
 	var snapc := Vector2(lat, lon) if fixed else LocationCache.snap(lat, lon)
 	var clat: float = lat if fixed else snapc.x  # Vector2 — float32; встроенному нужна точность double
@@ -181,6 +186,15 @@ func stages_list() -> Array:
 	return stages
 
 
+## Все стадии списка уже отработали в этом месте (есть в build.json → seconds).
+func _all_ran(old: Dictionary) -> bool:
+	var ran: Dictionary = old.get("seconds", {})
+	for n in _all_names():
+		if not ran.has(n):
+			return false
+	return true
+
+
 func _all_names() -> Array:
 	var out: Array = []
 	for st in stages_list():
@@ -195,6 +209,7 @@ static func default_stages() -> Array:
 		["dem", "dem_stage"],
 		["rivers", "river_stage"],
 		["surface", "surface_stage"],
+		["osm_tiles", "osm_tiles_stage"],
 	]:
 		var path := "res://scripts/terrain/build/%s.gd" % pair[1]
 		if ResourceLoader.exists(path):

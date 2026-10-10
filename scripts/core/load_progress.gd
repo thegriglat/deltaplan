@@ -83,20 +83,24 @@ func sub(done: float, total: float) -> void:
 ## Полоса идёт по счётчику: доля внутри текущего этапа = done / total.
 func counter(build_stage: String, done: int, total: int) -> void:
 	counters[build_stage] = [done, total]
-	if total > 0:
+	if total > 0 and done >= 0:
 		sub(float(done), float(total))
 	else:
 		changed.emit(text, fraction)
 
 
-## «Рельеф: 23/63» для стадии сборки ("" — запросов нет / стадия без счётчика).
+## «Рельеф: 23/63» для стадии сборки ("" — запросов нет / стадия без счётчика). done < 0 — стадия
+## пропущена (OSM: таймаут или ошибка) — «OSM: пропущено».
 func counter_text(build_stage: String) -> String:
 	var c: Array = counters.get(build_stage, [])
 	if c.is_empty() or int(c[1]) <= 0:
 		return ""
-	var label_key: String = {"dem": "loading_counter_dem", "surface": "loading_counter_surface"}.get(build_stage, "")
+	var label_key: String = {"dem": "loading_counter_dem", "surface": "loading_counter_surface",
+		"osm_tiles": "loading_counter_osm"}.get(build_stage, "")
 	if label_key == "":
 		return ""
+	if int(c[0]) < 0:
+		return tr("loading_counter_osm_skipped")
 	return tr(label_key) % [int(c[0]), int(c[1])]
 
 
@@ -105,6 +109,8 @@ func totals() -> Array:
 	var d := 0
 	var t := 0
 	for c: Array in counters.values():
+		if int(c[0]) < 0:
+			continue  # пропущенная стадия в сумму не входит
 		d += int(c[0])
 		t += int(c[1])
 	return [d, t]
@@ -114,7 +120,7 @@ func totals() -> Array:
 func total_text() -> String:
 	var n := 0
 	for c: Array in counters.values():
-		if int(c[1]) > 0:
+		if int(c[1]) > 0 and int(c[0]) >= 0:
 			n += 1
 	if n < 2:
 		return ""
