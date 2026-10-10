@@ -942,6 +942,12 @@ func _load_surfaces(
 					var d10: Dictionary = info.detail10
 					var slot: Array = mask_images.get(info.id, [null])
 					out[k].load_detail10(dir.path_join(String(d10.file)), d10, slot[0])
+					if info.has("built10"):
+						out[k].load_built_soft(
+							dir.path_join(String(info.built10.file)),
+							d10,
+							float(Config.get_config("world_objects").villages.get("built_soft_cell_m", 50.0))
+						)
 	return out
 
 

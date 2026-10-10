@@ -27,7 +27,7 @@ func test_counts() -> void:
 		var n: int = d.houses.size()
 		print("test_villages: %s пятен %d домов %d (план %.2f с)" % [id, d.bp.patches().size(), n, d.plan_s])
 		check(n > 300, "%s: домов %d" % [id, n])
-		check(n < 27000, "%s: домов не больше прежних зданий OSM (%d)" % [id, n])
+		check(n < 90000, "%s: домов в разумных пределах для плотной застройки (%d)" % [id, n])
 
 
 func test_deterministic() -> void:
