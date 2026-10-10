@@ -3,9 +3,9 @@ type: contract
 status: active
 module: pendulum
 updated: 2026-10-11
-summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4)."
+summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 2}, {"id": "PD-К3", "version": 1}, {"id": "PD-К4", "version": 1}]
+contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 2}, {"id": "PD-К3", "version": 1}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 1}]
 ---
 # Контракты модуля pendulum
 
@@ -15,7 +15,8 @@ contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 2}, {"id
 
 Не меняются: CB-К1/К2 (control-bar), MR-К1 v1 (motion-rig — маятник только заполняет `pilot_*`), `ControlInput`, `FlightModel`, `GroundRun`, `LandingFlare`, `LandingJudge` (пороги), боты.
 
-## PD-К1. Поверхность модели полёта «Маятник» (v1)
+## PD-К1. Поверхность модели полёта «Маятник» (v2)
+v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы на земле, взлёт и посадка из сил; `run`/`walk`/`turn` читаются; `flare_amount` — по выравниванию у земли; принудительный старт в воздухе в режиме «Маятник» (`Glider`, `Game`) убирается.
 Владелец — PD-2 (ядро), PD-3 (земля, v2); потребители — PD-4 (`Glider`, телеметрия, автопилот), PD-6 (визуал, камера), PD-7 (сеть), PD-8.
 
 `class_name PendulumModel extends RefCounted` — `scripts/flight/pendulum/pendulum_model.gd`. Та же поверхность, что у `FlightModel` для пилота-человека (что читают `Glider`, `Game`, `GliderVisual`, `FlightTelemetry`):
@@ -46,15 +47,15 @@ contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 2}, {"id
 | `strap_tension` | float, Н | натяжение верхнего звена (≥ 0) |
 | `setup(wing_cfg, pilot_cfg, flight_override := {}, apparatus := {})` | | масса пилота уже ограничена `FlightModel.clamp_pilot_mass` (делает `Glider`) |
 | `reset_in_air(pos, heading_deg, airspeed_ms := 0.0, wind := Vector3.ZERO)` | | `pos` — смысл `position`; установившееся планирование на триме (или `airspeed_ms`), пилот висит в равновесии, ω = 0, рыскание — по потоку |
-| `reset_on_ground(pos, heading_deg)` | | **v1 (до PD-3):** не поддерживается — `push_error` и `reset_in_air(pos + Vector3(0, 100, 0), heading_deg)`; PD-4 в режиме «Маятник» стартует в воздухе (план, PD-4). v2 (PD-3) — честная земля |
+| `reset_on_ground(pos, heading_deg)` | | v2 — абзац «Земля (v2)» ниже |
 | `step(dt, input: ControlInput, air_fn: Callable, ground_fn: Callable)` | | `dt` любой из 1/240…1/30 с; подшагов XPBD — `max(substeps_min, ceil(dt·substeps_per_s))`; `air_fn(p: Vector3) -> Vector3` (ветер, м/с) — в точке каждой полосы и пилота; `ground_fn(x, z) -> float` |
 | `phase() -> String` | | значения `Telemetry.phase` |
-| `flare_amount() -> float`, `stall_amount() -> float` | 0…1 | v1: `flare_amount` — доля «от себя» (0…1) только на малой высоте, иначе 0; `stall_amount` — доля сорванных полос |
+| `flare_amount() -> float`, `stall_amount() -> float` | 0…1 | `flare_amount` — доля «от себя» у земли (v2), иначе 0; `stall_amount` — доля сорванных полос |
 | `set_kinematic(pos, vel, heading, bank, theta)` | | для буксира NET-42: крыло жёстко в заданное положение, пилот — в равновесии под подвеской, ω = 0, `mode = AIR` |
 
-Ввод (`ControlInput`, без изменений): `roll` −1…1 → целевое положение пилота поперёк штанги `roll·arms.shift_y_max_m` (+ вправо); `pitch` +1 («от себя») → пилот назад на `arms.shift_x_push_m`, −1 («на себя») → вперёд на `arms.shift_x_pull_m`; `weight_shift`, `run`, `walk`, `turn` — v1 не читаются (`run`/`walk` — PD-3).
+Ввод (`ControlInput`, без изменений): `roll` −1…1 → целевое положение пилота поперёк штанги `roll·arms.shift_y_max_m` (+ вправо); `pitch` +1 («от себя») → пилот назад на `arms.shift_x_push_m`, −1 («на себя») → вперёд на `arms.shift_x_pull_m`; `weight_shift` не читается; `run`, `walk`, `turn` — на земле (v2).
 
-Касание до PD-3 (v1): ступни пилота (`pilot_position` − 1,0 м по +Y `pilot_basis`) ниже `ground_fn` → `mode = LANDED`, `landing_result = LandingJudge.evaluate(...)` по скорости пилота, `landed.emit(...)`; дальше `step` не интегрирует.
+Земля (v2, владелец PD-3; R6 плана): `reset_on_ground(pos, heading_deg)` — `pos` в смысле `position` (узел `Glider`: на земле — у ступней стоящего пилота, как у `FlightModel`), пилот стоит, крыло на руках (стойки у плеч, нос — `wing.launch.alpha_neutral_deg`), `mode = GROUND`. На земле: ноги — пружина-демпфер (только толкают), ходьба/бег по `input.walk`/`input.run`/`input.turn` (бег F(1 − v/v_ног), числа `pilot.json → walk/run`), руки держат стойки (опора под ЦМ крыла; тангаж — `input.pitch`, момент до 300 Н·м; крен — `input.roll`, до 200 Н·м × доля веса на ногах), стропа провисает. `phase()` — standing/walking/running/flying/landed/failed. Отрыв — ступни перестали касаться земли под нагрузкой стропы (из сил, без порога скорости) → `mode = AIR`, `took_off`; руки на штангу через `flight.takeoff.upright_clear_m`/1 с после отрыва. Срыв разбега — крыло (нос, консоль, киль) коснулось земли или пилот упал → `mode = FAILED`, `takeoff_failed(reason)` с причинами как у `FlightModel` (`flight_model.gd`). Посадка: выравнивание — «от себя» (пилот назад), `flare_amount()` — доля «от себя» у земли (0…1); касание — ступни пилота (ЦМ − 1,0 м по +Y `pilot_basis`) у земли → `LandingJudge.evaluate` по скорости ступней (пороги не меняются) → `mode = LANDED`, `landed`; консоль/нос в землю до касания ногами — авария (`grade = "crash"`). Контакт крыла с землёй — точки нос, концы консолей, задний конец киля.
 
 Члены `PendulumModel` вне этой таблицы (`arms_relaxed`, `hands_force_y`, `aero_hz`, `wing_basis()`, `solve_trim()`, `glide_balance()`) — служебные для тестов и PD-8, потребители на них не опираются.
 
@@ -124,3 +125,10 @@ UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) дели�
 Владелец — PD-7; потребители — `remote_pilots.gd`, PD-6 (поза чужих пилотов).
 
 `server/proto/deltaplan/v1/net.proto`, `PilotState`: `ControlMode control_mode = 11;` (`enum ControlMode { CONTROL_MODE_UNSPECIFIED = 0; CONTROL_MODE_RATE = 1; CONTROL_MODE_WEIGHT_SHIFT = 2; CONTROL_MODE_PENDULUM = 3; }`), `Vec3 pilot_rel = 12;` (= `PendulumModel.pilot_rel`, оси крыла, м, округление 1 см; только при PENDULUM). JSON-ключи `net_messages.gd` — `controlMode`, `pilotRel` (оба nullable). Нет поля — поза по вводу, как сейчас. Прирост `PilotState` ≤ 16 байт.
+
+## PD-К5. Поза пилота в визуале и у чужих пилотов (v1)
+Владелец — PD-6 (`GliderVisual`, `BotGlider`, камера); поставщики данных — PD-К1 (`pilot_rel`, `pilot_basis`, `head_position`), PD-7 (`BotAgent.pilot_rel`).
+
+- `GliderVisual.set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float)` — поза пилота по маятнику: тело висит вдоль направления HangPoint → пилот (`pilot_rel`, оси крыла = оси узла `Glider`, м), без сглаживания (решение 5); на земле — стоит (как сейчас). Режимы «Смещение веса»/«Упрощённый» — прежний `set_pose(roll, pitch, …)` без изменений.
+- `Glider._update_pilot`: при `is_pendulum()` → `visual.set_hang_pose(model.pilot_rel, …)`; маркер `PilotHead` следует за телом, так что `head_position` модели и маркер совпадают в пределах 3 см; камера «из глаз» в «Маятнике» не добавляет `head_follow_body` и сглаживание поверх физики.
+- Чужие пилоты: `BotAgent.pilot_rel: Vector3`, `BotAgent.pilot_rel_valid: bool` (по умолчанию false) — пишет `remote_pilots.gd` из `PilotState.pilot_rel` (PD-7); `BotGlider` при `pilot_rel_valid` вызывает `set_hang_pose`, иначе — прежняя поза по вводу. Боты (`pilot_rel_valid = false`) не меняются.
