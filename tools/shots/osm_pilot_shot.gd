@@ -16,6 +16,10 @@ func _ready() -> void:
 	var list := false
 	var bench := false
 	var old := false
+	var plume := false
+	var wind := Vector3.ZERO
+	var wait_s := 45.0
+	var yaw_deg := 35.0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
 			out = a.substr(6)
@@ -37,6 +41,14 @@ func _ready() -> void:
 			bench = true
 		elif a == "--old":
 			old = true
+		elif a == "--plume":
+			plume = true  # OL-6: шлейфы труб; камера на расстоянии --dist, ветер --wind=vx,vz м/с, --wait=с, --yaw=°
+		elif a.begins_with("--wind="):
+			wind = Vector3(float(a.substr(7).split(",")[0]), 0.0, float(a.substr(7).split(",")[1]))
+		elif a.begins_with("--wait="):
+			wait_s = float(a.substr(7))
+		elif a.begins_with("--yaw="):
+			yaw_deg = float(a.substr(6))
 	var paths: Array = []
 	for t in OsmGrid.neighbors(lat, lon):
 		var p := root.path_join("v1/%d/%d.dpt" % [t.x, t.y])
@@ -103,6 +115,19 @@ func _ready() -> void:
 	add_child(ground)
 	if node != null:
 		add_child(node)
+	var plumes: Node3D = null
+	if plume:
+		var cp_cfg: Dictionary = cfg.osm_pilot.chimney_plume
+		plumes = OsmChimneyPlumes.build(d, cfg, h_fn)
+		print("osm_pilot_shot: труб со шлейфом ", plumes.chimney_count() if plumes != null else 0)
+		if plumes != null:
+			add_child(plumes)
+		var bestd := 1.0e18
+		for m in OsmChimneyPlumes.pick_mouths(d, cfg, h_fn):
+			if Vector2(m.x, m.z).length() < bestd:
+				bestd = Vector2(m.x, m.z).length()
+				fx = Vector2(m.x, m.z)
+		print("osm_pilot_shot: visibility_m ", cp_cfg.visibility_m, ", шлейф у ", fx)
 	var cam := Camera3D.new()
 	cam.far = 20000.0
 	cam.fov = 65.0
@@ -110,6 +135,16 @@ func _ready() -> void:
 	cam.current = true
 	cam.position = Vector3(fx.x + dist * 0.8, 25.0 + dist * 0.12, fx.y + dist * 0.6)
 	cam.look_at(Vector3(fx.x, 18.0 if focus == "power" else dist * 0.3, fx.y), Vector3.UP)
+	if plume:
+		var dir := Vector3(sin(deg_to_rad(yaw_deg)), 0.0, cos(deg_to_rad(yaw_deg)))
+		cam.position = Vector3(fx.x, 90.0, fx.y) + dir * dist
+		cam.look_at(Vector3(fx.x + wind.x * 15.0, 130.0, fx.y + wind.z * 15.0), Vector3.UP)
+		cam.fov = 50.0
+		var t_end := Time.get_ticks_msec() + int(wait_s * 1000.0)
+		while Time.get_ticks_msec() < t_end:
+			if plumes != null:
+				plumes.osm_wind(func(_p: Vector3) -> Vector3: return wind, cam.position)
+			await get_tree().process_frame
 	for i in 8:
 		await get_tree().process_frame
 	if bench:
