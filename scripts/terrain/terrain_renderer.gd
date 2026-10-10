@@ -428,6 +428,16 @@ static func load_texture(path: String) -> Texture2D:
 	return null
 
 
+## Маска места из WebP (N5, поле water_file): L8 без мипов, как прежний импорт PNG; null — нет файла.
+static func load_mask_texture(path: String) -> Texture2D:
+	var img := Image.new()
+	if img.load_webp_from_buffer(FileAccess.get_file_as_bytes(path)) != OK:
+		push_warning("Terrain: маска не прочитана: %s" % path)
+		return null
+	img.convert(Image.FORMAT_L8)
+	return ImageTexture.create_from_image(img)
+
+
 ## Плоская сетка cells×cells клеток шагом step + «юбка» по краю (вершины с COLOR.r = 1).
 static func _grid_mesh(cells: int, step: float) -> ArrayMesh:
 	var n := cells + 1

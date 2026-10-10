@@ -144,7 +144,7 @@ func _read_location(id: String) -> Dictionary:
 			load_failed.emit(tr("err_layer_read") % String(info.id))
 			return {}
 		if info.has("water_file"):
-			l.water_texture = TerrainRenderer.load_texture(dir.path_join(String(info.water_file)))
+			l.water_texture = TerrainRenderer.load_mask_texture(dir.path_join(String(info.water_file)))
 		new_layers.append(l)
 	return {"cfg": cfg, "dir": dir, "meta": meta, "layers": new_layers, "masks": masks}
 
