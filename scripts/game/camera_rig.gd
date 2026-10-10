@@ -335,37 +335,27 @@ func _glance_point() -> Vector3:
 	return sum / n if n > 0 else Vector3(NAN, NAN, NAN)
 
 
-## Точка камеры в кабине (A3.3 v8, camera.json → cockpit.eye_mode): глаза пилота или точка над
-## серединой плечевых суставов на высоте глаз («между плечами»).
-func _eye_point(c: Dictionary) -> Vector3:
-	var em := String(c.get("eye_mode", "eyes"))
-	if em == "between_shoulders":
-		return _between_shoulders()
+## Точка камеры в кабине (A3.3 v8, camera.json → cockpit.eye_mode): глаза пилота (маркер PilotHead).
+func _eye_point(_c: Dictionary) -> Vector3:
 	return head.global_position
 
 
-## Смещение камеры от точки: back_* — назад от глаз (cockpit.back_offset_m), иначе offset_m.
+## Смещение камеры от точки: back_hidden — назад от глаз (cockpit.back_offset_m), eyes — offset_m.
 func _eye_offset(c: Dictionary) -> Vector3:
-	return _vec(c.back_offset_m) if String(c.get("eye_mode", "eyes")).begins_with("back_") else _vec(c.offset_m)
+	return _vec(c.back_offset_m) if _is_back(c) else _vec(c.offset_m)
 
 
-## Тело пилота в кабине: back_hands (Б1) — только руки, back_hidden (Б2) — ничего, иначе всё.
+## Только два варианта: "eyes" и "back_hidden"; любое другое значение (в т.ч. устаревшее) — back_hidden.
+static func _is_back(c: Dictionary) -> bool:
+	return String(c.get("eye_mode", "back_hidden")) != "eyes"
+
+
+## Тело пилота в кабине: back_hidden — ничего не рисуется, eyes — всё.
 func _apply_body_mode(c: Dictionary) -> void:
 	var vis := head.get_parent() as GliderVisual
 	if vis == null:
 		return
-	var em := String(c.get("eye_mode", "eyes"))
-	vis.set_cockpit_body("arms" if em == "back_hands" else "none" if em == "back_hidden" else "full")
-	vis.update_arm_mask()
-
-
-func _between_shoulders() -> Vector3:
-	var vis := head.get_parent() as GliderVisual
-	if vis == null:
-		return head.global_position
-	var m := (vis.shoulder(-1) + vis.shoulder(1)) * 0.5
-	var hl := vis.head_marker.transform.origin
-	return vis.global_transform * Vector3(m.x, hl.y, m.z)
+	vis.set_cockpit_body("full" if not _is_back(c) else "none")
 
 
 ## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,
