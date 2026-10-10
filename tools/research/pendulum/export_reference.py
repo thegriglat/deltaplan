@@ -265,6 +265,21 @@ def ground_sigma(h, b):
     return np.maximum((1.0 - 1.32 * hb) / (1.05 + 7.4 * hb), 0.0)
 
 
+TURB_DTS = (1 / 120, 1 / 100, 1 / 60, 1 / 30)
+
+
+def sc_turbulence_mean(wing, blk, modes):
+    """Эталон болтанки (PD-14, решение координатора): отклик хаотичен — у прототипа СКО крена на
+    одном поле меняется в ≈ 2 раза от шага (training: 4,7–9,2°), поэтому эталон — среднее прототипа
+    по шагам TURB_DTS на том же поле; по шагам — в by_dt. dt эталона-среднего — 1/120 (как тест)."""
+    runs = [sc_turbulence(wing, blk, modes, dt=dt) for dt in TURB_DTS]
+    out = {"dt": 1 / 120, "T_s": runs[0]["T_s"], "blowup": any(r["blowup"] for r in runs),
+           "dts": list(TURB_DTS), "by_dt": runs}
+    for k in ("std_phi_deg", "std_theta_deg", "std_rel_y_m", "max_abs_phi_deg", "V_mean_kmh", "max_stretch_m"):
+        out[k] = float(np.mean([r[k] for r in runs]))
+    return out
+
+
 class GameSim(Sim):
     """Прототип с правками, как в игре (PD-3, PD-14).
 
@@ -440,6 +455,8 @@ def job(args):
         return name, wing, sc_ochi(wing, blk)
     if name.startswith("ground_run"):
         return name, wing, sc_ground_run(wing, blk, wind=extra["wind"])
+    if name == "turbulence":
+        return name, wing, sc_turbulence_mean(wing, blk, extra["modes"])
     if name.startswith("turbulence"):
         return name, wing, sc_turbulence(wing, blk, extra["modes"], dt=extra["dt"])
     raise ValueError(name)
