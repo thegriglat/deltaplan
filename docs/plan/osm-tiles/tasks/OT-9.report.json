@@ -4,12 +4,14 @@
   "commits": [
     "b0d1f60c OT-9: дороги, реки/каналы, ж/д из тайлов OSM",
     "следом коммит uid теста; затем слияние feature/osm-tiles (dp task sync)",
-    "2df7781d ArrayMesh только на главном потоке, ширина ленты из OsmData.w"
+    "2df7781d ArrayMesh только на главном потоке, ширина ленты из OsmData.w",
+    "0e49a79f тест N4 v3",
+    "коммит: версия N4 v3 в test_no_osm_contracts.gd"
   ],
   "checks": [
     {
       "name": "world_objects",
-      "value": "105/105",
+      "value": "4/4 (world_objects 114/114, osm_tiles 24/24, screenshot 1, osm_roads_x10)",
       "pass": true
     },
     {
@@ -34,14 +36,13 @@
     },
     {
       "name": "osm_roads_x10",
-      "value": "10 прогонов --filter=osm_ без падений процесса (SIGSEGV нет); в каждом 1 упавший тест test_no_osm_contracts_n4::test_n4_v2_no_osm (требует, чтобы osm_data.gd, osm_layer.gd, road_mesher.gd были удалены) — вне скоупа, устарел после OT-8/OT-9",
-      "pass": false
+      "value": "10 прогонов --filter=osm_ без падений и упавших тестов",
+      "pass": true
     }
   ],
   "not_done": [
     "Серпантин на Шымбулак отдельно не проверялся глазами: скриншот — Алматы с воздуха на условном рельефе (подъём к югу), реального DEM в тесте нет; дороги из тех же тайлов out_a.",
-    "Мосты рисуются обычной лентой по рельефу (над ущельем лента ляжет на дно).",
-    "tests/contracts/test_no_osm_contracts_n4.gd (вне скоупа) падает: проверяет «удалён» для osm_data.gd/osm_layer.gd/road_mesher.gd — тест надо обновить координатору; из-за него проверка osm_roads_x10 красная при отсутствии падений процесса."
+    "Мосты рисуются обычной лентой по рельефу (над ущельем лента ляжет на дно)."
   ],
   "questions": [],
   "images": [
@@ -66,6 +67,6 @@
     "configs": "roads/rivers/rail в world_objects.json",
     "roads_shot": "tools/shots/roads_shot.gd/.tscn — доп. файлы (вне скоупа карточки), инструмент кадра"
   },
-  "t": "2026-10-10T19:22:40",
+  "t": "2026-10-10T19:33:46",
   "by": "executor"
 }
