@@ -61,6 +61,8 @@ var strap_rigid_visible := true
 var _cfg: Dictionary = {}  ## flight.json → visual
 var _pcfg: Dictionary = {}  ## pilot.json → visual
 var _hang := Vector3.ZERO  ## точка подвески в координатах обёртки
+var _ground_feet_local := Vector3.ZERO  ## ступни позы стоя в осях ноды Pilot (_ground_pose)
+var _leg_len: float = 1.0  ## ЦМ пилота над ступнями, м (configs/pendulum.json → ground.leg_length_m)
 var _head: Node3D
 var _pose := Transform3D.IDENTITY
 ## Модель сама встаёт анимацией stand (docs/guide/models.md → «Пилот»); иначе (заглушка) — поворот.
@@ -95,6 +97,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		remove_child(n)
 		n.queue_free()
 	_hang = Vector3(0, float(vis_cfg.hang_height_m), 0)
+	_leg_len = float(Config.value("pendulum", "ground.leg_length_m", 1.0))
 	_body_mode = "full"
 	_body_mi = null
 
@@ -339,12 +342,27 @@ func set_pose(roll: float, pitch: float, flying: bool, dt: float) -> void:
 ## пилот и сдвинуто так, что таз (ЦМ) стоит ровно в pilot_rel; без сглаживания (решение 5):
 ## голова — таз + 0,75 м вперёд и 0,15 м к подвеске в осях тела, как head_position модели (R9).
 ## Руки — IK к штанге, стропа — лента HangPoint → подвесная система (_update_strap).
-## На земле — как set_pose(0, 0, false): стоит под крылом.
+## На земле — поза стоя, как set_pose(0, 0, false), но ступни — в ЦМ пилота − длина ноги по оси
+## пилота (к подвеске): _hang + pilot_rel + leg·pilot_rel/|pilot_rel| (PD-К5 v2; узел Glider на
+## земле выше и впереди ступней — подвеска физики выше ступней на ≈ 2,2 м, у визуала —
+## hang_height_m).
 func set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float) -> void:
 	if pilot == null:
 		return
-	if on_ground or not pilot_rel.is_finite() or pilot_rel.length() < 0.1:
+	if not pilot_rel.is_finite() or pilot_rel.length() < 0.1:
 		set_pose(0.0, 0.0, false, dt)
+		return
+	if on_ground:
+		set_pose(0.0, 0.0, false, dt)
+		var shift := ground_feet_target(pilot_rel) - ground_feet()
+		_pose.origin += shift
+		pilot.transform = _pose
+		if _head != null:
+			head_marker.transform = _relative_xform(self, _head)
+		else:
+			head_marker.transform = _pose * Transform3D(Basis.IDENTITY, _head_local())
+		_update_arms(false, dt)
+		_update_strap()
 		return
 	hang_pose_active = true
 	_update_run_lean(true, dt)
@@ -360,6 +378,17 @@ func set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float) -> void:
 	_update_buzz(true, dt)
 	_update_arms(true, dt)
 	_update_strap()
+
+
+## Ступни стоящего пилота «Маятника» (оси визуала): ЦМ (_hang + pilot_rel) − длина ноги по оси
+## пилота (+Y pilot_basis — от пилота к подвеске), PD-К5 v2.
+func ground_feet_target(pilot_rel: Vector3) -> Vector3:
+	return _hang + pilot_rel + pilot_rel.normalized() * _leg_len
+
+
+## Ступни нарисованного стоящего пилота (оси визуала): точка ступней позы стоя.
+func ground_feet() -> Vector3:
+	return _pose * _ground_feet_local
 
 
 ## Таз (ЦМ пилота) в осях ноды Pilot: кость Hips по текущей анимации; нет скелета — центр тела
@@ -686,6 +715,7 @@ func _ground_pose(shift: Vector3) -> Transform3D:
 		pose = Transform3D(r, g - r * c)
 		feet = Vector3(shift.x, 0.0, 0.0)
 	var level := Basis(Vector3.RIGHT, -_frame_pitch())
+	_ground_feet_local = pose.affine_inverse() * feet
 	var out := Transform3D(level, feet - level * feet) * pose
 	if _animated_stand and arm_ik != null and wing != null:
 		out.origin += _ground_slide(out, feet)

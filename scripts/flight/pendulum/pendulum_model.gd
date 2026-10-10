@@ -50,6 +50,7 @@ const DEFAULTS := {
 		"liftoff_feet_clear_m": 0.05, "liftoff_strap_fraction": 0.25, "bar_after_liftoff_s": 1.0,
 		"fell_cm_height_m": 0.5,
 	},
+	"ground_effect": {"enabled": true, "span_efficiency": 0.9},
 	"apparatus_defaults": {
 		"hang_shift_cm": 0.0, "hang_length_m": 1.2, "sail_flex": 0.2, "dihedral_eff_deg": 1.0,
 	},
@@ -133,6 +134,8 @@ var _R := Basis.IDENTITY
 var _w := Vector3.ZERO
 var _air := PackedVector3Array()
 var _zero_air := PackedVector3Array()
+var _ge := PackedFloat64Array()  ## σ экранного эффекта по полосам (последний пересчёт аэродинамики)
+var _ge_on := true
 var _last_pitch: float = 0.0
 var _air_p := Vector3.ZERO
 var _aero_age: float = INF  ## время с последнего пересчёта аэродинамики, с
@@ -260,6 +263,8 @@ func setup(
 	)
 	_air.resize(strips.n)
 	_zero_air.resize(strips.n)
+	_ge.resize(strips.n)
+	_ge_on = bool(pendulum.ground_effect.get("enabled", true))
 	chain.setup(ch, pilot_mass, _hang_len)
 	arms.setup(pendulum.arms)
 	# земля: ноги, хват за стойки, точки касания крыла
@@ -412,7 +417,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var t_sum := 0.0
 	for k in n:
 		if _aero_age >= t_aero:
-			_aero_update(air_fn)
+			_aero_update(air_fn, ground_fn)
 			_aero_age = 0.0
 		_substep(h, inp)
 		f_sum += chain.pilot_force + _hands_p
@@ -639,7 +644,8 @@ func solve_trim() -> Dictionary:
 # ------------------------------------------------------------------ шаг
 ## Аэродинамика крыла и воздух у пилота: раз в 1/aero_hz с (между вызовами сила и момент
 ## заморожены в осях крыла и поворачиваются с ним; цепь и руки — на каждом подшаге).
-func _aero_update(air_fn: Callable) -> void:
+## Экранный эффект — по высоте каждой полосы над ground_fn (выше размаха над землёй — нет).
+func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 	var R := _R
 	var air_c := Vector3.ZERO
 	_air_p = Vector3.ZERO
@@ -657,7 +663,12 @@ func _aero_update(air_fn: Callable) -> void:
 	if strips.billow_shift != 0.0:
 		var d_b := R.transposed() * (chain.x[0] - _pos - R * _r_hang_b)
 		lam = d_b.y / maxf(d_b.z, 1.0e-3)
-	strips.aero(_vel, R, _w, _air if air_fn.is_valid() else _zero_air, air_c, lam, rho)
+	var ge := PackedFloat64Array()
+	if _ge_on and _ground_effect(ground_fn):
+		ge = _ge
+	strips.dyn_dt = _aero_age if strips.dyn_on and is_finite(_aero_age) else 0.0
+	strips.aero(_vel, R, _w, _air if air_fn.is_valid() else _zero_air, air_c, lam, rho, ge)
+	strips.dyn_dt = 0.0
 	_aero_f_b = strips.force_b
 	_aero_m_b = strips.moment_b
 
@@ -729,6 +740,23 @@ func _substep(h: float, input: ControlInput) -> void:
 	chain.velocities_from_prev(h)
 
 
+## σ экранного эффекта полос → _ge (PendulumWingStrips.ground_sigma по высоте полосы над землёй).
+## false — земли нет или крыло выше размаха над ней (σ = 0 у всех полос).
+func _ground_effect(ground_fn: Callable) -> bool:
+	if not ground_fn.is_valid() and not _uprights:
+		return false
+	if -(_od + _pos.z) - _ground_alt(ground_fn, _pos) > span:
+		return false
+	var R := _R
+	var rb := strips.r_b
+	var any := false
+	for i in strips.n:
+		var p: Vector3 = _pos + R * rb[i]
+		_ge[i] = PendulumWingStrips.ground_sigma(-(_od + p.z) - _ground_alt(ground_fn, p), span)
+		any = any or _ge[i] > 0.0
+	return any
+
+
 func _air_at(air_fn: Callable, p_local: Vector3) -> Vector3:
 	var g: Vector3 = air_fn.call(_world(p_local))
 	return Vector3(-g.z, g.x, -g.y)
@@ -765,6 +793,7 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
+	strips.reset_dynamic()
 	time_s = 0.0
 	_aero_age = INF
 	_w = Vector3.ZERO

@@ -32,8 +32,11 @@ func _glider(mode: String, wing := "sport") -> Glider:
 	return g
 
 
-## Лететь seconds с, держа крен bank_rad (0 — прямо).
+## Лететь seconds с, держа крен bank_rad (0 — прямо). На земле (PD-3: «Маятник» стартует с земли) —
+## сначала старт в воздухе на 1000 м.
 func _fly(g: Glider, seconds: float, bank_rad: float) -> void:
+	if g.model.mode != FlightModel.Mode.AIR:
+		g.reset_in_air(Vector3(0.0, 1000.0, 0.0), 0.0)
 	var bh := S.BankHold.new(bank_rad, 1.5, 0.8, 0.3)
 	for i in int(seconds / DT):
 		g.control.roll = bh.roll(g.model)
@@ -100,13 +103,38 @@ func test_ground_stands() -> void:
 	var b := GliderVisual.new()
 	add_child(b)
 	b.build(g.model.wing, g.model.pilot, Config.get_config("flight").visual)
-	a.set_hang_pose(Vector3(0.0, -1.2, 0.1), true, 1.0e6)
+	var rel := Vector3(0.1, -1.2, 0.3)
+	a.set_hang_pose(rel, true, 1.0e6)
 	b.set_pose(0.0, 0.0, false, 1.0e6)
 	check(not a.hang_pose_active, "на земле поза не от маятника")
-	check(a.pilot.transform.is_equal_approx(b.pilot.transform), "на земле — стоит, как set_pose")
+	check(a.pilot.transform.basis.is_equal_approx(b.pilot.transform.basis), "на земле — стоит, как set_pose")
+	var want := a._hang + rel + rel.normalized() * 1.0
+	var feet := a.ground_feet()
+	check(feet.distance_to(want) < 0.001, "PD-К5 v2: ступни в ЦМ − 1 м по оси пилота (%.3f м)" % feet.distance_to(want))
 	a.free()
 	b.free()
 	g.queue_free()
+
+
+## PD-К5 v2: стоящий пилот «Маятника» рисуется ступнями на земле (±5 см), а не на 0,2–0,3 м выше.
+func test_ground_feet_on_ground() -> void:
+	for w: String in ["training", "laminar", "sport"]:
+		var g := _glider("pendulum", w)
+		for i in 120:
+			g.step(DT)
+		await _settle(g)
+		var m: PendulumModel = g.model
+		var v := g.visual
+		var feet := v.global_transform * v.ground_feet()
+		var model_feet := m.pilot_position - m.pilot_basis.y * 1.0
+		var gh := float(g.ground_fn.call(feet.x, feet.z))
+		print("    %s: ступни визуала %.3f м над землёй (модель %.3f), узел Glider %.3f" % [
+			w, feet.y - gh, model_feet.y - gh, g.global_position.y - gh])
+		check(m.phase() == "standing", "%s: стоит (%s)" % [w, m.phase()])
+		check(absf(feet.y - gh) < 0.05, "%s: ступни у земли ±5 см (%.3f)" % [w, feet.y - gh])
+		check(Vector2(feet.x - model_feet.x, feet.z - model_feet.z).length() < 0.05,
+			"%s: ступни там же, где у модели" % w)
+		g.queue_free()
 
 
 ## Камера «из глаз»: при позе от маятника следование за телом не добавляется.

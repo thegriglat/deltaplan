@@ -239,11 +239,59 @@ def sc_turbulence(wing, blk, modes, dt=1 / 120, T=40.0):
             "max_stretch_m": float(s.max_stretch)}
 
 
+GE_SPAN_EFFICIENCY = 0.9  # configs/pendulum.json → ground_effect.span_efficiency
+
+
+def ground_sigma(h, b):
+    """Экранный эффект Wieselsberger (как PendulumWingStrips.ground_sigma): σ ≥ 0, h/b ≥ 0,033."""
+    hb = np.maximum(h / b, 0.033)
+    return np.maximum((1.0 - 1.32 * hb) / (1.05 + 7.4 * hb), 0.0)
+
+
 class GroundSim(Sim):
-    """Прототип с одной правкой ног (как PendulumGround): сила бега — сцепление, не больше μ·N
-    (μ = 0,8 — как боковое трение прототипа). В Sim._legs бег толкал полной силой при любом
-    касании — и при опоре в доли ньютона (в сильный ветер это держало пилота «на цыпочках»
-    у склона, отрыва не было)."""
+    """Прототип с двумя правками, как в игре.
+
+    1. Ноги (как PendulumGround): сила бега — сцепление, не больше μ·N (μ = 0,8 — как боковое
+       трение прототипа). В Sim._legs бег толкал полной силой при любом касании — и при опоре в
+       доли ньютона (в сильный ветер это держало пилота «на цыпочках» у склона, отрыва не было).
+    2. Экранный эффект полос (PD-14, configs/pendulum.json → ground_effect): индуктивный скос у
+       полосы × (1 − σ), σ — Wieselsberger по высоте полосы над склоном; наклон подъёмной силы
+       a₀/(1 + (1 − σ)·a₀/(π·e·λ)), индуктивное сопротивление C_L²/(π·e·λ) × (1 − σ), C_L max прежний.
+    """
+
+    _ge = None  # σ по полосам на текущем вызове wing_aero
+
+    def strip_cl(self, a_eff):
+        if self._ge is None:
+            return super().strip_cl(a_eff)
+        p = self.p
+        ind = 1.0 / (math.pi * GE_SPAN_EFFICIENCY * p.span * p.span / p.area)
+        a0 = p.lift_slope / max(1.0 - p.lift_slope * ind, 0.2)
+        sl = a0 / (1.0 + (1.0 - self._ge) * a0 * ind)
+        a_rel = a_eff - self.alpha0_root
+        a_st = self.cl_max_strip / sl
+        cl_plate = 2.0 * np.sin(a_rel) * np.cos(a_rel)
+        blend = np.clip((a_rel - a_st) / math.radians(4.0), 0.0, 1.0)
+        cl_att = np.minimum(sl * a_rel, self.cl_max_strip)
+        cl_att = np.where(a_rel < -a_st, -self.cl_max_strip, cl_att)
+        cl = (1 - blend) * cl_att + blend * cl_plate
+        cd_extra = blend * np.maximum(2.0 * np.sin(a_rel) ** 2, 0.0)
+        # индуктивная часть обтекаемой доли × (1 − σ): вычитается здесь же (cd_extra идёт в сумму CD)
+        cd_extra = cd_extra - self._ge * (1 - blend) * self.cd_scale * ind * cl * cl
+        return cl, cd_extra, blend
+
+    def wing_aero(self, pos, vel, R, w):
+        self._ge = None
+        if self.ground is not None:
+            pts = pos[None] + self.r_strip_b @ R.T
+            h = -pts[:, 2] - self.ground.height(pts[:, 0], pts[:, 1])
+            ge = ground_sigma(h, self.p.span)
+            if ge.max() > 0.0:
+                self._ge = ge
+        try:
+            return super().wing_aero(pos, vel, R, w)
+        finally:
+            self._ge = None
 
     def _legs(self):
         F = super()._legs()

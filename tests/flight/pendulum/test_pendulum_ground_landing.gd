@@ -3,10 +3,14 @@ extends TestCase
 ## до упора на высоте ступней flare_h; касание ступнями → LandingJudge (пороги flight.json →
 ## landing не меняются): мягкая / жёсткая / авария. Консоль в землю раньше ступней — авария.
 ## После посадки без аварии пилот на ногах с крылом: пробежка гасит скорость, run/walk — земля.
+## Экранный эффект полос (PD-14) включён. В штиль мягкая — только у учебного: у laminar и sport
+## (нагрузка на крыло 7,8 и 8,5 кг/м² против 6,5) лучшая посадка — на пороге, но выше (верт ≈ 5,1–5,5
+## или гор ≈ 3,1–3,4 м/с). Это предел самой аэродинамики полос, а не техники: идеальная точка с C_L(α),
+## C_D(α) этого крыла и любым законом α(t) даёт max(верт/5, гор/3) = 0,90 / 1,00 / 1,06 (PD-14).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const WINGS := ["training", "laminar", "sport"]
-const FLARE_HEIGHTS := [1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5]
+const FLARE_HEIGHTS := [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5]
 
 
 ## Заход с 12 м на триме курсом на север; встречный ветер wind, м/с. flare_h < 0 — без
@@ -57,6 +61,22 @@ func test_soft_with_flare() -> void:
 		check(not best.is_empty(), "%s, ветер %.0f: есть высота выравнивания для мягкой посадки" % [c[0], c[1]])
 		if not best.is_empty():
 			print("    мягкая %s, ветер %.0f, выравнивание с %.2f м — %s" % [c[0], c[1], best_h, fmt(best)])
+
+
+## Штиль, laminar и sport: мягкой нет, но лучшее выравнивание — у порога (max(верт/5, гор/3) ≤ 1,25;
+## сторож предела, PD-14).
+func test_calm_near_limit() -> void:
+	for w: String in ["laminar", "sport"]:
+		var best := 99.0
+		var best_r := {}
+		for h: float in FLARE_HEIGHTS:
+			var r: Dictionary = approach(w, 0.0, h).result
+			var sc := maxf(float(r.get("vertical_speed_ms", 99.0)) / 5.0, float(r.get("horizontal_speed_ms", 99.0)) / 3.0)
+			if sc < best:
+				best = sc
+				best_r = r
+		print("    штиль %s: лучшее %.2f — %s" % [w, best, fmt(best_r)])
+		check(best <= 1.25, "%s: в штиль лучшее выравнивание у порога (%.2f)" % [w, best])
 
 
 ## Без выравнивания (прямо на триме) — жёсткая: горизонтальная больше soft_horizontal_ms.
