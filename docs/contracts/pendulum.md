@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 1}, {"id": "PD-К3", "version": 1}, {"id": "PD-К4", "version": 1}]
+contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 2}, {"id": "PD-К3", "version": 1}, {"id": "PD-К4", "version": 1}]
 ---
 # Контракты модуля pendulum
 
@@ -56,18 +56,21 @@ contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 1}, {"id
 
 Касание до PD-3 (v1): ступни пилота (`pilot_position` − 1,0 м по +Y `pilot_basis`) ниже `ground_fn` → `mode = LANDED`, `landing_result = LandingJudge.evaluate(...)` по скорости пилота, `landed.emit(...)`; дальше `step` не интегрирует.
 
+Члены `PendulumModel` вне этой таблицы (`arms_relaxed`, `hands_force_y`, `aero_hz`, `wing_basis()`, `solve_trim()`, `glide_balance()`) — служебные для тестов и PD-8, потребители на них не опираются.
+
 Инварианты: нет NaN при `dt` 1/30…1/240; в штиле с руками в нейтрали после `reset_in_air` скорость и снижение — трим и поляра крыла (числа прототипа, ±15 %); телеметрия `pilot_*` — из маятника (MR-К1).
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v1)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v2)
+v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта сил полос и выборки ветра; между пересчётами сила и момент полос заморожены в осях крыла, цепь и руки — на каждом подшаге.
 Владелец — PD-1; потребители — PD-2, PD-3, PD-5, PD-8.
 
 **`configs/pendulum.json`** (общие числа; у каждого ключа — `<ключ>_doc` по образцу `configs/wings`; значения — `tools/research/pendulum/pendulum/params.py`):
 
 | Ключ | Тип, единицы | Умолчание |
 |---|---|---|
-| `contract` | `"PD-К2 v1"` | |
+| `contract` | `"PD-К2 v2"` | |
 | `chain.links` | int | 3 |
 | `chain.strap_mass_kg` | кг (на промежуточные узлы) | 1,0 |
 | `chain.compliance_m_per_n` | м/Н | 4e-5 |
@@ -75,6 +78,7 @@ contracts: [{"id": "PD-К1", "version": 1}, {"id": "PD-К2", "version": 1}, {"id
 | `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0,6 |
 | `arms.shift_y_max_m`, `arms.shift_x_pull_m`, `arms.shift_x_push_m` | м | 0,45, 0,45, 0,30 |
 | `strips.count`, `strips.cp_chord` | int (чётное), доля хорды | 16, 0,25 |
+| `strips.aero_hz` | Гц (≤ 0 — на каждом подшаге, как прототип) | 60 |
 | `yaw.cn_beta`, `yaw.fin_arm_m`, `yaw.fin_slope_per_rad` | 1/рад, м, 1/рад | 0,06, 1,6, 2,0 |
 | `pilot_cda_m2` | м² | 0,21 |
 | `apparent_roll` | bool | true |
