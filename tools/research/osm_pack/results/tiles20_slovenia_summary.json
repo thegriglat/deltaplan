@@ -1,0 +1,391 @@
+{
+ "tiles_total": 80,
+ "tiles_inside": 28,
+ "inside": {
+  "tiles": 28,
+  "roads": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 67838,
+    "median": 69196,
+    "p90": 101706,
+    "max": 117629
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 169,
+    "median": 172.7,
+    "p90": 254.1,
+    "max": 293.9
+   }
+  },
+  "track": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 57507,
+    "median": 51992,
+    "p90": 90378,
+    "max": 141903
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 144,
+    "median": 129.8,
+    "p90": 225.7,
+    "max": 354.2
+   }
+  },
+  "bpoly": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 156485,
+    "median": 116791,
+    "p90": 351115,
+    "max": 440153
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 391,
+    "median": 291.6,
+    "p90": 877.1,
+    "max": 1099.6
+   }
+  },
+  "brect": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 106256,
+    "median": 80747,
+    "p90": 226568,
+    "max": 293118
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 265,
+    "median": 201.6,
+    "p90": 566.0,
+    "max": 732.2
+   }
+  },
+  "roads+brect": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 174094,
+    "median": 166347,
+    "p90": 315344,
+    "max": 394824
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 435,
+    "median": 415.3,
+    "p90": 787.8,
+    "max": 986.3
+   }
+  },
+  "roads+bpoly": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 224323,
+    "median": 204265,
+    "p90": 439891,
+    "max": 541859
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 560,
+    "median": 510.0,
+    "p90": 1098.9,
+    "max": 1353.6
+   }
+  },
+  "roads+track+brect": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 231601,
+    "median": 218461,
+    "p90": 388677,
+    "max": 501328
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 578,
+    "median": 545.5,
+    "p90": 971.0,
+    "max": 1252.4
+   }
+  },
+  "roads+track+bpoly": {
+   "B_per_tile": {
+    "n": 28,
+    "mean": 281830,
+    "median": 248587,
+    "p90": 513224,
+    "max": 648363
+   },
+   "B_per_km2": {
+    "n": 28,
+    "mean": 704,
+    "median": 620.7,
+    "p90": 1282.1,
+    "max": 1619.7
+   }
+  }
+ },
+ "all": {
+  "tiles": 80,
+  "roads": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 40254,
+    "median": 35839,
+    "p90": 88776,
+    "max": 117629
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 101,
+    "median": 89.5,
+    "p90": 221.8,
+    "max": 293.9
+   }
+  },
+  "track": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 36851,
+    "median": 33523,
+    "p90": 79986,
+    "max": 141903
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 92,
+    "median": 83.7,
+    "p90": 199.7,
+    "max": 354.2
+   }
+  },
+  "bpoly": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 103555,
+    "median": 78114,
+    "p90": 260409,
+    "max": 440153
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 259,
+    "median": 195.1,
+    "p90": 650.0,
+    "max": 1099.6
+   }
+  },
+  "brect": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 69631,
+    "median": 52533,
+    "p90": 178165,
+    "max": 293118
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 174,
+    "median": 131.2,
+    "p90": 445.0,
+    "max": 732.2
+   }
+  },
+  "roads+brect": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 109884,
+    "median": 91416,
+    "p90": 228149,
+    "max": 394824
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 274,
+    "median": 228.4,
+    "p90": 569.8,
+    "max": 986.3
+   }
+  },
+  "roads+bpoly": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 143808,
+    "median": 115608,
+    "p90": 332221,
+    "max": 541859
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 359,
+    "median": 288.8,
+    "p90": 829.7,
+    "max": 1353.6
+   }
+  },
+  "roads+track+brect": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 146735,
+    "median": 141056,
+    "p90": 278791,
+    "max": 501328
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 366,
+    "median": 352.2,
+    "p90": 696.1,
+    "max": 1252.4
+   }
+  },
+  "roads+track+bpoly": {
+   "B_per_tile": {
+    "n": 80,
+    "mean": 180659,
+    "median": 160906,
+    "p90": 364780,
+    "max": 648363
+   },
+   "B_per_km2": {
+    "n": 80,
+    "mean": 451,
+    "median": 401.9,
+    "p90": 911.0,
+    "max": 1619.7
+   }
+  }
+ },
+ "country_total_B": {
+  "roads": 3220294,
+  "track": 2948069,
+  "bpoly": 8284383,
+  "brect": 5570454,
+  "roads+brect": 8790748,
+  "roads+track+brect": 11738817,
+  "roads+bpoly": 11504677,
+  "roads+track+bpoly": 14452746
+ },
+ "n_buildings": 983856,
+ "len_km": {
+  "roads": 43722,
+  "track": 36928
+ },
+ "B_per_building": {
+  "bpoly": 8.42,
+  "brect": 5.66
+ },
+ "B_per_km_road": {
+  "roads": 74,
+  "track": 80
+ },
+ "roads_vs_track_all": {
+  "corr_bytes": 0.6262789074456807,
+  "corr_len": 0.6154644199964483,
+  "roads": {
+   "n": 80,
+   "mean": 40254,
+   "median": 35839,
+   "p90": 88776,
+   "max": 117629
+  },
+  "track": {
+   "n": 80,
+   "mean": 36851,
+   "median": 33523,
+   "p90": 79986,
+   "max": 141903
+  },
+  "sum": {
+   "n": 80,
+   "mean": 77105,
+   "median": 81976,
+   "p90": 151152,
+   "max": 237467
+  },
+  "cv": {
+   "roads": 0.79,
+   "track": 0.85,
+   "sum": 0.74
+  }
+ },
+ "roads_vs_track_inside": {
+  "corr_bytes": -0.0017073754837518182,
+  "corr_len": -0.09610094223335996,
+  "roads": {
+   "n": 28,
+   "mean": 67838,
+   "median": 69196,
+   "p90": 101706,
+   "max": 117629
+  },
+  "track": {
+   "n": 28,
+   "mean": 57507,
+   "median": 51992,
+   "p90": 90378,
+   "max": 141903
+  },
+  "sum": {
+   "n": 28,
+   "mean": 125346,
+   "median": 125226,
+   "p90": 177742,
+   "max": 208210
+  },
+  "cv": {
+   "roads": 0.38,
+   "track": 0.47,
+   "sum": 0.3
+  }
+ },
+ "window3x3_inside": {
+  "n": 1,
+  "roads+brect": {
+   "n": 1,
+   "mean": 2028258,
+   "median": 2028258,
+   "p90": 2028258,
+   "max": 2028258
+  },
+  "roads+track+brect": {
+   "n": 1,
+   "mean": 2629678,
+   "median": 2629678,
+   "p90": 2629678,
+   "max": 2629678
+  },
+  "roads+track+bpoly": {
+   "n": 1,
+   "mean": 3287577,
+   "median": 3287577,
+   "p90": 3287577,
+   "max": 3287577
+  }
+ },
+ "buildings": {
+  "total": 983865,
+  "with_levels_only": 14826,
+  "with_height_or_levels": 23216,
+  "rect_bad_iou<0.8": 98526,
+  "rect_bad_iou<0.9": 234552,
+  "with_height": 8390,
+  "share_with_height": 0.0085,
+  "share_with_levels_only": 0.0151,
+  "share_with_height_or_levels": 0.0236,
+  "share_rect_bad_iou<0.8": 0.1001,
+  "share_rect_bad_iou<0.9": 0.2384
+ },
+ "time": {
+  "t_parse_s": 486.2,
+  "t_encode_s": 27.8,
+  "maxrss_MB": 1107
+ }
+}
