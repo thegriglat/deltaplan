@@ -17,12 +17,12 @@ no-osm, решение пользователя): ни файла OSM в пап�
 (`Locations.fixtures_root`, ставит `tests/run_tests.gd`). Формат папки — контракты OA-К1/К2 (`docs/contracts/osm-any.md`) и
 N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs/plan/no-osm.md`.
 
-Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 2) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
+Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 3) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
 
 ## Файлы в WebP
 Основа — `docs/research/location_compression.md` (сравнение форматов: PNG, WebP lossless, brotli/zstd поверх float32).
 - **Высоты** слоёв (`detail`, `far`) — `<id>.webp`, WebP lossless, RGB8: код v = (R << 16) | (G << 8) | B (24 бит),
-  `h = height_min_m + v · height_step_m`, шаг 1/8 м (0,125), ошибка квантования ≤ 0,0625 м против float32 (замер: max 0,0625 м).
+  `h = height_min_m + v · height_step_m`, шаг 1/32 м (0,03125), ошибка против float32 0 (замер: max 0 м на всех 8 слоях встроенных мест; размер места ≈ 5,5 МБ высот).
   `height_min_m`, `height_step_m` и имя файла — в описании слоя в `meta.json`.
 - **Растры** (`<id>_surface`, `<id>_water`, `detail_detail10`, `detail_built10`) — WebP lossless, значения и каналы те же,
   что у прежних PNG (L8 / LA8), побитово (расхождение 0 из 169 млн пикселей). У LA8 (`detail_detail10`) цвет под нулевой
@@ -37,7 +37,7 @@ N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs
 
 | Стадия | Класс | Источник | Что пишет |
 |---|---|---|---|
-| Рельеф (`dem`) | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки; far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.webp`, `far.webp` (24 бит, шаг 1/8 м), `meta.json` |
+| Рельеф (`dem`) | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки; far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.webp`, `far.webp` (24 бит, шаг 1/32 м), `meta.json` |
 | Реки (`rivers`) | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.webp`, `far_water.webp` (255 — русло) |
 | Покров (`surface`) | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес, вода и застройка 10 м | `detail_surface.webp`, `far_surface.webp` (классы игры 0..8), `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json` |
 

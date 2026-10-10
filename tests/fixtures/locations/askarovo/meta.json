@@ -9,9 +9,9 @@
   "layers": [
     {
       "file": "detail.webp",
-      "height": 1601,
+      "height": 1601.0,
       "height_min_m": 344.3125,
-      "height_step_m": 0.125,
+      "height_step_m": 0.03125,
       "id": "detail",
       "max_height_m": 1029.71875,
       "min_height_m": 344.3125,
@@ -20,13 +20,13 @@
       "source": "copernicus",
       "spacing_m": 25.0,
       "water_file": "detail_water.webp",
-      "width": 1601
+      "width": 1601.0
     },
     {
       "file": "far.webp",
-      "height": 1601,
+      "height": 1601.0,
       "height_min_m": -5.5625,
-      "height_step_m": 0.125,
+      "height_step_m": 0.03125,
       "id": "far",
       "max_height_m": 1241.6875,
       "min_height_m": -5.5625,
@@ -35,7 +35,7 @@
       "source": "terrarium",
       "spacing_m": 100.0,
       "water_file": "far_water.webp",
-      "width": 1601
+      "width": 1601.0
     }
   ],
   "location": "askarovo"

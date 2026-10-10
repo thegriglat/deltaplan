@@ -37,7 +37,7 @@ class FakeStage:
 					HeightLayer.encode_rgb24(h, 5, 5, 100.0, 0.125).save_webp(ctx.dir.path_join(id + ".webp"), false)
 					var info := {"id": id, "file": id + ".webp", "width": 5, "height": 5, "spacing_m": 25.0,
 						"origin_x_m": -50.0, "origin_z_m": -50.0, "source": "fake", "water_file": id + "_water.webp",
-						"height_min_m": 100.0, "height_step_m": 0.125}
+						"height_min_m": 100.0, "height_step_m": 0.03125}
 					layers.append(info)
 					ctx.heights[id] = h
 					ctx.layers[id] = info

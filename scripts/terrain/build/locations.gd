@@ -8,7 +8,7 @@ const KEY_PREFIX := "pt_"
 ## Версия формата файлов места (build.json -> format_version): поднимать при любом изменении
 ## файлов места (имена, кодирование, состав). Кеш места с другой версией удаляется целиком и
 ## собирается заново. Версия сырых блоков источника — LocationCache.SOURCE_VERSION (отдельная).
-const FORMAT_VERSION := 2
+const FORMAT_VERSION := 3
 
 ## Корень готовых мест вместо кеша (только тесты: tests/run_tests.gd ставит tests/fixtures/locations;
 ## пустой — настоящий кеш user://locations). Встроенные места в паке не лежат (NO-8).

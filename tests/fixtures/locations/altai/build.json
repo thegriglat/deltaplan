@@ -3,10 +3,10 @@
   "center_lat": 51.87,
   "center_lon": 85.87,
   "complete": true,
-  "format_version": 2,
+  "format_version": 3,
   "key": "altai",
   "missing": [],
-  "net_requests": 0,
+  "net_requests": 0.0,
   "seconds": {
     "dem": 3.92,
     "rivers": 21.09,
