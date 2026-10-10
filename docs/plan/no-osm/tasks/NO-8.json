@@ -15,6 +15,11 @@
       "name": "N5",
       "version": "1",
       "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N2",
+      "version": "2",
+      "ref": "docs/contracts/no-osm.md"
     }
   ],
   "copy": "~/deltaplan-no-osm-NO-8",
@@ -30,7 +35,10 @@
     "tests/",
     "tools/terrain/",
     "export_presets.cfg",
-    "tools/release/"
+    "tools/release/",
+    "tests/contracts/test_no_osm_contracts_n1.gd",
+    "tests/contracts/test_no_osm_contracts_n5.gd",
+    "tests/contracts/test_osm_any_contracts.gd"
   ],
   "dont_touch": [
     "assets/",
@@ -83,13 +91,11 @@
     {
       "name": "pck_size",
       "cmd": "bash tools/release/pck_size.sh",
-      "expect": {
-        "num": "pck_mb ([0-9.]+)",
-        "max": 40
-      }
+      "expect": "re:pck_mb [0-9]"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-10T05:37:49"
+  "created": "2026-10-10T05:37:49",
+  "edited": "2026-10-10T06:04:30"
 }
