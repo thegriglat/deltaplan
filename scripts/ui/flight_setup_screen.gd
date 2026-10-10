@@ -54,7 +54,6 @@ var _wings: PackedStringArray = []  ## модели выбранного кла�
 var _class_opt: OptionButton
 var _wing_info: Label
 var _skies: Array = []
-var _sites: Array[Dictionary] = []
 var _wing_opt: OptionButton
 var _mass: HSlider
 var _temp: HSlider
@@ -63,7 +62,6 @@ var _wind: HSlider
 var _dir_opt: OptionButton
 var _dir_hint: Label
 var _sky_opt: OptionButton
-var _site_opt: OptionButton
 var _hour: OptionButton
 var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпадает с пунктами _hour
 var _month_opt: OptionButton
@@ -122,10 +120,6 @@ func _build() -> void:
 	_build_time(box)
 
 	UiKit.separator(box)
-	_site_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_launch"), _site_opt)
-	_site_opt.item_selected.connect(func(_i: int) -> void: _clear_pick())
-	_site_opt.item_selected.connect(func(_i: int) -> void: _update_dir_hint())
 	var pick_row := HBoxContainer.new()
 	pick_row.add_theme_constant_override("separation", 12)
 	box.add_child(pick_row)
@@ -159,7 +153,6 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
-	_fill_sites()
 	_update_pick_label()
 	_fill_recent()
 
@@ -345,46 +338,27 @@ func _build_forecast(box: Control) -> void:
 	UiKit.row(box, tr("setup_sky"), _sky_opt)
 
 
-## Подсказка «встречный для этого старта — З» для выбранной площадки (точка с карты — без неё).
+## Подсказка «встречный для этого старта — З» для выбранного места из встроенных (точка с карты — без неё).
 func _update_dir_hint() -> void:
 	if _dir_hint == null:
 		return
 	_dir_hint.text = ""
-	if settings.has_pick() or _site_opt.selected < 0:
+	var st := _builtin_site()
+	if st.is_empty():
 		return
-	var k: Variant = _site_opt.get_item_metadata(_site_opt.selected)
-	if k == null:
-		return
-	var e: Dictionary = _sites[int(k)]
-	var loc: Dictionary = Locations.config(String(e.location))
-	for st: Dictionary in loc.get("start_sites", []):
-		if String(st.get("id", "")) == String(e.site):
-			var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
-			_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
+	var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
+	_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
 
 
-## Все старты всех локаций (Config.list_configs("locations")), сгруппированы по локациям.
-func _fill_sites() -> void:
-	_site_opt.clear()
-	_sites.clear()
-	for loc_name in Config.list_configs("locations"):
-		var loc: Dictionary = Config.get_config(loc_name)
-		var starts: Array = loc.get("start_sites", [])
-		if starts.is_empty():
-			continue
-		_site_opt.add_separator(tr(String(loc.get("name", loc_name.get_file()))))
-		for st: Dictionary in starts:
-			_sites.append({"location": loc_name.get_file(), "site": String(st.get("id", ""))})
-			_site_opt.add_item("   " + tr(String(st.get("name", st.get("id")))))
-			_site_opt.set_item_metadata(_site_opt.item_count - 1, _sites.size() - 1)
-	for i in _site_opt.item_count:
-		var k: Variant = _site_opt.get_item_metadata(i)
-		if k == null:
-			continue
-		var e: Dictionary = _sites[int(k)]
-		if e.location == settings.location_id and e.site == settings.site_id:
-			_site_opt.select(i)
-	_update_dir_hint()
+## Старт встроенного места из settings (location_id/site_id; пустой site_id — первый); точка с карты — {}.
+func _builtin_site() -> Dictionary:
+	if settings == null or settings.has_pick():
+		return {}
+	var starts: Array = Locations.config(settings.location_id).get("start_sites", [])
+	for st: Dictionary in starts:
+		if String(st.get("id", "")) == settings.site_id:
+			return st
+	return starts[0] if not starts.is_empty() else {}
 
 
 func _collect() -> FlightSettings:
@@ -400,12 +374,6 @@ func _collect() -> FlightSettings:
 	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
-	var k: Variant = null
-	if _site_opt.selected >= 0:
-		k = _site_opt.get_item_metadata(_site_opt.selected)
-	if k != null:
-		s.location_id = String(_sites[int(k)].location)
-		s.site_id = String(_sites[int(k)].site)
 	return s
 
 
@@ -484,14 +452,6 @@ func _on_map_elevation(lat: float, lon: float, h_m: float) -> void:
 		_update_pick_label()
 
 
-func _clear_pick() -> void:
-	_picked_place_name = ""
-	settings.pick_lat = NAN
-	settings.pick_lon = NAN
-	_pick_elev_m = NAN
-	_update_pick_label()
-
-
 ## Высота точки из recent/сохранённых настроек: запрос по Terrarium (сеть/кеш), устаревший ответ отбрасывается.
 func _lookup_pick_elevation() -> void:
 	var ll := Vector2(settings.pick_lat, settings.pick_lon)
@@ -515,7 +475,8 @@ func _update_pick_label() -> void:
 			% [settings.pick_lat, settings.pick_lon, MapPicker.elevation_text(_pick_elev_m)]
 		)
 	else:
-		_pick_label.text = ""
+		var st := _builtin_site()
+		_pick_label.text = tr(String(st.get("name", ""))) if not st.is_empty() else ""
 
 
 # ------------------------------------------------------------ недавние места
@@ -625,6 +586,15 @@ func _open_places() -> void:
 ## Выбор места — та же точка старта, что с карты и из «Недавних мест»; высоту подтянет подпись.
 func _on_place_chosen(p: Dictionary) -> void:
 	_pick_elev_m = NAN
+	if p.has("location") and p.has("site"):
+		# встроенное место (builtin/<место>/<старт>): свой рельеф и точный старт, а не поиск склона у точки
+		_picked_place_name = ""
+		settings.location_id = String(p.location)
+		settings.site_id = String(p.site)
+		settings.pick_lat = NAN
+		settings.pick_lon = NAN
+		_update_pick_label()
+		return
 	settings.pick_lat = float(p.get("lat", 0.0))
 	settings.pick_lon = float(p.get("lon", 0.0))
 	_picked_place_name = String(p.get("name", ""))

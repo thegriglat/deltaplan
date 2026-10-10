@@ -8036,6 +8036,146 @@
    "orientation": [
     "NW"
    ]
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "heading_deg": 276,
+   "id": "builtin/altai/sinyukha_west",
+   "lat": 51.82121,
+   "location": "altai",
+   "lon": 85.85361,
+   "name": "Малая Синюха — западный старт",
+   "orientation": [
+    "W"
+   ],
+   "site": "sinyukha_west"
+  },
+  {
+   "country": "RU",
+   "ele": 1210,
+   "heading_deg": 115,
+   "id": "builtin/altai/sinyukha_east",
+   "lat": 51.83223,
+   "location": "altai",
+   "lon": 85.87473,
+   "name": "Малая Синюха — вершина, восточный склон",
+   "orientation": [
+    "ESE"
+   ],
+   "site": "sinyukha_east"
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "heading_deg": 150,
+   "id": "builtin/altai/tugaya_south",
+   "lat": 51.97095,
+   "location": "altai",
+   "lon": 85.9421,
+   "name": "Тугая (Горно-Алтайск) — южный склон",
+   "orientation": [
+    "SSE"
+   ],
+   "site": "tugaya_south"
+  },
+  {
+   "country": "RU",
+   "ele": 630,
+   "heading_deg": 294,
+   "id": "builtin/askarovo/biyagoda_west",
+   "lat": 53.25865,
+   "location": "askarovo",
+   "lon": 58.52609,
+   "name": "Биягода — западный склон у верхнего лагеря",
+   "orientation": [
+    "WNW"
+   ],
+   "site": "biyagoda_west"
+  },
+  {
+   "country": "RU",
+   "ele": 630,
+   "heading_deg": 94,
+   "id": "builtin/askarovo/biyagoda_east",
+   "lat": 53.25888,
+   "location": "askarovo",
+   "lon": 58.52797,
+   "name": "Биягода — восточный склон",
+   "orientation": [
+    "E"
+   ],
+   "site": "biyagoda_east"
+  },
+  {
+   "country": "RU",
+   "ele": 725,
+   "heading_deg": 285,
+   "id": "builtin/askarovo/biyagoda_south_west",
+   "lat": 53.23797,
+   "location": "askarovo",
+   "lon": 58.51595,
+   "name": "Биягода — южная вершина (300 м), запад",
+   "orientation": [
+    "WNW"
+   ],
+   "site": "biyagoda_south_west"
+  },
+  {
+   "country": "RU",
+   "ele": 645,
+   "heading_deg": 119,
+   "id": "builtin/aushkul/aushtau_east",
+   "lat": 54.72585,
+   "location": "aushkul",
+   "lon": 59.68922,
+   "name": "Ауштау («пупырь») — восточный склон над озером",
+   "orientation": [
+    "ESE"
+   ],
+   "site": "aushtau_east"
+  },
+  {
+   "country": "RU",
+   "ele": 645,
+   "heading_deg": 170,
+   "id": "builtin/aushkul/aushtau_south",
+   "lat": 54.72495,
+   "location": "aushkul",
+   "lon": 59.68805,
+   "name": "Ауштау — южный склон",
+   "orientation": [
+    "S"
+   ],
+   "site": "aushtau_south"
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "heading_deg": 273,
+   "id": "builtin/aushkul/ridge_west",
+   "lat": 54.73844,
+   "location": "aushkul",
+   "lon": 59.70518,
+   "name": "Хребет у Старобайрамгулово — западный склон",
+   "orientation": [
+    "W"
+   ],
+   "site": "ridge_west"
+  },
+  {
+   "country": "RU",
+   "ele": 1870,
+   "heading_deg": 151,
+   "id": "builtin/ongudai/kayancha_south",
+   "lat": 50.78708,
+   "location": "ongudai",
+   "lon": 86.23278,
+   "name": "Онгудайский ретранслятор — южный старт (перевал Каянча)",
+   "orientation": [
+    "SSE"
+   ],
+   "site": "kayancha_south"
   }
  ],
  "version": 1
