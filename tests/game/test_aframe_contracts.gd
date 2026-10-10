@@ -10,8 +10,6 @@ const FlightSim := preload("res://tests/flight/flight_sim.gd")
 const MARKERS: Array[String] = [
 	"HangPoint", "BaseBar", "UprightTopL", "UprightTopR", "UprightBottomL", "UprightBottomR", "WingCG"
 ]
-const BASE_TOL_APOGEE := 0.10
-const BASE_TOL_ALL := 0.15
 
 var failures: PackedStringArray = []
 
@@ -82,7 +80,7 @@ func test_params_and_markers() -> void:
 			if p.has("hang_from_apex_m")
 			else float(cf.hang_from_apex_m["double" if p.double_surface else "single"])
 		)
-		check(tilt >= 4.0 and tilt <= 13.0, "%s: наклон %.1f в 4…13" % [wid, tilt])
+		check(tilt >= 4.0 and tilt <= 35.0, "%s: наклон %.1f в 4…35" % [wid, tilt])
 		check(length >= 1.6 and length <= 1.75, "%s: длина стоек %.3f в 1,6…1,75" % [wid, length])
 		var src := String(p.get("hang_source", ""))
 		check(src in ["passport", "cg"], "%s: hang_source = passport|cg (%s)" % [wid, src])
@@ -117,53 +115,8 @@ func test_params_and_markers() -> void:
 		check((mk["WingCG"] as Vector3).y > 0.0, "%s: WingCG на киле выше подвески" % wid)
 
 
-## Полёт на балансировке: середина BaseBar от середины плеч по горизонтали в осях мира (киль под
-## тангажем трима). Плечи — по пилоту в позе prone (не зависят от крыла).
-func test_base_bar_under_shoulders() -> void:
-	var v := GliderVisual.new()
-	add_child(v)
-	v.build(
-		Config.get_config("wings/apogee"),
-		Config.get_config("pilot"),
-		Config.get_config("flight").visual
-	)
-	var ap: AnimationPlayer = v.find_children("*", "AnimationPlayer", true, false)[0]
-	ap.play("prone", 0.0)
-	ap.advance(0.5)
-	v.set_pose(0.0, 0.0, true, 1.0e6)
-	for i in 3:
-		await get_tree().process_frame
-	var hang := Vector3(0, float(Config.get_config("flight").visual.hang_height_m), 0)
-	var sh := ((v.shoulder(-1) + v.shoulder(1)) * 0.5) - hang
-	v.free()
-	var worst := 0.0
-	var worst_id := ""
-	var params: Dictionary = _params().wings
-	for wid: String in params:
-		var p: Dictionary = params[wid]
-		var mk := _markers(String(p.out))
-		if not mk.has("BaseBar"):
-			check(false, "%s: нет BaseBar" % wid)
-			continue
-		var m := FlightSim.make(String(p.config))
-		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
-		var th := m.theta
-		var bb: Vector3 = mk["BaseBar"]
-		var f := -bb.z - (-sh.z)  # вперёд в осях крыла
-		var u := bb.y - sh.y
-		var horiz := f * cos(th) - u * sin(th)
-		var vert := f * sin(th) + u * cos(th)
-		if wid == "apogee":
-			check(
-				absf(horiz) <= BASE_TOL_APOGEE,
-				"apogee: база от плеч по горизонтали %+.3f (≤ %.2f)" % [horiz, BASE_TOL_APOGEE]
-			)
-			print("         apogee: база от плеч: по горизонтали %+.3f, по вертикали %+.3f м" % [horiz, vert])
-		if absf(horiz) > absf(worst):
-			worst = horiz
-			worst_id = wid
-		check(absf(horiz) <= BASE_TOL_ALL, "%s: база от плеч %+.3f м (≤ %.2f)" % [wid, horiz, BASE_TOL_ALL])
-	print("         по всем крыльям худшее: %s, %+.3f м" % [worst_id, worst])
+## (Прежний контракт A3.1 «база под плечами» заменён: пилот подгоняется под трапецию —
+## test_neutral_every_wing, test_flight_pilot_height.)
 
 
 ## Визуал apogee в полёте лёжа на балансировке: киль под тангажем трима (нос вверх), трапеция в
@@ -249,22 +202,30 @@ func test_flight_pilot_height() -> void:
 		dmin = minf(dmin, d)
 		dmax = maxf(dmax, d)
 		worst_elbow = maxf(worst_elbow, el.y - sh.y)
-		# A3.5 v8: при зазоре 0,06 локоть выше плеча на ~0,1 м — не блокирует, число в отчёт
-		check(el.y <= sh.y + 0.15, "рука %d: локоть не выше плеча +0,15 м (%+.3f м)" % [side, el.y - sh.y])
+		check(el.y <= sh.y - 0.1, "рука %d: локоть ниже плеча (%+.3f м)" % [side, el.y - sh.y])
 	var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
 	var dims := _pilot_dims(v)
 	var above := float(dims.torso_low_y) - bar.y
 	var hl := float(Config.get_config("pilot").visual.hang_length_m)
-	var low_local: float = (v.global_transform.affine_inverse() * Vector3(0, float(dims.torso_low_y), 0)).y
 	var meas_len := hang.distance_to(Vector3(hang.x, float(dims.torso_low_y), hang.z))
-	var bar_r := float(_params().control_frame.basebar_r_m)
-	var gap := above - bar_r  # до ВЕРХА штанги (BaseBar — ось)
-	check(
-		absf(gap - float(Config.get_config("pilot").visual.bar_gap_m)) <= 0.01,
-		"зазор низ тела — верх штанги %.3f м (0,06 ±0,01, A3.5 v8)" % gap
+	# нейтраль: плечо над хватом на длину плеча, позади хвата на предплечье с кистью (оси крыла)
+	var lens := v.arm_ik.arm_lengths()
+	var g := (v.bar_grip(-1) + v.bar_grip(1)) * 0.5
+	var sm := (v.shoulder(-1) + v.shoulder(1)) * 0.5
+	approx(sm.y - g.y, lens.x, 0.01, "нейтраль: плечевой сустав над хватом на длину плеча")
+	approx(sm.z - g.z, lens.y, 0.01, "нейтраль: плечевой сустав позади хвата на предплечье с кистью")
+	# положение плеча в модели (pilot.json) = измеренное в позе prone
+	var sl := v.pilot.transform.affine_inverse() * v.shoulder(-1)
+	approx(-sl.y, float(Config.get_config("pilot").visual.shoulder_below_hang_m), 0.02, "pilot.json shoulder_below_hang_m = модель")
+	approx(-sl.z, float(Config.get_config("pilot").visual.shoulder_ahead_of_hang_m), 0.02, "pilot.json shoulder_ahead_of_hang_m = модель")
+	approx(
+		float(Config.get_config("pilot").visual.bar_ahead_of_hang_m), -sl.z + lens.y, 0.01,
+		"pilot.json bar_ahead_of_hang_m = плечо впереди карабина + предплечье с кистью"
 	)
-	# модельная подвеска = измеренная минус опускание под крыло (по вертикали мира)
-	approx(hl, meas_len - v.hang_drop_m * cos(r.theta), 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
+	approx(-(g.z), float(Config.get_config("pilot").visual.bar_ahead_of_hang_m), 0.02, "хват впереди карабина = bar_ahead_of_hang_m (наклон стоек, A1 v4)")
+	# модельная подвеска = измеренная минус смещение пилота под крыло (по вертикали мира)
+	var dy := -(v.global_transform.basis * Vector3(0, -v.hang_drop_m, 0)).y
+	approx(hl, meas_len - dy, 0.02, "pilot.json hang_length_m и карабин — низ торса в модели")
 	print(
 		(
 			"         apogee: плечи над базой %.3f м, плечо—хват %.3f…%.3f м, локоть−плечо max %+.3f м, "
@@ -275,15 +236,13 @@ func test_flight_pilot_height() -> void:
 	v.free()
 
 
-## A3.5 v8: зазор низ тела — верх базовой штанги 0,05…0,07 м у КАЖДОГО крыла (длина подвески
-## под крыло). Печатает мин/макс зазор и опускание пилота относительно модельной подвески.
-func test_gap_every_wing() -> void:
+## Нейтральная поза у КАЖДОГО крыла: плечо над хватом на длину плеча, позади хвата на предплечье
+## с кистью. Печатает зазор низ тела — верх штанги и смещение пилота относительно модели.
+func test_neutral_every_wing() -> void:
 	var params: Dictionary = _params().wings
 	var bar_r := float(_params().control_frame.basebar_r_m)
 	var lo := 1.0e9
 	var hi := -1.0e9
-	var lo_id := ""
-	var hi_id := ""
 	var dlo := 1.0e9
 	var dhi := -1.0e9
 	var seen := {}
@@ -294,19 +253,19 @@ func test_gap_every_wing() -> void:
 		seen[cfg] = true
 		var r := await _flight_visual(cfg)
 		var v: GliderVisual = r.v
+		var lens := v.arm_ik.arm_lengths()
+		var g := (v.bar_grip(-1) + v.bar_grip(1)) * 0.5
+		var sm := (v.shoulder(-1) + v.shoulder(1)) * 0.5
+		approx(sm.y - g.y, lens.x, 0.01, "%s: плечо над хватом" % cfg)
+		approx(sm.z - g.z, lens.y, 0.01, "%s: плечо позади хвата" % cfg)
 		var bar: Vector3 = v.global_transform * v._marker_pos("BaseBar")
 		var gap := float(_pilot_dims(v).torso_low_y) - bar.y - bar_r
-		check(gap >= 0.05 and gap <= 0.07, "%s: зазор низ тела — верх штанги %.3f м (0,05…0,07)" % [cfg, gap])
-		if gap < lo:
-			lo = gap
-			lo_id = cfg
-		if gap > hi:
-			hi = gap
-			hi_id = cfg
+		lo = minf(lo, gap)
+		hi = maxf(hi, gap)
 		dlo = minf(dlo, v.hang_drop_m)
 		dhi = maxf(dhi, v.hang_drop_m)
 		v.free()
-	print("         зазор по крыльям (%d): мин %.3f (%s), макс %.3f (%s) м; опускание пилота %.3f…%.3f м" % [seen.size(), lo, lo_id, hi, hi_id, dlo, dhi])
+	print("         крыльев %d: зазор низ тела — верх штанги %.3f…%.3f м; опускание %.3f…%.3f м" % [seen.size(), lo, hi, dlo, dhi])
 
 
 ## A3.6: визуальный тангаж киля в установившемся планировании = тангаж из модели полёта

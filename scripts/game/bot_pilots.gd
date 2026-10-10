@@ -303,6 +303,20 @@ func _start_airborne() -> void:
 		agents[i].start_in_air(p, _heading + rng.randf_range(-60.0, 60.0), sim_time_s)
 
 
+## Каждому боту — положения остальных наземных (обход по дороге к старту и месту).
+func _update_avoid() -> void:
+	var ground: Array[int] = []
+	for i in agents.size():
+		if not agents[i].is_airborne() and agents[i].state != BotAgent.State.LANDED:
+			ground.append(i)
+	for i in agents.size():
+		var list: Array[Vector3] = []
+		for j in ground:
+			if j != i:
+				list.append(agents[j].model.position)
+		agents[i].avoid = list
+
+
 ## Шаг физики игрока dt; player — телеметрия игрока (null — игрока нет).
 func tick(dt: float, player: Telemetry) -> void:
 	if agents.is_empty():
@@ -323,6 +337,7 @@ func tick(dt: float, player: Telemetry) -> void:
 		_sep_acc = fmod(_sep_acc, sep_period)
 		_update_separation()
 		_update_claims()
+		_update_avoid()
 	for i in agents.size():
 		var a := agents[i]
 		a.acc_s += dt
@@ -373,6 +388,8 @@ static func find_spots(
 	var corridor := float(cfg.get("corridor_half_width_m", 9.0))
 	var probe := float(cfg.get("flat_probe_m", 3.0))
 	var gap := float(cfg.get("obstacle_clear_m", 6.0))
+	# Точка, где бот ждёт разбега (BotAgent._ready_point): места не ближе spacing к ней.
+	var ready := s2 - fwd * float(cfg.get("ready_behind_m", 2.0))
 	var cands: Array = []
 	var b := b_min
 	while b <= b_max:
@@ -381,7 +398,12 @@ static func find_spots(
 			var p := s2 - fwd * b + right * l
 			var rel := p - s2
 			var in_corridor := rel.dot(fwd) > -2.0 and absf(rel.dot(right)) < corridor
-			if not in_corridor and p.distance_to(s2) >= clear and _free(p, obstacles, gap):
+			if (
+				not in_corridor
+				and p.distance_to(s2) >= clear
+				and p.distance_to(ready) >= spacing
+				and _free(p, obstacles, gap)
+			):
 				var slope := _slope_deg(ground_fn, p, probe)
 				cands.append({"p": p, "d": p.distance_to(s2), "slope": slope})
 			l += grid
@@ -403,13 +425,25 @@ static func find_spots(
 				var p: Vector2 = c.p
 				var y := float(ground_fn.call(p.x, p.y)) if ground_fn.is_valid() else start.y
 				out.append({"position": Vector3(p.x, y, p.y), "heading_deg": heading_deg})
-	# Места кончились (тесная вершина) — ставим дальше позади в ряд, как получится.
+	# Порядок очереди — по удалению от старта (проходы по уклону добавляли дальние ровные раньше
+	# ближних крутых: бот шёл бы сквозь соседей).
+	out.sort_custom(
+		func(x: Dictionary, y: Dictionary) -> bool:
+			return (
+				Vector2(x.position.x - s2.x, x.position.z - s2.y).length()
+				< Vector2(y.position.x - s2.x, y.position.z - s2.y).length()
+			)
+	)
+	# Места кончились (тесная вершина) — очередь уходит назад по склону рядами по три, мимо
+	# препятствий; шаг — spacing (не теснее соседей).
 	var extra := 0
-	while out.size() < count:
+	while out.size() < count and extra < 1000:
 		var p := s2 - fwd * (b_max + spacing * (1 + extra / 3)) + right * spacing * (extra % 3 - 1)
+		extra += 1
+		if not _free(p, obstacles, gap):
+			continue
 		var y := float(ground_fn.call(p.x, p.y)) if ground_fn.is_valid() else start.y
 		out.append({"position": Vector3(p.x, y, p.y), "heading_deg": heading_deg})
-		extra += 1
 	return out
 
 
@@ -470,8 +504,9 @@ func _others_flying() -> bool:
 
 
 ## Очередь на старт: разбег бота k — через interval·(k+1) после отрыва игрока (и не раньше,
-## чем через interval после разбега предыдущего); к старту идёт заранее — сначала к месту
-## в очереди в стороне, к самому старту — когда предыдущий побежал.
+## чем через interval после разбега предыдущего); к старту идёт заранее, но только после того,
+## как предыдущий побежал и на точке старта никого нет (до тех пор стоит на своём месте
+## ожидания — у каждого оно своё, не ближе spacing_m к соседям).
 func _schedule() -> void:
 	if player_liftoff_s < 0.0:
 		return
@@ -482,6 +517,19 @@ func _schedule() -> void:
 	for a in agents:
 		last_run = maxf(last_run, a.run_start_s)
 		busy = busy or a.state in [BotAgent.State.READY, BotAgent.State.RUN]
+	var at_start := false  # кто-то идёт к старту или стоит на нём (в т.ч. после срыва взлёта)
+	var ready_k := -1
+	for k in agents.size():
+		at_start = at_start or agents[k].state in [BotAgent.State.WALK, BotAgent.State.READY]
+		if agents[k].state == BotAgent.State.READY:
+			ready_k = k
+	if ready_k >= 0:
+		# Взлёт сорван — бот снова на старте: идущие к нему возвращаются на свои места.
+		for a in agents:
+			if a.state == BotAgent.State.WALK:
+				a.state = BotAgent.State.WAIT
+				a.follow_spot = true
+	var pending_seen := false
 	for k in agents.size():
 		var a := agents[k]
 		if a.run_start_s >= 0.0:
@@ -495,8 +543,17 @@ func _schedule() -> void:
 		a.queue_hold = not ok
 		if ok and a.run_at_s == INF:
 			a.run_at_s = maxf(planned, maxf(prev_run, last_run) + interval)
-		if a.state == BotAgent.State.WAIT and sim_time_s >= planned - a.walk_time_s():
+		if (
+			a.state == BotAgent.State.WAIT
+			and prev_ran
+			and (k == 0 or agents[k - 1].state >= BotAgent.State.FLY)  # предыдущий уже оторвался
+			and not at_start
+			and not pending_seen
+			and sim_time_s >= planned - a.walk_time_s()
+		):
 			a.go_to_launch()
+			at_start = true
+		pending_seen = true  # к старту — только первый из ещё не бежавших
 
 
 ## Сеть: очередь зоны. Первый (место 0) идёт к старту и через launch.queue_ready_s после

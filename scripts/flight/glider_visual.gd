@@ -131,13 +131,13 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	pm.name = "Model"
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
-	hang_drop_m = float(wing_cfg.visual.get("hang_drop_m", _compute_hang_drop()))
 	_animated_stand = false
 	_anim = null
 	for ap: AnimationPlayer in pm.find_children("*", "AnimationPlayer", true, false):
 		_animated_stand = _animated_stand or ap.has_animation("stand")
 		_anim = ap
 	_build_arms(pm)
+	_fit_neutral_pose()
 	_build_strap(pm)
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
@@ -350,16 +350,47 @@ func _update_arms(flying: bool, dt: float) -> void:
 	var bar_r := bar_grip(1)
 	var up_l := upright_grip(-1)
 	var up_r := upright_grip(1)
-	var pole := _vec3(a.get("elbow_pole", [1.0, -1.0, 0.3])).lerp(
-		_vec3(a.get("elbow_pole_bar", [1.0, -0.3, 0.6])), arm_bar
-	)
-	var bb := _relative_xform(self, get_marker("BaseBar"))
-	arm_ik.set_targets(
-		up_l.lerp(bar_l, arm_bar),
-		up_r.lerp(bar_r, arm_bar),
-		bb.basis * Vector3(-pole.x, pole.y, pole.z),
-		bb.basis * pole
-	)
+	var pole := _vec3(a.get("elbow_pole", [1.0, -1.0, 0.3]))
+	var pole_l := pole * Vector3(-1, 1, 1)
+	var pole_r := pole
+	if arm_bar > 0.01:
+		var frac := float(a.get("elbow_height_frac", 1.0))
+		pole_l = pole_l.lerp(_bar_elbow_pole(-1, bar_l, frac), arm_bar)
+		pole_r = pole_r.lerp(_bar_elbow_pole(1, bar_r, frac), arm_bar)
+	else:
+		var bb := _relative_xform(self, get_marker("BaseBar"))
+		pole_l = bb.basis * pole_l
+		pole_r = bb.basis * pole_r
+	arm_ik.set_targets(up_l.lerp(bar_l, arm_bar), up_r.lerp(bar_r, arm_bar), pole_l, pole_r)
+
+
+## Подсказка локтя на базовой штанге (оси визуала): плечо и хват фиксированы, локоть лежит на
+## окружности вокруг оси плечо → хват; выбираем точку, где он опущен от плеча на долю frac
+## расстояния «плечо — хват» по высоте (1 — предплечье горизонтально, локоть под плечом на высоте
+## хвата; 0,5 — «как на мотоцикле»: локоть на полпути, разведён наружу и вниз).
+func _bar_elbow_pole(side: int, grip: Vector3, frac: float) -> Vector3:
+	var sh := shoulder(side)
+	var lens := arm_ik.arm_lengths()
+	var axis := grip - sh
+	var d := clampf(axis.length(), absf(lens.x - lens.y) + 1e-3, lens.x + lens.y - 1e-3)
+	var n := axis.normalized()
+	var down := global_transform.basis.inverse() * Vector3.DOWN
+	var pd := (down - n * down.dot(n)).normalized()
+	var sd := n.cross(pd).normalized()
+	if sd.x * side < 0.0:
+		sd = -sd
+	var x := (lens.x * lens.x - lens.y * lens.y + d * d) / (2.0 * d)
+	var r := sqrt(maxf(lens.x * lens.x - x * x, 0.0))
+	var want := sh.y - frac * (sh.y - grip.y)
+	var best := 0.0
+	var best_err := INF
+	for i in 91:
+		var phi := deg_to_rad(float(i))
+		var ey := sh.y + n.y * x + r * (cos(phi) * pd.y + sin(phi) * sd.y)
+		if absf(ey - want) < best_err:
+			best_err = absf(ey - want)
+			best = phi
+	return pd * cos(best) + sd * sin(best)
 
 
 ## Точка хвата на базовой штанге: маркер BaseBar ± полуширина хвата (side −1 — левая, +1 — правая),
@@ -545,19 +576,34 @@ static func _vec3(v: Variant) -> Vector3:
 
 ## В полёте: карабин остаётся в точке подвески (маятник), тело поворачивается вокруг неё так,
 ## что центр масс пилота смещается на shift (крен — вокруг продольной оси Z, тангаж — вокруг
-## поперечной оси X); угол = asin(смещение / L), L — расстояние HangPoint → центр масс пилота.
+## поперечной оси X); угол крена = asin(смещение / |Y|), Y — высота центра масс под карабином, тангажа — asin(смещение / L), L — расстояние HangPoint → центр масс.
 func _flight_pose(shift: Vector3) -> Transform3D:
 	var basis := Basis.IDENTITY
-	var l := _body_center().length()
+	var bc := _body_center()
+	var l := bc.length()
 	if l > 0.0001:
-		var roll_ang := asin(clampf(shift.x / l, -1.0, 1.0))
+		# крен — вокруг продольной оси: плечо рычага — высота центра масс под карабином (не |bc|)
+		var roll_ang := asin(clampf(shift.x / maxf(absf(bc.y), 0.0001), -1.0, 1.0))
 		var pitch_ang := -asin(clampf(shift.z / l, -1.0, 1.0))
 		basis = Basis(Vector3(0, 0, 1), roll_ang) * Basis(Vector3(1, 0, 0), pitch_ang)
 	return Transform3D(basis, _hang + basis * Vector3(0, -hang_drop_m, 0))
 
 
-## Подгонка длины подвески под крыло (A3.5 v8): низ торса на pilot.json → visual.bar_gap_m над
-## верхом базовой штанги. Модель пилота запечена с длиной hang_length_m; недостающее — вниз.
+## Нейтральная поза в полёте (без отклонения ручки): центр масс пилота на вертикали под карабином
+## (модель так собрана), хват — на длину плеча ниже плечевого сустава. Длину подвески под крыло
+## (hang_drop_m) считаем из глубины хвата под HangPoint и длин костей скелета (PilotArmIK.arm_lengths).
+## Хват впереди плеча на предплечье с кистью получается из наклона стоек трапеции (A1: aframe_cg.py
+## --pick-reach, pilot.json → bar_ahead_of_hang_m), а не сдвигом пилота. Только вид: физика не
+## читает. Нет рук — по зазору bar_gap_m над штангой.
+func _fit_neutral_pose() -> void:
+	if arm_ik == null or wing == null or get_marker("BaseBar") == null:
+		hang_drop_m = _compute_hang_drop()
+		return
+	var g := (bar_grip(-1) + bar_grip(1)) * 0.5
+	hang_drop_m = _hang.y - float(_pcfg.shoulder_below_hang_m) - (g.y + arm_ik.arm_lengths().x)
+
+
+## Запасная подгонка без рук: низ торса на pilot.json → visual.bar_gap_m над верхом базовой штанги.
 func _compute_hang_drop() -> float:
 	if wing == null or get_marker("BaseBar") == null:
 		return 0.0
