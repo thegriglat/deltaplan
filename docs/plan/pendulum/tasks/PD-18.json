@@ -1,0 +1,51 @@
+{
+  "id": "PD-18",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Выход из глубокого срыва: центр давления сорванной полосы назад",
+  "goal": "После «на себя» до упора 1–3 с и рук в нейтраль крыло (все классы) само выходит из срыва к триму, а не висит на α 80–93°: сорванная полоса даёт пикирующий момент (ЦД плоской пластины ≈ 0,4–0,5 хорды, Fage & Johansen).",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-18",
+  "branch": "pendulum/PD-18",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum/wing_strips.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "configs/pendulum.json",
+    "tests/flight/pendulum",
+    "tests/contracts/test_pendulum_contracts_k2_ground.gd",
+    "tools/research/pendulum/export_reference.py",
+    "tools/flight/pendulum_compare.gd",
+    "tools/research/pendulum/pd8_proto.py"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "configs/wings"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T03:57:36"
+}

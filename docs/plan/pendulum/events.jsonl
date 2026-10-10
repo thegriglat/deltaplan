@@ -125,3 +125,6 @@
 {"t": "2026-10-11T03:57:12", "by": "coordinator", "task": "PD-4", "ev": "accepted", "commits": ["f5ab8205"], "note": "5/5 control_bar=ok:13/13; motion_rig=ok:25/25; autopilot=ok:2/2; pendulum=ok:77/77; settings_tabs=ok:1/1"}
 {"t": "2026-10-11T03:57:14", "by": "coordinator", "task": "PD-8", "ev": "checked", "note": "2/2 table=ok:278; docs=ok:ошибок 0"}
 {"t": "2026-10-11T03:57:22", "by": "coordinator", "task": "PD-8", "ev": "accepted", "note": "по отчёту: 110 чисел без расхождений > 15 %; найден вечный глубокий срыв laminar/sport после «на себя» до упора 1–3 с — PD-18"}
+{"t": "2026-10-11T03:57:35", "by": "coordinator", "task": "PD-1", "ev": "checked", "commits": ["f5ab8205"], "note": "5/6 pendulum_contracts_k2=ok:7/7; test_wings=ok:4/4; wing_physics_contracts=ok:5/5; params_check=ok:exit 0; wings_only_added=ok:0; wings_count=FAIL:0"}
+{"t": "2026-10-11T03:57:36", "by": "coordinator", "task": "PD-8", "ev": "merged", "commits": ["9e6dbe1"]}
+{"t": "2026-10-11T03:57:36", "by": "coordinator", "task": "PD-18", "ev": "created", "note": "Выход из глубокого срыва: центр давления сорванной полосы назад"}
