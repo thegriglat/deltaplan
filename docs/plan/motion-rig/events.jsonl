@@ -23,3 +23,8 @@
 {"t": "2026-10-10T17:58:26", "by": "executor", "task": "MR-2", "ev": "checked", "note": "7/7 motion_rig=ok:25/25; tests/flight/=ok:97/97; tests/ui/=ok:109/109; tests/steam/=ok:40/40; recv_selftest=ok:exit 0; loop=ok:exit 0; loop OK; layout=ok:exit 0; layout OK"}
 {"t": "2026-10-10T17:58:40", "by": "coordinator", "task": "MR-3", "ev": "created", "note": "Документация motion-rig и англ. инструкция игроку (SRS/DOF Reality, generic)"}
 {"t": "2026-10-10T17:58:40", "by": "coordinator", "task": "MR-4", "ev": "created", "note": "Вкладки в панели настроек игры"}
+{"t": "2026-10-10T17:59:35", "by": "reviewer", "task": "MR-2", "ev": "reviewed", "note": "MR-К3 v2 (signs) применяется только при упаковке, в обоих форматах: SRS vertical считается как −(heave/G−1), yaw приводится к диапазону формата; MotionSample о…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/motion-rig/tasks/MR-2.review.json"}
+{"t": "2026-10-10T17:59:46", "by": "coordinator", "task": "MR-2", "ev": "accepted", "note": "по ревью (accept, 2 minor: DNS-имя резолвится при первом пакете; check_layout не сверяет таблицы docs — оставлены)"}
+{"t": "2026-10-10T18:10:03", "by": "coordinator", "task": "MR-2", "ev": "merged", "commits": ["e829d65a"]}
+{"t": "2026-10-10T18:10:32", "by": "coordinator", "task": "MR-3", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-motion-rig-MR-3"}
+{"t": "2026-10-10T18:10:32", "by": "coordinator", "task": "MR-4", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-motion-rig-MR-4"}
