@@ -1,0 +1,53 @@
+{
+  "id": "PD-5",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Экран «Полёт…»: вкладки «Место» / «Аппарат», 4 параметра маятника",
+  "goal": "Пилот настраивает подвеску, длину подвески, гибкость паруса и поперечное V (PD-К3); значения сохраняются с полётом и доходят до Game.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К3",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-5",
+  "branch": "pendulum/PD-5",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/flight_settings.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_pendulum_contracts_k3.gd",
+    "tests/ui"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/game.gd",
+    "configs/wings",
+    "scripts/ui/settings_panel.gd"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts_k3",
+      "tests": "pendulum_contracts_k3"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "settings_tabs",
+      "tests": "settings_tabs"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T00:51:33"
+}

@@ -3,3 +3,6 @@
 {"t": "2026-10-11T00:40:51", "by": "coordinator", "task": null, "ev": "note", "note": "dp: прямому исполнителю без ID задачи некуда сдать dp report (нужен ID) — нужна dp report --module <модуль> или авто-ID; dp docs init молча ничего не делает для файлов с frontmatter — нормально, но нет шаблона research-паспорта для нового файла (dp docs new research <путь>); исследование pendulum этапа A — коммит 014ae940"}
 {"t": "2026-10-11T00:50:13", "by": "coordinator", "task": "PD-1", "ev": "created", "note": "Параметры маятника: блок pendulum в 48 крыльях и configs/pendulum.json"}
 {"t": "2026-10-11T00:50:13", "by": "coordinator", "task": "PD-2", "ev": "created", "note": "Ядро PendulumModel в воздухе: полосы, цепь, руки, скольжение"}
+{"t": "2026-10-11T00:51:15", "by": "coordinator", "task": "PD-1", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-1"}
+{"t": "2026-10-11T00:51:15", "by": "coordinator", "task": "PD-2", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-2"}
+{"t": "2026-10-11T00:51:33", "by": "coordinator", "task": "PD-5", "ev": "created", "note": "Экран «Полёт…»: вкладки «Место» / «Аппарат», 4 параметра маятника"}
