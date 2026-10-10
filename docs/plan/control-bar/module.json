@@ -1,0 +1,9 @@
+{
+  "module": "control-bar",
+  "plan": "docs/plan/control-bar.md",
+  "contracts": "docs/contracts/control-bar.md",
+  "branch": "feature/control-bar",
+  "copy": "~/deltaplan-control-bar",
+  "created": "2026-10-10T18:31:36",
+  "code": "CB"
+}
