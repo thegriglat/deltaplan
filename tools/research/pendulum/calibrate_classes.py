@@ -97,10 +97,11 @@ def main():
     ap.add_argument("--wings", default=",".join(WINGS))
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--verify", action="store_true", help="умолчания класса (GROUP_DEFAULTS из tools/flight/pendulum_params.py) на всех крыльях -> out/calib_verify.jsonl")
+    ap.add_argument("--v6", action="store_true", help="проверка верха ползунка: V=6 при flex 0,15/0,2/0,35 на training и apogee -> out/calib_v6.jsonl")
     ap.add_argument("--levers", action="store_true", help="доп. рычаг: cn_beta (флюгерная устойчивость) при V=4 / 0,5")
     a = ap.parse_args()
     OUT.mkdir(exist_ok=True)
-    jl = OUT / ("calib_levers.jsonl" if a.levers else "calib_verify.jsonl" if a.verify else "calib_classes.jsonl")
+    jl = OUT / ("calib_v6.jsonl" if a.v6 else "calib_levers.jsonl" if a.levers else "calib_verify.jsonl" if a.verify else "calib_classes.jsonl")
     done = set()
     if jl.exists():
         for ln in jl.read_text().splitlines():
@@ -118,7 +119,9 @@ def main():
         for wid in pp.wing_ids():
             g = json.loads((pp.WINGS / f"{wid}.json").read_text())["group"]
             jobs.append((wid, pp.GROUP_DEFAULTS[g]["dihedral_eff_deg"], pp.GROUP_DEFAULTS[g]["sail_flex"], {"group": g}))
-    if a.levers or a.verify:
+    if a.v6:
+        jobs = [(w, 6.0, f, {"v6": 1}) for w in ("training", "apogee") for f in (0.15, 0.2, 0.35)]
+    if a.levers or a.verify or a.v6:
         done = set()
     if a.quick:
         jobs = jobs[:1]
@@ -132,7 +135,7 @@ def main():
     if a.verify:
         summarize_verify(jl)
         return
-    if a.levers:
+    if a.levers or a.v6:
         return
     rows = [json.loads(l) for l in jl.read_text().splitlines()]
     rows = [r for r in rows if not r["err"]]
