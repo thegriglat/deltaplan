@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "Документы и CHANGELOG отражают игру без OSM: location-data.md и world-objects.md переписаны (стадии dem/rivers/surface, вода 10 м, built10 и пятна, WebP, версии, сборка встроенных мест при первом выборе, счётчик; процедурные посёлки, мягкая подложка, тропы, просеки), ASSETS.md (пути мест в user://locations, WebP, built10), контракт steam-assets (фраза ODbL без osm.json), findings (тема no-osm), CHANGELOG «В работе».",
+  "commits": [
+    "e14cddb5 NO-6: документация и CHANGELOG без OSM"
+  ],
+  "checks": [
+    {
+      "name": "steam_assets_contracts_sa4",
+      "value": "5/5, весь фильтр steam_assets_contracts 16 тестов 0 упало",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "no_osm_json_docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "В ASSETS.md атрибуция OSM оставлена только у тайлов карты выбора старта, hg_takeoffs.json и tools/research (там данные OSM есть); строки моделей ЛЭП/заборов в ASSETS.md уже отсутствовали."
+  ],
+  "questions": [
+    "SA-К2 оставлен v5 (правка только текста фразы ODbL в контракте): подъём версии потребовал бы правки VERSIONS в tests/contracts/test_steam_assets_contracts.gd вне скоупа. Верно?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept NO-6",
+  "uncertain": [
+    {
+      "where": "docs/guide/world-objects.md, раздел «Посёлки»",
+      "why": "параметры villages (520 м², 0,4, 0,25 и т.д.) и числа домов взяты из конфига и отчётов NO-2/NO-10; описание алгоритма — по конфигу и заголовку village_placer.gd, тело алгоритма целиком не перечитывал",
+      "checked": "сверено с configs/world_objects.json и отчётами"
+    },
+    {
+      "where": "docs/guide/world-objects.md, таблица посадок и config landing",
+      "why": "в configs/world_objects.json в _doc landing.sites ещё упомянуты fences (configs вне скоупа); в доке написано «заборов нет»",
+      "checked": "в landing_site.gd слова fence нет"
+    },
+    {
+      "where": "CHANGELOG.md: «≈ 103 → 80 МБ»",
+      "why": "число пака из отчёта NO-8 (102,9 → 79,8), часть уменьшения — вынос мест, а не WebP",
+      "checked": "отчёт NO-8"
+    }
+  ],
+  "dp_feedback": "dp accept --dry тихо виснет, если в копии нет .godot (нужен godot --import) — выдать понятное сообщение/сделать import сам. dp task sync не нужен для .uid, но сообщение о неотслеживаемых файлах не называет их. Нет команды 'проверить, что ссылки на файлы в docs/guide существуют'.",
+  "extra": {
+    "files": "ASSETS.md CHANGELOG.md docs/contracts/steam-assets.md docs/guide/location-data.md docs/guide/world-objects.md docs/registry/findings.md docs/INDEX.md docs/registry/{contracts,decisions}.md"
+  },
+  "t": "2026-10-10T07:03:18",
+  "by": "executor"
+}
