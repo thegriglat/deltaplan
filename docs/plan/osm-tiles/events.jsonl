@@ -132,3 +132,12 @@
 {"t": "2026-10-10T18:30:58", "by": "main", "task": "OT-10", "ev": "reported", "commits": ["c1126ec5"], "note": "done: OsmPilot: подписи вершин и перевалов через общий NameTag (вынесен из BotGlider, вид бота не изменён), ЛЭП (восстановлен…", "dp_feedback": "dp accept --dry запускается из cwd главной сессии, не копии — неочевидно; картинку не разглядывал (размер 497 КБ)."}
 {"t": "2026-10-10T18:42:20", "by": "coordinator", "task": "OT-8", "ev": "checked", "commits": ["e9f7756c"], "note": "1/4 osm_tiles=FAIL:таймаут; terrain=FAIL:таймаут; world_objects=FAIL:таймаут; no_overpass=ok:0"}
 {"t": "2026-10-10T18:42:21", "by": "coordinator", "task": "OT-8", "ev": "merged", "commits": ["e9f7756c"]}
+{"t": "2026-10-10T18:45:19", "by": "executor", "task": "OT-11", "ev": "checked", "note": "2/3 world_objects=FAIL:тест не загрузился: SCRIPT ER…; osm_tiles=ok:24/24; screenshot=ok:1"}
+{"t": "2026-10-10T18:47:11", "by": "executor", "task": "OT-10", "ev": "checked", "note": "2/3 world_objects=FAIL:тест не загрузился: SCRIPT ER…; osm_tiles=ok:24/24; screenshot=ok:1"}
+{"t": "2026-10-10T18:51:32", "by": "executor", "task": "OT-9", "ev": "reported", "commits": ["b0d1f60c", "следом"], "note": "done: Дороги, реки/каналы, ж/д из тайлов OSM лентами (восстановлен RoadMesher + OsmRoads), просеки вдоль дорог, ж/д и домов O…", "dp_feedback": "После dp task sync новый class_name из слияния давал Parse Error в тестах, пока не сделал godot --import; sync мог бы сам предупреждать/импортировать."}
+{"t": "2026-10-10T18:52:06", "by": "executor", "task": "OT-11", "ev": "checked", "note": "3/3 world_objects=ok:105/105; osm_tiles=ok:24/24; screenshot=ok:1"}
+{"t": "2026-10-10T18:56:15", "by": "executor", "task": "OT-10", "ev": "checked", "note": "3/3 world_objects=ok:104/104; osm_tiles=ok:24/24; screenshot=ok:1"}
+{"t": "2026-10-10T18:56:23", "by": "coordinator", "task": "OT-11", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-10T18:56:23", "by": "coordinator", "task": "OT-11", "ev": "merged", "commits": ["0cf458ab"]}
+{"t": "2026-10-10T18:56:24", "by": "coordinator", "task": "OT-10", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-10T18:56:24", "by": "coordinator", "task": "OT-10", "ev": "merged", "commits": ["6fcae8e9"]}
