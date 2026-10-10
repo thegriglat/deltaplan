@@ -32,3 +32,9 @@
 {"t": "2026-10-10T16:29:41", "by": "coordinator", "task": null, "ev": "note", "note": "dp: задание ревьюера — подсказать формат rerun (список объектов) в dp review --template/ошибке (от ревьюера OT-1)"}
 {"t": "2026-10-10T16:29:53", "by": "coordinator", "task": "OT-2", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-osm-tiles-OT-2"}
 {"t": "2026-10-10T16:29:53", "by": "coordinator", "task": "OT-8", "ev": "started", "note": "dp-engineer, ~/deltaplan-osm-tiles-OT-8"}
+{"t": "2026-10-10T16:36:09", "by": "executor", "task": "OT-5", "ev": "reported", "commits": ["см.", "пустые"], "note": "done: regions.py (plan/check) и тесты готовы; на реальном индексе 275 регионов, 82,7 ГБ, 836 819 тайлов (пограничных 32 615),…", "dp_feedback": "Нужна команда dp для проверки плана на сети без повторных скачиваний; sleep/until-циклы блокируются, пришлось ждать фоном."}
+{"t": "2026-10-10T16:36:45", "by": "executor", "task": "OT-5", "ev": "checked", "note": "5/5 unit=ok:OK; overlap=ok:0; coverage=ok:99.89; max_size=ok:oversize_unlisted=0; cover_done=ok:cover_missing=0"}
+{"t": "2026-10-10T16:36:58", "by": "coordinator", "task": "OT-5", "ev": "accepted", "note": "по отчёту; overlaps_listed принят (склейка O4 снимает дубли); id с / → _ — в O8"}
+{"t": "2026-10-10T16:37:04", "by": "coordinator", "task": "OT-5", "ev": "accepted", "commits": ["82517636"], "note": "5/5 unit=ok:OK; overlap=ok:0; coverage=ok:99.89; max_size=ok:oversize_unlisted=0; cover_done=ok:cover_missing=0"}
+{"t": "2026-10-10T16:37:05", "by": "coordinator", "task": "OT-5", "ev": "merged", "commits": ["82517636"]}
+{"t": "2026-10-10T16:37:05", "by": "coordinator", "task": null, "ev": "note", "note": "dp: нет команды «запустить сетевой скрипт и дождаться» для исполнителя без sleep/until (от OT-5) — dp job start/wait есть, подсказать в task show"}

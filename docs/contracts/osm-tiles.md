@@ -242,6 +242,12 @@ message TileEntry { sint32 j = 1; uint32 i = 2; uint32 bytes = 3; bytes sha256 =
   объединения детей ≥ 99 % площади узла по `.poly`), иначе узел целиком с предупреждением. Сборные регионы,
   пересекающие другие ветви (`dach`, `alps`, `britain-and-ireland`, `us` и т. п.), не берутся. Запись:
   `{id, parent, url, poly_url, md5_url, pbf_bytes (HEAD), tiles: число тайлов cover}`.
+  Уточнения по OT-5 (v1, до потребителей): `id` — id Geofabrik с `/` → `_` (`us_alabama`), исходный — `index_id`;
+  корни-континенты целиком не берутся; узел, больше чем на 40 % лежащий в другом выбранном, убирается;
+  пустой `.poly` Geofabrik заменяется геометрией индекса; в `regions.json` ещё `oversize_exceptions` (регионы
+  > лимита, неделимые — canada 6,5 ГБ, france 5,1 ГБ, japan, united-kingdom, italy, brazil), `composites`,
+  `overlaps_listed` (пары соседей, чьи `.poly` перекрываются > 1 % — допустимо: склейка O4 убирает дубли);
+  пересчёт покрытия без перекачки — `regions.py plan --work … --osmtiles … --recompute-cover`.
 - **Покрытие:** `<work>/cover/<id>.txt` = `osmtiles cover`; `S(t)` — из всех файлов cover.
 - **Состояние** `<work>/state.json` (замена tmp + rename после каждого перехода):
   `{"schema": "osmtiles-state/1", "out": "...", "regions": {"<id>": {"status": "planned|downloading|downloaded|packing|packed|done|failed",
