@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "Написан tools/control_bar/README.md (англ.), ссылки в обе стороны с tools/motion_rig/README.md. Факты и URL только из записки CB-1 и плана CB-2.",
+  "commits": [
+    "f1c96aa6 README + ссылки",
+    "f7220aa0 больше ссылок"
+  ],
+  "checks": [
+    {
+      "name": "file",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "urls",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "ui_names",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "link",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept CB-3",
+  "uncertain": [
+    {
+      "where": "tools/control_bar/README.md, раздел Setting it up in the game",
+      "why": "имена элементов UI (device list, roll/pitch axis, invert, dead zone, expo, Save, Reset) взяты из плана CB-2, не из кода",
+      "checked": "сверить с locale/ui.csv после CB-2"
+    }
+  ],
+  "dp_feedback": "dp accept --dry для urls показывает только число, без списка найденных URL; регэксп [^ )>]+ не видит ссылки в скобках markdown, пришлось угадывать, почему 2 вместо 3.",
+  "t": "2026-10-10T18:45:03",
+  "by": "executor"
+}

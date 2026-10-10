@@ -14,3 +14,8 @@
 {"t": "2026-10-10T18:41:38", "by": "coordinator", "task": "CB-3", "ev": "created", "note": "Инструкция Build your own control bar (англ.)"}
 {"t": "2026-10-10T18:42:15", "by": "coordinator", "task": "CB-2", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-control-bar-CB-2"}
 {"t": "2026-10-10T18:42:15", "by": "coordinator", "task": "CB-3", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-control-bar-CB-3"}
+{"t": "2026-10-10T18:45:03", "by": "executor", "task": "CB-3", "ev": "reported", "commits": ["f1c96aa6", "f7220aa0"], "note": "done: Написан tools/control_bar/README.md (англ.), ссылки в обе стороны с tools/motion_rig/README.md. Факты и URL только из з…", "dp_feedback": "dp accept --dry для urls показывает только число, без списка найденных URL; регэксп [^ )>]+ не видит ссылки в скобках markdown, пришлось угадывать, почему 2 вместо 3."}
+{"t": "2026-10-10T18:45:17", "by": "executor", "task": "CB-3", "ev": "accepted", "note": "4/4 file=ok:exit 0; urls=ok:4; ui_names=ok:3; link=ok:exit 0"}
+{"t": "2026-10-10T18:45:23", "by": "coordinator", "task": "CB-3", "ev": "accepted", "commits": ["870c50d1"], "note": "4/4 file=ok:exit 0; urls=ok:4; ui_names=ok:3; link=ok:exit 0"}
+{"t": "2026-10-10T18:45:24", "by": "coordinator", "task": "CB-3", "ev": "merged", "commits": ["870c50d1"]}
+{"t": "2026-10-10T18:45:24", "by": "coordinator", "task": null, "ev": "note", "note": "dp: (от CB-3) проверка url с regex не видит ссылок в скобках markdown; accept --dry показывает только число — полезно печатать совпадения для num-проверок с wc"}
