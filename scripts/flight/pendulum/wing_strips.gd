@@ -8,6 +8,9 @@ extends RefCounted
 ## скорости, сопротивление — поляра игры CD(CL) за вычетом доли пилота, × cd_scale крыла.
 ## Сваливание полосы — линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); cl_max полос
 ## подобран так, что C_L max всего крыла = поляры (скорость сваливания паспорта, PD-14).
+## Центр давления сорванной части полосы уходит назад по хорде, как у плоской пластины:
+## x/c = 0,25 + 0,25·sin α (≈ 0,38 при 30°, 0,5 при 90°; Fage & Johansen 1927, ARC R&M 1104) —
+## пикирующий момент срыва, без него крыло зависает в глубоком срыве (PD-18); у обтекаемой — cp_chord.
 ## Гибкий парус: антисимметричная часть нагрузки консолей × flex_relief. Флюгерная
 ## устойчивость — «эквивалентный киль» (Cnβ) позади ЦМ. Момент паруса — dcm0 (Cm0).
 ##
@@ -30,10 +33,13 @@ var sxc_b := PackedVector3Array()  ## s × c (для направления по
 var sxn_b := PackedVector3Array()  ## s × n
 var twist := PackedFloat64Array()  ## геометрическая крутка, рад
 var sc := PackedFloat64Array()  ## площадь полосы (хорда × ширина), м²
+var chord := PackedFloat64Array()  ## хорда полосы, м
 var yabs := PackedFloat64Array()  ## |y| / полуразмаха
 var side := PackedFloat64Array()  ## +1 правая, −1 левая
 
 var cos_sweep: float = 1.0
+var cp_chord: float = 0.25  ## точка приложения сил обтекаемой полосы, доля хорды
+var stall_cp_shift := true  ## центр давления сорванной части — назад (pendulum.json → stall_cp_shift)
 var lift_slope: float = 0.0
 var alpha0_root: float = 0.0  ## α нулевой подъёмной силы киля + средняя крутка
 var cl_max: float = 1.0  ## C_L max полосы (поляра или подобранный под неё — match_polar_cl_max)
@@ -91,6 +97,7 @@ func setup(
 	var t := tan(sweep)
 	var washout := deg_to_rad(float(blk.washout_deg))
 	var cp := float(st.cp_chord)
+	cp_chord = cp
 	cos_sweep = cos(sweep)
 	var sl := sin(sweep)
 	var sg := sin(dihedral)
@@ -103,6 +110,7 @@ func setup(
 	sxn_b.resize(n)
 	twist.resize(n)
 	sc.resize(n)
+	chord.resize(n)
 	yabs.resize(n)
 	side.resize(n)
 	var i := 0
@@ -126,6 +134,7 @@ func setup(
 			sxn_b[i] = s_vec.cross(n_vec)
 			twist[i] = -washout * y / half
 			sc[i] = c * half / n_side
+			chord[i] = c
 			yabs[i] = y / half
 			side[i] = s
 			i += 1
@@ -155,6 +164,7 @@ func setup(
 	ind_k = 1.0 / (PI * e * span * span / area)
 	a0_2d = lift_slope / maxf(1.0 - lift_slope * ind_k, 0.2)
 	build_cd_table()
+	stall_cp_shift = bool(pend.get("stall_cp_shift", true))
 	cl_max_wing = wing_cl_max()
 	if bool(pend.get("strip_cl_max_match_polar", true)):
 		match_polar_cl_max()
@@ -317,6 +327,11 @@ func aero(
 		var fi: Vector3 = (ldi * (cli / maxf(sqrt(q2i), 1.0e-9)) - ui * (cdi / maxf(ui.length(), 1.0e-9))) * (qi * sc[i])
 		var fk: Vector3 = (ldk * (clk / maxf(sqrt(q2k), 1.0e-9)) - uk * (cdk / maxf(uk.length(), 1.0e-9))) * (qk * sc[k])
 		f_sum += fi + fk
+		if bi > 0.0 and stall_cp_shift:
+			# центр давления сорванной части — назад по хорде (пластина)
+			rbi -= cbi * (bi * chord[i] * (0.25 * absf(sin(ri)) + 0.25 - cp_chord))
+		if bk > 0.0 and stall_cp_shift:
+			rbk -= cbk * (bk * chord[k] * (0.25 * absf(sin(rk)) + 0.25 - cp_chord))
 		m_sum += rbi.cross(fi) + rbk.cross(fk)
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c

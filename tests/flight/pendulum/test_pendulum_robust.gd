@@ -57,7 +57,7 @@ func _check_turb(name: String, w: String, dt: float) -> void:
 	var r := S.scenario(name, w)
 	var o := _turbulence(w, dt, true)
 	var tag := "%s dt 1/%d" % [w, roundi(1.0 / dt)]
-	_check_bounded(o, tag)
+	_check_bounded(o, tag, w)
 	var k_phi: float = o.std_phi_deg / float(r.std_phi_deg)
 	var k_y: float = o.std_rel_y_m / float(r.std_rel_y_m)
 	check(k_phi > 0.5 and k_phi < 2.0, "%s: СКО крена %.1f° — порядок прототипа (%.1f°)" % [
@@ -68,10 +68,13 @@ func _check_turb(name: String, w: String, dt: float) -> void:
 		tag, o.std_phi_deg, r.std_phi_deg, o.std_rel_y_m, r.std_rel_y_m, o.max_stretch_m, r.max_stretch_m])
 
 
-func _check_bounded(o: Dictionary, tag: String) -> void:
+## sport (PD-18): после сдвига ЦД срыва в болтанке бывает срыв с переворотом (у прототипа так же:
+## dt 1/30 — СКО крена 49°, макс. 174°, растяжение 0,27 м), поэтому для него — только «без развала».
+func _check_bounded(o: Dictionary, tag: String, w := "") -> void:
+	var sport := w == "sport"
 	check(not o.blowup, "%s: без развала и NaN" % tag)
-	check(o.max_stretch_m < 0.1, "%s: цепь держит (растяжение %.3f м)" % [tag, o.max_stretch_m])
-	check(o.max_abs_phi_deg < 60.0, "%s: крен в болтанке ограничен (%.1f°)" % [tag, o.max_abs_phi_deg])
+	check(o.max_stretch_m < (0.35 if sport else 0.1), "%s: цепь держит (растяжение %.3f м)" % [tag, o.max_stretch_m])
+	check(o.max_abs_phi_deg < (180.0 if sport else 60.0), "%s: крен в болтанке ограничен (%.1f°)" % [tag, o.max_abs_phi_deg])
 
 
 func test_turbulence_120hz() -> void:
@@ -90,7 +93,7 @@ func test_turbulence_game_blocks() -> void:
 	for w: String in ["training", "laminar", "sport"]:
 		for dt: float in [1.0 / 120.0, 1.0 / 30.0]:
 			var o := _turbulence(w, dt, false)
-			_check_bounded(o, "%s (игра) dt 1/%d" % [w, roundi(1.0 / dt)])
+			_check_bounded(o, "%s (игра) dt 1/%d" % [w, roundi(1.0 / dt)], w)
 			print("    %s (игра) dt 1/%d: СКО крена %.2f°, макс. %.1f°" % [
 				w, roundi(1.0 / dt), o.std_phi_deg, o.max_abs_phi_deg])
 
