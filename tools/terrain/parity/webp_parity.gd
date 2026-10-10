@@ -27,7 +27,7 @@ func _run() -> void:
 	for id in DirAccess.get_directories_at(new_root):
 		var od := old_root.path_join(id)
 		var nd := new_root.path_join(id)
-		if not DirAccess.dir_exists_absolute(od):
+		if not FileAccess.file_exists(od.path_join("meta.json")) or not FileAccess.file_exists(nd.path_join("meta.json")):
 			continue
 		var ometa: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(od.path_join("meta.json")))
 		var nmeta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(nd.path_join("meta.json")))
@@ -107,8 +107,7 @@ func _read_old(dir: String, meta: Dictionary) -> void:
 
 
 func _read_new(dir: String, meta: Dictionary, hl: GDScript, sl: GDScript) -> void:
-	for info: Dictionary in meta.layers:
-		hl.load_from_file(dir.path_join(info.file), info)
+	hl.load_files(dir, meta.layers)
 	for f in DirAccess.get_files_at(dir):
 		if f.ends_with("detail10.webp"):
 			sl.decode_detail10(dir.path_join(f))

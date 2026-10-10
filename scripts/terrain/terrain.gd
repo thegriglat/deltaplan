@@ -136,8 +136,10 @@ func _read_location(id: String) -> Dictionary:
 	# маски 10 м (WebP) читаются в рабочем потоке, пока распаковываются высоты
 	var masks := _start_mask_decode(dir)
 	var new_layers: Array[HeightLayer] = []
-	for info in meta.layers:
-		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
+	var loaded := HeightLayer.load_files(dir, meta.layers)
+	for k in meta.layers.size():
+		var info: Dictionary = meta.layers[k]
+		var l: HeightLayer = loaded[k]
 		if l == null:
 			load_failed.emit(tr("err_layer_read") % String(info.id))
 			return {}

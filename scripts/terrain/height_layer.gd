@@ -66,6 +66,17 @@ static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	return l
 
 
+## Все слои сразу (файлы читаются параллельно): [HeightLayer или null] в порядке infos.
+static func load_files(dir: String, infos: Array) -> Array:
+	var out := []
+	out.resize(infos.size())
+	var job := func(i: int) -> void:
+		out[i] = load_from_file(dir.path_join(String(infos[i].file)), infos[i])
+	var gid := WorkerThreadPool.add_group_task(job, infos.size(), -1, true)
+	WorkerThreadPool.wait_for_group_task_completion(gid)
+	return out
+
+
 static func _read_webp(path: String) -> Image:
 	var bytes := FileAccess.get_file_as_bytes(path)
 	var img := Image.new()
@@ -113,7 +124,7 @@ static func decode_rgb24(data: PackedByteArray, n: int, h_min: float, step: floa
 	return _join(slots)
 
 
-const CHUNK := 1 << 18
+const CHUNK := 1 << 14
 
 
 static func _chunk_slots(n: int) -> Array:
