@@ -1,0 +1,56 @@
+{
+  "status": "partial",
+  "summary": "world.py (run/status/plan) готов и проходит 16 тестов на заглушке osmtiles + локальном HTTP-сервере с Range; боевой тест KZ+KG ждёт OT-2/OT-4.",
+  "commits": [
+    "18409f49 OT-6: оркестратор world.py, тесты на заглушке"
+  ],
+  "checks": [
+    {
+      "name": "unit",
+      "value": "OK, 16 тестов, 63 с",
+      "pass": true
+    },
+    {
+      "name": "status_done",
+      "value": "ждёт боевого теста",
+      "pass": false
+    },
+    {
+      "name": "resume_same",
+      "value": "ждёт боевого теста",
+      "pass": false
+    },
+    {
+      "name": "manifest",
+      "value": "ждёт боевого теста",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "боевой тест kazakhstan,kyrgyzstan (run_a без прерываний, run_b с kill) и замеры — ждёт OT-2/OT-4",
+    "оценка времени мирового прогона — после замера"
+  ],
+  "questions": [
+    "Раскладка фрагментов O4 в контракте не задана: world.py предполагает <frag-dir>/<регион>/<j>/<i>.dpt и <frag-dir>/<регион>.pack.json (удаляет фрагменты склеенных тайлов по этому пути). Совпадает ли с OT-2? Если нет — поправлю константу."
+  ],
+  "how_to_check": "python3 -m unittest tools/osm_tiles/tests/test_world.py; боевой: world.py run --work …/OT-6/run_a --out …/out_a --regions kazakhstan,kyrgyzstan --seed-from /home/greg/deltaplan_data/osm_tiles/OT-5",
+  "uncertain": [
+    {
+      "where": "tools/osm_tiles/world.py: Ctx.pack/run_finalize",
+      "why": "формат --report finalize ({j,i,bytes,sha256}) и путь фрагментов взяты из O5/O4 без реального бинаря",
+      "checked": "только заглушка по тексту контракта"
+    },
+    {
+      "where": "tools/osm_tiles/world.py: PDEATHSIG",
+      "why": "дочерний osmtiles гибнет при kill -9 world.py только на Linux (prctl); на Win/mac осиротевший pack может дожить",
+      "checked": "на Linux тесты kill -9 проходят"
+    }
+  ],
+  "dp_feedback": "dp accept --dry гоняет 63-секундный unit целиком; не хватило способа запускать одну проверку.",
+  "seconds_kz_kg": "ждёт боевого теста",
+  "peak_disk_gb": "ждёт боевого теста",
+  "peak_rss_mb": "ждёт боевого теста",
+  "world_eta_hours": "ждёт боевого теста",
+  "t": "2026-10-10T16:51:38",
+  "by": "executor"
+}

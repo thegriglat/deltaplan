@@ -1,0 +1,171 @@
+{
+  "status": "done",
+  "summary": "osmtiles pack/finalize (O4, O5) на Rust: три параллельных прохода по PBF со своим индексом нужных узлов, геометрия O3 (клип, ДП 1 м, мин. прямоугольник, мультиполигоны), фрагменты и склейка O4 — задачи раздаются из очереди, тяжёлые тайлы первыми. Добавлены pack_region.sh, исправлен cover через антимеридиан, сделана фикстура 3×3 (Бохинь/Блед), правки compare_ref по решению координатора. dp accept OT-2 --dry: 9 из 9.",
+  "commits": [
+    "27684757 pack/finalize, pack_region.sh, cover через антимеридиан, compare_ref (+0,5 %, cover ∩ окно эталона)",
+    "36575868 фикстура клиента 3×3 вокруг Бохиня/Бледа (1,08 МБ)",
+    "31b5e1ed pack_region.sh: LC_NUMERIC=C для bash time"
+  ],
+  "checks": [
+    {
+      "name": "cargo_test",
+      "value": "31 тест (19 unit + 9 contracts + 3 pack_finalize)",
+      "pass": true
+    },
+    {
+      "name": "slo_compare",
+      "value": "44/44 PASS; числа объектов совпадают (дома +0,002 %), длина roads −0,028 %, raw ±0,004 %, zstd от −0,95 % до +2,7 % (vertical), файлы +0,39 % к сумме потоков",
+      "pass": true
+    },
+    {
+      "name": "almaty_compare",
+      "value": "17/17 PASS; дома +0,008 %, roads/track 0 %, длина −0,011/−0,003 %, zstd дома +0,47 %",
+      "pass": true
+    },
+    {
+      "name": "deterministic",
+      "value": "same",
+      "pass": true
+    },
+    {
+      "name": "cpu_pack_kz",
+      "value": "15.83",
+      "pass": true
+    },
+    {
+      "name": "cpu_finalize_kz",
+      "value": "16.11",
+      "pass": true
+    },
+    {
+      "name": "summary_fields",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "fixture_size",
+      "value": "1082349",
+      "pass": true
+    },
+    {
+      "name": "fixture_tiles",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "estimate_planet",
+      "value": "7,2–7,4 ГБ (< 9 ГБ, шлюз не нужен)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "--tmp у pack принимается, но не используется: osmium не вызывается, временных файлов нет"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "cd ~/deltaplan-osm-tiles-OT-2 && /home/greg/deltaplan/tools/dp accept OT-2 --dry -j 1 (под dp lock cpu; на Казахстане ≈ 6 с, всё вместе < 1 мин)",
+  "uncertain": [
+    {
+      "where": "tools/osm_tiles/packer/src/pack.rs (relations), geom.rs assemble_rings",
+      "why": "мультиполигоны собираю сам (кольца по общим узлам, внешнее/дыра — по вложенности), без проверок osmium на самопересечения; неполное отношение пропускается целиком",
+      "checked": "дома ≥ 50 м²: Словения +16 из 786 599 (+0,002 %), Алматы +42 из 517 965 (+0,008 %) — вероятно, это кривые полигоны, которые osmium отбрасывает"
+    },
+    {
+      "where": "geom.rs simplify",
+      "why": "ДП по каждой части отдельно; у эталона shapely simplify с preserve_topology=True (TopologyPreservingSimplifier)",
+      "checked": "числа объектов равны, raw ±0,01 %, длина в пределах 0,03 %"
+    },
+    {
+      "where": "tags.rs node_point",
+      "why": "бит comm (tower:type=communication) ставлю у любого VERTICAL, как написано в O3; эталон отмечал только mast/tower",
+      "checked": "vertical zstd +2,7 % в допуске 5 %; число объектов совпадает"
+    },
+    {
+      "where": "compare_ref.py in_rect",
+      "why": "«прямоугольник эталона» сделал по поясам: для каждого j эталона i от min до max. У Алматы окно 5×5 по neighbors, а шаг i в поясах разный — простой прямоугольник min/max(j)×min/max(i) давал 56 лишних тайлов",
+      "checked": "тест test_cover_limited_to_ref_rect, test_cover_extra_and_outside (лишний тайл внутри окна — FAIL через mock)"
+    },
+    {
+      "where": "память на регион 2 ГБ",
+      "why": "экстраполяция, не замер",
+      "checked": "пик RSS pack: Казахстан 1155 МБ при PBF 224 МБ (24,5 млн ссылок путей, 3,4 млн объектов, ≈ 47 Б на ссылку пути вместе с отображённым файлом); Словения 749 МБ при 314 МБ. Худшее отношение 5,2× → PBF 2 ГБ ≈ 10–12 ГБ (при ≈ 250 млн ссылок путей ≈ 11,7 ГБ) — в пределах 16 ГБ. До переделки (склейка WayBuf, признаки по 60 Б на путь) пик был 1,8 ГБ, сейчас — таблица признаков на блоб, без склейки"
+    }
+  ],
+  "dp_feedback": "dp job --lock cpu отдаёт задаче один слот, а моему прогону нужны все 20 потоков. При этом рядом шёл чужой godot (nice 10, 1950 % CPU), и загрузка ядер на коротких стадиях (encode 0,3 с) плавала от 6 до 16 в отдельных прогонах. Не хватает режима замка «вся машина» (exclusive) для замеров загрузки CPU, или хотя бы предупреждения в dp lock status о чужой нагрузке не под замком.",
+  "extra": {
+    "kazakhstan": {
+      "pbf_mb": 224,
+      "seconds_total": 5.38,
+      "pack_s": 2.78,
+      "finalize_s": 1.34,
+      "stages_pack": {
+        "scan": [
+          0.79,
+          17.9
+        ],
+        "members": [
+          0.44,
+          16.8
+        ],
+        "nodes": [
+          0.66,
+          12.7
+        ],
+        "geometry": [
+          0.53,
+          17.6
+        ],
+        "encode": [
+          0.3,
+          15.8
+        ]
+      },
+      "finalize_cores": 16.1,
+      "peak_rss_mb": 1155,
+      "tiles": 6119,
+      "cover_tiles": 7421,
+      "bytes_total": 30083304,
+      "max_tile_bytes": 752107,
+      "objects": 3433620
+    },
+    "slovenia": {
+      "pbf_mb": 314,
+      "seconds_total": 3.51,
+      "pack_s": 2.61,
+      "finalize_s": 0.55,
+      "stages_pack": {
+        "scan": [
+          1.31,
+          10.4
+        ],
+        "members": [
+          0.35,
+          18.1
+        ],
+        "nodes": [
+          0.58,
+          16.3
+        ],
+        "geometry": [
+          0.25,
+          18.0
+        ],
+        "encode": [
+          0.08,
+          15.7
+        ]
+      },
+      "finalize_cores": 15.9,
+      "peak_rss_mb": 749,
+      "tiles": 80,
+      "bytes_total": 11238064,
+      "max_tile_bytes": 467464,
+      "objects": 1084975
+    },
+    "reference_time": "эталон Python: Словения разбор 486 с, у нас pack 2,6 с",
+    "node_index_choice": "свой индекс вместо osmium add-locations-to-ways: отсортированный список id только нужных узлов (узлы отобранных путей и членов отношений) + массив координат; проходы по блобам параллельны (rayon, mmap), без временных файлов и однопоточных шагов osmium",
+    "estimate_planet": "/home/greg/deltaplan_data/osm_tiles/OT-2/estimate_planet.json; slovenia 7,14 ГБ, almaty (весь Казахстан) 7,37 ГБ + накладные 14–17 МБ"
+  },
+  "t": "2026-10-10T16:55:10",
+  "by": "executor"
+}

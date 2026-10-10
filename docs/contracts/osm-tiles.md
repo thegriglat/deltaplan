@@ -5,7 +5,7 @@ module: "osm-tiles"
 updated: "2026-10-10"
 summary: "Контракты osm-tiles: мировая сетка 20 км (O1), файл тайла (O2), потоки и кодировка (O3), фрагменты и склейка регионов (O4), CLI упаковщика (O5), сводка stats (O6), манифест (O7), оркестратор и его состояние (O8), клиент в игре (O9)."
 related: ["docs/plan/osm-tiles.md", "docs/plan/osm_vector_pack.md", "docs/plan/no-osm.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}, {"id": "O7", "version": 1}, {"id": "O8", "version": 1}, {"id": "O9", "version": 1}]
+contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}, {"id": "O7", "version": 1}, {"id": "O8", "version": 2}, {"id": "O9", "version": 1}]
 ---
 # Контракты модуля osm-tiles
 
@@ -231,7 +231,14 @@ message TileEntry { sint32 j = 1; uint32 i = 2; uint32 bytes = 3; bytes sha256 =
 ```
 `sources.json` — список объектов с теми же полями. Манифест строится по файлам на диске (истина — файлы).
 
-## O8. Оркестратор `world.py` и регионы — версия 1
+## O8. Оркестратор `world.py` и регионы — версия 2
+v2 (10.10, по замеру OT-2: пик памяти `pack` до 5,2× размера `.pbf` → canada 6,5 ГБ ≈ 34 ГБ > 31 ГБ ОЗУ):
+регион с `.pbf` > `--max-region-gb` перед `pack` режется одним проходом `osmium extract --strategy smart -c
+<config>` на `k = ceil(размер / лимит)` частей — прямоугольники по долготе (границы — по долготе, общие для
+всех поясов, иначе части не покрывают регион), высота — bbox `.poly` региона; часть — регион
+`<id>__p<n>` (`.poly` = прямоугольник, `cover` части = cover(прямоугольник) ∩ cover(регион)), исходная выгрузка
+удаляется после разрезки, дальше — как обычный регион (склейка O4 снимает дубли путей на швах).
+Потребители: OT-6 (реализация), OT-12.
 Владелец: OT-5 (`regions.py`), OT-6 (`world.py`). Потребитель — пользователь.
 - `python3 tools/osm_tiles/world.py run --work <dir> --out <корень> [--regions id1,id2 | --all]
   [--max-region-gb 2.0] [--keep-free-gb 20] [--threads N]`; `… status --work <dir>`; `… plan --work <dir>
