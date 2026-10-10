@@ -1,7 +1,7 @@
 class_name WorldClearings
 extends RefCounted
 ## Просеки для расстановки деревьев рельефа: где деревьев быть не должно —
-## поля посадок, тропы к стартам.
+## поля посадок, тропы к стартам, дома посёлков.
 ## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из
 ## configs/locations/<id>.json (центр, landing_sites) и
 ## configs/world_objects.json (посадки, параметры — раздел clearings).
@@ -46,9 +46,24 @@ static func build_for(location_id: String) -> WorldClearings:
 		var height_fn := _load_height_fn(dem_dir)
 		if height_fn.is_valid():
 			tracks = StartTracks.plan(starts, cfg.start_tracks, height_fn)
+	var houses: Array = []
+	var dem_dir2 := String(loc.get("data_dir", "res://data/terrain/" + location_id))
+	var hf := _load_height_fn(dem_dir2)
+	if hf.is_valid():
+		houses = VillagePlacer.plan(patches_for_location(location_id), location_id, cfg.villages, hf)
 	var c := WorldClearings.new()
-	c.build(landings, cfg, half, tracks)
+	c.build(landings, cfg, half, tracks, houses)
 	return c
+
+
+## Пятна застройки места по id (без ноды Terrain); пустые, если места или файлов нет.
+static func patches_for_location(location_id: String) -> BuiltPatches:
+	var loc: Dictionary = Locations.config(location_id)
+	if loc.is_empty():
+		return BuiltPatches.new()
+	return VillagePlacer.patches_for_dir(
+		String(loc.get("data_dir", "res://data/terrain/" + location_id))
+	)
 
 
 ## Высота по данным рельефа локации (<data_dir>/meta.json), как Terrain.height_at, но без
@@ -75,7 +90,7 @@ static func _load_height_fn(dir: String) -> Callable:
 ## landings — спецификации посадок с x, z (мир).
 ## tracks — тропы к стартам (StartTracks.plan), мир (x, z) — не растут деревья.
 func build(
-	landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = []
+	landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = [], houses: Array = []
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	var cc: Dictionary = cfg.clearings
@@ -89,6 +104,9 @@ func build(
 	for pts in tracks:
 		if (pts as PackedVector2Array).size() >= 2:
 			stamp_line(pts, track_half)
+	var margin := float(cc.get("house_margin_m", 3.0))
+	for b: Array in houses:
+		stamp(float(b[0]), float(b[1]), maxf(float(b[2]), float(b[3])) * 0.5 + margin)
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 
 
