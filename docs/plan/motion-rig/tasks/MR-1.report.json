@@ -1,0 +1,49 @@
+{
+  "status": "partial",
+  "summary": "Записка docs/research/motion-rig-protocols.md готова. Главный вывод: для DOF Reality (родной софт Sim Racing Studio) есть открытый UDP API (порт 33001, бинарный пакет 236 байт, MIT); у SimTools и FlyPT Mover общего UDP-входа нет. Рекомендация: один формат SRS API v102.",
+  "commits": [
+    "0574f96e записка о протоколах платформ"
+  ],
+  "checks": [
+    {
+      "name": "note_exists",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "has_urls",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "exit!=0 из-за чужой ошибки: docs/plan/motion-rig.md related — не список (YAML-блок вместо [..]); моя записка замечаний не имеет",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Знаки осей SRS API не заданы в документации — не проверены",
+    "Частота/задержки: нормативных данных нет",
+    "SimTools 3, формат источника SimTools во FlyPT, supported-games и Knowledge Base DOF не прочитаны/не найдены"
+  ],
+  "questions": [
+    "Поправить related в docs/plan/motion-rig.md на inline-список (я не трогал: вне скоупа). Нужна ли вторая реализация (SimTools-плагин) — моя рекомендация нет."
+  ],
+  "images": [],
+  "how_to_check": "dp accept MR-1 --dry",
+  "uncertain": [
+    {
+      "where": "docs/research/motion-rig-protocols.md, раздел Формат",
+      "why": "Знаки/нулевая точка heave (с гравитацией 1 g или 0), единицы speed, разные диапазоны в README и main.py",
+      "checked": "прочитаны README, api/python/main.py, Unity Telemetry.cs из gitlab srsapi; знаки не заданы нигде"
+    },
+    {
+      "where": "там же, про отказ DOF от SimTools в 2023",
+      "why": "только цитата пользователя форума",
+      "checked": "пост xsimulator 258427, сайт DOF этого не говорит"
+    }
+  ],
+  "dp_feedback": "dp docs check не принимает YAML-блочный список в related (план, созданный dp plan/агентом, падает). Хорошо бы либо принимать, либо dp docs init генерировал inline.",
+  "t": "2026-10-10T17:12:29",
+  "by": "executor"
+}

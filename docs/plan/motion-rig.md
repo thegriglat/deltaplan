@@ -4,9 +4,7 @@ status: active
 module: motion-rig
 updated: 2026-10-10
 summary: Вывод движения на платформы подвижности (motion rig) — DOF Reality H-серия через SimTools/FlyPT Mover, общий generic UDP
-related:
-  - docs/contracts/motion-rig.md
-  - docs/research/motion-rig-protocols.md
+related: ["docs/contracts/motion-rig.md", "docs/research/motion-rig-protocols.md"]
 ---
 
 # motion-rig — вывод движения на платформы подвижности

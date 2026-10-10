@@ -1,2 +1,4 @@
 {"t": "2026-10-10T17:08:02", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
 {"t": "2026-10-10T17:08:28", "by": "coordinator", "task": "MR-1", "ev": "created", "note": "Протоколы платформ подвижности: DOF Reality H-серия, SimTools, FlyPT Mover"}
+{"t": "2026-10-10T17:09:30", "by": "coordinator", "task": "MR-1", "ev": "started", "note": "dp-researcher (sonnet), ~/deltaplan-motion-rig-MR-1"}
+{"t": "2026-10-10T17:12:29", "by": "executor", "task": "MR-1", "ev": "reported", "commits": ["0574f96e"], "note": "partial: Записка docs/research/motion-rig-protocols.md готова. Главный вывод: для DOF Reality (родной софт Sim Racing Studio) ес…", "dp_feedback": "dp docs check не принимает YAML-блочный список в related (план, созданный dp plan/агентом, падает). Хорошо бы либо принимать, либо dp docs init генерировал inline."}
