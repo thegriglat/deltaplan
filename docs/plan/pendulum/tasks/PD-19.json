@@ -1,0 +1,51 @@
+{
+  "id": "PD-19",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Срыв полос: без вечного срыва и без переворотов в болтанке, посадка учебного",
+  "goal": "Модель сорванной полосы (ЦД, сопротивление и подъёмная после срыва) даёт одновременно: выход из пикирования без вечного срыва на 48 крыльях, болтанку σ 1 м/с без срыва и переворота, мягкую посадку учебного в штиль; физически обоснованно.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-19",
+  "branch": "pendulum/PD-19",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum/wing_strips.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "configs/pendulum.json",
+    "tests/flight/pendulum",
+    "tests/contracts/test_pendulum_contracts_k2_ground.gd",
+    "tools/research/pendulum",
+    "tools/flight/pendulum_compare.gd",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "configs/wings"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T04:14:25"
+}
