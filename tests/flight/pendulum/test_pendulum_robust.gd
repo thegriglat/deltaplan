@@ -139,3 +139,17 @@ func test_reset_on_ground_starts_in_air() -> void:
 	check(m.mode == FlightModel.Mode.AIR, "v1: старт в воздухе")
 	approx(m.position.y, 300.0, 0.5, "на 100 м выше")
 	approx(m.telemetry.heading_deg, 30.0, 0.5, "курс")
+
+
+func test_reset_wind_and_airspeed() -> void:
+	var m := S.make("sport")
+	m.reset_in_air(Vector3(0.0, 500.0, 0.0), 90.0)
+	var v_trim := m.telemetry.airspeed
+	var wind := Vector3(0.0, 0.0, 4.0)
+	m.reset_in_air(Vector3(0.0, 500.0, 0.0), 90.0, 0.0, wind)
+	var air := func(_p: Vector3) -> Vector3: return wind
+	m.step(S.DT, S.input(), air, Callable())
+	approx(m.telemetry.airspeed, v_trim, 0.1, "ветер при сбросе: воздушная скорость — трим")
+	approx(m.velocity.z, wind.z, 0.3, "путевая скорость несёт ветер (курс восток, ветер на юг)")
+	m.reset_in_air(Vector3(0.0, 500.0, 0.0), 0.0, 15.0)
+	approx(m.telemetry.airspeed, 15.0, 0.05, "airspeed_ms задаёт воздушную скорость")
