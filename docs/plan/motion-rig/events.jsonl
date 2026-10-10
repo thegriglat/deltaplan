@@ -31,3 +31,8 @@
 {"t": "2026-10-10T18:11:51", "by": "executor", "task": "MR-3", "ev": "reported", "commits": ["2fdd6d68"], "note": "done: Написаны docs/guide/motion-rig.md (ru), tools/motion_rig/README.md (en, для игрока), строка в CHANGELOG «В работе»; doc…"}
 {"t": "2026-10-10T18:12:17", "by": "executor", "task": "MR-3", "ev": "accepted", "note": "4/4 guide=ok:exit 0; docs_check=ok:exit 0; readme_en=ok:12; changelog=ok:2"}
 {"t": "2026-10-10T18:12:20", "by": "coordinator", "task": "MR-3", "ev": "merged", "commits": ["1ff389cf"]}
+{"t": "2026-10-10T18:13:39", "by": "executor", "task": "MR-4", "ev": "reported", "commits": ["f64cfa45"], "note": "done: Панель настроек разделена на 5 вкладок (TabContainer): Игра (язык, имя пилота, модель ветра, скорость времени, другие п…", "dp_feedback": "После правки locale/ui.csv первый godot --import падает (аварийный останов), оставляя ui.en.translation-XXXX; второй прогон проходит. Хорошо бы dp accept сам делал import."}
+{"t": "2026-10-10T18:14:25", "by": "executor", "task": "MR-4", "ev": "checked", "note": "3/3 tests/ui/=ok:110/110; motion_rig=ok:25/25; tests/steam/=ok:40/40"}
+{"t": "2026-10-10T18:14:30", "by": "coordinator", "task": "MR-4", "ev": "accepted", "note": "по отчёту (UI, перенос строк; общая прокрутка вместо своей на вкладку — приемлемо)"}
+{"t": "2026-10-10T18:14:31", "by": "coordinator", "task": "MR-4", "ev": "merged", "commits": ["fb833cb9"]}
+{"t": "2026-10-10T18:26:13", "by": "coordinator", "task": "MR-2", "ev": "checked", "commits": ["e829d65a"], "note": "2/7 motion_rig=FAIL:таймаут; tests/flight/=FAIL:таймаут; tests/ui/=FAIL:таймаут; tests/steam/=FAIL:таймаут; recv_selftest=ok:exit 0; loop=FAIL:exit 1; нет совпадения; layout=ok:exit 0; layout OK"}
