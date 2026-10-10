@@ -49,3 +49,4 @@
 {"t": "2026-10-10T05:36:58", "by": "coordinator", "task": "NO-4", "ev": "merged", "commits": ["6a94ddb"]}
 {"t": "2026-10-10T05:37:13", "by": "coordinator", "task": "NO-7", "ev": "edited", "note": "contract:N4", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-10-10T05:37:13", "by": "coordinator", "task": "NO-7", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-no-osm-NO-7; параллельно NO-9 в стадиях — dp task sync"}
+{"t": "2026-10-10T05:37:49", "by": "coordinator", "task": "NO-8", "ev": "created", "note": "Встроенные места собираются при первом выборе (не в паке)"}
