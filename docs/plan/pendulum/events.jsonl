@@ -6,3 +6,7 @@
 {"t": "2026-10-11T00:51:15", "by": "coordinator", "task": "PD-1", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-1"}
 {"t": "2026-10-11T00:51:15", "by": "coordinator", "task": "PD-2", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-2"}
 {"t": "2026-10-11T00:51:33", "by": "coordinator", "task": "PD-5", "ev": "created", "note": "Экран «Полёт…»: вкладки «Место» / «Аппарат», 4 параметра маятника"}
+{"t": "2026-10-11T00:51:36", "by": "coordinator", "task": "PD-5", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-5"}
+{"t": "2026-10-11T00:53:53", "by": "executor", "task": "PD-5", "ev": "reported", "commits": ["3cb5f9c3"], "note": "done: FlightSettings.apparatus (4 ключа PD-К3, to_dict/from_dict, зажим в диапазоны и шаги, пропуски — умолчания); экран «Пол…", "dp_feedback": ["dp task show --full не показал текст контракта; docs/contracts/pendulum.md в основной копии отсутствует (только в ветке) — искал вручную"]}
+{"t": "2026-10-11T00:54:08", "by": "coordinator", "task": "PD-5", "ev": "checked", "note": "3/3 pendulum_contracts_k3=ok:3/3; menu_setup=ok:12/12; settings_tabs=ok:1/1"}
+{"t": "2026-10-11T00:54:12", "by": "coordinator", "task": "PD-5", "ev": "accepted", "note": "по отчёту: UI и хранение, проверки 3/3; чтение apparatus_defaults из файла — перепроверить k3 после влития PD-1"}
