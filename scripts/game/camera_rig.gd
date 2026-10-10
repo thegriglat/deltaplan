@@ -355,7 +355,7 @@ func _apply_body_mode(c: Dictionary) -> void:
 	var vis := head.get_parent() as GliderVisual
 	if vis == null:
 		return
-	vis.set_cockpit_body("hands" if not _is_back(c) else "none")
+	vis.set_cockpit_body("hands")
 
 
 ## Тряска головы в болтанке (cockpit.shake): доля тряски крыла с трапецией (GliderVisual.buzz,
