@@ -163,6 +163,8 @@ var _tension_avg: float = 0.0
 var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
 var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля — оси B
 const CONTACT_NAMES := ["nose", "wingtip", "wingtip", "keel"]
+## Посадка: консоль на земле раньше ступней — авария, если крыло накренено хотя бы на это, рад.
+const LANDING_TIP_BANK := deg_to_rad(10.0)
 
 
 static func ned(g: Vector3) -> Vector3:
@@ -470,10 +472,11 @@ func _ground_alt(ground_fn: Callable, p: Vector3) -> float:
 
 
 ## Первая точка крыла (нос, консоли, конец киля) на земле или ниже; −1 — нет.
-## keel — считать ли конец киля.
-func _wing_contact(ground_fn: Callable, keel: bool) -> int:
+## landing — касание в полёте: конец киля и консоли при ровном крыле (|крен| < LANDING_TIP_BANK:
+## задранный на выравнивании парус задевает землю задней кромкой) аварией не считаются.
+func _wing_contact(ground_fn: Callable, landing: bool) -> int:
 	for i in _contact_pts.size():
-		if i == 3 and not keel:
+		if landing and (i == 3 or (i != 0 and absf(bank) < LANDING_TIP_BANK)):
 			continue
 		var p: Vector3 = _pos + _R * _contact_pts[i]
 		if -(_od + p.z) <= _ground_alt(ground_fn, p):
@@ -484,7 +487,7 @@ func _wing_contact(ground_fn: Callable, keel: bool) -> int:
 ## На земле: срыв (крыло коснулось земли, пилот упал) или отрыв (ступни над землёй без опоры,
 ## стропа под нагрузкой — из сил, без порога скорости).
 func _check_ground(ground_fn: Callable) -> void:
-	var c := _wing_contact(ground_fn, true)
+	var c := _wing_contact(ground_fn, false)
 	var xp := chain.pilot()
 	if c >= 0:
 		_fail(CONTACT_NAMES[c])
@@ -510,7 +513,7 @@ func _check_after_liftoff(dt: float, ground_fn: Callable) -> void:
 		mode = FlightModel.Mode.GROUND
 		_update_outputs(Callable(), ground_fn)
 		return
-	var c := _wing_contact(ground_fn, true)
+	var c := _wing_contact(ground_fn, false)
 	if c >= 0:
 		_fail(CONTACT_NAMES[c])
 		return
@@ -787,7 +790,7 @@ func _check_touchdown(ground_fn: Callable) -> void:
 	_feet_agl = feet.y - gh
 	var wing_hit := -1
 	if _feet_agl < span:
-		wing_hit = _wing_contact(ground_fn, false)
+		wing_hit = _wing_contact(ground_fn, true)
 	if _feet_agl > 0.0 and wing_hit < 0:
 		return
 	var lc: Dictionary = flight.landing

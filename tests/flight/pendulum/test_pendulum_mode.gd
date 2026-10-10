@@ -1,6 +1,6 @@
 extends TestCase
 ## Режим управления «Маятник» (PD-4): Glider выбирает модель по controls.roll_control_mode,
-## apparatus доходит до PendulumModel, старт всегда в воздухе, телеметрия MR-К1 — из маятника,
+## apparatus доходит до PendulumModel, старт с земли и разбег (PD-3), телеметрия MR-К1 — из маятника,
 ## перегрузка — по стропе и рукам (PD-К1).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
@@ -38,31 +38,37 @@ func test_apparatus_reaches_model() -> void:
 	g.free()
 
 
-func test_start_in_air_and_telemetry() -> void:
+func test_start_on_ground_and_telemetry() -> void:
 	var g := make_glider("pendulum")
-	var ground := func(_x: float, _z: float) -> float: return 0.0
+	var ground := func(_x: float, z: float) -> float: return 0.2 * z  # склон вниз на север
 	g.set_ground_fn(ground)
 	g.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
-	# земли маятника нет: reset_on_ground → полёт над точкой, на триме
-	g.reset_on_ground(Vector3(10.0, 0.0, 20.0), 90.0)
-	check(g.phase() == "flying", "после reset_on_ground — в воздухе (%s)" % g.phase())
+	# v2: reset_on_ground — пилот стоит на склоне с крылом на руках
+	g.reset_on_ground(Vector3(10.0, 50.0, 20.0), 0.0)
+	check(g.phase() == "standing", "после reset_on_ground — стоит (%s)" % g.phase())
 	var m: PendulumModel = g.model
-	check(m.mode == FlightModel.Mode.AIR, "режим AIR")
+	check(m.mode == FlightModel.Mode.GROUND, "режим GROUND")
+	approx(m.pilot_position.y - 1.0, 4.0, 0.1, "ступни на земле (высота из ground_fn)")
+	g.control.run = true
+	var t := 0.0
+	while m.mode == FlightModel.Mode.GROUND and t < 20.0:
+		g.step(1.0 / 120.0)
+		t += 1.0 / 120.0
+	check(m.mode == FlightModel.Mode.AIR, "разбег → отрыв за %.1f с" % t)
+	g.control.run = false
 	for i in 240:
 		g.step(1.0 / 120.0)
-	var t := g.get_telemetry()
-	check(t.phase == "flying", "фаза flying")
-	check(t.altitude_agl > 50.0, "высота над землёй %.0f м" % t.altitude_agl)
-	check(t.airspeed > 5.0 and t.airspeed < 20.0, "скорость трима %.1f м/с" % t.airspeed)
+	var tel := g.get_telemetry()
+	check(tel.phase == "flying", "фаза flying")
+	check(tel.airspeed > 5.0 and tel.airspeed < 20.0, "скорость %.1f м/с" % tel.airspeed)
 	# MR-К1: точка пилота — из маятника, не крыло
-	check(t.pilot_position.is_equal_approx(m.pilot_position), "pilot_position из маятника")
-	check(t.pilot_velocity.is_equal_approx(m.pilot_velocity), "pilot_velocity из маятника")
-	check(t.pilot_basis.is_equal_approx(m.pilot_basis), "pilot_basis из маятника")
-	var off := t.position.distance_to(t.pilot_position)
-	check(off > 0.3 and off < 2.0, "ЦМ пилота в %.2f м от узла Glider (ноги), не в нём" % off)
-	# перегрузка — по стропе и рукам: на планировании около 1 g
-	check(t.load_factor > 0.7 and t.load_factor < 1.4, "перегрузка %.2f g" % t.load_factor)
-	approx(t.load_factor, m.load.load_factor, 1e-9, "load_factor = LoadMeter модели")
+	check(tel.pilot_position.is_equal_approx(m.pilot_position), "pilot_position из маятника")
+	check(tel.pilot_velocity.is_equal_approx(m.pilot_velocity), "pilot_velocity из маятника")
+	check(tel.pilot_basis.is_equal_approx(m.pilot_basis), "pilot_basis из маятника")
+	var off := tel.position.distance_to(tel.pilot_position)
+	check(off > 0.3 and off < 2.5, "ЦМ пилота в %.2f м от узла Glider, не в нём" % off)
+	check(tel.load_factor > 0.5 and tel.load_factor < 1.6, "перегрузка %.2f g" % tel.load_factor)
+	approx(tel.load_factor, m.load.load_factor, 1e-9, "load_factor = LoadMeter модели")
 	g.free()
 
 

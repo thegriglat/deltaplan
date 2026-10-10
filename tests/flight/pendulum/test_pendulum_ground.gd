@@ -197,3 +197,19 @@ func test_wing_drop_fails() -> void:
 		check(got == ["wingtip"], "%s: takeoff_failed(wingtip): %s" % [w, got])
 		check(m.phase() == "failed", "%s: фаза failed" % w)
 		print("    падение на крыло %s: %.1f с, крен %.0f°" % [w, t, rad_to_deg(m.bank)])
+
+
+## Любой dt игры (1/30…1/240): стоит и бежит без NaN, отрыв.
+func test_any_dt() -> void:
+	for dt: float in [1.0 / 30.0, 1.0 / 60.0, 1.0 / 240.0]:
+		var m := S.make("sport")
+		var g := slope_fn(SLOPE_DEG)
+		m.reset_on_ground(Vector3.ZERO, 0.0)
+		var inp := S.input()
+		var t := 0.0
+		while t < 15.0 and m.mode != FlightModel.Mode.AIR:
+			inp.run = t > 1.0
+			m.step(dt, inp, Callable(), g)
+			t += dt
+		check(S.finite(m), "dt %.4f: без NaN" % dt)
+		check(m.mode == FlightModel.Mode.AIR, "dt %.4f: отрыв за %.1f с" % [dt, t])
