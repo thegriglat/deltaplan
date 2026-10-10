@@ -1,7 +1,7 @@
 extends TestCase
 ## Контрактные тесты osm-look (docs/contracts/osm-look.md): версии L1–L6, L1 запись дома (O9 v2),
 ## L2 BuildingStyle (classify/adjust — форма), L4 провод ветра OsmLayer.update_wind. Модели L5/L6 —
-## tests/contracts/test_osm_look_models.gd (создают OL-2/OL-3). Правка контракта (версия +1) — вместе с этим файлом.
+## tests/contracts/test_osm_look_models_l5.gd / _l6.gd (создают OL-2/OL-3). Правка контракта (версия +1) — вместе с этим файлом.
 ## Скрипты нового кода грузятся по пути (load), чтобы файл разбирался и до их появления.
 
 const DOC := "res://docs/contracts/osm-look.md"

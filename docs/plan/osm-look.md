@@ -39,12 +39,12 @@ related: ["docs/contracts/osm-look.md", "docs/contracts/osm-tiles.md", "docs/gui
 
 ### OL-2 Модели ЛЭП, мачт, телебашни, трубы
 `dp-engineer`. L5. `tools/blender/build_osm_objects.py` → `assets/models/osm/*.glb`, `OsmPilot._power/_verticals`
-на моделях (MultiMesh), `verticals.skip`, `ASSETS.md`. Приёмка: `test_osm_look_models` (L5), `world_objects`,
+на моделях (MultiMesh), `verticals.skip`, `ASSETS.md`. Приёмка: `test_osm_look_models_l5`, `world_objects`,
 кадры каждой модели. Оценка — средняя.
 
 ### OL-3 Ветряки и кабинки канатки
 `dp-engineer`. L6 (+ L4 как потребитель). `tools/blender/build_osm_wind_cable.py`, `osm_wind_turbines.gd`,
-`osm_cable_cars.gd`, части в `OsmLayer`, `ASSETS.md`. Приёмка: `test_osm_look_models` (L6), `world_objects`,
+`osm_cable_cars.gd`, части в `OsmLayer`, `ASSETS.md`. Приёмка: `test_osm_look_models_l6`, `world_objects`,
 кадры (ветряк, кабинки Шымбулака). Оценка — средняя. Ветер в игре — после слияния OL-1.
 
 ### OL-4 Тестовая сборка, кадры Алматы, замер кадра до/после

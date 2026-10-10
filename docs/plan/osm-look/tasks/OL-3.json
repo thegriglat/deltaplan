@@ -1,0 +1,72 @@
+{
+  "id": "OL-3",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Ветряки (лопасти по ветру) и кабинки канатки на тросе",
+  "goal": "Ветряки разворачиваются и крутятся по ветру модели, по канаткам Шымбулака едут кабинки; лоупольно с хорошей текстурой.",
+  "plan_ref": "OL-3 Ветряки и кабинки канатки",
+  "contracts": [
+    {
+      "name": "L6",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L4",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-3",
+  "branch": "osm-look/OL-3",
+  "base": "feature/osm-look",
+  "scope": [
+    "tools/blender/build_osm_wind_cable.py",
+    "assets/models/osm/",
+    "assets/source/osm/",
+    "assets/textures/osm/",
+    "scripts/world_objects/osm/osm_wind_turbines.gd",
+    "scripts/world_objects/osm/osm_cable_cars.gd",
+    "scripts/world_objects/osm_layer.gd (только добавить части Wind/Cabins в список)",
+    "configs/world_objects.json (osm_pilot.verticals.skip, osm_pilot.wind_turbines, osm_pilot.aerialways.cabins)",
+    "ASSETS.md (подраздел «osm-look: ветряк и канатка» в «Модели и текстуры»)",
+    "tests/world_objects/",
+    "tests/contracts/test_osm_look_models_l6.gd",
+    "tools/shots/ (свой кадр)"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/",
+    "scripts/world_objects/osm/osm_pilot.gd (OL-2; ветряки отключать только через verticals.skip)",
+    "scripts/world_objects/world_objects.gd (провод ветра — OL-1)",
+    "scripts/flight/ (модуль pendulum)",
+    "tests/contracts/test_osm_look_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_osm_look_models_l6",
+      "tests": "test_osm_look_models_l6"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/osm-look...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=3"
+    },
+    {
+      "name": "assets",
+      "cmd": "grep -c 'osm-look' ASSETS.md",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T00:36:35"
+}

@@ -1,0 +1,95 @@
+{
+  "id": "OL-1",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Дома: стиль город/село/промзона, этажность мегаполиса, трубы и дым, провод ветра",
+  "goal": "Сверху читаются город, село и промзона: крыша другого цвета, окна по этажам, высотки в центре Алматы, дымок над частью сельских домов; без роста геометрии и заметной просадки.",
+  "plan_ref": "OL-1 Дома: стиль, этажность мегаполиса, трубы и дым, провод ветра",
+  "contracts": [
+    {
+      "name": "L1",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L2",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L3",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L4",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "O9",
+      "version": "2",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-1",
+  "branch": "osm-look/OL-1",
+  "base": "feature/osm-look",
+  "scope": [
+    "scripts/world_objects/osm_data.gd",
+    "scripts/world_objects/osm/building_style.gd",
+    "scripts/world_objects/osm/building.gdshader",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "scripts/world_objects/world_tiles.gd",
+    "scripts/world_objects/village_layer.gd",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/world_objects/osm/osm_smoke.gd (новый, имя на выбор)",
+    "configs/world_objects.json",
+    "configs/osm_tiles.json",
+    "tests/world_objects/",
+    "tests/contracts/test_osm_tiles_contracts.gd",
+    "tools/shots/osm_buildings_shot.gd"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/",
+    "scripts/world_objects/osm/osm_pilot.gd",
+    "scripts/flight/ (лётная модель — модуль pendulum)",
+    "scripts/world_objects/campfire.gd, smoke_*.gdshader (только переиспользовать)",
+    "tests/contracts/test_osm_look_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_osm_look_contracts",
+      "tests": "test_osm_look_contracts"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=4"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/osm-look...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "buildings_build_s_before",
+    "buildings_build_s_after",
+    "frame_ms_before",
+    "frame_ms_after"
+  ],
+  "notes": "",
+  "created": "2026-10-11T00:35:44",
+  "edited": "2026-10-11T00:35:57"
+}

@@ -1,0 +1,65 @@
+{
+  "id": "OL-2",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Модели опоры ЛЭП, столба, решётчатой мачты, телебашни, промышленной трубы",
+  "goal": "Вместо конусов — узнаваемые лоупольные модели с хорошей (альфа) текстурой решётки; дальности, тени и препятствия как сейчас.",
+  "plan_ref": "OL-2 Модели ЛЭП, мачт, телебашни, трубы",
+  "contracts": [
+    {
+      "name": "L5",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-2",
+  "branch": "osm-look/OL-2",
+  "base": "feature/osm-look",
+  "scope": [
+    "tools/blender/build_osm_objects.py",
+    "assets/models/osm/",
+    "assets/source/osm/",
+    "assets/textures/osm/",
+    "scripts/world_objects/osm/osm_pilot.gd",
+    "configs/world_objects.json (раздел osm_pilot: power, verticals)",
+    "ASSETS.md (подраздел «osm-look: ЛЭП, мачты, башни, трубы» в «Модели и текстуры»)",
+    "tests/world_objects/test_osm_pilot.gd",
+    "tests/contracts/test_osm_look_models_l5.gd",
+    "tools/shots/ (свой кадр моделей)"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/osm/osm_buildings.gd, building_placer.gd (OL-1)",
+    "scripts/flight/ (модуль pendulum)",
+    "tests/contracts/test_osm_look_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_osm_look_models_l5",
+      "tests": "test_osm_look_models_l5"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/osm-look...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=5"
+    },
+    {
+      "name": "assets",
+      "cmd": "grep -c 'osm-look' ASSETS.md",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T00:36:34"
+}

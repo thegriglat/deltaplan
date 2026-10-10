@@ -11,7 +11,7 @@ contracts: [{"id": "L1", "version": 1}, {"id": "L2", "version": 1}, {"id": "L3",
 
 План — `docs/plan/osm-look.md`. Только отрисовка мира: тайлы, упаковщик, формат O1–O8 и лётная модель
 не меняются. Контрактные тесты — `tests/contracts/test_osm_look_contracts.gd` (версии, L1, L2, L4) и
-`tests/contracts/test_osm_look_models.gd` (L5, L6; создают задачи OL-2/OL-3). Правка контракта —
+`tests/contracts/test_osm_look_models_l5.gd` (L5, создаёт OL-2) и `test_osm_look_models_l6.gd` (L6, создаёт OL-3). Правка контракта —
 версия +1 здесь, в frontmatter и в тесте, уведомление потребителей.
 
 Общие правила для всех разделов:
