@@ -1,0 +1,1215 @@
+{
+ "rows": [
+  {
+   "sc": "trim",
+   "wing": "training",
+   "key": "V_kmh",
+   "game": 32.5363477458954,
+   "proto": 32.553057375681085,
+   "d_pct": -0.05133044676218415,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "training",
+   "key": "sink_ms",
+   "game": 1.06755486097601,
+   "proto": 1.0682394148405365,
+   "d_pct": -0.06408243835758314,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "training",
+   "key": "alpha_deg",
+   "game": 10.2767243228014,
+   "proto": 10.275610644343136,
+   "d_pct": 0.010838075680466045,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "training",
+   "key": "theta_deg",
+   "game": 3.49309939642637,
+   "proto": 3.4911109289004187,
+   "d_pct": 0.05695801612862141,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "training",
+   "key": "tension_N",
+   "game": 792.057432282766,
+   "proto": 793.0256814874906,
+   "d_pct": -0.12209556730981232,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "laminar",
+   "key": "V_kmh",
+   "game": 35.3490831813812,
+   "proto": 35.35092992405065,
+   "d_pct": -0.005224028543004577,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "laminar",
+   "key": "sink_ms",
+   "game": 0.919797979560163,
+   "proto": 0.9182872163284628,
+   "d_pct": 0.16451968456455124,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "laminar",
+   "key": "alpha_deg",
+   "game": 10.4325335902319,
+   "proto": 10.434926213109405,
+   "d_pct": -0.022928987025311032,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "laminar",
+   "key": "theta_deg",
+   "game": 5.05755232252923,
+   "proto": 5.06907870691857,
+   "d_pct": -0.2273861791415463,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "laminar",
+   "key": "tension_N",
+   "game": 811.529069155186,
+   "proto": 811.9938040285189,
+   "d_pct": -0.0572337955076995,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "sport",
+   "key": "V_kmh",
+   "game": 35.8223761291504,
+   "proto": 35.807104756265915,
+   "d_pct": 0.04264900216991737,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "sport",
+   "key": "sink_ms",
+   "game": 0.895919809805022,
+   "proto": 0.893309867698008,
+   "d_pct": 0.29216537300092216,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "sport",
+   "key": "alpha_deg",
+   "game": 11.4557901995849,
+   "proto": 11.462636642132072,
+   "d_pct": -0.05972833965622637,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "sport",
+   "key": "theta_deg",
+   "game": 6.29006329899453,
+   "proto": 6.30981884427581,
+   "d_pct": -0.31309211514371194,
+   "bad": false
+  },
+  {
+   "sc": "trim",
+   "wing": "sport",
+   "key": "tension_N",
+   "game": 841.375483676799,
+   "proto": 841.1749847652266,
+   "d_pct": 0.02383557704446486,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "training",
+   "key": "period_s",
+   "game": 5.18333333333304,
+   "proto": 5.174999999999708,
+   "d_pct": 0.1610305958131873,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "training",
+   "key": "amp_ratio",
+   "game": 0.68912252874056,
+   "proto": 0.6712672076391203,
+   "d_pct": 2.6599424041936692,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "laminar",
+   "key": "period_s",
+   "game": 5.64166666666635,
+   "proto": 5.641666666666346,
+   "d_pct": 7.871596038701705e-14,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "laminar",
+   "key": "amp_ratio",
+   "game": 0.808492020130681,
+   "proto": 0.7935980911625413,
+   "d_pct": 1.8767596764656496,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "sport",
+   "key": "period_s",
+   "game": 5.71666666666634,
+   "proto": 5.7166666666663435,
+   "d_pct": -6.214659496444376e-14,
+   "bad": false
+  },
+  {
+   "sc": "phugoid",
+   "wing": "sport",
+   "key": "amp_ratio",
+   "game": 0.833224707938273,
+   "proto": 0.8204997806566515,
+   "d_pct": 1.5508751594592263,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "training",
+   "key": "phi_start",
+   "game": 46.8717535559365,
+   "proto": 46.90459945074976,
+   "d_pct": -0.07002702335779432,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "training",
+   "key": "t_to_zero",
+   "game": 2.21666666666654,
+   "proto": 2.2166666666665424,
+   "d_pct": -1.0017049846242575e-13,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "training",
+   "key": "t_to_minus",
+   "game": 4.43333333333308,
+   "proto": 4.4083333333330845,
+   "d_pct": 0.5671077504725291,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "training",
+   "key": "phi_t2",
+   "game": 4.3713086654622,
+   "proto": 4.100809139980726,
+   "d_pct": 6.596247624505289,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "laminar",
+   "key": "phi_start",
+   "game": 47.0352573687373,
+   "proto": 47.0032071989094,
+   "d_pct": 0.06818719772092718,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "laminar",
+   "key": "t_to_zero",
+   "game": 2.44999999999986,
+   "proto": 2.4499999999998625,
+   "d_pct": -1.0875654118777654e-13,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "laminar",
+   "key": "t_to_minus",
+   "game": 4.39999999999975,
+   "proto": 4.399999999999752,
+   "d_pct": -4.037174635000797e-14,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "laminar",
+   "key": "phi_t2",
+   "game": 9.16808937682931,
+   "proto": 9.320347744142847,
+   "d_pct": -1.6336125163272022,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "sport",
+   "key": "phi_start",
+   "game": 47.2263313372297,
+   "proto": 47.13335206908802,
+   "d_pct": 0.19726852443126444,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "sport",
+   "key": "t_to_zero",
+   "game": 2.3333333333332,
+   "proto": 2.3416666666665353,
+   "d_pct": -0.35587188612111,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "sport",
+   "key": "t_to_minus",
+   "game": 3.85833333333312,
+   "proto": 3.8666666666664486,
+   "d_pct": -0.2155172413792069,
+   "bad": false
+  },
+  {
+   "sc": "reversal45",
+   "wing": "sport",
+   "key": "phi_t2",
+   "game": 7.66674512875612,
+   "proto": 7.926769791020635,
+   "d_pct": -3.280335737251612,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "training",
+   "key": "phi_start",
+   "game": 30.8763080051751,
+   "proto": 30.819896363258724,
+   "d_pct": 0.18303644260019847,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "training",
+   "key": "t_to_zero",
+   "game": 1.78333333333323,
+   "proto": 1.7999999999998977,
+   "d_pct": -0.925925925926037,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "training",
+   "key": "t_to_minus",
+   "game": 3.08333333333316,
+   "proto": 3.1083333333331584,
+   "d_pct": -0.8042895442359245,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "training",
+   "key": "phi_t2",
+   "game": -3.37810957613745,
+   "proto": -2.989890622313763,
+   "d_pct": -12.984386483116861,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "laminar",
+   "key": "phi_start",
+   "game": 31.0921777183418,
+   "proto": 31.028647735111473,
+   "d_pct": 0.20474621959898948,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "laminar",
+   "key": "t_to_zero",
+   "game": 1.88333333333323,
+   "proto": 1.899999999999892,
+   "d_pct": -0.8771929824559417,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "laminar",
+   "key": "t_to_minus",
+   "game": 3.27499999999982,
+   "proto": 3.2916666666664813,
+   "d_pct": -0.5063291139239154,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "laminar",
+   "key": "phi_t2",
+   "game": -2.09301306908079,
+   "proto": -1.8908132020744015,
+   "d_pct": -10.693804484999156,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "sport",
+   "key": "phi_start",
+   "game": 30.5687479811466,
+   "proto": 30.534139051787403,
+   "d_pct": 0.11334503095207488,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "sport",
+   "key": "t_to_zero",
+   "game": 1.85833333333323,
+   "proto": 1.8666666666665606,
+   "d_pct": -0.4464285714284525,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "sport",
+   "key": "t_to_minus",
+   "game": 3.15833333333316,
+   "proto": 3.1583333333331556,
+   "d_pct": 1.4060872079686152e-13,
+   "bad": false
+  },
+  {
+   "sc": "reversal30",
+   "wing": "sport",
+   "key": "phi_t2",
+   "game": -3.02856750334619,
+   "proto": -2.8470414911126394,
+   "d_pct": -6.375952468560938,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "training",
+   "key": "phi_1s",
+   "game": 11.9696650899308,
+   "proto": 11.802435920142589,
+   "d_pct": 1.4169038571335073,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "training",
+   "key": "phi_2s",
+   "game": 27.0968073006496,
+   "proto": 27.055383189268287,
+   "d_pct": 0.15310857396300065,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "training",
+   "key": "phi_4s",
+   "game": 73.5303218178241,
+   "proto": 72.9438834787339,
+   "d_pct": 0.8039582088622664,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "training",
+   "key": "phi_6s",
+   "game": 68.0834859176247,
+   "proto": 68.12861554426955,
+   "d_pct": -0.0662418079162726,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "training",
+   "key": "phi_10s",
+   "game": 70.0911140385639,
+   "proto": 69.8754340261577,
+   "d_pct": 0.3086635745624945,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "laminar",
+   "key": "phi_1s",
+   "game": 10.1175747907851,
+   "proto": 9.990604118596716,
+   "d_pct": 1.270900845245576,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "laminar",
+   "key": "phi_2s",
+   "game": 29.3533880227081,
+   "proto": 29.201167908289072,
+   "d_pct": 0.5212809121097434,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "laminar",
+   "key": "phi_4s",
+   "game": 65.4323199549725,
+   "proto": 65.32490612971894,
+   "d_pct": 0.16443012568630716,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "laminar",
+   "key": "phi_6s",
+   "game": 63.5057856124313,
+   "proto": 63.72261084051388,
+   "d_pct": -0.34026419385930534,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "laminar",
+   "key": "phi_10s",
+   "game": 69.5413510456851,
+   "proto": 69.7513129114807,
+   "d_pct": -0.3010149300874778,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "sport",
+   "key": "phi_1s",
+   "game": 10.1265265418079,
+   "proto": 10.002326235403071,
+   "d_pct": 1.2417142120922204,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "sport",
+   "key": "phi_2s",
+   "game": 31.0440892945019,
+   "proto": 30.866948593156014,
+   "d_pct": 0.5738847194800598,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "sport",
+   "key": "phi_4s",
+   "game": 65.3026274472897,
+   "proto": 65.43477444268508,
+   "d_pct": -0.20195224407954024,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "sport",
+   "key": "phi_6s",
+   "game": 63.3074698824914,
+   "proto": 63.42494075015194,
+   "d_pct": -0.18521242002147548,
+   "bad": false
+  },
+  {
+   "sc": "fullshift",
+   "wing": "sport",
+   "key": "phi_10s",
+   "game": 70.1657332975268,
+   "proto": 70.13084750906877,
+   "d_pct": 0.04974385694328842,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "training",
+   "key": "phi_start",
+   "game": 30.8763080051751,
+   "proto": 30.819896363258724,
+   "d_pct": 0.18303644260019847,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "training",
+   "key": "phi_10s",
+   "game": 28.0806253554952,
+   "proto": 28.133970817044663,
+   "d_pct": -0.18961227299327113,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "training",
+   "key": "phi_20s",
+   "game": 25.4434948080605,
+   "proto": 25.434283399768898,
+   "d_pct": 0.03621650410518599,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "laminar",
+   "key": "phi_start",
+   "game": 31.0921777183418,
+   "proto": 31.028647735111473,
+   "d_pct": 0.20474621959898948,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "laminar",
+   "key": "phi_10s",
+   "game": 45.1420378536042,
+   "proto": 45.09091803335364,
+   "d_pct": 0.11337054662038439,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "laminar",
+   "key": "phi_20s",
+   "game": 51.3022262628118,
+   "proto": 51.234620073466324,
+   "d_pct": 0.13195411471488216,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "sport",
+   "key": "phi_start",
+   "game": 30.5687479811466,
+   "proto": 30.534139051787403,
+   "d_pct": 0.11334503095207488,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "sport",
+   "key": "phi_10s",
+   "game": 47.4609671761906,
+   "proto": 47.381423392413545,
+   "d_pct": 0.1678796838125194,
+   "bad": false
+  },
+  {
+   "sc": "center30",
+   "wing": "sport",
+   "key": "phi_20s",
+   "game": 52.9727833587092,
+   "proto": 52.93034549955234,
+   "d_pct": 0.08017680360167216,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "training",
+   "key": "lat_period_s",
+   "game": 1.13333333333327,
+   "proto": 1.1333333333333897,
+   "d_pct": -1.0560180181286993e-11,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "training",
+   "key": "lat_ratio",
+   "game": 0.206142722627822,
+   "proto": 0.22236855699446303,
+   "d_pct": -7.296820461467071,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "training",
+   "key": "lon_period_s",
+   "game": 0.983333333333382,
+   "proto": 0.9916666666666103,
+   "d_pct": -0.8403361344432353,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "training",
+   "key": "lon_ratio",
+   "game": 0.859785921011802,
+   "proto": 0.8470499690985547,
+   "d_pct": 1.503565595640255,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "laminar",
+   "key": "lat_period_s",
+   "game": 1.30000000000001,
+   "proto": 1.3000000000000127,
+   "d_pct": -2.049642507000269e-13,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "laminar",
+   "key": "lat_ratio",
+   "game": 0.242583893457909,
+   "proto": 0.26081032564850076,
+   "d_pct": -6.9883859641185655,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "laminar",
+   "key": "lon_period_s",
+   "game": 1.13333333333327,
+   "proto": 1.1374999999999353,
+   "d_pct": -0.3663003663002687,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "laminar",
+   "key": "lon_ratio",
+   "game": 0.887621674111852,
+   "proto": 0.8737283219559612,
+   "d_pct": 1.5901226739209555,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "sport",
+   "key": "lat_period_s",
+   "game": 1.32500000000001,
+   "proto": 1.3333333333333486,
+   "d_pct": -0.6250000000003904,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "sport",
+   "key": "lat_ratio",
+   "game": 0.253950199947188,
+   "proto": 0.2640962624688011,
+   "d_pct": -3.8418046612120076,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "sport",
+   "key": "lon_period_s",
+   "game": 1.18333333333327,
+   "proto": 1.191666666666599,
+   "d_pct": -0.6993006993003639,
+   "bad": false
+  },
+  {
+   "sc": "pendulum",
+   "wing": "sport",
+   "key": "lon_ratio",
+   "game": 0.876073672936189,
+   "proto": 0.8580035705414811,
+   "d_pct": 2.1060637758539764,
+   "bad": false
+  },
+  {
+   "sc": "ochi",
+   "wing": "laminar",
+   "key": "phi_7s",
+   "game": 33.187661775841,
+   "proto": 33.237172398259744,
+   "d_pct": -0.14896159584663146,
+   "bad": false
+  },
+  {
+   "sc": "ochi",
+   "wing": "laminar",
+   "key": "phi_max",
+   "game": 42.7240787764286,
+   "proto": 42.77175603297827,
+   "d_pct": -0.11146901827670638,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "training",
+   "key": "t_liftoff",
+   "game": 5.16666666666671,
+   "proto": 5.175000000000001,
+   "d_pct": -0.16103059581238868,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "training",
+   "key": "x_liftoff",
+   "game": 20.9870567321777,
+   "proto": 20.969660218922524,
+   "d_pct": 0.08296039646592268,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "training",
+   "key": "v_liftoff_kmh",
+   "game": 31.7625183105469,
+   "proto": 31.761290412165938,
+   "d_pct": 0.0038660217044912183,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "laminar",
+   "key": "t_liftoff",
+   "game": 5.55000000000007,
+   "proto": 5.558333333333334,
+   "d_pct": -0.14992503748000446,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "laminar",
+   "key": "x_liftoff",
+   "game": 23.0186767578125,
+   "proto": 22.95266538626439,
+   "d_pct": 0.2875978472966992,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "laminar",
+   "key": "v_liftoff_kmh",
+   "game": 32.6979595184326,
+   "proto": 32.66520627025494,
+   "d_pct": 0.10026952809259013,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "sport",
+   "key": "t_liftoff",
+   "game": 6.51666666666678,
+   "proto": 6.533333333333333,
+   "d_pct": -0.25510204081458554,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "sport",
+   "key": "x_liftoff",
+   "game": 30.6239891052246,
+   "proto": 30.57553051330327,
+   "d_pct": 0.1584881475735767,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w0",
+   "wing": "sport",
+   "key": "v_liftoff_kmh",
+   "game": 36.4881053924561,
+   "proto": 36.475837666626525,
+   "d_pct": 0.03363247183435661,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "training",
+   "key": "t_liftoff",
+   "game": 3.27499999999999,
+   "proto": 3.283333333333333,
+   "d_pct": -0.25380710659928146,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "training",
+   "key": "x_liftoff",
+   "game": 7.90794610977173,
+   "proto": 7.925376530332214,
+   "d_pct": -0.2199317659391098,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "training",
+   "key": "v_liftoff_kmh",
+   "game": 31.7694431304932,
+   "proto": 31.757640778906254,
+   "d_pct": 0.03716381726562845,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "laminar",
+   "key": "t_liftoff",
+   "game": 3.45833333333332,
+   "proto": 3.466666666666667,
+   "d_pct": -0.24038461538499883,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "laminar",
+   "key": "x_liftoff",
+   "game": 8.62716960906982,
+   "proto": 8.643128818218788,
+   "d_pct": -0.18464620260346915,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "laminar",
+   "key": "v_liftoff_kmh",
+   "game": 32.7159461975098,
+   "proto": 32.68987791744026,
+   "d_pct": 0.07974419523797048,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "sport",
+   "key": "t_liftoff",
+   "game": 3.76666666666666,
+   "proto": 3.7666666666666666,
+   "d_pct": -1.768496853385205e-13,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "sport",
+   "key": "x_liftoff",
+   "game": 10.8791913986206,
+   "proto": 10.853813577581109,
+   "d_pct": 0.23381478646279635,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w3",
+   "wing": "sport",
+   "key": "v_liftoff_kmh",
+   "game": 36.4443489074707,
+   "proto": 36.40100164715042,
+   "d_pct": 0.1190826031120158,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "training",
+   "key": "t_liftoff",
+   "game": 2.43333333333333,
+   "proto": 2.433333333333333,
+   "d_pct": -1.2775169050481254e-13,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "training",
+   "key": "x_liftoff",
+   "game": 2.428786277771,
+   "proto": 2.461108831602713,
+   "d_pct": -1.3133329748227411,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "training",
+   "key": "v_liftoff_kmh",
+   "game": 31.7779403686523,
+   "proto": 31.768185897101795,
+   "d_pct": 0.030705157613026814,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "laminar",
+   "key": "t_liftoff",
+   "game": 2.50833333333333,
+   "proto": 2.5,
+   "d_pct": 0.3333333333332078,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "laminar",
+   "key": "x_liftoff",
+   "game": 2.73368716239929,
+   "proto": 2.748442884034733,
+   "d_pct": -0.5368756877269025,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "laminar",
+   "key": "v_liftoff_kmh",
+   "game": 32.7330436706543,
+   "proto": 32.68600779392139,
+   "d_pct": 0.14390217682580753,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "sport",
+   "key": "t_liftoff",
+   "game": 2.70833333333333,
+   "proto": 2.7083333333333335,
+   "d_pct": -1.3117712044801848e-13,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "sport",
+   "key": "x_liftoff",
+   "game": 4.07714986801147,
+   "proto": 4.1149728193788855,
+   "d_pct": -0.9191543426312185,
+   "bad": false
+  },
+  {
+   "sc": "ground_run_w6",
+   "wing": "sport",
+   "key": "v_liftoff_kmh",
+   "game": 36.433740234375,
+   "proto": 36.41705039929409,
+   "d_pct": 0.04582972782780374,
+   "bad": false
+  }
+ ],
+ "n_compared": 110,
+ "n_over_15": 0,
+ "conv_worst_pct": {
+  "trim@1/60": 0.7415192713646597,
+  "trim@1/120": 0.759302444843455,
+  "reversal45@1/60": 17.617873434360536,
+  "reversal45@1/120": 16.98178358161241,
+  "fullshift@1/60": 1.1150646333064134,
+  "fullshift@1/120": 1.1145258177330415,
+  "ground_run_w0@1/60": 0.5147924011634427,
+  "ground_run_w0@1/120": 0.5168333152300164,
+  "dive@1/60": 13.24609178621811,
+  "dive@1/120": 13.229890889345016
+ },
+ "bench": [
+  {
+   "dt": 0.0166666666666667,
+   "ms_per_second_flight_model": 1.8181,
+   "ms_per_second_pendulum": 8.4702,
+   "sc": "bench",
+   "us_flight_model": 30.3016666666667,
+   "us_pendulum": 141.17,
+   "wing": "training"
+  },
+  {
+   "dt": 0.00833333333333333,
+   "ms_per_second_flight_model": 3.6375,
+   "ms_per_second_pendulum": 9.8567,
+   "sc": "bench",
+   "us_flight_model": 30.3125,
+   "us_pendulum": 82.1391666666667,
+   "wing": "training"
+  },
+  {
+   "dt": 0.00416666666666667,
+   "ms_per_second_flight_model": 7.3036,
+   "ms_per_second_pendulum": 16.6665,
+   "sc": "bench",
+   "us_flight_model": 30.4316666666667,
+   "us_pendulum": 69.44375,
+   "wing": "training"
+  },
+  {
+   "dt": 0.0166666666666667,
+   "ms_per_second_flight_model": 1.7794,
+   "ms_per_second_pendulum": 8.3832,
+   "sc": "bench",
+   "us_flight_model": 29.6566666666667,
+   "us_pendulum": 139.72,
+   "wing": "laminar"
+  },
+  {
+   "dt": 0.00833333333333333,
+   "ms_per_second_flight_model": 3.5918,
+   "ms_per_second_pendulum": 9.6471,
+   "sc": "bench",
+   "us_flight_model": 29.9316666666667,
+   "us_pendulum": 80.3925,
+   "wing": "laminar"
+  },
+  {
+   "dt": 0.00416666666666667,
+   "ms_per_second_flight_model": 7.1983,
+   "ms_per_second_pendulum": 16.3205,
+   "sc": "bench",
+   "us_flight_model": 29.9929166666667,
+   "us_pendulum": 68.0020833333333,
+   "wing": "laminar"
+  },
+  {
+   "dt": 0.0166666666666667,
+   "ms_per_second_flight_model": 1.821,
+   "ms_per_second_pendulum": 8.3608,
+   "sc": "bench",
+   "us_flight_model": 30.35,
+   "us_pendulum": 139.346666666667,
+   "wing": "sport"
+  },
+  {
+   "dt": 0.00833333333333333,
+   "ms_per_second_flight_model": 3.578,
+   "ms_per_second_pendulum": 9.6979,
+   "sc": "bench",
+   "us_flight_model": 29.8166666666667,
+   "us_pendulum": 80.8158333333333,
+   "wing": "sport"
+  },
+  {
+   "dt": 0.00416666666666667,
+   "ms_per_second_flight_model": 7.2134,
+   "ms_per_second_pendulum": 16.3738,
+   "sc": "bench",
+   "us_flight_model": 30.0558333333333,
+   "us_pendulum": 68.2241666666667,
+   "wing": "sport"
+  }
+ ],
+ "turb": [
+  {
+   "dt": 0.008333333333333333,
+   "n": 10,
+   "game": {
+    "std_phi_deg": {
+     "mean": 7.491735188950744,
+     "max": 12.0942302462346
+    },
+    "max_abs_phi_deg": {
+     "mean": 22.900433598301998,
+     "max": 32.4943246523785
+    },
+    "std_rel_y_m": {
+     "mean": 0.1012233745161879,
+     "max": 0.170821439397736
+    },
+    "heading_drift_deg": {
+     "mean": 3.017308581819164,
+     "max": 175.015255631136
+    },
+    "blowups": 0
+   },
+   "proto": {
+    "std_phi_deg": {
+     "mean": 7.982856402374695,
+     "max": 11.021913363663948
+    },
+    "max_abs_phi_deg": {
+     "mean": 23.340169820315587,
+     "max": 34.60440629908665
+    },
+    "std_rel_y_m": {
+     "mean": 0.10886263342798916,
+     "max": 0.1510714418895786
+    },
+    "heading_drift_deg": {
+     "mean": 2.618181923083165,
+     "max": 69.617774699461
+    },
+    "blowups": 0
+   }
+  },
+  {
+   "dt": 0.016666666666666666,
+   "n": 10,
+   "game": {
+    "std_phi_deg": {
+     "mean": 8.218124402075896,
+     "max": 11.6062658002069
+    },
+    "max_abs_phi_deg": {
+     "mean": 24.16347826176265,
+     "max": 33.9467971423609
+    },
+    "std_rel_y_m": {
+     "mean": 0.10859350344841956,
+     "max": 0.152168632179748
+    },
+    "heading_drift_deg": {
+     "mean": -14.530602903452237,
+     "max": 69.8710657988078
+    },
+    "blowups": 0
+   },
+   "proto": {
+    "std_phi_deg": {
+     "mean": 7.72928057653804,
+     "max": 12.313427518533116
+    },
+    "max_abs_phi_deg": {
+     "mean": 21.33085460649833,
+     "max": 37.41734318161714
+    },
+    "std_rel_y_m": {
+     "mean": 0.0956297418964131,
+     "max": 0.13414530100511024
+    },
+    "heading_drift_deg": {
+     "mean": -42.54814790551976,
+     "max": 104.73617256228032
+    },
+    "blowups": 0
+   }
+  }
+ ],
+ "dive": {
+  "training|100 % 3 с|игра": "к триму за 47.1 с",
+  "training|100 % 3 с|прототип": "к триму за 46.1 с",
+  "training|100 % 1 с|игра": "к триму за 36.6 с",
+  "training|100 % 1 с|прототип": "к триму за 36.4 с",
+  "training|100 % 2 с|игра": "к триму за 46.3 с",
+  "training|100 % 2 с|прототип": "к триму за 43.7 с",
+  "training|50 % 3 с|игра": "к триму за 35.5 с",
+  "training|50 % 3 с|прототип": "к триму за 33.0 с",
+  "training|50 % 6 с|игра": "к триму за 12.9 с",
+  "training|50 % 6 с|прототип": "к триму за 12.9 с",
+  "training|25 % 6 с|игра": "к триму за 5.4 с",
+  "training|25 % 6 с|прототип": "к триму за 5.4 с",
+  "laminar|100 % 3 с|игра": "глубокий срыв (α 79°, V 26 км/ч)",
+  "laminar|100 % 3 с|прототип": "глубокий срыв (α 79°, V 26 км/ч)",
+  "laminar|100 % 1 с|игра": "не успокоилось за 120 с",
+  "laminar|100 % 1 с|прототип": "не успокоилось за 120 с",
+  "laminar|100 % 2 с|игра": "глубокий срыв (α 79°, V 26 км/ч)",
+  "laminar|100 % 2 с|прототип": "глубокий срыв (α 79°, V 26 км/ч)",
+  "laminar|50 % 3 с|игра": "не успокоилось за 120 с",
+  "laminar|50 % 3 с|прототип": "не успокоилось за 120 с",
+  "laminar|50 % 6 с|игра": "к триму за 50.8 с",
+  "laminar|50 % 6 с|прототип": "к триму за 50.6 с",
+  "laminar|25 % 6 с|игра": "к триму за 0.0 с",
+  "laminar|25 % 6 с|прототип": "к триму за 0.0 с",
+  "sport|100 % 3 с|игра": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|100 % 3 с|прототип": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|100 % 1 с|игра": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|100 % 1 с|прототип": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|100 % 2 с|игра": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|100 % 2 с|прототип": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|50 % 3 с|игра": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|50 % 3 с|прототип": "глубокий срыв (α 93°, V 27 км/ч)",
+  "sport|50 % 6 с|игра": "не успокоилось за 120 с",
+  "sport|50 % 6 с|прототип": "не успокоилось за 120 с",
+  "sport|25 % 6 с|игра": "к триму за 0.0 с",
+  "sport|25 % 6 с|прототип": "к триму за 0.0 с"
+ }
+}
