@@ -1,0 +1,52 @@
+{
+  "id": "NO-6",
+  "module": "no-osm",
+  "type": "dp-writer",
+  "title": "Документация и CHANGELOG модуля no-osm",
+  "goal": "Документы и CHANGELOG отражают игру без OSM: вода и посёлки из WorldCover, дома процедурно, пасхалки без OSM, данные места в WebP с версией кеша, встроенные места скачиваются при первом выборе, счётчик загрузки; атрибуция OSM только там, где данные OSM остались.",
+  "plan_ref": "NO-6",
+  "contracts": [],
+  "copy": "~/deltaplan-no-osm-NO-6",
+  "branch": "no-osm/NO-6",
+  "base": "feature/no-osm",
+  "scope": [
+    "docs/guide/location-data.md",
+    "docs/guide/world-objects.md",
+    "ASSETS.md",
+    "CHANGELOG.md",
+    "docs/contracts/steam-assets.md",
+    "tests/contracts/test_steam_assets_contracts_sa4.gd",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "site/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "steam_assets_contracts_sa4",
+      "tests": "steam_assets_contracts_sa4"
+    },
+    {
+      "name": "docs_check",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "!re:ошибок [1-9]"
+    },
+    {
+      "name": "no_osm_json_docs",
+      "cmd": "! grep -nE 'osm\\.json|OsmStage|Overpass|OsmLayer|RoadMesher' docs/guide/location-data.md docs/guide/world-objects.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -n 'при первом выборе' CHANGELOG.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T05:45:24"
+}

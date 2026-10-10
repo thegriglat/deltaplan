@@ -67,3 +67,4 @@
 {"t": "2026-10-10T05:44:59", "by": "coordinator", "task": "NO-7", "ev": "accepted", "commits": ["eef9932"], "note": "5/5 test_load_progress=ok:4/4; test_menu_setup=ok:12/12; test_terrain=ok:15/15; test_location_builder=ok:6/6; screenshot=ok:exit 0"}
 {"t": "2026-10-10T05:45:07", "by": "coordinator", "task": "NO-7", "ev": "merged", "commits": ["eef9932"]}
 {"t": "2026-10-10T05:45:07", "by": "coordinator", "task": null, "ev": "note", "note": "dp: после слияния ветки с новым class_name dp accept --here падает «тест не загрузился», пока вручную не сделать godot --import в копии; dp accept мог бы сам делать --import, если в ветке появились новые class_name/.uid (или dp import <копия>)"}
+{"t": "2026-10-10T05:45:24", "by": "coordinator", "task": "NO-6", "ev": "created", "note": "Документация и CHANGELOG модуля no-osm"}
