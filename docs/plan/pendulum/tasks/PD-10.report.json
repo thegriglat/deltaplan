@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "load усредняется по подшагам (сила на пилота = chain.pilot_force + руки, сумма/n); reset_in_air кладёт _air_c = ned(wind), _update_outputs берёт _air_c в режиме AIR без условия air_fn (set_kinematic обнуляет _air_c).",
+  "commits": [
+    "3b8495cd PD-10"
+  ],
+  "checks": [
+    {
+      "name": "pendulum",
+      "value": "34/34",
+      "pass": true
+    },
+    {
+      "name": "прямой полёт n",
+      "value": "1±0.05 (3 крыла)",
+      "pass": true
+    },
+    {
+      "name": "вираж 30°",
+      "value": "n 1.144/1.149/1.151 vs 1.155",
+      "pass": true
+    },
+    {
+      "name": "вираж 45°",
+      "value": "n 1.392/1.407/1.409 vs 1.414",
+      "pass": true
+    },
+    {
+      "name": "airspeed после reset с ветром",
+      "value": "12.0±0.1",
+      "pass": true
+    },
+    {
+      "name": "filter=pendulum",
+      "value": "34/34",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept PD-10",
+  "uncertain": [
+    {
+      "where": "pendulum_model.gd:_update_outputs",
+      "why": "убрал условие air_fn.is_valid(): без air_fn _air_c и так 0 после _aero_update",
+      "checked": "34 теста pendulum зелёные"
+    }
+  ],
+  "dp_feedback": [],
+  "t": "2026-10-11T01:36:34",
+  "by": "executor"
+}

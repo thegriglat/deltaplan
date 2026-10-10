@@ -40,3 +40,6 @@
 {"t": "2026-10-11T01:32:22", "by": "coordinator", "task": "PD-10", "ev": "created", "note": "Ядро маятника: две правки по ревью PD-2 (перегрузка по подшагам, airspeed после reset_in_air)"}
 {"t": "2026-10-11T01:32:25", "by": "coordinator", "task": "PD-10", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-10"}
 {"t": "2026-10-11T01:32:49", "by": "coordinator", "task": "PD-11", "ev": "created", "note": "Тестовая сборка «Маятник» (полёт): Linux + Windows в build/pendulum_test"}
+{"t": "2026-10-11T01:36:31", "by": "executor", "task": "PD-10", "ev": "checked", "note": "1/1 pendulum=ok:34/34"}
+{"t": "2026-10-11T01:36:34", "by": "executor", "task": "PD-10", "ev": "reported", "commits": ["3b8495cd"], "note": "done: load усредняется по подшагам (сила на пилота = chain.pilot_force + руки, сумма/n); reset_in_air кладёт _air_c = ned(win…"}
+{"t": "2026-10-11T01:37:26", "by": "coordinator", "task": "PD-10", "ev": "checked", "note": "1/1 pendulum=ok:34/34"}
