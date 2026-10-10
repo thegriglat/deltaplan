@@ -1,8 +1,9 @@
 """Эталонные числа прототипа маятника для тестов порта (PD-2): tests/flight/pendulum/reference.json.
 
 Прототип (pendulum/*.py) не меняется — здесь только постановка сценариев приёмки PD-2 для
-крыльев training / laminar / sport при эталонной массе, вариант B (рыскание свободно, flex_relief,
-эффективное поперечное V из params.py), dt 1/120 с, 4 подшага, 3 звена.
+крыльев training / laminar / sport при эталонной массе, вариант B (рыскание свободно), гибкость паруса
+и эффективное поперечное V — умолчания крыла (configs/wings → pendulum.apparatus_defaults, PD-К1 v3),
+экранный эффект и C_L max полос по поляре — как в игре (GameSim, PD-14), dt 1/120 с, 4 подшага, 3 звена.
 
 Постановка как в игре: блок `pendulum` крыла (PD-К2) считается при эталонной массе один раз
 (dcm0, cd_scale — под паспортный трим), сценарии с другой массой (опыт Ochi) берут его как есть.
@@ -35,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from pendulum import air, trim  # noqa: E402
 from pendulum.model import Control, Ground, R_from_euler, Sim  # noqa: E402
-from pendulum.params import DIHEDRAL_EFF_DEG, FLEX_RELIEF, G, load_params  # noqa: E402
+from pendulum.params import G, load_params  # noqa: E402
 from pendulum.scenarios import BankHold, first_cross, run, settle  # noqa: E402
 
 ROOT = HERE.parents[2]
@@ -99,13 +100,28 @@ def turbulence_fn(modes, offset_game=(0.0, 0.0, 0.0)):
 
 
 # ----------------------------------------------------------------------------- постановка
+def wing_cfg(wing: str) -> dict:
+    return json.loads((ROOT / f"configs/wings/{wing}.json").read_text())
+
+
+def params(wing: str, m_pilot=None):
+    """Параметры прототипа при умолчаниях «Аппарата» крыла (класса; PD-К1 v3, PD-К2 v3:
+    wing.pendulum.apparatus_defaults) и крутке из блока крыла (pendulum_params.py её уменьшает,
+    если по геометрии полосы срываются раньше трима)."""
+    blk = wing_cfg(wing)["pendulum"]
+    ad = blk["apparatus_defaults"]
+    return load_params(wing, m_pilot).with_(
+        dihedral=math.radians(ad["dihedral_eff_deg"]), flex_relief=ad["sail_flex"],
+        washout=math.radians(blk["washout_deg"]))
+
+
 def block(wing: str) -> dict:
     """Блок pendulum (PD-К2) при эталонной массе — как его посчитает PD-1."""
-    p = load_params(wing)
+    p = params(wing)
     xh = p.x_hang_game
     d = trim.solve_dcm0(p.with_(x_hang=xh), xh)
     p = p.with_(x_hang=xh, dcm0=d)
-    s = Sim(p, yaw_mode="free")
+    s = GameSim(p, yaw_mode="free")
     a, st = trim.solve_trim(s)
     cd_scale = trim.calibrate_cd(s, a)
     a, st = trim.solve_trim(s)
@@ -131,6 +147,7 @@ def block(wing: str) -> dict:
                          "ixz": float(I[0, 2])},
         "dcm0": d,
         "cd_scale": cd_scale,
+        "apparatus_defaults": wing_cfg(wing)["pendulum"]["apparatus_defaults"],
         "ref": {"trim_kmh": st["V"] * 3.6, "sink_ms": st["V"] * math.sin(st["gamma"]),
                 "alpha_trim_deg": D(st["alpha"]), "static_margin": kn},
     }
@@ -138,9 +155,9 @@ def block(wing: str) -> dict:
 
 def make(wing: str, blk: dict, m_pilot=None, dt=1 / 120):
     """Sim с параметрами из блока (dcm0, cd_scale не пересчитываются), трим, пилот в равновесии."""
-    p = load_params(wing, m_pilot)
+    p = params(wing, m_pilot)
     p = p.with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"])
-    s = Sim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
+    s = GameSim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
     s.cd_scale = blk["cd_scale"]
     a, st = trim.solve_trim(s)
     s.reset_air(st)
@@ -239,11 +256,103 @@ def sc_turbulence(wing, blk, modes, dt=1 / 120, T=40.0):
             "max_stretch_m": float(s.max_stretch)}
 
 
-class GroundSim(Sim):
-    """Прототип с одной правкой ног (как PendulumGround): сила бега — сцепление, не больше μ·N
-    (μ = 0,8 — как боковое трение прототипа). В Sim._legs бег толкал полной силой при любом
-    касании — и при опоре в доли ньютона (в сильный ветер это держало пилота «на цыпочках»
-    у склона, отрыва не было)."""
+GE_SPAN_EFFICIENCY = 0.9  # configs/pendulum.json → ground_effect.span_efficiency
+
+
+def ground_sigma(h, b):
+    """Экранный эффект Wieselsberger (как PendulumWingStrips.ground_sigma): σ ≥ 0, h/b ≥ 0,033."""
+    hb = np.maximum(h / b, 0.033)
+    return np.maximum((1.0 - 1.32 * hb) / (1.05 + 7.4 * hb), 0.0)
+
+
+TURB_DTS = (1 / 120, 1 / 100, 1 / 60, 1 / 30)
+
+
+def sc_turbulence_mean(wing, blk, modes):
+    """Эталон болтанки (PD-14, решение координатора): отклик хаотичен — у прототипа СКО крена на
+    одном поле меняется в ≈ 2 раза от шага (training: 4,7–9,2°), поэтому эталон — среднее прототипа
+    по шагам TURB_DTS на том же поле; по шагам — в by_dt. dt эталона-среднего — 1/120 (как тест)."""
+    runs = [sc_turbulence(wing, blk, modes, dt=dt) for dt in TURB_DTS]
+    out = {"dt": 1 / 120, "T_s": runs[0]["T_s"], "blowup": any(r["blowup"] for r in runs),
+           "dts": list(TURB_DTS), "by_dt": runs}
+    for k in ("std_phi_deg", "std_theta_deg", "std_rel_y_m", "max_abs_phi_deg", "V_mean_kmh", "max_stretch_m"):
+        out[k] = float(np.mean([r[k] for r in runs]))
+    return out
+
+
+class GameSim(Sim):
+    """Прототип с правками, как в игре (PD-3, PD-14).
+
+    1. Ноги (как PendulumGround): сила бега — сцепление, не больше μ·N (μ = 0,8 — как боковое
+       трение прототипа). В Sim._legs бег толкал полной силой при любом касании — и при опоре в
+       доли ньютона (в сильный ветер это держало пилота «на цыпочках» у склона, отрыва не было).
+    2. Экранный эффект полос (PD-14, configs/pendulum.json → ground_effect): индуктивный скос у
+       полосы × (1 − σ), σ — Wieselsberger по высоте полосы над склоном; наклон подъёмной силы
+       a₀/(1 + (1 − σ)·a₀/(π·e·λ)), индуктивное сопротивление C_L²/(π·e·λ) × (1 − σ), C_L max прежний.
+    3. C_L max полос подобран так, что C_L max всего крыла (статика, симметрично) = поляры
+       (configs/pendulum.json → strip_cl_max_match_polar; PendulumWingStrips.match_polar_cl_max):
+       скорость сваливания — паспортная.
+    """
+
+    _ge = None  # σ по полосам на текущем вызове wing_aero
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.cl_max_wing0 = self.wing_cl_max()
+        target = self.p.polar.cl_max
+        lo, hi = target, 1.6 * target
+        for _ in range(24):
+            mid = 0.5 * (lo + hi)
+            self.cl_max_strip = mid
+            if self.wing_cl_max() < target:
+                lo = mid
+            else:
+                hi = mid
+        self.cl_max_strip = 0.5 * (lo + hi)
+
+    def wing_cl_max(self):
+        """C_L max крыла: поток вдоль x мира, киль под углом a; перебор 1°, потом 0,05° у максимума."""
+        def cl(a):
+            R = R_from_euler(0.0, a, 0.0)
+            F, _, _ = Sim.wing_aero(self, np.zeros(3), np.array([1.0, 0.0, 0.0]), R, np.zeros(3))
+            return -F[2] / (0.5 * self.p.rho * self.p.area)
+        grid = [(cl(math.radians(d)), d) for d in range(5, 46)]
+        best, d0 = max(grid)
+        for j in range(41):
+            best = max(best, cl(math.radians(d0 - 1.0 + j * 0.05)))
+        return best
+
+    def strip_cl(self, a_eff):
+        if self._ge is None:
+            return super().strip_cl(a_eff)
+        p = self.p
+        ind = 1.0 / (math.pi * GE_SPAN_EFFICIENCY * p.span * p.span / p.area)
+        a0 = p.lift_slope / max(1.0 - p.lift_slope * ind, 0.2)
+        sl = a0 / (1.0 + (1.0 - self._ge) * a0 * ind)
+        a_rel = a_eff - self.alpha0_root
+        a_st = self.cl_max_strip / sl
+        cl_plate = 2.0 * np.sin(a_rel) * np.cos(a_rel)
+        blend = np.clip((a_rel - a_st) / math.radians(4.0), 0.0, 1.0)
+        cl_att = np.minimum(sl * a_rel, self.cl_max_strip)
+        cl_att = np.where(a_rel < -a_st, -self.cl_max_strip, cl_att)
+        cl = (1 - blend) * cl_att + blend * cl_plate
+        cd_extra = blend * np.maximum(2.0 * np.sin(a_rel) ** 2, 0.0)
+        # индуктивная часть обтекаемой доли × (1 − σ): вычитается здесь же (cd_extra идёт в сумму CD)
+        cd_extra = cd_extra - self._ge * (1 - blend) * self.cd_scale * ind * cl * cl
+        return cl, cd_extra, blend
+
+    def wing_aero(self, pos, vel, R, w):
+        self._ge = None
+        if self.ground is not None:
+            pts = pos[None] + self.r_strip_b @ R.T
+            h = -pts[:, 2] - self.ground.height(pts[:, 0], pts[:, 1])
+            ge = ground_sigma(h, self.p.span)
+            if ge.max() > 0.0:
+                self._ge = ge
+        try:
+            return super().wing_aero(pos, vel, R, w)
+        finally:
+            self._ge = None
 
     def _legs(self):
         F = super()._legs()
@@ -256,9 +365,9 @@ class GroundSim(Sim):
 
 
 def make_ground(wing: str, blk: dict, dt=1 / 120):
-    p = load_params(wing)
+    p = params(wing)
     p = p.with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"])
-    s = GroundSim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
+    s = GameSim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
     s.cd_scale = blk["cd_scale"]
     a, st = trim.solve_trim(s)
     s.reset_air(st)
@@ -270,7 +379,7 @@ def sc_ground_run(wing, blk, wind=0.0, slope_deg=15.0):
     cd_scale) и носом крыла как в игре (PendulumGround, GroundRun): wing.launch.alpha_neutral_deg
     к потоку на бегущего пилота (ветер в ЦМ крыла; пока потока меньше min_airspeed_ms — вдоль склона), а не 14°
     к склону для всех — иначе в сильный встречный ветер угол атаки на склоне мал; сила бега ≤ μ·N
-    (GroundSim). Пилот стоит 1 с, потом бежит (run);
+    (GameSim). Пилот стоит 1 с, потом бежит (run);
     отрыв — ступни (ЦМ − 1 м) выше земли на 5 см без опоры, после 1,5 с; руки на штангу — через
     1 с после отрыва. Время — от начала (стоя), путь — по горизонтали вдоль склона."""
     s = make_ground(wing, blk)
@@ -346,6 +455,8 @@ def job(args):
         return name, wing, sc_ochi(wing, blk)
     if name.startswith("ground_run"):
         return name, wing, sc_ground_run(wing, blk, wind=extra["wind"])
+    if name == "turbulence":
+        return name, wing, sc_turbulence_mean(wing, blk, extra["modes"])
     if name.startswith("turbulence"):
         return name, wing, sc_turbulence(wing, blk, extra["modes"], dt=extra["dt"])
     raise ValueError(name)
@@ -396,7 +507,9 @@ def main():
             print(name, wing, json.dumps(r, ensure_ascii=False), flush=True)
     out = {
         "_doc": "Эталон прототипа маятника для тестов PD-2; генерирует tools/research/pendulum/export_reference.py, руками не править",
-        "variant": {"yaw_mode": "free", "flex_relief": FLEX_RELIEF, "dihedral_eff_deg": DIHEDRAL_EFF_DEG,
+        "variant": {"yaw_mode": "free",
+                    "apparatus_defaults": {w: wing_cfg(w)["pendulum"]["apparatus_defaults"] for w in WINGS},
+                    "ground_effect": {"span_efficiency": GE_SPAN_EFFICIENCY}, "strip_cl_max_match_polar": True,
                     "dt": 1 / 120, "substeps_per_s": SUBSTEPS_PER_S, "substeps_min": SUBSTEPS_MIN,
                     "n_links": 3, "n_strips": 16, "rho": 1.225, "hang_length_m": 1.2, "g": G},
         "blocks": blocks,

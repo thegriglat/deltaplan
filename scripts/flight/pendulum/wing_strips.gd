@@ -6,9 +6,18 @@ extends RefCounted
 ## Оси — связанные B (авиационные): x — вперёд по килю, y — вправо, z — вниз; начало — ЦМ крыла.
 ## У каждой полосы местная скорость v + ω×r − ветер; подъёмная сила ⊥ нормальной к кромке
 ## скорости, сопротивление — поляра игры CD(CL) за вычетом доли пилота, × cd_scale крыла.
-## Сваливание полосы — линейно до cl_max поляры, дальше пластина CN = 2 (смешивание за 4°).
+## Сваливание полосы — линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); cl_max полос
+## подобран так, что C_L max всего крыла = поляры (скорость сваливания паспорта, PD-14).
 ## Гибкий парус: антисимметричная часть нагрузки консолей × flex_relief. Флюгерная
 ## устойчивость — «эквивалентный киль» (Cnβ) позади ЦМ. Момент паруса — dcm0 (Cm0).
+##
+## Экранный эффект (PD-14): у земли вихревой след крыла «отражается» от неё (метод зеркального
+## вихря), индуктивный скос потока у полосы падает в (1 − σ) раз, σ — по высоте полосы над землёй
+## h и размаху b, формула Wieselsberger (1922; NACA TM-77; McCormick, «Aerodynamics, Aeronautics
+## and Flight Mechanics», 1995, гл. 9): σ = (1 − 1,32·h/b) / (1,05 + 7,4·h/b), σ ≥ 0 (нуль с
+## h/b ≈ 0,76). Индуктивная часть сопротивления C_L²/(π·e·λ) — × (1 − σ); наклон подъёмной силы —
+## теория несущей линии с тем же скосом: a = a₀ / (1 + (1 − σ)·a₀/(π·e·λ)), a₀ — профиля, из
+## lift_slope крыла без экрана; C_L max прежний (срыв у земли — при меньшем угле атаки).
 
 const BLEND_DEG := 4.0
 
@@ -27,7 +36,8 @@ var side := PackedFloat64Array()  ## +1 правая, −1 левая
 var cos_sweep: float = 1.0
 var lift_slope: float = 0.0
 var alpha0_root: float = 0.0  ## α нулевой подъёмной силы киля + средняя крутка
-var cl_max: float = 1.0
+var cl_max: float = 1.0  ## C_L max полосы (поляра или подобранный под неё — match_polar_cl_max)
+var cl_max_wing: float = 0.0  ## C_L max всего крыла (статика), справочно
 var polar: WingPolar
 var cd_scale: float = 1.0
 var cd_pilot_share: float = 0.0
@@ -40,6 +50,9 @@ var fin_area: float = 0.0
 var fin_slope: float = 0.0
 var r_fin_b := Vector3.ZERO
 var free_yaw := true
+## Экранный эффект: 1/(π·e·λ) и наклон профиля a₀ (lift_slope = a₀/(1 + a₀/(π·e·λ))).
+var ind_k: float = 0.0
+var a0_2d: float = 0.0
 
 # результат последнего вызова aero (мир NED, около ЦМ)
 var force := Vector3.ZERO
@@ -50,11 +63,11 @@ var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
 
 # рабочие массивы
-var _a_st: float = 1.0  ## α (от нулевой подъёмной) на cl_max
 var _inv_blend: float = 1.0
-## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до cl_max.
+## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до C_L max поляры.
 var _cd_tab := PackedFloat64Array()
 var _cd_lo: float = -2.0
+var _cd_hi: float = 1.0  ## верх таблицы — C_L max поляры (выше — сопротивление как на нём, как прототип)
 var _cd_inv: float = 1.0
 
 
@@ -136,16 +149,73 @@ func setup(
 	fin_area = float(yaw.cn_beta) * area * span / (fin_slope * fin_arm)
 	r_fin_b = Vector3(-fin_arm, 0.0, 0.0)
 	blend.resize(n)
-	_a_st = cl_max / lift_slope
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
+	var ge: Dictionary = pend.get("ground_effect", {})
+	var e := float(ge.get("span_efficiency", 0.9))
+	ind_k = 1.0 / (PI * e * span * span / area)
+	a0_2d = lift_slope / maxf(1.0 - lift_slope * ind_k, 0.2)
 	build_cd_table()
+	cl_max_wing = wing_cl_max()
+	if bool(pend.get("strip_cl_max_match_polar", true)):
+		match_polar_cl_max()
+
+
+## C_L max всего крыла (статика, симметричный поток, без экрана): перебор угла атаки киля.
+func wing_cl_max() -> float:
+	var best := 0.0
+	var a_best := 0.0
+	var zero := PackedVector3Array()
+	zero.resize(n)
+	var cl_at := func(a: float) -> float:
+		aero(Vector3(1.0, 0.0, 0.0), Basis(Vector3(0, 1, 0), a), Vector3.ZERO, zero, Vector3.ZERO,
+			0.0, 1.0)
+		return -force.z / (0.5 * area)  # ⊥ потоку (поток вдоль x мира)
+	for ad in range(5, 46):
+		var c: float = cl_at.call(deg_to_rad(ad))
+		if c > best:
+			best = c
+			a_best = ad
+	for j in 41:
+		var c: float = cl_at.call(deg_to_rad(a_best - 1.0 + j * 0.05))
+		best = maxf(best, c)
+	return best
+
+
+## C_L max полос — так, чтобы C_L max всего крыла был у поляры (скорость сваливания паспорта):
+## у полос со стреловидностью и круткой корень срывается раньше, чем крыло набирает C_L max
+## поляры. Бисекция по cl_max полос; сопротивление выше C_L max поляры — как на нём.
+func match_polar_cl_max() -> void:
+	var target := polar.cl_max
+	var lo := target
+	var hi := 1.6 * target
+	for _it in 24:
+		var mid := 0.5 * (lo + hi)
+		_set_strip_cl_max(mid)
+		if wing_cl_max() < target:
+			lo = mid
+		else:
+			hi = mid
+	_set_strip_cl_max(0.5 * (lo + hi))
+	cl_max_wing = wing_cl_max()
+
+
+func _set_strip_cl_max(c: float) -> void:
+	cl_max = c
+
+
+## Экранный эффект Wieselsberger: σ по высоте над землёй h и размаху b (h ≤ 0 — как h/b = 0,033,
+## нижняя граница опытов). 0 — экрана нет (h/b ≥ 0,758).
+static func ground_sigma(h: float, b: float) -> float:
+	var hb := maxf(h / b, 0.033)
+	return maxf((1.0 - 1.32 * hb) / (1.05 + 7.4 * hb), 0.0)
 
 
 ## Таблица CD полосы (после смены cd_scale — пересобрать): 512 отрезков, ошибка < 1e-5.
 func build_cd_table() -> void:
 	var nt := 512
 	_cd_tab.resize(nt + 1)
-	_cd_inv = nt / (cl_max - _cd_lo)
+	_cd_hi = polar.cl_max
+	_cd_inv = nt / (_cd_hi - _cd_lo)
 	for j in nt + 1:
 		var cl := _cd_lo + j / _cd_inv
 		_cd_tab[j] = cd_scale * (polar.cd_at(cl) - cd_pilot_share)
@@ -154,12 +224,14 @@ func build_cd_table() -> void:
 ## Сила и момент около ЦМ (мир NED) → force, moment (и в осях B — force_b, moment_b).
 ## vel — скорость ЦМ (земля), R — B→мир, w — угловая скорость (мир), air — ветер в точках
 ## полос (мир, порядок r_b), air_c — в ЦМ, billow_lam — tg угла стропы к крылу поперёк
-## (для billow_shift), rho — плотность. Полосы считаются парами (правая i, левая i + n/2):
-## гибкий парус перераспределяет нагрузку внутри пары.
+## (для billow_shift), rho — плотность, ge — σ экранного эффекта по полосам (пусто — нет).
+## Полосы считаются парами (правая i, левая i + n/2): гибкий парус перераспределяет нагрузку
+## внутри пары.
 func aero(
 	vel: Vector3, R: Basis, w: Vector3, air: PackedVector3Array, air_c: Vector3,
-	billow_lam: float, rho: float
+	billow_lam: float, rho: float, ge := PackedFloat64Array()
 ) -> void:
+	var has_ge := ge.size() == n
 	var Rt := R.transposed()
 	var wb: Vector3 = Rt * w
 	var vb: Vector3 = Rt * vel
@@ -189,23 +261,27 @@ func aero(
 		if billow_shift != 0.0:
 			ai -= side[i] * billow_shift * billow_lam * yabs[i]
 			ak -= side[k] * billow_shift * billow_lam * yabs[k]
-		# CL полосы: линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°)
+		# CL полосы: линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); у земли наклон
+		# больше (экран), cl_max тот же
 		var ri := ai - alpha0_root
 		var rk := ak - alpha0_root
-		var bi := clampf((ri - _a_st) * _inv_blend, 0.0, 1.0)
-		var bk := clampf((rk - _a_st) * _inv_blend, 0.0, 1.0)
-		blend[i] = bi
-		blend[k] = bk
-		var cli := -cl_max if ri < -_a_st else minf(lift_slope * ri, cl_max)
-		var clk := -cl_max if rk < -_a_st else minf(lift_slope * rk, cl_max)
-		var cdxi := 0.0
-		var cdxk := 0.0
-		if bi > 0.0:
-			cli += bi * (sin(2.0 * ri) - cli)
-			cdxi = bi * 2.0 * sin(ri) * sin(ri)
-		if bk > 0.0:
-			clk += bk * (sin(2.0 * rk) - clk)
-			cdxk = bk * 2.0 * sin(rk) * sin(rk)
+		var gi := 0.0
+		var gk := 0.0
+		var sli := lift_slope
+		var slk := lift_slope
+		if has_ge:
+			gi = ge[i]
+			gk = ge[k]
+			sli = a0_2d / (1.0 + (1.0 - gi) * a0_2d * ind_k)
+			slk = a0_2d / (1.0 + (1.0 - gk) * a0_2d * ind_k)
+		var oi := _strip_cl(i, ri, sli)
+		var ok := _strip_cl(k, rk, slk)
+		var cli := oi.x
+		var clk := ok.x
+		var cdxi := oi.y
+		var cdxk := ok.y
+		var bi := oi.z
+		var bk := ok.z
 		var q2i := uci * uci + uzi * uzi
 		var q2k := uck * uck + uzk * uzk
 		var qi := q_half * q2i
@@ -219,14 +295,18 @@ func aero(
 			cli = (mm + dd) / maxf(qi, 1.0e-6)
 			clk = (mm - dd) / maxf(qk, 1.0e-6)
 		# сопротивление: поляра (таблица по CL) + пластина при срыве
-		var xi := (clampf(cli, _cd_lo, cl_max) - _cd_lo) * _cd_inv
-		var xk := (clampf(clk, _cd_lo, cl_max) - _cd_lo) * _cd_inv
+		var xi := (clampf(cli, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
+		var xk := (clampf(clk, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
 		var ii := mini(int(xi), nt2)
 		var ik := mini(int(xk), nt2)
 		var c0i := _cd_tab[ii]
 		var c0k := _cd_tab[ik]
 		var cdi := c0i + (_cd_tab[ii + 1] - c0i) * (xi - ii) + cdxi
 		var cdk := c0k + (_cd_tab[ik + 1] - c0k) * (xk - ik) + cdxk
+		if has_ge:
+			# экран: индуктивная часть обтекаемой доли — × (1 − σ)
+			cdi -= gi * (1.0 - bi) * cd_scale * ind_k * cli * cli
+			cdk -= gk * (1.0 - bk) * cd_scale * ind_k * clk * clk
 		# подъёмная ⊥ размаху и нормальной к кромке скорости (s × (c·uc + n·uz)), вверх
 		var ldi: Vector3 = sxc_b[i] * uci + sxn_b[i] * uzi
 		var ldk: Vector3 = sxc_b[k] * uck + sxn_b[k] * uzk
@@ -255,6 +335,20 @@ func aero(
 	moment_b = m_sum
 	force = R * f_sum
 	moment = R * m_sum
+
+
+## CL полосы j: линейно до cl_max, дальше пластина CN = 2 (смешивание за BLEND_DEG); r — угол
+## атаки от нулевой подъёмной, sl — наклон (у земли больше). → (CL, CD пластины, доля срыва).
+func _strip_cl(j: int, r: float, sl: float) -> Vector3:
+	var ast := cl_max / sl
+	var b := clampf((r - ast) * _inv_blend, 0.0, 1.0)
+	blend[j] = b
+	var cl := -cl_max if r < -ast else minf(sl * r, cl_max)
+	var cdx := 0.0
+	if b > 0.0:
+		cl += b * (sin(2.0 * r) - cl)
+		cdx = b * 2.0 * sin(r) * sin(r)
+	return Vector3(cl, cdx, b)
 
 
 ## Доля полос с сорванным потоком.

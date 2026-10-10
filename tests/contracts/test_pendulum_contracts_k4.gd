@@ -19,7 +19,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К4\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 1, "заголовок «## PD-К4. … (v1)»")
+	check(m != null and int(m.get_string(1)) == 2, "заголовок «## PD-К4. … (v2)»")
 
 
 func test_proto_fields() -> void:

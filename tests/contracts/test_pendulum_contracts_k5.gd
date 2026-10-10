@@ -13,7 +13,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К5\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 1, "заголовок «## PD-К5. … (v1)»")
+	check(m != null and int(m.get_string(1)) == 2, "заголовок «## PD-К5. … (v2)»")
 
 
 func _method(o: Object, name: String) -> Dictionary:

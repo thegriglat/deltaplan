@@ -98,6 +98,23 @@ func test_run_up_headwind_shorter() -> void:
 			check(r.x < 0.8 * calm.x, "%s: встречный 3 м/с — путь короче (%.1f против %.1f м)" % [w, r.x, calm.x])
 
 
+## PD-14: разбег с «от себя» (больший угол атаки) — отрыв медленнее, чем в нейтрали; если после
+## отрыва ручку не прибрать, крыло летит медленнее трима (балансировка «от себя»), но само не падает:
+## продольная устойчивость возвращает его к своей балансировке выше срыва.
+func test_run_up_push_slower_liftoff() -> void:
+	for w: String in WINGS:
+		var n := run_up(w, 0.0)
+		var p := run_up(w, 0.0, SLOPE_DEG, 25.0, 0.3)
+		check(n.took_off and p.took_off, "%s: оба отрыва" % w)
+		if not (n.took_off and p.took_off):
+			continue
+		print("    %s: отрыв в нейтрали %.1f км/ч, «от себя» 0,3 — %.1f км/ч; через 4 с %.1f против %.1f" % [
+			w, n.v_kmh, p.v_kmh, n.get("v_after_kmh", NAN), p.get("v_after_kmh", NAN)])
+		check(p.v_kmh < n.v_kmh - 1.5, "%s: «от себя» — отрыв медленнее" % w)
+		check(p.get("v_after_kmh", 99.0) < n.get("v_after_kmh", 0.0) - 1.0, "%s: не прибрал — медленнее трима" % w)
+		check(p.get("flying_after", false), "%s: не прибрал — летит (не падает)" % w)
+
+
 ## Пилот: «встречный 6 м/с — отрыв за 2 шага» — отрыв за 1–3 с бега.
 func test_run_up_headwind_6() -> void:
 	var res := _against_ref("ground_run_wind6", 6.0)
