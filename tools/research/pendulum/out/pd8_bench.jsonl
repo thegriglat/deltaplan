@@ -1,0 +1,9 @@
+{"dt":0.0166666666666667,"ms_per_second_flight_model":1.8181,"ms_per_second_pendulum":8.4702,"sc":"bench","us_flight_model":30.3016666666667,"us_pendulum":141.17,"wing":"training"}
+{"dt":0.00833333333333333,"ms_per_second_flight_model":3.6375,"ms_per_second_pendulum":9.8567,"sc":"bench","us_flight_model":30.3125,"us_pendulum":82.1391666666667,"wing":"training"}
+{"dt":0.00416666666666667,"ms_per_second_flight_model":7.3036,"ms_per_second_pendulum":16.6665,"sc":"bench","us_flight_model":30.4316666666667,"us_pendulum":69.44375,"wing":"training"}
+{"dt":0.0166666666666667,"ms_per_second_flight_model":1.7794,"ms_per_second_pendulum":8.3832,"sc":"bench","us_flight_model":29.6566666666667,"us_pendulum":139.72,"wing":"laminar"}
+{"dt":0.00833333333333333,"ms_per_second_flight_model":3.5918,"ms_per_second_pendulum":9.6471,"sc":"bench","us_flight_model":29.9316666666667,"us_pendulum":80.3925,"wing":"laminar"}
+{"dt":0.00416666666666667,"ms_per_second_flight_model":7.1983,"ms_per_second_pendulum":16.3205,"sc":"bench","us_flight_model":29.9929166666667,"us_pendulum":68.0020833333333,"wing":"laminar"}
+{"dt":0.0166666666666667,"ms_per_second_flight_model":1.821,"ms_per_second_pendulum":8.3608,"sc":"bench","us_flight_model":30.35,"us_pendulum":139.346666666667,"wing":"sport"}
+{"dt":0.00833333333333333,"ms_per_second_flight_model":3.578,"ms_per_second_pendulum":9.6979,"sc":"bench","us_flight_model":29.8166666666667,"us_pendulum":80.8158333333333,"wing":"sport"}
+{"dt":0.00416666666666667,"ms_per_second_flight_model":7.2134,"ms_per_second_pendulum":16.3738,"sc":"bench","us_flight_model":30.0558333333333,"us_pendulum":68.2241666666667,"wing":"sport"}

@@ -47,3 +47,17 @@ python3 estimates.py                   # оценки 05.10
 
 ## Данные и лицензии
 Свои расчёты; чужих данных в репозитории нет. Числа из литературы — с цитированием: статьи ICAS 2016/2022 — открытый архив ICAS; NASA TM-81269 (Kroo 1981) и NASA CP (Kroo & Chang, Ormiston, 1979) — public domain; arXiv:2108.02393 — числа из таблиц с цитированием; руководства Airborne Fun, Moyes Xtralite, Wills Wing Sport 2 — числа (подвеска, шаг регулировки) с URL, PDF не храним. Графики `out/fig/*.png` — свои.
+
+## Сверка игры с прототипом (PD-8)
+Один пакетный прогон: план (поля болтанки) → прототип (≤ 6 процессов) → игра (один godot) → цена шага (под flock) → итог. Данные и таблицы — `out/game_vs_proto.md`, `out/pd8_*.jsonl`, `out/pd8_summary.json`.
+```
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+$PY tools/research/pendulum/pd8_proto.py plan                      # out/pd8_plan.json (10 зёрен σ 1 м/с)
+$PY tools/research/pendulum/pd8_proto.py run --jobs 6              # out/pd8_proto.jsonl (≈ 6 мин)
+XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/flight/pendulum_compare.tscn -- \
+    --plan=tools/research/pendulum/out/pd8_plan.json --out=tools/research/pendulum/out/pd8_game.jsonl   # ≈ 75 с
+XDG_DATA_HOME=$(mktemp -d) flock /tmp/heat_ca_gpu.lock godot --headless --path . \
+    res://tools/flight/pendulum_compare.tscn -- --bench --out=tools/research/pendulum/out/pd8_bench.jsonl
+$PY tools/research/pendulum/pd8_summary.py                         # out/game_vs_proto.md, pd8_summary.json
+```
+Лицензии: данные порождены своим кодом, внешних данных нет.
