@@ -16,6 +16,7 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 	var t0 := Time.get_ticks_usec()
 	building_obstacles = ObstacleIndex.new()
 	var parts: Array = [
+		["CityGround", OsmCityGround.build(data, cfg, height_fn)],
 		["Roads", OsmRoads.build(data, cfg, height_fn, obstacles)],
 		["Pilot", OsmPilot.build(data, cfg, height_fn, obstacles)],
 		["Wind", OsmWindTurbines.build(data, cfg, height_fn, obstacles)],
