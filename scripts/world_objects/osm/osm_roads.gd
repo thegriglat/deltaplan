@@ -7,6 +7,7 @@ extends RefCounted
 ## Возвращает Node3D "Roads" (в meta "stats" — счётчики) или null, если строить нечего.
 
 const DRAPED_SHADER := preload("res://scripts/world_objects/draped.gdshader")
+const ROAD_SHADER := preload("res://scripts/world_objects/osm/road.gdshader")
 
 
 static func build(data: OsmData, cfg: Dictionary, height_fn: Callable, _obstacles: ObstacleIndex) -> Node3D:
@@ -120,9 +121,11 @@ static func _add_group(parent: Node3D, g: Dictionary) -> void:
 		return
 	var gcfg: Dictionary = g.cfg
 	var mat := ShaderMaterial.new()
-	mat.shader = DRAPED_SHADER
+	mat.shader = DRAPED_SHADER if g.water or g.kind != "roads" else ROAD_SHADER
 	mat.set_shader_parameter(&"depth_pull", float(gcfg.depth_pull))
 	mat.set_shader_parameter(&"depth_bias_m", float(gcfg.lift_m) * 2.0)
+	if mat.shader == ROAD_SHADER:
+		_look_params(mat, gcfg.get("look", {}))
 	if g.water:
 		mat.set_shader_parameter(&"roughness", float(gcfg.get("roughness", 0.12)))
 		mat.set_shader_parameter(&"edge_darken", 0.0)
@@ -140,3 +143,16 @@ static func _add_group(parent: Node3D, g: Dictionary) -> void:
 		var r := float(gcfg.get("major_visibility_m", 12000.0) if t.major else gcfg.get("minor_visibility_m", 3000.0))
 		mi.visibility_range_end = WorldTiles.tile_range(r, tile)
 		root.add_child(mi)
+
+
+## roads.look (L7) → uniform'ы шейдера дорог: числа и цвета (массив [r, g, b] sRGB — для uniform с source_color).
+static func _look_params(mat: ShaderMaterial, look: Dictionary) -> void:
+	for k: String in look:
+		if k.ends_with("_doc") or k == "styles" or k.begins_with("_"):
+			continue
+		var v: Variant = look[k]
+		if v is Array:
+			var a: Array = v
+			mat.set_shader_parameter(StringName(k), Color(float(a[0]), float(a[1]), float(a[2])))  # source_color: sRGB
+		elif v is float or v is int:
+			mat.set_shader_parameter(StringName(k), float(v))

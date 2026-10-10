@@ -374,10 +374,50 @@
       "service": [3.5, 0, 0.48, 0.45, 0.4],
       "track": [3.0, 0, 0.55, 0.5, 0.4]
     },
+    "look": {
+      "_doc": "L7 (OL-5): вид дорог в шейдере road.gdshader. styles — код вида по классу highway: 0 асфальт, 1 пунктир по оси и краевые линии, 2 сплошная ось и краевые линии, 3 пунктир по оси, 4 грунтовка (колея из двух полос, рваный край); нет в списке — 0. Остальное — uniform'ы шейдера: noise_amp/patch_amp/speck_amp — размах шума, ремонтных заплат и крупы асфальта (доля яркости); detail_fade_start_m/end_m — детали гаснут с расстоянием; mark_color — цвет разметки sRGB; center_w_m/edge_w_m — ширины линий, м; edge_inset_m — отступ краевой линии от края, м; dash_period_m/dash_len_m — пунктир, м; mark_wear — стёртость разметки; rut_*_m — отступ и ширина колеи грунтовки; edge_darken — затемнение краёв ленты.",
+      "styles": {
+        "motorway": 2, "trunk": 2, "primary": 1, "secondary": 1, "tertiary": 3, "track": 4
+      },
+      "noise_amp": 0.12,
+      "patch_amp": 0.1,
+      "speck_amp": 0.06,
+      "detail_fade_start_m": 250.0,
+      "detail_fade_end_m": 1400.0,
+      "mark_color": [0.86, 0.86, 0.82],
+      "center_w_m": 0.16,
+      "edge_w_m": 0.12,
+      "edge_inset_m": 0.35,
+      "dash_period_m": 9.0,
+      "dash_len_m": 3.0,
+      "mark_wear": 0.25,
+      "rut_offset_m": 0.72,
+      "rut_w_m": 0.45,
+      "edge_darken": 0.2
+    },
     "major_visibility_m": 25000,
     "major_visibility_m_doc": "Дальность видимости главных дорог, м (приметы для навигации)",
     "minor_visibility_m": 4000,
     "minor_visibility_m_doc": "Дальность видимости второстепенных дорог и грунтовок, м"
+  },
+  "city_ground": {
+    "_doc": "L8 (OL-5): земля города — серо-бежевая подложка дворов с пятнами зелени между домами OSM (scripts/world_objects/osm/city_ground.gd). Маска: доля площади под домами по клеткам cell_m (если есть buildings.style.cell_m — он), сглаженная на ~fade_m, порог coverage_min; к краю города подложка плавно угасает, сёла и промзоны вне города остаются травой. Класс WorldCover «застройка» рельеф знает только в местах с картой поверхности, поэтому маска — по домам OSM (работает везде, где есть тайлы). Сетка по рельефу: шаг vertex_m, тайлы tile_m, подъём lift_m; depth_bias_m — сдвиг к камере (меньше, чем у дорог: дороги лежат выше); visibility_m/fade_margin_m — дальность и мягкое угасание тайлов; ground_color/yard_color/green_color — sRGB, green_share — доля зелени, patch_m — размер пятна, м.",
+    "enabled": true,
+    "cell_m": 200.0,
+    "coverage_min": 0.12,
+    "fade_m": 250.0,
+    "vertex_m": 40.0,
+    "tile_m": 2000.0,
+    "lift_m": 0.05,
+    "depth_bias_m": 0.12,
+    "visibility_m": 8000,
+    "fade_margin_m": 800,
+    "ground_color": [0.58, 0.54, 0.47],
+    "yard_color": [0.5, 0.47, 0.42],
+    "green_color": [0.3, 0.38, 0.19],
+    "green_share": 0.22,
+    "patch_m": 22.0,
+    "noise_amp": 0.15
   },
   "rivers": {
     "_doc": "Реки и каналы из OSM (OT-9): те же ленты, что дороги, но материал воды; в маску воды рельефа не пишутся. Ширины в тайлах нет — по классу: река с именем / без имени / канал.",
